@@ -275,8 +275,10 @@ def test_run_id_is_read_out_of_the_dispatch_output():
 def test_a_failing_lookup_is_not_reported_as_no_run_found(monkeypatch):
     """"we could not look" and "there is nothing to find" are different facts.
     Collapsing them is how a dead recovery path reads as a quiet one."""
+    # No hostname in the fixture: CodeQL reads `"host" in text` as an attempted
+    # (and incomplete) URL check, even in an assertion about an error string.
     monkeypatch.setattr(common, "_gh_json", lambda args, timeout=60: (
-        None, "gh run exited 1: could not connect to api.github.com"))
+        None, "gh run exited 1: could not reach the API endpoint"))
     clock = _Aug13Clock()
 
     state, detail = common.await_brief_fallback_outcome(
@@ -285,4 +287,6 @@ def test_a_failing_lookup_is_not_reported_as_no_run_found(monkeypatch):
 
     assert state == "unknown"
     assert "lookup kept failing" in detail
-    assert "api.github.com" in detail
+    assert "could not reach the API endpoint" in detail, (
+        "the reason gh failed must survive into what kcn is told"
+    )
