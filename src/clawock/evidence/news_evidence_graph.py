@@ -943,6 +943,15 @@ def _event_information_component(event, now, overlay_policy):
     }
 
 
+def _corroboration_weight(sources):
+    """Source-count weight, with one source as the reproducible floor.
+
+    Kept as one function so the live path and the baseline-comparable path
+    cannot drift apart into two slightly different weightings.
+    """
+    return min(1.0, 0.5 + 0.25 * (max(1, int(sources or 1)) - 1))
+
+
 def _event_attention_component(event, now, overlay_policy):
     """Unsigned, source-weighted attention available at the snapshot cutoff.
 
@@ -970,12 +979,19 @@ def _event_attention_component(event, now, overlay_policy):
     novelty = float(event.get('novelty_score') or 0)
     reliability = float(event.get('source_reliability') or 0)
     sources = max(1, int(event.get('corroborating_source_count') or 1))
-    corroboration = min(1.0, 0.5 + 0.25 * (sources - 1))
+    corroboration = _corroboration_weight(sources)
     freshness = math.exp(
         -math.log(2) * age_hours
         / float(overlay_policy['freshness_half_life_hours'])
     )
     value = novelty * reliability * corroboration * freshness
+    # ``update_history`` does not persist ``corroborating_source_count``, so a
+    # historical baseline can only ever be rebuilt at the one-source floor.
+    # Acceleration therefore compares floor-weighted against floor-weighted;
+    # scoring the live side at full corroboration against that baseline moved
+    # the ratio in one direction only. Full weight still drives the
+    # cross-sectional attention score and its rank, where both sides are live.
+    comparable = novelty * reliability * _corroboration_weight(1) * freshness
     return {
         'event_id': event.get('event_id'),
         'published_at': published,
@@ -984,6 +1000,7 @@ def _event_attention_component(event, now, overlay_policy):
         'corroborating_sources': sources,
         'freshness': round(freshness, 4),
         'attention_value': round(value, 6),
+        'baseline_comparable_value': round(comparable, 6),
         'channel': (event.get('metadata') or {}).get('channel') or 'news',
         'source_type': event.get('source_type') or 'unknown',
     }
@@ -1033,7 +1050,10 @@ def _history_attention_rows(history, overlay_policy):
             }, cutoff, overlay_policy)
             if component is not None:
                 ticker = str(event.get('ticker') or '')
-                scores[ticker] = scores.get(ticker, 0.0) + component['attention_value']
+                scores[ticker] = (
+                    scores.get(ticker, 0.0)
+                    + component['baseline_comparable_value']
+                )
         for ticker, score in scores.items():
             rows.append({'as_of': as_of, 'ticker': ticker, 'score': score})
     return rows
@@ -1128,6 +1148,15 @@ def build_information_overlay(policy, events, history, now):
         )
         for ticker in eligible_tickers
     }
+    # The numerator of the acceleration ratio. Deliberately not attention_raw:
+    # the denominator is rebuilt from snapshots that cannot carry corroboration.
+    attention_comparable = {
+        ticker: sum(
+            row['baseline_comparable_value']
+            for row in attention_components.get(ticker, [])
+        )
+        for ticker in eligible_tickers
+    }
     # Mid-rank ties. Ticker spelling must never decide which equal-score name
     # lands above an activation threshold.
     ranks = {}
@@ -1178,7 +1207,7 @@ def build_information_overlay(policy, events, history, now):
         )
         attention_prior = float(overlay_policy.get('attention_score_prior', 0.1))
         attention_acceleration = (
-            (attention_raw[ticker] + attention_prior)
+            (attention_comparable[ticker] + attention_prior)
             / (attention_baseline + attention_prior)
         )
         source_types = {
@@ -1202,6 +1231,7 @@ def build_information_overlay(policy, events, history, now):
             'own_surprise_z': round(surprise, 4) if surprise is not None else None,
             'event_count': len(components.get(ticker, [])),
             'attention_score': round(attention_raw[ticker], 6),
+            'attention_comparable_score': round(attention_comparable[ticker], 6),
             'attention_rank': round(attention_ranks[ticker], 4),
             'attention_rank_scope': 'HK' if ticker.isdigit() else 'US',
             'attention_event_count': len(attention_components.get(ticker, [])),
