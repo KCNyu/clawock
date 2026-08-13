@@ -263,6 +263,71 @@ def run_cron_job(job_id, *, binary: str | None = None,
         return False, f"{type(exc).__name__}: {exc}"[:300]
 
 
+# The runtime's own default when `cron.retry.maxAttempts` is unset
+# (DEFAULT_MAX_TRANSIENT_RETRIES in the scheduler bundle).
+RUNTIME_DEFAULT_MAX_TRANSIENT_RETRIES = 3
+# The runtime's config schema rejects a larger value, so a job already past this
+# many consecutive failures cannot be rescued by raising the cap at all.
+RUNTIME_MAX_ALLOWED_ATTEMPTS = 10
+
+
+@dataclass(frozen=True)
+class CronRetryBudget:
+    """Whether the runtime will still retry a job after a transient error.
+
+    The scheduler's rule is `consecutiveErrors > cron.retry.maxAttempts ⇒ no
+    retry`, and `consecutiveErrors` counts *runs*, not attempts within a run: it
+    only resets on a success. For a once-a-day job that makes the budget a
+    countdown of bad days, and once it runs out the job is in a ring — it needs
+    a retry to succeed, and a success to get its retry back. Nothing in the
+    runtime reports that state, which is why 2026-08-13's brief died looking
+    exactly like a provider timeout (#506).
+
+    `exhausted` is None when the job state cannot be read; absence of evidence is
+    not evidence of a healthy budget, and callers must not report either way.
+    """
+
+    consecutive_errors: int | None
+    max_attempts: int
+    exhausted: bool | None
+
+    @property
+    def raisable(self) -> bool:
+        """Can raising the configured cap alone restore this job's retries?"""
+        return (self.consecutive_errors is not None
+                and self.consecutive_errors <= RUNTIME_MAX_ALLOWED_ATTEMPTS)
+
+    def describe(self) -> str:
+        if self.exhausted is None:
+            return "retry budget unknown (job state unreadable)"
+        return (f"consecutiveErrors={self.consecutive_errors} "
+                f"{'>' if self.exhausted else '<='} maxAttempts={self.max_attempts}")
+
+
+def cron_max_attempts(*, paths: OpenClawPaths | None = None) -> int:
+    """`cron.retry.maxAttempts` from the live runtime config, or its default."""
+    config_file = (paths or runtime_paths()).config_file
+    try:
+        config = json.loads(config_file.read_text())
+        value = ((config.get("cron") or {}).get("retry") or {}).get("maxAttempts")
+    except Exception:
+        return RUNTIME_DEFAULT_MAX_TRANSIENT_RETRIES
+    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
+        return RUNTIME_DEFAULT_MAX_TRANSIENT_RETRIES
+    return value
+
+
+def cron_retry_budget(job, *, paths: OpenClawPaths | None = None,
+                      max_attempts: int | None = None) -> CronRetryBudget:
+    """Read one job's remaining transient-retry budget from its live state."""
+    cap = cron_max_attempts(paths=paths) if max_attempts is None else max_attempts
+    state = job.get("state") if isinstance(job, dict) else None
+    errors = state.get("consecutiveErrors") if isinstance(state, dict) else None
+    if isinstance(errors, bool) or not isinstance(errors, int) or errors < 0:
+        return CronRetryBudget(None, cap, None)
+    return CronRetryBudget(errors, cap, errors > cap)
+
+
 # ── Cron state ───────────────────────────────────────────────────────────────
 # Moved verbatim from `_watchdog_common`, with one shape change: which source
 # answered is returned instead of being left in a module global. A watchdog that

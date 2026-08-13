@@ -57,7 +57,8 @@ from pathlib import Path
 from ._watchdog_common import (
     WS, HKT, log, build_brief_card, send_telegram, KCN_TELEGRAM,
     dispatch_brief_fallback, await_brief_fallback_outcome,
-    brief_cron_job, cron_run_ended_in_failure, rerun_cron_job,
+    brief_cron_job, cron_run_ended_in_failure, rerun_cron_job, cron_retry_budget,
+    CRON_MAX_ALLOWED_ATTEMPTS,
 )
 
 MARKER_FRESH_MS = 30 * 60 * 1000  # postflight send-marker older than this ⇒ not this slot
@@ -137,6 +138,7 @@ def retrigger_or_wait(today, dry_run):
              'reason': 'on-host re-run already fired today (dedupe flag present)'})
         return 0
 
+    budget = cron_retry_budget(job)
     ok, out = rerun_cron_job(job.get('id'), dry_run)
     if ok and not dry_run:
         flag.parent.mkdir(parents=True, exist_ok=True)
@@ -145,6 +147,11 @@ def retrigger_or_wait(today, dry_run):
          'job_id': job.get('id'), 'job_name': job.get('name'),
          'reason': 'the 08:00 run already ended in error; the runtime will not '
                    'retry it (consecutiveErrors past its budget)',
+         # This re-run is one more single attempt: it inherits the same exhausted
+         # budget, so it dies to the same first-call timeout the runtime retries
+         # away for every other job. Recording the numbers here is what lets the
+         # 09:05 pass say so instead of blaming the provider again (#506).
+         'retry_budget': budget.describe(), 'retry_budget_exhausted': budget.exhausted,
          'out': out})
     return 0
 
@@ -196,6 +203,40 @@ def write_missing_state(today, state):
     tmp.replace(path)
 
 
+def retry_budget_note():
+    """Name an exhausted retry budget in the 09:05 alert, or say nothing.
+
+    Every automatic recovery this watchdog owns is one more single attempt, and
+    an exhausted budget is what makes single attempts lose: the runtime stops
+    retrying at `consecutiveErrors > cron.retry.maxAttempts`, and that counter
+    only clears on a success the job cannot reach while it is failing. On
+    2026-08-13 that state was three days old and invisible — the alert pointed
+    at `sar -q` and the provider, both of which were healthy (#506). Only a
+    counter reset gets the job out, and nothing on the box does it by itself, so
+    this line is addressed to the one reader who can.
+
+    Silent unless the budget is *provably* exhausted: an unreadable job or a
+    healthy budget both leave the alert exactly as it was, because a miss has
+    other causes and a guess here would send kcn after the wrong one.
+    """
+    job = brief_cron_job()
+    if not isinstance(job, dict):
+        return ''
+    budget = cron_retry_budget(job)
+    if not budget.exhausted:
+        return ''
+    remedy = (
+        f'把 openclaw.json 的 cron.retry.maxAttempts 抬过 {budget.consecutive_errors}'
+        if budget.raisable else
+        f'配置上限只到 {CRON_MAX_ALLOWED_ATTEMPTS}，抬 maxAttempts 已经救不回来 —— '
+        f'只能重置计数（停 gateway → state/openclaw.sqlite 的 cron_jobs '
+        f'consecutive_errors 与 state_json 一起归零 → 起 gateway）'
+    )
+    return (f'⛔ 这个 job 的 runtime 重试预算已耗尽：{budget.describe()}\n'
+            f'    ⇒ 它每天只有一次机会、失败即止；别的 job 撞同一堵墙靠重试活下来。\n'
+            f'    ⇒ {remedy}\n\n')
+
+
 def alert_brief_missing(today, dry_run, issues=None):
     """09:05 HKT: landing artifacts are incomplete ⇒ page kcn + self-heal.
 
@@ -244,6 +285,7 @@ def alert_brief_missing(today, dry_run, issues=None):
     alert = (
         f'🔴 盘前深度简报产物不完整 — {today}\n\n'
         f'09:05 检查结果：\n{issue_text}\n\n'
+        + retry_budget_note()
         + ('🔄 已 dispatch off-host 兜底 (brief-fallback.yml)，正在等待运行结果，稍后另发一条。\n'
            if dispatched else
            '⚠️ 自动 dispatch 兜底失败，需要手动：gh workflow run brief-fallback.yml\n'

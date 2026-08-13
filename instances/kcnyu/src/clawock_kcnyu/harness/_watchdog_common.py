@@ -331,6 +331,16 @@ def rerun_cron_job(job_id, dry_run=False):
     return _openclaw.run_cron_job(job_id)
 
 
+def cron_retry_budget(job):
+    """Has this job run out of runtime retries? See providers.openclaw."""
+    return _openclaw.cron_retry_budget(job)
+
+
+# Raising `cron.retry.maxAttempts` past this is rejected by the runtime's config
+# schema, so it bounds what the operator can do about an exhausted budget.
+CRON_MAX_ALLOWED_ATTEMPTS = _openclaw.RUNTIME_MAX_ALLOWED_ATTEMPTS
+
+
 def dispatch_brief_fallback(dry_run=False):
     """Fire .github/workflows/brief-fallback.yml on demand. Returns (ok, tail_of_output).
 
