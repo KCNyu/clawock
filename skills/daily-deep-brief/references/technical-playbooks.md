@@ -13,11 +13,19 @@
 
 仓库活跃不代表算法是新发明；以上日期只证明实现仍在维护。趋势、突破、RSI、ATR 本身是经典机制。
 
-## 三种允许的 setup
+## 三种技术 setup + 一种 alpha 执行确认
 
 1. `trend_pullback`：多头趋势成立，当日触及并收复 MA20，收阳且高于前收。第一次加一小批，失效线为 MA50/ATR/吊灯线中更严格的有效线；最多两批。
 2. `confirmed_breakout`：收盘突破此前 20 日高，1 个月动量为正且吊灯止损未破。第一次只加小批；跌回 MA20/吊灯线即失效；最多两批。
 3. `oversold_reclaim`：前一日 RSI≤35 且 20 日 z≤−1，次日收复前一日高点。它是唯一允许降低均价的 setup，只加一批 5%，跌破此前 5 日低点失效。
+
+`alpha_confirmation` 只能由 packet 生成，模型不能自己创建。它先要求两个独立
+family：factor/peer residual 合并为 `price_relative`，新闻方向 surprise 或相对自身
+历史的 attention acceleration 为 `point_in_time_information`；随后技术层只在未来
+1–5 个本地交易日等突破确认，跳空按开盘成交，同日同时触发 entry 与 invalidation
+按失效处理。warming-up exploration 每 ticker/policy 只采一批 2.5%；不足一股/一手
+时，只有该最小单位仍低于市场账 3% 硬上限才可补成一单位，否则输出零。validated
+才能多批，杠杆 ETF 不允许 exploration。
 
 `亏损`、`比成本低`、`今天翻红`、`利好新闻`都不是 setup。不得把它们单独包装成摊低成本。
 

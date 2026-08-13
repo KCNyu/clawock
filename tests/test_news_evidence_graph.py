@@ -88,14 +88,17 @@ def test_eastmoney_naive_timestamp_is_hkt_and_future_event_is_excluded():
 
 def test_information_history_counts_registered_zero_signal_days():
     history = [{
-        'as_of': f'2026-07-{day:02d}',
+        'as_of': f'2026-08-{day:02d}',
         'information_overlay_schema_version': 1,
+        'information_overlay_backfill': {'activation_eligible': True},
         'events': ([{'ticker': 'ABC', 'information_signed_score': 1.0}]
                    if day == 1 else []),
     } for day in range(1, 4)]
     event = _event(title='ABC receives approval and raises guidance')
     event.update(novelty_score=1.0, corroborating_source_count=1)
-    overlay = graph.build_information_overlay(POLICY, [event], history, NOW)
+    policy = deepcopy(POLICY)
+    policy['information_overlay']['registered_at'] = '2026-07-01'
+    overlay = graph.build_information_overlay(policy, [event], history, NOW)
 
     assert overlay['activation']['checks']['history_dates']['actual'] == 3
     assert overlay['tickers']['ABC']['own_history_dates'] == 3
@@ -140,6 +143,38 @@ def test_covered_name_without_direction_is_a_zero_not_missing():
     assert overlay['activation']['checks']['cross_section_tickers']['actual'] == 2
     assert overlay['tickers']['XYZ']['signed_score'] == 0
     assert overlay['tickers']['XYZ']['event_count'] == 0
+
+
+def test_attention_requires_own_history_acceleration_not_just_headline_count():
+    old = _event(
+        title='ABC general corporate update', ticker='ABC',
+        published_at='2026-07-25T08:00:00+00:00',
+    )
+    old.update(novelty_score=1.0, corroborating_source_count=1)
+    history = [{
+        'as_of': '2026-07-25',
+        'observed_at': old['publication_time']['iso'],
+        'information_overlay_schema_version': 1,
+        'events': [{
+            'event_id': old['event_id'], 'ticker': 'ABC',
+            'published_at': old['publication_time']['iso'],
+            'novelty_score': 1.0, 'source_reliability': 0.99,
+            'source_type': 'sec_filing',
+        }],
+    }]
+    current = _event(
+        title='ABC another corporate update', ticker='ABC',
+        published_at=NOW.isoformat(),
+    )
+    current.update(novelty_score=1.0, corroborating_source_count=1)
+
+    overlay = graph.build_information_overlay(POLICY, [current], history, NOW)
+    row = overlay['tickers']['ABC']
+
+    assert row['attention_event_count'] == 1
+    assert row['attention_source_type_count'] == 1
+    assert row['attention_baseline'] > 0
+    assert 0.9 < row['attention_acceleration'] < 1.25
 
 
 def test_source_type_rejects_sec_domain_substring_spoofing():

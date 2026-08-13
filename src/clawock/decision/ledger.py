@@ -44,7 +44,7 @@ SNAP_DIR = WS / "memory" / "snapshots"
 
 SCHEMA_VERSION = 2
 # Bumped when the meaning of an evaluation changes, so a stale row is identifiable.
-EVAL_SCHEMA_VERSION = 4
+EVAL_SCHEMA_VERSION = 5
 # Snapshots and plan_dates are both named on the HK calendar day; comparing them
 # against a UTC "today" slips a day for the eight hours after HK midnight.
 HKT = timezone(timedelta(hours=8))
@@ -75,9 +75,41 @@ AUDIT_SCHEMA_VERSION = 1
 SAME_DAY_STANCES = {"hold_and_watch", "watch", "t_only"}
 
 
-def verification_window_days(action: str | None) -> int:
-    """Days after plan_date before an unresolved execution is permanent."""
-    return 1 if (action or "").lower() in SAME_DAY_STANCES else 2
+def verification_window_days(
+    action: str | None, *, plan_date: str | None = None,
+    leg: str | None = None, valid_for_sessions: int | None = None,
+) -> int:
+    """Calendar span before an unresolved execution is permanent.
+
+    Multi-session adds are converted from their own leg's trading calendar.
+    The fallback remains deliberately conservative for legacy callers that do
+    not carry a leg/condition yet.
+    """
+    action = (action or "").lower()
+    if action in SAME_DAY_STANCES:
+        return 1
+    if action in ADD_ACTIONS:
+        if plan_date and leg and valid_for_sessions:
+            try:
+                market_leg = leg.upper()
+                start = plan_date
+                if not is_session(market_leg, start):
+                    starts = next_sessions(market_leg, start, 1)
+                    start = starts[0] if starts else start
+                remaining = max(0, min(9, int(valid_for_sessions) - 1))
+                sessions = next_sessions(market_leg, start, remaining) if remaining else []
+                end = sessions[-1] if sessions else start
+                if end:
+                    return max(
+                        1,
+                        (date.fromisoformat(end)
+                         - date.fromisoformat(plan_date)).days,
+                    )
+            except (TypeError, ValueError):
+                pass
+        # Legacy add rows did not persist the session window or leg.
+        return 9
+    return 2
 
 # Confidence is calibrated prospectively over strategy episodes, never by fitting
 # and scoring the same row. Sparse leaves borrow pseudo-observations from their
@@ -165,6 +197,9 @@ def legacy_action_to_decision(action: dict, plan_date: str, ordinal: int = 0) ->
             "type": condition_type,
             "price": condition_price,
             "description": authored_condition.get("description") or action.get("trigger_condition") or "",
+            "valid_for_sessions": _int(
+                authored_condition.get("valid_for_sessions")
+            ) or 1,
         },
         "size": {
             "shares": _int(authored_size.get("shares")) if authored_size else _int(action.get("size_shares")),
@@ -270,6 +305,9 @@ def validate_decision(d: dict) -> list[str]:
         errors.append(f"bad condition.type {condition.get('type')!r}")
     if condition.get("type") in ("price_above", "price_below") and _float(condition.get("price")) is None:
         errors.append("price condition requires condition.price")
+    valid_for_sessions = _int(condition.get("valid_for_sessions")) or 1
+    if not 1 <= valid_for_sessions <= 10:
+        errors.append("condition.valid_for_sessions must be in [1,10]")
     conf = _float(d.get("confidence"))
     if conf is None or not 0 <= conf <= 1:
         errors.append("confidence must be in [0,1]")
@@ -287,16 +325,16 @@ def validate_decision(d: dict) -> list[str]:
         errors.append("technical_trace_version must be 1 when present")
     if setup_id is not None and (not isinstance(setup_id, str) or not setup_id):
         errors.append("technical_setup_id must be null or non-empty text")
-    if (trace_version == 1 and d.get("action") in ADD_ACTIONS
-            and d.get("driven_by") == "technical"):
+    if trace_version == 1 and d.get("action") in ADD_ACTIONS:
+        prefix = "technical add" if d.get("driven_by") == "technical" else "add"
         if not setup_id:
-            errors.append("technical add requires technical_setup_id")
+            errors.append(f"{prefix} requires technical_setup_id")
         if not isinstance(campaign_id, str) or not campaign_id:
-            errors.append("technical add requires technical_campaign_id")
+            errors.append(f"{prefix} requires technical_campaign_id")
         if _float(d.get("invalidation_price")) is None:
-            errors.append("technical add requires invalidation_price")
+            errors.append(f"{prefix} requires invalidation_price")
         if (_int(d.get("tranche_number")) or 0) < 1:
-            errors.append("technical add requires tranche_number >= 1")
+            errors.append(f"{prefix} requires tranche_number >= 1")
     if d.get("regime", "unknown") not in REGIMES:
         errors.append(f"bad regime {d.get('regime')!r}")
     override = d.get("override") or {}
@@ -722,26 +760,75 @@ def settle_decisions(decisions: list[dict], now_date: str | None = None) -> int:
                 changed += 1
             continue
 
-        day_bar = bar(ticker, sess)
-        if day_bar is None:
+        condition = d.get("condition") or {}
+        window = max(1, min(10, _int(condition.get("valid_for_sessions")) or 1))
+        candidate_sessions = [sess]
+        if window > 1:
+            candidate_sessions += next_sessions(leg, sess, window - 1)
+        evaluated = []
+        fired = fill = fill_reason = None
+        trigger_session = None
+        pending_session = None
+        missing_session = None
+        invalidated_session = None
+        invalidation = _float(d.get("invalidation_price"))
+        for candidate in candidate_sessions:
+            day_bar = bar(ticker, candidate)
+            if day_bar is None:
+                if candidate >= today or candidate > (last_closed_session(leg) or ""):
+                    pending_session = candidate
+                    break
+                missing_session = candidate
+                break
+            evaluated.append(candidate)
+            # An authorised add is cancelled as soon as its risk line trades.
+            # We intentionally treat an ambiguous same-day low-below/high-above
+            # bar as invalidated: daily OHLC cannot prove the trigger happened
+            # first, and optimism here would be lookahead by assumption.
+            if (
+                d.get("action") in ADD_ACTIONS
+                and invalidation is not None
+                and day_bar["low"] <= invalidation
+            ):
+                invalidated_session = candidate
+                fired, fill, fill_reason = False, None, "invalidation_traded"
+                break
+            fired, fill, fill_reason = condition_execution(d, day_bar)
+            if fired is True or fired is None:
+                trigger_session = candidate if fired is True else None
+                break
+        if missing_session is not None:
+            inactive = ticker_retired(ticker)
+            ev.update({
+                "triggered": None,
+                "status": "not_evaluable",
+                "outcome": "unknown",
+                "not_evaluable_reason": (
+                    "instrument_inactive" if inactive else "bar_missing"
+                ),
+                "trigger_session": missing_session,
+            })
+            if json.dumps(ev, sort_keys=True) != before:
+                changed += 1
+            continue
+        if not evaluated and pending_session:
             # The market WAS open (the calendar said so) but we have no bar. Either
             # the session has not closed yet — which is pending, not unevaluable —
             # or this instrument genuinely did not trade (not yet listed, halted, or
             # retired — an instrument declared `retired` in fetch_daily_bars' MANIFEST).
             last = last_closed_session(leg) or ""
-            if sess > last:
+            if pending_session > last:
                 ev.update({"triggered": None, "status": "pending", "outcome": "pending",
-                           "pending_reason": "session_not_final", "trigger_session": sess})
+                           "pending_reason": "session_not_final", "trigger_session": pending_session})
             else:
                 inactive = ticker_retired(ticker)
                 ev.update({"triggered": None, "status": "not_evaluable", "outcome": "unknown",
                            "not_evaluable_reason": "instrument_inactive" if inactive else "bar_missing",
-                           "trigger_session": sess})
+                           "trigger_session": pending_session})
             if json.dumps(ev, sort_keys=True) != before:
                 changed += 1
             continue
 
-        fired, fill, fill_reason = condition_execution(d, day_bar)
         shares = _int((d.get("size") or {}).get("shares"))
         passive = d.get("action") in PASSIVE_ACTIONS
         ev["evaluation_schema_version"] = EVAL_SCHEMA_VERSION
@@ -751,7 +838,7 @@ def settle_decisions(decisions: list[dict], now_date: str | None = None) -> int:
             # stay absent so a stance can never be counted as a fill.
             ev.update({
                 "triggered": True,
-                "trigger_session": sess,
+                "trigger_session": trigger_session or sess,
                 "evaluation_mode": "passive_stance",
                 "reference_price": fill,
                 "reference_reason": "first_tradable_price_after_publication",
@@ -761,7 +848,7 @@ def settle_decisions(decisions: list[dict], now_date: str | None = None) -> int:
         else:
             ev.update({
                 "triggered": fired,
-                "trigger_session": sess if fired else None,
+                "trigger_session": trigger_session if fired else None,
                 "evaluation_mode": "active_fill",
                 "condition_role": "entry",
                 "execution_price": fill,
@@ -771,13 +858,27 @@ def settle_decisions(decisions: list[dict], now_date: str | None = None) -> int:
                 "fill_model": "daily_ohlc_gap_aware_v1" if fired else None,
             })
         if fired is False:
-            ev.update({"status": "not_triggered", "outcome": "not_triggered"})
+            if invalidated_session:
+                ev.update({
+                    "status": "not_triggered", "outcome": "not_triggered",
+                    "not_evaluable_reason": "campaign_invalidated",
+                    "trigger_session": invalidated_session,
+                })
+            elif pending_session and len(evaluated) < window:
+                ev.update({
+                    "status": "pending", "outcome": "pending",
+                    "pending_reason": "confirmation_window_open",
+                    "trigger_session": pending_session,
+                })
+            else:
+                ev.update({"status": "not_triggered", "outcome": "not_triggered"})
         elif fired is None:
             ev.update({"status": "not_evaluable", "outcome": "unknown",
                        "not_evaluable_reason": fill_reason})
         else:
             entry = fill
-            marks = next_sessions(leg, sess, 20)
+            fill_session = trigger_session or sess
+            marks = next_sessions(leg, fill_session, 20)
             b1 = b5 = b20 = u1 = None
             m1 = m5 = m20 = None
             reason = None
@@ -1345,7 +1446,14 @@ def _exec_rate(rows: list[dict], today: date | None = None) -> dict:
             # Counting it as pending would let an unparseable row hide forever
             # in the bucket that means "wait and it will resolve".
             continue
-        if planned + timedelta(days=verification_window_days(row.get("action"))) > today:
+        condition = row.get("condition") or {}
+        window_days = verification_window_days(
+            row.get("action"),
+            plan_date=row.get("plan_date"),
+            leg=row.get("leg"),
+            valid_for_sessions=_int(condition.get("valid_for_sessions")),
+        )
+        if planned + timedelta(days=window_days) > today:
             pending += 1
     return {
         "n": len(rows),

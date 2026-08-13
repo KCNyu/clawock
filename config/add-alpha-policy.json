@@ -1,0 +1,38 @@
+{
+  "schema_version": 2,
+  "registered_at": "2026-08-13",
+  "minimum_evidence_families": 2,
+  "minimum_information_score": 0.08,
+  "minimum_attention_acceleration": 1.25,
+  "minimum_attention_source_types": 1,
+  "attention_score_prior": 0.10,
+  "minimum_event_novelty": 0.5,
+  "minimum_event_reliability": 0.5,
+  "minimum_price_nonreaction": 0.6,
+  "confirmation_window_sessions": 5,
+  "exploration_enabled": true,
+  "exploration_max_tranches": 1,
+  "exploration_tranche_pct": 0.025,
+  "exploration_max_book_pct": 0.03,
+  "validated_max_tranches": 2,
+  "validated_tranche_pct": 0.075,
+  "markets": {
+    "HK": {
+      "enter_market_percentile": 0.70,
+      "exit_market_percentile": 0.50,
+      "minimum_attention_rank": 0.65,
+      "minimum_factor_coverage_pct": 80.0,
+      "minimum_sector_universe_size": 4,
+      "minimum_peer_count": 3
+    },
+    "US": {
+      "enter_market_percentile": 0.75,
+      "exit_market_percentile": 0.55,
+      "minimum_attention_rank": 0.75,
+      "minimum_factor_coverage_pct": 80.0,
+      "minimum_sector_universe_size": 4,
+      "minimum_peer_count": 3
+    }
+  },
+  "discipline": "Factor and peer residual share one price-relative family. An add also requires point-in-time information surprise or own-history attention acceleration, then a future-session price confirmation. Exploration is one 2.5% tranche per ticker and policy version, never a validated claim, and daily-reset leveraged products require validated evidence."
+}

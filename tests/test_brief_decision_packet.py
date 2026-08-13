@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import json
 import sys
+import copy
 from pathlib import Path
 
 
@@ -186,10 +187,83 @@ def test_compiler_owns_proxy_join_risk_status_and_action_bounds():
     assert hk["constraints"]["min_tranche_shares"] == 20
     assert hk["constraints"]["max_add_shares"] % 20 == 0
     assert "add_only_on_trigger" in hk["constraints"]["allowed_actions"]
+    assert hk["quant"]["add_authority"]["tier"] == "none"
     assert len(packet_mod._compact(packet).encode()) < packet_mod.MAX_PACKET_BYTES
     assert len(
         json.dumps(packet_mod.summary_view(packet), ensure_ascii=False).encode()
     ) < packet_mod.MAX_QUERY_BYTES
+
+
+def test_production_factor_and_peer_keys_reach_add_authority():
+    context = _context()
+    context["cross_sectional_factor"] = {
+        "activation": {"usable_for_decisions": False},
+        "live_rankings": {"00100": {
+            "feature_as_of": "2026-07-28", "market_percentile": 0.9,
+            "sector_universe_size": 6, "factor_coverage_pct": 95,
+            "usable_for_decisions": False,
+        }},
+    }
+    context["peer_residual"] = {
+        "rule_activation": {},
+        "live": {"00100": {
+            "feature_as_of": "2026-07-28",
+            "triggered_rules": ["leader_continuation"],
+            "available_peer_count": 5, "usable_for_decisions": False,
+        }},
+    }
+    context["news_evidence_graph"]["information_overlay"] = {
+        "as_of": "2026-07-28T08:00:00+08:00",
+        "status": "warming_up", "usable_for_decisions": False,
+        "activation": {"blockers": ["history_dates"]},
+        "tickers": {"00100": {
+            "status": "warming_up", "usable_for_decisions": False,
+            "signed_score": 0.12, "attention_rank": 0.9,
+            "attention_acceleration": 2.0, "attention_event_count": 1,
+            "attention_source_type_count": 1,
+            "attention_components": [{"event_id": "attention-1"}],
+            "event_components": [{
+                "event_id": "positive-1", "direction": 1,
+                "novelty": 1, "reliability": 0.9,
+                "price_nonreaction": 1,
+            }],
+        }},
+    }
+    context["quant_signals"]["rows"]["00100"].update(
+        close=11, ma20=10, prior_5d_high=11.2, prior_5d_low=9.5,
+        chandelier_stop=9.8,
+    )
+
+    packet = packet_mod.compile_packet(
+        context, brief_context.compute_generation_id(context)
+    )
+    row = packet["tickers"]["00100"]
+
+    assert row["quant"]["add_authority"]["tier"] == "exploration"
+    assert row["quant"]["add_authority"]["evidence_families"] == [
+        "price_relative", "point_in_time_information",
+    ]
+    assert any(
+        setup["setup_id"] == "alpha_confirmation"
+        for setup in row["technical"]["setups"]
+    )
+    # This 20-share lot is 10% of the tiny fixture book, above the separate 3%
+    # hard exploration envelope, so it may not masquerade as a 2.5% sample.
+    assert row["execution"]["max_add_shares"] == 0
+    assert "tranche_below_market_unit" in row["execution"]["blockers"]
+
+
+def test_one_us_share_can_collect_exploration_inside_the_hard_book_cap():
+    execution = packet_mod._execution_view(
+        {"shares": 2, "current_price": 100, "current_value": 200},
+        "US", 10_000, 1_000,
+        {"setups": [{"tranche_pct_of_position": 0.025}]},
+        {"state": "unknown"}, False,
+        authority_tier="exploration", exploration_max_book_pct=0.03,
+    )
+
+    assert execution["max_add_shares"] == 1
+    assert execution["max_add_value"] == 100
 
 
 def test_packet_is_deterministic_and_manifest_hash_bound(tmp_path):
@@ -339,7 +413,9 @@ def test_unknown_registry_leveraged_name_is_blocked_without_a_risk_breach():
         context, brief_context.compute_generation_id(context)
     )
 
-    assert "leveraged_daily_reset" in packet["tickers"]["LEVX"]["execution"]["blockers"]
+    assert "leveraged_requires_validated_evidence" in (
+        packet["tickers"]["LEVX"]["execution"]["blockers"]
+    )
     assert not any(
         action.startswith("add_")
         for action in packet["tickers"]["LEVX"]["constraints"]["allowed_actions"]

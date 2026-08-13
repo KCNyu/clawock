@@ -808,6 +808,18 @@ class ExecutionCoverageTests(unittest.TestCase):
             with mock.patch.object(dv2, "verification_window_days", return_value=3650):
                 self.assertEqual(brief_preflight._detect_followed(row), "unknown")
 
+    def test_add_verification_counts_the_own_legs_sessions_across_a_long_holiday(self):
+        # HK LNY: the five-session campaign starting 2026-02-13 ends on 02-24,
+        # not at the old fixed nine-calendar-day cutoff on 02-22.
+        # old fixed nine-calendar-day cutoff on 02-22.
+        self.assertEqual(
+            dv2.verification_window_days(
+                "add_only_on_trigger", plan_date="2026-02-13", leg="HK",
+                valid_for_sessions=5,
+            ),
+            11,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

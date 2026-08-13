@@ -19,7 +19,9 @@ import os
 from pathlib import Path
 
 from clawock.decision.actions import ACTIVE_ACTIONS
-from clawock.portfolio.instruments import is_leveraged_holding
+from clawock.decision import add_alpha
+from clawock.portfolio.instruments import get as instrument_metadata, is_leveraged_holding
+from clawock.workspace import workspace_root
 
 
 SCHEMA_VERSION = 1
@@ -27,6 +29,7 @@ JUDGMENT_SCHEMA_VERSION = 1
 PAGES_SCHEMA_VERSION = 1
 MAX_PACKET_BYTES = 96 * 1024
 MAX_QUERY_BYTES = 24 * 1024
+ADD_ALPHA_POLICY = workspace_root(Path.cwd()) / "config" / "add-alpha-policy.json"
 VERDICTS = {"bullish", "neutral", "bearish", "mixed"}
 TEXT_LIMITS = {
     "portfolio_assessment": 800,
@@ -82,6 +85,23 @@ def _proxy_map(context: dict) -> dict[str, str]:
         for row in names
         if row.get("etf") and row.get("underlying")
     }
+    # The instrument registry is the production authority for both books;
+    # lev_regime.names is only a risk-dial subset and used to omit HK proxies.
+    for _, holding in _active_holdings(context):
+        ticker = str(holding.get("ticker") or "")
+        meta = instrument_metadata(ticker) or {}
+        available = (context.get("quant_signals") or {}).get("rows") or {}
+        signal = next(
+            (
+                str(candidate) for candidate in (
+                    meta.get("signal_symbol"), meta.get("one_x_substitute")
+                )
+                if candidate and str(candidate) in available
+            ),
+            None,
+        )
+        if signal:
+            out[ticker] = str(signal)
     for ticker, row in ((context.get("quant_signals") or {}).get("rows") or {}).items():
         note = str(row.get("note") or "")
         marker = " 的标的"
@@ -133,6 +153,16 @@ def _technical(row: dict, source_ticker: str, proxy: bool) -> dict:
                 "tranche_pct_of_position": _number(
                     setup.get("tranche_pct_of_position"), 4
                 ),
+                "valid_for_sessions": int(
+                    setup.get("valid_for_sessions") or 1
+                ),
+                "signal_date": setup.get("signal_date"),
+                "authority_tier": setup.get("authority_tier"),
+                "target_tranche_level": _number(
+                    setup.get("target_tranche_level"), 2
+                ),
+                "authority_sources": list(setup.get("authority_sources") or []),
+                "evidence_families": list(setup.get("evidence_families") or []),
                 "detail": str(setup.get("detail") or "")[:300],
             })
     return {
@@ -150,6 +180,11 @@ def _technical(row: dict, source_ticker: str, proxy: bool) -> dict:
         "mom_3m_pct": _number(row.get("mom_3m"), 1),
         "vol20_annualized": _number(row.get("vol20_annualized"), 4),
         "atr14_pct": _number(row.get("atr14_pct"), 2),
+        "close": _number(row.get("close"), 4),
+        "ma20": _number(row.get("ma20"), 4),
+        "prior_5d_high": _number(row.get("prior_5d_high"), 4),
+        "prior_5d_low": _number(row.get("prior_5d_low"), 4),
+        "chandelier_stop": _number(row.get("chandelier_stop"), 4),
         "stop_distance_pct": stop_distance,
         "stop_state": (
             "breached" if stop_distance is not None and stop_distance < 0
@@ -184,6 +219,8 @@ def _thesis_view(context: dict, ticker: str) -> dict:
 
 def _execution_view(holding: dict, leg: str, capital: float, cash: float,
                     technical: dict, thesis: dict, leveraged: bool,
+                    authority_tier: str = "none",
+                    exploration_max_book_pct: float = 0.03,
                     overlay: dict | None = None,
                     open_add: bool = False) -> dict:
     price = _number(holding.get("current_price"), 4)
@@ -225,10 +262,23 @@ def _execution_view(holding: dict, leg: str, capital: float, cash: float,
     tranche_pct = min(setup_pcts) if setup_pcts else 0.05
     overlay = overlay or {}
     sizing_multiplier = float(overlay.get("sizing_multiplier") or 1.0)
-    desired = max(1, int(shares * tranche_pct * sizing_multiplier))
-    suggested = (
-        max(lot, (desired // lot) * lot) if lot else 0
-    )
+    desired = int(shares * tranche_pct * sizing_multiplier)
+    rounded = ((desired // lot) * lot if lot else 0)
+    if authority_tier == "exploration":
+        unit_value = price * lot if price and lot else None
+        exploration_budget = max(0.0, capital * exploration_max_book_pct)
+        # 2.5% is the target step; the 3% market-book cap is the hard execution
+        # envelope. One indivisible broker unit may bridge that small gap, but
+        # an expensive HK board lot may not masquerade as a tiny experiment.
+        suggested = (
+            rounded if rounded > 0
+            else lot if unit_value and unit_value <= exploration_budget
+            else 0
+        )
+    else:
+        # Existing validated/basic campaigns retain one market unit as their
+        # minimum executable size, subject to cash and concentration room.
+        suggested = max(lot, rounded) if lot else 0
     suggested = min(suggested, position_room_shares)
     max_tranche_shares = suggested
 
@@ -245,8 +295,8 @@ def _execution_view(holding: dict, leg: str, capital: float, cash: float,
         max_tranche_shares = min(max_tranche_shares, suggested)
 
     blockers = []
-    if leveraged:
-        blockers.append("leveraged_daily_reset")
+    if leveraged and authority_tier != "validated":
+        blockers.append("leveraged_requires_validated_evidence")
     if open_add:
         blockers.append("open_add_order")
     if leg == "HK" and lot is None:
@@ -256,7 +306,11 @@ def _execution_view(holding: dict, leg: str, capital: float, cash: float,
     if not price:
         blockers.append("price_missing")
     if max_tranche_shares <= 0:
-        blockers.append("no_cash_or_target_room")
+        blockers.append(
+            "tranche_below_market_unit"
+            if position_room_shares > 0 and desired < (lot or 1)
+            else "no_cash_or_target_room"
+        )
     return {
         "order_unit": "board_lot" if leg == "HK" else "integer_share",
         "lot_size": lot,
@@ -270,6 +324,9 @@ def _execution_view(holding: dict, leg: str, capital: float, cash: float,
         "max_add_shares": max_tranche_shares,
         "position_room_shares": position_room_shares,
         "max_add_value": round(max_tranche_shares * price, 2) if price else 0,
+        "exploration_budget_value": round(
+            max(0.0, capital * exploration_max_book_pct), 2
+        ),
         "position_room_value": (
             round(position_room_shares * price, 2) if price else 0
         ),
@@ -286,9 +343,14 @@ def _factor_view(row: dict) -> dict:
         "as_of": row.get("feature_as_of"),
         "sector": row.get("sector"),
         "composite_score": _number(row.get("composite_score"), 4),
+        "market_percentile": _number(row.get("market_percentile"), 4),
+        "sector_universe_size": int(row.get("sector_universe_size") or 0),
         "coverage_pct": _number(row.get("factor_coverage_pct"), 1),
         "relative_strength": _number(row.get("relative_strength"), 4),
         "breadth": _number(row.get("breadth"), 4),
+        "membership_history_complete": bool(
+            row.get("membership_history_complete")
+        ),
         "usable_for_decisions": bool(row.get("usable_for_decisions")),
     }
 
@@ -303,6 +365,8 @@ def _peer_view(row: dict) -> dict:
         "residual_20d": _number(row.get("residual_blend_20d"), 4),
         "leadership_persistence": row.get("leadership_persistence"),
         "laggard_persistence": row.get("laggard_persistence"),
+        "available_peer_count": int(row.get("available_peer_count") or 0),
+        "triggered_rules": list(row.get("triggered_rules") or []),
         "usable_rules": list(row.get("usable_rules") or []),
         "usable_for_decisions": bool(row.get("usable_for_decisions")),
     }
@@ -320,6 +384,19 @@ def _information_view(graph: dict, ticker: str, source_ticker: str) -> dict:
         "cross_section_rank": _number(row.get("cross_section_rank"), 4),
         "own_surprise_z": _number(row.get("own_surprise_z"), 4),
         "event_count": int(row.get("event_count") or 0),
+        "event_components": copy.deepcopy(row.get("event_components") or []),
+        "attention_score": _number(row.get("attention_score"), 6),
+        "attention_rank": _number(row.get("attention_rank"), 4),
+        "attention_event_count": int(row.get("attention_event_count") or 0),
+        "attention_acceleration": _number(
+            row.get("attention_acceleration"), 4
+        ),
+        "attention_source_type_count": int(
+            row.get("attention_source_type_count") or 0
+        ),
+        "attention_components": copy.deepcopy(
+            row.get("attention_components") or []
+        ),
         "sizing_tilt": row.get("sizing_tilt") or "inactive",
         "usable_for_decisions": bool(
             overlay.get("usable_for_decisions")
@@ -329,6 +406,13 @@ def _information_view(graph: dict, ticker: str, source_ticker: str) -> dict:
             ((overlay.get("activation") or {}).get("blockers") or [])
         ),
     }
+
+
+def _add_alpha_policy(context: dict) -> dict:
+    supplied = context.get("add_alpha_policy")
+    if isinstance(supplied, dict) and supplied:
+        return copy.deepcopy(supplied)
+    return json.loads(ADD_ALPHA_POLICY.read_text(encoding="utf-8"))
 
 
 def _information_sizing_overlay(info: dict, factor: dict, peer: dict,
@@ -540,11 +624,21 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
     if not generation_id:
         raise ValueError("decision packet requires context generation_id")
     quant_rows = (context.get("quant_signals") or {}).get("rows") or {}
-    cross_rows = (context.get("cross_sectional_factor") or {}).get("held_rankings") or {}
-    peer_rows = (context.get("peer_residual") or {}).get("held") or {}
+    cross_payload = context.get("cross_sectional_factor") or {}
+    peer_payload = context.get("peer_residual") or {}
+    # ``held_rankings``/``held`` were early fixture names. Production has
+    # always published ``live_rankings``/``live``. Keeping the aliases is useful
+    # for older external runtimes, but the real producer contract comes first.
+    cross_rows = (
+        cross_payload.get("live_rankings")
+        or cross_payload.get("held_rankings")
+        or {}
+    )
+    peer_rows = peer_payload.get("live") or peer_payload.get("held") or {}
     sentiment_rows = (context.get("sentiment") or {}).get("tickers") or []
     events = (context.get("news_evidence_graph") or {}).get("events") or []
     evidence_graph = context.get("news_evidence_graph") or {}
+    add_policy = _add_alpha_policy(context)
     proxies = _proxy_map(context)
     holdings = list(_active_holdings(context))
     active = {str(holding.get("ticker")) for _, holding in holdings}
@@ -625,8 +719,41 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
             information_view, factor_view, peer_view, sizing_policy
         )
         leveraged = is_leveraged_holding(holding)
+        ticker_usage = setup_usage.get(ticker) or {}
+        continuing_alpha = any(
+            ":validated:" in str(campaign) and int(used or 0) > 0
+            for campaign, used in ticker_usage.items()
+        )
+        alpha_authority = add_alpha.classify_authority(
+            factor_view,
+            peer_view,
+            information_view,
+            leveraged=leveraged,
+            policy=add_policy,
+            market=leg,
+            continuing=continuing_alpha,
+        )
+        if alpha_authority.get("tier") == "exploration":
+            # A current-universe backfill can discover an interaction worth
+            # collecting, but never upgrade itself into validated authority.
+            alpha_authority["limitations"] = [
+                "prospective_collection_only",
+                "current_universe_survivorship_limit",
+            ]
+        alpha_setup = add_alpha.confirmation_setup(
+            technical, alpha_authority, add_policy, ticker=ticker
+        )
+        if alpha_setup is not None:
+            technical["setups"].append(alpha_setup)
+            technical = _apply_setup_usage(
+                technical, ticker_usage
+            )
         execution = _execution_view(
             holding, leg, invested[leg], cash[leg], technical, thesis, leveraged,
+            authority_tier=alpha_authority.get("tier") or "none",
+            exploration_max_book_pct=float(
+                add_policy.get("exploration_max_book_pct") or 0.03
+            ),
             overlay=sizing_overlay,
             open_add=open_add_gate_error or ticker in open_adds,
         )
@@ -650,6 +777,7 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
             "quant": {
                 "factor": factor_view,
                 "peer_residual": peer_view,
+                "add_authority": alpha_authority,
                 "activation": {
                     "factor": bool(
                         ((context.get("cross_sectional_factor") or {}).get("activation") or {})
@@ -670,6 +798,54 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
                 shares, ticker_risks, actionable_ids, technical, execution
             ),
         }
+
+    tier_counts = {"validated": 0, "exploration": 0, "none": 0}
+    blocker_counts = {}
+    candidates = []
+    for ticker, row in tickers.items():
+        authority = ((row.get("quant") or {}).get("add_authority") or {})
+        tier = authority.get("tier") or "none"
+        tier_counts[tier] = tier_counts.get(tier, 0) + 1
+        for blocker in authority.get("blockers") or []:
+            blocker_counts[blocker] = blocker_counts.get(blocker, 0) + 1
+        setup = next(
+            (
+                item for item in (row.get("technical") or {}).get("setups") or []
+                if item.get("setup_id") == "alpha_confirmation"
+            ),
+            None,
+        )
+        constraints = row.get("constraints") or {}
+        execution = row.get("execution") or {}
+        allowed = "add_only_on_trigger" in (constraints.get("allowed_actions") or [])
+        if tier == "none":
+            state = "insufficient_evidence"
+        elif setup is None:
+            state = "waiting_timing"
+        elif setup.get("remaining_tranches") == 0:
+            state = "already_at_target"
+        elif execution.get("blockers") or row.get("risk"):
+            state = "risk_blocked"
+        elif allowed:
+            state = "eligible"
+        else:
+            state = "constraint_blocked"
+        candidates.append({
+            "ticker": ticker,
+            "leg": row.get("leg"),
+            "state": state,
+            "tier": tier,
+            "target_tranche_level": (
+                0.25 if tier == "exploration" else 1.0 if tier == "validated" else 0.0
+            ),
+            "sources": list(authority.get("sources") or []),
+            "authority_blockers": list(authority.get("blockers") or []),
+            "entry_price": (setup or {}).get("entry_price"),
+            "invalidation_price": (setup or {}).get("invalidation_price"),
+            "max_add_shares": constraints.get("max_add_shares"),
+            "allowed": allowed,
+            "execution_blockers": list(execution.get("blockers") or []),
+        })
 
     packet = {
         "_meta": {
@@ -713,6 +889,31 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
                 "evidence IDs", "risk", "status", "constraints",
             ],
         },
+        "add_alpha_policy": {
+            key: add_policy.get(key)
+            for key in (
+                "schema_version", "registered_at", "minimum_evidence_families",
+                "confirmation_window_sessions", "exploration_max_tranches",
+                "exploration_tranche_pct", "validated_max_tranches",
+                "exploration_max_book_pct",
+                "validated_tranche_pct", "markets", "discipline",
+            )
+        },
+        "add_alpha_diagnostics": {
+            "held_names": len(tickers),
+            "tier_counts": tier_counts,
+            "candidate_count": len(candidates),
+            "authority_candidate_count": sum(
+                row["tier"] in {"exploration", "validated"} for row in candidates
+            ),
+            "allowed_candidate_count": sum(bool(row["allowed"]) for row in candidates),
+            "candidate_rate": round(sum(
+                row["tier"] in {"exploration", "validated"} for row in candidates
+            ) / len(tickers), 4) if tickers else 0,
+            "blocker_counts": dict(sorted(blocker_counts.items())),
+            "candidates": candidates,
+            "zero_output_visible": True,
+        },
     }
     size = len(_compact(packet).encode("utf-8"))
     if size > MAX_PACKET_BYTES:
@@ -734,6 +935,7 @@ def _decision_provenance(packet: dict, ticker: str) -> dict | None:
         "information": copy.deepcopy(row.get("information") or {}),
         "factor": copy.deepcopy(quant.get("factor") or {}),
         "peer_residual": copy.deepcopy(quant.get("peer_residual") or {}),
+        "add_authority": copy.deepcopy(quant.get("add_authority") or {}),
         "sizing": copy.deepcopy(execution.get("information_overlay") or {}),
         "authority": {
             "max_add_shares": (row.get("constraints") or {}).get("max_add_shares"),
@@ -741,6 +943,7 @@ def _decision_provenance(packet: dict, ticker: str) -> dict | None:
                 row.get("constraints") or {}
             ).get("position_room_shares"),
             "lot_size": (row.get("constraints") or {}).get("lot_size"),
+            "tier": ((quant.get("add_authority") or {}).get("tier")),
         },
     }
 
@@ -980,6 +1183,12 @@ def validate_plan_constraints(plan: dict, packet: dict) -> list[str]:
             if not approved:
                 issues.append(
                     f"{tag}: add condition does not match an approved technical setup"
+                )
+            elif int(condition.get("valid_for_sessions") or 1) != int(
+                approved[0].get("valid_for_sessions") or 1
+            ):
+                issues.append(
+                    f"{tag}: add condition validity does not match approved setup"
                 )
     return issues
 
