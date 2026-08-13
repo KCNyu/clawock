@@ -19,7 +19,8 @@ PATCH_MARKERS = (
     "threads: 1, batchSize: 512",
     "const MEMORY_SEARCH_TOOL_TIMEOUT_MS = 60000;",
     "clawock-minimax-m3-priority",
-    "clawock-minimax-response-header-timeout-v2",
+    "clawock-minimax-response-header-timeout-v3",
+    "MiniMax response-header timeout after 60000ms",
 )
 
 
