@@ -263,6 +263,121 @@ def run_cron_job(job_id, *, binary: str | None = None,
         return False, f"{type(exc).__name__}: {exc}"[:300]
 
 
+# The runtime's own default when `cron.retry.maxAttempts` is unset
+# (DEFAULT_MAX_TRANSIENT_RETRIES in the scheduler bundle).
+RUNTIME_DEFAULT_MAX_TRANSIENT_RETRIES = 3
+# The runtime's config schema rejects a larger value, so a job already past this
+# many consecutive failures cannot be rescued by raising the cap at all.
+RUNTIME_MAX_ALLOWED_ATTEMPTS = 10
+
+
+@dataclass(frozen=True)
+class CronRetryBudget:
+    """Whether the runtime will still retry a job after a transient error.
+
+    The scheduler's rule is `consecutiveErrors > cron.retry.maxAttempts ⇒ no
+    retry`, and `consecutiveErrors` counts *runs*, not attempts within a run: it
+    only resets on a success. For a once-a-day job that makes the budget a
+    countdown of bad days, and once it runs out the job is in a ring — it needs
+    a retry to succeed, and a success to get its retry back. Nothing in the
+    runtime reports that state, which is why 2026-08-13's brief died looking
+    exactly like a provider timeout (#506).
+
+    `exhausted` is None whenever either side of the comparison is unreadable —
+    the counter or the cap. Absence of evidence is not evidence of a healthy
+    budget, and it is not evidence of an exhausted one either: a caller that
+    fills in a plausible cap can accuse a job whose real cap is higher.
+    """
+
+    consecutive_errors: int | None
+    max_attempts: int | None
+    exhausted: bool | None
+
+    @property
+    def cap_needed(self) -> int | None:
+        """The smallest `maxAttempts` that would let the *next* failure retry.
+
+        The scheduler increments `consecutiveErrors` on a failed run and only
+        then compares it, so the stored counter is what the failure that just
+        happened was judged against — and the next one will be judged at
+        counter + 1. A cap merely equal to the stored counter therefore buys
+        nothing: the next failure steps past it in the same instant.
+        """
+        if self.consecutive_errors is None:
+            return None
+        return self.consecutive_errors + 1
+
+    @property
+    def raisable(self) -> bool:
+        """Can raising the configured cap alone restore this job's retries?
+
+        Only while the cap it would take is one the runtime's schema will
+        actually store — at a stored counter of 10 the needed cap is 11, which
+        is rejected, so the counter itself has to be reset.
+        """
+        return (self.cap_needed is not None
+                and self.cap_needed <= RUNTIME_MAX_ALLOWED_ATTEMPTS)
+
+    def describe(self) -> str:
+        if self.exhausted is None:
+            return "retry budget unknown (counter or cap unreadable)"
+        return (f"consecutiveErrors={self.consecutive_errors} "
+                f"{'>' if self.exhausted else '<='} maxAttempts={self.max_attempts}")
+
+
+def _valid_attempts(value) -> int | None:
+    """A usable `maxAttempts`, or None when the runtime could not be running it."""
+    if isinstance(value, bool) or not isinstance(value, int):
+        return None
+    if value < 0 or value > RUNTIME_MAX_ALLOWED_ATTEMPTS:
+        # The runtime's config schema rejects these outright, so a file holding
+        # one is not the configuration the live scheduler loaded.
+        return None
+    return value
+
+
+def cron_max_attempts(*, paths: OpenClawPaths | None = None) -> int | None:
+    """`cron.retry.maxAttempts` from the live runtime config.
+
+    None means the config could not be read — a missing file, a permission
+    error, corrupt JSON, or a value the runtime would have refused to start on.
+    That is not the same as a config that parses and simply omits the field,
+    which is the documented case for the runtime's own default: a caller that
+    treats the two alike will compare a real counter against an invented cap.
+    """
+    config_file = (paths or runtime_paths()).config_file
+    try:
+        config = json.loads(config_file.read_text())
+    except Exception:
+        return None
+    # `cron: null` and `retry: []` are not "the field is absent" — they are
+    # shapes the runtime's schema rejects, so they say nothing about the cap the
+    # live scheduler is running. Only a well-formed section may fall back.
+    for key in ("cron", "retry"):
+        if not isinstance(config, dict):
+            return None
+        config = config.get(key, {})
+    if not isinstance(config, dict):
+        return None
+    if "maxAttempts" not in config:
+        return RUNTIME_DEFAULT_MAX_TRANSIENT_RETRIES
+    return _valid_attempts(config["maxAttempts"])
+
+
+def cron_retry_budget(job, *, paths: OpenClawPaths | None = None,
+                      max_attempts: int | None = None) -> CronRetryBudget:
+    """Read one job's remaining transient-retry budget from its live state."""
+    cap = (cron_max_attempts(paths=paths) if max_attempts is None
+           else _valid_attempts(max_attempts))
+    state = job.get("state") if isinstance(job, dict) else None
+    errors = state.get("consecutiveErrors") if isinstance(state, dict) else None
+    if isinstance(errors, bool) or not isinstance(errors, int) or errors < 0:
+        errors = None
+    if errors is None or cap is None:
+        return CronRetryBudget(errors, cap, None)
+    return CronRetryBudget(errors, cap, errors > cap)
+
+
 # ── Cron state ───────────────────────────────────────────────────────────────
 # Moved verbatim from `_watchdog_common`, with one shape change: which source
 # answered is returned instead of being left in a module global. A watchdog that
