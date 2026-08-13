@@ -157,7 +157,7 @@ The model submits decisions; it can never write or amend its own evaluation. Tha
 
 <p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/shadow-backtest.png" alt="cumulative episode win rate against a 50% directional-hit line" width="760"></p>
 
-<sub>Cumulative episode win rate against a 50% directional-hit line — how often the direction was right, not what it earned. The buy-and-hold comparison is the shadow portfolio (in the details below and on Reflect); this is a different question. Refreshed weekly by GitHub Actions; live figures live on the <a href="https://kcnyu.github.io/clawock/">Reflect tab</a>.</sub>
+<sub>Cumulative episode win rate against a 50% directional-hit line — how often the direction was right, not what it earned. The buy-and-hold comparison is the Shadow Portfolio under Holdings; this is a different question. Refreshed weekly by GitHub Actions; live figures are on the <a href="https://kcnyu.github.io/clawock/#drill">Holdings tab</a>.</sub>
 
 <details>
 <summary><b>How the grading handles the hard cases</b></summary>

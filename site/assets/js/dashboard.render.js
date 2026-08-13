@@ -338,7 +338,7 @@
       renderTodayPnl, renderRiskGuardrail, renderOverviewSummaries, renderGoldDca,
     ],
     drill: [
-      renderDecisionMatrix, renderHoldings, renderExtremes, renderMovers,
+      renderDecisionMatrix, renderAddCampaign, renderHoldings, renderExtremes, renderMovers,
       renderAnomalies, render8dHeatmap, renderTodayRange, renderShadowPortfolioCard,
     ],
     risk: [
@@ -1226,8 +1226,12 @@
       ? (projection.tickers || [])
       : [];
     const H = safe(DATA, "holdings") || {};
-    const holds = [...(H.us || []), ...(H.hk || [])].filter(h => h && h.is_active);
-    if (!projected.length && !holds.length) { card.style.display = 'none'; return; }
+    // dashboard.holdings is the current ledger projection. The brief sidecar
+    // publishes independently and may be days older, so it may enrich a ticker
+    // but must never own membership in a card labelled current holdings.
+    const holds = [...(H.us || []), ...(H.hk || [])].filter(h =>
+      h && h.is_active !== false && (h.shares ?? 0) > 0);
+    if (!holds.length) { card.style.display = 'none'; return; }
     card.style.display = '';
     const qrows = ((safe(DATA, "quant_signals") || {}).rows) || {};
     // 杠杆 ETF→底层标的映射（量化按标的算，ETF 本身无 quant 行）。
@@ -1267,8 +1271,12 @@
       if (q.tag || q.rsi14 != null) return { rank: 3, label: '趋势off·观望', state: 'neutral' };
       return { rank: 5, label: '—', state: 'neutral' };
     };
-    const enriched = projected.length
-      ? projected.map(row => {
+    const projectedByTicker = new Map(projected.map(row => [row.ticker, row]));
+    let usedProjection = false;
+    const enriched = holds.map(h => {
+        const row = projectedByTicker.get(h.ticker);
+        if (row) {
+          usedProjection = true;
           const q = row.technical || {};
           const proxy = q.is_proxy ? q.source_ticker : '';
           if (proxy) usedProxy = true;
@@ -1278,29 +1286,27 @@
             col: riskAction.kind === 'stop' ? 'var(--negative)' : 'var(--warning)',
             kind: riskAction.kind,
           } : null;
-          const live = holds.find(h => h.ticker === row.ticker) || {};
           return {
             h: {
-              ticker: row.ticker,
+              ticker: h.ticker,
               // Projection owns analysis; current marks remain live intraday.
-              today_change_pct: live.today_change_pct ?? (row.facts || {}).today_change_pct,
-              pnl_percent: live.pnl_percent ?? (row.facts || {}).pnl_pct,
+              today_change_pct: h.today_change_pct ?? (row.facts || {}).today_change_pct,
+              pnl_percent: h.pnl_percent ?? (row.facts || {}).pnl_pct,
             },
             q,
             a,
             proxy,
             v: row.status || verdict(q, a),
           };
-        })
-      : holds.map(h => {
-          const usable = r => r && (!r.status || r.status === 'fresh');
-          const direct = usable(qrows[h.ticker]) ? qrows[h.ticker] : null;
-          const proxy = !direct && etf2u[h.ticker] && usable(qrows[etf2u[h.ticker]]) ? etf2u[h.ticker] : '';
-          if (proxy) usedProxy = true;
-          const q = direct || (proxy ? qrows[proxy] : {}) || {};
-          const a = action[h.ticker];
-          return { h, q, a, proxy, v: verdict(q, a) };
-        });
+        }
+        const usable = r => r && (!r.status || r.status === 'fresh');
+        const direct = usable(qrows[h.ticker]) ? qrows[h.ticker] : null;
+        const proxy = !direct && etf2u[h.ticker] && usable(qrows[etf2u[h.ticker]]) ? etf2u[h.ticker] : '';
+        if (proxy) usedProxy = true;
+        const q = direct || (proxy ? qrows[proxy] : {}) || {};
+        const a = action[h.ticker];
+        return { h, q, a, proxy, v: verdict(q, a) };
+      });
     // 排序：需要动作的优先(rank 升序)，同级浮亏深的在前 → 最该看的在最上面
     enriched.sort((x, y) => (x.v.rank - y.v.rank) || ((x.h.pnl_percent ?? 0) - (y.h.pnl_percent ?? 0)));
     document.getElementById('decision-matrix-tbody').innerHTML = enriched.map(({ h, q, a, proxy, v }) => {
@@ -1319,8 +1325,88 @@
     document.getElementById('decision-matrix-note').textContent =
       '综合：止损/减仓=硬闸规则(必动)，观望/趋势ON=技术状态(非买卖建议)。按需动作优先排序。'
       + '52w位置：绿=近一年低位(便宜)、红=高位(追高警惕)。'
-      + (projected.length ? '数据由 harness projection 编译，页面不重算规则。' : '兼容模式：等待 projection。')
+      + (usedProjection ? '匹配行由 harness projection 编译；当前持仓成员以最新账本为准。' : '兼容模式：等待 projection。')
       + (usedProxy ? '▵=杠杆ETF量化列取底层标的。' : '');
+  }
+
+  function renderAddCampaign() {
+    const card = document.getElementById("add-campaign-card");
+    const body = document.getElementById("add-campaign-body");
+    const evidence = document.getElementById("add-campaign-evidence");
+    const status = document.getElementById("add-campaign-status");
+    if (!card || !body || !evidence || !status) return;
+    const campaign = safe(DATA, "brief_projection", "add_campaign");
+    if (!campaign) {
+      status.textContent = "projection missing";
+      status.className = "badge muted";
+      body.innerHTML = '<div class="empty-state">当前公开 projection 还没有 campaign 字段；不是零信号。</div>';
+      evidence.innerHTML = "";
+      return;
+    }
+    if (campaign.status !== "current") {
+      status.textContent = "pre-policy packet";
+      status.className = "badge muted";
+      body.innerHTML = `<div class="revision-note"><b>尚无当前生产 receipt。</b> 这份 brief packet 早于新 campaign 上线，不能据此声称所有持仓都被拒绝。packet ${escapeHtml(campaign.packet_generated_at || "—")}</div>`;
+    } else {
+      const d = campaign.diagnostics || {};
+      const tiers = d.tier_counts || {};
+      status.textContent = `collecting · authority ${d.authority_candidate_count || 0}/${d.held_names || 0}`;
+      status.className = "badge muted";
+      const stateLabel = {
+        eligible: "可执行", waiting_timing: "等技术位", risk_blocked: "风险拦截",
+        already_at_target: "tranche 已满", constraint_blocked: "约束拦截",
+        insufficient_evidence: "证据不足",
+      };
+      const blockerLabel = {
+        independent_evidence_families: "缺独立证据族",
+        leveraged_requires_validated_evidence: "杠杆需 validated",
+        negative_information: "负面信息",
+        peer_laggard_avoidance: "同行落后",
+        no_cash_or_target_room: "现金/目标空间不足",
+        tranche_below_market_unit: "低于交易单位",
+        open_add_order: "已有未结加仓",
+        no_approved_setup: "无授权 setup",
+      };
+      const rows = (campaign.candidates || []).slice().sort((a, b) =>
+        String(a.leg || "").localeCompare(String(b.leg || "")) ||
+        String(a.ticker || "").localeCompare(String(b.ticker || "")));
+      const legBlock = leg => {
+        const inLeg = rows.filter(row => row.leg === leg);
+        return `<section class="add-campaign-leg"><h4>${leg} · ${inLeg.length} holdings</h4>` +
+          (inLeg.length ? inLeg.map(row => {
+            const authorityBlockers = row.authority_blockers || [];
+            const executionBlockers = row.execution_blockers || [];
+            const families = (row.evidence_families || []).join(" + ") || "—";
+            const sources = (row.sources || []).join(" + ") || "—";
+            const prices = row.entry_price == null ? "未授权入场位" :
+              `entry ${row.entry_price} · invalid ${row.invalidation_price ?? "—"}`;
+            return `<div class="add-campaign-row">
+              <div><b class="ticker">${escapeHtml(row.ticker || "—")}</b><span class="campaign-tier">${escapeHtml(row.tier || "none")}</span></div>
+              <div><span class="campaign-state state-${escapeHtml(row.state || "unknown")}">${escapeHtml(stateLabel[row.state] || row.state || "unknown")}</span><span class="campaign-families">families ${escapeHtml(families)} · sources ${escapeHtml(sources)}</span></div>
+              <div class="campaign-detail">${escapeHtml(prices)} · tranche ${row.target_tranche_level ?? 0} · max shares ${row.max_add_shares ?? 0}</div>
+              <div class="campaign-blockers"><b>authority</b>${authorityBlockers.length ? authorityBlockers.map(v => `<span>${escapeHtml(blockerLabel[v] || v)}</span>`).join("") : "<span>none</span>"}<b>execution</b>${executionBlockers.length ? executionBlockers.map(v => `<span>${escapeHtml(blockerLabel[v] || v)}</span>`).join("") : "<span>none</span>"}</div>
+            </div>`;
+          }).join("") : '<div class="empty-state">No held names.</div>') + `</section>`;
+      };
+      body.innerHTML = `<div class="campaign-summary">packet ${escapeHtml(campaign.packet_generated_at || "—")} · generation ${escapeHtml(campaign.context_generation_id || "—")} · validated ${tiers.validated || 0} · exploration ${tiers.exploration || 0} · none ${tiers.none || 0}</div><div class="add-campaign-legs">${legBlock("US")}${legBlock("HK")}</div>`;
+    }
+
+    const run = campaign.run_card;
+    if (!run) {
+      evidence.innerHTML = '<div class="revision-note"><b>独立 run card 未发布。</b> 当前只显示生产候选状态，不显示回测结论。</div>';
+      return;
+    }
+    const coverage = run.coverage || {};
+    const horizon = (market, key) => {
+      const row = safe(run, "markets", market, key) || {};
+      if (!row.n) return `<div class="campaign-horizon"><b>${key.toUpperCase()}</b><span>collecting · n=0</span></div>`;
+      const ret = row.mean_return == null ? "—" : `${row.mean_return >= 0 ? "+" : ""}${(row.mean_return * 100).toFixed(2)}%`;
+      const hit = row.hit_rate == null ? "—" : `${(row.hit_rate * 100).toFixed(1)}%`;
+      return `<div class="campaign-horizon"><b>${key.toUpperCase()}</b><span>n=${row.n} · mean ${ret} · hit ${hit}</span></div>`;
+    };
+    const market = key => `<section class="campaign-market"><h4>${key.toUpperCase()} interaction</h4>${horizon(key, "t1")}${horizon(key, "t5")}${horizon(key, "t20")}</section>`;
+    const auth = coverage.authority_classifications || {};
+    evidence.innerHTML = `<div class="campaign-evidence-head"><b>Independent run card · ${escapeHtml(run.run_id || "—")}</b><span>diagnostic / collecting，不是 validated alpha</span></div><div class="campaign-market-grid">${market("us")}${market("hk")}</div><div class="campaign-coverage">factor ${coverage.factor_dates ?? "—"} dates · information ${coverage.information_dates ?? "—"} · overlap ${coverage.overlap_dates ?? "—"} · prospective ${coverage.prospective_information_dates ?? "—"} · authority none ${auth.none ?? 0} / explore ${auth.exploration ?? 0} / validated ${auth.validated ?? 0}</div>`;
   }
 
   function renderHoldings() {
@@ -2558,6 +2644,9 @@
     if (!container) return;
     const buckets = ["cut", "trim_on_rebound", "add_only_on_trigger", "add_on_breakout", "hold_and_watch", "watch", "t_only"];
     const perBucket = calib.by_action || {};
+    const bucketLabel = b => b === "add_only_on_trigger"
+      ? "add_only_on_trigger · legacy/mixed"
+      : b;
 
     const rows = buckets
       .map(b => ({ name: b, cal: perBucket[b] }))
@@ -2575,7 +2664,7 @@
         const followTxt = r.cal.avg_benefit_pct != null ? ` · avg ${r.cal.avg_benefit_pct >= 0 ? "+" : ""}${r.cal.avg_benefit_pct.toFixed(2)}%` : "";
         return `
           <div class="bucket-row">
-            <div class="name">${r.name}</div>
+            <div class="name">${bucketLabel(r.name)}</div>
             <div class="bar-wrap">
               <div class="bar-fill ${wCls}${lowN}" style="width:${wr == null ? 0 : wr}%"></div>
             </div>

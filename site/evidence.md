@@ -57,6 +57,24 @@ description: 我们测了什么、什么没通过。全部数字从产物读取�
 
 > **这不是一条没通过的检验，是还没到期。** 前瞻收益要 21 个交易日才算得出来，注册后的快照一条都还没满窗，所以计数必然是 0（最早可测 2026-08-24，按当前节奏最早 2026-09-24 才可能激活）。这一层只用 `registered_at` 之后记录的快照，回溯结果永远不能激活它——代价就是必须等，而等待和失败是两件事。
 
+## 低频加仓交互（新 campaign）
+
+**判定：⚪ 尚不可判** · 样本：factor 11 日 × information 12 日 · 来源：run card `add_alpha_walkforward-20260812-3774163f`
+
+| | |
+|---|---|
+| `US T1 interaction` | n=4 · mean 3.11% · hit 100.0% · collecting |
+| `US T5 interaction` | n=3 · mean 5.56% · hit 66.7% · collecting |
+| `US T20 interaction` | collecting · n=0（不显示为 0%） |
+| `HK T1 interaction` | n=2 · mean 1.77% · hit 50.0% · collecting |
+| `HK T5 interaction` | collecting · n=0（不显示为 0%） |
+| `HK T20 interaction` | collecting · n=0（不显示为 0%） |
+| 覆盖日期 | factor 11 · information 12 · overlap 10 |
+| 前瞻信息日期 | 0 |
+| authority 分类 | none 186 · exploration 6 · validated 0 |
+
+> 价格相对强弱与点时信息必须共同出现；技术位只安排已经获准的 tranche。当前 run card 是 current-universe / legacy-news replay，且前瞻信息日期仍为 0，所以只用于收集与诊断，**不是 validated alpha**。旧账本里的 `add_only_on_trigger` 是 mixed/legacy 样本，不计作这套 campaign 的成绩。
+
 ---
 
-<sub>由 `clawock evidence` 生成于 2026-08-08T00:31:42+08:00。数字全部读自产物；改动结论请改产物，不要改这一页。</sub>
+<sub>由 `clawock evidence` 生成于 2026-08-13T16:01:09+08:00。数字全部读自产物；改动结论请改产物，不要改这一页。</sub>
