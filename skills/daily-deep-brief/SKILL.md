@@ -63,6 +63,12 @@ reference 的三种技术 staged setup，或 packet 编译出的 `alpha_confirma
 只安排未来 1–5 个本地交易日的执行。Bull/Bear 可反证、否决或降档，不能凭措辞
 创造 authority、提高 tier 或改股数。
 
+`quant.early_trend.observed=true` 是 harness 已发现的提前布局候选：必须让 Bull 写最强的
+可证伪提前布局论点，让 Bear 写 priced-in/拥挤/来源质量反驳，Judge 再给
+`candidate|wait|reject`。Judge 只能把 deterministic candidate 保留、等待或否决；不得把
+`observed=false` 的票辩成 candidate。优先核对 `primary_event_ids`；只有新闻转载时必须把
+`needs_primary_evidence` 原样保留，不能冒充一手催化。
+
 ```bash
 /root/.local/bin/clawock tool decision_packet_summary \
   --workspace /root/.openclaw/workspace \
@@ -716,9 +722,12 @@ schema 只允许顶层 `schema_version/context_generation_id/portfolio_assessmen
   "ticker": "00100",
   "verdict": "bullish|neutral|bearish|mixed",
   "confidence": 0.62,
+  "disposition": "candidate|wait|reject",
   "assessment": "你的评价",
   "counterargument": "最强反方",
-  "rationale": "为何在冲突信号中这样判断"
+  "rationale": "为何在冲突信号中这样判断",
+  "falsifier": "什么事实会推翻当前候选/等待判断",
+  "next_evidence": "下一步要找的一手披露或价格确认"
 }
 ```
 
@@ -776,6 +785,9 @@ USD${total} ({pct}%) | HK leg {hk}HKD | US leg {us}USD
 
 ▎触发位（≤2 条最近的）
 {watch_levels 关键 1-2 条}
+
+▎提前布局候选
+{从 packet.add_alpha_diagnostics 逐字汇总 early hints / exploration / allowed 数量；列最多2票的 candidate|wait 及主要 blocker。allowed=0 也必须显示，禁止把候选隐藏成“无信号”}
 
 📈 完整深度报告（Tier1/2/3 辩论 + 板块全景 + 复盘 + 唱反调）：
 https://kcnyu.github.io/clawock/memory/{date}-pre-open.html

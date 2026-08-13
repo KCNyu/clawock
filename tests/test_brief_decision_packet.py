@@ -163,6 +163,8 @@ def _valid_overlay(packet):
         row["assessment"] = "结构化信号支持当前判断。"
         row["counterargument"] = "短线可能反向波动。"
         row["rationale"] = "在趋势和风险约束冲突时优先风险。"
+        row["falsifier"] = "突破失效或一手证据转负。"
+        row["next_evidence"] = "下一时段价格确认与发行人披露。"
     return overlay
 
 
@@ -307,6 +309,59 @@ def test_judgment_schema_allows_opinions_but_rejects_market_fields():
     )
 
 
+def test_judgment_can_downgrade_but_cannot_invent_a_candidate():
+    packet = _compiled()
+    overlay = _valid_overlay(packet)
+    lev = next(row for row in overlay["ticker_judgments"] if row["ticker"] == "LEVX")
+    lev["disposition"] = "candidate"
+
+    issues = packet_mod.validate_judgment_overlay(packet, overlay)
+
+    assert any("cannot upgrade" in issue for issue in issues)
+
+
+def test_judgment_rejects_a_deterministic_candidate_without_removing_the_hint():
+    context = _context()
+    context["quant_signals"]["rows"]["00100"].update({
+        "trend_on": None, "close": 11, "prior_20d_high": 10, "zscore20": 1,
+    })
+    context["peer_residual"]["held"]["00100"] = {
+        "feature_as_of": "2026-07-28", "residual_blend_5d": .2,
+        "peer_dispersion_5d": .05, "available_peer_count": 4,
+    }
+    packet = packet_mod.compile_packet(
+        context, brief_context.compute_generation_id(context)
+    )
+    overlay = _valid_overlay(packet)
+    hk = next(row for row in overlay["ticker_judgments"] if row["ticker"] == "00100")
+    hk["disposition"] = "reject"
+
+    assert packet_mod.validate_judgment_overlay(packet, overlay) == []
+    projection = packet_mod.compile_pages_projection(packet, overlay)
+    row = next(row for row in projection["tickers"] if row["ticker"] == "00100")
+    candidate = next(
+        row for row in projection["add_campaign"]["candidates"]
+        if row["ticker"] == "00100"
+    )
+    assert row["candidate_disposition"]["effective"] == "reject"
+    assert candidate["early_trend"]["observed"] is True
+
+
+def test_short_history_is_unknown_not_trend_off():
+    context = _context()
+    context["quant_signals"]["rows"]["00100"].update({
+        "trend_on": None, "tag": "趋势OFF · z+2.1σ极端",
+    })
+
+    row = packet_mod.compile_packet(
+        context, brief_context.compute_generation_id(context)
+    )["tickers"]["00100"]
+
+    assert row["technical"]["trend"] == "unknown"
+    assert "趋势未知" in row["technical"]["tag"]
+    assert row["status"]["label"] == "趋势未知·短历史"
+
+
 def test_invalid_overlay_cannot_corrupt_deterministic_pages_rows(tmp_path):
     packet = _compiled()
     overlay = _valid_overlay(packet)
@@ -372,6 +427,20 @@ def test_pages_projection_exposes_add_campaign_without_raw_run_card_inputs():
                 "authority_classifications": {"none": 186, "exploration": 6,
                                                "validated": 0},
                 "claim": "diagnostic_not_validated_alpha",
+                "early_trend": {"observed_candidates": 5},
+            },
+            "early_trend": {
+                "us": {"observed": {
+                    "t1": {"n": 3, "mean_return": .02, "hit_rate": .67,
+                           "status": "collecting"},
+                    "t5": {"n": 2, "mean_return": .04, "hit_rate": 1,
+                           "status": "collecting"},
+                }},
+                "hk": {"observed": {
+                    "t1": {"n": 1, "mean_return": -.01, "hit_rate": 0,
+                           "status": "collecting"},
+                    "t5": {"n": 0, "status": "collecting"},
+                }},
             },
         },
     }
@@ -388,7 +457,7 @@ def test_pages_projection_exposes_add_campaign_without_raw_run_card_inputs():
     hk = next(row for row in campaign["candidates"] if row["ticker"] == "00100")
     assert "price_relative" in hk["evidence_families"]
     assert set(hk) >= {
-        "state", "tier", "sources", "evidence_families",
+        "state", "tier", "source_ticker", "is_proxy", "sources", "evidence_families",
         "authority_blockers", "execution_blockers", "entry_price",
         "invalidation_price", "target_tranche_level", "max_add_shares",
     }
@@ -396,7 +465,62 @@ def test_pages_projection_exposes_add_campaign_without_raw_run_card_inputs():
     assert run_card["markets"]["us"]["t1"]["n"] == 4
     assert run_card["markets"]["hk"]["t20"]["status"] == "collecting"
     assert run_card["coverage"]["prospective_information_dates"] == 0
+    assert run_card["coverage"]["early_trend"]["observed_candidates"] == 5
+    assert run_card["early_trend"]["us"]["observed"]["t1"]["n"] == 3
     assert "inputs" not in run_card
+
+
+def test_candidate_diagnostics_deduplicate_proxy_and_underlying_as_one_idea():
+    context = _context()
+    context["portfolio"]["portfolios"]["us_stocks"]["holdings"].append({
+        "ticker": "BASE", "name": "Underlying", "shares": 10,
+        "cost_basis": 10, "current_price": 11, "current_value": 110,
+    })
+    for ticker in ("BASE",):
+        context["quant_signals"]["rows"][ticker] = {
+            "status": "fresh", "row_as_of": "2026-07-28", "trend_on": None,
+            "close": 11, "prior_20d_high": 10, "zscore20": 2.1,
+        }
+    context["peer_residual"]["held"]["BASE"] = {
+        "feature_as_of": "2026-07-28", "residual_blend_5d": .2,
+        "peer_dispersion_5d": .05, "available_peer_count": 4,
+    }
+
+    diagnostics = packet_mod.compile_packet(
+        context, brief_context.compute_generation_id(context)
+    )["add_alpha_diagnostics"]
+
+    assert diagnostics["observed_candidate_count"] == 2
+    assert diagnostics["observed_idea_count"] == 1
+
+
+def test_early_exploration_reports_its_real_tranche_and_evidence_families():
+    context = _context()
+    context["quant_signals"]["rows"]["00100"].update({
+        "trend_on": None, "close": 11, "prior_20d_high": 10,
+        "prior_5d_low": 9.5, "ma20": 10, "zscore20": 1,
+    })
+    context["peer_residual"]["held"]["00100"] = {
+        "feature_as_of": "2026-07-28", "residual_blend_5d": .2,
+        "peer_dispersion_5d": .05, "available_peer_count": 4,
+    }
+    context["news_evidence_graph"]["events"][0].update({
+        "source_type": "issuer_announcement", "impact_direction": "positive",
+    })
+    packet = packet_mod.compile_packet(
+        context, brief_context.compute_generation_id(context)
+    )
+    row = next(
+        row for row in packet["add_alpha_diagnostics"]["candidates"]
+        if row["ticker"] == "00100"
+    )
+
+    assert row["state"] == "exploration_ready"
+    assert row["target_tranche_level"] == .25
+    assert row["evidence_families"] == [
+        "point_in_time_information", "price_relative",
+    ]
+    assert row["entry_price"] == 11
 
 
 def test_pages_projection_names_a_packet_that_predates_add_policy():
@@ -652,6 +776,9 @@ def test_plan_provenance_is_replaced_from_generation_bound_packet():
     assert provenance["context_generation_id"] == packet["_meta"]["generation_id"]
     assert provenance["information"] == packet["tickers"]["00100"]["information"]
     assert provenance["information"].get("signed_score") != 999
+    assert provenance["early_trend"] == (
+        packet["tickers"]["00100"]["quant"]["early_trend"]
+    )
 
 
 def _catalyst(action, evidence_id, ticker="00100"):
