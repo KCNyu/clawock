@@ -144,14 +144,20 @@ def retrigger_or_wait(today, dry_run):
     if ok and not dry_run:
         flag.parent.mkdir(parents=True, exist_ok=True)
         flag.write_text(datetime.now(HKT).isoformat())
+    # The re-run fires on the run being over, not on the budget — but what the
+    # log may *claim* about the budget is only what was read. The old wording
+    # asserted "the runtime will not retry it" unconditionally, which was the
+    # 08-13 case and not the general one: a job whose budget is intact will be
+    # retried by the scheduler, and one whose state is unreadable is not
+    # evidence of either (#506).
+    verdict = ('exhausted — this re-run is one more single attempt'
+               if budget.exhausted else
+               'intact — the scheduler may also retry on its own'
+               if budget.exhausted is False else
+               'unknown — job state unreadable')
     log({'tag': tag, 'action': 'rerun-onhost', 'dry_run': dry_run, 'queued_ok': ok,
          'job_id': job.get('id'), 'job_name': job.get('name'),
-         'reason': 'the 08:00 run already ended in error; the runtime will not '
-                   'retry it (consecutiveErrors past its budget)',
-         # This re-run is one more single attempt: it inherits the same exhausted
-         # budget, so it dies to the same first-call timeout the runtime retries
-         # away for every other job. Recording the numbers here is what lets the
-         # 09:05 pass say so instead of blaming the provider again (#506).
+         'reason': f'the 08:00 run already ended in error; retry budget {verdict}',
          'retry_budget': budget.describe(), 'retry_budget_exhausted': budget.exhausted,
          'out': out})
     return 0
@@ -236,10 +242,11 @@ def retry_budget_note():
     if not budget.exhausted:
         return ''
     remedy = (
-        # `>` is the scheduler's rule, so the cap has to *reach* the counter,
-        # not pass it. Saying "raise past 10" would name 11, which the runtime's
-        # schema rejects — advice that cannot be carried out.
-        f'把 openclaw.json 的 cron.retry.maxAttempts 设为 ≥ {budget.consecutive_errors}'
+        # The scheduler increments the counter before comparing, so the next
+        # failure is judged at counter + 1 and a cap equal to the stored counter
+        # buys nothing. `cap_needed` is that arithmetic; naming the value keeps
+        # the advice from being one short.
+        f'把 openclaw.json 的 cron.retry.maxAttempts 设为 ≥ {budget.cap_needed}'
         if budget.raisable else
         f'配置上限只到 {CRON_MAX_ALLOWED_ATTEMPTS}，抬 maxAttempts 已经救不回来 —— '
         f'只能重置计数（停 gateway → state/openclaw.sqlite 的 cron_jobs '

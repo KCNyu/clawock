@@ -294,15 +294,29 @@ class CronRetryBudget:
     exhausted: bool | None
 
     @property
+    def cap_needed(self) -> int | None:
+        """The smallest `maxAttempts` that would let the *next* failure retry.
+
+        The scheduler increments `consecutiveErrors` on a failed run and only
+        then compares it, so the stored counter is what the failure that just
+        happened was judged against — and the next one will be judged at
+        counter + 1. A cap merely equal to the stored counter therefore buys
+        nothing: the next failure steps past it in the same instant.
+        """
+        if self.consecutive_errors is None:
+            return None
+        return self.consecutive_errors + 1
+
+    @property
     def raisable(self) -> bool:
         """Can raising the configured cap alone restore this job's retries?
 
-        The scheduler retries while `consecutiveErrors <= maxAttempts`, so the
-        cap has to reach the counter — not exceed it — and the runtime's schema
-        refuses to store more than RUNTIME_MAX_ALLOWED_ATTEMPTS.
+        Only while the cap it would take is one the runtime's schema will
+        actually store — at a stored counter of 10 the needed cap is 11, which
+        is rejected, so the counter itself has to be reset.
         """
-        return (self.consecutive_errors is not None
-                and self.consecutive_errors <= RUNTIME_MAX_ALLOWED_ATTEMPTS)
+        return (self.cap_needed is not None
+                and self.cap_needed <= RUNTIME_MAX_ALLOWED_ATTEMPTS)
 
     def describe(self) -> str:
         if self.exhausted is None:
@@ -334,14 +348,20 @@ def cron_max_attempts(*, paths: OpenClawPaths | None = None) -> int | None:
     config_file = (paths or runtime_paths()).config_file
     try:
         config = json.loads(config_file.read_text())
-        retry = (config.get("cron") or {}).get("retry") or {}
     except Exception:
         return None
-    if not isinstance(retry, dict):
+    # `cron: null` and `retry: []` are not "the field is absent" — they are
+    # shapes the runtime's schema rejects, so they say nothing about the cap the
+    # live scheduler is running. Only a well-formed section may fall back.
+    for key in ("cron", "retry"):
+        if not isinstance(config, dict):
+            return None
+        config = config.get(key, {})
+    if not isinstance(config, dict):
         return None
-    if "maxAttempts" not in retry:
+    if "maxAttempts" not in config:
         return RUNTIME_DEFAULT_MAX_TRANSIENT_RETRIES
-    return _valid_attempts(retry["maxAttempts"])
+    return _valid_attempts(config["maxAttempts"])
 
 
 def cron_retry_budget(job, *, paths: OpenClawPaths | None = None,

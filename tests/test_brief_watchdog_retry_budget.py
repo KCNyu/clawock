@@ -79,6 +79,11 @@ def test_an_unreadable_cap_is_unknown_and_never_a_default(tmp_path):
     for value in ("5", True, -1, None, 11, 20):
         assert provider.cron_max_attempts(
             paths=_paths(tmp_path, {"cron": {"retry": {"maxAttempts": value}}})) is None, value
+    # Shapes the schema rejects are not "the field is absent" either.
+    for config in ({"cron": None}, {"cron": []}, {"cron": {"retry": None}},
+                   {"cron": {"retry": []}}, []):
+        assert provider.cron_max_attempts(
+            paths=_paths(tmp_path, config)) is None, config
     corrupt = tmp_path / "corrupt"
     corrupt.mkdir()
     (corrupt / "openclaw.json").write_text("{not json")
@@ -94,17 +99,30 @@ def test_an_unknown_cap_makes_the_verdict_unknown_not_exhausted(tmp_path):
     assert budget.consecutive_errors == 6 and budget.max_attempts is None
 
 
-def test_a_counter_past_the_schema_ceiling_cannot_be_fixed_by_raising_the_cap(tmp_path):
-    """The runtime rejects maxAttempts > 10, so 12 bad days needs a reset.
+def test_the_cap_that_would_help_is_one_past_the_stored_counter(tmp_path):
+    """`applyJobResult` increments the counter and *then* compares it.
 
-    10 itself is still raisable: the rule is `errors > cap`, so a cap of exactly
-    10 leaves a counter of 10 one retry.
+    So the stored counter is what the failure that just happened was judged
+    against, and the next failure is judged at counter + 1. A cap merely equal
+    to the stored counter is spent in the same instant it is granted.
+    """
+    paths = _paths(tmp_path, {"cron": {"retry": {"maxAttempts": 5}}})
+
+    assert provider.cron_retry_budget(_job(consecutiveErrors=6), paths=paths).cap_needed == 7
+    assert provider.cron_retry_budget(_job(), paths=paths).cap_needed is None
+
+
+def test_a_counter_past_the_schema_ceiling_cannot_be_fixed_by_raising_the_cap(tmp_path):
+    """The runtime rejects maxAttempts > 10, so the cure runs out at 9.
+
+    At a stored counter of 9 the needed cap is 10, which the schema still
+    stores. At 10 it is 11, which it does not — from there only a reset works.
     """
     paths = _paths(tmp_path, {"cron": {"retry": {"maxAttempts": 5}}})
 
     assert provider.cron_retry_budget(_job(consecutiveErrors=8), paths=paths).raisable is True
-    assert provider.cron_retry_budget(_job(consecutiveErrors=10), paths=paths).raisable is True
-    assert provider.cron_retry_budget(_job(consecutiveErrors=11), paths=paths).raisable is False
+    assert provider.cron_retry_budget(_job(consecutiveErrors=9), paths=paths).raisable is True
+    assert provider.cron_retry_budget(_job(consecutiveErrors=10), paths=paths).raisable is False
     assert provider.cron_retry_budget(_job(consecutiveErrors=12), paths=paths).raisable is False
 
 
@@ -159,17 +177,27 @@ def test_the_alert_names_the_exhausted_budget_and_the_only_way_out(
 
 
 def test_a_budget_below_the_ceiling_is_told_which_value_to_set(monkeypatch, tmp_path):
-    """`errors > cap` ⇒ the cap has to reach the counter, not pass it.
+    """The named value must clear the *next* failure, not the last one.
 
-    Told to "raise past 6" an operator sets 7, which is fine; told to raise past
-    10 they would set 11, which the runtime's schema rejects outright. Naming
-    the value removes the trap.
+    The scheduler increments before comparing, so a counter of 9 needs a cap of
+    10; advising 9 would leave the very next failure unretried, which is the
+    same non-fix wearing a different number.
     """
-    text = _alert_text(monkeypatch, tmp_path, _job(consecutiveErrors=10),
-                       provider.CronRetryBudget(10, 5, True))
+    text = _alert_text(monkeypatch, tmp_path, _job(consecutiveErrors=9),
+                       provider.CronRetryBudget(9, 5, True))
 
     assert "cron.retry.maxAttempts 设为 ≥ 10" in text
     assert "已经救不回来" not in text
+
+
+def test_a_counter_at_the_ceiling_is_sent_to_reset_not_to_the_config(
+        monkeypatch, tmp_path):
+    """Counter 10 needs cap 11, which the runtime refuses to store."""
+    text = _alert_text(monkeypatch, tmp_path, _job(consecutiveErrors=10),
+                       provider.CronRetryBudget(10, 5, True))
+
+    assert "maxAttempts 已经救不回来" in text
+    assert "cron.retry.maxAttempts 设为" not in text
 
 
 def test_the_alert_claims_only_what_the_counter_proves(monkeypatch, tmp_path):
@@ -258,4 +286,33 @@ def test_the_0830_rerun_records_the_budget_it_is_running_against(
     rerun = [event for event in logged if event.get("action") == "rerun-onhost"]
     assert len(rerun) == 1
     assert rerun[0]["retry_budget_exhausted"] is True
-    assert "12" in rerun[0]["retry_budget"] and "5" in rerun[0]["retry_budget"]
+    assert rerun[0]["retry_budget"] == "consecutiveErrors=12 > maxAttempts=5"
+    assert "exhausted" in rerun[0]["reason"]
+
+
+def test_the_0830_rerun_does_not_claim_a_verdict_it_did_not_read(
+        monkeypatch, tmp_path):
+    """The re-run fires on the run being over, not on the budget.
+
+    The reason line used to assert "the runtime will not retry it" for every
+    re-run. That was 08-13's case, not the general one: an intact budget means
+    the scheduler may retry too, and an unreadable one means neither is known.
+    """
+    for budget, expected in ((provider.CronRetryBudget(1, 5, False), "intact"),
+                             (provider.CronRetryBudget(None, 5, None), "unknown")):
+        logged = []
+        ws = tmp_path / f"ws-{expected}"
+        ws.mkdir()
+        monkeypatch.setattr(watchdog, "WS", ws)
+        monkeypatch.setattr(watchdog, "brief_cron_job", lambda: _job())
+        monkeypatch.setattr(watchdog, "cron_run_ended_in_failure", lambda _job, _today: True)
+        monkeypatch.setattr(watchdog, "cron_retry_budget", lambda _job: budget)
+        monkeypatch.setattr(watchdog, "rerun_cron_job", lambda _id, _dry: (True, "queued"))
+        monkeypatch.setattr(watchdog, "log", logged.append)
+
+        assert watchdog.retrigger_or_wait(TODAY, False) == 0
+
+        rerun = [e for e in logged if e.get("action") == "rerun-onhost"]
+        assert len(rerun) == 1, expected
+        assert expected in rerun[0]["reason"], (expected, rerun[0]["reason"])
+        assert "the runtime will not retry it" not in rerun[0]["reason"]
