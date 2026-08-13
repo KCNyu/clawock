@@ -19,24 +19,27 @@ import os
 from pathlib import Path
 
 from clawock.decision.actions import ACTIVE_ACTIONS
-from clawock.decision import add_alpha
+from clawock.decision import add_alpha, early_trend
 from clawock.portfolio.instruments import get as instrument_metadata, is_leveraged_holding
 from clawock.workspace import workspace_root
 
 
 SCHEMA_VERSION = 1
-JUDGMENT_SCHEMA_VERSION = 1
+JUDGMENT_SCHEMA_VERSION = 2
 PAGES_SCHEMA_VERSION = 1
 MAX_PACKET_BYTES = 96 * 1024
 MAX_QUERY_BYTES = 24 * 1024
 ADD_ALPHA_POLICY = workspace_root(Path.cwd()) / "config" / "add-alpha-policy.json"
 VERDICTS = {"bullish", "neutral", "bearish", "mixed"}
+DISPOSITIONS = {"candidate", "wait", "reject"}
 TEXT_LIMITS = {
     "portfolio_assessment": 800,
     "portfolio_counterargument": 800,
     "assessment": 500,
     "counterargument": 500,
     "rationale": 500,
+    "falsifier": 300,
+    "next_evidence": 300,
 }
 
 
@@ -130,7 +133,7 @@ def _technical(row: dict, source_ticker: str, proxy: bool) -> dict:
     fresh = row.get("status") in (None, "fresh")
     trend = (
         "on" if row.get("trend_on") is True
-        else "off" if row.get("trend_on") is False or row.get("tag")
+        else "off" if row.get("trend_on") is False
         else "unknown"
     )
     stop_distance = _number(row.get("stop_distance_pct"), 1)
@@ -165,12 +168,15 @@ def _technical(row: dict, source_ticker: str, proxy: bool) -> dict:
                 "evidence_families": list(setup.get("evidence_families") or []),
                 "detail": str(setup.get("detail") or "")[:300],
             })
+    tag = row.get("tag")
+    if trend == "unknown" and isinstance(tag, str):
+        tag = tag.replace("趋势OFF", "趋势未知")
     return {
         "source_ticker": source_ticker,
         "is_proxy": bool(proxy),
         "status": row.get("status") or ("available" if row else "unavailable"),
         "as_of": row.get("row_as_of"),
-        "tag": row.get("tag"),
+        "tag": tag,
         "trend": trend,
         "rsi14": _number(row.get("rsi14"), 1),
         "rsi_state": _rsi_state(row.get("rsi14")),
@@ -184,6 +190,9 @@ def _technical(row: dict, source_ticker: str, proxy: bool) -> dict:
         "ma20": _number(row.get("ma20"), 4),
         "prior_5d_high": _number(row.get("prior_5d_high"), 4),
         "prior_5d_low": _number(row.get("prior_5d_low"), 4),
+        "prior_20d_high": _number(row.get("prior_20d_high"), 4),
+        "prior_20d_low": _number(row.get("prior_20d_low"), 4),
+        "zscore20": _number(row.get("zscore20"), 2),
         "chandelier_stop": _number(row.get("chandelier_stop"), 4),
         "stop_distance_pct": stop_distance,
         "stop_state": (
@@ -363,6 +372,7 @@ def _peer_view(row: dict) -> dict:
         "residual_1d": _number(row.get("residual_blend_1d"), 4),
         "residual_5d": _number(row.get("residual_blend_5d"), 4),
         "residual_20d": _number(row.get("residual_blend_20d"), 4),
+        "dispersion_5d": _number(row.get("peer_dispersion_5d"), 4),
         "leadership_persistence": row.get("leadership_persistence"),
         "laggard_persistence": row.get("laggard_persistence"),
         "available_peer_count": int(row.get("available_peer_count") or 0),
@@ -482,7 +492,7 @@ def _sentiment_view(rows: list[dict], ticker: str, source_ticker: str) -> dict:
 
 
 def _event_view(event: dict) -> dict:
-    return {
+    view = {
         key: event.get(key)
         for key in (
             "event_id",
@@ -496,9 +506,14 @@ def _event_view(event: dict) -> dict:
             "confidence_tier",
             "actionable_escalation",
             "actionable_reasons",
+            "source_type", "primary_source", "direction",
         )
         if event.get(key) not in (None, "", [])
     }
+    direction = event.get("direction", event.get("impact_direction"))
+    if direction not in (None, "", []):
+        view["direction"] = direction
+    return view
 
 
 def _risk_map(context: dict, active: set[str]) -> dict[str, list[dict]]:
@@ -564,6 +579,8 @@ def _status(technical: dict, risks: list[dict]) -> dict:
         return {"rank": 4, "label": "趋势ON", "state": "positive"}
     if technical.get("rsi_state") == "oversold":
         return {"rank": 2, "label": "超卖·观望", "state": "elevated"}
+    if technical.get("usable") and technical.get("trend") == "unknown":
+        return {"rank": 3, "label": "趋势未知·短历史", "state": "neutral"}
     if technical.get("usable"):
         return {"rank": 3, "label": "趋势off·观望", "state": "neutral"}
     return {"rank": 5, "label": "数据不足", "state": "neutral"}
@@ -740,6 +757,19 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
                 "prospective_collection_only",
                 "current_universe_survivorship_limit",
             ]
+        early_candidate = early_trend.classify(
+            technical, peer_view, information_view, matching_events,
+            leveraged=leveraged, policy=add_policy, market=leg,
+        )
+        early_setup = early_trend.exploration_setup(
+            technical, early_candidate, add_policy, ticker=ticker,
+        )
+        # The early lane can grant one exploration intent without changing the
+        # mature factor×information authority classification.  Downstream risk,
+        # cash, lot and open-order gates remain identical.
+        execution_tier = alpha_authority.get("tier") or "none"
+        if early_setup is not None and execution_tier == "none":
+            execution_tier = "exploration"
         alpha_setup = add_alpha.confirmation_setup(
             technical, alpha_authority, add_policy, ticker=ticker
         )
@@ -748,9 +778,12 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
             technical = _apply_setup_usage(
                 technical, ticker_usage
             )
+        if early_setup is not None:
+            technical["setups"].append(early_setup)
+            technical = _apply_setup_usage(technical, ticker_usage)
         execution = _execution_view(
             holding, leg, invested[leg], cash[leg], technical, thesis, leveraged,
-            authority_tier=alpha_authority.get("tier") or "none",
+            authority_tier=execution_tier,
             exploration_max_book_pct=float(
                 add_policy.get("exploration_max_book_pct") or 0.03
             ),
@@ -778,6 +811,7 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
                 "factor": factor_view,
                 "peer_residual": peer_view,
                 "add_authority": alpha_authority,
+                "early_trend": early_candidate,
                 "activation": {
                     "factor": bool(
                         ((context.get("cross_sectional_factor") or {}).get("activation") or {})
@@ -804,6 +838,7 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
     candidates = []
     for ticker, row in tickers.items():
         authority = ((row.get("quant") or {}).get("add_authority") or {})
+        early = ((row.get("quant") or {}).get("early_trend") or {})
         tier = authority.get("tier") or "none"
         tier_counts[tier] = tier_counts.get(tier, 0) + 1
         for blocker in authority.get("blockers") or []:
@@ -815,14 +850,25 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
             ),
             None,
         )
+        early_setup = next(
+            (
+                item for item in (row.get("technical") or {}).get("setups") or []
+                if item.get("setup_id") == "early_trend_confirmation"
+            ),
+            None,
+        )
+        active_setup = setup or early_setup
         constraints = row.get("constraints") or {}
         execution = row.get("execution") or {}
         allowed = "add_only_on_trigger" in (constraints.get("allowed_actions") or [])
-        if tier == "none":
+        early_ready = bool(early.get("exploration_ready"))
+        if tier == "none" and early.get("observed"):
+            state = early.get("state") or "candidate_only"
+        elif tier == "none":
             state = "insufficient_evidence"
-        elif setup is None:
+        elif active_setup is None:
             state = "waiting_timing"
-        elif setup.get("remaining_tranches") == 0:
+        elif active_setup.get("remaining_tranches") == 0:
             state = "already_at_target"
         elif execution.get("blockers") or row.get("risk"):
             state = "risk_blocked"
@@ -833,19 +879,29 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
         candidates.append({
             "ticker": ticker,
             "leg": row.get("leg"),
+            "source_ticker": (row.get("technical") or {}).get("source_ticker") or ticker,
+            "is_proxy": bool((row.get("technical") or {}).get("is_proxy")),
             "state": state,
             "tier": tier,
             "target_tranche_level": (
-                0.25 if tier == "exploration" else 1.0 if tier == "validated" else 0.0
+                0.25 if tier == "exploration" or early_ready
+                else 1.0 if tier == "validated" else 0.0
             ),
-            "sources": list(authority.get("sources") or []),
-            "evidence_families": list(authority.get("evidence_families") or []),
+            "sources": sorted(set(
+                list(authority.get("sources") or [])
+                + (["early_trend", "information"] if early_ready else [])
+            )),
+            "evidence_families": sorted(set(
+                list(authority.get("evidence_families") or [])
+                + (list(early.get("evidence_families") or []) if early_ready else [])
+            )),
             "authority_blockers": list(authority.get("blockers") or []),
-            "entry_price": (setup or {}).get("entry_price"),
-            "invalidation_price": (setup or {}).get("invalidation_price"),
+            "entry_price": (active_setup or {}).get("entry_price"),
+            "invalidation_price": (active_setup or {}).get("invalidation_price"),
             "max_add_shares": constraints.get("max_add_shares"),
             "allowed": allowed,
             "execution_blockers": list(execution.get("blockers") or []),
+            "early_trend": early,
         })
 
     packet = {
@@ -882,8 +938,10 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
         "judgment_contract": {
             "schema_version": JUDGMENT_SCHEMA_VERSION,
             "verdicts": sorted(VERDICTS),
+            "dispositions": sorted(DISPOSITIONS),
             "model_owned_fields": [
-                "verdict", "confidence", "assessment", "counterargument", "rationale",
+                "verdict", "confidence", "disposition", "assessment",
+                "counterargument", "rationale", "falsifier", "next_evidence",
             ],
             "harness_owned_fields": [
                 "facts", "technical", "quant", "sentiment collection",
@@ -896,7 +954,8 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
                 "schema_version", "registered_at", "minimum_evidence_families",
                 "confirmation_window_sessions", "exploration_max_tranches",
                 "exploration_tranche_pct", "validated_max_tranches",
-                "exploration_max_book_pct",
+                "exploration_max_book_pct", "early_peer_dispersion_multiple",
+                "early_no_chase_zscore",
                 "validated_tranche_pct", "markets", "discipline",
             )
         },
@@ -908,6 +967,31 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
                 row["tier"] in {"exploration", "validated"} for row in candidates
             ),
             "allowed_candidate_count": sum(bool(row["allowed"]) for row in candidates),
+            "observed_candidate_count": sum(
+                bool((row.get("early_trend") or {}).get("observed"))
+                or row["tier"] in {"exploration", "validated"}
+                for row in candidates
+            ),
+            "observed_idea_count": len({
+                row.get("source_ticker") or row["ticker"]
+                for row in candidates
+                if bool((row.get("early_trend") or {}).get("observed"))
+                or row["tier"] in {"exploration", "validated"}
+            }),
+            "observed_candidate_rate": round(sum(
+                bool((row.get("early_trend") or {}).get("observed"))
+                or row["tier"] in {"exploration", "validated"}
+                for row in candidates
+            ) / len(tickers), 4) if tickers else 0,
+            "early_exploration_ready_count": sum(
+                bool((row.get("early_trend") or {}).get("exploration_ready"))
+                for row in candidates
+            ),
+            "early_exploration_ready_idea_count": len({
+                row.get("source_ticker") or row["ticker"]
+                for row in candidates
+                if bool((row.get("early_trend") or {}).get("exploration_ready"))
+            }),
             "candidate_rate": round(sum(
                 row["tier"] in {"exploration", "validated"} for row in candidates
             ) / len(tickers), 4) if tickers else 0,
@@ -937,6 +1021,7 @@ def _decision_provenance(packet: dict, ticker: str) -> dict | None:
         "factor": copy.deepcopy(quant.get("factor") or {}),
         "peer_residual": copy.deepcopy(quant.get("peer_residual") or {}),
         "add_authority": copy.deepcopy(quant.get("add_authority") or {}),
+        "early_trend": copy.deepcopy(quant.get("early_trend") or {}),
         "sizing": copy.deepcopy(execution.get("information_overlay") or {}),
         "authority": {
             "max_add_shares": (row.get("constraints") or {}).get("max_add_shares"),
@@ -991,6 +1076,7 @@ def summary_view(packet: dict) -> dict:
                     "peer": ((row.get("quant") or {}).get("peer_residual") or {})
                     .get("usable_for_decisions"),
                 },
+                "early_trend": ((row.get("quant") or {}).get("early_trend") or {}),
                 "risk_count": len(row.get("risk") or []),
                 "constraints": row.get("constraints"),
             }
@@ -1012,9 +1098,12 @@ def judgment_template(packet: dict) -> dict:
                 "ticker": ticker,
                 "verdict": "neutral",
                 "confidence": 0.5,
+                "disposition": "wait",
                 "assessment": "",
                 "counterargument": "",
                 "rationale": "",
+                "falsifier": "",
+                "next_evidence": "",
             }
             for ticker in packet.get("tickers", {})
         ],
@@ -1028,8 +1117,8 @@ def validate_judgment_overlay(packet: dict, overlay: dict) -> list[str]:
         "portfolio_counterargument", "ticker_judgments",
     }
     row_allowed = {
-        "ticker", "verdict", "confidence", "assessment",
-        "counterargument", "rationale",
+        "ticker", "verdict", "confidence", "disposition", "assessment",
+        "counterargument", "rationale", "falsifier", "next_evidence",
     }
     if not isinstance(overlay, dict):
         return ["judgment overlay must be an object"]
@@ -1070,10 +1159,27 @@ def validate_judgment_overlay(packet: dict, overlay: dict) -> list[str]:
         seen.add(ticker)
         if row.get("verdict") not in VERDICTS:
             issues.append(f"{label} invalid verdict {row.get('verdict')!r}")
+        disposition = row.get("disposition")
+        if disposition not in DISPOSITIONS:
+            issues.append(f"{label} invalid disposition {disposition!r}")
+        deterministic = (packet.get("tickers") or {}).get(ticker) or {}
+        authority = ((deterministic.get("quant") or {}).get("add_authority") or {})
+        early = ((deterministic.get("quant") or {}).get("early_trend") or {})
+        can_be_candidate = bool(
+            authority.get("tier") in {"exploration", "validated"}
+            or early.get("observed")
+        )
+        if disposition == "candidate" and not can_be_candidate:
+            issues.append(
+                f"{label} disposition candidate cannot upgrade a deterministic non-candidate"
+            )
         confidence = _number(row.get("confidence"))
         if confidence is None or not 0 <= confidence <= 1:
             issues.append(f"{label} confidence must be in [0,1]")
-        for field in ("assessment", "counterargument", "rationale"):
+        for field in (
+            "assessment", "counterargument", "rationale", "falsifier",
+            "next_evidence",
+        ):
             value = row.get(field)
             if not isinstance(value, str) or not value.strip():
                 issues.append(f"{label} {field} must be non-empty text")
@@ -1211,6 +1317,18 @@ def compile_pages_projection(
         risks = row.get("risk") or []
         hard = any(item.get("kind") == "hard_stop" for item in risks)
         direct = any(item.get("scope") == "ticker" for item in risks)
+        judgment = judgments.get(ticker)
+        authority = ((row.get("quant") or {}).get("add_authority") or {})
+        early = ((row.get("quant") or {}).get("early_trend") or {})
+        deterministic_candidate = bool(
+            authority.get("tier") in {"exploration", "validated"}
+            or early.get("observed")
+        )
+        effective_disposition = (
+            judgment.get("disposition") if judgment and deterministic_candidate
+            else "reject" if judgment and judgment.get("disposition") == "reject"
+            else "wait"
+        )
         rows.append({
             "ticker": ticker,
             "name": row.get("name"),
@@ -1254,7 +1372,12 @@ def compile_pages_projection(
                 ],
             },
             "status": row.get("status"),
-            "judgment": judgments.get(ticker),
+            "judgment": judgment,
+            "candidate_disposition": {
+                "deterministic_candidate": deterministic_candidate,
+                "effective": effective_disposition,
+                "discipline": "judgment may downgrade or reject; it cannot create authority",
+            },
         })
     rows.sort(
         key=lambda row: (
@@ -1271,10 +1394,12 @@ def compile_pages_projection(
         candidates.append({
             key: candidate.get(key)
             for key in (
-                "ticker", "leg", "state", "tier", "target_tranche_level",
+                "ticker", "leg", "source_ticker", "is_proxy", "state", "tier",
+                "target_tranche_level",
                 "sources", "evidence_families", "authority_blockers",
                 "execution_blockers", "entry_price", "invalidation_price",
                 "max_add_shares", "allowed",
+                "early_trend",
             )
         })
     candidates.sort(key=lambda row: (row.get("leg") or "", row.get("ticker") or ""))
@@ -1313,7 +1438,10 @@ def compile_pages_projection(
                 for key in (
                     "held_names", "tier_counts", "candidate_count",
                     "authority_candidate_count", "allowed_candidate_count",
-                    "candidate_rate", "blocker_counts", "zero_output_visible",
+                    "observed_candidate_count", "observed_candidate_rate",
+                    "observed_idea_count", "early_exploration_ready_count",
+                    "early_exploration_ready_idea_count", "candidate_rate",
+                    "blocker_counts", "zero_output_visible",
                 )
             } if campaign_status == "current" else None,
             "candidates": candidates,
@@ -1343,6 +1471,7 @@ def _compact_add_alpha_run_card(card: dict | None) -> dict | None:
     metrics = card.get("metrics") or {}
     coverage = metrics.get("coverage") or {}
     market_metrics = {}
+    early_metrics = {}
     for market in ("us", "hk"):
         interaction = (metrics.get(market) or {}).get("interaction") or {}
         market_metrics[market] = {
@@ -1355,6 +1484,20 @@ def _compact_add_alpha_run_card(card: dict | None) -> dict | None:
             }
             for horizon in ("t1", "t5", "t20")
         }
+        early = (metrics.get("early_trend") or {}).get(market) or {}
+        early_metrics[market] = {
+            state: {
+                horizon: {
+                    key: ((early.get(state) or {}).get(horizon) or {}).get(key)
+                    for key in (
+                        "n", "n_dates", "n_tickers", "mean_return",
+                        "hit_rate", "status",
+                    )
+                }
+                for horizon in ("t1", "t5")
+            }
+            for state in ("observed", "information_confirmed", "exploration_ready")
+        }
     return {
         "run_id": card.get("run_id"),
         "generated_at": card.get("generated_at"),
@@ -1362,6 +1505,7 @@ def _compact_add_alpha_run_card(card: dict | None) -> dict | None:
         "policy_version": (card.get("params") or {}).get("policy_version"),
         "parameter_fit": (card.get("params") or {}).get("parameter_fit"),
         "markets": market_metrics,
+        "early_trend": early_metrics,
         "coverage": {
             key: coverage.get(key)
             for key in (
@@ -1369,7 +1513,7 @@ def _compact_add_alpha_run_card(card: dict | None) -> dict | None:
                 "prospective_information_dates", "authority_classifications",
                 "information_grade", "factor_grade", "claim",
             )
-        },
+        } | {"early_trend": coverage.get("early_trend")},
     }
 
 

@@ -1350,12 +1350,15 @@
     } else {
       const d = campaign.diagnostics || {};
       const tiers = d.tier_counts || {};
-      status.textContent = `collecting · authority ${d.authority_candidate_count || 0}/${d.held_names || 0}`;
+      status.textContent = `ideas ${d.observed_idea_count ?? d.observed_candidate_count ?? 0} · authority ${d.authority_candidate_count || 0}/${d.held_names || 0}`;
       status.className = "badge muted";
       const stateLabel = {
         eligible: "可执行", waiting_timing: "等技术位", risk_blocked: "风险拦截",
         already_at_target: "tranche 已满", constraint_blocked: "约束拦截",
         insufficient_evidence: "证据不足",
+        wait_pullback_rebreak: "候选·等回踩再突破",
+        wait_information: "候选·等信息确认",
+        candidate_only: "候选·仅观察",
       };
       const blockerLabel = {
         independent_evidence_families: "缺独立证据族",
@@ -1366,6 +1369,11 @@
         tranche_below_market_unit: "低于交易单位",
         open_add_order: "已有未结加仓",
         no_approved_setup: "无授权 setup",
+        no_20d_breakout: "未突破20日高",
+        no_short_peer_leadership: "短期同行领先不足",
+        needs_information_confirmation: "等信息确认",
+        needs_primary_evidence: "缺一手证据",
+        overheated_wait_rebreak: "过热·等回踩再突破",
       };
       const rows = (campaign.candidates || []).slice().sort((a, b) =>
         String(a.leg || "").localeCompare(String(b.leg || "")) ||
@@ -1380,15 +1388,19 @@
             const sources = (row.sources || []).join(" + ") || "—";
             const prices = row.entry_price == null ? "未授权入场位" :
               `entry ${row.entry_price} · invalid ${row.invalidation_price ?? "—"}`;
+            const early = row.early_trend || {};
+            const earlyMetrics = early.metrics || {};
+            const earlyLine = early.observed ? `<div class="campaign-detail"><b>early hint</b> ${escapeHtml((early.price_modes || []).join(" + ") || "—")} · info ${escapeHtml((early.information_modes || []).join(" + ") || "待确认")} · 5d residual ${earlyMetrics.residual_5d ?? "—"} · attention accel ${earlyMetrics.attention_acceleration ?? "—"}</div>` : "";
             return `<div class="add-campaign-row">
-              <div><b class="ticker">${escapeHtml(row.ticker || "—")}</b><span class="campaign-tier">${escapeHtml(row.tier || "none")}</span></div>
+              <div><b class="ticker">${escapeHtml(row.ticker || "—")}</b>${row.is_proxy ? `<span class="campaign-tier">via ${escapeHtml(row.source_ticker || "underlying")}</span>` : ""}<span class="campaign-tier">${escapeHtml(row.tier || "none")}</span></div>
               <div><span class="campaign-state state-${escapeHtml(row.state || "unknown")}">${escapeHtml(stateLabel[row.state] || row.state || "unknown")}</span><span class="campaign-families">families ${escapeHtml(families)} · sources ${escapeHtml(sources)}</span></div>
               <div class="campaign-detail">${escapeHtml(prices)} · tranche ${row.target_tranche_level ?? 0} · max shares ${row.max_add_shares ?? 0}</div>
+              ${earlyLine}
               <div class="campaign-blockers"><b>authority</b>${authorityBlockers.length ? authorityBlockers.map(v => `<span>${escapeHtml(blockerLabel[v] || v)}</span>`).join("") : "<span>none</span>"}<b>execution</b>${executionBlockers.length ? executionBlockers.map(v => `<span>${escapeHtml(blockerLabel[v] || v)}</span>`).join("") : "<span>none</span>"}</div>
             </div>`;
           }).join("") : '<div class="empty-state">No held names.</div>') + `</section>`;
       };
-      body.innerHTML = `<div class="campaign-summary">packet ${escapeHtml(campaign.packet_generated_at || "—")} · generation ${escapeHtml(campaign.context_generation_id || "—")} · validated ${tiers.validated || 0} · exploration ${tiers.exploration || 0} · none ${tiers.none || 0}</div><div class="add-campaign-legs">${legBlock("US")}${legBlock("HK")}</div>`;
+      body.innerHTML = `<div class="campaign-summary">packet ${escapeHtml(campaign.packet_generated_at || "—")} · generation ${escapeHtml(campaign.context_generation_id || "—")} · early ideas ${d.observed_idea_count ?? d.observed_candidate_count ?? 0} · early exploration ideas ${d.early_exploration_ready_idea_count ?? d.early_exploration_ready_count ?? 0} · mature validated ${tiers.validated || 0} / exploration ${tiers.exploration || 0}</div><div class="add-campaign-legs">${legBlock("US")}${legBlock("HK")}</div>`;
     }
 
     const run = campaign.run_card;
@@ -1406,7 +1418,14 @@
     };
     const market = key => `<section class="campaign-market"><h4>${key.toUpperCase()} interaction</h4>${horizon(key, "t1")}${horizon(key, "t5")}${horizon(key, "t20")}</section>`;
     const auth = coverage.authority_classifications || {};
-    evidence.innerHTML = `<div class="campaign-evidence-head"><b>Independent run card · ${escapeHtml(run.run_id || "—")}</b><span>diagnostic / collecting，不是 validated alpha</span></div><div class="campaign-market-grid">${market("us")}${market("hk")}</div><div class="campaign-coverage">factor ${coverage.factor_dates ?? "—"} dates · information ${coverage.information_dates ?? "—"} · overlap ${coverage.overlap_dates ?? "—"} · prospective ${coverage.prospective_information_dates ?? "—"} · authority none ${auth.none ?? 0} / explore ${auth.exploration ?? 0} / validated ${auth.validated ?? 0}</div>`;
+    const earlyHorizon = (marketKey, horizonKey) => {
+      const row = safe(run, "early_trend", marketKey, "observed", horizonKey) || {};
+      const ret = row.mean_return == null ? "—" : `${row.mean_return >= 0 ? "+" : ""}${(row.mean_return * 100).toFixed(2)}%`;
+      const hit = row.hit_rate == null ? "—" : `${(row.hit_rate * 100).toFixed(1)}%`;
+      return `${horizonKey.toUpperCase()} n=${row.n ?? 0} · mean ${ret} · hit ${hit}`;
+    };
+    const earlyCoverage = coverage.early_trend || {};
+    evidence.innerHTML = `<div class="campaign-evidence-head"><b>Independent run card · ${escapeHtml(run.run_id || "—")}</b><span>diagnostic / collecting，不是 validated alpha</span></div><div class="campaign-market-grid">${market("us")}${market("hk")}</div><div class="campaign-coverage"><b>early candidate replay</b> · US ${earlyHorizon("us", "t1")} / ${earlyHorizon("us", "t5")} · HK ${earlyHorizon("hk", "t1")} / ${earlyHorizon("hk", "t5")} · observed ${earlyCoverage.observed_candidates ?? 0}, information-confirmed ${earlyCoverage.information_confirmed ?? 0}, exploration-ready ${earlyCoverage.exploration_ready ?? 0}</div><div class="campaign-coverage">factor ${coverage.factor_dates ?? "—"} dates · information ${coverage.information_dates ?? "—"} · overlap ${coverage.overlap_dates ?? "—"} · prospective ${coverage.prospective_information_dates ?? "—"} · authority none ${auth.none ?? 0} / explore ${auth.exploration ?? 0} / validated ${auth.validated ?? 0}</div>`;
   }
 
   function renderHoldings() {
