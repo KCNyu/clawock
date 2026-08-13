@@ -237,7 +237,8 @@ def append_active_information_section(block, active):
     """Make information-first candidates visible without relying on model prose."""
     rows = (active or {}).get('candidates') or []
     degraded = (active or {}).get('degraded_issuers') or []
-    if not rows and not degraded:
+    partial = (active or {}).get('partially_degraded_issuers') or []
+    if not rows and not degraded and not partial:
         return block
     lines = ['', '🛰️ 主动一级信息（候选≠下单）']
     label = {'candidate': '候选', 'wait': '等待', 'reject': '拒绝加仓'}
@@ -258,6 +259,10 @@ def append_active_information_section(block, active):
         lines.append(f'  …另有 {len(rows) - 4} 条')
     if degraded:
         lines.append(f"  ⚠️ 一级源降级：{','.join(degraded)}（不是无消息）")
+    if partial:
+        lines.append(
+            f"  △ SEC直连降级、镜像已检查：{','.join(partial)}"
+        )
     return block + '\n' + '\n'.join(lines)
 
 
