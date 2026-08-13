@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-13T14:10:25.710507+00:00",
+  "generated_at": "2026-08-13T22:21:29.871643+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -13,352 +13,76 @@
   },
   "llm_filtered": true,
   "counts": {
-    "total": 10,
-    "held_hits": 5,
-    "new_ideas": 0,
-    "sector_hits": 1
+    "total": 2,
+    "held_hits": 0,
+    "new_ideas": 1,
+    "sector_hits": 0
   },
   "items": [
     {
-      "author": "Musk",
-      "text": "Elon Musk: SpaceX’s AI Revenue Will Surpass Its Entire Space Business “Next Month”",
-      "url": "",
-      "published": "Wed, 12 Aug 2026 17:54:07 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [],
-      "held": [
-        "SPCH",
-        "SPCX"
+      "author": "Trump",
+      "text": "I am pleased to announce the nomination of Lee Rudofsky to the United States Court of Appeals for the Eighth Circuit! Lee is currently a distinguished Federal District Court Judge in Arkansas. He previously was Solicitor General of Arkansas, and Assistant General Counsel of Walmart. He is a Graduate of Harvard Law School and Cornell University. Lee will be a rock solid defender of the Constitution on the Eighth Circuit. Congratulations Lee! President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/40784",
+      "published": "2026-08-12T22:58:45+00:00",
+      "origin": "truthsocial",
+      "tickers": [
+        "WMT"
       ],
-      "new_ideas": [],
+      "held": [],
+      "new_ideas": [
+        "WMT"
+      ],
       "sectors": [
-        "AI",
-        "航天"
+        "司法/监管"
       ],
       "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 90,
-      "summary_cn": "Musk放话：SpaceX的AI营收下月将超过其整个航天业务，重大看多信号，直接利好kcn SPCX/SPCH。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX could make $500 billion in 2028, Elon Musk says (video)",
-      "url": "",
-      "published": "Tue, 11 Aug 2026 23:42:48 GMT",
-      "origin": "gnews-rss",
-      "source": "Space",
-      "tickers": [],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "AI"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 88,
-      "summary_cn": "Musk称SpaceX到2028年可能做到5000亿美元营收，宏大叙事利好kcn SPCX/SPCH持仓估值。"
-    },
-    {
-      "author": "Musk",
-      "text": "See How a Tesla-SpaceX Merger Gives Musk a Shortcut to His $1 Trillion Payday",
-      "url": "",
-      "published": "Tue, 11 Aug 2026 01:00:00 GMT",
-      "origin": "gnews-rss",
-      "source": "WSJ",
-      "tickers": [],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "AI",
-        "企业并购"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 88,
-      "summary_cn": "媒体分析Tesla-SpaceX潜在合并将为Musk带来1万亿美元薪酬捷径，若合并落地将极大重估SPCX/SPCH。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX stock surges as Elon Musk introduces new xAI model Grok 4.6",
-      "url": "",
-      "published": "Thu, 13 Aug 2026 11:19:36 GMT",
-      "origin": "gnews-rss",
-      "source": "Fox Business",
-      "tickers": [],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "AI",
-        "航天"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 85,
-      "summary_cn": "Musk发布xAI新模型Grok 4.6，SpaceX股价应声飙升，强化AI+航天双叙事，利好kcn SPCX/SPCH持仓。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX Jumps On New Grok Model; Musk Comments",
-      "url": "",
-      "published": "Thu, 13 Aug 2026 13:34:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Investor's Business Daily",
-      "tickers": [],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "AI",
-        "航天"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 82,
-      "summary_cn": "SpaceX股价因Musk推介新Grok模型跳涨，直接利好kcn持有的SPCX及2x杠杆SPCH。"
+      "stance": "neutral",
+      "relevance": 45,
+      "summary_cn": "特朗普提名Walmart前助理总法律顾问Lee Rudofsky出任第八巡回上诉法院法官(WMT仅作为其履历背景提及，无市场含义)。"
     },
     {
       "author": "Trump",
-      "text": "The U.S.A. has total control over the Strait of Hormuz. I THINK WE WILL KEEP IT! Our Naval Blockade is being called, by everyone, “A WALL OF STEEL,” and there is nothing Iran can do about it. They have no Navy, they have no Air Force, their remaining soldiers are unpaid, the IRGC is decimated and fleeing, and their “Leadership” is uncertain, at best! They have No Money - Their country is “shot.” All they have is FAKE NEWS and 300% INFLATION, and getting worse! Iran is all talk and no action, the Bully of the Middle East No Longer. Praise be to Allah! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/40758",
-      "published": "2026-08-12T14:31:09+00:00",
+      "text": "BIG WIN today at the U.S. Court of International Trade on one of the most DESPICABLE loopholes in American Trade Policy — The so-called “de minimis” exemption.   For years, Foreign Shippers could send packages worth up to $800 into our Country, DUTY FREE, NO TARIFF, far less scrutiny. It became a giant loophole for TARIFF Cheats — and a Pipeline exploited by Fentanyl Traffickers, Counterfeiters, and other Criminals shipping dangerous and illegal products into America. The numbers were staggering. In 2024 alone, de minimis cost America an estimated 10.8 BILLION DOLLRS in foregone TARIFF Revenue",
+      "url": "https://trumpstruth.org/statuses/40794",
+      "published": "2026-08-13T18:38:49+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "能源/石油",
-        "国防军工",
-        "中东地缘政治"
-      ],
-      "sector_holdings": [
-        "02208"
-      ],
-      "stance": "neutral",
-      "relevance": 58,
-      "summary_cn": "Trump声称美国完全控制霍尔木兹海峡、维持海军封锁，称伊朗无还手之力，地缘紧张利好能源/国防主题。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk’s DOGE Promised Savings, But It’s Cost Us a Fortune",
-      "url": "",
-      "published": "Thu, 13 Aug 2026 11:57:19 GMT",
-      "origin": "gnews-rss",
-      "source": "Mother Jones",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "政府效率/财政"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 52,
-      "summary_cn": "媒体批评Musk的DOGE项目'省下的钱远不及付出的代价'，对其政府效率改革成效的负面报道。"
-    },
-    {
-      "author": "Musk",
-      "text": "Tesla reveals solar plans that could advance Elon Musk's push to outpace US panel capacity",
-      "url": "",
-      "published": "Thu, 13 Aug 2026 07:11:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Business Insider",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "太阳能/清洁能源",
-        "电动车"
+        "关税",
+        "贸易政策",
+        "跨境电商"
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 52,
-      "summary_cn": "Tesla披露太阳能新规划，Musk欲推动超越美国现有光伏产能，利好太阳能产业链但未点名上市公司。"
-    },
-    {
-      "author": "Musk",
-      "text": "EXCLUSIVE: S&P 500 CEO pay jumps to record as Musk-inspired compensation plans spread",
-      "url": "",
-      "published": "Thu, 13 Aug 2026 14:05:43 GMT",
-      "origin": "gnews-rss",
-      "source": "Reuters",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "CEO薪酬/公司治理"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "Musk式薪酬方案在全美扩散，S&P 500 CEO薪酬创纪录，间接反映其对市场治理范式的影响力。"
-    },
-    {
-      "author": "Trump",
-      "text": "The NYC Pied-a-Terre Tax is costing New York City and State a fortune in that the money, eventually to be gotten, is very little compared to to the TAXES PAID by the tens of thousands of people who are fleeing the City, never to return. Florida, Texas, and numerous other States, are making an absolute fortune! This dangerous political “experiment” in New York will destroy what was once a great City and State. It is pure Amateur Hour, and it’s hard, as President of the United States of America, to sit back and watch it happen, especially to a place I once loved. Financial, and then Social, RUIN",
-      "url": "https://trumpstruth.org/statuses/40731",
-      "published": "2026-08-11T15:38:30+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "房地产/税收政策"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 50,
-      "summary_cn": "Trump抨击纽约市'度假屋税'(Pied-a-Terre Tax)导致人口和税收外流至佛州、德州等，影射纽约财政/社会走向毁灭。"
+      "relevance": 72,
+      "summary_cn": "特朗普宣布在美国际贸易法院赢得de minimis(800美元以下免税)豁免漏洞裁决，每年堵住约108亿美元关税损失，并强调将堵截芬太尼/假货走私管道。"
     }
   ],
-  "held_hits": [
-    {
-      "author": "Musk",
-      "text": "Elon Musk: SpaceX’s AI Revenue Will Surpass Its Entire Space Business “Next Month”",
-      "url": "",
-      "published": "Wed, 12 Aug 2026 17:54:07 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "AI",
-        "航天"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 90,
-      "summary_cn": "Musk放话：SpaceX的AI营收下月将超过其整个航天业务，重大看多信号，直接利好kcn SPCX/SPCH。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX could make $500 billion in 2028, Elon Musk says (video)",
-      "url": "",
-      "published": "Tue, 11 Aug 2026 23:42:48 GMT",
-      "origin": "gnews-rss",
-      "source": "Space",
-      "tickers": [],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "AI"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 88,
-      "summary_cn": "Musk称SpaceX到2028年可能做到5000亿美元营收，宏大叙事利好kcn SPCX/SPCH持仓估值。"
-    },
-    {
-      "author": "Musk",
-      "text": "See How a Tesla-SpaceX Merger Gives Musk a Shortcut to His $1 Trillion Payday",
-      "url": "",
-      "published": "Tue, 11 Aug 2026 01:00:00 GMT",
-      "origin": "gnews-rss",
-      "source": "WSJ",
-      "tickers": [],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "AI",
-        "企业并购"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 88,
-      "summary_cn": "媒体分析Tesla-SpaceX潜在合并将为Musk带来1万亿美元薪酬捷径，若合并落地将极大重估SPCX/SPCH。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX stock surges as Elon Musk introduces new xAI model Grok 4.6",
-      "url": "",
-      "published": "Thu, 13 Aug 2026 11:19:36 GMT",
-      "origin": "gnews-rss",
-      "source": "Fox Business",
-      "tickers": [],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "AI",
-        "航天"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 85,
-      "summary_cn": "Musk发布xAI新模型Grok 4.6，SpaceX股价应声飙升，强化AI+航天双叙事，利好kcn SPCX/SPCH持仓。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX Jumps On New Grok Model; Musk Comments",
-      "url": "",
-      "published": "Thu, 13 Aug 2026 13:34:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Investor's Business Daily",
-      "tickers": [],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "AI",
-        "航天"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 82,
-      "summary_cn": "SpaceX股价因Musk推介新Grok模型跳涨，直接利好kcn持有的SPCX及2x杠杆SPCH。"
-    }
-  ],
-  "new_ideas": [],
-  "sector_hits": [
+  "held_hits": [],
+  "new_ideas": [
     {
       "author": "Trump",
-      "text": "The U.S.A. has total control over the Strait of Hormuz. I THINK WE WILL KEEP IT! Our Naval Blockade is being called, by everyone, “A WALL OF STEEL,” and there is nothing Iran can do about it. They have no Navy, they have no Air Force, their remaining soldiers are unpaid, the IRGC is decimated and fleeing, and their “Leadership” is uncertain, at best! They have No Money - Their country is “shot.” All they have is FAKE NEWS and 300% INFLATION, and getting worse! Iran is all talk and no action, the Bully of the Middle East No Longer. Praise be to Allah! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/40758",
-      "published": "2026-08-12T14:31:09+00:00",
+      "text": "I am pleased to announce the nomination of Lee Rudofsky to the United States Court of Appeals for the Eighth Circuit! Lee is currently a distinguished Federal District Court Judge in Arkansas. He previously was Solicitor General of Arkansas, and Assistant General Counsel of Walmart. He is a Graduate of Harvard Law School and Cornell University. Lee will be a rock solid defender of the Constitution on the Eighth Circuit. Congratulations Lee! President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/40784",
+      "published": "2026-08-12T22:58:45+00:00",
       "origin": "truthsocial",
-      "tickers": [],
+      "tickers": [
+        "WMT"
+      ],
       "held": [],
-      "new_ideas": [],
+      "new_ideas": [
+        "WMT"
+      ],
       "sectors": [
-        "能源/石油",
-        "国防军工",
-        "中东地缘政治"
+        "司法/监管"
       ],
-      "sector_holdings": [
-        "02208"
-      ],
+      "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 58,
-      "summary_cn": "Trump声称美国完全控制霍尔木兹海峡、维持海军封锁，称伊朗无还手之力，地缘紧张利好能源/国防主题。"
+      "relevance": 45,
+      "summary_cn": "特朗普提名Walmart前助理总法律顾问Lee Rudofsky出任第八巡回上诉法院法官(WMT仅作为其履历背景提及，无市场含义)。"
     }
-  ]
+  ],
+  "sector_hits": []
 }
