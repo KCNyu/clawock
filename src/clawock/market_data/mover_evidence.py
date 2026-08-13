@@ -167,6 +167,9 @@ def _sec_items(ticker, *, now, window, http):
     forms = recent.get("form") or []
     accepted = recent.get("acceptanceDateTime") or []
     docs = recent.get("primaryDocDescription") or []
+    accessions = recent.get("accessionNumber") or []
+    primary_docs = recent.get("primaryDocument") or []
+    filing_items = recent.get("items") or []
     items = []
     for index, form in enumerate(forms):
         when = _parse_sec_time(accepted[index] if index < len(accepted) else None)
@@ -176,6 +179,15 @@ def _sec_items(ticker, *, now, window, http):
         if age < 0 or age > window:
             continue
         description = docs[index] if index < len(docs) else ""
+        accession = accessions[index] if index < len(accessions) else ""
+        primary_doc = primary_docs[index] if index < len(primary_docs) else ""
+        filed_items_text = filing_items[index] if index < len(filing_items) else ""
+        archive_url = None
+        if accession and primary_doc:
+            archive_url = (
+                "https://www.sec.gov/Archives/edgar/data/"
+                f"{int(digits)}/{str(accession).replace('-', '')}/{primary_doc}"
+            )
         items.append({
             "published_at": when.isoformat(),
             "age_minutes": age,
@@ -183,7 +195,10 @@ def _sec_items(ticker, *, now, window, http):
             "raw_title": f"{form} {description}".strip(),
             "tier": PRIMARY,
             "source_class": "sec_filing",
-            "url": None,
+            "url": archive_url,
+            "accession": accession or None,
+            "form": str(form or "") or None,
+            "filing_items": str(filed_items_text or "") or None,
         })
     return items, None
 
@@ -346,7 +361,8 @@ def halts(symbols, *, now, window, http_text=None) -> dict:
 
 
 def probe(movers, *, market, now=None, window_minutes=WINDOW_MINUTES,
-          budget_s=TOTAL_BUDGET_S, http=None, http_text=None, clock=None) -> dict:
+          budget_s=TOTAL_BUDGET_S, http=None, http_text=None, clock=None,
+          primary_only=False) -> dict:
     """Catalyst evidence for the flagged tickers. Never raises."""
     tickers = [str(t) for t in (movers or []) if t]
     if not tickers:
@@ -375,7 +391,7 @@ def probe(movers, *, market, now=None, window_minutes=WINDOW_MINUTES,
         # On the US leg SEC and Tencent report the same filing twice ("SCHEDULE
         # 13G" / "Form SC 13G"). SEC is the authority, so Tencent's filing feed is
         # only consulted when SEC produced nothing — one event, one line.
-        for label, call in (
+        calls = (
             ("sec", (lambda t=issuer: _sec_items(t, now=now, window=window_minutes, http=http))
              if market == "us" else None),
             ("filings", (lambda s=symbol: (_tencent_items(
@@ -384,8 +400,11 @@ def probe(movers, *, market, now=None, window_minutes=WINDOW_MINUTES,
             ("research", (lambda s=symbol: (_tencent_items(
                 s, TENCENT_NEWS_TYPE, SUPPORTING, "broker_or_media",
                 now=now, window=window_minutes, http=http), None)) if symbol else None),
-        ):
+        )
+        for label, call in calls:
             if call is None:
+                continue
+            if primary_only and label == "research":
                 continue
             if (label == "filings" and market == "us"
                     and any(row["source_class"] == "sec_filing" for row in entry["items"])):
@@ -402,6 +421,12 @@ def probe(movers, *, market, now=None, window_minutes=WINDOW_MINUTES,
                 continue
             if note:
                 entry["notes"].append(f"{label}: {note}")
+                if label == "sec":
+                    # A missing CIK after lookup can mean the SEC ticker map was
+                    # unavailable, not that the issuer filed nothing. Tencent's
+                    # exchange mirror may still find an item below; otherwise the
+                    # honest terminal state is degraded, never no_recent_filing.
+                    entry["status"] = "degraded"
             entry["items"].extend(items)
         interrupts, context_items, suppressed = [], [], 0
         for item in entry["items"]:
@@ -432,9 +457,12 @@ def probe(movers, *, market, now=None, window_minutes=WINDOW_MINUTES,
         entry["target"] = target
         results[ticker] = entry
 
-    flashes, flash_note = _market_flashes(
-        [name for name in names.values() if name], now=now, window=window_minutes
-    )
+    if primary_only:
+        flashes, flash_note = [], None
+    else:
+        flashes, flash_note = _market_flashes(
+            [name for name in names.values() if name], now=now, window=window_minutes
+        )
     halt_symbols = []
     if market == "us":
         # A halt is a low-probability event for large caps, so this is not worth a

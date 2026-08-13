@@ -48,6 +48,7 @@ TMP = WS / 'memory' / '.tmp'
 from ._harness_common import compute_context_id
 
 from clawock_kcnyu.automation import cron_heartbeat  # noqa: E402
+from clawock_kcnyu import active_information  # noqa: E402
 
 
 # `scripts/data` was deleted in #429 and the analysis moved into the package in
@@ -232,6 +233,45 @@ def append_setup_section(block, setups, signals_detail=None):
     return block + '\n' + '\n'.join(lines)
 
 
+def append_active_information_section(block, active):
+    """Make information-first candidates visible without relying on model prose."""
+    rows = (active or {}).get('candidates') or []
+    degraded = (active or {}).get('degraded_issuers') or []
+    if not rows and not degraded:
+        return block
+    lines = ['', '🛰️ 主动一级信息（候选≠下单）']
+    label = {'candidate': '候选', 'wait': '等待', 'reject': '拒绝加仓'}
+    for row in rows[:4]:
+        reaction = row.get('session_reaction_pct')
+        reaction_text = f'{reaction:+g}%' if isinstance(reaction, (int, float)) else '价格反应缺失'
+        detail = str(row.get('detail') or '')[:120]
+        bits = [
+            f"  ◆ {row.get('issuer')} [{label.get(row.get('disposition'), row.get('disposition'))}]",
+            f"{row.get('category')} / {row.get('direction')}", reaction_text, detail,
+        ]
+        hint = row.get('exploration_hint') or {}
+        if hint:
+            unit = '一手' if hint.get('unit') == 'one_board_lot' else '1股'
+            bits.append(f"探索上限 {unit}({hint.get('shares')}股)，未授权")
+        lines.append(' | '.join(bits))
+    if len(rows) > 4:
+        lines.append(f'  …另有 {len(rows) - 4} 条')
+    if degraded:
+        lines.append(f"  ⚠️ 一级源降级：{','.join(degraded)}（不是无消息）")
+    return block + '\n' + '\n'.join(lines)
+
+
+def apply_active_information_alert(should_alert, reasons, active):
+    """A primary event is alert-worthy even when no ticker has moved 3%."""
+    rows = (active or {}).get('candidates') or []
+    if not rows:
+        return should_alert, reasons
+    issuers = ', '.join(dict.fromkeys(
+        row.get('issuer') for row in rows if row.get('issuer')
+    ))
+    return True, [*reasons, f'主动一级信息: {issuers}']
+
+
 def parse_anomalies(stdout):
     """Parse markdown holdings table rows (--md-table form) and flag ≥3% moves.
 
@@ -359,6 +399,22 @@ def main(argv=None):
 
     should_alert, alert_reasons = decide_alert(signals, anomalies)
 
+    # Information first: scan the bounded issuer set before requiring a tape
+    # anomaly.  This is the active counterpart to mover_news below, which still
+    # answers the separate question "what explains an already-large move?".
+    try:
+        active_information_ctx = active_information.scan_workspace(args.market)
+    except Exception as exc:  # noqa: BLE001 — a filing source must not red a slot
+        active_information_ctx = {
+            'schema_version': 1, 'market': args.market, 'candidates': [],
+            'candidate_count': 0, 'wait_count': 0, 'reject_count': 0,
+            'degraded_issuers': [],
+            'error': f'{type(exc).__name__}: {exc}'[:200],
+        }
+    should_alert, alert_reasons = apply_active_information_alert(
+        should_alert, alert_reasons, active_information_ctx,
+    )
+
     # Thesis/red-line state for the names this slot already flagged. Local JSON
     # only, scoped to movers, and attribution context — never an action trigger
     # on its own (the catalyst gate still decides that).
@@ -395,6 +451,7 @@ def main(argv=None):
     # prints is a detector that has been silenced (#515).
     live_setups = collect_provisional_setups(args.market)
     raw_block = append_setup_section(stdout.strip(), live_setups, signals_detail)
+    raw_block = append_active_information_section(raw_block, active_information_ctx)
 
     result = {
         'status':           'ok',
@@ -414,6 +471,7 @@ def main(argv=None):
         'plan_context':     plan_ctx,
         'mover_thesis':     mover_thesis,
         'mover_news':       mover_news_ctx,
+        'active_information_candidates': active_information_ctx,
         'known_catalysts':  known_catalyst_ctx,
         'heartbeat':        {'job': heartbeat['job'], 'slot': heartbeat['slot']},
     }
