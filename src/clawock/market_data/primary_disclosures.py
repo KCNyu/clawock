@@ -13,6 +13,7 @@ import time
 import urllib.parse
 import urllib.request
 from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo
 
 
 HKT = timezone(timedelta(hours=8))
@@ -20,6 +21,7 @@ PER_REQUEST_TIMEOUT_S = 5
 SEC_SUBMISSIONS = "https://data.sec.gov/submissions/CIK{cik}.json"
 TENCENT_NEWS = "https://web.ifzq.gtimg.cn/appstock/news/info/search"
 TENCENT_FILINGS_TYPE = 0
+NASDAQ_FILINGS = "https://api.nasdaq.com/api/company/{issuer}/sec-filings"
 UA = "Mozilla/5.0 (clawock primary disclosure provider)"
 
 
@@ -141,6 +143,53 @@ def fetch_sec(issuer, *, now, window_minutes, http=None):
     return items, None
 
 
+def fetch_nasdaq_filings(issuer, *, now, window_minutes, http=None):
+    """Fetch Nasdaq's free SEC-filing mirror when SEC direct is unavailable.
+
+    Nasdaq exposes the filing date but not the SEC acceptance timestamp.  Same
+    US-session-date rows are therefore useful primary documents, while their
+    exact freshness remains explicitly unverified downstream.
+    """
+    http = http or _http_json
+    payload = http(
+        NASDAQ_FILINGS.format(issuer=urllib.parse.quote(str(issuer).upper()))
+        + "?limit=10"
+    )
+    rows = ((payload or {}).get("data") or {}).get("rows") or []
+    session_date = now.astimezone(ZoneInfo("America/New_York")).date()
+    items = []
+    for row in rows:
+        try:
+            filed_date = datetime.strptime(str(row.get("filed")), "%m/%d/%Y").date()
+        except (TypeError, ValueError):
+            continue
+        # A date-only mirror cannot honestly prove a rolling intraday window.
+        # Keep only today's US filing date; callers must retain the precision
+        # blocker before treating it as an exploration trigger.
+        if filed_date != session_date:
+            continue
+        links = row.get("view") if isinstance(row.get("view"), dict) else {}
+        source_url = links.get("htmlLink") or links.get("docLink") or None
+        form = re.sub(r"\s+", " ", str(row.get("formType") or "")).strip()
+        company = re.sub(r"\s+", " ", str(row.get("companyName") or "")).strip()
+        items.append({
+            "published_at": None,
+            "filed_date": filed_date.isoformat(),
+            "observed_at": now.isoformat(),
+            "time_precision": "date",
+            "freshness_status": "same_session_date_time_unavailable",
+            "age_minutes": None,
+            "title": re.sub(r"\s+", " ", f"{form} {company}").strip(),
+            "source_class": "sec_filing_mirror",
+            "evidence_tier": "primary",
+            "source_url": source_url,
+            "accession": None,
+            "form": form or None,
+            "filing_items": None,
+        })
+    return items, None
+
+
 def probe(issuers, *, market: str, now=None, window_minutes: int,
           budget_s: float, max_issuers: int, http=None, clock=None) -> dict:
     """Return normalized primary disclosures and honest source status.
@@ -159,11 +208,14 @@ def probe(issuers, *, market: str, now=None, window_minutes: int,
     for issuer in chased:
         entry = {
             "status": "no_recent_disclosure", "events": [], "notes": [],
-            "degraded_sources": [],
+            "degraded_sources": [], "healthy_sources": [],
         }
         symbol = tencent_symbol(issuer, market)
         calls = (
             ("sec", (lambda t=issuer: fetch_sec(
+                t, now=now, window_minutes=window_minutes, http=http
+            )) if market == "us" else None),
+            ("nasdaq_filing_mirror", (lambda t=issuer: fetch_nasdaq_filings(
                 t, now=now, window_minutes=window_minutes, http=http
             )) if market == "us" else None),
             ("exchange", (lambda s=symbol: fetch_exchange(
@@ -173,8 +225,12 @@ def probe(issuers, *, market: str, now=None, window_minutes: int,
         for label, call in calls:
             if call is None:
                 continue
-            if (label == "exchange"
+            if (label in {"nasdaq_filing_mirror", "exchange"}
                     and any(row["source_class"] == "sec_filing" for row in entry["events"])):
+                continue
+            if (label == "exchange"
+                    and any(row["source_class"] == "sec_filing_mirror"
+                            for row in entry["events"])):
                 continue
             if clock() - started > budget_s:
                 entry["notes"].append(f"{label}: skipped, time budget spent")
@@ -195,12 +251,20 @@ def probe(issuers, *, market: str, now=None, window_minutes: int,
                     entry["status"] = "degraded"
                     entry["degraded_sources"].append(label)
             entry["events"].extend(items)
+            if not (label == "sec" and note):
+                entry["healthy_sources"].append(label)
         entry["events"].sort(key=lambda row: row.get("published_at") or "", reverse=True)
         entry["degraded_sources"] = sorted(set(entry["degraded_sources"]))
-        if entry["events"] and not entry["degraded_sources"]:
+        entry["healthy_sources"] = sorted(set(entry["healthy_sources"]))
+        entry["partial_degradation"] = bool(
+            entry["degraded_sources"] and entry["healthy_sources"]
+        )
+        if entry["events"]:
             entry["status"] = "found"
-        elif entry["status"] != "degraded":
+        elif entry["healthy_sources"]:
             entry["status"] = "no_recent_disclosure"
+        else:
+            entry["status"] = "degraded"
         results[issuer] = entry
 
     payload = {
