@@ -14,11 +14,13 @@ from pathlib import Path
 
 from clawock.market_data import mover_evidence, peer_quotes
 from clawock.portfolio import instruments
+from clawock.safe_io import safe_write_json
 from clawock.workspace import workspace_root
 
 
 WS = workspace_root(Path.cwd())
 PORTFOLIO = WS / "portfolio.json"
+SEEN_DIR = WS / "memory" / ".tmp"
 MAX_ACTIVE_ISSUERS = 4
 HOT_REACTION_PCT = 3.0
 CONTRADICTED_REACTION_PCT = -2.0
@@ -276,4 +278,32 @@ def scan(portfolio: dict | None, *, market: str, now=None, http=None,
 
 
 def scan_workspace(market: str, **kwargs) -> dict:
-    return scan(_load_portfolio(), market=market, **kwargs)
+    result = scan(_load_portfolio(), market=market, **kwargs)
+    path = SEEN_DIR / f"active-information-seen-{market}.json"
+    try:
+        seen_doc = json.loads(path.read_text()) if path.exists() else {}
+        seen = seen_doc.get("events") if isinstance(seen_doc, dict) else {}
+        seen = seen if isinstance(seen, dict) else {}
+    except (OSError, json.JSONDecodeError):
+        seen = {}
+    new_ids = []
+    now_text = result["as_of"]
+    active_ids = {row["event_id"] for row in result["candidates"]}
+    for row in result["candidates"]:
+        row["is_new"] = row["event_id"] not in seen
+        if row["is_new"]:
+            new_ids.append(row["event_id"])
+            seen[row["event_id"]] = now_text
+    # The probe itself owns a four-hour event window.  Keeping only still-active
+    # ids bounds this local cursor and lets a genuinely new accession/title alert.
+    seen = {event_id: seen[event_id] for event_id in active_ids if event_id in seen}
+    result["new_event_ids"] = new_ids
+    result["new_candidate_count"] = len(new_ids)
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        safe_write_json(str(path), {"schema_version": 1, "events": seen})
+    except OSError as exc:
+        # Losing dedup state may repeat one alert, but must never erase evidence or
+        # break the market slot.  Make that degradation inspectable in context.
+        result["cursor_error"] = f"{type(exc).__name__}: {exc}"[:160]
+    return result

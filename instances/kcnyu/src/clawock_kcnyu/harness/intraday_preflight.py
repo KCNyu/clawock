@@ -263,7 +263,10 @@ def append_active_information_section(block, active):
 
 def apply_active_information_alert(should_alert, reasons, active):
     """A primary event is alert-worthy even when no ticker has moved 3%."""
-    rows = (active or {}).get('candidates') or []
+    rows = [
+        row for row in ((active or {}).get('candidates') or [])
+        if row.get('is_new', True)
+    ]
     if not rows:
         return should_alert, reasons
     issuers = ', '.join(dict.fromkeys(
