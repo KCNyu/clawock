@@ -73,7 +73,7 @@ package 架构。
 
 ## 信息层
 
-读市场是 LLM 干的大部分活,所以整套系统最宽的一环是数据收集。仓库编录了 **8 层、39 个抓取与计算模块**,**港股与美股双语覆盖** —— 实时报价、SEC + 东财申报、资金流、财报日历、宏观(VIX / DXY / 10Y)、Reddit 与新闻情绪,以及能撬动行情的社交 feed。每份简报只取与该市场、该 session 相关的子集。信息收集保持宽,决策层保持窄。
+读市场是 LLM 干的大部分活,所以整套系统最宽的一环是数据收集。仓库编录了 **8 层、40 个抓取与计算模块**,**港股与美股双语覆盖** —— 实时报价、SEC + 东财申报、资金流、财报日历、宏观(VIX / DXY / 10Y)、Reddit 与新闻情绪,以及能撬动行情的社交 feed。每份简报只取与该市场、该 session 相关的子集。信息收集保持宽,决策层保持窄。
 
 | 层 | 模块 | 主要来源 |
 |---|:---:|---|
@@ -84,7 +84,7 @@ package 架构。
 | 5 · 宏观/情绪 | 3 | Yahoo · Reddit · CNN · 社交 feed |
 | 6 · 量化与风险 | 8 | 对价格历史做确定性计算 |
 | 7 · 账本/汇率校验 | 6 | Frankfurter · 对账账本 · 本地不变量 |
-| 8 · 回测/自省 | 6 | 本地快照 + 基准行情 |
+| 8 · 回测/自省 | 7 | 本地快照 + 基准行情 |
 
 抓取层优雅降级:所有现役东财调用统一走**一个节流网关**,关键路径(报价、汇率)用**多源兜底**,而一次抓空会**保留旧值**,不会用空白覆盖一条好序列。公开来源包括腾讯、stooq、yfinance、Frankfurter、SEC EDGAR、Finnhub、Nasdaq、东财、Polygon、Alpha Vantage、Reddit 与 Google News —— 完整命令、provider 与产物目录见[命令参考](docs/reference/commands.md),它的清单和上面这张表核对的是同两份 registry,由生成器产出。哪个模块属于哪一层本身也是一份产物 —— [`config/information-layers.json`](config/information-layers.json),每条打包命令要么进某一层,要么带着「为什么它不算收集」的理由列在排除表里 —— 上面那张表由 CI 对着它核,模块搬了家,数字不会还留在原地。
 
@@ -118,6 +118,14 @@ package 架构。
 
 - **多条策略,分别打分。** `core_position`、`risk_rebalance`、`intraday_t`、`event_trade`、`tactical_entry` 可以在同一只标的上并存,因为长线论点和日内交易本就可能合理地分歧。每条在自己的 episode 里打分。
 - **归因优先。** 每条决策按其主导驱动打标签,而那个驱动的 edge 是从记录里*动态*测出来的 —— 逻辑里不硬编码任何命中率。
+
+### 低频加仓 campaign
+
+加仓使用有状态的交互信号，不把均线包装成 alpha。港美分别排名：截面因子和同行残差合并为一个 `price_relative` 证据族；时点新闻通过可靠的正向 surprise，或相对同一只票自身历史突然加速的 source-weighted attention，形成另一个证据族。两族必须同时成立，负面信息或同行 laggard 证据优先阻断。进入和退出使用不同 rank 阈值，为已开启 campaign 提供滞回，避免一次小幅排名抖动反复开关权限。
+
+权限、仓位和执行三层分开。warming policy 每只票、每个 policy version 只允许采一批 2.5% exploration；它不等于 validated，也不能用于每日重置杠杆产品。不可分割的最小交易单位只有在仍低于该市场账 3% exploration 硬上限时才能补成一股/一手，昂贵 board lot 不能伪装成小样本。validated campaign 才能分多批向目标靠近。技术价位只负责把已经授权的一批安排在未来五个本地交易日：最早下一 session、先判失效、跳空按开盘、港美分别使用日历和交易单位。
+
+每个持仓都会显示 `eligible`、`waiting_timing`、`risk_blocked`、`already_at_target`、`constraint_blocked` 或 `insufficient_evidence`。所以零订单可以是正常结果，但不能再只给一个裸的 `add=0`。`clawock evaluate-add-alpha` 分别比较 setup-only、price-relative、information 和 interaction 的 T+1/T+5/T+20；当前 universe 与旧新闻快照的 replay 只标 diagnostic / survivorship-limited，绝不冒充 validated alpha。
 - **证伪,不证实。** 风偏向上的行情里默认 HOLD。一个看多的故事在跨过一道证伪检查、以及一道「这是不是已经被 price in 了?」的近几日涨幅测试之前,不会触发买入。
 - **regime 高于择时。** 杠杆不做择时;200 日趋势 × 波动率的拨盘给它封顶。回测的教训是:edge 在*于错误 regime 里降杠杆*,不在抄顶。
 
@@ -189,8 +197,9 @@ package 架构。
 | **集中度按腿计算** | 每本账 `HHI = Σ wᵢ²`:`<0.15` ✅ · `0.15–0.25` 🟡 · `0.25–0.40` 🟠 · `>0.40` 🔴。绝不跨币种混算。 |
 | **杠杆按 regime 拨挡** | 200 日趋势 × 波动率的拨盘给杠杆 ETF 仓位封顶(×1 / ×0.5 / ×0);每日重置的 2×/3× 产品完全跳过基本面。 |
 | **回报基于峰值本金** | 回报率用现金流账本里的峰值净投入,而不是 `成本 − 已实现` —— 一笔已实现盈利不该伪造出更高的回报。 |
-| **软情绪不能翻转交易** | 一条推文或一种情绪只能微调置信度数字;只有硬的、带日期的催化剂才能改动作。风偏向上的行情里默认 HOLD。 |
-| **未验证的信号只展示、绝不遵从** | 一层量化因子跑在代码里,但在它跨过最小样本量并证明命中率之前,被禁止影响任何决策。 |
+| **软情绪不能单独翻转交易** | 一条推文或单一情绪只能微调置信度；source-weighted attention 只有同时满足自身历史加速和 price-relative 强度时，才可进入有上限的 exploration。硬的、带日期的负面催化仍可直接触发防守动作。 |
+| **未验证信号只能进入 exploration 边界** | 量化因子在通过前瞻激活前不能声称 validated；warming-up 阶段只有预注册交互可以按 ticker/policy 采一批有上限的样本，账本单独标注证据等级。 |
+| **加仓必须有量化 × 信息交互** | 因子和同行残差只算一个 price-relative family，不得冒充两票；还要有独立的时点新闻 surprise/attention family 才产生 exploration 或 validated tranche，技术价位只安排已经授权的资金。 |
 | **对外研究里的数字必须两源** | 长文里的数字带 provenance manifest:精确 Decimal 运算、每个数字两个独立来源、tolerance 上限不能由 manifest 自己抬高。单源或两源不一致的数字,直接卡住引用它的产物准出。 |
 | **thesis 只在有新证据时变** | 假设、红线、估值锚都落在带版本的 JSON 里。某个维度要变,必须有上次检查之后观察到的证据;价格波动只能改估值,动不了生意 / 护城河 / 管理层;红线的触发**和**解除都要证据。没有基线就诚实记 `unknown`,不靠文案补造历史。 |
 | **盈利质量由代码算,不靠断言** | 现金转化、营运资本缺口、摊薄、SBC 占比、指引结果都由代码从至少四个可比期算出。中途换会计基准或币种直接判错,缺输入就写 `unavailable` 并给原因,脚注类结论必须有一手发行人文件。 |

@@ -12,6 +12,7 @@
     "minimum_cross_section_tickers": 8,
     "freshness_half_life_hours": 36,
     "maximum_event_age_hours": 168,
+    "attention_score_prior": 0.1,
     "positive_rank_upsize_threshold": 0.75,
     "negative_rank_downsize_threshold": 0.25,
     "sizing": {

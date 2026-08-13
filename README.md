@@ -78,7 +78,7 @@ Every trading day the system pulls fresh prices, FX, volatility, earnings and ma
 
 ## The information layer
 
-Reading the market is most of what the LLM does, so the widest part of the system is data collection. The repository catalogs **39 fetch and compute modules across 8 layers**, with **bilingual Hong Kong + US coverage** — live quotes, SEC + Eastmoney filings, capital flow, earnings calendars, macro (VIX / DXY / 10Y), Reddit and news sentiment, and market-moving social feeds. Each brief consumes the subset relevant to that market and session. Collection stays broad; the decision layer stays constrained.
+Reading the market is most of what the LLM does, so the widest part of the system is data collection. The repository catalogs **40 fetch and compute modules across 8 layers**, with **bilingual Hong Kong + US coverage** — live quotes, SEC + Eastmoney filings, capital flow, earnings calendars, macro (VIX / DXY / 10Y), Reddit and news sentiment, and market-moving social feeds. Each brief consumes the subset relevant to that market and session. Collection stays broad; the decision layer stays constrained.
 
 | Layer | Modules | Primary sources |
 |---|:---:|---|
@@ -89,7 +89,7 @@ Reading the market is most of what the LLM does, so the widest part of the syste
 | 5 · Macro & sentiment | 3 | Yahoo · Reddit · CNN · social feeds |
 | 6 · Quant & risk | 8 | deterministic math over price history |
 | 7 · Book & FX integrity | 6 | Frankfurter · the reconciliation ledger · local invariants |
-| 8 · Backtest & calibration | 6 | local snapshots + canonical bars |
+| 8 · Backtest & calibration | 7 | local snapshots + canonical bars |
 
 The fetch layer degrades gracefully: every live Eastmoney call routes through **one throttled gateway**, critical paths (quotes, FX) use **multi-source fallback**, and an empty fetch **keeps the prior value** instead of overwriting a good series with a blank. Public sources include Tencent, stooq, yfinance, Frankfurter, SEC EDGAR, Finnhub, Nasdaq, Eastmoney, Polygon, Alpha Vantage, Reddit, and Google News — full command and provider catalog in [the command reference](https://github.com/KCNyu/clawock/blob/master/docs/reference/commands.md), whose inventory is generated from the same registries this table is checked against. Which module sits in which layer is itself an artifact — [`config/information-layers.json`](https://github.com/KCNyu/clawock/blob/master/config/information-layers.json), where every packaged command is either in a layer or listed with the reason it is not collection — and CI checks the table above against it, so a module that moves cannot leave its count standing.
 
@@ -123,6 +123,14 @@ Analysis resolves into explicit, gated strategy decisions — and one stock can 
 
 - **Several strategies, graded separately.** `core_position`, `risk_rebalance`, `intraday_t`, `event_trade`, and `tactical_entry` can coexist on the same name, because a long-term thesis and an intraday trade can legitimately disagree. Each is graded in its own episode.
 - **Attribution-first.** Every decision is tagged by its dominant driver, and that driver's edge is measured *dynamically* from the record — no hit rate is hard-coded into the logic.
+
+### Low-frequency add campaigns
+
+Adds use a stateful interaction rather than treating a moving average as alpha. Within each market, the factor rank and curated-peer residual form one `price_relative` evidence family. Point-in-time news contributes a separate family through reliable positive surprise or source-weighted attention that has accelerated against the same name's own earlier snapshots. An add needs both families; negative information or peer-laggard evidence blocks it. Separate enter/exit ranks give an open campaign hysteresis, so a small rank wobble cannot churn permission off and on.
+
+Authority, sizing and execution stay separate. A warming policy may collect one 2.5% exploration tranche per ticker and policy version; that is not validated authority and cannot be used on daily-reset leveraged products. One indivisible broker unit is allowed only while it remains inside the 3% market-book exploration cap, so an expensive board lot cannot masquerade as a small sample. Validated campaigns may approach their target in several tranches. The price setup only schedules an authorized tranche for the next five local sessions: next-session execution, invalidation first, gap-aware fills, separate HK/US ranks, calendars and lot rules.
+
+Every held name remains visible as `eligible`, `waiting_timing`, `risk_blocked`, `already_at_target`, `constraint_blocked`, or `insufficient_evidence`. Thus zero orders can be a legitimate result, but a bare `add=0` is not. `clawock evaluate-add-alpha` compares setup-only, price-relative, information and interaction variants at T+1/T+5/T+20; current-universe and legacy-news replay is labeled diagnostic and survivorship-limited, never promoted into validated alpha.
 - **Falsify, don't confirm.** In a risk-on tape the default is HOLD. A bullish story doesn't trigger a buy until it clears a disconfirming check and an "is this already priced in?" test on the last few days' move.
 - **Regime over timing.** Leverage isn't timed; a 200-day-trend × volatility dial sets the cap. The backtested lesson: the edge was in *de-leveraging in the wrong regime*, not in calling tops.
 
@@ -194,8 +202,9 @@ That path is covered by a large unit-test suite — it's what keeps the system s
 | **Concentration per leg** | `HHI = Σ wᵢ²` per book: `<0.15` ✅ · `0.15–0.25` 🟡 · `0.25–0.40` 🟠 · `>0.40` 🔴. Never blended across currencies. |
 | **Leverage judged by regime** | A 200-day-trend × volatility dial caps the leverage-ETF sleeve (×1 / ×0.5 / ×0); daily-reset 2×/3× products skip fundamentals entirely. |
 | **Return on peak principal** | Return % uses peak net deposits from the cash-flow ledger, not `cost − realized` — a realized win must not fake a higher return. |
-| **News needs an evidence graph** | Filings, issuer/exchange news, calendars, and headlines are deduplicated into expiring event IDs. Only a reliable, novel, negative event with price/volume or validated peer confirmation can drive a discretionary action; positive and repeated news stays watch-only. |
-| **Unproven signals are shown, never obeyed** | A quant factor layer runs in code but is barred from influencing a decision until it clears a minimum sample and proves a hit rate. |
+| **News needs an evidence graph** | Filings, issuer/exchange news, calendars, and headlines are deduplicated into expiring event IDs. A reliable, novel, negative event with price/volume or validated peer confirmation may drive defensive action. Positive surprise or accelerating attention can only join price-relative evidence in a capped add exploration; it cannot trade alone. |
+| **Unproven signals get an exploration boundary** | A quant factor cannot claim validated authority until it clears prospective activation. While warming up, a pre-registered interaction can collect one capped tranche per ticker/policy; the ledger keeps that evidence grade distinct. |
+| **Add authority needs quant × information** | Factor and peer residual count as one price-relative family, not two votes. A second point-in-time news surprise/attention family must agree before an exploration or validated tranche exists; technical prices only time that already-authorized capital. |
 | **Published research numbers need two sources** | Long-form numbers carry a provenance manifest: exact Decimal arithmetic, two independent sources per figure, and a tolerance cap the manifest cannot raise for itself. A single-sourced or disagreeing figure blocks release of the artifact that quotes it. |
 | **A thesis moves only on new evidence** | Assumptions, red lines and valuation anchors live in versioned JSON. A dimension may change only with evidence observed after the last check; a price move can reprice valuation but cannot touch business, moat or management; triggering *and* clearing a red line both need evidence. A missing baseline stays `unknown` instead of being reconstructed from prose. |
 | **Earnings quality is computed, not asserted** | Cash conversion, working-capital gaps, dilution, SBC share and guidance outcomes are derived in code from at least four comparable periods. A basis or currency switch mid-history is an error, a missing input reads `unavailable` with a reason, and footnote claims require a primary issuer document. |

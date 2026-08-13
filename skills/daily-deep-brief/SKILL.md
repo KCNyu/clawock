@@ -56,7 +56,12 @@ clawock brief preflight
 
 当 packet 某票出现 `technical.setups` 并考虑加仓时，先读
 [`references/technical-playbooks.md`](references/technical-playbooks.md)。只允许使用该
-reference 的三种 staged setup；具体触发、失效、手数和上限仍以本次 packet 为准。
+reference 的三种技术 staged setup，或 packet 编译出的 `alpha_confirmation`；
+具体触发、失效、手数和上限仍以本次 packet 为准。`alpha_confirmation` 不是
+第四种技术 alpha：量化横截面/同业残差负责 price-relative 选名，新闻 surprise
+或 attention acceleration 提供独立的 point-in-time information family，技术价位
+只安排未来 1–5 个本地交易日的执行。Bull/Bear 可反证、否决或降档，不能凭措辞
+创造 authority、提高 tier 或改股数。
 
 ```bash
 /root/.local/bin/clawock tool decision_packet_summary \
@@ -676,7 +681,7 @@ postflight 严格 schema 校验：
 - `regime` ∈ {`risk_on`, `neutral`, `risk_off`}（每个 decision 必填；按本报告已判定的当前 regime 留痕，迁移旧数据才允许 `unknown`）
 - `confidence` ∈ [0.0, 1.0]
 - `size.shares`（整数，**主动 call（`cut`/`trim_on_rebound`/`t_only`/`add_only_on_trigger`/`add_on_breakout`）必填**；`hold_and_watch`/`watch` 不需要)：股数是这条 call 日后唯一能被折算成钱的凭据。面板上那条金额曲线已撤（见上条铁律），但**重建一套可信对照账本必须有股数，当天没填就永远补不回来**。宁可给保守估数也别留空。填**你真的会动的股数**,不是仓位上限。
-- 技术 add 还必须逐字填写 packet setup 的 `technical_setup_id`、`technical_campaign_id`、`invalidation_price` 与 `tranche_number=next_tranche_number`。港股 `size.shares` 必须为 `lot_size` 的整手倍数；美股当前只支持整数股。已有 open add 或 `remaining_tranches=0` 时不得重复开单。
+- 所有 add 都必须逐字填写 packet setup 的 `technical_setup_id`、`technical_campaign_id`、`invalidation_price`、`condition.valid_for_sessions` 与 `tranche_number=next_tranche_number`。`alpha_confirmation` 的 `driven_by` 应按真正主导证据写 `peer`/`catalyst`/`sentiment`，不能因为技术只负责 timing 就洗成 `technical`。exploration 只是 0.25 target tranche 的前瞻采样，不是 validated；每日重置杠杆产品不能走 exploration。港股 `size.shares` 必须为 `lot_size` 的整手倍数；美股当前只支持整数股。已有 open add 或 `remaining_tranches=0` 时不得重复开单。
 - `contested` ∈ {`true`, `false`}（每个 decision 必填）：Tier 2 的 Bull 与 Bear 是否真的在该策略上分歧。
 - `thesis_invalidation`（string，主动 cut/trim/add 必填；hold 选填）：**借鉴 UZI-Skill 的 thesis-tracking**——这个仓位的论点**会被什么具体催化推翻**？把 catalyst-gate(cut #1)落地成「论点+失效条件」：你只在这个**失效催化真的发生**时动手，而不是技术面波动。例：「crypto rev 环比转正则停止减仓」。这逼着每个主动 call 绑定一个可被证伪的硬催化，而非"看着toppy"。
 - `thesis_id` 必须沿用 `context.thesis_registry.theses.<ticker>.thesis_id`（resolved 时）；registry 为 `unknown` 时保留已有 decision ID，不得新造一个“看起来像历史”的 canonical thesis。`context.retrospective.decisions[].thesis_ref` 是只读解析结果。

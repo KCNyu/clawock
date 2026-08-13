@@ -943,6 +943,52 @@ def _event_information_component(event, now, overlay_policy):
     }
 
 
+def _event_attention_component(event, now, overlay_policy):
+    """Unsigned, source-weighted attention available at the snapshot cutoff.
+
+    Most collected headlines cannot be assigned a trustworthy buy/sell polarity
+    from a title.  Treating those rows as zero discarded the very attention
+    information the producers had collected; asking an LLM to invent polarity
+    would be worse.  Attention is therefore a separate feature: it can support
+    an interaction with relative-price strength, but can never authorise an add
+    by itself.
+    """
+    published = (event.get('publication_time') or {}).get('iso')
+    try:
+        observed = datetime.fromisoformat(published)
+        if observed.tzinfo is None:
+            observed = observed.replace(tzinfo=timezone.utc)
+        if observed > now:
+            return None
+        age_hours = (now - observed).total_seconds() / 3600
+    except Exception:
+        return None
+    if age_hours > overlay_policy['maximum_event_age_hours']:
+        return None
+    if event.get('ticker') == 'MARKET':
+        return None
+    novelty = float(event.get('novelty_score') or 0)
+    reliability = float(event.get('source_reliability') or 0)
+    sources = max(1, int(event.get('corroborating_source_count') or 1))
+    corroboration = min(1.0, 0.5 + 0.25 * (sources - 1))
+    freshness = math.exp(
+        -math.log(2) * age_hours
+        / float(overlay_policy['freshness_half_life_hours'])
+    )
+    value = novelty * reliability * corroboration * freshness
+    return {
+        'event_id': event.get('event_id'),
+        'published_at': published,
+        'novelty': round(novelty, 4),
+        'reliability': round(reliability, 4),
+        'corroborating_sources': sources,
+        'freshness': round(freshness, 4),
+        'attention_value': round(value, 6),
+        'channel': (event.get('metadata') or {}).get('channel') or 'news',
+        'source_type': event.get('source_type') or 'unknown',
+    }
+
+
 def _history_information_rows(history, overlay_policy):
     rows = []
     for snapshot in history:
@@ -958,12 +1004,61 @@ def _history_information_rows(history, overlay_policy):
     return rows
 
 
-def _history_information_dates(history):
+def _history_attention_rows(history, overlay_policy):
+    """Daily own-name attention baselines from facts frozen in each snapshot."""
+    rows = []
+    for snapshot in history:
+        as_of = str(snapshot.get('as_of') or '')[:10]
+        if not as_of:
+            continue
+        scores = {}
+        for event in snapshot.get('events') or []:
+            try:
+                cutoff = datetime.fromisoformat(
+                    str(snapshot.get('observed_at')
+                        or f'{as_of}T23:59:59+00:00')
+                )
+                if cutoff.tzinfo is None:
+                    cutoff = cutoff.replace(tzinfo=timezone.utc)
+            except (TypeError, ValueError):
+                continue
+            component = _event_attention_component({
+                'event_id': event.get('event_id'),
+                'ticker': event.get('ticker'),
+                'publication_time': {'iso': event.get('published_at')},
+                'novelty_score': event.get('novelty_score'),
+                'source_reliability': event.get('source_reliability'),
+                'source_type': event.get('source_type'),
+                'corroborating_source_count': 1,
+            }, cutoff, overlay_policy)
+            if component is not None:
+                ticker = str(event.get('ticker') or '')
+                scores[ticker] = scores.get(ticker, 0.0) + component['attention_value']
+        for ticker, score in scores.items():
+            rows.append({'as_of': as_of, 'ticker': ticker, 'score': score})
+    return rows
+
+
+def _history_information_dates(
+    history, *, activation_only=False, registered_at=None
+):
     """Registered point-in-time snapshots, including days with zero signal."""
     return sorted({
         str(snapshot.get('as_of') or '')[:10]
         for snapshot in history
         if snapshot.get('information_overlay_schema_version') == 1
+        and (
+            not activation_only
+            or not registered_at
+            or str(snapshot.get('as_of') or '')[:10] >= registered_at
+        )
+        and (
+            not activation_only
+            or not snapshot.get('information_overlay_backfill')
+            or (snapshot.get('information_overlay_backfill') or {}).get(
+                'activation_eligible'
+            ) is True
+        )
         and snapshot.get('as_of')
     })
 
@@ -972,6 +1067,7 @@ def build_information_overlay(policy, events, history, now):
     """Ticker surprise and cross-sectional rank from already-collected evidence."""
     overlay_policy = policy['information_overlay']
     components = {}
+    attention_components = {}
     covered_tickers = set()
     for event in events:
         ticker = str(event.get('ticker') or '')
@@ -985,13 +1081,22 @@ def build_information_overlay(policy, events, history, now):
         if ticker and ticker != 'MARKET' and observable and observable <= now:
             covered_tickers.add(ticker)
         component = _event_information_component(event, now, overlay_policy)
+        attention = _event_attention_component(event, now, overlay_policy)
+        if attention is not None:
+            attention_components.setdefault(ticker, []).append(attention)
         if component is None:
             continue
         event['information_signed_score'] = component['signed_score']
         components.setdefault(ticker, []).append(component)
 
     historical = _history_information_rows(history, overlay_policy)
+    historical_attention = _history_attention_rows(history, overlay_policy)
     history_dates = _history_information_dates(history)
+    activation_dates = _history_information_dates(
+        history,
+        activation_only=True,
+        registered_at=overlay_policy['registered_at'],
+    )
     # Cross-sectional coverage is the names the current source snapshots can
     # observe, not only names whose headline classifier emitted a direction.
     # A covered name with no qualifying event is a real zero signal. Dropping
@@ -1000,9 +1105,9 @@ def build_information_overlay(policy, events, history, now):
     eligible_tickers = sorted(covered_tickers)
     activation_checks = {
         'history_dates': {
-            'actual': len(history_dates),
+            'actual': len(activation_dates),
             'required': overlay_policy['minimum_history_dates'],
-            'pass': len(history_dates) >= overlay_policy['minimum_history_dates'],
+            'pass': len(activation_dates) >= overlay_policy['minimum_history_dates'],
         },
         'cross_section_tickers': {
             'actual': len(eligible_tickers),
@@ -1014,6 +1119,13 @@ def build_information_overlay(policy, events, history, now):
 
     raw = {
         ticker: sum(row['signed_score'] for row in components.get(ticker, []))
+        for ticker in eligible_tickers
+    }
+    attention_raw = {
+        ticker: sum(
+            row['attention_value']
+            for row in attention_components.get(ticker, [])
+        )
         for ticker in eligible_tickers
     }
     # Mid-rank ties. Ticker spelling must never decide which equal-score name
@@ -1029,6 +1141,24 @@ def build_information_overlay(policy, events, history, now):
             statistics.fmean(index + 0.5 for index in positions)
             / len(ordered_scores)
         )
+    attention_ranks = {}
+    for region_tickers in (
+        [ticker for ticker in eligible_tickers if ticker.isdigit()],
+        [ticker for ticker in eligible_tickers if not ticker.isdigit()],
+    ):
+        ordered_attention = sorted(
+            attention_raw[ticker] for ticker in region_tickers
+        )
+        for ticker in region_tickers:
+            score = attention_raw[ticker]
+            positions = [
+                index for index, value in enumerate(ordered_attention)
+                if value == score
+            ]
+            attention_ranks[ticker] = (
+                statistics.fmean(index + 0.5 for index in positions)
+                / len(ordered_attention)
+            )
     ticker_rows = {}
     for ticker in eligible_tickers:
         by_day = {
@@ -1038,6 +1168,24 @@ def build_information_overlay(policy, events, history, now):
         # No qualifying event on a registered day is a real zero observation,
         # not missing data. Event-day-only baselines overstate normal intensity.
         own = [by_day.get(day, 0.0) for day in history_dates]
+        attention_by_day = {
+            row['as_of']: row['score']
+            for row in historical_attention if row['ticker'] == ticker
+        }
+        own_attention = [attention_by_day.get(day, 0.0) for day in history_dates]
+        attention_baseline = (
+            statistics.fmean(own_attention) if own_attention else 0.0
+        )
+        attention_prior = float(overlay_policy.get('attention_score_prior', 0.1))
+        attention_acceleration = (
+            (attention_raw[ticker] + attention_prior)
+            / (attention_baseline + attention_prior)
+        )
+        source_types = {
+            row.get('source_type')
+            for row in attention_components.get(ticker, [])
+            if row.get('source_type')
+        }
         mean = statistics.fmean(own) if own else None
         stdev = statistics.pstdev(own) if len(own) >= 2 else None
         surprise = (
@@ -1050,8 +1198,20 @@ def build_information_overlay(policy, events, history, now):
             'signed_score': round(raw[ticker], 6),
             'cross_section_rank': round(ranks[ticker], 4),
             'own_history_dates': len(history_dates),
+            'prospective_history_dates': len(activation_dates),
             'own_surprise_z': round(surprise, 4) if surprise is not None else None,
             'event_count': len(components.get(ticker, [])),
+            'attention_score': round(attention_raw[ticker], 6),
+            'attention_rank': round(attention_ranks[ticker], 4),
+            'attention_rank_scope': 'HK' if ticker.isdigit() else 'US',
+            'attention_event_count': len(attention_components.get(ticker, [])),
+            'attention_baseline': round(attention_baseline, 6),
+            'attention_acceleration': round(attention_acceleration, 4),
+            'attention_source_type_count': len(source_types),
+            'attention_components': sorted(
+                attention_components.get(ticker, []),
+                key=lambda row: row['published_at'], reverse=True
+            )[:8],
             'sizing_tilt': (
                 'positive'
                 if (active
@@ -1153,13 +1313,14 @@ def build_graph(events):
     return {'nodes': nodes, 'edges': edges}
 
 
-def update_history(as_of, events):
+def update_history(as_of, events, prior=None):
     snapshots = [
-        row for row in _load_history()
+        row for row in (_load_history() if prior is None else prior)
         if str(row.get('as_of') or '')[:10] != as_of
     ]
     snapshots.append({
         'as_of': as_of,
+        'observed_at': datetime.now(timezone.utc).isoformat(),
         'information_overlay_schema_version': 1,
         'events': [
             {
@@ -1173,6 +1334,8 @@ def update_history(as_of, events):
                 'title': event['title'],
                 'source_type': event['source_type'],
                 'source_reliability': event['source_reliability'],
+                'novelty_score': event.get('novelty_score'),
+                'impact_direction': event.get('impact_direction'),
                 'published_at': event['publication_time'].get('iso'),
                 'status': event['status'],
                 'actionable_escalation': event['actionable_escalation'],
@@ -1187,6 +1350,74 @@ def update_history(as_of, events):
         '\n'.join(json.dumps(row, ensure_ascii=False, separators=(',', ':'))
                   for row in snapshots) + '\n',
     )
+    return snapshots
+
+
+def _backfill_information_components(policy, snapshots, cutoff):
+    """Score legacy snapshots with only facts persisted at their cutoff.
+
+    #503 introduced the continuous overlay after these point-in-time event
+    snapshots already existed.  Replaying the deterministic formula is not a
+    current-news backfill: every input below (published_at, novelty, source and
+    confirmation-independent price nonreaction) was frozen in that day's row.
+    We mark it explicitly so it can seed baselines but never masquerade as a
+    pre-registered live activation date.
+    """
+    overlay_policy = policy['information_overlay']
+    seen = []
+    for snapshot in sorted(snapshots, key=lambda row: row.get('as_of') or ''):
+        as_of = str(snapshot.get('as_of') or '')[:10]
+        if not as_of:
+            continue
+        try:
+            observed_at = datetime.fromisoformat(f'{as_of}T23:59:59+00:00')
+        except ValueError:
+            continue
+        for event in snapshot.get('events') or []:
+            prior = [
+                row for row in seen
+                if row.get('ticker') == event.get('ticker')
+                and (
+                    row.get('event_id') == event.get('event_id')
+                    or row.get('novelty_cluster') == event.get('novelty_cluster')
+                    or row.get('novelty_cluster') in (
+                        event.get('duplicate_novelty_clusters') or []
+                    )
+                )
+            ]
+            novelty = event.get('novelty_score')
+            if novelty is None:
+                novelty = 0.0 if prior else 1.0
+                # This is a deterministic replay from the exact cluster IDs
+                # frozen at the old cutoff. Persist it so unsigned attention
+                # history is comparable instead of treating all legacy days as
+                # zero merely because the field did not exist yet.
+                event['novelty_score'] = novelty
+            direction = event.get('impact_direction') or classify_impact(
+                event.get('title')
+            )
+            if event.get('information_signed_score') is None:
+                component = _event_information_component({
+                    'event_id': event.get('event_id'),
+                    'ticker': event.get('ticker'),
+                    'impact_direction': direction,
+                    'publication_time': {'iso': event.get('published_at')},
+                    'novelty_score': novelty,
+                    'source_reliability': event.get('source_reliability'),
+                    'corroborating_source_count': 1,
+                    'confirmation': {},
+                }, observed_at, overlay_policy)
+                if component is not None:
+                    event['information_signed_score'] = component['signed_score']
+            seen.append(event)
+        snapshot['information_overlay_schema_version'] = 1
+        snapshot.setdefault('observed_at', observed_at.isoformat())
+        if as_of < overlay_policy['registered_at']:
+            snapshot['information_overlay_backfill'] = {
+                'method': 'deterministic_point_in_time_replay_v1',
+                'created_at': cutoff.isoformat(),
+                'activation_eligible': False,
+            }
     return snapshots
 
 
@@ -1207,6 +1438,7 @@ def main(argv=None):
         row for row in _load_history()
         if str(row.get('as_of') or '')[:10] != now.date().isoformat()
     ]
+    history = _backfill_information_components(policy, history, now)
     sec, sec_status = collect_sec_events(
         policy, portfolio, underlying, enabled=not args.no_sec
     )
@@ -1233,7 +1465,7 @@ def main(argv=None):
         policy, events, history, now
     )
     queue = tavily_queue(policy, events)
-    update_history(now.date().isoformat(), events)
+    update_history(now.date().isoformat(), events, prior=history)
     out = {
         'schema_version': 1,
         'generated_at': now.isoformat(),

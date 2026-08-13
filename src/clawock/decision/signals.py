@@ -164,6 +164,8 @@ def compute_signals(bars):
         'ma200': round(ma200, 3) if ma200 else None,
         'prior_20d_high': round(prior_20d_high, 3) if prior_20d_high else None,
         'prior_20d_low': round(prior_20d_low, 3) if prior_20d_low else None,
+        'prior_5d_high': round(prior_5d_high, 3) if prior_5d_high else None,
+        'prior_5d_low': round(prior_5d_low, 3) if prior_5d_low else None,
         'dist_ma200_pct': round((c / ma200 - 1) * 100, 1) if ma200 else None,
         'golden_cross': (ma50 > ma200) if (ma50 and ma200) else None,
         'trend_on': trend_on if ma200 else None,

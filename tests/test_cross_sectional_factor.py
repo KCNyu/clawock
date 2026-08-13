@@ -113,6 +113,28 @@ def test_rank_snapshot_is_centered_within_sector_not_across_sector_beta():
             ]
             assert sum(ranks) == pytest.approx(0.0)
 
+    percentiles = sorted(row["market_percentile"] for row in rows.values())
+    assert percentiles == pytest.approx([0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
+    assert {row["sector_universe_size"] for row in rows.values()} == {3}
+
+
+def test_market_percentiles_are_isolated_between_hk_and_us():
+    config = _small_config()
+    config["symbols"][-1]["region"] = "hk"
+    fetched = {
+        spec["ticker"]: {"bars": _bars(0.001 * (index + 1))}
+        for index, spec in enumerate(config["symbols"])
+    }
+    as_of = fetched["A1"]["bars"][-1]["date"]
+
+    rows = factor.rank_snapshot(config, fetched, as_of)
+
+    assert rows["B3"]["market_percentile"] == 0.5
+    assert sorted(
+        row["market_percentile"] for row in rows.values()
+        if row["region"] == "us"
+    ) == pytest.approx([0.0, 0.25, 0.625, 0.625, 1.0])
+
 
 def test_two_way_cluster_ci_requires_both_date_and_ticker_clusters():
     one_date = [

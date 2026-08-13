@@ -474,6 +474,7 @@ PACKAGED_UTILITIES = {
     "evaluate-combined-regime": "clawock.evaluation.combined_regime",
     "evaluate-hstech-regime": "clawock.evaluation.hstech_regime",
     "evaluate-us-leverage": "clawock.evaluation.us_leverage",
+    "evaluate-add-alpha": "clawock.evaluation.add_alpha_walkforward",
     "evidence": "clawock.evidence.build_evidence",
     "fetch-peers": "clawock.market_data.peer_quotes",
     "filings": "clawock.market_data.filings",
@@ -681,6 +682,7 @@ def main(argv=None) -> int:
         ("evaluate-combined-regime", "backtest the combined configured regime dial"),
         ("evaluate-hstech-regime", "backtest the HSTECH leverage regime"),
         ("evaluate-us-leverage", "backtest US single-stock leverage regimes"),
+        ("evaluate-add-alpha", "walk-forward evaluate add factor and information interactions"),
         ("validate-regime-dial", "walk-forward validate the production regime dial"),
     ):
         utility = sub.add_parser(name, help=help_text, add_help=False)
