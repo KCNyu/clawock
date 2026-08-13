@@ -1,8 +1,10 @@
 """High-cost invariants for the information-first intraday lane."""
 from datetime import datetime, timezone
 from pathlib import Path
+from urllib.parse import urlsplit
 
 from clawock.decision import active_information as ai
+from clawock.market_data import primary_disclosures
 from clawock.portfolio import instruments
 from clawock_kcnyu.harness import intraday_preflight
 
@@ -117,3 +119,58 @@ def test_primary_candidate_wakes_the_intraday_alert_without_a_price_anomaly():
 
     assert alert is True
     assert reasons == ["主动一级信息: 00100"]
+
+
+def test_sec_403_falls_back_to_healthy_nasdaq_primary_mirror(monkeypatch):
+    monkeypatch.setattr(
+        "clawock.market_data.filings.lookup_cik", lambda _ticker: "CIK0001876042"
+    )
+
+    def http(url, **_kwargs):
+        host = urlsplit(url).hostname
+        if host == "data.sec.gov":
+            raise RuntimeError("SEC 403")
+        if host == "api.nasdaq.com":
+            return {"data": {"rows": [{
+                "companyName": "Circle Internet Group Inc.",
+                "formType": "8-K", "filed": "08/13/2026",
+                "view": {"htmlLink": "https://mirror.test/crcl-8k"},
+            }]}}
+        raise AssertionError(url)
+
+    result = primary_disclosures.probe(
+        ["CRCL"], market="us", now=NOW, window_minutes=240,
+        budget_s=20, max_issuers=1, http=http,
+    )["issuers"]["CRCL"]
+
+    assert result["status"] == "found"
+    assert result["partial_degradation"] is True
+    assert result["degraded_sources"] == ["sec"]
+    assert result["healthy_sources"] == ["nasdaq_filing_mirror"]
+    assert result["events"][0]["source_class"] == "sec_filing_mirror"
+    assert result["events"][0]["time_precision"] == "date"
+
+
+def test_date_only_primary_mirror_event_waits_instead_of_unlocking_exploration():
+    mirror_item = {
+        **POSITIVE,
+        "published_at": None,
+        "filed_date": "2026-08-13",
+        "observed_at": NOW.isoformat(),
+        "time_precision": "date",
+        "freshness_status": "same_session_date_time_unavailable",
+        "title": "8-K Raised guidance after record revenue",
+        "source_class": "sec_filing_mirror",
+    }
+    result = ai.scan(
+        portfolio(us=[{"ticker": "CRCL", "shares": 2}]),
+        market="us", now=NOW, registry=REGISTRY,
+        disclosure_probe=probe_with(mirror_item), quote_fetcher=lambda *_args, **_kwargs: {
+            "CRCL": {"price": 75, "pct_1d": 0.2, "source": "tencent"}
+        },
+    )
+
+    row = result["candidates"][0]
+    assert row["disposition"] == "wait"
+    assert row["exploration_hint"] is None
+    assert "filing_time_unavailable" in row["blockers"]

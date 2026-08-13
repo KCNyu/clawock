@@ -189,10 +189,16 @@ def scan(portfolio: dict | None, *, market: str, policy=DEFAULT_POLICY, now=None
 
     rows = []
     status_by_issuer = {}
+    source_health_by_issuer = {}
     for target in chased:
         issuer = target["issuer"]
         entry = ((evidence.get("issuers") or {}).get(issuer) or {})
         status_by_issuer[issuer] = entry.get("status") or "not_checked"
+        source_health_by_issuer[issuer] = {
+            "healthy_sources": list(entry.get("healthy_sources") or []),
+            "degraded_sources": list(entry.get("degraded_sources") or []),
+            "partial_degradation": bool(entry.get("partial_degradation")),
+        }
         quote = quotes.get(issuer) or {}
         reaction = quote.get("pct_1d") if not quote.get("stale_quote") else None
         for item in (entry.get("events") or []):
@@ -203,6 +209,10 @@ def scan(portfolio: dict | None, *, market: str, policy=DEFAULT_POLICY, now=None
                 continue
             disposition = signal["disposition"]
             blockers = list(signal["blockers"])
+            if item.get("time_precision") == "date":
+                blockers.append("filing_time_unavailable")
+                if disposition == "candidate":
+                    disposition = "wait"
             if target.get("leveraged_only"):
                 blockers.append("leveraged_holding_cannot_take_unvalidated_exploration")
             hint = _exploration_hint(
@@ -227,6 +237,10 @@ def scan(portfolio: dict | None, *, market: str, policy=DEFAULT_POLICY, now=None
                 "issuer": issuer,
                 "held_via": target["holdings"],
                 "published_at": published,
+                "filed_date": item.get("filed_date"),
+                "observed_at": item.get("observed_at"),
+                "time_precision": item.get("time_precision"),
+                "freshness_status": item.get("freshness_status"),
                 "expires_at": expires_at,
                 "source_url": item.get("source_url"),
                 "source_class": item.get("source_class"),
@@ -247,12 +261,17 @@ def scan(portfolio: dict | None, *, market: str, policy=DEFAULT_POLICY, now=None
         "scope": chased,
         "skipped_scope": [row["issuer"] for row in skipped],
         "issuer_status": status_by_issuer,
+        "issuer_source_health": source_health_by_issuer,
         "candidates": rows,
         "candidate_count": sum(row["disposition"] == "candidate" for row in rows),
         "wait_count": sum(row["disposition"] == "wait" for row in rows),
         "reject_count": sum(row["disposition"] == "reject" for row in rows),
         "degraded_issuers": sorted(
             issuer for issuer, status in status_by_issuer.items() if status == "degraded"
+        ),
+        "partially_degraded_issuers": sorted(
+            issuer for issuer, health in source_health_by_issuer.items()
+            if health["partial_degradation"]
         ),
         "discipline": (
             "primary disclosure first; session reaction is a timing check; candidate visibility "
