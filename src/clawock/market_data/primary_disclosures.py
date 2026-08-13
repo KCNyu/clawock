@@ -298,8 +298,18 @@ def probe_cached(issuers, *, market: str, now=None, window_minutes: int,
         "market": market,
         "issuers": list(dict.fromkeys(str(value) for value in (issuers or []) if value)),
         "window_minutes": int(window_minutes),
+        "budget_s": float(budget_s),
         "max_issuers": int(max_issuers),
     }
+    # Policy-like scalar options can affect provider results and therefore the
+    # cache identity.  Runtime injection hooks (http/clock) are deliberately
+    # excluded: callables are neither stable nor JSON-serializable.
+    probe_options = {
+        key: value for key, value in sorted(kwargs.items())
+        if isinstance(value, (str, int, float, bool, type(None)))
+    }
+    if probe_options:
+        signature["probe_options"] = probe_options
     try:
         cached = json.loads(path.read_text()) if path.exists() else {}
         fetched_at = datetime.fromisoformat(

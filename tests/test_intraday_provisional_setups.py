@@ -13,6 +13,8 @@ two of the three rules are statements about a close, and the bar has not closed,
 so a row is a reason to look, never an entry that fired.
 """
 from pathlib import Path
+from datetime import datetime
+from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parents[1]
 from clawock.decision import signals as S  # noqa: E402
@@ -109,14 +111,14 @@ def test_a_slot_without_setups_leaves_the_block_byte_identical():
 def test_unchanged_slot_is_visible_but_does_not_repeat_the_full_table():
     receipt = P.render_unchanged_receipt(
         "us", "🇺🇸 美股盯盘 | 08/13 13:30 ET\n| CRCL | 2 | 87 | 71 |",
-        {"priced": 5, "active": 5},
+        {"refreshed": 5, "active": 5, "unrefreshed": []},
         {"collection": {"cache_hit": False, "fetched_at": "2026-08-13T17:30:00+00:00"},
          "degraded_issuers": [], "partially_degraded_issuers": ["RKLB"]},
     )
 
     assert receipt.startswith("🇺🇸 美股盯盘 | 08/13 13:30 ET")
     assert "本轮无新的加仓/减仓条件" in receipt
-    assert "5/5 行情已刷新" in receipt
+    assert "本轮行情刷新 5/5" in receipt
     assert "一级信息刚检查" in receipt
     assert "RKLB" in receipt
     assert "| CRCL |" not in receipt
@@ -125,16 +127,50 @@ def test_unchanged_slot_is_visible_but_does_not_repeat_the_full_table():
 def test_receipt_quote_coverage_does_not_call_a_missing_row_priced(tmp_path):
     portfolio = tmp_path / 'portfolio.json'
     portfolio.write_text('{"portfolios":{"us_stocks":{"holdings":['
-                         '{"ticker":"CRCL","shares":2},'
-                         '{"ticker":"RKLB","shares":1}]}}}')
+                         '{"ticker":"CRCL","shares":2,"data_source":'
+                         '"Finnhub Aug 13, 2026 13:30 ET"},'
+                         '{"ticker":"RKLB","shares":1,"data_source":'
+                         '"Finnhub Aug 13, 2026 13:31 ET",'
+                         '"quote_incomplete":true}]}}}')
 
     coverage = P.quote_coverage(
         '| 代码 | 股 | 成本 | 现价 | 今日 | 浮% | 浮$ |\n'
         '| CRCL | 2 | 87 | 71 | +1% | -2% | -3 |',
         'us', portfolio,
+        now=datetime(2026, 8, 14, 1, 33, tzinfo=ZoneInfo('Asia/Hong_Kong')),
+        started_at=datetime(2026, 8, 14, 1, 29, tzinfo=ZoneInfo('Asia/Hong_Kong')),
     )
 
-    assert coverage == {'priced': 1, 'active': 2}
+    assert coverage == {
+        'refreshed': 1, 'active': 2, 'unrefreshed': ['RKLB'],
+    }
+
+
+def test_receipt_names_quotes_not_proven_refreshed_this_run():
+    text = P.render_unchanged_receipt(
+        'us', '🇺🇸 美股盯盘 | 08/13 13:30 ET',
+        {'refreshed': 1, 'active': 2, 'unrefreshed': ['RKLB']},
+        {'collection': {'cache_hit': True}},
+    )
+
+    assert '本轮行情刷新 1/2' in text
+    assert '未证实本轮刷新：RKLB' in text
+    assert '不冒充实时' in text
+
+
+def test_slow_analysis_accepts_a_quote_stamped_after_the_run_started(tmp_path):
+    portfolio = tmp_path / 'portfolio.json'
+    portfolio.write_text('{' + '"portfolios":{"us_stocks":{"holdings":['
+                         '{"ticker":"SPCH","shares":10,"data_source":'
+                         '"Finnhub Aug 13, 2026 13:36 ET"}]}}}')
+
+    coverage = P.quote_coverage(
+        '', 'us', portfolio,
+        started_at=datetime(2026, 8, 14, 1, 30, tzinfo=ZoneInfo('Asia/Hong_Kong')),
+        now=datetime(2026, 8, 14, 1, 38, tzinfo=ZoneInfo('Asia/Hong_Kong')),
+    )
+
+    assert coverage == {'refreshed': 1, 'active': 1, 'unrefreshed': []}
 
 
 def test_the_heading_says_it_has_not_closed():

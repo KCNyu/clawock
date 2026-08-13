@@ -240,6 +240,28 @@ def test_unchanged_receipt_needs_no_dummy_prose_file(pf, sent, monkeypatch, tmp_
     assert sent["messages"] == [receipt]
 
 
+def test_receipt_ignores_irrelevant_context_id_mismatch(
+    pf, sent, monkeypatch, tmp_path
+):
+    receipt = "🇺🇸 美股盯盘 | 08/13 13:30 ET\n✓ 本轮无新的条件。"
+    ctx = _ctx(
+        raw_wechat_block=receipt, delivery_mode="unchanged_receipt",
+        should_alert=False, semantic_state={"session": "us:2026-08-13"},
+    )
+    (tmp_path / "intraday-context-us-latest.json").write_text(json.dumps(ctx))
+    monkeypatch.setattr(pf.trading_calendar, "closed_reason", lambda _m: None)
+    monkeypatch.setattr(pf.cron_heartbeat, "record", lambda *a, **k: None)
+    monkeypatch.setattr(pf, "publish_data_plane", lambda _m: ("current", False))
+    monkeypatch.setattr(sys, "argv", [
+        "intraday_postflight.py", "--market", "us", "--context-id", "OLD",
+    ])
+
+    with redirect_stdout(io.StringIO()):
+        assert pf.main() == 0
+
+    assert sent["messages"] == [receipt]
+
+
 def test_unchanged_receipt_does_not_refresh_an_old_dashboard_narrative(
     pf, sent, monkeypatch, tmp_path
 ):
@@ -337,6 +359,23 @@ def test_main_refuses_to_marry_stale_prose_to_fresh_numbers(run_main, sent):
     assert out['heartbeat']['state'] == 'completed'
     body = sent['messages'][0]
     assert BLOCK.splitlines()[0] in body and '▎我的看法' not in body
+
+
+def test_failed_full_delta_delivery_does_not_advance_semantic_cursor(
+    run_main, sent, tmp_path
+):
+    ctx = _ctx(semantic_state={"session": "us:2026-08-13", "setups": ["new"]})
+    cursor = tmp_path / 'memory' / '.tmp' / 'intraday-delivered-state-us.json'
+    cursor.parent.mkdir(parents=True, exist_ok=True)
+    cursor.write_text(json.dumps({"state": {"session": "us:2026-08-13"}}))
+
+    rc, out = run_main(PROSE, context_id='OLDGENERATION', ctx=ctx)
+
+    assert rc == 2 and out['status'] == 'fail'
+    assert sent['messages']
+    assert json.loads(cursor.read_text()) == {
+        "state": {"session": "us:2026-08-13"},
+    }
 
 
 def test_preflight_stamps_a_per_generation_context_id():

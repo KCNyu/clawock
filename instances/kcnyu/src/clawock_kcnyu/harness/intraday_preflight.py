@@ -31,8 +31,9 @@ import json
 import re
 import subprocess
 import sys
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 from clawock.workspace import workspace_root
 from clawock.market_data import sessions as trading_calendar
@@ -234,14 +235,21 @@ def append_setup_section(block, setups, signals_detail=None):
     return block + '\n' + '\n'.join(lines)
 
 
-def append_active_information_section(block, active, *, event_ids=None, show_health=True):
-    """Make information-first candidates visible without relying on model prose."""
-    rows = (active or {}).get('candidates') or []
+def append_active_information_section(block, active, *, event_ids=None):
+    """Render changed primary events plus compact context for existing ones.
+
+    A setup or risk delta still produces a full message.  In that case an
+    unchanged but live primary candidate must not disappear, while repeating
+    its full detail every 30 minutes would recreate the noise this lane removes.
+    """
+    all_rows = (active or {}).get('candidates') or []
+    rows = all_rows
     if event_ids is not None:
         rows = [row for row in rows if row.get('event_id') in event_ids]
-    degraded = ((active or {}).get('degraded_issuers') or []) if show_health else []
-    partial = ((active or {}).get('partially_degraded_issuers') or []) if show_health else []
-    if not rows and not degraded and not partial:
+    existing = [row for row in all_rows if row not in rows]
+    degraded = (active or {}).get('degraded_issuers') or []
+    partial = (active or {}).get('partially_degraded_issuers') or []
+    if not rows and not existing and not degraded and not partial:
         return block
     lines = ['', '🛰️ 主动一级信息（候选≠下单）']
     label = {'candidate': '候选', 'wait': '等待', 'reject': '拒绝加仓'}
@@ -260,6 +268,13 @@ def append_active_information_section(block, active, *, event_ids=None, show_hea
         lines.append(' | '.join(bits))
     if len(rows) > 4:
         lines.append(f'  …另有 {len(rows) - 4} 条')
+    if existing:
+        summaries = [
+            f"{row.get('issuer')}[{label.get(row.get('disposition'), row.get('disposition'))}]"
+            for row in existing[:6]
+        ]
+        suffix = f"，另{len(existing) - 6}条" if len(existing) > 6 else ''
+        lines.append(f"  ↳ 仍有效：{'、'.join(summaries)}{suffix}（详因沿用，不重复展开）")
     if degraded:
         lines.append(f"  ⚠️ 一级源降级：{','.join(degraded)}（不是无消息）")
     if partial:
@@ -269,34 +284,93 @@ def append_active_information_section(block, active, *, event_ids=None, show_hea
     return block + '\n' + '\n'.join(lines)
 
 
-def quote_coverage(block, market, portfolio_path=None):
-    priced = 0
-    for line in (block or '').splitlines():
-        cells = [cell.strip() for cell in line.strip().strip('|').split('|')]
-        if (line.strip().startswith('|') and len(cells) >= 7
-                and cells[0] != '代码' and not cells[0].startswith(':')):
-            priced += 1
-    total = priced
+def _quote_fetched_at(data_source, market, now):
+    """Parse the per-holding provenance stamp written by this analysis run."""
+    text = str(data_source or '')
+    zone = ZoneInfo('America/New_York') if market == 'us' else ZoneInfo('Asia/Hong_Kong')
+    patterns = (
+        (r'([A-Z][a-z]{2} \d{1,2}, \d{4} \d{2}:\d{2}) ET\b', '%b %d, %Y %H:%M'),
+        (r'([A-Z][a-z]{2} \d{1,2} \d{2}:\d{2}) HKT\b', '%b %d %H:%M'),
+    )
+    for pattern, fmt in patterns:
+        match = re.search(pattern, text)
+        if not match:
+            continue
+        try:
+            parsed = datetime.strptime(match.group(1), fmt)
+            if '%Y' not in fmt:
+                parsed = parsed.replace(year=now.astimezone(zone).year)
+                # A Dec quote observed just after New Year belongs to last year.
+                if parsed.replace(tzinfo=zone) > now.astimezone(zone) + timedelta(days=2):
+                    parsed = parsed.replace(year=parsed.year - 1)
+            return parsed.replace(tzinfo=zone)
+        except ValueError:
+            return None
+    return None
+
+
+def quote_coverage(_block, market, portfolio_path=None, *, now=None,
+                   started_at=None, fresh_minutes=5):
+    """Count holdings whose persisted provenance proves a fetch in this run.
+
+    Rendered table rows are not evidence of freshness: the analyzer also renders
+    an old portfolio value when every provider failed.  Each successful fetch
+    stamps that holding's ``data_source``, so compare those stamps with the
+    timezone-aware preflight time instead.
+    """
+    now = now or datetime.now(ZoneInfo('Asia/Hong_Kong'))
+    now = now if now.tzinfo else now.replace(tzinfo=ZoneInfo('Asia/Hong_Kong'))
+    started_at = started_at or (now - timedelta(minutes=fresh_minutes))
+    started_at = (
+        started_at if started_at.tzinfo
+        else started_at.replace(tzinfo=ZoneInfo('Asia/Hong_Kong'))
+    )
+    active = []
     try:
         portfolio = json.loads(Path(portfolio_path or (WS / 'portfolio.json')).read_text())
         leg = 'hk_stocks' if market == 'hk' else 'us_stocks'
-        total = sum(
-            1 for row in portfolio.get('portfolios', {}).get(leg, {}).get('holdings', [])
+        active = [
+            row for row in portfolio.get('portfolios', {}).get(leg, {}).get('holdings', [])
             if (row.get('shares') or 0) > 0
-        )
+        ]
     except (OSError, json.JSONDecodeError, TypeError):
-        pass
-    return {'priced': priced, 'active': total}
+        return {'refreshed': 0, 'active': 0, 'unrefreshed': []}
+    refreshed = []
+    unrefreshed = []
+    for row in active:
+        fetched_at = _quote_fetched_at(row.get('data_source'), market, now)
+        since_start = (
+            fetched_at - started_at.astimezone(fetched_at.tzinfo)
+        ).total_seconds() if fetched_at else None
+        until_end = (
+            now.astimezone(fetched_at.tzinfo) - fetched_at
+        ).total_seconds() if fetched_at else None
+        ticker = row.get('ticker')
+        # US fallback can return an earlier-session print.  The fetch happened,
+        # but ``quote_incomplete`` is the analyzer's explicit warning that the
+        # resulting price is not a fully refreshed live quote.
+        if (since_start is not None and since_start >= -60 and until_end >= -60
+                and not row.get('quote_incomplete')):
+            refreshed.append(ticker)
+        else:
+            unrefreshed.append(ticker)
+    return {
+        'refreshed': len(refreshed), 'active': len(active),
+        'unrefreshed': [ticker for ticker in unrefreshed if ticker],
+    }
 
 
 def render_unchanged_receipt(market, block, coverage, active):
     first = ((block or '').strip().splitlines() or [
         '🇭🇰 港股盯盘' if market == 'hk' else '🇺🇸 美股盯盘'
     ])[0]
-    priced, total = coverage.get('priced', 0), coverage.get('active', 0)
+    refreshed, total = coverage.get('refreshed', 0), coverage.get('active', 0)
     collection = (active or {}).get('collection') or {}
     source = '一级信息缓存复核' if collection.get('cache_hit') else '一级信息刚检查'
-    lines = [first, f'✓ 本轮无新的加仓/减仓条件；{priced}/{total} 行情已刷新；{source}。']
+    lines = [first, f'✓ 本轮无新的加仓/减仓条件；本轮行情刷新 {refreshed}/{total}；{source}。']
+    missing = coverage.get('unrefreshed') or []
+    if missing:
+        lines.append(f"⚠️ 未证实本轮刷新：{','.join(missing)}（沿用上一笔，不冒充实时）")
     degraded = (active or {}).get('degraded_issuers') or []
     partial = (active or {}).get('partially_degraded_issuers') or []
     if degraded:
@@ -380,7 +454,7 @@ def main(argv=None):
     parser.add_argument('--market', choices=['hk', 'us'], required=True)
     args = parser.parse_args(argv)
 
-    now = datetime.now()
+    now = datetime.now(ZoneInfo('Asia/Hong_Kong'))
     stamp = now.strftime('%Y-%m-%d_%H%M')
     heartbeat = cron_heartbeat.record(args.market, 'started')
 
@@ -498,7 +572,13 @@ def main(argv=None):
     # Rendered into the block rather than left in JSON alone: a field nothing
     # prints is a detector that has been silenced (#515).
     live_setups = collect_provisional_setups(args.market)
-    coverage = quote_coverage(stdout, args.market)
+    # Read provenance after the analyzer returns: its successful quote stamps
+    # are later than the preflight start time, especially on a slow US run.
+    coverage = quote_coverage(
+        stdout, args.market,
+        now=datetime.now(ZoneInfo('Asia/Hong_Kong')),
+        started_at=now,
+    )
     semantic_state = intraday_delta.semantic_state(
         args.market, intraday_delta.market_session_date(args.market, now),
         signals_detail=signals_detail,
@@ -522,7 +602,6 @@ def main(argv=None):
         raw_block = append_active_information_section(
             raw_block, active_information_ctx,
             event_ids=set(semantic_delta['changed_event_ids']),
-            show_health='primary_source_health' in semantic_delta['components'],
         )
         delivery_mode = 'full_delta'
 

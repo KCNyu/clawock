@@ -121,7 +121,7 @@ def test_primary_candidate_wakes_the_intraday_alert_without_a_price_anomaly():
     assert reasons == ["主动一级信息: 00100"]
 
 
-def test_only_changed_primary_rows_are_rendered_after_delivery():
+def test_changed_primary_rows_expand_while_existing_rows_stay_compact():
     active = {
         "candidates": [
             {"event_id": "old", "issuer": "RKLB", "disposition": "wait",
@@ -133,11 +133,14 @@ def test_only_changed_primary_rows_are_rendered_after_delivery():
     }
 
     text = intraday_preflight.append_active_information_section(
-        "BLOCK", active, event_ids={"new"}, show_health=False,
+        "BLOCK", active, event_ids={"new"},
     )
 
     assert "CRCL" in text
-    assert "RKLB" not in text
+    assert "raised guidance" in text
+    assert "RKLB[等待]" in text
+    assert "详因沿用，不重复展开" in text
+    assert "8-K" not in text
 
 
 def test_provider_cache_is_short_lived_and_carries_provenance(tmp_path):
@@ -173,6 +176,25 @@ def test_provider_cache_is_short_lived_and_carries_provenance(tmp_path):
         "ttl_seconds": 300,
     }
     assert third["collection"]["cache_hit"] is False
+
+
+def test_provider_cache_separates_result_affecting_budget(tmp_path):
+    calls = []
+
+    def http(url, **_kwargs):
+        calls.append(url)
+        return {"data": {"data": []}}
+
+    cache = tmp_path / "primary.json"
+    common = dict(
+        issuers=["00100"], market="hk", now=NOW, window_minutes=240,
+        max_issuers=1, cache_path=cache, cache_ttl_seconds=300, http=http,
+    )
+    primary_disclosures.probe_cached(budget_s=20, **common)
+    second = primary_disclosures.probe_cached(budget_s=10, **common)
+
+    assert len(calls) == 2
+    assert second["collection"]["cache_hit"] is False
 
 
 def test_sec_403_falls_back_to_healthy_nasdaq_primary_mirror(monkeypatch):

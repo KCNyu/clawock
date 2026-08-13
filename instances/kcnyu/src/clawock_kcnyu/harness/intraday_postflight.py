@@ -391,7 +391,10 @@ def main(argv=None):
     # preflight a second time mid-turn. Assembling fresh numbers under stale
     # prose would produce an internally contradictory check-in that LOOKS clean,
     # so refuse to assemble and fall through to the data-block-only path.
-    stale_generation = prose_only and args.context_id != ctx.get('context_id')
+    stale_generation = (
+        prose_only and not receipt_only
+        and args.context_id != ctx.get('context_id')
+    )
 
     # Keep the model's own text for the content rules; assemble the delivered
     # body separately, so the prepended block never satisfies a rule on the
@@ -538,7 +541,11 @@ def main(argv=None):
                     print(f'warn: WeChat send failed (watchdog will retry): {send_out[:200]}',
                           file=sys.stderr)
 
-    if delivered_this_run:
+    # A failed generation delivers the deterministic block so the slot remains
+    # visible, but it has not delivered the intended semantic report.  Keep the
+    # old cursor so the next slot retries the full delta instead of collapsing
+    # it into an unchanged receipt.
+    if delivered_this_run and status != 'fail':
         try:
             intraday_delta.persist_delivered_state(WS, ctx)
         except OSError as exc:
