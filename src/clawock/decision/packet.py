@@ -839,6 +839,7 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
                 0.25 if tier == "exploration" else 1.0 if tier == "validated" else 0.0
             ),
             "sources": list(authority.get("sources") or []),
+            "evidence_families": list(authority.get("evidence_families") or []),
             "authority_blockers": list(authority.get("blockers") or []),
             "entry_price": (setup or {}).get("entry_price"),
             "invalidation_price": (setup or {}).get("invalidation_price"),
@@ -1197,6 +1198,7 @@ def compile_pages_projection(
     packet: dict,
     overlay: dict | None = None,
     overlay_issues: list[str] | None = None,
+    add_alpha_run_card: dict | None = None,
 ) -> dict:
     overlay_issues = list(overlay_issues or [])
     valid_overlay = overlay if overlay and not overlay_issues else {}
@@ -1261,6 +1263,22 @@ def compile_pages_projection(
             row.get("ticker") or "",
         )
     )
+    diagnostics = packet.get("add_alpha_diagnostics")
+    campaign_status = "current" if isinstance(diagnostics, dict) else "pre_policy_packet"
+    diagnostics = diagnostics if isinstance(diagnostics, dict) else {}
+    candidates = []
+    for candidate in diagnostics.get("candidates") or []:
+        candidates.append({
+            key: candidate.get(key)
+            for key in (
+                "ticker", "leg", "state", "tier", "target_tranche_level",
+                "sources", "evidence_families", "authority_blockers",
+                "execution_blockers", "entry_price", "invalidation_price",
+                "max_add_shares", "allowed",
+            )
+        })
+    candidates.sort(key=lambda row: (row.get("leg") or "", row.get("ticker") or ""))
+
     return {
         "schema_version": PAGES_SCHEMA_VERSION,
         "generated_at": packet.get("generated_at"),
@@ -1277,6 +1295,81 @@ def compile_pages_projection(
             "counterargument": valid_overlay.get("portfolio_counterargument"),
         } if valid_overlay else None,
         "tickers": rows,
+        "add_campaign": {
+            "status": campaign_status,
+            "packet_generated_at": packet.get("generated_at"),
+            "context_generation_id": (packet.get("_meta") or {}).get("generation_id"),
+            "policy": {
+                key: (packet.get("add_alpha_policy") or {}).get(key)
+                for key in (
+                    "schema_version", "registered_at", "minimum_evidence_families",
+                    "confirmation_window_sessions", "exploration_max_tranches",
+                    "exploration_tranche_pct", "validated_max_tranches",
+                    "validated_tranche_pct", "exploration_max_book_pct",
+                )
+            } if campaign_status == "current" else None,
+            "diagnostics": {
+                key: diagnostics.get(key)
+                for key in (
+                    "held_names", "tier_counts", "candidate_count",
+                    "authority_candidate_count", "allowed_candidate_count",
+                    "candidate_rate", "blocker_counts", "zero_output_visible",
+                )
+            } if campaign_status == "current" else None,
+            "candidates": candidates,
+            "run_card": _compact_add_alpha_run_card(add_alpha_run_card),
+        },
+    }
+
+
+def _latest_add_alpha_run_card() -> dict | None:
+    cards = sorted(
+        (workspace_root(Path.cwd()) / "memory" / "backtests").glob(
+            "add_alpha_walkforward-*.json"
+        )
+    )
+    if not cards:
+        return None
+    try:
+        return json.loads(cards[-1].read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+
+
+def _compact_add_alpha_run_card(card: dict | None) -> dict | None:
+    """Project the latest evaluator receipt without publishing vendor inputs."""
+    if not isinstance(card, dict):
+        return None
+    metrics = card.get("metrics") or {}
+    coverage = metrics.get("coverage") or {}
+    market_metrics = {}
+    for market in ("us", "hk"):
+        interaction = (metrics.get(market) or {}).get("interaction") or {}
+        market_metrics[market] = {
+            horizon: {
+                key: (interaction.get(horizon) or {}).get(key)
+                for key in (
+                    "n", "n_dates", "n_tickers", "mean_return", "hit_rate",
+                    "mean_excess_vs_same_date_setup", "status",
+                )
+            }
+            for horizon in ("t1", "t5", "t20")
+        }
+    return {
+        "run_id": card.get("run_id"),
+        "generated_at": card.get("generated_at"),
+        "reproduction_key": card.get("reproduction_key"),
+        "policy_version": (card.get("params") or {}).get("policy_version"),
+        "parameter_fit": (card.get("params") or {}).get("parameter_fit"),
+        "markets": market_metrics,
+        "coverage": {
+            key: coverage.get(key)
+            for key in (
+                "factor_dates", "information_dates", "overlap_dates",
+                "prospective_information_dates", "authority_classifications",
+                "information_grade", "factor_grade", "claim",
+            )
+        },
     }
 
 
@@ -1295,7 +1388,9 @@ def write_pages_projection(
         except Exception as exc:
             issues = [f"judgment overlay parse failed: {exc}"]
             overlay = {}
-    projection = compile_pages_projection(packet, overlay, issues)
+    projection = compile_pages_projection(
+        packet, overlay, issues, add_alpha_run_card=_latest_add_alpha_run_card()
+    )
     _atomic_write(output_path, projection)
     return projection, issues
 

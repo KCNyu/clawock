@@ -91,6 +91,42 @@ def test_regenerating_the_page_is_idempotent():
     assert ev.build() == ev.build()
 
 
+def test_add_campaign_is_separate_and_zero_samples_stay_collecting(
+        tmp_path, monkeypatch):
+    monkeypatch.setattr(ev, "CARDS", tmp_path)
+    (tmp_path / "add_alpha_walkforward-20260812-fixture.json").write_text(
+        json.dumps({
+            "run_id": "add_alpha_walkforward-20260812-fixture",
+            "metrics": {
+                "us": {"interaction": {
+                    "t1": {"n": 4, "mean_return": .031, "hit_rate": 1,
+                           "status": "collecting"},
+                    "t5": {"n": 0, "status": "collecting"},
+                    "t20": {"n": 0, "status": "collecting"},
+                }},
+                "hk": {"interaction": {
+                    horizon: {"n": 0, "status": "collecting"}
+                    for horizon in ("t1", "t5", "t20")
+                }},
+                "coverage": {"factor_dates": 11, "information_dates": 12,
+                             "overlap_dates": 10,
+                             "prospective_information_dates": 0,
+                             "authority_classifications": {
+                                 "none": 186, "exploration": 6, "validated": 0,
+                             }},
+            },
+        })
+    )
+
+    section = ev.add_alpha_section()
+
+    assert section["verdict"] == ev.VERDICT["undecided"]
+    assert "不是 validated alpha" in section["reading"]
+    assert "mixed/legacy" in section["reading"]
+    assert any("collecting · n=0" in value for _, value in section["rows"])
+    assert not any("0.0%" in value for _, value in section["rows"] if "n=0" in value)
+
+
 def test_not_yet_elapsed_is_neither_a_pass_nor_a_failure(tmp_path, monkeypatch):
     """A prospective criterion at zero while its forward window has not elapsed
     is waiting, not failing. Rendering the two the same is the exact conflation

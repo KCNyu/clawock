@@ -327,6 +327,90 @@ def test_invalid_overlay_cannot_corrupt_deterministic_pages_rows(tmp_path):
     assert json.loads(output_path.read_text()) == projection
 
 
+def test_pages_projection_exposes_add_campaign_without_raw_run_card_inputs():
+    context = _context()
+    context["cross_sectional_factor"] = {
+        "activation": {"usable_for_decisions": False},
+        "live_rankings": {"00100": {
+            "feature_as_of": "2026-07-28", "market_percentile": 0.9,
+            "sector_universe_size": 6, "factor_coverage_pct": 95,
+            "usable_for_decisions": False,
+        }},
+    }
+    context["news_evidence_graph"]["information_overlay"] = {
+        "as_of": "2026-07-28T08:00:00+08:00", "status": "warming_up",
+        "usable_for_decisions": False, "activation": {"blockers": []},
+        "tickers": {"00100": {
+            "status": "warming_up", "usable_for_decisions": False,
+            "signed_score": 0.2, "event_components": [{
+                "event_id": "positive-1", "direction": 1, "novelty": 1,
+                "reliability": 0.9, "price_nonreaction": 1,
+            }],
+        }},
+    }
+    packet = packet_mod.compile_packet(
+        context, brief_context.compute_generation_id(context)
+    )
+    card = {
+        "run_id": "add_alpha_walkforward-fixture", "generated_at": "now",
+        "reproduction_key": "sha256:fixture", "inputs": [{"raw": "vendor"}],
+        "params": {"policy_version": 2, "parameter_fit": "none"},
+        "metrics": {
+            "us": {"interaction": {
+                "t1": {"n": 4, "n_dates": 4, "n_tickers": 1,
+                       "mean_return": 0.03, "hit_rate": 1, "status": "collecting"},
+                "t5": {"n": 0, "status": "collecting"},
+                "t20": {"n": 0, "status": "collecting"},
+            }},
+            "hk": {"interaction": {
+                horizon: {"n": 0, "status": "collecting"}
+                for horizon in ("t1", "t5", "t20")
+            }},
+            "coverage": {
+                "factor_dates": 11, "information_dates": 12,
+                "overlap_dates": 10, "prospective_information_dates": 0,
+                "authority_classifications": {"none": 186, "exploration": 6,
+                                               "validated": 0},
+                "claim": "diagnostic_not_validated_alpha",
+            },
+        },
+    }
+
+    projection = packet_mod.compile_pages_projection(
+        packet, add_alpha_run_card=card
+    )
+    campaign = projection["add_campaign"]
+    assert campaign["status"] == "current"
+    assert campaign["diagnostics"]["held_names"] == 3
+    assert [row["ticker"] for row in campaign["candidates"]] == [
+        "00100", "HK2", "LEVX",
+    ]
+    hk = next(row for row in campaign["candidates"] if row["ticker"] == "00100")
+    assert "price_relative" in hk["evidence_families"]
+    assert set(hk) >= {
+        "state", "tier", "sources", "evidence_families",
+        "authority_blockers", "execution_blockers", "entry_price",
+        "invalidation_price", "target_tranche_level", "max_add_shares",
+    }
+    run_card = campaign["run_card"]
+    assert run_card["markets"]["us"]["t1"]["n"] == 4
+    assert run_card["markets"]["hk"]["t20"]["status"] == "collecting"
+    assert run_card["coverage"]["prospective_information_dates"] == 0
+    assert "inputs" not in run_card
+
+
+def test_pages_projection_names_a_packet_that_predates_add_policy():
+    packet = _compiled()
+    packet.pop("add_alpha_diagnostics")
+    packet.pop("add_alpha_policy")
+
+    campaign = packet_mod.compile_pages_projection(packet)["add_campaign"]
+
+    assert campaign["status"] == "pre_policy_packet"
+    assert campaign["diagnostics"] is None
+    assert campaign["candidates"] == []
+
+
 def test_plan_is_constrained_by_harness_actions_evidence_and_inventory():
     packet = _compiled()
     good = {
@@ -618,8 +702,10 @@ def test_pages_prefers_projection_and_keeps_a_backward_fallback():
     assert 'brief_projection: "drill"' in ui
     assert 'safe(DATA, "brief_projection")' in renderer
     assert "projection.schema_version === 1" in renderer
-    assert "projected.length" in renderer
-    assert ": holds.map" in renderer
+    assert "const projectedByTicker = new Map" in renderer
+    assert "const enriched = holds.map" in renderer
+    assert "projectedByTicker.get(h.ticker)" in renderer
+    assert "(h.shares ?? 0) > 0" in renderer
     # The compiled status schema is {rank, label, state}; keep the Pages
     # consumer on the same key so a populated projection cannot print
     # JavaScript's literal "undefined" in the 综合 column.

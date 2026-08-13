@@ -190,6 +190,86 @@ async function testRuntime(browser, base) {
   assert.deepEqual(mismatchState.errors, []);
 }
 
+async function testCurrentHoldingsOwnDecisionMatrixMembership(browser, base) {
+  const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+  const state = observe(page);
+  await stubLiveOrigin(page);
+  await page.route(/\/assets\/data\/brief_projection\.json(?:\?.*)?$/, async route => {
+    const payload = JSON.parse(fs.readFileSync(
+      path.resolve(ROOT, "assets/data/brief_projection.json"), "utf8"));
+    const dashboard = JSON.parse(fs.readFileSync(
+      path.resolve(ROOT, "assets/data/dashboard.json"), "utf8"));
+    const active = [...(dashboard.holdings?.us || []), ...(dashboard.holdings?.hk || [])]
+      .filter(row => row && row.is_active !== false && (row.shares ?? 0) > 0);
+    assert(active.length > 1, "fixture needs current holdings");
+    // Remove a genuinely active name and add a zero-share name. The old
+    // implementation rendered the sidecar verbatim, so it both retained
+    // CLOSED and silently dropped the active name.
+    payload.tickers = (payload.tickers || [])
+      .filter(row => row.ticker !== active[0].ticker)
+      .concat([{
+        ticker: "CLOSED", leg: "US", facts: {}, technical: {}, risk: {},
+        status: { rank: 5, label: "stale", state: "neutral" },
+      }]);
+    payload.add_campaign = {
+      status: "current", packet_generated_at: "2026-08-13T08:00:00+08:00",
+      diagnostics: { held_names: active.length, authority_candidate_count: 0,
+        tier_counts: { validated: 0, exploration: 0, none: active.length } },
+      candidates: [
+        { ticker: active[0].ticker, leg: "US", state: "insufficient_evidence",
+          tier: "none", evidence_families: [], authority_blockers:
+          ["independent_evidence_families"], execution_blockers: [],
+          target_tranche_level: 0, max_add_shares: 0 },
+        { ticker: active[1].ticker, leg: "HK", state: "waiting_timing",
+          tier: "exploration", evidence_families:
+          ["price_relative", "point_in_time_information"],
+          sources: ["factor", "information"], authority_blockers: [],
+          execution_blockers: [], target_tranche_level: 0.25, max_add_shares: 1 },
+      ],
+      run_card: { run_id: "add_alpha_walkforward-fixture", coverage: {
+        factor_dates: 11, information_dates: 12, overlap_dates: 10,
+        prospective_information_dates: 0,
+        authority_classifications: { none: 186, exploration: 6, validated: 0 },
+      }, markets: {
+        us: { t1: { n: 4, mean_return: .03, hit_rate: 1 },
+          t5: { n: 0, status: "collecting" }, t20: { n: 0, status: "collecting" } },
+        hk: { t1: { n: 2, mean_return: .01, hit_rate: .5 },
+          t5: { n: 0, status: "collecting" }, t20: { n: 0, status: "collecting" } },
+      }},
+    };
+    await route.fulfill({ status: 200, contentType: "application/json",
+      body: JSON.stringify(payload) });
+  });
+  await page.goto(base + "#drill", { waitUntil: "domcontentloaded" });
+  await waitForTab(page, "drill");
+
+  const membership = await page.evaluate(() => {
+    const active = [...(DATA.holdings?.us || []), ...(DATA.holdings?.hk || [])]
+      .filter(row => row && row.is_active !== false && (row.shares ?? 0) > 0)
+      .map(row => row.ticker).sort();
+    const rendered = [...document.querySelectorAll("#decision-matrix-tbody tr td:first-child strong")]
+      .map(cell => cell.textContent.trim()).sort();
+    return { active, rendered };
+  });
+  assert.deepEqual(membership.rendered, membership.active,
+    "stale brief projection still owns current-holdings membership");
+  assert(!membership.rendered.includes("CLOSED"), "sold-out projection row survived");
+  assert.match(await page.locator("#add-campaign-card").innerText(), /US ·|HK ·/,
+    "campaign did not keep markets separate");
+  assert.match(await page.locator("#add-campaign-card").innerText(), /collecting · n=0/,
+    "zero sample was rendered as performance instead of collecting");
+
+  await page.click('.tab-btn[data-tab="reflect"]');
+  await waitForTab(page, "reflect");
+  const legacy = page.locator("#plan-bucket-bars .name", {
+    hasText: "add_only_on_trigger",
+  });
+  if (await legacy.count()) assert.match(await legacy.first().innerText(), /legacy\/mixed/);
+  assert.deepEqual(state.failures, []);
+  assert.deepEqual(state.errors, []);
+  await page.close();
+}
+
 async function testLiveDataOrigin(browser, base) {
   // The first paint must stay on this origin. `overview.json` is the only fetch
   // on the LCP path, so a second origin's handshake there is paid by every cold
@@ -518,6 +598,7 @@ async function main() {
   } : {});
   try {
     await testRuntime(browser, base);
+    await testCurrentHoldingsOwnDecisionMatrixMembership(browser, base);
     await testLiveDataOrigin(browser, base);
     await testEquityTouch(browser, base);
     await testTabGuardWithoutForcedLayout(browser, base);
