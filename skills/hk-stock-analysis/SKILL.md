@@ -138,6 +138,12 @@ shell 引号极脆；2026-07-23 10:00 就因为模型漏喂 stdin，postflight �
 postflight 现在把空输入/旧文件单独判成 `status: input_error`（不是 `fail`），并要求
 文件 20 分钟内更新过 —— **忘了重写文件就会被拒**，不会把上一个 slot 的旧散文重发。
 
+⏱ **看到 SIGTERM / exec 超时 ≠ 报告没发出去，别原样再跑一遍。** exec 的 overall-timeout
+只杀命令外壳，postflight 子进程还在继续跑，通常微信早发出去了。先读
+`memory/.tmp/intraday-sent-hk.json`：`ts` 是本 slot 的、且有 `sent_ok` / `tg_ok`
+就是已投递。（2026-08-13 09:30 港股开盘那次双发的机制，#508；postflight 现在有发送前
+claim 会挡住第二次真发，但那一跑仍然是白跑。）
+
 校验段标记 + 长度 + 异动票提及（都只校验你写的那段，不校验拼进来的数据块）。
 **不提交 `portfolio.json`**；若 dashboard 有语义变化，postflight 会重建并提交
 `assets/data/dashboard.json`。每个 slot 的完成/投递状态另写 heartbeat，由 single publisher 发布。
@@ -211,6 +217,8 @@ clawock report preflight --market hk --phase {open|mid|pm|close}
 clawock report postflight --market hk --phase {phase} --context-id {Step 1 的 context_id} --text-file /root/.openclaw/workspace/memory/.tmp/report-prose-hk-{phase}.md
 ```
 `--context-id` 必须是 Step 1 打印的那个：不匹配说明 context 已被换代（散文和数据不同代），postflight 拒绝拼装、只发数据块。散文文件超过 30 分钟没更新同样拒发。返回 JSON 含 `status` (pass/warn/fail)。pass/warn 自动拼装+发送+刷新 snapshot/dashboard，提交 scoped 产物并经 `ops/publish/safe_push.sh` 推送。
+
+⏱ **看到 SIGTERM / exec 超时 ≠ 报告没发出去，别原样再跑一遍。** exec 的 overall-timeout 只杀命令外壳，postflight 子进程还在继续跑，通常微信早发出去了。先读 `memory/.tmp/report-sent-hk-{phase}-{今天}.json`：有 `sent_ok` / `tg_ok` 就是已投递，直接把它当 Step 3 的结果输出。（2026-08-13 09:30 港股开盘就是这么让微信收到两条的，#508。postflight 现在有发送前 claim 会挡住第二次真发，输出里会写 `send_claim`，但那一跑仍然是白跑。）
 
 #### Step 4: 输出报告（仅存档；微信已由 postflight 主发，禁用 message 工具）
 微信投递已在 **Step 3 的 `report_postflight` 用 fresh-token 短连接发出**——这是
