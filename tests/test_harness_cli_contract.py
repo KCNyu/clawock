@@ -19,7 +19,9 @@ def test_cli_dispatches_a_preflight_in_process(monkeypatch):
         return 0
 
     monkeypatch.setattr(runner, "run_phase", fake)
-    assert main(["intraday", "preflight", "--market", "hk"]) == 0
+    assert main([
+        "intraday", "preflight", "--market", "hk", "--profile", "kcnyu"
+    ]) == 0
     assert seen == {"workflow": "intraday", "phase": "preflight",
                     "argv": ["--market", "hk"]}
 
@@ -44,12 +46,16 @@ def test_artifact_set_rejects_mixed_generations(tmp_path):
         raise AssertionError("mixed generations were accepted")
 
 
-def test_instance_adapter_receives_workspace_without_leaking_env(monkeypatch, tmp_path):
+def test_profile_selects_phase_and_scopes_runtime_environment(monkeypatch, tmp_path):
     import clawock.harness.runner as runner
 
     seen = {}
     def adapter(argv):
-        seen.update(workspace=os.environ.get("CLAWOCK_WORKSPACE"), argv=argv)
+        seen.update(
+            workspace=os.environ.get("CLAWOCK_WORKSPACE"),
+            profile=os.environ.get("CLAWOCK_PROFILE"),
+            argv=argv,
+        )
         return 0
 
     class FakeEntryPoint:
@@ -64,13 +70,36 @@ def test_instance_adapter_receives_workspace_without_leaking_env(monkeypatch, tm
             assert name == "fixture.brief.preflight"
             return (FakeEntryPoint(),)
 
+    profile = tmp_path / "config/profiles/fixture/profile.json"
+    profile.parent.mkdir(parents=True)
+    profile.write_text(json.dumps({
+        "schema_version": 1,
+        "id": "fixture",
+        "locale": "en-US",
+        "timezone": "UTC",
+        "markets": {"paper": {
+            "timezone": "UTC", "label": "Paper", "analysis_command": "analyze-paper"
+        }},
+        "workflows": {"brief": {
+            "enabled": True, "markets": ["paper"]
+        }},
+        "resources": {"schedule_contract": "config/schedule.json"},
+        "policies": {},
+        "templates": {},
+        "delivery": {"provider": "filesystem", "targets": {}},
+    }))
     monkeypatch.setattr(runner, "entry_points", lambda: FakeEntryPoints())
-    monkeypatch.setenv("CLAWOCK_INSTANCE", "fixture")
+    monkeypatch.setenv("CLAWOCK_INSTANCE", "wrong-owner")
     monkeypatch.delenv("CLAWOCK_WORKSPACE", raising=False)
-    assert runner.run_phase("brief", "preflight", workspace=tmp_path) == 0
+    monkeypatch.delenv("CLAWOCK_PROFILE", raising=False)
+    assert runner.run_phase(
+        "brief", "preflight", workspace=tmp_path, profile="fixture"
+    ) == 0
     assert seen["workspace"] == str(tmp_path.resolve())
+    assert seen["profile"] == str(profile.resolve())
     assert seen["argv"] == []
     assert "CLAWOCK_WORKSPACE" not in os.environ
+    assert "CLAWOCK_PROFILE" not in os.environ
 
 
 def test_init_joins_an_existing_agent_workspace_without_overwriting(tmp_path):
