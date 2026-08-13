@@ -288,15 +288,23 @@ def scan_workspace(market: str, **kwargs) -> dict:
         seen = {}
     new_ids = []
     now_text = result["as_of"]
-    active_ids = {row["event_id"] for row in result["candidates"]}
     for row in result["candidates"]:
         row["is_new"] = row["event_id"] not in seen
         if row["is_new"]:
             new_ids.append(row["event_id"])
             seen[row["event_id"]] = now_text
-    # The probe itself owns a four-hour event window.  Keeping only still-active
-    # ids bounds this local cursor and lets a genuinely new accession/title alert.
-    seen = {event_id: seen[event_id] for event_id in active_ids if event_id in seen}
+    # Preserve ids across a temporary source outage: clearing the cursor merely
+    # because this slot fetched nothing would re-alert the same filing on recovery.
+    # One day is bounded yet comfortably longer than the four-hour evidence window.
+    cutoff = datetime.fromisoformat(now_text) - timedelta(days=1)
+    fresh_seen = {}
+    for event_id, first_seen in seen.items():
+        try:
+            if datetime.fromisoformat(str(first_seen).replace("Z", "+00:00")) >= cutoff:
+                fresh_seen[event_id] = first_seen
+        except (TypeError, ValueError):
+            continue
+    seen = fresh_seen
     result["new_event_ids"] = new_ids
     result["new_candidate_count"] = len(new_ids)
     try:
