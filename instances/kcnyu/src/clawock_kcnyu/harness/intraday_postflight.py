@@ -58,7 +58,10 @@ from ._harness_common import (  # noqa: E402
     rebuild_dashboard,
     snapshot_date_for_now,
 )
-from ._watchdog_common import resolve_wechat_target, send_wechat, cosend_telegram, already_delivered  # noqa: E402
+from ._watchdog_common import (  # noqa: E402
+    resolve_wechat_target, send_wechat, cosend_telegram, already_delivered,
+    claim_send, mark_send_started, log,
+)
 
 from clawock.workspace import workspace_root
 from clawock.market_data import sessions as trading_calendar
@@ -469,32 +472,53 @@ def main(argv=None):
                   'nothing sent, watchdog owns this slot', file=sys.stderr)
         else:
             message = (wechat_prefix + body).strip()
-            try:
-                channel, to, account = resolve_wechat_target(args.market)
-                wechat_sent, send_out = send_wechat(channel, to, account, message, dry_run=False)
-            except Exception as e:
-                wechat_sent, send_out = False, str(e)[:300]
-            # Always co-send to Telegram (cold-proof) — WeChat can't confirm real
-            # delivery. Record the Telegram result: it's the sole backstop
-            # intraday_watchdog now uses (no more WeChat resend), so it needs to
-            # know if TG already got this.
-            tg_ok, _tg_out = cosend_telegram(message, f'intraday-{args.market}')
-            try:
-                marker.write_text(json.dumps(delivery_marker_payload(
-                    ctx,
-                    ts=int(datetime.now().timestamp() * 1000),
-                    sent_ok=wechat_sent,
-                    tg_ok=tg_ok,
-                    first_line=block_first,
-                    market=args.market,
-                    out=send_out,
-                    delivery_state='failed' if status == 'fail' else 'delivered',
-                ), ensure_ascii=False))
-            except Exception as e:
-                print(f'warn: marker write failed: {e}', file=sys.stderr)
-            if not wechat_sent:
-                print(f'warn: WeChat send failed (watchdog will retry): {send_out[:200]}',
-                      file=sys.stderr)
+            # Same race as #508 on the report path: the marker is written only
+            # after both sends return, so a second postflight started inside
+            # that window sees "not delivered" and doubles the slot. The claim
+            # is taken before the send. Its staleness window matches the
+            # already_delivered one — intraday's claim is per-market, so it must
+            # expire before the next 30min slot needs it.
+            claim_path = TMP / f'intraday-send-{args.market}.claim'
+            won, claim_reason = claim_send(claim_path, stale_after_ms=20 * 60 * 1000)
+            if not won:
+                print(f'concurrency: intraday {args.market} send is already claimed '
+                      f'({claim_reason}) — not sending a second copy; the watchdog owns '
+                      f'this slot if the first one did not land', file=sys.stderr)
+                log({'tag': f'intraday-{args.market}', 'action': 'send-claim-declined',
+                     'reason': claim_reason})
+                wechat_sent, send_out = False, f'send-claim-declined: {claim_reason}'
+            else:
+                mark_send_started(claim_path)
+                try:
+                    channel, to, account = resolve_wechat_target(args.market)
+                    wechat_sent, send_out = send_wechat(channel, to, account, message,
+                                                        dry_run=False)
+                except Exception as e:
+                    wechat_sent, send_out = False, str(e)[:300]
+                # Always co-send to Telegram (cold-proof) — WeChat can't confirm real
+                # delivery. Record the Telegram result: it's the sole backstop
+                # intraday_watchdog now uses (no more WeChat resend), so it needs to
+                # know if TG already got this.
+                tg_ok, _tg_out = cosend_telegram(message, f'intraday-{args.market}')
+                # Only the process that actually sent may write the marker. A
+                # declined claim writing one would tell intraday_watchdog this
+                # slot was handled while nothing went out (#508).
+                try:
+                    marker.write_text(json.dumps(delivery_marker_payload(
+                        ctx,
+                        ts=int(datetime.now().timestamp() * 1000),
+                        sent_ok=wechat_sent,
+                        tg_ok=tg_ok,
+                        first_line=block_first,
+                        market=args.market,
+                        out=send_out,
+                        delivery_state='failed' if status == 'fail' else 'delivered',
+                    ), ensure_ascii=False))
+                except Exception as e:
+                    print(f'warn: marker write failed: {e}', file=sys.stderr)
+                if not wechat_sent:
+                    print(f'warn: WeChat send failed (watchdog will retry): {send_out[:200]}',
+                          file=sys.stderr)
 
     raw_block = (ctx.get('raw_wechat_block', '') or '').strip()
     data_plane_ready = ctx.get('status') == 'ok' and bool(raw_block)

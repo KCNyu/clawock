@@ -17,6 +17,7 @@ session transcript. transcript_loop_score detects that directly and cleanly
 (observed: looped run score≈7 on a 97KB assistant blob; clean run score≈2 on 3KB).
 """
 import json
+import os
 import subprocess
 import sys
 import time
@@ -521,6 +522,108 @@ def already_delivered(marker_path, within_ms=None):
         if age >= within_ms:
             return False
     return True
+
+
+# A claim older than this is not a concurrent sender: report slots are hours
+# apart and the whole postflight (send → cosend → marker → commit) runs in about
+# a minute. The window only has to outlast one postflight, and it must expire so
+# a crashed sender cannot mute a later slot forever.
+SEND_CLAIM_STALE_MS = 30 * 60 * 1000
+
+
+def _pid_alive(pid):
+    try:
+        os.kill(int(pid), 0)
+    except (ProcessLookupError, ValueError, TypeError):
+        return False
+    except PermissionError:
+        return True
+    except OSError:
+        return True
+    return True
+
+
+def _write_claim(path, payload):
+    tmp = Path(f'{path}.{os.getpid()}.tmp')
+    tmp.write_text(json.dumps(payload, ensure_ascii=False))
+    os.replace(tmp, path)
+
+
+def claim_send(claim_path, *, stale_after_ms=SEND_CLAIM_STALE_MS, now_ms=None):
+    """Take the right to send this slot BEFORE sending. Returns (won, reason).
+
+    WHY (2026-08-13, #508): `already_delivered` reads the send marker, but the
+    marker is only written AFTER WeChat AND the Telegram cosend have returned —
+    about 54s after a postflight starts. Two postflights racing inside that
+    window both read "never delivered today" and both send. That is exactly what
+    kcn got on the 09:30 hk-open slot: the model's exec shell hit its 60s
+    overall-timeout, SIGTERM killed the shell but not the postflight child, the
+    model read that as a failure and re-ran the same command, and WeChat got the
+    report twice (Telegram once — the first process died between the two sends,
+    which is what proves it had already reached WeChat).
+
+    The claim closes that window because it is taken before the first send, not
+    after the last one. O_EXCL is the whole lock.
+
+    A claim whose holder is gone is only taken over when the holder had NOT
+    started sending. If it died mid-send we cannot know whether WeChat got the
+    message, and a duplicate is the failure kcn actually reported — so we skip
+    and let the watchdog's marker-based backstop own the slot. That keeps the
+    guard from silencing a genuine miss (`feedback-detect-but-never-silence`):
+    no marker gets written, so the watchdog still sees an undelivered slot.
+
+    Never blocks delivery on its own plumbing: if the claim file cannot be
+    created or read, this fails OPEN (sends anyway). A duplicate is recoverable,
+    a silently unsent report is the failure this whole harness exists to stop.
+    """
+    path = Path(claim_path)
+    now = int(datetime.now().timestamp() * 1000) if now_ms is None else now_ms
+    mine = {'pid': os.getpid(), 'ts': now, 'send_started_at': None}
+    try:
+        fd = os.open(path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+    except FileExistsError:
+        pass
+    except OSError as e:
+        return True, f'claim-unavailable-fail-open: {e}'
+    else:
+        with os.fdopen(fd, 'w') as f:
+            f.write(json.dumps(mine, ensure_ascii=False))
+        return True, 'claimed'
+
+    try:
+        held = json.loads(path.read_text())
+    except Exception as e:
+        # An unreadable claim proves nothing about a send. Fail open.
+        return True, f'claim-unreadable-fail-open: {e}'
+
+    held_ts = held.get('ts')
+    if not isinstance(held_ts, (int, float)) or now - held_ts >= stale_after_ms:
+        _write_claim(path, mine)
+        return True, 'took-over-stale-claim'
+    holder = held.get('pid')
+    if holder and _pid_alive(holder):
+        return False, 'in-flight'
+    if held.get('send_started_at'):
+        return False, 'holder-died-mid-send'
+    _write_claim(path, mine)
+    return True, 'took-over-claim-of-holder-that-never-sent'
+
+
+def mark_send_started(claim_path):
+    """Record that the send is now in flight, so a claim left behind by a killed
+    process is readable as "may already have reached WeChat" rather than "never
+    got going". Best-effort: a claim we cannot update just looks stale later,
+    which fails toward sending, never toward silence."""
+    path = Path(claim_path)
+    try:
+        held = json.loads(path.read_text())
+    except Exception:
+        held = {'pid': os.getpid()}
+    held['send_started_at'] = int(datetime.now().timestamp() * 1000)
+    try:
+        _write_claim(path, held)
+    except Exception as e:
+        print(f'warn: send claim update failed: {e}', file=sys.stderr)
 
 
 def last_report_text(session_id, first_line):

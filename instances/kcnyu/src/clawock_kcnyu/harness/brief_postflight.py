@@ -463,6 +463,7 @@ from ._harness_common import (  # noqa: E402
 )
 from ._watchdog_common import (  # noqa: E402
     resolve_wechat_target, send_wechat, build_brief_card, cosend_telegram, already_delivered,
+    claim_send, mark_send_started, log,
 )
 
 
@@ -786,40 +787,60 @@ def main(argv=None):
         card = build_brief_card(today)
         message = (wechat_prefix + card).strip()
         first_line = card.strip().splitlines()[0] if card.strip() else ''
-        try:
-            channel, to, account = resolve_wechat_target()
-            wechat_sent, send_out = send_wechat(channel, to, account, message, dry_run=args.dry_run)
-        except Exception as e:
-            wechat_sent, send_out = False, str(e)[:300]
-        # Always co-send to Telegram (cold-proof) — WeChat can't confirm real delivery.
-        # Record the Telegram result: it's the sole backstop brief_watchdog now uses
-        # (no more WeChat resend), so it needs to know if TG already got this card.
-        tg_ok, _tg_out = cosend_telegram(message, 'brief', dry_run=args.dry_run)
-        # NEVER write the marker on a dry run (2026-07-16). send_wechat/cosend_telegram
-        # return ok=True for a dry run (the CLI exits 0 without sending), so this used to
-        # record sent_ok/tg_ok=true for a delivery that never happened. brief_watchdog
-        # treats a fresh marker with tg_ok as its SOLE proof the card landed, so one
-        # dry run silently disabled that day's backstop — exactly the "card never
-        # arrived and nothing noticed" hole the watchdog exists to close. Hit for real:
-        # a --dry-run postflight at 10:14 today wrote a marker claiming delivery while
-        # kcn got nothing.
+        # Take the send right before sending, not after (#508). The marker below
+        # is written only once both channels have returned, so two postflights
+        # racing on the same day would both read "not delivered yet" and both
+        # send the card. A dry run sends nothing, so it takes no claim.
+        claim_path = brief_marker.parent / f'brief-send-{today}.claim'
         if args.dry_run:
-            print('dry-run: skipping brief-sent marker write', file=sys.stderr)
+            claim_won, claim_reason = True, 'dry-run'
         else:
+            claim_won, claim_reason = claim_send(claim_path)
+        if not claim_won:
+            print(f'concurrency: brief send is already claimed ({claim_reason}) — not '
+                  f'sending a second card; the watchdog owns today if the first one '
+                  f'did not land', file=sys.stderr)
+            log({'tag': 'brief', 'action': 'send-claim-declined', 'reason': claim_reason})
+            wechat_sent, send_out = False, f'send-claim-declined: {claim_reason}'
+        else:
+            if not args.dry_run:
+                mark_send_started(claim_path)
             try:
-                brief_marker.parent.mkdir(parents=True, exist_ok=True)
-                brief_marker.write_text(json.dumps({
-                    'ts': int(datetime.now().timestamp() * 1000),
-                    'sent_ok': bool(wechat_sent),
-                    'tg_ok': bool(tg_ok),
-                    'first_line': first_line,
-                    'out': (send_out or '')[-200:],
-                }, ensure_ascii=False))
+                channel, to, account = resolve_wechat_target()
+                wechat_sent, send_out = send_wechat(channel, to, account, message,
+                                                    dry_run=args.dry_run)
             except Exception as e:
-                print(f'warn: brief-sent marker write failed: {e}', file=sys.stderr)
-        if not wechat_sent:
-            print(f'warn: WeChat send failed (watchdog will retry): {str(send_out)[:200]}',
-                  file=sys.stderr)
+                wechat_sent, send_out = False, str(e)[:300]
+            # Always co-send to Telegram (cold-proof) — WeChat can't confirm real delivery.
+            # Record the Telegram result: it's the sole backstop brief_watchdog now uses
+            # (no more WeChat resend), so it needs to know if TG already got this card.
+            tg_ok, _tg_out = cosend_telegram(message, 'brief', dry_run=args.dry_run)
+            # NEVER write the marker on a dry run (2026-07-16). send_wechat/cosend_telegram
+            # return ok=True for a dry run (the CLI exits 0 without sending), so this used to
+            # record sent_ok/tg_ok=true for a delivery that never happened. brief_watchdog
+            # treats a fresh marker with tg_ok as its SOLE proof the card landed, so one
+            # dry run silently disabled that day's backstop — exactly the "card never
+            # arrived and nothing noticed" hole the watchdog exists to close. Hit for real:
+            # a --dry-run postflight at 10:14 today wrote a marker claiming delivery while
+            # kcn got nothing. A declined claim is the same shape: it sent nothing, so it
+            # must not leave a marker either.
+            if args.dry_run:
+                print('dry-run: skipping brief-sent marker write', file=sys.stderr)
+            else:
+                try:
+                    brief_marker.parent.mkdir(parents=True, exist_ok=True)
+                    brief_marker.write_text(json.dumps({
+                        'ts': int(datetime.now().timestamp() * 1000),
+                        'sent_ok': bool(wechat_sent),
+                        'tg_ok': bool(tg_ok),
+                        'first_line': first_line,
+                        'out': (send_out or '')[-200:],
+                    }, ensure_ascii=False))
+                except Exception as e:
+                    print(f'warn: brief-sent marker write failed: {e}', file=sys.stderr)
+            if not wechat_sent:
+                print(f'warn: WeChat send failed (watchdog will retry): {str(send_out)[:200]}',
+                      file=sys.stderr)
 
     result = {
         'status':        status,
