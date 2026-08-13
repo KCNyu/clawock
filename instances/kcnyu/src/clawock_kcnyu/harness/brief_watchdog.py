@@ -284,7 +284,7 @@ def alert_brief_missing(today, dry_run, issues=None):
     if dispatched:
         outcome, outcome_detail = await_brief_fallback_outcome(
             state.get('dispatch_attempted_at') or datetime.now(HKT).isoformat(),
-            dry_run)
+            dry_run, dispatch_out=state.get('dispatch_out'))
         state['fallback_outcome'] = outcome
         state['fallback_outcome_detail'] = outcome_detail
         if not dry_run:

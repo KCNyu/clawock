@@ -18,6 +18,7 @@ session transcript. transcript_loop_score detects that directly and cleanly
 """
 import json
 import os
+import re
 import subprocess
 import sys
 import time
@@ -382,24 +383,45 @@ def _parse_iso(value):
 
 
 def _gh_json(args, timeout=60):
-    """Run a `gh` command expecting JSON on stdout. Returns parsed JSON or None."""
+    """Run a `gh` command expecting JSON on stdout. Returns (parsed, error).
+
+    `error` is None only on success. Keeping it separate matters here: a lookup
+    that FAILED and a lookup that found nothing used to collapse into the same
+    `None`, so a broken `gh` reported itself as "no run found" — the same shape
+    of lie this function's only consumer exists to stop telling.
+    """
     try:
         r = subprocess.run(['gh'] + args, capture_output=True, text=True,
                            timeout=timeout, cwd=str(WS))
-    except Exception:
-        return None
+    except Exception as e:
+        return None, f'gh {args[0]} failed: {str(e)[:120]}'
     if r.returncode != 0:
-        return None
+        return None, f'gh {args[0]} exited {r.returncode}: {(r.stderr or "").strip()[:120]}'
     try:
-        return json.loads(r.stdout)
-    except Exception:
-        return None
+        return json.loads(r.stdout), None
+    except Exception as e:
+        return None, f'gh {args[0]} returned unparseable JSON: {str(e)[:120]}'
+
+
+_RUN_URL_RE = re.compile(r'/actions/runs/(\d+)')
+
+
+def run_id_from_dispatch_out(dispatch_out):
+    """The run id `gh workflow run` already printed, or None.
+
+    `dispatch_brief_fallback` returns the run's URL. Reading the id out of it
+    beats re-discovering the run by timestamp, which is what #512 was: the
+    dispatch stamp carries microseconds, GitHub truncates `createdAt` to the
+    second, and the run we had just dispatched always sorted as "older than the
+    dispatch" and got discarded."""
+    m = _RUN_URL_RE.search(str(dispatch_out or ''))
+    return m.group(1) if m else None
 
 
 def await_brief_fallback_outcome(since_iso, dry_run=False,
                                  budget_s=BRIEF_FALLBACK_POLL_BUDGET_S,
                                  interval_s=BRIEF_FALLBACK_POLL_INTERVAL_S,
-                                 sleep=time.sleep, now=None):
+                                 sleep=time.sleep, now=None, dispatch_out=None):
     """Block until the dispatched brief-fallback run finishes. Returns (state, detail).
 
     state is one of 'success' | 'failure' | 'pending' | 'unknown'.
@@ -420,23 +442,42 @@ def await_brief_fallback_outcome(since_iso, dry_run=False,
         return 'pending', '(dry-run) outcome polling skipped'
 
     deadline = now().timestamp() + budget_s
+    # Preferred: the dispatch already told us WHICH run this is, so no time-window
+    # heuristic is needed at all (#512). It also removes the "two dispatches in the
+    # same minute" ambiguity the search path never handled.
+    run_id = run_id_from_dispatch_out(dispatch_out)
     # A dispatch we cannot date cannot be used to reject stale runs, so fall back to
     # "any run" rather than silently discarding every candidate.
     since = _parse_iso(since_iso)
+    if since is not None:
+        # GitHub reports createdAt truncated to the second while the dispatch stamp
+        # carries microseconds, and `gh workflow run` only returns once the run
+        # exists — so the run we just dispatched lands in the SAME second and used
+        # to compare as strictly older, discarding the only candidate that could
+        # ever match (#512: two consecutive days recorded 'unknown' for runs that
+        # had actually FAILED). Truncating our side too compares like with like.
+        since = since.replace(microsecond=0)
     run = None
+    lookup_error = None
     while True:
-        runs = _gh_json(['run', 'list', '--workflow', BRIEF_FALLBACK_WORKFLOW,
-                         '--event', 'workflow_dispatch', '--limit', '5',
-                         '--json', 'databaseId,status,conclusion,url,createdAt'])
-        if runs:
-            # Only consider runs created at/after our dispatch, so a stale earlier
-            # run can never be mistaken for this one's outcome. Compared as instants:
-            # the two sides arrive in different timezones (see _parse_iso).
-            dated = [(r, _parse_iso(r.get('createdAt'))) for r in runs]
-            fresh = [(r, t) for r, t in dated
-                     if t is not None and (since is None or t >= since)]
-            if fresh:
-                run = max(fresh, key=lambda rt: rt[1])[0]
+        if run_id:
+            run, lookup_error = _gh_json(
+                ['run', 'view', run_id,
+                 '--json', 'databaseId,status,conclusion,url,createdAt'])
+        else:
+            runs, lookup_error = _gh_json(
+                ['run', 'list', '--workflow', BRIEF_FALLBACK_WORKFLOW,
+                 '--event', 'workflow_dispatch', '--limit', '5',
+                 '--json', 'databaseId,status,conclusion,url,createdAt'])
+            if runs:
+                # Only consider runs created at/after our dispatch, so a stale earlier
+                # run can never be mistaken for this one's outcome. Compared as instants:
+                # the two sides arrive in different timezones (see _parse_iso).
+                dated = [(r, _parse_iso(r.get('createdAt'))) for r in runs]
+                fresh = [(r, t) for r, t in dated
+                         if t is not None and (since is None or t >= since)]
+                if fresh:
+                    run = max(fresh, key=lambda rt: rt[1])[0]
         if run and run.get('status') == 'completed':
             conclusion = run.get('conclusion') or 'unknown'
             url = run.get('url') or ''
@@ -447,7 +488,13 @@ def await_brief_fallback_outcome(since_iso, dry_run=False,
             if run:
                 return 'pending', (f'still {run.get("status") or "unknown"} after '
                                    f'{budget_s // 60}min: {run.get("url") or ""}')
-            return 'unknown', f'no workflow_dispatch run found within {budget_s // 60}min'
+            # "we could not look" and "there is nothing to find" are different
+            # facts, and the alert should not present the first as the second.
+            if lookup_error:
+                return 'unknown', (f'run lookup kept failing for '
+                                   f'{budget_s // 60}min: {lookup_error}')
+            scope = f'run {run_id}' if run_id else 'workflow_dispatch run'
+            return 'unknown', f'no {scope} found within {budget_s // 60}min'
         sleep(interval_s)
 
 
