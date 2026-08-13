@@ -283,48 +283,78 @@ class CronRetryBudget:
     runtime reports that state, which is why 2026-08-13's brief died looking
     exactly like a provider timeout (#506).
 
-    `exhausted` is None when the job state cannot be read; absence of evidence is
-    not evidence of a healthy budget, and callers must not report either way.
+    `exhausted` is None whenever either side of the comparison is unreadable —
+    the counter or the cap. Absence of evidence is not evidence of a healthy
+    budget, and it is not evidence of an exhausted one either: a caller that
+    fills in a plausible cap can accuse a job whose real cap is higher.
     """
 
     consecutive_errors: int | None
-    max_attempts: int
+    max_attempts: int | None
     exhausted: bool | None
 
     @property
     def raisable(self) -> bool:
-        """Can raising the configured cap alone restore this job's retries?"""
+        """Can raising the configured cap alone restore this job's retries?
+
+        The scheduler retries while `consecutiveErrors <= maxAttempts`, so the
+        cap has to reach the counter — not exceed it — and the runtime's schema
+        refuses to store more than RUNTIME_MAX_ALLOWED_ATTEMPTS.
+        """
         return (self.consecutive_errors is not None
                 and self.consecutive_errors <= RUNTIME_MAX_ALLOWED_ATTEMPTS)
 
     def describe(self) -> str:
         if self.exhausted is None:
-            return "retry budget unknown (job state unreadable)"
+            return "retry budget unknown (counter or cap unreadable)"
         return (f"consecutiveErrors={self.consecutive_errors} "
                 f"{'>' if self.exhausted else '<='} maxAttempts={self.max_attempts}")
 
 
-def cron_max_attempts(*, paths: OpenClawPaths | None = None) -> int:
-    """`cron.retry.maxAttempts` from the live runtime config, or its default."""
+def _valid_attempts(value) -> int | None:
+    """A usable `maxAttempts`, or None when the runtime could not be running it."""
+    if isinstance(value, bool) or not isinstance(value, int):
+        return None
+    if value < 0 or value > RUNTIME_MAX_ALLOWED_ATTEMPTS:
+        # The runtime's config schema rejects these outright, so a file holding
+        # one is not the configuration the live scheduler loaded.
+        return None
+    return value
+
+
+def cron_max_attempts(*, paths: OpenClawPaths | None = None) -> int | None:
+    """`cron.retry.maxAttempts` from the live runtime config.
+
+    None means the config could not be read — a missing file, a permission
+    error, corrupt JSON, or a value the runtime would have refused to start on.
+    That is not the same as a config that parses and simply omits the field,
+    which is the documented case for the runtime's own default: a caller that
+    treats the two alike will compare a real counter against an invented cap.
+    """
     config_file = (paths or runtime_paths()).config_file
     try:
         config = json.loads(config_file.read_text())
-        value = ((config.get("cron") or {}).get("retry") or {}).get("maxAttempts")
+        retry = (config.get("cron") or {}).get("retry") or {}
     except Exception:
+        return None
+    if not isinstance(retry, dict):
+        return None
+    if "maxAttempts" not in retry:
         return RUNTIME_DEFAULT_MAX_TRANSIENT_RETRIES
-    if isinstance(value, bool) or not isinstance(value, int) or value < 0:
-        return RUNTIME_DEFAULT_MAX_TRANSIENT_RETRIES
-    return value
+    return _valid_attempts(retry["maxAttempts"])
 
 
 def cron_retry_budget(job, *, paths: OpenClawPaths | None = None,
                       max_attempts: int | None = None) -> CronRetryBudget:
     """Read one job's remaining transient-retry budget from its live state."""
-    cap = cron_max_attempts(paths=paths) if max_attempts is None else max_attempts
+    cap = (cron_max_attempts(paths=paths) if max_attempts is None
+           else _valid_attempts(max_attempts))
     state = job.get("state") if isinstance(job, dict) else None
     errors = state.get("consecutiveErrors") if isinstance(state, dict) else None
     if isinstance(errors, bool) or not isinstance(errors, int) or errors < 0:
-        return CronRetryBudget(None, cap, None)
+        errors = None
+    if errors is None or cap is None:
+        return CronRetryBudget(errors, cap, None)
     return CronRetryBudget(errors, cap, errors > cap)
 
 

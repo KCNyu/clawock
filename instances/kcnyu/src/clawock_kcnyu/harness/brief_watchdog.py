@@ -57,7 +57,8 @@ from pathlib import Path
 from ._watchdog_common import (
     WS, HKT, log, build_brief_card, send_telegram, KCN_TELEGRAM,
     dispatch_brief_fallback, await_brief_fallback_outcome,
-    brief_cron_job, cron_run_ended_in_failure, rerun_cron_job, cron_retry_budget,
+    brief_cron_job, brief_cron_job_state, cron_run_ended_in_failure,
+    rerun_cron_job, cron_retry_budget,
     CRON_MAX_ALLOWED_ATTEMPTS,
 )
 
@@ -226,7 +227,7 @@ def retry_budget_note():
     gateway cannot push that past brief-fallback.yml's 10:00 HKT cutoff.
     """
     try:
-        job = brief_cron_job()
+        job = brief_cron_job_state()
         if not isinstance(job, dict):
             return ''
         budget = cron_retry_budget(job)
@@ -235,14 +236,20 @@ def retry_budget_note():
     if not budget.exhausted:
         return ''
     remedy = (
-        f'把 openclaw.json 的 cron.retry.maxAttempts 抬过 {budget.consecutive_errors}'
+        # `>` is the scheduler's rule, so the cap has to *reach* the counter,
+        # not pass it. Saying "raise past 10" would name 11, which the runtime's
+        # schema rejects — advice that cannot be carried out.
+        f'把 openclaw.json 的 cron.retry.maxAttempts 设为 ≥ {budget.consecutive_errors}'
         if budget.raisable else
         f'配置上限只到 {CRON_MAX_ALLOWED_ATTEMPTS}，抬 maxAttempts 已经救不回来 —— '
         f'只能重置计数（停 gateway → state/openclaw.sqlite 的 cron_jobs '
         f'consecutive_errors 与 state_json 一起归零 → 起 gateway）'
     )
+    # Only the two things this reading proves: the numbers, and that the
+    # scheduler will not retry at them. Why today's run failed, and whether
+    # anything else failed with it, are not visible from here.
     return (f'⛔ 这个 job 的 runtime 重试预算已耗尽：{budget.describe()}\n'
-            f'    ⇒ 它每天只有一次机会、失败即止；别的 job 撞同一堵墙靠重试活下来。\n'
+            f'    ⇒ 调度器不会再自动重试它；每次 run 只剩一次尝试。\n'
             f'    ⇒ {remedy}\n\n')
 
 
