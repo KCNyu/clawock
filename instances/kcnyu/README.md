@@ -6,10 +6,12 @@ is not installed by ordinary `clawock` users.
 
 During the migration this distribution still hosts live-market phases, delivery
 and watchdog code. That location is not evidence that the logic is KCNyu-only:
-reusable investment preflight, validation, reconciliation, generation and
-postflight belongs in `clawock`, while reusable OpenClaw integration belongs to
-a runtime adapter. This distribution must shrink to KCNyu-specific configuration
-and bindings such as delivery targets, live schedules and repository publication.
+reusable investment providers and strategies — including portfolio scope,
+look-through, signal state and sizing contracts — belong in `clawock`, while
+reusable OpenClaw integration belongs to a runtime adapter. This distribution
+must shrink to KCNyu-specific configuration and bindings such as phase wiring,
+delivery targets, live schedules and repository publication. It must not become
+a second strategy package.
 
 OpenClaw remains the external runtime that owns model calls, chat, memory, tools
 and cron scheduling. Portfolio ledgers and generated artifacts remain in the
