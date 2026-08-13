@@ -39,17 +39,24 @@ if [[ ! -d "$DIST" ]]; then
   exit 1
 fi
 
+# The last entry verifies the deadline VALUE, not just the patch generation.
+# The MiniMax header deadline separates two measured latency populations and
+# the success population drifts right as injected context grows (issue #506),
+# so a stale patch script that still writes the old number must not pass merely
+# because its marker looks current.
 PATCH_MARKERS=(
   "threads: 1, batchSize: 512"
   "const MEMORY_SEARCH_TOOL_TIMEOUT_MS = 60000;"
   "clawock-minimax-m3-priority"
-  "clawock-minimax-response-header-timeout-v2"
+  "clawock-minimax-response-header-timeout-v3"
+  "MiniMax response-header timeout after 60000ms"
 )
 PATCH_LABELS=(
   "single-thread local embeddings"
   "60s memory_search deadline"
   "MiniMax-M3 priority admission"
-  "MiniMax 30s response-header deadline"
+  "MiniMax 60s response-header deadline"
+  "MiniMax response-header deadline value"
 )
 
 declare -a syntax_targets=()
