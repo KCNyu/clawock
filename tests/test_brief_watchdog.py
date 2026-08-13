@@ -17,7 +17,7 @@ def _stub_outcome(monkeypatch, outcome="success", detail="https://example/run/1"
     Without this the alert path would shell out to `gh` from the test suite."""
     monkeypatch.setattr(
         watchdog, "await_brief_fallback_outcome",
-        lambda _since, _dry_run: (outcome, detail),
+        lambda _since, _dry_run, **_kw: (outcome, detail),
     )
 
 
@@ -208,6 +208,33 @@ def _run_alert_capturing_messages(monkeypatch, tmp_path, outcome, detail):
     _stub_outcome(monkeypatch, outcome, detail)
     assert watchdog.alert_brief_missing(TODAY, False, ["brief_missing"]) == 0
     return messages
+
+
+def test_the_dispatched_run_url_is_handed_to_the_outcome_poll(tmp_path, monkeypatch):
+    """#512's fix is only real if the wiring carries it.
+
+    `await_brief_fallback_outcome` can read the outcome straight from the run the
+    dispatch named, but only if this caller passes that URL down. The stub in
+    `_stub_outcome` accepts any kwargs, so nothing else in this file would notice
+    the argument being dropped — and a dropped argument silently returns the whole
+    path to the timestamp heuristic that #512 is about.
+    """
+    monkeypatch.setattr(watchdog, "WS", tmp_path)
+    run_url = "https://github.com/KCNyu/clawock/actions/runs/31656565034\n"
+    seen = {}
+    monkeypatch.setattr(
+        watchdog, "dispatch_brief_fallback", lambda _dry_run: (True, run_url)
+    )
+    monkeypatch.setattr(watchdog, "send_telegram", lambda *_args: (True, "ok"))
+    monkeypatch.setattr(watchdog, "log", lambda _event: None)
+    monkeypatch.setattr(
+        watchdog, "await_brief_fallback_outcome",
+        lambda _since, _dry_run, **kw: (seen.update(kw), ("success", run_url))[1],
+    )
+
+    assert watchdog.alert_brief_missing(TODAY, False, ["brief_missing"]) == 0
+
+    assert seen.get("dispatch_out") == run_url
 
 
 def test_a_failed_fallback_run_is_reported_as_failed_not_as_dispatched_ok(
