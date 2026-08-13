@@ -152,7 +152,7 @@ package 架构。
 
 <p align="center"><img src="site/assets/shadow-backtest.png" alt="累计 episode 胜率对 50% 方向命中基线" width="760"></p>
 
-<sub>累计 episode 胜率对 50% 方向命中基线 —— 衡量的是方向对了多少次,不是赚了多少。买入持有的对比是影子组合(在下方 details 和 Reflect 里),那是另一个问题。由 GitHub Actions 每周刷新;实时数字见<a href="https://kcnyu.github.io/clawock/">诚实(Reflect)标签页</a>。</sub>
+<sub>累计 episode 胜率对 50% 方向命中基线 —— 衡量的是方向对了多少次,不是赚了多少。买入持有的对比是持仓(Holdings)里的 Shadow Portfolio,那是另一个问题。由 GitHub Actions 每周刷新;实时数字见<a href="https://kcnyu.github.io/clawock/#drill">持仓(Holdings)标签页</a>。</sub>
 
 <details>
 <summary><b>打分怎么处理那些难缠的边界情况</b></summary>

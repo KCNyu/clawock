@@ -1089,6 +1089,54 @@
   .outcome.loss { background: color-mix(in srgb, var(--negative) 15%, transparent); color: var(--negative); }
   .outcome.pending { background: rgba(107,118,145,.15); color: var(--gray); }
   .outcome.flat { background: color-mix(in srgb, var(--warning) 15%, transparent); color: var(--warning); }
+  /* Add campaign — one deterministic public projection, split by market. */
+  .campaign-summary, .campaign-coverage {
+    color: var(--text-dim); font: 11px/1.55 var(--mono);
+    padding: 8px 0;
+  }
+  .add-campaign-legs, .campaign-market-grid {
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-3);
+  }
+  .add-campaign-leg, .campaign-market {
+    min-width: 0; border: 1px solid var(--border); border-radius: var(--radius-sm);
+    background: var(--card-2); overflow: hidden;
+  }
+  .add-campaign-leg h4, .campaign-market h4 {
+    margin: 0; padding: 9px 11px; border-bottom: 1px solid var(--border);
+    color: var(--text-dim); font: 700 11px var(--mono); letter-spacing: .04em;
+  }
+  .add-campaign-row { padding: 10px 11px; border-bottom: 1px dashed var(--border); }
+  .add-campaign-row:last-child { border-bottom: 0; }
+  .add-campaign-row > div:first-child,
+  .add-campaign-row > div:nth-child(2) { display: flex; gap: 7px; align-items: center; flex-wrap: wrap; }
+  .campaign-tier, .campaign-state, .campaign-blockers span {
+    display: inline-flex; padding: 2px 6px; border-radius: 999px;
+    font: 600 10px var(--mono); background: rgba(107,118,145,.14); color: var(--text-dim);
+  }
+  .campaign-state.state-eligible { color: var(--positive); background: color-mix(in srgb, var(--positive) 14%, transparent); }
+  .campaign-state.state-risk_blocked, .campaign-state.state-constraint_blocked { color: var(--negative); background: color-mix(in srgb, var(--negative) 12%, transparent); }
+  .campaign-state.state-waiting_timing { color: var(--warning); background: color-mix(in srgb, var(--warning) 12%, transparent); }
+  .campaign-families, .campaign-detail { color: var(--text-dim); font-size: 11px; line-height: 1.5; }
+  .campaign-detail { margin-top: 5px; font-family: var(--mono); }
+  .campaign-blockers { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+  .campaign-blockers b { color: var(--text-faint); font: 600 9px/20px var(--mono); text-transform: uppercase; }
+  .campaign-evidence-head {
+    display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap;
+    margin-top: var(--space-4); padding: 10px 0 8px; border-top: 1px solid var(--border);
+    color: var(--text-dim); font-size: 11px;
+  }
+  .campaign-evidence-head b { color: var(--text); }
+  .campaign-horizon {
+    display: flex; justify-content: space-between; gap: 8px;
+    padding: 8px 10px; border-bottom: 1px dashed var(--border); font-size: 11px;
+  }
+  .campaign-horizon:last-child { border-bottom: 0; }
+  .campaign-horizon b { font-family: var(--mono); color: var(--text); }
+  .campaign-horizon span { color: var(--text-dim); text-align: right; }
+  @media (max-width: 680px) {
+    .add-campaign-legs, .campaign-market-grid { grid-template-columns: 1fr; }
+  }
   /* Bucket historical win-rate badge (from calibration.per_bucket) */
   .bucket-wr {
     display: inline-block; margin-left: 8px; padding: 2px 8px;

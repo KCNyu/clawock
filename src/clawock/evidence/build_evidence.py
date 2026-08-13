@@ -257,6 +257,51 @@ def cross_sectional_section() -> dict | None:
     }
 
 
+def add_alpha_section() -> dict | None:
+    """The new add interaction, kept separate from legacy add decisions."""
+    card = _latest_card('add_alpha_walkforward')
+    if not card:
+        return None
+    metrics = card.get('metrics') or {}
+    coverage = metrics.get('coverage') or {}
+    rows = []
+    for market in ('us', 'hk'):
+        interaction = ((metrics.get(market) or {}).get('interaction') or {})
+        for horizon in ('t1', 't5', 't20'):
+            stat = interaction.get(horizon) or {}
+            n = int(stat.get('n') or 0)
+            if not n:
+                value = 'collecting · n=0（不显示为 0%）'
+            else:
+                value = (f"n={n} · mean {_pct(stat.get('mean_return'), 2)} · "
+                         f"hit {_pct(stat.get('hit_rate'), 1)} · "
+                         f"{stat.get('status') or 'collecting'}")
+            rows.append((f'`{market.upper()} {horizon.upper()} interaction`', value))
+    authority = coverage.get('authority_classifications') or {}
+    rows += [
+        ('覆盖日期',
+         f"factor {coverage.get('factor_dates')} · information "
+         f"{coverage.get('information_dates')} · overlap {coverage.get('overlap_dates')}"),
+        ('前瞻信息日期', str(coverage.get('prospective_information_dates'))),
+        ('authority 分类',
+         f"none {authority.get('none', 0)} · exploration "
+         f"{authority.get('exploration', 0)} · validated {authority.get('validated', 0)}"),
+    ]
+    return {
+        'title': '低频加仓交互（新 campaign）',
+        'verdict': VERDICT['undecided'],
+        'rows': rows,
+        'reading': (
+            "价格相对强弱与点时信息必须共同出现；技术位只安排已经获准的 tranche。"
+            "当前 run card 是 current-universe / legacy-news replay，且前瞻信息日期仍为 0，"
+            "所以只用于收集与诊断，**不是 validated alpha**。旧账本里的 "
+            "`add_only_on_trigger` 是 mixed/legacy 样本，不计作这套 campaign 的成绩。"),
+        'source': f"run card `{card.get('run_id')}`",
+        'sample': f"factor {coverage.get('factor_dates')} 日 × information "
+                  f"{coverage.get('information_dates')} 日",
+    }
+
+
 def render(sections: list[dict], generated_at: str) -> str:
     lines = [
         '---',
@@ -289,7 +334,8 @@ def render(sections: list[dict], generated_at: str) -> str:
 
 
 def build() -> str:
-    builders = (dial_section, factor_section, cross_sectional_section)
+    builders = (dial_section, factor_section, cross_sectional_section,
+                add_alpha_section)
     sections = [section for section in (build() for build in builders) if section]
     audit = _load(DATA / 'decision_audit.json') or {}
     return render(sections, audit.get('as_of') or 'unknown')
