@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-13T13:34:19.415325+00:00",
+  "generated_at": "2026-08-14T00:03:45.229973+00:00",
   "as_of": "2026-08-13",
   "index": "HSTECH",
   "source": "tencent",
@@ -33,11 +33,11 @@
       {
         "etf": "RKLX",
         "underlying": "RKLB",
-        "close": 80.94,
+        "close": 80.1,
         "ma": 78.32,
         "ma_window": 200,
-        "dist_ma_pct": 3.3,
-        "vol_annualized": 0.8281,
+        "dist_ma_pct": 2.3,
+        "vol_annualized": 0.8311,
         "vol_n_returns": 20,
         "vol_hot_cap": 0.7,
         "trend_on": true,
@@ -48,10 +48,10 @@
       {
         "etf": "SPCH",
         "underlying": "SPCX",
-        "close": 143.97,
-        "ma": 139.05,
+        "close": 141.29,
+        "ma": 138.52,
         "ma_window": 5,
-        "dist_ma_pct": 3.5,
+        "dist_ma_pct": 2.0,
         "vol_annualized": null,
         "trend_on": true,
         "state": "ok",
@@ -1147,6 +1147,12 @@
         "trend_on": null,
         "dist_ma_pct": null,
         "mom_pct": 4.0,
+        "regime3": "bull"
+      },
+      "2026-08-12": {
+        "trend_on": null,
+        "dist_ma_pct": null,
+        "mom_pct": 5.9,
         "regime3": "bull"
       }
     },
