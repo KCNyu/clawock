@@ -27,15 +27,15 @@ description: 我们测了什么、什么没通过。全部数字从产物读取�
 
 ## 量化因子 edge
 
-**判定：⚪ 尚不可判** · 样本：留痕 47 天 · 来源：`assets/data/quant_signal_review.json`
+**判定：⚪ 尚不可判** · 样本：留痕 48 天 · 来源：`assets/data/quant_signal_review.json`
 
 | | |
 |---|---|
 | `rsi_overbought_fade` | 命中率 28.6% · CI95 [0.0%, 100.0%] · n=7（6 日 × 3 标的）· ⚪ CI 跨 50%，锁定 |
 | `rsi_oversold_bounce` | 命中率 64.3% · CI95 [33.3%, 100.0%] · n=28（18 日 × 8 标的）· ⚪ CI 跨 50%，锁定 |
-| `stop_breach_continue` | 命中率 48.9% · CI95 [32.3%, 65.8%] · n=270（42 日 × 11 标的）· ⚪ CI 跨 50%，锁定 |
-| `trend_off_avoid` | 命中率 46.9% · CI95 [33.3%, 59.2%] · n=324（42 日 × 10 标的）· ⚪ CI 跨 50%，锁定 |
-| `trend_on_follow` | 命中率 5.7% · CI95 — · n=35（35 日 × 1 标的）· ⚪ 样本只覆盖单一簇，算不出聚类 CI —— 无法解读 |
+| `stop_breach_continue` | 命中率 48.7% · CI95 [32.7%, 65.3%] · n=271（43 日 × 11 标的）· ⚪ CI 跨 50%，锁定 |
+| `trend_off_avoid` | 命中率 47.0% · CI95 [33.6%, 59.4%] · n=328（43 日 × 10 标的）· ⚪ CI 跨 50%，锁定 |
+| `trend_on_follow` | 命中率 5.6% · CI95 — · n=36（36 日 × 1 标的）· ⚪ 样本只覆盖单一簇，算不出聚类 CI —— 无法解读 |
 | `zscore_extreme_revert` | 命中率 80.0% · CI95 [0.0%, 100.0%] · n=10（6 日 × 6 标的）· ⚪ CI 跨 50%，锁定 |
 
 > 解锁规则是 `cluster_ci_entirely_above_or_below_50pct`：置信区间必须整体落在 50% 一侧。目前 0/6 个因子达标。**CI 跨 50% 是「样本还不够」，不是「因子无效」**——两者的处置相同（不入决策），结论不同。
@@ -59,22 +59,22 @@ description: 我们测了什么、什么没通过。全部数字从产物读取�
 
 ## 低频加仓交互（新 campaign）
 
-**判定：⚪ 尚不可判** · 样本：factor 11 日 × information 12 日 · 来源：run card `add_alpha_walkforward-20260812-3774163f`
+**判定：⚪ 尚不可判** · 样本：factor 14 日 × information 14 日 · 来源：run card `add_alpha_walkforward-20260813-3a918d77`
 
 | | |
 |---|---|
 | `US T1 interaction` | n=4 · mean 3.11% · hit 100.0% · collecting |
-| `US T5 interaction` | n=3 · mean 5.56% · hit 66.7% · collecting |
+| `US T5 interaction` | n=4 · mean 4.13% · hit 75.0% · collecting |
 | `US T20 interaction` | collecting · n=0（不显示为 0%） |
 | `HK T1 interaction` | n=2 · mean 1.77% · hit 50.0% · collecting |
-| `HK T5 interaction` | collecting · n=0（不显示为 0%） |
+| `HK T5 interaction` | n=1 · mean -1.03% · hit 0.0% · collecting |
 | `HK T20 interaction` | collecting · n=0（不显示为 0%） |
-| 覆盖日期 | factor 11 · information 12 · overlap 10 |
-| 前瞻信息日期 | 0 |
-| authority 分类 | none 186 · exploration 6 · validated 0 |
+| 覆盖日期 | factor 14 · information 14 · overlap 12 |
+| 前瞻信息日期 | 1 |
+| authority 分类 | none 217 · exploration 7 · validated 0 |
 
 > 价格相对强弱与点时信息必须共同出现；技术位只安排已经获准的 tranche。当前 run card 是 current-universe / legacy-news replay，且前瞻信息日期仍为 0，所以只用于收集与诊断，**不是 validated alpha**。旧账本里的 `add_only_on_trigger` 是 mixed/legacy 样本，不计作这套 campaign 的成绩。
 
 ---
 
-<sub>由 `clawock evidence` 生成于 2026-08-13T21:31:31+08:00。数字全部读自产物；改动结论请改产物，不要改这一页。</sub>
+<sub>由 `clawock evidence` 生成于 2026-08-14T04:03:01+08:00。数字全部读自产物；改动结论请改产物，不要改这一页。</sub>

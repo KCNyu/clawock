@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-08-13T21:34:40.508274+08:00",
+  "generated_at": "2026-08-14T08:04:19.022163+08:00",
   "lookback_window_days": 14,
-  "window_start": "2026-08-13",
-  "window_end": "2026-08-27",
+  "window_start": "2026-08-14",
+  "window_end": "2026-08-28",
   "earnings_queried": [
     "CRCL",
     "RKLB",
@@ -16,6 +16,11 @@
       "date": "2026-08-27",
       "type": "GDP",
       "detail": "Q2 2026 GDP 2nd estimate"
+    },
+    {
+      "date": "2026-08-28",
+      "type": "PCE",
+      "detail": "Jul PCE price index (BEA, Fed preferred inflation gauge)"
     }
   ],
   "scheduled_events": [
@@ -32,7 +37,7 @@
   "summary": {
     "earnings_count": 0,
     "fomc_in_window": 0,
-    "macro_count": 1,
+    "macro_count": 2,
     "scheduled_count": 1,
     "scheduled_undated": 1,
     "highest_impact_within_7d": null
