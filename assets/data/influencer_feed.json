@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-13T22:21:29.871643+00:00",
+  "generated_at": "2026-08-14T14:04:31.964357+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -13,33 +13,12 @@
   },
   "llm_filtered": true,
   "counts": {
-    "total": 2,
+    "total": 3,
     "held_hits": 0,
-    "new_ideas": 1,
-    "sector_hits": 0
+    "new_ideas": 0,
+    "sector_hits": 3
   },
   "items": [
-    {
-      "author": "Trump",
-      "text": "I am pleased to announce the nomination of Lee Rudofsky to the United States Court of Appeals for the Eighth Circuit! Lee is currently a distinguished Federal District Court Judge in Arkansas. He previously was Solicitor General of Arkansas, and Assistant General Counsel of Walmart. He is a Graduate of Harvard Law School and Cornell University. Lee will be a rock solid defender of the Constitution on the Eighth Circuit. Congratulations Lee! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/40784",
-      "published": "2026-08-12T22:58:45+00:00",
-      "origin": "truthsocial",
-      "tickers": [
-        "WMT"
-      ],
-      "held": [],
-      "new_ideas": [
-        "WMT"
-      ],
-      "sectors": [
-        "司法/监管"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 45,
-      "summary_cn": "特朗普提名Walmart前助理总法律顾问Lee Rudofsky出任第八巡回上诉法院法官(WMT仅作为其履历背景提及，无市场含义)。"
-    },
     {
       "author": "Trump",
       "text": "BIG WIN today at the U.S. Court of International Trade on one of the most DESPICABLE loopholes in American Trade Policy — The so-called “de minimis” exemption.   For years, Foreign Shippers could send packages worth up to $800 into our Country, DUTY FREE, NO TARIFF, far less scrutiny. It became a giant loophole for TARIFF Cheats — and a Pipeline exploited by Fentanyl Traffickers, Counterfeiters, and other Criminals shipping dangerous and illegal products into America. The numbers were staggering. In 2024 alone, de minimis cost America an estimated 10.8 BILLION DOLLRS in foregone TARIFF Revenue",
@@ -51,38 +30,134 @@
       "new_ideas": [],
       "sectors": [
         "关税",
-        "贸易政策",
-        "跨境电商"
+        "贸易",
+        "零售/电商"
       ],
-      "sector_holdings": [],
+      "sector_holdings": [
+        "03032",
+        "03033",
+        "07226"
+      ],
       "stance": "endorse",
-      "relevance": 72,
-      "summary_cn": "特朗普宣布在美国际贸易法院赢得de minimis(800美元以下免税)豁免漏洞裁决，每年堵住约108亿美元关税损失，并强调将堵截芬太尼/假货走私管道。"
+      "relevance": 68,
+      "summary_cn": "特朗普宣布在de minimis免税漏洞案上胜诉，预计年增收逾100亿美元关税，对跨境电商和零售板块有影响。"
+    },
+    {
+      "author": "Trump",
+      "text": "White House report details ‘Great Transshipment Scam’ costing tens of billions in tariff evasion: https://justthenews.com/government/white-house/white-house-report-details-great-transshipment-scam-costing-tens-billions",
+      "url": "https://trumpstruth.org/statuses/40816",
+      "published": "2026-08-14T04:18:52+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "关税",
+        "贸易"
+      ],
+      "sector_holdings": [
+        "02208",
+        "03032",
+        "03033",
+        "07226",
+        "SKHY"
+      ],
+      "stance": "neutral",
+      "relevance": 62,
+      "summary_cn": "白宫报告详述'大转运骗局'导致数百亿美元关税逃避，涉及关税与贸易政策议题。"
+    },
+    {
+      "author": "Trump",
+      "text": "Bessent to Newsmax: US to Hit Iran With Unprecedented Economic Isolation: https://www.newsmax.com/newsmax-tv/scott-bessent-iran-economic/2026/08/13/id/1266059/",
+      "url": "https://trumpstruth.org/statuses/40817",
+      "published": "2026-08-14T12:13:30+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "地缘政治",
+        "能源",
+        "制裁"
+      ],
+      "sector_holdings": [
+        "02208"
+      ],
+      "stance": "attack",
+      "relevance": 60,
+      "summary_cn": "特朗普政府宣布对伊朗实施前所未有的经济孤立，影响能源和地缘政治板块。"
     }
   ],
   "held_hits": [],
-  "new_ideas": [
+  "new_ideas": [],
+  "sector_hits": [
     {
       "author": "Trump",
-      "text": "I am pleased to announce the nomination of Lee Rudofsky to the United States Court of Appeals for the Eighth Circuit! Lee is currently a distinguished Federal District Court Judge in Arkansas. He previously was Solicitor General of Arkansas, and Assistant General Counsel of Walmart. He is a Graduate of Harvard Law School and Cornell University. Lee will be a rock solid defender of the Constitution on the Eighth Circuit. Congratulations Lee! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/40784",
-      "published": "2026-08-12T22:58:45+00:00",
+      "text": "BIG WIN today at the U.S. Court of International Trade on one of the most DESPICABLE loopholes in American Trade Policy — The so-called “de minimis” exemption.   For years, Foreign Shippers could send packages worth up to $800 into our Country, DUTY FREE, NO TARIFF, far less scrutiny. It became a giant loophole for TARIFF Cheats — and a Pipeline exploited by Fentanyl Traffickers, Counterfeiters, and other Criminals shipping dangerous and illegal products into America. The numbers were staggering. In 2024 alone, de minimis cost America an estimated 10.8 BILLION DOLLRS in foregone TARIFF Revenue",
+      "url": "https://trumpstruth.org/statuses/40794",
+      "published": "2026-08-13T18:38:49+00:00",
       "origin": "truthsocial",
-      "tickers": [
-        "WMT"
-      ],
+      "tickers": [],
       "held": [],
-      "new_ideas": [
-        "WMT"
-      ],
+      "new_ideas": [],
       "sectors": [
-        "司法/监管"
+        "关税",
+        "贸易",
+        "零售/电商"
       ],
-      "sector_holdings": [],
+      "sector_holdings": [
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "endorse",
+      "relevance": 68,
+      "summary_cn": "特朗普宣布在de minimis免税漏洞案上胜诉，预计年增收逾100亿美元关税，对跨境电商和零售板块有影响。"
+    },
+    {
+      "author": "Trump",
+      "text": "White House report details ‘Great Transshipment Scam’ costing tens of billions in tariff evasion: https://justthenews.com/government/white-house/white-house-report-details-great-transshipment-scam-costing-tens-billions",
+      "url": "https://trumpstruth.org/statuses/40816",
+      "published": "2026-08-14T04:18:52+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "关税",
+        "贸易"
+      ],
+      "sector_holdings": [
+        "02208",
+        "03032",
+        "03033",
+        "07226",
+        "SKHY"
+      ],
       "stance": "neutral",
-      "relevance": 45,
-      "summary_cn": "特朗普提名Walmart前助理总法律顾问Lee Rudofsky出任第八巡回上诉法院法官(WMT仅作为其履历背景提及，无市场含义)。"
+      "relevance": 62,
+      "summary_cn": "白宫报告详述'大转运骗局'导致数百亿美元关税逃避，涉及关税与贸易政策议题。"
+    },
+    {
+      "author": "Trump",
+      "text": "Bessent to Newsmax: US to Hit Iran With Unprecedented Economic Isolation: https://www.newsmax.com/newsmax-tv/scott-bessent-iran-economic/2026/08/13/id/1266059/",
+      "url": "https://trumpstruth.org/statuses/40817",
+      "published": "2026-08-14T12:13:30+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "地缘政治",
+        "能源",
+        "制裁"
+      ],
+      "sector_holdings": [
+        "02208"
+      ],
+      "stance": "attack",
+      "relevance": 60,
+      "summary_cn": "特朗普政府宣布对伊朗实施前所未有的经济孤立，影响能源和地缘政治板块。"
     }
-  ],
-  "sector_hits": []
+  ]
 }
