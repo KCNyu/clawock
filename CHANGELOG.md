@@ -13,6 +13,33 @@ versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 The newest heading here has to match the version in `pyproject.toml` — CI fails
 otherwise, so a release cannot ship an entry that was never written.
 
+## [0.1.3] — 2026-08-15
+
+### Added
+
+- **Harness-agnostic decision contract.** The workflow is files + CLI, so the
+  same decision run works from a pure CLI, an OpenClaw skill, a Claude Code
+  instruction, a Codex `AGENTS.md`, or a DeepSeek Harness agent — see
+  `examples/harness-agnostic/` (each runnable, executed by `release.yml`).
+- **`clawock-dsh` skill package on npm.** DSH users install one command:
+  `dsh plugin --profile web add clawock-dsh`. A pure `dsh.skills` package (no
+  Node code) that walks the agent through prepare → `decision.json` → publish.
+- **README rewritten around the live record.** First-line hook (90 days live,
+  −15.95%, every loss on the page), four-line scorecard reconciliation
+  (ledger / directional hit / shadow portfolio / real account), reproducible
+  auditing (`clawock audit-resettle`), and the influencer radar (Trump /
+  Musk) now documented in both languages. Live numbers are maintained by
+  `ops/growth/refresh_readme_metrics.py` placeholders, refreshed weekly by CI.
+- `ops/publish/publish_dsh_plugin.sh` — single entry point for publishing the
+  npm side of a release, shared by `release.yml` and manual bumps.
+
+### Changed
+
+- README.zh.md and README.md now share a locked 12-section structure (CI
+  parity tests); the information-layer tables are checked against
+  `config/information-layers.json` and the per-run block counts against the
+  preflights themselves.
+
 ## [Unreleased]
 
 ### Added
