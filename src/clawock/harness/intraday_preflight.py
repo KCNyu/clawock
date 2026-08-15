@@ -465,6 +465,40 @@ def append_opportunity_radar_section(block, radar, signals_detail=None):
     return block + '\n' + '\n'.join(lines)
 
 
+def attach_reinvest_candidates(plan_ctx, opportunity_radar, signals_detail=None):
+    """Pair cut/trim ammunition with same-leg opportunity candidates (#555).
+
+    A risk_rule cut used to be a dead end: the plan says sell, never what the
+    money is for. This attaches up to two radar candidates (the same leg, no
+    STOP/ALERT flag) to the plan context so the prose can say "砍 X 的弹药 →
+    候选:Y(突破 Z 触发)/ W(等回踩)". Candidates are observations, never orders.
+    Returns the plan context unchanged when there is nothing to pair.
+    """
+    rows = (opportunity_radar or {}).get('rows') or []
+    if not rows:
+        return plan_ctx
+    flagged = {item.get('ticker') for item in (signals_detail or [])
+               if str(item.get('level', '')).upper() in CONFLICTING_LEVELS}
+    flagged.discard(None)
+    candidates = []
+    for row in rows:
+        if set(row.get('holdings') or []) & flagged:
+            continue
+        prior = row.get('prior_20d_high')
+        trigger = ('已突破' if row.get('state') == 'breakout'
+                   else f"突破前高 {prior:g}" if prior is not None else '等回踩')
+        candidates.append({
+            'ticker': row.get('label'),
+            'state': row.get('state'),
+            'trigger': trigger,
+        })
+        if len(candidates) >= 2:
+            break
+    if not candidates:
+        return plan_ctx
+    return {**(plan_ctx or {}), 'reinvest_candidates': candidates}
+
+
 def append_active_information_section(block, active, *, event_ids=None):
     """Render changed primary events plus compact context for existing ones.
 
@@ -810,6 +844,11 @@ def main(argv=None):
     # near-breakout candidates, additive to the early-trend lane. Candidate rows
     # join the setups dimension so the delta gate surfaces their appearance.
     opportunity_radar = collect_opportunity_radar(args.market)
+    # A cut's ammunition gets a same-leg destination (#555): the radar rows that
+    # are not themselves flagged pair into the plan context, so the prose can
+    # say what the money is for instead of ending at "sell".
+    plan_ctx = attach_reinvest_candidates(
+        plan_ctx, opportunity_radar, signals_detail)
     combined_setups = {
         'rows': (live_setups.get('rows') or [])
         + (early_candidates.get('rows') or [])
