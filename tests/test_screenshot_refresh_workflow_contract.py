@@ -33,12 +33,24 @@ def test_screenshots_are_validated_and_exactly_staged_before_publish():
     commit_run = _step_run(commit)
     add_lines = [line.strip() for line in commit_run.splitlines()
                  if re.match(r'^git add(?:\s|$)', line.strip())]
-    # The two PNGs must always be staged, the GIF only manually; README metrics
-    # files are allowed since the workflow also refreshes the CW_M placeholders.
-    assert any(line == 'git add -- site/assets/shadow-backtest.png site/assets/social-card.png'
-               for line in add_lines), add_lines
-    assert any('site/assets/dashboard.gif' in line for line in add_lines), add_lines
-    assert not re.search(r'(?m)^\s*git add\s+(?:--\s+)?assets/?\s*$', commit_run)
+    # The staged set is a contract: the two PNGs always, the GIF only on manual
+    # dispatch, and exactly the README metrics files. No other `git add` may
+    # creep in (this was relaxed to any(...) once and had to be pinned back).
+    assert add_lines == [
+        'git add -- site/assets/shadow-backtest.png site/assets/social-card.png',
+        'git add -- site/assets/dashboard.gif',
+        'git add README.zh.md README.md assets/data/readme_metrics.json',
+    ], add_lines
+
+
+def test_metrics_step_tolerates_only_the_no_change_exit_code():
+    """refresh_readme_metrics.py exits 0 = changed / 1 = no change / 2 = error.
+
+    A quiet week (exit 1) is normal and must not fail the workflow; any other
+    failure must still fail the step loudly instead of being masked.
+    """
+    metrics_run = _step_run('Recompute README metrics')
+    assert '|| [ $? -eq 1 ]' in metrics_run, metrics_run
 
 
 def test_gif_is_validated_only_on_manual_dispatch_before_publish():

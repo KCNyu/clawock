@@ -1,6 +1,7 @@
 ---
 layout: default
 title: clawock FAQ
+lang: en
 description: Answers to the questions new users ask about clawock — an open-source, agent-native investment decision workflow with a public self-graded scorecard on a real HK + US account.
 ---
 

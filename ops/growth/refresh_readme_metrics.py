@@ -7,8 +7,10 @@ assets/data/dashboard.json, recomputes every published figure, rewrites the
 README.md once it carries them), and writes assets/data/readme_metrics.json
 for audit. Idempotent: leaves the files untouched when nothing changed.
 
-Invoked by .github/workflows/readme-metrics.yml on a weekly schedule; the
-numbers in the READMEs are therefore never older than the last refresh.
+Invoked by .github/workflows/screenshot-refresh.yml (README Refresh) on a
+weekly schedule (Sundays 22:00 UTC); the numbers in the READMEs are therefore
+never older than the last refresh. Exit codes: 0 = changed, 1 = nothing
+changed (the workflow tolerates 1; its commit step decides), 2 = error.
 """
 from __future__ import annotations
 import argparse
@@ -43,7 +45,7 @@ def _pct(group) -> tuple:
     return round(100 * wins / len(group)), len(group)
 
 
-def main() -> int:
+def _refresh() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
         "--data-plane",
@@ -139,12 +141,33 @@ def main() -> int:
 
     audit = _ROOT / "assets/data/readme_metrics.json"
     audit.parent.mkdir(parents=True, exist_ok=True)
-    if not audit.exists() or audit.read_text() != json.dumps(metrics, ensure_ascii=False, indent=1):
+    prev = json.loads(audit.read_text()) if audit.exists() else None
+    # `generated_at` is always fresh, so it must not drive the change decision:
+    # an unchanged week must produce no rewrite, no commit, and exit 1
+    # ("nothing changed") — otherwise the no-change path is unreachable and the
+    # workflow commits a pointless audit churn every week.
+    _stable = lambda m: {k: v for k, v in m.items() if k != "generated_at"}  # noqa: E731
+    if (prev is None) or _stable(prev) != _stable(metrics):
         audit.write_text(json.dumps(metrics, ensure_ascii=False, indent=1) + "\n")
         changed = True
 
     print(json.dumps(metrics, ensure_ascii=False))
     return 0 if changed else 1
+
+
+def main() -> int:
+    """Entry point: keep the exit-code contract explicit.
+
+    0 = changed, 1 = nothing changed (READMEs already current; the workflow's
+    commit step makes the final call), 2 = unexpected error. A traceback must
+    never be indistinguishable from "no change".
+    """
+    try:
+        return _refresh()
+    except Exception as exc:  # noqa: BLE001 — any failure must fail the step loudly
+        print(f"refresh_readme_metrics: error: {type(exc).__name__}: {exc}",
+              file=sys.stderr)
+        return 2
 
 
 if __name__ == "__main__":
