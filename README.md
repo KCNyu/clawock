@@ -11,6 +11,8 @@ Install the decision intelligence behind this live Hong Kong + US desk into any 
 [![Dashboard Data](https://img.shields.io/github/actions/workflow/status/KCNyu/clawock/dashboard-artifact-gate.yml?label=DATA&style=flat-square&logo=githubactions&logoColor=white&labelColor=252b35&color=738391)](https://github.com/KCNyu/clawock/actions/workflows/dashboard-artifact-gate.yml)
 [![Coverage](https://img.shields.io/endpoint?url=https%3A%2F%2Fkcnyu.github.io%2Fclawock%2Fassets%2Fdata%2Fcoverage.json&style=flat-square&logo=python&logoColor=white&labelColor=252b35)](https://github.com/KCNyu/clawock/actions/workflows/harness-regression.yml)
 [![License](https://img.shields.io/badge/LICENSE-MIT-aab5bf?style=flat-square&labelColor=252b35)](https://github.com/KCNyu/clawock/blob/master/LICENSE)
+[![DeepSeek Harness](https://img.shields.io/badge/DeepSeek%20Harness-ready-8257D0?style=flat-square&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNiAxNiI+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTggMkM0LjcgMiAyIDQuNyAyIDhzMi43IDYgNiA2IDYtMi43IDYtNi0yLjctNi02LTZ6bTAgMTBhNCA0IDAgMSAxIDAtOCA0IDQgMCAwIDEgMCA4eiIvPjwvc3ZnPg==)](https://github.com/deepseek-ai/deepseek-harness)
+[![npm](https://img.shields.io/npm/v/clawock-dsh?style=flat-square&labelColor=252b35&color=cb0000)](https://www.npmjs.com/package/clawock-dsh)
 
 [**Live dashboard**](https://kcnyu.github.io/clawock/) &nbsp;·&nbsp; [**Daily briefs**](https://kcnyu.github.io/clawock/briefs.html) &nbsp;·&nbsp; [**Evidence**](https://kcnyu.github.io/clawock/evidence.html) &nbsp;·&nbsp; [**简体中文**](https://github.com/KCNyu/clawock/blob/master/README.zh.md)
 
@@ -253,7 +255,7 @@ correlated generation receipt. The packaged example can smoke the lifecycle
 without a model (`bash examples/minimal-run/run.sh`), and
 [`examples/harness-agnostic/`](https://github.com/KCNyu/clawock/blob/master/examples/harness-agnostic/README.md) shows the
 same run driven from a pure CLI, an OpenClaw skill, a Claude Code instruction, a Codex AGENTS.md,
-and a DeepSeek Harness agent — the harness never touches the contract.
+and a DeepSeek Harness agent — the harness never touches the contract. DSH users have a ready skill package on npm: `dsh plugin --profile web add clawock-dsh`.
 
 For the KCNyu compatibility surface, `clawock doctor`, `clawock context audit`,
 and `CLAWOCK_WORKSPACE` still inspect or point at an operational book. They name
