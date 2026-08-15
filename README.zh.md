@@ -2,11 +2,11 @@
 
 <h1><img src="site/assets/logo-lockup.svg" alt="clawock" height="48"></h1>
 
-> **它跑了 **<!-- CW_M:days -->90<!-- /CW_M:days --> 天,实盘收益 **<!-- CW_M:return_pct -->−15.95%<!-- /CW_M:return_pct -->**——每一笔亏损都摊开在页面上([原始决策记录](https://github.com/KCNyu/clawock/blob/master/memory/decisions.jsonl))。每一个数字都能用 `clawock audit-resettle` 复算,模型不能给自己打分。**
-
 ### AI 争辩。代码结算。连亏损都摆在明面上。
 
-8 层 40 模块信息流 · 多 Agent 辩论 · Python 确定性结算。一套真实港美股 AI 投研系统,打包成任何 Agent 可装的投资决策工作流,全程公开运行。
+**它跑了 **<!-- CW_M:days -->90<!-- /CW_M:days --> 天,实盘收益 **<!-- CW_M:return_pct -->−15.95%<!-- /CW_M:return_pct -->**——每一笔亏损都摊开在页面上([原始决策记录](https://github.com/KCNyu/clawock/blob/master/memory/decisions.jsonl)),每一个数字都能用 `clawock audit-resettle` 复算。**模型不能给自己打分**,这是它和所有"AI 炒股"项目的区别:AI 建议满天飞,谁为结果负责?——代码负责。
+
+8 层 40 模块信息流 · 多 Agent 辩论 · Python 确定性结算,打包成 `pip install clawock`,装进任何 Agent(Claude Code / Codex / OpenClaw / DeepSeek Harness)。不跟单、不代下单。
 
 [![Dashboard](https://img.shields.io/github/deployments/KCNyu/clawock/github-pages?label=DASHBOARD&style=flat-square&logo=githubpages&logoColor=white&labelColor=252b35&color=4b91c8)](https://kcnyu.github.io/clawock/)
 [![Tests](https://img.shields.io/github/actions/workflow/status/KCNyu/clawock/harness-regression.yml?label=TESTS&style=flat-square&logo=githubactions&logoColor=white&labelColor=252b35&color=738391)](https://github.com/KCNyu/clawock/actions/workflows/harness-regression.yml)
@@ -67,15 +67,7 @@ isolated run published 9c07e83a19b046b089f443829eb9a06e
 
 跑完你就拿到了第一张被 Python 校验过的决策回执。换 harness?[`examples/harness-agnostic`](examples/harness-agnostic/README.md) 五种跑法同一条契约;DSH 用户还有现成 skill 包(发布后 `dsh plugin --profile web add clawock-dsh`)。
 
-**装完以后:** 每天 08:00 微信收一份深度简报,盘中每 30 分钟一次轻量盯盘(可关);模型费用走你自己的 API key,clawock 本身免费开源。
-
-## 这是什么
-
-clawock 是一套真实港美股账户上运行的 AI 投研系统,解决一个问题:**AI 建议满天飞,谁为结果负责?** 它让模型提议、Python 结算、战绩全公开——模型永远不能给自己打分。卖点不是「赚得更多」,而是「骗不了人」。打包成 `pip install clawock`,装进任何 Agent(Claude Code、Codex、OpenClaw、DeepSeek Harness 都行)。
-
-每天 08:00 它读完 8 层 40 模块的信息流,组织一场多 Agent 辩论(四视角分析师 + 多空对立 + 裁判归因)给出决策;Python 独立结算,战绩连亏损都公开。不跟单、不代下单。
-
-**装了你得到三件事:** ① 每天一份带证据链的简报(微信 08:00 送达,盘中轻量盯盘可关);② 一套所有决策可复算、可查账的审计框架;③ 一个诚实的基线——以后任何策略、任何 Agent,都能拿它跟 90 天实盘记录对比。它现在不能承诺「赚」,能承诺的是「每一笔都有据可查」。
+**装完你得到三件事:** ① 每天 08:00 微信一份带证据链的深度简报,盘中每 30 分钟轻量盯盘(可关);② 一套所有决策可复算、可查账的审计框架;③ 一个诚实的基线——以后任何策略、任何 Agent,都能拿它跟 90 天实盘记录对比。它现在不能承诺「赚」,能承诺的是「每一笔都有据可查」。模型费用走你自己的 API key,clawock 本身免费开源。
 
 ## 多 Agent 辩论
 
