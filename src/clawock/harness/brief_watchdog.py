@@ -65,6 +65,7 @@ from ._watchdog_common import (
 MARKER_FRESH_MS = 30 * 60 * 1000  # postflight send-marker older than this ⇒ not this slot
 MISSING_STATE_VERSION = 1
 NOTIFICATION_ATTEMPTS_PER_RUN = 2
+MAX_ONHOST_RERUNS = 2  # 08:30 first re-run; 09:05 second chance before off-host fallback (#550)
 
 
 def inspect_brief_artifacts(today):
@@ -98,6 +99,61 @@ def inspect_brief_artifacts(today):
 
 def rerun_flag_path(today):
     return WS / 'memory' / '.tmp' / f'watchdog-brief-rerun-{today}.done'
+
+
+def _rerun_count(today):
+    """How many on-host re-runs fired today (flag file now holds a counter)."""
+    try:
+        return int(rerun_flag_path(today).read_text().strip() or 0)
+    except (OSError, ValueError):
+        return 0
+
+
+def _mark_rerun(today):
+    path = rerun_flag_path(today)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(str(_rerun_count(today) + 1))
+
+
+def _rerun_once(today, dry_run, attempt):
+    """Queue one on-host re-run, deduped to MAX_ONHOST_RERUNS per day (#550).
+
+    The 08:30 pass fires attempt 1; if its re-run itself failed (2026-08-12),
+    the 09:05 miss detector fires attempt 2 before dispatching the off-host
+    fallback — a local re-run is cheaper than a vendor fallback and lands well
+    before the 10:00 HKT cutoff. Returns True when a re-run was queued.
+    """
+    if _rerun_count(today) >= MAX_ONHOST_RERUNS:
+        return False
+    job = brief_cron_job()
+    if not isinstance(job, dict) or not job.get('id'):
+        # The 09:05 alert is the core invariant; an unreadable schedule must
+        # never block it — fall back to the off-host path without a re-run.
+        return False
+    ok, out = rerun_cron_job(job.get('id'), dry_run)
+    if ok and not dry_run:
+        _mark_rerun(today)
+    budget = cron_retry_budget(job)
+    # The re-run fires on the run being over, not on the budget — but what the
+    # log may *claim* about the budget is only what was read. The old wording
+    # asserted "the runtime will not retry it" unconditionally, which was the
+    # 08-13 case and not the general one: a job whose budget is intact will be
+    # retried by the scheduler, and one whose state is unreadable is not
+    # evidence of either (#506).
+    verdict = ('exhausted — this re-run is one more single attempt'
+               if budget.exhausted else
+               'intact — the scheduler may also retry on its own'
+               if budget.exhausted is False else
+               # Either side of the comparison can be the missing one; naming
+               # only the job would send a reader to the wrong file.
+               'unknown — counter or cap unreadable')
+    log({'tag': 'brief', 'action': 'rerun-onhost', 'attempt': attempt,
+         'dry_run': dry_run, 'queued_ok': ok,
+         'job_id': job.get('id'), 'job_name': job.get('name'),
+         'reason': f'the 08:00 run already ended in error; retry budget {verdict}',
+         'retry_budget': budget.describe(), 'retry_budget_exhausted': budget.exhausted,
+         'out': out})
+    return ok
 
 
 def retrigger_or_wait(today, dry_run):
@@ -139,29 +195,7 @@ def retrigger_or_wait(today, dry_run):
              'reason': 'on-host re-run already fired today (dedupe flag present)'})
         return 0
 
-    budget = cron_retry_budget(job)
-    ok, out = rerun_cron_job(job.get('id'), dry_run)
-    if ok and not dry_run:
-        flag.parent.mkdir(parents=True, exist_ok=True)
-        flag.write_text(datetime.now(HKT).isoformat())
-    # The re-run fires on the run being over, not on the budget — but what the
-    # log may *claim* about the budget is only what was read. The old wording
-    # asserted "the runtime will not retry it" unconditionally, which was the
-    # 08-13 case and not the general one: a job whose budget is intact will be
-    # retried by the scheduler, and one whose state is unreadable is not
-    # evidence of either (#506).
-    verdict = ('exhausted — this re-run is one more single attempt'
-               if budget.exhausted else
-               'intact — the scheduler may also retry on its own'
-               if budget.exhausted is False else
-               # Either side of the comparison can be the missing one; naming
-               # only the job would send a reader to the wrong file.
-               'unknown — counter or cap unreadable')
-    log({'tag': tag, 'action': 'rerun-onhost', 'dry_run': dry_run, 'queued_ok': ok,
-         'job_id': job.get('id'), 'job_name': job.get('name'),
-         'reason': f'the 08:00 run already ended in error; retry budget {verdict}',
-         'retry_budget': budget.describe(), 'retry_budget_exhausted': budget.exhausted,
-         'out': out})
+    _rerun_once(today, dry_run, attempt=1)
     return 0
 
 
@@ -286,6 +320,11 @@ def alert_brief_missing(today, dry_run, issues=None):
 
     state['issues'] = list(issues)
     if not state.get('fallback_dispatch_attempted'):
+        # Second on-host chance before the off-host fallback (#550): the 08:30
+        # re-run can itself fail (2026-08-12), and a local re-run is cheaper
+        # than a vendor fallback and lands well before the 10:00 HKT cutoff.
+        if _rerun_count(today) < MAX_ONHOST_RERUNS:
+            _rerun_once(today, dry_run, attempt=2)
         dispatched, out = dispatch_brief_fallback(dry_run)
         state.update({
             'fallback_dispatch_attempted': True,
