@@ -520,11 +520,12 @@ PACKAGED_UTILITIES = {
     "sentiment": "clawock.market_data.sentiment",
     "shadow": "clawock.portfolio.shadow",
     "t0": "clawock.decision.setups",
-    "watch-list": "clawock.decision.watch_list",    "t0-review": "clawock.decision.setup_review",
+    "t0-review": "clawock.decision.setup_review",
     "thesis": "clawock.decision.theses",
     "us-quotes": "clawock.market_data.us_quotes",
     "validate-regime-dial": "clawock.evaluation.regime_validation",
     "validate-sidecar": "clawock.publish.artifacts",
+    "watch-list": "clawock.decision.watch_list",
 }
 
 # Its own exit-code convention: a partial peer fetch must not read as success.

@@ -51,7 +51,7 @@
 1. **决策面=持仓面**:系统只在持仓里做加减。`new_ideas=0`(8/13 简报自报)——智谱(02513)/迅策等 AI 新票不在 instruments / peer 池,entry-gate 是手动研究闸,不进 cron。
 2. **LLM 散文 vs 决策账本脱节**:8/14 散文 Aggressive 档明确写了"03033 借 4.84 阻力位加仓 200 股吃南向资金"、"00100 借 5d high 388.6 trim 30 股",但 decisions.jsonl 同日 = 3 cut + 全 hold,零 add。**机会只活在散文里,决策/计划卡只有砍仓**——kcn 看到的就是"系统只会砍"。
 3. **无换仓叙事**:砍 RKLX/SPCH 的弹药去向,系统只说 swap 1x(降杠杆),不接"腾弹药 → 候选名单"。
-4. **用户行为与系统纪律对立**:kcn 实际在 SPCH 无限子弹流(7/22 起 buy ×10 次,240→260 股,8/15 还买),系统每天挂 "SPCH cut 200" risk_rule 单;kcn 8/4 加仓 00100 20 股,系统对 00100 输出 hold_and_watch + single_name breach。**系统没有"用户 override 风险纪律"的反馈通道**(8/13 撤销 SPCH 累计加仓成本 P0 是 MEMORY 级特批,没进 risk_rule 判定)。
+4. **用户行为与系统纪律对立**:kcn 实际在 SPCH 无限子弹流(portfolio.json trades[] 自 7/22 起 22 笔 buy、现 260 股,8/15 还买;注意 decisions.jsonl 只有系统侧 56 条 SPCH 决策且 0 笔买入入账),系统每天挂 "SPCH cut 200" risk_rule 单;kcn 8/4 加仓 00100 20 股,系统对 00100 输出 hold_and_watch + single_name breach。**系统没有"用户 override 风险纪律"的反馈通道**(8/13 撤销 SPCH 累计加仓成本 P0 是 MEMORY 级特批,没进 risk_rule 判定)。
 5. **执行反馈循环**:7 月 23 次 add 建议 0 执行(not_followed/unknown)→ add 无 edge 数据 → 校准更保守;Brier 0.3366 > baseline 0.2644(校准不合格)→ 系统倾向 hold/cut。
 
 ## 四、当下(8/14 收盘)真实机会面
@@ -154,5 +154,5 @@
 
 ## 九、附:SPCH/00100 用户行为数据(方案 D 依据)
 
-- **SPCH**:21 笔买入、累计 ≈ $3,585、现 260 股、成本 12.51、浮亏 -28%——超过已撤销的 $3,000 纪律线,kcn 无限子弹流行为明确。
+- **SPCH**:现 260 股、成本 12.51、浮亏约 -28%——超过已撤销的 $3,000 纪律线,kcn 无限子弹流行为明确。数据来源:portfolio.json holdings/trades[](自 2026-07-22 起 22 笔 buy,合计 300 股,与当前 260 的差额说明另有卖出未入 trades[]);**decisions.jsonl 无 SPCH 买入记录**(56 条全是系统侧 cut/hold/trim),笔数/股数不能从决策账复现,此前的"21 笔 / 240→260"表述作废。
 - **00100**:6 笔买入、累计 ≈ ¥66,370、现 120 股、HK book 58.7%(single_name breach 27d)。
