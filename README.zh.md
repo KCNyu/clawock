@@ -2,7 +2,7 @@
 
 <h1><img src="site/assets/logo-lockup.svg" alt="clawock" height="48"></h1>
 
-> **它跑了 **<!-- CW_M:days -->90<!-- /CW_M:days --> 天,实盘亏了 **<!-- CW_M:return_pct -->−15.95%<!-- /CW_M:return_pct -->**——每一笔亏损都摊开在页面上([原始决策记录](https://github.com/KCNyu/clawock/blob/master/memory/decisions.jsonl))。每一个数字都能用 `clawock audit-resettle` 复算,模型不能给自己打分。**
+> **它跑了 **<!-- CW_M:days -->90<!-- /CW_M:days --> 天,实盘收益 **<!-- CW_M:return_pct -->−15.95%<!-- /CW_M:return_pct -->**——每一笔亏损都摊开在页面上([原始决策记录](https://github.com/KCNyu/clawock/blob/master/memory/decisions.jsonl))。每一个数字都能用 `clawock audit-resettle` 复算,模型不能给自己打分。**
 
 ### AI 争辩。代码结算。连亏损都摆在明面上。
 
