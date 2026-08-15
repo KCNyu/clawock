@@ -55,7 +55,7 @@ clawock run prepare --workspace ./my-decision
 bash examples/minimal-run/run.sh
 ```
 
-想换 harness?[`examples/harness-agnostic`](examples/harness-agnostic/README.md) 用同一条决策契约演示了五种跑法:纯 CLI、OpenClaw skill、Claude Code 指令、Codex AGENTS.md、DeepSeek Harness agent——**换 harness 不换流程**。
+想换 harness?[`examples/harness-agnostic`](examples/harness-agnostic/README.md) 用同一条决策契约演示了五种跑法:纯 CLI、OpenClaw skill、Claude Code 指令、Codex AGENTS.md、DeepSeek Harness agent——**换 harness 不换流程**。DSH 用户还有现成的 skill 包(发布后 `dsh plugin --profile web add clawock-dsh`),见 [`dsh-plugin/`](dsh-plugin/README.md)。
 
 ## 核心卖点
 
