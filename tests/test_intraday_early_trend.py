@@ -90,3 +90,33 @@ def test_append_early_trend_section_is_additive():
     assert '🕯️ 早期趋势候选' in rendered
     assert '候选·等回踩再突破' in rendered
     assert '现价 10 / 前高 9' in rendered
+
+
+def test_impact_direction_events_reach_classify_as_primary_evidence(monkeypatch, tmp_path):
+    """#603: the intraday lane must bridge impact_direction → direction like
+    the daily path (packet._event_view). The raw graph events only carry
+    impact_direction, so without the bridge primary_ids is always empty and the
+    candidate degrades to wait_information — the daily run sees it as
+    exploration_ready on the same payload."""
+    _wire(tmp_path, monkeypatch, zscore=1.0)
+    events_path = tmp_path / 'assets' / 'data' / 'news_evidence_graph.json'
+    events_path.write_text(json.dumps({
+        'information_overlay': {'tickers': {}},
+        'events': [{'event_id': 'e1', 'ticker': 'CRCL',
+                    'source_type': 'sec_filing',
+                    'impact_direction': 'positive'}],
+    }))
+
+    out = P.collect_early_trend_candidates('hk')
+
+    assert out['rows'][0]['state'] == 'exploration_ready'
+
+
+def test_lane_without_primary_evidence_stays_wait_information(monkeypatch, tmp_path):
+    """Control: the same technical setup with no primary event stays
+    wait_information — the #603 bridge is what unlocks exploration_ready."""
+    _wire(tmp_path, monkeypatch, zscore=1.0)
+
+    out = P.collect_early_trend_candidates('hk')
+
+    assert out['rows'][0]['state'] == 'wait_information'
