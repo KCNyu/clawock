@@ -78,7 +78,7 @@ Every trading day the system pulls fresh prices, FX, volatility, earnings and ma
 
 ## The information layer
 
-Reading the market is most of what the LLM does, so the widest part of the system is data collection. The repository catalogs **40 fetch and compute modules across 8 layers**, with **bilingual Hong Kong + US coverage** — live quotes, SEC + Eastmoney filings, capital flow, earnings calendars, macro (VIX / DXY / 10Y), Reddit and news sentiment, and market-moving social feeds. Each brief consumes the subset relevant to that market and session. Collection stays broad; the decision layer stays constrained.
+Reading the market is most of what the LLM does, so the widest part of the system is data collection. The repository catalogs **41 fetch and compute modules across 8 layers**, with **bilingual Hong Kong + US coverage** — live quotes, SEC + Eastmoney filings, capital flow, earnings calendars, macro (VIX / DXY / 10Y), Reddit and news sentiment, and market-moving social feeds. Each brief consumes the subset relevant to that market and session. Collection stays broad; the decision layer stays constrained.
 
 | Layer | Modules | Primary sources |
 |---|:---:|---|
@@ -87,7 +87,7 @@ Reading the market is most of what the LLM does, so the widest part of the syste
 | 3 · Capital flow | 1 | Eastmoney push2his |
 | 4 · News & catalysts (bilingual) | 5 | Eastmoney · Finnhub · Google News · exchange filings |
 | 5 · Macro & sentiment | 3 | Yahoo · Reddit · CNN · social feeds |
-| 6 · Quant & risk | 8 | deterministic math over price history |
+| 6 · Quant & risk | 9 | deterministic math over price history |
 | 7 · Book & FX integrity | 6 | Frankfurter · the reconciliation ledger · local invariants |
 | 8 · Backtest & calibration | 7 | local snapshots + canonical bars |
 
@@ -104,7 +104,7 @@ sources ──► preflight (Python, deterministic) ──► context.json ─�
 | | Pre-open brief | Open / midday / afternoon / close | Intraday check-in |
 |---|---|---|---|
 | **When** | 08:00 HKT, weekdays | HK 09:30 · 12:00 · 13:30 · 16:00 · US open and close | every 30 min while a market is open |
-| **Blocks** | 38 | 16 | 28 |
+| **Blocks** | 39 | 16 | 28 |
 | **Position truth** | holdings, book totals, concentration, leverage look-through | fresh quote block | fresh quote block |
 | **Risk** | guardrail, discipline ledger, β/vol/drawdown, breakeven math | risk section only when signals demand it | signal counts and detail |
 | **Signals** | quant factors and their hit-rate review, cross-sectional factor, peer residual, T+0 setups | peer/sector scan | peer/sector scan, T+0 setups, anomaly flags, entry setups and early-trend candidates re-run on the open bar, price-surface opportunity radar |

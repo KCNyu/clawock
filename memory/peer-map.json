@@ -40,6 +40,12 @@
           "region": "hk",
           "name": "商汤-W",
           "rel": "AI 视觉+大模型"
+        },
+        {
+          "ticker": "03317",
+          "region": "hk",
+          "name": "迅策科技",
+          "rel": "AI 应用/数据基础设施(与智谱同属 AI 板块)"
         }
       ],
       "private_peers": [

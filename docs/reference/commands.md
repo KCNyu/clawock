@@ -26,7 +26,7 @@ title: clawock · command reference
 
 ## Installed commands / 已安装命令
 
-**62 commands** are installed by the single `clawock` distribution: 50 CLI subcommands and 12 standalone scripts. 40 of them collect or compute information and appear under the layer they feed; the remaining 22 publish, gate, record or schedule, and are listed with the reason they are not collection.
+**63 commands** are installed by the single `clawock` distribution: 51 CLI subcommands and 12 standalone scripts. 41 of them collect or compute information and appear under the layer they feed; the remaining 22 publish, gate, record or schedule, and are listed with the reason they are not collection.
 
 本节由生成器从两份 registry 与 `config/information-layers.json` 推导，不手写；新增或删除一条命令，这张表自己会变。
 
@@ -98,6 +98,7 @@ Sources: deterministic math over price history
 | `clawock t0-review` | `clawock.decision.setup_review` | edge self-check that decides whether the grading may be used |
 | `clawock portfolio-risk` | `clawock.portfolio.risk` | beta, volatility, drawdown and concentration per book |
 | `clawock regime` | `clawock.decision.regime` | the leverage dial: 200-day trend × volatility |
+| `clawock watch-list` | `clawock.decision.watch_list` | non-held AI watch names price scan — opportunities only, never an add |
 
 ### Layer 7 · Book & FX integrity / 账本/汇率校验
 
