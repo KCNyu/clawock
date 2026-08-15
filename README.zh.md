@@ -55,6 +55,8 @@ clawock run prepare --workspace ./my-decision
 bash examples/minimal-run/run.sh
 ```
 
+想换 harness?[`examples/harness-agnostic`](examples/harness-agnostic/README.md) 用同一条决策契约演示了四种跑法:纯 CLI、OpenClaw skill、Claude Code 指令、DeepSeek Harness agent——**换 harness 不换流程**。
+
 ## 核心卖点
 
 | 卖点 | 人话 |

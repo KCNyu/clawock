@@ -7,6 +7,7 @@ required check instead of quietly rotting into documentation.
 | example | what it proves |
 |---|---|
 | [`minimal-run/`](minimal-run/) | a clean virtualenv installs the wheel and finishes one complete run — `init` → `run prepare` → `run publish` — with no checkout, no Git, no OpenClaw and an emptied environment |
+| [`harness-agnostic/`](harness-agnostic/) | one decision run driven from four harnesses — pure CLI, OpenClaw skill, Claude Code instruction, DeepSeek Harness agent — with the same files-and-CLI contract throughout |
 | [`profiles/`](profiles/) | a second desk can select markets, workflows, resources, policy, presentation and delivery declaratively, without a Python instance package |
 
 ## Why they are files and not workflow steps
