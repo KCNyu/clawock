@@ -6,7 +6,7 @@
 
 它跑了 **<!-- CW_M:days -->90<!-- /CW_M:days --> 天,实盘收益 **<!-- CW_M:return_pct -->−15.95%<!-- /CW_M:return_pct -->**——每一笔亏损都摊开在页面上([原始决策记录](https://github.com/KCNyu/clawock/blob/master/memory/decisions.jsonl)),每一个数字都能用 `clawock audit-resettle` 复算。**模型不能给自己打分**——全网第一个把 AI 战绩交给代码结算的投研台。AI 建议满天飞,谁为结果负责?代码负责。
 
-8 层 40 模块信息流 · 多 Agent 辩论 · Python 确定性结算,打包成 `pip install clawock`,装进任何 Agent(Claude Code / Codex / OpenClaw / DeepSeek Harness)。不跟单、不代下单。
+8 层 41 模块信息流 · 多 Agent 辩论 · Python 确定性结算,打包成 `pip install clawock`,装进任何 Agent(Claude Code / Codex / OpenClaw / DeepSeek Harness)。不跟单、不代下单。
 
 [![Dashboard](https://img.shields.io/github/deployments/KCNyu/clawock/github-pages?label=DASHBOARD&style=flat-square&logo=githubpages&logoColor=white&labelColor=252b35&color=4b91c8)](https://kcnyu.github.io/clawock/)
 [![Tests](https://img.shields.io/github/actions/workflow/status/KCNyu/clawock/harness-regression.yml?label=TESTS&style=flat-square&logo=githubactions&logoColor=white&labelColor=252b35&color=738391)](https://github.com/KCNyu/clawock/actions/workflows/harness-regression.yml)
@@ -144,22 +144,22 @@ evaluation: loss(按基准行情结算, trigger session 2026-08-10)
 
 正经版:LLM 从不自己抓数据,也不自己结算。它只做一件事:**读一份 Python 组装好的上下文文件,写一份带证据、带反方的分析**。剩下全是代码的事。
 
-![clawock 信息流 —— 8 层 40 个模块经 Python preflight 按需组装成带指纹的 context.json;LLM 只读文件写分析;postflight 校验结算后发布](site/assets/information-flow.svg)
+![clawock 信息流 —— 8 层 41 个模块经 Python preflight 按需组装成带指纹的 context.json;LLM 只读文件写分析;postflight 校验结算后发布](site/assets/information-flow.svg)
 
-### 信息流:8 层 40 个模块,港股美股双语覆盖
+### 信息流:**8 层、41 个抓取与计算模块**,港股美股双语覆盖
 
-| 层 | 模块(命令) | 来源 |
+| 层 | 模块 | 主要来源 |
 |---|---|---|
-| 1 · 行情(7) | `analyze-hk` `analyze-us` `us-quotes` `fetch-peers` `daily-bars` `benchmark` `clawock-gold-fetch` | 腾讯 · Yahoo · 东财 · Polygon |
-| 2 · 基本面/申报(3) | `filings` `fundamentals` `earnings` | SEC EDGAR · 东财 · 港交所 |
-| 3 · 资金面(1) | `fundflow` | 东财 |
-| 4 · 消息面与催化剂(5,双语) | `em-news` `catalysts` `mover-evidence` `news-evidence` `clawock-news-digest` | 东财 · Finnhub · Google News |
-| 5 · 宏观/情绪(3) | `macro` `sentiment` `clawock-influencer-scan` | Yahoo · Reddit · CNN |
-| 6 · 量化与风险(8) | `quant` `quant-review` `cross-factor` `peer-residual` `t0` `t0-review` `portfolio-risk` `regime` | 价格历史确定性计算 |
-| 7 · 账本/汇率校验(6) | `fx` `integrity` `reconcile` `aggregates` `cash` `realized` | Frankfurter · 对账账本 |
-| 8 · 回测/自省(7) | `evaluate-hstech-regime` `evaluate-us-leverage` `evaluate-combined-regime` `validate-regime-dial` `shadow` `audit-resettle` `evaluate-add-alpha` | 本地快照 + 基准行情 |
+| 1 · 行情 | 7 | 腾讯 · Yahoo · 东财 · Polygon |
+| 2 · 基本面/申报 | 3 | SEC EDGAR · 东财 datacenter · 港交所 |
+| 3 · 资金面 | 1 | 东财 push2his |
+| 4 · 消息面与催化剂(双语) | 5 | 东财 · Finnhub · Google News · 交易所公告 |
+| 5 · 宏观/情绪 | 3 | Yahoo · Reddit · CNN · 社交 feed |
+| 6 · 量化与风险 | 9 | 对价格历史做确定性计算 |
+| 7 · 账本/汇率校验 | 6 | Frankfurter · 对账账本 · 本地不变量 |
+| 8 · 回测/自省 | 7 | 本地快照 + 基准行情 |
 
-抓取层优雅降级:东财统一走节流网关,报价/汇率多源兜底,抓空保留旧值。哪个模块属于哪一层由 [`config/information-layers.json`](config/information-layers.json) 声明,CI 对着它核对,模块搬了家数字不会留在原地;完整命令与 provider 目录见[命令参考](docs/reference/commands.md)。
+抓取层优雅降级:东财统一走节流网关,报价/汇率多源兜底,抓空保留旧值。41 个模块的命令清单(`analyze-hk` `us-quotes` `filings` `fundflow` `em-news` `macro` `quant` `fx` `shadow` `evaluate-*` 等)由[命令参考](docs/reference/commands.md)按 registry 生成——上面的表格与清单由 CI 对着 [`config/information-layers.json`](config/information-layers.json) 核对,模块搬了家,数字不会留在原地。
 
 ### 热点捕获:影响者雷达
 
