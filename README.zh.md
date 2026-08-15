@@ -34,23 +34,15 @@
 >
 > 卖点不是「赚得更多」,而是「骗不了人」:模型提议,Python 结算,战绩全公开。这套投研台打包成了 `pip install clawock`,可以装进任何 Agent。
 
-## 直接甩给 AI 装
+## 装起来(60 秒)
 
-不想读文档?把本仓库地址丢给你的 Agent(Claude Code / Codex / OpenClaw / DeepSeek Harness 都行),让它照着做:
+**甩给 AI(默认):** 把本仓库地址丢给你的 Agent(Claude Code / Codex / OpenClaw / DeepSeek Harness 都行),让它照着做:
 
 1. `python -m pip install clawock`
 2. 跑 `bash examples/minimal-run/run.sh` 验证一条完整决策(无模型,不联网)
-3. 需要走真实决策时,按 [`dsh-plugin/skills/investment-decision/SKILL.md`](dsh-plugin/skills/investment-decision/SKILL.md) 的三步流程:prepare → 写 `decision.json` → publish
+3. 走真实决策时按 [`dsh-plugin/skills/investment-decision/SKILL.md`](dsh-plugin/skills/investment-decision/SKILL.md) 的三步流程:prepare → 写 `decision.json` → publish
 
-## 这是什么
-
-clawock 是一套真实港美股账户上运行的 AI 投研系统,打包成 `pip install clawock` 就能装进任何 Agent(Claude Code、Codex、OpenClaw、DeepSeek Harness 都行)。
-
-每天 08:00 它读完 8 层 40 模块的信息流,组织一场多 Agent 辩论(四视角分析师 + 多空对立 + 裁判归因)给出决策;Python 独立结算,模型不能给自己打分,战绩连亏损都公开。不跟单、不代下单。
-
-## 快速开始
-
-前置要求:Python ≥ 3.11,一个能读写文件的 Agent(任何 harness 都行——OpenClaw / Claude Code / Codex / DeepSeek Harness / 你自己的 runner,模型调用留在你的环境里)。
+**或者手动:** Python ≥ 3.11,然后:
 
 ```bash
 python -m pip install clawock
@@ -59,13 +51,13 @@ clawock init ./my-decision --workflow investment-decision
 clawock run prepare --workspace ./my-decision
 ```
 
-`run prepare` 产出一份带上下文指纹的请求文件,交给你的 Agent 写出 `decision.json`,`run publish` 负责校验(证据、反方、资金与汇率对账)并给出生成回执。不想先接模型?`examples/minimal-run` 无模型完整跑通 `init → prepare → publish`(被 CI 执行,不会烂掉):
+`run prepare` 产出一份带指纹的请求文件,你的 Agent 写出 `decision.json`,`run publish` 校验(证据、反方、资金与汇率对账)并给出生成回执。不想接模型?`bash examples/minimal-run/run.sh` 无模型跑通全流程(CI 执行,不会烂掉)。换 harness?[`examples/harness-agnostic`](examples/harness-agnostic/README.md) 五种跑法同一条契约;DSH 用户还有现成 skill 包(发布后 `dsh plugin --profile web add clawock-dsh`)。
 
-```bash
-bash examples/minimal-run/run.sh
-```
+## 这是什么
 
-想换 harness?[`examples/harness-agnostic`](examples/harness-agnostic/README.md) 用同一条决策契约演示了五种跑法:纯 CLI、OpenClaw skill、Claude Code 指令、Codex AGENTS.md、DeepSeek Harness agent——**换 harness 不换流程**。DSH 用户还有现成的 skill 包(发布后 `dsh plugin --profile web add clawock-dsh`),见 [`dsh-plugin/`](dsh-plugin/README.md)。
+clawock 是一套真实港美股账户上运行的 AI 投研系统,打包成 `pip install clawock` 就能装进任何 Agent(Claude Code、Codex、OpenClaw、DeepSeek Harness 都行)。
+
+每天 08:00 它读完 8 层 40 模块的信息流,组织一场多 Agent 辩论(四视角分析师 + 多空对立 + 裁判归因)给出决策;Python 独立结算,模型不能给自己打分,战绩连亏损都公开。不跟单、不代下单。
 
 ## 多 Agent 辩论
 
