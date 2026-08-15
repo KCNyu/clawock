@@ -520,7 +520,7 @@ PACKAGED_UTILITIES = {
     "sentiment": "clawock.market_data.sentiment",
     "shadow": "clawock.portfolio.shadow",
     "t0": "clawock.decision.setups",
-    "t0-review": "clawock.decision.setup_review",
+    "watch-list": "clawock.decision.watch_list",    "t0-review": "clawock.decision.setup_review",
     "thesis": "clawock.decision.theses",
     "us-quotes": "clawock.market_data.us_quotes",
     "validate-regime-dial": "clawock.evaluation.regime_validation",
@@ -667,6 +667,7 @@ def main(argv=None) -> int:
     for name, help_text in (
         ("plan-context", "show still-open decisions for a downstream run"),
         ("risk", "maintain the durable risk-breach governance ledger"),
+        ("watch-list", "scan non-held AI watch names for price opportunities"),
         ("dashboard-outputs", "compare one generated dashboard write set"),
         ("dashboard-build", "build the configured workspace dashboard projection"),
         ("run-card", "inspect durable backtest evidence"),

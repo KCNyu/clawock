@@ -189,6 +189,10 @@
         {
           "command": "regime",
           "note": "the leverage dial: 200-day trend × volatility"
+        },
+        {
+          "command": "watch-list",
+          "note": "non-held AI watch names price scan — opportunities only, never an add"
         }
       ]
     },

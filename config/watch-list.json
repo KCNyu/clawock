@@ -1,0 +1,6 @@
+{
+  "schema_version": 1,
+  "updated_at": "2026-08-15",
+  "purpose": "非持仓 AI 观察池:只扫描机会(突破/大涨),绝不产生 add 授权。加名字 → instruments.json 注册 + 本文件加 ticker。",
+  "tickers": ["02513", "03317"]
+}
