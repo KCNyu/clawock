@@ -31,6 +31,7 @@
   "symbols": [
     {"ticker": "00100", "region": "hk", "sector": "hk_ai_models"},
     {"ticker": "02513", "region": "hk", "sector": "hk_ai_models"},
+    {"ticker": "03317", "region": "hk", "sector": "hk_ai_models"},
     {"ticker": "01384", "region": "hk", "sector": "hk_ai_models"},
     {"ticker": "09678", "region": "hk", "sector": "hk_ai_models"},
     {"ticker": "06682", "region": "hk", "sector": "hk_ai_models"},

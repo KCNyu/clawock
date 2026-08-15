@@ -55,6 +55,21 @@ from clawock.automation import cron_heartbeat  # noqa: E402
 from clawock.harness import intraday_delta  # noqa: E402
 
 
+# Process-local bars cache for one preflight slot (#613): the provisional,
+# early-trend and radar collectors each fetch the same code, and a 10-name
+# portfolio was paying 3x fetches per slot (~540 requests/day). Cleared at the
+# start of every main() run so a slot never reads the previous slot's bars.
+_BARS_CACHE: dict[tuple[str, int], list] = {}
+
+
+def _fetch_bars_cached(code, cnt=400):
+    """fetch_bars memoised for the lifetime of one preflight slot."""
+    key = (code, cnt)
+    if key not in _BARS_CACHE:
+        _BARS_CACHE[key] = quant_signals.fetch_bars(code, cnt)
+    return _BARS_CACHE[key]
+
+
 # `scripts/data` was deleted in #429 and the analysis moved into the package in
 # #421, which added `clawock analyze-hk` / `analyze-us` but left these two callers
 # pointing at the old path. Both preflights then failed on every run while still
@@ -170,7 +185,7 @@ def collect_provisional_setups(market):
     """
     try:
         return quant_signals.provisional_setups(
-            region='HK' if market == 'hk' else 'US')
+            region='HK' if market == 'hk' else 'US', fetch=_fetch_bars_cached)
     except Exception as exc:  # noqa: BLE001 — a quote feed must never red the cron
         return {'rows': [], 'confirmed_at_close': False,
                 'errors': [{'label': None,
@@ -246,10 +261,17 @@ EARLY_STATE_LABELS = {
 
 
 def _load_json(path):
+    """Read a JSON asset as a dict, never raising.
+
+    #612: a file that parses to a non-dict (e.g. a list) used to escape the
+    try/except below and AttributeError the whole preflight at `.get`. A
+    non-dict shape is treated as absent, matching the missing-file case.
+    """
     try:
-        return json.loads(Path(path).read_text())
+        value = json.loads(Path(path).read_text())
     except (FileNotFoundError, json.JSONDecodeError, OSError):
         return {}
+    return value if isinstance(value, dict) else {}
 
 
 def collect_early_trend_candidates(market):
@@ -263,11 +285,14 @@ def collect_early_trend_candidates(market):
     answering returns no candidates, never a red cron.
     """
     region = 'HK' if market == 'hk' else 'US'
+    errors = []
     try:
-        universe = [d for d in quant_signals._universe_details()
+        universe = [d for d in quant_signals.universe_details(errors=errors)
                     if d.get('region') == region]
-    except Exception:  # noqa: BLE001
-        return {'rows': []}
+    except Exception as exc:  # noqa: BLE001 — last resort; universe_details is per-holding tolerant
+        return {'rows': [],
+                'errors': [{'label': None,
+                            'error': f'{type(exc).__name__}: {exc}'[:200]}]}
     peer_rows = (_load_json(WS / 'assets' / 'data' / 'peer_residual.json')
                  .get('live') or {})
     graph = _load_json(WS / 'assets' / 'data' / 'news_evidence_graph.json')
@@ -279,17 +304,17 @@ def collect_early_trend_candidates(market):
     except (FileNotFoundError, json.JSONDecodeError, OSError):
         policy = {}
     rows = []
+    run_date = datetime.now(ZoneInfo('Asia/Hong_Kong')).date()
     for detail in universe:
         label = detail.get('label')
         try:
-            bars = quant_signals.fetch_bars(detail['code'], 400)
-            # `compute_short_history_signals` (#542) may not be present yet;
-            # degrade to the mature gate rather than hard-depending on it.
-            short_history = getattr(
-                quant_signals, 'compute_short_history_signals', None)
+            bars = _fetch_bars_cached(detail['code'], 400)
             sig = quant_signals.compute_signals(bars)
-            if sig is None and short_history is not None:
-                sig = short_history(bars)
+            if sig is None and quant_signals.is_short_history_candidate(
+                    detail, run_date):
+                # Only a genuinely-new name may use the 20-bar short view; a
+                # partial-feed mature name stays on the 30-bar gate (#608).
+                sig = quant_signals.compute_short_history_signals(bars)
         except Exception:  # noqa: BLE001
             continue
         if not sig:
@@ -345,7 +370,12 @@ def collect_early_trend_candidates(market):
             'prior_20d_high': sig.get('prior_20d_high'),
             'blockers': candidate.get('blockers') or [],
         })
-    return {'rows': rows}
+    result = {'rows': rows}
+    if errors:
+        # Data gaps must be said, not swallowed (#612): a registry gap that
+        # used to blank the whole lane now lands here for the context JSON.
+        result['errors'] = errors
+    return result
 
 
 def append_early_trend_section(block, candidates, signals_detail=None):
@@ -382,24 +412,31 @@ def collect_opportunity_radar(market):
     """机会雷达:突破/等回踩/接近突破的价格面候选观察(#551)。
 
     与 early_trend 的区别:这是纯价格面,不要求 peer/information 确认——
-    回答"机会在哪",不下单授权(候选≠下单)。数据全部来自 technical 视图,
-    零新抓取。fail-soft:任何名字取不到 bars 就跳过,不红 cron。
+    回答"机会在哪",不下单授权(候选≠下单)。数据来自 technical 视图,
+    与本槽其他 collector 共享同一趟 bars 抓取(#613,非"零抓取")。
+    fail-soft:任何名字取不到 bars 就跳过,registry 缺口进 errors,不红 cron。
     """
     region = 'HK' if market == 'hk' else 'US'
+    errors = []
     try:
-        universe = [d for d in quant_signals._universe_details()
+        universe = [d for d in quant_signals.universe_details(errors=errors)
                     if d.get('region') == region]
-    except Exception:  # noqa: BLE001
-        return {'rows': []}
-    short_history = getattr(quant_signals, 'compute_short_history_signals', None)
+    except Exception as exc:  # noqa: BLE001 — last resort; universe_details is per-holding tolerant
+        return {'rows': [],
+                'errors': [{'label': None,
+                            'error': f'{type(exc).__name__}: {exc}'[:200]}]}
     rows = []
+    run_date = datetime.now(ZoneInfo('Asia/Hong_Kong')).date()
     for detail in universe:
         label = detail.get('label')
         try:
-            bars = quant_signals.fetch_bars(detail['code'], 400)
+            bars = _fetch_bars_cached(detail['code'], 400)
             sig = quant_signals.compute_signals(bars)
-            if sig is None and short_history is not None:
-                sig = short_history(bars)
+            if sig is None and quant_signals.is_short_history_candidate(
+                    detail, run_date):
+                # Only a genuinely-new name may use the 20-bar short view; a
+                # partial-feed mature name stays on the 30-bar gate (#608).
+                sig = quant_signals.compute_short_history_signals(bars)
         except Exception:  # noqa: BLE001
             continue
         if not sig:
@@ -430,7 +467,10 @@ def collect_opportunity_radar(market):
             'zscore20': z,
         })
     rows.sort(key=lambda row: row['pct_from_high'], reverse=True)
-    return {'rows': rows}
+    result = {'rows': rows}
+    if errors:
+        result['errors'] = errors
+    return result
 
 
 def append_opportunity_radar_section(block, radar, signals_detail=None):
@@ -721,6 +761,10 @@ def main(argv=None):
     now = datetime.now(ZoneInfo('Asia/Hong_Kong'))
     stamp = now.strftime('%Y-%m-%d_%H%M')
     heartbeat = cron_heartbeat.record(args.market, 'started')
+
+    # One fetch per code per slot: the three collectors share this slot's bars
+    # through _fetch_bars_cached (#613).
+    _BARS_CACHE.clear()
 
     # Holiday/weekend gate (before fetch): closed market → no stale price write,
     # emit a market_closed sentinel (no alert), exit 0.

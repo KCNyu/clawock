@@ -338,11 +338,43 @@ def compute_short_history_signals(bars):
     return sig
 
 
-def _universe_details():
+# A name with ≥30 sessions since listing can reach the mature 30-bar gate; the
+# short-history fallback is for names that genuinely cannot. 45 calendar days
+# ≈ 30 trading sessions, with slack for holidays.
+SHORT_HISTORY_MAX_AGE_DAYS = 45
+
+
+def is_short_history_candidate(detail, run_date):
+    """Genuinely-new-listing gate for the 20–29-bar fallback (#608).
+
+    The short-history view must not rescue a mature name whose feed returned
+    only 20–29 bars (a partial feed): that would bypass the deliberate 30-bar
+    data-quality gate with half a signal set. Only names whose registry
+    `listing_date` is present and recent (≤ SHORT_HISTORY_MAX_AGE_DAYS) are
+    candidates; an absent or unparseable listing_date means "not known to be
+    new", and the strict gate stands.
+    """
+    ld = (detail or {}).get('listing_date')
+    if not ld:
+        return False
+    try:
+        listing = datetime.fromisoformat(ld).date()
+    except (ValueError, TypeError):
+        return False
+    return (run_date - listing).days <= SHORT_HISTORY_MAX_AGE_DAYS
+
+
+def universe_details(errors=None):
     """活跃持仓 → 去重后的 signal rows，保留每行覆盖的真实持仓。
 
     杠杆产品使用 registry 的 signal_symbol 折到标的/1x proxy；venue 后缀
     同样从 registry 读取，绝不再默认猜成 Nasdaq。
+
+    Per-holding tolerance (#612): one registry gap (unknown ticker, missing
+    canonical Tencent symbol) must not blank the whole universe — the bad
+    holding is skipped and reported via `errors` (when provided), mirroring
+    the per-row fail-soft doctrine of #136. Rows carry the registry
+    `listing_date` so short-history gating (#608) works for every consumer.
     """
     port = load_json_cached(PORTFOLIO)
     by_code = {}
@@ -353,25 +385,40 @@ def _universe_details():
             if h.get('shares', 0) <= 0:
                 continue
             t = h.get('ticker')
-            meta = require_instrument(t)
-            signal_symbol = meta.get('signal_symbol') or t
-            signal_meta = require_instrument(signal_symbol)
-            label = signal_symbol
-            code = signal_meta.get('tencent_symbol')
-            note = f'{t} 的标的/1x proxy' if signal_symbol != t else ''
-            if not code:
-                raise ValueError(f'{signal_symbol} has no canonical Tencent symbol')
+            try:
+                meta = require_instrument(t)
+                signal_symbol = meta.get('signal_symbol') or t
+                signal_meta = require_instrument(signal_symbol)
+                label = signal_symbol
+                code = signal_meta.get('tencent_symbol')
+                note = f'{t} 的标的/1x proxy' if signal_symbol != t else ''
+                if not code:
+                    raise ValueError(
+                        f'{signal_symbol} has no canonical Tencent symbol')
+            except Exception as exc:  # noqa: BLE001 — one bad holding must not blank the rest
+                if errors is not None:
+                    errors.append({
+                        'label': t,
+                        'error': f'{type(exc).__name__}: {exc}'[:200],
+                    })
+                continue
             row = by_code.setdefault(code, {
                 'label': label,
                 'code': code,
                 'note': note,
                 'region': signal_meta['region'],
                 'source_holdings': [],
+                'listing_date': signal_meta.get('listing_date'),
             })
             row['source_holdings'].append(t)
             if note and not row['note']:
                 row['note'] = note
     return list(by_code.values())
+
+
+def _universe_details():
+    """Deprecated alias for out-of-tree callers; use `universe_details`."""
+    return universe_details()
 
 
 def _universe():
@@ -453,9 +500,11 @@ def refresh_rows(previous, universe, *, run_date=None, previous_as_of=None,
                     and _as_date(bar.get('date')) <= expected)
             ]
         sig = compute_signals(bars) if bars else None
-        if sig is None:
-            # A short-history name cannot reach the 30-bar mature gate, but the
-            # early-trend lane needs its 20-bar-computable technical view.
+        if sig is None and is_short_history_candidate(detail, run_date):
+            # A genuinely-new name cannot reach the 30-bar mature gate, but the
+            # early-trend lane needs its 20-bar-computable technical view. The
+            # listing-date gate keeps a partial-feed mature name on the strict
+            # gate (#608).
             sig = compute_short_history_signals(bars)
         if sig is not None:
             row_as_of = _as_date(bars[-1].get('date'))
@@ -552,7 +601,9 @@ def provisional_setups(universe=None, *, region=None, fetch=None):
         label = detail.get('label')
         try:
             bars = fetcher(detail['code'], 400)
-            sig = compute_signals(bars) or compute_short_history_signals(bars)
+            sig = compute_signals(bars)
+            if sig is None and is_short_history_candidate(detail, date.today()):
+                sig = compute_short_history_signals(bars)
         except Exception as exc:  # noqa: BLE001 — one bad symbol must not blank the rest
             errors.append({'label': label, 'error': f'{type(exc).__name__}: {exc}'[:200]})
             continue
