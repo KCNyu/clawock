@@ -25,6 +25,7 @@ from datetime import datetime
 from pathlib import Path
 
 from clawock.workspace import workspace_root
+from clawock.decision import risk as risk_ledger
 
 WS = workspace_root(Path.cwd())
 MEMORY = WS / "memory"
@@ -90,6 +91,28 @@ def _is_open(row):
     return execution == OPEN_EXECUTION and evaluation == "pending"
 
 
+def _overridden_risk_tickers(ledger_path=None):
+    """Tickers whose risk_rule discipline the user has explicitly overridden.
+
+    `clawock risk override <breach_id>` marks a breach record as overridden
+    (status=overridden, override.status=active, TTL-bound). A user who keeps
+    adding to SPCH while the system daily re-hangs a "SPCH cut" risk_rule order
+    is not going to execute it — repeating it every slot is the #552 churn. This
+    returns the tickers with an active override so `open_decisions_context` can
+    stop carrying their risk_rule cuts while every other gate stays untouched.
+    """
+    try:
+        ledger = risk_ledger.load_ledger(
+            Path(ledger_path) if ledger_path else risk_ledger.LEDGER)
+    except Exception:  # noqa: BLE001 — a broken breach ledger must not red a report cron
+        return set()
+    overridden = set()
+    for row in ledger.get("records") or []:
+        if risk_ledger.override_is_active(row) and row.get("ticker"):
+            overridden.add(str(row["ticker"]))
+    return overridden
+
+
 def _entry(row):
     size = row.get("size") or {}
     condition = row.get("condition") or {}
@@ -152,9 +175,26 @@ def open_decisions_context(*, leg=None, today=None, ledger=None, memory_dir=None
         rows = [row for row in _load_ledger(ledger_path) if _is_open(row)]
         if leg:
             rows = [row for row in rows if str(row.get("leg", "")).upper() == leg.upper()]
+        # User-overridden risk discipline is not carried over (#552): the breach
+        # ledger's active override already says the user knows and keeps the
+        # position, so re-hanging the same risk_rule cut every slot is churn, not
+        # discipline. Other decisions on the same ticker stay untouched.
+        overridden_tickers = _overridden_risk_tickers(
+            ledger_path=memory / "risk_breaches.json")
+        dropped = []
+        if overridden_tickers:
+            def _is_overridden_cut(row):
+                return (str(row.get("ticker") or "") in overridden_tickers
+                        and row.get("driven_by") == "risk_rule"
+                        and row.get("action") in ("cut", "trim_on_rebound"))
+            dropped = [str(row.get("ticker")) for row in rows if _is_overridden_cut(row)]
+            rows = [row for row in rows if not _is_overridden_cut(row)]
         if not rows:
-            return ({"open_add_tickers": [], "open_add_gate_error": open_add_gate_error}
-                    if open_add_gate_error else {})
+            if open_add_gate_error:
+                return {"open_add_tickers": [], "open_add_gate_error": open_add_gate_error}
+            if dropped:
+                return {"open_add_tickers": [], "overridden_by_user": sorted(set(dropped))}
+            return {}
 
         # Today's plan first, then the oldest carried-over orders: a swap hanging
         # since Friday is more urgent than one written this morning, but the
@@ -176,6 +216,8 @@ def open_decisions_context(*, leg=None, today=None, ledger=None, memory_dir=None
             # Unlike `open`, this safety projection is never truncated.
             "open_add_tickers": open_add_tickers,
         }
+        if dropped:
+            context["overridden_by_user"] = sorted(set(dropped))
         if open_add_gate_error:
             context["open_add_gate_error"] = open_add_gate_error
         if len(rows) > MAX_DECISIONS:
