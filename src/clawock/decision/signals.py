@@ -34,7 +34,7 @@ import requests
 
 from clawock.market_data import sessions as trading_calendar
 from clawock.portfolio.instruments import require as require_instrument
-from clawock.safe_io import safe_write_json, load_json_cached
+from clawock.safe_io import load_json_cached, safe_write_json
 from clawock.workspace import workspace_root
 
 WS = workspace_root(Path.cwd())
@@ -416,16 +416,11 @@ def universe_details(errors=None):
     return list(by_code.values())
 
 
-def _universe_details():
-    """Deprecated alias for out-of-tree callers; use `universe_details`."""
-    return universe_details()
-
-
 def _universe():
     """Compatibility view used by registry tests and small callers."""
     return [
         (row['label'], row['code'], row['note'])
-        for row in _universe_details()
+        for row in universe_details()
     ]
 
 
@@ -595,7 +590,7 @@ def provisional_setups(universe=None, *, region=None, fetch=None):
     """
     rows, errors = [], []
     fetcher = fetch or fetch_bars
-    for detail in (universe if universe is not None else _universe_details()):
+    for detail in (universe if universe is not None else universe_details()):
         if region and detail.get('region') != region:
             continue
         label = detail.get('label')
@@ -644,7 +639,7 @@ def main(argv=None):
             prev = json.loads(OUT.read_text())
         except Exception:
             prev = {}
-    universe = _universe_details()
+    universe = universe_details()
     rows = refresh_rows(
         prev.get('rows') or {},
         universe,

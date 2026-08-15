@@ -69,3 +69,33 @@ def test_sizing_policy_keys_all_present_in_news_evidence_config():
         "packet.py sizing_policy keys missing from news-evidence-policy.json "
         f"'sizing' section: {sorted(missing)} — editing the config cannot change them"
     )
+
+
+def test_early_trend_and_radar_policy_keys_all_present_in_config():
+    """#621: parity coverage extends beyond packet.py to the intraday lanes —
+    early_trend.classify and the opportunity radar are the direct consumers of
+    minimum_peer_count / minimum_attention_rank / early_no_chase_zscore /
+    opportunity_near_pct. A key missing from the config silently falls back to
+    a hardcoded default and editing the config does nothing."""
+    sources = {
+        "early_trend.py": (ROOT / "src" / "clawock" / "decision" / "early_trend.py"),
+        "intraday_preflight.py": (ROOT / "src" / "clawock" / "harness" / "intraday_preflight.py"),
+    }
+    used = set()
+    for name, path in sources.items():
+        keys = set(re.findall(
+            r'policy\.get\("([a-z_0-9]+)"', path.read_text(encoding="utf-8")))
+        assert keys, f"no policy.get literal keys in {name} — fixture drift"
+        used |= keys
+    config = json.loads((ROOT / "config" / "add-alpha-policy.json").read_text())
+    present = _flat_keys(config)
+    # Keys read off a per-market sub-policy (minimum_peer_count etc.) live
+    # nested under markets.* — flatten those too (the dict key itself counts).
+    present.add("markets")
+    for market, sub in (config.get("markets") or {}).items():
+        present |= _flat_keys(sub)
+    missing = used - present
+    assert not missing, (
+        "early_trend/intraday_preflight policy keys missing from "
+        f"add-alpha-policy.json: {sorted(missing)} — editing the config cannot "
+        "change them")

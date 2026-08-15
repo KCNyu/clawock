@@ -178,3 +178,11 @@ def test_tampered_bundle_is_detected(tmp_path):
         tmp_path / "brief.json", Path(manifest["manifest_path"])
     )
     assert any("hash 不匹配" in issue for issue in issues)
+
+
+def test_watch_list_is_a_market_bundle_field_not_extras():
+    """#602: the AI watch list must ride the market bundle so the brief LLM
+    can read it on demand — if it ever slips back to `extras`, the feature is
+    silently silenced (a field nothing prints is a detector that has been
+    silenced, #515)."""
+    assert "watch_list" in brief_context.BUNDLE_FIELDS["market"]

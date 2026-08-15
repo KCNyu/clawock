@@ -65,6 +65,7 @@ BUNDLE_FIELDS = {
         "sentiment",
         "influencer",
         "em_news",
+        "watch_list",
     ),
     "calibration": (
         "retrospective",

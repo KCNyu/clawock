@@ -86,6 +86,33 @@ fi
 # ──────────────────────────────────────────────────────────────────────────
 
 # ──────────────────────────────────────────────────────────────────────────
+# 3.5 watch-list.json ↔ instruments.json cross-validation (#602/#621)
+#    The watch list is maintained by hand alongside instruments.json; a typo
+#    used to be a permanent silent no-scan. Any change to either file re-checks
+#    the pair.
+# ──────────────────────────────────────────────────────────────────────────
+if echo "$STAGED" | grep -qE '^(config/watch-list\.json|config/instruments\.json)$'; then
+  echo "  ▸ validating watch-list.json ↔ instruments.json…"
+  python3 - <<'PY' || exit 1
+import json, sys
+try:
+    wl = json.load(open('config/watch-list.json'))
+    inst = json.load(open('config/instruments.json'))['instruments']
+except Exception as e:
+    print(f'    ✗ config parse error: {e}', file=sys.stderr)
+    sys.exit(1)
+missing = [t for t in (wl.get('tickers') or []) if t not in inst]
+if missing:
+    print(f'    ✗ watch-list tickers missing from instruments.json: {missing}',
+          file=sys.stderr)
+    print('    → 先在 instruments.json 注册(含 tencent_symbol)再加观察池',
+          file=sys.stderr)
+    sys.exit(1)
+print('    ✓ watch-list.json ↔ instruments.json OK')
+PY
+fi
+
+# ──────────────────────────────────────────────────────────────────────────
 # 4. No staged secrets (paranoid scan)
 # ──────────────────────────────────────────────────────────────────────────
 SECRETS_HIT=$(git diff --cached -U0 -- ':!*.md' ':!.gitignore' \

@@ -112,8 +112,10 @@ bundle 路由：
 - `risk_detail`: `breakeven_math`, `risk_metrics`
 - `research`: `quant_signals`, `cross_sectional_factor`, `peer_residual`, `t0_setups`, `us_fundamentals`, `peer_scan` 及对应 review
 - `evidence`: `catalysts`, `news_evidence_graph`
-- `market`: `macro`, `sentiment`, `influencer`, `em_news`
+- `market`: `macro`, `sentiment`, `influencer`, `em_news`, `watch_list`
 - `calibration`: `retrospective`, `decision_metrics`, `reflections`
+
+`market.watch_list`（#556）：非持仓 AI 观察池（智谱 02513 / 迅策 03317 等）的**价格面观察**——仅当突破/接近突破/5d 大涨时才有行。写「新机会」节时读取它，但**观察池名字绝不产生 add 授权、绝不进决策**（不进 plan / `_constraints`）。
 
 manifest 若出现 `extras`，表示新 feature 被隔离而没有偷长常驻 core；只有下面明确要求消费该字段时才读。任一 bundle 的 `_meta.generation_id` 与 manifest 不同，立即停止，不得把不同 preflight run 的事实拼在一起。
 
