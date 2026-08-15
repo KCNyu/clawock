@@ -532,30 +532,33 @@ def test_strategy_cron_provider_order_is_fixed_policy():
     } == {
         'report': {
             'model': 'minimax/MiniMax-M3',
-            'fallbacks': ['minimax-2/MiniMax-M3'],
+            'fallbacks': ['minimax-2/MiniMax-M3', 'opencode-go/deepseek-v4-flash'],
             'model_candidates': [
                 'minimax/MiniMax-M3',
                 'minimax-2/MiniMax-M3',
+                'opencode-go/deepseek-v4-flash',
                 'openai/gpt-5.6-sol',
                 'anthropic/claude-sonnet-4-6',
             ],
         },
         'intraday': {
             'model': 'minimax/MiniMax-M3',
-            'fallbacks': ['minimax-2/MiniMax-M3'],
+            'fallbacks': ['minimax-2/MiniMax-M3', 'opencode-go/deepseek-v4-flash'],
             'model_candidates': [
                 'minimax/MiniMax-M3',
                 'minimax-2/MiniMax-M3',
+                'opencode-go/deepseek-v4-flash',
                 'openai/gpt-5.6-sol',
                 'anthropic/claude-sonnet-4-6',
             ],
         },
         'brief': {
             'model': 'minimax/MiniMax-M3',
-            'fallbacks': ['minimax-2/MiniMax-M3'],
+            'fallbacks': ['minimax-2/MiniMax-M3', 'opencode-go/deepseek-v4-flash'],
             'model_candidates': [
                 'minimax/MiniMax-M3',
                 'minimax-2/MiniMax-M3',
+                'opencode-go/deepseek-v4-flash',
                 'openai/gpt-5.6-sol',
                 'anthropic/claude-sonnet-4-6',
             ],
