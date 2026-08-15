@@ -85,9 +85,22 @@ bash examples/minimal-run/run.sh
 
 LLM 从不自己抓数据,也不自己结算。它只做一件事:**读一份 Python 组装好的上下文文件,写一份带证据、带反方的分析**。剩下全是代码的事。
 
-```
-40 个数据模块 ──► preflight(Python,确定性)──► context.json(带指纹)──► LLM 读文件写分析 ──► postflight(Python 校验)──► 发布
-```
+![clawock 信息流 —— 8 层 40 个模块经 Python preflight 按需组装成带指纹的 context.json;LLM 只读文件写分析;postflight 校验结算后发布](site/assets/information-flow.svg)
+
+### 信息流:8 层 40 个模块,港股美股双语覆盖
+
+| 层 | 模块(命令) | 来源 |
+|---|---|---|
+| 1 · 行情(7) | `analyze-hk` `analyze-us` `us-quotes` `fetch-peers` `daily-bars` `benchmark` `clawock-gold-fetch` | 腾讯 · Yahoo · 东财 · Polygon |
+| 2 · 基本面/申报(3) | `filings` `fundamentals` `earnings` | SEC EDGAR · 东财 · 港交所 |
+| 3 · 资金面(1) | `fundflow` | 东财 |
+| 4 · 消息面与催化剂(5,双语) | `em-news` `catalysts` `mover-evidence` `news-evidence` `clawock-news-digest` | 东财 · Finnhub · Google News |
+| 5 · 宏观/情绪(3) | `macro` `sentiment` `clawock-influencer-scan` | Yahoo · Reddit · CNN |
+| 6 · 量化与风险(8) | `quant` `quant-review` `cross-factor` `peer-residual` `t0` `t0-review` `portfolio-risk` `regime` | 价格历史确定性计算 |
+| 7 · 账本/汇率校验(6) | `fx` `integrity` `reconcile` `aggregates` `cash` `realized` | Frankfurter · 对账账本 |
+| 8 · 回测/自省(7) | `evaluate-hstech-regime` `evaluate-us-leverage` `evaluate-combined-regime` `validate-regime-dial` `shadow` `audit-resettle` `evaluate-add-alpha` | 本地快照 + 基准行情 |
+
+抓取层优雅降级:东财统一走节流网关,报价/汇率多源兜底,抓空保留旧值。哪个模块属于哪一层由 [`config/information-layers.json`](config/information-layers.json) 声明,CI 对着它核对,模块搬了家数字不会留在原地;完整命令与 provider 目录见[命令参考](docs/reference/commands.md)。
 
 ### 每次运行,LLM 拿到什么
 
@@ -136,26 +149,6 @@ LLM 从不自己抓数据,也不自己结算。它只做一件事:**读一份 Py
 串联顺序:建仓前研究闸 → 一手财报证据 → 规范论点 → 决策 / 风控 / 结算回路。每一步写带版本的产物给下一步读,后一步永远无法用文案重推前一步。
 
 ## 底层是怎么组织的
-
-<details>
-<summary><b>信息层:8 层 40 个模块,港股美股双语覆盖</b></summary>
-
-<br>
-
-| 层 | 模块 | 主要来源 |
-|---|:---:|---|
-| 1 · 行情 | 7 | 腾讯 · Yahoo · 东财 · Polygon |
-| 2 · 基本面/申报 | 3 | SEC EDGAR · 东财 datacenter · 港交所 |
-| 3 · 资金面 | 1 | 东财 push2his |
-| 4 · 消息面与催化剂(双语) | 5 | 东财 · Finnhub · Google News · 交易所公告 |
-| 5 · 宏观/情绪 | 3 | Yahoo · Reddit · CNN · 社交 feed |
-| 6 · 量化与风险 | 8 | 对价格历史做确定性计算 |
-| 7 · 账本/汇率校验 | 6 | Frankfurter · 对账账本 · 本地不变量 |
-| 8 · 回测/自省 | 7 | 本地快照 + 基准行情 |
-
-每次运行只拿自己能用得上的块(见「LLM 是怎么做决策的」)。抓取层优雅降级:东财统一走节流网关,报价/汇率多源兜底,抓空保留旧值。哪个模块属于哪一层由 [`config/information-layers.json`](config/information-layers.json) 声明,CI 对着它核对,模块搬了家数字不会留在原地。完整命令与 provider 目录见[命令参考](docs/reference/commands.md)。
-
-</details>
 
 <details>
 <summary><b>打分与回测的硬规则</b></summary>

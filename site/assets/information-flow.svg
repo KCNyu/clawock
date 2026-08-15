@@ -1,0 +1,112 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="480" viewBox="0 0 960 480" role="img" aria-labelledby="title desc">
+  <title id="title">clawock information flow — 8 layers, 40 modules, one certified context</title>
+  <desc id="desc">Eight information layers with 40 fetch and compute modules feed a deterministic Python preflight, which assembles only the blocks that run can act on into a fingerprinted context.json. The LLM reads that file and writes its analysis; Python postflight validates and settles; the result is published.</desc>
+  <defs>
+    <linearGradient id="page" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fcfcfd"/>
+      <stop offset=".62" stop-color="#f5f6f8"/>
+      <stop offset="1" stop-color="#edf2f5"/>
+    </linearGradient>
+    <marker id="arrow" markerWidth="9" markerHeight="9" refX="7" refY="4" orient="auto">
+      <path d="M0 0L8 4L0 8Z" fill="#718392"/>
+    </marker>
+    <style>
+      .sans{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
+      .mono{font-family:"SFMono-Regular",Consolas,monospace}
+      .ink{fill:#151a21}.muted{fill:#61707e}.blue{fill:#407ba7}
+      .kicker{font:700 10px "SFMono-Regular",Consolas,monospace;letter-spacing:1.3px}
+      .title{font:800 24px Inter,-apple-system,"Segoe UI",Arial,sans-serif;letter-spacing:-.5px}
+      .sub{font:500 12.5px Inter,-apple-system,"Segoe UI",Arial,sans-serif}
+      .layer{font:750 12px Inter,-apple-system,"Segoe UI",Arial,sans-serif}
+      .layerno{font:700 10px "SFMono-Regular",Consolas,monospace}
+      .count{font:600 9.5px "SFMono-Regular",Consolas,monospace}
+      .flow{font:650 12.5px Inter,-apple-system,"Segoe UI",Arial,sans-serif}
+      .flowsub{font:500 10px "SFMono-Regular",Consolas,monospace}
+      .shell{fill:#fff;stroke:#d8e1e8;stroke-width:1.2}
+      .card{fill:#fff;stroke:#d4dfe7;stroke-width:1.1}
+      .hl{fill:#eef5fa;stroke:#9fc3dd;stroke-width:1.3}
+      .wire{fill:none;stroke:#718392;stroke-width:1.6;marker-end:url(#arrow)}
+    </style>
+  </defs>
+
+  <rect width="960" height="480" fill="url(#page)"/>
+
+  <g class="sans">
+    <text x="26" y="30" class="kicker blue">INFORMATION FLOW</text>
+    <text x="26" y="58" class="title ink">8 层 · 40 个模块,汇成一份带指纹的上下文</text>
+    <text x="26" y="78" class="sub muted">每次运行只组装该场次能用的块 —— 模型读文件,不自己抓数据</text>
+
+    <!-- eight layer cards, two columns x four rows -->
+    <g>
+      <rect x="26" y="96" width="180" height="62" rx="8" class="card"/>
+      <text x="38" y="118" class="layerno blue">L1 · 行情</text>
+      <text x="38" y="136" class="layer ink">7 模块</text>
+      <text x="38" y="150" class="count muted">腾讯 · Yahoo · 东财 · Polygon</text>
+
+      <rect x="216" y="96" width="180" height="62" rx="8" class="card"/>
+      <text x="228" y="118" class="layerno blue">L2 · 基本面/申报</text>
+      <text x="228" y="136" class="layer ink">3 模块</text>
+      <text x="228" y="150" class="count muted">SEC EDGAR · 东财 · 港交所</text>
+
+      <rect x="26" y="172" width="180" height="62" rx="8" class="card"/>
+      <text x="38" y="194" class="layerno blue">L3 · 资金面</text>
+      <text x="38" y="212" class="layer ink">1 模块</text>
+      <text x="38" y="226" class="count muted">东财资金流</text>
+
+      <rect x="216" y="172" width="180" height="62" rx="8" class="card"/>
+      <text x="228" y="194" class="layerno blue">L4 · 消息面与催化剂</text>
+      <text x="228" y="212" class="layer ink">5 模块 · 双语</text>
+      <text x="228" y="226" class="count muted">东财 · Finnhub · Google News</text>
+
+      <rect x="26" y="248" width="180" height="62" rx="8" class="card"/>
+      <text x="38" y="270" class="layerno blue">L5 · 宏观/情绪</text>
+      <text x="38" y="288" class="layer ink">3 模块</text>
+      <text x="38" y="302" class="count muted">Yahoo · Reddit · CNN</text>
+
+      <rect x="216" y="248" width="180" height="62" rx="8" class="card"/>
+      <text x="228" y="270" class="layerno blue">L6 · 量化与风险</text>
+      <text x="228" y="288" class="layer ink">8 模块</text>
+      <text x="228" y="302" class="count muted">价格历史上的确定性计算</text>
+
+      <rect x="26" y="324" width="180" height="62" rx="8" class="card"/>
+      <text x="38" y="346" class="layerno blue">L7 · 账本/汇率校验</text>
+      <text x="38" y="364" class="layer ink">6 模块</text>
+      <text x="38" y="378" class="count muted">Frankfurter · 对账账本</text>
+
+      <rect x="216" y="324" width="180" height="62" rx="8" class="card"/>
+      <text x="228" y="346" class="layerno blue">L8 · 回测/自省</text>
+      <text x="228" y="364" class="layer ink">7 模块</text>
+      <text x="228" y="378" class="count muted">本地快照 + 基准行情</text>
+    </g>
+
+    <!-- gather arrow -->
+    <path d="M470 260 L500 260" class="wire"/>
+    <text x="470" y="250" class="count muted">按需组装</text>
+
+    <!-- right pipeline -->
+    <g>
+      <rect x="508" y="96" width="220" height="56" rx="8" class="hl"/>
+      <text x="520" y="122" class="flow ink">preflight(Python,确定性)</text>
+      <text x="520" y="138" class="flowsub muted">只取本场次能用的块</text>
+      <path d="M618 152 L618 174" class="wire"/>
+
+      <rect x="508" y="176" width="220" height="56" rx="8" class="card"/>
+      <text x="520" y="202" class="flow ink">context.json(带指纹)</text>
+      <text x="520" y="218" class="flowsub muted">sha256 逐文件认证</text>
+      <path d="M618 232 L618 254" class="wire"/>
+
+      <rect x="508" y="256" width="220" height="56" rx="8" class="card"/>
+      <text x="520" y="282" class="flow ink">LLM 读文件 · 写分析</text>
+      <text x="520" y="298" class="flowsub muted">证据 + 反方,不能自己抓数</text>
+      <path d="M618 312 L618 334" class="wire"/>
+
+      <rect x="508" y="336" width="220" height="56" rx="8" class="card"/>
+      <text x="520" y="362" class="flow ink">postflight(Python 校验)</text>
+      <text x="520" y="378" class="flowsub muted">结算、打分、资金守恒</text>
+      <path d="M618 392 L618 414" class="wire"/>
+
+      <rect x="508" y="416" width="220" height="48" rx="8" class="card"/>
+      <text x="520" y="446" class="flow ink">发布:简报 / 仪表盘 / 战绩</text>
+    </g>
+  </g>
+</svg>
