@@ -1,0 +1,19 @@
+{
+ "generated_at": "2026-08-15T22:03:42",
+ "as_of": "2026-08",
+ "days": 90,
+ "rows": 640,
+ "settled": 177,
+ "active_pct": 53,
+ "active_n": 73,
+ "hold_pct": 36,
+ "hold_n": 104,
+ "hi_pct": 55,
+ "hi_n": 33,
+ "active_ci": "42%–64%",
+ "hi_ci": "38%–72%",
+ "return_pct": "-15.95",
+ "followed": 312,
+ "not_followed": 292,
+ "unknown": 36
+}

@@ -59,6 +59,13 @@ jobs:
         # a proof only GitHub could execute.
         run: examples/minimal-run/run.sh dist/*.whl
 
+      - name: Harness-free run (harness-agnostic contract)
+        # Same discipline as minimal-run, through the harness-agnostic example:
+        # the contract is files + CLI, so a run with no harness at all must
+        # publish identically to one driven by an OpenClaw skill, a Claude Code
+        # instruction or a DeepSeek Harness agent (examples/harness-agnostic/).
+        run: examples/harness-agnostic/run.sh dist/*.whl
+
       - uses: actions/upload-artifact@v5
         with:
           name: distributions
