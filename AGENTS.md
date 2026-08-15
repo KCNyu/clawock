@@ -96,9 +96,6 @@ Never use the repository-admin bypass for an interactive code change.
 You wake up fresh each session. These files are your continuity:
 - **Daily notes:** `memory/YYYY-MM-DD.md` — raw logs
 - **Long-term:** `MEMORY.md` — curated wisdom; **only load in main session**, do NOT load in shared contexts (Discord, group chats)
-- **Local shared memory:** `.clawhub/local-memory.md` — gitignored, machine-local only
-  (secrets locations, publish commands, host details). Never copy its contents into
-  public repo files (`memory/`, docs, PRs) — the origin is a public repository.
 - Don't keep "mental notes" — if it matters, write it to a file
 
 ## Safety
