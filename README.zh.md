@@ -4,7 +4,7 @@
 
 ### AI 争辩。代码结算。连亏损都摆在明面上。
 
-**它跑了 **<!-- CW_M:days -->90<!-- /CW_M:days --> 天,实盘收益 **<!-- CW_M:return_pct -->−15.95%<!-- /CW_M:return_pct -->**——每一笔亏损都摊开在页面上([原始决策记录](https://github.com/KCNyu/clawock/blob/master/memory/decisions.jsonl)),每一个数字都能用 `clawock audit-resettle` 复算。**模型不能给自己打分**,这是它和所有"AI 炒股"项目的区别:AI 建议满天飞,谁为结果负责?——代码负责。
+它跑了 **<!-- CW_M:days -->90<!-- /CW_M:days --> 天,实盘收益 **<!-- CW_M:return_pct -->−15.95%<!-- /CW_M:return_pct -->**——每一笔亏损都摊开在页面上([原始决策记录](https://github.com/KCNyu/clawock/blob/master/memory/decisions.jsonl)),每一个数字都能用 `clawock audit-resettle` 复算。**模型不能给自己打分**——全网第一个把 AI 战绩交给代码结算的投研台。AI 建议满天飞,谁为结果负责?代码负责。
 
 8 层 40 模块信息流 · 多 Agent 辩论 · Python 确定性结算,打包成 `pip install clawock`,装进任何 Agent(Claude Code / Codex / OpenClaw / DeepSeek Harness)。不跟单、不代下单。
 
