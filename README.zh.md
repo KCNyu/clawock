@@ -2,7 +2,7 @@
 
 <h1><img src="site/assets/logo-lockup.svg" alt="clawock" height="48"></h1>
 
-> **它跑了一百多天,公开结算 177 条判断,真实账户收益 −15.95%——没跑赢买入持有。每一笔亏损都摆在页面上,[原始决策记录](https://github.com/KCNyu/clawock/blob/master/memory/decisions.jsonl)可查。**
+> **它跑了一百多天,公开结算 177 条判断,真实账户收益 −15.95%;主动判断至今没跑赢买入持有(完整对照见[持仓页](https://kcnyu.github.io/clawock/#drill))。每一笔亏损都摆在页面上,[原始决策记录](https://github.com/KCNyu/clawock/blob/master/memory/decisions.jsonl)可查。**
 
 ### AI 争辩。代码结算。连亏损都摆在明面上。
 
@@ -13,6 +13,7 @@
 [![Dashboard Data](https://img.shields.io/github/actions/workflow/status/KCNyu/clawock/dashboard-artifact-gate.yml?label=DATA&style=flat-square&logo=githubactions&logoColor=white&labelColor=252b35&color=738391)](https://github.com/KCNyu/clawock/actions/workflows/dashboard-artifact-gate.yml)
 [![Coverage](https://img.shields.io/endpoint?url=https%3A%2F%2Fkcnyu.github.io%2Fclawock%2Fassets%2Fdata%2Fcoverage.json&style=flat-square&logo=python&logoColor=white&labelColor=252b35)](https://github.com/KCNyu/clawock/actions/workflows/harness-regression.yml)
 [![License](https://img.shields.io/badge/LICENSE-MIT-aab5bf?style=flat-square&labelColor=252b35)](LICENSE)
+[![DeepSeek Harness](https://img.shields.io/badge/DeepSeek%20Harness-ready-8257D0?style=flat-square&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNiAxNiI+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTggMkM0LjcgMiAyIDQuNyAyIDhzMi43IDYgNiA2IDYtMi43IDYtNi0yLjctNi02LTZ6bTAgMTBhNCA0IDAgMSAxIDAtOCA0IDQgMCAwIDEgMCA4eiIvPjwvc3ZnPg==)](https://github.com/deepseek-ai/deepseek-harness)
 
 [**实时仪表盘**](https://kcnyu.github.io/clawock/) &nbsp;·&nbsp; [**每日简报**](https://kcnyu.github.io/clawock/briefs.html) &nbsp;·&nbsp; [**证据与反证**](https://kcnyu.github.io/clawock/evidence.html) &nbsp;·&nbsp; [**English**](README.md)
 
@@ -66,6 +67,8 @@ isolated run published 9c07e83a19b046b089f443829eb9a06e
 
 跑完你就拿到了第一张被 Python 校验过的决策回执。换 harness?[`examples/harness-agnostic`](examples/harness-agnostic/README.md) 五种跑法同一条契约;DSH 用户还有现成 skill 包(发布后 `dsh plugin --profile web add clawock-dsh`)。
 
+**装完以后:** 每天 08:00 微信收一份深度简报,盘中每 30 分钟一次轻量盯盘(可关);模型费用走你自己的 API key,clawock 本身免费开源。
+
 ## 这是什么
 
 clawock 是一套真实港美股账户上运行的 AI 投研系统,解决一个问题:**AI 建议满天飞,谁为结果负责?** 它让模型提议、Python 结算、战绩全公开——模型永远不能给自己打分。卖点不是「赚得更多」,而是「骗不了人」。打包成 `pip install clawock`,装进任何 Agent(Claude Code、Codex、OpenClaw、DeepSeek Harness 都行)。
@@ -82,6 +85,8 @@ clawock 是一套真实港美股账户上运行的 AI 投研系统,解决一个�
 
 ## 先看结果
 
+<sub><i>“市场不在乎模型有多自信。”</i></sub>
+
 截至 2026-08,这个投研台已经公开结算了 **177 条判断**,Python 独立打分:
 
 | 组 | 方向命中率 | 样本 |
@@ -92,13 +97,29 @@ clawock 是一套真实港美股账户上运行的 AI 投研系统,解决一个�
 
 方向命中率 ≠ 赚到钱:真实账户收益 −15.95%,收益对比买入持有仍然落后;影子组合(模拟,非实盘)的对比在[持仓页](https://kcnyu.github.io/clawock/#drill)如实展示。**没有一条结果被挑过——[原始账本](https://github.com/KCNyu/clawock/blob/master/memory/decisions.jsonl)在此,欢迎查账。**
 
-诚实到数字层面:主动操作 53% 命中率,样本 73 条,95% 置信区间约 42%–64%——**跨过 50% 线,统计上还不能算优势**。这正是我们不做收益宣传的原因:该是噪声的地方,就标成噪声。
+**查账不是读文档,战绩可以复算:** `clawock audit-resettle` 重新结算整本决策账(默认不写入)、`clawock reconcile` 复算全部组合派生、`clawock integrity` 校验资金与行情不变量。README 上每个数字,都能从命令跑出来。
+
+**账本长什么样**(真实记录,dec-5227ea7f77a2 · 2026-08-10):
+
+```
+action: hold_and_watch        driven_by: catalyst
+episode: ep-20260731-spcx-hold
+evaluation: loss(按基准行情结算, trigger session 2026-08-10)
+```
+
+640 条这样的记录全部公开。**大部分判断从未被执行**(实际成交 0 笔——建议都停在账上),影子组合专门暴露这一点,而不是藏起来。
+
+诚实到数字层面:主动操作 53% 命中率,样本 73 条,95% 置信区间约 42%–64%——**跨过 50% 线,统计上还不能算优势**。这正是我们不做收益宣传的原因:该是噪声的地方,就标成噪声——而分辨「edge 还是手痒」,就是这套系统唯一在卖的东西:它不替你赚钱,它替你证明每一笔判断值不值得信。
+
+命中率 = 模型判断的方向对不对(按基准行情结算);账户收益 = 实盘执行结果。两回事,都公开。
 
 这套系统每天 08:00 产出深度简报,盘中每 30 分钟盯盘,收盘结算,推送到微信并刷新公开仪表盘;港股按 HKT、美股按 ET,cron 随纽约夏令时自动切换。
 
 [**实时仪表盘**](https://kcnyu.github.io/clawock/) · [**每日简报**](https://kcnyu.github.io/clawock/briefs.html) · [**证据与反证**](https://kcnyu.github.io/clawock/evidence.html) · [**排程表**](docs/operations/cron-schedules.md)
 
 ## 为什么这份战绩可信
+
+这 7 条就一个意思:**分数不是模型自己打的,账也不是模型自己记的。**
 
 - **结算用的是不可改写的行情**:单一基准供应商的逐日不复权行情,按各市场自己的交易日历;未完成场次永不打分,缺口按开盘价成交
 - **一个论点只算一次**:同一论点的重复喊单收敛为一个案例,连喊五天「持有」不会变出五个样本
@@ -133,7 +154,7 @@ LLM 从不自己抓数据,也不自己结算。它只做一件事:**读一份 Py
 
 系统每 48 小时扫描**特朗普(Truth Social 一手源)、马斯克(新闻聚合)**等影响者的公开动态,LLM 过滤后自动关联持仓与板块:标出立场(endorse / oppose)、相关度,并生成中文摘要。谁说了什么、和你的持仓有没有关系,盘前简报里直接可见——不用自己刷社交媒体。
 
-例:2026-08-13 特朗普宣布 de minimis 免税漏洞案胜诉,雷达自动命中零售/电商板块并关联到恒生科技持仓,摘要进次日盘前简报。**命中或落空都照实进简报——这里展示的只是一次命中,打脸记录同样在每日简报里。**
+例:2026-08-13 特朗普宣布 de minimis 免税漏洞案胜诉,雷达自动命中零售/电商板块并关联到恒生科技持仓,摘要进次日盘前简报;**8-14 那次扫描 3 条动态零持仓命中(held_hits=0),简报如实记空**——命中或落空都照实进简报,这里展示的只是一次命中。
 
 ### 每次运行,LLM 拿到什么
 
