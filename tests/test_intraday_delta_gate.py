@@ -295,3 +295,38 @@ def test_preflight_main_selects_full_delta_for_risk_change(monkeypatch, tmp_path
 
     assert ctx["delivery_mode"] == "full_delta"
     assert ctx["semantic_delta"]["components"] == ["breaches"]
+
+
+def test_setup_sub_state_churn_is_not_a_delta():
+    """#610: opportunity/early_trend sub-states flip on raw quote churn around
+    a threshold (close vs prior, zscore20 vs 2.0). The gate compares the lane
+    identity, not the churny sub-state; row appearance/disappearance still
+    counts, and non-lane setup ids keep their full identity."""
+    base = dict(market="hk", session_date="2026-08-14",
+                signals_detail=[], anomalies=[], plans={"open": []},
+                active_information={})
+    row = {"label": "00100", "holdings": ["00100"]}
+
+    s_breakout = gate.semantic_state(
+        **base, setups={"rows": [{**row, "setup_id": "opportunity:breakout"}]})
+    s_wait = gate.semantic_state(
+        **base, setups={"rows": [{**row, "setup_id": "opportunity:wait_rebreak"}]})
+    s_early = gate.semantic_state(
+        **base, setups={"rows": [{**row, "setup_id": "early_trend:wait_information"}]})
+    s_early_ready = gate.semantic_state(
+        **base, setups={"rows": [{**row, "setup_id": "early_trend:exploration_ready"}]})
+
+    assert s_breakout["setups"] == s_wait["setups"]
+    assert s_early["setups"] == s_early_ready["setups"]
+    assert gate.compare_semantic_states(s_breakout, s_wait)["changed"] is False
+
+    # appearance/disappearance is a real delta
+    s_none = gate.semantic_state(**base, setups={"rows": []})
+    assert s_none["setups"] != s_breakout["setups"]
+    assert "setups" in gate.compare_semantic_states(s_breakout, s_none)["components"]
+
+    # non-lane setup ids keep their full identity (e.g. provisional entry rules)
+    s_conf = gate.semantic_state(
+        **base, setups={"rows": [{**row, "setup_id": "confirmed_breakout"}]})
+    assert s_conf["setups"][0]["setup_id"] == "confirmed_breakout"
+    assert gate.compare_semantic_states(s_breakout, s_conf)["changed"] is True

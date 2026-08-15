@@ -319,13 +319,29 @@ def alert_brief_missing(today, dry_run, issues=None):
         return 0
 
     state['issues'] = list(issues)
+    rerun_queued = False
     if not state.get('fallback_dispatch_attempted'):
         # Second on-host chance before the off-host fallback (#550): the 08:30
         # re-run can itself fail (2026-08-12), and a local re-run is cheaper
         # than a vendor fallback and lands well before the 10:00 HKT cutoff.
-        if _rerun_count(today) < MAX_ONHOST_RERUNS:
-            _rerun_once(today, dry_run, attempt=2)
-        dispatched, out = dispatch_brief_fallback(dry_run)
+        # #606: gate the chance on evidence, not just the counter — only a run
+        # that already ended in failure today is proof the attempt is over
+        # (three-way rule as the 08:30 pass); a healthy run or an unreadable
+        # schedule must not stack another queue entry. The counter only caps
+        # the number of chances.
+        failed = cron_run_ended_in_failure(brief_cron_job(), today)
+        if failed and _rerun_count(today) < MAX_ONHOST_RERUNS:
+            rerun_queued = _rerun_once(today, dry_run, attempt=2)
+        if rerun_queued:
+            # #606: the queued local re-run writes the same brief artifacts the
+            # GHA fallback would; dispatching both made two LLMs race on the
+            # same files with per-environment delivery markers → duplicate
+            # WeChat/TG risk (#508 pattern). Skip the fallback while the local
+            # chance is in flight; the alert below names both paths and the
+            # manual dispatch stays available before the 10:00 HKT cutoff.
+            dispatched, out = False, 'local rerun queued; off-host fallback skipped'
+        else:
+            dispatched, out = dispatch_brief_fallback(dry_run)
         state.update({
             'fallback_dispatch_attempted': True,
             'fallback_dispatch_succeeded': bool(dispatched),
@@ -346,14 +362,22 @@ def alert_brief_missing(today, dry_run, issues=None):
         'plan_invalid': f'plan 无效：memory/{today}-plan.json 无法解析或没有非空动作数组',
     }
     issue_text = '\n'.join(f'- {labels[x]}' for x in issues)
+    if rerun_queued:
+        recovery_note = (
+            '🔄 已排队本地重跑(attempt 2)，off-host 兜底已跳过（防双写）。'
+            '若重跑未落地，10:00 HKT 前可手动：gh workflow run brief-fallback.yml\n')
+    elif dispatched:
+        recovery_note = (
+            '🔄 已 dispatch off-host 兜底 (brief-fallback.yml)，正在等待运行结果，稍后另发一条。\n')
+    else:
+        recovery_note = (
+            '⚠️ 自动 dispatch 兜底失败，需要手动：gh workflow run brief-fallback.yml\n'
+            '（10:00 HKT 前有效，之后 workflow 会判定过期跳过）\n')
     alert = (
         f'🔴 盘前深度简报产物不完整 — {today}\n\n'
         f'09:05 检查结果：\n{issue_text}\n\n'
         + retry_budget_note()
-        + ('🔄 已 dispatch off-host 兜底 (brief-fallback.yml)，正在等待运行结果，稍后另发一条。\n'
-           if dispatched else
-           '⚠️ 自动 dispatch 兜底失败，需要手动：gh workflow run brief-fallback.yml\n'
-           '（10:00 HKT 前有效，之后 workflow 会判定过期跳过）\n')
+        + recovery_note
         + f'\n查因：openclaw cron runs --id $(openclaw cron list | grep 盘前深度简报) '
           f'/ sar -q 看 08:00 起的 blocked'
     )
@@ -375,6 +399,7 @@ def alert_brief_missing(today, dry_run, issues=None):
 
     log({'tag': 'brief', 'action': 'alert-brief-missing', 'dry_run': dry_run,
          'issues': issues,
+         'rerun_queued': rerun_queued,
          'dispatched_fallback': dispatched, 'dispatch_out': out,
          'sent_ok': tg_ok, 'target': KCN_TELEGRAM, 'out': tg_out,
          'recovery_state': state})

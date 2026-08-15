@@ -342,11 +342,20 @@ def collect_early_trend_candidates(market):
             'attention_event_count': irow.get('attention_event_count'),
         }
         holdings = list(detail.get('source_holdings') or [label])
-        matching = [
-            event for event in events
-            if str(event.get('ticker') or event.get('reported_ticker') or '')
-            in set(holdings) | {label}
-        ]
+        # #603: the daily path bridges `direction` from `impact_direction`
+        # (packet._event_view); the raw event dicts only carry impact_direction,
+        # so the intraday lane handed classify() a payload where primary_ids was
+        # always empty. Normalise exactly like the daily path before matching.
+        matching = []
+        for event in events:
+            if str(event.get('ticker') or event.get('reported_ticker') or '') \
+                    not in set(holdings) | {label}:
+                continue
+            view = dict(event)
+            direction = event.get('direction', event.get('impact_direction'))
+            if direction not in (None, '', []):
+                view['direction'] = direction
+            matching.append(view)
         leveraged = any(
             is_leveraged_holding({'ticker': ticker}) for ticker in holdings
         )
@@ -516,6 +525,12 @@ def attach_reinvest_candidates(plan_ctx, opportunity_radar, signals_detail=None)
     """
     rows = (opportunity_radar or {}).get('rows') or []
     if not rows:
+        return plan_ctx
+    # #605: only an open cut/trim decision has ammunition to pair. A clean day
+    # must return the context unchanged — otherwise the model sees an
+    # "ammunition" field with nothing to cut and can invent a cut for the money.
+    if not any(str(row.get('action')) in ('cut', 'trim_on_rebound')
+               for row in ((plan_ctx or {}).get('open') or [])):
         return plan_ctx
     flagged = {item.get('ticker') for item in (signals_detail or [])
                if str(item.get('level', '')).upper() in CONFLICTING_LEVELS}

@@ -80,8 +80,22 @@ def semantic_state(market, session_date, *, signals_detail, anomalies, setups,
                 "level": move_level,
                 "direction": "up" if move > 0 else "down",
             })
+    # #610: the price-surface lanes encode their live sub-state in setup_id
+    # (opportunity:{breakout|wait_rebreak|near_breakout},
+    # early_trend:{state}) and those sub-states flip on raw quote churn around
+    # a threshold (close vs prior, zscore20 vs 2.0) — exactly the churn this
+    # gate exists to exclude. Compare the lane identity, not the churny
+    # sub-state; a row appearing or disappearing still counts as a delta.
+    def _stable_setup_id(setup_id):
+        if setup_id and ':' in str(setup_id):
+            prefix = str(setup_id).split(':', 1)[0]
+            if prefix in ('opportunity', 'early_trend'):
+                return prefix
+        return setup_id
+
     setup_rows = [{
-        "label": row.get("label"), "setup_id": row.get("setup_id"),
+        "label": row.get("label"),
+        "setup_id": _stable_setup_id(row.get("setup_id")),
         "holdings": sorted(row.get("holdings") or []),
     } for row in ((setups or {}).get("rows") or [])]
     plan_rows = [{
