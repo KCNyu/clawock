@@ -26,6 +26,7 @@ from pathlib import Path
 
 from clawock.workspace import workspace_root
 from clawock.decision import risk as risk_ledger
+from clawock.decision import ledger as decision_v2
 
 WS = workspace_root(Path.cwd())
 MEMORY = WS / "memory"
@@ -153,6 +154,38 @@ def _plan_extras(plan_date, memory_dir):
     return _trim(override, EXEC_MODE_CHARS) or None
 
 
+def _settle_override_backlog(dropped_rows, ledger_path):
+    """Batch-settle risk_rule cuts hidden by an active user override (#609).
+
+    #552 only filtered the read side: the ledger kept accumulating a daily
+    "SPCH cut" as `unknown` forever, and the moment the override TTL expired
+    the whole backlog re-entered the open queue and could crowd out the day's
+    fresh decisions. Settling writes `execution.status=overridden_by_user` in
+    the same pass that hides the rows — the ledger stays append-consistent,
+    the unknown bucket stops growing, and expired overrides have nothing left
+    to flood back. Idempotent: settled rows are no longer open, so later calls
+    find nothing to settle.
+    """
+    settled_ids = {row.get("decision_id") for row in dropped_rows
+                   if row.get("decision_id")}
+    if not settled_ids:
+        return
+    full = decision_v2.load_decisions(ledger_path)
+    changed = 0
+    for row in full:
+        if row.get("decision_id") not in settled_ids:
+            continue
+        execution = dict(row.get("execution") or {})
+        if execution.get("status") != OPEN_EXECUTION:
+            continue
+        execution["status"] = "overridden_by_user"
+        execution["source"] = "risk_override"
+        row["execution"] = execution
+        changed += 1
+    if changed:
+        decision_v2.write_decisions(full, ledger_path)
+
+
 def open_decisions_context(*, leg=None, today=None, ledger=None, memory_dir=None):
     """Open decisions the report/intraday prose has to reconcile against.
 
@@ -187,8 +220,13 @@ def open_decisions_context(*, leg=None, today=None, ledger=None, memory_dir=None
                 return (str(row.get("ticker") or "") in overridden_tickers
                         and row.get("driven_by") == "risk_rule"
                         and row.get("action") in ("cut", "trim_on_rebound"))
-            dropped = [str(row.get("ticker")) for row in rows if _is_overridden_cut(row)]
+            dropped_rows = [row for row in rows if _is_overridden_cut(row)]
+            dropped = sorted({str(row.get("ticker"))
+                              for row in dropped_rows})
             rows = [row for row in rows if not _is_overridden_cut(row)]
+            if dropped_rows:
+                # #609: settle, not just hide — see _settle_override_backlog.
+                _settle_override_backlog(dropped_rows, ledger_path)
         if not rows:
             if open_add_gate_error:
                 return {"open_add_tickers": [], "open_add_gate_error": open_add_gate_error}

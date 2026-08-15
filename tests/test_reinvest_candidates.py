@@ -34,11 +34,26 @@ def test_flagged_candidates_are_excluded():
     radar = {'rows': [_radar_row('SPCH'), _radar_row('SKHY')]}
     signals = [{'ticker': 'SPCH', 'level': 'STOP'}]
 
-    out = P.attach_reinvest_candidates({}, radar, signals)
+    out = P.attach_reinvest_candidates(
+        {'open': [{'decision_id': 'd1', 'action': 'cut'}]}, radar, signals)
 
     tickers = [c['ticker'] for c in out['reinvest_candidates']]
     assert 'SPCH' not in tickers
     assert tickers == ['SKHY']
+
+
+def test_clean_day_without_cut_returns_context_untouched():
+    """#605: no open cut/trim decision → no ammunition to pair. Attaching
+    candidates on a clean day would invite the model to invent a cut for the
+    money (the pre-#605 test pinned the ungated behavior as correct)."""
+    radar = {'rows': [_radar_row('00100', 'breakout', 374.4),
+                      _radar_row('SKHY', 'near_breakout', 177.93)]}
+
+    plan_ctx = {'open': [{'decision_id': 'd1', 'action': 'hold_and_watch'}]}
+    assert P.attach_reinvest_candidates(plan_ctx, radar, []) is plan_ctx
+
+    empty = {'open': []}
+    assert P.attach_reinvest_candidates(empty, radar, []) is empty
 
 
 def test_no_candidates_returns_context_untouched():

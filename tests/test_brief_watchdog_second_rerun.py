@@ -30,7 +30,9 @@ def _watch(monkeypatch, tmp_path, job=None):
         monkeypatch.setattr(
             watchdog, "rerun_cron_job",
             lambda job_id, dry_run=False: (spy.setdefault("reruns", []).append(job_id), (True, "queued"))[1])
-    monkeypatch.setattr(watchdog, "dispatch_brief_fallback", lambda dry_run=False: (True, "dispatched"))
+    monkeypatch.setattr(
+        watchdog, "dispatch_brief_fallback",
+        lambda dry_run=False: (spy.setdefault("fallbacks", []).append(1), (True, "dispatched"))[1])
     monkeypatch.setattr(watchdog, "send_telegram", lambda *a, **k: (True, "sent"))
     monkeypatch.setattr(watchdog, "write_missing_state", lambda *a, **k: None)
     monkeypatch.setattr(watchdog, "brief_cron_job_state", lambda: {})
@@ -40,7 +42,10 @@ def _watch(monkeypatch, tmp_path, job=None):
 
 def test_miss_detector_fires_second_rerun_before_fallback(monkeypatch, tmp_path):
     """08:30 already re-ran once (flag count=1): 09:05 queues attempt 2."""
-    spy = _watch(monkeypatch, tmp_path, job=_job(lastStatus="error", consecutiveErrors=8))
+    ran_at = int(datetime(2026, 8, 12, 8, 5, tzinfo=HKT).timestamp() * 1000)
+    spy = _watch(monkeypatch, tmp_path,
+                 job=_job(lastStatus="error", consecutiveErrors=8,
+                          lastRunAtMs=ran_at))
     flag = watchdog.rerun_flag_path(TODAY)
     flag.parent.mkdir(parents=True, exist_ok=True)
     flag.write_text("1")
@@ -52,6 +57,34 @@ def test_miss_detector_fires_second_rerun_before_fallback(monkeypatch, tmp_path)
     assert len(spy["reruns"]) == 1
     # the dedupe counter advanced
     assert watchdog._rerun_count(TODAY) == 2
+    # #606: a queued local re-run must suppress the off-host fallback — two
+    # writers on the same artifacts caused the #508 double-delivery pattern.
+    assert spy.get("fallbacks") is None
+    assert spy["logs"][-1]["rerun_queued"] is True
+
+
+def test_miss_detector_with_healthy_run_skips_rerun_and_dispatches_fallback(monkeypatch, tmp_path):
+    """#606: the 09:05 chance is evidence-gated. A run that ended OK today is
+    not a failed attempt — no extra queue entry, fallback goes straight out."""
+    ran_at = int(datetime(2026, 8, 12, 8, 5, tzinfo=HKT).timestamp() * 1000)
+    spy = _watch(monkeypatch, tmp_path,
+                 job=_job(lastStatus="ok", lastRunAtMs=ran_at))
+
+    assert watchdog.alert_brief_missing(TODAY, False, ["brief_missing"]) == 0
+
+    assert spy.get("reruns") is None
+    assert spy.get("fallbacks") == [1]
+
+
+def test_miss_detector_with_no_run_evidence_dispatches_fallback(monkeypatch, tmp_path):
+    """#606: a job still running (or unreadable) is no evidence the attempt is
+    over — no rerun, fallback dispatched (the alert invariant is the core)."""
+    spy = _watch(monkeypatch, tmp_path, job=_job(status="running", runningAtMs=1))
+
+    assert watchdog.alert_brief_missing(TODAY, False, ["brief_missing"]) == 0
+
+    assert spy.get("reruns") is None
+    assert spy.get("fallbacks") == [1]
 
 
 def test_miss_detector_stops_after_two_reruns(monkeypatch, tmp_path):
