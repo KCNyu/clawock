@@ -265,6 +265,79 @@ def compute_signals(bars):
     return sig
 
 
+def compute_short_history_signals(bars):
+    """Reduced technical view for 20–29-bar names (early-trend lane only).
+
+    Newly listed names cannot compute MA200, so the mature `compute_signals`
+    30-bar gate answers None and the early-trend lane — built exactly for these
+    short-history targets — never sees them. This view computes the fields that
+    exist from 20 bars up (close, MA20, prior-20d/5d range, RSI14, zscore20,
+    ATR/chandelier) and leaves the mature factors (MA50/MA200/vol20/momentum)
+    None, so a short name can never masquerade as a mature factor row. It
+    answers None below 20 bars, where even the short view is not computable.
+    """
+    closes = [b['close'] for b in bars]
+    if len(closes) < 20:
+        return None
+    c = closes[-1]
+    ma20 = _ma(closes, 20)
+    prior_20d_high = max(b['high'] for b in bars[-21:-1]) if len(bars) >= 21 else None
+    prior_20d_low = min(b['low'] for b in bars[-21:-1]) if len(bars) >= 21 else None
+    prior_5d_high = max(b['high'] for b in bars[-6:-1]) if len(bars) >= 6 else None
+    prior_5d_low = min(b['low'] for b in bars[-6:-1]) if len(bars) >= 6 else None
+    prev_close = closes[-2] if len(closes) >= 2 else None
+    z = None
+    if ma20 and len(closes) >= 20:
+        sd = math.sqrt(sum((x - ma20) ** 2 for x in closes[-20:]) / 20)
+        z = round((c - ma20) / sd, 2) if sd else None
+    atr = _atr14(bars)
+    chandelier = stop_dist = None
+    if atr and len(bars) >= 22:
+        hi22 = max(b['high'] for b in bars[-22:])
+        chandelier = hi22 - 3 * atr
+        stop_dist = round((c / chandelier - 1) * 100, 1) if chandelier > 0 else None
+    sig = {
+        'close': c,
+        'prev_close': prev_close,
+        'ma20': round(ma20, 3) if ma20 else None,
+        'ma50': None,
+        'ma200': None,
+        'prior_20d_high': round(prior_20d_high, 3) if prior_20d_high else None,
+        'prior_20d_low': round(prior_20d_low, 3) if prior_20d_low else None,
+        'prior_5d_high': round(prior_5d_high, 3) if prior_5d_high else None,
+        'prior_5d_low': round(prior_5d_low, 3) if prior_5d_low else None,
+        'dist_ma200_pct': None,
+        'golden_cross': None,
+        'trend_on': None,
+        'mom_1m': None,
+        'mom_3m': None,
+        'mom_6m': None,
+        'mom_12_1': None,
+        'rsi14': _rsi14(closes),
+        'zscore20': z,
+        'vol20_annualized': None,
+        'atr14_pct': round(atr / c * 100, 2) if atr else None,
+        'chandelier_stop': round(chandelier, 3) if chandelier else None,
+        'stop_distance_pct': stop_dist,
+        'vol_target_weight': None,
+        'pct_52w_range': None,
+        'bars': len(closes),
+    }
+    sig['technical_setups'] = []
+    tags = ['短历史']
+    if sig['rsi14'] is not None:
+        if sig['rsi14'] >= 70:
+            tags.append(f"RSI超买{sig['rsi14']}")
+        elif sig['rsi14'] <= 30:
+            tags.append(f"RSI超卖{sig['rsi14']}")
+    if z is not None and abs(z) >= 2:
+        tags.append(f'z{z:+.1f}σ极端')
+    if stop_dist is not None and stop_dist < 0:
+        tags.append('已破吊灯止损')
+    sig['tag'] = ' · '.join(tags)
+    return sig
+
+
 def _universe_details():
     """活跃持仓 → 去重后的 signal rows，保留每行覆盖的真实持仓。
 
@@ -380,6 +453,10 @@ def refresh_rows(previous, universe, *, run_date=None, previous_as_of=None,
                     and _as_date(bar.get('date')) <= expected)
             ]
         sig = compute_signals(bars) if bars else None
+        if sig is None:
+            # A short-history name cannot reach the 30-bar mature gate, but the
+            # early-trend lane needs its 20-bar-computable technical view.
+            sig = compute_short_history_signals(bars)
         if sig is not None:
             row_as_of = _as_date(bars[-1].get('date'))
             age_days = (run_date - row_as_of).days if row_as_of else None
@@ -475,16 +552,17 @@ def provisional_setups(universe=None, *, region=None, fetch=None):
         label = detail.get('label')
         try:
             bars = fetcher(detail['code'], 400)
-            sig = compute_signals(bars)
+            sig = compute_signals(bars) or compute_short_history_signals(bars)
         except Exception as exc:  # noqa: BLE001 — one bad symbol must not blank the rest
             errors.append({'label': label, 'error': f'{type(exc).__name__}: {exc}'[:200]})
             continue
         if sig is None:
-            # `fetch_bars` returns [] on a failed request rather than raising,
-            # and `compute_signals` answers None below 30 bars — so the ordinary
-            # production failure arrives as a value, not an exception, and an
-            # unguarded `.get` here would escape the loop and take every row
-            # already collected with it.
+            # `fetch_bars` returns [] on a failed request rather than raising.
+            # `compute_signals` answers None below 30 bars and the short-history
+            # fallback answers None below 20 — so the ordinary production
+            # failure arrives as a value, not an exception, and an unguarded
+            # `.get` here would escape the loop and take every row already
+            # collected with it.
             errors.append({'label': label,
                            'error': f'no_bars' if not bars else f'insufficient_bars({len(bars)})'})
             continue
