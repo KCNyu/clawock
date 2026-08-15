@@ -2,6 +2,8 @@
 
 <h1><img src="site/assets/logo-lockup.svg" alt="clawock" height="48"></h1>
 
+> **它跑了一百多天,公开结算 177 条判断,真实账户收益 −15.95%——没跑赢买入持有。每一笔亏损都摆在页面上,[原始决策记录](https://github.com/KCNyu/clawock/blob/master/memory/decisions.jsonl)可查。**
+
 ### AI 争辩。代码结算。连亏损都摆在明面上。
 
 8 层 40 模块信息流 · 多 Agent 辩论 · Python 确定性结算。一套真实港美股 AI 投研系统,打包成任何 Agent 可装的投资决策工作流,全程公开运行。
@@ -29,10 +31,6 @@
 </div>
 
 ---
-
-> **它跑了一百多天,公开结算 177 条判断,真实账户收益 −15.95%——没跑赢买入持有。每一笔亏损都摆在页面上,[原始决策记录](https://github.com/KCNyu/clawock/blob/master/memory/decisions.jsonl)可查。**
->
-> 卖点不是「赚得更多」,而是「骗不了人」:模型提议,Python 结算,战绩全公开。这套投研台打包成了 `pip install clawock`,可以装进任何 Agent。
 
 ## 装起来
 
@@ -70,13 +68,13 @@ isolated run published 9c07e83a19b046b089f443829eb9a06e
 
 ## 这是什么
 
-clawock 是一套真实港美股账户上运行的 AI 投研系统,解决一个问题:**AI 建议满天飞,谁为结果负责?** 它让模型提议、Python 结算、战绩全公开——模型永远不能给自己打分。打包成 `pip install clawock`,装进任何 Agent(Claude Code、Codex、OpenClaw、DeepSeek Harness 都行)。
+clawock 是一套真实港美股账户上运行的 AI 投研系统,解决一个问题:**AI 建议满天飞,谁为结果负责?** 它让模型提议、Python 结算、战绩全公开——模型永远不能给自己打分。卖点不是「赚得更多」,而是「骗不了人」。打包成 `pip install clawock`,装进任何 Agent(Claude Code、Codex、OpenClaw、DeepSeek Harness 都行)。
 
 每天 08:00 它读完 8 层 40 模块的信息流,组织一场多 Agent 辩论(四视角分析师 + 多空对立 + 裁判归因)给出决策;Python 独立结算,战绩连亏损都公开。不跟单、不代下单。
 
 ## 多 Agent 辩论
 
-**一致同意读作警示,而不是证据。** 协议要求他们真正分歧——所以你看不到"全员看多"的假共识。
+**全员一致不是共识,而是警示信号。** 两名研究员各自举证、记录真实分歧——如果所有声音都同意,结论不是被采信,而是带着警示进裁判复审。所以你看不到"全员看多"的假共识。
 
 每天 08:00,一份证据包喂给**四位分析师**(基本面 / 技术面 / 情绪面 / 板块轮动)读同一份上下文;**两名研究员必须建立多空对立论点**并记录分歧;激进 / 保守 / 中性**三位风险官**各陈其词;一位**裁判**点名策略框架,收敛成 `plan.json` 进入打分流水线(改编自 [TradingAgents](https://github.com/TauricResearch/TradingAgents))。
 
@@ -92,7 +90,7 @@ clawock 是一套真实港美股账户上运行的 AI 投研系统,解决一个�
 | 只是躺着 hold | 36% | n=104 |
 | 高信心主动判断 | 55% | n=33 |
 
-方向命中率 ≠ 赚到钱:真实账户收益 −15.95%,收益对比买入持有仍然落后;影子组合(模拟,非实盘)的对比在[持仓页](https://kcnyu.github.io/clawock/#drill)如实展示。**没有一条结果被挑过——连这条「落后」都是自动结算出来的。**
+方向命中率 ≠ 赚到钱:真实账户收益 −15.95%,收益对比买入持有仍然落后;影子组合(模拟,非实盘)的对比在[持仓页](https://kcnyu.github.io/clawock/#drill)如实展示。**没有一条结果被挑过——[原始账本](https://github.com/KCNyu/clawock/blob/master/memory/decisions.jsonl)在此,欢迎查账。**
 
 诚实到数字层面:主动操作 53% 命中率,样本 73 条,95% 置信区间约 42%–64%——**跨过 50% 线,统计上还不能算优势**。这正是我们不做收益宣传的原因:该是噪声的地方,就标成噪声。
 
