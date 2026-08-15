@@ -1,9 +1,15 @@
-name: Dashboard Screenshot Refresh
+name: README Refresh (screenshots + metrics)
 
-# Re-screenshot the live dashboard each week so README visuals never drift >7 days.
+# One workflow keeps every README current:
+#   screenshots — re-shoot the live dashboard so README visuals never drift >7
+#                 days (two small PNGs weekly; the 8MB GIF only on manual run)
+#   metrics     — recompute the live numbers behind the <!-- CW_M:* -->
+#                 placeholders from the ledger + data-plane
+# Single commit step, single publish-key binding. Pushes straight to master via
+# the publish deploy key (safe_push.sh), which bypasses the PR rule — pure
+# refreshes need no review loop.
+#
 # Sundays 22:00 UTC (= 06:00 Mon HKT, before Monday's 08:00 brief).
-# Scheduled runs refresh the two small PNGs only. The 8MB GIF rebuilds on manual
-# dispatch, when the UI it demos has actually changed.
 on:
   schedule:
     - cron: '0 22 * * 0'
@@ -17,7 +23,7 @@ concurrency:
 jobs:
   shoot:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 15
     permissions:
       contents: write
     steps:
@@ -25,10 +31,22 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      # The published figures (return, shadow portfolio) live on the data-plane
+      # branch; the ledger (decisions.jsonl) and the READMEs live on master.
+      - uses: actions/checkout@v7
+        with:
+          ref: data-plane
+          path: data-plane
+
       - name: Set up Node
         uses: actions/setup-node@v7
         with:
           node-version: '22'
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
 
       - name: Install Playwright + Chromium
         run: |
@@ -69,6 +87,12 @@ jobs:
       - name: Validate screenshots
         run: clawock validate-sidecar screenshots
 
+      - name: Recompute README metrics
+        # Reuses the packaged ledger directly from src/ — no install needed.
+        # Rewrites the <!-- CW_M:* --> placeholders and writes
+        # assets/data/readme_metrics.json for audit. Exit 0 = changed.
+        run: python ops/growth/refresh_readme_metrics.py --data-plane data-plane/assets/data
+
       - name: Commit if changed
         env:
           CLAWOCK_PUBLISH_SSH_KEY: ${{ secrets.CLAWOCK_PUBLISH_SSH_KEY }}
@@ -80,9 +104,11 @@ jobs:
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             git add -- site/assets/dashboard.gif
           fi
+          # README metrics placeholders + audit file (refreshed above).
+          git add README.zh.md README.md assets/data/readme_metrics.json
           if git diff --cached --quiet; then
-            echo "no visual change"
+            echo "no change"
             exit 0
           fi
-          git commit -m "docs: dashboard visual refresh $(date -u +%Y-%m-%d)"
+          git commit -m "docs: README refresh (visuals + metrics) $(date -u +%Y-%m-%d)"
           bash ops/publish/safe_push.sh
