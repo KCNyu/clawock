@@ -487,13 +487,12 @@ class DecisionV2Test(unittest.TestCase):
         self.assertEqual(reps[0]["evaluation"]["benefit_t1_pct"], 0.0)
         self.assertEqual(reps[0]["evaluation"]["outcome"], "flat")
 
-    def test_active_passive_split_is_single_sourced_with_broadcaster(self):
-        # The Nostr broadcast and the dashboard must classify active vs passive the
-        # same way, or they publish two different "active win rate"s. `watch` is a
-        # standing stance and settles passively, so it must not count as active.
-        import rick_broadcast
-        self.assertIs(rick_broadcast.ACTIVE, dv2.ACTIVE_ACTIONS)
-        self.assertIs(rick_broadcast.PASSIVE, dv2.PASSIVE_ACTIONS)
+    def test_active_passive_split_classifies_watch_passive(self):
+        # The dashboard must classify active vs passive consistently, or it
+        # publishes two different "active win rate"s. `watch` is a standing
+        # stance and settles passively, so it must not count as active.
+        # (The rick_broadcast cross-check was removed with the module in #592;
+        # dv2.ACTIVE_ACTIONS/PASSIVE_ACTIONS are now the single source.)
         self.assertNotIn("watch", dv2.ACTIVE_ACTIONS)
         self.assertIn("watch", dv2.PASSIVE_ACTIONS)
 
