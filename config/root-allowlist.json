@@ -1,39 +1,145 @@
 {
-  "schema_version": 1,
-  "entries": {
-    ".githooks": {"owner": "repository safety", "consumer": "git core.hooksPath"},
-    ".github": {"owner": "repository automation", "consumer": "GitHub Actions"},
-    ".gitignore": {"owner": "repository configuration", "consumer": "git"},
-    "AGENTS.md": {"owner": "runtime compatibility", "consumer": "OpenClaw and coding agents"},
-    "BOOTSTRAP.md": {"owner": "runtime compatibility", "consumer": "OpenClaw bootstrap"},
-    "CHANGELOG.md": {"owner": "public package release notes", "consumer": "PyPI project links and GitHub"},
-    "CLAUDE.md": {"owner": "runtime compatibility", "consumer": "Claude Code entry context"},
-    "DREAMS.md": {"owner": "runtime compatibility", "consumer": "OpenClaw dreaming promotion"},
-    "HEARTBEAT.md": {"owner": "runtime compatibility", "consumer": "OpenClaw heartbeat"},
-    "IDENTITY.md": {"owner": "runtime compatibility", "consumer": "OpenClaw identity context"},
-    "INVESTMENT_SOP.md": {"owner": "runtime compatibility", "consumer": "OpenClaw investment routing"},
-    "LICENSE": {"owner": "legal", "consumer": "package metadata, GitHub and Pages staging"},
-    "MEMORY.md": {"owner": "runtime compatibility", "consumer": "OpenClaw main-session memory"},
-    "NOTICE": {"owner": "legal", "consumer": "GitHub and Pages staging"},
-    "README.md": {"owner": "product documentation", "consumer": "PyPI and GitHub"},
-    "README.zh.md": {"owner": "product documentation", "consumer": "GitHub"},
-    "SOUL.md": {"owner": "runtime compatibility", "consumer": "OpenClaw persona context"},
-    "THIRD_PARTY_LICENSES": {"owner": "legal", "consumer": "GitHub and Pages staging"},
-    "TOOLS.md": {"owner": "runtime compatibility", "consumer": "OpenClaw tool routing"},
-    "USER.md": {"owner": "runtime compatibility", "consumer": "OpenClaw user context"},
-    "assets": {"owner": "generated instance state", "consumer": "publisher and Pages data plane"},
-    "config": {"owner": "workspace and repository contracts", "consumer": "package, profiles, CI and operations"},
-    "docs": {"owner": "product and operator documentation", "consumer": "GitHub and Pages staging"},
-    "examples": {"owner": "runnable proofs that the published package works without this checkout", "consumer": ".github/workflows/release.yml"},
-    "logs": {"owner": "generated operator state", "consumer": "live host checks and cron"},
-    "memory": {"owner": "runtime compatibility and instance state", "consumer": "OpenClaw memory and published briefs"},
-    "ops": {"owner": "repository operations", "consumer": "host, CI, publisher, growth and Pages"},
-    "portfolio.json": {"owner": "KCNyu instance ledger", "consumer": "installed workflows and dashboard"},
-    "pyproject.toml": {"owner": "public package metadata", "consumer": "build frontends and PyPI"},
-    "pytest.ini": {"owner": "repository test configuration", "consumer": "pytest"},
-    "site": {"owner": "static site source", "consumer": "Pages staging"},
-    "skills": {"owner": "runtime compatibility", "consumer": "OpenClaw skill discovery"},
-    "src": {"owner": "portable public package", "consumer": "clawock wheel"},
-    "tests": {"owner": "repository verification", "consumer": "CI"}
+ "schema_version": 1,
+ "entries": {
+  ".githooks": {
+   "owner": "repository safety",
+   "consumer": "git core.hooksPath"
+  },
+  ".github": {
+   "owner": "repository automation",
+   "consumer": "GitHub Actions"
+  },
+  ".gitignore": {
+   "owner": "repository configuration",
+   "consumer": "git"
+  },
+  "AGENTS.md": {
+   "owner": "runtime compatibility",
+   "consumer": "OpenClaw and coding agents"
+  },
+  "BOOTSTRAP.md": {
+   "owner": "runtime compatibility",
+   "consumer": "OpenClaw bootstrap"
+  },
+  "CHANGELOG.md": {
+   "owner": "public package release notes",
+   "consumer": "PyPI project links and GitHub"
+  },
+  "CLAUDE.md": {
+   "owner": "runtime compatibility",
+   "consumer": "Claude Code entry context"
+  },
+  "DREAMS.md": {
+   "owner": "runtime compatibility",
+   "consumer": "OpenClaw dreaming promotion"
+  },
+  "HEARTBEAT.md": {
+   "owner": "runtime compatibility",
+   "consumer": "OpenClaw heartbeat"
+  },
+  "IDENTITY.md": {
+   "owner": "runtime compatibility",
+   "consumer": "OpenClaw identity context"
+  },
+  "INVESTMENT_SOP.md": {
+   "owner": "runtime compatibility",
+   "consumer": "OpenClaw investment routing"
+  },
+  "LICENSE": {
+   "owner": "legal",
+   "consumer": "package metadata, GitHub and Pages staging"
+  },
+  "MEMORY.md": {
+   "owner": "runtime compatibility",
+   "consumer": "OpenClaw main-session memory"
+  },
+  "NOTICE": {
+   "owner": "legal",
+   "consumer": "GitHub and Pages staging"
+  },
+  "README.md": {
+   "owner": "product documentation",
+   "consumer": "PyPI and GitHub"
+  },
+  "README.zh.md": {
+   "owner": "product documentation",
+   "consumer": "GitHub"
+  },
+  "SOUL.md": {
+   "owner": "runtime compatibility",
+   "consumer": "OpenClaw persona context"
+  },
+  "THIRD_PARTY_LICENSES": {
+   "owner": "legal",
+   "consumer": "GitHub and Pages staging"
+  },
+  "TOOLS.md": {
+   "owner": "runtime compatibility",
+   "consumer": "OpenClaw tool routing"
+  },
+  "USER.md": {
+   "owner": "runtime compatibility",
+   "consumer": "OpenClaw user context"
+  },
+  "assets": {
+   "owner": "generated instance state",
+   "consumer": "publisher and Pages data plane"
+  },
+  "config": {
+   "owner": "workspace and repository contracts",
+   "consumer": "package, profiles, CI and operations"
+  },
+  "docs": {
+   "owner": "product and operator documentation",
+   "consumer": "GitHub and Pages staging"
+  },
+  "examples": {
+   "owner": "runnable proofs that the published package works without this checkout",
+   "consumer": ".github/workflows/release.yml"
+  },
+  "logs": {
+   "owner": "generated operator state",
+   "consumer": "live host checks and cron"
+  },
+  "memory": {
+   "owner": "runtime compatibility and instance state",
+   "consumer": "OpenClaw memory and published briefs"
+  },
+  "ops": {
+   "owner": "repository operations",
+   "consumer": "host, CI, publisher, growth and Pages"
+  },
+  "portfolio.json": {
+   "owner": "KCNyu instance ledger",
+   "consumer": "installed workflows and dashboard"
+  },
+  "pyproject.toml": {
+   "owner": "public package metadata",
+   "consumer": "build frontends and PyPI"
+  },
+  "pytest.ini": {
+   "owner": "repository test configuration",
+   "consumer": "pytest"
+  },
+  "site": {
+   "owner": "static site source",
+   "consumer": "Pages staging"
+  },
+  "skills": {
+   "owner": "runtime compatibility",
+   "consumer": "OpenClaw skill discovery"
+  },
+  "src": {
+   "owner": "portable public package",
+   "consumer": "clawock wheel"
+  },
+  "tests": {
+   "owner": "repository verification",
+   "consumer": "CI"
+  },
+  "dsh-plugin": {
+   "owner": "DeepSeek Harness skill package (clawock-dsh)",
+   "consumer": "npm publish + dsh plugin install"
   }
+ }
 }
