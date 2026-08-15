@@ -4,7 +4,7 @@
 
 ### AI 争辩。代码结算。连亏损都摆在明面上。
 
-Agent-native 投资决策工作流引擎。外部 Agent 负责思考,clawock 负责让每个决策可验证、可结算、可复盘。一个真实港美股投研台正在用它运行,全程公开。
+Agent-native · Harness-agnostic 投资决策工作流引擎。不管你的 Agent 跑在哪个 harness 里——OpenClaw、Claude Code、Codex、DeepSeek Harness,还是你自己的 runner——clawock 让每个决策可验证、可结算、可复盘。一个真实港美股投研台正在用它运行,全程公开。
 
 [![Dashboard](https://img.shields.io/github/deployments/KCNyu/clawock/github-pages?label=DASHBOARD&style=flat-square&logo=githubpages&logoColor=white&labelColor=252b35&color=4b91c8)](https://kcnyu.github.io/clawock/)
 [![Tests](https://img.shields.io/github/actions/workflow/status/KCNyu/clawock/harness-regression.yml?label=TESTS&style=flat-square&logo=githubactions&logoColor=white&labelColor=252b35&color=738391)](https://github.com/KCNyu/clawock/actions/workflows/harness-regression.yml)
@@ -32,7 +32,7 @@ Agent-native 投资决策工作流引擎。外部 Agent 负责思考,clawock 负
 
 ## 这是什么
 
-给 AI Agent 用的投资决策工作流引擎。Claude Code、Codex、OpenClaw 或任何外部运行时负责模型调用、对话、记忆、工具;clawock 负责把一次投资决策变成一份**带证据、带反方、带结算、带战绩**的记录。
+给 AI Agent 用的投资决策工作流引擎。**换 harness 不换流程**:Claude Code、Codex、OpenClaw、DeepSeek Harness 或任何外部运行时负责模型调用、对话、记忆、工具;clawock 负责把一次投资决策变成一份**带证据、带反方、带结算、带战绩**的记录。
 
 **模型提议,Python 结算,战绩公开。** 价格、风控上限、账本、盈亏结算全部由代码独立完成,模型永远不能给自己打分——所以这份公开战绩连亏损都收着,包括「主动判断至今没跑赢买入持有」。它不是跟单服务,不替你下单;执行始终在账户所有者手里。
 
@@ -40,7 +40,7 @@ Agent-native 投资决策工作流引擎。外部 Agent 负责思考,clawock 负
 
 ## 快速开始
 
-前置要求:Python ≥ 3.11,一个能读写文件的 Agent(任何 runtime 都行,模型调用留在你自己的环境里)。
+前置要求:Python ≥ 3.11,一个能读写文件的 Agent(任何 harness 都行——OpenClaw / Claude Code / Codex / DeepSeek Harness / 你自己的 runner,模型调用留在你的环境里)。
 
 ```bash
 python -m pip install clawock
@@ -59,6 +59,7 @@ bash examples/minimal-run/run.sh
 
 | 卖点 | 人话 |
 |---|---|
+| **Harness-agnostic** | 决策流程与 harness 解耦:模型、记忆、工具循环留在你的 harness(OpenClaw / Claude Code / Codex / DeepSeek Harness),clawock 只装决策契约,换 harness 不换流程 |
 | **Agent-native** | 不重造 Agent。模型、记忆、工具循环全在外部 runtime,clawock 只安装决策契约,跨 runtime 可迁移 |
 | **确定性结算** | LLM 提议,Python 结算。模型写不了、改不了自己的战绩 |
 | **公开自评** | 一个真实港美股账户,每一条结果都公开打分,亏损在内,「没跑赢买入持有」也写在页面上 |
@@ -84,6 +85,7 @@ bash examples/minimal-run/run.sh
 
 | 术语 | 一句话 |
 |---|---|
+| Harness-agnostic | 与具体 Agent 框架解耦:换 OpenClaw / Codex / DeepSeek Harness,决策契约不变 |
 | Agent-native | 为 AI Agent 设计,装进现有 runtime,而不是再造一个 Agent |
 | 确定性结算 | 由 Python 代码结算,LLM 无法改写结果 |
 | 多智能体辩论 | 多空对立论点 + 裁判点名策略框架,一致同意读作警示 |
