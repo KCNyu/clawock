@@ -137,20 +137,6 @@ LLM 从不自己抓数据,也不自己结算。它只做一件事:**读一份 Py
 
 [**实时仪表盘**](https://kcnyu.github.io/clawock/) · [**每日简报**](https://kcnyu.github.io/clawock/briefs.html) · [**证据与反证**](https://kcnyu.github.io/clawock/evidence.html) · [**排程表**](docs/operations/cron-schedules.md)
 
-## 术语速查
-
-| 术语 | 一句话 |
-|---|---|
-| Harness-agnostic | 与具体 Agent 框架解耦:换 OpenClaw / Codex / DeepSeek Harness,决策契约不变 |
-| Agent-native | 为 AI Agent 设计,装进现有 runtime,而不是再造一个 Agent |
-| 确定性结算 | 由 Python 代码结算,LLM 无法改写结果 |
-| 多智能体辩论 | 多空对立论点 + 裁判点名策略框架,一致同意读作警示 |
-| 护栏 / 硬闸 | 风控上限由代码执行,不靠模型自觉 |
-| 样本外验证 | 因子先通过检验,才能影响决策;预注册防回溯作弊 |
-| 审计链 | 证据 → 反方 → 决策 → 执行 → 结果,一条 lineage 到底 |
-| 有界改进 | 结果只能提议参数调整,不能重写策略 |
-| 影子组合 | 模拟回放同一时间线,对比「跟单建议」与「买入持有」 |
-
 ## 底层是怎么组织的
 
 <details>
