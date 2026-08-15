@@ -119,6 +119,23 @@ def slot_delivered(marker, ctx_id, raw_block_first, now_ms, ctx_generated_at=Non
     return same_line, 'legacy-first-line'
 
 
+def wechat_gap_reason(claim):
+    """#544: name a holder-died-mid-send WeChat gap explicitly.
+
+    A sender killed between the WeChat send and the Telegram cosend leaves a
+    claim with `send_started_at` set and no completion marker — the one case
+    where "WeChat delivery unconfirmed" is a fact, not a guess. The Telegram
+    backstop must say that out loud instead of reading like a normal mirror.
+    Returns (reason, banner) or None when the claim does not show the gap.
+    """
+    if isinstance(claim, dict) and claim.get('send_started_at'):
+        return ('holder-died-mid-send',
+                '⚠️ 该槽位 WeChat 送达未被确认：postflight 发送进程在发送中途死亡'
+                '（claim 带 send_started_at、无完成 marker）。'
+                '仅 Telegram 兜底一份，请留意微信是否已收到。\n\n')
+    return None
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--market', choices=['hk', 'us'], required=True)
@@ -241,7 +258,22 @@ def main():
     reason = ('postflight marker missing' if not marker
               else 'postflight cosend failed' if not marker.get('tg_ok')
               else 'marker stale/mismatch')
-    tg_banner = f'📨 自动补发（{reason}，Telegram 兜底一份）\n\n'
+    # #544: with no marker, a claim whose holder died mid-send is the explicit
+    # "WeChat delivery unconfirmed" case — say it instead of silently mirroring.
+    claim_path = WS / 'memory' / '.tmp' / \
+        f'report-send-{args.market}-{args.phase}-{today}.claim'
+    claim = None
+    try:
+        if claim_path.exists():
+            claim = json.loads(claim_path.read_text())
+    except Exception:
+        claim = None
+    gap = wechat_gap_reason(claim) if not marker else None
+    if gap:
+        reason = gap[0]
+        tg_banner = gap[1]
+    else:
+        tg_banner = f'📨 自动补发（{reason}，Telegram 兜底一份）\n\n'
     tg_ok, tg_out = send_telegram(KCN_TELEGRAM, tg_banner + report.strip(), args.dry_run)
     log({'tag': tag, 'action': 'mirror-telegram', 'dry_run': args.dry_run, 'sent_ok': tg_ok,
          'job_id': job_id, 'reason': reason, 'loop_score': loop_score,
