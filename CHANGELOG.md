@@ -13,6 +13,45 @@ versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 The newest heading here has to match the version in `pyproject.toml` — CI fails
 otherwise, so a release cannot ship an entry that was never written.
 
+## [0.1.4] — 2026-08-16
+
+### Fixed
+
+- **Harness-agnostic examples and the `clawock-dsh` skill now match the real
+  validator.** The tutorial taught `--artifact decision=...`, a six-field
+  decision shape and a fixed `.clawock/work/request.json` path; the validator
+  requires the artifact to be named `decision.json`, nine top-level fields
+  (schema_version / workflow / decision_id / as_of / subject / evidence /
+  debate / thesis / decision) and the `<run_id>`-scoped request file
+  `prepare` actually writes. The examples were rewritten against the pack's
+  `decision.example.json` and the whole prepare → decision.json → publish
+  loop is verified end-to-end. (`clawock-dsh` npm package bumped to 0.1.4.)
+- **No more double-writer races on a missing brief.** The 09:05 watchdog no
+  longer queues a local re-run and the off-host fallback at the same time —
+  two LLMs writing the same artifacts produced duplicate WeChat/Telegram
+  pushes. The re-run is now evidence-gated (a run that ended OK today does not
+  stack another queue entry).
+- **Report delivery gaps are now named.** When a postflight sender dies
+  mid-send (claim present, no completion marker), the watchdog says "WeChat
+  delivery unconfirmed" out loud instead of silently only mirroring Telegram.
+- **User risk overrides settle the ledger.** An overridden risk_rule cut is
+  settled (`execution.status=overridden_by_user`) instead of accumulating as
+  `unknown` forever and flooding the open queue when the override TTL expires.
+- **The 30-bar data-quality gate is restored.** The short-history fallback now
+  requires a registry `listing_date` within 45 days, so a mature name with a
+  partial feed can no longer enter the universe with half a signal set.
+
+### Changed
+
+- The AI watch list (智谱 / 迅策) now rides the brief's `market` bundle — the
+  model boundary can actually read it — and its thresholds
+  (`opportunity_near_pct`, `early_no_chase_zscore`) moved into
+  `add-alpha-policy.json` as a single source shared with the intraday radar.
+- Intraday slots fetch each code once per slot instead of three times
+  (~540 → ~180 requests/day).
+- Intraday push gating: opportunity/early-trend sub-state flips around a price
+  threshold no longer retrigger a full push every slot.
+
 ## [0.1.3] — 2026-08-15
 
 ### Added
