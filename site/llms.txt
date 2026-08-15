@@ -1,0 +1,59 @@
+# clawock
+
+> AI argues. Code settles. Even the losses stay on the page.
+
+clawock is an agent-native, harness-agnostic investment decision-workflow
+engine. An external agent runtime (Claude Code, Codex, OpenClaw, DeepSeek
+Harness, or your own) owns the model, conversation, memory and tools; clawock
+owns the decision contract: certified evidence, a mandatory opposing case,
+deterministic money and FX reconciliation, and a public scorecard the model can
+never grade itself.
+
+A real Hong Kong + US account has run it for 90+ days: 177 judgments settled by
+Python, live account return −15.95%, every loss on the page, every number
+reproducible from `clawock audit-resettle`.
+
+## Key pages
+
+- [GitHub repository](https://github.com/KCNyu/clawock): source, issues, PRs
+- [Live dashboard](https://kcnyu.github.io/clawock/): positions, risk, self-graded scorecard
+- [Daily briefs](https://kcnyu.github.io/clawock/briefs.html): published morning reads (bilingual)
+- [Evidence & refutation](https://kcnyu.github.io/clawock/evidence.html): what was tested and what failed
+- [FAQ](https://kcnyu.github.io/clawock/faq.html): questions new users ask
+- [简体中文 README](https://github.com/KCNyu/clawock/blob/master/README.zh.md)
+
+## Install
+
+```bash
+python -m pip install clawock
+clawock workflow install investment-decision --workspace ./my-decision
+clawock init ./my-decision --workflow investment-decision
+clawock run prepare --workspace ./my-decision
+```
+
+Or throw the repository URL at any agent and let it follow the three-step
+skill flow (prepare → write `decision.json` → publish). A no-model end-to-end
+proof runs with `bash examples/minimal-run/run.sh`.
+
+## For DeepSeek Harness users
+
+An official-style skill package is available: `dsh plugin --profile web add clawock-dsh`
+(published to npm as `clawock-dsh`). The same decision contract works from a
+pure CLI, an OpenClaw skill, a Claude Code instruction, a Codex AGENTS.md, or a
+DSH agent — see [examples/harness-agnostic](https://github.com/KCNyu/clawock/tree/master/examples/harness-agnostic).
+
+## What makes it different
+
+- The model can never grade itself: LLMs propose, Python settles.
+- One thesis counts once; repeated restatements collapse into one episode.
+- Factors need out-of-sample validation before they influence decisions.
+- The ledger must reconcile before anything is published.
+- Every number on the README reproduces from `clawock audit-resettle` — if it
+  doesn't match, the project loses.
+
+## Honesty policy
+
+The live scorecard keeps every eligible result, losses included, including the
+fact that active recommendations have not beaten buy-and-hold. This repository
+is a personal record and portable workspace — not investment advice, not a
+copy-trading service.
