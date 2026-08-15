@@ -83,6 +83,8 @@ Every trading day the system pulls fresh prices, FX, volatility, earnings and ma
 
 Reading the market is most of what the LLM does, so the widest part of the system is data collection. The repository catalogs **41 fetch and compute modules across 8 layers**, with **bilingual Hong Kong + US coverage** — live quotes, SEC + Eastmoney filings, capital flow, earnings calendars, macro (VIX / DXY / 10Y), Reddit and news sentiment, and market-moving social feeds. Each brief consumes the subset relevant to that market and session. Collection stays broad; the decision layer stays constrained.
 
+![clawock information flow — eight layers of fetch and compute modules are assembled by a deterministic Python preflight into a fingerprinted context.json; the LLM reads the file and writes its analysis; Python postflight validates and settles before publish](https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/information-flow.svg)
+
 | Layer | Modules | Primary sources |
 |---|:---:|---|
 | 1 · Market | 7 | Tencent · Yahoo · Eastmoney · Polygon |
