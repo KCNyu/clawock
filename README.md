@@ -274,7 +274,7 @@ foreign workspace is production-ready.
 
 - [**Live dashboard**](https://kcnyu.github.io/clawock/) — positions, risk, and the self-graded scorecard.
 - [**Daily briefs**](https://kcnyu.github.io/clawock/briefs.html) — the published morning reads.
-- [**Harness-agnostic examples**](https://github.com/KCNyu/clawock/blob/master/https://github.com/KCNyu/clawock/blob/master/examples/harness-agnostic/README.md) — one decision run, five harnesses: pure CLI, OpenClaw, Claude Code, Codex, DeepSeek Harness.
+- [**Harness-agnostic examples**](https://github.com/KCNyu/clawock/blob/master/examples/harness-agnostic/README.md) — one decision run, five harnesses: pure CLI, OpenClaw, Claude Code, Codex, DeepSeek Harness.
 - [**Schedule**](https://github.com/KCNyu/clawock/blob/master/docs/operations/cron-schedules.md) — the generated cron table.
 - [**Command reference**](https://github.com/KCNyu/clawock/blob/master/docs/reference/commands.md) — every installed command, generated from the registries, plus the hand-written provider and harness detail.
 - [**Project docs**](https://github.com/KCNyu/clawock/blob/master/docs/README.md) — operations, reference, legal notes, and archived designs.
