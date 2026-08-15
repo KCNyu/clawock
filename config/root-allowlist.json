@@ -136,10 +136,6 @@
   "tests": {
    "owner": "repository verification",
    "consumer": "CI"
-  },
-  "dsh-plugin": {
-   "owner": "DeepSeek Harness skill package (clawock-dsh)",
-   "consumer": "npm publish + dsh plugin install"
   }
  }
 }

@@ -197,7 +197,7 @@ evaluation: loss(按基准行情结算, trigger session 2026-08-10)
 
 1. `python -m pip install clawock`
 2. 跑 `bash examples/minimal-run/run.sh` 验证一条完整决策(无模型,不联网)
-3. 走真实决策时按 [`dsh-plugin/skills/investment-decision/SKILL.md`](dsh-plugin/skills/investment-decision/SKILL.md) 的三步流程:prepare → 写 `decision.json` → publish
+3. 走真实决策时按 [`examples/harness-agnostic/dsh-plugin/skills/investment-decision/SKILL.md`](examples/harness-agnostic/dsh-plugin/skills/investment-decision/SKILL.md) 的三步流程:prepare → 写 `decision.json` → publish
 
 **或者手动:** Python ≥ 3.11,然后:
 
