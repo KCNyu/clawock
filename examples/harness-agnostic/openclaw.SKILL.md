@@ -11,8 +11,9 @@ entire job is one file in, one file out.
 
 ## When to run
 
-A `run prepare` has written a request file, normally at
-`.clawock/work/request.json`. Open it first; it tells you:
+A `run prepare` has written a request file (the `request_file` path it
+printed, e.g. `.clawock/work/<run_id>/request.json`). Open it first; it tells
+you:
 
 - `task` — the decision contract (evidence, opposing case, bounded action,
   reconciled amounts)
@@ -29,19 +30,41 @@ explicit:
 
 ```json
 {
+  "schema_version": 1,
+  "workflow": {"id": "investment-decision", "version": "1.1.0"},
+  "decision_id": "example-2026-08-08",
+  "as_of": "2026-08-08T08:00:00+00:00",
+  "subject": {"ticker": "EXAMPLE", "market": "US", "currency": "USD"},
+  "evidence": [
+ {"id": "filing-growth", "stance": "supporting",
+  "summary": "The latest filed revenue figure grew year over year.",
+  "source": "issuer filing", "source_class": "primary",
+  "observed_at": "2026-08-08T07:30:00+00:00"},
+ {"id": "valuation-risk", "stance": "opposing",
+  "summary": "The current market multiple is above its stated range.",
+  "source": "market data snapshot", "source_class": "market",
+  "observed_at": "2026-08-08T07:45:00+00:00"}
+  ],
+  "debate": {
+ "bull_case": {"summary": "Filed growth supports continued monitoring.",
+"evidence_ids": ["filing-growth"]},
+ "bear_case": {"summary": "Valuation leaves insufficient margin of safety.",
+"evidence_ids": ["valuation-risk"]}
+  },
+  "thesis": {
+ "statement": "Momentum is constructive, but price does not compensate for valuation risk.",
+ "confidence": 0.7,
+ "invalidation_conditions": ["Filed growth reverses"]
+  },
   "decision": {
-    "action": "hold",
-    "symbol": null,
-    "strategy": "core_position",
-    "confidence": 0.4,
-    "reasoning": "No actionable setup this session.",
-    "opposing_case": "Holding is itself a stance; the case against it is ...",
-    "evidence": [
-      {"source": "CONTEXT.md", "claim": "..."}
-    ]
+ "action": "watch",
+ "rationale": "The opposing valuation evidence blocks an entry.",
+ "evidence_ids": ["filing-growth", "valuation-risk"],
+ "order": null
   }
 }
 ```
+
 
 Rules that are not negotiable:
 
