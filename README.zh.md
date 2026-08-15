@@ -77,6 +77,60 @@ bash examples/minimal-run/run.sh
 - **风控上限每次简报都查**:单票 ≤35%、Top-2 ≤70%、杠杆 ETF ≤50%、组合 β ≤3.0、−18% 止损;每条违规有持久化记录
 - **软情绪不能单独翻转交易**:一条推文只能微调置信度,硬负面催化才可触发防守动作
 
+## LLM 是怎么做决策的
+
+LLM 从不自己抓数据,也不自己结算。它只做一件事:**读一份 Python 组装好的上下文文件,写一份带证据、带反方的分析**。剩下全是代码的事。
+
+```
+40 个数据模块 ──► preflight(Python,确定性)──► context.json(带指纹)──► LLM 读文件写分析 ──► postflight(Python 校验)──► 发布
+```
+
+### 每次运行,LLM 拿到什么
+
+采集面宽,但每次运行只拿到这次能用得上的块:
+
+| 运行 | 时机 | 块数 | 核心内容 |
+|---|---|---|---|
+| 盘前深度简报 | 工作日 08:00 HKT | 38 | 持仓真值、风控、量化信号、新闻/催化剂、论点登记册、历史复盘、当日计划 |
+| 开 / 午 / 收报告 | 港 09:30·12:00·13:30·16:00,美开收 | 16 | 新鲜行情、异动催化探针、待成交决策 |
+| 盘中盯盘 | 开市每 30 分钟 | 27 | 行情、信号计数、T+0 牌面、异动标记、盘中重跑的入场 setup |
+
+催化探针只对已经异动的票触发,一手源优先(SEC 受理时间戳、港交所公告),找不到就明写 `no_recent_filing`,不让空块读成「什么都没发生」。
+
+### 策略框架
+
+同一只股票可以同时挂好几条策略,每条在自己的案例里独立打分:
+
+| 策略 | 干什么 |
+|---|---|
+| `core_position` | 长线核心仓位 |
+| `risk_rebalance` | 风控再平衡:降杠杆、止损、换仓 |
+| `intraday_t` | 日内 T+0 |
+| `event_trade` | 事件驱动(财报、催化剂) |
+| `tactical_entry` | 战术建仓 |
+
+加仓不是拍脑袋:量化因子与同行残差合并为一个 price_relative 证据族,时点新闻 surprise/attention 构成另一个证据族,**两族必须同时成立**;负面信息优先阻断;未验证信号只能进有上限的试探仓位,永远不能直接进决策。
+
+### 多 Agent 辩论
+
+每天深度简报跑一场结构化辩论(改编自 [TradingAgents](https://github.com/TauricResearch/TradingAgents)):基本面 / 技术面 / 情绪面 / 板块轮动四位分析师读同一份上下文;两名研究员**必须**建立多空对立论点并记录分歧;激进 / 保守 / 中性三位风险官各陈其词;一位裁判点名策略框架,收敛成 `plan.json`。**一致同意读作警示,而不是证据。**
+
+![clawock 的多 Agent 辩论 —— 一份证据包喂给四种分析师视角;两名研究员建立多空对立论点并记录分歧点;三种风险声音与一位裁判点名策略框架,收敛成 plan.json,进入下一场的打分环](site/assets/debate-flow.svg)
+
+### 配套研究技能(skills)
+
+除内置流程外,还有一套可复用的研究入口,产物单向串联、每步写版本化文件:
+
+| 问题 | 入口 | 复用范围 |
+|---|---|---|
+| 分析一家美股公司 | [`us-stock-analysis`](skills/us-stock-analysis/SKILL.md) | 可随 clawock 工作区复用 |
+| 分析一家港股公司 | [`hk-stock-analysis`](skills/hk-stock-analysis/SKILL.md) | 可随 clawock 工作区复用 |
+| 检查当前组合 | [`portfolio-risk-review`](skills/portfolio-risk-review/SKILL.md) / [`portfolio-swarm-review`](skills/portfolio-swarm-review/SKILL.md) | 依赖已配置的真实组合 |
+| 复盘一个已披露的报告期 | [`earnings-review`](skills/earnings-review/SKILL.md) | 可复用,产物落 `memory/earnings/` |
+| 判断新标的值不值得深研 | [`entry-gate`](skills/entry-gate/SKILL.md) | 可复用,产物落 `memory/entry-gates/` |
+
+串联顺序:建仓前研究闸 → 一手财报证据 → 规范论点 → 决策 / 风控 / 结算回路。每一步写带版本的产物给下一步读,后一步永远无法用文案重推前一步。
+
 ## 它已经在跑
 
 这套系统每天 08:00 产出深度简报(多 Agent 辩论:四视角分析师 + 多空研究员 + 三位风险官 + 一位裁判归因),盘中每 30 分钟盯盘,收盘结算,推送到微信,并刷新公开仪表盘。港股按 HKT、美股按 ET,cron 随纽约夏令时自动切换;节假日闸门跳过休市场次。
@@ -115,7 +169,7 @@ bash examples/minimal-run/run.sh
 | 7 · 账本/汇率校验 | 6 | Frankfurter · 对账账本 · 本地不变量 |
 | 8 · 回测/自省 | 7 | 本地快照 + 基准行情 |
 
-每次运行只拿自己能用得上的块:preflight(Python)组装上下文 → 模型读文件 → postflight(Python)校验发布。抓取层优雅降级:东财统一走节流网关,报价/汇率多源兜底,抓空保留旧值。哪个模块属于哪一层由 [`config/information-layers.json`](config/information-layers.json) 声明,CI 对着它核对,模块搬了家数字不会留在原地。完整命令与 provider 目录见[命令参考](docs/reference/commands.md)。
+每次运行只拿自己能用得上的块(见「LLM 是怎么做决策的」)。抓取层优雅降级:东财统一走节流网关,报价/汇率多源兜底,抓空保留旧值。哪个模块属于哪一层由 [`config/information-layers.json`](config/information-layers.json) 声明,CI 对着它核对,模块搬了家数字不会留在原地。完整命令与 provider 目录见[命令参考](docs/reference/commands.md)。
 
 </details>
 
@@ -146,8 +200,6 @@ bash examples/minimal-run/run.sh
 
 ![KCNyu live desk 架构 —— Python 构建对账后的市场上下文,OpenClaw Agent 辩论交易,clawock 契约把关决策,公开战绩闭环](site/assets/architecture.svg)
 
-![clawock 的多 Agent 辩论 —— 一份证据包喂给四种分析师视角;两名研究员建立多空对立论点并记录分歧点;三种风险声音与一位裁判点名策略框架,收敛成 plan.json,进入下一场的打分环](site/assets/debate-flow.svg)
-
 - 仪表盘产物整体发布到数据面(data plane);前端直接读扫描旁路文件(sidecar),写者互不冲突
 - 所有写入走 `ops/publish/safe_push.sh`:rebase 重试、真冲突中止,冲突标记在 push hook 被拒
 - `portfolio.json` 是唯一真源:advisory 文件锁 + 原子替换,pre-push hook 拦下账目不平的 push
@@ -155,18 +207,6 @@ bash examples/minimal-run/run.sh
 - 仓库结构、排程契约等细节见[项目文档](docs/README.md)
 
 </details>
-
-## 研究入口
-
-| 问题 | 入口 | 复用范围 |
-|---|---|---|
-| 分析一家美股公司 | [`us-stock-analysis`](skills/us-stock-analysis/SKILL.md) | 可随 clawock 工作区复用 |
-| 分析一家港股公司 | [`hk-stock-analysis`](skills/hk-stock-analysis/SKILL.md) | 可随 clawock 工作区复用 |
-| 检查当前组合 | [`portfolio-risk-review`](skills/portfolio-risk-review/SKILL.md) / [`portfolio-swarm-review`](skills/portfolio-swarm-review/SKILL.md) | 依赖已配置的真实组合 |
-| 复盘一个已披露的报告期 | [`earnings-review`](skills/earnings-review/SKILL.md) | 可复用,产物落 `memory/earnings/` |
-| 判断新标的值不值得深研 | [`entry-gate`](skills/entry-gate/SKILL.md) | 可复用,产物落 `memory/entry-gates/` |
-
-入口单向串联:建仓前研究闸 → 一手财报证据 → 规范论点 → 决策/风控/结算回路,每步写版本化产物,后一步永远无法用文案重推前一步。
 
 ## 许可与免责
 
