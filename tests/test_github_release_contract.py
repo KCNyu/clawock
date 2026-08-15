@@ -37,7 +37,8 @@ def test_github_release_is_downstream_of_real_pypi_and_attaches_artifacts():
     workflow = WORKFLOW.read_text(encoding="utf-8")
     release_job = workflow.split("\n  github-release:\n", 1)[1]
 
-    assert "needs: publish" in release_job
+    assert ("needs: [publish, npm]" in release_job
+            or "needs: publish" in release_job)
     assert "if: startsWith(github.ref, 'refs/tags/v')" in release_job
     assert "contents: write" in release_job
     assert "ops/publish/release_notes.py" in release_job
