@@ -2,9 +2,7 @@
 
 <h1><img src="site/assets/logo-lockup.svg" alt="clawock" height="48"></h1>
 
-> **它跑了一百多天,公开结算 177 条判断,真实账户收益 −15.95%。主动建议至今没跑赢买入持有(完整对照见[持仓页](https://kcnyu.github.io/clawock/#drill))。每一笔亏损都摆在页面上,[原始决策记录](https://github.com/KCNyu/clawock/blob/master/memory/decisions.jsonl)可查。**
->
-> **实盘至今 0 成交。** −15.95% 是持仓的漂移,不是系统的操作:账本证明它的判断还跨着 50% 线,所以它不拿真钱下注。「不交易」是它做过最贵的决定,也是最正确的决定。
+> **它跑了 **<!-- CW_M:days -->90<!-- /CW_M:days --> 天**,公开结算 **<!-- CW_M:settled -->177<!-- /CW_M:settled --> 条判断**,真实账户收益 **<!-- CW_M:return_pct -->−15.95%<!-- /CW_M:return_pct -->**(实盘,已实现 + 浮动);AI 建议已实盘跟进 **<!-- CW_M:followed -->312<!-- /CW_M:followed --> 条**。主动建议至今没跑赢买入持有(完整对照见[持仓页](https://kcnyu.github.io/clawock/#drill))。每一笔亏损都摆在页面上,[原始决策记录](https://github.com/KCNyu/clawock/blob/master/memory/decisions.jsonl)可查。**
 
 ### AI 争辩。代码结算。连亏损都摆在明面上。
 
@@ -89,13 +87,13 @@ clawock 是一套真实港美股账户上运行的 AI 投研系统,解决一个�
 
 <sub><i>“市场不在乎模型有多自信。”</i></sub>
 
-截至 2026-08,这个投研台已经公开结算了 **177 条判断**,Python 独立打分:
+截至 <!-- CW_M:as_of -->2026-08<!-- /CW_M:as_of -->,这个投研台已经公开结算了 **<!-- CW_M:settled -->177<!-- /CW_M:settled --> 条判断**,Python 独立打分:
 
 | 组 | 方向命中率 | 样本 |
 |---|---|---|
-| 主动建议(cut / trim / 加仓) | 53% | n=73 |
-| 只是躺着 hold | 36% | n=104 |
-| 高信心主动判断 | 55% | n=33 |
+| 主动建议(cut / trim / 加仓) | <!-- CW_M:active_pct -->53%<!-- /CW_M:active_pct --> | n=<!-- CW_M:active_n -->73<!-- /CW_M:active_n --> |
+| 只是躺着 hold | <!-- CW_M:hold_pct -->36%<!-- /CW_M:hold_pct --> | n=<!-- CW_M:hold_n -->104<!-- /CW_M:hold_n --> |
+| 高信心主动判断 | <!-- CW_M:hi_pct -->55%<!-- /CW_M:hi_pct --> | n=<!-- CW_M:hi_n -->33<!-- /CW_M:hi_n --> |
 
 方向命中率 ≠ 赚到钱:真实账户收益 −15.95%,收益对比买入持有仍然落后;影子组合(模拟,非实盘)的对比在[持仓页](https://kcnyu.github.io/clawock/#drill)如实展示。**没有一条结果被挑过——[原始账本](https://github.com/KCNyu/clawock/blob/master/memory/decisions.jsonl)在此,欢迎查账。**
 
@@ -105,10 +103,10 @@ clawock 是一套真实港美股账户上运行的 AI 投研系统,解决一个�
 
 | 线 | 数字 | 口径 |
 |---|---|---|
-| **决策账本** | 640 条记录 → **177** 个已结算案例 | 含重申归组,同一论点重复喊单只算一次;全部公开 |
-| **方向命中率** | 主动 **53%**(n=73) | 模型判断的方向对不对,按基准行情结算——**与盈亏无关** |
+| **决策账本** | <!-- CW_M:rows -->640<!-- /CW_M:rows --> 条记录 → **<!-- CW_M:settled -->177<!-- /CW_M:settled -->** 个已结算案例 | 含重申归组,同一论点重复喊单只算一次;全部公开 |
+| **方向命中率** | 主动 **<!-- CW_M:active_pct -->53%<!-- /CW_M:active_pct -->**(n=<!-- CW_M:active_n -->73<!-- /CW_M:active_n -->) | 模型判断的方向对不对,按基准行情结算——**与盈亏无关** |
 | **影子组合**(模拟,非实盘) | 跟随建议 vs 买入持有 | 同一时间线、同日收盘计价回放,见[持仓页](https://kcnyu.github.io/clawock/#drill) |
-| **真实账户** | 收益 **−15.95%**,成交 **0** 笔 | 0 成交下,收益就是持仓涨跌;系统的操作只有「不操作」 |
+| **真实账户** | 收益 **<!-- CW_M:return_pct -->−15.95%<!-- /CW_M:return_pct -->**(实盘,已实现 + 浮动) | 决策执行:followed <!-- CW_M:followed -->312<!-- /CW_M:followed --> / not_followed <!-- CW_M:not_followed -->292<!-- /CW_M:not_followed --> 条 |
 
 对不上的地方,欢迎用 `clawock audit-resettle` 复算——判定规则全部在代码里版本化,**对不上算我们输**。
 
@@ -120,9 +118,9 @@ episode: ep-20260731-spcx-hold
 evaluation: loss(按基准行情结算, trigger session 2026-08-10)
 ```
 
-640 条这样的记录全部公开。**大部分判断从未被执行**(见上表:成交 0 笔),影子组合专门暴露这一点,而不是藏起来。
+<!-- CW_M:rows -->640<!-- /CW_M:rows --> 条这样的记录全部公开。**每条建议都带执行状态**(followed <!-- CW_M:followed -->312<!-- /CW_M:followed --> / not_followed <!-- CW_M:not_followed -->292<!-- /CW_M:not_followed --> / unknown <!-- CW_M:unknown -->36<!-- /CW_M:unknown -->);影子组合用模拟成交回放,专门暴露「建议 → 成交」的配对差距,而不是藏起来。
 
-诚实到数字层面:主动建议 53% 命中率,样本 73 条,95% 置信区间约 42%–64%;高信心组 55%,样本 33 条,区间约 38%–72%——**全部跨过 50% 线,统计上还不能算优势**。这正是我们不做收益宣传的原因:该是噪声的地方,就标成噪声——而分辨「edge 还是手痒」,就是这套系统唯一在卖的东西:它不替你赚钱,它替你证明每一笔判断值不值得信。
+诚实到数字层面:主动建议 <!-- CW_M:active_pct -->53%<!-- /CW_M:active_pct --> 命中率,样本 <!-- CW_M:active_n -->73<!-- /CW_M:active_n --> 条,95% 置信区间约 <!-- CW_M:active_ci -->42%–64%<!-- /CW_M:active_ci -->;高信心组 <!-- CW_M:hi_pct -->55%<!-- /CW_M:hi_pct -->,样本 <!-- CW_M:hi_n -->33<!-- /CW_M:hi_n --> 条,区间约 <!-- CW_M:hi_ci -->38%–72%<!-- /CW_M:hi_ci -->——**全部跨过 50% 线,统计上还不能算优势**。这正是我们不做收益宣传的原因:该是噪声的地方,就标成噪声——而分辨「edge 还是手痒」,就是这套系统唯一在卖的东西:它不替你赚钱,它替你证明每一笔判断值不值得信。
 
 命中率 = 模型判断的方向对不对(按基准行情结算);账户收益 = 实盘执行结果。两回事,都公开。
 
