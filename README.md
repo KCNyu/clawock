@@ -4,7 +4,7 @@
 
 ### AI argues. Code settles. The losses stay on the page.
 
-Install the decision intelligence behind this live Hong Kong + US desk into any agent — evidence, opposition, deterministic reconciliation, and outcome-linked improvement.
+Install the decision intelligence behind this live Hong Kong + US desk into any agent, in any harness — OpenClaw, Claude Code, Codex, DeepSeek Harness, or your own runner. Evidence, opposition, deterministic reconciliation, and outcome-linked improvement; the harness around the model is yours to pick and yours to change.
 
 [![Dashboard](https://img.shields.io/github/deployments/KCNyu/clawock/github-pages?label=DASHBOARD&style=flat-square&logo=githubpages&logoColor=white&labelColor=252b35&color=4b91c8)](https://kcnyu.github.io/clawock/)
 [![Tests](https://img.shields.io/github/actions/workflow/status/KCNyu/clawock/harness-regression.yml?label=TESTS&style=flat-square&logo=githubactions&logoColor=white&labelColor=252b35&color=738391)](https://github.com/KCNyu/clawock/actions/workflows/harness-regression.yml)
@@ -32,12 +32,17 @@ Install the decision intelligence behind this live Hong Kong + US desk into any 
 
 ## What this is
 
-clawock is an **agent-native investment decision-workflow plugin kit with a
-verifiable harness**. OpenClaw, Hermes, Claude Code, Codex, or another external
-runtime owns the model call, conversation, memory, planning, tools, permissions,
-and credentials. clawock installs the reusable workflow that certifies evidence,
-forces an opposing case, validates money and FX, links outcomes, and keeps every
-improvement proposal reviewable and reversible.
+clawock is an **agent-native, harness-agnostic investment decision-workflow
+plugin kit with a verifiable harness**. OpenClaw, Hermes, Claude Code, Codex,
+DeepSeek Harness, or another external runtime owns the model call,
+conversation, memory, planning, tools, permissions, and credentials. clawock
+installs the reusable workflow that certifies evidence, forces an opposing
+case, validates money and FX, links outcomes, and keeps every improvement
+proposal reviewable and reversible. Swap harnesses and the decision contract
+does not move: the loop is files and a CLI — see
+[`examples/harness-agnostic/`](https://github.com/KCNyu/clawock/blob/master/examples/harness-agnostic/README.md) for the
+same run driven from a pure CLI, an OpenClaw skill, a Claude Code instruction, a Codex AGENTS.md,
+and a DeepSeek Harness agent.
 
 It installs from PyPI — `pip install clawock` — and
 [runs on your own book](#run-it-on-your-own-book) without this repository.
@@ -50,9 +55,7 @@ A multi-agent desk monitors a real brokerage account with separate Hong Kong and
 
 ### What makes it different
 
-- **A workflow plugin, not another agent.** The external runtime keeps its model,
-  chat, memory, skills engine, tool loop, and permissions; clawock makes the
-  investment-decision contract portable across runtimes.
+- **A workflow plugin, not another agent — and not another harness.** The external runtime keeps its model, chat, memory, skills engine, tool loop, and permissions; clawock makes the investment-decision contract portable across runtimes and across harnesses. The harness debate (OpenClaw vs Codex vs DeepSeek Harness) is a debate clawock does not participate in.
 - **The loop continues after the answer.** Evidence, the opposing case, thesis,
   decision, execution, and observed outcome share one lineage. Measured results
   can propose bounded parameter changes, but never silently rewrite strategy.
@@ -79,6 +82,8 @@ Every trading day the system pulls fresh prices, FX, volatility, earnings and ma
 ## The information layer
 
 Reading the market is most of what the LLM does, so the widest part of the system is data collection. The repository catalogs **41 fetch and compute modules across 8 layers**, with **bilingual Hong Kong + US coverage** — live quotes, SEC + Eastmoney filings, capital flow, earnings calendars, macro (VIX / DXY / 10Y), Reddit and news sentiment, and market-moving social feeds. Each brief consumes the subset relevant to that market and session. Collection stays broad; the decision layer stays constrained.
+
+![clawock information flow — eight layers of fetch and compute modules are assembled by a deterministic Python preflight into a fingerprinted context.json; the LLM reads the file and writes its analysis; Python postflight validates and settles before publish](https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/information-flow.svg)
 
 | Layer | Modules | Primary sources |
 |---|:---:|---|
@@ -240,10 +245,15 @@ clawock init ./my-decision --workflow investment-decision
 clawock run prepare --workspace ./my-decision
 ```
 
-The emitted request is for the external agent to consume. The agent writes
-`decision.json`; `clawock run publish` validates it and emits the correlated
-generation receipt. The packaged example can smoke the lifecycle without a
-model, while a real adapter leaves the model call entirely in its runtime.
+You need Python ≥ 3.11 and an agent that can read a file and write
+`decision.json` — any harness works, and the model call stays entirely in your
+runtime. The emitted request is for the external agent to consume. The agent
+writes `decision.json`; `clawock run publish` validates it and emits the
+correlated generation receipt. The packaged example can smoke the lifecycle
+without a model (`bash examples/minimal-run/run.sh`), and
+[`examples/harness-agnostic/`](https://github.com/KCNyu/clawock/blob/master/examples/harness-agnostic/README.md) shows the
+same run driven from a pure CLI, an OpenClaw skill, a Claude Code instruction, a Codex AGENTS.md,
+and a DeepSeek Harness agent — the harness never touches the contract.
 
 For the KCNyu compatibility surface, `clawock doctor`, `clawock context audit`,
 and `CLAWOCK_WORKSPACE` still inspect or point at an operational book. They name
@@ -262,6 +272,7 @@ foreign workspace is production-ready.
 
 - [**Live dashboard**](https://kcnyu.github.io/clawock/) — positions, risk, and the self-graded scorecard.
 - [**Daily briefs**](https://kcnyu.github.io/clawock/briefs.html) — the published morning reads.
+- [**Harness-agnostic examples**](https://github.com/KCNyu/clawock/blob/master/https://github.com/KCNyu/clawock/blob/master/examples/harness-agnostic/README.md) — one decision run, five harnesses: pure CLI, OpenClaw, Claude Code, Codex, DeepSeek Harness.
 - [**Schedule**](https://github.com/KCNyu/clawock/blob/master/docs/operations/cron-schedules.md) — the generated cron table.
 - [**Command reference**](https://github.com/KCNyu/clawock/blob/master/docs/reference/commands.md) — every installed command, generated from the registries, plus the hand-written provider and harness detail.
 - [**Project docs**](https://github.com/KCNyu/clawock/blob/master/docs/README.md) — operations, reference, legal notes, and archived designs.
