@@ -43,6 +43,8 @@ from clawock.evidence import research_surface
 from clawock.cli import PACKAGED_UTILITIES
 from clawock.market_data import known_catalysts, mover_evidence as mover_news, peer_scan
 from clawock.decision import active_information
+from clawock.decision import early_trend
+from clawock.portfolio.instruments import is_leveraged_holding
 
 WS = workspace_root(Path.cwd())
 TMP = WS / 'memory' / '.tmp'
@@ -226,6 +228,144 @@ def append_setup_section(block, setups, signals_detail=None):
             bits.append(f"入场 {entry:g}")
         if invalid is not None:
             bits.append(f"失效 {invalid:g}")
+        held = [t for t in (row.get('holdings') or []) if t in conflicts]
+        if held:
+            bits.append(f"⚠️ 同票有风险信号({'/'.join(held)})")
+        lines.append(' | '.join(bits))
+    if len(rows) > MAX_SETUP_LINES:
+        lines.append(f'  …另有 {len(rows) - MAX_SETUP_LINES} 条')
+    return block + '\n' + '\n'.join(lines)
+
+
+EARLY_STATE_LABELS = {
+    'wait_pullback_rebreak': '候选·等回踩再突破',
+    'wait_information': '候选·等信息确认',
+    'exploration_ready': '候选·探索就绪',
+    'candidate_only': '候选·仅观察(杠杆)',
+}
+
+
+def _load_json(path):
+    try:
+        return json.loads(Path(path).read_text())
+    except (FileNotFoundError, json.JSONDecodeError, OSError):
+        return {}
+
+
+def collect_early_trend_candidates(market):
+    """Re-run the early-trend classifier on the open bar for this leg (#543).
+
+    The 08:00 brief computes `wait_pullback_rebreak` once on completed bars, so a
+    CRCL pullback at 11:00 is a fact the decision surface does not see until the
+    next morning. This re-runs `early_trend.classify` with the intraday technical
+    view (the only input that changes intraday) and reuses the daily peer /
+    information / policy payloads. It is fail-soft by design: a feed that stops
+    answering returns no candidates, never a red cron.
+    """
+    region = 'HK' if market == 'hk' else 'US'
+    try:
+        universe = [d for d in quant_signals._universe_details()
+                    if d.get('region') == region]
+    except Exception:  # noqa: BLE001
+        return {'rows': []}
+    peer_rows = (_load_json(WS / 'assets' / 'data' / 'peer_residual.json')
+                 .get('live') or {})
+    graph = _load_json(WS / 'assets' / 'data' / 'news_evidence_graph.json')
+    info_rows = ((graph.get('information_overlay') or {}).get('tickers') or {})
+    events = (graph or {}).get('events') or []
+    try:
+        policy = json.loads(
+            (WS / 'config' / 'add-alpha-policy.json').read_text(encoding='utf-8'))
+    except (FileNotFoundError, json.JSONDecodeError, OSError):
+        policy = {}
+    rows = []
+    for detail in universe:
+        label = detail.get('label')
+        try:
+            bars = quant_signals.fetch_bars(detail['code'], 400)
+            # `compute_short_history_signals` (#542) may not be present yet;
+            # degrade to the mature gate rather than hard-depending on it.
+            short_history = getattr(
+                quant_signals, 'compute_short_history_signals', None)
+            sig = quant_signals.compute_signals(bars)
+            if sig is None and short_history is not None:
+                sig = short_history(bars)
+        except Exception:  # noqa: BLE001
+            continue
+        if not sig:
+            continue
+        technical = {
+            'close': sig.get('close'),
+            'prior_20d_high': sig.get('prior_20d_high'),
+            'prior_5d_low': sig.get('prior_5d_low'),
+            'ma20': sig.get('ma20'),
+            'chandelier_stop': sig.get('chandelier_stop'),
+            'zscore20': sig.get('zscore20'),
+            'usable': True,
+        }
+        prow = peer_rows.get(label) or {}
+        peer = {
+            'residual_5d': prow.get('residual_blend_5d'),
+            'dispersion_5d': prow.get('peer_dispersion_5d'),
+            'available_peer_count': prow.get('available_peer_count'),
+        }
+        irow = info_rows.get(label) or {}
+        information = {
+            'attention_rank': irow.get('attention_rank'),
+            'attention_acceleration': irow.get('attention_acceleration'),
+            'attention_source_type_count': irow.get('attention_source_type_count'),
+            'attention_event_count': irow.get('attention_event_count'),
+        }
+        holdings = list(detail.get('source_holdings') or [label])
+        matching = [
+            event for event in events
+            if str(event.get('ticker') or event.get('reported_ticker') or '')
+            in set(holdings) | {label}
+        ]
+        leveraged = any(
+            is_leveraged_holding({'ticker': ticker}) for ticker in holdings
+        )
+        try:
+            candidate = early_trend.classify(
+                technical, peer, information, matching,
+                leveraged=leveraged, policy=policy, market=market,
+            )
+        except Exception:  # noqa: BLE001
+            continue
+        if not candidate.get('observed'):
+            continue
+        rows.append({
+            'label': label,
+            'setup_id': f"early_trend:{candidate['state']}",
+            'state': candidate.get('state'),
+            'state_zh': EARLY_STATE_LABELS.get(candidate.get('state'),
+                                              candidate.get('state')),
+            'holdings': holdings,
+            'close': sig.get('close'),
+            'prior_20d_high': sig.get('prior_20d_high'),
+            'blockers': candidate.get('blockers') or [],
+        })
+    return {'rows': rows}
+
+
+def append_early_trend_section(block, candidates, signals_detail=None):
+    """Render observed early-trend candidates, or return the block untouched.
+
+    Additive only: a slot with no candidates must stay byte-identical, exactly
+    like `append_setup_section`. A candidate is a reason to look, never an entry
+    — the 08:00 discipline is "候选≠下单".
+    """
+    rows = (candidates or {}).get('rows') or []
+    if not rows:
+        return block
+    conflicts = setup_conflicts(candidates, signals_detail)
+    lines = ['', '🕯️ 早期趋势候选（未收盘 · 候选≠下单）']
+    for row in rows[:MAX_SETUP_LINES]:
+        bits = [f"  ◆ [未收盘] {row.get('label')} "
+                f"{row.get('state_zh') or row.get('state')}"]
+        close, prior = row.get('close'), row.get('prior_20d_high')
+        if close is not None and prior is not None:
+            bits.append(f"现价 {close:g} / 前高 {prior:g}")
         held = [t for t in (row.get('holdings') or []) if t in conflicts]
         if held:
             bits.append(f"⚠️ 同票有风险信号({'/'.join(held)})")
@@ -572,6 +712,14 @@ def main(argv=None):
     # Rendered into the block rather than left in JSON alone: a field nothing
     # prints is a detector that has been silenced (#515).
     live_setups = collect_provisional_setups(args.market)
+    # The early-trend lane is re-run on the open bar too (#543): the 08:00 brief
+    # computes `wait_pullback_rebreak` once on completed bars, so a CRCL pullback
+    # intraday was invisible to every subsequent slot.
+    early_candidates = collect_early_trend_candidates(args.market)
+    combined_setups = {
+        'rows': (live_setups.get('rows') or [])
+        + (early_candidates.get('rows') or []),
+    }
     # Read provenance after the analyzer returns: its successful quote stamps
     # are later than the preflight start time, especially on a slow US run.
     coverage = quote_coverage(
@@ -582,7 +730,7 @@ def main(argv=None):
     semantic_state = intraday_delta.semantic_state(
         args.market, intraday_delta.market_session_date(args.market, now),
         signals_detail=signals_detail,
-        anomalies=anomalies, setups=live_setups, plans=plan_ctx,
+        anomalies=anomalies, setups=combined_setups, plans=plan_ctx,
         active_information=active_information_ctx,
     )
     prior_doc = intraday_delta.load_delivered_state(WS, args.market)
@@ -599,6 +747,8 @@ def main(argv=None):
         should_alert, alert_reasons = False, []
     else:
         raw_block = append_setup_section(stdout.strip(), live_setups, signals_detail)
+        raw_block = append_early_trend_section(
+            raw_block, early_candidates, signals_detail)
         raw_block = append_active_information_section(
             raw_block, active_information_ctx,
             event_ids=set(semantic_delta['changed_event_ids']),
@@ -617,6 +767,7 @@ def main(argv=None):
         'semantic_delta': semantic_delta,
         'quote_coverage': coverage,
         'provisional_setups': live_setups,
+        'early_trend_candidates': early_candidates,
         'signal_count':     signals,
         'signals_detail':   signals_detail,
         'anomalies':        anomalies,

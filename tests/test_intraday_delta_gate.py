@@ -214,6 +214,8 @@ def _wire_preflight(monkeypatch, tmp_path):
     )
     monkeypatch.setattr(preflight.known_catalysts, "for_movers", lambda *_a, **_k: {})
     monkeypatch.setattr(preflight, "collect_provisional_setups", lambda _m: setups)
+    monkeypatch.setattr(
+        preflight, "collect_early_trend_candidates", lambda _m: {"rows": []})
     monkeypatch.setattr(preflight, "quote_coverage", lambda *_a, **_k: {
         "refreshed": 1, "active": 1, "unrefreshed": [],
     })
