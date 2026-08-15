@@ -434,9 +434,6 @@ HOST_OWNED_SHELL = {
     "ops/host/reapply_openclaw_patches.sh": (
         2, "patches the runtime's own pnpm install after an upgrade: the "
            "install directory and the patch root are the subject of the script"),
-    "ops/growth/rick_broadcast_nostr.sh": (
-        2, "host broadcast wrapper: the live checkout it runs in and the Nostr "
-           "key kept outside the repository"),
 }
 
 def _shell_files():

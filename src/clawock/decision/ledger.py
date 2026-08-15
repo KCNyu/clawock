@@ -1285,7 +1285,7 @@ def episode_representatives(decisions: list[dict], horizon: str = "t1") -> list[
                     _float(d["evaluation"][benefit_key])) for d in settled) if c]
         ev["episode_mean_money"] = (round(sum(c * b / 100 for c, b in priced) / len(priced), 4)
                                     if priced else None)
-        # rick_broadcast reads outcome, not the number — keep them the same fact.
+        # Consumers read outcome, not the number — keep them the same fact.
         # Reuse the per-decision contract so an exact-zero episode is `flat`, not a
         # loss: _outcome already fixed that fall-through once; the episode layer must
         # not quietly reintroduce it.
