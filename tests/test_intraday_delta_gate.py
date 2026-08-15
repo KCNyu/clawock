@@ -216,6 +216,15 @@ def _wire_preflight(monkeypatch, tmp_path):
     monkeypatch.setattr(preflight, "collect_provisional_setups", lambda _m: setups)
     monkeypatch.setattr(
         preflight, "collect_early_trend_candidates", lambda _m: {"rows": []})
+    # #611: the radar and reinvest collectors run the real universe + Tencent
+    # fetches when left unpatched, so the suite depended on the live market
+    # (radar empty today, full_delta tomorrow) and the network. Both are pure
+    # producers here: empty radar rows, identity pass-through for the plan ctx.
+    monkeypatch.setattr(
+        preflight, "collect_opportunity_radar", lambda _m: {"rows": []})
+    monkeypatch.setattr(
+        preflight, "attach_reinvest_candidates",
+        lambda ctx, radar, signals_detail=None: ctx)
     monkeypatch.setattr(preflight, "quote_coverage", lambda *_a, **_k: {
         "refreshed": 1, "active": 1, "unrefreshed": [],
     })
