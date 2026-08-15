@@ -13,22 +13,38 @@ import json
 from datetime import date
 from pathlib import Path
 
-from clawock.workspace import workspace_root
 from clawock.decision import signals as quant_signals
+from clawock.market_data import sessions as trading_calendar
 from clawock.portfolio.instruments import get as get_instrument
+from clawock.workspace import workspace_root
 
-WS = workspace_root(Path.cwd())
-WATCH_LIST = WS / "config" / "watch-list.json"
-
-# 出现门槛:距 20 日高 ≤5%、或 5d 收益 ≥8%(次新无前高数据时只看 5d)
+# 出现门槛:距 20 日高 ≤5%、或 5d 收益 ≥8%(次新无前高数据时只看 5d)。
+# NEAR_HIGH_PCT 的单一真源在 add-alpha-policy.json 的 `opportunity_near_pct`
+# (#621)——radar 与 watch list 同读一个值,改配置两边同时生效。
 NEAR_HIGH_PCT = 5.0
 STRONG_5D_PCT = 8.0
+
+
+def _watch_list_path() -> Path:
+    """Config path, resolved at call time (#620: import must not depend on cwd)."""
+    return workspace_root(Path.cwd()) / "config" / "watch-list.json"
+
+
+def _policy_near_pct() -> float:
+    """`opportunity_near_pct` from add-alpha-policy.json, default NEAR_HIGH_PCT."""
+    try:
+        policy = json.loads(
+            (workspace_root(Path.cwd()) / "config" / "add-alpha-policy.json")
+            .read_text(encoding="utf-8"))
+        return float(policy.get("opportunity_near_pct") or NEAR_HIGH_PCT)
+    except (FileNotFoundError, json.JSONDecodeError, OSError, ValueError):
+        return NEAR_HIGH_PCT
 
 
 def watch_tickers() -> list[str]:
     """Registered watch-list tickers (fail-soft: a broken config is empty)."""
     try:
-        doc = json.loads(WATCH_LIST.read_text())
+        doc = json.loads(_watch_list_path().read_text())
         return [str(t) for t in (doc.get("tickers") or []) if t]
     except (FileNotFoundError, json.JSONDecodeError, OSError):
         return []
@@ -37,26 +53,44 @@ def watch_tickers() -> list[str]:
 def collect() -> dict:
     """Scan watch-list names on completed bars; never raises, never authorizes.
 
-    Returns ``{"rows": [...]}`` where a row is present only when the name is
-    breaking out, within NEAR_HIGH_PCT of its 20d high, or up ≥STRONG_5D_PCT
-    over 5 sessions. Each row: ticker / name / close / prior_20d_high /
-    pct_from_high / ret_5d / state(breakout | near_breakout | strong).
+    Returns ``{"rows": [...], "errors": [...]}`` where a row is present only
+    when the name is breaking out, within near-high % of its 20d high, or up
+    ≥STRONG_5D_PCT over 5 sessions. A watch-list ticker missing from
+    instruments.json (or without a canonical Tencent symbol) is reported in
+    `errors` — a typo must not be a permanent silent no-scan (#602).
     """
-    rows = []
+    rows, errors = [], []
+    near_pct = _policy_near_pct()
     for ticker in watch_tickers():
         meta = get_instrument(ticker) or {}
         code = meta.get("tencent_symbol")
         if not code:
+            errors.append({'ticker': ticker,
+                           'error': 'missing instruments.json entry or Tencent symbol'})
             continue
         try:
             bars = quant_signals.fetch_bars(code, 400)
+            # "On completed bars" is a real filter, not a docstring promise
+            # (#621): an intraday re-run must not read the still-open bar as a
+            # completed daily candle.
+            region = meta.get('region')
+            expected = (trading_calendar.latest_completed_session(region)
+                        if region else None)
+            if expected:
+                bars = [
+                    bar for bar in bars
+                    if bar.get('date') is not None
+                    and date.fromisoformat(str(bar['date'])[:10]) <= expected
+                ]
             sig = quant_signals.compute_signals(bars)
             if sig is None and quant_signals.is_short_history_candidate(
                     meta, date.today()):
                 # Only a genuinely-new name may use the 20-bar short view; a
                 # partial-feed mature name stays on the 30-bar gate (#608).
                 sig = quant_signals.compute_short_history_signals(bars)
-        except Exception:  # noqa: BLE001 — one dead feed must not blank the rest
+        except Exception as exc:  # noqa: BLE001 — one dead feed must not blank the rest
+            errors.append({'ticker': ticker,
+                           'error': f'{type(exc).__name__}: {exc}'[:200]})
             continue
         if not sig:
             continue
@@ -69,7 +103,7 @@ def collect() -> dict:
         ret_5d = (closes[-1] / closes[-6] - 1) * 100 if len(closes) >= 6 else None
         if prior is not None and close > prior:
             state = "breakout"
-        elif pct_from_high is not None and pct_from_high >= -NEAR_HIGH_PCT:
+        elif pct_from_high is not None and pct_from_high >= -near_pct:
             state = "near_breakout"
         elif ret_5d is not None and ret_5d >= STRONG_5D_PCT:
             state = "strong"
@@ -89,7 +123,10 @@ def collect() -> dict:
         row["state"] != "breakout",
         -(row["ret_5d"] or 0),
     ))
-    return {"rows": rows}
+    result = {"rows": rows}
+    if errors:
+        result["errors"] = errors
+    return result
 
 
 def main(argv=None) -> int:
