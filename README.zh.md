@@ -4,7 +4,7 @@
 
 ### AI 争辩。代码结算。连亏损都摆在明面上。
 
-Agent-native · Harness-agnostic 投资决策工作流引擎。不管你的 Agent 跑在哪个 harness 里——OpenClaw、Claude Code、Codex、DeepSeek Harness,还是你自己的 runner——clawock 让每个决策可验证、可结算、可复盘。一个真实港美股投研台正在用它运行,全程公开。
+8 层 40 模块信息流 · 多 Agent 辩论 · Python 确定性结算。一套真实港美股 AI 投研系统,打包成任何 Agent 可装的投资决策工作流,全程公开运行。
 
 [![Dashboard](https://img.shields.io/github/deployments/KCNyu/clawock/github-pages?label=DASHBOARD&style=flat-square&logo=githubpages&logoColor=white&labelColor=252b35&color=4b91c8)](https://kcnyu.github.io/clawock/)
 [![Tests](https://img.shields.io/github/actions/workflow/status/KCNyu/clawock/harness-regression.yml?label=TESTS&style=flat-square&logo=githubactions&logoColor=white&labelColor=252b35&color=738391)](https://github.com/KCNyu/clawock/actions/workflows/harness-regression.yml)
@@ -32,11 +32,15 @@ Agent-native · Harness-agnostic 投资决策工作流引擎。不管你的 Agen
 
 ## 这是什么
 
-给 AI Agent 用的投资决策工作流引擎。**换 harness 不换流程**:Claude Code、Codex、OpenClaw、DeepSeek Harness 或任何外部运行时负责模型调用、对话、记忆、工具;clawock 负责把一次投资决策变成一份**带证据、带反方、带结算、带战绩**的记录。
+clawock 是一套每天在真实港美股账户上运行的 AI 投研系统,打包成了任何 Agent 都能装的工作流。
 
-**模型提议,Python 结算,战绩公开。** 价格、风控上限、账本、盈亏结算全部由代码独立完成,模型永远不能给自己打分——所以这份公开战绩连亏损都收着,包括「主动判断至今没跑赢买入持有」。它不是跟单服务,不替你下单;执行始终在账户所有者手里。
+它的信息流是**8 层 40 个数据模块**:行情、基本面与申报(SEC EDGAR + 东财 + 港交所)、资金流、双语消息面与催化剂、宏观情绪、量化风控、账本与汇率校验、回测自省——港股美股双语覆盖,每次运行按需组装上下文。
 
-它发布在 PyPI:`pip install clawock`,在自己账本上跑,不需要这个仓库。
+它的决策是**一场多 Agent 辩论**:基本面 / 技术面 / 情绪面 / 板块轮动四位分析师读同一份上下文,多空两名研究员**必须**建立对立论点,激进 / 保守 / 中性三位风险官各陈其词,一位裁判点名策略框架收敛成决策。然后 **Python 独立结算**,模型永远不能给自己打分。
+
+这套能力打包成 `pip install clawock`,装进 Claude Code、Codex、OpenClaw、DeepSeek Harness 或任何外部运行时(模型、记忆、工具留在你的环境里,换 harness 不换流程),把一次投资决策变成**带证据、带反方、带结算、带战绩**的记录。
+
+它不是跟单服务,不替你下单;执行始终在账户所有者手里。战绩连亏损都公开(见下)。
 
 ## 快速开始
 
@@ -57,25 +61,31 @@ bash examples/minimal-run/run.sh
 
 想换 harness?[`examples/harness-agnostic`](examples/harness-agnostic/README.md) 用同一条决策契约演示了五种跑法:纯 CLI、OpenClaw skill、Claude Code 指令、Codex AGENTS.md、DeepSeek Harness agent——**换 harness 不换流程**。DSH 用户还有现成的 skill 包(发布后 `dsh plugin --profile web add clawock-dsh`),见 [`dsh-plugin/`](dsh-plugin/README.md)。
 
-## 核心卖点
+## 先看结果
 
-| 卖点 | 人话 |
-|---|---|
-| **Harness-agnostic** | 决策流程与 harness 解耦:模型、记忆、工具循环留在你的 harness(OpenClaw / Claude Code / Codex / DeepSeek Harness),clawock 只装决策契约,换 harness 不换流程 |
-| **Agent-native** | 不重造 Agent。模型、记忆、工具循环全在外部 runtime,clawock 只安装决策契约,跨 runtime 可迁移 |
-| **确定性结算** | LLM 提议,Python 结算。模型写不了、改不了自己的战绩 |
-| **公开自评** | 一个真实港美股账户,每一条结果都公开打分,亏损在内,「没跑赢买入持有」也写在页面上 |
-| **有界改进** | 结算结果只能提议有边界的参数改动,不能暗改策略 |
-| **证据强制** | 每个论点必须有反方;每次加仓必须量化证据 × 时点信息两族同时成立 |
-| **账本守恒** | 每次发布前检查资金守恒,现金/持仓/盈亏不平就什么都不发 |
+截至 2026-08,这个投研台已经公开结算了 **177 条判断**,Python 独立打分:
 
-## 防作弊机制
+| 组 | 方向命中率 | 样本 |
+|---|---|---|
+| 主动操作(cut / trim / 加仓) | 53% | n=73 |
+| 只是躺着 hold | 36% | n=104 |
+| 高信心主动判断 | 55% | n=33 |
 
-- **模型不能给自己打分**:决策由 Python 按基准行情、各市场自己的交易日历结算
-- **一个论点只算一次**:同一论点的重复喊单收敛为一个案例(episode),连喊五天「持有」不会变出五个样本
-- **因子要过样本外检验**:因子优势的 bootstrap 区间必须整体落在 50% 一侧才能进决策;截面层预注册,回溯结果永远不能把它打开
-- **风控上限每次简报都查**:单票 ≤35%、Top-2 ≤70%、杠杆 ETF ≤50%、组合 β ≤3.0、−18% 止损;每条违规有持久化记录
+方向命中率 ≠ 赚到钱:收益对比买入持有仍然落后,影子组合的模拟对比在[持仓页](https://kcnyu.github.io/clawock/#drill)如实展示。**没有一条结果被挑过——连这条「落后」都是自动结算出来的。**
+
+这套系统每天 08:00 产出深度简报,盘中每 30 分钟盯盘,收盘结算,推送到微信并刷新公开仪表盘;港股按 HKT、美股按 ET,cron 随纽约夏令时自动切换。
+
+[**实时仪表盘**](https://kcnyu.github.io/clawock/) · [**每日简报**](https://kcnyu.github.io/clawock/briefs.html) · [**证据与反证**](https://kcnyu.github.io/clawock/evidence.html) · [**排程表**](docs/operations/cron-schedules.md)
+
+## 为什么这份战绩可信
+
+- **结算用的是不可改写的行情**:单一基准供应商的逐日不复权行情,按各市场自己的交易日历;未完成场次永不打分,缺口按开盘价成交
+- **一个论点只算一次**:同一论点的重复喊单收敛为一个案例,连喊五天「持有」不会变出五个样本
+- **因子要过样本外检验**:bootstrap 区间必须整体落在 50% 一侧才能进决策;截面层预注册,回溯结果永远不能把它打开
+- **风控上限每次简报都查**:单票 ≤35%、Top-2 ≤70%、杠杆 ETF ≤50%、组合 β ≤3.0、−18% 止损
 - **软情绪不能单独翻转交易**:一条推文只能微调置信度,硬负面催化才可触发防守动作
+- **账本必须对得上**:每次发布前检查资金守恒,现金/持仓/盈亏不平就什么都不发
+- **改进是有界的**:结算结果只能提议参数调整,不能重写策略
 
 ## LLM 是怎么做决策的
 
@@ -130,12 +140,6 @@ LLM 从不自己抓数据,也不自己结算。它只做一件事:**读一份 Py
 | 判断新标的值不值得深研 | [`entry-gate`](skills/entry-gate/SKILL.md) | 可复用,产物落 `memory/entry-gates/` |
 
 串联顺序:建仓前研究闸 → 一手财报证据 → 规范论点 → 决策 / 风控 / 结算回路。每一步写带版本的产物给下一步读,后一步永远无法用文案重推前一步。
-
-## 它已经在跑
-
-这套系统每天 08:00 产出深度简报(多 Agent 辩论:四视角分析师 + 多空研究员 + 三位风险官 + 一位裁判归因),盘中每 30 分钟盯盘,收盘结算,推送到微信,并刷新公开仪表盘。港股按 HKT、美股按 ET,cron 随纽约夏令时自动切换;节假日闸门跳过休市场次。
-
-[**实时仪表盘**](https://kcnyu.github.io/clawock/) · [**每日简报**](https://kcnyu.github.io/clawock/briefs.html) · [**证据与反证**](https://kcnyu.github.io/clawock/evidence.html) · [**排程表**](docs/operations/cron-schedules.md)
 
 ## 底层是怎么组织的
 
