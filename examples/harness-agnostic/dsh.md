@@ -16,7 +16,8 @@ workspace context file) covering three steps:
    clawock run prepare --workspace /path/to/book
    ```
 
-   and read the emitted `request.json`. It contains the certified context
+   and read the emitted `request_file` (printed on stdout; the path looks like
+   `.clawock/work/<run_id>/request.json`). It contains the certified context
    (per-file sha256 fingerprints), the task, and the workflow gates
    (`min_supporting_evidence`, `min_opposing_evidence`,
    `max_confidence_without_primary_source`).
@@ -25,16 +26,41 @@ workspace context file) covering three steps:
 
    ```json
    {
+     "schema_version": 1,
+     "workflow": {"id": "investment-decision", "version": "1.1.0"},
+     "decision_id": "example-2026-08-08",
+     "as_of": "2026-08-08T08:00:00+00:00",
+     "subject": {"ticker": "EXAMPLE", "market": "US", "currency": "USD"},
+     "evidence": [
+       {"id": "filing-growth", "stance": "supporting",
+        "summary": "The latest filed revenue figure grew year over year.",
+        "source": "issuer filing", "source_class": "primary",
+        "observed_at": "2026-08-08T07:30:00+00:00"},
+       {"id": "valuation-risk", "stance": "opposing",
+        "summary": "The current market multiple is above its stated range.",
+        "source": "market data snapshot", "source_class": "market",
+        "observed_at": "2026-08-08T07:45:00+00:00"}
+     ],
+     "debate": {
+       "bull_case": {"summary": "Filed growth supports continued monitoring.",
+                     "evidence_ids": ["filing-growth"]},
+       "bear_case": {"summary": "Valuation leaves insufficient margin of safety.",
+                     "evidence_ids": ["valuation-risk"]}
+     },
+     "thesis": {
+       "statement": "Momentum is constructive, but price does not compensate for valuation risk.",
+       "confidence": 0.7,
+       "invalidation_conditions": ["Filed growth reverses"]
+     },
      "decision": {
-       "action": "hold",
-       "strategy": "core_position",
-       "confidence": 0.4,
-       "reasoning": "claim, citing evidence",
-       "opposing_case": "genuine counterargument",
-       "evidence": [{"source": "...", "claim": "..."}]
+       "action": "watch",
+       "rationale": "The opposing valuation evidence blocks an entry.",
+       "evidence_ids": ["filing-growth", "valuation-risk"],
+       "order": null
      }
    }
    ```
+
 
    Rules: every reasoning claim cites evidence; `opposing_case` is required
    and must be a real counterargument; proposed order amounts must reconcile;
@@ -44,8 +70,8 @@ workspace context file) covering three steps:
 
    ```bash
    clawock run publish \
-     --request /path/to/book/.clawock/work/request.json \
-     --artifact decision=/path/to/book/.clawock/work/decision.json
+     --request /path/to/book/.clawock/work/<run_id>/request.json \
+     --artifact decision.json=/path/to/book/decision.json
    ```
 
    Report the receipt's `status` and `run_id` to the user. Do not edit the
