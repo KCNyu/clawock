@@ -312,13 +312,18 @@ def test_an_empty_bar_list_is_reported_not_raised():
 
 
 def test_short_history_name_is_evaluated_not_reported_as_insufficient():
-    """20–29 bars now route through the short-history view (#542).
+    """20–29 bars route through the short-history view for genuinely-new
+    listings (#542 + #608 gate).
 
     A sub-30-bar name used to be reported `insufficient_bars(N)` and stay
-    invisible to the early-trend lane. It is now evaluated with the
-    20-bar-computable technical view; a flat series yields no setup and no error.
+    invisible to the early-trend lane. With a recent listing_date it is now
+    evaluated with the 20-bar-computable technical view; a flat series yields
+    no setup and no error. A mature name without a listing_date stays on the
+    strict 30-bar gate (#608) and is covered in test_short_history_signals.
     """
-    out = S.provisional_setups(_universe(), fetch=lambda code, cnt: _flat(25, 10.0))
+    universe = [{'label': 'SKHY', 'code': 'hkSKHY', 'region': 'US',
+                 'source_holdings': ['SKHY'], 'listing_date': '2026-07-10'}]
+    out = S.provisional_setups(universe, fetch=lambda code, cnt: _flat(25, 10.0))
 
     assert out == {'rows': [], 'confirmed_at_close': False}
 

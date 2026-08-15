@@ -16,7 +16,8 @@ def _wire(tmp_path, monkeypatch, sig_rows):
          'source_holdings': [label]}
         for label in sig_rows
     ]
-    monkeypatch.setattr(P.quant_signals, '_universe_details', lambda: universe)
+    monkeypatch.setattr(P.quant_signals, 'universe_details',
+                        lambda errors=None: universe)
     monkeypatch.setattr(P.quant_signals, 'fetch_bars', lambda code, cnt: [])
 
     def compute(bars, _row=iter(sig_rows.items())):
@@ -59,11 +60,14 @@ def test_radar_classifies_breakout_wait_and_near(tmp_path, monkeypatch):
 def test_radar_fails_soft_when_universe_breaks(monkeypatch, tmp_path):
     monkeypatch.setattr(P, 'WS', tmp_path)
 
-    def boom():
+    def boom(**kwargs):
         raise ValueError('no tencent symbol')
-    monkeypatch.setattr(P.quant_signals, '_universe_details', boom)
+    monkeypatch.setattr(P.quant_signals, 'universe_details', boom)
 
-    assert P.collect_opportunity_radar('us') == {'rows': []}
+    out = P.collect_opportunity_radar('us')
+    assert out['rows'] == []
+    assert out['errors'] == [{'label': None,
+                              'error': 'ValueError: no tencent symbol'}]
 
 
 def test_radar_section_is_additive():

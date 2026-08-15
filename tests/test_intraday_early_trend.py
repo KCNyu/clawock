@@ -27,9 +27,10 @@ def _wire(tmp_path, monkeypatch, *, residual=0.09, dispersion=0.03, peers=5,
         json.dumps({'information_overlay': {'tickers': {}}, 'events': []}))
     (tmp_path / 'config' / 'add-alpha-policy.json').write_text(json.dumps({}))
     monkeypatch.setattr(
-        P.quant_signals, '_universe_details',
-        lambda: [{'label': 'CRCL', 'code': 'hkCRCL', 'region': region,
-                  'source_holdings': ['CRCL']}],
+        P.quant_signals, 'universe_details',
+        lambda errors=None: [{'label': 'CRCL', 'code': 'hkCRCL',
+                              'region': region,
+                              'source_holdings': ['CRCL']}],
     )
     monkeypatch.setattr(P.quant_signals, 'fetch_bars', lambda code, cnt: [])
     monkeypatch.setattr(P.quant_signals, 'compute_signals', lambda bars: {
@@ -64,11 +65,14 @@ def test_collect_fails_soft_when_universe_is_unavailable(monkeypatch, tmp_path):
     """A broken portfolio/registry must return no candidates, not red the cron."""
     monkeypatch.setattr(P, 'WS', tmp_path)
 
-    def boom():
+    def boom(**kwargs):
         raise ValueError('no tencent symbol')
-    monkeypatch.setattr(P.quant_signals, '_universe_details', boom)
+    monkeypatch.setattr(P.quant_signals, 'universe_details', boom)
 
-    assert P.collect_early_trend_candidates('hk') == {'rows': []}
+    out = P.collect_early_trend_candidates('hk')
+    assert out['rows'] == []
+    assert out['errors'] == [{'label': None,
+                              'error': 'ValueError: no tencent symbol'}]
 
 
 def test_append_early_trend_section_is_additive():

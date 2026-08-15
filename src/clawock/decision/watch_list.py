@@ -10,6 +10,7 @@ brief preflight 每天对这些名字做一次价格面扫描:突破 / 接近突
 from __future__ import annotations
 
 import json
+from datetime import date
 from pathlib import Path
 
 from clawock.workspace import workspace_root
@@ -42,7 +43,6 @@ def collect() -> dict:
     pct_from_high / ret_5d / state(breakout | near_breakout | strong).
     """
     rows = []
-    short_history = getattr(quant_signals, "compute_short_history_signals", None)
     for ticker in watch_tickers():
         meta = get_instrument(ticker) or {}
         code = meta.get("tencent_symbol")
@@ -51,8 +51,11 @@ def collect() -> dict:
         try:
             bars = quant_signals.fetch_bars(code, 400)
             sig = quant_signals.compute_signals(bars)
-            if sig is None and short_history is not None:
-                sig = short_history(bars)
+            if sig is None and quant_signals.is_short_history_candidate(
+                    meta, date.today()):
+                # Only a genuinely-new name may use the 20-bar short view; a
+                # partial-feed mature name stays on the 30-bar gate (#608).
+                sig = quant_signals.compute_short_history_signals(bars)
         except Exception:  # noqa: BLE001 — one dead feed must not blank the rest
             continue
         if not sig:
