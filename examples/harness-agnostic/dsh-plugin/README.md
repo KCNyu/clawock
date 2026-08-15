@@ -7,14 +7,10 @@ clawock 的 DeepSeek Harness 插件:一个纯 skill 包,把 investment-decision
 ## 安装
 
 ```bash
-# 从 npm(发布后)
 dsh plugin --profile web add clawock-dsh
-
-# 或从 git 源
-dsh plugin --profile web add https://github.com/KCNyu/clawock#dsh-plugin
 ```
 
-装完重启 web profile,skill 即生效。
+已发布 npm(`clawock-dsh`)。装完重启 web profile,skill 即生效。
 
 ## 前提
 
@@ -37,13 +33,14 @@ clawock 的契约是文件 + CLI,DSH 的 bash 工具已经能执行全部命令;
 只需要把「什么时候跑、产出什么、什么不可协商」讲清楚。这也是 clawock
 harness-agnostic 定位的一部分——同一份契约,OpenClaw skill / Claude Code
 指令 / Codex AGENTS.md / DSH skill 各有一个壳,内容同构
-([examples/harness-agnostic](../../examples/harness-agnostic/README.md))。
+([../README.md](../README.md))。
 
-## 发布
+## 发布(脚本)
 
 ```bash
-cd dsh-plugin
-npm publish
+ops/publish/publish_dsh_plugin.sh          # 发布 package.json 当前版本
+ops/publish/publish_dsh_plugin.sh 0.1.1    # 先升版本再发布
 ```
 
-需要 npm 账号;包名 `clawock-dsh` 发布前检查是否被占用。
+`release.yml` 在 v* tag 发版时自动调用(版本同步主包);脚本也可手动补发。
+需要 npm 发布凭据(`NPM_TOKEN` 环境变量或本机 userconfig)。
