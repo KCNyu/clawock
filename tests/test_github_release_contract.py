@@ -37,11 +37,27 @@ def test_github_release_is_downstream_of_real_pypi_and_attaches_artifacts():
     workflow = WORKFLOW.read_text(encoding="utf-8")
     release_job = workflow.split("\n  github-release:\n", 1)[1]
 
-    assert ("needs: [publish, npm]" in release_job
-            or "needs: publish" in release_job)
+    # Both publishers must have accepted before the GitHub Release exists —
+    # pinned exact, not `needs: publish`-or-anything (#607: it was relaxed once
+    # and a regression to the PyPI-only dependency would not have failed).
+    assert "needs: [publish, npm]" in release_job
     assert "if: startsWith(github.ref, 'refs/tags/v')" in release_job
     assert "contents: write" in release_job
     assert "ops/publish/release_notes.py" in release_job
     assert "actions/download-artifact" in release_job
     assert 'gh release create "$GITHUB_REF_NAME" dist/*' in release_job
     assert workflow.count("contents: write") == 1
+
+
+def test_npm_version_bump_is_idempotent_in_both_publish_paths():
+    """#617: `npm version <same>` exits non-zero; once package.json syncs to
+    the tag version, the next release would fail both the npm job and the
+    github-release pack step. Both paths must skip the bump when versions
+    already match."""
+    workflow = WORKFLOW.read_text(encoding="utf-8")
+    assert "already at" in workflow, workflow
+    assert '"$current" != "$target"' in workflow
+
+    script = (ROOT / "ops" / "publish" / "publish_dsh_plugin.sh").read_text(encoding="utf-8")
+    assert '"$current" != "$version"' in script
+    assert "skipping bump" in script

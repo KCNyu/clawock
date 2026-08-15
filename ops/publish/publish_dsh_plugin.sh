@@ -23,7 +23,16 @@ PKG_DIR="$ROOT/examples/harness-agnostic/dsh-plugin"
 version="${1:-}"
 
 if [ -n "$version" ]; then
-  (cd "$PKG_DIR" && npm version "$version" --no-git-tag-version)
+  # Idempotent bump: `npm version <same>` fails with "Version not changed"
+  # (#617). Compare first so a tag whose version already matches package.json
+  # (e.g. a re-run after a partial failure) proceeds to publish instead of
+  # dying on the bump step.
+  current="$(cd "$PKG_DIR" && node -p "require('./package.json').version")"
+  if [ "$current" != "$version" ]; then
+    (cd "$PKG_DIR" && npm version "$version" --no-git-tag-version)
+  else
+    echo "dsh-plugin already at $version — skipping bump"
+  fi
 fi
 
 # Verify what will be shipped before touching the registry.
