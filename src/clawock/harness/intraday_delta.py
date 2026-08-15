@@ -21,7 +21,7 @@ from clawock.workspace import workspace_root
 from clawock.market_data import sessions as trading_calendar
 from clawock.market_data import peer_quotes as fetch_peers
 from clawock.automation import cron_heartbeat
-from clawock.safe_io import safe_write_json
+from clawock.safe_io import safe_write_json, load_json_cached
 
 WS = workspace_root(Path.cwd())
 HKT = ZoneInfo("Asia/Hong_Kong")
@@ -143,7 +143,7 @@ def market_session_date(market, at):
 
 def _load(path):
     try:
-        value = json.loads(Path(path).read_text())
+        value = load_json_cached(path)
         return value if isinstance(value, dict) else {}
     except (FileNotFoundError, json.JSONDecodeError, OSError):
         return {}

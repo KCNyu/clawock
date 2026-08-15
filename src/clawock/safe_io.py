@@ -202,3 +202,34 @@ if __name__ == '__main__':
         final = json.load(open(ctr))
         assert len(final) == 20, f'lost updates: only {len(final)}/20 keys survived'
         print('mutate_json concurrency (20 writers, no lost updates): OK')
+
+
+# Process-local JSON read cache, keyed by file mtime (#557). Same mtime ⇒ the
+# same bytes, so a cached hit is always current: a producer that atomically
+# replaces a file (every `safe_write_json` caller) bumps mtime and the next
+# read re-parses. No TTL, no staleness window.
+_JSON_READ_CACHE: dict[str, tuple[float, object]] = {}
+
+
+def load_json_cached(path: str | os.PathLike) -> object:
+    """Read + parse JSON once per mtime within this process.
+
+    Portfolio.json alone is read by 39 modules; a single preflight re-parses it
+    several times. Callers that re-read the same file in one process should
+    route through here. Raises FileNotFoundError / JSONDecodeError exactly like
+    a plain read — only the parse count changes.
+    """
+    path = os.path.abspath(os.fspath(path))
+    mtime = os.path.getmtime(path)
+    cached = _JSON_READ_CACHE.get(path)
+    if cached is not None and cached[0] == mtime:
+        return cached[1]
+    with open(path, encoding='utf-8') as f:
+        value = json.load(f)
+    _JSON_READ_CACHE[path] = (mtime, value)
+    return value
+
+
+def clear_json_cache() -> None:
+    """Drop every cached entry (tests; a long-lived process after a mass move)."""
+    _JSON_READ_CACHE.clear()

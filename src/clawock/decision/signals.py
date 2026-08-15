@@ -34,7 +34,7 @@ import requests
 
 from clawock.market_data import sessions as trading_calendar
 from clawock.portfolio.instruments import require as require_instrument
-from clawock.safe_io import safe_write_json
+from clawock.safe_io import safe_write_json, load_json_cached
 from clawock.workspace import workspace_root
 
 WS = workspace_root(Path.cwd())
@@ -344,7 +344,7 @@ def _universe_details():
     杠杆产品使用 registry 的 signal_symbol 折到标的/1x proxy；venue 后缀
     同样从 registry 读取，绝不再默认猜成 Nasdaq。
     """
-    port = json.loads(PORTFOLIO.read_text())
+    port = load_json_cached(PORTFOLIO)
     by_code = {}
     for book in (port.get('portfolios') or {}).values():
         if not isinstance(book, dict):
