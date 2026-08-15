@@ -132,9 +132,17 @@ jobs:
           path: dist/
 
       - name: Pack the DSH skill package for the release
+        # Idempotent bump: `npm version <same>` exits non-zero (#617). When the
+        # tag version already equals package.json, just pack what is there.
         run: |
           cd examples/harness-agnostic/dsh-plugin
-          npm version "${GITHUB_REF_NAME#v}" --no-git-tag-version
+          target="${GITHUB_REF_NAME#v}"
+          current="$(node -p "require('./package.json').version")"
+          if [ "$current" != "$target" ]; then
+            npm version "$target" --no-git-tag-version
+          else
+            echo "dsh-plugin already at $target — skipping bump"
+          fi
           npm pack
 
       - name: Render the public-package changelog section
