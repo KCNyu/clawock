@@ -24,9 +24,9 @@ import json
 from datetime import datetime
 from pathlib import Path
 
-from clawock.workspace import workspace_root
-from clawock.decision import risk as risk_ledger
 from clawock.decision import ledger as decision_v2
+from clawock.decision import risk as risk_ledger
+from clawock.workspace import workspace_root
 
 WS = workspace_root(Path.cwd())
 MEMORY = WS / "memory"

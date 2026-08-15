@@ -299,9 +299,8 @@ def collect_early_trend_candidates(market):
     info_rows = ((graph.get('information_overlay') or {}).get('tickers') or {})
     events = (graph or {}).get('events') or []
     try:
-        policy = json.loads(
-            (WS / 'config' / 'add-alpha-policy.json').read_text(encoding='utf-8'))
-    except (FileNotFoundError, json.JSONDecodeError, OSError):
+        policy = _load_json(WS / 'config' / 'add-alpha-policy.json')
+    except Exception:  # noqa: BLE001
         policy = {}
     rows = []
     run_date = datetime.now(ZoneInfo('Asia/Hong_Kong')).date()
@@ -436,6 +435,16 @@ def collect_opportunity_radar(market):
                             'error': f'{type(exc).__name__}: {exc}'[:200]}]}
     rows = []
     run_date = datetime.now(ZoneInfo('Asia/Hong_Kong')).date()
+    # #621: thresholds come from add-alpha-policy.json like every other lane
+    # (early_no_chase_zscore / opportunity_near_pct), so radar and early-trend
+    # cannot drift apart when the config changes.
+    try:
+        radar_policy = _load_json(WS / 'config' / 'add-alpha-policy.json')
+        near_pct = float(radar_policy.get("opportunity_near_pct")
+                         or OPPORTUNITY_NEAR_PCT)
+        no_chase_z = float(radar_policy.get("early_no_chase_zscore") or 2.0)
+    except (TypeError, ValueError):
+        near_pct, no_chase_z = OPPORTUNITY_NEAR_PCT, 2.0
     for detail in universe:
         label = detail.get('label')
         try:
@@ -456,11 +465,11 @@ def collect_opportunity_radar(market):
         if close is None or prior is None or prior <= 0:
             continue
         pct_from_high = (close / prior - 1) * 100
-        if close > prior and (z is None or z < 2):
+        if close > prior and (z is None or z < no_chase_z):
             state, state_zh = 'breakout', '机会·突破'
         elif close > prior:
             state, state_zh = 'wait_rebreak', '机会·等回踩'
-        elif close >= prior * (1 - OPPORTUNITY_NEAR_PCT / 100):
+        elif close >= prior * (1 - near_pct / 100):
             state, state_zh = 'near_breakout', '机会·接近'
         else:
             continue

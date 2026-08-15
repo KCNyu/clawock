@@ -5,6 +5,7 @@
   "minimum_information_score": 0.08,
   "minimum_attention_acceleration": 1.25,
   "minimum_attention_source_types": 1,
+  "opportunity_near_pct": 5.0,
   "attention_score_prior": 0.10,
   "minimum_event_novelty": 0.5,
   "minimum_event_reliability": 0.5,

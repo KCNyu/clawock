@@ -39,7 +39,7 @@ def test_quant_and_regime_discover_holdings_without_kcnyu_book_keys(
     monkeypatch.setattr(quant, "PORTFOLIO", portfolio)
     monkeypatch.setattr(regime, "PORTFOLIO", portfolio)
 
-    rows = quant._universe_details()
+    rows = quant.universe_details()
 
     assert {row["label"] for row in rows} == {"RKLB", "SPCX"}
     assert regime._held_us_lev_etfs() == ["RKLX", "SPCH"]

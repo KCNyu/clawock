@@ -21,7 +21,7 @@ from clawock.workspace import workspace_root
 from clawock.market_data import sessions as trading_calendar
 from clawock.market_data import peer_quotes as fetch_peers
 from clawock.automation import cron_heartbeat
-from clawock.safe_io import safe_write_json, load_json_cached
+from clawock.safe_io import load_json_cached, safe_write_json
 
 WS = workspace_root(Path.cwd())
 HKT = ZoneInfo("Asia/Hong_Kong")
