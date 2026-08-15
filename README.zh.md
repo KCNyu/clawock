@@ -67,6 +67,14 @@ bash examples/minimal-run/run.sh
 
 想换 harness?[`examples/harness-agnostic`](examples/harness-agnostic/README.md) 用同一条决策契约演示了五种跑法:纯 CLI、OpenClaw skill、Claude Code 指令、Codex AGENTS.md、DeepSeek Harness agent——**换 harness 不换流程**。DSH 用户还有现成的 skill 包(发布后 `dsh plugin --profile web add clawock-dsh`),见 [`dsh-plugin/`](dsh-plugin/README.md)。
 
+## 多 Agent 辩论
+
+每天 08:00,一份证据包喂给**四位分析师**(基本面 / 技术面 / 情绪面 / 板块轮动)读同一份上下文;**两名研究员必须建立多空对立论点**并记录分歧;激进 / 保守 / 中性**三位风险官**各陈其词;一位**裁判**点名策略框架,收敛成 `plan.json` 进入打分流水线(改编自 [TradingAgents](https://github.com/TauricResearch/TradingAgents))。
+
+**一致同意读作警示,而不是证据。** 协议要求他们真正分歧——所以你看不到"全员看多"的假共识。
+
+![clawock 的多 Agent 辩论 —— 一份证据包喂给四种分析师视角;两名研究员建立多空对立论点并记录分歧点;三种风险声音与一位裁判点名策略框架,收敛成 plan.json,进入下一场的打分环](site/assets/debate-flow.svg)
+
 ## 先看结果
 
 截至 2026-08,这个投研台已经公开结算了 **177 条判断**,Python 独立打分:
@@ -114,6 +122,12 @@ LLM 从不自己抓数据,也不自己结算。它只做一件事:**读一份 Py
 
 抓取层优雅降级:东财统一走节流网关,报价/汇率多源兜底,抓空保留旧值。哪个模块属于哪一层由 [`config/information-layers.json`](config/information-layers.json) 声明,CI 对着它核对,模块搬了家数字不会留在原地;完整命令与 provider 目录见[命令参考](docs/reference/commands.md)。
 
+### 热点捕获:影响者雷达
+
+系统每 48 小时扫描**特朗普(Truth Social 一手源)、马斯克(新闻聚合)**等影响者的公开动态,LLM 过滤后自动关联持仓与板块:标出立场(endorse / oppose)、相关度,并生成中文摘要。谁说了什么、和你的持仓有没有关系,盘前简报里直接可见——不用自己刷社交媒体。
+
+例:2026-08-13 特朗普宣布 de minimis 免税漏洞案胜诉,雷达自动命中零售/电商板块并关联到你的恒生科技持仓,摘要进次日盘前简报。
+
 ### 每次运行,LLM 拿到什么
 
 采集面宽,但每次运行只拿到这次能用得上的块:
@@ -139,12 +153,6 @@ LLM 从不自己抓数据,也不自己结算。它只做一件事:**读一份 Py
 | `tactical_entry` | 战术建仓 |
 
 加仓不是拍脑袋:量化因子与同行残差合并为一个 price_relative 证据族,时点新闻 surprise/attention 构成另一个证据族,**两族必须同时成立**;负面信息优先阻断;未验证信号只能进有上限的试探仓位,永远不能直接进决策。
-
-### 多 Agent 辩论
-
-每天深度简报跑一场结构化辩论(改编自 [TradingAgents](https://github.com/TauricResearch/TradingAgents)):基本面 / 技术面 / 情绪面 / 板块轮动四位分析师读同一份上下文;两名研究员**必须**建立多空对立论点并记录分歧;激进 / 保守 / 中性三位风险官各陈其词;一位裁判点名策略框架,收敛成 `plan.json`。**一致同意读作警示,而不是证据。**
-
-![clawock 的多 Agent 辩论 —— 一份证据包喂给四种分析师视角;两名研究员建立多空对立论点并记录分歧点;三种风险声音与一位裁判点名策略框架,收敛成 plan.json,进入下一场的打分环](site/assets/debate-flow.svg)
 
 ### 配套研究技能(skills)
 
