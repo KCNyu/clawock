@@ -63,7 +63,7 @@ def test_miss_detector_stops_after_two_reruns(monkeypatch, tmp_path):
 
     assert watchdog.alert_brief_missing(TODAY, False, ["brief_missing"]) == 0
 
-    assert spy.get("reruns") or [] == []
+    assert spy.get("reruns") is None
     assert watchdog._rerun_count(TODAY) == 2
 
 
@@ -73,4 +73,4 @@ def test_miss_detector_without_schedule_still_alerts(monkeypatch, tmp_path):
 
     assert watchdog.alert_brief_missing(TODAY, False, ["brief_missing"]) == 0
 
-    assert spy.get("reruns") or [] == []
+    assert spy.get("reruns") is None
