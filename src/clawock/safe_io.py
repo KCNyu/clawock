@@ -21,6 +21,7 @@ import math
 import os
 import sys
 import tempfile
+from typing import Any
 
 
 @contextlib.contextmanager
@@ -172,6 +173,54 @@ def safe_write_text(path: str, text: str) -> None:
         raise
 
 
+# Process-local JSON read cache, keyed by file mtime (#557), bounded LRU.
+# Same mtime + an atomic writer (every `safe_write_json`/`safe_write_text`
+# caller) ⇒ same bytes, so a cached hit is current for those producers: the
+# atomic replace bumps mtime and the next read re-parses. The guarantee does
+# NOT extend to in-place writers that restore mtime or coarse-mtime
+# filesystems (FAT / NFS / SMB) — see load_json_cached's docstring.
+_JSON_READ_CACHE: dict[str, tuple[float, Any]] = {}
+_MAX_JSON_CACHE_ENTRIES = 256
+
+
+def load_json_cached(path: str | os.PathLike) -> Any:
+    """Read + parse JSON once per mtime within this process.
+
+    Portfolio.json alone is read by dozens of modules; a single preflight
+    re-parses it several times. Callers that re-read the same file in one
+    process should route through here. Raises FileNotFoundError /
+    JSONDecodeError exactly like a plain read — only the parse count changes.
+
+    Contract boundaries (do not extend them silently):
+    - READ-ONLY return: the same mutable object is handed to every caller for
+      the same mtime, so an in-place mutation would poison later reads. Mutate
+      a copy if you must write.
+    - Freshness is guaranteed for atomic writers only. A producer that writes
+      in place without bumping mtime (or restores it), or a filesystem with
+      coarse mtime granularity, can hand back stale bytes — the price of the
+      parse-count win.
+    - Bounded: the oldest entry is evicted past _MAX_JSON_CACHE_ENTRIES;
+      eviction costs one re-parse, nothing else.
+    """
+    path = os.path.abspath(os.fspath(path))
+    mtime = os.path.getmtime(path)
+    cached = _JSON_READ_CACHE.get(path)
+    if cached is not None and cached[0] == mtime:
+        return cached[1]
+    with open(path, encoding='utf-8') as f:
+        value = json.load(f)
+    _JSON_READ_CACHE[path] = (mtime, value)
+    if len(_JSON_READ_CACHE) > _MAX_JSON_CACHE_ENTRIES:
+        # dict preserves insertion order: the first key is the oldest entry.
+        _JSON_READ_CACHE.pop(next(iter(_JSON_READ_CACHE)))
+    return value
+
+
+def clear_json_cache() -> None:
+    """Drop every cached entry (tests; a long-lived process after a mass move)."""
+    _JSON_READ_CACHE.clear()
+
+
 if __name__ == '__main__':
     # Self-test
     import tempfile as _tf
@@ -202,34 +251,3 @@ if __name__ == '__main__':
         final = json.load(open(ctr))
         assert len(final) == 20, f'lost updates: only {len(final)}/20 keys survived'
         print('mutate_json concurrency (20 writers, no lost updates): OK')
-
-
-# Process-local JSON read cache, keyed by file mtime (#557). Same mtime ⇒ the
-# same bytes, so a cached hit is always current: a producer that atomically
-# replaces a file (every `safe_write_json` caller) bumps mtime and the next
-# read re-parses. No TTL, no staleness window.
-_JSON_READ_CACHE: dict[str, tuple[float, object]] = {}
-
-
-def load_json_cached(path: str | os.PathLike) -> object:
-    """Read + parse JSON once per mtime within this process.
-
-    Portfolio.json alone is read by 39 modules; a single preflight re-parses it
-    several times. Callers that re-read the same file in one process should
-    route through here. Raises FileNotFoundError / JSONDecodeError exactly like
-    a plain read — only the parse count changes.
-    """
-    path = os.path.abspath(os.fspath(path))
-    mtime = os.path.getmtime(path)
-    cached = _JSON_READ_CACHE.get(path)
-    if cached is not None and cached[0] == mtime:
-        return cached[1]
-    with open(path, encoding='utf-8') as f:
-        value = json.load(f)
-    _JSON_READ_CACHE[path] = (mtime, value)
-    return value
-
-
-def clear_json_cache() -> None:
-    """Drop every cached entry (tests; a long-lived process after a mass move)."""
-    _JSON_READ_CACHE.clear()
