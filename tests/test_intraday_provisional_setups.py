@@ -311,12 +311,23 @@ def test_an_empty_bar_list_is_reported_not_raised():
     assert out['errors'] == [{'label': '02208', 'error': 'no_bars'}]
 
 
-def test_too_few_bars_is_reported_with_the_count():
-    short = _flat(29, 10.0)
+def test_short_history_name_is_evaluated_not_reported_as_insufficient():
+    """20–29 bars now route through the short-history view (#542).
 
-    out = S.provisional_setups(_universe(), fetch=lambda code, cnt: short)
+    A sub-30-bar name used to be reported `insufficient_bars(N)` and stay
+    invisible to the early-trend lane. It is now evaluated with the
+    20-bar-computable technical view; a flat series yields no setup and no error.
+    """
+    out = S.provisional_setups(_universe(), fetch=lambda code, cnt: _flat(25, 10.0))
 
-    assert out['errors'] == [{'label': '02208', 'error': 'insufficient_bars(29)'}]
+    assert out == {'rows': [], 'confirmed_at_close': False}
+
+
+def test_below_twenty_bars_is_still_reported_with_the_count():
+    """Below 20 bars even the short-history view is not computable."""
+    out = S.provisional_setups(_universe(), fetch=lambda code, cnt: _flat(15, 10.0))
+
+    assert out['errors'] == [{'label': '02208', 'error': 'insufficient_bars(15)'}]
 
 
 def test_an_empty_feed_for_one_symbol_keeps_the_rows_already_collected():
