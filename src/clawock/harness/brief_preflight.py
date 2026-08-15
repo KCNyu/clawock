@@ -46,6 +46,7 @@ from clawock.decision import packet as brief_decision_packet
 from clawock.decision import plans as decision_plans
 from clawock.decision import risk as risk_discipline
 from clawock.decision import theses as thesis_registry
+from clawock.decision import watch_list as watch_list_scan
 from clawock.evidence import research_surface
 from clawock.market_data import mover_evidence as mover_news
 from clawock.market_data import peer_scan
@@ -1866,6 +1867,8 @@ def main(argv=None):
     macro_trim, sentiment_trim = load_macro_and_sentiment(today, issues)
     influencer_trim = load_influencer_feed(issues)
     em_news_trim = load_em_news(issues)
+    # [15] Non-held AI watch list (智谱/迅策 等) — 只扫描机会,绝不产生 add 授权 (#556).
+    watch_list_ctx = watch_list_scan.collect()
 
     # Write the complete audit context plus a budgeted, generation-bound model
     # boundary. The full JSON remains available for postflight/audit; the skill
@@ -1943,6 +1946,7 @@ def main(argv=None):
         'sentiment':     sentiment_trim,
         'influencer':    influencer_trim,
         'em_news':       em_news_trim,
+        'watch_list':    watch_list_ctx,
         'issues':        issues,
     }
     ctx_path = TMP_DIR / f'brief-context-{today}.json'

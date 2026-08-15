@@ -10,7 +10,10 @@
       "tencent_symbol": "hk00100",
       "eastmoney_secid": "116.00100",
       "sector": "AI / 大模型",
-      "themes": ["AI", "foundation-models"],
+      "themes": [
+        "AI",
+        "foundation-models"
+      ],
       "factor": "CHINA_AI",
       "leverage_multiple": 1,
       "underlying": null,
@@ -29,7 +32,10 @@
       "tencent_symbol": "hk02208",
       "eastmoney_secid": "116.02208",
       "sector": "新能源",
-      "themes": ["wind-power", "renewable-energy"],
+      "themes": [
+        "wind-power",
+        "renewable-energy"
+      ],
       "factor": "WIND_POWER",
       "leverage_multiple": 1,
       "underlying": null,
@@ -48,7 +54,10 @@
       "tencent_symbol": "hk03032",
       "eastmoney_secid": "116.03032",
       "sector": "恒生科技 ETF",
-      "themes": ["hstech", "china-tech"],
+      "themes": [
+        "hstech",
+        "china-tech"
+      ],
       "factor": "HSTECH",
       "leverage_multiple": 1,
       "underlying": "HSTECH",
@@ -67,7 +76,10 @@
       "tencent_symbol": "hk03033",
       "eastmoney_secid": "116.03033",
       "sector": "恒生科技 ETF",
-      "themes": ["hstech", "china-tech"],
+      "themes": [
+        "hstech",
+        "china-tech"
+      ],
       "factor": "HSTECH",
       "leverage_multiple": 1,
       "underlying": "HSTECH",
@@ -86,7 +98,11 @@
       "tencent_symbol": "hk07226",
       "eastmoney_secid": "116.07226",
       "sector": "恒生科技 ETF",
-      "themes": ["hstech", "china-tech", "leveraged-etf"],
+      "themes": [
+        "hstech",
+        "china-tech",
+        "leveraged-etf"
+      ],
       "factor": "HSTECH",
       "leverage_multiple": 2,
       "underlying": "HSTECH",
@@ -105,7 +121,10 @@
       "tencent_symbol": "hk07709",
       "eastmoney_secid": "116.07709",
       "sector": "Semiconductor ETF",
-      "themes": ["memory-chip", "leveraged-etf"],
+      "themes": [
+        "memory-chip",
+        "leveraged-etf"
+      ],
       "factor": "SK_HYNIX",
       "leverage_multiple": 2,
       "underlying": "SKHY",
@@ -124,7 +143,10 @@
       "tencent_symbol": "hk07747",
       "eastmoney_secid": "116.07747",
       "sector": "Semiconductor ETF",
-      "themes": ["memory-chip", "leveraged-etf"],
+      "themes": [
+        "memory-chip",
+        "leveraged-etf"
+      ],
       "factor": "SAMSUNG_ELECTRONICS",
       "leverage_multiple": 2,
       "underlying": "005930.KS",
@@ -143,7 +165,10 @@
       "tencent_symbol": "usCRCL.N",
       "eastmoney_secid": "106.CRCL",
       "sector": "Crypto / Stablecoin",
-      "themes": ["stablecoin", "fintech"],
+      "themes": [
+        "stablecoin",
+        "fintech"
+      ],
       "factor": "STABLECOIN",
       "leverage_multiple": 1,
       "underlying": null,
@@ -162,7 +187,10 @@
       "tencent_symbol": "usHOOD.OQ",
       "eastmoney_secid": "105.HOOD",
       "sector": "Fintech",
-      "themes": ["brokerage", "crypto"],
+      "themes": [
+        "brokerage",
+        "crypto"
+      ],
       "factor": "HOOD",
       "leverage_multiple": 1,
       "underlying": null,
@@ -181,7 +209,10 @@
       "tencent_symbol": "usMSFT.OQ",
       "eastmoney_secid": "105.MSFT",
       "sector": "Tech Mega-cap",
-      "themes": ["cloud", "AI"],
+      "themes": [
+        "cloud",
+        "AI"
+      ],
       "factor": "MSFT",
       "leverage_multiple": 1,
       "underlying": null,
@@ -200,7 +231,11 @@
       "tencent_symbol": "usMSFU.OQ",
       "eastmoney_secid": "107.MSFU",
       "sector": "Tech Mega-cap",
-      "themes": ["cloud", "AI", "leveraged-etf"],
+      "themes": [
+        "cloud",
+        "AI",
+        "leveraged-etf"
+      ],
       "factor": "MSFT",
       "leverage_multiple": 2,
       "underlying": "MSFT",
@@ -219,7 +254,10 @@
       "tencent_symbol": "usNVDA.OQ",
       "eastmoney_secid": "105.NVDA",
       "sector": "Semiconductor",
-      "themes": ["AI", "semiconductor"],
+      "themes": [
+        "AI",
+        "semiconductor"
+      ],
       "factor": "AI_SEMICONDUCTOR",
       "leverage_multiple": 1,
       "underlying": null,
@@ -238,7 +276,10 @@
       "tencent_symbol": "usOKLO.N",
       "eastmoney_secid": "106.OKLO",
       "sector": "Nuclear / Energy",
-      "themes": ["nuclear", "energy"],
+      "themes": [
+        "nuclear",
+        "energy"
+      ],
       "factor": "NUCLEAR_ENERGY",
       "leverage_multiple": 1,
       "underlying": null,
@@ -257,7 +298,10 @@
       "tencent_symbol": "usPLTR.OQ",
       "eastmoney_secid": "105.PLTR",
       "sector": "AI / Defense",
-      "themes": ["AI", "defense-software"],
+      "themes": [
+        "AI",
+        "defense-software"
+      ],
       "factor": "PLTR",
       "leverage_multiple": 1,
       "underlying": null,
@@ -276,7 +320,11 @@
       "tencent_symbol": "usPLTU.OQ",
       "eastmoney_secid": "107.PLTU",
       "sector": "AI / Defense",
-      "themes": ["AI", "defense-software", "leveraged-etf"],
+      "themes": [
+        "AI",
+        "defense-software",
+        "leveraged-etf"
+      ],
       "factor": "PLTR",
       "leverage_multiple": 2,
       "underlying": "PLTR",
@@ -295,7 +343,10 @@
       "tencent_symbol": "usQQQ.OQ",
       "eastmoney_secid": "105.QQQ",
       "sector": "Index ETF",
-      "themes": ["nasdaq-100", "large-cap-growth"],
+      "themes": [
+        "nasdaq-100",
+        "large-cap-growth"
+      ],
       "factor": "NASDAQ_100",
       "leverage_multiple": 1,
       "underlying": "NASDAQ_100",
@@ -314,7 +365,10 @@
       "tencent_symbol": "usRKLB.OQ",
       "eastmoney_secid": "105.RKLB",
       "sector": "Aerospace",
-      "themes": ["space", "launch"],
+      "themes": [
+        "space",
+        "launch"
+      ],
       "factor": "RKLB",
       "leverage_multiple": 1,
       "underlying": null,
@@ -333,7 +387,11 @@
       "tencent_symbol": "usRKLX.OQ",
       "eastmoney_secid": "107.RKLX",
       "sector": "Aerospace",
-      "themes": ["space", "launch", "leveraged-etf"],
+      "themes": [
+        "space",
+        "launch",
+        "leveraged-etf"
+      ],
       "factor": "RKLB",
       "leverage_multiple": 2,
       "underlying": "RKLB",
@@ -352,7 +410,11 @@
       "tencent_symbol": "usROBN.AM",
       "eastmoney_secid": "107.ROBN",
       "sector": "Fintech",
-      "themes": ["brokerage", "crypto", "leveraged-etf"],
+      "themes": [
+        "brokerage",
+        "crypto",
+        "leveraged-etf"
+      ],
       "factor": "HOOD",
       "leverage_multiple": 2,
       "underlying": "HOOD",
@@ -371,7 +433,10 @@
       "tencent_symbol": "usSKHY.OQ",
       "eastmoney_secid": "105.SKHY",
       "sector": "Semiconductor",
-      "themes": ["memory-chip", "AI"],
+      "themes": [
+        "memory-chip",
+        "AI"
+      ],
       "factor": "SK_HYNIX",
       "leverage_multiple": 1,
       "underlying": null,
@@ -390,7 +455,10 @@
       "tencent_symbol": "usSOXL.AM",
       "eastmoney_secid": "107.SOXL",
       "sector": "Semiconductor ETF",
-      "themes": ["semiconductor", "leveraged-etf"],
+      "themes": [
+        "semiconductor",
+        "leveraged-etf"
+      ],
       "factor": "SEMICONDUCTOR",
       "leverage_multiple": 3,
       "underlying": "SOXX",
@@ -409,7 +477,9 @@
       "tencent_symbol": "usSOXX.OQ",
       "eastmoney_secid": "105.SOXX",
       "sector": "Semiconductor ETF",
-      "themes": ["semiconductor"],
+      "themes": [
+        "semiconductor"
+      ],
       "factor": "SEMICONDUCTOR",
       "leverage_multiple": 1,
       "underlying": "SEMICONDUCTOR",
@@ -428,7 +498,11 @@
       "tencent_symbol": "usSPCH.AM",
       "eastmoney_secid": "107.SPCH",
       "sector": "Aerospace",
-      "themes": ["space", "private-markets", "leveraged-etf"],
+      "themes": [
+        "space",
+        "private-markets",
+        "leveraged-etf"
+      ],
       "factor": "SPACEX",
       "leverage_multiple": 2,
       "underlying": "SPCX",
@@ -447,7 +521,10 @@
       "tencent_symbol": "usSPCX.OQ",
       "eastmoney_secid": "107.SPCX",
       "sector": "Aerospace",
-      "themes": ["space", "private-markets"],
+      "themes": [
+        "space",
+        "private-markets"
+      ],
       "factor": "SPACEX",
       "leverage_multiple": 1,
       "underlying": null,
@@ -466,7 +543,10 @@
       "tencent_symbol": "usTCOM.OQ",
       "eastmoney_secid": "105.TCOM",
       "sector": "Travel / Online",
-      "themes": ["travel", "china-consumer"],
+      "themes": [
+        "travel",
+        "china-consumer"
+      ],
       "factor": "CHINA_TRAVEL",
       "leverage_multiple": 1,
       "underlying": null,
@@ -485,7 +565,11 @@
       "tencent_symbol": "usTQQQ.OQ",
       "eastmoney_secid": "105.TQQQ",
       "sector": "Index ETF",
-      "themes": ["nasdaq-100", "large-cap-growth", "leveraged-etf"],
+      "themes": [
+        "nasdaq-100",
+        "large-cap-growth",
+        "leveraged-etf"
+      ],
       "factor": "NASDAQ_100",
       "leverage_multiple": 3,
       "underlying": "QQQ",
@@ -504,7 +588,10 @@
       "tencent_symbol": "hkHSTECH",
       "eastmoney_secid": null,
       "sector": "恒生科技指数",
-      "themes": ["hstech", "china-tech"],
+      "themes": [
+        "hstech",
+        "china-tech"
+      ],
       "factor": "HSTECH",
       "leverage_multiple": 1,
       "underlying": null,
@@ -512,6 +599,50 @@
       "signal_symbol": "HSTECH",
       "listing_date": "2020-07-27",
       "peer_bucket": "hk-hstech-index",
+      "retired": false
+    },
+    "02513": {
+      "name": "智谱",
+      "region": "HK",
+      "currency": "HKD",
+      "venue": "HKEX",
+      "venue_suffix": null,
+      "tencent_symbol": "hk02513",
+      "eastmoney_secid": "116.02513",
+      "sector": "AI / 大模型",
+      "themes": [
+        "AI",
+        "foundation-models"
+      ],
+      "factor": "CHINA_AI",
+      "leverage_multiple": 1,
+      "underlying": null,
+      "one_x_substitute": null,
+      "signal_symbol": "02513",
+      "listing_date": null,
+      "peer_bucket": "hk-ai-models",
+      "retired": false
+    },
+    "03317": {
+      "name": "迅策科技",
+      "region": "HK",
+      "currency": "HKD",
+      "venue": "HKEX",
+      "venue_suffix": null,
+      "tencent_symbol": "hk03317",
+      "eastmoney_secid": "116.03317",
+      "sector": "AI 应用",
+      "themes": [
+        "AI",
+        "ai-apps"
+      ],
+      "factor": "CHINA_AI",
+      "leverage_multiple": 1,
+      "underlying": null,
+      "one_x_substitute": null,
+      "signal_symbol": "03317",
+      "listing_date": null,
+      "peer_bucket": "hk-ai-models",
       "retired": false
     }
   }
