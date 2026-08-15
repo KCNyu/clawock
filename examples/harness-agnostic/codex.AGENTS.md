@@ -7,9 +7,9 @@ root.
 
 ## When to engage
 
-When a clawock request file is present (normally `.clawock/work/request.json`
-produced by `clawock run prepare`), or when the user asks to run the
-investment-decision workflow.
+When a clawock request file is present (`.clawock/work/<run_id>/request.json`,
+the `request_file` path printed by `clawock run prepare`), or when the user
+asks to run the investment-decision workflow.
 
 ## The loop
 
@@ -21,23 +21,48 @@ investment-decision workflow.
 
    ```json
    {
+     "schema_version": 1,
+     "workflow": {"id": "investment-decision", "version": "1.1.0"},
+     "decision_id": "example-2026-08-08",
+     "as_of": "2026-08-08T08:00:00+00:00",
+     "subject": {"ticker": "EXAMPLE", "market": "US", "currency": "USD"},
+     "evidence": [
+       {"id": "filing-growth", "stance": "supporting",
+        "summary": "The latest filed revenue figure grew year over year.",
+        "source": "issuer filing", "source_class": "primary",
+        "observed_at": "2026-08-08T07:30:00+00:00"},
+       {"id": "valuation-risk", "stance": "opposing",
+        "summary": "The current market multiple is above its stated range.",
+        "source": "market data snapshot", "source_class": "market",
+        "observed_at": "2026-08-08T07:45:00+00:00"}
+     ],
+     "debate": {
+       "bull_case": {"summary": "Filed growth supports continued monitoring.",
+                     "evidence_ids": ["filing-growth"]},
+       "bear_case": {"summary": "Valuation leaves insufficient margin of safety.",
+                     "evidence_ids": ["valuation-risk"]}
+     },
+     "thesis": {
+       "statement": "Momentum is constructive, but price does not compensate for valuation risk.",
+       "confidence": 0.7,
+       "invalidation_conditions": ["Filed growth reverses"]
+     },
      "decision": {
-       "action": "hold",
-       "strategy": "core_position",
-       "confidence": 0.4,
-       "reasoning": "claim with cited evidence",
-       "opposing_case": "genuine counterargument",
-       "evidence": [{"source": "...", "claim": "..."}]
+       "action": "watch",
+       "rationale": "The opposing valuation evidence blocks an entry.",
+       "evidence_ids": ["filing-growth", "valuation-risk"],
+       "order": null
      }
    }
    ```
+
 
 3. **Run `clawock run publish`** with the request and your artifact:
 
    ```bash
    clawock run publish \
-     --request .clawock/work/request.json \
-     --artifact decision=.clawock/work/decision.json
+     --request .clawock/work/<run_id>/request.json \
+     --artifact decision.json=decision.json
    ```
 
 4. **Report the receipt** — `status` and `run_id` — and stop. Do not edit the

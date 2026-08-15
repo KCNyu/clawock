@@ -1,11 +1,23 @@
 {
   "name": "clawock-dsh",
-  "version": "0.1.0",
+  "version": "0.1.4",
   "description": "clawock investment-decision workflow skill for DeepSeek Harness agents — evidence, opposing case, deterministic settlement, public scorecard",
   "license": "MIT",
-  "keywords": ["dsh", "deepseek-harness", "clawock", "investment", "agent", "trading", "skill"],
-  "files": ["skills"],
+  "keywords": [
+    "dsh",
+    "deepseek-harness",
+    "clawock",
+    "investment",
+    "agent",
+    "trading",
+    "skill"
+  ],
+  "files": [
+    "skills"
+  ],
   "dsh": {
-    "skills": ["./skills/investment-decision/SKILL.md"]
+    "skills": [
+      "./skills/investment-decision/SKILL.md"
+    ]
   }
 }
