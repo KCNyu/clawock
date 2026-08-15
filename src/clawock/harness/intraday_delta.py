@@ -3,7 +3,9 @@
 
 The trigger evaluates this script before creating an agent turn. It compares the
 returned normalized state with its durable prior state and invokes the LLM only
-for a condition delta, a material reprice, or a low-frequency forced review.
+for a condition delta. The normalized state deliberately excludes raw quote
+churn: it carries decision-relevant semantics (signals, setups, plans, primary
+events, source health) plus the leverage regime and risk-alert state.
 """
 from __future__ import annotations
 
@@ -109,13 +111,14 @@ def semantic_state(market, session_date, *, signals_detail, anomalies, setups,
                 (active_information or {}).get("partially_degraded_issuers") or []
             ),
         },
+        "regime": _regime_state(market),
     }
 
 
 def compare_semantic_states(current, previous):
     previous = previous if isinstance(previous, dict) else {}
     keys = ("session", "breaches", "setups", "plans", "primary_events",
-            "primary_source_health")
+            "primary_source_health", "regime")
     components = [key for key in keys if current.get(key) != previous.get(key)]
     old_events = previous.get("primary_events") or {}
     new_events = current.get("primary_events") or {}
@@ -229,6 +232,8 @@ def _regime_state(market):
     return {
         "portfolio_tier": regime.get("tier"),
         "leg_tier": leg.get("tier"),
+        "lev_cap_mult": leg.get("lev_cap_mult"),
+        "leg_trend_on": leg.get("trend_on"),
         "names": names,
         "risk_alerts": [list(row) for row in alerts],
     }
