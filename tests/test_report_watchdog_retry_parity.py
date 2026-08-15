@@ -100,3 +100,31 @@ def test_postflight_records_the_source_context_timestamp(tmp_path, monkeypatch):
     marker = json.loads((tmp_path / 'report-sent-hk-pm-2026-08-03.json').read_text())
     assert marker['context_generated_at'] == '2026-08-03T13:30:24.100000'
     assert marker['context_id'] == 'af4310c68bbf'
+
+
+def test_holder_died_mid_send_is_named_explicitly():
+    """#544: a claim left by a sender killed mid-send (send_started_at set, no
+    completion marker) must produce an explicit 'WeChat 送达未被确认' alert —
+    the acceptance is that kcn is told, not that the Telegram mirror silently
+    reads like a normal message."""
+    from clawock.harness import report_watchdog as watchdog
+
+    gap = watchdog.wechat_gap_reason(
+        {'pid': 872161, 'ts': 1786685531697, 'send_started_at': 1786685531697})
+
+    assert gap is not None
+    reason, banner = gap
+    assert reason == 'holder-died-mid-send'
+    assert 'WeChat 送达未被确认' in banner
+    assert 'Telegram 兜底' in banner
+
+
+def test_claim_without_send_start_is_not_a_gap():
+    """A claim whose holder never started sending is not 'mid-send' — the slot
+    stays a normal missing-marker mirror."""
+    from clawock.harness import report_watchdog as watchdog
+
+    assert watchdog.wechat_gap_reason(
+        {'pid': 872161, 'ts': 1786685531697, 'send_started_at': None}) is None
+    assert watchdog.wechat_gap_reason(None) is None
+    assert watchdog.wechat_gap_reason({}) is None
