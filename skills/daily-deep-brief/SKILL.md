@@ -845,6 +845,11 @@ clawock brief postflight
 > **为什么这样改（2026-06-08）**：旧的 `delivery=announce` 在长 turn 末尾用 turn 起点抓的 token 投递，brief turn 恒 >160s（173–975s）→ token 必过期 → 静默丢、`delivered=true` 是假信号（见 memory: openclaw-wechat-longturn-token-expiry）。短命 message send 每次抓新 token，且独立于 turn 时长，kcn 实测可靠（同 intraday 架构）。
 >
 > **你的职责到 Step 5 跑完 postflight 为止**：产出 A/B/C/D/E 五个文件 + 跑 postflight。看到 `wechat_sent: true` 即大功告成，**立即结束本轮，不要再追加任何思考或内容**。
+>
+> **🔒 送达确认铁律（2026-08-15 起，#558）**：
+> postflight **之后禁止**用 exec / list / show 去读 `memory/.tmp/` 下的 marker、claim、sent 文件"眼见为实"确认送达。
+> 送达由 postflight 的 marker + watchdog 兜底负责，`wechat_sent: true` / postflight 输出里的投递摘要就是权威。
+> 违例形态（2026-08-10~14 复发 ≥5 次）：`Exec failed: list files in memory/.tmp/report-sent-*.json` → 整回合被判 error → 该槽位投递缺口（#544）。**postflight 说送到了就是送到了，不要二次确认。**
 
 ## Style rules
 
