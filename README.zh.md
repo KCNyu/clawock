@@ -14,6 +14,7 @@
 [![Coverage](https://img.shields.io/endpoint?url=https%3A%2F%2Fkcnyu.github.io%2Fclawock%2Fassets%2Fdata%2Fcoverage.json&style=flat-square&logo=python&logoColor=white&labelColor=252b35)](https://github.com/KCNyu/clawock/actions/workflows/harness-regression.yml)
 [![License](https://img.shields.io/badge/LICENSE-MIT-aab5bf?style=flat-square&labelColor=252b35)](LICENSE)
 [![DeepSeek Harness](https://img.shields.io/badge/DeepSeek%20Harness-ready-8257D0?style=flat-square&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNiAxNiI+PHBhdGggZmlsbD0iI2ZmZiIgZD0iTTggMkM0LjcgMiAyIDQuNyAyIDhzMi43IDYgNiA2IDYtMi43IDYtNi0yLjctNi02LTZ6bTAgMTBhNCA0IDAgMSAxIDAtOCA0IDQgMCAwIDEgMCA4eiIvPjwvc3ZnPg==)](https://github.com/deepseek-ai/deepseek-harness)
+[![npm](https://img.shields.io/npm/v/clawock-dsh?style=flat-square&labelColor=252b35&color=cb0000)](https://www.npmjs.com/package/clawock-dsh)
 
 [**实时仪表盘**](https://kcnyu.github.io/clawock/) &nbsp;·&nbsp; [**每日简报**](https://kcnyu.github.io/clawock/briefs.html) &nbsp;·&nbsp; [**证据与反证**](https://kcnyu.github.io/clawock/evidence.html) &nbsp;·&nbsp; [**English**](README.md)
 
@@ -222,7 +223,7 @@ initialized clawock workspace: .../book
 isolated run published 9c07e83a19b046b089f443829eb9a06e
 ```
 
-跑完你就拿到了第一张被 Python 校验过的决策回执。换 harness?[`examples/harness-agnostic`](examples/harness-agnostic/README.md) 五种跑法同一条契约;DSH 用户还有现成 skill 包(发布后 `dsh plugin --profile web add clawock-dsh`)。
+跑完你就拿到了第一张被 Python 校验过的决策回执。换 harness?[`examples/harness-agnostic`](examples/harness-agnostic/README.md) 五种跑法同一条契约;DSH 用户还有现成 skill 包(`dsh plugin --profile web add clawock-dsh`,已发布 npm)。
 
 **装完你得到三件事:** ① 每天 08:00 微信一份带证据链的深度简报,盘中每 30 分钟轻量盯盘(可关);② 一套所有决策可复算、可查账的审计框架;③ 一个诚实的基线——以后任何策略、任何 Agent,都能拿它跟 90 天实盘记录对比。它现在不能承诺「赚」,能承诺的是「每一笔都有据可查」。模型费用走你自己的 API key,clawock 本身免费开源。
 
