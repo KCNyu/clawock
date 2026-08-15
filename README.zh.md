@@ -30,6 +30,18 @@
 
 ---
 
+> **它跑了一百多天,公开结算 177 条判断。它没有跑赢买入持有——每一笔亏损都摆在页面上。**
+>
+> 卖点不是「赚得更多」,而是「骗不了人」:模型提议,Python 结算,战绩全公开。这套投研台打包成了 `pip install clawock`,可以装进任何 Agent。
+
+## 直接甩给 AI 装
+
+不想读文档?把本仓库地址丢给你的 Agent(Claude Code / Codex / OpenClaw / DeepSeek Harness 都行),让它照着做:
+
+1. `python -m pip install clawock`
+2. 跑 `bash examples/minimal-run/run.sh` 验证一条完整决策(无模型,不联网)
+3. 需要走真实决策时,按 [`dsh-plugin/skills/investment-decision/SKILL.md`](dsh-plugin/skills/investment-decision/SKILL.md) 的三步流程:prepare → 写 `decision.json` → publish
+
 ## 这是什么
 
 clawock 是一套真实港美股账户上运行的 AI 投研系统,打包成 `pip install clawock` 就能装进任何 Agent(Claude Code、Codex、OpenClaw、DeepSeek Harness 都行)。
