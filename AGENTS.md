@@ -53,7 +53,10 @@ After any of the following changes, run a git commit automatically — no need t
 | Package, profile or `ops/` code changed | `refactor:`/`fix:`/`feat: <what changed>` (via PR, never direct) |
 | Workspace docs changed (SOUL/AGENTS/TOOLS/USER/CLAUDE/README) | `docs: <what changed>` |
 
-Message style: `<type>: <concise description>`, Chinese is fine.
+Message style: `<type>: <concise description>`, Chinese is fine. Commit message
+bodies use real newlines (multi-line `-m` / heredoc), never a literal `\n`
+(#615: two past commits shipped the two characters `\n` and rendered as one
+blob).
 **Never commit:** `.api_keys`, scratch `*.png`/`*.jpg` outside the shipped `site/assets/`/`docs/` allowlists, `.openclaw/`, `.clawhub/`, `memory/.dreams/`, `memory/.tmp/` (gitignored). Shipped `site/assets/*.png` are committed; `screenshot-refresh.yml` generates `site/assets/social-card.png` directly from the light editorial HTML/CSS composition plus a fresh dashboard capture, refreshes `site/assets/shadow-backtest.png`, and updates `site/assets/dashboard.gif` only on manual dispatch.
 
 Push: harness postflight now **auto-pushes** after commit (rebase+retry on race).

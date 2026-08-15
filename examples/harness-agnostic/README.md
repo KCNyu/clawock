@@ -1,6 +1,6 @@
 # Harness-agnostic example
 
-One decision workflow, four ways to run it. clawock's contract is files and a
+One decision workflow, five ways to run it. clawock's contract is files and a
 CLI, so the harness around the model is yours to pick — and yours to change
 without touching the workflow.
 

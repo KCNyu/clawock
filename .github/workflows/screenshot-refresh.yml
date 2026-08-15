@@ -90,8 +90,13 @@ jobs:
       - name: Recompute README metrics
         # Reuses the packaged ledger directly from src/ — no install needed.
         # Rewrites the <!-- CW_M:* --> placeholders and writes
-        # assets/data/readme_metrics.json for audit. Exit 0 = changed.
-        run: python ops/growth/refresh_readme_metrics.py --data-plane data-plane/assets/data
+        # assets/data/readme_metrics.json for audit. Exit contract:
+        #   0 = changed, 1 = nothing changed (normal on a quiet week; the
+        #   commit step below makes the final call), 2 = real error.
+        # Only exit 1 is tolerated — anything else fails the step loudly.
+        run: |
+          python ops/growth/refresh_readme_metrics.py --data-plane data-plane/assets/data \
+            || [ $? -eq 1 ]
 
       - name: Commit if changed
         env:
