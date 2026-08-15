@@ -375,6 +375,96 @@ def append_early_trend_section(block, candidates, signals_detail=None):
     return block + '\n' + '\n'.join(lines)
 
 
+OPPORTUNITY_NEAR_PCT = 5.0
+
+
+def collect_opportunity_radar(market):
+    """机会雷达:突破/等回踩/接近突破的价格面候选观察(#551)。
+
+    与 early_trend 的区别:这是纯价格面,不要求 peer/information 确认——
+    回答"机会在哪",不下单授权(候选≠下单)。数据全部来自 technical 视图,
+    零新抓取。fail-soft:任何名字取不到 bars 就跳过,不红 cron。
+    """
+    region = 'HK' if market == 'hk' else 'US'
+    try:
+        universe = [d for d in quant_signals._universe_details()
+                    if d.get('region') == region]
+    except Exception:  # noqa: BLE001
+        return {'rows': []}
+    short_history = getattr(quant_signals, 'compute_short_history_signals', None)
+    rows = []
+    for detail in universe:
+        label = detail.get('label')
+        try:
+            bars = quant_signals.fetch_bars(detail['code'], 400)
+            sig = quant_signals.compute_signals(bars)
+            if sig is None and short_history is not None:
+                sig = short_history(bars)
+        except Exception:  # noqa: BLE001
+            continue
+        if not sig:
+            continue
+        close = sig.get('close')
+        prior = sig.get('prior_20d_high')
+        z = sig.get('zscore20')
+        if close is None or prior is None or prior <= 0:
+            continue
+        pct_from_high = (close / prior - 1) * 100
+        if close > prior and (z is None or z < 2):
+            state, state_zh = 'breakout', '机会·突破'
+        elif close > prior:
+            state, state_zh = 'wait_rebreak', '机会·等回踩'
+        elif close >= prior * (1 - OPPORTUNITY_NEAR_PCT / 100):
+            state, state_zh = 'near_breakout', '机会·接近'
+        else:
+            continue
+        rows.append({
+            'label': label,
+            'setup_id': f"opportunity:{state}",
+            'state': state,
+            'state_zh': state_zh,
+            'holdings': list(detail.get('source_holdings') or [label]),
+            'close': close,
+            'prior_20d_high': prior,
+            'pct_from_high': round(pct_from_high, 2),
+            'zscore20': z,
+        })
+    rows.sort(key=lambda row: row['pct_from_high'], reverse=True)
+    return {'rows': rows}
+
+
+def append_opportunity_radar_section(block, radar, signals_detail=None):
+    """Render the opportunity radar, or return the block untouched.
+
+    Additive only: a slot with no candidates must stay byte-identical, exactly
+    like `append_early_trend_section`. Radar rows are price-surface observations
+    — 候选≠下单, they never grant entry authorization.
+    """
+    rows = (radar or {}).get('rows') or []
+    if not rows:
+        return block
+    conflicts = setup_conflicts(radar, signals_detail)
+    lines = ['', '🎯 机会雷达（候选≠下单 · 价格面观察）']
+    for row in rows[:MAX_SETUP_LINES]:
+        bits = [f"  ◆ {row.get('label')} {row.get('state_zh')}"]
+        close, prior = row.get('close'), row.get('prior_20d_high')
+        if close is not None and prior is not None:
+            bits.append(f"现价 {close:g} / 前高 {prior:g}")
+        pct = row.get('pct_from_high')
+        if isinstance(pct, (int, float)) and pct < 0:
+            bits.append(f"距前高 {-pct:.1f}%")
+        z = row.get('zscore20')
+        if z is not None:
+            bits.append(f"z {z:.2f}")
+        held = [t for t in (row.get('holdings') or []) if t in conflicts]
+        if held:
+            bits.append(f"⚠️ 同票有风险信号({'/'.join(held)})")
+        lines.append(' | '.join(bits))
+    if len(rows) > MAX_SETUP_LINES:
+        lines.append(f'  …另有 {len(rows) - MAX_SETUP_LINES} 条')
+    return block + '\n' + '\n'.join(lines)
+
+
 def append_active_information_section(block, active, *, event_ids=None):
     """Render changed primary events plus compact context for existing ones.
 
@@ -716,9 +806,14 @@ def main(argv=None):
     # computes `wait_pullback_rebreak` once on completed bars, so a CRCL pullback
     # intraday was invisible to every subsequent slot.
     early_candidates = collect_early_trend_candidates(args.market)
+    # Price-surface opportunity radar (#551): breakthrough / wait-rebreak /
+    # near-breakout candidates, additive to the early-trend lane. Candidate rows
+    # join the setups dimension so the delta gate surfaces their appearance.
+    opportunity_radar = collect_opportunity_radar(args.market)
     combined_setups = {
         'rows': (live_setups.get('rows') or [])
-        + (early_candidates.get('rows') or []),
+        + (early_candidates.get('rows') or [])
+        + (opportunity_radar.get('rows') or []),
     }
     # Read provenance after the analyzer returns: its successful quote stamps
     # are later than the preflight start time, especially on a slow US run.
@@ -749,6 +844,8 @@ def main(argv=None):
         raw_block = append_setup_section(stdout.strip(), live_setups, signals_detail)
         raw_block = append_early_trend_section(
             raw_block, early_candidates, signals_detail)
+        raw_block = append_opportunity_radar_section(
+            raw_block, opportunity_radar, signals_detail)
         raw_block = append_active_information_section(
             raw_block, active_information_ctx,
             event_ids=set(semantic_delta['changed_event_ids']),
@@ -768,6 +865,7 @@ def main(argv=None):
         'quote_coverage': coverage,
         'provisional_setups': live_setups,
         'early_trend_candidates': early_candidates,
+        'opportunity_radar': opportunity_radar,
         'signal_count':     signals,
         'signals_detail':   signals_detail,
         'anomalies':        anomalies,
