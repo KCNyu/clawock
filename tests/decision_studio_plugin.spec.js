@@ -25,10 +25,13 @@ const PLUGIN = path.join(__dirname, "..", "examples", "dsh", "plugin");
 
 // The bundle injects its stylesheet through `document` at factory time;
 // node:test has no DOM, so provide the minimal surface the factory touches.
+// `injectedStyleText` also feeds the CSS-contract regression test below.
+let injectedStyleText = "";
 globalThis.document = {
   getElementById() { return null; },
   createElement() { return { id: "", textContent: "" }; },
-  head: { appendChild() {} },
+  querySelector() { return null; },
+  head: { appendChild(el) { injectedStyleText = el.textContent || ""; } },
 };
 
 function makeDesk() {
@@ -154,7 +157,7 @@ test("ledger: plans list newest first with decision counts", async () => {
 let importCounter = 0;
 function clientUrl() {
   importCounter += 1;
-  return pathToFileURL(path.join(PLUGIN, "client.js")).href + "?v=" + importCounter;
+  return pathToFileURL(path.join(PLUGIN, "lib", "client.js")).href + "?v=" + importCounter;
 }
 
 function makeReactStub() {
@@ -182,6 +185,43 @@ function makeReactStub() {
   };
 }
 
+/** defineStore surface from the runtime stub: the factory builds its store
+ *  handle at apply time, so the stub must provide the contract. */
+function makeRuntimeStub() {
+  return {
+    defineStore(spec) {
+      return {
+        spec,
+        create: () => ({
+          getSnapshot: () => spec.init(),
+          subscribe: () => () => {},
+          actions: {},
+        }),
+      };
+    },
+  };
+}
+
+/** Per-session store stub mirroring the DSH PropsStore share
+ *  (`useStore` selector + baked `actions`), so tests can drive the view's
+ *  UI state exactly the way the real slot renderer would. */
+function makeStoreStub() {
+  let s = { filter: "all", open: null, visibleDateCount: 3, foldedDates: [], scrollTop: 0 };
+  const actions = {
+    setFilter: (f) => { s = { ...s, filter: f }; },
+    toggleOpen: (key) => { s = { ...s, open: s.open === key ? null : key }; },
+    showMoreDates: (n) => { s = { ...s, visibleDateCount: s.visibleDateCount + n }; },
+    resetDates: () => { s = { ...s, visibleDateCount: 3 }; },
+    toggleDate: (date) => {
+      s = { ...s, foldedDates: s.foldedDates.includes(date)
+        ? s.foldedDates.filter((d) => d !== date)
+        : [...s.foldedDates, date] };
+    },
+    setScrollTop: (v) => { s = { ...s, scrollTop: v }; },
+  };
+  return { useStore: (sel) => sel(s), actions };
+}
+
 async function loadClient() {
   let loaded = null;
   globalThis.window = { __ModuleLoader__: { load(entry) { loaded = entry; } } };
@@ -194,7 +234,7 @@ test("client: registers the Decision Mind tab and mounts the remote face", async
   const loaded = await loadClient();
   assert.equal(loaded.id, "clawock-dsh");
   const api = loaded.factory((s) => {
-    if (s === "@deepseek-ai/dsh-client-runtime/client") return {};
+    if (s === "@deepseek-ai/dsh-client-runtime/client") return makeRuntimeStub();
     if (s === "react") return makeReactStub();
     throw new Error(`unexpected require: ${s}`);
   });
@@ -207,6 +247,7 @@ test("client: registers the Decision Mind tab and mounts the remote face", async
     portfolio: async () => ({ ok: true, value: { books: [] } }),
     plans: async () => ({ ok: true, value: { plans: [] } }),
     traces: async () => ({ ok: true, value: { trades: [], rate: null } }),
+    get: async (runId) => ({ ok: true, value: { runId } }),
   };
   const ctx = {
     effect() {},
@@ -215,25 +256,39 @@ test("client: registers the Decision Mind tab and mounts the remote face", async
       inject(name, fn) { assert.equal(name, "conversation.view"); this._fn = fn; },
       register(definition, Component) { registered = definition; component = Component; },
     },
-    remote: { $mount: async (descriptors) => { assert.equal(descriptors.descriptors.length, 6); } },
+    remote: {
+      $mount: async (descriptors) => {
+        assert.equal(descriptors.descriptors.length, 6);
+        // gateway invoke() validates args against descriptor.parameters.length —
+        // get(runId) must declare its argument or every call would throw.
+        const getDesc = descriptors.descriptors.find((d) => d.method === "get");
+        assert.ok(getDesc, "get descriptor present");
+        assert.equal(getDesc.parameters.length, 1, "get(runId) must declare its argument");
+        assert.equal(getDesc.parameters[0].name, "runId");
+      },
+    },
   };
   await api.apply(ctx);
   ctx.slots._fn();
   assert.equal(registered.id, "decision-studio");
   assert.equal(registered.order, 30);
   assert.equal(registered.label(), "Decision Mind");
+  // Official registration store: UI state survives the ring's unmount/remount.
+  assert.ok(registered.store, "registration must declare a per-session store");
+  assert.deepEqual(registered.store.spec.init(), { filter: "all", open: null, visibleDateCount: 3, foldedDates: [], scrollTop: 0 });
 
   const injected = registered.inject("s1");
   assert.equal(typeof injected.traces, "function");
   assert.equal(typeof injected.ledger, "function");
   assert.deepEqual(await injected.traces(), { trades: [], rate: null });
+  assert.deepEqual(await injected.get("abc123"), { runId: "abc123" }, "get(runId) must forward its argument");
   assert.equal(typeof component, "function");
 });
 
 test("client: _displayEntry projects a trace with its decision and T+1", async () => {
   const loaded = await loadClient();
   const api = loaded.factory((s) => {
-    if (s === "@deepseek-ai/dsh-client-runtime/client") return {};
+    if (s === "@deepseek-ai/dsh-client-runtime/client") return makeRuntimeStub();
     if (s === "react") return makeReactStub();
     throw new Error(`unexpected require: ${s}`);
   });
@@ -264,7 +319,7 @@ test("client: _displayEntry projects a trace with its decision and T+1", async (
 test("client: renders the single decision-trace view from the mounted remote", async () => {
   const loaded = await loadClient();
   const api = loaded.factory((s) => {
-    if (s === "@deepseek-ai/dsh-client-runtime/client") return {};
+    if (s === "@deepseek-ai/dsh-client-runtime/client") return makeRuntimeStub();
     if (s === "react") return makeReactStub();
     throw new Error(`unexpected require: ${s}`);
   });
@@ -306,10 +361,11 @@ test("client: renders the single decision-trace view from the mounted remote", a
   ctx.slots._fn();
   const injected = registered.inject("s1");
 
+  const store = makeStoreStub();
   const tick = () => new Promise((resolve) => setImmediate(resolve));
-  let tree = component({ sessionId: "s1", traces: injected.traces, ledger: injected.ledger, portfolio: injected.portfolio });
+  let tree = component({ sessionId: "s1", traces: injected.traces, ledger: injected.ledger, portfolio: injected.portfolio, useStore: store.useStore, actions: store.actions });
   await tick(); await tick(); await tick();
-  tree = component({ sessionId: "s1", traces: injected.traces, ledger: injected.ledger, portfolio: injected.portfolio });
+  tree = component({ sessionId: "s1", traces: injected.traces, ledger: injected.ledger, portfolio: injected.portfolio, useStore: store.useStore, actions: store.actions });
 
   const collectText = () => {
     const text = [];
@@ -354,7 +410,7 @@ test("client: renders the single decision-trace view from the mounted remote", a
   };
   findButton("无决策").props.onClick();
   await tick();
-  tree = component({ sessionId: "s1", traces: injected.traces, ledger: injected.ledger, portfolio: injected.portfolio });
+  tree = component({ sessionId: "s1", traces: injected.traces, ledger: injected.ledger, portfolio: injected.portfolio, useStore: store.useStore, actions: store.actions });
   const joinedMiss = collectText();
   assert.match(joinedMiss, /SPCH/);
   assert.doesNotMatch(joinedMiss, /PLTU/); // PLTU has a decision → filtered out
@@ -362,7 +418,7 @@ test("client: renders the single decision-trace view from the mounted remote", a
   // Expand a row: the trace detail shows plan → execution → P&L.
   findButton("全部").props.onClick();
   await tick();
-  tree = component({ sessionId: "s1", traces: injected.traces, ledger: injected.ledger, portfolio: injected.portfolio });
+  tree = component({ sessionId: "s1", traces: injected.traces, ledger: injected.ledger, portfolio: injected.portfolio, useStore: store.useStore, actions: store.actions });
   const cell = [];
   (function collect(node) {
     if (node == null) return;
@@ -373,7 +429,7 @@ test("client: renders the single decision-trace view from the mounted remote", a
   assert.ok(cell.length >= 2, "trace rows present");
   cell[0].props.onClick();
   await tick();
-  tree = component({ sessionId: "s1", traces: injected.traces, ledger: injected.ledger, portfolio: injected.portfolio });
+  tree = component({ sessionId: "s1", traces: injected.traces, ledger: injected.ledger, portfolio: injected.portfolio, useStore: store.useStore, actions: store.actions });
   const joined2 = collectText();
   assert.match(joined2, /决策轨迹 · /);   // expand header
   assert.match(joined2, /割肉/);           // plan action
@@ -384,7 +440,7 @@ test("client: renders the single decision-trace view from the mounted remote", a
 test("client: T+1 tone is action-aware — buy gains are win, sell misses are loss (#665)", async () => {
   const loaded = await loadClient();
   const api = loaded.factory((s) => {
-    if (s === "@deepseek-ai/dsh-client-runtime/client") return {};
+    if (s === "@deepseek-ai/dsh-client-runtime/client") return makeRuntimeStub();
     if (s === "react") return makeReactStub();
     throw new Error(`unexpected require: ${s}`);
   });
@@ -408,17 +464,18 @@ test("client: T+1 tone is action-aware — buy gains are win, sell misses are lo
   assert.equal(api.t1ChipTone("sell", -4.0), "up");
 });
 
-test("client: trace list folds to the newest 3 date groups, show-all reveals the rest", async () => {
+test("client: trace list batches older days behind 'show earlier' and folds by day", async () => {
   const loaded = await loadClient();
   const api = loaded.factory((s) => {
-    if (s === "@deepseek-ai/dsh-client-runtime/client") return {};
+    if (s === "@deepseek-ai/dsh-client-runtime/client") return makeRuntimeStub();
     if (s === "react") return makeReactStub();
     throw new Error(`unexpected require: ${s}`);
   });
 
   // 5 distinct date groups → default renders the newest 3 (AAA/BBB/CCC),
-  // DDD/EEE stay behind the "show all" toggle. This is the anti-jank fold:
-  // the first paint must not be a 100-cell wall.
+  // DDD/EEE stay behind the "show earlier" batch. This is the anti-jank fold:
+  // the first paint must not be a 100-cell wall, and "see everything" must
+  // never mean one giant wall at once (#702 Phase 2).
   const mk = (ticker, date) => ({ ticker, market: "US", currency: "USD", date, action: "buy", shares: 1, price: 10, realizedPnl: null });
   const trades = [
     mk("AAA", "2026-08-15"),
@@ -446,8 +503,9 @@ test("client: trace list folds to the newest 3 date groups, show-all reveals the
   ctx.slots._fn();
   const injected = registered.inject("s1");
 
+  const store = makeStoreStub();
   const tick = () => new Promise((resolve) => setImmediate(resolve));
-  const render = () => component({ sessionId: "s1", traces: injected.traces, ledger: injected.ledger, portfolio: injected.portfolio });
+  const render = () => component({ sessionId: "s1", traces: injected.traces, ledger: injected.ledger, portfolio: injected.portfolio, useStore: store.useStore, actions: store.actions });
   let tree = render();
   await tick(); await tick(); await tick();
   tree = render();
@@ -486,16 +544,108 @@ test("client: trace list folds to the newest 3 date groups, show-all reveals the
   assert.doesNotMatch(joined, /DDD/);
   assert.doesNotMatch(joined, /EEE/);
 
-  // The toggle advertises exactly what's hidden, then reveals it.
-  const more = findButton("显示全部");
-  assert.ok(more, "fold toggle must be present when fills exceed the default");
-  assert.match(joined, /显示全部 2 笔/);
+  // The batch button advertises exactly what's hidden, then reveals it.
+  const more = findButton("显示更早");
+  assert.ok(more, "batch button must be present when older days exist");
+  assert.match(joined, /显示更早的 2 笔成交/);
   more.props.onClick();
   await tick();
   tree = render();
   const joinedAll = collectText();
   assert.match(joinedAll, /DDD/);
   assert.match(joinedAll, /EEE/);
-  assert.match(joinedAll, /收起/);
+  assert.match(joinedAll, /收起,只显示最近 3 组/);
+
+  // Day-header accordion: fold the newest day → its cell leaves the DOM but
+  // the header (and the count) stays; unfold restores it.
+  const dayHeader = (() => {
+    let found = null;
+    (function collect(node) {
+      if (node == null || found) return;
+      if (Array.isArray(node)) { node.forEach(collect); return; }
+      if (String(node.props && node.props.className || "").indexOf("day fold") === 0) found = node;
+      (node.children || []).forEach(collect);
+    })(tree);
+    return found;
+  })();
+  assert.ok(dayHeader, "day headers are foldable");
+  dayHeader.props.onClick();
+  await tick();
+  tree = render();
+  const foldedText = collectText();
+  assert.doesNotMatch(foldedText, /AAA/, "folded day's cell must leave the DOM");
+  assert.match(foldedText, /2026-08-15/, "folded day's header must stay");
+  dayHeader.props.onClick();
+  await tick();
+  tree = render();
+  assert.match(collectText(), /AAA/, "unfolding restores the cell");
 });
+
+test("client: stylesheet keeps the dark-theme and tone contract (#704/#685 regression gate)", async () => {
+  // The factory injects its stylesheet through the document stub on first
+  // execution; assert the blocks whose regressions are invisible to text
+  // assertions — the dark-theme overrides and the P&L/T+1 tone colors.
+  injectedStyleText = "";
+  const loaded = await loadClient();
+  loaded.factory((s) => {
+    if (s === "@deepseek-ai/dsh-client-runtime/client") return makeRuntimeStub();
+    if (s === "react") return makeReactStub();
+    throw new Error(`unexpected require: ${s}`);
+  });
+  assert.ok(injectedStyleText.length > 1000, "factory must inject a real stylesheet");
+  assert.match(injectedStyleText, /body\[data-ds-dark-theme\] \.dmt\{/, "dark-theme override block required (#704)");
+  assert.match(injectedStyleText, /\.dmt \.t1\.up/, "T+1 up tone class required (#685)");
+  assert.match(injectedStyleText, /\.dmt \.t1\.down/, "T+1 down tone class required (#685)");
+  assert.match(injectedStyleText, /\.dmt \.detail\{display:grid;grid-template-rows:0fr/, "folded detail must default to 0fr");
+  assert.match(injectedStyleText, /\.dmt \.stats/, "header stats block required");
+  assert.match(injectedStyleText, /\.dmt \.filters/, "filter row block required");
+  assert.match(injectedStyleText, /\.dmt \.skel/, "cold-start skeleton block required");
+});
+
+test("freshness: signature moves on each of the three data sources", async () => {
+  const freshness = await import(pathToFileURL(path.join(PLUGIN, "lib", "freshness.js")).href);
+  const root = makeDesk();
+  fs.mkdirSync(path.join(root, "memory", "snapshots"), { recursive: true });
+  try {
+    const before = freshness.workspaceSignature(root);
+    assert.ok(before.length > 0);
+    assert.equal(before.split("|").length, 3, "shape: portfolio stat | latest snapshot | decisions stat");
+    assert.equal(before.split("|")[1], "none", "no snapshots yet → latest snapshot is 'none'");
+
+    // portfolio.json 变化 → 签名变(内容长度不同,size 兜底 mtime 同刻度)
+    fs.writeFileSync(path.join(root, "portfolio.json"), JSON.stringify({ last_updated: "changed" }));
+    const afterPortfolio = freshness.workspaceSignature(root);
+    assert.notEqual(afterPortfolio, before, "portfolio.json change must move the signature");
+
+    // 新快照落盘(T+1 数据源)→ 签名变——这就是 mtime-only 方案管不住的分支
+    fs.writeFileSync(path.join(root, "memory", "snapshots", "2026-08-17.json"), "{}");
+    const afterSnapshot = freshness.workspaceSignature(root);
+    assert.notEqual(afterSnapshot, afterPortfolio, "a NEW snapshot file must move the signature");
+
+    // decisions.jsonl 变化(软配对源)→ 签名变
+    fs.writeFileSync(path.join(root, "memory", "decisions.jsonl"), JSON.stringify({ decision_id: "x" }) + "\n");
+    const afterLedger = freshness.workspaceSignature(root);
+    assert.notEqual(afterLedger, afterSnapshot, "decisions.jsonl change must move the signature");
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("freshness: trace cache is signature-keyed and µs-hit", async () => {
+  const freshness = await import(pathToFileURL(path.join(PLUGIN, "lib", "freshness.js")).href);
+  const cache = freshness.createTraceCache();
+  const value = { trades: [{ ticker: "A" }] };
+
+  assert.equal(cache.get("/ws", "sig1"), undefined, "cold cache must miss");
+  cache.set("/ws", "sig1", value);
+  assert.equal(cache.get("/ws", "sig1"), value, "same signature must hit the same object");
+  assert.equal(cache.get("/ws", "sig2"), undefined, "moved signature must miss");
+  assert.equal(cache.get("/other", "sig1"), undefined, "workspace is part of the key");
+
+  // workspaceKey: opaque hash, no host path on the wire
+  const key = freshness.workspaceKeyOf("/tmp/ws-a");
+  assert.match(key, /^[0-9a-f]{12}$/);
+  assert.notEqual(key, freshness.workspaceKeyOf("/tmp/ws-b"));
+});
+
 

@@ -98,12 +98,26 @@ bear 与失效条件强制,情绪自认)。面板不改任何文件,结算仍归
 
 ```
 clawock-dsh
-├── cordis.patch.yml   # profile patch 层:插入 clawock-studio Remote 网关行
-├── lib/index.js       # node 半区:TypertRemoteService(只读 list/get)
-├── lib/scan.js        # 纯扫描逻辑(可单测)
-├── client.js          # client 半区:module-loader bundle,注册 conversation.view tab
-└── skills/            # agent skill(同上)
+├── cordis.patch.yml       # profile patch 层:插入 clawock-dsh 行
+├── src/                   # TypeScript 源码
+│   ├── index.ts           # node 半区:@Remote 装饰器服务(只读 list/get/ledger/…)
+│   ├── scan.ts / ledger.ts / freshness.ts   # 纯扫描逻辑(可单测,无依赖)
+│   ├── client.ts          # client 半区:Decision Mind 组件 + store + 缓存
+│   └── types.ts           # Remote 线类型(@typert object 面)
+├── build.mjs              # 构建:临时 Harness 形态 workspace 里跑官方
+│                          # @deepseek-ai/dsh-typert-generator,产出 lib/
+├── lib/                   # 提交的构建产物(CI 与 DSH 直接消费,不跑构建)
+│   ├── index.js / scan.js / ledger.js / freshness.js
+│   ├── client.js          # window.__ModuleLoader__ bundle
+│   ├── typert.host.* / typert.client.* / typert.remote-client.*   # 生成工件
+│   └── types/             # 声明
+└── skills/                # agent skill(同上)
 ```
+
+构建:`cd examples/dsh/plugin && npm install --include=dev && npm run build`
+(rc.6 生成器只认 Harness monorepo 布局——`@deepseek-ai/dsh-typert-protocol`
+必须是 sibling workspace 包——build.mjs 在临时目录复刻该布局生成后拷回;
+生成工件 commit 进仓库,同 dsh-notebook/dsh-workspace-plugin 的做法)。
 
 验证状态:node 半区(扫描、run id 防路径穿越、Remote 标记)与 client 半区
 (注册、模型投影)有单元测试;**tab 的浏览器目验需要在带 DSH 源码/工具链的
