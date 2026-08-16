@@ -192,21 +192,19 @@ const EMO: Record<string, string> = { fomo: '追高冲动', revenge: '报复性'
 
 function esc(s: unknown): string { return String(s == null ? '' : s).replace(/</g, '&lt;') }
 
-/** T+1 tone is action-aware: a rising price is good for the buyer and bad
- *  for the seller (卖飞). One sign rule for both would color buy gains red
- *  and buy losses green. */
-export function t1Tone(action: string, delta: number): 'win' | 'loss' {
-  const up = delta >= 0
-  const sell = action === 'sell' || action === 'cut' || action === 'trim' || action === 'trim_on_rebound'
-  if (sell) return up ? 'loss' : 'win'
-  return up ? 'win' : 'loss'
+/**
+ * The T+1 tone is decided host-side (`t1ToneOf` in ledger.ts) and shipped on
+ * the trace as `t1.tone`. These two helpers only map that single reading onto
+ * the two CSS vocabularies used here — the trace node's win/loss and the
+ * chip's up/down. They deliberately take no thresholds: three independent
+ * dead zones used to colour the same fill grey-"持平" in the chip and red in
+ * the node, and to paint a buy at exactly 0% green while the text read 跌.
+ */
+export function t1NodeClass(tone: 'win' | 'loss' | 'flat'): string {
+  return tone === 'flat' ? '' : tone
 }
-export function t1ChipTone(action: string, delta: number): 'up' | 'down' | 'flat' {
-  if (delta > -1 && delta < 1) return 'flat'
-  const up = delta >= 1
-  const sell = action === 'sell' || action === 'cut' || action === 'trim' || action === 'trim_on_rebound'
-  if (sell) return up ? 'down' : 'up'
-  return up ? 'up' : 'down'
+export function t1ChipClass(tone: 'win' | 'loss' | 'flat'): 'up' | 'down' | 'flat' {
+  return tone === 'flat' ? 'flat' : (tone === 'win' ? 'up' : 'down')
 }
 
 function fmtMoney(v: number | null | undefined): string {
@@ -245,7 +243,7 @@ function TraceDetail(props: any) {
   const d = t.decision
   const sym = t.currency === 'HKD' ? 'HK$' : '$'
   if (!d) {
-    const t1miss = t.t1 ? h('div', { className: 'tnode ' + t1Tone(t.action, t.t1.delta) },
+    const t1miss = t.t1 ? h('div', { className: ('tnode ' + t1NodeClass(t.t1.tone)).trim() },
       h('div', { className: 'n' }, 'T+1 结果'),
       h('div', { className: 'v' }, (t.t1.delta >= 0 ? '+' : '') + t.t1.delta + '%')) : null
     return h('div', null,
@@ -270,7 +268,7 @@ function TraceDetail(props: any) {
   if (d.condition) chips.push(h('span', { className: 'pc', key: 'c' }, '条件: ' + d.condition))
   if (d.sizeShares) chips.push(h('span', { className: 'pc', key: 's' }, '计划 ' + d.sizeShares + ' 股'))
   if (d.plannedPrice) chips.push(h('span', { className: 'pc', key: 'p' }, '计划价 ' + d.plannedPrice))
-  const t1node = t.t1 ? h('div', { className: 'tnode ' + t1Tone(t.action, t.t1.delta) },
+  const t1node = t.t1 ? h('div', { className: ('tnode ' + t1NodeClass(t.t1.tone)).trim() },
     h('div', { className: 'tw' }, t.t1.date),
     h('div', { className: 'n' }, 'T+1 结果'),
     h('div', { className: 'v' }, (t.t1.delta >= 0 ? '+' : '') + t.t1.delta + '%' + (t.action === 'sell' ? ' · ' + t.t1.verdict : ''))) : null
@@ -312,7 +310,7 @@ function TraceCell(props: any) {
   else pnl = h('span', { className: 'pnl na' }, '—')
   let t1tag: any = null
   if (t.t1) {
-    const tc = t1ChipTone(t.action, t.t1.delta)
+    const tc = t1ChipClass(t.t1.tone)
     const tlabel = 'T+1 ' + (t.t1.delta >= 0 ? '+' : '') + t.t1.delta + '%' + (t.action === 'sell' ? ' ' + t.t1.verdict : '')
     t1tag = h('span', { className: 't1 ' + tc }, tlabel)
   } else if (t.action === 'sell') {
@@ -416,6 +414,11 @@ function DecisionMind(props: DecisionMindProps) {
   const hkd = traces.filter((t: any) => t.realizedPnl != null && t.currency === 'HKD').reduce((s: number, t: any) => s + t.realizedPnl, 0)
   const fx = data.rate
   const totalUsd = usd + (fx ? hkd / fx : 0)
+  // Only fills whose T+1 close actually landed inside the T+1 window carry a
+  // `t1` at all (the host drops the rest rather than labelling a months-later
+  // close "T+1"). The denominator is rendered so the ratio can be read for
+  // what it is instead of looking like it covers every fill.
+  const t1Rated = traces.filter((t: any) => t.t1).length
   const fw = traces.filter((t: any) => t.t1 && t.t1.verdict === '卖飞').length
   const ok = traces.filter((t: any) => t.t1 && t.t1.verdict === '卖对').length
   const matched = traces.filter((t: any) => t.decision).length
@@ -493,7 +496,7 @@ function DecisionMind(props: DecisionMindProps) {
   const stats = h('div', { className: 'stats' },
     h('div', { className: 'sg' }, h('span', { className: 'sl' }, '已实现 (USD 等值)'),
       h('span', { className: 'sv focus ' + (totalUsd >= 0 ? 'up' : 'down') }, fmtMoney(totalUsd))),
-    h('div', { className: 'sg' }, h('span', { className: 'sl' }, 'T+1 卖飞/卖对'),
+    h('div', { className: 'sg' }, h('span', { className: 'sl' }, 'T+1 卖飞/卖对 · 基于 ' + t1Rated + ' 笔'),
       h('span', { className: 'sv' }, h('span', { className: 'down' }, fw), ' / ', h('span', { className: 'up' }, ok))),
     h('div', { className: 'sg' }, h('span', { className: 'sl' }, '决策挂接'), h('span', { className: 'sv' }, matched + '/' + traces.length)),
     fx ? h('span', { className: 'rate' }, traces.length + ' 笔成交 · @' + fx) : h('span', { className: 'rate' }, traces.length + ' 笔成交'))

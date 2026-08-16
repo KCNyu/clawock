@@ -4395,7 +4395,12 @@ const clawock_dsh_clawockStudio_traces_result$schema = object({
 			"date": string(),
 			"price": number(),
 			"delta": number(),
-			"verdict": string()
+			"verdict": string(),
+			"tone": union([
+				literal("win"),
+				literal("loss"),
+				literal("flat")
+			])
 		})]),
 		"decision": union([literal(null), object({
 			"planDate": union([literal(null), string()]),
@@ -4726,19 +4731,19 @@ const EMO = {
 function esc(s) {
 	return String(s == null ? "" : s).replace(/</g, "&lt;");
 }
-/** T+1 tone is action-aware: a rising price is good for the buyer and bad
-*  for the seller (卖飞). One sign rule for both would color buy gains red
-*  and buy losses green. */
-function t1Tone(action, delta) {
-	const up = delta >= 0;
-	if (action === "sell" || action === "cut" || action === "trim" || action === "trim_on_rebound") return up ? "loss" : "win";
-	return up ? "win" : "loss";
+/**
+* The T+1 tone is decided host-side (`t1ToneOf` in ledger.ts) and shipped on
+* the trace as `t1.tone`. These two helpers only map that single reading onto
+* the two CSS vocabularies used here — the trace node's win/loss and the
+* chip's up/down. They deliberately take no thresholds: three independent
+* dead zones used to colour the same fill grey-"持平" in the chip and red in
+* the node, and to paint a buy at exactly 0% green while the text read 跌.
+*/
+function t1NodeClass(tone) {
+	return tone === "flat" ? "" : tone;
 }
-function t1ChipTone(action, delta) {
-	if (delta > -1 && delta < 1) return "flat";
-	const up = delta >= 1;
-	if (action === "sell" || action === "cut" || action === "trim" || action === "trim_on_rebound") return up ? "down" : "up";
-	return up ? "up" : "down";
+function t1ChipClass(tone) {
+	return tone === "flat" ? "flat" : tone === "win" ? "up" : "down";
 }
 function fmtMoney(v) {
 	if (v == null || !isFinite(v)) return "—";
@@ -4774,7 +4779,7 @@ function TraceDetail(props) {
 	const d = t.decision;
 	const sym = t.currency === "HKD" ? "HK$" : "$";
 	if (!d) {
-		const t1miss = t.t1 ? h("div", { className: "tnode " + t1Tone(t.action, t.t1.delta) }, h("div", { className: "n" }, "T+1 结果"), h("div", { className: "v" }, (t.t1.delta >= 0 ? "+" : "") + t.t1.delta + "%")) : null;
+		const t1miss = t.t1 ? h("div", { className: ("tnode " + t1NodeClass(t.t1.tone)).trim() }, h("div", { className: "n" }, "T+1 结果"), h("div", { className: "v" }, (t.t1.delta >= 0 ? "+" : "") + t.t1.delta + "%")) : null;
 		return h("div", null, h("div", { className: "trhead" }, "决策轨迹 · 无关联记录"), h("div", { className: "trace" }, h("div", { className: "tnode dec" }, h("div", { className: "n" }, "决策"), h("div", {
 			className: "v",
 			style: { color: "var(--cap)" }
@@ -4797,7 +4802,7 @@ function TraceDetail(props) {
 		className: "pc",
 		key: "p"
 	}, "计划价 " + d.plannedPrice));
-	const t1node = t.t1 ? h("div", { className: "tnode " + t1Tone(t.action, t.t1.delta) }, h("div", { className: "tw" }, t.t1.date), h("div", { className: "n" }, "T+1 结果"), h("div", { className: "v" }, (t.t1.delta >= 0 ? "+" : "") + t.t1.delta + "%" + (t.action === "sell" ? " · " + t.t1.verdict : ""))) : null;
+	const t1node = t.t1 ? h("div", { className: ("tnode " + t1NodeClass(t.t1.tone)).trim() }, h("div", { className: "tw" }, t.t1.date), h("div", { className: "n" }, "T+1 结果"), h("div", { className: "v" }, (t.t1.delta >= 0 ? "+" : "") + t.t1.delta + "%" + (t.action === "sell" ? " · " + t.t1.verdict : ""))) : null;
 	let rv;
 	let rc;
 	if (t.realizedPnl != null) {
@@ -4823,7 +4828,7 @@ function TraceCell(props) {
 	else pnl = h("span", { className: "pnl na" }, "—");
 	let t1tag = null;
 	if (t.t1) {
-		const tc = t1ChipTone(t.action, t.t1.delta);
+		const tc = t1ChipClass(t.t1.tone);
 		const tlabel = "T+1 " + (t.t1.delta >= 0 ? "+" : "") + t.t1.delta + "%" + (t.action === "sell" ? " " + t.t1.verdict : "");
 		t1tag = h("span", { className: "t1 " + tc }, tlabel);
 	} else if (t.action === "sell") t1tag = h("span", { className: "t1 flat" }, "T+1 —");
@@ -4925,6 +4930,7 @@ function DecisionMind(props) {
 	const hkd = traces.filter((t) => t.realizedPnl != null && t.currency === "HKD").reduce((s, t) => s + t.realizedPnl, 0);
 	const fx = data.rate;
 	const totalUsd = usd + (fx ? hkd / fx : 0);
+	const t1Rated = traces.filter((t) => t.t1).length;
 	const fw = traces.filter((t) => t.t1 && t.t1.verdict === "卖飞").length;
 	const ok = traces.filter((t) => t.t1 && t.t1.verdict === "卖对").length;
 	const matched = traces.filter((t) => t.decision).length;
@@ -5006,7 +5012,7 @@ function DecisionMind(props) {
 		if (moreBtn) kids.push(moreBtn);
 		body = h("div", null, kids);
 	}
-	const stats = h("div", { className: "stats" }, h("div", { className: "sg" }, h("span", { className: "sl" }, "已实现 (USD 等值)"), h("span", { className: "sv focus " + (totalUsd >= 0 ? "up" : "down") }, fmtMoney(totalUsd))), h("div", { className: "sg" }, h("span", { className: "sl" }, "T+1 卖飞/卖对"), h("span", { className: "sv" }, h("span", { className: "down" }, fw), " / ", h("span", { className: "up" }, ok))), h("div", { className: "sg" }, h("span", { className: "sl" }, "决策挂接"), h("span", { className: "sv" }, matched + "/" + traces.length)), fx ? h("span", { className: "rate" }, traces.length + " 笔成交 · @" + fx) : h("span", { className: "rate" }, traces.length + " 笔成交"));
+	const stats = h("div", { className: "stats" }, h("div", { className: "sg" }, h("span", { className: "sl" }, "已实现 (USD 等值)"), h("span", { className: "sv focus " + (totalUsd >= 0 ? "up" : "down") }, fmtMoney(totalUsd))), h("div", { className: "sg" }, h("span", { className: "sl" }, "T+1 卖飞/卖对 · 基于 " + t1Rated + " 笔"), h("span", { className: "sv" }, h("span", { className: "down" }, fw), " / ", h("span", { className: "up" }, ok))), h("div", { className: "sg" }, h("span", { className: "sl" }, "决策挂接"), h("span", { className: "sv" }, matched + "/" + traces.length)), fx ? h("span", { className: "rate" }, traces.length + " 笔成交 · @" + fx) : h("span", { className: "rate" }, traces.length + " 笔成交"));
 	const filters = h("div", { className: "filters" }, [
 		"all",
 		"miss",
@@ -5102,7 +5108,7 @@ async function apply(ctx) {
 }
 //#endregion
 
-    Object.assign(exports, { _displayEntry, apply, inject, t1ChipTone, t1Tone });
+    Object.assign(exports, { _displayEntry, apply, inject, t1ChipClass, t1NodeClass });
     return module.exports;
   }
 });

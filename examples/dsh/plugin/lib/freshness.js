@@ -8,12 +8,40 @@ import { createHash } from "node:crypto";
 * typert-protocol dependency, and reused by the benchmark scripts.
 */
 /**
+* Content signature over every snapshot file, not just the newest filename.
+*
+* `readSnapshotPrices` parses *all* of `memory/snapshots/`, so the signature
+* has to cover all of it. Keying on the newest filename alone missed two real
+* cases: an existing snapshot being recomputed and rewritten, and the current
+* day's file being rewritten repeatedly intraday — in both the name never
+* moves, so a cached trace view would be served indefinitely. A directory
+* mtime was rejected for moving on unrelated churn; per-file `stat` does not
+* have that problem. Measured 1.4ms steady-state for the current 68 files
+* (~8ms on the first cold call), against the ~103ms readTraces it guards.
+*/
+function snapshotsSignature(ws) {
+	const dir = join(ws, "memory", "snapshots");
+	let names;
+	try {
+		names = readdirSync(dir).sort();
+	} catch {
+		return "none";
+	}
+	if (names.length === 0) return "none";
+	const hash = createHash("sha1");
+	for (const name of names) try {
+		const st = statSync(join(dir, name));
+		hash.update(`${name}:${st.mtimeMs}:${st.size}\n`);
+	} catch {
+		hash.update(`${name}:missing\n`);
+	}
+	return `${names.length}:${hash.digest("hex").slice(0, 16)}`;
+}
+/**
 * Freshness signature over the three sources that feed the trace view:
-* portfolio.json (fills + notes), the newest snapshot filename (T+1 closes
-* land as NEW daily files — an mtime on the directory would also move on
-* unrelated churn), and decisions.jsonl (soft pairing). All three are
-* stat-level (µs) reads, no parsing. The enriched trace view is valid to
-* reuse iff this signature is unchanged.
+* portfolio.json (fills + notes), every snapshot's stat (T+1 closes), and
+* decisions.jsonl (soft pairing). All stat-level reads, no parsing. The
+* enriched trace view is valid to reuse iff this signature is unchanged.
 */
 function workspaceSignature(ws) {
 	const sig = (p) => {
@@ -24,14 +52,9 @@ function workspaceSignature(ws) {
 			return "missing";
 		}
 	};
-	let latestSnapshot = "none";
-	try {
-		const files = readdirSync(join(ws, "memory", "snapshots")).sort();
-		if (files.length > 0) latestSnapshot = files[files.length - 1];
-	} catch {}
 	return [
 		sig(join(ws, "portfolio.json")),
-		latestSnapshot,
+		snapshotsSignature(ws),
 		sig(join(ws, "memory", "decisions.jsonl"))
 	].join("|");
 }

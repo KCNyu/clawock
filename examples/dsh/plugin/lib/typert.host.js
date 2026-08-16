@@ -75,6 +75,7 @@ const clawock_dsh_clawockStudio_traces_result$schema = z.object({
   'price': z.number(),
   'delta': z.number(),
   'verdict': z.string(),
+  'tone': z.union([z.literal("win"), z.literal("loss"), z.literal("flat")]),
 })]),
   'decision': z.union([z.literal(null), z.object({
   'planDate': z.union([z.literal(null), z.string()]),
