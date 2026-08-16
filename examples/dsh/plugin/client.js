@@ -260,9 +260,49 @@ window.__ModuleLoader__.load({
       }))
     }
 
-    /** The conversation-view tab: desk data (ledger / portfolio / plans). */
+    function tradeLabel(trade, firstBuy) {
+      if (trade.action === 'buy') return firstBuy ? '买入' : '加仓'
+      if (trade.action === 'sell') {
+        if (trade.note && trade.note.indexOf('清仓') >= 0) return '清仓'
+        if (trade.note && trade.note.indexOf('减仓') >= 0) return '减仓'
+        return '卖出'
+      }
+      return String(trade.action)
+    }
+
+    /** Actual operations: the real fills recorded in the portfolio trade ledger. */
+    function TradeView(props) {
+      var trades = props.trades || []
+      if (!trades.length) return h('div', { className: 'empty' }, '还没有操作记录 — 成交会出现在这里')
+      var firstBuys = {}
+      for (var i = trades.length - 1; i >= 0; i -= 1) {
+        var k = trades[i].market + ':' + trades[i].ticker
+        if (trades[i].action === 'buy' && !firstBuys[k]) firstBuys[k] = trades[i].date
+      }
+      return h('div', null, trades.map(function (tr) {
+        var sym = tr.market === 'HK' ? 'HK$' : '$'
+        var amount = tr.shares && tr.price ? Math.round(tr.shares * tr.price).toLocaleString() : null
+        var label = tradeLabel(tr, tr.date === firstBuys[tr.market + ':' + tr.ticker])
+        var note = tr.note && tr.note.length > 90 ? tr.note.slice(0, 87) + '…' : tr.note
+        return h('div', { className: 'card', key: tr.ticker + tr.date + tr.shares },
+          h('div', { className: 'row', style: { cursor: 'default' } },
+            h('span', { className: 'tk' }, tr.ticker),
+            h(Chip, { tone: tr.action === 'buy' ? 'add' : 'trim' }, label),
+            h('span', { className: 'mono', style: { color: 'var(--text2)' } },
+              tr.shares + ' 股 @' + tr.price + (amount ? ' ≈' + sym + amount : '')),
+            tr.realizedPnl !== null
+              ? h('span', { className: tr.realizedPnl < 0 ? 'neg' : 'pos', style: { fontFamily: 'var(--mono)', fontSize: 12.5 } },
+                  (tr.realizedPnl >= 0 ? '+' : '') + tr.realizedPnl.toFixed(2))
+              : null,
+            h('span', { className: 'conf' }, tr.date || ''),
+            h('span', { className: 'chev' }, '')),
+          note ? h('div', { style: { padding: '0 14px 10px', fontSize: 12, color: 'var(--text3)' } }, note) : null)
+      }))
+    }
+
+    /** The conversation-view tab: desk data (operations / ledger / portfolio). */
     function DecisionMind(props) {
-      var pair = useState({ view: 'ledger', filter: 'trades', selected: null, ledger: [], portfolio: { books: [] }, loading: true, error: null })
+      var pair = useState({ view: 'ops', filter: 'trades', selected: null, ledger: [], portfolio: { books: [] }, loading: true, error: null })
       var state = pair[0]
       var setState = pair[1]
       var sessionId = props.sessionId
@@ -291,6 +331,7 @@ window.__ModuleLoader__.load({
 
       var body
       if (state.loading) body = h('div', { className: 'empty' }, 'Loading desk data…')
+      else if (state.view === 'ops') body = h(TradeView, { trades: state.portfolio.trades })
       else if (state.view === 'ledger') body = h(LedgerView, { entries: entries, books: state.portfolio.books, filterLabel: state.filter, selected: state.selected, onSelect: function (id) { setState(function (c) { return Object.assign({}, c, { selected: id }) }) } })
       else body = h(PortfolioView, { books: state.portfolio.books })
 
@@ -298,8 +339,12 @@ window.__ModuleLoader__.load({
         h('div', { className: 'head' },
           h('div', { className: 'title' },
             h('h3', null, '决策心智'),
-            h('span', null, '显示 ' + entries.length + ' / 共 ' + allEntries.length + ' 条')),
+            h('span', null,
+              state.view === 'ops' ? '操作 ' + (state.portfolio.trades || []).length + ' 笔'
+              : state.view === 'ledger' ? '显示 ' + entries.length + ' / 共 ' + allEntries.length + ' 条'
+              : '持仓 ' + (state.portfolio.books || []).length + ' 组')),
           h('div', { className: 'seg' },
+            h('button', { className: state.view === 'ops' ? 'on' : '', onClick: function () { setState(function (c) { return Object.assign({}, c, { view: 'ops' }) }) } }, '操作'),
             h('button', { className: state.view === 'ledger' ? 'on' : '', onClick: function () { setState(function (c) { return Object.assign({}, c, { view: 'ledger' }) }) } }, '账本'),
             h('button', { className: state.view === 'portfolio' ? 'on' : '', onClick: function () { setState(function (c) { return Object.assign({}, c, { view: 'portfolio' }) }) } }, '持仓')),
           state.view === 'ledger' ? h('div', { className: 'seg', style: { marginLeft: 8 } },

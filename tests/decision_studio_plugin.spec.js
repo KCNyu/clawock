@@ -59,10 +59,19 @@ function makeDesk() {
     last_updated: "2026-08-16 13:42 HKT",
     portfolios: {
       hk_stocks: { currency: "HKD", holdings: [
-        { ticker: "00100", name: "MINIMAX-W", shares: 120, cost_basis: 553.08, current_price: 329.0, pnl_percent: -40.5 },
+        { ticker: "00100", name: "MINIMAX-W", shares: 120, cost_basis: 553.08, current_price: 329.0, pnl_percent: -40.5,
+          trades: [
+            { date: "2026-08-04", action: "buy", shares: 20, price: 230.0, note: "用户报告成交(微信,15:31 HKT)" },
+            { date: "2026-07-10", action: "buy", shares: 20, price: 260.0, note: "解禁二次探底加仓" },
+          ] },
       ] },
       us_stocks: { currency: "USD", holdings: [
         { ticker: "NVDA", shares: 0, current_price: 213.0, pnl_percent: 0 },
+        { ticker: "PLTU", shares: 5, current_price: 49.24, pnl_percent: 0,
+          trades: [
+            { date: "2026-08-13", action: "sell", shares: 5, price: 50, realized_pnl: 45.21428571428572, note: "用户报告成交(微信),$50 卖出剩余 5 股,PLTU 清仓" },
+            { date: "2026-08-08", action: "sell", shares: 5, price: 49.0, realized_pnl: 40.21, note: "用户报告成交(微信,01:08 HKT),PLTU 减仓 50%" },
+          ] },
       ] },
     },
   }));
@@ -105,12 +114,22 @@ test("ledger: portfolio summarizes holdings per book", async () => {
   try {
     const { books, lastUpdated } = ledger.readPortfolio(root);
     assert.equal(lastUpdated, "2026-08-16 13:42 HKT");
-    assert.equal(books.length, 1, "zero-share book (us_stocks/NVDA 0) must be dropped");
+    assert.equal(books.length, 2, "books with no positions must be dropped, held books kept");
+    const us = books.find((b) => b.name === "us_stocks");
+    assert.equal(us.holdings.length, 1, "zero-share NVDA row must be dropped, PLTU kept");
+    assert.equal(us.holdings[0].ticker, "PLTU");
     const hk = books.find((b) => b.name === "hk_stocks");
     assert.equal(hk.currency, "HKD");
     assert.equal(hk.holdings.length, 1);
     assert.equal(hk.holdings[0].ticker, "00100");
     assert.equal(hk.holdings[0].pnlPct, -40.5);
+    // actual operations flattened across books, newest first
+    const { trades } = ledger.readPortfolio(root);
+    assert.equal(trades.length, 4);
+    assert.equal(trades[0].ticker, "PLTU"); // 2026-08-13 newest
+    assert.equal(trades[0].realizedPnl.toFixed(2), "45.21");
+    assert.equal(trades[0].market, "US");
+    assert.equal(trades[3].ticker, "00100");
     assert.deepEqual(ledger.readPortfolio(path.join(root, "nope")).books, []);
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
@@ -268,7 +287,11 @@ test("client: renders ledger cards from the mounted remote", async () => {
       { decision_id: "dec-4", plan_date: "2026-08-12", ticker: "03032", action: "trim", confidence: 0.4,
         execution: { status: "unknown" } },
     ] } }),
-    portfolio: async () => ({ ok: true, value: { books: [{ name: "hk_stocks", currency: "HKD", holdings: [{ ticker: "02208", shares: 200, price: 10.58, pnlPct: -24.9 }] }] } }),
+    portfolio: async () => ({ ok: true, value: { books: [{ name: "hk_stocks", currency: "HKD", holdings: [{ ticker: "02208", shares: 200, price: 10.58, pnlPct: -24.9 }] }], trades: [
+      { ticker: "SPCH", market: "US", currency: "USD", date: "2026-08-15", action: "buy", shares: 10, price: 8.77, realizedPnl: null, note: "无限子弹流继续摊本(用户报告成交,微信 00:26 HKT)" },
+      { ticker: "SPCH", market: "US", currency: "USD", date: "2026-08-07", action: "buy", shares: 20, price: 5.88, realizedPnl: null, note: "用户报告成交(01:34 HKT)" },
+      { ticker: "PLTU", market: "US", currency: "USD", date: "2026-08-13", action: "sell", shares: 5, price: 50, realizedPnl: 45.21428571428572, note: "PLTU 清仓" },
+    ] } }),
     plans: async () => ({ ok: true, value: { plans: [] } }),
   };
   const ctx = {
@@ -300,15 +323,13 @@ test("client: renders ledger cards from the mounted remote", async () => {
   })(tree);
   const joined = text.join(" ");
   assert.match(joined, /决策心智/);
-  assert.match(joined, /已执行交易 1/); // count on the filter button
-  assert.match(joined, /全部 4/);
-  // default filter = executed trades only: the cut shows, the reject/hold/unknown do not
-  assert.match(joined, /02208/);
-  assert.match(joined, /割肉/);
-  assert.match(joined, /30 股 @10.5/);   // executed how much
-  assert.match(joined, /现盈亏 -24.9%/); // and what it is worth now
-  assert.doesNotMatch(joined, /00100/);
-  assert.doesNotMatch(joined, /03032/);
+  // default view = actual operations (real fills), newest first
+  assert.match(joined, /SPCH/);
+  assert.match(joined, /加仓/);
+  assert.match(joined, /10 股 @8.77/);
+  assert.match(joined, /PLTU/);
+  assert.match(joined, /清仓/);
+  assert.match(joined, /\+45.21/); // realized P&L on the real sell
 
   const findButton = (label) => {
     let found = null;
@@ -323,6 +344,29 @@ test("client: renders ledger cards from the mounted remote", async () => {
     })(tree);
     return found;
   };
+
+  // switch to 账本: executed-trades filter with counts
+  findButton("账本").props.onClick();
+  await tick();
+  tree = component({ sessionId: "s1", ledger: injected.ledger, portfolio: injected.portfolio, plans: injected.plans });
+  const textL = [];
+  (function walk(node) {
+    if (node == null) return;
+    if (Array.isArray(node)) { node.forEach(walk); return; }
+    if (typeof node === "string") { textL.push(node); return; }
+    (node.children || []).forEach(walk);
+    walk(node.props && node.props.value);
+    walk(node.props && node.props.label);
+  })(tree);
+  const joinedL = textL.join(" ");
+  assert.match(joinedL, /已执行交易 1/); // count on the filter button
+  assert.match(joinedL, /全部 4/);
+  assert.match(joinedL, /02208/);
+  assert.match(joinedL, /割肉/);
+  assert.match(joinedL, /30 股 @10.5/);   // executed how much
+  assert.match(joinedL, /现盈亏 -24.9%/); // and what it is worth now
+  assert.doesNotMatch(joinedL, /00100/);
+  assert.doesNotMatch(joinedL, /03032/);
 
   // switch to 全部: everything appears — reject with bull-fallback why, hold with rationale why, unknown trim
   findButton("全部").props.onClick();
