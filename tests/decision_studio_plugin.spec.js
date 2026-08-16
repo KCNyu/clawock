@@ -296,7 +296,7 @@ test("client: _displayEntry projects a trace with its decision and T+1", async (
   const withDec = api._displayEntry({
     ticker: "PLTU", market: "US", currency: "USD", date: "2026-08-13",
     action: "sell", shares: 5, price: 50, realizedPnl: 45.21, note: "清仓",
-    t1: { date: "2026-08-14", price: 49.24, delta: -1.52, verdict: "卖对" },
+    t1: { date: "2026-08-14", price: 49.24, delta: -1.52, verdict: "卖对", tone: "win" },
     decision: { planDate: "2026-08-10", action: "trim_on_rebound", confidence: 0.6,
       drivenBy: "technical", rationale: "浮盈保护", execution: "followed",
       condition: "反弹至 50 减仓" },
@@ -336,10 +336,10 @@ test("client: renders the single decision-trace view from the mounted remote", a
           sizeShares: 200, plannedPrice: 9.21 } },
       { ticker: "SPCH", market: "US", currency: "USD", date: "2026-08-07", action: "buy",
         shares: 20, price: 5.88, realizedPnl: null, note: "用户报告成交(01:34 HKT)",
-        t1: { date: "2026-08-10", price: 5.6, delta: -4.76, verdict: "跌" } },
+        t1: { date: "2026-08-10", price: 5.6, delta: -4.76, verdict: "跌", tone: "loss" } },
       { ticker: "PLTU", market: "US", currency: "USD", date: "2026-08-13", action: "sell",
         shares: 5, price: 50, realizedPnl: 45.21428571428572, note: "PLTU 清仓",
-        t1: { date: "2026-08-14", price: 49.24, delta: -1.52, verdict: "卖对" },
+        t1: { date: "2026-08-14", price: 49.24, delta: -1.52, verdict: "卖对", tone: "win" },
         decision: { planDate: "2026-08-10", action: "trim_on_rebound", confidence: 0.6,
           drivenBy: "technical", rationale: "浮盈保护", execution: "followed",
           condition: "反弹至 50 减仓" } },
@@ -385,6 +385,26 @@ test("client: renders the single decision-trace view from the mounted remote", a
   assert.match(joined, /决策轨迹/);
   assert.match(joined, /已实现 \(USD 等值\)/);
   assert.match(joined, /T\+1 卖飞\/卖对/);
+  // The denominator must be rendered, not implied (#710): the ratio only
+  // covers fills whose close actually landed inside the T+1 window.
+  assert.match(joined, /基于 \d+ 笔/, "the T+1 scorecard must show what it is computed over");
+
+  // The chip class must come from the host's `tone`, not from a threshold the
+  // client re-derives (#713). Walk the tree for the real className so a
+  // fixture that drops `tone` cannot keep this test green.
+  const classes = [];
+  (function walkClass(node) {
+    if (node == null) return;
+    if (Array.isArray(node)) { node.forEach(walkClass); return; }
+    if (typeof node === "string") return;
+    const cn = node.props && node.props.className;
+    if (typeof cn === "string") classes.push(cn);
+    (node.children || []).forEach(walkClass);
+  })(tree);
+  assert.ok(classes.includes("t1 win") || classes.includes("t1 up"),
+    `a tone:"win" trace must render an up/win chip, got: ${classes.filter((c) => c.startsWith("t1")).join(", ")}`);
+  assert.ok(!classes.some((c) => /undefined|null/.test(c)),
+    `no className may contain undefined — a fixture missing t1.tone would show up here: ${classes.filter((c) => /undefined|null/.test(c)).join(", ")}`);
   assert.match(joined, /SPCH/);
   assert.match(joined, /买入/);
   assert.match(joined, /10 @8.77/);
@@ -437,31 +457,58 @@ test("client: renders the single decision-trace view from the mounted remote", a
   assert.match(joined2, /盈亏/);
 });
 
-test("client: T+1 tone is action-aware — buy gains are win, sell misses are loss (#665)", async () => {
+test("T+1 reading: one host-side dead zone drives chip, node and verdict (#665/#713)", async () => {
+  const ledger = await import(pathToFileURL(path.join(PLUGIN, "lib", "ledger.js")).href);
   const loaded = await loadClient();
   const api = loaded.factory((s) => {
     if (s === "@deepseek-ai/dsh-client-runtime/client") return makeRuntimeStub();
     if (s === "react") return makeReactStub();
     throw new Error(`unexpected require: ${s}`);
   });
-  const t1Tone = api.t1Tone;
-  assert.ok(t1Tone, "t1Tone exported for the spec");
-  // buy: price up = win (green), price down = loss (red)
-  assert.equal(t1Tone("buy", 5.0), "win");
-  assert.equal(t1Tone("buy", -4.76), "loss");
-  assert.equal(t1Tone("add", 0.5), "win");
-  // sell family: price up after selling = 卖飞 (loss), down = 卖对 (win)
-  assert.equal(t1Tone("sell", 5.0), "loss");
-  assert.equal(t1Tone("sell", -1.52), "win");
-  assert.equal(t1Tone("cut", 2.0), "loss");
-  assert.equal(t1Tone("trim_on_rebound", -2.0), "win");
-  // chip tone: |delta|<1 is flat; direction flips with action
-  assert.equal(api.t1ChipTone("buy", 0.3), "flat");
-  assert.equal(api.t1ChipTone("sell", 0.3), "flat");
-  assert.equal(api.t1ChipTone("buy", 4.0), "up");
-  assert.equal(api.t1ChipTone("buy", -4.0), "down");
-  assert.equal(api.t1ChipTone("sell", 4.0), "down");
-  assert.equal(api.t1ChipTone("sell", -4.0), "up");
+  const { t1ToneOf, t1VerdictOf } = ledger;
+
+  // Direction stays action-aware (#665): a rise is good for the buyer, bad
+  // for anyone who just sold.
+  assert.equal(t1ToneOf("buy", 5.0), "win");
+  assert.equal(t1ToneOf("buy", -4.76), "loss");
+  assert.equal(t1ToneOf("sell", 5.0), "loss");
+  assert.equal(t1ToneOf("sell", -1.52), "win");
+  assert.equal(t1ToneOf("cut", 2.0), "loss");
+  assert.equal(t1ToneOf("trim_on_rebound", -2.0), "win");
+
+  // #713: the dead zone is now ONE band, applied to every action and to the
+  // verdict text as well. These two cases are the ones that used to disagree.
+  //  - sell at +0.5%: chip said flat/"持平" while the trace node was painted red
+  //  - buy at exactly 0%: verdict said 跌 while the node was painted green
+  assert.equal(t1ToneOf("sell", 0.5), "flat");
+  assert.equal(t1VerdictOf("sell", 0.5), "持平");
+  assert.equal(t1ToneOf("buy", 0.5), "flat");
+  assert.equal(t1VerdictOf("buy", 0.5), "持平");
+  assert.equal(t1ToneOf("buy", 0), "flat");
+  assert.equal(t1VerdictOf("buy", 0), "持平");
+  assert.equal(t1ToneOf("add", 0.5), "flat");
+
+  // Outside the band the verdict text and the tone agree by construction.
+  for (const [action, delta, tone, verdict] of [
+    ["buy", 4.0, "win", "涨"],
+    ["buy", -4.0, "loss", "跌"],
+    ["sell", 4.0, "loss", "卖飞"],
+    ["sell", -4.0, "win", "卖对"],
+  ]) {
+    assert.equal(t1ToneOf(action, delta), tone, `${action} ${delta} tone`);
+    assert.equal(t1VerdictOf(action, delta), verdict, `${action} ${delta} verdict`);
+  }
+
+  // The client only maps that single reading onto its two CSS vocabularies —
+  // it must not re-derive a threshold of its own.
+  assert.equal(api.t1NodeClass("win"), "win");
+  assert.equal(api.t1NodeClass("loss"), "loss");
+  assert.equal(api.t1NodeClass("flat"), "");
+  assert.equal(api.t1ChipClass("win"), "up");
+  assert.equal(api.t1ChipClass("loss"), "down");
+  assert.equal(api.t1ChipClass("flat"), "flat");
+  assert.equal(api.t1Tone, undefined, "the client-side threshold helper must be gone (#713)");
+  assert.equal(api.t1ChipTone, undefined, "the client-side chip threshold helper must be gone (#713)");
 });
 
 test("client: trace list batches older days behind 'show earlier' and folds by day", async () => {
@@ -602,6 +649,62 @@ test("client: stylesheet keeps the dark-theme and tone contract (#704/#685 regre
   assert.match(injectedStyleText, /\.dmt \.skel/, "cold-start skeleton block required");
 });
 
+test("readTraces: a close outside the T+1 window is not a T+1 verdict (#710)", async () => {
+  const ledger = await import(pathToFileURL(path.join(PLUGIN, "lib", "ledger.js")).href);
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "clawock-t1-"));
+  const snaps = path.join(root, "memory", "snapshots");
+  fs.mkdirSync(snaps, { recursive: true });
+  const desk = (tradeDate) => fs.writeFileSync(path.join(root, "portfolio.json"), JSON.stringify({
+    portfolios: { hk_stocks: { currency: "HKD", holdings: [
+      { ticker: "00700", shares: 10, current_price: 100,
+        trades: [{ date: tradeDate, action: "buy", shares: 10, price: 100 }] },
+    ] } },
+  }));
+  const snapshot = (date, price) => fs.writeFileSync(
+    path.join(snaps, `${date}.json`),
+    JSON.stringify({ portfolios: { hk: { holdings: [{ ticker: "00700", current_price: price }] } } }),
+  );
+  const t1Of = () => ledger.readTraces(root).trades[0].t1;
+  try {
+    // Next calendar day — the plain T+1 case.
+    desk("2026-08-10");
+    snapshot("2026-08-11", 110);
+    assert.ok(t1Of(), "an adjacent close is a T+1 verdict");
+    assert.equal(t1Of().delta, 10);
+
+    // Friday fill settling against Monday: 3 days, still T+1.
+    fs.rmSync(path.join(snaps, "2026-08-11.json"));
+    desk("2026-08-07");
+    snapshot("2026-08-10", 110);
+    assert.ok(t1Of(), "a weekend gap is still T+1 (Fri fill → Mon close)");
+
+    // The regression this guards: the only close we own is months later. It
+    // used to be returned and rendered under a literal "T+1" label — on live
+    // data that reached +144 days for fills predating the snapshot series.
+    fs.rmSync(path.join(snaps, "2026-08-10.json"));
+    desk("2026-03-02");
+    snapshot("2026-08-10", 110);
+    assert.equal(t1Of(), null, "a close +161 days out must not be a T+1 verdict (#710)");
+
+    // And the boundary itself: 4 days in, 5 days out.
+    fs.rmSync(path.join(snaps, "2026-08-10.json"));
+    desk("2026-08-10");
+    snapshot("2026-08-14", 110);
+    assert.ok(t1Of(), "4 calendar days is inside the window");
+    fs.rmSync(path.join(snaps, "2026-08-14.json"));
+    snapshot("2026-08-15", 110);
+    assert.equal(t1Of(), null, "5 calendar days is outside the window");
+
+    // dayGap must be real calendar arithmetic, not the ordering key: the
+    // ordering key puts 2026-08-31 → 2026-09-01 two "days" apart.
+    assert.equal(ledger.dayGap("2026-08-31", "2026-09-01"), 1);
+    assert.equal(ledger.dayGap("2026-07-28", "2026-08-01"), 4);
+    assert.equal(ledger.dayGap("2026-12-31", "2027-01-01"), 1);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test("freshness: signature moves on each of the three data sources", async () => {
   const freshness = await import(pathToFileURL(path.join(PLUGIN, "lib", "freshness.js")).href);
   const root = makeDesk();
@@ -610,7 +713,7 @@ test("freshness: signature moves on each of the three data sources", async () =>
     const before = freshness.workspaceSignature(root);
     assert.ok(before.length > 0);
     assert.equal(before.split("|").length, 3, "shape: portfolio stat | latest snapshot | decisions stat");
-    assert.equal(before.split("|")[1], "none", "no snapshots yet → latest snapshot is 'none'");
+    assert.equal(before.split("|")[1], "none", "no snapshots yet → the snapshot term is 'none'");
 
     // portfolio.json 变化 → 签名变(内容长度不同,size 兜底 mtime 同刻度)
     fs.writeFileSync(path.join(root, "portfolio.json"), JSON.stringify({ last_updated: "changed" }));
@@ -621,6 +724,17 @@ test("freshness: signature moves on each of the three data sources", async () =>
     fs.writeFileSync(path.join(root, "memory", "snapshots", "2026-08-17.json"), "{}");
     const afterSnapshot = freshness.workspaceSignature(root);
     assert.notEqual(afterSnapshot, afterPortfolio, "a NEW snapshot file must move the signature");
+
+    // #711:改写一个【已存在】的快照(文件名不变)也必须让签名变——
+    // readSnapshotPrices 会解析每一个快照,所以签名必须覆盖全部内容而不是
+    // 只看最新文件名。这一条在「只取最新文件名」的旧实现下是红的。
+    const snapPath = path.join(root, "memory", "snapshots", "2026-08-17.json");
+    const beforeRewrite = freshness.workspaceSignature(root);
+    fs.writeFileSync(snapPath, JSON.stringify({ portfolios: { hk: { holdings: [{ ticker: "00700", current_price: 999 }] } } }));
+    assert.notEqual(
+      freshness.workspaceSignature(root), beforeRewrite,
+      "rewriting an EXISTING snapshot must move the signature (#711)",
+    );
 
     // decisions.jsonl 变化(软配对源)→ 签名变
     fs.writeFileSync(path.join(root, "memory", "decisions.jsonl"), JSON.stringify({ decision_id: "x" }) + "\n");

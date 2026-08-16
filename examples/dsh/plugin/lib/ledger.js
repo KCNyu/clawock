@@ -53,7 +53,8 @@ function readPortfolio(workspace) {
 	if (doc === null || typeof doc !== "object" || Array.isArray(doc)) return {
 		books: [],
 		trades: [],
-		lastUpdated: null
+		lastUpdated: null,
+		marketContext: {}
 	};
 	const books = [];
 	const trades = [];
@@ -104,7 +105,8 @@ function readPortfolio(workspace) {
 	return {
 		books,
 		trades,
-		lastUpdated: typeof doc["last_updated"] === "string" ? doc["last_updated"] : null
+		lastUpdated: typeof doc["last_updated"] === "string" ? doc["last_updated"] : null,
+		marketContext: doc["market_context"] ?? {}
 	};
 }
 /**
@@ -137,12 +139,67 @@ function readPlans(workspace, limit = 14) {
 	return { plans };
 }
 const SNAPSHOT_PATTERN = /^(\d{4}-\d{2}-\d{2})\.json$/;
-/** Day number for window arithmetic (no Date TZ pitfalls for ISO dates). */
+/**
+* Ordering key for ISO dates (no Date TZ pitfalls). Monotonic, so it is safe
+* for `<`/`>` comparison and sorting — but the *difference* between two of
+* these is NOT a day count (2026-08-31 → 2026-09-01 differs by 2, not 1).
+* Use `dayGap` whenever a real distance is needed.
+*/
 function dayNum(iso) {
 	if (typeof iso !== "string") return null;
 	const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso);
 	if (!m) return null;
 	return Number(m[1]) * 400 + Number(m[2]) * 32 + Number(m[3]);
+}
+/** UTC midnight epoch for an ISO date, for real calendar-day arithmetic. */
+function utcDay(iso) {
+	if (typeof iso !== "string") return null;
+	const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso);
+	if (!m) return null;
+	return Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]));
+}
+/** Signed calendar-day distance `to - from`; null when either side is unparseable. */
+function dayGap(from, to) {
+	const a = utcDay(from);
+	const b = utcDay(to);
+	if (a === null || b === null) return null;
+	return Math.round((b - a) / 864e5);
+}
+/**
+* How far after a fill a close may sit and still be called "T+1".
+* A Friday fill settles against Monday (3 calendar days); one intervening
+* public holiday makes 4. Anything beyond that is a different horizon and
+* must not be labelled T+1 — see the snapshot-coverage note on `futureClose`.
+*/
+const T1_MAX_GAP_DAYS = 4;
+/**
+* Shared dead zone for T+1 readings: a move smaller than this reads as flat
+* for every action. Host-side single source of truth so the chip, the trace
+* node and the verdict text can never disagree (they used to: three separate
+* thresholds coloured the same fill two different ways).
+*/
+const T1_FLAT_BAND_PCT = 1;
+/** Actions that reduce a position — a rising price is bad news for these. */
+const SELL_ACTIONS = /* @__PURE__ */ new Set([
+	"sell",
+	"cut",
+	"trim",
+	"trim_on_rebound"
+]);
+function isSellAction(action) {
+	return SELL_ACTIONS.has(action);
+}
+/** Good/bad/flat reading of a T+1 move, action-aware and dead-zoned. */
+function t1ToneOf(action, delta) {
+	if (Math.abs(delta) < 1) return "flat";
+	const up = delta > 0;
+	return isSellAction(action) ? up ? "loss" : "win" : up ? "win" : "loss";
+}
+/** Chinese verdict text for a T+1 move, on the same dead zone as `t1ToneOf`. */
+function t1VerdictOf(action, delta) {
+	if (Math.abs(delta) < 1) return "持平";
+	const up = delta > 0;
+	return isSellAction(action) ? up ? "卖飞" : "卖对" : up ? "涨" : "跌";
 }
 /**
 * Price lookup per ticker across daily snapshots: { ticker: { date: price } }.
@@ -182,21 +239,33 @@ function readSnapshotPrices(workspace) {
 	}
 	return byTicker;
 }
-/** First close at least `n` trading days after `date` for `ticker`. */
-function futureClose(byTicker, ticker, date, n) {
+/**
+* The n-th snapshot close strictly after `date` for `ticker` — but only when
+* it actually lands inside `maxGapDays` calendar days of the fill.
+*
+* The snapshot series is not a trading calendar: it starts the day the desk
+* began writing `memory/snapshots/`, and it has holes whenever the daily job
+* missed a run. Without the gap ceiling this function happily returns "the
+* next close we happen to own", which for fills predating the series is
+* months later — those were being rendered under a literal "T+1" label. A
+* horizon we cannot actually observe must read as unknown, not as a verdict.
+*/
+function futureClose(byTicker, ticker, date, n, maxGapDays = 4) {
 	const days = byTicker[ticker];
 	if (!days) return null;
 	const base = dayNum(date);
 	if (base === null) return null;
 	const hit = Object.keys(days).filter((d) => (dayNum(d) ?? 0) > base).sort()[n - 1];
 	if (hit === void 0) return null;
+	const gap = dayGap(date, hit);
+	if (gap === null || gap > maxGapDays) return null;
 	return {
 		date: hit,
 		price: days[hit]
 	};
 }
 /** One real fill, enriched for the trace view. */
-function enrichTrade(trade, byTicker, decByKey, books) {
+function enrichTrade(trade, byTicker, decByTicker, books) {
 	const out = {
 		...trade,
 		holdPnl: null,
@@ -205,29 +274,28 @@ function enrichTrade(trade, byTicker, decByKey, books) {
 	};
 	const t1 = futureClose(byTicker, trade.ticker, trade.date, 1);
 	if (t1 !== null && trade.price != null) {
-		const delta = (t1.price - trade.price) / trade.price * 100;
+		const delta = Math.round((t1.price - trade.price) / trade.price * 100 * 100) / 100;
 		out.t1 = {
 			date: t1.date,
 			price: Math.round(t1.price * 100) / 100,
-			delta: Math.round(delta * 100) / 100,
-			verdict: trade.action === "sell" ? delta > 1 ? "卖飞" : delta < -1 ? "卖对" : "持平" : delta > 0 ? "涨" : "跌"
+			delta,
+			verdict: t1VerdictOf(trade.action, delta),
+			tone: t1ToneOf(trade.action, delta)
 		};
 	}
-	const prefix = trade.ticker + ":";
 	let best = null;
-	let bestDiff = 99;
-	for (const [k, rows] of Object.entries(decByKey)) {
-		if (!k.startsWith(prefix)) continue;
-		const dt = k.slice(prefix.length);
-		const diff = Math.abs((dayNum(dt) ?? 0) - (dayNum(trade.date) ?? 0));
+	let bestDiff = Number.POSITIVE_INFINITY;
+	for (const row of decByTicker[trade.ticker] ?? []) {
+		const gap = dayGap(row.date, trade.date);
+		if (gap === null) continue;
+		const diff = Math.abs(gap);
 		if (diff <= 3 && diff < bestDiff) {
-			best = rows[rows.length - 1] ?? null;
+			best = row.entry;
 			bestDiff = diff;
 		}
 	}
 	if (best !== null && typeof best === "object" && !Array.isArray(best)) {
 		const b = best;
-		b["subject"];
 		const mind = b["mind"] ?? {};
 		const emotion = b["emotion"] ?? {};
 		const size = b["size"] ?? {};
@@ -269,7 +337,7 @@ function enrichTrade(trade, byTicker, decByKey, books) {
 *          published one in portfolio.json market_context (else null).
 */
 function readTraces(workspace) {
-	const { books, trades, lastUpdated } = readPortfolio(workspace);
+	const { books, trades, lastUpdated, marketContext } = readPortfolio(workspace);
 	const byTicker = readSnapshotPrices(workspace);
 	const decByKey = {};
 	const { entries } = readLedger(workspace);
@@ -283,15 +351,23 @@ function readTraces(workspace) {
 		decByKey[tk + ":" + dt] ??= [];
 		decByKey[tk + ":" + dt].push(e);
 	}
-	const enriched = trades.map((t) => enrichTrade(t, byTicker, decByKey, books));
-	const doc = readJson(join(workspace, "portfolio.json"));
-	const marketContext = doc !== null && typeof doc === "object" && !Array.isArray(doc) ? doc["market_context"] ?? {} : {};
+	const decByTicker = {};
+	for (const [key, rows] of Object.entries(decByKey)) {
+		const sep = key.lastIndexOf(":");
+		const ticker = key.slice(0, sep);
+		const entry = rows[rows.length - 1];
+		if (entry === void 0) continue;
+		(decByTicker[ticker] ??= []).push({
+			date: key.slice(sep + 1),
+			entry
+		});
+	}
 	return {
-		trades: enriched,
+		trades: trades.map((t) => enrichTrade(t, byTicker, decByTicker, books)),
 		rate: typeof marketContext["usdhk_rate"] === "number" ? marketContext["usdhk_rate"] : null,
 		rateSource: typeof marketContext["usdhk_source"] === "string" ? marketContext["usdhk_source"] : null,
 		lastUpdated
 	};
 }
 //#endregion
-export { readLedger, readPlans, readPortfolio, readSnapshotPrices, readTraces };
+export { T1_FLAT_BAND_PCT, T1_MAX_GAP_DAYS, dayGap, isSellAction, readLedger, readPlans, readPortfolio, readSnapshotPrices, readTraces, t1ToneOf, t1VerdictOf };
