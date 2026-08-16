@@ -13,7 +13,7 @@
   "decision_id": "dec-<12hex>",
   "subject": { "ticker": "00100", "market": "HK", "currency": "HKD" },
   "decided_at": "2026-08-16T13:45:00+08:00",
-  "source": "conversation",                  // conversation | brief
+  "source": "conversation",                  // conversation|openclaw|claude|codex|cli|brief
   "action": "reject",                        // buy/add/trim/sell/hold/watch/reject/abstain
   "confidence": 0.65,                        // 0..1
   "driven_by": "fundamental",                // technical|fundamental|sentiment|mixed
@@ -52,11 +52,17 @@
 ## 与现有系统关系
 
 - **数据落点**:对话决策写入 `memory/decisions.jsonl`(与盘前决策同账本,
-  真源一个)或单开 `memory/conversation-decisions.jsonl`(待定,见讨论)
+  真源一个)
+- **唯一写入入口**:`clawock record` —— 所有 harness 的对话判定都走这一个
+  命令(校验、冻结、原子追加),**禁止任何 harness 手改 jsonl**。`--source`
+  标记产出来源:`conversation`(DSH 默认)/ `openclaw` / `claude` / `codex` /
+  `cli`;盘前 brief 决策仍由 postflight 写(不经过 record)。
 - **对账**:复用现有 evaluation 机制(`triggered/executed` 语义),执行标记
   走 `clawock mark-followed`
 - **面板**:DSH Decision Studio 从「runs 调试视图」改为「决策心智视图」:
-  日期/标的/动作/信心/情绪/对账状态,展开看决策卡全貌
+  日期/标的/动作/信心/情绪/对账状态,展开看决策卡全貌。插件是**只读
+  加工层**:读 decisions.jsonl + portfolio.json 渲染,不关心谁写的、
+  不写任何数据。
 - **校准**:`confidence_bin` 汇入命中率统计,回答「我的 0.65 准不准」
 
 ## 样例一(今天真实):MiniMax 加仓判定 → 未加仓
@@ -93,16 +99,18 @@ Thesis 只要反弹就回本(事后看:反弹出现但被更高成本拖累)
   失效条件列表、情绪注记、对账区(触发/执行/校准)
 - 预览:`decision-mind-ledger.html`(静态 mock,本机可开)
 
-## 数据互通(OpenClaw ↔ DSH,一个账本两个入口)
+## 数据互通(一个账本,多个 harness 入口)
 
-- **唯一真源**:`<workspace>/memory/decisions.jsonl`。OpenClaw 盘前简报的
-  决策与 DSH 对话判定写同一个账本,两边都能读。
-- **DSH 读 OpenClaw 产出**:面板 node 半区读取该文件(默认工作区
+- **唯一真源**:`<workspace>/memory/decisions.jsonl`。盘前 brief 决策与
+  各 harness(DSH/OpenClaw/Claude Code/Codex/CLI)的对话判定写同一个账本,
+  谁都能读。
+- **统一写入入口**:对话判定一律走 `clawock record --source <harness>`
+  (校验 bear/失效条件强制、冻结 mind/emotion、原子追加);**禁止手改
+  jsonl**。盘前决策由 brief postflight 写入(不经过 record)。
+- **面板(只读加工层)**:node 半区读该文件(默认工作区
   `/root/.openclaw/workspace`,可配置),按 decision_group_id/decided_at
   分组;旧记录没有 mind/emotion 字段时降级渲染(只有动作/条件/对账)。
-- **对话判定落账**:skill 规范——verdict 产生时追加一条,`source:
-  "conversation"`,字段与现有 schema 兼容(condition 用同形结构,以便
-  每日 settle 自动对账触发/执行)。
+  插件不关心记录是谁写的,也不写任何数据——加工数据源,仅此而已。
 - **互通已验证(源码读证)**:`brief_postflight.log_decisions` 为
   load → upsert/settle → 全量写回,不删外部记录;实现时用复制账本做
   迁移测试钉住「对话记录经 postflight 一轮后仍在且被 settle」。
