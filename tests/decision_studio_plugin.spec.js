@@ -206,11 +206,17 @@ function makeRuntimeStub() {
  *  (`useStore` selector + baked `actions`), so tests can drive the view's
  *  UI state exactly the way the real slot renderer would. */
 function makeStoreStub() {
-  let s = { filter: "all", open: null, showAll: false, scrollTop: 0 };
+  let s = { filter: "all", open: null, visibleDateCount: 3, foldedDates: [], scrollTop: 0 };
   const actions = {
     setFilter: (f) => { s = { ...s, filter: f }; },
     toggleOpen: (key) => { s = { ...s, open: s.open === key ? null : key }; },
-    setShowAll: (v) => { s = { ...s, showAll: v }; },
+    showMoreDates: (n) => { s = { ...s, visibleDateCount: s.visibleDateCount + n }; },
+    resetDates: () => { s = { ...s, visibleDateCount: 3 }; },
+    toggleDate: (date) => {
+      s = { ...s, foldedDates: s.foldedDates.includes(date)
+        ? s.foldedDates.filter((d) => d !== date)
+        : [...s.foldedDates, date] };
+    },
     setScrollTop: (v) => { s = { ...s, scrollTop: v }; },
   };
   return { useStore: (sel) => sel(s), actions };
@@ -258,7 +264,7 @@ test("client: registers the Decision Mind tab and mounts the remote face", async
   assert.equal(registered.label(), "Decision Mind");
   // Official registration store: UI state survives the ring's unmount/remount.
   assert.ok(registered.store, "registration must declare a per-session store");
-  assert.deepEqual(registered.store.spec.init(), { filter: "all", open: null, showAll: false, scrollTop: 0 });
+  assert.deepEqual(registered.store.spec.init(), { filter: "all", open: null, visibleDateCount: 3, foldedDates: [], scrollTop: 0 });
 
   const injected = registered.inject("s1");
   assert.equal(typeof injected.traces, "function");
@@ -446,7 +452,7 @@ test("client: T+1 tone is action-aware — buy gains are win, sell misses are lo
   assert.equal(api.t1ChipTone("sell", -4.0), "up");
 });
 
-test("client: trace list folds to the newest 3 date groups, show-all reveals the rest", async () => {
+test("client: trace list batches older days behind 'show earlier' and folds by day", async () => {
   const loaded = await loadClient();
   const api = loaded.factory((s) => {
     if (s === "@deepseek-ai/dsh-client-runtime/client") return makeRuntimeStub();
@@ -455,8 +461,9 @@ test("client: trace list folds to the newest 3 date groups, show-all reveals the
   });
 
   // 5 distinct date groups → default renders the newest 3 (AAA/BBB/CCC),
-  // DDD/EEE stay behind the "show all" toggle. This is the anti-jank fold:
-  // the first paint must not be a 100-cell wall.
+  // DDD/EEE stay behind the "show earlier" batch. This is the anti-jank fold:
+  // the first paint must not be a 100-cell wall, and "see everything" must
+  // never mean one giant wall at once (#702 Phase 2).
   const mk = (ticker, date) => ({ ticker, market: "US", currency: "USD", date, action: "buy", shares: 1, price: 10, realizedPnl: null });
   const trades = [
     mk("AAA", "2026-08-15"),
@@ -525,17 +532,41 @@ test("client: trace list folds to the newest 3 date groups, show-all reveals the
   assert.doesNotMatch(joined, /DDD/);
   assert.doesNotMatch(joined, /EEE/);
 
-  // The toggle advertises exactly what's hidden, then reveals it.
-  const more = findButton("显示全部");
-  assert.ok(more, "fold toggle must be present when fills exceed the default");
-  assert.match(joined, /显示全部 2 笔/);
+  // The batch button advertises exactly what's hidden, then reveals it.
+  const more = findButton("显示更早");
+  assert.ok(more, "batch button must be present when older days exist");
+  assert.match(joined, /显示更早的 2 笔成交/);
   more.props.onClick();
   await tick();
   tree = render();
   const joinedAll = collectText();
   assert.match(joinedAll, /DDD/);
   assert.match(joinedAll, /EEE/);
-  assert.match(joinedAll, /收起/);
+  assert.match(joinedAll, /收起,只显示最近 3 组/);
+
+  // Day-header accordion: fold the newest day → its cell leaves the DOM but
+  // the header (and the count) stays; unfold restores it.
+  const dayHeader = (() => {
+    let found = null;
+    (function collect(node) {
+      if (node == null || found) return;
+      if (Array.isArray(node)) { node.forEach(collect); return; }
+      if (String(node.props && node.props.className || "").indexOf("day fold") === 0) found = node;
+      (node.children || []).forEach(collect);
+    })(tree);
+    return found;
+  })();
+  assert.ok(dayHeader, "day headers are foldable");
+  dayHeader.props.onClick();
+  await tick();
+  tree = render();
+  const foldedText = collectText();
+  assert.doesNotMatch(foldedText, /AAA/, "folded day's cell must leave the DOM");
+  assert.match(foldedText, /2026-08-15/, "folded day's header must stay");
+  dayHeader.props.onClick();
+  await tick();
+  tree = render();
+  assert.match(collectText(), /AAA/, "unfolding restores the cell");
 });
 
 test("client: stylesheet keeps the dark-theme and tone contract (#704/#685 regression gate)", async () => {

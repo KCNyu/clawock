@@ -70,6 +70,9 @@ window.__ModuleLoader__.load({
         '.dmt .day{margin:16px 0 2px;display:flex;align-items:center;gap:8px;font:650 13px/1.3 var(--font);color:var(--text)}',
         '.dmt .day .n{color:var(--cap);font:400 10.5px/1.3 var(--mono);margin-left:auto}',
         '.dmt .day::after{content:"";flex:1;height:1px;background:var(--border);margin-left:6px}',
+        '.dmt .day.fold{cursor:pointer;border-radius:8px;padding:2px 6px;margin-left:-6px}',
+        '.dmt .day.fold:hover{background:var(--hover)}',
+        '.dmt .day.fold .chev{margin-left:0;flex:none;width:14px;text-align:center}',
         '.dmt .cell{width:100%;margin:7px 0;border-radius:12px;border:1px solid var(--border);background:var(--surface);cursor:pointer;box-shadow:var(--shadow-sm);transition:box-shadow .15s,border-color .15s}',
         '.dmt .cell:hover{border-color:var(--border2);box-shadow:var(--shadow-md)}',
         '.dmt .cell.open{border-color:var(--brand);box-shadow:0 0 0 3px var(--brand-glow)}',
@@ -393,19 +396,33 @@ window.__ModuleLoader__.load({
         return parseInt(iso.slice(5, 7)) + '月' + parseInt(iso.slice(8, 10)) + '日'
       }
 
-      // Default fold: render only the newest TRACE_FOLD_GROUPS date groups.
-      // 100 fills as one wall of cells is not scannable and janks the first
-      // paint when the tab mounts — the first screen is the recent story,
-      // the rest behind an explicit "show all" (same contract as the
-      // dashboard trace card). Stats above stay computed over ALL fills.
+      // Batch reveal + per-day accordion (plan #702 Phase 2): the newest
+      // TRACE_FOLD_GROUPS date groups render expanded; older days load in
+      // batches behind "show earlier" (trajectory loadOlder, same shape),
+      // and any day header folds its rows — so "see everything" never means
+      // one 100-cell wall at once. Stats stay computed over ALL fills.
       var TRACE_FOLD_GROUPS = 3
-      var visibleDates = ui.showAll ? dates : dates.slice(0, TRACE_FOLD_GROUPS)
-      var hiddenCount = filtered.length - visibleDates.reduce(function (sum, d) { return sum + groups[d].length }, 0)
+      var BATCH_GROUPS = 5
+      var visibleDates = dates.slice(0, ui.visibleDateCount)
+      var moreFills = dates.slice(ui.visibleDateCount, ui.visibleDateCount + BATCH_GROUPS)
+        .reduce(function (sum, d) { return sum + groups[d].length }, 0)
 
       function renderDate(date) {
+        var folded = ui.foldedDates.indexOf(date) >= 0
         return h('div', { key: date },
-          h('div', { className: 'day' }, rel(date), h('span', null, date), h('span', { className: 'n' }, groups[date].length)),
-          groups[date].map(function (t, idx) {
+          h('div', {
+            className: 'day fold',
+            role: 'button',
+            tabIndex: 0,
+            'aria-expanded': folded ? 'false' : 'true',
+            onClick: function () { acts.toggleDate(date) },
+            onKeyDown: function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); acts.toggleDate(date) } },
+          },
+            h('span', { className: 'chev' }, folded ? '▸' : '▾'),
+            rel(date),
+            h('span', null, date),
+            h('span', { className: 'n' }, groups[date].length)),
+          folded ? null : groups[date].map(function (t, idx) {
             // 下标兜底:ticker+date+shares 在同股同日同量时会撞 key。
             var key = t.ticker + t.date + t.shares + ':' + idx
             return h(TraceCell, {
@@ -418,10 +435,14 @@ window.__ModuleLoader__.load({
           }))
       }
 
-      var moreBtn = (hiddenCount > 0 || ui.showAll)
-        ? h('button', { key: 'more', className: 'trace-more', onClick: function () { acts.setShowAll(!ui.showAll) } },
-            ui.showAll ? '收起,只显示最近 ' + TRACE_FOLD_GROUPS + ' 组' : '显示全部 ' + hiddenCount + ' 笔更早成交')
-        : null
+      var moreBtn = null
+      if (visibleDates.length < dates.length) {
+        moreBtn = h('button', { key: 'more', className: 'trace-more', onClick: function () { acts.showMoreDates(BATCH_GROUPS) } },
+          '显示更早的 ' + moreFills + ' 笔成交')
+      } else if (ui.visibleDateCount > TRACE_FOLD_GROUPS) {
+        moreBtn = h('button', { key: 'more', className: 'trace-more', onClick: function () { acts.resetDates() } },
+          '收起,只显示最近 ' + TRACE_FOLD_GROUPS + ' 组')
+      }
 
       var body
       if (!filtered.length) body = h('div', { className: 'empty' }, '没有符合条件的成交')
@@ -486,12 +507,18 @@ window.__ModuleLoader__.load({
      */
     var decisionMindStore = defineStore({
       init: function () {
-        return { filter: 'all', open: null, showAll: false, scrollTop: 0 }
+        return { filter: 'all', open: null, visibleDateCount: 3, foldedDates: [], scrollTop: 0 }
       },
       actions: {
         setFilter: function (draft, value) { draft.filter = value },
         toggleOpen: function (draft, key) { draft.open = draft.open === key ? null : key },
-        setShowAll: function (draft, value) { draft.showAll = value },
+        showMoreDates: function (draft, count) { draft.visibleDateCount = draft.visibleDateCount + count },
+        resetDates: function (draft) { draft.visibleDateCount = 3 },
+        toggleDate: function (draft, date) {
+          draft.foldedDates = draft.foldedDates.indexOf(date) >= 0
+            ? draft.foldedDates.filter(function (d) { return d !== date })
+            : draft.foldedDates.concat([date])
+        },
         setScrollTop: function (draft, value) { draft.scrollTop = value },
       },
     })
