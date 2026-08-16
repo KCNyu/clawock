@@ -343,11 +343,15 @@ def evaluate(config, policy, news_policy, fetched, factor_history, peer_history,
         copy.deepcopy(news_history),
         datetime(2026, 8, 13, tzinfo=timezone.utc),
     )
+    # #666: explicit None check, never `X or DEFAULT` — a config value of 0
+    # (`attention_score_prior: 0`) is legal and must not be swallowed into
+    # the 0.1 default.
+    raw_attention_prior = policy.get("attention_score_prior")
     news = _news_by_date(
         news_history,
         news_policy["information_overlay"],
         specs,
-        prior=float(policy.get("attention_score_prior") or 0.1),
+        prior=float(raw_attention_prior) if raw_attention_prior is not None else 0.1,
     )
     news_snapshots = {
         str(snapshot.get("as_of") or "")[:10]: snapshot

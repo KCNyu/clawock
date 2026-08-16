@@ -196,7 +196,9 @@ def test_compiler_owns_proxy_join_risk_status_and_action_bounds():
     ) < packet_mod.MAX_QUERY_BYTES
 
 
-def test_production_factor_and_peer_keys_reach_add_authority():
+def _exploration_context():
+    """Context where 00100 reaches `exploration` authority through the
+    factor/peer/information payloads (used by the #666 zero-value contract)."""
     context = _context()
     context["cross_sectional_factor"] = {
         "activation": {"usable_for_decisions": False},
@@ -235,6 +237,11 @@ def test_production_factor_and_peer_keys_reach_add_authority():
         close=11, ma20=10, prior_5d_high=11.2, prior_5d_low=9.5,
         chandelier_stop=9.8,
     )
+    return context
+
+
+def test_production_factor_and_peer_keys_reach_add_authority():
+    context = _exploration_context()
 
     packet = packet_mod.compile_packet(
         context, brief_context.compute_generation_id(context)
@@ -253,6 +260,24 @@ def test_production_factor_and_peer_keys_reach_add_authority():
     # hard exploration envelope, so it may not masquerade as a 2.5% sample.
     assert row["execution"]["max_add_shares"] == 0
     assert "tranche_below_market_unit" in row["execution"]["blockers"]
+
+
+def test_exploration_max_book_pct_zero_means_zero_exploration_budget():
+    """#666: `exploration_max_book_pct: 0` (0 = 封死探索敞口) is legal config;
+    `X or DEFAULT` would silently swallow it into 0.03."""
+    context = _exploration_context()
+    add_policy = json.loads(
+        (ROOT / "config" / "add-alpha-policy.json").read_text(encoding="utf-8"))
+    add_policy["exploration_max_book_pct"] = 0
+    context["add_alpha_policy"] = add_policy
+
+    packet = packet_mod.compile_packet(
+        context, brief_context.compute_generation_id(context)
+    )
+    execution = packet["tickers"]["00100"]["execution"]
+
+    assert execution["exploration_budget_value"] == 0.0
+    assert execution["max_add_value"] == 0
 
 
 def test_one_us_share_can_collect_exploration_inside_the_hard_book_cap():
