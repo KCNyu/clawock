@@ -13,7 +13,9 @@ entire job is one file in, one file out.
 
 A `run prepare` has written a request file (the `request_file` path it
 printed, e.g. `.clawock/work/<run_id>/request.json`). Open it first; it tells
-you:
+you. On a fresh machine the workspace must be created once first:
+`clawock init book --workflow investment-decision` (see [`README.md`](README.md)
+— "From zero").
 
 - `task` — the decision contract (evidence, opposing case, bounded action,
   reconciled amounts)
@@ -24,9 +26,10 @@ you:
 
 ## What to produce
 
-Write `decision.json` in the same directory. The schema is the package's
-`investment-decision` workflow; when in doubt, keep the fields minimal and
-explicit:
+Write `decision.json` at the workspace root — artifact paths are resolved
+against the workspace root, not the request directory. The schema is the
+package's `investment-decision` workflow; when in doubt, keep the fields
+minimal and explicit:
 
 ```json
 {
@@ -66,15 +69,21 @@ explicit:
 ```
 
 
-Rules that are not negotiable:
+Rules that are enforced by `clawock run publish`, not by this file:
 
-1. Every claim in `reasoning` cites an item in `evidence`.
-2. `opposing_case` is required and must be a genuine counterargument, not a
-   strawman — the contract refuses to publish without it.
-3. If you propose an order, the currency amounts must reconcile; let the
-   numbers come out of the context, never invent them.
-4. Confidence above `max_confidence_without_primary_source` requires a
-   primary source in `evidence`.
+1. `debate.bull_case` and `debate.bear_case` are both required; the bear case
+   must be a genuine counterargument and must cite opposing-stance evidence —
+   publish refuses without it.
+2. Every `evidence` row needs a `stance` (`supporting` | `opposing` |
+   `context`), a `source_class` (`primary` | `secondary` | `market` |
+   `agent`) and an `observed_at` no later than `as_of`.
+3. All `evidence_ids` references must exist (decision and both debate cases);
+   conclusions in `thesis.statement` and `decision.rationale` should be
+   backed by cited evidence.
+4. If you propose an order, the currency amounts must reconcile to the cent;
+   let the numbers come out of the context, never invent them.
+5. Confidence above `max_confidence_without_primary_source` requires a cited
+   primary source.
 
 ## After writing
 

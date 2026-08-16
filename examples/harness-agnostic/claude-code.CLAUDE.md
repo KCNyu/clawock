@@ -8,7 +8,9 @@ is one file in, one file out.
 
 When a clawock request file is present (`.clawock/work/<run_id>/request.json`,
 the `request_file` path printed by `clawock run prepare`), or when the user
-asks to run the investment-decision workflow.
+asks to run the investment-decision workflow. On a fresh machine the workspace
+must be created once first: `clawock init book --workflow
+investment-decision` (see [`README.md`](README.md) — "From zero").
 
 ## The loop
 
@@ -16,7 +18,8 @@ asks to run the investment-decision workflow.
    (with sha256 fingerprints), the `task`, and `workflow.parameters`
    (evidence and opposing-case minimums, confidence cap without a primary
    source).
-2. **Write `decision.json`** next to the request. Minimal shape:
+2. **Write `decision.json`** at the workspace root (artifact paths resolve
+   against the workspace root, not the request directory). Minimal shape:
 
    ```json
    {
@@ -68,9 +71,15 @@ asks to run the investment-decision workflow.
    receipt, do not re-grade the decision, do not "improve" the artifact after
    publish; Python settles.
 
-## Non-negotiables
+## Non-negotiables (enforced by `clawock run publish`)
 
-- Every claim in `reasoning` cites an item in `evidence`.
-- `opposing_case` must be a real counterargument; publish fails without one.
-- Order amounts must reconcile; never invent prices, FX or sizes.
-- Confidence above the workflow cap requires a primary source in `evidence`.
+- `debate.bull_case` and `debate.bear_case` are both required; the bear case
+  must be a genuine counterargument and must cite opposing-stance evidence —
+  publish fails without it.
+- Every `evidence` row needs `stance`, `source_class` and an `observed_at` no
+  later than `as_of`.
+- All `evidence_ids` references must exist; conclusions in
+  `thesis.statement` and `decision.rationale` should be backed by cited
+  evidence.
+- Order amounts must reconcile to the cent; never invent prices, FX or sizes.
+- Confidence above the workflow cap requires a cited primary source.

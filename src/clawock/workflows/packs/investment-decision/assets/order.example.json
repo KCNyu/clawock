@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "workflow": {
+    "id": "investment-decision",
+    "version": "1.1.0"
+  },
+  "decision_id": "order-example-2026-08-08",
+  "as_of": "2026-08-08T08:00:00+00:00",
+  "subject": {
+    "ticker": "0700",
+    "market": "HK",
+    "currency": "HKD"
+  },
+  "evidence": [
+    {
+      "id": "filing-growth",
+      "stance": "supporting",
+      "summary": "The latest filed revenue figure grew year over year.",
+      "source": "issuer filing",
+      "source_class": "primary",
+      "observed_at": "2026-08-08T07:30:00+00:00"
+    },
+    {
+      "id": "sell-side-target",
+      "stance": "supporting",
+      "summary": "A broker's HK$450 target exceeds the entry level.",
+      "source": "broker research note",
+      "source_class": "secondary",
+      "observed_at": "2026-08-08T07:35:00+00:00"
+    },
+    {
+      "id": "valuation-risk",
+      "stance": "opposing",
+      "summary": "The trailing multiple is above the five-year range.",
+      "source": "market data snapshot",
+      "source_class": "market",
+      "observed_at": "2026-08-08T07:45:00+00:00"
+    }
+  ],
+  "debate": {
+    "bull_case": {
+      "summary": "Filed growth and a broker target support a funded entry.",
+      "evidence_ids": [
+        "filing-growth",
+        "sell-side-target"
+      ]
+    },
+    "bear_case": {
+      "summary": "The valuation leaves limited margin of safety at the entry price.",
+      "evidence_ids": [
+        "valuation-risk"
+      ]
+    }
+  },
+  "thesis": {
+    "statement": "Filing-confirmed growth plus a small size makes the valuation risk acceptable; invalidation conditions bound the downside.",
+    "confidence": 0.7,
+    "invalidation_conditions": [
+      "Next filing misses revenue",
+      "Close below the invalidation level"
+    ]
+  },
+  "decision": {
+    "action": "add",
+    "rationale": "Primary evidence supports growth; the small add and invalidation conditions bound the valuation risk.",
+    "evidence_ids": [
+      "filing-growth",
+      "valuation-risk"
+    ],
+    "order": {
+      "side": "buy",
+      "quantity": "200",
+      "unit_price": "310.00",
+      "quote_currency": "HKD",
+      "gross_amount_quote": "62000.00",
+      "base_currency": "HKD",
+      "fx_quote_to_base": "1",
+      "gross_amount_base": "62000.00"
+    }
+  }
+}

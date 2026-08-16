@@ -55,7 +55,9 @@ identities to currency cents:
 
 `gross_amount_base = gross_amount_quote * fx_quote_to_base`
 
-See `assets/decision.example.json` for a complete watch decision.
+See `assets/decision.example.json` for a complete watch decision, and
+`assets/order.example.json` for an order-carrying decision with both money
+identities reconciled.
 
 ## Outcome evidence and evaluation
 

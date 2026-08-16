@@ -42,7 +42,9 @@ cd book
 mkdir -p .clawock/work
 
 echo "==> clawock run prepare"
-iso env CLAWOCK_WORKSPACE="$PWD" "$clawock" run prepare > .clawock/work/request.json
+# cwd is enough: clawock finds the workspace from the current directory.
+# --workspace/CLAWOCK_WORKSPACE only matter when running from elsewhere.
+iso "$clawock" run prepare > .clawock/work/request.json
 
 # Stands in for the agent's answer. A real runtime writes its model output here;
 # the package's job is to certify and publish whatever it is handed, so a literal
@@ -50,7 +52,7 @@ iso env CLAWOCK_WORKSPACE="$PWD" "$clawock" run prepare > .clawock/work/request.
 echo '{"answer":"smoke"}' > .clawock/work/answer.json
 
 echo "==> clawock run publish"
-iso env CLAWOCK_WORKSPACE="$PWD" "$clawock" run publish \
+iso "$clawock" run publish \
   --request .clawock/work/request.json \
   --artifact answer=.clawock/work/answer.json > receipt.json
 
