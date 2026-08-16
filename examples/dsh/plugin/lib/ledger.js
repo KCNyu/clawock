@@ -56,11 +56,12 @@ export function readPortfolio(workspace) {
   const doc = readJson(join(workspace, 'portfolio.json'))
   if (doc === null) return { books: [], lastUpdated: null }
   const books = []
+  const trades = []
   const portfolios = doc.portfolios ?? {}
   for (const [name, book] of Object.entries(portfolios)) {
     if (book === null || typeof book !== 'object' || !Array.isArray(book.holdings)) continue
-    const holdings = book.holdings
-      .filter((h) => h !== null && typeof h === 'object')
+    const rawHoldings = book.holdings.filter((h) => h !== null && typeof h === 'object')
+    const holdings = rawHoldings
       .filter((h) => (h.shares ?? h.quantity ?? 0) > 0) // zero-share rows are not positions
       .map((h) => ({
         ticker: h.ticker ?? h.stock_name ?? h.name ?? '?',
@@ -77,8 +78,32 @@ export function readPortfolio(workspace) {
       truePrincipal: book.true_principal ?? null,
       holdings,
     })
+    // Actual operations: every recorded trade across all holdings, newest
+    // first. This is the "what did I actually do" surface — real fills with
+    // notes and realized P&L, not plan simulations. Trades come from the raw
+    // holdings (the summary rows above drop the trades field on purpose).
+    const market = /^hk/i.test(name) ? 'HK' : 'US'
+    const currency = book.currency ?? (market === 'HK' ? 'HKD' : 'USD')
+    for (const holding of rawHoldings) {
+      const rawTrades = holding.trades ?? []
+      for (const tr of rawTrades) {
+        if (tr === null || typeof tr !== 'object') continue
+        trades.push({
+          ticker: holding.ticker ?? holding.stock_name ?? holding.name ?? '?',
+          market,
+          currency,
+          date: tr.date ?? null,
+          action: tr.action ?? 'buy',
+          shares: tr.shares ?? 0,
+          price: tr.price ?? null,
+          realizedPnl: tr.realized_pnl ?? null,
+          note: typeof tr.note === 'string' ? tr.note : null,
+        })
+      }
+    }
   }
-  return { books, lastUpdated: doc.last_updated ?? null }
+  trades.sort((a, b) => ((a.date ?? '') < (b.date ?? '') ? 1 : -1))
+  return { books, trades, lastUpdated: doc.last_updated ?? null }
 }
 
 /**
