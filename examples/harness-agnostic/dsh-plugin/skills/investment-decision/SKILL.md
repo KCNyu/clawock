@@ -133,6 +133,12 @@ Rules that are enforced by `clawock run publish`, not by this file:
 5. Confidence above `max_confidence_without_primary_source` requires a cited
    primary source.
 
+The sibling files next to this SKILL.md carry the full contract:
+`references/decision-contract.md` (with `assets/order.example.json`, an
+order-carrying decision whose two money identities reconcile). Introspect
+the exact artifact shape any time: `clawock workflow schema
+investment-decision decision.json`.
+
 ### 3. Publish and report
 
 ```bash
@@ -156,6 +162,21 @@ Receipt      published  ·  run_id <run_id>  ·  certificate pinned
 
 Never edit the receipt, never re-grade the decision, never "improve" the
 artifact after publish — Python settles.
+
+## Before publish: self-check
+
+Run this checklist before invoking `publish` — Python re-checks all of it
+anyway, but a clean first pass beats a rejected receipt:
+
+- both `debate.bull_case` and `debate.bear_case` present, each citing
+  existing `evidence_ids`, the bear case citing `opposing` rows
+- every cited `evidence_id` exists; no duplicates
+- every evidence row has `stance`, `source`, `source_class`, and
+  `observed_at` no later than `as_of`
+- one `primary` row is cited whenever `confidence` exceeds the cap
+- an order (if any) satisfies `gross_amount_quote = quantity × unit_price`
+  and `gross_amount_base = gross_amount_quote × fx_quote_to_base`, to the
+  cent
 
 ## If publish rejects
 
