@@ -408,3 +408,94 @@ test("client: T+1 tone is action-aware — buy gains are win, sell misses are lo
   assert.equal(api.t1ChipTone("sell", -4.0), "up");
 });
 
+test("client: trace list folds to the newest 3 date groups, show-all reveals the rest", async () => {
+  const loaded = await loadClient();
+  const api = loaded.factory((s) => {
+    if (s === "@deepseek-ai/dsh-client-runtime/client") return {};
+    if (s === "react") return makeReactStub();
+    throw new Error(`unexpected require: ${s}`);
+  });
+
+  // 5 distinct date groups → default renders the newest 3 (AAA/BBB/CCC),
+  // DDD/EEE stay behind the "show all" toggle. This is the anti-jank fold:
+  // the first paint must not be a 100-cell wall.
+  const mk = (ticker, date) => ({ ticker, market: "US", currency: "USD", date, action: "buy", shares: 1, price: 10, realizedPnl: null });
+  const trades = [
+    mk("AAA", "2026-08-15"),
+    mk("BBB", "2026-08-14"),
+    mk("CCC", "2026-08-13"),
+    mk("DDD", "2026-08-10"),
+    mk("EEE", "2026-08-05"),
+  ];
+
+  let registered = null;
+  let component = null;
+  const remoteFace = {
+    traces: async () => ({ ok: true, value: { trades, rate: null } }),
+    ledger: async () => ({ ok: true, value: { entries: [] } }),
+    portfolio: async () => ({ ok: true, value: { books: [] } }),
+    plans: async () => ({ ok: true, value: { plans: [] } }),
+  };
+  const ctx = {
+    effect() {},
+    get() { return remoteFace; },
+    slots: { inject(n, fn) { this._fn = fn; }, register(definition, Component) { registered = definition; component = Component; } },
+    remote: { $mount: async () => {} },
+  };
+  await api.apply(ctx);
+  ctx.slots._fn();
+  const injected = registered.inject("s1");
+
+  const tick = () => new Promise((resolve) => setImmediate(resolve));
+  const render = () => component({ sessionId: "s1", traces: injected.traces, ledger: injected.ledger, portfolio: injected.portfolio });
+  let tree = render();
+  await tick(); await tick(); await tick();
+  tree = render();
+
+  const collectText = () => {
+    const text = [];
+    (function walk(node) {
+      if (node == null) return;
+      if (Array.isArray(node)) { node.forEach(walk); return; }
+      if (typeof node === "string") { text.push(node); return; }
+      (node.children || []).forEach(walk);
+      walk(node.props && node.props.value);
+      walk(node.props && node.props.label);
+    })(tree);
+    return text.join(" ");
+  };
+  const findButton = (label) => {
+    let found = null;
+    (function collect(node) {
+      if (node == null || found) return;
+      if (Array.isArray(node)) { node.forEach(collect); return; }
+      if (node.type === "button") {
+        const t = (node.children || []).filter((c) => typeof c === "string").join("");
+        if (t.indexOf(label) === 0) found = node;
+      }
+      (node.children || []).forEach(collect);
+    })(tree);
+    return found;
+  };
+
+  // Folded default: newest 3 groups only, older fills not in the DOM.
+  const joined = collectText();
+  assert.match(joined, /AAA/);
+  assert.match(joined, /BBB/);
+  assert.match(joined, /CCC/);
+  assert.doesNotMatch(joined, /DDD/);
+  assert.doesNotMatch(joined, /EEE/);
+
+  // The toggle advertises exactly what's hidden, then reveals it.
+  const more = findButton("显示全部");
+  assert.ok(more, "fold toggle must be present when fills exceed the default");
+  assert.match(joined, /显示全部 2 笔/);
+  more.props.onClick();
+  await tick();
+  tree = render();
+  const joinedAll = collectText();
+  assert.match(joinedAll, /DDD/);
+  assert.match(joinedAll, /EEE/);
+  assert.match(joinedAll, /收起/);
+});
+
