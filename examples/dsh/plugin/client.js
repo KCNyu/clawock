@@ -117,6 +117,8 @@ window.__ModuleLoader__.load({
         '.dmt .tnote .k{color:var(--cap);font:600 10.5px/1.4 var(--font)}',
         '.dmt .tmiss{padding:7px 10px;border:1px dashed var(--border2);border-radius:6px;font:400 11.5px/1.5 var(--font);color:var(--cap);margin-top:8px}',
         '.dmt .empty{padding:48px 20px;text-align:center;color:var(--cap);font:400 13px/1.5 var(--font)}',
+        '.dmt .trace-more{display:block;width:calc(100% - 32px);margin:10px 16px;padding:9px 12px;border:1px dashed var(--border2);border-radius:10px;background:var(--surface);color:var(--text2);font:600 12px/1.4 var(--font);cursor:pointer;transition:background .12s,border-color .12s,color .12s}',
+        '.dmt .trace-more:hover{background:var(--hover);border-color:var(--brand);color:var(--text)}',
         '@media (max-width:520px){',
         '.dmt .main{gap:8px;padding:12px 12px 6px}',
         '.dmt .tk{font-size:13.5px}',
@@ -281,12 +283,12 @@ window.__ModuleLoader__.load({
           h('span', { className: 'date' }, (t.date || '').slice(5)),
           h('span', { className: 'chev' }, '▾')),
         h('div', { className: 'detail' },
-          h('div', { className: 'dinner' }, h(TraceDetail, { trace: t }))))
+          h('div', { className: 'dinner' }, open ? h(TraceDetail, { trace: t }) : null)))
     }
 
     /** The single organic view: decision trace timeline. */
     function DecisionMind(props) {
-      var pair = useState({ filter: 'all', open: null, traces: [], rate: null, loading: true, error: null })
+      var pair = useState({ filter: 'all', open: null, traces: [], rate: null, loading: true, error: null, showAll: false })
       var state = pair[0]
       var setState = pair[1]
       useEffect(function () {
@@ -333,9 +335,16 @@ window.__ModuleLoader__.load({
         return parseInt(iso.slice(5, 7)) + '月' + parseInt(iso.slice(8, 10)) + '日'
       }
 
-      var body
-      if (!filtered.length) body = h('div', { className: 'empty' }, '没有符合条件的成交')
-      else body = h('div', null, dates.map(function (date) {
+      // Default fold: render only the newest TRACE_FOLD_GROUPS date groups.
+      // 100 fills as one wall of cells is not scannable and janks the first
+      // paint when the tab mounts — the first screen is the recent story,
+      // the rest behind an explicit "show all" (same contract as the
+      // dashboard trace card). Stats above stay computed over ALL fills.
+      var TRACE_FOLD_GROUPS = 3
+      var visibleDates = state.showAll ? dates : dates.slice(0, TRACE_FOLD_GROUPS)
+      var hiddenCount = filtered.length - visibleDates.reduce(function (sum, d) { return sum + groups[d].length }, 0)
+
+      function renderDate(date) {
         return h('div', { key: date },
           h('div', { className: 'day' }, rel(date), h('span', null, date), h('span', { className: 'n' }, groups[date].length)),
           groups[date].map(function (t) {
@@ -348,7 +357,20 @@ window.__ModuleLoader__.load({
               onKeyDown: function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setState(function (c) { return Object.assign({}, c, { open: c.open === key ? null : key }) }) } },
             })
           }))
-      }))
+      }
+
+      var moreBtn = (hiddenCount > 0 || state.showAll)
+        ? h('button', { key: 'more', className: 'trace-more', onClick: function () { setState(function (c) { return Object.assign({}, c, { showAll: !c.showAll }) }) } },
+            state.showAll ? '收起,只显示最近 ' + TRACE_FOLD_GROUPS + ' 组' : '显示全部 ' + hiddenCount + ' 笔更早成交')
+        : null
+
+      var body
+      if (!filtered.length) body = h('div', { className: 'empty' }, '没有符合条件的成交')
+      else {
+        var kids = visibleDates.map(renderDate)
+        if (moreBtn) kids.push(moreBtn)
+        body = h('div', null, kids)
+      }
 
       var stats = h('div', { className: 'stats' },
         h('div', { className: 'sg' }, h('span', { className: 'sl' }, '已实现 (USD 等值)'),
