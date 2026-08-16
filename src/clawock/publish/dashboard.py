@@ -619,6 +619,174 @@ def _canonical_ledger():
     return _LEDGER_CACHE
 
 
+def _day_num(iso):
+    """Day number for window arithmetic; None for unparsable values."""
+    if not isinstance(iso, str):
+        return None
+    m = re.match(r'^(\d{4})-(\d{2})-(\d{2})', iso)
+    if not m:
+        return None
+    return int(m[1]) * 400 + int(m[2]) * 32 + int(m[3])
+
+
+def _future_close(prices_by_ticker, ticker, date_iso, n=1):
+    """First snapshot close at least n trading days after date_iso, or None."""
+    days = prices_by_ticker.get(ticker)
+    if not days:
+        return None
+    base = _day_num(date_iso)
+    if base is None:
+        return None
+    later = sorted(d for d in days if _day_num(d) > base)
+    if len(later) < n:
+        return None
+    return later[n - 1], days[later[n - 1]]
+
+
+def _snapshot_close_index(workspace=None):
+    """{ticker: {date: current_price}} from memory/snapshots/*.json (all files,
+    not just the embedded window — T+1 verdicts need older closes too)."""
+    index = {}
+    ws = workspace or WS_ROOT
+    paths = sorted(glob.glob(str(ws / 'memory' / 'snapshots' / '*.json')))
+    for p in paths:
+        name = os.path.basename(p)
+        if not SNAPSHOT_FNAME_RE.match(name):
+            continue
+        d = load_json(p)
+        if not d:
+            continue
+        date_key = name.split('.')[0].split('-')
+        date_key = '-'.join(date_key[:3]) if len(date_key) >= 3 else name
+        for book in (d.get('portfolios') or {}).values():
+            if not isinstance(book, dict):
+                continue
+            for h in (book.get('holdings') or []):
+                if not isinstance(h, dict):
+                    continue
+                tk = h.get('ticker')
+                price = h.get('current_price')
+                if isinstance(tk, str) and isinstance(price, (int, float)):
+                    index.setdefault(tk, {})[date_key] = price
+    return index
+
+
+def build_decision_traces(limit=40, workspace=None):
+    """The decision-trace view data: every real fill as a trace node with its
+    soft-paired decision (±3 days, same ticker) and T+1 close verdict.
+
+    This is the organic "one view" the DSH plugin and this dashboard card both
+    render: the spine is real fills (portfolio.json trades[]), the "why" layer
+    is the decision ledger, the result is the T+1 close (snapshot prices).
+    Pure read — never mutates portfolio.json or the ledger.
+    @param workspace - desk root; defaults to the module WS_ROOT (used by the
+                       real build). Tests pass a synthetic temp dir.
+    @returns list of trace dicts, newest first, capped at `limit`.
+    """
+    ws = workspace or WS_ROOT
+    # Prices first (needed for T+1 verdicts).
+    prices = _snapshot_close_index(ws)
+    # Decision ledger by ticker+date (last row wins on same-key collisions).
+    decisions = decision_v2.load_decisions(ws / 'memory' / 'decisions.jsonl')
+    dec_by_key = {}
+    for e in decisions:
+        tk = e.get('ticker') or (e.get('subject') or {}).get('ticker')
+        dt = e.get('plan_date') or (e.get('decided_at') or '')[:10]
+        if isinstance(tk, str) and isinstance(dt, str) and dt:
+            dec_by_key[tk + ':' + dt] = e
+    # Portfolio doc (single read, used for holdings/trades/positions).
+    pf_doc = load_json(str(ws / 'portfolio.json')) or {}
+    # Current-position P&L lookup for still-held tickers.
+    held_pnl = {}
+    for book in (pf_doc.get('portfolios') or {}).values():
+        if not isinstance(book, dict):
+            continue
+        for h in (book.get('holdings') or []):
+            if not isinstance(h, dict):
+                continue
+            if (h.get('shares') or h.get('quantity') or 0) > 0 and h.get('pnl_percent') is not None:
+                held_pnl[h.get('ticker')] = h.get('pnl_percent')
+    # Flatten all trades with market/currency context.
+    traces = []
+    for leg in resolve_legs(pf_doc):
+        for h in (pf_doc.get('portfolios') or {}).get(leg.bucket, {}).get('holdings', []):
+            if not isinstance(h, dict):
+                continue
+            ticker = h.get('ticker')
+            for tr in (h.get('trades') or []):
+                if not isinstance(tr, dict) or not isinstance(tr.get('date'), str):
+                    continue
+                t = {
+                    'ticker': ticker,
+                    'market': leg.key,
+                    'currency': leg.currency,
+                    'date': tr.get('date'),
+                    'action': tr.get('action') or 'buy',
+                    'shares': tr.get('shares') or 0,
+                    'price': tr.get('price'),
+                    'realizedPnl': tr.get('realized_pnl'),
+                    'note': tr.get('note') if isinstance(tr.get('note'), str) else None,
+                    't1': None,
+                    'decision': None,
+                    'holdPnl': None,
+                }
+                # T+1 verdict.
+                fc = _future_close(prices, ticker, t['date'], 1)
+                if fc and t.get('price'):
+                    delta = (fc[1] - t['price']) / t['price'] * 100
+                    t['t1'] = {
+                        'date': fc[0],
+                        'price': round(fc[1], 2),
+                        'delta': round(delta, 2),
+                        'verdict': ('卖飞' if delta > 1 else '卖对' if delta < -1 else '持平')
+                        if t['action'] == 'sell' else ('涨' if delta > 0 else '跌'),
+                    }
+                # Soft-pair the decision ledger (±3 days).
+                base = _day_num(t['date'])
+                best = None
+                best_diff = 99
+                prefix = (ticker or '') + ':'
+                for key, e in dec_by_key.items():
+                    if not key.startswith(prefix):
+                        continue
+                    diff = abs(_day_num(key[len(prefix):]) - base)
+                    if diff <= 3 and diff < best_diff:
+                        best = e
+                        best_diff = diff
+                if best:
+                    subject = best.get('subject') or {}
+                    mind = best.get('mind') or {}
+                    emotion = best.get('emotion') or {}
+                    size = best.get('size') or {}
+                    evaluation = best.get('evaluation') or {}
+                    t['decision'] = {
+                        'planDate': best.get('plan_date') or (best.get('decided_at') or '')[:10],
+                        'action': best.get('action'),
+                        'confidence': best.get('confidence'),
+                        'drivenBy': best.get('driven_by'),
+                        'rationale': (best.get('rationale')[:140] + '…')
+                        if isinstance(best.get('rationale'), str) and len(best.get('rationale')) > 140
+                        else (best.get('rationale') if isinstance(best.get('rationale'), str) else None),
+                        'thesis': mind.get('thesis'),
+                        'invalidation': mind.get('invalidation') if isinstance(mind.get('invalidation'), list) else [],
+                        'bull': (mind.get('bull') or {}).get('summary'),
+                        'bear': (mind.get('bear') or {}).get('summary'),
+                        'emotion': emotion.get('pressure'),
+                        'emotionNote': emotion.get('note'),
+                        'execution': (best.get('execution') or {}).get('status'),
+                        'condition': (best.get('condition') or {}).get('description'),
+                        'sizeShares': size.get('shares'),
+                        'sizePct': size.get('pct'),
+                        'plannedPrice': evaluation.get('execution_price') or best.get('simulated_entry_price'),
+                        'source': best.get('source') or 'brief',
+                    }
+                if ticker in held_pnl:
+                    t['holdPnl'] = held_pnl[ticker]
+                traces.append(t)
+    traces.sort(key=lambda t: (t.get('date') or ''), reverse=True)
+    return traces[:limit]
+
+
 def load_snapshots():
     """Returns recent-N snapshot summaries (NOT full holdings). Capped at MAX_SNAPSHOTS_EMBEDDED.
 
@@ -2815,6 +2983,10 @@ def build_projection(previous_source=None, shadow_previous=None):
     # function stays for the rebuild (see the official-bars task) — the field goes.
     out['decision_delta'] = decision_v2.decision_delta(_decisions)
     out['recent_decisions'] = decision_v2.recent_decisions(_decisions, limit=20)
+    # Decision trace view: real fills as the spine with soft-paired decisions
+    # and T+1 verdicts. Same contract the DSH plugin renders; the dashboard
+    # card is the public mirror. Pure read of portfolio.json + ledger + snaps.
+    out['decision_traces'] = build_decision_traces(limit=40)
     out['debate_metrics'] = compute_debate_metrics()
     out['plan_timeline'] = compute_plan_timeline(plans, limit=15)
     out['weight_confidence'] = compute_weight_confidence(portfolio)

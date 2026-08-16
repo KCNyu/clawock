@@ -9,7 +9,7 @@
 
 import { TypertRemoteService, Remote } from '@deepseek-ai/dsh-typert-protocol'
 import { listRuns, getRun } from './scan.js'
-import { readLedger, readPortfolio, readPlans } from './ledger.js'
+import { readLedger, readPortfolio, readPlans, readTraces } from './ledger.js'
 
 const workspaceOf = () => process.env.CLAWOCK_WORKSPACE || process.cwd()
 
@@ -77,6 +77,16 @@ export class ClawockStudioGateway extends TypertRemoteService {
   plans() {
     return readPlans(workspaceOf())
   }
+
+  /**
+   * The decision-trace view: real fills as the spine with soft-paired
+   * decisions (±3 days) and T+1 verdicts. This is the plugin's single
+   * organic view — the dashboard card renders the same contract.
+   * @returns `{ trades, rate, rateSource, lastUpdated }`.
+   */
+  traces() {
+    return readTraces(workspaceOf())
+  }
 }
 
 markRemote(ClawockStudioGateway, 'list', 'list')
@@ -84,5 +94,6 @@ markRemote(ClawockStudioGateway, 'get', 'get')
 markRemote(ClawockStudioGateway, 'ledger', 'ledger')
 markRemote(ClawockStudioGateway, 'portfolio', 'portfolio')
 markRemote(ClawockStudioGateway, 'plans', 'plans')
+markRemote(ClawockStudioGateway, 'traces', 'traces')
 
 export default ClawockStudioGateway
