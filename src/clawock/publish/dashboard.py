@@ -671,7 +671,7 @@ def _snapshot_close_index(workspace=None):
     return index
 
 
-def build_decision_traces(limit=60, workspace=None):
+def build_decision_traces(limit=40, workspace=None):
     """The decision-trace view data: every real fill as a trace node with its
     soft-paired decision (±3 days, same ticker) and T+1 close verdict.
 
@@ -764,7 +764,9 @@ def build_decision_traces(limit=60, workspace=None):
                         'action': best.get('action'),
                         'confidence': best.get('confidence'),
                         'drivenBy': best.get('driven_by'),
-                        'rationale': best.get('rationale') if isinstance(best.get('rationale'), str) else None,
+                        'rationale': (best.get('rationale')[:140] + '…')
+                        if isinstance(best.get('rationale'), str) and len(best.get('rationale')) > 140
+                        else (best.get('rationale') if isinstance(best.get('rationale'), str) else None),
                         'thesis': mind.get('thesis'),
                         'invalidation': mind.get('invalidation') if isinstance(mind.get('invalidation'), list) else [],
                         'bull': (mind.get('bull') or {}).get('summary'),
@@ -2984,7 +2986,7 @@ def build_projection(previous_source=None, shadow_previous=None):
     # Decision trace view: real fills as the spine with soft-paired decisions
     # and T+1 verdicts. Same contract the DSH plugin renders; the dashboard
     # card is the public mirror. Pure read of portfolio.json + ledger + snaps.
-    out['decision_traces'] = build_decision_traces(limit=60)
+    out['decision_traces'] = build_decision_traces(limit=40)
     out['debate_metrics'] = compute_debate_metrics()
     out['plan_timeline'] = compute_plan_timeline(plans, limit=15)
     out['weight_confidence'] = compute_weight_confidence(portfolio)

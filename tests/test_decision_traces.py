@@ -138,6 +138,16 @@ def test_no_t1_when_snapshot_missing(ws):
     assert spch["t1"] is None
 
 
+def test_rationale_truncated_to_payload_budget(ws):
+    """Full rationales blew the 200KB dashboard cap (209KB in CI); the trace
+    contract truncates them at 140 chars so the payload stays publishable."""
+    traces = dashboard.build_decision_traces()
+    for t in traces:
+        r = (t.get("decision") or {}).get("rationale")
+        if r:
+            assert len(r) <= 141, f"rationale too long: {len(r)}"
+
+
 def test_hold_pnl_attached_for_still_held_tickers(ws):
     traces = dashboard.build_decision_traces()
     spch = next(t for t in traces if t["ticker"] == "SPCH")
