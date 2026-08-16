@@ -2777,6 +2777,15 @@
     const EMO = {fomo:"追高冲动",revenge:"报复性",averaging_down:"摊薄冲动",fear:"恐慌",euphoria:"亢奋",calm:"平静",mixed:"混合"};
     const esc = escapeHtml;
 
+    // T+1 tone is action-aware: a rising price is good for the buyer, bad for
+    // the seller (卖飞). One sign rule for both would color buy gains red.
+    const t1Cls = (t) => {
+      const up = t.t1.delta >= 0;
+      const sell = t.action === "sell" || t.action === "cut" || t.action === "trim" || t.action === "trim_on_rebound";
+      if (sell) return up ? "neg" : "pos";
+      return up ? "pos" : "neg";
+    };
+
     // Stats row: USD-eq realized + T+1 verdict counts + match rate.
     const usd = list.filter(t => t.realizedPnl != null && t.currency === "USD").reduce((s,t) => s + t.realizedPnl, 0);
     const hkd = list.filter(t => t.realizedPnl != null && t.currency === "HKD").reduce((s,t) => s + t.realizedPnl, 0);
@@ -2805,7 +2814,7 @@
       const sym = t.currency === "HKD" ? "HK$" : "$";
       if (!d) {
         let t1 = "";
-        if (t.t1) t1 = `<div class="tr-node ${t.t1.delta >= 0 ? "neg" : "pos"}"><div class="tr-n">T+1 结果</div><div class="tr-v">${fmtPct(t.t1.delta, 1)}</div></div>`;
+        if (t.t1) t1 = `<div class="tr-node ${t1Cls(t)}"><div class="tr-n">T+1 结果</div><div class="tr-v">${fmtPct(t.t1.delta, 1)}</div></div>`;
         return `<div class="trace-line">
           <div class="tr-node dec"><div class="tr-n">决策</div><div class="tr-v muted">无关联记录</div></div>
           <div class="tr-node ok"><div class="tr-n">执行</div><div class="tr-v">${esc(ACT[t.action] || t.action)} ${t.shares}股 @${t.price} ${sym}</div></div>
@@ -2822,7 +2831,7 @@
       if (d.sizeShares) chips += `<span class="tr-chip">计划 ${d.sizeShares} 股</span>`;
       if (d.plannedPrice) chips += `<span class="tr-chip">计划价 ${d.plannedPrice}</span>`;
       let t1 = "";
-      if (t.t1) t1 = `<div class="tr-node ${t.t1.delta >= 0 ? "neg" : "pos"}"><div class="tr-n">T+1 结果</div><div class="tr-v">${fmtPct(t.t1.delta, 1)}${t.action === "sell" ? " · " + t.t1.verdict : ""}</div></div>`;
+      if (t.t1) t1 = `<div class="tr-node ${t1Cls(t)}"><div class="tr-n">T+1 结果</div><div class="tr-v">${fmtPct(t.t1.delta, 1)}${t.action === "sell" ? " · " + t.t1.verdict : ""}</div></div>`;
       let rv, rc;
       if (t.realizedPnl != null) { rv = (t.realizedPnl >= 0 ? "+" : "") + Number(t.realizedPnl).toFixed(2) + " " + sym; rc = t.realizedPnl >= 0 ? "pos" : "neg"; }
       else if (t.holdPnl != null) { rv = fmtPct(t.holdPnl, 1); rc = t.holdPnl >= 0 ? "pos" : "neg"; }
@@ -2848,7 +2857,7 @@
             ? `<span class="tr-pnl ${t.realizedPnl >= 0 ? "pos" : "neg"}">${t.realizedPnl >= 0 ? "+" : ""}${Number(t.realizedPnl).toFixed(2)} ${t.currency === "HKD" ? "HK$" : "$"}</span>`
             : (t.holdPnl != null ? `<span class="tr-pnl ${t.holdPnl >= 0 ? "pos" : "neg"}">${fmtPct(t.holdPnl, 1)}</span>` : "");
           const t1tag = t.t1
-            ? `<span class="tr-t1 ${t.t1.delta >= 0 ? "neg" : "pos"}">T+1 ${fmtPct(t.t1.delta, 1)} ${t.t1.verdict}</span>`
+            ? `<span class="tr-t1 ${t1Cls(t)}">T+1 ${fmtPct(t.t1.delta, 1)} ${t.t1.verdict}</span>`
             : "";
           return `<details class="tr-row">
             <summary>
