@@ -35,10 +35,16 @@ if [ -n "$version" ]; then
   fi
 fi
 
+# Rebuild artifacts (src → lib + Typert generation) so the published package
+# never ships stale committed output. `--include=dev` guards hosts whose npm
+# config omits devDependencies by default.
+(cd "$PKG_DIR" && npm install --include=dev --no-audit --no-fund >/dev/null && npm run build)
+
 # Verify what will be shipped before touching the registry.
 (cd "$PKG_DIR" && npm pack --dry-run >/dev/null)
 test -f "$PKG_DIR/package.json"
 test -f "$PKG_DIR/skills/investment-decision/SKILL.md"
+test -f "$PKG_DIR/lib/typert.remote-client.js"
 
 (cd "$PKG_DIR" && npm publish --access public)
 

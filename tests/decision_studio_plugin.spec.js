@@ -157,7 +157,7 @@ test("ledger: plans list newest first with decision counts", async () => {
 let importCounter = 0;
 function clientUrl() {
   importCounter += 1;
-  return pathToFileURL(path.join(PLUGIN, "client.js")).href + "?v=" + importCounter;
+  return pathToFileURL(path.join(PLUGIN, "lib", "client.js")).href + "?v=" + importCounter;
 }
 
 function makeReactStub() {

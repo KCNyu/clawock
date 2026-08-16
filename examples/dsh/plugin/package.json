@@ -1,7 +1,7 @@
 {
   "name": "clawock-dsh",
   "version": "0.1.5",
-  "description": "clawock investment-decision workflow for DeepSeek Harness — evidence, opposing case, deterministic settlement, public scorecard, plus the Decision Studio conversation-view tab",
+  "description": "clawock investment-decision workflow for DeepSeek Harness — evidence, opposing case, deterministic settlement, public scorecard, plus the Decision Mind conversation-view tab",
   "license": "MIT",
   "keywords": [
     "dsh",
@@ -16,24 +16,65 @@
   "main": "./lib/index.js",
   "exports": {
     ".": {
+      "types": "./lib/types/index.d.ts",
       "default": "./lib/index.js"
     },
     "./client": {
-      "default": "./client.js"
+      "types": "./lib/types/client.d.ts",
+      "default": "./lib/client.js"
+    },
+    "./types": {
+      "types": "./lib/types/types.d.ts"
+    },
+    "./typert": {
+      "types": "./lib/typert.host.d.ts",
+      "default": "./lib/typert.host.js"
+    },
+    "./client/typert": {
+      "types": "./lib/typert.client.d.ts",
+      "default": "./lib/typert.client.js"
+    },
+    "./remote": {
+      "types": "./lib/typert.remote-client.d.ts",
+      "default": "./lib/typert.remote-client.js"
     },
     "./package.json": "./package.json"
   },
   "files": [
     "skills",
-    "lib",
-    "client.js",
-    "cordis.patch.yml"
+    "lib/index.js",
+    "lib/client.js",
+    "lib/scan.js",
+    "lib/ledger.js",
+    "lib/freshness.js",
+    "lib/typert.host.js",
+    "lib/typert.host.d.ts",
+    "lib/typert.client.js",
+    "lib/typert.client.d.ts",
+    "lib/typert.remote-client.js",
+    "lib/typert.remote-client.d.ts",
+    "lib/types",
+    "cordis.patch.yml",
+    "package.json"
   ],
+  "scripts": {
+    "build": "node build.mjs"
+  },
   "dependencies": {
-    "@deepseek-ai/dsh-typert-protocol": "^0.1.0-rc.6"
+    "@deepseek-ai/dsh-typert-protocol": "^0.1.0-rc.6",
+    "zod": "^4.4.3"
   },
   "peerDependencies": {
     "@deepseek-ai/cordis": "^4.0.1"
+  },
+  "devDependencies": {
+    "@deepseek-ai/dsh-client-runtime": "^0.1.0-rc.6",
+    "@deepseek-ai/dsh-typert-generator": "0.1.0-rc.6",
+    "@types/node": "^26.2.0",
+    "@types/react": "^18.3.12",
+    "tsdown": "^0.22.14",
+    "tsx": "^4.23.12",
+    "typescript": "6.0.3"
   },
   "dsh": {
     "bundle": {
