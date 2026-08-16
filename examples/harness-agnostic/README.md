@@ -10,7 +10,7 @@ clawock run prepare ──► request.json ──► [your agent, any harness] �
 
 | harness | how the agent participates | file |
 |---|---|---|
-| None (pure CLI) | a literal stands in for the agent; proves the whole loop with no model | [`run.sh`](run.sh) |
+| None (pure CLI) | a literal stands in for the agent; proves the whole loop with no model and no pinned workflow | [`run.sh`](run.sh) |
 | OpenClaw | a SKILL.md tells the agent to read `request.json` and write `decision.json` | [`openclaw.SKILL.md`](openclaw.SKILL.md) |
 | Claude Code | a CLAUDE.md instruction block, loaded per workspace | [`claude-code.CLAUDE.md`](claude-code.CLAUDE.md) |
 | Codex | an AGENTS.md instruction block, auto-loaded from the workspace root | [`codex.AGENTS.md`](codex.AGENTS.md) |
@@ -46,9 +46,19 @@ clawock run publish \
   --artifact decision.json=book/decision.json
 ```
 
-`run_id` is printed by `run prepare` (the `request_file` path). The full
-contract — including money/FX reconciliation and reported failure repair —
-is described in the package's installed skill
+`run_id` is printed by `run prepare` (the `request_file` path). The default
+gates are `min_supporting_evidence: 1`, `min_opposing_evidence: 1`,
+`max_confidence_without_primary_source: 0.65`; introspect the exact artifact
+shape any time with `clawock workflow schema investment-decision decision.json`.
+
+**If publish rejects**, the receipt lists `validation_issues` with `code` and
+`message` — repair only the named issue and retry against the **same**
+prepared request; re-run `prepare` only if the context or workflow
+certificate changed. The only artifact allowed when the workflow is pinned is
+`decision.json`.
+
+The full contract — including money/FX reconciliation and reported failure
+repair — is described in the package's installed skill
 (`clawock workflow install investment-decision --workspace book`, then read
 `book/.agents/skills/investment-decision/references/decision-contract.md`)
 and enforced by `clawock run publish` itself.

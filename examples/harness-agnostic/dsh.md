@@ -72,9 +72,10 @@ clawock init book --workflow investment-decision
 
 
    Rules (enforced by `clawock run publish`, not by this file):
-   - `debate.bull_case` and `debate.bear_case` are both required; the bear
-     case must be a genuine counterargument and cite opposing-stance
-     evidence — publish refuses a decision without it.
+   - `debate.bull_case` and `debate.bear_case` are both required and each cites
+     evidence; the bear case must cite opposing-stance evidence — publish
+     refuses without it. Python checks that linkage, not sincerity: make the
+     bear case a genuine counterargument — that honesty is the model's.
    - Every `evidence` row needs `stance`, `source_class` and an `observed_at`
      no later than `as_of`.
    - All `evidence_ids` references must exist (decision and both debate

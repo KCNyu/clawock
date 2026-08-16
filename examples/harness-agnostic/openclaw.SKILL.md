@@ -71,9 +71,11 @@ minimal and explicit:
 
 Rules that are enforced by `clawock run publish`, not by this file:
 
-1. `debate.bull_case` and `debate.bear_case` are both required; the bear case
-   must be a genuine counterargument and must cite opposing-stance evidence —
-   publish refuses without it.
+1. `debate.bull_case` and `debate.bear_case` are both required and each cites
+   evidence; the bear case must cite opposing-stance evidence — publish
+   refuses without it. Python checks that linkage, not sincerity: make the
+   bear case a genuine counterargument, never a strawman — that honesty is
+   the model's contract.
 2. Every `evidence` row needs a `stance` (`supporting` | `opposing` |
    `context`), a `source_class` (`primary` | `secondary` | `market` |
    `agent`) and an `observed_at` no later than `as_of`.

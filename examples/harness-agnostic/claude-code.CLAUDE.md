@@ -73,9 +73,10 @@ investment-decision` (see [`README.md`](README.md) — "From zero").
 
 ## Non-negotiables (enforced by `clawock run publish`)
 
-- `debate.bull_case` and `debate.bear_case` are both required; the bear case
-  must be a genuine counterargument and must cite opposing-stance evidence —
-  publish fails without it.
+- `debate.bull_case` and `debate.bear_case` are both required and each cites
+  its evidence; the bear case must cite opposing-stance evidence — publish
+  fails without it. Python checks that linkage, not sincerity: make the bear
+  case a genuine counterargument — that honesty is yours.
 - Every `evidence` row needs `stance`, `source_class` and an `observed_at` no
   later than `as_of`.
 - All `evidence_ids` references must exist; conclusions in

@@ -8,7 +8,7 @@ required check instead of quietly rotting into documentation.
 |---|---|
 | [`minimal-run/`](minimal-run/) | a clean virtualenv installs the wheel and finishes one complete run — `init` → `run prepare` → `run publish` — with no checkout, no Git, no OpenClaw and an emptied environment |
 | [`harness-agnostic/`](harness-agnostic/) | one decision run driven from five harnesses — pure CLI, OpenClaw skill, Claude Code instruction, Codex AGENTS.md, DeepSeek Harness agent — with the same files-and-CLI contract throughout |
-| [`profiles/`](profiles/) | a second desk can select markets, workflows, resources, policy, presentation and delivery declaratively, without a Python instance package |
+| [`profiles/`](profiles/) | a second desk can select markets, workflows, resources, policy, presentation and delivery declaratively, without a Python instance package. Note: this is the harness *profile* surface (e.g. the `intraday` desk workflow) — distinct from the portable decision-workflow contract in `harness-agnostic/`, which is pinned per workspace with `--workflow investment-decision` |
 
 ## Why they are files and not workflow steps
 
