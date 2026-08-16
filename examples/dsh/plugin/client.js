@@ -342,7 +342,7 @@ window.__ModuleLoader__.load({
 
       var stats = h('div', { className: 'stats' },
         h('div', { className: 'sg' }, h('span', { className: 'sl' }, '已实现 (USD 等值)'),
-          h('span', { className: 'sv focus ' + (totalUsd >= 0 ? 'up' : 'down') }, (totalUsd >= 0 ? '+' : '') + fmtMoney(totalUsd))),
+          h('span', { className: 'sv focus ' + (totalUsd >= 0 ? 'up' : 'down') }, fmtMoney(totalUsd))),
         h('div', { className: 'sg' }, h('span', { className: 'sl' }, 'T+1 卖飞/卖对'),
           h('span', { className: 'sv' }, h('span', { className: 'down' }, fw), ' / ', h('span', { className: 'up' }, ok))),
         h('div', { className: 'sg' }, h('span', { className: 'sl' }, '决策挂接'), h('span', { className: 'sv' }, matched + '/' + traces.length)),

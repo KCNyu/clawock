@@ -336,6 +336,7 @@ test("client: renders the single decision-trace view from the mounted remote", a
   assert.match(joined, /卖出/);
   assert.match(joined, /\+45.21/);       // realized P&L on the real sell
   assert.match(joined, /卖对/);           // T+1 verdict chip
+  assert.doesNotMatch(joined, /\+\+/);   // header stat must not double-prepend the sign
 
   // Filter: 无决策 keeps only SPCH fills without a decision.
   const findButton = (label) => {
