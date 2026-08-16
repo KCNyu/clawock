@@ -54,17 +54,17 @@ jobs:
         # rather than the source tree: a clean environment, no checkout, no
         # OpenClaw, no KCNyu workspace.
         #
-        # The steps live in examples/minimal-run/run.sh rather than here so that
+        # The steps live in examples/cli/minimal-run/run.sh rather than here so that
         # what CI proves and what a reader can run are one file. Inline, this was
         # a proof only GitHub could execute.
-        run: examples/minimal-run/run.sh dist/*.whl
+        run: examples/cli/minimal-run/run.sh dist/*.whl
 
       - name: Harness-free run (harness-agnostic contract)
         # Same discipline as minimal-run, through the harness-agnostic example:
         # the contract is files + CLI, so a run with no harness at all must
         # publish identically to one driven by an OpenClaw skill, a Claude Code
-        # instruction or a DeepSeek Harness agent (examples/harness-agnostic/).
-        run: examples/harness-agnostic/run.sh dist/*.whl
+        # instruction or a DeepSeek Harness agent (examples/).
+        run: examples/cli/run.sh dist/*.whl
 
       - uses: actions/upload-artifact@v5
         with:
@@ -135,7 +135,7 @@ jobs:
         # Idempotent bump: `npm version <same>` exits non-zero (#617). When the
         # tag version already equals package.json, just pack what is there.
         run: |
-          cd examples/harness-agnostic/dsh-plugin
+          cd examples/dsh/plugin
           target="${GITHUB_REF_NAME#v}"
           current="$(node -p "require('./package.json').version")"
           if [ "$current" != "$target" ]; then
@@ -155,7 +155,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$GITHUB_REF_NAME" dist/* examples/harness-agnostic/dsh-plugin/*.tgz \
+          gh release create "$GITHUB_REF_NAME" dist/* examples/dsh/plugin/*.tgz \
             --verify-tag \
             --title "clawock $GITHUB_REF_NAME" \
             --notes-file /tmp/release-notes.md

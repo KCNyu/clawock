@@ -18,7 +18,7 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-PKG_DIR="$ROOT/examples/harness-agnostic/dsh-plugin"
+PKG_DIR="$ROOT/examples/dsh/plugin"
 
 version="${1:-}"
 

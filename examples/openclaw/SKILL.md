@@ -14,7 +14,7 @@ entire job is one file in, one file out.
 A `run prepare` has written a request file (the `request_file` path it
 printed, e.g. `.clawock/work/<run_id>/request.json`). Open it first; it tells
 you. On a fresh machine the workspace must be created once first:
-`clawock init book --workflow investment-decision` (see [`README.md`](README.md)
+`clawock init book --workflow investment-decision` (see [`../../README.md`](../../README.md)
 — "From zero").
 
 - `task` — the decision contract (evidence, opposing case, bounded action,

@@ -33,14 +33,14 @@ clawock run prepare --workspace ./my-decision
 
 Or throw the repository URL at any agent and let it follow the three-step
 skill flow (prepare → write `decision.json` → publish). A no-model end-to-end
-proof runs with `bash examples/minimal-run/run.sh`.
+proof runs with `bash examples/cli/minimal-run/run.sh`.
 
 ## For DeepSeek Harness users
 
 An official-style skill package is available: `dsh plugin --profile web add clawock-dsh`
 (published to npm as `clawock-dsh`). The same decision contract works from a
 pure CLI, an OpenClaw skill, a Claude Code instruction, a Codex AGENTS.md, or a
-DSH agent — see [examples/harness-agnostic](https://github.com/KCNyu/clawock/tree/master/examples/harness-agnostic).
+DSH agent — see [examples](https://github.com/KCNyu/clawock/tree/master/examples).
 
 ## What makes it different
 

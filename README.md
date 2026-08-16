@@ -40,7 +40,7 @@ installs the reusable workflow that certifies evidence, forces an opposing
 case, validates money and FX, links outcomes, and keeps every improvement
 proposal reviewable and reversible. Swap harnesses and the decision contract
 does not move: the loop is files and a CLI — see
-[`examples/harness-agnostic/`](https://github.com/KCNyu/clawock/blob/master/examples/harness-agnostic/README.md) for the
+[`examples/`](https://github.com/KCNyu/clawock/blob/master/examples/README.md) for the
 same run driven from a pure CLI, an OpenClaw skill, a Claude Code instruction, a Codex AGENTS.md,
 and a DeepSeek Harness agent.
 
@@ -250,8 +250,8 @@ You need Python ≥ 3.11 and an agent that can read a file and write
 runtime. The emitted request is for the external agent to consume. The agent
 writes `decision.json`; `clawock run publish` validates it and emits the
 correlated generation receipt. The packaged example can smoke the lifecycle
-without a model (`bash examples/minimal-run/run.sh`), and
-[`examples/harness-agnostic/`](https://github.com/KCNyu/clawock/blob/master/examples/harness-agnostic/README.md) shows the
+without a model (`bash examples/cli/minimal-run/run.sh`), and
+[`examples/`](https://github.com/KCNyu/clawock/blob/master/examples/README.md) shows the
 same run driven from a pure CLI, an OpenClaw skill, a Claude Code instruction, a Codex AGENTS.md,
 and a DeepSeek Harness agent — the harness never touches the contract. DSH users have a ready skill package on npm: `dsh plugin --profile web add clawock-dsh`.
 
@@ -272,7 +272,7 @@ foreign workspace is production-ready.
 
 - [**Live dashboard**](https://kcnyu.github.io/clawock/) — positions, risk, and the self-graded scorecard.
 - [**Daily briefs**](https://kcnyu.github.io/clawock/briefs.html) — the published morning reads.
-- [**Harness-agnostic examples**](https://github.com/KCNyu/clawock/blob/master/examples/harness-agnostic/README.md) — one decision run, five harnesses: pure CLI, OpenClaw, Claude Code, Codex, DeepSeek Harness.
+- [**Examples by harness**](https://github.com/KCNyu/clawock/blob/master/examples/README.md) — one decision run, five harnesses: pure CLI, OpenClaw, Claude Code, Codex, DeepSeek Harness, plus the npm DSH plugin.
 - [**Schedule**](https://github.com/KCNyu/clawock/blob/master/docs/operations/cron-schedules.md) — the generated cron table.
 - [**Command reference**](https://github.com/KCNyu/clawock/blob/master/docs/reference/commands.md) — every installed command, generated from the registries, plus the hand-written provider and harness detail.
 - [**Project docs**](https://github.com/KCNyu/clawock/blob/master/docs/README.md) — operations, reference, legal notes, and archived designs.

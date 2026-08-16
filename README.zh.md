@@ -194,8 +194,8 @@ evaluation: loss(按基准行情结算, trigger session 2026-08-10)
 **甩给 AI(默认):** 把本仓库地址丢给你的 Agent(Claude Code / Codex / OpenClaw / DeepSeek Harness 都行),约 60 秒就能验证一条完整决策(真实决策另需你自己的模型 API):
 
 1. `python -m pip install clawock`
-2. 跑 `bash examples/minimal-run/run.sh` 验证一条完整决策(无模型,不联网)
-3. 走真实决策时按 [`examples/harness-agnostic/dsh-plugin/skills/investment-decision/SKILL.md`](examples/harness-agnostic/dsh-plugin/skills/investment-decision/SKILL.md) 的三步流程:prepare → 写 `decision.json` → publish
+2. 跑 `bash examples/cli/minimal-run/run.sh` 验证一条完整决策(无模型,不联网)
+3. 走真实决策时按 [`examples/dsh/plugin/skills/investment-decision/SKILL.md`](examples/dsh/plugin/skills/investment-decision/SKILL.md) 的三步流程:prepare → 写 `decision.json` → publish
 
 **或者手动:** Python ≥ 3.11,然后:
 
@@ -211,7 +211,7 @@ clawock run prepare --workspace ./my-decision
 **一条命令看完整闭环**(无模型、不联网,跑完你会看到):
 
 ```
-$ bash examples/minimal-run/run.sh
+$ bash examples/cli/minimal-run/run.sh
 ==> installing into a clean virtualenv
 ==> clawock init
 initialized clawock workspace: .../book
@@ -221,7 +221,7 @@ initialized clawock workspace: .../book
 isolated run published 9c07e83a19b046b089f443829eb9a06e
 ```
 
-跑完你就拿到了第一张被 Python 校验过的决策回执。换 harness?[`examples/harness-agnostic`](examples/harness-agnostic/README.md) 五种跑法同一条契约;DSH 用户还有现成 skill 包(`dsh plugin --profile web add clawock-dsh`,已发布 npm)。
+跑完你就拿到了第一张被 Python 校验过的决策回执。换 harness?[`examples/`](examples/README.md) 五种跑法同一条契约;DSH 用户还有现成 skill 包(`dsh plugin --profile web add clawock-dsh`,已发布 npm)。
 
 **装完你得到三件事:** ① 每天 08:00 微信一份带证据链的深度简报,盘中每 30 分钟轻量盯盘(可关);② 一套所有决策可复算、可查账的审计框架;③ 一个诚实的基线——以后任何策略、任何 Agent,都能拿它跟 90 天实盘记录对比。它现在不能承诺「赚」,能承诺的是「每一笔都有据可查」。模型费用走你自己的 API key,clawock 本身免费开源。
 
