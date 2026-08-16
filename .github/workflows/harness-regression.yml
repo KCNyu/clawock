@@ -176,6 +176,15 @@ jobs:
         if: github.event_name == 'pull_request' && steps.changes.outputs.dsplugin == 'true'
         run: node tests/decision_studio_plugin.spec.js
 
+      # The spec above imports lib/ out of the checkout, where the repo's own
+      # node_modules satisfies everything — so it stayed green while #708
+      # shipped an undeclared-at-the-install-site `zod` and crash-looped dsh in
+      # production. This gate packs and installs the package standalone, which
+      # is the only place that class of defect is visible.
+      - name: Decision Studio package contract (standalone install + export entries)
+        if: github.event_name == 'pull_request' && steps.changes.outputs.dsplugin == 'true'
+        run: node tests/dsh_plugin_package_contract.mjs
+
       - name: Set up Python
         if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'
         uses: actions/setup-python@v7

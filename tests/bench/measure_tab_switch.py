@@ -27,7 +27,11 @@ import sys
 from playwright.sync_api import sync_playwright
 
 URL = sys.argv[1] if len(sys.argv) > 1 else 'http://127.0.0.1:3081/'
-SESSION = sys.argv[2] if len(sys.argv) > 2 else 'hi1h'
+# A session is picked positionally, not by title. Pinning a name here meant
+# pinning "hi1h" — the sidebar renders title + relative age, so the string rots
+# within the hour and the benchmark the baseline tells you to re-run with just
+# times out. Pass an explicit substring only when you need a specific session.
+SESSION = sys.argv[2] if len(sys.argv) > 2 else None
 ROUNDS = max(1, int(sys.argv[3])) if len(sys.argv) > 3 else 5
 CHROMIUM = os.path.expanduser('~/.cache/ms-playwright/chromium-1223/chrome-linux64/chrome')
 
@@ -36,7 +40,12 @@ with sync_playwright() as p:
     page = browser.new_page(viewport={'width': 1440, 'height': 1100})
     page.goto(URL, wait_until='domcontentloaded', timeout=30000)
     page.wait_for_timeout(2500)
-    page.locator('[class*=sessionRow]', has_text=SESSION).first.click()
+    rows = page.locator('[class*=sessionRow]')
+    if SESSION:
+        rows = rows.filter(has_text=SESSION)
+    if rows.count() == 0:
+        raise SystemExit('no session rows in the sidebar — is dsh serving %s ?' % URL)
+    rows.first.click()
     page.wait_for_timeout(3500)
 
     page.evaluate("""() => {

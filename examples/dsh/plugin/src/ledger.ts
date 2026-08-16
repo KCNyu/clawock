@@ -10,8 +10,8 @@
 import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type {
-  Book, EnrichedTrade, Holding, JsonValue, LedgerResult, PlanRow, PlansResult,
-  PortfolioResult, TraceDecision, TraceT1, TracesResult, Trade,
+  Book, DecisionRow, EnrichedTrade, Holding, JsonValue, LedgerResult, PlanRow, PlansResult,
+  PortfolioRead, TraceDecision, TraceT1, TracesResult, Trade,
 } from './types.ts'
 
 const PLAN_PATTERN = /^(\d{4}-\d{2}-\d{2})-plan\.json$/
@@ -55,10 +55,10 @@ export function readLedger(workspace: string): LedgerResult {
  * @param workspace - desk workspace root.
  * @returns `{ books, trades, lastUpdated }`.
  */
-export function readPortfolio(workspace: string): PortfolioResult {
+export function readPortfolio(workspace: string): PortfolioRead {
   const doc = readJson(join(workspace, 'portfolio.json'))
   if (doc === null || typeof doc !== 'object' || Array.isArray(doc)) {
-    return { books: [], trades: [], lastUpdated: null }
+    return { books: [], trades: [], lastUpdated: null, marketContext: {} }
   }
   const books: Book[] = []
   const trades: Trade[] = []
@@ -118,7 +118,10 @@ export function readPortfolio(workspace: string): PortfolioResult {
   const lastUpdated = typeof (doc as { last_updated?: unknown })['last_updated'] === 'string'
     ? (doc as { last_updated?: unknown })['last_updated'] as string
     : null
-  return { books, trades, lastUpdated }
+  // Returned so `readTraces` does not have to read and parse portfolio.json a
+  // second time just to reach `market_context`.
+  const marketContext = ((doc as { market_context?: unknown })['market_context'] ?? {}) as { [key: string]: JsonValue }
+  return { books, trades, lastUpdated, marketContext }
 }
 
 /**
@@ -161,12 +164,70 @@ export function readPlans(workspace: string, limit = 14): PlansResult {
 
 const SNAPSHOT_PATTERN = /^(\d{4}-\d{2}-\d{2})\.json$/
 
-/** Day number for window arithmetic (no Date TZ pitfalls for ISO dates). */
+/**
+ * Ordering key for ISO dates (no Date TZ pitfalls). Monotonic, so it is safe
+ * for `<`/`>` comparison and sorting — but the *difference* between two of
+ * these is NOT a day count (2026-08-31 → 2026-09-01 differs by 2, not 1).
+ * Use `dayGap` whenever a real distance is needed.
+ */
 function dayNum(iso: string | null): number | null {
   if (typeof iso !== 'string') return null
   const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso)
   if (!m) return null
   return Number(m[1]) * 400 + Number(m[2]) * 32 + Number(m[3])
+}
+
+/** UTC midnight epoch for an ISO date, for real calendar-day arithmetic. */
+function utcDay(iso: string | null): number | null {
+  if (typeof iso !== 'string') return null
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso)
+  if (!m) return null
+  return Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]))
+}
+
+/** Signed calendar-day distance `to - from`; null when either side is unparseable. */
+export function dayGap(from: string | null, to: string | null): number | null {
+  const a = utcDay(from)
+  const b = utcDay(to)
+  if (a === null || b === null) return null
+  return Math.round((b - a) / 86_400_000)
+}
+
+/**
+ * How far after a fill a close may sit and still be called "T+1".
+ * A Friday fill settles against Monday (3 calendar days); one intervening
+ * public holiday makes 4. Anything beyond that is a different horizon and
+ * must not be labelled T+1 — see the snapshot-coverage note on `futureClose`.
+ */
+export const T1_MAX_GAP_DAYS = 4
+
+/**
+ * Shared dead zone for T+1 readings: a move smaller than this reads as flat
+ * for every action. Host-side single source of truth so the chip, the trace
+ * node and the verdict text can never disagree (they used to: three separate
+ * thresholds coloured the same fill two different ways).
+ */
+export const T1_FLAT_BAND_PCT = 1
+
+/** Actions that reduce a position — a rising price is bad news for these. */
+const SELL_ACTIONS = new Set(['sell', 'cut', 'trim', 'trim_on_rebound'])
+
+export function isSellAction(action: string): boolean {
+  return SELL_ACTIONS.has(action)
+}
+
+/** Good/bad/flat reading of a T+1 move, action-aware and dead-zoned. */
+export function t1ToneOf(action: string, delta: number): 'win' | 'loss' | 'flat' {
+  if (Math.abs(delta) < T1_FLAT_BAND_PCT) return 'flat'
+  const up = delta > 0
+  return isSellAction(action) ? (up ? 'loss' : 'win') : (up ? 'win' : 'loss')
+}
+
+/** Chinese verdict text for a T+1 move, on the same dead zone as `t1ToneOf`. */
+export function t1VerdictOf(action: string, delta: number): string {
+  if (Math.abs(delta) < T1_FLAT_BAND_PCT) return '持平'
+  const up = delta > 0
+  return isSellAction(action) ? (up ? '卖飞' : '卖对') : (up ? '涨' : '跌')
 }
 
 /**
@@ -208,12 +269,23 @@ export function readSnapshotPrices(workspace: string): Record<string, Record<str
   return byTicker
 }
 
-/** First close at least `n` trading days after `date` for `ticker`. */
+/**
+ * The n-th snapshot close strictly after `date` for `ticker` — but only when
+ * it actually lands inside `maxGapDays` calendar days of the fill.
+ *
+ * The snapshot series is not a trading calendar: it starts the day the desk
+ * began writing `memory/snapshots/`, and it has holes whenever the daily job
+ * missed a run. Without the gap ceiling this function happily returns "the
+ * next close we happen to own", which for fills predating the series is
+ * months later — those were being rendered under a literal "T+1" label. A
+ * horizon we cannot actually observe must read as unknown, not as a verdict.
+ */
 function futureClose(
   byTicker: Record<string, Record<string, number>>,
   ticker: string,
   date: string | null,
   n: number,
+  maxGapDays: number = T1_MAX_GAP_DAYS,
 ): { date: string; price: number } | null {
   const days = byTicker[ticker]
   if (!days) return null
@@ -222,6 +294,8 @@ function futureClose(
   const later = Object.keys(days).filter((d) => (dayNum(d) ?? 0) > base).sort()
   const hit = later[n - 1]
   if (hit === undefined) return null
+  const gap = dayGap(date, hit)
+  if (gap === null || gap > maxGapDays) return null
   return { date: hit, price: days[hit]! }
 }
 
@@ -229,39 +303,40 @@ function futureClose(
 function enrichTrade(
   trade: Trade,
   byTicker: Record<string, Record<string, number>>,
-  decByKey: Record<string, JsonValue[]>,
+  decByTicker: Record<string, DecisionRow[]>,
   books: Book[],
 ): EnrichedTrade {
   const out = { ...trade, holdPnl: null, t1: null, decision: null } as EnrichedTrade
-  // T+1 verdict: sell verdicts read "卖飞/卖对", buys read "涨/跌".
+  // T+1 reading: tone and verdict both come from the shared dead zone in
+  // `t1ToneOf`/`t1VerdictOf`, so the chip, the trace node and the text can
+  // never disagree about the same fill.
   const t1 = futureClose(byTicker, trade.ticker, trade.date, 1)
   if (t1 !== null && trade.price != null) {
-    const delta = ((t1.price - trade.price) / trade.price) * 100
+    const delta = Math.round(((t1.price - trade.price) / trade.price) * 100 * 100) / 100
     out.t1 = {
       date: t1.date,
       price: Math.round(t1.price * 100) / 100,
-      delta: Math.round(delta * 100) / 100,
-      verdict: trade.action === 'sell'
-        ? (delta > 1 ? '卖飞' : delta < -1 ? '卖对' : '持平')
-        : (delta > 0 ? '涨' : '跌'),
+      delta,
+      verdict: t1VerdictOf(trade.action, delta),
+      tone: t1ToneOf(trade.action, delta),
     } satisfies TraceT1
   }
-  // Soft-pair the decision ledger: same ticker, plan date within ±3 days.
-  const prefix = trade.ticker + ':'
+  // Soft-pair the decision ledger: same ticker, plan date within ±3 *calendar*
+  // days. Indexed by ticker so this stays O(decisions for this ticker) instead
+  // of rescanning every ledger key for every fill.
   let best: JsonValue | null = null
-  let bestDiff = 99
-  for (const [k, rows] of Object.entries(decByKey)) {
-    if (!k.startsWith(prefix)) continue
-    const dt = k.slice(prefix.length)
-    const diff = Math.abs((dayNum(dt) ?? 0) - (dayNum(trade.date) ?? 0))
+  let bestDiff = Number.POSITIVE_INFINITY
+  for (const row of decByTicker[trade.ticker] ?? []) {
+    const gap = dayGap(row.date, trade.date)
+    if (gap === null) continue
+    const diff = Math.abs(gap)
     if (diff <= 3 && diff < bestDiff) {
-      best = rows[rows.length - 1] ?? null
+      best = row.entry
       bestDiff = diff
     }
   }
   if (best !== null && typeof best === 'object' && !Array.isArray(best)) {
     const b = best as { [key: string]: unknown }
-    const subject = (b['subject'] ?? {}) as { [key: string]: unknown }
     const mind = (b['mind'] ?? {}) as { [key: string]: unknown }
     const emotion = (b['emotion'] ?? {}) as { [key: string]: unknown }
     const size = (b['size'] ?? {}) as { [key: string]: unknown }
@@ -311,7 +386,7 @@ function enrichTrade(
  *          published one in portfolio.json market_context (else null).
  */
 export function readTraces(workspace: string): Omit<TracesResult, 'workspaceKey' | 'signature'> {
-  const { books, trades, lastUpdated } = readPortfolio(workspace)
+  const { books, trades, lastUpdated, marketContext } = readPortfolio(workspace)
   const byTicker = readSnapshotPrices(workspace)
   const decByKey: Record<string, JsonValue[]> = {}
   const { entries } = readLedger(workspace)
@@ -329,11 +404,18 @@ export function readTraces(workspace: string): Omit<TracesResult, 'workspaceKey'
     decByKey[tk + ':' + dt] ??= []
     decByKey[tk + ':' + dt]!.push(e)
   }
-  const enriched = trades.map((t) => enrichTrade(t, byTicker, decByKey, books))
-  const doc = readJson(join(workspace, 'portfolio.json'))
-  const marketContext = (doc !== null && typeof doc === 'object' && !Array.isArray(doc))
-    ? (((doc as { market_context?: unknown })['market_context'] ?? {}) as { [key: string]: unknown })
-    : {}
+  // Flatten `ticker:date` keys into a per-ticker index, keeping the previous
+  // semantics exactly: the last ledger row wins for a given ticker+date, and
+  // among equally-distant dates the earliest-seen one wins.
+  const decByTicker: Record<string, DecisionRow[]> = {}
+  for (const [key, rows] of Object.entries(decByKey)) {
+    const sep = key.lastIndexOf(':')
+    const ticker = key.slice(0, sep)
+    const entry = rows[rows.length - 1]
+    if (entry === undefined) continue
+    ;(decByTicker[ticker] ??= []).push({ date: key.slice(sep + 1), entry })
+  }
+  const enriched = trades.map((t) => enrichTrade(t, byTicker, decByTicker, books))
   const rate = typeof marketContext['usdhk_rate'] === 'number' ? marketContext['usdhk_rate'] : null
   return {
     trades: enriched,

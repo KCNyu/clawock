@@ -73,8 +73,11 @@ NPM_TOKEN=... ops/publish/publish_dsh_plugin.sh 0.2.1
 
 `NPM_TOKEN` is the npm registry auth token and the only environment input the
 script needs (a userconfig with registry auth works too). Before touching the
-registry it runs `npm pack --dry-run` and verifies the package and its
-`skills/investment-decision/SKILL.md` both exist.
+registry it rebuilds the plugin artifacts (`npm install --include=dev &&
+npm run build` — src → lib + Typert generation, so the published package never
+ships stale committed output) and runs `npm pack --dry-run` to verify the
+package, its `skills/investment-decision/SKILL.md`, and the generated
+`lib/typert.remote-client.js` all exist.
 
 On a `v*` tag the workflow's `npm` job calls the same script with the tag
 version (`"${GITHUB_REF_NAME#v}"`), so PyPI and npm publish together; the GitHub
