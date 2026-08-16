@@ -106,6 +106,20 @@ def test_validate_decision_accepts_mind_records_and_rejects_weak_ones():
     assert any("missing episode_id" in issue for issue in validate_decision(legacy))
 
 
+def test_validate_decision_accepts_every_source_v0_mind_record():
+    """#664: every harness in record.SOURCES writes a valid v0 mind record, and
+    the desk's row validator must route each one to the mind rules — not the
+    v2 plan rules that demand episode_id/plan_date."""
+    from clawock.decision.ledger import validate_decision
+    from clawock.decision import record as decision_record
+    for source in sorted(decision_record.SOURCES):
+        rec = build_record(_args(source=source))
+        assert rec["source"] == source
+        assert rec["schema_version"] == 0
+        assert validate_decision(rec) == [], \
+            f"v0 mind record from {source!r} failed the desk validator"
+
+
 def test_source_param_distinguishes_harnesses(tmp_path):
     """Any harness (OpenClaw/Claude Code/Codex/CLI) records into the same
     ledger; `--source` says which one wrote the verdict."""
