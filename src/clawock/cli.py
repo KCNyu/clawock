@@ -709,6 +709,7 @@ def main(argv=None) -> int:
         ("reconcile", "recompute all portfolio derivations and verify integrity"),
         ("validate-sidecar", "validate a workflow-generated sidecar artifact"),
         ("mark-followed", "record execution ground truth in the decision ledger"),
+        ("record", "append a conversation verdict to the decision-mind ledger"),
         ("audit-resettle", "audit decision re-settlement without writing by default"),
         ("evidence", "rebuild the artifact-backed public evidence page"),
         ("news-evidence", "build the expiring news and filing evidence graph"),

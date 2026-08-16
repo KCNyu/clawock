@@ -68,19 +68,21 @@ agent:准备请求…(clawock run prepare)
       Receipt published · run_id <id> · 证书已钉住
 ```
 
-## Decision Studio 面板
+## Decision Mind 面板
 
-装完后,web GUI 的会话视图多一个 **Decision Studio** tab(只读):
+装完后,web GUI 的会话视图多一个 **Decision Mind** tab(只读,DSH 原生
+浅色风格)。**OpenClaw 每天产出的东西,这里都能读**:
 
-- **运行列表**:本 workspace(`$CLAWOCK_WORKSPACE` 或 dsh 进程 cwd)里所有
-  已 prepare 的 run —— ticker / action / 有无回执 / as_of,按时间倒序;
-- **选中一个 run**:certified request(文档指纹数 + 三道闸)、debate 证据
-  表(supporting 绿 / opposing 红)、thesis + action + confidence、回执
-  横幅(published 绿 / 未发布红 + run_id + generation)。
+- **账本**:`memory/decisions.jsonl` 的决策记录,按日期分组 —— 盘前简报
+  决策与对话判定(带 bull/bear 思想、情绪压力、可证伪条件)同源展示,
+  旧记录自动降级(只有动作/条件/对账);
+- **持仓**:`portfolio.json` 按书分组(港/美股),ticker / 股数 / 现价 /
+  盈亏%,红绿语义色;
+- **计划**:最近的 `memory/*-plan.json` 与决策数。
 
-数据源是只读的:`.clawock/work/<run_id>/request.json`、workspace 根
-`decision.json`、`.clawock/runs/<run_id>/manifest.json`。面板不改任何文件,
-结算仍归 `clawock run publish`。结构:
+对话判定落账:`clawock record --subject ... --action ... --bull ... --bear
+... --invalidation ... --emotion ...`(schema 见 `docs/decision-mind-ledger.md`,
+bear 与失效条件强制,情绪自认)。面板不改任何文件,结算仍归既有机制。结构:
 
 ```
 clawock-dsh
