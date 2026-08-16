@@ -219,6 +219,13 @@ def test_no_live_numbers_in_evergreen_copy():
         r"win rate of \d", r"\d+%\s*win", r"n\s*=\s*\d",   # sample sizes / rates
         r"[-+]?\$\d[\d,]*\s*(?:profit|loss|P&L|pnl)",       # money results
         r"胜率\s*\d", r"样本\s*\d", r"n\s*=\s*\d+\s*条",
+        # #648: 公开战绩 prose must not re-freeze live results the CW_M
+        # placeholders own — the refresh script only rewrites placeholders, so
+        # a hard-coded twin on the same page silently drifts (the −15.95%/640
+        # twin already did once; this guard pins the phrasings that carry one).
+        r"真实账户收益\s*[−-]?\d",   # prose P&L, not the bracketed template
+        r"账本在此:\s*\d+",          # frozen ledger row count in prose
+        r"别拿\s*\d+",               # frozen figure in a rule-of-thumb sentence
     ]
     for md, name in ((EN, "README.md"), (ZH, "README.zh.md")):
         for pat in banned:
