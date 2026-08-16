@@ -72,7 +72,7 @@ clawock 的契约是文件 + CLI,DSH 的 bash 工具已经能执行全部命令;
 只需要把「什么时候跑、产出什么、什么不可协商」讲清楚。这也是 clawock
 harness-agnostic 定位的一部分——同一份契约,OpenClaw skill / Claude Code
 指令 / Codex AGENTS.md / DSH skill 各有一个壳,内容同构
-([../README.md](../README.md))。
+([../../README.md](../../README.md))。
 
 ## 校验安装成功
 

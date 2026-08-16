@@ -214,4 +214,4 @@ is evidence for the next decision, not portfolio P&L.
 Live proof on a real HK + US desk: <https://kcnyu.github.io/clawock/>
 The same contract from other harnesses (OpenClaw skill, Claude Code
 instruction, Codex AGENTS.md, pure CLI):
-<https://github.com/KCNyu/clawock/tree/master/examples/harness-agnostic>
+<https://github.com/KCNyu/clawock/tree/master/examples/dsh/plugin>

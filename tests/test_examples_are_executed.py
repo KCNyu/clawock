@@ -1,6 +1,6 @@
 """An example nobody runs is documentation that lies on a schedule.
 
-`examples/minimal-run/run.sh` is the acceptance check for #379 and the last
+`examples/cli/minimal-run/run.sh` is the acceptance check for #379 and the last
 unchecked box of #420: a clean environment installs the wheel and finishes one
 complete run with no checkout, no Git and no OpenClaw. It used to live inline in
 `release.yml`, which proved the package worked for GitHub and for nobody else —
@@ -16,7 +16,7 @@ import stat
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-EXAMPLE = ROOT / 'examples' / 'minimal-run' / 'run.sh'
+EXAMPLE = ROOT / 'examples' / 'cli' / 'minimal-run' / 'run.sh'
 RELEASE = ROOT / '.github' / 'workflows' / 'release.yml'
 
 
@@ -30,7 +30,7 @@ def test_the_release_workflow_runs_the_example_rather_than_its_own_copy():
     """The drift this whole change exists to prevent: CI running one copy while
     the file a reader runs slowly stops working."""
     workflow = RELEASE.read_text()
-    assert 'examples/minimal-run/run.sh' in workflow, (
+    assert 'examples/cli/minimal-run/run.sh' in workflow, (
         'release.yml must invoke the example, not reimplement it')
 
     # And it must not have kept the inline version alongside it.

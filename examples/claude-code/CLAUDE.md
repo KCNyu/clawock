@@ -1,9 +1,8 @@
-# AGENTS.md — clawock decision runs (Codex)
+# CLAUDE.md — clawock decision runs
 
-You are the model side of a clawock decision run. Codex owns conversation,
-memory and tools; clawock owns the decision contract. Your job is one file
-in, one file out. Codex reads this file automatically from the workspace
-root.
+You are the model side of a clawock decision run. Claude Code owns
+conversation, memory and tools; clawock owns the decision contract. Your job
+is one file in, one file out.
 
 ## When to engage
 
@@ -11,12 +10,12 @@ When a clawock request file is present (`.clawock/work/<run_id>/request.json`,
 the `request_file` path printed by `clawock run prepare`), or when the user
 asks to run the investment-decision workflow. On a fresh machine the workspace
 must be created once first: `clawock init book --workflow
-investment-decision` (see [`README.md`](README.md) — "From zero").
+investment-decision` (see [`../../README.md`](../../README.md) — "From zero").
 
 ## The loop
 
 1. **Read the request.** `request.json` contains the certified `context`
-   (with per-file sha256 fingerprints), the `task`, and `workflow.parameters`
+   (with sha256 fingerprints), the `task`, and `workflow.parameters`
    (evidence and opposing-case minimums, confidence cap without a primary
    source).
 2. **Write `decision.json`** at the workspace root (artifact paths resolve
@@ -85,10 +84,3 @@ investment-decision` (see [`README.md`](README.md) — "From zero").
   evidence.
 - Order amounts must reconcile to the cent; never invent prices, FX or sizes.
 - Confidence above the workflow cap requires a cited primary source.
-
-## Why this file exists
-
-clawock's contract is files and a CLI, so the harness is swappable. This file
-is the Codex side of the same contract shown for a pure CLI, an OpenClaw
-skill, a Claude Code instruction and a DeepSeek Harness agent in
-`examples/harness-agnostic/` — swap harnesses, `decision.json` looks the same.

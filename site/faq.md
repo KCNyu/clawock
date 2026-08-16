@@ -59,7 +59,7 @@ It does not promise "earn"; it promises "every call has a paper trail".
 Any harness that can read a file and write `decision.json`: Claude Code,
 Codex, OpenClaw, DeepSeek Harness, or a plain CLI. The contract is files and a
 CLI — swap harnesses and the workflow does not move. See
-[examples/harness-agnostic](https://github.com/KCNyu/clawock/tree/master/examples/harness-agnostic)
+[examples](https://github.com/KCNyu/clawock/tree/master/examples)
 for the same run driven from five harnesses.
 
 ## Does it work with DeepSeek Harness?
@@ -79,7 +79,7 @@ clawock run prepare --workspace ./my-decision
 ```
 
 Or hand the repository URL to your agent and let it run
-`bash examples/minimal-run/run.sh` first — a no-model, no-network proof of one
+`bash examples/cli/minimal-run/run.sh` first — a no-model, no-network proof of one
 complete decision loop. Model costs ride on your own API key; clawock itself is
 free and open source (MIT).
 
