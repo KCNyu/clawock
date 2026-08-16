@@ -75,6 +75,10 @@ OPENCLAW_INSTALL = _OPENCLAW_PATHS.install_dir
 LIVE_WORKSPACE = _OPENCLAW_PATHS.workspace
 MEMORY_INDEX_DB = _OPENCLAW_PATHS.memory_index_db
 OPENCLAW_CONFIG = _OPENCLAW_PATHS.config_file
+# Derived, never spelled out: an absolute host path in this file is exactly the
+# runtime coupling the ratchet bans, and the host tools directory belongs to
+# whoever runs the check, not to this repository.
+HOST_TOOLS_DIR = Path.home() / 'tools'
 
 MEMORY_INDEX_LOG = LIVE_WORKSPACE / 'logs' / 'memory_index.log'
 # Nightly reindex is 05:10 HKT; 30h lets one run slip into the next daily review
@@ -349,7 +353,7 @@ SECRET_PATTERNS_STRICT = (
     r'|\bxox[baprs]-[A-Za-z0-9-]{10,}'              # Slack token
     r'|\btvly-[A-Za-z0-9_-]{20,}'                   # Tavily search key
     # Nostr nsec (bech32: fixed prefix, fixed length, no b/i/o/1 in the charset).
-    # nostr_publish.js signs with this — a leak lets anyone post as Rick.
+    # An nsec is the account's signing key — a leak lets anyone post as its owner.
     r'|\bnsec1[02-9ac-hj-np-z]{58}\b'
 )
 
@@ -725,6 +729,72 @@ def check_cron_paths_exist(r):
         r.add('cron paths', OK, f'{len(jobs)} jobs · {len(refs)} referenced scripts present')
 
 
+def _host_crontab_target_audit(crontab_text):
+    """(rows, missing) — absolute host crontab command paths that do not exist.
+
+    A cron line whose script was deleted still fires on schedule and fails only
+    inside cron's own mail, which nobody reads — the #592 cleanup deleted
+    `indexnow_submit.py` and `rick_broadcast_nostr.sh` while the host crontab
+    kept scheduling them (#663). Every absolute path in the command part that
+    sits under the live workspace or the host tools directory must therefore
+    resolve, or the line is a silent no-op.
+
+    Both roots are derived, not spelled out: the workspace comes from the
+    provider adapter and the tools directory from the operator's home, so this
+    file stays free of the host-path coupling the ratchet bans. Tokens are read
+    until the first shell operator (`>`, `|`, `;`): a redirect target like
+    `>> logs/watchdog.cron.log` is created by cron, so a not-yet-written log is
+    not a missing file.
+    """
+    import re
+    import shlex
+
+    from clawock.scheduling import parse_crontab_lines
+
+    missing = []
+    rows = parse_crontab_lines(crontab_text)
+    for row in rows:
+        for token in shlex.split(row['command']):
+            if '=' in token:  # env assignment prefixing the command (PATH=…)
+                continue
+            if re.search(r'[>|;]', token):
+                break
+            if not token.startswith('/'):
+                continue
+            target = Path(token)
+            if not any(target.is_relative_to(root)
+                       for root in (LIVE_WORKSPACE, HOST_TOOLS_DIR)):
+                continue
+            if not os.path.exists(target):
+                missing.append(token)
+    return rows, missing
+
+
+def check_host_crontab_targets(r):
+    """Host crontab lines must not point at files that no longer exist.
+
+    Skip-safe by design: CI runners and fresh hosts have no crontab, and an
+    unreadable or empty one is not a finding. The check exists because deleting
+    an ops script without touching the host crontab turns the scheduled line
+    into a silent no-op that no repository-side gate can see (#663).
+    """
+    try:
+        out = subprocess.run(
+            ['crontab', '-l'], capture_output=True, text=True, timeout=10,
+        )
+    except Exception:
+        return  # no crontab on this host — nothing to check
+    if out.returncode != 0 or not out.stdout.strip():
+        return
+    rows, missing = _host_crontab_target_audit(out.stdout)
+    if missing:
+        for path in missing:
+            r.add('host crontab targets', CRITICAL,
+                  f'crontab points at missing file: {path}')
+    else:
+        r.add('host crontab targets', OK, f'{len(rows)} lines · no missing targets')
+
+
 def check_generated_cron_docs(r):
     """Generated schedule documentation must exactly match the contract."""
     result = subprocess.run(
@@ -933,6 +1003,7 @@ def main():
         check_decision_ledger,
         check_context_capability,
         check_cron_paths_exist,
+        check_host_crontab_targets,
         check_generated_cron_docs,
         check_research_artifacts,
         check_trading_calendar_horizon,
