@@ -82,14 +82,24 @@ def semantic_state(market, session_date, *, signals_detail, anomalies, setups,
             })
     # #610: the price-surface lanes encode their live sub-state in setup_id
     # (opportunity:{breakout|wait_rebreak|near_breakout},
-    # early_trend:{state}) and those sub-states flip on raw quote churn around
-    # a threshold (close vs prior, zscore20 vs 2.0) — exactly the churn this
-    # gate exists to exclude. Compare the lane identity, not the churny
+    # early_trend:{state}) and most of those sub-states flip on raw quote churn
+    # around a threshold (close vs prior, zscore20 vs 2.0) — exactly the churn
+    # this gate exists to exclude. Compare the lane identity, not the churny
     # sub-state; a row appearing or disappearing still counts as a delta.
+    #
+    # #645: one sub-state is NOT quote churn — early_trend:exploration_ready is
+    # driven by primary_ids / the information layer (#603), and the
+    # wait_information→exploration_ready flip unlocks a 2.5% exploration
+    # tranche. That decision-relevant jump must stay a delta: keep the
+    # exploration_ready identity, collapse only the churny sub-states.
     def _stable_setup_id(setup_id):
         if setup_id and ':' in str(setup_id):
-            prefix = str(setup_id).split(':', 1)[0]
-            if prefix in ('opportunity', 'early_trend'):
+            prefix, _, sub = str(setup_id).partition(':')
+            if prefix == 'opportunity':
+                return prefix
+            if prefix == 'early_trend':
+                if sub == 'exploration_ready':
+                    return setup_id
                 return prefix
         return setup_id
 
