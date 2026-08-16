@@ -30,7 +30,7 @@ window.__ModuleLoader__.load({
       return {
         empty: false,
         runId: run.runId,
-        subject: request.subject ?? null,
+        subject: request.subject ?? (decision && decision.subject) ?? null,
         asOf: request.as_of ?? null,
         task: request.task ?? null,
         workflow: request.workflow ?? null,
@@ -77,7 +77,7 @@ window.__ModuleLoader__.load({
 
     /** The conversation.view tab: run list + selected run detail. */
     function DecisionStudio(props) {
-      var pair = useState({ runs: [], selected: null, loading: true, error: null })
+      var pair = useState({ runs: [], selected: null, detail: null, loading: true, error: null })
       var state = pair[0]
       var setState = pair[1]
       var sessionId = props.sessionId
@@ -94,24 +94,40 @@ window.__ModuleLoader__.load({
         return function () { alive = false }
       }, [sessionId])
 
+      // Full detail is fetched per selection: list rows are cheap snapshots,
+      // the request/decision/receipt payloads live in the node half.
+      useEffect(function () {
+        var selected = state.selected
+        if (!selected) {
+          setState(function (current) { return Object.assign({}, current, { detail: null }) })
+          return
+        }
+        var alive = true
+        setState(function (current) { return Object.assign({}, current, { detail: null }) })
+        props.get(selected).then(function (detail) {
+          if (!alive) return
+          setState(function (current) { return Object.assign({}, current, { detail: detail }) })
+        }, function (error) {
+          if (!alive) return
+          setState(function (current) { return Object.assign({}, current, { detail: null, error: String(error && error.message ? error.message : error) }) })
+        })
+        return function () { alive = false }
+      }, [state.selected])
+
       var loading = state.loading
       var error = state.error
       var runs = state.runs
       var selectedId = state.selected
+      var detail = state.detail
 
       if (error) return h('div', { style: CARD }, h('span', { style: { color: RED } }, 'Decision Studio: ' + error))
       if (loading) return h('div', { style: CARD }, 'Loading clawock runs…')
 
-      var selectedRun = null
-      for (var i = 0; i < runs.length; i += 1) {
-        if (runs[i].runId === selectedId) { selectedRun = runs[i]; break }
-      }
-
-      var detail = null
-      if (selectedRun) {
-        var model = _buildStudioModel(selectedRun)
+      var detailView = null
+      if (detail) {
+        var model = _buildStudioModel(detail)
         if (!model.empty) {
-          detail = h('div', { style: CARD },
+          detailView = h('div', { style: CARD },
             h('div', { style: { fontSize: 14, fontWeight: 700, marginBottom: 8 } },
               model.subject ? model.subject.ticker + ' (' + model.subject.market + '/' + model.subject.currency + ')' : 'unknown subject'),
             h(Row, { label: 'run_id', value: model.runId, muted: true }),
@@ -137,7 +153,7 @@ window.__ModuleLoader__.load({
       return h('div', { style: { padding: 4 } },
         h('div', { style: { color: MUTED, fontSize: 12, marginBottom: 6 } }, 'clawock runs in this workspace (' + runs.length + ')'),
         runs.map(function (run) {
-          var ticker = run.subject && run.subject.ticker ? run.subject.ticker : run.runId
+          var ticker = (run.subject && run.subject.ticker) || (run.decisionSubject && run.decisionSubject.ticker) || run.runId
           var status = run.receiptPresent ? 'published' : 'no receipt'
           var label = ticker + ' · ' + status + (run.decisionPresent ? ' · decision' : '')
           return h('button', {
@@ -150,14 +166,64 @@ window.__ModuleLoader__.load({
             },
           }, label, '  ', h('span', { style: { color: MUTED } }, run.asOf || ''))
         }),
-        detail)
+        detailView)
     }
 
-    /** Services required by the registration and the generated Remote face. */
-    var inject = ['slots', 'remote', 'remote.clawockStudio']
+    /** Minimal strict codecs (no zod external in the module table). */
+    var passthroughSchema = { parse: function (value) { return value } }
+    var stringSchema = {
+      parse: function (value) {
+        if (typeof value !== 'string') throw new Error('expected a string')
+        return value
+      },
+    }
+
+    /** Client projection of the clawockStudio Remote face, mounted explicitly. */
+    var TYPERT_REMOTE = {
+      package: 'clawock-dsh',
+      descriptors: [{
+        id: 'clawock-dsh#clawockStudio/list',
+        service: 'clawockStudio',
+        namespace: 'clawockStudio',
+        method: 'list',
+        invocation: { kind: 'direct' },
+        parameters: [],
+        result: {
+          mode: 'strict',
+          typeSymbol: 'clawock-dsh#clawockStudio/list:result',
+          schema: passthroughSchema,
+        },
+      }, {
+        id: 'clawock-dsh#clawockStudio/get',
+        service: 'clawockStudio',
+        namespace: 'clawockStudio',
+        method: 'get',
+        invocation: { kind: 'direct' },
+        parameters: [{
+          name: 'runId',
+          wire: 'runId',
+          source: 'json',
+          codec: {
+            mode: 'strict',
+            typeSymbol: 'clawock-dsh#clawockStudio/get:runId',
+            schema: stringSchema,
+          },
+        }],
+        result: {
+          mode: 'strict',
+          typeSymbol: 'clawock-dsh#clawockStudio/get:result',
+          schema: passthroughSchema,
+        },
+      }],
+    }
+
+    /** Services required by the registration and the mounted Remote face. */
+    var inject = ['slots', 'remote']
 
     /** Register the Decision Studio tab into the conversation view ring. */
-    function apply(ctx) {
+    async function apply(ctx) {
+      await ctx.remote.$mount(TYPERT_REMOTE)
+      var studioRemote = ctx.get('remote.clawockStudio')
       ctx.slots.inject('conversation.view', function () {
         return ctx.slots.register({
           name: 'conversation.view',
@@ -165,14 +231,16 @@ window.__ModuleLoader__.load({
           order: 30,
           label: function () { return 'Decision Studio' },
           inject: function () {
+            var call = async function (method, args) {
+              var result = await studioRemote[method].apply(studioRemote, args)
+              if (!result.ok) {
+                throw new Error('clawockStudio.' + method + ' failed: ' + result.error.code + ': ' + result.error.message)
+              }
+              return result.value
+            }
             return {
-              list: async function () {
-                var result = await ctx.remote.clawockStudio.list()
-                if (!result.ok) {
-                  throw new Error('clawockStudio.list failed: ' + result.error.code + ': ' + result.error.message)
-                }
-                return result.value
-              },
+              list: function () { return call('list', []) },
+              get: function (runId) { return call('get', [runId]) },
             }
           },
         }, DecisionStudio)

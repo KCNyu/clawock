@@ -54,6 +54,7 @@ export function listRuns(workspace) {
     return []
   }
   const runs = []
+  const decision = decisionOf(workspace)
   for (const entry of entries) {
     if (!entry.isDirectory() || !RUN_ID_PATTERN.test(entry.name)) continue
     const requestPath = join(workDir, entry.name, 'request.json')
@@ -69,12 +70,14 @@ export function listRuns(workspace) {
     runs.push({
       runId: entry.name,
       subject: request.subject ?? null,
+      decisionSubject: decision?.subject ?? null,
+      decisionAction: decision?.decision?.action ?? null,
       asOf: request.as_of ?? null,
       task: request.task ?? null,
       workflow: request.workflow ?? null,
       gates: request.workflow?.parameters ?? null,
       documentCount: request.context?.documents?.length ?? 0,
-      decisionPresent: decisionOf(workspace) !== null,
+      decisionPresent: decision !== null,
       receiptPresent: manifestOf(workspace, entry.name) !== null,
       mtimeMs,
     })

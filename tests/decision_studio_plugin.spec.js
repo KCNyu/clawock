@@ -59,6 +59,7 @@ test("scan: lists a prepared run with decision and receipt presence", async () =
     assert.equal(runs[0].subject.ticker, "DEMO");
     assert.equal(runs[0].documentCount, 1);
     assert.equal(runs[0].decisionPresent, true);
+    assert.equal(runs[0].decisionAction, "watch");
     assert.equal(runs[0].receiptPresent, true);
     assert.equal(runs[0].gates.min_opposing_evidence, 1);
 
@@ -136,21 +137,25 @@ test("client: registers the Decision Studio conversation.view tab", async () => 
   assert.equal(loaded.id, "clawock-dsh");
 
   const api = loaded.factory(requireStub);
-  assert.deepEqual(api.inject, ["slots", "remote", "remote.clawockStudio"]);
+  assert.deepEqual(api.inject, ["slots", "remote"]);
   assert.equal(typeof api.apply, "function");
 
   let registered = null;
   let component = null;
-  const remoteList = async () => ({ ok: true, value: { runs: [] } });
+  const remoteFace = {
+    list: async () => ({ ok: true, value: { runs: [] } }),
+    get: async (runId) => ({ ok: true, value: { runId, request: null, decision: null, manifest: null } }),
+  };
   const ctx = {
     effect() {},
+    get(name) { assert.equal(name, "remote.clawockStudio"); return remoteFace; },
     slots: {
       inject(name, fn) { assert.equal(name, "conversation.view"); this._fn = fn; },
       register(definition, Component) { registered = definition; component = Component; },
     },
-    remote: { clawockStudio: { list: remoteList } },
+    remote: { $mount: async (descriptors) => { assert.ok(descriptors.descriptors.length >= 2); } },
   };
-  api.apply(ctx);
+  await api.apply(ctx);
   ctx.slots._fn(); // slots.inject registers lazily once the slot exists
   assert.ok(registered, "apply must register into conversation.view");
   assert.equal(registered.name, "conversation.view");
@@ -160,8 +165,11 @@ test("client: registers the Decision Studio conversation.view tab", async () => 
 
   const injected = registered.inject("session-1");
   assert.equal(typeof injected.list, "function");
+  assert.equal(typeof injected.get, "function");
   const result = await injected.list();
   assert.deepEqual(result, { runs: [] });
+  const detail = await injected.get("0123456789abcdef0123456789abcdef");
+  assert.equal(detail.request, null);
   assert.equal(typeof component, "function");
 });
 
@@ -217,30 +225,67 @@ test("client: the tab component renders the run list from the remote", async () 
 
   let component = null;
   let registered = null;
+  const runId = "0123456789abcdef0123456789abcdef";
+  const remoteFace = {
+    list: async () => ({
+      ok: true,
+      value: { runs: [{ runId, subject: { ticker: "DEMO" }, asOf: "2026-08-16T12:00:00+00:00", decisionPresent: true, receiptPresent: true }] },
+    }),
+    get: async (id) => ({
+      ok: true,
+      value: {
+        runId: id,
+        request: {
+          subject: { ticker: "DEMO", market: "US", currency: "USD" },
+          as_of: "2026-08-16T12:00:00+00:00",
+          workflow: { parameters: { min_supporting_evidence: 1, min_opposing_evidence: 1, max_confidence_without_primary_source: 0.65 } },
+          context: { documents: [{ name: "CONTEXT.md" }] },
+        },
+        decision: {
+          subject: { ticker: "DEMO", market: "US", currency: "USD" },
+          evidence: [{ id: "e1", stance: "opposing", summary: "valuation risk", source: "market", source_class: "market", observed_at: "2026-08-16T11:45:00+00:00" }],
+          debate: { bull_case: {}, bear_case: {} },
+          thesis: { statement: "constructive but expensive", confidence: 0.7 },
+          decision: { action: "watch" },
+        },
+        manifest: { generation_id: "g1" },
+      },
+    }),
+  };
   const ctx = {
     effect() {},
+    get(name) { assert.equal(name, "remote.clawockStudio"); return remoteFace; },
     slots: {
       inject(name, fn) { this._fn = fn; },
       register(definition, Component) { registered = definition; component = Component; },
     },
-    remote: {
-      clawockStudio: {
-        list: async () => ({
-          ok: true,
-          value: { runs: [{ runId: "0123456789abcdef0123456789abcdef", subject: { ticker: "DEMO" }, asOf: "2026-08-16T12:00:00+00:00", decisionPresent: true, receiptPresent: true }] },
-        }),
-      },
-    },
+    remote: { $mount: async () => {} },
   };
-  api.apply(ctx);
+  await api.apply(ctx);
   ctx.slots._fn();
   const injected = registered.inject("s1"); // the real injected face unwraps the remote envelope
 
-  const tree = (await (async () => {
-    component({ sessionId: "s1", list: injected.list });
-    await new Promise((resolve) => setImmediate(resolve));
-    await new Promise((resolve) => setImmediate(resolve));
-    return component({ sessionId: "s1", list: injected.list });
+  const tick = () => new Promise((resolve) => setImmediate(resolve));
+  const render = () => component({ sessionId: "s1", list: injected.list, get: injected.get });
+  let tree = (await (async () => {
+    render();
+    await tick(); await tick(); await tick();
+    return render();
+  })());
+
+  // click the run row, then let list + get resolve, then re-render
+  tree = (await (async () => {
+    const buttons = [];
+    (function find(node) {
+      if (node == null) return;
+      if (Array.isArray(node)) { node.forEach(find); return; }
+      if (node.type === "button") buttons.push(node);
+      (node.children || []).forEach(find);
+    })(tree);
+    assert.equal(buttons.length, 1, "the run list must render one row button");
+    buttons[0].props.onClick();
+    await tick(); await tick(); await tick(); await tick();
+    return render();
   })());
 
   const text = [];
