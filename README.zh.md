@@ -221,7 +221,30 @@ initialized clawock workspace: .../book
 isolated run published 9c07e83a19b046b089f443829eb9a06e
 ```
 
-跑完你就拿到了第一张被 Python 校验过的决策回执。换 harness?[`examples/`](examples/README.md) 五种跑法同一条契约;DSH 用户还有现成 skill 包(`dsh plugin --profile web add clawock-dsh`,已发布 npm)。
+跑完你就拿到了第一张被 Python 校验过的决策回执。换 harness?[`examples/`](examples/README.md) 五种跑法同一条契约。
+
+### DeepSeek Harness 插件:每一笔成交都是一条可点开的决策轨迹
+
+DSH 用户一条命令装插件(skill + 会话面板,已发布 npm):
+
+```bash
+dsh plugin --profile web add clawock-dsh
+```
+
+**Decision Mind** tab 只有一个视图:主轴是真实成交(`portfolio.json` trades),
+每行挂接软配对的决策(±3 天,来自 `decisions.jsonl`)作为「当时为什么」,
+卖出单用 T+1 快照收盘价判定卖飞/卖对。点开一条成交,展开成
+**计划 → 执行 → T+1 → 盈亏** 的纵向时间线,为什么(rationale)/情绪压力/
+备注用语义色左边框分层。没有决策的成交显式标注「无关联决策记录」——
+不假装有判断。币种绝不混加:USD/HKD 分开,只经桌面发布的汇率折算。
+同一份轨迹数据也渲染在公开 dashboard 的 Reflect 卡片——插件和网页
+同一个数据契约:
+
+<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dsh-decision-mind.png" alt="Decision Mind 插件——决策轨迹:真实成交挂接软配对决策与 T+1 判定,展开为 计划→执行→结果 时间线" width="860"></p>
+
+对话判定落账:任何 harness 都走同一条命令
+`clawock record --source <harness>`(bear 与失效条件强制、情绪自认)。
+没有人手改 `decisions.jsonl` —— 一个账本、一条命令、每个 harness 自己调。
 
 **装完你得到三件事:** ① 每天 08:00 微信一份带证据链的深度简报,盘中每 30 分钟轻量盯盘(可关);② 一套所有决策可复算、可查账的审计框架;③ 一个诚实的基线——以后任何策略、任何 Agent,都能拿它跟 90 天实盘记录对比。它现在不能承诺「赚」,能承诺的是「每一笔都有据可查」。模型费用走你自己的 API key,clawock 本身免费开源。
 

@@ -2848,32 +2848,51 @@
       ${t.note ? `<div class="tr-note">${esc(t.note)}</div>` : ""}`;
     }
 
-    wrap.innerHTML = dates.map(date => {
-      const rows = groups[date];
-      return `<div class="trace-day"><div class="trace-day-h">${esc(date)} <span class="muted">${rows.length}</span></div>
-        ${rows.map(t => {
-          const tone = t.action === "buy" || t.action === "add" ? "pos" : (t.action === "sell" || t.action === "cut" || t.action === "trim" ? "neg" : "muted");
-          const pnl = t.realizedPnl != null
-            ? `<span class="tr-pnl ${t.realizedPnl >= 0 ? "pos" : "neg"}">${t.realizedPnl >= 0 ? "+" : ""}${Number(t.realizedPnl).toFixed(2)} ${t.currency === "HKD" ? "HK$" : "$"}</span>`
-            : (t.holdPnl != null ? `<span class="tr-pnl ${t.holdPnl >= 0 ? "pos" : "neg"}">${fmtPct(t.holdPnl, 1)}</span>` : "");
-          const t1tag = t.t1
-            ? `<span class="tr-t1 ${t1Cls(t)}">T+1 ${fmtPct(t.t1.delta, 1)} ${t.t1.verdict}</span>`
-            : "";
-          return `<details class="tr-row">
-            <summary>
-              <span class="tr-dot ${t.decision ? "has" : ""}"></span>
-              <span class="tr-tk">${esc(t.ticker)}</span>
-              <span class="tr-act ${tone}">${esc(ACT[t.action] || t.action)}</span>
-              <span class="tr-qty">${t.shares} @${t.price}</span>
-              <span class="tr-spacer"></span>
-              ${t1tag}
-              ${pnl}
-            </summary>
-            <div class="tr-body">${traceHTML(t)}</div>
-          </details>`;
-        }).join("")}
-      </div>`;
-    }).join("");
+    // Default fold: render the newest TRACE_FOLD_GROUPS date groups; a
+    // "show all" button reveals the rest. 40 fills as one wall of text is
+    // not scannable — the first screen should be the story, not the dump.
+    const TRACE_FOLD_GROUPS = 3;
+    const visibleDates = dates.slice(0, TRACE_FOLD_GROUPS);
+    const hiddenCount = list.length - visibleDates.reduce((s, d) => s + (groups[d] || []).length, 0);
+    function renderGroups(dayList) {
+      return dayList.map(date => {
+        const rows = groups[date];
+        return `<div class="trace-day"><div class="trace-day-h">${esc(date)} <span class="muted">${rows.length}</span></div>
+          ${rows.map(t => {
+            const tone = t.action === "buy" || t.action === "add" ? "pos" : (t.action === "sell" || t.action === "cut" || t.action === "trim" ? "neg" : "muted");
+            const pnl = t.realizedPnl != null
+              ? `<span class="tr-pnl ${t.realizedPnl >= 0 ? "pos" : "neg"}">${t.realizedPnl >= 0 ? "+" : ""}${Number(t.realizedPnl).toFixed(2)} ${t.currency === "HKD" ? "HK$" : "$"}</span>`
+              : (t.holdPnl != null ? `<span class="tr-pnl ${t.holdPnl >= 0 ? "pos" : "neg"}">${fmtPct(t.holdPnl, 1)}</span>` : "");
+            const t1tag = t.t1
+              ? `<span class="tr-t1 ${t1Cls(t)}">T+1 ${fmtPct(t.t1.delta, 1)} ${t.t1.verdict}</span>`
+              : "";
+            return `<details class="tr-row">
+              <summary>
+                <span class="tr-dot ${t.decision ? "has" : ""}"></span>
+                <span class="tr-tk">${esc(t.ticker)}</span>
+                <span class="tr-act ${tone}">${esc(ACT[t.action] || t.action)}</span>
+                <span class="tr-qty">${t.shares} @${t.price}</span>
+                <span class="tr-spacer"></span>
+                ${t1tag}
+                ${pnl}
+              </summary>
+              <div class="tr-body">${traceHTML(t)}</div>
+            </details>`;
+          }).join("")}
+        </div>`;
+      }).join("");
+    }
+    wrap.innerHTML = renderGroups(visibleDates) +
+      (hiddenCount > 0
+        ? `<button type="button" class="trace-more" id="trace-more-btn">显示全部 ${hiddenCount} 笔更早成交</button>`
+        : "");
+    const more = document.getElementById("trace-more-btn");
+    if (more) {
+      more.addEventListener("click", () => {
+        wrap.innerHTML = renderGroups(dates);
+        more.remove();
+      });
+    }
   }
 
   // =========================================================
