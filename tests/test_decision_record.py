@@ -1,0 +1,102 @@
+"""decision-mind ledger record command: validation, append, settle round-trip."""
+import json
+import sys
+from pathlib import Path
+
+import pytest
+
+from clawock.decision import ledger as decision_v2
+from clawock.decision.record import build_record, main, validate_mind_record
+
+
+def _args(**overrides):
+    base = {
+        "subject": "00100", "market": "HK", "currency": "HKD",
+        "action": "reject", "confidence": 0.65, "driven_by": "fundamental",
+        "bull": "营收 +159% YoY", "bear": "资不抵债,净利率 -2368%",
+        "bull_evidence": [], "bear_evidence": [],
+        "thesis": "先活下来", "invalidation": ["站回 340", "缩量企稳"],
+        "emotion": "averaging_down", "note": "摊本冲动被压过",
+    }
+    return type("Args", (), {**base, **overrides})()
+
+
+def test_build_record_shape_and_legacy_compat():
+    record = build_record(_args())
+    assert record["schema_version"] == 0
+    assert record["source"] == "conversation"
+    assert record["decision_id"].startswith("dec-")
+    assert record["mind"]["bear"]["summary"] == "资不抵债,净利率 -2368%"
+    assert record["emotion"]["pressure"] == "averaging_down"
+    # Legacy-compatible fields so the desk's machinery round-trips this record.
+    assert record["condition"]["description"] == "站回 340"
+    assert record["execution"]["status"] == "unknown"
+    assert "plan_date" not in record
+
+
+def test_validation_rejects_weak_records():
+    issues = validate_mind_record(build_record(_args()))
+    assert issues == []
+
+    no_bear = build_record(_args(bear=""))
+    assert any("mind.bear.summary" in issue for issue in validate_mind_record(no_bear))
+
+    no_invalidation = build_record(_args(invalidation=[]))
+    assert any("mind.invalidation" in issue for issue in validate_mind_record(no_invalidation))
+
+    bad_confidence = build_record(_args(confidence=1.3))
+    assert any("confidence" in issue for issue in validate_mind_record(bad_confidence))
+
+    bad_emotion = build_record(_args(emotion="greedy"))
+    assert any("emotion.pressure" in issue for issue in validate_mind_record(bad_emotion))
+
+
+def test_main_appends_and_survives_settle_round_trip(tmp_path):
+    ledger = tmp_path / "decisions.jsonl"
+    # A pre-existing legacy entry, shaped like the desk's plan decisions.
+    decision_v2.write_decisions([{
+        "decision_id": "dec-legacy1234", "plan_date": "2026-08-10",
+        "ticker": "00100", "leg": "HK", "action": "trim_on_rebound",
+        "condition": {"description": "跌破 730 减 20 股", "price": 730.0, "type": "price_below"},
+        "evaluation": {"status": "not_triggered", "outcome": "not_triggered"},
+        "execution": {"status": "unknown"},
+    }], ledger)
+
+    argv = [
+        "--ledger", str(ledger),
+        "--subject", "00100", "--market", "HK", "--currency", "HKD",
+        "--action", "reject", "--confidence", "0.65", "--driven-by", "fundamental",
+        "--bull", "营收 +159% YoY", "--bear", "资不抵债",
+        "--thesis", "先活下来",
+        "--invalidation", "站回 340", "--invalidation", "缩量企稳",
+        "--emotion", "averaging_down", "--note", "忍住没加",
+    ]
+    assert main(argv) == 0
+
+    rows = decision_v2.load_decisions(ledger)
+    assert len(rows) == 2
+    conversation = [d for d in rows if d.get("source") == "conversation"]
+    assert len(conversation) == 1
+    assert conversation[0]["mind"]["invalidation"] == ["站回 340", "缩量企稳"]
+
+    # The daily postflight settles the whole list in place; a conversation
+    # record has no plan_date and must survive untouched.
+    decision_v2.settle_decisions(rows)
+    after = decision_v2.load_decisions(ledger)
+    conversation = [d for d in after if d.get("source") == "conversation"]
+    assert len(conversation) == 1
+    assert conversation[0]["decision_id"] == rows[0]["decision_id"] or \
+        conversation[0]["decision_id"] == rows[1]["decision_id"]
+    assert conversation[0]["mind"]["bear"]["summary"] == "资不抵债"
+    assert all(d["decision_id"] for d in after)
+
+
+def test_main_rejects_invalid_record(tmp_path):
+    ledger = tmp_path / "decisions.jsonl"
+    argv = [
+        "--ledger", str(ledger),
+        "--subject", "00100", "--action", "reject", "--confidence", "0.65",
+        "--bull", "ok", "--bear", "", "--invalidation", "cond",
+    ]
+    assert main(argv) == 1
+    assert not ledger.exists()

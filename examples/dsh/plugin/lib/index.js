@@ -9,6 +9,7 @@
 
 import { TypertRemoteService, Remote } from '@deepseek-ai/dsh-typert-protocol'
 import { listRuns, getRun } from './scan.js'
+import { readLedger, readPortfolio, readPlans } from './ledger.js'
 
 const workspaceOf = () => process.env.CLAWOCK_WORKSPACE || process.cwd()
 
@@ -61,9 +62,27 @@ export class ClawockStudioGateway extends TypertRemoteService {
   get(runId) {
     return getRun(workspaceOf(), runId)
   }
+
+  /** @returns The shared decision ledger (memory/decisions.jsonl), file order. */
+  ledger() {
+    return readLedger(workspaceOf())
+  }
+
+  /** @returns Portfolio summary per book, with the desk's money fields. */
+  portfolio() {
+    return readPortfolio(workspaceOf())
+  }
+
+  /** @returns Recent daily plans, newest first. */
+  plans() {
+    return readPlans(workspaceOf())
+  }
 }
 
 markRemote(ClawockStudioGateway, 'list', 'list')
 markRemote(ClawockStudioGateway, 'get', 'get')
+markRemote(ClawockStudioGateway, 'ledger', 'ledger')
+markRemote(ClawockStudioGateway, 'portfolio', 'portfolio')
+markRemote(ClawockStudioGateway, 'plans', 'plans')
 
 export default ClawockStudioGateway
