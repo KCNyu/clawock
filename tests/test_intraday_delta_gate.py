@@ -301,7 +301,11 @@ def test_setup_sub_state_churn_is_not_a_delta():
     """#610: opportunity/early_trend sub-states flip on raw quote churn around
     a threshold (close vs prior, zscore20 vs 2.0). The gate compares the lane
     identity, not the churny sub-state; row appearance/disappearance still
-    counts, and non-lane setup ids keep their full identity."""
+    counts, and non-lane setup ids keep their full identity.
+
+    #645: early_trend:exploration_ready is NOT quote churn — it is driven by
+    primary_ids / the information layer, and its unlock jump must stay a delta.
+    Only the churny sub-states collapse to the lane identity."""
     base = dict(market="hk", session_date="2026-08-14",
                 signals_detail=[], anomalies=[], plans={"open": []},
                 active_information={})
@@ -313,12 +317,26 @@ def test_setup_sub_state_churn_is_not_a_delta():
         **base, setups={"rows": [{**row, "setup_id": "opportunity:wait_rebreak"}]})
     s_early = gate.semantic_state(
         **base, setups={"rows": [{**row, "setup_id": "early_trend:wait_information"}]})
+    s_early_pullback = gate.semantic_state(
+        **base, setups={"rows": [{**row, "setup_id":
+                                  "early_trend:wait_pullback_rebreak"}]})
     s_early_ready = gate.semantic_state(
-        **base, setups={"rows": [{**row, "setup_id": "early_trend:exploration_ready"}]})
+        **base, setups={"rows": [{**row, "setup_id":
+                                  "early_trend:exploration_ready"}]})
 
+    # quote-churn sub-states within a lane collapse to the lane identity
     assert s_breakout["setups"] == s_wait["setups"]
-    assert s_early["setups"] == s_early_ready["setups"]
+    assert s_early["setups"] == s_early_pullback["setups"]
     assert gate.compare_semantic_states(s_breakout, s_wait)["changed"] is False
+    assert gate.compare_semantic_states(
+        s_early, s_early_pullback)["changed"] is False
+
+    # #645: the wait_information→exploration_ready unlock (and its loss) is a
+    # decision-relevant delta, not churn to be folded away.
+    assert s_early["setups"] != s_early_ready["setups"]
+    assert gate.compare_semantic_states(s_early, s_early_ready)["changed"] is True
+    assert gate.compare_semantic_states(
+        s_early_ready, s_early_pullback)["changed"] is True
 
     # appearance/disappearance is a real delta
     s_none = gate.semantic_state(**base, setups={"rows": []})
