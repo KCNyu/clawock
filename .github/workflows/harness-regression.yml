@@ -139,9 +139,7 @@ jobs:
           if grep -Eq '^(examples/dsh/plugin/|tests/decision_studio_plugin\.spec\.js$)' <<< "$changed"; then
             dsplugin=true
           fi
-          echo "code=$code" >> "$GITHUB_OUTPUT"
-          echo "ui=$ui" >> "$GITHUB_OUTPUT"
-          echo "dsplugin=$dsplugin" >> "$GITHUB_OUTPUT"
+          { echo "code=$code"; echo "ui=$ui"; echo "dsplugin=$dsplugin"; } >> "$GITHUB_OUTPUT"
           echo "code changed: $code"
 
       - name: Set up Node for dashboard browser contract
