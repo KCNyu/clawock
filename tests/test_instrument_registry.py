@@ -60,6 +60,21 @@ def test_invalid_one_x_substitute_factor_is_rejected():
     )
 
 
+def test_null_listing_date_is_rejected():
+    """#647: a registry entry without a listing_date fails validation — the
+    short-history gate (#608) depends on it and a null makes it fail closed
+    and silent. Registry hygiene is a validator contract now, not a comment."""
+    doc = {
+        "schema_version": 1,
+        "instruments": copy.deepcopy(instrument_registry.INSTRUMENTS),
+    }
+    doc["instruments"]["NVDA"]["listing_date"] = None
+    errors = instrument_registry.validate_registry(doc)
+    assert any(
+        "NVDA.listing_date" in error for error in errors
+    )
+
+
 def test_all_consumer_maps_derive_the_missing_audit_symbols_from_registry():
     assert portfolio_risk_metrics.LEVERAGED["SPCH"] == 2
     assert brief_preflight.LEV_1X_SWAP["RKLX"] == "RKLB"
