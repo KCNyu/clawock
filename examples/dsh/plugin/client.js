@@ -130,9 +130,11 @@ window.__ModuleLoader__.load({
       return h('span', { className: 'chip ' + props.tone }, props.children)
     }
 
+    var ACTIVE_ACTIONS = ['add', 'buy', 'trim', 'sell', 'cut', 't_only', 'trim_on_rebound']
+
     function ActionChip(action) {
       var tone = action === 'add' || action === 'buy' ? 'add'
-        : action === 'trim' || action === 'sell' ? 'trim'
+        : ACTIVE_ACTIONS.indexOf(action) >= 0 ? 'trim'
         : action === 'reject' || action === 'watch' || action === 'hold' || action === 'abstain' ? 'reject'
         : 'gray'
       return h(Chip, { tone: tone }, String(action))
@@ -216,19 +218,9 @@ window.__ModuleLoader__.load({
       }))
     }
 
-    function PlansView(props) {
-      var plans = props.plans
-      if (!plans.length) return h('div', { className: 'empty' }, 'memory/*-plan.json 未找到')
-      return h('div', null, plans.map(function (p) {
-        return h('div', { className: 'plan', key: p.date },
-          h('span', { className: 'd' }, p.date),
-          h('span', { className: 'n' }, p.decisions + ' decisions' + (p.title ? ' · ' + p.title : '')))
-      }))
-    }
-
     /** The conversation-view tab: desk data (ledger / portfolio / plans). */
     function DecisionMind(props) {
-      var pair = useState({ view: 'ledger', selected: null, ledger: [], portfolio: { books: [] }, plans: [], loading: true, error: null })
+      var pair = useState({ view: 'ledger', filter: 'trades', selected: null, ledger: [], portfolio: { books: [] }, loading: true, error: null })
       var state = pair[0]
       var setState = pair[1]
       var sessionId = props.sessionId
@@ -246,21 +238,30 @@ window.__ModuleLoader__.load({
       }, [sessionId])
 
       if (state.error) return h('div', { className: 'dml' }, h('div', { className: 'card' }, h('span', { style: { color: 'var(--neg)' } }, 'Decision Mind: ' + state.error)))
-      var entries = state.ledger.map(_displayEntry)
+      var allEntries = state.ledger.map(_displayEntry)
+      var entries = allEntries.filter(function (d) {
+        if (state.filter === 'all') return true
+        if (d.executionStatus !== 'followed') return false
+        return state.filter === 'followed' || ACTIVE_ACTIONS.indexOf(d.action) >= 0
+      })
 
       var body
       if (state.loading) body = h('div', { className: 'empty' }, 'Loading desk data…')
       else if (state.view === 'ledger') body = h(LedgerView, { entries: entries, selected: state.selected, onSelect: function (id) { setState(function (c) { return Object.assign({}, c, { selected: id }) }) } })
-      else if (state.view === 'portfolio') body = h(PortfolioView, { books: state.portfolio.books })
-      else body = h(PlansView, { plans: state.plans })
+      else body = h(PortfolioView, { books: state.portfolio.books })
 
       return h('div', { className: 'dml' },
         h('div', { className: 'head' },
-          h('div', { className: 'title' }, h('h3', null, '决策心智'), h('span', null, 'Decision Mind · ' + entries.length + ' 条决策')),
+          h('div', { className: 'title' },
+            h('h3', null, '决策心智'),
+            h('span', null, 'Decision Mind · ' + entries.length + '/' + allEntries.length + ' 条')),
           h('div', { className: 'seg' },
             h('button', { className: state.view === 'ledger' ? 'on' : '', onClick: function () { setState(function (c) { return Object.assign({}, c, { view: 'ledger' }) }) } }, '账本'),
-            h('button', { className: state.view === 'portfolio' ? 'on' : '', onClick: function () { setState(function (c) { return Object.assign({}, c, { view: 'portfolio' }) }) } }, '持仓'),
-            h('button', { className: state.view === 'plans' ? 'on' : '', onClick: function () { setState(function (c) { return Object.assign({}, c, { view: 'plans' }) }) } }, '计划'))),
+            h('button', { className: state.view === 'portfolio' ? 'on' : '', onClick: function () { setState(function (c) { return Object.assign({}, c, { view: 'portfolio' }) }) } }, '持仓')),
+          state.view === 'ledger' ? h('div', { className: 'seg', style: { marginLeft: 8 } },
+            h('button', { className: state.filter === 'trades' ? 'on' : '', onClick: function () { setState(function (c) { return Object.assign({}, c, { filter: 'trades' }) }) } }, '已执行交易'),
+            h('button', { className: state.filter === 'followed' ? 'on' : '', onClick: function () { setState(function (c) { return Object.assign({}, c, { filter: 'followed' }) }) } }, '已执行'),
+            h('button', { className: state.filter === 'all' ? 'on' : '', onClick: function () { setState(function (c) { return Object.assign({}, c, { filter: 'all' }) }) } }, '全部')) : null),
         body)
     }
 

@@ -30,7 +30,9 @@ def test_build_record_shape_and_legacy_compat():
     assert record["emotion"]["pressure"] == "averaging_down"
     # Legacy-compatible fields so the desk's machinery round-trips this record.
     assert record["condition"]["description"] == "站回 340"
-    assert record["execution"]["status"] == "unknown"
+    # A no-op verdict respected is an executed decision; order actions are not.
+    assert record["execution"]["status"] == "followed"
+    assert build_record(_args(action="add"))["execution"]["status"] == "unknown"
     assert "plan_date" not in record
 
 

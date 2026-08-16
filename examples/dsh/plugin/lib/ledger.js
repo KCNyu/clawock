@@ -61,6 +61,7 @@ export function readPortfolio(workspace) {
     if (book === null || typeof book !== 'object' || !Array.isArray(book.holdings)) continue
     const holdings = book.holdings
       .filter((h) => h !== null && typeof h === 'object')
+      .filter((h) => (h.shares ?? h.quantity ?? 0) > 0) // zero-share rows are not positions
       .map((h) => ({
         ticker: h.ticker ?? h.stock_name ?? h.name ?? '?',
         shares: h.shares ?? h.quantity ?? 0,
@@ -69,6 +70,7 @@ export function readPortfolio(workspace) {
         pnlPct: h.pnl_percent ?? null,
         pnlAbs: h.pnl_abs ?? null,
       }))
+    if (holdings.length === 0) continue // a book with no positions is not shown
     books.push({
       name,
       currency: book.currency ?? null,

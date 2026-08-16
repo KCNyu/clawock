@@ -105,6 +105,7 @@ test("ledger: portfolio summarizes holdings per book", async () => {
   try {
     const { books, lastUpdated } = ledger.readPortfolio(root);
     assert.equal(lastUpdated, "2026-08-16 13:42 HKT");
+    assert.equal(books.length, 1, "zero-share book (us_stocks/NVDA 0) must be dropped");
     const hk = books.find((b) => b.name === "hk_stocks");
     assert.equal(hk.currency, "HKD");
     assert.equal(hk.holdings.length, 1);
@@ -258,8 +259,13 @@ test("client: renders ledger cards from the mounted remote", async () => {
         decided_at: "2026-08-16T13:45:00+08:00", action: "reject", confidence: 0.65,
         mind: { bull: { summary: "营收 +159%" }, bear: { summary: "资不抵债" }, invalidation: ["站回 340"] },
         emotion: { pressure: "averaging_down", note: "忍住没加" },
+        execution: { status: "followed" } },
+      { decision_id: "dec-2", plan_date: "2026-08-10", ticker: "07226", action: "hold", confidence: 0.5,
+        execution: { status: "followed" } },
+      { decision_id: "dec-3", plan_date: "2026-08-11", ticker: "02208", action: "cut", confidence: 0.6,
+        execution: { status: "followed" } },
+      { decision_id: "dec-4", plan_date: "2026-08-12", ticker: "03032", action: "trim", confidence: 0.4,
         execution: { status: "unknown" } },
-      { decision_id: "dec-2", plan_date: "2026-08-10", ticker: "07226", action: "hold", confidence: 0.5 },
     ] } }),
     portfolio: async () => ({ ok: true, value: { books: [{ name: "hk_stocks", currency: "HKD", holdings: [] }] } }),
     plans: async () => ({ ok: true, value: { plans: [] } }),
@@ -293,10 +299,60 @@ test("client: renders ledger cards from the mounted remote", async () => {
   })(tree);
   const joined = text.join(" ");
   assert.match(joined, /决策心智/);
-  assert.match(joined, /00100/);
-  assert.match(joined, /reject/);
-  assert.match(joined, /averaging_down/);
-  assert.match(joined, /07226/);
+  assert.match(joined, /已执行交易/);
+  // default filter = executed trades only: the cut shows, the reject/hold/unknown do not
+  assert.match(joined, /02208/);
+  assert.match(joined, /cut/);
+  assert.doesNotMatch(joined, /00100/);
+  assert.doesNotMatch(joined, /03032/);
+
+  const findButton = (label) => {
+    let found = null;
+    (function collect(node) {
+      if (node == null || found) return;
+      if (Array.isArray(node)) { node.forEach(collect); return; }
+      if (node.type === "button") {
+        const t = (node.children || []).filter((c) => typeof c === "string").join("");
+        if (t === label) found = node;
+      }
+      (node.children || []).forEach(collect);
+    })(tree);
+    return found;
+  };
+
+  // switch to 已执行: the respected reject (00100) and hold appear
+  findButton("已执行").props.onClick();
+  await tick();
+  tree = component({ sessionId: "s1", ledger: injected.ledger, portfolio: injected.portfolio, plans: injected.plans });
+  const textB = [];
+  (function walk(node) {
+    if (node == null) return;
+    if (Array.isArray(node)) { node.forEach(walk); return; }
+    if (typeof node === "string") { textB.push(node); return; }
+    (node.children || []).forEach(walk);
+    walk(node.props && node.props.value);
+    walk(node.props && node.props.label);
+  })(tree);
+  const joinedB = textB.join(" ");
+  assert.match(joinedB, /00100/);
+  assert.match(joinedB, /reject/);
+  assert.match(joinedB, /07226/);
+  assert.doesNotMatch(joinedB, /03032/);
+
+  // switch to 全部: the unknown trim appears too
+  findButton("全部").props.onClick();
+  await tick();
+  tree = component({ sessionId: "s1", ledger: injected.ledger, portfolio: injected.portfolio, plans: injected.plans });
+  const textC = [];
+  (function walk(node) {
+    if (node == null) return;
+    if (Array.isArray(node)) { node.forEach(walk); return; }
+    if (typeof node === "string") { textC.push(node); return; }
+    (node.children || []).forEach(walk);
+    walk(node.props && node.props.value);
+    walk(node.props && node.props.label);
+  })(tree);
+  assert.match(textC.join(" "), /03032/);
 
   // click a ledger card row: expand shows the mind detail
   const cardRows = [];
@@ -306,7 +362,7 @@ test("client: renders ledger cards from the mounted remote", async () => {
     if (node.props && node.props.onClick && node.props.className === "row") cardRows.push(node);
     (node.children || []).forEach(collect);
   })(tree);
-  assert.equal(cardRows.length, 2, "two ledger cards");
+  assert.ok(cardRows.length >= 2, "expanded ledger cards");
   cardRows[0].props.onClick();
   await tick();
   tree = component({ sessionId: "s1", ledger: injected.ledger, portfolio: injected.portfolio, plans: injected.plans });

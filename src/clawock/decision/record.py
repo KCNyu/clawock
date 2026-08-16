@@ -86,7 +86,13 @@ def build_record(args) -> dict:
         # record like any other decision (docs/decision-mind-ledger.md).
         "condition": {"description": args.invalidation[0] if args.invalidation else "",
                       "price": None, "type": "manual"},
-        "execution": {"status": "unknown", "source": "conversation", "detected_at": None},
+        # A no-op verdict (reject/hold/watch/abstain) is "executed" when it is
+        # respected — no order was placed, which is the decision itself. Order
+        # actions start unknown until marked via `clawock mark-followed`.
+        "execution": {
+            "status": "followed" if args.action in {"reject", "hold", "watch", "abstain"} else "unknown",
+            "source": "conversation", "detected_at": None,
+        },
         "accounting": {
             "trigger": {"status": "pending", "condition": args.invalidation[0] if args.invalidation else ""},
             "execution": {"executed": None},
