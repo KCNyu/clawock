@@ -780,6 +780,15 @@ layout: null
       <div id="chart-ai-winrate" class="chart-box" style="height:210px;min-height:210px"></div>
     </div>
 
+    <div class="sect-divider">决策轨迹 · 真实成交 vs 当时计划</div>
+
+    <div class="card" id="decision-traces-card">
+      <h3>决策轨迹 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">真实成交为轴 · 软配对决策(±3日)为「为什么」 · T+1 收盘判卖飞/卖对</span></h3>
+      <p class="chart-hint">每一笔成交是一条可点开的轨迹：当时计划(动作/信心/条件)、执行(是否遵守)、T+1 结果、已实现盈亏。无关联决策的成交显式标注——不假装有判断。币种分别计(HKD/USD 不混加)。</p>
+      <div id="trace-stats" style="display:flex;gap:24px;flex-wrap:wrap;margin:8px 0 12px;font-size:12px"></div>
+      <div id="trace-list"></div>
+    </div>
+
     <div class="sect-divider">净值表现 · portfolio</div>
 
     <div class="card">
