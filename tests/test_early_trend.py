@@ -58,6 +58,30 @@ def test_primary_event_can_promote_a_cool_nonleveraged_candidate_to_exploration(
     assert setup["tranche_pct_of_position"] == .025
 
 
+def test_exploration_tranche_pct_zero_is_not_swallowed_into_default():
+    """#666: `exploration_tranche_pct: 0` (0 = 禁用探索档) is legal config;
+    `X or DEFAULT` would silently swallow it into 0.025."""
+    technical = {
+        "usable": True, "as_of": "2026-08-13", "close": 10.5,
+        "prior_20d_high": 10, "prior_5d_low": 9, "ma20": 9.5,
+        "chandelier_stop": 8.8, "zscore20": 1.2,
+    }
+    candidate = early_trend.classify(
+        technical,
+        {"residual_5d": .12, "dispersion_5d": .05,
+         "available_peer_count": 4},
+        {},
+        [{"event_id": "sec-1", "source_type": "sec_filing", "direction": 1}],
+        leveraged=False, policy=POLICY, market="US",
+    )
+    policy = dict(POLICY, exploration_tranche_pct=0)
+    setup = early_trend.exploration_setup(
+        technical, candidate, policy, ticker="ABC"
+    )
+
+    assert setup["tranche_pct_of_position"] == 0.0
+
+
 def test_primary_source_precedes_syndication_and_accepts_numeric_direction():
     candidate = early_trend.classify(
         {"usable": True, "close": 11, "prior_20d_high": 10, "zscore20": 1},
