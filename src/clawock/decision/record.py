@@ -13,6 +13,10 @@ Usage:
     --bull "营收 +159% YoY" --bear "资不抵债" --thesis "先活下来" \
     --invalidation "站回 340" --invalidation "缩量企稳" \
     --emotion averaging_down --note "摊本冲动被压过,忍住没加"
+
+  # Another harness (OpenClaw / Claude Code / Codex / CLI) records its own
+  # conversation verdicts into the same ledger:
+  clawock record --source openclaw --subject 00100 --market HK ...
 """
 from __future__ import annotations
 
@@ -27,6 +31,11 @@ from clawock.decision import ledger as decision_v2
 ACTIONS = {"buy", "add", "trim", "sell", "hold", "watch", "reject", "abstain"}
 DRIVEN_BY = {"technical", "fundamental", "sentiment", "mixed"}
 EMOTIONS = {"calm", "fomo", "revenge", "averaging_down", "fear", "euphoria", "mixed"}
+# Which harness produced the verdict. `conversation` is the DSH default and
+# the historical value; other harnesses pass their own so the ledger can say
+# where a mind record came from. `brief` is the desk's daily plan writer and
+# is not a valid record() value — it is produced by the brief postflight.
+SOURCES = {"conversation", "openclaw", "claude", "codex", "cli"}
 MIND_SCHEMA_VERSION = 0
 
 
@@ -43,6 +52,8 @@ def validate_mind_record(record: dict) -> list[str]:
             issues.append(f"subject.{field} is required")
     if record.get("action") not in ACTIONS:
         issues.append(f"action must be one of {sorted(ACTIONS)}")
+    if record.get("source") not in SOURCES:
+        issues.append(f"source must be one of {sorted(SOURCES)}")
     confidence = record.get("confidence")
     if isinstance(confidence, bool) or not isinstance(confidence, (int, float)) or not 0 <= confidence <= 1:
         issues.append("confidence must be between 0 and 1")
@@ -64,7 +75,8 @@ def validate_mind_record(record: dict) -> list[str]:
 def build_record(args) -> dict:
     subject = {"ticker": args.subject, "market": args.market, "currency": args.currency}
     decided_at = _now_iso()
-    decision_id = "dec-" + decision_v2._stable_id("conversation", args.subject, decided_at, size=12)
+    source = getattr(args, "source", "conversation")
+    decision_id = "dec-" + decision_v2._stable_id(source, args.subject, decided_at, size=12)
     mind = {
         "bull": {"summary": args.bull, "evidence": args.bull_evidence},
         "bear": {"summary": args.bear, "evidence": args.bear_evidence},
@@ -76,7 +88,7 @@ def build_record(args) -> dict:
         "decision_id": decision_id,
         "subject": subject,
         "decided_at": decided_at,
-        "source": "conversation",
+        "source": source,
         "action": args.action,
         "confidence": args.confidence,
         "driven_by": args.driven_by,
@@ -91,7 +103,7 @@ def build_record(args) -> dict:
         # actions start unknown until marked via `clawock mark-followed`.
         "execution": {
             "status": "followed" if args.action in {"reject", "hold", "watch", "abstain"} else "unknown",
-            "source": "conversation", "detected_at": None,
+            "source": source, "detected_at": None,
         },
         "accounting": {
             "trigger": {"status": "pending", "condition": args.invalidation[0] if args.invalidation else ""},
@@ -106,6 +118,8 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(prog="clawock record")
     ap.add_argument("--ledger", type=Path, default=None,
                     help="decisions.jsonl path (default: the workspace ledger)")
+    ap.add_argument("--source", default="conversation", choices=sorted(SOURCES),
+                    help="which harness produced this verdict (conversation=DSH)")
     ap.add_argument("--subject", required=True, help="ticker, e.g. 00100")
     ap.add_argument("--market", default="HK", help="market, e.g. HK or US")
     ap.add_argument("--currency", default="HKD", help="quote currency")

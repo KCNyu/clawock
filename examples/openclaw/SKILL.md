@@ -92,3 +92,28 @@ Rules that are enforced by `clawock run publish`, not by this file:
 Run the publish step (normally via `clawock run publish` in the workspace)
 and report the receipt's `status` and `run_id` to the user. Never edit the
 receipt. Never re-grade your own decision — Python settles.
+
+## Record conversation verdicts
+
+A verdict you give in this chat (加仓/减仓/建仓/清仓/观望) is a decision —
+write it to the shared decision-mind ledger, the **same**
+`memory/decisions.jsonl` the daily brief and the DSH plugin read. Never edit
+that file by hand: `clawock record` is the only writer for conversation
+verdicts, from any harness. It validates (bear case + invalidation
+mandatory), freezes the mind/emotion snapshot, and appends atomically.
+
+```bash
+clawock record --source openclaw \
+  --subject 00100 --market HK --currency HKD \
+  --action reject --confidence 0.65 --driven-by fundamental \
+  --bull "营收 +159% YoY,入通/海外霸榜催化" \
+  --bear "净利率 -2368%,资不抵债,z+2.8σ 反转" \
+  --thesis "高增长救不了资不抵债,先活下来" \
+  --invalidation "站回 340" --invalidation "缩量企稳" \
+  --emotion averaging_down --note "浮亏 -40% 的摊本冲动被压过,忍住没加"
+```
+
+`--source` tells the ledger which harness produced the verdict
+(`openclaw` here; DSH passes `conversation`, other harnesses pass their own).
+The rule is the same as the DSH plugin's: one ledger, one record command,
+every harness calls it — nobody writes JSON directly.

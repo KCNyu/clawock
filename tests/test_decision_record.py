@@ -106,6 +106,50 @@ def test_validate_decision_accepts_mind_records_and_rejects_weak_ones():
     assert any("missing episode_id" in issue for issue in validate_decision(legacy))
 
 
+def test_source_param_distinguishes_harnesses(tmp_path):
+    """Any harness (OpenClaw/Claude Code/Codex/CLI) records into the same
+    ledger; `--source` says which one wrote the verdict."""
+    ledger = tmp_path / "decisions.jsonl"
+
+    def argv_for(source, ticker):
+        return [
+            "--ledger", str(ledger),
+            "--source", source,
+            "--subject", ticker, "--market", "US", "--currency", "USD",
+            "--action", "watch", "--confidence", "0.55", "--driven-by", "mixed",
+            "--bull", "支撑仍在", "--bear", "宏观逆风",
+            "--invalidation", "跌破支撑",
+        ]
+
+    assert main(argv_for("openclaw", "PLTU")) == 0
+    assert main(argv_for("claude", "MSFU")) == 0
+    assert main(argv_for("codex", "RKLX")) == 0
+
+    rows = decision_v2.load_decisions(ledger)
+    sources = {d["source"] for d in rows}
+    assert sources == {"openclaw", "claude", "codex"}
+    by_ticker = {d["subject"]["ticker"]: d for d in rows}
+    # execution.source follows the recording harness, so settlement and
+    # post-hoc marking can tell who recorded what.
+    assert by_ticker["PLTU"]["execution"]["source"] == "openclaw"
+    # IDs stay unique across sources (stable id seeds on the source value).
+    assert len({d["decision_id"] for d in rows}) == 3
+
+
+def test_validation_rejects_unknown_source(tmp_path):
+    ledger = tmp_path / "decisions.jsonl"
+    argv = [
+        "--ledger", str(ledger),
+        "--source", "chatgpt-web",
+        "--subject", "00100", "--action", "reject", "--confidence", "0.65",
+        "--bull", "ok", "--bear", "counter", "--invalidation", "cond",
+    ]
+    # argparse rejects the choice before any file is touched.
+    with pytest.raises(SystemExit):
+        main(argv)
+    assert not ledger.exists()
+
+
 def test_main_rejects_invalid_record(tmp_path):
     ledger = tmp_path / "decisions.jsonl"
     argv = [
