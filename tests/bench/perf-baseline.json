@@ -21,5 +21,13 @@
     "cellsAfterMount": 6,
     "note": "每次切到 DM 都有 1 次 loading 帧(mount 即重新 remote 拉取)。Phase 1/2 目标:loadingFrames 恒 0(缓存命中同步渲染)、switchToCellMs 显著下降、0 longtask。测量脚本:tests/bench/measure_tab_switch.py"
   },
+  "browserAfterFix": {
+    "measuredBuild": "0.1.6 构建产物(Phase 1/2/3:官方 store + host 缓存 + 三源 stat + 按日折叠 + TS/typert 管线)同步 live 副本 + dsh 重启后",
+    "switchToCellMs": { "cold": 939.6, "warm": { "avg": 112.9, "samples": [126.3, 113.6, 111.3, 100.2] } },
+    "longtaskOver100ms": { "cold": [316, 70, 280], "warm": [] },
+    "loadingFrames": { "cold": 0, "warm": 0 },
+    "cellsAfterMount": 6,
+    "note": "warm(每次切 tab 的真实高频路径)从 avg 206ms → 113ms 且 loading 帧恒 0(缓存命中同步渲染)。cold 从 385ms → 940ms:zod codec 打进 client bundle(生成器产物的依赖)导致一次性解析成本,只在页面加载后第一次切 tab 发生;是否接受由发布审计裁决。"
+  },
   "note": "数据规模随时间增长,对比前先用 tests/bench/read_traces.mjs / measure_tab_switch.py 重测。"
 }
