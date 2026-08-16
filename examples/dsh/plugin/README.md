@@ -126,6 +126,35 @@ harness-agnostic 定位的一部分——同一份契约,OpenClaw skill / Claude
 `~/.dsh/skills/` 或 `<project>/.agents/skills/`(DSH 只扫这两个根,
 不扫 node_modules)。
 
+## 截图(README / 营销素材)
+
+面板的宣传图/README 截图必须从**真实运行中的 DSH**里截,不能截独立预览页——
+只有带上 DSH 自己的 chrome(顶栏、tab 栏、session 侧栏)才能证明插件真的装
+进了 DSH;独立预览页会和实际部署形态漂移。方法(本机已跑通):
+
+1. DSH 后端直接开在 `http://127.0.0.1:3081/`(systemd `dsh.service`,
+   `CLAWOCK_WORKSPACE` 指向 clawock 的 workspace)。本机截图直连这个地址,
+   绕开 Tailscale/nginx/HTTPS 那一整套。
+2. Playwright 用系统 Chromium(不是 Playwright 自带那个,本机版本对不上),
+   `device_scale_factor=2` 保证文字清晰:
+   ```python
+   from playwright.sync_api import sync_playwright
+   with sync_playwright() as p:
+       b = p.chromium.launch(executable_path='/usr/bin/chromium-browser', args=['--no-sandbox'])
+       page = b.new_page(viewport={'width': 1440, 'height': 1100}, device_scale_factor=2)
+       page.goto('http://127.0.0.1:3081/', wait_until='networkidle', timeout=20000)
+   ```
+3. 侧栏点进一个真实 session,等加载完,点顶部 `Decision Mind` tab。**tab 栏
+   和 DSH 顶栏必须留在截图里**——那正是「这是插件 tab、不是独立页」的证据。
+4. 展开一笔有完整决策轨迹(计划→执行→T+1→盈亏)的真实成交:
+   ```python
+   cell = page.locator('.cell', has_text='TICKER').filter(has_text='AMOUNT').first
+   cell.scroll_into_view_if_needed(); cell.click()
+   ```
+5. 用**单一矩形 `clip`** 截图,不要两段分别裁剪再拼接(拼接会留缝)。裁掉底部
+   `Message the agent` 输入框浮层即可。若画面里有真 bug,先修代码再重截,不要
+   用裁剪掩盖。
+
 ## 发布(脚本)
 
 ```bash
