@@ -32,18 +32,25 @@ cd book
 mkdir -p .clawock/work
 
 echo "==> clawock run prepare"
-iso env CLAWOCK_WORKSPACE="$PWD" "$clawock" run prepare > .clawock/work/request.json
+# cwd is enough: clawock finds the workspace from the current directory.
+# --workspace/CLAWOCK_WORKSPACE only matter when running from elsewhere.
+iso "$clawock" run prepare > .clawock/work/request.json
 
 # This is the entire harness surface. In the other examples in this directory,
 # an OpenClaw skill, a Claude Code instruction or a DeepSeek Harness agent does
-# exactly this one step: write decision.json from request.json. Nothing else in
-# the loop belongs to the harness.
-echo '{"answer":"smoke"}' > .clawock/work/decision.json
+# exactly this one step: read request.json and write decision.json. Nothing
+# else in the loop belongs to the harness.
+#
+# No workflow is pinned here (init without --workflow), so publish checks only
+# the base loop and a literal "answer" artifact is enough. A pinned workflow
+# (init --workflow investment-decision) instead refuses to publish a non-
+# decision.json artifact — see the five harness files in this directory.
+echo '{"answer":"smoke"}' > .clawock/work/answer.json
 
 echo "==> clawock run publish"
-iso env CLAWOCK_WORKSPACE="$PWD" "$clawock" run publish \
+iso "$clawock" run publish \
   --request .clawock/work/request.json \
-  --artifact answer=.clawock/work/decision.json > receipt.json
+  --artifact answer=.clawock/work/answer.json > receipt.json
 
 echo "==> checking the receipt"
 "$workdir/venv/bin/python" - <<'PY'
