@@ -417,3 +417,119 @@ test("client: renders ledger cards from the mounted remote", async () => {
   assert.match(joined2, /站回 340/);
   assert.match(joined2, /忍住没加/);
 });
+
+test("client: loss/flat outcomes render the neg tone, never green (#665)", async () => {
+  const loaded = await loadClient();
+  const api = loaded.factory((s) => {
+    if (s === "@deepseek-ai/dsh-client-runtime/client") return {};
+    if (s === "react") return makeReactStub();
+    throw new Error(`unexpected require: ${s}`);
+  });
+
+  let registered = null;
+  let component = null;
+  const remoteFace = {
+    ledger: async () => ({ ok: true, value: { entries: [
+      { decision_id: "dec-loss1", source: "conversation", subject: { ticker: "09988", market: "HK" },
+        decided_at: "2026-08-15T10:00:00+08:00", action: "buy", confidence: 0.55,
+        execution: { status: "followed" }, evaluation: { outcome: "loss" } },
+      { decision_id: "dec-flat1", plan_date: "2026-08-14", ticker: "00700", action: "trim", confidence: 0.5,
+        execution: { status: "unknown" }, evaluation: { outcome: "flat" } },
+      { decision_id: "dec-nt1", plan_date: "2026-08-13", ticker: "09618", action: "trim", confidence: 0.5,
+        execution: { status: "unknown" }, evaluation: { outcome: "not_triggered" } },
+    ] } }),
+    portfolio: async () => ({ ok: true, value: { books: [], trades: [] } }),
+    plans: async () => ({ ok: true, value: { plans: [] } }),
+  };
+  const ctx = {
+    effect() {},
+    get() { return remoteFace; },
+    slots: {
+      inject(name, fn) { this._fn = fn; },
+      register(definition, Component) { registered = definition; component = Component; },
+    },
+    remote: { $mount: async () => {} },
+  };
+  await api.apply(ctx);
+  ctx.slots._fn();
+  const injected = registered.inject("s1");
+  const tick = () => new Promise((resolve) => setImmediate(resolve));
+  let tree = component({ sessionId: "s1", ledger: injected.ledger, portfolio: injected.portfolio, plans: injected.plans });
+  await tick(); await tick(); await tick();
+  tree = component({ sessionId: "s1", ledger: injected.ledger, portfolio: injected.portfolio, plans: injected.plans });
+
+  const clickLabel = (label) => {
+    let found = null;
+    (function collect(node) {
+      if (node == null || found) return;
+      if (Array.isArray(node)) { node.forEach(collect); return; }
+      if (node.type === "button") {
+        const t = (node.children || []).filter((c) => typeof c === "string").join("");
+        if (t.indexOf(label) === 0) found = node;
+      }
+      (node.children || []).forEach(collect);
+    })(tree);
+    found.props.onClick();
+  };
+  const outcomeSpansIn = (node) => {
+    const spans = [];
+    (function collect(n) {
+      if (n == null) return;
+      if (Array.isArray(n)) { n.forEach(collect); return; }
+      if (n.props && typeof n.props.className === "string") {
+        const t = (n.children || []).filter((c) => typeof c === "string").join("");
+        if (t.indexOf("outcome") >= 0) spans.push({ cls: n.props.className, text: t });
+      }
+      (n.children || []).forEach(collect);
+    })(node);
+    return spans;
+  };
+
+  // executed-trades filter: the followed loss entry is the only card
+  clickLabel("账本");
+  await tick();
+  tree = component({ sessionId: "s1", ledger: injected.ledger, portfolio: injected.portfolio, plans: injected.plans });
+  const loss = outcomeSpansIn(tree).find((s) => s.text.indexOf("loss") >= 0);
+  assert.ok(loss, "loss outcome must render in the ledger sub-row");
+  assert.match(loss.cls, /\bneg\b/, "loss must use the neg tone");
+  assert.doesNotMatch(loss.cls, /\bpos\b/, "loss must never render green");
+
+  // expanded card: the outcome stat must agree (negb, not okb)
+  const rows = [];
+  (function collect(node) {
+    if (node == null) return;
+    if (Array.isArray(node)) { node.forEach(collect); return; }
+    if (node.props && node.props.onClick && node.props.className === "row") rows.push(node);
+    (node.children || []).forEach(collect);
+  })(tree);
+  assert.ok(rows.length >= 1, "ledger card row must render");
+  rows[0].props.onClick();
+  await tick();
+  tree = component({ sessionId: "s1", ledger: injected.ledger, portfolio: injected.portfolio, plans: injected.plans });
+  const outcomeStats = [];
+  (function collect(node) {
+    if (node == null) return;
+    if (Array.isArray(node)) { node.forEach(collect); return; }
+    if (node.type === "b" && node.props && typeof node.props.className === "string") {
+      const t = (node.children || []).filter((c) => typeof c === "string").join("");
+      outcomeStats.push({ cls: node.props.className, text: t });
+    }
+    (node.children || []).forEach(collect);
+  })(tree);
+  const lossStat = outcomeStats.find((s) => s.text === "loss");
+  assert.ok(lossStat, "loss stat must render when the card is expanded");
+  assert.equal(lossStat.cls, "negb", "loss stat must use negb, not okb");
+
+  // 全部: flat shares neg, not_triggered stays gray
+  clickLabel("全部");
+  await tick();
+  tree = component({ sessionId: "s1", ledger: injected.ledger, portfolio: injected.portfolio, plans: injected.plans });
+  const allSpans = outcomeSpansIn(tree);
+  const flat = allSpans.find((s) => s.text.indexOf("flat") >= 0);
+  assert.ok(flat, "flat outcome must render");
+  assert.match(flat.cls, /\bneg\b/, "flat must share the neg tone");
+  assert.doesNotMatch(flat.cls, /\bpos\b/);
+  const nt = allSpans.find((s) => s.text.indexOf("not_triggered") >= 0);
+  assert.ok(nt, "not_triggered outcome must render");
+  assert.match(nt.cls, /\bgrayb\b/, "not_triggered must stay gray");
+});

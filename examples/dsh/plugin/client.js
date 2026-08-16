@@ -82,19 +82,25 @@ window.__ModuleLoader__.load({
         '.dml .acc{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}',
         '.dml .stat{padding:10px 12px;border:1px solid var(--border-l2);border-radius:var(--radius-sm);background:var(--surface)}',
         '.dml .stat span{display:block;color:var(--text3);font-size:11px}.dml .stat b{font-size:13px;font-weight:600}',
-        '.dml .okb{color:var(--pos)}.dml .warnb{color:var(--warn)}.dml .grayb{color:var(--text2)}',
+        '.dml .okb{color:var(--pos)}.dml .negb{color:var(--neg)}.dml .warnb{color:var(--warn)}.dml .grayb{color:var(--text2)}',
         '.dml .mono{font-family:var(--mono);font-size:12px;color:var(--text2)}',
         '.dml table{width:100%;border-collapse:collapse;font-size:13px}',
         '.dml th{color:var(--text3);font-weight:600;text-align:left;padding:6px 10px;border-bottom:1px solid var(--border-l2);font-size:11.5px}',
         '.dml td{padding:7px 10px;border-bottom:1px solid var(--border-l1);font-variant-numeric:tabular-nums}',
         '.dml td.num{text-align:right;font-family:var(--mono);font-size:12.5px}',
-        '.dml .pos{color:var(--pos)}.dml .neg{color:var(--neg)}',
+        '.dml .pos{color:var(--pos)}.dml .neg{color:var(--neg)}.dml .row .pnl{font-size:12.5px}',
         '.dml .book{margin:12px 0}',
         '.dml .book h4{margin:0 0 8px;font-size:13px;font-weight:700;color:var(--text2)}',
         '.dml .plan{margin:8px 0;padding:12px 14px;border:1px solid var(--border-card);border-radius:var(--radius-md);background:var(--surface);box-shadow:var(--shadow-lv2)}',
         '.dml .plan .d{font-weight:700;font-size:13.5px;font-family:var(--mono)}',
         '.dml .plan .n{color:var(--text3);font-size:12.5px;margin-left:10px}',
         '.dml .empty{padding:26px 14px;text-align:center;color:var(--text3);font-size:13px}',
+        '@media (max-width:390px){',
+        '.dml .row{flex-wrap:wrap;min-height:44px}',
+        '.dml .pnl{flex-basis:100%;font-size:17px}',
+        '.dml .row .pnl{font-size:17px}',
+        '.dml .conf{flex-basis:100%;margin-left:0}',
+        '}',
       ].join('')
       document.head.appendChild(style)
     }
@@ -141,6 +147,13 @@ window.__ModuleLoader__.load({
     }
     function actionLabel(action) { return ACTION_LABELS[action] || String(action) }
 
+    /** Explicit outcome → tone map: only win is positive; loss/flat are negative. */
+    function outcomeTone(outcome) {
+      if (outcome === 'win') return 'ok'
+      if (outcome === 'loss' || outcome === 'flat') return 'neg'
+      return 'gray' // not_triggered | unknown | pending | missing
+    }
+
     function Chip(props) {
       return h('span', { className: 'chip ' + props.tone }, props.children)
     }
@@ -170,7 +183,7 @@ window.__ModuleLoader__.load({
       var why = d.thesis || d.rationale || (d.bull ? d.bull.slice(0, 48) : null)
       if (why && why.length > 60) why = why.slice(0, 57) + '…'
       var pnl = props.currentPnl
-      var outcomeTone = d.outcome && d.outcome !== 'not_triggered' && d.outcome !== 'unknown' ? 'ok' : 'gray'
+      var tone = outcomeTone(d.outcome)
       return h('div', { className: 'card' + (expanded ? ' open' : '') },
         h('div', { className: 'row', role: 'button', tabIndex: 0, 'aria-expanded': expanded, onClick: props.onToggle },
           h('span', { className: 'tk' }, d.ticker),
@@ -181,8 +194,8 @@ window.__ModuleLoader__.load({
           h('span', { className: 'chev' }, '▾')),
         h('div', { style: { padding: '0 14px 10px', fontSize: 12.5, color: 'var(--text2)', display: 'flex', gap: 12, flexWrap: 'wrap' } },
           why ? h('span', null, '为什么: ' + why) : null,
-          pnl !== null ? h('span', { className: pnl < 0 ? 'neg' : 'pos' }, '现盈亏 ' + (pnl > 0 ? '+' : '') + pnl.toFixed(1) + '%') : null,
-          d.outcome ? h('span', { className: outcomeTone === 'ok' ? 'pos' : 'grayb' }, 'outcome ' + d.outcome) : null),
+          pnl !== null ? h('span', { className: 'pnl ' + (pnl < 0 ? 'neg' : 'pos') }, '现盈亏 ' + (pnl > 0 ? '+' : '') + pnl.toFixed(1) + '%') : null,
+          d.outcome ? h('span', { className: tone === 'ok' ? 'pos' : tone === 'neg' ? 'neg' : 'grayb' }, 'outcome ' + d.outcome) : null),
         h('div', { className: 'detail' },
           d.bull || d.bear ? h('div', { className: 'vs' },
             h('div', { className: 'side bull' }, h('b', null, 'Bull'), h('p', null, d.bull || '—'), h('div', { className: 'src' }, 'evidence · decision time')),
@@ -198,7 +211,7 @@ window.__ModuleLoader__.load({
           (d.condition || d.executionStatus || d.outcome) ? h('div', { className: 'acc' },
             h('div', { className: 'stat' }, h('span', null, 'condition'), h('b', { className: 'grayb' }, d.condition || '—')),
             h('div', { className: 'stat' }, h('span', null, 'execution'), h('b', { className: d.executionStatus === 'followed' ? 'okb' : 'grayb' }, d.executionStatus || '—')),
-            h('div', { className: 'stat' }, h('span', null, 'outcome'), h('b', { className: d.outcome === 'not_triggered' ? 'grayb' : 'okb' }, d.outcome || '—'))) : null))
+            h('div', { className: 'stat' }, h('span', null, 'outcome'), h('b', { className: tone === 'ok' ? 'okb' : tone === 'neg' ? 'negb' : 'grayb' }, d.outcome || '—'))) : null))
     }
 
     function LedgerView(props) {
@@ -291,7 +304,7 @@ window.__ModuleLoader__.load({
             h('span', { className: 'mono', style: { color: 'var(--text2)' } },
               tr.shares + ' 股 @' + tr.price + (amount ? ' ≈' + sym + amount : '')),
             tr.realizedPnl !== null
-              ? h('span', { className: tr.realizedPnl < 0 ? 'neg' : 'pos', style: { fontFamily: 'var(--mono)', fontSize: 12.5 } },
+              ? h('span', { className: 'pnl ' + (tr.realizedPnl < 0 ? 'neg' : 'pos'), style: { fontFamily: 'var(--mono)' } },
                   (tr.realizedPnl >= 0 ? '+' : '') + tr.realizedPnl.toFixed(2))
               : null,
             h('span', { className: 'conf' }, tr.date || ''),
