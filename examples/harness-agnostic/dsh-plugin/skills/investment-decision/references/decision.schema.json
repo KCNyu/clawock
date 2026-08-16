@@ -1,0 +1,159 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:clawock:workflow:investment-decision:1.1.0:decision",
+  "title": "clawock investment decision",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "workflow",
+    "decision_id",
+    "as_of",
+    "subject",
+    "evidence",
+    "debate",
+    "thesis",
+    "decision"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "workflow": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "version"],
+      "properties": {
+        "id": {"const": "investment-decision"},
+        "version": {"const": "1.1.0"}
+      }
+    },
+    "decision_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "as_of": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "subject": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ticker", "market", "currency"],
+      "properties": {
+        "ticker": {"type": "string", "minLength": 1},
+        "market": {"type": "string", "minLength": 1},
+        "currency": {"type": "string", "minLength": 1}
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/evidence"}
+    },
+    "debate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["bull_case", "bear_case"],
+      "properties": {
+        "bull_case": {"$ref": "#/$defs/case"},
+        "bear_case": {"$ref": "#/$defs/case"}
+      }
+    },
+    "thesis": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["statement", "confidence", "invalidation_conditions"],
+      "properties": {
+        "statement": {"type": "string", "minLength": 1},
+        "confidence": {"type": "number", "minimum": 0, "maximum": 1},
+        "invalidation_conditions": {
+          "type": "array",
+          "minItems": 1,
+          "items": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "decision": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["action", "rationale", "evidence_ids", "order"],
+      "properties": {
+        "action": {
+          "enum": ["buy", "add", "hold", "watch", "trim", "sell", "exit", "abstain"]
+        },
+        "rationale": {"type": "string", "minLength": 1},
+        "evidence_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        },
+        "order": {
+          "oneOf": [
+            {"type": "null"},
+            {"$ref": "#/$defs/order"}
+          ]
+        }
+      }
+    }
+  },
+  "$defs": {
+    "evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "stance", "summary", "source", "source_class", "observed_at"],
+      "properties": {
+        "id": {"type": "string", "minLength": 1},
+        "stance": {"enum": ["supporting", "opposing", "context"]},
+        "summary": {"type": "string", "minLength": 1},
+        "source": {"type": "string", "minLength": 1},
+        "source_class": {"enum": ["primary", "secondary", "market", "agent"]},
+        "observed_at": {"type": "string", "format": "date-time"}
+      }
+    },
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["summary", "evidence_ids"],
+      "properties": {
+        "summary": {"type": "string", "minLength": 1},
+        "evidence_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1}
+        }
+      }
+    },
+    "positive-number": {
+      "oneOf": [
+        {"type": "number", "exclusiveMinimum": 0},
+        {"type": "string", "pattern": "^(?:0*[1-9][0-9]*(?:\\.[0-9]+)?|0*\\.[0-9]*[1-9][0-9]*)$"}
+      ]
+    },
+    "order": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "side",
+        "quantity",
+        "unit_price",
+        "quote_currency",
+        "gross_amount_quote",
+        "base_currency",
+        "fx_quote_to_base",
+        "gross_amount_base"
+      ],
+      "properties": {
+        "side": {"enum": ["buy", "sell"]},
+        "quantity": {"$ref": "#/$defs/positive-number"},
+        "unit_price": {"$ref": "#/$defs/positive-number"},
+        "quote_currency": {"type": "string", "minLength": 1},
+        "gross_amount_quote": {"$ref": "#/$defs/positive-number"},
+        "base_currency": {"type": "string", "minLength": 1},
+        "fx_quote_to_base": {"$ref": "#/$defs/positive-number"},
+        "gross_amount_base": {"$ref": "#/$defs/positive-number"}
+      }
+    }
+  }
+}

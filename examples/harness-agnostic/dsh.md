@@ -8,7 +8,14 @@ the same as the pure-CLI example.
 ## What the agent needs to know
 
 Give the DSH agent a workspace instruction (e.g. in its system prompt or a
-workspace context file) covering three steps:
+workspace context file) covering three steps. On a fresh machine the
+workspace must be created once first — see [`README.md`](README.md) ("From
+zero to a published decision"); the short version is:
+
+```bash
+python -m pip install clawock
+clawock init book --workflow investment-decision
+```
 
 1. **Prepare.** When asked to run an investment decision, execute:
 
@@ -22,7 +29,9 @@ workspace context file) covering three steps:
    (`min_supporting_evidence`, `min_opposing_evidence`,
    `max_confidence_without_primary_source`).
 
-2. **Decide.** Write `decision.json` next to the request. Shape:
+2. **Decide.** Write `decision.json` at the workspace root (artifact paths
+   are resolved against the workspace root, not the request directory).
+   Shape:
 
    ```json
    {
@@ -62,14 +71,24 @@ workspace context file) covering three steps:
    ```
 
 
-   Rules: every reasoning claim cites evidence; `opposing_case` is required
-   and must be a real counterargument; proposed order amounts must reconcile;
-   confidence above the cap needs a primary source.
+   Rules (enforced by `clawock run publish`, not by this file):
+   - `debate.bull_case` and `debate.bear_case` are both required and each cites
+     evidence; the bear case must cite opposing-stance evidence — publish
+     refuses without it. Python checks that linkage, not sincerity: make the
+     bear case a genuine counterargument — that honesty is the model's.
+   - Every `evidence` row needs `stance`, `source_class` and an `observed_at`
+     no later than `as_of`.
+   - All `evidence_ids` references must exist (decision and both debate
+     cases); conclusions in `thesis.statement` and `decision.rationale`
+     should be backed by cited evidence.
+   - Order amounts must reconcile to the cent. Confidence above
+     `max_confidence_without_primary_source` needs a cited primary source.
 
 3. **Publish and report.**
 
    ```bash
    clawock run publish \
+     --workspace /path/to/book \
      --request /path/to/book/.clawock/work/<run_id>/request.json \
      --artifact decision.json=/path/to/book/decision.json
    ```
