@@ -19,7 +19,7 @@
       "underlying": null,
       "one_x_substitute": null,
       "signal_symbol": "00100",
-      "listing_date": null,
+      "listing_date": "2026-01-09",
       "peer_bucket": "hk-ai-models",
       "retired": false
     },
@@ -63,7 +63,7 @@
       "underlying": "HSTECH",
       "one_x_substitute": null,
       "signal_symbol": "03032",
-      "listing_date": null,
+      "listing_date": "2020-09-04",
       "peer_bucket": "hk-hstech-etf",
       "retired": false
     },
@@ -85,7 +85,7 @@
       "underlying": "HSTECH",
       "one_x_substitute": null,
       "signal_symbol": "03033",
-      "listing_date": null,
+      "listing_date": "2020-08-28",
       "peer_bucket": "hk-hstech-etf",
       "retired": false
     },
@@ -108,7 +108,7 @@
       "underlying": "HSTECH",
       "one_x_substitute": "03033",
       "signal_symbol": "HSTECH",
-      "listing_date": null,
+      "listing_date": "2020-12-10",
       "peer_bucket": "hk-hstech-etf",
       "retired": false
     },
@@ -130,7 +130,7 @@
       "underlying": "SKHY",
       "one_x_substitute": "SKHY",
       "signal_symbol": "SKHY",
-      "listing_date": null,
+      "listing_date": "2025-10-16",
       "peer_bucket": "semiconductor-memory",
       "retired": false
     },
@@ -152,7 +152,7 @@
       "underlying": "005930.KS",
       "one_x_substitute": null,
       "signal_symbol": null,
-      "listing_date": null,
+      "listing_date": "2025-05-28",
       "peer_bucket": "semiconductor-memory",
       "retired": false
     },
@@ -241,7 +241,7 @@
       "underlying": "MSFT",
       "one_x_substitute": "MSFT",
       "signal_symbol": "MSFT",
-      "listing_date": null,
+      "listing_date": "2022-09-07",
       "peer_bucket": "us-megacap-tech",
       "retired": false
     },
@@ -330,7 +330,7 @@
       "underlying": "PLTR",
       "one_x_substitute": "PLTR",
       "signal_symbol": "PLTR",
-      "listing_date": null,
+      "listing_date": "2024-12-11",
       "peer_bucket": "us-ai-software",
       "retired": false
     },
@@ -397,7 +397,7 @@
       "underlying": "RKLB",
       "one_x_substitute": "RKLB",
       "signal_symbol": "RKLB",
-      "listing_date": null,
+      "listing_date": "2025-03-13",
       "peer_bucket": "us-commercial-space",
       "retired": false
     },
@@ -420,7 +420,7 @@
       "underlying": "HOOD",
       "one_x_substitute": "HOOD",
       "signal_symbol": "HOOD",
-      "listing_date": null,
+      "listing_date": "2025-01-31",
       "peer_bucket": "us-fintech",
       "retired": false
     },
@@ -619,7 +619,7 @@
       "underlying": null,
       "one_x_substitute": null,
       "signal_symbol": "02513",
-      "listing_date": null,
+      "listing_date": "2026-01-08",
       "peer_bucket": "hk-ai-models",
       "retired": false
     },
@@ -641,7 +641,7 @@
       "underlying": null,
       "one_x_substitute": null,
       "signal_symbol": "03317",
-      "listing_date": null,
+      "listing_date": "2025-12-30",
       "peer_bucket": "hk-ai-models",
       "retired": false
     }

@@ -86,15 +86,17 @@ fi
 # ──────────────────────────────────────────────────────────────────────────
 
 # ──────────────────────────────────────────────────────────────────────────
-# 3.5 watch-list.json ↔ instruments.json cross-validation (#602/#621)
+# 3.5 watch-list.json ↔ instruments.json cross-validation (#602/#621/#647)
 #    The watch list is maintained by hand alongside instruments.json; a typo
 #    used to be a permanent silent no-scan. Any change to either file re-checks
-#    the pair.
+#    the pair. #647: every instrument must also carry a listing_date — the
+#    short-history gate (#608) depends on it and fails closed + silent when it
+#    is null, so a new registry entry without one must not be committable.
 # ──────────────────────────────────────────────────────────────────────────
 if echo "$STAGED" | grep -qE '^(config/watch-list\.json|config/instruments\.json)$'; then
   echo "  ▸ validating watch-list.json ↔ instruments.json…"
   python3 - <<'PY' || exit 1
-import json, sys
+import json, re, sys
 try:
     wl = json.load(open('config/watch-list.json'))
     inst = json.load(open('config/instruments.json'))['instruments']
@@ -106,6 +108,15 @@ if missing:
     print(f'    ✗ watch-list tickers missing from instruments.json: {missing}',
           file=sys.stderr)
     print('    → 先在 instruments.json 注册(含 tencent_symbol)再加观察池',
+          file=sys.stderr)
+    sys.exit(1)
+no_date = [s for s, m in inst.items()
+           if not isinstance(m.get('listing_date'), str)
+           or not re.fullmatch(r'\d{4}-\d{2}-\d{2}', m['listing_date'])]
+if no_date:
+    print(f'    ✗ instruments missing a YYYY-MM-DD listing_date: {no_date}',
+          file=sys.stderr)
+    print('    → 短历史闸(#608)依赖该字段,null 会静默 fail-closed',
           file=sys.stderr)
     sys.exit(1)
 print('    ✓ watch-list.json ↔ instruments.json OK')

@@ -112,10 +112,11 @@ def validate_registry(doc: Any) -> list[str]:
         if not isinstance(leverage, (int, float)) or isinstance(leverage, bool) or leverage < 1:
             errors.append(f"{where}.leverage_multiple must be a number >= 1")
         listing_date = meta.get("listing_date")
-        if listing_date is not None and (
-            not isinstance(listing_date, str) or not _DATE_RE.fullmatch(listing_date)
-        ):
-            errors.append(f"{where}.listing_date must be YYYY-MM-DD or null")
+        # #647: the short-history gate (#608) depends on this field being
+        # present and recent — a null listing_date makes it fail closed and
+        # silent. It is registry data hygiene now, not an optional field.
+        if not isinstance(listing_date, str) or not _DATE_RE.fullmatch(listing_date):
+            errors.append(f"{where}.listing_date must be YYYY-MM-DD (non-null)")
         if not isinstance(meta.get("retired"), bool):
             errors.append(f"{where}.retired must be boolean")
         for field in ("name", "venue", "sector", "factor", "peer_bucket"):
