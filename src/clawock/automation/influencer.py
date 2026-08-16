@@ -27,7 +27,7 @@ Merge-not-overwrite: if a source returns empty (rate-limit / outage) we keep the
 previous run's items for that source so one bad fetch can't blank the card
 (see memory/openclaw-fetcher-merge-not-overwrite.md).
 
-Env: MINIMAX_API_KEY primary; XIAOMI_API_KEY optional fallback. Without either,
+Env: MINIMAX_API_KEY primary; OPENCODE_API_KEY optional fallback. Without either,
 falls back to keyword-only items with relevance=null (still renders, just noisier).
 """
 import html
@@ -328,7 +328,7 @@ def llm_filter(candidates, held):
     """Returns dict {idx: {tickers, held, new_ideas, stance, relevance, summary_cn}}."""
     if not candidates:
         return {}
-    if not (os.environ.get('MINIMAX_API_KEY') or os.environ.get('XIAOMI_API_KEY')):
+    if not (os.environ.get('MINIMAX_API_KEY') or os.environ.get('OPENCODE_API_KEY')):
         print('  ⚠️ no LLM provider key — skipping relevance filter (keyword-only)', file=sys.stderr)
         return {}
     from clawock.automation.llm import chat

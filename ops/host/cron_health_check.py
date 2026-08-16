@@ -244,6 +244,70 @@ def load_heartbeats(path=None):
     return None
 
 
+def load_workflow_outcomes(path=None):
+    """Load the published per-slot product ledger (assets/data/workflow-outcomes.json),
+    same host-local-then-published fallback as load_heartbeats. Written by
+    `clawock.automation.workflow_outcomes` and, for staged report crons, by the
+    Telegram backstop in `report_watchdog.py` (via `_watchdog_common._record_watchdog_outcome`)."""
+    candidates = ([Path(path)] if path else [
+        WS / 'memory' / '.tmp' / 'workflow-outcomes.json',
+        WS / 'assets' / 'data' / 'workflow-outcomes.json',
+    ])
+    for candidate in candidates:
+        try:
+            data = json.loads(candidate.read_text())
+            if data.get('schema_version') == 1 and isinstance(data.get('records'), list):
+                return data
+        except (FileNotFoundError, json.JSONDecodeError, OSError):
+            continue
+    return None
+
+
+def backstop_covered_slots(job_name, slots, tz_name, outcomes, today=None):
+    """Which of `slots` (HH:MM local, today) has a workflow-outcomes record whose
+    final_product is 'recovered' — i.e. watchdog_delivery succeeded.
+
+    #696: a staged report cron's Telegram backstop is DELIBERATELY commit-free
+    (report_watchdog.py, 2026-07-09 kcn's call: no WeChat resend, Telegram-only
+    mirror) — so counting git commits alone reads every backstop-covered slot as
+    total non-delivery, the same red as a report kcn genuinely never got. This
+    reads the one ledger that already tells the two apart (`final_product.status
+    == 'recovered'` is set only when `watchdog_delivery` itself succeeded).
+
+    `today` must be checked, not just HH:MM: the ledger keeps 96h of records
+    (workflow_outcomes.KEEP_HOURS), so a same-time slot recovered on an earlier
+    day would otherwise silently paper over a genuine miss today.
+
+    Slot-level, not commit-level: `commit_count_today` has no way to say WHICH
+    slot a commit belongs to, so this can only compare counts (below), not
+    prove a specific gap slot is the one covered. That is the same precision
+    the existing commit-count check already operates at.
+    """
+    if not outcomes:
+        return set()
+    tz = ZoneInfo(tz_name)
+    today = today or datetime.now(tz).date()
+    covered = set()
+    for record in outcomes.get('records', []):
+        if record.get('job') != job_name:
+            continue
+        if record.get('final_product', {}).get('status') != 'recovered':
+            continue
+        try:
+            slot_dt = datetime.fromisoformat(record['slot'])
+            if slot_dt.tzinfo is None:
+                slot_dt = slot_dt.replace(tzinfo=HKT)
+            slot_local = slot_dt.astimezone(tz)
+        except Exception:
+            continue
+        if slot_local.date() != today:
+            continue
+        hhmm = slot_local.strftime('%H:%M')
+        if hhmm in slots:
+            covered.add(hhmm)
+    return covered
+
+
 def heartbeat_coverage(job_name, slots, tz_name, now, ledger):
     """Return monitored/healthy/missing slot sets for one intraday job."""
     if not ledger:
@@ -441,6 +505,7 @@ def main():
     ap.add_argument('--silent', action='store_true')
     ap.add_argument('--jobs-file', help='tracked cron contract (used by CI)')
     ap.add_argument('--heartbeats-file', help='published heartbeat ledger (used by CI)')
+    ap.add_argument('--outcomes-file', help='published workflow-outcomes ledger (used by CI)')
     args = ap.parse_args()
 
     try:
@@ -452,6 +517,7 @@ def main():
 
     now = datetime.now(timezone.utc)
     heartbeat_ledger = load_heartbeats(args.heartbeats_file)
+    outcomes_ledger = load_workflow_outcomes(args.outcomes_file)
 
     report = []
     has_missing = False
@@ -500,10 +566,25 @@ def main():
             detail = f'next: {expected[0] if expected else "n/a"}'
         elif commit_pat:
             if commit_n < len(expected_past):
-                # 缺少 commit — 可能漏跑
-                status = 'missing'
-                detail = f'expected {len(expected_past)} commits, got {commit_n}'
-                has_missing = True
+                # 缺少 commit — 可能漏跑，也可能是 Telegram backstop 接管（设计上不产
+                # 生 commit，见 backstop_covered_slots）。两者是不同的红，分开报（#696）。
+                gap = len(expected_past) - commit_n
+                covered = backstop_covered_slots(
+                    name, expected_past, tz, outcomes_ledger,
+                    today=now.astimezone(ZoneInfo(tz)).date())
+                if len(covered) >= gap:
+                    status = 'backstop'
+                    detail = (f'expected {len(expected_past)} commits, got {commit_n} — '
+                              f'{len(covered)} slot(s) confirmed via Telegram backstop '
+                              f'instead (watchdog recovered, no commit by design)')
+                    has_warn = True
+                else:
+                    status = 'missing'
+                    detail = f'expected {len(expected_past)} commits, got {commit_n}'
+                    if covered:
+                        detail += (f'; {len(covered)} of the gap covered by backstop, '
+                                  f'{gap - len(covered)} still unaccounted')
+                    has_missing = True
             else:
                 detail = f'{commit_n}/{len(expected_past)} commits OK'
         elif name in ('盘中盯盘', '美股盘中盯盘', '美股盘中盯盘-overnight'):
@@ -586,7 +667,7 @@ def main():
         for r in report:
             icon = {'ok':'✓','idle':'·','missing':'✗','ok-no-track':'~',
                     'ok-heartbeat':'✓','monitoring-grace':'·','running':'…',
-                    'holiday':'🏖'}.get(r['status'], '·')
+                    'holiday':'🏖','backstop':'⚠'}.get(r['status'], '·')
             print(f"  {icon} {r['name']:25s}  {r['detail']}")
         dash_icon = DASHBOARD_STATE_ICONS[dash['state']]
         print(f"  {dash_icon} {'dashboard build':25s}  {dash['detail']}")

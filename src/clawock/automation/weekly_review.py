@@ -3,10 +3,10 @@
 KCNyu Sunday 22:00 HKT weekly portfolio review.
 
 Bundles past 7 days of plans / decision episodes / snapshots / current risk
-into a single prompt, calls MiniMax M3 (optional Xiaomi fallback), and writes
+into a single prompt, calls MiniMax M3 (optional opencode-go fallback), and writes
 memory/weekly/{ISO-week}.md.
 
-Env: MINIMAX_API_KEY required; XIAOMI_API_KEY optional fallback
+Env: MINIMAX_API_KEY required; OPENCODE_API_KEY optional fallback
 """
 import glob
 import json

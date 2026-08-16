@@ -32,13 +32,13 @@
 | `sentiment-scan.yml` | 周日–四 21:30 UTC | `assets/data/sentiment.json` | 05:30 HKT 盘前 Reddit + Google News 扫描 |
 | `macro-scan.yml` | 周日–四 21:45 UTC | `assets/data/macro.json` | 05:45 HKT 盘前宏观扫描 |
 | `brief-fallback.yml` | 工作日 00:25 UTC (08:25 HKT) | brief/plan + harness 产物 | 主 brief 缺失且未晚于 10:00 HKT 才由远端 LLM 接管 |
-| `weekly-review.yml` | 周日 14:00 UTC (22:00 HKT) | `memory/weekly/{ISO-week}.md` | MiniMax 主、Xiaomi 可选 fallback 的周复盘 |
+| `weekly-review.yml` | 周日 14:00 UTC (22:00 HKT) | `memory/weekly/{ISO-week}.md` | MiniMax 主、opencode-go DeepSeek V4 Flash 可选 fallback 的周复盘 |
 | `news-digest.yml` | 工作日 13:00 UTC (21:00 HKT) | `assets/data/us_news_digest.json` | 美股开盘前 48h 新闻提炼 |
 | `influencer-scan.yml` | 周日–四 21:40 + 工作日 12:50 UTC | `assets/data/influencer_feed.json` | 盘前 + 美股盘前两班影响力雷达 |
 | `cron-health.yml` | 工作日 09:00 UTC (17:00 HKT) | (read-only) | 用 tracked cron contract + HKT commit date 巡检漏跑 |
 | `screenshot-refresh.yml` | 周日 22:00 UTC | `site/assets/social-card.png` + `site/assets/shadow-backtest.png` | 每周刷新社交卡里的 Hero 截图和实时战绩图；`site/assets/dashboard.gif` 只在手动 dispatch 时生成 |
 
-**远端 LLM 路径**: 本地市场 cron 与远端 `clawock.automation.llm` 都以 MiniMax M3 为主；远端在可选 `XIAOMI_API_KEY` 仍有效时可 fallback 到 MiMo v2.5-pro。4 个 LLM workflow（news-digest / weekly-review / brief-fallback / influencer-scan）均只从 repo secrets 读 key，仓库不落 key。
+**远端 LLM 路径**: 本地市场 cron 与远端 `clawock.automation.llm` 都以 MiniMax M3 为主；远端在可选 `OPENCODE_API_KEY` 存在时可 fallback 到 opencode-go 的 DeepSeek V4 Flash（OpenAI 兼容协议，与 MiniMax 的 Anthropic Messages 协议不同——2026-08-16 起替换掉早已失效的 Xiaomi MiMo fallback，见 issue #695/#697）。4 个 LLM workflow（news-digest / weekly-review / brief-fallback / influencer-scan）均只从 repo secrets 读 key，仓库不落 key。
 
 **数据扫描 GH Action 不写 `assets/data/dashboard.json`**，只写各自 sidecar；dashboard
 只由 harness postflight（含远端 brief fallback 复用同一 postflight）和 host 上加锁的

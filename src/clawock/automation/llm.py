@@ -1,39 +1,50 @@
 #!/usr/bin/env python3
 """
-Minimal Anthropic-Messages client for KCNyu GitHub Actions workflows.
+Minimal LLM client for KCNyu GitHub Actions workflows.
 
-Primary: MiniMax M3. Fallback: Xiaomi MiMo v2.5-pro (only while its token-plan
-key still works — being retired 2026-06-16 as the plan expires; auto-skipped once
-XIAOMI_API_KEY is gone). BOTH speak the Anthropic Messages protocol — the same
-transport openclaw's gateway uses — which is the stable path: thinking is a
-first-class block (no reasoning_content replay 400s, no empty-turn ambiguity).
-Used by brief-fallback / weekly-review / news-digest / influencer-scan — none of
-which can reach the local openclaw gateway, so they call the vendor API directly.
+Primary: MiniMax M3 (Anthropic Messages protocol). Fallback: opencode-go's
+DeepSeek V4 Flash (OpenAI-compatible protocol — https://opencode.ai/docs/zen).
+The two providers do NOT share a wire protocol, so this module carries two
+request/response shapes: `_call_provider` speaks Anthropic `/v1/messages` for
+MiniMax; `_call_provider_openai_compatible` speaks `/chat/completions` for
+opencode-go. Used by brief-fallback / weekly-review / news-digest /
+influencer-scan — none of which can reach the local openclaw gateway, so they
+call the vendor API directly.
 
 Why a fallback (2026-05-30, kcn 要求): one vendor can hit empty-turn,
-sensitive-content or rate-limit failures that blank a scheduled job. MiniMax is now
-primary; while the optional Xiaomi key remains usable it provides a second route.
+sensitive-content or rate-limit failures that blank a scheduled job. MiniMax is
+primary; opencode-go / DeepSeek V4 Flash is the fallback.
 
-Migration (2026-06-01, kcn "都改吧变成稳妥的anthropic的"): switched off the old
-OpenAI /v1/chat/completions transport. MiniMax M2.7 + openai-completions is dead
-(see memory/openclaw-xiaomi-fallback.md) — that fallback used to be a no-op. Now
-both providers POST {base}/v1/messages with x-api-key + anthropic-version.
+History:
+- 2026-06-01 (kcn "都改吧变成稳妥的anthropic的"): switched both providers onto
+  the Anthropic Messages transport (see memory/openclaw-xiaomi-fallback.md) —
+  at the time both legs were Xiaomi/MiniMax and both spoke that protocol.
+- 2026-08-16 (kcn "xiaomi的早没了 你换成我opencode go的ds flash吧", issue
+  #695/#697): Xiaomi's token-plan key had already died (HTTP 401) — its
+  retirement, predicted in this docstring since 2026-06, finally landed.
+  Fallback swapped to opencode-go's DeepSeek V4 Flash, which is OpenAI-
+  compatible rather than Anthropic — bringing a `/chat/completions` shape back
+  for the fallback leg only.
 
 Env:
-- MINIMAX_API_KEY  — primary
-- XIAOMI_API_KEY   — fallback (optional; being retired as the token-plan expires;
-                     if unset, the Xiaomi fallback is skipped)
+- MINIMAX_API_KEY   — primary
+- OPENCODE_API_KEY  — fallback (optional; if unset, the fallback is skipped)
 
 Notes:
-- system is a TOP-LEVEL Anthropic param (not a message role) — we lift it out.
-- thinking: enabled by default (better prose quality). For structured JSON
-  extraction pass thinking_disabled=True — reasoning budget competing with the
-  output cap truncates JSON, and a deterministic extraction wants thinking off.
-- json_response: Anthropic has no response_format param, and mimo ignores an
-  assistant "{" prefill (it re-opens a ```json fence instead). So we just instruct
-  JSON in the prompt and pull the first balanced {…}/[…] out of the reply via
-  _extract_json (fence- and stray-prose-tolerant).
-- ANTHROPIC_VERSION header pinned to 2023-06-01 (what both vendors accept).
+- MiniMax (Anthropic Messages): system is a TOP-LEVEL param, not a message
+  role — `_split_system` lifts it out. thinking is a first-class block.
+- opencode-go (OpenAI-compatible): system stays inline as a message role;
+  reasoning (if any) rides along as `reasoning_content` on the assistant
+  message rather than a separate typed block — we don't read it, only
+  `content`.
+- thinking: enabled by default for MiniMax (better prose quality). For
+  structured JSON extraction pass thinking_disabled=True — reasoning budget
+  competing with the output cap truncates JSON, and a deterministic extraction
+  wants thinking off. opencode-go has no equivalent knob wired through here.
+- json_response: neither vendor has a response_format param we lean on, so we
+  just instruct JSON in the prompt and pull the first balanced {…}/[…] out of
+  the reply via _extract_json (fence- and stray-prose-tolerant).
+- ANTHROPIC_VERSION header pinned to 2023-06-01 (what MiniMax accepts).
 
 Usage:
     from clawock.automation.llm import chat
@@ -47,13 +58,16 @@ import time
 
 import requests
 
-# Anthropic-protocol endpoints (base, no trailing /v1/messages — added per call).
-DEFAULT_BASE = 'https://token-plan-cn.xiaomimimo.com/anthropic'
-DEFAULT_MODEL = 'mimo-v2.5-pro'
 MINIMAX_BASE = 'https://api.minimaxi.com/anthropic'
 MINIMAX_MODEL = 'MiniMax-M3'
 MINIMAX_MAX_TOKENS = 131072  # M3 maxOutput
-XIAOMI_MAX_TOKENS = 32000  # mimo-v2.5-pro maxOutput — far below M3's
+# OpenAI-compatible endpoint (base, no trailing /chat/completions — added per call).
+OPENCODE_BASE = 'https://opencode.ai/zen/go/v1'
+OPENCODE_MODEL = 'deepseek-v4-flash'
+# Vendor cap is 384000 (see /root/.cache/opencode/models.json), but this is a
+# last-resort fallback, not a primary route — keep it in the same conservative
+# range the old Xiaomi fallback used rather than trusting the full vendor cap.
+OPENCODE_MAX_TOKENS = 32000
 ANTHROPIC_VERSION = '2023-06-01'
 TIMEOUT = 180  # 3 min per call
 MAX_RETRIES = 3
@@ -190,15 +204,72 @@ def _call_provider(label, base_url, api_key, model, messages, max_tokens,
     raise RuntimeError(f'{label} failed after {MAX_RETRIES} attempts: {last_err}')
 
 
+def _call_provider_openai_compatible(label, base_url, api_key, model, messages,
+                                     max_tokens, temperature, json_response,
+                                     thinking, timeout=None):
+    """One provider over the OpenAI-compatible /chat/completions shape, with
+    retries. Returns content str or raises RuntimeError. Unlike Anthropic
+    Messages: system stays inline as a message role (no lift-out needed), and
+    there is no first-class thinking block — reasoning (if any) rides along as
+    `reasoning_content` on the assistant message, which we don't read."""
+    timeout = timeout or TIMEOUT
+    body = {
+        'model': model,
+        'max_tokens': max_tokens,
+        'temperature': temperature,
+        'messages': messages,
+    }
+    headers = {
+        'Authorization': f'Bearer {api_key}',
+        'Content-Type': 'application/json',
+    }
+
+    last_err = None
+    for attempt in range(1, MAX_RETRIES + 1):
+        try:
+            r = requests.post(f'{base_url}/chat/completions',
+                              json=body, headers=headers, timeout=timeout)
+            if r.status_code == 200:
+                data = r.json()
+                choices = data.get('choices', []) or []
+                msg = choices[0].get('message', {}) if choices else {}
+                text = msg.get('content', '') or ''
+                usage = data.get('usage', {}) or {}
+                print(f'  {label}: {usage.get("prompt_tokens","?")} in / '
+                      f'{usage.get("completion_tokens","?")} out '
+                      f'(finish={choices[0].get("finish_reason","?") if choices else "?"})',
+                      file=sys.stderr)
+                cleaned = _clean(text)
+                return _extract_json(cleaned) if json_response else cleaned
+            elif r.status_code == 429:
+                wait = 5 * attempt
+                print(f'  {label}: 429 rate limit, sleeping {wait}s', file=sys.stderr)
+                time.sleep(wait)
+                continue
+            else:
+                last_err = f'HTTP {r.status_code}: {r.text[:300]}'
+                print(f'  {label}: {last_err}', file=sys.stderr)
+        except requests.Timeout:
+            last_err = 'timeout after 180s'
+            print(f'  {label}: {last_err} (attempt {attempt})', file=sys.stderr)
+        except Exception as e:
+            last_err = f'{type(e).__name__}: {e}'
+            print(f'  {label}: {last_err}', file=sys.stderr)
+        time.sleep(2 * attempt)
+    raise RuntimeError(f'{label} failed after {MAX_RETRIES} attempts: {last_err}')
+
+
 def chat(system: str = '', user: str = '', messages: list = None,
          max_tokens: int = 32000, temperature: float = 0.7,
-         model: str = DEFAULT_MODEL, base_url: str = DEFAULT_BASE,
+         model: str = OPENCODE_MODEL, base_url: str = OPENCODE_BASE,
          api_key: str = None, thinking_disabled: bool = False,
          json_response: bool = False, fallback: bool = True,
          timeout: int = None) -> str:
-    """Call MiniMax M3; on total failure fall back to Xiaomi MiMo (both Anthropic
-    Messages). Returns assistant content string, or raises if BOTH providers fail.
-    Set fallback=False to use MiniMax only (no Xiaomi fallback).
+    """Call MiniMax M3; on total failure fall back to opencode-go's DeepSeek V4
+    Flash. The two are NOT the same wire protocol (Anthropic Messages vs
+    OpenAI-compatible) — see module docstring. Returns assistant content
+    string, or raises if BOTH providers fail. Set fallback=False to use
+    MiniMax only (no opencode-go fallback).
 
     timeout: per-attempt seconds, default TIMEOUT (180). Big jobs need more: the
     daily brief prefills ~100KB of context and generates ~20K tokens with thinking
@@ -217,9 +288,6 @@ def chat(system: str = '', user: str = '', messages: list = None,
     errors = []
 
     # ── Primary: MiniMax M3 (Anthropic Messages) ──
-    # 2026-06-16, kcn: Xiaomi token-plan is expiring → MiniMax is now primary
-    # everywhere. Xiaomi stays only as a last-resort fallback while its key still
-    # works; once the token dies it is auto-skipped (no XIAOMI_API_KEY).
     mm_key = os.environ.get('MINIMAX_API_KEY')
     if mm_key:
         try:
@@ -228,22 +296,26 @@ def chat(system: str = '', user: str = '', messages: list = None,
                                   temperature, json_response, thinking, timeout)
         except Exception as e:
             errors.append(f'minimax[{e}]')
-            print('  ⚠️ minimax exhausted — falling back to Xiaomi MiMo', file=sys.stderr)
+            print('  ⚠️ minimax exhausted — falling back to opencode-go DeepSeek V4 Flash',
+                  file=sys.stderr)
     else:
         errors.append('minimax[no MINIMAX_API_KEY]')
 
-    # ── Fallback: Xiaomi MiMo (same Anthropic transport; key may be expired) ──
-    xiaomi_key = api_key or os.environ.get('XIAOMI_API_KEY')
-    if fallback and xiaomi_key:
+    # ── Fallback: opencode-go / DeepSeek V4 Flash (OpenAI-compatible) ──
+    # 2026-08-16, kcn: Xiaomi's token-plan key had already died (HTTP 401,
+    # issue #695) — swapped the fallback to opencode-go's DeepSeek V4 Flash
+    # (issue #697). If unset, the fallback is auto-skipped (no OPENCODE_API_KEY).
+    opencode_key = api_key or os.environ.get('OPENCODE_API_KEY')
+    if fallback and opencode_key:
         try:
-            return _call_provider('xiaomi', base_url, xiaomi_key, model, messages,
-                                  min(max_tokens, XIAOMI_MAX_TOKENS),
-                                  temperature, json_response, thinking,
-                                  timeout)
+            return _call_provider_openai_compatible(
+                'opencode', base_url, opencode_key, model, messages,
+                min(max_tokens, OPENCODE_MAX_TOKENS),
+                temperature, json_response, thinking, timeout)
         except Exception as e:
-            errors.append(f'xiaomi[{e}]')
-    elif fallback and not xiaomi_key:
-        errors.append('xiaomi[no XIAOMI_API_KEY]')
+            errors.append(f'opencode[{e}]')
+    elif fallback and not opencode_key:
+        errors.append('opencode[no OPENCODE_API_KEY]')
 
     raise RuntimeError('all LLM providers failed: ' + ' | '.join(errors))
 
