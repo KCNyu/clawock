@@ -227,6 +227,11 @@ clawock record \
   --emotion averaging_down --note "浮亏 -40% 的摊本冲动被压过,忍住没加"
 ```
 
+`--source` defaults to `conversation` for DSH; other harnesses pass their
+own — OpenClaw `--source openclaw`, Claude Code `--source claude`, Codex
+`--source codex`. One ledger, one record command, every harness calls it;
+nobody edits `decisions.jsonl` directly.
+
 Rules: the bear case and at least one observable invalidation condition are
 mandatory (the command rejects weak records); be honest about emotion
 pressure — `fomo`/`revenge`/`averaging_down` are the exact patterns this
