@@ -159,7 +159,7 @@ function dayNum(iso) {
  * Snapshots carry `current_price` per holding; the newest day with a price
  * after a trade date is its T+1 close.
  */
-function readSnapshotPrices(workspace) {
+export function readSnapshotPrices(workspace) {
   const byTicker = {}
   let files = []
   try {
