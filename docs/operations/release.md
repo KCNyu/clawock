@@ -57,6 +57,55 @@ afterwards means the artifact is already on PyPI describing itself as something
 nobody wrote down, and a published version cannot be replaced — only superseded,
 which is what 0.1.1 cost.
 
+## The npm side: `clawock-dsh` (DSH skill package)
+
+The DSH skill package rides the same version train as the Python package.
+`ops/publish/publish_dsh_plugin.sh` is the single entry point for every npm
+publication path — release.yml and a human both go through it:
+
+```bash
+# Publish whatever version examples/dsh/plugin/package.json declares
+NPM_TOKEN=... ops/publish/publish_dsh_plugin.sh
+
+# Standalone npm bump (no GitHub Release, no PyPI): the version is explicit
+NPM_TOKEN=... ops/publish/publish_dsh_plugin.sh 0.2.1
+```
+
+`NPM_TOKEN` is the npm registry auth token and the only environment input the
+script needs (a userconfig with registry auth works too). Before touching the
+registry it runs `npm pack --dry-run` and verifies the package and its
+`skills/investment-decision/SKILL.md` both exist.
+
+On a `v*` tag the workflow's `npm` job calls the same script with the tag
+version (`"${GITHUB_REF_NAME#v}"`), so PyPI and npm publish together; the GitHub
+Release is created only after both publishers accepted (`needs: [publish, npm]`).
+PR pushes and TestPyPI dispatches never touch npm.
+
+## One version, three places
+
+A release version is declared in `pyproject.toml`, and two other places must
+not disagree with it:
+
+- `pyproject.toml` — what PyPI publishes; the workflow refuses a tag that
+  disagrees with it
+- `examples/dsh/plugin/package.json` — what npm publishes; the publish script
+  bumps it to the version it is given
+- `CHANGELOG.md` top entry — what the version claims to contain
+
+`tests/test_versions_agree.py` enforces the contract in CI: the newest changelog
+entry must be the `pyproject.toml` version, entries must be unique and
+newest-first, and the changelog must be reachable from the package metadata. A
+bump that updates `pyproject.toml` alone meets a red `validate` before any tag
+can be cut.
+
+## The bump is idempotent
+
+`npm version <same>` exits non-zero (#617), so both publish paths compare
+first: when `package.json` already sits at the target version — a re-run after
+a partial failure, for instance — the bump is skipped with no error and the
+flow proceeds straight to publish. Running the standalone command twice is
+safe.
+
 ## What the release job proves before it publishes
 
 - `twine check` on both the sdist and the wheel.
