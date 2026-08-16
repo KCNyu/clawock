@@ -90,6 +90,64 @@ def test_a_quiet_tick_is_not_a_dead_publisher():
     assert result["state"] == "ok"
 
 
+
+# ── #696: a Telegram backstop delivery must not read as total non-delivery ──
+# report_watchdog.py's Telegram mirror is deliberately commit-free (2026-07-09
+# kcn's call: no WeChat resend, so no publish either), so commit-counting alone
+# cannot tell "watchdog recovered it" apart from "kcn got nothing" — both showed
+# up as the same red. backstop_covered_slots reads the one ledger that can.
+def _outcomes(records):
+    return {"schema_version": 1, "records": records}
+
+
+def _outcome_record(job, slot_iso, final_status):
+    return {
+        "job": job,
+        "slot": slot_iso,
+        "final_product": {"status": final_status},
+    }
+
+
+def test_backstop_covered_slots_finds_a_recovered_slot():
+    from datetime import date
+    outcomes = _outcomes([
+        _outcome_record("港股午后快报", "2026-08-14T13:11:00+08:00", "recovered"),
+    ])
+    covered = cron_health_check.backstop_covered_slots(
+        "港股午后快报", ["13:11"], "Asia/Hong_Kong", outcomes,
+        today=date(2026, 8, 14))
+    assert covered == {"13:11"}
+
+
+def test_backstop_covered_slots_ignores_other_jobs_and_non_recovered_status():
+    outcomes = _outcomes([
+        _outcome_record("美股收盘报告", "2026-08-14T13:11:00+08:00", "recovered"),  # wrong job
+        _outcome_record("港股午后快报", "2026-08-14T13:11:00+08:00", "degraded"),  # not recovered
+    ])
+    covered = cron_health_check.backstop_covered_slots(
+        "港股午后快报", ["13:11"], "Asia/Hong_Kong", outcomes)
+    assert covered == set()
+
+
+def test_backstop_covered_slots_returns_empty_without_a_ledger():
+    assert cron_health_check.backstop_covered_slots(
+        "港股午后快报", ["13:11"], "Asia/Hong_Kong", None) == set()
+
+
+def test_backstop_covered_slots_ignores_a_stale_recovered_record_from_another_day():
+    """The ledger keeps 96h of history (workflow_outcomes.KEEP_HOURS), so a
+    same-clock-time recovery from an earlier day must not paper over a genuine
+    miss today — HH:MM alone is not enough, the date has to match too."""
+    from datetime import date
+    outcomes = _outcomes([
+        _outcome_record("港股午后快报", "2026-08-13T13:11:00+08:00", "recovered"),
+    ])
+    covered = cron_health_check.backstop_covered_slots(
+        "港股午后快报", ["13:11"], "Asia/Hong_Kong", outcomes,
+        today=date(2026, 8, 14))
+    assert covered == set()
+
+
 def test_a_closed_weekend_is_silence_by_design():
     # 2026-08-09 12:00 HKT is a Sunday: no session to publish into, so an old
     # generation is correct and must not be reported as a stalled publisher.

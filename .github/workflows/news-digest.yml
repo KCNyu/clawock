@@ -30,7 +30,7 @@ jobs:
       - name: Fetch news + LLM distill
         env:
           FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY }}
-          XIAOMI_API_KEY: ${{ secrets.XIAOMI_API_KEY }}
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
           MINIMAX_API_KEY: ${{ secrets.MINIMAX_API_KEY }}
         run: clawock-news-digest
 
