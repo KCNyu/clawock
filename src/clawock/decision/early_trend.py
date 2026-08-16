@@ -33,6 +33,24 @@ def classify(technical: dict, peer: dict, information: dict, events: list[dict],
     peers = int(peer.get("available_peer_count") or 0)
     market_policy = (policy.get("markets") or {}).get(str(market).upper()) or {}
     multiple = _number(policy.get("early_peer_dispersion_multiple")) or 1.5
+    # #666: explicit None checks, never `X or DEFAULT` — a config value of 0
+    # (e.g. `minimum_peer_count: 0` = 不设同行样本下限) is legal and must not
+    # be swallowed into the default.
+    raw_min_peers = market_policy.get("minimum_peer_count")
+    min_peers = int(raw_min_peers) if raw_min_peers is not None else 3
+    raw_min_attention_rank = market_policy.get("minimum_attention_rank")
+    min_attention_rank = (
+        float(raw_min_attention_rank) if raw_min_attention_rank is not None
+        else 1.0
+    )
+    raw_min_acceleration = policy.get("minimum_attention_acceleration")
+    min_acceleration = (
+        float(raw_min_acceleration) if raw_min_acceleration is not None else 1.0
+    )
+    raw_min_source_types = policy.get("minimum_attention_source_types")
+    min_source_types = (
+        int(raw_min_source_types) if raw_min_source_types is not None else 1
+    )
     breakout = close is not None and prior_high is not None and close > prior_high
     residual_multiple = (
         residual / dispersion
@@ -41,7 +59,7 @@ def classify(technical: dict, peer: dict, information: dict, events: list[dict],
     residual_leader = bool(
         residual is not None and residual > 0
         and residual_multiple is not None and residual_multiple >= multiple
-        and peers >= int(market_policy.get("minimum_peer_count") or 3)
+        and peers >= min_peers
     )
     price_candidate = bool(technical.get("usable") and breakout and residual_leader)
 
@@ -56,10 +74,10 @@ def classify(technical: dict, peer: dict, information: dict, events: list[dict],
     source_types = int(information.get("attention_source_type_count") or 0)
     attention_ok = bool(
         attention_rank is not None
-        and attention_rank >= float(market_policy.get("minimum_attention_rank") or 1)
+        and attention_rank >= min_attention_rank
         and acceleration is not None
-        and acceleration >= float(policy.get("minimum_attention_acceleration") or 1)
-        and source_types >= int(policy.get("minimum_attention_source_types") or 1)
+        and acceleration >= min_acceleration
+        and source_types >= min_source_types
         and int(information.get("attention_event_count") or 0) > 0
     )
     information_modes = []
@@ -157,6 +175,11 @@ def exploration_setup(technical: dict, candidate: dict, policy: dict,
     entry = max(close or 0, prior_high or 0)
     if not entry or invalidation >= entry:
         return None
+    # #666: explicit None checks, never `X or DEFAULT` — a config value of 0
+    # (e.g. `exploration_tranche_pct: 0` = 禁用探索档) is legal and must not
+    # be swallowed into the default.
+    raw_tranche_pct = policy.get("exploration_tranche_pct")
+    raw_confirmation_sessions = policy.get("confirmation_window_sessions")
     return {
         "setup_id": "early_trend_confirmation",
         "campaign_id": f"{candidate['market']}:{ticker}:early:p1",
@@ -165,10 +188,13 @@ def exploration_setup(technical: dict, candidate: dict, policy: dict,
         "entry_price": round(entry, 4),
         "invalidation_price": round(invalidation, 4),
         "max_tranches": 1,
-        "tranche_pct_of_position": float(
-            policy.get("exploration_tranche_pct") or 0.025
+        "tranche_pct_of_position": (
+            float(raw_tranche_pct) if raw_tranche_pct is not None else 0.025
         ),
-        "valid_for_sessions": int(policy.get("confirmation_window_sessions") or 5),
+        "valid_for_sessions": (
+            int(raw_confirmation_sessions)
+            if raw_confirmation_sessions is not None else 5
+        ),
         "signal_date": technical.get("as_of"),
         "authority_tier": "exploration",
         "target_tranche_level": 0.25,

@@ -781,11 +781,16 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
         if early_setup is not None:
             technical["setups"].append(early_setup)
             technical = _apply_setup_usage(technical, ticker_usage)
+        raw_exploration_book = add_policy.get("exploration_max_book_pct")
         execution = _execution_view(
             holding, leg, invested[leg], cash[leg], technical, thesis, leveraged,
             authority_tier=execution_tier,
-            exploration_max_book_pct=float(
-                add_policy.get("exploration_max_book_pct") or 0.03
+            # #666: explicit None check, never `X or DEFAULT` — a config value
+            # of 0 (`exploration_max_book_pct: 0` = 封死探索敞口) is legal and
+            # must not be swallowed into the 0.03 default.
+            exploration_max_book_pct=(
+                float(raw_exploration_book)
+                if raw_exploration_book is not None else 0.03
             ),
             overlay=sizing_overlay,
             open_add=open_add_gate_error or ticker in open_adds,
