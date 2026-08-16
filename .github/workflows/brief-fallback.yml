@@ -4,7 +4,7 @@ name: Brief Fallback (off-host LLM)
 # 窗口从 5min 拉宽到 25min (2026-05-30): 主 cron 08:00 启动但 LLM 生成常要几分钟,
 # 5min 太窄会在主 brief 落地前误判"没出"→重复生成→push 撞主 cron commit 的 rebase 冲突
 # 如果今天的 pre-open.md 已存在（git log 只作兜底）→ skip
-# 否则用远端 MiniMax（可选 Xiaomi fallback）直跑 brief
+# 否则用远端 MiniMax（可选 opencode-go DeepSeek V4 Flash fallback）直跑 brief
 on:
   schedule:
     - cron: '25 0 * * 1-5'
@@ -76,7 +76,7 @@ jobs:
       - name: Call off-host LLM to generate brief
         if: steps.check.outputs.skip != 'true'
         env:
-          XIAOMI_API_KEY: ${{ secrets.XIAOMI_API_KEY }}
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
           MINIMAX_API_KEY: ${{ secrets.MINIMAX_API_KEY }}
         run: clawock-brief-fallback
 

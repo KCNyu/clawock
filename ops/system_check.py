@@ -327,7 +327,7 @@ SECRET_PATTERNS_LOOSE = (
     # does not fire. The optional quote matters: FINNHUB_API_KEY="…" in a .env,
     # a JS config or a YAML value is the common shape, and without it the value
     # started at a quote and never matched.
-    r'|(FINNHUB|POLYGON|ALPHA_VANTAGE|MISTRAL|TAVILY|MINIMAX|XIAOMI)_API_KEY\s*=\s*["\']?[A-Za-z0-9_-]{8,}'
+    r'|(FINNHUB|POLYGON|ALPHA_VANTAGE|MISTRAL|TAVILY|MINIMAX|XIAOMI|OPENCODE)_API_KEY\s*=\s*["\']?[A-Za-z0-9_-]{8,}'
     # Nostr accepts a bare 64-hex private key. Raw 64-hex is far too common
     # (sha256 sums, lockfiles) to match on its own, so require the variable name.
     r'|NOSTR_PRIVATE_KEY\s*=\s*["\']?[0-9a-fA-F]{64}'

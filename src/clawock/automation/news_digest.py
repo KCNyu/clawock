@@ -3,7 +3,7 @@
 KCNyu daily 21:00 HKT US news digest.
 
 Fetches news for active US holdings (past 48h), calls MiniMax M3 with an optional
-Xiaomi fallback to distill actionable bullets, and writes
+opencode-go fallback to distill actionable bullets, and writes
 assets/data/us_news_digest.json.
 
 News source chain (per-ticker fallback):
@@ -11,7 +11,7 @@ News source chain (per-ticker fallback):
   2. Google News RSS (free, no key; title-only; used when Finnhub key absent
      or returns empty for a ticker)
 
-Env: MINIMAX_API_KEY required; XIAOMI_API_KEY and FINNHUB_API_KEY optional.
+Env: MINIMAX_API_KEY required; OPENCODE_API_KEY and FINNHUB_API_KEY optional.
 """
 import json
 import os

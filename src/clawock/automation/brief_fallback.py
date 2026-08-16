@@ -2,11 +2,11 @@
 """
 KCNyu off-host brief fallback, called by the repository workflow.
 
-Single-turn vendor call (MiniMax M3 primary, optional Xiaomi fallback) to generate
+Single-turn vendor call (MiniMax M3 primary, optional opencode-go fallback) to generate
 today's brief if openclaw cron failed to produce one by the 08:25 HKT check. Reads
 brief-context-{date}.json from preflight, writes pre-open.md + plan.json.
 
-Env: MINIMAX_API_KEY required; XIAOMI_API_KEY optional fallback
+Env: MINIMAX_API_KEY required; OPENCODE_API_KEY optional fallback
 """
 import json
 import os
@@ -279,8 +279,8 @@ def main():
 
     # BRIEF_MAX_TOKENS, not 32000: that old number was mimo-v2.5-pro's cap, left behind
     # when MiniMax M3 became primary on 2026-06-16 (M3 maxOutput is 131072, and chat()
-    # now clamps per provider, so a budget above mimo's cap no longer breaks the Xiaomi
-    # fallback). 32000 was not merely conservative, it was fatal: chat() leaves thinking
+    # now clamps per provider, so a budget above the fallback's cap no longer breaks it).
+    # 32000 was not merely conservative, it was fatal: chat() leaves thinking
     # enabled, so _call_provider spends min(max_tokens-1024, 16000) of the SAME output
     # budget on reasoning — half of it — leaving ~16K for prose. The brief runs ~33KB.
     # On 2026-08-11 that produced `102644 in / 32000 out (stop=max_tokens)`: the markdown
