@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-14T14:04:31.964357+00:00",
+  "generated_at": "2026-08-16T21:50:06.022062+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -13,151 +13,425 @@
   },
   "llm_filtered": true,
   "counts": {
-    "total": 3,
-    "held_hits": 0,
+    "total": 14,
+    "held_hits": 4,
     "new_ideas": 0,
-    "sector_hits": 3
+    "sector_hits": 2
   },
   "items": [
     {
-      "author": "Trump",
-      "text": "BIG WIN today at the U.S. Court of International Trade on one of the most DESPICABLE loopholes in American Trade Policy — The so-called “de minimis” exemption.   For years, Foreign Shippers could send packages worth up to $800 into our Country, DUTY FREE, NO TARIFF, far less scrutiny. It became a giant loophole for TARIFF Cheats — and a Pipeline exploited by Fentanyl Traffickers, Counterfeiters, and other Criminals shipping dangerous and illegal products into America. The numbers were staggering. In 2024 alone, de minimis cost America an estimated 10.8 BILLION DOLLRS in foregone TARIFF Revenue",
-      "url": "https://trumpstruth.org/statuses/40794",
-      "published": "2026-08-13T18:38:49+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
+      "author": "Musk",
+      "text": "Elon Musk Reveals $900 Billion SpaceX Stake, Massive Voting Power",
+      "url": "",
+      "published": "Fri, 14 Aug 2026 20:49:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Investor's Business Daily",
+      "tickers": [
+        "SPCX",
+        "SPCH"
+      ],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
       "new_ideas": [],
       "sectors": [
-        "关税",
-        "贸易",
-        "零售/电商"
+        "航天"
       ],
-      "sector_holdings": [
-        "03032",
-        "03033",
-        "07226"
-      ],
+      "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 68,
-      "summary_cn": "特朗普宣布在de minimis免税漏洞案上胜诉，预计年增收逾100亿美元关税，对跨境电商和零售板块有影响。"
+      "relevance": 85,
+      "summary_cn": "Musk披露持有SpaceX 9000亿美元股份及巨大投票权，强化SpaceX估值锚定，直接利好SPCX/SPCH。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk Can't Sell SpaceX Stock Until June 2027 -- But 6 Billion More Shares Could Flood the Market Before Then",
+      "url": "",
+      "published": "Sun, 16 Aug 2026 19:20:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [
+        "SPCX",
+        "SPCH"
+      ],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天/私募"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 75,
+      "summary_cn": "Musk被禁在2027年6月前出售SpaceX股票，但二级市场可能新增60亿股份额，影响SPCX/SPCH流动性预期。"
+    },
+    {
+      "author": "Musk",
+      "text": "Musk discloses 48.4% stake in SpaceX in regulatory filing",
+      "url": "",
+      "published": "Thu, 13 Aug 2026 22:50:09 GMT",
+      "origin": "gnews-rss",
+      "source": "Reuters",
+      "tickers": [
+        "SPCX",
+        "SPCH"
+      ],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 72,
+      "summary_cn": "Musk披露持有SpaceX 48.4%股份，监管文件确认控股地位，利好SPCX/SPCH。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk’s SpaceX Holdings Revealed. (Hint: It’s A Lot.)",
+      "url": "",
+      "published": "Sun, 16 Aug 2026 16:46:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Barron's",
+      "tickers": [
+        "SPCX",
+        "SPCH"
+      ],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 70,
+      "summary_cn": "披露Musk在SpaceX的持股规模巨大，强化SPCX/SPCH底层资产价值叙事。"
     },
     {
       "author": "Trump",
-      "text": "White House report details ‘Great Transshipment Scam’ costing tens of billions in tariff evasion: https://justthenews.com/government/white-house/white-house-report-details-great-transshipment-scam-costing-tens-billions",
-      "url": "https://trumpstruth.org/statuses/40816",
-      "published": "2026-08-14T04:18:52+00:00",
+      "text": "Unmasking the Dual Justice System - Peter Navarro on China's Intrusions and the Weaponization of Government: https://justthenews.com/podcasts/john-solomon-reports/unmasking-dual-justice-system-peter-navarro-chinas-intrusions-and",
+      "url": "https://trumpstruth.org/statuses/40870",
+      "published": "2026-08-15T12:31:30+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "关税",
-        "贸易"
+        "中美关系/科技"
       ],
       "sector_holdings": [
-        "02208",
-        "03032",
-        "03033",
-        "07226",
         "SKHY"
       ],
-      "stance": "neutral",
-      "relevance": 62,
-      "summary_cn": "白宫报告详述'大转运骗局'导致数百亿美元关税逃避，涉及关税与贸易政策议题。"
+      "stance": "attack",
+      "relevance": 60,
+      "summary_cn": "Navarro抨击中国'入侵'与司法武器化，鹰派对华基调延续，半导体/科技板块承压。"
     },
     {
-      "author": "Trump",
-      "text": "Bessent to Newsmax: US to Hit Iran With Unprecedented Economic Isolation: https://www.newsmax.com/newsmax-tv/scott-bessent-iran-economic/2026/08/13/id/1266059/",
-      "url": "https://trumpstruth.org/statuses/40817",
-      "published": "2026-08-14T12:13:30+00:00",
-      "origin": "truthsocial",
+      "author": "Musk",
+      "text": "Elon Musk, the World’s Most Famous EV Pioneer, Is Now Leaning Into Fossil Fuels",
+      "url": "",
+      "published": "Thu, 13 Aug 2026 15:15:00 GMT",
+      "origin": "gnews-rss",
+      "source": "WSJ",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "地缘政治",
-        "能源",
-        "制裁"
+        "电动车/化石能源"
       ],
       "sector_holdings": [
         "02208"
       ],
-      "stance": "attack",
-      "relevance": 60,
-      "summary_cn": "特朗普政府宣布对伊朗实施前所未有的经济孤立，影响能源和地缘政治板块。"
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "电动车先驱Musk转向拥抱化石燃料，叙事转向影响Tesla及新能源板块情绪，金风科技等新能源股情绪面承压。"
+    },
+    {
+      "author": "Trump",
+      "text": "Trump wins legal battle to keep cheap imports subject to tariffs: https://www.axios.com/2026/08/13/trump-de-minimis-tariff-court",
+      "url": "https://trumpstruth.org/statuses/40892",
+      "published": "2026-08-16T13:24:11+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "关税/跨境电商"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 65,
+      "summary_cn": "Trump赢得法律战，de minimis低价进口商品仍将被征关税，强化关税壁垒影响Shein/Temu等跨境电商。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk Has Said He Wants 25% Voting Control of Tesla to Feel Comfortable Leading Its AI Push. Here's What That Threshold Means for Shareholders.",
+      "url": "",
+      "published": "Sun, 16 Aug 2026 10:45:00 GMT",
+      "origin": "gnews-rss",
+      "source": "The Motley Fool",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "电动车/AI"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "Musk要求持有Tesla 25%投票权以安心领导其AI转型，治理与AI战略绑定影响股东。"
+    },
+    {
+      "author": "Trump",
+      "text": "Peter Navarro: It Was a Great Scam While It Lasted: https://www.nytimes.com/2026/08/13/opinion/us-tariffs-economy-trade-transshipment-scam.html",
+      "url": "https://trumpstruth.org/statuses/40902",
+      "published": "2026-08-16T13:25:16+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "关税/贸易"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 55,
+      "summary_cn": "Navarro撰文称关税揭露'转运骗局'，为Trump关税政策正当性辩护。"
+    },
+    {
+      "author": "Trump",
+      "text": "White House report details ‘Great Transshipment Scam’ costing tens of billions in tariff evasion: https://justthenews.com/government/white-house/white-house-report-details-great-transshipment-scam-costing-tens-billions",
+      "url": "https://trumpstruth.org/statuses/40869",
+      "published": "2026-08-15T12:31:50+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "关税/贸易"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "白宫报告详述'转运骗局'造成数百亿美元关税逃避，涉及中国转口贸易监管。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk’s $158 billion Tesla pay was 2.5 million times his workers’ salary last year",
+      "url": "",
+      "published": "Fri, 14 Aug 2026 15:36:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Fortune",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "电动车/薪酬治理"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 50,
+      "summary_cn": "Musk的Tesla 1580亿美元薪酬是其员工平均年薪的250万倍，引发CEO薪酬与治理争议。"
+    },
+    {
+      "author": "Trump",
+      "text": "Watching FoxNews with Shannon Bream is always like watching the Worst of Fake News CNN. I don’t know Shannon, but she always seems to pick guests, charts, and “polls” that are negative, never talking about all of the incredible things that the Trump Administration has done, like Total Border Control, the Most Successful Stock Market in History (81 Record Days in a year and a half!), Biggest Investment in our Country in History (19.2 Trillion Dollars!), breaking the Record by many times over, the Great Military Victories over Venezuela and the essential Denuclearization of Iran — The rest to fo",
+      "url": "https://trumpstruth.org/statuses/40904",
+      "published": "2026-08-16T20:10:37+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "宏观"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 50,
+      "summary_cn": "Trump吹嘘任内股市创纪录81个新高、19.2万亿投资，利好整体风险情绪。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk’s Pay Influenced CEO Compensation To Record High, Report Says",
+      "url": "",
+      "published": "Thu, 13 Aug 2026 15:22:51 GMT",
+      "origin": "gnews-rss",
+      "source": "Forbes",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "薪酬治理"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 45,
+      "summary_cn": "Musk天价薪酬推高全行业CEO薪酬至历史新高，治理风险信号。"
+    },
+    {
+      "author": "Trump",
+      "text": "Trump Effect: Prescription Drug Prices Fall At Record-Breaking Pace: https://www.breitbart.com/economy/2026/08/12/trump-effect-prescription-drug-prices-fall-for-fifth-month-this-year/",
+      "url": "https://trumpstruth.org/statuses/40896",
+      "published": "2026-08-16T13:27:55+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "医药/医保"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 45,
+      "summary_cn": "Trump宣称处方药价格连续第五个月创纪录下降，医保政策利好消费者但压制药企定价权。"
     }
   ],
-  "held_hits": [],
+  "held_hits": [
+    {
+      "author": "Musk",
+      "text": "Elon Musk Reveals $900 Billion SpaceX Stake, Massive Voting Power",
+      "url": "",
+      "published": "Fri, 14 Aug 2026 20:49:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Investor's Business Daily",
+      "tickers": [
+        "SPCX",
+        "SPCH"
+      ],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 85,
+      "summary_cn": "Musk披露持有SpaceX 9000亿美元股份及巨大投票权，强化SpaceX估值锚定，直接利好SPCX/SPCH。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk Can't Sell SpaceX Stock Until June 2027 -- But 6 Billion More Shares Could Flood the Market Before Then",
+      "url": "",
+      "published": "Sun, 16 Aug 2026 19:20:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [
+        "SPCX",
+        "SPCH"
+      ],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天/私募"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 75,
+      "summary_cn": "Musk被禁在2027年6月前出售SpaceX股票，但二级市场可能新增60亿股份额，影响SPCX/SPCH流动性预期。"
+    },
+    {
+      "author": "Musk",
+      "text": "Musk discloses 48.4% stake in SpaceX in regulatory filing",
+      "url": "",
+      "published": "Thu, 13 Aug 2026 22:50:09 GMT",
+      "origin": "gnews-rss",
+      "source": "Reuters",
+      "tickers": [
+        "SPCX",
+        "SPCH"
+      ],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 72,
+      "summary_cn": "Musk披露持有SpaceX 48.4%股份，监管文件确认控股地位，利好SPCX/SPCH。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk’s SpaceX Holdings Revealed. (Hint: It’s A Lot.)",
+      "url": "",
+      "published": "Sun, 16 Aug 2026 16:46:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Barron's",
+      "tickers": [
+        "SPCX",
+        "SPCH"
+      ],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 70,
+      "summary_cn": "披露Musk在SpaceX的持股规模巨大，强化SPCX/SPCH底层资产价值叙事。"
+    }
+  ],
   "new_ideas": [],
   "sector_hits": [
     {
       "author": "Trump",
-      "text": "BIG WIN today at the U.S. Court of International Trade on one of the most DESPICABLE loopholes in American Trade Policy — The so-called “de minimis” exemption.   For years, Foreign Shippers could send packages worth up to $800 into our Country, DUTY FREE, NO TARIFF, far less scrutiny. It became a giant loophole for TARIFF Cheats — and a Pipeline exploited by Fentanyl Traffickers, Counterfeiters, and other Criminals shipping dangerous and illegal products into America. The numbers were staggering. In 2024 alone, de minimis cost America an estimated 10.8 BILLION DOLLRS in foregone TARIFF Revenue",
-      "url": "https://trumpstruth.org/statuses/40794",
-      "published": "2026-08-13T18:38:49+00:00",
+      "text": "Unmasking the Dual Justice System - Peter Navarro on China's Intrusions and the Weaponization of Government: https://justthenews.com/podcasts/john-solomon-reports/unmasking-dual-justice-system-peter-navarro-chinas-intrusions-and",
+      "url": "https://trumpstruth.org/statuses/40870",
+      "published": "2026-08-15T12:31:30+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "关税",
-        "贸易",
-        "零售/电商"
+        "中美关系/科技"
       ],
       "sector_holdings": [
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "endorse",
-      "relevance": 68,
-      "summary_cn": "特朗普宣布在de minimis免税漏洞案上胜诉，预计年增收逾100亿美元关税，对跨境电商和零售板块有影响。"
-    },
-    {
-      "author": "Trump",
-      "text": "White House report details ‘Great Transshipment Scam’ costing tens of billions in tariff evasion: https://justthenews.com/government/white-house/white-house-report-details-great-transshipment-scam-costing-tens-billions",
-      "url": "https://trumpstruth.org/statuses/40816",
-      "published": "2026-08-14T04:18:52+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "关税",
-        "贸易"
-      ],
-      "sector_holdings": [
-        "02208",
-        "03032",
-        "03033",
-        "07226",
         "SKHY"
       ],
-      "stance": "neutral",
-      "relevance": 62,
-      "summary_cn": "白宫报告详述'大转运骗局'导致数百亿美元关税逃避，涉及关税与贸易政策议题。"
+      "stance": "attack",
+      "relevance": 60,
+      "summary_cn": "Navarro抨击中国'入侵'与司法武器化，鹰派对华基调延续，半导体/科技板块承压。"
     },
     {
-      "author": "Trump",
-      "text": "Bessent to Newsmax: US to Hit Iran With Unprecedented Economic Isolation: https://www.newsmax.com/newsmax-tv/scott-bessent-iran-economic/2026/08/13/id/1266059/",
-      "url": "https://trumpstruth.org/statuses/40817",
-      "published": "2026-08-14T12:13:30+00:00",
-      "origin": "truthsocial",
+      "author": "Musk",
+      "text": "Elon Musk, the World’s Most Famous EV Pioneer, Is Now Leaning Into Fossil Fuels",
+      "url": "",
+      "published": "Thu, 13 Aug 2026 15:15:00 GMT",
+      "origin": "gnews-rss",
+      "source": "WSJ",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "地缘政治",
-        "能源",
-        "制裁"
+        "电动车/化石能源"
       ],
       "sector_holdings": [
         "02208"
       ],
-      "stance": "attack",
-      "relevance": 60,
-      "summary_cn": "特朗普政府宣布对伊朗实施前所未有的经济孤立，影响能源和地缘政治板块。"
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "电动车先驱Musk转向拥抱化石燃料，叙事转向影响Tesla及新能源板块情绪，金风科技等新能源股情绪面承压。"
     }
   ]
 }
