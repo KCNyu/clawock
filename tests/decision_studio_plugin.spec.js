@@ -247,6 +247,7 @@ test("client: registers the Decision Mind tab and mounts the remote face", async
     portfolio: async () => ({ ok: true, value: { books: [] } }),
     plans: async () => ({ ok: true, value: { plans: [] } }),
     traces: async () => ({ ok: true, value: { trades: [], rate: null } }),
+    get: async (runId) => ({ ok: true, value: { runId } }),
   };
   const ctx = {
     effect() {},
@@ -255,7 +256,17 @@ test("client: registers the Decision Mind tab and mounts the remote face", async
       inject(name, fn) { assert.equal(name, "conversation.view"); this._fn = fn; },
       register(definition, Component) { registered = definition; component = Component; },
     },
-    remote: { $mount: async (descriptors) => { assert.equal(descriptors.descriptors.length, 6); } },
+    remote: {
+      $mount: async (descriptors) => {
+        assert.equal(descriptors.descriptors.length, 6);
+        // gateway invoke() validates args against descriptor.parameters.length —
+        // get(runId) must declare its argument or every call would throw.
+        const getDesc = descriptors.descriptors.find((d) => d.method === "get");
+        assert.ok(getDesc, "get descriptor present");
+        assert.equal(getDesc.parameters.length, 1, "get(runId) must declare its argument");
+        assert.equal(getDesc.parameters[0].name, "runId");
+      },
+    },
   };
   await api.apply(ctx);
   ctx.slots._fn();
@@ -270,6 +281,7 @@ test("client: registers the Decision Mind tab and mounts the remote face", async
   assert.equal(typeof injected.traces, "function");
   assert.equal(typeof injected.ledger, "function");
   assert.deepEqual(await injected.traces(), { trades: [], rate: null });
+  assert.deepEqual(await injected.get("abc123"), { runId: "abc123" }, "get(runId) must forward its argument");
   assert.equal(typeof component, "function");
 });
 

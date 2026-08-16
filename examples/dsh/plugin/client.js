@@ -478,14 +478,19 @@ window.__ModuleLoader__.load({
     /** Minimal strict codecs (no zod external in the module table). */
     var passthroughSchema = { parse: function (value) { return value } }
 
-    function remoteDescriptor(method) {
+    function remoteDescriptor(method, paramNames) {
       return {
         id: 'clawock-dsh#clawockStudio/' + method,
         service: 'clawockStudio',
         namespace: 'clawockStudio',
         method: method,
         invocation: { kind: 'direct' },
-        parameters: [],
+        // 参数必须真实声明:gateway invoke() 按 descriptor.parameters.length
+        // 校验实参个数(api/gateway client),`get(runId)` 若声明 [] 会在调用
+        // 时抛「expected 0 argument(s)」。生成器迁移(#702)同样会产出真参数。
+        parameters: (paramNames || []).map(function (name) {
+          return { name: name, wire: name, source: 'json', codec: passthroughSchema }
+        }),
         result: { mode: 'strict', typeSymbol: 'clawock-dsh#clawockStudio/' + method + ':result', schema: passthroughSchema },
       }
     }
@@ -493,7 +498,9 @@ window.__ModuleLoader__.load({
     /** Client projection of the clawockStudio Remote face, mounted explicitly. */
     var TYPERT_REMOTE = {
       package: 'clawock-dsh',
-      descriptors: ['list', 'get', 'ledger', 'portfolio', 'plans', 'traces'].map(function (m) { return remoteDescriptor(m) }),
+      descriptors: ['list', 'get', 'ledger', 'portfolio', 'plans', 'traces'].map(function (m) {
+        return remoteDescriptor(m, m === 'get' ? ['runId'] : [])
+      }),
     }
 
     /** Services required by the registration and the mounted Remote face. */
@@ -556,6 +563,7 @@ window.__ModuleLoader__.load({
               traces: function () { return call('traces') },
               ledger: function () { return call('ledger') },
               portfolio: function () { return call('portfolio') },
+              get: function (runId) { return call('get', [runId]) },
             }
           },
         }, DecisionMind)
