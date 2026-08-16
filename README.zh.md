@@ -225,9 +225,14 @@ isolated run published 9c07e83a19b046b089f443829eb9a06e
 
 跑完你就拿到了第一张被 Python 校验过的决策回执。换 harness?[`examples/`](examples/README.md) 五种跑法同一条契约。
 
-### DeepSeek Harness 插件:每一笔成交都是一条可点开的决策轨迹
+### 同一份契约,换个 harness 长得完全不一样
 
-DSH 用户一条命令装插件(skill + 会话面板,已发布 npm):
+两个 harness、两种完全不同的界面,两边跑出来都是同一份 `decision.json`。
+Claude Code 是终端里的一个循环——prepare、读、写、publish:
+
+<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/claude-code-terminal.png" alt="Claude Code 跑通 investment-decision 全流程:clawock init、clawock run prepare、Claude 写 decision.json、clawock run publish 返回 status: published" width="820"></p>
+
+DeepSeek Harness 则是原生面板:一条命令装插件(skill + 会话面板,已发布 npm):
 
 ```bash
 dsh plugin --profile web add clawock-dsh
