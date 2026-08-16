@@ -379,3 +379,31 @@ test("client: renders the single decision-trace view from the mounted remote", a
   assert.match(joined2, /执行/);
   assert.match(joined2, /盈亏/);
 });
+
+test("client: T+1 tone is action-aware — buy gains are win, sell misses are loss (#665)", async () => {
+  const loaded = await loadClient();
+  const api = loaded.factory((s) => {
+    if (s === "@deepseek-ai/dsh-client-runtime/client") return {};
+    if (s === "react") return makeReactStub();
+    throw new Error(`unexpected require: ${s}`);
+  });
+  const t1Tone = api.t1Tone;
+  assert.ok(t1Tone, "t1Tone exported for the spec");
+  // buy: price up = win (green), price down = loss (red)
+  assert.equal(t1Tone("buy", 5.0), "win");
+  assert.equal(t1Tone("buy", -4.76), "loss");
+  assert.equal(t1Tone("add", 0.5), "win");
+  // sell family: price up after selling = 卖飞 (loss), down = 卖对 (win)
+  assert.equal(t1Tone("sell", 5.0), "loss");
+  assert.equal(t1Tone("sell", -1.52), "win");
+  assert.equal(t1Tone("cut", 2.0), "loss");
+  assert.equal(t1Tone("trim_on_rebound", -2.0), "win");
+  // chip tone: |delta|<1 is flat; direction flips with action
+  assert.equal(api.t1ChipTone("buy", 0.3), "flat");
+  assert.equal(api.t1ChipTone("sell", 0.3), "flat");
+  assert.equal(api.t1ChipTone("buy", 4.0), "up");
+  assert.equal(api.t1ChipTone("buy", -4.0), "down");
+  assert.equal(api.t1ChipTone("sell", 4.0), "down");
+  assert.equal(api.t1ChipTone("sell", -4.0), "up");
+});
+

@@ -133,6 +133,23 @@ window.__ModuleLoader__.load({
 
     function esc(s) { return String(s == null ? '' : s).replace(/</g, '&lt;') }
 
+    /** T+1 tone is action-aware: a rising price is good for the buyer and bad
+     *  for the seller (卖飞). One sign rule for both would color buy gains red
+     *  and buy losses green. */
+    function t1Tone(action, delta) {
+      var up = delta >= 0
+      var sell = action === 'sell' || action === 'cut' || action === 'trim' || action === 'trim_on_rebound'
+      if (sell) return up ? 'loss' : 'win'
+      return up ? 'win' : 'loss'
+    }
+    function t1ChipTone(action, delta) {
+      if (delta > -1 && delta < 1) return 'flat'
+      var up = delta >= 1
+      var sell = action === 'sell' || action === 'cut' || action === 'trim' || action === 'trim_on_rebound'
+      if (sell) return up ? 'down' : 'up'
+      return up ? 'up' : 'down'
+    }
+
     function fmtMoney(v) {
       if (v == null || !isFinite(v)) return '—'
       return (v > 0 ? '+' : '') + Number(v).toLocaleString(undefined, { maximumFractionDigits: 0 })
@@ -169,7 +186,7 @@ window.__ModuleLoader__.load({
       var d = t.decision
       var sym = t.currency === 'HKD' ? 'HK$' : '$'
       if (!d) {
-        var t1miss = t.t1 ? h('div', { className: 'tnode ' + (t.t1.delta >= 0 ? 'loss' : 'win') },
+        var t1miss = t.t1 ? h('div', { className: 'tnode ' + t1Tone(t.action, t.t1.delta) },
           h('div', { className: 'n' }, 'T+1 结果'),
           h('div', { className: 'v' }, (t.t1.delta >= 0 ? '+' : '') + t.t1.delta + '%')) : null
         return h('div', null,
@@ -194,7 +211,7 @@ window.__ModuleLoader__.load({
       if (d.condition) chips.push(h('span', { className: 'pc', key: 'c' }, '条件: ' + d.condition))
       if (d.sizeShares) chips.push(h('span', { className: 'pc', key: 's' }, '计划 ' + d.sizeShares + ' 股'))
       if (d.plannedPrice) chips.push(h('span', { className: 'pc', key: 'p' }, '计划价 ' + d.plannedPrice))
-      var t1node = t.t1 ? h('div', { className: 'tnode ' + (t.t1.delta >= 0 ? 'loss' : 'win') },
+      var t1node = t.t1 ? h('div', { className: 'tnode ' + t1Tone(t.action, t.t1.delta) },
         h('div', { className: 'tw' }, t.t1.date),
         h('div', { className: 'n' }, 'T+1 结果'),
         h('div', { className: 'v' }, (t.t1.delta >= 0 ? '+' : '') + t.t1.delta + '%' + (t.action === 'sell' ? ' · ' + t.t1.verdict : ''))) : null
@@ -235,7 +252,7 @@ window.__ModuleLoader__.load({
       else pnl = h('span', { className: 'pnl na' }, '—')
       var t1tag = null
       if (t.t1) {
-        var tc = t.t1.delta >= 0 ? 'down' : (t.t1.delta < -1 ? 'up' : 'flat')
+        var tc = t1ChipTone(t.action, t.t1.delta)
         var tlabel = 'T+1 ' + (t.t1.delta >= 0 ? '+' : '') + t.t1.delta + '%' + (t.action === 'sell' ? ' ' + t.t1.verdict : '')
         t1tag = h('span', { className: 't1 ' + tc }, tlabel)
       } else if (t.action === 'sell') {
@@ -398,7 +415,7 @@ window.__ModuleLoader__.load({
       })
     }
 
-    module.exports = { apply: apply, inject: inject, _displayEntry: _displayEntry }
+    module.exports = { apply: apply, inject: inject, _displayEntry: _displayEntry, t1Tone: t1Tone, t1ChipTone: t1ChipTone }
     return module.exports
   },
 })
