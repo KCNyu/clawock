@@ -91,6 +91,19 @@ def test_main_appends_and_survives_settle_round_trip(tmp_path):
     assert all(d["decision_id"] for d in after)
 
 
+def test_validate_decision_accepts_mind_records_and_rejects_weak_ones():
+    from clawock.decision.ledger import validate_decision
+    # A well-formed conversation record passes the desk's row validator.
+    good = build_record(_args())
+    assert validate_decision(good) == []
+    # A plan-style record still requires the plan fields (no cross-contamination).
+    weak = build_record(_args(bear=""))
+    assert any("mind.bear.summary" in issue for issue in validate_decision(weak))
+    legacy = {"decision_id": "dec-x", "plan_date": "2026-08-10", "ticker": "00100",
+              "action": "hold", "confidence": 0.5, "condition": {"type": "manual"}}
+    assert any("missing episode_id" in issue for issue in validate_decision(legacy))
+
+
 def test_main_rejects_invalid_record(tmp_path):
     ledger = tmp_path / "decisions.jsonl"
     argv = [
