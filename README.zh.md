@@ -11,6 +11,7 @@
 [![PyPI](https://img.shields.io/pypi/v/clawock?label=PYPI&style=flat-square&logo=pypi&logoColor=white&labelColor=252b35&color=4b91c8)](https://pypi.org/project/clawock/)
 [![npm](https://img.shields.io/npm/v/clawock-dsh?label=NPM&style=flat-square&logo=npm&logoColor=white&labelColor=252b35&color=4b91c8)](https://www.npmjs.com/package/clawock-dsh)
 [![Tests](https://img.shields.io/github/actions/workflow/status/KCNyu/clawock/harness-regression.yml?label=TESTS&style=flat-square&logo=githubactions&logoColor=white&labelColor=252b35&color=738391)](https://github.com/KCNyu/clawock/actions/workflows/harness-regression.yml)
+[![线上数据校验](https://img.shields.io/github/actions/workflow/status/KCNyu/clawock/dashboard-artifact-gate.yml?label=DATA&style=flat-square&logo=githubactions&logoColor=white&labelColor=252b35&color=738391)](https://github.com/KCNyu/clawock/actions/workflows/dashboard-artifact-gate.yml)
 [![Coverage](https://img.shields.io/endpoint?url=https%3A%2F%2Fkcnyu.github.io%2Fclawock%2Fassets%2Fdata%2Fcoverage.json&style=flat-square&logo=python&logoColor=white&labelColor=252b35)](https://github.com/KCNyu/clawock/actions/workflows/harness-regression.yml)
 [![License](https://img.shields.io/badge/LICENSE-MIT-aab5bf?style=flat-square&labelColor=252b35)](LICENSE)
 
@@ -54,6 +55,11 @@ clawock 是一套真实港美股账户上运行的 AI 投研系统,解决一个�
 
 仓库编录了 **8 层、41 个抓取与计算模块**,港股美股双语覆盖:
 
+<details>
+<summary><b>全部 8 层,逐行展开</b> —— 模块数与主要来源</summary>
+
+<br>
+
 | 层 | 模块 | 主要来源 |
 |---|---|---|
 | 1 · 行情 | 7 | 腾讯 · Yahoo · 东财 · Polygon |
@@ -66,6 +72,8 @@ clawock 是一套真实港美股账户上运行的 AI 投研系统,解决一个�
 | 8 · 回测/自省 | 7 | 本地快照 + 基准行情 |
 
 抓取层优雅降级:东财统一走节流网关,报价/汇率多源兜底,抓空保留旧值。41 个模块的命令清单(`analyze-hk` `us-quotes` `filings` `fundflow` `em-news` `macro` `quant` `fx` `shadow` `evaluate-*` 等)由[命令参考](docs/reference/commands.md)按 registry 生成——上面的表格与清单由 CI 对着 [`config/information-layers.json`](config/information-layers.json) 核对,模块搬了家,数字不会留在原地。
+
+</details>
 
 ### 热点捕获:影响者雷达
 
@@ -89,7 +97,15 @@ clawock 是一套真实港美股账户上运行的 AI 投研系统,解决一个�
 
 ### 每种运行实际拿到什么
 
-采集面宽,但每次运行只拿到这次能用得上的块(preflight 组装的最小上下文单元,不是数据量):
+盘前拿到的最多:持仓真值、风控、量化信号、新闻/催化剂、论点登记册、历史
+复盘,还要写当日计划。开/午/收报告轻装上阵:一份新鲜行情,信号触发才带
+风控段。盘中盯盘(开市每 30 分钟一次)居中:信号更细,但不产研究、不重建
+证据图——那是日度产物,盘中重建等于用旧数据。
+
+<details>
+<summary><b>逐块拆解</b> —— 按频次分行对照</summary>
+
+<br>
 
 | | 盘前深度简报 | 开 / 午 / 收报告 | 盘中盯盘 |
 |---|---|---|---|
@@ -98,6 +114,8 @@ clawock 是一套真实港美股账户上运行的 AI 投研系统,解决一个�
 | **核心内容** | 持仓真值、风控、量化信号、新闻/催化剂、论点登记册、历史复盘、当日计划 | 新鲜行情、异动催化探针、待成交决策 | 行情、信号计数、T+0 牌面、异动标记、盘中重跑的入场 setup |
 
 催化探针只对已经异动的票触发,一手源优先(SEC 受理时间戳、港交所公告),找不到就明写 `no_recent_filing`,不让空块读成「什么都没发生」。
+
+</details>
 
 ## 辩论
 
@@ -158,7 +176,14 @@ evaluation: loss(按基准行情结算, trigger session 2026-08-10)
 
 ## 代码强制执行的规矩
 
-这 7 条就一个意思:**分数不是模型自己打的,账也不是模型自己记的。**
+这 12 条就一个意思:**分数不是模型自己打的,账也不是模型自己记的。**两种货币
+不直接相加、风控上限每份简报都核查(单一标的 ≤35%、Top-2 ≤70%、组合 β
+≤3.0、−18% 止损)、论点只在有新证据时变,价格波动动不了这条。
+
+<details>
+<summary><b>全部 12 条,代码具体做什么</b></summary>
+
+<br>
 
 | 规矩 | 代码做的事 |
 |---|---|
@@ -174,6 +199,8 @@ evaluation: loss(按基准行情结算, trigger session 2026-08-10)
 | **论点只在有新证据时变** | 假设、红线、估值锚都落在带版本的 JSON 里。某个维度要变,必须有上次检查之后观察到的证据;价格波动只能改估值,动不了生意 / 护城河 / 管理层;红线的触发**和**解除都要证据。没有基线就诚实记 `unknown`,不靠文案补造历史。 |
 | **盈利质量由代码算,不靠断言** | 现金转化、营运资本缺口、摊薄、SBC 占比、指引结果都由代码从至少四个可比期算出。中途换会计基准或币种直接判错,缺输入就写 `unavailable` 并给原因,脚注类结论必须有一手发行人文件。 |
 | **新标的先过研究闸再花深研** | 信息丰富度与投资质量分开打分,所以来源单薄只会得到 `gray_needs_evidence`(证据不足·灰),不会被判死。四条硬否决在任何计分之前结算,行业例外按板块写进配置而不是临场发挥,行情只认工作区自己的取价链。 |
+
+</details>
 
 ## 每日节奏
 

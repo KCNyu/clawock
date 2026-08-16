@@ -13,6 +13,7 @@ Codex, DeepSeek Harness, or one you write yourself.
 [![PyPI](https://img.shields.io/pypi/v/clawock?label=PYPI&style=flat-square&logo=pypi&logoColor=white&labelColor=252b35&color=4b91c8)](https://pypi.org/project/clawock/)
 [![npm](https://img.shields.io/npm/v/clawock-dsh?label=NPM&style=flat-square&logo=npm&logoColor=white&labelColor=252b35&color=4b91c8)](https://www.npmjs.com/package/clawock-dsh)
 [![Tests](https://img.shields.io/github/actions/workflow/status/KCNyu/clawock/harness-regression.yml?label=TESTS&style=flat-square&logo=githubactions&logoColor=white&labelColor=252b35&color=738391)](https://github.com/KCNyu/clawock/actions/workflows/harness-regression.yml)
+[![Live Data](https://img.shields.io/github/actions/workflow/status/KCNyu/clawock/dashboard-artifact-gate.yml?label=DATA&style=flat-square&logo=githubactions&logoColor=white&labelColor=252b35&color=738391)](https://github.com/KCNyu/clawock/actions/workflows/dashboard-artifact-gate.yml)
 [![Coverage](https://img.shields.io/endpoint?url=https%3A%2F%2Fkcnyu.github.io%2Fclawock%2Fassets%2Fdata%2Fcoverage.json&style=flat-square&logo=python&logoColor=white&labelColor=252b35)](https://github.com/KCNyu/clawock/actions/workflows/harness-regression.yml)
 [![License](https://img.shields.io/badge/LICENSE-MIT-aab5bf?style=flat-square&labelColor=252b35)](https://github.com/KCNyu/clawock/blob/master/LICENSE)
 
@@ -93,6 +94,11 @@ Reading the market is most of what the LLM does, so the widest part of the syste
 
 ![clawock information flow — eight layers of fetch and compute modules are assembled by a deterministic Python preflight into a fingerprinted context.json; the LLM reads the file and writes its analysis; Python postflight validates and settles before publish](https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/information-flow.svg)
 
+<details>
+<summary><b>All 8 layers, row by row</b> — modules and primary sources</summary>
+
+<br>
+
 | Layer | Modules | Primary sources |
 |---|:---:|---|
 | 1 · Market | 7 | Tencent · Yahoo · Eastmoney · Polygon |
@@ -106,6 +112,8 @@ Reading the market is most of what the LLM does, so the widest part of the syste
 
 The fetch layer degrades gracefully: every live Eastmoney call routes through **one throttled gateway**, critical paths (quotes, FX) use **multi-source fallback**, and an empty fetch **keeps the prior value** instead of overwriting a good series with a blank. Public sources include Tencent, stooq, yfinance, Frankfurter, SEC EDGAR, Finnhub, Nasdaq, Eastmoney, Polygon, Alpha Vantage, Reddit, and Google News — full command and provider catalog in [the command reference](https://github.com/KCNyu/clawock/blob/master/docs/reference/commands.md), whose inventory is generated from the same registries this table is checked against. Which module sits in which layer is itself an artifact — [`config/information-layers.json`](https://github.com/KCNyu/clawock/blob/master/config/information-layers.json), where every packaged command is either in a layer or listed with the reason it is not collection — and CI checks the table above against it, so a module that moves cannot leave its count standing.
 
+</details>
+
 ### What each run actually receives
 
 Collection is broad, but no run gets everything. Each scheduled job's preflight assembles only the blocks that job can act on, writes them to a context file, and the model reads that file rather than fetching for itself.
@@ -113,6 +121,18 @@ Collection is broad, but no run gets everything. Each scheduled job's preflight 
 ```
 sources ──► preflight (Python, deterministic) ──► context.json ──► LLM prose ──► postflight (Python) ──► publish
 ```
+
+Pre-open gets the most: full position truth, risk, signals, the evidence
+graph, research state, and it writes the day's plan. The open/midday/close
+runs travel light — a fresh quote, risk only when signals demand it. Intraday
+check-ins (every 30 minutes a market is open) sit in between: more signal
+detail, but no research production and no evidence-graph rebuild, because that
+is a daily artifact and would be stale by construction.
+
+<details>
+<summary><b>The full block breakdown</b> — row by row, by cadence</summary>
+
+<br>
 
 | | Pre-open brief | Open / midday / afternoon / close | Intraday check-in |
 |---|---|---|---|
@@ -128,7 +148,23 @@ sources ──► preflight (Python, deterministic) ──► context.json ─�
 
 The catalyst probe is the narrow, time-sensitive one: it fires **only for names that already moved**, reads exchange and regulator filings first (SEC acceptance timestamps, HKEX announcements), classifies each item as interrupt, context or noise, and states `no_recent_filing` explicitly rather than letting an empty block read as "nothing happened".
 
-What is deliberately absent matters as much: no research production inside an intraday loop, no paid search on a 30-minute cadence, and no evidence graph rebuild intraday — it is a daily artifact and would be stale by construction.
+</details>
+
+### Influencer radar
+
+The system scans **Trump (Truth Social, first-party) and Musk (news
+aggregation)** one to two times a day on the HK/US session clock, then an LLM
+filters the noise and links what's left to actual holdings and sectors: stance
+(endorse / oppose), relevance, and a plain-language summary. Who said what,
+and whether it touches your book, is already sitting in the pre-open brief —
+nobody has to go scroll social media for it.
+
+A concrete example: on 2026-08-13 Trump announced a de minimis tariff-loophole
+ruling; the radar matched it to retail/e-commerce and linked it to the Hang
+Seng Tech position, and the summary landed in the next day's brief. The scan
+the day before (2026-08-14) found 3 posts and **zero holding hits** — an empty
+result is published as an empty result, not skipped. What's shown above is one
+hit; misses go in the brief exactly as often as they happen.
 
 ## How it decides
 
@@ -139,11 +175,13 @@ Analysis resolves into explicit, gated strategy decisions — and one stock can 
 
 ### Low-frequency add campaigns
 
-Adds use a stateful interaction rather than treating a moving average as alpha. Within each market, the factor rank and curated-peer residual form one `price_relative` evidence family. Point-in-time news contributes a separate family through reliable positive surprise or source-weighted attention that has accelerated against the same name's own earlier snapshots. An add needs both families; negative information or peer-laggard evidence blocks it. Separate enter/exit ranks give an open campaign hysteresis, so a small rank wobble cannot churn permission off and on.
-
-Authority, sizing and execution stay separate. A warming policy may collect one 2.5% exploration tranche per ticker and policy version; that is not validated authority and cannot be used on daily-reset leveraged products. One indivisible broker unit is allowed only while it remains inside the 3% market-book exploration cap, so an expensive board lot cannot masquerade as a small sample. Validated campaigns may approach their target in several tranches. The price setup only schedules an authorized tranche for the next five local sessions: next-session execution, invalidation first, gap-aware fills, separate HK/US ranks, calendars and lot rules.
-
-Every held name remains visible as `eligible`, `waiting_timing`, `risk_blocked`, `already_at_target`, `constraint_blocked`, or `insufficient_evidence`. Thus zero orders can be a legitimate result, but a bare `add=0` is not. `clawock evaluate-add-alpha` compares setup-only, price-relative, information and interaction variants at T+1/T+5/T+20; current-universe and legacy-news replay is labeled diagnostic and survivorship-limited, never promoted into validated alpha.
+Adding to a position needs two independent signals to agree: a price/peer
+signal (factor rank plus curated-peer residual) and a separate, point-in-time
+news signal (reliable positive surprise or accelerating attention) — not one
+moving average mistaken for alpha. Negative information or peer-laggard
+evidence blocks it outright, sizing stays capped and tranche-based (a warming
+policy earns a small exploration slice, not validated authority), and a small
+rank wobble can't churn permission off and on.
 - **Falsify, don't confirm.** In a risk-on tape the default is HOLD. A bullish story doesn't trigger a buy until it clears a disconfirming check and an "is this already priced in?" test on the last few days' move.
 - **Regime over timing.** Leverage isn't timed; a 200-day-trend × volatility dial sets the cap. The backtested lesson: the edge was in *de-leveraging in the wrong regime*, not in calling tops.
 
@@ -206,7 +244,12 @@ Two properties keep this from decaying into copy. The page is **generated from t
 
 The model writes opinions. The arithmetic that could corrupt the record runs in Python and is unit-tested.
 
-That path is covered by a large unit-test suite — it's what keeps the system stable.
+That path is covered by a large unit-test suite — it's what keeps the system stable. Currencies never sum (HKD and USD are shown separately, rate and timestamp stamped), risk caps are checked every brief (single name ≤35%, Top-2 ≤70%, portfolio β ≤3.0, stop at −18%), and a thesis moves only on new evidence, never on a price move alone.
+
+<details>
+<summary><b>All twelve rules, what the code actually does for each</b></summary>
+
+<br>
 
 | Rule | What the code does |
 |---|---|
@@ -224,6 +267,8 @@ That path is covered by a large unit-test suite — it's what keeps the system s
 | **A new name passes a gate before a research run** | Information richness is graded separately from investment quality, so thin sourcing returns `gray_needs_evidence`, never a rejection. Four hard vetoes resolve before any check is tallied, their industry exceptions are encoded per sector rather than improvised, and quotes must come from the workspace pipelines. |
 
 Reliability rides on the same principle. Every market-reporting job is **preflight (Python) → LLM → postflight (Python)**: the deterministic work runs in code, and a pre-push gate refuses to publish a book that doesn't reconcile. If risk can't be computed, the card says **"risk unavailable,"** never a green "none." Overlapping schedulers, a fallback workflow, and watchdogs mean a single LLM stall is no longer silent — though nothing here promises delivery under every outage.
+
+</details>
 
 ## Daily rhythm
 
