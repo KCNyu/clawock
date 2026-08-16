@@ -290,10 +290,12 @@ def assign_episode_ids(decisions: list[dict]) -> list[dict]:
 
 
 def validate_decision(d: dict) -> list[str]:
-    # Decision-mind conversation records (docs/decision-mind-ledger.md) are a
-    # deliberate second ledger row type: they carry mind/emotion instead of the
+    # Decision-mind records (docs/decision-mind-ledger.md) are a deliberate
+    # second ledger row type: they carry mind/emotion instead of the
     # plan-decision fields below, and are validated by their own rules.
-    if d.get("schema_version") == 0 and d.get("source") == "conversation":
+    # schema_version 0 is exclusively the mind ledger; every record.SOURCES
+    # harness (conversation/openclaw/claude/codex/cli) writes this row type.
+    if d.get("schema_version") == 0:
         from clawock.decision.record import validate_mind_record
         return validate_mind_record(d)
     errors = []
