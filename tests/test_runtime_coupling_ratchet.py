@@ -38,10 +38,11 @@ rewarding the deletion of an explanation.
 
 Python is not the whole repository
 ----------------------------------
-The count below walks `*.py`. Shell is code too, and `ops/` ships entry points
-that name this host on purpose. A number that reads as "the repository" while
-measuring only half of it is the same failure as the scan roots that pointed at
-a deleted directory (#452/#453) — so the shell half is enumerated too, at the
+The count below walks `*.py`. Shell (and the odd host-owned JS entry point) is
+code too, and `ops/` ships entry points that name this host on purpose. A
+number that reads as "the repository" while measuring only half of it is the
+same failure as the scan roots that pointed at a deleted directory
+(#452/#453) — so that half is enumerated too, at the
 bottom of this file, against a per-file allowlist with a reason each. The two
 checks answer different questions: Python must reach the runtime through the
 adapter (target zero), while a host-owned shell script naming the host is
@@ -79,8 +80,9 @@ RUNTIME = "openclaw"
 # 6 → 1 when system_check moved behind the adapter; 1 → 0 when the remaining
 # operator-owned session collector started asking the same adapter for runtime
 # paths. Zero means no *Python* module outside the provider knows a host-specific
-# layout. It does not mean nothing in the repository names the host: six shell
-# entry points do, deliberately, and they are pinned by HOST_OWNED_SHELL below.
+# layout. It does not mean nothing in the repository names the host: seven
+# shell/JS entry points do, deliberately, and they are pinned by
+# HOST_OWNED_SHELL below.
 BASELINE = 0
 
 DELIBERATE_EXCLUSIONS = {}
@@ -402,18 +404,22 @@ def test_the_adapter_is_exempt_because_that_is_what_an_adapter_is_for():
 
 
 # ---------------------------------------------------------------------------
-# The shell half (#478)
+# The shell (and host-owned JS) half (#478)
 # ---------------------------------------------------------------------------
 #
 # `docs/reference/product-profile-operations.md` says `ops/host/` owns "this host's
 # cron, scheduler inspection, session maintenance and launcher wiring" and
 # `ops/publish/` is the only publisher implementation. Naming this host is what
 # those files are for, so raising the Python baseline for them would punish
-# files that are already where they belong.
+# files that are already where they belong. `ops/growth/nostr_publish.js`
+# reaches into OpenClaw's install directory for the same reason a shell wrapper
+# would — it borrows a vendored dependency instead of duplicating it — so it is
+# the same kind of claim, just not the same language; scoping the scan to `.sh`
+# would let it hide from the allowlist below purely by file extension.
 #
 # What is not fine is the claim being wider than the scan. So: enumerate every
-# shell entry point that names the runtime and require the set to equal this
-# allowlist, with a reason per file. Same shape as DELIBERATE_EXCLUSIONS, and
+# shell or JS entry point that names the runtime and require the set to equal
+# this allowlist, with a reason per file. Same shape as DELIBERATE_EXCLUSIONS, and
 # for the same purpose — a documented floor that cannot quietly become false.
 # A new publisher script hardcoding the live path is then a red, and the day one
 # of these is parameterised its entry has to go, so the list cannot outlive its
@@ -438,10 +444,15 @@ HOST_OWNED_SHELL = {
         2, "host cron wrapper that reads the Nostr key from this machine's "
            "runtime dir and posts from the live checkout — the broadcast has "
            "no meaning off this host"),
+    "ops/growth/nostr_publish.js": (
+        1, "locates nostr-tools inside the installed OpenClaw Nostr plugin "
+           "instead of vendoring a duplicate dependency; NOSTR_TOOLS_PATH "
+           "overrides the path and a missing OpenClaw install falls through "
+           "to a bare require() rather than silently using stale data"),
 }
 
 def _shell_files():
-    """Every tracked shell file in the repository, found rather than listed.
+    """Every tracked shell or host-owned JS entry point, found rather than listed.
 
     A hand-listed set of roots is the same defect one level up: the Python scan
     listed `scripts/**` and walked zero files after #429 deleted it, while
@@ -451,8 +462,15 @@ def _shell_files():
     boundary for a different reason: an untracked script on this host is not
     something the repository claims anything about.
 
-    Recognised by suffix or by shebang, because `.githooks/pre-commit` has no
-    suffix and is exactly where this family of defect has shipped before (#445).
+    Recognised by suffix (`.sh`, `.js`) or by shebang, because
+    `.githooks/pre-commit` has no suffix and is exactly where this family of
+    defect has shipped before (#445). `.js` is in the suffix list, not just the
+    shebang check, because a Node entry point that reaches into another
+    runtime's install directory (#687) is the same claim a shell wrapper makes
+    and must not evade the allowlist by being the one language the walk never
+    looked at — repo-wide `git ls-files '*.js'` at the time this was added
+    found exactly one hit for an openclaw path segment, so this does not turn
+    into a scan of the dashboard's front-end bundle.
     """
     listing = subprocess.run(["git", "ls-files", "-z"], cwd=ROOT,
                              capture_output=True, text=True, check=True)
@@ -460,7 +478,7 @@ def _shell_files():
         path = ROOT / name
         if not path.is_file():
             continue
-        if path.suffix == ".sh":
+        if path.suffix in (".sh", ".js"):
             yield path
             continue
         try:
