@@ -119,7 +119,12 @@ The fetch layer degrades gracefully: every live Eastmoney call routes through **
 Collection is broad, but no run gets everything. Each scheduled job's preflight assembles only the blocks that job can act on, writes them to a context file, and the model reads that file rather than fetching for itself.
 
 ```
-sources ──► preflight (Python, deterministic) ──► context.json ──► LLM prose ──► postflight (Python) ──► publish
+sources
+  ──► preflight (Python, deterministic)
+  ──► context.json
+  ──► LLM prose
+  ──► postflight (Python)
+  ──► publish
 ```
 
 Pre-open gets the most: full position truth, risk, signals, the evidence
