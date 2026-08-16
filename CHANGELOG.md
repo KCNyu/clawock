@@ -13,6 +13,30 @@ versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 The newest heading here has to match the version in `pyproject.toml` — CI fails
 otherwise, so a release cannot ship an entry that was never written.
 
+## [0.1.5] — 2026-08-16
+
+### Fixed
+
+- **The `clawock-dsh` DSH plugin's T+1 result color was inverted for sell
+  actions.** It applied one sign rule to every action, so a rising price after
+  a *sell* (a loss for the seller — 卖飞) rendered green, and a falling price
+  after a *buy* rendered green too. The color is now action-aware: rising is
+  good (green) for a buyer, bad (red) for a seller, and vice versa. ([#665])
+
+### Added
+
+- **`clawock record --source <harness>`** is now the single write path for the
+  decision-mind ledger (`memory/decisions.jsonl`); every harness (OpenClaw,
+  Claude, Codex, DSH, CLI) tags its own conversational judgments through it
+  instead of hand-writing JSONL, and `validate_decision` accepts the resulting
+  schema-version-0 records from any of them. ([#661], [#662])
+- **The DSH plugin's Decision Studio tab is now a single "决策轨迹" (decision
+  trace) timeline** built from real trade fills, not a separate, disconnected
+  ledger view: each row pairs an actual execution with its T+1 result chip and
+  expands into the plan → execution → outcome sequence. It renders only the
+  most recent activity by default, with a "show all" control for the rest.
+  ([#676], [#684])
+
 ## [0.1.4] — 2026-08-16
 
 ### Fixed
@@ -166,7 +190,13 @@ environment — and completes one full run. ([#436], [#379])
 [#485]: https://github.com/KCNyu/clawock/pull/485
 [#477]: https://github.com/KCNyu/clawock/issues/477
 [#478]: https://github.com/KCNyu/clawock/issues/478
-[Unreleased]: https://github.com/KCNyu/clawock/compare/v0.1.2...HEAD
+[#661]: https://github.com/KCNyu/clawock/pull/661
+[#662]: https://github.com/KCNyu/clawock/pull/662
+[#665]: https://github.com/KCNyu/clawock/issues/665
+[#676]: https://github.com/KCNyu/clawock/pull/676
+[#684]: https://github.com/KCNyu/clawock/pull/684
+[Unreleased]: https://github.com/KCNyu/clawock/compare/v0.1.5...HEAD
+[0.1.5]: https://github.com/KCNyu/clawock/compare/v0.1.4...v0.1.5
 [0.1.2]: https://github.com/KCNyu/clawock/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/KCNyu/clawock/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/KCNyu/clawock/releases/tag/v0.1.0
