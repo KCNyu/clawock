@@ -17,6 +17,9 @@
   "exploration_max_book_pct": 0.03,
   "early_peer_dispersion_multiple": 1.5,
   "early_no_chase_zscore": 2.0,
+  "strong_5d_pct": 8.0,
+  "short_history_max_age_days": 45,
+  "short_history_max_age_days_rationale": "45 日历天 ≈ 30 交易日,含节假日余量(#608)",
   "validated_max_tranches": 2,
   "validated_tranche_pct": 0.075,
   "markets": {

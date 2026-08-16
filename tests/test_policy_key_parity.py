@@ -80,6 +80,10 @@ def test_early_trend_and_radar_policy_keys_all_present_in_config():
     sources = {
         "early_trend.py": (ROOT / "src" / "clawock" / "decision" / "early_trend.py"),
         "intraday_preflight.py": (ROOT / "src" / "clawock" / "harness" / "intraday_preflight.py"),
+        # #640/#643: the watch-list 5d gate and the short-history window are
+        # config consumers too — their keys must exist or edits do nothing.
+        "watch_list.py": (ROOT / "src" / "clawock" / "decision" / "watch_list.py"),
+        "signals.py": (ROOT / "src" / "clawock" / "decision" / "signals.py"),
     }
     used = set()
     for name, path in sources.items():
@@ -96,6 +100,6 @@ def test_early_trend_and_radar_policy_keys_all_present_in_config():
         present |= _flat_keys(sub)
     missing = used - present
     assert not missing, (
-        "early_trend/intraday_preflight policy keys missing from "
-        f"add-alpha-policy.json: {sorted(missing)} — editing the config cannot "
-        "change them")
+        "early_trend/intraday_preflight/watch_list/signals policy keys missing "
+        f"from add-alpha-policy.json: {sorted(missing)} — editing the config "
+        "cannot change them")

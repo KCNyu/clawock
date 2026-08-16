@@ -440,9 +440,13 @@ def collect_opportunity_radar(market):
     # cannot drift apart when the config changes.
     try:
         radar_policy = _load_json(WS / 'config' / 'add-alpha-policy.json')
-        near_pct = float(radar_policy.get("opportunity_near_pct")
-                         or OPPORTUNITY_NEAR_PCT)
-        no_chase_z = float(radar_policy.get("early_no_chase_zscore") or 2.0)
+        # #649: explicit None checks, never `X or DEFAULT` — a config value of
+        # 0 (e.g. `early_no_chase_zscore: 0` = z≥0 永不追高) is legal and must
+        # not be swallowed into the default.
+        raw_near = radar_policy.get("opportunity_near_pct")
+        raw_z = radar_policy.get("early_no_chase_zscore")
+        near_pct = float(raw_near) if raw_near is not None else OPPORTUNITY_NEAR_PCT
+        no_chase_z = float(raw_z) if raw_z is not None else 2.0
     except (TypeError, ValueError):
         near_pct, no_chase_z = OPPORTUNITY_NEAR_PCT, 2.0
     for detail in universe:

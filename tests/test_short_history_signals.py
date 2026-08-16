@@ -58,6 +58,38 @@ def test_candidate_gate_uses_registry_listing_date():
     assert signals.is_short_history_candidate(None, run) is False
 
 
+def test_short_history_window_boundary_is_inclusive_at_45_days():
+    """#643: 45 calendar days is the exact boundary — exactly-45 is a
+    candidate (inclusive ≤), 46 is not. Pins the `<=` vs `<` edge."""
+    run = date(2026, 8, 14)
+    assert signals.is_short_history_candidate(
+        {'listing_date': '2026-06-30'}, run) is True
+    assert signals.is_short_history_candidate(
+        {'listing_date': '2026-06-29'}, run) is False
+
+
+def test_short_history_window_is_config_driven(tmp_path, monkeypatch):
+    """#643: the window comes from add-alpha-policy.json's
+    `short_history_max_age_days` — editing the config moves the gate without a
+    code change (45→90 doubling and back must both take effect)."""
+    run = date(2026, 8, 14)
+    cfg = tmp_path / "config" / "add-alpha-policy.json"
+    cfg.parent.mkdir(parents=True)
+    monkeypatch.setattr(signals, "workspace_root", lambda default=None: tmp_path)
+
+    # 60 days old: outside the default 45, inside a configured 90.
+    cfg.write_text(json.dumps({"short_history_max_age_days": 90}))
+    assert signals.is_short_history_candidate(
+        {'listing_date': '2026-06-15'}, run) is True
+    # 100 days old: candidate under 180, not under the default 45.
+    cfg.write_text(json.dumps({"short_history_max_age_days": 180}))
+    assert signals.is_short_history_candidate(
+        {'listing_date': '2026-05-06'}, run) is True
+    cfg.write_text(json.dumps({"short_history_max_age_days": 45}))
+    assert signals.is_short_history_candidate(
+        {'listing_date': '2026-05-06'}, run) is False
+
+
 def test_provisional_setups_fallback_only_for_new_listings(monkeypatch):
     """A 25-bar mature name (or one without a listing date) must NOT get the
     short view — it surfaces as insufficient_bars instead (#608)."""
