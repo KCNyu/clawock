@@ -353,11 +353,17 @@ jobs:
           # v1 migration fabricated 25 that did not, inflating the episode count
           # and the published curve for six weeks; each was individually valid, so
           # only this cross-check catches the class.
+          # Conversation mind records (schema_version=0, source=conversation) are
+          # the deliberate second ledger row type (docs/decision-mind-ledger.md):
+          # they carry mind/emotion instead of a plan, are validated by the mind
+          # rule above, and are authored by `clawock record`, not by a plan file.
           authored = set()
           for p in glob.glob('memory/*-plan.json'):
               with open(p) as f:
                   authored |= {x['decision_id'] for x in (json.load(f).get('decisions') or [])}
-          orphans = sorted(set(ids) - authored)
+          orphans = sorted(set(ids) - authored - {
+              d['decision_id'] for d in led
+              if d.get('schema_version') == 0 and d.get('source') == 'conversation'})
           assert not orphans, f'{len(orphans)} ledger decisions authored by no plan: {orphans[:5]}'
           # settle must be a pure recompute from canonical bars, not a ratchet. Compare
           # settle-twice, never against the stored ledger: build_dashboard settles
@@ -367,7 +373,7 @@ jobs:
           once = json.dumps(led, sort_keys=True)
           decision_v2.settle_decisions(led)
           assert json.dumps(led, sort_keys=True) == once, 'settle_decisions is not idempotent'
-          print(f'ledger OK: {len(led)} decisions · {len({d["episode_id"] for d in led})} episodes · 0 orphans')
+          print(f'ledger OK: {len(led)} decisions · {len({d["episode_id"] for d in led if d.get("episode_id")})} episodes · 0 orphans')
           PY
 
       - name: Rebuild dashboard.json and validate
