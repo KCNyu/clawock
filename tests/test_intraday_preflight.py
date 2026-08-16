@@ -94,3 +94,28 @@ def test_receipt_uses_cache_source_when_collection_was_cached():
     }, {"collection": {"cache_hit": True}})
 
     assert "一级信息缓存复核" in text
+
+
+# ── _load_json: the #612 non-dict guard, pinned (#644) ─────────────────────
+
+def test_load_json_returns_empty_for_non_dict_payload(tmp_path):
+    """#644: a file that parses to a non-dict (e.g. a list) is treated as
+    absent — the #612 guard must stay pinned by a test, or a refactor that
+    drops the `isinstance(value, dict)` check silently reds the whole
+    preflight the next time a list-shaped file appears."""
+    path = tmp_path / "config" / "add-alpha-policy.json"
+    path.parent.mkdir(parents=True)
+    path.write_text("[]")
+
+    assert P._load_json(path) == {}
+
+
+def test_load_json_returns_empty_for_missing_file(tmp_path):
+    assert P._load_json(tmp_path / "nope.json") == {}
+
+
+def test_load_json_returns_dict_as_is(tmp_path):
+    path = tmp_path / "ok.json"
+    path.write_text('{"a": 1}')
+
+    assert P._load_json(path) == {"a": 1}

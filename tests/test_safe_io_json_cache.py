@@ -6,8 +6,9 @@ drops, freshness never does — for atomic writers. In-place writers that
 restore mtime and coarse-mtime filesystems are out of contract (documented
 failure mode, pinned by a test below so it cannot silently become a promise).
 
-The cache is bounded (LRU-style eviction past _MAX_JSON_CACHE_ENTRIES) and the
-returned object is shared across callers — read-only contract.
+The cache is bounded (LRU-style eviction past _MAX_JSON_CACHE_ENTRIES) and,
+since #642, every caller receives an independent deep copy — mutating the
+returned object can never poison the next reader.
 """
 import json
 import os
@@ -123,15 +124,19 @@ def test_json_decode_error_is_not_cached(monkeypatch, tmp_path):
     assert load_json_cached(p) == {"ok": 1}
 
 
-def test_returned_object_is_shared_read_only_contract(monkeypatch, tmp_path):
-    """#623: the same mutable object is returned on cache hits — callers must
-    treat it as read-only. Pinned so a future deep-copy refactor is deliberate
-    (it would also give up most of the parse-count win)."""
+def test_returned_object_is_an_independent_copy(monkeypatch, tmp_path):
+    """#642: cache hits hand out independent deep copies — a caller's in-place
+    mutation (top-level key, nested list append) must not poison the next
+    reader. The old shared-mutable contract let one `.update()` corrupt every
+    downstream read of portfolio.json across modules."""
     p = tmp_path / "shared.json"
     _write(p, {"a": [1]})
     first = load_json_cached(p)
+    first["b"] = 2
+    first["a"].append(9)
     second = load_json_cached(p)
-    assert first is second
+    assert first is not second
+    assert second == {"a": [1]}  # mutation invisible to the next caller
 
 
 def test_same_mtime_different_bytes_returns_stale(monkeypatch, tmp_path):
