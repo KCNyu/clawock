@@ -9,7 +9,7 @@ the same as the pure-CLI example.
 
 Give the DSH agent a workspace instruction (e.g. in its system prompt or a
 workspace context file) covering three steps. On a fresh machine the
-workspace must be created once first — see [`README.md`](README.md) ("From
+workspace must be created once first — see [`../README.md`](../README.md) ("From
 zero to a published decision"); the short version is:
 
 ```bash

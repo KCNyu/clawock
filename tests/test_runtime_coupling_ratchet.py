@@ -539,7 +539,7 @@ def test_only_the_documented_shell_entry_points_name_this_host():
     assert len(files) > 10, f"only {len(files)} shell files walked — did the walk break?"
     walked = {path.relative_to(ROOT).as_posix() for path in files}
     for expected in (".githooks/pre-commit", "ops/publish/safe_push.sh",
-                     "examples/minimal-run/run.sh"):
+                     "examples/cli/minimal-run/run.sh"):
         assert expected in walked, (
             f"{expected} is outside the shell walk; the walk is not looking "
             "where host paths could be written")
