@@ -263,8 +263,8 @@ def load_workflow_outcomes(path=None):
     return None
 
 
-def backstop_covered_slots(job_name, slots, tz_name, outcomes):
-    """Which of `slots` (HH:MM local) has a workflow-outcomes record whose
+def backstop_covered_slots(job_name, slots, tz_name, outcomes, today=None):
+    """Which of `slots` (HH:MM local, today) has a workflow-outcomes record whose
     final_product is 'recovered' — i.e. watchdog_delivery succeeded.
 
     #696: a staged report cron's Telegram backstop is DELIBERATELY commit-free
@@ -274,6 +274,10 @@ def backstop_covered_slots(job_name, slots, tz_name, outcomes):
     reads the one ledger that already tells the two apart (`final_product.status
     == 'recovered'` is set only when `watchdog_delivery` itself succeeded).
 
+    `today` must be checked, not just HH:MM: the ledger keeps 96h of records
+    (workflow_outcomes.KEEP_HOURS), so a same-time slot recovered on an earlier
+    day would otherwise silently paper over a genuine miss today.
+
     Slot-level, not commit-level: `commit_count_today` has no way to say WHICH
     slot a commit belongs to, so this can only compare counts (below), not
     prove a specific gap slot is the one covered. That is the same precision
@@ -282,6 +286,7 @@ def backstop_covered_slots(job_name, slots, tz_name, outcomes):
     if not outcomes:
         return set()
     tz = ZoneInfo(tz_name)
+    today = today or datetime.now(tz).date()
     covered = set()
     for record in outcomes.get('records', []):
         if record.get('job') != job_name:
@@ -292,9 +297,12 @@ def backstop_covered_slots(job_name, slots, tz_name, outcomes):
             slot_dt = datetime.fromisoformat(record['slot'])
             if slot_dt.tzinfo is None:
                 slot_dt = slot_dt.replace(tzinfo=HKT)
+            slot_local = slot_dt.astimezone(tz)
         except Exception:
             continue
-        hhmm = slot_dt.astimezone(tz).strftime('%H:%M')
+        if slot_local.date() != today:
+            continue
+        hhmm = slot_local.strftime('%H:%M')
         if hhmm in slots:
             covered.add(hhmm)
     return covered
@@ -561,7 +569,9 @@ def main():
                 # 缺少 commit — 可能漏跑，也可能是 Telegram backstop 接管（设计上不产
                 # 生 commit，见 backstop_covered_slots）。两者是不同的红，分开报（#696）。
                 gap = len(expected_past) - commit_n
-                covered = backstop_covered_slots(name, expected_past, tz, outcomes_ledger)
+                covered = backstop_covered_slots(
+                    name, expected_past, tz, outcomes_ledger,
+                    today=now.astimezone(ZoneInfo(tz)).date())
                 if len(covered) >= gap:
                     status = 'backstop'
                     detail = (f'expected {len(expected_past)} commits, got {commit_n} — '
