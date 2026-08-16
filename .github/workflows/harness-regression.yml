@@ -135,8 +135,11 @@ jobs:
             ui=true
             code=true
           fi
-          echo "code=$code" >> "$GITHUB_OUTPUT"
-          echo "ui=$ui" >> "$GITHUB_OUTPUT"
+          dsplugin=false
+          if grep -Eq '^(examples/dsh/plugin/|tests/decision_studio_plugin\.spec\.js$)' <<< "$changed"; then
+            dsplugin=true
+          fi
+          { echo "code=$code"; echo "ui=$ui"; echo "dsplugin=$dsplugin"; } >> "$GITHUB_OUTPUT"
           echo "code changed: $code"
 
       - name: Set up Node for dashboard browser contract
@@ -162,6 +165,16 @@ jobs:
       - name: Browser contract — Hero, detail tabs, and chart gestures
         if: github.event_name == 'pull_request' && steps.changes.outputs.ui == 'true'
         run: node tests/dashboard_tab_runtime.spec.js
+
+      - name: Set up Node for Decision Studio plugin contract
+        if: github.event_name == 'pull_request' && steps.changes.outputs.dsplugin == 'true'
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22'
+
+      - name: Decision Studio plugin contract (scan + client bundle registration)
+        if: github.event_name == 'pull_request' && steps.changes.outputs.dsplugin == 'true'
+        run: node tests/decision_studio_plugin.spec.js
 
       - name: Set up Python
         if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'

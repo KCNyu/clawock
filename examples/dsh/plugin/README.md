@@ -1,9 +1,9 @@
 # clawock-dsh
 
-clawock 的 DeepSeek Harness 插件:一个 skill 包,把 investment-decision
-决策工作流注入 DSH agent。零 Node 代码——clawock 是 Python CLI,skill
-只负责告诉 agent 怎么走「读请求 → 研究 + 正反辩论 → 写决策 → Python
-校验结算」四步。
+clawock 的 DeepSeek Harness 插件:skill 包 + Decision Studio 面板,把
+investment-decision 决策工作流注入 DSH agent。skill 负责告诉 agent 怎么走
+「读请求 → 研究 + 正反辩论 → 写决策 → Python 校验结算」四步;面板把
+request / debate / 回执渲染成 web GUI 里的会话视图 tab。
 
 ## 安装(rc.6 及以后验证过的接线)
 
@@ -12,9 +12,11 @@ dsh plugin --profile web add clawock-dsh
 ```
 
 这一步把包装进 profile(pnpm 安装到
-`~/.dsh/profiles/web/node_modules/`),但 **DSH rc.6 的 skill 发现只扫
-项目根与用户根,不扫 node_modules** —— 所以还需要一步把 skill 放到可发现
-的位置(任选其一):
+`~/.dsh/profiles/web/node_modules/`),并因为包声明了
+`dsh.bundle.patch` 而成为真正的 profile 层(patch 行 `clawock-studio`
+提供 Decision Studio 的只读 Remote 网关)。**skill 的发现仍按 rc.6 规则**:
+DSH 只扫项目根与用户根,不扫 node_modules —— 所以还需要一步把 skill
+放到可发现的位置(任选其一):
 
 ```bash
 # 用户级(推荐,任何 workspace 都生效)
@@ -66,13 +68,41 @@ agent:准备请求…(clawock run prepare)
       Receipt published · run_id <id> · 证书已钉住
 ```
 
-## 为什么是 skill 而不是工具
+## Decision Studio 面板
+
+装完后,web GUI 的会话视图多一个 **Decision Studio** tab(只读):
+
+- **运行列表**:本 workspace(`$CLAWOCK_WORKSPACE` 或 dsh 进程 cwd)里所有
+  已 prepare 的 run —— ticker / action / 有无回执 / as_of,按时间倒序;
+- **选中一个 run**:certified request(文档指纹数 + 三道闸)、debate 证据
+  表(supporting 绿 / opposing 红)、thesis + action + confidence、回执
+  横幅(published 绿 / 未发布红 + run_id + generation)。
+
+数据源是只读的:`.clawock/work/<run_id>/request.json`、workspace 根
+`decision.json`、`.clawock/runs/<run_id>/manifest.json`。面板不改任何文件,
+结算仍归 `clawock run publish`。结构:
+
+```
+clawock-dsh
+├── cordis.patch.yml   # profile patch 层:插入 clawock-studio Remote 网关行
+├── lib/index.js       # node 半区:TypertRemoteService(只读 list/get)
+├── lib/scan.js        # 纯扫描逻辑(可单测)
+├── client.js          # client 半区:module-loader bundle,注册 conversation.view tab
+└── skills/            # agent skill(同上)
+```
+
+验证状态:node 半区(扫描、run id 防路径穿越、Remote 标记)与 client 半区
+(注册、模型投影)有单元测试;**tab 的浏览器目验需要在带 DSH 源码/工具链的
+机器上 boot 后确认**(本仓库 CI 无法渲染 GUI)。
+
+## 为什么是 skill + 面板而不是工具
 
 clawock 的契约是文件 + CLI,DSH 的 bash 工具已经能执行全部命令;skill
 只需要把「什么时候跑、产出什么、什么不可协商」讲清楚。这也是 clawock
 harness-agnostic 定位的一部分——同一份契约,OpenClaw skill / Claude Code
 指令 / Codex AGENTS.md / DSH skill 各有一个壳,内容同构
-([../../README.md](../../README.md))。
+([../../README.md](../../README.md))。面板只是同一份只读数据的另一种
+呈现,不改变契约。
 
 ## 校验安装成功
 

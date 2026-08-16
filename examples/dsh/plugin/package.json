@@ -1,7 +1,7 @@
 {
   "name": "clawock-dsh",
   "version": "0.1.4",
-  "description": "clawock investment-decision workflow skill for DeepSeek Harness agents — evidence, opposing case, deterministic settlement, public scorecard",
+  "description": "clawock investment-decision workflow for DeepSeek Harness — evidence, opposing case, deterministic settlement, public scorecard, plus the Decision Studio conversation-view tab",
   "license": "MIT",
   "keywords": [
     "dsh",
@@ -12,10 +12,36 @@
     "trading",
     "skill"
   ],
+  "type": "module",
+  "main": "./lib/index.js",
+  "exports": {
+    ".": {
+      "default": "./lib/index.js"
+    },
+    "./client": {
+      "default": "./client.js"
+    },
+    "./package.json": "./package.json"
+  },
   "files": [
-    "skills"
+    "skills",
+    "lib",
+    "client.js",
+    "cordis.patch.yml"
   ],
+  "dependencies": {
+    "@deepseek-ai/dsh-typert-protocol": "^0.1.0-rc.6"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1"
+  },
   "dsh": {
+    "bundle": {
+      "patch": "cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web"
+    },
     "skills": [
       "./skills/investment-decision/SKILL.md"
     ]
