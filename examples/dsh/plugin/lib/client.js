@@ -4740,10 +4740,12 @@ function esc(s) {
 * the node, and to paint a buy at exactly 0% green while the text read 跌.
 */
 function t1NodeClass(tone) {
-	return tone === "flat" ? "" : tone;
+	return tone === "win" || tone === "loss" ? tone : "";
 }
 function t1ChipClass(tone) {
-	return tone === "flat" ? "flat" : tone === "win" ? "up" : "down";
+	if (tone === "win") return "up";
+	if (tone === "loss") return "down";
+	return "flat";
 }
 function fmtMoney(v) {
 	if (v == null || !isFinite(v)) return "—";

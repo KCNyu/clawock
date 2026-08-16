@@ -201,10 +201,16 @@ function esc(s: unknown): string { return String(s == null ? '' : s).replace(/</
  * the node, and to paint a buy at exactly 0% green while the text read 跌.
  */
 export function t1NodeClass(tone: 'win' | 'loss' | 'flat'): string {
-  return tone === 'flat' ? '' : tone
+  return tone === 'win' || tone === 'loss' ? tone : ''
 }
 export function t1ChipClass(tone: 'win' | 'loss' | 'flat'): 'up' | 'down' | 'flat' {
-  return tone === 'flat' ? 'flat' : (tone === 'win' ? 'up' : 'down')
+  // Anything other than the two known verdicts falls back to neutral, never
+  // to 'down'. A trace that somehow arrives without a tone is a bug, and the
+  // honest way to render a bug is grey — not a confident red verdict on a
+  // fill that was never judged.
+  if (tone === 'win') return 'up'
+  if (tone === 'loss') return 'down'
+  return 'flat'
 }
 
 function fmtMoney(v: number | null | undefined): string {

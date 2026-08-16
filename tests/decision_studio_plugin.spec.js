@@ -296,7 +296,7 @@ test("client: _displayEntry projects a trace with its decision and T+1", async (
   const withDec = api._displayEntry({
     ticker: "PLTU", market: "US", currency: "USD", date: "2026-08-13",
     action: "sell", shares: 5, price: 50, realizedPnl: 45.21, note: "清仓",
-    t1: { date: "2026-08-14", price: 49.24, delta: -1.52, verdict: "卖对" },
+    t1: { date: "2026-08-14", price: 49.24, delta: -1.52, verdict: "卖对", tone: "win" },
     decision: { planDate: "2026-08-10", action: "trim_on_rebound", confidence: 0.6,
       drivenBy: "technical", rationale: "浮盈保护", execution: "followed",
       condition: "反弹至 50 减仓" },
@@ -336,10 +336,10 @@ test("client: renders the single decision-trace view from the mounted remote", a
           sizeShares: 200, plannedPrice: 9.21 } },
       { ticker: "SPCH", market: "US", currency: "USD", date: "2026-08-07", action: "buy",
         shares: 20, price: 5.88, realizedPnl: null, note: "用户报告成交(01:34 HKT)",
-        t1: { date: "2026-08-10", price: 5.6, delta: -4.76, verdict: "跌" } },
+        t1: { date: "2026-08-10", price: 5.6, delta: -4.76, verdict: "跌", tone: "loss" } },
       { ticker: "PLTU", market: "US", currency: "USD", date: "2026-08-13", action: "sell",
         shares: 5, price: 50, realizedPnl: 45.21428571428572, note: "PLTU 清仓",
-        t1: { date: "2026-08-14", price: 49.24, delta: -1.52, verdict: "卖对" },
+        t1: { date: "2026-08-14", price: 49.24, delta: -1.52, verdict: "卖对", tone: "win" },
         decision: { planDate: "2026-08-10", action: "trim_on_rebound", confidence: 0.6,
           drivenBy: "technical", rationale: "浮盈保护", execution: "followed",
           condition: "反弹至 50 减仓" } },
@@ -385,6 +385,26 @@ test("client: renders the single decision-trace view from the mounted remote", a
   assert.match(joined, /决策轨迹/);
   assert.match(joined, /已实现 \(USD 等值\)/);
   assert.match(joined, /T\+1 卖飞\/卖对/);
+  // The denominator must be rendered, not implied (#710): the ratio only
+  // covers fills whose close actually landed inside the T+1 window.
+  assert.match(joined, /基于 \d+ 笔/, "the T+1 scorecard must show what it is computed over");
+
+  // The chip class must come from the host's `tone`, not from a threshold the
+  // client re-derives (#713). Walk the tree for the real className so a
+  // fixture that drops `tone` cannot keep this test green.
+  const classes = [];
+  (function walkClass(node) {
+    if (node == null) return;
+    if (Array.isArray(node)) { node.forEach(walkClass); return; }
+    if (typeof node === "string") return;
+    const cn = node.props && node.props.className;
+    if (typeof cn === "string") classes.push(cn);
+    (node.children || []).forEach(walkClass);
+  })(tree);
+  assert.ok(classes.includes("t1 win") || classes.includes("t1 up"),
+    `a tone:"win" trace must render an up/win chip, got: ${classes.filter((c) => c.startsWith("t1")).join(", ")}`);
+  assert.ok(!classes.some((c) => /undefined|null/.test(c)),
+    `no className may contain undefined — a fixture missing t1.tone would show up here: ${classes.filter((c) => /undefined|null/.test(c)).join(", ")}`);
   assert.match(joined, /SPCH/);
   assert.match(joined, /买入/);
   assert.match(joined, /10 @8.77/);
