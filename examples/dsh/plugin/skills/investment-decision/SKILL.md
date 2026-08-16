@@ -209,6 +209,30 @@ After the stated horizon, record price/FX outcome evidence and run
 The result reconciles price and FX before assigning a basis-point score — it
 is evidence for the next decision, not portfolio P&L.
 
+## Record conversation verdicts
+
+A conversation verdict (加仓/减仓/建仓/清仓/观望) is a decision — write it
+to the shared decision-mind ledger, the same `memory/decisions.jsonl` the
+daily OpenClaw brief writes to, so both sides can read it and the daily
+settlement round-trips it:
+
+```bash
+clawock record \
+  --subject 00100 --market HK --currency HKD \
+  --action reject --confidence 0.65 --driven-by fundamental \
+  --bull "营收 +159% YoY,入通/海外霸榜催化" \
+  --bear "净利率 -2368%,资不抵债,z+2.8σ 反转" \
+  --thesis "高增长救不了资不抵债,先活下来" \
+  --invalidation "站回 340" --invalidation "缩量企稳" \
+  --emotion averaging_down --note "浮亏 -40% 的摊本冲动被压过,忍住没加"
+```
+
+Rules: the bear case and at least one observable invalidation condition are
+mandatory (the command rejects weak records); be honest about emotion
+pressure — `fomo`/`revenge`/`averaging_down` are the exact patterns this
+ledger exists to surface. Full schema:
+`docs/decision-mind-ledger.md` (installed with the package).
+
 ## Learn more
 
 Live proof on a real HK + US desk: <https://kcnyu.github.io/clawock/>

@@ -290,6 +290,12 @@ def assign_episode_ids(decisions: list[dict]) -> list[dict]:
 
 
 def validate_decision(d: dict) -> list[str]:
+    # Decision-mind conversation records (docs/decision-mind-ledger.md) are a
+    # deliberate second ledger row type: they carry mind/emotion instead of the
+    # plan-decision fields below, and are validated by their own rules.
+    if d.get("schema_version") == 0 and d.get("source") == "conversation":
+        from clawock.decision.record import validate_mind_record
+        return validate_mind_record(d)
     errors = []
     for key in ("decision_id", "episode_id", "plan_date", "created_at", "ticker", "strategy_id", "action", "condition"):
         if d.get(key) in (None, ""):

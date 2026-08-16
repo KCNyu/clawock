@@ -1,15 +1,16 @@
 #!/usr/bin/env node
 /**
- * Decision Studio plugin tests (clawock-dsh node + client halves).
+ * Decision Mind plugin tests (clawock-dsh node + client halves).
  *
  * Run: node tests/decision_studio_plugin.spec.js
  * CI: harness-regression.yml runs it when plugin files change.
  *
  * What is verified without a browser:
- *   - scan.js: workspace listing, run detail, run-id path-safety boundary
- *   - client.js: module-loader registration shape, inject face, model
- *     projection, and a stub-react render of the run list
- * The visual tab boot remains a source-machine verification (no GUI here).
+ *   - scan.js: workspace run listing, run-id path-safety boundary
+ *   - ledger.js: decision ledger / portfolio / plan readers over OpenClaw
+ *     desk files (whatever OpenClaw produces, this plugin can show)
+ *   - client.js: module-loader registration, mounted Remote face, display
+ *     projection, and a stub-react render of the ledger cards
  */
 "use strict";
 
@@ -22,76 +23,112 @@ const test = require("node:test");
 
 const PLUGIN = path.join(__dirname, "..", "examples", "dsh", "plugin");
 
-function makeWorkspace() {
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "clawock-studio-"));
-  const runId = "0123456789abcdef0123456789abcdef";
-  const work = path.join(root, ".clawock", "work", runId);
-  fs.mkdirSync(work, { recursive: true });
-  fs.writeFileSync(path.join(work, "request.json"), JSON.stringify({
-    schema_version: 1,
-    run_id: runId,
-    generation_id: "fedcba9876543210fedcba9876543210",
-    task: "Produce decision.json for an evidence-linked investment decision.",
-    context: { documents: [{ name: "CONTEXT.md", sha256: "aa".repeat(32) }] },
-    workflow: {
-      id: "investment-decision", version: "1.1.0",
-      parameters: { min_supporting_evidence: 1, min_opposing_evidence: 1, max_confidence_without_primary_source: 0.65 },
+// The bundle injects its stylesheet through `document` at factory time;
+// node:test has no DOM, so provide the minimal surface the factory touches.
+globalThis.document = {
+  getElementById() { return null; },
+  createElement() { return { id: "", textContent: "" }; },
+  head: { appendChild() {} },
+};
+
+function makeDesk() {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "clawock-mind-"));
+  fs.mkdirSync(path.join(root, "memory"), { recursive: true });
+  fs.writeFileSync(path.join(root, "memory", "decisions.jsonl"), [
+    JSON.stringify({
+      decision_id: "dec-legacy1", plan_date: "2026-08-10", ticker: "00100", leg: "HK",
+      action: "trim_on_rebound", confidence: 0.7, driven_by: "technical",
+      condition: { description: "跌破 730 减 20 股", price: 730.0, type: "price_below" },
+      evaluation: { outcome: "not_triggered", status: "not_triggered" },
+      execution: { status: "unknown" },
+    }),
+    JSON.stringify({
+      schema_version: 0, decision_id: "dec-conv1", source: "conversation",
+      subject: { ticker: "00100", market: "HK", currency: "HKD" },
+      decided_at: "2026-08-16T13:45:00+08:00", action: "reject", confidence: 0.65,
+      driven_by: "fundamental",
+      mind: { bull: { summary: "营收 +159%", evidence: [] }, bear: { summary: "资不抵债", evidence: [] },
+              thesis: "先活下来", invalidation: ["站回 340"] },
+      emotion: { pressure: "averaging_down", note: "忍住没加" },
+      execution: { status: "unknown" },
+    }),
+    "not valid json line that must be skipped",
+    "",
+  ].join("\n"));
+  fs.writeFileSync(path.join(root, "portfolio.json"), JSON.stringify({
+    last_updated: "2026-08-16 13:42 HKT",
+    portfolios: {
+      hk_stocks: { currency: "HKD", holdings: [
+        { ticker: "00100", name: "MINIMAX-W", shares: 120, cost_basis: 553.08, current_price: 329.0, pnl_percent: -40.5 },
+      ] },
+      us_stocks: { currency: "USD", holdings: [
+        { ticker: "NVDA", shares: 0, current_price: 213.0, pnl_percent: 0 },
+      ] },
     },
-    subject: { ticker: "DEMO", market: "US", currency: "USD" },
-    as_of: "2026-08-16T12:00:00+00:00",
   }));
-  fs.mkdirSync(path.join(root, ".clawock", "runs", runId), { recursive: true });
-  fs.writeFileSync(path.join(root, ".clawock", "runs", runId, "manifest.json"), JSON.stringify({
-    generation_id: "fedcba9876543210fedcba9876543210",
-    artifacts: [{ name: "decision.json" }],
+  fs.writeFileSync(path.join(root, "memory", "2026-08-10-plan.json"), JSON.stringify({
+    schema_version: 2, title: "盘前 plan", decisions: [{ ticker: "00100" }, { ticker: "07226" }],
   }));
-  fs.writeFileSync(path.join(root, "decision.json"), JSON.stringify({ decision: { action: "watch" } }));
-  return { root, runId };
+  fs.writeFileSync(path.join(root, "memory", "2026-08-15-plan.json"), JSON.stringify({
+    schema_version: 2, decisions: [],
+  }));
+  return root;
 }
-
-test("scan: lists a prepared run with decision and receipt presence", async () => {
-  const scan = await import(pathToFileURL(path.join(PLUGIN, "lib", "scan.js")).href);
-  const { root, runId } = makeWorkspace();
-  try {
-    const runs = scan.listRuns(root);
-    assert.equal(runs.length, 1);
-    assert.equal(runs[0].runId, runId);
-    assert.equal(runs[0].subject.ticker, "DEMO");
-    assert.equal(runs[0].documentCount, 1);
-    assert.equal(runs[0].decisionPresent, true);
-    assert.equal(runs[0].decisionAction, "watch");
-    assert.equal(runs[0].receiptPresent, true);
-    assert.equal(runs[0].gates.min_opposing_evidence, 1);
-
-    const detail = scan.getRun(root, runId);
-    assert.equal(detail.request.workflow.id, "investment-decision");
-    assert.deepEqual(detail.decision.decision, { action: "watch" });
-    assert.equal(detail.manifest.artifacts[0].name, "decision.json");
-  } finally {
-    fs.rmSync(root, { recursive: true, force: true });
-  }
-});
-
-test("scan: ignores non-run directories and missing workspaces", async () => {
-  const scan = await import(pathToFileURL(path.join(PLUGIN, "lib", "scan.js")).href);
-  const root = fs.mkdtempSync(path.join(os.tmpdir(), "clawock-studio-"));
-  try {
-    fs.mkdirSync(path.join(root, ".clawock", "work", "not-a-run"), { recursive: true });
-    fs.writeFileSync(path.join(root, ".clawock", "work", "not-a-run", "request.json"), "{}");
-    assert.deepEqual(scan.listRuns(root), []);
-
-    const missing = scan.getRun(root, "0123456789abcdef0123456789abcdef");
-    assert.equal(missing.request, null);
-    assert.deepEqual(scan.listRuns(path.join(root, "does-not-exist")), []);
-  } finally {
-    fs.rmSync(root, { recursive: true, force: true });
-  }
-});
 
 test("scan: run ids are the path-safety boundary", async () => {
   const scan = await import(pathToFileURL(path.join(PLUGIN, "lib", "scan.js")).href);
-  for (const bad of ["..", "../secret", "abc", "0123456789abcdef0123456789abcdeg", "", null, 42]) {
+  for (const bad of ["..", "../secret", "abc", "", null, 42]) {
     assert.throws(() => scan.getRun("/tmp", bad), TypeError, `run id ${JSON.stringify(bad)} must be rejected`);
+  }
+});
+
+test("ledger: reads decisions.jsonl, skips malformed lines, keeps desk entries", async () => {
+  const ledger = await import(pathToFileURL(path.join(PLUGIN, "lib", "ledger.js")).href);
+  const root = makeDesk();
+  try {
+    const { entries } = ledger.readLedger(root);
+    assert.equal(entries.length, 2, "malformed line must be skipped, not fatal");
+    const conv = entries.find((d) => d.source === "conversation");
+    assert.equal(conv.mind.bear.summary, "资不抵债");
+    assert.equal(conv.emotion.pressure, "averaging_down");
+    const brief = entries.find((d) => d.plan_date === "2026-08-10");
+    assert.equal(brief.action, "trim_on_rebound");
+    assert.deepEqual(ledger.readLedger(path.join(root, "nope")).entries, []);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("ledger: portfolio summarizes holdings per book", async () => {
+  const ledger = await import(pathToFileURL(path.join(PLUGIN, "lib", "ledger.js")).href);
+  const root = makeDesk();
+  try {
+    const { books, lastUpdated } = ledger.readPortfolio(root);
+    assert.equal(lastUpdated, "2026-08-16 13:42 HKT");
+    assert.equal(books.length, 1, "zero-share book (us_stocks/NVDA 0) must be dropped");
+    const hk = books.find((b) => b.name === "hk_stocks");
+    assert.equal(hk.currency, "HKD");
+    assert.equal(hk.holdings.length, 1);
+    assert.equal(hk.holdings[0].ticker, "00100");
+    assert.equal(hk.holdings[0].pnlPct, -40.5);
+    assert.deepEqual(ledger.readPortfolio(path.join(root, "nope")).books, []);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("ledger: plans list newest first with decision counts", async () => {
+  const ledger = await import(pathToFileURL(path.join(PLUGIN, "lib", "ledger.js")).href);
+  const root = makeDesk();
+  try {
+    const { plans } = ledger.readPlans(root);
+    assert.equal(plans.length, 2);
+    assert.equal(plans[0].date, "2026-08-15");
+    assert.equal(plans[0].decisions, 0);
+    assert.equal(plans[1].date, "2026-08-10");
+    assert.equal(plans[1].decisions, 2);
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
   }
 });
 
@@ -105,6 +142,10 @@ function makeReactStub() {
   let state = null;
   return {
     createElement(type, props, ...children) {
+      if (typeof type === "function") {
+        // Mini-renderer: invoke function components so their subtrees appear.
+        return type(Object.assign({}, props, { children }));
+      }
       return { type, props: props || {}, children };
     },
     useState(initial) {
@@ -122,29 +163,30 @@ function makeReactStub() {
   };
 }
 
-test("client: registers the Decision Studio conversation.view tab", async () => {
+async function loadClient() {
   let loaded = null;
   globalThis.window = { __ModuleLoader__: { load(entry) { loaded = entry; } } };
-  const reactStub = makeReactStub();
-  const requireStub = (specifier) => {
-    if (specifier === "@deepseek-ai/dsh-client-runtime/client") return {};
-    if (specifier === "react") return reactStub;
-    throw new Error(`unexpected client require: ${specifier}`);
-  };
-
   await import(clientUrl());
   assert.ok(loaded, "client.js must register through the module loader");
-  assert.equal(loaded.id, "clawock-dsh");
+  return loaded;
+}
 
-  const api = loaded.factory(requireStub);
+test("client: registers the Decision Mind tab and mounts the remote face", async () => {
+  const loaded = await loadClient();
+  assert.equal(loaded.id, "clawock-dsh");
+  const api = loaded.factory((s) => {
+    if (s === "@deepseek-ai/dsh-client-runtime/client") return {};
+    if (s === "react") return makeReactStub();
+    throw new Error(`unexpected require: ${s}`);
+  });
   assert.deepEqual(api.inject, ["slots", "remote"]);
-  assert.equal(typeof api.apply, "function");
 
   let registered = null;
   let component = null;
   const remoteFace = {
-    list: async () => ({ ok: true, value: { runs: [] } }),
-    get: async (runId) => ({ ok: true, value: { runId, request: null, decision: null, manifest: null } }),
+    ledger: async () => ({ ok: true, value: { entries: [] } }),
+    portfolio: async () => ({ ok: true, value: { books: [] } }),
+    plans: async () => ({ ok: true, value: { plans: [] } }),
   };
   const ctx = {
     effect() {},
@@ -153,108 +195,84 @@ test("client: registers the Decision Studio conversation.view tab", async () => 
       inject(name, fn) { assert.equal(name, "conversation.view"); this._fn = fn; },
       register(definition, Component) { registered = definition; component = Component; },
     },
-    remote: { $mount: async (descriptors) => { assert.ok(descriptors.descriptors.length >= 2); } },
+    remote: { $mount: async (descriptors) => { assert.equal(descriptors.descriptors.length, 5); } },
   };
   await api.apply(ctx);
-  ctx.slots._fn(); // slots.inject registers lazily once the slot exists
-  assert.ok(registered, "apply must register into conversation.view");
-  assert.equal(registered.name, "conversation.view");
+  ctx.slots._fn();
   assert.equal(registered.id, "decision-studio");
   assert.equal(registered.order, 30);
-  assert.equal(registered.label(), "Decision Studio");
+  assert.equal(registered.label(), "Decision Mind");
 
-  const injected = registered.inject("session-1");
-  assert.equal(typeof injected.list, "function");
-  assert.equal(typeof injected.get, "function");
-  const result = await injected.list();
-  assert.deepEqual(result, { runs: [] });
-  const detail = await injected.get("0123456789abcdef0123456789abcdef");
-  assert.equal(detail.request, null);
+  const injected = registered.inject("s1");
+  assert.equal(typeof injected.ledger, "function");
+  assert.equal(typeof injected.portfolio, "function");
+  assert.equal(typeof injected.plans, "function");
+  assert.deepEqual(await injected.ledger(), { entries: [] });
   assert.equal(typeof component, "function");
 });
 
-test("client: _buildStudioModel projects run files for the tab", async () => {
-  let loaded = null;
-  globalThis.window = { __ModuleLoader__: { load(entry) { loaded = entry; } } };
-  await import(clientUrl());
-  const api = loaded.factory((specifier) => {
-    if (specifier === "@deepseek-ai/dsh-client-runtime/client") return {};
-    if (specifier === "react") return makeReactStub();
-    throw new Error(`unexpected client require: ${specifier}`);
+test("client: _displayEntry projects mind records and degrades legacy entries", async () => {
+  const loaded = await loadClient();
+  const api = loaded.factory((s) => {
+    if (s === "@deepseek-ai/dsh-client-runtime/client") return {};
+    if (s === "react") return makeReactStub();
+    throw new Error(`unexpected require: ${s}`);
   });
 
-  const empty = api._buildStudioModel({ runId: "0123456789abcdef0123456789abcdef", request: null });
-  assert.equal(empty.empty, true);
-
-  const full = api._buildStudioModel({
-    runId: "0123456789abcdef0123456789abcdef",
-    request: {
-      subject: { ticker: "DEMO", market: "US", currency: "USD" },
-      as_of: "2026-08-16T12:00:00+00:00",
-      workflow: { parameters: { min_opposing_evidence: 1 } },
-      context: { documents: [{ name: "CONTEXT.md" }] },
-    },
-    decision: {
-      evidence: [{ id: "e1", stance: "opposing", summary: "risk", source: "market", source_class: "market", observed_at: "t" }],
-      debate: { bull_case: {}, bear_case: {} },
-      thesis: { statement: "s", confidence: 0.7 },
-      decision: { action: "watch" },
-    },
-    manifest: { generation_id: "g1" },
+  const conv = api._displayEntry({
+    decision_id: "dec-1", source: "conversation",
+    subject: { ticker: "00100", market: "HK", currency: "HKD" },
+    decided_at: "2026-08-16T13:45:00+08:00", action: "reject", confidence: 0.65,
+    mind: { bull: { summary: "b" }, bear: { summary: "r" }, thesis: "t", invalidation: ["c1"] },
+    emotion: { pressure: "averaging_down", note: "忍住" },
+    execution: { status: "unknown" },
   });
-  assert.equal(full.empty, false);
-  assert.equal(full.subject.ticker, "DEMO");
-  assert.equal(full.gates.min_opposing_evidence, 1);
-  assert.equal(full.evidence[0].stance, "opposing");
-  assert.equal(full.action.action, "watch");
-  assert.equal(full.receiptStatus, "published");
-  assert.equal(full.generationId, "g1");
+  assert.equal(conv.ticker, "00100");
+  assert.equal(conv.action, "reject");
+  assert.equal(conv.emotion, "averaging_down");
+  assert.deepEqual(conv.invalidation, ["c1"]);
+
+  const legacy = api._displayEntry({
+    decision_id: "dec-2", plan_date: "2026-08-10", ticker: "00100",
+    action: "trim_on_rebound", confidence: 0.7,
+    condition: { description: "跌破 730" }, evaluation: { outcome: "not_triggered" },
+  });
+  assert.equal(legacy.bull, null);
+  assert.equal(legacy.condition, "跌破 730");
+  assert.equal(legacy.outcome, "not_triggered");
+  assert.equal(legacy.emotion, null);
 });
 
-test("client: the tab component renders the run list from the remote", async () => {
-  let loaded = null;
-  globalThis.window = { __ModuleLoader__: { load(entry) { loaded = entry; } } };
-  const reactStub = makeReactStub();
-  const requireStub = (specifier) => {
-    if (specifier === "@deepseek-ai/dsh-client-runtime/client") return {};
-    if (specifier === "react") return reactStub;
-    throw new Error(`unexpected client require: ${specifier}`);
-  };
-  await import(clientUrl());
-  const api = loaded.factory(requireStub);
+test("client: renders ledger cards from the mounted remote", async () => {
+  const loaded = await loadClient();
+  const api = loaded.factory((s) => {
+    if (s === "@deepseek-ai/dsh-client-runtime/client") return {};
+    if (s === "react") return makeReactStub();
+    throw new Error(`unexpected require: ${s}`);
+  });
 
-  let component = null;
   let registered = null;
-  const runId = "0123456789abcdef0123456789abcdef";
+  let component = null;
   const remoteFace = {
-    list: async () => ({
-      ok: true,
-      value: { runs: [{ runId, subject: { ticker: "DEMO" }, asOf: "2026-08-16T12:00:00+00:00", decisionPresent: true, receiptPresent: true }] },
-    }),
-    get: async (id) => ({
-      ok: true,
-      value: {
-        runId: id,
-        request: {
-          subject: { ticker: "DEMO", market: "US", currency: "USD" },
-          as_of: "2026-08-16T12:00:00+00:00",
-          workflow: { parameters: { min_supporting_evidence: 1, min_opposing_evidence: 1, max_confidence_without_primary_source: 0.65 } },
-          context: { documents: [{ name: "CONTEXT.md" }] },
-        },
-        decision: {
-          subject: { ticker: "DEMO", market: "US", currency: "USD" },
-          evidence: [{ id: "e1", stance: "opposing", summary: "valuation risk", source: "market", source_class: "market", observed_at: "2026-08-16T11:45:00+00:00" }],
-          debate: { bull_case: {}, bear_case: {} },
-          thesis: { statement: "constructive but expensive", confidence: 0.7 },
-          decision: { action: "watch" },
-        },
-        manifest: { generation_id: "g1" },
-      },
-    }),
+    ledger: async () => ({ ok: true, value: { entries: [
+      { decision_id: "dec-1", source: "conversation", subject: { ticker: "00100" },
+        decided_at: "2026-08-16T13:45:00+08:00", action: "reject", confidence: 0.65,
+        mind: { bull: { summary: "营收 +159%" }, bear: { summary: "资不抵债" }, invalidation: ["站回 340"] },
+        emotion: { pressure: "averaging_down", note: "忍住没加" },
+        execution: { status: "followed" } },
+      { decision_id: "dec-2", plan_date: "2026-08-10", ticker: "07226", action: "hold", confidence: 0.5,
+        execution: { status: "followed" } },
+      { decision_id: "dec-3", plan_date: "2026-08-11", ticker: "02208", action: "cut", confidence: 0.6,
+        execution: { status: "followed" } },
+      { decision_id: "dec-4", plan_date: "2026-08-12", ticker: "03032", action: "trim", confidence: 0.4,
+        execution: { status: "unknown" } },
+    ] } }),
+    portfolio: async () => ({ ok: true, value: { books: [{ name: "hk_stocks", currency: "HKD", holdings: [] }] } }),
+    plans: async () => ({ ok: true, value: { plans: [] } }),
   };
   const ctx = {
     effect() {},
-    get(name) { assert.equal(name, "remote.clawockStudio"); return remoteFace; },
+    get() { return remoteFace; },
     slots: {
       inject(name, fn) { this._fn = fn; },
       register(definition, Component) { registered = definition; component = Component; },
@@ -263,30 +281,12 @@ test("client: the tab component renders the run list from the remote", async () 
   };
   await api.apply(ctx);
   ctx.slots._fn();
-  const injected = registered.inject("s1"); // the real injected face unwraps the remote envelope
+  const injected = registered.inject("s1");
 
   const tick = () => new Promise((resolve) => setImmediate(resolve));
-  const render = () => component({ sessionId: "s1", list: injected.list, get: injected.get });
-  let tree = (await (async () => {
-    render();
-    await tick(); await tick(); await tick();
-    return render();
-  })());
-
-  // click the run row, then let list + get resolve, then re-render
-  tree = (await (async () => {
-    const buttons = [];
-    (function find(node) {
-      if (node == null) return;
-      if (Array.isArray(node)) { node.forEach(find); return; }
-      if (node.type === "button") buttons.push(node);
-      (node.children || []).forEach(find);
-    })(tree);
-    assert.equal(buttons.length, 1, "the run list must render one row button");
-    buttons[0].props.onClick();
-    await tick(); await tick(); await tick(); await tick();
-    return render();
-  })());
+  let tree = component({ sessionId: "s1", ledger: injected.ledger, portfolio: injected.portfolio, plans: injected.plans });
+  await tick(); await tick(); await tick();
+  tree = component({ sessionId: "s1", ledger: injected.ledger, portfolio: injected.portfolio, plans: injected.plans });
 
   const text = [];
   (function walk(node) {
@@ -296,9 +296,88 @@ test("client: the tab component renders the run list from the remote", async () 
     (node.children || []).forEach(walk);
     walk(node.props && node.props.value);
     walk(node.props && node.props.label);
-    walk(node.props && node.props.name);
   })(tree);
   const joined = text.join(" ");
-  assert.match(joined, /DEMO/);
-  assert.match(joined, /1/);
+  assert.match(joined, /决策心智/);
+  assert.match(joined, /已执行交易/);
+  // default filter = executed trades only: the cut shows, the reject/hold/unknown do not
+  assert.match(joined, /02208/);
+  assert.match(joined, /cut/);
+  assert.doesNotMatch(joined, /00100/);
+  assert.doesNotMatch(joined, /03032/);
+
+  const findButton = (label) => {
+    let found = null;
+    (function collect(node) {
+      if (node == null || found) return;
+      if (Array.isArray(node)) { node.forEach(collect); return; }
+      if (node.type === "button") {
+        const t = (node.children || []).filter((c) => typeof c === "string").join("");
+        if (t === label) found = node;
+      }
+      (node.children || []).forEach(collect);
+    })(tree);
+    return found;
+  };
+
+  // switch to 已执行: the respected reject (00100) and hold appear
+  findButton("已执行").props.onClick();
+  await tick();
+  tree = component({ sessionId: "s1", ledger: injected.ledger, portfolio: injected.portfolio, plans: injected.plans });
+  const textB = [];
+  (function walk(node) {
+    if (node == null) return;
+    if (Array.isArray(node)) { node.forEach(walk); return; }
+    if (typeof node === "string") { textB.push(node); return; }
+    (node.children || []).forEach(walk);
+    walk(node.props && node.props.value);
+    walk(node.props && node.props.label);
+  })(tree);
+  const joinedB = textB.join(" ");
+  assert.match(joinedB, /00100/);
+  assert.match(joinedB, /reject/);
+  assert.match(joinedB, /07226/);
+  assert.doesNotMatch(joinedB, /03032/);
+
+  // switch to 全部: the unknown trim appears too
+  findButton("全部").props.onClick();
+  await tick();
+  tree = component({ sessionId: "s1", ledger: injected.ledger, portfolio: injected.portfolio, plans: injected.plans });
+  const textC = [];
+  (function walk(node) {
+    if (node == null) return;
+    if (Array.isArray(node)) { node.forEach(walk); return; }
+    if (typeof node === "string") { textC.push(node); return; }
+    (node.children || []).forEach(walk);
+    walk(node.props && node.props.value);
+    walk(node.props && node.props.label);
+  })(tree);
+  assert.match(textC.join(" "), /03032/);
+
+  // click a ledger card row: expand shows the mind detail
+  const cardRows = [];
+  (function collect(node) {
+    if (node == null) return;
+    if (Array.isArray(node)) { node.forEach(collect); return; }
+    if (node.props && node.props.onClick && node.props.className === "row") cardRows.push(node);
+    (node.children || []).forEach(collect);
+  })(tree);
+  assert.ok(cardRows.length >= 2, "expanded ledger cards");
+  cardRows[0].props.onClick();
+  await tick();
+  tree = component({ sessionId: "s1", ledger: injected.ledger, portfolio: injected.portfolio, plans: injected.plans });
+  const text2 = [];
+  (function walk(node) {
+    if (node == null) return;
+    if (Array.isArray(node)) { node.forEach(walk); return; }
+    if (typeof node === "string") { text2.push(node); return; }
+    (node.children || []).forEach(walk);
+    walk(node.props && node.props.value);
+    walk(node.props && node.props.label);
+  })(tree);
+  const joined2 = text2.join(" ");
+  assert.match(joined2, /营收 \+159%/);
+  assert.match(joined2, /资不抵债/);
+  assert.match(joined2, /站回 340/);
+  assert.match(joined2, /忍住没加/);
 });
