@@ -12,7 +12,6 @@ CONTRACT = json.loads((ROOT / "config/pages-public.json").read_text())
 WORKFLOW = (ROOT / ".github/workflows/pages.yml").read_text()
 UI = (ROOT / "site/assets/js/dashboard.ui.js").read_text()
 INDEX = (ROOT / "site/index.html").read_text()
-INDEXNOW_KEY = "4fb2df1611ed42e5b67fd6171a237acb.txt"
 GOOGLE_VERIFICATION = "google7be5b41525cebe9d.html"
 
 
@@ -46,13 +45,6 @@ def test_linked_web_manifest_is_required_and_triggers_deploy():
 
     assert manifest in CONTRACT["required_pages"]
     assert manifest in CONTRACT["artifact_include"]
-    assert WORKFLOW.count("'site/**'") == 2
-
-
-def test_indexnow_key_is_required_public_and_triggers_deploy():
-    assert (ROOT / "site" / INDEXNOW_KEY).read_text().strip() == INDEXNOW_KEY.removesuffix(".txt")
-    assert INDEXNOW_KEY in CONTRACT["required_pages"]
-    assert INDEXNOW_KEY in CONTRACT["artifact_include"]
     assert WORKFLOW.count("'site/**'") == 2
 
 
@@ -153,7 +145,7 @@ def test_builder_stages_only_public_consumers(tmp_path):
     (site / "index.html").write_text("ok")
     for path in (
         "briefs.html", "evidence.html", "robots.txt", "manifest.webmanifest",
-        INDEXNOW_KEY, GOOGLE_VERIFICATION,
+        GOOGLE_VERIFICATION,
     ):
         (site / path).write_text("ok")
     (site / "sitemap.xml").write_text(
@@ -196,7 +188,6 @@ def test_builder_stages_only_public_consumers(tmp_path):
         if node.tag.rsplit("}", 1)[-1] == "loc"
     ]
     assert sitemap_locs == ["https://kcnyu.github.io/clawock/"]
-    assert (output / INDEXNOW_KEY).is_file()
     assert (output / GOOGLE_VERIFICATION).is_file()
     assert (output / "assets/data/dashboard.json").is_file()
     assert (output / "assets/data/overview.json").is_file()

@@ -244,10 +244,6 @@ def load_crontab():
             name = 'sync_us_dst'
         elif 'gold_dca_refresh' in cmd:
             name = 'gold_dca_refresh'
-        elif 'rick_broadcast_nostr' in cmd:
-            name = 'nostr_broadcast'
-        elif 'indexnow_submit' in cmd:
-            name = 'indexnow_submit'
         elif re.search(r'(^|/)git\b', cmd) and re.search(r'\bgc\b', cmd):
             name = 'git gc'
         else:
