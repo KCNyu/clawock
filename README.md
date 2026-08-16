@@ -253,7 +253,35 @@ correlated generation receipt. The packaged example can smoke the lifecycle
 without a model (`bash examples/cli/minimal-run/run.sh`), and
 [`examples/`](https://github.com/KCNyu/clawock/blob/master/examples/README.md) shows the
 same run driven from a pure CLI, an OpenClaw skill, a Claude Code instruction, a Codex AGENTS.md,
-and a DeepSeek Harness agent — the harness never touches the contract. DSH users have a ready skill package on npm: `dsh plugin --profile web add clawock-dsh`.
+and a DeepSeek Harness agent — the harness never touches the contract.
+
+### DeepSeek Harness plugin: every fill is a trace
+
+DSH users get a ready plugin on npm — one command installs the skill plus a
+conversation-view panel:
+
+```bash
+dsh plugin --profile web add clawock-dsh
+```
+
+The **Decision Mind** tab is one organic view, not three tabs: the spine is
+your real fills (`portfolio.json` trades), each row carries the soft-paired
+decision (±3 days from `decisions.jsonl`) as the "why", and the T+1 snapshot
+close decides 卖飞/卖对 on sells. Click a fill and the trace unfolds — plan →
+execution → T+1 → P&L — with the rationale, emotion pressure and notes in
+semantic colors. Fills with no decision say so explicitly; nothing is
+pretended. Currency is never mixed: USD and HKD figures are kept apart and
+only ever combined through the desk's published FX rate. The same trace data
+powers the public dashboard's Reflect card, so the plugin and the website
+render one contract:
+
+<p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dsh-decision-mind.png" alt="Decision Mind plugin — decision traces: real fills with soft-paired decisions and T+1 verdicts, expandable to a plan → execution → result timeline" width="860"></p>
+
+Conversation verdicts land in the same ledger through one command from any
+harness: `clawock record --source <harness>` (bear case and invalidation
+conditions mandatory, emotion pressure self-reported). Nobody edits
+`decisions.jsonl` by hand — one ledger, one record command, every harness
+calls it.
 
 For the KCNyu compatibility surface, `clawock doctor`, `clawock context audit`,
 and `CLAWOCK_WORKSPACE` still inspect or point at an operational book. They name
