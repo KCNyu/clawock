@@ -15,8 +15,12 @@
   "type": "module",
   "main": "./lib/index.js",
   "exports": {
-    ".": "./lib/index.js",
-    "./client": "./client.js",
+    ".": {
+      "default": "./lib/index.js"
+    },
+    "./client": {
+      "default": "./client.js"
+    },
     "./package.json": "./package.json"
   },
   "files": [
@@ -26,8 +30,10 @@
     "cordis.patch.yml"
   ],
   "dependencies": {
-    "@deepseek-ai/cordis": "^4.0.1",
     "@deepseek-ai/dsh-typert-protocol": "^0.1.0-rc.6"
+  },
+  "peerDependencies": {
+    "@deepseek-ai/cordis": "^4.0.1"
   },
   "dsh": {
     "bundle": {
