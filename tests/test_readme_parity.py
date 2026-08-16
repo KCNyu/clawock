@@ -12,6 +12,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 EN = (ROOT / "README.md").read_text(encoding="utf-8")
 ZH = (ROOT / "README.zh.md").read_text(encoding="utf-8")
+LLMS = (ROOT / "site/llms.txt").read_text(encoding="utf-8")
+FAQ = (ROOT / "site/faq.md").read_text(encoding="utf-8")
 
 # Pictographic emoji codepoints (symbols, pictographs, flags, dingbats, variation
 # selector), checked as explicit ranges instead of a regex character class — it reads
@@ -227,7 +229,22 @@ def test_no_live_numbers_in_evergreen_copy():
         r"账本在此:\s*\d+",          # frozen ledger row count in prose
         r"别拿\s*\d+",               # frozen figure in a rule-of-thumb sentence
     ]
-    for md, name in ((EN, "README.md"), (ZH, "README.zh.md")):
-        for pat in banned:
+    # #670: site/llms.txt and site/faq.md have no CW_M refresh placeholders, so
+    # any hard-coded live figure there is stale the day after it lands. Ban the
+    # frozen shapes outright: a decimal return %, a "+ days" run length, a
+    # "+ records" ledger size, and settled-judgment / active-rate counts.
+    site_banned = [
+        r"−?\d+\.\d+%",        # frozen account return (the −15.95% that froze)
+        r"\d+\+\s*days",       # frozen run length (90+)
+        r"\d+\+\s*records",    # frozen ledger size (640+)
+        r"\d+\s*judgments",    # frozen settled count (177)
+        r"\d+%\s*active",      # frozen active-hit-rate pair (53%)
+    ]
+    for md, name in (
+        (EN, "README.md"), (ZH, "README.zh.md"),
+        (LLMS, "site/llms.txt"), (FAQ, "site/faq.md"),
+    ):
+        patterns = banned + (site_banned if name.startswith("site/") else [])
+        for pat in patterns:
             m = re.search(pat, md, re.IGNORECASE)
             assert not m, f"live number in evergreen copy ({name}): {m.group(0)!r}"
