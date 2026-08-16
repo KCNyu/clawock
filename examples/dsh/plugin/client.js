@@ -20,6 +20,7 @@ window.__ModuleLoader__.load({
     var module = { exports: {} }
     var exports = module.exports
     var clientRuntime = require('@deepseek-ai/dsh-client-runtime/client')
+    var defineStore = clientRuntime.defineStore
     var React = require('react')
     var useEffect = React.useEffect
     var useState = React.useState
@@ -119,6 +120,11 @@ window.__ModuleLoader__.load({
         '.dmt .empty{padding:48px 20px;text-align:center;color:var(--cap);font:400 13px/1.5 var(--font)}',
         '.dmt .trace-more{display:block;width:calc(100% - 32px);margin:10px 16px;padding:9px 12px;border:1px dashed var(--border2);border-radius:10px;background:var(--surface);color:var(--text2);font:600 12px/1.4 var(--font);cursor:pointer;transition:background .12s,border-color .12s,color .12s}',
         '.dmt .trace-more:hover{background:var(--hover);border-color:var(--brand);color:var(--text)}',
+        '.dmt .skel{display:flex;align-items:center;gap:12px;padding:13px 16px;border:1px solid var(--border);border-radius:12px;background:var(--surface);margin:7px 0}',
+        '.dmt .skel-dot{flex:none;width:6px;height:6px;border-radius:50%;background:var(--tint-strong)}',
+        '.dmt .skel-bar{height:10px;border-radius:5px;background:var(--tint-mid)}',
+        '.dmt .skel-bar.w40{width:40%}',
+        '.dmt .skel-bar.w20{width:20%}',
         '@media (max-width:520px){',
         '.dmt .main{gap:8px;padding:12px 12px 6px}',
         '.dmt .tk{font-size:13.5px}',
@@ -287,35 +293,87 @@ window.__ModuleLoader__.load({
     }
 
     /** The single organic view: decision trace timeline. */
+    /** Skeleton row for the cold-start loading state (no cache yet). */
+    function SkeletonRow() {
+      return h('div', { className: 'skel' },
+        h('div', { className: 'skel-dot' }),
+        h('div', { className: 'skel-bar w40' }),
+        h('div', { className: 'skel-bar w20' }))
+    }
+
     function DecisionMind(props) {
-      var pair = useState({ filter: 'all', open: null, traces: [], rate: null, loading: true, error: null, showAll: false })
-      var state = pair[0]
-      var setState = pair[1]
+      var ui = props.useStore(function (s) { return s })
+      var acts = props.actions
+      var dataPair = useState({ traces: [], rate: null, loading: true, error: null, stale: false })
+      var data = dataPair[0]
+      var setData = dataPair[1]
+
       useEffect(function () {
         var alive = true
-        setState(function (c) { return Object.assign({}, c, { loading: true, error: null }) })
+        var cached = traceCache
+        if (cached) {
+          // 缓存命中:同步渲染上一次快照,零 loading 帧。
+          setData({ traces: cached.trades, rate: cached.rate, loading: false, error: null, stale: false })
+        }
         props.traces().then(function (result) {
           if (!alive) return
-          setState(function (c) { return Object.assign({}, c, { traces: result.trades, rate: result.rate, loading: false }) })
+          var fresh = {
+            workspaceKey: result.workspaceKey,
+            signature: result.signature,
+            trades: result.trades,
+            rate: result.rate,
+            fetchedAt: Date.now(),
+          }
+          var unchanged = cached !== null
+            && cached.workspaceKey === fresh.workspaceKey
+            && cached.signature === fresh.signature
+          traceCache = fresh
+          if (unchanged) return // 已同步渲染同一份数据,跳过重渲染
+          setData({ traces: result.trades, rate: result.rate, loading: false, error: null, stale: false })
         }, function (error) {
           if (!alive) return
-          setState(function (c) { return Object.assign({}, c, { error: String(error && error.message ? error.message : error), loading: false }) })
+          if (traceCache) setData(function (c) { return Object.assign({}, c, { stale: true }) })
+          else setData({ traces: [], rate: null, loading: false, error: String(error && error.message ? error.message : error), stale: false })
         })
         return function () { alive = false }
       }, [props.sessionId])
 
-      if (state.error) return h('div', { className: 'dmt' }, h('div', { className: 'empty' }, 'Decision Mind: ' + state.error))
-      if (state.loading) return h('div', { className: 'dmt' }, h('div', { className: 'empty' }, '正在加载决策与持仓…'))
+      // 滚动位置:存进官方 store,列表渲染后恢复,滚动时回写。
+      useEffect(function () {
+        if (data.loading) return
+        var el = document.querySelector('.dmt')
+        if (!el) return
+        var scroller = el
+        while (scroller.parentElement && scroller.scrollHeight <= scroller.clientHeight + 1) {
+          scroller = scroller.parentElement
+        }
+        if (ui.scrollTop > 0 && scroller.scrollHeight > scroller.clientHeight + 1) {
+          scroller.scrollTop = ui.scrollTop
+        }
+        var onScroll = function () { acts.setScrollTop(scroller.scrollTop) }
+        scroller.addEventListener('scroll', onScroll, { passive: true })
+        return function () { scroller.removeEventListener('scroll', onScroll) }
+      }, [data.loading])
 
-      var traces = state.traces.map(_displayEntry)
+      if (data.error) return h('div', { className: 'dmt' }, h('div', { className: 'empty' }, 'Decision Mind: ' + data.error))
+      if (data.loading) return h('div', { className: 'dmt' },
+        h('div', { className: 'top' },
+          h('div', { className: 'tt' }, '决策轨迹'),
+          h('div', { className: 'ts' }, '真实成交 × 决策账本 × T+1 结果')),
+        h('div', { className: 'list' },
+          h(SkeletonRow, { key: 'sk1' }),
+          h(SkeletonRow, { key: 'sk2' }),
+          h(SkeletonRow, { key: 'sk3' })))
+
+      var traces = data.traces.map(_displayEntry)
       var filtered = traces.slice()
-      if (state.filter === 'miss') filtered = filtered.filter(function (t) { return !t.decision })
-      if (state.filter === 'sold') filtered = filtered.filter(function (t) { return t.action === 'sell' })
-      if (state.filter === 'dec') filtered = filtered.filter(function (t) { return t.decision })
+      if (ui.filter === 'miss') filtered = filtered.filter(function (t) { return !t.decision })
+      if (ui.filter === 'sold') filtered = filtered.filter(function (t) { return t.action === 'sell' })
+      if (ui.filter === 'dec') filtered = filtered.filter(function (t) { return t.decision })
 
       var usd = traces.filter(function (t) { return t.realizedPnl != null && t.currency === 'USD' }).reduce(function (s, t) { return s + t.realizedPnl }, 0)
       var hkd = traces.filter(function (t) { return t.realizedPnl != null && t.currency === 'HKD' }).reduce(function (s, t) { return s + t.realizedPnl }, 0)
-      var fx = state.rate
+      var fx = data.rate
       var totalUsd = usd + (fx ? hkd / fx : 0)
       var fw = traces.filter(function (t) { return t.t1 && t.t1.verdict === '卖飞' }).length
       var ok = traces.filter(function (t) { return t.t1 && t.t1.verdict === '卖对' }).length
@@ -341,27 +399,28 @@ window.__ModuleLoader__.load({
       // the rest behind an explicit "show all" (same contract as the
       // dashboard trace card). Stats above stay computed over ALL fills.
       var TRACE_FOLD_GROUPS = 3
-      var visibleDates = state.showAll ? dates : dates.slice(0, TRACE_FOLD_GROUPS)
+      var visibleDates = ui.showAll ? dates : dates.slice(0, TRACE_FOLD_GROUPS)
       var hiddenCount = filtered.length - visibleDates.reduce(function (sum, d) { return sum + groups[d].length }, 0)
 
       function renderDate(date) {
         return h('div', { key: date },
           h('div', { className: 'day' }, rel(date), h('span', null, date), h('span', { className: 'n' }, groups[date].length)),
-          groups[date].map(function (t) {
-            var key = t.ticker + t.date + t.shares
+          groups[date].map(function (t, idx) {
+            // 下标兜底:ticker+date+shares 在同股同日同量时会撞 key。
+            var key = t.ticker + t.date + t.shares + ':' + idx
             return h(TraceCell, {
               key: key,
               trace: t,
-              open: state.open === key,
-              onToggle: function () { setState(function (c) { return Object.assign({}, c, { open: c.open === key ? null : key }) }) },
-              onKeyDown: function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setState(function (c) { return Object.assign({}, c, { open: c.open === key ? null : key }) }) } },
+              open: ui.open === key,
+              onToggle: function () { acts.toggleOpen(key) },
+              onKeyDown: function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); acts.toggleOpen(key) } },
             })
           }))
       }
 
-      var moreBtn = (hiddenCount > 0 || state.showAll)
-        ? h('button', { key: 'more', className: 'trace-more', onClick: function () { setState(function (c) { return Object.assign({}, c, { showAll: !c.showAll }) }) } },
-            state.showAll ? '收起,只显示最近 ' + TRACE_FOLD_GROUPS + ' 组' : '显示全部 ' + hiddenCount + ' 笔更早成交')
+      var moreBtn = (hiddenCount > 0 || ui.showAll)
+        ? h('button', { key: 'more', className: 'trace-more', onClick: function () { acts.setShowAll(!ui.showAll) } },
+            ui.showAll ? '收起,只显示最近 ' + TRACE_FOLD_GROUPS + ' 组' : '显示全部 ' + hiddenCount + ' 笔更早成交')
         : null
 
       var body
@@ -383,13 +442,13 @@ window.__ModuleLoader__.load({
       var filters = h('div', { className: 'filters' },
         ['all', 'miss', 'sold', 'dec'].map(function (f) {
           var label = { all: '全部', miss: '无决策', sold: '卖出复盘', dec: '挂接决策' }[f]
-          return h('button', { key: f, className: 'ft' + (state.filter === f ? ' on' : ''), onClick: function () { setState(function (c) { return Object.assign({}, c, { filter: f }) }) } }, label)
+          return h('button', { key: f, className: 'ft' + (ui.filter === f ? ' on' : ''), onClick: function () { acts.setFilter(f) } }, label)
         }))
 
       return h('div', { className: 'dmt' },
         h('div', { className: 'top' },
           h('div', { className: 'tt' }, '决策轨迹'),
-          h('div', { className: 'ts' }, '真实成交 × 决策账本 × T+1 结果'),
+          h('div', { className: 'ts' }, '真实成交 × 决策账本 × T+1 结果' + (data.stale ? ' · 更新失败,显示此前快照' : '')),
           stats,
           filters),
         h('div', { className: 'list' }, body))
@@ -419,6 +478,34 @@ window.__ModuleLoader__.load({
     /** Services required by the registration and the mounted Remote face. */
     var inject = ['slots', 'remote']
 
+    /**
+     * Per-session UI state that survives tab unmounts: the ring remounts the
+     * view on every switch (`only: active.id`), so open row / filter /
+     * show-all / scroll position must live in the official registration store
+     * (kept alive for the registration's lifetime), not in component state.
+     */
+    var decisionMindStore = defineStore({
+      init: function () {
+        return { filter: 'all', open: null, showAll: false, scrollTop: 0 }
+      },
+      actions: {
+        setFilter: function (draft, value) { draft.filter = value },
+        toggleOpen: function (draft, key) { draft.open = draft.open === key ? null : key },
+        setShowAll: function (draft, value) { draft.showAll = value },
+        setScrollTop: function (draft, value) { draft.scrollTop = value },
+      },
+    })
+
+    /**
+     * Module-level data cache (lives with the factory, i.e. across tab
+     * mounts): the last fetched trace result keyed by the host's opaque
+     * workspaceKey. A mount renders this synchronously — no loading frame —
+     * and re-fetches in the background; the host answers a signature hit in
+     * µs (its own cache), and an unchanged signature skips the re-render.
+     * Single-workspace assumption; a mismatched key is simply a miss.
+     */
+    var traceCache = null
+
     /** Register the Decision Mind tab into the conversation view ring. */
     async function apply(ctx) {
       await ctx.remote.$mount(TYPERT_REMOTE)
@@ -429,6 +516,7 @@ window.__ModuleLoader__.load({
           id: 'decision-studio',
           order: 30,
           label: function () { return 'Decision Mind' },
+          store: decisionMindStore,
           inject: function () {
             var call = async function (method, args) {
               var result = await studioRemote[method].apply(studioRemote, args || [])

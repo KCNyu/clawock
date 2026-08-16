@@ -10,8 +10,12 @@
 import { TypertRemoteService, Remote } from '@deepseek-ai/dsh-typert-protocol'
 import { listRuns, getRun } from './scan.js'
 import { readLedger, readPortfolio, readPlans, readTraces } from './ledger.js'
+import { workspaceSignature, workspaceKeyOf, createTraceCache } from './freshness.js'
 
 const workspaceOf = () => process.env.CLAWOCK_WORKSPACE || process.cwd()
+
+/** Signature-keyed trace cache per workspace (see lib/freshness.js). */
+const tracesCache = createTraceCache()
 
 /**
  * Standard-method-decorator markers, applied by hand: plain ESM cannot carry
@@ -82,10 +86,26 @@ export class ClawockStudioGateway extends TypertRemoteService {
    * The decision-trace view: real fills as the spine with soft-paired
    * decisions (±3 days) and T+1 verdicts. This is the plugin's single
    * organic view — the dashboard card renders the same contract.
-   * @returns `{ trades, rate, rateSource, lastUpdated }`.
+   *
+   * Cached by workspace-freshness signature (#702 Phase 1): the enriched
+   * result is rebuilt only when portfolio.json / snapshots / decisions.jsonl
+   * actually changed. Every result carries `workspaceKey` (opaque hash) and
+   * `signature` so the client can cache across tab mounts and re-fetch only
+   * on a real change.
+   * @returns `{ trades, rate, rateSource, lastUpdated, workspaceKey, signature }`.
    */
   traces() {
-    return readTraces(workspaceOf())
+    const ws = workspaceOf()
+    const signature = workspaceSignature(ws)
+    const hit = tracesCache.get(ws, signature)
+    if (hit !== undefined) return hit
+    const value = {
+      workspaceKey: workspaceKeyOf(ws),
+      signature,
+      ...readTraces(ws),
+    }
+    tracesCache.set(ws, signature, value)
+    return value
   }
 }
 
