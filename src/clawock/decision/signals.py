@@ -340,8 +340,30 @@ def compute_short_history_signals(bars):
 
 # A name with ≥30 sessions since listing can reach the mature 30-bar gate; the
 # short-history fallback is for names that genuinely cannot. 45 calendar days
-# ≈ 30 trading sessions, with slack for holidays.
+# ≈ 30 trading sessions, with slack for holidays. The value is policy, not a
+# code constant: the single source of truth is add-alpha-policy.json's
+# `short_history_max_age_days` (#643), read at call time; this module constant
+# is only the fallback when the config is missing.
 SHORT_HISTORY_MAX_AGE_DAYS = 45
+
+
+def _policy_short_history_max_age_days() -> int:
+    """`short_history_max_age_days` from add-alpha-policy.json, default 45.
+
+    Resolved at call time so a config edit applies without a code change; a
+    missing/broken config falls back to the 45-calendar-day default (#643).
+    """
+    try:
+        policy = json.loads(
+            (workspace_root(Path.cwd()) / "config" / "add-alpha-policy.json")
+            .read_text(encoding="utf-8"))
+        raw = policy.get("short_history_max_age_days")
+        if raw is not None:
+            return int(raw)
+    except (FileNotFoundError, json.JSONDecodeError, OSError, ValueError,
+            TypeError):
+        pass
+    return SHORT_HISTORY_MAX_AGE_DAYS
 
 
 def is_short_history_candidate(detail, run_date):
@@ -350,9 +372,9 @@ def is_short_history_candidate(detail, run_date):
     The short-history view must not rescue a mature name whose feed returned
     only 20–29 bars (a partial feed): that would bypass the deliberate 30-bar
     data-quality gate with half a signal set. Only names whose registry
-    `listing_date` is present and recent (≤ SHORT_HISTORY_MAX_AGE_DAYS) are
-    candidates; an absent or unparseable listing_date means "not known to be
-    new", and the strict gate stands.
+    `listing_date` is present and recent (≤ the configured window, default
+    SHORT_HISTORY_MAX_AGE_DAYS) are candidates; an absent or unparseable
+    listing_date means "not known to be new", and the strict gate stands.
     """
     ld = (detail or {}).get('listing_date')
     if not ld:
@@ -361,7 +383,7 @@ def is_short_history_candidate(detail, run_date):
         listing = datetime.fromisoformat(ld).date()
     except (ValueError, TypeError):
         return False
-    return (run_date - listing).days <= SHORT_HISTORY_MAX_AGE_DAYS
+    return (run_date - listing).days <= _policy_short_history_max_age_days()
 
 
 def universe_details(errors=None):
