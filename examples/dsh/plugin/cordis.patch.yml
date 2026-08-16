@@ -1,0 +1,7 @@
+# clawock-dsh patch layer: one read-only Remote gateway row feeding the
+# Decision Studio conversation-view tab. The row's package (clawock-dsh) is
+# resolved from the profile's node_modules after `dsh plugin --profile web
+# add clawock-dsh`.
+- insert:
+    - id: clawock-studio
+      name: clawock-dsh
