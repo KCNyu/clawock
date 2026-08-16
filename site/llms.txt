@@ -9,9 +9,10 @@ owns the decision contract: certified evidence, a mandatory opposing case,
 deterministic money and FX reconciliation, and a public scorecard the model can
 never grade itself.
 
-A real Hong Kong + US account has run it for 90+ days: 177 judgments settled by
-Python, live account return −15.95%, every loss on the page, every number
-reproducible from `clawock audit-resettle`.
+A real Hong Kong + US account has run it continuously: every judgment settled
+by Python; the live account return is published on the dashboard — currently
+negative, every loss on the page, every number reproducible from
+`clawock audit-resettle`.
 
 ## Key pages
 
