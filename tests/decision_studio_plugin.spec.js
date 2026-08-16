@@ -631,9 +631,9 @@ test("freshness: trace cache is signature-keyed and µs-hit", async () => {
   assert.equal(cache.get("/other", "sig1"), undefined, "workspace is part of the key");
 
   // workspaceKey: opaque hash, no host path on the wire
-  const key = freshness.workspaceKeyOf("/root/.openclaw/workspace");
+  const key = freshness.workspaceKeyOf("/tmp/ws-a");
   assert.match(key, /^[0-9a-f]{12}$/);
-  assert.notEqual(key, freshness.workspaceKeyOf("/other"));
+  assert.notEqual(key, freshness.workspaceKeyOf("/tmp/ws-b"));
 });
 
 

@@ -22,13 +22,14 @@ Chromium 用 playwright 缓存 build(executable_path),snap/wrapper 版在本机
 沙箱下无法启动。
 """
 import json
+import os
 import sys
 from playwright.sync_api import sync_playwright
 
 URL = sys.argv[1] if len(sys.argv) > 1 else 'http://127.0.0.1:3081/'
 SESSION = sys.argv[2] if len(sys.argv) > 2 else 'hi1h'
 ROUNDS = max(1, int(sys.argv[3])) if len(sys.argv) > 3 else 5
-CHROMIUM = '/root/.cache/ms-playwright/chromium-1223/chrome-linux64/chrome'
+CHROMIUM = os.path.expanduser('~/.cache/ms-playwright/chromium-1223/chrome-linux64/chrome')
 
 with sync_playwright() as p:
     browser = p.chromium.launch(executable_path=CHROMIUM, args=['--no-sandbox'])
