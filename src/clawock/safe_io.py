@@ -15,6 +15,7 @@ these tokens on the read side; this module closes the same hole on the write
 side.
 """
 import contextlib
+import copy
 import fcntl
 import json
 import math
@@ -192,9 +193,12 @@ def load_json_cached(path: str | os.PathLike) -> Any:
     JSONDecodeError exactly like a plain read — only the parse count changes.
 
     Contract boundaries (do not extend them silently):
-    - READ-ONLY return: the same mutable object is handed to every caller for
-      the same mtime, so an in-place mutation would poison later reads. Mutate
-      a copy if you must write.
+    - INDEPENDENT COPY return (#642): every caller receives a deep copy of the
+      cached parse, never the shared instance — an in-place mutation (a
+      `.setdefault()` / `.update()` / `list.append()`) can no longer poison
+      another caller's read. The parse-count win is preserved: copying is far
+      cheaper than re-parsing, and portfolio.json is read only a handful of
+      times per process.
     - Freshness is guaranteed for atomic writers only. A producer that writes
       in place without bumping mtime (or restores it), or a filesystem with
       coarse mtime granularity, can hand back stale bytes — the price of the
@@ -206,14 +210,14 @@ def load_json_cached(path: str | os.PathLike) -> Any:
     mtime = os.path.getmtime(path)
     cached = _JSON_READ_CACHE.get(path)
     if cached is not None and cached[0] == mtime:
-        return cached[1]
+        return copy.deepcopy(cached[1])
     with open(path, encoding='utf-8') as f:
         value = json.load(f)
     _JSON_READ_CACHE[path] = (mtime, value)
     if len(_JSON_READ_CACHE) > _MAX_JSON_CACHE_ENTRIES:
         # dict preserves insertion order: the first key is the oldest entry.
         _JSON_READ_CACHE.pop(next(iter(_JSON_READ_CACHE)))
-    return value
+    return copy.deepcopy(value)
 
 
 def clear_json_cache() -> None:
