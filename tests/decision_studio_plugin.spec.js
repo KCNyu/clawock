@@ -206,6 +206,7 @@ test("client: registers the Decision Mind tab and mounts the remote face", async
     ledger: async () => ({ ok: true, value: { entries: [] } }),
     portfolio: async () => ({ ok: true, value: { books: [] } }),
     plans: async () => ({ ok: true, value: { plans: [] } }),
+    traces: async () => ({ ok: true, value: { trades: [], rate: null } }),
   };
   const ctx = {
     effect() {},
@@ -214,7 +215,7 @@ test("client: registers the Decision Mind tab and mounts the remote face", async
       inject(name, fn) { assert.equal(name, "conversation.view"); this._fn = fn; },
       register(definition, Component) { registered = definition; component = Component; },
     },
-    remote: { $mount: async (descriptors) => { assert.equal(descriptors.descriptors.length, 5); } },
+    remote: { $mount: async (descriptors) => { assert.equal(descriptors.descriptors.length, 6); } },
   };
   await api.apply(ctx);
   ctx.slots._fn();
@@ -223,13 +224,13 @@ test("client: registers the Decision Mind tab and mounts the remote face", async
   assert.equal(registered.label(), "Decision Mind");
 
   const injected = registered.inject("s1");
+  assert.equal(typeof injected.traces, "function");
   assert.equal(typeof injected.ledger, "function");
-  assert.equal(typeof injected.portfolio, "function");
-  assert.deepEqual(await injected.ledger(), { entries: [] });
+  assert.deepEqual(await injected.traces(), { trades: [], rate: null });
   assert.equal(typeof component, "function");
 });
 
-test("client: _displayEntry projects mind records and degrades legacy entries", async () => {
+test("client: _displayEntry projects a trace with its decision and T+1", async () => {
   const loaded = await loadClient();
   const api = loaded.factory((s) => {
     if (s === "@deepseek-ai/dsh-client-runtime/client") return {};
@@ -237,31 +238,30 @@ test("client: _displayEntry projects mind records and degrades legacy entries", 
     throw new Error(`unexpected require: ${s}`);
   });
 
-  const conv = api._displayEntry({
-    decision_id: "dec-1", source: "conversation",
-    subject: { ticker: "00100", market: "HK", currency: "HKD" },
-    decided_at: "2026-08-16T13:45:00+08:00", action: "reject", confidence: 0.65,
-    mind: { bull: { summary: "b" }, bear: { summary: "r" }, thesis: "t", invalidation: ["c1"] },
-    emotion: { pressure: "averaging_down", note: "忍住" },
-    execution: { status: "unknown" },
+  const withDec = api._displayEntry({
+    ticker: "PLTU", market: "US", currency: "USD", date: "2026-08-13",
+    action: "sell", shares: 5, price: 50, realizedPnl: 45.21, note: "清仓",
+    t1: { date: "2026-08-14", price: 49.24, delta: -1.52, verdict: "卖对" },
+    decision: { planDate: "2026-08-10", action: "trim_on_rebound", confidence: 0.6,
+      drivenBy: "technical", rationale: "浮盈保护", execution: "followed",
+      condition: "反弹至 50 减仓" },
   });
-  assert.equal(conv.ticker, "00100");
-  assert.equal(conv.action, "reject");
-  assert.equal(conv.emotion, "averaging_down");
-  assert.deepEqual(conv.invalidation, ["c1"]);
+  assert.equal(withDec.ticker, "PLTU");
+  assert.equal(withDec.realizedPnl, 45.21);
+  assert.equal(withDec.t1.verdict, "卖对");
+  assert.equal(withDec.decision.action, "trim_on_rebound");
 
-  const legacy = api._displayEntry({
-    decision_id: "dec-2", plan_date: "2026-08-10", ticker: "00100",
-    action: "trim_on_rebound", confidence: 0.7,
-    condition: { description: "跌破 730" }, evaluation: { outcome: "not_triggered" },
+  const bare = api._displayEntry({
+    ticker: "SPCH", market: "US", currency: "USD", date: "2026-08-15",
+    action: "buy", shares: 10, price: 8.77, realizedPnl: null,
   });
-  assert.equal(legacy.bull, null);
-  assert.equal(legacy.condition, "跌破 730");
-  assert.equal(legacy.outcome, "not_triggered");
-  assert.equal(legacy.emotion, null);
+  assert.equal(bare.ticker, "SPCH");
+  assert.equal(bare.decision, null);
+  assert.equal(bare.t1, null);
+  assert.equal(bare.realizedPnl, null);
 });
 
-test("client: renders ledger cards from the mounted remote", async () => {
+test("client: renders the single decision-trace view from the mounted remote", async () => {
   const loaded = await loadClient();
   const api = loaded.factory((s) => {
     if (s === "@deepseek-ai/dsh-client-runtime/client") return {};
@@ -272,26 +272,25 @@ test("client: renders ledger cards from the mounted remote", async () => {
   let registered = null;
   let component = null;
   const remoteFace = {
-    ledger: async () => ({ ok: true, value: { entries: [
-      { decision_id: "dec-1", source: "conversation", subject: { ticker: "00100" },
-        decided_at: "2026-08-16T13:45:00+08:00", action: "reject", confidence: 0.65,
-        mind: { bull: { summary: "营收 +159%" }, bear: { summary: "资不抵债" }, invalidation: ["站回 340"] },
-        emotion: { pressure: "averaging_down", note: "忍住没加" },
-        execution: { status: "followed" } },
-      { decision_id: "dec-2", plan_date: "2026-08-10", ticker: "07226", action: "hold", confidence: 0.5,
-        rationale: "测试理由: 杠杆风险已释放,持有观察",
-        execution: { status: "followed" } },
-      { decision_id: "dec-3", plan_date: "2026-08-11", ticker: "02208", action: "cut", confidence: 0.6,
-        size: { shares: 30, pct: 0.15 }, simulated_entry_price: 10.5,
-        execution: { status: "followed" } },
-      { decision_id: "dec-4", plan_date: "2026-08-12", ticker: "03032", action: "trim", confidence: 0.4,
-        execution: { status: "unknown" } },
-    ] } }),
-    portfolio: async () => ({ ok: true, value: { books: [{ name: "hk_stocks", currency: "HKD", holdings: [{ ticker: "02208", shares: 200, price: 10.58, pnlPct: -24.9 }] }], trades: [
-      { ticker: "SPCH", market: "US", currency: "USD", date: "2026-08-15", action: "buy", shares: 10, price: 8.77, realizedPnl: null, note: "无限子弹流继续摊本(用户报告成交,微信 00:26 HKT)" },
-      { ticker: "SPCH", market: "US", currency: "USD", date: "2026-08-07", action: "buy", shares: 20, price: 5.88, realizedPnl: null, note: "用户报告成交(01:34 HKT)" },
-      { ticker: "PLTU", market: "US", currency: "USD", date: "2026-08-13", action: "sell", shares: 5, price: 50, realizedPnl: 45.21428571428572, note: "PLTU 清仓" },
-    ] } }),
+    traces: async () => ({ ok: true, value: { trades: [
+      { ticker: "SPCH", market: "US", currency: "USD", date: "2026-08-15", action: "buy",
+        shares: 10, price: 8.77, realizedPnl: null, note: "无限子弹流继续摊本(微信 00:26 HKT)",
+        t1: null, holdPnl: -28.0,
+        decision: { planDate: "2026-08-14", action: "cut", confidence: 0.82,
+          drivenBy: "risk_rule", rationale: "超限硬止损", execution: "unknown",
+          sizeShares: 200, plannedPrice: 9.21 } },
+      { ticker: "SPCH", market: "US", currency: "USD", date: "2026-08-07", action: "buy",
+        shares: 20, price: 5.88, realizedPnl: null, note: "用户报告成交(01:34 HKT)",
+        t1: { date: "2026-08-10", price: 5.6, delta: -4.76, verdict: "跌" } },
+      { ticker: "PLTU", market: "US", currency: "USD", date: "2026-08-13", action: "sell",
+        shares: 5, price: 50, realizedPnl: 45.21428571428572, note: "PLTU 清仓",
+        t1: { date: "2026-08-14", price: 49.24, delta: -1.52, verdict: "卖对" },
+        decision: { planDate: "2026-08-10", action: "trim_on_rebound", confidence: 0.6,
+          drivenBy: "technical", rationale: "浮盈保护", execution: "followed",
+          condition: "反弹至 50 减仓" } },
+    ], rate: 7.8473 } }),
+    ledger: async () => ({ ok: true, value: { entries: [] } }),
+    portfolio: async () => ({ ok: true, value: { books: [] } }),
     plans: async () => ({ ok: true, value: { plans: [] } }),
   };
   const ctx = {
@@ -308,29 +307,37 @@ test("client: renders ledger cards from the mounted remote", async () => {
   const injected = registered.inject("s1");
 
   const tick = () => new Promise((resolve) => setImmediate(resolve));
-  let tree = component({ sessionId: "s1", ledger: injected.ledger, portfolio: injected.portfolio, plans: injected.plans });
+  let tree = component({ sessionId: "s1", traces: injected.traces, ledger: injected.ledger, portfolio: injected.portfolio });
   await tick(); await tick(); await tick();
-  tree = component({ sessionId: "s1", ledger: injected.ledger, portfolio: injected.portfolio, plans: injected.plans });
+  tree = component({ sessionId: "s1", traces: injected.traces, ledger: injected.ledger, portfolio: injected.portfolio });
 
-  const text = [];
-  (function walk(node) {
-    if (node == null) return;
-    if (Array.isArray(node)) { node.forEach(walk); return; }
-    if (typeof node === "string") { text.push(node); return; }
-    (node.children || []).forEach(walk);
-    walk(node.props && node.props.value);
-    walk(node.props && node.props.label);
-  })(tree);
-  const joined = text.join(" ");
-  assert.match(joined, /决策心智/);
-  // default view = actual operations (real fills), newest first
+  const collectText = () => {
+    const text = [];
+    (function walk(node) {
+      if (node == null) return;
+      if (Array.isArray(node)) { node.forEach(walk); return; }
+      if (typeof node === "string") { text.push(node); return; }
+      (node.children || []).forEach(walk);
+      walk(node.props && node.props.value);
+      walk(node.props && node.props.label);
+    })(tree);
+    return text.join(" ");
+  };
+
+  // Single view: title + stats + all fills as trace rows.
+  const joined = collectText();
+  assert.match(joined, /决策轨迹/);
+  assert.match(joined, /已实现 \(USD 等值\)/);
+  assert.match(joined, /T\+1 卖飞\/卖对/);
   assert.match(joined, /SPCH/);
-  assert.match(joined, /加仓/);
-  assert.match(joined, /10 股 @8.77/);
+  assert.match(joined, /买入/);
+  assert.match(joined, /10 @8.77/);
   assert.match(joined, /PLTU/);
-  assert.match(joined, /清仓/);
-  assert.match(joined, /\+45.21/); // realized P&L on the real sell
+  assert.match(joined, /卖出/);
+  assert.match(joined, /\+45.21/);       // realized P&L on the real sell
+  assert.match(joined, /卖对/);           // T+1 verdict chip
 
+  // Filter: 无决策 keeps only SPCH fills without a decision.
   const findButton = (label) => {
     let found = null;
     (function collect(node) {
@@ -344,76 +351,31 @@ test("client: renders ledger cards from the mounted remote", async () => {
     })(tree);
     return found;
   };
-
-  // switch to 账本: executed-trades filter with counts
-  findButton("账本").props.onClick();
+  findButton("无决策").props.onClick();
   await tick();
-  tree = component({ sessionId: "s1", ledger: injected.ledger, portfolio: injected.portfolio, plans: injected.plans });
-  const textL = [];
-  (function walk(node) {
-    if (node == null) return;
-    if (Array.isArray(node)) { node.forEach(walk); return; }
-    if (typeof node === "string") { textL.push(node); return; }
-    (node.children || []).forEach(walk);
-    walk(node.props && node.props.value);
-    walk(node.props && node.props.label);
-  })(tree);
-  const joinedL = textL.join(" ");
-  assert.match(joinedL, /已执行交易 1/); // count on the filter button
-  assert.match(joinedL, /全部 4/);
-  assert.match(joinedL, /02208/);
-  assert.match(joinedL, /割肉/);
-  assert.match(joinedL, /30 股 @10.5/);   // executed how much
-  assert.match(joinedL, /现盈亏 -24.9%/); // and what it is worth now
-  assert.doesNotMatch(joinedL, /00100/);
-  assert.doesNotMatch(joinedL, /03032/);
+  tree = component({ sessionId: "s1", traces: injected.traces, ledger: injected.ledger, portfolio: injected.portfolio });
+  const joinedMiss = collectText();
+  assert.match(joinedMiss, /SPCH/);
+  assert.doesNotMatch(joinedMiss, /PLTU/); // PLTU has a decision → filtered out
 
-  // switch to 全部: everything appears — reject with bull-fallback why, hold with rationale why, unknown trim
+  // Expand a row: the trace detail shows plan → execution → P&L.
   findButton("全部").props.onClick();
   await tick();
-  tree = component({ sessionId: "s1", ledger: injected.ledger, portfolio: injected.portfolio, plans: injected.plans });
-  const textB = [];
-  (function walk(node) {
-    if (node == null) return;
-    if (Array.isArray(node)) { node.forEach(walk); return; }
-    if (typeof node === "string") { textB.push(node); return; }
-    (node.children || []).forEach(walk);
-    walk(node.props && node.props.value);
-    walk(node.props && node.props.label);
-  })(tree);
-  const joinedB = textB.join(" ");
-  assert.match(joinedB, /00100/);
-  assert.match(joinedB, /不加/);
-  assert.match(joinedB, /为什么: 营收/);     // conversation record: bull-fallback why
-  assert.match(joinedB, /为什么: 测试理由/); // plan record: rationale why
-  assert.match(joinedB, /07226/);
-  assert.match(joinedB, /03032/);
-  assert.match(joinedB, /· 对话/);           // conversation day tag
-
-  // click a ledger card row: expand shows the mind detail
-  const cardRows = [];
+  tree = component({ sessionId: "s1", traces: injected.traces, ledger: injected.ledger, portfolio: injected.portfolio });
+  const cell = [];
   (function collect(node) {
     if (node == null) return;
     if (Array.isArray(node)) { node.forEach(collect); return; }
-    if (node.props && node.props.onClick && node.props.className === "row") cardRows.push(node);
+    if (node.props && node.props.onClick && String(node.props.className || "").indexOf("cell") === 0) cell.push(node);
     (node.children || []).forEach(collect);
   })(tree);
-  assert.ok(cardRows.length >= 2, "expanded ledger cards");
-  cardRows[0].props.onClick();
+  assert.ok(cell.length >= 2, "trace rows present");
+  cell[0].props.onClick();
   await tick();
-  tree = component({ sessionId: "s1", ledger: injected.ledger, portfolio: injected.portfolio, plans: injected.plans });
-  const text2 = [];
-  (function walk(node) {
-    if (node == null) return;
-    if (Array.isArray(node)) { node.forEach(walk); return; }
-    if (typeof node === "string") { text2.push(node); return; }
-    (node.children || []).forEach(walk);
-    walk(node.props && node.props.value);
-    walk(node.props && node.props.label);
-  })(tree);
-  const joined2 = text2.join(" ");
-  assert.match(joined2, /营收 \+159%/);
-  assert.match(joined2, /资不抵债/);
-  assert.match(joined2, /站回 340/);
-  assert.match(joined2, /忍住没加/);
+  tree = component({ sessionId: "s1", traces: injected.traces, ledger: injected.ledger, portfolio: injected.portfolio });
+  const joined2 = collectText();
+  assert.match(joined2, /决策轨迹 · /);   // expand header
+  assert.match(joined2, /割肉/);           // plan action
+  assert.match(joined2, /执行/);
+  assert.match(joined2, /盈亏/);
 });

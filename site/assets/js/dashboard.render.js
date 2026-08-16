@@ -356,7 +356,7 @@
     reflect: [
       renderBehavioralReview, renderDecisionAudit, renderCalibBadge,
       renderPlanReview, renderCalibByTrigger, renderCalibByDriver,
-      renderReflectKpi, renderDelta,
+      renderDecisionTraces, renderReflectKpi, renderDelta,
     ],
   };
   let RENDER_VERSION = 0;
@@ -2756,6 +2756,114 @@
             ${fmtPnl(a.benefit_t1_pct)}
           </div>
         </div>`;
+    }).join("");
+  }
+
+  // =========================================================
+  // Decision traces: real fills as the spine, soft-paired decisions
+  // as the "why", T+1 closes as the result. Same contract as the DSH
+  // plugin view — this card is the public mirror.
+  // =========================================================
+  function renderDecisionTraces() {
+    const wrap = document.getElementById("trace-list");
+    if (!wrap) return;
+    const card = wrap.closest(".card");
+    const list = safe(DATA, "decision_traces") || [];
+    if (!list.length) { if (card) card.style.display = "none"; return; }
+    if (card) card.style.display = "";
+    const ACT = {buy:"买入",add:"加仓",trim:"减仓",sell:"卖出",cut:"割肉",hold:"持有",hold_and_watch:"持有",trim_on_rebound:"反弹减仓",t_only:"仅T+0",add_only_on_trigger:"触发加仓",reject:"不加",watch:"观望",abstain:"弃权"};
+    const DRV = {technical:"技术面",fundamental:"基本面",sentiment:"情绪面",mixed:"混合",risk_rule:"风控规则"};
+    const EXE = {followed:["已遵守","ok"],not_followed:["未执行","skip"],unknown:["未知","na"]};
+    const EMO = {fomo:"追高冲动",revenge:"报复性",averaging_down:"摊薄冲动",fear:"恐慌",euphoria:"亢奋",calm:"平静",mixed:"混合"};
+    const esc = escapeHtml;
+
+    // Stats row: USD-eq realized + T+1 verdict counts + match rate.
+    const usd = list.filter(t => t.realizedPnl != null && t.currency === "USD").reduce((s,t) => s + t.realizedPnl, 0);
+    const hkd = list.filter(t => t.realizedPnl != null && t.currency === "HKD").reduce((s,t) => s + t.realizedPnl, 0);
+    const fx = safe(DATA, "fx", "usdhkd");
+    const totalUsd = usd + (fx ? hkd / fx : 0);
+    const fw = list.filter(t => t.t1 && t.t1.verdict === "卖飞").length;
+    const ok = list.filter(t => t.t1 && t.t1.verdict === "卖对").length;
+    const matched = list.filter(t => t.decision).length;
+    const statsEl = document.getElementById("trace-stats");
+    if (statsEl) {
+      statsEl.innerHTML =
+        `<span>已实现 <b class="${totalUsd >= 0 ? "pos" : "neg"}">${fmtMoney(totalUsd, "USD")}</b> <span class="muted">USD等值</span></span>` +
+        `<span class="muted">(US ${fmtMoney(usd, "USD")} + HK ${fmtMoney(hkd, "HKD")})</span>` +
+        `<span>T+1 <b class="neg">${fw}</b>卖飞 / <b class="pos">${ok}</b>卖对</span>` +
+        `<span>挂接 <b>${matched}</b>/${list.length}</span>` +
+        (fx ? `<span class="muted">@${fx}</span>` : "");
+    }
+
+    // Group by date, newest first; each fill is an expandable trace row.
+    const groups = {};
+    list.forEach(t => { const k = (t.date || "").slice(0,10); (groups[k] = groups[k] || []).push(t); });
+    const dates = Object.keys(groups).sort().reverse();
+
+    function traceHTML(t) {
+      const d = t.decision;
+      const sym = t.currency === "HKD" ? "HK$" : "$";
+      if (!d) {
+        let t1 = "";
+        if (t.t1) t1 = `<div class="tr-node ${t.t1.delta >= 0 ? "neg" : "pos"}"><div class="tr-n">T+1 结果</div><div class="tr-v">${fmtPct(t.t1.delta, 1)}</div></div>`;
+        return `<div class="trace-line">
+          <div class="tr-node dec"><div class="tr-n">决策</div><div class="tr-v muted">无关联记录</div></div>
+          <div class="tr-node ok"><div class="tr-n">执行</div><div class="tr-v">${esc(ACT[t.action] || t.action)} ${t.shares}股 @${t.price} ${sym}</div></div>
+          ${t1}
+        </div>${t.note ? `<div class="tr-note">${esc(t.note)}</div>` : ""}
+        <div class="tr-miss">此笔无关联决策记录 — 事实保留,判断缺失显式标出</div>`;
+      }
+      const exe = EXE[d.execution] || ["未知","na"];
+      const decV = `${ACT[d.action] || d.action}${d.confidence != null ? " " + Math.round(d.confidence*100) + "%" : ""} <span class="muted">${DRV[d.drivenBy] || d.drivenBy || ""}</span>`;
+      const why = d.rationale || d.bull || "";
+      const emo = d.emotion && d.emotion !== "calm" ? (EMO[d.emotion] || d.emotion) : null;
+      let chips = "";
+      if (d.condition) chips += `<span class="tr-chip">条件: ${esc(d.condition)}</span>`;
+      if (d.sizeShares) chips += `<span class="tr-chip">计划 ${d.sizeShares} 股</span>`;
+      if (d.plannedPrice) chips += `<span class="tr-chip">计划价 ${d.plannedPrice}</span>`;
+      let t1 = "";
+      if (t.t1) t1 = `<div class="tr-node ${t.t1.delta >= 0 ? "neg" : "pos"}"><div class="tr-n">T+1 结果</div><div class="tr-v">${fmtPct(t.t1.delta, 1)}${t.action === "sell" ? " · " + t.t1.verdict : ""}</div></div>`;
+      let rv, rc;
+      if (t.realizedPnl != null) { rv = (t.realizedPnl >= 0 ? "+" : "") + Number(t.realizedPnl).toFixed(2) + " " + sym; rc = t.realizedPnl >= 0 ? "pos" : "neg"; }
+      else if (t.holdPnl != null) { rv = fmtPct(t.holdPnl, 1); rc = t.holdPnl >= 0 ? "pos" : "neg"; }
+      else { rv = DASH; rc = "na"; }
+      return `<div class="trace-line">
+        <div class="tr-node dec"><div class="tr-n">计划 · ${esc(d.planDate || "")}</div><div class="tr-v">${decV}</div></div>
+        <div class="tr-node ${exe[1]}"><div class="tr-n">执行</div><div class="tr-v">${exe[0]}${exe[1] === "skip" ? " — 实际动了手" : ""}</div></div>
+        ${t1}
+        <div class="tr-node ${rc}"><div class="tr-n">盈亏</div><div class="tr-v">${rv}</div></div>
+      </div>
+      ${chips ? `<div class="tr-chips">${chips}</div>` : ""}
+      ${why ? `<div class="tr-note why">${esc(why)}</div>` : ""}
+      ${emo ? `<div class="tr-note emo">⚡ ${esc(emo)}</div>` : ""}
+      ${t.note ? `<div class="tr-note">${esc(t.note)}</div>` : ""}`;
+    }
+
+    wrap.innerHTML = dates.map(date => {
+      const rows = groups[date];
+      return `<div class="trace-day"><div class="trace-day-h">${esc(date)} <span class="muted">${rows.length}</span></div>
+        ${rows.map(t => {
+          const tone = t.action === "buy" || t.action === "add" ? "pos" : (t.action === "sell" || t.action === "cut" || t.action === "trim" ? "neg" : "muted");
+          const pnl = t.realizedPnl != null
+            ? `<span class="tr-pnl ${t.realizedPnl >= 0 ? "pos" : "neg"}">${t.realizedPnl >= 0 ? "+" : ""}${Number(t.realizedPnl).toFixed(2)} ${t.currency === "HKD" ? "HK$" : "$"}</span>`
+            : (t.holdPnl != null ? `<span class="tr-pnl ${t.holdPnl >= 0 ? "pos" : "neg"}">${fmtPct(t.holdPnl, 1)}</span>` : "");
+          const t1tag = t.t1
+            ? `<span class="tr-t1 ${t.t1.delta >= 0 ? "neg" : "pos"}">T+1 ${fmtPct(t.t1.delta, 1)} ${t.t1.verdict}</span>`
+            : "";
+          return `<details class="tr-row">
+            <summary>
+              <span class="tr-dot ${t.decision ? "has" : ""}"></span>
+              <span class="tr-tk">${esc(t.ticker)}</span>
+              <span class="tr-act ${tone}">${esc(ACT[t.action] || t.action)}</span>
+              <span class="tr-qty">${t.shares} @${t.price}</span>
+              <span class="tr-spacer"></span>
+              ${t1tag}
+              ${pnl}
+            </summary>
+            <div class="tr-body">${traceHTML(t)}</div>
+          </details>`;
+        }).join("")}
+      </div>`;
     }).join("");
   }
 

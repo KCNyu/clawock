@@ -70,15 +70,27 @@ agent:准备请求…(clawock run prepare)
 
 ## Decision Mind 面板
 
-装完后,web GUI 的会话视图多一个 **Decision Mind** tab(只读,DSH 原生
-浅色风格)。**OpenClaw 每天产出的东西,这里都能读**:
+装完后,web GUI 的会话视图多一个 **Decision Mind** tab(只读)。它只做
+一件事:**每一笔真实成交,都是一条可以点开的决策轨迹**。
 
-- **账本**:`memory/decisions.jsonl` 的决策记录,按日期分组 —— 盘前简报
-  决策与对话判定(带 bull/bear 思想、情绪压力、可证伪条件)同源展示,
-  旧记录自动降级(只有动作/条件/对账);
-- **持仓**:`portfolio.json` 按书分组(港/美股),ticker / 股数 / 现价 /
-  盈亏%,红绿语义色;
-- **计划**:最近的 `memory/*-plan.json` 与决策数。
+- **主轴是真实成交**(portfolio.json trades[]),不是计划流水。每行 =
+  标的 + 动作 + 数量@价 + **盈亏焦点数字**,副行是 **T+1 判定**
+  (快照收盘价对比成交价:卖飞/卖对)+ 日期。
+- **点开一条轨迹**:GitHub 式纵向时间线 —— 当时计划(动作/信心/驱动 +
+  条件/计划股数/计划价)→ 执行(是否遵守)→ T+1 结果 → 盈亏(已实现
+  或持仓现值)。为什么(rationale)/情绪压力(非 calm 才显示)/备注
+  用语义色左边框分层。
+- **没有决策的成交显式标注**「无关联决策记录」—— 不假装有判断。
+  SPCH 那种「计划 cut 却持续买入摊本」的纪律偏差,一条轨迹看得明明白白。
+- **抬头统计**:已实现盈亏(USD/HKD 分别计、折算 USD 等值,绝不混加)、
+  T+1 卖飞/卖对计数、决策挂接率;过滤:全部 / 无决策 / 卖出复盘 /
+  挂接决策。
+
+对话判定落账:`clawock record --subject ... --action ... --bull ... --bear
+... --invalidation ... --emotion ...`(schema 见 `docs/decision-mind-ledger.md`,
+bear 与失效条件强制,情绪自认)。面板不改任何文件,结算仍归既有机制。
+同一个「决策轨迹」数据契约也渲染在公开 dashboard 的 Reflect 面板
+(`build_decision_traces`)——插件与网页同一份加工逻辑。结构:
 
 对话判定落账:`clawock record --subject ... --action ... --bull ... --bear
 ... --invalidation ... --emotion ...`(schema 见 `docs/decision-mind-ledger.md`,

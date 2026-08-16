@@ -2162,3 +2162,53 @@
     .bucket-row .stat { grid-column: 2; grid-row: 1; }
     .catalyst-row { grid-template-columns: 64px minmax(64px, auto) minmax(0, 1fr); }
   }
+
+/* =========================================================
+   Decision traces — real fills as the spine with soft-paired
+   decisions and T+1 verdicts (public mirror of the DSH plugin)
+   ========================================================= */
+#decision-traces-card { font-size: 13px; }
+#trace-stats b { font-variant-numeric: tabular-nums; }
+.tr-row { border: 1px solid var(--border); border-radius: 10px; background: var(--surface); margin: 6px 0; overflow: hidden; }
+.tr-row summary { display: flex; align-items: center; gap: 10px; padding: 10px 14px; cursor: pointer; list-style: none; }
+.tr-row summary::-webkit-details-marker { display: none; }
+.tr-row summary:hover { background: var(--hover-bg, rgba(0,0,0,0.03)); }
+.tr-row[open] { border-color: var(--accent); }
+.tr-row[open] summary::after { transform: rotate(180deg); }
+.tr-row summary::after { content: '▾'; color: var(--text-dim); font-size: 10px; margin-left: auto; transition: transform 0.15s; }
+.tr-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--border-strong, var(--text-dim)); flex: none; }
+.tr-dot.has { background: var(--accent); }
+.tr-tk { font-weight: 700; font-size: 13.5px; }
+.tr-act { font-size: 11.5px; font-weight: 600; padding: 2px 8px; border-radius: 999px; }
+.tr-act.pos { color: var(--pos); background: color-mix(in srgb, var(--pos) 12%, transparent); }
+.tr-act.neg { color: var(--neg); background: color-mix(in srgb, var(--neg) 12%, transparent); }
+.tr-act.muted { color: var(--text-dim); background: var(--bg-soft, rgba(0,0,0,0.04)); }
+.tr-qty { color: var(--text-dim); font-size: 12px; font-variant-numeric: tabular-nums; }
+.tr-spacer { flex: 1; }
+.tr-t1 { font-size: 11px; font-weight: 700; padding: 2px 7px; border-radius: 5px; white-space: nowrap; }
+.tr-t1.pos { color: var(--pos); background: color-mix(in srgb, var(--pos) 10%, transparent); }
+.tr-t1.neg { color: var(--neg); background: color-mix(in srgb, var(--neg) 10%, transparent); }
+.tr-pnl { font-weight: 700; font-size: 15px; font-variant-numeric: tabular-nums; min-width: 88px; text-align: right; }
+.tr-pnl.pos { color: var(--pos); } .tr-pnl.neg { color: var(--neg); }
+.tr-body { padding: 4px 14px 12px; border-top: 1px solid var(--border); background: var(--surface-soft, rgba(0,0,0,0.015)); }
+.trace-line { position: relative; padding-left: 20px; margin: 8px 0 4px; }
+.trace-line::before { content: ''; position: absolute; left: 5px; top: 8px; bottom: 8px; width: 2px; background: var(--border); }
+.tr-node { position: relative; padding: 3px 0 10px; }
+.tr-node::before { content: ''; position: absolute; left: -20px; top: 7px; width: 9px; height: 9px; border-radius: 50%; background: var(--surface); border: 2px solid var(--text-dim); }
+.tr-node.dec::before { border-color: var(--accent); }
+.tr-node.ok::before { border-color: var(--pos); }
+.tr-node.skip::before { border-color: var(--accent-strong); }
+.tr-node.pos::before { border-color: var(--pos); }
+.tr-node.neg::before { border-color: var(--neg); }
+.tr-n { font-size: 10.5px; font-weight: 700; letter-spacing: 0.05em; color: var(--text-dim); text-transform: uppercase; }
+.tr-v { font-size: 12.5px; font-weight: 600; margin-top: 2px; }
+.tr-v.pos { color: var(--pos); } .tr-v.neg { color: var(--neg); } .tr-v.ok { color: var(--pos); } .tr-v.skip { color: var(--accent-strong); }
+.tr-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 8px; }
+.tr-chip { font-size: 11px; padding: 2px 8px; border-radius: 6px; background: var(--bg-soft, rgba(0,0,0,0.04)); border: 1px solid var(--border); color: var(--text-dim); }
+.tr-note { margin: 6px 0; padding: 3px 0 3px 10px; border-left: 3px solid var(--border); font-size: 12px; color: var(--text-secondary); line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
+.tr-note.why { border-left-color: var(--accent); }
+.tr-note.emo { border-left-color: var(--accent-strong); }
+.tr-miss { margin: 8px 0; padding: 7px 10px; border: 1px dashed var(--border); border-radius: 6px; font-size: 11.5px; color: var(--text-dim); }
+.trace-day { margin-bottom: 14px; }
+.trace-day-h { font-size: 11px; font-weight: 700; color: var(--text-dim); letter-spacing: 0.05em; margin: 10px 0 6px; display: flex; align-items: center; gap: 6px; }
+.trace-day-h::after { content: ''; flex: 1; height: 1px; background: var(--border); }

@@ -1,12 +1,18 @@
 /**
  * clawock-dsh browser bundle: the Decision Mind conversation-view tab.
  *
- * Shows whatever the OpenClaw desk produced — the shared decision ledger
- * (memory/decisions.jsonl), the portfolio, and recent daily plans — through
- * read-only Typert remotes. Hand-authored module-loader factory, no build
- * step. Visual language: restrained DSH-native light theme (ui-theme token
- * values), glass only on the sticky header, DeepSeek blue as the single
- * accent, semantic tints for pos/neg/warn.
+ * One organic view — the decision trace: real fills as the spine, the shared
+ * decision ledger (memory/decisions.jsonl) soft-paired (±3 days) as the "why"
+ * layer, and snapshot closes as the T+1 verdict. This replaced the old
+ * three-tab layout (ops/ledger/portfolio): the ledger was "useless" as a
+ * parallel tab because it showed plan rows without their fills; the trace
+ * view is the synthesis — every fill carries its plan, its execution and its
+ * result, and fills without a decision say so explicitly.
+ *
+ * Visual language: modern SaaS on DSH tokens — white cards on a light gray
+ * canvas, the P&L figure as the 16.5px/700 focal number, T+1 verdict chips,
+ * GitHub-style vertical timeline in the expandable detail. Read-only Typert
+ * remotes; hand-authored module-loader factory, no build step.
  */
 window.__ModuleLoader__.load({
   id: 'clawock-dsh',
@@ -25,332 +31,319 @@ window.__ModuleLoader__.load({
       var style = document.createElement('style')
       style.id = STYLE_ID
       style.textContent = [
-        '.dml{--bg:#F9FAFB;--surface:#FFFFFF;--surface2:#F5F6F7;--text:#0F1115;--text2:#81858C;--text3:#ADB2B8;',
-        '--brand:#4176E6;--brand-deep:#4868B2;--brand-soft:#EDF3FE;--border-l1:rgba(0,0,0,.04);--border-l2:rgba(0,0,0,.10);--border-card:rgba(0,0,0,.08);',
-        '--hover:rgba(38,49,72,.06);--active:rgba(38,49,72,.12);',
-        '--pos:#1E9E6C;--pos-soft:#E6FAED;--neg:#D64550;--neg-soft:#FEF2F2;--warn:#B77B16;--warn-soft:#FEF5E7;',
-        '--shadow-lv2:0 4px 12px rgba(0,0,0,.02),0 2px 8px rgba(0,0,0,.04);--shadow-lv3:0 0 1px rgba(0,0,0,.2),0 0 4px rgba(0,0,0,.02),0 12px 32px rgba(0,0,0,.08);',
-        '--radius-lg:14px;--radius-md:10px;--radius-sm:8px;--radius-pill:999px;',
+        '.dmt{--bg:#F7F8FA;--surface:#FFFFFF;--text:#15171B;--text2:#61666B;--text3:#81858C;--cap:#ADB2B8;',
+        '--brand:#4176E6;--brand-soft:#EDF3FE;--ok:#1B8644;--ok-soft:#E6FAED;--bad:#C01313;--bad-soft:#FDEBEE;--warn:#AA6924;',
+        '--border:rgba(17,24,39,.06);--border2:rgba(17,24,39,.10);',
+        '--hover:rgba(17,24,39,.05);--shadow-sm:0 1px 2px rgba(16,24,40,.04);--shadow-md:0 4px 16px rgba(16,24,40,.08);',
+        '--radius:12px;--radius-sm:8px;',
         '--font:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;',
         '--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;',
-        'font:14px/1.55 var(--font);color:var(--text);-webkit-font-smoothing:antialiased;padding:4px 2px;',
-        'background-image:radial-gradient(900px 300px at 50% -120px,rgba(65,118,230,.05),transparent 70%)}',
-        '.dml .head{position:sticky;top:0;z-index:5;margin:-4px -2px 0;padding:12px 14px 10px;',
-        'background:linear-gradient(180deg,rgba(249,250,251,.9),rgba(249,250,251,.72));',
-        '-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border-bottom:1px solid var(--border-l1)}',
-        '.dml .title{display:flex;align-items:baseline;gap:10px;margin-bottom:10px}',
-        '.dml .title h3{margin:0;font-size:16px;font-weight:700;letter-spacing:-.01em}',
-        '.dml .title span{color:var(--text3);font-size:12px}',
-        '.dml .seg{display:inline-flex;padding:2px;background:var(--surface2);border:1px solid var(--border-l2);border-radius:var(--radius-pill)}',
-        '.dml .seg button{border:0;background:transparent;color:var(--text2);font-size:12.5px;font-weight:600;padding:4px 14px;border-radius:var(--radius-pill);cursor:pointer;transition:background .15s,color .15s}',
-        '.dml .seg button:hover{background:var(--hover)}',
-        '.dml .seg button.on{background:var(--surface);color:var(--brand);box-shadow:var(--shadow-lv2)}',
-        '.dml .day{margin:18px 0 8px;color:var(--text3);font-size:11.5px;font-weight:700;letter-spacing:.06em;display:flex;align-items:center;gap:8px}',
-        '.dml .day::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,rgba(65,118,230,.2),transparent)}',
-        '.dml .card{margin:8px 0;border:1px solid var(--border-card);border-radius:var(--radius-md);background:var(--surface);box-shadow:var(--shadow-lv2);overflow:hidden;transition:border-color .15s}',
-        '.dml .card:hover{border-color:var(--border-l2)}',
-        '.dml .row{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;transition:background .15s}',
-        '.dml .row:hover{background:var(--hover)}.dml .row:active{background:var(--active)}.dml .row:focus-visible{outline:2px solid var(--brand);outline-offset:-2px}',
-        '.dml .tk{font-weight:700;font-size:14px;min-width:118px}',
-        '.dml .chip{display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:var(--radius-pill);font-size:11.5px;font-weight:600}',
-        '.dml .chip.add{color:var(--pos);background:var(--pos-soft)}.dml .chip.trim{color:var(--neg);background:var(--neg-soft)}',
-        '.dml .chip.reject{color:var(--text2);background:var(--surface2)}.dml .chip.emo{color:var(--warn);background:var(--warn-soft)}',
-        '.dml .chip.ok{color:var(--pos);background:var(--pos-soft)}.dml .chip.warn{color:var(--warn);background:var(--warn-soft)}',
-        '.dml .chip.gray{color:var(--text3);background:var(--surface2)}',
-        '.dml .conf{margin-left:auto;color:var(--text2);font-size:12px;font-family:var(--mono);font-variant-numeric:tabular-nums}',
-        '.dml .chev{color:var(--text3);font-size:10px;transition:transform .18s}',
-        '.dml .open .chev{transform:rotate(180deg)}',
-        '.dml .detail{display:none;border-top:1px solid var(--border-l1);padding:16px;background:var(--bg)}',
-        '.dml .open .detail{display:block}',
-        '.dml .sec{font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--text3);text-transform:uppercase;margin:14px 0 8px}',
-        '.dml .sec:first-child{margin-top:0}',
-        '.dml .vs{display:grid;grid-template-columns:1fr 1fr;gap:12px}',
-        '.dml .side{padding:12px 14px;border-radius:var(--radius-sm);border:1px solid var(--border-l2)}',
-        '.dml .side.bull{background:var(--pos-soft);border-color:rgba(30,158,108,.3)}',
-        '.dml .side.bear{background:var(--neg-soft);border-color:rgba(214,69,80,.3)}',
-        '.dml .side b{font-size:11px;letter-spacing:.08em;text-transform:uppercase}',
-        '.dml .side.bull b{color:var(--pos)}.dml .side.bear b{color:var(--neg)}',
-        '.dml .side p{margin:7px 0 4px;font-size:13px;color:var(--text)}',
-        '.dml .side .src{color:var(--text3);font-size:12px}',
-        '.dml .meter{height:8px;border-radius:var(--radius-pill);background:var(--border-l2);overflow:hidden;margin:8px 0 4px}',
-        '.dml .meter>div{height:100%;border-radius:var(--radius-pill);background:linear-gradient(90deg,var(--brand-deep),var(--brand))}',
-        '.dml .kv{display:flex;justify-content:space-between;gap:14px;padding:6px 0;border-bottom:1px solid var(--border-l1);font-size:13px}',
-        '.dml .kv span{color:var(--text3);flex-shrink:0}.dml .kv:last-child{border-bottom:none}',
-        '.dml ul.inv{margin:6px 0 0;padding-left:18px;color:var(--text2);font-size:13px}',
-        '.dml ul.inv li{margin:3px 0}',
-        '.dml .emo-note{margin-top:12px;padding:10px 14px;border-radius:var(--radius-sm);background:var(--warn-soft);border-left:3px solid var(--warn);font-size:13px;color:var(--text2)}',
-        '.dml .acc{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}',
-        '.dml .stat{padding:10px 12px;border:1px solid var(--border-l2);border-radius:var(--radius-sm);background:var(--surface)}',
-        '.dml .stat span{display:block;color:var(--text3);font-size:11px}.dml .stat b{font-size:13px;font-weight:600}',
-        '.dml .okb{color:var(--pos)}.dml .warnb{color:var(--warn)}.dml .grayb{color:var(--text2)}',
-        '.dml .mono{font-family:var(--mono);font-size:12px;color:var(--text2)}',
-        '.dml table{width:100%;border-collapse:collapse;font-size:13px}',
-        '.dml th{color:var(--text3);font-weight:600;text-align:left;padding:6px 10px;border-bottom:1px solid var(--border-l2);font-size:11.5px}',
-        '.dml td{padding:7px 10px;border-bottom:1px solid var(--border-l1);font-variant-numeric:tabular-nums}',
-        '.dml td.num{text-align:right;font-family:var(--mono);font-size:12.5px}',
-        '.dml .pos{color:var(--pos)}.dml .neg{color:var(--neg)}',
-        '.dml .book{margin:12px 0}',
-        '.dml .book h4{margin:0 0 8px;font-size:13px;font-weight:700;color:var(--text2)}',
-        '.dml .plan{margin:8px 0;padding:12px 14px;border:1px solid var(--border-card);border-radius:var(--radius-md);background:var(--surface);box-shadow:var(--shadow-lv2)}',
-        '.dml .plan .d{font-weight:700;font-size:13.5px;font-family:var(--mono)}',
-        '.dml .plan .n{color:var(--text3);font-size:12.5px;margin-left:10px}',
-        '.dml .empty{padding:26px 14px;text-align:center;color:var(--text3);font-size:13px}',
+        'font:13px/1.45 var(--font);color:var(--text);-webkit-font-smoothing:antialiased;min-height:100%}',
+        '.dmt .top{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.92);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);padding:10px 16px 8px}',
+        '.dmt .tt{display:flex;align-items:center;gap:8px;font:700 17px/1.3 var(--font);letter-spacing:-.01em}',
+        '.dmt .tt::before{content:"";width:9px;height:9px;border-radius:3px;background:var(--brand)}',
+        '.dmt .ts{font:400 11.5px/1.3 var(--font);color:var(--cap);margin-top:2px}',
+        '.dmt .stats{display:flex;align-items:flex-end;gap:0;margin-top:8px;flex-wrap:wrap}',
+        '.dmt .sg{display:flex;flex-direction:column;gap:2px;padding:0 14px}',
+        '.dmt .sg+.sg{border-left:1px solid rgba(0,0,0,.08)}',
+        '.dmt .sl{font:500 10.5px/1.3 var(--font);color:var(--cap);letter-spacing:.03em;white-space:nowrap}',
+        '.dmt .sv{font:650 14px/1.3 var(--font);color:var(--text);font-variant-numeric:tabular-nums;white-space:nowrap}',
+        '.dmt .sv.focus{font:700 16px/1.3 var(--font)}',
+        '.dmt .sv.up{color:var(--ok)}.dmt .sv.down{color:var(--bad)}',
+        '.dmt .rate{font:400 10.5px/1.3 var(--font);color:var(--cap);margin-left:auto;align-self:center}',
+        '.dmt .filters{display:flex;gap:2px;margin-top:8px;flex-wrap:wrap}',
+        '.dmt .ft{border:0;background:transparent;color:var(--text3);font:600 12px/1.4 var(--font);padding:5px 11px;border-radius:8px;cursor:pointer;transition:background .12s,color .12s}',
+        '.dmt .ft:hover{background:var(--hover)}',
+        '.dmt .ft.on{color:var(--text);background:rgba(17,24,39,.06)}',
+        '.dmt .list{max-width:760px;margin:0 auto;padding:10px 16px 32px}',
+        '.dmt .day{margin:16px 0 2px;display:flex;align-items:center;gap:8px;font:650 13px/1.3 var(--font);color:var(--text)}',
+        '.dmt .day .n{color:var(--cap);font:400 10.5px/1.3 var(--mono);margin-left:auto}',
+        '.dmt .day::after{content:"";flex:1;height:1px;background:var(--border);margin-left:6px}',
+        '.dmt .cell{width:100%;margin:7px 0;border-radius:12px;border:1px solid var(--border);background:var(--surface);cursor:pointer;box-shadow:var(--shadow-sm);transition:box-shadow .15s,border-color .15s}',
+        '.dmt .cell:hover{border-color:var(--border2);box-shadow:var(--shadow-md)}',
+        '.dmt .cell.open{border-color:var(--brand);box-shadow:0 0 0 3px rgba(65,118,230,.12)}',
+        '.dmt .main{display:flex;align-items:center;gap:12px;padding:13px 14px 6px}',
+        '.dmt .dotm{flex:none;width:6px;height:6px;border-radius:50%;background:var(--cap);margin-right:2px}',
+        '.dmt .cell.hasdec .dotm{background:var(--brand)}',
+        '.dmt .tk{flex:0 1 auto;min-width:0;font:650 14.5px/1.4 var(--font);letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+        '.dmt .mkt{font:700 9.5px/1 var(--font);margin-left:3px;vertical-align:2px;color:var(--brand)}',
+        '.dmt .mkt.hk{color:var(--text3)}',
+        '.dmt .tag{flex:none;display:inline-flex;align-items:center;height:20px;padding:0 7px;border-radius:6px;border:1px solid rgba(0,0,0,.05);background:rgba(0,0,0,.03);font:600 11.5px/1 var(--font);color:var(--text2);letter-spacing:.02em}',
+        '.dmt .qty{flex:0 1 auto;min-width:0;text-align:right;font:500 12.5px/1.4 var(--mono);color:var(--text2);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
+        '.dmt .sp{flex:1 1 auto;min-width:8px}',
+        '.dmt .pnl{flex:none;min-width:92px;text-align:right;font:700 16.5px/1.2 var(--font);font-variant-numeric:tabular-nums;letter-spacing:-.01em}',
+        '.dmt .pnl.up{color:var(--ok)}.dmt .pnl.down{color:var(--bad)}.dmt .pnl.na{color:var(--cap);font-weight:500;font-size:13px}',
+        '.dmt .sub{display:flex;align-items:center;gap:10px;padding:3px 14px 11px;font:400 11px/1.4 var(--font);color:var(--cap)}',
+        '.dmt .t1{flex:none;display:inline-flex;align-items:center;height:18px;padding:0 6px;border-radius:5px;font:600 10.5px/1 var(--font);white-space:nowrap;font-variant-numeric:tabular-nums}',
+        '.dmt .t1.up{color:var(--ok);background:var(--ok-soft);border:1px solid rgba(27,132,68,.18)}',
+        '.dmt .t1.down{color:var(--bad);background:var(--bad-soft);border:1px solid rgba(192,19,19,.18)}',
+        '.dmt .t1.flat{color:var(--text2);background:rgba(0,0,0,.03)}',
+        '.dmt .sub .date{flex:none;font-variant-numeric:tabular-nums}',
+        '.dmt .chev{margin-left:auto;flex:none;color:var(--cap);font-size:10px;transition:transform .15s}',
+        '.dmt .cell.open .chev{transform:rotate(180deg)}',
+        '.dmt .detail{display:grid;grid-template-rows:0fr;opacity:0;border-top:1px solid rgba(0,0,0,.04);transition:grid-template-rows .24s cubic-bezier(.22,1,.36,1),opacity .15s ease;overflow:hidden}',
+        '.dmt .cell.open .detail{grid-template-rows:1fr;opacity:1}',
+        '.dmt .dinner{overflow:hidden;min-height:0;padding:12px 16px 14px}',
+        '.dmt .trhead{display:flex;align-items:center;gap:6px;font:500 10.5px/1.3 var(--font);color:var(--cap);letter-spacing:.05em;margin-bottom:8px}',
+        '.dmt .trhead::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--brand)}',
+        '.dmt .trace{position:relative;padding-left:22px}',
+        '.dmt .trace::before{content:"";position:absolute;left:5px;top:12px;bottom:10px;width:2px;background:rgba(0,0,0,.08)}',
+        '.dmt .tnode{position:relative;padding:2px 0 14px}',
+        '.dmt .tnode:last-child{padding-bottom:2px}',
+        '.dmt .tnode::before{content:"";position:absolute;left:-22px;top:5px;width:10px;height:10px;border-radius:50%;background:#fff;border:2px solid var(--cap);box-sizing:border-box}',
+        '.dmt .tnode.dec::before{border-color:var(--brand)}',
+        '.dmt .tnode.follow::before{border-color:var(--ok)}.dmt .tnode.skip::before{border-color:var(--warn)}',
+        '.dmt .tnode.win::before{border-color:var(--ok)}.dmt .tnode.loss::before{border-color:var(--bad)}',
+        '.dmt .tnode .tw{font:400 10px/1.4 var(--mono);color:var(--cap);margin-bottom:1px}',
+        '.dmt .tnode .n{font:500 10.5px/1.3 var(--font);color:var(--cap);letter-spacing:.04em;margin-bottom:2px}',
+        '.dmt .tnode .v{font:600 13px/1.4 var(--font)}',
+        '.dmt .tnode.win .v{color:var(--ok)}.dmt .tnode.loss .v{color:var(--bad)}',
+        '.dmt .tnode.follow .v{color:var(--ok)}.dmt .tnode.skip .v{color:var(--warn)}',
+        '.dmt .pchips{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 8px}',
+        '.dmt .pc{font:400 11px/1.4 var(--font);padding:2px 8px;border-radius:6px;background:rgba(0,0,0,.03);border:1px solid var(--border);color:var(--text2)}',
+        '.dmt .tnote{margin:7px 0;padding:3px 0 3px 10px;border-left:3px solid rgba(0,0,0,.12);font:400 11.5px/1.6 var(--font);color:var(--text2);white-space:pre-wrap;overflow-wrap:anywhere}',
+        '.dmt .tnote.why{border-left-color:var(--brand)}',
+        '.dmt .tnote.emo{border-left-color:var(--warn)}',
+        '.dmt .tnote .k{color:var(--cap);font:600 10.5px/1.4 var(--font)}',
+        '.dmt .tmiss{padding:7px 10px;border:1px dashed var(--border2);border-radius:6px;font:400 11.5px/1.5 var(--font);color:var(--cap);margin-top:8px}',
+        '.dmt .empty{padding:48px 20px;text-align:center;color:var(--cap);font:400 13px/1.5 var(--font)}',
+        '@media (max-width:520px){',
+        '.dmt .main{gap:8px;padding:12px 12px 6px}',
+        '.dmt .tk{font-size:13.5px}',
+        '.dmt .qty{font-size:11px;text-align:left}',
+        '.dmt .pnl{min-width:84px;font-size:14.5px}',
+        '.dmt .sub{gap:8px;padding:3px 12px 10px}',
+        '.dmt .sg{padding:0 11px}',
+        '.dmt .sv{font-size:13px}.dmt .sv.focus{font-size:14.5px}',
+        '}',
+        '@media (prefers-reduced-motion:reduce){',
+        '.dmt *{transition:none!important;animation:none!important}',
+        '}',
       ].join('')
       document.head.appendChild(style)
     }
 
-    /** Pure projection of one ledger entry into display fields (test seam). */
-    function _displayEntry(entry) {
-      var subject = entry.subject || {}
-      var mind = entry.mind || {}
-      var emotion = entry.emotion || {}
-      var evaluation = entry.evaluation || {}
-      var execution = entry.execution || {}
+    var ACT = { buy:'买入', add:'加仓', trim:'减仓', sell:'卖出', cut:'割肉', hold:'持有',
+      hold_and_watch:'持有', trim_on_rebound:'反弹减仓', t_only:'仅T+0',
+      add_only_on_trigger:'触发加仓', reject:'不加', watch:'观望', abstain:'弃权' }
+    var DRV = { technical:'技术面', fundamental:'基本面', sentiment:'情绪面', mixed:'混合', risk_rule:'风控规则' }
+    var EXE = { followed:['已遵守','follow'], not_followed:['未执行','skip'], unknown:['未知',''] }
+    var EMO = { fomo:'追高冲动', revenge:'报复性', averaging_down:'摊薄冲动', fear:'恐慌',
+      euphoria:'亢奋', calm:'平静', mixed:'混合' }
+
+    function esc(s) { return String(s == null ? '' : s).replace(/</g, '&lt;') }
+
+    function fmtMoney(v) {
+      if (v == null || !isFinite(v)) return '—'
+      return (v > 0 ? '+' : '') + Number(v).toLocaleString(undefined, { maximumFractionDigits: 0 })
+    }
+
+    function fmtPct(v, digits) {
+      if (v == null || !isFinite(v)) return '—'
+      return (v > 0 ? '+' : '') + Number(v).toFixed(digits || 1) + '%'
+    }
+
+    /** Display projection of one trace (test seam). */
+    function _displayEntry(trace) {
+      var d = trace.decision || null
       return {
-        id: entry.decision_id || null,
-        ticker: subject.ticker || entry.ticker || '?',
-        date: entry.decided_at || entry.plan_date || null,
-        action: entry.action || 'hold',
-        confidence: entry.confidence ?? null,
-        drivenBy: entry.driven_by || null,
-        source: entry.source || 'brief',
-        bull: mind.bull && mind.bull.summary ? mind.bull.summary : null,
-        bear: mind.bear && mind.bear.summary ? mind.bear.summary : null,
-        thesis: mind.thesis || null,
-        invalidation: Array.isArray(mind.invalidation) ? mind.invalidation : [],
-        emotion: emotion.pressure || null,
-        emotionNote: emotion.note || null,
-        condition: entry.condition && entry.condition.description ? entry.condition.description : null,
-        executionStatus: execution.status || null,
-        outcome: evaluation.outcome || null,
-        rationale: typeof entry.rationale === 'string' ? entry.rationale : null,
-        market: subject.market || (entry.leg === 'US' ? 'US' : /^\d/.test(entry.ticker || '') ? 'HK' : 'US'),
-        sizeShares: (entry.size && entry.size.shares) || null,
-        sizePct: (entry.size && entry.size.pct) || null,
-        // Real fill price beats the plan's simulation; flag when only the plan price exists.
-        entryPrice: evaluation.execution_price ?? entry.simulated_entry_price ?? null,
-        planPrice: evaluation.execution_price == null && entry.simulated_entry_price != null,
-        capital: evaluation.capital || null,
+        ticker: trace.ticker || '?',
+        market: trace.market || 'US',
+        currency: trace.currency || 'USD',
+        date: trace.date || null,
+        action: trace.action || 'hold',
+        shares: trace.shares || 0,
+        price: trace.price ?? null,
+        realizedPnl: trace.realizedPnl ?? null,
+        note: trace.note || null,
+        t1: trace.t1 || null,
+        holdPnl: trace.holdPnl ?? null,
+        decision: d,
       }
     }
 
-    var ACTION_LABELS = {
-      buy: '买入', add: '加仓', trim: '减仓', sell: '卖出', cut: '割肉',
-      hold_and_watch: '持有观望', trim_on_rebound: '反弹减仓', t_only: '仅T+0', add_only_on_trigger: '触发加仓',
-      reject: '不加', watch: '观望', hold: '持有', abstain: '弃权',
-    }
-    function actionLabel(action) { return ACTION_LABELS[action] || String(action) }
+    function Chip(props) { return h('span', { className: 'tag' }, props.children) }
 
-    function Chip(props) {
-      return h('span', { className: 'chip ' + props.tone }, props.children)
-    }
-
-    var ACTIVE_ACTIONS = ['add', 'buy', 'trim', 'sell', 'cut', 't_only', 'trim_on_rebound', 'add_only_on_trigger']
-
-    function ActionChip(action) {
-      var tone = action === 'add' || action === 'buy' ? 'add'
-        : ACTIVE_ACTIONS.indexOf(action) >= 0 ? 'trim'
-        : action === 'reject' || action === 'watch' || action === 'hold' || action === 'abstain' ? 'reject'
-        : 'gray'
-      return h(Chip, { tone: tone }, actionLabel(action))
-    }
-
-    function LedgerCard(props) {
-      var d = props.entry
-      var expanded = props.open
-      var currentPnl = props.currentPnl
-      var sizeText = null
-      if (d.sizeShares) {
-        var amount = d.sizeShares * (d.entryPrice || 0)
-        var sym = d.market === 'HK' ? 'HK$' : '$'
-        sizeText = d.sizeShares + ' 股' + (d.entryPrice ? ' @' + d.entryPrice + (d.planPrice ? ' (计划价)' : '') + (amount ? ' ≈' + sym + Math.round(amount).toLocaleString() : '') : '')
-      } else if (d.sizePct) {
-        sizeText = (d.sizePct * 100).toFixed(0) + '% 仓位'
+    function TraceDetail(props) {
+      var t = props.trace
+      var d = t.decision
+      var sym = t.currency === 'HKD' ? 'HK$' : '$'
+      if (!d) {
+        var t1miss = t.t1 ? h('div', { className: 'tnode ' + (t.t1.delta >= 0 ? 'loss' : 'win') },
+          h('div', { className: 'n' }, 'T+1 结果'),
+          h('div', { className: 'v' }, (t.t1.delta >= 0 ? '+' : '') + t.t1.delta + '%')) : null
+        return h('div', null,
+          h('div', { className: 'trhead' }, '决策轨迹 · 无关联记录'),
+          h('div', { className: 'trace' },
+            h('div', { className: 'tnode dec' },
+              h('div', { className: 'n' }, '决策'),
+              h('div', { className: 'v', style: { color: 'var(--cap)' } }, '无关联记录')),
+            h('div', { className: 'tnode follow' },
+              h('div', { className: 'n' }, '执行'),
+              h('div', { className: 'v' }, (ACT[t.action] || t.action) + ' ' + t.shares + '股 @' + t.price + ' ' + sym)),
+            t1miss),
+          t.note ? h('div', { className: 'tnote' }, esc(t.note)) : null,
+          h('div', { className: 'tmiss' }, '此笔无关联决策记录 — 事实保留,判断缺失显式标出'))
       }
-      var why = d.thesis || d.rationale || (d.bull ? d.bull.slice(0, 48) : null)
-      if (why && why.length > 60) why = why.slice(0, 57) + '…'
-      var pnl = props.currentPnl
-      var outcomeTone = d.outcome && d.outcome !== 'not_triggered' && d.outcome !== 'unknown' ? 'ok' : 'gray'
-      return h('div', { className: 'card' + (expanded ? ' open' : '') },
-        h('div', { className: 'row', role: 'button', tabIndex: 0, 'aria-expanded': expanded, onClick: props.onToggle },
-          h('span', { className: 'tk' }, d.ticker),
-          ActionChip(d.action),
-          sizeText ? h('span', { className: 'mono', style: { color: 'var(--text2)' } }, sizeText) : null,
-          d.emotion && d.emotion !== 'calm' ? h(Chip, { tone: 'emo' }, '⚡ ' + d.emotion) : null,
-          h('span', { className: 'conf' }, (d.confidence ?? '—') + (d.drivenBy ? ' · ' + d.drivenBy : '')),
+      var exe = EXE[d.execution] || ['未知', '']
+      var decV = (ACT[d.action] || d.action) + (d.confidence != null ? ' ' + Math.round(d.confidence * 100) + '%' : '') +
+        (d.drivenBy ? ' · ' + (DRV[d.drivenBy] || d.drivenBy) : '')
+      var why = d.rationale || d.bull || ''
+      var emo = d.emotion && d.emotion !== 'calm' ? (EMO[d.emotion] || d.emotion) : null
+      var chips = []
+      if (d.condition) chips.push(h('span', { className: 'pc', key: 'c' }, '条件: ' + d.condition))
+      if (d.sizeShares) chips.push(h('span', { className: 'pc', key: 's' }, '计划 ' + d.sizeShares + ' 股'))
+      if (d.plannedPrice) chips.push(h('span', { className: 'pc', key: 'p' }, '计划价 ' + d.plannedPrice))
+      var t1node = t.t1 ? h('div', { className: 'tnode ' + (t.t1.delta >= 0 ? 'loss' : 'win') },
+        h('div', { className: 'tw' }, t.t1.date),
+        h('div', { className: 'n' }, 'T+1 结果'),
+        h('div', { className: 'v' }, (t.t1.delta >= 0 ? '+' : '') + t.t1.delta + '%' + (t.action === 'sell' ? ' · ' + t.t1.verdict : ''))) : null
+      var rv, rc
+      if (t.realizedPnl != null) { rv = (t.realizedPnl >= 0 ? '+' : '') + Number(t.realizedPnl).toFixed(2) + ' ' + sym; rc = t.realizedPnl >= 0 ? 'win' : 'loss' }
+      else if (t.holdPnl != null) { rv = fmtPct(t.holdPnl, 1); rc = t.holdPnl >= 0 ? 'win' : 'loss' }
+      else { rv = '—'; rc = '' }
+      return h('div', null,
+        h('div', { className: 'trhead' }, '决策轨迹 · ' + (d.planDate || '')),
+        h('div', { className: 'trace' },
+          h('div', { className: 'tnode dec' },
+            h('div', { className: 'tw' }, d.planDate || ''),
+            h('div', { className: 'n' }, '计划'),
+            h('div', { className: 'v' }, decV)),
+          h('div', { className: 'tnode ' + (exe[1] || '') },
+            h('div', { className: 'tw' }, t.date || ''),
+            h('div', { className: 'n' }, '执行'),
+            h('div', { className: 'v' }, exe[0] + (exe[1] === 'skip' ? ' — 实际动了手' : ''))),
+          t1node,
+          h('div', { className: 'tnode ' + rc },
+            h('div', { className: 'n' }, '盈亏'),
+            h('div', { className: 'v' }, rv))),
+        chips.length ? h('div', { className: 'pchips' }, chips) : null,
+        why ? h('div', { className: 'tnote why' }, h('span', { className: 'k' }, '为什么 '), esc(why)) : null,
+        emo ? h('div', { className: 'tnote emo' }, h('span', { className: 'k' }, '情绪 '), '⚡ ' + emo) : null,
+        t.note ? h('div', { className: 'tnote' }, h('span', { className: 'k' }, '备注 '), esc(t.note)) : null)
+    }
+
+    function TraceCell(props) {
+      var t = props.trace
+      var open = props.open
+      var sym = t.currency === 'HKD' ? 'HK$' : '$'
+      var qty = t.shares + ' @' + t.price
+      var pnl
+      if (t.realizedPnl != null) pnl = h('span', { className: 'pnl ' + (t.realizedPnl >= 0 ? 'up' : 'down') },
+        (t.realizedPnl >= 0 ? '+' : '') + Number(t.realizedPnl).toFixed(2) + ' ' + sym)
+      else if (t.holdPnl != null) pnl = h('span', { className: 'pnl ' + (t.holdPnl >= 0 ? 'up' : 'down') }, fmtPct(t.holdPnl, 1))
+      else pnl = h('span', { className: 'pnl na' }, '—')
+      var t1tag = null
+      if (t.t1) {
+        var tc = t.t1.delta >= 0 ? 'down' : (t.t1.delta < -1 ? 'up' : 'flat')
+        var tlabel = 'T+1 ' + (t.t1.delta >= 0 ? '+' : '') + t.t1.delta + '%' + (t.action === 'sell' ? ' ' + t.t1.verdict : '')
+        t1tag = h('span', { className: 't1 ' + tc }, tlabel)
+      } else if (t.action === 'sell') {
+        t1tag = h('span', { className: 't1 flat' }, 'T+1 —')
+      }
+      return h('div', { className: 'cell' + (t.decision ? ' hasdec' : '') + (open ? ' open' : ''), role: 'button', tabIndex: 0, 'aria-expanded': open, onClick: props.onToggle, onKeyDown: props.onKeyDown },
+        h('div', { className: 'main' },
+          h('span', { className: 'dotm' }),
+          h('span', { className: 'tk' }, t.ticker, h('span', { className: 'mkt' + (t.market === 'HK' ? ' hk' : '') }, t.market === 'HK' ? '港' : '美')),
+          h(Chip, null, ACT[t.action] || t.action),
+          h('span', { className: 'qty' }, qty),
+          h('span', { className: 'sp' }),
+          pnl),
+        h('div', { className: 'sub' },
+          t1tag,
+          h('span', { className: 'date' }, (t.date || '').slice(5)),
           h('span', { className: 'chev' }, '▾')),
-        h('div', { style: { padding: '0 14px 10px', fontSize: 12.5, color: 'var(--text2)', display: 'flex', gap: 12, flexWrap: 'wrap' } },
-          why ? h('span', null, '为什么: ' + why) : null,
-          pnl !== null ? h('span', { className: pnl < 0 ? 'neg' : 'pos' }, '现盈亏 ' + (pnl > 0 ? '+' : '') + pnl.toFixed(1) + '%') : null,
-          d.outcome ? h('span', { className: outcomeTone === 'ok' ? 'pos' : 'grayb' }, 'outcome ' + d.outcome) : null),
         h('div', { className: 'detail' },
-          d.bull || d.bear ? h('div', { className: 'vs' },
-            h('div', { className: 'side bull' }, h('b', null, 'Bull'), h('p', null, d.bull || '—'), h('div', { className: 'src' }, 'evidence · decision time')),
-            h('div', { className: 'side bear' }, h('b', null, 'Bear'), h('p', null, d.bear || '—'), h('div', { className: 'src' }, 'opposing · mandatory'))) : null,
-          d.thesis ? h('div', { className: 'sec' }, 'Thesis') : null,
-          d.thesis ? h('div', { className: 'kv' }, h('span', null, 'thesis'), h('b', null, d.thesis)) : null,
-          d.confidence !== null ? h('div', { className: 'kv' }, h('span', null, 'confidence'), h('b', { className: 'mono' }, String(d.confidence))) : null,
-          d.confidence !== null ? h('div', { className: 'meter' }, h('div', { style: { width: (d.confidence > 0 ? Math.max(4, Math.min(100, d.confidence * 100)) : 0) + '%' } })) : null,
-          d.invalidation.length ? h('div', { className: 'sec' }, '可证伪条件') : null,
-          d.invalidation.length ? h('ul', { className: 'inv' }, d.invalidation.map(function (c, i) { return h('li', { key: i }, c) })) : null,
-          d.emotionNote ? h('div', { className: 'emo-note' }, '⚡ ' + d.emotionNote) : null,
-          d.condition || d.executionStatus || d.outcome ? h('div', { className: 'sec' }, '对账') : null,
-          (d.condition || d.executionStatus || d.outcome) ? h('div', { className: 'acc' },
-            h('div', { className: 'stat' }, h('span', null, 'condition'), h('b', { className: 'grayb' }, d.condition || '—')),
-            h('div', { className: 'stat' }, h('span', null, 'execution'), h('b', { className: d.executionStatus === 'followed' ? 'okb' : 'grayb' }, d.executionStatus || '—')),
-            h('div', { className: 'stat' }, h('span', null, 'outcome'), h('b', { className: d.outcome === 'not_triggered' ? 'grayb' : 'okb' }, d.outcome || '—'))) : null))
+          h('div', { className: 'dinner' }, h(TraceDetail, { trace: t }))))
     }
 
-    function LedgerView(props) {
-      var entries = props.entries
-      if (!entries.length) return h('div', { className: 'empty' }, props.filterLabel === 'all' ? '账本为空 — 对话判定或盘前决策会出现在这里' : '暂无已执行的交易样本 — 切到「全部」可看全部记录')
-      var groups = {}
-      var order = []
-      for (var i = entries.length - 1; i >= 0; i -= 1) {
-        var d = entries[i]
-        var key = (d.date || '').slice(0, 10) || 'unknown'
-        if (!groups[key]) { groups[key] = []; order.push(key) }
-        groups[key].push(d)
-      }
-      var pnlByTicker = {}
-      for (var bi = 0; bi < (props.books || []).length; bi += 1) {
-        var bookMarket = /^hk/i.test(props.books[bi].name || '') ? 'HK' : 'US'
-        var bh = (props.books[bi].holdings || [])
-        for (var hi = 0; hi < bh.length; hi += 1) {
-          if (bh[hi].pnlPct !== null) pnlByTicker[bookMarket + ':' + bh[hi].ticker] = bh[hi].pnlPct
-        }
-      }
-      var hasConversation = entries.some(function (e) { return e.source === 'conversation' })
-      return h('div', null, order.map(function (key) {
-        return h('div', { key: key },
-          h('div', { className: 'day' }, key + (hasConversation ? ' · 对话' : '')),
-          groups[key].map(function (d) {
-            return h(LedgerCard, {
-              key: d.id || d.ticker + key,
-              entry: d,
-              currentPnl: pnlByTicker[d.market + ':' + d.ticker] ?? pnlByTicker[d.ticker] ?? null,
-              open: props.selected === d.id,
-              onToggle: function () { props.onSelect(props.selected === d.id ? null : d.id) },
-            })
-          }))
-      }))
-    }
-
-    function PortfolioView(props) {
-      var books = props.books
-      if (!books.length) return h('div', { className: 'empty' }, 'portfolio.json 未找到或为空')
-      return h('div', null, books.map(function (book) {
-        return h('div', { className: 'book card', key: book.name },
-          h('div', { style: { padding: '12px 14px', borderBottom: '1px solid var(--border-l1)' } },
-            h('span', { style: { fontWeight: 700 } }, book.name),
-            h('span', { className: 'mono', style: { marginLeft: 10 } }, book.currency || '')),
-          h('div', { style: { overflowX: 'auto' } },
-            h('table', null,
-              h('thead', null, h('tr', null,
-                h('th', null, 'ticker'), h('th', { style: { textAlign: 'right' } }, 'shares'),
-                h('th', { style: { textAlign: 'right' } }, 'price'), h('th', { style: { textAlign: 'right' } }, 'pnl%'))),
-              h('tbody', null, book.holdings.map(function (hl) {
-                return h('tr', { key: hl.ticker },
-                  h('td', null, hl.ticker),
-                  h('td', { className: 'num' }, String(hl.shares)),
-                  h('td', { className: 'num' }, hl.price !== null ? String(hl.price) : '—'),
-                  h('td', { className: 'num ' + (hl.pnlPct !== null && hl.pnlPct < 0 ? 'neg' : 'pos') },
-                    hl.pnlPct !== null ? (hl.pnlPct > 0 ? '+' : '') + hl.pnlPct.toFixed(1) + '%' : '—'))
-              })))))
-      }))
-    }
-
-    function tradeLabel(trade, firstBuy) {
-      if (trade.action === 'buy') return firstBuy ? '买入' : '加仓'
-      if (trade.action === 'sell') {
-        if (trade.note && trade.note.indexOf('清仓') >= 0) return '清仓'
-        if (trade.note && trade.note.indexOf('减仓') >= 0) return '减仓'
-        return '卖出'
-      }
-      return String(trade.action)
-    }
-
-    /** Actual operations: the real fills recorded in the portfolio trade ledger. */
-    function TradeView(props) {
-      var trades = props.trades || []
-      if (!trades.length) return h('div', { className: 'empty' }, '还没有操作记录 — 成交会出现在这里')
-      var firstBuys = {}
-      for (var i = trades.length - 1; i >= 0; i -= 1) {
-        var k = trades[i].market + ':' + trades[i].ticker
-        if (trades[i].action === 'buy' && !firstBuys[k]) firstBuys[k] = trades[i].date
-      }
-      return h('div', null, trades.map(function (tr) {
-        var sym = tr.market === 'HK' ? 'HK$' : '$'
-        var amount = tr.shares && tr.price ? Math.round(tr.shares * tr.price).toLocaleString() : null
-        var label = tradeLabel(tr, tr.date === firstBuys[tr.market + ':' + tr.ticker])
-        var note = tr.note && tr.note.length > 90 ? tr.note.slice(0, 87) + '…' : tr.note
-        return h('div', { className: 'card', key: tr.ticker + tr.date + tr.shares },
-          h('div', { className: 'row', style: { cursor: 'default' } },
-            h('span', { className: 'tk' }, tr.ticker),
-            h(Chip, { tone: tr.action === 'buy' ? 'add' : 'trim' }, label),
-            h('span', { className: 'mono', style: { color: 'var(--text2)' } },
-              tr.shares + ' 股 @' + tr.price + (amount ? ' ≈' + sym + amount : '')),
-            tr.realizedPnl !== null
-              ? h('span', { className: tr.realizedPnl < 0 ? 'neg' : 'pos', style: { fontFamily: 'var(--mono)', fontSize: 12.5 } },
-                  (tr.realizedPnl >= 0 ? '+' : '') + tr.realizedPnl.toFixed(2))
-              : null,
-            h('span', { className: 'conf' }, tr.date || ''),
-            h('span', { className: 'chev' }, '')),
-          note ? h('div', { style: { padding: '0 14px 10px', fontSize: 12, color: 'var(--text3)' } }, note) : null)
-      }))
-    }
-
-    /** The conversation-view tab: desk data (operations / ledger / portfolio). */
+    /** The single organic view: decision trace timeline. */
     function DecisionMind(props) {
-      var pair = useState({ view: 'ops', filter: 'trades', selected: null, ledger: [], portfolio: { books: [] }, loading: true, error: null })
+      var pair = useState({ filter: 'all', open: null, traces: [], rate: null, loading: true, error: null })
       var state = pair[0]
       var setState = pair[1]
-      var sessionId = props.sessionId
       useEffect(function () {
         var alive = true
         setState(function (c) { return Object.assign({}, c, { loading: true, error: null }) })
-        Promise.all([props.ledger(), props.portfolio()]).then(function (results) {
+        props.traces().then(function (result) {
           if (!alive) return
-          setState(function (c) { return Object.assign({}, c, { ledger: results[0].entries, portfolio: results[1], loading: false }) })
+          setState(function (c) { return Object.assign({}, c, { traces: result.trades, rate: result.rate, loading: false }) })
         }, function (error) {
           if (!alive) return
           setState(function (c) { return Object.assign({}, c, { error: String(error && error.message ? error.message : error), loading: false }) })
         })
         return function () { alive = false }
-      }, [sessionId])
+      }, [props.sessionId])
 
-      if (state.error) return h('div', { className: 'dml' }, h('div', { className: 'card' }, h('span', { style: { color: 'var(--neg)' } }, 'Decision Mind: ' + state.error)))
-      var allEntries = state.ledger.map(_displayEntry)
-      var entries = allEntries.filter(function (d) {
-        if (state.filter === 'all') return true
-        return d.executionStatus === 'followed' && ACTIVE_ACTIONS.indexOf(d.action) >= 0
-      })
-      var tradesCount = allEntries.filter(function (d) {
-        return d.executionStatus === 'followed' && ACTIVE_ACTIONS.indexOf(d.action) >= 0
-      }).length
+      if (state.error) return h('div', { className: 'dmt' }, h('div', { className: 'empty' }, 'Decision Mind: ' + state.error))
+      if (state.loading) return h('div', { className: 'dmt' }, h('div', { className: 'empty' }, '正在加载决策与持仓…'))
+
+      var traces = state.traces.map(_displayEntry)
+      var filtered = traces.slice()
+      if (state.filter === 'miss') filtered = filtered.filter(function (t) { return !t.decision })
+      if (state.filter === 'sold') filtered = filtered.filter(function (t) { return t.action === 'sell' })
+      if (state.filter === 'dec') filtered = filtered.filter(function (t) { return t.decision })
+
+      var usd = traces.filter(function (t) { return t.realizedPnl != null && t.currency === 'USD' }).reduce(function (s, t) { return s + t.realizedPnl }, 0)
+      var hkd = traces.filter(function (t) { return t.realizedPnl != null && t.currency === 'HKD' }).reduce(function (s, t) { return s + t.realizedPnl }, 0)
+      var fx = state.rate
+      var totalUsd = usd + (fx ? hkd / fx : 0)
+      var fw = traces.filter(function (t) { return t.t1 && t.t1.verdict === '卖飞' }).length
+      var ok = traces.filter(function (t) { return t.t1 && t.t1.verdict === '卖对' }).length
+      var matched = traces.filter(function (t) { return t.decision }).length
+
+      var groups = {}
+      filtered.forEach(function (t) { var k = (t.date || '').slice(0, 10); (groups[k] = groups[k] || []).push(t) })
+      var dates = Object.keys(groups).sort().reverse()
+
+      var todayIso = (function () { var n = new Date(); return n.getFullYear() + '-' + String(n.getMonth() + 1).padStart(2, '0') + '-' + String(n.getDate()).padStart(2, '0') })()
+      function rel(iso) {
+        if (iso === todayIso) return '今天'
+        var y = function (d) { return new Date(d + 'T00:00:00') }
+        var diff = Math.round((y(todayIso) - y(iso)) / 86400000)
+        if (diff === 1) return '昨天'
+        if (diff >= 2 && diff <= 7) return diff + '天前'
+        return parseInt(iso.slice(5, 7)) + '月' + parseInt(iso.slice(8, 10)) + '日'
+      }
 
       var body
-      if (state.loading) body = h('div', { className: 'empty' }, 'Loading desk data…')
-      else if (state.view === 'ops') body = h(TradeView, { trades: state.portfolio.trades })
-      else if (state.view === 'ledger') body = h(LedgerView, { entries: entries, books: state.portfolio.books, filterLabel: state.filter, selected: state.selected, onSelect: function (id) { setState(function (c) { return Object.assign({}, c, { selected: id }) }) } })
-      else body = h(PortfolioView, { books: state.portfolio.books })
+      if (!filtered.length) body = h('div', { className: 'empty' }, '没有符合条件的成交')
+      else body = h('div', null, dates.map(function (date) {
+        return h('div', { key: date },
+          h('div', { className: 'day' }, rel(date), h('span', null, date), h('span', { className: 'n' }, groups[date].length)),
+          groups[date].map(function (t) {
+            var key = t.ticker + t.date + t.shares
+            return h(TraceCell, {
+              key: key,
+              trace: t,
+              open: state.open === key,
+              onToggle: function () { setState(function (c) { return Object.assign({}, c, { open: c.open === key ? null : key }) }) },
+              onKeyDown: function (e) { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setState(function (c) { return Object.assign({}, c, { open: c.open === key ? null : key }) }) } },
+            })
+          }))
+      }))
 
-      return h('div', { className: 'dml' },
-        h('div', { className: 'head' },
-          h('div', { className: 'title' },
-            h('h3', null, '决策心智'),
-            h('span', null,
-              state.view === 'ops' ? '操作 ' + (state.portfolio.trades || []).length + ' 笔'
-              : state.view === 'ledger' ? '显示 ' + entries.length + ' / 共 ' + allEntries.length + ' 条'
-              : '持仓 ' + (state.portfolio.books || []).length + ' 组')),
-          h('div', { className: 'seg' },
-            h('button', { className: state.view === 'ops' ? 'on' : '', onClick: function () { setState(function (c) { return Object.assign({}, c, { view: 'ops' }) }) } }, '操作'),
-            h('button', { className: state.view === 'ledger' ? 'on' : '', onClick: function () { setState(function (c) { return Object.assign({}, c, { view: 'ledger' }) }) } }, '账本'),
-            h('button', { className: state.view === 'portfolio' ? 'on' : '', onClick: function () { setState(function (c) { return Object.assign({}, c, { view: 'portfolio' }) }) } }, '持仓')),
-          state.view === 'ledger' ? h('div', { className: 'seg', style: { marginLeft: 8 } },
-            h('button', { className: state.filter === 'trades' ? 'on' : '', onClick: function () { setState(function (c) { return Object.assign({}, c, { filter: 'trades' }) }) } }, '已执行交易 ' + tradesCount),
-            h('button', { className: state.filter === 'all' ? 'on' : '', onClick: function () { setState(function (c) { return Object.assign({}, c, { filter: 'all' }) }) } }, '全部 ' + allEntries.length)) : null),
-        body)
+      var stats = h('div', { className: 'stats' },
+        h('div', { className: 'sg' }, h('span', { className: 'sl' }, '已实现 (USD 等值)'),
+          h('span', { className: 'sv focus ' + (totalUsd >= 0 ? 'up' : 'down') }, (totalUsd >= 0 ? '+' : '') + fmtMoney(totalUsd))),
+        h('div', { className: 'sg' }, h('span', { className: 'sl' }, 'T+1 卖飞/卖对'),
+          h('span', { className: 'sv' }, h('span', { className: 'down' }, fw), ' / ', h('span', { className: 'up' }, ok))),
+        h('div', { className: 'sg' }, h('span', { className: 'sl' }, '决策挂接'), h('span', { className: 'sv' }, matched + '/' + traces.length)),
+        fx ? h('span', { className: 'rate' }, traces.length + ' 笔成交 · @' + fx) : h('span', { className: 'rate' }, traces.length + ' 笔成交'))
+
+      var filters = h('div', { className: 'filters' },
+        ['all', 'miss', 'sold', 'dec'].map(function (f) {
+          var label = { all: '全部', miss: '无决策', sold: '卖出复盘', dec: '挂接决策' }[f]
+          return h('button', { key: f, className: 'ft' + (state.filter === f ? ' on' : ''), onClick: function () { setState(function (c) { return Object.assign({}, c, { filter: f }) }) } }, label)
+        }))
+
+      return h('div', { className: 'dmt' },
+        h('div', { className: 'top' },
+          h('div', { className: 'tt' }, '决策轨迹'),
+          h('div', { className: 'ts' }, '真实成交 × 决策账本 × T+1 结果'),
+          stats,
+          filters),
+        h('div', { className: 'list' }, body))
     }
 
     /** Minimal strict codecs (no zod external in the module table). */
@@ -371,7 +364,7 @@ window.__ModuleLoader__.load({
     /** Client projection of the clawockStudio Remote face, mounted explicitly. */
     var TYPERT_REMOTE = {
       package: 'clawock-dsh',
-      descriptors: ['list', 'get', 'ledger', 'portfolio', 'plans'].map(function (m) { return remoteDescriptor(m) }),
+      descriptors: ['list', 'get', 'ledger', 'portfolio', 'plans', 'traces'].map(function (m) { return remoteDescriptor(m) }),
     }
 
     /** Services required by the registration and the mounted Remote face. */
@@ -396,6 +389,7 @@ window.__ModuleLoader__.load({
               return result.value
             }
             return {
+              traces: function () { return call('traces') },
               ledger: function () { return call('ledger') },
               portfolio: function () { return call('portfolio') },
             }
