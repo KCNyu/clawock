@@ -8,6 +8,8 @@
 
 8 层 41 模块信息流 · 多 Agent 辩论 · Python 确定性结算,打包成 `pip install clawock`,装进任何 Agent(Claude Code / Codex / OpenClaw / DeepSeek Harness)。不跟单、不代下单。
 
+[![PyPI](https://img.shields.io/pypi/v/clawock?label=PYPI&style=flat-square&logo=pypi&logoColor=white&labelColor=252b35&color=4b91c8)](https://pypi.org/project/clawock/)
+[![npm](https://img.shields.io/npm/v/clawock-dsh?label=NPM&style=flat-square&logo=npm&logoColor=white&labelColor=252b35&color=4b91c8)](https://www.npmjs.com/package/clawock-dsh)
 [![Dashboard](https://img.shields.io/github/deployments/KCNyu/clawock/github-pages?label=DASHBOARD&style=flat-square&logo=githubpages&logoColor=white&labelColor=252b35&color=4b91c8)](https://kcnyu.github.io/clawock/)
 [![Tests](https://img.shields.io/github/actions/workflow/status/KCNyu/clawock/harness-regression.yml?label=TESTS&style=flat-square&logo=githubactions&logoColor=white&labelColor=252b35&color=738391)](https://github.com/KCNyu/clawock/actions/workflows/harness-regression.yml)
 [![Dashboard Data](https://img.shields.io/github/actions/workflow/status/KCNyu/clawock/dashboard-artifact-gate.yml?label=DATA&style=flat-square&logo=githubactions&logoColor=white&labelColor=252b35&color=738391)](https://github.com/KCNyu/clawock/actions/workflows/dashboard-artifact-gate.yml)
@@ -234,9 +236,10 @@ dsh plugin --profile web add clawock-dsh
 **Decision Mind** tab 只有一个视图:主轴是真实成交(`portfolio.json` trades),
 每行挂接软配对的决策(±3 天,来自 `decisions.jsonl`)作为「当时为什么」,
 卖出单用 T+1 快照收盘价判定卖飞/卖对。点开一条成交,展开成
-**计划 → 执行 → T+1 → 盈亏** 的纵向时间线,为什么(rationale)/情绪压力/
-备注用语义色左边框分层。没有决策的成交显式标注「无关联决策记录」——
-不假装有判断。币种绝不混加:USD/HKD 分开,只经桌面发布的汇率折算。
+**计划 → 执行 → T+1 → 盈亏** 的纵向时间线,为什么(rationale)和备注用语义色
+左边框分层;情绪压力字段也在,但目前只有极少数记录填过,不是每条都有。
+没有决策的成交显式标注「无关联决策记录」——不假装有判断。
+币种绝不混加:USD/HKD 分开,只经桌面发布的汇率折算。
 同一份轨迹数据也渲染在公开 dashboard 的 Reflect 卡片——插件和网页
 同一个数据契约:
 

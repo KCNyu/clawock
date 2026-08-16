@@ -4,8 +4,15 @@
 
 ### AI argues. Code settles. The losses stay on the page.
 
-Install the decision intelligence behind this live Hong Kong + US desk into any agent, in any harness — OpenClaw, Claude Code, Codex, DeepSeek Harness, or your own runner. Evidence, opposition, deterministic reconciliation, and outcome-linked improvement; the harness around the model is yours to pick and yours to change.
+A real Hong Kong + US brokerage account, run day after day by agents that have
+to argue their case — and graded by code the model never gets to touch. Every
+call is published, wins and losses alike, because a system that only shows you
+the wins is marketing, not evidence. Install the same decision workflow into
+your own agent, in any harness — OpenClaw, Claude Code, Codex, DeepSeek
+Harness, or one you write yourself.
 
+[![PyPI](https://img.shields.io/pypi/v/clawock?label=PYPI&style=flat-square&logo=pypi&logoColor=white&labelColor=252b35&color=4b91c8)](https://pypi.org/project/clawock/)
+[![npm](https://img.shields.io/npm/v/clawock-dsh?label=NPM&style=flat-square&logo=npm&logoColor=white&labelColor=252b35&color=4b91c8)](https://www.npmjs.com/package/clawock-dsh)
 [![Dashboard](https://img.shields.io/github/deployments/KCNyu/clawock/github-pages?label=DASHBOARD&style=flat-square&logo=githubpages&logoColor=white&labelColor=252b35&color=4b91c8)](https://kcnyu.github.io/clawock/)
 [![Tests](https://img.shields.io/github/actions/workflow/status/KCNyu/clawock/harness-regression.yml?label=TESTS&style=flat-square&logo=githubactions&logoColor=white&labelColor=252b35&color=738391)](https://github.com/KCNyu/clawock/actions/workflows/harness-regression.yml)
 [![Dashboard Data](https://img.shields.io/github/actions/workflow/status/KCNyu/clawock/dashboard-artifact-gate.yml?label=DATA&style=flat-square&logo=githubactions&logoColor=white&labelColor=252b35&color=738391)](https://github.com/KCNyu/clawock/actions/workflows/dashboard-artifact-gate.yml)
@@ -32,26 +39,31 @@ Install the decision intelligence behind this live Hong Kong + US desk into any 
 
 ## What this is
 
-clawock is an **agent-native, harness-agnostic investment decision-workflow
-plugin kit with a verifiable harness**. OpenClaw, Hermes, Claude Code, Codex,
-DeepSeek Harness, or another external runtime owns the model call,
-conversation, memory, planning, tools, permissions, and credentials. clawock
-installs the reusable workflow that certifies evidence, forces an opposing
-case, validates money and FX, links outcomes, and keeps every improvement
-proposal reviewable and reversible. Swap harnesses and the decision contract
-does not move: the loop is files and a CLI — see
+This repository is a live account before it is a package. A multi-agent desk
+debates the evidence on a real brokerage account with separate Hong Kong and
+US books and proposes trades; execution stays with the account owner. The
+product is the record that comes out of that: real positions, an accumulating
+decision history, and a public scorecard the model does not get a vote on —
+not a get-rich bot, and not a copy-trading service.
+
+**clawock is the reusable half of that desk, pulled out of one live account
+instead of designed in the abstract: an agent-native, harness-agnostic
+investment decision-workflow plugin with a verifiable harness.** OpenClaw,
+Claude Code, Codex, DeepSeek Harness, or another external runtime keeps the
+model call, conversation, memory, planning, tools, permissions, and
+credentials — clawock installs the workflow that certifies evidence, forces an
+opposing case, validates money and FX, links outcomes back to the decision
+that caused them, and keeps every improvement proposal reviewable and
+reversible. Swap harnesses and the decision contract does not move: the loop
+is files and a CLI — see
 [`examples/`](https://github.com/KCNyu/clawock/blob/master/examples/README.md) for the
 same run driven from a pure CLI, an OpenClaw skill, a Claude Code instruction, a Codex AGENTS.md,
 and a DeepSeek Harness agent.
 
 It installs from PyPI — `pip install clawock` — and
-[runs on your own book](#run-it-on-your-own-book) without this repository.
-
-This repository is also the first continuously running proof: a disciplined,
-self-grading AI investing experiment on a real Hong Kong + US portfolio — not a
-get-rich bot, and not a copy-trading service.
-
-A multi-agent desk monitors a real brokerage account with separate Hong Kong and US books, debates the evidence, and proposes trades; execution stays with the account owner. The product is the live record: real positions, an accumulating decision history, and a public scorecard. The model proposes; Python owns the prices, the risk limits, the ledger, the settlement, and the grading.
+[runs on your own book](#run-it-on-your-own-book) without this repository. The
+model proposes; Python owns the prices, the risk limits, the ledger, the
+settlement, and the grading.
 
 ### What makes it different
 
@@ -268,12 +280,12 @@ The **Decision Mind** tab is one organic view, not three tabs: the spine is
 your real fills (`portfolio.json` trades), each row carries the soft-paired
 decision (±3 days from `decisions.jsonl`) as the "why", and the T+1 snapshot
 close decides 卖飞/卖对 on sells. Click a fill and the trace unfolds — plan →
-execution → T+1 → P&L — with the rationale, emotion pressure and notes in
-semantic colors. Fills with no decision say so explicitly; nothing is
-pretended. Currency is never mixed: USD and HKD figures are kept apart and
-only ever combined through the desk's published FX rate. The same trace data
-powers the public dashboard's Reflect card, so the plugin and the website
-render one contract:
+execution → T+1 → P&L — with the rationale and note in semantic colors, plus
+an emotion-pressure field on the (currently few) records that logged one.
+Fills with no decision say so explicitly; nothing is pretended. Currency is
+never mixed: USD and HKD figures are kept apart and only ever combined through
+the desk's published FX rate. The same trace data powers the public
+dashboard's Reflect card, so the plugin and the website render one contract:
 
 <p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dsh-decision-mind.png" alt="Decision Mind plugin — decision traces: real fills with soft-paired decisions and T+1 verdicts, expandable to a plan → execution → result timeline" width="860"></p>
 
