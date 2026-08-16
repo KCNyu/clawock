@@ -5,6 +5,8 @@ adds a price-surface view — breakthrough / wait-rebreak / near-breakout — so
 00100 that breaks its 20d high at 11:00 is visible at 11:30 instead of the next
 morning. Radar rows are observations, never entry authorization.
 """
+import json
+
 from clawock.harness import intraday_preflight as P
 
 
@@ -68,6 +70,38 @@ def test_radar_fails_soft_when_universe_breaks(monkeypatch, tmp_path):
     assert out['rows'] == []
     assert out['errors'] == [{'label': None,
                               'error': 'ValueError: no tencent symbol'}]
+
+
+def test_radar_no_chase_z_zero_is_respected_not_swallowed(tmp_path, monkeypatch):
+    """#649: `early_no_chase_zscore: 0` ("z≥0 永不追高") is legal config;
+    `X or DEFAULT` would swallow it into 2.0 and misclassify as breakout."""
+    cfg = tmp_path / "config" / "add-alpha-policy.json"
+    cfg.parent.mkdir(parents=True)
+    cfg.write_text(json.dumps({"early_no_chase_zscore": 0}))
+    _wire(tmp_path, monkeypatch, {
+        'BO': {'close': 110.0, 'prior_20d_high': 100.0, 'zscore20': 0.5},
+    })
+
+    out = P.collect_opportunity_radar('hk')
+
+    # z=0.5 ≥ 0 → 追高被禁 → wait_rebreak,不是 breakout。
+    assert out['rows'][0]['state'] == 'wait_rebreak'
+
+
+def test_radar_near_pct_zero_means_near_breakout_never_matches(
+        tmp_path, monkeypatch):
+    """#649: `opportunity_near_pct: 0` ("只有真突破算机会") — a 1% dip below
+    the high is no longer 'near'."""
+    cfg = tmp_path / "config" / "add-alpha-policy.json"
+    cfg.parent.mkdir(parents=True)
+    cfg.write_text(json.dumps({"opportunity_near_pct": 0}))
+    _wire(tmp_path, monkeypatch, {
+        'NEAR': {'close': 99.0, 'prior_20d_high': 100.0, 'zscore20': 0.5},
+    })
+
+    out = P.collect_opportunity_radar('hk')
+
+    assert out['rows'] == []
 
 
 def test_radar_section_is_additive():

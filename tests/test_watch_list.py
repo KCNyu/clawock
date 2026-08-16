@@ -79,6 +79,45 @@ def test_strong_5d_appears_when_no_prior_high(tmp_path, monkeypatch):
     assert out["rows"][0]["ret_5d"] >= 8.0
 
 
+def test_policy_near_pct_respects_explicit_zero(tmp_path, monkeypatch):
+    """#649: `opportunity_near_pct: 0` ("只有真突破算机会") is legal config;
+    `X or DEFAULT` would silently swallow it into 5.0."""
+    cfg = tmp_path / "config" / "add-alpha-policy.json"
+    cfg.parent.mkdir(parents=True)
+    cfg.write_text(json.dumps({"opportunity_near_pct": 0}))
+    monkeypatch.setattr(W, "workspace_root", lambda default=None: tmp_path)
+
+    assert W._policy_near_pct() == 0.0
+
+
+def test_policy_strong_5d_pct_comes_from_config(tmp_path, monkeypatch):
+    """#640: `strong_5d_pct` lives in add-alpha-policy.json — editing the
+    config moves the 5d gate without a code change."""
+    cfg = tmp_path / "config" / "add-alpha-policy.json"
+    cfg.parent.mkdir(parents=True)
+    cfg.write_text(json.dumps({"strong_5d_pct": 20.0}))
+    monkeypatch.setattr(W, "workspace_root", lambda default=None: tmp_path)
+
+    assert W._policy_strong_5d_pct() == 20.0
+
+
+def test_strong_state_follows_config_threshold(tmp_path, monkeypatch):
+    """#640: collect() uses the configured 5d gate — an 18.75% 5d gain is
+    'strong' under the 8.0 default but quiet under a 20.0 config."""
+    _wire(tmp_path, monkeypatch, {"03317": {"close": 95.0, "prior_20d_high": None}})
+    cfg = tmp_path / "config" / "add-alpha-policy.json"
+    cfg.write_text(json.dumps({"strong_5d_pct": 20.0}))
+    monkeypatch.setattr(W, "workspace_root", lambda default=None: tmp_path)
+    monkeypatch.setattr(
+        W.quant_signals, "fetch_bars",
+        lambda code, cnt: [{"close": 80.0} for _ in range(5)] +
+                          [{"close": 95.0}] * 5,
+    )
+
+    # ret_5d = (95/80 − 1)*100 = 18.75 < 20 → no row under the raised gate.
+    assert W.collect() == {"rows": []}
+
+
 def test_missing_instruments_entry_is_reported_not_silent(tmp_path, monkeypatch):
     """#602: a watch-list ticker absent from instruments.json must land in
     `errors` — a typo is not a permanent silent no-scan."""

@@ -69,8 +69,11 @@ def classify(technical: dict, peer: dict, information: dict, events: list[dict],
         information_modes.append("attention_acceleration")
     information_ok = bool(information_modes)
     zscore = _number(technical.get("zscore20"))
+    # #649: explicit None check, never `X or DEFAULT` — a config value of 0
+    # (z≥0 永不追高,最保守) must not be swallowed into the 2.0 default.
+    raw_no_chase = policy.get("early_no_chase_zscore")
     overheated = zscore is not None and zscore >= float(
-        policy.get("early_no_chase_zscore") or 2.0
+        raw_no_chase if raw_no_chase is not None else 2.0
     )
 
     blockers = []

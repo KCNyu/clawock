@@ -20,7 +20,9 @@ from clawock.workspace import workspace_root
 
 # 出现门槛:距 20 日高 ≤5%、或 5d 收益 ≥8%(次新无前高数据时只看 5d)。
 # NEAR_HIGH_PCT 的单一真源在 add-alpha-policy.json 的 `opportunity_near_pct`
-# (#621)——radar 与 watch list 同读一个值,改配置两边同时生效。
+# (#621)——radar 与 watch list 同读一个值,改配置两边同时生效;
+# STRONG_5D_PCT 的单一真源在 `strong_5d_pct`(#640)。下面两个常量只是
+# 配置缺失时的 fallback 默认值。
 NEAR_HIGH_PCT = 5.0
 STRONG_5D_PCT = 8.0
 
@@ -31,14 +33,36 @@ def _watch_list_path() -> Path:
 
 
 def _policy_near_pct() -> float:
-    """`opportunity_near_pct` from add-alpha-policy.json, default NEAR_HIGH_PCT."""
+    """`opportunity_near_pct` from add-alpha-policy.json, default NEAR_HIGH_PCT.
+
+    Explicit None check, never `X or DEFAULT` (#649): a config value of 0 is a
+    legal threshold ("只有真突破算机会") and must not be swallowed into the
+    default. The literal key keeps the policy-key parity trip-wire alive.
+    """
     try:
         policy = json.loads(
             (workspace_root(Path.cwd()) / "config" / "add-alpha-policy.json")
             .read_text(encoding="utf-8"))
-        return float(policy.get("opportunity_near_pct") or NEAR_HIGH_PCT)
+        raw = policy.get("opportunity_near_pct")
+        if raw is not None:
+            return float(raw)
     except (FileNotFoundError, json.JSONDecodeError, OSError, ValueError):
-        return NEAR_HIGH_PCT
+        pass
+    return NEAR_HIGH_PCT
+
+
+def _policy_strong_5d_pct() -> float:
+    """`strong_5d_pct` from add-alpha-policy.json, default STRONG_5D_PCT (#640)."""
+    try:
+        policy = json.loads(
+            (workspace_root(Path.cwd()) / "config" / "add-alpha-policy.json")
+            .read_text(encoding="utf-8"))
+        raw = policy.get("strong_5d_pct")
+        if raw is not None:
+            return float(raw)
+    except (FileNotFoundError, json.JSONDecodeError, OSError, ValueError):
+        pass
+    return STRONG_5D_PCT
 
 
 def watch_tickers() -> list[str]:
@@ -61,6 +85,7 @@ def collect() -> dict:
     """
     rows, errors = [], []
     near_pct = _policy_near_pct()
+    strong_5d_pct = _policy_strong_5d_pct()
     for ticker in watch_tickers():
         meta = get_instrument(ticker) or {}
         code = meta.get("tencent_symbol")
@@ -105,7 +130,7 @@ def collect() -> dict:
             state = "breakout"
         elif pct_from_high is not None and pct_from_high >= -near_pct:
             state = "near_breakout"
-        elif ret_5d is not None and ret_5d >= STRONG_5D_PCT:
+        elif ret_5d is not None and ret_5d >= strong_5d_pct:
             state = "strong"
         else:
             continue
