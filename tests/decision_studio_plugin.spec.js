@@ -206,7 +206,6 @@ test("client: registers the Decision Mind tab and mounts the remote face", async
   const injected = registered.inject("s1");
   assert.equal(typeof injected.ledger, "function");
   assert.equal(typeof injected.portfolio, "function");
-  assert.equal(typeof injected.plans, "function");
   assert.deepEqual(await injected.ledger(), { entries: [] });
   assert.equal(typeof component, "function");
 });
@@ -261,13 +260,15 @@ test("client: renders ledger cards from the mounted remote", async () => {
         emotion: { pressure: "averaging_down", note: "忍住没加" },
         execution: { status: "followed" } },
       { decision_id: "dec-2", plan_date: "2026-08-10", ticker: "07226", action: "hold", confidence: 0.5,
+        rationale: "测试理由: 杠杆风险已释放,持有观察",
         execution: { status: "followed" } },
       { decision_id: "dec-3", plan_date: "2026-08-11", ticker: "02208", action: "cut", confidence: 0.6,
+        size: { shares: 30, pct: 0.15 }, simulated_entry_price: 10.5,
         execution: { status: "followed" } },
       { decision_id: "dec-4", plan_date: "2026-08-12", ticker: "03032", action: "trim", confidence: 0.4,
         execution: { status: "unknown" } },
     ] } }),
-    portfolio: async () => ({ ok: true, value: { books: [{ name: "hk_stocks", currency: "HKD", holdings: [] }] } }),
+    portfolio: async () => ({ ok: true, value: { books: [{ name: "hk_stocks", currency: "HKD", holdings: [{ ticker: "02208", shares: 200, price: 10.58, pnlPct: -24.9 }] }] } }),
     plans: async () => ({ ok: true, value: { plans: [] } }),
   };
   const ctx = {
@@ -299,10 +300,13 @@ test("client: renders ledger cards from the mounted remote", async () => {
   })(tree);
   const joined = text.join(" ");
   assert.match(joined, /决策心智/);
-  assert.match(joined, /已执行交易/);
+  assert.match(joined, /已执行交易 1/); // count on the filter button
+  assert.match(joined, /全部 4/);
   // default filter = executed trades only: the cut shows, the reject/hold/unknown do not
   assert.match(joined, /02208/);
-  assert.match(joined, /cut/);
+  assert.match(joined, /割肉/);
+  assert.match(joined, /30 股 @10.5/);   // executed how much
+  assert.match(joined, /现盈亏 -24.9%/); // and what it is worth now
   assert.doesNotMatch(joined, /00100/);
   assert.doesNotMatch(joined, /03032/);
 
@@ -313,15 +317,15 @@ test("client: renders ledger cards from the mounted remote", async () => {
       if (Array.isArray(node)) { node.forEach(collect); return; }
       if (node.type === "button") {
         const t = (node.children || []).filter((c) => typeof c === "string").join("");
-        if (t === label) found = node;
+        if (t.indexOf(label) === 0) found = node;
       }
       (node.children || []).forEach(collect);
     })(tree);
     return found;
   };
 
-  // switch to 已执行: the respected reject (00100) and hold appear
-  findButton("已执行").props.onClick();
+  // switch to 全部: everything appears — reject with bull-fallback why, hold with rationale why, unknown trim
+  findButton("全部").props.onClick();
   await tick();
   tree = component({ sessionId: "s1", ledger: injected.ledger, portfolio: injected.portfolio, plans: injected.plans });
   const textB = [];
@@ -335,24 +339,12 @@ test("client: renders ledger cards from the mounted remote", async () => {
   })(tree);
   const joinedB = textB.join(" ");
   assert.match(joinedB, /00100/);
-  assert.match(joinedB, /reject/);
+  assert.match(joinedB, /不加/);
+  assert.match(joinedB, /为什么: 营收/);     // conversation record: bull-fallback why
+  assert.match(joinedB, /为什么: 测试理由/); // plan record: rationale why
   assert.match(joinedB, /07226/);
-  assert.doesNotMatch(joinedB, /03032/);
-
-  // switch to 全部: the unknown trim appears too
-  findButton("全部").props.onClick();
-  await tick();
-  tree = component({ sessionId: "s1", ledger: injected.ledger, portfolio: injected.portfolio, plans: injected.plans });
-  const textC = [];
-  (function walk(node) {
-    if (node == null) return;
-    if (Array.isArray(node)) { node.forEach(walk); return; }
-    if (typeof node === "string") { textC.push(node); return; }
-    (node.children || []).forEach(walk);
-    walk(node.props && node.props.value);
-    walk(node.props && node.props.label);
-  })(tree);
-  assert.match(textC.join(" "), /03032/);
+  assert.match(joinedB, /03032/);
+  assert.match(joinedB, /· 对话/);           // conversation day tag
 
   // click a ledger card row: expand shows the mind detail
   const cardRows = [];

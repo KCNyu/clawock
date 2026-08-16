@@ -50,7 +50,7 @@ window.__ModuleLoader__.load({
         '.dml .card{margin:8px 0;border:1px solid var(--border-card);border-radius:var(--radius-md);background:var(--surface);box-shadow:var(--shadow-lv2);overflow:hidden;transition:border-color .15s}',
         '.dml .card:hover{border-color:var(--border-l2)}',
         '.dml .row{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer;transition:background .15s}',
-        '.dml .row:hover{background:var(--hover)}.dml .row:active{background:var(--active)}',
+        '.dml .row:hover{background:var(--hover)}.dml .row:active{background:var(--active)}.dml .row:focus-visible{outline:2px solid var(--brand);outline-offset:-2px}',
         '.dml .tk{font-weight:700;font-size:14px;min-width:118px}',
         '.dml .chip{display:inline-flex;align-items:center;gap:4px;padding:2px 10px;border-radius:var(--radius-pill);font-size:11.5px;font-weight:600}',
         '.dml .chip.add{color:var(--pos);background:var(--pos-soft)}.dml .chip.trim{color:var(--neg);background:var(--neg-soft)}',
@@ -123,34 +123,66 @@ window.__ModuleLoader__.load({
         condition: entry.condition && entry.condition.description ? entry.condition.description : null,
         executionStatus: execution.status || null,
         outcome: evaluation.outcome || null,
+        rationale: typeof entry.rationale === 'string' ? entry.rationale : null,
+        market: subject.market || (entry.leg === 'US' ? 'US' : /^\d/.test(entry.ticker || '') ? 'HK' : 'US'),
+        sizeShares: (entry.size && entry.size.shares) || null,
+        sizePct: (entry.size && entry.size.pct) || null,
+        // Real fill price beats the plan's simulation; flag when only the plan price exists.
+        entryPrice: evaluation.execution_price ?? entry.simulated_entry_price ?? null,
+        planPrice: evaluation.execution_price == null && entry.simulated_entry_price != null,
+        capital: evaluation.capital || null,
       }
     }
+
+    var ACTION_LABELS = {
+      buy: '买入', add: '加仓', trim: '减仓', sell: '卖出', cut: '割肉',
+      hold_and_watch: '持有观望', trim_on_rebound: '反弹减仓', t_only: '仅T+0', add_only_on_trigger: '触发加仓',
+      reject: '不加', watch: '观望', hold: '持有', abstain: '弃权',
+    }
+    function actionLabel(action) { return ACTION_LABELS[action] || String(action) }
 
     function Chip(props) {
       return h('span', { className: 'chip ' + props.tone }, props.children)
     }
 
-    var ACTIVE_ACTIONS = ['add', 'buy', 'trim', 'sell', 'cut', 't_only', 'trim_on_rebound']
+    var ACTIVE_ACTIONS = ['add', 'buy', 'trim', 'sell', 'cut', 't_only', 'trim_on_rebound', 'add_only_on_trigger']
 
     function ActionChip(action) {
       var tone = action === 'add' || action === 'buy' ? 'add'
         : ACTIVE_ACTIONS.indexOf(action) >= 0 ? 'trim'
         : action === 'reject' || action === 'watch' || action === 'hold' || action === 'abstain' ? 'reject'
         : 'gray'
-      return h(Chip, { tone: tone }, String(action))
+      return h(Chip, { tone: tone }, actionLabel(action))
     }
 
     function LedgerCard(props) {
       var d = props.entry
       var expanded = props.open
+      var currentPnl = props.currentPnl
+      var sizeText = null
+      if (d.sizeShares) {
+        var amount = d.sizeShares * (d.entryPrice || 0)
+        var sym = d.market === 'HK' ? 'HK$' : '$'
+        sizeText = d.sizeShares + ' 股' + (d.entryPrice ? ' @' + d.entryPrice + (d.planPrice ? ' (计划价)' : '') + (amount ? ' ≈' + sym + Math.round(amount).toLocaleString() : '') : '')
+      } else if (d.sizePct) {
+        sizeText = (d.sizePct * 100).toFixed(0) + '% 仓位'
+      }
+      var why = d.thesis || d.rationale || (d.bull ? d.bull.slice(0, 48) : null)
+      if (why && why.length > 60) why = why.slice(0, 57) + '…'
+      var pnl = props.currentPnl
+      var outcomeTone = d.outcome && d.outcome !== 'not_triggered' && d.outcome !== 'unknown' ? 'ok' : 'gray'
       return h('div', { className: 'card' + (expanded ? ' open' : '') },
-        h('div', { className: 'row', onClick: props.onToggle },
+        h('div', { className: 'row', role: 'button', tabIndex: 0, 'aria-expanded': expanded, onClick: props.onToggle },
           h('span', { className: 'tk' }, d.ticker),
           ActionChip(d.action),
+          sizeText ? h('span', { className: 'mono', style: { color: 'var(--text2)' } }, sizeText) : null,
           d.emotion && d.emotion !== 'calm' ? h(Chip, { tone: 'emo' }, '⚡ ' + d.emotion) : null,
-          d.outcome ? h(Chip, { tone: d.outcome === 'not_triggered' ? 'gray' : 'ok' }, d.outcome) : null,
           h('span', { className: 'conf' }, (d.confidence ?? '—') + (d.drivenBy ? ' · ' + d.drivenBy : '')),
           h('span', { className: 'chev' }, '▾')),
+        h('div', { style: { padding: '0 14px 10px', fontSize: 12.5, color: 'var(--text2)', display: 'flex', gap: 12, flexWrap: 'wrap' } },
+          why ? h('span', null, '为什么: ' + why) : null,
+          pnl !== null ? h('span', { className: pnl < 0 ? 'neg' : 'pos' }, '现盈亏 ' + (pnl > 0 ? '+' : '') + pnl.toFixed(1) + '%') : null,
+          d.outcome ? h('span', { className: outcomeTone === 'ok' ? 'pos' : 'grayb' }, 'outcome ' + d.outcome) : null),
         h('div', { className: 'detail' },
           d.bull || d.bear ? h('div', { className: 'vs' },
             h('div', { className: 'side bull' }, h('b', null, 'Bull'), h('p', null, d.bull || '—'), h('div', { className: 'src' }, 'evidence · decision time')),
@@ -158,7 +190,7 @@ window.__ModuleLoader__.load({
           d.thesis ? h('div', { className: 'sec' }, 'Thesis') : null,
           d.thesis ? h('div', { className: 'kv' }, h('span', null, 'thesis'), h('b', null, d.thesis)) : null,
           d.confidence !== null ? h('div', { className: 'kv' }, h('span', null, 'confidence'), h('b', { className: 'mono' }, String(d.confidence))) : null,
-          d.confidence !== null ? h('div', { className: 'meter' }, h('div', { style: { width: Math.max(4, Math.min(100, d.confidence * 100)) + '%' } })) : null,
+          d.confidence !== null ? h('div', { className: 'meter' }, h('div', { style: { width: (d.confidence > 0 ? Math.max(4, Math.min(100, d.confidence * 100)) : 0) + '%' } })) : null,
           d.invalidation.length ? h('div', { className: 'sec' }, '可证伪条件') : null,
           d.invalidation.length ? h('ul', { className: 'inv' }, d.invalidation.map(function (c, i) { return h('li', { key: i }, c) })) : null,
           d.emotionNote ? h('div', { className: 'emo-note' }, '⚡ ' + d.emotionNote) : null,
@@ -171,7 +203,7 @@ window.__ModuleLoader__.load({
 
     function LedgerView(props) {
       var entries = props.entries
-      if (!entries.length) return h('div', { className: 'empty' }, '账本为空 — 对话判定或盘前决策会出现在这里')
+      if (!entries.length) return h('div', { className: 'empty' }, props.filterLabel === 'all' ? '账本为空 — 对话判定或盘前决策会出现在这里' : '暂无已执行的交易样本 — 切到「全部」可看全部记录')
       var groups = {}
       var order = []
       for (var i = entries.length - 1; i >= 0; i -= 1) {
@@ -180,13 +212,23 @@ window.__ModuleLoader__.load({
         if (!groups[key]) { groups[key] = []; order.push(key) }
         groups[key].push(d)
       }
+      var pnlByTicker = {}
+      for (var bi = 0; bi < (props.books || []).length; bi += 1) {
+        var bookMarket = /^hk/i.test(props.books[bi].name || '') ? 'HK' : 'US'
+        var bh = (props.books[bi].holdings || [])
+        for (var hi = 0; hi < bh.length; hi += 1) {
+          if (bh[hi].pnlPct !== null) pnlByTicker[bookMarket + ':' + bh[hi].ticker] = bh[hi].pnlPct
+        }
+      }
+      var hasConversation = entries.some(function (e) { return e.source === 'conversation' })
       return h('div', null, order.map(function (key) {
         return h('div', { key: key },
-          h('div', { className: 'day' }, key),
+          h('div', { className: 'day' }, key + (hasConversation ? ' · 对话' : '')),
           groups[key].map(function (d) {
             return h(LedgerCard, {
               key: d.id || d.ticker + key,
               entry: d,
+              currentPnl: pnlByTicker[d.market + ':' + d.ticker] ?? pnlByTicker[d.ticker] ?? null,
               open: props.selected === d.id,
               onToggle: function () { props.onSelect(props.selected === d.id ? null : d.id) },
             })
@@ -227,9 +269,9 @@ window.__ModuleLoader__.load({
       useEffect(function () {
         var alive = true
         setState(function (c) { return Object.assign({}, c, { loading: true, error: null }) })
-        Promise.all([props.ledger(), props.portfolio(), props.plans()]).then(function (results) {
+        Promise.all([props.ledger(), props.portfolio()]).then(function (results) {
           if (!alive) return
-          setState(function (c) { return Object.assign({}, c, { ledger: results[0].entries, portfolio: results[1], plans: results[2].plans, loading: false }) })
+          setState(function (c) { return Object.assign({}, c, { ledger: results[0].entries, portfolio: results[1], loading: false }) })
         }, function (error) {
           if (!alive) return
           setState(function (c) { return Object.assign({}, c, { error: String(error && error.message ? error.message : error), loading: false }) })
@@ -241,27 +283,28 @@ window.__ModuleLoader__.load({
       var allEntries = state.ledger.map(_displayEntry)
       var entries = allEntries.filter(function (d) {
         if (state.filter === 'all') return true
-        if (d.executionStatus !== 'followed') return false
-        return state.filter === 'followed' || ACTIVE_ACTIONS.indexOf(d.action) >= 0
+        return d.executionStatus === 'followed' && ACTIVE_ACTIONS.indexOf(d.action) >= 0
       })
+      var tradesCount = allEntries.filter(function (d) {
+        return d.executionStatus === 'followed' && ACTIVE_ACTIONS.indexOf(d.action) >= 0
+      }).length
 
       var body
       if (state.loading) body = h('div', { className: 'empty' }, 'Loading desk data…')
-      else if (state.view === 'ledger') body = h(LedgerView, { entries: entries, selected: state.selected, onSelect: function (id) { setState(function (c) { return Object.assign({}, c, { selected: id }) }) } })
+      else if (state.view === 'ledger') body = h(LedgerView, { entries: entries, books: state.portfolio.books, filterLabel: state.filter, selected: state.selected, onSelect: function (id) { setState(function (c) { return Object.assign({}, c, { selected: id }) }) } })
       else body = h(PortfolioView, { books: state.portfolio.books })
 
       return h('div', { className: 'dml' },
         h('div', { className: 'head' },
           h('div', { className: 'title' },
             h('h3', null, '决策心智'),
-            h('span', null, 'Decision Mind · ' + entries.length + '/' + allEntries.length + ' 条')),
+            h('span', null, '显示 ' + entries.length + ' / 共 ' + allEntries.length + ' 条')),
           h('div', { className: 'seg' },
             h('button', { className: state.view === 'ledger' ? 'on' : '', onClick: function () { setState(function (c) { return Object.assign({}, c, { view: 'ledger' }) }) } }, '账本'),
             h('button', { className: state.view === 'portfolio' ? 'on' : '', onClick: function () { setState(function (c) { return Object.assign({}, c, { view: 'portfolio' }) }) } }, '持仓')),
           state.view === 'ledger' ? h('div', { className: 'seg', style: { marginLeft: 8 } },
-            h('button', { className: state.filter === 'trades' ? 'on' : '', onClick: function () { setState(function (c) { return Object.assign({}, c, { filter: 'trades' }) }) } }, '已执行交易'),
-            h('button', { className: state.filter === 'followed' ? 'on' : '', onClick: function () { setState(function (c) { return Object.assign({}, c, { filter: 'followed' }) }) } }, '已执行'),
-            h('button', { className: state.filter === 'all' ? 'on' : '', onClick: function () { setState(function (c) { return Object.assign({}, c, { filter: 'all' }) }) } }, '全部')) : null),
+            h('button', { className: state.filter === 'trades' ? 'on' : '', onClick: function () { setState(function (c) { return Object.assign({}, c, { filter: 'trades' }) }) } }, '已执行交易 ' + tradesCount),
+            h('button', { className: state.filter === 'all' ? 'on' : '', onClick: function () { setState(function (c) { return Object.assign({}, c, { filter: 'all' }) }) } }, '全部 ' + allEntries.length)) : null),
         body)
     }
 
@@ -310,7 +353,6 @@ window.__ModuleLoader__.load({
             return {
               ledger: function () { return call('ledger') },
               portfolio: function () { return call('portfolio') },
-              plans: function () { return call('plans') },
             }
           },
         }, DecisionMind)
