@@ -1,6 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="440" viewBox="0 0 1000 440" role="img" aria-labelledby="dtitle ddesc">
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="1110" viewBox="0 0 640 1110" role="img" aria-labelledby="dtitle ddesc">
   <title id="dtitle">Inside the clawock multi-agent debate</title>
-  <desc id="ddesc">A left-to-right pipeline. One shared evidence pack feeds four analyst lenses that merge into a single table. Two researchers are asked to argue opposing bull and bear cases and to record where they disagree, so unanimous agreement reads as a flag. Three risk voices then stress every call and a judge names the strategy frame driving each decision, resolving the argument into plan.json — which enters the next session's grading pipeline, where code, not the model, settles the score.</desc>
+  <desc id="ddesc">A pipeline. One shared evidence pack feeds four analyst lenses that merge into a single table. Two researchers are asked to argue opposing bull and bear cases and to record where they disagree, so unanimous agreement reads as a flag. Three risk voices then stress every call and a judge names the strategy frame driving each decision, resolving the argument into plan.json — which enters the next session's grading pipeline, where code, not the model, settles the score.</desc>
   <defs>
     <linearGradient id="dpage" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#fcfcfd"/>
@@ -17,103 +17,95 @@
     <style>
       .sans{font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif}
       .ink{fill:#151a21}.muted{fill:#61707e}.blue{fill:#4b83ad}.green{fill:#138b66}.warm{fill:#b8524a}
-      .kicker{font:700 10px "SFMono-Regular",Consolas,monospace;letter-spacing:1.1px}
-      .title{font:800 24px Inter,-apple-system,"Segoe UI",Arial,sans-serif;letter-spacing:-.5px}
-      .stage{font:750 13px Inter,-apple-system,"Segoe UI",Arial,sans-serif}
-      .body{font:500 12px Inter,-apple-system,"Segoe UI",Arial,sans-serif}
-      .label{font:750 13px Inter,-apple-system,"Segoe UI",Arial,sans-serif}
-      .micro{font:600 10.5px "SFMono-Regular",Consolas,monospace}
+      .kicker{font:700 12px "SFMono-Regular",Consolas,monospace;letter-spacing:1px}
+      .title{font:800 25px Inter,-apple-system,"Segoe UI",Arial,sans-serif;letter-spacing:-.5px}
+      .body{font:500 14px Inter,-apple-system,"Segoe UI",Arial,sans-serif}
+      .label{font:750 15px Inter,-apple-system,"Segoe UI",Arial,sans-serif}
+      .micro{font:600 12.5px "SFMono-Regular",Consolas,monospace}
       .card{fill:#fff;stroke:#dde4eb;stroke-width:1.2}
       .chip{fill:#f2f5f8;stroke:#dde4eb;stroke-width:1}
       .wire{fill:none;stroke:#8593a1;stroke-width:1.8;marker-end:url(#darrow)}
     </style>
   </defs>
 
-  <rect width="1000" height="440" fill="url(#dpage)"/>
+  <rect width="640" height="1110" fill="url(#dpage)"/>
 
-  <!-- Header -->
   <g class="sans">
-    <g transform="translate(24 20) scale(.32)">
+    <g transform="translate(26 20) scale(.34)">
       <path d="M8 13C22 9 40 16 55 28C42 24 28 25 17 32C12 27 9 21 8 13Z" fill="#10141a"/>
       <path d="M56 51C42 55 24 48 9 36C22 40 36 39 47 32C52 37 55 43 56 51Z" fill="url(#dbull)"/>
     </g>
-    <text x="50" y="36" font-size="19" font-weight="800" class="ink">clawock</text>
-    <text x="976" y="34" text-anchor="end" class="kicker blue">THE DEBATE · HK + US</text>
-    <text x="24" y="76" class="title ink">Inside the multi-agent debate</text>
-    <text x="24" y="97" class="body muted">Disagreement is required. The resolution is attributed.</text>
-  </g>
-
-  <!-- Stage kickers -->
-  <g class="sans">
-    <text x="115" y="132" text-anchor="middle" class="kicker muted">SHARED INPUT</text>
-    <text x="358" y="132" text-anchor="middle" class="kicker muted">TIER 1 · ANALYST LENSES</text>
-    <text x="616" y="132" text-anchor="middle" class="kicker muted">TIER 2 · RESEARCHERS</text>
-    <text x="866" y="132" text-anchor="middle" class="kicker muted">TIER 3 · RISK + JUDGE</text>
-  </g>
-
-  <!-- Connectors between stages -->
-  <g>
-    <path d="M202 250H244" class="wire"/>
-    <path d="M472 250H510" class="wire"/>
-    <path d="M722 250H760" class="wire"/>
+    <text x="54" y="38" font-size="21" font-weight="800" class="ink">clawock</text>
+    <text x="26" y="66" class="kicker blue">THE DEBATE · HK + US</text>
+    <text x="26" y="98" class="title ink">Inside the multi-agent debate</text>
+    <text x="26" y="122" class="body muted">Disagreement is required. The resolution is attributed.</text>
   </g>
 
   <!-- Stage 1 · Evidence -->
   <g class="sans">
-    <rect x="30" y="150" width="172" height="200" rx="10" class="card"/>
-    <text x="116" y="238" text-anchor="middle" class="label ink">context.json</text>
-    <text x="116" y="260" text-anchor="middle" class="body muted">one immutable</text>
-    <text x="116" y="276" text-anchor="middle" class="body muted">evidence pack</text>
-    <text x="116" y="300" text-anchor="middle" class="micro blue">every claim cites it</text>
+    <text x="26" y="158" class="kicker muted">SHARED INPUT</text>
+    <rect x="26" y="168" width="588" height="72" rx="10" class="card"/>
+    <text x="46" y="198" class="label ink">context.json — one immutable evidence pack</text>
+    <text x="46" y="222" class="micro blue">every claim below has to cite it</text>
   </g>
 
-  <!-- Stage 2 · Analyst lenses (4 chips) -->
+  <path d="M320 240V266" class="wire"/>
+
+  <!-- Stage 2 · Analyst lenses -->
   <g class="sans">
-    <rect x="246" y="150" width="226" height="200" rx="10" class="card"/>
-    <rect x="262" y="166" width="194" height="30" rx="6" class="chip"/>
-    <text x="359" y="185" text-anchor="middle" class="body ink">Fundamental</text>
-    <rect x="262" y="202" width="194" height="30" rx="6" class="chip"/>
-    <text x="359" y="221" text-anchor="middle" class="body ink">Technical</text>
-    <rect x="262" y="238" width="194" height="30" rx="6" class="chip"/>
-    <text x="359" y="257" text-anchor="middle" class="body ink">Sentiment</text>
-    <rect x="262" y="274" width="194" height="30" rx="6" class="chip"/>
-    <text x="359" y="293" text-anchor="middle" class="body ink">Sector rotation</text>
-    <text x="359" y="330" text-anchor="middle" class="micro muted">same context → one table</text>
+    <text x="26" y="288" class="kicker muted">TIER 1 · ANALYST LENSES</text>
+    <rect x="26" y="298" width="588" height="130" rx="10" class="card"/>
+    <rect x="42" y="314" width="264" height="32" rx="7" class="chip"/>
+    <text x="174" y="335" text-anchor="middle" class="body ink">Fundamental</text>
+    <rect x="314" y="314" width="264" height="32" rx="7" class="chip"/>
+    <text x="446" y="335" text-anchor="middle" class="body ink">Technical</text>
+    <rect x="42" y="354" width="264" height="32" rx="7" class="chip"/>
+    <text x="174" y="375" text-anchor="middle" class="body ink">Sentiment</text>
+    <rect x="314" y="354" width="264" height="32" rx="7" class="chip"/>
+    <text x="446" y="375" text-anchor="middle" class="body ink">Sector rotation</text>
+    <text x="310" y="412" text-anchor="middle" class="micro muted">same context → one merged table</text>
   </g>
+
+  <path d="M320 428V454" class="wire"/>
 
   <!-- Stage 3 · Bull vs Bear -->
   <g class="sans">
-    <rect x="512" y="150" width="208" height="200" rx="10" class="card"/>
-    <rect x="528" y="168" width="176" height="46" rx="8" fill="#eef5fb" stroke="#bcd6ea" stroke-width="1"/>
-    <text x="616" y="190" text-anchor="middle" class="label blue">Bull case</text>
-    <text x="616" y="206" text-anchor="middle" class="micro muted">hold / add</text>
-    <text x="616" y="250" text-anchor="middle" class="kicker warm">OPPOSING  CASE</text>
-    <text x="616" y="266" text-anchor="middle" class="micro muted">protocol · unanimity flagged</text>
-    <rect x="528" y="286" width="176" height="46" rx="8" fill="#fbeeed" stroke="#eccfcb" stroke-width="1"/>
-    <text x="616" y="308" text-anchor="middle" class="label warm">Bear case</text>
-    <text x="616" y="324" text-anchor="middle" class="micro muted">trim / cut</text>
+    <text x="26" y="476" class="kicker muted">TIER 2 · RESEARCHERS</text>
+    <rect x="26" y="486" width="588" height="180" rx="10" class="card"/>
+    <rect x="42" y="502" width="556" height="52" rx="9" fill="#eef5fb" stroke="#bcd6ea" stroke-width="1"/>
+    <text x="320" y="530" text-anchor="middle" class="label blue">Bull case — hold / add</text>
+    <text x="320" y="580" text-anchor="middle" class="kicker warm">OPPOSING CASE REQUIRED</text>
+    <text x="320" y="600" text-anchor="middle" class="micro muted">unanimous agreement gets flagged, not trusted</text>
+    <rect x="42" y="612" width="556" height="52" rx="9" fill="#fbeeed" stroke="#eccfcb" stroke-width="1"/>
+    <text x="320" y="640" text-anchor="middle" class="label warm">Bear case — trim / cut</text>
   </g>
+
+  <path d="M320 666V692" class="wire"/>
 
   <!-- Stage 4 · Risk voices + Judge -->
   <g class="sans">
-    <rect x="762" y="150" width="214" height="200" rx="10" class="card"/>
-    <rect x="776" y="166" width="61" height="28" rx="6" class="chip"/>
-    <text x="806" y="184" text-anchor="middle" class="micro ink">Aggr.</text>
-    <rect x="839" y="166" width="61" height="28" rx="6" class="chip"/>
-    <text x="869" y="184" text-anchor="middle" class="micro ink">Cons.</text>
-    <rect x="902" y="166" width="60" height="28" rx="6" class="chip"/>
-    <text x="932" y="184" text-anchor="middle" class="micro ink">Neut.</text>
-    <rect x="776" y="206" width="186" height="58" rx="8" fill="#eef2f6" stroke="#d3dde6" stroke-width="1.2"/>
-    <text x="869" y="230" text-anchor="middle" class="label ink">Judge</text>
-    <text x="869" y="250" text-anchor="middle" class="micro muted">names the strategy frame</text>
-    <path d="M869 264V286" class="wire"/>
-    <rect x="806" y="288" width="126" height="34" rx="7" fill="#0f1620"/>
-    <text x="869" y="310" text-anchor="middle" class="micro" fill="#eef5fb">plan.json</text>
+    <text x="26" y="714" class="kicker muted">TIER 3 · RISK + JUDGE</text>
+    <rect x="26" y="724" width="588" height="234" rx="10" class="card"/>
+    <rect x="42" y="740" width="176" height="34" rx="7" class="chip"/>
+    <text x="130" y="762" text-anchor="middle" class="body ink">Aggressive</text>
+    <rect x="226" y="740" width="176" height="34" rx="7" class="chip"/>
+    <text x="314" y="762" text-anchor="middle" class="body ink">Conservative</text>
+    <rect x="410" y="740" width="188" height="34" rx="7" class="chip"/>
+    <text x="504" y="762" text-anchor="middle" class="body ink">Neutral</text>
+    <rect x="42" y="790" width="556" height="76" rx="9" fill="#eef2f6" stroke="#d3dde6" stroke-width="1.2"/>
+    <text x="320" y="822" text-anchor="middle" class="label ink">Judge</text>
+    <text x="320" y="846" text-anchor="middle" class="micro muted">names the strategy frame driving the call</text>
+    <path d="M320 866V888" class="wire"/>
+    <rect x="230" y="892" width="180" height="42" rx="8" fill="#0f1620"/>
+    <text x="320" y="918" text-anchor="middle" class="micro" fill="#eef5fb">plan.json</text>
   </g>
+
+  <path d="M320 958V984" class="wire"/>
 
   <!-- Footer: into the grading loop -->
   <g class="sans">
-    <path d="M869 350V378H150" class="wire"/>
-    <text x="150" y="404" class="body muted">→ enters the next session's grading pipeline — where <tspan class="ink" font-weight="750">code, not the model,</tspan> settles the score.</text>
+    <rect x="26" y="994" width="588" height="106" rx="12" fill="#0f1620"/>
+    <text x="46" y="1032" fill="#dbe6ee" class="body">enters the next session's grading pipeline —</text>
+    <text x="46" y="1060" fill="#ffffff" font-weight="750" class="body">code, not the model, settles the score.</text>
   </g>
 </svg>
