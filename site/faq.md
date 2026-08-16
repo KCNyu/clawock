@@ -17,17 +17,18 @@ contract — certified evidence, a mandatory opposing case, deterministic money
 and FX reconciliation, and a public scorecard.
 
 It is also the first continuously running proof: a real Hong Kong + US
-brokerage account has run it for 90+ days, with every judgment settled by
+brokerage account has run it from launch, with every judgment settled by
 Python and published — losses included.
 
 ## Is this an AI trading bot that makes money?
 
-No, and it says so itself. The live account return is **−15.95%** and active
-recommendations have **not beaten buy-and-hold**. Directional hit rates (53%
-active, n=73) carry 95% confidence intervals that straddle 50% — statistically
-not an edge yet. The project's claim is not "makes money", it is "**can't be
-fooled**": the model proposes, Python settles, and the model can never grade
-itself. Use it as a measurable, auditable baseline — not as a get-rich signal.
+No, and it says so itself. The live account return is published on the
+dashboard — currently negative — and active recommendations have **not beaten
+buy-and-hold**. Directional hit rates carry 95% confidence intervals that
+straddle 50% — statistically not an edge yet. The project's claim is not "makes
+money", it is "**can't be fooled**": the model proposes, Python settles, and the
+model can never grade itself. Use it as a measurable, auditable baseline — not
+as a get-rich signal.
 
 ## Why would I install it if it doesn't beat buy-and-hold?
 
@@ -37,7 +38,7 @@ Three things it delivers today:
 2. An audit framework where every decision can be recomputed and checked
    (`clawock audit-resettle`, `clawock reconcile`, `clawock integrity`);
 3. An honest baseline — any future strategy or agent can be compared against
-   90+ days of live, publicly settled records.
+   the live, publicly settled record.
 
 It does not promise "earn"; it promises "every call has a paper trail".
 
@@ -45,8 +46,8 @@ It does not promise "earn"; it promises "every call has a paper trail".
 
 - **The model can't grade itself.** LLMs propose trades; Python settles them
   from canonical vendor bars on each market's own calendar.
-- **No cherry-picking.** The raw ledger (`memory/decisions.jsonl`, 640+
-  records) is public; "if a number doesn't reproduce, we lose."
+- **No cherry-picking.** The raw ledger (`memory/decisions.jsonl`) is public;
+  "if a number doesn't reproduce, we lose."
 - **One thesis counts once.** Repeated restatements collapse into one episode,
   so holding a position for five mornings doesn't manufacture five samples.
 - **Human-in-the-loop is disclosed.** Follow-through decisions belong to the

@@ -48,6 +48,27 @@ def test_linked_web_manifest_is_required_and_triggers_deploy():
     assert WORKFLOW.count("'site/**'") == 2
 
 
+def test_llms_txt_is_required_public_and_linked():
+    # #667: llms.txt shipped in site/ but the allowlist never published it, so
+    # the deploy was green while the URL 404'd. Pin source, allowlist, and the
+    # FAQ link it promises (llms.txt links faq.html; the link must not dangle).
+    assert (ROOT / "site" / "llms.txt").is_file()
+    assert "llms.txt" in CONTRACT["required_pages"]
+    assert "llms.txt" in CONTRACT["artifact_include"]
+    assert "faq.html" in (ROOT / "site" / "llms.txt").read_text()
+    assert WORKFLOW.count("'site/**'") == 2
+
+
+def test_faq_page_is_required_public_and_has_an_entry_point():
+    # #667: faq.md builds to faq.html in _site (same as briefs.md/evidence.md);
+    # the deployed page needs an in-site link so it is reachable and crawlable.
+    assert (ROOT / "site" / "faq.md").is_file()
+    assert "faq.html" in CONTRACT["required_pages"]
+    assert "faq.html" in CONTRACT["artifact_include"]
+    assert 'href="faq.html"' in INDEX
+    assert WORKFLOW.count("'site/**'") == 2
+
+
 def test_repository_only_patterns_cannot_match_browser_data():
     for path in CONTRACT["browser_data"]:
         assert any(
@@ -144,7 +165,8 @@ def test_builder_stages_only_public_consumers(tmp_path):
     shutil.copytree(ROOT / "assets/data", site / "assets/data")
     (site / "index.html").write_text("ok")
     for path in (
-        "briefs.html", "evidence.html", "robots.txt", "manifest.webmanifest",
+        "briefs.html", "evidence.html", "faq.html", "llms.txt",
+        "robots.txt", "manifest.webmanifest",
         GOOGLE_VERIFICATION,
     ):
         (site / path).write_text("ok")
@@ -189,6 +211,8 @@ def test_builder_stages_only_public_consumers(tmp_path):
     ]
     assert sitemap_locs == ["https://kcnyu.github.io/clawock/"]
     assert (output / GOOGLE_VERIFICATION).is_file()
+    assert (output / "faq.html").is_file()
+    assert (output / "llms.txt").is_file()
     assert (output / "assets/data/dashboard.json").is_file()
     assert (output / "assets/data/overview.json").is_file()
     assert (ROOT / "site/assets/dashboard.gif").stat().st_size == source_gif_size
