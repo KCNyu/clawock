@@ -74,8 +74,12 @@ const pkg = require("./package.json");
 // Import the file each export entry actually maps to. A bare path import
 // would bypass the exports map and prove nothing; these are the same modules
 // dsh loads through "./typert" and friends.
+// `./client` is the browser bundle — a window.__ModuleLoader__ closure, not
+// an ES module. Importing it here would throw "window is not defined" and say
+// nothing about the install; its registration is covered by
+// tests/decision_studio_plugin.spec.js.
 const targets = Object.entries(pkg.exports || {})
-  .filter(([name, spec]) => name !== "./package.json" && spec && spec.default)
+  .filter(([name, spec]) => name !== "./package.json" && name !== "./client" && spec && spec.default)
   .map(([name, spec]) => [name, path.resolve(spec.default)]);
 Promise.all(targets.map(([, file]) => import(pathToFileURL(file).href)))
   .then(() => console.log("  ok: " + targets.map(([n]) => n).join(", ")))
