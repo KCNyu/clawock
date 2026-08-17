@@ -79,10 +79,46 @@ ships stale committed output) and runs `npm pack --dry-run` to verify the
 package, its `skills/investment-decision/SKILL.md`, and the generated
 `lib/typert.remote-client.js` all exist.
 
-On a `v*` tag the workflow's `npm` job calls the same script with the tag
-version (`"${GITHUB_REF_NAME#v}"`), so PyPI and npm publish together; the GitHub
-Release is created only after both publishers accepted (`needs: [publish, npm]`).
-PR pushes and TestPyPI dispatches never touch npm.
+On a `v*` tag the workflow's `npm` job calls the same script with the version
+read from `pyproject.toml` (the tag–version gate in the `build` job has already
+refused a mismatch, so tag refs and branch dispatch refs agree), publishing PyPI
+and npm together; the GitHub Release is created only after both publishers
+accepted (`needs: [publish, npm]`). PR pushes and TestPyPI dispatches never
+touch npm.
+
+### Re-run the npm side alone (no PyPI, no GitHub Release)
+
+A version whose PyPI upload already succeeded while its npm job died (v0.1.6:
+the runner's npm crashed with `Exit handler never called!`) is half-published —
+superseding it would burn a whole version number. The workflow has a dispatch
+mode that publishes just `clawock-dsh` and cannot create a GitHub Release:
+
+```bash
+# version is read from pyproject.toml; run from master or the v* tag
+gh workflow run release.yml --ref master -f repository=pypi -f npm_only=true
+```
+
+`npm_only` skips the PyPI publish job (the index already holds that version,
+and re-uploading it is a hard failure), and `github-release` still requires a
+`v*` tag — so the dispatch ends with the npm side fixed and no release behind
+it.
+
+### The lockfile must not bake in a mirror registry
+
+npm installs from the lockfile's `resolved` URLs, not from the configured
+registry. Regenerating `examples/dsh/plugin/package-lock.json` on a machine
+whose npm points at a mirror writes mirror URLs into it — on 2026-08-17 that
+made the v0.1.6 npm job die: the GitHub runner cannot reach
+`mirrors.tencentyun.com`, every tarball fetch stalled through npm's retry
+ladder, and npm exited with `Exit handler never called!`.
+
+Keep the lockfile on `registry.npmjs.org` URLs (`npm install --package-lock-only
+--registry=https://registry.npmjs.org` regenerates it), and the release
+workflow additionally sets `npm_config_replace_registry_host=always`, so any
+future mirror-poisoned lockfile is rehosted to the configured registry instead
+of failing the run. Using a mirror locally is fine (`~/.npmrc` with
+`replace-registry-host=always` makes local installs rehost to it) — the repo
+lockfile itself stays canonical.
 
 ## One version, three places
 
