@@ -329,14 +329,18 @@ dsh plugin --profile web add clawock-dsh
 
 The **Decision Mind** tab is one view, not three tabs: the spine is your real
 fills (`portfolio.json` trades), each row carries the soft-paired decision
-(±3 days from `decisions.jsonl`) as the "why", and the T+1 snapshot close
-decides 卖飞/卖对 on sells. Click a fill and the trace unfolds — plan →
-execution → T+1 → P&L — with the rationale and note in semantic colors, plus
-an emotion-pressure field on the small number of records that logged one so
-far. Fills with no decision say so explicitly, instead of making one up.
-Currency is never mixed: USD and HKD stay apart and only combine through the
-desk's published FX rate. The same trace data powers the public dashboard's
-Reflect card, so the plugin and the website render one contract:
+(±3 days from `decisions.jsonl`) as the "why", and the T+1 verdict comes from
+the canonical `memory/bars/` close inside the T+1 window (never a snapshot
+price) — 卖飞/卖对 on reduces, 涨/跌 on adds, 持平 in the dead zone. Click a
+fill and the trace unfolds — plan → real fill (stated 与计划同向/反向, with
+`execution.status` preserved only as the plan's own 账本自评 label) → T+1 →
+P&L (本笔已实现 and 该持仓当前浮动 never share one label) — with the
+rationale and note in semantic colors, plus an emotion-pressure field on the
+small number of records that logged one so far. Fills with no plan say so
+explicitly, instead of making one up. Currency is never mixed: USD and HKD
+stay apart and only combine through the desk's published FX rate. The same
+trace data powers the public dashboard's Reflect card, but the two sides are
+separate implementations pinned together by `tests/test_decision_trace_parity.py`:
 
 <p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dsh-decision-mind.png" alt="Decision Mind plugin — decision traces: real fills with soft-paired decisions and T+1 verdicts, expandable to a plan → execution → result timeline" width="860"></p>
 

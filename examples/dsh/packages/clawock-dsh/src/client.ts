@@ -3,8 +3,9 @@
  *
  * One organic view — the decision trace: real fills as the spine, the shared
  * decision ledger (memory/decisions.jsonl) soft-paired (±3 days) as the "why"
- * layer, and snapshot closes as the T+1 verdict. Fills without a decision say
- * so explicitly. Visual language: modern SaaS on DSH tokens, with the P&L
+ * layer, and canonical bar closes (memory/bars/, never snapshot current_price
+ * — see readBarCloses) as the T+1 verdict. Fills without a decision say so
+ * explicitly. Visual language: modern SaaS on DSH tokens, with the P&L
  * figure as the focal number and a GitHub-style vertical timeline in the
  * expandable detail.
  *
@@ -142,15 +143,31 @@ const ACT: Record<string, string> = {
 const DRV: Record<string, string> = {
   technical: '技术面', fundamental: '基本面', sentiment: '情绪面', mixed: '混合', risk_rule: '风控规则',
 }
-const EXE: Record<string, [label: string, tone: string]> = {
-  followed: ['已遵守', 'follow'], not_followed: ['未执行', 'skip'], unknown: ['未知', ''],
+/**
+ * The ledger's `execution.status`, in words.
+ *
+ * This grades the PLAN — "was this plan followed" — and it is not a statement
+ * about the fill on the row, which happened either way. Rendering 「未执行」 as
+ * that row's 执行 verdict read as a flat contradiction on a completed buy, and
+ * on live data 8 rows said 已遵守 while the plan's action still differed from
+ * the fill's. So it renders as 账本自评 and never as the fill's own status; the
+ * plan-vs-fill relation is `decision.alignment` below.
+ */
+const EXE: Record<string, string> = {
+  followed: '遵守了计划', not_followed: '没按计划', unknown: '未标注',
+}
+/** The plan-vs-fill relation, stated instead of left to be inferred. */
+const ALIGN: Record<string, [label: string, tone: string]> = {
+  same: ['与计划同向', 'follow'],
+  opposite: ['与计划反向', 'skip'],
+  other: ['计划未指向买卖', ''],
 }
 const EMO: Record<string, string> = {
   fomo: '追高冲动', revenge: '报复性', averaging_down: '摊薄冲动', fear: '恐慌',
   euphoria: '亢奋', calm: '平静', mixed: '混合',
 }
 const FILTER_LABEL: Record<TraceFilter, string> = {
-  all: '全部', miss: '无决策', sold: '卖出复盘', dec: '挂接决策',
+  all: '全部', miss: '无当日计划', sold: '卖出复盘', dec: '有当日计划',
 }
 
 function esc(value: unknown): string {
@@ -202,6 +219,16 @@ export interface DisplayEntry {
   t1: TraceT1 | null
   holdPnl: number | null
   decision: TraceDecision | null
+  /**
+   * 'add' | 'reduce' decided host-side (see EnrichedTrade.side), or null when
+   * the payload carried no side at all.
+   *
+   * Nullable on purpose. Defaulting an unknown side to 'add' silently files
+   * every sell under buys and the sell scorecard then reads a confident
+   * "判出 0/0 笔卖出" — wrong, not degraded. Null keeps those fills out of both
+   * sides and makes the header say how many it could not place.
+   */
+  side: 'add' | 'reduce' | null
 }
 
 /** Display projection of one trace (test seam). */
@@ -219,6 +246,10 @@ export function _displayEntry(trace: EnrichedTrade): DisplayEntry {
     t1: trace.t1 ?? null,
     holdPnl: trace.holdPnl ?? null,
     decision: trace.decision ?? null,
+    // Passed through, never recomputed and never defaulted: the browser must
+    // not own a second copy of the action set (#739), and an absent side is
+    // reported as absent rather than guessed.
+    side: trace.side === 'reduce' || trace.side === 'add' ? trace.side : null,
   }
 }
 
@@ -230,66 +261,82 @@ function TraceDetail(props: { trace: DisplayEntry }): React.ReactElement {
   const trace = props.trace
   const decision = trace.decision
   const sym = trace.currency === 'HKD' ? 'HK$' : '$'
+  // The fill itself, in words — the one node on this row that is never inferred.
+  const fillText = (ACT[trace.action] ?? trace.action) + ' ' + trace.shares + ' 股 @ ' + sym + trace.price
   if (decision === null) {
     const t1miss = trace.t1 === null ? null : h('div', { className: cx('tnode', t1NodeClass(trace.t1.tone)) },
-      h('div', { className: cx('n') }, 'T+1 结果'),
-      h('div', { className: cx('v') }, (trace.t1.delta >= 0 ? '+' : '') + trace.t1.delta + '%'))
+      h('div', { className: cx('tw') }, trace.t1.date),
+      h('div', { className: cx('n') }, 'T+1 收盘'),
+      h('div', { className: cx('v') }, (trace.t1.delta >= 0 ? '+' : '') + trace.t1.delta + '% · ' + trace.t1.verdict))
     return h('div', null,
-      h('div', { className: cx('trhead') }, '决策轨迹 · 无关联记录'),
+      h('div', { className: cx('trhead') }, '决策轨迹 · 无当日计划'),
       h('div', { className: cx('trace') },
         h('div', { className: cx('tnode', 'dec') },
-          h('div', { className: cx('n') }, '决策'),
-          h('div', { className: cx('v'), style: { color: 'var(--cap)' } }, '无关联记录')),
+          h('div', { className: cx('n') }, '当时的计划'),
+          h('div', { className: cx('v'), style: { color: 'var(--cap)' } }, '这一天没有该标的的计划记录')),
         h('div', { className: cx('tnode', 'follow') },
-          h('div', { className: cx('n') }, '执行'),
-          h('div', { className: cx('v') }, (ACT[trace.action] ?? trace.action) + ' ' + trace.shares + '股 @' + trace.price + ' ' + sym)),
+          h('div', { className: cx('tw') }, trace.date ?? ''),
+          h('div', { className: cx('n') }, '真实成交'),
+          h('div', { className: cx('v') }, fillText)),
         t1miss),
       trace.note === null ? null : h('div', { className: cx('tnote') }, esc(trace.note)),
-      h('div', { className: cx('tmiss') }, '此笔无关联决策记录 — 事实保留,判断缺失显式标出'))
+      h('div', { className: cx('tmiss') },
+        '这笔成交在决策账本里找不到前后 3 天的同标的计划:成交是真的,当时的判断没有留下记录。'))
   }
-  const [exeLabel, exeTone] = EXE[decision.execution ?? 'unknown'] ?? EXE['unknown']!
+  const [alignLabel, alignTone] = ALIGN[decision.alignment ?? ''] ?? ['', '']
   const planned = (ACT[decision.action ?? ''] ?? decision.action ?? '')
-    + (decision.confidence === null ? '' : ' ' + Math.round(decision.confidence * 100) + '%')
+    + (decision.sizeShares === null ? '' : ' ' + decision.sizeShares + ' 股')
+    + (decision.plannedPrice === null ? '' : ' @ ' + decision.plannedPrice)
+    + (decision.confidence === null ? '' : ' · 信心 ' + Math.round(decision.confidence * 100) + '%')
     + (decision.drivenBy === null ? '' : ' · ' + (DRV[decision.drivenBy] ?? decision.drivenBy))
   const why = decision.rationale ?? decision.bull ?? ''
   const emotion = decision.emotion !== null && decision.emotion !== 'calm'
     ? (EMO[decision.emotion] ?? decision.emotion)
     : null
   const chips: React.ReactElement[] = []
-  if (decision.condition !== null) chips.push(h('span', { className: cx('pc'), key: 'c' }, '条件: ' + decision.condition))
-  if (decision.sizeShares !== null) chips.push(h('span', { className: cx('pc'), key: 's' }, '计划 ' + decision.sizeShares + ' 股'))
-  if (decision.plannedPrice !== null) chips.push(h('span', { className: cx('pc'), key: 'p' }, '计划价 ' + decision.plannedPrice))
+  if (decision.condition !== null) chips.push(h('span', { className: cx('pc'), key: 'c' }, '触发条件: ' + decision.condition))
+  if (decision.execution !== null) {
+    chips.push(h('span', { className: cx('pc'), key: 'e' },
+      '账本自评: ' + (EXE[decision.execution] ?? decision.execution)))
+  }
   const t1node = trace.t1 === null ? null : h('div', { className: cx('tnode', t1NodeClass(trace.t1.tone)) },
     h('div', { className: cx('tw') }, trace.t1.date),
-    h('div', { className: cx('n') }, 'T+1 结果'),
+    h('div', { className: cx('n') }, 'T+1 收盘'),
     h('div', { className: cx('v') },
-      (trace.t1.delta >= 0 ? '+' : '') + trace.t1.delta + '%' + (trace.action === 'sell' ? ' · ' + trace.t1.verdict : '')))
+      (trace.t1.delta >= 0 ? '+' : '') + trace.t1.delta + '% · ' + trace.t1.verdict))
+  // 本笔已实现 and 该持仓浮动 are different quantities — one belongs to this
+  // fill, the other to the whole position — so they never share a label.
   let pnlText: string
   let pnlTone: string
+  let pnlLabel: string
   if (trace.realizedPnl !== null) {
     pnlText = (trace.realizedPnl >= 0 ? '+' : '') + trace.realizedPnl.toFixed(2) + ' ' + sym
     pnlTone = trace.realizedPnl >= 0 ? 'win' : 'loss'
+    pnlLabel = '本笔已实现'
   } else if (trace.holdPnl !== null) {
     pnlText = fmtPct(trace.holdPnl)
     pnlTone = trace.holdPnl >= 0 ? 'win' : 'loss'
+    pnlLabel = '该持仓当前浮动 (' + trace.ticker + ' 全仓,非本笔)'
   } else {
-    pnlText = '—'
+    pnlText = '— 未平仓'
     pnlTone = ''
+    pnlLabel = '本笔盈亏'
   }
   return h('div', null,
     h('div', { className: cx('trhead') }, '决策轨迹 · ' + (decision.planDate ?? '')),
     h('div', { className: cx('trace') },
       h('div', { className: cx('tnode', 'dec') },
         h('div', { className: cx('tw') }, decision.planDate ?? ''),
-        h('div', { className: cx('n') }, '计划'),
+        h('div', { className: cx('n') }, '当时的计划'),
         h('div', { className: cx('v') }, planned)),
-      h('div', { className: cx('tnode', exeTone) },
+      h('div', { className: cx('tnode', alignTone) },
         h('div', { className: cx('tw') }, trace.date ?? ''),
-        h('div', { className: cx('n') }, '执行'),
-        h('div', { className: cx('v') }, exeLabel + (exeTone === 'skip' ? ' — 实际动了手' : ''))),
+        h('div', { className: cx('n') }, '真实成交'),
+        h('div', { className: cx('v') }, fillText,
+          alignLabel === '' ? null : h('span', { className: cx('pc', alignTone) }, alignLabel))),
       t1node,
       h('div', { className: cx('tnode', pnlTone) },
-        h('div', { className: cx('n') }, '盈亏'),
+        h('div', { className: cx('n') }, pnlLabel),
         h('div', { className: cx('v') }, pnlText))),
     chips.length === 0 ? null : h('div', { className: cx('pchips') }, chips),
     why === '' ? null : h('div', { className: cx('tnote', 'why') }, h('span', { className: cx('k') }, '为什么 '), esc(why)),
@@ -312,21 +359,31 @@ function TraceCell(props: TraceCellProps): React.ReactElement {
     pnl = h('span', { className: cx('pnl', trace.realizedPnl >= 0 ? 'up' : 'down') },
       (trace.realizedPnl >= 0 ? '+' : '') + trace.realizedPnl.toFixed(2) + ' ' + sym)
   } else if (trace.holdPnl !== null) {
-    pnl = h('span', { className: cx('pnl', trace.holdPnl >= 0 ? 'up' : 'down') }, fmtPct(trace.holdPnl))
+    // A floating percent belongs to the whole position, not to this fill. The
+    // 持仓 prefix is what stops it reading as "this trade lost 28%".
+    pnl = h('span', { className: cx('pnl', trace.holdPnl >= 0 ? 'up' : 'down') },
+      h('span', { className: cx('pnlk') }, '持仓'), fmtPct(trace.holdPnl))
   } else {
     pnl = h('span', { className: cx('pnl', 'na') }, '—')
   }
-  let t1tag: React.ReactElement | null = null
+  let t1tag: React.ReactElement
   if (trace.t1 !== null) {
     const tone = t1ChipClass(trace.t1.tone)
-    const label = 'T+1 ' + (trace.t1.delta >= 0 ? '+' : '') + trace.t1.delta + '%'
-      + (trace.action === 'sell' ? ' ' + trace.t1.verdict : '')
+    // The verdict word already carries the side (卖飞/卖对/持平 for a reducing
+    // fill, 涨/跌 for an adding one), so it is always shown. Gating it on
+    // `action === 'sell'` used to drop it for cut/trim/trim_on_rebound and
+    // forced the client to keep its own copy of the action set — the kind of
+    // duplicate that drifted apart in #739.
+    const label = 'T+1 ' + (trace.t1.delta >= 0 ? '+' : '') + trace.t1.delta + '% ' + trace.t1.verdict
     // data-tone carries the host's reading into the DOM: it is what the
     // regression spec reads, so hashed class names cannot hide a chip that
     // stopped following `t1.tone` (#713).
     t1tag = h('span', { className: cx('t1', tone), 'data-tone': tone }, label)
-  } else if (trace.action === 'sell') {
-    t1tag = h('span', { className: cx('t1', 'flat'), 'data-tone': 'flat' }, 'T+1 —')
+  } else {
+    // Said out loud for every unjudged fill, not just sells: no canonical close
+    // inside the T+1 window means there is no verdict, and silence there reads
+    // like the fill was fine.
+    t1tag = h('span', { className: cx('t1', 'flat'), 'data-tone': 'flat' }, 'T+1 未判')
   }
   return h('div', {
     className: cx('cell', trace.decision !== null && 'hasdec', props.open && 'open'),
@@ -444,7 +501,7 @@ export function DecisionMind(props: DecisionMindProps): React.ReactElement {
     return h('div', { className: cx('dmt'), ref: rootRef },
       h('div', { className: cx('top') },
         h('div', { className: cx('tt') }, '决策轨迹'),
-        h('div', { className: cx('ts') }, '真实成交 × 决策账本 × T+1 结果')),
+        h('div', { className: cx('ts') }, '一笔真实成交 + 当时写下的计划 + 官方收盘给的结果')),
       h('div', { className: cx('list') },
         h(SkeletonRow, { key: 'sk1' }),
         h(SkeletonRow, { key: 'sk2' }),
@@ -454,7 +511,10 @@ export function DecisionMind(props: DecisionMindProps): React.ReactElement {
   const traces = data.trades.map(_displayEntry)
   let filtered = traces
   if (filter === 'miss') filtered = traces.filter((trace) => trace.decision === null)
-  if (filter === 'sold') filtered = traces.filter((trace) => trace.action === 'sell')
+  // The sell filter follows the host-computed `side`, not a client-side copy of
+  // the action set: `action === 'sell'` silently missed cut/trim/trim_on_rebound
+  // and is exactly the duplicate that drifted in #739.
+  if (filter === 'sold') filtered = traces.filter((trace) => trace.side === 'reduce')
   if (filter === 'dec') filtered = traces.filter((trace) => trace.decision !== null)
 
   const sumRealized = (currency: string): number => traces
@@ -466,10 +526,16 @@ export function DecisionMind(props: DecisionMindProps): React.ReactElement {
   // `t1` at all (the host drops the rest rather than labelling a months-later
   // close "T+1"). The denominator is rendered so the ratio can be read for
   // what it is instead of looking like it covers every fill.
-  const t1Rated = traces.filter((trace) => trace.t1 !== null).length
-  const soldEarly = traces.filter((trace) => trace.t1?.verdict === '卖飞').length
-  const soldRight = traces.filter((trace) => trace.t1?.verdict === '卖对').length
+  // Every count carries the denominator it is actually a fraction of. The old
+  // label read "T+1 卖飞/卖对 · 基于 39 笔" while only sell-side verdicts were
+  // shown and those 39 counted buys as well.
+  const sells = traces.filter((trace) => trace.side === 'reduce')
+  const sideless = traces.filter((trace) => trace.side === null).length
+  const sellsRated = sells.filter((trace) => trace.t1 !== null).length
+  const soldEarly = sells.filter((trace) => trace.t1?.verdict === '卖飞').length
+  const soldRight = sells.filter((trace) => trace.t1?.verdict === '卖对').length
   const matched = traces.filter((trace) => trace.decision !== null).length
+  const reversed = traces.filter((trace) => trace.decision?.alignment === 'opposite').length
 
   const groups: Record<string, DisplayEntry[]> = {}
   for (const trace of filtered) {
@@ -549,11 +615,12 @@ export function DecisionMind(props: DecisionMindProps): React.ReactElement {
       h('span', { className: cx('sl') }, '已实现 (USD 等值)'),
       h('span', { className: cx('sv', 'focus', totalUsd >= 0 ? 'up' : 'down') }, fmtMoney(totalUsd))),
     h('div', { className: cx('sg') },
-      h('span', { className: cx('sl') }, 'T+1 卖飞/卖对 · 基于 ' + t1Rated + ' 笔'),
+      h('span', { className: cx('sl') }, 'T+1 卖飞/卖对 · 判出 ' + sellsRated + '/' + sells.length
+        + ' 笔卖出' + (sideless === 0 ? '' : ' · ' + sideless + ' 笔无侧向')),
       h('span', { className: cx('sv') },
         h('span', { className: cx('down') }, soldEarly), ' / ', h('span', { className: cx('up') }, soldRight))),
     h('div', { className: cx('sg') },
-      h('span', { className: cx('sl') }, '决策挂接'),
+      h('span', { className: cx('sl') }, '有当日计划' + (reversed === 0 ? '' : ' · 反向 ' + reversed)),
       h('span', { className: cx('sv') }, matched + '/' + traces.length)),
     h('span', { className: cx('rate') },
       traces.length + ' 笔成交' + (rate === null ? '' : ' · @' + rate)))
@@ -568,7 +635,7 @@ export function DecisionMind(props: DecisionMindProps): React.ReactElement {
   return h('div', { className: cx('dmt'), ref: rootRef },
     h('div', { className: cx('top') },
       h('div', { className: cx('tt') }, '决策轨迹'),
-      h('div', { className: cx('ts') }, '真实成交 × 决策账本 × T+1 结果' + (data.stale ? ' · 更新失败,显示此前快照' : '')),
+      h('div', { className: cx('ts') }, '一笔真实成交 + 当时写下的计划 + 官方收盘给的结果' + (data.stale ? ' · 更新失败,显示此前快照' : '')),
       stats,
       filters),
     h('div', { className: cx('list') }, body))

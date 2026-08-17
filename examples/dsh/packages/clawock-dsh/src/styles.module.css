@@ -297,6 +297,14 @@ body[data-ds-dark-theme] .dmt {
   font-weight:500;
   font-size:13px
 }
+/* Marks the focus number as the position's floating percent rather than this
+   fill's realized amount — two different quantities in one slot. */
+.dmt .pnlk {
+  font:600 10.5px/1.2 var(--font);
+  color:var(--cap);
+  margin-right:3px;
+  letter-spacing:0
+}
 .dmt .sub {
   display:flex;
   align-items:center;

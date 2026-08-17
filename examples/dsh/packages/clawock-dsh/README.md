@@ -90,17 +90,22 @@ agent:准备请求…(clawock run prepare)
 一件事:**每一笔真实成交,都是一条可以点开的决策轨迹**。
 
 - **主轴是真实成交**(portfolio.json trades[]),不是计划流水。每行 =
-  标的 + 动作 + 数量@价 + **盈亏焦点数字**,副行是 **T+1 判定**
-  (快照收盘价对比成交价:卖飞/卖对)+ 日期。
-- **点开一条轨迹**:GitHub 式纵向时间线 —— 当时计划(动作/信心/驱动 +
-  条件/计划股数/计划价)→ 执行(是否遵守)→ T+1 结果 → 盈亏(已实现
-  或持仓现值)。为什么(rationale)/情绪压力(非 calm 才显示)/备注
-  用语义色左边框分层。
-- **没有决策的成交显式标注**「无关联决策记录」—— 不假装有判断。
-  SPCH 那种「计划 cut 却持续买入摊本」的纪律偏差,一条轨迹看得明明白白。
+  标的 + 动作 + 数量@价 + **盈亏焦点数字**,副行是 **T+1 判定**(官方
+  逐日行情的 T+1 收盘对比成交价,`memory/bars/`,绝不读快照
+  `current_price`;未判出显式写「T+1 未判」,不假装没这回事)+ 日期。
+- **点开一条轨迹**:GitHub 式纵向时间线 —— 当时的计划(动作/股数@计划价/
+  信心/驱动)→ **真实成交**(与计划同向/反向,`execution.status` 只是计划
+  自己的「账本自评」小标签,不冒充这笔成交的执行结果)→ T+1 收盘 →
+  **本笔已实现** / **该持仓当前浮动(非本笔)**,两个量永不共用一个
+  「盈亏」标签。为什么(rationale,内部 breach id 已剥)/情绪压力(非 calm
+  才显示)/备注用语义色左边框分层。
+- **没有当日计划的成交显式标注**—— 不假装有判断:真实数据里过半成交
+  找不到前后 3 天的同标的计划,这本身就是信息。SPCH 那种「计划 cut 却
+  持续买入摊本」的纪律偏差,一条轨迹看得明明白白。
 - **抬头统计**:已实现盈亏(USD/HKD 分别计、折算 USD 等值,绝不混加)、
-  T+1 卖飞/卖对计数、决策挂接率;过滤:全部 / 无决策 / 卖出复盘 /
-  挂接决策。
+  T+1 卖飞/卖对(判出 X/Y 笔卖出,分母是卖出侧而非全部成交)、
+  有当日计划 m/n(反向 N 笔);过滤:全部 / 无当日计划 / 卖出复盘 /
+  有当日计划。
 
 对话判定落账:`clawock record --subject ... --action ... --bull ... --bear
 ... --invalidation ... --emotion ...`(schema 见 `docs/decision-mind-ledger.md`,
@@ -110,10 +115,6 @@ bear 与失效条件强制,情绪自认)。面板不改任何文件,结算仍归
 TypeScript(`src/ledger.ts::readTraces`),网页是构建期算好塞进 `dashboard.json`
 的 Python。两边不共享代码,曾经因此漂移到判词都不一致(#739/#740),
 现在由 `tests/test_decision_trace_parity.py` 钉住共用的规则常量与判词表。结构:
-
-对话判定落账:`clawock record --subject ... --action ... --bull ... --bear
-... --invalidation ... --emotion ...`(schema 见 `docs/decision-mind-ledger.md`,
-bear 与失效条件强制,情绪自认)。面板不改任何文件,结算仍归既有机制。结构:
 
 ```
 clawock-dsh
@@ -187,7 +188,7 @@ harness-agnostic 定位的一部分——同一份契约,OpenClaw skill / Claude
    ```
 3. 侧栏点进一个真实 session,等加载完,点顶部 `Decision Mind` tab。**tab 栏
    和 DSH 顶栏必须留在截图里**——那正是「这是插件 tab、不是独立页」的证据。
-4. 展开一笔有完整决策轨迹(计划→执行→T+1→盈亏)的真实成交:
+4. 展开一笔有完整决策轨迹(计划→真实成交→T+1→盈亏)的真实成交:
    ```python
    cell = page.locator('[data-cell=trace]', has_text='TICKER').first
    cell.scroll_into_view_if_needed(); cell.click()

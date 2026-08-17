@@ -220,6 +220,48 @@ export function isSellAction(action: string): boolean {
   return SELL_ACTIONS.has(action)
 }
 
+/** Actions that add to a position. */
+const ADD_ACTIONS = new Set(['buy', 'add'])
+
+/**
+ * 'same' | 'opposite' | 'other' — the plan's direction against the fill's.
+ *
+ * Mirrors `_plan_fill_alignment` in src/clawock/publish/dashboard.py; the two
+ * implementations are pinned together by tests/test_decision_trace_parity.py.
+ */
+export function planFillAlignment(
+  planAction: string | null | undefined,
+  fillAction: string | null | undefined,
+): 'same' | 'opposite' | 'other' | null {
+  if (typeof planAction !== 'string' || typeof fillAction !== 'string') return null
+  if (planAction === fillAction) return 'same'
+  const sideOf = (action: string): 'add' | 'reduce' | null =>
+    ADD_ACTIONS.has(action) ? 'add' : (SELL_ACTIONS.has(action) ? 'reduce' : null)
+  const planSide = sideOf(planAction)
+  const fillSide = sideOf(fillAction)
+  if (planSide === null || fillSide === null) return 'other'
+  return planSide === fillSide ? 'same' : 'opposite'
+}
+
+/**
+ * A rationale fit for a reader: the risk engine's internal breach ids stripped.
+ *
+ * The raw field carries things like "硬止损 -27.23% ≤ -18% (breach
+ * risk-95ac7f6cd591 30d)" — the hash says nothing to anyone outside the
+ * process, and it is sitting in the one field a reader opens to understand
+ * *why*. Mirrors `_readable_rationale` in dashboard.py, minus the 140-char
+ * truncation: that exists to fit a published payload cap, which this panel
+ * (reading the workspace at runtime) does not have.
+ */
+export function readableRationale(text: string | null | undefined): string | null {
+  if (typeof text !== 'string') return null
+  const cleaned = text
+    .replace(/\s*\((?:breach\s+)?risk-[0-9a-f]{6,}(?:\s+\d+d)?\)/g, '')
+    .replace(/[ \t]{2,}/g, ' ')
+    .trim()
+  return cleaned === '' ? null : cleaned
+}
+
 /** Good/bad/flat reading of a T+1 move, action-aware and dead-zoned. */
 export function t1ToneOf(action: string, delta: number): 'win' | 'loss' | 'flat' {
   if (Math.abs(delta) < T1_FLAT_BAND_PCT) return 'flat'
@@ -317,7 +359,14 @@ function enrichTrade(
   decByTicker: Record<string, DecisionRow[]>,
   books: Book[],
 ): EnrichedTrade {
-  const out = { ...trade, holdPnl: null, t1: null, decision: null } as EnrichedTrade
+  const out = {
+    ...trade, holdPnl: null, t1: null, decision: null,
+    // Unknown actions stay null, never defaulted to 'add': the client treats a
+    // null side as "could not place this fill" and keeps it out of both the
+    // sell scorecard and the add bucket. Filling it with 'add' would silently
+    // file every unclassified action under buys.
+    side: isSellAction(trade.action) ? 'reduce' : (ADD_ACTIONS.has(trade.action) ? 'add' : null),
+  } as EnrichedTrade
   // T+1 reading: tone and verdict both come from the shared dead zone in
   // `t1ToneOf`/`t1VerdictOf`, so the chip, the trace node and the text can
   // never disagree about the same fill.
@@ -364,7 +413,7 @@ function enrichTrade(
       action: typeof b['action'] === 'string' ? b['action'] : null,
       confidence: b['confidence'] == null ? null : Number(b['confidence']),
       drivenBy: typeof b['driven_by'] === 'string' ? b['driven_by'] : null,
-      rationale: typeof b['rationale'] === 'string' ? b['rationale'] : null,
+      rationale: readableRationale(typeof b['rationale'] === 'string' ? b['rationale'] : null),
       bull: typeof bull['summary'] === 'string' ? bull['summary'] : null,
       bear: typeof bear['summary'] === 'string' ? bear['summary'] : null,
       emotion: typeof emotion['pressure'] === 'string' ? emotion['pressure'] : null,
@@ -376,6 +425,8 @@ function enrichTrade(
       plannedPrice: evaluation['execution_price'] != null ? Number(evaluation['execution_price'])
         : (b['simulated_entry_price'] != null ? Number(b['simulated_entry_price']) : null),
       source: typeof b['source'] === 'string' ? b['source'] : 'brief',
+      alignment: planFillAlignment(
+        typeof b['action'] === 'string' ? b['action'] : null, trade.action),
     }
     out.decision = decision
   }
