@@ -2761,8 +2761,17 @@
 
   // =========================================================
   // Decision traces: real fills as the spine, soft-paired decisions
-  // as the "why", T+1 closes as the result. Same contract as the DSH
-  // plugin view — this card is the public mirror.
+  // as the "why", T+1 canonical closes as the result. The DSH plugin renders
+  // the same contract from its own implementation; parity is enforced by
+  // fixture, not by shared code (#739).
+  //
+  // Wording rules this card learned the hard way (#737/#738):
+  //  - every count carries its denominator, and window sums are labelled as
+  //    the window, never as the ledger;
+  //  - the ledger's execution.status grades the *plan*, so it is shown as
+  //    「账本自评」 and never as this fill's execution;
+  //  - 本笔已实现 (per-fill, money) and 该持仓浮动 (position-level, percent) are
+  //    different quantities and never share a label.
   // =========================================================
   function renderDecisionTraces() {
     const wrap = document.getElementById("trace-list");
@@ -2777,31 +2786,49 @@
     const EMO = {fomo:"追高冲动",revenge:"报复性",averaging_down:"摊薄冲动",fear:"恐慌",euphoria:"亢奋",calm:"平静",mixed:"混合"};
     const esc = escapeHtml;
 
-    // T+1 tone is action-aware: a rising price is good for the buyer, bad for
-    // the seller (卖飞). One sign rule for both would color buy gains red.
-    const t1Cls = (t) => {
-      const up = t.t1.delta >= 0;
-      const sell = t.action === "sell" || t.action === "cut" || t.action === "trim" || t.action === "trim_on_rebound";
-      if (sell) return up ? "neg" : "pos";
-      return up ? "pos" : "neg";
-    };
+    // T+1 tone ships with the data so this chip cannot colour a move the words
+    // call 持平: the ±1% dead zone lives once, in build_decision_traces. `tone`
+    // is absent only on a payload built before #739.
+    const TONE = {win: "pos", loss: "neg", flat: "na"};
+    const t1Cls = (t) => TONE[t.t1.tone] || "na";
 
-    // Stats row: USD-eq realized + T+1 verdict counts + match rate.
-    const usd = list.filter(t => t.realizedPnl != null && t.currency === "USD").reduce((s,t) => s + t.realizedPnl, 0);
-    const hkd = list.filter(t => t.realizedPnl != null && t.currency === "HKD").reduce((s,t) => s + t.realizedPnl, 0);
-    const fx = safe(DATA, "fx", "usdhkd");
-    const totalUsd = usd + (fx ? hkd / fx : 0);
-    const fw = list.filter(t => t.t1 && t.t1.verdict === "卖飞").length;
-    const ok = list.filter(t => t.t1 && t.t1.verdict === "卖对").length;
-    const matched = list.filter(t => t.decision).length;
+    // Stats. Every number is scoped and carries its denominator: this card
+    // renders a window (the newest `limit` fills), and summing that window into
+    // an unqualified 已实现 total is how it came to print $926.3 while the
+    // ledger held US $2,347.68 + HK$7,259.16 (#737).
+    const sc = safe(DATA, "decision_trace_scope") || {};
+    const shown = sc.fillsShown || list.length;
+    const total = sc.fillsTotal || shown;
+    const realShown = sc.realizedShown || {};
+    const realAll = sc.realizedAll || {};
+    // USD first, then the rest — the desk reports in USD-eq, and the two legs
+    // are listed side by side rather than summed (HKD + USD is not a number).
+    const money = (by) => {
+      const keys = Object.keys(by).sort((a, b) => (a === "USD" ? -1 : b === "USD" ? 1 : a < b ? -1 : 1));
+      return keys.length
+        ? keys.map(c => `<b class="${by[c] >= 0 ? "pos" : "neg"}">${fmtMoney(by[c], c)}</b>`).join(" + ")
+        : `<b>${DASH}</b>`;
+    };
+    const verdicts = (label, tally) => {
+      const keys = Object.keys(tally || {});
+      if (!keys.length) return "";
+      const n = keys.reduce((s, k) => s + tally[k], 0);
+      return `${label} <b>${n}</b>: ` + keys.sort().map(k =>
+        `<b class="${k === "卖对" || k === "涨" ? "pos" : k === "持平" ? "na" : "neg"}">${tally[k]}</b>${k}`).join(" / ");
+    };
     const statsEl = document.getElementById("trace-stats");
     if (statsEl) {
+      const v = sc.t1Verdicts || {};
+      const align = sc.alignment || {};
+      const t1line = [verdicts("卖出", v.reduce), verdicts("买入", v.add)].filter(Boolean).join(" · ");
       statsEl.innerHTML =
-        `<span>已实现 <b class="${totalUsd >= 0 ? "pos" : "neg"}">${fmtMoney(totalUsd, "USD")}</b> <span class="muted">USD等值</span></span>` +
-        `<span class="muted">(US ${fmtMoney(usd, "USD")} + HK ${fmtMoney(hkd, "HKD")})</span>` +
-        `<span>T+1 <b class="neg">${fw}</b>卖飞 / <b class="pos">${ok}</b>卖对</span>` +
-        `<span>挂接 <b>${matched}</b>/${list.length}</span>` +
-        (fx ? `<span class="muted">@${fx}</span>` : "");
+        `<span>本卡显示 <b>最近 ${shown}</b> 笔成交 <span class="muted">/ 全部 ${total} 笔</span></span>` +
+        `<span>其中 <b>${sc.closedShown != null ? sc.closedShown : DASH}</b> 笔已平仓,已实现 ${money(realShown)} ` +
+        `<span class="muted">(全期 ${money(realAll)},不只这 ${shown} 笔)</span></span>` +
+        (t1line ? `<span>T+1 ${t1line}</span>` : "") +
+        `<span>有当日计划 <b>${sc.pairedShown != null ? sc.pairedShown : DASH}</b>/${shown}` +
+        (align.opposite ? `,其中 <b class="neg">${align.opposite}</b> 笔与计划反向` : "") +
+        ` <span class="muted">· 带心智/情绪 ${sc.emotionShown != null ? sc.emotionShown : DASH}/${shown}</span></span>`;
     }
 
     // Group by date, newest first; each fill is an expandable trace row.
@@ -2809,42 +2836,82 @@
     list.forEach(t => { const k = (t.date || "").slice(0,10); (groups[k] = groups[k] || []).push(t); });
     const dates = Object.keys(groups).sort().reverse();
 
+    // The fill itself, in words — the one node that is never inferred.
+    function fillNode(t) {
+      const sym = t.currency === "HKD" ? "HK$" : "$";
+      return `${esc(ACT[t.action] || t.action)} ${t.shares} 股 @ ${sym}${t.price}`;
+    }
+
+    // What actually happened to the money on this row. Two different
+    // quantities, so two different labels: a closed fill has its own realized
+    // amount; an open one only has the whole position's floating percent, which
+    // is not this fill's result and must not be labelled as if it were.
+    function pnlNode(t) {
+      const sym = t.currency === "HKD" ? "HK$" : "$";
+      if (t.realizedPnl != null) {
+        const v = (t.realizedPnl >= 0 ? "+" : "") + Number(t.realizedPnl).toFixed(2) + " " + sym;
+        return {n: "本笔已实现", v, c: t.realizedPnl >= 0 ? "pos" : "neg"};
+      }
+      if (t.holdPnl != null) {
+        return {n: `该持仓当前浮动 <span class="muted">(${esc(t.ticker)} 全仓,非本笔)</span>`,
+                v: fmtPct(t.holdPnl, 1), c: t.holdPnl >= 0 ? "pos" : "neg"};
+      }
+      return {n: "本笔盈亏", v: DASH + " <span class=\"muted\">未平仓</span>", c: "na"};
+    }
+
     function traceHTML(t) {
       const d = t.decision;
-      const sym = t.currency === "HKD" ? "HK$" : "$";
-      if (!d) {
-        let t1 = "";
-        if (t.t1) t1 = `<div class="tr-node ${t1Cls(t)}"><div class="tr-n">T+1 结果</div><div class="tr-v">${fmtPct(t.t1.delta, 1)}</div></div>`;
-        return `<div class="trace-line">
-          <div class="tr-node dec"><div class="tr-n">决策</div><div class="tr-v muted">无关联记录</div></div>
-          <div class="tr-node ok"><div class="tr-n">执行</div><div class="tr-v">${esc(ACT[t.action] || t.action)} ${t.shares}股 @${t.price} ${sym}</div></div>
-          ${t1}
-        </div>${t.note ? `<div class="tr-note">${esc(t.note)}</div>` : ""}
-        <div class="tr-miss">此笔无关联决策记录 — 事实保留,判断缺失显式标出</div>`;
+      const pnl = pnlNode(t);
+      const pnlHTML = `<div class="tr-node ${pnl.c}"><div class="tr-n">${pnl.n}</div><div class="tr-v">${pnl.v}</div></div>`;
+      let t1 = "";
+      if (t.t1) {
+        t1 = `<div class="tr-node ${t1Cls(t)}"><div class="tr-n">T+1 收盘 · ${esc(t.t1.date)}</div>` +
+          `<div class="tr-v">${fmtPct(t.t1.delta, 1)} · ${esc(t.t1.verdict)}</div></div>`;
+      } else {
+        t1 = `<div class="tr-node na"><div class="tr-n">T+1 收盘</div>` +
+          `<div class="tr-v muted">${DASH} 官方行情里还没有 4 天内的下一根收盘</div></div>`;
       }
-      const exe = EXE[d.execution] || ["未知","na"];
-      const decV = `${ACT[d.action] || d.action}${d.confidence != null ? " " + Math.round(d.confidence*100) + "%" : ""} <span class="muted">${DRV[d.drivenBy] || d.drivenBy || ""}</span>`;
+      if (!d) {
+        return `<div class="trace-line">
+          <div class="tr-node na"><div class="tr-n">当时的计划</div><div class="tr-v muted">这一天没有该标的的计划记录</div></div>
+          <div class="tr-node dec"><div class="tr-n">真实成交</div><div class="tr-v">${fillNode(t)}</div></div>
+          ${t1}
+          ${pnlHTML}
+        </div>${t.note ? `<div class="tr-note">${esc(t.note)}</div>` : ""}
+        <div class="tr-miss">这笔成交在决策账本里找不到前后 3 天的同标的计划:成交是真的,当时的判断没有留下记录。</div>`;
+      }
+      // The plan-vs-fill relation, stated instead of left to be inferred: 22 of
+      // 40 published rows were outright reversals of their own plan and the card
+      // said nothing about it.
+      const ALIGN = {
+        same: ["与计划同向", "ok"],
+        opposite: ["与计划反向", "skip"],
+        other: ["计划未指向买卖", "na"],
+      };
+      const al = ALIGN[d.alignment] || null;
+      const decV = `${esc(ACT[d.action] || d.action)}` +
+        (d.sizeShares ? ` ${d.sizeShares} 股` : "") +
+        (d.plannedPrice ? ` @ ${d.plannedPrice}` : "") +
+        (d.confidence != null ? ` <span class="muted">信心 ${Math.round(d.confidence*100)}%</span>` : "") +
+        (DRV[d.drivenBy] || d.drivenBy ? ` <span class="muted">· ${esc(DRV[d.drivenBy] || d.drivenBy)}</span>` : "");
       const why = d.rationale || d.bull || "";
       const emo = d.emotion && d.emotion !== "calm" ? (EMO[d.emotion] || d.emotion) : null;
       let chips = "";
-      if (d.condition) chips += `<span class="tr-chip">条件: ${esc(d.condition)}</span>`;
-      if (d.sizeShares) chips += `<span class="tr-chip">计划 ${d.sizeShares} 股</span>`;
-      if (d.plannedPrice) chips += `<span class="tr-chip">计划价 ${d.plannedPrice}</span>`;
-      let t1 = "";
-      if (t.t1) t1 = `<div class="tr-node ${t1Cls(t)}"><div class="tr-n">T+1 结果</div><div class="tr-v">${fmtPct(t.t1.delta, 1)}${t.action === "sell" ? " · " + t.t1.verdict : ""}</div></div>`;
-      let rv, rc;
-      if (t.realizedPnl != null) { rv = (t.realizedPnl >= 0 ? "+" : "") + Number(t.realizedPnl).toFixed(2) + " " + sym; rc = t.realizedPnl >= 0 ? "pos" : "neg"; }
-      else if (t.holdPnl != null) { rv = fmtPct(t.holdPnl, 1); rc = t.holdPnl >= 0 ? "pos" : "neg"; }
-      else { rv = DASH; rc = "na"; }
+      if (d.condition) chips += `<span class="tr-chip">触发条件: ${esc(d.condition)}</span>`;
+      // The ledger's execution.status is the plan's own self-report. It answers
+      // "was this plan followed", not "did this fill happen" — the row is a
+      // completed fill either way, so 「未执行」 as a top-level verdict on it read
+      // as a contradiction. It stays, demoted and labelled for what it is.
+      if (d.execution) chips += `<span class="tr-chip">账本自评: ${esc((EXE[d.execution] || [d.execution])[0])}</span>`;
       return `<div class="trace-line">
-        <div class="tr-node dec"><div class="tr-n">计划 · ${esc(d.planDate || "")}</div><div class="tr-v">${decV}</div></div>
-        <div class="tr-node ${exe[1]}"><div class="tr-n">执行</div><div class="tr-v">${exe[0]}${exe[1] === "skip" ? " — 实际动了手" : ""}</div></div>
+        <div class="tr-node dec"><div class="tr-n">当时的计划 · ${esc(d.planDate || "")}</div><div class="tr-v">${decV}</div></div>
+        <div class="tr-node ${al ? al[1] : "dec"}"><div class="tr-n">真实成交</div><div class="tr-v">${fillNode(t)}${al ? ` <span class="tr-align ${al[1]}">${al[0]}</span>` : ""}</div></div>
         ${t1}
-        <div class="tr-node ${rc}"><div class="tr-n">盈亏</div><div class="tr-v">${rv}</div></div>
+        ${pnlHTML}
       </div>
       ${chips ? `<div class="tr-chips">${chips}</div>` : ""}
       ${why ? `<div class="tr-note why">${esc(why)}</div>` : ""}
-      ${emo ? `<div class="tr-note emo">⚡ ${esc(emo)}</div>` : ""}
+      ${emo ? `<div class="tr-note emo">⚡ 当时情绪:${esc(emo)}${d.emotionNote ? " — " + esc(d.emotionNote) : ""}</div>` : ""}
       ${t.note ? `<div class="tr-note">${esc(t.note)}</div>` : ""}`;
     }
 
@@ -2860,15 +2927,18 @@
         return `<div class="trace-day"><div class="trace-day-h">${esc(date)} <span class="muted">${rows.length}</span></div>
           ${rows.map(t => {
             const tone = t.action === "buy" || t.action === "add" ? "pos" : (t.action === "sell" || t.action === "cut" || t.action === "trim" ? "neg" : "muted");
+            // Collapsed row: a realized amount belongs to this fill, a floating
+            // percent belongs to the whole position. The 持仓 prefix is what
+            // keeps the second one from reading as "this trade lost 28%".
             const pnl = t.realizedPnl != null
               ? `<span class="tr-pnl ${t.realizedPnl >= 0 ? "pos" : "neg"}">${t.realizedPnl >= 0 ? "+" : ""}${Number(t.realizedPnl).toFixed(2)} ${t.currency === "HKD" ? "HK$" : "$"}</span>`
-              : (t.holdPnl != null ? `<span class="tr-pnl ${t.holdPnl >= 0 ? "pos" : "neg"}">${fmtPct(t.holdPnl, 1)}</span>` : "");
+              : (t.holdPnl != null ? `<span class="tr-pnl ${t.holdPnl >= 0 ? "pos" : "neg"}"><span class="tr-pnl-k">持仓</span>${fmtPct(t.holdPnl, 1)}</span>` : "");
             const t1tag = t.t1
               ? `<span class="tr-t1 ${t1Cls(t)}">T+1 ${fmtPct(t.t1.delta, 1)} ${t.t1.verdict}</span>`
               : "";
             return `<details class="tr-row">
               <summary>
-                <span class="tr-dot ${t.decision ? "has" : ""}"></span>
+                <span class="tr-dot ${t.decision ? "has" : ""}" title="${t.decision ? "有当日计划记录" : "无当日计划记录"}"></span>
                 <span class="tr-tk">${esc(t.ticker)}</span>
                 <span class="tr-act ${tone}">${esc(ACT[t.action] || t.action)}</span>
                 <span class="tr-qty">${t.shares} @${t.price}</span>

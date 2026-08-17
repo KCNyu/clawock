@@ -24,6 +24,8 @@ from zoneinfo import ZoneInfo
 # snapshots dir (e.g. 2026-05-16-saturday-baseline.json caused duplicate 5-16
 # rows in the equity curve before this filter was added).
 SNAPSHOT_FNAME_RE = re.compile(r'^\d{4}-\d{2}-\d{2}\.json$')
+# A session key inside a canonical bar document (memory/bars/<ticker>.json).
+SESSION_DATE_RE = re.compile(r'^\d{4}-\d{2}-\d{2}$')
 
 from clawock.workspace import workspace_root
 from clawock.portfolio import instruments as instrument_registry
@@ -620,72 +622,133 @@ def _canonical_ledger():
 
 
 def _day_num(iso):
-    """Day number for window arithmetic; None for unparsable values."""
+    """Calendar day ordinal for window arithmetic; None for unparsable values.
+
+    Must be a real day count, not a y*400+m*32+d packing: the packed form
+    silently shortens every window that crosses a month (by 32 − days-in-month)
+    and makes a year boundary unreachable — 2026-12-31 → 2027-01-01 packs to a
+    distance of 18, so a January fill could never pair with a late-December
+    plan. The DSH plugin's `dayGap` is calendar-correct; this is the same rule.
+    """
     if not isinstance(iso, str):
         return None
     m = re.match(r'^(\d{4})-(\d{2})-(\d{2})', iso)
     if not m:
         return None
-    return int(m[1]) * 400 + int(m[2]) * 32 + int(m[3])
+    try:
+        return date(int(m[1]), int(m[2]), int(m[3])).toordinal()
+    except ValueError:
+        return None
 
 
-def _future_close(prices_by_ticker, ticker, date_iso, n=1):
-    """First snapshot close at least n trading days after date_iso, or None."""
+# How far after a fill a close may sit and still be called T+1. A Friday fill
+# settles against Monday (3 calendar days); one intervening public holiday makes
+# 4. Beyond that it is a different horizon and must not wear the T+1 label.
+# Mirrors T1_MAX_GAP_DAYS in the DSH plugin (examples/dsh/.../src/ledger.ts).
+T1_MAX_GAP_DAYS = 4
+# Moves smaller than this read as noise, not as a verdict. Mirrors the plugin's
+# T1_FLAT_BAND_PCT. Tone and verdict share it so the coloured chip and the words
+# can never disagree about the same fill.
+T1_FLAT_BAND_PCT = 1
+# Actions that reduce a position — for these a rising close is bad news.
+T1_SELL_ACTIONS = ('sell', 'cut', 'trim', 'trim_on_rebound')
+
+
+def _t1_tone(action, delta):
+    """'win' | 'loss' | 'flat' reading of a T+1 move, action-aware, dead-zoned."""
+    if abs(delta) < T1_FLAT_BAND_PCT:
+        return 'flat'
+    up = delta > 0
+    if action in T1_SELL_ACTIONS:
+        return 'loss' if up else 'win'
+    return 'win' if up else 'loss'
+
+
+def _t1_verdict(action, delta):
+    """Verdict text for a T+1 move, on the same dead zone as `_t1_tone`."""
+    if abs(delta) < T1_FLAT_BAND_PCT:
+        return '持平'
+    up = delta > 0
+    if action in T1_SELL_ACTIONS:
+        return '卖飞' if up else '卖对'
+    return '涨' if up else '跌'
+
+
+def _future_close(prices_by_ticker, ticker, date_iso, n=1, max_gap_days=T1_MAX_GAP_DAYS):
+    """The n-th canonical close strictly after date_iso, or None.
+
+    The gap ceiling is load-bearing: the bar store has holes (holidays, a
+    retired ticker, a fill that predates coverage), so "the next close we
+    happen to own" can be months later. Without the ceiling those were being
+    rendered under a literal T+1 label.
+    """
     days = prices_by_ticker.get(ticker)
     if not days:
         return None
     base = _day_num(date_iso)
     if base is None:
         return None
-    later = sorted(d for d in days if _day_num(d) > base)
+    later = sorted(d for d in days if (_day_num(d) or 0) > base)
     if len(later) < n:
         return None
-    return later[n - 1], days[later[n - 1]]
+    hit = later[n - 1]
+    if (_day_num(hit) - base) > max_gap_days:
+        return None
+    return hit, days[hit]
 
 
-def _snapshot_close_index(workspace=None):
-    """{ticker: {date: current_price}} from memory/snapshots/*.json (all files,
-    not just the embedded window — T+1 verdicts need older closes too)."""
+def _bar_close_index(workspace=None, tickers=None):
+    """{ticker: {date: close}} from the canonical bar store memory/bars/*.json.
+
+    Deliberately NOT memory/snapshots/*.json. A snapshot is a *portfolio* file
+    whose `current_price` carries the vintage of whichever cron wrote it —
+    measured on 00100 across 15 snapshots it was the previous close 7 times,
+    that day's close 3 times and an intraday print 5 times — and the field is
+    carried forward after a position closes. Settlement migrated off snapshots
+    for exactly this reason; this view read them until #740, where 9 of the 40
+    published T+1 verdicts turned out to be wrong (SPCH 2026-06-18 showed
+    −10.64% against a real −40.33%). `bars.py` START_DATE was lowered to
+    2025-12-01 specifically so this view could mark fills against real closes.
+    """
     index = {}
     ws = workspace or WS_ROOT
-    paths = sorted(glob.glob(str(ws / 'memory' / 'snapshots' / '*.json')))
-    for p in paths:
-        name = os.path.basename(p)
-        if not SNAPSHOT_FNAME_RE.match(name):
+    wanted = None if tickers is None else {t for t in tickers if isinstance(t, str)}
+    for p in sorted(glob.glob(str(ws / 'memory' / 'bars' / '*.json'))):
+        ticker = os.path.basename(p)[:-len('.json')]
+        if wanted is not None and ticker not in wanted:
             continue
         d = load_json(p)
-        if not d:
+        if not isinstance(d, dict):
             continue
-        date_key = name.split('.')[0].split('-')
-        date_key = '-'.join(date_key[:3]) if len(date_key) >= 3 else name
-        for book in (d.get('portfolios') or {}).values():
-            if not isinstance(book, dict):
+        closes = {}
+        for day, bar in (d.get('bars') or {}).items():
+            if not isinstance(day, str) or not SESSION_DATE_RE.match(day):
                 continue
-            for h in (book.get('holdings') or []):
-                if not isinstance(h, dict):
-                    continue
-                tk = h.get('ticker')
-                price = h.get('current_price')
-                if isinstance(tk, str) and isinstance(price, (int, float)):
-                    index.setdefault(tk, {})[date_key] = price
+            close = bar.get('close') if isinstance(bar, dict) else None
+            if isinstance(close, (int, float)) and math.isfinite(close):
+                closes[day] = close
+        if closes:
+            index[ticker] = closes
     return index
 
 
 def build_decision_traces(limit=40, workspace=None):
     """The decision-trace view data: every real fill as a trace node with its
-    soft-paired decision (±3 days, same ticker) and T+1 close verdict.
+    soft-paired decision (±3 calendar days, same ticker) and T+1 close verdict.
 
     This is the organic "one view" the DSH plugin and this dashboard card both
     render: the spine is real fills (portfolio.json trades[]), the "why" layer
-    is the decision ledger, the result is the T+1 close (snapshot prices).
+    is the decision ledger, the result is the T+1 canonical close.
     Pure read — never mutates portfolio.json or the ledger.
     @param workspace - desk root; defaults to the module WS_ROOT (used by the
                        real build). Tests pass a synthetic temp dir.
-    @returns list of trace dicts, newest first, capped at `limit`.
+    @returns list of trace dicts, newest first, capped at `limit`. The card's
+             own totals must come from `build_decision_trace_scope`, never from
+             summing this window (#737).
     """
     ws = workspace or WS_ROOT
-    # Prices first (needed for T+1 verdicts).
-    prices = _snapshot_close_index(ws)
+    # Prices first (needed for T+1 verdicts). Canonical bars, never snapshots.
+    prices = _bar_close_index(ws)
     # Decision ledger by ticker+date (last row wins on same-key collisions).
     decisions = decision_v2.load_decisions(ws / 'memory' / 'decisions.jsonl')
     dec_by_key = {}
@@ -730,18 +793,19 @@ def build_decision_traces(limit=40, workspace=None):
                     'decision': None,
                     'holdPnl': None,
                 }
-                # T+1 verdict.
+                # T+1 verdict. `tone` ships with the verdict so the rendered
+                # chip cannot colour a move the words call 持平 (#739).
                 fc = _future_close(prices, ticker, t['date'], 1)
                 if fc and t.get('price'):
-                    delta = (fc[1] - t['price']) / t['price'] * 100
+                    delta = round((fc[1] - t['price']) / t['price'] * 100, 2)
                     t['t1'] = {
                         'date': fc[0],
                         'price': round(fc[1], 2),
-                        'delta': round(delta, 2),
-                        'verdict': ('卖飞' if delta > 1 else '卖对' if delta < -1 else '持平')
-                        if t['action'] == 'sell' else ('涨' if delta > 0 else '跌'),
+                        'delta': delta,
+                        'verdict': _t1_verdict(t['action'], delta),
+                        'tone': _t1_tone(t['action'], delta),
                     }
-                # Soft-pair the decision ledger (±3 days).
+                # Soft-pair the decision ledger (±3 calendar days).
                 base = _day_num(t['date'])
                 best = None
                 best_diff = 99
@@ -749,7 +813,10 @@ def build_decision_traces(limit=40, workspace=None):
                 for key, e in dec_by_key.items():
                     if not key.startswith(prefix):
                         continue
-                    diff = abs(_day_num(key[len(prefix):]) - base)
+                    plan_day = _day_num(key[len(prefix):])
+                    if plan_day is None or base is None:
+                        continue
+                    diff = abs(plan_day - base)
                     if diff <= 3 and diff < best_diff:
                         best = e
                         best_diff = diff
@@ -764,9 +831,7 @@ def build_decision_traces(limit=40, workspace=None):
                         'action': best.get('action'),
                         'confidence': best.get('confidence'),
                         'drivenBy': best.get('driven_by'),
-                        'rationale': (best.get('rationale')[:140] + '…')
-                        if isinstance(best.get('rationale'), str) and len(best.get('rationale')) > 140
-                        else (best.get('rationale') if isinstance(best.get('rationale'), str) else None),
+                        'rationale': _readable_rationale(best.get('rationale')),
                         'thesis': mind.get('thesis'),
                         'invalidation': mind.get('invalidation') if isinstance(mind.get('invalidation'), list) else [],
                         'bull': (mind.get('bull') or {}).get('summary'),
@@ -779,12 +844,124 @@ def build_decision_traces(limit=40, workspace=None):
                         'sizePct': size.get('pct'),
                         'plannedPrice': evaluation.get('execution_price') or best.get('simulated_entry_price'),
                         'source': best.get('source') or 'brief',
+                        # How the plan's direction relates to the fill that
+                        # actually happened. The ledger's own execution.status
+                        # is a plan self-report and answers a different
+                        # question, so it must not be rendered as if it graded
+                        # this fill (#738).
+                        'alignment': _plan_fill_alignment(best.get('action'), t['action']),
                     }
                 if ticker in held_pnl:
                     t['holdPnl'] = held_pnl[ticker]
                 traces.append(t)
     traces.sort(key=lambda t: (t.get('date') or ''), reverse=True)
     return traces[:limit]
+
+
+def _readable_rationale(text, cap=140):
+    """A rationale fit for a public card: internal breach ids stripped, then
+    truncated to the payload budget.
+
+    Raw rationales leak the risk engine's internals — "硬止损 -27.23% ≤ -18%
+    (breach risk-95ac7f6cd591 30d)" — into the one field a reader looks at to
+    understand *why*. The hash says nothing to anyone outside the process, and
+    it was eating the 140-char budget the real sentence needed (#738).
+    Truncation stays because the full text blew the 200KB dashboard cap.
+    """
+    if not isinstance(text, str):
+        return None
+    cleaned = re.sub(r'\s*\((?:breach\s+)?risk-[0-9a-f]{6,}(?:\s+\d+d)?\)', '', text)
+    cleaned = re.sub(r'[ \t]{2,}', ' ', cleaned).strip()
+    if not cleaned:
+        return None
+    return (cleaned[:cap] + '…') if len(cleaned) > cap else cleaned
+
+
+# Fill actions grouped by what they do to a position, so a plan can be compared
+# with the fill that followed it.
+_ADD_SIDE = ('buy', 'add')
+_REDUCE_SIDE = ('sell', 'cut', 'trim', 'trim_on_rebound')
+
+
+def _plan_fill_alignment(plan_action, fill_action):
+    """'same' | 'opposite' | 'other' — the plan's direction vs the fill's.
+
+    Not cosmetic: 39 of the 40 published traces had a plan action that differed
+    from the fill, and the card said nothing about it. "Plan said cut, I bought"
+    is the single most informative thing on this panel, so it ships as data
+    instead of being left for the reader to infer from two adjacent lines.
+    """
+    if not isinstance(plan_action, str) or not isinstance(fill_action, str):
+        return None
+    if plan_action == fill_action:
+        return 'same'
+    plan_side = 'add' if plan_action in _ADD_SIDE else 'reduce' if plan_action in _REDUCE_SIDE else None
+    fill_side = 'add' if fill_action in _ADD_SIDE else 'reduce' if fill_action in _REDUCE_SIDE else None
+    if plan_side is None or fill_side is None:
+        return 'other'
+    return 'same' if plan_side == fill_side else 'opposite'
+
+
+def build_decision_trace_scope(traces, workspace=None, limit=40):
+    """What the trace card is allowed to claim about itself.
+
+    The card used to sum its own 40-row window and print the result as an
+    unqualified 已实现 total: $926.3 against a real US $2,347.68 + HK$7,259.16,
+    and a flat "HK HK$0" while HK realized was HK$7,259.16 (#737). The window is
+    a window; the totals have to come from the whole fill ledger and be labelled
+    as such.
+    @param traces - the (already capped) trace list the card will render.
+    @returns dict of counts/totals, all with their denominators.
+    """
+    ws = workspace or WS_ROOT
+    pf_doc = load_json(str(ws / 'portfolio.json')) or {}
+    all_fills = 0
+    realized_all = {}
+    for leg in resolve_legs(pf_doc):
+        for h in (pf_doc.get('portfolios') or {}).get(leg.bucket, {}).get('holdings', []):
+            if not isinstance(h, dict):
+                continue
+            for tr in (h.get('trades') or []):
+                if not isinstance(tr, dict) or not isinstance(tr.get('date'), str):
+                    continue
+                all_fills += 1
+                if isinstance(tr.get('realized_pnl'), (int, float)):
+                    realized_all[leg.currency] = realized_all.get(leg.currency, 0) + tr['realized_pnl']
+    shown = list(traces or [])
+    realized_shown = {}
+    closed_shown = 0
+    for t in shown:
+        if isinstance(t.get('realizedPnl'), (int, float)):
+            closed_shown += 1
+            cur = t.get('currency')
+            realized_shown[cur] = realized_shown.get(cur, 0) + t['realizedPnl']
+    verdicts = {}
+    for t in shown:
+        v = (t.get('t1') or {}).get('verdict')
+        if v:
+            side = 'reduce' if t.get('action') in _REDUCE_SIDE else 'add'
+            verdicts.setdefault(side, {})
+            verdicts[side][v] = verdicts[side].get(v, 0) + 1
+    return {
+        'fillsTotal': all_fills,
+        'fillsShown': len(shown),
+        'limit': limit,
+        'closedShown': closed_shown,
+        'realizedAll': {k: round(v, 2) for k, v in realized_all.items()},
+        'realizedShown': {k: round(v, 2) for k, v in realized_shown.items()},
+        'pairedShown': sum(1 for t in shown if t.get('decision')),
+        'alignment': {
+            key: sum(1 for t in shown if (t.get('decision') or {}).get('alignment') == key)
+            for key in ('same', 'opposite', 'other')
+        },
+        # The mind/emotion layer the card advertises: 0 of 40 traces carried an
+        # emotion in production. Shipping the coverage number keeps the gap
+        # visible instead of silently rendering nothing (#738).
+        'emotionShown': sum(1 for t in shown if (t.get('decision') or {}).get('emotion')),
+        'mindShown': sum(1 for t in shown if (t.get('decision') or {}).get('thesis')),
+        't1Verdicts': verdicts,
+        't1Shown': sum(1 for t in shown if t.get('t1')),
+    }
 
 
 def load_snapshots():
@@ -2984,9 +3161,15 @@ def build_projection(previous_source=None, shadow_previous=None):
     out['decision_delta'] = decision_v2.decision_delta(_decisions)
     out['recent_decisions'] = decision_v2.recent_decisions(_decisions, limit=20)
     # Decision trace view: real fills as the spine with soft-paired decisions
-    # and T+1 verdicts. Same contract the DSH plugin renders; the dashboard
-    # card is the public mirror. Pure read of portfolio.json + ledger + snaps.
-    out['decision_traces'] = build_decision_traces(limit=40)
+    # and T+1 verdicts against canonical bars. The DSH plugin renders the same
+    # *contract* from its own TypeScript implementation — the two are not shared
+    # code, so the parity fixture in tests/test_decision_traces.py is what keeps
+    # them honest (#739). Pure read of portfolio.json + ledger + bars.
+    _traces = build_decision_traces(limit=40)
+    out['decision_traces'] = _traces
+    # The card's own totals. Never let it sum its 40-row window and print that
+    # as the ledger total (#737).
+    out['decision_trace_scope'] = build_decision_trace_scope(_traces, limit=40)
     out['debate_metrics'] = compute_debate_metrics()
     out['plan_timeline'] = compute_plan_timeline(plans, limit=15)
     out['weight_confidence'] = compute_weight_confidence(portfolio)
