@@ -602,6 +602,53 @@ async function testHeaderSharesTheContentColumn(browser, base) {
   }
 }
 
+// #736: the decision-trace summary row is a nowrap flex line whose min-content
+// is ~367px — wider than any phone — and .tr-row clips instead of scrolling, so
+// on a 390px iPhone the P&L number lost its last characters and at 320px it sat
+// entirely outside the row, together with the disclosure arrow. Measured, not
+// eyeballed: scrollWidth vs clientWidth on the summary, plus every child's right
+// edge against the row's.
+async function testTraceRowsFitPhoneWidths(browser, base) {
+  for (const width of [320, 360, 390, 414]) {
+    const page = await browser.newPage({ viewport: { width, height: 780 } });
+    await stubLiveOrigin(page);
+    await page.goto(base + "#reflect", { waitUntil: "domcontentloaded" });
+    await waitForTab(page, "reflect");
+    const m = await page.evaluate(() => {
+      const rows = [...document.querySelectorAll("#trace-list .tr-row")];
+      if (!rows.length) return {rows: 0};
+      const overflow = [];
+      const outside = [];
+      for (const row of rows) {
+        const summary = row.querySelector("summary");
+        if (summary.scrollWidth > summary.clientWidth + 1) {
+          overflow.push(`${row.querySelector(".tr-tk")?.textContent}: ${summary.scrollWidth} > ${summary.clientWidth}`);
+        }
+        const right = row.getBoundingClientRect().right;
+        for (const child of summary.children) {
+          const box = child.getBoundingClientRect();
+          if (box.width > 0 && box.right > right + 1) {
+            outside.push(`${child.className} (${Math.round(box.right)} > ${Math.round(right)})`);
+          }
+        }
+      }
+      // The card exists at all only when the payload carries traces.
+      const card = document.getElementById("decision-traces-card");
+      return {rows: rows.length, overflow, outside, docWidth: document.documentElement.scrollWidth,
+              cardHidden: card ? card.style.display === "none" : true};
+    });
+    if (m.rows === 0) {
+      assert(m.cardHidden !== false, "the trace card is showing with no rows in it");
+      await page.close();
+      continue;
+    }
+    assert.deepEqual(m.overflow, [], `clipped trace summary rows at ${width}px`);
+    assert.deepEqual(m.outside, [], `trace summary children outside their row at ${width}px`);
+    assert(m.docWidth <= width, `the page scrolls horizontally at ${width}px (${m.docWidth})`);
+    await page.close();
+  }
+}
+
 async function main() {
   const server = serveWorkspace();
   await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
@@ -618,6 +665,7 @@ async function main() {
     await testTabGuardWithoutForcedLayout(browser, base);
     await testTopbarFitsWhenRefreshLabelSwaps(browser, base);
     await testHeaderSharesTheContentColumn(browser, base);
+    await testTraceRowsFitPhoneWidths(browser, base);
   } finally {
     await browser.close();
     await new Promise(resolve => server.close(resolve));

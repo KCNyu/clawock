@@ -105,8 +105,11 @@ agent:准备请求…(clawock run prepare)
 对话判定落账:`clawock record --subject ... --action ... --bull ... --bear
 ... --invalidation ... --emotion ...`(schema 见 `docs/decision-mind-ledger.md`,
 bear 与失效条件强制,情绪自认)。面板不改任何文件,结算仍归既有机制。
-同一个「决策轨迹」数据契约也渲染在公开 dashboard 的 Reflect 面板
-(`build_decision_traces`)——插件与网页同一份加工逻辑。结构:
+同一个「决策轨迹」**数据契约**也渲染在公开 dashboard 的 Reflect 面板
+(`build_decision_traces`)——但那是**另一套实现**:插件是运行期读 workspace 的
+TypeScript(`src/ledger.ts::readTraces`),网页是构建期算好塞进 `dashboard.json`
+的 Python。两边不共享代码,曾经因此漂移到判词都不一致(#739/#740),
+现在由 `tests/test_decision_trace_parity.py` 钉住共用的规则常量与判词表。结构:
 
 对话判定落账:`clawock record --subject ... --action ... --bull ... --bear
 ... --invalidation ... --emotion ...`(schema 见 `docs/decision-mind-ledger.md`,

@@ -21,8 +21,23 @@ EOD_FIELDS = (
 
 
 def write_json(path: Path, payload) -> Path:
+    """Re-serialize a payload the way the publisher does.
+
+    `json.dumps` defaults — `ensure_ascii=True` plus `", "`/`": "` separators —
+    inflated this desk's payload by 16% (27,916 bytes on 2026-08-17), because
+    every Chinese character became a 6-byte `\\uXXXX` escape. The dashboard size
+    cap is checked against the file on disk, so the gate was measuring that
+    inflated copy: it fired at an effective ~172KB while the published payload
+    was 174,658 bytes and 25KB clear of its 200,000-byte cap. The mismatch went
+    unnoticed until the payload grew enough for the escape penalty alone to
+    cross the line, at which point nine tests in this module went red on data
+    commits nobody had touched. Match `serialize_dashboard_payload` so the
+    number the gate measures is the number that ships — in both directions: an
+    over-cap payload must still be able to red this suite.
+    """
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(payload), encoding='utf-8')
+    path.write_text(json.dumps(payload, ensure_ascii=False, separators=(',', ':')),
+                    encoding='utf-8')
     return path
 
 

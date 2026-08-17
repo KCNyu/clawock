@@ -783,9 +783,9 @@ layout: null
     <div class="sect-divider">决策轨迹 · 真实成交 vs 当时计划</div>
 
     <div class="card" id="decision-traces-card">
-      <h3>决策轨迹 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">真实成交为轴 · 软配对决策(±3日)为「为什么」 · T+1 收盘判卖飞/卖对</span></h3>
-      <p class="chart-hint">每一笔成交是一条可点开的轨迹：当时计划(动作/信心/条件)、执行(是否遵守)、T+1 结果、已实现盈亏。无关联决策的成交显式标注——不假装有判断。币种分别计(HKD/USD 不混加)。</p>
-      <div id="trace-stats" style="display:flex;gap:24px;flex-wrap:wrap;margin:8px 0 12px;font-size:12px"></div>
+      <h3>决策轨迹 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">一笔真实成交 + 那几天写下的计划 + 官方收盘给的结果</span></h3>
+      <p class="chart-hint">点开一笔成交看四件事：<b>当时的计划</b>（同标的前后 3 天内的账本记录，没有就写明没有）、<b>真实成交</b>（并标出它与计划同向还是反向）、<b>T+1 收盘</b>（官方逐日行情，间隔超过 4 天的下一根不算 T+1）、<b>钱</b>（已平仓看本笔已实现金额，未平仓只有该持仓整体浮动 —— 两者不共用标签）。卡内统计只覆盖显示的这些成交，全期口径单独标注；港币美元分开计。</p>
+      <div id="trace-stats"></div>
       <div id="trace-list"></div>
     </div>
 
