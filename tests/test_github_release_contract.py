@@ -98,3 +98,38 @@ def test_the_release_pins_the_npm_that_publishes():
     pin_at = workflow.index("npm install -g npm@")
     publish_at = workflow.index("publish_dsh_plugin.sh")
     assert pin_at < publish_at, "the pin has to come before the publish, not after"
+
+def test_npm_only_dispatch_runs_only_npm_and_never_a_github_release():
+    """Repairing the npm side of a half-published version must not need a tag
+    and must not create a GitHub Release.
+
+    v0.1.6's PyPI upload succeeded while its npm job died (runner npm crashed
+    with `Exit handler never called!`), leaving the version half-published.
+    The repair path is a workflow_dispatch from a branch ref: `npm_only` runs
+    the npm job alone — no PyPI re-upload, and github-release stays tag-only,
+    so no dispatch can leave a release behind.
+    """
+    workflow = WORKFLOW.read_text()
+    dispatch = workflow.split("workflow_dispatch:", 1)[1].split("permissions:")[0]
+    assert "npm_only" in dispatch, "the dispatch must expose the npm-only mode"
+
+    publish_job = workflow.split("\n  publish:\n", 1)[1].split("\n  npm:\n", 1)[0]
+    assert "inputs.npm_only != 'true'" in publish_job, (
+        "npm-only dispatch must never re-upload an already-published PyPI version"
+    )
+
+    npm_job = workflow.split("\n  npm:\n", 1)[1].split("\n  github-release:\n", 1)[0]
+    assert "inputs.npm_only == 'true'" in npm_job, (
+        "npm-only dispatch has to enable the npm job from a branch ref"
+    )
+    assert "tomllib.load(open('pyproject.toml'" in npm_job, (
+        "the publish version must come from pyproject.toml, not from the ref "
+        "name — a branch dispatch has no tag version to strip off"
+    )
+    assert "${GITHUB_REF_NAME#v}" not in npm_job, (
+        "a branch ref would publish the branch name as the version"
+    )
+
+    release_job = workflow.split("\n  github-release:\n", 1)[1]
+    assert "needs: [publish, npm]" in release_job
+    assert "if: startsWith(github.ref, 'refs/tags/v')" in release_job
