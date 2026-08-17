@@ -13,6 +13,34 @@ versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 The newest heading here has to match the version in `pyproject.toml` — CI fails
 otherwise, so a release cannot ship an entry that was never written.
 
+## [0.1.8] — 2026-08-17
+
+The Python package's code is identical to 0.1.7. This version exists to ship the
+plugin: `clawock-dsh` is the release.
+
+### Fixed
+
+- **The Decision Mind plugin rendered the same four copy/verdict
+  misrepresentations the dashboard card fixed in #742 — written by hand on that
+  side, so fixing one side never fixed the other ([#741]).** `execution.status`
+  is the *plan's* self-report, not the fill's outcome, yet it headed the fill's
+  timeline node as 执行/未执行 —「未执行」on a completed buy read as a flat
+  contradiction. The 盈亏 label loaded two different quantities (this fill's
+  realized money and the whole position's floating percent) into one word. The
+  pairing was called 挂接决策, jargon that implied evidence the data did not
+  carry. The T+1 chip only showed a verdict for `action === 'sell'`, silently
+  dropping cut/trim/trim_on_rebound. Now the fill node is 真实成交 with the
+  plan-vs-fill relation stated as 与计划同向/反向 (`alignment`, host-computed;
+  live data is 22/40 reversals), `execution.status` survives only as a labelled
+  账本自评 chip, the P&L node splits into 本笔已实现 vs 该持仓当前浮动（非本笔),
+  pairing reads 有当日计划/无当日计划, every header stat shows the denominator
+  it is a fraction of (判出 X/Y 笔卖出, not a buy-and-sell-mixed total), and
+  unjudged fills say T+1 未判 instead of lying by omission. The browser bundle
+  keeps no second copy of the action set — `side` is computed host-side — and
+  the alignment/action-set/breach-strip rules are now pinned against the
+  dashboard half in `tests/test_decision_trace_parity.py`, which previously
+  claimed to pin them without doing so. ([#744])
+
 ## [0.1.7] — 2026-08-17
 
 The Python package's code is identical to 0.1.6. This version exists to ship the

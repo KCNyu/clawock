@@ -1,6 +1,6 @@
 {
   "name": "clawock-dsh",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "clawock investment-decision workflow for DeepSeek Harness — evidence, opposing case, deterministic settlement, public scorecard, plus the Decision Mind conversation-view tab",
   "license": "MIT",
   "keywords": [
