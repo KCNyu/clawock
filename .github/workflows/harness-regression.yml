@@ -179,6 +179,14 @@ jobs:
       # so a rebuild here must produce a byte-identical tree.
       - name: Decision Studio artifacts match their sources (rebuild is a no-op)
         if: github.event_name == 'pull_request' && steps.changes.outputs.dsplugin == 'true'
+        env:
+          # Same runner hardening as the npm publish job (#732): a lockfile
+          # regenerated behind a mirror registry stalls every fetch here and
+          # npm exits with its own `Exit handler never called!`, which reads as
+          # "the build is broken" and is not. Observed on this very step.
+          NODE_OPTIONS: --dns-result-order=ipv4first
+          NO_UPDATE_NOTIFIER: '1'
+          npm_config_replace_registry_host: 'always'
         run: |
           set -euo pipefail
           (
