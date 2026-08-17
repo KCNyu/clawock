@@ -89,6 +89,13 @@ documentation:
 7. Do not merge while any required check is pending or failing. Fix the branch, push,
    and let the PR rerun its checks.
 8. Squash-merge only after required checks pass, then remove the task worktree/branch.
+9. Apply the merge to this host with `ops/host/refresh_live.sh` — **merging is what
+   makes a fix live here; a release is for people who are not this host.** 本机不用为
+   每个修复发版。The install is editable, so a fast-forward is usually the whole job;
+   the script re-runs the launcher installer only when `pyproject.toml` moved and the
+   DSH plugin installer only when `examples/dsh/packages/clawock-dsh/` moved, then
+   verifies what is actually serving. Rule and evidence:
+   `docs/operations/release.md` § Running the latest code on this host.
 
 Runtime-generated market data, snapshots, reports, ledgers, and dashboard artifacts
 remain on the existing direct-to-`master` bot path. They do not open high-frequency PRs.
