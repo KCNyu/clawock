@@ -4,22 +4,24 @@
   "workspace": "/root/.openclaw/workspace",
   "data": {
     "trades": 100,
-    "snapshotFiles": 69,
-    "snapshotBytes": 3724176
+    "barFiles": 28,
+    "barBytes": 839537,
+    "tickersRead": 21,
+    "note": "#717 之前这里是 snapshotFiles:69 / snapshotBytes:3724176 —— 价格源换成 memory/bars 后,只读实际成交过的 21 个 ticker,不再全量解析 68 个组合快照。"
   },
   "node": {
     "readTracesTotalMs": {
-      "avg": 103.2,
-      "min": 85.3,
-      "max": 138.8
+      "avg": 49.9,
+      "min": 31.5,
+      "max": 85.0
     },
-    "snapshotScanMs": {
-      "avg": 66.1,
-      "min": 56.0,
-      "max": 74.6
+    "barCloseReadMs": {
+      "avg": 10.0,
+      "min": 5.8,
+      "max": 27.6
     },
-    "serializedBytes": 46528,
-    "note": "每次切到 Decision Mind tab,host 都走一遍 readTraces;快照扫描占约 64%。Phase 1 host 侧缓存命中后应降至 ~0。"
+    "serializedBytes": 49659,
+    "note": "#717 换价格源后:readTraces 103.2ms → 49.9ms,价格读取 66.1ms(快照全扫)→ 10.0ms(按 ticker 读 bar)。缓存命中仍是 µs。"
   },
   "browser": {
     "measuredBuild": "#707 版 client.js(默认折叠 3 组)同步到 live 副本 + dsh 重启后",

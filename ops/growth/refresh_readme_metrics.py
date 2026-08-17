@@ -38,6 +38,26 @@ def _ci(pct: float, n: int) -> str:
     return f"{round(lo)}%–{round(hi)}%"
 
 
+def _earliest_stamp(rows) -> str:
+    """The oldest decision timestamp in the ledger, across both row shapes.
+
+    `memory/decisions.jsonl` holds two kinds of row. Plan-authored rows carry
+    `created_at`. Decision Mind's conversation rows (`schema_version: 0`,
+    `source: "conversation"`) carry `decided_at` and no `created_at` — so the
+    original `min(r["created_at"] for r in rows)` raised `KeyError` the first
+    night one of those landed (2026-08-16), and the nightly README refresh has
+    failed on every run since. Every other reader in the tree already reaches
+    for this field through `.get`; this was the one bare subscript.
+
+    Rows with neither stamp are skipped rather than fatal: a new row shape
+    should degrade this metric, not take down the workflow.
+    """
+    stamps = [s for s in ((r.get("created_at") or r.get("decided_at") or "") for r in rows) if s]
+    if not stamps:
+        raise ValueError("no decision row carries created_at or decided_at")
+    return min(stamps)
+
+
 def _pct(group) -> tuple:
     if not group:
         return None, 0
@@ -68,7 +88,7 @@ def _refresh() -> int:
     hold_pct, hold_n = _pct(passive)
     hi_pct, hi_n = _pct(hi)
 
-    first_day = min(r["created_at"] for r in rows)
+    first_day = _earliest_stamp(rows)
     days = (datetime.now(datetime.fromisoformat(first_day).tzinfo)
             - datetime.fromisoformat(first_day)).days
 

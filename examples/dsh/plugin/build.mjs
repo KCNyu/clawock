@@ -28,7 +28,18 @@ async function writeJson(file, value) {
 }
 
 async function wrapWebClient(file) {
-  const source = (await readFile(file, 'utf8')).replace(/[ \t]+$/gm, '')
+  let source = (await readFile(file, 'utf8')).replace(/[ \t]+$/gm, '')
+  // The bundler stamps each `//#region` with the module's path *as resolved on
+  // this machine*, so building the same source in a different directory
+  // produced a different committed artifact (17 lines of pure path churn when
+  // the same commit was built from another worktree). The generated lib/ is
+  // committed and reviewed, so it has to be a function of the source alone —
+  // otherwise "does lib/ match a build of src/?" is unanswerable. Normalize
+  // the path to the package-relative one it should have been.
+  source = source.replace(
+    /^(\/\/#(?:end)?region )(.*?)(node_modules\/.*)$/gm,
+    (_, tag, _abs, rest) => `${tag}${rest}`,
+  )
   const match = source.match(/export \{ ([^}]+) \};\n?$/)
   if (!match) throw new Error('client bundle must end with named exports')
   const exports = match[1]

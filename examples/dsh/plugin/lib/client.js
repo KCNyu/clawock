@@ -6,7 +6,7 @@ window.__ModuleLoader__.load({
     Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
 const React = require("react");
 const clientRuntime = require("@deepseek-ai/dsh-client-runtime/client");
-//#region ../../root/worktrees/clawock-dm-perf/examples/dsh/plugin/node_modules/zod/v4/core/core.js
+//#region node_modules/zod/v4/core/core.js
 var _a$1;
 function $constructor(name, initializer, params) {
 	function init(inst, def) {
@@ -65,7 +65,7 @@ function config(newConfig) {
 	return globalConfig;
 }
 //#endregion
-//#region ../../root/worktrees/clawock-dm-perf/examples/dsh/plugin/node_modules/zod/v4/core/util.js
+//#region node_modules/zod/v4/core/util.js
 function getEnumValues(entries) {
 	const numericValues = Object.values(entries).filter((v) => typeof v === "number");
 	return Object.entries(entries).filter(([k, _]) => numericValues.indexOf(+k) === -1).map(([_, v]) => v);
@@ -379,7 +379,7 @@ function issue(...args) {
 	return { ...iss };
 }
 //#endregion
-//#region ../../root/worktrees/clawock-dm-perf/examples/dsh/plugin/node_modules/zod/v4/core/errors.js
+//#region node_modules/zod/v4/core/errors.js
 const initializer$1 = (inst, def) => {
 	inst.name = "$ZodError";
 	Object.defineProperty(inst, "_zod", {
@@ -439,7 +439,7 @@ function formatError(error, mapper = (issue) => issue.message) {
 	return fieldErrors;
 }
 //#endregion
-//#region ../../root/worktrees/clawock-dm-perf/examples/dsh/plugin/node_modules/zod/v4/core/parse.js
+//#region node_modules/zod/v4/core/parse.js
 const _parse = (_Err) => (schema, value, _ctx, _params) => {
 	const ctx = _ctx ? {
 		..._ctx,
@@ -553,7 +553,7 @@ const _safeDecodeAsync = (_Err) => async (schema, value, _ctx) => {
 	return _safeParseAsync(_Err)(schema, value, _ctx);
 };
 //#endregion
-//#region ../../root/worktrees/clawock-dm-perf/examples/dsh/plugin/node_modules/zod/v4/core/regexes.js
+//#region node_modules/zod/v4/core/regexes.js
 /**
 * @deprecated CUID v1 is deprecated by its authors due to information leakage
 * (timestamps embedded in the id). Use {@link cuid2} instead.
@@ -617,7 +617,7 @@ const boolean$1 = /^(?:true|false)$/i;
 const lowercase = /^[^A-Z]*$/;
 const uppercase = /^[^a-z]*$/;
 //#endregion
-//#region ../../root/worktrees/clawock-dm-perf/examples/dsh/plugin/node_modules/zod/v4/core/checks.js
+//#region node_modules/zod/v4/core/checks.js
 const $ZodCheck = /*@__PURE__*/ $constructor("$ZodCheck", (inst, def) => {
 	var _a;
 	inst._zod ?? (inst._zod = {});
@@ -979,7 +979,7 @@ const $ZodCheckOverwrite = /*@__PURE__*/ $constructor("$ZodCheckOverwrite", (ins
 	};
 });
 //#endregion
-//#region ../../root/worktrees/clawock-dm-perf/examples/dsh/plugin/node_modules/zod/v4/core/doc.js
+//#region node_modules/zod/v4/core/doc.js
 var Doc = class {
 	constructor(args = []) {
 		this.content = [];
@@ -1010,14 +1010,14 @@ var Doc = class {
 	}
 };
 //#endregion
-//#region ../../root/worktrees/clawock-dm-perf/examples/dsh/plugin/node_modules/zod/v4/core/versions.js
+//#region node_modules/zod/v4/core/versions.js
 const version = {
 	major: 4,
 	minor: 4,
 	patch: 3
 };
 //#endregion
-//#region ../../root/worktrees/clawock-dm-perf/examples/dsh/plugin/node_modules/zod/v4/core/schemas.js
+//#region node_modules/zod/v4/core/schemas.js
 const $ZodType = /*@__PURE__*/ $constructor("$ZodType", (inst, def) => {
 	var _a;
 	inst ?? (inst = {});
@@ -2262,7 +2262,7 @@ function handleRefineResult(result, payload, input, inst) {
 	}
 }
 //#endregion
-//#region ../../root/worktrees/clawock-dm-perf/examples/dsh/plugin/node_modules/zod/v4/core/registries.js
+//#region node_modules/zod/v4/core/registries.js
 var _a;
 var $ZodRegistry = class {
 	constructor() {
@@ -2309,7 +2309,7 @@ function registry() {
 (_a = globalThis).__zod_globalRegistry ?? (_a.__zod_globalRegistry = registry());
 const globalRegistry = globalThis.__zod_globalRegistry;
 //#endregion
-//#region ../../root/worktrees/clawock-dm-perf/examples/dsh/plugin/node_modules/zod/v4/core/api.js
+//#region node_modules/zod/v4/core/api.js
 // @__NO_SIDE_EFFECTS__
 function _string(Class, params) {
 	return new Class({
@@ -2814,7 +2814,7 @@ function _check(fn, params) {
 	return ch;
 }
 //#endregion
-//#region ../../root/worktrees/clawock-dm-perf/examples/dsh/plugin/node_modules/zod/v4/core/to-json-schema.js
+//#region node_modules/zod/v4/core/to-json-schema.js
 function initializeContext(params) {
 	let target = params?.target ?? "draft-2020-12";
 	if (target === "draft-4") target = "draft-04";
@@ -3109,7 +3109,7 @@ const createStandardJSONSchemaMethod = (schema, io, processors = {}) => (params)
 	return finalize(ctx, schema);
 };
 //#endregion
-//#region ../../root/worktrees/clawock-dm-perf/examples/dsh/plugin/node_modules/zod/v4/core/json-schema-processors.js
+//#region node_modules/zod/v4/core/json-schema-processors.js
 const formatMap = {
 	guid: "uuid",
 	url: "uri",
@@ -3380,7 +3380,7 @@ const lazyProcessor = (schema, ctx, _json, params) => {
 	seen.ref = innerType;
 };
 //#endregion
-//#region ../../root/worktrees/clawock-dm-perf/examples/dsh/plugin/node_modules/zod/v4/classic/iso.js
+//#region node_modules/zod/v4/classic/iso.js
 const ZodISODateTime = /*@__PURE__*/ $constructor("ZodISODateTime", (inst, def) => {
 	$ZodISODateTime.init(inst, def);
 	ZodStringFormat.init(inst, def);
@@ -3410,7 +3410,7 @@ function duration(params) {
 	return /* @__PURE__ */ _isoDuration(ZodISODuration, params);
 }
 //#endregion
-//#region ../../root/worktrees/clawock-dm-perf/examples/dsh/plugin/node_modules/zod/v4/classic/errors.js
+//#region node_modules/zod/v4/classic/errors.js
 const initializer = (inst, issues) => {
 	$ZodError.init(inst, issues);
 	inst.name = "ZodError";
@@ -3432,7 +3432,7 @@ const initializer = (inst, issues) => {
 };
 const ZodRealError = /*@__PURE__*/ $constructor("ZodError", initializer, { Parent: Error });
 //#endregion
-//#region ../../root/worktrees/clawock-dm-perf/examples/dsh/plugin/node_modules/zod/v4/classic/parse.js
+//#region node_modules/zod/v4/classic/parse.js
 const parse = /* @__PURE__ */ _parse(ZodRealError);
 const parseAsync = /* @__PURE__ */ _parseAsync(ZodRealError);
 const safeParse = /* @__PURE__ */ _safeParse(ZodRealError);
@@ -3446,7 +3446,7 @@ const safeDecode = /* @__PURE__ */ _safeDecode(ZodRealError);
 const safeEncodeAsync = /* @__PURE__ */ _safeEncodeAsync(ZodRealError);
 const safeDecodeAsync = /* @__PURE__ */ _safeDecodeAsync(ZodRealError);
 //#endregion
-//#region ../../root/worktrees/clawock-dm-perf/examples/dsh/plugin/node_modules/zod/v4/classic/schemas.js
+//#region node_modules/zod/v4/classic/schemas.js
 const _installedGroups = /* @__PURE__ */ new WeakMap();
 function _installLazyMethods(inst, group, methods) {
 	const proto = Object.getPrototypeOf(inst);
