@@ -29,6 +29,18 @@ JUDGMENT_SCHEMA_VERSION = 2
 PAGES_SCHEMA_VERSION = 1
 MAX_PACKET_BYTES = 96 * 1024
 MAX_QUERY_BYTES = 24 * 1024
+# The whole-book summary is a different animal from a per-ticker section query
+# and needs its own budget. One constant served both until 2026-08-17, when the
+# book reached 10 active holdings: the summary is O(holdings) (~2.6KB each on
+# top of ~3KB fixed) and crossed 24KB at 33,543 bytes. `decision_packet_summary`
+# then failed outright — and it is the brief's Step 2 "唯一常驻输入", so the
+# 盘前深度简报 agent had no way into the analysis and burned its whole turn on
+# tool help before ending "ok" with nothing written. Nothing warned on the way
+# past the line, because the trigger was portfolio growth, not a code change.
+# 48KB carries ~17 holdings; SUMMARY_BUDGET_WARN_RATIO is what keeps the next
+# crossing from being a surprise.
+MAX_SUMMARY_BYTES = 48 * 1024
+SUMMARY_BUDGET_WARN_RATIO = 0.8
 ADD_ALPHA_POLICY = workspace_root(Path.cwd()) / "config" / "add-alpha-policy.json"
 VERDICTS = {"bullish", "neutral", "bearish", "mixed"}
 DISPOSITIONS = {"candidate", "wait", "reject"}
@@ -1563,23 +1575,46 @@ def read_packet(manifest_path: Path) -> dict:
     return packet
 
 
-def bounded_payload(value) -> str:
-    """Serialise a query result, refusing anything over the per-query cap.
+def bounded_payload(value, limit: int = MAX_QUERY_BYTES) -> str:
+    """Serialise a query result, refusing anything over its budget.
 
     The cap used to live only on the print path, so any caller that used
     read_packet()/summary_view() directly — every non-CLI consumer, including the
     tool layer — silently bypassed it. The budget is a property of the query, not
     of stdout.
+
+    `limit` is explicit because the summary and a per-ticker section query have
+    genuinely different sizes: the section query stays tight (that is the whole
+    point of asking per section), while the summary grows with the book.
     """
     text = json.dumps(value, ensure_ascii=False, indent=2) + "\n"
     size = len(text.encode("utf-8"))
-    if size > MAX_QUERY_BYTES:
-        raise ValueError(f"decision packet query exceeds {MAX_QUERY_BYTES} bytes: {size}")
+    if size > limit:
+        raise ValueError(f"decision packet query exceeds {limit} bytes: {size}")
     return text
 
 
-def _print_bounded(value) -> None:
-    print(bounded_payload(value), end="")
+def summary_budget_report(packet) -> dict:
+    """How close the whole-book summary is to its budget.
+
+    Exists so the next crossing is loud. The 2026-08-17 outage was silent
+    precisely because nothing measured this until the tool already refused to
+    run: adding a holding is what moves it, and adding a holding is not a change
+    anybody thinks to run the packet tests for.
+    """
+    size = len(json.dumps(summary_view(packet), ensure_ascii=False, indent=2).encode("utf-8")) + 1
+    return {
+        "bytes": size,
+        "budget": MAX_SUMMARY_BYTES,
+        "ratio": round(size / MAX_SUMMARY_BYTES, 3),
+        "tickers": len(packet.get("tickers") or {}),
+        "over_budget": size > MAX_SUMMARY_BYTES,
+        "near_budget": size > MAX_SUMMARY_BYTES * SUMMARY_BUDGET_WARN_RATIO,
+    }
+
+
+def _print_bounded(value, limit: int = MAX_QUERY_BYTES) -> None:
+    print(bounded_payload(value, limit), end="")
 
 
 def main() -> int:
@@ -1596,8 +1631,10 @@ def main() -> int:
     )
     args = parser.parse_args()
     packet = read_packet(args.manifest)
+    limit = MAX_QUERY_BYTES
     if args.summary:
         value = summary_view(packet)
+        limit = MAX_SUMMARY_BYTES
     elif args.judgment_template:
         value = judgment_template(packet)
     else:
@@ -1610,7 +1647,7 @@ def main() -> int:
                 "ticker": str(args.ticker),
                 args.section: value.get(args.section),
             }
-    _print_bounded(value)
+    _print_bounded(value, limit)
     return 0
 
 
