@@ -43,6 +43,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from clawock.harness.validation import (
+    ADVISORY_MARK,
     REPORT_CHAR_LIMITS,
     advisory_prefix,
     categorize_issues,
@@ -249,6 +250,16 @@ def validate(text, ctx, prose_only=False, model_text=None):
         mentioned = [t for t in anomaly_tickers if t in checked]
         if anomaly_tickers and not mentioned:
             issues.append(f'should_alert=true 但报告未提任何异动票 ({", ".join(anomaly_tickers)})')
+
+    # 加仓侧的读数 (#755)。它的三条输入(异动/机会雷达/早期趋势)以前全都算好了却从没
+    # 进过正文,所以模板加了要求之后必须配一条闸——否则就是又一个「写了没人写」。
+    # advisory:它只能提醒漏写,不许把一份已经可发的报告变成不发
+    # (feedback-detect-but-never-silence)。
+    add_rows = (ctx.get('add_side_reads') or {}).get('rows') or []
+    if add_rows and not any(row.get('ticker') in checked for row in add_rows):
+        verdicts = '/'.join(f"{row['ticker']} {row['verdict']}" for row in add_rows[:3])
+        issues.append(
+            f'加仓侧读数非空但报告一个都没写 ({verdicts}) {ADVISORY_MARK}')
 
     issues.extend(validate_forbidden_phrases(checked, FORBIDDEN_PHRASES))
 

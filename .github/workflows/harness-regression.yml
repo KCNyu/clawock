@@ -13,6 +13,10 @@ on:
       - 'site/assets/css/**'
       - 'site/assets/js/**'
       - 'site/index.html'
+      # The screenshot/GIF tooling. Until #754 it was in no trigger, in no
+      # detector lane and in no syntax check: the only thing that ever ran it
+      # was the weekly screenshot-refresh cron, which commits its output.
+      - 'site/tools/**'
       - 'portfolio.json'
       - 'memory/**-plan.json'
       # Research artifacts are validated by the suite below, so a
@@ -145,7 +149,7 @@ jobs:
           while IFS= read -r f; do
             [ -n "$f" ] || continue
             case "$f" in
-              src/*|ops/*|tests/*|pyproject.toml|portfolio.json|memory/*-plan.json|memory/theses/*|memory/earnings/*|memory/entry-gates/*|assets/data/overview.json|assets/data/dashboard.json|config/*|docs/operations/cron-schedules.md|.github/workflows/*|skills/tavily-search/*)
+              src/*|ops/*|tests/*|pyproject.toml|portfolio.json|memory/*-plan.json|memory/theses/*|memory/earnings/*|memory/entry-gates/*|assets/data/overview.json|assets/data/dashboard.json|config/*|docs/operations/cron-schedules.md|.github/workflows/*|skills/tavily-search/*|site/tools/*)
                 code=true
                 break
                 ;;
@@ -333,10 +337,23 @@ jobs:
         if: steps.changes.outputs.code == 'true'
         run: |
           set -e
-          find src ops -type f -name '*.py' -print0 |
+          find src ops site/tools -type f -name '*.py' -print0 |
           while IFS= read -r -d '' f; do
             echo "syntax check: $f"
             python3 -m py_compile "$f"
+          done
+
+      # The two Playwright tools are 22KB of JavaScript that only the weekly
+      # screenshot cron executes, and it commits what they produce — so a syntax
+      # error there surfaced on a Sunday, inside a job that writes to master.
+      # Bare `node`: the runner ships it, same as the Tavily ledger step above.
+      - name: Syntax-check the site tooling
+        if: steps.changes.outputs.code == 'true'
+        run: |
+          set -e
+          for f in site/tools/*.js; do
+            echo "node --check: $f"
+            node --check "$f"
           done
 
       - name: argparse-check harness CLIs

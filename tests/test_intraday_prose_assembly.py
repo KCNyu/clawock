@@ -386,3 +386,54 @@ def test_preflight_stamps_a_per_generation_context_id():
     assert a != b
     assert a == common.compute_context_id({'raw_wechat_block': BLOCK, 'time': '00:30'})
     assert len(a) == 12
+
+
+# --- 加仓侧读数 (#755) ---------------------------------------------------------
+
+ADD_SIDE_CTX = {
+    'add_side_reads': {'rows': [
+        {'ticker': 'SKHY', 'verdict': 'wait', 'why': '窗口内无一手公告',
+         'needs': '站上 12.3', 'evidence': {'move_pct': -9.0}, 'authorization': None},
+    ]},
+}
+
+
+def test_prose_that_ignores_the_add_side_rows_is_flagged(pf):
+    """The template now demands a line; without a check that demand is decoration.
+
+    The three lanes this joins (anomalies / opportunity_radar /
+    early_trend_candidates) were computed and shipped in the packet for weeks and
+    never appeared in a report, precisely because nothing noticed (#755).
+    """
+    prose = ('▎我的看法\n'
+             'MSFT 今日 +1.2% 属板块普涨，纪律单继续挂着，其余持仓无变化，'
+             '继续按 08:00 计划执行，不新增动作，等收盘再看一次。\n')
+    ctx = _ctx(**ADD_SIDE_CTX)
+    issues = pf.validate(pf.assemble_message(ctx, prose), ctx,
+                         prose_only=True, model_text=prose)
+    flagged = [i for i in issues if '加仓侧读数' in i]
+    assert flagged, issues
+    # Advisory: it may never turn a deliverable report into a non-delivery.
+    assert '(advisory)' in flagged[0]
+    assert pf.categorize([flagged[0]]) == 'warn'
+
+
+def test_prose_that_writes_the_row_is_not_flagged(pf):
+    prose = ('▎我的看法\n'
+             'SKHY -9.0% 是异动票，加仓侧读数 wait：窗口内无一手公告，站上 12.3 才算，'
+             '纪律单继续挂着；其余持仓按 08:00 计划不动。\n')
+    ctx = _ctx(**ADD_SIDE_CTX)
+    issues = pf.validate(pf.assemble_message(ctx, prose), ctx,
+                         prose_only=True, model_text=prose)
+    assert not [i for i in issues if '加仓侧读数' in i], issues
+
+
+def test_no_rows_means_no_demand(pf):
+    """An empty lane must not nag: most slots have nothing on the add side."""
+    prose = ('▎我的看法\n'
+             'SKHY -9.0% 板块 risk-off，无一手公告；纪律单挂着不动，'
+             '其余持仓按计划，等收盘再看一次，不新增动作。\n')
+    ctx = _ctx(add_side_reads={'rows': []})
+    issues = pf.validate(pf.assemble_message(ctx, prose), ctx,
+                         prose_only=True, model_text=prose)
+    assert not [i for i in issues if '加仓侧读数' in i], issues

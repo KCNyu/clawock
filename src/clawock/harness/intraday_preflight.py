@@ -43,7 +43,7 @@ from clawock.evidence import research_surface
 from clawock.cli import PACKAGED_UTILITIES
 from clawock.market_data import known_catalysts, mover_evidence as mover_news, peer_scan
 from clawock.decision import active_information
-from clawock.decision import early_trend
+from clawock.decision import add_side, early_trend
 from clawock.portfolio.instruments import is_leveraged_holding
 
 WS = workspace_root(Path.cwd())
@@ -1009,6 +1009,13 @@ def main(argv=None):
         'provisional_setups': live_setups,
         'early_trend_candidates': early_candidates,
         'opportunity_radar': opportunity_radar,
+        # The add-side read over the three lanes above (#755). They were all
+        # computed and none of them reached the prose; this is the join the
+        # template is now required to write.
+        'add_side_reads': add_side.read_rows(
+            anomalies=anomalies, radar=opportunity_radar,
+            early_trend=early_candidates, mover_news=mover_news_ctx,
+            mover_thesis=mover_thesis, plan_context=plan_ctx),
         'signal_count':     signals,
         'signals_detail':   signals_detail,
         'anomalies':        anomalies,
