@@ -15,6 +15,15 @@ on:
         default: testpypi
         type: choice
         options: [testpypi, pypi]
+      npm_only:
+        description: >-
+          publish only clawock-dsh to npm. Skips the PyPI publish job and never
+          creates a GitHub Release. Use it to repair the npm side of a version
+          whose PyPI upload already succeeded (a half-published release), or to
+          rehearse the npm job from end to end.
+        required: false
+        default: 'false'
+        type: boolean
 
 permissions:
   contents: read
@@ -73,6 +82,15 @@ jobs:
 
   publish:
     needs: build
+    # npm_only dispatches must never touch PyPI: the index already holds that
+    # version (exactly the half-published state this mode exists to repair), and
+    # re-uploading the same version is a hard failure.
+    #
+    # The input is matched in both representations GitHub has been observed to
+    # deliver (string 'true' via `-f`/UI checkbox, boolean true after schema
+    # normalization): the predicate must hold for both or a dispatch silently
+    # reverts to the default.
+    if: inputs.npm_only != 'true' && inputs.npm_only != true
     runs-on: ubuntu-latest
     timeout-minutes: 10
     # Trusted publishing: PyPI verifies this workflow's OIDC identity, so there is
@@ -94,11 +112,27 @@ jobs:
 
   npm:
     # The DSH skill package rides the same version train as the Python package:
-    # a v* tag publishes clawock to PyPI and clawock-dsh to npm together.
+    # a v* tag publishes clawock to PyPI and clawock-dsh to npm together, and an
+    # explicit npm_only dispatch runs the npm side alone from any ref — never
+    # PyPI and never a GitHub Release.
     needs: build
-    if: startsWith(github.ref, 'refs/tags/v') && inputs.repository != 'testpypi'
+    if: (startsWith(github.ref, 'refs/tags/v') || inputs.npm_only == 'true' || inputs.npm_only == true) && inputs.repository != 'testpypi'
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      # 2026-08-17: the 0.1.6 npm job died because its package-lock.json had
+      # been regenerated on the desk under a mirror registry — every `resolved`
+      # URL pointed at mirrors.tencentyun.com, which the GitHub runner cannot
+      # reach. Each tarball fetch stalled through npm's whole retry ladder
+      # (~71s) and npm exited with `Exit handler never called!`. The lockfile
+      # now carries registry.npmjs.org URLs again, and replace-registry-host
+      # rehosts any lockfile URL to the configured registry, so a future
+      # mirror-generated lockfile cannot silently break the runner again.
+      # (IPv4-first DNS and the suppressed update ping are rust-proofing
+      # against runner-side fetch stalls, not the 2026-08-17 root cause.)
+      NODE_OPTIONS: --dns-result-order=ipv4first
+      NO_UPDATE_NOTIFIER: '1'
+      npm_config_replace_registry_host: 'always'
     steps:
       - uses: actions/checkout@v7
 
@@ -107,10 +141,30 @@ jobs:
           node-version: '22'
           registry-url: https://registry.npmjs.org
 
+      # setup-node ships whatever npm rides with the Node release. On
+      # 2026-08-17 that npm crashed with `Exit handler never called!` on
+      # `npm install --include=dev`, twice, and took the v0.1.6 npm publish
+      # with it while PyPI had already accepted 0.1.6 — a half-released
+      # version. The same install is clean on npm 10.9.8. Pin the tool that
+      # does the publishing rather than letting a runner image change decide
+      # whether a release completes.
+      - name: Pin npm to a version this publish is known to work on
+        run: |
+          echo "runner default: npm $(npm --version)"
+          npm install -g npm@10.9.8
+          echo "pinned to:      npm $(npm --version)"
+
       - name: Publish clawock-dsh to npm
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: ops/publish/publish_dsh_plugin.sh "${GITHUB_REF_NAME#v}"
+        run: |
+          # The version lives in pyproject.toml; on a v* tag the build job has
+          # already refused a tag that disagrees with it. Deriving it here
+          # instead of from the ref name lets this same job run from a branch
+          # dispatch (npm_only) without inventing a version out of a branch.
+          version="$(python3 -c "import tomllib; print(tomllib.load(open('pyproject.toml','rb'))['project']['version'])")"
+          echo "publishing clawock-dsh@${version}"
+          ops/publish/publish_dsh_plugin.sh "$version"
 
   github-release:
     # A GitHub Release is a public claim that the version exists. Create it only
