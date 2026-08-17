@@ -192,3 +192,51 @@ def test_a_narrowed_query_keeps_the_generation_pin(tmp_path, monkeypatch):
         tmp_path, manifest=str(manifest), ticker="00100", section="technical"))
 
     assert payload["_meta"]["generation_id"] == "gen-abc"
+
+
+def test_the_summary_tool_uses_the_summary_budget_not_the_query_budget(tmp_path, monkeypatch):
+    """The brief agent calls this tool, not packet.py's CLI.
+
+    #723 gave the whole-book summary its own 48KB budget, but only on the CLI
+    path in packet.py. `DecisionPacketSummary.execute` kept `bounded_payload`'s
+    24KB default, so the live `clawock tool decision_packet_summary` still died
+    with `exceeds 24576 bytes: 33543` on a merged fix — right in source, dead in
+    production. This pins the call site that actually matters.
+    """
+    seen = {}
+
+    def bounded_payload(value, limit=context_tools.brief_decision_packet.MAX_QUERY_BYTES):
+        seen["limit"] = limit
+        return json.dumps(value, ensure_ascii=False)
+
+    monkeypatch.setattr(context_tools.brief_decision_packet, "bounded_payload", bounded_payload)
+    monkeypatch.setattr(context_tools.brief_decision_packet, "read_packet", lambda path: {"tickers": {}})
+    monkeypatch.setattr(context_tools.brief_decision_packet, "summary_view", lambda packet: {"ok": True})
+
+    manifest = tmp_path / "manifest.json"
+    manifest.write_text("{}")
+    context_tools.DecisionPacketSummary().execute(tmp_path, manifest=str(manifest))
+
+    assert seen["limit"] == context_tools.brief_decision_packet.MAX_SUMMARY_BYTES, (
+        "the summary must be serialised against MAX_SUMMARY_BYTES; the per-query "
+        "default is what took the 盘前简报 down on 2026-08-17"
+    )
+
+
+def test_a_real_sized_summary_survives_the_tool_layer(tmp_path, monkeypatch):
+    """End-to-end through the tool, at the size that actually broke: a summary
+    over the 24KB query cap must come back rather than raise."""
+    big = {"tickers": [{"ticker": f"TK{i:02d}", "blob": "x" * 2_600} for i in range(11)]}
+
+    monkeypatch.setattr(context_tools.brief_decision_packet, "read_packet", lambda path: {"tickers": {}})
+    monkeypatch.setattr(context_tools.brief_decision_packet, "summary_view", lambda packet: big)
+
+    manifest = tmp_path / "manifest.json"
+    manifest.write_text("{}")
+
+    out = context_tools.DecisionPacketSummary().execute(tmp_path, manifest=str(manifest))
+    size = len(out.encode())
+    assert size > context_tools.brief_decision_packet.MAX_QUERY_BYTES, (
+        "the fixture has to be past the old cap or this proves nothing"
+    )
+    assert size < context_tools.brief_decision_packet.MAX_SUMMARY_BYTES
