@@ -1,0 +1,99 @@
+#!/usr/bin/env bash
+# refresh_live.sh — bring this host's live clawock up to `origin/master`.
+#
+# The desk does not wait for a release to run a merged fix, and it should not:
+# `install_clawock_launcher.sh` installs the distribution **editable**, so
+# /root/.openclaw/workspace *is* the implementation and a fast-forward changes
+# behaviour with no reinstall (`tests/test_clawock_launcher.py` pins that).
+# Two halves of the install do not follow the checkout on their own, and this
+# script is the rule about them, executable:
+#
+#   1. the venv — pip recorded the dependency set and the `[project.scripts]`
+#      entry points at install time. A merge that adds either needs the
+#      installer re-run, or the new command is simply absent.
+#   2. the DSH plugin — pnpm installs a *copy* of the packed package, so
+#      `examples/dsh/packages/clawock-dsh` changes reach the desk only through
+#      `install_dsh_plugin.sh` (see its header for why it packs a tarball).
+#
+# Neither needs npm publish or a PyPI release: publishing is for people who are
+# not this host. See docs/operations/release.md § Running the latest code here.
+#
+# Usage:
+#   ops/host/refresh_live.sh            # fast-forward, then reinstall what moved
+#   ops/host/refresh_live.sh --check    # report what is pending; write nothing
+#                                       # (exit 1 when the desk is behind)
+#
+# Env: LIVE_CHECKOUT (default /root/.openclaw/workspace), LIVE_REMOTE (origin),
+#      LIVE_BRANCH (master).
+set -euo pipefail
+
+CHECKOUT="${LIVE_CHECKOUT:-/root/.openclaw/workspace}"
+REMOTE="${LIVE_REMOTE:-origin}"
+BRANCH="${LIVE_BRANCH:-master}"
+check_only=0
+[ "${1:-}" = "--check" ] && check_only=1
+
+test -d "$CHECKOUT/.git" || { echo "not a git checkout: $CHECKOUT" >&2; exit 2; }
+cd "$CHECKOUT"
+
+git fetch -q "$REMOTE" "$BRANCH"
+range="HEAD..$REMOTE/$BRANCH"
+behind="$(git rev-list --count "$range")"
+
+if [ "$behind" = "0" ]; then
+  echo "live checkout is at $REMOTE/$BRANCH ($(git rev-parse --short HEAD))"
+  exit 0
+fi
+
+changed="$(git diff --name-only "HEAD...$REMOTE/$BRANCH")"
+needs_venv=0
+needs_plugin=0
+grep -qx 'pyproject.toml' <<<"$changed" && needs_venv=1
+grep -q '^examples/dsh/packages/clawock-dsh/' <<<"$changed" && needs_plugin=1
+
+echo "behind $REMOTE/$BRANCH by $behind commit(s):"
+git --no-pager log --oneline "$range" | sed 's/^/  /'
+[ "$needs_venv" = "1" ] && echo "  → pyproject.toml moved: the venv needs install_clawock_launcher.sh"
+[ "$needs_plugin" = "1" ] && echo "  → clawock-dsh moved: the desk needs install_dsh_plugin.sh --restart"
+if [ "$needs_venv" = "0" ] && [ "$needs_plugin" = "0" ]; then
+  echo "  → python only: the editable install picks it up on fast-forward"
+fi
+
+if [ "$check_only" = "1" ]; then
+  echo "(--check: nothing written)"
+  exit 1
+fi
+
+# autostash because the live tree is nearly always dirty — cron writes market
+# data into it all day. Same reasoning as ops/publish/safe_push.sh.
+git -c rebase.autoStash=true pull --rebase -q "$REMOTE" "$BRANCH"
+echo "fast-forwarded to $(git rev-parse --short HEAD)"
+
+if [ "$needs_venv" = "1" ]; then
+  bash ops/host/install_clawock_launcher.sh "$CHECKOUT"
+fi
+if [ "$needs_plugin" = "1" ]; then
+  if command -v dsh >/dev/null; then
+    bash ops/host/install_dsh_plugin.sh --restart
+  else
+    echo "dsh CLI not on PATH — skipped the plugin install" >&2
+  fi
+fi
+
+# Say what is live now rather than assuming the steps above took: an install
+# that reports success while the desk serves the previous build is the failure
+# this repo has already had twice (#709, and the pnpm store reuse in #731).
+# By absolute path, not by name: under the user crontab's PATH=/usr/bin:/bin the
+# launcher is not resolvable (tests/test_no_bare_clawock_invocation.py).
+launcher="${CLAWOCK_LAUNCHER:-$HOME/.local/bin/clawock}"
+[ -x "$launcher" ] && "$launcher" --version
+if command -v dsh >/dev/null; then
+  bundle="examples/dsh/packages/clawock-dsh/lib/client.js"
+  if curl -fs http://127.0.0.1:3081/plugins/clawock-dsh/client.js \
+      | cmp -s - "$bundle"; then
+    echo "dsh serves the checkout's client bundle"
+  else
+    echo "dsh is NOT serving $bundle — investigate before trusting the desk" >&2
+    exit 1
+  fi
+fi

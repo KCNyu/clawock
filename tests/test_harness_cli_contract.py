@@ -4,6 +4,8 @@ import json
 import os
 from pathlib import Path
 
+import pytest
+
 from clawock.cli import main
 from clawock.harness import AgentRun, AgentRunRequest
 from clawock.harness.model import Artifact, ArtifactSet
@@ -163,6 +165,57 @@ def test_every_packaged_utility_is_actually_callable():
         if command in HARD_EXIT_UTILITIES and not hasattr(module, "hard_exit"):
             broken.append(f"{command}: {target} has no hard_exit()")
     assert not broken, "packaged utilities the CLI cannot reach:\n" + "\n".join(broken)
+
+
+def test_every_subcommand_the_parser_offers_can_actually_be_dispatched():
+    """The other direction, and the one #745 broke: advertised but unreachable.
+
+    `record` was added to the parser's own utility name list on 2026-08-16 and
+    never to `PACKAGED_UTILITIES`. Every gate above iterates the *table*, so all
+    of them stayed green while `clawock record` — the only write path into the
+    decision-mind ledger, and the command `docs/decision-mind-ledger.md` calls
+    its "唯一写入入口" — died before reaching a module, for the three months of
+    its existence. `clawock --help` listed it the whole time.
+
+    The parser is built from the table now, so the old drift cannot recur in
+    that shape. This asserts the property itself rather than the shape: every
+    name argparse offers is either a table entry or one of the hand-built
+    commands named here, so a new subcommand registered anywhere else has to be
+    added to this list deliberately.
+    """
+    import io
+    import re
+    from contextlib import redirect_stdout
+
+    from clawock import cli
+
+    hand_built = {
+        "init", "run", "doctor", "calendar", "profile", "report", "brief",
+        "intraday", "tool", "context", "workflow",
+    }
+
+    out = io.StringIO()
+    with redirect_stdout(out), pytest.raises(SystemExit):
+        cli.main(["--help"])
+    choices = re.search(r"\{([a-z0-9,-]+)\}", out.getvalue().replace("\n", "")
+                        .replace(" ", ""))
+    assert choices, "clawock --help no longer prints its subcommand choices"
+    offered = set(choices.group(1).split(","))
+
+    unreachable = sorted(offered - set(cli.PACKAGED_UTILITIES) - hand_built)
+    assert not unreachable, (
+        f"`clawock --help` offers {unreachable}, which no registry can dispatch. "
+        "Add each to PACKAGED_UTILITIES (with its UTILITY_HELP line), or to the "
+        "hand-built set in this test if it really is its own parser.")
+
+    missing = sorted(set(cli.PACKAGED_UTILITIES) - offered)
+    assert not missing, f"packaged utilities the parser never registers: {missing}"
+
+    # A help string per table entry, because the parser reads UTILITY_HELP by
+    # key while it is being built: a missing one is a KeyError on every
+    # invocation, and an orphan one is a name that used to exist.
+    assert set(cli.UTILITY_HELP) == set(cli.PACKAGED_UTILITIES)
+    assert all(cli.UTILITY_HELP.values()), "a utility ships an empty help line"
 
 
 def test_every_packaged_utility_answers_help_without_running_anything():
