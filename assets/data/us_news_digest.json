@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-14T14:09:21.238376",
+  "generated_at": "2026-08-17T13:32:28.355844",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -15,159 +15,166 @@
       "SPCH"
     ]
   },
-  "digest_markdown": "### Top 移动信号\n- **RKLB**: Q2 营收 $234M (+62% YoY) 创纪录, backlog $2.36B, Q3 指引 $257.5M 超预期 7%, $397M Space Force 合约 + $12M 新 award. BofA 重申 Buy / PT $115. **kcn 通过 RKLX (2x) 持仓, 杠杆放大 5.9% 跳涨**\n- **SKHY**: 周四 +8% 跳涨, Sandisk 投资者日看多 NAND outlook + AI 需求共振, 主席淡化 Nvidia 依赖担忧. 内存周期上行确认\n- **SPCX**: SpaceX 股价重回 $135 IPO 价上方, SpaceX-Nvidia AI 联盟深化 (orbital computing / 数据中心). **kcn 通过 SPCH (2x) 持仓, 杠杆放大**\n- **CRCL**: TD Cowen 维持 Buy, PT 升至 $87 (从 $82). 单一分析师上调, 信号温和\n\n### Per-ticker 简报\n- **CRCL**: TD Cowen PT $87 - 持续分析师背书, 无新增催化剂\n- **RKLB**: Record Q2 + Space Force wins + Neutron 进展 + Iridium 收购推进 → 结构性 bullish, 但 ATM 发行是对冲\n- **SPCX**: 估值回 IPO 价 + Nvidia AI 叙事 → 长期估值锚, 短期催化剂弱\n- **SKHY**: 内存周期 + 行业共振 (SanDisk) → 周期确认, 关注后续财报兑现\n\n### 风险 watch\n- **RKLB**: $1.94B ATM 增发计划已公告 = 显著稀释压力, 短期可能压制 RKLX 涨幅, 关注发行节奏\n- **SKHY**: Nvidia 客户集中度仍是结构性风险 (管理层淡化但产业链暴露高), 单日 +8% 后追高谨慎",
+  "digest_markdown": "### Top 3-5 移动信号\n- **SKHY**: $38B 新晶圆厂获批但 2028/2029 前不会产芯片 → 近端供给紧缩延续,HBM/AI 内存涨价逻辑获支撑. 直接持有,顺势持仓.\n- **RKLB**: $143M 太空合约里程碑 + Q2 收入创纪录 + backlog >90 次发射 / $437M 合约 → 增长催化剂明确. 通过 **RKLX (2x)** 持有,2x 杠杆将放大上行.\n- **SPCX**: IPO 后 free float 上升触发 ETF/指数再平衡需求 → 结构性买盘流入. 通过 **SPCH (2x)** 持有,2x 杠杆放大再平衡买入效应.\n- **CRCL**: 银行业务胜出驱动 5 连阳 +19% 后动能衰减,华尔街看法分歧 → 短线回吐风险, 不追高.\n\n### Per-ticker 简报\n- **CRCL**: 估值被指\"合理\"vs\"fairly valued\"分歧 + 动能丢失 — 银行业务催化剂已 price in, 短期震荡.\n- **RKLB**: Neutron 延期 + Iridium 并购稀释 + 50x sales 高估值是逆风; 但合约/订单流强劲, 基本面盖过估值担忧.\n- **SPCX**: Q2 收入 +92% 但 Starlink ARPU 下降 + CapEx 飙升, 估值被指贵 60%; 结构性再平衡需求 vs 基本面担忧拉锯.\n- **SKHY**: Sandisk $6.9B 季报强确认内存涨价周期; Intel 拟重返内存 = 中期新对手,但 2028 前影响有限.\n\n### 风险 watch\n- **RKLB**: Neutron 延期 / 50x sales 高估值\n- **SPCX**: Starlink ARPU 下滑 + CapEx 失控\n- **SKHY**: Intel 重返内存 (2028+ 才会实质影响)\n- **CRCL**: 银行业务催化剂兑现后回吐",
   "raw_news_counts": {
-    "CRCL": 3,
-    "RKLB": 5,
+    "CRCL": 5,
+    "RKLB": 4,
     "SPCX": 5,
     "SKHY": 5
   },
   "raw_news_evidence": {
     "CRCL": [
       {
-        "headline": "Fortinet shares are trading higher after reporting better-than-expected Q4 financial results and Q1 and FY26 outlook. Also, Rosenblatt raised its price target on the stock from $100 to $105.",
-        "datetime": 1786634495,
-        "source": "Benzinga",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=17adf0d15ec4079a9bb0faf5213b615bec6367c802fd3b9c203d6f8ad2dd2679"
+        "headline": "Circle (CRCL) Stock Looks Fairly Valued While Broader Checks Stay Weak",
+        "datetime": "Fri, 14 Aug 2026 07:12:03 GMT",
+        "source": "Yahoo Finance",
+        "origin": "gnews-rss",
+        "url": "https://news.google.com/rss/articles/CBMimwFBVV95cUxOSDMxN2RqbGt1Wk42OE5ONzhHYlF2dl9IUkVHMnJyai1PeEpOOVdXeFNWbzRRN3lQMlRlQmhtbmhTRUtnTHBFcnJlWk5UQzJwcXR0bk9PSkJ6YlJnNHJESXdkODMxWndleS12NlVkM3ZtV2thZERyOFc1S2JVeEJqamxNUGRVMExfYUtLZmoxZVY5R2NMQnEtUUlDcw?oc=5"
       },
       {
-        "headline": "Virtus Silvant Mid-Cap Growth Fund Q2 2026 Portfolio Update",
-        "datetime": 1786603500,
-        "source": "SeekingAlpha",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=742a92860e4a55cf011c33e3438b28c8463ed52dc0f16c3874ce37cf62f4bb80"
+        "headline": "Why Did CRCL Stock Lose Steam? Wall Street Split On Circle’s Banking Win",
+        "datetime": "Sat, 15 Aug 2026 00:59:13 GMT",
+        "source": "Stocktwits",
+        "origin": "gnews-rss",
+        "url": "https://news.google.com/rss/articles/CBMi1wFBVV95cUxQWE1wM0FtcHc1YmFoY1RkcDZhdWQwUGdaOFNWZU84eW5Gd3BFQ1ZJUHJ3dGtibHBxbFkxMDlXdlRoYjZBWl9qUl9URjF2ck12enJOdGJWMlRhVVd4NFZxeDl4b09SdVJWakRRUk9wVFFFSFJOYWxmalA0LVlWaUtvM2oxQkgwZWRpdFpXQnQ5a3hvY1F6WTBKVjZnLWJmSjNmSzdZaWN6OXdabUwwMElTY285NEg5ZWppaTRoNW5DVlAwdllhNjBQa2ROM1JrSVI1cFJtMENOUQ?oc=5"
       },
       {
-        "headline": "TD Cowen Maintains Buy on Circle Internet Group, Raises Price Target to $87",
-        "datetime": 1786530761,
-        "source": "Benzinga",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=adcfd53fb5506e55f1c37ab3d79a2c49d7a535b08bc0bb6bbca2e7cb5fdcf660"
+        "headline": "A 5-Day Winning Streak Has Circle Internet Stock Up 19%",
+        "datetime": "Fri, 14 Aug 2026 08:01:20 GMT",
+        "source": "Trefis",
+        "origin": "gnews-rss",
+        "url": "https://news.google.com/rss/articles/CBMitgFBVV95cUxOdEZ6aFYtWFNLeGlGX0ZUNW9WeWdSZ19xVFVHeF94MVpHMjdKUDZMYnRhU1czS2xwTzVWT045T05KOWFMYmxWM2h5OUFpMDlFOWpWMkFWS2V6a1Y4UnhWcnFfUEVSWGZPNF9EcUxabU9ub2VJczFvNVpDY3Q3MWtHNkpQUmZtMG1qQmdoV3hnNGFaV2dTNzZrenE2TmZRNTQ4cVB5VTl0NkZTTjY3Snd1ZGRZaGFWQQ?oc=5"
+      },
+      {
+        "headline": "Circle Stock (CRCL) Opinions on Earnings Report",
+        "datetime": "Thu, 13 Aug 2026 14:09:00 GMT",
+        "source": "Quiver Quantitative",
+        "origin": "gnews-rss",
+        "url": "https://news.google.com/rss/articles/CBMijAFBVV95cUxOMDk0ZnJmV1kzQVlsYkJGNjNBcXFmNTdXcU15QTFrekMwVVNQTl8xcEJQamZIQnI3R0RKbkVYaDFPbHozMFJma2NwbTJ1SjNhaDQ4ZXlvbnpkSTY2ZU5nTHd4WllLUmZQMFM0emlIWE02MWJYY3JiREJzY0lubzRDbDFkUjludnl6bW5WRA?oc=5"
+      },
+      {
+        "headline": "Circle Internet Is Still Down 10% in 2026. What Will It Take to Get CRCL Stock Back Up to $100?",
+        "datetime": "Tue, 11 Aug 2026 19:25:16 GMT",
+        "source": "24/7 Wall St.",
+        "origin": "gnews-rss",
+        "url": "https://news.google.com/rss/articles/CBMi0AFBVV95cUxON25tOUcxbzhoS1RhV294SGw1NlNnS1dfMWZfTVdvQS1qRTd1TTlpNmhqZlpMR0FGYnJBRXRTOFhia0lDajh1VDlta18xMEdLNmRZb3lSTmlNcTlnaU9ES1FqZ2tUZnNuSWxjaThBbkRmYnlKa2ZzcDBFb3Q5bGlOZHFRcGFZbEVoQ0pMLWhSWHNSNklGOE8wRTJ0MXk2RFBRUFJOR3Z3NFZ4UGw2T1BCd2hnMW1ibUt6WERTRWo0U1BZdHZTNk9ucS1sakZhLTZ6?oc=5"
       }
     ],
     "RKLB": [
       {
-        "headline": "Rocket Lab (RKLB) Is Up 5.9% After Record Q2, Space Force Win And Neutron Progress - Has The Bull Case Changed?",
-        "datetime": 1786681847,
-        "source": "Yahoo",
+        "headline": "Wall Street Breakfast Podcast: Rocket Lab Gains Altitude",
+        "datetime": 1786949700,
+        "source": "SeekingAlpha",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=5555f1797a373bf7ea81fd3d63eeea6866768c512a1804121c31546a15184c02"
+        "url": "https://finnhub.io/api/news?id=0409bf98a4e157ae2f1d62bc2eb6840f104e18efb858b0bf66051b1206f4f1f5"
       },
       {
-        "headline": "RKLB Stock Gains Overnight: Rocket Lab Advances Neutron’s ‘Hungry Hippo’ And Wins New Space Force Deal",
-        "datetime": 1786671817,
-        "source": "Yahoo",
+        "headline": "Rocket Lab: Not Priced For Launch Delays",
+        "datetime": 1786788000,
+        "source": "SeekingAlpha",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=38a9525de51ed0ed68e060a79eb1df05844d3dfbe4655c2e76eb183a6a150ef1"
+        "url": "https://finnhub.io/api/news?id=0de3032e27f91d3c76a2d059264f4a577f0f1ecc521536bc1936a3c3e673985f"
       },
       {
-        "headline": "Bank of America reveals Rocket Lab stock outlook after earnings",
-        "datetime": 1786665780,
-        "source": "Yahoo",
+        "headline": "Consumer Tech (Aug 10-14): Trump Faces Federal Lawsuits, Apple & Alibaba To Create AI Model For China & More",
+        "datetime": 1786787515,
+        "source": "Benzinga",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=613b08c71c4cb2ae4e5b63815e927ab0b13744ed6117746aaf592a796c3e8984"
+        "url": "https://finnhub.io/api/news?id=80a4ff54930a1eea63dea0ec7e39c7509a9575579cacc01386fedde5b9601b2f"
       },
       {
-        "headline": "RKLB Q2 Deep Dive: Iridium Acquisition, Neutron Progress, and Margin Pressures Shape Outlook",
-        "datetime": 1786663020,
-        "source": "Yahoo",
+        "headline": "Rocket Lab: Neutron Is Becoming A Real Growth Driver",
+        "datetime": 1786758278,
+        "source": "SeekingAlpha",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=a9c3e579114d37b742a03cad64361b48d1bec58572141066bf259c9246fba226"
-      },
-      {
-        "headline": "A $2 Billion Reason Why Rocket Lab Stock Is in Focus Today",
-        "datetime": 1786651487,
-        "source": "Yahoo",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=264716cc0cf763f4a273f2c91dd25dfd32fdac7a940d2d09e10789e04a5cf454"
+        "url": "https://finnhub.io/api/news?id=6398147da9bb062f206e34b3f0d0900566301ed95ce8cae8fce203dbe50ac640"
       }
     ],
     "SPCX": [
       {
-        "headline": "Wall Street's riskiest trades are suddenly back on top: Chart of the Day",
-        "datetime": 1786701660,
-        "source": "Yahoo",
+        "headline": "SpaceX: One Thing Most People Are Missing When It Comes To The Reported Stakes",
+        "datetime": 1786954460,
+        "source": "SeekingAlpha",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=2b7da859851c5bb21ed7dd386c125bbafc2bf0c84f77d778064a993eeafd02d7"
+        "url": "https://finnhub.io/api/news?id=d990868978e0b570709b2c0589d7acf2ec7026097bc38e60d5fba898eb018ed7"
       },
       {
-        "headline": "SpaceX Stock Climbs Back Above Its $135 IPO Price -- Here's Where It Could Trade by August 2027",
-        "datetime": 1786699500,
-        "source": "Yahoo",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=2024faaade906e4b5bf1c180a043798e0bf30694114bec81e07f6fc087511673"
-      },
-      {
-        "headline": "SpaceX’s Nvidia Alliance Could Stretch From Earth To Orbit And Beyond GPUs, Investor Says",
-        "datetime": 1786694974,
-        "source": "Yahoo",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=7eea3f7481d7701c57346a615c5ed775b1ebefcfaae0eb6ba47dddeec1633cd1"
-      },
-      {
-        "headline": "Jim Cramer Said T-Mobile US Inc. (NASDAQ:TMUS)’s Shares Reflected A Fear Of The Future",
-        "datetime": 1786694229,
-        "source": "Yahoo",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=2e5fecb158976ac5d0e5bae6235aeebff8025063b4416e963ad912b571ed37ef"
-      },
-      {
-        "headline": "SanDisk's Investor Day Puts NAND Center Stage as the 30-Year Quietly Prices In Fiscal Reality",
-        "datetime": 1786693867,
+        "headline": "Consumer Data Trips Up Wall Street's Rally as MDxHealth Snatches a Lifeline and Anthropic Redraws the AI Ceiling",
+        "datetime": 1786949888,
         "source": "ChartMill",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=7722ba7b10658553902058a38ee09cf3e74aa22e4b2f2161092b7466a6c3db21"
+        "url": "https://finnhub.io/api/news?id=fc98510322e387155cbbc6a2eb405984bb79a57cc4f550402ec0d3960db217a3"
+      },
+      {
+        "headline": "Nebius: Avoid Chasing, Even If You Missed The Ride (Rating Downgrade)",
+        "datetime": 1786858580,
+        "source": "SeekingAlpha",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=2468e9cada0486bc48735eb09ab7f1e12c655d6272a0a9762e0db8bb0b6f3bf1"
+      },
+      {
+        "headline": "Bill Ackman's Receptionist Is a Millionaire. So Is the Janitor: 'We Look After People'",
+        "datetime": 1786802506,
+        "source": "Benzinga",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=3094c524402c5c7ed58d7b01774c40a0efc3eabdce6298a5a9c4f3dbb44e3790"
+      },
+      {
+        "headline": "SpaceX: Not At This Price",
+        "datetime": 1786796142,
+        "source": "SeekingAlpha",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=07893e364e3a9bb4baa3ee8476d979133d55a7d7e30c085f5684e5640c700ffb"
       }
     ],
     "SKHY": [
       {
-        "headline": "The Next Big Theme: August 2026",
-        "datetime": 1786680000,
+        "headline": "SK hynix: AI Memory Dominance That Wall Street Is Mispricing",
+        "datetime": 1786955898,
         "source": "SeekingAlpha",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=28726b454761de52fe0e8351d85e02b1e7e4f9599a3c8fdf63bf661e1d728334"
+        "url": "https://finnhub.io/api/news?id=7de003a61027588c91f9dc5f15251eb9cc71764673d2e161cf5aaecad70ed8eb"
       },
       {
-        "headline": "SK Hynix Is Surging. Here’s How ETF Traders Are Playing the AI Memory Boom",
-        "datetime": 1786637772,
-        "source": "Benzinga",
+        "headline": "What Could Intel (INTC) Returning To Memory Mean For Investors?",
+        "datetime": 1786885690,
+        "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=fc247e13eab858b6a2d3b01ca97792e18964750acd254bbbf33f21c4883d97d2"
+        "url": "https://finnhub.io/api/news?id=02f756b0cfb37c2d62fae5acef2cf9ed84b6316c490f1bd9b666af07805931e1"
       },
       {
-        "headline": "Why Is SK Hynix Stock Surging Thursday?",
-        "datetime": 1786632104,
-        "source": "Benzinga",
+        "headline": "Dow Jones Futures: Nvidia Leads 5 Stocks In Buy Areas, Walmart Due; Market Ready To Run?",
+        "datetime": 1786881623,
+        "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=896c98984fc020956c06db623836732cf22992a66165d4ebc262b29e55b32833"
+        "url": "https://finnhub.io/api/news?id=d22b17decc863a59575a01c3d2275bf1887f468b11a9c7c2ebccec0e10e5513a"
       },
       {
-        "headline": "SK hynix: Road To $1 Trillion With Strengthening Fundamentals, Competitive Valuation",
-        "datetime": 1786629998,
+        "headline": "Sandisk: The Memory Trade Lives On After Investor's Day",
+        "datetime": 1786872600,
         "source": "SeekingAlpha",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=fd3a53a1be5c9e6ba2cb52711383e1963f61e3c42bb326df76b126801d38b032"
+        "url": "https://finnhub.io/api/news?id=7e153e573c69bdd2cb9c654693ee1500452d5a9097a3a3ca79a3a3be924b79f2"
       },
       {
-        "headline": "SK Group's Chairman Isn't Worried About Nvidia Dependence: Is That Why SKHY Is Up 8%?",
-        "datetime": 1786628622,
-        "source": "Benzinga",
+        "headline": "SK Hynix Approved $38 Billion of New Memory Fabs That Won't Produce a Chip Before December 2028",
+        "datetime": 1786815960,
+        "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=ba4c032ea98fdc1fc570403fa75a321e0ad0dc0be2ca14410810b7a1a1323bbe"
+        "url": "https://finnhub.io/api/news?id=efaa2cf30548f9706ce44290ca172ab2456dc42e16d8032d54b0128d3c58e273"
       }
     ]
   },
   "news_source_per_ticker": {
-    "CRCL": "finnhub",
+    "CRCL": "gnews-rss",
     "RKLB": "finnhub",
     "SPCX": "finnhub",
     "SKHY": "finnhub"
   },
   "source_status": {
     "CRCL": {
-      "finnhub": "success",
-      "google_news": "not_attempted"
+      "finnhub": "success_empty",
+      "google_news": "success"
     },
     "RKLB": {
       "finnhub": "success",
