@@ -3,8 +3,9 @@
  *
  * One organic view — the decision trace: real fills as the spine, the shared
  * decision ledger (memory/decisions.jsonl) soft-paired (±3 days) as the "why"
- * layer, and snapshot closes as the T+1 verdict. Fills without a decision say
- * so explicitly. Visual language: modern SaaS on DSH tokens, with the P&L
+ * layer, and canonical bar closes (memory/bars/, never snapshot current_price
+ * — see readBarCloses) as the T+1 verdict. Fills without a decision say so
+ * explicitly. Visual language: modern SaaS on DSH tokens, with the P&L
  * figure as the focal number and a GitHub-style vertical timeline in the
  * expandable detail.
  *
@@ -105,6 +106,16 @@ export interface DisplayEntry {
     t1: TraceT1 | null;
     holdPnl: number | null;
     decision: TraceDecision | null;
+    /**
+     * 'add' | 'reduce' decided host-side (see EnrichedTrade.side), or null when
+     * the payload carried no side at all.
+     *
+     * Nullable on purpose. Defaulting an unknown side to 'add' silently files
+     * every sell under buys and the sell scorecard then reads a confident
+     * "判出 0/0 笔卖出" — wrong, not degraded. Null keeps those fills out of both
+     * sides and makes the header say how many it could not place.
+     */
+    side: 'add' | 'reduce' | null;
 }
 /** Display projection of one trace (test seam). */
 export declare function _displayEntry(trace: EnrichedTrade): DisplayEntry;

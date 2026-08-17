@@ -129,12 +129,34 @@ export interface TraceDecision {
   sizePct: number | null
   plannedPrice: number | null
   source: string | null
+  /**
+   * How the plan's direction relates to the fill that actually happened.
+   * 'same' | 'opposite' | 'other' (the plan pointed at neither side), or null
+   * when either action is missing.
+   *
+   * Load-bearing, not decorative: on live data 22 of 40 traces were outright
+   * reversals of their own plan, and the panel showed nothing about it — the
+   * reader had to infer "risk said cut, I bought" from two adjacent lines.
+   * `execution.status` does NOT answer this: it is the plan's own self-report
+   * and stays available separately as 账本自评.
+   */
+  alignment: 'same' | 'opposite' | 'other' | null
 }
 
 export interface EnrichedTrade extends Trade {
   holdPnl: number | null
   t1: TraceT1 | null
   decision: TraceDecision | null
+  /**
+   * What this fill did to the position, decided host-side by `isSellAction`.
+   *
+   * Shipped so the browser half never keeps its own copy of the action set: the
+   * client used to test `action === 'sell'`, which silently dropped the verdict
+   * for cut / trim / trim_on_rebound, and a second copy of that set is how the
+   * two implementations drifted in #739. Null means the action is in neither
+   * bucket — the fill is kept out of both sides rather than guessed into one.
+   */
+  side: 'add' | 'reduce' | null
 }
 
 export interface TracesResult {

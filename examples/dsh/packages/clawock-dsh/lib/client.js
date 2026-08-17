@@ -4557,7 +4557,7 @@ const TYPERT_REMOTE = {
 };
 //#endregion
 //#region \0dsh-css:src/styles.module.css.mjs
-const css = ".SPgITW_dmt{--bg:#f7f8fa;--surface:#fff;--text:#15171b;--text2:#61666b;--text3:#81858c;--cap:#adb2b8;--brand:#4176e6;--brand-soft:#edf3fe;--ok:#1b8644;--ok-soft:#e6faed;--bad:#c01313;--bad-soft:#fdebee;--warn:#aa6924;--border:#1118270f;--border2:#1118271a;--hover:#1118270d;--shadow-sm:0 1px 2px #1018280a;--shadow-md:0 4px 16px #10182814;--veil:#ffffffeb;--tint-soft:#00000008;--tint-border:#0000000d;--tint-mid:#00000014;--tint-strong:#0000001f;--brand-glow:#4176e61f;--t1-up-border:#1b84442e;--t1-down-border:#c013132e;--radius:12px;--radius-sm:8px;--font:-apple-system,BlinkMacSystemFont,\"Segoe UI\",\"PingFang SC\",\"Hiragino Sans GB\",\"Microsoft YaHei\",sans-serif;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font:13px/1.45 var(--font);color:var(--text);-webkit-font-smoothing:antialiased;min-height:100%}body[data-ds-dark-theme] .SPgITW_dmt{--bg:#0f1115;--surface:#1b1b1c;--text:#ededee;--text2:#a7abb2;--text3:#7d8189;--cap:#5b5f66;--brand:#6c97f2;--brand-soft:#1e2a44;--ok:#3fcb74;--ok-soft:#153824;--bad:#f2554f;--bad-soft:#3b1516;--warn:#e0a752;--border:#ffffff14;--border2:#ffffff24;--hover:#ffffff12;--shadow-sm:0 1px 2px #0000004d;--shadow-md:0 4px 16px #0006;--veil:#141518d9;--tint-soft:#ffffff0f;--tint-border:#ffffff14;--tint-mid:#ffffff1f;--tint-strong:#ffffff2e;--brand-glow:#6c97f238;--t1-up-border:#3fcb7459;--t1-down-border:#f2554f59}.SPgITW_dmt .SPgITW_top{z-index:20;background:var(--veil);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);padding:10px 16px 8px;position:sticky;top:0}.SPgITW_dmt .SPgITW_tt{font:700 17px/1.3 var(--font);letter-spacing:-.01em;align-items:center;gap:8px;display:flex}.SPgITW_dmt .SPgITW_tt:before{content:\"\";background:var(--brand);border-radius:3px;width:9px;height:9px}.SPgITW_dmt .SPgITW_ts{font:400 11.5px/1.3 var(--font);color:var(--cap);margin-top:2px}.SPgITW_dmt .SPgITW_stats{flex-wrap:wrap;align-items:flex-end;gap:0;margin-top:8px;display:flex}.SPgITW_dmt .SPgITW_sg{flex-direction:column;gap:2px;padding:0 14px;display:flex}.SPgITW_dmt .SPgITW_sg+.SPgITW_sg{border-left:1px solid #00000014}.SPgITW_dmt .SPgITW_sl{font:500 10.5px/1.3 var(--font);color:var(--cap);letter-spacing:.03em;white-space:nowrap}.SPgITW_dmt .SPgITW_sv{font:650 14px/1.3 var(--font);color:var(--text);font-variant-numeric:tabular-nums;white-space:nowrap}.SPgITW_dmt .SPgITW_sv.SPgITW_focus{font:700 16px/1.3 var(--font)}.SPgITW_dmt .SPgITW_sv.SPgITW_up{color:var(--ok)}.SPgITW_dmt .SPgITW_sv.SPgITW_down{color:var(--bad)}.SPgITW_dmt .SPgITW_rate{font:400 10.5px/1.3 var(--font);color:var(--cap);align-self:center;margin-left:auto}.SPgITW_dmt .SPgITW_filters{flex-wrap:wrap;gap:2px;margin-top:8px;display:flex}.SPgITW_dmt .SPgITW_ft{color:var(--text3);font:600 12px/1.4 var(--font);cursor:pointer;background:0 0;border:0;border-radius:8px;padding:5px 11px;transition:background .12s,color .12s}.SPgITW_dmt .SPgITW_ft:hover{background:var(--hover)}.SPgITW_dmt .SPgITW_ft.SPgITW_on{color:var(--text);background:#1118270f}.SPgITW_dmt .SPgITW_list{max-width:760px;margin:0 auto;padding:10px 16px 32px}.SPgITW_dmt .SPgITW_day{font:650 13px/1.3 var(--font);color:var(--text);align-items:center;gap:8px;margin:16px 0 2px;display:flex}.SPgITW_dmt .SPgITW_day .SPgITW_n{color:var(--cap);font:400 10.5px/1.3 var(--mono);margin-left:auto}.SPgITW_dmt .SPgITW_day:after{content:\"\";background:var(--border);flex:1;height:1px;margin-left:6px}.SPgITW_dmt .SPgITW_day.SPgITW_fold{cursor:pointer;border-radius:8px;margin-left:-6px;padding:2px 6px}.SPgITW_dmt .SPgITW_day.SPgITW_fold:hover{background:var(--hover)}.SPgITW_dmt .SPgITW_day.SPgITW_fold .SPgITW_chev{text-align:center;flex:none;width:14px;margin-left:0}.SPgITW_dmt .SPgITW_cell{border:1px solid var(--border);background:var(--surface);cursor:pointer;width:100%;box-shadow:var(--shadow-sm);border-radius:12px;margin:7px 0;transition:box-shadow .15s,border-color .15s}.SPgITW_dmt .SPgITW_cell:hover{border-color:var(--border2);box-shadow:var(--shadow-md)}.SPgITW_dmt .SPgITW_cell.SPgITW_open{border-color:var(--brand);box-shadow:0 0 0 3px #4176e61f}.SPgITW_dmt .SPgITW_main{align-items:center;gap:12px;padding:13px 14px 6px;display:flex}.SPgITW_dmt .SPgITW_dotm{background:var(--cap);border-radius:50%;flex:none;width:6px;height:6px;margin-right:2px}.SPgITW_dmt .SPgITW_cell.SPgITW_hasdec .SPgITW_dotm{background:var(--brand)}.SPgITW_dmt .SPgITW_tk{min-width:0;font:650 14.5px/1.4 var(--font);letter-spacing:-.01em;text-overflow:ellipsis;white-space:nowrap;flex:0 auto;overflow:hidden}.SPgITW_dmt .SPgITW_mkt{font:700 9.5px/1 var(--font);vertical-align:2px;color:var(--brand);margin-left:3px}.SPgITW_dmt .SPgITW_mkt.SPgITW_hk{color:var(--text3)}.SPgITW_dmt .SPgITW_tag{border:1px solid var(--tint-border);background:var(--tint-soft);height:20px;font:600 11.5px/1 var(--font);color:var(--text2);letter-spacing:.02em;border-radius:6px;flex:none;align-items:center;padding:0 7px;display:inline-flex}.SPgITW_dmt .SPgITW_qty{text-align:right;min-width:0;font:500 12.5px/1.4 var(--mono);color:var(--text2);font-variant-numeric:tabular-nums;white-space:nowrap;text-overflow:ellipsis;flex:0 auto;overflow:hidden}.SPgITW_dmt .SPgITW_sp{flex:auto;min-width:8px}.SPgITW_dmt .SPgITW_pnl{text-align:right;min-width:92px;font:700 16.5px/1.2 var(--font);font-variant-numeric:tabular-nums;letter-spacing:-.01em;flex:none}.SPgITW_dmt .SPgITW_pnl.SPgITW_up{color:var(--ok)}.SPgITW_dmt .SPgITW_pnl.SPgITW_down{color:var(--bad)}.SPgITW_dmt .SPgITW_pnl.SPgITW_na{color:var(--cap);font-size:13px;font-weight:500}.SPgITW_dmt .SPgITW_sub{font:400 11px/1.4 var(--font);color:var(--cap);align-items:center;gap:10px;padding:3px 14px 11px;display:flex}.SPgITW_dmt .SPgITW_t1{height:18px;font:600 10.5px/1 var(--font);white-space:nowrap;font-variant-numeric:tabular-nums;border-radius:5px;flex:none;align-items:center;padding:0 6px;display:inline-flex}.SPgITW_dmt .SPgITW_t1.SPgITW_up{color:var(--ok);background:var(--ok-soft);border:1px solid var(--t1-up-border)}.SPgITW_dmt .SPgITW_t1.SPgITW_down{color:var(--bad);background:var(--bad-soft);border:1px solid var(--t1-down-border)}.SPgITW_dmt .SPgITW_t1.SPgITW_flat{color:var(--text2);background:var(--tint-soft)}.SPgITW_dmt .SPgITW_sub .SPgITW_date{font-variant-numeric:tabular-nums;flex:none}.SPgITW_dmt .SPgITW_chev{color:var(--cap);flex:none;margin-left:auto;font-size:10px;transition:transform .15s}.SPgITW_dmt .SPgITW_cell.SPgITW_open .SPgITW_chev{transform:rotate(180deg)}.SPgITW_dmt .SPgITW_detail{opacity:0;border-top:1px solid var(--tint-border);grid-template-rows:0fr;transition:grid-template-rows .24s cubic-bezier(.22,1,.36,1),opacity .15s;display:grid;overflow:hidden}.SPgITW_dmt .SPgITW_cell.SPgITW_open .SPgITW_detail{opacity:1;grid-template-rows:1fr}.SPgITW_dmt .SPgITW_dinner{min-height:0;padding:12px 16px 14px;overflow:hidden}.SPgITW_dmt .SPgITW_trhead{font:500 10.5px/1.3 var(--font);color:var(--cap);letter-spacing:.05em;align-items:center;gap:6px;margin-bottom:8px;display:flex}.SPgITW_dmt .SPgITW_trhead:before{content:\"\";background:var(--brand);border-radius:50%;width:6px;height:6px}.SPgITW_dmt .SPgITW_trace{padding-left:22px;position:relative}.SPgITW_dmt .SPgITW_trace:before{content:\"\";background:var(--tint-mid);width:2px;position:absolute;top:12px;bottom:10px;left:5px}.SPgITW_dmt .SPgITW_tnode{padding:2px 0 14px;position:relative}.SPgITW_dmt .SPgITW_tnode:last-child{padding-bottom:2px}.SPgITW_dmt .SPgITW_tnode:before{content:\"\";background:var(--surface);border:2px solid var(--cap);box-sizing:border-box;border-radius:50%;width:10px;height:10px;position:absolute;top:5px;left:-22px}.SPgITW_dmt .SPgITW_tnode.SPgITW_dec:before{border-color:var(--brand)}.SPgITW_dmt .SPgITW_tnode.SPgITW_follow:before{border-color:var(--ok)}.SPgITW_dmt .SPgITW_tnode.SPgITW_skip:before{border-color:var(--warn)}.SPgITW_dmt .SPgITW_tnode.SPgITW_win:before{border-color:var(--ok)}.SPgITW_dmt .SPgITW_tnode.SPgITW_loss:before{border-color:var(--bad)}.SPgITW_dmt .SPgITW_tnode .SPgITW_tw{font:400 10px/1.4 var(--mono);color:var(--cap);margin-bottom:1px}.SPgITW_dmt .SPgITW_tnode .SPgITW_n{font:500 10.5px/1.3 var(--font);color:var(--cap);letter-spacing:.04em;margin-bottom:2px}.SPgITW_dmt .SPgITW_tnode .SPgITW_v{font:600 13px/1.4 var(--font)}.SPgITW_dmt .SPgITW_tnode.SPgITW_win .SPgITW_v{color:var(--ok)}.SPgITW_dmt .SPgITW_tnode.SPgITW_loss .SPgITW_v{color:var(--bad)}.SPgITW_dmt .SPgITW_tnode.SPgITW_follow .SPgITW_v{color:var(--ok)}.SPgITW_dmt .SPgITW_tnode.SPgITW_skip .SPgITW_v{color:var(--warn)}.SPgITW_dmt .SPgITW_pchips{flex-wrap:wrap;gap:6px;margin:4px 0 8px;display:flex}.SPgITW_dmt .SPgITW_pc{font:400 11px/1.4 var(--font);background:var(--tint-soft);border:1px solid var(--border);color:var(--text2);border-radius:6px;padding:2px 8px}.SPgITW_dmt .SPgITW_tnote{border-left:3px solid var(--tint-strong);font:400 11.5px/1.6 var(--font);color:var(--text2);white-space:pre-wrap;overflow-wrap:anywhere;margin:7px 0;padding:3px 0 3px 10px}.SPgITW_dmt .SPgITW_tnote.SPgITW_why{border-left-color:var(--brand)}.SPgITW_dmt .SPgITW_tnote.SPgITW_emo{border-left-color:var(--warn)}.SPgITW_dmt .SPgITW_tnote .SPgITW_k{color:var(--cap);font:600 10.5px/1.4 var(--font)}.SPgITW_dmt .SPgITW_tmiss{border:1px dashed var(--border2);font:400 11.5px/1.5 var(--font);color:var(--cap);border-radius:6px;margin-top:8px;padding:7px 10px}.SPgITW_dmt .SPgITW_empty{text-align:center;color:var(--cap);font:400 13px/1.5 var(--font);padding:48px 20px}.SPgITW_dmt .SPgITW_trace-more{border:1px dashed var(--border2);background:var(--surface);width:calc(100% - 32px);color:var(--text2);font:600 12px/1.4 var(--font);cursor:pointer;border-radius:10px;margin:10px 16px;padding:9px 12px;transition:background .12s,border-color .12s,color .12s;display:block}.SPgITW_dmt .SPgITW_trace-more:hover{background:var(--hover);border-color:var(--brand);color:var(--text)}.SPgITW_dmt .SPgITW_skel{border:1px solid var(--border);background:var(--surface);border-radius:12px;align-items:center;gap:12px;margin:7px 0;padding:13px 16px;display:flex}.SPgITW_dmt .SPgITW_skel-dot{background:var(--tint-strong);border-radius:50%;flex:none;width:6px;height:6px}.SPgITW_dmt .SPgITW_skel-bar{background:var(--tint-mid);border-radius:5px;height:10px}.SPgITW_dmt .SPgITW_skel-bar.SPgITW_w40{width:40%}.SPgITW_dmt .SPgITW_skel-bar.SPgITW_w20{width:20%}@media (width<=520px){.SPgITW_dmt .SPgITW_main{gap:8px;padding:12px 12px 6px}.SPgITW_dmt .SPgITW_tk{font-size:13.5px}.SPgITW_dmt .SPgITW_qty{text-align:left;font-size:11px}.SPgITW_dmt .SPgITW_pnl{min-width:84px;font-size:14.5px}.SPgITW_dmt .SPgITW_sub{gap:8px;padding:3px 12px 10px}.SPgITW_dmt .SPgITW_sg{padding:0 11px}.SPgITW_dmt .SPgITW_sv{font-size:13px}.SPgITW_dmt .SPgITW_sv.SPgITW_focus{font-size:14.5px}}@media (prefers-reduced-motion:reduce){.SPgITW_dmt *{transition:none!important;animation:none!important}}";
+const css = ".SPgITW_dmt{--bg:#f7f8fa;--surface:#fff;--text:#15171b;--text2:#61666b;--text3:#81858c;--cap:#adb2b8;--brand:#4176e6;--brand-soft:#edf3fe;--ok:#1b8644;--ok-soft:#e6faed;--bad:#c01313;--bad-soft:#fdebee;--warn:#aa6924;--border:#1118270f;--border2:#1118271a;--hover:#1118270d;--shadow-sm:0 1px 2px #1018280a;--shadow-md:0 4px 16px #10182814;--veil:#ffffffeb;--tint-soft:#00000008;--tint-border:#0000000d;--tint-mid:#00000014;--tint-strong:#0000001f;--brand-glow:#4176e61f;--t1-up-border:#1b84442e;--t1-down-border:#c013132e;--radius:12px;--radius-sm:8px;--font:-apple-system,BlinkMacSystemFont,\"Segoe UI\",\"PingFang SC\",\"Hiragino Sans GB\",\"Microsoft YaHei\",sans-serif;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font:13px/1.45 var(--font);color:var(--text);-webkit-font-smoothing:antialiased;min-height:100%}body[data-ds-dark-theme] .SPgITW_dmt{--bg:#0f1115;--surface:#1b1b1c;--text:#ededee;--text2:#a7abb2;--text3:#7d8189;--cap:#5b5f66;--brand:#6c97f2;--brand-soft:#1e2a44;--ok:#3fcb74;--ok-soft:#153824;--bad:#f2554f;--bad-soft:#3b1516;--warn:#e0a752;--border:#ffffff14;--border2:#ffffff24;--hover:#ffffff12;--shadow-sm:0 1px 2px #0000004d;--shadow-md:0 4px 16px #0006;--veil:#141518d9;--tint-soft:#ffffff0f;--tint-border:#ffffff14;--tint-mid:#ffffff1f;--tint-strong:#ffffff2e;--brand-glow:#6c97f238;--t1-up-border:#3fcb7459;--t1-down-border:#f2554f59}.SPgITW_dmt .SPgITW_top{z-index:20;background:var(--veil);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);padding:10px 16px 8px;position:sticky;top:0}.SPgITW_dmt .SPgITW_tt{font:700 17px/1.3 var(--font);letter-spacing:-.01em;align-items:center;gap:8px;display:flex}.SPgITW_dmt .SPgITW_tt:before{content:\"\";background:var(--brand);border-radius:3px;width:9px;height:9px}.SPgITW_dmt .SPgITW_ts{font:400 11.5px/1.3 var(--font);color:var(--cap);margin-top:2px}.SPgITW_dmt .SPgITW_stats{flex-wrap:wrap;align-items:flex-end;gap:0;margin-top:8px;display:flex}.SPgITW_dmt .SPgITW_sg{flex-direction:column;gap:2px;padding:0 14px;display:flex}.SPgITW_dmt .SPgITW_sg+.SPgITW_sg{border-left:1px solid #00000014}.SPgITW_dmt .SPgITW_sl{font:500 10.5px/1.3 var(--font);color:var(--cap);letter-spacing:.03em;white-space:nowrap}.SPgITW_dmt .SPgITW_sv{font:650 14px/1.3 var(--font);color:var(--text);font-variant-numeric:tabular-nums;white-space:nowrap}.SPgITW_dmt .SPgITW_sv.SPgITW_focus{font:700 16px/1.3 var(--font)}.SPgITW_dmt .SPgITW_sv.SPgITW_up{color:var(--ok)}.SPgITW_dmt .SPgITW_sv.SPgITW_down{color:var(--bad)}.SPgITW_dmt .SPgITW_rate{font:400 10.5px/1.3 var(--font);color:var(--cap);align-self:center;margin-left:auto}.SPgITW_dmt .SPgITW_filters{flex-wrap:wrap;gap:2px;margin-top:8px;display:flex}.SPgITW_dmt .SPgITW_ft{color:var(--text3);font:600 12px/1.4 var(--font);cursor:pointer;background:0 0;border:0;border-radius:8px;padding:5px 11px;transition:background .12s,color .12s}.SPgITW_dmt .SPgITW_ft:hover{background:var(--hover)}.SPgITW_dmt .SPgITW_ft.SPgITW_on{color:var(--text);background:#1118270f}.SPgITW_dmt .SPgITW_list{max-width:760px;margin:0 auto;padding:10px 16px 32px}.SPgITW_dmt .SPgITW_day{font:650 13px/1.3 var(--font);color:var(--text);align-items:center;gap:8px;margin:16px 0 2px;display:flex}.SPgITW_dmt .SPgITW_day .SPgITW_n{color:var(--cap);font:400 10.5px/1.3 var(--mono);margin-left:auto}.SPgITW_dmt .SPgITW_day:after{content:\"\";background:var(--border);flex:1;height:1px;margin-left:6px}.SPgITW_dmt .SPgITW_day.SPgITW_fold{cursor:pointer;border-radius:8px;margin-left:-6px;padding:2px 6px}.SPgITW_dmt .SPgITW_day.SPgITW_fold:hover{background:var(--hover)}.SPgITW_dmt .SPgITW_day.SPgITW_fold .SPgITW_chev{text-align:center;flex:none;width:14px;margin-left:0}.SPgITW_dmt .SPgITW_cell{border:1px solid var(--border);background:var(--surface);cursor:pointer;width:100%;box-shadow:var(--shadow-sm);border-radius:12px;margin:7px 0;transition:box-shadow .15s,border-color .15s}.SPgITW_dmt .SPgITW_cell:hover{border-color:var(--border2);box-shadow:var(--shadow-md)}.SPgITW_dmt .SPgITW_cell.SPgITW_open{border-color:var(--brand);box-shadow:0 0 0 3px #4176e61f}.SPgITW_dmt .SPgITW_main{align-items:center;gap:12px;padding:13px 14px 6px;display:flex}.SPgITW_dmt .SPgITW_dotm{background:var(--cap);border-radius:50%;flex:none;width:6px;height:6px;margin-right:2px}.SPgITW_dmt .SPgITW_cell.SPgITW_hasdec .SPgITW_dotm{background:var(--brand)}.SPgITW_dmt .SPgITW_tk{min-width:0;font:650 14.5px/1.4 var(--font);letter-spacing:-.01em;text-overflow:ellipsis;white-space:nowrap;flex:0 auto;overflow:hidden}.SPgITW_dmt .SPgITW_mkt{font:700 9.5px/1 var(--font);vertical-align:2px;color:var(--brand);margin-left:3px}.SPgITW_dmt .SPgITW_mkt.SPgITW_hk{color:var(--text3)}.SPgITW_dmt .SPgITW_tag{border:1px solid var(--tint-border);background:var(--tint-soft);height:20px;font:600 11.5px/1 var(--font);color:var(--text2);letter-spacing:.02em;border-radius:6px;flex:none;align-items:center;padding:0 7px;display:inline-flex}.SPgITW_dmt .SPgITW_qty{text-align:right;min-width:0;font:500 12.5px/1.4 var(--mono);color:var(--text2);font-variant-numeric:tabular-nums;white-space:nowrap;text-overflow:ellipsis;flex:0 auto;overflow:hidden}.SPgITW_dmt .SPgITW_sp{flex:auto;min-width:8px}.SPgITW_dmt .SPgITW_pnl{text-align:right;min-width:92px;font:700 16.5px/1.2 var(--font);font-variant-numeric:tabular-nums;letter-spacing:-.01em;flex:none}.SPgITW_dmt .SPgITW_pnl.SPgITW_up{color:var(--ok)}.SPgITW_dmt .SPgITW_pnl.SPgITW_down{color:var(--bad)}.SPgITW_dmt .SPgITW_pnl.SPgITW_na{color:var(--cap);font-size:13px;font-weight:500}.SPgITW_dmt .SPgITW_pnlk{font:600 10.5px/1.2 var(--font);color:var(--cap);letter-spacing:0;margin-right:3px}.SPgITW_dmt .SPgITW_sub{font:400 11px/1.4 var(--font);color:var(--cap);align-items:center;gap:10px;padding:3px 14px 11px;display:flex}.SPgITW_dmt .SPgITW_t1{height:18px;font:600 10.5px/1 var(--font);white-space:nowrap;font-variant-numeric:tabular-nums;border-radius:5px;flex:none;align-items:center;padding:0 6px;display:inline-flex}.SPgITW_dmt .SPgITW_t1.SPgITW_up{color:var(--ok);background:var(--ok-soft);border:1px solid var(--t1-up-border)}.SPgITW_dmt .SPgITW_t1.SPgITW_down{color:var(--bad);background:var(--bad-soft);border:1px solid var(--t1-down-border)}.SPgITW_dmt .SPgITW_t1.SPgITW_flat{color:var(--text2);background:var(--tint-soft)}.SPgITW_dmt .SPgITW_sub .SPgITW_date{font-variant-numeric:tabular-nums;flex:none}.SPgITW_dmt .SPgITW_chev{color:var(--cap);flex:none;margin-left:auto;font-size:10px;transition:transform .15s}.SPgITW_dmt .SPgITW_cell.SPgITW_open .SPgITW_chev{transform:rotate(180deg)}.SPgITW_dmt .SPgITW_detail{opacity:0;border-top:1px solid var(--tint-border);grid-template-rows:0fr;transition:grid-template-rows .24s cubic-bezier(.22,1,.36,1),opacity .15s;display:grid;overflow:hidden}.SPgITW_dmt .SPgITW_cell.SPgITW_open .SPgITW_detail{opacity:1;grid-template-rows:1fr}.SPgITW_dmt .SPgITW_dinner{min-height:0;padding:12px 16px 14px;overflow:hidden}.SPgITW_dmt .SPgITW_trhead{font:500 10.5px/1.3 var(--font);color:var(--cap);letter-spacing:.05em;align-items:center;gap:6px;margin-bottom:8px;display:flex}.SPgITW_dmt .SPgITW_trhead:before{content:\"\";background:var(--brand);border-radius:50%;width:6px;height:6px}.SPgITW_dmt .SPgITW_trace{padding-left:22px;position:relative}.SPgITW_dmt .SPgITW_trace:before{content:\"\";background:var(--tint-mid);width:2px;position:absolute;top:12px;bottom:10px;left:5px}.SPgITW_dmt .SPgITW_tnode{padding:2px 0 14px;position:relative}.SPgITW_dmt .SPgITW_tnode:last-child{padding-bottom:2px}.SPgITW_dmt .SPgITW_tnode:before{content:\"\";background:var(--surface);border:2px solid var(--cap);box-sizing:border-box;border-radius:50%;width:10px;height:10px;position:absolute;top:5px;left:-22px}.SPgITW_dmt .SPgITW_tnode.SPgITW_dec:before{border-color:var(--brand)}.SPgITW_dmt .SPgITW_tnode.SPgITW_follow:before{border-color:var(--ok)}.SPgITW_dmt .SPgITW_tnode.SPgITW_skip:before{border-color:var(--warn)}.SPgITW_dmt .SPgITW_tnode.SPgITW_win:before{border-color:var(--ok)}.SPgITW_dmt .SPgITW_tnode.SPgITW_loss:before{border-color:var(--bad)}.SPgITW_dmt .SPgITW_tnode .SPgITW_tw{font:400 10px/1.4 var(--mono);color:var(--cap);margin-bottom:1px}.SPgITW_dmt .SPgITW_tnode .SPgITW_n{font:500 10.5px/1.3 var(--font);color:var(--cap);letter-spacing:.04em;margin-bottom:2px}.SPgITW_dmt .SPgITW_tnode .SPgITW_v{font:600 13px/1.4 var(--font)}.SPgITW_dmt .SPgITW_tnode.SPgITW_win .SPgITW_v{color:var(--ok)}.SPgITW_dmt .SPgITW_tnode.SPgITW_loss .SPgITW_v{color:var(--bad)}.SPgITW_dmt .SPgITW_tnode.SPgITW_follow .SPgITW_v{color:var(--ok)}.SPgITW_dmt .SPgITW_tnode.SPgITW_skip .SPgITW_v{color:var(--warn)}.SPgITW_dmt .SPgITW_pchips{flex-wrap:wrap;gap:6px;margin:4px 0 8px;display:flex}.SPgITW_dmt .SPgITW_pc{font:400 11px/1.4 var(--font);background:var(--tint-soft);border:1px solid var(--border);color:var(--text2);border-radius:6px;padding:2px 8px}.SPgITW_dmt .SPgITW_tnote{border-left:3px solid var(--tint-strong);font:400 11.5px/1.6 var(--font);color:var(--text2);white-space:pre-wrap;overflow-wrap:anywhere;margin:7px 0;padding:3px 0 3px 10px}.SPgITW_dmt .SPgITW_tnote.SPgITW_why{border-left-color:var(--brand)}.SPgITW_dmt .SPgITW_tnote.SPgITW_emo{border-left-color:var(--warn)}.SPgITW_dmt .SPgITW_tnote .SPgITW_k{color:var(--cap);font:600 10.5px/1.4 var(--font)}.SPgITW_dmt .SPgITW_tmiss{border:1px dashed var(--border2);font:400 11.5px/1.5 var(--font);color:var(--cap);border-radius:6px;margin-top:8px;padding:7px 10px}.SPgITW_dmt .SPgITW_empty{text-align:center;color:var(--cap);font:400 13px/1.5 var(--font);padding:48px 20px}.SPgITW_dmt .SPgITW_trace-more{border:1px dashed var(--border2);background:var(--surface);width:calc(100% - 32px);color:var(--text2);font:600 12px/1.4 var(--font);cursor:pointer;border-radius:10px;margin:10px 16px;padding:9px 12px;transition:background .12s,border-color .12s,color .12s;display:block}.SPgITW_dmt .SPgITW_trace-more:hover{background:var(--hover);border-color:var(--brand);color:var(--text)}.SPgITW_dmt .SPgITW_skel{border:1px solid var(--border);background:var(--surface);border-radius:12px;align-items:center;gap:12px;margin:7px 0;padding:13px 16px;display:flex}.SPgITW_dmt .SPgITW_skel-dot{background:var(--tint-strong);border-radius:50%;flex:none;width:6px;height:6px}.SPgITW_dmt .SPgITW_skel-bar{background:var(--tint-mid);border-radius:5px;height:10px}.SPgITW_dmt .SPgITW_skel-bar.SPgITW_w40{width:40%}.SPgITW_dmt .SPgITW_skel-bar.SPgITW_w20{width:20%}@media (width<=520px){.SPgITW_dmt .SPgITW_main{gap:8px;padding:12px 12px 6px}.SPgITW_dmt .SPgITW_tk{font-size:13.5px}.SPgITW_dmt .SPgITW_qty{text-align:left;font-size:11px}.SPgITW_dmt .SPgITW_pnl{min-width:84px;font-size:14.5px}.SPgITW_dmt .SPgITW_sub{gap:8px;padding:3px 12px 10px}.SPgITW_dmt .SPgITW_sg{padding:0 11px}.SPgITW_dmt .SPgITW_sv{font-size:13px}.SPgITW_dmt .SPgITW_sv.SPgITW_focus{font-size:14.5px}}@media (prefers-reduced-motion:reduce){.SPgITW_dmt *{transition:none!important;animation:none!important}}";
 const tagId = "clawock-dsh/styles.module.css";
 if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId) + "]") === null) {
 	const tag = document.createElement("style");
@@ -4599,6 +4599,7 @@ var styles_module_css_default = {
 	"pc": "SPgITW_pc",
 	"pchips": "SPgITW_pchips",
 	"pnl": "SPgITW_pnl",
+	"pnlk": "SPgITW_pnlk",
 	"qty": "SPgITW_qty",
 	"rate": "SPgITW_rate",
 	"sg": "SPgITW_sg",
@@ -4638,8 +4639,9 @@ var styles_module_css_default = {
 *
 * One organic view — the decision trace: real fills as the spine, the shared
 * decision ledger (memory/decisions.jsonl) soft-paired (±3 days) as the "why"
-* layer, and snapshot closes as the T+1 verdict. Fills without a decision say
-* so explicitly. Visual language: modern SaaS on DSH tokens, with the P&L
+* layer, and canonical bar closes (memory/bars/, never snapshot current_price
+* — see readBarCloses) as the T+1 verdict. Fills without a decision say so
+* explicitly. Visual language: modern SaaS on DSH tokens, with the P&L
 * figure as the focal number and a GitHub-style vertical timeline in the
 * expandable detail.
 *
@@ -4726,10 +4728,26 @@ const DRV = {
 	mixed: "混合",
 	risk_rule: "风控规则"
 };
+/**
+* The ledger's `execution.status`, in words.
+*
+* This grades the PLAN — "was this plan followed" — and it is not a statement
+* about the fill on the row, which happened either way. Rendering 「未执行」 as
+* that row's 执行 verdict read as a flat contradiction on a completed buy, and
+* on live data 8 rows said 已遵守 while the plan's action still differed from
+* the fill's. So it renders as 账本自评 and never as the fill's own status; the
+* plan-vs-fill relation is `decision.alignment` below.
+*/
 const EXE = {
-	followed: ["已遵守", "follow"],
-	not_followed: ["未执行", "skip"],
-	unknown: ["未知", ""]
+	followed: "遵守了计划",
+	not_followed: "没按计划",
+	unknown: "未标注"
+};
+/** The plan-vs-fill relation, stated instead of left to be inferred. */
+const ALIGN = {
+	same: ["与计划同向", "follow"],
+	opposite: ["与计划反向", "skip"],
+	other: ["计划未指向买卖", ""]
 };
 const EMO = {
 	fomo: "追高冲动",
@@ -4742,9 +4760,9 @@ const EMO = {
 };
 const FILTER_LABEL = {
 	all: "全部",
-	miss: "无决策",
+	miss: "无当日计划",
 	sold: "卖出复盘",
-	dec: "挂接决策"
+	dec: "有当日计划"
 };
 function esc(value) {
 	return String(value === null || value === void 0 ? "" : value).replace(/</g, "&lt;");
@@ -4787,7 +4805,8 @@ function _displayEntry(trace) {
 		note: trace.note ?? null,
 		t1: trace.t1 ?? null,
 		holdPnl: trace.holdPnl ?? null,
-		decision: trace.decision ?? null
+		decision: trace.decision ?? null,
+		side: trace.side === "reduce" || trace.side === "add" ? trace.side : null
 	};
 }
 function Chip(props) {
@@ -4797,64 +4816,65 @@ function TraceDetail(props) {
 	const trace = props.trace;
 	const decision = trace.decision;
 	const sym = trace.currency === "HKD" ? "HK$" : "$";
+	const fillText = (ACT[trace.action] ?? trace.action) + " " + trace.shares + " 股 @ " + sym + trace.price;
 	if (decision === null) {
-		const t1miss = trace.t1 === null ? null : h("div", { className: cx("tnode", t1NodeClass(trace.t1.tone)) }, h("div", { className: cx("n") }, "T+1 结果"), h("div", { className: cx("v") }, (trace.t1.delta >= 0 ? "+" : "") + trace.t1.delta + "%"));
-		return h("div", null, h("div", { className: cx("trhead") }, "决策轨迹 · 无关联记录"), h("div", { className: cx("trace") }, h("div", { className: cx("tnode", "dec") }, h("div", { className: cx("n") }, "决策"), h("div", {
+		const t1miss = trace.t1 === null ? null : h("div", { className: cx("tnode", t1NodeClass(trace.t1.tone)) }, h("div", { className: cx("tw") }, trace.t1.date), h("div", { className: cx("n") }, "T+1 收盘"), h("div", { className: cx("v") }, (trace.t1.delta >= 0 ? "+" : "") + trace.t1.delta + "% · " + trace.t1.verdict));
+		return h("div", null, h("div", { className: cx("trhead") }, "决策轨迹 · 无当日计划"), h("div", { className: cx("trace") }, h("div", { className: cx("tnode", "dec") }, h("div", { className: cx("n") }, "当时的计划"), h("div", {
 			className: cx("v"),
 			style: { color: "var(--cap)" }
-		}, "无关联记录")), h("div", { className: cx("tnode", "follow") }, h("div", { className: cx("n") }, "执行"), h("div", { className: cx("v") }, (ACT[trace.action] ?? trace.action) + " " + trace.shares + "股 @" + trace.price + " " + sym)), t1miss), trace.note === null ? null : h("div", { className: cx("tnote") }, esc(trace.note)), h("div", { className: cx("tmiss") }, "此笔无关联决策记录 — 事实保留,判断缺失显式标出"));
+		}, "这一天没有该标的的计划记录")), h("div", { className: cx("tnode", "follow") }, h("div", { className: cx("tw") }, trace.date ?? ""), h("div", { className: cx("n") }, "真实成交"), h("div", { className: cx("v") }, fillText)), t1miss), trace.note === null ? null : h("div", { className: cx("tnote") }, esc(trace.note)), h("div", { className: cx("tmiss") }, "这笔成交在决策账本里找不到前后 3 天的同标的计划:成交是真的,当时的判断没有留下记录。"));
 	}
-	const [exeLabel, exeTone] = EXE[decision.execution ?? "unknown"] ?? EXE["unknown"];
-	const planned = (ACT[decision.action ?? ""] ?? decision.action ?? "") + (decision.confidence === null ? "" : " " + Math.round(decision.confidence * 100) + "%") + (decision.drivenBy === null ? "" : " · " + (DRV[decision.drivenBy] ?? decision.drivenBy));
+	const [alignLabel, alignTone] = ALIGN[decision.alignment ?? ""] ?? ["", ""];
+	const planned = (ACT[decision.action ?? ""] ?? decision.action ?? "") + (decision.sizeShares === null ? "" : " " + decision.sizeShares + " 股") + (decision.plannedPrice === null ? "" : " @ " + decision.plannedPrice) + (decision.confidence === null ? "" : " · 信心 " + Math.round(decision.confidence * 100) + "%") + (decision.drivenBy === null ? "" : " · " + (DRV[decision.drivenBy] ?? decision.drivenBy));
 	const why = decision.rationale ?? decision.bull ?? "";
 	const emotion = decision.emotion !== null && decision.emotion !== "calm" ? EMO[decision.emotion] ?? decision.emotion : null;
 	const chips = [];
 	if (decision.condition !== null) chips.push(h("span", {
 		className: cx("pc"),
 		key: "c"
-	}, "条件: " + decision.condition));
-	if (decision.sizeShares !== null) chips.push(h("span", {
+	}, "触发条件: " + decision.condition));
+	if (decision.execution !== null) chips.push(h("span", {
 		className: cx("pc"),
-		key: "s"
-	}, "计划 " + decision.sizeShares + " 股"));
-	if (decision.plannedPrice !== null) chips.push(h("span", {
-		className: cx("pc"),
-		key: "p"
-	}, "计划价 " + decision.plannedPrice));
-	const t1node = trace.t1 === null ? null : h("div", { className: cx("tnode", t1NodeClass(trace.t1.tone)) }, h("div", { className: cx("tw") }, trace.t1.date), h("div", { className: cx("n") }, "T+1 结果"), h("div", { className: cx("v") }, (trace.t1.delta >= 0 ? "+" : "") + trace.t1.delta + "%" + (trace.action === "sell" ? " · " + trace.t1.verdict : "")));
+		key: "e"
+	}, "账本自评: " + (EXE[decision.execution] ?? decision.execution)));
+	const t1node = trace.t1 === null ? null : h("div", { className: cx("tnode", t1NodeClass(trace.t1.tone)) }, h("div", { className: cx("tw") }, trace.t1.date), h("div", { className: cx("n") }, "T+1 收盘"), h("div", { className: cx("v") }, (trace.t1.delta >= 0 ? "+" : "") + trace.t1.delta + "% · " + trace.t1.verdict));
 	let pnlText;
 	let pnlTone;
+	let pnlLabel;
 	if (trace.realizedPnl !== null) {
 		pnlText = (trace.realizedPnl >= 0 ? "+" : "") + trace.realizedPnl.toFixed(2) + " " + sym;
 		pnlTone = trace.realizedPnl >= 0 ? "win" : "loss";
+		pnlLabel = "本笔已实现";
 	} else if (trace.holdPnl !== null) {
 		pnlText = fmtPct(trace.holdPnl);
 		pnlTone = trace.holdPnl >= 0 ? "win" : "loss";
+		pnlLabel = "该持仓当前浮动 (" + trace.ticker + " 全仓,非本笔)";
 	} else {
-		pnlText = "—";
+		pnlText = "— 未平仓";
 		pnlTone = "";
+		pnlLabel = "本笔盈亏";
 	}
-	return h("div", null, h("div", { className: cx("trhead") }, "决策轨迹 · " + (decision.planDate ?? "")), h("div", { className: cx("trace") }, h("div", { className: cx("tnode", "dec") }, h("div", { className: cx("tw") }, decision.planDate ?? ""), h("div", { className: cx("n") }, "计划"), h("div", { className: cx("v") }, planned)), h("div", { className: cx("tnode", exeTone) }, h("div", { className: cx("tw") }, trace.date ?? ""), h("div", { className: cx("n") }, "执行"), h("div", { className: cx("v") }, exeLabel + (exeTone === "skip" ? " — 实际动了手" : ""))), t1node, h("div", { className: cx("tnode", pnlTone) }, h("div", { className: cx("n") }, "盈亏"), h("div", { className: cx("v") }, pnlText))), chips.length === 0 ? null : h("div", { className: cx("pchips") }, chips), why === "" ? null : h("div", { className: cx("tnote", "why") }, h("span", { className: cx("k") }, "为什么 "), esc(why)), emotion === null ? null : h("div", { className: cx("tnote", "emo") }, h("span", { className: cx("k") }, "情绪 "), "⚡ " + emotion), trace.note === null ? null : h("div", { className: cx("tnote") }, h("span", { className: cx("k") }, "备注 "), esc(trace.note)));
+	return h("div", null, h("div", { className: cx("trhead") }, "决策轨迹 · " + (decision.planDate ?? "")), h("div", { className: cx("trace") }, h("div", { className: cx("tnode", "dec") }, h("div", { className: cx("tw") }, decision.planDate ?? ""), h("div", { className: cx("n") }, "当时的计划"), h("div", { className: cx("v") }, planned)), h("div", { className: cx("tnode", alignTone) }, h("div", { className: cx("tw") }, trace.date ?? ""), h("div", { className: cx("n") }, "真实成交"), h("div", { className: cx("v") }, fillText, alignLabel === "" ? null : h("span", { className: cx("pc", alignTone) }, alignLabel))), t1node, h("div", { className: cx("tnode", pnlTone) }, h("div", { className: cx("n") }, pnlLabel), h("div", { className: cx("v") }, pnlText))), chips.length === 0 ? null : h("div", { className: cx("pchips") }, chips), why === "" ? null : h("div", { className: cx("tnote", "why") }, h("span", { className: cx("k") }, "为什么 "), esc(why)), emotion === null ? null : h("div", { className: cx("tnote", "emo") }, h("span", { className: cx("k") }, "情绪 "), "⚡ " + emotion), trace.note === null ? null : h("div", { className: cx("tnote") }, h("span", { className: cx("k") }, "备注 "), esc(trace.note)));
 }
 function TraceCell(props) {
 	const trace = props.trace;
 	const sym = trace.currency === "HKD" ? "HK$" : "$";
 	let pnl;
 	if (trace.realizedPnl !== null) pnl = h("span", { className: cx("pnl", trace.realizedPnl >= 0 ? "up" : "down") }, (trace.realizedPnl >= 0 ? "+" : "") + trace.realizedPnl.toFixed(2) + " " + sym);
-	else if (trace.holdPnl !== null) pnl = h("span", { className: cx("pnl", trace.holdPnl >= 0 ? "up" : "down") }, fmtPct(trace.holdPnl));
+	else if (trace.holdPnl !== null) pnl = h("span", { className: cx("pnl", trace.holdPnl >= 0 ? "up" : "down") }, h("span", { className: cx("pnlk") }, "持仓"), fmtPct(trace.holdPnl));
 	else pnl = h("span", { className: cx("pnl", "na") }, "—");
-	let t1tag = null;
+	let t1tag;
 	if (trace.t1 !== null) {
 		const tone = t1ChipClass(trace.t1.tone);
-		const label = "T+1 " + (trace.t1.delta >= 0 ? "+" : "") + trace.t1.delta + "%" + (trace.action === "sell" ? " " + trace.t1.verdict : "");
+		const label = "T+1 " + (trace.t1.delta >= 0 ? "+" : "") + trace.t1.delta + "% " + trace.t1.verdict;
 		t1tag = h("span", {
 			className: cx("t1", tone),
 			"data-tone": tone
 		}, label);
-	} else if (trace.action === "sell") t1tag = h("span", {
+	} else t1tag = h("span", {
 		className: cx("t1", "flat"),
 		"data-tone": "flat"
-	}, "T+1 —");
+	}, "T+1 未判");
 	return h("div", {
 		className: cx("cell", trace.decision !== null && "hasdec", props.open && "open"),
 		"data-cell": "trace",
@@ -4959,19 +4979,22 @@ function DecisionMind(props) {
 	if (data.loading) return h("div", {
 		className: cx("dmt"),
 		ref: rootRef
-	}, h("div", { className: cx("top") }, h("div", { className: cx("tt") }, "决策轨迹"), h("div", { className: cx("ts") }, "真实成交 × 决策账本 × T+1 结果")), h("div", { className: cx("list") }, h(SkeletonRow, { key: "sk1" }), h(SkeletonRow, { key: "sk2" }), h(SkeletonRow, { key: "sk3" })));
+	}, h("div", { className: cx("top") }, h("div", { className: cx("tt") }, "决策轨迹"), h("div", { className: cx("ts") }, "一笔真实成交 + 当时写下的计划 + 官方收盘给的结果")), h("div", { className: cx("list") }, h(SkeletonRow, { key: "sk1" }), h(SkeletonRow, { key: "sk2" }), h(SkeletonRow, { key: "sk3" })));
 	const traces = data.trades.map(_displayEntry);
 	let filtered = traces;
 	if (filter === "miss") filtered = traces.filter((trace) => trace.decision === null);
-	if (filter === "sold") filtered = traces.filter((trace) => trace.action === "sell");
+	if (filter === "sold") filtered = traces.filter((trace) => trace.side === "reduce");
 	if (filter === "dec") filtered = traces.filter((trace) => trace.decision !== null);
 	const sumRealized = (currency) => traces.filter((trace) => trace.realizedPnl !== null && trace.currency === currency).reduce((sum, trace) => sum + (trace.realizedPnl ?? 0), 0);
 	const rate = data.rate;
 	const totalUsd = sumRealized("USD") + (rate === null ? 0 : sumRealized("HKD") / rate);
-	const t1Rated = traces.filter((trace) => trace.t1 !== null).length;
-	const soldEarly = traces.filter((trace) => trace.t1?.verdict === "卖飞").length;
-	const soldRight = traces.filter((trace) => trace.t1?.verdict === "卖对").length;
+	const sells = traces.filter((trace) => trace.side === "reduce");
+	const sideless = traces.filter((trace) => trace.side === null).length;
+	const sellsRated = sells.filter((trace) => trace.t1 !== null).length;
+	const soldEarly = sells.filter((trace) => trace.t1?.verdict === "卖飞").length;
+	const soldRight = sells.filter((trace) => trace.t1?.verdict === "卖对").length;
 	const matched = traces.filter((trace) => trace.decision !== null).length;
+	const reversed = traces.filter((trace) => trace.decision?.alignment === "opposite").length;
 	const groups = {};
 	for (const trace of filtered) {
 		const day = (trace.date ?? "").slice(0, 10);
@@ -5039,7 +5062,7 @@ function DecisionMind(props) {
 		if (moreButton !== null) kids.push(moreButton);
 		body = h("div", null, kids);
 	}
-	const stats = h("div", { className: cx("stats") }, h("div", { className: cx("sg") }, h("span", { className: cx("sl") }, "已实现 (USD 等值)"), h("span", { className: cx("sv", "focus", totalUsd >= 0 ? "up" : "down") }, fmtMoney(totalUsd))), h("div", { className: cx("sg") }, h("span", { className: cx("sl") }, "T+1 卖飞/卖对 · 基于 " + t1Rated + " 笔"), h("span", { className: cx("sv") }, h("span", { className: cx("down") }, soldEarly), " / ", h("span", { className: cx("up") }, soldRight))), h("div", { className: cx("sg") }, h("span", { className: cx("sl") }, "决策挂接"), h("span", { className: cx("sv") }, matched + "/" + traces.length)), h("span", { className: cx("rate") }, traces.length + " 笔成交" + (rate === null ? "" : " · @" + rate)));
+	const stats = h("div", { className: cx("stats") }, h("div", { className: cx("sg") }, h("span", { className: cx("sl") }, "已实现 (USD 等值)"), h("span", { className: cx("sv", "focus", totalUsd >= 0 ? "up" : "down") }, fmtMoney(totalUsd))), h("div", { className: cx("sg") }, h("span", { className: cx("sl") }, "T+1 卖飞/卖对 · 判出 " + sellsRated + "/" + sells.length + " 笔卖出" + (sideless === 0 ? "" : " · " + sideless + " 笔无侧向")), h("span", { className: cx("sv") }, h("span", { className: cx("down") }, soldEarly), " / ", h("span", { className: cx("up") }, soldRight))), h("div", { className: cx("sg") }, h("span", { className: cx("sl") }, "有当日计划" + (reversed === 0 ? "" : " · 反向 " + reversed)), h("span", { className: cx("sv") }, matched + "/" + traces.length)), h("span", { className: cx("rate") }, traces.length + " 笔成交" + (rate === null ? "" : " · @" + rate)));
 	const filters = h("div", { className: cx("filters") }, [
 		"all",
 		"miss",
@@ -5055,7 +5078,7 @@ function DecisionMind(props) {
 	return h("div", {
 		className: cx("dmt"),
 		ref: rootRef
-	}, h("div", { className: cx("top") }, h("div", { className: cx("tt") }, "决策轨迹"), h("div", { className: cx("ts") }, "真实成交 × 决策账本 × T+1 结果" + (data.stale ? " · 更新失败,显示此前快照" : "")), stats, filters), h("div", { className: cx("list") }, body));
+	}, h("div", { className: cx("top") }, h("div", { className: cx("tt") }, "决策轨迹"), h("div", { className: cx("ts") }, "一笔真实成交 + 当时写下的计划 + 官方收盘给的结果" + (data.stale ? " · 更新失败,显示此前快照" : "")), stats, filters), h("div", { className: cx("list") }, body));
 }
 /** Services required by the registration and the mounted Remote face. */
 const inject = ["slots", "remote"];

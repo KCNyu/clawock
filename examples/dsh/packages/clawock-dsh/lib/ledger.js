@@ -192,6 +192,38 @@ const SELL_ACTIONS = /* @__PURE__ */ new Set([
 function isSellAction(action) {
 	return SELL_ACTIONS.has(action);
 }
+/** Actions that add to a position. */
+const ADD_ACTIONS = /* @__PURE__ */ new Set(["buy", "add"]);
+/**
+* 'same' | 'opposite' | 'other' — the plan's direction against the fill's.
+*
+* Mirrors `_plan_fill_alignment` in src/clawock/publish/dashboard.py; the two
+* implementations are pinned together by tests/test_decision_trace_parity.py.
+*/
+function planFillAlignment(planAction, fillAction) {
+	if (typeof planAction !== "string" || typeof fillAction !== "string") return null;
+	if (planAction === fillAction) return "same";
+	const sideOf = (action) => ADD_ACTIONS.has(action) ? "add" : SELL_ACTIONS.has(action) ? "reduce" : null;
+	const planSide = sideOf(planAction);
+	const fillSide = sideOf(fillAction);
+	if (planSide === null || fillSide === null) return "other";
+	return planSide === fillSide ? "same" : "opposite";
+}
+/**
+* A rationale fit for a reader: the risk engine's internal breach ids stripped.
+*
+* The raw field carries things like "硬止损 -27.23% ≤ -18% (breach
+* risk-95ac7f6cd591 30d)" — the hash says nothing to anyone outside the
+* process, and it is sitting in the one field a reader opens to understand
+* *why*. Mirrors `_readable_rationale` in dashboard.py, minus the 140-char
+* truncation: that exists to fit a published payload cap, which this panel
+* (reading the workspace at runtime) does not have.
+*/
+function readableRationale(text) {
+	if (typeof text !== "string") return null;
+	const cleaned = text.replace(/\s*\((?:breach\s+)?risk-[0-9a-f]{6,}(?:\s+\d+d)?\)/g, "").replace(/[ \t]{2,}/g, " ").trim();
+	return cleaned === "" ? null : cleaned;
+}
 /** Good/bad/flat reading of a T+1 move, action-aware and dead-zoned. */
 function t1ToneOf(action, delta) {
 	if (Math.abs(delta) < 1) return "flat";
@@ -278,7 +310,8 @@ function enrichTrade(trade, byTicker, decByTicker, books) {
 		...trade,
 		holdPnl: null,
 		t1: null,
-		decision: null
+		decision: null,
+		side: isSellAction(trade.action) ? "reduce" : ADD_ACTIONS.has(trade.action) ? "add" : null
 	};
 	const t1 = futureClose(byTicker, trade.ticker, trade.date, 1);
 	if (t1 !== null && trade.price != null) {
@@ -317,7 +350,7 @@ function enrichTrade(trade, byTicker, decByTicker, books) {
 			action: typeof b["action"] === "string" ? b["action"] : null,
 			confidence: b["confidence"] == null ? null : Number(b["confidence"]),
 			drivenBy: typeof b["driven_by"] === "string" ? b["driven_by"] : null,
-			rationale: typeof b["rationale"] === "string" ? b["rationale"] : null,
+			rationale: readableRationale(typeof b["rationale"] === "string" ? b["rationale"] : null),
 			bull: typeof bull["summary"] === "string" ? bull["summary"] : null,
 			bear: typeof bear["summary"] === "string" ? bear["summary"] : null,
 			emotion: typeof emotion["pressure"] === "string" ? emotion["pressure"] : null,
@@ -327,7 +360,8 @@ function enrichTrade(trade, byTicker, decByTicker, books) {
 			sizeShares: size["shares"] == null ? null : Number(size["shares"]),
 			sizePct: size["pct"] == null ? null : Number(size["pct"]),
 			plannedPrice: evaluation["execution_price"] != null ? Number(evaluation["execution_price"]) : b["simulated_entry_price"] != null ? Number(b["simulated_entry_price"]) : null,
-			source: typeof b["source"] === "string" ? b["source"] : "brief"
+			source: typeof b["source"] === "string" ? b["source"] : "brief",
+			alignment: planFillAlignment(typeof b["action"] === "string" ? b["action"] : null, trade.action)
 		};
 	}
 	const row = books.find((bk) => bk.holdings.some((h) => h.ticker === trade.ticker))?.holdings.find((h) => h.ticker === trade.ticker);
@@ -378,4 +412,4 @@ function readTraces(workspace) {
 	};
 }
 //#endregion
-export { T1_FLAT_BAND_PCT, T1_MAX_GAP_DAYS, dayGap, isSellAction, readBarCloses, readLedger, readPlans, readPortfolio, readTraces, t1ToneOf, t1VerdictOf };
+export { T1_FLAT_BAND_PCT, T1_MAX_GAP_DAYS, dayGap, isSellAction, planFillAlignment, readBarCloses, readLedger, readPlans, readPortfolio, readTraces, readableRationale, t1ToneOf, t1VerdictOf };

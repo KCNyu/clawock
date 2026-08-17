@@ -349,19 +349,23 @@ test("client: renders the single decision-trace view from the mounted remote", a
     traces: async () => ({ ok: true, value: { workspaceKey: "ws1", signature: "sig1", trades: [
       { ticker: "SPCH", market: "US", currency: "USD", date: "2026-08-15", action: "buy",
         shares: 10, price: 8.77, realizedPnl: null, note: "无限子弹流继续摊本(微信 00:26 HKT)",
-        t1: null, holdPnl: -28.0,
+        t1: null, holdPnl: -28.0, side: "add",
         decision: { planDate: "2026-08-14", action: "cut", confidence: 0.82,
           drivenBy: "risk_rule", rationale: "超限硬止损", execution: "unknown",
-          sizeShares: 200, plannedPrice: 9.21 } },
+          sizeShares: 200, plannedPrice: 9.21,
+          // Host-computed: the plan says cut (reduce), the fill buys (add).
+          alignment: "opposite" } },
       { ticker: "SPCH", market: "US", currency: "USD", date: "2026-08-07", action: "buy",
-        shares: 20, price: 5.88, realizedPnl: null, note: "用户报告成交(01:34 HKT)",
+        shares: 20, price: 5.88, realizedPnl: null, note: "用户报告成交(01:34 HKT)", side: "add",
         t1: { date: "2026-08-10", price: 5.6, delta: -4.76, verdict: "跌", tone: "loss" } },
       { ticker: "PLTU", market: "US", currency: "USD", date: "2026-08-13", action: "sell",
-        shares: 5, price: 50, realizedPnl: 45.21428571428572, note: "PLTU 清仓",
+        shares: 5, price: 50, realizedPnl: 45.21428571428572, note: "PLTU 清仓", side: "reduce",
         t1: { date: "2026-08-14", price: 49.24, delta: -1.52, verdict: "卖对", tone: "win" },
         decision: { planDate: "2026-08-10", action: "trim_on_rebound", confidence: 0.6,
           drivenBy: "technical", rationale: "浮盈保护", execution: "followed",
-          condition: "反弹至 50 减仓" } },
+          condition: "反弹至 50 减仓",
+          // Host-computed: trim_on_rebound and sell are both reduces.
+          alignment: "same" } },
     ], rate: 7.8473 } }),
     ledger: async () => ({ ok: true, value: { entries: [] } }),
     portfolio: async () => ({ ok: true, value: { books: [] } }),
@@ -404,9 +408,13 @@ test("client: renders the single decision-trace view from the mounted remote", a
   assert.match(joined, /决策轨迹/);
   assert.match(joined, /已实现 \(USD 等值\)/);
   assert.match(joined, /T\+1 卖飞\/卖对/);
-  // The denominator must be rendered, not implied (#710): the ratio only
-  // covers fills whose close actually landed inside the T+1 window.
-  assert.match(joined, /基于 \d+ 笔/, "the T+1 scorecard must show what it is computed over");
+  // The denominator must be rendered, not implied (#710), and it must be the
+  // denominator the ratio is actually a fraction of (#741): the label used to
+  // read "基于 39 笔" while showing only sell-side verdicts, counting buys in.
+  assert.match(joined, /判出 \d+\/\d+ 笔卖出/,
+    "the T+1 scorecard must show what it is computed over, per side");
+  assert.doesNotMatch(joined, /判出 0\/0 笔卖出/,
+    "a fixture with a sell in it must not report zero sells");
 
   // The chip tone must come from the host's `tone`, not from a threshold the
   // client re-derives (#713). It rides `data-tone` rather than a class name:
@@ -441,7 +449,7 @@ test("client: renders the single decision-trace view from the mounted remote", a
   assert.match(joined, /卖对/);           // T+1 verdict chip
   assert.doesNotMatch(joined, /\+\+/);   // header stat must not double-prepend the sign
 
-  // Filter: 无决策 keeps only SPCH fills without a decision.
+  // Filter: 无当日计划 keeps only SPCH fills without a decision.
   const findButton = (label) => {
     let found = null;
     (function collect(node) {
@@ -455,7 +463,7 @@ test("client: renders the single decision-trace view from the mounted remote", a
     })(tree);
     return found;
   };
-  findButton("无决策").props.onClick();
+  findButton("无当日计划").props.onClick();
   await tick();
   tree = component({ sessionId: "s1", cachedTraces: injected.cachedTraces, fetchTraces: injected.fetchTraces, useStore: store.useStore, actions: store.actions });
   const joinedMiss = collectText();
@@ -478,10 +486,23 @@ test("client: renders the single decision-trace view from the mounted remote", a
   await tick();
   tree = component({ sessionId: "s1", cachedTraces: injected.cachedTraces, fetchTraces: injected.fetchTraces, useStore: store.useStore, actions: store.actions });
   const joined2 = collectText();
-  assert.match(joined2, /决策轨迹 · /);   // expand header
-  assert.match(joined2, /割肉/);           // plan action
-  assert.match(joined2, /执行/);
-  assert.match(joined2, /盈亏/);
+  assert.match(joined2, /决策轨迹 · /);       // expand header
+  assert.match(joined2, /割肉/);               // plan action
+  assert.match(joined2, /当时的计划/);
+  assert.match(joined2, /真实成交/);
+  // #741: the row is a completed fill, so the ledger's own execution.status may
+  // not be rendered as that fill's 执行 verdict — "未执行" on a real buy read as
+  // a contradiction. It survives as the plan's self-report, labelled as such.
+  assert.match(joined2, /账本自评/);
+  assert.doesNotMatch(joined2, /(^|[^自])执行\s/, "execution.status must not head a node on this row");
+  // #741: the plan-vs-fill relation is stated, not left to be inferred. The
+  // fixture plans 割肉 and buys — a reversal.
+  assert.match(joined2, /与计划反向/);
+  // #741: per-fill realized money and position-level floating percent are
+  // different quantities and never share the 盈亏 label. This row is unclosed,
+  // so it shows the position's figure, marked as the position's.
+  assert.match(joined2, /该持仓当前浮动/);
+  assert.doesNotMatch(joined2, /盈亏\s*[-+\d]/, "a bare 盈亏 label may not carry either figure");
 });
 
 test("T+1 reading: one host-side dead zone drives chip, node and verdict (#665/#713)", async () => {
