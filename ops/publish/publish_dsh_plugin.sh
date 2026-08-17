@@ -46,7 +46,25 @@ fi
 echo "node $(node --version) / npm $(npm --version) / registry $(npm config get registry)"
 
 echo "--- npm install (dev) ---"
-(cd "$PKG_DIR" && npm install --include=dev --no-audit --no-fund)
+# The runner's registry fetch has been observed stalling (~70s before npm's own
+# `Exit handler never called!` crash on 2026-08-17). The install is idempotent
+# and partially filled caches make retries cheap, so retry before failing the
+# publish: a cold first install is exactly when the publish can least afford it.
+attempt=1
+while :; do
+  if (cd "$PKG_DIR" && npm install --include=dev --no-audit --no-fund); then
+    break
+  fi
+  rc=$?
+  if [ "$attempt" -ge 3 ]; then
+    echo "npm install failed after 3 attempts (last rc=$rc)" >&2
+    exit "$rc"
+  fi
+  echo "npm install attempt $attempt failed (rc=$rc) — retrying in 5s" >&2
+  attempt=$((attempt + 1))
+  sleep 5
+done
+echo "npm install ok"
 echo "--- npm run build ---"
 (cd "$PKG_DIR" && npm run build)
 

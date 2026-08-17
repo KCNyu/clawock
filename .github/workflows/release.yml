@@ -119,6 +119,15 @@ jobs:
     if: (startsWith(github.ref, 'refs/tags/v') || inputs.npm_only == 'true' || inputs.npm_only == true) && inputs.repository != 'testpypi'
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    env:
+      # 2026-08-17: the runner's first cold-cache install of the 0.1.6 lockfile
+      # stalled ~70s per registry request (npm's retry ladder, then npm's own
+      # `Exit handler never called!`) while the identical install is instant on
+      # every other network tried. Force IPv4 DNS ordering — the classic
+      # runner-side stall cause — and stop npm pinging the registry for updates
+      # on top of the stalled fetch.
+      NODE_OPTIONS: --dns-result-order=ipv4first
+      NO_UPDATE_NOTIFIER: '1'
     steps:
       - uses: actions/checkout@v7
 

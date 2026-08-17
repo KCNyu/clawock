@@ -133,3 +133,25 @@ def test_npm_only_dispatch_runs_only_npm_and_never_a_github_release():
     release_job = workflow.split("\n  github-release:\n", 1)[1]
     assert "needs: [publish, npm]" in release_job
     assert "if: startsWith(github.ref, 'refs/tags/v')" in release_job
+
+
+def test_the_npm_install_can_survive_a_stalled_runner_fetch():
+    """The v0.1.6 npm job died in its first cold-cache `npm install`, not in
+    publish: the runner's registry fetch stalled ~70s per request (npm's retry
+    ladder, then npm's own `Exit handler never called!`) while the same install
+    is instant on every other network tried. The publish must retry the
+    install, and the job must force IPv4 DNS ordering — the classic
+    runner-side stall cause — instead of hoping the fetch is fast this time.
+    """
+    workflow = WORKFLOW.read_text()
+    assert "--dns-result-order=ipv4first" in workflow, (
+        "the npm job must force IPv4 DNS ordering on the runner"
+    )
+    assert "NO_UPDATE_NOTIFIER" in workflow, (
+        "npm must not ping the registry for updates on top of the stalled fetch"
+    )
+
+    script = (ROOT / "ops" / "publish" / "publish_dsh_plugin.sh").read_text()
+    assert "npm install attempt " in script, (
+        "the install must retry instead of failing the publish"
+    )
