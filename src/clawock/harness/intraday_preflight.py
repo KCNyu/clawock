@@ -692,6 +692,30 @@ def quote_coverage(_block, market, portfolio_path=None, *, now=None,
     }
 
 
+def always_full_intraday() -> bool:
+    """Whether every open-market slot should send the full block.
+
+    The semantic-delta gate (#532/#533) sends a compact receipt when nothing
+    material moved, which is the right default: it keeps every slot visible
+    without repeating an unchanged report. kcn asked on 2026-08-17 to see the
+    full block on every slot for a while instead.
+
+    A config toggle rather than deleting the gate, because the contract behind
+    it is deliberate — "semantic deduplication must never become a skip/no-send
+    gate" — and this is meant to be temporary. Absence of the file, an
+    unreadable file, or a missing key all mean the gate stays on: a runtime
+    switch must fail back to the reviewed behaviour, not to whatever a typo
+    happens to produce.
+
+    `config/intraday-delivery.json`:  {"always_full": true}
+    """
+    try:
+        doc = json.loads((WS / 'config' / 'intraday-delivery.json').read_text())
+    except Exception:
+        return False
+    return doc.get('always_full') is True
+
+
 def render_unchanged_receipt(market, block, coverage, active):
     first = ((block or '').strip().splitlines() or [
         '🇭🇰 港股盯盘' if market == 'hk' else '🇺🇸 美股盯盘'
@@ -942,7 +966,11 @@ def main(argv=None):
     prior_doc = intraday_delta.load_delivered_state(WS, args.market)
     prior_state = prior_doc.get('state') if isinstance(prior_doc, dict) else {}
     semantic_delta = intraday_delta.compare_semantic_states(semantic_state, prior_state)
-    unchanged = bool(prior_state) and not semantic_delta['changed']
+    # The delta is still computed and still stored when the gate is off: the
+    # delivered-state cursor has to keep advancing, or flipping the toggle back
+    # would compare against a months-old state and send one bogus full slot.
+    always_full = always_full_intraday()
+    unchanged = bool(prior_state) and not semantic_delta['changed'] and not always_full
     if unchanged:
         raw_block = render_unchanged_receipt(
             args.market, stdout.strip(), coverage, active_information_ctx,
@@ -971,6 +999,10 @@ def main(argv=None):
         'generated_at':     now.isoformat(timespec='seconds'),
         'raw_wechat_block': raw_block,
         'delivery_mode': delivery_mode,
+        # Auditable: a full block on a slot the delta called unchanged is the
+        # toggle at work, not the delta misfiring.
+        'always_full': always_full,
+        'semantic_unchanged': bool(prior_state) and not semantic_delta['changed'],
         'semantic_state': semantic_state,
         'semantic_delta': semantic_delta,
         'quote_coverage': coverage,
