@@ -2809,18 +2809,24 @@
         ? keys.map(c => `<b class="${by[c] >= 0 ? "pos" : "neg"}">${fmtMoney(by[c], c)}</b>`).join(" + ")
         : `<b>${DASH}</b>`;
     };
-    const verdicts = (label, tally) => {
+    // `judged` is how many of that side's fills carry a T+1 verdict; `total` is
+    // how many the window holds. Printing only `judged` would move the
+    // denominator without saying so, which is #737 in miniature.
+    const verdicts = (label, tally, total) => {
       const keys = Object.keys(tally || {});
       if (!keys.length) return "";
-      const n = keys.reduce((s, k) => s + tally[k], 0);
-      return `${label} <b>${n}</b>: ` + keys.sort().map(k =>
+      const judged = keys.reduce((s, k) => s + tally[k], 0);
+      const denom = total != null && total !== judged ? `<b>${judged}</b>/${total}` : `<b>${judged}</b>`;
+      return `${label} ${denom}: ` + keys.sort().map(k =>
         `<b class="${k === "卖对" || k === "涨" ? "pos" : k === "持平" ? "na" : "neg"}">${tally[k]}</b>${k}`).join(" / ");
     };
     const statsEl = document.getElementById("trace-stats");
     if (statsEl) {
       const v = sc.t1Verdicts || {};
       const align = sc.alignment || {};
-      const t1line = [verdicts("卖出", v.reduce), verdicts("买入", v.add)].filter(Boolean).join(" · ");
+      const sides = sc.t1Sides || {};
+      const t1line = [verdicts("卖出", v.reduce, sides.reduce), verdicts("买入", v.add, sides.add)]
+        .filter(Boolean).join(" · ");
       statsEl.innerHTML =
         `<span>本卡显示 <b>最近 ${shown}</b> 笔成交 <span class="muted">/ 全部 ${total} 笔</span></span>` +
         `<span>其中 <b>${sc.closedShown != null ? sc.closedShown : DASH}</b> 笔已平仓,已实现 ${money(realShown)} ` +
@@ -2836,10 +2842,12 @@
     list.forEach(t => { const k = (t.date || "").slice(0,10); (groups[k] = groups[k] || []).push(t); });
     const dates = Object.keys(groups).sort().reverse();
 
-    // The fill itself, in words — the one node that is never inferred.
+    // The fill itself, in words — the one node that is never inferred. shares
+    // and price come straight from portfolio.json, which the payload does not
+    // coerce, so they are escaped like any other untrusted string.
     function fillNode(t) {
       const sym = t.currency === "HKD" ? "HK$" : "$";
-      return `${esc(ACT[t.action] || t.action)} ${t.shares} 股 @ ${sym}${t.price}`;
+      return `${esc(ACT[t.action] || t.action)} ${esc(String(t.shares))} 股 @ ${sym}${esc(String(t.price))}`;
     }
 
     // What actually happened to the money on this row. Two different
@@ -2941,7 +2949,7 @@
                 <span class="tr-dot ${t.decision ? "has" : ""}" title="${t.decision ? "有当日计划记录" : "无当日计划记录"}"></span>
                 <span class="tr-tk">${esc(t.ticker)}</span>
                 <span class="tr-act ${tone}">${esc(ACT[t.action] || t.action)}</span>
-                <span class="tr-qty">${t.shares} @${t.price}</span>
+                <span class="tr-qty">${esc(String(t.shares))} @${esc(String(t.price))}</span>
                 <span class="tr-spacer"></span>
                 ${t1tag}
                 ${pnl}

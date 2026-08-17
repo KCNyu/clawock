@@ -720,8 +720,15 @@ def _bar_close_index(workspace=None, tickers=None):
         d = load_json(p)
         if not isinstance(d, dict):
             continue
+        # `bars` must be a mapping. A list here (a hand-edited or
+        # half-migrated doc) would raise on .items() and take the whole
+        # dashboard build down with it — the plugin's reader type-guards for
+        # the same reason.
+        raw_bars = d.get('bars')
+        if not isinstance(raw_bars, dict):
+            continue
         closes = {}
-        for day, bar in (d.get('bars') or {}).items():
+        for day, bar in raw_bars.items():
             if not isinstance(day, str) or not SESSION_DATE_RE.match(day):
                 continue
             close = bar.get('close') if isinstance(bar, dict) else None
@@ -840,9 +847,15 @@ def build_decision_traces(limit=40, workspace=None):
                         'emotionNote': emotion.get('note'),
                         'execution': (best.get('execution') or {}).get('status'),
                         'condition': (best.get('condition') or {}).get('description'),
-                        'sizeShares': size.get('shares'),
-                        'sizePct': size.get('pct'),
-                        'plannedPrice': evaluation.get('execution_price') or best.get('simulated_entry_price'),
+                        # Coerced, because the renderer interpolates these into
+                        # HTML without escaping (they are numbers by contract).
+                        # A hand-written ledger row carrying a string here would
+                        # otherwise reach the page verbatim. The plugin's reader
+                        # runs them through Number() for the same reason.
+                        'sizeShares': _as_number(size.get('shares')),
+                        'sizePct': _as_number(size.get('pct')),
+                        'plannedPrice': _as_number(
+                            evaluation.get('execution_price') or best.get('simulated_entry_price')),
                         'source': best.get('source') or 'brief',
                         # How the plan's direction relates to the fill that
                         # actually happened. The ledger's own execution.status
@@ -856,6 +869,19 @@ def build_decision_traces(limit=40, workspace=None):
                 traces.append(t)
     traces.sort(key=lambda t: (t.get('date') or ''), reverse=True)
     return traces[:limit]
+
+
+def _as_number(value):
+    """`value` as a finite number, else None. Bools are not numbers here."""
+    if isinstance(value, bool) or value is None:
+        return None
+    if isinstance(value, (int, float)):
+        return value if math.isfinite(value) else None
+    try:
+        parsed = float(value)
+    except (TypeError, ValueError):
+        return None
+    return parsed if math.isfinite(parsed) else None
 
 
 def _readable_rationale(text, cap=140):
@@ -935,11 +961,17 @@ def build_decision_trace_scope(traces, workspace=None, limit=40):
             closed_shown += 1
             cur = t.get('currency')
             realized_shown[cur] = realized_shown.get(cur, 0) + t['realizedPnl']
+    # T+1 verdicts per side, plus how many fills that side actually has. A fill
+    # with no canonical close inside the window carries no verdict, so counting
+    # only the judged ones would quietly shrink the denominator — the same move
+    # #737 is about, one scale down (27 judged buys out of 28 in the window).
     verdicts = {}
+    sides = {}
     for t in shown:
+        side = 'reduce' if t.get('action') in _REDUCE_SIDE else 'add'
+        sides[side] = sides.get(side, 0) + 1
         v = (t.get('t1') or {}).get('verdict')
         if v:
-            side = 'reduce' if t.get('action') in _REDUCE_SIDE else 'add'
             verdicts.setdefault(side, {})
             verdicts[side][v] = verdicts[side].get(v, 0) + 1
     return {
@@ -960,6 +992,7 @@ def build_decision_trace_scope(traces, workspace=None, limit=40):
         'emotionShown': sum(1 for t in shown if (t.get('decision') or {}).get('emotion')),
         'mindShown': sum(1 for t in shown if (t.get('decision') or {}).get('thesis')),
         't1Verdicts': verdicts,
+        't1Sides': sides,
         't1Shown': sum(1 for t in shown if t.get('t1')),
     }
 

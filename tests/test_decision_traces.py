@@ -319,3 +319,63 @@ def test_scope_keeps_currencies_apart_and_counts_carry_denominators(ws):
     assert scope["emotionShown"] == 1 and scope["mindShown"] == 1
     assert set(scope["t1Verdicts"]) <= {"reduce", "add"}
     assert sum(scope["t1Verdicts"]["reduce"].values()) == 1
+
+
+def test_malformed_bar_document_cannot_take_the_build_down(ws, tmp_path):
+    """`bars` as a list (a hand-edited or half-migrated doc) used to raise
+    AttributeError on .items() and fail the whole dashboard build."""
+    (tmp_path / "memory" / "bars" / "PLTU.json").write_text(
+        json.dumps({"bars": [{"date": "2026-08-14", "close": 49.24}]}), encoding="utf-8")
+    traces = dashboard.build_decision_traces()
+    pltu = next(t for t in traces if t["ticker"] == "PLTU" and t["date"] == "2026-08-13")
+    assert pltu["t1"] is None, "an unreadable bar doc yields no verdict, not a crash"
+
+
+def test_bar_closes_reject_non_finite_and_non_numeric(ws, tmp_path):
+    (tmp_path / "memory" / "bars" / "PLTU.json").write_text(json.dumps({"bars": {
+        "2026-08-14": {"close": "49.24"},          # string
+        "2026-08-15": {"close": None},             # null
+        "2026-08-16": {"open": 1.0},               # no close at all
+        "not-a-date": {"close": 50.0},             # not a session key
+    }}), encoding="utf-8")
+    traces = dashboard.build_decision_traces()
+    pltu = next(t for t in traces if t["ticker"] == "PLTU" and t["date"] == "2026-08-13")
+    assert pltu["t1"] is None
+
+
+def test_scope_publishes_the_side_totals_behind_the_verdict_counts(ws, tmp_path):
+    """A fill with no canonical close carries no verdict. Counting only the
+    judged ones would move the denominator silently — #737 one scale down."""
+    traces = dashboard.build_decision_traces()
+    scope = dashboard.build_decision_trace_scope(traces)
+    # 3 buys in the window, only 1 judged: SPCH's 08-15 buy has no later close
+    # at all, and PLTU's 08-08 buy is 6 days from the next one — past the T+1
+    # ceiling. The card must show 1/3, not a bare 1.
+    assert scope["t1Sides"]["add"] == 3
+    assert sum(scope["t1Verdicts"]["add"].values()) == 1
+    assert scope["t1Sides"]["reduce"] == 1
+
+
+def test_numeric_decision_fields_are_coerced(ws, tmp_path):
+    """These are interpolated into HTML unescaped by contract, so a string in
+    the ledger must not reach the page verbatim."""
+    lines = (tmp_path / "memory" / "decisions.jsonl").read_text().splitlines()
+    row = json.loads(lines[1])
+    row["size"] = {"shares": "200<script>", "pct": "0.8"}
+    row["evaluation"] = {"execution_price": "9.21"}
+    lines[1] = json.dumps(row, ensure_ascii=False)
+    (tmp_path / "memory" / "decisions.jsonl").write_text("\n".join(lines) + "\n", encoding="utf-8")
+    traces = dashboard.build_decision_traces()
+    spch = next(t for t in traces if t["ticker"] == "SPCH")
+    assert spch["decision"]["sizeShares"] is None, "unparsable shares must not pass through"
+    assert spch["decision"]["sizePct"] == 0.8
+    assert spch["decision"]["plannedPrice"] == 9.21
+
+
+def test_rationale_keeps_text_that_only_looks_like_a_breach_id(ws, tmp_path):
+    """The strip must not over-reach into ordinary prose."""
+    assert dashboard._readable_rationale("risk-off 情绪 (breach risk-abc123def456 30d)") == "risk-off 情绪"
+    assert dashboard._readable_rationale("(risk-taking 有上限)") == "(risk-taking 有上限)"
+    assert dashboard._readable_rationale("(breach risk-abc123def456 30d)") is None
+    assert dashboard._readable_rationale(None) is None
+    assert dashboard._readable_rationale(12) is None
