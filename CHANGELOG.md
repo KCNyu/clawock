@@ -13,6 +13,65 @@ versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 The newest heading here has to match the version in `pyproject.toml` — CI fails
 otherwise, so a release cannot ship an entry that was never written.
 
+## [0.1.6] — 2026-08-17
+
+### Fixed
+
+- **The `clawock-dsh` plugin marked T+1 against a price the rest of the system
+  had already disowned.** It read `current_price` out of the portfolio
+  snapshots, a field whose vintage follows whichever job wrote it — measured
+  across 15 snapshots on one ticker it was the previous close 7 times, that
+  day's close 3 times and an intraday print 5 times, and it is carried forward
+  once a position closes (one ticker sat frozen at 213 for five sessions while
+  its real closes ran 222.32 / 220.61 / 223.47 / 219.51 / 215.33). Settlement
+  moved to the canonical `memory/bars/` store for exactly this reason; the
+  panel had not followed. On the live book 82% of T+1 deltas disagreed with the
+  canonical close and 10 verdicts inverted outright. T+1 now reads
+  `memory/bars/<ticker>.json`, and a fill with no canonical bar shows no
+  verdict rather than falling back. ([#717], [#719])
+- **"T+1" was not T+1 for most fills.** The close was whichever snapshot
+  happened to come next, with no ceiling, so fills predating the snapshot
+  series were marked against a close up to 144 days later — still labelled
+  T+1. A close is now only a T+1 verdict when it lands within four calendar
+  days (a Friday fill settles against Monday; one holiday makes four), and the
+  scorecard renders the denominator it is computed over. ([#710], [#716])
+- **One dead zone, applied everywhere.** The verdict text, the trace node and
+  the result chip each carried their own threshold, so a sell at +0.5% rendered
+  a grey "持平" chip next to a red node, and a buy at exactly 0% was painted
+  green while the text read 跌. The reading is now decided once, host-side, and
+  the client only maps it to CSS. ([#713], [#716])
+- **`decision_packet_summary` refused to run once the book reached ten
+  holdings.** The whole-book summary and a single-ticker section query shared
+  one 24KB budget, but the summary is O(holdings) — it crossed the line at
+  33,543 bytes and exited non-zero. It is the brief's resident input, so the
+  brief had no way into its own analysis. The summary now has its own budget
+  and reports how close it is to it. ([#723], [#724])
+- **A conversation-source ledger row could take down anything that read the
+  ledger.** Rows written by the decision-mind path carry `decided_at` and no
+  `created_at` / `plan_date`; two readers subscripted those keys directly, so
+  the first such row made episode assignment raise `KeyError` — discarding an
+  already-generated brief — and turned the README metrics refresh red every
+  night. Both readers now route mind rows the way the validator already did.
+  ([#718], [#720])
+- **The canonical bar store started only at 2026-05-01**, so fills older than
+  that had no close to settle against. It now starts 2025-12-01, a month before
+  the oldest recorded fill. ([#719])
+
+### Added
+
+- **`ops/host/install_dsh_plugin.sh`** installs the DSH plugin with its runtime
+  dependencies and verifies every export entry imports before handing it to the
+  harness. The previous path linked the source directory into the profile
+  without ever installing its dependencies, so the first plugin release to
+  declare one could not load at all. ([#709], [#716])
+- **A packaged-install contract test** (`tests/dsh_plugin_package_contract.mjs`)
+  packs `clawock-dsh`, installs the tarball into an empty project and imports
+  each export entry, which is the only place a declared-but-never-installed
+  dependency is visible. ([#709], [#716])
+- **`config/intraday-delivery.json`** switches intraday delivery between the
+  semantic-delta receipts and a full block on every slot. Absent, unreadable or
+  ambiguous configuration keeps the reviewed default. ([#726])
+
 ## [0.1.5] — 2026-08-16
 
 ### Fixed
@@ -200,3 +259,14 @@ environment — and completes one full run. ([#436], [#379])
 [0.1.2]: https://github.com/KCNyu/clawock/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/KCNyu/clawock/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/KCNyu/clawock/releases/tag/v0.1.0
+[#709]: https://github.com/KCNyu/clawock/issues/709
+[#710]: https://github.com/KCNyu/clawock/issues/710
+[#713]: https://github.com/KCNyu/clawock/issues/713
+[#716]: https://github.com/KCNyu/clawock/pull/716
+[#717]: https://github.com/KCNyu/clawock/issues/717
+[#718]: https://github.com/KCNyu/clawock/issues/718
+[#719]: https://github.com/KCNyu/clawock/pull/719
+[#720]: https://github.com/KCNyu/clawock/pull/720
+[#723]: https://github.com/KCNyu/clawock/pull/723
+[#724]: https://github.com/KCNyu/clawock/pull/724
+[#726]: https://github.com/KCNyu/clawock/pull/726
