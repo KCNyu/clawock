@@ -106,8 +106,14 @@ WS = Path(os.environ.get('CLAWOCK_WORKSPACE') or (Path.home() / '.openclaw' / 'w
 TMP = WS / 'memory' / '.tmp'
 
 
-def delivered_receipt(job_name, ts_ms):
-    """The delivery receipt for this job on this run's date, when it exists.
+# How far outside a run's own window a receipt may still belong to it. The
+# receipt is written by postflight inside the run, so this only absorbs clock
+# jitter between the run record and the file mtime.
+RECEIPT_MATCH_SLACK_MS = 90 * 1000
+
+
+def delivered_receipt(job_name, ts_ms, duration_ms=None):
+    """The delivery receipt produced *by this run*, when there is one.
 
     A run status of `error` does not mean the desk produced nothing: openclaw
     records `FallbackSummaryError` when its own *run-summary* LLM call fails,
@@ -115,6 +121,17 @@ def delivered_receipt(job_name, ts_ms):
     On 2026-08-17 that painted 港股开盘报告 red twice while the receipt on disk
     said `sent_ok: true, delivery_state: delivered` at 09:32:13 — kcn had the
     report in WeChat. The receipt is the fact; the run status is an inference.
+
+    The receipt must be matched to the *run*, not merely to the date. Matching
+    on job+date alone turned the fix into its own mirror image: once the brief
+    finally delivered at 10:39, the three genuinely-dead 08:03 / 08:33 / 09:11
+    runs — and the 10:15 run that produced nothing at all — all started showing
+    "已投递", because a receipt existed somewhere on that date. Trading a false
+    red for a false green is not a fix.
+
+    A run's window is [ts - duration, ts]; `ts` is when the run was recorded,
+    which is its end. Only a receipt stamped inside that window (plus a little
+    slack) was produced by it.
     """
     pattern = RECEIPT_BY_JOB.get((job_name or '').strip())
     if not pattern or not ts_ms:
@@ -125,7 +142,15 @@ def delivered_receipt(job_name, ts_ms):
         doc = json.loads(path.read_text())
     except Exception:
         return None
-    return doc if doc.get('sent_ok') else None
+    if not doc.get('sent_ok'):
+        return None
+    receipt_ts = doc.get('ts')
+    if not isinstance(receipt_ts, (int, float)):
+        return None
+    started = ts_ms - (duration_ms or 0)
+    if not (started - RECEIPT_MATCH_SLACK_MS <= receipt_ts <= ts_ms + RECEIPT_MATCH_SLACK_MS):
+        return None
+    return doc
 
 
 def status_glyph(status, receipt=None):
@@ -226,7 +251,7 @@ def main():
         # The on-disk receipt outranks the run record: openclaw reports
         # `delivered=None / not-requested` on a run whose summary call failed,
         # even when postflight already delivered the report (2026-08-17).
-        receipt = delivered_receipt(jobs.get(e['_jobId'], ''), e.get('ts'))
+        receipt = delivered_receipt(jobs.get(e['_jobId'], ''), e.get('ts'), e.get('durationMs'))
         deliv = '—'
         if receipt is not None:
             deliv = '✓rcpt'
