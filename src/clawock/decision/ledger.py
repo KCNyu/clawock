@@ -268,6 +268,18 @@ def assign_episode_ids(decisions: list[dict]) -> list[dict]:
     ordered = sorted(enumerate(decisions), key=lambda x: (x[1].get("plan_date", ""), x[0]))
     state: dict[tuple[str, str, str], dict] = {}
     for _, d in ordered:
+        # Mind-ledger rows (schema_version 0) are the deliberate second row type
+        # `validate_decision` routes away below: they carry mind/emotion instead
+        # of the plan-decision fields, so they have no plan_date and no episode
+        # semantics — a reaffirmation window over conversation records is not a
+        # thing. `normalize_authored_plan` feeds the *whole* ledger through here,
+        # so the first such row (2026-08-16) made `d["plan_date"]` raise KeyError
+        # and took down every brief-fallback run: the LLM produced the brief
+        # (103932 in / 22991 out) and then the write-back threw it away.
+        # The sort key above already tolerates the missing field; this line was
+        # the one that did not.
+        if d.get("schema_version") == 0 or not d.get("plan_date"):
+            continue
         key = (d.get("ticker", ""), d.get("strategy_id", "legacy_unknown"), d.get("action"))
         cur_date = datetime.strptime(d["plan_date"], "%Y-%m-%d").date()
         if d.get("episode_id"):
