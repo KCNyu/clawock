@@ -15,27 +15,29 @@ otherwise, so a release cannot ship an entry that was never written.
 
 ## [0.1.7] — 2026-08-17
 
-The Python package's code is identical to 0.1.6. This version exists because the
-two distributions ride one version train and the npm half of 0.1.6 never
-shipped: `clawock-dsh` is the release.
+The Python package's code is identical to 0.1.6. This version exists to ship the
+plugin: `clawock-dsh` is the release.
 
 ### Fixed
 
 - **`clawock-dsh` on npm was a different build than its version number
-  claimed, and 0.1.6 never got there at all.** npm's `latest` was 0.1.5, whose
+  claimed.** npm's `latest` was 0.1.5 for a day, whose
   tarball is the pre-#708 layout — `client.js` at the root, no
   `lib/typert.*`, no `./typert` or `./remote` export, no `zod` dependency —
   so `dsh plugin add clawock-dsh` installed a plugin that registers and then
-  shows no data. Both 0.1.6 publish attempts died inside npm itself
-  (`Exit handler never called!`): the plugin's `package-lock.json` had been
+  shows no data. The two tag-triggered 0.1.6 publishes died inside
+  npm itself (`Exit handler never called!`): the plugin's `package-lock.json` had been
   regenerated on a machine behind a mirror registry, so all 169 `resolved`
   URLs pointed at a host the GitHub runner cannot reach and every fetch
   stalled through npm's retry ladder. The lockfile is back on
-  registry.npmjs.org, the publish job pins the npm that does the publishing
-  and records which registry it used, and — because "publish exited 0" was
-  never evidence — it now downloads the registry copy back and asserts
-  file-for-file, export-for-export and dependency-for-dependency that it is
-  what was packed. ([#732], [#728])
+  registry.npmjs.org and the publish job pins the npm that does the publishing
+  and records which registry it used; with those in place a manual npm-only run
+  did land 0.1.6 on 2026-08-17 at 06:16Z, so the registry was already correct
+  before this version. What 0.1.7 adds is the part that makes that claim
+  checkable rather than assumed: because "publish exited 0" was never evidence,
+  publishing now downloads the registry copy back and asserts file-for-file,
+  export-for-export and dependency-for-dependency that it is what was packed.
+  ([#732], [#728])
 
 ### Changed
 
