@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "ES2024",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "composite": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "skipLibCheck": true,
+    "types": ["node"],
+    "paths": {
+      "clawock-dsh": ["./packages/clawock-dsh/src/index.ts"],
+      "clawock-dsh/client": ["./packages/clawock-dsh/src/client.ts"],
+      "clawock-dsh/types": ["./packages/clawock-dsh/src/types.ts"],
+      "clawock-dsh/remote": ["./packages/clawock-dsh/lib/typert.remote-client.d.ts"],
+      "clawock-dsh/*": ["./packages/clawock-dsh/src/*"]
+    }
+  }
+}

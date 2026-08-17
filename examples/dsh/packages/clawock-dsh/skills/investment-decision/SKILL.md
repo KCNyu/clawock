@@ -243,4 +243,4 @@ ledger exists to surface. Full schema:
 Live proof on a real HK + US desk: <https://kcnyu.github.io/clawock/>
 The same contract from other harnesses (OpenClaw skill, Claude Code
 instruction, Codex AGENTS.md, pure CLI):
-<https://github.com/KCNyu/clawock/tree/master/examples/dsh/plugin>
+<https://github.com/KCNyu/clawock/tree/master/examples/dsh/packages/clawock-dsh>

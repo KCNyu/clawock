@@ -189,7 +189,7 @@ jobs:
         # Idempotent bump: `npm version <same>` exits non-zero (#617). When the
         # tag version already equals package.json, just pack what is there.
         run: |
-          cd examples/dsh/plugin
+          cd examples/dsh/packages/clawock-dsh
           target="${GITHUB_REF_NAME#v}"
           current="$(node -p "require('./package.json').version")"
           if [ "$current" != "$target" ]; then
@@ -209,7 +209,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create "$GITHUB_REF_NAME" dist/* examples/dsh/plugin/*.tgz \
+          gh release create "$GITHUB_REF_NAME" dist/* examples/dsh/packages/clawock-dsh/*.tgz \
             --verify-tag \
             --title "clawock $GITHUB_REF_NAME" \
             --notes-file /tmp/release-notes.md

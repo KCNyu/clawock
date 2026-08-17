@@ -64,7 +64,7 @@ The DSH skill package rides the same version train as the Python package.
 publication path — release.yml and a human both go through it:
 
 ```bash
-# Publish whatever version examples/dsh/plugin/package.json declares
+# Publish whatever version examples/dsh/packages/clawock-dsh/package.json declares
 NPM_TOKEN=... ops/publish/publish_dsh_plugin.sh
 
 # Standalone npm bump (no GitHub Release, no PyPI): the version is explicit
@@ -127,7 +127,7 @@ not disagree with it:
 
 - `pyproject.toml` — what PyPI publishes; the workflow refuses a tag that
   disagrees with it
-- `examples/dsh/plugin/package.json` — what npm publishes; the publish script
+- `examples/dsh/packages/clawock-dsh/package.json` — what npm publishes; the publish script
   bumps it to the version it is given
 - `CHANGELOG.md` top entry — what the version claims to contain
 

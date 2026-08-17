@@ -4,8 +4,8 @@ window.__ModuleLoader__.load({
     var module = { exports: {} };
     var exports = module.exports;
     Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
+const { defineStore } = require("@deepseek-ai/dsh-client-runtime/client");
 const React = require("react");
-const clientRuntime = require("@deepseek-ai/dsh-client-runtime/client");
 //#region node_modules/zod/v4/core/core.js
 var _a$1;
 function $constructor(name, initializer, params) {
@@ -4253,7 +4253,7 @@ function superRefine(fn, params) {
 	return /* @__PURE__ */ _superRefine(fn, params);
 }
 //#endregion
-//#region packages/clawock-dsh/src/typert.remote-client.js
+//#region lib/typert.remote-client.js
 const JsonValueRemoteCodec$schema = union([
 	literal(null),
 	string(),
@@ -4556,7 +4556,83 @@ const TYPERT_REMOTE = {
 	]
 };
 //#endregion
-//#region packages/clawock-dsh/src/client.ts
+//#region \0dsh-css:src/styles.module.css.mjs
+const css = ".SPgITW_dmt{--bg:#f7f8fa;--surface:#fff;--text:#15171b;--text2:#61666b;--text3:#81858c;--cap:#adb2b8;--brand:#4176e6;--brand-soft:#edf3fe;--ok:#1b8644;--ok-soft:#e6faed;--bad:#c01313;--bad-soft:#fdebee;--warn:#aa6924;--border:#1118270f;--border2:#1118271a;--hover:#1118270d;--shadow-sm:0 1px 2px #1018280a;--shadow-md:0 4px 16px #10182814;--veil:#ffffffeb;--tint-soft:#00000008;--tint-border:#0000000d;--tint-mid:#00000014;--tint-strong:#0000001f;--brand-glow:#4176e61f;--t1-up-border:#1b84442e;--t1-down-border:#c013132e;--radius:12px;--radius-sm:8px;--font:-apple-system,BlinkMacSystemFont,\"Segoe UI\",\"PingFang SC\",\"Hiragino Sans GB\",\"Microsoft YaHei\",sans-serif;--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font:13px/1.45 var(--font);color:var(--text);-webkit-font-smoothing:antialiased;min-height:100%}body[data-ds-dark-theme] .SPgITW_dmt{--bg:#0f1115;--surface:#1b1b1c;--text:#ededee;--text2:#a7abb2;--text3:#7d8189;--cap:#5b5f66;--brand:#6c97f2;--brand-soft:#1e2a44;--ok:#3fcb74;--ok-soft:#153824;--bad:#f2554f;--bad-soft:#3b1516;--warn:#e0a752;--border:#ffffff14;--border2:#ffffff24;--hover:#ffffff12;--shadow-sm:0 1px 2px #0000004d;--shadow-md:0 4px 16px #0006;--veil:#141518d9;--tint-soft:#ffffff0f;--tint-border:#ffffff14;--tint-mid:#ffffff1f;--tint-strong:#ffffff2e;--brand-glow:#6c97f238;--t1-up-border:#3fcb7459;--t1-down-border:#f2554f59}.SPgITW_dmt .SPgITW_top{z-index:20;background:var(--veil);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);padding:10px 16px 8px;position:sticky;top:0}.SPgITW_dmt .SPgITW_tt{font:700 17px/1.3 var(--font);letter-spacing:-.01em;align-items:center;gap:8px;display:flex}.SPgITW_dmt .SPgITW_tt:before{content:\"\";background:var(--brand);border-radius:3px;width:9px;height:9px}.SPgITW_dmt .SPgITW_ts{font:400 11.5px/1.3 var(--font);color:var(--cap);margin-top:2px}.SPgITW_dmt .SPgITW_stats{flex-wrap:wrap;align-items:flex-end;gap:0;margin-top:8px;display:flex}.SPgITW_dmt .SPgITW_sg{flex-direction:column;gap:2px;padding:0 14px;display:flex}.SPgITW_dmt .SPgITW_sg+.SPgITW_sg{border-left:1px solid #00000014}.SPgITW_dmt .SPgITW_sl{font:500 10.5px/1.3 var(--font);color:var(--cap);letter-spacing:.03em;white-space:nowrap}.SPgITW_dmt .SPgITW_sv{font:650 14px/1.3 var(--font);color:var(--text);font-variant-numeric:tabular-nums;white-space:nowrap}.SPgITW_dmt .SPgITW_sv.SPgITW_focus{font:700 16px/1.3 var(--font)}.SPgITW_dmt .SPgITW_sv.SPgITW_up{color:var(--ok)}.SPgITW_dmt .SPgITW_sv.SPgITW_down{color:var(--bad)}.SPgITW_dmt .SPgITW_rate{font:400 10.5px/1.3 var(--font);color:var(--cap);align-self:center;margin-left:auto}.SPgITW_dmt .SPgITW_filters{flex-wrap:wrap;gap:2px;margin-top:8px;display:flex}.SPgITW_dmt .SPgITW_ft{color:var(--text3);font:600 12px/1.4 var(--font);cursor:pointer;background:0 0;border:0;border-radius:8px;padding:5px 11px;transition:background .12s,color .12s}.SPgITW_dmt .SPgITW_ft:hover{background:var(--hover)}.SPgITW_dmt .SPgITW_ft.SPgITW_on{color:var(--text);background:#1118270f}.SPgITW_dmt .SPgITW_list{max-width:760px;margin:0 auto;padding:10px 16px 32px}.SPgITW_dmt .SPgITW_day{font:650 13px/1.3 var(--font);color:var(--text);align-items:center;gap:8px;margin:16px 0 2px;display:flex}.SPgITW_dmt .SPgITW_day .SPgITW_n{color:var(--cap);font:400 10.5px/1.3 var(--mono);margin-left:auto}.SPgITW_dmt .SPgITW_day:after{content:\"\";background:var(--border);flex:1;height:1px;margin-left:6px}.SPgITW_dmt .SPgITW_day.SPgITW_fold{cursor:pointer;border-radius:8px;margin-left:-6px;padding:2px 6px}.SPgITW_dmt .SPgITW_day.SPgITW_fold:hover{background:var(--hover)}.SPgITW_dmt .SPgITW_day.SPgITW_fold .SPgITW_chev{text-align:center;flex:none;width:14px;margin-left:0}.SPgITW_dmt .SPgITW_cell{border:1px solid var(--border);background:var(--surface);cursor:pointer;width:100%;box-shadow:var(--shadow-sm);border-radius:12px;margin:7px 0;transition:box-shadow .15s,border-color .15s}.SPgITW_dmt .SPgITW_cell:hover{border-color:var(--border2);box-shadow:var(--shadow-md)}.SPgITW_dmt .SPgITW_cell.SPgITW_open{border-color:var(--brand);box-shadow:0 0 0 3px #4176e61f}.SPgITW_dmt .SPgITW_main{align-items:center;gap:12px;padding:13px 14px 6px;display:flex}.SPgITW_dmt .SPgITW_dotm{background:var(--cap);border-radius:50%;flex:none;width:6px;height:6px;margin-right:2px}.SPgITW_dmt .SPgITW_cell.SPgITW_hasdec .SPgITW_dotm{background:var(--brand)}.SPgITW_dmt .SPgITW_tk{min-width:0;font:650 14.5px/1.4 var(--font);letter-spacing:-.01em;text-overflow:ellipsis;white-space:nowrap;flex:0 auto;overflow:hidden}.SPgITW_dmt .SPgITW_mkt{font:700 9.5px/1 var(--font);vertical-align:2px;color:var(--brand);margin-left:3px}.SPgITW_dmt .SPgITW_mkt.SPgITW_hk{color:var(--text3)}.SPgITW_dmt .SPgITW_tag{border:1px solid var(--tint-border);background:var(--tint-soft);height:20px;font:600 11.5px/1 var(--font);color:var(--text2);letter-spacing:.02em;border-radius:6px;flex:none;align-items:center;padding:0 7px;display:inline-flex}.SPgITW_dmt .SPgITW_qty{text-align:right;min-width:0;font:500 12.5px/1.4 var(--mono);color:var(--text2);font-variant-numeric:tabular-nums;white-space:nowrap;text-overflow:ellipsis;flex:0 auto;overflow:hidden}.SPgITW_dmt .SPgITW_sp{flex:auto;min-width:8px}.SPgITW_dmt .SPgITW_pnl{text-align:right;min-width:92px;font:700 16.5px/1.2 var(--font);font-variant-numeric:tabular-nums;letter-spacing:-.01em;flex:none}.SPgITW_dmt .SPgITW_pnl.SPgITW_up{color:var(--ok)}.SPgITW_dmt .SPgITW_pnl.SPgITW_down{color:var(--bad)}.SPgITW_dmt .SPgITW_pnl.SPgITW_na{color:var(--cap);font-size:13px;font-weight:500}.SPgITW_dmt .SPgITW_sub{font:400 11px/1.4 var(--font);color:var(--cap);align-items:center;gap:10px;padding:3px 14px 11px;display:flex}.SPgITW_dmt .SPgITW_t1{height:18px;font:600 10.5px/1 var(--font);white-space:nowrap;font-variant-numeric:tabular-nums;border-radius:5px;flex:none;align-items:center;padding:0 6px;display:inline-flex}.SPgITW_dmt .SPgITW_t1.SPgITW_up{color:var(--ok);background:var(--ok-soft);border:1px solid var(--t1-up-border)}.SPgITW_dmt .SPgITW_t1.SPgITW_down{color:var(--bad);background:var(--bad-soft);border:1px solid var(--t1-down-border)}.SPgITW_dmt .SPgITW_t1.SPgITW_flat{color:var(--text2);background:var(--tint-soft)}.SPgITW_dmt .SPgITW_sub .SPgITW_date{font-variant-numeric:tabular-nums;flex:none}.SPgITW_dmt .SPgITW_chev{color:var(--cap);flex:none;margin-left:auto;font-size:10px;transition:transform .15s}.SPgITW_dmt .SPgITW_cell.SPgITW_open .SPgITW_chev{transform:rotate(180deg)}.SPgITW_dmt .SPgITW_detail{opacity:0;border-top:1px solid var(--tint-border);grid-template-rows:0fr;transition:grid-template-rows .24s cubic-bezier(.22,1,.36,1),opacity .15s;display:grid;overflow:hidden}.SPgITW_dmt .SPgITW_cell.SPgITW_open .SPgITW_detail{opacity:1;grid-template-rows:1fr}.SPgITW_dmt .SPgITW_dinner{min-height:0;padding:12px 16px 14px;overflow:hidden}.SPgITW_dmt .SPgITW_trhead{font:500 10.5px/1.3 var(--font);color:var(--cap);letter-spacing:.05em;align-items:center;gap:6px;margin-bottom:8px;display:flex}.SPgITW_dmt .SPgITW_trhead:before{content:\"\";background:var(--brand);border-radius:50%;width:6px;height:6px}.SPgITW_dmt .SPgITW_trace{padding-left:22px;position:relative}.SPgITW_dmt .SPgITW_trace:before{content:\"\";background:var(--tint-mid);width:2px;position:absolute;top:12px;bottom:10px;left:5px}.SPgITW_dmt .SPgITW_tnode{padding:2px 0 14px;position:relative}.SPgITW_dmt .SPgITW_tnode:last-child{padding-bottom:2px}.SPgITW_dmt .SPgITW_tnode:before{content:\"\";background:var(--surface);border:2px solid var(--cap);box-sizing:border-box;border-radius:50%;width:10px;height:10px;position:absolute;top:5px;left:-22px}.SPgITW_dmt .SPgITW_tnode.SPgITW_dec:before{border-color:var(--brand)}.SPgITW_dmt .SPgITW_tnode.SPgITW_follow:before{border-color:var(--ok)}.SPgITW_dmt .SPgITW_tnode.SPgITW_skip:before{border-color:var(--warn)}.SPgITW_dmt .SPgITW_tnode.SPgITW_win:before{border-color:var(--ok)}.SPgITW_dmt .SPgITW_tnode.SPgITW_loss:before{border-color:var(--bad)}.SPgITW_dmt .SPgITW_tnode .SPgITW_tw{font:400 10px/1.4 var(--mono);color:var(--cap);margin-bottom:1px}.SPgITW_dmt .SPgITW_tnode .SPgITW_n{font:500 10.5px/1.3 var(--font);color:var(--cap);letter-spacing:.04em;margin-bottom:2px}.SPgITW_dmt .SPgITW_tnode .SPgITW_v{font:600 13px/1.4 var(--font)}.SPgITW_dmt .SPgITW_tnode.SPgITW_win .SPgITW_v{color:var(--ok)}.SPgITW_dmt .SPgITW_tnode.SPgITW_loss .SPgITW_v{color:var(--bad)}.SPgITW_dmt .SPgITW_tnode.SPgITW_follow .SPgITW_v{color:var(--ok)}.SPgITW_dmt .SPgITW_tnode.SPgITW_skip .SPgITW_v{color:var(--warn)}.SPgITW_dmt .SPgITW_pchips{flex-wrap:wrap;gap:6px;margin:4px 0 8px;display:flex}.SPgITW_dmt .SPgITW_pc{font:400 11px/1.4 var(--font);background:var(--tint-soft);border:1px solid var(--border);color:var(--text2);border-radius:6px;padding:2px 8px}.SPgITW_dmt .SPgITW_tnote{border-left:3px solid var(--tint-strong);font:400 11.5px/1.6 var(--font);color:var(--text2);white-space:pre-wrap;overflow-wrap:anywhere;margin:7px 0;padding:3px 0 3px 10px}.SPgITW_dmt .SPgITW_tnote.SPgITW_why{border-left-color:var(--brand)}.SPgITW_dmt .SPgITW_tnote.SPgITW_emo{border-left-color:var(--warn)}.SPgITW_dmt .SPgITW_tnote .SPgITW_k{color:var(--cap);font:600 10.5px/1.4 var(--font)}.SPgITW_dmt .SPgITW_tmiss{border:1px dashed var(--border2);font:400 11.5px/1.5 var(--font);color:var(--cap);border-radius:6px;margin-top:8px;padding:7px 10px}.SPgITW_dmt .SPgITW_empty{text-align:center;color:var(--cap);font:400 13px/1.5 var(--font);padding:48px 20px}.SPgITW_dmt .SPgITW_trace-more{border:1px dashed var(--border2);background:var(--surface);width:calc(100% - 32px);color:var(--text2);font:600 12px/1.4 var(--font);cursor:pointer;border-radius:10px;margin:10px 16px;padding:9px 12px;transition:background .12s,border-color .12s,color .12s;display:block}.SPgITW_dmt .SPgITW_trace-more:hover{background:var(--hover);border-color:var(--brand);color:var(--text)}.SPgITW_dmt .SPgITW_skel{border:1px solid var(--border);background:var(--surface);border-radius:12px;align-items:center;gap:12px;margin:7px 0;padding:13px 16px;display:flex}.SPgITW_dmt .SPgITW_skel-dot{background:var(--tint-strong);border-radius:50%;flex:none;width:6px;height:6px}.SPgITW_dmt .SPgITW_skel-bar{background:var(--tint-mid);border-radius:5px;height:10px}.SPgITW_dmt .SPgITW_skel-bar.SPgITW_w40{width:40%}.SPgITW_dmt .SPgITW_skel-bar.SPgITW_w20{width:20%}@media (width<=520px){.SPgITW_dmt .SPgITW_main{gap:8px;padding:12px 12px 6px}.SPgITW_dmt .SPgITW_tk{font-size:13.5px}.SPgITW_dmt .SPgITW_qty{text-align:left;font-size:11px}.SPgITW_dmt .SPgITW_pnl{min-width:84px;font-size:14.5px}.SPgITW_dmt .SPgITW_sub{gap:8px;padding:3px 12px 10px}.SPgITW_dmt .SPgITW_sg{padding:0 11px}.SPgITW_dmt .SPgITW_sv{font-size:13px}.SPgITW_dmt .SPgITW_sv.SPgITW_focus{font-size:14.5px}}@media (prefers-reduced-motion:reduce){.SPgITW_dmt *{transition:none!important;animation:none!important}}";
+const tagId = "clawock-dsh/styles.module.css";
+if (typeof document !== "undefined" && document.querySelector("style[data-plugin-css=" + JSON.stringify(tagId) + "]") === null) {
+	const tag = document.createElement("style");
+	tag.dataset.plugin = "clawock-dsh";
+	tag.dataset.pluginCss = tagId;
+	tag.textContent = css;
+	document.head.appendChild(tag);
+}
+var styles_module_css_default = {
+	"cell": "SPgITW_cell",
+	"chev": "SPgITW_chev",
+	"date": "SPgITW_date",
+	"day": "SPgITW_day",
+	"dec": "SPgITW_dec",
+	"detail": "SPgITW_detail",
+	"dinner": "SPgITW_dinner",
+	"dmt": "SPgITW_dmt",
+	"dotm": "SPgITW_dotm",
+	"down": "SPgITW_down",
+	"emo": "SPgITW_emo",
+	"empty": "SPgITW_empty",
+	"filters": "SPgITW_filters",
+	"flat": "SPgITW_flat",
+	"focus": "SPgITW_focus",
+	"fold": "SPgITW_fold",
+	"follow": "SPgITW_follow",
+	"ft": "SPgITW_ft",
+	"hasdec": "SPgITW_hasdec",
+	"hk": "SPgITW_hk",
+	"k": "SPgITW_k",
+	"list": "SPgITW_list",
+	"loss": "SPgITW_loss",
+	"main": "SPgITW_main",
+	"mkt": "SPgITW_mkt",
+	"n": "SPgITW_n",
+	"na": "SPgITW_na",
+	"on": "SPgITW_on",
+	"open": "SPgITW_open",
+	"pc": "SPgITW_pc",
+	"pchips": "SPgITW_pchips",
+	"pnl": "SPgITW_pnl",
+	"qty": "SPgITW_qty",
+	"rate": "SPgITW_rate",
+	"sg": "SPgITW_sg",
+	"skel": "SPgITW_skel",
+	"skel-bar": "SPgITW_skel-bar",
+	"skel-dot": "SPgITW_skel-dot",
+	"skip": "SPgITW_skip",
+	"sl": "SPgITW_sl",
+	"sp": "SPgITW_sp",
+	"stats": "SPgITW_stats",
+	"sub": "SPgITW_sub",
+	"sv": "SPgITW_sv",
+	"t1": "SPgITW_t1",
+	"tag": "SPgITW_tag",
+	"tk": "SPgITW_tk",
+	"tmiss": "SPgITW_tmiss",
+	"tnode": "SPgITW_tnode",
+	"tnote": "SPgITW_tnote",
+	"top": "SPgITW_top",
+	"trace": "SPgITW_trace",
+	"trace-more": "SPgITW_trace-more",
+	"trhead": "SPgITW_trhead",
+	"ts": "SPgITW_ts",
+	"tt": "SPgITW_tt",
+	"tw": "SPgITW_tw",
+	"up": "SPgITW_up",
+	"v": "SPgITW_v",
+	"w20": "SPgITW_w20",
+	"w40": "SPgITW_w40",
+	"why": "SPgITW_why",
+	"win": "SPgITW_win"
+};
+//#endregion
+//#region src/client.ts
 /**
 * clawock-dsh browser bundle: the Decision Mind conversation-view tab.
 *
@@ -4567,130 +4643,66 @@ const TYPERT_REMOTE = {
 * figure as the focal number and a GitHub-style vertical timeline in the
 * expandable detail.
 *
-* Official registration path: the generated Typert Remote contribution is
-* mounted through `ctx.remote.$mount(TYPERT_REMOTE)` (typert.remote-client,
-* emitted by the build), the tab registers through `ctx.slots.register` with
-* a per-session store, and `inject` declares the cordis service dependencies.
+* Official client discipline (`packages/client/AGENTS.md` in the Harness
+* tree), all four rules this file has to satisfy:
+*   - registration happens inside `apply` through `ctx.slots.register`, and
+*     the module body has no side effects — styles arrive as a CSS Modules
+*     import, whose `<style data-plugin>` tag the loader owns and removes on
+*     unload;
+*   - the store is an exported `createDecisionMindStore()` factory called in
+*     `apply`, never a module-level handle (a disguised singleton);
+*   - live data reaches render through the props shares only, so the trace
+*     cache lives in the apply closure and is read through `inject`;
+*   - components take named props and the wire types from `./types.ts`.
 */
-const defineStore = clientRuntime.defineStore;
-const useEffect = React.useEffect;
-const useState = React.useState;
-const h = React.createElement;
-const STYLE_ID = "clawock-dsh-styles";
-if (typeof document !== "undefined" && !document.getElementById(STYLE_ID)) {
-	const style = document.createElement("style");
-	style.id = STYLE_ID;
-	style.textContent = [
-		".dmt{--bg:#F7F8FA;--surface:#FFFFFF;--text:#15171B;--text2:#61666B;--text3:#81858C;--cap:#ADB2B8;",
-		"--brand:#4176E6;--brand-soft:#EDF3FE;--ok:#1B8644;--ok-soft:#E6FAED;--bad:#C01313;--bad-soft:#FDEBEE;--warn:#AA6924;",
-		"--border:rgba(17,24,39,.06);--border2:rgba(17,24,39,.10);",
-		"--hover:rgba(17,24,39,.05);--shadow-sm:0 1px 2px rgba(16,24,40,.04);--shadow-md:0 4px 16px rgba(16,24,40,.08);",
-		"--veil:rgba(255,255,255,.92);--tint-soft:rgba(0,0,0,.03);--tint-border:rgba(0,0,0,.05);",
-		"--tint-mid:rgba(0,0,0,.08);--tint-strong:rgba(0,0,0,.12);--brand-glow:rgba(65,118,230,.12);",
-		"--t1-up-border:rgba(27,132,68,.18);--t1-down-border:rgba(192,19,19,.18);",
-		"--radius:12px;--radius-sm:8px;",
-		"--font:-apple-system,BlinkMacSystemFont,\"Segoe UI\",\"PingFang SC\",\"Hiragino Sans GB\",\"Microsoft YaHei\",sans-serif;",
-		"--mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;",
-		"font:13px/1.45 var(--font);color:var(--text);-webkit-font-smoothing:antialiased;min-height:100%}",
-		"body[data-ds-dark-theme] .dmt{--bg:#0F1115;--surface:#1B1B1C;--text:#EDEDEE;--text2:#A7ABB2;--text3:#7D8189;--cap:#5B5F66;",
-		"--brand:#6C97F2;--brand-soft:#1E2A44;--ok:#3FCB74;--ok-soft:#153824;--bad:#F2554F;--bad-soft:#3B1516;--warn:#E0A752;",
-		"--border:rgba(255,255,255,.08);--border2:rgba(255,255,255,.14);",
-		"--hover:rgba(255,255,255,.07);--shadow-sm:0 1px 2px rgba(0,0,0,.3);--shadow-md:0 4px 16px rgba(0,0,0,.4);",
-		"--veil:rgba(20,21,24,.85);--tint-soft:rgba(255,255,255,.06);--tint-border:rgba(255,255,255,.08);",
-		"--tint-mid:rgba(255,255,255,.12);--tint-strong:rgba(255,255,255,.18);--brand-glow:rgba(108,151,242,.22);",
-		"--t1-up-border:rgba(63,203,116,.35);--t1-down-border:rgba(242,85,79,.35)}",
-		".dmt .top{position:sticky;top:0;z-index:20;background:var(--veil);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-bottom:1px solid var(--border);padding:10px 16px 8px}",
-		".dmt .tt{display:flex;align-items:center;gap:8px;font:700 17px/1.3 var(--font);letter-spacing:-.01em}",
-		".dmt .tt::before{content:\"\";width:9px;height:9px;border-radius:3px;background:var(--brand)}",
-		".dmt .ts{font:400 11.5px/1.3 var(--font);color:var(--cap);margin-top:2px}",
-		".dmt .stats{display:flex;align-items:flex-end;gap:0;margin-top:8px;flex-wrap:wrap}",
-		".dmt .sg{display:flex;flex-direction:column;gap:2px;padding:0 14px}",
-		".dmt .sg+.sg{border-left:1px solid rgba(0,0,0,.08)}",
-		".dmt .sl{font:500 10.5px/1.3 var(--font);color:var(--cap);letter-spacing:.03em;white-space:nowrap}",
-		".dmt .sv{font:650 14px/1.3 var(--font);color:var(--text);font-variant-numeric:tabular-nums;white-space:nowrap}",
-		".dmt .sv.focus{font:700 16px/1.3 var(--font)}",
-		".dmt .sv.up{color:var(--ok)}.dmt .sv.down{color:var(--bad)}",
-		".dmt .rate{font:400 10.5px/1.3 var(--font);color:var(--cap);margin-left:auto;align-self:center}",
-		".dmt .filters{display:flex;gap:2px;margin-top:8px;flex-wrap:wrap}",
-		".dmt .ft{border:0;background:transparent;color:var(--text3);font:600 12px/1.4 var(--font);padding:5px 11px;border-radius:8px;cursor:pointer;transition:background .12s,color .12s}",
-		".dmt .ft:hover{background:var(--hover)}",
-		".dmt .ft.on{color:var(--text);background:rgba(17,24,39,.06)}",
-		".dmt .list{max-width:760px;margin:0 auto;padding:10px 16px 32px}",
-		".dmt .day{margin:16px 0 2px;display:flex;align-items:center;gap:8px;font:650 13px/1.3 var(--font);color:var(--text)}",
-		".dmt .day .n{color:var(--cap);font:400 10.5px/1.3 var(--mono);margin-left:auto}",
-		".dmt .day::after{content:\"\";flex:1;height:1px;background:var(--border);margin-left:6px}",
-		".dmt .day.fold{cursor:pointer;border-radius:8px;padding:2px 6px;margin-left:-6px}",
-		".dmt .day.fold:hover{background:var(--hover)}",
-		".dmt .day.fold .chev{margin-left:0;flex:none;width:14px;text-align:center}",
-		".dmt .cell{width:100%;margin:7px 0;border-radius:12px;border:1px solid var(--border);background:var(--surface);cursor:pointer;box-shadow:var(--shadow-sm);transition:box-shadow .15s,border-color .15s}",
-		".dmt .cell:hover{border-color:var(--border2);box-shadow:var(--shadow-md)}",
-		".dmt .cell.open{border-color:var(--brand);box-shadow:0 0 0 3px rgba(65,118,230,.12)}",
-		".dmt .main{display:flex;align-items:center;gap:12px;padding:13px 14px 6px}",
-		".dmt .dotm{flex:none;width:6px;height:6px;border-radius:50%;background:var(--cap);margin-right:2px}",
-		".dmt .cell.hasdec .dotm{background:var(--brand)}",
-		".dmt .tk{flex:0 1 auto;min-width:0;font:650 14.5px/1.4 var(--font);letter-spacing:-.01em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
-		".dmt .mkt{font:700 9.5px/1 var(--font);margin-left:3px;vertical-align:2px;color:var(--brand)}",
-		".dmt .mkt.hk{color:var(--text3)}",
-		".dmt .tag{flex:none;display:inline-flex;align-items:center;height:20px;padding:0 7px;border-radius:6px;border:1px solid var(--tint-border);background:var(--tint-soft);font:600 11.5px/1 var(--font);color:var(--text2);letter-spacing:.02em}",
-		".dmt .qty{flex:0 1 auto;min-width:0;text-align:right;font:500 12.5px/1.4 var(--mono);color:var(--text2);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}",
-		".dmt .sp{flex:1 1 auto;min-width:8px}",
-		".dmt .pnl{flex:none;min-width:92px;text-align:right;font:700 16.5px/1.2 var(--font);font-variant-numeric:tabular-nums;letter-spacing:-.01em}",
-		".dmt .pnl.up{color:var(--ok)}.dmt .pnl.down{color:var(--bad)}.dmt .pnl.na{color:var(--cap);font-weight:500;font-size:13px}",
-		".dmt .sub{display:flex;align-items:center;gap:10px;padding:3px 14px 11px;font:400 11px/1.4 var(--font);color:var(--cap)}",
-		".dmt .t1{flex:none;display:inline-flex;align-items:center;height:18px;padding:0 6px;border-radius:5px;font:600 10.5px/1 var(--font);white-space:nowrap;font-variant-numeric:tabular-nums}",
-		".dmt .t1.up{color:var(--ok);background:var(--ok-soft);border:1px solid var(--t1-up-border)}",
-		".dmt .t1.down{color:var(--bad);background:var(--bad-soft);border:1px solid var(--t1-down-border)}",
-		".dmt .t1.flat{color:var(--text2);background:var(--tint-soft)}",
-		".dmt .sub .date{flex:none;font-variant-numeric:tabular-nums}",
-		".dmt .chev{margin-left:auto;flex:none;color:var(--cap);font-size:10px;transition:transform .15s}",
-		".dmt .cell.open .chev{transform:rotate(180deg)}",
-		".dmt .detail{display:grid;grid-template-rows:0fr;opacity:0;border-top:1px solid var(--tint-border);transition:grid-template-rows .24s cubic-bezier(.22,1,.36,1),opacity .15s ease;overflow:hidden}",
-		".dmt .cell.open .detail{grid-template-rows:1fr;opacity:1}",
-		".dmt .dinner{overflow:hidden;min-height:0;padding:12px 16px 14px}",
-		".dmt .trhead{display:flex;align-items:center;gap:6px;font:500 10.5px/1.3 var(--font);color:var(--cap);letter-spacing:.05em;margin-bottom:8px}",
-		".dmt .trhead::before{content:\"\";width:6px;height:6px;border-radius:50%;background:var(--brand)}",
-		".dmt .trace{position:relative;padding-left:22px}",
-		".dmt .trace::before{content:\"\";position:absolute;left:5px;top:12px;bottom:10px;width:2px;background:var(--tint-mid)}",
-		".dmt .tnode{position:relative;padding:2px 0 14px}",
-		".dmt .tnode:last-child{padding-bottom:2px}",
-		".dmt .tnode::before{content:\"\";position:absolute;left:-22px;top:5px;width:10px;height:10px;border-radius:50%;background:var(--surface);border:2px solid var(--cap);box-sizing:border-box}",
-		".dmt .tnode.dec::before{border-color:var(--brand)}",
-		".dmt .tnode.follow::before{border-color:var(--ok)}.dmt .tnode.skip::before{border-color:var(--warn)}",
-		".dmt .tnode.win::before{border-color:var(--ok)}.dmt .tnode.loss::before{border-color:var(--bad)}",
-		".dmt .tnode .tw{font:400 10px/1.4 var(--mono);color:var(--cap);margin-bottom:1px}",
-		".dmt .tnode .n{font:500 10.5px/1.3 var(--font);color:var(--cap);letter-spacing:.04em;margin-bottom:2px}",
-		".dmt .tnode .v{font:600 13px/1.4 var(--font)}",
-		".dmt .tnode.win .v{color:var(--ok)}.dmt .tnode.loss .v{color:var(--bad)}",
-		".dmt .tnode.follow .v{color:var(--ok)}.dmt .tnode.skip .v{color:var(--warn)}",
-		".dmt .pchips{display:flex;flex-wrap:wrap;gap:6px;margin:4px 0 8px}",
-		".dmt .pc{font:400 11px/1.4 var(--font);padding:2px 8px;border-radius:6px;background:var(--tint-soft);border:1px solid var(--border);color:var(--text2)}",
-		".dmt .tnote{margin:7px 0;padding:3px 0 3px 10px;border-left:3px solid var(--tint-strong);font:400 11.5px/1.6 var(--font);color:var(--text2);white-space:pre-wrap;overflow-wrap:anywhere}",
-		".dmt .tnote.why{border-left-color:var(--brand)}",
-		".dmt .tnote.emo{border-left-color:var(--warn)}",
-		".dmt .tnote .k{color:var(--cap);font:600 10.5px/1.4 var(--font)}",
-		".dmt .tmiss{padding:7px 10px;border:1px dashed var(--border2);border-radius:6px;font:400 11.5px/1.5 var(--font);color:var(--cap);margin-top:8px}",
-		".dmt .empty{padding:48px 20px;text-align:center;color:var(--cap);font:400 13px/1.5 var(--font)}",
-		".dmt .trace-more{display:block;width:calc(100% - 32px);margin:10px 16px;padding:9px 12px;border:1px dashed var(--border2);border-radius:10px;background:var(--surface);color:var(--text2);font:600 12px/1.4 var(--font);cursor:pointer;transition:background .12s,border-color .12s,color .12s}",
-		".dmt .trace-more:hover{background:var(--hover);border-color:var(--brand);color:var(--text)}",
-		".dmt .skel{display:flex;align-items:center;gap:12px;padding:13px 16px;border:1px solid var(--border);border-radius:12px;background:var(--surface);margin:7px 0}",
-		".dmt .skel-dot{flex:none;width:6px;height:6px;border-radius:50%;background:var(--tint-strong)}",
-		".dmt .skel-bar{height:10px;border-radius:5px;background:var(--tint-mid)}",
-		".dmt .skel-bar.w40{width:40%}",
-		".dmt .skel-bar.w20{width:20%}",
-		"@media (max-width:520px){",
-		".dmt .main{gap:8px;padding:12px 12px 6px}",
-		".dmt .tk{font-size:13.5px}",
-		".dmt .qty{font-size:11px;text-align:left}",
-		".dmt .pnl{min-width:84px;font-size:14.5px}",
-		".dmt .sub{gap:8px;padding:3px 12px 10px}",
-		".dmt .sg{padding:0 11px}",
-		".dmt .sv{font-size:13px}.dmt .sv.focus{font-size:14.5px}",
-		"}",
-		"@media (prefers-reduced-motion:reduce){",
-		".dmt *{transition:none!important;animation:none!important}",
-		"}"
-	].join("");
-	document.head.appendChild(style);
+const { createElement, useEffect, useRef, useState } = React;
+const h = createElement;
+/** Class tokens declared in styles.module.css, mapped to their hashed names. */
+function cx(...tokens) {
+	const out = [];
+	for (const token of tokens) {
+		if (token === "" || token === false || token === null || token === void 0) continue;
+		out.push(styles_module_css_default[token] ?? token);
+	}
+	return out.join(" ");
+}
+/** Newest date groups rendered expanded; older days arrive in batches. */
+const DEFAULT_VISIBLE_DATES = 3;
+const BATCH_GROUPS = 5;
+/**
+* Store factory — called once inside `apply`. Never a module-level handle:
+* the module cache would make it a singleton shared across plugin reloads.
+*/
+function createDecisionMindStore() {
+	return defineStore({
+		init: () => ({
+			filter: "all",
+			open: null,
+			visibleDateCount: DEFAULT_VISIBLE_DATES,
+			foldedDates: [],
+			scrollTop: 0
+		}),
+		actions: {
+			setFilter: (draft, value) => {
+				draft.filter = value;
+			},
+			toggleOpen: (draft, key) => {
+				draft.open = draft.open === key ? null : key;
+			},
+			showMoreDates: (draft, count) => {
+				draft.visibleDateCount = draft.visibleDateCount + count;
+			},
+			resetDates: (draft) => {
+				draft.visibleDateCount = DEFAULT_VISIBLE_DATES;
+			},
+			toggleDate: (draft, date) => {
+				draft.foldedDates = draft.foldedDates.indexOf(date) >= 0 ? draft.foldedDates.filter((d) => d !== date) : draft.foldedDates.concat([date]);
+			},
+			setScrollTop: (draft, value) => {
+				draft.scrollTop = value;
+			}
+		}
+	});
 }
 const ACT = {
 	buy: "买入",
@@ -4728,8 +4740,14 @@ const EMO = {
 	calm: "平静",
 	mixed: "混合"
 };
-function esc(s) {
-	return String(s == null ? "" : s).replace(/</g, "&lt;");
+const FILTER_LABEL = {
+	all: "全部",
+	miss: "无决策",
+	sold: "卖出复盘",
+	dec: "挂接决策"
+};
+function esc(value) {
+	return String(value === null || value === void 0 ? "" : value).replace(/</g, "&lt;");
 }
 /**
 * The T+1 tone is decided host-side (`t1ToneOf` in ledger.ts) and shipped on
@@ -4747,158 +4765,171 @@ function t1ChipClass(tone) {
 	if (tone === "loss") return "down";
 	return "flat";
 }
-function fmtMoney(v) {
-	if (v == null || !isFinite(v)) return "—";
-	return (v > 0 ? "+" : "") + Number(v).toLocaleString(void 0, { maximumFractionDigits: 0 });
+function fmtMoney(value) {
+	if (value === null || !isFinite(value)) return "—";
+	return (value > 0 ? "+" : "") + value.toLocaleString(void 0, { maximumFractionDigits: 0 });
 }
-function fmtPct(v, digits) {
-	if (v == null || !isFinite(v)) return "—";
-	return (v > 0 ? "+" : "") + Number(v).toFixed(digits || 1) + "%";
+function fmtPct(value, digits = 1) {
+	if (value === null || !isFinite(value)) return "—";
+	return (value > 0 ? "+" : "") + value.toFixed(digits) + "%";
 }
 /** Display projection of one trace (test seam). */
 function _displayEntry(trace) {
-	const d = trace.decision || null;
 	return {
 		ticker: trace.ticker || "?",
 		market: trace.market || "US",
 		currency: trace.currency || "USD",
-		date: trace.date || null,
+		date: trace.date ?? null,
 		action: trace.action || "hold",
 		shares: trace.shares || 0,
 		price: trace.price ?? null,
 		realizedPnl: trace.realizedPnl ?? null,
-		note: trace.note || null,
-		t1: trace.t1 || null,
+		note: trace.note ?? null,
+		t1: trace.t1 ?? null,
 		holdPnl: trace.holdPnl ?? null,
-		decision: d
+		decision: trace.decision ?? null
 	};
 }
 function Chip(props) {
-	return h("span", { className: "tag" }, props.children);
+	return h("span", { className: cx("tag") }, props.children);
 }
 function TraceDetail(props) {
-	const t = props.trace;
-	const d = t.decision;
-	const sym = t.currency === "HKD" ? "HK$" : "$";
-	if (!d) {
-		const t1miss = t.t1 ? h("div", { className: ("tnode " + t1NodeClass(t.t1.tone)).trim() }, h("div", { className: "n" }, "T+1 结果"), h("div", { className: "v" }, (t.t1.delta >= 0 ? "+" : "") + t.t1.delta + "%")) : null;
-		return h("div", null, h("div", { className: "trhead" }, "决策轨迹 · 无关联记录"), h("div", { className: "trace" }, h("div", { className: "tnode dec" }, h("div", { className: "n" }, "决策"), h("div", {
-			className: "v",
+	const trace = props.trace;
+	const decision = trace.decision;
+	const sym = trace.currency === "HKD" ? "HK$" : "$";
+	if (decision === null) {
+		const t1miss = trace.t1 === null ? null : h("div", { className: cx("tnode", t1NodeClass(trace.t1.tone)) }, h("div", { className: cx("n") }, "T+1 结果"), h("div", { className: cx("v") }, (trace.t1.delta >= 0 ? "+" : "") + trace.t1.delta + "%"));
+		return h("div", null, h("div", { className: cx("trhead") }, "决策轨迹 · 无关联记录"), h("div", { className: cx("trace") }, h("div", { className: cx("tnode", "dec") }, h("div", { className: cx("n") }, "决策"), h("div", {
+			className: cx("v"),
 			style: { color: "var(--cap)" }
-		}, "无关联记录")), h("div", { className: "tnode follow" }, h("div", { className: "n" }, "执行"), h("div", { className: "v" }, (ACT[t.action] || t.action) + " " + t.shares + "股 @" + t.price + " " + sym)), t1miss), t.note ? h("div", { className: "tnote" }, esc(t.note)) : null, h("div", { className: "tmiss" }, "此笔无关联决策记录 — 事实保留,判断缺失显式标出"));
+		}, "无关联记录")), h("div", { className: cx("tnode", "follow") }, h("div", { className: cx("n") }, "执行"), h("div", { className: cx("v") }, (ACT[trace.action] ?? trace.action) + " " + trace.shares + "股 @" + trace.price + " " + sym)), t1miss), trace.note === null ? null : h("div", { className: cx("tnote") }, esc(trace.note)), h("div", { className: cx("tmiss") }, "此笔无关联决策记录 — 事实保留,判断缺失显式标出"));
 	}
-	const exe = EXE[d.execution] || ["未知", ""];
-	const decV = (ACT[d.action] || d.action) + (d.confidence != null ? " " + Math.round(d.confidence * 100) + "%" : "") + (d.drivenBy ? " · " + (DRV[d.drivenBy] || d.drivenBy) : "");
-	const why = d.rationale || d.bull || "";
-	const emo = d.emotion && d.emotion !== "calm" ? EMO[d.emotion] || d.emotion : null;
+	const [exeLabel, exeTone] = EXE[decision.execution ?? "unknown"] ?? EXE["unknown"];
+	const planned = (ACT[decision.action ?? ""] ?? decision.action ?? "") + (decision.confidence === null ? "" : " " + Math.round(decision.confidence * 100) + "%") + (decision.drivenBy === null ? "" : " · " + (DRV[decision.drivenBy] ?? decision.drivenBy));
+	const why = decision.rationale ?? decision.bull ?? "";
+	const emotion = decision.emotion !== null && decision.emotion !== "calm" ? EMO[decision.emotion] ?? decision.emotion : null;
 	const chips = [];
-	if (d.condition) chips.push(h("span", {
-		className: "pc",
+	if (decision.condition !== null) chips.push(h("span", {
+		className: cx("pc"),
 		key: "c"
-	}, "条件: " + d.condition));
-	if (d.sizeShares) chips.push(h("span", {
-		className: "pc",
+	}, "条件: " + decision.condition));
+	if (decision.sizeShares !== null) chips.push(h("span", {
+		className: cx("pc"),
 		key: "s"
-	}, "计划 " + d.sizeShares + " 股"));
-	if (d.plannedPrice) chips.push(h("span", {
-		className: "pc",
+	}, "计划 " + decision.sizeShares + " 股"));
+	if (decision.plannedPrice !== null) chips.push(h("span", {
+		className: cx("pc"),
 		key: "p"
-	}, "计划价 " + d.plannedPrice));
-	const t1node = t.t1 ? h("div", { className: ("tnode " + t1NodeClass(t.t1.tone)).trim() }, h("div", { className: "tw" }, t.t1.date), h("div", { className: "n" }, "T+1 结果"), h("div", { className: "v" }, (t.t1.delta >= 0 ? "+" : "") + t.t1.delta + "%" + (t.action === "sell" ? " · " + t.t1.verdict : ""))) : null;
-	let rv;
-	let rc;
-	if (t.realizedPnl != null) {
-		rv = (t.realizedPnl >= 0 ? "+" : "") + Number(t.realizedPnl).toFixed(2) + " " + sym;
-		rc = t.realizedPnl >= 0 ? "win" : "loss";
-	} else if (t.holdPnl != null) {
-		rv = fmtPct(t.holdPnl, 1);
-		rc = t.holdPnl >= 0 ? "win" : "loss";
+	}, "计划价 " + decision.plannedPrice));
+	const t1node = trace.t1 === null ? null : h("div", { className: cx("tnode", t1NodeClass(trace.t1.tone)) }, h("div", { className: cx("tw") }, trace.t1.date), h("div", { className: cx("n") }, "T+1 结果"), h("div", { className: cx("v") }, (trace.t1.delta >= 0 ? "+" : "") + trace.t1.delta + "%" + (trace.action === "sell" ? " · " + trace.t1.verdict : "")));
+	let pnlText;
+	let pnlTone;
+	if (trace.realizedPnl !== null) {
+		pnlText = (trace.realizedPnl >= 0 ? "+" : "") + trace.realizedPnl.toFixed(2) + " " + sym;
+		pnlTone = trace.realizedPnl >= 0 ? "win" : "loss";
+	} else if (trace.holdPnl !== null) {
+		pnlText = fmtPct(trace.holdPnl);
+		pnlTone = trace.holdPnl >= 0 ? "win" : "loss";
 	} else {
-		rv = "—";
-		rc = "";
+		pnlText = "—";
+		pnlTone = "";
 	}
-	return h("div", null, h("div", { className: "trhead" }, "决策轨迹 · " + (d.planDate || "")), h("div", { className: "trace" }, h("div", { className: "tnode dec" }, h("div", { className: "tw" }, d.planDate || ""), h("div", { className: "n" }, "计划"), h("div", { className: "v" }, decV)), h("div", { className: "tnode " + (exe[1] || "") }, h("div", { className: "tw" }, t.date || ""), h("div", { className: "n" }, "执行"), h("div", { className: "v" }, exe[0] + (exe[1] === "skip" ? " — 实际动了手" : ""))), t1node, h("div", { className: "tnode " + rc }, h("div", { className: "n" }, "盈亏"), h("div", { className: "v" }, rv))), chips.length ? h("div", { className: "pchips" }, chips) : null, why ? h("div", { className: "tnote why" }, h("span", { className: "k" }, "为什么 "), esc(why)) : null, emo ? h("div", { className: "tnote emo" }, h("span", { className: "k" }, "情绪 "), "⚡ " + emo) : null, t.note ? h("div", { className: "tnote" }, h("span", { className: "k" }, "备注 "), esc(t.note)) : null);
+	return h("div", null, h("div", { className: cx("trhead") }, "决策轨迹 · " + (decision.planDate ?? "")), h("div", { className: cx("trace") }, h("div", { className: cx("tnode", "dec") }, h("div", { className: cx("tw") }, decision.planDate ?? ""), h("div", { className: cx("n") }, "计划"), h("div", { className: cx("v") }, planned)), h("div", { className: cx("tnode", exeTone) }, h("div", { className: cx("tw") }, trace.date ?? ""), h("div", { className: cx("n") }, "执行"), h("div", { className: cx("v") }, exeLabel + (exeTone === "skip" ? " — 实际动了手" : ""))), t1node, h("div", { className: cx("tnode", pnlTone) }, h("div", { className: cx("n") }, "盈亏"), h("div", { className: cx("v") }, pnlText))), chips.length === 0 ? null : h("div", { className: cx("pchips") }, chips), why === "" ? null : h("div", { className: cx("tnote", "why") }, h("span", { className: cx("k") }, "为什么 "), esc(why)), emotion === null ? null : h("div", { className: cx("tnote", "emo") }, h("span", { className: cx("k") }, "情绪 "), "⚡ " + emotion), trace.note === null ? null : h("div", { className: cx("tnote") }, h("span", { className: cx("k") }, "备注 "), esc(trace.note)));
 }
 function TraceCell(props) {
-	const t = props.trace;
-	const open = props.open;
-	const sym = t.currency === "HKD" ? "HK$" : "$";
-	const qty = t.shares + " @" + t.price;
+	const trace = props.trace;
+	const sym = trace.currency === "HKD" ? "HK$" : "$";
 	let pnl;
-	if (t.realizedPnl != null) pnl = h("span", { className: "pnl " + (t.realizedPnl >= 0 ? "up" : "down") }, (t.realizedPnl >= 0 ? "+" : "") + Number(t.realizedPnl).toFixed(2) + " " + sym);
-	else if (t.holdPnl != null) pnl = h("span", { className: "pnl " + (t.holdPnl >= 0 ? "up" : "down") }, fmtPct(t.holdPnl, 1));
-	else pnl = h("span", { className: "pnl na" }, "—");
+	if (trace.realizedPnl !== null) pnl = h("span", { className: cx("pnl", trace.realizedPnl >= 0 ? "up" : "down") }, (trace.realizedPnl >= 0 ? "+" : "") + trace.realizedPnl.toFixed(2) + " " + sym);
+	else if (trace.holdPnl !== null) pnl = h("span", { className: cx("pnl", trace.holdPnl >= 0 ? "up" : "down") }, fmtPct(trace.holdPnl));
+	else pnl = h("span", { className: cx("pnl", "na") }, "—");
 	let t1tag = null;
-	if (t.t1) {
-		const tc = t1ChipClass(t.t1.tone);
-		const tlabel = "T+1 " + (t.t1.delta >= 0 ? "+" : "") + t.t1.delta + "%" + (t.action === "sell" ? " " + t.t1.verdict : "");
-		t1tag = h("span", { className: "t1 " + tc }, tlabel);
-	} else if (t.action === "sell") t1tag = h("span", { className: "t1 flat" }, "T+1 —");
+	if (trace.t1 !== null) {
+		const tone = t1ChipClass(trace.t1.tone);
+		const label = "T+1 " + (trace.t1.delta >= 0 ? "+" : "") + trace.t1.delta + "%" + (trace.action === "sell" ? " " + trace.t1.verdict : "");
+		t1tag = h("span", {
+			className: cx("t1", tone),
+			"data-tone": tone
+		}, label);
+	} else if (trace.action === "sell") t1tag = h("span", {
+		className: cx("t1", "flat"),
+		"data-tone": "flat"
+	}, "T+1 —");
 	return h("div", {
-		className: "cell" + (t.decision ? " hasdec" : "") + (open ? " open" : ""),
+		className: cx("cell", trace.decision !== null && "hasdec", props.open && "open"),
+		"data-cell": "trace",
 		role: "button",
 		tabIndex: 0,
-		"aria-expanded": open,
+		"aria-expanded": props.open,
 		onClick: props.onToggle,
 		onKeyDown: props.onKeyDown
-	}, h("div", { className: "main" }, h("span", { className: "dotm" }), h("span", { className: "tk" }, t.ticker, h("span", { className: "mkt" + (t.market === "HK" ? " hk" : "") }, t.market === "HK" ? "港" : "美")), h(Chip, null, ACT[t.action] || t.action), h("span", { className: "qty" }, qty), h("span", { className: "sp" }), pnl), h("div", { className: "sub" }, t1tag, h("span", { className: "date" }, (t.date || "").slice(5)), h("span", { className: "chev" }, "▾")), h("div", { className: "detail" }, h("div", { className: "dinner" }, open ? h(TraceDetail, { trace: t }) : null)));
+	}, h("div", { className: cx("main") }, h("span", { className: cx("dotm") }), h("span", { className: cx("tk") }, trace.ticker, h("span", { className: cx("mkt", trace.market === "HK" && "hk") }, trace.market === "HK" ? "港" : "美")), h(Chip, null, ACT[trace.action] ?? trace.action), h("span", { className: cx("qty") }, trace.shares + " @" + trace.price), h("span", { className: cx("sp") }), pnl), h("div", { className: cx("sub") }, t1tag, h("span", { className: cx("date") }, (trace.date ?? "").slice(5)), h("span", { className: cx("chev") }, "▾")), h("div", { className: cx("detail") }, h("div", { className: cx("dinner") }, props.open ? h(TraceDetail, { trace }) : null)));
 }
 /** Skeleton row for the cold-start loading state (no cache yet). */
 function SkeletonRow() {
-	return h("div", { className: "skel" }, h("div", { className: "skel-dot" }), h("div", { className: "skel-bar w40" }), h("div", { className: "skel-bar w20" }));
+	return h("div", { className: cx("skel") }, h("div", { className: cx("skel-dot") }), h("div", { className: cx("skel-bar", "w40") }), h("div", { className: cx("skel-bar", "w20") }));
+}
+function messageOf(error) {
+	return error instanceof Error ? error.message : String(error);
+}
+function todayIso() {
+	const now = /* @__PURE__ */ new Date();
+	return now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0") + "-" + String(now.getDate()).padStart(2, "0");
+}
+function relativeDay(iso, today) {
+	if (iso === today) return "今天";
+	const at = (date) => (/* @__PURE__ */ new Date(date + "T00:00:00")).getTime();
+	const days = Math.round((at(today) - at(iso)) / 864e5);
+	if (days === 1) return "昨天";
+	if (days >= 2 && days <= 7) return days + "天前";
+	return parseInt(iso.slice(5, 7)) + "月" + parseInt(iso.slice(8, 10)) + "日";
 }
 function DecisionMind(props) {
-	const ui = props.useStore((s) => s);
-	const acts = props.actions;
-	const dataPair = useState({
-		traces: [],
-		rate: null,
-		loading: true,
-		error: null,
-		stale: false
-	});
-	const data = dataPair[0];
-	const setData = dataPair[1];
-	useEffect(() => {
-		let alive = true;
-		const cached = traceCache;
-		if (cached) setData({
-			traces: cached.trades,
+	const filter = props.useStore((state) => state.filter);
+	const open = props.useStore((state) => state.open);
+	const visibleDateCount = props.useStore((state) => state.visibleDateCount);
+	const foldedDates = props.useStore((state) => state.foldedDates);
+	const scrollTop = props.useStore((state) => state.scrollTop);
+	const actions = props.actions;
+	const rootRef = useRef(null);
+	const [data, setData] = useState(() => {
+		const cached = props.cachedTraces();
+		return cached === null ? {
+			trades: [],
+			rate: null,
+			loading: true,
+			error: null,
+			stale: false
+		} : {
+			trades: cached.trades,
 			rate: cached.rate,
 			loading: false,
 			error: null,
 			stale: false
-		});
-		props.traces().then((result) => {
-			if (!alive) return;
-			const fresh = {
-				workspaceKey: result.workspaceKey,
-				signature: result.signature,
-				trades: result.trades,
-				rate: result.rate,
-				fetchedAt: Date.now()
-			};
-			const unchanged = cached !== null && cached.workspaceKey === fresh.workspaceKey && cached.signature === fresh.signature;
-			traceCache = fresh;
-			if (unchanged) return;
+		};
+	});
+	useEffect(() => {
+		let alive = true;
+		props.fetchTraces().then((fetched) => {
+			if (!alive || !fetched.changed) return;
 			setData({
-				traces: result.trades,
-				rate: result.rate,
+				trades: fetched.snapshot.trades,
+				rate: fetched.snapshot.rate,
 				loading: false,
 				error: null,
 				stale: false
 			});
 		}, (error) => {
 			if (!alive) return;
-			if (traceCache) setData((c) => ({
-				...c,
+			if (props.cachedTraces() !== null) setData((current) => ({
+				...current,
 				stale: true
 			}));
 			else setData({
-				traces: [],
+				trades: [],
 				rate: null,
 				loading: false,
-				error: String(error && error.message ? error.message : error),
+				error: messageOf(error),
 				stale: false
 			});
 		});
@@ -4908,209 +4939,167 @@ function DecisionMind(props) {
 	}, [props.sessionId]);
 	useEffect(() => {
 		if (data.loading) return;
-		const el = document.querySelector(".dmt");
-		if (!el) return;
-		let scroller = el;
-		while (scroller.parentElement && scroller.scrollHeight <= scroller.clientHeight + 1) scroller = scroller.parentElement;
-		if (ui.scrollTop > 0 && scroller.scrollHeight > scroller.clientHeight + 1) scroller.scrollTop = ui.scrollTop;
+		const root = rootRef.current;
+		if (root === null) return;
+		let scroller = root;
+		while (scroller.parentElement !== null && scroller.scrollHeight <= scroller.clientHeight + 1) scroller = scroller.parentElement;
+		if (scrollTop > 0 && scroller.scrollHeight > scroller.clientHeight + 1) scroller.scrollTop = scrollTop;
 		const onScroll = () => {
-			acts.setScrollTop(scroller.scrollTop);
+			actions.setScrollTop(scroller.scrollTop);
 		};
 		scroller.addEventListener("scroll", onScroll, { passive: true });
 		return () => {
 			scroller.removeEventListener("scroll", onScroll);
 		};
 	}, [data.loading]);
-	if (data.error) return h("div", { className: "dmt" }, h("div", { className: "empty" }, "Decision Mind: " + data.error));
-	if (data.loading) return h("div", { className: "dmt" }, h("div", { className: "top" }, h("div", { className: "tt" }, "决策轨迹"), h("div", { className: "ts" }, "真实成交 × 决策账本 × T+1 结果")), h("div", { className: "list" }, h(SkeletonRow, { key: "sk1" }), h(SkeletonRow, { key: "sk2" }), h(SkeletonRow, { key: "sk3" })));
-	const traces = data.traces.map(_displayEntry);
-	let filtered = traces.slice();
-	if (ui.filter === "miss") filtered = filtered.filter((t) => !t.decision);
-	if (ui.filter === "sold") filtered = filtered.filter((t) => t.action === "sell");
-	if (ui.filter === "dec") filtered = filtered.filter((t) => t.decision);
-	const usd = traces.filter((t) => t.realizedPnl != null && t.currency === "USD").reduce((s, t) => s + t.realizedPnl, 0);
-	const hkd = traces.filter((t) => t.realizedPnl != null && t.currency === "HKD").reduce((s, t) => s + t.realizedPnl, 0);
-	const fx = data.rate;
-	const totalUsd = usd + (fx ? hkd / fx : 0);
-	const t1Rated = traces.filter((t) => t.t1).length;
-	const fw = traces.filter((t) => t.t1 && t.t1.verdict === "卖飞").length;
-	const ok = traces.filter((t) => t.t1 && t.t1.verdict === "卖对").length;
-	const matched = traces.filter((t) => t.decision).length;
+	if (data.error !== null) return h("div", {
+		className: cx("dmt"),
+		ref: rootRef
+	}, h("div", { className: cx("empty") }, "Decision Mind: " + data.error));
+	if (data.loading) return h("div", {
+		className: cx("dmt"),
+		ref: rootRef
+	}, h("div", { className: cx("top") }, h("div", { className: cx("tt") }, "决策轨迹"), h("div", { className: cx("ts") }, "真实成交 × 决策账本 × T+1 结果")), h("div", { className: cx("list") }, h(SkeletonRow, { key: "sk1" }), h(SkeletonRow, { key: "sk2" }), h(SkeletonRow, { key: "sk3" })));
+	const traces = data.trades.map(_displayEntry);
+	let filtered = traces;
+	if (filter === "miss") filtered = traces.filter((trace) => trace.decision === null);
+	if (filter === "sold") filtered = traces.filter((trace) => trace.action === "sell");
+	if (filter === "dec") filtered = traces.filter((trace) => trace.decision !== null);
+	const sumRealized = (currency) => traces.filter((trace) => trace.realizedPnl !== null && trace.currency === currency).reduce((sum, trace) => sum + (trace.realizedPnl ?? 0), 0);
+	const rate = data.rate;
+	const totalUsd = sumRealized("USD") + (rate === null ? 0 : sumRealized("HKD") / rate);
+	const t1Rated = traces.filter((trace) => trace.t1 !== null).length;
+	const soldEarly = traces.filter((trace) => trace.t1?.verdict === "卖飞").length;
+	const soldRight = traces.filter((trace) => trace.t1?.verdict === "卖对").length;
+	const matched = traces.filter((trace) => trace.decision !== null).length;
 	const groups = {};
-	filtered.forEach((t) => {
-		const k = (t.date || "").slice(0, 10);
-		(groups[k] = groups[k] || []).push(t);
-	});
-	const dates = Object.keys(groups).sort().reverse();
-	const todayIso = (() => {
-		const n = /* @__PURE__ */ new Date();
-		return n.getFullYear() + "-" + String(n.getMonth() + 1).padStart(2, "0") + "-" + String(n.getDate()).padStart(2, "0");
-	})();
-	function rel(iso) {
-		if (iso === todayIso) return "今天";
-		const y = (d) => /* @__PURE__ */ new Date(d + "T00:00:00");
-		const diff = Math.round((y(todayIso).getTime() - y(iso).getTime()) / 864e5);
-		if (diff === 1) return "昨天";
-		if (diff >= 2 && diff <= 7) return diff + "天前";
-		return parseInt(iso.slice(5, 7)) + "月" + parseInt(iso.slice(8, 10)) + "日";
+	for (const trace of filtered) {
+		const day = (trace.date ?? "").slice(0, 10);
+		(groups[day] ??= []).push(trace);
 	}
-	const TRACE_FOLD_GROUPS = 3;
-	const BATCH_GROUPS = 5;
-	const visibleDates = dates.slice(0, ui.visibleDateCount);
-	const moreFills = dates.slice(ui.visibleDateCount, ui.visibleDateCount + BATCH_GROUPS).reduce((sum, d) => sum + groups[d].length, 0);
-	function renderDate(date) {
-		const folded = ui.foldedDates.indexOf(date) >= 0;
+	const dates = Object.keys(groups).sort().reverse();
+	const today = todayIso();
+	const visibleDates = dates.slice(0, visibleDateCount);
+	const moreFills = dates.slice(visibleDateCount, visibleDateCount + BATCH_GROUPS).reduce((sum, date) => sum + (groups[date]?.length ?? 0), 0);
+	const renderDate = (date) => {
+		const folded = foldedDates.indexOf(date) >= 0;
+		const rows = groups[date] ?? [];
 		return h("div", { key: date }, h("div", {
-			className: "day fold",
+			className: cx("day", "fold"),
+			"data-day": date,
 			role: "button",
 			tabIndex: 0,
 			"aria-expanded": folded ? "false" : "true",
 			onClick: () => {
-				acts.toggleDate(date);
+				actions.toggleDate(date);
 			},
-			onKeyDown: (e) => {
-				if (e.key === "Enter" || e.key === " ") {
-					e.preventDefault();
-					acts.toggleDate(date);
+			onKeyDown: (event) => {
+				if (event.key === "Enter" || event.key === " ") {
+					event.preventDefault();
+					actions.toggleDate(date);
 				}
 			}
-		}, h("span", { className: "chev" }, folded ? "▸" : "▾"), rel(date), h("span", null, date), h("span", { className: "n" }, groups[date].length)), folded ? null : groups[date].map((t, idx) => {
-			const key = t.ticker + t.date + t.shares + ":" + idx;
+		}, h("span", { className: cx("chev") }, folded ? "▸" : "▾"), relativeDay(date, today), h("span", null, date), h("span", { className: cx("n") }, rows.length)), folded ? null : rows.map((trace, index) => {
+			const key = trace.ticker + trace.date + trace.shares + ":" + index;
 			return h(TraceCell, {
 				key,
-				trace: t,
-				open: ui.open === key,
+				trace,
+				open: open === key,
 				onToggle: () => {
-					acts.toggleOpen(key);
+					actions.toggleOpen(key);
 				},
-				onKeyDown: (e) => {
-					if (e.key === "Enter" || e.key === " ") {
-						e.preventDefault();
-						acts.toggleOpen(key);
+				onKeyDown: (event) => {
+					if (event.key === "Enter" || event.key === " ") {
+						event.preventDefault();
+						actions.toggleOpen(key);
 					}
 				}
 			});
 		}));
-	}
-	let moreBtn = null;
-	if (visibleDates.length < dates.length) moreBtn = h("button", {
+	};
+	let moreButton = null;
+	if (visibleDates.length < dates.length) moreButton = h("button", {
 		key: "more",
-		className: "trace-more",
+		className: cx("trace-more"),
 		onClick: () => {
-			acts.showMoreDates(BATCH_GROUPS);
+			actions.showMoreDates(BATCH_GROUPS);
 		}
 	}, "显示更早的 " + moreFills + " 笔成交");
-	else if (ui.visibleDateCount > TRACE_FOLD_GROUPS) moreBtn = h("button", {
+	else if (visibleDateCount > DEFAULT_VISIBLE_DATES) moreButton = h("button", {
 		key: "more",
-		className: "trace-more",
+		className: cx("trace-more"),
 		onClick: () => {
-			acts.resetDates();
+			actions.resetDates();
 		}
 	}, "收起,只显示最近 3 组");
 	let body;
-	if (!filtered.length) body = h("div", { className: "empty" }, "没有符合条件的成交");
+	if (filtered.length === 0) body = h("div", { className: cx("empty") }, "没有符合条件的成交");
 	else {
 		const kids = visibleDates.map(renderDate);
-		if (moreBtn) kids.push(moreBtn);
+		if (moreButton !== null) kids.push(moreButton);
 		body = h("div", null, kids);
 	}
-	const stats = h("div", { className: "stats" }, h("div", { className: "sg" }, h("span", { className: "sl" }, "已实现 (USD 等值)"), h("span", { className: "sv focus " + (totalUsd >= 0 ? "up" : "down") }, fmtMoney(totalUsd))), h("div", { className: "sg" }, h("span", { className: "sl" }, "T+1 卖飞/卖对 · 基于 " + t1Rated + " 笔"), h("span", { className: "sv" }, h("span", { className: "down" }, fw), " / ", h("span", { className: "up" }, ok))), h("div", { className: "sg" }, h("span", { className: "sl" }, "决策挂接"), h("span", { className: "sv" }, matched + "/" + traces.length)), fx ? h("span", { className: "rate" }, traces.length + " 笔成交 · @" + fx) : h("span", { className: "rate" }, traces.length + " 笔成交"));
-	const filters = h("div", { className: "filters" }, [
+	const stats = h("div", { className: cx("stats") }, h("div", { className: cx("sg") }, h("span", { className: cx("sl") }, "已实现 (USD 等值)"), h("span", { className: cx("sv", "focus", totalUsd >= 0 ? "up" : "down") }, fmtMoney(totalUsd))), h("div", { className: cx("sg") }, h("span", { className: cx("sl") }, "T+1 卖飞/卖对 · 基于 " + t1Rated + " 笔"), h("span", { className: cx("sv") }, h("span", { className: cx("down") }, soldEarly), " / ", h("span", { className: cx("up") }, soldRight))), h("div", { className: cx("sg") }, h("span", { className: cx("sl") }, "决策挂接"), h("span", { className: cx("sv") }, matched + "/" + traces.length)), h("span", { className: cx("rate") }, traces.length + " 笔成交" + (rate === null ? "" : " · @" + rate)));
+	const filters = h("div", { className: cx("filters") }, [
 		"all",
 		"miss",
 		"sold",
 		"dec"
-	].map((f) => {
-		const label = {
-			all: "全部",
-			miss: "无决策",
-			sold: "卖出复盘",
-			dec: "挂接决策"
-		}[f];
-		return h("button", {
-			key: f,
-			className: "ft" + (ui.filter === f ? " on" : ""),
-			onClick: () => {
-				acts.setFilter(f);
-			}
-		}, label);
-	}));
-	return h("div", { className: "dmt" }, h("div", { className: "top" }, h("div", { className: "tt" }, "决策轨迹"), h("div", { className: "ts" }, "真实成交 × 决策账本 × T+1 结果" + (data.stale ? " · 更新失败,显示此前快照" : "")), stats, filters), h("div", { className: "list" }, body));
+	].map((value) => h("button", {
+		key: value,
+		className: cx("ft", filter === value && "on"),
+		onClick: () => {
+			actions.setFilter(value);
+		}
+	}, FILTER_LABEL[value])));
+	return h("div", {
+		className: cx("dmt"),
+		ref: rootRef
+	}, h("div", { className: cx("top") }, h("div", { className: cx("tt") }, "决策轨迹"), h("div", { className: cx("ts") }, "真实成交 × 决策账本 × T+1 结果" + (data.stale ? " · 更新失败,显示此前快照" : "")), stats, filters), h("div", { className: cx("list") }, body));
 }
 /** Services required by the registration and the mounted Remote face. */
 const inject = ["slots", "remote"];
-/**
-* Per-session UI state that survives tab unmounts: the ring remounts the
-* view on every switch (`only: active.id`), so open row / filter / batch /
-* folded days / scroll position must live in the official registration store
-* (kept alive for the registration's lifetime), not in component state.
-*/
-const decisionMindStore = defineStore({
-	init: () => ({
-		filter: "all",
-		open: null,
-		visibleDateCount: 3,
-		foldedDates: [],
-		scrollTop: 0
-	}),
-	actions: {
-		setFilter: (draft, value) => {
-			draft.filter = value;
-		},
-		toggleOpen: (draft, key) => {
-			draft.open = draft.open === key ? null : key;
-		},
-		showMoreDates: (draft, count) => {
-			draft.visibleDateCount = draft.visibleDateCount + count;
-		},
-		resetDates: (draft) => {
-			draft.visibleDateCount = 3;
-		},
-		toggleDate: (draft, date) => {
-			draft.foldedDates = draft.foldedDates.indexOf(date) >= 0 ? draft.foldedDates.filter((d) => d !== date) : draft.foldedDates.concat([date]);
-		},
-		setScrollTop: (draft, value) => {
-			draft.scrollTop = value;
-		}
-	}
-});
-/**
-* Module-level data cache (lives with the module, i.e. across tab mounts):
-* the last fetched trace result keyed by the host's opaque workspaceKey.
-* A mount renders this synchronously — no loading frame — and re-fetches in
-* the background; the host answers a signature hit in µs (its own cache),
-* and an unchanged signature skips the re-render. Single-workspace
-* assumption; a mismatched key is simply a miss.
-*/
-let traceCache = null;
 /** Register the Decision Mind tab into the conversation view ring. */
 async function apply(ctx) {
 	await ctx.remote.$mount(TYPERT_REMOTE);
 	const studioRemote = ctx.get("remote.clawockStudio");
+	let cached = null;
+	const call = async (method, args = []) => {
+		const result = await studioRemote[method](...args);
+		if (!result.ok) throw new Error("clawockStudio." + method + " failed: " + result.error.code + ": " + result.error.message);
+		return result.value;
+	};
+	const injected = () => ({
+		cachedTraces: () => cached,
+		fetchTraces: async () => {
+			const result = await call("traces");
+			const snapshot = {
+				workspaceKey: result.workspaceKey,
+				signature: result.signature,
+				trades: result.trades,
+				rate: result.rate
+			};
+			const changed = cached === null || cached.workspaceKey !== snapshot.workspaceKey || cached.signature !== snapshot.signature;
+			cached = snapshot;
+			return {
+				snapshot,
+				changed
+			};
+		}
+	});
+	const store = createDecisionMindStore();
 	ctx.slots.inject("conversation.view", () => ctx.slots.register({
 		name: "conversation.view",
 		id: "decision-studio",
 		order: 30,
 		label: () => "Decision Mind",
-		store: decisionMindStore,
-		inject: () => {
-			const call = async (method, args) => {
-				const result = await studioRemote[method].apply(studioRemote, args || []);
-				if (!result.ok) throw new Error("clawockStudio." + method + " failed: " + result.error.code + ": " + result.error.message);
-				return result.value;
-			};
-			return {
-				traces: () => call("traces"),
-				ledger: () => call("ledger"),
-				portfolio: () => call("portfolio"),
-				get: (runId) => call("get", [runId])
-			};
-		}
+		store,
+		inject: injected
 	}, DecisionMind));
 }
 //#endregion
 
-    Object.assign(exports, { _displayEntry, apply, inject, t1ChipClass, t1NodeClass });
+    Object.assign(exports, { DecisionMind, _displayEntry, apply, createDecisionMindStore, inject, t1ChipClass, t1NodeClass });
     return module.exports;
   }
 });
