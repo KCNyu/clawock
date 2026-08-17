@@ -1,64 +1,64 @@
 {
-  "generated_at": "2026-08-16T21:55:22.375814+00:00",
+  "generated_at": "2026-08-17T21:58:49.732786+00:00",
   "vix": {
     "symbol": "^VIX",
-    "price": 14.25,
-    "prev": 14.63,
-    "change_pct": -2.6,
-    "as_of": 1786738501,
+    "price": 15.19,
+    "prev": 14.25,
+    "change_pct": 6.6,
+    "as_of": 1786997701,
     "source": "yahoo"
   },
   "treasury_10y": {
     "symbol": "^TNX",
-    "price": 4.696,
-    "prev": 4.641,
-    "change_pct": 1.19,
-    "as_of": 1786733993,
+    "price": 4.724,
+    "prev": 4.696,
+    "change_pct": 0.6,
+    "as_of": 1786993192,
     "source": "yahoo",
-    "yield_pct": 4.696
+    "yield_pct": 4.724
   },
   "dxy": {
     "symbol": "DX-Y.NYB",
-    "price": 99.636,
+    "price": 99.584,
     "prev": 99.667,
-    "change_pct": -0.03,
-    "as_of": 1786741199,
+    "change_pct": -0.08,
+    "as_of": 1787003328,
     "source": "yahoo"
   },
   "fear_greed": {
-    "score": 65.0,
+    "score": 60.0,
     "rating": "greed",
-    "prev_close": 66.1,
-    "prev_1_week": 64.4,
-    "as_of": "2026-08-14T23:59:53+00:00"
+    "prev_close": 65.0,
+    "prev_1_week": 64.7,
+    "as_of": "2026-08-17T21:39:56+00:00"
   },
   "hsi": {
     "symbol": "^HSI",
-    "price": 25116.85,
-    "prev": 25396.51,
-    "change_pct": -1.1,
+    "price": 25453.23,
+    "prev": 25116.85,
+    "change_pct": 1.34,
     "source": "tencent"
   },
   "hstech": {
     "symbol": "^HSTECH",
-    "price": 4707.62,
-    "prev": 4792.39,
-    "change_pct": -1.77,
+    "price": 4782.03,
+    "prev": 4707.62,
+    "change_pct": 1.58,
     "source": "tencent"
   },
   "spx": {
     "symbol": "^GSPC",
-    "price": 7785.76,
-    "prev": 7798.99,
-    "change_pct": -0.17,
-    "as_of": 1786739967,
+    "price": 7745.06,
+    "prev": 7785.76,
+    "change_pct": -0.52,
+    "as_of": 1786999347,
     "source": "yahoo"
   },
   "nasdaq": {
     "symbol": "^IXIC",
-    "price": 26729.16,
-    "prev": 26803.03,
-    "change_pct": -0.28,
+    "price": 26644.91,
+    "prev": 26729.16,
+    "change_pct": -0.32,
     "source": "tencent"
   },
   "fed_press": [
