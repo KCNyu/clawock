@@ -45,8 +45,14 @@ class DecisionPacketSummary(BaseTool):
 
     def execute(self, workspace, *, manifest: str) -> str:
         packet = brief_decision_packet.read_packet(_manifest(workspace, manifest))
+        # The summary budget, not the per-query one. #723 raised the ceiling but
+        # only on packet.py's own CLI path; this tool is what the brief agent
+        # actually calls, and it kept the 24KB default — so the fix was live in
+        # the source and still dead in production, which is the exact shape the
+        # inert-fix rule exists for. The test below pins this call site.
         return brief_decision_packet.bounded_payload(
-            brief_decision_packet.summary_view(packet)
+            brief_decision_packet.summary_view(packet),
+            brief_decision_packet.MAX_SUMMARY_BYTES,
         )
 
 
