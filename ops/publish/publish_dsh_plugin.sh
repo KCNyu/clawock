@@ -91,7 +91,69 @@ test -f "$PKG_DIR/package.json"
 test -f "$PKG_DIR/skills/investment-decision/SKILL.md"
 test -f "$PKG_DIR/lib/typert.remote-client.js"
 
+# The file list the registry copy will be compared against, captured from the
+# same tree that is about to be published.
+expected="$(cd "$PKG_DIR" && node -e '
+const { execFileSync } = require("node:child_process");
+const listed = JSON.parse(execFileSync("npm", ["pack", "--dry-run", "--json"], { encoding: "utf8" }));
+process.stdout.write(JSON.stringify(listed[0].files.map((f) => f.path).sort()));
+')"
+
 (cd "$PKG_DIR" && npm publish --access public)
 
 published="$(cd "$PKG_DIR" && node -p "require('./package.json').version")"
+
+# Publishing "succeeded" is not evidence that the registry now holds this code.
+# #712: npm's clawock-dsh@0.1.5 was a *different* build than the repo's 0.1.5 —
+# same version number, two sets of files — and nobody noticed until a consumer
+# installed a half-working plugin. So download what the registry actually
+# serves and compare it to what was just packed.
+echo "--- verifying the published tarball ---"
+verify="$(mktemp -d)"
+trap 'rm -rf "$verify"' EXIT
+attempt=1
+while :; do
+  set +e
+  # --ignore-scripts: this is untrusted-by-construction downloaded content.
+  npm pack "clawock-dsh@$published" --pack-destination "$verify" --ignore-scripts --silent
+  rc=$?
+  set -e
+  [ "$rc" -eq 0 ] && break
+  if [ "$attempt" -ge 5 ]; then
+    echo "could not download clawock-dsh@$published back from the registry (rc=$rc)" >&2
+    exit "$rc"
+  fi
+  echo "registry does not serve $published yet — retrying in 10s" >&2
+  attempt=$((attempt + 1))
+  sleep 10
+done
+tar -xzf "$verify/clawock-dsh-$published.tgz" -C "$verify"
+EXPECTED_FILES="$expected" node -e '
+const { readFileSync, existsSync } = require("node:fs");
+const { join } = require("node:path");
+const root = join(process.argv[1], "package");
+const expected = JSON.parse(process.env.EXPECTED_FILES);
+const problems = [];
+for (const file of expected) {
+  if (!existsSync(join(root, file))) problems.push(`published tarball is missing ${file}`);
+}
+const manifest = JSON.parse(readFileSync(join(root, "package.json"), "utf8"));
+if (manifest.version !== process.argv[2]) problems.push(`published version is ${manifest.version}`);
+// The #712 fingerprint: the pre-#708 layout had client.js at the tarball root
+// and no ./remote export. Name it explicitly so the failure is legible.
+if (existsSync(join(root, "client.js"))) problems.push("published tarball has a top-level client.js (pre-#708 layout)");
+for (const subpath of ["./typert", "./remote", "./client"]) {
+  if (manifest.exports?.[subpath] === undefined) problems.push(`published manifest lost the ${subpath} export`);
+}
+for (const dependency of Object.keys(JSON.parse(readFileSync(join(process.argv[3], "package.json"), "utf8")).dependencies ?? {})) {
+  if (manifest.dependencies?.[dependency] === undefined) problems.push(`published manifest lost the ${dependency} dependency`);
+}
+if (problems.length > 0) {
+  console.error("published tarball does not match what was packed:");
+  for (const problem of problems) console.error("  - " + problem);
+  process.exit(1);
+}
+console.log(`  ok: ${expected.length} files, version ${manifest.version}, exports and dependencies intact`);
+' "$verify" "$published" "$PKG_DIR"
+
 echo "clawock-dsh@$published published to https://www.npmjs.com/package/clawock-dsh"

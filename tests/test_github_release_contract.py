@@ -190,3 +190,31 @@ def test_the_plugin_lockfile_does_not_bake_in_a_mirror_registry():
     assert hosts == {"registry.npmjs.org"}, (
         f"the lockfile must not bake in a mirror registry unreachable from CI: {sorted(hosts)}"
     )
+
+
+def test_the_publish_verifies_what_the_registry_actually_serves():
+    """`npm publish` exiting 0 is not evidence that the registry holds this code.
+
+    #712: npm's clawock-dsh@0.1.5 was a different build than the repo's 0.1.5 —
+    one version number, two sets of files — and it was found by hand, months
+    later, by unpacking the tarball. #732 asked for that hand check to become an
+    automatic post-publish assertion. Verified against the real 0.1.5 tarball
+    while writing it: the check names the missing lib/, the top-level client.js,
+    the lost ./typert and ./remote exports and the missing zod dependency.
+    """
+    script = (ROOT / "ops" / "publish" / "publish_dsh_plugin.sh").read_text(encoding="utf-8")
+    publish_at = script.index("npm publish --access public")
+    verify_at = script.index("verifying the published tarball")
+    assert publish_at < verify_at, "the verification has to read the registry copy, after publishing"
+
+    tail = script[verify_at:]
+    assert 'npm pack "clawock-dsh@$published"' in tail, (
+        "the check must download what the registry serves, not re-read the local tree"
+    )
+    assert "pre-#708 layout" in tail, "the #712 fingerprint (top-level client.js) must be named"
+    assert "lost the ${dependency} dependency" in tail, (
+        "a published manifest that dropped a runtime dependency is the #708 failure again"
+    )
+    assert "published tarball is missing" in tail, (
+        "every file the pack listed must exist in the registry copy"
+    )
