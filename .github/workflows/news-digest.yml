@@ -21,11 +21,8 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: actions/setup-python@v7
-        with:
-          python-version: '3.11'
-
-      - run: pip install --quiet -e .
+      - name: Set up clawock (Python)
+        uses: ./.github/actions/clawock-python
 
       - name: Fetch news + LLM distill
         env:

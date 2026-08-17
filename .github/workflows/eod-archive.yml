@@ -22,12 +22,8 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Set up Python
-        uses: actions/setup-python@v7
-        with:
-          python-version: '3.11'
-
-      - run: pip install --quiet -e .
+      - name: Set up clawock (Python)
+        uses: ./.github/actions/clawock-python
 
       - name: Append week-end snapshot
         run: |

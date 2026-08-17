@@ -1,0 +1,38 @@
+name: Set up clawock (Python)
+description: >-
+  Install the pinned Python and the clawock distribution the scheduled
+  workflows all need, in one place instead of seven copies.
+
+# Seven scheduled workflows opened with byte-identical steps: setup-python 3.11,
+# then `pip install --quiet -e .`. Seven copies is seven places to forget when
+# the pinned version moves or the install grows an extra, and #751 is what that
+# eventually costs. `actions/checkout` deliberately stays in the caller: it takes
+# per-workflow inputs (fetch-depth, token) and hiding it here would make those
+# invisible at the call site.
+inputs:
+  python-version:
+    description: Python to install. Pinned in one place; override only with a reason.
+    required: false
+    default: '3.11'
+  install:
+    description: >-
+      pip target for the editable install. Pass an extras selector such as
+      `.[compute]` when the job needs the heavier dependency set.
+    required: false
+    default: '.'
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Python
+      uses: actions/setup-python@v7
+      with:
+        python-version: ${{ inputs.python-version }}
+        # Caching keyed on pyproject.toml: the scheduled jobs install the same
+        # dependency set every run, and a cold resolve is most of their runtime.
+        cache: pip
+        cache-dependency-path: pyproject.toml
+
+    - name: Install clawock
+      shell: bash
+      run: pip install --quiet -e '${{ inputs.install }}'

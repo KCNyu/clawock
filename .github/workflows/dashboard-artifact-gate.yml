@@ -6,6 +6,15 @@ on:
   # signal, a validation gate switched off by a change somewhere else entirely.
   # This is the same event the publisher raises for the Pages deploy, so the
   # payload is validated on exactly the generations that reach the site.
+  #
+  # #749 asked to fold this into pages.yml so a bad payload could not deploy.
+  # Deliberately not done: this gate runs *beside* the deploy, not in front of it,
+  # because "a payload failed validation" must not become "the site stops
+  # updating" — detect, never silence. A frozen site is the failure mode this desk
+  # has actually had (a stale generation with every check green), and it is worse
+  # than a visible red DATA badge on a generation the next tick supersedes. The
+  # badge in both READMEs is that visibility, and `tests/
+  # test_dashboard_artifact_gate_contract.py` holds this workflow's shape.
   repository_dispatch:
     types: [data-plane-published]
   workflow_dispatch:

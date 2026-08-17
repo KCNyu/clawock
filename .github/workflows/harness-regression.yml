@@ -95,20 +95,41 @@ jobs:
         # We must NOT path-filter the pull_request trigger itself: a required
         # check that is filtered out never reports and blocks the PR forever
         # (see actionlint.yml). Skipped *steps* count as success, so we gate here.
-        # Only runs on PRs; non-PR events force the steps on via the `if:` below.
+        # Runs on pushes too (#750). It used to be PR-only, with every heavy
+        # step reading `event_name != 'pull_request' || changes...` — which meant
+        # the browser contract and the DSH plugin gates, whose conditions were
+        # written the other way round (`event_name == 'pull_request' && ...`),
+        # could never run on a master push at all. The unit suite did run there
+        # (measured: run 31059122903 on a master push executed "Unit tests —
+        # money-integrity derivations" and skipped only the browser/plugin
+        # steps), so the hole was exactly the two expensive lanes.
         #
         # Keep this path set in sync with the `push:` trigger `paths:` at the top
-        # of this file, except the two core dashboard projections: their frequent
-        # automation commits use
+        # of this file — `test_detector_covers_every_push_trigger_path` now holds
+        # that, because the claim was already false: `ops/**` and
+        # `skills/tavily-search/**` triggered the workflow and then matched
+        # nothing here, so a PR touching only those skipped the entire suite
+        # while `validate` reported green in seconds. Except the two core
+        # dashboard projections: their frequent automation commits use
         # the cheap dashboard-artifact-gate on master, while a rare dashboard PR
         # still gets the full suite here.
         id: changes
-        if: github.event_name == 'pull_request'
         env:
-          BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          # A PR compares its own base and head. A push compares the range it
+          # pushed. Anything else (`workflow_dispatch`, or a push whose `before`
+          # is the all-zero sha because the ref was just created) has no range to
+          # diff, and answers "everything changed" below — running the whole
+          # suite is the safe direction for a manual run.
+          BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+          HEAD_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
         run: |
           set -euo pipefail
+          if [ -z "${BASE_SHA:-}" ] || [ "${BASE_SHA}" = "0000000000000000000000000000000000000000" ] \
+             || ! git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null; then
+            echo "no diffable base ($BASE_SHA) — treating every lane as changed"
+            { echo "code=true"; echo "ui=true"; echo "dsplugin=true"; } >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
           # --no-renames: a rename OUT of a watched dir (e.g. scripts/x.py ->
           # docs/x.py) must still surface the old path and run the suite, since it
           # can break imports. No --diff-filter, so deletions count too, matching
@@ -124,7 +145,7 @@ jobs:
           while IFS= read -r f; do
             [ -n "$f" ] || continue
             case "$f" in
-              src/*|tests/*|pyproject.toml|portfolio.json|memory/*-plan.json|memory/theses/*|memory/earnings/*|memory/entry-gates/*|assets/data/overview.json|assets/data/dashboard.json|config/*|docs/operations/cron-schedules.md|.github/workflows/*)
+              src/*|ops/*|tests/*|pyproject.toml|portfolio.json|memory/*-plan.json|memory/theses/*|memory/earnings/*|memory/entry-gates/*|assets/data/overview.json|assets/data/dashboard.json|config/*|docs/operations/cron-schedules.md|.github/workflows/*|skills/tavily-search/*)
                 code=true
                 break
                 ;;
@@ -143,13 +164,13 @@ jobs:
           echo "code changed: $code"
 
       - name: Set up Node for dashboard browser contract
-        if: github.event_name == 'pull_request' && steps.changes.outputs.ui == 'true'
+        if: steps.changes.outputs.ui == 'true'
         uses: actions/setup-node@v7
         with:
           node-version: '22'
 
       - name: Install dashboard browser contract runtime
-        if: github.event_name == 'pull_request' && steps.changes.outputs.ui == 'true'
+        if: steps.changes.outputs.ui == 'true'
         run: |
           npm install --no-save --silent playwright@1.60.0
           npx playwright install --with-deps chromium
@@ -159,15 +180,15 @@ jobs:
       # contract loads the real page and would time out waiting for a Hero that
       # never receives its projection.
       - name: Fetch the published generation
-        if: github.event_name == 'pull_request' && steps.changes.outputs.ui == 'true'
+        if: steps.changes.outputs.ui == 'true'
         run: python3 ops/pages/fetch_data_plane.py
 
       - name: Browser contract — Hero, detail tabs, and chart gestures
-        if: github.event_name == 'pull_request' && steps.changes.outputs.ui == 'true'
+        if: steps.changes.outputs.ui == 'true'
         run: node tests/dashboard_tab_runtime.spec.js
 
       - name: Set up Node for Decision Studio plugin contract
-        if: github.event_name == 'pull_request' && steps.changes.outputs.dsplugin == 'true'
+        if: steps.changes.outputs.dsplugin == 'true'
         uses: actions/setup-node@v7
         with:
           node-version: '22'
@@ -178,7 +199,7 @@ jobs:
       # class hash and the bundler's region paths are both package-relative),
       # so a rebuild here must produce a byte-identical tree.
       - name: Decision Studio artifacts match their sources (rebuild is a no-op)
-        if: github.event_name == 'pull_request' && steps.changes.outputs.dsplugin == 'true'
+        if: steps.changes.outputs.dsplugin == 'true'
         env:
           # Same runner hardening as the npm publish job (#732): a lockfile
           # regenerated behind a mirror registry stalls every fetch here and
@@ -200,7 +221,7 @@ jobs:
           }
 
       - name: Decision Studio plugin contract (scan + client bundle registration)
-        if: github.event_name == 'pull_request' && steps.changes.outputs.dsplugin == 'true'
+        if: steps.changes.outputs.dsplugin == 'true'
         run: node tests/decision_studio_plugin.spec.js
 
       # The spec above imports lib/ out of the checkout, where the repo's own
@@ -209,17 +230,17 @@ jobs:
       # production. This gate packs and installs the package standalone, which
       # is the only place that class of defect is visible.
       - name: Decision Studio package contract (standalone install + export entries)
-        if: github.event_name == 'pull_request' && steps.changes.outputs.dsplugin == 'true'
+        if: steps.changes.outputs.dsplugin == 'true'
         run: node tests/dsh_plugin_package_contract.mjs
 
       - name: Set up Python
-        if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'
+        if: steps.changes.outputs.code == 'true'
         uses: actions/setup-python@v7
         with:
           python-version: '3.11'
 
       - name: Install minimal deps
-        if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'
+        if: steps.changes.outputs.code == 'true'
         # numpy is required to *collect* tests/, not just to run one of them:
         # portfolio_risk_metrics imports it at module level, so without it pytest
         # aborts the whole run with a collection error and all 78 tests silently
@@ -230,7 +251,7 @@ jobs:
         run: pip install --quiet -e '.[test]'
 
       - name: Unit tests — money-integrity derivations
-        if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'
+        if: steps.changes.outputs.code == 'true'
         run: |
           python3 -m pytest tests/ -q \
             --cov=clawock.publish.dashboard \
@@ -274,7 +295,7 @@ jobs:
         # Fails the PR when coverage drops below its floors — the badge is only a
         # readout, this is the part that holds. Runs on PRs too (not just the
         # publish job) so a regression is caught before merge, not after.
-        if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'
+        if: steps.changes.outputs.code == 'true'
         run: python3 ops/ci/coverage_badge.py --report coverage-report.json --check-only
 
       - name: Upload coverage report
@@ -290,14 +311,14 @@ jobs:
           retention-days: 1
 
       - name: Generated cron docs match contract
-        if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'
+        if: steps.changes.outputs.code == 'true'
         run: python3 ops/host/generate_cron_docs.py --check
 
       - name: Backtest claims cite a run card that still matches
         # A stale citation is the failure that matters: it points at real
         # evidence which no longer says what the claim says, so it reads as
         # maximally credible while being wrong.
-        if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'
+        if: steps.changes.outputs.code == 'true'
         run: clawock claim-provenance --check
 
       - name: Validate research lifecycle artifacts
@@ -305,11 +326,11 @@ jobs:
         # valid — including that a gate's stated verdict matches the recomputed
         # one. Work items (a due earnings review, an ungated position) only warn
         # in system_check; this step fails on integrity alone.
-        if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'
+        if: steps.changes.outputs.code == 'true'
         run: clawock research --check
 
       - name: Import-check all scripts
-        if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'
+        if: steps.changes.outputs.code == 'true'
         run: |
           set -e
           find src ops -type f -name '*.py' -print0 |
@@ -319,7 +340,7 @@ jobs:
           done
 
       - name: argparse-check harness CLIs
-        if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'
+        if: steps.changes.outputs.code == 'true'
         run: |
           set -e
           # `timeout` is the point of this step as much as the exit code. The two
@@ -339,7 +360,7 @@ jobs:
           echo "OK: all argparse parsers loadable"
 
       - name: Schema-validate portfolio.json
-        if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'
+        if: steps.changes.outputs.code == 'true'
         run: |
           python3 << 'PY'
           import json, sys
@@ -356,11 +377,11 @@ jobs:
           PY
 
       - name: Schema-validate canonical instrument registry
-        if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'
+        if: steps.changes.outputs.code == 'true'
         run: python3 -m clawock.portfolio.instruments
 
       - name: Schema-validate memory/*-plan.json
-        if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'
+        if: steps.changes.outputs.code == 'true'
         run: |
           python3 << 'PY'
           import json, glob
@@ -373,7 +394,7 @@ jobs:
           PY
 
       - name: Decision v2 unit tests and ledger audit
-        if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'
+        if: steps.changes.outputs.code == 'true'
         run: |
           python3 -m unittest discover -s tests -p 'test_decision_v2.py' -v
           python3 << 'PY'
@@ -415,7 +436,7 @@ jobs:
           PY
 
       - name: Rebuild dashboard.json and validate
-        if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'
+        if: steps.changes.outputs.code == 'true'
         run: |
           clawock dashboard-build
           clawock validate-sidecar dashboard
@@ -428,7 +449,7 @@ jobs:
           PY
 
       - name: Run build_dashboard sanity
-        if: github.event_name != 'pull_request' || steps.changes.outputs.code == 'true'
+        if: steps.changes.outputs.code == 'true'
         run: |
           # confirm it runs idempotently
           clawock dashboard-build
