@@ -106,7 +106,7 @@ it.
 ### The lockfile must not bake in a mirror registry
 
 npm installs from the lockfile's `resolved` URLs, not from the configured
-registry. Regenerating `examples/dsh/plugin/package-lock.json` on a machine
+registry. Regenerating `examples/dsh/packages/clawock-dsh/package-lock.json` on a machine
 whose npm points at a mirror writes mirror URLs into it — on 2026-08-17 that
 made the v0.1.6 npm job die: the GitHub runner cannot reach
 `mirrors.tencentyun.com`, every tarball fetch stalled through npm's retry
