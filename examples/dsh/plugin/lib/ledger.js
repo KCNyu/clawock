@@ -138,7 +138,10 @@ function readPlans(workspace, limit = 14) {
 	}
 	return { plans };
 }
-const SNAPSHOT_PATTERN = /^(\d{4}-\d{2}-\d{2})\.json$/;
+/** A bar file is `memory/bars/<ticker>.json`; the ticker is a path component. */
+const TICKER_PATTERN = /^[A-Za-z0-9.\-]{1,15}$/;
+/** Bar keys are exchange session dates. */
+const SESSION_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 /**
 * Ordering key for ISO dates (no Date TZ pitfalls). Monotonic, so it is safe
 * for `<`/`>` comparison and sorting — but the *difference* between two of
@@ -202,40 +205,45 @@ function t1VerdictOf(action, delta) {
 	return isSellAction(action) ? up ? "卖飞" : "卖对" : up ? "涨" : "跌";
 }
 /**
-* Price lookup per ticker across daily snapshots: { ticker: { date: price } }.
-* Snapshots carry `current_price` per holding; the newest day with a price
-* after a trade date is its T+1 close.
+* Session close per ticker from the canonical bar store: { ticker: { date: close } }.
+*
+* Reads `memory/bars/<ticker>.json`, the same store the Python settlement path
+* uses — deliberately NOT `memory/snapshots/*.json`.
+*
+* A snapshot is a *portfolio* file whose `current_price` carries the vintage of
+* whichever cron happened to write it. `src/clawock/market_data/bars.py`
+* measured it on 00100 across 15 snapshots: the previous close 7 times, that
+* day's close 3 times, an intraday print 5 times. Worse, the field is carried
+* forward once a position is closed — NVDA sat at a frozen 213 for five
+* straight sessions while its real closes ran 222.32 / 220.61 / 223.47 /
+* 219.51 / 215.33. Settlement migrated off snapshots for exactly this reason;
+* this view stayed behind and marked 82% of its T+1 deltas against a price the
+* rest of the system had already disowned, flipping 10 verdicts outright.
+*
+* Bars are session-dated, unadjusted, and never contain an unfinished session,
+* so a close read here is the same number the ledger settles against. Only the
+* tickers actually traded are read, which is also why this is cheaper than the
+* full snapshot scan it replaces.
+*
+* @param workspace - desk workspace root.
+* @param tickers - the tickers to load; anything else on disk is not read.
 */
-function readSnapshotPrices(workspace) {
+function readBarCloses(workspace, tickers) {
 	const byTicker = {};
-	let files = [];
-	try {
-		files = readdirSync(join(workspace, "memory", "snapshots"));
-	} catch {
-		return byTicker;
-	}
-	for (const name of files) {
-		const m = SNAPSHOT_PATTERN.exec(name);
-		if (!m) continue;
-		const doc = readJson(join(workspace, "memory", "snapshots", name));
+	for (const ticker of new Set(tickers)) {
+		if (!TICKER_PATTERN.test(ticker)) continue;
+		const doc = readJson(join(workspace, "memory", "bars", `${ticker}.json`));
 		if (doc === null || typeof doc !== "object" || Array.isArray(doc)) continue;
-		const portfolios = doc["portfolios"];
-		if (portfolios === null || typeof portfolios !== "object" || Array.isArray(portfolios)) continue;
-		for (const book of Object.values(portfolios)) {
-			if (book === null || typeof book !== "object" || Array.isArray(book)) continue;
-			const holdings = book["holdings"];
-			if (!Array.isArray(holdings)) continue;
-			for (const h of holdings) {
-				if (h === null || typeof h !== "object") continue;
-				const hObj = h;
-				const ticker = hObj["ticker"];
-				const price = hObj["current_price"];
-				if (typeof ticker === "string" && typeof price === "number") {
-					byTicker[ticker] ??= {};
-					byTicker[ticker][m[1]] = price;
-				}
-			}
+		const bars = doc["bars"];
+		if (bars === null || typeof bars !== "object" || Array.isArray(bars)) continue;
+		const closes = {};
+		for (const [date, bar] of Object.entries(bars)) {
+			if (!SESSION_DATE_PATTERN.test(date)) continue;
+			if (bar === null || typeof bar !== "object" || Array.isArray(bar)) continue;
+			const close = bar["close"];
+			if (typeof close === "number" && isFinite(close)) closes[date] = close;
 		}
+		if (Object.keys(closes).length > 0) byTicker[ticker] = closes;
 	}
 	return byTicker;
 }
@@ -338,7 +346,7 @@ function enrichTrade(trade, byTicker, decByTicker, books) {
 */
 function readTraces(workspace) {
 	const { books, trades, lastUpdated, marketContext } = readPortfolio(workspace);
-	const byTicker = readSnapshotPrices(workspace);
+	const byTicker = readBarCloses(workspace, trades.map((t) => t.ticker));
 	const decByKey = {};
 	const { entries } = readLedger(workspace);
 	for (const e of entries) {
@@ -370,4 +378,4 @@ function readTraces(workspace) {
 	};
 }
 //#endregion
-export { T1_FLAT_BAND_PCT, T1_MAX_GAP_DAYS, dayGap, isSellAction, readLedger, readPlans, readPortfolio, readSnapshotPrices, readTraces, t1ToneOf, t1VerdictOf };
+export { T1_FLAT_BAND_PCT, T1_MAX_GAP_DAYS, dayGap, isSellAction, readBarCloses, readLedger, readPlans, readPortfolio, readTraces, t1ToneOf, t1VerdictOf };

@@ -8,19 +8,20 @@ import { createHash } from "node:crypto";
 * typert-protocol dependency, and reused by the benchmark scripts.
 */
 /**
-* Content signature over every snapshot file, not just the newest filename.
+* Content signature over the canonical bar files.
 *
-* `readSnapshotPrices` parses *all* of `memory/snapshots/`, so the signature
-* has to cover all of it. Keying on the newest filename alone missed two real
-* cases: an existing snapshot being recomputed and rewritten, and the current
-* day's file being rewritten repeatedly intraday — in both the name never
-* moves, so a cached trace view would be served indefinitely. A directory
-* mtime was rejected for moving on unrelated churn; per-file `stat` does not
-* have that problem. Measured 1.4ms steady-state for the current 68 files
-* (~8ms on the first cold call), against the ~103ms readTraces it guards.
+* `readBarCloses` reads `memory/bars/<ticker>.json`, so the signature has to
+* cover those. Two rewrite paths matter and neither moves a filename: the
+* daily writer appends the newly closed session to every ticker's file, and a
+* `--repair` run revises a stored bar in place. Keying on anything but the
+* files' own stat would serve a cached trace view straight through both.
+*
+* (Before the store moved to bars this hashed `memory/snapshots/`; the earlier
+* version keyed on the newest snapshot *filename* alone, which missed every
+* in-place rewrite — see #711.)
 */
-function snapshotsSignature(ws) {
-	const dir = join(ws, "memory", "snapshots");
+function barsSignature(ws) {
+	const dir = join(ws, "memory", "bars");
 	let names;
 	try {
 		names = readdirSync(dir).sort();
@@ -39,8 +40,9 @@ function snapshotsSignature(ws) {
 }
 /**
 * Freshness signature over the three sources that feed the trace view:
-* portfolio.json (fills + notes), every snapshot's stat (T+1 closes), and
-* decisions.jsonl (soft pairing). All stat-level reads, no parsing. The
+* portfolio.json (fills + notes), every canonical bar file's stat (T+1
+* closes), and decisions.jsonl (soft pairing). All stat-level reads, no
+* parsing. The
 * enriched trace view is valid to reuse iff this signature is unchanged.
 */
 function workspaceSignature(ws) {
@@ -54,7 +56,7 @@ function workspaceSignature(ws) {
 	};
 	return [
 		sig(join(ws, "portfolio.json")),
-		snapshotsSignature(ws),
+		barsSignature(ws),
 		sig(join(ws, "memory", "decisions.jsonl"))
 	].join("|");
 }
