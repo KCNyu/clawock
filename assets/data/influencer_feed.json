@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-16T21:50:06.022062+00:00",
+  "generated_at": "2026-08-17T13:28:26.884581+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -13,35 +13,114 @@
   },
   "llm_filtered": true,
   "counts": {
-    "total": 14,
-    "held_hits": 4,
-    "new_ideas": 0,
-    "sector_hits": 2
+    "total": 13,
+    "held_hits": 0,
+    "new_ideas": 2,
+    "sector_hits": 7
   },
   "items": [
     {
       "author": "Musk",
-      "text": "Elon Musk Reveals $900 Billion SpaceX Stake, Massive Voting Power",
+      "text": "Nvidia, Alphabet, Peter Thiel: SpaceX Top Shareholders Revealed",
       "url": "",
-      "published": "Fri, 14 Aug 2026 20:49:00 GMT",
+      "published": "Mon, 17 Aug 2026 12:47:00 GMT",
       "origin": "gnews-rss",
       "source": "Investor's Business Daily",
       "tickers": [
-        "SPCX",
-        "SPCH"
+        "NVDA",
+        "GOOGL"
       ],
-      "held": [
+      "held": [],
+      "new_ideas": [
+        "GOOGL",
+        "NVDA"
+      ],
+      "sectors": [
+        "航天",
+        "AI",
+        "私募股权"
+      ],
+      "sector_holdings": [
+        "00100",
         "SPCH",
         "SPCX"
       ],
+      "stance": "neutral",
+      "relevance": 88,
+      "summary_cn": "披露Nvidia、Alphabet和Peter Thiel持有SpaceX股份，NVDA与GOOGL成为直接点名的航天股权关联选股线索。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk’s 5-Word Statement Should Have Every Micron Investor Paying Attention",
+      "url": "",
+      "published": "Mon, 17 Aug 2026 10:39:57 GMT",
+      "origin": "gnews-rss",
+      "source": "247wallst.com",
+      "tickers": [
+        "MU"
+      ],
+      "held": [],
+      "new_ideas": [
+        "MU"
+      ],
+      "sectors": [
+        "半导体",
+        "AI",
+        "内存"
+      ],
+      "sector_holdings": [
+        "00100",
+        "SKHY"
+      ],
+      "stance": "endorse",
+      "relevance": 84,
+      "summary_cn": "Musk一句关于SpaceX 10GW AI计划的表态被解读为Micron投资者需关注AI内存需求，MU成为直接点名的新选股线索。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk’s SpaceX beats earnings expectations with $7.8B revenue surge",
+      "url": "",
+      "published": "Mon, 17 Aug 2026 12:20:37 GMT",
+      "origin": "gnews-rss",
+      "source": "eciks.org",
+      "tickers": [],
+      "held": [],
       "new_ideas": [],
       "sectors": [
         "航天"
       ],
-      "sector_holdings": [],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
       "stance": "endorse",
-      "relevance": 85,
-      "summary_cn": "Musk披露持有SpaceX 9000亿美元股份及巨大投票权，强化SpaceX估值锚定，直接利好SPCX/SPCH。"
+      "relevance": 88,
+      "summary_cn": "SpaceX收入大增78亿美元并超越盈利预期，直接强化kcn现有SpaceX持仓基本面。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk: SpaceX's 10GW AI Bet",
+      "url": "",
+      "published": "Mon, 17 Aug 2026 12:55:37 GMT",
+      "origin": "gnews-rss",
+      "source": "Moomoo",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI",
+        "数据中心",
+        "能源",
+        "航天"
+      ],
+      "sector_holdings": [
+        "00100",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 82,
+      "summary_cn": "Musk称SpaceX将建设10GW AI算力项目，显示其业务向大规模AI数据中心和能源基础设施扩张。"
     },
     {
       "author": "Musk",
@@ -50,109 +129,20 @@
       "published": "Sun, 16 Aug 2026 19:20:00 GMT",
       "origin": "gnews-rss",
       "source": "Yahoo Finance",
-      "tickers": [
-        "SPCX",
-        "SPCH"
-      ],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天/私募"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 75,
-      "summary_cn": "Musk被禁在2027年6月前出售SpaceX股票，但二级市场可能新增60亿股份额，影响SPCX/SPCH流动性预期。"
-    },
-    {
-      "author": "Musk",
-      "text": "Musk discloses 48.4% stake in SpaceX in regulatory filing",
-      "url": "",
-      "published": "Thu, 13 Aug 2026 22:50:09 GMT",
-      "origin": "gnews-rss",
-      "source": "Reuters",
-      "tickers": [
-        "SPCX",
-        "SPCH"
-      ],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 72,
-      "summary_cn": "Musk披露持有SpaceX 48.4%股份，监管文件确认控股地位，利好SPCX/SPCH。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk’s SpaceX Holdings Revealed. (Hint: It’s A Lot.)",
-      "url": "",
-      "published": "Sun, 16 Aug 2026 16:46:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Barron's",
-      "tickers": [
-        "SPCX",
-        "SPCH"
-      ],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 70,
-      "summary_cn": "披露Musk在SpaceX的持股规模巨大，强化SPCX/SPCH底层资产价值叙事。"
-    },
-    {
-      "author": "Trump",
-      "text": "Unmasking the Dual Justice System - Peter Navarro on China's Intrusions and the Weaponization of Government: https://justthenews.com/podcasts/john-solomon-reports/unmasking-dual-justice-system-peter-navarro-chinas-intrusions-and",
-      "url": "https://trumpstruth.org/statuses/40870",
-      "published": "2026-08-15T12:31:30+00:00",
-      "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "中美关系/科技"
+        "航天",
+        "私募股权"
       ],
       "sector_holdings": [
-        "SKHY"
-      ],
-      "stance": "attack",
-      "relevance": 60,
-      "summary_cn": "Navarro抨击中国'入侵'与司法武器化，鹰派对华基调延续，半导体/科技板块承压。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk, the World’s Most Famous EV Pioneer, Is Now Leaning Into Fossil Fuels",
-      "url": "",
-      "published": "Thu, 13 Aug 2026 15:15:00 GMT",
-      "origin": "gnews-rss",
-      "source": "WSJ",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "电动车/化石能源"
-      ],
-      "sector_holdings": [
-        "02208"
+        "SPCH",
+        "SPCX"
       ],
       "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "电动车先驱Musk转向拥抱化石燃料，叙事转向影响Tesla及新能源板块情绪，金风科技等新能源股情绪面承压。"
+      "relevance": 80,
+      "summary_cn": "SpaceX股票直至2027年6月前无法出售，但后续可能新增并流通60亿股，凸显潜在供给与流动性压力。"
     },
     {
       "author": "Trump",
@@ -164,30 +154,62 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "关税/跨境电商"
+        "关税",
+        "进口贸易",
+        "电商"
       ],
-      "sector_holdings": [],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
       "stance": "endorse",
-      "relevance": 65,
-      "summary_cn": "Trump赢得法律战，de minimis低价进口商品仍将被征关税，强化关税壁垒影响Shein/Temu等跨境电商。"
+      "relevance": 78,
+      "summary_cn": "特朗普赢得法律胜利，低价值进口商品仍须缴纳关税，显示其关税政策获得法院支持。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk Has Said He Wants 25% Voting Control of Tesla to Feel Comfortable Leading Its AI Push. Here's What That Threshold Means for Shareholders.",
+      "text": "Elon Musk’s Starbase wants to expand in south Texas",
       "url": "",
-      "published": "Sun, 16 Aug 2026 10:45:00 GMT",
+      "published": "Mon, 17 Aug 2026 09:00:00 GMT",
       "origin": "gnews-rss",
-      "source": "The Motley Fool",
+      "source": "NPR",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "电动车/AI"
+        "航天",
+        "房地产",
+        "得州经济"
       ],
-      "sector_holdings": [],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 72,
+      "summary_cn": "Musk旗下Starbase寻求扩大得州南部业务，显示SpaceX当地基础设施扩张。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk’s SpaceX Holdings Revealed. (Hint: It’s A Lot.)",
+      "url": "",
+      "published": "Mon, 17 Aug 2026 10:33:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Barron's",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
       "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "Musk要求持有Tesla 25%投票权以安心领导其AI转型，治理与AI战略绑定影响股东。"
+      "relevance": 70,
+      "summary_cn": "报道披露Musk持有大量SpaceX权益，虽未上市但强化kcn现有SpaceX持仓关注度。"
     },
     {
       "author": "Trump",
@@ -199,47 +221,36 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "关税/贸易"
+        "关税",
+        "贸易政策"
       ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "Navarro撰文称关税揭露'转运骗局'，为Trump关税政策正当性辩护。"
+      "sector_holdings": [
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "neutral",
+      "relevance": 66,
+      "summary_cn": "文章聚焦Peter Navarro对关税、转运规避及美国贸易政策的批评，涉及关税执法和进口成本。"
     },
     {
       "author": "Trump",
-      "text": "White House report details ‘Great Transshipment Scam’ costing tens of billions in tariff evasion: https://justthenews.com/government/white-house/white-house-report-details-great-transshipment-scam-costing-tens-billions",
-      "url": "https://trumpstruth.org/statuses/40869",
-      "published": "2026-08-15T12:31:50+00:00",
+      "text": "Trump Effect: Prescription Drug Prices Fall At Record-Breaking Pace: https://www.breitbart.com/economy/2026/08/12/trump-effect-prescription-drug-prices-fall-for-fifth-month-this-year/",
+      "url": "https://trumpstruth.org/statuses/40896",
+      "published": "2026-08-16T13:27:55+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "关税/贸易"
+        "制药",
+        "医疗政策",
+        "药品价格"
       ],
       "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "白宫报告详述'转运骗局'造成数百亿美元关税逃避，涉及中国转口贸易监管。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk’s $158 billion Tesla pay was 2.5 million times his workers’ salary last year",
-      "url": "",
-      "published": "Fri, 14 Aug 2026 15:36:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Fortune",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "电动车/薪酬治理"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "Musk的Tesla 1580亿美元薪酬是其员工平均年薪的250万倍，引发CEO薪酬与治理争议。"
+      "stance": "endorse",
+      "relevance": 68,
+      "summary_cn": "报道称特朗普政策推动处方药价格连续五个月以创纪录速度下降，强化药品降价与监管主题。"
     },
     {
       "author": "Trump",
@@ -251,12 +262,30 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "宏观"
+        "美国股市"
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 50,
-      "summary_cn": "Trump吹嘘任内股市创纪录81个新高、19.2万亿投资，利好整体风险情绪。"
+      "relevance": 62,
+      "summary_cn": "特朗普宣称任内美股创历史新高并出现81个创纪录交易日，为美国股市表现背书。"
+    },
+    {
+      "author": "Trump",
+      "text": "Trump Bump: Tax refunds jumped 17% after president’s signature law, GAO reports: https://justthenews.com/government/federal-agencies/total-tax-refunds-issued-2025-jumped-17-compared-2024-paper-check",
+      "url": "https://trumpstruth.org/statuses/40915",
+      "published": "2026-08-17T10:55:03+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "美国税收",
+        "财政政策"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 58,
+      "summary_cn": "特朗普政府标志性税法实施后，美国税收退款同比大增17%，体现其财政政策带来的消费支持效应。"
     },
     {
       "author": "Musk",
@@ -269,55 +298,121 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "薪酬治理"
+        "公司治理",
+        "高管薪酬"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 45,
-      "summary_cn": "Musk天价薪酬推高全行业CEO薪酬至历史新高，治理风险信号。"
+      "relevance": 55,
+      "summary_cn": "报道指出Musk薪酬安排推高CEO整体薪酬纪录，涉及大型科技企业治理与薪酬议题。"
+    }
+  ],
+  "held_hits": [],
+  "new_ideas": [
+    {
+      "author": "Musk",
+      "text": "Nvidia, Alphabet, Peter Thiel: SpaceX Top Shareholders Revealed",
+      "url": "",
+      "published": "Mon, 17 Aug 2026 12:47:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Investor's Business Daily",
+      "tickers": [
+        "NVDA",
+        "GOOGL"
+      ],
+      "held": [],
+      "new_ideas": [
+        "GOOGL",
+        "NVDA"
+      ],
+      "sectors": [
+        "航天",
+        "AI",
+        "私募股权"
+      ],
+      "sector_holdings": [
+        "00100",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "neutral",
+      "relevance": 88,
+      "summary_cn": "披露Nvidia、Alphabet和Peter Thiel持有SpaceX股份，NVDA与GOOGL成为直接点名的航天股权关联选股线索。"
     },
     {
-      "author": "Trump",
-      "text": "Trump Effect: Prescription Drug Prices Fall At Record-Breaking Pace: https://www.breitbart.com/economy/2026/08/12/trump-effect-prescription-drug-prices-fall-for-fifth-month-this-year/",
-      "url": "https://trumpstruth.org/statuses/40896",
-      "published": "2026-08-16T13:27:55+00:00",
-      "origin": "truthsocial",
+      "author": "Musk",
+      "text": "Elon Musk’s 5-Word Statement Should Have Every Micron Investor Paying Attention",
+      "url": "",
+      "published": "Mon, 17 Aug 2026 10:39:57 GMT",
+      "origin": "gnews-rss",
+      "source": "247wallst.com",
+      "tickers": [
+        "MU"
+      ],
+      "held": [],
+      "new_ideas": [
+        "MU"
+      ],
+      "sectors": [
+        "半导体",
+        "AI",
+        "内存"
+      ],
+      "sector_holdings": [
+        "00100",
+        "SKHY"
+      ],
+      "stance": "endorse",
+      "relevance": 84,
+      "summary_cn": "Musk一句关于SpaceX 10GW AI计划的表态被解读为Micron投资者需关注AI内存需求，MU成为直接点名的新选股线索。"
+    }
+  ],
+  "sector_hits": [
+    {
+      "author": "Musk",
+      "text": "Elon Musk’s SpaceX beats earnings expectations with $7.8B revenue surge",
+      "url": "",
+      "published": "Mon, 17 Aug 2026 12:20:37 GMT",
+      "origin": "gnews-rss",
+      "source": "eciks.org",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "医药/医保"
+        "航天"
       ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 45,
-      "summary_cn": "Trump宣称处方药价格连续第五个月创纪录下降，医保政策利好消费者但压制药企定价权。"
-    }
-  ],
-  "held_hits": [
-    {
-      "author": "Musk",
-      "text": "Elon Musk Reveals $900 Billion SpaceX Stake, Massive Voting Power",
-      "url": "",
-      "published": "Fri, 14 Aug 2026 20:49:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Investor's Business Daily",
-      "tickers": [
-        "SPCX",
-        "SPCH"
-      ],
-      "held": [
+      "sector_holdings": [
         "SPCH",
         "SPCX"
       ],
+      "stance": "endorse",
+      "relevance": 88,
+      "summary_cn": "SpaceX收入大增78亿美元并超越盈利预期，直接强化kcn现有SpaceX持仓基本面。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk: SpaceX's 10GW AI Bet",
+      "url": "",
+      "published": "Mon, 17 Aug 2026 12:55:37 GMT",
+      "origin": "gnews-rss",
+      "source": "Moomoo",
+      "tickers": [],
+      "held": [],
       "new_ideas": [],
       "sectors": [
+        "AI",
+        "数据中心",
+        "能源",
         "航天"
       ],
-      "sector_holdings": [],
+      "sector_holdings": [
+        "00100",
+        "SPCH",
+        "SPCX"
+      ],
       "stance": "endorse",
-      "relevance": 85,
-      "summary_cn": "Musk披露持有SpaceX 9000亿美元股份及巨大投票权，强化SpaceX估值锚定，直接利好SPCX/SPCH。"
+      "relevance": 82,
+      "summary_cn": "Musk称SpaceX将建设10GW AI算力项目，显示其业务向大规模AI数据中心和能源基础设施扩张。"
     },
     {
       "author": "Musk",
@@ -326,112 +421,109 @@
       "published": "Sun, 16 Aug 2026 19:20:00 GMT",
       "origin": "gnews-rss",
       "source": "Yahoo Finance",
-      "tickers": [
-        "SPCX",
-        "SPCH"
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "私募股权"
       ],
-      "held": [
+      "sector_holdings": [
         "SPCH",
         "SPCX"
       ],
-      "new_ideas": [],
-      "sectors": [
-        "航天/私募"
-      ],
-      "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 75,
-      "summary_cn": "Musk被禁在2027年6月前出售SpaceX股票，但二级市场可能新增60亿股份额，影响SPCX/SPCH流动性预期。"
+      "relevance": 80,
+      "summary_cn": "SpaceX股票直至2027年6月前无法出售，但后续可能新增并流通60亿股，凸显潜在供给与流动性压力。"
     },
-    {
-      "author": "Musk",
-      "text": "Musk discloses 48.4% stake in SpaceX in regulatory filing",
-      "url": "",
-      "published": "Thu, 13 Aug 2026 22:50:09 GMT",
-      "origin": "gnews-rss",
-      "source": "Reuters",
-      "tickers": [
-        "SPCX",
-        "SPCH"
-      ],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 72,
-      "summary_cn": "Musk披露持有SpaceX 48.4%股份，监管文件确认控股地位，利好SPCX/SPCH。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk’s SpaceX Holdings Revealed. (Hint: It’s A Lot.)",
-      "url": "",
-      "published": "Sun, 16 Aug 2026 16:46:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Barron's",
-      "tickers": [
-        "SPCX",
-        "SPCH"
-      ],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 70,
-      "summary_cn": "披露Musk在SpaceX的持股规模巨大，强化SPCX/SPCH底层资产价值叙事。"
-    }
-  ],
-  "new_ideas": [],
-  "sector_hits": [
     {
       "author": "Trump",
-      "text": "Unmasking the Dual Justice System - Peter Navarro on China's Intrusions and the Weaponization of Government: https://justthenews.com/podcasts/john-solomon-reports/unmasking-dual-justice-system-peter-navarro-chinas-intrusions-and",
-      "url": "https://trumpstruth.org/statuses/40870",
-      "published": "2026-08-15T12:31:30+00:00",
+      "text": "Trump wins legal battle to keep cheap imports subject to tariffs: https://www.axios.com/2026/08/13/trump-de-minimis-tariff-court",
+      "url": "https://trumpstruth.org/statuses/40892",
+      "published": "2026-08-16T13:24:11+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "中美关系/科技"
+        "关税",
+        "进口贸易",
+        "电商"
       ],
       "sector_holdings": [
-        "SKHY"
+        "RKLX",
+        "SPCH",
+        "SPCX"
       ],
-      "stance": "attack",
-      "relevance": 60,
-      "summary_cn": "Navarro抨击中国'入侵'与司法武器化，鹰派对华基调延续，半导体/科技板块承压。"
+      "stance": "endorse",
+      "relevance": 78,
+      "summary_cn": "特朗普赢得法律胜利，低价值进口商品仍须缴纳关税，显示其关税政策获得法院支持。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk, the World’s Most Famous EV Pioneer, Is Now Leaning Into Fossil Fuels",
+      "text": "Elon Musk’s Starbase wants to expand in south Texas",
       "url": "",
-      "published": "Thu, 13 Aug 2026 15:15:00 GMT",
+      "published": "Mon, 17 Aug 2026 09:00:00 GMT",
       "origin": "gnews-rss",
-      "source": "WSJ",
+      "source": "NPR",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "电动车/化石能源"
+        "航天",
+        "房地产",
+        "得州经济"
       ],
       "sector_holdings": [
-        "02208"
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 72,
+      "summary_cn": "Musk旗下Starbase寻求扩大得州南部业务，显示SpaceX当地基础设施扩张。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk’s SpaceX Holdings Revealed. (Hint: It’s A Lot.)",
+      "url": "",
+      "published": "Mon, 17 Aug 2026 10:33:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Barron's",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
       ],
       "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "电动车先驱Musk转向拥抱化石燃料，叙事转向影响Tesla及新能源板块情绪，金风科技等新能源股情绪面承压。"
+      "relevance": 70,
+      "summary_cn": "报道披露Musk持有大量SpaceX权益，虽未上市但强化kcn现有SpaceX持仓关注度。"
+    },
+    {
+      "author": "Trump",
+      "text": "Peter Navarro: It Was a Great Scam While It Lasted: https://www.nytimes.com/2026/08/13/opinion/us-tariffs-economy-trade-transshipment-scam.html",
+      "url": "https://trumpstruth.org/statuses/40902",
+      "published": "2026-08-16T13:25:16+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "关税",
+        "贸易政策"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "neutral",
+      "relevance": 66,
+      "summary_cn": "文章聚焦Peter Navarro对关税、转运规避及美国贸易政策的批评，涉及关税执法和进口成本。"
     }
   ]
 }
