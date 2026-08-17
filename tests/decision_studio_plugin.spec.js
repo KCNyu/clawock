@@ -652,47 +652,54 @@ test("client: stylesheet keeps the dark-theme and tone contract (#704/#685 regre
 test("readTraces: a close outside the T+1 window is not a T+1 verdict (#710)", async () => {
   const ledger = await import(pathToFileURL(path.join(PLUGIN, "lib", "ledger.js")).href);
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "clawock-t1-"));
-  const snaps = path.join(root, "memory", "snapshots");
-  fs.mkdirSync(snaps, { recursive: true });
+  const bars = path.join(root, "memory", "bars");
+  fs.mkdirSync(bars, { recursive: true });
   const desk = (tradeDate) => fs.writeFileSync(path.join(root, "portfolio.json"), JSON.stringify({
     portfolios: { hk_stocks: { currency: "HKD", holdings: [
       { ticker: "00700", shares: 10, current_price: 100,
         trades: [{ date: tradeDate, action: "buy", shares: 10, price: 100 }] },
     ] } },
   }));
-  const snapshot = (date, price) => fs.writeFileSync(
-    path.join(snaps, `${date}.json`),
-    JSON.stringify({ portfolios: { hk: { holdings: [{ ticker: "00700", current_price: price }] } } }),
-  );
+  // Closes come from the canonical bar store, not from portfolio snapshots
+  // (#717): one file per ticker, keyed by exchange session.
+  const closes = {};
+  const close = (date, price) => {
+    closes[date] = { open: price, high: price, low: price, close: price };
+    fs.writeFileSync(path.join(bars, "00700.json"), JSON.stringify({ bars: closes }));
+  };
+  const dropClose = (date) => {
+    delete closes[date];
+    fs.writeFileSync(path.join(bars, "00700.json"), JSON.stringify({ bars: closes }));
+  };
   const t1Of = () => ledger.readTraces(root).trades[0].t1;
   try {
     // Next calendar day — the plain T+1 case.
     desk("2026-08-10");
-    snapshot("2026-08-11", 110);
+    close("2026-08-11", 110);
     assert.ok(t1Of(), "an adjacent close is a T+1 verdict");
     assert.equal(t1Of().delta, 10);
 
     // Friday fill settling against Monday: 3 days, still T+1.
-    fs.rmSync(path.join(snaps, "2026-08-11.json"));
+    dropClose("2026-08-11");
     desk("2026-08-07");
-    snapshot("2026-08-10", 110);
+    close("2026-08-10", 110);
     assert.ok(t1Of(), "a weekend gap is still T+1 (Fri fill → Mon close)");
 
     // The regression this guards: the only close we own is months later. It
     // used to be returned and rendered under a literal "T+1" label — on live
     // data that reached +144 days for fills predating the snapshot series.
-    fs.rmSync(path.join(snaps, "2026-08-10.json"));
+    dropClose("2026-08-10");
     desk("2026-03-02");
-    snapshot("2026-08-10", 110);
+    close("2026-08-10", 110);
     assert.equal(t1Of(), null, "a close +161 days out must not be a T+1 verdict (#710)");
 
     // And the boundary itself: 4 days in, 5 days out.
-    fs.rmSync(path.join(snaps, "2026-08-10.json"));
+    dropClose("2026-08-10");
     desk("2026-08-10");
-    snapshot("2026-08-14", 110);
+    close("2026-08-14", 110);
     assert.ok(t1Of(), "4 calendar days is inside the window");
-    fs.rmSync(path.join(snaps, "2026-08-14.json"));
-    snapshot("2026-08-15", 110);
+    dropClose("2026-08-14");
+    close("2026-08-15", 110);
     assert.equal(t1Of(), null, "5 calendar days is outside the window");
 
     // dayGap must be real calendar arithmetic, not the ordering key: the
@@ -705,41 +712,93 @@ test("readTraces: a close outside the T+1 window is not a T+1 verdict (#710)", a
   }
 });
 
+test("readBarCloses: T+1 marks against the canonical bar store, never snapshots (#717)", async () => {
+  const ledger = await import(pathToFileURL(path.join(PLUGIN, "lib", "ledger.js")).href);
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "clawock-bars-"));
+  fs.mkdirSync(path.join(root, "memory", "bars"), { recursive: true });
+  fs.mkdirSync(path.join(root, "memory", "snapshots"), { recursive: true });
+  try {
+    fs.writeFileSync(path.join(root, "portfolio.json"), JSON.stringify({
+      portfolios: { us_stocks: { currency: "USD", holdings: [
+        { ticker: "NVDA", shares: 10, current_price: 213,
+          trades: [{ date: "2026-08-10", action: "buy", shares: 10, price: 200 }] },
+      ] } },
+    }));
+    // The snapshot says one thing (a stale carried-forward 213 — the real
+    // shape of the bug: NVDA sat frozen at 213 for five sessions), the
+    // canonical bar says another. The view must read the bar.
+    fs.writeFileSync(path.join(root, "memory", "snapshots", "2026-08-11.json"), JSON.stringify({
+      portfolios: { us: { holdings: [{ ticker: "NVDA", current_price: 213 }] } },
+    }));
+    fs.writeFileSync(path.join(root, "memory", "bars", "NVDA.json"), JSON.stringify({
+      bars: { "2026-08-11": { open: 219, high: 226, low: 218, close: 220.61 } },
+    }));
+
+    const t1 = ledger.readTraces(root).trades[0].t1;
+    assert.ok(t1, "a bar close inside the window is a T+1 verdict");
+    assert.equal(t1.price, 220.61, "the T+1 price is the canonical bar close, not the snapshot quote");
+    assert.equal(t1.delta, 10.31, "delta is marked against the bar close");
+
+    // Only `close` counts — high/low get revised by the provider and are not
+    // what a T+1 mark settles against (all 19 conflicts seen on the 2026-08-17
+    // backfill were high/low, zero were close).
+    fs.writeFileSync(path.join(root, "memory", "bars", "NVDA.json"), JSON.stringify({
+      bars: { "2026-08-11": { open: 219, high: 999, low: 1, close: 220.61 } },
+    }));
+    assert.equal(ledger.readTraces(root).trades[0].t1.delta, 10.31, "a high/low revision must not move the T+1 mark");
+
+    // No bar file for the ticker = no verdict. It must not fall back to the
+    // snapshot that is sitting right there.
+    fs.rmSync(path.join(root, "memory", "bars", "NVDA.json"));
+    assert.equal(ledger.readTraces(root).trades[0].t1, null,
+      "without a canonical bar there is no T+1 — never a snapshot fallback");
+
+    // The ticker is a path component; it must be constrained before the join.
+    const escaped = ledger.readBarCloses(root, ["../../../etc/passwd", "NVDA"]);
+    assert.deepEqual(Object.keys(escaped), [], "a traversal-shaped ticker reads nothing");
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test("freshness: signature moves on each of the three data sources", async () => {
   const freshness = await import(pathToFileURL(path.join(PLUGIN, "lib", "freshness.js")).href);
   const root = makeDesk();
-  fs.mkdirSync(path.join(root, "memory", "snapshots"), { recursive: true });
+  const barsDir = path.join(root, "memory", "bars");
+  fs.mkdirSync(barsDir, { recursive: true });
   try {
     const before = freshness.workspaceSignature(root);
     assert.ok(before.length > 0);
-    assert.equal(before.split("|").length, 3, "shape: portfolio stat | latest snapshot | decisions stat");
-    assert.equal(before.split("|")[1], "none", "no snapshots yet → the snapshot term is 'none'");
+    assert.equal(before.split("|").length, 3, "shape: portfolio stat | bars digest | decisions stat");
+    assert.equal(before.split("|")[1], "none", "no bar files yet → the bars term is 'none'");
 
     // portfolio.json 变化 → 签名变(内容长度不同,size 兜底 mtime 同刻度)
     fs.writeFileSync(path.join(root, "portfolio.json"), JSON.stringify({ last_updated: "changed" }));
     const afterPortfolio = freshness.workspaceSignature(root);
     assert.notEqual(afterPortfolio, before, "portfolio.json change must move the signature");
 
-    // 新快照落盘(T+1 数据源)→ 签名变——这就是 mtime-only 方案管不住的分支
-    fs.writeFileSync(path.join(root, "memory", "snapshots", "2026-08-17.json"), "{}");
-    const afterSnapshot = freshness.workspaceSignature(root);
-    assert.notEqual(afterSnapshot, afterPortfolio, "a NEW snapshot file must move the signature");
+    // 新 ticker 的 bar 文件落盘(T+1 数据源)→ 签名变
+    const barPath = path.join(barsDir, "00700.json");
+    fs.writeFileSync(barPath, JSON.stringify({ bars: { "2026-08-14": { close: 100 } } }));
+    const afterBars = freshness.workspaceSignature(root);
+    assert.notEqual(afterBars, afterPortfolio, "a NEW bar file must move the signature");
 
-    // #711:改写一个【已存在】的快照(文件名不变)也必须让签名变——
-    // readSnapshotPrices 会解析每一个快照,所以签名必须覆盖全部内容而不是
-    // 只看最新文件名。这一条在「只取最新文件名」的旧实现下是红的。
-    const snapPath = path.join(root, "memory", "snapshots", "2026-08-17.json");
+    // #711:改写一个【已存在】的 bar 文件(文件名不变)也必须让签名变。
+    // 这是两条真实路径:每日写入把新收盘的 session 追加进每个 ticker 的文件,
+    // `--repair` 就地修订一根旧 bar。任何只看文件名的签名都会漏掉这两种。
     const beforeRewrite = freshness.workspaceSignature(root);
-    fs.writeFileSync(snapPath, JSON.stringify({ portfolios: { hk: { holdings: [{ ticker: "00700", current_price: 999 }] } } }));
+    fs.writeFileSync(barPath, JSON.stringify({
+      bars: { "2026-08-14": { close: 100 }, "2026-08-17": { close: 111 } },
+    }));
     assert.notEqual(
       freshness.workspaceSignature(root), beforeRewrite,
-      "rewriting an EXISTING snapshot must move the signature (#711)",
+      "appending a session to an EXISTING bar file must move the signature (#711)",
     );
 
     // decisions.jsonl 变化(软配对源)→ 签名变
+    const beforeLedger = freshness.workspaceSignature(root);
     fs.writeFileSync(path.join(root, "memory", "decisions.jsonl"), JSON.stringify({ decision_id: "x" }) + "\n");
-    const afterLedger = freshness.workspaceSignature(root);
-    assert.notEqual(afterLedger, afterSnapshot, "decisions.jsonl change must move the signature");
+    assert.notEqual(freshness.workspaceSignature(root), beforeLedger, "decisions.jsonl change must move the signature");
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }

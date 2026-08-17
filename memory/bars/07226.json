@@ -7,6 +7,906 @@
  "adjustment": "raw",
  "source": "tencent",
  "bars": {
+  "2025-12-01": {
+   "open": 5.36,
+   "high": 5.465,
+   "low": 5.305,
+   "close": 5.405,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2025-12-02": {
+   "open": 5.48,
+   "high": 5.51,
+   "low": 5.33,
+   "close": 5.38,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2025-12-03": {
+   "open": 5.33,
+   "high": 5.34,
+   "low": 5.185,
+   "close": 5.2,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2025-12-04": {
+   "open": 5.235,
+   "high": 5.42,
+   "low": 5.15,
+   "close": 5.36,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2025-12-05": {
+   "open": 5.31,
+   "high": 5.5,
+   "low": 5.235,
+   "close": 5.44,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2025-12-08": {
+   "open": 5.45,
+   "high": 5.53,
+   "low": 5.415,
+   "close": 5.435,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2025-12-09": {
+   "open": 5.46,
+   "high": 5.46,
+   "low": 5.215,
+   "close": 5.225,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2025-12-10": {
+   "open": 5.23,
+   "high": 5.295,
+   "low": 5.135,
+   "close": 5.275,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2025-12-11": {
+   "open": 5.335,
+   "high": 5.365,
+   "low": 5.16,
+   "close": 5.185,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2025-12-12": {
+   "open": 5.305,
+   "high": 5.4,
+   "low": 5.225,
+   "close": 5.37,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2025-12-15": {
+   "open": 5.26,
+   "high": 5.28,
+   "low": 5.105,
+   "close": 5.125,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2025-12-16": {
+   "open": 5.06,
+   "high": 5.09,
+   "low": 4.846,
+   "close": 4.93,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2025-12-17": {
+   "open": 4.94,
+   "high": 5.08,
+   "low": 4.904,
+   "close": 5.03,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2025-12-18": {
+   "open": 4.936,
+   "high": 4.99,
+   "low": 4.864,
+   "close": 4.958,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2025-12-19": {
+   "open": 5.04,
+   "high": 5.125,
+   "low": 4.986,
+   "close": 5.065,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2025-12-22": {
+   "open": 5.12,
+   "high": 5.205,
+   "low": 5.1,
+   "close": 5.14,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2025-12-23": {
+   "open": 5.165,
+   "high": 5.165,
+   "low": 5.04,
+   "close": 5.07,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2025-12-24": {
+   "open": 5.07,
+   "high": 5.145,
+   "low": 5.07,
+   "close": 5.08,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2025-12-29": {
+   "open": 5.095,
+   "high": 5.32,
+   "low": 5.055,
+   "close": 5.06,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2025-12-30": {
+   "open": 5.085,
+   "high": 5.275,
+   "low": 5.085,
+   "close": 5.23,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2025-12-31": {
+   "open": 5.205,
+   "high": 5.23,
+   "low": 5.065,
+   "close": 5.105,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-01-02": {
+   "open": 5.155,
+   "high": 5.56,
+   "low": 5.14,
+   "close": 5.51,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-01-05": {
+   "open": 5.555,
+   "high": 5.615,
+   "low": 5.455,
+   "close": 5.52,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-01-06": {
+   "open": 5.62,
+   "high": 5.795,
+   "low": 5.62,
+   "close": 5.68,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-01-07": {
+   "open": 5.65,
+   "high": 5.675,
+   "low": 5.435,
+   "close": 5.53,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-01-08": {
+   "open": 5.48,
+   "high": 5.48,
+   "low": 5.3,
+   "close": 5.41,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-01-09": {
+   "open": 5.46,
+   "high": 5.535,
+   "low": 5.385,
+   "close": 5.42,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-01-12": {
+   "open": 5.515,
+   "high": 5.765,
+   "low": 5.445,
+   "close": 5.75,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-01-13": {
+   "open": 5.96,
+   "high": 6.03,
+   "low": 5.695,
+   "close": 5.76,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-01-14": {
+   "open": 5.8,
+   "high": 5.965,
+   "low": 5.7,
+   "close": 5.815,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-01-15": {
+   "open": 5.79,
+   "high": 5.835,
+   "low": 5.605,
+   "close": 5.69,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-01-16": {
+   "open": 5.78,
+   "high": 5.81,
+   "low": 5.615,
+   "close": 5.66,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-01-19": {
+   "open": 5.575,
+   "high": 5.635,
+   "low": 5.515,
+   "close": 5.525,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-01-20": {
+   "open": 5.51,
+   "high": 5.56,
+   "low": 5.365,
+   "close": 5.395,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-01-21": {
+   "open": 5.34,
+   "high": 5.595,
+   "low": 5.325,
+   "close": 5.515,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-01-22": {
+   "open": 5.6,
+   "high": 5.625,
+   "low": 5.45,
+   "close": 5.53,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-01-23": {
+   "open": 5.645,
+   "high": 5.65,
+   "low": 5.53,
+   "close": 5.59,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-01-26": {
+   "open": 5.59,
+   "high": 5.59,
+   "low": 5.39,
+   "close": 5.455,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-01-27": {
+   "open": 5.47,
+   "high": 5.55,
+   "low": 5.375,
+   "close": 5.5,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-01-28": {
+   "open": 5.555,
+   "high": 5.795,
+   "low": 5.55,
+   "close": 5.78,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-01-29": {
+   "open": 5.7,
+   "high": 5.78,
+   "low": 5.605,
+   "close": 5.67,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-01-30": {
+   "open": 5.57,
+   "high": 5.6,
+   "low": 5.43,
+   "close": 5.43,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-02-02": {
+   "open": 5.33,
+   "high": 5.33,
+   "low": 4.962,
+   "close": 5.095,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-02-03": {
+   "open": 5.155,
+   "high": 5.17,
+   "low": 4.724,
+   "close": 4.95,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-02-04": {
+   "open": 4.858,
+   "high": 4.898,
+   "low": 4.692,
+   "close": 4.764,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-02-05": {
+   "open": 4.634,
+   "high": 4.862,
+   "low": 4.596,
+   "close": 4.822,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-02-06": {
+   "open": 4.616,
+   "high": 4.82,
+   "low": 4.602,
+   "close": 4.728,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-02-09": {
+   "open": 4.91,
+   "high": 4.924,
+   "low": 4.812,
+   "close": 4.844,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-02-10": {
+   "open": 4.916,
+   "high": 5.035,
+   "low": 4.894,
+   "close": 4.898,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-02-11": {
+   "open": 4.93,
+   "high": 5.035,
+   "low": 4.91,
+   "close": 4.978,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-02-12": {
+   "open": 4.948,
+   "high": 4.95,
+   "low": 4.804,
+   "close": 4.828,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-02-13": {
+   "open": 4.68,
+   "high": 4.778,
+   "low": 4.652,
+   "close": 4.734,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-02-16": {
+   "open": 4.702,
+   "high": 4.75,
+   "low": 4.544,
+   "close": 4.75,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-02-20": {
+   "open": 4.678,
+   "high": 4.726,
+   "low": 4.476,
+   "close": 4.478,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-02-23": {
+   "open": 4.612,
+   "high": 4.822,
+   "low": 4.612,
+   "close": 4.74,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-02-24": {
+   "open": 4.674,
+   "high": 4.674,
+   "low": 4.492,
+   "close": 4.552,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-02-25": {
+   "open": 4.62,
+   "high": 4.646,
+   "low": 4.516,
+   "close": 4.54,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-02-26": {
+   "open": 4.58,
+   "high": 4.58,
+   "low": 4.27,
+   "close": 4.27,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-02-27": {
+   "open": 4.278,
+   "high": 4.396,
+   "low": 4.254,
+   "close": 4.32,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-03-02": {
+   "open": 4.184,
+   "high": 4.234,
+   "low": 4.028,
+   "close": 4.06,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-03-03": {
+   "open": 4.106,
+   "high": 4.128,
+   "low": 3.852,
+   "close": 3.864,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-03-04": {
+   "open": 3.772,
+   "high": 3.882,
+   "low": 3.672,
+   "close": 3.798,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-03-05": {
+   "open": 3.916,
+   "high": 3.93,
+   "low": 3.704,
+   "close": 3.754,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-03-06": {
+   "open": 3.772,
+   "high": 4.03,
+   "low": 3.742,
+   "close": 3.978,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-03-09": {
+   "open": 3.644,
+   "high": 3.976,
+   "low": 3.644,
+   "close": 3.954,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-03-10": {
+   "open": 4.12,
+   "high": 4.164,
+   "low": 3.998,
+   "close": 4.158,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-03-11": {
+   "open": 4.23,
+   "high": 4.268,
+   "low": 4.126,
+   "close": 4.15,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-03-12": {
+   "open": 4.108,
+   "high": 4.204,
+   "low": 4.01,
+   "close": 4.116,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-03-13": {
+   "open": 4.086,
+   "high": 4.14,
+   "low": 3.998,
+   "close": 4.014,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-03-16": {
+   "open": 4.04,
+   "high": 4.268,
+   "low": 3.958,
+   "close": 4.234,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-03-17": {
+   "open": 4.29,
+   "high": 4.446,
+   "low": 4.21,
+   "close": 4.24,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-03-18": {
+   "open": 4.27,
+   "high": 4.288,
+   "low": 4.15,
+   "close": 4.24,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-03-19": {
+   "open": 4.032,
+   "high": 4.174,
+   "low": 4.018,
+   "close": 4.042,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-03-20": {
+   "open": 3.978,
+   "high": 4.058,
+   "low": 3.794,
+   "close": 3.86,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-03-23": {
+   "open": 3.708,
+   "high": 3.748,
+   "low": 3.51,
+   "close": 3.588,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-03-24": {
+   "open": 3.682,
+   "high": 3.786,
+   "low": 3.566,
+   "close": 3.768,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-03-25": {
+   "open": 3.856,
+   "high": 3.956,
+   "low": 3.728,
+   "close": 3.912,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-03-26": {
+   "open": 3.852,
+   "high": 3.87,
+   "low": 3.624,
+   "close": 3.65,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-03-27": {
+   "open": 3.624,
+   "high": 3.77,
+   "low": 3.59,
+   "close": 3.682,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-03-30": {
+   "open": 3.494,
+   "high": 3.598,
+   "low": 3.43,
+   "close": 3.542,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-03-31": {
+   "open": 3.548,
+   "high": 3.618,
+   "low": 3.442,
+   "close": 3.478,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-04-01": {
+   "open": 3.664,
+   "high": 3.686,
+   "low": 3.566,
+   "close": 3.63,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-04-02": {
+   "open": 3.598,
+   "high": 3.61,
+   "low": 3.446,
+   "close": 3.51,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-04-08": {
+   "open": 3.782,
+   "high": 3.912,
+   "low": 3.726,
+   "close": 3.91,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-04-09": {
+   "open": 3.814,
+   "high": 3.838,
+   "low": 3.708,
+   "close": 3.724,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-04-10": {
+   "open": 3.768,
+   "high": 3.91,
+   "low": 3.764,
+   "close": 3.786,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-04-13": {
+   "open": 3.73,
+   "high": 3.764,
+   "low": 3.686,
+   "close": 3.73,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-04-14": {
+   "open": 3.83,
+   "high": 3.854,
+   "low": 3.706,
+   "close": 3.78,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-04-15": {
+   "open": 3.95,
+   "high": 3.97,
+   "low": 3.864,
+   "close": 3.874,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-04-16": {
+   "open": 3.976,
+   "high": 4.166,
+   "low": 3.972,
+   "close": 4.164,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-04-17": {
+   "open": 4.086,
+   "high": 4.122,
+   "low": 4.006,
+   "close": 4.07,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-04-20": {
+   "open": 4.1,
+   "high": 4.172,
+   "low": 4.042,
+   "close": 4.102,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-04-21": {
+   "open": 4.15,
+   "high": 4.15,
+   "low": 4.032,
+   "close": 4.1,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-04-22": {
+   "open": 4.014,
+   "high": 4.014,
+   "low": 3.91,
+   "close": 3.944,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-04-23": {
+   "open": 3.95,
+   "high": 3.95,
+   "low": 3.76,
+   "close": 3.778,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-04-24": {
+   "open": 3.72,
+   "high": 3.854,
+   "low": 3.65,
+   "close": 3.836,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-04-27": {
+   "open": 3.868,
+   "high": 3.946,
+   "low": 3.828,
+   "close": 3.91,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-04-28": {
+   "open": 3.874,
+   "high": 3.884,
+   "low": 3.694,
+   "close": 3.714,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-04-29": {
+   "open": 3.79,
+   "high": 3.86,
+   "low": 3.756,
+   "close": 3.842,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
+  "2026-04-30": {
+   "open": 3.8,
+   "high": 3.82,
+   "low": 3.71,
+   "close": 3.792,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
+  },
   "2026-05-04": {
    "open": 3.908,
    "high": 4.066,
@@ -645,6 +1545,15 @@
    "source": "tencent",
    "adjustment": "raw",
    "fetched_at": "2026-08-13T21:34:06+08:00"
+  },
+  "2026-08-14": {
+   "open": 3.514,
+   "high": 3.518,
+   "low": 3.4,
+   "close": 3.42,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-08-17T09:11:47+08:00"
   }
  },
  "retired": false

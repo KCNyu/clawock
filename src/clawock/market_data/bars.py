@@ -62,7 +62,13 @@ WS = workspace_root(Path.cwd())
 BARS_DIR = WS / "memory" / "bars"
 HKT = ZoneInfo("Asia/Hong_Kong")
 ET = ZoneInfo("America/New_York")
-START_DATE = "2026-05-01"          # decisions start 2026-05-17; a margin gives T-n context
+# Decisions start 2026-05-17, so settlement alone would only need a margin before
+# that. The floor is earlier because the Decision Mind trace view settles *fills*,
+# and the fill log in portfolio.json goes back to 2025-12-23 — with the old
+# 2026-05-01 floor, 51 of 100 fills had no canonical close to mark against and the
+# panel fell back to snapshot `current_price`, the very field this store exists to
+# replace. One month of margin below the oldest fill gives those a T-n context too.
+START_DATE = "2025-12-01"
 SCHEMA_VERSION = 1
 
 # Pinned identities now come from config/instruments.json. `tencent` remains
