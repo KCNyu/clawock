@@ -161,9 +161,14 @@ def test_the_live_context_shape_still_feeds_it():
     up as a quietly empty lane, which is how the three lanes it replaces got lost.
     """
     live = Path("/root/.openclaw/workspace/memory/.tmp/intraday-context-hk-latest.json")
-    if not live.exists():
-        pytest.skip("no live intraday context on this machine")
-    ctx = json.loads(live.read_text())
+    try:
+        # `exists()` is not the question — a CI runner has an unreadable /root that
+        # answers True and then raises on read (this test failed exactly that way
+        # on its first PR run). Try the read and let any OSError mean "not here".
+        raw = live.read_text()
+    except OSError:
+        pytest.skip("no readable live intraday context on this machine")
+    ctx = json.loads(raw)
     for key in ("anomalies", "opportunity_radar", "early_trend_candidates",
                 "mover_news", "mover_thesis", "plan_context"):
         assert key in ctx, f"preflight no longer emits {key}"
