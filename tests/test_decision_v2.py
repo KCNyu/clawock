@@ -854,3 +854,44 @@ class EmptyCalibrationPopulation(unittest.TestCase):
         unsettled["evaluation"] = {}
 
         self.assertIsNone(dv2.compute_metrics([unsettled])["brier"])
+
+
+def test_assign_episode_ids_skips_mind_ledger_rows():
+    """Mind rows carry no plan_date and must not reach the episode keying (#720).
+
+    `memory/decisions.jsonl` holds two row types. Decision Mind writes
+    `schema_version: 0` rows with mind/emotion instead of the plan-decision
+    fields — `validate_decision` already routes them to their own validator.
+    `assign_episode_ids` did not: it subscripted `d["plan_date"]` directly, and
+    `normalize_authored_plan` feeds it the *whole* ledger. The first mind row
+    (2026-08-16) therefore made every brief-fallback run die *after* the LLM
+    had already produced the brief, throwing the result away.
+
+    Reverting to the bare subscript must fail this test.
+    """
+    from clawock.decision.ledger import assign_episode_ids
+
+    mind = {
+        "schema_version": 0, "source": "conversation",
+        "decision_id": "dec-conversation-x",
+        "decided_at": "2026-08-16T14:30:50+08:00",
+        "subject": {"ticker": "00100"},
+    }
+    plan_a = {"decision_id": "d1", "plan_date": "2026-08-10", "ticker": "00100",
+              "strategy_id": "core", "action": "hold"}
+    plan_b = {"decision_id": "d2", "plan_date": "2026-08-12", "ticker": "00100",
+              "strategy_id": "core", "action": "hold"}
+
+    out = assign_episode_ids([plan_a, mind, plan_b])
+
+    # It must not raise, the mind row must stay untouched, and the plan rows
+    # must still group exactly as they did before the mind row existed.
+    assert "episode_id" not in mind, "a mind row has no episode semantics"
+    assert plan_a["episode_id"], "plan rows still get an episode id"
+    assert plan_a["episode_id"] == plan_b["episode_id"], "a 2-day gap is one episode"
+    assert out is not None
+
+    # A plan row missing plan_date degrades (no episode) rather than crashing.
+    broken = {"decision_id": "d3", "ticker": "00100", "strategy_id": "core", "action": "hold"}
+    assign_episode_ids([broken])
+    assert "episode_id" not in broken
