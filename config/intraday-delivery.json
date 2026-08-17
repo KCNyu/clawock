@@ -1,0 +1,6 @@
+{
+  "always_full": true,
+  "note": "2026-08-17 kcn: 暂时每档都发全量,不要 unchanged_receipt 短回执。改回 false(或删掉本文件)即恢复 #532/#533 的语义去重闸。",
+  "set_at": "2026-08-17",
+  "set_by": "kcn"
+}
