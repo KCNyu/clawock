@@ -22,7 +22,11 @@ from PIL import Image
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 FRAME_DIR = os.environ.get("FRAME_DIR", os.path.join(ROOT, ".gifframes"))
-OUT = os.path.join(ROOT, "site", "assets", "dashboard.gif")
+# Overridable so this script can be exercised without writing over the committed
+# animation. It used to be a hardcoded path, which meant the only way to run it
+# for verification was to copy the file into a throwaway directory tree and run
+# the copy — so nothing ever ran the real one outside the weekly cron (#754).
+OUT = os.environ.get("GIF_OUT") or os.path.join(ROOT, "site", "assets", "dashboard.gif")
 
 OW = 640             # output width (frames scaled to this; height follows aspect)
                      # 640 ≈ 2× the README's 300px display = crisp on retina; source
