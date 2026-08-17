@@ -85,7 +85,12 @@ jobs:
     # npm_only dispatches must never touch PyPI: the index already holds that
     # version (exactly the half-published state this mode exists to repair), and
     # re-uploading the same version is a hard failure.
-    if: inputs.npm_only != 'true'
+    #
+    # The input is matched in both representations GitHub has been observed to
+    # deliver (string 'true' via `-f`/UI checkbox, boolean true after schema
+    # normalization): the predicate must hold for both or a dispatch silently
+    # reverts to the default.
+    if: inputs.npm_only != 'true' && inputs.npm_only != true
     runs-on: ubuntu-latest
     timeout-minutes: 10
     # Trusted publishing: PyPI verifies this workflow's OIDC identity, so there is
@@ -111,7 +116,7 @@ jobs:
     # explicit npm_only dispatch runs the npm side alone from any ref — never
     # PyPI and never a GitHub Release.
     needs: build
-    if: (startsWith(github.ref, 'refs/tags/v') || inputs.npm_only == 'true') && inputs.repository != 'testpypi'
+    if: (startsWith(github.ref, 'refs/tags/v') || inputs.npm_only == 'true' || inputs.npm_only == true) && inputs.repository != 'testpypi'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:

@@ -114,12 +114,12 @@ def test_npm_only_dispatch_runs_only_npm_and_never_a_github_release():
     assert "npm_only" in dispatch, "the dispatch must expose the npm-only mode"
 
     publish_job = workflow.split("\n  publish:\n", 1)[1].split("\n  npm:\n", 1)[0]
-    assert "inputs.npm_only != 'true'" in publish_job, (
+    assert "inputs.npm_only != 'true' && inputs.npm_only != true" in publish_job, (
         "npm-only dispatch must never re-upload an already-published PyPI version"
     )
 
     npm_job = workflow.split("\n  npm:\n", 1)[1].split("\n  github-release:\n", 1)[0]
-    assert "inputs.npm_only == 'true'" in npm_job, (
+    assert "inputs.npm_only == 'true' || inputs.npm_only == true" in npm_job, (
         "npm-only dispatch has to enable the npm job from a branch ref"
     )
     assert "tomllib.load(open('pyproject.toml'" in npm_job, (
