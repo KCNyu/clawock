@@ -177,7 +177,7 @@ def test_the_plugin_lockfile_does_not_bake_in_a_mirror_registry():
     must stay on registry.npmjs.org URLs (or carry no resolved overrides at
     all).
     """
-    lock = json.loads((ROOT / "examples" / "dsh" / "plugin" / "package-lock.json").read_text())
+    lock = json.loads((ROOT / "examples" / "dsh" / "packages" / "clawock-dsh" / "package-lock.json").read_text())
     urls = [
         p.get("resolved")
         for p in lock.get("packages", {}).values()

@@ -1,6 +1,6 @@
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
-//#region packages/clawock-dsh/src/ledger.ts
+//#region src/ledger.ts
 /**
 * Read-only readers over the OpenClaw desk's produced data: the shared
 * decision ledger, the portfolio, and recent daily plans. Pure Node, no

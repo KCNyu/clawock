@@ -2,7 +2,7 @@ import { getRun, listRuns } from "./scan.js";
 import { readLedger, readPlans, readPortfolio, readTraces } from "./ledger.js";
 import { createTraceCache, workspaceKeyOf, workspaceSignature } from "./freshness.js";
 import { Remote, TypertRemoteService } from "@deepseek-ai/dsh-typert-protocol";
-//#region packages/clawock-dsh/src/index.ts
+//#region src/index.ts
 /**
 * Read-only Typert Remote gateway over a clawock workspace, powering the
 * Decision Mind conversation-view tab in the DSH web GUI.

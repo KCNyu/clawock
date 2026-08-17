@@ -5,7 +5,7 @@
 > `memory/decisions.jsonl`。本文件按实况重写,依据:
 > `src/clawock/decision/record.py`(唯一写入方)、
 > `src/clawock/decision/ledger.py`(校验路由与结算)、
-> `examples/dsh/plugin/client.js` + `lib/*.js`(DSH 面板)、
+> `examples/dsh/packages/clawock-dsh/client.js` + `lib/*.js`(DSH 面板)、
 > `examples/openclaw/SKILL.md`、`examples/claude-code/CLAUDE.md`、
 > `examples/codex/AGENTS.md`(各 harness 的调用约定)。
 

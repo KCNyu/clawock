@@ -21,18 +21,24 @@ const path = require("node:path");
 const { pathToFileURL } = require("node:url");
 const test = require("node:test");
 
-const PLUGIN = path.join(__dirname, "..", "examples", "dsh", "plugin");
+const PLUGIN = path.join(__dirname, "..", "examples", "dsh", "packages", "clawock-dsh");
 
-// The bundle injects its stylesheet through `document` at factory time;
-// node:test has no DOM, so provide the minimal surface the factory touches.
-// `injectedStyleText` also feeds the CSS-contract regression test below.
-let injectedStyleText = "";
-globalThis.document = {
-  getElementById() { return null; },
-  createElement() { return { id: "", textContent: "" }; },
-  querySelector() { return null; },
-  head: { appendChild(el) { injectedStyleText = el.textContent || ""; } },
-};
+// No `document` global here on purpose: the bundle must load with no DOM at
+// all (#729 — nothing may touch `document` at module scope). The CSS-contract
+// test below installs a scoped stub for the one assertion that needs the tag.
+async function withDocumentStub(run) {
+  const tags = [];
+  const previous = Object.prototype.hasOwnProperty.call(globalThis, "document")
+    ? globalThis.document : undefined;
+  globalThis.document = {
+    createElement() { return { dataset: {}, textContent: "" }; },
+    querySelector() { return null; },
+    head: { appendChild(el) { tags.push(el); } },
+  };
+  try { return await run(tags); } finally {
+    if (previous === undefined) delete globalThis.document; else globalThis.document = previous;
+  }
+}
 
 function makeDesk() {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "clawock-mind-"));
@@ -182,14 +188,20 @@ function makeReactStub() {
     useEffect(fn) {
       fn(); // React runs effects after render; cleanup only on unmount/re-run
     },
+    useRef(initial) {
+      // The view uses a ref for its own root element; without a DOM the
+      // scroll-restore effect must simply do nothing.
+      return { current: initial === undefined ? null : initial };
+    },
   };
 }
 
 /** defineStore surface from the runtime stub: the factory builds its store
  *  handle at apply time, so the stub must provide the contract. */
-function makeRuntimeStub() {
+function makeRuntimeStub(counter) {
   return {
     defineStore(spec) {
+      if (counter) counter.calls += 1;
       return {
         spec,
         create: () => ({
@@ -246,7 +258,7 @@ test("client: registers the Decision Mind tab and mounts the remote face", async
     ledger: async () => ({ ok: true, value: { entries: [] } }),
     portfolio: async () => ({ ok: true, value: { books: [] } }),
     plans: async () => ({ ok: true, value: { plans: [] } }),
-    traces: async () => ({ ok: true, value: { trades: [], rate: null } }),
+    traces: async () => ({ ok: true, value: { workspaceKey: "ws1", signature: "sig1", trades: [], rate: null } }),
     get: async (runId) => ({ ok: true, value: { runId } }),
   };
   const ctx = {
@@ -278,10 +290,17 @@ test("client: registers the Decision Mind tab and mounts the remote face", async
   assert.deepEqual(registered.store.spec.init(), { filter: "all", open: null, visibleDateCount: 3, foldedDates: [], scrollTop: 0 });
 
   const injected = registered.inject("s1");
-  assert.equal(typeof injected.traces, "function");
-  assert.equal(typeof injected.ledger, "function");
-  assert.deepEqual(await injected.traces(), { trades: [], rate: null });
-  assert.deepEqual(await injected.get("abc123"), { runId: "abc123" }, "get(runId) must forward its argument");
+  // The inject face is the view's only live-data channel: a snapshot reader
+  // plus a fetch that reports whether the host's answer actually changed.
+  assert.equal(typeof injected.cachedTraces, "function");
+  assert.equal(typeof injected.fetchTraces, "function");
+  assert.equal(injected.cachedTraces(), null, "a fresh registration has no snapshot yet");
+  const first = await injected.fetchTraces();
+  assert.deepEqual(first.snapshot.trades, []);
+  assert.equal(first.changed, true, "the first fetch is always a change (cold mount)");
+  assert.ok(injected.cachedTraces(), "the fetched snapshot is cached in the apply closure");
+  const second = await injected.fetchTraces();
+  assert.equal(second.changed, false, "the same workspace signature must not re-render");
   assert.equal(typeof component, "function");
 });
 
@@ -327,7 +346,7 @@ test("client: renders the single decision-trace view from the mounted remote", a
   let registered = null;
   let component = null;
   const remoteFace = {
-    traces: async () => ({ ok: true, value: { trades: [
+    traces: async () => ({ ok: true, value: { workspaceKey: "ws1", signature: "sig1", trades: [
       { ticker: "SPCH", market: "US", currency: "USD", date: "2026-08-15", action: "buy",
         shares: 10, price: 8.77, realizedPnl: null, note: "无限子弹流继续摊本(微信 00:26 HKT)",
         t1: null, holdPnl: -28.0,
@@ -363,9 +382,9 @@ test("client: renders the single decision-trace view from the mounted remote", a
 
   const store = makeStoreStub();
   const tick = () => new Promise((resolve) => setImmediate(resolve));
-  let tree = component({ sessionId: "s1", traces: injected.traces, ledger: injected.ledger, portfolio: injected.portfolio, useStore: store.useStore, actions: store.actions });
+  let tree = component({ sessionId: "s1", cachedTraces: injected.cachedTraces, fetchTraces: injected.fetchTraces, useStore: store.useStore, actions: store.actions });
   await tick(); await tick(); await tick();
-  tree = component({ sessionId: "s1", traces: injected.traces, ledger: injected.ledger, portfolio: injected.portfolio, useStore: store.useStore, actions: store.actions });
+  tree = component({ sessionId: "s1", cachedTraces: injected.cachedTraces, fetchTraces: injected.fetchTraces, useStore: store.useStore, actions: store.actions });
 
   const collectText = () => {
     const text = [];
@@ -389,22 +408,30 @@ test("client: renders the single decision-trace view from the mounted remote", a
   // covers fills whose close actually landed inside the T+1 window.
   assert.match(joined, /基于 \d+ 笔/, "the T+1 scorecard must show what it is computed over");
 
-  // The chip class must come from the host's `tone`, not from a threshold the
-  // client re-derives (#713). Walk the tree for the real className so a
-  // fixture that drops `tone` cannot keep this test green.
+  // The chip tone must come from the host's `tone`, not from a threshold the
+  // client re-derives (#713). It rides `data-tone` rather than a class name:
+  // class names are hashed CSS-module identities and asserting on them would
+  // be asserting on the build, not on behaviour.
   const classes = [];
+  const tones = [];
   (function walkClass(node) {
     if (node == null) return;
     if (Array.isArray(node)) { node.forEach(walkClass); return; }
     if (typeof node === "string") return;
     const cn = node.props && node.props.className;
     if (typeof cn === "string") classes.push(cn);
+    const tone = node.props && node.props["data-tone"];
+    if (typeof tone === "string") tones.push(tone);
     (node.children || []).forEach(walkClass);
   })(tree);
-  assert.ok(classes.includes("t1 win") || classes.includes("t1 up"),
-    `a tone:"win" trace must render an up/win chip, got: ${classes.filter((c) => c.startsWith("t1")).join(", ")}`);
+  assert.ok(tones.includes("up"), `a tone:"win" trace must render an up chip, got: ${tones.join(", ")}`);
   assert.ok(!classes.some((c) => /undefined|null/.test(c)),
     `no className may contain undefined — a fixture missing t1.tone would show up here: ${classes.filter((c) => /undefined|null/.test(c)).join(", ")}`);
+  // Every rendered class token must be a hashed CSS-module name. A `cx()`
+  // token with no rule in styles.module.css renders verbatim, so this is the
+  // gate that catches a class the stylesheet no longer defines.
+  const unhashed = classes.flatMap((c) => c.split(" ")).filter((t) => t !== "" && !/^[A-Za-z0-9_-]+_[a-z0-9-]+$/.test(t));
+  assert.deepEqual(unhashed, [], `class tokens with no stylesheet rule: ${unhashed.join(", ")}`);
   assert.match(joined, /SPCH/);
   assert.match(joined, /买入/);
   assert.match(joined, /10 @8.77/);
@@ -430,7 +457,7 @@ test("client: renders the single decision-trace view from the mounted remote", a
   };
   findButton("无决策").props.onClick();
   await tick();
-  tree = component({ sessionId: "s1", traces: injected.traces, ledger: injected.ledger, portfolio: injected.portfolio, useStore: store.useStore, actions: store.actions });
+  tree = component({ sessionId: "s1", cachedTraces: injected.cachedTraces, fetchTraces: injected.fetchTraces, useStore: store.useStore, actions: store.actions });
   const joinedMiss = collectText();
   assert.match(joinedMiss, /SPCH/);
   assert.doesNotMatch(joinedMiss, /PLTU/); // PLTU has a decision → filtered out
@@ -438,18 +465,18 @@ test("client: renders the single decision-trace view from the mounted remote", a
   // Expand a row: the trace detail shows plan → execution → P&L.
   findButton("全部").props.onClick();
   await tick();
-  tree = component({ sessionId: "s1", traces: injected.traces, ledger: injected.ledger, portfolio: injected.portfolio, useStore: store.useStore, actions: store.actions });
+  tree = component({ sessionId: "s1", cachedTraces: injected.cachedTraces, fetchTraces: injected.fetchTraces, useStore: store.useStore, actions: store.actions });
   const cell = [];
   (function collect(node) {
     if (node == null) return;
     if (Array.isArray(node)) { node.forEach(collect); return; }
-    if (node.props && node.props.onClick && String(node.props.className || "").indexOf("cell") === 0) cell.push(node);
+    if (node.props && node.props["data-cell"] === "trace") cell.push(node);
     (node.children || []).forEach(collect);
   })(tree);
   assert.ok(cell.length >= 2, "trace rows present");
   cell[0].props.onClick();
   await tick();
-  tree = component({ sessionId: "s1", traces: injected.traces, ledger: injected.ledger, portfolio: injected.portfolio, useStore: store.useStore, actions: store.actions });
+  tree = component({ sessionId: "s1", cachedTraces: injected.cachedTraces, fetchTraces: injected.fetchTraces, useStore: store.useStore, actions: store.actions });
   const joined2 = collectText();
   assert.match(joined2, /决策轨迹 · /);   // expand header
   assert.match(joined2, /割肉/);           // plan action
@@ -535,7 +562,7 @@ test("client: trace list batches older days behind 'show earlier' and folds by d
   let registered = null;
   let component = null;
   const remoteFace = {
-    traces: async () => ({ ok: true, value: { trades, rate: null } }),
+    traces: async () => ({ ok: true, value: { workspaceKey: "ws1", signature: "sig1", trades, rate: null } }),
     ledger: async () => ({ ok: true, value: { entries: [] } }),
     portfolio: async () => ({ ok: true, value: { books: [] } }),
     plans: async () => ({ ok: true, value: { plans: [] } }),
@@ -552,7 +579,7 @@ test("client: trace list batches older days behind 'show earlier' and folds by d
 
   const store = makeStoreStub();
   const tick = () => new Promise((resolve) => setImmediate(resolve));
-  const render = () => component({ sessionId: "s1", traces: injected.traces, ledger: injected.ledger, portfolio: injected.portfolio, useStore: store.useStore, actions: store.actions });
+  const render = () => component({ sessionId: "s1", cachedTraces: injected.cachedTraces, fetchTraces: injected.fetchTraces, useStore: store.useStore, actions: store.actions });
   let tree = render();
   await tick(); await tick(); await tick();
   tree = render();
@@ -610,7 +637,7 @@ test("client: trace list batches older days behind 'show earlier' and folds by d
     (function collect(node) {
       if (node == null || found) return;
       if (Array.isArray(node)) { node.forEach(collect); return; }
-      if (String(node.props && node.props.className || "").indexOf("day fold") === 0) found = node;
+      if (node.props && typeof node.props["data-day"] === "string") found = node;
       (node.children || []).forEach(collect);
     })(tree);
     return found;
@@ -628,25 +655,66 @@ test("client: trace list batches older days behind 'show earlier' and folds by d
   assert.match(collectText(), /AAA/, "unfolding restores the cell");
 });
 
-test("client: stylesheet keeps the dark-theme and tone contract (#704/#685 regression gate)", async () => {
-  // The factory injects its stylesheet through the document stub on first
-  // execution; assert the blocks whose regressions are invisible to text
-  // assertions — the dark-theme overrides and the P&L/T+1 tone colors.
-  injectedStyleText = "";
+test("client: the bundle loads with no DOM and owns no module-level state (#729)", async () => {
+  // Two module-scope rules at once, both regressions this plugin actually had:
+  // the bundle used to inject a <style> tag while the module was evaluating,
+  // and it used to build its store handle at module scope (a singleton across
+  // plugin reloads). `loadClient` runs with no `document` global at all.
+  assert.equal(globalThis.document, undefined, "the spec must not leave a DOM lying around");
+  const counter = { calls: 0 };
   const loaded = await loadClient();
-  loaded.factory((s) => {
-    if (s === "@deepseek-ai/dsh-client-runtime/client") return makeRuntimeStub();
+  const api = loaded.factory((s) => {
+    if (s === "@deepseek-ai/dsh-client-runtime/client") return makeRuntimeStub(counter);
     if (s === "react") return makeReactStub();
     throw new Error(`unexpected require: ${s}`);
   });
-  assert.ok(injectedStyleText.length > 1000, "factory must inject a real stylesheet");
-  assert.match(injectedStyleText, /body\[data-ds-dark-theme\] \.dmt\{/, "dark-theme override block required (#704)");
-  assert.match(injectedStyleText, /\.dmt \.t1\.up/, "T+1 up tone class required (#685)");
-  assert.match(injectedStyleText, /\.dmt \.t1\.down/, "T+1 down tone class required (#685)");
-  assert.match(injectedStyleText, /\.dmt \.detail\{display:grid;grid-template-rows:0fr/, "folded detail must default to 0fr");
-  assert.match(injectedStyleText, /\.dmt \.stats/, "header stats block required");
-  assert.match(injectedStyleText, /\.dmt \.filters/, "filter row block required");
-  assert.match(injectedStyleText, /\.dmt \.skel/, "cold-start skeleton block required");
+  assert.equal(counter.calls, 0, "no store may exist before apply() runs");
+  assert.equal(typeof api.createDecisionMindStore, "function", "the store must be an exported factory");
+
+  const ctx = {
+    effect() {}, get() { return { traces: async () => ({ ok: true, value: { trades: [] } }) }; },
+    slots: { inject(n, fn) { this._fn = fn; }, register() {} },
+    remote: { $mount: async () => {} },
+  };
+  await api.apply(ctx);
+  ctx.slots._fn();
+  assert.equal(counter.calls, 1, "apply() creates exactly one store handle");
+  const one = api.createDecisionMindStore();
+  const two = api.createDecisionMindStore();
+  assert.notEqual(one, two, "each factory call must yield its own handle, never a shared singleton");
+});
+
+test("client: stylesheet is loader-owned and keeps the dark-theme and tone contract (#704/#685/#729)", async () => {
+  // The stylesheet arrives as a CSS Modules import: the emitted code injects
+  // one <style data-plugin="clawock-dsh"> tag, which is how the DSH module
+  // loader knows the tag is ours and removes it when the package unloads.
+  // Class names are hashed, so every selector assertion is hash-agnostic.
+  const injected = await withDocumentStub(async (collected) => {
+    const loaded = await loadClient();
+    loaded.factory((s) => {
+      if (s === "@deepseek-ai/dsh-client-runtime/client") return makeRuntimeStub();
+      if (s === "react") return makeReactStub();
+      throw new Error(`unexpected require: ${s}`);
+    });
+    return collected;
+  });
+  assert.equal(injected.length, 1, "exactly one stylesheet tag");
+  const [tag] = injected;
+  assert.equal(tag.dataset.plugin, "clawock-dsh",
+    "the tag must carry the plugin id — that attribute is the loader's unload handle (#729)");
+  assert.equal(tag.dataset.pluginCss, "clawock-dsh/styles.module.css",
+    "and the per-file id that makes re-evaluation idempotent");
+  const css = tag.textContent;
+  assert.ok(css.length > 1000, "the factory must inject a real stylesheet");
+  const hashed = (...names) => new RegExp(names.map((n) => `\\.[A-Za-z0-9_-]+_${n}`).join(" ?"));
+  assert.match(css, /body\[data-ds-dark-theme\] \.[A-Za-z0-9_-]+_dmt\{/, "dark-theme override block required (#704)");
+  assert.match(css, hashed("t1"), "T+1 chip block required (#685)");
+  assert.match(css, /_t1\.[A-Za-z0-9_-]+_up\{/, "T+1 up tone class required (#685)");
+  assert.match(css, /_t1\.[A-Za-z0-9_-]+_down\{/, "T+1 down tone class required (#685)");
+  assert.match(css, /_detail\{[^}]*grid-template-rows:0fr/, "folded detail must default to 0fr");
+  assert.match(css, hashed("stats"), "header stats block required");
+  assert.match(css, hashed("filters"), "filter row block required");
+  assert.match(css, hashed("skel"), "cold-start skeleton block required");
 });
 
 test("readTraces: a close outside the T+1 window is not a T+1 verdict (#710)", async () => {

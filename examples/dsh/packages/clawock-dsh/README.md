@@ -28,6 +28,22 @@ cp -r ~/.dsh/profiles/web/node_modules/clawock-dsh/skills/investment-decision <p
 
 然后重启 web profile,skill 即出现在 agent 的 skill 目录里。
 
+### 从 checkout 装到本机 DSH(开发/自部署)
+
+发版之前想让本机 DSH 跑上当前 checkout,用同一条官方通道,别手抄目录:
+
+```bash
+ops/host/install_dsh_plugin.sh --restart
+```
+
+它 `npm pack` 出 tarball,再 `dsh plugin --profile web add <tarball>` —— 传
+**tarball 而不是目录**是关键:目录规格 pnpm 只做 link,插件自己的
+`dependencies` 一个都不装,这正是 2026-08-17 那次 dsh 崩溃循环 83 次的成因
+(#709)。tarball 走的是和 registry 包一样的安装路径。文件名带内容哈希,因为
+pnpm 对 `file:` tarball 按路径缓存:同名重打包会被 store 直接复用,于是桌面
+上跑的还是上一版而每一步都报成功(实测过,所以脚本还会逐个 `cmp` 装好的
+`lib/*.js` 和 checkout 的构建产物)。
+
 > 更省事的路:clawock 本身就把同一个 skill 装进标准 Agent Skill 根
 > (`clawock workflow install investment-decision --workspace <project>` →
 > `<project>/.agents/skills/`),DSH 同样会扫到这个位置。npm 插件是另一条
@@ -104,8 +120,11 @@ clawock-dsh
 │   ├── scan.ts / ledger.ts / freshness.ts   # 纯扫描逻辑(可单测,无依赖)
 │   ├── client.ts          # client 半区:Decision Mind 组件 + store + 缓存
 │   └── types.ts           # Remote 线类型(@typert object 面)
-├── build.mjs              # 构建:临时 Harness 形态 workspace 里跑官方
-│                          # @deepseek-ai/dsh-typert-generator,产出 lib/
+├── styles.module.css      # (在 src/ 下)CSS Modules:构建期哈希类名 + 由
+│                          # loader 持有的 <style data-plugin> 注入
+├── build.mjs              # 构建:就地跑官方 @deepseek-ai/dsh-typert-generator
+│                          # + 两次 tsdown + 声明,产出 lib/
+├── tsdown.host.config.mjs / tsdown.client.config.mjs   # 两个官方 pass
 ├── lib/                   # 提交的构建产物(CI 与 DSH 直接消费,不跑构建)
 │   ├── index.js / scan.js / ledger.js / freshness.js
 │   ├── client.js          # window.__ModuleLoader__ bundle
@@ -114,10 +133,15 @@ clawock-dsh
 └── skills/                # agent skill(同上)
 ```
 
-构建:`cd examples/dsh/plugin && npm install --include=dev && npm run build`
-(rc.6 生成器只认 Harness monorepo 布局——`@deepseek-ai/dsh-typert-protocol`
-必须是 sibling workspace 包——build.mjs 在临时目录复刻该布局生成后拷回;
-生成工件 commit 进仓库,同 dsh-notebook/dsh-workspace-plugin 的做法)。
+构建:`cd examples/dsh/packages/clawock-dsh && npm install --include=dev && npm run build`
+
+生成器按 workspace 根的 `tsconfig.host.json` / `tsconfig.client.json` 发现包,
+且只接受落在 `<root>/packages/` 下的 project reference(rc.6 `WorkspaceAnalyzer`
+里写死的判据)——所以这个包就住在 `examples/dsh/packages/clawock-dsh`,
+workspace 根是 `examples/dsh`(见 [../../README.md](../../README.md))。三个
+pass 全部就地跑真实源码树,不再复刻临时 workspace(#731)。生成工件 commit
+进仓库,`harness-regression.yml` 每个插件 PR 都重跑构建并断言 `lib/` 零 diff
+——所以「lib/ 和 src/ 一致吗」是机检问题,不是记性问题。
 
 验证状态:node 半区(扫描、run id 防路径穿越、Remote 标记)与 client 半区
 (注册、模型投影)有单元测试;**tab 的浏览器目验需要在带 DSH 源码/工具链的
@@ -162,7 +186,7 @@ harness-agnostic 定位的一部分——同一份契约,OpenClaw skill / Claude
    和 DSH 顶栏必须留在截图里**——那正是「这是插件 tab、不是独立页」的证据。
 4. 展开一笔有完整决策轨迹(计划→执行→T+1→盈亏)的真实成交:
    ```python
-   cell = page.locator('.cell', has_text='TICKER').filter(has_text='AMOUNT').first
+   cell = page.locator('[data-cell=trace]', has_text='TICKER').first
    cell.scroll_into_view_if_needed(); cell.click()
    ```
 5. 用**单一矩形 `clip`** 截图,不要两段分别裁剪再拼接(拼接会留缝)。裁掉底部

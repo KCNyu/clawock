@@ -69,9 +69,11 @@
   },
   "devDependencies": {
     "@deepseek-ai/dsh-client-runtime": "^0.1.0-rc.6",
+    "@deepseek-ai/dsh-client-ui-slots": "^0.1.0-rc.6",
     "@deepseek-ai/dsh-typert-generator": "0.1.0-rc.6",
     "@types/node": "^26.2.0",
     "@types/react": "^18.3.12",
+    "lightningcss": "^1.33.0",
     "tsdown": "^0.22.14",
     "tsx": "^4.23.12",
     "typescript": "6.0.3"
@@ -82,9 +84,6 @@
     },
     "client": {
       "platform": "web"
-    },
-    "skills": [
-      "./skills/investment-decision/SKILL.md"
-    ]
+    }
   }
 }
