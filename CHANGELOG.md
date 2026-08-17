@@ -13,6 +13,58 @@ versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 The newest heading here has to match the version in `pyproject.toml` — CI fails
 otherwise, so a release cannot ship an entry that was never written.
 
+## [0.1.7] — 2026-08-17
+
+The Python package's code is identical to 0.1.6. This version exists because the
+two distributions ride one version train and the npm half of 0.1.6 never
+shipped: `clawock-dsh` is the release.
+
+### Fixed
+
+- **`clawock-dsh` on npm was a different build than its version number
+  claimed, and 0.1.6 never got there at all.** npm's `latest` was 0.1.5, whose
+  tarball is the pre-#708 layout — `client.js` at the root, no
+  `lib/typert.*`, no `./typert` or `./remote` export, no `zod` dependency —
+  so `dsh plugin add clawock-dsh` installed a plugin that registers and then
+  shows no data. Both 0.1.6 publish attempts died inside npm itself
+  (`Exit handler never called!`): the plugin's `package-lock.json` had been
+  regenerated on a machine behind a mirror registry, so all 169 `resolved`
+  URLs pointed at a host the GitHub runner cannot reach and every fetch
+  stalled through npm's retry ladder. The lockfile is back on
+  registry.npmjs.org, the publish job pins the npm that does the publishing
+  and records which registry it used, and — because "publish exited 0" was
+  never evidence — it now downloads the registry copy back and asserts
+  file-for-file, export-for-export and dependency-for-dependency that it is
+  what was packed. ([#732], [#728])
+
+### Changed
+
+- **The DSH plugin follows the official Harness client rules instead of a
+  reverse-engineered shape.** Styles ship as CSS Modules whose
+  `<style data-plugin="clawock-dsh">` tag the module loader owns and removes on
+  unload, so nothing touches `document` while the bundle is loading; the UI
+  store is a `createDecisionMindStore()` factory called inside `apply` rather
+  than a module-level singleton shared across plugin reloads; the trace cache
+  lives in the plugin instance and reaches the view through its props; the
+  scroll container comes from an element ref instead of a global selector; and
+  the browser bundle carries no business `any` — it consumes the same wire
+  types the host declares. The generated Typert reflection is now emitted by
+  the official generator running in place over the real source tree (the
+  package moved to `examples/dsh/packages/clawock-dsh` because rc.6 discovers
+  packages only under a workspace root's `packages/`), the build is
+  reproducible, and CI rebuilds `lib/` on every plugin change and fails if the
+  committed artifacts differ. ([#729], [#730], [#731])
+- **Installing the plugin from a checkout goes through the official
+  installer.** `ops/host/install_dsh_plugin.sh` packs the package and hands the
+  tarball to `dsh plugin --profile web add`, which installs it the way a
+  registry package is installed and reconciles the profile's bundle rows
+  itself. It no longer hand-copies a source directory and hand-edits the
+  profile manifest — a directory spec is only *linked*, which is how a plugin
+  dependency went uninstalled and crash-looped dsh in the first place. The
+  tarball's file name carries a content hash, because pnpm keys a `file:`
+  tarball by path and would otherwise serve the previous build from its store
+  while every step reported success. ([#731])
+
 ## [0.1.6] — 2026-08-17
 
 ### Fixed
@@ -254,7 +306,9 @@ environment — and completes one full run. ([#436], [#379])
 [#665]: https://github.com/KCNyu/clawock/issues/665
 [#676]: https://github.com/KCNyu/clawock/pull/676
 [#684]: https://github.com/KCNyu/clawock/pull/684
-[Unreleased]: https://github.com/KCNyu/clawock/compare/v0.1.5...HEAD
+[Unreleased]: https://github.com/KCNyu/clawock/compare/v0.1.7...HEAD
+[0.1.7]: https://github.com/KCNyu/clawock/compare/v0.1.6...v0.1.7
+[0.1.6]: https://github.com/KCNyu/clawock/compare/v0.1.5...v0.1.6
 [0.1.5]: https://github.com/KCNyu/clawock/compare/v0.1.4...v0.1.5
 [0.1.2]: https://github.com/KCNyu/clawock/compare/v0.1.1...v0.1.2
 [0.1.1]: https://github.com/KCNyu/clawock/compare/v0.1.0...v0.1.1
@@ -270,3 +324,9 @@ environment — and completes one full run. ([#436], [#379])
 [#723]: https://github.com/KCNyu/clawock/pull/723
 [#724]: https://github.com/KCNyu/clawock/pull/724
 [#726]: https://github.com/KCNyu/clawock/pull/726
+[#728]: https://github.com/KCNyu/clawock/pull/728
+[#729]: https://github.com/KCNyu/clawock/issues/729
+[#730]: https://github.com/KCNyu/clawock/issues/730
+[#731]: https://github.com/KCNyu/clawock/issues/731
+[#732]: https://github.com/KCNyu/clawock/issues/732
+[#733]: https://github.com/KCNyu/clawock/pull/733
