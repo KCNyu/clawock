@@ -2,6 +2,7 @@
 from pathlib import Path
 
 import pytest
+import json
 
 from ops.publish.release_notes import changelog_section, release_notes
 
@@ -150,6 +151,9 @@ def test_the_npm_install_can_survive_a_stalled_runner_fetch():
     assert "NO_UPDATE_NOTIFIER" in workflow, (
         "npm must not ping the registry for updates on top of the stalled fetch"
     )
+    assert "npm_config_replace_registry_host: 'always'" in workflow, (
+        "the npm job must rehost any lockfile URL to the configured registry"
+    )
 
     script = (ROOT / "ops" / "publish" / "publish_dsh_plugin.sh").read_text()
     assert "npm install attempt " in script, (
@@ -160,4 +164,25 @@ def test_the_npm_install_can_survive_a_stalled_runner_fetch():
     )
     assert "*-debug-0.log" in script, (
         "a stalled install must surface npm's own debug log"
+    )
+
+
+def test_the_plugin_lockfile_does_not_bake_in_a_mirror_registry():
+    """npm installs from the lockfile's `resolved` URLs, not from the
+    configured registry. On 2026-08-17 the 0.1.6 lockfile had been regenerated
+    on the desk under a mirror registry, so every resolved URL pointed at
+    mirrors.tencentyun.com — unreachable from the GitHub runner — and the npm
+    job died after each fetch stalled through npm's retry ladder. The lockfile
+    must stay on registry.npmjs.org URLs (or carry no resolved overrides at
+    all).
+    """
+    lock = json.loads((ROOT / "examples" / "dsh" / "plugin" / "package-lock.json").read_text())
+    urls = [
+        p.get("resolved")
+        for p in lock.get("packages", {}).values()
+        if isinstance(p, dict) and p.get("resolved")
+    ]
+    assert urls, "the lockfile pins tarball URLs — they must be checked"
+    assert all("registry.npmjs.org" in u for u in urls), (
+        "the lockfile must not bake in a mirror registry unreachable from CI"
     )

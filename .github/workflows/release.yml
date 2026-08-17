@@ -120,14 +120,19 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
-      # 2026-08-17: the runner's first cold-cache install of the 0.1.6 lockfile
-      # stalled ~70s per registry request (npm's retry ladder, then npm's own
-      # `Exit handler never called!`) while the identical install is instant on
-      # every other network tried. Force IPv4 DNS ordering — the classic
-      # runner-side stall cause — and stop npm pinging the registry for updates
-      # on top of the stalled fetch.
+      # 2026-08-17: the 0.1.6 npm job died because its package-lock.json had
+      # been regenerated on the desk under a mirror registry — every `resolved`
+      # URL pointed at mirrors.tencentyun.com, which the GitHub runner cannot
+      # reach. Each tarball fetch stalled through npm's whole retry ladder
+      # (~71s) and npm exited with `Exit handler never called!`. The lockfile
+      # now carries registry.npmjs.org URLs again, and replace-registry-host
+      # rehosts any lockfile URL to the configured registry, so a future
+      # mirror-generated lockfile cannot silently break the runner again.
+      # (IPv4-first DNS and the suppressed update ping are rust-proofing
+      # against runner-side fetch stalls, not the 2026-08-17 root cause.)
       NODE_OPTIONS: --dns-result-order=ipv4first
       NO_UPDATE_NOTIFIER: '1'
+      npm_config_replace_registry_host: 'always'
     steps:
       - uses: actions/checkout@v7
 

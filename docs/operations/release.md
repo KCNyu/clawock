@@ -103,6 +103,23 @@ and re-uploading it is a hard failure), and `github-release` still requires a
 `v*` tag — so the dispatch ends with the npm side fixed and no release behind
 it.
 
+### The lockfile must not bake in a mirror registry
+
+npm installs from the lockfile's `resolved` URLs, not from the configured
+registry. Regenerating `examples/dsh/plugin/package-lock.json` on a machine
+whose npm points at a mirror writes mirror URLs into it — on 2026-08-17 that
+made the v0.1.6 npm job die: the GitHub runner cannot reach
+`mirrors.tencentyun.com`, every tarball fetch stalled through npm's retry
+ladder, and npm exited with `Exit handler never called!`.
+
+Keep the lockfile on `registry.npmjs.org` URLs (`npm install --package-lock-only
+--registry=https://registry.npmjs.org` regenerates it), and the release
+workflow additionally sets `npm_config_replace_registry_host=always`, so any
+future mirror-poisoned lockfile is rehosted to the configured registry instead
+of failing the run. Using a mirror locally is fine (`~/.npmrc` with
+`replace-registry-host=always` makes local installs rehost to it) — the repo
+lockfile itself stays canonical.
+
 ## One version, three places
 
 A release version is declared in `pyproject.toml`, and two other places must

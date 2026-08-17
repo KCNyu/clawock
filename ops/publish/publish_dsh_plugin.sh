@@ -46,10 +46,11 @@ fi
 echo "node $(node --version) / npm $(npm --version) / registry $(npm config get registry)"
 
 echo "--- npm install (dev) ---"
-# The runner's registry fetch has been observed stalling (~70s, then npm's own
-# `Exit handler never called!` crash on 2026-08-17) while the same install is
-# instant on every other network tried. The install is idempotent and partially
-# filled caches make retries cheap, so retry before failing the publish.
+# 2026-08-17: the npm job died because the lockfile baked in mirror-registry
+# URLs the GitHub runner cannot reach (each fetch stalled through npm's retry
+# ladder, then npm's own `Exit handler never called!`). The lockfile is fixed;
+# the retry below is a cheap second line of defense and the install is
+# idempotent, so a transient fetch stall cannot fail the publish by itself.
 #
 # `$?` after an `if`-condition that fails with no branch run reports 0 by bash
 # semantics, so the exit status is captured from a plain statement under
