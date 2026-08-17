@@ -83,12 +83,64 @@ def fmt_dur(ms):
     return f'{s/60:4.1f}m'
 
 
-def status_glyph(status):
+# A job's on-disk delivery receipt, by job name. `report_postflight` writes
+# `report-sent-<market>-<phase>-<date>.json` and the brief writes
+# `brief-sent-<date>.json`; both carry `sent_ok`. The crontab passes
+# --market/--phase per job, so this is the same pairing, written down once.
+RECEIPT_BY_JOB = {
+    '港股开盘报告': 'report-sent-hk-open-{date}.json',
+    '港股午盘报告': 'report-sent-hk-mid-{date}.json',
+    '港股午后快报': 'report-sent-hk-pm-{date}.json',
+    '港股收盘报告': 'report-sent-hk-close-{date}.json',
+    '美股开盘报告': 'report-sent-us-open-{date}.json',
+    '美股收盘报告': 'report-sent-us-close-{date}.json',
+    '盘前深度简报': 'brief-sent-{date}.json',
+}
+# The live desk workspace, whose memory/.tmp holds the receipts. Resolved from
+# the environment rather than from this file's location: run out of an
+# interactive worktree, `parents[2]` is the worktree and every receipt lookup
+# silently misses — the exact "looks fine, proves nothing" failure this whole
+# function exists to remove.
+import os  # noqa: E402
+WS = Path(os.environ.get('CLAWOCK_WORKSPACE') or (Path.home() / '.openclaw' / 'workspace'))
+TMP = WS / 'memory' / '.tmp'
+
+
+def delivered_receipt(job_name, ts_ms):
+    """The delivery receipt for this job on this run's date, when it exists.
+
+    A run status of `error` does not mean the desk produced nothing: openclaw
+    records `FallbackSummaryError` when its own *run-summary* LLM call fails,
+    which happens after the report has already been written and delivered.
+    On 2026-08-17 that painted 港股开盘报告 red twice while the receipt on disk
+    said `sent_ok: true, delivery_state: delivered` at 09:32:13 — kcn had the
+    report in WeChat. The receipt is the fact; the run status is an inference.
+    """
+    pattern = RECEIPT_BY_JOB.get((job_name or '').strip())
+    if not pattern or not ts_ms:
+        return None
+    date = datetime.fromtimestamp(ts_ms / 1000).strftime('%Y-%m-%d')
+    path = TMP / pattern.format(date=date)
+    try:
+        doc = json.loads(path.read_text())
+    except Exception:
+        return None
+    return doc if doc.get('sent_ok') else None
+
+
+def status_glyph(status, receipt=None):
+    # An `error` that nevertheless delivered is a summary-only failure: show it
+    # as a warning, never as a red that is indistinguishable from "no report".
+    if status == 'error' and receipt is not None:
+        return '⚠️'
     return {'ok': '✅', 'error': '🔴', 'warn': '⚠️'}.get(status, '❓')
 
 
-def summarize(entry, full=False):
+def summarize(entry, full=False, receipt=None):
     if entry.get('status') == 'error':
+        if receipt is not None:
+            note = ('已投递 %s · 仅运行摘要失败 — ' % receipt.get('delivery_state', 'delivered'))
+            return (note + (entry.get('error') or 'unknown'))[: None if full else 80]
         return ('ERR: ' + (entry.get('error') or 'unknown'))[: None if full else 80]
     s = entry.get('summary') or ''
     s = s.replace('\n', ' ⏎ ')
@@ -171,16 +223,22 @@ def main():
                 break
             out.append(ch); vw += w
         name_pad = ''.join(out) + ' ' * (14 - vw)
+        # The on-disk receipt outranks the run record: openclaw reports
+        # `delivered=None / not-requested` on a run whose summary call failed,
+        # even when postflight already delivered the report (2026-08-17).
+        receipt = delivered_receipt(jobs.get(e['_jobId'], ''), e.get('ts'))
         deliv = '—'
-        if e.get('delivered') is True:
+        if receipt is not None:
+            deliv = '✓rcpt'
+        elif e.get('delivered') is True:
             deliv = '✓   '
         elif e.get('delivered') is False:
             deliv = '✗   '
         elif e.get('deliveryStatus'):
             deliv = (e['deliveryStatus'][:4]).ljust(4)
-        print(f"{fmt_ts(e.get('ts')):<11}  {name_pad}  {status_glyph(e.get('status'))}  "
+        print(f"{fmt_ts(e.get('ts')):<11}  {name_pad}  {status_glyph(e.get('status'), receipt)}  "
               f"{e['_kind'][:4]:<4}  {fmt_dur(e.get('durationMs')):>5}  {deliv:<5}  "
-              f"{summarize(e, args.full)}")
+              f"{summarize(e, args.full, receipt)}")
     return 0
 
 
