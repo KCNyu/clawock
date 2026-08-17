@@ -1,0 +1,2654 @@
+{
+  "schema_version": 2,
+  "date": "2026-08-17",
+  "context_generation_id": "53969e741cd01e76",
+  "fx_rate_usdhkd": 7.8473,
+  "fx_source": "Frankfurter",
+  "regime": {
+    "us": "green",
+    "hk": "amber"
+  },
+  "macro_regime": "neutral",
+  "book": {
+    "usd_total_pnl": -5454.46,
+    "hkd_total_pnl": -42802.81,
+    "hk_leg_hkd": 71947.2,
+    "us_leg_usd": 3032.03,
+    "hkd_base_total": -42802.81,
+    "usd_base_total": -5454.46
+  },
+  "decisions": [
+    {
+      "schema_version": 2,
+      "decision_id": "dec-0d154a83b8ff",
+      "episode_id": "ep-20260731-spch-cut",
+      "decision_group_id": "2026-08-17:SPCH",
+      "plan_date": "2026-08-17",
+      "created_at": "2026-08-17T08:00:00+08:00",
+      "ticker": "SPCH",
+      "name": "",
+      "leg": "US",
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "spch-single-name-cap-swap-1x-v2",
+      "action": "cut",
+      "condition": {
+        "type": "open",
+        "price": null,
+        "description": "",
+        "valid_for_sessions": 1
+      },
+      "size": {
+        "shares": 200,
+        "pct": 77.0,
+        "note": ""
+      },
+      "confidence": 0.85,
+      "driven_by": "risk_rule",
+      "evidence_event_id": null,
+      "regime": "risk_on",
+      "rationale": "77.18% single_name超限 mandatory cap 35% (breach risk-66a236e9b7e1 30d) + 硬止损 -28.04% ≤ -18% (breach risk-95ac7f6cd591 30d) + US levered 88.2% > 50% (breach risk-80e3b5a6819f 30d) + US β 5.806 > 3.0. 一次性 cut 200 shares (77% 仓位) 同时解 4 breach. 1x swap SPCX 13 shares 维持敞口不停 decay. reflection 9 ep 0.67 win (清×7 胜5) swap edge 强.",
+      "technical_setup_id": null,
+      "technical_campaign_id": null,
+      "invalidation_price": null,
+      "tranche_number": null,
+      "technical_trace_version": 1,
+      "signal_provenance": {
+        "schema_version": 1,
+        "context_generation_id": "53969e741cd01e76",
+        "observed_at": "2026-08-17T10:32:40.486169+08:00",
+        "information": {
+          "activation_blockers": [
+            "history_dates"
+          ],
+          "as_of": "2026-08-17T02:32:36.214612+00:00",
+          "attention_acceleration": 0.9193,
+          "attention_components": [
+            {
+              "attention_value": 0.054399,
+              "baseline_comparable_value": 0.054399,
+              "channel": "influencer_feed",
+              "corroborating_sources": 1,
+              "event_id": "evt_16b87e781f158877e22f",
+              "freshness": 0.8704,
+              "novelty": 0.25,
+              "published_at": "2026-08-16T19:20:00+00:00",
+              "reliability": 0.5,
+              "source_type": "google_news_rss"
+            },
+            {
+              "attention_value": 0.207104,
+              "baseline_comparable_value": 0.207104,
+              "channel": "influencer_feed",
+              "corroborating_sources": 1,
+              "event_id": "evt_f6c59293b9d0eab7dbc9",
+              "freshness": 0.8284,
+              "novelty": 1.0,
+              "published_at": "2026-08-16T16:46:00+00:00",
+              "reliability": 0.5,
+              "source_type": "google_news_rss"
+            },
+            {
+              "attention_value": 0.157359,
+              "baseline_comparable_value": 0.157359,
+              "channel": "news",
+              "corroborating_sources": 1,
+              "event_id": "evt_b11254736681a46fca48",
+              "freshness": 0.6294,
+              "novelty": 1.0,
+              "published_at": "2026-08-16T02:30:00+00:00",
+              "reliability": 0.5,
+              "source_type": "google_news_rss"
+            },
+            {
+              "attention_value": 0.022327,
+              "baseline_comparable_value": 0.022327,
+              "channel": "news",
+              "corroborating_sources": 1,
+              "event_id": "evt_1f18d056631bbfd385bb",
+              "freshness": 0.3572,
+              "novelty": 0.25,
+              "published_at": "2026-08-14T21:04:52+00:00",
+              "reliability": 0.5,
+              "source_type": "google_news_rss"
+            },
+            {
+              "attention_value": 0.081902,
+              "baseline_comparable_value": 0.081902,
+              "channel": "news",
+              "corroborating_sources": 1,
+              "event_id": "evt_2ef10c817300a4df7093",
+              "freshness": 0.3276,
+              "novelty": 1.0,
+              "published_at": "2026-08-14T16:35:05+00:00",
+              "reliability": 0.5,
+              "source_type": "google_news_rss"
+            },
+            {
+              "attention_value": 0.020159,
+              "baseline_comparable_value": 0.020159,
+              "channel": "news",
+              "corroborating_sources": 1,
+              "event_id": "evt_29c30b22b781a1f79ea6",
+              "freshness": 0.3225,
+              "novelty": 0.25,
+              "published_at": "2026-08-14T15:46:34+00:00",
+              "reliability": 0.5,
+              "source_type": "google_news_rss"
+            },
+            {
+              "attention_value": 0.101041,
+              "baseline_comparable_value": 0.101041,
+              "channel": "news",
+              "corroborating_sources": 1,
+              "event_id": "evt_296828781e8d0350e8b3",
+              "freshness": 0.2887,
+              "novelty": 1.0,
+              "published_at": "2026-08-14T10:01:00+00:00",
+              "reliability": 0.7,
+              "source_type": "finnhub_syndication"
+            },
+            {
+              "attention_value": 0.037455,
+              "baseline_comparable_value": 0.02497,
+              "channel": "news",
+              "corroborating_sources": 2,
+              "event_id": "evt_eb8c6042f398fa80c5ce",
+              "freshness": 0.2854,
+              "novelty": 0.25,
+              "published_at": "2026-08-14T09:25:00+00:00",
+              "reliability": 0.7,
+              "source_type": "finnhub_syndication"
+            }
+          ],
+          "attention_event_count": 13,
+          "attention_rank": 0.875,
+          "attention_score": 1.205388,
+          "attention_source_type_count": 3,
+          "cross_section_rank": 0.4375,
+          "event_components": [],
+          "event_count": 0,
+          "own_surprise_z": -0.3067,
+          "signed_score": 0.0,
+          "sizing_tilt": "inactive",
+          "source_ticker": "SPCX",
+          "status": "warming_up",
+          "usable_for_decisions": false
+        },
+        "factor": {
+          "as_of": "2026-08-14",
+          "breadth": 0.6,
+          "composite_score": -0.226,
+          "coverage_pct": 50.0,
+          "market_percentile": 0.1667,
+          "membership_history_complete": false,
+          "relative_strength": -0.1206,
+          "sector": "commercial_space",
+          "sector_universe_size": 6,
+          "usable_for_decisions": false
+        },
+        "peer_residual": {
+          "as_of": "2026-08-14",
+          "available_peer_count": 4,
+          "dispersion_5d": 0.0396,
+          "laggard_persistence": 2,
+          "leadership_persistence": 1,
+          "residual_1d": -0.0086,
+          "residual_20d": -0.081,
+          "residual_5d": 0.0559,
+          "sector_regime": "broad_up",
+          "triggered_rules": [],
+          "usable_for_decisions": false,
+          "usable_rules": []
+        },
+        "add_authority": {
+          "blockers": [
+            "independent_evidence_families",
+            "leveraged_requires_validated_evidence"
+          ],
+          "continuing_campaign": false,
+          "discipline": "one price-relative family plus point-in-time information authorise capital; technical confirmation only schedules the tranche",
+          "evidence_families": [],
+          "factor_reasons": [
+            "industry_comparison_sufficient"
+          ],
+          "information_event_ids": [
+            "evt_16b87e781f158877e22f",
+            "evt_1f18d056631bbfd385bb",
+            "evt_296828781e8d0350e8b3",
+            "evt_29c30b22b781a1f79ea6",
+            "evt_2ef10c817300a4df7093",
+            "evt_b11254736681a46fca48",
+            "evt_eb8c6042f398fa80c5ce",
+            "evt_f6c59293b9d0eab7dbc9"
+          ],
+          "information_modes": [],
+          "market": "US",
+          "peer_rules": [],
+          "policy_version": 2,
+          "schema_version": 2,
+          "sources": [],
+          "tier": "none"
+        },
+        "early_trend": {
+          "blockers": [
+            "leveraged_requires_validated_evidence",
+            "needs_information_confirmation",
+            "needs_primary_evidence",
+            "no_20d_breakout",
+            "no_short_peer_leadership"
+          ],
+          "discipline": "short-history candidate; price/peer are one family, primary or attention information is independent, and z>=2 waits for a rebreak",
+          "evidence_families": [],
+          "exploration_ready": false,
+          "information_modes": [],
+          "market": "US",
+          "metrics": {
+            "attention_acceleration": 0.9193,
+            "attention_rank": 0.875,
+            "close": 140.0,
+            "peer_dispersion_5d": 0.0396,
+            "prior_20d_high": 149.6,
+            "residual_5d": 0.0559,
+            "residual_dispersion_multiple": 1.4116,
+            "zscore20": 1.5
+          },
+          "observed": false,
+          "price_modes": [],
+          "primary_event_ids": [],
+          "schema_version": 1,
+          "state": "not_candidate"
+        },
+        "sizing": {
+          "contributors": [],
+          "discipline": "resizes an approved technical tranche; never creates add authority",
+          "sizing_active": false,
+          "sizing_multiplier": 1.0
+        },
+        "authority": {
+          "max_add_shares": 0,
+          "position_room_shares": 0,
+          "lot_size": 1,
+          "tier": "none"
+        }
+      },
+      "simulated_entry_price": 9.0,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-7999ffe17be7",
+      "episode_id": "ep-20260731-rklx-cut",
+      "decision_group_id": "2026-08-17:RKLX",
+      "plan_date": "2026-08-17",
+      "created_at": "2026-08-17T08:00:00+08:00",
+      "ticker": "RKLX",
+      "name": "",
+      "leg": "US",
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "rklx-hard-stop-cut-v2",
+      "action": "cut",
+      "condition": {
+        "type": "open",
+        "price": null,
+        "description": "",
+        "valid_for_sessions": 1
+      },
+      "size": {
+        "shares": 10,
+        "pct": 100.0,
+        "note": ""
+      },
+      "confidence": 0.82,
+      "driven_by": "risk_rule",
+      "evidence_event_id": null,
+      "regime": "risk_on",
+      "rationale": "硬止损 -51.20% ≤ -18% (breach risk-0a0af7ae3b3a 30d) + US β 5.806 > 3.0. 全切 10 shares 100% 仓位 0 swap (RKLB 不在 book, 转 cash). reflection 11 ep 0.36 win (清×7 胜4, 持×4 胜0) 持有负 EV.",
+      "technical_setup_id": null,
+      "technical_campaign_id": null,
+      "invalidation_price": null,
+      "tranche_number": null,
+      "technical_trace_version": 1,
+      "signal_provenance": {
+        "schema_version": 1,
+        "context_generation_id": "53969e741cd01e76",
+        "observed_at": "2026-08-17T10:32:40.486169+08:00",
+        "information": {
+          "activation_blockers": [
+            "history_dates"
+          ],
+          "as_of": "2026-08-17T02:32:36.214612+00:00",
+          "attention_acceleration": 0.6008,
+          "attention_components": [
+            {
+              "attention_value": 0.045441,
+              "baseline_comparable_value": 0.045441,
+              "channel": "news",
+              "corroborating_sources": 1,
+              "event_id": "evt_5b48c0653e11c6213b33",
+              "freshness": 0.2597,
+              "novelty": 0.5,
+              "published_at": "2026-08-14T04:30:47+00:00",
+              "reliability": 0.7,
+              "source_type": "finnhub_syndication"
+            },
+            {
+              "attention_value": 0.086135,
+              "baseline_comparable_value": 0.086135,
+              "channel": "news",
+              "corroborating_sources": 1,
+              "event_id": "evt_fd6474e7d3f758c09ee8",
+              "freshness": 0.2461,
+              "novelty": 1.0,
+              "published_at": "2026-08-14T01:43:37+00:00",
+              "reliability": 0.7,
+              "source_type": "finnhub_syndication"
+            },
+            {
+              "attention_value": 0.083399,
+              "baseline_comparable_value": 0.083399,
+              "channel": "news",
+              "corroborating_sources": 1,
+              "event_id": "evt_db2539f036e2ac066327",
+              "freshness": 0.2383,
+              "novelty": 1.0,
+              "published_at": "2026-08-14T00:03:00+00:00",
+              "reliability": 0.7,
+              "source_type": "finnhub_syndication"
+            },
+            {
+              "attention_value": 0.082176,
+              "baseline_comparable_value": 0.082176,
+              "channel": "news",
+              "corroborating_sources": 1,
+              "event_id": "evt_381058df6d011ee068b3",
+              "freshness": 0.2348,
+              "novelty": 1.0,
+              "published_at": "2026-08-13T23:17:00+00:00",
+              "reliability": 0.7,
+              "source_type": "finnhub_syndication"
+            },
+            {
+              "attention_value": 0.019315,
+              "baseline_comparable_value": 0.019315,
+              "channel": "news",
+              "corroborating_sources": 1,
+              "event_id": "evt_2901c7286fd923216ad3",
+              "freshness": 0.2207,
+              "novelty": 0.25,
+              "published_at": "2026-08-13T20:04:47+00:00",
+              "reliability": 0.7,
+              "source_type": "finnhub_syndication"
+            },
+            {
+              "attention_value": 0.0,
+              "baseline_comparable_value": 0.0,
+              "channel": "news",
+              "corroborating_sources": 1,
+              "event_id": "evt_b6310b99699c9880c6d8",
+              "freshness": 0.1442,
+              "novelty": 0.0,
+              "published_at": "2026-08-12T21:58:44+00:00",
+              "reliability": 0.5,
+              "source_type": "google_news_rss"
+            },
+            {
+              "attention_value": 0.0,
+              "baseline_comparable_value": 0.0,
+              "channel": "news",
+              "corroborating_sources": 1,
+              "event_id": "evt_3771746fdc7d07358aa9",
+              "freshness": 0.0438,
+              "novelty": 0.0,
+              "published_at": "2026-08-10T08:04:00+00:00",
+              "reliability": 0.5,
+              "source_type": "google_news_rss"
+            }
+          ],
+          "attention_event_count": 7,
+          "attention_rank": 0.625,
+          "attention_score": 0.316466,
+          "attention_source_type_count": 2,
+          "cross_section_rank": 0.4375,
+          "event_components": [],
+          "event_count": 0,
+          "own_surprise_z": -0.2572,
+          "signed_score": 0.0,
+          "sizing_tilt": "inactive",
+          "source_ticker": "RKLB",
+          "status": "warming_up",
+          "usable_for_decisions": false
+        },
+        "factor": {
+          "as_of": "2026-08-14",
+          "breadth": 0.6,
+          "composite_score": -0.1411,
+          "coverage_pct": 95.0,
+          "market_percentile": 0.375,
+          "membership_history_complete": false,
+          "relative_strength": -0.0743,
+          "sector": "commercial_space",
+          "sector_universe_size": 6,
+          "usable_for_decisions": false
+        },
+        "peer_residual": {
+          "as_of": "2026-08-14",
+          "available_peer_count": 4,
+          "dispersion_5d": 0.0376,
+          "laggard_persistence": 2,
+          "leadership_persistence": 1,
+          "residual_1d": 0.001,
+          "residual_20d": -0.0294,
+          "residual_5d": -0.0485,
+          "sector_regime": "broad_up",
+          "triggered_rules": [
+            "laggard_avoidance"
+          ],
+          "usable_for_decisions": false,
+          "usable_rules": []
+        },
+        "add_authority": {
+          "blockers": [
+            "independent_evidence_families",
+            "leveraged_requires_validated_evidence",
+            "peer_laggard_avoidance"
+          ],
+          "continuing_campaign": false,
+          "discipline": "one price-relative family plus point-in-time information authorise capital; technical confirmation only schedules the tranche",
+          "evidence_families": [],
+          "factor_reasons": [
+            "factor_coverage_sufficient",
+            "industry_comparison_sufficient"
+          ],
+          "information_event_ids": [
+            "evt_2901c7286fd923216ad3",
+            "evt_3771746fdc7d07358aa9",
+            "evt_381058df6d011ee068b3",
+            "evt_5b48c0653e11c6213b33",
+            "evt_b6310b99699c9880c6d8",
+            "evt_db2539f036e2ac066327",
+            "evt_fd6474e7d3f758c09ee8"
+          ],
+          "information_modes": [],
+          "market": "US",
+          "peer_rules": [],
+          "policy_version": 2,
+          "schema_version": 2,
+          "sources": [],
+          "tier": "none"
+        },
+        "early_trend": {
+          "blockers": [
+            "leveraged_requires_validated_evidence",
+            "needs_information_confirmation",
+            "needs_primary_evidence",
+            "no_20d_breakout",
+            "no_short_peer_leadership"
+          ],
+          "discipline": "short-history candidate; price/peer are one family, primary or attention information is independent, and z>=2 waits for a rebreak",
+          "evidence_families": [],
+          "exploration_ready": false,
+          "information_modes": [],
+          "market": "US",
+          "metrics": {
+            "attention_acceleration": 0.6008,
+            "attention_rank": 0.625,
+            "close": 80.25,
+            "peer_dispersion_5d": 0.0376,
+            "prior_20d_high": 86.83,
+            "residual_5d": -0.0485,
+            "residual_dispersion_multiple": -1.2899,
+            "zscore20": 1.19
+          },
+          "observed": false,
+          "price_modes": [],
+          "primary_event_ids": [],
+          "schema_version": 1,
+          "state": "not_candidate"
+        },
+        "sizing": {
+          "contributors": [],
+          "discipline": "resizes an approved technical tranche; never creates add authority",
+          "sizing_active": false,
+          "sizing_multiplier": 1.0
+        },
+        "authority": {
+          "max_add_shares": 1,
+          "position_room_shares": 26,
+          "lot_size": 1,
+          "tier": "none"
+        }
+      },
+      "simulated_entry_price": 24.25,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-ce430216fabf",
+      "episode_id": "ep-20260731-07226-cut",
+      "decision_group_id": "2026-08-17:07226",
+      "plan_date": "2026-08-17",
+      "created_at": "2026-08-17T08:00:00+08:00",
+      "ticker": "07226",
+      "name": "",
+      "leg": "HK",
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "07226-2x-1x-swap-v5",
+      "action": "cut",
+      "condition": {
+        "type": "open",
+        "price": null,
+        "description": "",
+        "valid_for_sessions": 1
+      },
+      "size": {
+        "shares": 1200,
+        "pct": 19.0,
+        "note": ""
+      },
+      "confidence": 0.78,
+      "driven_by": "risk_rule",
+      "evidence_event_id": null,
+      "regime": "risk_on",
+      "rationale": "HK 杠杆 30.57% > 25% cap (breach risk-da9861ae6562 30d, ×0.5 amber) + 硬止损 -18.68% ≤ -18% + factor Top2 86.01% > 70% (breach risk-56fb5eebe7cc 30d). 1,200 shares (19.4% 减仓) swap 1x 03033 1,000 shares (5 lots) 解 lock-in + 减集中度. reflection 14 ep 0.57 win swap is 减仓变形. chop_drag 0.74%/月 横盘收费.",
+      "technical_setup_id": null,
+      "technical_campaign_id": null,
+      "invalidation_price": null,
+      "tranche_number": null,
+      "technical_trace_version": 1,
+      "signal_provenance": {
+        "schema_version": 1,
+        "context_generation_id": "53969e741cd01e76",
+        "observed_at": "2026-08-17T10:32:40.486169+08:00",
+        "information": {
+          "activation_blockers": [
+            "history_dates"
+          ],
+          "as_of": "2026-08-17T02:32:36.214612+00:00",
+          "attention_acceleration": null,
+          "attention_components": [],
+          "attention_event_count": 0,
+          "attention_rank": null,
+          "attention_score": null,
+          "attention_source_type_count": 0,
+          "cross_section_rank": null,
+          "event_components": [],
+          "event_count": 0,
+          "own_surprise_z": null,
+          "signed_score": null,
+          "sizing_tilt": "inactive",
+          "source_ticker": "HSTECH",
+          "status": "warming_up",
+          "usable_for_decisions": false
+        },
+        "factor": {
+          "as_of": null,
+          "breadth": null,
+          "composite_score": null,
+          "coverage_pct": null,
+          "market_percentile": null,
+          "membership_history_complete": false,
+          "relative_strength": null,
+          "sector": null,
+          "sector_universe_size": 0,
+          "usable_for_decisions": false
+        },
+        "peer_residual": {
+          "as_of": "2026-08-17",
+          "available_peer_count": 5,
+          "dispersion_5d": 0.0345,
+          "laggard_persistence": 0,
+          "leadership_persistence": 3,
+          "residual_1d": 0.0027,
+          "residual_20d": 0.0304,
+          "residual_5d": 0.0402,
+          "sector_regime": "broad_down",
+          "triggered_rules": [],
+          "usable_for_decisions": false,
+          "usable_rules": []
+        },
+        "add_authority": {
+          "blockers": [
+            "independent_evidence_families",
+            "leveraged_requires_validated_evidence"
+          ],
+          "continuing_campaign": false,
+          "discipline": "one price-relative family plus point-in-time information authorise capital; technical confirmation only schedules the tranche",
+          "evidence_families": [],
+          "factor_reasons": [],
+          "information_event_ids": [],
+          "information_modes": [],
+          "market": "HK",
+          "peer_rules": [],
+          "policy_version": 2,
+          "schema_version": 2,
+          "sources": [],
+          "tier": "none"
+        },
+        "early_trend": {
+          "blockers": [
+            "leveraged_requires_validated_evidence",
+            "needs_information_confirmation",
+            "needs_primary_evidence",
+            "no_20d_breakout",
+            "no_short_peer_leadership"
+          ],
+          "discipline": "short-history candidate; price/peer are one family, primary or attention information is independent, and z>=2 waits for a rebreak",
+          "evidence_families": [],
+          "exploration_ready": false,
+          "information_modes": [],
+          "market": "HK",
+          "metrics": {
+            "attention_acceleration": null,
+            "attention_rank": null,
+            "close": 4707.62,
+            "peer_dispersion_5d": 0.0345,
+            "prior_20d_high": 4948.5,
+            "residual_5d": 0.0402,
+            "residual_dispersion_multiple": 1.1652,
+            "zscore20": -1.05
+          },
+          "observed": false,
+          "price_modes": [],
+          "primary_event_ids": [],
+          "schema_version": 1,
+          "state": "not_candidate"
+        },
+        "sizing": {
+          "contributors": [],
+          "discipline": "resizes an approved technical tranche; never creates add authority",
+          "sizing_active": false,
+          "sizing_multiplier": 1.0
+        },
+        "authority": {
+          "max_add_shares": 300,
+          "position_room_shares": 4900,
+          "lot_size": 100,
+          "tier": "none"
+        }
+      },
+      "simulated_entry_price": 3.548,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-b1dd5a03898f",
+      "episode_id": "ep-9fa7fae36df6",
+      "decision_group_id": "2026-08-17:00100",
+      "plan_date": "2026-08-17",
+      "created_at": "2026-08-17T08:00:00+08:00",
+      "ticker": "00100",
+      "name": "",
+      "leg": "HK",
+      "strategy_id": "core_position",
+      "thesis_id": "00100-single-name-cap-hold-watch-v3",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "manual",
+        "price": null,
+        "description": "",
+        "valid_for_sessions": 5
+      },
+      "size": {
+        "shares": null,
+        "pct": null,
+        "note": ""
+      },
+      "confidence": 0.55,
+      "driven_by": "technical",
+      "evidence_event_id": null,
+      "regime": "risk_on",
+      "rationale": "z+1.19 偏高 + 5d +3.1% 偏弱 + 1d 跑输商汤 6.8pp 警惕. 智谱 peer 5d -5.51% self 5d +3.1% 仍跑赢 8.6pp. mom_3m -61.3% 远未回本. 港股通调入 (上交所 8/5 公告) 实际生效日 unconfirmed 待补. packet 限制 allowed=[hold_and_watch, watch] 不批准自动 trim. reflection 18 ep 0.56 win (减×9 胜7 减仓 edge 强) 但 packet 不批 trim.",
+      "technical_setup_id": null,
+      "technical_campaign_id": null,
+      "invalidation_price": null,
+      "tranche_number": null,
+      "technical_trace_version": 1,
+      "signal_provenance": {
+        "schema_version": 1,
+        "context_generation_id": "53969e741cd01e76",
+        "observed_at": "2026-08-17T10:32:40.486169+08:00",
+        "information": {
+          "activation_blockers": [
+            "history_dates"
+          ],
+          "as_of": "2026-08-17T02:32:36.214612+00:00",
+          "attention_acceleration": 0.612,
+          "attention_components": [
+            {
+              "attention_value": 0.091858,
+              "baseline_comparable_value": 0.091858,
+              "channel": "news",
+              "corroborating_sources": 1,
+              "event_id": "evt_4516146d4615173a0b48",
+              "freshness": 0.3674,
+              "novelty": 1.0,
+              "published_at": "2026-08-14T22:32:35+00:00",
+              "reliability": 0.5,
+              "source_type": "google_news_rss"
+            },
+            {
+              "attention_value": 0.0,
+              "baseline_comparable_value": 0.0,
+              "channel": "news",
+              "corroborating_sources": 1,
+              "event_id": "evt_6210c3cc9721a262491e",
+              "freshness": 0.2176,
+              "novelty": 0.0,
+              "published_at": "2026-08-13T19:19:54+00:00",
+              "reliability": 0.5,
+              "source_type": "google_news_rss"
+            },
+            {
+              "attention_value": 0.015815,
+              "baseline_comparable_value": 0.015815,
+              "channel": "news",
+              "corroborating_sources": 1,
+              "event_id": "evt_6cb66969210d93d1f34c",
+              "freshness": 0.2041,
+              "novelty": 0.25,
+              "published_at": "2026-08-13T16:00:00+00:00",
+              "reliability": 0.62,
+              "source_type": "eastmoney_company"
+            },
+            {
+              "attention_value": 0.0,
+              "baseline_comparable_value": 0.0,
+              "channel": "news",
+              "corroborating_sources": 1,
+              "event_id": "evt_35397cbeada05de8aede",
+              "freshness": 0.1585,
+              "novelty": 0.0,
+              "published_at": "2026-08-13T02:51:34+00:00",
+              "reliability": 0.5,
+              "source_type": "google_news_rss"
+            },
+            {
+              "attention_value": 0.024872,
+              "baseline_comparable_value": 0.024872,
+              "channel": "news",
+              "corroborating_sources": 1,
+              "event_id": "evt_3f3c66f341c42bbae7af",
+              "freshness": 0.0995,
+              "novelty": 1.0,
+              "published_at": "2026-08-12T02:41:18+00:00",
+              "reliability": 0.5,
+              "source_type": "google_news_rss"
+            },
+            {
+              "attention_value": 0.005854,
+              "baseline_comparable_value": 0.005854,
+              "channel": "news",
+              "corroborating_sources": 1,
+              "event_id": "evt_395bb15920e65ccb66c5",
+              "freshness": 0.0937,
+              "novelty": 0.25,
+              "published_at": "2026-08-11T23:33:00+00:00",
+              "reliability": 0.5,
+              "source_type": "google_news_rss"
+            },
+            {
+              "attention_value": 0.0,
+              "baseline_comparable_value": 0.0,
+              "channel": "news",
+              "corroborating_sources": 1,
+              "event_id": "evt_d41d790c2e21d9a7a508",
+              "freshness": 0.0622,
+              "novelty": 0.0,
+              "published_at": "2026-08-11T02:17:20+00:00",
+              "reliability": 0.5,
+              "source_type": "google_news_rss"
+            }
+          ],
+          "attention_event_count": 7,
+          "attention_rank": 0.375,
+          "attention_score": 0.138399,
+          "attention_source_type_count": 2,
+          "cross_section_rank": 0.4375,
+          "event_components": [],
+          "event_count": 0,
+          "own_surprise_z": -0.2673,
+          "signed_score": 0.0,
+          "sizing_tilt": "inactive",
+          "source_ticker": "00100",
+          "status": "warming_up",
+          "usable_for_decisions": false
+        },
+        "factor": {
+          "as_of": "2026-08-17",
+          "breadth": 0.4286,
+          "composite_score": -0.0526,
+          "coverage_pct": 95.0,
+          "market_percentile": 0.3077,
+          "membership_history_complete": false,
+          "relative_strength": 0.0366,
+          "sector": "hk_ai_models",
+          "sector_universe_size": 7,
+          "usable_for_decisions": false
+        },
+        "peer_residual": {
+          "as_of": "2026-08-17",
+          "available_peer_count": 6,
+          "dispersion_5d": 0.0395,
+          "laggard_persistence": 1,
+          "leadership_persistence": 2,
+          "residual_1d": -0.0027,
+          "residual_20d": 0.5123,
+          "residual_5d": 0.034,
+          "sector_regime": "broad_up",
+          "triggered_rules": [
+            "leader_continuation"
+          ],
+          "usable_for_decisions": false,
+          "usable_rules": []
+        },
+        "add_authority": {
+          "blockers": [
+            "independent_evidence_families"
+          ],
+          "continuing_campaign": false,
+          "discipline": "one price-relative family plus point-in-time information authorise capital; technical confirmation only schedules the tranche",
+          "evidence_families": [
+            "price_relative"
+          ],
+          "factor_reasons": [
+            "factor_coverage_sufficient",
+            "industry_comparison_sufficient"
+          ],
+          "information_event_ids": [
+            "evt_35397cbeada05de8aede",
+            "evt_395bb15920e65ccb66c5",
+            "evt_3f3c66f341c42bbae7af",
+            "evt_4516146d4615173a0b48",
+            "evt_6210c3cc9721a262491e",
+            "evt_6cb66969210d93d1f34c",
+            "evt_d41d790c2e21d9a7a508"
+          ],
+          "information_modes": [],
+          "market": "HK",
+          "peer_rules": [
+            "leader_continuation"
+          ],
+          "policy_version": 2,
+          "schema_version": 2,
+          "sources": [
+            "peer_residual"
+          ],
+          "tier": "none"
+        },
+        "early_trend": {
+          "blockers": [
+            "needs_information_confirmation",
+            "needs_primary_evidence",
+            "no_20d_breakout",
+            "no_short_peer_leadership"
+          ],
+          "discipline": "short-history candidate; price/peer are one family, primary or attention information is independent, and z>=2 waits for a rebreak",
+          "evidence_families": [],
+          "exploration_ready": false,
+          "information_modes": [],
+          "market": "HK",
+          "metrics": {
+            "attention_acceleration": 0.612,
+            "attention_rank": 0.375,
+            "close": 329.0,
+            "peer_dispersion_5d": 0.0395,
+            "prior_20d_high": 388.6,
+            "residual_5d": 0.034,
+            "residual_dispersion_multiple": 0.8608,
+            "zscore20": 1.19
+          },
+          "observed": false,
+          "price_modes": [],
+          "primary_event_ids": [],
+          "schema_version": 1,
+          "state": "not_candidate"
+        },
+        "sizing": {
+          "contributors": [],
+          "discipline": "resizes an approved technical tranche; never creates add authority",
+          "sizing_active": false,
+          "sizing_multiplier": 1.0
+        },
+        "authority": {
+          "max_add_shares": 20,
+          "position_room_shares": 20,
+          "lot_size": 20,
+          "tier": "none"
+        }
+      },
+      "simulated_entry_price": 332.4,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-c225ae6c92ff",
+      "episode_id": "ep-20260731-03033-hold",
+      "decision_group_id": "2026-08-17:03033",
+      "plan_date": "2026-08-17",
+      "created_at": "2026-08-17T08:00:00+08:00",
+      "ticker": "03033",
+      "name": "",
+      "leg": "HK",
+      "strategy_id": "core_position",
+      "thesis_id": "03033-hstech-1x-hold-v3",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "manual",
+        "price": null,
+        "description": "",
+        "valid_for_sessions": 1
+      },
+      "size": {
+        "shares": null,
+        "pct": null,
+        "note": ""
+      },
+      "confidence": 0.5,
+      "driven_by": "technical",
+      "evidence_event_id": null,
+      "regime": "risk_on",
+      "rationale": "8/15 +2.04% 1d 跟 HSTECH +1.77%. 1x ETF 跟 underlying. reflection 12 ep 0.33 win 持有统计最优. 2026 YTD 南下资金净买入 3,700 亿 HKD (em_news 8/14) + AI 基建爆发 + 科指擴容 AI 含金量增 (8/15). 今日 07226 swap inflow 接收方 (5 lots=1,000 shares 即将 add).",
+      "technical_setup_id": null,
+      "technical_campaign_id": null,
+      "invalidation_price": null,
+      "tranche_number": null,
+      "technical_trace_version": 1,
+      "signal_provenance": {
+        "schema_version": 1,
+        "context_generation_id": "53969e741cd01e76",
+        "observed_at": "2026-08-17T10:32:40.486169+08:00",
+        "information": {
+          "activation_blockers": [
+            "history_dates"
+          ],
+          "as_of": "2026-08-17T02:32:36.214612+00:00",
+          "attention_acceleration": 1.5283,
+          "attention_components": [
+            {
+              "attention_value": 0.063261,
+              "baseline_comparable_value": 0.063261,
+              "channel": "news",
+              "corroborating_sources": 1,
+              "event_id": "evt_368c4fbc93b8c68b9223",
+              "freshness": 0.8163,
+              "novelty": 0.25,
+              "published_at": "2026-08-16T16:00:00+00:00",
+              "reliability": 0.62,
+              "source_type": "eastmoney_company"
+            },
+            {
+              "attention_value": 0.113166,
+              "baseline_comparable_value": 0.113166,
+              "channel": "news",
+              "corroborating_sources": 1,
+              "event_id": "evt_71b9356e2a72eac221fd",
+              "freshness": 0.4527,
+              "novelty": 1.0,
+              "published_at": "2026-08-15T09:22:40+00:00",
+              "reliability": 0.5,
+              "source_type": "google_news_rss"
+            },
+            {
+              "attention_value": 0.022028,
+              "baseline_comparable_value": 0.022028,
+              "channel": "news",
+              "corroborating_sources": 1,
+              "event_id": "evt_39fb1c1af68847f335d2",
+              "freshness": 0.3524,
+              "novelty": 0.25,
+              "published_at": "2026-08-14T20:22:48+00:00",
+              "reliability": 0.5,
+              "source_type": "google_news_rss"
+            },
+            {
+              "attention_value": 0.0,
+              "baseline_comparable_value": 0.0,
+              "channel": "news",
+              "corroborating_sources": 1,
+              "event_id": "evt_fcdd343a13dfb146e473",
+              "freshness": 0.1286,
+              "novelty": 0.0,
+              "published_at": "2026-08-12T16:00:00+00:00",
+              "reliability": 0.62,
+              "source_type": "eastmoney_company"
+            },
+            {
+              "attention_value": 0.0,
+              "baseline_comparable_value": 0.0,
+              "channel": "news",
+              "corroborating_sources": 1,
+              "event_id": "evt_74a68d503f764508d8e0",
+              "freshness": 0.041,
+              "novelty": 0.0,
+              "published_at": "2026-08-10T04:37:26+00:00",
+              "reliability": 0.5,
+              "source_type": "google_news_rss"
+            }
+          ],
+          "attention_event_count": 5,
+          "attention_rank": 0.875,
+          "attention_score": 0.198455,
+          "attention_source_type_count": 2,
+          "cross_section_rank": 0.4375,
+          "event_components": [],
+          "event_count": 0,
+          "own_surprise_z": null,
+          "signed_score": 0.0,
+          "sizing_tilt": "inactive",
+          "source_ticker": "03033",
+          "status": "warming_up",
+          "usable_for_decisions": false
+        },
+        "factor": {
+          "as_of": "2026-08-17",
+          "breadth": 1.0,
+          "composite_score": -0.4211,
+          "coverage_pct": 95.0,
+          "market_percentile": 0.0,
+          "membership_history_complete": false,
+          "relative_strength": -0.0008,
+          "sector": "hstech_etf",
+          "sector_universe_size": 2,
+          "usable_for_decisions": false
+        },
+        "peer_residual": {
+          "as_of": "2026-08-17",
+          "available_peer_count": 1,
+          "dispersion_5d": null,
+          "laggard_persistence": 1,
+          "leadership_persistence": 2,
+          "residual_1d": -0.0009,
+          "residual_20d": 0.0011,
+          "residual_5d": 0.0016,
+          "sector_regime": "broad_up",
+          "triggered_rules": [],
+          "usable_for_decisions": false,
+          "usable_rules": []
+        },
+        "add_authority": {
+          "blockers": [
+            "independent_evidence_families"
+          ],
+          "continuing_campaign": false,
+          "discipline": "one price-relative family plus point-in-time information authorise capital; technical confirmation only schedules the tranche",
+          "evidence_families": [
+            "point_in_time_information"
+          ],
+          "factor_reasons": [
+            "factor_coverage_sufficient"
+          ],
+          "information_event_ids": [
+            "evt_368c4fbc93b8c68b9223",
+            "evt_39fb1c1af68847f335d2",
+            "evt_71b9356e2a72eac221fd",
+            "evt_74a68d503f764508d8e0",
+            "evt_fcdd343a13dfb146e473"
+          ],
+          "information_modes": [
+            "attention_acceleration"
+          ],
+          "market": "HK",
+          "peer_rules": [],
+          "policy_version": 2,
+          "schema_version": 2,
+          "sources": [
+            "information"
+          ],
+          "tier": "none"
+        },
+        "early_trend": {
+          "blockers": [
+            "needs_primary_evidence",
+            "no_20d_breakout",
+            "no_short_peer_leadership"
+          ],
+          "discipline": "short-history candidate; price/peer are one family, primary or attention information is independent, and z>=2 waits for a rebreak",
+          "evidence_families": [
+            "point_in_time_information"
+          ],
+          "exploration_ready": false,
+          "information_modes": [
+            "attention_acceleration"
+          ],
+          "market": "HK",
+          "metrics": {
+            "attention_acceleration": 1.5283,
+            "attention_rank": 0.875,
+            "close": 4.616,
+            "peer_dispersion_5d": null,
+            "prior_20d_high": 4.854,
+            "residual_5d": 0.0016,
+            "residual_dispersion_multiple": null,
+            "zscore20": -1.08
+          },
+          "observed": false,
+          "price_modes": [],
+          "primary_event_ids": [],
+          "schema_version": 1,
+          "state": "not_candidate"
+        },
+        "sizing": {
+          "contributors": [],
+          "discipline": "resizes an approved technical tranche; never creates add authority",
+          "sizing_active": false,
+          "sizing_multiplier": 1.0
+        },
+        "authority": {
+          "max_add_shares": 200,
+          "position_room_shares": 3600,
+          "lot_size": 200,
+          "tier": "none"
+        }
+      },
+      "simulated_entry_price": 4.71,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-e1d655f5081b",
+      "episode_id": "ep-20260731-03032-hold",
+      "decision_group_id": "2026-08-17:03032",
+      "plan_date": "2026-08-17",
+      "created_at": "2026-08-17T08:00:00+08:00",
+      "ticker": "03032",
+      "name": "",
+      "leg": "HK",
+      "strategy_id": "core_position",
+      "thesis_id": "03032-hstech-1x-hold-v3",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "manual",
+        "price": null,
+        "description": "",
+        "valid_for_sessions": 1
+      },
+      "size": {
+        "shares": null,
+        "pct": null,
+        "note": ""
+      },
+      "confidence": 0.5,
+      "driven_by": "technical",
+      "evidence_event_id": null,
+      "regime": "risk_on",
+      "rationale": "8/15 +2.09% 1d 跟 HSTECH +1.77%. 1x ETF 跟 underlying. reflection 12 ep 0.33 win 持有统计最优. 仓位 1.33% 太小不值 trim.",
+      "technical_setup_id": null,
+      "technical_campaign_id": null,
+      "invalidation_price": null,
+      "tranche_number": null,
+      "technical_trace_version": 1,
+      "signal_provenance": {
+        "schema_version": 1,
+        "context_generation_id": "53969e741cd01e76",
+        "observed_at": "2026-08-17T10:32:40.486169+08:00",
+        "information": {
+          "activation_blockers": [
+            "history_dates"
+          ],
+          "as_of": "2026-08-17T02:32:36.214612+00:00",
+          "attention_acceleration": 0.8564,
+          "attention_components": [
+            {
+              "attention_value": 0.113166,
+              "baseline_comparable_value": 0.113166,
+              "channel": "news",
+              "corroborating_sources": 1,
+              "event_id": "evt_3b727c4c0a5c20d07416",
+              "freshness": 0.4527,
+              "novelty": 1.0,
+              "published_at": "2026-08-15T09:22:40+00:00",
+              "reliability": 0.5,
+              "source_type": "google_news_rss"
+            },
+            {
+              "attention_value": 0.049823,
+              "baseline_comparable_value": 0.049823,
+              "channel": "news",
+              "corroborating_sources": 1,
+              "event_id": "evt_1cb19d58ed7de2cd2e8e",
+              "freshness": 0.3986,
+              "novelty": 0.5,
+              "published_at": "2026-08-15T02:46:10+00:00",
+              "reliability": 0.5,
+              "source_type": "google_news_rss"
+            },
+            {
+              "attention_value": 0.020161,
+              "baseline_comparable_value": 0.020161,
+              "channel": "news",
+              "corroborating_sources": 1,
+              "event_id": "evt_0dec6404824eafd6d7c6",
+              "freshness": 0.3226,
+              "novelty": 0.25,
+              "published_at": "2026-08-14T15:46:49+00:00",
+              "reliability": 0.5,
+              "source_type": "google_news_rss"
+            },
+            {
+              "attention_value": 0.009693,
+              "baseline_comparable_value": 0.009693,
+              "channel": "news",
+              "corroborating_sources": 1,
+              "event_id": "evt_130bac891ee7dc30706a",
+              "freshness": 0.1551,
+              "novelty": 0.25,
+              "published_at": "2026-08-13T01:44:47+00:00",
+              "reliability": 0.5,
+              "source_type": "google_news_rss"
+            },
+            {
+              "attention_value": 0.0,
+              "baseline_comparable_value": 0.0,
+              "channel": "news",
+              "corroborating_sources": 1,
+              "event_id": "evt_33e74fb328138a28226d",
+              "freshness": 0.1286,
+              "novelty": 0.0,
+              "published_at": "2026-08-12T16:00:00+00:00",
+              "reliability": 0.62,
+              "source_type": "eastmoney_company"
+            },
+            {
+              "attention_value": 0.0,
+              "baseline_comparable_value": 0.0,
+              "channel": "news",
+              "corroborating_sources": 1,
+              "event_id": "evt_bb40aa039e18a37792fc",
+              "freshness": 0.1286,
+              "novelty": 0.0,
+              "published_at": "2026-08-12T16:00:00+00:00",
+              "reliability": 0.62,
+              "source_type": "eastmoney_company"
+            },
+            {
+              "attention_value": 0.0,
+              "baseline_comparable_value": 0.0,
+              "channel": "news",
+              "corroborating_sources": 1,
+              "event_id": "evt_3121bd8a15d78e95fbab",
+              "freshness": 0.1286,
+              "novelty": 0.0,
+              "published_at": "2026-08-12T16:00:00+00:00",
+              "reliability": 0.62,
+              "source_type": "eastmoney_company"
+            },
+            {
+              "attention_value": 0.0,
+              "baseline_comparable_value": 0.0,
+              "channel": "news",
+              "corroborating_sources": 1,
+              "event_id": "evt_412cfc9205416d1daf44",
+              "freshness": 0.0957,
+              "novelty": 0.0,
+              "published_at": "2026-08-12T00:40:00+00:00",
+              "reliability": 0.5,
+              "source_type": "google_news_rss"
+            }
+          ],
+          "attention_event_count": 9,
+          "attention_rank": 0.625,
+          "attention_score": 0.192843,
+          "attention_source_type_count": 2,
+          "cross_section_rank": 0.4375,
+          "event_components": [],
+          "event_count": 0,
+          "own_surprise_z": null,
+          "signed_score": 0.0,
+          "sizing_tilt": "inactive",
+          "source_ticker": "03032",
+          "status": "warming_up",
+          "usable_for_decisions": false
+        },
+        "factor": {
+          "as_of": "2026-08-17",
+          "breadth": 1.0,
+          "composite_score": 0.4211,
+          "coverage_pct": 95.0,
+          "market_percentile": 1.0,
+          "membership_history_complete": false,
+          "relative_strength": 0.0008,
+          "sector": "hstech_etf",
+          "sector_universe_size": 2,
+          "usable_for_decisions": false
+        },
+        "peer_residual": {
+          "as_of": "2026-08-17",
+          "available_peer_count": 2,
+          "dispersion_5d": 0.0022,
+          "laggard_persistence": 1,
+          "leadership_persistence": 2,
+          "residual_1d": 0.0015,
+          "residual_20d": -0.0006,
+          "residual_5d": 0.0,
+          "sector_regime": "broad_up",
+          "triggered_rules": [],
+          "usable_for_decisions": false,
+          "usable_rules": []
+        },
+        "add_authority": {
+          "blockers": [
+            "independent_evidence_families"
+          ],
+          "continuing_campaign": false,
+          "discipline": "one price-relative family plus point-in-time information authorise capital; technical confirmation only schedules the tranche",
+          "evidence_families": [],
+          "factor_reasons": [
+            "market_top_rank",
+            "factor_coverage_sufficient"
+          ],
+          "information_event_ids": [
+            "evt_0dec6404824eafd6d7c6",
+            "evt_130bac891ee7dc30706a",
+            "evt_1cb19d58ed7de2cd2e8e",
+            "evt_3121bd8a15d78e95fbab",
+            "evt_33e74fb328138a28226d",
+            "evt_3b727c4c0a5c20d07416",
+            "evt_412cfc9205416d1daf44",
+            "evt_bb40aa039e18a37792fc"
+          ],
+          "information_modes": [],
+          "market": "HK",
+          "peer_rules": [],
+          "policy_version": 2,
+          "schema_version": 2,
+          "sources": [],
+          "tier": "none"
+        },
+        "early_trend": {
+          "blockers": [
+            "needs_information_confirmation",
+            "needs_primary_evidence",
+            "no_20d_breakout",
+            "no_short_peer_leadership"
+          ],
+          "discipline": "short-history candidate; price/peer are one family, primary or attention information is independent, and z>=2 waits for a rebreak",
+          "evidence_families": [],
+          "exploration_ready": false,
+          "information_modes": [],
+          "market": "HK",
+          "metrics": {
+            "attention_acceleration": 0.8564,
+            "attention_rank": 0.625,
+            "close": 4.7,
+            "peer_dispersion_5d": 0.0022,
+            "prior_20d_high": 4.946,
+            "residual_5d": 0.0,
+            "residual_dispersion_multiple": 0.0,
+            "zscore20": -1.08
+          },
+          "observed": false,
+          "price_modes": [],
+          "primary_event_ids": [],
+          "schema_version": 1,
+          "state": "not_candidate"
+        },
+        "sizing": {
+          "contributors": [],
+          "discipline": "resizes an approved technical tranche; never creates add authority",
+          "sizing_active": false,
+          "sizing_multiplier": 1.0
+        },
+        "authority": {
+          "max_add_shares": 200,
+          "position_room_shares": 3600,
+          "lot_size": 200,
+          "tier": "none"
+        }
+      },
+      "simulated_entry_price": 4.798,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-8c889b0239dd",
+      "episode_id": "ep-20260731-02208-hold",
+      "decision_group_id": "2026-08-17:02208",
+      "plan_date": "2026-08-17",
+      "created_at": "2026-08-17T08:00:00+08:00",
+      "ticker": "02208",
+      "name": "",
+      "leg": "HK",
+      "strategy_id": "core_position",
+      "thesis_id": "02208-wind-overseas-expansion-hold-v3",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "manual",
+        "price": null,
+        "description": "",
+        "valid_for_sessions": 5
+      },
+      "size": {
+        "shares": null,
+        "pct": null,
+        "note": ""
+      },
+      "confidence": 0.55,
+      "driven_by": "technical",
+      "evidence_event_id": null,
+      "regime": "risk_on",
+      "rationale": "8/15 +3.78% 1d 跑赢 peer 01072 东方电气 1.63% (+2.2pp), 1m +18.6% 海外扩张 alpha 仍在, 8/11 长征七号发射失利 + 朱雀三号 8/12 延期 → 8/11 商业航天走弱 → 金风连带 → 8/15 已消化. 1d peer 00816 龙源 +0.64% / 01072 东方电气 +1.63% 同步. packet 限制 allowed=[hold_and_watch, watch] 不批准自动 trim. reflection 15 ep 0.33 win 主动 call 多半没跑赢持有.",
+      "technical_setup_id": null,
+      "technical_campaign_id": null,
+      "invalidation_price": null,
+      "tranche_number": null,
+      "technical_trace_version": 1,
+      "signal_provenance": {
+        "schema_version": 1,
+        "context_generation_id": "53969e741cd01e76",
+        "observed_at": "2026-08-17T10:32:40.486169+08:00",
+        "information": {
+          "activation_blockers": [
+            "history_dates"
+          ],
+          "as_of": "2026-08-17T02:32:36.214612+00:00",
+          "attention_acceleration": 0.5117,
+          "attention_components": [
+            {
+              "attention_value": 0.0,
+              "baseline_comparable_value": 0.0,
+              "channel": "news",
+              "corroborating_sources": 1,
+              "event_id": "evt_aafd8390de6acf0d0ebb",
+              "freshness": 0.081,
+              "novelty": 0.0,
+              "published_at": "2026-08-11T16:00:00+00:00",
+              "reliability": 0.62,
+              "source_type": "eastmoney_company"
+            },
+            {
+              "attention_value": 0.004659,
+              "baseline_comparable_value": 0.004659,
+              "channel": "news",
+              "corroborating_sources": 1,
+              "event_id": "evt_59ce570bc011c928a0af",
+              "freshness": 0.0745,
+              "novelty": 0.25,
+              "published_at": "2026-08-11T11:42:00+00:00",
+              "reliability": 0.5,
+              "source_type": "google_news_rss"
+            },
+            {
+              "attention_value": 0.0,
+              "baseline_comparable_value": 0.0,
+              "channel": "news",
+              "corroborating_sources": 1,
+              "event_id": "evt_a4715e6da2f53a766715",
+              "freshness": 0.0613,
+              "novelty": 0.0,
+              "published_at": "2026-08-11T01:31:44+00:00",
+              "reliability": 0.5,
+              "source_type": "google_news_rss"
+            },
+            {
+              "attention_value": 0.0,
+              "baseline_comparable_value": 0.0,
+              "channel": "news",
+              "corroborating_sources": 1,
+              "event_id": "evt_d89cb6255ac3455f63bd",
+              "freshness": 0.051,
+              "novelty": 0.0,
+              "published_at": "2026-08-10T16:00:00+00:00",
+              "reliability": 0.62,
+              "source_type": "eastmoney_company"
+            }
+          ],
+          "attention_event_count": 4,
+          "attention_rank": 0.125,
+          "attention_score": 0.004659,
+          "attention_source_type_count": 2,
+          "cross_section_rank": 0.4375,
+          "event_components": [
+            {
+              "corroborating_sources": 1,
+              "direction": -1,
+              "event_id": "evt_aafd8390de6acf0d0ebb",
+              "freshness": 0.081,
+              "novelty": 0.0,
+              "price_nonreaction": 1.0,
+              "published_at": "2026-08-11T16:00:00+00:00",
+              "reliability": 0.62,
+              "signed_score": -0.0
+            }
+          ],
+          "event_count": 1,
+          "own_surprise_z": 0.2673,
+          "signed_score": 0.0,
+          "sizing_tilt": "inactive",
+          "source_ticker": "02208",
+          "status": "warming_up",
+          "usable_for_decisions": false
+        },
+        "factor": {
+          "as_of": "2026-08-17",
+          "breadth": 0.4,
+          "composite_score": 0.1421,
+          "coverage_pct": 95.0,
+          "market_percentile": 0.7692,
+          "membership_history_complete": false,
+          "relative_strength": 0.0469,
+          "sector": "hk_wind",
+          "sector_universe_size": 5,
+          "usable_for_decisions": false
+        },
+        "peer_residual": {
+          "as_of": "2026-08-17",
+          "available_peer_count": 4,
+          "dispersion_5d": 0.0178,
+          "laggard_persistence": 1,
+          "leadership_persistence": 2,
+          "residual_1d": 0.0306,
+          "residual_20d": 0.1268,
+          "residual_5d": -0.0133,
+          "sector_regime": "mixed",
+          "triggered_rules": [],
+          "usable_for_decisions": false,
+          "usable_rules": []
+        },
+        "add_authority": {
+          "blockers": [
+            "independent_evidence_families"
+          ],
+          "continuing_campaign": false,
+          "discipline": "one price-relative family plus point-in-time information authorise capital; technical confirmation only schedules the tranche",
+          "evidence_families": [
+            "price_relative"
+          ],
+          "factor_reasons": [
+            "market_top_rank",
+            "factor_coverage_sufficient",
+            "industry_comparison_sufficient"
+          ],
+          "information_event_ids": [
+            "evt_59ce570bc011c928a0af",
+            "evt_a4715e6da2f53a766715",
+            "evt_aafd8390de6acf0d0ebb",
+            "evt_d89cb6255ac3455f63bd"
+          ],
+          "information_modes": [],
+          "market": "HK",
+          "peer_rules": [],
+          "policy_version": 2,
+          "schema_version": 2,
+          "sources": [
+            "factor"
+          ],
+          "tier": "none"
+        },
+        "early_trend": {
+          "blockers": [
+            "needs_information_confirmation",
+            "needs_primary_evidence",
+            "no_20d_breakout",
+            "no_short_peer_leadership"
+          ],
+          "discipline": "short-history candidate; price/peer are one family, primary or attention information is independent, and z>=2 waits for a rebreak",
+          "evidence_families": [],
+          "exploration_ready": false,
+          "information_modes": [],
+          "market": "HK",
+          "metrics": {
+            "attention_acceleration": 0.5117,
+            "attention_rank": 0.125,
+            "close": 10.58,
+            "peer_dispersion_5d": 0.0178,
+            "prior_20d_high": 11.72,
+            "residual_5d": -0.0133,
+            "residual_dispersion_multiple": -0.7472,
+            "zscore20": 0.6
+          },
+          "observed": false,
+          "price_modes": [],
+          "primary_event_ids": [],
+          "schema_version": 1,
+          "state": "not_candidate"
+        },
+        "sizing": {
+          "contributors": [],
+          "discipline": "resizes an approved technical tranche; never creates add authority",
+          "sizing_active": false,
+          "sizing_multiplier": 1.0
+        },
+        "authority": {
+          "max_add_shares": 200,
+          "position_room_shares": 1600,
+          "lot_size": 200,
+          "tier": "none"
+        }
+      },
+      "simulated_entry_price": 10.98,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-0c1ae84e1962",
+      "episode_id": "ep-20260731-crcl-hold",
+      "decision_group_id": "2026-08-17:CRCL",
+      "plan_date": "2026-08-17",
+      "created_at": "2026-08-17T08:00:00+08:00",
+      "ticker": "CRCL",
+      "name": "",
+      "leg": "US",
+      "strategy_id": "core_position",
+      "thesis_id": "crcl-stablecoin-mainnet-unlock-hold-v3",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "manual",
+        "price": null,
+        "description": "",
+        "valid_for_sessions": 5
+      },
+      "size": {
+        "shares": null,
+        "pct": null,
+        "note": ""
+      },
+      "confidence": 0.5,
+      "driven_by": "sentiment",
+      "evidence_event_id": null,
+      "regime": "risk_on",
+      "rationale": "8/15 -5.01% 1d, 5d +10.3% z+1.41 偏高. T+0 grade 🟡 低位 11% 区间 (现价 11% 当日区间底部). 硬催化 8/5 bmo Q2 EPS $0.27 beat, USDC $73.3B +19% YoY, Arc presale $242M. 软 disconfirming: Open USD stablecoin 140+ 公司 (Visa/Mastercard/Stripe/Coinbase) 直接 USDC 竞争 + insider sell 8,476 股 + 1d 跑输 BKKT 8.4pp ⚠️. packet 限制 allowed=[hold_and_watch, watch] 不批准 cut. reflection 14 ep 0.50 win.",
+      "technical_setup_id": null,
+      "technical_campaign_id": null,
+      "invalidation_price": null,
+      "tranche_number": null,
+      "technical_trace_version": 1,
+      "signal_provenance": {
+        "schema_version": 1,
+        "context_generation_id": "53969e741cd01e76",
+        "observed_at": "2026-08-17T10:32:40.486169+08:00",
+        "information": {
+          "activation_blockers": [
+            "history_dates"
+          ],
+          "as_of": "2026-08-17T02:32:36.214612+00:00",
+          "attention_acceleration": 0.5753,
+          "attention_components": [
+            {
+              "attention_value": 0.111102,
+              "baseline_comparable_value": 0.111102,
+              "channel": "news",
+              "corroborating_sources": 1,
+              "event_id": "evt_917b89d00e3eb8034464",
+              "freshness": 0.4444,
+              "novelty": 1.0,
+              "published_at": "2026-08-15T08:25:19+00:00",
+              "reliability": 0.5,
+              "source_type": "google_news_rss"
+            },
+            {
+              "attention_value": 0.018918,
+              "baseline_comparable_value": 0.018918,
+              "channel": "news",
+              "corroborating_sources": 1,
+              "event_id": "evt_0e21c858858a3b85052f",
+              "freshness": 0.3027,
+              "novelty": 0.25,
+              "published_at": "2026-08-14T12:28:32+00:00",
+              "reliability": 0.5,
+              "source_type": "google_news_rss"
+            },
+            {
+              "attention_value": 0.017363,
+              "baseline_comparable_value": 0.017363,
+              "channel": "news",
+              "corroborating_sources": 1,
+              "event_id": "evt_de16f55dc3a76d3a2a71",
+              "freshness": 0.2778,
+              "novelty": 0.25,
+              "published_at": "2026-08-14T08:01:20+00:00",
+              "reliability": 0.5,
+              "source_type": "google_news_rss"
+            },
+            {
+              "attention_value": 0.068364,
+              "baseline_comparable_value": 0.068364,
+              "channel": "news",
+              "corroborating_sources": 1,
+              "event_id": "evt_adffd11511dc1ebf214b",
+              "freshness": 0.2735,
+              "novelty": 1.0,
+              "published_at": "2026-08-14T07:12:03+00:00",
+              "reliability": 0.5,
+              "source_type": "google_news_rss"
+            },
+            {
+              "attention_value": 0.070549,
+              "baseline_comparable_value": 0.070549,
+              "channel": "news",
+              "corroborating_sources": 1,
+              "event_id": "evt_eb9726ea429874505b03",
+              "freshness": 0.2016,
+              "novelty": 1.0,
+              "published_at": "2026-08-13T15:21:35+00:00",
+              "reliability": 0.7,
+              "source_type": "finnhub_syndication"
+            },
+            {
+              "attention_value": 0.0,
+              "baseline_comparable_value": 0.0,
+              "channel": "news",
+              "corroborating_sources": 1,
+              "event_id": "evt_c415604e0dd25365e2f8",
+              "freshness": 0.1969,
+              "novelty": 0.0,
+              "published_at": "2026-08-13T14:09:00+00:00",
+              "reliability": 0.5,
+              "source_type": "google_news_rss"
+            },
+            {
+              "attention_value": 0.0,
+              "baseline_comparable_value": 0.0,
+              "channel": "news",
+              "corroborating_sources": 1,
+              "event_id": "evt_35c41ec06a7551c010fb",
+              "freshness": 0.1708,
+              "novelty": 0.0,
+              "published_at": "2026-08-13T06:45:00+00:00",
+              "reliability": 0.7,
+              "source_type": "finnhub_syndication"
+            },
+            {
+              "attention_value": 0.0,
+              "baseline_comparable_value": 0.0,
+              "channel": "news",
+              "corroborating_sources": 1,
+              "event_id": "evt_dc4b10cede3a0158a171",
+              "freshness": 0.1157,
+              "novelty": 0.0,
+              "published_at": "2026-08-12T10:32:41+00:00",
+              "reliability": 0.7,
+              "source_type": "finnhub_syndication"
+            }
+          ],
+          "attention_event_count": 8,
+          "attention_rank": 0.375,
+          "attention_score": 0.286296,
+          "attention_source_type_count": 2,
+          "cross_section_rank": 0.9375,
+          "event_components": [
+            {
+              "corroborating_sources": 1,
+              "direction": 1,
+              "event_id": "evt_eb9726ea429874505b03",
+              "freshness": 0.2016,
+              "novelty": 1.0,
+              "price_nonreaction": 1.0,
+              "published_at": "2026-08-13T15:21:35+00:00",
+              "reliability": 0.7,
+              "signed_score": 0.070549
+            },
+            {
+              "corroborating_sources": 1,
+              "direction": 1,
+              "event_id": "evt_dc4b10cede3a0158a171",
+              "freshness": 0.1157,
+              "novelty": 0.0,
+              "price_nonreaction": 1.0,
+              "published_at": "2026-08-12T10:32:41+00:00",
+              "reliability": 0.7,
+              "signed_score": 0.0
+            }
+          ],
+          "event_count": 2,
+          "own_surprise_z": 0.9504,
+          "signed_score": 0.070549,
+          "sizing_tilt": "inactive",
+          "source_ticker": "CRCL",
+          "status": "warming_up",
+          "usable_for_decisions": false
+        },
+        "factor": {
+          "as_of": "2026-08-14",
+          "breadth": 0.6,
+          "composite_score": -0.1776,
+          "coverage_pct": 95.0,
+          "market_percentile": 0.25,
+          "membership_history_complete": false,
+          "relative_strength": -0.181,
+          "sector": "fintech_crypto",
+          "sector_universe_size": 5,
+          "usable_for_decisions": false
+        },
+        "peer_residual": {
+          "as_of": "2026-08-14",
+          "available_peer_count": 4,
+          "dispersion_5d": 0.0329,
+          "laggard_persistence": 1,
+          "leadership_persistence": 2,
+          "residual_1d": -0.035,
+          "residual_20d": 0.1877,
+          "residual_5d": 0.0642,
+          "sector_regime": "mixed",
+          "triggered_rules": [
+            "leader_continuation"
+          ],
+          "usable_for_decisions": false,
+          "usable_rules": []
+        },
+        "add_authority": {
+          "blockers": [
+            "independent_evidence_families"
+          ],
+          "continuing_campaign": false,
+          "discipline": "one price-relative family plus point-in-time information authorise capital; technical confirmation only schedules the tranche",
+          "evidence_families": [
+            "price_relative"
+          ],
+          "factor_reasons": [
+            "factor_coverage_sufficient",
+            "industry_comparison_sufficient"
+          ],
+          "information_event_ids": [
+            "evt_0e21c858858a3b85052f",
+            "evt_35c41ec06a7551c010fb",
+            "evt_917b89d00e3eb8034464",
+            "evt_adffd11511dc1ebf214b",
+            "evt_c415604e0dd25365e2f8",
+            "evt_dc4b10cede3a0158a171",
+            "evt_de16f55dc3a76d3a2a71",
+            "evt_eb9726ea429874505b03"
+          ],
+          "information_modes": [],
+          "market": "US",
+          "peer_rules": [
+            "leader_continuation"
+          ],
+          "policy_version": 2,
+          "schema_version": 2,
+          "sources": [
+            "peer_residual"
+          ],
+          "tier": "none"
+        },
+        "early_trend": {
+          "blockers": [
+            "needs_information_confirmation",
+            "needs_primary_evidence",
+            "no_20d_breakout"
+          ],
+          "discipline": "short-history candidate; price/peer are one family, primary or attention information is independent, and z>=2 waits for a rebreak",
+          "evidence_families": [],
+          "exploration_ready": false,
+          "information_modes": [],
+          "market": "US",
+          "metrics": {
+            "attention_acceleration": 0.5753,
+            "attention_rank": 0.375,
+            "close": 71.6,
+            "peer_dispersion_5d": 0.0329,
+            "prior_20d_high": 75.89,
+            "residual_5d": 0.0642,
+            "residual_dispersion_multiple": 1.9514,
+            "zscore20": 1.41
+          },
+          "observed": false,
+          "price_modes": [
+            "short_peer_residual"
+          ],
+          "primary_event_ids": [],
+          "schema_version": 1,
+          "state": "not_candidate"
+        },
+        "sizing": {
+          "contributors": [],
+          "discipline": "resizes an approved technical tranche; never creates add authority",
+          "sizing_active": false,
+          "sizing_multiplier": 1.0
+        },
+        "authority": {
+          "max_add_shares": 1,
+          "position_room_shares": 8,
+          "lot_size": 1,
+          "tier": "none"
+        }
+      },
+      "simulated_entry_price": 71.6,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-b337e12065c4",
+      "episode_id": "ep-20260731-skhy-hold",
+      "decision_group_id": "2026-08-17:SKHY",
+      "plan_date": "2026-08-17",
+      "created_at": "2026-08-17T08:00:00+08:00",
+      "ticker": "SKHY",
+      "name": "",
+      "leg": "US",
+      "strategy_id": "core_position",
+      "thesis_id": "skhy-hbm-ai-memory-hold-v3",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "manual",
+        "price": null,
+        "description": "",
+        "valid_for_sessions": 5
+      },
+      "size": {
+        "shares": null,
+        "pct": null,
+        "note": ""
+      },
+      "confidence": 0.6,
+      "driven_by": "technical",
+      "evidence_event_id": null,
+      "regime": "risk_on",
+      "rationale": "5d +22.9% 强 trend, 1d +0.40% (peer STX +5.65% / WDC +4.41% / MU +2.30% — peer 1d 强 ⚠️ self 1d 跑输 5.3pp 警惕). 硬催化: HBM 2027 全部售罄 + Nvidia AI deal + Temasek buzz + 8/15 Nasdaq 上市 (新 ADR). 软 disconfirming: 长鑫 IPO 8/13 板块 -2% + HBM 杀价新闻 (3% margin 收缩). reflection 6 ep 0.50 win 持有 7/28/31 3 连续 win.",
+      "technical_setup_id": null,
+      "technical_campaign_id": null,
+      "invalidation_price": null,
+      "tranche_number": null,
+      "technical_trace_version": 1,
+      "signal_provenance": {
+        "schema_version": 1,
+        "context_generation_id": "53969e741cd01e76",
+        "observed_at": "2026-08-17T10:32:40.486169+08:00",
+        "information": {
+          "activation_blockers": [
+            "history_dates"
+          ],
+          "as_of": "2026-08-17T02:32:36.214612+00:00",
+          "attention_acceleration": 0.3236,
+          "attention_components": [
+            {
+              "attention_value": 0.031189,
+              "baseline_comparable_value": 0.031189,
+              "channel": "news",
+              "corroborating_sources": 1,
+              "event_id": "evt_508fb2e59d8affe2001d",
+              "freshness": 0.499,
+              "novelty": 0.25,
+              "published_at": "2026-08-15T14:26:28+00:00",
+              "reliability": 0.5,
+              "source_type": "google_news_rss"
+            },
+            {
+              "attention_value": 0.089989,
+              "baseline_comparable_value": 0.089989,
+              "channel": "news",
+              "corroborating_sources": 1,
+              "event_id": "evt_304924ea1f9445d06e17",
+              "freshness": 0.2571,
+              "novelty": 1.0,
+              "published_at": "2026-08-14T04:00:00+00:00",
+              "reliability": 0.7,
+              "source_type": "finnhub_syndication"
+            },
+            {
+              "attention_value": 0.0,
+              "baseline_comparable_value": 0.0,
+              "channel": "news",
+              "corroborating_sources": 1,
+              "event_id": "evt_d6d91e5b9bbef054af66",
+              "freshness": 0.2164,
+              "novelty": 0.0,
+              "published_at": "2026-08-13T19:03:00+00:00",
+              "reliability": 0.5,
+              "source_type": "google_news_rss"
+            },
+            {
+              "attention_value": 0.026924,
+              "baseline_comparable_value": 0.017949,
+              "channel": "news",
+              "corroborating_sources": 2,
+              "event_id": "evt_cd9b1810d168fb081aac",
+              "freshness": 0.2051,
+              "novelty": 0.25,
+              "published_at": "2026-08-13T16:16:12+00:00",
+              "reliability": 0.7,
+              "source_type": "finnhub_syndication"
+            },
+            {
+              "attention_value": 0.068872,
+              "baseline_comparable_value": 0.068872,
+              "channel": "news",
+              "corroborating_sources": 1,
+              "event_id": "evt_4388ada50ed35d3b100b",
+              "freshness": 0.1968,
+              "novelty": 1.0,
+              "published_at": "2026-08-13T14:06:38+00:00",
+              "reliability": 0.7,
+              "source_type": "finnhub_syndication"
+            },
+            {
+              "attention_value": 0.0,
+              "baseline_comparable_value": 0.0,
+              "channel": "news",
+              "corroborating_sources": 1,
+              "event_id": "evt_e9c62b33034c462be7a5",
+              "freshness": 0.1037,
+              "novelty": 0.0,
+              "published_at": "2026-08-12T04:49:39+00:00",
+              "reliability": 0.5,
+              "source_type": "google_news_rss"
+            }
+          ],
+          "attention_event_count": 6,
+          "attention_rank": 0.125,
+          "attention_score": 0.216974,
+          "attention_source_type_count": 2,
+          "cross_section_rank": 0.4375,
+          "event_components": [],
+          "event_count": 0,
+          "own_surprise_z": 0.2076,
+          "signed_score": 0.0,
+          "sizing_tilt": "inactive",
+          "source_ticker": "SKHY",
+          "status": "warming_up",
+          "usable_for_decisions": false
+        },
+        "factor": {
+          "as_of": "2026-08-14",
+          "breadth": 0.75,
+          "composite_score": -0.08,
+          "coverage_pct": 50.0,
+          "market_percentile": 0.4583,
+          "membership_history_complete": false,
+          "relative_strength": 0.0,
+          "sector": "memory_semis",
+          "sector_universe_size": 5,
+          "usable_for_decisions": false
+        },
+        "peer_residual": {
+          "as_of": "2026-08-14",
+          "available_peer_count": 4,
+          "dispersion_5d": 0.0856,
+          "laggard_persistence": 2,
+          "leadership_persistence": 1,
+          "residual_1d": -0.0209,
+          "residual_20d": -0.056,
+          "residual_5d": 0.1048,
+          "sector_regime": "broad_up",
+          "triggered_rules": [],
+          "usable_for_decisions": false,
+          "usable_rules": []
+        },
+        "add_authority": {
+          "blockers": [
+            "independent_evidence_families"
+          ],
+          "continuing_campaign": false,
+          "discipline": "one price-relative family plus point-in-time information authorise capital; technical confirmation only schedules the tranche",
+          "evidence_families": [],
+          "factor_reasons": [
+            "industry_comparison_sufficient"
+          ],
+          "information_event_ids": [
+            "evt_304924ea1f9445d06e17",
+            "evt_4388ada50ed35d3b100b",
+            "evt_508fb2e59d8affe2001d",
+            "evt_cd9b1810d168fb081aac",
+            "evt_d6d91e5b9bbef054af66",
+            "evt_e9c62b33034c462be7a5"
+          ],
+          "information_modes": [],
+          "market": "US",
+          "peer_rules": [],
+          "policy_version": 2,
+          "schema_version": 2,
+          "sources": [],
+          "tier": "none"
+        },
+        "early_trend": {
+          "blockers": [
+            "needs_information_confirmation",
+            "needs_primary_evidence",
+            "no_20d_breakout",
+            "no_short_peer_leadership"
+          ],
+          "discipline": "short-history candidate; price/peer are one family, primary or attention information is independent, and z>=2 waits for a rebreak",
+          "evidence_families": [],
+          "exploration_ready": false,
+          "information_modes": [],
+          "market": "US",
+          "metrics": {
+            "attention_acceleration": 0.3236,
+            "attention_rank": 0.125,
+            "close": 166.33,
+            "peer_dispersion_5d": 0.0856,
+            "prior_20d_high": 177.93,
+            "residual_5d": 0.1048,
+            "residual_dispersion_multiple": 1.2243,
+            "zscore20": 1.3
+          },
+          "observed": false,
+          "price_modes": [],
+          "primary_event_ids": [],
+          "schema_version": 1,
+          "state": "not_candidate"
+        },
+        "sizing": {
+          "contributors": [],
+          "discipline": "resizes an approved technical tranche; never creates add authority",
+          "sizing_active": false,
+          "sizing_multiplier": 1.0
+        },
+        "authority": {
+          "max_add_shares": 1,
+          "position_room_shares": 3,
+          "lot_size": 1,
+          "tier": "none"
+        }
+      },
+      "simulated_entry_price": 166.33,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-03c4fd372ab3",
+      "episode_id": "ep-20260731-spcx-hold",
+      "decision_group_id": "2026-08-17:SPCX",
+      "plan_date": "2026-08-17",
+      "created_at": "2026-08-17T08:00:00+08:00",
+      "ticker": "SPCX",
+      "name": "",
+      "leg": "US",
+      "strategy_id": "core_position",
+      "thesis_id": "spcx-spacex-post-earnings-hold-v3",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "manual",
+        "price": null,
+        "description": "",
+        "valid_for_sessions": 5
+      },
+      "size": {
+        "shares": null,
+        "pct": null,
+        "note": ""
+      },
+      "confidence": 0.55,
+      "driven_by": "technical",
+      "evidence_event_id": null,
+      "regime": "risk_on",
+      "rationale": "8/15 -0.91% 1d 略回吐, 5d +6.2% trend. 8/4 amc Q2 rev $1.935B +93% YoY, 亏损好于预期. 8/7 Musk endorse 'heated up'. 8/8-9 lockup expiry 卖压释放完毕. 8/13 Musk 48.4% 监管披露. **8/16 Musk 9000亿 持股披露** (硬利好) + 8/16 60亿股二级市场新增 (中性偏负). peer IRDM +0.84% (1d 弱) / ASTS -0.76% / RKLB +0.19% / BKSY -0.23% — 1d 板块同跌. 1x swap inflow 接收方 (SPCH cut 200 → +13 SPCX). reflection 8 ep 0.12 win 持有多数亏, 但 5d 强 trend 持续.",
+      "technical_setup_id": null,
+      "technical_campaign_id": null,
+      "invalidation_price": null,
+      "tranche_number": null,
+      "technical_trace_version": 1,
+      "signal_provenance": {
+        "schema_version": 1,
+        "context_generation_id": "53969e741cd01e76",
+        "observed_at": "2026-08-17T10:32:40.486169+08:00",
+        "information": {
+          "activation_blockers": [
+            "history_dates"
+          ],
+          "as_of": "2026-08-17T02:32:36.214612+00:00",
+          "attention_acceleration": 0.9193,
+          "attention_components": [
+            {
+              "attention_value": 0.054399,
+              "baseline_comparable_value": 0.054399,
+              "channel": "influencer_feed",
+              "corroborating_sources": 1,
+              "event_id": "evt_16b87e781f158877e22f",
+              "freshness": 0.8704,
+              "novelty": 0.25,
+              "published_at": "2026-08-16T19:20:00+00:00",
+              "reliability": 0.5,
+              "source_type": "google_news_rss"
+            },
+            {
+              "attention_value": 0.207104,
+              "baseline_comparable_value": 0.207104,
+              "channel": "influencer_feed",
+              "corroborating_sources": 1,
+              "event_id": "evt_f6c59293b9d0eab7dbc9",
+              "freshness": 0.8284,
+              "novelty": 1.0,
+              "published_at": "2026-08-16T16:46:00+00:00",
+              "reliability": 0.5,
+              "source_type": "google_news_rss"
+            },
+            {
+              "attention_value": 0.157359,
+              "baseline_comparable_value": 0.157359,
+              "channel": "news",
+              "corroborating_sources": 1,
+              "event_id": "evt_b11254736681a46fca48",
+              "freshness": 0.6294,
+              "novelty": 1.0,
+              "published_at": "2026-08-16T02:30:00+00:00",
+              "reliability": 0.5,
+              "source_type": "google_news_rss"
+            },
+            {
+              "attention_value": 0.022327,
+              "baseline_comparable_value": 0.022327,
+              "channel": "news",
+              "corroborating_sources": 1,
+              "event_id": "evt_1f18d056631bbfd385bb",
+              "freshness": 0.3572,
+              "novelty": 0.25,
+              "published_at": "2026-08-14T21:04:52+00:00",
+              "reliability": 0.5,
+              "source_type": "google_news_rss"
+            },
+            {
+              "attention_value": 0.081902,
+              "baseline_comparable_value": 0.081902,
+              "channel": "news",
+              "corroborating_sources": 1,
+              "event_id": "evt_2ef10c817300a4df7093",
+              "freshness": 0.3276,
+              "novelty": 1.0,
+              "published_at": "2026-08-14T16:35:05+00:00",
+              "reliability": 0.5,
+              "source_type": "google_news_rss"
+            },
+            {
+              "attention_value": 0.020159,
+              "baseline_comparable_value": 0.020159,
+              "channel": "news",
+              "corroborating_sources": 1,
+              "event_id": "evt_29c30b22b781a1f79ea6",
+              "freshness": 0.3225,
+              "novelty": 0.25,
+              "published_at": "2026-08-14T15:46:34+00:00",
+              "reliability": 0.5,
+              "source_type": "google_news_rss"
+            },
+            {
+              "attention_value": 0.101041,
+              "baseline_comparable_value": 0.101041,
+              "channel": "news",
+              "corroborating_sources": 1,
+              "event_id": "evt_296828781e8d0350e8b3",
+              "freshness": 0.2887,
+              "novelty": 1.0,
+              "published_at": "2026-08-14T10:01:00+00:00",
+              "reliability": 0.7,
+              "source_type": "finnhub_syndication"
+            },
+            {
+              "attention_value": 0.037455,
+              "baseline_comparable_value": 0.02497,
+              "channel": "news",
+              "corroborating_sources": 2,
+              "event_id": "evt_eb8c6042f398fa80c5ce",
+              "freshness": 0.2854,
+              "novelty": 0.25,
+              "published_at": "2026-08-14T09:25:00+00:00",
+              "reliability": 0.7,
+              "source_type": "finnhub_syndication"
+            }
+          ],
+          "attention_event_count": 13,
+          "attention_rank": 0.875,
+          "attention_score": 1.205388,
+          "attention_source_type_count": 3,
+          "cross_section_rank": 0.4375,
+          "event_components": [],
+          "event_count": 0,
+          "own_surprise_z": -0.3067,
+          "signed_score": 0.0,
+          "sizing_tilt": "inactive",
+          "source_ticker": "SPCX",
+          "status": "warming_up",
+          "usable_for_decisions": false
+        },
+        "factor": {
+          "as_of": "2026-08-14",
+          "breadth": 0.6,
+          "composite_score": -0.226,
+          "coverage_pct": 50.0,
+          "market_percentile": 0.1667,
+          "membership_history_complete": false,
+          "relative_strength": -0.1206,
+          "sector": "commercial_space",
+          "sector_universe_size": 6,
+          "usable_for_decisions": false
+        },
+        "peer_residual": {
+          "as_of": "2026-08-14",
+          "available_peer_count": 4,
+          "dispersion_5d": 0.0396,
+          "laggard_persistence": 2,
+          "leadership_persistence": 1,
+          "residual_1d": -0.0086,
+          "residual_20d": -0.081,
+          "residual_5d": 0.0559,
+          "sector_regime": "broad_up",
+          "triggered_rules": [],
+          "usable_for_decisions": false,
+          "usable_rules": []
+        },
+        "add_authority": {
+          "blockers": [
+            "independent_evidence_families"
+          ],
+          "continuing_campaign": false,
+          "discipline": "one price-relative family plus point-in-time information authorise capital; technical confirmation only schedules the tranche",
+          "evidence_families": [],
+          "factor_reasons": [
+            "industry_comparison_sufficient"
+          ],
+          "information_event_ids": [
+            "evt_16b87e781f158877e22f",
+            "evt_1f18d056631bbfd385bb",
+            "evt_296828781e8d0350e8b3",
+            "evt_29c30b22b781a1f79ea6",
+            "evt_2ef10c817300a4df7093",
+            "evt_b11254736681a46fca48",
+            "evt_eb8c6042f398fa80c5ce",
+            "evt_f6c59293b9d0eab7dbc9"
+          ],
+          "information_modes": [],
+          "market": "US",
+          "peer_rules": [],
+          "policy_version": 2,
+          "schema_version": 2,
+          "sources": [],
+          "tier": "none"
+        },
+        "early_trend": {
+          "blockers": [
+            "needs_information_confirmation",
+            "needs_primary_evidence",
+            "no_20d_breakout",
+            "no_short_peer_leadership"
+          ],
+          "discipline": "short-history candidate; price/peer are one family, primary or attention information is independent, and z>=2 waits for a rebreak",
+          "evidence_families": [],
+          "exploration_ready": false,
+          "information_modes": [],
+          "market": "US",
+          "metrics": {
+            "attention_acceleration": 0.9193,
+            "attention_rank": 0.875,
+            "close": 140.0,
+            "peer_dispersion_5d": 0.0396,
+            "prior_20d_high": 149.6,
+            "residual_5d": 0.0559,
+            "residual_dispersion_multiple": 1.4116,
+            "zscore20": 1.5
+          },
+          "observed": false,
+          "price_modes": [],
+          "primary_event_ids": [],
+          "schema_version": 1,
+          "state": "not_candidate"
+        },
+        "sizing": {
+          "contributors": [],
+          "discipline": "resizes an approved technical tranche; never creates add authority",
+          "sizing_active": false,
+          "sizing_multiplier": 1.0
+        },
+        "authority": {
+          "max_add_shares": 1,
+          "position_room_shares": 4,
+          "lot_size": 1,
+          "tier": "none"
+        }
+      },
+      "simulated_entry_price": 140.0,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    }
+  ],
+  "watch_levels": {
+    "00100_1d_high": 344.2,
+    "00100_watch_trim_trigger": 340,
+    "hstech_breakdown": 4500,
+    "07226_breakeven_2x_6m": 12.6,
+    "rklx_breakeven_2x_6m": 70.1,
+    "spch_breakeven_2x_6m": 0.0,
+    "us_beta_breach_threshold": 6.0,
+    "us_lev_breach_threshold": 0.882,
+    "hk_lev_breach_threshold": 0.25,
+    "hkd_leg_force_derisk": -36000,
+    "usd_leg_force_derisk": -1500
+  }
+}
