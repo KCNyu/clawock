@@ -32,6 +32,13 @@ on:
   # documents `repository_dispatch` as creating a run even when sent with the
   # automatic GITHUB_TOKEN, so every publisher can ask — the host through its
   # own login, an Actions publisher through the token it already has.
+  #
+  # #748 asked whether this deploy is needed at all, since the dashboard polls
+  # the data branch directly. It is: `site/assets/js/dashboard.ui.js` keeps the
+  # **first paint** on this origin on purpose (`overview.json` is the only fetch
+  # on the LCP path, and a second origin's handshake there would be paid by every
+  # cold visit). Only the polls after that first paint read the branch. Drop this
+  # trigger and every cold visitor sees the generation from the last deploy.
   repository_dispatch:
     types: [data-plane-published]
   workflow_dispatch:
