@@ -46,16 +46,31 @@ fi
 echo "node $(node --version) / npm $(npm --version) / registry $(npm config get registry)"
 
 echo "--- npm install (dev) ---"
-# The runner's registry fetch has been observed stalling (~70s before npm's own
-# `Exit handler never called!` crash on 2026-08-17). The install is idempotent
-# and partially filled caches make retries cheap, so retry before failing the
-# publish: a cold first install is exactly when the publish can least afford it.
+# The runner's registry fetch has been observed stalling (~70s, then npm's own
+# `Exit handler never called!` crash on 2026-08-17) while the same install is
+# instant on every other network tried. The install is idempotent and partially
+# filled caches make retries cheap, so retry before failing the publish.
+#
+# `$?` after an `if`-condition that fails with no branch run reports 0 by bash
+# semantics, so the exit status is captured from a plain statement under
+# `set +e` instead — masking a failed install as a success is how the first
+# retry-loop version "passed" without publishing anything.
 attempt=1
-while :; do
-  if (cd "$PKG_DIR" && npm install --include=dev --no-audit --no-fund); then
+while [ "$attempt" -le 3 ]; do
+  set +e
+  (cd "$PKG_DIR" && npm install --include=dev --no-audit --no-fund)
+  rc=$?
+  set -e
+  if [ "$rc" -eq 0 ]; then
     break
   fi
-  rc=$?
+# Surface where npm actually hung: its debug log is the only place the
+# stalled step is visible from the outside.
+  logfile="$(find "$HOME/.npm/_logs" -maxdepth 1 -name '*-debug-0.log' -print 2>/dev/null | sort | tail -1 || true)"
+  if [ -n "${logfile:-}" ] && [ -f "$logfile" ]; then
+    echo "--- tail of $(basename "$logfile") ---" >&2
+    tail -n 25 "$logfile" >&2
+  fi
   if [ "$attempt" -ge 3 ]; then
     echo "npm install failed after 3 attempts (last rc=$rc)" >&2
     exit "$rc"

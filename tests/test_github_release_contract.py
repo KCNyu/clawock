@@ -155,3 +155,9 @@ def test_the_npm_install_can_survive_a_stalled_runner_fetch():
     assert "npm install attempt " in script, (
         "the install must retry instead of failing the publish"
     )
+    assert "set +e" in script, (
+        "the install must capture the real exit status, not the if-masked 0"
+    )
+    assert "*-debug-0.log" in script, (
+        "a stalled install must surface npm's own debug log"
+    )
