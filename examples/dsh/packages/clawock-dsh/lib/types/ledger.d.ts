@@ -45,6 +45,24 @@ export declare const T1_MAX_GAP_DAYS = 4;
  */
 export declare const T1_FLAT_BAND_PCT = 1;
 export declare function isSellAction(action: string): boolean;
+/**
+ * 'same' | 'opposite' | 'other' — the plan's direction against the fill's.
+ *
+ * Mirrors `_plan_fill_alignment` in src/clawock/publish/dashboard.py; the two
+ * implementations are pinned together by tests/test_decision_trace_parity.py.
+ */
+export declare function planFillAlignment(planAction: string | null | undefined, fillAction: string | null | undefined): 'same' | 'opposite' | 'other' | null;
+/**
+ * A rationale fit for a reader: the risk engine's internal breach ids stripped.
+ *
+ * The raw field carries things like "硬止损 -27.23% ≤ -18% (breach
+ * risk-95ac7f6cd591 30d)" — the hash says nothing to anyone outside the
+ * process, and it is sitting in the one field a reader opens to understand
+ * *why*. Mirrors `_readable_rationale` in dashboard.py, minus the 140-char
+ * truncation: that exists to fit a published payload cap, which this panel
+ * (reading the workspace at runtime) does not have.
+ */
+export declare function readableRationale(text: string | null | undefined): string | null;
 /** Good/bad/flat reading of a T+1 move, action-aware and dead-zoned. */
 export declare function t1ToneOf(action: string, delta: number): 'win' | 'loss' | 'flat';
 /** Chinese verdict text for a T+1 move, on the same dead zone as `t1ToneOf`. */
