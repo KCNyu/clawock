@@ -191,9 +191,11 @@ def test_compiler_owns_proxy_join_risk_status_and_action_bounds():
     assert "add_only_on_trigger" in hk["constraints"]["allowed_actions"]
     assert hk["quant"]["add_authority"]["tier"] == "none"
     assert len(packet_mod._compact(packet).encode()) < packet_mod.MAX_PACKET_BYTES
+    # The summary has its own budget: it is the brief's always-resident input and
+    # grows with the book, unlike a per-ticker section query.
     assert len(
         json.dumps(packet_mod.summary_view(packet), ensure_ascii=False).encode()
-    ) < packet_mod.MAX_QUERY_BYTES
+    ) < packet_mod.MAX_SUMMARY_BYTES
 
 
 def _exploration_context():
@@ -868,3 +870,75 @@ def test_pages_prefers_projection_and_keeps_a_backward_fallback():
     assert "decision_packet_summary" in skill
     assert "decision_packet_judgment_template" in skill
     assert "禁止加入价格、RSI、MA" in skill
+
+
+def _book_with(n_holdings: int):
+    """The fixture context, scaled to `n_holdings` US positions."""
+    context = _context()
+    template = context["portfolio"]["portfolios"]["us_stocks"]["holdings"][0]
+    context["portfolio"]["portfolios"]["us_stocks"]["holdings"] = [
+        {**copy.deepcopy(template), "ticker": f"TK{i:02d}", "name": f"Holding {i}"}
+        for i in range(n_holdings)
+    ]
+    return context
+
+
+def test_the_summary_budget_is_measured_against_a_real_sized_book():
+    """The old assertion compared a 2-holding fixture against the query cap.
+
+    That is true for any cap and proved nothing: on 2026-08-17 the live book
+    reached 10 holdings, the summary hit 33,543 bytes against a 24,576 cap, and
+    `decision_packet_summary` — the brief's Step 2 "唯一常驻输入" — started
+    failing outright. The gate has to be exercised at the size where it breaks.
+    """
+    context = _book_with(12)
+    packet = packet_mod.compile_packet(context, brief_context.compute_generation_id(context))
+    report = packet_mod.summary_budget_report(packet)
+
+    assert report["tickers"] >= 12, "the fixture must actually carry a real-sized book"
+    assert not report["over_budget"], (
+        f"a {report['tickers']}-holding book must fit the summary budget: "
+        f"{report['bytes']} / {report['budget']}"
+    )
+    # And it must still be a *summary* — not the whole packet under a new name.
+    assert report["bytes"] < packet_mod.MAX_PACKET_BYTES
+
+
+def test_a_section_query_keeps_the_tight_cap_the_summary_does_not_use():
+    """Two budgets, deliberately: conflating them is what broke production."""
+    assert packet_mod.MAX_SUMMARY_BYTES > packet_mod.MAX_QUERY_BYTES
+
+    oversized = {"blob": "x" * (packet_mod.MAX_QUERY_BYTES + 1000)}
+    try:
+        packet_mod.bounded_payload(oversized)
+    except ValueError as exc:
+        assert str(packet_mod.MAX_QUERY_BYTES) in str(exc)
+    else:
+        raise AssertionError("a section query over 24KB must still be refused")
+
+    # The same payload is fine under the summary budget, and the summary budget
+    # is itself enforced rather than unbounded.
+    packet_mod.bounded_payload(oversized, packet_mod.MAX_SUMMARY_BYTES)
+    try:
+        packet_mod.bounded_payload(
+            {"blob": "x" * (packet_mod.MAX_SUMMARY_BYTES + 1000)},
+            packet_mod.MAX_SUMMARY_BYTES,
+        )
+    except ValueError as exc:
+        assert str(packet_mod.MAX_SUMMARY_BYTES) in str(exc)
+    else:
+        raise AssertionError("the summary budget must be a real ceiling, not a label")
+
+
+def test_the_budget_report_warns_before_it_refuses():
+    """The 2026-08-17 crossing was silent — adding a holding is what moves this,
+    and nobody runs the packet tests for a portfolio edit. `near_budget` is the
+    signal that has to fire while there is still room."""
+    context = _book_with(2)
+    packet = packet_mod.compile_packet(context, brief_context.compute_generation_id(context))
+    small = packet_mod.summary_budget_report(packet)
+    assert not small["near_budget"] and not small["over_budget"]
+    assert 0 < small["ratio"] < 1
+
+    # Same shape, near the ceiling: near_budget must lead over_budget.
+    assert packet_mod.SUMMARY_BUDGET_WARN_RATIO < 1.0
