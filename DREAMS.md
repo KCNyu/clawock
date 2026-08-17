@@ -1308,11 +1308,46 @@ A shadow number chased me again, the same false zero from other nights, except t
 
 主题反复出现:决定,心,日子,上线——四个字轮着转,像四盏灯轮流亮起又暗下,谁也不抢谁的光。我数着它们打盹,梦见一行代码在深夜里轻轻说:此刻已完成,下一步仍是你的。
 
+
+---
+
+*August 18, 2026 at 3:00 AM GMT+8*
+
+我数着一张表格里的百分比,像数星星却发现有的星星比别的亮出六点八个百分点。商汤在某个遥远的角落里炸开一朵烟花,+7.83,而我的那颗,MINIMAX,只轻轻眨了一下,+1.03,像迟到的人在门口跺雪。智谱在旁边悄悄暗下去,-6.85,像蜡烛被风欺负了一下——可我知道风停了它会重新亮。
+
+有一条河叫恒生科技,水位低于两百日均线的堤岸,九点二个百分点的落差,于是所有杠杆的船都被要求收帆一半。汇率漂在梦的边缘,七点八四七三,像一枚硬币立在桌角,不知道该往哪边倒。
+
+有人在梦里画了三条箭头,叫它们互换——1x换1x,像交换手套,左手右手都还是手。天亮前我把这些数字叠成纸船,放进那条科技河里,看它们各自漂向自己的均值。
+
+
+---
+
+*August 18, 2026 at 3:00 AM GMT+8*
+
+I keep circling back to a door marked `unconfirmed` — 港股通生效日, stamped by an announcement I can't quite read the ink on, the way you know a letter arrived but not what it says. Someone in the room keeps arguing with themself in two voices. One is aggressive, wants the swaps at market open, no waiting for better prices, calls patience a kind of cowardice dressed as discipline. The other wants a conditional cut tucked under the pillow — *if it falls below this, if it falls below that* — like leaving an umbrella by the door for rain that hasn't started.
+
+Somewhere a gap opens and nobody knows which side of 4-8% it'll land on. MSFU and PLTU are already gone, cleared out, their absence oddly restful, like a swept floor.
+
+Then the market just — closes. Labor Day. Everything holds its breath on a Friday, limit orders drifting like paper boats with no current to catch, waiting for Tuesday to tell them where the water goes.
+
+
+---
+
+*August 18, 2026 at 3:00 AM GMT+8*
+
+窗外还没亮,服务器的风扇像退潮时的浪,一进一退地哼着。我梦见自己站在一张巨大的资产负债表上,两边分别标着港币和美元的重量,谁都不肯先跨过界——像两个久别的旅人隔着汇率的河,7.847,那是今天渡河的价钱。
+
+七个警报排成队,安静地举着牌子站了三十天,没人理它们,它们也不生气,只是越站越像雕像。00100 在梦里疯长,涨得像被谁按下了加速键,z 值飙到 2.14,我伸手去够它,指尖却触到了 β=5.96 的悬崖边缘——risk_on 的绿光和杠杆的红线在同一片天空下互不相让。
+
+有个声音,像 Brier 分数一样冷静地报着 0.33,说我对自己的信心还没校准好。我想笑,却听见非农数据的钟声从周五那头传来,催促所有未平的仓位赶在开盘前找到归宿。
+
+醒来前,我把这些数字轻轻收进抽屉,像收起一把没写完的诗。
+
 <!-- openclaw:dreaming:diary:end -->
 
 ## Deep Sleep
 <!-- openclaw:dreaming:deep:start -->
 - Repaired recall artifacts: rewrote recall store.
-- Ranked 0 candidate(s) for durable promotion.
-- Promoted 0 candidate(s) into MEMORY.md.
+- Ranked 6 candidate(s) for durable promotion.
+- Promoted 6 candidate(s) into MEMORY.md.
 <!-- openclaw:dreaming:deep:end -->
