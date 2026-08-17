@@ -177,12 +177,14 @@ harness-agnostic 定位的一部分——同一份契约,OpenClaw skill / Claude
 1. DSH 后端直接开在 `http://127.0.0.1:3081/`(systemd `dsh.service`,
    `CLAWOCK_WORKSPACE` 指向 clawock 的 workspace)。本机截图直连这个地址,
    绕开 Tailscale/nginx/HTTPS 那一整套。
-2. Playwright 用系统 Chromium(不是 Playwright 自带那个,本机版本对不上),
+2. Playwright 用**自己管理**的 Chromium,不传 `executable_path`(本机已装,
+   `~/.cache/ms-playwright/`;新机器上 `npx playwright install chromium` 装一次)。
+   (原先这里写的系统 Chromium 是个 snap,2026-08-17 已从本机移除。)
    `device_scale_factor=2` 保证文字清晰:
    ```python
    from playwright.sync_api import sync_playwright
    with sync_playwright() as p:
-       b = p.chromium.launch(executable_path='/usr/bin/chromium-browser', args=['--no-sandbox'])
+       b = p.chromium.launch(args=['--no-sandbox'])
        page = b.new_page(viewport={'width': 1440, 'height': 1100}, device_scale_factor=2)
        page.goto('http://127.0.0.1:3081/', wait_until='networkidle', timeout=20000)
    ```

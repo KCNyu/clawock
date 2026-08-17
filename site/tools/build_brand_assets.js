@@ -2,7 +2,16 @@
 /**
  * Render the canonical vector app icon into the PNG sizes consumed by the site.
  *
- *   CHROME_EXE=/snap/bin/chromium node site/tools/build_brand_assets.js
+ *   node site/tools/build_brand_assets.js
+ *
+ * No browser flag needed: Playwright launches the Chromium it manages itself.
+ * This used to say `CHROME_EXE=/snap/bin/chromium` because the only Chromium on
+ * the desk was a snap (Ubuntu's `chromium-browser` is a snap wrapper, so `apt
+ * install` could not give you a real one) and Playwright's own build had not been
+ * downloaded yet. Both facts changed: the managed build is installed and is what
+ * the screenshot pipeline runs against, and the snap was removed on 2026-08-17.
+ * `CHROME_EXE` is still honoured for pointing at some other binary; on a machine
+ * with no managed build yet, `npx playwright install chromium` fetches it.
  *
  * The source of truth stays site/assets/icons/app-icon.svg. Do not hand-edit the PNGs.
  */

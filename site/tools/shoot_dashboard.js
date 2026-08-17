@@ -29,8 +29,12 @@
  *   • deviceScaleFactor 2 → retina-crisp PNGs.
  *   • waits for the Hero panel to populate + every <canvas> to have real size before
  *     shooting — never captures mid-animation / blank charts.
- *   • the social card embeds the screenshot as a base64 data-URI (not file://) so it
- *     renders under snap-confined Chromium too.
+ *   • the social card embeds the screenshot as a base64 data-URI (not file://).
+ *     The reason was snap confinement — the snap Chromium this host used to run
+ *     could not read a file:// under /tmp — and that snap is gone since
+ *     2026-08-17. Keep the data-URI anyway: it is also what makes the card
+ *     renderable from a checkout with no writable temp path, and it removes one
+ *     way for the card to ship a broken image.
  */
 const { chromium, devices } = require('playwright');
 const fs = require('fs');
