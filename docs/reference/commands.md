@@ -26,7 +26,7 @@ title: clawock · command reference
 
 ## Installed commands / 已安装命令
 
-**63 commands** are installed by the single `clawock` distribution: 51 CLI subcommands and 12 standalone scripts. 41 of them collect or compute information and appear under the layer they feed; the remaining 22 publish, gate, record or schedule, and are listed with the reason they are not collection.
+**64 commands** are installed by the single `clawock` distribution: 52 CLI subcommands and 12 standalone scripts. 41 of them collect or compute information and appear under the layer they feed; the remaining 23 publish, gate, record or schedule, and are listed with the reason they are not collection.
 
 本节由生成器从两份 registry 与 `config/information-layers.json` 推导，不手写；新增或删除一条命令，这张表自己会变。
 
@@ -141,6 +141,7 @@ These are installed commands too. They are listed here so the catalog is the who
 | `clawock claim-provenance` | `clawock.evidence.claim_provenance` | gate: a quoted backtest number must still be in the card it cites |
 | `clawock provenance` | `clawock.evidence.research_provenance` | gate: a published research figure needs two independent sources |
 | `clawock mark-followed` | `clawock.decision.execution` | writes execution ground truth into the decision ledger |
+| `clawock record` | `clawock.decision.record` | appends a conversation verdict to the decision-mind ledger — it records a decision that was already made, and collects nothing |
 | `clawock risk` | `clawock.decision.risk` | durable governance ledger for breaches — a record of decisions, not an input to one |
 | `clawock thesis` | `clawock.decision.theses` | registry the model writes and reads back; its content is authored, not fetched |
 | `clawock entry-gate` | `clawock.decision.entry` | pre-investment gate applied to a candidate, after the information exists |

@@ -300,6 +300,9 @@
     "mark-followed": {
       "reason": "writes execution ground truth into the decision ledger"
     },
+    "record": {
+      "reason": "appends a conversation verdict to the decision-mind ledger — it records a decision that was already made, and collects nothing"
+    },
     "risk": {
       "reason": "durable governance ledger for breaches — a record of decisions, not an input to one"
     },

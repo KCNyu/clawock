@@ -38,6 +38,7 @@ Entry pointer for Claude Code in kcn's investment workspace. Same workflow as `A
 | Heartbeat workflow | `HEARTBEAT.md` (heartbeat poll only) |
 | Auto-commit rules | `AGENTS.md` |
 | Interactive code PR/worktree rules | `AGENTS.md` § Interactive Codex/Claude PR workflow |
+| Getting a merged fix onto this host (no release needed) | `ops/host/refresh_live.sh`; rule in `docs/operations/release.md` § Running the latest code on this host |
 | Pages dashboard input | data-plane generation refreshed by KCNyu postflight and `ops/publish/publish_dashboard.sh` |
 | Risk metrics snapshot | `assets/data/risk.json` (built by `clawock portfolio-risk`, refreshed daily via brief preflight) |
 | Decision execution marking | `memory/decisions.jsonl` `execution.status`; manual override via `clawock mark-followed DECISION_ID [--no]` |

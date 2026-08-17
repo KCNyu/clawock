@@ -4,6 +4,52 @@ Only the `clawock` distribution is published. It owns lifecycle, strategies,
 scheduling, watchdogs and provider integrations. Declarative profiles and live
 workspace data are inputs to that distribution, never packages of their own.
 
+## Running the latest code on this host / 本机跑最新代码
+
+**A release is for people who are not this host. Merging is what makes a fix
+live here.** 本机不需要为每个修复发一次 release：合并即上线，发版只面向外部用户。
+
+The desk installs the distribution **editable**
+(`ops/host/install_clawock_launcher.sh`), so `/root/.openclaw/workspace` is the
+implementation rather than a copy of it, and a fast-forward changes behaviour
+with no reinstall (`tests/test_clawock_launcher.py` holds that property). One
+command applies a merge to the whole host:
+
+```bash
+ops/host/refresh_live.sh           # fast-forward, then reinstall only what moved
+ops/host/refresh_live.sh --check   # what is pending; writes nothing, exit 1 if behind
+```
+
+What it decides, and why the two exceptions exist:
+
+| what moved in the merge | what the desk needs | why |
+|---|---|---|
+| anything under `src/clawock/` | nothing beyond the fast-forward | the install is editable |
+| `pyproject.toml` | `ops/host/install_clawock_launcher.sh` | pip recorded the dependency set and the `[project.scripts]` entry points at install time; a new console script does not exist until it is re-run |
+| `examples/dsh/packages/clawock-dsh/**` | `ops/host/install_dsh_plugin.sh --restart` | pnpm installed a packed copy, not a link (#709) — no npm publish involved |
+
+Do not read `clawock --version` as the answer to "what is running here". On an
+editable install that number is the one pip recorded, and it says so itself once
+the checkout moves past it:
+
+```
+clawock 0.1.5 (editable install of /root/.openclaw/workspace, which now declares
+0.1.8 — the code that runs is the checkout's; re-run
+ops/host/install_clawock_launcher.sh to refresh this metadata)
+```
+
+That drift is cosmetic and expected; it was still read as a missing feature once
+([#745](https://github.com/KCNyu/clawock/issues/745)), which is why the string
+now names the checkout. `git -C /root/.openclaw/workspace log --oneline -1` is
+the real answer for the Python half, and for the plugin half it is
+`curl -s http://127.0.0.1:3081/plugins/clawock-dsh/client.js | cmp -
+examples/dsh/packages/clawock-dsh/lib/client.js` — `refresh_live.sh` runs both
+checks itself after it installs anything.
+
+Cut a release when the outside world needs the change — a PyPI/npm user, a
+documented install line, a version a skill contract names — and batch fixes into
+it. The rest of this page is that path.
+
 ## One-time setup (kcn, on the PyPI side)
 
 Trusted publishing is used instead of an API token, so nothing long-lived sits

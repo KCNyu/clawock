@@ -513,6 +513,7 @@ PACKAGED_UTILITIES = {
     "quant-review": "clawock.decision.signal_review",
     "realized": "clawock.portfolio.realized",
     "reconcile": "clawock.portfolio.reconcile",
+    "record": "clawock.decision.record",
     "regime": "clawock.decision.regime",
     "research": "clawock.evidence.research_surface",
     "risk": "clawock.decision.risk",
@@ -541,20 +542,125 @@ DOCSTRING_HELP_UTILITIES = frozenset({
     "fundflow", "quant", "quant-review", "t0", "t0-review", "us-quotes",
 })
 
+# One help line per table entry, keyed by it. The parser below is built from
+# PACKAGED_UTILITIES, not from this dict, because the two used to be a table and a
+# parallel name list: #745 is the drift that shape allows. `record` was added to the
+# name list on 2026-08-16 and never to the table, so `clawock record` — the only
+# write path into the decision-mind ledger — was advertised by `--help`, by the DSH
+# skill contract and by docs/, and reachable from none of them. A help line missing
+# here is now a KeyError while the parser is built, i.e. on every invocation.
+UTILITY_HELP = {
+    "aggregates": "recompute portfolio values and P&L from leaves",
+    "analyze-hk": "refresh and analyze active HK holdings",
+    "analyze-us": "refresh and analyze active US holdings",
+    "audit-resettle": "audit decision re-settlement without writing by default",
+    "benchmark": "fetch SPY, HSI, and HSTECH daily benchmark history",
+    "cash": "recompute cash from its reconciliation ledger",
+    "catalysts": "fetch upcoming earnings and macro catalysts",
+    "claim-provenance": "verify backtest claims against run cards",
+    "cross-factor": "rank a curated universe with sector-neutral factors",
+    "daily-bars": "maintain immutable canonical daily OHLC bars",
+    "dashboard-build": "build the configured workspace dashboard projection",
+    "dashboard-outputs": "compare one generated dashboard write set",
+    "earnings": "validate and release primary-source earnings reviews",
+    "em-news": "fetch Chinese news for active HK holdings",
+    "entry-gate": "validate or assess a pre-investment research gate",
+    "evaluate-add-alpha":
+        "walk-forward evaluate add factor and information interactions",
+    "evaluate-combined-regime": "backtest the combined configured regime dial",
+    "evaluate-hstech-regime": "backtest the HSTECH leverage regime",
+    "evaluate-us-leverage": "backtest US single-stock leverage regimes",
+    "evidence": "rebuild the artifact-backed public evidence page",
+    "fetch-peers": "price peer tickers from a JSON request on stdin",
+    "filings": "fetch SEC filings and point-in-time XBRL fundamentals",
+    "fundamentals": "fetch East Money HK/US statements and indicators",
+    "fundflow": "fetch East Money HK/US daily capital flow",
+    "fx": "fetch or convert the canonical USD/HKD rate",
+    "integrity": "verify portfolio money and market-data invariants",
+    "macro": "fetch a portable macro and major-index snapshot",
+    "mark-followed": "record execution ground truth in the decision ledger",
+    "mover-evidence": "probe bounded filing and news evidence for movers",
+    "news-evidence": "build the expiring news and filing evidence graph",
+    "peer-residual": "calibrate curated-peer residual and leadership rules",
+    "plan-context": "show still-open decisions for a downstream run",
+    "portfolio-risk": "compute portfolio beta, volatility, and tail risk",
+    "provenance": "verify numeric research provenance",
+    "quant": "compute holding-level trend, momentum, and risk factors",
+    "quant-review": "reconcile factor signals with forward returns",
+    "realized": "recompute realized P&L from the trade ledger",
+    "reconcile": "recompute all portfolio derivations and verify integrity",
+    "record": "append a conversation verdict to the decision-mind ledger",
+    "regime": "compute the configured leverage-risk regime",
+    "research": "show or check the configured research work queue",
+    "risk": "maintain the durable risk-breach governance ledger",
+    "run-card": "inspect durable backtest evidence",
+    "sentiment": "scan configured holdings across public sentiment sources",
+    "shadow": "simulate followed decisions against buy and hold",
+    "t0": "grade intraday setup quality from existing market data",
+    "t0-review": "reconcile setup grades with next-session returns",
+    "thesis": "validate thesis state or evaluate evidence-only drift",
+    "us-quotes": "refresh US holdings through the provider fallback chain",
+    "validate-regime-dial": "walk-forward validate the production regime dial",
+    "validate-sidecar": "validate a workflow-generated sidecar artifact",
+    "watch-list": "scan non-held AI watch names for price opportunities",
+}
+
+
+def _editable_drift(distribution) -> str:
+    """The checkout an editable install runs, when it no longer declares that version.
+
+    An editable install has two versions: the number pip recorded when it ran,
+    and the code the checkout holds now. They separate on the first merge after
+    the install, and only the stale one is printed — which is how #745 was
+    written. `clawock --version` said 0.1.5 on a host whose checkout was three
+    releases further on, so a command that was genuinely broken (`record`, see
+    PACKAGED_UTILITIES) was diagnosed as "the installed package is too old", and
+    the proposed remedy was a release nobody needed. The desk runs the checkout
+    on purpose — docs/operations/release.md § Running the latest code on this
+    host — so the honest answer names both numbers and where the code is.
+
+    Returns "" for a normal wheel install, or when the checkout cannot be read.
+    """
+    import json
+    import tomllib
+    from urllib.parse import unquote, urlparse
+
+    try:
+        raw = distribution.read_text("direct_url.json")
+        origin = json.loads(raw) if raw else {}
+        if not origin.get("dir_info", {}).get("editable"):
+            return ""
+        parsed = urlparse(origin.get("url", ""))
+        if parsed.scheme != "file":
+            return ""
+        checkout = Path(unquote(parsed.path))
+        declared = tomllib.loads(
+            (checkout / "pyproject.toml").read_text(encoding="utf-8")
+        )["project"]["version"]
+    except (OSError, ValueError, KeyError, json.JSONDecodeError):
+        return ""
+    if declared == distribution.version:
+        return ""
+    return (f" (editable install of {checkout}, which now declares {declared} — "
+            "the code that runs is the checkout's; re-run "
+            "ops/host/install_clawock_launcher.sh to refresh this metadata)")
+
 
 def _installed_version() -> str:
     """What pip actually put on this machine, or a sentinel saying it did not.
 
     A source tree that was never installed has no distribution metadata, and
     inventing a number for it would be the drift this indirection exists to
-    avoid — so it says so instead.
+    avoid — so it says so instead. An editable install is a third case:
+    `_editable_drift` above says why it gets a suffix instead of a number.
     """
-    from importlib.metadata import PackageNotFoundError, version
+    from importlib.metadata import PackageNotFoundError, distribution
 
     try:
-        return version("clawock")
+        installed = distribution("clawock")
     except PackageNotFoundError:
         return "0+unknown (running from an uninstalled source tree)"
+    return installed.version + _editable_drift(installed)
 
 
 def main(argv=None) -> int:
@@ -665,61 +771,8 @@ def main(argv=None) -> int:
     tool.add_argument("--workspace", type=Path, default=None)
     tool.set_defaults(func=_tool)
 
-    for name, help_text in (
-        ("plan-context", "show still-open decisions for a downstream run"),
-        ("risk", "maintain the durable risk-breach governance ledger"),
-        ("watch-list", "scan non-held AI watch names for price opportunities"),
-        ("dashboard-outputs", "compare one generated dashboard write set"),
-        ("dashboard-build", "build the configured workspace dashboard projection"),
-        ("run-card", "inspect durable backtest evidence"),
-        ("provenance", "verify numeric research provenance"),
-        ("entry-gate", "validate or assess a pre-investment research gate"),
-        ("thesis", "validate thesis state or evaluate evidence-only drift"),
-        ("earnings", "validate and release primary-source earnings reviews"),
-        ("research", "show or check the configured research work queue"),
-        ("claim-provenance", "verify backtest claims against run cards"),
-        ("realized", "recompute realized P&L from the trade ledger"),
-        ("aggregates", "recompute portfolio values and P&L from leaves"),
-        ("cash", "recompute cash from its reconciliation ledger"),
-        ("shadow", "simulate followed decisions against buy and hold"),
-        ("fx", "fetch or convert the canonical USD/HKD rate"),
-        ("portfolio-risk", "compute portfolio beta, volatility, and tail risk"),
-        ("quant", "compute holding-level trend, momentum, and risk factors"),
-        ("regime", "compute the configured leverage-risk regime"),
-        ("t0", "grade intraday setup quality from existing market data"),
-        ("quant-review", "reconcile factor signals with forward returns"),
-        ("t0-review", "reconcile setup grades with next-session returns"),
-        ("cross-factor", "rank a curated universe with sector-neutral factors"),
-        ("peer-residual", "calibrate curated-peer residual and leadership rules"),
-        ("fetch-peers", "price peer tickers from a JSON request on stdin"),
-        ("filings", "fetch SEC filings and point-in-time XBRL fundamentals"),
-        ("fundamentals", "fetch East Money HK/US statements and indicators"),
-        ("fundflow", "fetch East Money HK/US daily capital flow"),
-        ("em-news", "fetch Chinese news for active HK holdings"),
-        ("daily-bars", "maintain immutable canonical daily OHLC bars"),
-        ("catalysts", "fetch upcoming earnings and macro catalysts"),
-        ("us-quotes", "refresh US holdings through the provider fallback chain"),
-        ("analyze-us", "refresh and analyze active US holdings"),
-        ("analyze-hk", "refresh and analyze active HK holdings"),
-        ("benchmark", "fetch SPY, HSI, and HSTECH daily benchmark history"),
-        ("macro", "fetch a portable macro and major-index snapshot"),
-        ("sentiment", "scan configured holdings across public sentiment sources"),
-        ("mover-evidence", "probe bounded filing and news evidence for movers"),
-        ("integrity", "verify portfolio money and market-data invariants"),
-        ("reconcile", "recompute all portfolio derivations and verify integrity"),
-        ("validate-sidecar", "validate a workflow-generated sidecar artifact"),
-        ("mark-followed", "record execution ground truth in the decision ledger"),
-        ("record", "append a conversation verdict to the decision-mind ledger"),
-        ("audit-resettle", "audit decision re-settlement without writing by default"),
-        ("evidence", "rebuild the artifact-backed public evidence page"),
-        ("news-evidence", "build the expiring news and filing evidence graph"),
-        ("evaluate-combined-regime", "backtest the combined configured regime dial"),
-        ("evaluate-hstech-regime", "backtest the HSTECH leverage regime"),
-        ("evaluate-us-leverage", "backtest US single-stock leverage regimes"),
-        ("evaluate-add-alpha", "walk-forward evaluate add factor and information interactions"),
-        ("validate-regime-dial", "walk-forward validate the production regime dial"),
-    ):
-        utility = sub.add_parser(name, help=help_text, add_help=False)
+    for name in PACKAGED_UTILITIES:
+        utility = sub.add_parser(name, help=UTILITY_HELP[name], add_help=False)
         utility.add_argument("utility_args", nargs=argparse.REMAINDER)
         utility.set_defaults(func=_packaged_utility)
 
