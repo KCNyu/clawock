@@ -1,6 +1,6 @@
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
-//#region packages/clawock-dsh/src/scan.ts
+//#region src/scan.ts
 /**
 * Read-only scanner over a clawock workspace: prepared runs, the current
 * decision artifact, and published receipts. Pure Node, no Cordis/typert

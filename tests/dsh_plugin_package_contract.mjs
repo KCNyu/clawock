@@ -28,7 +28,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 
 const HERE = fileURLToPath(new URL('.', import.meta.url))
-const PLUGIN = resolve(HERE, '..', 'examples', 'dsh', 'plugin')
+const PLUGIN = resolve(HERE, '..', 'examples', 'dsh', 'packages', 'clawock-dsh')
 
 const run = (cmd, args, cwd) =>
   execFileSync(cmd, args, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] })

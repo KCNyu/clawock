@@ -136,7 +136,7 @@ jobs:
             code=true
           fi
           dsplugin=false
-          if grep -Eq '^(examples/dsh/plugin/|tests/decision_studio_plugin\.spec\.js$)' <<< "$changed"; then
+          if grep -Eq '^(examples/dsh/|tests/decision_studio_plugin\.spec\.js$|tests/dsh_plugin_package_contract\.mjs$)' <<< "$changed"; then
             dsplugin=true
           fi
           { echo "code=$code"; echo "ui=$ui"; echo "dsplugin=$dsplugin"; } >> "$GITHUB_OUTPUT"
@@ -171,6 +171,33 @@ jobs:
         uses: actions/setup-node@v7
         with:
           node-version: '22'
+
+      # The committed lib/ is what CI and the live DSH profile consume, so it
+      # has to be a function of src/ alone — not of whoever last remembered to
+      # run `npm run build`. The build is reproducible by construction (the CSS
+      # class hash and the bundler's region paths are both package-relative),
+      # so a rebuild here must produce a byte-identical tree.
+      - name: Decision Studio artifacts match their sources (rebuild is a no-op)
+        if: github.event_name == 'pull_request' && steps.changes.outputs.dsplugin == 'true'
+        env:
+          # Same runner hardening as the npm publish job (#732): a lockfile
+          # regenerated behind a mirror registry stalls every fetch here and
+          # npm exits with its own `Exit handler never called!`, which reads as
+          # "the build is broken" and is not. Observed on this very step.
+          NODE_OPTIONS: --dns-result-order=ipv4first
+          NO_UPDATE_NOTIFIER: '1'
+          npm_config_replace_registry_host: 'always'
+        run: |
+          set -euo pipefail
+          (
+            cd examples/dsh/packages/clawock-dsh
+            npm install --include=dev --no-audit --no-fund
+            npm run build
+          )
+          git diff --exit-code -- examples/dsh/packages/clawock-dsh/lib || {
+            echo "::error::examples/dsh/packages/clawock-dsh/lib is stale — run 'npm run build' in the package and commit the result"
+            exit 1
+          }
 
       - name: Decision Studio plugin contract (scan + client bundle registration)
         if: github.event_name == 'pull_request' && steps.changes.outputs.dsplugin == 'true'

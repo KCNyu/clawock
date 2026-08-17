@@ -64,7 +64,7 @@ The DSH skill package rides the same version train as the Python package.
 publication path — release.yml and a human both go through it:
 
 ```bash
-# Publish whatever version examples/dsh/plugin/package.json declares
+# Publish whatever version examples/dsh/packages/clawock-dsh/package.json declares
 NPM_TOKEN=... ops/publish/publish_dsh_plugin.sh
 
 # Standalone npm bump (no GitHub Release, no PyPI): the version is explicit
@@ -106,7 +106,7 @@ it.
 ### The lockfile must not bake in a mirror registry
 
 npm installs from the lockfile's `resolved` URLs, not from the configured
-registry. Regenerating `examples/dsh/plugin/package-lock.json` on a machine
+registry. Regenerating `examples/dsh/packages/clawock-dsh/package-lock.json` on a machine
 whose npm points at a mirror writes mirror URLs into it — on 2026-08-17 that
 made the v0.1.6 npm job die: the GitHub runner cannot reach
 `mirrors.tencentyun.com`, every tarball fetch stalled through npm's retry
@@ -127,7 +127,7 @@ not disagree with it:
 
 - `pyproject.toml` — what PyPI publishes; the workflow refuses a tag that
   disagrees with it
-- `examples/dsh/plugin/package.json` — what npm publishes; the publish script
+- `examples/dsh/packages/clawock-dsh/package.json` — what npm publishes; the publish script
   bumps it to the version it is given
 - `CHANGELOG.md` top entry — what the version claims to contain
 

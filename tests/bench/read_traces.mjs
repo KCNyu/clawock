@@ -20,7 +20,7 @@ import { performance } from 'node:perf_hooks'
 import { readdirSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import { pathToFileURL } from 'node:url'
-import { readTraces, readPortfolio, readBarCloses } from '../../examples/dsh/plugin/lib/ledger.js'
+import { readTraces, readPortfolio, readBarCloses } from '../../examples/dsh/packages/clawock-dsh/lib/ledger.js'
 
 const workspace = process.argv[2] || process.env.CLAWOCK_WORKSPACE || process.cwd()
 const runs = Math.max(1, Number(process.argv[3] || 5))
