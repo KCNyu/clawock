@@ -109,6 +109,14 @@ clawock intraday preflight --market us
 - 你交付的就是这一段：**至少 60 字（postflight 软下限），目标 2-3 行**
   - 若 `anomalies` 非空，**必须**提其中至少一个票；主动一级信息本身也会令 `should_alert=true`，此时不能虚构一个价格异动。
   - `active_information_candidates.candidates` 非空时，至少写最相关一条：Bull 只陈述一手细节及预期传导，Bear 检查是否已 price-in/方向是否仍未知，Judge 照抄 harness 的 `candidate|wait|reject`、falsifier 与 next evidence；只能降级，不能自行补方向、价格、股数或授权。`degraded_issuers` 必须说“一级源降级”，不能说“没有消息”。
+  - 📈 **加仓侧读数(`add_side_reads.rows` 非空时必写 1 行)**:harness 已经把异动、机会雷达
+    (接近 20 日高)、早期趋势三条 lane 连同 thesis 红线和未了结的纪律动作 join 成
+    `candidate|wait|reject`。**照抄 `verdict` + `why` + `needs`,数字照抄 `evidence`**
+    (`move_pct` / `pct_from_high` / `prior_20d_high`),写成
+    「{票} {verdict}:{why} → {needs}」。多条就写最急的 1-2 条(rows 已按 candidate→reject→wait
+    排序)。纪律铁律不变:**三态都不是下单授权**,不许自行补方向、价格、股数;
+    软消息/情绪只能停在 `wait`,只有一手披露才可能促成 `candidate`;
+    `reject` 说明有纪律动作没走完,这时不要把它写成「可以加仓」。
   - **异动归因（`should_alert=true` 时必写，占 1 行）**：从 `mover_news.tickers[票].items` 里挑 **`signal=interrupt`** 的第一条，写成
     「{票} {幅度}% ← {标题要点}（{age_minutes} 分钟前 / {source_class}）」。多只异动票就各写一行，最多 3 行。
     - `halts` 里有这只票 → **先写停牌**（`reason_code` + 复牌时间），它比任何标题都能解释一次跳动。
