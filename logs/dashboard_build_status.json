@@ -1,9 +1,9 @@
 {
-  "checked_at": "2026-08-17T14:34:19Z",
-  "ok": true,
+  "checked_at": "2026-08-17T15:03:18Z",
+  "ok": false,
   "build_ok": true,
-  "publish_ok": true,
+  "publish_ok": false,
   "warn_count": 0,
   "repair_count": 0,
-  "tail": "  brief-context source: brief-context-2026-08-17.json\n✓ wrote /root/.openclaw/workspace/assets/data/overview.json (46,714 bytes)\n✓ wrote /root/.openclaw/workspace/assets/data/dashboard.json (187,193 bytes)\n✓ wrote /root/.openclaw/workspace/assets/data/decision_audit.json (decision audit sidecar)\n✓ wrote /root/.openclaw/workspace/assets/data/shadow_portfolio.json (shadow portfolio sidecar, 模拟·非实盘)\n  US: 16 holdings, 5 active, value $3341\n  HK: 7 holdings, 5 active, value HK$72053\n  Snapshots: 69 embedded / 69 on disk\n  Plans: 5 embedded / 64 on disk\n  Snapshots: 69 | Plans: 5\n  FX USDHKD: 7.8473 (Frankfurter)\n\n  ✓ data-plane: published 6 outputs as a9bbf76fe6c5 → git@github.com:KCNyu/clawock.git data-plane\n✓ data-plane: requested data-plane-published → KCNyu/clawock"
+  "tail": "  brief-context source: brief-context-2026-08-17.json\n✓ wrote /root/.openclaw/workspace/assets/data/overview.json (46,622 bytes)\n✓ wrote /root/.openclaw/workspace/assets/data/dashboard.json (186,870 bytes)\n✓ wrote /root/.openclaw/workspace/assets/data/decision_audit.json (decision audit sidecar)\n✓ wrote /root/.openclaw/workspace/assets/data/shadow_portfolio.json (shadow portfolio sidecar, 模拟·非实盘)\n  US: 16 holdings, 5 active, value $3464\n  HK: 7 holdings, 5 active, value HK$72053\n  Snapshots: 69 embedded / 69 on disk\n  Plans: 5 embedded / 64 on disk\n  Snapshots: 69 | Plans: 5\n  FX USDHKD: 7.8473 (Frankfurter)\n\n  data-plane publish failed: ✓ data-plane: published 6 outputs as c7145a4e6f34 → git@github.com:KCNyu/clawock.git data-plane\n✗ data-plane: published, but the site deploy was not requested: gh: No server is currently available to service your request. Sorry about that. Please try resubmitting your request and contact us if the problem persists. (HTTP 503)"
 }
