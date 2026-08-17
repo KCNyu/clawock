@@ -61,3 +61,40 @@ def test_npm_version_bump_is_idempotent_in_both_publish_paths():
     script = (ROOT / "ops" / "publish" / "publish_dsh_plugin.sh").read_text(encoding="utf-8")
     assert '"$current" != "$version"' in script
     assert "skipping bump" in script
+
+
+def test_the_npm_publish_cannot_fail_silently():
+    """A publish step that swallows its own output is unfixable.
+
+    On 2026-08-17 the v0.1.6 npm job died twice with npm's own
+    `Exit handler never called!`. The script ran the install as
+    `npm install ... >/dev/null`, so the log held nothing between "skipping
+    bump" and the crash — the failing command had to be identified by
+    reproducing it on the desk host instead. PyPI had already accepted 0.1.6 by
+    then, so the release sat half-published while the log said nothing useful.
+    """
+    script = (ROOT / "ops" / "publish" / "publish_dsh_plugin.sh").read_text()
+
+    assert "npm install --include=dev --no-audit --no-fund >/dev/null" not in script, (
+        "the dev install must not send its output to /dev/null"
+    )
+    assert "npm --version" in script, "the publish has to record which npm did the work"
+    assert "npm config get registry" in script, (
+        "and which registry — a mirror in ~/.npmrc silently retargets a publish"
+    )
+
+
+def test_the_release_pins_the_npm_that_publishes():
+    """setup-node ships whatever npm rides with the Node release.
+
+    Letting a runner image decide which npm performs the publish is what turned
+    v0.1.6 into a half-released version: PyPI accepted 0.1.6, npm never got it.
+    The same install is clean on the pinned version.
+    """
+    workflow = WORKFLOW.read_text()
+    assert "npm install -g npm@" in workflow, (
+        "the npm job must pin the npm it publishes with"
+    )
+    pin_at = workflow.index("npm install -g npm@")
+    publish_at = workflow.index("publish_dsh_plugin.sh")
+    assert pin_at < publish_at, "the pin has to come before the publish, not after"

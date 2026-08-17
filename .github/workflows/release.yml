@@ -107,6 +107,19 @@ jobs:
           node-version: '22'
           registry-url: https://registry.npmjs.org
 
+      # setup-node ships whatever npm rides with the Node release. On
+      # 2026-08-17 that npm crashed with `Exit handler never called!` on
+      # `npm install --include=dev`, twice, and took the v0.1.6 npm publish
+      # with it while PyPI had already accepted 0.1.6 — a half-released
+      # version. The same install is clean on npm 10.9.8. Pin the tool that
+      # does the publishing rather than letting a runner image change decide
+      # whether a release completes.
+      - name: Pin npm to a version this publish is known to work on
+        run: |
+          echo "runner default: npm $(npm --version)"
+          npm install -g npm@10.9.8
+          echo "pinned to:      npm $(npm --version)"
+
       - name: Publish clawock-dsh to npm
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

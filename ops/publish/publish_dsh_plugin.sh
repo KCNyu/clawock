@@ -38,10 +38,21 @@ fi
 # Rebuild artifacts (src → lib + Typert generation) so the published package
 # never ships stale committed output. `--include=dev` guards hosts whose npm
 # config omits devDependencies by default.
-(cd "$PKG_DIR" && npm install --include=dev --no-audit --no-fund >/dev/null && npm run build)
+# Which toolchain is doing the work. On 2026-08-17 the v0.1.6 npm job died
+# twice at the same place with npm's own `Exit handler never called!` while the
+# identical commands ran clean on the desk host (112 packages, 5s, exit 0) —
+# and the log said nothing, because the install output went to /dev/null. Never
+# again: a publish step that can fail silently is a publish step nobody can fix.
+echo "node $(node --version) / npm $(npm --version) / registry $(npm config get registry)"
+
+echo "--- npm install (dev) ---"
+(cd "$PKG_DIR" && npm install --include=dev --no-audit --no-fund)
+echo "--- npm run build ---"
+(cd "$PKG_DIR" && npm run build)
 
 # Verify what will be shipped before touching the registry.
-(cd "$PKG_DIR" && npm pack --dry-run >/dev/null)
+echo "--- npm pack --dry-run ---"
+(cd "$PKG_DIR" && npm pack --dry-run)
 test -f "$PKG_DIR/package.json"
 test -f "$PKG_DIR/skills/investment-decision/SKILL.md"
 test -f "$PKG_DIR/lib/typert.remote-client.js"
