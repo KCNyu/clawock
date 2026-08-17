@@ -3,6 +3,7 @@ from pathlib import Path
 
 import pytest
 import json
+from urllib.parse import urlsplit
 
 from ops.publish.release_notes import changelog_section, release_notes
 
@@ -183,6 +184,9 @@ def test_the_plugin_lockfile_does_not_bake_in_a_mirror_registry():
         if isinstance(p, dict) and p.get("resolved")
     ]
     assert urls, "the lockfile pins tarball URLs — they must be checked"
-    assert all("registry.npmjs.org" in u for u in urls), (
-        "the lockfile must not bake in a mirror registry unreachable from CI"
+    # Compare the parsed host, not a substring: `mirrors.example.com/registry.npmjs.org/...`
+    # would satisfy a substring check while still pointing at the mirror.
+    hosts = {urlsplit(u).hostname for u in urls}
+    assert hosts == {"registry.npmjs.org"}, (
+        f"the lockfile must not bake in a mirror registry unreachable from CI: {sorted(hosts)}"
     )
