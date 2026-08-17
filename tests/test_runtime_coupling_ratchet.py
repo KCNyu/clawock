@@ -444,6 +444,10 @@ HOST_OWNED_SHELL = {
         2, "host cron wrapper that reads the Nostr key from this machine's "
            "runtime dir and posts from the live checkout — the broadcast has "
            "no meaning off this host"),
+    "ops/host/refresh_live.sh": (
+        1, "applies a merge to this host: the live checkout is the subject of "
+           "the script, not an incidental dependency — and $LIVE_CHECKOUT "
+           "overrides it, so it runs against any checkout"),
     "ops/growth/nostr_publish.js": (
         1, "locates nostr-tools inside the installed OpenClaw Nostr plugin "
            "instead of vendoring a duplicate dependency; NOSTR_TOOLS_PATH "
