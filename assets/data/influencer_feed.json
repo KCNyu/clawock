@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-18T13:31:46.270148+00:00",
+  "generated_at": "2026-08-18T21:52:07.421725+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -21,21 +21,21 @@
   "items": [
     {
       "author": "Trump",
-      "text": "Trump Bump: Tax refunds jumped 17% after president’s signature law, GAO reports: https://justthenews.com/government/federal-agencies/total-tax-refunds-issued-2025-jumped-17-compared-2024-paper-check",
-      "url": "https://trumpstruth.org/statuses/40915",
-      "published": "2026-08-17T10:55:03+00:00",
+      "text": "In April, I signed a very important Executive Order to accelerate medical treatments for serious mental illness — Specifically, psychedelic drugs, including IBOGAINE. This is something that has helped so many of our amazing VETERANS and true American Heroes who were here in the Oval Office with me, and Joe Rogan. Today I am announcing that Secretary Kennedy has received a Historic Gift from the University of Miami, who has given the Federal Government its original 1994 Ibogaine Investigational New Drug application. This will give everyone direct access to the foundational FDA authorization to ",
+      "url": "https://trumpstruth.org/statuses/40964",
+      "published": "2026-08-18T16:57:40+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "税收",
-        "个人消费"
+        "医药",
+        "psychedelics"
       ],
       "sector_holdings": [],
       "stance": "neutral",
       "relevance": 50,
-      "summary_cn": "Trump签署税改法案后，美国退税金额同比增长17%，体现消费者可支配收入增加。"
+      "summary_cn": "Trump宣布推动Ibogaine等迷幻药用于退伍军人精神疾病治疗，签署行政令，联邦获University of Miami原始IND申请。"
     }
   ],
   "held_hits": [],
