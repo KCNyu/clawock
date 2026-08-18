@@ -106,7 +106,21 @@ def test_research_surfaces_stay_in_both_languages():
 
 def test_per_run_context_layers_documented_in_both_languages():
     """The layered view must stay honest about counts: it claims a block count per
-    run, and those come from the preflights' own context dicts."""
+    run, and those come from the preflights' own context dicts.
+
+    #759: the anchor used to be an opening brace with no newline after it, so for two of the three
+    preflights it latched onto an unrelated single-line `result = {'rows': rows}`
+    hundreds of lines earlier and then counted every quoted key in every nested
+    dict until the next dedented brace. It was measuring the wrong object, and
+    the README numbers had been calibrated to that wrong measurement (intraday
+    read 28 where the context literal has 29 blocks; brief read 39 where it has
+    37). Requiring the newline pins each match to the real multi-line payload,
+    and an 8-space anchor keeps nested keys out of the count.
+
+    Identifiers assigned after the literal (`context_id`, `generation_id`) are
+    deliberately not counted: they name the packet, they are not blocks in it —
+    which is why a written artifact carries one key more than this number.
+    """
     import re
 
     assert "### What each run actually receives" in EN
@@ -120,9 +134,11 @@ def test_per_run_context_layers_documented_in_both_languages():
         ("intraday", "src/clawock/harness/intraday_preflight.py"),
     ):
         source = (root / path).read_text()
-        block = re.search(r"\n    (?:context|result) = \{(.*?)\n    \}", source, re.S)
+        block = re.search(r"\n    (?:context|result) = \{\n(.*?)\n    \}",
+                          source, re.S)
         assert block, name
-        counts[name] = len(re.findall(r"'([a-z_0-9]+)':", block.group(1)))
+        counts[name] = len(re.findall(r"^        '([a-z_0-9]+)':",
+                                      block.group(1), re.M))
 
     for md, name in ((EN, "README.md"), (ZH, "README.zh.md")):
         row = next(line for line in md.splitlines()

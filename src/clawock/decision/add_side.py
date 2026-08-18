@@ -55,6 +55,25 @@ def _radar_index(radar):
     return index
 
 
+def _level(levels, ticker):
+    """The plain 20-day level for a name the radar does not carry (#759).
+
+    `opportunity_radar` only keeps in-play states, so in a selloff every row it
+    would have carried disappears — exactly when a `wait` most needs to say
+    where the question gets settled. `levels` is the same pass's arithmetic for
+    every name, so the falsifier survives the sell-off. It is a sentence source,
+    never a promotion input: see `read_rows`, where a level cannot add a trigger
+    or a technical `state`.
+    """
+    row = (levels or {}).get(ticker) or {}
+    return row if row.get("prior_20d_high") is not None else None
+
+
+def _needs_level(row):
+    """The one wording for 'what would settle it', used by radar and level alike."""
+    return f"站上 {row.get('prior_20d_high')}(现距高 {row.get('pct_from_high')}%)"
+
+
 def _primary_interrupt(news, ticker):
     """The one item class the catalyst gate lets promote a read."""
     entry = ((news or {}).get("tickers") or {}).get(ticker) or {}
@@ -93,8 +112,8 @@ def _open_risk_action(plan_context, ticker):
     return None
 
 
-def read_rows(*, anomalies=None, radar=None, early_trend=None, mover_news=None,
-              mover_thesis=None, plan_context=None):
+def read_rows(*, anomalies=None, radar=None, levels=None, early_trend=None,
+              mover_news=None, mover_thesis=None, plan_context=None):
     """Join the packet's own answers into add-side reads, most acute first.
 
     Every field is copied from an input; nothing here is derived arithmetic, so a
@@ -135,11 +154,19 @@ def read_rows(*, anomalies=None, radar=None, early_trend=None, mover_news=None,
             if not radar_row:
                 missing.append("技术面未接近突破")
             why = "、".join(missing) or "条件不齐"
-            if radar_row:
-                needs = (f"站上 {radar_row.get('prior_20d_high')}"
-                         f"(现距高 {radar_row.get('pct_from_high')}%)")
-            else:
-                needs = "等一手催化或技术面进入突破区"
+            level = radar_row or _level(levels, ticker)
+            # #759: a level the radar dropped still answers "跌到哪才算机会".
+            # Only the wording changes — `verdict`, `triggers` and
+            # `evidence["state"]` are decided above and stay untouched, so a far
+            # level can never read as an approach.
+            needs = (_needs_level(level) if level
+                     else "等一手催化或技术面进入突破区")
+            if level and evidence.get("prior_20d_high") is None:
+                # The number quoted in `needs` has to be pointable-at in the
+                # packet, not only inside a sentence (数字只能引用 context).
+                evidence = {**evidence,
+                            "prior_20d_high": level.get("prior_20d_high"),
+                            "pct_from_high": level.get("pct_from_high")}
 
         rows.append({
             "ticker": ticker,
