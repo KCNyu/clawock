@@ -57,18 +57,24 @@ def _radar_index(radar):
     level, and 07226 trades near 3.5 HKD. Rows reached through a proxy are
     tagged here, and every place that renders a number checks the tag.
     """
+    rows = [row for row in (radar or {}).get("rows", []) or []
+            if row.get("state") in IN_PLAY_STATES]
     index = {}
-    for row in (radar or {}).get("rows", []) or []:
-        if row.get("state") not in IN_PLAY_STATES:
-            continue
+    # Two passes, and the order matters: a name that has a row of its own must
+    # win over any proxy that also covers it, whatever order the radar sorted
+    # its rows into (it sorts by `pct_from_high`, so a single pass would decide
+    # attribution by today's prices). Nothing in the universe hits this today —
+    # 07226 and SPCH have no rows of their own — but "which numbers this ticker
+    # gets" must not be a function of the sort order the day one appears.
+    for row in rows:
+        if row.get("label"):
+            index.setdefault(row["label"], row)
+    for row in rows:
         label = row.get("label")
-        if label:
-            index.setdefault(label, row)
         for key in row.get("holdings") or []:
-            if not key:
-                continue
-            index.setdefault(key, row if key == label
-                             else {**row, PROXY_KEY: label})
+            if key:
+                index.setdefault(key, row if key == label
+                                 else {**row, PROXY_KEY: label})
     return index
 
 

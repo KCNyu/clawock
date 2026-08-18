@@ -408,3 +408,27 @@ def test_the_private_proxy_marker_never_leaks_into_a_row():
     for row in out["rows"]:
         assert add_side.PROXY_KEY not in row
         assert add_side.PROXY_KEY not in row["evidence"]
+
+
+def test_an_own_row_beats_a_proxy_row_regardless_of_radar_order():
+    """Raised by the deepseek review of #761, verified here.
+
+    `setdefault` in one pass meant "first row wins", and the radar sorts its
+    rows by `pct_from_high` — so if a ticker ever had both a row of its own and
+    a proxy covering it, whose numbers it got would depend on which was nearer
+    its high that minute. No universe entry hits this today (07226 and SPCH
+    have no rows of their own), but attribution must not be decided by a sort
+    order. Both orderings must give 07226 its own 3.9, never HSTECH's 4948.5.
+    """
+    own = {"label": "07226", "state": "near_breakout", "holdings": ["07226"],
+           "prior_20d_high": 3.9, "pct_from_high": -6.92}
+    proxy = {"label": "HSTECH", "state": "near_breakout", "holdings": ["07226"],
+             "prior_20d_high": 4948.5, "pct_from_high": -4.83}
+    for order in ([proxy, own], [own, proxy]):
+        out = add_side.read_rows(
+            anomalies=[{"ticker": "07226", "move_pct": -4.0, "severity": "medium"}],
+            radar={"rows": order})
+        row = _row(out, "07226")
+        assert row["evidence"]["prior_20d_high"] == 3.9, order
+        assert "proxy_label" not in row["evidence"], order
+        assert row["needs"] == "站上 3.9(现距高 -6.92%)", order
