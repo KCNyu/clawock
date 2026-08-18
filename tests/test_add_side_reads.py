@@ -190,3 +190,96 @@ def test_both_market_skills_require_the_line_in_the_same_words():
         assert "三态都不是下单授权" in text
     hk, us = (t.split("add_side_reads", 1)[1][:400] for t in texts)
     assert hk == us, "the hk and us Mode 7 add-side instructions have drifted"
+
+
+# --- #759: the falsifier must survive a selloff ------------------------------
+#
+# `opportunity_radar` only carries in-play states, so on a red day every row it
+# would have carried disappears — and the `wait` rows lost their level exactly
+# when "跌到哪才算机会" was the whole question. Live proof (2026-08-18 HK): the
+# 10:01 packet had radar=3 and levelled `needs`; from 10:31 radar=0 and all
+# three wait rows read "等一手催化或技术面进入突破区". US the same night never
+# hit it — its radar stayed 3-4 rows all session.
+#
+# The two invariants are deliberately opposed: a dropped level must come back
+# (1), and coming back must not look like an approach (2).
+
+LEVELS = {"00100": {"prior_20d_high": 336.4, "close": 293.2,
+                    "pct_from_high": -12.85},
+          "02208": {"prior_20d_high": 11.72, "close": 10.86,
+                    "pct_from_high": -7.34}}
+
+
+def test_a_wait_names_the_level_even_when_the_radar_dropped_the_name():
+    """Invariant 1 — 普跌行情下 wait 仍然带位。"""
+    out = add_side.read_rows(
+        anomalies=[{"ticker": "00100", "move_pct": -12.2, "severity": "high"}],
+        radar={"rows": []}, levels=LEVELS,
+        mover_news={"tickers": {"00100": {"status": "no_recent_filing",
+                                          "items": []}}})
+    row = _row(out, "00100")
+    assert row["verdict"] == "wait"
+    assert "336.4" in row["needs"] and "-12.85" in row["needs"], row["needs"]
+    # and the number is pointable-at as data, not only inside the sentence
+    assert row["evidence"]["prior_20d_high"] == 336.4
+    assert row["evidence"]["pct_from_high"] == -12.85
+
+
+def test_a_fallback_level_never_reads_as_an_approach():
+    """Invariant 2 — 补位不得渗进 candidate 闸。
+
+    The opposite failure of the one above: if a level implied "near the
+    breakout", a name 12.85% below its high would collect the `near_breakout`
+    trigger, a technical `state`, and — with a primary filing on the tape —
+    promotion to `candidate`. Only the radar decides that.
+    """
+    out = add_side.read_rows(
+        anomalies=[{"ticker": "00100", "move_pct": -12.2, "severity": "high"}],
+        radar={"rows": []}, levels=LEVELS, mover_news={"tickers": {"00100": {
+            "status": "ok", "items": [{"tier": "primary", "signal": "interrupt",
+                                       "title": "盈喜"}]}}})
+    row = _row(out, "00100")
+    assert row["verdict"] == "wait", "a level is not a technical state"
+    assert "near_breakout" not in row["triggers"]
+    assert row["evidence"].get("state") is None
+    assert out["candidate_count"] == 0
+
+
+def test_no_level_anywhere_keeps_the_generic_sentence():
+    """Fail-soft: a name with no computable 20d level (fresh listing, dead feed)
+    must still produce its row, not raise."""
+    out = add_side.read_rows(
+        anomalies=[{"ticker": "09999", "move_pct": -8.0, "severity": "medium"}],
+        radar={"rows": []}, levels=LEVELS)
+    row = _row(out, "09999")
+    assert row["needs"] == "等一手催化或技术面进入突破区"
+    assert "prior_20d_high" not in row["evidence"]
+
+
+def test_discipline_still_owns_the_needs_line_of_a_reject():
+    """A level must not overwrite 「先把纪律动作走完」 — reject is not a price question."""
+    out = add_side.read_rows(
+        anomalies=[{"ticker": "02208", "move_pct": -3.0, "severity": "medium"}],
+        radar={"rows": []}, levels=LEVELS,
+        plan_context={"open": [{"ticker": "02208", "action": "cut", "shares": 6200,
+                                "driven_by": "risk_rule"}]})
+    row = _row(out, "02208")
+    assert row["verdict"] == "reject"
+    assert row["needs"] == "先把纪律动作走完,再谈加仓"
+
+
+def test_the_radar_publishes_the_levels_the_fallback_needs():
+    """The two halves must stay wired: preflight emits `levels`, and it covers
+    the names the radar itself dropped (that is the entire point)."""
+    ctx_path = Path("/root/.openclaw/workspace/memory/.tmp/"
+                    "intraday-context-hk-latest.json")
+    try:
+        ctx = json.loads(ctx_path.read_text())
+    except OSError:
+        pytest.skip("no readable live intraday context on this machine")
+    radar = ctx.get("opportunity_radar") or {}
+    if "levels" not in radar:
+        pytest.skip("live packet predates #759")
+    for row in (ctx.get("add_side_reads") or {}).get("rows", []):
+        if row["verdict"] == "wait" and row["ticker"] in radar["levels"]:
+            assert "站上" in row["needs"], row

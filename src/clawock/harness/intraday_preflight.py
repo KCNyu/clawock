@@ -434,6 +434,12 @@ def collect_opportunity_radar(market):
                 'errors': [{'label': None,
                             'error': f'{type(exc).__name__}: {exc}'[:200]}]}
     rows = []
+    # #759: every name whose 20-day level is computable, in play or not. The
+    # radar's own rows must keep carrying only the in-play states (they drive the
+    # rendered section and the reinvest pairing), but a name 12% below its high
+    # still has a level, and an add-side `wait` needs it to say what would settle
+    # the question. Computed in this same pass — no extra fetch, no new threshold.
+    levels = {}
     run_date = datetime.now(ZoneInfo('Asia/Hong_Kong')).date()
     # #621: thresholds come from add-alpha-policy.json like every other lane
     # (early_no_chase_zscore / opportunity_near_pct), so radar and early-trend
@@ -469,6 +475,11 @@ def collect_opportunity_radar(market):
         if close is None or prior is None or prior <= 0:
             continue
         pct_from_high = (close / prior - 1) * 100
+        level = {'prior_20d_high': prior, 'close': close,
+                 'pct_from_high': round(pct_from_high, 2)}
+        for key in [label, *(detail.get('source_holdings') or [])]:
+            if key:
+                levels.setdefault(key, level)
         if close > prior and (z is None or z < no_chase_z):
             state, state_zh = 'breakout', '机会·突破'
         elif close > prior:
@@ -489,7 +500,7 @@ def collect_opportunity_radar(market):
             'zscore20': z,
         })
     rows.sort(key=lambda row: row['pct_from_high'], reverse=True)
-    result = {'rows': rows}
+    result = {'rows': rows, 'levels': levels}
     if errors:
         result['errors'] = errors
     return result
@@ -1014,6 +1025,7 @@ def main(argv=None):
         # template is now required to write.
         'add_side_reads': add_side.read_rows(
             anomalies=anomalies, radar=opportunity_radar,
+            levels=opportunity_radar.get('levels'),
             early_trend=early_candidates, mover_news=mover_news_ctx,
             mover_thesis=mover_thesis, plan_context=plan_ctx),
         'signal_count':     signals,
