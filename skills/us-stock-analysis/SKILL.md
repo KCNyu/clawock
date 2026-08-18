@@ -117,6 +117,9 @@ clawock intraday preflight --market us
     排序)。纪律铁律不变:**三态都不是下单授权**,不许自行补方向、价格、股数;
     软消息/情绪只能停在 `wait`,只有一手披露才可能促成 `candidate`;
     `reject` 说明有纪律动作没走完,这时不要把它写成「可以加仓」。
+    带 `evidence.proxy_label` 的行,它的位是**代理标的**的位(恒科指数之于 07226、
+    SPCX 之于 SPCH),`needs` 已经把指名写进句子了——**照抄那句,别把
+    `proxy_prior_20d_high` 当成这只票自己的价位**(4948.5 是指数点位,07226 现价个位数)。
   - **异动归因（`should_alert=true` 时必写，占 1 行）**：从 `mover_news.tickers[票].items` 里挑 **`signal=interrupt`** 的第一条，写成
     「{票} {幅度}% ← {标题要点}（{age_minutes} 分钟前 / {source_class}）」。多只异动票就各写一行，最多 3 行。
     - `halts` 里有这只票 → **先写停牌**（`reason_code` + 复牌时间），它比任何标题都能解释一次跳动。

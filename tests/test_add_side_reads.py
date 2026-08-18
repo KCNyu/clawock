@@ -137,10 +137,20 @@ def test_a_name_deep_in_its_range_produces_no_row_at_all():
 
 
 def test_index_labels_resolve_to_the_tradable_holding():
-    """HSTECH has no ticker to add; 07226 is the thing that trades."""
+    """HSTECH has no ticker to add; 07226 is the thing that trades.
+
+    #761 changed where the number sits, not whether the hop happens: the row is
+    still produced for 07226 and still carries the index's approach, but the
+    level is filed under `proxy_*` because 4948.5 is a Hang Seng Tech index
+    level and 07226 trades near 3.5 HKD.
+    """
     out = add_side.read_rows(anomalies=[], radar=RADAR)
     assert "HSTECH" not in [r["ticker"] for r in out["rows"]]
-    assert _row(out, "07226")["evidence"]["prior_20d_high"] == 4948.5
+    row = _row(out, "07226")
+    assert row["evidence"]["proxy_label"] == "HSTECH"
+    assert row["evidence"]["proxy_prior_20d_high"] == 4948.5
+    assert "prior_20d_high" not in row["evidence"], (
+        "the bare key is what the SKILL tells the model to copy verbatim")
 
 
 def test_every_number_in_a_row_came_from_the_inputs():
@@ -328,3 +338,97 @@ def test_the_radar_keys_levels_by_its_own_label_only():
         monkey.undo()
     assert set(out["levels"]) == {"HSTECH"}, out["levels"]
     assert "07226" not in out["levels"]
+
+
+# --- #761: an index may inform a holding, but its level is not the holding's ---
+#
+# 07226 *is* the 2x HSTECH product, so the index approaching its 20-day high is
+# real information about it and the hop must stay. What could not stay is the
+# attribution: `needs: 站上 4948.5` for a name trading near 3.5 HKD reads as an
+# executable condition and is off by three orders of magnitude. These tests pin
+# both halves — the relationship kept, the numbers re-attributed.
+
+PROXY_RADAR = {"rows": [
+    {"label": "HSTECH", "state": "near_breakout", "state_zh": "机会·接近",
+     "holdings": ["07226"], "prior_20d_high": 4948.5, "pct_from_high": -4.83},
+]}
+
+
+def test_a_proxy_row_names_the_index_in_its_needs_line():
+    out = add_side.read_rows(
+        anomalies=[{"ticker": "07226", "move_pct": -4.0, "severity": "medium"}],
+        radar=PROXY_RADAR)
+    row = _row(out, "07226")
+    assert row["needs"].startswith("HSTECH 站上 4948.5"), row["needs"]
+
+
+def test_a_proxy_candidate_also_names_the_index():
+    """The promotion path renders its own sentence and needs the same guard."""
+    out = add_side.read_rows(
+        anomalies=[{"ticker": "07226", "move_pct": -4.0, "severity": "medium"}],
+        radar=PROXY_RADAR, mover_news={"tickers": {"07226": {"status": "ok", "items": [
+            {"tier": "primary", "signal": "interrupt", "title": "盈喜"}]}}})
+    row = _row(out, "07226")
+    assert row["verdict"] == "candidate"
+    assert row["needs"].startswith("HSTECH 站上 4948.5"), row["needs"]
+
+
+def test_the_index_to_holding_relationship_is_not_severed():
+    """The half that must NOT change: the hop, the state, and promotion by proxy.
+
+    A fix that simply dropped proxy rows would 'solve' the wrong problem — it
+    would take a real signal away from the only tradable name it applies to.
+    """
+    out = add_side.read_rows(
+        anomalies=[{"ticker": "07226", "move_pct": -4.0, "severity": "medium"}],
+        radar=PROXY_RADAR, mover_news={"tickers": {"07226": {"status": "ok", "items": [
+            {"tier": "primary", "signal": "interrupt", "title": "盈喜"}]}}})
+    row = _row(out, "07226")
+    assert row["ticker"] == "07226"
+    assert row["evidence"]["state"] == "near_breakout", "the index state still applies"
+    assert "near_breakout" in row["triggers"]
+    assert row["verdict"] == "candidate", "a proxy approach can still promote"
+    assert out["candidate_count"] == 1
+
+
+def test_a_name_with_its_own_radar_row_is_untouched_by_the_proxy_rule():
+    """02208 covers itself, so nothing is re-attributed and the wording is bare."""
+    out = add_side.read_rows(
+        anomalies=[{"ticker": "02208", "move_pct": 6.4, "severity": "high"}],
+        radar=RADAR, mover_news=SOFT_ONLY)
+    row = _row(out, "02208")
+    assert row["needs"] == "站上 11.72(现距高 -4.01%)"
+    assert row["evidence"]["prior_20d_high"] == 11.72
+    assert "proxy_label" not in row["evidence"]
+
+
+def test_the_private_proxy_marker_never_leaks_into_a_row():
+    """`_proxy_label` is plumbing; `proxy_label` is the published field."""
+    out = add_side.read_rows(anomalies=[], radar=PROXY_RADAR)
+    for row in out["rows"]:
+        assert add_side.PROXY_KEY not in row
+        assert add_side.PROXY_KEY not in row["evidence"]
+
+
+def test_an_own_row_beats_a_proxy_row_regardless_of_radar_order():
+    """Raised by the deepseek review of #761, verified here.
+
+    `setdefault` in one pass meant "first row wins", and the radar sorts its
+    rows by `pct_from_high` — so if a ticker ever had both a row of its own and
+    a proxy covering it, whose numbers it got would depend on which was nearer
+    its high that minute. No universe entry hits this today (07226 and SPCH
+    have no rows of their own), but attribution must not be decided by a sort
+    order. Both orderings must give 07226 its own 3.9, never HSTECH's 4948.5.
+    """
+    own = {"label": "07226", "state": "near_breakout", "holdings": ["07226"],
+           "prior_20d_high": 3.9, "pct_from_high": -6.92}
+    proxy = {"label": "HSTECH", "state": "near_breakout", "holdings": ["07226"],
+             "prior_20d_high": 4948.5, "pct_from_high": -4.83}
+    for order in ([proxy, own], [own, proxy]):
+        out = add_side.read_rows(
+            anomalies=[{"ticker": "07226", "move_pct": -4.0, "severity": "medium"}],
+            radar={"rows": order})
+        row = _row(out, "07226")
+        assert row["evidence"]["prior_20d_high"] == 3.9, order
+        assert "proxy_label" not in row["evidence"], order
+        assert row["needs"] == "站上 3.9(现距高 -6.92%)", order
