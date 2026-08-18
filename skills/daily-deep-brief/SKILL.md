@@ -22,6 +22,39 @@ description: kcn 每个工作日 08:00 HKT 跑一次的盘前全 swarm 深度分
 **为什么这样分**：之前完全交给 LLM，模型可能漏快照、漏 HHI、漏 FX、漏 retrospective。
 确定性步骤交给脚本（一定执行，无遗漏）；LLM 只做"分析综合"这个不能脚本化的部分。
 
+## 🔒 Exec 铁律：退出码就是整回合的判据
+
+**每一条 `exec` 的退出码会被当成整个回合的成败。** 一条中途的非零退出会让 cron 把
+**已经做完并已投递**的一轮判成 `error`（真实案例：2026-08-18，简报全部产出、
+`wechat_sent: true`、commit+push 都成了，运行时 `trace.artifacts.finalStatus` 也是
+`success`，但 08:14 那条 exec 非零退出，整轮仍被记成红）。
+
+**`2>/dev/null` 只吞 stderr，不改退出码。** 这是最容易踩的一条：
+
+```bash
+# ❌ 踩过的原文（2026-08-18）：末尾那个文件当天不存在 → head exit 1 → 整回合判红
+ls -la memory/2026-08-17* 2>/dev/null; echo "---"; \
+  head -c 2500 memory/2026-08-17-pre-open.md 2>/dev/null; echo "==="; \
+  head -c 1500 memory/2026-08-17.md 2>/dev/null
+
+# ✅ 读"可能不存在"的文件时，自己兜底退出码
+ls -la memory/2026-08-17* 2>/dev/null || true; echo "---"; \
+  head -c 2500 memory/2026-08-17-pre-open.md 2>/dev/null || true; echo "==="; \
+  head -c 1500 memory/2026-08-17.md 2>/dev/null || true
+```
+
+三条硬规则：
+
+1. **凡是读可选文件/通配符（日报、昨日 notes、`.tmp/` 产物）都要 `|| true`。**
+   日期型文件天生可能缺（当天没写 notes、休市、上游没产出），缺失**不是错误**。
+2. **`;` 串起来的复合命令，最后一条决定退出码** —— 前面成不成功都不算。
+   拿不准就在整条命令末尾补 `; true`。
+3. **`grep`/`test`/`head`/`ls` 用作"看一眼"而不是"判定"时，一律兜底。**
+   `grep -q` 找不到东西返回 1 是正常语义，不该让一轮简报变红。
+
+配套的窄规则见 Step 5 的「送达确认铁律」（#558）：那条禁的是 postflight 之后
+再去读 marker 确认送达；本节是它的一般形式 —— **别让"看一眼"的退出码决定一轮的成败。**
+
 ## 6-step 流程（严格按顺序）
 
 ### Step 1: 跑 preflight（一行命令搞定所有确定性活）
@@ -852,6 +885,8 @@ clawock brief postflight
 > postflight **之后禁止**用 exec / list / show 去读 `memory/.tmp/` 下的 marker、claim、sent 文件"眼见为实"确认送达。
 > 送达由 postflight 的 marker + watchdog 兜底负责，`wechat_sent: true` / postflight 输出里的投递摘要就是权威。
 > 违例形态（2026-08-10~14 复发 ≥5 次）：`Exec failed: list files in memory/.tmp/report-sent-*.json` → 整回合被判 error → 该槽位投递缺口（#544）。**postflight 说送到了就是送到了，不要二次确认。**
+>
+> 这条是窄规则（只管 postflight 之后的送达确认）。**一般形式见文档开头的「Exec 铁律：退出码就是整回合的判据」** —— 2026-08-18 同一机制换个位置又发生了一次（Step 3 读昨日 notes，末尾 `head` 读到不存在的文件 exit 1，简报已投递却仍判红）。
 
 ## Style rules
 
