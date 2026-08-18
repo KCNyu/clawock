@@ -36,6 +36,11 @@ from __future__ import annotations
 
 VERDICTS = ("candidate", "wait", "reject")
 
+# Marks a radar row reached through a proxy label (an index standing in for the
+# tradable product). Private to this module: it never reaches a row's evidence,
+# which carries `proxy_label` instead.
+PROXY_KEY = "_proxy_label"
+
 # The technical states `opportunity_radar` emits that mean "the breakout is in
 # play". Anything else (a name deep inside its range) is not an add-side read at
 # all and produces no row.
@@ -44,15 +49,32 @@ IN_PLAY_STATES = ("breakout", "near_breakout", "at_high")
 
 def _radar_index(radar):
     """holdings ticker -> radar row. A row can cover several holdings (an index
-    proxy: HSTECH covers 07226), so both the label and every holding map to it."""
+    proxy: HSTECH covers 07226), so both the label and every holding map to it.
+
+    #761: the mapping stays — 07226 *is* the 2x HSTECH product, so the index
+    approaching its high is real information about it. What must not survive the
+    hop is the *attribution* of the numbers: 4948.5 is a Hang Seng Tech index
+    level, and 07226 trades near 3.5 HKD. Rows reached through a proxy are
+    tagged here, and every place that renders a number checks the tag.
+    """
     index = {}
     for row in (radar or {}).get("rows", []) or []:
         if row.get("state") not in IN_PLAY_STATES:
             continue
-        for key in [row.get("label"), *(row.get("holdings") or [])]:
-            if key:
-                index.setdefault(key, row)
+        label = row.get("label")
+        if label:
+            index.setdefault(label, row)
+        for key in row.get("holdings") or []:
+            if not key:
+                continue
+            index.setdefault(key, row if key == label
+                             else {**row, PROXY_KEY: label})
     return index
+
+
+def _proxy_of(radar_row):
+    """The label a row was reached through, or None when it is the row's own."""
+    return (radar_row or {}).get(PROXY_KEY)
 
 
 def _level(levels, ticker):
@@ -70,8 +92,16 @@ def _level(levels, ticker):
 
 
 def _needs_level(row):
-    """The one wording for 'what would settle it', used by radar and level alike."""
-    return f"站上 {row.get('prior_20d_high')}(现距高 {row.get('pct_from_high')}%)"
+    """The one wording for 'what would settle it', used by radar and level alike.
+
+    A proxy row names the thing the level belongs to, because the bare sentence
+    reads as the holding's own price and the two are not in the same scale
+    (#761).
+    """
+    proxy = _proxy_of(row)
+    lead = f"{proxy} 站上 " if proxy else "站上 "
+    return (f"{lead}{row.get('prior_20d_high')}"
+            f"(现距高 {row.get('pct_from_high')}%)")
 
 
 def _primary_interrupt(news, ticker):
@@ -145,7 +175,8 @@ def read_rows(*, anomalies=None, radar=None, levels=None, early_trend=None,
             verdict = "candidate"
             why = (f"一手公告 + 技术面{radar_row.get('state_zh') or radar_row.get('state')}"
                    f":{primary.get('title') or primary.get('headline') or 'primary filing'}")
-            needs = f"站上 {radar_row.get('prior_20d_high')} 并守住"
+            lead = f"{_proxy_of(radar_row)} 站上 " if _proxy_of(radar_row) else "站上 "
+            needs = f"{lead}{radar_row.get('prior_20d_high')} 并守住"
         else:
             verdict = "wait"
             missing = []
@@ -167,6 +198,18 @@ def read_rows(*, anomalies=None, radar=None, levels=None, early_trend=None,
                 evidence = {**evidence,
                             "prior_20d_high": level.get("prior_20d_high"),
                             "pct_from_high": level.get("pct_from_high")}
+
+        proxy = _proxy_of(radar_row)
+        if proxy:
+            # #761: the level came from the proxy, so it must not sit under the
+            # bare key the template is told to copy («数字照抄 evidence 的
+            # prior_20d_high»). The relationship is kept — the row exists, its
+            # `state` still feeds the promotion gate — only the numbers are
+            # re-attributed to the thing they actually measure.
+            evidence = {**evidence, "proxy_label": proxy}
+            for key in ("prior_20d_high", "pct_from_high"):
+                if evidence.get(key) is not None:
+                    evidence[f"proxy_{key}"] = evidence.pop(key)
 
         rows.append({
             "ticker": ticker,
