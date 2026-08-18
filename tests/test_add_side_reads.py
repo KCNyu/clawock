@@ -283,3 +283,48 @@ def test_the_radar_publishes_the_levels_the_fallback_needs():
     for row in (ctx.get("add_side_reads") or {}).get("rows", []):
         if row["verdict"] == "wait" and row["ticker"] in radar["levels"]:
             assert "站上" in row["needs"], row
+
+
+def test_a_proxy_never_donates_its_level_to_the_name_it_stands_for():
+    """#759 review catch: the fallback must not put an index level on a warrant.
+
+    The universe carries proxies — `HSTECH` (source_holdings ['07226']), `SPCX`
+    (['SPCX', 'SPCH']), `RKLB` (['RKLX']) — and 07226 has no entry of its own.
+    Keying `levels` by holdings too would have made a 3.5 HKD warrant read
+    「站上 4948.5」, a Hang Seng Tech index point count. A radar row may still
+    carry a proxy (that row names the index it is about); a bare level carries
+    no such label, so it must stay with the ticker it was computed from, and a
+    name with no level of its own keeps the generic sentence.
+    """
+    out = add_side.read_rows(
+        anomalies=[{"ticker": "07226", "move_pct": -4.0, "severity": "medium"}],
+        radar={"rows": []},
+        levels={"HSTECH": {"prior_20d_high": 4948.5, "close": 4797.0,
+                           "pct_from_high": -3.06}})
+    row = _row(out, "07226")
+    assert "4948.5" not in row["needs"], row["needs"]
+    assert row["needs"] == "等一手催化或技术面进入突破区"
+    assert "prior_20d_high" not in row["evidence"]
+
+
+def test_the_radar_keys_levels_by_its_own_label_only():
+    """The producing half of the invariant above, at the source."""
+    from clawock.harness import intraday_preflight as P
+
+    universe = [{"label": "HSTECH", "code": "hkHSTECH", "region": "HK",
+                 "source_holdings": ["07226"]}]
+    sigs = [{"close": 4797.0, "prior_20d_high": 4948.5, "zscore20": 0.5}]
+    import pytest as _pytest  # noqa: F401  (monkeypatch needs a fixture-free path)
+    monkey = _pytest.MonkeyPatch()
+    try:
+        monkey.setattr(P, "WS", ROOT)
+        monkey.setattr(P.quant_signals, "universe_details",
+                       lambda errors=None: universe)
+        monkey.setattr(P.quant_signals, "compute_signals",
+                       lambda bars: sigs.pop(0) if sigs else None)
+        monkey.setattr(P.quant_signals, "fetch_bars", lambda code, cnt: [])
+        out = P.collect_opportunity_radar("hk")
+    finally:
+        monkey.undo()
+    assert set(out["levels"]) == {"HSTECH"}, out["levels"]
+    assert "07226" not in out["levels"]

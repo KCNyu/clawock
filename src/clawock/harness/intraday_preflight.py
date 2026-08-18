@@ -475,11 +475,15 @@ def collect_opportunity_radar(market):
         if close is None or prior is None or prior <= 0:
             continue
         pct_from_high = (close / prior - 1) * 100
-        level = {'prior_20d_high': prior, 'close': close,
-                 'pct_from_high': round(pct_from_high, 2)}
-        for key in [label, *(detail.get('source_holdings') or [])]:
-            if key:
-                levels.setdefault(key, level)
+        # Keyed by the label alone, never by `source_holdings`: the universe
+        # carries proxies (HSTECH stands in for 07226, SPCX for SPCH), and a
+        # proxy's 20-day high is in a different price scale entirely. Telling a
+        # 3.5 HKD warrant to 「站上 4948.5」(恒科指数点位) is worse than saying
+        # nothing. A radar row may carry a proxy because the row names the index
+        # it is about; a bare level has no such label, so it stays home.
+        if label:
+            levels.setdefault(label, {'prior_20d_high': prior, 'close': close,
+                                      'pct_from_high': round(pct_from_high, 2)})
         if close > prior and (z is None or z < no_chase_z):
             state, state_zh = 'breakout', '机会·突破'
         elif close > prior:
