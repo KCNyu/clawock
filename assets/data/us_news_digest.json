@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-17T13:32:28.355844",
+  "generated_at": "2026-08-18T13:35:14.076484",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -15,166 +15,145 @@
       "SPCH"
     ]
   },
-  "digest_markdown": "### Top 3-5 移动信号\n- **SKHY**: $38B 新晶圆厂获批但 2028/2029 前不会产芯片 → 近端供给紧缩延续,HBM/AI 内存涨价逻辑获支撑. 直接持有,顺势持仓.\n- **RKLB**: $143M 太空合约里程碑 + Q2 收入创纪录 + backlog >90 次发射 / $437M 合约 → 增长催化剂明确. 通过 **RKLX (2x)** 持有,2x 杠杆将放大上行.\n- **SPCX**: IPO 后 free float 上升触发 ETF/指数再平衡需求 → 结构性买盘流入. 通过 **SPCH (2x)** 持有,2x 杠杆放大再平衡买入效应.\n- **CRCL**: 银行业务胜出驱动 5 连阳 +19% 后动能衰减,华尔街看法分歧 → 短线回吐风险, 不追高.\n\n### Per-ticker 简报\n- **CRCL**: 估值被指\"合理\"vs\"fairly valued\"分歧 + 动能丢失 — 银行业务催化剂已 price in, 短期震荡.\n- **RKLB**: Neutron 延期 + Iridium 并购稀释 + 50x sales 高估值是逆风; 但合约/订单流强劲, 基本面盖过估值担忧.\n- **SPCX**: Q2 收入 +92% 但 Starlink ARPU 下降 + CapEx 飙升, 估值被指贵 60%; 结构性再平衡需求 vs 基本面担忧拉锯.\n- **SKHY**: Sandisk $6.9B 季报强确认内存涨价周期; Intel 拟重返内存 = 中期新对手,但 2028 前影响有限.\n\n### 风险 watch\n- **RKLB**: Neutron 延期 / 50x sales 高估值\n- **SPCX**: Starlink ARPU 下滑 + CapEx 失控\n- **SKHY**: Intel 重返内存 (2028+ 才会实质影响)\n- **CRCL**: 银行业务催化剂兑现后回吐",
+  "digest_markdown": "## Top 移动信号 (跨 ticker)\n- **RKLB** (via RKLX 2x): 三连 Space Force 合约同日落地 — NITE-STAR IDIQ ceiling $981M, Viasat PTS-G 反干扰 GEO 卫星总线选定, $143M 合约里程碑. 国防/抗干扰卫星为 RKLB 高毛利业务线, RKLX 2x 杠杆放大动量, 看多.\n- **SPCX** (via SPCH 2x): SpaceX 13F 披露多家机构持数十亿美元仓位, IPO 后估值获机构验证; Harbor 新 AI ETF 锁定 SpaceX 持仓, 资本流入加码. SPCH 2x 杠杆放大, 看多.\n- **SKHY**: SeekingAlpha 直接看多 \"SK hynix: AI Memory Dominance Wall Street Is Mispricing\" + 同业 Sandisk 获 Evercore $1200 PT Strong Buy, 内存板块 β 增强, 温和看多.\n- **CRCL**: BitMine Immersion 披露 $12.9B ETH 持仓与 Circle (USDC) 业务无直接关联, 归类噪音, 忽略.\n\n### Per-ticker 简报\n- **RKLB**: 三合约催化 (NITE-STAR IDIQ $981M ceiling + Viasat PTS-G + $143M milestone) — 强力看多信号, RKLX 持仓受益 2x.\n- **SPCX**: SpaceX 13F 机构持仓披露 + Harbor AI ETF 纳入 SpaceX — 估值锚定+新资金流, SPCH 2x 持仓获强化.\n- **SKHY**: AI 内存板块分析师共振 (SK hynix + Sandisk) — 周期与 AI capex 双驱动, 维持看多.\n- **CRCL**: 唯一新闻为 BitMine ETH 持仓, 与 CRCL 无业务交集, 无 actionable 信号.\n\n### 风险 watch\n- 宏观: Iran 风险推油 >$90 + \"三大泡沫/流动性收紧\" 文章 + Fed 9 月加息概率 30%, 风险偏好摇摆.\n- 内存周期: Sandisk/SK hynix 看多依赖 HBM/NAND 价格延续, 周期反转即风险.\n- 无 ticker-specific 监管/减持/失败合约信号.",
   "raw_news_counts": {
-    "CRCL": 5,
-    "RKLB": 4,
+    "CRCL": 1,
+    "RKLB": 5,
     "SPCX": 5,
     "SKHY": 5
   },
   "raw_news_evidence": {
     "CRCL": [
       {
-        "headline": "Circle (CRCL) Stock Looks Fairly Valued While Broader Checks Stay Weak",
-        "datetime": "Fri, 14 Aug 2026 07:12:03 GMT",
-        "source": "Yahoo Finance",
-        "origin": "gnews-rss",
-        "url": "https://news.google.com/rss/articles/CBMimwFBVV95cUxOSDMxN2RqbGt1Wk42OE5ONzhHYlF2dl9IUkVHMnJyai1PeEpOOVdXeFNWbzRRN3lQMlRlQmhtbmhTRUtnTHBFcnJlWk5UQzJwcXR0bk9PSkJ6YlJnNHJESXdkODMxWndleS12NlVkM3ZtV2thZERyOFc1S2JVeEJqamxNUGRVMExfYUtLZmoxZVY5R2NMQnEtUUlDcw?oc=5"
-      },
-      {
-        "headline": "Why Did CRCL Stock Lose Steam? Wall Street Split On Circle’s Banking Win",
-        "datetime": "Sat, 15 Aug 2026 00:59:13 GMT",
-        "source": "Stocktwits",
-        "origin": "gnews-rss",
-        "url": "https://news.google.com/rss/articles/CBMi1wFBVV95cUxQWE1wM0FtcHc1YmFoY1RkcDZhdWQwUGdaOFNWZU84eW5Gd3BFQ1ZJUHJ3dGtibHBxbFkxMDlXdlRoYjZBWl9qUl9URjF2ck12enJOdGJWMlRhVVd4NFZxeDl4b09SdVJWakRRUk9wVFFFSFJOYWxmalA0LVlWaUtvM2oxQkgwZWRpdFpXQnQ5a3hvY1F6WTBKVjZnLWJmSjNmSzdZaWN6OXdabUwwMElTY285NEg5ZWppaTRoNW5DVlAwdllhNjBQa2ROM1JrSVI1cFJtMENOUQ?oc=5"
-      },
-      {
-        "headline": "A 5-Day Winning Streak Has Circle Internet Stock Up 19%",
-        "datetime": "Fri, 14 Aug 2026 08:01:20 GMT",
-        "source": "Trefis",
-        "origin": "gnews-rss",
-        "url": "https://news.google.com/rss/articles/CBMitgFBVV95cUxOdEZ6aFYtWFNLeGlGX0ZUNW9WeWdSZ19xVFVHeF94MVpHMjdKUDZMYnRhU1czS2xwTzVWT045T05KOWFMYmxWM2h5OUFpMDlFOWpWMkFWS2V6a1Y4UnhWcnFfUEVSWGZPNF9EcUxabU9ub2VJczFvNVpDY3Q3MWtHNkpQUmZtMG1qQmdoV3hnNGFaV2dTNzZrenE2TmZRNTQ4cVB5VTl0NkZTTjY3Snd1ZGRZaGFWQQ?oc=5"
-      },
-      {
-        "headline": "Circle Stock (CRCL) Opinions on Earnings Report",
-        "datetime": "Thu, 13 Aug 2026 14:09:00 GMT",
-        "source": "Quiver Quantitative",
-        "origin": "gnews-rss",
-        "url": "https://news.google.com/rss/articles/CBMijAFBVV95cUxOMDk0ZnJmV1kzQVlsYkJGNjNBcXFmNTdXcU15QTFrekMwVVNQTl8xcEJQamZIQnI3R0RKbkVYaDFPbHozMFJma2NwbTJ1SjNhaDQ4ZXlvbnpkSTY2ZU5nTHd4WllLUmZQMFM0emlIWE02MWJYY3JiREJzY0lubzRDbDFkUjludnl6bW5WRA?oc=5"
-      },
-      {
-        "headline": "Circle Internet Is Still Down 10% in 2026. What Will It Take to Get CRCL Stock Back Up to $100?",
-        "datetime": "Tue, 11 Aug 2026 19:25:16 GMT",
-        "source": "24/7 Wall St.",
-        "origin": "gnews-rss",
-        "url": "https://news.google.com/rss/articles/CBMi0AFBVV95cUxON25tOUcxbzhoS1RhV294SGw1NlNnS1dfMWZfTVdvQS1qRTd1TTlpNmhqZlpMR0FGYnJBRXRTOFhia0lDajh1VDlta18xMEdLNmRZb3lSTmlNcTlnaU9ES1FqZ2tUZnNuSWxjaThBbkRmYnlKa2ZzcDBFb3Q5bGlOZHFRcGFZbEVoQ0pMLWhSWHNSNklGOE8wRTJ0MXk2RFBRUFJOR3Z3NFZ4UGw2T1BCd2hnMW1ibUt6WERTRWo0U1BZdHZTNk9ucS1sakZhLTZ6?oc=5"
+        "headline": "BitMine Immersion Technologies Discloses ETH Holdings Of 4.976M Tokens, With Total Crypto And Cash Holdings Valued At $12.9B",
+        "datetime": 1786966346,
+        "source": "Benzinga",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=a948dac5505f84d97efeaafeabc42f3bd62128cf6e9e4fb82a20cbb2f9920c79"
       }
     ],
     "RKLB": [
+      {
+        "headline": "Rocket Lab Onboarded To The United States Space Force’s NITE-STAR IDIQ Contract, An Advanced Space Test And Training Infrastructure With A $981M Contract Ceiling",
+        "datetime": 1786986776,
+        "source": "Benzinga",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=ca82ea5bede521a580c947138fa988c8d5de193238fdf6513acc0c789765cf5b"
+      },
+      {
+        "headline": "What's Going On With Viasat Stock Monday?",
+        "datetime": 1786973562,
+        "source": "Benzinga",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=35833bcf6852667b24d8c950700c85091b975be197bcd6bb81fc62c238aa3861"
+      },
+      {
+        "headline": "Stock Market Futures Mixed: Dow Futures Slips, Nasdaq 100, S&P 500 Rises as Fed Rate Hike Odds Drop to 30% for September—SanDisk, Micron, HIVE Digital in Focus (UPDATED)",
+        "datetime": 1786956411,
+        "source": "Benzinga",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=b83e876d224f5da5ffbb069804a1f6bf47b4bb7f88b9cab8deeb1e160c64d55f"
+      },
+      {
+        "headline": "Rocket Lab Selected By Viasat To Build A Satellite Bus For The U.S. Space Force’s Space Systems Command Under The Protected Tactical SATCOM-Global Program; Terms Not Disclosed",
+        "datetime": 1786953907,
+        "source": "Benzinga",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=d051c46568de9f892e9891d8d59354a01fc03607e5fe8946dce762d1eb021b37"
+      },
       {
         "headline": "Wall Street Breakfast Podcast: Rocket Lab Gains Altitude",
         "datetime": 1786949700,
         "source": "SeekingAlpha",
         "origin": "finnhub",
         "url": "https://finnhub.io/api/news?id=0409bf98a4e157ae2f1d62bc2eb6840f104e18efb858b0bf66051b1206f4f1f5"
-      },
-      {
-        "headline": "Rocket Lab: Not Priced For Launch Delays",
-        "datetime": 1786788000,
-        "source": "SeekingAlpha",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=0de3032e27f91d3c76a2d059264f4a577f0f1ecc521536bc1936a3c3e673985f"
-      },
-      {
-        "headline": "Consumer Tech (Aug 10-14): Trump Faces Federal Lawsuits, Apple & Alibaba To Create AI Model For China & More",
-        "datetime": 1786787515,
-        "source": "Benzinga",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=80a4ff54930a1eea63dea0ec7e39c7509a9575579cacc01386fedde5b9601b2f"
-      },
-      {
-        "headline": "Rocket Lab: Neutron Is Becoming A Real Growth Driver",
-        "datetime": 1786758278,
-        "source": "SeekingAlpha",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=6398147da9bb062f206e34b3f0d0900566301ed95ce8cae8fce203dbe50ac640"
       }
     ],
     "SPCX": [
       {
-        "headline": "SpaceX: One Thing Most People Are Missing When It Comes To The Reported Stakes",
-        "datetime": 1786954460,
+        "headline": "AI Is Not A Bubble: 4 Income Ideas To Ride The Wave",
+        "datetime": 1787041800,
         "source": "SeekingAlpha",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=d990868978e0b570709b2c0589d7acf2ec7026097bc38e60d5fba898eb018ed7"
+        "url": "https://finnhub.io/api/news?id=77453322fe1810b5de21ec7eeeb1b8a7a5d439d60f9c8386cc5c4778857532e8"
       },
       {
-        "headline": "Consumer Data Trips Up Wall Street's Rally as MDxHealth Snatches a Lifeline and Anthropic Redraws the AI Ceiling",
-        "datetime": 1786949888,
+        "headline": "Iran Risk and Oil Above $90 Snap the Rally as Memory Chips Do the Heavy Lifting and Reddit Wobbles Into the S&P 500",
+        "datetime": 1787039541,
         "source": "ChartMill",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=fc98510322e387155cbbc6a2eb405984bb79a57cc4f550402ec0d3960db217a3"
+        "url": "https://finnhub.io/api/news?id=6d945599b2c038e8f2b97653fb148f3784214b19ac8571a541be3ddb37d1dc68"
       },
       {
-        "headline": "Nebius: Avoid Chasing, Even If You Missed The Ride (Rating Downgrade)",
-        "datetime": 1786858580,
+        "headline": "Three Bubbles, One Liquidity Problem: The Market Is Running Out Of Room",
+        "datetime": 1786987875,
         "source": "SeekingAlpha",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=2468e9cada0486bc48735eb09ab7f1e12c655d6272a0a9762e0db8bb0b6f3bf1"
+        "url": "https://finnhub.io/api/news?id=b2d8d8e57dca0f197f69d3c713ba68a1b27c609e03ba877a00d6cbbd9da6cfc6"
       },
       {
-        "headline": "Bill Ackman's Receptionist Is a Millionaire. So Is the Janitor: 'We Look After People'",
-        "datetime": 1786802506,
+        "headline": "QUICK SPARK: OpenAI, Anthropic and SpaceX Fuel Harbor’s New AI ETF Strategy Beyond Big Tech",
+        "datetime": 1786981933,
         "source": "Benzinga",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=3094c524402c5c7ed58d7b01774c40a0efc3eabdce6298a5a9c4f3dbb44e3790"
+        "url": "https://finnhub.io/api/news?id=9af41b125a7fd5571185fce064c8fce9dccc8ce58ae683fabf3def63095624e1"
       },
       {
-        "headline": "SpaceX: Not At This Price",
-        "datetime": 1786796142,
-        "source": "SeekingAlpha",
+        "headline": "SpaceX Stock Jumps After Multibillion-Dollar Stakes Revealed",
+        "datetime": 1786979878,
+        "source": "Benzinga",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=07893e364e3a9bb4baa3ee8476d979133d55a7d7e30c085f5684e5640c700ffb"
+        "url": "https://finnhub.io/api/news?id=4a9259df7712fc158c78483bbdba2d78dadb9171f7433956ab81bf306794ed00"
       }
     ],
     "SKHY": [
+      {
+        "headline": "Sandisk: Perhaps The Old Rules Are Actually Out",
+        "datetime": 1787043526,
+        "source": "SeekingAlpha",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=2c26952e7cc113c3e7c613c8eca1c65111ab663f080f7cbadf07dc3ce23e6644"
+      },
+      {
+        "headline": "Three Bubbles, One Liquidity Problem: The Market Is Running Out Of Room",
+        "datetime": 1786987875,
+        "source": "SeekingAlpha",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=b2d8d8e57dca0f197f69d3c713ba68a1b27c609e03ba877a00d6cbbd9da6cfc6"
+      },
+      {
+        "headline": "The S&P 500's 50% Earnings Boom Comes With A Giant Asterisk",
+        "datetime": 1786964082,
+        "source": "SeekingAlpha",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=82bad46a5349dcc7d397c8ac4e7910af4dca8f32a45e7f0d4ea06a23509cea1e"
+      },
+      {
+        "headline": "Sandisk shares are trading higher after Evercore ISI Group initiated coverage on the stock with an Outperform rating and announced a $1,200 price target.",
+        "datetime": 1786962184,
+        "source": "Benzinga",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=40b110df73261f3e780c88708747266f6bf75bf4a390fae1aa910cbf3140e3f5"
+      },
       {
         "headline": "SK hynix: AI Memory Dominance That Wall Street Is Mispricing",
         "datetime": 1786955898,
         "source": "SeekingAlpha",
         "origin": "finnhub",
         "url": "https://finnhub.io/api/news?id=7de003a61027588c91f9dc5f15251eb9cc71764673d2e161cf5aaecad70ed8eb"
-      },
-      {
-        "headline": "What Could Intel (INTC) Returning To Memory Mean For Investors?",
-        "datetime": 1786885690,
-        "source": "Yahoo",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=02f756b0cfb37c2d62fae5acef2cf9ed84b6316c490f1bd9b666af07805931e1"
-      },
-      {
-        "headline": "Dow Jones Futures: Nvidia Leads 5 Stocks In Buy Areas, Walmart Due; Market Ready To Run?",
-        "datetime": 1786881623,
-        "source": "Yahoo",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=d22b17decc863a59575a01c3d2275bf1887f468b11a9c7c2ebccec0e10e5513a"
-      },
-      {
-        "headline": "Sandisk: The Memory Trade Lives On After Investor's Day",
-        "datetime": 1786872600,
-        "source": "SeekingAlpha",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=7e153e573c69bdd2cb9c654693ee1500452d5a9097a3a3ca79a3a3be924b79f2"
-      },
-      {
-        "headline": "SK Hynix Approved $38 Billion of New Memory Fabs That Won't Produce a Chip Before December 2028",
-        "datetime": 1786815960,
-        "source": "Yahoo",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=efaa2cf30548f9706ce44290ca172ab2456dc42e16d8032d54b0128d3c58e273"
       }
     ]
   },
   "news_source_per_ticker": {
-    "CRCL": "gnews-rss",
+    "CRCL": "finnhub",
     "RKLB": "finnhub",
     "SPCX": "finnhub",
     "SKHY": "finnhub"
   },
   "source_status": {
     "CRCL": {
-      "finnhub": "success_empty",
-      "google_news": "success"
+      "finnhub": "success",
+      "google_news": "not_attempted"
     },
     "RKLB": {
       "finnhub": "success",
