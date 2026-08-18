@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-08-17T10:32:36.122125+08:00",
+  "generated_at": "2026-08-18T08:02:13.560852+08:00",
   "lookback_window_days": 14,
-  "window_start": "2026-08-17",
-  "window_end": "2026-08-31",
+  "window_start": "2026-08-18",
+  "window_end": "2026-09-01",
   "earnings_queried": [
     "CRCL",
     "RKLB",
@@ -23,23 +23,13 @@
       "detail": "Jul PCE price index (BEA, Fed preferred inflation gauge)"
     }
   ],
-  "scheduled_events": [
-    {
-      "ticker": "00100",
-      "name": "MINIMAX-W",
-      "type": "stock_connect_inclusion",
-      "date": null,
-      "date_confidence": "unconfirmed",
-      "detail": "上交所 2026-08-05 公告港股通标的名单调入 00100；调入已宣布，实际生效日尚未从公告原文确认",
-      "source": "上交所公告 2026-08-05（经 em_news 捕获，标题：上交所：港股通标的名单调入MINIMAX-W、立讯精密、三环集团）"
-    }
-  ],
+  "scheduled_events": [],
   "summary": {
     "earnings_count": 0,
     "fomc_in_window": 0,
     "macro_count": 2,
-    "scheduled_count": 1,
-    "scheduled_undated": 1,
+    "scheduled_count": 0,
+    "scheduled_undated": 0,
     "highest_impact_within_7d": null
   }
 }

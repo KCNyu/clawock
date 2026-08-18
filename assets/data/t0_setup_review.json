@@ -1,40 +1,40 @@
 {
-  "as_of": "2026-08-17",
-  "days_logged": 76,
+  "as_of": "2026-08-18",
+  "days_logged": 77,
   "min_n": 20,
   "horizon": 1,
   "grades": {
     "chase_low_quality": {
       "label": "🔴 追高低质",
-      "n": 152,
-      "hit_rate": 0.52,
+      "n": 156,
+      "hit_rate": 0.526,
       "ci95": [
-        0.441,
-        0.598
+        0.448,
+        0.602
       ],
       "edge_significant": false,
       "sample_sufficient": true,
       "edge_supported": false,
       "reverse_edge_supported": false,
       "decision_direction": null,
-      "avg_dir_fwd_pct": 0.62,
+      "avg_dir_fwd_pct": 0.61,
       "usable": false,
       "note": "Wilson CI 跨 50%，正向 edge 未获支持"
     },
     "elevated": {
       "label": "🟡 偏高位",
-      "n": 69,
-      "hit_rate": 0.507,
+      "n": 70,
+      "hit_rate": 0.514,
       "ci95": [
-        0.392,
-        0.622
+        0.4,
+        0.628
       ],
       "edge_significant": false,
       "sample_sufficient": true,
       "edge_supported": false,
       "reverse_edge_supported": false,
       "decision_direction": null,
-      "avg_dir_fwd_pct": 0.07,
+      "avg_dir_fwd_pct": 0.02,
       "usable": false,
       "note": "Wilson CI 跨 50%，正向 edge 未获支持"
     },
@@ -51,12 +51,12 @@
       "edge_supported": false,
       "reverse_edge_supported": false,
       "decision_direction": null,
-      "avg_dir_fwd_pct": -0.2,
+      "avg_dir_fwd_pct": -0.19,
       "usable": false,
       "note": "Wilson CI 跨 50%，正向 edge 未获支持"
     }
   },
-  "summary": "没有牌面同时通过样本与正向 edge 闸（76 交易日留痕）——结论未解锁",
+  "summary": "没有牌面同时通过样本与正向 edge 闸（77 交易日留痕）——结论未解锁",
   "unlock_rule": "sample_sufficient AND Wilson_ci95_lower>50pct",
   "discipline": "自迭代：usable 需要样本量与正向 Wilson edge 同时成立；样本够多但方向错误也只展示不下结论；「命中」= 评级方向警示被次日价格证实（追高→跌 / 超卖→涨），不是「能赚钱」。"
 }
