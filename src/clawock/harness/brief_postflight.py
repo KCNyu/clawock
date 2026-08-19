@@ -454,6 +454,7 @@ def categorize(issues):
 from clawock.harness.validation import (
     categorize_issues,
     check_md_table_column_consistency,
+    split_advisory,
 )
 from ._harness_common import (  # noqa: E402
     dashboard_publication_state,
@@ -707,6 +708,10 @@ def main(argv=None):
         dry_run=args.dry_run,
         context_present=bool(context),
     )
+    # Same escalating/advisory split the report/intraday banners use: an
+    # advisory-only slot delivers a clean product and must not be filed as a
+    # degraded one (#764).
+    escalating, advisories = split_advisory(issues)
     workflow_outcomes.record_stage(
         job_name,
         'llm',
@@ -714,6 +719,8 @@ def main(argv=None):
         slot=slot,
         dry_run=args.dry_run,
         issue_count=len(issues),
+        escalating_count=len(escalating),
+        advisory_count=len(advisories),
         readability=readability,
     )
     # Emit a CLOSED cross-process gate before anything else can raise.  A valid
@@ -902,6 +909,8 @@ def main(argv=None):
         slot=slot,
         dry_run=args.dry_run,
         issue_count=len(issues),
+        escalating_count=len(escalating),
+        advisory_count=len(advisories),
         commit_ok=commit_ok,
         readability=readability,
     )

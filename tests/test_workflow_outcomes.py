@@ -269,3 +269,231 @@ def test_dashboard_renderer_labels_raw_and_final_status_separately():
     assert "执行=${raw} / 成品=${final}" in renderer
     assert "可读性=${readability.status}" in renderer
     assert "raw_error_but_product_usable" in renderer
+
+
+# ── #763: the recorder's own failure path ────────────────────────────────────
+
+def test_a_recorder_failure_warns_instead_of_breaking_the_caller(
+    tmp_path, monkeypatch, capsys
+):
+    """record_stage promises it "never lets observability break a job".
+
+    Until 2026-08-19 the module had no `import sys`, so both except handlers
+    raised NameError and did the exact opposite: a bad argument took the calling
+    postflight down with it. Mutation check: remove `import sys` and this test
+    fails on the raised NameError, not on the assertion.
+    """
+    _isolate(tmp_path, monkeypatch)
+    assert outcomes.record_stage("港股开盘报告", "llm", "not-a-real-status") == {}
+    assert "workflow outcome stage not recorded" in capsys.readouterr().err
+
+
+def test_reconciliation_failure_also_only_warns(tmp_path, monkeypatch, capsys):
+    _isolate(tmp_path, monkeypatch)
+    monkeypatch.setattr(
+        outcomes, "TMP_DIR", tmp_path / "tmp", raising=False
+    )
+    (tmp_path / "tmp").mkdir()
+    monkeypatch.setattr(
+        outcomes, "load_ledger", lambda: (_ for _ in ()).throw(RuntimeError("boom"))
+    )
+    (tmp_path / "tmp" / "brief-sent-2026-07-24.json").write_text(
+        json.dumps({"sent_ok": True})
+    )
+    assert outcomes.reconcile_delivery_receipts() == 0
+    assert "delivery receipt reconciliation skipped" in capsys.readouterr().err
+
+
+# ── #764: advisory-only findings are not a degraded product ──────────────────
+
+def _record_slot(job, slot, *, llm_status, **llm_details):
+    outcomes.record_stage(job, "preflight", "success", slot=slot)
+    outcomes.record_stage(job, "llm", llm_status, slot=slot, **llm_details)
+    outcomes.record_stage(
+        job, "postflight", "warning", slot=slot,
+        data_plane_status="published", **llm_details,
+    )
+    return outcomes.record_stage(
+        job, "primary_delivery", "success", slot=slot,
+    )
+
+
+def test_advisory_only_slot_is_not_filed_as_degraded(tmp_path, monkeypatch):
+    """The delivered report carried no banner, so the ledger must not say degraded.
+
+    validation.split_advisory guarantees an advisory-only finding never reaches
+    the banner: the reader gets a clean report plus one non-blocking ℹ️ line.
+    Filing that as "degraded generation/input" made the ledger contradict what
+    was delivered on 21 of 64 slots over 2026-08-17..19.
+    """
+    _isolate(tmp_path, monkeypatch)
+    record = _record_slot(
+        "港股收盘报告", "2026-07-24T16:00:00+08:00",
+        llm_status="warning", issue_count=1, escalating_count=0, advisory_count=1,
+    )
+    assert record["final_product"]["status"] == "success"
+    # Detected, never silenced: the finding is still countable on the stage.
+    assert record["stages"]["llm"]["advisory_count"] == 1
+    assert record["stages"]["llm"]["status"] == "warning"
+
+
+def test_an_escalating_finding_still_degrades_the_slot(tmp_path, monkeypatch):
+    _isolate(tmp_path, monkeypatch)
+    record = _record_slot(
+        "港股收盘报告", "2026-07-24T16:00:00+08:00",
+        llm_status="warning", issue_count=2, escalating_count=1, advisory_count=1,
+    )
+    assert record["final_product"]["status"] == "degraded"
+
+
+def test_a_writer_that_reports_no_split_keeps_the_conservative_reading(
+    tmp_path, monkeypatch
+):
+    """No escalating_count means nobody audited it — stay degraded."""
+    _isolate(tmp_path, monkeypatch)
+    record = _record_slot(
+        "港股收盘报告", "2026-07-24T16:00:00+08:00",
+        llm_status="warning", issue_count=1,
+    )
+    assert record["final_product"]["status"] == "degraded"
+
+
+def test_an_unpublished_data_plane_degrades_even_when_findings_are_advisory(
+    tmp_path, monkeypatch
+):
+    """The advisory exemption is about findings, not about a failed publish."""
+    _isolate(tmp_path, monkeypatch)
+    slot = "2026-07-24T16:00:00+08:00"
+    job = "港股收盘报告"
+    outcomes.record_stage(job, "preflight", "success", slot=slot)
+    outcomes.record_stage(
+        job, "llm", "warning", slot=slot, escalating_count=0, advisory_count=1
+    )
+    outcomes.record_stage(
+        job, "postflight", "warning", slot=slot,
+        data_plane_status="stale", escalating_count=0, advisory_count=1,
+    )
+    record = outcomes.record_stage(job, "primary_delivery", "success", slot=slot)
+    assert record["final_product"]["status"] == "degraded"
+
+
+# ── #765: a delivered slot must not stay `pending` because the sender died ───
+
+def _receipts(tmp_path, monkeypatch):
+    tmp = tmp_path / "tmp"
+    tmp.mkdir(exist_ok=True)
+    monkeypatch.setattr(outcomes, "TMP_DIR", tmp, raising=False)
+    return tmp
+
+
+def test_a_receipt_reconciles_a_slot_whose_sender_was_killed_after_the_send(
+    tmp_path, monkeypatch
+):
+    """2026-08-19 13:30: `exec` SIGTERM'd postflight 35s after WeChat had landed.
+
+    The stages that prove delivery are written at the end of main(), after
+    commit + dashboard + data-plane publish, so the ledger kept claiming
+    `pending` for a report kcn had already received. The receipt written at send
+    time is the durable evidence; reconciliation reads it.
+    """
+    _isolate(tmp_path, monkeypatch)
+    tmp = _receipts(tmp_path, monkeypatch)
+    slot = "2026-07-24T13:30:00+08:00"
+    job = "港股午后快报"
+    outcomes.record_stage(job, "preflight", "success", slot=slot)
+    outcomes.record_stage(
+        job, "llm", "warning", slot=slot, escalating_count=0, advisory_count=1
+    )
+    assert outcomes.load_ledger()["records"][0]["final_product"]["status"] == "pending"
+
+    (tmp / "report-sent-hk-pm-2026-07-24.json").write_text(
+        json.dumps({"sent_ok": True, "tg_ok": True, "market": "hk", "phase": "pm"})
+    )
+    assert outcomes.reconcile_delivery_receipts() == 1
+    record = outcomes.load_ledger()["records"][0]
+    assert record["stages"]["primary_delivery"]["status"] == "success"
+    assert record["stages"]["primary_delivery"]["source"] == "delivery_receipt"
+    assert record["final_product"]["status"] == "success"
+
+
+def test_reconciliation_records_a_failed_send_as_failed(tmp_path, monkeypatch):
+    _isolate(tmp_path, monkeypatch)
+    tmp = _receipts(tmp_path, monkeypatch)
+    slot = "2026-07-24T08:00:00+08:00"
+    outcomes.record_stage("盘前深度简报", "preflight", "success", slot=slot)
+    (tmp / "brief-sent-2026-07-24.json").write_text(
+        json.dumps({"sent_ok": False, "tg_ok": False})
+    )
+    assert outcomes.reconcile_delivery_receipts() == 1
+    record = outcomes.load_ledger()["records"][0]
+    assert record["stages"]["primary_delivery"]["status"] == "failed"
+
+
+def test_reconciliation_never_invents_a_slot_the_ledger_is_not_tracking(
+    tmp_path, monkeypatch
+):
+    """A receipt is evidence about a tracked slot, not licence to create one."""
+    _isolate(tmp_path, monkeypatch)
+    tmp = _receipts(tmp_path, monkeypatch)
+    (tmp / "report-sent-hk-close-2026-07-24.json").write_text(
+        json.dumps({"sent_ok": True, "market": "hk", "phase": "close"})
+    )
+    assert outcomes.reconcile_delivery_receipts() == 0
+    assert outcomes.load_ledger()["records"] == []
+
+
+def test_reconciliation_never_overwrites_a_verdict_the_ledger_already_has(
+    tmp_path, monkeypatch
+):
+    """A watchdog or a later run knows more than a receipt file does."""
+    _isolate(tmp_path, monkeypatch)
+    tmp = _receipts(tmp_path, monkeypatch)
+    slot = "2026-07-24T13:30:00+08:00"
+    job = "港股午后快报"
+    outcomes.record_stage(job, "preflight", "success", slot=slot)
+    outcomes.record_stage(job, "primary_delivery", "failed", slot=slot)
+    (tmp / "report-sent-hk-pm-2026-07-24.json").write_text(
+        json.dumps({"sent_ok": True, "market": "hk", "phase": "pm"})
+    )
+    assert outcomes.reconcile_delivery_receipts() == 0
+    record = outcomes.load_ledger()["records"][0]
+    assert record["stages"]["primary_delivery"]["status"] == "failed"
+
+
+def test_no_receipt_means_the_slot_stays_pending(tmp_path, monkeypatch):
+    """`pending` is the honest answer when nothing proves delivery."""
+    _isolate(tmp_path, monkeypatch)
+    _receipts(tmp_path, monkeypatch)
+    slot = "2026-07-24T13:30:00+08:00"
+    outcomes.record_stage("港股午后快报", "preflight", "success", slot=slot)
+    assert outcomes.reconcile_delivery_receipts() == 0
+    record = outcomes.load_ledger()["records"][0]
+    assert record["final_product"]["status"] == "pending"
+
+
+def test_an_intraday_receipt_reconciles_its_own_named_slot(tmp_path, monkeypatch):
+    _isolate(tmp_path, monkeypatch)
+    tmp = _receipts(tmp_path, monkeypatch)
+    slot = "2026-07-24T10:30:00+08:00"
+    outcomes.record_stage("盘中盯盘", "preflight", "success", slot=slot)
+    (tmp / "intraday-sent-hk.json").write_text(
+        json.dumps({"sent_ok": True, "job": "盘中盯盘", "slot": slot})
+    )
+    assert outcomes.reconcile_delivery_receipts() == 1
+    assert (
+        outcomes.load_ledger()["records"][0]["stages"]["primary_delivery"]["status"]
+        == "success"
+    )
+
+
+def test_falling_back_to_the_published_ledger_is_never_silent(
+    tmp_path, monkeypatch, capsys
+):
+    """That fallback then writes PUBLIC's content back over LOCAL — say so."""
+    _isolate(tmp_path, monkeypatch)
+    outcomes.PUBLIC_PATH.write_text(
+        json.dumps({"schema_version": outcomes.SCHEMA_VERSION, "records": []})
+    )
+    outcomes.LOCAL_PATH.write_text("{ not json")
+    assert outcomes.load_ledger()["records"] == []
+    assert "falling back to the published copy" in capsys.readouterr().err

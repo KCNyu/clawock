@@ -604,6 +604,9 @@ def main(argv=None):
         telegram_sent=tg_ok, dashboard_published=dashboard_published,
         data_plane_status=data_plane_status,
         insights_sidecar=insights_written, issue_count=len(issues),
+        # The ledger needs the same escalating/advisory split the banner uses:
+        # an advisory-only slot delivered a clean report (#764).
+        escalating_count=len(escalating), advisory_count=len(advisories),
     )
     result['heartbeat'] = {
         'job': heartbeat.get('job'), 'slot': heartbeat.get('slot'),
