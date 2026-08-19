@@ -181,7 +181,7 @@ def test_builder_stages_only_public_consumers(tmp_path):
     for path in (
         "briefs.html", "evidence.html", "faq.html", "llms.txt",
         "robots.txt", "manifest.webmanifest",
-        GOOGLE_VERIFICATION,
+        INDEXNOW_KEY, GOOGLE_VERIFICATION,
     ):
         (site / path).write_text("ok")
     (site / "sitemap.xml").write_text(
