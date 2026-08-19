@@ -1,67 +1,72 @@
 {
-  "generated_at": "2026-08-18T21:56:53.482239+00:00",
+  "generated_at": "2026-08-19T21:59:26.462729+00:00",
   "vix": {
     "symbol": "^VIX",
-    "price": 15.84,
-    "prev": 15.19,
-    "change_pct": 4.28,
-    "as_of": 1787084101,
+    "price": 14.89,
+    "prev": 15.84,
+    "change_pct": -6.0,
+    "as_of": 1787170501,
     "source": "yahoo"
   },
   "treasury_10y": {
     "symbol": "^TNX",
-    "price": 4.706,
-    "prev": 4.724,
-    "change_pct": -0.38,
-    "as_of": 1787079594,
+    "price": 4.653,
+    "prev": 4.706,
+    "change_pct": -1.13,
+    "as_of": 1787165994,
     "source": "yahoo",
-    "yield_pct": 4.706
+    "yield_pct": 4.653
   },
   "dxy": {
     "symbol": "DX-Y.NYB",
-    "price": 99.652,
-    "prev": 99.637,
-    "change_pct": 0.02,
-    "as_of": 1787089610,
+    "price": 98.795,
+    "prev": 99.657,
+    "change_pct": -0.86,
+    "as_of": 1787176164,
     "source": "yahoo"
   },
   "fear_greed": {
-    "score": 54.4,
-    "rating": "neutral",
-    "prev_close": 60.0,
-    "prev_1_week": 61.4,
-    "as_of": "2026-08-18T21:36:41+00:00"
+    "score": 56.3,
+    "rating": "greed",
+    "prev_close": 54.4,
+    "prev_1_week": 62.9,
+    "as_of": "2026-08-19T21:43:44+00:00"
   },
   "hsi": {
     "symbol": "^HSI",
-    "price": 25471.15,
-    "prev": 25453.23,
-    "change_pct": 0.07,
+    "price": 25495.07,
+    "prev": 25471.15,
+    "change_pct": 0.09,
     "source": "tencent"
   },
   "hstech": {
     "symbol": "^HSTECH",
-    "price": 4739.18,
-    "prev": 4782.03,
-    "change_pct": -0.9,
+    "price": 4682.05,
+    "prev": 4739.18,
+    "change_pct": -1.21,
     "source": "tencent"
   },
   "spx": {
     "symbol": "^GSPC",
-    "price": 7691.76,
-    "prev": 7745.06,
-    "change_pct": -0.69,
-    "as_of": 1787085504,
+    "price": 7707.98,
+    "prev": 7691.76,
+    "change_pct": 0.21,
+    "as_of": 1787171911,
     "source": "yahoo"
   },
   "nasdaq": {
     "symbol": "^IXIC",
-    "price": 26289.71,
-    "prev": 26644.91,
-    "change_pct": -1.33,
+    "price": 26331.09,
+    "prev": 26289.71,
+    "change_pct": 0.16,
     "source": "tencent"
   },
   "fed_press": [
+    {
+      "date": "2026-08-19",
+      "title": "Minutes of the Federal Open Market Committee, July 28–29, 2026",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20260819a.htm"
+    },
     {
       "date": "2026-08-13",
       "title": "Federal Reserve Board issues enforcement action with former employee of Regions Bank",
