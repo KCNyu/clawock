@@ -62,8 +62,28 @@ def _load_user_agent() -> str:
     env_ua = os.environ.get('SEC_USER_AGENT', '').strip()
     if env_ua:
         return env_ua
-    # Fallback — works but SEC requests you identify yourself
-    return 'clawock-research/0.1 clawock@users.noreply.github.com'
+    return UNCONFIGURED_SEC_USER_AGENT
+
+
+# SEC's access policy wants a real, deliverable contact address in the
+# User-Agent. This default has neither a name nor a reachable mailbox, and SEC
+# rejects it — measured 2026-08-19, same URL and second, only the UA changed:
+#
+#   'clawock-research/0.1 clawock@users.noreply.github.com'  -> 403 (this value)
+#   'Clawock Research clawock@users.noreply.github.com'      -> 403
+#   'clawock-research/0.1 <deliverable mailbox>'             -> 200
+#   'Clawock Research kcn <deliverable mailbox>'             -> 200
+#
+# The deciding factor is the mailbox domain: @users.noreply.github.com does not
+# receive mail. So this is not a "works but impolite" fallback — it is a
+# guaranteed 403, and for weeks it read downstream as an ordinary upstream
+# outage. Keep the constant nameable so a degraded source can say *why*.
+UNCONFIGURED_SEC_USER_AGENT = 'clawock-research/0.1 clawock@users.noreply.github.com'
+
+
+def sec_user_agent_configured() -> bool:
+    """False when nothing set SEC_USER_AGENT, i.e. SEC will refuse every call."""
+    return _load_user_agent() != UNCONFIGURED_SEC_USER_AGENT
 
 
 SESSION = requests.Session()

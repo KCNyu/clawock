@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import re
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 from datetime import datetime, timedelta, timezone
@@ -25,6 +26,15 @@ SEC_SUBMISSIONS = "https://data.sec.gov/submissions/CIK{cik}.json"
 TENCENT_NEWS = "https://web.ifzq.gtimg.cn/appstock/news/info/search"
 TENCENT_FILINGS_TYPE = 0
 NASDAQ_FILINGS = "https://api.nasdaq.com/api/company/{issuer}/sec-filings"
+FINNHUB_FILINGS = "https://finnhub.io/api/v1/stock/filings"
+# Finnhub stamps `acceptedDate` in US market time, not UTC. Measured against the
+# same filings from data.sec.gov on 2026-08-19: RKLB 8-K reads
+# `2026-08-13T11:10:48Z` at SEC and `2026-08-13 07:10:48` at Finnhub — exactly
+# EDT. Reading it as UTC would misplace every event by 4-5 hours, which for a
+# 30-minute intraday window is the difference between "in this window" and not.
+FINNHUB_TZ = ZoneInfo("America/New_York")
+# One US session plus the pre/after-hours filing tails around it.
+SESSION_LOOKBACK_MINUTES = 24 * 60
 UA = "Mozilla/5.0 (clawock primary disclosure provider)"
 CACHE_SCHEMA_VERSION = 1
 
@@ -46,6 +56,20 @@ def _parse_tencent_time(value):
         return datetime.strptime(str(value), "%Y-%m-%d %H:%M:%S").replace(tzinfo=HKT)
     except (TypeError, ValueError):
         return None
+
+
+def _parse_finnhub_time(value):
+    """Parse Finnhub's `acceptedDate` (US market time) into an aware UTC datetime."""
+    try:
+        naive = datetime.strptime(str(value).strip(), "%Y-%m-%d %H:%M:%S")
+    except (TypeError, ValueError):
+        return None
+    if naive.hour == 0 and naive.minute == 0 and naive.second == 0:
+        # Finnhub uses midnight as a "date only" placeholder (that is exactly what
+        # `filedDate` carries). Treating it as 00:00:00 ET would invent a precision
+        # this row does not have.
+        return None
+    return naive.replace(tzinfo=FINNHUB_TZ).astimezone(timezone.utc)
 
 
 def _parse_sec_time(value):
@@ -104,10 +128,22 @@ def fetch_sec(issuer, *, now, window_minutes, http=None):
     if not cik:
         return [], f"no CIK for {issuer}"
     digits = re.sub(r"\D", "", str(cik))
-    payload = http(
-        SEC_SUBMISSIONS.format(cik=digits.zfill(10)),
-        headers={"User-Agent": fetch_us_filings._load_user_agent()},
-    )
+    try:
+        payload = http(
+            SEC_SUBMISSIONS.format(cik=digits.zfill(10)),
+            headers={"User-Agent": fetch_us_filings._load_user_agent()},
+        )
+    except urllib.error.HTTPError as exc:
+        # A 403 on an unconfigured UA is a configuration error that will never
+        # self-heal, not an upstream outage that might. Saying so is the whole
+        # point: for weeks this lane reported a generic degradation and nobody
+        # had a reason to look (#766).
+        if exc.code == 403 and not fetch_us_filings.sec_user_agent_configured():
+            return [], (
+                "sec_user_agent_unconfigured: SEC refuses the default User-Agent "
+                "(no deliverable contact address) — set SEC_USER_AGENT in .api_keys"
+            )
+        raise
     recent = ((payload or {}).get("filings") or {}).get("recent") or {}
     forms = recent.get("form") or []
     accepted = recent.get("acceptanceDateTime") or []
@@ -194,8 +230,152 @@ def fetch_nasdaq_filings(issuer, *, now, window_minutes, http=None):
     return items, None
 
 
+def fetch_finnhub_filings(issuer, *, now, window_minutes, http=None, api_key=None,
+                          session_lookback_minutes=None):
+    """Third primary source: Finnhub's filing index, which keeps the accept time.
+
+    Its role is deliberately narrow. Measured 2026-08-19: Finnhub **lags** —
+    the Nasdaq mirror already listed SKHY's 08/19 6-K while Finnhub's newest
+    row for that issuer was 08/14. So it is not a faster discovery source and
+    must not be sold as one. What it uniquely provides when SEC direct is
+    unreachable is the minute-level acceptance timestamp that the date-only
+    mirror cannot supply, which is the whole difference between an event that
+    can clear `filing_time_unavailable` and one that cannot.
+    """
+    from clawock.market_data.calendar import read_finnhub_key  # noqa: PLC0415
+
+    http = http or _http_json
+    key = api_key if api_key is not None else read_finnhub_key()
+    if not key:
+        return [], "no FINNHUB_API_KEY"
+    # Deliberately wider than the caller's window. A filing the window rejects is
+    # still the evidence that resolves a same-day mirror row's missing time — and
+    # knowing it landed outside the window is the point. `probe` enforces the
+    # real window once, after the two sources have been reconciled.
+    session_lookback_minutes = (
+        session_lookback_minutes if session_lookback_minutes is not None
+        else max(window_minutes, SESSION_LOOKBACK_MINUTES)
+    )
+    query = urllib.parse.urlencode({"symbol": str(issuer).upper(), "token": key})
+    payload = http(f"{FINNHUB_FILINGS}?{query}")
+    rows = payload if isinstance(payload, list) else []
+    items = []
+    for row in rows:
+        if not isinstance(row, dict):
+            continue
+        when = _parse_finnhub_time(row.get("acceptedDate"))
+        if when is None:
+            continue
+        age = _age_minutes(when, now)
+        if age < 0 or age > session_lookback_minutes:
+            continue
+        form = re.sub(r"\s+", " ", str(row.get("form") or "")).strip()
+        filed = str(row.get("filedDate") or "")[:10] or None
+        items.append({
+            "published_at": when.isoformat(),
+            "filed_date": filed,
+            "age_minutes": age,
+            "time_precision": "datetime",
+            "freshness_status": "accepted_time_reported",
+            "title": re.sub(r"\s+", " ", f"{form} {row.get('symbol') or issuer}").strip(),
+            "source_class": "finnhub_filing",
+            "evidence_tier": "primary",
+            "source_url": row.get("reportUrl") or None,
+            "accession": str(row.get("accessNumber") or "") or None,
+            "form": form or None,
+            "filing_items": None,
+        })
+    return items, None
+
+
+def _filing_key(row):
+    """Identity used to line a mirror row up with a timestamped one."""
+    form = (row.get("form") or "").strip().upper()
+    filed = str(row.get("filed_date") or "")[:10]
+    return (form, filed) if form and filed else None
+
+
+def upgrade_mirror_precision(events, *, now, window_minutes):
+    """Let a timestamped source resolve the date-only mirror's missing time.
+
+    The mirror is the fastest US source and the only one that had SKHY's 08/19
+    6-K on the day, but it carries no acceptance time, so every row it finds is
+    precomputed to `wait` behind `filing_time_unavailable`. When another source
+    holds the same filing with a real timestamp, adopting it is a strict gain.
+
+    Three rules keep it honest:
+
+    * **Ambiguity is refused, not guessed.** (form, filed_date) is not unique —
+      SKHY filed three 6-Ks on 2026-08-19 alone. More than one candidate match
+      means we cannot say *which* filing the time belongs to, so the blocker
+      stays. See clawock-json-repair-lossless-invariant.
+    * A unique match whose real time falls **outside** the window drops the row:
+      the mirror kept it only because it could not tell, and now we can.
+    * No match changes nothing.
+
+    Returns (events, notes).
+    """
+    timed = {}
+    ambiguous = set()
+    for row in events:
+        if row.get("source_class") == "sec_filing_mirror":
+            continue
+        if row.get("time_precision") != "datetime" and not row.get("published_at"):
+            continue
+        key = _filing_key(row)
+        if key is None:
+            continue
+        if key in timed:
+            ambiguous.add(key)
+        timed[key] = row
+
+    kept, notes = [], []
+    for row in events:
+        if (row.get("source_class") != "sec_filing_mirror"
+                or row.get("time_precision") != "date"):
+            kept.append(row)
+            continue
+        key = _filing_key(row)
+        match = timed.get(key) if key and key not in ambiguous else None
+        if match is None:
+            if key in ambiguous:
+                notes.append(
+                    f"precision: {key[0]} {key[1]} has multiple timestamped matches "
+                    f"— refusing to guess which one, keeping the date-only blocker"
+                )
+            kept.append(row)
+            continue
+        when = datetime.fromisoformat(str(match["published_at"]))
+        age = _age_minutes(when, now)
+        if age < 0 or age > window_minutes:
+            notes.append(
+                f"precision: {key[0]} {key[1]} accepted at {match['published_at']} "
+                f"— outside the {window_minutes}min window, dropping the mirror row"
+            )
+            continue
+        upgraded = dict(row)
+        upgraded.update({
+            "published_at": match["published_at"],
+            "age_minutes": age,
+            "time_precision": "datetime",
+            "freshness_status": "accepted_time_recovered_from_secondary_index",
+            "precision_source": match.get("source_class"),
+        })
+        kept.append(upgraded)
+    # One place enforces the window for the reconciled set. Rows that never had a
+    # time (the mirror's own, when nothing resolved them) are not age-prunable and
+    # keep their existing blocker instead.
+    windowed = [
+        row for row in kept
+        if not isinstance(row.get("age_minutes"), (int, float))
+        or 0 <= row["age_minutes"] <= window_minutes
+    ]
+    return windowed, notes
+
+
 def probe(issuers, *, market: str, now=None, window_minutes: int,
-          budget_s: float, max_issuers: int, http=None, clock=None) -> dict:
+          budget_s: float, max_issuers: int, http=None, clock=None,
+          finnhub_key=None) -> dict:
     """Return normalized primary disclosures and honest source status.
 
     Every bound is supplied by the caller.  A provider must not smuggle one
@@ -222,6 +402,13 @@ def probe(issuers, *, market: str, now=None, window_minutes: int,
             ("nasdaq_filing_mirror", (lambda t=issuer: fetch_nasdaq_filings(
                 t, now=now, window_minutes=window_minutes, http=http
             )) if market == "us" else None),
+            # Only consulted when SEC direct is unavailable: it is slower to see
+            # a filing than either source above, so with SEC healthy it would
+            # spend a request and a rate-limit slot to learn nothing new.
+            ("finnhub", (lambda t=issuer: fetch_finnhub_filings(
+                t, now=now, window_minutes=window_minutes, http=http,
+                api_key=finnhub_key,
+            )) if market == "us" else None),
             ("exchange", (lambda s=symbol: fetch_exchange(
                 s, now=now, window_minutes=window_minutes, http=http
             )) if symbol else None),
@@ -229,11 +416,11 @@ def probe(issuers, *, market: str, now=None, window_minutes: int,
         for label, call in calls:
             if call is None:
                 continue
-            if (label in {"nasdaq_filing_mirror", "exchange"}
+            if (label in {"nasdaq_filing_mirror", "finnhub", "exchange"}
                     and any(row["source_class"] == "sec_filing" for row in entry["events"])):
                 continue
             if (label == "exchange"
-                    and any(row["source_class"] == "sec_filing_mirror"
+                    and any(row["source_class"] in {"sec_filing_mirror", "finnhub_filing"}
                             for row in entry["events"])):
                 continue
             if clock() - started > budget_s:
@@ -249,14 +436,21 @@ def probe(issuers, *, market: str, now=None, window_minutes: int,
                 entry["degraded_sources"].append(label)
                 continue
             if note:
+                # A source that returned a note did not answer cleanly — a failed
+                # ticker-to-CIK lookup, a refused User-Agent or an absent API key
+                # is not evidence of no filing. Only `sec` used to be held to this;
+                # every note-returning source is now, so a keyless `finnhub` can
+                # never be counted as a healthy fallback (#766).
                 entry["notes"].append(f"{label}: {note}")
-                # A failed ticker-to-CIK lookup is not evidence of no filing.
-                if label == "sec":
-                    entry["status"] = "degraded"
-                    entry["degraded_sources"].append(label)
+                entry["status"] = "degraded"
+                entry["degraded_sources"].append(label)
             entry["events"].extend(items)
-            if not (label == "sec" and note):
+            if not note:
                 entry["healthy_sources"].append(label)
+        entry["events"], precision_notes = upgrade_mirror_precision(
+            entry["events"], now=now, window_minutes=window_minutes
+        )
+        entry["notes"].extend(precision_notes)
         entry["events"].sort(key=lambda row: row.get("published_at") or "", reverse=True)
         entry["degraded_sources"] = sorted(set(entry["degraded_sources"]))
         entry["healthy_sources"] = sorted(set(entry["healthy_sources"]))

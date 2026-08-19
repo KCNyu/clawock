@@ -132,6 +132,11 @@ def read_finnhub_key():
                 line = line.strip()
                 if line.startswith('FINNHUB_API_KEY='):
                     return line.split('=', 1)[1].strip()
+    except FileNotFoundError:
+        # No key file is a normal deployment, and every caller handles None.
+        # Warning here put a line on stderr for each probe on CI, which is how a
+        # warning channel stops being read.
+        pass
     except Exception as e:
         print(f'  warn: read .api_keys failed: {e}', file=sys.stderr)
     return None
