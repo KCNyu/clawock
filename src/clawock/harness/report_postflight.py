@@ -437,6 +437,13 @@ def main(argv=None):
               if stale_generation
               else validate(text, ctx, prose_only=prose_only, model_text=model_text))
     status = categorize(issues) if not stale_generation else 'fail'
+
+    # The banner counts and lists ESCALATING issues only; advisory findings get
+    # their own line below, so a truncated list can never drop them (#134).
+    # The split happens before the stage record because the ledger needs the same
+    # distinction: an advisory-only slot delivers a clean report and must not be
+    # filed as a degraded product (#764).
+    escalating, advisories = split_advisory(issues)
     workflow_outcomes.record_stage(
         job_name,
         'llm',
@@ -444,11 +451,9 @@ def main(argv=None):
         slot=slot,
         context_id=ctx.get('context_id'),
         issue_count=len(issues),
+        escalating_count=len(escalating),
+        advisory_count=len(advisories),
     )
-
-    # The banner counts and lists ESCALATING issues only; advisory findings get
-    # their own line below, so a truncated list can never drop them (#134).
-    escalating, advisories = split_advisory(issues)
     if status == 'pass' or not escalating:
         banner = ''
     elif status == 'warn':
@@ -534,6 +539,28 @@ def main(argv=None):
                                             context_generated_at=ctx.get('generated_at'),
                                             claim_path=claim_path)
 
+    # Record delivery here, not at the end of main(). Everything below — commit,
+    # dashboard, data-plane publish — can take minutes, and on 2026-08-19 a 60s
+    # `exec` timeout SIGTERM'd this process in exactly that gap, leaving a
+    # delivered report filed as `pending` forever (#765). The send is already
+    # proven at this point; nothing after it can make it less true.
+    primary_delivery_ok = bool(wechat_sent)
+    try:
+        primary_delivery_ok = (
+            primary_delivery_ok
+            or json.loads(report_marker.read_text()).get('tg_ok') is True
+        )
+    except Exception:
+        pass
+    workflow_outcomes.record_stage(
+        job_name,
+        'primary_delivery',
+        'success' if primary_delivery_ok else 'failed',
+        slot=slot,
+        channel='wechat_or_telegram',
+        deterministic_fallback=(status == 'fail'),
+    )
+
     commit_ok, commit_msg = maybe_commit(status, ctx['commit_msg'])
     data_plane_status = classify_data_plane(commit_ok, commit_msg)
 
@@ -571,22 +598,8 @@ def main(argv=None):
         delivered=result['delivered'],
         data_plane_status=data_plane_status,
         issue_count=len(issues),
-    )
-    primary_delivery_ok = bool(wechat_sent)
-    try:
-        primary_delivery_ok = (
-            primary_delivery_ok
-            or json.loads(report_marker.read_text()).get('tg_ok') is True
-        )
-    except Exception:
-        pass
-    workflow_outcomes.record_stage(
-        job_name,
-        'primary_delivery',
-        'success' if primary_delivery_ok else 'failed',
-        slot=slot,
-        channel='wechat_or_telegram',
-        deterministic_fallback=(status == 'fail'),
+        escalating_count=len(escalating),
+        advisory_count=len(advisories),
     )
     print(json.dumps(result, ensure_ascii=False, indent=2))
     if data_plane_status not in {'published', 'current'}:

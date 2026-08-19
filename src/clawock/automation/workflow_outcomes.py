@@ -23,6 +23,7 @@ import argparse
 import fcntl
 import json
 import os
+import sys
 from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -128,7 +129,24 @@ def _read_path(path):
 
 
 def load_ledger():
-    return _read_path(LOCAL_PATH) or _read_path(PUBLIC_PATH) or _empty()
+    """Local ledger first; the published copy is a last resort, never a silent one.
+
+    Falling back to PUBLIC_PATH and then writing that content back to LOCAL_PATH
+    would roll the local ledger back to whatever was last published. It has not
+    been observed happening, but a data-losing path must not be invisible.
+    """
+    local = _read_path(LOCAL_PATH)
+    if local is not None:
+        return local
+    public = _read_path(PUBLIC_PATH)
+    if public is not None:
+        print(
+            f"warn: workflow ledger unreadable at {LOCAL_PATH}; falling back to the "
+            f"published copy — stages recorded since the last publish may be missing",
+            file=sys.stderr,
+        )
+        return public
+    return _empty()
 
 
 def _atomic_write(path, data):
@@ -152,6 +170,24 @@ def _stage(status="unknown", **details):
     return out
 
 
+def _advisory_only(stage):
+    """True when a stage's only findings were advisory ones.
+
+    `validation.split_advisory` already guarantees advisory findings never reach
+    the delivered banner — the reader gets a clean report plus one non-blocking
+    `ℹ️` line. Counting them as a degraded product made this ledger contradict
+    what was actually delivered on 21 of 64 slots over 2026-08-17..19 (#764).
+
+    They are still recorded, and still countable, via `issue_count` /
+    `advisory_count` on the stage — detected, never silenced. What changes is
+    only whether they drag `final_product` down.
+
+    A writer that does not report `escalating_count` gets the old, conservative
+    reading, so this can never quietly upgrade a stage nobody has audited.
+    """
+    return stage.get("escalating_count") == 0
+
+
 def _derive_final(record):
     stages = record["stages"]
     preflight = stages["preflight"]["status"]
@@ -166,8 +202,16 @@ def _derive_final(record):
         status, reason = "recovered", "watchdog delivered a usable product"
     elif primary == "success":
         degraded = (
-            llm in {"failed", "warning"}
-            or postflight == "warning"
+            llm == "failed"
+            or (llm == "warning" and not _advisory_only(stages["llm"]))
+            or (
+                postflight == "warning"
+                and not (
+                    _advisory_only(stages["postflight"])
+                    and stages["postflight"].get("data_plane_status")
+                    in {None, "published", "current", "skipped"}
+                )
+            )
             or preflight == "warning"
         )
         status = "degraded" if degraded else "success"
@@ -393,6 +437,104 @@ def reconcile_raw_execution():
         return False
 
 
+# ── Delivery-receipt reconciliation ──────────────────────────────────────────
+# The postflights record their terminal stages at the very end of main(), after
+# send + commit + dashboard + data-plane publish. On 2026-08-19 the 港股午后快报
+# slot was SIGTERM'd by the model's 60s `exec` timeout 35s *after* the WeChat
+# send had already landed, so the ledger kept claiming `pending` for a report
+# the user had received. Recording earlier (see report_postflight) narrows that
+# window; it cannot close it, and it does nothing for slots already stuck.
+#
+# The senders leave a durable receipt at send time. That receipt — not the
+# process exit — is what actually proves delivery, so the ledger reconciles
+# against it. Absent a receipt this must leave the record alone: `pending` is
+# the honest answer when nothing proves otherwise.
+TMP_DIR = WS / "memory" / ".tmp"
+
+
+def _receipt_delivered(payload):
+    """A receipt proves delivery when either channel reports a real send."""
+    return payload.get("sent_ok") is True or payload.get("tg_ok") is True
+
+
+def _receipt_claims(path):
+    """Yield (job, slot_date_or_none, slot_or_none, delivered) for one receipt."""
+    try:
+        payload = json.loads(path.read_text())
+    except (OSError, json.JSONDecodeError):
+        return None
+    if not isinstance(payload, dict):
+        return None
+    name = path.name
+    delivered = _receipt_delivered(payload)
+    if name.startswith("report-sent-"):
+        try:
+            job = job_for(payload.get("market"), payload.get("phase"))
+        except ValueError:
+            return None
+        # report-sent-{market}-{phase}-{YYYY-MM-DD}.json
+        return job, name[: -len(".json")].rsplit("-", 3)[-3:], None, delivered
+    if name.startswith("intraday-sent-"):
+        # The intraday receipt names its own job and slot, so it needs no parsing.
+        job, slot = payload.get("job"), payload.get("slot")
+        if not job or not slot:
+            return None
+        return job, None, slot, delivered
+    if name.startswith("brief-sent-"):
+        return job_for(brief=True), name[len("brief-sent-"): -len(".json")].split("-"), None, delivered
+    return None
+
+
+def reconcile_delivery_receipts():
+    """Fill in `primary_delivery` for slots whose sender died before recording it.
+
+    Only ever fills an `unknown` stage, and only for a record that already
+    exists: a receipt is evidence about a slot the ledger is tracking, not
+    licence to invent slots. An existing verdict is never overwritten — a
+    watchdog or a later run knows more than a receipt file does.
+    """
+    try:
+        if not TMP_DIR.is_dir():
+            return 0
+        claims = {}
+        for path in sorted(TMP_DIR.glob("*-sent-*.json")):
+            parsed = _receipt_claims(path)
+            if not parsed:
+                continue
+            job, date_parts, slot, delivered = parsed
+            claims[(job, slot, tuple(date_parts) if date_parts else None)] = delivered
+        if not claims:
+            return 0
+        filled = 0
+        with _locked():
+            ledger = load_ledger()
+            for record in ledger.get("records", []):
+                stage = record.get("stages", {}).get("primary_delivery", {})
+                if stage.get("status") != "unknown":
+                    continue
+                job, slot = record.get("job"), record.get("slot")
+                delivered = claims.get((job, slot, None))
+                if delivered is None:
+                    delivered = claims.get((job, None, tuple(str(slot)[:10].split("-"))))
+                if delivered is None:
+                    continue
+                record["stages"]["primary_delivery"] = _stage(
+                    "success" if delivered else "failed",
+                    at=_now().isoformat(),
+                    channel="wechat_or_telegram",
+                    source="delivery_receipt",
+                )
+                record["final_product"] = _derive_final(record)
+                filled += 1
+            if filled:
+                ledger["updated_at"] = _now().isoformat()
+                _atomic_write(LOCAL_PATH, ledger)
+        return filled
+    except Exception as exc:
+        print(f"warn: delivery receipt reconciliation skipped: {exc}", file=sys.stderr)
+        return 0
+
+
 def summarize(*, reconcile=False, hours=36):
     """Reconcile, then fold this desk's ledger with the portable arithmetic.
 
@@ -402,12 +544,14 @@ def summarize(*, reconcile=False, hours=36):
     """
     if reconcile:
         reconcile_raw_execution()
+        reconcile_delivery_receipts()
     return summarize_records(load_ledger().get("records", []),
                              hours=hours, now=_now())
 
 
 def publish():
     reconcile_raw_execution()
+    reconcile_delivery_receipts()
     ledger = load_ledger()
     before = PUBLIC_PATH.read_text() if PUBLIC_PATH.exists() else None
     payload = json.dumps(ledger, ensure_ascii=False, indent=2) + "\n"
