@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-18T21:52:07.421725+00:00",
+  "generated_at": "2026-08-19T13:33:21.797535+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -13,12 +13,31 @@
   },
   "llm_filtered": true,
   "counts": {
-    "total": 1,
+    "total": 3,
     "held_hits": 0,
     "new_ideas": 0,
     "sector_hits": 0
   },
   "items": [
+    {
+      "author": "Trump",
+      "text": "I have paused the 50% Tariffs against Canada, that were scheduled to kick in tomorrow morning for a three day period, based on the fact that Canada and the U.S.A., subject to the finalization of documents, have a DEAL! The great Keystone XL Pipeline, long ago killed by Sleepy Joe Biden, may be awoken from the grave! Thank you for your attention to this matter. President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/41006",
+      "published": "2026-08-19T02:15:41+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "关税",
+        "能源",
+        "原油管道"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 78,
+      "summary_cn": "特朗普宣布暂停对加拿大50%关税三天，因美加达成框架协议，Keystone XL管道可能重启——关税和能源基础设施双重利好。"
+    },
     {
       "author": "Trump",
       "text": "In April, I signed a very important Executive Order to accelerate medical treatments for serious mental illness — Specifically, psychedelic drugs, including IBOGAINE. This is something that has helped so many of our amazing VETERANS and true American Heroes who were here in the Oval Office with me, and Joe Rogan. Today I am announcing that Secretary Kennedy has received a Historic Gift from the University of Miami, who has given the Federal Government its original 1994 Ibogaine Investigational New Drug application. This will give everyone direct access to the foundational FDA authorization to ",
@@ -29,13 +48,30 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "医药",
-        "psychedelics"
+        "医疗/psychedelics",
+        "生物医药"
       ],
       "sector_holdings": [],
-      "stance": "neutral",
+      "stance": "endorse",
       "relevance": 50,
-      "summary_cn": "Trump宣布推动Ibogaine等迷幻药用于退伍军人精神疾病治疗，签署行政令，联邦获University of Miami原始IND申请。"
+      "summary_cn": "特朗普行政令加速psychedelics（伊博格碱）治疗精神疾病审批，迈阿密大学向联邦政府捐赠原始IND申请，利好psychedelics板块。"
+    },
+    {
+      "author": "Trump",
+      "text": "RT @realDonaldTrumpThe Senate must vote on the NO MORE CHANGING THE CLOCKS ACT as soon as possible. More sun later in the day is better (including for fighting crime!), but, even more importantly, NO MORE RIDICULOUSLY CHANGING CLOCKS AND WATCHES TWICE YEARLY, with all of the disruption and chaos it causes. FINALLY, GET IT DONE!!! President DJT",
+      "url": "https://trumpstruth.org/statuses/40959",
+      "published": "2026-08-18T11:08:05+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "政策/民生"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 45,
+      "summary_cn": "Trump 喊话参议院尽快通过《不再调整时钟法案》，主张全年夏令时——民生议题，无直接市场影响。"
     }
   ],
   "held_hits": [],
