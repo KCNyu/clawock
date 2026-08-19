@@ -119,8 +119,19 @@ def fetch_exchange(symbol, *, now, window_minutes, http=None):
     return items, None
 
 
-def fetch_sec(issuer, *, now, window_minutes, http=None):
-    """Fetch normalized SEC submissions for one reporting issuer."""
+def fetch_sec(issuer, *, now, window_minutes, http=None,
+              session_lookback_minutes=None):
+    """Fetch normalized SEC submissions for one reporting issuer.
+
+    Like `fetch_finnhub_filings`, this deliberately reaches wider than the
+    caller's window. SEC is the only source that knows a filing's exact
+    acceptance time, so it is also the best answer to "is this date-only mirror
+    row actually inside the window" — but #769 gave the wider lookback to
+    Finnhub alone. On 2026-08-19 that left three SKHY 6-Ks sitting at
+    `filing_time_unavailable` while SEC, healthy in the same request, held
+    07:22:24Z for them (#773). `probe` enforces the real window once, after the
+    sources have been reconciled.
+    """
     from clawock.market_data import filings as fetch_us_filings  # noqa: PLC0415
 
     http = http or _http_json
@@ -144,6 +155,10 @@ def fetch_sec(issuer, *, now, window_minutes, http=None):
                 "(no deliverable contact address) — set SEC_USER_AGENT in .api_keys"
             )
         raise
+    lookback = (
+        session_lookback_minutes if session_lookback_minutes is not None
+        else max(window_minutes, SESSION_LOOKBACK_MINUTES)
+    )
     recent = ((payload or {}).get("filings") or {}).get("recent") or {}
     forms = recent.get("form") or []
     accepted = recent.get("acceptanceDateTime") or []
@@ -157,7 +172,7 @@ def fetch_sec(issuer, *, now, window_minutes, http=None):
         if when is None:
             continue
         age = _age_minutes(when, now)
-        if age < 0 or age > window_minutes:
+        if age < 0 or age > lookback:
             continue
         description = docs[index] if index < len(docs) else ""
         accession = accessions[index] if index < len(accessions) else ""
