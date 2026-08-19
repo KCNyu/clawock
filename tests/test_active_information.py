@@ -212,18 +212,21 @@ def test_sec_403_falls_back_to_healthy_nasdaq_primary_mirror(monkeypatch):
                 "formType": "8-K", "filed": "08/13/2026",
                 "view": {"htmlLink": "https://mirror.test/crcl-8k"},
             }]}}
+        if host == "finnhub.io":
+            return []
         raise AssertionError(url)
 
     result = primary_disclosures.probe(
         ["CRCL"], market="us", now=NOW, window_minutes=240,
-        budget_s=20, max_issuers=1, http=http,
+        budget_s=20, max_issuers=1, http=http, finnhub_key="test-key",
     )["issuers"]["CRCL"]
 
     assert result["status"] == "found"
     assert result["partial_degradation"] is True
     assert result["degraded_sources"] == ["sec"]
-    assert result["healthy_sources"] == ["nasdaq_filing_mirror"]
+    assert result["healthy_sources"] == ["finnhub", "nasdaq_filing_mirror"]
     assert result["events"][0]["source_class"] == "sec_filing_mirror"
+    # Finnhub had nothing for this filing, so the blocker honestly survives.
     assert result["events"][0]["time_precision"] == "date"
 
 
@@ -250,3 +253,195 @@ def test_date_only_primary_mirror_event_waits_instead_of_unlocking_exploration()
     assert row["disposition"] == "wait"
     assert row["exploration_hint"] is None
     assert "filing_time_unavailable" in row["blockers"]
+
+
+# ── #766: a third primary source, and honest attribution of SEC's refusal ────
+
+def test_finnhub_accepted_time_is_read_as_us_market_time_not_utc():
+    """Measured 2026-08-19: SEC says 11:10:48Z, Finnhub says 07:10:48 — EDT.
+
+    Reading it as UTC would place every US filing 4-5 hours off. For a
+    30-minute intraday window that is the whole difference between "inside this
+    window" and "not", so the timezone is load-bearing, not cosmetic.
+    """
+    now = datetime(2026, 8, 13, 11, 30, tzinfo=timezone.utc)
+
+    def http(url, **_kwargs):
+        assert urlsplit(url).hostname == "finnhub.io"
+        return [{"form": "8-K", "filedDate": "2026-08-13 00:00:00",
+                 "acceptedDate": "2026-08-13 07:10:48",
+                 "reportUrl": "https://sec.test/rklb-8k", "symbol": "RKLB"}]
+
+    items, note = primary_disclosures.fetch_finnhub_filings(
+        "RKLB", now=now, window_minutes=60, http=http, api_key="test-key",
+    )
+    assert note is None
+    assert items[0]["published_at"] == "2026-08-13T11:10:48+00:00"
+    assert items[0]["age_minutes"] == 19
+    assert items[0]["time_precision"] == "datetime"
+
+
+def test_finnhub_midnight_placeholder_is_not_treated_as_a_timestamp():
+    """`acceptedDate` at exactly midnight is Finnhub's date-only placeholder."""
+    def http(_url, **_kwargs):
+        return [{"form": "6-K", "filedDate": "2026-08-13 00:00:00",
+                 "acceptedDate": "2026-08-13 00:00:00"}]
+
+    items, _ = primary_disclosures.fetch_finnhub_filings(
+        "SKHY", now=NOW, window_minutes=1440, http=http, api_key="test-key",
+    )
+    assert items == []
+
+
+def test_finnhub_without_a_key_is_degraded_not_healthy():
+    def http(url, **_kwargs):
+        host = urlsplit(url).hostname
+        if host == "data.sec.gov":
+            raise RuntimeError("SEC unreachable")
+        if host == "api.nasdaq.com":
+            return {"data": {"rows": []}}
+        raise AssertionError(url)
+
+    result = primary_disclosures.probe(
+        ["CRCL"], market="us", now=NOW, window_minutes=240,
+        budget_s=20, max_issuers=1, http=http, finnhub_key="",
+    )["issuers"]["CRCL"]
+    assert "finnhub" in result["degraded_sources"]
+    assert "finnhub" not in result["healthy_sources"]
+
+
+def _mirror_and_finnhub_http(finnhub_rows, *, filed="08/13/2026"):
+    def http(url, **_kwargs):
+        host = urlsplit(url).hostname
+        if host == "data.sec.gov":
+            raise RuntimeError("SEC unreachable")
+        if host == "api.nasdaq.com":
+            return {"data": {"rows": [{
+                "companyName": "Circle Internet Group Inc.",
+                "formType": "8-K", "filed": filed,
+                "view": {"htmlLink": "https://mirror.test/crcl-8k"},
+            }]}}
+        if host == "finnhub.io":
+            return finnhub_rows
+        raise AssertionError(url)
+    return http
+
+
+def test_a_timestamped_match_clears_the_date_only_blocker():
+    """The mirror sees the filing first; Finnhub supplies the time it lacks."""
+    http = _mirror_and_finnhub_http([
+        {"form": "8-K", "filedDate": "2026-08-13 00:00:00",
+         "acceptedDate": "2026-08-13 01:30:00", "symbol": "CRCL"},
+    ])
+    event = primary_disclosures.probe(
+        ["CRCL"], market="us", now=NOW, window_minutes=240,
+        budget_s=20, max_issuers=1, http=http, finnhub_key="test-key",
+    )["issuers"]["CRCL"]["events"][0]
+
+    assert event["source_class"] == "sec_filing_mirror"
+    assert event["time_precision"] == "datetime"
+    assert event["published_at"] == "2026-08-13T05:30:00+00:00"
+    assert event["precision_source"] == "finnhub_filing"
+    # ai turns the date-only precision into the blocker, so clearing it here is
+    # what actually reopens the candidate leg.
+    assert event["freshness_status"] != "same_session_date_time_unavailable"
+
+
+def test_two_matching_filings_refuse_to_guess_and_keep_the_blocker():
+    """SKHY filed three 6-Ks on 2026-08-19: (form, date) is not an identity.
+
+    Adopting either timestamp would be a coin flip presented as evidence.
+    """
+    http = _mirror_and_finnhub_http([
+        {"form": "8-K", "filedDate": "2026-08-13 00:00:00",
+         "acceptedDate": "2026-08-13 01:30:00", "symbol": "CRCL"},
+        {"form": "8-K", "filedDate": "2026-08-13 00:00:00",
+         "acceptedDate": "2026-08-13 00:45:00", "symbol": "CRCL"},
+    ])
+    entry = primary_disclosures.probe(
+        ["CRCL"], market="us", now=NOW, window_minutes=240,
+        budget_s=20, max_issuers=1, http=http, finnhub_key="test-key",
+    )["issuers"]["CRCL"]
+
+    mirror = [e for e in entry["events"] if e["source_class"] == "sec_filing_mirror"]
+    assert mirror[0]["time_precision"] == "date"
+    assert any("refusing to guess" in note for note in entry["notes"])
+
+
+def test_a_recovered_time_outside_the_window_drops_the_mirror_row():
+    """The mirror kept it only because it could not tell. Now it can."""
+    http = _mirror_and_finnhub_http([
+        {"form": "8-K", "filedDate": "2026-08-13 00:00:00",
+         "acceptedDate": "2026-08-12 20:00:00", "symbol": "CRCL"},
+    ])
+    entry = primary_disclosures.probe(
+        ["CRCL"], market="us", now=NOW, window_minutes=60,
+        budget_s=20, max_issuers=1, http=http, finnhub_key="test-key",
+    )["issuers"]["CRCL"]
+
+    assert [e for e in entry["events"] if e["source_class"] == "sec_filing_mirror"] == []
+    assert any("outside the 60min window" in note for note in entry["notes"])
+
+
+def test_a_refused_default_user_agent_is_named_as_configuration(monkeypatch):
+    """Not "SEC is flaky" — a 403 on the unconfigured UA never self-heals."""
+    from urllib.error import HTTPError
+
+    monkeypatch.setattr(
+        "clawock.market_data.filings.lookup_cik", lambda _t: "CIK0001876042"
+    )
+    monkeypatch.setattr(
+        "clawock.market_data.filings.sec_user_agent_configured", lambda: False
+    )
+
+    def http(url, **_kwargs):
+        host = urlsplit(url).hostname
+        if host == "data.sec.gov":
+            raise HTTPError(url, 403, "Forbidden", {}, None)
+        if host == "api.nasdaq.com":
+            return {"data": {"rows": []}}
+        if host == "finnhub.io":
+            return []
+        raise AssertionError(url)
+
+    entry = primary_disclosures.probe(
+        ["CRCL"], market="us", now=NOW, window_minutes=240,
+        budget_s=20, max_issuers=1, http=http, finnhub_key="test-key",
+    )["issuers"]["CRCL"]
+
+    assert "sec" in entry["degraded_sources"]
+    assert any("sec_user_agent_unconfigured" in note for note in entry["notes"])
+    assert any("SEC_USER_AGENT" in note for note in entry["notes"])
+
+
+def test_a_403_with_a_configured_user_agent_is_still_reported_as_an_outage(
+    monkeypatch
+):
+    """Don't blame configuration for something configuration already satisfied."""
+    from urllib.error import HTTPError
+
+    monkeypatch.setattr(
+        "clawock.market_data.filings.lookup_cik", lambda _t: "CIK0001876042"
+    )
+    monkeypatch.setattr(
+        "clawock.market_data.filings.sec_user_agent_configured", lambda: True
+    )
+
+    def http(url, **_kwargs):
+        host = urlsplit(url).hostname
+        if host == "data.sec.gov":
+            raise HTTPError(url, 403, "Forbidden", {}, None)
+        if host == "api.nasdaq.com":
+            return {"data": {"rows": []}}
+        if host == "finnhub.io":
+            return []
+        raise AssertionError(url)
+
+    entry = primary_disclosures.probe(
+        ["CRCL"], market="us", now=NOW, window_minutes=240,
+        budget_s=20, max_issuers=1, http=http, finnhub_key="test-key",
+    )["issuers"]["CRCL"]
+
+    assert "sec" in entry["degraded_sources"]
+    assert not any("sec_user_agent_unconfigured" in n for n in entry["notes"])
+    assert any("HTTPError" in note for note in entry["notes"])
