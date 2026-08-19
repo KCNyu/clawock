@@ -46,17 +46,27 @@ def summarize_records(records, *, hours: int = 36, now: datetime | None = None) 
 
     counts: dict[str, int] = {}
     false_reds = 0
+    wechat_dropped = 0
     for record in recent:
         final = (record.get("final_product") or {}).get("status", "pending")
         counts[final] = counts.get(final, 0) + 1
         if ((record.get("raw_execution") or {}).get("status") == "error"
                 and final in USABLE_PRODUCT_STATES):
             false_reds += 1
+        # WeChat drops slots to an upstream-wontfix `ret=-2 prepare failed` and
+        # Telegram covers them, so the product is fine and nothing shows it. This
+        # is the count, not an alert: kcn has ruled out chasing the failure, and
+        # per-run cron alerts are unwanted (feedback_no_individual_cron_alerts).
+        # Absent flags are not counted — an old record proves nothing either way.
+        delivery = (record.get("stages") or {}).get("primary_delivery") or {}
+        if delivery.get("wechat_ok") is False and delivery.get("telegram_ok") is True:
+            wechat_dropped += 1
 
     return {
         "generated_at": now.isoformat(),
         "window_hours": hours,
         "counts": counts,
         "raw_error_but_product_usable": false_reds,
+        "wechat_dropped_telegram_covered": wechat_dropped,
         "recent": recent[:MAX_RECENT],
     }
