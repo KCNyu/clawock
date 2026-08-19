@@ -7,6 +7,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 from clawock.automation import workflow_outcomes as outcomes  # noqa: E402
+from clawock.publish.outcomes import summarize_records  # noqa: E402
 
 
 # Every write prunes the ledger against KEEP_HOURS, so a slot literal is only
@@ -497,3 +498,93 @@ def test_falling_back_to_the_published_ledger_is_never_silent(
     outcomes.LOCAL_PATH.write_text("{ not json")
     assert outcomes.load_ledger()["records"] == []
     assert "falling back to the published copy" in capsys.readouterr().err
+
+
+# ── #771: which channel actually carried the slot ────────────────────────────
+
+def test_a_wechat_drop_covered_by_telegram_is_still_a_successful_product(
+    tmp_path, monkeypatch
+):
+    """The backstop working is not a failure — that is the whole design."""
+    _isolate(tmp_path, monkeypatch)
+    slot = "2026-07-24T12:00:00+08:00"
+    job = "港股午盘报告"
+    outcomes.record_stage(job, "preflight", "success", slot=slot)
+    outcomes.record_stage(
+        job, "llm", "warning", slot=slot, escalating_count=0, advisory_count=1
+    )
+    record = outcomes.record_stage(
+        job, "primary_delivery", "success", slot=slot,
+        channel=outcomes.delivery_channel(False, True),
+        wechat_ok=False, telegram_ok=True,
+    )
+    assert record["final_product"]["status"] == "success"
+    # …but the drop is now on the record instead of only in a pruned receipt.
+    assert record["stages"]["primary_delivery"]["channel"] == "telegram"
+    assert record["stages"]["primary_delivery"]["wechat_ok"] is False
+
+
+def test_delivery_channel_names_what_carried_it():
+    assert outcomes.delivery_channel(True, True) == "wechat+telegram"
+    assert outcomes.delivery_channel(True, False) == "wechat"
+    assert outcomes.delivery_channel(False, True) == "telegram"
+    assert outcomes.delivery_channel(False, False) == "none"
+
+
+def test_intraday_heartbeats_record_the_channel_too(tmp_path, monkeypatch):
+    """Intraday reaches the ledger through cron_heartbeat, not record_stage."""
+    _isolate(tmp_path, monkeypatch)
+    outcomes.record_from_heartbeat({
+        "job": "盘中盯盘",
+        "slot": "2026-07-24T10:30:00+08:00",
+        "state": "completed",
+        "postflight_status": "pass",
+        "data_plane_status": "published",
+        "wechat_sent": False,
+        "telegram_sent": True,
+    })
+    delivery = outcomes.load_ledger()["records"][0]["stages"]["primary_delivery"]
+    assert delivery["status"] == "success"
+    assert delivery["channel"] == "telegram"
+    assert delivery["wechat_ok"] is False
+
+
+def test_wechat_drops_covered_by_telegram_are_counted():
+    """A known, upstream-wontfix failure that nothing chased was also uncounted.
+
+    2026-08-18..19 dropped 5 slots to `ret=-2 prepare failed`; Telegram covered
+    every one, so no product was lost and no signal existed. Answering "how many
+    this week" meant grepping receipts that are pruned within days (#771).
+    """
+    now = datetime(2026, 7, 24, 20, 0, tzinfo=outcomes.HKT)
+
+    def slot(hour, wechat_ok, telegram_ok):
+        return {
+            "job": "盘中盯盘",
+            "slot": f"2026-07-24T{hour:02d}:00:00+08:00",
+            "stages": {"primary_delivery": {
+                "status": "success",
+                "wechat_ok": wechat_ok, "telegram_ok": telegram_ok,
+            }},
+            "final_product": {"status": "success"},
+        }
+
+    summary = summarize_records(
+        [slot(10, False, True), slot(11, True, True), slot(12, False, True)],
+        hours=36, now=now,
+    )
+    assert summary["wechat_dropped_telegram_covered"] == 2
+
+
+def test_a_record_without_channel_flags_is_not_counted_as_a_drop():
+    """An older record proves nothing either way — do not invent a failure."""
+    now = datetime(2026, 7, 24, 20, 0, tzinfo=outcomes.HKT)
+    summary = summarize_records([{
+        "job": "盘中盯盘",
+        "slot": "2026-07-24T10:00:00+08:00",
+        "stages": {"primary_delivery": {
+            "status": "success", "channel": "wechat_or_telegram",
+        }},
+        "final_product": {"status": "success"},
+    }], hours=36, now=now)
+    assert summary["wechat_dropped_telegram_covered"] == 0

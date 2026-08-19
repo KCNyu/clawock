@@ -164,6 +164,24 @@ def _locked():
         yield
 
 
+def delivery_channel(wechat_ok, telegram_ok):
+    """Name which channel actually carried a slot, rather than which two could.
+
+    The ledger used to store the constant string "wechat_or_telegram", which is
+    a description of the design, not an observation. WeChat drops a handful of
+    slots a week to an upstream-wontfix `ret=-2 prepare failed`, Telegram covers
+    them, and nothing anywhere recorded that it happened — the send receipts are
+    pruned within days (#771).
+    """
+    if wechat_ok and telegram_ok:
+        return "wechat+telegram"
+    if wechat_ok:
+        return "wechat"
+    if telegram_ok:
+        return "telegram"
+    return "none"
+
+
 def _stage(status="unknown", **details):
     out = {"status": status}
     out.update({key: value for key, value in details.items() if value is not None})
@@ -344,13 +362,17 @@ def record_from_heartbeat(event):
             slot=slot,
             **details,
         )
-        delivered = event.get("wechat_sent") is True or event.get("telegram_sent") is True
+        wechat_ok = event.get("wechat_sent") is True
+        telegram_ok = event.get("telegram_sent") is True
         record_stage(
             job,
             "primary_delivery",
-            "success" if delivered else "failed",
+            "success" if (wechat_ok or telegram_ok) else "failed",
             slot=slot,
-            **details,
+            **{**details,
+               "channel": delivery_channel(wechat_ok, telegram_ok),
+               "wechat_ok": wechat_ok,
+               "telegram_ok": telegram_ok},
         )
     elif state == "watchdog_backstop":
         record_stage(job, "watchdog_delivery", "success", slot=slot, **details)

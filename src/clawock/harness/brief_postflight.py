@@ -921,7 +921,9 @@ def main(argv=None):
          ('not_required' if status == 'fail' else 'failed')),
         slot=slot,
         dry_run=args.dry_run,
-        channel='wechat_or_telegram',
+        channel=workflow_outcomes.delivery_channel(bool(wechat_sent), bool(tg_ok)),
+        wechat_ok=bool(wechat_sent),
+        telegram_ok=bool(tg_ok),
     )
     print(json.dumps(result, ensure_ascii=False, indent=2))
     if (not args.dry_run and status in ('pass', 'warn')

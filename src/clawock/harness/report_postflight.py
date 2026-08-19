@@ -544,20 +544,27 @@ def main(argv=None):
     # `exec` timeout SIGTERM'd this process in exactly that gap, leaving a
     # delivered report filed as `pending` forever (#765). The send is already
     # proven at this point; nothing after it can make it less true.
-    primary_delivery_ok = bool(wechat_sent)
+    # Record the two channels separately. `channel='wechat_or_telegram'` folded
+    # them into one label, which is exactly the fact needed to answer "how many
+    # slots did WeChat drop this week" — a question that currently has no answer
+    # because the receipts are pruned within days (#771). WeChat's `ret=-2
+    # prepare failed` is a known, upstream-wontfix, periodic failure that kcn has
+    # decided not to chase; that is a reason to make it countable, not invisible.
+    wechat_ok = bool(wechat_sent)
+    telegram_ok = False
     try:
-        primary_delivery_ok = (
-            primary_delivery_ok
-            or json.loads(report_marker.read_text()).get('tg_ok') is True
-        )
+        telegram_ok = json.loads(report_marker.read_text()).get('tg_ok') is True
     except Exception:
         pass
+    primary_delivery_ok = wechat_ok or telegram_ok
     workflow_outcomes.record_stage(
         job_name,
         'primary_delivery',
         'success' if primary_delivery_ok else 'failed',
         slot=slot,
-        channel='wechat_or_telegram',
+        channel=workflow_outcomes.delivery_channel(wechat_ok, telegram_ok),
+        wechat_ok=wechat_ok,
+        telegram_ok=telegram_ok,
         deterministic_fallback=(status == 'fail'),
     )
 
