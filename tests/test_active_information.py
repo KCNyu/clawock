@@ -445,3 +445,126 @@ def test_a_403_with_a_configured_user_agent_is_still_reported_as_an_outage(
     assert "sec" in entry["degraded_sources"]
     assert not any("sec_user_agent_unconfigured" in n for n in entry["notes"])
     assert any("HTTPError" in note for note in entry["notes"])
+
+
+# ── #773: SEC's own timestamps must reach the precision reconciler ───────────
+
+def _sec_payload(accepted):
+    """A submissions payload with one 8-K per accepted timestamp."""
+    return {"filings": {"recent": {
+        "form": ["8-K"] * len(accepted),
+        "acceptanceDateTime": list(accepted),
+        "primaryDocDescription": ["PRIMARY DOCUMENT"] * len(accepted),
+        "accessionNumber": [f"0001876042-26-00000{i}" for i in range(len(accepted))],
+        "primaryDocument": [f"crcl-8k-{i}.htm" for i in range(len(accepted))],
+        "items": [""] * len(accepted),
+    }}}
+
+
+def _sec_http(accepted, *, mirror_rows=None):
+    def http(url, **_kwargs):
+        host = urlsplit(url).hostname
+        if host == "data.sec.gov":
+            return _sec_payload(accepted)
+        if host == "api.nasdaq.com":
+            return {"data": {"rows": mirror_rows or []}}
+        if host == "finnhub.io":
+            return []
+        raise AssertionError(url)
+    return http
+
+
+def test_a_same_day_filing_outside_the_window_leaves_no_date_only_row(monkeypatch):
+    """2026-08-19: three SKHY 6-Ks were 416min old, the window was 240min.
+
+    SEC held 07:22:24Z for them the whole time, but only Finnhub had the wider
+    lookback, so the mirror's date-only copies survived as `wait` rows carrying
+    `filing_time_unavailable` — stale evidence that would not retire until the
+    session ended.
+    """
+    monkeypatch.setattr(
+        "clawock.market_data.filings.lookup_cik", lambda _t: "CIK0001876042"
+    )
+    entry = primary_disclosures.probe(
+        ["CRCL"], market="us", now=NOW, window_minutes=240,
+        budget_s=20, max_issuers=1, finnhub_key="test-key",
+        http=_sec_http(
+            ["2026-08-12T23:05:00.000Z"],
+            mirror_rows=[{
+                "companyName": "Circle Internet Group Inc.",
+                "formType": "8-K", "filed": "08/13/2026",
+                "view": {"htmlLink": "https://mirror.test/crcl-8k"},
+            }],
+        ),
+    )["issuers"]["CRCL"]
+
+    assert entry["events"] == []
+    assert entry["status"] == "no_recent_disclosure"
+    assert entry["degraded_sources"] == []
+
+
+def test_a_filing_inside_the_window_is_unchanged(monkeypatch):
+    """The widened lookback must not widen what actually counts as recent."""
+    monkeypatch.setattr(
+        "clawock.market_data.filings.lookup_cik", lambda _t: "CIK0001876042"
+    )
+    entry = primary_disclosures.probe(
+        ["CRCL"], market="us", now=NOW, window_minutes=240,
+        budget_s=20, max_issuers=1, finnhub_key="test-key",
+        http=_sec_http(["2026-08-13T05:30:00.000Z"]),
+    )["issuers"]["CRCL"]
+
+    assert entry["status"] == "found"
+    assert [e["source_class"] for e in entry["events"]] == ["sec_filing"]
+    assert entry["events"][0]["age_minutes"] == 30
+
+
+def test_sec_reconciles_a_mirror_row_it_shares_a_filing_with(monkeypatch):
+    """When both sources hold it, SEC's timestamp is the one that resolves it."""
+    monkeypatch.setattr(
+        "clawock.market_data.filings.lookup_cik", lambda _t: "CIK0001876042"
+    )
+    entry = primary_disclosures.probe(
+        ["CRCL"], market="us", now=NOW, window_minutes=240,
+        budget_s=20, max_issuers=1, finnhub_key="test-key",
+        http=_sec_http(["2026-08-13T05:30:00.000Z"], mirror_rows=[{
+            "companyName": "Circle Internet Group Inc.",
+            "formType": "8-K", "filed": "08/13/2026",
+            "view": {"htmlLink": "https://mirror.test/crcl-8k"},
+        }]),
+    )["issuers"]["CRCL"]
+
+    # SEC answered, so the mirror short-circuit means there is nothing date-only
+    # left to carry a blocker.
+    assert all(e.get("time_precision") != "date" for e in entry["events"])
+
+
+def test_the_finnhub_reconciliation_path_still_works_when_sec_is_down(monkeypatch):
+    """#769's path must not regress now that SEC can short-circuit the mirror."""
+    monkeypatch.setattr(
+        "clawock.market_data.filings.lookup_cik", lambda _t: "CIK0001876042"
+    )
+
+    def http(url, **_kwargs):
+        host = urlsplit(url).hostname
+        if host == "data.sec.gov":
+            raise RuntimeError("SEC unreachable")
+        if host == "api.nasdaq.com":
+            return {"data": {"rows": [{
+                "companyName": "Circle Internet Group Inc.",
+                "formType": "8-K", "filed": "08/13/2026",
+                "view": {"htmlLink": "https://mirror.test/crcl-8k"},
+            }]}}
+        if host == "finnhub.io":
+            return [{"form": "8-K", "filedDate": "2026-08-13 00:00:00",
+                     "acceptedDate": "2026-08-13 01:30:00", "symbol": "CRCL"}]
+        raise AssertionError(url)
+
+    event = primary_disclosures.probe(
+        ["CRCL"], market="us", now=NOW, window_minutes=240,
+        budget_s=20, max_issuers=1, http=http, finnhub_key="test-key",
+    )["issuers"]["CRCL"]["events"][0]
+
+    assert event["source_class"] == "sec_filing_mirror"
+    assert event["time_precision"] == "datetime"
+    assert event["precision_source"] == "finnhub_filing"
