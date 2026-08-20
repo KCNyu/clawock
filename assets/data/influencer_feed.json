@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-20T13:35:26.751319+00:00",
+  "generated_at": "2026-08-20T21:56:08.831082+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -13,12 +13,34 @@
   },
   "llm_filtered": true,
   "counts": {
-    "total": 10,
+    "total": 9,
     "held_hits": 0,
     "new_ideas": 0,
-    "sector_hits": 4
+    "sector_hits": 7
   },
   "items": [
+    {
+      "author": "Musk",
+      "text": "Elon Musk's SpaceX Stock Just Closed Above Its $135 IPO Price for the First Time in Weeks. Is the Rebound a Buy Signal?",
+      "url": "",
+      "published": "Wed, 19 Aug 2026 03:13:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 72,
+      "summary_cn": "SpaceX 股价重新站上 $135 IPO 价格，报道讨论是否构成买入信号，直接利好 SPCX/SPCH/RKLX 持仓。"
+    },
     {
       "author": "Musk",
       "text": "Elon Musk's X is exploring stablecoins to pay influencers and content providers",
@@ -31,14 +53,14 @@
       "new_ideas": [],
       "sectors": [
         "加密货币",
-        "稳定币"
+        "AI"
       ],
       "sector_holdings": [
         "CRCL"
       ],
       "stance": "endorse",
-      "relevance": 72,
-      "summary_cn": "Musk旗下X正在探索用稳定币向内容创作者付款——明确利好稳定币赛道，关联持仓CRCL(USDC发行方)。"
+      "relevance": 70,
+      "summary_cn": "Musk 的 X 平台正探索用稳定币向内容创作者支付，利好稳定币生态，间接利好 CRCL(USDC 发行方)。"
     },
     {
       "author": "Musk",
@@ -51,40 +73,36 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天",
-        "SpaceX基建"
+        "航天"
       ],
       "sector_holdings": [
         "SPCH",
         "SPCX"
       ],
       "stance": "endorse",
-      "relevance": 72,
-      "summary_cn": "Musk旗下SpaceX Starbase申请在南德州扩建——利好SpaceX生态，关联持仓SPCX/SPCH。"
+      "relevance": 65,
+      "summary_cn": "SpaceX Starbase 申请扩建南德州基地，长期利好 SpaceX 发射与产能扩张，间接支撑 SPCX/SPCH 持仓估值。"
     },
     {
       "author": "Musk",
-      "text": "EXCLUSIVE: Ross Gerber Says Tesla Could ‘Double’ Sales Without Elon Musk, Warns Investors on SpaceX Merger",
+      "text": "SpaceX recovers Starship spacecraft Elon Musk once feared lost to sea",
       "url": "",
-      "published": "Wed, 19 Aug 2026 22:31:41 GMT",
+      "published": "Thu, 20 Aug 2026 12:21:00 GMT",
       "origin": "gnews-rss",
-      "source": "Yahoo Finance",
+      "source": "USA Today",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "电动车",
-        "特斯拉",
-        "航天",
-        "SpaceX"
+        "航天"
       ],
       "sector_holdings": [
         "SPCH",
         "SPCX"
       ],
-      "stance": "attack",
-      "relevance": 68,
-      "summary_cn": "Gerber警告投资者：Tesla若失去Musk销量可翻倍，并对SpaceX合并交易表达担忧——对Tesla偏空、对SpaceX交易亦存疑。"
+      "stance": "endorse",
+      "relevance": 62,
+      "summary_cn": "SpaceX 成功回收曾被认为将坠海的 Starship 飞船，技术可靠性提升，利好 SPCX/SPCH。"
     },
     {
       "author": "Trump",
@@ -96,16 +114,58 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "石油天然气",
-        "能源",
+        "原油/能源",
         "地缘政治"
       ],
       "sector_holdings": [
         "02208"
       ],
       "stance": "neutral",
+      "relevance": 62,
+      "summary_cn": "Trump 宣布对伊朗发动史上最大规模经济战与制裁，警告第三国不得与伊朗金融/航空往来，将冲击原油与航运板块，金风科技(风电)受益于能源替代叙事。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX will try for 1st Starship tower catch 'in a few months,' Elon Musk says",
+      "url": "",
+      "published": "Thu, 20 Aug 2026 20:30:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Space",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
       "relevance": 60,
-      "summary_cn": "Trump宣布对伊朗实施'史上最严厉经济战'，涉及能源封锁与金融制裁，或利好油价/能源股，关联持仓金风科技(风电/能源主题间接)。"
+      "summary_cn": "Musk 称 SpaceX 数月内将首次尝试 Starship 塔架捕获，技术里程碑利好 SpaceX 估值。"
+    },
+    {
+      "author": "Musk",
+      "text": "Nvidia’s Stake in SpaceX—and Musk’s Massive Holdings",
+      "url": "",
+      "published": "Mon, 17 Aug 2026 14:21:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Barron's",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI",
+        "半导体",
+        "航天"
+      ],
+      "sector_holdings": [
+        "SKHY"
+      ],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "报道 Nvidia 持有 SpaceX 股权，并梳理 Musk 庞大持仓版图，凸显 AI/半导体-航天产业链联动，间接利好海力士(AI 存储)。"
     },
     {
       "author": "Trump",
@@ -118,14 +178,13 @@
       "new_ideas": [],
       "sectors": [
         "关税",
-        "石油管道",
-        "能源",
-        "加美贸易"
+        "原油/能源",
+        "地缘政治"
       ],
       "sector_holdings": [],
-      "stance": "neutral",
+      "stance": "endorse",
       "relevance": 68,
-      "summary_cn": "Trump暂停对加拿大50%关税三天，因双方达成'DEAL'并可能重启Keystone XL管道——重大宏观贸易/能源信号。"
+      "summary_cn": "Trump 暂缓对加拿大 50% 关税 3 天，因美加达成框架协议并可能重启 Keystone XL 输油管线，关税风险短期降温利好风险偏好。"
     },
     {
       "author": "Musk",
@@ -138,95 +197,39 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "电动车",
-        "特斯拉"
+        "电动车/特斯拉"
       ],
       "sector_holdings": [],
       "stance": "attack",
-      "relevance": 58,
-      "summary_cn": "媒体称Tesla'真信徒'开始质疑Musk——对Tesla品牌/估值偏负面信号。"
-    },
-    {
-      "author": "Musk",
-      "text": "Memphis weighs data center moratorium in city Musk’s xAI calls ‘home’",
-      "url": "",
-      "published": "Thu, 20 Aug 2026 10:13:00 GMT",
-      "origin": "gnews-rss",
-      "source": "E&E News by POLITICO",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI",
-        "数据中心",
-        "监管"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "孟菲斯考虑对数据中心实施暂停建设令，xAI是该市'大客户'——若通过将影响xAI算力扩张，AI基建主题信号。"
-    },
-    {
-      "author": "Trump",
-      "text": "In April, I signed a very important Executive Order to accelerate medical treatments for serious mental illness — Specifically, psychedelic drugs, including IBOGAINE. This is something that has helped so many of our amazing VETERANS and true American Heroes who were here in the Oval Office with me, and Joe Rogan. Today I am announcing that Secretary Kennedy has received a Historic Gift from the University of Miami, who has given the Federal Government its original 1994 Ibogaine Investigational New Drug application. This will give everyone direct access to the foundational FDA authorization to ",
-      "url": "https://trumpstruth.org/statuses/40964",
-      "published": "2026-08-18T16:57:40+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "医药",
-        "迷幻药/伊博格碱",
-        "监管"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "Trump签署行政令加速迷幻药(含Ibogaine)用于退伍军人精神疾病治疗，利好相关生物医药板块。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk’s xAI battles Minnesota over AI ‘nudification’ ban",
-      "url": "",
-      "published": "Wed, 19 Aug 2026 20:12:07 GMT",
-      "origin": "gnews-rss",
-      "source": "Courthouse News",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI",
-        "监管"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "xAI在法庭上反对明尼苏达州AI'去衣化'禁令——AI监管博弈，对xAI立场偏有利。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk's AI company argues in court for end to state's fake nudity ban",
-      "url": "",
-      "published": "Wed, 19 Aug 2026 21:25:00 GMT",
-      "origin": "gnews-rss",
-      "source": "MPR News",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI",
-        "监管"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 48,
-      "summary_cn": "Musk的xAI在法庭上力争终结州级'AI伪造裸露'禁令——AI内容监管法律战。"
+      "relevance": 52,
+      "summary_cn": "报道称 Tesla 铁粉开始质疑 Musk，Tesla 基本面与品牌叙事承压。"
     }
   ],
   "held_hits": [],
   "new_ideas": [],
   "sector_hits": [
+    {
+      "author": "Musk",
+      "text": "Elon Musk's SpaceX Stock Just Closed Above Its $135 IPO Price for the First Time in Weeks. Is the Rebound a Buy Signal?",
+      "url": "",
+      "published": "Wed, 19 Aug 2026 03:13:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 72,
+      "summary_cn": "SpaceX 股价重新站上 $135 IPO 价格，报道讨论是否构成买入信号，直接利好 SPCX/SPCH/RKLX 持仓。"
+    },
     {
       "author": "Musk",
       "text": "Elon Musk's X is exploring stablecoins to pay influencers and content providers",
@@ -239,14 +242,14 @@
       "new_ideas": [],
       "sectors": [
         "加密货币",
-        "稳定币"
+        "AI"
       ],
       "sector_holdings": [
         "CRCL"
       ],
       "stance": "endorse",
-      "relevance": 72,
-      "summary_cn": "Musk旗下X正在探索用稳定币向内容创作者付款——明确利好稳定币赛道，关联持仓CRCL(USDC发行方)。"
+      "relevance": 70,
+      "summary_cn": "Musk 的 X 平台正探索用稳定币向内容创作者支付，利好稳定币生态，间接利好 CRCL(USDC 发行方)。"
     },
     {
       "author": "Musk",
@@ -259,40 +262,36 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天",
-        "SpaceX基建"
+        "航天"
       ],
       "sector_holdings": [
         "SPCH",
         "SPCX"
       ],
       "stance": "endorse",
-      "relevance": 72,
-      "summary_cn": "Musk旗下SpaceX Starbase申请在南德州扩建——利好SpaceX生态，关联持仓SPCX/SPCH。"
+      "relevance": 65,
+      "summary_cn": "SpaceX Starbase 申请扩建南德州基地，长期利好 SpaceX 发射与产能扩张，间接支撑 SPCX/SPCH 持仓估值。"
     },
     {
       "author": "Musk",
-      "text": "EXCLUSIVE: Ross Gerber Says Tesla Could ‘Double’ Sales Without Elon Musk, Warns Investors on SpaceX Merger",
+      "text": "SpaceX recovers Starship spacecraft Elon Musk once feared lost to sea",
       "url": "",
-      "published": "Wed, 19 Aug 2026 22:31:41 GMT",
+      "published": "Thu, 20 Aug 2026 12:21:00 GMT",
       "origin": "gnews-rss",
-      "source": "Yahoo Finance",
+      "source": "USA Today",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "电动车",
-        "特斯拉",
-        "航天",
-        "SpaceX"
+        "航天"
       ],
       "sector_holdings": [
         "SPCH",
         "SPCX"
       ],
-      "stance": "attack",
-      "relevance": 68,
-      "summary_cn": "Gerber警告投资者：Tesla若失去Musk销量可翻倍，并对SpaceX合并交易表达担忧——对Tesla偏空、对SpaceX交易亦存疑。"
+      "stance": "endorse",
+      "relevance": 62,
+      "summary_cn": "SpaceX 成功回收曾被认为将坠海的 Starship 飞船，技术可靠性提升，利好 SPCX/SPCH。"
     },
     {
       "author": "Trump",
@@ -304,16 +303,58 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "石油天然气",
-        "能源",
+        "原油/能源",
         "地缘政治"
       ],
       "sector_holdings": [
         "02208"
       ],
       "stance": "neutral",
+      "relevance": 62,
+      "summary_cn": "Trump 宣布对伊朗发动史上最大规模经济战与制裁，警告第三国不得与伊朗金融/航空往来，将冲击原油与航运板块，金风科技(风电)受益于能源替代叙事。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX will try for 1st Starship tower catch 'in a few months,' Elon Musk says",
+      "url": "",
+      "published": "Thu, 20 Aug 2026 20:30:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Space",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
       "relevance": 60,
-      "summary_cn": "Trump宣布对伊朗实施'史上最严厉经济战'，涉及能源封锁与金融制裁，或利好油价/能源股，关联持仓金风科技(风电/能源主题间接)。"
+      "summary_cn": "Musk 称 SpaceX 数月内将首次尝试 Starship 塔架捕获，技术里程碑利好 SpaceX 估值。"
+    },
+    {
+      "author": "Musk",
+      "text": "Nvidia’s Stake in SpaceX—and Musk’s Massive Holdings",
+      "url": "",
+      "published": "Mon, 17 Aug 2026 14:21:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Barron's",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI",
+        "半导体",
+        "航天"
+      ],
+      "sector_holdings": [
+        "SKHY"
+      ],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "报道 Nvidia 持有 SpaceX 股权，并梳理 Musk 庞大持仓版图，凸显 AI/半导体-航天产业链联动，间接利好海力士(AI 存储)。"
     }
   ]
 }
