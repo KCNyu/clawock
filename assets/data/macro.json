@@ -1,76 +1,86 @@
 {
-  "generated_at": "2026-08-19T21:59:26.462729+00:00",
+  "generated_at": "2026-08-20T22:00:34.883210+00:00",
   "vix": {
     "symbol": "^VIX",
-    "price": 14.89,
-    "prev": 15.84,
-    "change_pct": -6.0,
-    "as_of": 1787170501,
+    "price": 16.01,
+    "prev": 14.89,
+    "change_pct": 7.52,
+    "as_of": 1787256901,
     "source": "yahoo"
   },
   "treasury_10y": {
     "symbol": "^TNX",
-    "price": 4.653,
-    "prev": 4.706,
-    "change_pct": -1.13,
-    "as_of": 1787165994,
+    "price": 4.696,
+    "prev": 4.653,
+    "change_pct": 0.92,
+    "as_of": 1787252395,
     "source": "yahoo",
-    "yield_pct": 4.653
+    "yield_pct": 4.696
   },
   "dxy": {
     "symbol": "DX-Y.NYB",
-    "price": 98.795,
-    "prev": 99.657,
-    "change_pct": -0.86,
-    "as_of": 1787176164,
+    "price": 98.869,
+    "prev": 98.833,
+    "change_pct": 0.04,
+    "as_of": 1787262632,
     "source": "yahoo"
   },
   "fear_greed": {
-    "score": 56.3,
-    "rating": "greed",
-    "prev_close": 54.4,
-    "prev_1_week": 62.9,
-    "as_of": "2026-08-19T21:43:44+00:00"
+    "score": 52.5,
+    "rating": "neutral",
+    "prev_close": 56.3,
+    "prev_1_week": 66.6,
+    "as_of": "2026-08-20T21:43:39+00:00"
   },
   "hsi": {
     "symbol": "^HSI",
-    "price": 25495.07,
-    "prev": 25471.15,
-    "change_pct": 0.09,
+    "price": 25698.49,
+    "prev": 25495.07,
+    "change_pct": 0.8,
     "source": "tencent"
   },
   "hstech": {
     "symbol": "^HSTECH",
-    "price": 4682.05,
-    "prev": 4739.18,
-    "change_pct": -1.21,
+    "price": 4700.53,
+    "prev": 4682.05,
+    "change_pct": 0.39,
     "source": "tencent"
   },
   "spx": {
     "symbol": "^GSPC",
-    "price": 7707.98,
-    "prev": 7691.76,
-    "change_pct": 0.21,
-    "as_of": 1787171911,
+    "price": 7641.16,
+    "prev": 7707.98,
+    "change_pct": -0.87,
+    "as_of": 1787260233,
     "source": "yahoo"
   },
   "nasdaq": {
     "symbol": "^IXIC",
-    "price": 26331.09,
-    "prev": 26289.71,
-    "change_pct": 0.16,
+    "price": 26067.17,
+    "prev": 26331.09,
+    "change_pct": -1.0,
     "source": "tencent"
   },
   "fed_press": [
     {
+      "date": "2026-08-20",
+      "title": "Federal Reserve Board announces approval of application by National Westminster Bank Plc",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/orders20260820a.htm"
+    },
+    {
+      "date": "2026-08-20",
+      "title": "Federal Reserve Board issues enforcement action with SouthPoint Bancshares, Inc. and announces termination of enforcement action with Deutsche Bank AG, DB USA Corporation, and Deutsche Bank AG New Yor",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/enforcement20260820b.htm"
+    },
+    {
+      "date": "2026-08-20",
+      "title": "Federal Reserve Board issues enforcement actions with former employee of Regions Bank and former employee of United Community Bank",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/enforcement20260820a.htm"
+    },
+    {
       "date": "2026-08-19",
       "title": "Minutes of the Federal Open Market Committee, July 28–29, 2026",
       "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20260819a.htm"
-    },
-    {
-      "date": "2026-08-13",
-      "title": "Federal Reserve Board issues enforcement action with former employee of Regions Bank",
-      "url": "https://www.federalreserve.gov/newsevents/pressreleases/enforcement20260813a.htm"
     }
   ]
 }
