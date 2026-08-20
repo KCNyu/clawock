@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-08-19T08:02:13.423009+08:00",
+  "generated_at": "2026-08-20T08:01:18.495564+08:00",
   "lookback_window_days": 14,
-  "window_start": "2026-08-19",
-  "window_end": "2026-09-02",
+  "window_start": "2026-08-20",
+  "window_end": "2026-09-03",
   "earnings_queried": [
     "CRCL",
     "RKLB",
@@ -30,6 +30,6 @@
     "macro_count": 2,
     "scheduled_count": 0,
     "scheduled_undated": 0,
-    "highest_impact_within_7d": null
+    "highest_impact_within_7d": "GDP 2026-08-27"
   }
 }

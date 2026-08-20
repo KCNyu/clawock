@@ -1,16 +1,16 @@
 {
-  "as_of": "2026-08-19",
-  "days_logged": 78,
+  "as_of": "2026-08-20",
+  "days_logged": 79,
   "min_n": 20,
   "horizon": 1,
   "grades": {
     "chase_low_quality": {
       "label": "🔴 追高低质",
-      "n": 156,
-      "hit_rate": 0.532,
+      "n": 157,
+      "hit_rate": 0.535,
       "ci95": [
-        0.454,
-        0.609
+        0.457,
+        0.611
       ],
       "edge_significant": false,
       "sample_sufficient": true,
@@ -40,23 +40,23 @@
     },
     "oversold_low": {
       "label": "🟡 低位/超卖",
-      "n": 243,
-      "hit_rate": 0.444,
+      "n": 245,
+      "hit_rate": 0.449,
       "ci95": [
-        0.383,
-        0.507
+        0.388,
+        0.512
       ],
       "edge_significant": false,
       "sample_sufficient": true,
       "edge_supported": false,
       "reverse_edge_supported": false,
       "decision_direction": null,
-      "avg_dir_fwd_pct": -0.2,
+      "avg_dir_fwd_pct": -0.18,
       "usable": false,
       "note": "Wilson CI 跨 50%，正向 edge 未获支持"
     }
   },
-  "summary": "没有牌面同时通过样本与正向 edge 闸（78 交易日留痕）——结论未解锁",
+  "summary": "没有牌面同时通过样本与正向 edge 闸（79 交易日留痕）——结论未解锁",
   "unlock_rule": "sample_sufficient AND Wilson_ci95_lower>50pct",
   "discipline": "自迭代：usable 需要样本量与正向 Wilson edge 同时成立；样本够多但方向错误也只展示不下结论；「命中」= 评级方向警示被次日价格证实（追高→跌 / 超卖→涨），不是「能赚钱」。"
 }
