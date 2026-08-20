@@ -129,3 +129,18 @@ _（空）_
 - Issues 状态: #560-564 全部 close(PR #568 处理;CLI 瘦身 #560 保留为产品方向) [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-15.md:29-29]
 <!-- openclaw-memory-promotion:memory:memory/2026-08-15.md:6:6 -->
 - 背景: kcn 要求以第三方 critical 视角 review clawock(README zh/seo/geo/为什么没人用),随后进入多轮对抗迭代,最终授权全权执行收尾。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-15.md:6-6]
+
+## Promoted From Short-Term Memory (2026-08-21)
+
+<!-- openclaw-memory-promotion:memory:memory/2026-08-16.md:11:11 -->
+- Decision Mind 插件(Day 1 上线): 待办(下 session):①账本视图 job 未立住(kcn:没啥用); [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-16.md:11-11]
+<!-- openclaw-memory-promotion:memory:memory/2026-08-16.md:12:13 -->
+- Decision Mind 插件(Day 1 上线): ②操作视图未体现情绪/决策思想层;③PR #661 合并(对抗评审 12 条 + 操作视图 + 真实数据源);④探讨「决策心智 + 真实流水」合成视图。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-16.md:12-13]
+<!-- openclaw-memory-promotion:memory:memory/2026-08-16.md:5:5 -->
+- Decision Mind 插件(Day 1 上线): clawock-dsh 完整插件上线 DSH web profile:Decision Mind 会话 tab [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-16.md:5-5]
+<!-- openclaw-memory-promotion:memory:memory/2026-08-16.md:6:7 -->
+- Decision Mind 插件(Day 1 上线): (操作=真实成交流水/账本=决策心智/持仓),kcn 确认操作视图对得上 (PLTU 清仓 +45.21、MSFU 落袋 +10.3/+14.35/+81.9、SPCH 摊本流水)。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-16.md:6-7]
+<!-- openclaw-memory-promotion:memory:memory/2026-08-16.md:8:8 -->
+- Decision Mind 插件(Day 1 上线): 互通:对话判定经 `clawock record` 写入 decisions.jsonl;MiniMax 首条 [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-16.md:8-8]
+<!-- openclaw-memory-promotion:memory:memory/2026-08-16.md:9:10 -->
+- Decision Mind 插件(Day 1 上线): 心智记录(00100 reject 加仓、⚡ averaging_down、站回 340 条件, execution=followed 已标记)。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-16.md:9-10]
