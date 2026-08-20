@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-19T13:36:39.849615",
+  "generated_at": "2026-08-20T13:38:05.941272",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -15,9 +15,9 @@
       "SPCH"
     ]
   },
-  "digest_markdown": "## Top 移动信号\n- **RKLB**: 入围 Space Force $981M NITE-STAR IDIQ + Viasat anti-jam 卫星总线中标 → RKLX 2x 杠杆放大双重 defense 合约 catalyst\n- **SKHY**: 宣布大规模股票回购 → 直接资本回报信号，多头动能\n- **SPCX**: 0 ticker-specific catalyst，SeekingAlpha 警告 72x fwd P/E 已 priced in → SPCH 仓位受宏观利率 + 估值夹击\n- **CRCL**: 无 ticker 新闻（BitMine ETH 持仓属另一家公司，非 CRCL 影响）\n- **宏观**: 30Y 美债收益率创 19 年新高，芯片板块大跌 → 拖累 SPCH 和 RKLX 短期风险偏好\n\n## Per-ticker 简报\n- **RKLB**: Q2 record 营收 + Iridium 合同 + NITE-STAR $981M + Viasat anti-jam 卫星总线 — defense 收入 catalyst 集群，RKLX 2x 放大利好\n- **SKHY**: 大额回购宣布 + HBM 龙头估值看多（5.7x fwd P/E、13% FCF yield）— 资本回报 + 低估值双支撑\n- **SPCX**: 仅 SeekingAlpha 看空/看多评论，无新 launch 或订单 catalyst — SPCH 受 30Y yield 拖累\n- **CRCL**: 无 ticker-specific 新闻\n\n## 风险 watch\n- 30Y yield 19 年新高 → 高估值成长股折现率压力，SPCH 尤其敏感\n- SPCX 估值 72x fwd P/E 已 priced in（多家分析师）\n- SKHY ADR premium + HBM 竞争（SeekingAlpha 备注）",
+  "digest_markdown": "## US Holdings 48h Digest\n\n### Top 移动信号 (跨 ticker)\n- **CRCL**: Q2 2026 财报电话会 8/19 + CLARITY Act 乐观情绪 + BTC 走强带动 crypto 板块齐涨 (Strategy/Coinbase/Bullish 同步 >12%)。kcn 直接持仓, 短期催化明确。\n- **SKHY**: 公布 $28.6B 股票回购 + KSMH 上市重启韩国 AI 内存主线, 叠加 SeekingAlpha 多篇 Strong Buy (看 P/E 偏低 + HBM 需求)。直接持仓, 中长期支撑强化。\n- **RKLB**: 入选美 Space Force SDN Consortium, 获 $12M SDN-B 两份交付订单 (光通信)。kcn 通过 **RKLX 2x** 持有, 该正向信号在 ETF 内被放大; 但同日 SeekingAlpha 反方文章质疑 Neutron 推迟至 2027 + Iridium $8B 交易稀释风险。\n- **SPCX**: 缺少 SpaceX 直接催化; SpaceX 相关仅 Grok 4.6 上线 AWS Bedrock (X.AI 而非 SpaceX 主业)。通过 **SPCH 2x** 持有, ETF 跟踪的是 private-market proxy, 本轮无实质推动。\n- **宏观逆风**: 30Y 美债收益率创 19 年新高拖累成长/航天板块, 半导体同步下挫 — 短期对 RKLB/SPCX 杠杆仓不利。\n\n### Per-ticker 简报\n- **CRCL**: Q2 财报 + CLARITY Act + 加密板块共振, 三重利好叠加, 直接持仓正面。\n- **RKLB**: Space Force $12M 订单实质利好; 反方观点聚焦 Neutron 延期与 Iridium 稀释 — 多空并存, RKLX 2x 双向放大。\n- **SPCX**: 仅 SpaceX 周边 (xAI/Bedrock) 与 ARK Q2 13F 通用新闻, 无 SpaceX 主体催化; SPCH 2x 短期缺驱动。\n- **SKHY**: $28.6B 回购为最大单一利好; Q2 营收冲高 + 流动性强劲; 分析师一致看多。\n\n### Risk Watch\n- **RKLB**: Neutron 2027 延期 + $8B Iridium 收购稀释 + 50x 销售额估值偏高 (SeekingAlpha 反方); RKLX 2x 会同步放大下行。\n- **CRCL**: CLARITY Act 立法进度未落地即\"预期交易\", 若延迟或被否有回吐风险。\n- **SKHY**: 三星同日 -8% 显示存储板块波动; Samsung 涨价 +15% 暗示竞争格局重定价。\n- **杠杆 ETF (RKLX/SPCH)**: 30Y 收益率新高 + 半导体回调构成系统性逆风, 2x 杠杆每日 rebalance 损耗需计入持有成本。",
   "raw_news_counts": {
-    "CRCL": 1,
+    "CRCL": 5,
     "RKLB": 5,
     "SPCX": 5,
     "SKHY": 5
@@ -25,51 +25,100 @@
   "raw_news_evidence": {
     "CRCL": [
       {
-        "headline": "BitMine Immersion Technologies Discloses ETH Holdings Of 4.976M Tokens, With Total Crypto And Cash Holdings Valued At $12.9B",
-        "datetime": 1786966346,
+        "headline": "Tracking Cathie Wood's ARK Invest 13F Portfolio - Q2 2026 Update",
+        "datetime": 1787172468,
+        "source": "SeekingAlpha",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=6176cf1f3006a9b7f1e7eece33e01b74901f7d28aa6591f2ed6baa2cc5a017ee"
+      },
+      {
+        "headline": "Strategy, Bitmine, Coinbase Surge Over 12% as CLARITY Act Optimism Builds",
+        "datetime": 1787145119,
         "source": "Benzinga",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=a948dac5505f84d97efeaafeabc42f3bd62128cf6e9e4fb82a20cbb2f9920c79"
+        "url": "https://finnhub.io/api/news?id=a18e9618af87d2a9d66d0cd91f5179fbea630d80ec789ab7a26b9367e1e9df96"
+      },
+      {
+        "headline": "Circle Internet Group, Inc. (CRCL) Q2 2026 Earnings Call Transcript",
+        "datetime": 1787144533,
+        "source": "SeekingAlpha",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=eb846f3d711eff7553edfef4ba789fc6ce569a9ee753957a1187347ad21e45a2"
+      },
+      {
+        "headline": "Shares of crypto-related companies are trading higher alongside a rise in Bitcoin prices as Treasury yields decline, improving risk appetite and supporting demand for higher-risk assets. Sentiment is ",
+        "datetime": 1787141058,
+        "source": "Benzinga",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=190646b2c87df843743e46d2d6c5ed2ba7c37cb2143920477b919c95719edb7f"
+      },
+      {
+        "headline": "Bitcoin, Ethereum, XRP Investors Aren't Keeping Pace With the Market, Bitwise's Matt Hougan Says: Beware These 3 Mistakes",
+        "datetime": 1787131521,
+        "source": "Benzinga",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=7f640c8d6e18e91ccd14b7dcda23cb4d9b20bbbca7ba24fb90999fa0991ea6f2"
       }
     ],
     "RKLB": [
+      {
+        "headline": "Rocket Lab's Next Phase Changes The Entire Thesis",
+        "datetime": 1787141082,
+        "source": "SeekingAlpha",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=b1931fb2915c83134520cce7ac5a3f214019f4fa8dcfe94a5fb42d947ac54d5f"
+      },
+      {
+        "headline": "Rocket Lab: The Math Doesn't Work",
+        "datetime": 1787133139,
+        "source": "SeekingAlpha",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=1c569151d29b475eb6a35b62adda47c3df357ce2ebc5c551f9ec0966db5d13f0"
+      },
+      {
+        "headline": "Rocket Lab Lands $12 Million Deal To Advance US Military Space Network",
+        "datetime": 1787127687,
+        "source": "Benzinga",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=a5d44f96bc12b6e8a7e47acf98bc8de0398f444c5d1cd294f759099ca8c171ac"
+      },
+      {
+        "headline": "Rocket Lab Onboarding Into The U.S. Space Force’s Space Data Network Consortium; Co. Awarded Two Delivery Orders Totaling A Combined Value Of $12M To Support The SDN-B Program To Demonstrate Interoper",
+        "datetime": 1787072161,
+        "source": "Benzinga",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=5d29d7fac159db0f013304572356614b20dcd85a1b91e7c1702a03f2e8a3c717"
+      },
       {
         "headline": "Goldman's 'Second Space Age' — $1.8 Trillion Global Market by 2035",
         "datetime": 1787062566,
         "source": "Benzinga",
         "origin": "finnhub",
         "url": "https://finnhub.io/api/news?id=2d24f9b4daa34363473af59ba65821fe60341732d839c1b7794d6112f516a29a"
-      },
-      {
-        "headline": "Rocket Lab: Strong Buy With An Investment Case That Goes Beyond Neutron",
-        "datetime": 1787044866,
-        "source": "SeekingAlpha",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=81a7f97a0064a0559dac9bbf33c37eb285940861535f236096d6fb8cd288b894"
-      },
-      {
-        "headline": "Rocket Lab Joins Boeing, Lockheed Martin and Northrop Grumman in $981M Space Force Program to Build Advanced Test Infrastructure",
-        "datetime": 1787009436,
-        "source": "Benzinga",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=a62cedbec839ecc25b2b9e3a63e1c13d9faafc0ad55ac5df1e73d3b3e562cfd5"
-      },
-      {
-        "headline": "Rocket Lab Onboarded To The United States Space Force’s NITE-STAR IDIQ Contract, An Advanced Space Test And Training Infrastructure With A $981M Contract Ceiling",
-        "datetime": 1786986776,
-        "source": "Benzinga",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=ca82ea5bede521a580c947138fa988c8d5de193238fdf6513acc0c789765cf5b"
-      },
-      {
-        "headline": "What's Going On With Viasat Stock Monday?",
-        "datetime": 1786973562,
-        "source": "Benzinga",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=35833bcf6852667b24d8c950700c85091b975be197bcd6bb81fc62c238aa3861"
       }
     ],
     "SPCX": [
+      {
+        "headline": "Tracking Cathie Wood's ARK Invest 13F Portfolio - Q2 2026 Update",
+        "datetime": 1787172468,
+        "source": "SeekingAlpha",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=6176cf1f3006a9b7f1e7eece33e01b74901f7d28aa6591f2ed6baa2cc5a017ee"
+      },
+      {
+        "headline": "SpaceX Rolls Out Grok 4.6 on Amazon Bedrock",
+        "datetime": 1787138218,
+        "source": "Benzinga",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=09173f205251442a83d5ab7bccf035ddb0532e7967e7fca02330e79121a1ac16"
+      },
+      {
+        "headline": "3 Sectors Investors Should Buy Now as S&P 500 Stumbles — Strategist Sees 15%-18% Upside",
+        "datetime": 1787127105,
+        "source": "Benzinga",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=06dae45a118bedd2aa24fcab520528cf33f0e219c27c61710a1d4f40e8eb6c7e"
+      },
       {
         "headline": "Wall Street Sinks as 30-Year Yield Hits 19-Year High, Chip Names Crumble",
         "datetime": 1787126878,
@@ -83,64 +132,43 @@
         "source": "SeekingAlpha",
         "origin": "finnhub",
         "url": "https://finnhub.io/api/news?id=09bf27246db2d730d5ebb857c0f57903c8faaa5738e465411f67278caaf51866"
-      },
-      {
-        "headline": "SpaceX: Strong Fundamentals, But The Valuation Is Already There",
-        "datetime": 1787120725,
-        "source": "SeekingAlpha",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=112a8172347dd9463f3f14a1c10fc834e1ec3832ef15b00904578da884bc4cda"
-      },
-      {
-        "headline": "SpaceX: Strap In For A Very Long, Bumpy Ride",
-        "datetime": 1787072221,
-        "source": "SeekingAlpha",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=3f01a044a08cf880e5a99f22f03e83b38322139cc732cf8358d7b2f0322f9073"
-      },
-      {
-        "headline": "Gary Black Says Tesla Bulls On Social Media Are Like College Students Doing 'Tequila Shots'",
-        "datetime": 1787063849,
-        "source": "Benzinga",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=447d6a489d6659c3dfaaeed3bfbfc33ad8683ebe0e0cad099bb81656e167b5af"
       }
     ],
     "SKHY": [
       {
-        "headline": "KB Financial Group Remains A Good Value Play In The Global Banking Sector",
-        "datetime": 1787125942,
+        "headline": "SK Hynix: When The Company Trades This Cheap, I Buy",
+        "datetime": 1787217201,
         "source": "SeekingAlpha",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=fc88afbc8123d0af58654756321f39c409933648f9ebf7434c687f6b76ac2d0a"
+        "url": "https://finnhub.io/api/news?id=9131eec5faf2a09bc960a4a1bcb3a842811cd971cce1dd373cdac607d79a5a18"
       },
       {
-        "headline": "Wall Street Breakfast Podcast: Canada Buys 72 Hours",
-        "datetime": 1787121300,
+        "headline": "Carillon ClariVest International Stock Fund Q2 2026 Portfolio Update",
+        "datetime": 1787197800,
         "source": "SeekingAlpha",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=73b37d87411de515b43b72da8ae3160f7a0d94cd343a2267c06bbb7ee813758f"
+        "url": "https://finnhub.io/api/news?id=7bdb614879ed5f444dba54d333a6385f1b33ef3ee1c46d8513959a43ce0ae326"
       },
       {
-        "headline": "Magnachip: SiC Overtures Are Welcome, But Ongoing Portfolio Transformation Remain Iffy",
-        "datetime": 1787072725,
+        "headline": "SK hynix: This Could Be The Deal Of The Decade",
+        "datetime": 1787181243,
         "source": "SeekingAlpha",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=7d135f873e5a95652804992407718582acc5e7988dfdde486bf49dee578049d6"
+        "url": "https://finnhub.io/api/news?id=5529c243f38585152333d4484ab8b3f7ebd179d46a70337a16054dd71307fafe"
       },
       {
-        "headline": "Sandisk: Investors Are Ignoring The Ceilings",
-        "datetime": 1787072068,
-        "source": "SeekingAlpha",
+        "headline": "Samsung Tumbled Nearly 8% in Seoul Even as AI Demand Drives Chip Prices Up To 15%",
+        "datetime": 1787159540,
+        "source": "Benzinga",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=eeb42323f7cf9ec650a2158623807698925e34ce3b6e7ac94997a4a1946577a4"
+        "url": "https://finnhub.io/api/news?id=e551fabc0eaf1bf604fb78bf3da7ac26bae8cd8888398860076567dbc0a75d32"
       },
       {
-        "headline": "SK hynix: Believe In The HBM Leader",
-        "datetime": 1787067974,
-        "source": "SeekingAlpha",
+        "headline": "SK Hynix’s $28.6 Billion Buyback Meets KSMH’s Launch: Is Korea’s AI Memory Trade Back in Focus?",
+        "datetime": 1787150950,
+        "source": "Benzinga",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=5bcb77326368d578aa97a2a913551aca5ea4f487c926e532282fd144f2e46cb4"
+        "url": "https://finnhub.io/api/news?id=56a0cf76845b2f209186170d7ae501eb5f5a56a7aef6e33d405e1f9237e24046"
       }
     ]
   },
