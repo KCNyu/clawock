@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-20T13:38:05.941272",
+  "generated_at": "2026-08-21T13:37:17.866772",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -15,7 +15,7 @@
       "SPCH"
     ]
   },
-  "digest_markdown": "## US Holdings 48h Digest\n\n### Top 移动信号 (跨 ticker)\n- **CRCL**: Q2 2026 财报电话会 8/19 + CLARITY Act 乐观情绪 + BTC 走强带动 crypto 板块齐涨 (Strategy/Coinbase/Bullish 同步 >12%)。kcn 直接持仓, 短期催化明确。\n- **SKHY**: 公布 $28.6B 股票回购 + KSMH 上市重启韩国 AI 内存主线, 叠加 SeekingAlpha 多篇 Strong Buy (看 P/E 偏低 + HBM 需求)。直接持仓, 中长期支撑强化。\n- **RKLB**: 入选美 Space Force SDN Consortium, 获 $12M SDN-B 两份交付订单 (光通信)。kcn 通过 **RKLX 2x** 持有, 该正向信号在 ETF 内被放大; 但同日 SeekingAlpha 反方文章质疑 Neutron 推迟至 2027 + Iridium $8B 交易稀释风险。\n- **SPCX**: 缺少 SpaceX 直接催化; SpaceX 相关仅 Grok 4.6 上线 AWS Bedrock (X.AI 而非 SpaceX 主业)。通过 **SPCH 2x** 持有, ETF 跟踪的是 private-market proxy, 本轮无实质推动。\n- **宏观逆风**: 30Y 美债收益率创 19 年新高拖累成长/航天板块, 半导体同步下挫 — 短期对 RKLB/SPCX 杠杆仓不利。\n\n### Per-ticker 简报\n- **CRCL**: Q2 财报 + CLARITY Act + 加密板块共振, 三重利好叠加, 直接持仓正面。\n- **RKLB**: Space Force $12M 订单实质利好; 反方观点聚焦 Neutron 延期与 Iridium 稀释 — 多空并存, RKLX 2x 双向放大。\n- **SPCX**: 仅 SpaceX 周边 (xAI/Bedrock) 与 ARK Q2 13F 通用新闻, 无 SpaceX 主体催化; SPCH 2x 短期缺驱动。\n- **SKHY**: $28.6B 回购为最大单一利好; Q2 营收冲高 + 流动性强劲; 分析师一致看多。\n\n### Risk Watch\n- **RKLB**: Neutron 2027 延期 + $8B Iridium 收购稀释 + 50x 销售额估值偏高 (SeekingAlpha 反方); RKLX 2x 会同步放大下行。\n- **CRCL**: CLARITY Act 立法进度未落地即\"预期交易\", 若延迟或被否有回吐风险。\n- **SKHY**: 三星同日 -8% 显示存储板块波动; Samsung 涨价 +15% 暗示竞争格局重定价。\n- **杠杆 ETF (RKLX/SPCH)**: 30Y 收益率新高 + 半导体回调构成系统性逆风, 2x 杠杆每日 rebalance 损耗需计入持有成本。",
+  "digest_markdown": "## Top 移动信号\n\n- **SKHY**: 宣布 ₩40T (~$29B) 股票回购 + 扩大 FCF 回报目标 → HBM 周期 + 资本回报双重催化，直接持仓受益\n- **SPCX**: SpaceX 第二次 IPO lockup 到期，~319M 股解锁流通 → **SPCH 持有 SPCX 会被放大**，短期供应冲击明显\n- **CRCL**: Trump 推动国会通过 Clarity Act，Coinbase CEO 看好\"Uptober\"+ 比特币走高 → 监管利好 + 情绪共振，直接持仓正催化\n- **RKLB**: CEO Beck 公开为 $8B Iridium 收购背书，明确不与 Starlink 正面竞争 → 消除\"重复建设\"叙事疑虑，**RKLX 2x 放大**\n- **SPCX**: 长期美债收益率回弹至 20 个月高位 (Bessent 救市失效) → 高估值成长股折现率压力，**SPCH 杠杆下风险叠加**\n\n## Per-ticker 简报\n\n- **CRCL**: Clarity Act 立法推动 + Coinbase CEO 表态支持 + BTC 走强 — 三重正向，crypto-linked 板块普涨，CRCL 直接受益\n- **RKLB** (via RKLX): Iridium 收购逻辑被 CEO 公开强化；SeekingAlpha 出\"Only Bad Is Priced In\"买入论；同行 Firefly 被看多 — 板块情绪配合，**RKLX 2x 杠杆将放大涨幅**\n- **SPCX** (via SPCH): SpaceX lockup 解禁是核心事件 (319M 股)，Firefly 同行背书空间板块；Alphabet $250B capex 是宏观顺风但非直接催化 — **SPCH 因 SpaceX 解禁承压**\n- **SKHY**: ₩40T 回购 + AI HBM 需求强劲 + Q2'26 营收大增 — 估值便宜 + 资本回报扩张，Strong Buy 共识\n\n## 风险 Watch\n\n- **SPCX/SPCH**: SpaceX 第二次 lockup 到期 (319M 股) — 二级市场抛压，杠杆 ETF 会双重承压\n- **全持仓**: 长期美债收益率创 20 个月新高 + Walmart 业绩暴雷 (consumer warning) — 成长股估值 + 消费端双重逆风\n- **SKHY**: 同行 Samsung 大涨 — 警惕 SKHY 资金分流至 Samsung；HBM 周期见顶仍是远期风险",
   "raw_news_counts": {
     "CRCL": 5,
     "RKLB": 5,
@@ -25,150 +25,150 @@
   "raw_news_evidence": {
     "CRCL": [
       {
-        "headline": "Tracking Cathie Wood's ARK Invest 13F Portfolio - Q2 2026 Update",
-        "datetime": 1787172468,
-        "source": "SeekingAlpha",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=6176cf1f3006a9b7f1e7eece33e01b74901f7d28aa6591f2ed6baa2cc5a017ee"
-      },
-      {
-        "headline": "Strategy, Bitmine, Coinbase Surge Over 12% as CLARITY Act Optimism Builds",
-        "datetime": 1787145119,
+        "headline": "Bessent's Bond Rescue Fizzles, Walmart Craters 9%: Stock Market Today",
+        "datetime": 1787230977,
         "source": "Benzinga",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=a18e9618af87d2a9d66d0cd91f5179fbea630d80ec789ab7a26b9367e1e9df96"
+        "url": "https://finnhub.io/api/news?id=3f3a28f79218cb81b53764c2f6a3e497a8c47216dad56246efc6c5c12b4bd996"
       },
       {
-        "headline": "Circle Internet Group, Inc. (CRCL) Q2 2026 Earnings Call Transcript",
-        "datetime": 1787144533,
-        "source": "SeekingAlpha",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=eb846f3d711eff7553edfef4ba789fc6ce569a9ee753957a1187347ad21e45a2"
-      },
-      {
-        "headline": "Shares of crypto-related companies are trading higher alongside a rise in Bitcoin prices as Treasury yields decline, improving risk appetite and supporting demand for higher-risk assets. Sentiment is ",
-        "datetime": 1787141058,
+        "headline": "Ripple CEO Garlinghouse Says Crypto Isn't 'Fringe' After President Trump Declares US Is 'Winning'",
+        "datetime": 1787222771,
         "source": "Benzinga",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=190646b2c87df843743e46d2d6c5ed2ba7c37cb2143920477b919c95719edb7f"
+        "url": "https://finnhub.io/api/news?id=e9090e2ea3acf2567cdeceabce98cf12f5cdc8b5496476df7cb632ff3e614046"
       },
       {
-        "headline": "Bitcoin, Ethereum, XRP Investors Aren't Keeping Pace With the Market, Bitwise's Matt Hougan Says: Beware These 3 Mistakes",
-        "datetime": 1787131521,
+        "headline": "Shares of crypto-linked companies are trading higher amid a rise in Bitcoin after President Trump urged Congress to pass the Clarity Act and said the Commodity Futures Trading Commission Chair Michael",
+        "datetime": 1787222578,
         "source": "Benzinga",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=7f640c8d6e18e91ccd14b7dcda23cb4d9b20bbbca7ba24fb90999fa0991ea6f2"
+        "url": "https://finnhub.io/api/news?id=88c78b24727dac552b31d968833c1e0a9257d6f3a0253883c230cc54387ce591"
+      },
+      {
+        "headline": "StablecoinX shares are trading higher after the company launched its flagship infrastructure software platform, StablecoinX Harness.",
+        "datetime": 1787222578,
+        "source": "Benzinga",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=b9f78f24eaedc16157b950e524c8d033dd496fd83833897f1588b4f1fdad611f"
+      },
+      {
+        "headline": "Robinhood CEO Says Trump Accounts Give Kids a Simple Way Into S&P 500 — ‘See the Magic of Compound Interest’",
+        "datetime": 1787209977,
+        "source": "Benzinga",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=f5360b4907682eff1e9dad57376916cda57ecf14fe72ffc9cf1a262f9b6f1cce"
       }
     ],
     "RKLB": [
       {
-        "headline": "Rocket Lab's Next Phase Changes The Entire Thesis",
-        "datetime": 1787141082,
+        "headline": "Bessent's Bond Rescue Fizzles, Walmart Craters 9%: Stock Market Today",
+        "datetime": 1787230977,
+        "source": "Benzinga",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=3f3a28f79218cb81b53764c2f6a3e497a8c47216dad56246efc6c5c12b4bd996"
+      },
+      {
+        "headline": "Firefly Aerospace: Riding The Space Race Higher",
+        "datetime": 1787229455,
         "source": "SeekingAlpha",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=b1931fb2915c83134520cce7ac5a3f214019f4fa8dcfe94a5fb42d947ac54d5f"
+        "url": "https://finnhub.io/api/news?id=8ece4bc3278c8abf7392aa9f7a9fc30ac4a967ac7a52eeb0b69938cd9f812b89"
       },
       {
-        "headline": "Rocket Lab: The Math Doesn't Work",
-        "datetime": 1787133139,
+        "headline": "Applied Aerospace & Defense IPO Opens For Trade At $20.75/Share",
+        "datetime": 1787226623,
+        "source": "Benzinga",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=94956aaed5f42a66be5c8d16245ad64ef09a03aa3534e4e22ee66f3fd23d944b"
+      },
+      {
+        "headline": "Rocket Lab: Only The Bad Is Priced In",
+        "datetime": 1787223968,
         "source": "SeekingAlpha",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=1c569151d29b475eb6a35b62adda47c3df357ce2ebc5c551f9ec0966db5d13f0"
+        "url": "https://finnhub.io/api/news?id=d28d7b71b436881c0157c47a7e75bc35464f5bd1529000ed2355726fd0e6c0fa"
       },
       {
-        "headline": "Rocket Lab Lands $12 Million Deal To Advance US Military Space Network",
-        "datetime": 1787127687,
+        "headline": "Rocket Lab CEO Says $8 Billion Iridium Deal Won’t Take on Elon Musk’s Starlink — Don’t Intend to 'Directly Compete,’ But Plans Something That 'Hasn’t Been Seen Before’",
+        "datetime": 1787212721,
         "source": "Benzinga",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=a5d44f96bc12b6e8a7e47acf98bc8de0398f444c5d1cd294f759099ca8c171ac"
-      },
-      {
-        "headline": "Rocket Lab Onboarding Into The U.S. Space Force’s Space Data Network Consortium; Co. Awarded Two Delivery Orders Totaling A Combined Value Of $12M To Support The SDN-B Program To Demonstrate Interoper",
-        "datetime": 1787072161,
-        "source": "Benzinga",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=5d29d7fac159db0f013304572356614b20dcd85a1b91e7c1702a03f2e8a3c717"
-      },
-      {
-        "headline": "Goldman's 'Second Space Age' — $1.8 Trillion Global Market by 2035",
-        "datetime": 1787062566,
-        "source": "Benzinga",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=2d24f9b4daa34363473af59ba65821fe60341732d839c1b7794d6112f516a29a"
+        "url": "https://finnhub.io/api/news?id=23c8eb3e0ee50518bd0723e669e7a6b7ddc8446079cceb2544235b2ab190e566"
       }
     ],
     "SPCX": [
       {
-        "headline": "Tracking Cathie Wood's ARK Invest 13F Portfolio - Q2 2026 Update",
-        "datetime": 1787172468,
+        "headline": "Firefly Aerospace Worth A Bet As The Space Race Diversifies",
+        "datetime": 1787303417,
         "source": "SeekingAlpha",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=6176cf1f3006a9b7f1e7eece33e01b74901f7d28aa6591f2ed6baa2cc5a017ee"
+        "url": "https://finnhub.io/api/news?id=7da4a44bbe0addf2273e82e20a3ca21b56ff9e6c0027aeae8f73ceb2982c9c34"
       },
       {
-        "headline": "SpaceX Rolls Out Grok 4.6 on Amazon Bedrock",
-        "datetime": 1787138218,
-        "source": "Benzinga",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=09173f205251442a83d5ab7bccf035ddb0532e7967e7fca02330e79121a1ac16"
-      },
-      {
-        "headline": "3 Sectors Investors Should Buy Now as S&P 500 Stumbles — Strategist Sees 15%-18% Upside",
-        "datetime": 1787127105,
-        "source": "Benzinga",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=06dae45a118bedd2aa24fcab520528cf33f0e219c27c61710a1d4f40e8eb6c7e"
-      },
-      {
-        "headline": "Wall Street Sinks as 30-Year Yield Hits 19-Year High, Chip Names Crumble",
-        "datetime": 1787126878,
-        "source": "ChartMill",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=62931e0861f4d587e501c84a06cf467fff02e73396bc22fd37f2c5a19c943e4b"
-      },
-      {
-        "headline": "Nvidia: Upgrade To Strong Buy On Elongation Of GPU Cycle, Value",
-        "datetime": 1787126161,
+        "headline": "Wall Street Lunch: Walmart Tumbles As Weak U.S. Sales Spark Spending Concerns",
+        "datetime": 1787237580,
         "source": "SeekingAlpha",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=09bf27246db2d730d5ebb857c0f57903c8faaa5738e465411f67278caaf51866"
+        "url": "https://finnhub.io/api/news?id=d0caa235c650c40f44b3efb5aee5166e624ed559c8db551a6c72ecf6e75a7b94"
+      },
+      {
+        "headline": "Alphabet: The $250 Billion Capex Offload Plan",
+        "datetime": 1787234556,
+        "source": "SeekingAlpha",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=7bdc39cbcc7f603f5a1e1dc62a3eb36c683b391e08b34ff3e80f4715d95ed4af"
+      },
+      {
+        "headline": "SpaceX Stock Slides as Second Lockup Expires",
+        "datetime": 1787225593,
+        "source": "Benzinga",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=8a6682b57767a39be88b963967506193b14921358de027d9056242ea30cb87f6"
+      },
+      {
+        "headline": "Rocket Lab: Only The Bad Is Priced In",
+        "datetime": 1787223968,
+        "source": "SeekingAlpha",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=d28d7b71b436881c0157c47a7e75bc35464f5bd1529000ed2355726fd0e6c0fa"
       }
     ],
     "SKHY": [
+      {
+        "headline": "SK hynix: The Buyback That Gets Worse As The Stock Gets Better",
+        "datetime": 1787248902,
+        "source": "SeekingAlpha",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=e10afa16779712bb7d947ff4e648471d83589f3e3bddcdd5dac7b28f68a65dba"
+      },
+      {
+        "headline": "Walmart's Outlook Signals Cautious Spending Ahead; Treasury Euphoria Fades; Samsung Soars; Bitcoin Shorts Crushed",
+        "datetime": 1787234643,
+        "source": "Benzinga",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=9f0fa6491050ece16f58e6bad9a1a4f330e0e162e9f4b10b87b5fd9db4f36298"
+      },
+      {
+        "headline": "Why Is SK Hynix Stock Surging on Thursday?",
+        "datetime": 1787229508,
+        "source": "Benzinga",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=ad33fb9e0fd2e240117dbbdc2dcfb3b32eebaf51dbe79dae99871df9da557a85"
+      },
+      {
+        "headline": "Sandisk Thesis: Every Byte AI Creates Needs A Home",
+        "datetime": 1787221702,
+        "source": "SeekingAlpha",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=16ba4df788fd95042bff4c44778493ec86029c02c4d86a795c09787699552a33"
+      },
       {
         "headline": "SK Hynix: When The Company Trades This Cheap, I Buy",
         "datetime": 1787217201,
         "source": "SeekingAlpha",
         "origin": "finnhub",
         "url": "https://finnhub.io/api/news?id=9131eec5faf2a09bc960a4a1bcb3a842811cd971cce1dd373cdac607d79a5a18"
-      },
-      {
-        "headline": "Carillon ClariVest International Stock Fund Q2 2026 Portfolio Update",
-        "datetime": 1787197800,
-        "source": "SeekingAlpha",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=7bdb614879ed5f444dba54d333a6385f1b33ef3ee1c46d8513959a43ce0ae326"
-      },
-      {
-        "headline": "SK hynix: This Could Be The Deal Of The Decade",
-        "datetime": 1787181243,
-        "source": "SeekingAlpha",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=5529c243f38585152333d4484ab8b3f7ebd179d46a70337a16054dd71307fafe"
-      },
-      {
-        "headline": "Samsung Tumbled Nearly 8% in Seoul Even as AI Demand Drives Chip Prices Up To 15%",
-        "datetime": 1787159540,
-        "source": "Benzinga",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=e551fabc0eaf1bf604fb78bf3da7ac26bae8cd8888398860076567dbc0a75d32"
-      },
-      {
-        "headline": "SK Hynix’s $28.6 Billion Buyback Meets KSMH’s Launch: Is Korea’s AI Memory Trade Back in Focus?",
-        "datetime": 1787150950,
-        "source": "Benzinga",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=56a0cf76845b2f209186170d7ae501eb5f5a56a7aef6e33d405e1f9237e24046"
       }
     ]
   },
