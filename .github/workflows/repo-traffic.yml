@@ -1,5 +1,7 @@
-name: Repo Traffic Capture
+name: Measurement Capture
 
+# Two rolling-window measurements that are lost if nobody writes them down.
+#
 # GitHub's Traffic API keeps 14 days. Nothing captured it until #789, so every
 # week that passed permanently erased the only first-party measurement of who
 # reaches this project and from where. This is the one kind of data loss that
@@ -55,17 +57,35 @@ jobs:
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Measure how late GitHub delivers the scheduled workflows
+        # Every scheduled workflow in this repository is late and nobody kept a
+        # number (#781). The Actions API ages runs out too, so this is the same
+        # shape of perishable measurement as the traffic above — and the numbers
+        # it produces are what a scheduling decision has to be argued from
+        # instead of a nice-looking cron minute.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          python3 ops/ci/schedule_drift.py | tee /tmp/drift.txt
+          {
+            echo '### Scheduled-run drift'
+            echo '```'
+            cat /tmp/drift.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Commit the merged history
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/data/repo-traffic.json
+          git add assets/data/repo-traffic.json assets/data/schedule-drift.json
           if git diff --cached --quiet; then
-            echo "no new traffic days — nothing to commit"
+            echo "no new measurements — nothing to commit"
             exit 0
           fi
-          git commit -m "growth: repo traffic capture $(date -u +%Y-%m-%d)"
+          git commit -m "measurement: repo traffic + schedule drift $(date -u +%Y-%m-%d)"
           # Automation commits to master all day; rebase onto whatever landed
           # while this job ran rather than failing on a stale ref.
           git pull --rebase --autostash origin master

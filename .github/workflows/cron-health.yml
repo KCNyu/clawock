@@ -1,7 +1,19 @@
 name: Cron Health Check
 
 # 17:17 HKT = 09:17 UTC 工作日 — 港股收盘后、美股开盘前 一窗口。
-# 避开整点：GitHub 官方说明整点高负载会延迟甚至丢弃 scheduled runs。
+#
+# 这里原来写着「避开整点：GitHub 官方说明整点高负载会延迟甚至丢弃 scheduled
+# runs」，隐含「非整点就准时」。**这条被本档自己的数据证伪了**（#781）：它就在
+# `17 9`，20 次实测漂移 30–198 分钟、中位 71 分钟。真正决定延迟的是 **UTC 小时
+# 有多拥挤**，不是分钟好不好看：`45 21` 中位 46 分钟、`0 13` 中位 74 分钟、
+# `25 0` 中位 124 分钟。
+#
+# ⇒ 任何「靠准时才有价值」的任务都不能只靠挑一个分钟来保证（brief-fallback 就是
+# 这么失效的，见 #780）。当前漂移表由 `ops/ci/schedule_drift.py` 每周采两次写进
+# `assets/data/schedule-drift.json`，别再凭印象猜。
+#
+# 本档自身对漂移不敏感：它读的是当天已落地的 git 产物与 heartbeat，晚一小时读到
+# 的是同一批事实。
 # 报告任务对 git 产物（缺 commit 时再查 workflow-outcomes 是否是 Telegram backstop
 # 接管——那条路径设计上不产 commit，见 #696）；盘中任务对逐 slot heartbeat
 # 缺漏 → workflow fail（Actions 可见；不做 README 首屏 badge）
