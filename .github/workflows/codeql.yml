@@ -1,0 +1,84 @@
+name: CodeQL
+
+# Advanced setup, replacing GitHub's default setup (#782).
+#
+# Default setup cannot be path-filtered, and this repository pushes to master
+# ~35 times a day of which ~85% are pure data commits written by automation
+# (assets/data/**, memory/**). Measured over three days: 98 CodeQL runs, ~33 a
+# day at 92–105 seconds each — about 55 minutes of runner time daily spent
+# re-analysing a byte-identical code tree, plus an Actions list where the real
+# CI results were buried under "Push on master" rows.
+#
+# What is deliberately NOT filtered: the `pull_request` trigger. `Analyze
+# (actions)`, `Analyze (javascript-typescript)`, `Analyze (python)` and `CodeQL`
+# are required status checks, and a required check that is filtered out never
+# reports and blocks the PR forever — the same trap actionlint.yml documents.
+# So every PR is analysed in full; only the master-push lane, which is not a
+# required check and is where all of the measured waste lives, is filtered.
+on:
+  push:
+    branches: [master]
+    paths-ignore:
+      # Everything automation rewrites all day. None of it is analysable code.
+      - 'assets/data/**'
+      - 'memory/**'
+      - 'logs/**'
+      - 'site/assets/data/**'
+      - 'portfolio.json'
+      - 'monitor_state.json'
+      - 'openclaw-workspace-state.json'
+  pull_request:
+  # The backstop for a paths-ignore that is written too widely: a weekly full
+  # analysis of master runs whatever the push lane skipped. Saturday 03:41 UTC —
+  # an uncontended slot, because measured schedule drift in this repository runs
+  # 10–160 minutes and is driven by how busy the UTC hour is (#781).
+  schedule:
+    - cron: '41 3 * * 6'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    # The explicit `name` is what keeps the check-run contexts byte-identical to
+    # the ones default setup produced, which is what the branch ruleset requires.
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      security-events: write
+      packages: read
+      actions: read
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Same language set default setup was configured with, minus the two
+          # aliases: `javascript` and `typescript` are both analysed by the
+          # `javascript-typescript` extractor, and listing them separately just
+          # produced duplicate work.
+          - language: actions
+            build-mode: none
+          - language: javascript-typescript
+            build-mode: none
+          - language: python
+            build-mode: none
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+          # Left on the default query suite on purpose: default setup ran
+          # `query_suite: default`, and this change is about the trigger surface,
+          # not about widening coverage. Widening the suite is a separate
+          # decision with its own alert backlog.
+
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"
