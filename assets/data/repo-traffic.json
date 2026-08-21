@@ -1,0 +1,260 @@
+{
+  "generated_at": "2026-08-21T17:26:26Z",
+  "repo": "KCNyu/clawock",
+  "note": "views/clones are per-day series merged across runs. referrers/paths are 14-day aggregates captured as dated snapshots and must not be summed or differenced as daily values.",
+  "views": [
+    {
+      "timestamp": "2026-08-07T00:00:00Z",
+      "count": 1,
+      "uniques": 1
+    },
+    {
+      "timestamp": "2026-08-08T00:00:00Z",
+      "count": 215,
+      "uniques": 4
+    },
+    {
+      "timestamp": "2026-08-09T00:00:00Z",
+      "count": 82,
+      "uniques": 7
+    },
+    {
+      "timestamp": "2026-08-10T00:00:00Z",
+      "count": 71,
+      "uniques": 50
+    },
+    {
+      "timestamp": "2026-08-11T00:00:00Z",
+      "count": 14,
+      "uniques": 10
+    },
+    {
+      "timestamp": "2026-08-12T00:00:00Z",
+      "count": 1,
+      "uniques": 1
+    },
+    {
+      "timestamp": "2026-08-13T00:00:00Z",
+      "count": 5,
+      "uniques": 5
+    },
+    {
+      "timestamp": "2026-08-14T00:00:00Z",
+      "count": 1,
+      "uniques": 1
+    },
+    {
+      "timestamp": "2026-08-15T00:00:00Z",
+      "count": 9,
+      "uniques": 7
+    },
+    {
+      "timestamp": "2026-08-16T00:00:00Z",
+      "count": 30,
+      "uniques": 13
+    },
+    {
+      "timestamp": "2026-08-17T00:00:00Z",
+      "count": 35,
+      "uniques": 10
+    },
+    {
+      "timestamp": "2026-08-18T00:00:00Z",
+      "count": 9,
+      "uniques": 4
+    },
+    {
+      "timestamp": "2026-08-19T00:00:00Z",
+      "count": 22,
+      "uniques": 9
+    },
+    {
+      "timestamp": "2026-08-20T00:00:00Z",
+      "count": 19,
+      "uniques": 10
+    }
+  ],
+  "clones": [
+    {
+      "timestamp": "2026-08-07T00:00:00Z",
+      "count": 410,
+      "uniques": 89
+    },
+    {
+      "timestamp": "2026-08-08T00:00:00Z",
+      "count": 1059,
+      "uniques": 165
+    },
+    {
+      "timestamp": "2026-08-09T00:00:00Z",
+      "count": 918,
+      "uniques": 130
+    },
+    {
+      "timestamp": "2026-08-10T00:00:00Z",
+      "count": 1042,
+      "uniques": 173
+    },
+    {
+      "timestamp": "2026-08-11T00:00:00Z",
+      "count": 870,
+      "uniques": 154
+    },
+    {
+      "timestamp": "2026-08-12T00:00:00Z",
+      "count": 719,
+      "uniques": 131
+    },
+    {
+      "timestamp": "2026-08-13T00:00:00Z",
+      "count": 1187,
+      "uniques": 196
+    },
+    {
+      "timestamp": "2026-08-14T00:00:00Z",
+      "count": 500,
+      "uniques": 79
+    },
+    {
+      "timestamp": "2026-08-15T00:00:00Z",
+      "count": 1022,
+      "uniques": 96
+    },
+    {
+      "timestamp": "2026-08-16T00:00:00Z",
+      "count": 1759,
+      "uniques": 89
+    },
+    {
+      "timestamp": "2026-08-17T00:00:00Z",
+      "count": 965,
+      "uniques": 127
+    },
+    {
+      "timestamp": "2026-08-18T00:00:00Z",
+      "count": 2266,
+      "uniques": 94
+    },
+    {
+      "timestamp": "2026-08-19T00:00:00Z",
+      "count": 1668,
+      "uniques": 83
+    },
+    {
+      "timestamp": "2026-08-20T00:00:00Z",
+      "count": 482,
+      "uniques": 68
+    }
+  ],
+  "referrers_snapshots": [
+    {
+      "captured_at": "2026-08-21T17:26:26Z",
+      "window_days": 14,
+      "rows": [
+        {
+          "referrer": "github.com",
+          "count": 253,
+          "uniques": 18
+        },
+        {
+          "referrer": "Google",
+          "count": 4,
+          "uniques": 4
+        },
+        {
+          "referrer": "chatgpt.com",
+          "count": 2,
+          "uniques": 1
+        },
+        {
+          "referrer": "zhihu.com",
+          "count": 1,
+          "uniques": 1
+        }
+      ]
+    }
+  ],
+  "paths_snapshots": [
+    {
+      "captured_at": "2026-08-21T17:26:26Z",
+      "window_days": 14,
+      "rows": [
+        {
+          "path": "/KCNyu/clawock",
+          "title": "Overview",
+          "count": 165,
+          "uniques": 41
+        },
+        {
+          "path": "/KCNyu/clawock/pulls",
+          "title": "/pulls",
+          "count": 38,
+          "uniques": 4
+        },
+        {
+          "path": "/KCNyu/clawock/issues",
+          "title": "/issues",
+          "count": 27,
+          "uniques": 6
+        },
+        {
+          "path": "/KCNyu/clawock/blob/master/README.zh.md",
+          "title": "/blob/master/README.zh.md",
+          "count": 13,
+          "uniques": 8
+        },
+        {
+          "path": "/KCNyu/clawock/tree/master",
+          "title": "/tree/master",
+          "count": 6,
+          "uniques": 1
+        },
+        {
+          "path": "/KCNyu/clawock/tree/master/instances/kcnyu",
+          "title": "/tree/master/instances/kcnyu",
+          "count": 6,
+          "uniques": 1
+        },
+        {
+          "path": "/KCNyu/clawock/blob/master/examples/README.md",
+          "title": "/blob/master/examples/README.md",
+          "count": 5,
+          "uniques": 5
+        },
+        {
+          "path": "/KCNyu/clawock/blob/master/skills/hk-stock-analysis/SKILL.md",
+          "title": "/blob/master/skills/hk-stock-analysis/SKILL.md",
+          "count": 5,
+          "uniques": 5
+        },
+        {
+          "path": "/KCNyu/clawock/commits/master",
+          "title": "/commits/master",
+          "count": 5,
+          "uniques": 1
+        },
+        {
+          "path": "/KCNyu/clawock/issues/380",
+          "title": "/issues/380",
+          "count": 5,
+          "uniques": 1
+        }
+      ]
+    }
+  ],
+  "package_downloads": [
+    {
+      "captured_at": "2026-08-21T17:26:26Z",
+      "pypi": {
+        "last_day": 3,
+        "last_month": 896,
+        "last_week": 615
+      },
+      "npm": {
+        "downloads": 1126,
+        "start": "2026-07-21",
+        "end": "2026-08-19"
+      }
+    }
+  ]
+}

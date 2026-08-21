@@ -1,0 +1,72 @@
+name: Repo Traffic Capture
+
+# GitHub's Traffic API keeps 14 days. Nothing captured it until #789, so every
+# week that passed permanently erased the only first-party measurement of who
+# reaches this project and from where. This is the one kind of data loss that
+# cannot be repaired later by trying harder.
+#
+# On GitHub rather than the VPS, per the standing rule for new automation (and
+# kcn, 2026-08-22: nothing new on the box). Also the right host on the merits —
+# the token that can read traffic is already here.
+#
+# Twice a week, not weekly. The window is 14 days so weekly would suffice in
+# theory, but one missed run then silently costs 7 days that no retry can
+# recover. Two runs, four days apart, make a single failure harmless. Minutes
+# chosen off the hour and off the contended UTC hours; measured schedule drift
+# in this repository is 10-160 minutes and is driven by how busy the hour is
+# (#781), which for a rolling-window capture is irrelevant anyway.
+on:
+  schedule:
+    - cron: '38 3 * * 2'
+    - cron: '38 3 * * 6'
+  workflow_dispatch:
+
+# Shares the repository's single writer lane: this commits to master like every
+# other data producer, and must queue behind them rather than race.
+concurrency:
+  group: data-write
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+
+      - name: Capture traffic and package downloads
+        env:
+          # The Traffic API requires push access; the workflow token has it.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          python3 ops/growth/repo_traffic.py | tee /tmp/traffic.txt
+          {
+            echo '### Repository traffic'
+            echo '```'
+            cat /tmp/traffic.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Commit the merged history
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/data/repo-traffic.json
+          if git diff --cached --quiet; then
+            echo "no new traffic days — nothing to commit"
+            exit 0
+          fi
+          git commit -m "growth: repo traffic capture $(date -u +%Y-%m-%d)"
+          # Automation commits to master all day; rebase onto whatever landed
+          # while this job ran rather than failing on a stale ref.
+          git pull --rebase --autostash origin master
+          git push origin HEAD:master
