@@ -64,7 +64,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       # The four dashboard outputs are published to an orphan data branch, not
       # to master (#314). The staging step reads them from the checkout, so they
