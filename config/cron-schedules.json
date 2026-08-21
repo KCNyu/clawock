@@ -152,6 +152,8 @@
         "首次生成和 postflight 修复 Step 4 产物都只用 `write` 完整覆盖；禁止 `edit` 精确文本替换",
         "唯一微信路径",
         "同步 Telegram",
+        "猜错了不许全盘扫描",
+        "不需要 kill",
         "绝不要",
         "message"
       ],
