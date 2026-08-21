@@ -1,0 +1,34 @@
+{
+  "name": "clawock",
+  "image": "mcr.microsoft.com/devcontainers/python:1-3.12-bookworm",
+
+  // Everything the test suite needs to *collect*, plus the numeric extra the
+  // risk and regime code imports. Named extras rather than a hand-written
+  // package list, for the same reason the workflows stopped writing their own
+  // `pip install` lines: a second source of truth drifts unseen. A CI assertion
+  // holds this line and pyproject's extras together.
+  "postCreateCommand": "pip install --upgrade pip && pip install -e '.[compute,test]'",
+
+  "postAttachCommand": {
+    "next-steps": "bash .devcontainer/welcome.sh"
+  },
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "charliermarsh.ruff"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python"
+      }
+    }
+  },
+
+  "features": {
+    // The DSH plugin contract and the Tavily ledger tests are pure Node, and
+    // the dashboard's browser contract needs a runtime too. Cheap to have,
+    // annoying to discover missing.
+    "ghcr.io/devcontainers/features/node:1": { "version": "22" }
+  }
+}
