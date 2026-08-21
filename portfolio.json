@@ -1,6 +1,6 @@
 {
   "owner": "kcn",
-  "last_updated": "2026/08/21 21:31 HKT",
+  "last_updated": "2026/08/21 23:30 HKT",
   "portfolios": {
     "us_stocks": {
       "currency": "USD",
@@ -97,10 +97,10 @@
           "ticker": "CRCL",
           "shares": 2,
           "cost_basis": 87,
-          "current_price": 88.63,
-          "today_change_pct": 5.9407,
-          "pnl_percent": 1.8736,
-          "data_source": "Finnhub Aug 21, 2026 09:31 ET",
+          "current_price": 88.65,
+          "today_change_pct": 5.9646,
+          "pnl_percent": 1.8966,
+          "data_source": "Finnhub Aug 21, 2026 11:30 ET",
           "note": "2026-02-26/03-02 共买入14股(@88.35+@86.45,均价≈87);2026-03-04 卖4股@103.21(+64.84);03-11 卖5股@120(+165);03-23 卖3股@127(+120);剩余2股长期持有(看好稳定币+agent支付赛道)",
           "trades": [
             {
@@ -142,13 +142,13 @@
               "note": "按用户记录卖出"
             }
           ],
-          "day_high": 89.21,
-          "day_low": 87.66,
+          "day_high": 92.97,
+          "day_low": 87.3,
           "day_open": 87.99,
           "prev_close": 83.66,
-          "current_value": 177.26,
-          "pnl_abs": 3.26,
-          "today_change": 9.94,
+          "current_value": 177.3,
+          "pnl_abs": 3.3,
+          "today_change": 9.98,
           "name": "Circle Internet Group Inc-A",
           "volume": 8581625,
           "prev_close_date": "2026-08-20",
@@ -475,17 +475,17 @@
           "ticker": "RKLX",
           "shares": 10,
           "cost_basis": 49.69,
-          "current_price": 20.31,
-          "today_change_pct": 2.163,
-          "pnl_percent": -59.1266,
-          "data_source": "Finnhub Aug 21, 2026 09:31 ET",
-          "day_high": 20.57,
-          "day_low": 20.16,
+          "current_price": 20.0,
+          "today_change_pct": 0.6036,
+          "pnl_percent": -59.7505,
+          "data_source": "Finnhub Aug 21, 2026 11:30 ET",
+          "day_high": 20.9688,
+          "day_low": 19.0501,
           "day_open": 20.56,
           "prev_close": 19.88,
-          "current_value": 203.1,
-          "pnl_abs": -293.8,
-          "today_change": 4.3,
+          "current_value": 200.0,
+          "pnl_abs": -296.9,
+          "today_change": 1.2,
           "note": "2x RKLB杠杆ETF,纳指100入指波段仓(生效日6/22),$49.69建仓,目标$60-68,止损$46",
           "trades": [
             {
@@ -611,13 +611,13 @@
           "name": "SpaceX",
           "shares": 1,
           "cost_basis": 147.5,
-          "current_price": 134.72,
-          "current_value": 134.72,
-          "pnl_abs": -12.78,
-          "pnl_percent": -8.6644,
-          "today_change": 0.72,
-          "today_change_pct": 0.5373,
-          "data_source": "Finnhub Aug 21, 2026 09:31 ET",
+          "current_price": 136.2,
+          "current_value": 136.2,
+          "pnl_abs": -11.3,
+          "pnl_percent": -7.661,
+          "today_change": 2.2,
+          "today_change_pct": 1.6418,
+          "data_source": "Finnhub Aug 21, 2026 11:30 ET",
           "trades": [
             {
               "date": "2026-06-12",
@@ -644,8 +644,8 @@
           ],
           "prev_close": 134.0,
           "prev_close_date": "2026-08-20",
-          "day_high": 135.0,
-          "day_low": 133.88,
+          "day_high": 136.56,
+          "day_low": 131.22,
           "day_open": 134.325,
           "day_session_date": "2026-08-21",
           "volume": 96727761
@@ -655,13 +655,13 @@
           "name": "Leverage Shares 2X Long SpaceX Daily ETF",
           "shares": 300,
           "cost_basis": 12.06,
-          "current_price": 8.31,
-          "current_value": 2493.0,
-          "pnl_abs": -1125.0,
-          "pnl_percent": -31.0945,
-          "data_source": "Finnhub Aug 21, 2026 09:31 ET",
-          "today_change": 33.0,
-          "today_change_pct": 1.3415,
+          "current_price": 8.49,
+          "current_value": 2547.0,
+          "pnl_abs": -1071.0,
+          "pnl_percent": -29.602,
+          "data_source": "Finnhub Aug 21, 2026 11:30 ET",
+          "today_change": 87.0,
+          "today_change_pct": 3.5366,
           "trades": [
             {
               "date": "2026-07-22",
@@ -849,8 +849,8 @@
           ],
           "note": "SPCX(SpaceX) 2x做多ETF，已七次加仓摊本（6/22同日两次），FTSE/CRSP入指利好兑现当天反跌+8月解禁悬云(最多44%股份)未出清，逻辑持续弱化\n2026-07-02 凌晨 02:03 HKT 第八次加仓 10 股 @$13.89（盘中），累计加仓金额触发 P0 风险升级 → 详见 strategy_note。\n2026-06-24 凌晨挂限价单 $13.50 成交10股 → 净 100 股,加权均成本 $17.888。当晚先放量冲高至$14.30+(50M+股,Benzinga报道frenzy级)后回落到限价位成交,符合\"等回踩不追涨\"的纪律。\n2026-06-23 加仓 10 股 @$13.13 → 净 90 股,加权均成本 $18.3756 (vs 旧 19.0312（注：旧值含已 T+0 卖出的 20 股 @16.68，已剔除））。逆硬止损线操作第 6 次,minimax 立场=反对但 kcn 选择执行。\n2026-06-23 用户声明无限子弹流策略：持续加仓摊本直到 SPCX 正股反弹或 8 月解禁落地。minimax 不再每条盯盘喊砍，仅在 (a)单日跌幅 >15% (b)累计加仓金额 > $3000 (c)SPCX 正股单周 -25% 时升级为 P0 风险提示。\n2026-07-02 02:03 HKT 触发 P0：(b) 累计加仓金额已突破 $3000 (按 cash-flow 累加 $1,946.5USD，但若含手续费+滑点已逼近阈值)。minimax 升级为 P0 风险提示，但 kcn 持续执行。\n2026-07-02 02:09 HKT 第九次加仓 10 股 @$13.89 → 净 110 股,加权均成本 $17.5245 (按 cash-flow 加权 vs 旧 $17.888 摊本交易成本加全量),浮亏 -21.76% / -$419.6 (现价 $13.71)。\n⚠️ P0 持续:US 现金余额仅剩 ~$134.35,累计加仓金额 $1,946.5 / $3,000 阈值(差 $1,053.5 才升级);弹药已见底,再无追加空间除非变现其他仓位。",
           "prev_close": 8.2,
-          "day_high": 8.3225,
-          "day_low": 8.19,
+          "day_high": 8.52,
+          "day_low": 7.87,
           "day_open": 8.255,
           "prev_close_date": "2026-08-20",
           "day_session_date": "2026-08-21",
@@ -921,13 +921,13 @@
           "name": "SK海力士 ADR",
           "shares": 1,
           "cost_basis": 169.185,
-          "current_price": 166.68,
-          "current_value": 166.68,
-          "pnl_abs": -2.5,
-          "pnl_percent": -1.4806,
-          "data_source": "Finnhub Aug 21, 2026 09:31 ET",
-          "day_high": 167.3299,
-          "day_low": 166.19,
+          "current_price": 165.15,
+          "current_value": 165.15,
+          "pnl_abs": -4.03,
+          "pnl_percent": -2.385,
+          "data_source": "Finnhub Aug 21, 2026 11:30 ET",
+          "day_high": 167.33,
+          "day_low": 162.57,
           "note": "2026-07-10 IPO首日(发行价$149,史上第二大全球股票发行仅次于SpaceX)169.185买入1股,用户报告成交。临时代码SKHYV已于2026-07-13转为正式代码SKHY",
           "trades": [
             {
@@ -940,44 +940,44 @@
           ],
           "prev_close": 163.08,
           "prev_close_date": "2026-08-20",
-          "today_change_pct": 2.2075,
+          "today_change_pct": 1.2693,
           "day_session_date": "2026-08-21",
-          "today_change": 3.6,
+          "today_change": 2.07,
           "day_open": 167.06,
           "volume": 20684835
         }
       ],
       "total_cost": 4605.59,
-      "total_current_value": 3174.76,
-      "total_pnl": -1430.82,
-      "total_pnl_percent": -31.0672,
-      "today_total_change": 51.56,
+      "total_current_value": 3225.65,
+      "total_pnl": -1379.93,
+      "total_pnl_percent": -29.9622,
+      "today_total_change": 102.45,
       "realized_pnl": 2347.68,
       "realized_note": "NVDA 3股@197.5(+29.19) + CRCL 4股@103.21(+64.84) + CRCL 5股@120(+165) + CRCL 3股@127(+120) + NVDA 3股@199.41(+34.92) + QQQ 1股@631.3(+9.03) + TQQQ 8股@54.45(+69.76) + HOOD 5股@88.36(+74.3) + OKLO 2股@68(+10.34) + TCOM 5股@53.86(+5.6) + SOXL 5股@112(+100.65) + RKLX 4股@75(+113.2) + RKLX 2股@91.03(+88.66) + SOXL 3股@170.8(+236.79) + SOXL 2股@217.17(+250.6) + RKLB 5股@100.17(+145.85) + SPCX 5股@168(+48.5) + RKLX 10股@53.93(+7.3) + SPCH 20股@18.42(+34.8) + ROBN 20股@35.175(+231.85) + ROBN 10股@40(+164.17) + ROBN 10股@37(+134.18) + MSFU 5股@31.19(+10.3) + MSFU 5股@32(+14.35) + PLTU 4股@45(+16.17) + PLTU 5股@49(+40.2143) + MSFU 10股@37.32(+81.9) + PLTU 5股@50(+45.2143)",
       "last_updated": "Jun 24, 2026 16:00 ET close",
       "last_close_attempted": "May 7, 2026 16:00 ET close",
-      "last_open_attempted": "2026-08-21 09:31 EDT",
+      "last_open_attempted": "2026-08-21 11:30 EDT",
       "indices_snapshot": {
         "SPX": {
           "name": "S&P 500",
-          "price": 7671.44,
+          "price": 7677.97,
           "prev_close": 7641.16,
-          "change_pct": 0.396,
-          "source": "Tencent usINX index @ 2026-08-21 09:31 ET"
+          "change_pct": 0.482,
+          "source": "Tencent usINX index @ 2026-08-21 11:30 ET"
         },
         "NDX": {
           "name": "Nasdaq 100",
-          "price": 29344.11,
+          "price": 29288.06,
           "prev_close": 29213.16,
-          "change_pct": 0.448,
-          "source": "Tencent usNDX index @ 2026-08-21 09:31 ET"
+          "change_pct": 0.256,
+          "source": "Tencent usNDX index @ 2026-08-21 11:30 ET"
         },
         "DJI": {
           "name": "Dow Jones",
-          "price": 53019.59,
+          "price": 53167.14,
           "prev_close": 52759.21,
-          "change_pct": 0.493,
-          "source": "Tencent usDJI index @ 2026-08-21 09:31 ET"
+          "change_pct": 0.773,
+          "source": "Tencent usDJI index @ 2026-08-21 11:30 ET"
         }
       },
       "last_trade_update": "2026-06-13 00:02 HKT",
@@ -1031,7 +1031,7 @@
         "source_counts": {
           "Finnhub": 5
         },
-        "updated_at": "2026-08-21 09:31 EDT",
+        "updated_at": "2026-08-21 11:30 EDT",
         "note": "Multi-provider fetch. Sources: 5x Finnhub"
       },
       "afterhours_fetch_status": {
@@ -1538,31 +1538,31 @@
   },
   "market_context": {},
   "gold_dca": {
-    "principal_invested": 17299.0,
-    "principal_note": "对账基线(自动累加模式)。2026-06-09 kcn 对账:现值 15470 + 盈亏 -1829 → 本金 17299,份额 = 15470/净值3.1867 = 4854.55。此后每个 A 股交易日自动 +200@当日净值。补投对账:把 principal_invested/units_held 改成新真实数字、reconciled_date 改成对账当天即可,自动累加归零重算。",
-    "units_held": 4854.55,
     "fund_code": "000217",
+    "start_date": "2026-01-22",
+    "fund_name": "华安黄金ETF联接C",
+    "units_held": 4854.55,
     "currency": "CNY",
+    "principal_note": "对账基线(自动累加模式)。2026-06-09 kcn 对账:现值 15470 + 盈亏 -1829 → 本金 17299,份额 = 15470/净值3.1867 = 4854.55。此后每个 A 股交易日自动 +200@当日净值。补投对账:把 principal_invested/units_held 改成新真实数字、reconciled_date 改成对账当天即可,自动累加归零重算。",
     "daily_amount": 200,
     "reconciled_date": "2026-06-09",
-    "fund_name": "华安黄金ETF联接C",
-    "start_date": "2026-01-22",
-    "nav": 3.2572,
-    "nav_date": "2026-08-20",
-    "nav_change_pct": 2.41,
+    "principal_invested": 17299.0,
+    "nav": 3.3078,
+    "nav_date": "2026-08-21",
+    "nav_change_pct": 1.55,
     "realtime": null,
-    "principal_effective": 27499.0,
-    "units_effective": 8198.89,
-    "auto_added_days": 51,
-    "auto_added_amount": 10200.0,
-    "avg_cost": 3.354,
-    "current_value": 26705.43,
-    "pnl_abs": -793.57,
-    "pnl_percent": -2.89,
-    "breakeven_nav": 3.354,
-    "breakeven_upside_pct": 2.97,
-    "days_invested": 140,
-    "installments_est": 137,
+    "principal_effective": 27699.0,
+    "units_effective": 8259.35,
+    "auto_added_days": 52,
+    "auto_added_amount": 10400.0,
+    "avg_cost": 3.3537,
+    "current_value": 27320.29,
+    "pnl_abs": -378.71,
+    "pnl_percent": -1.37,
+    "breakeven_nav": 3.3537,
+    "breakeven_upside_pct": 1.39,
+    "days_invested": 141,
+    "installments_est": 138,
     "window_high": {
       "date": "2026-01-29",
       "nav": 4.1882
@@ -1574,45 +1574,41 @@
     "projection": [
       {
         "days": 20,
-        "invested": 31499.0,
-        "avg_cost": 3.3414,
-        "pnl_pct": -2.52,
-        "breakeven_upside_pct": 2.58
+        "invested": 31699.0,
+        "avg_cost": 3.3478,
+        "pnl_pct": -1.19,
+        "breakeven_upside_pct": 1.21
       },
       {
         "days": 40,
-        "invested": 35499.0,
-        "avg_cost": 3.3317,
-        "pnl_pct": -2.24,
-        "breakeven_upside_pct": 2.29
+        "invested": 35699.0,
+        "avg_cost": 3.3433,
+        "pnl_pct": -1.06,
+        "breakeven_upside_pct": 1.07
       },
       {
         "days": 60,
-        "invested": 39499.0,
-        "avg_cost": 3.324,
-        "pnl_pct": -2.01,
-        "breakeven_upside_pct": 2.05
+        "invested": 39699.0,
+        "avg_cost": 3.3397,
+        "pnl_pct": -0.95,
+        "breakeven_upside_pct": 0.96
       },
       {
         "days": 120,
-        "invested": 51499.0,
-        "avg_cost": 3.3082,
-        "pnl_pct": -1.54,
-        "breakeven_upside_pct": 1.57
+        "invested": 51699.0,
+        "avg_cost": 3.3322,
+        "pnl_pct": -0.73,
+        "breakeven_upside_pct": 0.74
       },
       {
         "days": 250,
-        "invested": 77499.0,
-        "avg_cost": 3.2909,
-        "pnl_pct": -1.02,
-        "breakeven_upside_pct": 1.03
+        "invested": 77699.0,
+        "avg_cost": 3.324,
+        "pnl_pct": -0.49,
+        "breakeven_upside_pct": 0.49
       }
     ],
     "nav_history": [
-      [
-        "2026-01-22",
-        3.6627
-      ],
       [
         "2026-01-23",
         3.7498
@@ -2168,533 +2164,537 @@
       [
         "2026-08-20",
         3.2572
+      ],
+      [
+        "2026-08-21",
+        3.3078
       ]
     ],
-    "last_updated": "2026-08-20T15:50:24.546472Z",
+    "last_updated": "2026-08-21T15:50:25.603339Z",
     "domestic_gold": {
       "symbol": "Au99.99",
-      "price_cny_g": 968.14,
-      "date": "2026-08-20",
-      "open_cny_g": 945.0,
-      "high_cny_g": 972.9,
-      "low_cny_g": 945.0,
-      "change_pct": 2.42,
-      "weighted_avg_cny_g": 969.16,
+      "price_cny_g": 983.56,
+      "date": "2026-08-21",
+      "open_cny_g": 967.0,
+      "high_cny_g": 986.6,
+      "low_cny_g": 962.0,
+      "change_pct": 1.59,
+      "weighted_avg_cny_g": 981.19,
       "source": "sge_quotation_daily_new",
-      "fetched_at": "2026-08-20T15:50:18.585472Z",
-      "breakeven_cny_g": 996.91,
-      "breakeven_upside_pct": 2.97,
+      "fetched_at": "2026-08-21T15:50:17.632521Z",
+      "breakeven_cny_g": 997.21,
+      "breakeven_upside_pct": 1.39,
       "quote_status": "fresh"
     },
     "london": {
-      "xau_usd": 4519.99,
-      "xau_change_pct": -0.06,
-      "xau_high": 4540.81,
-      "xau_low": 4450.62,
-      "xau_prev_close": 4522.78,
-      "xau_date": "2026-08-20",
-      "usdcny": 6.7236,
-      "oz_equiv": 0.879,
-      "grams_equiv": 27.3,
-      "intl_value_usd": 3971.89,
-      "fund_breakeven_usd_oz": 4654.32,
-      "fund_breakeven_upside_pct": 2.97,
+      "xau_usd": 4607.66,
+      "xau_change_pct": 1.96,
+      "xau_high": 4610.87,
+      "xau_low": 4508.75,
+      "xau_prev_close": 4519.14,
+      "xau_date": "2026-08-21",
+      "usdcny": 6.7206,
+      "oz_equiv": 0.882,
+      "grams_equiv": 27.4,
+      "intl_value_usd": 4065.16,
+      "fund_breakeven_usd_oz": 4671.6,
+      "fund_breakeven_upside_pct": 1.39,
       "compare_series": [
         [
-          "2026-04-13",
-          96.1,
-          96.03
-        ],
-        [
           "2026-04-14",
-          96.64,
-          98.08
+          94.4,
+          97.1
         ],
         [
           "2026-04-15",
-          97.31,
-          97.05
+          95.05,
+          96.08
         ],
         [
           "2026-04-16",
-          97.57,
-          97.05
+          95.3,
+          96.08
         ],
         [
           "2026-04-17",
-          97.07,
-          97.93
+          94.82,
+          96.95
         ],
         [
           "2026-04-20",
-          97.17,
-          97.66
+          94.92,
+          96.68
         ],
         [
           "2026-04-21",
-          96.85,
-          95.62
+          94.6,
+          94.66
         ],
         [
           "2026-04-22",
-          96.68,
-          96.03
+          94.43,
+          95.07
         ],
         [
           "2026-04-23",
-          95.65,
-          95.1
+          93.43,
+          94.14
         ],
         [
           "2026-04-24",
-          95.25,
-          95.38
+          93.04,
+          94.43
         ],
         [
           "2026-04-27",
-          95.6,
-          94.84
+          93.38,
+          93.9
         ],
         [
           "2026-04-28",
-          94.13,
-          93.13
+          91.94,
+          92.2
         ],
         [
           "2026-04-29",
-          93.09,
-          92.04
+          90.93,
+          91.12
         ],
         [
           "2026-04-30",
-          93.37,
-          93.63
+          91.2,
+          92.69
         ],
         [
           "2026-05-06",
-          94.59,
-          95.03
+          92.39,
+          94.08
         ],
         [
           "2026-05-07",
-          95.69,
-          94.95
+          93.47,
+          94.0
         ],
         [
           "2026-05-08",
-          95.12,
-          95.52
+          92.91,
+          94.57
         ],
         [
           "2026-05-11",
-          94.51,
-          95.92
+          92.32,
+          94.96
         ],
         [
           "2026-05-12",
-          94.8,
-          95.52
+          92.59,
+          94.57
         ],
         [
           "2026-05-13",
-          94.88,
-          94.99
+          92.67,
+          94.04
         ],
         [
           "2026-05-14",
-          94.75,
-          94.25
+          92.55,
+          93.31
         ],
         [
           "2026-05-15",
-          92.69,
-          91.94
+          90.54,
+          91.02
         ],
         [
           "2026-05-18",
-          92.06,
-          92.5
+          89.92,
+          91.58
         ],
         [
           "2026-05-19",
-          91.93,
-          90.8
+          89.8,
+          89.89
         ],
         [
           "2026-05-20",
-          90.72,
-          92.05
+          88.62,
+          91.13
         ],
         [
           "2026-05-21",
-          91.35,
-          92.04
+          89.23,
+          91.11
         ],
         [
           "2026-05-22",
-          91.38,
-          91.3
+          89.26,
+          90.39
         ],
         [
           "2026-05-25",
-          91.82,
-          92.6
+          89.69,
+          91.67
         ],
         [
           "2026-05-26",
-          91.38,
-          91.31
+          89.25,
+          90.4
         ],
         [
           "2026-05-27",
-          90.5,
-          90.27
+          88.4,
+          89.37
         ],
         [
           "2026-05-28",
-          88.59,
-          91.08
+          86.53,
+          90.16
         ],
         [
           "2026-05-29",
-          90.67,
-          91.97
+          88.57,
+          91.05
         ],
         [
           "2026-06-01",
-          90.34,
-          90.85
+          88.24,
+          89.94
         ],
         [
           "2026-06-02",
-          90.86,
-          90.92
+          88.75,
+          90.01
         ],
         [
           "2026-06-03",
-          89.6,
-          89.83
+          87.52,
+          88.93
         ],
         [
           "2026-06-04",
-          89.73,
-          90.66
+          87.64,
+          89.75
         ],
         [
           "2026-06-05",
-          89.69,
-          87.67
+          87.61,
+          86.79
         ],
         [
           "2026-06-08",
-          86.68,
-          87.71
+          84.66,
+          86.84
         ],
         [
           "2026-06-09",
-          87.0,
-          86.29
+          84.98,
+          85.42
         ],
         [
           "2026-06-10",
-          84.29,
-          82.48
+          82.33,
+          81.65
         ],
         [
           "2026-06-11",
-          82.46,
-          85.3
+          80.55,
+          84.45
         ],
         [
           "2026-06-12",
-          83.54,
-          85.43
+          81.6,
+          84.57
         ],
         [
           "2026-06-15",
-          86.25,
-          87.3
+          84.25,
+          86.42
         ],
         [
           "2026-06-16",
-          86.58,
-          87.74
+          84.56,
+          86.86
         ],
         [
           "2026-06-17",
-          86.46,
-          86.25
+          84.45,
+          85.39
         ],
         [
           "2026-06-18",
-          86.17,
-          85.27
+          84.17,
+          84.41
         ],
         [
           "2026-06-22",
-          84.15,
-          84.91
+          82.19,
+          84.06
         ],
         [
           "2026-06-23",
-          82.76,
-          83.26
+          80.84,
+          82.43
         ],
         [
           "2026-06-24",
-          82.29,
-          81.01
+          80.38,
+          80.2
         ],
         [
           "2026-06-25",
-          80.5,
-          81.57
+          78.63,
+          80.76
         ],
         [
           "2026-06-26",
-          81.27,
-          82.68
+          79.38,
+          81.85
         ],
         [
           "2026-06-29",
-          81.6,
-          81.37
-        ],
-        [
-          "2026-06-30",
-          80.82,
-          81.18
-        ],
-        [
-          "2026-07-01",
-          79.95,
-          81.66
-        ],
-        [
-          "2026-07-02",
-          81.61,
-          83.54
-        ],
-        [
-          "2026-07-03",
-          83.79,
-          84.58
-        ],
-        [
-          "2026-07-06",
-          83.52,
-          84.37
-        ],
-        [
-          "2026-07-07",
-          83.03,
-          83.18
-        ],
-        [
-          "2026-07-08",
-          82.9,
-          82.6
-        ],
-        [
-          "2026-07-09",
-          82.62,
-          83.54
-        ],
-        [
-          "2026-07-10",
-          82.54,
-          83.45
-        ],
-        [
-          "2026-07-13",
-          81.55,
-          81.05
-        ],
-        [
-          "2026-07-14",
-          80.91,
-          82.1
-        ],
-        [
-          "2026-07-15",
-          80.79,
-          82.26
-        ],
-        [
-          "2026-07-16",
-          80.7,
+          79.7,
           80.55
         ],
         [
-          "2026-07-17",
-          80.22,
-          81.37
+          "2026-06-30",
+          78.94,
+          80.37
         ],
         [
-          "2026-07-20",
-          80.27,
-          81.18
+          "2026-07-01",
+          78.09,
+          80.84
         ],
         [
-          "2026-07-21",
-          81.52,
+          "2026-07-02",
+          79.71,
+          82.7
+        ],
+        [
+          "2026-07-03",
+          81.84,
+          83.73
+        ],
+        [
+          "2026-07-06",
+          81.58,
+          83.53
+        ],
+        [
+          "2026-07-07",
+          81.1,
+          82.34
+        ],
+        [
+          "2026-07-08",
+          80.98,
+          81.77
+        ],
+        [
+          "2026-07-09",
+          80.7,
+          82.7
+        ],
+        [
+          "2026-07-10",
+          80.63,
           82.61
         ],
         [
+          "2026-07-13",
+          79.65,
+          80.24
+        ],
+        [
+          "2026-07-14",
+          79.03,
+          81.28
+        ],
+        [
+          "2026-07-15",
+          78.91,
+          81.43
+        ],
+        [
+          "2026-07-16",
+          78.83,
+          79.75
+        ],
+        [
+          "2026-07-17",
+          78.36,
+          80.55
+        ],
+        [
+          "2026-07-20",
+          78.41,
+          80.37
+        ],
+        [
+          "2026-07-21",
+          79.63,
+          81.78
+        ],
+        [
           "2026-07-22",
-          82.65,
-          83.66
+          80.73,
+          82.83
         ],
         [
           "2026-07-23",
-          82.39,
-          82.03
+          80.48,
+          81.21
         ],
         [
           "2026-07-24",
-          81.22,
-          82.11
+          79.34,
+          81.29
         ],
         [
           "2026-07-27",
-          82.17,
-          82.58
+          80.26,
+          81.76
         ],
         [
           "2026-07-28",
-          81.19,
-          81.61
+          79.31,
+          80.79
         ],
         [
           "2026-07-29",
-          81.06,
-          82.37
+          79.17,
+          81.55
         ],
         [
           "2026-07-30",
-          80.97,
-          83.13
+          79.09,
+          82.3
         ],
         [
           "2026-07-31",
-          81.36,
-          81.98
+          79.47,
+          81.16
         ],
         [
           "2026-08-03",
-          81.16,
-          82.16
+          79.27,
+          81.33
         ],
         [
           "2026-08-04",
-          81.25,
-          82.6
+          79.37,
+          81.77
         ],
         [
           "2026-08-05",
-          83.1,
-          86.03
+          81.17,
+          85.17
         ],
         [
           "2026-08-06",
-          85.06,
-          85.91
+          83.09,
+          85.05
         ],
         [
           "2026-08-07",
-          85.49,
-          87.95
+          83.5,
+          87.07
         ],
         [
           "2026-08-10",
-          86.79,
-          88.94
+          84.78,
+          88.05
         ],
         [
           "2026-08-11",
-          87.05,
-          88.49
+          85.02,
+          87.6
         ],
         [
           "2026-08-12",
-          87.82,
-          89.31
+          85.78,
+          88.42
         ],
         [
           "2026-08-13",
-          87.27,
-          88.14
+          85.24,
+          87.26
         ],
         [
           "2026-08-14",
-          86.43,
-          88.65
+          84.42,
+          87.76
         ],
         [
           "2026-08-17",
-          87.5,
-          89.47
+          85.47,
+          88.58
         ],
         [
           "2026-08-18",
-          87.75,
-          87.8
+          85.71,
+          86.93
         ],
         [
           "2026-08-19",
-          86.83,
-          91.63
+          84.82,
+          90.71
         ],
         [
           "2026-08-20",
-          88.93,
-          91.58
+          86.86,
+          90.64
+        ],
+        [
+          "2026-08-21",
+          88.21,
+          92.4
         ]
       ],
       "dca_equiv": {
         "principal_cny": 28000.0,
-        "oz_held": 0.9072,
+        "oz_held": 0.9079,
         "grams_held": 28.2,
-        "avg_cost_usd_oz": 4522.09,
-        "avg_cost_cny_g": 992.25,
-        "spot_usd_oz": 4519.99,
-        "breakeven_upside_pct": 0.05,
-        "current_value_cny": 27571.8,
-        "pnl_abs": -428.2,
-        "pnl_pct": -1.53,
+        "avg_cost_usd_oz": 4520.04,
+        "avg_cost_cny_g": 991.54,
+        "spot_usd_oz": 4607.66,
+        "breakeven_upside_pct": -1.9,
+        "current_value_cny": 28114.28,
+        "pnl_abs": 114.28,
+        "pnl_pct": 0.41,
         "days": 140,
-        "daily_grams": 0.205,
+        "daily_grams": 0.201,
         "projection": [
           {
             "days": 20,
-            "avg_cost_usd_oz": 4521.83,
-            "breakeven_upside_pct": 0.04
+            "avg_cost_usd_oz": 4530.95,
+            "breakeven_upside_pct": -1.66
           },
           {
             "days": 40,
-            "avg_cost_usd_oz": 4521.62,
-            "breakeven_upside_pct": 0.04
+            "avg_cost_usd_oz": 4539.45,
+            "breakeven_upside_pct": -1.48
           },
           {
             "days": 60,
-            "avg_cost_usd_oz": 4521.46,
-            "breakeven_upside_pct": 0.03
+            "avg_cost_usd_oz": 4546.25,
+            "breakeven_upside_pct": -1.33
           },
           {
             "days": 120,
-            "avg_cost_usd_oz": 4521.11,
-            "breakeven_upside_pct": 0.02
+            "avg_cost_usd_oz": 4560.39,
+            "breakeven_upside_pct": -1.03
           },
           {
             "days": 250,
-            "avg_cost_usd_oz": 4520.74,
-            "breakeven_upside_pct": 0.02
+            "avg_cost_usd_oz": 4576.12,
+            "breakeven_upside_pct": -0.68
           }
         ]
       },
       "hist_source": {
         "name": "sina_global_futures_xau",
-        "points": 150
+        "points": 151
       },
       "hist_series": [
         [
@@ -3295,12 +3295,16 @@
         ],
         [
           "2026-08-20",
-          4520.54
+          4519.14
+        ],
+        [
+          "2026-08-21",
+          4606.9
         ]
       ],
       "fx_hist_source": {
         "name": "frankfurter_usdcny",
-        "points": 148
+        "points": 149
       },
       "fx_hist_series": [
         [
@@ -3894,10 +3898,14 @@
         [
           "2026-08-20",
           6.7236
+        ],
+        [
+          "2026-08-21",
+          6.7206
         ]
       ],
       "hist_advisory": null,
-      "last_updated": "2026-08-20T15:50:24.548462Z"
+      "last_updated": "2026-08-21T15:50:25.607615Z"
     }
   }
 }
