@@ -72,6 +72,27 @@ ANTHROPIC_VERSION = '2023-06-01'
 TIMEOUT = 180  # 3 min per call
 MAX_RETRIES = 3
 
+# A total wall-clock budget shared by the whole provider chain, in seconds.
+#
+# Without one the retry ladder can be longer than the job that contains it, and
+# then the second provider is not a fallback — it is unreachable code. Measured
+# on 2026-08-17 (release run 31985473431): brief_fallback calls chat() with
+# timeout=900 and MAX_RETRIES is 3, so MiniMax alone may spend 45 minutes inside
+# a job whose `timeout-minutes` is 15. MiniMax hit RemoteDisconnected, started
+# retrying, and the runner killed the job before opencode-go was ever asked.
+# Every manual dispatch of that workflow failed the same way, which is why a
+# backstop nobody had ever seen produce output looked merely untested rather
+# than broken.
+#
+# Set it from the workflow that knows its own job budget, via
+# CLAWOCK_LLM_DEADLINE_SECONDS, or pass deadline_seconds= explicitly. Unset
+# keeps the historical behaviour exactly.
+DEADLINE_ENV = 'CLAWOCK_LLM_DEADLINE_SECONDS'
+# The share of the budget the primary may consume before the chain moves on.
+# The remainder is reserved for the fallback, so a slow primary can cost the
+# run quality but never the fallback's chance to answer.
+PRIMARY_BUDGET_SHARE = 0.6
+
 
 def _clean(s: str) -> str:
     """Strip a leading assistant-prefill artifact and an outer ```/```json fence
@@ -131,8 +152,46 @@ def _split_system(messages):
     return '\n\n'.join(p for p in sys_parts if p), rest
 
 
+def _remaining(deadline):
+    """Seconds left before the chain must give up on this provider, or None."""
+    if deadline is None:
+        return None
+    return deadline - time.monotonic()
+
+
+def _attempt_timeout(timeout, deadline, label):
+    """Per-attempt timeout clamped to the budget, or None when out of time.
+
+    Returning None rather than sleeping-then-failing matters: the point of the
+    budget is to hand the remaining seconds to the next provider while there
+    are still seconds to hand over.
+    """
+    left = _remaining(deadline)
+    if left is None:
+        return timeout
+    if left <= 1:
+        print(f'  {label}: budget exhausted — yielding to the next provider',
+              file=sys.stderr)
+        return None
+    return max(1, min(timeout, int(left)))
+
+
+def _backoff(seconds, deadline, label):
+    """Sleep between attempts without spending the next provider's seconds.
+
+    An un-clamped backoff is the same bug as an un-clamped timeout, only more
+    embarrassing: the budget gets burned doing nothing at all.
+    """
+    left = _remaining(deadline)
+    if left is not None:
+        seconds = min(seconds, max(0.0, left))
+    if seconds > 0:
+        time.sleep(seconds)
+
+
 def _call_provider(label, base_url, api_key, model, messages, max_tokens,
-                   temperature, json_response, thinking, timeout=None):
+                   temperature, json_response, thinking, timeout=None,
+                   deadline=None):
     """One provider over Anthropic Messages, with retries. Returns content str
     or raises RuntimeError."""
     timeout = timeout or TIMEOUT
@@ -169,9 +228,13 @@ def _call_provider(label, base_url, api_key, model, messages, max_tokens,
 
     last_err = None
     for attempt in range(1, MAX_RETRIES + 1):
+        per_attempt = _attempt_timeout(timeout, deadline, label)
+        if per_attempt is None:
+            last_err = last_err or 'budget exhausted before any attempt completed'
+            break
         try:
             r = requests.post(f'{base_url}/v1/messages',
-                              json=body, headers=headers, timeout=timeout)
+                              json=body, headers=headers, timeout=per_attempt)
             if r.status_code == 200:
                 data = r.json()
                 blocks = data.get('content', []) or []
@@ -189,24 +252,24 @@ def _call_provider(label, base_url, api_key, model, messages, max_tokens,
             elif r.status_code == 429:
                 wait = 5 * attempt
                 print(f'  {label}: 429 rate limit, sleeping {wait}s', file=sys.stderr)
-                time.sleep(wait)
+                _backoff(wait, deadline, label)
                 continue
             else:
                 last_err = f'HTTP {r.status_code}: {r.text[:300]}'
                 print(f'  {label}: {last_err}', file=sys.stderr)
         except requests.Timeout:
-            last_err = 'timeout after 180s'
+            last_err = f'timeout after {per_attempt}s'
             print(f'  {label}: {last_err} (attempt {attempt})', file=sys.stderr)
         except Exception as e:
             last_err = f'{type(e).__name__}: {e}'
             print(f'  {label}: {last_err}', file=sys.stderr)
-        time.sleep(2 * attempt)
+        _backoff(2 * attempt, deadline, label)
     raise RuntimeError(f'{label} failed after {MAX_RETRIES} attempts: {last_err}')
 
 
 def _call_provider_openai_compatible(label, base_url, api_key, model, messages,
                                      max_tokens, temperature, json_response,
-                                     thinking, timeout=None):
+                                     thinking, timeout=None, deadline=None):
     """One provider over the OpenAI-compatible /chat/completions shape, with
     retries. Returns content str or raises RuntimeError. Unlike Anthropic
     Messages: system stays inline as a message role (no lift-out needed), and
@@ -226,9 +289,13 @@ def _call_provider_openai_compatible(label, base_url, api_key, model, messages,
 
     last_err = None
     for attempt in range(1, MAX_RETRIES + 1):
+        per_attempt = _attempt_timeout(timeout, deadline, label)
+        if per_attempt is None:
+            last_err = last_err or 'budget exhausted before any attempt completed'
+            break
         try:
             r = requests.post(f'{base_url}/chat/completions',
-                              json=body, headers=headers, timeout=timeout)
+                              json=body, headers=headers, timeout=per_attempt)
             if r.status_code == 200:
                 data = r.json()
                 choices = data.get('choices', []) or []
@@ -244,18 +311,18 @@ def _call_provider_openai_compatible(label, base_url, api_key, model, messages,
             elif r.status_code == 429:
                 wait = 5 * attempt
                 print(f'  {label}: 429 rate limit, sleeping {wait}s', file=sys.stderr)
-                time.sleep(wait)
+                _backoff(wait, deadline, label)
                 continue
             else:
                 last_err = f'HTTP {r.status_code}: {r.text[:300]}'
                 print(f'  {label}: {last_err}', file=sys.stderr)
         except requests.Timeout:
-            last_err = 'timeout after 180s'
+            last_err = f'timeout after {per_attempt}s'
             print(f'  {label}: {last_err} (attempt {attempt})', file=sys.stderr)
         except Exception as e:
             last_err = f'{type(e).__name__}: {e}'
             print(f'  {label}: {last_err}', file=sys.stderr)
-        time.sleep(2 * attempt)
+        _backoff(2 * attempt, deadline, label)
     raise RuntimeError(f'{label} failed after {MAX_RETRIES} attempts: {last_err}')
 
 
@@ -264,7 +331,7 @@ def chat(system: str = '', user: str = '', messages: list = None,
          model: str = OPENCODE_MODEL, base_url: str = OPENCODE_BASE,
          api_key: str = None, thinking_disabled: bool = False,
          json_response: bool = False, fallback: bool = True,
-         timeout: int = None) -> str:
+         timeout: int = None, deadline_seconds: float = None) -> str:
     """Call MiniMax M3; on total failure fall back to opencode-go's DeepSeek V4
     Flash. The two are NOT the same wire protocol (Anthropic Messages vs
     OpenAI-compatible) — see module docstring. Returns assistant content
@@ -274,8 +341,16 @@ def chat(system: str = '', user: str = '', messages: list = None,
     timeout: per-attempt seconds, default TIMEOUT (180). Big jobs need more: the
     daily brief prefills ~100KB of context and generates ~20K tokens with thinking
     on, which blew straight through 180s x3 on 2026-07-16 (callers see the retries
-    as "timeout after 180s (attempt N)"). Raise it rather than shrink the prompt —
+    as "timeout after Ns (attempt N)"). Raise it rather than shrink the prompt —
     trimming the brief's context is what made it blind to half the book.
+
+    deadline_seconds: total wall clock for the WHOLE chain, defaulting to
+    CLAWOCK_LLM_DEADLINE_SECONDS. `timeout` alone cannot keep the chain inside
+    the job that contains it — timeout x MAX_RETRIES is the primary's budget,
+    and on 2026-08-17 that was 45 minutes inside a 15-minute job, so opencode-go
+    was never reached even once. With a budget set, the primary is capped at
+    PRIMARY_BUDGET_SHARE of it and the remainder belongs to the fallback: a slow
+    primary can cost quality, never the fallback's chance to answer.
     """
     if messages is None:
         messages = []
@@ -287,13 +362,27 @@ def chat(system: str = '', user: str = '', messages: list = None,
     thinking = {'type': 'disabled'} if thinking_disabled else {'type': 'enabled'}
     errors = []
 
+    if deadline_seconds is None:
+        raw = os.environ.get(DEADLINE_ENV)
+        if raw:
+            try:
+                deadline_seconds = float(raw)
+            except ValueError:
+                print(f'  ⚠️ {DEADLINE_ENV}={raw!r} is not a number — ignoring',
+                      file=sys.stderr)
+    started = time.monotonic()
+    chain_deadline = None if not deadline_seconds else started + float(deadline_seconds)
+    primary_deadline = (None if chain_deadline is None
+                        else started + float(deadline_seconds) * PRIMARY_BUDGET_SHARE)
+
     # ── Primary: MiniMax M3 (Anthropic Messages) ──
     mm_key = os.environ.get('MINIMAX_API_KEY')
     if mm_key:
         try:
             return _call_provider('minimax', MINIMAX_BASE, mm_key, MINIMAX_MODEL,
                                   messages, min(max_tokens, MINIMAX_MAX_TOKENS),
-                                  temperature, json_response, thinking, timeout)
+                                  temperature, json_response, thinking, timeout,
+                                  deadline=primary_deadline)
         except Exception as e:
             errors.append(f'minimax[{e}]')
             print('  ⚠️ minimax exhausted — falling back to opencode-go DeepSeek V4 Flash',
@@ -311,7 +400,8 @@ def chat(system: str = '', user: str = '', messages: list = None,
             return _call_provider_openai_compatible(
                 'opencode', base_url, opencode_key, model, messages,
                 min(max_tokens, OPENCODE_MAX_TOKENS),
-                temperature, json_response, thinking, timeout)
+                temperature, json_response, thinking, timeout,
+                deadline=chain_deadline)
         except Exception as e:
             errors.append(f'opencode[{e}]')
     elif fallback and not opencode_key:

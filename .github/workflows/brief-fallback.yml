@@ -5,10 +5,49 @@ name: Brief Fallback (off-host LLM)
 # 5min 太窄会在主 brief 落地前误判"没出"→重复生成→push 撞主 cron commit 的 rebase 冲突
 # 如果今天的 pre-open.md 已存在（git log 只作兜底）→ skip
 # 否则用远端 MiniMax（可选 opencode-go DeepSeek V4 Flash fallback）直跑 brief
+#
+# #780: this backstop had never once produced a brief. Every one of the 34
+# scheduled runs between 2026-07-07 and 2026-08-21 finished in 11-21 seconds on
+# the "already exists" branch, and the only five runs that ever reached the
+# generation branch were manual dispatches, all of which failed. Three separate
+# defects kept it that way and all three are addressed here:
+#
+#  1. The provider chain could not finish inside the job (see the deadline env
+#     below) — that is why every manual dispatch died.
+#  2. GitHub's scheduler delivered this workflow 89-159 minutes late, at or past
+#     its own `HOUR >= 10 HKT` lateness gate, so on a day the primary really
+#     failed the backstop would have skipped itself. Answered by firing three
+#     times instead of once: the skip check is idempotent, so extra attempts
+#     cost 15 seconds each and the earliest one to arrive in-window wins.
+#     Deliberately NOT answered by moving it earlier — anything before ~00:25
+#     UTC races the primary brief that is still generating.
+#  3. Nothing anywhere could see that a branch had never been taken. The run now
+#     records which branch it took, and rehearses the real generation chain
+#     weekly so "can this thing work" stops being an untested assumption.
 on:
   schedule:
+    # Three attempts across the usable window rather than one. Measured drift
+    # for this slot is +89..159 minutes (#781) and it is driven by how contended
+    # the UTC hour is, not by the minute, so no single choice is reliable.
     - cron: '25 0 * * 1-5'
+    - cron: '47 0 * * 1-5'
+    - cron: '9 1 * * 1-5'
+    # Weekly rehearsal of the generation chain: real providers, real preflight,
+    # output discarded — see `rehearse` below. Wednesday 12:23 HKT, on a trading
+    # day and well clear of the fallback window above. Deliberately not a
+    # weekend: preflight on a closed market would produce a red that says
+    # nothing about whether the backstop works.
+    - cron: '23 4 * * 3'
   workflow_dispatch:
+    inputs:
+      rehearse:
+        description: >-
+          exercise the full generation chain and discard the result. Never
+          commits, never publishes, and ignores the "already exists" skip. This
+          is the only thing that answers "would the backstop work today".
+        required: false
+        default: 'false'
+        type: boolean
 
 concurrency:
   group: data-write
@@ -17,10 +56,24 @@ concurrency:
 jobs:
   fallback:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # 20, not 15. The old budget was shorter than the provider chain it
+    # contained; see CLAWOCK_LLM_DEADLINE_SECONDS below.
+    timeout-minutes: 20
     env:
       CLAWOCK_PROFILE: kcnyu
       CLAWOCK_WORKSPACE: ${{ github.workspace }}
+      # The whole provider chain must finish inside this job, and `timeout` alone
+      # cannot say that: timeout=900 x MAX_RETRIES=3 is a 45-minute budget for
+      # MiniMax alone. On 2026-08-17 (run 31985473431) MiniMax hit
+      # RemoteDisconnected, started retrying, and the runner killed the job at 15
+      # minutes — opencode-go was never asked. Not once, in any of the five
+      # manual dispatches this workflow has ever had.
+      #
+      # 660s of a 20-minute job: MiniMax gets 60% of it and the remainder belongs
+      # to opencode-go, leaving ~9 minutes for postflight, the dashboard rebuild
+      # and the push.
+      CLAWOCK_LLM_DEADLINE_SECONDS: '660'
+      REHEARSE: ${{ inputs.rehearse == true || inputs.rehearse == 'true' || github.event.schedule == '23 4 * * 3' }}
     permissions:
       contents: write
     steps:
@@ -53,18 +106,36 @@ jobs:
           # presence in the checkout is depth-proof. The old git-log grep broke on
           # 2026-06-10: fetch-depth 10 + a busy morning (brief at depth 19) + 4.5h
           # GHA delay → "no brief found" → near-duplicate brief at 12:53 HKT.
-          if [ -f "memory/${TODAY}-pre-open.md" ] || \
+          if [ "$REHEARSE" = "true" ]; then
+            # A rehearsal deliberately ignores every skip: its purpose is to
+            # reach the generation chain. It cannot commit or publish — the
+            # later steps are gated on `rehearsal` too.
+            echo "rehearsal — running the generation chain and discarding the result"
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+            echo "branch=rehearsal" >> "$GITHUB_OUTPUT"
+          elif [ -f "memory/${TODAY}-pre-open.md" ] || \
              git log --since "$TODAY 00:00" --grep "daily deep brief $TODAY" --oneline | grep -q "."; then
             echo "today's brief already exists — skip fallback"
             echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "branch=already-exists" >> "$GITHUB_OUTPUT"
           elif [ "$HOUR" -ge 10 ]; then
             # Lateness gate: a "pre-open" brief generated after HK open is stale
             # noise (intraday reports already cover the session) — never generate.
+            #
+            # This is the branch that made the backstop structurally useless for
+            # a month: GitHub delivered the 00:25 UTC schedule at 03:0x-04:2x UTC
+            # (11:00-12:30 HKT), so on a day the primary failed, the fallback
+            # would have arrived and shut itself off. It stays — a stale pre-open
+            # brief really is worse than none — but it is now recorded rather
+            # than silent, so "the backstop declined" is a fact somebody can see.
+            echo "::warning::brief-fallback arrived at ${HOUR}:xx HKT, past its own usefulness window — if today's primary brief failed, nothing replaced it"
             echo "too late to be useful (hour=$HOUR HKT >= 10) — skip"
             echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "branch=too-late" >> "$GITHUB_OUTPUT"
           else
             echo "no brief found — fallback will run"
             echo "skip=false" >> "$GITHUB_OUTPUT"
+            echo "branch=generated" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Run preflight (collect deterministic data)
@@ -80,8 +151,37 @@ jobs:
           MINIMAX_API_KEY: ${{ secrets.MINIMAX_API_KEY }}
         run: clawock-brief-fallback
 
+      - name: Rehearsal — did the chain actually produce a brief?
+        # A rehearsal stops here, before postflight. postflight validates AND
+        # commits AND pushes (its maybe_commit does all three), so letting a
+        # rehearsal reach it would risk publishing a brief nobody asked for —
+        # the exact opposite of a safe drill. What a rehearsal has to answer is
+        # narrower and is fully answered by this point: can the provider chain
+        # generate today's brief inside the job's budget. Postflight is
+        # exercised for real by the primary path every trading day.
+        if: steps.check.outputs.branch == 'rehearsal'
+        run: |
+          set -euo pipefail
+          TODAY=$(TZ=Asia/Hong_Kong date +%Y-%m-%d)
+          target="memory/${TODAY}-pre-open.md"
+          if [ ! -s "$target" ]; then
+            echo "::error::rehearsal produced no brief at $target — the backstop would NOT have worked today"
+            exit 1
+          fi
+          bytes=$(wc -c < "$target")
+          echo "rehearsal produced $bytes bytes at $target"
+          {
+            echo "### Rehearsal"
+            echo
+            echo "The generation chain produced **${bytes} bytes**. Discarding it."
+          } >> "$GITHUB_STEP_SUMMARY"
+          # Leave nothing behind that a later step or a human could mistake for
+          # a real brief.
+          git checkout -- . 2>/dev/null || true
+          git clean -fd memory assets/data 2>/dev/null || true
+
       - name: Postflight validation
-        if: steps.check.outputs.skip != 'true'
+        if: steps.check.outputs.skip != 'true' && steps.check.outputs.branch != 'rehearsal'
         # postflight exits 0=pass, 1=warn (both publishable), 2=fail. pass/warn keep the
         # job green; a real fail (2) blocks the commit. Exit 1 can also mean an uncaught
         # Python exception, so the next step requires the gate file that a legitimate
@@ -105,7 +205,7 @@ jobs:
         # does anything), so it answers for itself, on the run that did it,
         # instead of a corpus scan days later. Not a gate — recovering those
         # cards is this job's purpose; this is the record that it happened.
-        if: steps.check.outputs.skip != 'true'
+        if: steps.check.outputs.skip != 'true' && steps.check.outputs.branch != 'rehearsal'
         run: |
           python3 - <<'PY' >> "$GITHUB_STEP_SUMMARY"
           import json, pathlib
@@ -135,7 +235,9 @@ jobs:
         # Reached when postflight exits <2: pass/warn, or an uncaught exception (exit 1).
         # The publish gate distinguishes a legitimate warn from a crash-before-gate;
         # missing gate fails the job, while explicit publish_ok=false publishes nothing.
-        if: steps.check.outputs.skip != 'true'
+        # A rehearsal proves the chain runs; it must not put its output anywhere
+        # a reader could mistake for a real brief.
+        if: steps.check.outputs.skip != 'true' && steps.check.outputs.branch != 'rehearsal'
         env:
           CLAWOCK_PUBLISH_SSH_KEY: ${{ secrets.CLAWOCK_PUBLISH_SSH_KEY }}
         run: |
@@ -168,3 +270,25 @@ jobs:
           else
             echo "nothing to push — HEAD not ahead of origin/master (or fetch failed)"
           fi
+
+      - name: Record which branch this run took
+        # The defect this exists for is not a crash — it is six weeks of green
+        # runs that never once entered the generation branch, with nothing
+        # anywhere able to notice. A run that only ever skips has to leave a
+        # trace, or "the backstop is fine" stays unfalsifiable.
+        if: always()
+        env:
+          BRANCH: ${{ steps.check.outputs.branch }}
+          REHEARSAL_RESULT: ${{ steps.check.outputs.branch == 'rehearsal' && job.status || '' }}
+        run: |
+          {
+            echo "### brief-fallback"
+            echo
+            echo "Branch taken: \`${BRANCH:-unknown}\`"
+            case "${BRANCH:-unknown}" in
+              already-exists) echo; echo "The primary brief landed. Nothing to do — but note that this branch, and only this branch, has been taken on every scheduled run since 2026-07-07." ;;
+              too-late)       echo; echo "**The backstop declined.** It arrived past its usefulness window. If today's primary brief failed, nothing replaced it." ;;
+              generated)      echo; echo "The generation chain ran for real." ;;
+              rehearsal)      echo; echo "Rehearsal — the generation chain ran and the result was discarded. Job status: ${REHEARSAL_RESULT}." ;;
+            esac
+          } >> "$GITHUB_STEP_SUMMARY"
