@@ -402,13 +402,25 @@ def _brief_job_names():
 
     The contract already names exactly one `daily-deep-brief` job, so renaming
     it there cannot leave a watchdog looking for a job that no longer exists.
+
+    An unreadable contract still degrades to the empty set — the caller has a
+    None branch and a watchdog must not crash a cron slot over its own lookup —
+    but it no longer does so *silently*. Empty here disables the entire re-run
+    limb of the brief watchdog, which is exactly the shape of gate this
+    repository requires to carry its own no-op assertion: #775 had a contract
+    that could not be read at all, and this function was the one place that
+    would have noticed — sitting behind a bare `except Exception: return set()`.
     """
     try:
         from clawock.scheduling import load_contract
 
         return {job.get('name') for job in load_contract().get('jobs', [])
                 if job.get('mode') == BRIEF_CONTRACT_MODE}
-    except Exception:
+    except Exception as e:
+        log({'tag': 'brief', 'action': 'contract-unreadable',
+             'error': f'{type(e).__name__}: {e}',
+             'effect': 'brief watchdog cannot identify its cron job — '
+                       're-run and retry-budget limbs are inert this slot'})
         return set()
 
 
