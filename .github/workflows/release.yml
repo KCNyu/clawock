@@ -184,6 +184,8 @@ jobs:
     timeout-minutes: 5
     permissions:
       contents: write
+      # Opening the Announcements thread that carries the release notes (#786).
+      discussions: write
     steps:
       - uses: actions/checkout@v7
 
@@ -220,3 +222,20 @@ jobs:
             --verify-tag \
             --title "clawock $GITHUB_REF_NAME" \
             --notes-file /tmp/release-notes.md
+
+      - name: Announce the release in Discussions
+        # A release becomes something a reader can reply to, and a page search
+        # engines index, instead of a one-way artifact drop (#786).
+        #
+        # A separate best-effort step on purpose. Passing --discussion-category
+        # to `gh release create` would put the announcement on the critical path
+        # of publishing: a failure there leaves a tagged version whose GitHub
+        # Release was never created, and the retry then collides with the
+        # release that partially exists. The release is the deliverable; the
+        # thread is not.
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release edit "$GITHUB_REF_NAME" --discussion-category Announcements \
+            || echo "::warning::no Announcements thread for $GITHUB_REF_NAME — the release itself is unaffected"
