@@ -99,7 +99,24 @@ const listed = JSON.parse(execFileSync("npm", ["pack", "--dry-run", "--json"], {
 process.stdout.write(JSON.stringify(listed[0].files.map((f) => f.path).sort()));
 ')"
 
-(cd "$PKG_DIR" && npm publish --access public)
+# npm provenance: a signed, publicly verifiable statement of which repository,
+# workflow and commit produced this tarball, rendered as a "Built and signed on
+# GitHub Actions" block on the package page. It is the npm-side equivalent of
+# the trusted publishing the PyPI half already uses, and the package page is
+# this project's highest-traffic landing surface.
+#
+# npm only accepts it from a supported CI with an OIDC token, and hard-fails
+# when asked for it anywhere else — so a human running this script directly
+# (a documented path, see the header) must not pass the flag.
+provenance_args=()
+if [ "${GITHUB_ACTIONS:-}" = "true" ] && [ -n "${ACTIONS_ID_TOKEN_REQUEST_URL:-}" ]; then
+  echo "provenance: OIDC token available — publishing with --provenance"
+  provenance_args+=(--provenance)
+else
+  echo "provenance: no Actions OIDC token — publishing without provenance"
+fi
+
+(cd "$PKG_DIR" && npm publish --access public "${provenance_args[@]}")
 
 published="$(cd "$PKG_DIR" && node -p "require('./package.json').version")"
 
