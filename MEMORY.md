@@ -115,32 +115,17 @@ _（空）_
 2026-08-09 清空了七条 8/4 的促销摘录：它们把四天前的 `USD −7,426.69 / HKD −58,244.56`
 以「长期记忆」的身份注进主会话，正是最容易被当成当前值引用的形状。
 
-## Promoted From Short-Term Memory (2026-08-20)
+## Promoted From Short-Term Memory (2026-08-22)
 
-<!-- openclaw-memory-promotion:memory:memory/2026-08-15.md:10:13 -->
-- PR #568 已合并(squash,14:38 UTC): **README.zh.md 全面重写**(328 行 → ~300 行):第一行宣言(90 天/实盘 −15.95%/ledger 链接/`clawock audit-resettle` 复算/"模型不能给自己打分——全网第一个把 AI 战绩交给代码结算的投研台")、12 个标准 H2 结构(parity CI 锁定)、装起来(甩给 AI 三步+手动+demo 输出)、公开战绩(177 表+人话翻译+四条线对账表)、为什么可信、LLM 决策(大白话版+信息流图+影响者雷达)、许可(为什么开源:作者真实账户,不收费无荐股群); **README.md(en)**:harness-agnostic 定位同步;PyPI 渲染规则修复(相对链接→绝对 URL);补 information-flow.svg(资产 parity); **examples/harness-agnostic/**(5 文件):纯 CLI/OpenClaw skill/Claude Code 指令/Codex AGENTS.md/DSH 五种跑法;run.sh 已注册 release.yml; **dsh-plugin/**(clawock-dsh npm 包):package.json(dsh.skills)+ SKILL.md + README;npm pack 验证通过,**clawock-dsh@0.1.0 已于... [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-15.md:10-13]
-<!-- openclaw-memory-promotion:memory:memory/2026-08-15.md:14:16 -->
-- PR #568 已合并(squash,14:38 UTC): **数字自动刷新**:ops/growth/refresh_readme_metrics.py(从 ledger+data-plane 重算全部指标,替换 `<!-- CW_M:* -->` 占位符,写 readme_metrics.json)+ .github/workflows/readme-metrics.yml(每周一 01:15 UTC); **site/assets/information-flow.svg** 新增; 其他:DSH badge、topics 优化(trading/deepseek-harness/dsh-plugin/quantitative-finance/self-hosted 等,按热度×唯一性重选) [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-15.md:14-16]
-<!-- openclaw-memory-promotion:memory:memory/2026-08-15.md:19:21 -->
-- 7 视角对抗 review(全部收敛,无硬伤): 第一批:X 大V(6.5→8.0)、资深开发者(6→9.0,建议 merge)、中文用户(6→9.5); 第二批:X 英文博主(6.5→7.0)、小红书博主(5.5→6.5)、不懂技术路人(6→7.5)、知乎答主(6.5→8.5); 关键沉淀:①堵"who decides followed"洞——README 明说"谁决定跟进?账户所有者…账户收益是人机混合成绩,不是模型单独成绩";②53%/55% CI 跨 50% 自己先盖章噪声;③"对不上算我们输"可复算承诺;④0 成交误读纠正(见下) [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-15.md:19-21]
-<!-- openclaw-memory-promotion:memory:memory/2026-08-15.md:24:26 -->
-- ⚠️ 口径修正(重要,防再犯): **误读**:shadow_portfolio.json 的 `fill_counts.real_trade=0` 曾被理解为"实盘 0 成交"。**错**——那是影子组合模拟里"没有真实成交配对"(214 条跳过/28 条假设成交),**实盘一直在交易**(decisions.jsonl execution.status:followed 312/not_followed 292/unknown 36;portfolio.json 有 trades;git log 天天有 portfolio 成交提交)。README 已全部改为实盘口径。; 模块数:config/information-layers.json 实际 **8 层 41 模块**(L6 量化=9),README 从 40 改 41。; 块数:preflight 实际 **39/16/28**(被 #572 更新过),README 已改。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-15.md:24-26]
-<!-- openclaw-memory-promotion:memory:memory/2026-08-15.md:29:29 -->
-- Issues 状态: #560-564 全部 close(PR #568 处理;CLI 瘦身 #560 保留为产品方向) [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-15.md:29-29]
-<!-- openclaw-memory-promotion:memory:memory/2026-08-15.md:6:6 -->
-- 背景: kcn 要求以第三方 critical 视角 review clawock(README zh/seo/geo/为什么没人用),随后进入多轮对抗迭代,最终授权全权执行收尾。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-15.md:6-6]
-
-## Promoted From Short-Term Memory (2026-08-21)
-
-<!-- openclaw-memory-promotion:memory:memory/2026-08-16.md:11:11 -->
-- Decision Mind 插件(Day 1 上线): 待办(下 session):①账本视图 job 未立住(kcn:没啥用); [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-16.md:11-11]
-<!-- openclaw-memory-promotion:memory:memory/2026-08-16.md:12:13 -->
-- Decision Mind 插件(Day 1 上线): ②操作视图未体现情绪/决策思想层;③PR #661 合并(对抗评审 12 条 + 操作视图 + 真实数据源);④探讨「决策心智 + 真实流水」合成视图。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-16.md:12-13]
-<!-- openclaw-memory-promotion:memory:memory/2026-08-16.md:5:5 -->
-- Decision Mind 插件(Day 1 上线): clawock-dsh 完整插件上线 DSH web profile:Decision Mind 会话 tab [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-16.md:5-5]
-<!-- openclaw-memory-promotion:memory:memory/2026-08-16.md:6:7 -->
-- Decision Mind 插件(Day 1 上线): (操作=真实成交流水/账本=决策心智/持仓),kcn 确认操作视图对得上 (PLTU 清仓 +45.21、MSFU 落袋 +10.3/+14.35/+81.9、SPCH 摊本流水)。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-16.md:6-7]
-<!-- openclaw-memory-promotion:memory:memory/2026-08-16.md:8:8 -->
-- Decision Mind 插件(Day 1 上线): 互通:对话判定经 `clawock record` 写入 decisions.jsonl;MiniMax 首条 [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-16.md:8-8]
-<!-- openclaw-memory-promotion:memory:memory/2026-08-16.md:9:10 -->
-- Decision Mind 插件(Day 1 上线): 心智记录(00100 reject 加仓、⚡ averaging_down、站回 340 条件, execution=followed 已标记)。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-16.md:9-10]
+<!-- openclaw-memory-promotion:memory:memory/2026-08-17-pre-open.md:12:12 -->
+- 盘前深度简报 · 2026-08-17 (周一) 08:00 HKT: 🧭 **Regime** (packet, per market): US `green` · HK `amber` (HSTECH 4,707 < MA200 5,185 -9.2%, lev_regime ×0.5, 趋势OFF: 杠杆敞口上限砍半). **macro.label `neutral`** (F&G 65.0 greed, VIX 14.25 -2.6% calm, SPX+NDX 同向下行; reasons 偏 risk_off 但 VIX 极低). **US β 5.806** (=SPX -1% → 本子 -5.8%, 远超 3.0 cap). **4 breach 持续累计 (oldest 30d+, 0 overridden)** —— **risk_rule cuts 不受 risk_on HOLD 默认约束**; 3 个 swap cut 是政策执行, 必须在 8/18 09:30 HKT (07226) + 8/18 09:30 ET (RKLX/SPCH) 开盘前挂单. [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-17-pre-open.md:12-12]
+<!-- openclaw-memory-promotion:memory:memory/2026-08-17-pre-open.md:14:14 -->
+- 盘前深度简报 · 2026-08-17 (周一) 08:00 HKT: **FX**: USDHKD = **7.8473** (Frankfurter, fetched 2026-08-17 00:02 UTC, age ~10h). **🔒 HKD + USD 不能直接相加, book 段双视角展示**. [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-17-pre-open.md:14-14]
+<!-- openclaw-memory-promotion:memory:memory/2026-08-17-pre-open.md:16:16 -->
+- 盘前深度简报 · 2026-08-17 (周一) 08:00 HKT: **8/15 关键事件** (8/17 周末, 仍为最近一个 US 交易日): 00100 +1.03% 收 332.4 (1m +28.5%, 5d +3.1%, z+1.19 偏高, mom_3m -61.3% 远未回本); 07226 +3.74% 收 3.548 (HSTECH +1.77% 同步, 硬止损 -18.68%); 03032 +2.09% 收 4.798 / 03033 +2.04% 收 4.71 (1x 跟 HSTECH); 02208 +3.78% 收 10.98 (8/11 风电板块 -8% 已消化, 1m +18.6%); RKLX +0.21% 收 24.25 (硬止损 -51.20% 持续); SPCH -2.28% 收 9.00 (硬止损 -28.04% 持续, single_name 77.18% mandatory); SPCX -0.91% 收 140.00 (5d +6.2%, SPCH 1x swap 接收方); CRCL -5.01% 收 71.60 (5d +10.3%, T+0 grade 🟡 低位, 软 disconfirming: Open USD stablecoin 140+ 竞争); SKHY +0.40% 收 166.33 (5d +22.9% 强 trend, peer STX +19.77% / WDC +17.15%... [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-17-pre-open.md:16-16]
+<!-- openclaw-memory-promotion:memory:memory/2026-08-17-pre-open.md:18:18 -->
+- 盘前深度简报 · 2026-08-17 (周一) 08:00 HKT: > 🔴 **4 breach 累计 30+ 天 unack** — durable ledger open / 0 overridden / oldest 30d. **8/14 plan 3 主动 swap cut broker 端 0 成交 (8/15-17 周末 + 8/15 美股休市后续未到)**, 4 个交易日浪费. 8/18 (周二) 是 8 月内下一个 US 杠杆 1x swap 窗口, 三个 swap cut 必成交以刷新 durable ledger, 否则 breach 继续累计 + chop_drag 0.74%/月 (07226) + 5.76%/月 (RKLX) 继续付. [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-17-pre-open.md:18-18]
+<!-- openclaw-memory-promotion:memory:memory/2026-08-17-pre-open.md:2:4 -->
+- layout: default title: 盘前深度简报 · 2026-08-17 description: "clawock 2026-08-17 盘前: 4 breach 累计 30d+ 仍 0 overridden, 3 硬止损 (07226 -18.7%/RKLX -51.2%/SPCH -28.0%) + 4 仓位硬闸 (HK 杠杆 30.6% / SPCH 77.18% / US 杠杆 / US β 5.81). 3 个 swap cut 是政策执行 (risk_rule), 与 risk_on HOLD 默认独立, 必挂 8/18 09:30 ET 开盘前限价单 (US) + 8/18 09:30 HKT 开盘前 (HK)." [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-17-pre-open.md:2-4]
+<!-- openclaw-memory-promotion:memory:memory/2026-08-17-pre-open.md:9:10 -->
+- 盘前深度简报 · 2026-08-17 (周一) 08:00 HKT: > Auto-generated by daily-deep-brief harness. 手写复盘覆盖本文件即可。 > **8/17 周一: HK 开盘前 90 分钟, US 周末闭市**. 美股 8/15 周五已收 (SPX -0.17% 7785.76 / NDX -0.28% 26729.16 / VIX 14.25), 8/18 (周二) US 开盘是本周第一次 US 交易窗口. 3 个 US 杠杆 swap cut (SPCH/RKLX/07226) 必挂 8/18 09:30 ET 开盘前. [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-17-pre-open.md:9-10]
