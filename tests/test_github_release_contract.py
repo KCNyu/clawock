@@ -218,3 +218,33 @@ def test_the_publish_verifies_what_the_registry_actually_serves():
     assert "published tarball is missing" in tail, (
         "every file the pack listed must exist in the registry copy"
     )
+
+
+def test_the_npm_publish_carries_provenance():
+    """The two halves of the release train must carry equivalent credentials.
+
+    The PyPI half publishes through trusted publishing: PyPI verifies the
+    workflow's OIDC identity and no long-lived token exists to leak. The npm
+    half had none of that (#785) — it published with a plain `NPM_TOKEN` and no
+    `--provenance`, so the package page, which is this project's
+    highest-traffic landing surface, carried no verifiable statement of what
+    built the tarball.
+
+    Two things have to hold together or the flag degrades to a no-op:
+    the job must be granted the OIDC token, and the script must ask for it.
+    """
+    workflow = WORKFLOW.read_text(encoding="utf-8")
+    npm_job = workflow.split("\n  npm:\n", 1)[1].split("\n  github-release:", 1)[0]
+    assert "id-token: write" in npm_job, (
+        "the npm job needs the OIDC token npm exchanges for a provenance attestation"
+    )
+
+    script = (ROOT / "ops" / "publish" / "publish_dsh_plugin.sh").read_text(encoding="utf-8")
+    assert "--provenance" in script, "the publish has to ask for provenance"
+    # A human running the script directly is a documented path, and npm hard-fails
+    # when asked for provenance outside a supported CI — so the flag has to be
+    # conditional, never unconditional.
+    assert "ACTIONS_ID_TOKEN_REQUEST_URL" in script, (
+        "provenance must be gated on an actually-present OIDC token, so a local "
+        "publish degrades instead of failing"
+    )

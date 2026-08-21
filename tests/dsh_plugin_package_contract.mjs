@@ -99,3 +99,49 @@ test('packed clawock-dsh installs standalone and every export entry imports', as
     rmSync(work, { recursive: true, force: true })
   }
 })
+
+/**
+ * The npm page is this project's highest-traffic landing surface — more people
+ * reach clawock-dsh through npm than through the repository — and until #790 it
+ * was a dead end: `repository`, `homepage`, `bugs` and `author` were all absent
+ * from the published metadata, so npm rendered no sidebar links at all, and the
+ * README was Chinese-only with no link back to the live proof. A thousand
+ * installs a month landed on a page with no exit.
+ *
+ * Two of these are load-bearing beyond presentation:
+ *   - `repository` is what `npm publish --provenance` checks against the
+ *     building repository; without it the release silently publishes unsigned.
+ *   - relative image paths render as broken images on the npm page, because it
+ *     is not served from the repository.
+ */
+test('the npm page keeps its links back to the repository and the live proof', () => {
+  const pkg = JSON.parse(readFileSync(join(PLUGIN, 'package.json'), 'utf8'))
+
+  assert.equal(pkg.repository?.type, 'git')
+  assert.match(pkg.repository?.url ?? '', /github\.com\/KCNyu\/clawock/)
+  assert.equal(pkg.repository?.directory, 'examples/dsh/packages/clawock-dsh')
+  assert.match(pkg.homepage ?? '', /^https:\/\//)
+  assert.match(pkg.bugs?.url ?? '', /github\.com\/KCNyu\/clawock\/issues/)
+  assert.ok(pkg.author, 'package.json must name an author')
+
+  const readme = readFileSync(join(PLUGIN, 'README.md'), 'utf8')
+  for (const url of [
+    'https://kcnyu.github.io/clawock/',
+    'https://kcnyu.github.io/clawock/evidence.html',
+    'https://github.com/KCNyu/clawock',
+  ]) {
+    assert.ok(readme.includes(url), `README.md must link to ${url}`)
+  }
+
+  // The lead has to be readable by someone who does not read Chinese: the npm
+  // audience is every DSH user, not only the ones who found the repo first.
+  const lead = readme.split('\n---\n')[0]
+  assert.ok(/[一-鿿]/.test(readme), 'the Chinese body must stay')
+  assert.ok(!/[一-鿿]/.test(lead),
+    'the section above the first --- must be the English lead, with no Chinese in it')
+
+  for (const m of readme.matchAll(/!\[[^\]]*\]\(([^)]+)\)/g)) {
+    assert.match(m[1], /^https:\/\/raw\.githubusercontent\.com\//,
+      `README image ${m[1]} must be an absolute raw.githubusercontent.com URL`)
+  }
+})

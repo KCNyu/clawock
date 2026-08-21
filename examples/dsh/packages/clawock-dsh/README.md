@@ -1,5 +1,36 @@
 # clawock-dsh
 
+**AI argues. Code settles. The losses stay on the page.**
+
+The [clawock](https://github.com/KCNyu/clawock) investment-decision workflow, as
+a DeepSeek Harness plugin. A skill package that makes the agent walk four steps —
+read the request, research and argue both sides, write the decision, then let
+Python validate and settle it — plus a Decision Studio tab that renders the
+request, the debate and the receipt as a conversation view inside the DSH web GUI.
+
+The fourth step is the one that matters: the model never touches settlement.
+Prices, FX, P&L and the scorecard are computed by code the agent cannot write to,
+so a wrong call shows up as a loss on a public page instead of as a
+better-sounding paragraph.
+
+- **Live proof** — a real Hong Kong + US brokerage account, run this way every
+  trading day: <https://kcnyu.github.io/clawock/>
+- **Evidence, wins and losses both** — <https://kcnyu.github.io/clawock/evidence.html>
+- **Source and issues** — <https://github.com/KCNyu/clawock>
+
+![Decision Mind tab inside the DSH web GUI](https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dsh-decision-mind.png)
+
+```bash
+dsh plugin --profile web add clawock-dsh
+```
+
+Skill discovery needs one more step on rc.6 and later, covered in the
+installation section below. The rest of this README is in Chinese; the full
+English overview lives in the
+[repository README](https://github.com/KCNyu/clawock#readme).
+
+---
+
 clawock 的 DeepSeek Harness 插件:skill 包 + Decision Studio 面板,把
 investment-decision 决策工作流注入 DSH agent。skill 负责告诉 agent 怎么走
 「读请求 → 研究 + 正反辩论 → 写决策 → Python 校验结算」四步;面板把
