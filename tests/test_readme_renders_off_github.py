@@ -48,6 +48,15 @@ def test_the_readme_has_no_relative_references():
     )
 
 
+# Static images GitHub serves itself, which are not repository content and have
+# no raw.githubusercontent equivalent. Each entry is an exact (host, path) pair,
+# never a host-wide exemption: `github.com` also serves the blob viewer, and
+# that is precisely what the rule below exists to keep out.
+GITHUB_SERVED_ASSETS = frozenset({
+    ('github.com', '/codespaces/badge.svg'),   # the official Open-in-Codespaces badge
+})
+
+
 def test_assets_point_at_raw_not_the_blob_viewer():
     """A `github.com/.../blob/...` URL serves an HTML page, so an <img> using one
     shows nothing. Assets have to come from raw.githubusercontent.
@@ -59,7 +68,21 @@ def test_assets_point_at_raw_not_the_blob_viewer():
     text = README.read_text()
     for target in _references(text):
         if target.endswith(ASSET_SUFFIXES) and target.startswith('http'):
-            assert urlparse(target).hostname == 'raw.githubusercontent.com', target
+            parsed = urlparse(target)
+            if (parsed.hostname, parsed.path) in GITHUB_SERVED_ASSETS:
+                continue
+            assert parsed.hostname == 'raw.githubusercontent.com', target
+
+
+def test_the_github_served_allowlist_cannot_be_widened_into_the_blob_viewer():
+    """The exemption above is the kind that rots into `hostname == github.com`.
+    A blob URL must stay rejected no matter what is on the list."""
+    for host, path in GITHUB_SERVED_ASSETS:
+        assert not path.startswith('/KCNyu/'), (
+            f'{host}{path} is repository content — it has a raw.githubusercontent '
+            'equivalent and must use it'
+        )
+        assert '/blob/' not in path, f'{host}{path} is a blob viewer URL'
 
 
 def test_the_readme_is_what_the_package_ships():
