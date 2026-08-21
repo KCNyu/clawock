@@ -218,8 +218,8 @@ manifest 若出现 `extras`，表示新 feature 被隔离而没有偷长常驻 c
 
 - 板块来源是动态的：读 `memory/peer-map.json`，**每个 active ticker 的 `theme` 字段就是它的板块名**（如 "HK AI 大模型" / "HK 科技指数 2x leveraged (HSTECH 标的)" / "商业航天"）。持仓变了，板块自动跟变 — 不要在 SKILL.md / 报告里写死任何特定 ticker
 - 对每个去重后的 theme 跑一次 web search — **本 skill（盘前深度简报）已放开 `tavily-search`，优先用它**（`TAVILY_API_KEY` 已配置）；tavily 无结果或超时再退回内置 web search。⚠️ 免费档 1000 credits/月是全局共享，本 skill 每天只 1 次、按去重后的 theme 数搜（通常 ≤10 次/天），别对同一 theme 重复搜。**调用必须带 `--bucket brief`**（走本 skill 的月度配额 300；不带 bucket 会落 default 桶只有 60，很快被硬护栏挡回）：
-  - HK 板块 → `node ../tavily-search/scripts/search.mjs "今日 HK {theme} 涨幅榜 板块异动" --topic news --days 2 --bucket brief`
-  - US 板块 → `node ../tavily-search/scripts/search.mjs "{sector ETF 如 SOXX/QQQ/ARK} 今日成分涨跌" --topic news --days 2 --bucket brief`
+  - HK 板块 → `node /root/.openclaw/workspace/skills/tavily-search/scripts/search.mjs "今日 HK {theme} 涨幅榜 板块异动" --topic news --days 2 --bucket brief`
+  - US 板块 → `node /root/.openclaw/workspace/skills/tavily-search/scripts/search.mjs "{sector ETF 如 SOXX/QQQ/ARK} 今日成分涨跌" --topic news --days 2 --bucket brief`
   - 护栏是硬闸：额度用尽时脚本返回 "Web search unavailable" 并 exit 0，**别当报错**，退回内置搜索即可
 - 每个板块输出：Top 3-5 涨幅 + 你持仓票在榜单中的位置（领涨/落后/中位）
 - **归因句必带**：落后是因为(a) 利好时点（盘后才公布）/ (b) 早盘异常抛压 / (c) β 错配 / (d) 个股逻辑滞后？
