@@ -62,6 +62,12 @@ Install it with `pip install clawock`, or
 all. The model proposes; Python owns the prices, the risk limits, the ledger,
 the settlement, and the grading.
 
+To watch it settle one decision before installing anything, open a Codespace and
+run `examples/cli/minimal-run/run.sh` — a clean virtualenv, no credentials, no
+broker, and the same script CI executes against every published wheel:
+
+[![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/KCNyu/clawock)
+
 ### What makes it different
 
 - **A workflow plugin, not another agent — and not another harness.** The external runtime keeps its model, chat, memory, skills engine, tool loop, and permissions; clawock makes the investment-decision contract portable across runtimes and across harnesses. The harness debate (OpenClaw vs Codex vs DeepSeek Harness) is a debate clawock does not participate in.
