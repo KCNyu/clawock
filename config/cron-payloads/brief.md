@@ -17,6 +17,10 @@ clawock brief preflight
 **持仓相关数字**（FX、book USD/HKD、concentration HHI、retrospective、单股 RSI/MA/PnL）只从这个 JSON 取，不要凭空造。
 **板块全景/同行涨幅榜/当日催化** context.json 没覆盖 — Step 3 用 tavily-search 拉实时。
 
+**跑命令的两条硬约束（同属「工具报错=整轮记 error」那一族）**
+- 脚本路径**照抄 SKILL.md，不要猜**。猜错了不许全盘扫描：`find /` 会被转入后台会话，而**主动 `process kill` 掉它的 toolResult 带 isError**，整个 cron 会被记成 error —— 2026-08-21 的简报就是这样在两个渠道都投递成功之后仍然判红的。
+- 任何可能长跑的命令自己用 `timeout` 包住（如 `timeout 20 <cmd>`），让它自己结束，这样就永远不需要 kill。
+
 **Step 3 - Swarm 分析（你的创造性工作）**
 - ⚡ **板块全景**（必跑 tavily-search）：板块名读 `memory/peer-map.json` 各 ticker 的 `theme` 字段（持仓动态，不要写死任何 ticker），每个板块拉今日 Top 涨幅榜 + 你持仓在榜单的位置（领涨/落后/中位）+ 1 句归因（催化时点/早盘抛压/β 错配）
 - Regime（US/HK 分开打 tag）
