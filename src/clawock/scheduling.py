@@ -28,11 +28,33 @@ class ScheduleContract(dict):
 
 def _contract_path(path: str | Path | None, workspace: str | Path | None,
                    profile: str | Path | None) -> tuple[Path, Path]:
+    """(contract_path, workspace_root) for one `load_contract` call.
+
+    The last fallback is deliberately NOT `Path.cwd()`. `workspace_root`'s
+    contract is "unset behaves exactly like the 42 `parents[2]` sites", i.e. the
+    workspace the importing module physically sits in; passing the process's
+    current directory instead makes every bare `load_contract()` resolve against
+    wherever its caller happened to be started.
+
+    That is not hypothetical: cron starts `ops/host/sync_us_cron_dst.py` with a
+    bare interpreter and cwd `/root`, so from 2026-08-14 the DST synchroniser
+    went looking for `/root/config/cron-schedules.json` and died on every single
+    run for eight days (#775). The other cron lines survived only because the
+    `/root/.local/bin` launcher exports `CLAWOCK_WORKSPACE`, and an env override
+    outranks the fallback — so the bug hid everywhere except the one line that
+    does not use the launcher.
+
+    Precedence is unchanged: an explicit `path`, then `CLAWOCK_WORKSPACE`,
+    then an explicit `workspace=`, then the module's own tree. Only the last
+    step moves — from "wherever this process was started" to "where this code
+    lives", which is the one of the two that cannot be changed by a caller's
+    accident.
+    """
     if path is not None:
         resolved = Path(path).expanduser().resolve()
         root = Path(workspace).expanduser().resolve() if workspace else resolved.parent.parent
         return resolved, root
-    root = workspace_root(workspace or Path.cwd())
+    root = workspace_root(workspace)
     if profile is not None or os.environ.get(PROFILE_ENV_VAR):
         selected = load_profile(root, profile)
         return selected.resource_path("schedule_contract"), root
@@ -42,6 +64,16 @@ def _contract_path(path: str | Path | None, workspace: str | Path | None,
 def load_contract(path: str | Path | None = None, *, workspace: str | Path | None = None,
                   profile: str | Path | None = None) -> ScheduleContract:
     contract_path, root = _contract_path(path, workspace, profile)
+    if not contract_path.exists():
+        # A bare FileNotFoundError names the file it wanted and nothing about
+        # why it wanted *that* one, which is what made #775 read like a missing
+        # file rather than a misresolved workspace. Say which root was chosen
+        # and how to choose another: the reader has to be able to tell "wait for
+        # it to come back" apart from "you have to change a setting".
+        raise FileNotFoundError(
+            f"cron contract not found: {contract_path} "
+            f"(workspace resolved to {root}; set CLAWOCK_WORKSPACE, "
+            f"pass workspace=, or pass an explicit contract path)")
     data = ScheduleContract(json.loads(contract_path.read_text()), workspace=root)
     if data.get("schema_version") != 2:
         raise ValueError("cron contract schema_version must be 2")
@@ -182,7 +214,7 @@ def render_payload_message(contract: dict, expected_job: dict) -> str | None:
     if template_path is None:
         return None
 
-    workspace = getattr(contract, "workspace", workspace_root(Path.cwd()))
+    workspace = getattr(contract, "workspace", workspace_root())
     path = (workspace / template_path).resolve()
     try:
         path.relative_to(workspace.resolve())
@@ -302,7 +334,7 @@ def payload_errors(contract: dict, expected_job: dict, live_job: dict) -> list[s
     if expected_trigger:
         variables = expected_job.get("payload_vars") or {}
         script_path = _format_required(expected_trigger["script_path"], variables)
-        workspace = getattr(contract, "workspace", workspace_root(Path.cwd()))
+        workspace = getattr(contract, "workspace", workspace_root())
         expected_script = (workspace / script_path).read_text().strip()
         if not isinstance(trigger, dict):
             errors.append("condition trigger missing")

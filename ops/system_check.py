@@ -14,6 +14,7 @@ Used by:
 import glob
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -795,6 +796,103 @@ def check_host_crontab_targets(r):
         r.add('host crontab targets', OK, f'{len(rows)} lines · no missing targets')
 
 
+# A cron job that dies writes its traceback to the log the crontab line
+# redirects into, and its exit code into cron's mail — which this host has no
+# MTA for. Both are unread, so "crashes on every run" is as invisible as the
+# deleted-script case #663 already gates. These are the shapes a crashed run
+# leaves at the end of such a log.
+HOST_CRON_LOG_CRASH_MARKERS = (
+    re.compile(r'^Traceback \(most recent call last\):'),
+    re.compile(r'^[A-Za-z_][A-Za-z0-9_.]*(?:Error|Exception|Interrupt)\b'),
+    re.compile(r'command not found'),
+    re.compile(r'No such file or directory'),
+    re.compile(r'Permission denied'),
+)
+# Only the tail is read: these logs are append-only for months (the dashboard
+# publisher's is already several MB) and the question is about the last run.
+HOST_CRON_LOG_TAIL_BYTES = 8192
+
+
+def _host_cron_log_targets(crontab_text):
+    """Log files the host crontab appends job output into, under the workspace.
+
+    Derived from the crontab rather than listed here, for the same reason
+    `_host_crontab_target_audit` derives its roots: an absolute host path in
+    this file is the coupling the ratchet bans, and the set of host jobs is the
+    operator's, not this repository's.
+    """
+    from clawock.scheduling import parse_crontab_lines
+
+    targets = set()
+    for row in parse_crontab_lines(crontab_text):
+        for match in re.finditer(r'>>?\s*(\S+)', row['command']):
+            target = Path(match.group(1))
+            if target.is_absolute() and target.is_relative_to(LIVE_WORKSPACE):
+                targets.add(target)
+    return targets
+
+
+def _last_meaningful_line(path):
+    """The final non-blank line of a file's tail, or None."""
+    with path.open('rb') as fh:
+        try:
+            fh.seek(-HOST_CRON_LOG_TAIL_BYTES, os.SEEK_END)
+        except OSError:
+            fh.seek(0)
+        tail = fh.read().decode('utf-8', 'replace')
+    lines = [line.strip() for line in tail.splitlines() if line.strip()]
+    return lines[-1] if lines else None
+
+
+def check_host_cron_logs(r):
+    """A host cron job whose log ends in a crash has been failing unnoticed.
+
+    #775 is the case this exists for: the DST synchroniser died on the same
+    `FileNotFoundError` eight days running and every repository-side gate stayed
+    green, because they all ask different questions — `check_host_crontab_targets`
+    asks whether the script still exists (it did), the GitHub cron-health job
+    only sees the eleven agent slots, and the outcome ledger does not carry host
+    maintenance jobs at all.
+
+    The criterion is deliberately modest and stated as what it is: **the last
+    thing this job wrote looks like a crash.** Host cron does not hand anyone an
+    exit code, so any design claiming to report one would be inventing it. Two
+    honest limits follow: a job that dies without writing anything is invisible
+    here, and one crash keeps reporting until a later run pushes it off the tail
+    (at most one schedule period for a job that runs at all).
+
+    WARN, not CRITICAL: `.githooks/pre-push` runs this file before every push to
+    master, and a stalled maintenance job must not wedge the market-data
+    publisher. WARN still surfaces on every run of the 20-minute publisher.
+    """
+    try:
+        out = subprocess.run(
+            ['crontab', '-l'], capture_output=True, text=True, timeout=10,
+        )
+    except Exception:
+        return  # no crontab on this host — nothing to check
+    if out.returncode != 0 or not out.stdout.strip():
+        return
+    targets = _host_cron_log_targets(out.stdout)
+    if not targets:
+        return
+
+    crashed, checked = [], 0
+    for path in sorted(targets):
+        if not path.is_file() or path.stat().st_size == 0:
+            continue  # never written, or written and then rotated away
+        checked += 1
+        last = _last_meaningful_line(path)
+        if last and any(m.search(last) for m in HOST_CRON_LOG_CRASH_MARKERS):
+            crashed.append((path.name, last))
+    if not checked:
+        return
+    for name, last in crashed:
+        r.add('host cron logs', WARNING, f'{name} ends on a crash: {last[:140]}')
+    if not crashed:
+        r.add('host cron logs', OK, f'{checked} host cron logs · none end on a crash')
+
+
 def check_generated_cron_docs(r):
     """Generated schedule documentation must exactly match the contract."""
     result = subprocess.run(
@@ -1004,6 +1102,7 @@ def main():
         check_context_capability,
         check_cron_paths_exist,
         check_host_crontab_targets,
+        check_host_cron_logs,
         check_generated_cron_docs,
         check_research_artifacts,
         check_trading_calendar_horizon,
