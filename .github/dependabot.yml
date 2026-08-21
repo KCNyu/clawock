@@ -1,8 +1,6 @@
 version: 2
 
 updates:
-  # clawock intentionally has no Python dependency manifest today, so keep this
-  # focused on the Actions actually used by the repository.
   - package-ecosystem: github-actions
     directory: /
     schedule:
@@ -13,6 +11,51 @@ updates:
     open-pull-requests-limit: 5
     groups:
       safe-actions:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
+
+  # `pyproject.toml` is the one place the Python dependencies are declared (they
+  # used to be drifting `pip install` lines in nine workflows). Until #784 this
+  # file claimed the repository had no Python manifest at all, so the dependency
+  # surface of the package published to PyPI was watched by nobody — and
+  # repository-level Dependabot security updates only produce alerts for trees
+  # an ecosystem entry makes visible.
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+      timezone: Asia/Shanghai
+    # Deliberately small: Dependabot's own branches cannot satisfy this
+    # repository's required checks, so every PR it opens has to be reopened from
+    # a `claude/…` or `codex/…` branch by hand. A high limit just piles up work
+    # that cannot be merged where it stands.
+    open-pull-requests-limit: 3
+    groups:
+      python-safe:
+        patterns:
+          - "*"
+        update-types:
+          - minor
+          - patch
+
+  # The npm side of the release train. clawock-dsh ships a full lockfile and has
+  # already broken a release once through it (0.1.6: mirror-registry URLs left in
+  # `resolved`), so this tree is not hypothetical.
+  - package-ecosystem: npm
+    directory: /examples/dsh/packages/clawock-dsh
+    schedule:
+      interval: weekly
+      day: monday
+      time: "09:00"
+      timezone: Asia/Shanghai
+    open-pull-requests-limit: 3
+    groups:
+      npm-safe:
         patterns:
           - "*"
         update-types:

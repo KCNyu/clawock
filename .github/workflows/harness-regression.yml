@@ -39,6 +39,15 @@ on:
 permissions:
   contents: read
 
+# A superseded PR run is worth nothing: the only result anybody reads is the one
+# for the tip of the branch. On master the opposite holds — every green there is
+# part of the ledger, so those runs are never cancelled. Deliberately NOT the
+# `cancel-in-progress: false` that pages.yml uses; that one exists so a burst of
+# deploys cannot lose a generation, which is the opposite requirement.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   validate:
     runs-on: ubuntu-latest
@@ -173,11 +182,29 @@ jobs:
         with:
           node-version: '22'
 
+      # The browser build is ~150MB downloaded from scratch on every UI run. The
+      # version is already pinned on the line below, so it is also a complete
+      # cache key: a bump changes the key and misses on purpose.
+      - name: Cache the Playwright browser build
+        if: steps.changes.outputs.ui == 'true'
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-1.60.0-${{ runner.os }}
+
       - name: Install dashboard browser contract runtime
         if: steps.changes.outputs.ui == 'true'
         run: |
           npm install --no-save --silent playwright@1.60.0
-          npx playwright install --with-deps chromium
+          # The apt-level dependencies live outside ~/.cache/ms-playwright and are
+          # not restored by the cache, so they are installed either way; only the
+          # browser download is skipped on a hit.
+          if [ "${{ steps.playwright-cache.outputs.cache-hit }}" = "true" ]; then
+            npx playwright install-deps chromium
+          else
+            npx playwright install --with-deps chromium
+          fi
 
       # The dashboard's four outputs and two sidecars live on the data branch,
       # not on master (#314), so a checkout does not carry them. The browser
