@@ -75,7 +75,15 @@ jobs:
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
 
+      # master's ruleset bypasses exactly one actor — the deploy key. The
+      # workflow token cannot push there, so the plain `git push` this shipped
+      # with (#798) would have failed on the first scheduled run, after
+      # capturing a 14-day window that cannot be re-fetched. Every other
+      # data-write workflow goes through safe_push.sh for the same reason, and
+      # it also owns the rebase-retry and the conflict-marker guard.
       - name: Commit the merged history
+        env:
+          CLAWOCK_PUBLISH_SSH_KEY: ${{ secrets.CLAWOCK_PUBLISH_SSH_KEY }}
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
@@ -86,7 +94,4 @@ jobs:
             exit 0
           fi
           git commit -m "measurement: repo traffic + schedule drift $(date -u +%Y-%m-%d)"
-          # Automation commits to master all day; rebase onto whatever landed
-          # while this job ran rather than failing on a stale ref.
-          git pull --rebase --autostash origin master
-          git push origin HEAD:master
+          bash ops/publish/safe_push.sh
