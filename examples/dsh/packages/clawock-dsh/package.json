@@ -86,7 +86,7 @@
     "lightningcss": "^1.33.0",
     "tsdown": "^0.22.14",
     "tsx": "^4.23.12",
-    "typescript": "6.0.3"
+    "typescript": "7.0.2"
   },
   "dsh": {
     "bundle": {
