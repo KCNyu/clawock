@@ -130,6 +130,37 @@ def test_a_checkout_that_is_not_the_live_workspace_gets_no_publish_identity(tmp_
         f"{probe.stdout!r}")
 
 
+def test_no_workflow_pushes_to_master_around_safe_push():
+    """master's ruleset bypasses exactly one actor — the deploy key.
+
+    A workflow that runs `git push origin ... master` with the workflow token is
+    rejected by the ruleset, and it discovers this on its first scheduled run,
+    after doing the work, with the runner about to be discarded. repo-traffic
+    shipped exactly that in #798: it captured a 14-day window that cannot be
+    re-fetched and would then have failed to store it.
+
+    Routing everything through safe_push.sh is not only about the credential —
+    it also owns the rebase-retry against a repository that commits all day and
+    the conflict-marker guard that once blanked the dashboard.
+    """
+    offenders = []
+    for path in sorted((ROOT / ".github" / "workflows").glob("*.yml")):
+        text = path.read_text()
+        for line in text.splitlines():
+            stripped = line.strip()
+            if not stripped.startswith("git push"):
+                continue
+            # The data-plane publisher owns its own orphan branch and never
+            # touches master; safe_push.sh itself is the sanctioned path.
+            if "master" not in stripped and "HEAD:" not in stripped:
+                continue
+            offenders.append(f"{path.name}: {stripped}")
+
+    assert not offenders, (
+        "these push to master directly instead of through safe_push.sh, which "
+        f"the branch ruleset will reject: {offenders}")
+
+
 def test_every_workflow_that_stages_the_money_file_pushes_through_the_gate():
     """The money-conservation check lived only in .githooks/pre-push, which a
     fresh actions/checkout never installs (no workflow sets core.hooksPath). So
