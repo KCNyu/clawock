@@ -1,5 +1,19 @@
+# Issues stay for actionable, evidenced problems — the bug template is the only
+# form on purpose, and the discipline in it (symptom, evidence, acceptance) is
+# what makes the tracker worth reading. Everything that is a question, an idea
+# or a report of using this elsewhere now has somewhere to go that is not a
+# fake bug report (#786).
 blank_issues_enabled: true
 contact_links:
+  - name: Ask a question
+    url: https://github.com/KCNyu/clawock/discussions/categories/q-a
+    about: How to run this against a different broker, a different harness, or only half the workflow. Answers get marked, so the next person finds them.
+  - name: Propose an idea
+    url: https://github.com/KCNyu/clawock/discussions/categories/ideas
+    about: Anything that is not yet a defect with evidence behind it. If it turns into one, it becomes an issue from there.
+  - name: Show what you built
+    url: https://github.com/KCNyu/clawock/discussions/categories/show-and-tell
+    about: Your own instance, your own harness, your own scorecard — including the losses.
   - name: Report a security vulnerability
     url: https://github.com/KCNyu/clawock/security/advisories/new
     about: Private disclosure, read only by the maintainer. Never use a public issue for this.

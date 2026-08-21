@@ -58,7 +58,11 @@ seo = ["google-auth>=2.30"]
 # workflow line is a second source of truth that drifts unseen.
 release = ["build>=1.2", "twine>=5"]
 # Everything the test suite needs to *collect*, not just to pass.
-test = ["pytest>=8", "pytest-cov>=5", "numpy>=1.26", "Pillow>=10"]
+# PyYAML is here for the same reason as the rest: the public-entry-point test
+# parses .github/ISSUE_TEMPLATE/config.yml as structured data rather than
+# substring-matching it, and a test module that cannot import does not fail —
+# it stops the whole suite at collection while the run still looks like it ran.
+test = ["pytest>=8", "pytest-cov>=5", "numpy>=1.26", "Pillow>=10", "PyYAML>=6"]
 
 [project.urls]
 Homepage = "https://github.com/KCNyu/clawock"
