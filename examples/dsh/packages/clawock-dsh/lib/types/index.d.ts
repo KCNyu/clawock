@@ -13,6 +13,14 @@ import type { Context } from '@deepseek-ai/cordis';
 import type { LedgerResult, ListRunsResult, PlansResult, PortfolioResult, RunDetailResult, TracesResult } from './types.ts';
 export declare class ClawockStudioGateway extends TypertRemoteService {
     static inject: readonly [];
+    /**
+     * Signature-keyed trace cache per workspace (see freshness.ts). Owned by the
+     * service instance rather than module scope: a module-level cache would
+     * outlive plugin stop/update (the module stays in the process cache), so a
+     * stopped plugin could keep serving a stale enriched view through a new
+     * instance. Instance lifetime follows the fiber; a hit still costs µs.
+     */
+    private readonly tracesCache;
     constructor(ctx: Context);
     /** @returns Prepared runs (newest first), with decision/receipt presence flags. */
     list(): ListRunsResult;
