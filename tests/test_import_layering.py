@@ -291,3 +291,35 @@ def test_the_tolerated_writer_list_only_shrinks():
     assert len(TOLERATED_WRITERS) <= 5, (
         "a test was added to the write allowlist; #816 is about emptying it"
     )
+
+
+def test_no_workflow_or_script_invokes_a_module_by_a_path_that_moved():
+    """`python3 -m clawock.x.y` in a workflow is an import the AST scan cannot see.
+
+    #814 moved four modules and the graph came back clean, because a `-m`
+    invocation in harness-regression.yml is a string, not an import. CI caught
+    it — after the PR was opened, on a step that only runs when code changes.
+    A grep is cheap and runs with everything else.
+    """
+    moved = {
+        "clawock.portfolio.instruments": "clawock.instruments",
+        "clawock.market_data.sessions": "clawock.sessions",
+        "clawock.evidence.research_provenance": "clawock.provenance",
+        "clawock.portfolio.shadow": "clawock.decision.shadow",
+    }
+    haystacks = []
+    for pattern in ("*.yml", "*.yaml", "*.sh", "*.md", "*.json"):
+        for base in (ROOT / ".github", ROOT / "ops", ROOT / "config", ROOT / "skills",
+                     ROOT / "docs"):
+            haystacks.extend(base.rglob(pattern))
+
+    offenders = []
+    for path in haystacks:
+        try:
+            text = path.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            continue
+        for old, new in moved.items():
+            if old in text:
+                offenders.append(f"{path.relative_to(ROOT)} still names {old} (now {new})")
+    assert not offenders, offenders

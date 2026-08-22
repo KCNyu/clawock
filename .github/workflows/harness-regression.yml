@@ -437,7 +437,7 @@ jobs:
 
       - name: Schema-validate canonical instrument registry
         if: steps.changes.outputs.code == 'true'
-        run: python3 -m clawock.portfolio.instruments
+        run: python3 -m clawock.instruments
 
       - name: Schema-validate memory/*-plan.json
         if: steps.changes.outputs.code == 'true'
