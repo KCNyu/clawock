@@ -70,7 +70,7 @@ WS = workspace_root(Path.cwd())
 PORTFOLIO = WS / 'portfolio.json'
 OUT = WS / 'assets' / 'data' / 'integrity_report.json'
 
-from clawock.portfolio.instruments import INSTRUMENTS
+from clawock.instruments import INSTRUMENTS
 from clawock.portfolio.math import (
     active_holdings as _active,
     derive_cash,
@@ -86,7 +86,7 @@ except Exception:  # pragma: no cover
         Path(path).write_text(json.dumps(data, ensure_ascii=False, indent=indent))
 
 try:
-    from clawock.market_data import sessions as tc
+    from clawock import sessions as tc
 except Exception:
     tc = None
 

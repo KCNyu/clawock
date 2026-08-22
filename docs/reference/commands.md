@@ -123,7 +123,7 @@ Sources: local snapshots + canonical bars
 | `clawock evaluate-us-leverage` | `clawock.evaluation.us_leverage` | the same regime backtest for the US 2x sleeve |
 | `clawock evaluate-combined-regime` | `clawock.evaluation.combined_regime` | the whole book at current USD weights |
 | `clawock validate-regime-dial` | `clawock.evaluation.regime_validation` | out-of-sample and circular-shift null for the dial's timing |
-| `clawock shadow` | `clawock.portfolio.shadow` | replays triggered calls against buy-and-hold to measure simulated timing alpha |
+| `clawock shadow` | `clawock.decision.shadow` | replays triggered calls against buy-and-hold to measure simulated timing alpha |
 | `clawock audit-resettle` | `clawock.decision.settlement` | dry-run bar-based re-settle that reports every verdict it would change |
 | `clawock evaluate-add-alpha` | `clawock.evaluation.add_alpha_walkforward` | point-in-time diagnostic replay of price-relative and information interaction adds |
 
@@ -139,7 +139,7 @@ These are installed commands too. They are listed here so the catalog is the who
 | `clawock evidence` | `clawock.evidence.build_evidence` | renders the public evidence page from artifacts; it collects nothing |
 | `clawock run-card` | `clawock.evidence.run_card` | records that a backtest ran and against what — provenance, not a measurement |
 | `clawock claim-provenance` | `clawock.evidence.claim_provenance` | gate: a quoted backtest number must still be in the card it cites |
-| `clawock provenance` | `clawock.evidence.research_provenance` | gate: a published research figure needs two independent sources |
+| `clawock provenance` | `clawock.provenance` | gate: a published research figure needs two independent sources |
 | `clawock mark-followed` | `clawock.decision.execution` | writes execution ground truth into the decision ledger |
 | `clawock record` | `clawock.decision.record` | appends a conversation verdict to the decision-mind ledger — it records a decision that was already made, and collects nothing |
 | `clawock risk` | `clawock.decision.risk` | durable governance ledger for breaches — a record of decisions, not an input to one |

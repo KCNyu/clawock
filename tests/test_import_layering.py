@@ -31,18 +31,22 @@ PKG = "clawock"
 # Package-level cycles that exist today, each as a frozenset of subpackages.
 # Every entry is a debt with a name. Removing one means deleting its line here;
 # nothing may ever be added.
-KNOWN_PACKAGE_CYCLES = {
-    # #814: market_data <-> portfolio via portfolio.instruments and
-    # market_data.sessions (two foundation modules living in the wrong package),
-    # closed by portfolio.shadow -> decision.ledger and
-    # decision.earnings -> evidence.research_provenance.
-    frozenset({"decision", "evidence", "market_data", "portfolio"}),
-    # #814: publish.dashboard -> harness.brief_preflight and
-    # workflows.{improvements,validators} -> harness.{config,model}.
-    # `cli` was in this set until PACKAGED_UTILITIES moved out of it; the
-    # remaining four are the untouched half.
-    frozenset({"automation", "harness", "publish", "workflows"}),
-}
+KNOWN_PACKAGE_CYCLES: set[frozenset[str]] = set()
+# Empty as of #814. Both entries that used to live here are gone:
+#
+#   decision <-> evidence <-> market_data <-> portfolio
+#   automation <-> cli <-> harness <-> publish <-> workflows
+#
+# Four modules turned out to be foundation-shaped — zero clawock imports, needed
+# by several packages — and were simply in the wrong package: `sessions` and
+# `instruments` (13 importers between them across decision and market_data),
+# `runtime_model` (a dataclass `workflows` had to import the harness to name),
+# and `provenance` (a manifest validator `decision.earnings` reached into
+# `evidence` for). The rest was the guardrail arithmetic that `publish` climbed
+# into `harness` to call, and `load_request`, which belongs beside the workflow
+# contract it resolves.
+#
+# Adding an entry back means a package cycle was reintroduced. Do not.
 
 # Module-level cycles. `tools` is the registry pattern and is not a defect: the
 # package __init__ owns the base classes, submodules import them, and
@@ -50,8 +54,7 @@ KNOWN_PACKAGE_CYCLES = {
 KNOWN_MODULE_CYCLES = {
     frozenset({"clawock.tools", "clawock.tools.context_tools"}),
     frozenset({"clawock.decision.ledger", "clawock.decision.record"}),
-    frozenset({"clawock.harness.config", "clawock.workflows",
-               "clawock.workflows.improvements"}),
+
 }
 
 
@@ -230,7 +233,8 @@ def test_nothing_below_the_cli_imports_the_cli(graph):
     )
 
 
-@pytest.mark.parametrize("leaf", ["workspace", "safe_io", "json_repair", "utilities"])
+@pytest.mark.parametrize("leaf", ["workspace", "safe_io", "json_repair", "utilities",
+                                  "credentials", "sessions"])
 def test_the_foundation_modules_stay_leaves(graph, leaf):
     """These are imported from everywhere — workspace by 67 modules, safe_io by
     30. A single import added here reaches the whole package, and the reason
@@ -246,10 +250,10 @@ def test_the_foundation_modules_stay_leaves(graph, leaf):
 def test_the_allowlists_only_ever_shrink():
     """The counts are written down so that adding an entry is a visible edit to
     a number, not a quiet append to a set."""
-    assert len(KNOWN_PACKAGE_CYCLES) <= 2, (
-        "a package cycle was added to the allowlist; #814 is about removing these"
+    assert not KNOWN_PACKAGE_CYCLES, (
+        "the package graph is a DAG as of #814; an entry here means a cycle came back"
     )
-    assert len(KNOWN_MODULE_CYCLES) <= 3, (
+    assert len(KNOWN_MODULE_CYCLES) <= 2, (
         "a module cycle was added to the allowlist; #814 is about removing these"
     )
 
@@ -287,3 +291,35 @@ def test_the_tolerated_writer_list_only_shrinks():
     assert len(TOLERATED_WRITERS) <= 5, (
         "a test was added to the write allowlist; #816 is about emptying it"
     )
+
+
+def test_no_workflow_or_script_invokes_a_module_by_a_path_that_moved():
+    """`python3 -m clawock.x.y` in a workflow is an import the AST scan cannot see.
+
+    #814 moved four modules and the graph came back clean, because a `-m`
+    invocation in harness-regression.yml is a string, not an import. CI caught
+    it — after the PR was opened, on a step that only runs when code changes.
+    A grep is cheap and runs with everything else.
+    """
+    moved = {
+        "clawock.portfolio.instruments": "clawock.instruments",
+        "clawock.market_data.sessions": "clawock.sessions",
+        "clawock.evidence.research_provenance": "clawock.provenance",
+        "clawock.portfolio.shadow": "clawock.decision.shadow",
+    }
+    haystacks = []
+    for pattern in ("*.yml", "*.yaml", "*.sh", "*.md", "*.json"):
+        for base in (ROOT / ".github", ROOT / "ops", ROOT / "config", ROOT / "skills",
+                     ROOT / "docs"):
+            haystacks.extend(base.rglob(pattern))
+
+    offenders = []
+    for path in haystacks:
+        try:
+            text = path.read_text(encoding="utf-8")
+        except (OSError, UnicodeDecodeError):
+            continue
+        for old, new in moved.items():
+            if old in text:
+                offenders.append(f"{path.relative_to(ROOT)} still names {old} (now {new})")
+    assert not offenders, offenders

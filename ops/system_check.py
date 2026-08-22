@@ -207,7 +207,7 @@ def check_portfolio_schema(r):
 def check_instrument_registry(r):
     """Canonical metadata must cover every active holding."""
     try:
-        from clawock.portfolio import instruments as instrument_registry
+        from clawock import instruments as instrument_registry
         portfolio = json.loads((WS / 'portfolio.json').read_text())
         errors = instrument_registry.validate_active_holdings(portfolio)
     except Exception as e:
@@ -915,7 +915,7 @@ def check_trading_calendar_horizon(r):
     gazetted, US ones move), so the only safe mechanism is a loud deadline.
     """
     try:
-        from clawock.market_data import sessions as trading_calendar
+        from clawock import sessions as trading_calendar
         coverage = trading_calendar.coverage()
     except Exception as e:  # noqa: BLE001
         r.add('trading calendar', CRITICAL, f'cannot read coverage: {e}')

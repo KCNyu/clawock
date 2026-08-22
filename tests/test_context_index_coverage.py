@@ -35,9 +35,10 @@ RESEARCH_LOCATIONS = {
     "entry_gate.py": ROOT / "src" / "clawock" / "decision" / "entry.py",
     "earnings_review.py": ROOT / "src" / "clawock" / "decision" / "earnings.py",
     "thesis_registry.py": ROOT / "src" / "clawock" / "decision" / "theses.py",
-    "research_provenance.py": (
-        ROOT / "src" / "clawock" / "evidence" / "research_provenance.py"
-    ),
+    # Moved out of `evidence` in #814: it imports nothing from clawock and
+    # `decision.earnings` needed it, which made evidence and decision mutually
+    # dependent.
+    "research_provenance.py": ROOT / "src" / "clawock" / "provenance.py",
     "research_surface.py": (
         ROOT / "src" / "clawock" / "evidence" / "research_surface.py"
     ),

@@ -9,7 +9,7 @@ thesis registry.
 Three rules shape everything here:
 
 1. Numbers are Decimal strings end to end, and every published number must clear
-   `evidence.research_provenance.validate_manifest` (two independent sources)
+   `clawock.provenance.validate_manifest` (two independent sources)
    before the
    artifact can be released.
 2. Earnings quality is computed in code from the comparable history, never
@@ -27,7 +27,7 @@ from datetime import date, datetime, timezone
 from decimal import Decimal, InvalidOperation
 from pathlib import Path
 
-from clawock.evidence import research_provenance
+from clawock import provenance as research_provenance
 from clawock.workspace import engine_config, workspace_root
 from clawock.safe_io import parse_iso_utc as _parse_time
 

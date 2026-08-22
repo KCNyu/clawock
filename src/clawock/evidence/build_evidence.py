@@ -159,7 +159,7 @@ def _sessions_after(start: str, n: int, market: str = 'hk') -> str | None:
     """
     try:
         from datetime import date, timedelta
-        from clawock.market_data import sessions as trading_calendar
+        from clawock import sessions as trading_calendar
     except Exception:
         return None
     try:

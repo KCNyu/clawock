@@ -161,7 +161,7 @@ def _doctor(args) -> int:
 
 def _calendar(args) -> int:
     """Run the package-owned HK/US session guard."""
-    from clawock.market_data.sessions import main as calendar_main
+    from clawock.sessions import main as calendar_main
 
     forwarded = [args.market]
     if args.date:

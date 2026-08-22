@@ -29,8 +29,8 @@ import requests
 
 from clawock.credentials import load_api_keys
 from clawock.portfolio.fx import get_usdhkd
-from clawock.portfolio.instruments import get as get_instrument
-from clawock.portfolio.instruments import leverage_map, require as require_instrument
+from clawock.instruments import get as get_instrument
+from clawock.instruments import leverage_map, require as require_instrument
 from clawock.safe_io import safe_write_json
 from clawock.workspace import workspace_root
 

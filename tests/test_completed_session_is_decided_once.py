@@ -16,7 +16,7 @@ from zoneinfo import ZoneInfo
 
 import pytest
 
-from clawock.market_data import sessions
+from clawock import sessions
 from clawock.portfolio import integrity
 from clawock.publish import dashboard
 from clawock.decision import signals

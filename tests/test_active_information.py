@@ -5,7 +5,7 @@ from urllib.parse import urlsplit
 
 from clawock.decision import active_information as ai
 from clawock.market_data import primary_disclosures
-from clawock.portfolio import instruments
+from clawock import instruments
 from clawock.harness import intraday_preflight
 
 

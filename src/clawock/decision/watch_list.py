@@ -14,8 +14,8 @@ from datetime import date
 from pathlib import Path
 
 from clawock.decision import signals as quant_signals
-from clawock.market_data import sessions as trading_calendar
-from clawock.portfolio.instruments import get as get_instrument
+from clawock import sessions as trading_calendar
+from clawock.instruments import get as get_instrument
 from clawock.workspace import workspace_root
 
 # 出现门槛:距 20 日高 ≤5%、或 5d 收益 ≥8%(次新无前高数据时只看 5d)。
