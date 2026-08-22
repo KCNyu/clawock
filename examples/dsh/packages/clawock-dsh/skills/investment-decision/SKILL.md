@@ -235,8 +235,9 @@ nobody edits `decisions.jsonl` directly.
 Rules: the bear case and at least one observable invalidation condition are
 mandatory (the command rejects weak records); be honest about emotion
 pressure — `fomo`/`revenge`/`averaging_down` are the exact patterns this
-ledger exists to surface. Full schema:
-`docs/decision-mind-ledger.md` (installed with the package).
+ledger exists to surface. Full schema (in the repository, not in the npm
+tarball):
+<https://github.com/KCNyu/clawock/blob/master/docs/decision-mind-ledger.md>
 
 ## Learn more
 
