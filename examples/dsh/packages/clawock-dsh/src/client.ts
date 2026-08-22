@@ -268,7 +268,7 @@ function TraceDetail(props: { trace: DisplayEntry }): React.ReactElement {
       h('div', { className: cx('tw') }, trace.t1.date),
       h('div', { className: cx('n') }, 'T+1 收盘'),
       h('div', { className: cx('v') }, (trace.t1.delta >= 0 ? '+' : '') + trace.t1.delta + '% · ' + trace.t1.verdict))
-    return h('div', null,
+    return h('div', { className: cx('dbody') },
       h('div', { className: cx('trhead') }, '决策轨迹 · 无当日计划'),
       h('div', { className: cx('trace') },
         h('div', { className: cx('tnode', 'dec') },
@@ -322,7 +322,7 @@ function TraceDetail(props: { trace: DisplayEntry }): React.ReactElement {
     pnlTone = ''
     pnlLabel = '本笔盈亏'
   }
-  return h('div', null,
+  return h('div', { className: cx('dbody') },
     h('div', { className: cx('trhead') }, '决策轨迹 · ' + (decision.planDate ?? '')),
     h('div', { className: cx('trace') },
       h('div', { className: cx('tnode', 'dec') },
@@ -385,6 +385,13 @@ function TraceCell(props: TraceCellProps): React.ReactElement {
     // like the fill was fine.
     t1tag = h('span', { className: cx('t1', 'flat'), 'data-tone': 'flat' }, 'T+1 未判')
   }
+  // A fill that ran against its own plan is the single most load-bearing
+  // signal on this board (SPCH: 37 planned cuts, 22 actual buys) — it must be
+  // visible in the folded row, not only after expanding the timeline.
+  let alignTag: React.ReactElement | null = null
+  if (trace.decision?.alignment === 'opposite') {
+    alignTag = h('span', { className: cx('al', 'opp'), 'data-align': 'opposite' }, '反向')
+  }
   return h('div', {
     className: cx('cell', trace.decision !== null && 'hasdec', props.open && 'open'),
     'data-cell': 'trace',
@@ -404,6 +411,7 @@ function TraceCell(props: TraceCellProps): React.ReactElement {
       pnl),
     h('div', { className: cx('sub') },
       t1tag,
+      alignTag,
       h('span', { className: cx('date') }, (trace.date ?? '').slice(5)),
       h('span', { className: cx('chev') }, '▾')),
     h('div', { className: cx('detail') },
@@ -500,8 +508,9 @@ export function DecisionMind(props: DecisionMindProps): React.ReactElement {
   if (data.loading) {
     return h('div', { className: cx('dmt'), ref: rootRef },
       h('div', { className: cx('top') },
-        h('div', { className: cx('tt') }, '决策轨迹'),
-        h('div', { className: cx('ts') }, '一笔真实成交 + 当时写下的计划 + 官方收盘给的结果')),
+        h('div', { className: cx('tin') },
+          h('div', { className: cx('tt') }, '决策轨迹'),
+          h('div', { className: cx('ts') }, '一笔真实成交 + 当时写下的计划 + 官方收盘给的结果'))),
       h('div', { className: cx('list') },
         h(SkeletonRow, { key: 'sk1' }),
         h(SkeletonRow, { key: 'sk2' }),
@@ -575,7 +584,7 @@ export function DecisionMind(props: DecisionMindProps): React.ReactElement {
         relativeDay(date, today),
         h('span', null, date),
         h('span', { className: cx('n') }, rows.length)),
-      folded ? null : rows.map((trace, index) => {
+      folded ? null : h('div', { className: cx('group') }, rows.map((trace, index) => {
         // 下标兜底:ticker+date+shares 在同股同日同量时会撞 key。
         const key = trace.ticker + trace.date + trace.shares + ':' + index
         return h(TraceCell, {
@@ -587,7 +596,7 @@ export function DecisionMind(props: DecisionMindProps): React.ReactElement {
             if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); actions.toggleOpen(key) }
           },
         })
-      }))
+      })))
   }
 
   let moreButton: React.ReactElement | null = null
@@ -621,9 +630,7 @@ export function DecisionMind(props: DecisionMindProps): React.ReactElement {
         h('span', { className: cx('down') }, soldEarly), ' / ', h('span', { className: cx('up') }, soldRight))),
     h('div', { className: cx('sg') },
       h('span', { className: cx('sl') }, '有当日计划' + (reversed === 0 ? '' : ' · 反向 ' + reversed)),
-      h('span', { className: cx('sv') }, matched + '/' + traces.length)),
-    h('span', { className: cx('rate') },
-      traces.length + ' 笔成交' + (rate === null ? '' : ' · @' + rate)))
+      h('span', { className: cx('sv') }, matched + '/' + traces.length)))
 
   const filters = h('div', { className: cx('filters') },
     (['all', 'miss', 'sold', 'dec'] as const).map((value) => h('button', {
@@ -632,12 +639,18 @@ export function DecisionMind(props: DecisionMindProps): React.ReactElement {
       onClick: () => { actions.setFilter(value) },
     }, FILTER_LABEL[value])))
 
+  // The header rides the host's content column (`--dsh-chat-content-width`),
+  // so the sticky bar lines up with the rows instead of running full-bleed
+  // over them; only its background and rule span the view.
   return h('div', { className: cx('dmt'), ref: rootRef },
     h('div', { className: cx('top') },
-      h('div', { className: cx('tt') }, '决策轨迹'),
-      h('div', { className: cx('ts') }, '一笔真实成交 + 当时写下的计划 + 官方收盘给的结果' + (data.stale ? ' · 更新失败,显示此前快照' : '')),
-      stats,
-      filters),
+      h('div', { className: cx('tin') },
+        h('div', { className: cx('tt') }, '决策轨迹',
+          h('span', { className: cx('rate') },
+            traces.length + ' 笔成交' + (rate === null ? '' : ' · @' + rate))),
+        h('div', { className: cx('ts') }, '一笔真实成交 + 当时写下的计划 + 官方收盘给的结果' + (data.stale ? ' · 更新失败,显示此前快照' : '')),
+        stats,
+        filters)),
     h('div', { className: cx('list') }, body))
 }
 

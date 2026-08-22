@@ -104,6 +104,10 @@ share/
 
 # Playwright lib for local GIF recording (refresh_dashboard_gif.sh) — never commit
 node_modules/
+# `npm pack` in examples/dsh/packages/clawock-dsh leaves the tarball beside the
+# package; the live installer packs into a temp dir, so a tarball here is always
+# a local by-product and never something to commit.
+*.tgz
 
 # safe_io 写盘产物（flock 锁 + 备份），不入库
 portfolio.json.lock

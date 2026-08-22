@@ -132,10 +132,13 @@ agent:准备请求…(clawock run prepare)
 装完后,web GUI 的会话视图多一个 **Decision Mind** tab(只读)。它只做
 一件事:**每一笔真实成交,都是一条可以点开的决策轨迹**。
 
-- **主轴是真实成交**(portfolio.json trades[]),不是计划流水。每行 =
-  标的 + 动作 + 数量@价 + **盈亏焦点数字**,副行是 **T+1 判定**(官方
-  逐日行情的 T+1 收盘对比成交价,`memory/bars/`,绝不读快照
-  `current_price`;未判出显式写「T+1 未判」,不假装没这回事)+ 日期。
+- **主轴是真实成交**(portfolio.json trades[]),不是计划流水。一天是一个
+  账本分组:同组内每笔成交一行,行内 = 日期 + 标的 + 动作 + 数量@价 +
+  **T+1 判定**(官方逐日行情的 T+1 收盘对比成交价,`memory/bars/`,绝不读
+  快照 `current_price`;未判出显式写「T+1 未判」,不假装没这回事)+ 与计划
+  反向标记 + **盈亏焦点数字**。同组各行用 `subgrid` 共用一套列轨道,所以
+  标的/动作/数量/盈亏在整组里对齐,竖着扫就是在比同一件事;窄于 520px
+  时行折回两行(身份+金额 / 判定+日期)。
 - **点开一条轨迹**:GitHub 式纵向时间线 —— 当时的计划(动作/股数@计划价/
   信心/驱动)→ **真实成交**(与计划同向/反向,`execution.status` 只是计划
   自己的「账本自评」小标签,不冒充这笔成交的执行结果)→ T+1 收盘 →
@@ -204,6 +207,7 @@ pass 全部就地跑真实源码树,不再复刻临时 workspace(#731)。生成�
 | Host Remote | `TypertRemoteService` + `@Remote`,构建期由 `@deepseek-ai/dsh-typert-generator` 生成反射与 client contribution | ✅ |
 | Client 纪律 | `register` 只在 `apply`;store 必须是 `createXxxStore()` 工厂;模块级零副作用;组件只吃 props | ✅ |
 | 样式 | 构建期 CSS Modules,`<style data-plugin>` 由模块 loader 认领/卸载;手捏 `<style>` 即绕过归属 | ✅ |
+| 宿主布局 | 内容列用宿主发布的 `--dsh-chat-content-width`(与 transcript/输入卡同一条宽度轴);浮动输入卡用 `--dsh-composer-height` 让位(官方 ui-trajectory 同款);中性色/字体走 `--dsw-*` token 跟随主题 | ✅,由 `decision_studio_plugin.spec.js` 的样式契约钉住 |
 | 产物 | `lib/` 提交入库且**可复现**;类名哈希取包相对路径、region 注释去绝对路径 | ✅ |
 | 依赖 | 安装态必须自足——`dsh_plugin_package_contract.mjs` 在空目录装 tarball 验证(曾因此 83 次崩溃循环,#709) | ✅ |
 

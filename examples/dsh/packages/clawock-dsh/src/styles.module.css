@@ -1,64 +1,81 @@
+/* Decision Mind — presentation layer.
+ *
+ * Three rules this sheet answers to, all of them read off the Harness's own
+ * client packages rather than invented here:
+ *
+ *   1. One width axis. The host publishes `--dsh-chat-content-width` (748px,
+ *      ConversationRoot.module.css) and lays the transcript, the dock cards
+ *      and the floating composer on it. The sticky header used to run
+ *      full-bleed (1152px at a 1440px window) over a 760px list, so the
+ *      toolbar read as a separate, too-wide slab floating above the content.
+ *      Header and list now share `--col`, which is that host variable.
+ *   2. Clear the floating composer. `ConversationRoot` publishes the seat's
+ *      live height as `--dsh-composer-height` on the scroll body, and the
+ *      official trajectory view pads by `calc(height + 16px)`. Without it the
+ *      last rows sit under the composer card.
+ *   3. Host tokens for the neutrals. Surfaces, labels, borders, hover and the
+ *      font stack come from `--dsw-*` (defined on `body` /
+ *      `body[data-ds-dark-theme]` by dsh-client-ui-theme), so the tab follows
+ *      the app's theme instead of tracking it by hand. The P&L semantics
+ *      (green/red/amber) stay local on purpose: `--dsw-alias-state-*-primary`
+ *      is tuned for dots and icons (green-500 = #22c55e is ~2.1:1 on white)
+ *      and would fail contrast as the focal number on this board.
+ *
+ * Layout: a day group is one bordered container of hairline-separated rows,
+ * and a row is one line — dot · date · ticker · action · size · verdict ·
+ * P&L — so a scan down the column compares like with like. Under 520px the
+ * row folds back into the two-line form (`.main` / `.sub` stop being
+ * `display:contents` and become their own flex lines).
+ */
 .dmt {
-  --bg:#F7F8FA;
-  --surface:#FFFFFF;
-  --text:#15171B;
-  --text2:#61666B;
-  --text3:#81858C;
-  --cap:#ADB2B8;
-  --brand:#4176E6;
-  --brand-soft:#EDF3FE;
+  --col:var(--dsh-chat-content-width, 748px);
+  --surface:var(--dsw-alias-bg-layer-1, #FFFFFF);
+  --text:var(--dsw-alias-label-primary, #15171B);
+  --text2:var(--dsw-alias-label-secondary, #61666B);
+  --text3:var(--dsw-alias-label-tertiary, #81858C);
+  --cap:var(--dsw-alias-label-caption, #ADB2B8);
+  --brand:var(--dsw-alias-state-business-primary, #4176E6);
+  --border:var(--dsw-alias-border-l1, rgba(17,24,39,.06));
+  --border2:var(--dsw-alias-border-l2, rgba(17,24,39,.10));
+  --hover:var(--dsw-alias-interactive-bg-hover, rgba(17,24,39,.05));
+  --brand-soft:rgba(65,118,230,.07);
   --ok:#1B8644;
   --ok-soft:#E6FAED;
   --bad:#C01313;
   --bad-soft:#FDEBEE;
   --warn:#AA6924;
-  --border:rgba(17,24,39,.06);
-  --border2:rgba(17,24,39,.10);
-  --hover:rgba(17,24,39,.05);
+  --warn-soft:rgba(170,105,36,.10);
   --shadow-sm:0 1px 2px rgba(16,24,40,.04);
-  --shadow-md:0 4px 16px rgba(16,24,40,.08);
-  --veil:rgba(255,255,255,.92);
   --tint-soft:rgba(0,0,0,.03);
   --tint-border:rgba(0,0,0,.05);
   --tint-mid:rgba(0,0,0,.08);
   --tint-strong:rgba(0,0,0,.12);
-  --brand-glow:rgba(65,118,230,.12);
   --t1-up-border:rgba(27,132,68,.18);
   --t1-down-border:rgba(192,19,19,.18);
   --radius:12px;
-  --radius-sm:8px;
-  --font:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
-  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  --font:var(--dsw-font-family, -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif);
+  --mono:var(--ds-font-family-code, ui-monospace,SFMono-Regular,Menlo,Consolas,monospace);
   font:13px/1.45 var(--font);
   color:var(--text);
   -webkit-font-smoothing:antialiased;
   min-height:100%
 }
+/* Dark theme: only what the host tokens do not carry — the semantic P&L
+   colours and the alpha tints layered on a dark surface. Everything else
+   flips through `--dsw-*` with the app. */
 body[data-ds-dark-theme] .dmt {
-  --bg:#0F1115;
-  --surface:#1B1B1C;
-  --text:#EDEDEE;
-  --text2:#A7ABB2;
-  --text3:#7D8189;
-  --cap:#5B5F66;
-  --brand:#6C97F2;
-  --brand-soft:#1E2A44;
+  --brand-soft:rgba(108,151,242,.12);
   --ok:#3FCB74;
   --ok-soft:#153824;
   --bad:#F2554F;
   --bad-soft:#3B1516;
   --warn:#E0A752;
-  --border:rgba(255,255,255,.08);
-  --border2:rgba(255,255,255,.14);
-  --hover:rgba(255,255,255,.07);
+  --warn-soft:rgba(224,167,82,.14);
   --shadow-sm:0 1px 2px rgba(0,0,0,.3);
-  --shadow-md:0 4px 16px rgba(0,0,0,.4);
-  --veil:rgba(20,21,24,.85);
   --tint-soft:rgba(255,255,255,.06);
   --tint-border:rgba(255,255,255,.08);
   --tint-mid:rgba(255,255,255,.12);
   --tint-strong:rgba(255,255,255,.18);
-  --brand-glow:rgba(108,151,242,.22);
   --t1-up-border:rgba(63,203,116,.35);
   --t1-down-border:rgba(242,85,79,.35)
 }
@@ -66,61 +83,71 @@ body[data-ds-dark-theme] .dmt {
   position:sticky;
   top:0;
   z-index:20;
-  background:var(--veil);
-  -webkit-backdrop-filter:blur(14px);
-  backdrop-filter:blur(14px);
-  border-bottom:1px solid var(--border);
-  padding:10px 16px 8px
+  background:var(--surface);
+  border-bottom:1px solid var(--border2)
+}
+/* The header's content rides the same column as the rows; only its rule and
+   background run the full width, the way a toolbar should. */
+.dmt .tin {
+  max-width:var(--col);
+  margin:0 auto;
+  padding:12px 14px 10px
 }
 .dmt .tt {
   display:flex;
   align-items:center;
   gap:8px;
-  font:700 17px/1.3 var(--font);
+  font:650 15px/1.3 var(--font);
   letter-spacing:-.01em
 }
 .dmt .tt::before {
   content:"";
-  width:9px;
-  height:9px;
+  flex:none;
+  width:8px;
+  height:8px;
   border-radius:3px;
   background:var(--brand)
 }
-.dmt .ts {
-  font:400 11.5px/1.3 var(--font);
+.dmt .tt .rate {
+  margin-left:auto;
+  font:400 11px/1.3 var(--font);
   color:var(--cap);
-  margin-top:2px
+  font-variant-numeric:tabular-nums;
+  white-space:nowrap
 }
+.dmt .ts {
+  font:400 11.5px/1.4 var(--font);
+  color:var(--cap);
+  margin-top:3px
+}
+/* One strip of label/value pairs instead of three full-height columns with
+   rules between them: same numbers, ~40px less chrome above every scan. */
 .dmt .stats {
   display:flex;
-  align-items:flex-end;
-  gap:0;
-  margin-top:8px;
+  align-items:baseline;
+  gap:6px 18px;
+  margin-top:9px;
   flex-wrap:wrap
 }
 .dmt .sg {
   display:flex;
-  flex-direction:column;
-  gap:2px;
-  padding:0 14px
-}
-.dmt .sg+.sg {
-  border-left:1px solid rgba(0,0,0,.08)
+  align-items:baseline;
+  gap:6px;
+  min-width:0
 }
 .dmt .sl {
   font:500 10.5px/1.3 var(--font);
   color:var(--cap);
-  letter-spacing:.03em;
-  white-space:nowrap
+  letter-spacing:.03em
 }
 .dmt .sv {
-  font:650 14px/1.3 var(--font);
+  font:650 13.5px/1.3 var(--font);
   color:var(--text);
   font-variant-numeric:tabular-nums;
   white-space:nowrap
 }
 .dmt .sv.focus {
-  font:700 16px/1.3 var(--font)
+  font:700 16px/1.2 var(--font)
 }
 .dmt .sv.up {
   color:var(--ok)
@@ -128,16 +155,10 @@ body[data-ds-dark-theme] .dmt {
 .dmt .sv.down {
   color:var(--bad)
 }
-.dmt .rate {
-  font:400 10.5px/1.3 var(--font);
-  color:var(--cap);
-  margin-left:auto;
-  align-self:center
-}
 .dmt .filters {
   display:flex;
   gap:2px;
-  margin-top:8px;
+  margin-top:9px;
   flex-wrap:wrap
 }
 .dmt .ft {
@@ -145,8 +166,8 @@ body[data-ds-dark-theme] .dmt {
   background:transparent;
   color:var(--text3);
   font:600 12px/1.4 var(--font);
-  padding:5px 11px;
-  border-radius:8px;
+  padding:5px 10px;
+  border-radius:7px;
   cursor:pointer;
   transition:background .12s,color .12s
 }
@@ -155,20 +176,26 @@ body[data-ds-dark-theme] .dmt {
 }
 .dmt .ft.on {
   color:var(--text);
-  background:rgba(17,24,39,.06)
+  background:var(--hover)
+}
+.dmt .ft:focus-visible {
+  outline:1px solid var(--brand);
+  outline-offset:1px
 }
 .dmt .list {
-  max-width:760px;
+  max-width:var(--col);
   margin:0 auto;
-  padding:10px 16px 32px
+  /* The composer is a floating card over this scroller; the host publishes its
+     live height so views can clear it (ui-trajectory does the same). */
+  padding:10px 14px calc(var(--dsh-composer-height, 152px) + 24px)
 }
 .dmt .day {
-  margin:16px 0 2px;
+  margin:18px 0 6px;
   display:flex;
   align-items:center;
   gap:8px;
-  font:650 13px/1.3 var(--font);
-  color:var(--text)
+  font:650 12.5px/1.3 var(--font);
+  color:var(--text2)
 }
 .dmt .day .n {
   color:var(--cap);
@@ -185,57 +212,102 @@ body[data-ds-dark-theme] .dmt {
 .dmt .day.fold {
   cursor:pointer;
   border-radius:8px;
-  padding:2px 6px;
+  padding:3px 6px;
   margin-left:-6px
 }
 .dmt .day.fold:hover {
   background:var(--hover)
 }
+.dmt .day.fold:focus-visible {
+  outline:1px solid var(--brand);
+  outline-offset:1px
+}
 .dmt .day.fold .chev {
   margin-left:0;
   flex:none;
-  width:14px;
-  text-align:center
+  width:12px;
+  text-align:center;
+  font-size:10px;
+  color:var(--cap)
 }
-.dmt .cell {
-  width:100%;
-  margin:7px 0;
-  border-radius:12px;
-  border:1px solid var(--border);
+/* A day is one container, not a stack of floating cards: hairlines between
+   rows read as a ledger and drop ~9px of gap per fill. */
+.dmt .group {
+  display:grid;
+  grid-template-columns:2px 8px auto minmax(64px,auto) auto minmax(0,1fr) auto auto 104px 12px 2px;
+  /* A subgrid takes its gutters from the parent, not from its own `gap`, so
+     the column gap has to be declared here or every row's fields touch. The
+     2px tracks at both ends are the row's side inset: a subgrid's own padding
+     would not shift the parent's tracks (it eats into the first one instead),
+     so the inset has to be part of the track list — 2px + the 10px gutter =
+     the 12px a row is inset by, with the hover and open washes still running
+     the full width of the group. */
+  gap:0 10px;
+  border:1px solid var(--border2);
+  border-radius:var(--radius);
   background:var(--surface);
-  cursor:pointer;
   box-shadow:var(--shadow-sm);
-  transition:box-shadow .15s,border-color .15s
+  overflow:hidden
+}
+/* Every row draws on the day's tracks (`subgrid`), so ticker, action and size
+   line up down the whole group however long each one is — the reason this
+   reads as a ledger instead of nine independently-sized rows. The explicit
+   template above it is the fallback for engines without subgrid: same columns,
+   sized per row. */
+.dmt .cell {
+  display:grid;
+  grid-template-columns:2px 8px auto minmax(64px,auto) auto minmax(0,1fr) auto auto 104px 12px 2px;
+  grid-column:1/-1;
+  grid-template-columns:subgrid;
+  align-items:center;
+  gap:0 10px;
+  padding:9px 0;
+  cursor:pointer;
+  transition:background .12s
+}
+.dmt .cell+.cell {
+  border-top:1px solid var(--border)
 }
 .dmt .cell:hover {
-  border-color:var(--border2);
-  box-shadow:var(--shadow-md)
+  background:var(--hover)
 }
+.dmt .cell:focus-visible {
+  outline:1px solid var(--brand);
+  outline-offset:-2px
+}
+/* Open row: a brand rail on the leading edge plus a wash, instead of a ring
+   that used to fight the container's own border. */
 .dmt .cell.open {
-  border-color:var(--brand);
-  box-shadow:0 0 0 3px rgba(65,118,230,.12)
+  background:var(--brand-soft);
+  box-shadow:inset 3px 0 0 var(--brand)
 }
-.dmt .main {
-  display:flex;
-  align-items:center;
-  gap:12px;
-  padding:13px 14px 6px
+/* On the wide layout the two wrappers vanish and their children place
+   themselves on the row's grid; under 520px they become their own lines. */
+.dmt .main,
+.dmt .sub {
+  display:contents
 }
 .dmt .dotm {
-  flex:none;
+  grid-area:1/2;
   width:6px;
   height:6px;
   border-radius:50%;
-  background:var(--cap);
-  margin-right:2px
+  background:var(--cap)
 }
 .dmt .cell.hasdec .dotm {
   background:var(--brand)
 }
+.dmt .sub .date {
+  grid-area:1/3;
+  font:400 11px/1.4 var(--mono);
+  color:var(--cap);
+  font-variant-numeric:tabular-nums;
+  white-space:nowrap
+}
 .dmt .tk {
-  flex:0 1 auto;
+  grid-area:1/4;
   min-width:0;
-  font:650 14.5px/1.4 var(--font);
+  font:650 14px/1.4 var(--font);
   letter-spacing:-.01em;
   overflow:hidden;
   text-overflow:ellipsis;
@@ -251,7 +323,8 @@ body[data-ds-dark-theme] .dmt {
   color:var(--text3)
 }
 .dmt .tag {
-  flex:none;
+  grid-area:1/5;
+  justify-self:start;
   display:inline-flex;
   align-items:center;
   height:20px;
@@ -261,12 +334,13 @@ body[data-ds-dark-theme] .dmt {
   background:var(--tint-soft);
   font:600 11.5px/1 var(--font);
   color:var(--text2);
-  letter-spacing:.02em
+  letter-spacing:.02em;
+  white-space:nowrap
 }
 .dmt .qty {
-  flex:0 1 auto;
+  grid-area:1/6;
+  justify-self:start;
   min-width:0;
-  text-align:right;
   font:500 12.5px/1.4 var(--mono);
   color:var(--text2);
   font-variant-numeric:tabular-nums;
@@ -274,15 +348,16 @@ body[data-ds-dark-theme] .dmt {
   overflow:hidden;
   text-overflow:ellipsis
 }
+/* The flex spacer the old single-line row needed; the grid's 1fr column does
+   that job now, so it only exists for the narrow layout. */
 .dmt .sp {
-  flex:1 1 auto;
-  min-width:8px
+  display:none
 }
 .dmt .pnl {
-  flex:none;
-  min-width:92px;
+  grid-area:1/9;
+  justify-self:end;
   text-align:right;
-  font:700 16.5px/1.2 var(--font);
+  font:700 15.5px/1.2 var(--font);
   font-variant-numeric:tabular-nums;
   letter-spacing:-.01em
 }
@@ -305,19 +380,12 @@ body[data-ds-dark-theme] .dmt {
   margin-right:3px;
   letter-spacing:0
 }
-.dmt .sub {
-  display:flex;
-  align-items:center;
-  gap:10px;
-  padding:3px 14px 11px;
-  font:400 11px/1.4 var(--font);
-  color:var(--cap)
-}
 .dmt .t1 {
-  flex:none;
+  grid-area:1/8;
+  justify-self:end;
   display:inline-flex;
   align-items:center;
-  height:18px;
+  height:19px;
   padding:0 6px;
   border-radius:5px;
   font:600 10.5px/1 var(--font);
@@ -338,13 +406,28 @@ body[data-ds-dark-theme] .dmt {
   color:var(--text2);
   background:var(--tint-soft)
 }
-.dmt .sub .date {
-  flex:none;
-  font-variant-numeric:tabular-nums
+/* A fill that ran against its own plan, marked in the folded row —
+   `data-align=opposite` is the stable contract the spec and screenshots read. */
+.dmt .al {
+  grid-area:1/7;
+  justify-self:end;
+  display:inline-flex;
+  align-items:center;
+  height:19px;
+  padding:0 6px;
+  border-radius:5px;
+  font:600 10.5px/1 var(--font);
+  white-space:nowrap;
+  letter-spacing:.02em
+}
+.dmt .al.opp {
+  color:var(--warn);
+  background:var(--warn-soft);
+  border:1px solid var(--t1-down-border)
 }
 .dmt .chev {
-  margin-left:auto;
-  flex:none;
+  grid-area:1/10;
+  justify-self:end;
   color:var(--cap);
   font-size:10px;
   transition:transform .15s
@@ -353,21 +436,30 @@ body[data-ds-dark-theme] .dmt {
   transform:rotate(180deg)
 }
 .dmt .detail {
+  grid-area:2/1/auto/-1;
   display:grid;
   grid-template-rows:0fr;
   opacity:0;
-  border-top:1px solid var(--tint-border);
   transition:grid-template-rows .24s cubic-bezier(.22,1,.36,1),opacity .15s ease;
   overflow:hidden
 }
 .dmt .cell.open .detail {
   grid-template-rows:1fr;
-  opacity:1
+  opacity:1;
+  border-top:1px solid var(--tint-border);
+  margin-top:9px
 }
+/* Zero padding here on purpose: a closed row's `0fr` track collapses the
+   content but not this box's own padding, which is where every collapsed card
+   used to carry ~27px of dead space. The padding lives on `.dbody`, which is
+   only mounted while the row is open. */
 .dmt .dinner {
   overflow:hidden;
   min-height:0;
-  padding:12px 16px 14px
+  padding:0
+}
+.dmt .dbody {
+  padding:12px 12px 12px
 }
 .dmt .trhead {
   display:flex;
@@ -469,7 +561,7 @@ body[data-ds-dark-theme] .dmt {
   padding:2px 8px;
   border-radius:6px;
   background:var(--tint-soft);
-  border:1px solid var(--border);
+  border:1px solid var(--border2);
   color:var(--text2)
 }
 .dmt .tnote {
@@ -507,12 +599,12 @@ body[data-ds-dark-theme] .dmt {
 }
 .dmt .trace-more {
   display:block;
-  width:calc(100% - 32px);
-  margin:10px 16px;
+  width:100%;
+  margin:12px 0 0;
   padding:9px 12px;
   border:1px dashed var(--border2);
   border-radius:10px;
-  background:var(--surface);
+  background:transparent;
   color:var(--text2);
   font:600 12px/1.4 var(--font);
   cursor:pointer;
@@ -527,11 +619,11 @@ body[data-ds-dark-theme] .dmt {
   display:flex;
   align-items:center;
   gap:12px;
-  padding:13px 16px;
-  border:1px solid var(--border);
-  border-radius:12px;
+  padding:13px 12px;
+  border:1px solid var(--border2);
+  border-radius:var(--radius);
   background:var(--surface);
-  margin:7px 0
+  margin:8px 0
 }
 .dmt .skel-dot {
   flex:none;
@@ -551,39 +643,111 @@ body[data-ds-dark-theme] .dmt {
 .dmt .skel-bar.w20 {
   width:20%
 }
+/* Phone layout. The single line cannot hold nine fields at 320-430px, so the
+   row folds back into its two DOM lines: identity + money, then the verdict
+   meta. Every interactive box stays at or above a 32px tap target. */
 @media (max-width:520px) {
-  .dmt .main {
-    gap:8px;
-    padding:12px 12px 6px
+  .dmt .tin {
+    padding:10px 12px 8px
   }
-  .dmt .tk {
-    font-size:13.5px
-  }
-  .dmt .qty {
-    font-size:11px;
-    text-align:left
-  }
-  .dmt .pnl {
-    min-width:84px;
-    font-size:14.5px
-  }
-  .dmt .sub {
-    gap:8px;
-    padding:3px 12px 10px
+  .dmt .stats {
+    display:block;
+    margin-top:6px
   }
   .dmt .sg {
-    padding:0 11px
+    justify-content:space-between;
+    gap:10px;
+    padding:3px 0
+  }
+  .dmt .sg+.sg {
+    border-top:1px solid var(--border)
   }
   .dmt .sv {
-    font-size:13px
+    white-space:normal;
+    text-align:right
   }
-  .dmt .sv.focus {
+  .dmt .ft {
+    min-height:32px;
+    padding:6px 11px
+  }
+  .dmt .list {
+    padding:8px 10px calc(var(--dsh-composer-height, 152px) + 24px)
+  }
+  .dmt .day.fold {
+    padding:7px 6px
+  }
+  .dmt .group {
+    display:block
+  }
+  .dmt .cell {
+    display:block;
+    padding:0
+  }
+  .dmt .main {
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:10px 12px 2px
+  }
+  .dmt .sub {
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:2px 12px 10px
+  }
+  .dmt .dotm {
+    flex:none;
+    width:7px;
+    height:7px
+  }
+  .dmt .tk {
+    flex:0 1 auto;
     font-size:14.5px
   }
-}
-@media (prefers-reduced-motion:reduce) {
-  .dmt * {
-    transition:none!important;
-    animation:none!important
+  .dmt .tag {
+    flex:none;
+    height:19px;
+    padding:0 6px
+  }
+  .dmt .qty {
+    flex:0 1 auto;
+    font-size:12px
+  }
+  /* Back in play on the narrow layout: it is what pushes the money to the
+     right edge once the row is a flex line again. */
+  .dmt .sp {
+    display:block;
+    flex:1 1 auto;
+    min-width:6px
+  }
+  .dmt .pnl {
+    flex:none;
+    font-size:15px
+  }
+  .dmt .t1,
+  .dmt .al {
+    flex:none
+  }
+  .dmt .sub .date {
+    flex:none
+  }
+  .dmt .chev {
+    margin-left:auto;
+    flex:none
+  }
+  .dmt .cell.open .detail {
+    margin-top:0
+  }
+  .dmt .dbody {
+    padding:10px 12px 12px
+  }
+  .dmt .trace {
+    padding-left:16px
+  }
+  .dmt .tnode::before {
+    left:-16px
+  }
+  .dmt .trace::before {
+    left:3px
   }
 }
