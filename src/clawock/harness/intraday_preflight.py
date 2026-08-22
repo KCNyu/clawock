@@ -40,7 +40,7 @@ from clawock.market_data import sessions as trading_calendar
 from clawock.decision import plans as plan_surface
 from clawock.decision import signals as quant_signals
 from clawock.evidence import research_surface
-from clawock.cli import PACKAGED_UTILITIES
+from clawock.utilities import PACKAGED_UTILITIES
 from clawock.market_data import known_catalysts, mover_evidence as mover_news, peer_scan
 from clawock.decision import active_information
 from clawock.decision import add_side, early_trend

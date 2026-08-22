@@ -55,7 +55,7 @@ from clawock.market_data import sessions as trading_calendar
 from clawock.decision import plans as plan_surface
 from clawock.evidence import research_surface
 from clawock.market_data import mover_evidence as mover_news
-from clawock.cli import PACKAGED_UTILITIES
+from clawock.utilities import PACKAGED_UTILITIES
 from clawock.market_data import peer_scan
 
 WS = workspace_root(Path.cwd())

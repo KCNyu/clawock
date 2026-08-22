@@ -54,12 +54,15 @@ def _packaged_utilities():
     test meaningful in a checkout where the package is not installed — the case
     that hid a missing subpackage from CI for a week (#270).
     """
-    source = (ROOT / "src" / PUBLIC / "cli.py").read_text()
+    source = (ROOT / "src" / PUBLIC / "utilities.py").read_text()
     for node in ast.walk(ast.parse(source)):
         if (isinstance(node, ast.Assign)
                 and getattr(node.targets[0], "id", "") == "PACKAGED_UTILITIES"):
             return ast.literal_eval(node.value)
-    raise AssertionError("PACKAGED_UTILITIES is no longer a literal in clawock/cli.py")
+    raise AssertionError(
+        "PACKAGED_UTILITIES is no longer a literal in clawock/utilities.py "
+        "(it moved out of cli.py in #814 so the harness could stop importing "
+        "the CLI entry point)")
 
 
 def _installed_scripts():
