@@ -26,6 +26,21 @@ function readJson(path: string): JsonValue | null {
 }
 
 /**
+ * A finite number, or null. `Number('')` is 0 and `Number('abc')` is NaN —
+ * both would otherwise render a bogus "+0%" or a red "—" on a fill the desk
+ * never priced. Only machine-written numbers (or their numeric-string twins)
+ * are accepted; everything else reads as absent.
+ */
+function num(value: unknown): number | null {
+  if (typeof value === 'number') return isFinite(value) ? value : null
+  if (typeof value === 'string' && value.trim() !== '') {
+    const n = Number(value)
+    return isFinite(n) ? n : null
+  }
+  return null
+}
+
+/**
  * Parse the decision ledger (memory/decisions.jsonl) — one JSON object per
  * line. Malformed lines are skipped, never fatal: the desk's own writer
  * round-trips the file and this view must survive any of its states.
@@ -74,10 +89,10 @@ export function readPortfolio(workspace: string): PortfolioRead {
         .map((h) => ({
           ticker: String(h['ticker'] ?? h['stock_name'] ?? h['name'] ?? '?'),
           shares: Number(h['shares'] ?? h['quantity'] ?? 0),
-          cost: h['cost_basis'] == null ? null : Number(h['cost_basis']),
-          price: h['current_price'] == null ? null : Number(h['current_price']),
-          pnlPct: h['pnl_percent'] == null ? null : Number(h['pnl_percent']),
-          pnlAbs: h['pnl_abs'] == null ? null : Number(h['pnl_abs']),
+          cost: num(h['cost_basis']),
+          price: num(h['current_price']),
+          pnlPct: num(h['pnl_percent']),
+          pnlAbs: num(h['pnl_abs']),
         }))
       if (holdings.length === 0) continue // a book with no positions is not shown
       const market = /^hk/i.test(name) ? 'HK' : 'US'
@@ -87,7 +102,7 @@ export function readPortfolio(workspace: string): PortfolioRead {
       books.push({
         name,
         currency,
-        truePrincipal: bookObj['true_principal'] == null ? null : Number(bookObj['true_principal']),
+        truePrincipal: num(bookObj['true_principal']),
         holdings,
       })
       // Actual operations: every recorded trade across all holdings, newest
@@ -106,8 +121,8 @@ export function readPortfolio(workspace: string): PortfolioRead {
             date: typeof trObj['date'] === 'string' ? trObj['date'] : null,
             action: typeof trObj['action'] === 'string' ? trObj['action'] : 'buy',
             shares: Number(trObj['shares'] ?? 0),
-            price: trObj['price'] == null ? null : Number(trObj['price']),
-            realizedPnl: trObj['realized_pnl'] == null ? null : Number(trObj['realized_pnl']),
+            price: num(trObj['price']),
+            realizedPnl: num(trObj['realized_pnl']),
             note: typeof trObj['note'] === 'string' ? trObj['note'] : null,
           })
         }
@@ -411,7 +426,7 @@ function enrichTrade(
     const decision: TraceDecision = {
       planDate: planDate as string | null,
       action: typeof b['action'] === 'string' ? b['action'] : null,
-      confidence: b['confidence'] == null ? null : Number(b['confidence']),
+      confidence: num(b['confidence']),
       drivenBy: typeof b['driven_by'] === 'string' ? b['driven_by'] : null,
       rationale: readableRationale(typeof b['rationale'] === 'string' ? b['rationale'] : null),
       bull: typeof bull['summary'] === 'string' ? bull['summary'] : null,
@@ -420,10 +435,9 @@ function enrichTrade(
       emotionNote: typeof emotion['note'] === 'string' ? emotion['note'] : null,
       execution: typeof execution['status'] === 'string' ? execution['status'] : null,
       condition: typeof condition['description'] === 'string' ? condition['description'] : null,
-      sizeShares: size['shares'] == null ? null : Number(size['shares']),
-      sizePct: size['pct'] == null ? null : Number(size['pct']),
-      plannedPrice: evaluation['execution_price'] != null ? Number(evaluation['execution_price'])
-        : (b['simulated_entry_price'] != null ? Number(b['simulated_entry_price']) : null),
+      sizeShares: num(size['shares']),
+      sizePct: num(size['pct']),
+      plannedPrice: num(evaluation['execution_price']) ?? num(b['simulated_entry_price']),
       source: typeof b['source'] === 'string' ? b['source'] : 'brief',
       alignment: planFillAlignment(
         typeof b['action'] === 'string' ? b['action'] : null, trade.action),
