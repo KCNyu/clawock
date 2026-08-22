@@ -26,6 +26,7 @@ NB: Mode 7 is lightweight on purpose (8 HK + 10 US slots per trading day).
     postflight publishes a semantic dashboard change, if any.
 """
 
+from clawock.harness._harness_common import run_analyze
 import argparse
 import json
 import re
@@ -80,18 +81,6 @@ def _fetch_bars_cached(code, cnt=400):
 # test_harness_cli_contract, so resolving through it means these callers cannot
 # drift from the commands again. sys.executable rather than a bare name: this
 # runs under cron, whose PATH is /usr/bin:/bin (#438, #443).
-def run_analyze(market):
-    module = PACKAGED_UTILITIES[f'analyze-{market}']
-    try:
-        r = subprocess.run(
-            [sys.executable, '-m', module, '--wechat', '--md-table'],
-            capture_output=True, text=True, timeout=120,
-        )
-        return r.returncode, r.stdout, r.stderr
-    except subprocess.TimeoutExpired:
-        return -1, '', f'{module} timeout (120s)'
-    except Exception as e:
-        return -1, '', f'{module} error: {e}'
 
 
 SIGNAL_LEVELS = ('ALERT', 'WATCH', 'STOP', 'TRIM')

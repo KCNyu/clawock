@@ -13,6 +13,7 @@ Outputs:
 
 Run: clawock evaluate-us-leverage
 """
+from clawock.evaluation.series import mdd, rvol, sma
 import argparse
 import math
 from datetime import date
@@ -82,26 +83,10 @@ def fetch(sym, cnt=1800):
     return out
 
 
-def sma(v, n):
-    out = [None] * len(v); s = 0.0
-    for i, x in enumerate(v):
-        s += x
-        if i >= n: s -= v[i - n]
-        if i >= n - 1: out[i] = s / n
-    return out
 
 
-def rvol(rets, n, i):
-    if i < n: return None
-    w = rets[i - n + 1:i + 1]; m = sum(w) / n
-    return math.sqrt(sum((x - m) ** 2 for x in w) / (n - 1)) * math.sqrt(252)
 
 
-def mdd(nav):
-    peak = -1e9; m = 0.0
-    for v in nav:
-        peak = max(peak, v); m = min(m, v / peak - 1)
-    return m
 
 
 def underwater(nav):

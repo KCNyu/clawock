@@ -18,6 +18,7 @@ Dial (matches production compute_regime):
 Outputs: results table + memory/.tmp/combined_*.png
 Run: clawock evaluate-combined-regime
 """
+from clawock.evaluation.series import mdd, rvol, sma
 import json
 import argparse
 import math
@@ -73,26 +74,10 @@ def fetch(kind, sym, cnt=1800):
     return {r[0]: float(r[2]) for r in rows if len(r) >= 3}
 
 
-def sma(v, n):
-    out = [None] * len(v); s = 0.0
-    for i, x in enumerate(v):
-        s += x
-        if i >= n: s -= v[i - n]
-        if i >= n - 1: out[i] = s / n
-    return out
 
 
-def rvol(rets, n, i):
-    if i < n: return None
-    w = rets[i - n + 1:i + 1]; m = sum(w) / n
-    return math.sqrt(sum((x - m) ** 2 for x in w) / (n - 1)) * math.sqrt(252)
 
 
-def mdd(nav):
-    peak = -1e9; m = 0.0
-    for v in nav:
-        peak = max(peak, v); m = min(m, v / peak - 1)
-    return m
 
 
 def underwater(nav):

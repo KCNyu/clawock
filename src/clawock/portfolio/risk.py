@@ -27,6 +27,7 @@ from pathlib import Path
 import numpy as np
 import requests
 
+from clawock.credentials import load_api_keys
 from clawock.portfolio.fx import get_usdhkd
 from clawock.portfolio.instruments import get as get_instrument
 from clawock.portfolio.instruments import leverage_map, require as require_instrument
@@ -48,17 +49,7 @@ API_KEYS_PATH = str(WS_ROOT / '.api_keys')
 
 
 def _load_api_keys(path=API_KEYS_PATH):
-    keys = {}
-    try:
-        with open(path) as f:
-            for line in f:
-                line = line.strip()
-                if line and not line.startswith('#') and '=' in line:
-                    k, v = line.split('=', 1)
-                    keys[k.strip()] = v.strip()
-    except FileNotFoundError:
-        pass
-    return keys
+    return load_api_keys(path)
 
 
 API_KEYS = _load_api_keys()

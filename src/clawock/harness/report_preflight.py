@@ -42,6 +42,7 @@ Output keys:
   needs_risk_section: bool (true if STOP+TRIM >= 2)
 """
 
+from clawock.harness._harness_common import run_analyze
 import argparse
 import json
 import re
@@ -204,18 +205,6 @@ COMMIT_PHASE_CN = {
 # test_harness_cli_contract, so resolving through it means these callers cannot
 # drift from the commands again. sys.executable rather than a bare name: this
 # runs under cron, whose PATH is /usr/bin:/bin (#438, #443).
-def run_analyze(market):
-    module = PACKAGED_UTILITIES[f'analyze-{market}']
-    try:
-        r = subprocess.run(
-            [sys.executable, '-m', module, '--wechat', '--md-table'],
-            capture_output=True, text=True, timeout=120,
-        )
-        return r.returncode, r.stdout, r.stderr
-    except subprocess.TimeoutExpired:
-        return -1, '', f'{module} timeout (120s)'
-    except Exception as e:
-        return -1, '', f'{module} error: {e}'
 
 
 def parse_signals(stdout):
