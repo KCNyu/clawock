@@ -43,10 +43,14 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Set up Python
-        uses: actions/setup-python@v7
+      # `.[imaging]` up front: the GIF steps below are dispatch-only but
+      # validate_sidecar screenshots fully decodes the PNGs on every run, so
+      # Pillow is needed unconditionally. Installing it once here replaces two
+      # separate `pip install` lines that had to stay in sync.
+      - name: Set up clawock (Python)
+        uses: ./.github/actions/clawock-python
         with:
-          python-version: "3.11"
+          install: '.[imaging]'
 
       - name: Install Playwright + Chromium
         run: |
@@ -68,21 +72,11 @@ jobs:
       # UI actually changed); the two small PNGs still refresh every week.
       - name: Assemble tab-cycle GIF
         if: github.event_name == 'workflow_dispatch'
-        run: |
-          python3 -m pip install --quiet -e '.[imaging]'
-          python3 site/tools/assemble_dashboard_gif.py
+        run: python3 site/tools/assemble_dashboard_gif.py
 
       - name: Validate tab-cycle GIF
         if: github.event_name == 'workflow_dispatch'
         run: clawock validate-sidecar gif
-
-      # validate_screenshots now fully decodes the PNGs (finding #12), and this
-      # runs on BOTH schedule and dispatch — the GIF steps above install Pillow
-      # only on workflow_dispatch, so install it unconditionally here. Kept as a
-      # separate step so the validate step's command stays exactly the validator
-      # invocation (workflow-contract test).
-      - name: Install Pillow for screenshot decode
-        run: python3 -m pip install --quiet -e '.[imaging]'
 
       - name: Validate screenshots
         run: clawock validate-sidecar screenshots
@@ -98,22 +92,22 @@ jobs:
           python ops/growth/refresh_readme_metrics.py --data-plane data-plane/assets/data \
             || [ $? -eq 1 ]
 
+      - name: Compose the commit target
+        run: |
+          # Only a manual run rebuilds the GIF, so only a manual run may commit it.
+          paths="site/assets/shadow-backtest.png site/assets/social-card.png"
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            paths="$paths site/assets/dashboard.gif"
+          fi
+          # README metrics placeholders + audit file (refreshed above).
+          paths="$paths README.zh.md README.md assets/data/readme_metrics.json"
+          echo "COMMIT_PATHS=$paths" >> "$GITHUB_ENV"
+          echo "COMMIT_MESSAGE=docs: README refresh (visuals + metrics) $(date -u +%Y-%m-%d)" >> "$GITHUB_ENV"
+
       - name: Commit if changed
         env:
           CLAWOCK_PUBLISH_SSH_KEY: ${{ secrets.CLAWOCK_PUBLISH_SSH_KEY }}
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add -- site/assets/shadow-backtest.png site/assets/social-card.png
-          # Only a manual run rebuilds the GIF, so only a manual run may commit it.
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            git add -- site/assets/dashboard.gif
-          fi
-          # README metrics placeholders + audit file (refreshed above).
-          git add README.zh.md README.md assets/data/readme_metrics.json
-          if git diff --cached --quiet; then
-            echo "no change"
-            exit 0
-          fi
-          git commit -m "docs: README refresh (visuals + metrics) $(date -u +%Y-%m-%d)"
-          bash ops/publish/safe_push.sh
+        uses: ./.github/actions/clawock-commit
+        with:
+          paths: ${{ env.COMMIT_PATHS }}
+          message: ${{ env.COMMIT_MESSAGE }}

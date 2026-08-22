@@ -264,22 +264,18 @@ jobs:
         if: steps.changes.outputs.dsplugin == 'true'
         run: node tests/dsh_plugin_package_contract.mjs
 
-      - name: Set up Python
+      # numpy is required to *collect* tests/, not just to run one of them:
+      # portfolio_risk_metrics imports it at module level, so without it pytest
+      # aborts the whole run with a collection error and all 78 tests silently
+      # stop being enforced — a green-looking local run hides this completely.
+      # Pillow: validate_sidecars now fully-decodes screenshots/GIF (finding #12);
+      # the real asset checks run in screenshot-refresh.yml (which has Pillow) but
+      # the unit tests here exercise the same validators, so pytest needs it too.
+      - name: Set up clawock (Python)
         if: steps.changes.outputs.code == 'true'
-        uses: actions/setup-python@v7
+        uses: ./.github/actions/clawock-python
         with:
-          python-version: '3.11'
-
-      - name: Install minimal deps
-        if: steps.changes.outputs.code == 'true'
-        # numpy is required to *collect* tests/, not just to run one of them:
-        # portfolio_risk_metrics imports it at module level, so without it pytest
-        # aborts the whole run with a collection error and all 78 tests silently
-        # stop being enforced — a green-looking local run hides this completely.
-        # Pillow: validate_sidecars now fully-decodes screenshots/GIF (finding #12);
-        # the real asset checks run in screenshot-refresh.yml (which has Pillow) but
-        # the unit tests here exercise the same validators, so pytest needs it too.
-        run: pip install --quiet -e '.[test]'
+          install: '.[test]'
 
       - name: Unit tests — money-integrity derivations
         if: steps.changes.outputs.code == 'true'
@@ -515,14 +511,14 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Set up Python
-        uses: actions/setup-python@v7
-        with:
-          python-version: '3.11'
-
-      # No dependency install and no second test run: the suite was already
+      # `install: none` — no dependency install and no second test run: the
+      # suite was already
       # measured in `validate`. The package validator runs from `src/` with the
       # stock runner so this cheap publishing job stays stdlib-only.
+      - name: Set up clawock (Python)
+        uses: ./.github/actions/clawock-python
+        with:
+          install: none
       - name: Download coverage report
         uses: actions/download-artifact@v8
         with:
@@ -554,12 +550,8 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - name: Set up Python
-        uses: actions/setup-python@v7
-        with:
-          python-version: '3.11'
-
-      - run: pip install --quiet -e .
+      - name: Set up clawock (Python)
+        uses: ./.github/actions/clawock-python
 
       - name: FX fallback chain
         run: |

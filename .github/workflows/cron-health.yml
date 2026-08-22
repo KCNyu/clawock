@@ -34,10 +34,13 @@ jobs:
         with:
           fetch-depth: 100  # 需要看今日 commit history
 
-      - name: Set up Python
-        uses: actions/setup-python@v7
+      # `install: none` — this job runs stdlib scripts against the fetched
+      # generation and needs no package, but the Python version still gets
+      # decided in exactly one place.
+      - name: Set up clawock (Python)
+        uses: ./.github/actions/clawock-python
         with:
-          python-version: '3.11'
+          install: none
 
       # The heartbeat ledger is published to the data branch, not committed
       # (#325), so it has to be fetched before the check can read it. Loud on

@@ -242,9 +242,16 @@ def test_the_coverage_plugin_is_installed_where_it_is_used():
     # guarantee is checked at the new source of truth instead.
     import tomllib
 
+    # The install moved into the clawock-python composite (#806), so the extra
+    # is now named at the call site rather than in a `pip install` line. Same
+    # guarantee, one indirection: exactly one place in this workflow asks for it.
     installs = [line for line in strip_hash_comments(WORKFLOW.read_text()).splitlines()
-                if 'pip install' in line and '[test]' in line]
+                if "'.[test]'" in line]
     assert len(installs) == 1, 'the suite must install the test extra exactly once'
+    assert 'clawock-python' in WORKFLOW.read_text(), (
+        'the install has to go through the one composite, or the pinned Python '
+        'and the extra drift apart again'
+    )
 
     extras = tomllib.load(open(ROOT / 'pyproject.toml', 'rb'))[
         'project']['optional-dependencies']

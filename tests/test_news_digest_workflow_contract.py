@@ -2,7 +2,7 @@
 import re
 from pathlib import Path
 
-from workflow_contract_helpers import assert_validator_step, step_run, steps
+from workflow_contract_helpers import assert_validator_step, step_run, steps, staged_paths
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -26,6 +26,6 @@ def test_news_digest_is_validated_before_publish():
 
     assert_validator_step(WORKFLOW, 'Validate generated digest', 'news-digest')
 
-    commit_run = _step_run('Commit + push')
-    assert 'git add assets/data/us_news_digest.json' in commit_run
-    assert not re.search(r'(?m)^\s*git add\s+assets/data/?\s*$', commit_run)
+    # Moved to the clawock-commit composite (#806). Staging the whole of
+    # assets/data/ would sweep up whatever else the runner happened to write.
+    assert staged_paths(WORKFLOW, 'Commit + push') == ['assets/data/us_news_digest.json']

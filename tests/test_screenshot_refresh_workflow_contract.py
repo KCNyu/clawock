@@ -2,7 +2,7 @@
 import re
 from pathlib import Path
 
-from workflow_contract_helpers import assert_validator_step, step_block, step_run, steps
+from workflow_contract_helpers import assert_validator_step, step_block, step_run, steps, staged_paths
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -30,17 +30,26 @@ def test_screenshots_are_validated_and_exactly_staged_before_publish():
 
     assert_validator_step(WORKFLOW, validate, 'screenshots')
 
-    commit_run = _step_run(commit)
-    add_lines = [line.strip() for line in commit_run.splitlines()
-                 if re.match(r'^git add(?:\s|$)', line.strip())]
     # The staged set is a contract: the two PNGs always, the GIF only on manual
-    # dispatch, and exactly the README metrics files. No other `git add` may
-    # creep in (this was relaxed to any(...) once and had to be pinned back).
-    assert add_lines == [
-        'git add -- site/assets/shadow-backtest.png site/assets/social-card.png',
-        'git add -- site/assets/dashboard.gif',
-        'git add README.zh.md README.md assets/data/readme_metrics.json',
-    ], add_lines
+    # dispatch, and exactly the README metrics files. No other path may creep in
+    # (this was relaxed to any(...) once and had to be pinned back). The step
+    # moved to the clawock-commit composite in #806, so the list is now read
+    # from the env var the workflow computes rather than from `git add` lines —
+    # same contract, one indirection.
+    assert staged_paths(WORKFLOW, commit) == [
+        'site/assets/shadow-backtest.png',
+        'site/assets/social-card.png',
+        'site/assets/dashboard.gif',
+        'README.zh.md',
+        'README.md',
+        'assets/data/readme_metrics.json',
+    ]
+
+    # And the GIF must still be conditional on a manual dispatch — the composite
+    # takes a flat list, so the condition lives in the step that builds it.
+    composer = _step_run('Compose the commit target')
+    assert "github.event_name }}\" = \"workflow_dispatch\"" in composer
+    assert 'site/assets/dashboard.gif' in composer.split('workflow_dispatch', 1)[1]
 
 
 def test_metrics_step_tolerates_only_the_no_change_exit_code():
