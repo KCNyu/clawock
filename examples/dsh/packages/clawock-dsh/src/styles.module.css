@@ -91,15 +91,19 @@ body[data-ds-dark-theme] .dmt {
    sticky header that condenses at a scroll threshold changes the content
    height above the threshold it just crossed. */
 .dmt .top {
+  box-sizing:border-box;
   padding:10px 0 0
 }
 .dmt .tin {
   /* The column minus the list's own 14px side padding: the header card is
-     exactly as wide as a day group, not as wide as the view. */
+     exactly as wide as a day group, not as wide as the view. Both boxes are
+     border-box on purpose — under the default content-box the list's padding
+     is added *outside* its max-width, so the groups came out 748px wide against
+     a 720px card and every row sat 14px left of the header. */
+  box-sizing:border-box;
   max-width:calc(var(--col) - 28px);
   margin:0 auto;
-  padding:10px 13px 11px;
-  box-sizing:border-box;
+  padding:10px 12px 11px;
   background:var(--surface);
   border:1px solid var(--border2);
   border-radius:var(--radius);
@@ -174,6 +178,7 @@ body[data-ds-dark-theme] .dmt {
   color:var(--bad)
 }
 .dmt .bar {
+  box-sizing:border-box;
   position:sticky;
   top:0;
   z-index:20;
@@ -181,13 +186,18 @@ body[data-ds-dark-theme] .dmt {
   padding:8px 0 6px
 }
 .dmt .bin {
+  box-sizing:border-box;
   max-width:calc(var(--col) - 28px);
   margin:0 auto
 }
+/* +2px, not -10px: the pill's own 10px padding then puts the filter label on
+   the same left edge as the card's title and the rows' dot (column + 12px),
+   while the pill's tinted box stops just inside the card's border instead of
+   hanging 10px out past it. */
 .dmt .filters {
   display:flex;
   gap:2px;
-  margin-left:-10px;
+  margin-left:2px;
   flex-wrap:wrap
 }
 .dmt .ft {
@@ -212,6 +222,7 @@ body[data-ds-dark-theme] .dmt {
   outline-offset:1px
 }
 .dmt .list {
+  box-sizing:border-box;
   max-width:var(--col);
   margin:0 auto;
   /* The composer is a floating card over this scroller; the host publishes its
