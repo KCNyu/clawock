@@ -35,13 +35,13 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v7
+      - name: Set up clawock (Python)
+        uses: ./.github/actions/clawock-python
         with:
-          python-version: '3.11'
+          install: '.[release]'
 
       - name: Build sdist and wheel
         run: |
-          pip install --quiet -e '.[release]'
           python -m build
           python -m twine check dist/*
 

@@ -1,0 +1,61 @@
+name: Commit and publish to master
+description: >-
+  The one way a scheduled workflow puts its output on master: bot identity,
+  stage, skip when nothing changed, commit, and push through safe_push.sh.
+
+# Six workflows carried byte-identical copies of this (#806), and the copies were
+# not harmless. `safe_push.sh` is not a stylistic preference: master's ruleset
+# bypasses exactly one actor, the deploy key, so a copy that reaches for a plain
+# `git push` is rejected — and it finds out on its first scheduled run, after
+# doing the work, with the runner about to be discarded. That is #803, written by
+# the session that had just finished reading the other five copies.
+#
+# safe_push.sh also owns the rebase-retry against a repository that commits ~35
+# times a day and the conflict-marker guard that exists because a half-merged
+# dashboard.json once blanked the public page. Every one of those is a reason the
+# push must not be reinvented per workflow.
+#
+# The deploy key is deliberately NOT an input: it stays an `env:` on the calling
+# step, at step scope, which is the shape `test_each_publishing_workflow_scopes_
+# deploy_key_to_push_step` enforces.
+inputs:
+  paths:
+    description: >-
+      Paths to stage, space-separated. Passed to `git add --` so a caller can
+      compute them, and so a leading dash cannot turn into a flag.
+    required: true
+  message:
+    description: Commit message. The caller owns the wording and any date stamp.
+    required: true
+
+outputs:
+  committed:
+    description: '"true" when something was committed and pushed.'
+    value: ${{ steps.commit.outputs.committed }}
+
+runs:
+  using: composite
+  steps:
+    - name: Commit and push
+      id: commit
+      shell: bash
+      run: |
+        set -euo pipefail
+        git config user.name "github-actions[bot]"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+        # Unquoted on purpose: `paths` is a space-separated list and each element
+        # has to become its own argument. `--` keeps a path that starts with a
+        # dash from being read as a flag.
+        # shellcheck disable=SC2086
+        git add -- ${{ inputs.paths }}
+
+        if git diff --cached --quiet; then
+          echo "nothing to commit"
+          echo "committed=false" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+
+        git commit -m "${{ inputs.message }}"
+        bash ops/publish/safe_push.sh
+        echo "committed=true" >> "$GITHUB_OUTPUT"
