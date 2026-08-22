@@ -24,7 +24,7 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
-from clawock.portfolio import instruments as instrument_registry
+from clawock import instruments as instrument_registry
 from clawock.workspace import engine_config, workspace_root
 from clawock.safe_io import parse_iso_utc as _parse_time
 

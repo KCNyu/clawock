@@ -68,7 +68,7 @@ def session_date(market, day):
     """
     if not market or not isinstance(day, str) or len(day) != 10:
         return day
-    from clawock.market_data.sessions import (
+    from clawock.sessions import (
         MARKET_TZ, covered_years, is_trading_day, previous_trading_day,
     )
     if market not in MARKET_TZ:

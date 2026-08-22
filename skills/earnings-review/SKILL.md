@@ -69,7 +69,7 @@ divestitures and new-business spend in `capital_allocation[]`.
 ## Step 4 — provenance and release
 
 Every published number needs two independent sources in `provenance` (see
-`clawock.evidence.research_provenance`). The release gate refuses the artifact when
+`clawock.provenance`). The release gate refuses the artifact when
 any number is single-sourced or the two sources disagree beyond tolerance.
 
 ```bash

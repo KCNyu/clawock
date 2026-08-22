@@ -411,7 +411,7 @@ def check_scheduled_publisher(now=None, path=None):
     # Same local, fail-open import as _market_closed_today: an unavailable
     # calendar must not turn this into a red, so it falls through to judging.
     try:
-        from clawock.market_data import sessions as _tc
+        from clawock import sessions as _tc
         trading = any(_tc.is_trading_day(m, local.date()) for m in ('hk', 'us'))
     except Exception:
         trading = True
@@ -493,7 +493,7 @@ def _market_closed_today(market):
     is correctly skipped by preflight's holiday gate (memory: openclaw-market-holiday-gate),
     so it produces no commit by design. Fail-open (False) if the calendar is unavailable."""
     try:
-        from clawock.market_data import sessions as _tc
+        from clawock import sessions as _tc
         return not _tc.is_trading_day(market)
     except Exception:
         return False

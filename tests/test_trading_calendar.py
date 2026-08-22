@@ -22,12 +22,12 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 
-from clawock.market_data import sessions as trading_calendar
+from clawock import sessions as trading_calendar
 
 
 def test_calendar_implementation_and_cli_ship_in_the_product():
     assert Path(trading_calendar.__file__).relative_to(ROOT).as_posix() == (
-        "src/clawock/market_data/sessions.py"
+        "src/clawock/sessions.py"
     )
     assert not (ROOT / "scripts" / "data" / "trading_calendar.py").exists()
     result = subprocess.run(

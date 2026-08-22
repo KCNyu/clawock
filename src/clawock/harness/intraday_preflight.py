@@ -37,7 +37,7 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from clawock.workspace import workspace_root
-from clawock.market_data import sessions as trading_calendar
+from clawock import sessions as trading_calendar
 from clawock.decision import plans as plan_surface
 from clawock.decision import signals as quant_signals
 from clawock.evidence import research_surface
@@ -45,7 +45,7 @@ from clawock.utilities import PACKAGED_UTILITIES
 from clawock.market_data import known_catalysts, mover_evidence as mover_news, peer_scan
 from clawock.decision import active_information
 from clawock.decision import add_side, early_trend
-from clawock.portfolio.instruments import is_leveraged_holding
+from clawock.instruments import is_leveraged_holding
 
 WS = workspace_root(Path.cwd())
 TMP = WS / 'memory' / '.tmp'

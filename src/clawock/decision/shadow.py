@@ -2,6 +2,11 @@
 """Cash-and-inventory shadow portfolio replay.
 
 This module is deliberately independent from ``decision_v2.compute_money_impact``.
+
+It lives under ``decision`` rather than ``portfolio`` (#814): the shadow book is
+a counterfactual replayed FROM the decision ledger, and reading that ledger from
+``portfolio`` was the last edge of a market_data -> portfolio -> decision cycle.
+Nothing about it is a property of the real book.
 It estimates a policy simulation: start both books from the same reconstructed
 cash/inventory state, apply every triggered active decision to one book in strict
 session order, leave the buy-and-hold book untouched, and mark both books to the
@@ -24,7 +29,7 @@ from typing import Callable
 from zoneinfo import ZoneInfo
 
 from clawock.decision import ledger as decision_v2
-from clawock.market_data import sessions as trading_calendar
+from clawock import sessions as trading_calendar
 from clawock.safe_io import safe_write_text
 from clawock.workspace import workspace_root
 

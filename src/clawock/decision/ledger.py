@@ -27,7 +27,7 @@ from collections import Counter, defaultdict
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
-from clawock.market_data import sessions as _cal
+from clawock import sessions as _cal
 from clawock.decision.actions import (
     ACTIVE_ACTIONS,
     ADD_ACTIONS,

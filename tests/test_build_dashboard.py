@@ -157,7 +157,7 @@ def test_shadow_failure_replaces_stale_result_and_success_clears_marker(monkeypa
 
     monkeypatch.setitem(
         sys.modules,
-        "clawock.portfolio.shadow",
+        "clawock.decision.shadow",
         SimpleNamespace(
             load_leg_config=lambda _path: {},
             build_shadow_portfolio=explode,
@@ -183,7 +183,7 @@ def test_shadow_failure_replaces_stale_result_and_success_clears_marker(monkeypa
 
     monkeypatch.setitem(
         sys.modules,
-        "clawock.portfolio.shadow",
+        "clawock.decision.shadow",
         SimpleNamespace(
             load_leg_config=lambda _path: {},
             build_shadow_portfolio=succeed,
@@ -448,7 +448,7 @@ def test_hhi_uses_value_weights_and_reports_top_two_concentration():
 
 
 def test_latest_completed_session_skips_holiday_weekend_before_close():
-    from clawock.market_data import sessions as trading_calendar
+    from clawock import sessions as trading_calendar
 
     before_close = datetime(
         2026, 7, 6, 15, 0, tzinfo=ZoneInfo("America/New_York")
@@ -494,7 +494,7 @@ def test_completed_session_is_resolved_per_market_across_the_whole_day(
     could possibly be in the book — the failure this whole check exists to
     catch.
     """
-    from clawock.market_data import sessions as trading_calendar
+    from clawock import sessions as trading_calendar
 
     at = datetime(2026, 8, 11, hour, 0,
                   tzinfo=ZoneInfo(trading_calendar.MARKET_TZ[market]))
@@ -512,7 +512,7 @@ def test_the_two_markets_disagree_at_the_same_instant():
     host-local) cutoff would give both legs the same answer and silently mark
     one of them fresh against a session it has no prices for.
     """
-    from clawock.market_data import sessions as trading_calendar
+    from clawock import sessions as trading_calendar
 
     instant = datetime(2026, 8, 11, 18, 0, tzinfo=ZoneInfo("Asia/Hong_Kong"))
 
@@ -523,7 +523,7 @@ def test_the_two_markets_disagree_at_the_same_instant():
 
 
 def test_market_leg_freshness_exposes_one_frozen_holding():
-    from clawock.market_data import sessions as trading_calendar
+    from clawock import sessions as trading_calendar
 
     at = datetime(
         2026, 7, 24, 17, 0, tzinfo=ZoneInfo("America/New_York")

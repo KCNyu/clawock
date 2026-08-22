@@ -6,7 +6,7 @@ from datetime import datetime
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from typing import Any, Mapping
 
-from clawock.harness.model import ValidationIssue
+from clawock.runtime_model import ValidationIssue
 
 
 DECISION_ARTIFACT = "decision.json"

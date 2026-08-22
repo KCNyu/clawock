@@ -41,19 +41,19 @@ CORE_MODULES = (
     'src/clawock/decision/entry.py',
     'src/clawock/decision/theses.py',
     'src/clawock/decision/earnings.py',
-    'src/clawock/evidence/research_provenance.py',
+    'src/clawock/provenance.py',
     'src/clawock/evidence/research_surface.py',
     'src/clawock/portfolio/integrity.py',
     'src/clawock/decision/risk.py',
-    'src/clawock/portfolio/shadow.py',
-    'src/clawock/portfolio/instruments.py',
+    'src/clawock/decision/shadow.py',
+    'src/clawock/instruments.py',
     'src/clawock/portfolio/aggregates.py',
     'src/clawock/portfolio/realized.py',
     'src/clawock/portfolio/risk.py',
     'src/clawock/harness/intraday_delta.py',
     'src/clawock/automation/workflow_outcomes.py',
     'src/clawock/safe_io.py',
-    'src/clawock/market_data/sessions.py',
+    'src/clawock/sessions.py',
 )
 
 # Floors sit a couple of points under the measured value: enough headroom that a

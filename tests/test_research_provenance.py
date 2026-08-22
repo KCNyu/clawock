@@ -7,7 +7,7 @@ from pathlib import Path
 
 import pytest
 
-from clawock.evidence import research_provenance as rp
+from clawock import provenance as rp
 
 ROOT = Path(__file__).resolve().parents[1]
 

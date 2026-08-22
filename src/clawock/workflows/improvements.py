@@ -9,7 +9,8 @@ from pathlib import Path
 from typing import Any, Mapping
 from uuid import uuid4
 
-from clawock.harness.config import CONFIG_NAME, load_request
+from clawock.runtime_model import CONFIG_NAME
+from clawock.workflows.request import load_request
 from clawock.publish.store import write_generation
 
 from .registry import load_workflow

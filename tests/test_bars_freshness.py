@@ -18,7 +18,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 
 from clawock.harness import brief_preflight
-from clawock.market_data import sessions as trading_calendar
+from clawock import sessions as trading_calendar
 
 
 def test_brief_actually_calls_the_installed_bar_fetcher(monkeypatch):

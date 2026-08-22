@@ -24,7 +24,7 @@ import requests
 from clawock.credentials import load_api_keys as _load_api_keys
 from clawock.market_data import integrity as bar_checks
 from clawock.market_data.eastmoney_http import em_get
-from clawock.portfolio.instruments import INSTRUMENTS
+from clawock.instruments import INSTRUMENTS
 from clawock.portfolio.books import region_book
 from clawock.workspace import workspace_root
 
