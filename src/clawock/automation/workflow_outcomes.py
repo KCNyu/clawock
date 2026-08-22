@@ -38,10 +38,41 @@ from clawock import scheduling as schedule
 # is overridable, so resolving our own modules through WS would read them out of
 # someone else's data directory — or silently pick up whatever happens to be
 # there. Same expression WS is seeded from, kept separate on purpose (#269).
-WS = workspace_root(Path.cwd())
-LOCAL_PATH = WS / "memory" / ".tmp" / "workflow-outcomes.json"
-PUBLIC_PATH = WS / "assets" / "data" / "workflow-outcomes.json"
-LOCK_PATH = WS / "memory" / ".tmp" / "workflow-outcomes.lock"
+def _ws() -> Path:
+    """The workspace, resolved per call rather than frozen at import.
+
+    These were module constants computed from `Path.cwd()` when the module was
+    first imported. `clawock.workspace` documents `CLAWOCK_WORKSPACE` as the way
+    to point the computation at a different workspace "without touching the
+    modules" — and for this module that override did nothing, because by the
+    time anything could set it the paths were already decided.
+
+    The visible cost was a test: #816 traced an order-dependent failure to
+    `rebuild_dashboard(tmp_path)` writing `assets/data/workflow-outcomes.json`
+    into the real checkout. The test passed a workspace; the ledger ignored it,
+    wrote to wherever pytest happened to be started from, and left an untracked
+    file behind that armed a dormant assertion in a different module.
+
+    Resolved per call, `CLAWOCK_WORKSPACE` reaches this module like the
+    docstring always claimed. Unset, behaviour is unchanged.
+    """
+    return workspace_root(Path.cwd())
+
+
+def local_path() -> Path:
+    return _ws() / "memory" / ".tmp" / "workflow-outcomes.json"
+
+
+def public_path() -> Path:
+    return _ws() / "assets" / "data" / "workflow-outcomes.json"
+
+
+def lock_path() -> Path:
+    return _ws() / "memory" / ".tmp" / "workflow-outcomes.lock"
+
+
+def tmp_dir() -> Path:
+    return _ws() / "memory" / ".tmp"
 SCHEMA_VERSION = 1
 KEEP_HOURS = 96
 HKT = ZoneInfo("Asia/Hong_Kong")
@@ -131,17 +162,17 @@ def _read_path(path):
 def load_ledger():
     """Local ledger first; the published copy is a last resort, never a silent one.
 
-    Falling back to PUBLIC_PATH and then writing that content back to LOCAL_PATH
+    Falling back to public_path() and then writing that content back to local_path()
     would roll the local ledger back to whatever was last published. It has not
     been observed happening, but a data-losing path must not be invisible.
     """
-    local = _read_path(LOCAL_PATH)
+    local = _read_path(local_path())
     if local is not None:
         return local
-    public = _read_path(PUBLIC_PATH)
+    public = _read_path(public_path())
     if public is not None:
         print(
-            f"warn: workflow ledger unreadable at {LOCAL_PATH}; falling back to the "
+            f"warn: workflow ledger unreadable at {local_path()}; falling back to the "
             f"published copy — stages recorded since the last publish may be missing",
             file=sys.stderr,
         )
@@ -158,8 +189,8 @@ def _atomic_write(path, data):
 
 @contextmanager
 def _locked():
-    LOCK_PATH.parent.mkdir(parents=True, exist_ok=True)
-    with LOCK_PATH.open("a+") as lock:
+    lock_path().parent.mkdir(parents=True, exist_ok=True)
+    with lock_path().open("a+") as lock:
         fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
         yield
 
@@ -318,7 +349,7 @@ def record_stage(job_name, stage, status, *, slot=None, at=None, dry_run=False, 
             )
             if not ledger.get("monitoring_started_at"):
                 ledger["monitoring_started_at"] = slot
-            _atomic_write(LOCAL_PATH, ledger)
+            _atomic_write(local_path(), ledger)
         return current
     except Exception as exc:
         print(f"warn: workflow outcome stage not recorded: {exc}", file=sys.stderr)
@@ -452,7 +483,7 @@ def reconcile_raw_execution():
                             "raw_execution", {"status": "unknown"}
                         )
                 latest["updated_at"] = ledger["updated_at"]
-                _atomic_write(LOCAL_PATH, latest)
+                _atomic_write(local_path(), latest)
         return changed
     except Exception as exc:
         print(f"warn: raw workflow status reconciliation skipped: {exc}", file=sys.stderr)
@@ -471,7 +502,6 @@ def reconcile_raw_execution():
 # process exit — is what actually proves delivery, so the ledger reconciles
 # against it. Absent a receipt this must leave the record alone: `pending` is
 # the honest answer when nothing proves otherwise.
-TMP_DIR = WS / "memory" / ".tmp"
 
 
 def _receipt_delivered(payload):
@@ -516,10 +546,10 @@ def reconcile_delivery_receipts():
     watchdog or a later run knows more than a receipt file does.
     """
     try:
-        if not TMP_DIR.is_dir():
+        if not tmp_dir().is_dir():
             return 0
         claims = {}
-        for path in sorted(TMP_DIR.glob("*-sent-*.json")):
+        for path in sorted(tmp_dir().glob("*-sent-*.json")):
             parsed = _receipt_claims(path)
             if not parsed:
                 continue
@@ -550,7 +580,7 @@ def reconcile_delivery_receipts():
                 filled += 1
             if filled:
                 ledger["updated_at"] = _now().isoformat()
-                _atomic_write(LOCAL_PATH, ledger)
+                _atomic_write(local_path(), ledger)
         return filled
     except Exception as exc:
         print(f"warn: delivery receipt reconciliation skipped: {exc}", file=sys.stderr)
@@ -575,11 +605,11 @@ def publish():
     reconcile_raw_execution()
     reconcile_delivery_receipts()
     ledger = load_ledger()
-    before = PUBLIC_PATH.read_text() if PUBLIC_PATH.exists() else None
+    before = public_path().read_text() if public_path().exists() else None
     payload = json.dumps(ledger, ensure_ascii=False, indent=2) + "\n"
     if before == payload:
         return False
-    _atomic_write(PUBLIC_PATH, ledger)
+    _atomic_write(public_path(), ledger)
     return True
 
 
@@ -589,7 +619,7 @@ def main():
     parser.add_argument("--summary", action="store_true")
     args = parser.parse_args()
     if args.publish:
-        print(json.dumps({"published": publish(), "path": str(PUBLIC_PATH)}))
+        print(json.dumps({"published": publish(), "path": str(public_path())}))
     else:
         print(json.dumps(summarize(reconcile=True), ensure_ascii=False, indent=2))
     return 0

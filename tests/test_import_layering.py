@@ -252,3 +252,38 @@ def test_the_allowlists_only_ever_shrink():
     assert len(KNOWN_MODULE_CYCLES) <= 3, (
         "a module cycle was added to the allowlist; #814 is about removing these"
     )
+
+
+def test_no_new_test_writes_to_published_state(request):
+    """A test that writes into the checkout changes what later tests see.
+
+    #816: `assets/data/workflow-outcomes.json` is untracked and absent in a
+    clean tree. One test created it, it persisted between runs, and it armed an
+    assertion in a different module that is dormant otherwise — a failure that
+    only ever appeared in full-suite order and passed on its own, twice, before
+    anyone could say which test was responsible.
+
+    This runs last by name and reads the attribution log the conftest fixture
+    builds. It is also what makes the suite parallelisable: shared files are
+    the reason `-n auto` cannot be turned on.
+    """
+    from conftest import _WRITE_LOG, _tolerated  # noqa: PLC0415
+
+    if not _WRITE_LOG:
+        pytest.skip("no writes recorded — this ran outside a full-suite session")
+
+    offenders = sorted({e["test"] for e in _WRITE_LOG if not _tolerated(e["test"])})
+    assert not offenders, (
+        "these tests wrote into the checkout and are not on the tolerated list: "
+        f"{offenders}. Point them at an isolated workspace "
+        "(monkeypatch.setenv('CLAWOCK_WORKSPACE', str(tmp_path))) rather than "
+        "adding them to TOLERATED_WRITERS — that list is meant to shrink."
+    )
+
+
+def test_the_tolerated_writer_list_only_shrinks():
+    from conftest import TOLERATED_WRITERS  # noqa: PLC0415
+
+    assert len(TOLERATED_WRITERS) <= 5, (
+        "a test was added to the write allowlist; #816 is about emptying it"
+    )
