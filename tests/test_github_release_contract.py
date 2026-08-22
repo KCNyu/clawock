@@ -1,5 +1,6 @@
 """A PyPI version must leave a matching, honest first-party release page."""
 from pathlib import Path
+import re
 
 import pytest
 import json
@@ -248,3 +249,40 @@ def test_the_npm_publish_carries_provenance():
         "provenance must be gated on an actually-present OIDC token, so a local "
         "publish degrades instead of failing"
     )
+
+
+def test_the_pypi_publisher_is_pinned_to_a_commit():
+    """A moving ref decides, from outside this repository, what code performs an
+    irreversible publish.
+
+    This is not hypothetical here. v0.1.6 half-published — PyPI accepted it,
+    npm died — because the runner image's bundled npm crashed, and the fix was
+    to pin npm. The PyPI half was still on `@release/v1`, whose contents change
+    without anything in this repository moving (#808).
+    """
+    workflow = WORKFLOW.read_text(encoding="utf-8")
+    publish = workflow.split("\n      - name: Publish\n", 1)[1].split("\n  npm:", 1)[0]
+    ref = next(line.split("@", 1)[1].split()[0]
+               for line in publish.splitlines()
+               if "gh-action-pypi-publish@" in line)
+    assert re.fullmatch(r"[0-9a-f]{40}", ref), (
+        f"the PyPI publisher must be pinned to a 40-character commit sha, got {ref!r}"
+    )
+    assert "# v" in publish, "the pin needs a human-readable version comment beside it"
+
+
+def test_the_environment_comment_does_not_claim_controls_that_do_not_exist():
+    """#810: the comment claimed the pypi environment carried a required
+    reviewer while `protection_rules` was empty. A comment describing a control
+    nobody configured is worse than none — the next reader assumes somebody is
+    watching that door.
+
+    The claim is now a branch policy, which is what is actually configured, and
+    the comment records the two runs that measured it in both directions.
+    """
+    workflow = WORKFLOW.read_text(encoding="utf-8")
+    publish_job = workflow.split("\n  publish:\n", 1)[1].split("\n  npm:", 1)[0]
+    assert "required reviewer as well" not in publish_job, (
+        "the environment carries no required reviewer; do not say it does"
+    )
+    assert "deployment branch policy" in publish_job
