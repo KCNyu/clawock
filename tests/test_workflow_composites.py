@@ -17,6 +17,7 @@ A comment did not hold either of these. An assertion might.
 from __future__ import annotations
 
 from pathlib import Path
+import re
 
 import pytest
 
@@ -110,3 +111,39 @@ def test_the_deploy_key_is_not_an_input_to_the_composite():
     action = (ACTIONS / "clawock-commit" / "action.yml").read_text(encoding="utf-8")
     inputs = action.split("inputs:", 1)[1].split("runs:", 1)[0]
     assert "CLAWOCK_PUBLISH_SSH_KEY" not in inputs
+
+
+def test_dependency_review_runs_on_prs_without_being_able_to_block_them():
+    """#811. Dependabot reports after a dependency lands on master; this is the
+    PR-time half.
+
+    It is advisory on purpose. Its red is decided by the outside world — a CVE
+    disclosed this morning against a package nobody in this PR touched — rather
+    than by the diff. A gate whose failures are unrelated to the change under
+    review is one people learn to route around, and this repository has already
+    paid for false reds several times over.
+    """
+    workflow = (ROOT / ".github" / "workflows" / "harness-regression.yml").read_text(encoding="utf-8")
+    assert "dependency-review-action@" in workflow
+
+    step = workflow.split("- name: Dependency review", 1)[1].split("- name:", 1)[0]
+    assert "github.event_name == 'pull_request'" in step, "it can only read a PR diff"
+    assert "continue-on-error: true" in step, (
+        "dependency review must not be able to fail the required `validate` check"
+    )
+
+    ref = next(line.split("@", 1)[1].split()[0] for line in step.splitlines()
+               if "dependency-review-action@" in line)
+    assert re.fullmatch(r"[0-9a-f]{40}", ref), f"pin it to a commit, got {ref!r}"
+
+
+def test_the_required_check_list_has_not_quietly_grown():
+    """If dependency review is ever added to the ruleset's required contexts,
+    the reasoning above is void and this should be a deliberate decision, not a
+    side effect."""
+    workflow = (ROOT / ".github" / "workflows" / "harness-regression.yml").read_text(encoding="utf-8")
+    job = workflow.split("\n  validate:", 1)[1].split("\n  smoke-data-fetch:", 1)[0]
+    advisory = [name for name in ("Dependency review",) if f"- name: {name}" in job]
+    for name in advisory:
+        block = job.split(f"- name: {name}", 1)[1].split("- name:", 1)[0]
+        assert "continue-on-error: true" in block

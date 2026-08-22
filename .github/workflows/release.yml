@@ -96,6 +96,22 @@ jobs:
     # Trusted publishing: PyPI verifies this workflow's OIDC identity, so there is
     # no long-lived API token in repository secrets to leak or rotate. One-time
     # setup on the PyPI side is documented in docs/operations/release.md.
+    #
+    # The environment is also the gate on WHERE a publish may come from. It used
+    # to be neither: #810 found `protection_rules: []` and
+    # `deployment_branch_policy: null`, while this comment asserted the
+    # environment also carried a reviewer requirement — describing a control
+    # nobody had configured, which is worse than saying nothing, because the
+    # next reader assumes someone is watching that door.
+    #
+    # It now carries a deployment branch policy of exactly one entry, tag `v*`.
+    # Measured both directions before trusting it: dispatching this workflow
+    # from a branch with `repository: pypi` fails with the publish job running
+    # ZERO steps (run 32551418697), while the same dispatch from a tag runs the
+    # job for real (run 32551500712, which then stopped at PyPI's own "File
+    # already exists" because the version was unchanged). No required reviewer:
+    # that is friction on every release and is a preference, not a defect —
+    # unlike the branch hole, which was reachable.
     environment: ${{ inputs.repository || 'pypi' }}
     permissions:
       id-token: write
@@ -106,7 +122,25 @@ jobs:
           path: dist/
 
       - name: Publish
-        uses: pypa/gh-action-pypi-publish@release/v1
+        # Pinned to a commit, not to the moving `release/v1` (#808). This
+        # repository has already paid for letting something outside it decide
+        # which version of a publishing tool runs: v0.1.6 half-published because
+        # the runner image's bundled npm crashed, and the fix was pinning npm.
+        # The PyPI half was still on a mutable ref.
+        #
+        # NOT the SHA that `refs/tags/v1.14.2` points at — that is an annotated
+        # tag object (a892a5a6…). The commit is one dereference further in.
+        #
+        # `attestations` is deliberately not set: the action defaults it to
+        # 'true' and PEP 740 attestations are already being issued. Verified on
+        # the published artifact rather than assumed:
+        #   GET https://pypi.org/integrity/clawock/0.1.8/<file>/provenance
+        #   -> publisher {kind: GitHub, repository: KCNyu/clawock,
+        #                 workflow: release.yml, environment: pypi}
+        # (The /pypi/{pkg}/json view reports `provenance: null` for every
+        # package including sigstore and uv, so it cannot be used to check this.
+        # #808 was originally filed off that mistake.)
+        uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33  # v1.14.2
         with:
           repository-url: ${{ inputs.repository == 'testpypi' && 'https://test.pypi.org/legacy/' || '' }}
 

@@ -76,6 +76,25 @@ jobs:
         # degrade), never a non-zero that reds the whole cron. Offline + pure Node.
         run: node skills/tavily-search/scripts/search.test.mjs
 
+      - name: Dependency review
+        # #784 gave Dependabot the pip and npm trees, but that only reports
+        # AFTER a dependency is on master. This is the PR-time half: GitHub's
+        # own action reads the dependency diff and objects to a newly introduced
+        # known-vulnerable package, or one whose licence the project cannot take.
+        #
+        # Deliberately advisory (`continue-on-error`) and deliberately NOT a
+        # required check. Its red is decided by the outside world — a CVE
+        # disclosed this morning against a dependency nobody touched — not by
+        # the diff under review. Making that block every PR is how a gate turns
+        # into something people route around. Start at `high`, watch what it
+        # actually catches, tighten later with data.
+        if: github.event_name == 'pull_request'
+        continue-on-error: true
+        uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48  # v4.9.0
+        with:
+          fail-on-severity: high
+          comment-summary-in-pr: false
+
       - name: PR file safety policy
         if: github.event_name == 'pull_request'
         env:
