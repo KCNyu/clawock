@@ -92,6 +92,34 @@ The workflow refuses a tag that disagrees with `pyproject.toml`, because a
 mismatch publishes a version nobody asked for under a name the changelog already
 uses for something else.
 
+### A `v*` tag cannot be moved or deleted once pushed
+
+Ruleset `21184290` (`target: tag`, `refs/tags/v*`) carries `deletion`, `update`
+and `non_fast_forward`. It exists because `--verify-tag` only checks that a tag
+exists, not that it still points where it did: a moved tag puts different code
+behind a version number that has already been announced, and this repository has
+already shipped one same-version-two-builds incident on the npm side (#712).
+
+**So a mistyped tag cannot be fixed in place.** The recovery is deliberate
+friction, not a bug:
+
+```bash
+gh api -X PUT repos/KCNyu/clawock/rulesets/21184290 -f enforcement=disabled
+git push --delete origin v0.2.0        # or force it to the right commit
+gh api -X PUT repos/KCNyu/clawock/rulesets/21184290 -f enforcement=active
+```
+
+Prefer burning the next patch number over reopening the gate. Reaching for the
+`disabled` switch on a tag that has already been published anywhere — PyPI, npm,
+a GitHub Release — is the wrong move regardless: those consumers kept a copy,
+and moving the tag only makes the three disagree.
+
+One trap worth knowing, because it cost a real tag to find: `non_fast_forward`
+alone does **not** stop this. Moving an old release tag *forward* onto newer code
+is a fast-forward, so it passes that rule — `update` is the one that blocks it.
+Verify rules like this on a throwaway tag, never on a published one.
+
+
 After real PyPI publication succeeds, the same workflow creates the matching
 GitHub Release, attaches the verified sdist/wheel and renders only that version's
 `CHANGELOG.md` section plus its versioned PyPI link. TestPyPI dispatches do not
