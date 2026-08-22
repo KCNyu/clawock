@@ -21,6 +21,7 @@ from typing import Dict, List, Optional
 
 import requests
 
+from clawock.credentials import load_api_keys as _load_api_keys
 from clawock.market_data import integrity as bar_checks
 from clawock.market_data.eastmoney_http import em_get
 from clawock.portfolio.instruments import INSTRUMENTS
@@ -48,17 +49,7 @@ def _finnhub_syms(code: str) -> List[str]:
 # ── helpers ──────────────────────────────────────────────────────────────────
 
 def load_api_keys() -> Dict[str, str]:
-    keys: Dict[str, str] = {}
-    try:
-        with open(API_KEYS_PATH) as f:
-            for line in f:
-                line = line.strip()
-                if line and not line.startswith('#') and '=' in line:
-                    k, v = line.split('=', 1)
-                    keys[k.strip()] = v.strip()
-    except FileNotFoundError:
-        pass
-    return keys
+    return _load_api_keys(API_KEYS_PATH)
 
 
 def _pct(c: float, pc: float) -> float:

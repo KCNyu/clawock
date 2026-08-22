@@ -13,6 +13,7 @@ backtester.  It is intentionally not an HFT strategy:
 """
 from __future__ import annotations
 
+from clawock.safe_io import to_number as _number
 import hashlib
 import json
 
@@ -20,11 +21,6 @@ import json
 POLICY_VERSION = 2
 
 
-def _number(value):
-    try:
-        return float(value)
-    except (TypeError, ValueError):
-        return None
 
 
 def confirmation_levels(technical: dict) -> dict | None:

@@ -23,6 +23,7 @@ import os
 import sys
 import tempfile
 from typing import Any
+from datetime import datetime
 
 
 @contextlib.contextmanager
@@ -255,3 +256,38 @@ if __name__ == '__main__':
         final = json.load(open(ctr))
         assert len(final) == 20, f'lost updates: only {len(final)}/20 keys survived'
         print('mutate_json concurrency (20 writers, no lost updates): OK')
+
+
+def to_number(value):
+    """`float(value)`, or `None` when it is not a number.
+
+    Three modules across two packages carried this byte for byte
+    (`decision.add_alpha`, `decision.early_trend`,
+    `evaluation.add_alpha_walkforward`). It lives beside the other
+    dependency-free coercions rather than in either package, because a helper
+    owned by one of them would be an import edge between the two for the sake of
+    five lines.
+    """
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def parse_iso_utc(value, field, errors):
+    """An ISO-8601 timestamp that carries a timezone, or `None` plus an error.
+
+    `decision.earnings` and `decision.entry` validated their timestamps with
+    byte-identical copies of this. Both artifacts are consumed by the same
+    review surfaces, so the two copies disagreeing about what counts as a valid
+    timestamp would be a silent divergence between two files that are meant to
+    be read together.
+    """
+    try:
+        parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
+        if parsed.tzinfo is None:
+            raise ValueError
+        return parsed
+    except (TypeError, ValueError):
+        errors.append(f"{field} must be an ISO-8601 timestamp with timezone")
+        return None

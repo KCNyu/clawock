@@ -71,8 +71,19 @@ def test_the_analysis_the_preflights_run_is_the_one_the_cli_ships():
     for market in ("hk", "us"):
         assert f"analyze-{market}" in PACKAGED_UTILITIES
 
+    # The lookup itself lives in one place now: both preflights ran a
+    # byte-identical `run_analyze`, so the thing to guard is that the shared
+    # implementation still resolves through the map — and that neither preflight
+    # has grown its own copy again.
+    shared = (HARNESS / "_harness_common.py").read_text()
+    assert "PACKAGED_UTILITIES[f'analyze-{market}']" in shared, (
+        "_harness_common.run_analyze no longer resolves its analysis through the "
+        "CLI command map, so it can drift from the shipped command again (#447)")
+
     for name in ("report_preflight.py", "intraday_preflight.py"):
         source = (HARNESS / name).read_text()
-        assert "PACKAGED_UTILITIES[f'analyze-{market}']" in source, (
-            f"{name} no longer resolves its analysis through the CLI command map, "
-            "so it can drift from the shipped command again (#447)")
+        assert "from clawock.harness._harness_common import run_analyze" in source, (
+            f"{name} must use the shared run_analyze")
+        assert "def run_analyze" not in source, (
+            f"{name} grew its own run_analyze again; that is the duplication "
+            "#447 is about, one level down")

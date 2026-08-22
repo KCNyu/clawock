@@ -5,6 +5,7 @@ Extracted to avoid duplicating _git / rebuild_dashboard / push retry logic
 across multiple postflight scripts. All functions accept the workspace root
 as path argument or default to the resolved workspace root.
 """
+from clawock.utilities import PACKAGED_UTILITIES
 import hashlib
 import json
 import re
@@ -414,3 +415,21 @@ def safe_write_text(path, text):
     """
     from clawock.safe_io import safe_write_text as _swt
     _swt(str(path), text)
+
+
+def run_analyze(market):
+    """Refresh one market's quotes through the packaged analyzer.
+
+    Both preflights ran a byte-identical copy of this. It is the only place the
+    120s analyzer budget is written down, and two copies means two places to
+    forget when it moves.
+    """
+    module = PACKAGED_UTILITIES[f'analyze-{market}']
+    try:
+        r = subprocess.run(
+            [sys.executable, '-m', module, '--wechat', '--md-table'],
+            capture_output=True, text=True, timeout=120,
+        )
+        return r.returncode, r.stdout, r.stderr
+    except subprocess.TimeoutExpired:
+        return -1, '', f'{module} timeout (120s)'

@@ -7,6 +7,7 @@ price-relative family; information remains independent.  Only a non-leveraged,
 non-overheated name with both families receives a tiny exploration setup.
 """
 from __future__ import annotations
+from clawock.safe_io import to_number as _number
 
 
 PRIMARY_SOURCE_TYPES = {
@@ -16,11 +17,6 @@ PRIMARY_SOURCE_TYPES = {
 POSITIVE_DIRECTIONS = {1, "1", "positive"}
 
 
-def _number(value):
-    try:
-        return float(value)
-    except (TypeError, ValueError):
-        return None
 
 
 def classify(technical: dict, peer: dict, information: dict, events: list[dict],
