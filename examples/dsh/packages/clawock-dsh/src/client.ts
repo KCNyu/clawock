@@ -509,8 +509,8 @@ export function DecisionMind(props: DecisionMindProps): React.ReactElement {
     return h('div', { className: cx('dmt'), ref: rootRef },
       h('div', { className: cx('top') },
         h('div', { className: cx('tin') },
-          h('div', { className: cx('tt') }, '决策轨迹'),
-          h('div', { className: cx('ts') }, '一笔真实成交 + 当时写下的计划 + 官方收盘给的结果'))),
+          h('div', { className: cx('tt') }, '决策轨迹',
+            h('span', { className: cx('ts') }, '一笔真实成交 + 当时写下的计划 + 官方收盘给的结果')))),
       h('div', { className: cx('list') },
         h(SkeletonRow, { key: 'sk1' }),
         h(SkeletonRow, { key: 'sk2' }),
@@ -632,6 +632,8 @@ export function DecisionMind(props: DecisionMindProps): React.ReactElement {
       h('span', { className: cx('sl') }, '有当日计划' + (reversed === 0 ? '' : ' · 反向 ' + reversed)),
       h('span', { className: cx('sv') }, matched + '/' + traces.length)))
 
+  // The filter row is the only part of the header that stays on screen while
+  // the list scrolls; the stat card above it scrolls away with the content.
   const filters = h('div', { className: cx('filters') },
     (['all', 'miss', 'sold', 'dec'] as const).map((value) => h('button', {
       key: value,
@@ -646,11 +648,12 @@ export function DecisionMind(props: DecisionMindProps): React.ReactElement {
     h('div', { className: cx('top') },
       h('div', { className: cx('tin') },
         h('div', { className: cx('tt') }, '决策轨迹',
+          h('span', { className: cx('ts') }, '一笔真实成交 + 当时写下的计划 + 官方收盘给的结果' + (data.stale ? ' · 更新失败,显示此前快照' : '')),
           h('span', { className: cx('rate') },
             traces.length + ' 笔成交' + (rate === null ? '' : ' · @' + rate))),
-        h('div', { className: cx('ts') }, '一笔真实成交 + 当时写下的计划 + 官方收盘给的结果' + (data.stale ? ' · 更新失败,显示此前快照' : '')),
-        stats,
-        filters)),
+        stats)),
+    h('div', { className: cx('bar') },
+      h('div', { className: cx('bin') }, filters)),
     h('div', { className: cx('list') }, body))
 }
 
