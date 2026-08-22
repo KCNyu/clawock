@@ -20,11 +20,17 @@ import { createTraceCache, workspaceKeyOf, workspaceSignature } from './freshnes
 
 const workspaceOf = (): string => process.env.CLAWOCK_WORKSPACE || process.cwd()
 
-/** Signature-keyed trace cache per workspace (see freshness.ts). */
-const tracesCache = createTraceCache()
-
 export class ClawockStudioGateway extends TypertRemoteService {
   static inject = [] as const
+
+  /**
+   * Signature-keyed trace cache per workspace (see freshness.ts). Owned by the
+   * service instance rather than module scope: a module-level cache would
+   * outlive plugin stop/update (the module stays in the process cache), so a
+   * stopped plugin could keep serving a stale enriched view through a new
+   * instance. Instance lifetime follows the fiber; a hit still costs µs.
+   */
+  private readonly tracesCache = createTraceCache()
 
   constructor(ctx: Context) {
     super(ctx, 'clawockStudio')
@@ -76,14 +82,14 @@ export class ClawockStudioGateway extends TypertRemoteService {
   traces(): TracesResult {
     const ws = workspaceOf()
     const signature = workspaceSignature(ws)
-    const hit = tracesCache.get(ws, signature)
+    const hit = this.tracesCache.get(ws, signature)
     if (hit !== undefined) return hit as TracesResult
     const value: TracesResult = {
       workspaceKey: workspaceKeyOf(ws),
       signature,
       ...readTraces(ws),
     }
-    tracesCache.set(ws, signature, value)
+    this.tracesCache.set(ws, signature, value)
     return value
   }
 }

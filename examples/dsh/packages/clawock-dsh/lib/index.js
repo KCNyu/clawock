@@ -54,8 +54,6 @@ var __esDecorate = function(ctor, descriptorIn, decorators, contextIn, initializ
 	done = true;
 };
 const workspaceOf = () => process.env.CLAWOCK_WORKSPACE || process.cwd();
-/** Signature-keyed trace cache per workspace (see freshness.ts). */
-const tracesCache = createTraceCache();
 let ClawockStudioGateway = (() => {
 	let _classSuper = TypertRemoteService;
 	let _instanceExtraInitializers = [];
@@ -148,9 +146,16 @@ let ClawockStudioGateway = (() => {
 			});
 		}
 		static inject = [];
+		/**
+		* Signature-keyed trace cache per workspace (see freshness.ts). Owned by the
+		* service instance rather than module scope: a module-level cache would
+		* outlive plugin stop/update (the module stays in the process cache), so a
+		* stopped plugin could keep serving a stale enriched view through a new
+		* instance. Instance lifetime follows the fiber; a hit still costs µs.
+		*/
+		tracesCache = (__runInitializers(this, _instanceExtraInitializers), createTraceCache());
 		constructor(ctx) {
 			super(ctx, "clawockStudio");
-			__runInitializers(this, _instanceExtraInitializers);
 		}
 		/** @returns Prepared runs (newest first), with decision/receipt presence flags. */
 		list() {
@@ -187,14 +192,14 @@ let ClawockStudioGateway = (() => {
 		traces() {
 			const ws = workspaceOf();
 			const signature = workspaceSignature(ws);
-			const hit = tracesCache.get(ws, signature);
+			const hit = this.tracesCache.get(ws, signature);
 			if (hit !== void 0) return hit;
 			const value = {
 				workspaceKey: workspaceKeyOf(ws),
 				signature,
 				...readTraces(ws)
 			};
-			tracesCache.set(ws, signature, value);
+			this.tracesCache.set(ws, signature, value);
 			return value;
 		}
 	};

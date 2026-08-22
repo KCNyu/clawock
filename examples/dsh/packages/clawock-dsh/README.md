@@ -102,6 +102,18 @@ python -m pip install clawock
 
 模型永远不能给自己打分——价格、风控、账本、战绩全部由 Python 独立结算。
 
+## 这个插件不做什么(边界)
+
+- **不改任何文件**。面板是只读 Remote;结算、账本写入、发布仍只走
+  clawock 自己的机制(`clawock run` / brief 管线)。
+- **不替代 clawock**。skill 只是把「什么时候跑、产出什么」讲给 agent
+  听;agent 调用的仍是同一套 CLI 与文件契约。
+- **不发明判定**。T+1 数字来自 `memory/bars/` 的官方逐日收盘,不是面板
+  自己算的;没有 bar 就显式显示「T+1 未判」,绝不编一个结论。
+- **不把计划当成交**。`execution.status` 只渲染为「账本自评」小标签,
+  成交与计划同向/反向另有独立的 `alignment` 判定(二者曾在 #739 漂移,
+  现由 `tests/test_decision_trace_parity.py` 钉住)。
+
 ## 快速上手对话
 
 ```
@@ -181,6 +193,30 @@ pass 全部就地跑真实源码树,不再复刻临时 workspace(#731)。生成�
 验证状态:node 半区(扫描、run id 防路径穿越、Remote 标记)与 client 半区
 (注册、模型投影)有单元测试;**tab 的浏览器目验需要在带 DSH 源码/工具链的
 机器上 boot 后确认**(本仓库 CI 无法渲染 GUI)。
+
+## 标准与机器门
+
+接线标准(与 DSH rc.6 官方写法逐项对齐,历史偏离记录见 #729-732):
+
+| 项 | 标准 | 本插件 |
+| --- | --- | --- |
+| 包位置 | 生成器只认 `<root>/packages/` 下的 project reference | `examples/dsh/packages/clawock-dsh`,workspace 根 `examples/dsh` |
+| Host Remote | `TypertRemoteService` + `@Remote`,构建期由 `@deepseek-ai/dsh-typert-generator` 生成反射与 client contribution | ✅ |
+| Client 纪律 | `register` 只在 `apply`;store 必须是 `createXxxStore()` 工厂;模块级零副作用;组件只吃 props | ✅ |
+| 样式 | 构建期 CSS Modules,`<style data-plugin>` 由模块 loader 认领/卸载;手捏 `<style>` 即绕过归属 | ✅ |
+| 产物 | `lib/` 提交入库且**可复现**;类名哈希取包相对路径、region 注释去绝对路径 | ✅ |
+| 依赖 | 安装态必须自足——`dsh_plugin_package_contract.mjs` 在空目录装 tarball 验证(曾因此 83 次崩溃循环,#709) | ✅ |
+
+机器门(每个插件 PR 由 `harness-regression.yml` 把关,无需人记):
+
+1. `npm run build` 重跑三个 pass(`lib/` 与 `src/` 零 diff,否则 CI 红);
+2. `tests/decision_studio_plugin.spec.js` —— node 半区扫描/路径安全 + client
+   bundle 注册/投影;
+3. `tests/dsh_plugin_package_contract.mjs` —— 打包安装后每个 export 可加载;
+4. `tests/test_decision_trace_parity.py` —— 插件 TS 与 dashboard Python 的
+   判词表共用同一份常量(#739/#740 漂移的钉)。
+
+所以「这个插件标准不标准」不是记性问题:上面任何一条被破坏,CI 直接红。
 
 ## 为什么是 skill + 面板而不是工具
 
