@@ -246,32 +246,36 @@ harness-agnostic 定位的一部分——同一份契约,OpenClaw skill / Claude
 
 面板的宣传图/README 截图必须从**真实运行中的 DSH**里截,不能截独立预览页——
 只有带上 DSH 自己的 chrome(顶栏、tab 栏、session 侧栏)才能证明插件真的装
-进了 DSH;独立预览页会和实际部署形态漂移。方法(本机已跑通):
+进了 DSH;独立预览页会和实际部署形态漂移。仓库里有现成脚本,一条命令截好:
 
-1. DSH 后端直接开在 `http://127.0.0.1:3081/`(systemd `dsh.service`,
-   `CLAWOCK_WORKSPACE` 指向 clawock 的 workspace)。本机截图直连这个地址,
-   绕开 Tailscale/nginx/HTTPS 那一整套。
-2. Playwright 用**自己管理**的 Chromium,不传 `executable_path`(本机已装,
-   `~/.cache/ms-playwright/`;新机器上 `npx playwright install chromium` 装一次)。
-   (原先这里写的系统 Chromium 是个 snap,2026-08-17 已从本机移除。)
-   `device_scale_factor=2` 保证文字清晰:
-   ```python
-   from playwright.sync_api import sync_playwright
-   with sync_playwright() as p:
-       b = p.chromium.launch(args=['--no-sandbox'])
-       page = b.new_page(viewport={'width': 1440, 'height': 1100}, device_scale_factor=2)
-       page.goto('http://127.0.0.1:3081/', wait_until='networkidle', timeout=20000)
-   ```
-3. 侧栏点进一个真实 session,等加载完,点顶部 `Decision Mind` tab。**tab 栏
-   和 DSH 顶栏必须留在截图里**——那正是「这是插件 tab、不是独立页」的证据。
-4. 展开一笔有完整决策轨迹(计划→真实成交→T+1→盈亏)的真实成交:
-   ```python
-   cell = page.locator('[data-cell=trace]', has_text='TICKER').first
-   cell.scroll_into_view_if_needed(); cell.click()
-   ```
-5. 用**单一矩形 `clip`** 截图,不要两段分别裁剪再拼接(拼接会留缝)。裁掉底部
-   `Message the agent` 输入框浮层即可。若画面里有真 bug,先修代码再重截,不要
-   用裁剪掩盖。
+```bash
+ops/host/install_dsh_plugin.sh --restart   # live 插件 = checkout 构建产物
+node site/tools/shoot_dsh_plugin.js        # → site/assets/dsh-decision-mind.png
+clawock validate-sidecar screenshots       # 和 CI 同一个闸门
+```
+
+脚本默认连 `http://127.0.0.1:3081/`(systemd `dsh.service`,
+`CLAWOCK_WORKSPACE` 指向 clawock 的 workspace),绕开 Tailscale/nginx/HTTPS
+那一整套。环境变量:`DSH_URL`(其他 origin)、`SESSION`(会话标题片段,
+默认点侧栏第一个)、`ROW`(展开第几笔,默认第 3 笔)、`OUT`(输出路径)。
+Playwright 走自己管理的 Chromium(`~/.cache/ms-playwright/`;新机器上
+`npx playwright install chromium` 装一次,原来的系统 Chromium 是个 snap,
+2026-08-17 已从本机移除)。
+
+脚本做对了几件手工容易错的事,别绕过它回去手写:
+
+1. **tab 栏和 DSH 顶栏留在截图里**——那是「这是插件 tab、不是独立页」的证据;
+2. 点击会话/点开轨迹后 **blur 掉键盘焦点**,否则行的 `:focus-visible`
+   描边会作为一条蓝框留在成图里;
+3. 用**单一矩形 `clip`** 截图(裁掉底部 `Message the agent` 输入框浮层),
+   两段分别裁剪再拼接会在缝合处留 artifact;
+4. 等 `domcontentloaded` + 显式延时,别用 `networkidle`——`/plugins/events`
+   是没心跳的 SSE 长连接,networkidle 永远等不到。
+
+自动刷新已接在 `.github/workflows/screenshot-refresh.yml`:提供 DSH origin
+(dispatch 输入 `dsh_url` 或 repository variable `DSH_URL`)的 runner 会自动
+重截并把新图放进同一个 commit;没有 DSH 的 hosted runner 跳过这一步。
+若画面里有真 bug,先修代码再重截,不要用裁剪掩盖。
 
 ## 发布(脚本)
 

@@ -3,6 +3,9 @@ name: README Refresh (screenshots + metrics)
 # One workflow keeps every README current:
 #   screenshots — re-shoot the live dashboard so README visuals never drift >7
 #                 days (two small PNGs weekly; the 8MB GIF only on manual run)
+#   dsh shot    — re-shoot the Decision Mind tab when a DSH origin is provided
+#                 (dispatch input or DSH_URL variable); skipped on the hosted
+#                 runner, which has no DSH and no desk
 #   metrics     — recompute the live numbers behind the <!-- CW_M:* -->
 #                 placeholders from the ledger + data-plane
 # Single commit step, single publish-key binding. Pushes straight to master via
@@ -14,6 +17,11 @@ on:
   schedule:
     - cron: '0 22 * * 0'
   workflow_dispatch:
+    inputs:
+      dsh_url:
+        description: 'DSH origin to re-shoot the plugin tab from (e.g. http://host:3081/) — optional; the DSH step is skipped when empty'
+        required: false
+        default: ''
 
 # Serialize with other commit-pushing workflows
 concurrency:
@@ -81,6 +89,21 @@ jobs:
       - name: Validate screenshots
         run: clawock validate-sidecar screenshots
 
+      # The Decision Mind capture is evidence of the plugin running inside a
+      # real DSH on a real desk — a hosted runner has neither, so this step is
+      # gated on an origin being supplied (dispatch input `dsh_url`, or the
+      # `DSH_URL` repository variable for a runner that can reach one). The
+      # weekly scheduled run skips it and stays green; a reachable origin
+      # refreshes the shot and takes it into the commit below.
+      - name: Refresh DSH plugin screenshot
+        if: ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.dsh_url != '') || vars.DSH_URL != '' }}
+        env:
+          DSH_URL: ${{ (github.event_name == 'workflow_dispatch' && github.event.inputs.dsh_url) || vars.DSH_URL }}
+        run: |
+          NODE_PATH="$GITHUB_WORKSPACE/node_modules" \
+            node site/tools/shoot_dsh_plugin.js
+          echo "DSH_SHOT_REFRESHED=1" >> "$GITHUB_ENV"
+
       - name: Recompute README metrics
         # Reuses the packaged ledger directly from src/ — no install needed.
         # Rewrites the <!-- CW_M:* --> placeholders and writes
@@ -101,6 +124,10 @@ jobs:
           fi
           # README metrics placeholders + audit file (refreshed above).
           paths="$paths README.zh.md README.md assets/data/readme_metrics.json"
+          # The DSH shot only changes when the step above actually ran.
+          if [ "$DSH_SHOT_REFRESHED" = "1" ]; then
+            paths="$paths site/assets/dsh-decision-mind.png"
+          fi
           echo "COMMIT_PATHS=$paths" >> "$GITHUB_ENV"
           echo "COMMIT_MESSAGE=docs: README refresh (visuals + metrics) $(date -u +%Y-%m-%d)" >> "$GITHUB_ENV"
 
