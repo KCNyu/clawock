@@ -66,15 +66,21 @@ jobs:
         run: python3 ops/ci/workflow_health.py
 
       - name: GitHub security features still off
-        # #787 found two free secret-scanning switches disabled, and neither can
-        # be turned on from here: `PATCH /repos/{owner}/{repo}` returns 200 and
-        # ignores the field (confirmed by sending an invalid value, which was
-        # also accepted and also ignored), while the code-security
-        # configurations API is organization-only and this is a user account.
+        # #787 closed at a platform boundary, not a to-do: non-provider patterns
+        # and validity checks cannot be enabled on a public repository at all.
+        # GitHub refuses `advanced_security` with "always available for public
+        # repos" while scan-history answers "Advanced Security is disabled on
+        # this repository" — both true at once, and the two switches hang off
+        # the second one.
         #
-        # A finding that needs a human click has a short half-life in a chat log
-        # and an indefinite one in a weekly check. Report-only: nagging about a
-        # setting must not be able to red a health run.
+        # So this reports the distinction rather than a count: off-and-available
+        # is a to-do and warns; off-because-GitHub-does-not-offer-it-here is a
+        # fact and stays quiet. A weekly warning nobody can act on is a false
+        # alarm with a schedule, and it teaches people to skim the one check
+        # that is supposed to be worth reading. If this repo ever goes private
+        # with GHAS or moves under an organization, those two start warning
+        # again on their own. Report-only either way: nagging about a setting
+        # must not be able to red a health run.
         continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
