@@ -51,12 +51,19 @@ KNOWN_PACKAGE_CYCLES: set[frozenset[str]] = set()
 # Module-level cycles. `tools` is the registry pattern and is not a defect: the
 # package __init__ owns the base classes, submodules import them, and
 # build_registry() imports the submodules lazily. The other two are real.
-KNOWN_MODULE_CYCLES = {
-    frozenset({"clawock.tools", "clawock.tools.context_tools"}),
-    frozenset({"clawock.decision.ledger", "clawock.decision.record"}),
-
-}
-
+KNOWN_MODULE_CYCLES: set[frozenset[str]] = set()
+# Empty as of #814. Both entries that were here are gone:
+#
+#   tools <-> tools.context_tools          — the registry pattern. Common enough
+#       to read as idiomatic, and `build_registry` deferred its import so it
+#       worked, but a cycle all the same. `tools.base` now holds the three
+#       definitions every tool module needs, so both sides sit above it.
+#   decision.ledger <-> decision.record    — `record` appends through `ledger`,
+#       and `ledger` reached back to validate one row type behind a
+#       function-level import. The schema moved to `decision.mind_record`.
+#
+# A function-level import is not a fix for a cycle; it is a cycle that starts
+# working. Both of these were that.
 
 def _modules() -> dict[str, Path]:
     out = {}
@@ -253,8 +260,9 @@ def test_the_allowlists_only_ever_shrink():
     assert not KNOWN_PACKAGE_CYCLES, (
         "the package graph is a DAG as of #814; an entry here means a cycle came back"
     )
-    assert len(KNOWN_MODULE_CYCLES) <= 2, (
-        "a module cycle was added to the allowlist; #814 is about removing these"
+    assert not KNOWN_MODULE_CYCLES, (
+        "the import graph has no cycles at all as of #814 — module or package. "
+        "An entry here means one came back."
     )
 
 
@@ -270,12 +278,19 @@ def test_no_new_test_writes_to_published_state(request):
     This runs last by name and reads the attribution log the conftest fixture
     builds.
 
-    On parallelism, measured rather than assumed: with the four other writers
-    isolated, `-n 4` does pass — but not safely. Every xdist worker gets its own
-    session, so four workers each run the dashboard rebuild against the same
-    four files concurrently, and that it passed is luck rather than a property.
-    Turning `-n auto` on needs that rebuild to be per-session-shared or
-    group-pinned first; it is not just a flag.
+    On parallelism, measured rather than assumed — and the measurement killed
+    the idea. #816 claimed emptying this list would unlock `-n auto` and take
+    the pytest step from 89s to ~30s. With the writers isolated and the session
+    rebuild behind a file lock, `-n 4` does pass, three runs at 175/182/191s
+    against ~195s serial: **5-10%, not 3x**. The top twelve tests account for
+    ~121s of a 208s run and every one of them is subprocess-bound — an
+    installer, a wheel install, safe_push, watchdogs with real waits — so the
+    suite is not wide, it is deep in a few places. A fourth parallel run also
+    produced one failure that would not reproduce.
+
+    So xdist stays off: a few percent is not worth a flake class. The isolation
+    was still worth doing on its own — it fixed a real order-dependent failure.
+    The way to make this suite faster is those twelve tests, not more workers.
     """
     from conftest import _WRITE_LOG, _tolerated  # noqa: PLC0415
 
