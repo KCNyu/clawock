@@ -558,6 +558,12 @@ def validate_weekly_review(
 DEFAULT_SCREENSHOTS = (
     ('site/assets/shadow-backtest.png', 20_000, 400, 200),
     ('site/assets/social-card.png', 150_000, 1_000, 500),
+    # Shot by hand from a host that runs both DSH and the desk
+    # (`site/tools/shoot_dsh_plugin.js`) — a CI runner has neither, so this one
+    # is not produced by screenshot-refresh.yml. It is validated here anyway:
+    # it ships in three READMEs, and the cheapest thing this gate can hold is
+    # that the committed file still exists and still decodes.
+    ('site/assets/dsh-decision-mind.png', 100_000, 1_200, 600),
 )
 
 
