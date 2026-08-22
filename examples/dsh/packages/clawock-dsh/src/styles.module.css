@@ -107,7 +107,7 @@ body[data-ds-dark-theme] .dmt {
   background:var(--surface);
   border:1px solid var(--border2);
   border-radius:var(--radius);
-  box-shadow:var(--shadow-sm)
+  box-shadow:var(--dsw-shadow-lv2, var(--shadow-sm))
 }
 .dmt .tt {
   display:flex;
@@ -182,7 +182,13 @@ body[data-ds-dark-theme] .dmt {
   position:sticky;
   top:0;
   z-index:20;
-  background:var(--page);
+  /* Frosted band: rows scroll under it, so it is translucent and blurs what
+     passes beneath instead of painting an opaque stripe. The host's own
+     drag-drop overlay uses the same recipe (semi-transparent theme surface +
+     backdrop blur + a saturate lift, see ui-attachment/DropOverlay). */
+  background:color-mix(in srgb, var(--page) 72%, transparent);
+  -webkit-backdrop-filter:blur(10px) saturate(1.5);
+  backdrop-filter:blur(10px) saturate(1.5);
   padding:8px 0 6px
 }
 .dmt .bin {
@@ -286,7 +292,7 @@ body[data-ds-dark-theme] .dmt {
   border:1px solid var(--border2);
   border-radius:var(--radius);
   background:var(--surface);
-  box-shadow:var(--shadow-sm);
+  box-shadow:var(--dsw-shadow-lv2, var(--shadow-sm));
   overflow:hidden
 }
 /* Every row draws on the day's tracks (`subgrid`), so ticker, action and size
@@ -296,6 +302,7 @@ body[data-ds-dark-theme] .dmt {
    sized per row. */
 .dmt .cell {
   display:grid;
+  position:relative;
   grid-template-columns:2px 8px auto minmax(64px,auto) auto minmax(0,1fr) auto auto 104px 12px 2px;
   grid-column:1/-1;
   grid-template-columns:subgrid;
@@ -315,11 +322,23 @@ body[data-ds-dark-theme] .dmt {
   outline:1px solid var(--brand);
   outline-offset:-2px
 }
-/* Open row: a brand rail on the leading edge plus a wash, instead of a ring
-   that used to fight the container's own border. */
+/* Open row: the brand wash fades out downwards so a tall timeline does not
+   paint itself a solid slab, and the leading rail is a rounded capsule that
+   fades with it — the old 3px solid inset stroke ran the full height of the
+   expanded row and read as a broken blue line over a 600px timeline. */
 .dmt .cell.open {
-  background:var(--brand-soft);
-  box-shadow:inset 3px 0 0 var(--brand)
+  background:linear-gradient(180deg, var(--brand-soft), transparent 72%);
+  box-shadow:none
+}
+.dmt .cell.open::before {
+  content:"";
+  position:absolute;
+  left:0;
+  top:10px;
+  bottom:10px;
+  width:3px;
+  border-radius:2px;
+  background:linear-gradient(180deg, var(--brand), color-mix(in srgb, var(--brand) 14%, transparent))
 }
 /* On the wide layout the two wrappers vanish and their children place
    themselves on the row's grid; under 520px they become their own lines. */

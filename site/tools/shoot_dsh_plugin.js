@@ -58,9 +58,12 @@ async function main() {
 
   // Open a session: the landing page is a workspace tree, and the session
   // title is the one handle that survived the 0.1.1-rc.2 sidebar rewrite.
+  // Session rows are `[role=treeitem]` with a `…_sessionRow` module class;
+  // the bare row's first entry is the "New Session" button row, which is not a
+  // session — skip it (a fresh one has no Decision Mind data to show).
   const session = SESSION
     ? page.getByText(SESSION, { exact: false }).first()
-    : page.locator('aside a, aside li, [class*="session"]').first();
+    : page.locator('[class*="sessionRow"]', { hasText: /^(?!New Session$)/ }).first();
   await session.click({ timeout: 30000 });
   await page.waitForTimeout(6000);
 
@@ -84,6 +87,9 @@ async function main() {
   // above the unfolded one, so the shot shows both states at once.
   await rows.nth(Math.min(Number(process.env.ROW || 2), count - 1)).click();
   await page.waitForTimeout(1200);
+  // The row keeps keyboard focus after the click; its :focus-visible outline
+  // (1px solid brand) would ship in the capture as a stray blue frame.
+  await page.evaluate(() => { if (document.activeElement instanceof HTMLElement) document.activeElement.blur(); });
   // Park the pointer in the corner: a hovered row would ship a hover tint that
   // reads as a selected state nobody selected.
   await page.mouse.move(WIDTH - 2, HEIGHT - 2);

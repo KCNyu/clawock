@@ -31,11 +31,13 @@ def test_screenshots_are_validated_and_exactly_staged_before_publish():
     assert_validator_step(WORKFLOW, validate, 'screenshots')
 
     # The staged set is a contract: the two PNGs always, the GIF only on manual
-    # dispatch, and exactly the README metrics files. No other path may creep in
-    # (this was relaxed to any(...) once and had to be pinned back). The step
-    # moved to the clawock-commit composite in #806, so the list is now read
-    # from the env var the workflow computes rather than from `git add` lines —
-    # same contract, one indirection.
+    # dispatch, the DSH shot only when a DSH origin was provided (same
+    # conditional pattern as the GIF, evaluated in the compose step), and
+    # exactly the README metrics files. No other path may creep in (this was
+    # relaxed to any(...) once and had to be pinned back). The step moved to
+    # the clawock-commit composite in #806, so the list is now read from the
+    # env var the workflow computes rather than from `git add` lines — same
+    # contract, one indirection.
     assert staged_paths(WORKFLOW, commit) == [
         'site/assets/shadow-backtest.png',
         'site/assets/social-card.png',
@@ -43,6 +45,7 @@ def test_screenshots_are_validated_and_exactly_staged_before_publish():
         'README.zh.md',
         'README.md',
         'assets/data/readme_metrics.json',
+        'site/assets/dsh-decision-mind.png',
     ]
 
     # And the GIF must still be conditional on a manual dispatch — the composite
