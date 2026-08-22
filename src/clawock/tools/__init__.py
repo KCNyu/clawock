@@ -28,94 +28,16 @@ audit chain, so the tools read the precompiled protocol — they do not replace 
 """
 from __future__ import annotations
 
+from clawock.tools.base import BaseTool, ToolError, ToolRegistry  # noqa: F401
+
 import json
 from typing import Any
 
 
-class ToolError(RuntimeError):
-    """A tool refused. The message is shown to the caller verbatim."""
 
 
-class BaseTool:
-    """One callable capability, described well enough for an LLM to use it."""
-
-    name: str = ""
-    description: str = ""
-    parameters: dict[str, Any] = {}
-    # Read-only tools are safe to run speculatively or in parallel. Anything that
-    # writes must say so, because the caller's batching depends on it.
-    is_readonly: bool = True
-
-    @classmethod
-    def check_available(cls, workspace) -> bool:
-        """Whether this tool can run against `workspace`.
-
-        Returning False excludes it from the registry, which is far better than
-        surfacing a missing-file traceback in the middle of a model turn.
-        """
-        return True
-
-    def execute(self, workspace, **kwargs: Any) -> str:
-        raise NotImplementedError
-
-    # ── schema export ───────────────────────────────────────────────────────
-
-    def to_openai_schema(self) -> dict[str, Any]:
-        return {
-            "type": "function",
-            "function": {
-                "name": self.name,
-                "description": self.description.strip(),
-                "parameters": self.parameters or {
-                    "type": "object", "properties": {}, "required": []},
-            },
-        }
-
-    def to_anthropic_schema(self) -> dict[str, Any]:
-        return {
-            "name": self.name,
-            "description": self.description.strip(),
-            "input_schema": self.parameters or {
-                "type": "object", "properties": {}, "required": []},
-        }
 
 
-class ToolRegistry:
-    """The tools available for one workspace."""
-
-    def __init__(self, workspace):
-        self.workspace = workspace
-        self._tools: dict[str, BaseTool] = {}
-
-    def register(self, tool: BaseTool) -> bool:
-        if not tool.name:
-            raise ValueError("a tool must have a name")
-        if not type(tool).check_available(self.workspace):
-            return False
-        self._tools[tool.name] = tool
-        return True
-
-    def __contains__(self, name: str) -> bool:
-        return name in self._tools
-
-    def __len__(self) -> int:
-        return len(self._tools)
-
-    def names(self) -> list[str]:
-        return sorted(self._tools)
-
-    def get(self, name: str) -> BaseTool:
-        if name not in self._tools:
-            raise ToolError(f"unknown tool: {name}")
-        return self._tools[name]
-
-    def call(self, name: str, **kwargs: Any) -> str:
-        return self.get(name).execute(self.workspace, **kwargs)
-
-    def schemas(self, dialect: str = "openai") -> list[dict[str, Any]]:
-        render = {"openai": lambda t: t.to_openai_schema(),
-                  "anthropic": lambda t: t.to_anthropic_schema()}[dialect]
-        return [render(self._tools[name]) for name in self.names()]
 
 
 def build_registry(workspace, tools=None) -> ToolRegistry:

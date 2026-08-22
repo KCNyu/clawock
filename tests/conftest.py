@@ -32,8 +32,10 @@ So: snapshot before, restore after, and verify the restore actually worked.
 Restoring to the session's starting bytes rather than to HEAD keeps a
 developer's own uncommitted edits intact.
 """
+import fcntl
 import os
 import subprocess
+import tempfile
 import sys
 from pathlib import Path
 
@@ -292,8 +294,14 @@ def publish_owned_artifacts_are_left_as_found():
             f"code PR:\n{status_after}")
 
 
+def _xdist_worker(config) -> str | None:
+    """This worker's id under xdist, or None when running serially."""
+    info = getattr(config, "workerinput", None)
+    return info.get("workerid") if info else None
+
+
 @pytest.fixture(scope="session")
-def freshly_built_dashboard(publish_owned_artifacts_are_left_as_found):
+def freshly_built_dashboard(request, publish_owned_artifacts_are_left_as_found):
     """The real builder run once, against the real tree, before anything reads
     the payload it produces.
 
@@ -306,10 +314,29 @@ def freshly_built_dashboard(publish_owned_artifacts_are_left_as_found):
     from the fixture is what makes each of them state the dependency instead of
     reaching for a module constant that may or may not be fresh.
     """
-    # Run through the source tree explicitly; CI installs first, but a focused
-    # local invocation should exercise the same package without editable state.
-    subprocess.run([sys.executable, "-m", "clawock.publish.dashboard"],
-                   cwd=ROOT, check=True, capture_output=True,
-                   env={**os.environ, "CLAWOCK_PROFILE": "kcnyu",
-                        "PYTHONPATH": str(ROOT / "src")})
+    # Session-scoped means once per PROCESS, and under xdist every worker is its
+    # own process — so `-n 4` would run four builders against these same four
+    # files at once. They are not written atomically, and a reader in another
+    # worker can see a half-built payload. A file lock makes the build happen
+    # once per run and makes every other worker wait for it, which is both
+    # correct and no slower than the serial case (#816).
+    lock_path = Path(tempfile.gettempdir()) / "clawock-test-dashboard-build.lock"
+    stamp = lock_path.with_suffix(".stamp")
+    build_id = os.environ.get("PYTEST_XDIST_TESTRUNUID", str(os.getpid()))
+
+    with lock_path.open("a+") as lock:
+        fcntl.flock(lock, fcntl.LOCK_EX)
+        try:
+            already = stamp.read_text(encoding="utf-8") if stamp.exists() else ""
+            if already != build_id:
+                # Run through the source tree explicitly; CI installs first, but a
+                # focused local invocation should exercise the same package
+                # without editable state.
+                subprocess.run([sys.executable, "-m", "clawock.publish.dashboard"],
+                               cwd=ROOT, check=True, capture_output=True,
+                               env={**os.environ, "CLAWOCK_PROFILE": "kcnyu",
+                                    "PYTHONPATH": str(ROOT / "src")})
+                stamp.write_text(build_id, encoding="utf-8")
+        finally:
+            fcntl.flock(lock, fcntl.LOCK_UN)
     return DASHBOARD
