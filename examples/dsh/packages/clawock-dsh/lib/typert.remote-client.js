@@ -93,6 +93,7 @@ const clawock_dsh_clawockStudio_traces_result$schema = z.object({
   'sizePct': z.union([z.literal(null), z.number()]),
   'plannedPrice': z.union([z.literal(null), z.number()]),
   'source': z.union([z.literal(null), z.string()]),
+  'alignment': z.union([z.literal("same"), z.literal("opposite"), z.literal("other"), z.literal(null)]),
 })]),
   'ticker': z.string(),
   'market': z.string(),

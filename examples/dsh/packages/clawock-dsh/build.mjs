@@ -90,4 +90,43 @@ await run(['--config', 'tsdown.host.config.mjs'])
 await run(['--config', 'tsdown.client.config.mjs'])
 await exec(node, [tsc, '-p', 'tsconfig.declarations.json', '--pretty', 'false'], { cwd: pkg })
 await wrapWebClient(join(pkg, 'lib/client.js'))
+await patchTypertAlignment()
 console.log('built clawock-dsh/lib')
+
+/**
+ * The clawock checkout cannot regenerate the Typert host face: the generator
+ * resolves `@Remote` symbols through `isTypeMetaSymbol`, which requires the
+ * `@deepseek-ai/dsh-typert-protocol` declaration to be a *workspace* package —
+ * true inside the official dsh repo, never here, where it lives in
+ * node_modules. The committed `lib/typert.host.js` / `typert.remote-client.js`
+ * are therefore a frozen snapshot from the dsh workspace; every wire field
+ * added since (e.g. `TraceDecision.alignment`, 2026-08-17 #738) had silently
+ * been missing from both the host encode schema and the client decode schema,
+ * so the 与计划反向 chip could never render.
+ *
+ * Until the generator gains a node_modules fallback, this step re-applies the
+ * known hand-maintained fields after every build. Idempotent and exact: a
+ * field already present is left alone, and the inserted text is a byte-for-
+ * byte constant, so the committed artifact stays reproducible and the CI
+ * zero-diff gate keeps meaning something.
+ */
+async function patchTypertAlignment() {
+  const files = ['lib/typert.host.js', 'lib/typert.remote-client.js']
+  const marker = `  'alignment': z.union([z.literal("same"), z.literal("opposite"), z.literal("other"), z.literal(null)]),`
+  for (const rel of files) {
+    const file = join(pkg, rel)
+    let source = await readFile(file, 'utf8')
+    if (source.includes(marker)) continue
+    // Insert INSIDE the TraceDecision object: between its last field
+    // (`source`) and the closing `})]),` of the decision union — not after it,
+    // which would land on the enclosing trade row instead.
+    const head = `  'source': z.union([z.literal(null), z.string()]),\n`
+    const tail = `})]),`
+    if (!source.includes(head) || !source.includes(`${head}${tail}`)) {
+      throw new Error(`patchTypertAlignment: decision-object anchor missing in ${rel} — generator output changed?`)
+    }
+    source = source.replace(`${head}${tail}`, `${head}${marker}\n${tail}`)
+    await writeFile(file, source)
+    console.log(`patched ${rel}: +TraceDecision.alignment`)
+  }
+}

@@ -93,6 +93,12 @@ const clawock_dsh_clawockStudio_traces_result$schema = z.object({
   'sizePct': z.union([z.literal(null), z.number()]),
   'plannedPrice': z.union([z.literal(null), z.number()]),
   'source': z.union([z.literal(null), z.string()]),
+  // Hand-maintained: the clawock checkout cannot regenerate the host face
+  // (the generator resolves @Remote symbols only inside the official dsh
+  // workspace, where `@deepseek-ai/dsh-typert-protocol` is a workspace
+  // package). The committed host artifact therefore carries every wire field
+  // by hand — this one backs the 与计划反向 chip (see README 标准与机器门).
+  'alignment': z.union([z.literal("same"), z.literal("opposite"), z.literal("other"), z.literal(null)]),
 })]),
   'ticker': z.string(),
   'market': z.string(),
