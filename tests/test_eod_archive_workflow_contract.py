@@ -2,7 +2,7 @@
 import re
 from pathlib import Path
 
-from workflow_contract_helpers import assert_validator_step, step_run, steps
+from workflow_contract_helpers import assert_validator_step, step_run, steps, staged_paths
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -26,7 +26,6 @@ def test_eod_archive_requires_current_snapshot_coverage_before_publish():
 
     append_run = _step_run('Append week-end snapshot')
     assert "fpath = 'memory/archive/eod-history.csv'" in append_run
-    commit_run = _step_run('Commit')
-    add_lines = [line.strip() for line in commit_run.splitlines()
-                 if re.match(r'^\s*git add(?:\s|$)', line)]
-    assert add_lines == ['git add memory/archive/']
+    # The step moved to the clawock-commit composite (#806); the contract is
+    # unchanged — exactly this path, and only after the validator.
+    assert staged_paths(WORKFLOW, 'Commit') == ['memory/archive/']

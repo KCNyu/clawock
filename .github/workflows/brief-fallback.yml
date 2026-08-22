@@ -82,11 +82,10 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           fetch-depth: 50
 
-      - uses: actions/setup-python@v7
+      - name: Set up clawock (Python)
+        uses: ./.github/actions/clawock-python
         with:
-          python-version: '3.11'
-
-      - run: pip install --quiet -e '.[compute]'
+          install: '.[compute]'
 
       # Set git identity up front: brief_postflight commits internally (rebuild
       # dashboard + auto-commit), so it needs an identity well before the final

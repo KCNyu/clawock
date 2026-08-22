@@ -27,14 +27,13 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v7
+      # The extra, not a hand-written package line — dependencies live in
+      # pyproject so a version cannot drift between here and there.
+      - name: Set up clawock (Python)
+        uses: ./.github/actions/clawock-python
         with:
           python-version: '3.12'
-
-      - name: Install
-        # The extra, not a hand-written package line — dependencies live in
-        # pyproject so a version cannot drift between here and there.
-        run: pip install --quiet -e '.[seo]'
+          install: '.[seo]'
 
       - name: Query Search Console
         env:

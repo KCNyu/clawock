@@ -6,7 +6,13 @@ description: >-
 # Seven scheduled workflows opened with byte-identical steps: setup-python 3.11,
 # then `pip install --quiet -e .`. Seven copies is seven places to forget when
 # the pinned version moves or the install grows an extra, and #751 is what that
-# eventually costs. `actions/checkout` deliberately stays in the caller: it takes
+# eventually costs.
+#
+# Writing that down did not stop it (#806): seven OTHER workflows kept hand-rolling
+# the same two steps, versions drifted into two setup-python majors with the older
+# one sitting on the release chain, and the most recent hand-rolled copy was added
+# by the same session that was quoting this comment. So every caller now comes
+# through here, and a test refuses a bare `setup-python@` anywhere else. `actions/checkout` deliberately stays in the caller: it takes
 # per-workflow inputs (fetch-depth, token) and hiding it here would make those
 # invisible at the call site.
 inputs:
@@ -17,7 +23,10 @@ inputs:
   install:
     description: >-
       pip target for the editable install. Pass an extras selector such as
-      `.[compute]` when the job needs the heavier dependency set.
+      `.[compute]` when the job needs the heavier dependency set, or `none` when
+      the job only runs stdlib scripts and wants nothing but the pinned Python.
+      `none` exists so those jobs still come through this door: the version has
+      to be decided in one place even when the install is not.
     required: false
     default: '.'
 
@@ -34,5 +43,6 @@ runs:
         cache-dependency-path: pyproject.toml
 
     - name: Install clawock
+      if: inputs.install != 'none'
       shell: bash
       run: pip install --quiet -e '${{ inputs.install }}'

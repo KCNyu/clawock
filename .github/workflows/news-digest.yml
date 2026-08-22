@@ -34,14 +34,14 @@ jobs:
       - name: Validate generated digest
         run: clawock validate-sidecar news-digest
 
+      - name: Compose the commit message
+        run: |
+          echo "COMMIT_MESSAGE=news: US digest $(TZ=Asia/Hong_Kong date +%Y-%m-%d)" >> "$GITHUB_ENV"
+
       - name: Commit + push
         env:
           CLAWOCK_PUBLISH_SSH_KEY: ${{ secrets.CLAWOCK_PUBLISH_SSH_KEY }}
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add assets/data/us_news_digest.json
-          if ! git diff --cached --quiet; then
-            git commit -m "news: US digest $(TZ=Asia/Hong_Kong date +%Y-%m-%d)"
-            bash ops/publish/safe_push.sh
-          fi
+        uses: ./.github/actions/clawock-commit
+        with:
+          paths: assets/data/us_news_digest.json
+          message: ${{ env.COMMIT_MESSAGE }}

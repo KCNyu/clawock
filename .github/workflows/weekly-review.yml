@@ -34,15 +34,15 @@ jobs:
       - name: Validate generated review
         run: clawock validate-sidecar weekly-review
 
+      - name: Compose the commit target
+        run: |
+          echo "COMMIT_PATHS=memory/weekly/$(date -u +%G-W%V).md" >> "$GITHUB_ENV"
+          echo "COMMIT_MESSAGE=memory: weekly review $(date -u +%Y-W%V)" >> "$GITHUB_ENV"
+
       - name: Commit + push
         env:
           CLAWOCK_PUBLISH_SSH_KEY: ${{ secrets.CLAWOCK_PUBLISH_SSH_KEY }}
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          review_path="memory/weekly/$(date -u +%G-W%V).md"
-          git add -- "$review_path"
-          if ! git diff --cached --quiet; then
-            git commit -m "memory: weekly review $(date -u +%Y-W%V)"
-            bash ops/publish/safe_push.sh
-          fi
+        uses: ./.github/actions/clawock-commit
+        with:
+          paths: ${{ env.COMMIT_PATHS }}
+          message: ${{ env.COMMIT_MESSAGE }}
