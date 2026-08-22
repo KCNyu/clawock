@@ -26,6 +26,7 @@ from pathlib import Path
 
 from clawock.portfolio import instruments as instrument_registry
 from clawock.workspace import engine_config, workspace_root
+from clawock.safe_io import parse_iso_utc as _parse_time
 
 WS = workspace_root(Path.cwd())
 SCHEMA_FILE = engine_config("entry_gate.schema.json")
@@ -112,15 +113,6 @@ def _exact_fields(item, required, prefix, errors) -> bool:
     return not missing and not extra
 
 
-def _parse_time(value, field, errors):
-    try:
-        parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
-        if parsed.tzinfo is None:
-            raise ValueError
-        return parsed
-    except (TypeError, ValueError):
-        errors.append(f"{field} must be an ISO-8601 timestamp with timezone")
-        return None
 
 
 def grade_information(evidence: list) -> dict:

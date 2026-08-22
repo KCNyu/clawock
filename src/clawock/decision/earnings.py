@@ -29,6 +29,7 @@ from pathlib import Path
 
 from clawock.evidence import research_provenance
 from clawock.workspace import engine_config, workspace_root
+from clawock.safe_io import parse_iso_utc as _parse_time
 
 WS = workspace_root(Path.cwd())
 SCHEMA_FILE = engine_config("earnings_review.schema.json")
@@ -115,15 +116,6 @@ def _parse_date(value, field, errors):
         return None
 
 
-def _parse_time(value, field, errors):
-    try:
-        parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
-        if parsed.tzinfo is None:
-            raise ValueError
-        return parsed
-    except (TypeError, ValueError):
-        errors.append(f"{field} must be an ISO-8601 timestamp with timezone")
-        return None
 
 
 def grade_sources(documents: list) -> dict:

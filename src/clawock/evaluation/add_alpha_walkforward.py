@@ -21,6 +21,7 @@ from clawock.decision import add_alpha, early_trend, signals
 from clawock.evidence import news_evidence_graph, run_card
 from clawock.market_data import factors, peer_residuals
 from clawock.workspace import workspace_root
+from clawock.safe_io import to_number as _number
 
 
 WS = workspace_root(Path.cwd())
@@ -53,11 +54,6 @@ def _digest(path):
     return "sha256:" + hashlib.sha256(Path(path).read_bytes()).hexdigest()[:16]
 
 
-def _number(value):
-    try:
-        return float(value)
-    except (TypeError, ValueError):
-        return None
 
 
 def _market(ticker, config_by_ticker):
