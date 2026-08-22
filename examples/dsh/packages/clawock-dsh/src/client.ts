@@ -170,8 +170,13 @@ const FILTER_LABEL: Record<TraceFilter, string> = {
   all: '全部', miss: '无当日计划', sold: '卖出复盘', dec: '有当日计划',
 }
 
+/**
+ * React escapes string children itself; the old extra `<` → `&lt;` pass here
+ * double-escaped (the literal text "&lt;" once React escaped the ampersand).
+ * String coercion is all a text slot needs.
+ */
 function esc(value: unknown): string {
-  return String(value === null || value === undefined ? '' : value).replace(/</g, '&lt;')
+  return String(value === null || value === undefined ? '' : value)
 }
 
 /**
@@ -238,7 +243,10 @@ export function _displayEntry(trace: EnrichedTrade): DisplayEntry {
     market: trace.market || 'US',
     currency: trace.currency || 'USD',
     date: trace.date ?? null,
-    action: trace.action || 'hold',
+    // A missing action must not read as "hold": the renderers already fall
+    // back to the raw value through ACT lookup, and 'hold' would label an
+    // unclassified fill as a deliberate decision (#836).
+    action: trace.action || '?',
     shares: trace.shares || 0,
     price: trace.price ?? null,
     realizedPnl: trace.realizedPnl ?? null,
@@ -530,7 +538,13 @@ export function DecisionMind(props: DecisionMindProps): React.ReactElement {
     .filter((trace) => trace.realizedPnl !== null && trace.currency === currency)
     .reduce((sum, trace) => sum + (trace.realizedPnl ?? 0), 0)
   const rate = data.rate
-  const totalUsd = sumRealized('USD') + (rate === null ? 0 : sumRealized('HKD') / rate)
+  const hkdRealized = sumRealized('HKD')
+  const totalUsd = sumRealized('USD') + (rate === null ? 0 : hkdRealized / rate)
+  // No rate means the HKD side cannot be converted; the label says so instead
+  // of silently presenting the USD half as the whole (#835).
+  const totalLabel = rate === null && hkdRealized !== 0
+    ? '已实现 (USD 等值 · HKD 未折算)'
+    : '已实现 (USD 等值)'
   // Only fills whose T+1 close actually landed inside the T+1 window carry a
   // `t1` at all (the host drops the rest rather than labelling a months-later
   // close "T+1"). The denominator is rendered so the ratio can be read for
@@ -621,7 +635,7 @@ export function DecisionMind(props: DecisionMindProps): React.ReactElement {
 
   const stats = h('div', { className: cx('stats') },
     h('div', { className: cx('sg') },
-      h('span', { className: cx('sl') }, '已实现 (USD 等值)'),
+      h('span', { className: cx('sl') }, totalLabel),
       h('span', { className: cx('sv', 'focus', totalUsd >= 0 ? 'up' : 'down') }, fmtMoney(totalUsd))),
     h('div', { className: cx('sg') },
       h('span', { className: cx('sl') }, 'T+1 卖飞/卖对 · 判出 ' + sellsRated + '/' + sells.length
@@ -638,6 +652,9 @@ export function DecisionMind(props: DecisionMindProps): React.ReactElement {
     (['all', 'miss', 'sold', 'dec'] as const).map((value) => h('button', {
       key: value,
       className: cx('ft', filter === value && 'on'),
+      // The selected filter is state, not navigation: aria-pressed is the
+      // machine-readable "which one is on" (#834).
+      'aria-pressed': filter === value,
       onClick: () => { actions.setFilter(value) },
     }, FILTER_LABEL[value])))
 

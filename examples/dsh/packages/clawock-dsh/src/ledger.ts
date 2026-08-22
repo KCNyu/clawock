@@ -119,7 +119,10 @@ export function readPortfolio(workspace: string): PortfolioRead {
             market,
             currency,
             date: typeof trObj['date'] === 'string' ? trObj['date'] : null,
-            action: typeof trObj['action'] === 'string' ? trObj['action'] : 'buy',
+            // An absent action stays absent: defaulting it to 'buy' silently
+            // filed every unclassified fill under adds (side='add'), inflating
+            // the buy-side stats (#836). '' keeps it out of both buckets.
+            action: typeof trObj['action'] === 'string' ? trObj['action'] : '',
             shares: Number(trObj['shares'] ?? 0),
             price: num(trObj['price']),
             realizedPnl: num(trObj['realized_pnl']),

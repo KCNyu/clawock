@@ -106,7 +106,7 @@ function readPortfolio(workspace) {
 					market,
 					currency,
 					date: typeof trObj["date"] === "string" ? trObj["date"] : null,
-					action: typeof trObj["action"] === "string" ? trObj["action"] : "buy",
+					action: typeof trObj["action"] === "string" ? trObj["action"] : "",
 					shares: Number(trObj["shares"] ?? 0),
 					price: num(trObj["price"]),
 					realizedPnl: num(trObj["realized_pnl"]),
