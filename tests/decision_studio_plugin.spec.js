@@ -736,6 +736,31 @@ test("client: stylesheet is loader-owned and keeps the dark-theme and tone contr
   assert.match(css, hashed("stats"), "header stats block required");
   assert.match(css, hashed("filters"), "filter row block required");
   assert.match(css, hashed("skel"), "cold-start skeleton block required");
+  // The three host-layout contracts this tab lives inside. Each of them was a
+  // visible defect before 2026-08-22, and none is observable from the rendered
+  // tree — they are properties of the sheet, so this is where they are pinned.
+  //
+  // 1. One width axis. The sticky header used to be full-bleed (1152px at a
+  //    1440px window) over a 760px list, which is what read as "the floating
+  //    bar is too wide". Header column and list column must both be the
+  //    Harness's own --dsh-chat-content-width.
+  assert.match(css, /--col:var\(--dsh-chat-content-width/,
+    "the tab's column must be the Harness's own content width, not a local number");
+  assert.match(css, /_tin\{[^}]*max-width:var\(--col\)/,
+    "the header's inner column must ride that width");
+  assert.match(css, /_list\{[^}]*max-width:var\(--col\)/,
+    "the list must ride the same width as the header");
+  // 2. The composer floats over this scroller; ConversationRoot publishes its
+  //    live height and every view has to pad by it or the last rows sit under
+  //    the input card.
+  assert.match(css, /_list\{[^}]*var\(--dsh-composer-height/,
+    "the list must clear the floating composer");
+  // 3. A closed row reserves no space. `grid-template-rows:0fr` collapses the
+  //    content but not the padding of the box it is on, so the detail's own
+  //    padding has to stay zero (it lives on .dbody, mounted only while open).
+  //    That padding was ~27px of dead band under every collapsed row.
+  assert.match(css, /_dinner\{[^}]*padding:0[;}]/,
+    "the collapsed detail box may not carry padding — it would reserve height");
 });
 
 test("readTraces: a close outside the T+1 window is not a T+1 verdict (#710)", async () => {
