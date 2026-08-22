@@ -27,7 +27,7 @@ from zoneinfo import ZoneInfo
 from clawock.decision import earnings as earnings_review
 from clawock.decision import entry as entry_gate
 from clawock.decision import theses as thesis_registry
-from clawock.portfolio import instruments as instrument_registry
+from clawock import instruments as instrument_registry
 from clawock.workspace import workspace_root
 
 WS = workspace_root(Path.cwd())

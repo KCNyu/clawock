@@ -9,7 +9,7 @@ WS = Path(__file__).resolve().parents[1]
 from clawock.publish import dashboard as build_dashboard  # noqa: E402
 from clawock.market_data import bars as fetch_daily_bars
 from clawock.market_data import us_quotes as fetch_us_stocks  # noqa: E402
-from clawock.portfolio import instruments as instrument_registry  # noqa: E402
+from clawock import instruments as instrument_registry  # noqa: E402
 from clawock.portfolio import risk as portfolio_risk_metrics  # noqa: E402
 from clawock.decision import signals as compute_quant_signals  # noqa: E402
 from clawock.decision import regime as compute_regime  # noqa: E402
@@ -22,7 +22,7 @@ from clawock.market_data import us_analysis as analyze_us_stocks  # noqa: E402
 
 def test_registry_implementation_is_product_not_a_repository_script():
     assert instrument_registry.__file__ == str(
-        WS / "src" / "clawock" / "portfolio" / "instruments.py"
+        WS / "src" / "clawock" / "instruments.py"
     )
     assert not (WS / "scripts" / "data" / "instrument_registry.py").exists()
 

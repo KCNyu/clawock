@@ -15,7 +15,7 @@ from pathlib import Path
 
 from clawock.decision import information_signals
 from clawock.market_data import peer_quotes, primary_disclosures
-from clawock.portfolio import instruments as default_instruments
+from clawock import instruments as default_instruments
 from clawock.safe_io import safe_write_json
 
 

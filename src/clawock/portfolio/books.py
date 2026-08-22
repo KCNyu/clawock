@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping
 
-from clawock.portfolio.instruments import INSTRUMENTS
+from clawock.instruments import INSTRUMENTS
 
 
 def region_book(portfolio: dict, region: str) -> tuple[str, dict]:

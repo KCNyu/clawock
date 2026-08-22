@@ -28,7 +28,7 @@ SNAPSHOT_FNAME_RE = re.compile(r'^\d{4}-\d{2}-\d{2}\.json$')
 SESSION_DATE_RE = re.compile(r'^\d{4}-\d{2}-\d{2}$')
 
 from clawock.workspace import workspace_root
-from clawock.portfolio import instruments as instrument_registry
+from clawock import instruments as instrument_registry
 from clawock import json_repair
 from clawock.decision import ledger as decision_v2
 from clawock.publish import outputs as dashboard_outputs
@@ -375,7 +375,7 @@ def serialize_dashboard_payload(value):
 
 
 def _guardrail_sections(portfolio, risk, lev_regime=None):
-    from clawock.harness.brief_preflight import (
+    from clawock.portfolio.guardrail import (
         compute_breakeven_math,
         compute_concentration,
         compute_risk_guardrail,
@@ -429,7 +429,7 @@ def build_shadow_sidecar(portfolio, decisions, previous=None):
     """
     try:
         import importlib
-        shadow_portfolio = importlib.import_module('clawock.portfolio.shadow')
+        shadow_portfolio = importlib.import_module('clawock.decision.shadow')
         leg_config = shadow_portfolio.load_leg_config(
             WS_ROOT / 'config' / 'portfolio-derivations.json')
         return shadow_portfolio.build_shadow_portfolio(
@@ -2772,7 +2772,7 @@ def compute_build_status(portfolio, data_dir, at=None):
     if now.tzinfo is None:
         now = now.astimezone()
     try:
-        from clawock.market_data import sessions as _tc
+        from clawock import sessions as _tc
     except Exception:
         _tc = None
     files = []

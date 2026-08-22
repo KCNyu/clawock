@@ -22,7 +22,7 @@ from clawock.market_data.us_quotes import (
     update_us_portfolio, load_api_keys,
     PORTFOLIO_PATH, SESSION, TIMEOUT
 )
-from clawock.portfolio.instruments import get as get_instrument
+from clawock.instruments import get as get_instrument
 from clawock.portfolio.books import region_book
 
 ET_TZ  = timezone(timedelta(hours=-4))

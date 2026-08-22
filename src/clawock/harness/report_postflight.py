@@ -42,7 +42,7 @@ from datetime import datetime
 from pathlib import Path
 
 from clawock.workspace import workspace_root
-from clawock.market_data import sessions as trading_calendar
+from clawock import sessions as trading_calendar
 
 WS = workspace_root(Path.cwd())
 _CHECKOUT = WS

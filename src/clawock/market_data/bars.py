@@ -55,7 +55,7 @@ from zoneinfo import ZoneInfo
 
 from clawock.market_data import integrity as bar_checks
 from clawock.market_data.eastmoney_http import em_get
-from clawock.portfolio.instruments import canonical_bar_manifest
+from clawock.instruments import canonical_bar_manifest
 from clawock.workspace import workspace_root
 
 WS = workspace_root(Path.cwd())

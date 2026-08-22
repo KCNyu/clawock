@@ -20,7 +20,7 @@ from pathlib import Path
 
 from clawock.decision.actions import ACTIVE_ACTIONS
 from clawock.decision import add_alpha, early_trend
-from clawock.portfolio.instruments import get as instrument_metadata, is_leveraged_holding
+from clawock.instruments import get as instrument_metadata, is_leveraged_holding
 from clawock.workspace import workspace_root
 
 

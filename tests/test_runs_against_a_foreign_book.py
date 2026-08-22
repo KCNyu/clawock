@@ -79,7 +79,7 @@ def test_public_cli_stays_usable_from_a_foreign_book(foreign_book):
 
 def test_an_absent_registry_is_empty_but_a_broken_one_still_raises(tmp_path):
     sys.path[:0] = [str(ROOT / "scripts" / "data"), str(ROOT)]
-    from clawock.portfolio import instruments as registry
+    from clawock import instruments as registry
 
     assert registry.load_registry(tmp_path / "nope.json", missing_ok=True) == {}
 
@@ -100,7 +100,7 @@ def test_schemas_come_from_the_engine_not_the_book(foreign_book):
     """
     probe = (
         "import sys; sys.path[:0] = [%r, %r]\n"
-        "from clawock.portfolio import instruments as r\n"
+        "from clawock import instruments as r\n"
         "print(r.SCHEMA_FILE)\n"
         "print(r.REGISTRY_FILE)\n"
     ) % (str(ROOT / "scripts" / "data"), str(ROOT / "src"))

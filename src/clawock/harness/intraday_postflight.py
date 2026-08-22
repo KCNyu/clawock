@@ -65,7 +65,7 @@ from ._watchdog_common import (  # noqa: E402
 )
 
 from clawock.workspace import workspace_root
-from clawock.market_data import sessions as trading_calendar
+from clawock import sessions as trading_calendar
 from clawock.safe_io import safe_write_json
 
 WS = workspace_root(Path.cwd())

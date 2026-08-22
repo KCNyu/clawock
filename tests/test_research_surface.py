@@ -515,7 +515,7 @@ def test_both_stock_skills_frame_it_as_attribution_not_a_trigger():
 
 def test_calendar_coverage_is_reported_per_market():
     import sys
-    from clawock.market_data import sessions as trading_calendar
+    from clawock import sessions as trading_calendar
 
     coverage = trading_calendar.coverage(date(2026, 7, 26))
     assert set(coverage) == {"us", "hk"}
@@ -662,7 +662,7 @@ def test_the_watch_is_opt_in_and_the_daily_brief_opts_in():
     ("", "index_fund", None, None),
 ])
 def test_registry_look_through_is_the_single_rule(symbol, kind, issuer, tracks):
-    from clawock.portfolio import instruments as instrument_registry
+    from clawock import instruments as instrument_registry
 
     resolved = instrument_registry.look_through(symbol)
     assert (resolved["kind"], resolved["issuer"], resolved["tracks"]) == (kind, issuer, tracks)
