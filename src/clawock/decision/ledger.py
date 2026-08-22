@@ -28,6 +28,7 @@ from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 from clawock import sessions as _cal
+from clawock.decision.mind_record import validate_mind_record
 from clawock.decision.actions import (
     ACTIVE_ACTIONS,
     ADD_ACTIONS,
@@ -308,7 +309,6 @@ def validate_decision(d: dict) -> list[str]:
     # schema_version 0 is exclusively the mind ledger; every record.SOURCES
     # harness (conversation/openclaw/claude/codex/cli) writes this row type.
     if d.get("schema_version") == 0:
-        from clawock.decision.record import validate_mind_record
         return validate_mind_record(d)
     errors = []
     for key in ("decision_id", "episode_id", "plan_date", "created_at", "ticker", "strategy_id", "action", "condition"):
