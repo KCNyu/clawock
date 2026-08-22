@@ -5,6 +5,10 @@
    "owner": "repository safety",
    "consumer": "git core.hooksPath"
   },
+  ".devcontainer": {
+   "owner": "development container",
+   "consumer": "VS Code / devcontainer CLI"
+  },
   ".github": {
    "owner": "repository automation",
    "consumer": "GitHub Actions"
