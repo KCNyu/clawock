@@ -20,9 +20,16 @@ FROZEN_NOW = datetime(2026, 7, 24, 23, 0, tzinfo=outcomes.HKT)
 
 
 def _isolate(tmp_path, monkeypatch):
-    monkeypatch.setattr(outcomes, "LOCAL_PATH", tmp_path / "local.json")
-    monkeypatch.setattr(outcomes, "PUBLIC_PATH", tmp_path / "public.json")
-    monkeypatch.setattr(outcomes, "LOCK_PATH", tmp_path / "outcomes.lock")
+    # Isolate the WORKSPACE, not three individual paths. The ledger used to
+    # freeze its paths at import from `Path.cwd()`, so patching the constants
+    # was the only seam available — and any production caller that named a
+    # different workspace was ignored, which is how #816's stray
+    # `assets/data/workflow-outcomes.json` got written into the real checkout.
+    # The paths resolve per call now, so `CLAWOCK_WORKSPACE` is the real seam.
+    workspace = tmp_path / "ws"
+    (workspace / "memory" / ".tmp").mkdir(parents=True, exist_ok=True)
+    (workspace / "assets" / "data").mkdir(parents=True, exist_ok=True)
+    monkeypatch.setenv("CLAWOCK_WORKSPACE", str(workspace))
     monkeypatch.setattr(
         outcomes,
         "_now",
@@ -30,6 +37,7 @@ def _isolate(tmp_path, monkeypatch):
         if (at or FROZEN_NOW).tzinfo
         else at.replace(tzinfo=timezone.utc),
     )
+    return workspace
 
 
 def test_stages_remain_independent_and_primary_delivery_can_be_degraded(
@@ -100,9 +108,9 @@ def test_raw_error_is_reported_beside_usable_final_product(tmp_path, monkeypatch
     outcomes.record_stage(job, "postflight", "success", slot=slot)
     outcomes.record_stage(job, "primary_delivery", "success", slot=slot)
 
-    ledger = json.loads(outcomes.LOCAL_PATH.read_text())
+    ledger = json.loads(outcomes.local_path().read_text())
     ledger["records"][0]["raw_execution"] = {"status": "error"}
-    outcomes.LOCAL_PATH.write_text(json.dumps(ledger))
+    outcomes.local_path().write_text(json.dumps(ledger))
     summary = outcomes.summarize(hours=100000)
 
     assert summary["counts"] == {"success": 1}
@@ -241,7 +249,7 @@ def test_reconcile_adds_raw_error_without_changing_final_product(tmp_path, monke
         "error_present": True,
     }
     assert record["final_product"]["status"] == "success"
-    assert "private provider detail" not in outcomes.LOCAL_PATH.read_text()
+    assert "private provider detail" not in outcomes.local_path().read_text()
 
 
 def test_slots_older_than_the_retention_window_are_pruned(tmp_path, monkeypatch):
@@ -290,15 +298,12 @@ def test_a_recorder_failure_warns_instead_of_breaking_the_caller(
 
 
 def test_reconciliation_failure_also_only_warns(tmp_path, monkeypatch, capsys):
-    _isolate(tmp_path, monkeypatch)
-    monkeypatch.setattr(
-        outcomes, "TMP_DIR", tmp_path / "tmp", raising=False
-    )
-    (tmp_path / "tmp").mkdir()
+    ws = _isolate(tmp_path, monkeypatch)
+    receipts = ws / "memory" / ".tmp"
     monkeypatch.setattr(
         outcomes, "load_ledger", lambda: (_ for _ in ()).throw(RuntimeError("boom"))
     )
-    (tmp_path / "tmp" / "brief-sent-2026-07-24.json").write_text(
+    (receipts / "brief-sent-2026-07-24.json").write_text(
         json.dumps({"sent_ok": True})
     )
     assert outcomes.reconcile_delivery_receipts() == 0
@@ -381,10 +386,13 @@ def test_an_unpublished_data_plane_degrades_even_when_findings_are_advisory(
 # ── #765: a delivered slot must not stay `pending` because the sender died ───
 
 def _receipts(tmp_path, monkeypatch):
-    tmp = tmp_path / "tmp"
-    tmp.mkdir(exist_ok=True)
-    monkeypatch.setattr(outcomes, "TMP_DIR", tmp, raising=False)
-    return tmp
+    """The isolated workspace's own receipt directory.
+
+    Receipts have to sit where the ledger looks for them, and since #816 that
+    is `<workspace>/memory/.tmp` resolved per call — not a path the test picks
+    and patches in.
+    """
+    return _isolate(tmp_path, monkeypatch) / "memory" / ".tmp"
 
 
 def test_a_receipt_reconciles_a_slot_whose_sender_was_killed_after_the_send(
@@ -492,10 +500,10 @@ def test_falling_back_to_the_published_ledger_is_never_silent(
 ):
     """That fallback then writes PUBLIC's content back over LOCAL — say so."""
     _isolate(tmp_path, monkeypatch)
-    outcomes.PUBLIC_PATH.write_text(
+    outcomes.public_path().write_text(
         json.dumps({"schema_version": outcomes.SCHEMA_VERSION, "records": []})
     )
-    outcomes.LOCAL_PATH.write_text("{ not json")
+    outcomes.local_path().write_text("{ not json")
     assert outcomes.load_ledger()["records"] == []
     assert "falling back to the published copy" in capsys.readouterr().err
 

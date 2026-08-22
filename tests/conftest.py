@@ -67,6 +67,135 @@ def _git_status(paths):
     return done.stdout if done.returncode == 0 else None
 
 
+# Directories a test has no business writing to. `assets/data` and `memory` are
+# published state; `logs` and `site/assets` are build output. The publish-owned
+# subset of these is snapshotted and restored by the session fixture below, but
+# that only covers four files and only at session END — which is exactly how a
+# test can leave state that changes what a LATER test sees.
+WATCHED_DIRS = ("assets/data", "memory", "logs", "site/assets")
+
+
+def _watched_state():
+    """Path -> (size, mtime_ns) for everything under the watched directories.
+
+    Cheap enough to run around every test: stat only, no hashing. It catches
+    creation, deletion and rewrite, which is the whole failure class. A rewrite
+    that preserves size AND mtime_ns would slip through, and nothing observed
+    here does that.
+    """
+    state = {}
+    for name in WATCHED_DIRS:
+        base = ROOT / name
+        if not base.is_dir():
+            continue
+        for path in base.rglob("*"):
+            if path.is_file():
+                try:
+                    st = path.stat()
+                except OSError:
+                    continue
+                state[path] = (st.st_size, st.st_mtime_ns)
+    return state
+
+
+_WRITE_LOG = []
+_LAST_SEEN = {}
+
+
+def pytest_sessionstart(session):
+    """Baseline before ANY fixture runs.
+
+    Taking it inside the first test's fixture setup does not work: session-scoped
+    fixtures are set up first, so the session dashboard rebuild is already baked
+    into the baseline and the run reports itself clean. That was the second
+    wrong version of this.
+    """
+    _LAST_SEEN.clear()
+    _LAST_SEEN.update(_watched_state())
+
+
+@pytest.fixture(autouse=True)
+def _attribute_writes_to_the_test_that_made_them(request):
+    """Name the test that touched published state.
+
+    #816: `test_dropped_blocks_are_still_reachable_elsewhere` failed only in
+    full-suite order and passed alone, because an UNTRACKED file
+    (`assets/data/workflow-outcomes.json`) is absent in a clean checkout, gets
+    created during a run, and then persists — silently arming an assertion that
+    is dormant otherwise. Nothing could say which test created it.
+
+    Compares against a running checkpoint rather than snapshotting inside the
+    test's own window, because a higher-scoped fixture is set up BEFORE any
+    function-scoped one: the session rebuild would happen outside a
+    before/after pair and be missed entirely. That was the first version of
+    this fixture, and it reported a clean run against a module that definitely
+    rewrites four files.
+
+    This records rather than forbids. Attribution first, cleanup second —
+    guessing at the writer is what let this sit unexplained through two
+    sightings.
+    """
+    yield
+    after = _watched_state()
+
+    created = sorted(set(after) - set(_LAST_SEEN))
+    removed = sorted(set(_LAST_SEEN) - set(after))
+    changed = sorted(p for p in set(_LAST_SEEN) & set(after)
+                     if _LAST_SEEN[p] != after[p])
+    if created or removed or changed:
+        _WRITE_LOG.append({
+            "test": request.node.nodeid,
+            "created": [str(p.relative_to(ROOT)) for p in created],
+            "removed": [str(p.relative_to(ROOT)) for p in removed],
+            "changed": [str(p.relative_to(ROOT)) for p in changed],
+        })
+    _LAST_SEEN.clear()
+    _LAST_SEEN.update(after)
+
+
+# Writers that are known and, for now, tolerated. Each entry is a test-id prefix
+# with the reason it writes. The list may only shrink — the assertion in
+# `test_no_new_test_writes_to_published_state` is what makes that true, so a new
+# writer has to be argued for rather than appended to.
+#
+# `memory/.tmp/**` is the workspace's own scratch area and gitignored, but it is
+# still shared state between tests: two modules writing one ledger there is the
+# same class of coupling, one directory further down. Listed, not exempted.
+TOLERATED_WRITERS = {
+    # The session dashboard rebuild, attributed to whichever test first requests
+    # the fixture. Load-bearing, and the session fixture restores its output.
+    "tests/test_dashboard_payload_size.py::test_payload_stays_under_the_published_cap",
+    # #816 debt: writes logs/watchdog.jsonl into the checkout.
+    "tests/test_intraday_watchdog_retry_parity.py",
+    # #816 debt: writes assets/data/integrity_report.json into the checkout.
+    "tests/test_pr_publish_gate_contract.py::test_safe_push_uses_and_cleans_ephemeral_actions_key",
+    # #816 debt: share one memory/.tmp ledger instead of an isolated workspace.
+    "tests/test_report_assembly.py",
+    "tests/test_report_context_path.py",
+}
+
+
+def _tolerated(node_id: str) -> bool:
+    return any(node_id.startswith(prefix) for prefix in TOLERATED_WRITERS)
+
+
+def pytest_terminal_summary(terminalreporter):
+    """Print the attribution table, so a polluted run explains itself."""
+    if not _WRITE_LOG:
+        return
+    terminalreporter.section("tests that wrote to published state (#816)")
+    for entry in _WRITE_LOG:
+        parts = []
+        for kind in ("created", "removed", "changed"):
+            if entry[kind]:
+                shown = ", ".join(entry[kind][:4])
+                more = f" (+{len(entry[kind]) - 4} more)" if len(entry[kind]) > 4 else ""
+                parts.append(f"{kind}: {shown}{more}")
+        mark = "" if _tolerated(entry["test"]) else "  <-- NEW"
+        terminalreporter.write_line(
+            f"{entry['test']}{mark}\n    " + "\n    ".join(parts))
+
+
 @pytest.fixture(scope="session", autouse=True)
 def publish_owned_artifacts_are_left_as_found():
     from clawock.publish.outputs import output_paths

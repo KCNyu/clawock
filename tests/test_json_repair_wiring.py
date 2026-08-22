@@ -209,6 +209,12 @@ def test_rebuild_fails_closed_when_the_publication_push_fails(
         ),
     ])
     monkeypatch.setattr(_harness_common.subprocess, 'run', lambda *a, **k: next(results))
+    # rebuild_dashboard takes a workspace, but the workflow ledger it calls
+    # resolves its own paths from CLAWOCK_WORKSPACE (falling back to cwd), so
+    # without this the ledger wrote assets/data/workflow-outcomes.json into the
+    # real checkout — an untracked file that then persisted and armed a dormant
+    # assertion in test_dashboard_payload_size (#816).
+    monkeypatch.setenv('CLAWOCK_WORKSPACE', str(tmp_path))
 
     ok, detail = _harness_common.rebuild_dashboard(tmp_path)
     status = json.loads(
