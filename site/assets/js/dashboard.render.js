@@ -2932,8 +2932,11 @@
     function renderGroups(dayList) {
       return dayList.map(date => {
         const rows = groups[date];
+        // One day is one container of hairline-separated rows, not a stack of
+        // floating cards: the rows share a track set (subgrid), so ticker,
+        // action, size and money line up down the whole group.
         return `<div class="trace-day"><div class="trace-day-h">${esc(date)} <span class="muted">${rows.length}</span></div>
-          ${rows.map(t => {
+          <div class="trace-rows">${rows.map(t => {
             const tone = t.action === "buy" || t.action === "add" ? "pos" : (t.action === "sell" || t.action === "cut" || t.action === "trim" ? "neg" : "muted");
             // Collapsed row: a realized amount belongs to this fill, a floating
             // percent belongs to the whole position. The 持仓 prefix is what
@@ -2944,6 +2947,13 @@
             const t1tag = t.t1
               ? `<span class="tr-t1 ${t1Cls(t)}">T+1 ${fmtPct(t.t1.delta, 1)} ${t.t1.verdict}</span>`
               : "";
+            // A fill that ran against its own plan is the single most
+            // load-bearing signal on this card — 25 of the 40 rows published on
+            // 2026-08-22 were reversals — and it used to be visible only after
+            // expanding the row.
+            const alignTag = t.decision && t.decision.alignment === "opposite"
+              ? `<span class="tr-align skip">反向</span>`
+              : "";
             return `<details class="tr-row">
               <summary>
                 <span class="tr-dot ${t.decision ? "has" : ""}" title="${t.decision ? "有当日计划记录" : "无当日计划记录"}"></span>
@@ -2951,12 +2961,13 @@
                 <span class="tr-act ${tone}">${esc(ACT[t.action] || t.action)}</span>
                 <span class="tr-qty">${esc(String(t.shares))} @${esc(String(t.price))}</span>
                 <span class="tr-spacer"></span>
+                ${alignTag}
                 ${t1tag}
                 ${pnl}
               </summary>
               <div class="tr-body">${traceHTML(t)}</div>
             </details>`;
-          }).join("")}
+          }).join("")}</div>
         </div>`;
       }).join("");
     }

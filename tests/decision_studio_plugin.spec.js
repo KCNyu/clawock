@@ -746,8 +746,8 @@ test("client: stylesheet is loader-owned and keeps the dark-theme and tone contr
   //    Harness's own --dsh-chat-content-width.
   assert.match(css, /--col:var\(--dsh-chat-content-width/,
     "the tab's column must be the Harness's own content width, not a local number");
-  assert.match(css, /_tin\{[^}]*max-width:var\(--col\)/,
-    "the header's inner column must ride that width");
+  assert.match(css, /_tin\{[^}]*max-width:calc\(var\(--col\)/,
+    "the header card must ride that width (minus the list's own side padding)");
   assert.match(css, /_list\{[^}]*max-width:var\(--col\)/,
     "the list must ride the same width as the header");
   // 2. The composer floats over this scroller; ConversationRoot publishes its
@@ -755,6 +755,13 @@ test("client: stylesheet is loader-owned and keeps the dark-theme and tone contr
   //    the input card.
   assert.match(css, /_list\{[^}]*var\(--dsh-composer-height/,
     "the list must clear the floating composer");
+  // 2b. Only the filter row is allowed to hold the viewport: the stat card
+  //     scrolls away with the content. A sticky header that stays is 100px of
+  //     permanently parked chrome on a tab whose whole job is a scrollable list.
+  assert.match(css, /_bar\{[^}]*position:sticky/,
+    "the filter row must be the sticky part of the header");
+  assert.doesNotMatch(css, /_top\{[^}]*position:sticky/,
+    "the stat card must scroll away rather than park itself over the list");
   // 3. A closed row reserves no space. `grid-template-rows:0fr` collapses the
   //    content but not the padding of the box it is on, so the detail's own
   //    padding has to stay zero (it lives on .dbody, mounted only while open).
