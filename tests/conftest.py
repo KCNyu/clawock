@@ -98,6 +98,84 @@ def _watched_state():
     return state
 
 
+@pytest.fixture
+def isolated_workflow_ledger(tmp_path_factory, monkeypatch):
+    """Point the workflow-outcome ledger at a temp directory.
+
+    The report-assembly suites drive real postflights, which record stages. The
+    ledger resolves its paths per call now (#816), but these tests need the rest
+    of the real workspace — the book, the config — so redirecting
+    CLAWOCK_WORKSPACE wholesale would break them. Patching the four path
+    functions isolates exactly the shared file and nothing else.
+
+    Returns the directory, for a test that wants to read back what was written.
+    """
+    from clawock.automation import workflow_outcomes  # noqa: PLC0415
+
+    # A directory of its own, NOT a child of the test's `tmp_path`: several of
+    # these tests list their tmp_path and assert on exactly what is in it.
+    ledger = tmp_path_factory.mktemp("workflow-ledger")
+    monkeypatch.setattr(workflow_outcomes, "local_path", lambda: ledger / "local.json")
+    monkeypatch.setattr(workflow_outcomes, "public_path", lambda: ledger / "public.json")
+    monkeypatch.setattr(workflow_outcomes, "lock_path", lambda: ledger / "lock")
+    monkeypatch.setattr(workflow_outcomes, "tmp_dir", lambda: ledger)
+    return ledger
+
+
+@pytest.fixture
+def isolated_watchdog_log(tmp_path_factory, monkeypatch):
+    """Point `logs/watchdog.jsonl` at a temp directory.
+
+    Same shape as the ledger: the watchdog appends a line per run, and a test
+    driving a real watchdog appended to the checkout's own log (#816). The path
+    resolves per call now, so patching the one function is enough.
+    """
+    from clawock.harness import _watchdog_common  # noqa: PLC0415
+
+    target = tmp_path_factory.mktemp("watchdog") / "watchdog.jsonl"
+    monkeypatch.setattr(_watchdog_common, "log_path", lambda: target)
+    return target
+
+
+@pytest.fixture
+def isolated_integrity_report(tmp_path_factory, monkeypatch):
+    """Point `assets/data/integrity_report.json` at a temp directory (#816)."""
+    from clawock.portfolio import integrity  # noqa: PLC0415
+
+    target = tmp_path_factory.mktemp("integrity") / "integrity_report.json"
+    monkeypatch.setattr(integrity, "out_path", lambda: target)
+    return target
+
+
+@pytest.fixture
+def restores_untracked_artifact():
+    """Undo an artifact a subprocess necessarily wrote into the checkout.
+
+    Some gates can only be tested by running them for real against this
+    repository. `money_checker.sh` is one: it pins CLAWOCK_WORKSPACE to the root
+    it is guarding, on purpose, so no environment the test sets can redirect it
+    — the point of the gate is that it checks the repo being pushed. Its
+    `assets/data/integrity_report.json` is therefore a correct side effect, and
+    the fix is to put the tree back rather than to weaken the test (#816).
+
+    Restores to the exact bytes found, or deletes the file if it was absent.
+    """
+    saved: dict = {}
+
+    def track(relative):
+        path = ROOT / relative
+        saved[path] = path.read_bytes() if path.exists() else None
+        return path
+
+    yield track
+
+    for path, blob in saved.items():
+        if blob is None:
+            path.unlink(missing_ok=True)
+        else:
+            path.write_bytes(blob)
+
+
 _WRITE_LOG = []
 _LAST_SEEN = {}
 
@@ -163,17 +241,13 @@ def _attribute_writes_to_the_test_that_made_them(request):
 # same class of coupling, one directory further down. Listed, not exempted.
 TOLERATED_WRITERS = {
     # The session dashboard rebuild, attributed to whichever test first requests
-    # the fixture. Load-bearing, and the session fixture restores its output.
+    # the fixture. This one is not debt: the builder is supposed to run against
+    # the real tree — the money-reconciliation tests compare its payload with
+    # portfolio.json, and a rebuild into a temp copy would be checking a
+    # different book. Its residue, not its writes, was ever the problem, and the
+    # session fixture below restores all four files.
     "tests/test_dashboard_payload_size.py::test_payload_stays_under_the_published_cap",
-    # #816 debt: writes logs/watchdog.jsonl into the checkout.
-    "tests/test_intraday_watchdog_retry_parity.py",
-    # #816 debt: writes assets/data/integrity_report.json into the checkout.
-    "tests/test_pr_publish_gate_contract.py::test_safe_push_uses_and_cleans_ephemeral_actions_key",
-    # #816 debt: share one memory/.tmp ledger instead of an isolated workspace.
-    "tests/test_report_assembly.py",
-    "tests/test_report_context_path.py",
 }
-
 
 def _tolerated(node_id: str) -> bool:
     return any(node_id.startswith(prefix) for prefix in TOLERATED_WRITERS)

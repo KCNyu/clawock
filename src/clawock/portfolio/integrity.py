@@ -68,7 +68,10 @@ from clawock.workspace import workspace_root
 
 WS = workspace_root(Path.cwd())
 PORTFOLIO = WS / 'portfolio.json'
-OUT = WS / 'assets' / 'data' / 'integrity_report.json'
+def out_path() -> Path:
+    """Resolved per call so `CLAWOCK_WORKSPACE` reaches it (#816); frozen at
+    import, a test writing a report landed it in the real checkout."""
+    return workspace_root(Path.cwd()) / 'assets' / 'data' / 'integrity_report.json'
 
 from clawock.instruments import INSTRUMENTS
 from clawock.portfolio.math import (
@@ -561,7 +564,7 @@ def main(argv=None):
                         help='ledger to check (default: this workspace)')
     path = parser.parse_args(argv).portfolio
     report = check(path)
-    safe_write_json(str(OUT), report)
+    safe_write_json(str(out_path()), report)
 
     icon = {'ERROR': '🔴', 'WARN': '🟡'}
     if not report['findings']:

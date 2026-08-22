@@ -48,7 +48,7 @@ def test_each_publishing_workflow_scopes_deploy_key_to_push_step():
         )
 
 
-def test_safe_push_uses_and_cleans_ephemeral_actions_key(tmp_path):
+def test_safe_push_uses_and_cleans_ephemeral_actions_key(tmp_path, restores_untracked_artifact):
     fake_bin = tmp_path / "bin"
     fake_bin.mkdir()
     git_log = tmp_path / "git.log"
@@ -69,6 +69,10 @@ exit 1
     fake_git.chmod(0o755)
 
     fake_secret = "not-a-real-private-key"
+    # The money gate runs for real against this repository and writes its
+    # report there; that is the behaviour under test, so put the tree back
+    # afterwards instead of trying to redirect it (#816).
+    restores_untracked_artifact("assets/data/integrity_report.json")
     env = os.environ.copy()
     env.update(
         {
