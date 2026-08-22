@@ -286,3 +286,20 @@ def test_the_environment_comment_does_not_claim_controls_that_do_not_exist():
         "the environment carries no required reviewer; do not say it does"
     )
     assert "deployment branch policy" in publish_job
+
+
+def test_the_runbook_explains_that_a_pushed_version_tag_is_frozen():
+    """#809 made `v*` tags immutable, which changes what a mistyped tag costs.
+
+    A rule that silently makes the normal recovery impossible is how somebody
+    concludes the repository is broken at 2am. The runbook has to carry both the
+    escape hatch and the reason not to reach for it.
+    """
+    runbook = (ROOT / "docs" / "operations" / "release.md").read_text(encoding="utf-8")
+    assert "cannot be moved or deleted once pushed" in runbook
+    assert "enforcement=disabled" in runbook, "the recovery path must be written down"
+    assert "enforcement=active" in runbook, "and so must putting the rule back"
+    assert "non_fast_forward" in runbook and "update" in runbook, (
+        "the trap that cost a real tag — a forward move passes non_fast_forward — "
+        "has to be recorded, or the next person configures the same weak rule"
+    )
