@@ -268,13 +268,29 @@ def test_no_new_test_writes_to_published_state(request):
     anyone could say which test was responsible.
 
     This runs last by name and reads the attribution log the conftest fixture
-    builds. It is also what makes the suite parallelisable: shared files are
-    the reason `-n auto` cannot be turned on.
+    builds.
+
+    On parallelism, measured rather than assumed: with the four other writers
+    isolated, `-n 4` does pass — but not safely. Every xdist worker gets its own
+    session, so four workers each run the dashboard rebuild against the same
+    four files concurrently, and that it passed is luck rather than a property.
+    Turning `-n auto` on needs that rebuild to be per-session-shared or
+    group-pinned first; it is not just a flag.
     """
     from conftest import _WRITE_LOG, _tolerated  # noqa: PLC0415
 
     if not _WRITE_LOG:
         pytest.skip("no writes recorded — this ran outside a full-suite session")
+
+    # Under xdist the attribution is not trustworthy and neither is the result:
+    # every worker gets its own session, so N workers each run the dashboard
+    # rebuild against the same four files at once, and a write by one worker
+    # lands in whatever test another worker happened to be running. Measured on
+    # `-n 4`: this named test_hook_entrypoints_can_import_clawock, which writes
+    # nothing. The suite is not parallel-safe yet — see the module docstring —
+    # and pretending to check it here would be worse than saying so.
+    if getattr(request.config, "workerinput", None) is not None:
+        pytest.skip("write attribution is not valid under xdist; see #816")
 
     offenders = sorted({e["test"] for e in _WRITE_LOG if not _tolerated(e["test"])})
     assert not offenders, (
@@ -288,8 +304,10 @@ def test_no_new_test_writes_to_published_state(request):
 def test_the_tolerated_writer_list_only_shrinks():
     from conftest import TOLERATED_WRITERS  # noqa: PLC0415
 
-    assert len(TOLERATED_WRITERS) <= 5, (
-        "a test was added to the write allowlist; #816 is about emptying it"
+    assert len(TOLERATED_WRITERS) <= 1, (
+        "a test was added to the write allowlist. The one entry left is the "
+        "session dashboard rebuild, which is supposed to run against the real "
+        "tree; everything else now isolates its workspace (#816)."
     )
 
 

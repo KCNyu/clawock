@@ -30,7 +30,17 @@ from clawock.workspace import workspace_root
 
 WS = workspace_root(Path.cwd())
 _CHECKOUT = WS
-LOG = WS / 'logs' / 'watchdog.jsonl'
+
+
+def log_path() -> Path:
+    """`logs/watchdog.jsonl` in the CURRENT workspace.
+
+    Was a module constant computed from `Path.cwd()` at import, which meant
+    `CLAWOCK_WORKSPACE` could not reach it and a test exercising the watchdog
+    appended to the real checkout's log (#816). Resolved per call; unset, the
+    path is what it always was.
+    """
+    return workspace_root(Path.cwd()) / 'logs' / 'watchdog.jsonl'
 HKT = timezone(timedelta(hours=8))
 # The binary path, the cron CLI call and the cron-state fallback chain moved
 # into src/clawock/providers/openclaw.py so this module stops being the largest
@@ -59,8 +69,8 @@ def log(event):
     """Append one JSON line to logs/watchdog.jsonl. Never raises."""
     try:
         event['ts'] = datetime.now(HKT).isoformat()
-        LOG.parent.mkdir(parents=True, exist_ok=True)
-        with LOG.open('a') as f:
+        log_path().parent.mkdir(parents=True, exist_ok=True)
+        with log_path().open('a') as f:
             f.write(json.dumps(event, ensure_ascii=False) + '\n')
     except Exception as e:
         print(f'(watchdog log failed: {e})', file=sys.stderr)
