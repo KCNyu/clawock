@@ -1538,15 +1538,15 @@
   },
   "market_context": {},
   "gold_dca": {
-    "fund_code": "000217",
-    "start_date": "2026-01-22",
-    "fund_name": "华安黄金ETF联接C",
-    "units_held": 4854.55,
-    "currency": "CNY",
-    "principal_note": "对账基线(自动累加模式)。2026-06-09 kcn 对账:现值 15470 + 盈亏 -1829 → 本金 17299,份额 = 15470/净值3.1867 = 4854.55。此后每个 A 股交易日自动 +200@当日净值。补投对账:把 principal_invested/units_held 改成新真实数字、reconciled_date 改成对账当天即可,自动累加归零重算。",
     "daily_amount": 200,
     "reconciled_date": "2026-06-09",
+    "units_held": 4854.55,
+    "fund_name": "华安黄金ETF联接C",
     "principal_invested": 17299.0,
+    "currency": "CNY",
+    "start_date": "2026-01-22",
+    "fund_code": "000217",
+    "principal_note": "对账基线(自动累加模式)。2026-06-09 kcn 对账:现值 15470 + 盈亏 -1829 → 本金 17299,份额 = 15470/净值3.1867 = 4854.55。此后每个 A 股交易日自动 +200@当日净值。补投对账:把 principal_invested/units_held 改成新真实数字、reconciled_date 改成对账当天即可,自动累加归零重算。",
     "nav": 3.3078,
     "nav_date": "2026-08-21",
     "nav_change_pct": 1.55,
@@ -2170,7 +2170,7 @@
         3.3078
       ]
     ],
-    "last_updated": "2026-08-21T15:50:25.603339Z",
+    "last_updated": "2026-08-22T15:50:18.374257Z",
     "domestic_gold": {
       "symbol": "Au99.99",
       "price_cny_g": 983.56,
@@ -2181,23 +2181,23 @@
       "change_pct": 1.59,
       "weighted_avg_cny_g": 981.19,
       "source": "sge_quotation_daily_new",
-      "fetched_at": "2026-08-21T15:50:17.632521Z",
+      "fetched_at": "2026-08-22T15:50:14.117175Z",
       "breakeven_cny_g": 997.21,
       "breakeven_upside_pct": 1.39,
       "quote_status": "fresh"
     },
     "london": {
-      "xau_usd": 4607.66,
-      "xau_change_pct": 1.96,
-      "xau_high": 4610.87,
+      "xau_usd": 4604.53,
+      "xau_change_pct": 1.89,
+      "xau_high": 4632.1,
       "xau_low": 4508.75,
       "xau_prev_close": 4519.14,
-      "xau_date": "2026-08-21",
+      "xau_date": "2026-08-22",
       "usdcny": 6.7206,
-      "oz_equiv": 0.882,
-      "grams_equiv": 27.4,
+      "oz_equiv": 0.883,
+      "grams_equiv": 27.5,
       "intl_value_usd": 4065.16,
-      "fund_breakeven_usd_oz": 4671.6,
+      "fund_breakeven_usd_oz": 4668.42,
       "fund_breakeven_upside_pct": 1.39,
       "compare_series": [
         [
@@ -2648,47 +2648,47 @@
         [
           "2026-08-21",
           88.21,
-          92.4
+          92.35
         ]
       ],
       "dca_equiv": {
         "principal_cny": 28000.0,
         "oz_held": 0.9079,
         "grams_held": 28.2,
-        "avg_cost_usd_oz": 4520.04,
+        "avg_cost_usd_oz": 4520.02,
         "avg_cost_cny_g": 991.54,
-        "spot_usd_oz": 4607.66,
-        "breakeven_upside_pct": -1.9,
-        "current_value_cny": 28114.28,
-        "pnl_abs": 114.28,
-        "pnl_pct": 0.41,
+        "spot_usd_oz": 4604.53,
+        "breakeven_upside_pct": -1.84,
+        "current_value_cny": 28095.28,
+        "pnl_abs": 95.28,
+        "pnl_pct": 0.34,
         "days": 140,
         "daily_grams": 0.201,
         "projection": [
           {
             "days": 20,
-            "avg_cost_usd_oz": 4530.95,
-            "breakeven_upside_pct": -1.66
+            "avg_cost_usd_oz": 4530.55,
+            "breakeven_upside_pct": -1.61
           },
           {
             "days": 40,
-            "avg_cost_usd_oz": 4539.45,
-            "breakeven_upside_pct": -1.48
+            "avg_cost_usd_oz": 4538.75,
+            "breakeven_upside_pct": -1.43
           },
           {
             "days": 60,
-            "avg_cost_usd_oz": 4546.25,
-            "breakeven_upside_pct": -1.33
+            "avg_cost_usd_oz": 4545.31,
+            "breakeven_upside_pct": -1.29
           },
           {
             "days": 120,
-            "avg_cost_usd_oz": 4560.39,
-            "breakeven_upside_pct": -1.03
+            "avg_cost_usd_oz": 4558.95,
+            "breakeven_upside_pct": -0.99
           },
           {
             "days": 250,
-            "avg_cost_usd_oz": 4576.12,
-            "breakeven_upside_pct": -0.68
+            "avg_cost_usd_oz": 4574.13,
+            "breakeven_upside_pct": -0.66
           }
         ]
       },
@@ -3299,7 +3299,7 @@
         ],
         [
           "2026-08-21",
-          4606.9
+          4604.53
         ]
       ],
       "fx_hist_source": {
@@ -3905,7 +3905,7 @@
         ]
       ],
       "hist_advisory": null,
-      "last_updated": "2026-08-21T15:50:25.607615Z"
+      "last_updated": "2026-08-22T15:50:18.375497Z"
     }
   }
 }
