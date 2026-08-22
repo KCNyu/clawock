@@ -185,7 +185,10 @@ body[data-ds-dark-theme] .dmt {
   /* Frosted band: rows scroll under it, so it is translucent and blurs what
      passes beneath instead of painting an opaque stripe. The host's own
      drag-drop overlay uses the same recipe (semi-transparent theme surface +
-     backdrop blur + a saturate lift, see ui-attachment/DropOverlay). */
+     backdrop blur + a saturate lift, see ui-attachment/DropOverlay). The
+     opaque colour comes first so an engine without color-mix degrades to the
+     pre-frost plain band instead of a transparent one (#833). */
+  background:var(--page);
   background:color-mix(in srgb, var(--page) 72%, transparent);
   -webkit-backdrop-filter:blur(10px) saturate(1.5);
   backdrop-filter:blur(10px) saturate(1.5);
