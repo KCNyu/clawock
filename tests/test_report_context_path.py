@@ -35,6 +35,12 @@ def _load(name):
     return importlib.import_module(f'clawock.harness.{name}')
 
 
+@pytest.fixture(autouse=True)
+def _ledger(isolated_workflow_ledger):
+    """Every test here drives a real postflight, which records a workflow stage.
+    Without this they all append to the checkout's own ledger (#816)."""
+
+
 @pytest.fixture
 def preflight():
     return _load('report_preflight')

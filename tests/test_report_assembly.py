@@ -39,6 +39,13 @@ def _load(name):
     return importlib.import_module(f'clawock.harness.{name}')
 
 
+@pytest.fixture(autouse=True)
+def _ledger(isolated_workflow_ledger, isolated_watchdog_log):
+    """Every test here drives a real postflight, which records a workflow stage,
+    and one drives the watchdog, which appends a log line. Without this they
+    write into the checkout (#816)."""
+
+
 @pytest.fixture
 def pf():
     return _load('report_postflight')

@@ -27,6 +27,15 @@ this file.
 """
 import json
 from datetime import datetime
+import pytest
+
+
+@pytest.fixture(autouse=True)
+def _watchdog_log(isolated_watchdog_log):
+    """These drive the real watchdog, which appends a line per run. Without it
+    they append to the checkout's own logs/watchdog.jsonl (#816)."""
+
+
 
 JOB = '盘中盯盘'
 SLOT = '2026-08-10T10:30:00+08:00'
