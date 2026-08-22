@@ -6,13 +6,12 @@
 
 **AI argues. Code settles. The losses stay on the page.**
 
-> 把 [clawock](https://github.com/KCNyu/clawock) 的投资决策工作流装进
-> DeepSeek Harness:agent 走完「读请求 → 研究 + 正反辩论 → 写决策 →
-> Python 校验结算」四步,web GUI 里多一个 **Decision Mind** tab,把每笔
-> 真实成交的决策轨迹钉在页面上。
+DeepSeek Harness 的投资决策工作流插件:agent 走完
+「读请求 → 研究 + 正反辩论 → 写决策 → Python 校验结算」四步,
+web GUI 多一个 Decision Mind tab 把每笔成交的决策轨迹钉在页面上。
 
-第四步是核心:**模型永远不能给自己打分**。价格、风控、账本、战绩全部由
-Python 独立结算,agent 写不到那段代码——下错单显示为一笔公开页上的亏损,
+第四步是核心:**模型永远不能给自己打分**——价格、风控、账本、战绩全部由
+Python 独立结算,agent 写不到那段代码,下错单显示为一笔公开页上的亏损,
 而不是一段更好听的文字。
 
 - **Live proof** — 真实港美股账户,每个交易日都这么跑:
@@ -24,27 +23,32 @@ Python 独立结算,agent 写不到那段代码——下错单显示为一笔公
 
 ---
 
+## 前提
+
+agent 所在环境需要 Python ≥ 3.11,并且:
+
+```bash
+python -m pip install clawock
+```
+
 ## 安装
 
+三步,缺一不可(rc.6 及以后 DSH 只扫项目根与用户根、不扫 node_modules,
+所以 skill 必须手动放一步到可发现的位置):
+
 ```bash
+# 1. 装插件本体
 dsh plugin --profile web add clawock-dsh
-```
 
-rc.6 及以后 DSH 只扫项目根与用户根、不扫 node_modules,所以 skill 还要
-再放一步到可发现的位置(任选其一):
-
-```bash
-# 用户级(推荐,任何 workspace 都生效)
+# 2. 把 skill 放到 DSH 可发现的位置(任选其一,不选这步 agent 不会带这个 skill)
 cp -r ~/.dsh/profiles/web/node_modules/clawock-dsh/skills/investment-decision ~/.dsh/skills/
-
-# 或项目级(标准 Agent Skill 根)
+# 或项目级:
 cp -r ~/.dsh/profiles/web/node_modules/clawock-dsh/skills/investment-decision <project>/.agents/skills/
+
+# 3. 重启 web profile
 ```
 
-然后重启 web profile,skill 即出现在 agent 的 skill 目录。
-
-> 前提:agent 所在环境需要 Python ≥ 3.11,并且
-> `python -m pip install clawock`。
+重启后 skill 即出现在 agent 的 skill 目录。
 
 ## 快速开始
 
@@ -117,6 +121,6 @@ npm install --include=dev && npm run build   # 生成的 lib/ 提交入库,CI �
 npm publish                                   # 发布当前版本
 ```
 
-把当前 checkout 装进本机 live DSH(开发/自部署):
+把当前 checkout 装进 self-hosted DSH(开发/自部署):
 `ops/host/install_dsh_plugin.sh --restart`。README 截图一条命令:
 `node site/tools/shoot_dsh_plugin.js` + `clawock validate-sidecar screenshots`。
