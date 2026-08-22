@@ -7,7 +7,7 @@ removed (#489). The inventory half is now derived from the two command
 registries in the single `clawock` distribution that
 `config/information-layers.json` partitions:
 
-- `clawock.cli.PACKAGED_UTILITIES` — the public CLI's own dispatch table;
+- `clawock.utilities.PACKAGED_UTILITIES` — the public CLI's own dispatch table;
 - `[project.scripts]` in the root `pyproject.toml`.
 
 Both are read from source rather than imported, so the generator works in a
@@ -46,12 +46,14 @@ END = "<!-- END GENERATED INVENTORY -->"
 
 def packaged_utilities(root: Path = ROOT) -> dict:
     """The public CLI's dispatch table, read from source."""
-    source = (root / "src" / PUBLIC / "cli.py").read_text()
+    source = (root / "src" / PUBLIC / "utilities.py").read_text()
     for node in ast.walk(ast.parse(source)):
         if (isinstance(node, ast.Assign)
                 and getattr(node.targets[0], "id", "") == "PACKAGED_UTILITIES"):
             return ast.literal_eval(node.value)
-    raise SystemExit("PACKAGED_UTILITIES is no longer a literal in clawock/cli.py")
+    raise SystemExit(
+        "PACKAGED_UTILITIES is no longer a literal in clawock/utilities.py "
+        "(it moved out of cli.py in #814)")
 
 
 def installed_scripts(root: Path = ROOT) -> dict:
