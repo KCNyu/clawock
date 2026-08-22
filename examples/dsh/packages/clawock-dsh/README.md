@@ -6,6 +6,33 @@
 
 **AI argues. Code settles. The losses stay on the page.**
 
+The [clawock](https://github.com/KCNyu/clawock) investment-decision workflow,
+as a DeepSeek Harness plugin. A skill package that makes the agent walk four
+steps — read the request, research and argue both sides, write the decision,
+then let Python validate and settle it — plus a Decision Mind tab that renders
+every real fill as an expandable decision trace inside the DSH web GUI.
+
+The fourth step is the one that matters: the model never touches settlement.
+Prices, FX, P&L and the scorecard are computed by code the agent cannot write
+to, so a wrong call shows up as a loss on a public page instead of as a
+better-sounding paragraph.
+
+- **Live proof** — a real Hong Kong + US brokerage account, run this way every
+  trading day: <https://kcnyu.github.io/clawock/>
+- **Evidence, wins and losses both** — <https://kcnyu.github.io/clawock/evidence.html>
+- **Source and issues** — <https://github.com/KCNyu/clawock>
+
+![Decision Mind tab inside the DSH web GUI](https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dsh-decision-mind.png)
+
+```bash
+dsh plugin --profile web add clawock-dsh
+```
+
+Installation needs one more step on rc.6 and later (skill discovery), covered
+in the installation section below. The rest of this README is in Chinese.
+
+---
+
 DeepSeek Harness 的投资决策工作流插件:agent 走完
 「读请求 → 研究 + 正反辩论 → 写决策 → Python 校验结算」四步,
 web GUI 多一个 Decision Mind tab 把每笔成交的决策轨迹钉在页面上。
@@ -13,15 +40,6 @@ web GUI 多一个 Decision Mind tab 把每笔成交的决策轨迹钉在页面�
 第四步是核心:**模型永远不能给自己打分**——价格、风控、账本、战绩全部由
 Python 独立结算,agent 写不到那段代码,下错单显示为一笔公开页上的亏损,
 而不是一段更好听的文字。
-
-- **Live proof** — 真实港美股账户,每个交易日都这么跑:
-  <https://kcnyu.github.io/clawock/>
-- **Evidence, wins and losses both** — <https://kcnyu.github.io/clawock/evidence.html>
-- **Source and issues** — <https://github.com/KCNyu/clawock>
-
-![Decision Mind tab inside the DSH web GUI](https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dsh-decision-mind.png)
-
----
 
 ## 前提
 

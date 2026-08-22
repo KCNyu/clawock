@@ -140,8 +140,12 @@ test('the npm page keeps its links back to the repository and the live proof', (
   assert.ok(!/[一-鿿]/.test(lead),
     'the section above the first --- must be the English lead, with no Chinese in it')
 
+  // Repository images must be absolute raw.githubusercontent.com URLs (a
+  // relative path breaks on the npm page); shields.io badge images are the
+  // one other absolute host this file uses.
   for (const m of readme.matchAll(/!\[[^\]]*\]\(([^)]+)\)/g)) {
-    assert.match(m[1], /^https:\/\/raw\.githubusercontent\.com\//,
-      `README image ${m[1]} must be an absolute raw.githubusercontent.com URL`)
+    assert.match(m[1],
+      /^https:\/\/(raw\.githubusercontent\.com\/|img\.shields\.io\/)/,
+      `README image ${m[1]} must be an absolute raw.githubusercontent.com (or shields.io badge) URL`)
   }
 })
