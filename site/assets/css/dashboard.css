@@ -1899,86 +1899,124 @@
     color: var(--text-tertiary); font: 700 9.5px/1.2 var(--mono);
     letter-spacing: .09em; text-transform: uppercase;
   }
-  .overview-book {
-    grid-column: span 5; min-height: 226px; overflow: hidden;
-    background:
-      linear-gradient(140deg, color-mix(in srgb, var(--accent) 9%, transparent), transparent 55%),
-      var(--surface-1);
+  /* 首屏指挥台：一个主数 + 一条统计轨，取代原来的 book / today / discipline
+     三张不等重的卡。(#874 #877) */
+  .hero-deck {
+    grid-column: 1 / -1; padding: 0; overflow: hidden;
+    display: grid; grid-template-columns: minmax(0, 340px) minmax(0, 1fr);
   }
-  .overview-book-primary {
-    margin-top: 8px; color: var(--text); font: 760 clamp(32px, 3.2vw, 48px)/1 var(--mono);
+  .hero-deck-lead {
+    padding: 18px; border-right: 1px solid var(--border-subtle);
+    background: linear-gradient(140deg, color-mix(in srgb, var(--accent) 7%, transparent), transparent 62%);
+  }
+  .hero-deck-pnl {
+    margin-top: 9px; color: var(--text); font: 760 clamp(34px, 3.4vw, 50px)/1 var(--mono);
     letter-spacing: -.055em; font-variant-numeric: tabular-nums; overflow-wrap: anywhere;
   }
-  .overview-book-secondary {
-    margin-top: 7px; color: var(--text-secondary); font: 650 clamp(16px, 1.7vw, 22px)/1.2 var(--mono);
+  .hero-deck-sub {
+    margin-top: 11px; color: var(--text-secondary); font: 500 12.5px/1.55 var(--mono);
     font-variant-numeric: tabular-nums; overflow-wrap: anywhere;
   }
-  .overview-fx {
-    margin-top: 5px; color: var(--text-tertiary); font: 500 10px/1.3 var(--mono);
+  .hero-deck-sub b { font-weight: 700; color: var(--text); }
+  .hero-deck-fx {
+    margin-top: 7px; color: var(--text-tertiary); font: 500 10px/1.35 var(--mono);
     overflow-wrap: anywhere;
   }
-  .overview-fx-mirror { display: none; }
-  .overview-leg-grid {
-    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0; margin: 16px -16px -16px; border-top: 1px solid var(--border-subtle);
+  .hero-rail { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .hero-rail-cell {
+    min-width: 0; padding: 13px 14px;
+    border-right: 1px solid var(--border-subtle); border-bottom: 1px solid var(--border-subtle);
   }
-  .overview-leg {
-    min-width: 0; padding: 11px 16px; border-right: 1px solid var(--border-subtle);
+  .hero-rail-cell:nth-child(4n) { border-right: 0; }
+  .hero-rail-cell:nth-last-child(-n+4) { border-bottom: 0; }
+  .hero-rail-k {
+    color: var(--text-tertiary); font: 700 9.5px/1.2 var(--mono);
+    letter-spacing: .09em; text-transform: uppercase;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
-  .overview-leg:last-child { border-right: 0; }
-  .overview-leg .lbl,
-  .overview-today-cell .lbl {
-    color: var(--text-tertiary); font-size: 9.5px; font-weight: 700;
-    letter-spacing: .07em; text-transform: uppercase;
+  .hero-rail-v {
+    margin-top: 7px; color: var(--text); font: 750 clamp(15px, 1.45vw, 20px)/1.15 var(--mono);
+    letter-spacing: -.035em; font-variant-numeric: tabular-nums;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
-  .overview-leg .val {
-    margin-top: 2px; color: var(--text); font: 700 clamp(15px, 1.5vw, 20px)/1.25 var(--mono);
-    font-variant-numeric: tabular-nums; overflow-wrap: anywhere;
+  .hero-rail-s {
+    margin-top: 5px; color: var(--text-tertiary); font: 500 10.5px/1.35 var(--mono);
+    font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
-  .overview-leg .sub {
-    margin-top: 1px; font: 600 10.5px/1.35 var(--mono);
-    font-variant-numeric: tabular-nums; overflow-wrap: anywhere;
+
+  /* 数据健康：页脚那条 29px tooltip 提升为首屏一块。健康时只有一行判词 +
+     一条期限用量带；有问题才升级视觉权重。(#876) */
+  .hero-health { grid-column: 1 / -1; padding: 16px 18px 14px; }
+  .hero-health-head { display: flex; align-items: flex-start; gap: 14px; }
+  .hero-health-verdict {
+    margin: 6px 0 0; color: var(--text); font-size: 15px;
+    letter-spacing: -.01em; text-transform: none;
   }
-  .overview-today {
-    grid-column: span 4; min-height: 226px;
-    display: flex; flex-direction: column;
+  .hero-health[data-tone="warn"] .hero-health-verdict { color: var(--warning); }
+  .hero-health[data-tone="bad"] .hero-health-verdict { color: var(--red); }
+  .hero-health-meta {
+    margin-top: 6px; color: var(--text-tertiary); font: 500 10.5px/1.45 var(--mono);
   }
-  .overview-today-grid {
-    flex: 1; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
-    align-items: stretch; margin-top: 14px; border-top: 1px solid var(--border-subtle);
+  .dh-toggle {
+    margin-left: auto; flex: none; padding: 6px 12px; border-radius: 8px;
+    border: 1px solid var(--border-subtle); background: var(--surface-1);
+    color: var(--text-secondary); font: 600 11px/1 var(--mono); cursor: pointer;
+    transition: transform .14s cubic-bezier(.23,1,.32,1), color .14s ease, border-color .14s ease;
   }
-  .overview-today-cell {
-    min-width: 0; padding: 20px 12px 12px 0; border-right: 1px solid var(--border-subtle);
+  .dh-toggle:active { transform: scale(.97); }
+  @media (hover: hover) and (pointer: fine) {
+    .dh-toggle:hover { color: var(--text); border-color: var(--text-tertiary); }
   }
-  .overview-today-cell + .overview-today-cell { padding-left: 14px; border-right: 0; }
-  .overview-today-cell .val {
-    margin-top: 9px; font: 750 clamp(19px, 2vw, 27px)/1.05 var(--mono);
-    letter-spacing: -.04em; font-variant-numeric: tabular-nums;
-    /* keep the signed currency figure on one line — never break mid-number */
-    white-space: nowrap;
+  .dh-strip {
+    display: flex; align-items: flex-end; gap: 5px; margin-top: 14px; flex-wrap: wrap;
+    padding-bottom: 7px; border-bottom: 1px solid var(--border-subtle);
   }
-  .overview-today-cell .pct {
-    margin-top: 6px; font: 650 12px/1.3 var(--mono);
-    font-variant-numeric: tabular-nums;
+  .dh-seg {
+    position: relative; flex: 0 0 auto; width: 13px; height: 32px;
+    border-radius: 3px; overflow: hidden;
+    background: color-mix(in srgb, var(--text) 6%, transparent);
   }
-  .overview-discipline {
-    grid-column: span 3; min-height: 226px;
-    display: grid; grid-template-rows: repeat(2, minmax(0, 1fr));
-    border: 1px solid var(--border-subtle); border-radius: 12px;
-    background: var(--surface-1); overflow: hidden;
+  .dh-seg i {
+    position: absolute; left: 0; right: 0; bottom: 0; height: var(--used, 40%);
+    background: color-mix(in srgb, var(--text) 38%, transparent);
+    border-radius: 3px;
   }
-  .overview-discipline-cell {
-    min-width: 0; padding: 15px; border-bottom: 1px solid var(--border-subtle);
+  .bs-dot {
+    display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+    background: var(--text-tertiary); vertical-align: middle; margin-right: 2px;
   }
-  .overview-discipline-cell:last-child { border-bottom: 0; }
-  .overview-discipline-value {
-    margin-top: 7px; color: var(--text); font: 750 clamp(22px, 2.4vw, 32px)/1 var(--mono);
-    letter-spacing: -.035em; font-variant-numeric: tabular-nums; overflow-wrap: anywhere;
+  .bs-dot[data-tone="ok"] { background: var(--positive, var(--green)); }
+  .bs-dot[data-tone="warn"] { background: var(--warning); }
+  .bs-dot[data-tone="bad"] { background: var(--negative, var(--red)); }
+  .dh-caption {
+    margin-top: 8px; color: var(--text-tertiary); font: 500 10.5px/1.45 var(--mono);
   }
-  .overview-discipline-meta {
-    margin-top: 5px; color: var(--text-tertiary); font: 500 10px/1.35 var(--mono);
-    overflow-wrap: anywhere;
+  .dh-seg.is-late i { background: var(--warning); }
+  .dh-seg.is-missing i { background: var(--red); }
+  .dh-files { margin-top: 14px; border-top: 1px solid var(--border-subtle); }
+  .dh-row {
+    display: grid; align-items: center; gap: 12px; padding: 8px 0;
+    grid-template-columns: minmax(76px, auto) minmax(0, 1fr) 84px minmax(0, 1.3fr) 34px;
+    border-bottom: 1px solid var(--border-subtle);
+    font: 500 11.5px/1.35 var(--mono); font-variant-numeric: tabular-nums;
   }
+  .dh-row:last-child { border-bottom: 0; }
+  .dh-name { color: var(--text); font-weight: 700; white-space: nowrap; }
+  .dh-file, .dh-detail {
+    color: var(--text-tertiary); min-width: 0;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .dh-bar {
+    height: 4px; border-radius: 2px; overflow: hidden;
+    background: color-mix(in srgb, var(--text) 8%, transparent);
+  }
+  .dh-bar i { display: block; height: 100%; background: color-mix(in srgb, var(--text) 42%, transparent); }
+  .dh-row.is-late .dh-bar i, .dh-row.is-missing .dh-bar i { background: var(--warning); opacity: 1; }
+  .dh-row.is-missing .dh-bar i { background: var(--red); }
+  .dh-state { color: var(--text-tertiary); text-align: right; white-space: nowrap; }
+  .dh-row.is-late .dh-state { color: var(--warning); }
+  .dh-row.is-missing .dh-state { color: var(--red); }
+
   .overview-equity {
     grid-column: span 8; min-height: 480px; padding: 18px 18px 12px;
   }
@@ -1987,7 +2025,19 @@
     margin: 5px 0 0; color: var(--text); font-size: 17px;
     letter-spacing: -.01em; text-transform: none;
   }
-  .overview-equity-hint { max-width: 92%; margin: -3px 0 3px; }
+  .overview-equity-hint { max-width: 92%; margin: -2px 0 4px; }
+  .chart-note > summary {
+    display: inline-block; cursor: pointer; list-style: none;
+    color: var(--text-tertiary); font: 600 10.5px/1.4 var(--mono);
+    letter-spacing: .04em; padding: 2px 0;
+  }
+  .chart-note > summary::-webkit-details-marker { display: none; }
+  .chart-note > summary::after { content: " ›"; display: inline-block; transition: transform .18s cubic-bezier(.23,1,.32,1); }
+  .chart-note[open] > summary::after { transform: rotate(90deg); }
+  @media (hover: hover) and (pointer: fine) { .chart-note > summary:hover { color: var(--text-secondary); } }
+  .chart-note > p {
+    margin: 4px 0 2px; color: var(--text-tertiary); font: 500 11px/1.55 var(--mono);
+  }
   .overview-equity-chart { min-height: 390px; height: 390px; }
   /* The chart sits inside the mobile horizontal pager. Allow the browser to
      resolve both axes so a horizontal drag still changes tabs; pointercancel
@@ -2157,24 +2207,32 @@
   .hl-chip.hl-info  { border-color: var(--accent); color: var(--accent); }
 
   @media (min-width: 768px) and (max-width: 1023px) {
-    .overview-book, .overview-today { grid-column: span 6; }
-    .overview-discipline {
-      grid-column: 1 / -1; min-height: 112px;
-      grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: none;
-    }
-    .overview-discipline-cell { border-right: 1px solid var(--border-subtle); border-bottom: 0; }
-    .overview-discipline-cell:last-child { border-right: 0; }
+    .hero-deck { grid-template-columns: minmax(0, 1fr); }
+    .hero-deck-lead { border-right: 0; border-bottom: 1px solid var(--border-subtle); }
+    .hero-rail { grid-template-columns: repeat(4, minmax(0, 1fr)); }
     .overview-equity, .overview-verdict, .overview-strip,
     .overview-command > .hero-honesty-card,
     .overview-command > .hero-gold-card { grid-column: 1 / -1; }
   }
   @media (max-width: 767px) {
     .overview-command { display: flex; flex-direction: column; gap: 12px; }
-    .overview-book, .overview-today, .overview-discipline,
+    .hero-deck, .hero-health,
     .overview-equity, .overview-verdict, .overview-strip,
     .overview-command > .hero-honesty-card,
     .overview-command > .hero-gold-card { width: 100%; min-width: 0; }
-    .overview-book, .overview-today, .overview-discipline { min-height: 0; }
+    .hero-deck { grid-template-columns: minmax(0, 1fr); }
+    .hero-deck-lead { border-right: 0; border-bottom: 1px solid var(--border-subtle); }
+    .hero-rail { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .hero-rail-cell:nth-child(4n) { border-right: 1px solid var(--border-subtle); }
+    .hero-rail-cell:nth-child(2n) { border-right: 0; }
+    .hero-rail-cell:nth-last-child(-n+4) { border-bottom: 1px solid var(--border-subtle); }
+    .hero-rail-cell:nth-last-child(-n+2) { border-bottom: 0; }
+    .dh-row {
+      grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px; row-gap: 4px;
+    }
+    .dh-file { display: none; }
+    .dh-bar { grid-column: 1 / -1; }
+    .dh-detail { grid-column: 1 / -1; white-space: normal; }
     .overview-equity, .overview-verdict { min-height: 0; }
     .overview-equity-chart { min-height: 300px; height: 300px; }
     .overview-equity-hint { max-width: none; }
@@ -2190,12 +2248,11 @@
     .overview-command > .hero-gold-card { min-height: 760px; }
   }
   @media (max-width: 420px) {
-    .overview-book-primary { font-size: clamp(29px, 10vw, 38px); }
-    .overview-book-secondary { font-size: 17px; }
-    .overview-leg .val { font-size: 15px; }
-    .overview-today-cell .val { font-size: clamp(21px, 7.2vw, 28px); }
-    .overview-today-cell { padding-right: 8px; }
-    .overview-today-cell + .overview-today-cell { padding-left: 10px; }
+    .hero-deck-pnl { font-size: clamp(30px, 10.5vw, 40px); }
+    .hero-deck-sub { font-size: 12px; }
+    .hero-rail-v { font-size: 15px; }
+    .hero-rail-cell { padding: 11px 12px; }
+    .dh-seg { width: 11px; height: 26px; }
   }
 
   /* =========================================================

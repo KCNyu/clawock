@@ -152,59 +152,23 @@ layout: null
     <h2>Overview</h2>
 
     <div class="overview-command">
-      <div class="card overview-book hero-book-card">
-        <div class="overview-card-kicker">Total book</div>
-        <div class="overview-book-primary" id="combined-usd">—</div>
-        <div class="overview-book-secondary" id="combined-hkd">—</div>
-        <div class="overview-fx" id="fx-rate-usd">—</div>
-        <div class="overview-leg-grid">
-          <div class="overview-leg">
-            <div class="lbl">US leg</div>
-            <div class="val" id="us-value">—</div>
-            <div class="sub" id="us-pnl">—</div>
-          </div>
-          <div class="overview-leg">
-            <div class="lbl">HK leg</div>
-            <div class="val" id="hk-value">—</div>
-            <div class="sub" id="hk-pnl">—</div>
-          </div>
+      <!-- 首屏第一数字回答「赚还是亏」；账面市值随行情自己变，不需要判断，降为副行。
+           原来的 book / today / discipline 三张不等重的卡合并成一块指挥台。(#874 #877) -->
+      <div class="card hero-deck">
+        <div class="hero-deck-lead">
+          <div class="overview-card-kicker">总盈亏 · 已实现 + 浮动 · USD 等值</div>
+          <div class="hero-deck-pnl" id="hero-pnl">—</div>
+          <div class="hero-deck-sub" id="hero-sub">—</div>
+          <div class="hero-deck-fx" id="fx-rate-usd">—</div>
+          <span class="overview-fx-mirror" id="fx-rate-hkd" aria-hidden="true"></span>
         </div>
-        <span class="overview-fx-mirror" id="fx-rate-hkd" aria-hidden="true"></span>
-      </div>
-
-      <div class="card overview-today hero-pnl-card">
-        <div class="overview-card-kicker">Today's P&amp;L</div>
-        <div class="overview-today-grid">
-          <div class="overview-today-cell">
-            <div class="lbl">US</div>
-            <div class="val" id="today-pnl-us">—</div>
-            <div class="pct muted" id="today-pnl-us-pct">—</div>
-          </div>
-          <div class="overview-today-cell">
-            <div class="lbl">HK</div>
-            <div class="val" id="today-pnl-hk">—</div>
-            <div class="pct muted" id="today-pnl-hk-pct">—</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="overview-discipline" aria-label="30-day discipline and calibration">
-        <div class="overview-discipline-cell">
-          <div class="overview-card-kicker">Followed · 30d</div>
-          <div class="overview-discipline-value" id="overview-followed">—</div>
-          <div class="overview-discipline-meta" id="overview-followed-meta">—</div>
-        </div>
-        <div class="overview-discipline-cell" title="Brier score vs leave-one-out baseline — lower is better">
-          <div class="overview-card-kicker">Self-grade · Brier</div>
-          <div class="overview-discipline-value" id="overview-brier">—</div>
-          <div class="overview-discipline-meta" id="overview-brier-meta">—</div>
-        </div>
+        <div class="hero-rail" id="hero-rail"></div>
       </div>
 
       <div class="card overview-equity">
         <div class="card-head">
           <div>
-            <div class="overview-card-kicker">Track record · visual anchor</div>
+            <div class="overview-card-kicker">战绩 · 视觉锚点</div>
             <h3 id="equity-title">Equity Curve · USD-eq</h3>
           </div>
           <span id="benchmark-stale" class="muted" style="display:none;font-size:11px;color:var(--amber)"></span>
@@ -214,17 +178,20 @@ layout: null
             <button class="mkt-seg-btn" data-mkt="hk"><span class="seg-dot hk"></span>港股</button>
           </div>
         </div>
-        <p class="chart-hint overview-equity-hint">粗绿线 = 总利润（浮盈 + 已实现，净化本金）；蓝线 = 真实总资产（持仓市值 + 现金）；虚线 = 成本及动态基准。切换总览 / 美股 / 港股查看各自口径。</p>
+        <details class="chart-note overview-equity-hint">
+          <summary>口径说明</summary>
+          <p>粗绿线 = 总利润（浮盈 + 已实现，净化本金）；蓝线 = 真实总资产（持仓市值 + 现金）；虚线 = 成本及动态基准。切换总览 / 美股 / 港股查看各自口径。</p>
+        </details>
         <div id="chart-equity" class="chart-box overview-equity-chart"></div>
       </div>
 
       <aside class="card overview-verdict" aria-labelledby="overview-verdict-title">
         <div class="overview-verdict-head">
           <div>
-            <div class="overview-card-kicker">Decision panel</div>
-            <h3 id="overview-verdict-title">Today's verdict</h3>
+            <div class="overview-card-kicker">决策面板</div>
+            <h3 id="overview-verdict-title">今日判定</h3>
           </div>
-          <button class="overview-jump" type="button" data-jump-tab="risk">Open Risk</button>
+          <button class="overview-jump" type="button" data-jump-tab="risk">去风险页</button>
         </div>
         <div class="status-banner overview-status is-pending" id="overview-status-banner">
           <span class="sb-pulse" aria-hidden="true"></span>
@@ -234,7 +201,7 @@ layout: null
         <div id="today-highlights" class="today-highlights"></div>
         <div class="overview-gates">
           <div class="overview-gates-head">
-            <span>Top hard gates</span>
+            <span>触发中的硬闸</span>
             <span class="badge muted" id="overview-guardrail-count"></span>
           </div>
           <div class="overview-gates-directive" id="overview-guardrail-directive"></div>
@@ -245,7 +212,7 @@ layout: null
       <div class="overview-strip" aria-label="Secondary overview">
         <section class="overview-strip-cell overview-market">
           <button class="overview-strip-link" type="button" data-jump-tab="market">
-            <span>Market snapshot</span><span aria-hidden="true">Signals →</span>
+            <span>市场快照</span><span aria-hidden="true">盘面 →</span>
           </button>
           <span class="muted overview-asof" id="market-asof">—</span>
           <div class="market-grid" id="market-grid">
@@ -255,18 +222,32 @@ layout: null
         </section>
         <section class="overview-strip-cell">
           <button class="overview-strip-link" type="button" data-jump-tab="drill">
-            <span>Top movers</span><span aria-hidden="true">Holdings →</span>
+            <span>今日异动</span><span aria-hidden="true">持仓 →</span>
           </button>
           <div class="overview-mover-summary" id="overview-mover-summary">—</div>
         </section>
         <section class="overview-strip-cell">
           <button class="overview-strip-link" type="button" data-jump-tab="drill">
-            <span>Anomalies</span><span aria-hidden="true">Holdings →</span>
+            <span>异常</span><span aria-hidden="true">持仓 →</span>
           </button>
           <div class="overview-anomaly-count" id="overview-anomaly-count">—</div>
           <div class="overview-anomaly-summary" id="overview-anomaly-summary">—</div>
         </section>
       </div>
+
+      <section class="card hero-health is-pending" id="data-health" aria-labelledby="dh-title">
+        <div class="hero-health-head">
+          <div>
+            <div class="overview-card-kicker">数据健康</div>
+            <h3 id="dh-title" class="hero-health-verdict">—</h3>
+            <div class="hero-health-meta" id="dh-meta">—</div>
+          </div>
+          <button class="dh-toggle" type="button" id="dh-toggle" aria-expanded="false" aria-controls="dh-files">逐项</button>
+        </div>
+        <div class="dh-strip" id="dh-strip" role="img" aria-label="每个数据面的期限用量"></div>
+        <div class="dh-caption" id="dh-caption"></div>
+        <div class="dh-files" id="dh-files" hidden></div>
+      </section>
 
       <div class="card hero-honesty-card is-pending" id="honesty-card">
         <h3>诚实自评 · self-grading <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">(30d)</span></h3>

@@ -449,6 +449,15 @@
 
       ctx.font = "10px " + (getCSS("--mono") || "monospace");
       ctx.textBaseline = "middle";
+      // 回撤轴的刻度步长随数据量级变化：minDd 只有 -1.4% 时，5 个刻度用
+      // toFixed(0) 会压成 0% / -0% / -1% / -1% / -1%（实测线上就是这样）。
+      // 精度跟着步长走，并把 -0 归零。
+      const ddStep = Math.abs(minDd) / 4;
+      const ddDigits = ddStep >= 1 ? 0 : ddStep >= 0.2 ? 1 : 2;
+      const ddLabel = v => {
+        const snapped = Math.abs(v) < Math.pow(10, -ddDigits) / 2 ? 0 : v;
+        return snapped.toFixed(ddDigits) + "%";
+      };
       for (let i = 0; i <= 4; i++) {
         const y = top + i * plotH / 4;
         const value = maxMoney - i * (maxMoney - minMoney) / 4;
@@ -462,7 +471,7 @@
         ctx.textAlign = "right";
         ctx.fillText(moneyAxis(value, model.cur), left - 7, y);
         ctx.textAlign = "left";
-        ctx.fillText((i * minDd / 4).toFixed(0) + "%", width - right + 7, y);
+        ctx.fillText(ddLabel(i * minDd / 4), width - right + 7, y);
       }
 
       const labelCount = Math.min(5, dates.length);

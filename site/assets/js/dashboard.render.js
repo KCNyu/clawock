@@ -334,8 +334,8 @@
 
   const TAB_RENDERERS = {
     hero: [
-      renderTodayHighlights, renderHonesty, renderMarketSnapshot, renderTotals,
-      renderTodayPnl, renderRiskGuardrail, renderOverviewSummaries, renderGoldDca,
+      renderTodayHighlights, renderHonesty, renderMarketSnapshot, renderCommandDeck,
+      renderDataHealth, renderRiskGuardrail, renderOverviewSummaries, renderGoldDca,
     ],
     drill: [
       renderDecisionMatrix, renderAddCampaign, renderHoldings, renderExtremes, renderMovers,
@@ -427,18 +427,18 @@
     const artifactOnly = wfCounts.artifact_only || 0;
     let dot, label;
     if ((wfCounts.failed || 0) > 0) {
-      dot = '🔴'; label = `成品流程 ${wfCounts.failed} FAILED`;
+      dot = 'bad'; label = `成品流程 ${wfCounts.failed} FAILED`;
     }
-    else if (ig.error_count > 0) { dot = '🔴'; label = `体检 ${ig.error_count} ERROR`; }
+    else if (ig.error_count > 0) { dot = 'bad'; label = `体检 ${ig.error_count} ERROR`; }
     else if (stale.length || ig.warn_count > 0 || recovered || artifactOnly) {
-      dot = '🟡';
+      dot = 'warn';
       const bits = [];
       if (stale.length) bits.push(`${stale.length} 文件 stale`);
       if (ig.warn_count > 0) bits.push(`体检 ${ig.warn_count} WARN`);
       if (recovered) bits.push(`${recovered} 成品恢复/降级`);
       if (artifactOnly) bits.push(`${artifactOnly} 仅产物未确认投递`);
       label = bits.join(' · ');
-    } else { dot = '🟢'; label = '数据健康 · 体检 ✓'; }
+    } else { dot = 'ok'; label = '数据健康 · 体检通过'; }
     if (wf.raw_error_but_product_usable) {
       label += ` · ${wf.raw_error_but_product_usable} 执行红/成品可用`;
     }
@@ -457,7 +457,7 @@
       }
       else lines.push(`${f.stale ? '⚠' : '·'} ${f.name}  ${f.age_hours}h / SLA ${f.sla_hours}h`);
     });
-    (ig.top || []).forEach(t => lines.push(`${t.level === 'ERROR' ? '🔴' : '🟡'} ${t.code}: ${t.msg}`));
+    (ig.top || []).forEach(t => lines.push(`${t.level === 'ERROR' ? '[ERROR]' : '[WARN]'} ${t.code}: ${stripEmoji(t.msg)}`));
     if (bs.markets) {
       Object.entries(bs.markets).forEach(([m, v]) =>
         lines.push(`${m.toUpperCase()}: 行情会话 ${quoteSessionLabel(v)}${v.closed_today ? ' (休市)' : ''}`));
@@ -473,7 +473,7 @@
       lines.push(`流程 ${r.job} ${slot}: 执行=${raw} / 成品=${final}${readabilityDetail}`);
     });
     const gen = bs.generated_at ? bs.generated_at.replace('T', ' ').slice(0, 16) : '';
-    el.innerHTML = `<span class="bs-dot">${dot}</span> <span class="bs-label">${label}</span>` +
+    el.innerHTML = `<span class="bs-dot" data-tone="${dot}" aria-hidden="true"></span> <span class="bs-label">${label}</span>` +
       `<span class="bs-gen">构建 ${gen}</span>`;
     el.title = lines.join('\n');
   }
@@ -593,66 +593,236 @@
     }
   }
 
-  function renderTotals() {
+  // 数据面的中文名。build_status.files[] 给的是机器文件名，读者不该被要求认识
+  // peer_residual.json。未登记的新文件回落到去掉后缀的原名，不留空也不报错。(#876)
+  const DATA_FILE_CN = {
+    "portfolio.json": "持仓与账本",
+    "benchmark.json": "基准对照",
+    "catalysts.json": "催化剂日程",
+    "cross_sectional_factor.json": "横截面因子",
+    "em_news.json": "港股中文消息",
+    "influencer_feed.json": "影响力雷达",
+    "lev_regime.json": "杠杆刻度盘",
+    "macro.json": "宏观指标",
+    "news_evidence_graph.json": "新闻证据图",
+    "peer_residual.json": "同行残差",
+    "quant_signal_review.json": "因子自检",
+    "quant_signals.json": "量化因子",
+    "risk.json": "风险指标",
+    "sentiment.json": "市场情绪",
+    "us_news_digest.json": "美股新闻摘要",
+    "t0_setups.json": "T+0 牌面",
+    "t0_setup_review.json": "牌面背书",
+    "decision_audit.json": "择时诊断",
+    "shadow_portfolio.json": "政策模拟",
+    "brief_projection.json": "简报投影",
+    "workflow-outcomes.json": "流程账本",
+    "cron-heartbeats.json": "定时心跳",
+    "integrity_report.json": "体检报告",
+    "coverage.json": "测试覆盖率",
+    "readme_metrics.json": "README 指标",
+    "overview.json": "总览快照",
+    "dashboard.json": "面板数据",
+  };
+  const dataFileCn = name => DATA_FILE_CN[name] || String(name || "").replace(/\.json$/, "");
+
+  // 负号在货币符号外面：−$1,361 而不是 $-1,361。只用于首屏指挥台，
+  // 不改全局 fmtMoney（别处的断言吃的是旧格式）。
+  function heroMoney(v, ccy) {
+    if (v == null || !isFinite(v)) return DASH;
+    const body = fmtMoney(Math.abs(v), ccy);
+    return (v < 0 ? "−" : v > 0 ? "+" : "") + body;
+  }
+
+  // 首屏指挥台：一个主数 + 一条统计轨，取代 book / today / discipline 三张卡。(#874)
+  function renderCommandDeck() {
+    const pnlEl = document.getElementById("hero-pnl");
+    const subEl = document.getElementById("hero-sub");
+    const railEl = document.getElementById("hero-rail");
+    if (!pnlEl || !subEl || !railEl) return;
+
     const us = safe(DATA, "totals", "us") || {};
     const hk = safe(DATA, "totals", "hk") || {};
     const fx = safe(DATA, "fx", "usdhkd");
     const fxMeta = safe(DATA, "fx") || {};
+    const rv = safe(DATA, "realized_vs_unrealized") || {};
+    const m = safe(DATA, "decision_metrics") || {};
 
-    document.getElementById("us-value").textContent = fmtMoney(us.value_usd, "USD");
-    const usPnl = us.pnl_usd;
-    const usPnlPct = us.pnl_pct;
-    const usPnlEl = document.getElementById("us-pnl");
-    usPnlEl.textContent = fmtMoney(usPnl, "USD") + " · " + fmtPct(usPnlPct);
-    usPnlEl.className = "sub " + pnlClass(usPnl);
+    const has = v => v != null && isFinite(v);
+    const eq = (usd, hkd) => (fx && has(usd) && has(hkd)) ? usd + hkd / fx : null;
+    // totals.pnl 是「浮动」——市值减成本，没算落袋的部分。把它当「总盈亏」摆首屏
+    // 是错的口径：总盈亏 = 已实现 + 浮动，和 Reflect 的总回报率分子同源。
+    const unrealUsd = eq(us.pnl_usd, hk.pnl_hkd);
+    // 首屏第一帧吃的是精简的 overview.json，里面没有 realized_vs_unrealized；
+    // totals 两份 payload 都有，所以优先 rv、缺了就从 totals 现算，不留破折号。
+    const realUsd = has(safe(rv, "combined_usd", "realized"))
+      ? safe(rv, "combined_usd", "realized")
+      : eq(us.realized_usd, hk.realized_hkd);
+    const totalUsd = (has(realUsd) && has(unrealUsd)) ? realUsd + unrealUsd : unrealUsd;
+    const bookUsd = eq(us.value_usd, hk.value_hkd);
+    const todayUsd = eq(us.today_change_usd, hk.today_change_hkd);
+    const todayPct = (has(bookUsd) && has(todayUsd) && (bookUsd - todayUsd) > 0)
+      ? todayUsd / (bookUsd - todayUsd) * 100 : null;
 
-    document.getElementById("hk-value").textContent = fmtMoney(hk.value_hkd, "HKD");
-    const hkPnl = hk.pnl_hkd;
-    const hkPnlPct = hk.pnl_pct;
-    const hkPnlEl = document.getElementById("hk-pnl");
-    hkPnlEl.textContent = fmtMoney(hkPnl, "HKD") + " · " + fmtPct(hkPnlPct);
-    hkPnlEl.className = "sub " + pnlClass(hkPnl);
+    pnlEl.textContent = heroMoney(totalUsd, "USD");
+    pnlEl.className = "hero-deck-pnl " + pnlClass(totalUsd);
+    subEl.innerHTML = `已实现 <b class="${pnlClass(realUsd)}">${heroMoney(realUsd, "USD")}</b>`
+      + ` · 浮动 <b class="${pnlClass(unrealUsd)}">${heroMoney(unrealUsd, "USD")}</b>`
+      + ` · 账面 <b>${fmtMoney(bookUsd, "USD")}</b>`
+      + ` · 今日 <b class="${pnlClass(todayUsd)}">${heroMoney(todayUsd, "USD")}</b>`
+      + (todayPct != null ? ` <span class="${pnlClass(todayPct)}">${fmtPct(todayPct)}</span>` : "");
 
-    if (fx && us.value_usd != null && hk.value_hkd != null) {
-      const totalUsd = us.value_usd + hk.value_hkd / fx;
-      const totalHkd = us.value_usd * fx + hk.value_hkd;
-      document.getElementById("combined-usd").textContent = fmtMoney(totalUsd, "USD");
-      document.getElementById("combined-hkd").textContent = fmtMoney(totalHkd, "HKD");
-      const fetchedAt = fxMeta.fetched_at ? new Date(fxMeta.fetched_at) : null;
-      const fetched = fetchedAt && !isNaN(fetchedAt)
-        ? fetchedAt.toISOString().replace("T", " ").slice(0, 16) + "Z" : "";
-      const fxLine = `USDHKD ${fmtNum(fx, 4)}`
-        + (fxMeta.source ? ` · ${fxMeta.source}` : "")
-        + (fetched ? ` · ${fetched}` : "");
-      document.getElementById("fx-rate-usd").textContent = fxLine;
-      document.getElementById("fx-rate-hkd").textContent = fxLine;
-    } else {
-      document.getElementById("combined-usd").textContent = DASH;
-      document.getElementById("combined-hkd").textContent = DASH;
-      document.getElementById("fx-rate-usd").textContent = "FX unavailable";
-      document.getElementById("fx-rate-hkd").textContent = "";
+    const fxEl = document.getElementById("fx-rate-usd");
+    if (fxEl) {
+      if (fx) {
+        const at = fxMeta.fetched_at ? new Date(fxMeta.fetched_at) : null;
+        const stamp = at && !isNaN(at) ? at.toISOString().replace("T", " ").slice(0, 16) + "Z" : "";
+        fxEl.textContent = `USDHKD ${fmtNum(fx, 4)}`
+          + (fxMeta.source ? ` · ${fxMeta.source}` : "") + (stamp ? ` · ${stamp}` : "");
+      } else {
+        fxEl.textContent = "FX unavailable";
+      }
+    }
+
+    const ae = safe(m, "execution_by_kind", "active") || {};
+    const cell = (k, v, s, cls) =>
+      `<div class="hero-rail-cell"><div class="hero-rail-k">${k}</div>`
+      + `<div class="hero-rail-v ${cls || ""}">${v}</div>`
+      + `<div class="hero-rail-s">${s || ""}</div></div>`;
+    railEl.innerHTML = [
+      cell("US 腿", fmtMoney(us.value_usd, "USD"),
+        `<span class="${pnlClass(us.pnl_usd)}">${heroMoney(us.pnl_usd, "USD")} · ${fmtPct(us.pnl_pct)}</span>`),
+      cell("HK 腿", fmtMoney(hk.value_hkd, "HKD"),
+        `<span class="${pnlClass(hk.pnl_hkd)}">${heroMoney(hk.pnl_hkd, "HKD")} · ${fmtPct(hk.pnl_pct)}</span>`),
+      cell("今日 US", heroMoney(us.today_change_usd, "USD"), "美股腿", pnlClass(us.today_change_usd)),
+      cell("今日 HK", heroMoney(hk.today_change_hkd, "HKD"), "港股腿", pnlClass(hk.today_change_hkd)),
+      cell("已实现", heroMoney(realUsd, "USD"), "落袋 · USD-eq", pnlClass(realUsd)),
+      cell("浮动", heroMoney(unrealUsd, "USD"), "账面 · USD-eq", pnlClass(unrealUsd)),
+      cell("遵守率 30d", ae.rate == null ? DASH : (ae.rate * 100).toFixed(1) + "%",
+        `主动 call · n=${ae.known == null ? DASH : ae.known}`),
+      cell("自评 Brier", m.brier == null ? DASH : m.brier.toFixed(3),
+        `vs LOO ${m.brier_baseline_loo == null ? DASH : m.brier_baseline_loo.toFixed(3)}`,
+        m.brier_beats_baseline === true ? "pos" : m.brier_beats_baseline === false ? "neg" : ""),
+    ].join("");
+  }
+
+  // 数据健康：原来只有页脚一条 29px 小条，逐文件明细全塞在 title 提示里，
+  // 触屏根本打不开。这里把它提到首屏，逐项可展开。(#876)
+  // 判过期只认 f.stale —— files[] 有两种新鲜度模式（max_age 比 sla_hours，
+  // scheduled_fire 比 deadline_at），自己再算一遍 age>sla 会造出一批假警报。
+  function renderDataHealth() {
+    const root = document.getElementById("data-health");
+    if (!root) return;
+    const bs = safe(DATA, "build_status");
+    if (!bs) { root.style.display = "none"; return; }
+    root.style.display = "";
+
+    const verdictEl = document.getElementById("dh-verdict") || document.getElementById("dh-title");
+    const metaEl = document.getElementById("dh-meta");
+    const stripEl = document.getElementById("dh-strip");
+    const filesEl = document.getElementById("dh-files");
+    const ig = bs.integrity || {};
+    const wf = safe(DATA, "workflow_outcomes") || {};
+    const wc = wf.counts || {};
+    const files = (bs.files || []).slice();
+    const late = files.filter(f => f.present === false || f.stale);
+    const degraded = (wc.recovered || 0) + (wc.degraded || 0);
+
+    let tone = "ok", verdict = "全部数据面在期";
+    if ((wc.failed || 0) > 0) { tone = "bad"; verdict = `成品流程 ${wc.failed} 档 FAILED`; }
+    else if ((ig.error_count || 0) > 0) { tone = "bad"; verdict = `体检 ${ig.error_count} 项 ERROR`; }
+    else if (late.length) { tone = "warn"; verdict = `${late.length} 个数据面逾期`; }
+    else if ((ig.warn_count || 0) > 0) { tone = "warn"; verdict = `体检 ${ig.warn_count} 项 WARN`; }
+    else if (degraded) { tone = "warn"; verdict = `${degraded} 档成品恢复或降级`; }
+    root.dataset.tone = tone;
+    if (verdictEl) verdictEl.textContent = verdict;
+    if (metaEl) {
+      const bits = [`${files.length} 个数据面`];
+      bits.push(`体检 ${ig.error_count || 0} ERROR / ${ig.warn_count || 0} WARN`);
+      if (degraded) bits.push(`${degraded} 档恢复或降级`);
+      if (bs.generated_at) bits.push(`构建 ${String(bs.generated_at).replace("T", " ").slice(0, 16)}`);
+      metaEl.textContent = bits.join(" · ");
+    }
+
+    // 期限用量：max_age 用 age/sla；scheduled_fire 只有到期时刻，用「离截止还有多久
+    // ÷ 24h」表达，两者都只是粗略的紧张程度，精确判定始终以 f.stale 为准。
+    const usage = f => {
+      if (f.present === false || f.stale) return 1;
+      // 上游判 stale 有两种模式，这里只做「紧张程度」的粗略表达。未判 stale 的
+      // 一律封顶 0.7，否则会画出一根满格的条却标着「在期」，自相矛盾。
+      const raw = (() => {
+        if (f.freshness_mode === "scheduled_fire") {
+          const d = f.deadline_at ? new Date(f.deadline_at) : null;
+          if (!d || isNaN(d)) return 0.4;
+          const left = (d.getTime() - Date.now()) / 3600000;
+          return left <= 0 ? 0.7 : 1 - Math.min(left, 24) / 24;
+        }
+        if (!f.sla_hours || f.age_hours == null) return 0.4;
+        return f.age_hours / f.sla_hours;
+      })();
+      return Math.max(0.08, Math.min(0.7, raw));
+    };
+    const stateOf = f => f.present === false ? "missing" : (f.stale ? "late" : "ok");
+    const detailOf = f => {
+      if (f.present === false) return "文件缺失";
+      if (f.freshness_mode === "scheduled_fire") {
+        const d = f.deadline_at ? new Date(f.deadline_at) : null;
+        const when = d && !isNaN(d)
+          ? d.toLocaleString("zh-CN", { month: "2-digit", day: "2-digit", hour: "2-digit",
+              minute: "2-digit", hour12: false, timeZone: "Asia/Hong_Kong" }) + " HKT"
+          : "未知";
+        return `${f.age_hours == null ? DASH : f.age_hours + "h"} · 应于 ${when} 前刷新`;
+      }
+      return `${f.age_hours == null ? DASH : f.age_hours + "h"} / 期限 ${f.sla_hours}h`;
+    };
+
+    if (stripEl) {
+      const tightest = files.slice().sort((a, b) => usage(b) - usage(a))[0];
+      const caption = document.getElementById("dh-caption");
+      if (caption) {
+        caption.textContent = !files.length ? ""
+          : late.length
+            ? `逾期：${late.map(f => dataFileCn(f.name)).join("、")}`
+            : `期限用量 · 越高越接近过期 · 最紧张的是${dataFileCn(tightest.name)}（${detailOf(tightest)}）`;
+      }
+      stripEl.innerHTML = files.map(f => {
+        const st = stateOf(f);
+        const pctUsed = Math.round(usage(f) * 100);
+        return `<span class="dh-seg is-${st}" style="--used:${pctUsed}%"`
+          + ` title="${escapeHtml(dataFileCn(f.name))} · ${escapeHtml(f.name)} · ${escapeHtml(detailOf(f))}">`
+          + `<i></i></span>`;
+      }).join("");
+    }
+
+    if (filesEl) {
+      filesEl.innerHTML = files
+        .slice()
+        .sort((a, b) => usage(b) - usage(a))
+        .map(f => {
+          const st = stateOf(f);
+          const label = st === "missing" ? "缺失" : st === "late" ? "逾期" : "在期";
+          return `<div class="dh-row is-${st}">`
+            + `<span class="dh-name">${escapeHtml(dataFileCn(f.name))}</span>`
+            + `<span class="dh-file">${escapeHtml(f.name)}</span>`
+            + `<span class="dh-bar"><i style="width:${Math.round(usage(f) * 100)}%"></i></span>`
+            + `<span class="dh-detail">${escapeHtml(detailOf(f))}</span>`
+            + `<span class="dh-state">${label}</span>`
+            + `</div>`;
+        }).join("");
+    }
+
+    const toggle = document.getElementById("dh-toggle");
+    if (toggle && toggle.dataset.wired !== "1") {
+      toggle.dataset.wired = "1";
+      toggle.addEventListener("click", () => {
+        const open = toggle.getAttribute("aria-expanded") !== "true";
+        toggle.setAttribute("aria-expanded", open ? "true" : "false");
+        toggle.textContent = open ? "收起" : "逐项";
+        if (filesEl) filesEl.hidden = !open;
+      });
     }
   }
 
-  function renderTodayPnl() {
-    const us = safe(DATA, "totals", "us") || {};
-    const hk = safe(DATA, "totals", "hk") || {};
-    const usChg = us.today_change_usd;
-    const hkChg = hk.today_change_hkd;
-    // pct: today_change / (value - today_change) — approx today's pct vs yesterday
-    const usPct = (us.value_usd != null && usChg != null && (us.value_usd - usChg) > 0)
-                  ? (usChg / (us.value_usd - usChg) * 100) : null;
-    const hkPct = (hk.value_hkd != null && hkChg != null && (hk.value_hkd - hkChg) > 0)
-                  ? (hkChg / (hk.value_hkd - hkChg) * 100) : null;
-    const usEl = document.getElementById("today-pnl-us");
-    const hkEl = document.getElementById("today-pnl-hk");
-    usEl.textContent = fmtMoney(usChg, "USD");
-    usEl.className = "val " + pnlClass(usChg);
-    hkEl.textContent = fmtMoney(hkChg, "HKD");
-    hkEl.className = "val " + pnlClass(hkChg);
-    document.getElementById("today-pnl-us-pct").textContent = usPct != null ? fmtPct(usPct) : DASH;
-    document.getElementById("today-pnl-hk-pct").textContent = hkPct != null ? fmtPct(hkPct) : DASH;
-  }
 
   function renderDelta() {
     const tbody = document.getElementById("delta-tbody");
@@ -1666,8 +1836,8 @@
          <div><strong>${detail || ''}</strong>${action ? `<div class="muted" style="font-size:11px;margin-top:2px">→ ${action}</div>` : ''}</div>
        </div>`;
     const rows = [
-      ...breaches.map(b => ({ icon: ICON[b.type] || '⚠️', severity: b.severity, detail: b.detail, action: b.action })),
-      ...stops.map(s => ({ icon: '', severity: 'high', detail: s.detail, action: s.action })),
+      ...breaches.map(b => ({ icon: ICON[b.type] || '', severity: b.severity, detail: stripEmoji(b.detail), action: stripEmoji(b.action) })),
+      ...stops.map(s => ({ icon: '', severity: 'high', detail: stripEmoji(s.detail), action: stripEmoji(s.action) })),
     ];
     const compactRows = rows.slice().sort((a, b) =>
       Number(b.severity === "high") - Number(a.severity === "high"));
@@ -1675,8 +1845,8 @@
       countEl.textContent = n ? `${n} 触发` : '无';
       countEl.style.color = n ? 'var(--negative)' : 'var(--positive)';
       if (dirEl) dirEl.textContent = compact
-        ? (g.directive || "")
-        : [g.directive, g.reentry_rule].filter(Boolean).join(' ');
+        ? stripEmoji(g.directive)
+        : stripEmoji([g.directive, g.reentry_rule].filter(Boolean).join(' '));
       const visibleRows = compact ? compactRows.slice(0, 3) : rows;
       const html = visibleRows.map(r => row(r.icon, r.severity, r.detail, compact ? "" : r.action)).join('');
       listEl.innerHTML = html || '<div class="muted" style="font-size:12px">仓位/单因子/杠杆均在阈值内</div>';
