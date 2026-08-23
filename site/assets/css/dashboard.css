@@ -3,6 +3,7 @@
      ========================================================= */
   :root {
     --bg: #070A0F;
+    --bg-glow: rgba(54,163,255,.09);
     --surface-0: #0B1017;
     --surface-1: #0F1620;
     --surface-2: #141E2A;
@@ -42,7 +43,9 @@
     --muted: var(--text-secondary);
     --tab-active-bg: var(--surface-2);
     --table-row-hover: var(--surface-3);
-    --shadow-topbar: 0 8px 24px rgba(0,0,0,.22);
+    --shadow-topbar: 0 1px 0 rgba(0,0,0,.2), 0 8px 24px rgba(0,0,0,.22);
+    --shadow-card: 0 1px 2px rgba(0,0,0,.25), 0 12px 28px rgba(0,0,0,.3);
+    --glass-topbar: rgba(11,16,23,.6);
     --radius: 10px;
     --radius-sm: 6px;
     --gap: 12px;
@@ -58,6 +61,7 @@
   @media (prefers-color-scheme: light) {
     :root {
       --bg: #F3F6F9;
+      --bg-glow: rgba(64,140,196,.10);
       --surface-0: #F8FAFC;
       --surface-1: #FFFFFF;
       --surface-2: #F2F5F8;
@@ -76,7 +80,9 @@
       --warning: #805400;
       --neutral: #66788D;
       --focus: #0078C9;
-      --shadow-topbar: 0 8px 24px rgba(18,33,48,.08);
+      --shadow-topbar: 0 1px 0 rgba(18,33,48,.06), 0 8px 24px rgba(18,33,48,.08);
+      --shadow-card: 0 1px 2px rgba(18,33,48,.05), 0 12px 28px rgba(18,33,48,.07);
+      --glass-topbar: rgba(248,250,252,.72);
     }
     /* Preserve the quiet timestamp hierarchy without blending below WCAG AA.
        Written as `.muted.asof-faded` on purpose: every element carrying this
@@ -102,8 +108,30 @@
       transition-duration: 0.01ms !important;
     }
   }
+  /* OS-level reduced transparency: drop the frosted surfaces back to solid
+     (apple-design skill: frostier/solid, blur off). */
+  @media (prefers-reduced-transparency: reduce) {
+    .topbar,
+    .refresh-btn,
+    .desk-rail,
+    .status-banner {
+      -webkit-backdrop-filter: none;
+      backdrop-filter: none;
+    }
+    .topbar { background: var(--surface-0); }
+    .refresh-btn { background: var(--card); }
+    .desk-rail { background: var(--surface-1); }
+    .status-banner { background: var(--accent-soft); }
+  }
   body {
-    background: var(--bg);
+    /* Layered page: a cool-tinted gradient replaces the flat fill, so the
+       frosted topbar has something to blur and cards lift off the page
+       instead of reading as same-tone boxes (kcn: 「灰成一片」). Both themes
+       get a faint radial wash; light stays quiet, dark gets a blue hint. */
+    background:
+      radial-gradient(1200px 480px at 50% -8%, var(--bg-glow), transparent 70%),
+      var(--bg);
+    background-attachment: fixed;
     color: var(--text);
     font-family: var(--font);
     font-size: 14px;
@@ -120,7 +148,13 @@
      ========================================================= */
   .topbar {
     position: sticky; top: 0; z-index: 30;
-    background: var(--surface-0);
+    /* Frosted chrome: translucent surface + backdrop blur + a saturate lift,
+       the same recipe the DSH plugin's filter bar and the host's own overlay
+       use. The opaque colour comes first so engines without color-mix or
+       backdrop-filter degrade to the plain band. */
+    background: var(--glass-topbar);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    backdrop-filter: blur(20px) saturate(180%);
     border-bottom: 1px solid var(--border);
     padding: var(--space-3) var(--space-4) 0;
     padding-top: max(var(--space-3), env(safe-area-inset-top));
@@ -152,11 +186,16 @@
     .brand .updated { display: none; }
   }
   .refresh-btn {
-    appearance: none; background: var(--card); color: var(--text);
+    appearance: none; background: color-mix(in srgb, var(--card) 78%, transparent); color: var(--text);
     border: 1px solid var(--border); border-radius: 999px;
     min-height: 36px; min-width: 36px; padding: 0 var(--space-3);
     font-size: 14px; cursor: pointer;
     display: inline-flex; align-items: center; gap: 4px;
+    /* Sits on the frosted topbar, so it is glass too — a translucent capsule
+       instead of a solid white disc floating on the bar. */
+    -webkit-backdrop-filter: blur(10px) saturate(150%);
+    backdrop-filter: blur(10px) saturate(150%);
+    box-shadow: 0 1px 2px rgba(18,33,48,.06);
     transition: background 0.15s, color 0.15s, border-color 0.3s, transform 0.16s cubic-bezier(0.23, 1, 0.32, 1);
     /* The click-feedback labels are CJK, which — unlike "Refresh" — has a break
        opportunity between every character. Without these two the button is a
@@ -165,6 +204,9 @@
     flex: 0 0 auto; white-space: nowrap;
   }
   .refresh-btn:active { background: var(--card-2); transform: scale(0.97); }
+  @media (hover: hover) and (pointer: fine) {
+    .refresh-btn:hover { background: var(--surface-2); }
+  }
   .refresh-btn.is-loading .ic { animation: spin 0.8s linear infinite; }
   .refresh-btn.ok-flash { border-color: var(--green); }
   .refresh-btn.fresh-flash { border-color: var(--accent); color: var(--accent); }
@@ -472,9 +514,11 @@
     background: var(--card);
     /* Border blends into the fill on dark → cards read as soft raised panels, not
        outlined boxes (the "card wall" look). Light mode keeps a hairline for
-       definition against the near-white page. */
+       definition against the near-white page. The layered shadow lifts every
+       card off the page (Apple-style depth) without the old flat look. */
     border: 1px solid var(--card);
-    border-radius: 12px;
+    border-radius: 16px;
+    box-shadow: var(--shadow-card);
     padding: var(--space-4);
     margin-bottom: var(--gap);
   }
@@ -1232,8 +1276,10 @@
   .status-banner {
     display: flex; align-items: center; gap: var(--space-3);
     margin: 0 0 var(--space-4); padding: var(--space-3) var(--space-4);
-    background: var(--accent-soft);
+    background: color-mix(in srgb, var(--accent-soft) 82%, transparent);
     border: 1px solid color-mix(in srgb, var(--accent) 28%, transparent); border-radius: var(--radius-sm);
+    -webkit-backdrop-filter: blur(12px) saturate(150%);
+    backdrop-filter: blur(12px) saturate(150%);
     font-size: 13.5px; line-height: 1.45;
   }
   .status-banner .sb-pulse {
@@ -1248,7 +1294,10 @@
   .desk-rail {
     display: block; min-height: 0; margin-bottom: 18px;
     border: 1px solid var(--border); border-radius: var(--radius-sm);
-    background: var(--surface-1);
+    background: color-mix(in srgb, var(--surface-1) 88%, transparent);
+    -webkit-backdrop-filter: blur(12px) saturate(150%);
+    backdrop-filter: blur(12px) saturate(150%);
+    box-shadow: var(--shadow-card);
   }
   .desk-rail.is-overview { display: none; }
   .desk-rail-toggle {
@@ -1289,7 +1338,7 @@
   .dr-kpis {
     display: flex; align-items: stretch; flex: 0 0 auto;
     margin-top: 10px; border: 1px solid var(--border); border-radius: var(--radius-sm);
-    background: var(--surface-1); overflow: visible;
+    background: color-mix(in srgb, var(--surface-1) 88%, transparent); overflow: visible;
   }
   .dr-kpi {
     display: flex; flex-direction: column; justify-content: center; gap: 2px;
