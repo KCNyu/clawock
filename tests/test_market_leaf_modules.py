@@ -63,7 +63,8 @@ class _Resp:
 
 def test_fetch_polygon_daily_parses_rows_and_skips_bad_close(monkeypatch):
     def fake_get(url, **kwargs):
-        assert "polygon.io" in url
+        from urllib.parse import urlsplit
+        assert urlsplit(url).netloc == "api.polygon.io", url
         return _Resp({"results": [
             {"t": 1724112000000, "c": 100.5},
             {"t": 1724198400000, "c": None},   # missing close → skipped
