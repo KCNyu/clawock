@@ -136,9 +136,22 @@ def main():
     if a.publish:
         print('  提交 + 推送上线…')
         os.chdir(WS_ROOT)
-        subprocess.run(['git', 'add', 'portfolio.json'], check=False)
-        subprocess.run(['git', 'commit', '-q', '-m', f'gold: 定投对账 {rdate}（本金{principal:.0f}/份额{units:.0f}）'], check=False)
-        subprocess.run(['bash', os.path.join(WS_ROOT, 'ops/publish/safe_push.sh')], check=False)
+        # Each step's exit status is real: a commit or push that fails must
+        # surface as a failed DCA reconciliation, not a silent no-op (#848).
+        failed = False
+        for cmd in (
+            ['git', 'add', 'portfolio.json'],
+            ['git', 'commit', '-q', '-m', f'gold: 定投对账 {rdate}（本金{principal:.0f}/份额{units:.0f}）'],
+            ['bash', os.path.join(WS_ROOT, 'ops/publish/safe_push.sh')],
+        ):
+            result = subprocess.run(cmd)
+            if result.returncode != 0:
+                print(f'  ✗ 步骤失败 (exit {result.returncode}): {" ".join(cmd)}',
+                      file=sys.stderr)
+                failed = True
+                break
+        if failed:
+            return 2
     else:
         print('  未推送。要上线：git add portfolio.json && '
               'git commit + bash ops/publish/safe_push.sh（或加 --publish）')

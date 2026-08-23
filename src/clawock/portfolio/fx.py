@@ -21,6 +21,7 @@ from pathlib import Path
 from typing import Optional, Dict
 import requests
 
+from clawock.safe_io import safe_write_json
 from clawock.workspace import workspace_root
 
 WS_ROOT = workspace_root(Path.cwd())
@@ -75,8 +76,10 @@ def _from_cache(allow_stale: bool = False) -> Optional[Dict]:
 
 def _save_cache(data: Dict):
     os.makedirs(os.path.dirname(CACHE_PATH), exist_ok=True)
-    with open(CACHE_PATH, 'w') as f:
-        json.dump(data, f)
+    # Atomic write: a torn cache file used to make `_from_cache` return None,
+    # silently killing the "all live sources failed → use stale cached rate"
+    # fallback exactly when it was needed (#847).
+    safe_write_json(CACHE_PATH, data)
     _record_rate(data)
 
 

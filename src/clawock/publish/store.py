@@ -225,6 +225,9 @@ class GitBranchStore:
         result = subprocess.run(
             self._argv(*args),
             input=stdin, capture_output=True, text=True, env=env, check=True,
+            # A hung git remote must fail the publish, not park the process
+            # forever (#848).
+            timeout=120,
         )
         return result.stdout.strip()
 
@@ -240,6 +243,7 @@ class GitBranchStore:
         result = subprocess.run(
             self._argv("cat-file", "blob", f"{ref}:{name}"),
             capture_output=True, check=True,
+            timeout=120,
         )
         return result.stdout.decode("utf-8")
 
