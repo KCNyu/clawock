@@ -217,10 +217,15 @@ body[data-ds-dark-theme] .dmt {
   padding:5px 10px;
   border-radius:7px;
   cursor:pointer;
-  transition:background .12s,color .12s
+  transition:background .12s,color .12s,transform .16s cubic-bezier(.23,1,.32,1)
 }
-.dmt .ft:hover {
-  background:var(--hover)
+.dmt .ft:active {
+  transform:scale(.97)
+}
+@media (hover: hover) and (pointer: fine) {
+  .dmt .ft:hover {
+    background:var(--hover)
+  }
 }
 .dmt .ft.on {
   color:var(--text);
@@ -262,10 +267,16 @@ body[data-ds-dark-theme] .dmt {
   cursor:pointer;
   border-radius:8px;
   padding:3px 6px;
-  margin-left:-6px
+  margin-left:-6px;
+  transition:background .12s
 }
-.dmt .day.fold:hover {
-  background:var(--hover)
+.dmt .day.fold:active {
+  background:var(--tint-mid)
+}
+@media (hover: hover) and (pointer: fine) {
+  .dmt .day.fold:hover {
+    background:var(--hover)
+  }
 }
 .dmt .day.fold:focus-visible {
   outline:1px solid var(--brand);
@@ -304,6 +315,8 @@ body[data-ds-dark-theme] .dmt {
    template above it is the fallback for engines without subgrid: same columns,
    sized per row. */
 .dmt .cell {
+  animation:clawock-cell-in .18s cubic-bezier(.23,1,.32,1) both;
+  animation-delay:calc(var(--i, 0) * 30ms);
   display:grid;
   position:relative;
   grid-template-columns:2px 8px auto minmax(64px,auto) auto minmax(0,1fr) auto auto 104px 12px 2px;
@@ -318,8 +331,13 @@ body[data-ds-dark-theme] .dmt {
 .dmt .cell+.cell {
   border-top:1px solid var(--border)
 }
-.dmt .cell:hover {
-  background:var(--hover)
+.dmt .cell:active {
+  background:var(--tint-mid)
+}
+@media (hover: hover) and (pointer: fine) {
+  .dmt .cell:hover {
+    background:var(--hover)
+  }
 }
 .dmt .cell:focus-visible {
   outline:1px solid var(--brand);
@@ -670,12 +688,17 @@ body[data-ds-dark-theme] .dmt {
   color:var(--text2);
   font:600 12px/1.4 var(--font);
   cursor:pointer;
-  transition:background .12s,border-color .12s,color .12s
+  transition:background .12s,border-color .12s,color .12s,transform .16s cubic-bezier(.23,1,.32,1)
 }
-.dmt .trace-more:hover {
-  background:var(--hover);
-  border-color:var(--brand);
-  color:var(--text)
+.dmt .trace-more:active {
+  transform:scale(.98)
+}
+@media (hover: hover) and (pointer: fine) {
+  .dmt .trace-more:hover {
+    background:var(--hover);
+    border-color:var(--brand);
+    color:var(--text)
+  }
 }
 .dmt .skel {
   display:flex;
@@ -695,9 +718,25 @@ body[data-ds-dark-theme] .dmt {
   background:var(--tint-strong)
 }
 .dmt .skel-bar {
+  position:relative;
+  overflow:hidden;
   height:10px;
   border-radius:5px;
   background:var(--tint-mid)
+}
+.dmt .skel-bar::after {
+  content:"";
+  position:absolute;
+  inset:0;
+  transform:translateX(-100%);
+  background:linear-gradient(90deg, transparent, var(--tint-strong), transparent);
+  animation:clawock-shimmer 1.2s ease-in-out infinite
+}
+@keyframes clawock-shimmer {
+  to { transform:translateX(100%) }
+}
+@keyframes clawock-cell-in {
+  from { opacity:0; transform:translateY(4px) }
 }
 .dmt .skel-bar.w40 {
   width:40%
@@ -705,6 +744,29 @@ body[data-ds-dark-theme] .dmt {
 .dmt .skel-bar.w20 {
   width:20%
 }
+/* Reduced motion: keep the opacity/colour transitions that aid
+   comprehension, drop the movement — chevron rotation, the 0fr height
+   animation (content still opens, it just snaps), group entrances and the
+   skeleton sweep. Mirrors the host's own handling (AppFrame etc.). */
+@media (prefers-reduced-motion: reduce) {
+  .dmt .chev {
+    transition:none
+  }
+  .dmt .detail {
+    transition:opacity .15s ease
+  }
+  .dmt .ft,
+  .dmt .trace-more {
+    transition:background .12s,color .12s,border-color .12s
+  }
+  .dmt .cell {
+    animation:none
+  }
+  .dmt .skel-bar::after {
+    animation:none
+  }
+}
+
 /* Phone layout. The single line cannot hold nine fields at 320-430px, so the
    row folds back into its two DOM lines: identity + money, then the verdict
    meta. Every interactive box stays at or above a 32px tap target. */
