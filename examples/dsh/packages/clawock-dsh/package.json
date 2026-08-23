@@ -1,7 +1,7 @@
 {
   "name": "clawock-dsh",
   "version": "0.1.8",
-  "description": "clawock investment-decision workflow for DeepSeek Harness — evidence, opposing case, deterministic settlement, public scorecard, plus the Decision Mind conversation-view tab",
+  "description": "DSH (DeepSeek Harness) plugin for investment decisions: evidence-gated research, a forced bull/bear debate, Python-settled outcomes the model cannot grade, and the Decision Mind tab that pins every real trade to its plan and T+1 verdict",
   "license": "MIT",
   "repository": {
     "type": "git",
@@ -15,12 +15,20 @@
   "author": "Shengyu Li",
   "keywords": [
     "dsh",
+    "deepseek",
     "deepseek-harness",
+    "plugin",
     "clawock",
     "investment",
+    "decision",
+    "settlement",
     "agent",
+    "skill",
     "trading",
-    "skill"
+    "portfolio",
+    "ledger",
+    "pnl",
+    "quantitative-finance"
   ],
   "type": "module",
   "main": "./lib/index.js",
