@@ -15,13 +15,6 @@ def push_paths(workflow: Path) -> list[str]:
     return re.findall(r"^\s*-\s*'([^']+)'", block, re.MULTILINE)
 
 
-def case_patterns(workflow: Path, step_name: str = 'Detect code changes') -> list[str]:
-    detect = workflow.read_text(encoding='utf-8').split(step_name, 1)[1]
-    line = next(ln for ln in detect.splitlines()
-                if ln.strip().endswith(')') and '|' in ln)
-    return line.strip().rstrip(')').split('|')
-
-
 def steps(workflow: Path):
     lines = workflow.read_text().splitlines()
     return [

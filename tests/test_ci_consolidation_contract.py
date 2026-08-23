@@ -77,3 +77,25 @@ def test_plugin_sources_trigger_ci_on_master_pushes():
     from workflow_contract_helpers import push_paths
 
     assert "examples/dsh/**" in push_paths(CI)
+
+
+def test_no_inline_lane_classification_left_in_the_workflow():
+    """The adversarial pass on #884: three inline copies of diff-classification
+    bash were how #750-style drift happened. All gates must read
+    ops/ci/push_scope.py, and the smoke probe must be a script, not a
+    python -c one-liner."""
+    from workflow_contract_helpers import step_block
+
+    assert TEXT.count("ops/ci/push_scope.py") >= 3, (
+        "detector, lint scope and CodeQL scope all route through one classifier")
+    assert "ops/ci/smoke_fx.py" in TEXT, (
+        "smoke-data-fetch must run the script, not an inline python -c")
+
+    for step in ("Did any workflow file change?",
+                 "Detect code changes",
+                 "Did the push touch anything analysable?",
+                 "FX fallback chain"):
+        block = step_block(CI, step)
+        assert "python3 -c" not in block and 'case "$f"' not in block, (
+            f"{step} grew inline logic; it belongs in ops/ci/push_scope.py "
+            "where tests can drive it")
