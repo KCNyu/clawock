@@ -679,6 +679,9 @@
     subEl.innerHTML = `已实现 <b class="${pnlClass(realUsd)}">${heroMoney(realUsd, "USD")}</b>`
       + ` · 浮动 <b class="${pnlClass(unrealUsd)}">${heroMoney(unrealUsd, "USD")}</b>`
       + ` · 账面 <b>${fmtMoney(bookUsd, "USD")}</b>`
+      // 账面的 HKD 等值：原来 Total book 卡的第二行，合并后仍要留着
+      + ((fx && has(us.value_usd) && has(hk.value_hkd))
+        ? ` <span class="muted">/ ${fmtMoney(us.value_usd * fx + hk.value_hkd, "HKD")}</span>` : "")
       + ` · 今日 <b class="${pnlClass(todayUsd)}">${heroMoney(todayUsd, "USD")}</b>`
       + (todayPct != null ? ` <span class="${pnlClass(todayPct)}">${fmtPct(todayPct)}</span>` : "");
 
@@ -694,6 +697,10 @@
       }
     }
 
+    // 分腿的今日涨跌幅：原来的 Today's P&L 卡有这两个数，合并后不能丢
+    const legPct = (v, chg) => (has(v) && has(chg) && (v - chg) > 0) ? chg / (v - chg) * 100 : null;
+    const usTodayPct = legPct(us.value_usd, us.today_change_usd);
+    const hkTodayPct = legPct(hk.value_hkd, hk.today_change_hkd);
     const ae = safe(m, "execution_by_kind", "active") || {};
     const cell = (k, v, s, cls) =>
       `<div class="hero-rail-cell"><div class="hero-rail-k">${k}</div>`
@@ -704,14 +711,20 @@
         `<span class="${pnlClass(us.pnl_usd)}">${heroMoney(us.pnl_usd, "USD")} · ${fmtPct(us.pnl_pct)}</span>`),
       cell("HK 腿", fmtMoney(hk.value_hkd, "HKD"),
         `<span class="${pnlClass(hk.pnl_hkd)}">${heroMoney(hk.pnl_hkd, "HKD")} · ${fmtPct(hk.pnl_pct)}</span>`),
-      cell("今日 US", heroMoney(us.today_change_usd, "USD"), "美股腿", pnlClass(us.today_change_usd)),
-      cell("今日 HK", heroMoney(hk.today_change_hkd, "HKD"), "港股腿", pnlClass(hk.today_change_hkd)),
+      cell("今日 US", heroMoney(us.today_change_usd, "USD"),
+        `美股腿${usTodayPct == null ? "" : " · " + fmtPct(usTodayPct)}`, pnlClass(us.today_change_usd)),
+      cell("今日 HK", heroMoney(hk.today_change_hkd, "HKD"),
+        `港股腿${hkTodayPct == null ? "" : " · " + fmtPct(hkTodayPct)}`, pnlClass(hk.today_change_hkd)),
       cell("已实现", heroMoney(realUsd, "USD"), "落袋 · USD-eq", pnlClass(realUsd)),
       cell("浮动", heroMoney(unrealUsd, "USD"), "账面 · USD-eq", pnlClass(unrealUsd)),
       cell("遵守率 30d", ae.rate == null ? DASH : (ae.rate * 100).toFixed(1) + "%",
-        `主动 call · n=${ae.known == null ? DASH : ae.known}`),
+        // stranded = 核验窗口关闭时仍没有答案的 call，永远不会结算。只报 known
+        // 会高估这个比率覆盖了多少记录，所以两个数一起给。
+        `主动 call · n=${ae.known == null ? DASH : ae.known}`
+        + (ae.stranded ? ` · ${ae.stranded} 未能核验` : "")),
       cell("自评 Brier", m.brier == null ? DASH : m.brier.toFixed(3),
-        `vs LOO ${m.brier_baseline_loo == null ? DASH : m.brier_baseline_loo.toFixed(3)}`,
+        `vs LOO ${m.brier_baseline_loo == null ? DASH : m.brier_baseline_loo.toFixed(3)}`
+        + (safe(m, "calibration", "active", "n") != null ? ` · active n=${m.calibration.active.n}` : ""),
         m.brier_beats_baseline === true ? "pos" : m.brier_beats_baseline === false ? "neg" : ""),
     ].join("");
   }

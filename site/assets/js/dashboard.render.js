@@ -338,8 +338,8 @@
       renderDataHealth, renderRiskGuardrail, renderOverviewSummaries, renderGoldDca,
     ],
     drill: [
-      renderDecisionMatrix, renderAddCampaign, renderHoldings, renderExtremes, renderMovers,
-      renderAnomalies, render8dHeatmap, renderTodayRange, renderShadowPortfolioCard,
+      renderBook, renderAddCampaign, renderMovers,
+      renderAnomalies, render8dHeatmap, renderShadowPortfolioCard,
     ],
     risk: [
       renderRiskGuardrail, renderHHI, renderLeveragedETF, renderRiskMetrics, renderLevRegime,
@@ -354,7 +354,7 @@
       renderBearCases, renderHiddenConcentration,
     ],
     reflect: [
-      renderBehavioralReview, renderDecisionAudit, renderCalibBadge,
+      renderHonesty, renderBehavioralReview, renderDecisionAudit, renderCalibBadge,
       renderPlanReview, renderCalibByTrigger, renderCalibByDriver,
       renderDecisionTraces, renderReflectKpi, renderDelta,
     ],
@@ -669,6 +669,9 @@
     subEl.innerHTML = `已实现 <b class="${pnlClass(realUsd)}">${heroMoney(realUsd, "USD")}</b>`
       + ` · 浮动 <b class="${pnlClass(unrealUsd)}">${heroMoney(unrealUsd, "USD")}</b>`
       + ` · 账面 <b>${fmtMoney(bookUsd, "USD")}</b>`
+      // 账面的 HKD 等值：原来 Total book 卡的第二行，合并后仍要留着
+      + ((fx && has(us.value_usd) && has(hk.value_hkd))
+        ? ` <span class="muted">/ ${fmtMoney(us.value_usd * fx + hk.value_hkd, "HKD")}</span>` : "")
       + ` · 今日 <b class="${pnlClass(todayUsd)}">${heroMoney(todayUsd, "USD")}</b>`
       + (todayPct != null ? ` <span class="${pnlClass(todayPct)}">${fmtPct(todayPct)}</span>` : "");
 
@@ -684,6 +687,10 @@
       }
     }
 
+    // 分腿的今日涨跌幅：原来的 Today's P&L 卡有这两个数，合并后不能丢
+    const legPct = (v, chg) => (has(v) && has(chg) && (v - chg) > 0) ? chg / (v - chg) * 100 : null;
+    const usTodayPct = legPct(us.value_usd, us.today_change_usd);
+    const hkTodayPct = legPct(hk.value_hkd, hk.today_change_hkd);
     const ae = safe(m, "execution_by_kind", "active") || {};
     const cell = (k, v, s, cls) =>
       `<div class="hero-rail-cell"><div class="hero-rail-k">${k}</div>`
@@ -694,14 +701,20 @@
         `<span class="${pnlClass(us.pnl_usd)}">${heroMoney(us.pnl_usd, "USD")} · ${fmtPct(us.pnl_pct)}</span>`),
       cell("HK 腿", fmtMoney(hk.value_hkd, "HKD"),
         `<span class="${pnlClass(hk.pnl_hkd)}">${heroMoney(hk.pnl_hkd, "HKD")} · ${fmtPct(hk.pnl_pct)}</span>`),
-      cell("今日 US", heroMoney(us.today_change_usd, "USD"), "美股腿", pnlClass(us.today_change_usd)),
-      cell("今日 HK", heroMoney(hk.today_change_hkd, "HKD"), "港股腿", pnlClass(hk.today_change_hkd)),
+      cell("今日 US", heroMoney(us.today_change_usd, "USD"),
+        `美股腿${usTodayPct == null ? "" : " · " + fmtPct(usTodayPct)}`, pnlClass(us.today_change_usd)),
+      cell("今日 HK", heroMoney(hk.today_change_hkd, "HKD"),
+        `港股腿${hkTodayPct == null ? "" : " · " + fmtPct(hkTodayPct)}`, pnlClass(hk.today_change_hkd)),
       cell("已实现", heroMoney(realUsd, "USD"), "落袋 · USD-eq", pnlClass(realUsd)),
       cell("浮动", heroMoney(unrealUsd, "USD"), "账面 · USD-eq", pnlClass(unrealUsd)),
       cell("遵守率 30d", ae.rate == null ? DASH : (ae.rate * 100).toFixed(1) + "%",
-        `主动 call · n=${ae.known == null ? DASH : ae.known}`),
+        // stranded = 核验窗口关闭时仍没有答案的 call，永远不会结算。只报 known
+        // 会高估这个比率覆盖了多少记录，所以两个数一起给。
+        `主动 call · n=${ae.known == null ? DASH : ae.known}`
+        + (ae.stranded ? ` · ${ae.stranded} 未能核验` : "")),
       cell("自评 Brier", m.brier == null ? DASH : m.brier.toFixed(3),
-        `vs LOO ${m.brier_baseline_loo == null ? DASH : m.brier_baseline_loo.toFixed(3)}`,
+        `vs LOO ${m.brier_baseline_loo == null ? DASH : m.brier_baseline_loo.toFixed(3)}`
+        + (safe(m, "calibration", "active", "n") != null ? ` · active n=${m.calibration.active.n}` : ""),
         m.brier_beats_baseline === true ? "pos" : m.brier_beats_baseline === false ? "neg" : ""),
     ].join("");
   }
@@ -1388,115 +1401,280 @@
 
   // 持仓决策矩阵优先消费 harness 编译的 versioned projection。旧 dashboard
   // join 仅作跨版本部署期间的 fallback；Pages 不再是投资规则的 owner。
-  function renderDecisionMatrix() {
-    const card = document.getElementById('decision-matrix-card');
-    if (!card) return;
+
+  // ── 持仓主表（#875 #877）────────────────────────────────────
+  // 原来同一批持仓被切成四张表：决策矩阵 / Holdings / 今日区间 / 最强最弱，
+  // 每张都按 ticker 重排一遍，读者要自己 join。这里合成一张，行展开就是
+  // 这只票的全部证据；证据来源仍是各自原来的字段，没有新数据面。
+  let bookSort = null;   // null = 默认「需动作的排最前」，点表头才切成列排序
+
+  function bookEvidence() {
+    const ev = {};
+    const put = (tk, k, v) => { if (!tk) return; (ev[tk] = ev[tk] || {})[k] = v; };
     const projection = safe(DATA, "brief_projection") || {};
-    const projected = projection.schema_version === 1
-      ? (projection.tickers || [])
-      : [];
-    const H = safe(DATA, "holdings") || {};
-    // dashboard.holdings is the current ledger projection. The brief sidecar
-    // publishes independently and may be days older, so it may enrich a ticker
-    // but must never own membership in a card labelled current holdings.
-    const holds = [...(H.us || []), ...(H.hk || [])].filter(h =>
-      h && h.is_active !== false && (h.shares ?? 0) > 0);
-    if (!holds.length) { card.style.display = 'none'; return; }
-    card.style.display = '';
+    (projection.schema_version === 1 ? (projection.tickers || []) : []).forEach(r => put(r.ticker, "proj", r));
+
     const qrows = ((safe(DATA, "quant_signals") || {}).rows) || {};
-    // 杠杆 ETF→底层标的映射（量化按标的算，ETF 本身无 quant 行）。
-    // 双源：lev_regime.us.names 的 etf/underlying + quant 行 note "X 的标的"。
     const etf2u = {};
     (((safe(DATA, "lev_regime") || {}).us || {}).names || []).forEach(n => {
       if (n.etf && n.underlying) etf2u[n.etf] = n.underlying;
     });
     Object.keys(qrows).forEach(u => {
-      const m = (qrows[u].note || '').match(/^(\S+)\s*的标的/);
+      const m = (qrows[u].note || "").match(/^(\S+)\s*的标的/);
       if (m) etf2u[m[1]] = u;
     });
+    const usable = r => r && (!r.status || r.status === "fresh");
+    flatHoldings().forEach(h => {
+      const direct = usable(qrows[h.ticker]) ? qrows[h.ticker] : null;
+      const px = !direct && etf2u[h.ticker] && usable(qrows[etf2u[h.ticker]]) ? etf2u[h.ticker] : "";
+      const q = direct || (px ? qrows[px] : null);
+      if (q) { put(h.ticker, "q", q); if (px) put(h.ticker, "proxy", px); }
+    });
+
     const rg = safe(DATA, "risk_guardrail") || {};
-    const action = {};
-    (rg.breaches || []).forEach(b => { if (b.ticker && !action[b.ticker]) action[b.ticker] = { txt: '减仓', col: 'var(--warning)', kind: 'trim' }; });
-    (rg.hard_stop_watch || []).forEach(s => { if (s.ticker) action[s.ticker] = { txt: '止损', col: 'var(--negative)', kind: 'stop' }; });
-    const sign = v => v == null ? '' : `style="color:${v < 0 ? 'var(--negative)' : 'var(--positive)'}"`;
-    const num = (v, suf = '') => v == null ? '—' : `${v}${suf}`;
-    const rsiCls = r => r == null ? '' : (r >= 70 ? 'style="color:var(--negative)"' : (r <= 30 ? 'style="color:var(--positive)"' : ''));
-    // 52w 位置条：0=近一年低位(便宜/绿) 100=近一年高位(追高/红)
-    const rangeBar = p => {
-      if (p == null) return '<span class="muted">—</span>';
-      const pos = Math.max(0, Math.min(100, p));
-      const col = p >= 80 ? 'var(--negative)' : (p <= 20 ? 'var(--positive)' : 'var(--neutral)');
-      return `<span style="position:relative;width:52px;height:8px;background:rgba(128,128,128,.18);border-radius:4px;display:inline-block;vertical-align:middle">` +
-        `<span style="position:absolute;left:${pos}%;top:-2px;width:3px;height:12px;background:${col};border-radius:2px;transform:translateX(-50%)"></span></span>` +
-        `<span class="muted" style="font-size:10px;margin-left:5px">${Math.round(p)}</span>`;
-    };
-    let usedProxy = false;
-    // 综合 verdict：状态分级(rank 越小越需关注)。强动作来自硬闸(kcn 已定框架)，
-    // 其余仅给技术面状态，不臆造买卖结论(主动信号 edge 弱，见 calibration)。
-    const verdict = (q, a) => {
-      if (a && a.kind === 'stop') return { rank: 0, label: '止损/换1x', state: 'critical' };
-      if (a && a.kind === 'trim') return { rank: 1, label: '减仓', state: 'elevated' };
-      if (q.trend_on === true) return { rank: 4, label: '趋势ON', state: 'positive' };
-      if (q.rsi14 != null && q.rsi14 <= 30) return { rank: 2, label: '超卖·观望', state: 'elevated' };
-      if (q.tag || q.rsi14 != null) return { rank: 3, label: '趋势off·观望', state: 'neutral' };
-      return { rank: 5, label: '—', state: 'neutral' };
-    };
-    const projectedByTicker = new Map(projected.map(row => [row.ticker, row]));
-    let usedProjection = false;
-    const enriched = holds.map(h => {
-        const row = projectedByTicker.get(h.ticker);
-        if (row) {
-          usedProjection = true;
-          const q = row.technical || {};
-          const proxy = q.is_proxy ? q.source_ticker : '';
-          if (proxy) usedProxy = true;
-          const riskAction = (row.risk || {}).action;
-          const a = riskAction ? {
-            txt: riskAction.label,
-            col: riskAction.kind === 'stop' ? 'var(--negative)' : 'var(--warning)',
-            kind: riskAction.kind,
-          } : null;
-          return {
-            h: {
-              ticker: h.ticker,
-              // Projection owns analysis; current marks remain live intraday.
-              today_change_pct: h.today_change_pct ?? (row.facts || {}).today_change_pct,
-              pnl_percent: h.pnl_percent ?? (row.facts || {}).pnl_pct,
-            },
-            q,
-            a,
-            proxy,
-            v: row.status || verdict(q, a),
-          };
-        }
-        const usable = r => r && (!r.status || r.status === 'fresh');
-        const direct = usable(qrows[h.ticker]) ? qrows[h.ticker] : null;
-        const proxy = !direct && etf2u[h.ticker] && usable(qrows[etf2u[h.ticker]]) ? etf2u[h.ticker] : '';
-        if (proxy) usedProxy = true;
-        const q = direct || (proxy ? qrows[proxy] : {}) || {};
-        const a = action[h.ticker];
-        return { h, q, a, proxy, v: verdict(q, a) };
+    (rg.breaches || []).forEach(b => put(b.ticker, "breach", b));
+    (rg.hard_stop_watch || []).forEach(s => put(s.ticker, "stop", s));
+    (safe(DATA, "today_ranges") || []).forEach(r => put(r.ticker, "range", r));
+    ((safe(DATA, "breakeven_math") || {}).rows || []).forEach(r => put(r.ticker, "be", r));
+    ((safe(DATA, "peer_divergence") || {}).items || []).forEach(i => put(i.ticker, "peer", i));
+    (safe(DATA, "bear_cases") || []).forEach(c => put(c.ticker, "bear", c));
+    (safe(DATA, "weight_confidence") || []).forEach(w => put(w.ticker, "conv", w));
+    const t0rows = (safe(DATA, "t0_setups") || {}).rows || {};
+    Object.entries(t0rows).forEach(([k, v]) => put(k, "t0", v));
+    (safe(DATA, "plan_timeline") || []).forEach(a => {
+      if (!a.ticker) return;
+      const e = (ev[a.ticker] = ev[a.ticker] || {});
+      (e.plans = e.plans || []).push(a);
+    });
+    (safe(DATA, "decision_traces") || []).forEach(t => {
+      if (!t.ticker) return;
+      const e = (ev[t.ticker] = ev[t.ticker] || {});
+      (e.fills = e.fills || []).push(t);
+    });
+    const hn = safe(DATA, "em_news", "holdings_news") || {};
+    Object.entries(hn).forEach(([tk, v]) => put(tk, "news", v));
+    return ev;
+  }
+
+  // 强动作只来自硬闸（kcn 定的框架）；其余只给技术状态，不臆造买卖结论。
+  function bookVerdict(q, action) {
+    if (action && action.kind === "stop") return { rank: 0, label: "止损/换1x", state: "critical" };
+    if (action && action.kind === "trim") return { rank: 1, label: "减仓", state: "elevated" };
+    if (q && q.trend_on === true) return { rank: 4, label: "趋势ON", state: "positive" };
+    if (q && q.rsi14 != null && q.rsi14 <= 30) return { rank: 2, label: "超卖·观望", state: "elevated" };
+    if (q && (q.tag || q.rsi14 != null)) return { rank: 3, label: "趋势off·观望", state: "neutral" };
+    return { rank: 5, label: DASH, state: "neutral" };
+  }
+
+  function bookDetail(h, e) {
+    const ccy = h.region === "hk" ? "HKD" : "USD";
+    const q = e.q || safe(e, "proj", "technical") || {};
+    const cols = [];
+    const kv = (k, v, cls) =>
+      `<div class="bd-kv"><span class="k">${escapeHtml(k)}</span><span class="v ${cls || ""}">${v}</span></div>`;
+    const numOr = (v, suf) => v == null ? DASH : `${v}${suf || ""}`;
+
+    const tech = [];
+    if (q.rsi14 != null) tech.push(kv("RSI 14", numOr(q.rsi14), q.rsi14 >= 70 ? "neg" : q.rsi14 <= 30 ? "pos" : ""));
+    if (q.zscore20 != null) tech.push(kv("z-score 20", numOr(q.zscore20)));
+    if (q.dist_ma200_pct != null) tech.push(kv("距 MA200", numOr(q.dist_ma200_pct, "%"), pnlClass(q.dist_ma200_pct)));
+    if (q.stop_distance_pct != null) tech.push(kv("止损距", numOr(q.stop_distance_pct, "%")));
+    if (q.vol_target_weight != null) tech.push(kv("vol 目标仓位", numOr(q.vol_target_weight)));
+    if (q.tag) tech.push(kv("因子状态", escapeHtml(q.tag)));
+    if (q.pct_52w_range != null) {
+      const p = Math.max(0, Math.min(100, q.pct_52w_range));
+      tech.push(`<div class="bd-pos"><span class="bd-pos-lbl">52 周位置 ${Math.round(q.pct_52w_range)}</span>`
+        + `<span class="bd-pos-track"><i style="left:${p}%"></i></span>`
+        + `<span class="bd-pos-ends"><span>低</span><span>高</span></span></div>`);
+    }
+    if (tech.length) cols.push(`<div class="bd-col"><div class="bd-k">技术</div>${tech.join("")}</div>`);
+
+    const r = e.range;
+    if (r && r.high != null && r.low != null) {
+      const span = (r.high - r.low) || 1;
+      const p = Math.max(0, Math.min(100, ((r.current - r.low) / span) * 100));
+      cols.push(`<div class="bd-col"><div class="bd-k">当日区间</div>`
+        + kv("振幅", r.range_pct == null ? DASH : r.range_pct.toFixed(1) + "%")
+        + kv("现价", fmtMoney(r.current, ccy))
+        + `<div class="bd-pos"><span class="bd-pos-track"><i style="left:${p}%"></i></span>`
+        + `<span class="bd-pos-ends"><span>${escapeHtml(String(r.low))}</span><span>${escapeHtml(String(r.high))}</span></span></div></div>`);
+    }
+
+    const risk = [];
+    if (e.breach) risk.push(`<div class="bd-note neg">硬闸 · ${escapeHtml(stripEmoji(e.breach.detail || e.breach.action || ""))}</div>`);
+    if (e.stop) risk.push(`<div class="bd-note neg">止损盯防 · ${escapeHtml(stripEmoji(e.stop.detail || e.stop.action || ""))}</div>`);
+    if (e.be) {
+      risk.push(kv("回本需", "+" + e.be.breakeven_need_pct + "%", "neg"));
+      if (e.be.leveraged) risk.push(kv("横盘 decay", "≈" + e.be.chop_drag_pct_per_month + "%/月"));
+    }
+    if (e.conv) risk.push(kv("仓位 × 信心",
+      `${e.conv.weight_pct}% · conf ${Math.round((e.conv.avg_confidence || 0) * 100)}%`,
+      e.conv.quadrant === "high_risk" ? "neg" : ""));
+    if (e.peer && e.peer.divergence_pp != null) risk.push(kv(
+      `同行 vs ${escapeHtml(e.peer.best_peer_name || e.peer.best_peer || "")}`,
+      (e.peer.divergence_pp > 0 ? "落后 " : "领先 ") + Math.abs(e.peer.divergence_pp).toFixed(1) + "pp",
+      e.peer.divergence_pp > 0 ? "neg" : "pos"));
+    if (risk.length) cols.push(`<div class="bd-col"><div class="bd-k">风险</div>${risk.join("")}</div>`);
+
+    if (e.t0) {
+      cols.push(`<div class="bd-col"><div class="bd-k">T+0 牌面</div>`
+        + kv(stripEmoji(e.t0.grade_label || "牌面").slice(0, 12), numOr(e.t0.range_pos, "% 位"))
+        + kv("缺口", numOr(e.t0.gap_pct, "%"), pnlClass(e.t0.gap_pct))
+        + kv("振幅 / ATR", numOr(e.t0.range_used_atr, "×"))
+        + `<div class="bd-note">${escapeHtml(stripEmoji(e.t0.grade_reason || ""))}</div></div>`);
+    }
+
+    const acts = (e.plans || []).slice(0, 3).map(a =>
+      kv(`${escapeHtml(a.date || "")} ${escapeHtml(a.action || "")}`,
+         a.confidence == null ? "" : "conf " + Math.round(a.confidence * 100) + "%")
+      + (a.rationale ? `<div class="bd-note">${escapeHtml(String(a.rationale).slice(0, 130))}</div>` : "")).join("");
+    const fills = (e.fills || []).slice(0, 3).map(f =>
+      kv(`${escapeHtml(String(f.date || "").slice(0, 10))} ${escapeHtml(f.action || "")} ${escapeHtml(String(f.shares))}`,
+         "@" + escapeHtml(String(f.price)))).join("");
+    if (acts || fills) cols.push(`<div class="bd-col"><div class="bd-k">计划与成交</div>${acts}${fills}</div>`);
+
+    if (e.bear || e.news) {
+      const news = e.news ? ((e.news.items || []).slice(0, 3).map(it =>
+        `<div class="bd-note">${escapeHtml(it.date || "")} · ${escapeHtml(it.title || "")}</div>`).join("")) : "";
+      cols.push(`<div class="bd-col"><div class="bd-k">论点与消息</div>`
+        + (e.bear ? `<div class="bd-note">${escapeHtml(e.bear.thesis || "")}</div>`
+            + `<div class="bd-note">证伪：${escapeHtml(e.bear.falsifier || DASH)} · 盯：${escapeHtml(e.bear.watch || DASH)}</div>` : "")
+        + news + `</div>`);
+    }
+
+    return cols.length ? `<div class="bd-grid">${cols.join("")}</div>`
+      : `<div class="bd-empty">这只票今天没有额外证据：量化、硬闸、区间、同行都没有写入。</div>`;
+  }
+
+  function renderBook() {
+    const tbody = document.getElementById("book-tbody");
+    if (!tbody) return;
+    const holds = flatHoldings();
+    const countEl = document.getElementById("book-count");
+    if (countEl) countEl.textContent = holds.length ? `(${holds.length})` : "";
+
+    const ev = bookEvidence();
+    const rgAction = {};
+    const rg = safe(DATA, "risk_guardrail") || {};
+    (rg.breaches || []).forEach(b => { if (b.ticker && !rgAction[b.ticker]) rgAction[b.ticker] = { txt: "减仓", kind: "trim" }; });
+    (rg.hard_stop_watch || []).forEach(s => { if (s.ticker) rgAction[s.ticker] = { txt: "止损", kind: "stop" }; });
+
+    let usedProjection = false, usedProxy = false;
+    const rows = holds.map(h => {
+      const e = ev[h.ticker] || {};
+      const proj = e.proj;
+      let q = e.q || {}, action = rgAction[h.ticker] || null;
+      if (proj) {
+        usedProjection = true;
+        q = proj.technical || q;
+        const ra = (proj.risk || {}).action;
+        if (ra) action = { txt: ra.label, kind: ra.kind };
+      }
+      if (e.proxy || (q && q.is_proxy)) usedProxy = true;
+      const v = (proj && proj.status) || bookVerdict(q, action);
+      return { h, e, q, action, v };
+    });
+
+    if (bookSort) {
+      const { key, dir } = bookSort;
+      rows.sort((a, b) => {
+        const av = a.h[key], bv = b.h[key];
+        if (av == null && bv == null) return 0;
+        if (av == null) return 1;
+        if (bv == null) return -1;
+        if (typeof av === "string") return dir === "asc" ? av.localeCompare(bv) : String(bv).localeCompare(av);
+        return dir === "asc" ? av - bv : bv - av;
       });
-    // 排序：需要动作的优先(rank 升序)，同级浮亏深的在前 → 最该看的在最上面
-    enriched.sort((x, y) => (x.v.rank - y.v.rank) || ((x.h.pnl_percent ?? 0) - (y.h.pnl_percent ?? 0)));
-    document.getElementById('decision-matrix-tbody').innerHTML = enriched.map(({ h, q, a, proxy, v }) => {
-      const mk = proxy ? `<sup style="color:var(--muted,#9ca3af)" title="杠杆ETF · 量化列取底层 ${proxy}">▵</sup>` : '';
-      return `<tr>` +
-        `<td><strong>${h.ticker}</strong>${mk}</td>` +
-        `<td style="font-size:11px"><span class="matrix-status ${v.state}">${v.label}</span></td>` +
-        `<td class="num" ${sign(h.today_change_pct)}>${num(h.today_change_pct, '%')}</td>` +
-        `<td class="num" ${sign(h.pnl_percent)}>${num(h.pnl_percent, '%')}</td>` +
-        `<td>${rangeBar(q.pct_52w_range)}</td>` +
-        `<td class="num" ${rsiCls(q.rsi14)}>${num(q.rsi14)}</td>` +
-        `<td class="num" ${sign(q.dist_ma200_pct)}>${num(q.dist_ma200_pct, '%')}</td>` +
-        `<td style="font-size:10px">${a ? `<span style="color:${a.col};font-weight:600">${a.txt}</span>` : '<span class="muted">—</span>'}</td>` +
-        `</tr>`;
-    }).join('');
-    document.getElementById('decision-matrix-note').textContent =
-      '综合：止损/减仓=硬闸规则(必动)，观望/趋势ON=技术状态(非买卖建议)。按需动作优先排序。'
-      + '52w位置：绿=近一年低位(便宜)、红=高位(追高警惕)。'
-      + (usedProjection ? '匹配行由 harness projection 编译；当前持仓成员以最新账本为准。' : '兼容模式：等待 projection。')
-      + (usedProxy ? '▵=杠杆ETF量化列取底层标的。' : '');
+    } else {
+      // 默认：需要动作的排最前，同级浮亏深的在前
+      rows.sort((x, y) => (x.v.rank - y.v.rank) || ((x.h.pnl_percent ?? 0) - (y.h.pnl_percent ?? 0)));
+    }
+
+    const shares = n => n == null || isNaN(n) ? DASH : Number(n).toLocaleString("en-US", { maximumFractionDigits: 0 });
+    const price = (n, ccy) => n == null || isNaN(n) || n === 0 ? DASH : fmtMoney(n, ccy);
+    tbody.innerHTML = rows.map(({ h, e, q, v }) => {
+      const ccy = h.region === "hk" ? "HKD" : "USD";
+      const proxyMark = (e.proxy || (q && q.is_proxy))
+        ? `<sup class="muted" title="杠杆ETF · 量化列取底层 ${escapeHtml(e.proxy || q.source_ticker || "")}">▵</sup>` : "";
+      return `
+        <tr class="book-row" tabindex="0" role="button" aria-expanded="false" data-open="0" data-ticker="${escapeHtml(h.ticker || "")}">
+          <td><span class="ticker region-${h.region}">${escapeHtml(h.ticker || DASH)}</span>${proxyMark}<span class="book-caret" aria-hidden="true">›</span></td>
+          <td class="name-cell col-p2">${escapeHtml(h.name || "")}</td>
+          <td style="font-size:11px"><span class="matrix-status ${v.state}">${escapeHtml(v.label)}</span></td>
+          <td class="num col-p2">${shares(h.shares)}</td>
+          <td class="num col-p2">${price(h.cost_basis, ccy)}</td>
+          <td class="num">${price(h.current_price, ccy)}</td>
+          <td class="num">${fmtMoney(h.current_value, ccy)}</td>
+          <td class="num spark-cell col-p3">${sparklineSVG((safe(DATA, "holdings_history", h.ticker) || []), 56, 18)}</td>
+          <td class="num cell-stack">
+            <div class="${pnlClass(h.today_change)}">${fmtMoney(h.today_change, ccy)}</div>
+            <div class="cell-sub ${pnlClass(h.today_change_pct)}">${fmtPct(h.today_change_pct)}</div>
+          </td>
+          <td class="num cell-stack">
+            <div class="${pnlClass(h.pnl_abs)}">${fmtMoney(h.pnl_abs, ccy)}</div>
+            <div class="cell-sub ${pnlClass(h.pnl_percent)}">${fmtPct(h.pnl_percent)}</div>
+          </td>
+        </tr>
+        <tr class="book-detail" data-open="0"><td colspan="10"><div class="bd-wrap"><div class="bd-inner">${bookDetail(h, e)}</div></div></td></tr>`;
+    }).join("");
+
+    const note = document.getElementById("book-note");
+    if (note) {
+      note.textContent = "点任意一行展开这只票的全部证据。状态：止损/减仓 = 硬闸规则（必动），观望/趋势ON = 技术状态，不是买卖建议。"
+        + "52 周位置：低位 = 近一年便宜，高位 = 追高警惕。"
+        + (usedProjection ? "匹配行由 harness projection 编译；当前持仓成员以最新账本为准。" : "兼容模式：等待 projection。")
+        + (usedProxy ? " ▵ = 杠杆 ETF，量化列取底层标的。" : "");
+    }
+    const meta = document.getElementById("book-meta");
+    if (meta) meta.textContent = bookSort ? "按列排序" : "需动作的排最前";
+
+    if (tbody.dataset.wired !== "1") {
+      tbody.dataset.wired = "1";
+      const toggle = tr => {
+        const det = tr.nextElementSibling;
+        if (!det || !det.classList.contains("book-detail")) return;
+        const open = tr.dataset.open === "1" ? "0" : "1";
+        tr.dataset.open = open;
+        det.dataset.open = open;
+        tr.setAttribute("aria-expanded", open === "1" ? "true" : "false");
+      };
+      tbody.addEventListener("click", e => {
+        const tr = e.target.closest("tr.book-row");
+        if (tr && tbody.contains(tr)) toggle(tr);
+      });
+      tbody.addEventListener("keydown", e => {
+        if (e.key !== "Enter" && e.key !== " ") return;
+        const tr = e.target.closest("tr.book-row");
+        if (!tr) return;
+        e.preventDefault();
+        toggle(tr);
+      });
+    }
+
+    // Wire sort headers
+    document.querySelectorAll("#book-table thead th").forEach(th => {
+      th.onclick = () => {
+        const k = th.dataset.sort;
+        if (!k) return;
+        if (bookSort && bookSort.key === k) bookSort.dir = bookSort.dir === "asc" ? "desc" : "asc";
+        else bookSort = { key: k, dir: "desc" };
+        document.querySelectorAll("#book-table thead th").forEach(x => {
+          const isActive = bookSort && x.dataset.sort === bookSort.key;
+          x.classList.toggle("active-sort", !!isActive);
+          const label = x.textContent.replace(/[▲▼]/g, "").trim();
+          x.replaceChildren();
+          x.append(label);
+          if (isActive) {
+            const arrow = document.createElement("span");
+            arrow.className = "arr";
+            arrow.textContent = bookSort.dir === "asc" ? "▲" : "▼";
+            x.append(" ", arrow);
+          }
+        });
+        renderBook();
+      };
+    });
+    // end sort headers
   }
 
   function renderAddCampaign() {
@@ -1520,7 +1698,8 @@
     } else {
       const d = campaign.diagnostics || {};
       const tiers = d.tier_counts || {};
-      status.textContent = `ideas ${d.observed_idea_count ?? d.observed_candidate_count ?? 0} · authority ${d.authority_candidate_count || 0}/${d.held_names || 0}`;
+      // h3 和徽章之间没有分隔符，线上渲染成「ADD CAMPAIGNideas 0 · authority 0/10」
+      status.textContent = `· ideas ${d.observed_idea_count ?? d.observed_candidate_count ?? 0} · authority ${d.authority_candidate_count || 0}/${d.held_names || 0}`;
       status.className = "badge muted";
       const stateLabel = {
         eligible: "可执行", waiting_timing: "等技术位", risk_blocked: "风险拦截",
@@ -1548,10 +1727,9 @@
       const rows = (campaign.candidates || []).slice().sort((a, b) =>
         String(a.leg || "").localeCompare(String(b.leg || "")) ||
         String(a.ticker || "").localeCompare(String(b.ticker || "")));
-      const legBlock = leg => {
-        const inLeg = rows.filter(row => row.leg === leg);
-        return `<section class="add-campaign-leg"><h4>${leg} · ${inLeg.length} holdings</h4>` +
-          (inLeg.length ? inLeg.map(row => {
+      // 十只票每只一张卡、每张重复同样四个 pill = 同一句话说十遍。全员同态时
+      // 只留一行摘要，明细收进 details；有分歧时才逐个展开。(#875)
+      const candidateRow = row => {
             const authorityBlockers = row.authority_blockers || [];
             const executionBlockers = row.execution_blockers || [];
             const families = (row.evidence_families || []).join(" + ") || "—";
@@ -1568,7 +1746,24 @@
               ${earlyLine}
               <div class="campaign-blockers"><b>authority</b>${authorityBlockers.length ? authorityBlockers.map(v => `<span>${escapeHtml(blockerLabel[v] || v)}</span>`).join("") : "<span>none</span>"}<b>execution</b>${executionBlockers.length ? executionBlockers.map(v => `<span>${escapeHtml(blockerLabel[v] || v)}</span>`).join("") : "<span>none</span>"}</div>
             </div>`;
-          }).join("") : '<div class="empty-state">No held names.</div>') + `</section>`;
+      };
+      const uniformState = (() => {
+        const states = new Set(rows.map(r => r.state || "unknown"));
+        return states.size === 1 && rows.length > 2 ? [...states][0] : null;
+      })();
+      const legBlock = leg => {
+        const inLeg = rows.filter(row => row.leg === leg);
+        if (uniformState) {
+          const names = inLeg.map(r => escapeHtml(r.ticker || "?")).join(" · ");
+          return `<section class="add-campaign-leg"><h4>${leg} · ${inLeg.length} holdings</h4>`
+            + (inLeg.length
+              ? `<details class="campaign-fold"><summary>全部 ${inLeg.length} 只同态：${escapeHtml(stateLabel[uniformState] || uniformState)}<span class="campaign-fold-names">${names}</span></summary>`
+                + inLeg.map(row => candidateRow(row)).join("") + `</details>`
+              : '<div class="empty-state">—</div>')
+            + `</section>`;
+        }
+        return `<section class="add-campaign-leg"><h4>${leg} · ${inLeg.length} holdings</h4>` +
+          (inLeg.length ? inLeg.map(candidateRow).join("") : '<div class="empty-state">No held names.</div>') + `</section>`;
       };
       body.innerHTML = `<div class="campaign-summary">packet ${escapeHtml(campaign.packet_generated_at || "—")} · generation ${escapeHtml(campaign.context_generation_id || "—")} · early ideas ${d.observed_idea_count ?? d.observed_candidate_count ?? 0} · early exploration ideas ${d.early_exploration_ready_idea_count ?? d.early_exploration_ready_count ?? 0} · mature validated ${tiers.validated || 0} / exploration ${tiers.exploration || 0}</div><div class="add-campaign-legs">${legBlock("US")}${legBlock("HK")}</div>`;
     }
@@ -1598,74 +1793,6 @@
     evidence.innerHTML = `<div class="campaign-evidence-head"><b>Independent run card · ${escapeHtml(run.run_id || "—")}</b><span>diagnostic / collecting，不是 validated alpha</span></div><div class="campaign-market-grid">${market("us")}${market("hk")}</div><div class="campaign-coverage"><b>early candidate replay</b> · US ${earlyHorizon("us", "t1")} / ${earlyHorizon("us", "t5")} · HK ${earlyHorizon("hk", "t1")} / ${earlyHorizon("hk", "t5")} · observed ${earlyCoverage.observed_candidates ?? 0}, information-confirmed ${earlyCoverage.information_confirmed ?? 0}, exploration-ready ${earlyCoverage.exploration_ready ?? 0}</div><div class="campaign-coverage">factor ${coverage.factor_dates ?? "—"} dates · information ${coverage.information_dates ?? "—"} · overlap ${coverage.overlap_dates ?? "—"} · prospective ${coverage.prospective_information_dates ?? "—"} · authority none ${auth.none ?? 0} / explore ${auth.exploration ?? 0} / validated ${auth.validated ?? 0}</div>`;
   }
 
-  function renderHoldings() {
-    const tbody = document.getElementById("holdings-tbody");
-    const data = flatHoldings();
-    document.getElementById("holdings-count").textContent = data.length ? `(${data.length})` : "";
-    const { key, dir } = holdingsSort;
-    data.sort((a, b) => {
-      const av = a[key], bv = b[key];
-      if (av == null && bv == null) return 0;
-      if (av == null) return 1;
-      if (bv == null) return -1;
-      if (typeof av === "string") return dir === "asc" ? av.localeCompare(bv) : bv.localeCompare(av);
-      return dir === "asc" ? av - bv : bv - av;
-    });
-    const fmtShares = (n) => n == null || isNaN(n) ? DASH : Number(n).toLocaleString("en-US", { maximumFractionDigits: 0 });
-    const fmtPrice = (n, ccy) => n == null || isNaN(n) || n === 0 ? DASH : fmtMoney(n, ccy);
-    const dualCell = (abs, pct, cls) => `
-      <div class="${cls}">${fmtMoney(abs, ccy)}</div>
-      <div class="cell-sub ${cls}">${fmtPct(pct)}</div>`;
-    tbody.innerHTML = data.map(h => {
-      const ccy = h.region === "hk" ? "HKD" : "USD";
-      return `
-        <tr>
-          <td><span class="ticker region-${h.region}">${h.ticker || DASH}</span></td>
-          <td class="name-cell">${h.name || ""}</td>
-          <td class="num">${fmtShares(h.shares)}</td>
-          <td class="num">${fmtPrice(h.cost_basis, ccy)}</td>
-          <td class="num">${fmtPrice(h.current_price, ccy)}</td>
-          <td class="num">${fmtMoney(h.current_value, ccy)}</td>
-          <td class="num spark-cell">${sparklineSVG((safe(DATA, "holdings_history", h.ticker) || []), 56, 18)}</td>
-          <td class="num cell-stack">
-            <div class="${pnlClass(h.today_change)}">${fmtMoney(h.today_change, ccy)}</div>
-            <div class="cell-sub ${pnlClass(h.today_change_pct)}">${fmtPct(h.today_change_pct)}</div>
-          </td>
-          <td class="num cell-stack">
-            <div class="${pnlClass(h.pnl_abs)}">${fmtMoney(h.pnl_abs, ccy)}</div>
-            <div class="cell-sub ${pnlClass(h.pnl_percent)}">${fmtPct(h.pnl_percent)}</div>
-          </td>
-        </tr>
-      `;
-    }).join("");
-
-    // Wire sort headers
-    document.querySelectorAll("#holdings-table thead th").forEach(th => {
-      th.onclick = () => {
-        const k = th.dataset.sort;
-        if (!k) return;
-        if (holdingsSort.key === k) {
-          holdingsSort.dir = holdingsSort.dir === "asc" ? "desc" : "asc";
-        } else {
-          holdingsSort = { key: k, dir: "desc" };
-        }
-        document.querySelectorAll("#holdings-table thead th").forEach(x => {
-          const isActive = x.dataset.sort === holdingsSort.key;
-          x.classList.toggle("active-sort", isActive);
-          const label = x.textContent.replace(/[▲▼]/g, "").trim();
-          x.replaceChildren();
-          x.append(label);
-          if (isActive) {
-            const arrow = document.createElement("span");
-            arrow.className = "arr";
-            arrow.textContent = holdingsSort.dir === "asc" ? "▲" : "▼";
-            x.append(" ", arrow);
-          }
-        });
-        renderHoldings();
-      };
-    });
-  }
 
   function renderShadowPortfolioCard() {
     const empty = document.getElementById("shadow-portfolio-empty");
@@ -1851,29 +1978,6 @@
       const html = visibleRows.map(r => row(r.icon, r.severity, r.detail, compact ? "" : r.action)).join('');
       listEl.innerHTML = html || '<div class="muted" style="font-size:12px">仓位/单因子/杠杆均在阈值内</div>';
     });
-  }
-
-  function renderBreakevenMath() {
-    const bm = safe(DATA, "breakeven_math");
-    const card = document.getElementById('breakeven-card');
-    if (!card) return;
-    const rows = (bm && bm.rows) || [];
-    if (!rows.length) { card.style.display = 'none'; return; }
-    card.style.display = '';
-    const html = rows.map(r => {
-      let extra = '';
-      if (r.leveraged && r.underlying_vol_pct != null) {
-        extra = `<div class="muted" style="font-size:11px;margin-top:2px">标的σ ${r.underlying_vol_pct}% · 横盘 decay ≈${r.chop_drag_pct_per_month}%/月 · ` +
-                `半年直线路径标的需 +${r.underlying_need_2x_6m_pct}%` +
-                (r.swap_1x ? ` · 换 1x(${r.swap_1x}) 后需 +${r.underlying_need_if_1x_pct}%` : '') + `</div>`;
-      }
-      return `<div class="risk-alert ${r.leveraged ? 'high' : 'medium'}">
-         <span class="icon"></span>
-         <div><strong>${r.ticker}</strong> 浮亏 ${r.pnl_pct}% → 回本需 +${r.breakeven_need_pct}%${extra}</div>
-       </div>`;
-    }).join('');
-    document.getElementById('breakeven-list').innerHTML = html;
-    document.getElementById('breakeven-note').textContent = bm.note || '';
   }
 
   function renderQuantSignals() {
@@ -2304,49 +2408,7 @@
     document.getElementById("lev-tickers").textContent = tk.length ? `2x/3x ETFs: ${tk.join(", ")}` : "—";
   }
 
-  function renderTodayRange() {
-    const list = safe(DATA, "today_ranges") || [];
-    const wrap = document.getElementById("range-list");
-    if (!list.length) {
-      wrap.innerHTML = '<div class="empty-state">No range data yet.</div>';
-      return;
-    }
-    const maxPct = Math.max(1, ...list.map(r => r.range_pct || 0));
-    wrap.innerHTML = list.map(r => {
-      const pctFill = ((r.range_pct || 0) / maxPct) * 100;
-      // dot position: (current - low) / (high - low) * 100
-      const spread = (r.high - r.low) || 1;
-      const dotPct = Math.max(0, Math.min(100, ((r.current - r.low) / spread) * 100));
-      return `
-        <div class="range-row">
-          <div class="tk">${r.ticker}</div>
-          <div class="range-bar">
-            <div class="fill" style="width:${pctFill}%"></div>
-            <div class="dot" style="left:${dotPct}%"></div>
-          </div>
-          <div class="val">${fmtPct(r.range_pct, 1)}</div>
-        </div>`;
-    }).join("");
-  }
 
-  function renderExtremes() {
-    // Old-key fallback keeps the card populated during a staggered HTML/JSON deploy.
-    const ext = safe(DATA, "current_holdings_extremes") || safe(DATA, "all_time_extremes") || {};
-    const render = (rows, elId) => {
-      const el = document.getElementById(elId);
-      if (!rows || !rows.length) {
-        el.innerHTML = '<div class="empty-state">—</div>';
-        return;
-      }
-      el.innerHTML = rows.map(r => `
-        <div class="extremes-row">
-          <span class="tk">${r.ticker}</span>
-          <span class="${pnlClass(r.pnl_percent)}">${fmtPct(r.pnl_percent, 1)}</span>
-        </div>`).join("");
-    };
-    render(ext.winners, "extremes-winners");
-    render(ext.losers, "extremes-losers");
-  }
 
   // Episode-level historical win-rate badge for a decision action.
   // Lets you discount each LLM action at a glance: ⚠ <45% (worse than coin flip),
@@ -2412,7 +2474,9 @@
   // =========================================================
   // LLM narrative cards (text-only; keys never reach the client)
   // =========================================================
-  const escLLM = s => String(s == null ? "" : s).replace(/[<>&"]/g,
+  // LLM 写的正文同样不渲染 emoji：行为复盘的 💡⚠️、空头论点里的装饰符号，
+  // 语义已经由标签和颜色承担。(#869 的口径，这里补上 LLM 文本这一路)
+  const escLLM = s => stripEmoji(String(s == null ? "" : s)).replace(/[<>&"]/g,
     c => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", "\"": "&quot;" }[c]));
 
   function renderBehavioralReview() {
@@ -3259,6 +3323,29 @@
   // =========================================================
   // 历史净值极值 — peak / trough / max drawdown (equity basis)
   // =========================================================
+  function renderBreakevenMath() {
+    const bm = safe(DATA, "breakeven_math");
+    const card = document.getElementById('breakeven-card');
+    if (!card) return;
+    const rows = (bm && bm.rows) || [];
+    if (!rows.length) { card.style.display = 'none'; return; }
+    card.style.display = '';
+    const html = rows.map(r => {
+      let extra = '';
+      if (r.leveraged && r.underlying_vol_pct != null) {
+        extra = `<div class="muted" style="font-size:11px;margin-top:2px">标的σ ${r.underlying_vol_pct}% · 横盘 decay ≈${r.chop_drag_pct_per_month}%/月 · ` +
+                `半年直线路径标的需 +${r.underlying_need_2x_6m_pct}%` +
+                (r.swap_1x ? ` · 换 1x(${r.swap_1x}) 后需 +${r.underlying_need_if_1x_pct}%` : '') + `</div>`;
+      }
+      return `<div class="risk-alert ${r.leveraged ? 'high' : 'medium'}">
+         <span class="icon"></span>
+         <div><strong>${r.ticker}</strong> 浮亏 ${r.pnl_pct}% → 回本需 +${r.breakeven_need_pct}%${extra}</div>
+       </div>`;
+    }).join('');
+    document.getElementById('breakeven-list').innerHTML = html;
+    document.getElementById('breakeven-note').textContent = bm.note || '';
+  }
+
   function renderHistoricalExtremes() {
     const dd = safe(DATA, "drawdown") || {};
     const regions = [
