@@ -432,3 +432,81 @@ def test_an_own_row_beats_a_proxy_row_regardless_of_radar_order():
         assert row["evidence"]["prior_20d_high"] == 3.9, order
         assert "proxy_label" not in row["evidence"], order
         assert row["needs"] == "站上 3.9(现距高 -6.92%)", order
+
+
+def test_a_wait_rebreak_pullback_produces_a_logged_wait_row_not_a_drop():
+    """#819: wait_rebreak (uptrend pullback) used to be dropped wholesale, so
+    the desk never collected a single sample. It must now produce a `wait` row
+    whose evidence carries the state — but it must NOT promote (no primary is
+    even required: the promotion gate stays IN_PLAY_STATES-only)."""
+    radar = {"rows": [
+        {"label": "02208", "state": "wait_rebreak", "state_zh": "机会·等回踩",
+         "holdings": ["02208"], "prior_20d_high": 11.72, "pct_from_high": -6.4},
+    ]}
+    out = add_side.read_rows(anomalies=[{"ticker": "02208", "move_pct": -6.4,
+                                         "severity": "high"}], radar=radar)
+    row = _row(out, "02208")
+    assert row["verdict"] == "wait", "a pullback is a logged wait, never a drop"
+    assert row["evidence"]["state"] == "wait_rebreak", "the state must be logged"
+    assert "等回踩" in row["why"], row["why"]
+
+
+def test_wait_rebreak_cannot_promote_even_with_a_primary_filing():
+    """The promotion gate is IN_PLAY_STATES; a primary filing next to a
+    wait_rebreak row must stay `wait` (measure first, unlock later)."""
+    radar = {"rows": [
+        {"label": "02208", "state": "wait_rebreak", "state_zh": "机会·等回踩",
+         "holdings": ["02208"], "prior_20d_high": 11.72, "pct_from_high": -6.4},
+    ]}
+    out = add_side.read_rows(anomalies=[{"ticker": "02208", "move_pct": -6.4,
+                                         "severity": "high"}],
+                             radar=radar, mover_news=PRIMARY)
+    row = _row(out, "02208")
+    assert row["verdict"] == "wait"
+    assert out["candidate_count"] == 0
+
+
+
+def test_a_technical_breakout_alone_is_a_candidate():
+    """#819: the 8-month bars backtest measured a positive edge for the
+    breakout state alone (close > prior 20-day high, not overheated) at every
+    horizon. A primary filing is no longer the promotion key for this state:
+    it upgrades the wording, it is not required."""
+    radar = {"rows": [
+        {"label": "02208", "state": "breakout", "state_zh": "机会·突破",
+         "holdings": ["02208"], "prior_20d_high": 11.72, "pct_from_high": 1.8},
+    ]}
+    out = add_side.read_rows(anomalies=[{"ticker": "02208", "move_pct": 6.4,
+                                         "severity": "high"}], radar=radar)
+    row = _row(out, "02208")
+    assert row["verdict"] == "candidate"
+    assert "突破" in row["why"], row["why"]
+    assert row["needs"].startswith("守住 11.72"), row["needs"]
+    assert out["candidate_count"] == 1
+
+
+def test_a_technical_breakout_with_a_primary_filing_upgrades_the_wording():
+    """Primary + breakout: same candidate, 一手公告 wording on top."""
+    radar = {"rows": [
+        {"label": "02208", "state": "breakout", "state_zh": "机会·突破",
+         "holdings": ["02208"], "prior_20d_high": 11.72, "pct_from_high": 1.8},
+    ]}
+    out = add_side.read_rows(anomalies=[{"ticker": "02208", "move_pct": 6.4,
+                                         "severity": "high"}],
+                             radar=radar, mover_news=PRIMARY)
+    row = _row(out, "02208")
+    assert row["verdict"] == "candidate"
+    assert "一手公告" in row["why"], row["why"]
+    assert row["needs"].startswith("守住 11.72"), row["needs"]
+
+
+def test_near_breakout_without_a_primary_filing_still_waits():
+    """#819: only the confirmed breakout state carries the measured edge;
+    near_breakout alone (no primary) must stay wait - no standalone edge."""
+    out = add_side.read_rows(
+        anomalies=[{"ticker": "02208", "move_pct": 6.4, "severity": "high"}],
+        radar=RADAR, mover_news={"tickers": {"02208": {"status": "no_recent_filing",
+                                                       "items": []}}})
+    row = _row(out, "02208")
+    assert row["verdict"] == "wait"
+    assert out["candidate_count"] == 0

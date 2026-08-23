@@ -114,7 +114,8 @@ clawock intraday preflight --market hk
     (`move_pct` / `pct_from_high` / `prior_20d_high`),写成
     「{票} {verdict}:{why} → {needs}」。多条就写最急的 1-2 条(rows 已按 candidate→reject→wait
     排序)。纪律铁律不变:**三态都不是下单授权**,不许自行补方向、价格、股数;
-    软消息/情绪只能停在 `wait`,只有一手披露才可能促成 `candidate`;
+    软消息/情绪只能停在 `wait`;技术突破态(收盘站上前 20 日高且未过热)本身即促成
+    `candidate`,一手公告只是升级措辞;
     `reject` 说明有纪律动作没走完,这时不要把它写成「可以加仓」。
     带 `evidence.proxy_label` 的行,它的位是**代理标的**的位(恒科指数之于 07226、
     SPCX 之于 SPCH),`needs` 已经把指名写进句子了——**照抄那句,别把
