@@ -217,7 +217,7 @@
     });
     if (fe.length) rows.push(row("消息源 edge", fe.join(" · "), "var(--text-dim)"));
     el.innerHTML = rows.join("")
-      + `<div style="color:var(--text-dim);font-size:10px;margin-top:var(--space-2)">算账在 Python：同策略连续决策按 episode 去重；一个 episode 只出一个样本、取其内部平均而非选某一条；被判定未触发的不结算；执行与建议质量分开统计。</div>`;
+      + `<div style="color:var(--text-dim);font-size:var(--fs-micro);margin-top:var(--space-2)">算账在 Python：同策略连续决策按 episode 去重；一个 episode 只出一个样本、取其内部平均而非选某一条；被判定未触发的不结算；执行与建议质量分开统计。</div>`;
     card.style.display = "";
   }
 
@@ -676,12 +676,11 @@
 
     pnlEl.textContent = heroMoney(totalUsd, "USD");
     pnlEl.className = "hero-deck-pnl " + pnlClass(totalUsd);
+    // 首屏只回答三件事：赚亏多少、其中落袋多少、今天涨没涨。账面与 FX 降到
+    // 下面那条安静行 —— 原来它们挤在同一行，1440 宽下必折行，折行是首屏最
+    // 显眼的「乱」。(#879)
     subEl.innerHTML = `已实现 <b class="${pnlClass(realUsd)}">${heroMoney(realUsd, "USD")}</b>`
       + ` · 浮动 <b class="${pnlClass(unrealUsd)}">${heroMoney(unrealUsd, "USD")}</b>`
-      + ` · 账面 <b>${fmtMoney(bookUsd, "USD")}</b>`
-      // 账面的 HKD 等值：原来 Total book 卡的第二行，合并后仍要留着
-      + ((fx && has(us.value_usd) && has(hk.value_hkd))
-        ? ` <span class="muted">/ ${fmtMoney(us.value_usd * fx + hk.value_hkd, "HKD")}</span>` : "")
       + ` · 今日 <b class="${pnlClass(todayUsd)}">${heroMoney(todayUsd, "USD")}</b>`
       + (todayPct != null ? ` <span class="${pnlClass(todayPct)}">${fmtPct(todayPct)}</span>` : "");
 
@@ -690,7 +689,10 @@
       if (fx) {
         const at = fxMeta.fetched_at ? new Date(fxMeta.fetched_at) : null;
         const stamp = at && !isNaN(at) ? at.toISOString().replace("T", " ").slice(0, 16) + "Z" : "";
-        fxEl.textContent = `USDHKD ${fmtNum(fx, 4)}`
+        fxEl.textContent = `账面 ${fmtMoney(bookUsd, "USD")}`
+          + (has(us.value_usd) && has(hk.value_hkd)
+            ? ` / ${fmtMoney(us.value_usd * fx + hk.value_hkd, "HKD")}` : "")
+          + ` · USDHKD ${fmtNum(fx, 4)}`
           + (fxMeta.source ? ` · ${fxMeta.source}` : "") + (stamp ? ` · ${stamp}` : "");
       } else {
         fxEl.textContent = "FX unavailable";
@@ -702,21 +704,25 @@
     const usTodayPct = legPct(us.value_usd, us.today_change_usd);
     const hkTodayPct = legPct(hk.value_hkd, hk.today_change_hkd);
     const ae = safe(m, "execution_by_kind", "active") || {};
+    // 一格一次视觉起停：值和「它自己的变化」并成一行，限定语进标签，
+    // 只有真正额外的信息（样本量、基线）才留副行。信息一条不少。(#879)
     const cell = (k, v, s, cls) =>
       `<div class="hero-rail-cell"><div class="hero-rail-k">${k}</div>`
       + `<div class="hero-rail-v ${cls || ""}">${v}</div>`
-      + `<div class="hero-rail-s">${s || ""}</div></div>`;
+      + (s ? `<div class="hero-rail-s">${s}</div>` : "") + `</div>`;
+    const withDelta = (v, delta, cls) =>
+      `${v} <span class="hero-rail-d ${cls || ""}">${delta}</span>`;
     railEl.innerHTML = [
-      cell("US 腿", fmtMoney(us.value_usd, "USD"),
-        `<span class="${pnlClass(us.pnl_usd)}">${heroMoney(us.pnl_usd, "USD")} · ${fmtPct(us.pnl_pct)}</span>`),
-      cell("HK 腿", fmtMoney(hk.value_hkd, "HKD"),
-        `<span class="${pnlClass(hk.pnl_hkd)}">${heroMoney(hk.pnl_hkd, "HKD")} · ${fmtPct(hk.pnl_pct)}</span>`),
-      cell("今日 US", heroMoney(us.today_change_usd, "USD"),
-        `美股腿${usTodayPct == null ? "" : " · " + fmtPct(usTodayPct)}`, pnlClass(us.today_change_usd)),
-      cell("今日 HK", heroMoney(hk.today_change_hkd, "HKD"),
-        `港股腿${hkTodayPct == null ? "" : " · " + fmtPct(hkTodayPct)}`, pnlClass(hk.today_change_hkd)),
-      cell("已实现", heroMoney(realUsd, "USD"), "落袋 · USD-eq", pnlClass(realUsd)),
-      cell("浮动", heroMoney(unrealUsd, "USD"), "账面 · USD-eq", pnlClass(unrealUsd)),
+      cell("US 腿", withDelta(fmtMoney(us.value_usd, "USD"),
+        `${heroMoney(us.pnl_usd, "USD")} · ${fmtPct(us.pnl_pct)}`, pnlClass(us.pnl_usd))),
+      cell("HK 腿", withDelta(fmtMoney(hk.value_hkd, "HKD"),
+        `${heroMoney(hk.pnl_hkd, "HKD")} · ${fmtPct(hk.pnl_pct)}`, pnlClass(hk.pnl_hkd))),
+      cell("今日 US", withDelta(heroMoney(us.today_change_usd, "USD"),
+        usTodayPct == null ? "" : fmtPct(usTodayPct), pnlClass(usTodayPct)), "", pnlClass(us.today_change_usd)),
+      cell("今日 HK", withDelta(heroMoney(hk.today_change_hkd, "HKD"),
+        hkTodayPct == null ? "" : fmtPct(hkTodayPct), pnlClass(hkTodayPct)), "", pnlClass(hk.today_change_hkd)),
+      cell("已实现 · USD-eq", heroMoney(realUsd, "USD"), "", pnlClass(realUsd)),
+      cell("浮动 · USD-eq", heroMoney(unrealUsd, "USD"), "", pnlClass(unrealUsd)),
       cell("遵守率 30d", ae.rate == null ? DASH : (ae.rate * 100).toFixed(1) + "%",
         // stranded = 核验窗口关闭时仍没有答案的 call，永远不会结算。只报 known
         // 会高估这个比率覆盖了多少记录，所以两个数一起给。
@@ -877,7 +883,7 @@
         countEl.style.color = 'var(--warning)';
         if (dirEl) dirEl.textContent = '风控数据计算失败，本次不作“无触发”判断。';
         listEl.innerHTML = '<div class="risk-alert medium"><span class="icon">⚠️</span>'
-          + '<div><strong>风控卡不可用</strong><div class="muted" style="font-size:11px;margin-top:2px">'
+          + '<div><strong>风控卡不可用</strong><div class="muted" style="font-size:var(--fs-xs);margin-top:2px">'
           + '等待下次数据刷新重算</div></div></div>';
       });
       return;
@@ -888,7 +894,7 @@
     const row = (icon, sev, detail, action) =>
       `<div class="risk-alert ${sev || 'high'}">
          <span class="icon">${icon}</span>
-         <div><strong>${detail || ''}</strong>${action ? `<div class="muted" style="font-size:11px;margin-top:2px">→ ${action}</div>` : ''}</div>
+         <div><strong>${detail || ''}</strong>${action ? `<div class="muted" style="font-size:var(--fs-xs);margin-top:2px">→ ${action}</div>` : ''}</div>
        </div>`;
     const rows = [
       ...breaches.map(b => ({ icon: ICON[b.type] || '', severity: b.severity, detail: stripEmoji(b.detail), action: stripEmoji(b.action) })),
@@ -904,7 +910,7 @@
         : stripEmoji([g.directive, g.reentry_rule].filter(Boolean).join(' '));
       const visibleRows = compact ? compactRows.slice(0, 3) : rows;
       const html = visibleRows.map(r => row(r.icon, r.severity, r.detail, compact ? "" : r.action)).join('');
-      listEl.innerHTML = html || '<div class="muted" style="font-size:12px">仓位/单因子/杠杆均在阈值内</div>';
+      listEl.innerHTML = html || '<div class="muted" style="font-size:var(--fs-sm)">仓位/单因子/杠杆均在阈值内</div>';
     });
   }
 
@@ -926,18 +932,18 @@
     // hero: 现值 + 盈亏
     document.getElementById('gold-hero').innerHTML =
       `<div style="display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin:2px 0 12px">
-         <span style="font-size:26px;font-weight:800">¥${num(g.current_value)}</span>
-         <span style="font-size:17px;font-weight:700;color:${pnlColor}">${sign}${num(g.pnl_percent, 2)}%</span>
-         <span style="font-size:13px;color:${pnlColor}">${(g.pnl_abs >= 0 ? '+' : '')}¥${num(g.pnl_abs)}</span>
+         <span style="font-size:var(--fs-xxl);font-weight:700">¥${num(g.current_value)}</span>
+         <span style="font-size:var(--fs-lg);font-weight:700;color:${pnlColor}">${sign}${num(g.pnl_percent, 2)}%</span>
+         <span style="font-size:var(--fs-md);color:${pnlColor}">${(g.pnl_abs >= 0 ? '+' : '')}¥${num(g.pnl_abs)}</span>
        </div>`;
 
     // stats grid
     const navChg = g.nav_change_pct;
     const navChgStr = navChg == null ? '' :
-      ` <span style="color:${navChg >= 0 ? 'var(--positive)' : 'var(--negative)'};font-size:11px">${navChg >= 0 ? '+' : ''}${navChg.toFixed(2)}%</span>`;
+      ` <span style="color:${navChg >= 0 ? 'var(--positive)' : 'var(--negative)'};font-size:var(--fs-xs)">${navChg >= 0 ? '+' : ''}${navChg.toFixed(2)}%</span>`;
     const cell = (label, val) => `<div style="flex:1 1 30%;min-width:90px;margin:5px 0">
-        <div class="muted" style="font-size:10px;text-transform:none;letter-spacing:0">${label}</div>
-        <div style="font-size:15px;font-weight:700;margin-top:1px">${val}</div></div>`;
+        <div class="muted" style="font-size:var(--fs-micro);text-transform:none;letter-spacing:0">${label}</div>
+        <div style="font-size:var(--fs-lg);font-weight:700;margin-top:1px">${val}</div></div>`;
     document.getElementById('gold-stats').innerHTML =
       `<div style="display:flex;flex-wrap:wrap;gap:2px 8px;padding:8px 0;border-top:1px solid var(--border,#2a2a2a)">
         ${cell('累计投入', '¥' + num(g.principal_effective != null ? g.principal_effective : g.principal_invested))}
@@ -954,7 +960,7 @@
     if (goldDomestic) {
       if (!dg || dg.price_cny_g == null) {
         goldDomestic.innerHTML =
-          `<div role="status" style="margin:12px 0 4px;padding:10px 12px;border-radius:6px;border:1px solid color-mix(in srgb,var(--warning) 25%,transparent);color:var(--warning);font-size:11px">
+          `<div role="status" style="margin:12px 0 4px;padding:10px 12px;border-radius:6px;border:1px solid color-mix(in srgb,var(--warning) 25%,transparent);color:var(--warning);font-size:var(--fs-xs)">
              上金所 Au99.99 暂无有效行情
            </div>`;
       } else {
@@ -963,18 +969,18 @@
         const retained = dg.quote_status === 'retained';
         goldDomestic.innerHTML =
           `<div style="margin:12px 0 4px;padding:12px;border-radius:6px;background:color-mix(in srgb,var(--positive) 6%,transparent);border:1px solid color-mix(in srgb,var(--positive) 24%,transparent)">
-             <div class="muted" style="font-size:10px;text-transform:none;letter-spacing:0">国内基准 · 上金所 Au99.99</div>
+             <div class="muted" style="font-size:var(--fs-micro);text-transform:none;letter-spacing:0">国内基准 · 上金所 Au99.99</div>
              <div style="display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:end;gap:10px;margin-top:7px">
-               <div><div class="muted" style="font-size:10px">当前金价</div><div style="font-size:21px;font-weight:800;white-space:nowrap">¥${num(dg.price_cny_g, 2)}<span style="font-size:11px;color:var(--muted,#999)">/克</span></div></div>
+               <div><div class="muted" style="font-size:var(--fs-micro)">当前金价</div><div style="font-size:var(--fs-xl);font-weight:700;white-space:nowrap">¥${num(dg.price_cny_g, 2)}<span style="font-size:var(--fs-xs);color:var(--muted,#999)">/克</span></div></div>
                <div class="muted" aria-hidden="true" style="padding-bottom:4px">→</div>
-               <div><div class="muted" style="font-size:10px">我的回本价</div><div style="font-size:21px;font-weight:800;color:var(--warning);white-space:nowrap">¥${num(dg.breakeven_cny_g, 2)}<span style="font-size:11px;color:var(--muted,#999)">/克</span></div></div>
+               <div><div class="muted" style="font-size:var(--fs-micro)">我的回本价</div><div style="font-size:var(--fs-xl);font-weight:700;color:var(--warning);white-space:nowrap">¥${num(dg.breakeven_cny_g, 2)}<span style="font-size:var(--fs-xs);color:var(--muted,#999)">/克</span></div></div>
              </div>
-             <div class="muted" style="font-size:11px;margin-top:7px;text-transform:none;letter-spacing:0">
+             <div class="muted" style="font-size:var(--fs-xs);margin-top:7px;text-transform:none;letter-spacing:0">
                距回本 <b style="color:var(--warning)">+${num(dg.breakeven_upside_pct, 2)}%</b>
                ${dchg == null ? '' : ` · 当日 <b style="color:${dcolor}">${dchg >= 0 ? '+' : ''}${num(dchg, 2)}%</b>`}
                ${dg.low_cny_g != null && dg.high_cny_g != null ? ` · 日内 ¥${num(dg.low_cny_g, 0)}~${num(dg.high_cny_g, 0)}` : ''}
              </div>
-             <div class="muted" style="font-size:10px;margin-top:4px;text-transform:none;letter-spacing:0">
+             <div class="muted" style="font-size:var(--fs-micro);margin-top:4px;text-transform:none;letter-spacing:0">
                ${dg.date || ''} 收盘 · 上金所${retained ? ' · ⚠️ 本次抓取失败，沿用上次有效值' : ''}
              </div>
            </div>`;
@@ -990,7 +996,7 @@
       else {
         const xchg = ld.xau_change_pct;
         const xcolor = (xchg == null ? 'var(--neutral)' : (xchg >= 0 ? 'var(--positive)' : 'var(--negative)'));
-        const xchgStr = xchg == null ? '' : ` · 当日 <span style="color:${xcolor};font-size:11px">${xchg >= 0 ? '+' : ''}${Number(xchg).toFixed(2)}%</span>`;
+        const xchgStr = xchg == null ? '' : ` · 当日 <span style="color:${xcolor};font-size:var(--fs-xs)">${xchg >= 0 ? '+' : ''}${Number(xchg).toFixed(2)}%</span>`;
         const fundBeXau = ld.fund_breakeven_usd_oz != null
           ? ld.fund_breakeven_usd_oz
           : (g.nav ? ld.xau_usd * g.avg_cost / g.nav : null);
@@ -999,13 +1005,13 @@
         // 伦敦金保留为国际辅助口径，显式区分现价与真基金回本映射。
         let html =
           `<div style="margin:12px 0 4px;padding:8px 12px;border-radius:6px;background:color-mix(in srgb,var(--warning) 7%,transparent);border:1px solid color-mix(in srgb,var(--warning) 25%,transparent)">
-             <div class="muted" style="font-size:10px;text-transform:none;letter-spacing:0">国际辅助 · 伦敦金 XAU/USD</div>
+             <div class="muted" style="font-size:var(--fs-micro);text-transform:none;letter-spacing:0">国际辅助 · 伦敦金 XAU/USD</div>
              <div style="display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:end;gap:10px;margin-top:7px">
-               <div><div class="muted" style="font-size:10px">当前金价</div><div style="font-size:19px;font-weight:800;white-space:nowrap">$${num(ld.xau_usd, 2)}<span style="font-size:11px;color:var(--muted,#999)">/oz</span></div></div>
+               <div><div class="muted" style="font-size:var(--fs-micro)">当前金价</div><div style="font-size:var(--fs-xl);font-weight:700;white-space:nowrap">$${num(ld.xau_usd, 2)}<span style="font-size:var(--fs-xs);color:var(--muted,#999)">/oz</span></div></div>
                <div class="muted" aria-hidden="true" style="padding-bottom:4px">→</div>
-               <div><div class="muted" style="font-size:10px">按当前汇率回本</div><div style="font-size:19px;font-weight:800;color:var(--warning);white-space:nowrap">$${num(fundBeXau, 2)}<span style="font-size:11px;color:var(--muted,#999)">/oz</span></div></div>
+               <div><div class="muted" style="font-size:var(--fs-micro)">按当前汇率回本</div><div style="font-size:var(--fs-xl);font-weight:700;color:var(--warning);white-space:nowrap">$${num(fundBeXau, 2)}<span style="font-size:var(--fs-xs);color:var(--muted,#999)">/oz</span></div></div>
              </div>
-             <div class="muted" style="font-size:11px;margin-top:5px;text-transform:none;letter-spacing:0">
+             <div class="muted" style="font-size:var(--fs-xs);margin-top:5px;text-transform:none;letter-spacing:0">
                距回本 <b style="color:var(--warning)">+${num(fundBePct, 2)}%</b>${xchgStr}
                ${ld.xau_high != null && ld.xau_low != null ? ` · 日内 ${num(ld.xau_low, 0)}~${num(ld.xau_high, 0)}` : ''}
                · USDCNY ${num(ld.usdcny, 4)} · 假设汇率/内外盘价差不变
@@ -1017,11 +1023,11 @@
           unavailable: '历史抓取失败',
           not_attempted: '历史未抓取',
         };
-        html += `<div class="muted" style="font-size:10px;margin-top:4px;text-transform:none;letter-spacing:0">
+        html += `<div class="muted" style="font-size:var(--fs-micro);margin-top:4px;text-transform:none;letter-spacing:0">
           历史源 ${escapeHtml(histNames[histSource.name] || histSource.name || '未知')} · ${num(histSource.points || 0)} 点
         </div>`;
         if (ld.hist_advisory) {
-          html += `<div role="status" style="font-size:10px;color:var(--warning);margin-top:4px;text-transform:none;letter-spacing:0">
+          html += `<div role="status" style="font-size:var(--fs-micro);color:var(--warning);margin-top:4px;text-transform:none;letter-spacing:0">
             ℹ️ ${escapeHtml(ld.hist_advisory)}
           </div>`;
         }
@@ -1032,13 +1038,13 @@
           const dColor = de.pnl_pct >= 0 ? 'var(--positive)' : 'var(--negative)';
           html +=
             `<details style="margin-top:8px;padding-top:8px;border-top:1px dashed color-mix(in srgb,var(--warning) 28%,transparent)">
-               <summary class="muted" style="font-size:10px;text-transform:none;letter-spacing:0;cursor:pointer">模拟对照 · 若每个基金交易日直接买伦敦金</summary>
+               <summary class="muted" style="font-size:var(--fs-micro);text-transform:none;letter-spacing:0;cursor:pointer">模拟对照 · 若每个基金交易日直接买伦敦金</summary>
                <div style="margin-top:6px">
                <div style="display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-top:2px">
-                 <span style="font-size:17px;font-weight:800">$${num(de.avg_cost_usd_oz, 2)}<span style="font-size:11px;font-weight:600;color:var(--muted,#999)">/oz</span></span>
-                 <span style="font-size:12px;font-weight:700;color:var(--muted,#999)">¥${num(de.avg_cost_cny_g, 2)}/克</span>
+                 <span style="font-size:var(--fs-lg);font-weight:700">$${num(de.avg_cost_usd_oz, 2)}<span style="font-size:var(--fs-xs);font-weight:600;color:var(--muted,#999)">/oz</span></span>
+                 <span style="font-size:var(--fs-sm);font-weight:700;color:var(--muted,#999)">¥${num(de.avg_cost_cny_g, 2)}/克</span>
                </div>
-               <div class="muted" style="font-size:11px;margin-top:3px;text-transform:none;letter-spacing:0">
+               <div class="muted" style="font-size:var(--fs-xs);margin-top:3px;text-transform:none;letter-spacing:0">
                  现货 <b style="color:var(--text,#eee)">$${num(de.spot_usd_oz, 2)}</b>/oz · 回本需涨 <b style="color:${beColor}">${de.breakeven_upside_pct >= 0 ? '+' : ''}${num(de.breakeven_upside_pct, 2)}%</b>
                  ${de.current_value_cny != null ? `· 对应现值 <b style="color:${dColor}">¥${num(de.current_value_cny)}</b> (${de.pnl_pct >= 0 ? '+' : ''}${num(de.pnl_pct, 2)}%)` : ''}
                </div>
@@ -1052,9 +1058,9 @@
                 <td style="padding:4px 8px;text-align:right">$${num(p.avg_cost_usd_oz, 0)}</td>
                 <td style="padding:4px 8px;text-align:right;color:var(--positive)">+${num(p.breakeven_upside_pct, 1)}%</td></tr>`).join('');
             html +=
-              `<div class="muted" style="font-size:10px;margin:8px 0 2px;text-transform:none;letter-spacing:0">若金价/汇率不动、继续每日定投 → 持金成本 $/oz 下移</div>
-               <table style="width:100%;font-size:12px;border-collapse:collapse">
-                 <tr class="muted" style="font-size:10px"><th scope="col" style="padding:4px 8px;text-align:left;font-weight:inherit">继续</th><th scope="col" style="padding:4px 8px;text-align:right;font-weight:inherit">均成本/oz</th><th scope="col" style="padding:4px 8px;text-align:right;font-weight:inherit">回本只需涨</th></tr>
+              `<div class="muted" style="font-size:var(--fs-micro);margin:8px 0 2px;text-transform:none;letter-spacing:0">若金价/汇率不动、继续每日定投 → 持金成本 $/oz 下移</div>
+               <table style="width:100%;font-size:var(--fs-sm);border-collapse:collapse">
+                 <tr class="muted" style="font-size:var(--fs-micro)"><th scope="col" style="padding:4px 8px;text-align:left;font-weight:inherit">继续</th><th scope="col" style="padding:4px 8px;text-align:right;font-weight:inherit">均成本/oz</th><th scope="col" style="padding:4px 8px;text-align:right;font-weight:inherit">回本只需涨</th></tr>
                ${lrows}</table>`;
           }
           html += `</div></details>`;
@@ -1077,7 +1083,7 @@
                <polyline points="${lineL}" fill="none" stroke="var(--warning)" stroke-width="1.6"/>
                <polyline points="${lineF}" fill="none" stroke="${fColor}" stroke-width="1.6" stroke-dasharray="4 2"/>
              </svg>
-             <div class="muted" style="font-size:10px;display:flex;justify-content:space-between;text-transform:none;letter-spacing:0;margin-top:1px">
+             <div class="muted" style="font-size:var(--fs-micro);display:flex;justify-content:space-between;text-transform:none;letter-spacing:0;margin-top:1px">
                <span style="color:var(--warning)">伦敦金 ${lLast >= 100 ? '+' : ''}${num(lLast - 100, 1)}%</span>
                <span style="color:${fColor}">你的基金 ${fLast >= 100 ? '+' : ''}${num(fLast - 100, 1)}%</span>
                <span>起投=100 · 差因:汇率+费率</span>
@@ -1111,7 +1117,7 @@
           <circle cx="${x(startIdx).toFixed(1)}" cy="${y(hist[startIdx][1]).toFixed(1)}" r="2.6" fill="var(--accent)"/>
           <circle cx="${x(hist.length - 1).toFixed(1)}" cy="${y(lastV).toFixed(1)}" r="2.6" fill="${pnlColor}"/>
         </svg>
-        <div class="muted" style="font-size:10px;display:flex;justify-content:space-between;text-transform:none;letter-spacing:0">
+        <div class="muted" style="font-size:var(--fs-micro);display:flex;justify-content:space-between;text-transform:none;letter-spacing:0">
           <span style="color:var(--accent)">${hist[startIdx][0]} 起投 ${num(hist[startIdx][1], 3)}</span>
           <span style="color:var(--warning)">成本线 ${num(avg, 3)}</span>
           <span>区间 ${num(lo, 3)}~${num(hi, 3)}</span>
@@ -1127,9 +1133,9 @@
           <td style="padding:4px 8px;text-align:right">${num(p.avg_cost, 3)}</td>
           <td style="padding:4px 8px;text-align:right;color:var(--positive)">+${num(p.breakeven_upside_pct, 1)}%</td></tr>`).join('');
       document.getElementById('gold-proj').innerHTML =
-        `<div class="muted" style="font-size:10px;margin:8px 0 2px;text-transform:none;letter-spacing:0">若净值原地不动、继续每日定投 → 成本线/回本门槛下移</div>
-         <table style="width:100%;font-size:12px;border-collapse:collapse">
-           <tr class="muted" style="font-size:10px"><th scope="col" style="padding:4px 8px;text-align:left;font-weight:inherit">继续</th><th scope="col" style="padding:4px 8px;text-align:right;font-weight:inherit">平均成本</th><th scope="col" style="padding:4px 8px;text-align:right;font-weight:inherit">回本只需涨</th></tr>
+        `<div class="muted" style="font-size:var(--fs-micro);margin:8px 0 2px;text-transform:none;letter-spacing:0">若净值原地不动、继续每日定投 → 成本线/回本门槛下移</div>
+         <table style="width:100%;font-size:var(--fs-sm);border-collapse:collapse">
+           <tr class="muted" style="font-size:var(--fs-micro)"><th scope="col" style="padding:4px 8px;text-align:left;font-weight:inherit">继续</th><th scope="col" style="padding:4px 8px;text-align:right;font-weight:inherit">平均成本</th><th scope="col" style="padding:4px 8px;text-align:right;font-weight:inherit">回本只需涨</th></tr>
            ${rows}</table>`;
     } else { document.getElementById('gold-proj').innerHTML = ''; }
 
