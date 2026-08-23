@@ -112,7 +112,7 @@ clawock intraday preflight --market us
   - 📈 **加仓侧读数(`add_side_reads.rows` 非空时必写 1 行)**:harness 已经把异动、机会雷达
     (接近 20 日高)、早期趋势三条 lane 连同 thesis 红线和未了结的纪律动作 join 成
     `candidate|wait|reject`。**照抄 `verdict` + `why` + `needs`,数字照抄 `evidence`**
-    (`move_pct` / `pct_from_high` / `prior_20d_high`),写成
+    (`move_pct` / `close` / `zscore20` / `pct_from_high` / `prior_20d_high`),写成
     「{票} {verdict}:{why} → {needs}」。多条就写最急的 1-2 条(rows 已按 candidate→reject→wait
     排序)。纪律铁律不变:**三态都不是下单授权**,不许自行补方向、价格、股数;
     软消息/情绪只能停在 `wait`;技术突破态(收盘站上前 20 日高且未过热)本身即促成

@@ -29,10 +29,13 @@ from clawock.decision import add_side  # noqa: E402
 
 RADAR = {"rows": [
     {"label": "02208", "state": "near_breakout", "state_zh": "机会·接近",
-     "holdings": ["02208"], "prior_20d_high": 11.72, "pct_from_high": -4.01},
+     "holdings": ["02208"], "close": 11.31, "zscore20": 1.4,
+     "prior_20d_high": 11.72, "pct_from_high": -4.01},
     {"label": "HSTECH", "state": "near_breakout", "state_zh": "机会·接近",
-     "holdings": ["07226"], "prior_20d_high": 4948.5, "pct_from_high": -3.06},
+     "holdings": ["07226"], "close": 4798.0, "zscore20": 1.1,
+     "prior_20d_high": 4948.5, "pct_from_high": -3.06},
     {"label": "00700", "state": "mid_range", "holdings": ["00700"],
+     "close": 440.0, "zscore20": -1.2,
      "prior_20d_high": 500.0, "pct_from_high": -12.0},
 ]}
 PRIMARY = {"tickers": {"02208": {"status": "ok", "items": [
@@ -157,11 +160,41 @@ def test_every_number_in_a_row_came_from_the_inputs():
     """No derived arithmetic: a number in the report must be pointable-at in context."""
     anomalies = [{"ticker": "02208", "move_pct": 6.4, "severity": "high"}]
     out = add_side.read_rows(anomalies=anomalies, radar=RADAR, mover_news=SOFT_ONLY)
-    supplied = {6.4, 11.72, -4.01, 4948.5, -3.06}
+    supplied = {6.4, 11.31, 1.4, 11.72, -4.01, 4798.0, 1.1, 4948.5, -3.06}
     for row in out["rows"]:
         for key, value in row["evidence"].items():
             if isinstance(value, (int, float)):
                 assert value in supplied, f"{key}={value} is not an input value"
+
+
+def test_the_technical_basis_of_a_candidate_is_pointable_in_evidence():
+    """#819: the new promotion gate rests on close vs prior_20d_high AND z<2
+    (未过热). The message writer can only quote evidence numbers, so a breakout
+    candidate must carry close and zscore20 verbatim from the radar row."""
+    radar = {"rows": [
+        {"label": "02208", "state": "breakout", "state_zh": "机会·突破",
+         "holdings": ["02208"], "close": 11.31, "zscore20": 1.4,
+         "prior_20d_high": 11.72, "pct_from_high": 1.8},
+    ]}
+    out = add_side.read_rows(
+        anomalies=[{"ticker": "02208", "move_pct": 6.4, "severity": "high"}],
+        radar=radar)
+    row = _row(out, "02208")
+    assert row["verdict"] == "candidate"
+    assert row["evidence"]["close"] == 11.31
+    assert row["evidence"]["zscore20"] == 1.4
+    assert row["evidence"]["prior_20d_high"] == 11.72
+
+
+def test_the_proxy_renames_close_and_zscore_too():
+    """#761's attribution rule covers every number: a proxy row's close and
+    zscore belong to the index (HSTECH), not to the tradable holding."""
+    out = add_side.read_rows(anomalies=[], radar=RADAR)
+    row = _row(out, "07226")
+    assert row["evidence"]["proxy_close"] == 4798.0
+    assert row["evidence"]["proxy_zscore20"] == 1.1
+    assert "close" not in row["evidence"]
+    assert "zscore20" not in row["evidence"]
 
 
 def test_the_live_context_shape_still_feeds_it():
