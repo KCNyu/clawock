@@ -12,12 +12,23 @@ from __future__ import annotations
 import json
 import subprocess
 import sys
+from pathlib import Path
+
+_OPS = Path(__file__).resolve().parents[1]
+if str(_OPS) not in sys.path:
+    sys.path.insert(0, str(_OPS))
+from system_check import clawock_argv  # noqa: E402
 
 
 def check(runner=None) -> str:
-    """Return the winning FX source, or raise on an unusable answer."""
+    """Return the winning FX source, or raise on an unusable answer.
+
+    Spawns through clawock_argv, never a bare `clawock`: the probe must also
+    work from a bare cron PATH where the console script is not resolvable.
+    """
+    argv, env = clawock_argv("fx", "--json")
     run = (runner or subprocess.run)(
-        ["clawock", "fx", "--json"], capture_output=True, text=True, check=True
+        argv, capture_output=True, text=True, check=True, env=env
     )
     data = json.loads(run.stdout)
     rate = data["rate"]
