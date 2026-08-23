@@ -88,5 +88,8 @@ class GitHubDispatchDeployer:
             ["gh", "api", "--method", "POST",
              f"repos/{self.repository}/dispatches", "--input", "-"],
             input=json.dumps(body), check=True, capture_output=True, text=True,
+            # A hung dispatch request must surface as a failed deploy, not an
+            # endless wait (#848).
+            timeout=120,
         )
         return f"{self.event_type} → {self.repository}"

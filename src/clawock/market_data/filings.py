@@ -35,6 +35,7 @@ from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 import requests
 
+from clawock.safe_io import safe_write_json
 from clawock.workspace import workspace_root
 
 WS_ROOT = workspace_root(Path.cwd())
@@ -140,8 +141,10 @@ def _load_ticker_map() -> Dict[str, str]:
     raw = r.json()
     mapping = {entry['ticker'].upper(): f"CIK{int(entry['cik_str']):010d}"
                for entry in raw.values()}
-    with TICKER_CACHE.open('w') as f:
-        json.dump(mapping, f)
+    # Atomic write: a torn cache file used to crash the loader on its next
+    # read (only FileNotFoundError was caught), taking the whole SEC leg down
+    # with it (#847).
+    safe_write_json(str(TICKER_CACHE), mapping)
     return mapping
 
 
