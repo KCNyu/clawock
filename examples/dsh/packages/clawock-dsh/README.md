@@ -76,8 +76,10 @@ cp -r ~/.dsh/profiles/web/node_modules/clawock-dsh/skills/investment-decision <p
 你:帮我分析一下 0700.HK 能不能加点仓
 ```
 
-agent 走完四步,给你一张决策卡:bull / bear / thesis / confidence /
-action / run_id。判定和结算是 Python 算的,不是模型说的。
+agent 走完四步,给你一张决策卡——bull / bear / thesis / confidence /
+action / run_id,判定和结算是 Python 算的,不是模型说的:
+
+![决策卡示例:agent 跑完一轮决策后输出的回执卡(示例输出,非真实结算)](https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/decision-card-example.png)
 
 ## 你得到什么
 
@@ -141,4 +143,5 @@ npm publish                                   # 发布当前版本
 
 把当前 checkout 装进 self-hosted DSH(开发/自部署):
 `ops/host/install_dsh_plugin.sh --restart`。README 截图一条命令:
-`node site/tools/shoot_dsh_plugin.js` + `clawock validate-sidecar screenshots`。
+`node site/tools/shoot_dsh_plugin.js` + `clawock validate-sidecar screenshots`;
+决策卡示例图:`node site/tools/shoot_decision_card.js`。
