@@ -170,7 +170,10 @@ def _debug_dump(stage: str, ticker: str, payload) -> None:
     try:
         tmp = os.path.join(WS_ROOT, 'memory', '.tmp')
         os.makedirs(tmp, exist_ok=True)
-        now = datetime.now(timezone(timedelta(hours=-4)))
+        # America/New_York, not a fixed UTC-4: a fixed offset labels standard
+        # time (EST, Nov–Mar) as if it were EDT — timestamps and the day-based
+        # debug filename drift by one hour for half the year (#844).
+        now = datetime.now(ZoneInfo('America/New_York'))
         rec = {'ts': now.isoformat(), 'stage': stage, 'ticker': ticker, 'payload': payload}
         path = os.path.join(tmp, f"us_fetch_debug_{now.strftime('%Y-%m-%d')}.jsonl")
         with open(path, 'a') as f:
@@ -568,7 +571,7 @@ def fetch_us_indices() -> Dict[str, Dict]:
         ('usDJI', '^DJI',  'DIA', 'DJI', 'Dow Jones'),
     ]
     out = {}
-    now_et = datetime.now(timezone(timedelta(hours=-4))).strftime('%Y-%m-%d %H:%M ET')
+    now_et = datetime.now(ZoneInfo('America/New_York')).strftime('%Y-%m-%d %H:%M ET')
     for tx_sym, yh_sym, etf, short, name in symbols:
         # 1. Tencent real index points (preferred)
         q = get_tencent_us_index(tx_sym)
@@ -624,7 +627,7 @@ def get_prev_close_polygon(ticker: str, api_key: str) -> Optional[tuple]:
         if ts_ms:
             date_str = datetime.fromtimestamp(ts_ms / 1000, tz=timezone.utc).strftime('%Y-%m-%d')
         else:
-            date_str = (datetime.now(timezone(timedelta(hours=-4))) - timedelta(days=1)).strftime('%Y-%m-%d')
+            date_str = (datetime.now(ZoneInfo('America/New_York')) - timedelta(days=1)).strftime('%Y-%m-%d')
         return (close, date_str)
     except Exception as e:
         print(f"  ⚠ Polygon prev-close {ticker} failed: {type(e).__name__}: {e}",

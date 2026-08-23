@@ -40,7 +40,8 @@ classifiers = [
 # pytest collection and silently stopped enforcing the whole suite while the
 # run still looked green.
 dependencies = [
-    "requests>=2.31",
+    # 2.32 is the floor past CVE-2024-35195 (redirect header leak in 2.31.x).
+    "requests>=2.32",
 ]
 
 [project.optional-dependencies]

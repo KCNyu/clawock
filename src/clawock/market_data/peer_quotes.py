@@ -38,6 +38,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from concurrent.futures import TimeoutError as FuturesTimeout
 from datetime import datetime, timezone
 from typing import Dict
+from zoneinfo import ZoneInfo
 
 import requests
 
@@ -139,7 +140,12 @@ def _apply_quote_age(out: Dict, parts) -> None:
     out['quote_time'] = raw
     for fmt in ('%Y-%m-%d %H:%M:%S', '%Y/%m/%d %H:%M:%S'):
         try:
-            age = (datetime.now() - datetime.strptime(raw, fmt)).days
+            # gtimg stamps are Beijing time; a naive subtraction would use this
+            # machine's local zone, so the stale gate only ever fired on a
+            # UTC+8 host — anywhere else the age came out negative and the
+            # quote was treated as fresh forever (#845).
+            quoted = datetime.strptime(raw, fmt).replace(tzinfo=ZoneInfo('Asia/Shanghai'))
+            age = (datetime.now(timezone.utc) - quoted).days
         except ValueError:
             continue
         if age > STALE_QUOTE_DAYS:
