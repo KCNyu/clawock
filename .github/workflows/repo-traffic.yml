@@ -48,8 +48,10 @@ jobs:
 
       - name: Capture traffic and package downloads
         env:
-          # The Traffic API requires push access; the workflow token has it.
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # The Traffic API does not answer to GITHUB_TOKEN — it only takes a
+          # PAT/OAuth token with repo scope (measured 2026-08-23: the workflow
+          # token got 403 on every run since the first schedule, #843).
+          GITHUB_TOKEN: ${{ secrets.REPO_METRICS_TOKEN }}
         run: |
           set -euo pipefail
           python3 ops/growth/repo_traffic.py | tee /tmp/traffic.txt
@@ -67,7 +69,7 @@ jobs:
         # it produces are what a scheduling decision has to be argued from
         # instead of a nice-looking cron minute.
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.REPO_METRICS_TOKEN }}
         run: |
           set -euo pipefail
           python3 ops/ci/schedule_drift.py | tee /tmp/drift.txt
