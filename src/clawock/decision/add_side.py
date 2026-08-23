@@ -238,6 +238,7 @@ def read_rows(*, anomalies=None, radar=None, levels=None, early_trend=None,
                 # packet, not only inside a sentence (数字只能引用 context).
                 evidence = {**evidence,
                             "prior_20d_high": level.get("prior_20d_high"),
+                            "close": level.get("close"),
                             "pct_from_high": level.get("pct_from_high")}
 
         proxy = _proxy_of(radar_row)
@@ -248,7 +249,7 @@ def read_rows(*, anomalies=None, radar=None, levels=None, early_trend=None,
             # `state` still feeds the promotion gate — only the numbers are
             # re-attributed to the thing they actually measure.
             evidence = {**evidence, "proxy_label": proxy}
-            for key in ("prior_20d_high", "pct_from_high"):
+            for key in ("prior_20d_high", "pct_from_high", "close", "zscore20"):
                 if evidence.get(key) is not None:
                     evidence[f"proxy_{key}"] = evidence.pop(key)
 
@@ -276,6 +277,8 @@ def read_rows(*, anomalies=None, radar=None, levels=None, early_trend=None,
             "move_pct": anomaly.get("move_pct"),
             "severity": anomaly.get("severity"),
             "state": (radar_row or {}).get("state"),
+            "close": (radar_row or {}).get("close"),
+            "zscore20": (radar_row or {}).get("zscore20"),
             "pct_from_high": (radar_row or {}).get("pct_from_high"),
             "prior_20d_high": (radar_row or {}).get("prior_20d_high"),
         })
@@ -293,6 +296,8 @@ def read_rows(*, anomalies=None, radar=None, levels=None, early_trend=None,
             continue
         add(ticker, ["near_breakout"], {
             "state": radar_row.get("state"),
+            "close": radar_row.get("close"),
+            "zscore20": radar_row.get("zscore20"),
             "pct_from_high": radar_row.get("pct_from_high"),
             "prior_20d_high": radar_row.get("prior_20d_high"),
         })
