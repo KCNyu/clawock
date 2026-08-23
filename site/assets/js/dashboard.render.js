@@ -2544,8 +2544,8 @@
             + `<div class="mkt-stat"><span class="lbl">总盈亏</span><span class="v ${pnlClass(profit)}">${ccyMoney(profit, ccy, true)}</span></div>`
           + `</div>`
           + `<div class="mkt-comp">`
-            + `<div class="mkt-comp-row"><span class="lbl">已落袋</span><div class="mkt-bar"><div class="mkt-bar-fill ${r < 0 ? "neg" : "pos"}" style="width:${rW}%"></div></div><span class="v ${pnlClass(r)}">${signNum(r)}</span></div>`
-            + `<div class="mkt-comp-row"><span class="lbl">浮动</span><div class="mkt-bar"><div class="mkt-bar-fill ${u < 0 ? "neg" : "pos"}" style="width:${uW}%"></div></div><span class="v ${pnlClass(u)}">${signNum(u)}</span></div>`
+            + `<div class="mkt-comp-row"><span class="lbl">已落袋</span><div class="mkt-bar"><div class="mkt-bar-fill ${r < 0 ? "neg" : "pos"}" style="--fill:${(rW / 100).toFixed(3)}"></div></div><span class="v ${pnlClass(r)}">${signNum(r)}</span></div>`
+            + `<div class="mkt-comp-row"><span class="lbl">浮动</span><div class="mkt-bar"><div class="mkt-bar-fill ${u < 0 ? "neg" : "pos"}" style="--fill:${(uW / 100).toFixed(3)}"></div></div><span class="v ${pnlClass(u)}">${signNum(u)}</span></div>`
           + `</div>`
           + `<div class="mkt-chips">`
             + `<span class="mkt-chip">浮动率 <b class="${pnlClass(floPct)}">${pct1(floPct)}</b></span>`
@@ -2685,7 +2685,7 @@
           <div class="bucket-row">
             <div class="name">${bucketLabel(r.name)}</div>
             <div class="bar-wrap">
-              <div class="bar-fill ${wCls}${lowN}" style="width:${wr == null ? 0 : wr}%"></div>
+              <div class="bar-fill ${wCls}${lowN}" style="--fill:${wr == null ? 0 : (wr / 100).toFixed(3)}"></div>
             </div>
             <div class="stat">${winTxt}${followTxt}</div>
           </div>`;
@@ -2965,7 +2965,7 @@
                 ${t1tag}
                 ${pnl}
               </summary>
-              <div class="tr-body">${traceHTML(t)}</div>
+              <div class="tr-body"><div class="tr-body-inner">${traceHTML(t)}</div></div>
             </details>`;
           }).join("")}</div>
         </div>`;
@@ -3150,7 +3150,7 @@
       const recoveryBlock = `
         <div class="ext-dd">
           <div class="ext-row"><span class="k">从坑底恢复</span><span class="v"><b class="rec-${recTier}">${recPctTxt}</b></span></div>
-          <div class="dd-bar"><div class="dd-bar-fill ${recTier}" style="width:${recovery == null ? 0 : recovery}%"></div></div>
+          <div class="dd-bar"><div class="dd-bar-fill ${recTier}" style="--fill:${recovery == null ? 0 : (recovery / 100).toFixed(3)}"></div></div>
           <div class="span">${recTxt}（恢复% = 从最深谷反弹回历史利润峰的比例，100%＝已回峰值）</div>
         </div>`;
       const profitPrimary = p ? `
