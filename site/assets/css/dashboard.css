@@ -157,14 +157,14 @@
     min-height: 36px; min-width: 36px; padding: 0 var(--space-3);
     font-size: 14px; cursor: pointer;
     display: inline-flex; align-items: center; gap: 4px;
-    transition: background 0.15s, color 0.15s, border-color 0.3s;
+    transition: background 0.15s, color 0.15s, border-color 0.3s, transform 0.16s cubic-bezier(0.23, 1, 0.32, 1);
     /* The click-feedback labels are CJK, which — unlike "Refresh" — has a break
        opportunity between every character. Without these two the button is a
        shrinkable flex item and "已是最新" stacks one glyph per line, turning the
        pill into an 82px-tall column. */
     flex: 0 0 auto; white-space: nowrap;
   }
-  .refresh-btn:active { background: var(--card-2); }
+  .refresh-btn:active { background: var(--card-2); transform: scale(0.97); }
   .refresh-btn.is-loading .ic { animation: spin 0.8s linear infinite; }
   .refresh-btn.ok-flash { border-color: var(--green); }
   .refresh-btn.fresh-flash { border-color: var(--accent); color: var(--accent); }
@@ -190,7 +190,9 @@
     color: var(--text-dim); text-decoration: none; font-size: 13px;
     padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm); transition: background 0.15s, color 0.15s;
   }
-  .nav-link:hover { color: var(--text); background: var(--card-2); }
+  @media (hover: hover) and (pointer: fine) {
+    .nav-link:hover { color: var(--text); background: var(--card-2); }
+  }
   @media (max-width: 480px) {
     .nav-link { padding: var(--space-2); font-size: 12px; }
   }
@@ -214,7 +216,9 @@
     padding: var(--space-3) var(--space-4); min-height: 44px;
     font-size: 14px; font-weight: 500; cursor: pointer;
     white-space: nowrap;
+    transition: color 0.15s, background 0.15s, transform 0.16s cubic-bezier(0.23, 1, 0.32, 1);
   }
+  .tab-btn:active { transform: scale(0.97); }
   .tab-btn.active { color: var(--text); }
   .tab-btn.active::after {
     content: ""; position: absolute; width: 22px; height: 2px;
@@ -249,7 +253,9 @@
       padding: 10px 18px; min-height: 40px; font-size: 13.5px; font-weight: 550;
       border-radius: 8px 8px 0 0; transition: color .15s, background .15s;
     }
-    .tab-btn:hover { color: var(--text); background: var(--surface-1); }
+    @media (hover: hover) and (pointer: fine) {
+      .tab-btn:hover { color: var(--text); background: var(--surface-1); }
+    }
     .tab-btn.active { color: var(--accent); }
     .tab-btn.active::after {
       width: 100%; height: 2px; left: 0; bottom: -1px; transform: none; border-radius: 0;
@@ -266,10 +272,13 @@
     gap: 5px; appearance: none; background: transparent; color: var(--text-dim);
     border: none; border-radius: var(--radius-sm); padding: 5px 11px; min-height: 30px;
     font-size: 12px; font-weight: 600; line-height: 1; cursor: pointer;
-    white-space: nowrap; transition: background .12s, color .12s; }
+    white-space: nowrap; transition: background .12s, color .12s, transform .16s cubic-bezier(.23, 1, .32, 1); }
+  .mkt-seg-btn:active { transform: scale(0.97); }
   /* iOS-style raised pill for the active segment → colored dots stay visible */
   .mkt-seg-btn.active { background: var(--card); color: var(--text); }
-  .mkt-seg-btn:not(.active):hover { color: var(--text); }
+  @media (hover: hover) and (pointer: fine) {
+    .mkt-seg-btn:not(.active):hover { color: var(--text); }
+  }
   /* Market dots replace flag emoji (regional-indicator glyphs misrender on mobile) */
   .seg-dot { width: 7px; height: 7px; border-radius: 50%; flex: none;
     background: var(--text-dim); }
@@ -859,7 +868,7 @@
   .mkt-comp-row .lbl { color: var(--text-dim); }
   .mkt-comp-row .v { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
   .mkt-bar { height: 7px; background: var(--card); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
-  .mkt-bar-fill { height: 100%; border-radius: 3px; transition: width 0.4s ease; }
+  .mkt-bar-fill { height: 100%; width: 100%; border-radius: 3px; transform: scaleX(var(--fill, 0)); transform-origin: left; transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1); }
   .mkt-bar-fill.pos { background: var(--green); }
   .mkt-bar-fill.neg { background: var(--red); }
   .mkt-chips { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
@@ -1050,10 +1059,12 @@
   }
   .holdings-table thead th:hover { color: var(--text); }
   .holdings-table thead th .arr { color: var(--accent); margin-left: 2px; }
-  .holdings-table tbody tr:hover { background: var(--surface-3); }
-  .holdings-table tbody tr:hover td:first-child {
-    background: var(--surface-3);
-    box-shadow: inset 2px 0 var(--accent);
+  @media (hover: hover) and (pointer: fine) {
+    .holdings-table tbody tr:hover { background: var(--surface-3); }
+    .holdings-table tbody tr:hover td:first-child {
+      background: var(--surface-3);
+      box-shadow: inset 2px 0 var(--accent);
+    }
   }
   .holdings-table .ticker { font-family: var(--mono); font-weight: 600; }
   .holdings-table .region-us { color: var(--accent); }
@@ -1436,7 +1447,7 @@
     height: 8px; background: var(--card); border-radius: 4px; overflow: hidden;
     border: 1px solid var(--border);
   }
-  .dd-region .dd-bar-fill { height: 100%; transition: width 0.4s; }
+  .dd-region .dd-bar-fill { height: 100%; width: 100%; transform: scaleX(var(--fill, 0)); transform-origin: left; transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1); }
   .dd-region .dd-bar-fill.poor { background: var(--red); }
   .dd-region .dd-bar-fill.mid  { background: var(--amber); }
   .dd-region .dd-bar-fill.good { background: var(--green); }
@@ -1474,7 +1485,7 @@
     height: 8px; background: var(--card); border-radius: 4px; overflow: hidden;
     border: 1px solid var(--border); margin-top: var(--space-2);
   }
-  .ext-region .ext-dd .dd-bar-fill { height: 100%; transition: width 0.4s; }
+  .ext-region .ext-dd .dd-bar-fill { height: 100%; width: 100%; transform: scaleX(var(--fill, 0)); transform-origin: left; transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1); }
   .ext-region .ext-dd .dd-bar-fill.poor { background: var(--red); }
   .ext-region .ext-dd .dd-bar-fill.mid  { background: var(--amber); }
   .ext-region .ext-dd .dd-bar-fill.good { background: var(--green); }
@@ -1497,7 +1508,9 @@
   }
   .ret-cell .rc-spark { line-height: 0; width: 100%; margin: 1px 0 2px; }
   .ret-cell .rc-spark svg { width: 100%; height: 22px; display: block; opacity: 0.92; }
-  .ret-cell:hover { transform: translateY(-1px); }
+  @media (hover: hover) and (pointer: fine) {
+    .ret-cell:hover { transform: translateY(-1px); }
+  }
   .ret-cell .rc-ticker {
     font-family: var(--mono); font-weight: 700; font-size: 13px;
     color: var(--text);
@@ -1741,9 +1754,10 @@
     overflow: hidden;
   }
   .bucket-row .bar-fill {
-    position: absolute; left: 0; top: 0; bottom: 0;
+    position: absolute; left: 0; top: 0; bottom: 0; width: 100%;
     background: var(--accent);
-    transition: width .3s ease;
+    transform: scaleX(var(--fill, 0)); transform-origin: left;
+    transition: transform .3s cubic-bezier(0.23, 1, 0.32, 1);
   }
   .bucket-row .bar-fill.win { background: var(--green); }
   .bucket-row .bar-fill.followed { background: var(--accent); }
@@ -2202,7 +2216,10 @@
   list-style: none;
 }
 .tr-row summary::-webkit-details-marker { display: none; }
-.tr-row summary:hover { background: var(--hover-bg, rgba(0,0,0,0.03)); }
+@media (hover: hover) and (pointer: fine) {
+  .tr-row summary:hover { background: var(--hover-bg, rgba(0,0,0,0.03)); }
+}
+.tr-row summary:active { background: color-mix(in srgb, var(--accent) 12%, transparent); }
 .tr-row[open] summary { background: color-mix(in srgb, var(--accent) 7%, transparent); box-shadow: inset 3px 0 0 var(--accent); }
 .tr-row[open] summary::after { transform: rotate(180deg); }
 .tr-row summary::after { content: '▾'; grid-area: 1 / 9; justify-self: end; color: var(--text-dim); font-size: 10px; transition: transform 0.15s; }
@@ -2228,7 +2245,25 @@
 .tr-t1.neg { color: var(--neg); background: color-mix(in srgb, var(--neg) 10%, transparent); }
 .tr-pnl { font-weight: 700; font-size: 15px; font-variant-numeric: tabular-nums; min-width: 88px; text-align: right; }
 .tr-pnl.pos { color: var(--pos); } .tr-pnl.neg { color: var(--neg); }
-.tr-body { grid-column: 1 / -1; padding: 4px 14px 12px; border-top: 1px solid var(--border); background: var(--surface-soft, rgba(0,0,0,0.015)); }
+/* The details content box is the animatable wrapper (Chrome 131+, Safari
+   18.4+, Firefox 132+): grid-template-rows 0fr -> 1fr is the same motion the
+   DSH plugin uses on its row detail. Engines without ::details-content fall
+   back to the old instant toggle — progressive enhancement, nothing breaks. */
+.tr-row::details-content {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows .24s cubic-bezier(.22,1,.36,1), opacity .15s ease;
+}
+.tr-row[open]::details-content {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+/* 0fr collapses content but not the box's own padding (the 8-22 trap): the
+   padding lives on an inner wrapper so a closed row reserves no height. */
+.tr-body { grid-column: 1 / -1; min-height: 0; overflow: hidden; padding: 0; }
+.tr-body-inner { padding: 4px 14px 12px; border-top: 1px solid var(--border); background: var(--surface-soft, rgba(0,0,0,0.015)); }
 .trace-line { position: relative; padding-left: 20px; margin: 8px 0 4px; }
 .trace-line::before { content: ''; position: absolute; left: 5px; top: 8px; bottom: 8px; width: 2px; background: var(--border); }
 .tr-node { position: relative; padding: 3px 0 10px; }
@@ -2292,7 +2327,7 @@
      a row nobody can see is expandable is a row nobody expands. */
   .tr-row summary::after { grid-area: 1 / 5; margin: 0; align-self: center; justify-self: end; }
   .tr-row[open] summary { box-shadow: none; }
-  .tr-body { padding: 4px 12px 12px; }
+  .tr-body-inner { padding: 4px 12px 12px; }
   .trace-line { padding-left: 18px; }
   .tr-node::before { left: -18px; }
   #trace-stats { gap: 4px 14px; }
