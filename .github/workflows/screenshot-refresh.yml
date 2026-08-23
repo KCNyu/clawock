@@ -46,11 +46,6 @@ jobs:
           ref: data-plane
           path: data-plane
 
-      - name: Set up Node
-        uses: actions/setup-node@v7
-        with:
-          node-version: '22'
-
       # `.[imaging]` up front: the GIF steps below are dispatch-only but
       # validate_sidecar screenshots fully decodes the PNGs on every run, so
       # Pillow is needed unconditionally. Installing it once here replaces two
@@ -60,10 +55,11 @@ jobs:
         with:
           install: '.[imaging]'
 
-      - name: Install Playwright + Chromium
-        run: |
-          npm install --silent playwright@1.60.0
-          npx playwright install --with-deps chromium
+      # Same door as the CI browser contract (#884): one version pin, one
+      # browser cache key, so this weekly run hits whatever ci.yml cached and
+      # vice versa instead of re-downloading ~150MB of Chromium every Sunday.
+      - name: Set up Playwright + Chromium
+        uses: ./.github/actions/clawock-playwright
 
       - name: Capture win-rate chart + social card
         run: |

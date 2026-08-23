@@ -21,7 +21,7 @@ sys.path.insert(0, str(ROOT / 'ops' / 'ci'))
 import coverage_badge  # noqa: E402
 from clawock.publish import artifacts as validate_sidecars  # noqa: E402
 
-WORKFLOW = ROOT / '.github' / 'workflows' / 'harness-regression.yml'
+WORKFLOW = ROOT / '.github' / 'workflows' / 'ci.yml'
 BADGE_PATH = 'assets/data/coverage.json'
 
 

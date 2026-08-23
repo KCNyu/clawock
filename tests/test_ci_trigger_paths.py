@@ -15,7 +15,7 @@ from workflow_contract_helpers import case_patterns, push_paths
 
 
 ROOT = Path(__file__).resolve().parents[1]
-WORKFLOW_PATH = ROOT / ".github" / "workflows" / "harness-regression.yml"
+WORKFLOW_PATH = ROOT / ".github" / "workflows" / "ci.yml"
 WORKFLOW = WORKFLOW_PATH.read_text()
 CONFIG_FILES = sorted(
     str(path.relative_to(ROOT)) for path in (ROOT / "config").rglob("*")

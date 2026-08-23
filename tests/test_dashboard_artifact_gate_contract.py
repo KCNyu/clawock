@@ -13,7 +13,7 @@ from workflow_contract_helpers import (
 
 ROOT = Path(__file__).resolve().parents[1]
 WORKFLOWS = ROOT / '.github' / 'workflows'
-HARNESS = WORKFLOWS / 'harness-regression.yml'
+HARNESS = WORKFLOWS / 'ci.yml'
 GATE = WORKFLOWS / 'dashboard-artifact-gate.yml'
 DASHBOARD = 'assets/data/dashboard.json'
 OVERVIEW = 'assets/data/overview.json'

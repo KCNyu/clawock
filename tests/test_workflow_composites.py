@@ -123,7 +123,7 @@ def test_dependency_review_runs_on_prs_without_being_able_to_block_them():
     review is one people learn to route around, and this repository has already
     paid for false reds several times over.
     """
-    workflow = (ROOT / ".github" / "workflows" / "harness-regression.yml").read_text(encoding="utf-8")
+    workflow = (ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
     assert "dependency-review-action@" in workflow
 
     step = workflow.split("- name: Dependency review", 1)[1].split("- name:", 1)[0]
@@ -141,9 +141,50 @@ def test_the_required_check_list_has_not_quietly_grown():
     """If dependency review is ever added to the ruleset's required contexts,
     the reasoning above is void and this should be a deliberate decision, not a
     side effect."""
-    workflow = (ROOT / ".github" / "workflows" / "harness-regression.yml").read_text(encoding="utf-8")
+    workflow = (ROOT / ".github" / "workflows" / "ci.yml").read_text(encoding="utf-8")
     job = workflow.split("\n  validate:", 1)[1].split("\n  smoke-data-fetch:", 1)[0]
     advisory = [name for name in ("Dependency review",) if f"- name: {name}" in job]
     for name in advisory:
         block = job.split(f"- name: {name}", 1)[1].split("- name:", 1)[0]
         assert "continue-on-error: true" in block
+
+
+# --- the Playwright door (#884) ----------------------------------------------
+#
+# clawock-python exists because seven hand-rolled setup copies drifted; two
+# consumers install the Playwright browser stack today, and the same drift is
+# one copy away. The composite owns the version pin and the shared cache key.
+
+PLAYWRIGHT_COMPOSITE = ACTIONS / "clawock-playwright" / "action.yml"
+PLAYWRIGHT_CONSUMERS = {"ci.yml", "screenshot-refresh.yml"}
+
+
+def test_the_playwright_composite_owns_the_version_and_the_cache_key():
+    composite = PLAYWRIGHT_COMPOSITE.read_text(encoding="utf-8")
+    assert "actions/setup-node@" in composite
+    version = re.search(r"default: '(\d+\.\d+\.\d+)'", composite)
+    assert version, "the playwright pin must be a plain default input"
+    for marker in (
+        f"playwright-${{{{ inputs.version }}}}-${{{{ runner.os }}}}",
+        "path: ~/.cache/ms-playwright",
+        f"playwright@${{{{ inputs.version }}}}",
+    ):
+        assert marker in composite, marker
+
+
+@pytest.mark.parametrize("workflow", WORKFLOWS, ids=lambda p: p.name)
+def test_no_workflow_installs_playwright_by_hand(workflow):
+    """The ~150MB browser build and its version pin have one door."""
+    text = workflow.read_text(encoding="utf-8")
+    assert "npx playwright install" not in text and "ms-playwright" not in text, (
+        f"{workflow.name} installs Playwright by hand. Use "
+        "./.github/actions/clawock-playwright — it owns the version pin and "
+        "the browser cache key shared with the other consumer."
+    )
+
+
+@pytest.mark.parametrize("name", sorted(PLAYWRIGHT_CONSUMERS))
+def test_every_playwright_consumer_goes_through_the_door(name):
+    path = ROOT / ".github" / "workflows" / name
+    assert path.is_file(), f"{name} disappeared; update PLAYWRIGHT_CONSUMERS"
+    assert "./.github/actions/clawock-playwright" in path.read_text(encoding="utf-8")

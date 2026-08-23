@@ -330,7 +330,7 @@ def test_no_workflow_or_script_invokes_a_module_by_a_path_that_moved():
     """`python3 -m clawock.x.y` in a workflow is an import the AST scan cannot see.
 
     #814 moved four modules and the graph came back clean, because a `-m`
-    invocation in harness-regression.yml is a string, not an import. CI caught
+    invocation in ci.yml is a string, not an import. CI caught
     it — after the PR was opened, on a step that only runs when code changes.
     A grep is cheap and runs with everything else.
     """
