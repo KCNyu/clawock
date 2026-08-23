@@ -86,7 +86,7 @@ GUARDRAIL_CAPS = {
 
 
 # 2x→1x 解套换仓映射（kcn 2026-06-11 口径）：现货套牢可以躺（等待免费），2x 日内重置
-# 套牢不能躺（震荡 decay 让等待持续收费）。所以杠杆腿的硬闸动作一律先给「换仓」而非
+# 套牢不能躺（震荡 decay 让等待持续收费）。所以杠杆仓的硬闸动作一律先给「换仓」而非
 # 「清仓 trim」——换成同因子 1x 后反弹敞口一点不丢、decay 出血停止，不算割肉离场。
 # 换回条件 = 🧭 lev_regime 转 green（标的收复 200 日线且波动正常），1x→2x 只在 green 档执行。
 LEV_1X_SWAP = one_x_swap_map()
@@ -322,7 +322,7 @@ def compute_risk_guardrail(hk_holdings, us_holdings, hk_conc, us_conc, risk,
                            f"(cap {caps['correlated_cluster_pct']}%, "
                            f"|rho|≥{correlation.get('cluster_rho')})"),
                 'action': (f"把相关集群 {', '.join(tickers)} 降到 "
-                           f"≤{caps['correlated_cluster_pct']}%，优先降其中杠杆腿"),
+                           f"≤{caps['correlated_cluster_pct']}%，优先降其中杠杆仓"),
                 'required_reduction': {
                     'kind': 'factor_market_value',
                     'minimum_value': factor_trim,
@@ -360,7 +360,7 @@ def compute_risk_guardrail(hk_holdings, us_holdings, hk_conc, us_conc, risk,
         directive = (f"⛔ {len(breaches)} 仓位硬闸 + {len(hard_stops)} 杠杆止损触发。"
                      "每条必须在 Judge 段出一个对应动作(driven_by=risk_rule,纪律性再平衡,"
                      "不算听消息、不受 risk_on HOLD 默认约束)；其余主动 call 仍按 regime guard。"
-                     "杠杆腿解套口径=2x→1x 同因子换仓而非清仓(见各 action)。")
+                     "杠杆ETF解套口径=2x→1x 同因子换仓而非清仓(见各 action)。")
     else:
         directive = "✅ 无仓位/杠杆硬闸触发，按常规决策。"
 
