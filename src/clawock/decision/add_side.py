@@ -18,10 +18,14 @@ every number from its inputs — the rules below are the ones already written do
 * **Discipline first.** A live thesis breach or an unexecuted `risk_rule` action
   makes it `reject`: while a stop or a trim is outstanding, adding is not a
   question the desk asks.
-* **Only a primary disclosure can promote.** `candidate` requires an
-  `interrupt`-class primary filing *and* a technical state that is at or near the
-  breakout. This is the existing catalyst gate: soft news and sentiment are colour,
-  never an active-operation reason.
+* **A confirmed technical breakout can promote on its own; a primary
+  filing upgrades the wording.** `candidate` requires a radar row in the
+  `breakout` state (close > prior 20-day high, not overheated) — the one add
+  shape the 8-month bars backtest (#819) measured with a positive edge at every
+  horizon (T+1/5/10/20 hit 52.5/54.0/52.5/55.9%, avg fwd +16.25% at T+20; HK
+  T+20 59.4%). Near-breakout/at-high without a primary filing stay `wait`
+  (no standalone edge). Soft news and sentiment remain colour, never an
+  active-operation reason.
 * **Everything else is `wait`, with what would change it.** A price anomaly with no
   primary catalyst is the common case (02208 +6.4% on 2026-08-17), and the useful
   output there is the falsifier — the level or the session that would settle it —
@@ -46,6 +50,15 @@ PROXY_KEY = "_proxy_label"
 # all and produces no row.
 IN_PLAY_STATES = ("breakout", "near_breakout", "at_high")
 
+# States that get a row at all (#819). `wait_rebreak` — an uptrend pulling
+# back — is NOT in play: it stays out of the promotion gate below, but it is a
+# real read (unlike a name deep inside its range), and before this split it was
+# dropped wholesale, so the desk never collected a single sample to test
+# whether "buy the dip inside an uptrend" holds. It now produces `wait` rows
+# with their state logged; whether it ever joins IN_PLAY_STATES is a
+# measurement decision, not a naming one.
+ROW_STATES = IN_PLAY_STATES + ("wait_rebreak",)
+
 
 def _radar_index(radar):
     """holdings ticker -> radar row. A row can cover several holdings (an index
@@ -58,7 +71,7 @@ def _radar_index(radar):
     tagged here, and every place that renders a number checks the tag.
     """
     rows = [row for row in (radar or {}).get("rows", []) or []
-            if row.get("state") in IN_PLAY_STATES]
+            if row.get("state") in ROW_STATES]
     index = {}
     # Two passes, and the order matters: a name that has a row of its own must
     # win over any proxy that also covers it, whatever order the radar sorted
@@ -177,12 +190,30 @@ def read_rows(*, anomalies=None, radar=None, levels=None, early_trend=None,
             else:
                 why = f"thesis 红线在触发状态:{breach}"
             needs = "先把纪律动作走完,再谈加仓"
-        elif primary and radar_row:
+        elif radar_row and radar_row.get("state") in IN_PLAY_STATES and (
+                radar_row.get("state") == "breakout" or primary):
+            # #819: the breakout state alone carries the measured edge
+            # (8-month bars backtest: hit >50% at T+1/5/10/20, avg fwd positive;
+            # deep-dip adds failed all four horizons — the original 逢低 assumption).
+            # A primary filing upgrades the wording, it is not the promotion key.
             verdict = "candidate"
-            why = (f"一手公告 + 技术面{radar_row.get('state_zh') or radar_row.get('state')}"
-                   f":{primary.get('title') or primary.get('headline') or 'primary filing'}")
-            lead = f"{_proxy_of(radar_row)} 站上 " if _proxy_of(radar_row) else "站上 "
-            needs = f"{lead}{radar_row.get('prior_20d_high')} 并守住"
+            if primary:
+                why = (f"一手公告 + 技术面{radar_row.get('state_zh') or radar_row.get('state')}"
+                       f":{primary.get('title') or primary.get('headline') or 'primary filing'}")
+                if radar_row.get("state") == "breakout":
+                    lead = f"{_proxy_of(radar_row)} 守住 " if _proxy_of(radar_row) else "守住 "
+                    needs = f"{lead}{radar_row.get('prior_20d_high')}(回踩不破再谈加仓)"
+                else:
+                    # near_breakout/at_high with a primary filing: the price is
+                    # still below the level, so the ask is to get above it.
+                    lead = f"{_proxy_of(radar_row)} 站上 " if _proxy_of(radar_row) else "站上 "
+                    needs = f"{lead}{radar_row.get('prior_20d_high')} 并守住"
+            else:
+                state_zh = radar_row.get('state_zh') or radar_row.get('state')
+                why = (f"技术面{state_zh}:收盘站上前 20 日高且未过热"
+                       f"(回测:四个周期命中率均>50%)")
+                lead = f"{_proxy_of(radar_row)} 守住 " if _proxy_of(radar_row) else "守住 "
+                needs = f"{lead}{radar_row.get('prior_20d_high')}(回踩不破再谈加仓)"
         else:
             verdict = "wait"
             missing = []
@@ -190,6 +221,10 @@ def read_rows(*, anomalies=None, radar=None, levels=None, early_trend=None,
                 missing.append("窗口内无一手公告" if soft is None else "只有软消息/情绪面")
             if not radar_row:
                 missing.append("技术面未接近突破")
+            elif radar_row.get("state") not in IN_PLAY_STATES:
+                # #819: wait_rebreak rows now exist and say what they are —
+                # an uptrend pulling back, logged as state, not a silent drop.
+                missing.append(f"技术面{radar_row.get('state_zh') or radar_row.get('state')}")
             why = "、".join(missing) or "条件不齐"
             level = radar_row or _level(levels, ticker)
             # #759: a level the radar dropped still answers "跌到哪才算机会".
@@ -270,6 +305,7 @@ def read_rows(*, anomalies=None, radar=None, levels=None, early_trend=None,
         "candidate_count": sum(r["verdict"] == "candidate" for r in rows),
         "wait_count": sum(r["verdict"] == "wait" for r in rows),
         "reject_count": sum(r["verdict"] == "reject" for r in rows),
-        "policy": ("一手披露才可能促成 candidate;软消息/情绪只能停在 wait;"
+        "policy": ("技术突破(收盘站上前 20 日高且未过热)即 candidate,"
+                   "一手公告升级措辞;软消息/情绪只能停在 wait;"
                    "纪律动作未了结一律 reject。三态都不是下单授权。"),
     }

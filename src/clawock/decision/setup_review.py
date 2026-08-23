@@ -47,7 +47,11 @@ HIST = WS / 'assets' / 'data' / 't0_setups_history.jsonl'
 OUT = WS / 'assets' / 'data' / 't0_setup_review.json'
 
 MIN_N = 20   # 牌面结论可被引用的最小样本量
-HORIZON = 1  # T+1：按「下一个有该标的留痕的交易日」结算
+HORIZON = 1  # T+1:按「下一个有该标的留痕的交易日」结算(顶层兼容字段)
+# #819:同一条留痕在多个周期上各结算一遍。T+1 是顶层(现有读者),
+# multi_horizon 带全部周期——上一次"换个周期会不会成立"的验证是手工
+# 重放的,不该再做第二遍。
+HORIZONS = (1, 5, 10, 20)
 
 # 牌面 → (匹配函数, 预期方向 +1=次日涨算命中 / -1=次日跌算命中)
 GRADE_TESTS = {
@@ -80,21 +84,17 @@ def _load_days():
     return [{'as_of': d, 'rows': by_day[d]} for d in sorted(by_day)]
 
 
-def main(argv=None):
-    del argv
-    days = _load_days()
-    if not days:
-        out = {'as_of': date.today().isoformat(), 'days_logged': 0,
-               'grades': {}, 'summary': '尚无留痕 — 累积中'}
-        safe_write_json(str(OUT), out)
-        print('  no t0 history yet — skip')
-        return 0
+def _settle(days, horizon):
+    """Run the grade-vs-forward-return accounting for one horizon.
 
+    Returns (stats, grades, usable_lines) — the same three things main()
+    assembles, so a multi-horizon run is one loop instead of a copy.
+    """
     stats = {k: {'n': 0, 'hits': 0, 'fwd_sum': 0.0} for k in GRADE_TESTS}
     for i, day in enumerate(days):
-        if i + HORIZON >= len(days):
+        if i + horizon >= len(days):
             continue  # 窗口未到期
-        nxt = days[i + HORIZON]['rows']
+        nxt = days[i + horizon]['rows']
         for t, m in day['rows'].items():
             c0 = m.get('close')
             lab = m.get('grade_label') or ''
@@ -107,8 +107,11 @@ def main(argv=None):
                     s = stats[name]
                     s['n'] += 1
                     s['hits'] += 1 if fwd * direction > 0 else 0
-                    s['fwd_sum'] += fwd * direction  # 方向化收益（正=警示/预测被证实）
-
+                    s['fwd_sum'] += fwd * direction  # 方向化收益(正=警示/预测被证实)
+    # #819:这些窗口是重叠的(Wilson CI 假设独立),写一个非重叠上限估计,
+    # 免得 n=210 被当成 210 个独立样本。
+    tickers = {t for d in days for t in d['rows']}
+    non_overlap_cap = len(tickers) * (len(days) // horizon) if horizon else 0
     grades = {}
     usable = []
     for name, s in stats.items():
@@ -139,16 +142,45 @@ def main(argv=None):
             'avg_dir_fwd_pct': avg,
             'usable': usable_now,
             'note': note,
+            # 重叠窗口的非重叠样本上限:CI 乐观与否,至少这里不假装独立。
+            'non_overlap_cap': non_overlap_cap,
         }
         if usable_now and wr is not None:
             band = f"[{ci[0]*100:.0f}–{ci[1]*100:.0f}]" if ci else ''
             usable.append(f"{GRADE_CN[name]} 命中{wr*100:.0f}%{band}(n={s['n']})")
+    return stats, grades, usable
+
+
+def main(argv=None):
+    del argv
+    days = _load_days()
+    if not days:
+        out = {'as_of': date.today().isoformat(), 'days_logged': 0,
+               'grades': {}, 'summary': '尚无留痕 — 累积中'}
+        safe_write_json(str(OUT), out)
+        print('  no t0 history yet — skip')
+        return 0
+
+    _, grades, usable = _settle(days, HORIZON)
 
     summary = ('、'.join(usable) if usable
                else f'没有牌面同时通过样本与正向 edge 闸（{len(days)} 交易日留痕）——结论未解锁')
+
+    multi = {}
+    for h in HORIZONS:
+        _, h_grades, h_usable = _settle(days, h)
+        h_summary = ('、'.join(h_usable) if h_usable
+                     else f'没有牌面同时通过样本与正向 edge 闸——结论未解锁')
+        multi[f'H{h}'] = {'horizon': h, 'grades': h_grades, 'summary': h_summary}
+
     out = {
         'as_of': date.today().isoformat(), 'days_logged': len(days),
         'min_n': MIN_N, 'horizon': HORIZON, 'grades': grades, 'summary': summary,
+        # #819:同一条留痕的 T+1/5/10/20 对账,horizons 键顺序即周期。
+        'multi_horizon': multi,
+        'overlap_note': ('留痕窗口重叠,Wilson CI 假设独立,故偏乐观;'
+                         'grades 内 non_overlap_cap = 标的数 × (交易日 ÷ horizon) 的非重叠上限,'
+                         'n 超过该上限时结论必须打折。'),
         'unlock_rule': 'sample_sufficient AND Wilson_ci95_lower>50pct',
         'discipline': ('自迭代：usable 需要样本量与正向 Wilson edge 同时成立；'
                        '样本够多但方向错误也只展示不下结论；'
