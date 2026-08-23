@@ -73,17 +73,6 @@ export interface PortfolioResult {
   lastUpdated: string | null
 }
 
-/**
- * What `readPortfolio` actually returns: the Remote-visible `PortfolioResult`
- * plus the raw `market_context` block, so `readTraces` can reach the FX rate
- * without reading and parsing portfolio.json a second time. `marketContext`
- * stays off the Remote face — the `portfolio()` method declares
- * `PortfolioResult`, so the generated codec never puts it on the wire.
- */
-export interface PortfolioRead extends PortfolioResult {
-  marketContext: { [key: string]: JsonValue }
-}
-
 /** One decision-ledger row indexed for soft pairing, with its plan date. */
 export interface DecisionRow {
   date: string

@@ -43,10 +43,10 @@ function barsSignature(ws: string): string {
 }
 
 /**
- * Freshness signature over the three sources that feed the trace view:
+ * Freshness signature over the four sources that feed the trace view:
  * portfolio.json (fills + notes), every canonical bar file's stat (T+1
- * closes), and decisions.jsonl (soft pairing). All stat-level reads, no
- * parsing. The
+ * closes), decisions.jsonl (soft pairing), and the FX ledger (USDHKD
+ * conversion for the header total). All stat-level reads, no parsing. The
  * enriched trace view is valid to reuse iff this signature is unchanged.
  */
 export function workspaceSignature(ws: string): string {
@@ -62,6 +62,7 @@ export function workspaceSignature(ws: string): string {
     sig(join(ws, 'portfolio.json')),
     barsSignature(ws),
     sig(join(ws, 'memory', 'decisions.jsonl')),
+    sig(join(ws, 'memory', 'fx-rates.jsonl')),
   ].join('|')
 }
 
