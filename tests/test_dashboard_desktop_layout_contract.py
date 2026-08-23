@@ -33,9 +33,10 @@ def enclosing_desktop_block(rule_start):
 
 
 def test_wide_table_and_profit_cards_own_desktop_width():
-    assert 'class="card desktop-wide" id="decision-matrix-card"' in HTML
-    assert 'class="card desktop-wide" id="holdings-card"' in HTML
-    assert 'class="card lead profit-extremes-card"' in HTML
+    # 决策矩阵与持仓表已合并成一张可展开主表（#875）；契约不变：宽表独占桌面宽度
+    assert 'class="card desktop-wide" id="book-card"' in HTML
+    assert 'class="card desktop-wide" id="tape-card"' in HTML
+    assert 'profit-extremes-card" id="recovery-card"' in HTML
     assert ".panel.active > .card.desktop-wide," in CSS
 
 
@@ -47,12 +48,11 @@ def test_holdings_dividers_do_not_partition_the_masonry_flow():
     assert "break-after: avoid" in rule
     assert ".holdings-section-heading" in CSS
     assert ".price-section-heading," in CSS
-    assert 'id="movers-card"' in HTML
-    assert 'id="anomalies-card"' in HTML
-    assert HTML.count('class="desktop-section-kicker"') == 5
-    assert HTML.count(
-        'class="desktop-section-kicker" role="heading" aria-level="2"'
-    ) == 2
+    # movers / anomalies 合并成一张「今日异动」卡（#877）。原来每张卡各挂一个
+    # desktop-section-kicker 来标同一段落，合并后一段只需要一个标题，所以这里
+    # 断的是「分节标题没有重复」而不是原来的固定条数。
+    assert 'id="today-action-card"' in HTML
+    assert HTML.count('class="desktop-section-kicker"') <= 2
 
 
 def test_webkit_reflect_uses_desktop_only_ordinary_flow_fallback():

@@ -257,7 +257,7 @@ async function testCurrentHoldingsOwnDecisionMatrixMembership(browser, base) {
     const active = [...(DATA.holdings?.us || []), ...(DATA.holdings?.hk || [])]
       .filter(row => row && row.is_active !== false && (row.shares ?? 0) > 0)
       .map(row => row.ticker).sort();
-    const rendered = [...document.querySelectorAll("#decision-matrix-tbody tr td:first-child strong")]
+    const rendered = [...document.querySelectorAll("#book-tbody tr.book-row td:first-child .ticker")]
       .map(cell => cell.textContent.trim()).sort();
     return { active, rendered };
   });
