@@ -623,6 +623,36 @@
   document.getElementById("refresh-btn").addEventListener("click", () => loadData(true));
 
   // =========================================================
+  // Frozen-column scroll edge
+  // =========================================================
+  // 冻结列只有在「右边真的还有东西」时才该投影。CSS 没法读 scrollLeft，
+  // 所以由这里在滚动时给 .table-wrap 打 .is-scrolled；未滚动时不留阴影，
+  // 免得静态表格凭空多一条竖线。passive + rAF，滚动路径上不做布局读写。
+  // =========================================================
+  // Frozen-column scroll edge
+  // =========================================================
+  // 冻结列只有在「右边真的还有列」时才该投影，否则静态表格凭空多一条竖线。
+  // CSS 读不到 scrollLeft，所以在滚动时给 .table-wrap 打 .is-scrolled。
+  //
+  // 监听器直接挂在这 5 个 .table-wrap 上（index.html 里是静态节点，渲染只换
+  // tbody），**不能**用 `document` 上的捕获委托：实测在 document 上加任何
+  // scroll 捕获监听器（passive 也一样）会改变 pager 的滚动时序 —— 分页器
+  // 那次 smooth scrollTo 还在飞的时候被写 scrollLeft，落点会跑到最后一页，
+  // dashboard_tab_runtime.spec.js 的 "uninstrumented scroll" 断言因此变红。
+  (function wireTableScrollEdge() {
+    const sync = w => w.classList.toggle("is-scrolled", w.scrollLeft > 1);
+    document.querySelectorAll(".table-wrap").forEach(w => {
+      let queued = false;
+      w.addEventListener("scroll", () => {
+        if (queued) return;
+        queued = true;
+        requestAnimationFrame(() => { queued = false; sync(w); });
+      }, { passive: true });
+      sync(w);
+    });
+  })();
+
+  // =========================================================
   // Boot — text and native Hero chart paint without waiting for ECharts
   // =========================================================
   function boot() {
