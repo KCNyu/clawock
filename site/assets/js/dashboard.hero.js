@@ -679,10 +679,17 @@
     // 首屏只回答三件事：赚亏多少、其中落袋多少、今天涨没涨。账面与 FX 降到
     // 下面那条安静行 —— 原来它们挤在同一行，1440 宽下必折行，折行是首屏最
     // 显眼的「乱」。(#879)
-    subEl.innerHTML = `已实现 <b class="${pnlClass(realUsd)}">${heroMoney(realUsd, "USD")}</b>`
-      + ` · 浮动 <b class="${pnlClass(unrealUsd)}">${heroMoney(unrealUsd, "USD")}</b>`
-      + ` · 今日 <b class="${pnlClass(todayUsd)}">${heroMoney(todayUsd, "USD")}</b>`
-      + (todayPct != null ? ` <span class="${pnlClass(todayPct)}">${fmtPct(todayPct)}</span>` : "");
+    // 三段各自成一个 span：CSS 让段内 nowrap、段间可折行。原来整行是
+    // `nowrap + text-overflow: ellipsis`，390px 上稳定截在「今日 +$807.18…」，
+    // 今日涨跌幅从来没显示过 —— 首屏截掉一个数字就是丢信息，不是排版取舍。
+    subEl.innerHTML =
+      `<span class="hds-seg">已实现 <b class="${pnlClass(realUsd)}">${heroMoney(realUsd, "USD")}</b></span>`
+      + `<span class="hds-sep">·</span>`
+      + `<span class="hds-seg">浮动 <b class="${pnlClass(unrealUsd)}">${heroMoney(unrealUsd, "USD")}</b></span>`
+      + `<span class="hds-sep">·</span>`
+      + `<span class="hds-seg">今日 <b class="${pnlClass(todayUsd)}">${heroMoney(todayUsd, "USD")}</b>`
+      + (todayPct != null ? ` <span class="${pnlClass(todayPct)}">${fmtPct(todayPct)}</span>` : "")
+      + `</span>`;
 
     const fxEl = document.getElementById("fx-rate-usd");
     if (fxEl) {
@@ -1166,8 +1173,11 @@
     ].filter(t => t.banner);
     if (!targets.length) return;
     if (!txt) {
+      // 数据已经渲染过一轮了，所以这是「今天没有盘中横幅」，不是「还没加载」。
+      // 收掉高度，别在判定卡标题下留一条空带。
       targets.forEach(({ banner }) => {
-        banner.classList.add("is-pending");
+        banner.classList.remove("is-pending");
+        banner.classList.add("is-empty");
         banner.setAttribute("aria-hidden", "true");
       });
       return;
@@ -1182,6 +1192,7 @@
     }
     targets.forEach(({ banner, text, time }) => {
       banner.classList.remove("is-pending");
+      banner.classList.remove("is-empty");
       banner.removeAttribute("aria-hidden");
       if (text) text.textContent = txt;
       if (time) time.textContent = t;
