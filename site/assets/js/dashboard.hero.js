@@ -100,9 +100,9 @@
     // 0. Regime — the day's default stance (same risk_on/neutral/risk_off the brief acts on)
     const rg = safe(DATA, "regime");
     if (rg && rg.label) {
-      const map = { risk_on:  { cls:"hl-up",    ic:"🟢", stance:"默认持有, 别瞎动" },
-                    neutral:  { cls:"hl-info",  ic:"⚪", stance:"按 frame 常规" },
-                    risk_off: { cls:"hl-alert", ic:"🔴", stance:"防御, 优先减杠杆" } };
+      const map = { risk_on:  { cls:"hl-up",    ic:"", stance:"默认持有, 别瞎动" },
+                    neutral:  { cls:"hl-info",  ic:"", stance:"按 frame 常规" },
+                    risk_off: { cls:"hl-alert", ic:"", stance:"防御, 优先减杠杆" } };
       const r = map[rg.label] || map.neutral;
       chips.push({ cls: r.cls, icon: r.ic,
         txt: `Regime ${escapeHtml(rg.label.replace("_"," "))} · ${escapeHtml(r.stance)}` });
@@ -117,7 +117,7 @@
     if (dd.has_material_change || changedN || newN || triggeredN) {
       chips.push({
         cls: triggeredN ? "hl-alert" : "hl-info",
-        icon: triggeredN ? "⚡" : "↻",
+        icon: "",
         txt: `决策变化 · 新增 ${newN} · 修改 ${changedN} · 触发 ${triggeredN}`,
       });
     }
@@ -129,7 +129,7 @@
     const near = (computeWatchRows().rows || []).find(r => r.ad != null);
     if (near) {
       const fire = near.ad < 2;
-      chips.push({ cls: fire ? "hl-alert" : "hl-info", icon: fire ? "⚠️" : "🎯",
+      chips.push({ cls: fire ? "hl-alert" : "hl-info", icon: "",
         txt: `${escapeHtml(near.who)} ${escapeHtml(near.label)} ${fmtMoney(near.val, near.ccy)}`
            + ` · 现 ${fmtMoney(near.cur, near.ccy)} (${fmtPct(near.dist,1)})${fire ? " 即将触发" : ""}` });
     }
@@ -138,7 +138,7 @@
     const movers = safe(DATA, "today_movers") || [];
     if (movers.length) {
       const m = movers[0]; const up = (m.today_change_pct || 0) >= 0;
-      chips.push({ cls: up ? "hl-up" : "hl-down", icon: up ? "📈" : "📉",
+      chips.push({ cls: up ? "hl-up" : "hl-down", icon: "",
         txt: `今日最大波动 ${escapeHtml(m.ticker)} ${fmtPct(m.today_change_pct,1)}` });
     }
 
@@ -148,7 +148,7 @@
     if (anomalies.length) {
       const a = anomalies[0];
       const highN = anomalies.filter(x => x.severity === "high").length;
-      chips.push({ cls: a.severity === "high" ? "hl-alert" : "hl-warn", icon: "🚩",
+      chips.push({ cls: a.severity === "high" ? "hl-alert" : "hl-warn", icon: "",
         txt: (highN > 1 ? `${highN} 项高危异常 · ` : `异常 `)
            + `${escapeHtml(a.ticker)}: ${escapeHtml(a.detail)}` });
     }
@@ -163,7 +163,7 @@
     (cat.macro_events||[]).forEach(e => { if (e.date === today) todays.push(`${e.type} ${e.detail}`); });
     (cat.earnings||[]).forEach(e => { if (String(e.date||"").slice(0,10) === today) todays.push(`财报 ${e.ticker||e.symbol||""}`); });
     (cat.fomc||[]).forEach(e => { if (String(e.date||"").slice(0,10) === today) todays.push(`FOMC ${e.detail||""}`); });
-    if (todays.length) chips.push({ cls:"hl-info", icon:"📅", txt:`今日事件 · ${escapeHtml(todays[0])}` });
+    if (todays.length) chips.push({ cls:"hl-info", icon:"", txt:`今日事件 · ${escapeHtml(todays[0])}` });
 
     if (!chips.length) {
       el.style.display = "";
@@ -702,7 +702,7 @@
     }
     const breaches = g.breaches || [], stops = g.hard_stop_watch || [];
     const n = g.breach_count || 0;
-    const ICON = { single_name: '🎯', factor_concentration: '🧬', leveraged_exposure: '⚡', beta: '📈', regime_delever: '🧭' };
+    const ICON = { single_name: '', factor_concentration: '', leveraged_exposure: '', beta: '', regime_delever: '' };
     const row = (icon, sev, detail, action) =>
       `<div class="risk-alert ${sev || 'high'}">
          <span class="icon">${icon}</span>
@@ -710,19 +710,19 @@
        </div>`;
     const rows = [
       ...breaches.map(b => ({ icon: ICON[b.type] || '⚠️', severity: b.severity, detail: b.detail, action: b.action })),
-      ...stops.map(s => ({ icon: '🛑', severity: 'high', detail: s.detail, action: s.action })),
+      ...stops.map(s => ({ icon: '', severity: 'high', detail: s.detail, action: s.action })),
     ];
     const compactRows = rows.slice().sort((a, b) =>
       Number(b.severity === "high") - Number(a.severity === "high"));
     targets.forEach(({ countEl, dirEl, listEl, compact }) => {
-      countEl.textContent = n ? `${n} 触发` : '✅ 无';
+      countEl.textContent = n ? `${n} 触发` : '无';
       countEl.style.color = n ? 'var(--negative)' : 'var(--positive)';
       if (dirEl) dirEl.textContent = compact
         ? (g.directive || "")
         : [g.directive, g.reentry_rule].filter(Boolean).join(' ');
       const visibleRows = compact ? compactRows.slice(0, 3) : rows;
       const html = visibleRows.map(r => row(r.icon, r.severity, r.detail, compact ? "" : r.action)).join('');
-      listEl.innerHTML = html || '<div class="muted" style="font-size:12px">仓位/单因子/杠杆均在阈值内 ✅</div>';
+      listEl.innerHTML = html || '<div class="muted" style="font-size:12px">仓位/单因子/杠杆均在阈值内</div>';
     });
   }
 
