@@ -1,5 +1,24 @@
-name: Harness Regression
+name: CI
 
+# One workflow for the whole code-quality gate (#884). It consolidates three
+# files that fired together on every PR and master push but carried three
+# different push-path policies and three copies of the same trigger reasoning:
+#
+#   harness-regression.yml -> `validate` (+ publish-coverage, smoke-data-fetch)
+#   actionlint.yml         -> `lint`
+#   codeql.yml             -> `Analyze (...)` x3 + the aggregate `CodeQL` check
+#
+# The required check contexts are byte-identical to what the branch ruleset
+# pins — a context comes from the job name, not from the file — so no ruleset
+# change ships with this. What changed is that there is exactly ONE push-path
+# list, ONE concurrency policy and ONE place where "which push runs what" is
+# decided, instead of a positive list next to an ignore-list next to another
+# positive list.
+#
+# The push trigger below stays a positive list on purpose: pure-data commits
+# (~85% of master pushes) must not start CI at all, so the Actions tab keeps
+# showing results instead of skipped runs (#782). The weekly Saturday backstop
+# runs the full matrix whatever the push lane missed.
 on:
   push:
     branches: [master]
@@ -7,6 +26,9 @@ on:
       - 'src/**'
       - 'ops/**'
       - 'pyproject.toml'
+      # pytest.ini carries test options; a change there can change what the
+      # suite enforces just like pyproject.toml can.
+      - 'pytest.ini'
       - 'tests/**'
       # The dashboard moved under site/ in #399; these globs kept the
       # pre-move paths and stopped matching anything.
@@ -17,6 +39,10 @@ on:
       # detector lane and in no syntax check: the only thing that ever ran it
       # was the weekly screenshot-refresh cron, which commits its output.
       - 'site/tools/**'
+      # The Decision Studio plugin sources were watched by the detector but
+      # missing here, so a plugin-only master push started nothing on master;
+      # the contracts only ever ran on PRs. Closing that hole (#884).
+      - 'examples/dsh/**'
       - 'portfolio.json'
       - 'memory/**-plan.json'
       # Research artifacts are validated by the suite below, so a
@@ -24,7 +50,9 @@ on:
       - 'memory/theses/**'
       - 'memory/earnings/**'
       - 'memory/entry-gates/**'
-      - '.github/workflows/harness-regression.yml'
+      # Composite actions are code the jobs execute; a broken edit deserves a
+      # red run on master too, not only on the PR that introduced it.
+      - '.github/actions/**'
       # Whole directory on purpose: every file here (cron contract, instrument
       # registry, thesis/earnings schemas, news-evidence policy, peer rules) is
       # read by the suite, and naming them one by one already left new schemas
@@ -34,6 +62,14 @@ on:
       - '.github/workflows/**'
       - 'skills/tavily-search/**'
   pull_request:
+  # Weekly full-matrix backstop (inherited from codeql.yml's schedule): a
+  # scheduled event has no diffable range, so the detector answers "everything
+  # changed" and lint + validate + smoke + all three Analyze jobs run in full.
+  # Saturday 03:41 UTC — an uncontended slot, because measured schedule drift
+  # in this repository runs 10-160 minutes and is driven by how busy the UTC
+  # hour is (#781).
+  schedule:
+    - cron: '41 3 * * 6'
   workflow_dispatch:
 
 permissions:
@@ -49,7 +85,67 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
+  lint:
+    # Was actionlint.yml: a 12-second lint should not pay for its own workflow
+    # file, its own trigger block and its own runner on every event. The job
+    # name keeps the required `lint` context byte-identical.
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v7
+
+      # On PRs, schedule and dispatch: always lint — `lint` is a required check
+      # and must report on every PR even when no workflow file changed
+      # (a path-filtered required check waits forever). On master pushes the
+      # workflow fires for any code path below, so gate on an actual diff under
+      # .github/workflows/ instead; undiffable ranges lint anyway (fail toward
+      # running a 12s check rather than skipping it).
+      - name: Did any workflow file change?
+        id: scope
+        env:
+          BASE_SHA: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+          if [ "${{ github.event_name }}" != "push" ]; then
+            echo "lint=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [ -z "${BASE_SHA:-}" ] || [ "${BASE_SHA}" = "0000000000000000000000000000000000000000" ] \
+             || ! git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null; then
+            echo "no diffable base ($BASE_SHA) — linting"
+            echo "lint=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          git fetch --quiet --depth=1 origin "${BASE_SHA}"
+          if git diff --name-only "${BASE_SHA}" HEAD | grep -q '^\.github/workflows/'; then
+            echo "lint=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "lint=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Install pinned actionlint
+        if: steps.scope.outputs.lint == 'true'
+        env:
+          ACTIONLINT_VERSION: '1.7.12'
+          ACTIONLINT_SHA256: '8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8'
+        run: |
+          archive="actionlint_${ACTIONLINT_VERSION}_linux_amd64.tar.gz"
+          curl --fail --location --silent --show-error \
+            --output "/tmp/${archive}" \
+            "https://github.com/rhysd/actionlint/releases/download/v${ACTIONLINT_VERSION}/${archive}"
+          echo "${ACTIONLINT_SHA256}  /tmp/${archive}" | sha256sum --check --strict
+          tar -xzf "/tmp/${archive}" -C /tmp actionlint
+          /tmp/actionlint -version
+
+      - name: Lint GitHub Actions
+        if: steps.scope.outputs.lint == 'true'
+        run: /tmp/actionlint -color
+
   validate:
+    outputs:
+      # Job-level mirror of the detector, so sibling jobs can gate without a
+      # second checkout: smoke-data-fetch skips unless code changed.
+      code: ${{ steps.changes.outputs.code }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -125,8 +221,9 @@ jobs:
         # (and the required `validate` context) always runs; a docs/markdown-only
         # PR just skips the expensive steps and still reports green in seconds.
         # We must NOT path-filter the pull_request trigger itself: a required
-        # check that is filtered out never reports and blocks the PR forever
-        # (see actionlint.yml). Skipped *steps* count as success, so we gate here.
+        # check that is filtered out never reports and blocks the PR forever —
+        # the same trap that keeps `lint` unfiltered on PRs. Skipped *steps*
+        # count as success, so we gate here.
         # Runs on pushes too (#750). It used to be PR-only, with every heavy
         # step reading `event_name != 'pull_request' || changes...` — which meant
         # the browser contract and the DSH plugin gates, whose conditions were
@@ -177,7 +274,7 @@ jobs:
           while IFS= read -r f; do
             [ -n "$f" ] || continue
             case "$f" in
-              src/*|ops/*|tests/*|pyproject.toml|portfolio.json|memory/*-plan.json|memory/theses/*|memory/earnings/*|memory/entry-gates/*|assets/data/overview.json|assets/data/dashboard.json|config/*|docs/operations/cron-schedules.md|.github/workflows/*|skills/tavily-search/*|site/tools/*)
+              src/*|ops/*|tests/*|pyproject.toml|pytest.ini|portfolio.json|memory/*-plan.json|memory/theses/*|memory/earnings/*|memory/entry-gates/*|assets/data/overview.json|assets/data/dashboard.json|config/*|docs/operations/cron-schedules.md|.github/workflows/*|.github/actions/*|skills/tavily-search/*|site/tools/*)
                 code=true
                 break
                 ;;
@@ -195,35 +292,13 @@ jobs:
           { echo "code=$code"; echo "ui=$ui"; echo "dsplugin=$dsplugin"; } >> "$GITHUB_OUTPUT"
           echo "code changed: $code"
 
-      - name: Set up Node for dashboard browser contract
+      # The browser build is ~150MB downloaded from scratch on every UI run.
+      # The composite owns the version pin and the cache key — the same key the
+      # weekly screenshot-refresh uses, so whichever of the two runs first in a
+      # week pays the download and the other one hits.
+      - name: Set up Playwright for the browser contract
         if: steps.changes.outputs.ui == 'true'
-        uses: actions/setup-node@v7
-        with:
-          node-version: '22'
-
-      # The browser build is ~150MB downloaded from scratch on every UI run. The
-      # version is already pinned on the line below, so it is also a complete
-      # cache key: a bump changes the key and misses on purpose.
-      - name: Cache the Playwright browser build
-        if: steps.changes.outputs.ui == 'true'
-        id: playwright-cache
-        uses: actions/cache@v6
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-1.60.0-${{ runner.os }}
-
-      - name: Install dashboard browser contract runtime
-        if: steps.changes.outputs.ui == 'true'
-        run: |
-          npm install --no-save --silent playwright@1.60.0
-          # The apt-level dependencies live outside ~/.cache/ms-playwright and are
-          # not restored by the cache, so they are installed either way; only the
-          # browser download is skipped on a hit.
-          if [ "${{ steps.playwright-cache.outputs.cache-hit }}" = "true" ]; then
-            npx playwright install-deps chromium
-          else
-            npx playwright install --with-deps chromium
-          fi
+        uses: ./.github/actions/clawock-playwright
 
       # The dashboard's four outputs and two sidecars live on the data branch,
       # not on master (#314), so a checkout does not carry them. The browser
@@ -242,6 +317,11 @@ jobs:
         uses: actions/setup-node@v7
         with:
           node-version: '22'
+          # The package has a committed lockfile, so the npm content cache is
+          # keyed on it — the reproducibility gate below reinstalls the same
+          # dependency set every run.
+          cache: npm
+          cache-dependency-path: examples/dsh/packages/clawock-dsh/package-lock.json
 
       # The committed lib/ is what CI and the live DSH profile consume, so it
       # has to be a function of src/ alone — not of whoever last remembered to
@@ -565,6 +645,11 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     needs: validate
+    # Only worth a runner when code changed: a docs-only PR used to pay a full
+    # pip install plus two live FX providers for a probe that cannot be about
+    # the docs. The lane answer comes from validate's detector via its job
+    # output, so no second checkout is spent deciding this.
+    if: needs.validate.outputs.code == 'true'
     continue-on-error: true  # data sources can be flaky; don't fail the pipeline
     steps:
       - uses: actions/checkout@v7
@@ -577,3 +662,96 @@ jobs:
           out=$(clawock fx --json) || exit 1
           echo "$out"
           python3 -c "import json,sys; d=json.load(open('-')) if False else json.loads('''$out'''); assert 7 < d['rate'] < 9, f'FX rate out of range: {d[\"rate\"]}'; print('FX OK:', d['source'])"
+
+  analyze:
+    # Was codeql.yml — advanced setup replacing GitHub's default (#782).
+    #
+    # Default setup cannot be path-filtered, and this repository pushes to
+    # master ~35 times a day of which ~85% are pure data commits written by
+    # automation (assets/data/**, memory/**). Measured over three days: 98
+    # CodeQL runs, ~33 a day at 92-105 seconds each — about 55 minutes of
+    # runner time daily spent re-analysing a byte-identical code tree, plus an
+    # Actions list where the real CI results were buried under "Push on master"
+    # rows.
+    #
+    # What is deliberately NOT filtered: the `pull_request` trigger. `Analyze
+    # (actions)`, `Analyze (javascript-typescript)`, `Analyze (python)` and
+    # `CodeQL` are required status checks, and a required check that is
+    # filtered out never reports and blocks the PR forever. So every PR is
+    # analysed in full; only the master-push lane is gated, and now by the same
+    # positive path list every other lane in this file reads instead of a
+    # private ignore-list — plus the data-path guard below for the handful of
+    # watched-but-unanalysable files this trigger does list (portfolio.json,
+    # memory plans/theses).
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      security-events: write
+      packages: read
+      actions: read
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Same language set default setup was configured with, minus the two
+          # aliases: `javascript` and `typescript` are both analysed by the
+          # `javascript-typescript` extractor, and listing them separately just
+          # produced duplicate work.
+          - language: actions
+            build-mode: none
+          - language: javascript-typescript
+            build-mode: none
+          - language: python
+            build-mode: none
+    steps:
+      - uses: actions/checkout@v7
+
+      # Push lane only: skip the analysis when every changed path is one of the
+      # automation-written data paths that carry no analysable code. Mirrors
+      # the ignore-list codeql.yml carried when this lived in its own file;
+      # undiffable ranges analyse anyway (fail toward running).
+      - name: Did the push touch anything analysable?
+        id: scope
+        if: github.event_name == 'push'
+        env:
+          BASE_SHA: ${{ github.event.before }}
+        run: |
+          set -euo pipefail
+          if [ -z "${BASE_SHA:-}" ] || [ "${BASE_SHA}" = "0000000000000000000000000000000000000000" ] \
+             || ! git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null; then
+            echo "no diffable base ($BASE_SHA) — analysing"
+            echo "analyse=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          changed="$(git diff --name-only --no-renames "${BASE_SHA}" HEAD)"
+          analyse=false
+          while IFS= read -r f; do
+            [ -n "$f" ] || continue
+            case "$f" in
+              assets/data/*|memory/*|logs/*|site/assets/data/*|portfolio.json|monitor_state.json|openclaw-workspace-state.json) ;;
+              *) analyse=true; break ;;
+            esac
+          done <<< "$changed"
+          if [ "$analyse" = "false" ]; then
+            echo "push touched only non-analysable data paths — skipping"
+          fi
+          echo "analyse=$analyse" >> "$GITHUB_OUTPUT"
+
+      - name: Initialize CodeQL
+        if: github.event_name != 'push' || steps.scope.outputs.analyse == 'true'
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+          # Left on the default query suite on purpose: default setup ran
+          # `query_suite: default`, and that change was about the trigger
+          # surface, not about widening coverage. Widening the suite is a
+          # separate decision with its own alert backlog.
+
+      - name: Perform CodeQL analysis
+        if: github.event_name != 'push' || steps.scope.outputs.analyse == 'true'
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"

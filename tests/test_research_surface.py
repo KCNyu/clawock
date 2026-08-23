@@ -372,7 +372,7 @@ def test_system_check_validates_artifacts_before_every_push():
 
 
 def test_validate_workflow_runs_the_integrity_check():
-    workflow = (ROOT / ".github" / "workflows" / "harness-regression.yml").read_text()
+    workflow = (ROOT / ".github" / "workflows" / "ci.yml").read_text()
     assert "clawock research --check" in workflow
     # and a bad artifact must be able to red that job
     for pattern in ("memory/theses/**", "memory/earnings/**", "memory/entry-gates/**"):

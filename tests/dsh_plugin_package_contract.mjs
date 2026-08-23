@@ -4,7 +4,7 @@
  * must actually load.
  *
  * Run: node tests/dsh_plugin_package_contract.mjs
- * CI:  harness-regression.yml runs it when plugin files change.
+ * CI:  ci.yml runs it when plugin files change.
  *
  * Why this gate exists (2026-08-17): #708 added `zod` as a runtime dependency
  * of the generated typert host reflection. Every existing check stayed green —
