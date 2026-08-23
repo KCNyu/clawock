@@ -9,6 +9,7 @@ Run ``clawock dashboard-build`` after each portfolio mutation.
 """
 import argparse
 import glob
+import hashlib
 import json
 import math
 import os
@@ -2893,6 +2894,13 @@ def parse_args(argv=None):
         help='write the four outputs of this generation into DIR instead of the '
              'published location. Beats the BUILD_DASHBOARD_OUT / '
              'DECISION_AUDIT_OUT / SHADOW_PORTFOLIO_OUT redirects')
+    parser.add_argument(
+        '--skip-if-unchanged', action='store_true',
+        help='hash the projection inputs first and skip the whole build when '
+             'they match the last build\'s fingerprint (stored under '
+             '.cache/dashboard-input.json). The 20-minute publisher uses this '
+             'so an unchanged desk does not reparse ~12MB of JSON every tick '
+             '(#846).')
     return parser.parse_args(argv)
 
 
@@ -2950,6 +2958,76 @@ def resolve_previous_source(args):
     if args.no_previous:
         return None
     return Path(args.previous) if args.previous else None
+
+
+# ---------------------------------------------------------------------------
+# Input fingerprint (#846): the cheap gate that lets the 20-minute publisher
+# skip a build whose inputs did not move. Everything the projection reads is
+# stat-level covered: five named files, four directories (bars/snapshots/
+# weekly/.tmp sidecars), and the daily plan glob. mtime is read at ns
+# resolution so a same-second rewrite still moves the fingerprint, with size
+# as the second key.
+# ---------------------------------------------------------------------------
+FINGERPRINT_FILES = (
+    'portfolio.json',
+    'memory/decisions.jsonl',
+    'memory/fx-rates.jsonl',
+    'assets/data/risk.json',
+    '.cache/fx_rate.json',
+)
+FINGERPRINT_DIRS = ('memory/bars', 'memory/snapshots', 'memory/weekly', 'memory/.tmp')
+FINGERPRINT_CACHE = '.cache/dashboard-input.json'
+
+
+def dashboard_input_fingerprint(ws: Path) -> str:
+    h = hashlib.sha1()
+    for rel in FINGERPRINT_FILES:
+        p = ws / rel
+        try:
+            st = p.stat()
+            h.update(f'{rel}:{st.st_mtime_ns}:{st.st_size}\n'.encode())
+        except OSError:
+            h.update(f'{rel}:missing\n'.encode())
+    for rel in FINGERPRINT_DIRS:
+        d = ws / rel
+        try:
+            names = sorted(os.listdir(d))
+        except OSError:
+            names = []
+        h.update(f'{rel}:count={len(names)}\n'.encode())
+        for name in names:
+            try:
+                st = (d / name).stat()
+                h.update(f'{rel}/{name}:{st.st_mtime_ns}:{st.st_size}\n'.encode())
+            except OSError:
+                pass
+    try:
+        plans = sorted(glob.glob(str(ws / 'memory' / '*-plan.json')))
+    except OSError:
+        plans = []
+    h.update(f'plans:count={len(plans)}\n'.encode())
+    for p in plans:
+        try:
+            st = os.stat(p)
+            h.update(f'plan:{os.path.basename(p)}:{st.st_mtime_ns}:{st.st_size}\n'.encode())
+        except OSError:
+            pass
+    return h.hexdigest()
+
+
+def _read_fingerprint_cache(ws: Path) -> str | None:
+    try:
+        return json.loads((ws / FINGERPRINT_CACHE).read_text()).get('fingerprint')
+    except Exception:
+        return None
+
+
+def _write_fingerprint_cache(ws: Path, fingerprint: str) -> None:
+    cache = ws / FINGERPRINT_CACHE
+    cache.parent.mkdir(parents=True, exist_ok=True)
+    tmp = cache.with_suffix('.tmp')
+    tmp.write_text(json.dumps({'fingerprint': fingerprint}) + '\n')
+    tmp.replace(cache)
 
 
 class ProjectionInputError(Exception):
@@ -3479,6 +3557,16 @@ def main(argv=None):
     # the working tree perpetually dirty. A redirected build still reads whatever
     # `--previous` names, so the redirect never changes which cards are restored.
     args = parse_args(argv)
+    # Input fingerprint gate (#846): the 20-minute publisher runs ~72x/day, and
+    # the harness postflights ~23 more — most of them against an unchanged desk.
+    # The fingerprint is stat-level, so computing it is µs; the build it skips
+    # is ~12MB of JSON parsing plus a full settlement pass.
+    gate_fingerprint: str | None = None
+    if args.skip_if_unchanged:
+        gate_fingerprint = dashboard_input_fingerprint(WS_ROOT)
+        if _read_fingerprint_cache(WS_ROOT) == gate_fingerprint:
+            print('dashboard-build: inputs unchanged — skipping rebuild (#846)')
+            return 0
     previous_source = resolve_previous_source(args)
     # The four outputs are one logical generation (clawock.publish.outputs owns that
     # contract). Their paths are resolved together, here, so that the projection
@@ -3534,6 +3622,8 @@ def main(argv=None):
     print(f'  Plans: {s["plans_embedded"]} embedded / {s["plans_total"]} on disk')
     print(f'  Snapshots: {s["snapshots_embedded"]} | Plans: {s["plans_embedded"]}')
     print(f'  FX USDHKD: {s["fx_rate"]} ({s["fx_source"]})')
+    if gate_fingerprint is not None:
+        _write_fingerprint_cache(WS_ROOT, gate_fingerprint)
     return 0
 
 
