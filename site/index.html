@@ -80,7 +80,7 @@ layout: null
 <link rel="stylesheet" href="assets/css/dashboard.css">
 </head>
 <body>
-<noscript><div style="padding: var(--space-4);max-width:680px;margin:0 auto;color:var(--text-secondary);font-size:13px;line-height:1.6">
+<noscript><div style="padding: var(--space-4);max-width:680px;margin:0 auto;color:var(--text-secondary);font-size:var(--fs-md);line-height:1.6">
   <p><strong>clawock</strong> installs portable investment decision workflows into external AI agents. OpenClaw, Claude Code, Codex, or another runtime keeps its model, conversation, memory, and tools; clawock supplies evidence and opposition contracts, deterministic financial reconciliation, outcome evaluation, and reviewable improvement.</p>
   <p>clawock 把可迁移的投资决策 workflow 装进外部 Agent：runtime 保留模型、对话、记忆和工具，clawock 负责证据与反方契约、确定性资金对账、结果评估和可审改进。这一页展示真实港股 + 美股实例。</p>
   <p>This dashboard renders with JavaScript · raw data: <a href="assets/data/dashboard.json" style="color:var(--accent)">dashboard.json</a> · source: <a href="https://github.com/KCNyu/clawock" style="color:var(--accent)">github.com/KCNyu/clawock</a></p>
@@ -171,7 +171,7 @@ layout: null
             <div class="overview-card-kicker">战绩 · 视觉锚点</div>
             <h3 id="equity-title">Equity Curve · USD-eq</h3>
           </div>
-          <span id="benchmark-stale" class="muted" style="display:none;font-size:11px;color:var(--amber)"></span>
+          <span id="benchmark-stale" class="muted" style="display:none;font-size:var(--fs-xs);color:var(--amber)"></span>
           <div class="mkt-seg" role="group" aria-label="市场切换">
             <button class="mkt-seg-btn active" data-mkt="combined"><span class="seg-dot"></span>总览</button>
             <button class="mkt-seg-btn" data-mkt="us"><span class="seg-dot us"></span>美股</button>
@@ -179,7 +179,7 @@ layout: null
           </div>
         </div>
         <details class="chart-note overview-equity-hint">
-          <summary>口径说明</summary>
+          <summary>口径说明与图例</summary>
           <p>粗绿线 = 总利润（浮盈 + 已实现，净化本金）；蓝线 = 真实总资产（持仓市值 + 现金）；虚线 = 成本及动态基准。切换总览 / 美股 / 港股查看各自口径。</p>
         </details>
         <div id="chart-equity" class="chart-box overview-equity-chart"></div>
@@ -250,14 +250,14 @@ layout: null
       </section>
 
       <div class="card hero-gold-card is-pending" id="gold-dca-card">
-        <h3>Gold DCA <span class="muted" id="gold-sub" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px"></span></h3>
+        <h3>Gold DCA <span class="muted" id="gold-sub" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:var(--fs-xs)"></span></h3>
         <div id="gold-hero"></div>
         <div id="gold-stats"></div>
         <div id="gold-domestic"></div>
         <div id="gold-london"></div>
         <div id="gold-spark"></div>
         <div id="gold-proj"></div>
-        <div class="muted asof-faded" id="gold-asof" style="font-size:10px;margin-top:var(--space-2)"></div>
+        <div class="muted asof-faded" id="gold-asof" style="font-size:var(--fs-micro);margin-top:var(--space-2)"></div>
       </div>
     </div>
 
@@ -277,7 +277,7 @@ layout: null
           <div class="overview-card-kicker">持仓明细</div>
           <h3>持仓 <span class="muted" id="book-count" style="text-transform:none;letter-spacing:0;font-weight:500"></span></h3>
         </div>
-        <span class="muted" id="book-meta" style="font-size:11px"></span>
+        <span class="muted" id="book-meta" style="font-size:var(--fs-xs)"></span>
       </div>
       <div class="table-wrap">
         <table class="holdings-table book-table" id="book-table">
@@ -299,6 +299,10 @@ layout: null
         </table>
       </div>
       <p class="chart-hint" id="book-note"></p>
+      <div class="sub-block" id="book-heat-block">
+        <div class="sub-block-head">日收益热力 <span class="muted" id="book-heat-meta"></span></div>
+        <div class="table-wrap"><div class="book-heat" id="book-heat"></div></div>
+      </div>
     </div>
 
     <div class="card desktop-wide" id="add-campaign-card">
@@ -316,16 +320,8 @@ layout: null
     <div class="card desktop-wide" id="book-structure-card">
       <div class="card-head"><div>
         <div class="overview-card-kicker">组合结构</div>
-        <h3>强弱与集中</h3>
+        <h3>仓位 × 信心</h3>
       </div></div>
-      <div class="sub-block">
-        <div class="sub-block-head">8 日走势热力 <span class="muted">背景色 = 8 日回报，白线 = 价格路径，小字 = 各自市场 leg 内权重</span></div>
-      <p class="chart-hint">每格一只持仓：<b>背景色</b> = 8 日回报（绿 = 在跑、红 = 在拖），<b>白色折线</b> = 这 8 日的价格走势形状，下方小字 = 各自市场 leg 内权重（不是组合权重）。颜色看强弱、折线看路径，重仓 + 大红块 = 优先审视。</p>
-      <div class="ret-heatmap" id="ret-heatmap">
-        <div class="empty-state">No price history.</div>
-      </div>
-    
-      </div>
       <div class="sub-block">
         <div class="sub-block-head">仓位 × 信心 <span class="muted">横轴与点大小 = 各自 US/HK leg 内权重，不是全组合 USD-eq 权重</span></div>
       
@@ -433,7 +429,7 @@ layout: null
 
     <div class="card lead" id="guardrail-card">
       <h3>仓位/杠杆硬闸 <span class="badge muted" id="guardrail-count"></span></h3>
-      <div class="muted" id="guardrail-directive" style="font-size:12px;margin-bottom:8px;line-height:1.5"></div>
+      <div class="muted" id="guardrail-directive" style="font-size:var(--fs-sm);margin-bottom:8px;line-height:1.5"></div>
       <div class="risk-alerts" id="guardrail-list"></div>
     </div>
 
@@ -525,16 +521,16 @@ layout: null
       <div class="sub-block" id="lev-regime-card" style="display:none">
         <div class="sub-block-head">杠杆刻度盘 <span class="muted">趋势 + 波动 → 杠杆 ETF 上限</span><span class="peek" id="peek-levregime"></span></div>
       
-      <div class="muted" style="font-size:10px;margin-bottom:3px;opacity:0.8">HK · HSTECH 指数级</div>
+      <div class="muted" style="font-size:var(--fs-micro);margin-bottom:3px;opacity:0.8">HK · HSTECH 指数级</div>
       <div class="regime-badge" id="lev-regime-badge" style="margin-bottom:var(--space-2)">
         <span class="rg-dot"></span><span class="rg-label" id="lev-regime-label"></span>
         <span class="rg-reasons" id="lev-regime-cap"></span>
       </div>
-      <div class="muted" id="lev-regime-rationale" style="font-size:12px;line-height:1.5"></div>
-      <div id="lev-regime-trigger" style="font-size:11px;margin-top:5px;line-height:1.5"></div>
-      <div class="muted" style="font-size:10px;margin:8px 0 3px;opacity:0.8">US · 2x 单股 per-name（趋势off且波动过热才砍）</div>
+      <div class="muted" id="lev-regime-rationale" style="font-size:var(--fs-sm);line-height:1.5"></div>
+      <div id="lev-regime-trigger" style="font-size:var(--fs-xs);margin-top:5px;line-height:1.5"></div>
+      <div class="muted" style="font-size:var(--fs-micro);margin:8px 0 3px;opacity:0.8">US · 2x 单股 per-name（趋势off且波动过热才砍）</div>
       <div class="risk-alerts" id="lev-regime-us"></div>
-      <div class="muted asof-faded" id="lev-regime-asof" style="font-size:10px;margin-top:var(--space-2)"></div>
+      <div class="muted asof-faded" id="lev-regime-asof" style="font-size:var(--fs-micro);margin-top:var(--space-2)"></div>
     
       </div>
       <div class="sub-block" id="reentry-card" style="display:none">
@@ -542,7 +538,7 @@ layout: null
       
       <div id="reentry-powder" style="margin-bottom:8px"></div>
       <div id="reentry-list"></div>
-      <div class="muted asof-faded" id="reentry-asof" style="font-size:10px;margin-top:var(--space-2)"></div>
+      <div class="muted asof-faded" id="reentry-asof" style="font-size:var(--fs-micro);margin-top:var(--space-2)"></div>
     
       </div>
     </div>
@@ -556,7 +552,7 @@ layout: null
         <div class="sub-block-head">解套数学 <span class="muted">回本所需涨幅 · 纯算术</span><span class="peek" id="peek-breakeven"></span></div>
       
       <div class="risk-alerts" id="breakeven-list"></div>
-      <div class="muted" id="breakeven-note" style="font-size:11px;margin-top:var(--space-2);line-height:1.5"></div>
+      <div class="muted" id="breakeven-note" style="font-size:var(--fs-xs);margin-top:var(--space-2);line-height:1.5"></div>
     
       </div>
       <div class="sub-block">
@@ -585,24 +581,24 @@ layout: null
         <div class="sub-block-head">量化因子 <span class="muted">趋势 · 动量 · RSI · 吊灯止损 · vol 仓位</span><span id="quant-asof"></span><span class="peek" id="peek-quant"></span></div>
       
       <div class="table-wrap">
-        <table class="holdings-table" id="quant-table" style="min-width:560px;font-size:12px">
+        <table class="holdings-table" id="quant-table" style="min-width:560px;font-size:var(--fs-sm)">
           <thead><tr><th>标的</th><th>信号</th><th class="num">RSI</th><th class="num">z20</th><th class="num">距200线</th><th class="num">吊灯距</th><th class="num">vol权重</th></tr></thead>
           <tbody id="quant-tbody"></tbody>
         </table>
       </div>
-      <div class="muted" id="quant-edge" style="font-size:11px;margin-top:var(--space-2);line-height:1.5"></div>
+      <div class="muted" id="quant-edge" style="font-size:var(--fs-xs);margin-top:var(--space-2);line-height:1.5"></div>
     
       </div>
       <div class="sub-block" id="t0-card" style="display:none">
         <div class="sub-block-head">T+0 牌面 <span class="muted">做 T 前先看牌面 · 非买卖信号</span><span id="t0-asof"></span><span class="peek" id="peek-t0"></span></div>
       
       <div class="table-wrap">
-        <table class="holdings-table" id="t0-table" style="min-width:520px;font-size:12px">
+        <table class="holdings-table" id="t0-table" style="min-width:520px;font-size:var(--fs-sm)">
           <thead><tr><th>标的</th><th>牌面</th><th class="num">区间位</th><th class="num">今日%</th><th class="num">跳空%</th><th class="num">振幅/ATR</th></tr></thead>
           <tbody id="t0-tbody"></tbody>
         </table>
       </div>
-      <div class="muted" id="t0-note" style="font-size:11px;margin-top:var(--space-2);line-height:1.5"></div>
+      <div class="muted" id="t0-note" style="font-size:var(--fs-xs);margin-top:var(--space-2);line-height:1.5"></div>
     
       </div>
     </div>
@@ -639,7 +635,7 @@ layout: null
         <h3>消息与背离</h3>
       </div></div>
       <div class="sub-block">
-        <div class="sub-block-head">影响力雷达 <span class="muted">Trump · Musk · Serenity</span><span class="muted" id="infl-asof" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">Trump · Musk · Serenity · LLM筛</span></div>
+        <div class="sub-block-head">影响力雷达 <span class="muted">Trump · Musk · Serenity</span><span class="muted" id="infl-asof" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:var(--fs-xs)">Trump · Musk · Serenity · LLM筛</span></div>
       
       <div class="infl-summary" id="infl-summary"></div>
       <div class="infl-feed" id="infl-feed">
@@ -656,7 +652,7 @@ layout: null
     
       </div>
       <div class="sub-block">
-        <div class="sub-block-head">板块全景<span class="muted" id="sector-context-asof" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">—</span></div>
+        <div class="sub-block-head">板块全景<span class="muted" id="sector-context-asof" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:var(--fs-xs)">—</span></div>
       
       <p class="chart-hint" id="sector-narrative" style="display:none"></p>
       <div class="sector-context" id="sector-context">
@@ -665,7 +661,7 @@ layout: null
     
       </div>
       <div class="sub-block">
-        <div class="sub-block-head">同行背离<span class="muted" id="peer-div-asof" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">Peer Divergence</span></div>
+        <div class="sub-block-head">同行背离<span class="muted" id="peer-div-asof" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:var(--fs-xs)">Peer Divergence</span></div>
       
       <div class="peer-div-list" id="peer-div-list">
         <div class="empty-state">No peer divergence flagged.</div>
@@ -679,7 +675,7 @@ layout: null
     <h2>Plan</h2>
 
     <div class="card" id="watch-levels-card" style="display:none">
-      <h3>今日触发位 <span class="muted" id="watch-levels-date" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">Watch Levels</span></h3>
+      <h3>今日触发位 <span class="muted" id="watch-levels-date" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:var(--fs-xs)">Watch Levels</span></h3>
       <p class="chart-hint">盘前计划写死的触发价位 vs 现价。距离越近越该盯，&lt;2% 标红。</p>
       <div class="watch-levels" id="watch-levels-list"></div>
     </div>
@@ -692,7 +688,7 @@ layout: null
     </div>
 
     <div class="card lead">
-      <h3>Plan Timeline <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">(last 15 actions · 包含 rationale)</span></h3>
+      <h3>Plan Timeline <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:var(--fs-xs)">(last 15 actions · 包含 rationale)</span></h3>
       <p class="chart-hint">每条卡片 = 一个策略决策；同一股票同一天可有多个策略。只有条件触发的 episode 才结算，是否执行单独统计。</p>
       <div class="plan-timeline" id="plan-timeline">
         <div class="empty-state">No timeline data yet.</div>
@@ -726,7 +722,7 @@ layout: null
       </div></div>
       <div class="sub-block" id="honesty-card">
         <div class="sub-block-head">诚实自评 <span class="muted">30 日 · episode 级</span></div>
-        <div id="honesty-body" style="font-size:12px"></div>
+        <div id="honesty-body" style="font-size:var(--fs-sm)"></div>
       
       </div>
       <div class="sub-block" id="behavioral-review-card" style="display:none">
@@ -789,18 +785,18 @@ layout: null
           <div class="sub" id="plan-brier-sub">—</div>
         </div>
       </div>
-      <div class="trig-title" style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-dim);margin:4px 0 12px;font-weight:600">By Bucket — 各类动作 30d 胜率（与建议徽章同源）</div>
+      <div class="trig-title" style="font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:0.06em;color:var(--text-dim);margin:4px 0 12px;font-weight:600">By Bucket — 各类动作 30d 胜率（与建议徽章同源）</div>
       <div id="plan-bucket-bars"></div>
       <div class="trig-block">
         <div class="trig-title">By Trigger Type — 哪类计划最该信 / 最该改</div>
         <div id="plan-trigger-bars">
-          <div class="empty-state" style="font-size:11px">No trigger data yet.</div>
+          <div class="empty-state" style="font-size:var(--fs-xs)">No trigger data yet.</div>
         </div>
       </div>
       <div class="trig-block">
         <div class="trig-title">By Driver — 哪个数据源有 edge / 最该降权</div>
         <div id="plan-driver-bars">
-          <div class="empty-state" style="font-size:11px">No driver data yet.</div>
+          <div class="empty-state" style="font-size:var(--fs-xs)">No driver data yet.</div>
         </div>
       </div>
     
@@ -811,7 +807,7 @@ layout: null
       <div class="retired-note">
         <p>现有记录目前<b>算不出可靠的累计金额</b>：真实成交、可核验行情和统一对照口径仍有缺口，所以不展示金额。下面只显示<b>方向判断的命中情况，不代表实际收益</b>。</p>
       </div>
-      <div class="trig-title" style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-dim);margin:16px 0 4px;font-weight:600">AI cumulative episode win rate — v1 migrated + v2</div>
+      <div class="trig-title" style="font-size:var(--fs-xs);text-transform:uppercase;letter-spacing:0.06em;color:var(--text-dim);margin:16px 0 4px;font-weight:600">AI cumulative episode win rate — v1 migrated + v2</div>
       <div id="chart-ai-winrate" class="chart-box" style="height:210px;min-height:210px"></div>
     
       </div>
@@ -820,7 +816,7 @@ layout: null
     <div class="sect-divider">决策轨迹 · 真实成交 vs 当时计划</div>
 
     <div class="card" id="decision-traces-card">
-      <h3>决策轨迹 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:11px">一笔真实成交 + 那几天写下的计划 + 官方收盘给的结果</span></h3>
+      <h3>决策轨迹 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:var(--fs-xs)">一笔真实成交 + 那几天写下的计划 + 官方收盘给的结果</span></h3>
       <p class="chart-hint">点开一笔成交看四件事：<b>当时的计划</b>（同标的前后 3 天内的账本记录，没有就写明没有）、<b>真实成交</b>（并标出它与计划同向还是反向）、<b>T+1 收盘</b>（官方逐日行情，间隔超过 4 天的下一根不算 T+1）、<b>钱</b>（已平仓看本笔已实现金额，未平仓只有该持仓整体浮动 —— 两者不共用标签）。卡内统计只覆盖显示的这些成交，全期口径单独标注；港币美元分开计。</p>
       <div id="trace-stats"></div>
       <div id="trace-list"></div>
