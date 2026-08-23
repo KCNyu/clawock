@@ -327,7 +327,7 @@ Bull/Bear 是决策框架的一部分，不能因升级账本而删除：
 preflight 已算好,直接读 `context.risk_guardrail`:
 - `breaches[]` — 每条 = 一个超限的硬闸(single_name / factor_concentration / leveraged_exposure / beta),带 `detail` + 现成 `action`(含具体减仓金额)。
 - `hard_stop_watch[]` — 杠杆 ETF 浮亏跌破 −18% 的硬止损触发。
-- `directive` — 本次总指令；`caps` — 当前阈值（非杠杆单名 35–60% review、>60% mandatory；杠杆单名 35%；实测多票相关 cluster 70% 且覆盖≥80%；杠杆 ETF 腿 50%；US β 3.0；杠杆止损 −18%）。Top2 仅展示，不再冒充同因子。
+- `directive` — 本次总指令；`caps` — 当前阈值（非杠杆单名 35–60% review、>60% mandatory；杠杆单名 35%；实测多票相关 cluster 70% 且覆盖≥80%；杠杆 ETF 50%；US β 3.0；杠杆止损 −18%）。Top2 仅展示，不再冒充同因子。
 - `context.risk_discipline.records[]` — 同一 breach 的持久状态：`breach_id`、严重度、`age_days`、首次/最后变化、required reduction、acknowledgement、限时 override、execution evidence。每日重新生成的 plan 不是状态账本。
 
 硬性规则:
@@ -338,7 +338,7 @@ preflight 已算好,直接读 `context.risk_guardrail`:
 - 这些减仓 **strategy_id=`risk_rebalance`、driven_by=`risk_rule`**（纪律性再平衡，不是择时预测），并在 rationale 注明组合政策依据。
 - **这是 risk_on HOLD 默认的唯一豁免**:证伪铁律已写明纪律性再平衡正常走;别因为 regime=risk_on 就把降杠杆/降集中也按住。牛市里恰恰要借强减杠杆,不是等回调后。
 - **降 β/降杠杆优先削杠杆 ETF**(β 的主要来源),不要去砍高信念单票的 thesis。
-- **杠杆腿解套口径(kcn 2026-06-11 定)**:杠杆 ETF 的 breach/hard_stop 动作 = **2x→1x 同因子换仓而非清仓**(映射在 `brief_preflight.LEV_1X_SWAP`:07226→03033、PLTU→PLTR、ROBN→HOOD、MSFU→MSFT)——敞口不变、反弹一点不踏空,但停掉日内重置 decay;`context.risk_guardrail.reentry_rule` 满足(🧭转 green,标的收复 200 线)才允许 1x→2x 换回。**现货(非杠杆)套牢 kcn 方针=持有等待合法**(现货等待免费,2x 等待收费),对现货超限的最低要求是"不补仓、借反弹分批",别反复催清仓。
+- **杠杆ETF解套口径(kcn 2026-06-11 定)**:杠杆 ETF 的 breach/hard_stop 动作 = **2x→1x 同因子换仓而非清仓**(映射在 `brief_preflight.LEV_1X_SWAP`:07226→03033、PLTU→PLTR、ROBN→HOOD、MSFU→MSFT)——敞口不变、反弹一点不踏空,但停掉日内重置 decay;`context.risk_guardrail.reentry_rule` 满足(🧭转 green,标的收复 200 线)才允许 1x→2x 换回。**现货(非杠杆)套牢 kcn 方针=持有等待合法**(现货等待免费,2x 等待收费),对现货超限的最低要求是"不补仓、借反弹分批",别反复催清仓。
 - 若 `breach_count=0` → 本段写"✅ 仓位硬闸无触发",照常决策。
 - **解套/回本数字只准引用 `context.breakeven_math`**(preflight 已算好:每只浮亏持仓回本所需涨幅、2x 的横盘 decay ≈σ²/12 每月、半年窗含 drag 等效标的涨幅),禁止自己心算或编造。解读纪律见其 `note`:直线涨→2x 回本更快;横盘→2x 每月白付 decay;再跌→2x 双倍挨打——换 1x 买的是后两种情景的保护,不是回本速度,别说反。
 - **技术面判断只准引用 `context.quant_signals` 中 `status=fresh` 的行**(每只持仓的趋势/动量/RSI/zscore20/吊灯止损线/vol_target_weight,杠杆 ETF 按标的算)；`stale/missing/retired` 行只用于披露数据缺口，禁止据此形成判断，也禁止自创"看图"结论。**因子话语权由 `context.quant_signal_review` 决定**(信号每日留痕 vs T+1/T+5 前瞻收益自动对账):必须公示 `n_events/n_dates/n_tickers`;`usable=false` 或聚类 CI 跨 50% 的因子只能当背景展示不入决策；`decision_direction=reverse` 仅在反向 CI 整体低于 50% 时成立，禁止因 raw hit_rate<50% 自动反向。T+0 牌面同样只在 `sample_sufficient=true AND edge_supported=true` 时可入决策；样本够多但 Wilson CI 不支持原方向仍是 `usable=false`，不得自动反向交易。`driven_by=technical` 的整体战绩一律读取 `context.decision_metrics.by_driver.technical` 的实时计算值，禁止引用固定百分比。这是自迭代环——哪个因子可信,数据说了算,每天自动更新。

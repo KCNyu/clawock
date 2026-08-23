@@ -699,7 +699,7 @@
       }
     }
 
-    // 分腿的今日涨跌幅：原来的 Today's P&L 卡有这两个数，合并后不能丢
+    // 分市场的今日涨跌幅：原来的 Today's P&L 卡有这两个数，合并后不能丢
     const legPct = (v, chg) => (has(v) && has(chg) && (v - chg) > 0) ? chg / (v - chg) * 100 : null;
     const usTodayPct = legPct(us.value_usd, us.today_change_usd);
     const hkTodayPct = legPct(hk.value_hkd, hk.today_change_hkd);
@@ -713,13 +713,13 @@
     const withDelta = (v, delta, cls) =>
       `${v} <span class="hero-rail-d ${cls || ""}">${delta}</span>`;
     railEl.innerHTML = [
-      cell("US 腿", withDelta(fmtMoney(us.value_usd, "USD"),
+      cell("美股", withDelta(fmtMoney(us.value_usd, "USD"),
         `${heroMoney(us.pnl_usd, "USD")} · ${fmtPct(us.pnl_pct)}`, pnlClass(us.pnl_usd))),
-      cell("HK 腿", withDelta(fmtMoney(hk.value_hkd, "HKD"),
+      cell("港股", withDelta(fmtMoney(hk.value_hkd, "HKD"),
         `${heroMoney(hk.pnl_hkd, "HKD")} · ${fmtPct(hk.pnl_pct)}`, pnlClass(hk.pnl_hkd))),
-      cell("今日 US", withDelta(heroMoney(us.today_change_usd, "USD"),
+      cell("今日美股", withDelta(heroMoney(us.today_change_usd, "USD"),
         usTodayPct == null ? "" : fmtPct(usTodayPct), pnlClass(usTodayPct)), "", pnlClass(us.today_change_usd)),
-      cell("今日 HK", withDelta(heroMoney(hk.today_change_hkd, "HKD"),
+      cell("今日港股", withDelta(heroMoney(hk.today_change_hkd, "HKD"),
         hkTodayPct == null ? "" : fmtPct(hkTodayPct), pnlClass(hkTodayPct)), "", pnlClass(hk.today_change_hkd)),
       cell("已实现 · USD-eq", heroMoney(realUsd, "USD"), "", pnlClass(realUsd)),
       cell("浮动 · USD-eq", heroMoney(unrealUsd, "USD"), "", pnlClass(unrealUsd)),
