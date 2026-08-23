@@ -315,8 +315,6 @@ body[data-ds-dark-theme] .dmt {
    template above it is the fallback for engines without subgrid: same columns,
    sized per row. */
 .dmt .cell {
-  animation:clawock-cell-in .18s cubic-bezier(.23,1,.32,1) both;
-  animation-delay:calc(var(--i, 0) * 30ms);
   display:grid;
   position:relative;
   grid-template-columns:2px 8px auto minmax(64px,auto) auto minmax(0,1fr) auto auto 104px 12px 2px;
@@ -735,9 +733,6 @@ body[data-ds-dark-theme] .dmt {
 @keyframes clawock-shimmer {
   to { transform:translateX(100%) }
 }
-@keyframes clawock-cell-in {
-  from { opacity:0; transform:translateY(4px) }
-}
 .dmt .skel-bar.w40 {
   width:40%
 }
@@ -758,9 +753,6 @@ body[data-ds-dark-theme] .dmt {
   .dmt .ft,
   .dmt .trace-more {
     transition:background .12s,color .12s,border-color .12s
-  }
-  .dmt .cell {
-    animation:none
   }
   .dmt .skel-bar::after {
     animation:none
