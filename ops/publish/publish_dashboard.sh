@@ -68,7 +68,10 @@ fi
 # degraded run publishes the last good cards instead of blanking them.
 /root/.local/bin/clawock-cron-heartbeat --publish
 /root/.local/bin/clawock-workflow-outcomes --publish
-/root/.local/bin/clawock dashboard-build --previous "$PREVIOUS_DIR/assets/data/dashboard.json"
+# --skip-if-unchanged (#846): the inputs' fingerprint is hashed first and an
+# unchanged desk skips the whole rebuild (~12MB of JSON parsing + settlement,
+# 72x/day before the gate). A changed desk builds exactly as before.
+/root/.local/bin/clawock dashboard-build --previous "$PREVIOUS_DIR/assets/data/dashboard.json" --skip-if-unchanged
 
 # build_dashboard writes four public files. The shared ownership helper compares
 # all four against the last published generation, strips build-clock metadata,
