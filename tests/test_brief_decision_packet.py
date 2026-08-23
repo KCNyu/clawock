@@ -856,15 +856,21 @@ def test_pages_prefers_projection_and_keeps_a_backward_fallback():
     assert 'brief_projection: "drill"' in ui
     assert 'safe(DATA, "brief_projection")' in renderer
     assert "projection.schema_version === 1" in renderer
-    assert "const projectedByTicker = new Map" in renderer
-    assert "const enriched = holds.map" in renderer
-    assert "projectedByTicker.get(h.ticker)" in renderer
+    # 四张按 ticker 的表合并成一张可展开主表后（#875），projection 的优先级
+    # 由 bookEvidence() 归堆、renderBook 消费；契约不变：有 projection 就用它的
+    # technical/risk，没有才回落到 quant_signals。
+    assert "const ev = bookEvidence()" in renderer
+    assert 'put(r.ticker, "proj", r)' in renderer
+    assert "const proj = e.proj" in renderer
+    assert "q = proj.technical || q" in renderer
     assert "(h.shares ?? 0) > 0" in renderer
     # The compiled status schema is {rank, label, state}; keep the Pages
     # consumer on the same key so a populated projection cannot print
     # JavaScript's literal "undefined" in the 综合 column.
-    assert "${v.label}" in renderer
-    assert "${v.txt}" not in renderer
+    # 消费的仍是 {rank,label,state} 里的 label（不是 txt），且现在还过了转义：
+    # 合并前这一格是原样插进模板的。
+    assert "escapeHtml(v.label)" in renderer
+    assert "v.txt" not in renderer
     # Both reads go through package-owned tool contracts; neither requires a
     # Python source file in the KCNyu workspace.
     assert "decision_packet_summary" in skill

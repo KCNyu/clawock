@@ -50,6 +50,11 @@
     </svg>`;
   }
 
+  // 数据串里混进来的 emoji（硬闸 directive 的 ⛔🧭、体检的 🔴🟡）一律不渲染：
+  // 状态由文字和颜色承担，emoji 只会把面板拉回「AI 生成」的观感。(#869 #874)
+  const EMOJI_RE = /[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}]/gu;
+  const stripEmoji = (s) => String(s == null ? "" : s).replace(EMOJI_RE, "").replace(/\s{2,}/g, " ").trim();
+
   const escapeHtml = (s) => String(s == null ? "" : s)
     .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
