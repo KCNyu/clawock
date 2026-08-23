@@ -337,7 +337,7 @@ def main(argv=None):
         'rationale': (f'HSTECH {close:.0f} {"高于" if trend_on else "低于"} {MA_WINDOW}日线 '
                       f'{ma:.0f} ({dist:+.1f}%)；20日波动 {vol*100:.0f}% '
                       f'{"<" if vol_ok else "≥"} {int(VOL_CAP*100)}% 上限。'
-                      f'→ HK 杠杆ETF腿上限 ×{mult:g}（{tier}）'),
+                      f'→ HK 杠杆ETF上限 ×{mult:g}（{tier}）'),
     }
     # Top-level fields above describe the HK (HSTECH) dial; mirror under 'hk' and add 'us'.
     out['hk'] = {'tier': tier, 'lev_cap_mult': mult, 'label': label,

@@ -153,10 +153,11 @@ layout: null
 
     <div class="overview-command">
       <!-- 首屏第一数字回答「赚还是亏」；账面市值随行情自己变，不需要判断，降为副行。
-           原来的 book / today / discipline 三张不等重的卡合并成一块指挥台。(#874 #877) -->
+           原来的 book / today / discipline 三张不等重的卡合并成一块指挥台。(#874 #877)
+           指挥台是整页唯一的毛玻璃面：主数 + 一行拆解 + 一条低对比统计轨。 -->
       <div class="card hero-deck">
         <div class="hero-deck-lead">
-          <div class="overview-card-kicker">总盈亏 · 已实现 + 浮动 · USD 等值</div>
+          <div class="overview-card-kicker">总盈亏 · USD 等值</div>
           <div class="hero-deck-pnl" id="hero-pnl">—</div>
           <div class="hero-deck-sub" id="hero-sub">—</div>
           <div class="hero-deck-fx" id="fx-rate-usd">—</div>
@@ -168,7 +169,7 @@ layout: null
       <div class="card overview-equity">
         <div class="card-head">
           <div>
-            <div class="overview-card-kicker">战绩 · 视觉锚点</div>
+            <div class="overview-card-kicker">战绩</div>
             <h3 id="equity-title">Equity Curve · USD-eq</h3>
           </div>
           <span id="benchmark-stale" class="muted" style="display:none;font-size:var(--fs-xs);color:var(--amber)"></span>
@@ -274,7 +275,7 @@ layout: null
     <div class="card desktop-wide" id="book-card">
       <div class="card-head">
         <div>
-          <div class="overview-card-kicker">持仓明细</div>
+          <div class="overview-card-kicker">决策矩阵 · 每行一只仓位</div>
           <h3>持仓 <span class="muted" id="book-count" style="text-transform:none;letter-spacing:0;font-weight:500"></span></h3>
         </div>
         <span class="muted" id="book-meta" style="font-size:var(--fs-xs)"></span>
@@ -308,11 +309,11 @@ layout: null
     <div class="card desktop-wide" id="add-campaign-card">
       <div class="card-head">
         <div>
-          <div class="overview-card-kicker">Quant × information · low frequency</div>
+          <div class="overview-card-kicker">量化 × 信息 · 低频</div>
           <h3>Add Campaign <span class="badge muted" id="add-campaign-status">—</span></h3>
         </div>
       </div>
-      <p class="chart-hint">先由价格相对强弱 + 点时信息共同授权资金，再等技术价位安排 tranche。这里是新 campaign 的独立状态与样本；Reflect 的旧 <code>add_only_on_trigger</code> 桶不是它的战绩。</p>
+      <p class="chart-hint">先由价格相对强弱 + 点时信息共同授权资金，再等技术价位分批（tranche）安排。这里是新 campaign 的独立状态与样本；Reflect 的旧 <code>add_only_on_trigger</code> 桶不是它的战绩。</p>
       <div id="add-campaign-body"><div class="empty-state">等待今日 brief projection。</div></div>
       <div id="add-campaign-evidence"></div>
     </div>
@@ -323,9 +324,9 @@ layout: null
         <h3>仓位 × 信心</h3>
       </div></div>
       <div class="sub-block">
-        <div class="sub-block-head">仓位 × 信心 <span class="muted">横轴与点大小 = 各自 US/HK leg 内权重，不是全组合 USD-eq 权重</span></div>
+        <div class="sub-block-head">仓位 × 信心 <span class="muted">横轴与点大小 = 各自市场内权重，不是全组合 USD-eq</span></div>
       
-      <p class="chart-hint">横轴和圆点大小均为各自 US/HK 市场 leg 内权重，不是全组合 USD-eq 权重；跨市场百分比不可直接当作同一分母比较。右下角（高仓位 + 低置信）= 需要审视。</p>
+      <p class="chart-hint">横轴和圆点大小均为各自市场内权重，不是全组合 USD-eq 权重；跨市场百分比不能直接当作同一分母比较。右下角（高仓位 + 低置信）= 需要审视。</p>
       <div id="chart-weight-conf" class="wc-chart-box"></div>
       <div class="wc-legend">
         <span class="lg-high">High risk (≥20% & conf&lt;0.65)</span>
@@ -338,7 +339,7 @@ layout: null
       </div>
     </div>
 
-    <div class="sect-divider price-section-heading">价格动态 <span class="muted" style="font-weight:500;letter-spacing:0">latest local session · US / HK 各取最近本地交易时段</span></div>
+    <div class="sect-divider price-section-heading">价格动态 <span class="muted" style="font-weight:500;letter-spacing:0">US / HK 各取最近本地交易时段</span></div>
 
     <div class="card desktop-wide" id="today-action-card">
       <div class="card-head"><div>
@@ -462,15 +463,15 @@ layout: null
       
       <div class="lev-row">
         <div class="lev-cell">
-          <div class="lbl">US leg</div>
+          <div class="lbl">美股</div>
           <div class="val" id="lev-us">—</div>
         </div>
         <div class="lev-cell">
-          <div class="lbl">HK leg</div>
+          <div class="lbl">港股</div>
           <div class="val" id="lev-hk">—</div>
         </div>
         <div class="lev-cell">
-          <div class="lbl">Combined</div>
+          <div class="lbl">合计</div>
           <div class="val" id="lev-combined">—</div>
         </div>
       </div>

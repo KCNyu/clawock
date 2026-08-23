@@ -46,6 +46,9 @@
     --shadow-topbar: 0 1px 0 rgba(0,0,0,.2), 0 8px 24px rgba(0,0,0,.22);
     --shadow-card: 0 1px 2px rgba(0,0,0,.25), 0 12px 28px rgba(0,0,0,.3);
     --glass-topbar: rgba(11,16,23,.6);
+    /* 指挥台毛玻璃：整页第二块浮动层。Apple「更大的表面 = 更厚的材质」——
+       主面比 topbar 更实一点、blur 更深；light 主题由 color-mix 随 surface-1 走。 */
+    --glass-card: color-mix(in srgb, var(--surface-1) 55%, transparent);
     --radius: 10px;
     --radius-sm: 6px;
     --gap: 12px;
@@ -100,6 +103,7 @@
       --shadow-topbar: 0 1px 0 rgba(18,33,48,.06), 0 8px 24px rgba(18,33,48,.08);
       --shadow-card: 0 1px 2px rgba(18,33,48,.05), 0 12px 28px rgba(18,33,48,.07);
       --glass-topbar: rgba(248,250,252,.72);
+      --glass-card: color-mix(in srgb, var(--surface-1) 58%, transparent);
     }
     /* Preserve the quiet timestamp hierarchy without blending below WCAG AA.
        Written as `.muted.asof-faded` on purpose: every element carrying this
@@ -131,7 +135,8 @@
     .topbar,
     .refresh-btn,
     .desk-rail,
-    .status-banner {
+    .status-banner,
+    .hero-deck {
       -webkit-backdrop-filter: none;
       backdrop-filter: none;
     }
@@ -139,6 +144,7 @@
     .refresh-btn { background: var(--card); }
     .desk-rail { background: var(--surface-1); }
     .status-banner { background: var(--accent-soft); }
+    .hero-deck { background: var(--surface-1); }
   }
   body {
     /* Layered page: a cool-tinted gradient replaces the flat fill, so the
@@ -1907,13 +1913,20 @@
      三张不等重的卡。(#874 #877) */
   /* 首屏只有一个焦点：主数。8 格统计轨从右侧「八个中号数字」改成主数下方
      一条低对比的统计带 —— 信息一条不少，但不再和主数抢注意力。(#879) */
+  /* Apple 材质：整页只有指挥台这一块毛玻璃 —— topbar 之外的第二块
+     浮动层。半透明 + 24px 模糊让 body 的冷调 radial 光晕透进来；主数区与统计
+     轨之间只留一条发丝线，格与格之间用留白不用盒子。 */
   .hero-deck {
     grid-column: 1 / -1; padding: 0; overflow: hidden;
     display: grid; grid-template-columns: minmax(0, 1fr);
+    background: var(--surface-1);
+    background: var(--glass-card);
+    -webkit-backdrop-filter: blur(24px) saturate(180%);
+    backdrop-filter: blur(24px) saturate(180%);
+    border-color: var(--border-subtle);
   }
   .hero-deck-lead {
-    padding: 26px 22px 22px;
-    background: linear-gradient(140deg, color-mix(in srgb, var(--accent) 6%, transparent), transparent 58%);
+    padding: 26px 24px 20px;
   }
   .hero-deck-pnl {
     margin-top: 12px; color: var(--text); font: 700 var(--fs-display)/1 var(--mono);
@@ -1936,10 +1949,8 @@
     border-top: 1px solid var(--border-subtle);
   }
   .hero-rail-cell {
-    min-width: 0; padding: 11px 14px;
-    border-right: 1px solid var(--border-subtle);
+    min-width: 0; padding: 14px 16px 16px;
   }
-  .hero-rail-cell:last-child { border-right: 0; }
   .hero-rail-k {
     color: var(--text-tertiary); font: 600 var(--fs-micro)/1.2 var(--font);
     letter-spacing: .09em; text-transform: uppercase;
@@ -1950,7 +1961,7 @@
     letter-spacing: -.01em; font-variant-numeric: tabular-nums;
     overflow-wrap: normal; word-break: keep-all;
   }
-  /* 变化值独占一行：并排时 US/HK 腿会不齐地折行，读起来比两行更乱 */
+  /* 变化值独占一行：并排时 US/HK 两市会不齐地折行，读起来比两行更乱 */
   .hero-rail-d {
     display: block; margin-top: 3px; color: var(--text-tertiary);
     font-size: var(--fs-xs); font-weight: 500; white-space: nowrap;
@@ -2230,8 +2241,6 @@
 
   @media (min-width: 768px) and (max-width: 1023px) {
     .hero-rail { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-    .hero-rail-cell:nth-child(4n) { border-right: 0; }
-    .hero-rail-cell:nth-child(-n+4) { border-bottom: 1px solid var(--border-subtle); }
     .overview-equity, .overview-verdict, .overview-strip,
     .overview-command > .hero-honesty-card,
     .overview-command > .hero-gold-card { grid-column: 1 / -1; }
@@ -2243,11 +2252,8 @@
     .overview-command > .hero-honesty-card,
     .overview-command > .hero-gold-card { width: 100%; min-width: 0; }
     .hero-deck { grid-template-columns: minmax(0, 1fr); }
-    .hero-deck-lead { border-right: 0; border-bottom: 1px solid var(--border-subtle); }
+    .hero-deck-lead { border-right: 0; }
     .hero-rail { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .hero-rail-cell { border-bottom: 1px solid var(--border-subtle); }
-    .hero-rail-cell:nth-child(2n) { border-right: 0; }
-    .hero-rail-cell:nth-last-child(-n+2) { border-bottom: 0; }
     .dh-row {
       grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px; row-gap: 4px;
     }
@@ -2272,7 +2278,8 @@
     .hero-deck-pnl { font-size: var(--fs-display); }
     .hero-deck-sub { font-size: var(--fs-sm); }
     .hero-rail-v { font-size: var(--fs-lg); }
-    .hero-rail-cell { padding: 11px 12px; }
+    .hero-deck-lead { padding: 22px 18px 18px; }
+    .hero-rail-cell { padding: 12px 14px 14px; }
     .dh-seg { width: 11px; height: 26px; }
   }
 
@@ -2552,6 +2559,14 @@
   .bd-pos-ends {
     display: flex; justify-content: space-between; margin-top: 5px;
     color: var(--text-tertiary); font: 500 var(--fs-micro)/1.3 var(--mono);
+  }
+
+  /* 持仓主表脚注：核心一句 + 次要说明一行 —— 信息不减，层级分开。
+     renderBook 用 innerHTML 写两行；sub 行比主行更淡更小，不再是一坨小字。 */
+  #book-note { margin: 10px 0 0; line-height: 1.55; }
+  #book-note .book-note-sub {
+    display: block; margin-top: 3px;
+    color: var(--text-tertiary); font-size: var(--fs-micro);
   }
 
   /* 合并卡内部的分节（组合结构 / 今日异动）*/

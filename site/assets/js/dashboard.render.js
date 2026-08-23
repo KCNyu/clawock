@@ -689,7 +689,7 @@
       }
     }
 
-    // 分腿的今日涨跌幅：原来的 Today's P&L 卡有这两个数，合并后不能丢
+    // 分市场的今日涨跌幅：原来的 Today's P&L 卡有这两个数，合并后不能丢
     const legPct = (v, chg) => (has(v) && has(chg) && (v - chg) > 0) ? chg / (v - chg) * 100 : null;
     const usTodayPct = legPct(us.value_usd, us.today_change_usd);
     const hkTodayPct = legPct(hk.value_hkd, hk.today_change_hkd);
@@ -703,13 +703,13 @@
     const withDelta = (v, delta, cls) =>
       `${v} <span class="hero-rail-d ${cls || ""}">${delta}</span>`;
     railEl.innerHTML = [
-      cell("US 腿", withDelta(fmtMoney(us.value_usd, "USD"),
+      cell("美股", withDelta(fmtMoney(us.value_usd, "USD"),
         `${heroMoney(us.pnl_usd, "USD")} · ${fmtPct(us.pnl_pct)}`, pnlClass(us.pnl_usd))),
-      cell("HK 腿", withDelta(fmtMoney(hk.value_hkd, "HKD"),
+      cell("港股", withDelta(fmtMoney(hk.value_hkd, "HKD"),
         `${heroMoney(hk.pnl_hkd, "HKD")} · ${fmtPct(hk.pnl_pct)}`, pnlClass(hk.pnl_hkd))),
-      cell("今日 US", withDelta(heroMoney(us.today_change_usd, "USD"),
+      cell("今日美股", withDelta(heroMoney(us.today_change_usd, "USD"),
         usTodayPct == null ? "" : fmtPct(usTodayPct), pnlClass(usTodayPct)), "", pnlClass(us.today_change_usd)),
-      cell("今日 HK", withDelta(heroMoney(hk.today_change_hkd, "HKD"),
+      cell("今日港股", withDelta(heroMoney(hk.today_change_hkd, "HKD"),
         hkTodayPct == null ? "" : fmtPct(hkTodayPct), pnlClass(hkTodayPct)), "", pnlClass(hk.today_change_hkd)),
       cell("已实现 · USD-eq", heroMoney(realUsd, "USD"), "", pnlClass(realUsd)),
       cell("浮动 · USD-eq", heroMoney(unrealUsd, "USD"), "", pnlClass(unrealUsd)),
@@ -1682,10 +1682,13 @@
 
     const note = document.getElementById("book-note");
     if (note) {
-      note.textContent = "点任意一行展开这只票的全部证据。状态：止损/减仓 = 硬闸规则（必动），观望/趋势ON = 技术状态，不是买卖建议。"
-        + "52 周位置：低位 = 近一年便宜，高位 = 追高警惕。"
+      // 两行层级：核心一句 + 次要说明一行。信息不减，只是不再一坨小字。
+      // 全部是静态文案（projection/proxy 只换措辞），没有数据串，innerHTML 安全。
+      note.innerHTML =
+        "点任意一行展开这只票的全部证据。状态：止损/减仓 = 硬闸规则（必动），观望/趋势ON = 技术状态，不是买卖建议。"
+        + `<span class="book-note-sub">52 周位置：低位 ≈ 近一年便宜，高位 ≈ 追高警惕。`
         + (usedProjection ? "匹配行由 harness projection 编译；当前持仓成员以最新账本为准。" : "兼容模式：等待 projection。")
-        + (usedProxy ? " ▵ = 杠杆 ETF，量化列取底层标的。" : "");
+        + (usedProxy ? " ▵ = 杠杆 ETF，量化列取底层标的。" : "") + `</span>`;
     }
     const meta = document.getElementById("book-meta");
     if (meta) meta.textContent = bookSort ? "按列排序" : "需动作的排最前";
@@ -1941,8 +1944,8 @@
     if (constraint) {
       const skippedPct = total ? Math.round(skipped / total * 100) : 0;
       constraint.textContent = total
-        ? `受库存、现金或成交价约束：${skipped}/${total} 条腿未成交（${skippedPct}%）${skipped > filled ? "；绝大多数建议受约束未成交。" : "。"}`
-        : "暂无可统计的模拟成交腿。";
+        ? `受库存、现金或成交价约束：${skipped}/${total} 条未成交（${skippedPct}%）${skipped > filled ? "；绝大多数建议受约束未成交。" : "。"}`
+        : "暂无可统计的模拟成交。";
     }
     const asof = document.getElementById("shadow-asof");
     if (asof) asof.textContent = sidecar.as_of ? ` · 数据 ${sidecar.as_of}` : "";
@@ -2128,7 +2131,7 @@
     badge.className = 'regime-badge ' + hk.tier;
     document.getElementById('lev-regime-label').textContent = TIER[hk.tier] || hk.tier;
     document.getElementById('lev-regime-cap').textContent =
-      (hk.lev_cap_mult == null) ? '' : `杠杆ETF腿上限 ×${hk.lev_cap_mult}`;
+      (hk.lev_cap_mult == null) ? '' : `杠杆ETF上限 ×${hk.lev_cap_mult}`;
     document.getElementById('lev-regime-rationale').textContent = r.rationale || hk.label || '';
     // re-entry trigger: % the close must rise to reclaim its 200DMA (unlocks re-leveraging)
     const reclaim = (close, ma) => (close && ma) ? (ma / close - 1) * 100 : null;
@@ -2138,7 +2141,7 @@
     else if (hk.trend_on) {
       trigEl.innerHTML = `<span class="neutral">HK 触发线 200线 ${Math.round(hk.ma)} · 已在线上 +${(-hkRe).toFixed(0)}% 缓冲（杠杆解锁中）</span>`;
     } else {
-      trigEl.innerHTML = `<span class="warn-text">HK 触发线：恒科站回 200线 <strong>${Math.round(hk.ma)}</strong>（需 +${hkRe.toFixed(0)}%）→ 杠杆腿上限放回 50%</span>`;
+      trigEl.innerHTML = `<span class="warn-text">HK 触发线：恒科站回 200线 <strong>${Math.round(hk.ma)}</strong>（需 +${hkRe.toFixed(0)}%）→ 杠杆上限放回 50%</span>`;
     }
     // US per-name rows
     const STATE = { cut: ['red', '砍杠杆'], watch: ['warn-text', '观察'], ok: ['neutral', '趋势ON'], unknown: ['neutral', '—'] };
