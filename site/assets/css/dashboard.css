@@ -3,7 +3,8 @@
      ========================================================= */
   :root {
     --bg: #070A0F;
-    --bg-glow: rgba(54,163,255,.09);
+    --bg-glow: rgba(54,163,255,.16);
+    --bg-glow-2: rgba(40,192,141,.055);
     --surface-0: #0B1017;
     --surface-1: #0F1620;
     --surface-2: #141E2A;
@@ -43,8 +44,32 @@
     --muted: var(--text-secondary);
     --tab-active-bg: var(--surface-2);
     --table-row-hover: var(--surface-3);
+    /* ── Material tokens (2026-08-24) ────────────────────────────────
+       A dark surface that is only a flat fill reads as a hole, not as a
+       panel: #0F1620 on #070A0F is 8 levels of separation, and a BLACK
+       shadow under it on a near-black page is invisible by construction.
+       That is the whole reason the redesign came out 「平铺直叙」.
+
+       Apple's dark materials are three things at once, and all three are
+       needed for any of them to read (apple-design §12):
+         --spec-*   a bright 1px top edge — light catching the near edge
+         --sheen-*  a top-down light gradient over the fill — the surface
+                    is lit from above, so it cannot be one flat tone
+         --shadow-* an ambient shadow deep enough to separate on a dark page
+
+       Two depths, because bigger surfaces must read as thicker:
+       `-1` for cards, `-2` for the hero deck and other floating chrome. */
+    --spec-1: rgba(255,255,255,.055);
+    --spec-2: rgba(255,255,255,.085);
+    --sheen-1: linear-gradient(180deg, rgba(255,255,255,.038), rgba(255,255,255,0) 88px);
+    --sheen-2: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.012) 180px, rgba(255,255,255,0));
     --shadow-topbar: 0 1px 0 rgba(0,0,0,.2), 0 8px 24px rgba(0,0,0,.22);
-    --shadow-card: 0 1px 2px rgba(0,0,0,.25), 0 12px 28px rgba(0,0,0,.3);
+    --shadow-card:
+      0 1px 2px rgba(0,0,0,.38),
+      0 10px 28px -10px rgba(0,0,0,.62);
+    --shadow-card-hover:
+      0 1px 2px rgba(0,0,0,.42),
+      0 18px 44px -14px rgba(0,0,0,.7);
     --glass-topbar: rgba(11,16,23,.6);
     /* 指挥台毛玻璃：整页第二块浮动层。Apple「更大的表面 = 更厚的材质」——
        主面比 topbar 更实一点、blur 更深；light 主题由 color-mix 随 surface-1 走。 */
@@ -77,11 +102,29 @@
   --fs-sm: 12px;
   --fs-xs: 11px;
   --fs-micro: 10px;
+
+  /* 字距随字号走（apple-design §15）：一个固定 letter-spacing 必然在某一端
+     是错的 —— 字号越大，同样的字距看起来越松，所以大字收、正文归零、
+     小字略放。这里只给标题档配对应的 tracking token，正文不动。 */
+  --tr-display: -.045em;
+  --tr-xxl: -.022em;
+  --tr-xl: -.016em;
+  --tr-lg: -.008em;
 }
+
+  /* 标题字距按档位应用。挂在语义标签上（h1/h2/h3）而不是一串 class，
+     改版加卡片时不会漏；单独设了 letter-spacing 的规则（大数字、全大写的
+     micro 标签）在后面照样覆盖得掉。 */
+  h1 { letter-spacing: var(--tr-xl); }
+  h2 { letter-spacing: var(--tr-xxl); }
+  h3 { letter-spacing: var(--tr-lg); }
+  .hero-deck-pnl { letter-spacing: var(--tr-display); }
+  .sect-divider { letter-spacing: var(--tr-lg); }
   @media (prefers-color-scheme: light) {
     :root {
       --bg: #F3F6F9;
-      --bg-glow: rgba(64,140,196,.10);
+      --bg-glow: rgba(64,140,196,.16);
+      --bg-glow-2: rgba(8,115,79,.05);
       --surface-0: #F8FAFC;
       --surface-1: #FFFFFF;
       --surface-2: #F2F5F8;
@@ -100,8 +143,20 @@
       --warning: #805400;
       --neutral: #66788D;
       --focus: #0078C9;
+      /* Light inverts the recipe: the sheen becomes a barely-there warm
+         wash and the specular edge becomes near-white, while the shadow
+         is what does the separating (it reads fine on a light page). */
+      --spec-1: rgba(255,255,255,.9);
+      --spec-2: rgba(255,255,255,1);
+      --sheen-1: linear-gradient(180deg, rgba(255,255,255,.6), rgba(255,255,255,0) 88px);
+      --sheen-2: linear-gradient(180deg, rgba(255,255,255,.75), rgba(255,255,255,.2) 180px, rgba(255,255,255,0));
       --shadow-topbar: 0 1px 0 rgba(18,33,48,.06), 0 8px 24px rgba(18,33,48,.08);
-      --shadow-card: 0 1px 2px rgba(18,33,48,.05), 0 12px 28px rgba(18,33,48,.07);
+      --shadow-card:
+        0 1px 2px rgba(18,33,48,.06),
+        0 10px 28px -10px rgba(18,33,48,.14);
+      --shadow-card-hover:
+        0 1px 2px rgba(18,33,48,.07),
+        0 18px 44px -14px rgba(18,33,48,.18);
       --glass-topbar: rgba(248,250,252,.72);
       --glass-card: color-mix(in srgb, var(--surface-1) 58%, transparent);
     }
@@ -140,19 +195,35 @@
       -webkit-backdrop-filter: none;
       backdrop-filter: none;
     }
-    .topbar { background: var(--surface-0); }
+    .topbar { background: var(--surface-0); border-bottom: 1px solid var(--border-strong); }
+    /* The scroll-edge fade is a translucency effect too — with transparency
+       off it would be a grey smear over opaque content. Back to a hairline. */
+    .topbar::after { display: none; }
     .refresh-btn { background: var(--card); }
     .desk-rail { background: var(--surface-1); }
     .status-banner { background: var(--accent-soft); }
     .hero-deck { background: var(--surface-1); }
+    /* Same reason the sheens go: they are light passing through a material.
+       On an opaque surface they are just a gradient nobody asked for. */
+    .card, .hero-deck { background-image: none; }
+    .hero-deck-lead::before { display: none; }
   }
   body {
-    /* Layered page: a cool-tinted gradient replaces the flat fill, so the
-       frosted topbar has something to blur and cards lift off the page
-       instead of reading as same-tone boxes (kcn: 「灰成一片」). Both themes
-       get a faint radial wash; light stays quiet, dark gets a blue hint. */
+    /* The page's own light. Frosted chrome only reads as frosted if there is
+       something behind it with structure — blur over a flat fill produces a
+       flat fill. The previous single 9%-alpha radial was too faint to survive
+       a 24px blur, which is why 「毛玻璃」 looked like plain dark boxes.
+
+       Two lights, not one: a cool key light off the top edge (where the
+       topbar and the hero deck sit, so both have gradient to pick up) and a
+       far dimmer counter-light low and off-centre so the lower half of a long
+       page is not dead flat. Both are wide and low-contrast on purpose —
+       visible as depth, never as a visible band. `background-attachment:
+       fixed` keeps them still while panels scroll (apple-design §14: no
+       full-viewport moving background). */
     background:
-      radial-gradient(1200px 480px at 50% -8%, var(--bg-glow), transparent 70%),
+      radial-gradient(1100px 620px at 50% -14%, var(--bg-glow), transparent 68%),
+      radial-gradient(900px 700px at 88% 108%, var(--bg-glow-2), transparent 72%),
       var(--bg);
     background-attachment: fixed;
     color: var(--text);
@@ -178,10 +249,21 @@
     background: var(--glass-topbar);
     -webkit-backdrop-filter: blur(20px) saturate(180%);
     backdrop-filter: blur(20px) saturate(180%);
-    border-bottom: 1px solid var(--border);
+    /* Scroll edge, not a divider (apple-design §12). A hard 1px rule under
+       floating chrome announces "two boxes"; a short fade announces "content
+       is passing underneath this". The hairline stays as a 1px gradient that
+       dissolves at the ends, so the bar still has a defined edge. */
+    border-bottom: 0;
     padding: var(--space-3) var(--space-4) 0;
     padding-top: max(var(--space-3), env(safe-area-inset-top));
     box-shadow: var(--shadow-topbar);
+  }
+  .topbar::after {
+    content: ""; position: absolute; left: 0; right: 0; top: 100%; height: 14px;
+    background:
+      linear-gradient(90deg, transparent, var(--border-strong) 12%, var(--border-strong) 88%, transparent) top / 100% 1px no-repeat,
+      linear-gradient(180deg, var(--glass-topbar), transparent);
+    pointer-events: none;
   }
   .topbar-row {
     display: flex; align-items: center; justify-content: space-between;
@@ -525,29 +607,35 @@
   /* =========================================================
      Card primitives
      ========================================================= */
+  /* Card = material, not rectangle (apple-design §12).
+     Three layers that only work together:
+       1 `--sheen-1` over the fill — the panel is lit from above, so its top
+         is fractionally brighter than its bottom. This is the single thing
+         that separates "surface" from "hole".
+       2 `inset 0 1px 0 --spec-1` — a 1px specular edge where the light
+         catches the near corner. Apple puts one on every material.
+       3 an ambient shadow with a NEGATIVE spread so it stays a soft pool
+         under the card instead of a grey halo around it.
+     The border is a real hairline again: with the sheen doing the "raised"
+     work, a fill-coloured border no longer has to hide the box, and one
+     defined edge per card is what keeps a dense page readable. */
   .card {
-    background: var(--card);
-    /* Border blends into the fill on dark → cards read as soft raised panels, not
-       outlined boxes (the "card wall" look). Light mode keeps a hairline for
-       definition against the near-white page. The layered shadow lifts every
-       card off the page (Apple-style depth) without the old flat look. */
-    border: 1px solid var(--card);
+    background: var(--sheen-1), var(--card);
+    border: 1px solid var(--border-subtle);
     border-radius: 16px;
-    box-shadow: var(--shadow-card);
+    box-shadow: inset 0 1px 0 var(--spec-1), var(--shadow-card);
     padding: var(--space-4);
     margin-bottom: var(--gap);
-    transition: transform var(--duration-fast) var(--ease-out);
+    transition: transform var(--duration-fast) var(--ease-out),
+                box-shadow var(--duration-fast) var(--ease-out);
   }
   @media (hover: hover) and (pointer: fine) {
     .panel.active > .card:hover {
       transform: translateY(-2px);
-      box-shadow: 0 2px 4px rgba(18,33,48,.06), 0 16px 36px rgba(18,33,48,.1);
+      box-shadow: inset 0 1px 0 var(--spec-2), var(--shadow-card-hover);
     }
   }
   .card.is-pending { visibility: hidden; }
-  @media (prefers-color-scheme: light) {
-    .card { border-color: var(--border-subtle); }
-  }
   .card h3 {
     margin: 0 0 var(--space-3);
     font-size: var(--fs-sm); font-weight: 600;
@@ -1051,6 +1139,7 @@
      Drill: holdings table
      ========================================================= */
   .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch;
+    container-type: inline-size;
     background:
       linear-gradient(to right, transparent, var(--card) 80%) 100% 0,
       radial-gradient(farthest-side at 100% 50%, rgba(0,0,0,.38), transparent) 100% 0;
@@ -1075,12 +1164,31 @@
   }
   .holdings-table th:first-child, .holdings-table td:first-child,
   .holdings-table th:nth-child(2), .holdings-table td:nth-child(2) { text-align: left; }
+  /* 冻结列。`background` 必须是 **不透明底 + 色调图层** 两层：只写一个
+     半透明 tint（行 hover/active 的那条规则就是）会让底下横向滚过去的
+     单元格透出来 —— 实测 390px 上滚到底时 RKLX 和 $196.51 直接叠字。
+     所以底色写在 background-color，行状态的 tint 走 background-image。 */
   .holdings-table th:first-child, .holdings-table td:first-child {
-    position: sticky; left: 0; z-index: 1; background: var(--surface-1);
+    position: sticky; left: 0; z-index: 1;
+    background-color: var(--surface-1);
     box-shadow: none;
   }
-  .holdings-table thead th:first-child { z-index: 3; background: var(--surface-2); }
-  .holdings-table .name-cell { max-width: 140px; overflow: hidden; text-overflow: ellipsis; color: var(--text-dim); font-size: var(--fs-xs); }
+  .holdings-table thead th:first-child { z-index: 3; background-color: var(--surface-2); }
+  /* 冻结列的右缘：滚动时才出现的一道阴影，告诉读者右边还有列。
+     `.is-scrolled` 由 JS 在 scrollLeft > 0 时加在 .table-wrap 上。 */
+  .table-wrap.is-scrolled .holdings-table th:first-child,
+  .table-wrap.is-scrolled .holdings-table td:first-child {
+    box-shadow: 8px 0 12px -8px rgba(0,0,0,.55);
+  }
+  /* 名称列原来恒定 max-width:140px + ellipsis，1024-1280 宽下把
+     「Leverage Shares 2X Long SpaceX Daily ETF」截成一半，而那几档的表格
+     其实有富余。改成随可用宽度收缩、到不得已才截，并把完整名字留在
+     title 里。 */
+  .holdings-table .name-cell {
+    max-width: clamp(140px, 18vw, 320px);
+    overflow: hidden; text-overflow: ellipsis;
+    color: var(--text-dim); font-size: var(--fs-xs);
+  }
   .holdings-table .spark-cell { padding: 4px 8px; line-height: 0; vertical-align: middle; min-width: 60px; }
   .holdings-table .spark { display: inline-block; vertical-align: middle; }
   .holdings-table .spark.spark-up   { color: var(--green); }
@@ -1313,7 +1421,15 @@
   }
   .status-banner .sb-text { flex: 1 1 auto; font-weight: 500; color: var(--text); }
   .status-banner .sb-time { flex: 0 0 auto; font-size: var(--fs-micro); color: var(--text-faint); font-family: var(--mono); white-space: nowrap; }
+  /* 两种「没有横幅」要分开：
+     `is-pending` = 数据还没到，占住高度，横幅真来了不会跳（CLS）。
+     `is-empty`   = 数据到了、今天就是没有盘中横幅 —— 这时候再占 56px
+     就是首屏卡片标题下方一个永久空洞（大部分时段都是这个状态）。 */
   .status-banner.is-pending { visibility: hidden; }
+  .status-banner.is-empty { display: none; }
+  /* 首屏那条不占位：大多数时段本来就没有盘中横幅，占了就是空洞，
+     收起来又是一次 30px 位移。两头都不划算，直接不占。 */
+  .overview-status.is-pending { display: none; }
 
   /* ── Desk rail — collapsed one-line pulse on detail tabs ── */
   .desk-rail {
@@ -1919,34 +2035,66 @@
   .hero-deck {
     grid-column: 1 / -1; padding: 0; overflow: hidden;
     display: grid; grid-template-columns: minmax(0, 1fr);
+    position: relative; isolation: isolate;
+    /* The thickest material on the page: deeper blur, a wider sheen falloff
+       (it is a tall surface — an 88px falloff would band across it) and the
+       brighter of the two specular edges. Apple's rule is that a bigger
+       surface reads as a thicker one, so this must be visibly heavier than
+       a card, not the same recipe at the same weight. */
     background: var(--surface-1);
-    background: var(--glass-card);
-    -webkit-backdrop-filter: blur(24px) saturate(180%);
-    backdrop-filter: blur(24px) saturate(180%);
-    border-color: var(--border-subtle);
+    background: var(--sheen-2), var(--glass-card);
+    -webkit-backdrop-filter: blur(28px) saturate(180%);
+    backdrop-filter: blur(28px) saturate(180%);
+    border-color: var(--border-strong);
+    box-shadow: inset 0 1px 0 var(--spec-2), var(--shadow-card-hover);
+  }
+  /* A soft pool of light under the headline number. Not a coloured box and
+     not a glow on the glyphs — an ambient lift behind the focal point, which
+     is how the eye is told where the page starts. Sits below content (z -1
+     inside the deck's own isolation) so it can never touch text contrast. */
+  .hero-deck-lead::before {
+    content: ""; position: absolute; z-index: -1;
+    top: -30%; left: -6%; width: 62%; height: 150%;
+    background: radial-gradient(closest-side, var(--bg-glow), transparent 78%);
+    pointer-events: none;
   }
   .hero-deck-lead {
     padding: 26px 24px 20px;
+    position: relative;
   }
   .hero-deck-pnl {
     margin-top: 12px; color: var(--text); font: 700 var(--fs-display)/1 var(--mono);
-    letter-spacing: -.055em; font-variant-numeric: tabular-nums;
+    letter-spacing: var(--tr-display); font-variant-numeric: tabular-nums;
     /* 大数字禁断行（#111 教训，#872 明确列为验收项）：宁可缩字号也不折行 */
     white-space: nowrap;
   }
+  /* 已实现 / 浮动 / 今日 三段。`nowrap + ellipsis` 在 390px 上把最后一段的
+     涨跌幅整个吃掉（实测显示到「今日 +$807.18…」，+6.86% 从来没出现过）——
+     首屏的数字被截掉不是排版问题，是丢信息。改成按段折行：每段自己
+     nowrap（数字永远不断），段与段之间可以换行。 */
   .hero-deck-sub {
     margin-top: 13px; color: var(--text-secondary); font: 500 var(--fs-md)/1.5 var(--mono);
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    font-variant-numeric: tabular-nums; overflow-wrap: anywhere;
+    display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 6px;
+    font-variant-numeric: tabular-nums;
   }
+  .hero-deck-sub > * { white-space: nowrap; }
+  .hero-deck-sub .hds-sep { color: var(--text-tertiary); }
+  /* 折行后行首不留孤立的间隔点 */
+  .hero-deck-sub .hds-seg { display: inline-flex; align-items: baseline; gap: 5px; }
   .hero-deck-sub b { font-weight: 700; color: var(--text); }
   .hero-deck-fx {
     margin-top: 9px; color: var(--text-tertiary); font: 500 var(--fs-micro)/1.4 var(--mono);
     overflow-wrap: anywhere;
   }
+  /* 首屏最大的一次跳：8 格统计轨在数据到达前是空的（高 1px），到达后
+     撑到 85px —— 实测这一下就占了整页 CLS 0.26 里的大头，而它每次加载
+     都会发生。8 格的行数由列数决定，所以按断点把高度先占住；格子内容
+     行数是固定的（标签 / 值 / 变化 / 备注），不会因为数据长短再变。
+     min-height 而不是 height：真渲染出来更高时不裁。 */
   .hero-rail {
     display: grid; grid-template-columns: repeat(8, minmax(0, 1fr));
     border-top: 1px solid var(--border-subtle);
+    min-height: 85px;
   }
   .hero-rail-cell {
     min-width: 0; padding: 14px 16px 16px;
@@ -2240,7 +2388,7 @@
   .hl-chip .hl-ic { align-self: center; }
 
   @media (min-width: 768px) and (max-width: 1023px) {
-    .hero-rail { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .hero-rail { grid-template-columns: repeat(4, minmax(0, 1fr)); min-height: 170px; }
     .overview-equity, .overview-verdict, .overview-strip,
     .overview-command > .hero-honesty-card,
     .overview-command > .hero-gold-card { grid-column: 1 / -1; }
@@ -2253,7 +2401,10 @@
     .overview-command > .hero-gold-card { width: 100%; min-width: 0; }
     .hero-deck { grid-template-columns: minmax(0, 1fr); }
     .hero-deck-lead { border-right: 0; }
-    .hero-rail { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    /* 317 而不是 312：430-767px 这一段「主动 call · n=76 · 9 未能核验」那格
+       的备注折成两行，比 390px 窄档高 5px。取上界，宁可窄档多留 5px 空白
+       也不要宽档跳一下。 */
+    .hero-rail { grid-template-columns: repeat(2, minmax(0, 1fr)); min-height: 317px; }
     .dh-row {
       grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px; row-gap: 4px;
     }
@@ -2498,9 +2649,15 @@
 
   /* ── 持仓主表：行展开 = 这只票的全部证据（#875）────────────── */
   .book-table tbody tr.book-row { cursor: pointer; transition: background var(--duration-fast) ease; }
-  .book-table tbody tr.book-row:active > td { background: color-mix(in srgb, var(--text) 7%, transparent); }
+  /* tint 走 background-image，别覆盖冻结列的不透明底色（见 .holdings-table
+     th/td:first-child 那段）。用 linear-gradient 把纯色当图层画。 */
+  .book-table tbody tr.book-row:active > td {
+    background-image: linear-gradient(color-mix(in srgb, var(--text) 7%, transparent) 0 100%);
+  }
   @media (hover: hover) and (pointer: fine) {
-    .book-table tbody tr.book-row:hover > td { background: color-mix(in srgb, var(--text) 4%, transparent); }
+    .book-table tbody tr.book-row:hover > td {
+      background-image: linear-gradient(color-mix(in srgb, var(--text) 4%, transparent) 0 100%);
+    }
   }
   .book-table tbody tr.book-row:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
   .book-caret {
@@ -2513,6 +2670,20 @@
   .book-table tbody tr.book-detail > td {
     padding: 0; border-bottom: 0; background: none;
     white-space: normal; height: auto; text-align: left;
+    /* 这个 td 也匹配 `td:first-child` 的冻结列规则，但它和整张表一样宽，
+       sticky 没有可走的距离 ⇒ 它跟着表一起横向滚出去，展开的证据面板
+       左半边被切掉（390px 实测 left = -363px）。展开行不是列，取消冻结。 */
+    position: static;
+  }
+  /* 证据面板反过来钉在视口里：容器查询让 100cqi = .table-wrap 自己的可见
+     宽度（不是 720px 的表宽），配 sticky left:0 就得到「表格横滚时展开内容
+     原地不动」。纯 CSS，不需要 JS 量宽度。 */
+  .book-detail .bd-inner {
+    position: sticky; left: 0;
+    width: 100cqi; max-width: 100%; box-sizing: border-box;
+  }
+  @supports not (width: 100cqi) {
+    .book-detail .bd-inner { width: auto; position: static; }
   }
   .book-detail .bd-grid, .book-detail .bd-col, .book-detail .bd-note,
   .book-detail .bd-kv, .book-detail .bd-kv .k { white-space: normal; }

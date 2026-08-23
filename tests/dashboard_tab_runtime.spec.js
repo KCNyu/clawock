@@ -437,6 +437,24 @@ async function testTabGuardWithoutForcedLayout(browser, base) {
 
   // 3. And it must not drift from a scroll the code did not initiate — a real
   //    swipe moves scrollLeft with no goToTab call anywhere.
+  //
+  //    goToTab above scrolls with `behavior: smooth`, and that animation is
+  //    still running when this step writes scrollLeft. Chromium does not treat
+  //    the write as a cancel: the in-flight smooth scroll carries on, and with
+  //    scroll-snap on the pager it lands on the LAST page — which made this
+  //    assertion fail roughly one run in three on master, unrelated to any
+  //    change under test. Let the pager come to rest first (two consecutive
+  //    frames at the same offset) so the step measures what it means to.
+  await page.waitForFunction(() => {
+    const pager = document.getElementById("pager");
+    const at = Math.round(pager.scrollLeft / (pager.clientWidth || 1));
+    // Arrived AND stopped: "two equal frames" alone is not enough, because a
+    // smooth scroll has not necessarily started moving by frame two.
+    if (at !== TAB_ORDER.indexOf("risk")) { window.__settleAt = null; return false; }
+    const stable = window.__settleAt === pager.scrollLeft;
+    window.__settleAt = pager.scrollLeft;
+    return stable;
+  }, null, { polling: "raf", timeout: 5000 });
   await page.evaluate(() => {
     const pager = document.getElementById("pager");
     pager.scrollLeft = TAB_ORDER.indexOf("market") * pager.clientWidth;
@@ -653,6 +671,155 @@ async function testTraceRowsFitPhoneWidths(browser, base) {
   }
 }
 
+// 首屏与持仓表的「截断」回归闸（2026-08-24）。三个缺陷都不是布局取舍，
+// 而是数字/证据被切掉后页面看起来仍然正常，所以只有量出来才发现：
+//   1 hero 副行 `nowrap + ellipsis` 在 390px 上稳定截在「今日 +$807.18…」，
+//     今日涨跌幅从来没显示过。
+//   2 冻结列写的是 `background`（一个简写），行 hover/active 的半透明 tint
+//     把它整个替换掉 ⇒ 横向滚动时下面的单元格透上来和 ticker 叠字。
+//   3 展开的证据行是一个和整张表一样宽的 td，也匹配 `td:first-child` 的
+//     sticky 规则，但没有可走的距离 ⇒ 跟着表滚出去，左半边被切（实测
+//     left = -363px）。
+async function testHoldingsAndHeroNeverTruncate(browser, base) {
+  // — 首屏副行：三段都必须完整，且必须带上今日涨跌幅 —
+  {
+    const context = await browser.newContext({ viewport: { width: 390, height: 844 } });
+    const page = await context.newPage();
+    await stubLiveOrigin(page);
+    await page.goto(base, { waitUntil: "networkidle" });
+    await waitForData(page);
+    const sub = await page.evaluate(() => {
+      const el = document.getElementById("hero-sub");
+      const segs = [...el.querySelectorAll(".hds-seg")];
+      return {
+        text: el.textContent,
+        lineClipped: el.scrollWidth > el.clientWidth + 1,
+        segClipped: segs.filter(s => s.scrollWidth > s.clientWidth + 1).map(s => s.textContent),
+        segCount: segs.length,
+      };
+    });
+    assert.equal(sub.segCount, 3, "hero sub-line should render 已实现 / 浮动 / 今日 as three segments");
+    assert.equal(sub.lineClipped, false, "hero sub-line is clipped at 390px");
+    assert.deepEqual(sub.segClipped, [], "a hero sub-line segment is clipped");
+    assert.match(sub.text, /%/, "hero sub-line dropped the today percentage");
+    await context.close();
+  }
+
+  // — 持仓表：横向滚到底 + 展开一行，冻结列不透明、展开面板留在视口内 —
+  {
+    const context = await browser.newContext({
+      viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true,
+    });
+    const page = await context.newPage();
+    await stubLiveOrigin(page);
+    await page.goto(base, { waitUntil: "networkidle" });
+    await waitForData(page);
+    await page.click('.tab-btn[data-tab="drill"]');
+    await waitForTab(page, "drill");
+    await page.waitForSelector("table.book-table tbody tr.book-row");
+    await page.click("table.book-table tbody tr.book-row");
+    // 展开是 CSS grid-template-rows 0fr->1fr 的过渡，点完到有高度中间隔了几帧；
+    // 直接量会偶发量到 0（这条断言第一版就是这么随机红的）。
+    await page.waitForFunction(() => {
+      const row = document.querySelector("table.book-table tbody tr.book-row");
+      const detail = row && row.nextElementSibling;
+      return row && row.dataset.open === "1"
+        && detail && detail.classList.contains("book-detail")
+        && detail.offsetHeight > 10;
+    }, null, { timeout: 5000 });
+    await page.evaluate(() => {
+      const wrap = document.querySelector("table.book-table").closest(".table-wrap");
+      wrap.scrollLeft = wrap.scrollWidth;
+      wrap.dispatchEvent(new Event("scroll"));
+    });
+    await page.waitForFunction(() => {
+      const wrap = document.querySelector("table.book-table").closest(".table-wrap");
+      return wrap.scrollLeft > 1 && wrap.classList.contains("is-scrolled");
+    }, null, { timeout: 3000 });
+
+    const m = await page.evaluate(() => {
+      const table = document.querySelector("table.book-table");
+      const wrap = table.closest(".table-wrap");
+      const firstCell = table.querySelector("tbody tr.book-row td:first-child");
+      const detail = [...table.querySelectorAll("tbody tr.book-detail")]
+        .find(row => row.offsetHeight > 10);
+      const inner = detail && detail.querySelector(".bd-inner");
+      const rect = inner && inner.getBoundingClientRect();
+      return {
+        scrolled: wrap.scrollLeft,
+        frozenBg: getComputedStyle(firstCell).backgroundColor,
+        frozenShadow: getComputedStyle(firstCell).boxShadow,
+        wrapLeft: Math.round(wrap.getBoundingClientRect().left),
+        wrapWidth: wrap.clientWidth,
+        innerLeft: rect ? Math.round(rect.left) : null,
+        innerWidth: rect ? Math.round(rect.width) : null,
+      };
+    });
+
+    assert(m.scrolled > 1, "the holdings table did not scroll horizontally at 390px");
+    // 「不透明」= 不是 rgba(...,0) 也不是 transparent。半透明底就是漏字的那个 bug。
+    assert(/^rgb\(/.test(m.frozenBg),
+      `frozen column is not opaque while scrolled (${m.frozenBg})`);
+    assert.notEqual(m.frozenShadow, "none",
+      "frozen column shows no scroll edge while the table is scrolled");
+    assert.notEqual(m.innerLeft, null, "the expanded evidence panel did not render");
+    assert(Math.abs(m.innerLeft - m.wrapLeft) <= 2,
+      `expanded evidence panel drifted out of view (left ${m.innerLeft} vs wrap ${m.wrapLeft})`);
+    assert(Math.abs(m.innerWidth - m.wrapWidth) <= 2,
+      `expanded evidence panel is not the visible width (${m.innerWidth} vs ${m.wrapWidth})`);
+    await context.close();
+  }
+
+  // — 首屏统计轨必须自己占住高度 —
+  // 数据到达前 #hero-rail 是空的。在给它 min-height 之前它高 1px，填满后
+  // 85px（桌面），每次加载都跳一次 —— 实测这一下就是整页 CLS 的大头
+  // (0.26 -> 0.04)。这里量的是「预留 == 实测」，比断言一个 CLS 数字稳。
+  for (const [width, expectCols] of [[390, 2], [900, 4], [1440, 8]]) {
+    const context = await browser.newContext({ viewport: { width, height: 900 } });
+    const page = await context.newPage();
+    await stubLiveOrigin(page);
+    // 必须在数据到达之前量，所以不能等 networkidle。
+    await page.goto(base, { waitUntil: "domcontentloaded" });
+    const reserved = await page.evaluate(() =>
+      Math.round(document.querySelector(".hero-rail").getBoundingClientRect().height));
+    await waitForData(page);
+    await page.waitForFunction(() =>
+      document.querySelectorAll(".hero-rail .hero-rail-cell").length > 0,
+      null, { timeout: 5000 });
+    const after = await page.evaluate(() => {
+      const rail = document.querySelector(".hero-rail");
+      return {
+        height: Math.round(rail.getBoundingClientRect().height),
+        cols: getComputedStyle(rail).gridTemplateColumns.split(" ").length,
+      };
+    });
+    assert.equal(after.cols, expectCols, `hero rail column count changed at ${width}px`);
+    assert.equal(reserved, after.height,
+      `hero rail shifts by ${after.height - reserved}px when data lands at ${width}px`);
+    await context.close();
+  }
+
+  // — 名称列：可以省略号，但完整名字必须留在 title 里 —
+  for (const width of [1024, 1280, 1440]) {
+    const context = await browser.newContext({ viewport: { width, height: 900 } });
+    const page = await context.newPage();
+    await stubLiveOrigin(page);
+    await page.goto(base, { waitUntil: "networkidle" });
+    await waitForData(page);
+    await page.click('.tab-btn[data-tab="drill"]');
+    await waitForTab(page, "drill");
+    await page.waitForSelector("table.book-table .name-cell");
+    const lost = await page.evaluate(() =>
+      [...document.querySelectorAll("table.book-table .name-cell")]
+        .filter(c => c.scrollWidth > c.clientWidth + 1)
+        .filter(c => c.getAttribute("title") !== c.textContent.trim())
+        .map(c => c.textContent.trim()));
+    assert.deepEqual(lost, [],
+      `holdings name is truncated with no full value in title at ${width}px`);
+    await context.close();
+  }
+}
+
 async function main() {
   const server = serveWorkspace();
   await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
@@ -670,6 +837,7 @@ async function main() {
     await testTopbarFitsWhenRefreshLabelSwaps(browser, base);
     await testHeaderSharesTheContentColumn(browser, base);
     await testTraceRowsFitPhoneWidths(browser, base);
+    await testHoldingsAndHeroNeverTruncate(browser, base);
   } finally {
     await browser.close();
     await new Promise(resolve => server.close(resolve));
