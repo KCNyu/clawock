@@ -882,7 +882,7 @@ test("readBarCloses: T+1 marks against the canonical bar store, never snapshots 
   }
 });
 
-test("freshness: signature moves on each of the three data sources", async () => {
+test("freshness: signature moves on each of the four data sources", async () => {
   const freshness = await import(pathToFileURL(path.join(PLUGIN, "lib", "freshness.js")).href);
   const root = makeDesk();
   const barsDir = path.join(root, "memory", "bars");
@@ -890,7 +890,7 @@ test("freshness: signature moves on each of the three data sources", async () =>
   try {
     const before = freshness.workspaceSignature(root);
     assert.ok(before.length > 0);
-    assert.equal(before.split("|").length, 3, "shape: portfolio stat | bars digest | decisions stat");
+    assert.equal(before.split("|").length, 4, "shape: portfolio stat | bars digest | decisions stat | fx stat");
     assert.equal(before.split("|")[1], "none", "no bar files yet → the bars term is 'none'");
 
     // portfolio.json 变化 → 签名变(内容长度不同,size 兜底 mtime 同刻度)
@@ -920,6 +920,38 @@ test("freshness: signature moves on each of the three data sources", async () =>
     const beforeLedger = freshness.workspaceSignature(root);
     fs.writeFileSync(path.join(root, "memory", "decisions.jsonl"), JSON.stringify({ decision_id: "x" }) + "\n");
     assert.notEqual(freshness.workspaceSignature(root), beforeLedger, "decisions.jsonl change must move the signature");
+
+    // fx-rates.jsonl 变化(FX 通道,#838)→ 签名变
+    const beforeFx = freshness.workspaceSignature(root);
+    fs.writeFileSync(path.join(root, "memory", "fx-rates.jsonl"), '{"day":"2026-08-21","rate":7.8438,"source":"Frankfurter"}\n');
+    assert.notEqual(freshness.workspaceSignature(root), beforeFx, "fx-rates.jsonl change must move the signature (#838)");
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test("readFxRate: last valid line wins; missing/malformed degrade to null (#838)", async () => {
+  const ledger = await import(pathToFileURL(path.join(PLUGIN, "lib", "ledger.js")).href);
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "clawock-fx-"));
+  const memory = path.join(root, "memory");
+  fs.mkdirSync(memory, { recursive: true });
+  try {
+    assert.equal(ledger.readFxRate(root), null, "no file → null");
+    const fxPath = path.join(memory, "fx-rates.jsonl");
+    fs.writeFileSync(fxPath, [
+      '{"day":"2026-08-19","rate":7.8437,"source":"Frankfurter"}',
+      'not json at all',
+      '{"day":"2026-08-20","rate":7.8416,"source":"Frankfurter"}',
+      "",
+    ].join("\n"));
+    const got = ledger.readFxRate(root);
+    assert.equal(got.rate, 7.8416, "the last valid line wins");
+    assert.equal(got.source, "Frankfurter");
+    // A non-positive or non-numeric rate reads as absent, never as a number.
+    fs.writeFileSync(fxPath, '{"day":"2026-08-21","rate":0,"source":"x"}\n');
+    assert.equal(ledger.readFxRate(root), null, "rate 0 → null");
+    fs.writeFileSync(fxPath, '{"day":"2026-08-21","rate":"abc","source":"x"}\n');
+    assert.equal(ledger.readFxRate(root), null, "non-numeric rate → null");
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
   }

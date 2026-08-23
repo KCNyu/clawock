@@ -11,7 +11,7 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type {
   Book, DecisionRow, EnrichedTrade, Holding, JsonValue, LedgerResult, PlanRow, PlansResult,
-  PortfolioRead, TraceDecision, TraceT1, TracesResult, Trade,
+  PortfolioResult, TraceDecision, TraceT1, TracesResult, Trade,
 } from './types.ts'
 
 const PLAN_PATTERN = /^(\d{4}-\d{2}-\d{2})-plan\.json$/
@@ -65,15 +65,51 @@ export function readLedger(workspace: string): LedgerResult {
 }
 
 /**
+ * Latest USDHKD rate from the append-only FX ledger
+ * (`memory/fx-rates.jsonl`, one line per day, written by
+ * `clawock.portfolio.fx`). The last valid line wins.
+ *
+ * This is the *actual* FX channel. The previous reader looked at
+ * `portfolio.json`'s `market_context.usdhk_rate` — a field no Python writer
+ * has ever produced — so `rate` was permanently null and the header's
+ * "已实现 (USD 等值)" silently dropped every HKD figure (#838).
+ */
+export function readFxRate(workspace: string): { rate: number; source: string | null } | null {
+  const path = join(workspace, 'memory', 'fx-rates.jsonl')
+  if (!existsSync(path)) return null
+  let last: JsonValue = null
+  try {
+    const lines = readFileSync(path, 'utf8').split('\n')
+    for (const line of lines) {
+      if (!line.trim()) continue
+      try {
+        last = JSON.parse(line) as JsonValue
+      } catch {
+        /* skip one malformed line */
+      }
+    }
+  } catch {
+    return null
+  }
+  if (last === null || typeof last !== 'object' || Array.isArray(last)) return null
+  const rate = num((last as { rate?: unknown })['rate'])
+  if (rate === null || rate <= 0) return null
+  const source = typeof (last as { source?: unknown })['source'] === 'string'
+    ? (last as { source?: unknown })['source'] as string
+    : null
+  return { rate, source }
+}
+
+/**
  * Summarize the portfolio (portfolio.json): per-book holdings with the desk's
  * own money fields, plus the flattened trade log (newest first).
  * @param workspace - desk workspace root.
  * @returns `{ books, trades, lastUpdated }`.
  */
-export function readPortfolio(workspace: string): PortfolioRead {
+export function readPortfolio(workspace: string): PortfolioResult {
   const doc = readJson(join(workspace, 'portfolio.json'))
   if (doc === null || typeof doc !== 'object' || Array.isArray(doc)) {
-    return { books: [], trades: [], lastUpdated: null, marketContext: {} }
+    return { books: [], trades: [], lastUpdated: null }
   }
   const books: Book[] = []
   const trades: Trade[] = []
@@ -95,7 +131,9 @@ export function readPortfolio(workspace: string): PortfolioRead {
           pnlAbs: num(h['pnl_abs']),
         }))
       if (holdings.length === 0) continue // a book with no positions is not shown
-      const market = /^hk/i.test(name) ? 'HK' : 'US'
+      // Known books map by name; an unknown one keeps its own name instead of
+      // being silently filed under US (#839).
+      const market = /^hk/i.test(name) ? 'HK' : (/us/i.test(name) ? 'US' : name)
       const currency = typeof bookObj['currency'] === 'string'
         ? bookObj['currency']
         : (market === 'HK' ? 'HKD' : 'USD')
@@ -136,10 +174,7 @@ export function readPortfolio(workspace: string): PortfolioRead {
   const lastUpdated = typeof (doc as { last_updated?: unknown })['last_updated'] === 'string'
     ? (doc as { last_updated?: unknown })['last_updated'] as string
     : null
-  // Returned so `readTraces` does not have to read and parse portfolio.json a
-  // second time just to reach `market_context`.
-  const marketContext = ((doc as { market_context?: unknown })['market_context'] ?? {}) as { [key: string]: JsonValue }
-  return { books, trades, lastUpdated, marketContext }
+  return { books, trades, lastUpdated }
 }
 
 /**
@@ -465,7 +500,7 @@ function enrichTrade(
  *          published one in portfolio.json market_context (else null).
  */
 export function readTraces(workspace: string): Omit<TracesResult, 'workspaceKey' | 'signature'> {
-  const { books, trades, lastUpdated, marketContext } = readPortfolio(workspace)
+  const { books, trades, lastUpdated } = readPortfolio(workspace)
   const byTicker = readBarCloses(workspace, trades.map((t) => t.ticker))
   const decByKey: Record<string, JsonValue[]> = {}
   const { entries } = readLedger(workspace)
@@ -495,11 +530,11 @@ export function readTraces(workspace: string): Omit<TracesResult, 'workspaceKey'
     ;(decByTicker[ticker] ??= []).push({ date: key.slice(sep + 1), entry })
   }
   const enriched = trades.map((t) => enrichTrade(t, byTicker, decByTicker, books))
-  const rate = typeof marketContext['usdhk_rate'] === 'number' ? marketContext['usdhk_rate'] : null
+  const fx = readFxRate(workspace)
   return {
     trades: enriched,
-    rate,
-    rateSource: typeof marketContext['usdhk_source'] === 'string' ? marketContext['usdhk_source'] : null,
+    rate: fx === null ? null : fx.rate,
+    rateSource: fx === null ? null : fx.source,
     lastUpdated,
   }
 }

@@ -6,7 +6,7 @@
  * These are the files the OpenClaw runtime produces every day, so whatever
  * OpenClaw writes, this DSH plugin can show.
  */
-import type { LedgerResult, PlansResult, PortfolioRead, TracesResult } from './types.ts';
+import type { LedgerResult, PlansResult, PortfolioResult, TracesResult } from './types.ts';
 /**
  * Parse the decision ledger (memory/decisions.jsonl) — one JSON object per
  * line. Malformed lines are skipped, never fatal: the desk's own writer
@@ -16,12 +16,26 @@ import type { LedgerResult, PlansResult, PortfolioRead, TracesResult } from './t
  */
 export declare function readLedger(workspace: string): LedgerResult;
 /**
+ * Latest USDHKD rate from the append-only FX ledger
+ * (`memory/fx-rates.jsonl`, one line per day, written by
+ * `clawock.portfolio.fx`). The last valid line wins.
+ *
+ * This is the *actual* FX channel. The previous reader looked at
+ * `portfolio.json`'s `market_context.usdhk_rate` — a field no Python writer
+ * has ever produced — so `rate` was permanently null and the header's
+ * "已实现 (USD 等值)" silently dropped every HKD figure (#838).
+ */
+export declare function readFxRate(workspace: string): {
+    rate: number;
+    source: string | null;
+} | null;
+/**
  * Summarize the portfolio (portfolio.json): per-book holdings with the desk's
  * own money fields, plus the flattened trade log (newest first).
  * @param workspace - desk workspace root.
  * @returns `{ books, trades, lastUpdated }`.
  */
-export declare function readPortfolio(workspace: string): PortfolioRead;
+export declare function readPortfolio(workspace: string): PortfolioResult;
 /**
  * List recent daily plans (memory/YYYY-MM-DD-plan.json), newest first.
  * @param workspace - desk workspace root.
