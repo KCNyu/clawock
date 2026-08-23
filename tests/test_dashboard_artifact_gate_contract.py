@@ -1,10 +1,10 @@
 """Contracts for the cheap dashboard-only master-push validation lane."""
 from pathlib import Path
 import re
+import sys
 
 from workflow_contract_helpers import (
     assert_validator_step,
-    case_patterns,
     push_paths,
     step_block,
     step_run,
@@ -13,19 +13,22 @@ from workflow_contract_helpers import (
 
 ROOT = Path(__file__).resolve().parents[1]
 WORKFLOWS = ROOT / '.github' / 'workflows'
-HARNESS = WORKFLOWS / 'ci.yml'
+CI = WORKFLOWS / 'ci.yml'
 GATE = WORKFLOWS / 'dashboard-artifact-gate.yml'
 DASHBOARD = 'assets/data/dashboard.json'
 OVERVIEW = 'assets/data/overview.json'
 CORE_OUTPUTS = [OVERVIEW, DASHBOARD]
 
+sys.path.insert(0, str(ROOT / 'ops' / 'ci'))
+import push_scope  # noqa: E402
+
 
 def test_dashboard_commits_leave_the_heavy_master_push_lane():
-    assert all(path not in push_paths(HARNESS) for path in CORE_OUTPUTS)
-    harness = HARNESS.read_text(encoding='utf-8')
-    assert re.search(r'^  pull_request:\s*$', harness, re.MULTILINE), (
+    assert all(path not in push_paths(CI) for path in CORE_OUTPUTS)
+    text = CI.read_text(encoding='utf-8')
+    assert re.search(r'^  pull_request:\s*$', text, re.MULTILINE), (
         'required validate context must still report for every PR')
-    assert all(path in case_patterns(HARNESS) for path in CORE_OUTPUTS), (
+    assert all(path in push_scope.CODE_GLOBS for path in CORE_OUTPUTS), (
         'core projection changes in a PR must still run the full regression suite')
 
 
