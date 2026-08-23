@@ -357,8 +357,6 @@ interface TraceCellProps {
   open: boolean
   onToggle: () => void
   onKeyDown: (event: React.KeyboardEvent) => void
-  /** Row position within its day group — drives the 30ms entrance stagger (--i). */
-  index?: number
 }
 
 function TraceCell(props: TraceCellProps): React.ReactElement {
@@ -408,7 +406,6 @@ function TraceCell(props: TraceCellProps): React.ReactElement {
     role: 'button',
     tabIndex: 0,
     'aria-expanded': props.open,
-    style: props.index === undefined ? undefined : { '--i': String(Math.min(props.index, 4)) },
     onClick: props.onToggle,
     onKeyDown: props.onKeyDown,
   },
@@ -608,7 +605,6 @@ export function DecisionMind(props: DecisionMindProps): React.ReactElement {
           key,
           trace,
           open: open === key,
-          index,
           onToggle: () => { actions.toggleOpen(key) },
           onKeyDown: (event: React.KeyboardEvent) => {
             if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); actions.toggleOpen(key) }
