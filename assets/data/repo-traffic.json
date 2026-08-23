@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-21T17:26:26Z",
+  "generated_at": "2026-08-23T05:43:34Z",
   "repo": "KCNyu/clawock",
   "note": "views/clones are per-day series merged across runs. referrers/paths are 14-day aggregates captured as dated snapshots and must not be summed or differenced as daily values.",
   "views": [
@@ -72,6 +72,11 @@
       "timestamp": "2026-08-20T00:00:00Z",
       "count": 19,
       "uniques": 10
+    },
+    {
+      "timestamp": "2026-08-21T00:00:00Z",
+      "count": 6,
+      "uniques": 4
     }
   ],
   "clones": [
@@ -144,11 +149,42 @@
       "timestamp": "2026-08-20T00:00:00Z",
       "count": 482,
       "uniques": 68
+    },
+    {
+      "timestamp": "2026-08-21T00:00:00Z",
+      "count": 833,
+      "uniques": 87
     }
   ],
   "referrers_snapshots": [
     {
       "captured_at": "2026-08-21T17:26:26Z",
+      "window_days": 14,
+      "rows": [
+        {
+          "referrer": "github.com",
+          "count": 253,
+          "uniques": 18
+        },
+        {
+          "referrer": "Google",
+          "count": 4,
+          "uniques": 4
+        },
+        {
+          "referrer": "chatgpt.com",
+          "count": 2,
+          "uniques": 1
+        },
+        {
+          "referrer": "zhihu.com",
+          "count": 1,
+          "uniques": 1
+        }
+      ]
+    },
+    {
+      "captured_at": "2026-08-23T05:43:34Z",
       "window_days": 14,
       "rows": [
         {
@@ -240,6 +276,72 @@
           "uniques": 1
         }
       ]
+    },
+    {
+      "captured_at": "2026-08-23T05:43:34Z",
+      "window_days": 14,
+      "rows": [
+        {
+          "path": "/KCNyu/clawock",
+          "title": "Overview",
+          "count": 170,
+          "uniques": 43
+        },
+        {
+          "path": "/KCNyu/clawock/pulls",
+          "title": "/pulls",
+          "count": 38,
+          "uniques": 4
+        },
+        {
+          "path": "/KCNyu/clawock/issues",
+          "title": "/issues",
+          "count": 27,
+          "uniques": 6
+        },
+        {
+          "path": "/KCNyu/clawock/blob/master/README.zh.md",
+          "title": "/blob/master/README.zh.md",
+          "count": 13,
+          "uniques": 8
+        },
+        {
+          "path": "/KCNyu/clawock/tree/master",
+          "title": "/tree/master",
+          "count": 6,
+          "uniques": 1
+        },
+        {
+          "path": "/KCNyu/clawock/tree/master/instances/kcnyu",
+          "title": "/tree/master/instances/kcnyu",
+          "count": 6,
+          "uniques": 1
+        },
+        {
+          "path": "/KCNyu/clawock/blob/master/examples/README.md",
+          "title": "/blob/master/examples/README.md",
+          "count": 5,
+          "uniques": 5
+        },
+        {
+          "path": "/KCNyu/clawock/blob/master/skills/hk-stock-analysis/SKILL.md",
+          "title": "/blob/master/skills/hk-stock-analysis/SKILL.md",
+          "count": 5,
+          "uniques": 5
+        },
+        {
+          "path": "/KCNyu/clawock/commits/master",
+          "title": "/commits/master",
+          "count": 5,
+          "uniques": 1
+        },
+        {
+          "path": "/KCNyu/clawock/issues/380",
+          "title": "/issues/380",
+          "count": 5,
+          "uniques": 1
+        }
+      ]
     }
   ],
   "package_downloads": [
@@ -254,6 +356,15 @@
         "downloads": 1126,
         "start": "2026-07-21",
         "end": "2026-08-19"
+      }
+    },
+    {
+      "captured_at": "2026-08-23T05:43:34Z",
+      "pypi_error": "https://pypistats.org/api/packages/clawock/recent -> HTTP 429 Too Many Requests",
+      "npm": {
+        "downloads": 1160,
+        "start": "2026-07-23",
+        "end": "2026-08-21"
       }
     }
   ]

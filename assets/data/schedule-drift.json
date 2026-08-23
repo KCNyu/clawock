@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-21T18:08:59Z",
+  "generated_at": "2026-08-23T05:43:40Z",
   "repo": "KCNyu/clawock",
   "note": "drift_minutes = run.created_at - the reconstructed cron instant. GitHub does not report the scheduled instant, so a run delayed past its own next occurrence is attributed to that later one: every figure here is a lower bound.",
   "workflows": [
@@ -155,6 +155,25 @@
           "scheduled_at": "2026-07-27T01:09:00Z",
           "started_at": "2026-07-27T04:10:24Z",
           "drift_minutes": 181.4
+        }
+      ]
+    },
+    {
+      "workflow": "codeql.yml",
+      "crons": [
+        "41 3 * * 6"
+      ],
+      "samples": 1,
+      "drift_min": 28.4,
+      "drift_median": 28.4,
+      "drift_max": 28.4,
+      "runs": [
+        {
+          "run_id": 32550940471,
+          "cron": "41 3 * * 6",
+          "scheduled_at": "2026-08-22T03:41:00Z",
+          "started_at": "2026-08-22T04:09:23Z",
+          "drift_minutes": 28.4
         }
       ]
     },
@@ -315,11 +334,18 @@
       "crons": [
         "0 22 * * 5"
       ],
-      "samples": 13,
+      "samples": 14,
       "drift_min": 14.1,
-      "drift_median": 53.8,
+      "drift_median": 53.2,
       "drift_max": 69.5,
       "runs": [
+        {
+          "run_id": 32532161456,
+          "cron": "0 22 * * 5",
+          "scheduled_at": "2026-08-21T22:00:00Z",
+          "started_at": "2026-08-21T22:14:56Z",
+          "drift_minutes": 14.9
+        },
         {
           "run_id": 31845802094,
           "cron": "0 22 * * 5",
@@ -876,8 +902,19 @@
         "38 3 * * 2",
         "38 3 * * 6"
       ],
-      "samples": 0,
-      "note": "no scheduled runs yet"
+      "samples": 1,
+      "drift_min": 31.3,
+      "drift_median": 31.3,
+      "drift_max": 31.3,
+      "runs": [
+        {
+          "run_id": 32550935688,
+          "cron": "38 3 * * 6",
+          "scheduled_at": "2026-08-22T03:38:00Z",
+          "started_at": "2026-08-22T04:09:16Z",
+          "drift_minutes": 31.3
+        }
+      ]
     },
     {
       "workflow": "screenshot-refresh.yml",
