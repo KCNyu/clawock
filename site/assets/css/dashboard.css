@@ -185,49 +185,34 @@
     .brand-mark { width: 24px; height: 24px; }
     .brand .updated { display: none; }
   }
+  /* Ghost icon-only refresh: the 60s auto-poll is the real refresh; this
+     button only exists to pull immediately and to show whether the last pull
+     found anything new. So it is quiet — a bare circular icon that tints on
+     hover, spins while loading, and morphs to ✓ when a new generation landed
+     (shape carries the outcome; colour alone never does). */
   .refresh-btn {
-    appearance: none; background: color-mix(in srgb, var(--card) 78%, transparent); color: var(--text);
-    border: 1px solid var(--border); border-radius: 999px;
-    min-height: 36px; min-width: 36px; padding: 0 var(--space-3);
-    font-size: 14px; cursor: pointer;
-    display: inline-flex; align-items: center; gap: 4px;
-    /* Sits on the frosted topbar, so it is glass too — a translucent capsule
-       instead of a solid white disc floating on the bar. */
-    -webkit-backdrop-filter: blur(10px) saturate(150%);
-    backdrop-filter: blur(10px) saturate(150%);
-    box-shadow: 0 1px 2px rgba(18,33,48,.06);
-    transition: background 0.15s, color 0.15s, border-color 0.3s, transform 0.16s cubic-bezier(0.23, 1, 0.32, 1);
-    /* The click-feedback labels are CJK, which — unlike "Refresh" — has a break
-       opportunity between every character. Without these two the button is a
-       shrinkable flex item and "已是最新" stacks one glyph per line, turning the
-       pill into an 82px-tall column. */
-    flex: 0 0 auto; white-space: nowrap;
+    appearance: none; background: transparent; color: var(--text-dim);
+    border: 0; border-radius: 50%;
+    width: 34px; height: 34px; min-width: 34px; min-height: 34px;
+    padding: 0; font-size: 16px; cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+    flex: 0 0 auto;
+    transition: background 0.15s, color 0.15s, transform 0.16s cubic-bezier(0.23, 1, 0.32, 1);
   }
-  .refresh-btn:active { background: var(--card-2); transform: scale(0.97); }
+  .refresh-btn:active { transform: scale(0.92); }
   @media (hover: hover) and (pointer: fine) {
-    .refresh-btn:hover { background: var(--surface-2); }
+    .refresh-btn:hover { background: var(--surface-2); color: var(--text); }
   }
   .refresh-btn.is-loading .ic { animation: spin 0.8s linear infinite; }
-  .refresh-btn.ok-flash { border-color: var(--green); }
-  .refresh-btn.fresh-flash { border-color: var(--accent); color: var(--accent); }
+  /* Nothing new: the ↻ stays and takes a green tint. New generation: the icon
+     morphs to ✓ in accent — two outcomes differ by shape, not colour alone. */
+  .refresh-btn.ok-flash { color: var(--green); }
+  .refresh-btn.fresh-flash { color: var(--accent); }
+  .refresh-btn.fresh-flash .ic { font-size: 0; }
+  .refresh-btn.fresh-flash .ic::after { content: "✓"; font-size: 14px; }
   .refresh-btn[disabled] { opacity: 0.6; cursor: not-allowed; }
   @keyframes spin { to { transform: rotate(360deg); } }
-  @media (max-width: 560px) {
-    /* Three nav links plus a labelled button overflow the row, and the overflow
-       lands on the brand. The label is the compressible part: collapse to the
-       icon-only 36px target `min-width` already sizes for, and move the click
-       feedback onto the icon so it does not disappear with the text. */
-    .refresh-btn { padding: 0; justify-content: center; }
-    .refresh-btn .lbl { display: none; }
-    /* Only the "a new generation landed" outcome becomes a check — that is the
-       one whose label carries one ("已更新 ✓" vs "已是最新"). "Nothing new"
-       keeps the ↻ and says so with the green rim. Two outcomes have to differ
-       by shape; if they differed only by border colour, colour would be the
-       sole carrier of the difference. */
-    .refresh-btn.fresh-flash .ic { font-size: 0; }
-    .refresh-btn.fresh-flash .ic::after { content: "✓"; font-size: 15px; }
-  }
-  .topbar-actions { display: inline-flex; align-items: center; gap: 8px; }
+  .topbar-actions { display: inline-flex; align-items: center; gap: 4px; }
   .nav-link {
     color: var(--text-dim); text-decoration: none; font-size: 13px;
     padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm); transition: background 0.15s, color 0.15s;

@@ -550,18 +550,13 @@
         btn.classList.remove("is-loading");
         if (triggeredByUser) {
           btn.removeAttribute("disabled");
+          // The icon carries the outcome (shape: ✓ only when a new generation
+          // landed; colour: green=already current, accent=new) and resets on
+          // its own — the button has no text to swap.
           btn.classList.add(hasNew ? "fresh-flash" : "ok-flash");
-          const lbl = btn.querySelector(".lbl");
-          if (lbl) {
-            const prev = lbl.textContent;
-            lbl.textContent = hasNew ? "已更新 ✓" : "已是最新";
-            setTimeout(() => {
-              lbl.textContent = prev;
-              btn.classList.remove("fresh-flash", "ok-flash");
-            }, 1800);
-          }
+          setTimeout(() => btn.classList.remove("fresh-flash", "ok-flash"), 1800);
         } else if (hasNew) {
-          // Quiet auto-refresh: just a soft border tint, no label flicker
+          // Quiet auto-refresh: just a soft accent tint, no label flicker
           btn.classList.add("fresh-flash");
           setTimeout(() => btn.classList.remove("fresh-flash"), 1500);
         }
