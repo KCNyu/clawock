@@ -2,7 +2,7 @@
 
 1. Dependencies have one source of truth. They used to be declared nine times,
    in nine workflow files, as drifting `pip install` lines — and the comment in
-   harness-regression already records what that cost: a missing numpy once
+   ci.yml already records what that cost: a missing numpy once
    aborted pytest collection and silently stopped enforcing the whole suite.
 2. The engine can be pointed at a book that is not kcn's. That is the entire
    point of the change; without it `clawock doctor` is decoration.

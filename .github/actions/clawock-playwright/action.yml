@@ -1,0 +1,53 @@
+name: Set up Playwright (Chromium)
+description: >-
+  One door for the pinned Playwright browser stack, instead of one copy per
+  consumer. Both consumers share ONE browser cache key, so whichever runs
+  first in a week pays the ~150MB download and everyone else hits; the version
+  pin lives here alone, exactly like the Python pin lives in clawock-python
+  (#806 is what happens when pins live in N places).
+
+# Consumers today: ci.yml's dashboard browser contract lane and
+# screenshot-refresh.yml's weekly re-shoot. A third hand-rolled copy would be
+# the #806 story again, so tests/test_workflow_composites.py refuses any
+# workflow that installs Playwright without coming through this door.
+inputs:
+  version:
+    description: Playwright version. Doubles as the complete cache key.
+    required: false
+    default: '1.60.0'
+
+runs:
+  using: composite
+  steps:
+    - name: Set up Node
+      uses: actions/setup-node@v7
+      with:
+        node-version: '22'
+
+    - name: Cache npm package downloads
+      uses: actions/cache@v6
+      with:
+        path: ~/.npm
+        key: npm-playwright-${{ inputs.version }}-${{ runner.os }}
+
+    # Key shared with every other consumer of this composite: a bump changes
+    # the key and misses on purpose.
+    - name: Cache the browser build
+      id: browser-cache
+      uses: actions/cache@v6
+      with:
+        path: ~/.cache/ms-playwright
+        key: playwright-${{ inputs.version }}-${{ runner.os }}
+
+    - name: Install Playwright + Chromium
+      shell: bash
+      run: |
+        npm install --no-save --silent playwright@${{ inputs.version }}
+        # The apt-level dependencies live outside ~/.cache/ms-playwright and
+        # are not restored by the cache, so they are installed either way;
+        # only the browser download is skipped on a hit.
+        if [ "${{ steps.browser-cache.outputs.cache-hit }}" = "true" ]; then
+          npx playwright install-deps chromium
+        else
+          npx playwright install --with-deps chromium
+        fi

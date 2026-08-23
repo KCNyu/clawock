@@ -128,7 +128,7 @@ def test_the_committed_gif_path_stays_the_default():
 
 def test_the_tooling_is_inside_the_regression_gate():
     """The gate this file exists to close — assert the wiring, not just the tests."""
-    workflow = (ROOT / ".github" / "workflows" / "harness-regression.yml").read_text()
+    workflow = (ROOT / ".github" / "workflows" / "ci.yml").read_text()
     assert "'site/tools/**'" in workflow, "site/tools is outside the push trigger"
     assert "site/tools/*)" in workflow or "|site/tools/*" in workflow, (
         "site/tools is outside the Detect code changes lanes")

@@ -3,7 +3,7 @@
  * Decision Mind plugin tests (clawock-dsh node + client halves).
  *
  * Run: node tests/decision_studio_plugin.spec.js
- * CI: harness-regression.yml runs it when plugin files change.
+ * CI: ci.yml runs it when plugin files change.
  *
  * What is verified without a browser:
  *   - scan.js: workspace run listing, run-id path-safety boundary

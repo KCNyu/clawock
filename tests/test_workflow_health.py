@@ -88,9 +88,15 @@ def test_only_scheduled_workflows_are_assessed():
         return json.dumps([run("success", 1)])
 
     result = wh.report(now=NOW, runner=runner)
-    assert "harness-regression.yml" not in calls   # push/PR workflow, reports via PRs
-    assert "actionlint.yml" not in calls
+    # Discovery reads `cron:` out of the workflow files themselves, so the
+    # expectation cannot drift from what is configured. ci.yml IS assessed
+    # since #884: it carries the Saturday full-matrix backstop, and that going
+    # quietly silent is exactly the failure this rollup exists to surface.
+    assert "ci.yml" in calls
     assert "news-digest.yml" in calls
+    assert "release.yml" not in calls          # tag-triggered, no schedule
+    assert "pages.yml" not in calls            # push/PR/dispatch, no schedule
+    assert "dashboard-artifact-gate.yml" not in calls  # repository_dispatch only
     assert result["scheduled_workflows"] == len(calls)
 
 
