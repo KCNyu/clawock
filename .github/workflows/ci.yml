@@ -99,7 +99,8 @@ jobs:
       # (a path-filtered required check waits forever). On master pushes the
       # workflow fires for any code path below, so gate on an actual diff under
       # .github/workflows/ instead; undiffable ranges lint anyway (fail toward
-      # running a 12s check rather than skipping it).
+      # running a 12s check rather than skipping it). Classification lives in
+      # ops/ci/push_scope.py — the same classifier the other two gates read.
       - name: Did any workflow file change?
         id: scope
         env:
@@ -107,24 +108,20 @@ jobs:
         run: |
           set -euo pipefail
           if [ "${{ github.event_name }}" != "push" ]; then
-            echo "lint=true" >> "$GITHUB_OUTPUT"
+            echo "workflows=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
-          if [ -z "${BASE_SHA:-}" ] || [ "${BASE_SHA}" = "0000000000000000000000000000000000000000" ] \
-             || ! git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null; then
-            echo "no diffable base ($BASE_SHA) — linting"
-            echo "lint=true" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          git fetch --quiet --depth=1 origin "${BASE_SHA}"
-          if git diff --name-only "${BASE_SHA}" HEAD | grep -q '^\.github/workflows/'; then
-            echo "lint=true" >> "$GITHUB_OUTPUT"
+          if [ -n "${BASE_SHA:-}" ] && [ "${BASE_SHA}" != "0000000000000000000000000000000000000000" ] \
+             && git fetch --quiet --depth=1 origin "${BASE_SHA}"; then
+            python3 ops/ci/push_scope.py --base "${BASE_SHA}" --head HEAD \
+              | grep '^workflows=' >> "$GITHUB_OUTPUT"
           else
-            echo "lint=false" >> "$GITHUB_OUTPUT"
+            echo "no diffable base (${BASE_SHA:-}) — linting"
+            echo "workflows=true" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Install pinned actionlint
-        if: steps.scope.outputs.lint == 'true'
+        if: steps.scope.outputs.workflows == 'true'
         env:
           ACTIONLINT_VERSION: '1.7.12'
           ACTIONLINT_SHA256: '8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8'
@@ -138,7 +135,7 @@ jobs:
           /tmp/actionlint -version
 
       - name: Lint GitHub Actions
-        if: steps.scope.outputs.lint == 'true'
+        if: steps.scope.outputs.workflows == 'true'
         run: /tmp/actionlint -color
 
   validate:
@@ -223,74 +220,28 @@ jobs:
         # We must NOT path-filter the pull_request trigger itself: a required
         # check that is filtered out never reports and blocks the PR forever —
         # the same trap that keeps `lint` unfiltered on PRs. Skipped *steps*
-        # count as success, so we gate here.
-        # Runs on pushes too (#750). It used to be PR-only, with every heavy
-        # step reading `event_name != 'pull_request' || changes...` — which meant
-        # the browser contract and the DSH plugin gates, whose conditions were
-        # written the other way round (`event_name == 'pull_request' && ...`),
-        # could never run on a master push at all. The unit suite did run there
-        # (measured: run 31059122903 on a master push executed "Unit tests —
-        # money-integrity derivations" and skipped only the browser/plugin
-        # steps), so the hole was exactly the two expensive lanes.
+        # count as success, so we gate here. Runs on pushes too (#750): it used
+        # to be PR-only, and the browser/plugin lanes were then unreachable on
+        # master (measured hole, run 31059122903).
         #
-        # Keep this path set in sync with the `push:` trigger `paths:` at the top
-        # of this file — `test_detector_covers_every_push_trigger_path` now holds
-        # that, because the claim was already false: `ops/**` and
-        # `skills/tavily-search/**` triggered the workflow and then matched
-        # nothing here, so a PR touching only those skipped the entire suite
-        # while `validate` reported green in seconds. Except the two core
-        # dashboard projections: their frequent automation commits use
-        # the cheap dashboard-artifact-gate on master, while a rare dashboard PR
-        # still gets the full suite here.
+        # The classification lives in ops/ci/push_scope.py — one classifier for
+        # all three gates (this detector, the lint scope, the CodeQL push
+        # gate), unit-tested against synthetic file lists instead of three
+        # inline copies that could drift apart again. It keeps itself in sync
+        # with the `push:` trigger `paths:` above via
+        # test_ci_trigger_paths.py: a trigger path whose files no lane claims
+        # is a gate that skips itself (#750 proved that claim false once).
+        # Undiffable ranges (schedule, dispatch, brand-new ref) come back as
+        # "everything changed" — running the whole suite is the safe direction.
         id: changes
         env:
           # A PR compares its own base and head. A push compares the range it
-          # pushed. Anything else (`workflow_dispatch`, or a push whose `before`
-          # is the all-zero sha because the ref was just created) has no range to
-          # diff, and answers "everything changed" below — running the whole
-          # suite is the safe direction for a manual run.
+          # pushed.
           BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
           HEAD_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
         run: |
-          set -euo pipefail
-          if [ -z "${BASE_SHA:-}" ] || [ "${BASE_SHA}" = "0000000000000000000000000000000000000000" ] \
-             || ! git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null; then
-            echo "no diffable base ($BASE_SHA) — treating every lane as changed"
-            { echo "code=true"; echo "ui=true"; echo "dsplugin=true"; } >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-          # --no-renames: a rename OUT of a watched dir (e.g. scripts/x.py ->
-          # docs/x.py) must still surface the old path and run the suite, since it
-          # can break imports. No --diff-filter, so deletions count too, matching
-          # the push trigger's paths. Capture separately (not via process
-          # substitution) so a git failure fails this step — fail-closed, validate
-          # goes red — instead of being read as an empty, docs-only diff and
-          # silently skipping the suite.
-          changed="$(git diff --name-only --no-renames "$BASE_SHA" "$HEAD_SHA")"
-          # memory/decisions.jsonl is intentionally absent: like the push trigger,
-          # the ledger is automation-committed runtime data, not edited via
-          # interactive PRs.
-          code=false
-          while IFS= read -r f; do
-            [ -n "$f" ] || continue
-            case "$f" in
-              src/*|ops/*|tests/*|pyproject.toml|pytest.ini|portfolio.json|memory/*-plan.json|memory/theses/*|memory/earnings/*|memory/entry-gates/*|assets/data/overview.json|assets/data/dashboard.json|config/*|docs/operations/cron-schedules.md|.github/workflows/*|.github/actions/*|skills/tavily-search/*|site/tools/*)
-                code=true
-                break
-                ;;
-            esac
-          done <<< "$changed"
-          ui=false
-          if grep -Eq '^(site/assets/(css|js)/|site/index\.html$|tests/dashboard_tab_runtime\.spec\.js$)' <<< "$changed"; then
-            ui=true
-            code=true
-          fi
-          dsplugin=false
-          if grep -Eq '^(examples/dsh/|tests/decision_studio_plugin\.spec\.js$|tests/dsh_plugin_package_contract\.mjs$)' <<< "$changed"; then
-            dsplugin=true
-          fi
-          { echo "code=$code"; echo "ui=$ui"; echo "dsplugin=$dsplugin"; } >> "$GITHUB_OUTPUT"
-          echo "code changed: $code"
+          python3 ops/ci/push_scope.py --base "$BASE_SHA" --head "$HEAD_SHA" \
+            | tee -a "$GITHUB_OUTPUT"
 
       # The browser build is ~150MB downloaded from scratch on every UI run.
       # The composite owns the version pin and the cache key — the same key the
@@ -658,10 +609,7 @@ jobs:
         uses: ./.github/actions/clawock-python
 
       - name: FX fallback chain
-        run: |
-          out=$(clawock fx --json) || exit 1
-          echo "$out"
-          python3 -c "import json,sys; d=json.load(open('-')) if False else json.loads('''$out'''); assert 7 < d['rate'] < 9, f'FX rate out of range: {d[\"rate\"]}'; print('FX OK:', d['source'])"
+        run: python3 ops/ci/smoke_fx.py
 
   analyze:
     # Was codeql.yml — advanced setup replacing GitHub's default (#782).
@@ -719,28 +667,17 @@ jobs:
           BASE_SHA: ${{ github.event.before }}
         run: |
           set -euo pipefail
-          if [ -z "${BASE_SHA:-}" ] || [ "${BASE_SHA}" = "0000000000000000000000000000000000000000" ] \
-             || ! git cat-file -e "${BASE_SHA}^{commit}" 2>/dev/null; then
-            echo "no diffable base ($BASE_SHA) — analysing"
-            echo "analyse=true" >> "$GITHUB_OUTPUT"
-            exit 0
+          if [ -n "${BASE_SHA:-}" ] && [ "${BASE_SHA}" != "0000000000000000000000000000000000000000" ] \
+             && git fetch --quiet --depth=1 origin "${BASE_SHA}"; then
+            python3 ops/ci/push_scope.py --base "${BASE_SHA}" --head HEAD \
+              | grep '^analysable=' >> "$GITHUB_OUTPUT"
+          else
+            echo "no diffable base (${BASE_SHA:-}) — analysing"
+            echo "analysable=true" >> "$GITHUB_OUTPUT"
           fi
-          changed="$(git diff --name-only --no-renames "${BASE_SHA}" HEAD)"
-          analyse=false
-          while IFS= read -r f; do
-            [ -n "$f" ] || continue
-            case "$f" in
-              assets/data/*|memory/*|logs/*|site/assets/data/*|portfolio.json|monitor_state.json|openclaw-workspace-state.json) ;;
-              *) analyse=true; break ;;
-            esac
-          done <<< "$changed"
-          if [ "$analyse" = "false" ]; then
-            echo "push touched only non-analysable data paths — skipping"
-          fi
-          echo "analyse=$analyse" >> "$GITHUB_OUTPUT"
 
       - name: Initialize CodeQL
-        if: github.event_name != 'push' || steps.scope.outputs.analyse == 'true'
+        if: github.event_name != 'push' || steps.scope.outputs.analysable == 'true'
         uses: github/codeql-action/init@v3
         with:
           languages: ${{ matrix.language }}
@@ -751,7 +688,7 @@ jobs:
           # separate decision with its own alert backlog.
 
       - name: Perform CodeQL analysis
-        if: github.event_name != 'push' || steps.scope.outputs.analyse == 'true'
+        if: github.event_name != 'push' || steps.scope.outputs.analysable == 'true'
         uses: github/codeql-action/analyze@v3
         with:
           category: "/language:${{ matrix.language }}"
