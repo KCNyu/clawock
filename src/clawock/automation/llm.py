@@ -2,18 +2,18 @@
 """
 Minimal LLM client for KCNyu GitHub Actions workflows.
 
-Primary: MiniMax M3 (Anthropic Messages protocol). Fallback: opencode-go's
+Primary: MiniMax M3 (Anthropic Messages protocol). Fallback: OpenCode Zen's
 DeepSeek V4 Flash (OpenAI-compatible protocol — https://opencode.ai/docs/zen).
 The two providers do NOT share a wire protocol, so this module carries two
 request/response shapes: `_call_provider` speaks Anthropic `/v1/messages` for
 MiniMax; `_call_provider_openai_compatible` speaks `/chat/completions` for
-opencode-go. Used by brief-fallback / weekly-review / news-digest /
+OpenCode Zen. Used by brief-fallback / weekly-review / news-digest /
 influencer-scan — none of which can reach the local openclaw gateway, so they
 call the vendor API directly.
 
 Why a fallback (2026-05-30, kcn 要求): one vendor can hit empty-turn,
 sensitive-content or rate-limit failures that blank a scheduled job. MiniMax is
-primary; opencode-go / DeepSeek V4 Flash is the fallback.
+primary; OpenCode Zen / DeepSeek V4 Flash is the fallback.
 
 History:
 - 2026-06-01 (kcn "都改吧变成稳妥的anthropic的"): switched both providers onto
@@ -62,7 +62,7 @@ MINIMAX_BASE = 'https://api.minimaxi.com/anthropic'
 MINIMAX_MODEL = 'MiniMax-M3'
 MINIMAX_MAX_TOKENS = 131072  # M3 maxOutput
 # OpenAI-compatible endpoint (base, no trailing /chat/completions — added per call).
-OPENCODE_BASE = 'https://opencode.ai/zen/go/v1'
+OPENCODE_BASE = 'https://opencode.ai/zen/v1'
 OPENCODE_MODEL = 'deepseek-v4-flash'
 # Vendor cap is 384000 (see /root/.cache/opencode/models.json), but this is a
 # last-resort fallback, not a primary route — keep it in the same conservative
@@ -385,12 +385,12 @@ def chat(system: str = '', user: str = '', messages: list = None,
                                   deadline=primary_deadline)
         except Exception as e:
             errors.append(f'minimax[{e}]')
-            print('  ⚠️ minimax exhausted — falling back to opencode-go DeepSeek V4 Flash',
+            print('  ⚠️ minimax exhausted — falling back to OpenCode Zen DeepSeek V4 Flash',
                   file=sys.stderr)
     else:
         errors.append('minimax[no MINIMAX_API_KEY]')
 
-    # ── Fallback: opencode-go / DeepSeek V4 Flash (OpenAI-compatible) ──
+    # ── Fallback: OpenCode Zen / DeepSeek V4 Flash (OpenAI-compatible) ──
     # 2026-08-16, kcn: Xiaomi's token-plan key had already died (HTTP 401,
     # issue #695) — swapped the fallback to opencode-go's DeepSeek V4 Flash
     # (issue #697). If unset, the fallback is auto-skipped (no OPENCODE_API_KEY).
