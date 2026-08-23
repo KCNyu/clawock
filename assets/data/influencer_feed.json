@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-21T13:34:46.683347+00:00",
+  "generated_at": "2026-08-23T21:51:13.388258+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -14,64 +14,30 @@
   "llm_filtered": true,
   "counts": {
     "total": 10,
-    "held_hits": 1,
-    "new_ideas": 1,
+    "held_hits": 0,
+    "new_ideas": 0,
     "sector_hits": 3
   },
   "items": [
     {
       "author": "Musk",
-      "text": "Elon Musk's SpaceX Stock Just Closed Above Its $135 IPO Price for the First Time in Weeks. Is the Rebound a Buy Signal?",
+      "text": "Elon Musk's X is exploring stablecoins to pay influencers and content providers",
       "url": "",
-      "published": "Wed, 19 Aug 2026 03:13:00 GMT",
+      "published": "Thu, 20 Aug 2026 09:40:25 GMT",
       "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [
-        "SPCX"
-      ],
-      "held": [
-        "SPCX"
-      ],
+      "source": "CoinDesk",
+      "tickers": [],
+      "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天"
+        "加密货币"
       ],
       "sector_holdings": [
-        "SPCH"
+        "CRCL"
       ],
       "stance": "endorse",
-      "relevance": 88,
-      "summary_cn": "SpaceX股价重新站上135美元IPO发行价，被市场解读为反弹买入信号，直接命中kcn持有的SPCX/SPCH。"
-    },
-    {
-      "author": "Musk",
-      "text": "Nvidia’s Stake in SpaceX—and Musk’s Massive Holdings",
-      "url": "",
-      "published": "Mon, 17 Aug 2026 14:21:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Barron's",
-      "tickers": [
-        "NVDA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "NVDA"
-      ],
-      "sectors": [
-        "AI",
-        "航天",
-        "半导体"
-      ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226",
-        "SKHY"
-      ],
-      "stance": "neutral",
-      "relevance": 78,
-      "summary_cn": "披露Nvidia持有SpaceX股份且金额巨大，间接说明AI/航天资本纽带强化，对AI与半导体板块有外溢效应。"
+      "relevance": 72,
+      "summary_cn": "X平台探索用稳定币向内容创作者付费，利好稳定币生态，间接利好持仓CRCL（USDC发行方）。"
     },
     {
       "author": "Musk",
@@ -92,87 +58,100 @@
       ],
       "stance": "endorse",
       "relevance": 70,
-      "summary_cn": "Musk表示SpaceX将在数月内尝试首次Starship塔架捕获，星舰测试节奏推进，利好SpaceX相关持仓估值。"
+      "summary_cn": "Musk表示SpaceX将在数月内首次尝试Starship塔架捕获，航天里程碑进展，利好持仓SPCX/SPCH。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk’s Starbase wants to expand in south Texas",
+      "text": "Elon Musk's SpaceX and Tesla Are Building a $16.8 Billion Chip Factory 5 Times Bigger Than Earth's Largest Building. What Does That Mean for Both Stocks?",
       "url": "",
-      "published": "Mon, 17 Aug 2026 09:00:00 GMT",
+      "published": "Fri, 21 Aug 2026 20:57:00 GMT",
       "origin": "gnews-rss",
-      "source": "NPR",
+      "source": "Yahoo Finance",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天"
+        "半导体",
+        "AI"
       ],
       "sector_holdings": [
-        "SPCH",
-        "SPCX"
+        "SKHY"
       ],
-      "stance": "endorse",
-      "relevance": 62,
-      "summary_cn": "SpaceX Starbase申请在德州南端扩张，反映Starship产能/测试规模持续放大。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX Starship the talk of remote Australian island as Elon Musk’s engineers sent to retrieve it",
-      "url": "",
-      "published": "Wed, 19 Aug 2026 05:53:00 GMT",
-      "origin": "gnews-rss",
-      "source": "The Guardian",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
+      "stance": "neutral",
       "relevance": 60,
-      "summary_cn": "SpaceX Starship成为澳大利亚偏远岛屿热议话题，工程师前往回收，凸显Starship全球影响力与测试进展。"
+      "summary_cn": "SpaceX和Tesla合建168亿美元芯片工厂，规模巨大，利好半导体/AI供应链主题，间接利好SK海力士。"
+    },
+    {
+      "author": "Musk",
+      "text": "Tesla And SpaceX CEO Elon Musk’s $40 Trillion U.S. 'Bankruptcy' Nightmare Is Suddenly Coming True",
+      "url": "",
+      "published": "Sat, 22 Aug 2026 12:25:43 GMT",
+      "origin": "gnews-rss",
+      "source": "Forbes",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "宏观",
+        "AI"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 58,
+      "summary_cn": "媒体渲染Musk所谓'40万亿美元美国破产噩梦'，涉及AI资本开支与国家债务的宏观担忧，间接影响风险偏好。"
     },
     {
       "author": "Trump",
-      "text": "No one has given the Islamic Republic of Iran a greater opportunity to make a Deal than me. TRAGICALLY, for them, they have failed to take it. Therefore, today, I am announcing the MOST CRUSHING ECONOMIC OPERATION EVER TAKEN AGAINST ANY COUNTRY! This will be Economic Warfare and Isolation on an unprecedented scale. Their navy is gone, their air force is destroyed, their military factories are now rubble, their currency is worthless, and their country is hanging by a thread. Today, I am also announcing that ANY country that allows its financial institutions, businesses, airports, or government ",
-      "url": "https://trumpstruth.org/statuses/41017",
-      "published": "2026-08-19T22:59:02+00:00",
+      "text": "RT @realDonaldTrumpCanada wants the benefits of being a State, without being one!!! They have also charged our great farmers, for many years, massive amounts of Tariffs. No more!!! President DJT",
+      "url": "https://trumpstruth.org/statuses/41129",
+      "published": "2026-08-23T13:11:09+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "地缘政治",
-        "伊朗/制裁",
-        "能源",
-        "加密货币"
+        "关税"
       ],
       "sector_holdings": [],
       "stance": "attack",
-      "relevance": 72,
-      "summary_cn": "Trump宣布对伊朗实施史上最严厉的经济战与封锁，任何与伊朗有金融/商业往来的国家都将受连带制裁，能源与避险情绪可能受冲击。"
+      "relevance": 55,
+      "summary_cn": "Trump威胁对加拿大加征关税，称其长期对美国农民征收高额关税，涉及关税/贸易战主题。"
     },
     {
-      "author": "Musk",
-      "text": "Tesla’s true believers are starting to question their faith in Elon Musk",
-      "url": "",
-      "published": "Tue, 18 Aug 2026 17:00:01 GMT",
-      "origin": "gnews-rss",
-      "source": "The Washington Post",
+      "author": "Trump",
+      "text": "Canada wants the benefits of being a State, without being one!!! They have also charged our great farmers, for many years, massive amounts of Tariffs. No more!!! President DJT",
+      "url": "https://trumpstruth.org/statuses/41128",
+      "published": "2026-08-23T05:06:38+00:00",
+      "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "电动车"
+        "关税"
       ],
       "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 58,
-      "summary_cn": "媒体报道Tesla铁粉开始质疑对马斯克的信仰，Tesla品牌/信仰溢价承压。"
+      "stance": "attack",
+      "relevance": 55,
+      "summary_cn": "Trump抨击加拿大长期对美国农民征关税，涉及关税/贸易战主题。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk’s xAI battles Minnesota over AI ‘nudification’ ban",
+      "url": "",
+      "published": "Wed, 19 Aug 2026 20:12:07 GMT",
+      "origin": "gnews-rss",
+      "source": "Courthouse News",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI",
+        "监管"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 50,
+      "summary_cn": "xAI与明尼苏达州就AI'裸化'禁令产生法律冲突，涉及AI监管/言论自由争议。"
     },
     {
       "author": "Musk",
@@ -185,110 +164,74 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "政府效率/DOGE",
-        "政治"
+        "政府效率"
       ],
       "sector_holdings": [],
       "stance": "attack",
-      "relevance": 55,
-      "summary_cn": "GAO报告指出Musk领导的政府效率部门(DOGE)虚报1100亿美元节省数字，Musk公信力与政治资本遭质疑。"
-    },
-    {
-      "author": "Trump",
-      "text": "Today, I concluded a deal to substantially lower the price of ground beef for working American families. As everyone knows, under President Biden, beef prices soared at their fastest rate and the American beef herd fell to its smallest size in modern history.  As we work to rebuild this herd and help our ranchers, for the next 90 days, the United States will allow up to 300,000 metric tons of product for ground beef to be imported with no out of quota tariff.  We have a commitment that this beef will be sold at 25 percent below current market prices. This deal will reduce prices for Americans ",
-      "url": "https://trumpstruth.org/statuses/41042",
-      "published": "2026-08-21T10:52:55+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "农产品/牛肉",
-        "关税"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
       "relevance": 50,
-      "summary_cn": "Trump宣布未来90天免税进口30万吨碎牛肉以降低美国国内牛肉价格，涉及农产品进口与关税政策。"
+      "summary_cn": "GAO报告质疑Musk旗下DOGE夸大了1100亿美元联邦节省数字，Musk政府效率项目信誉受损。"
     },
-    {
-      "author": "Trump",
-      "text": "Today I am honored to nominate the wonderful Dr. Heidi Overton, MD, PhD, as our next FDA Commissioner. Dr. Heidi has been a ROCKSTAR in my Administration, where she has worked directly with Secretary Kennedy, Dr. Oz, and team, to deliver on the MOST TRANSFORMATIVE Health Agenda in History. She is known to take on the HARDEST issues, and bring me solutions that work best for the Country. Heidi is “ALWAYS RIGHT,” Secretary Kennedy recently said in the Oval Office! We need her leadership at the FDA now to ensure that the U.S. remains the WORLD LEADER for Scientific Discovery and CURES.Dr. Overton",
-      "url": "https://trumpstruth.org/statuses/41013",
-      "published": "2026-08-19T16:12:33+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "医疗/医药",
-        "监管"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 48,
-      "summary_cn": "Trump提名Heidi Overton为下一任FDA局长，FDA监管走向（药品审批速度）可能影响医药板块。"
-    }
-  ],
-  "held_hits": [
     {
       "author": "Musk",
-      "text": "Elon Musk's SpaceX Stock Just Closed Above Its $135 IPO Price for the First Time in Weeks. Is the Rebound a Buy Signal?",
+      "text": "Tesla Is Giving Up on Solar Roof Tiles as Elon Musk Leans Into Fossil Fuels",
       "url": "",
-      "published": "Wed, 19 Aug 2026 03:13:00 GMT",
+      "published": "Sat, 22 Aug 2026 18:04:00 GMT",
       "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [
-        "SPCX"
-      ],
-      "held": [
-        "SPCX"
-      ],
+      "source": "Futurism",
+      "tickers": [],
+      "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天"
+        "新能源",
+        "化石能源"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 45,
+      "summary_cn": "Tesla放弃太阳能屋顶转向化石能源（Powerwall/Solar业务调整），对新能源板块偏负面信号。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk-connected company now controls over 4,600 acres in Grimes County",
+      "url": "",
+      "published": "Fri, 21 Aug 2026 01:07:00 GMT",
+      "origin": "gnews-rss",
+      "source": "KBTX News 3",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 45,
+      "summary_cn": "Musk关联公司在Grimes County控制4600+英亩土地（疑为xAI/SpaceX扩建），间接利好AI/基建主题。"
+    }
+  ],
+  "held_hits": [],
+  "new_ideas": [],
+  "sector_hits": [
+    {
+      "author": "Musk",
+      "text": "Elon Musk's X is exploring stablecoins to pay influencers and content providers",
+      "url": "",
+      "published": "Thu, 20 Aug 2026 09:40:25 GMT",
+      "origin": "gnews-rss",
+      "source": "CoinDesk",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "加密货币"
       ],
       "sector_holdings": [
-        "SPCH"
+        "CRCL"
       ],
       "stance": "endorse",
-      "relevance": 88,
-      "summary_cn": "SpaceX股价重新站上135美元IPO发行价，被市场解读为反弹买入信号，直接命中kcn持有的SPCX/SPCH。"
-    }
-  ],
-  "new_ideas": [
-    {
-      "author": "Musk",
-      "text": "Nvidia’s Stake in SpaceX—and Musk’s Massive Holdings",
-      "url": "",
-      "published": "Mon, 17 Aug 2026 14:21:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Barron's",
-      "tickers": [
-        "NVDA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "NVDA"
-      ],
-      "sectors": [
-        "AI",
-        "航天",
-        "半导体"
-      ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226",
-        "SKHY"
-      ],
-      "stance": "neutral",
-      "relevance": 78,
-      "summary_cn": "披露Nvidia持有SpaceX股份且金额巨大，间接说明AI/航天资本纽带强化，对AI与半导体板块有外溢效应。"
-    }
-  ],
-  "sector_hits": [
+      "relevance": 72,
+      "summary_cn": "X平台探索用稳定币向内容创作者付费，利好稳定币生态，间接利好持仓CRCL（USDC发行方）。"
+    },
     {
       "author": "Musk",
       "text": "SpaceX will try for 1st Starship tower catch 'in a few months,' Elon Musk says",
@@ -308,49 +251,28 @@
       ],
       "stance": "endorse",
       "relevance": 70,
-      "summary_cn": "Musk表示SpaceX将在数月内尝试首次Starship塔架捕获，星舰测试节奏推进，利好SpaceX相关持仓估值。"
+      "summary_cn": "Musk表示SpaceX将在数月内首次尝试Starship塔架捕获，航天里程碑进展，利好持仓SPCX/SPCH。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk’s Starbase wants to expand in south Texas",
+      "text": "Elon Musk's SpaceX and Tesla Are Building a $16.8 Billion Chip Factory 5 Times Bigger Than Earth's Largest Building. What Does That Mean for Both Stocks?",
       "url": "",
-      "published": "Mon, 17 Aug 2026 09:00:00 GMT",
+      "published": "Fri, 21 Aug 2026 20:57:00 GMT",
       "origin": "gnews-rss",
-      "source": "NPR",
+      "source": "Yahoo Finance",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天"
+        "半导体",
+        "AI"
       ],
       "sector_holdings": [
-        "SPCH",
-        "SPCX"
+        "SKHY"
       ],
-      "stance": "endorse",
-      "relevance": 62,
-      "summary_cn": "SpaceX Starbase申请在德州南端扩张，反映Starship产能/测试规模持续放大。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX Starship the talk of remote Australian island as Elon Musk’s engineers sent to retrieve it",
-      "url": "",
-      "published": "Wed, 19 Aug 2026 05:53:00 GMT",
-      "origin": "gnews-rss",
-      "source": "The Guardian",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
+      "stance": "neutral",
       "relevance": 60,
-      "summary_cn": "SpaceX Starship成为澳大利亚偏远岛屿热议话题，工程师前往回收，凸显Starship全球影响力与测试进展。"
+      "summary_cn": "SpaceX和Tesla合建168亿美元芯片工厂，规模巨大，利好半导体/AI供应链主题，间接利好SK海力士。"
     }
   ]
 }
