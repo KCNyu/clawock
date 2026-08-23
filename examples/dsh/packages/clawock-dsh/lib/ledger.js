@@ -57,6 +57,39 @@ function readLedger(workspace) {
 	};
 }
 /**
+* Latest USDHKD rate from the append-only FX ledger
+* (`memory/fx-rates.jsonl`, one line per day, written by
+* `clawock.portfolio.fx`). The last valid line wins.
+*
+* This is the *actual* FX channel. The previous reader looked at
+* `portfolio.json`'s `market_context.usdhk_rate` — a field no Python writer
+* has ever produced — so `rate` was permanently null and the header's
+* "已实现 (USD 等值)" silently dropped every HKD figure (#838).
+*/
+function readFxRate(workspace) {
+	const path = join(workspace, "memory", "fx-rates.jsonl");
+	if (!existsSync(path)) return null;
+	let last = null;
+	try {
+		const lines = readFileSync(path, "utf8").split("\n");
+		for (const line of lines) {
+			if (!line.trim()) continue;
+			try {
+				last = JSON.parse(line);
+			} catch {}
+		}
+	} catch {
+		return null;
+	}
+	if (last === null || typeof last !== "object" || Array.isArray(last)) return null;
+	const rate = num(last["rate"]);
+	if (rate === null || rate <= 0) return null;
+	return {
+		rate,
+		source: typeof last["source"] === "string" ? last["source"] : null
+	};
+}
+/**
 * Summarize the portfolio (portfolio.json): per-book holdings with the desk's
 * own money fields, plus the flattened trade log (newest first).
 * @param workspace - desk workspace root.
@@ -67,8 +100,7 @@ function readPortfolio(workspace) {
 	if (doc === null || typeof doc !== "object" || Array.isArray(doc)) return {
 		books: [],
 		trades: [],
-		lastUpdated: null,
-		marketContext: {}
+		lastUpdated: null
 	};
 	const books = [];
 	const trades = [];
@@ -87,7 +119,7 @@ function readPortfolio(workspace) {
 			pnlAbs: num(h["pnl_abs"])
 		}));
 		if (holdings.length === 0) continue;
-		const market = /^hk/i.test(name) ? "HK" : "US";
+		const market = /^hk/i.test(name) ? "HK" : /us/i.test(name) ? "US" : name;
 		const currency = typeof bookObj["currency"] === "string" ? bookObj["currency"] : market === "HK" ? "HKD" : "USD";
 		books.push({
 			name,
@@ -119,8 +151,7 @@ function readPortfolio(workspace) {
 	return {
 		books,
 		trades,
-		lastUpdated: typeof doc["last_updated"] === "string" ? doc["last_updated"] : null,
-		marketContext: doc["market_context"] ?? {}
+		lastUpdated: typeof doc["last_updated"] === "string" ? doc["last_updated"] : null
 	};
 }
 /**
@@ -393,7 +424,7 @@ function enrichTrade(trade, byTicker, decByTicker, books) {
 *          published one in portfolio.json market_context (else null).
 */
 function readTraces(workspace) {
-	const { books, trades, lastUpdated, marketContext } = readPortfolio(workspace);
+	const { books, trades, lastUpdated } = readPortfolio(workspace);
 	const byTicker = readBarCloses(workspace, trades.map((t) => t.ticker));
 	const decByKey = {};
 	const { entries } = readLedger(workspace);
@@ -418,12 +449,14 @@ function readTraces(workspace) {
 			entry
 		});
 	}
+	const enriched = trades.map((t) => enrichTrade(t, byTicker, decByTicker, books));
+	const fx = readFxRate(workspace);
 	return {
-		trades: trades.map((t) => enrichTrade(t, byTicker, decByTicker, books)),
-		rate: typeof marketContext["usdhk_rate"] === "number" ? marketContext["usdhk_rate"] : null,
-		rateSource: typeof marketContext["usdhk_source"] === "string" ? marketContext["usdhk_source"] : null,
+		trades: enriched,
+		rate: fx === null ? null : fx.rate,
+		rateSource: fx === null ? null : fx.source,
 		lastUpdated
 	};
 }
 //#endregion
-export { T1_FLAT_BAND_PCT, T1_MAX_GAP_DAYS, dayGap, isSellAction, planFillAlignment, readBarCloses, readLedger, readPlans, readPortfolio, readTraces, readableRationale, t1ToneOf, t1VerdictOf };
+export { T1_FLAT_BAND_PCT, T1_MAX_GAP_DAYS, dayGap, isSellAction, planFillAlignment, readBarCloses, readFxRate, readLedger, readPlans, readPortfolio, readTraces, readableRationale, t1ToneOf, t1VerdictOf };
