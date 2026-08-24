@@ -138,3 +138,62 @@ def test_both_provider_legs_reuse_one_session(monkeypatch):
         json_response=False, thinking=None)
     assert out == "ok"
     assert calls == ["https://p.example/v1/messages"]
+
+
+def _fake_session(statuses):
+    """Session double handing out one response per post, then repeating last."""
+    calls = []
+
+    class R:
+        def __init__(self, code):
+            self.status_code = code
+            self.text = "body"
+
+        def json(self):
+            return {"content": [{"type": "text", "text": "ok"}]}
+
+    class S:
+        def post(self, url, **kw):
+            calls.append((url, kw.get("timeout")))
+            code = statuses.pop(0) if len(statuses) > 1 else statuses[0]
+            return R(code)
+
+    return S(), calls
+
+
+def test_rate_limit_429_sleeps_then_succeeds(monkeypatch):
+    """429 must sleep its linear wait and retry WITHOUT the generic backoff
+    stacking on top; the next attempt gets the full remaining budget."""
+    sleeps = []
+    session, calls = _fake_session([429, 200])
+    monkeypatch.setattr(llm, "_SESSION", session)
+    monkeypatch.setattr(llm.time, "sleep", lambda s: sleeps.append(s))
+
+    out = llm._call_provider(
+        label="primary", base_url="https://p.example", api_key="k",
+        model="m", messages=[{"role": "user", "content": "hi"}],
+        max_tokens=8, timeout=30, temperature=0.5,
+        json_response=False, thinking=None)
+
+    assert out == "ok"
+    assert len(calls) == 2
+    assert sleeps == [5]
+
+
+def test_budget_exhausted_before_any_attempt_names_the_cause(monkeypatch):
+    """When the chain budget dies before attempt #1 can run, the error says
+    so instead of pretending MAX_RETRIES attempts happened."""
+    session, calls = _fake_session([200])
+    monkeypatch.setattr(llm, "_SESSION", session)
+    monkeypatch.setattr(llm.time, "sleep", lambda s: None)
+    monkeypatch.setattr(llm, "_attempt_timeout",
+                        lambda timeout, deadline, label: None)
+
+    import pytest
+    with pytest.raises(RuntimeError, match="budget exhausted"):
+        llm._call_provider(
+            label="primary", base_url="https://p.example", api_key="k",
+            model="m", messages=[{"role": "user", "content": "hi"}],
+            max_tokens=8, timeout=30, temperature=0.5,
+            json_response=False, thinking=None)
+    assert calls == []   # no request was ever fired

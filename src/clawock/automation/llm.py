@@ -194,6 +194,53 @@ def _backoff(seconds, deadline, label):
         time.sleep(seconds)
 
 
+class _RateLimited(Exception):
+    """A provider answered 429: sleep the linear wait, retry same leg."""
+
+    def __init__(self, wait):
+        super().__init__(f'429 rate limit')
+        self.wait = wait
+
+
+class _HTTPErr(Exception):
+    """Non-200/429 answer; str() is exactly the historical last_err text."""
+
+
+def _run_with_retries(label, timeout, deadline, once):
+    """Shared retry skeleton for both provider legs (C-F5).
+
+    once(attempt, per_attempt) returns the assistant content string on a 200,
+    raises _RateLimited on 429 (linear wait, no extra generic backoff), and
+    may raise anything else — that becomes this attempt's recorded error.
+    Budget exhaustion breaks the loop with the same message both legs have
+    always produced. Kept as one copy so the two wire protocols cannot drift
+    apart in retry semantics again.
+    """
+    last_err = None
+    for attempt in range(1, MAX_RETRIES + 1):
+        per_attempt = _attempt_timeout(timeout, deadline, label)
+        if per_attempt is None:
+            last_err = last_err or 'budget exhausted before any attempt completed'
+            break
+        try:
+            return once(attempt, per_attempt)
+        except requests.Timeout:
+            last_err = f'timeout after {per_attempt}s'
+            print(f'  {label}: {last_err} (attempt {attempt})', file=sys.stderr)
+        except _RateLimited as rl:
+            print(f'  {label}: 429 rate limit, sleeping {rl.wait}s', file=sys.stderr)
+            _backoff(rl.wait, deadline, label)
+            continue
+        except _HTTPErr as he:
+            last_err = str(he)
+            print(f'  {label}: {last_err}', file=sys.stderr)
+        except Exception as e:
+            last_err = f'{type(e).__name__}: {e}'
+            print(f'  {label}: {last_err}', file=sys.stderr)
+        _backoff(2 * attempt, deadline, label)
+    raise RuntimeError(f'{label} failed after {MAX_RETRIES} attempts: {last_err}')
+
+
 def _call_provider(label, base_url, api_key, model, messages, max_tokens,
                    temperature, json_response, thinking, timeout=None,
                    deadline=None):
@@ -231,45 +278,28 @@ def _call_provider(label, base_url, api_key, model, messages, max_tokens,
         'Content-Type': 'application/json',
     }
 
-    last_err = None
-    for attempt in range(1, MAX_RETRIES + 1):
-        per_attempt = _attempt_timeout(timeout, deadline, label)
-        if per_attempt is None:
-            last_err = last_err or 'budget exhausted before any attempt completed'
-            break
-        try:
-            r = _SESSION.post(f'{base_url}/v1/messages',
-                              json=body, headers=headers, timeout=per_attempt)
-            if r.status_code == 200:
-                data = r.json()
-                blocks = data.get('content', []) or []
-                text = ''.join(b.get('text', '') for b in blocks
-                               if b.get('type') == 'text')
-                if not text:  # last resort: some endpoints surface only thinking
-                    text = ''.join(b.get('thinking', '') for b in blocks
-                                   if b.get('type') == 'thinking')
-                usage = data.get('usage', {}) or {}
-                print(f'  {label}: {usage.get("input_tokens","?")} in / '
-                      f'{usage.get("output_tokens","?")} out '
-                      f'(stop={data.get("stop_reason","?")})', file=sys.stderr)
-                cleaned = _clean(text)
-                return _extract_json(cleaned) if json_response else cleaned
-            elif r.status_code == 429:
-                wait = 5 * attempt
-                print(f'  {label}: 429 rate limit, sleeping {wait}s', file=sys.stderr)
-                _backoff(wait, deadline, label)
-                continue
-            else:
-                last_err = f'HTTP {r.status_code}: {r.text[:300]}'
-                print(f'  {label}: {last_err}', file=sys.stderr)
-        except requests.Timeout:
-            last_err = f'timeout after {per_attempt}s'
-            print(f'  {label}: {last_err} (attempt {attempt})', file=sys.stderr)
-        except Exception as e:
-            last_err = f'{type(e).__name__}: {e}'
-            print(f'  {label}: {last_err}', file=sys.stderr)
-        _backoff(2 * attempt, deadline, label)
-    raise RuntimeError(f'{label} failed after {MAX_RETRIES} attempts: {last_err}')
+    def once(attempt, per_attempt):
+        r = _SESSION.post(f'{base_url}/v1/messages',
+                          json=body, headers=headers, timeout=per_attempt)
+        if r.status_code == 429:
+            raise _RateLimited(5 * attempt)
+        if r.status_code != 200:
+            raise _HTTPErr(f'HTTP {r.status_code}: {r.text[:300]}')
+        data = r.json()
+        blocks = data.get('content', []) or []
+        text = ''.join(b.get('text', '') for b in blocks
+                       if b.get('type') == 'text')
+        if not text:  # last resort: some endpoints surface only thinking
+            text = ''.join(b.get('thinking', '') for b in blocks
+                           if b.get('type') == 'thinking')
+        usage = data.get('usage', {}) or {}
+        print(f'  {label}: {usage.get("input_tokens","?")} in / '
+              f'{usage.get("output_tokens","?")} out '
+              f'(stop={data.get("stop_reason","?")})', file=sys.stderr)
+        cleaned = _clean(text)
+        return _extract_json(cleaned) if json_response else cleaned
+
+    return _run_with_retries(label, timeout, deadline, once)
 
 
 def _call_provider_openai_compatible(label, base_url, api_key, model, messages,
@@ -294,43 +324,26 @@ def _call_provider_openai_compatible(label, base_url, api_key, model, messages,
         'Content-Type': 'application/json',
     }
 
-    last_err = None
-    for attempt in range(1, MAX_RETRIES + 1):
-        per_attempt = _attempt_timeout(timeout, deadline, label)
-        if per_attempt is None:
-            last_err = last_err or 'budget exhausted before any attempt completed'
-            break
-        try:
-            r = _SESSION.post(f'{base_url}/chat/completions',
-                              json=body, headers=headers, timeout=per_attempt)
-            if r.status_code == 200:
-                data = r.json()
-                choices = data.get('choices', []) or []
-                msg = choices[0].get('message', {}) if choices else {}
-                text = msg.get('content', '') or ''
-                usage = data.get('usage', {}) or {}
-                print(f'  {label}: {usage.get("prompt_tokens","?")} in / '
-                      f'{usage.get("completion_tokens","?")} out '
-                      f'(finish={choices[0].get("finish_reason","?") if choices else "?"})',
-                      file=sys.stderr)
-                cleaned = _clean(text)
-                return _extract_json(cleaned) if json_response else cleaned
-            elif r.status_code == 429:
-                wait = 5 * attempt
-                print(f'  {label}: 429 rate limit, sleeping {wait}s', file=sys.stderr)
-                _backoff(wait, deadline, label)
-                continue
-            else:
-                last_err = f'HTTP {r.status_code}: {r.text[:300]}'
-                print(f'  {label}: {last_err}', file=sys.stderr)
-        except requests.Timeout:
-            last_err = f'timeout after {per_attempt}s'
-            print(f'  {label}: {last_err} (attempt {attempt})', file=sys.stderr)
-        except Exception as e:
-            last_err = f'{type(e).__name__}: {e}'
-            print(f'  {label}: {last_err}', file=sys.stderr)
-        _backoff(2 * attempt, deadline, label)
-    raise RuntimeError(f'{label} failed after {MAX_RETRIES} attempts: {last_err}')
+    def once(attempt, per_attempt):
+        r = _SESSION.post(f'{base_url}/chat/completions',
+                          json=body, headers=headers, timeout=per_attempt)
+        if r.status_code == 429:
+            raise _RateLimited(5 * attempt)
+        if r.status_code != 200:
+            raise _HTTPErr(f'HTTP {r.status_code}: {r.text[:300]}')
+        data = r.json()
+        choices = data.get('choices', []) or []
+        msg = choices[0].get('message', {}) if choices else {}
+        text = msg.get('content', '') or ''
+        usage = data.get('usage', {}) or {}
+        print(f'  {label}: {usage.get("prompt_tokens","?")} in / '
+              f'{usage.get("completion_tokens","?")} out '
+              f'(finish={choices[0].get("finish_reason","?") if choices else "?"})',
+              file=sys.stderr)
+        cleaned = _clean(text)
+        return _extract_json(cleaned) if json_response else cleaned
+
+    return _run_with_retries(label, timeout, deadline, once)
 
 
 def chat(system: str = '', user: str = '', messages: list = None,
