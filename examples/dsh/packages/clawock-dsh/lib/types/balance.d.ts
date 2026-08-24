@@ -48,7 +48,12 @@ export interface MinimaxConfig {
     baseUrl?: string;
     /** Credentials seam reference for the MiniMax key (env fallback same name). */
     keyRef?: string;
-    /** Red dot when a quota window's remaining percent drops to/below this. */
+    /**
+     * Red dot watermark in REMAINING terms: warn when a quota window's
+     * remaining percent has fallen to/below this (default 20). The chip
+     * displays the used direction (≥ `100 - lowPct`% used), but the config
+     * keeps its original meaning so existing values stay valid.
+     */
     lowPct?: number;
     /**
      * openclaw gateway config to fall back to when the seam and env are both
@@ -61,7 +66,11 @@ export interface ClaudeConfig {
     credentialsPath?: string;
     /** The undocumented /api/oauth/usage endpoint; overridable for tests. */
     usageUrl?: string;
-    /** Red dot when the session window's remaining percent drops to/below this. */
+    /**
+     * Red dot watermark in REMAINING terms for the session window: warn when
+     * remaining has fallen to/below this (default 20, i.e. ≥80% used). The
+     * displayed number is used percent; the config meaning is unchanged.
+     */
     lowPct?: number;
 }
 /**
@@ -117,11 +126,13 @@ export interface MinimaxRemainsEntry {
     [key: string]: unknown;
 }
 /**
- * Remaining percent of one quota window: the explicit percent field when the
- * plan reports one, otherwise derived from total/used counts (MiniMax ships
- * both shapes across plan generations). null = unreadable, never guessed.
+ * Used percent of one quota window — the chip's display direction (kcn:
+ * 「已使用」比「剩余」直观). The explicit percent field reports REMAINING and
+ * is complemented here; raw counts are already consumption and divide as-is
+ * (MiniMax ships both shapes across plan generations). null = unreadable,
+ * never guessed.
  */
-export declare function windowRemainingPercent(entry: MinimaxRemainsEntry): number | null;
+export declare function windowUsedPercent(entry: MinimaxRemainsEntry): number | null;
 /**
  * Reset stamps the panel can lay out: within 48h a bare local clock,
  * farther out the weekday comes along ('周四 21:00'). Accepts epoch seconds,
@@ -132,7 +143,7 @@ export declare function formatReset(epochOrIso: number | string | null | undefin
 /**
  * The successful Token Plan payload → snapshot. Percent-based by design:
  * plans report either percent fields or raw counts, and tokens are not money
- * — the chip reads "还剩多少窗口额度", never a fabricated ¥ figure.
+ * — the chip reads "窗口额度用了多少"(已使用方向), never a fabricated ¥ figure.
  */
 export declare function parseMinimaxRemains(body: unknown, asOf: string): BalanceSnapshot;
 /** Tolerant JSON file read: missing/unreadable/invalid all yield undefined. */
@@ -171,9 +182,10 @@ export declare function readClaudeCredentials(path: string): {
     creds: ClaudeCredentials;
 } | undefined;
 /**
- * Successful usage payload → snapshot, in REMAINING percent (utilization is
- * consumption). five_hour gates active sessions so it is the headline; any
- * bucket may be absent/null depending on plan.
+ * Successful usage payload → snapshot, in USED percent — utilization already
+ * IS consumption, so it renders verbatim with no complementing (kcn:
+ * 「已使用」比「剩余」直观). five_hour gates active sessions so it is the
+ * headline; any bucket may be absent/null depending on plan.
  */
 export declare function parseClaudeUsage(body: unknown, asOf: string): BalanceSnapshot;
 /** Claude row: subscription rate-limit windows via the OAuth usage endpoint. */

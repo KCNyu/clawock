@@ -146,7 +146,7 @@ export interface TracesResult {
 export interface BalanceWindow {
     /** Short label rendered verbatim: '5h' | '周' | '会话' | '本周'. */
     label: string;
-    /** Remaining percent of this window; null when the plan doesn't report it. */
+    /** Used percent of this window (0-100); null when the plan doesn't report it. */
     percent: number | null;
     /** Preformatted LOCAL reset stamp ('15:00' / '周四 21:00'); '' when unknown. */
     resetAt: string;
@@ -161,13 +161,13 @@ export interface BalanceSnapshot {
     isAvailable: boolean;
     /**
      * How `totalBalance` reads: 'money' carries a currency symbol via
-     * `currency` ('CNY' | 'USD' | ''), 'pct' carries a remaining-percent number
-     * (quota windows). '' defaults to 'money'.
+     * `currency` ('CNY' | 'USD' | ''), 'pct' carries a used-percent number
+     * (quota windows; utilization direction — kcn 口径). '' defaults to 'money'.
      */
     unit: string;
     /** 'CNY' | 'USD' | '' — the displayed entry's currency (money unit only). */
     currency: string;
-    /** Total available balance ("110.00") or remaining percent ("62"). */
+    /** Total available balance ("110.00") or used percent ("62"). */
     totalBalance: string;
     /** Not-expired granted balance (DeepSeek money accounts; '' elsewhere). */
     grantedBalance: string;

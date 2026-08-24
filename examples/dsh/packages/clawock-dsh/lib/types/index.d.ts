@@ -25,7 +25,11 @@ export interface ClawockStudioConfig {
     minimaxBaseUrl?: string;
     /** Credentials seam reference for the MiniMax key (env fallback same name). */
     minimaxKeyRef?: string;
-    /** Red dot when MiniMax quota windows drop to/below this remaining percent. */
+    /**
+     * Red dot watermark in REMAINING terms: warn when MiniMax windows'
+     * remaining percent falls to/below this (default 20 = ≥80% used). The
+     * chip displays used percent; this field's meaning is unchanged.
+     */
     minimaxLowPct?: number;
     /** openclaw gateway config fallback for provider keys (models.providers.*). */
     minimaxOpenclawConfigPath?: string;
@@ -33,7 +37,10 @@ export interface ClawockStudioConfig {
     claudeCredentialsPath?: string;
     /** The undocumented /api/oauth/usage endpoint; overridable for tests. */
     claudeUsageUrl?: string;
-    /** Red dot when the Claude session window's remaining percent is low. */
+    /**
+     * Red dot watermark in REMAINING terms for the Claude session window
+     * (default 20 = ≥80% used); displayed number is used percent.
+     */
     claudeLowPct?: number;
 }
 export declare class ClawockStudioGateway extends TypertRemoteService {
