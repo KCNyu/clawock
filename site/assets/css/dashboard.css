@@ -2127,14 +2127,6 @@
   }
   /* 端点用 DOM 元素而不是 SVG 圆：同样因为 preserveAspectRatio="none"，
      SVG 里的正圆会被压成椭圆。 */
-  .hero-spark-dot {
-    position: absolute; width: 7px; height: 7px; border-radius: 50%;
-    transform: translate(-50%, -50%); pointer-events: none;
-    box-shadow: 0 0 0 3px var(--surface-1);
-  }
-  .hero-spark-dot.pos { background: var(--positive); }
-  .hero-spark-dot.neg { background: var(--negative); }
-  .hero-spark-dot.flat { background: var(--text-tertiary); }
   /* 主数以前恒定 var(--text)：`.hero-deck-pnl` 和 `.pos/.neg` 同为一个类，
      按源序前者赢 —— 于是全页最大的那个数字是唯一一个不带涨跌色的数字，
      而它正下方那行三个小数字全都带色。全站规矩是「颜色只留涨跌」，

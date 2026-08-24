@@ -858,7 +858,6 @@ async function testHoldingsAndHeroNeverTruncate(browser, base) {
         headline: document.getElementById("hero-pnl").textContent.trim(),
         tone: svg.classList.contains("neg") ? "neg"
           : svg.classList.contains("pos") ? "pos" : "flat",
-        dotTone: host.querySelector(".hero-spark-dot")?.className || "",
       };
     });
 
@@ -876,8 +875,6 @@ async function testHoldingsAndHeroNeverTruncate(browser, base) {
       "hero spark fill is not split at the zero axis");
     assert.equal(spark.stops[1].offset, spark.stops[2].offset,
       "hero spark gradient does not hard-stop at the zero axis");
-    assert(spark.dotTone.includes(spark.tone),
-      `hero spark endpoint dot tone (${spark.dotTone}) disagrees with the curve (${spark.tone})`);
     await context.close();
   }
 
