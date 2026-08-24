@@ -129,6 +129,13 @@ def health(monkeypatch):
     monkeypatch.setattr(module, "load_heartbeats", lambda path=None: {})
     monkeypatch.setattr(module, "check_dashboard_build",
                         lambda: {"state": "ok", "detail": "ok", "ok": True})
+    # The publisher-freshness check reads the LIVE published generation's
+    # timestamp — on a Sunday the intraday publisher does not run, the age
+    # grows past the 3h threshold, and this fixture's own contract ("every
+    # live source replaced") turned every PR's validate red for hours without
+    # anyone touching cron code. Stub it like the other live sources.
+    monkeypatch.setattr(module, "check_scheduled_publisher",
+                        lambda now=None, path=None: {"state": "ok", "detail": "ok"})
     return module
 
 
