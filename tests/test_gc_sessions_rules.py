@@ -121,3 +121,39 @@ def test_main_reports_totals_and_never_touches_unmatched(
     assert "trajectory.jsonl: 1 files" in out
     assert "freed 1 files" in out or "would free 1 files" not in out
     assert not dead.exists()
+
+
+def test_a_far_future_clock_is_refused_not_obeyed(monkeypatch, tmp_path):
+    """The agent-E incident (#930): a simulation passed a synthetic 2027
+    timestamp against the real default SESSIONS_DIR and every file was stale
+    by definition. The sweep must refuse such clocks loudly instead."""
+    import time as _time
+    sessions = _point_dirs(monkeypatch, tmp_path)
+    f = sessions / "recent.jsonl"
+    f.write_text("x")  # mtime = now
+
+    try:
+        gc.gc_sessions_dir(_time.time() + 86400 * 365, False)
+    except ValueError as exc:
+        assert "allow_future" in str(exc)
+    else:
+        raise AssertionError("far-future clock must be refused")
+    assert f.exists()
+
+
+def test_negative_retention_env_is_rejected_at_import(monkeypatch, tmp_path):
+    """GC_KEEP_*=-1 would make 'older than cutoff' true for files that do not
+    exist yet; the module must die at load, not run."""
+    import importlib.util
+    import os
+
+    monkeypatch.setenv("GC_KEEP_TRAJECTORY_DAYS", "-1")
+    spec = importlib.util.spec_from_file_location(
+        "kcnyu_gc_sessions_neg", ROOT / "ops" / "host" / "gc_sessions.py")
+    try:
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+    except SystemExit as exc:
+        assert "negative" in str(exc)
+    else:
+        raise AssertionError("negative retention must abort the module")

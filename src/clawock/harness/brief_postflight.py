@@ -520,10 +520,17 @@ def log_decisions(today):
         if d.get('simulated_entry_price') is None:
             d['simulated_entry_price'] = _current_price_for(d.get('ticker'))
     safe_write_json(str(plan_path), plan)
-    inserted, updated = decision_v2.upsert_plan_decisions(plan)
+    # One load, mutate in memory, write once only if something changed (#916):
+    # the old sequence was upsert(load+write) then load+settle+write — two full
+    # rewrites per brief even on the common no-new-decisions day.
     ledger = decision_v2.load_decisions()
+    before = json.dumps(ledger, ensure_ascii=False, sort_keys=True)
+    inserted, updated = decision_v2.upsert_plan_decisions(
+        plan, ledger=ledger, write=False)
     settled = decision_v2.settle_decisions(ledger)
-    decision_v2.write_decisions(ledger)
+    after = json.dumps(ledger, ensure_ascii=False, sort_keys=True)
+    if after != before:
+        decision_v2.write_decisions(ledger)
     print(f'  decisions.jsonl: +{inserted}, updated {updated}, settled {settled} ({len(ledger)} total)')
 
 
