@@ -39,14 +39,20 @@ def test_brief_actually_calls_the_installed_bar_fetcher(monkeypatch):
     assert calls[0][1]['cwd'] == brief_preflight.WS
 
 
-def test_bars_are_fetched_before_the_ledger_settles():
-    """Settling only reads the store, so a fetch after it lands a day late."""
-    body = inspect.getsource(brief_preflight.main)
-    fetch_at = body.index('daily_bars_node()')
-    settle_at = body.index('compute_decision_metrics()')
-    assert fetch_at < settle_at, (
+def test_bars_are_fetched_before_the_ledger_settles(tmp_path, monkeypatch):
+    """Settling only reads the store, so a fetch after it lands a day late.
+
+    Runtime-order assertion driven by the #916 DAG harness (replaces the old
+    inspect.getsource(main) textual check — same intent, but now it fails if
+    the orchestration ever reorders settle ahead of the bar refresh)."""
+    from test_brief_preflight_dag import run_stubbed_preflight
+
+    run = run_stubbed_preflight(tmp_path, monkeypatch)
+    tl = run.timeline
+    assert tl.end['daily_bars_node'] <= tl.start['_decision_metrics'], (
         'bars are refreshed after the ledger settles; the fetch would only take '
         'effect on the following run.')
+    assert run.exit_code == 0
 
 
 def test_staleness_uses_the_trading_calendar_not_a_weekday_guess():

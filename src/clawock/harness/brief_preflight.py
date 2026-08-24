@@ -38,12 +38,14 @@ from clawock.portfolio.guardrail import (  # noqa: F401  (re-export)
     compute_risk_guardrail,
 )
 import argparse
+import concurrent.futures
 import json
 import math
 import os
 import re
 import subprocess
 import sys
+import time
 from datetime import datetime, date, timezone, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -1397,6 +1399,48 @@ def benchmark_node():
     return None, issues
 
 
+NODE_ORDER = [
+    # Every spawn node in today's textual execution order (#916). After each
+    # wave joins, the parent extends `issues` from the wave's results in this
+    # order — so an identical failure set produces a byte-identical
+    # context['issues'] (and therefore generation_id) regardless of thread
+    # completion order.
+    'analyze_us', 'analyze_hk', 'fx_rate', '_node_filings',
+    'peer_scan_node', 'daily_bars_node', 'portfolio_risk_node',
+    'regime_node', 'quant_node', 'quant_review_node',
+    'cross_factor_node', 'evidence_node', 'peer_residual_node',
+    't0_node', 't0_review_node', 'em_news_node',
+    'catalysts_node', 'news_evidence_node', 'benchmark_node',
+]
+
+
+def _timed(fn):
+    """Run one node callable; return (payload, issues, wall_s).
+
+    Timing only — deliberately no try/except here: every node keeps its own
+    original except branch and timeout cap verbatim, and a wrapper handler
+    would change per-node failure semantics (#916)."""
+    started = time.monotonic()
+    payload, node_issues = fn()
+    return payload, node_issues, time.monotonic() - started
+
+
+def _run_wave(nodes, *, max_workers=2):
+    """Run one DAG wave of subprocess nodes concurrently.
+
+    nodes maps a NODE_ORDER name to a zero-arg callable returning
+    (payload, issues); returns {name: (payload, issues, wall_s)}. Process
+    isolation is unchanged — still one clawock subprocess per node; only the
+    scheduling is concurrent, capped at max_workers=2 for the 2C/2GB box (#916).
+    """
+    results = {}
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as pool:
+        pending = {pool.submit(_timed, fn): name for name, fn in nodes.items()}
+        for future in concurrent.futures.as_completed(pending):
+            results[pending[future]] = future.result()
+    return results
+
+
 def main(argv=None):
     # This script took no arguments at all, so `--help` was not "unsupported" —
     # it was ignored, and the full preflight ran: live price fetches, SEC EDGAR,
@@ -1453,16 +1497,35 @@ def main(argv=None):
 
     print(f'═════ brief_preflight.py | {today} ═════')
 
-    # [1] Refresh prices
-    _, node_issues = analyze_us()
-    issues.extend(node_issues)
+    step_timings = {}
 
-    _, node_issues = analyze_hk()
-    issues.extend(node_issues)
+    def _join(results):
+        """Merge one wave into `issues`/`step_timings`; return {name: payload}.
 
-    # [3] FX
-    fx, node_issues = fx_rate()
-    issues.extend(node_issues)
+        Issue strings are appended by the parent AFTER the wave join, in
+        NODE_ORDER (= today's textual order), so an identical failure set
+        yields a byte-identical context['issues'] — and therefore generation_id
+        — regardless of thread completion order (#916)."""
+        payloads = {}
+        for name in NODE_ORDER:
+            if name not in results:
+                continue
+            payload, node_issues, wall_s = results[name]
+            issues.extend(node_issues)
+            step_timings[name] = {'ok': not node_issues, 'wall_s': wall_s}
+            payloads[name] = payload
+        return payloads
+
+    def _run_serial(name, fn):
+        """Serial-prefix node: identical accounting to waved nodes."""
+        return _join({name: _timed(fn)})[name]
+
+    # [1]+[2] Price refreshes are STRICTLY SERIAL, never parallel: analyze-us
+    # then analyze-hk each read-modify-write the SAME portfolio.json
+    # (us_analysis.update_us_portfolio writes it; hk_analysis writes the same
+    # path), so concurrent execution would lose one side's update (#916 §1.2).
+    _run_serial('analyze_us', analyze_us)
+    _run_serial('analyze_hk', analyze_hk)
 
     # [4] Snapshot
     print('[4/14] Portfolio snapshot')
@@ -1486,21 +1549,10 @@ def main(argv=None):
     print(f'   Look-through: HK factor HHI={lookthrough["hk"]["factor_hhi"]:.3f}; '
           f'US factor HHI={lookthrough["us"]["factor_hhi"]:.3f}')
 
-    # Book totals (FX-aware)
-    rate = fx['rate']
-    hk_pnl_hkd = portfolio['portfolios']['hk_stocks'].get('total_pnl', 0)
-    us_pnl_usd = portfolio['portfolios']['us_stocks'].get('total_pnl', 0)
-    book = {
-        'hk_pnl_hkd':      round(hk_pnl_hkd, 2),
-        'us_pnl_usd':      round(us_pnl_usd, 2),
-        'usd_base_total':  round(hk_pnl_hkd / rate + us_pnl_usd, 2),
-        'hkd_base_total':  round(hk_pnl_hkd + us_pnl_usd * rate, 2),
-        'fx_used':         rate,
-    }
-
-    # [6] SEC EDGAR
-    us_fund, node_issues = _node_filings(portfolio)
-    issues.extend(node_issues)
+    # [6] SEC EDGAR — strictly serial loop inside collect_us_fundamentals: the
+    # SEC rate limiter is an in-process global, so parallel spawns would clone
+    # N copies of it (#916 §1.4).
+    us_fund = _run_serial('_node_filings', lambda: _node_filings(portfolio))
 
     # [7] Retrospective
     print('[7/14] Retrospective')
@@ -1518,14 +1570,78 @@ def main(argv=None):
     else:
         print(f'   first run (no prior plan)')
 
-    # [8] Peer scan — for each active holding, fetch peer prices + flag divergence
-    peer_scan, _ = peer_scan_node(portfolio)
+    # [8]-[13] DAG waves (#916 §1.2/§1.3): serial prefix done, now three
+    # concurrent waves separated by barriers, each capped at max_workers=2.
+    # Wave membership carries every true dependency edge:
+    #   WAVE1 — inputs are self-sufficient (fx, peers, bars, risk, regime,
+    #           quant, em-news, catalysts, peer-residual); write targets are
+    #           pairwise disjoint.
+    #   barrier
+    #   WAVE2 — quant-review/cross-factor/t0 read quant's outputs from WAVE1;
+    #           news-evidence builds its graph from the em-news + catalysts
+    #           artifacts finished at the barrier; benchmark STARTS only after
+    #           regime FINISHED at the barrier — regime must read YESTERDAY'S
+    #           benchmark.json while the benchmark node rewrites that same
+    #           file, so this ordering is a byte-determinism constraint, not a
+    #           data dependency (#916 §1.2).
+    #   barrier
+    #   WAVE3 — t0-review reconciles t0's history jsonl from WAVE2; evidence
+    #           rebuilds the page from the quant-review + cross-factor
+    #           artifacts finalized at the barrier.
+    w1 = _join(_run_wave({
+        'fx_rate': fx_rate,
+        'peer_scan_node': lambda: peer_scan_node(portfolio),
+        'daily_bars_node': daily_bars_node,
+        'portfolio_risk_node': portfolio_risk_node,
+        'regime_node': regime_node,
+        'quant_node': quant_node,
+        'em_news_node': em_news_node,
+        'catalysts_node': catalysts_node,
+        'peer_residual_node': lambda: peer_residual_node(portfolio),
+    }))
+    fx = w1['fx_rate']
+    peer_scan = w1['peer_scan_node']
+    risk = w1['portfolio_risk_node']
+    lev_regime = w1['regime_node']
+    quant_signals = w1['quant_node']
+    catalysts = w1['catalysts_node']
+    peer_residual_ctx = w1['peer_residual_node']
 
-    # [9] Canonical bars — must precede [10]: settling only reads this store.
-    _, node_issues = daily_bars_node()
-    issues.extend(node_issues)
+    # Book totals (FX-aware) — moved here from the old [5] block: fx now
+    # completes in WAVE1 and rate is its only input (pure arithmetic; nothing
+    # between the prefix and this point consumes it).
+    rate = fx['rate']
+    hk_pnl_hkd = portfolio['portfolios']['hk_stocks'].get('total_pnl', 0)
+    us_pnl_usd = portfolio['portfolios']['us_stocks'].get('total_pnl', 0)
+    book = {
+        'hk_pnl_hkd':      round(hk_pnl_hkd, 2),
+        'us_pnl_usd':      round(us_pnl_usd, 2),
+        'usd_base_total':  round(hk_pnl_hkd / rate + us_pnl_usd, 2),
+        'hkd_base_total':  round(hk_pnl_hkd + us_pnl_usd * rate, 2),
+        'fx_used':         rate,
+    }
 
-    # [10] V2 episode metrics — triggered-only, strategy-aware, cluster-bootstrap
+    w2 = _join(_run_wave({
+        'quant_review_node': quant_review_node,
+        'cross_factor_node': lambda: cross_factor_node(portfolio),
+        't0_node': t0_node,
+        'news_evidence_node': news_evidence_node,
+        'benchmark_node': benchmark_node,
+    }))
+    quant_review = w2['quant_review_node']
+    cross_sectional_factor_ctx = w2['cross_factor_node']
+    t0_setups = w2['t0_node']
+    news_evidence_ctx = w2['news_evidence_node']
+
+    w3 = _join(_run_wave({
+        't0_review_node': t0_review_node,
+        'evidence_node': evidence_node,
+    }))
+    t0_review = w3['t0_review_node']
+
+    # [10] V2 episode metrics — triggered-only, strategy-aware, cluster-bootstrap.
+    # Settle runs only AFTER daily-bars finished at the WAVE1 barrier: settling
+    # reads the canonical bar store and never fetches (#916 §1.2).
     print('[10/14] Decision metrics v2')
     decision_metrics = compute_decision_metrics()
     # Brier is never printed bare: alone it reads as "0.295, close enough to 0".
@@ -1551,45 +1667,6 @@ def main(argv=None):
     reflections = compute_reflections(portfolio)
     if reflections:
         print(f'[9b/11] Reflections: {len(reflections)} held tickers with prior-call history')
-
-    # [10] Risk metrics — Tier 2: β / vol / DD / Sharpe / margin sim
-    risk, _ = portfolio_risk_node()
-
-    # [10b] Leverage dial — HSTECH 200DMA trend + 20d vol → leveraged-ETF cap multiplier
-    lev_regime, _ = regime_node()
-
-    # [10b2] 量化因子层 — 趋势/动量/RSI/z-score/ATR吊灯止损/vol-target（纯算术，
-    # LLM 技术面判断只准引用此表）。merge-not-overwrite，单只抓空保留旧值。
-    quant_signals, _ = quant_node()
-
-    # [10b3] 因子 edge 自检 — 历史留痕 vs forward return 对账（自迭代：因子话语权由
-    # hit_rate 决定，样本<20 不解锁）。纯本地文件运算。
-    quant_review, _ = quant_review_node()
-
-    # [10b3b] Cross-sectional factor research — curated peers + 1x underlyings,
-    # sector-neutral ranks and strictly prospective activation. The full artifact
-    # stays on disk; context gets a compact view to avoid spending brief tokens on
-    # 38 complete research rows. `usable_for_decisions=false` is a hard boundary.
-    cross_sectional_factor_ctx, _ = cross_factor_node(portfolio)
-
-    evidence_node()
-
-    # [10b3c] Curated peer residual/leadership research. HK taxonomy is explicitly
-    # manual-only; leveraged products are folded to 1x before basket construction.
-    # As with the broader cross-sectional layer, inactive rules are display-only.
-    peer_residual_ctx, _ = peer_residual_node(portfolio)
-
-    # [10b4] T+0 牌面评级 — 零额外请求（从已抓字段 + quant ATR 推导），追高检测。
-    # 紧跟 quant_signals 之后跑（依赖其 ATR 刷新）。
-    t0_setups, _ = t0_node()
-
-    # [10b4b] T+0 牌面 edge 自检 — 牌面评级对账 T+1 forward return（数据背书）。
-    # 零网络：结算用历史留痕的 close，绝不每分钟抓价。
-    t0_review, _ = t0_review_node()
-
-    # [10b6] 中文消息源 — Eastmoney HK 持仓新闻 + 7x24 快讯（信息广度，喂 catalyst-gate）。
-    # 借鉴 UZI-Skill 的数据源广度；信息收集是 LLM 强项 + kcn token 充足。失败 fail-soft。
-    em_news_node()
 
     # [10b5] 数据体检闸 — 把历史踩过的数字 bug 固化成自动门。warn-only 注入 context
     # （遵 feedback_no_individual_cron_alerts 不推送），ERROR 由 build_status 健康卡暴露。
@@ -1640,21 +1717,6 @@ def main(argv=None):
         portfolio['portfolios']['hk_stocks']['holdings'],
         portfolio['portfolios']['us_stocks']['holdings'], lev_regime=lev_regime)
     print(f'   breakeven: {len(breakeven["rows"])} 只浮亏持仓入表')
-
-    # [11] Catalyst calendar — next 14d earnings + FOMC + macro
-    catalysts, node_issues = catalysts_node()
-    issues.extend(node_issues)
-
-    # [11b] News evidence graph — normalize filings/news/calendar nodes, expire
-    # repeated summaries and apply deterministic source/novelty/confirmation
-    # gates. Only a compact decision envelope enters the LLM context.
-    news_evidence_ctx, node_issues = news_evidence_node()
-    issues.extend(node_issues)
-
-    # Benchmark history (SPY + HSI/HSTECH) for the Equity Curve overlay.
-    # Refreshed once per day at brief time; consumed by build_dashboard.
-    _, node_issues = benchmark_node()
-    issues.extend(node_issues)
 
     # [13] Macro + sentiment snapshots — written by GH Action (macro-scan / sentiment-scan).
     # Read-only here; brief LLM consumes the trimmed subset so "▎大盘速读" and
@@ -1789,6 +1851,7 @@ def main(argv=None):
         context_path=str(ctx_path),
         context_generation_id=context['generation_id'],
         model_context_bytes=bundle_manifest['budget']['always_loaded_bytes'],
+        step_timings=step_timings,  # additive detail: per-node ok/wall_s (#916 §1.5)
     )
     return 0 if not issues else 1
 
