@@ -75,8 +75,10 @@ layout: null
      ECharts 5.6.0 (~620KB vs ~1MB full) — only the chart types and components the
      dashboard actually uses are registered, so it parses ~40% faster on mobile while
      rendering pixel-identically. Rebuild steps + component list: ops/pages/echarts-custom-bundle.md.
-     Loaded ON DEMAND by whenEcharts() the first time a chart tab is shown — Hero/Signals/
-     Plan have no charts, so phones landing on Hero never download this bundle. -->
+     Loaded ON DEMAND by whenEcharts() the first time a chart tab is shown — Overview/
+     Signals/Plan have no ECharts needs (Overview's spark is inline SVG in the render
+     bundle; its only former canvas chart moved to Reflect), so phones landing on
+     Overview never download this bundle. -->
 <link rel="stylesheet" href="assets/css/dashboard.css">
 </head>
 <body>
@@ -171,30 +173,11 @@ layout: null
           </div>
           <!-- 主数的历史，不是第二张图：同一个「总盈亏」口径画成纯形状（无坐标轴、
                无刻度、无图例），回答大数字回答不了的那半个问题——它是一路跌下来的，
-               还是刚从更深的地方爬回来的。完整可交互的曲线仍在下面那张卡里。 -->
+               还是刚从更深的地方爬回来的。完整可交互的曲线（含基准对照）在 Reflect
+               的净值表现区；首屏只保留这一条形状，不再两条同源曲线上下堆叠。 -->
           <div class="hero-spark" id="hero-spark"></div>
         </div>
         <div class="hero-rail" id="hero-rail"></div>
-      </div>
-
-      <div class="card overview-equity">
-        <div class="card-head">
-          <div>
-            <div class="overview-card-kicker">战绩</div>
-            <h3 id="equity-title">Equity Curve · USD-eq</h3>
-          </div>
-          <span id="benchmark-stale" class="muted" style="display:none;font-size:var(--fs-xs);color:var(--amber)"></span>
-          <div class="mkt-seg" role="group" aria-label="市场切换">
-            <button class="mkt-seg-btn active" data-mkt="combined"><span class="seg-dot"></span>总览</button>
-            <button class="mkt-seg-btn" data-mkt="us"><span class="seg-dot us"></span>美股</button>
-            <button class="mkt-seg-btn" data-mkt="hk"><span class="seg-dot hk"></span>港股</button>
-          </div>
-        </div>
-        <details class="chart-note overview-equity-hint">
-          <summary>口径说明与图例</summary>
-          <p>粗绿线 = 总利润（浮盈 + 已实现，净化本金）；蓝线 = 真实总资产（持仓市值 + 现金）；虚线 = 成本及动态基准。切换总览 / 美股 / 港股查看各自口径。</p>
-        </details>
-        <div id="chart-equity" class="chart-box overview-equity-chart"></div>
       </div>
 
       <aside class="card overview-verdict" aria-labelledby="overview-verdict-title">
@@ -920,16 +903,32 @@ layout: null
       </div>
     </div>
 
-    <div class="card">
+    <!-- Equity Curve 原在 Overview 首屏，和 hero-spark 是同源同算法的同一件事
+         （总盈亏历史）上下堆叠 —— kcn 反馈「首屏曲线堆叠」。挪进 Reflect 净值表现区：
+         首屏只留 spark 一条纯形状，深度曲线（总利润/总资产/成本/SPY/恒科等值 + 回撤）
+         与 Daily P&L 同区相邻、共用同一个市场切换器。id 一律不动（JS 与测试契约）。 -->
+    <div class="card" id="perf-equity-card">
       <div class="card-head">
-        <h3 id="dailypnl-title">Daily P&amp;L + Cumulative · USD-eq</h3>
+        <div>
+          <div class="overview-card-kicker">战绩</div>
+          <h3 id="equity-title">Equity Curve · USD-eq</h3>
+        </div>
+        <span id="benchmark-stale" class="muted" style="display:none;font-size:var(--fs-xs);color:var(--amber)"></span>
         <div class="mkt-seg" role="group" aria-label="市场切换">
           <button class="mkt-seg-btn active" data-mkt="combined"><span class="seg-dot"></span>总览</button>
           <button class="mkt-seg-btn" data-mkt="us"><span class="seg-dot us"></span>美股</button>
           <button class="mkt-seg-btn" data-mkt="hk"><span class="seg-dot hk"></span>港股</button>
         </div>
       </div>
-      <p class="chart-hint">每日净盈亏柱状（绿涨红跌）+ 累计盈亏曲线。柱在零下方 = 当日亏损；曲线走势看长期方向。<b>跟随上方市场切换</b>：总览=USD-eq，美股=$，港股=HK$。</p>
+      <p class="chart-hint">粗绿线 = 总利润（浮盈 + 已实现，净化本金）；蓝线 = 真实总资产（持仓市值 + 现金）；虚线 = 成本及动态基准。切换总览 / 美股 / 港股查看各自口径。</p>
+      <div id="chart-equity" class="chart-box"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <h3 id="dailypnl-title">Daily P&amp;L + Cumulative · USD-eq</h3>
+      </div>
+      <p class="chart-hint">每日净盈亏柱状（绿涨红跌）+ 累计盈亏曲线。柱在零下方 = 当日亏损；曲线走势看长期方向。<b>跟随上方 Equity Curve 的市场切换</b>：总览=USD-eq，美股=$，港股=HK$。</p>
       <div id="chart-daily-pnl" class="chart-box"></div>
     </div>
 
