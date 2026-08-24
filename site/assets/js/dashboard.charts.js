@@ -1,9 +1,10 @@
   // ── Lazy chart init (perf) ──────────────────────────────────────────────
-  // Hero's visual anchor is native Canvas, so first paint does not fetch or parse
-  // ECharts. The heavier bundle remains tab-lazy for analytical detail charts.
+  // Overview 首屏只剩 hero-spark（render bundle 内联 SVG），不再初始化任何 canvas；
+  // 全站唯一的 native canvas 图（Equity Curve）随 Reflect 首次展示绘制。
+  // The heavier ECharts bundle remains tab-lazy for analytical detail charts.
   // Never initialize a chart in display:none.
   const NATIVE_CHART_FNS = {
-    hero: () => { renderEquityChart(); },
+    reflect: () => { renderEquityChart(); },
   };
   const CHART_FNS = {
     drill:   () => { renderShadowPortfolioChart(); renderWeightConfidence(); },
@@ -33,10 +34,11 @@
   }
   function paintCharts(t) {
     if (!DATA) return;
+    // Native 先画（无网络依赖），ECharts 系随后到随画 —— 同一 tab 可以两类都有
+    // （Reflect：Equity 是 native，其余三个是 ECharts）。
     if (NATIVE_CHART_FNS[t]) {
       readThemeCSS();
       NATIVE_CHART_FNS[t]();
-      return;
     }
     if (!CHART_FNS[t]) return;
     whenEcharts(() => {
@@ -97,13 +99,13 @@
     const dt = document.getElementById("dailypnl-title");
     if (et) et.textContent = `Equity Curve ${sfx}`;
     if (dt) dt.textContent = `Daily P&L + Cumulative ${sfx}`;
-    // A deep link can land on Reflect before Hero has ever been visible. In that
-    // case do not create Equity inside the hidden Hero panel at zero width; Hero's
-    // lazy paint will pick up MARKET_VIEW when it is eventually opened.
-    if (charts.equity || currentTab() === "hero") renderEquityChart();
-    // Reflect has already loaded ECharts. A market switch on Hero must not fetch
-    // the heavy bundle merely to refresh a hidden detail chart.
-    if (window.echarts) renderDailyPnlChart();
+    // Switcher 与两张图同住 Reflect：能点到按钮，面板必然可见。深链直达 Reflect
+    // 的首绘由 ensureVisibleCharts 负责，这里只处理切换本身；两个渲染函数各自
+    // 兜底（native 直接画，ECharts 未就绪时内部 early-return，等懒加载完成后重画）。
+    if (currentTab() === "reflect") {
+      renderEquityChart();
+      renderDailyPnlChart();
+    }
     requestAnimationFrame(() => {
       charts.equity && charts.equity.resize();
       charts.dailyPnl && charts.dailyPnl.resize();
