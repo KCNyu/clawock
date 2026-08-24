@@ -838,6 +838,18 @@ test("client: stylesheet is loader-owned and keeps the dark-theme and tone contr
   // contract is the data attribute itself, not its quoting.
   assert.match(css, /_bchip-v\[data-balance-state=low\]/, "chip low value selector required");
   assert.match(css, /_bp\[data-open=false\]/, "closed-panel state selector required");
+  // Tier colours must NOT paint over a stale reading (数字不可信优先于用量档,
+  // 与面板 bp-win-fill 的既有优先级一致)。These attr rules share specificity
+  // and co-occur on one element, so source order decides: stale must come last.
+  const idxOf = (re) => { const m = re.exec(css); return m === null ? -1 : m.index; };
+  const chipStale = idxOf(/_bchip-v\[data-balance-state=stale\]/);
+  const chipMid = idxOf(/_bchip-v\[data-used-level=mid\]/);
+  assert.ok(chipStale > -1 && chipStale > chipMid,
+    "stale yellow must out-rank the pill's usage tiers in source order");
+  const fillStale = idxOf(/_bp-win-fill\[data-balance-state=stale\]/);
+  const fillMid = idxOf(/_bp-win-fill\[data-balance-state=mid\]/);
+  assert.ok(fillStale > -1 && fillStale > fillMid,
+    "bar stale yellow must keep out-ranking usage tiers in source order");
   assert.match(css, hashed("skel"), "cold-start skeleton block required");
   // The three host-layout contracts this tab lives inside. Each of them was a
   // visible defect before 2026-08-22, and none is observable from the rendered

@@ -979,13 +979,17 @@ body[data-ds-dark-theme] .pbc {
   color:var(--text)
 }
 .pbc .bchip-v[data-balance-state="low"] { color:var(--bad) }
-.pbc .bchip-v[data-balance-state="stale"] { color:var(--warn) }
 .pbc .bchip-v[data-balance-state="none"] { color:var(--cap); font-weight:500 }
 /* 配额头条数字按用量档位染色(kcn 配色口径):低用量=安心绿,逼近上限
    先黄后红;档位阈值由 lowPct 派生(默认 20 → 60% 黄 / 80% 红)。金额行
    不带该属性,保持墨色、low 红走 tone。 */
 .pbc .bchip-v[data-used-level="ok"] { color:var(--ok) }
 .pbc .bchip-v[data-used-level="mid"] { color:var(--warn) }
+/* stale 黄必须排在用量档之后(与面板 bp-win-fill 同一优先级):这几条选择器
+   特异度相同,同元素同时带 data-balance-state 与 data-used-level,源序后者赢
+   ——排在前面的 stale 规则会被 ok/mid 档盖成「安心绿」,数字不可信的信号丢失。
+   spec 的 CSS 契约钉住了这条顺序。 */
+.pbc .bchip-v[data-balance-state="stale"] { color:var(--warn) }
 /* 头条窗口的重置时刻:小号等宽,回答「什么时候恢复」,面板每窗一行
    (bp-win-reset)是同一视觉语言的完整版。 */
 .pbc .bchip-reset {
