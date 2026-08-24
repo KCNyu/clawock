@@ -1406,12 +1406,14 @@ NODE_ORDER = [
     # order — so an identical failure set produces a byte-identical
     # context['issues'] (and therefore generation_id) regardless of thread
     # completion order.
+    # Order follows actual wave-append sequence (#941 + J-P1-1): news-evidence
+    # joined WAVE3 so it never races cross-factor's rewrite of its input file.
     'analyze_us', 'analyze_hk', 'fx_rate', '_node_filings',
     'peer_scan_node', 'daily_bars_node', 'portfolio_risk_node',
     'regime_node', 'quant_node', 'quant_review_node',
     'cross_factor_node', 'evidence_node', 'peer_residual_node',
     't0_node', 't0_review_node', 'em_news_node',
-    'catalysts_node', 'news_evidence_node', 'benchmark_node',
+    'catalysts_node', 'benchmark_node', 'news_evidence_node',
 ]
 
 
@@ -1622,23 +1624,28 @@ def main(argv=None):
         'fx_used':         rate,
     }
 
+    # news-evidence sits in WAVE3, not WAVE2: it reads
+    # cross_sectional_factor.json for its confirmation gate (J-P1-1), which
+    # cross-factor rewrites atomically in WAVE2 — same-wave scheduling would
+    # silently feed yesterday's factors when news-evidence reached its read
+    # first. em-news/catalysts inputs were satisfied at the WAVE1 barrier.
     w2 = _join(_run_wave({
         'quant_review_node': quant_review_node,
         'cross_factor_node': lambda: cross_factor_node(portfolio),
         't0_node': t0_node,
-        'news_evidence_node': news_evidence_node,
         'benchmark_node': benchmark_node,
     }))
     quant_review = w2['quant_review_node']
     cross_sectional_factor_ctx = w2['cross_factor_node']
     t0_setups = w2['t0_node']
-    news_evidence_ctx = w2['news_evidence_node']
 
     w3 = _join(_run_wave({
         't0_review_node': t0_review_node,
         'evidence_node': evidence_node,
+        'news_evidence_node': news_evidence_node,
     }))
     t0_review = w3['t0_review_node']
+    news_evidence_ctx = w3['news_evidence_node']
 
     # [10] V2 episode metrics — triggered-only, strategy-aware, cluster-bootstrap.
     # Settle runs only AFTER daily-bars finished at the WAVE1 barrier: settling

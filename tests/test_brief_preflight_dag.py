@@ -291,7 +291,10 @@ def test_wave_nodes_execute_exactly_once_and_respect_edges(tmp_path, monkeypatch
     assert tl.start['t0_node'] >= tl.end['quant_node']
     assert tl.start['quant_review_node'] >= tl.end['quant_node']
     assert tl.start['cross_factor_node'] >= tl.end['quant_node']
-    # em-news + catalysts complete before news-evidence builds its graph
+    # em-news + catalysts complete before news-evidence builds its graph,
+    # and cross-factor's rewrite of cross_sectional_factor.json lands before
+    # news-evidence reads it for the confirmation gate (J-P1-1)
+    assert tl.start['news_evidence_node'] >= tl.end['cross_factor_node']
     assert tl.start['news_evidence_node'] >= max(tl.end['em_news_node'],
                                                  tl.end['catalysts_node'])
     # evidence page rebuilds only after quant-review + cross-factor finalize
@@ -328,8 +331,8 @@ def test_issues_order_is_deterministic_regardless_of_completion_order(tmp_path, 
         'FX fallback used: provider down',
         'daily bar refresh failed',
         'catalysts fetch failed',
-        'news evidence graph failed',
         'benchmark history fetch failed',
+        'news evidence graph failed',
     ]
     failures = {
         'analyze-us': (1, ''),
