@@ -44,10 +44,20 @@ jobs:
       - name: Validate sentiment coverage
         run: clawock validate-sidecar sentiment
 
+      - name: Snapshot point-in-time copy
+        # factor-snapshots/ keeps a verbatim dated copy of every sidecar
+        # generation (#936): the live file is overwritten in place, so any
+        # later factor research reading it would see today's data, not what
+        # the day's decisions actually saw. Research reads the dated row.
+        run: python3 ops/ci/snapshot_factor_sidecar.py --source assets/data/sentiment.json
+
       - name: Commit
         # Shared helper commits only this workflow's sidecar. The frontend fetches
         # it directly; dashboard.json is not rebuilt for it.
         env:
           CLAWOCK_PUBLISH_SSH_KEY: ${{ secrets.CLAWOCK_PUBLISH_SSH_KEY }}
         run: |
-          bash ops/publish/gha_commit_push.sh "sentiment: daily Reddit + Google News scan $(date -u +%Y-%m-%d)" assets/data/sentiment.json
+          bash ops/publish/gha_commit_push.sh \
+            "sentiment: daily Reddit + Google News scan $(date -u +%Y-%m-%d)" \
+            assets/data/sentiment.json \
+            assets/data/factor-snapshots/sentiment
