@@ -73,7 +73,27 @@ async function main() {
 
   const pool = new SimplePool();
   const results = await Promise.allSettled(pool.publish(RELAYS, evt));
-  const ok = results.filter((r) => r.status === "fulfilled").length;
+  // pool.publish RESOLVES a relay it could not even connect to, with the
+  // string "connection failure: …" (nostr-tools abstract-pool.js); only an
+  // explicit OK / rejection from a connected relay settles the promise the
+  // way its status suggests. Counting settled-fulfilled results as published
+  // therefore reported green on a day when every relay was unreachable —
+  // accepted, not confirmed, which for a broadcast is a silent drop.
+  const failed = [];
+  let ok = 0;
+  for (const r of results) {
+    if (r.status === "fulfilled" && !String(r.value ?? "").startsWith("connection failure")) {
+      ok += 1;
+    } else {
+      const why = r.status === "fulfilled"
+        ? String(r.value ?? "")
+        : String((r.reason && r.reason.message) || r.reason || "rejected");
+      failed.push(why);
+    }
+  }
+  if (failed.length) {
+    console.error(`not accepted (${failed.length}/${RELAYS.length}): ${failed.join(" | ")}`);
+  }
   console.error(`published to ${ok}/${RELAYS.length} relays`);
   console.error(`view   : https://njump.me/${nip19.neventEncode({ id: evt.id, relays: RELAYS.slice(0, 2) })}`);
   try { pool.close(RELAYS); } catch (_) { /* ignore */ }

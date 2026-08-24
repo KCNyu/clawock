@@ -50,7 +50,7 @@ from pathlib import Path
 from ._watchdog_common import (
     WS, HKT, log, find_job_id, today_runs,
     transcript_loop_score, last_report_text, send_telegram, KCN_TELEGRAM,
-    same_generation_window,
+    same_generation_window, attempt_still_running,
 )
 
 LOOP_THRESHOLD = 5                 # transcript loop_score ≥ this ⇒ mimo repeat-loop ⇒ garbage
@@ -185,6 +185,22 @@ def main():
         return 0
 
     ctx_id = ctx.get('context_id')
+
+    # --- In-flight gate: never judge a slot that has not finished -------------
+    # Shared rule, born in intraday_watchdog after 2026-08-11 00:00 US: the run
+    # record only holds FINISHED attempts, so the newest completed run can be an
+    # error from an attempt a later retry has already superseded. Judging then
+    # sends the deterministic fallback while the real report is still being
+    # generated — kcn gets both, one minute apart. A context written after the
+    # newest finished run ended is the on-disk proof another attempt is live.
+    if attempt_still_running(ctx, last):
+        log({'tag': tag, 'action': 'defer',
+             'reason': 'a newer attempt is still running — preflight context '
+                       'postdates the newest finished run',
+             'context_generated_at': ctx.get('generated_at'),
+             'last_finished_ms': last.get('ts'),
+             'run_at': run_at})
+        return 0
 
     marker_path = WS / 'memory' / '.tmp' / f'report-sent-{args.market}-{args.phase}-{today}.json'
     marker = None
