@@ -1213,16 +1213,16 @@ test("balance: CNY picking, tolerant parsing and the service's polite-cadence st
     globalThis.fetch = originalFetch;
   }
 
-  // MiniMax with no key configured ANYWHERE (seam/env/openclaw config) is an
-  // honest panel row, not an error. The openclaw fallback must be pointed at
-  // a missing file — the real one on this host carries the production key.
+  // MiniMax with no key configured ANYWHERE (seam, env, then the gateway
+  // config fallback) is an honest panel row, not an error. That fallback must
+  // be pointed at a missing file — the real one carries the production key.
   const mmMissing = { credentials: { resolve: async () => undefined }, env: {} };
   const savedEnv = process.env.MINIMAX_API_KEY;
   delete process.env.MINIMAX_API_KEY;
   try {
     const mmNoKey = await createMinimaxService(
       { credentials: { resolve: async () => undefined } },
-      { openclawConfigPath: "/nonexistent/openclaw.json" },
+      { openclawConfigPath: "/nonexistent/provider-keys.json" },
     ).get(false);
     assert.equal(mmNoKey.status, "no-key");
     assert.match(mmNoKey.message, /未配置/);
@@ -1236,7 +1236,7 @@ test("balance: CNY picking, tolerant parsing and the service's polite-cadence st
   const fsMod = await import("node:fs");
   const pathMod = await import("node:path");
   const tmpCfg = fsMod.mkdtempSync(pathMod.join(osMod.tmpdir(), "pb-"));
-  const cfgPath = pathMod.join(tmpCfg, "openclaw.json");
+  const cfgPath = pathMod.join(tmpCfg, "gateway-keys.json");
   fsMod.writeFileSync(cfgPath, JSON.stringify({ models: { providers: { minimax: { apiKey: "mm-from-openclaw" } } } }));
   let sawAuth = "";
   globalThis.fetch = async (url, init) => {

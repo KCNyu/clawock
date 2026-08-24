@@ -453,6 +453,11 @@ HOST_OWNED_SHELL = {
            "instead of vendoring a duplicate dependency; NOSTR_TOOLS_PATH "
            "overrides the path and a missing OpenClaw install falls through "
            "to a bare require() rather than silently using stale data"),
+    "examples/dsh/packages/clawock-dsh/lib/balance.js": (
+        2, "the balance chip's key-resolution chain ends at the gateway's own "
+           "provider config — the documented default IS the feature on this "
+           "host: credentials seam and env resolve first, and the "
+           "openclawConfigPath setting overrides the constant"),
 }
 
 def _shell_files():
