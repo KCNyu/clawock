@@ -980,15 +980,9 @@ body[data-ds-dark-theme] .pbc {
 }
 .pbc .bchip-v[data-balance-state="low"] { color:var(--bad) }
 .pbc .bchip-v[data-balance-state="none"] { color:var(--cap); font-weight:500 }
-/* 配额头条数字按用量档位染色(kcn 配色口径):低用量=安心绿,逼近上限
-   先黄后红;档位阈值由 lowPct 派生(默认 20 → 60% 黄 / 80% 红)。金额行
-   不带该属性,保持墨色、low 红走 tone。 */
-.pbc .bchip-v[data-used-level="ok"] { color:var(--ok) }
-.pbc .bchip-v[data-used-level="mid"] { color:var(--warn) }
-/* stale 黄必须排在用量档之后(与面板 bp-win-fill 同一优先级):这几条选择器
-   特异度相同,同元素同时带 data-balance-state 与 data-used-level,源序后者赢
-   ——排在前面的 stale 规则会被 ok/mid 档盖成「安心绿」,数字不可信的信号丢失。
-   spec 的 CSS 契约钉住了这条顺序。 */
+/* 头条数字默认中性墨水(kcn 反馈:用量到 80% 变色这类档位显示不要),
+   离开墨色的只剩错误状态:金额行 low 红(官方判定余额不足)、stale 黄
+   (刷新失败,读数不可信)、未加载灰。配额行的数字永远不上色。 */
 .pbc .bchip-v[data-balance-state="stale"] { color:var(--warn) }
 /* 头条窗口的重置时刻:小号等宽,回答「什么时候恢复」,面板每窗一行
    (bp-win-reset)是同一视觉语言的完整版。 */
@@ -1127,7 +1121,8 @@ body[data-ds-dark-theme] .pbc {
 /* Per-window grid: one line per quota window — label / remaining / reset —
    plus a hairline remaining-bar under it. The bar is a translucent ink track
    ON the frosted panel (no second glass layer — glass inside glass reads as
-   mud), fill at ink strength, warning tones only below the low watermark. */
+   mud), fill at ink strength — a plain progress bar that never repaints by
+   usage; only a stale (refresh-failed) reading turns warning yellow. */
 .pbc .bp-wins {
   grid-column:1 / -1;
   display:flex;
@@ -1175,13 +1170,11 @@ body[data-ds-dark-theme] .pbc {
 .pbc .bp-win-fill {
   height:100%;
   border-radius:2px;
-  /* 填充=已使用量,颜色按用量档位(kcn 配色口径):低=绿、逼近上限先黄
-     后红——不再是中性墨水,条的本身颜色就是状态读数。 */
-  background:var(--ok);
+  /* 填充=已使用量,统一中性墨水色——就是一条普通进度条,不随用量变色
+     (kcn 反馈)。唯一例外是 stale:刷新失败的读数不可信,黄是错误状态。 */
+  background:color-mix(in srgb, var(--text) 42%, transparent);
   transition:background .15s
 }
-.pbc .bp-win-fill[data-balance-state="mid"] { background:var(--warn) }
-.pbc .bp-win-fill[data-balance-state="low"] { background:var(--bad) }
 .pbc .bp-win-fill[data-balance-state="stale"] { background:var(--warn) }
 .pbc .bp-note, .pbc .bp-sub {
   grid-column:1 / -1;
