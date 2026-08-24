@@ -800,15 +800,6 @@ def main(argv=None):
                          + ('\n- ...' if len(issues) > 5 else '')
                          + '\n\n')
 
-    commit_ok, commit_msg = maybe_commit(
-        publication_status, today, dry_run=args.dry_run
-    )
-    if (status in ('pass', 'warn') and projection_ready
-            and not args.dry_run):
-        data_plane_status = dashboard_publication_state(WS)
-    else:
-        data_plane_status = 'skipped'
-
     # ── WeChat delivery (decoupled from the cron's announce) ──────────────────
     # The cron now runs delivery=none. The announce used to fire at the END of a
     # long agent turn with a token captured at turn START → expired mid-turn
@@ -895,6 +886,23 @@ def main(argv=None):
             if not wechat_sent:
                 print(f'warn: WeChat send failed (watchdog will retry): {str(send_out)[:200]}',
                       file=sys.stderr)
+
+    # ── Commit AFTER delivery (report/intraday order, #765) ───────────────────
+    # maybe_commit runs log_decisions + rebuild_dashboard + git push — seconds of
+    # local work the reader never sees. Delivering first means the card lands a
+    # full dashboard-rebuild earlier and brief_watchdog's 08:30 pass finds the
+    # sent-marker already written instead of racing a still-running postflight
+    # (the TG double-card window). The card itself is order-independent: it reads
+    # the LLM's brief-card file, or plan fields (book/decisions) that
+    # log_decisions never rewrites.
+    commit_ok, commit_msg = maybe_commit(
+        publication_status, today, dry_run=args.dry_run
+    )
+    if (status in ('pass', 'warn') and projection_ready
+            and not args.dry_run):
+        data_plane_status = dashboard_publication_state(WS)
+    else:
+        data_plane_status = 'skipped'
 
     result = {
         'status':        status,

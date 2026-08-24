@@ -541,8 +541,10 @@ BRIEF_FALLBACK_WORKFLOW = 'brief-fallback.yml'
 # brief-fallback.yml refuses to build a pre-open brief anyway. Observed runtime is
 # ~5-8 min (2026-08-11: 8m01s), so 15 min covers a slow run without risking the
 # hard cutoff, and a timeout here is reported as 'pending', never as success.
+# 60s polling halves the gh spawn count against a ~5-8min run; the worst-case
+# +30s detection lag is irrelevant for a message that lives for hours.
 BRIEF_FALLBACK_POLL_BUDGET_S = 15 * 60
-BRIEF_FALLBACK_POLL_INTERVAL_S = 30
+BRIEF_FALLBACK_POLL_INTERVAL_S = 60
 
 
 def _parse_iso(value):
@@ -885,6 +887,11 @@ def last_report_text(session_id, first_line):
     found = None
     try:
         for line in p.read_text().splitlines():
+            # Substring prefilter before json.loads: transcripts are dominated
+            # by tool-result lines this function can never match, and each
+            # parsed-but-rejected line costs a full json.loads.
+            if not first_line or first_line not in line:
+                continue
             try:
                 e = json.loads(line)
             except Exception:
@@ -952,6 +959,11 @@ def transcript_loop_score(session_id):
     txt = []
     try:
         for line in p.read_text().splitlines():
+            # Cheap prefilter: only assistant-role lines serialize the literal
+            # `"assistant"`, and tool-result bulk (most of every transcript)
+            # never contributes text here.
+            if '"assistant"' not in line:
+                continue
             try:
                 e = json.loads(line)
             except Exception:
