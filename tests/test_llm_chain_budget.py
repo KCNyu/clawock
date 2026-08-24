@@ -108,3 +108,31 @@ def test_an_exhausted_budget_yields_instead_of_burning_the_last_seconds():
     assert llm._attempt_timeout(900, None, "x") == 900
     clamped = llm._attempt_timeout(900, time.monotonic() + 30, "x")
     assert 25 <= clamped <= 30
+
+
+def test_both_provider_legs_reuse_one_session(monkeypatch):
+    """C-F2: retry chains used to open a fresh TCP+TLS handshake per attempt;
+    both legs must go through the module-level Session pool instead."""
+    calls = []
+
+    class _FakeResponse:
+        status_code = 200
+
+        def json(self):
+            return {"content": [{"type": "text", "text": "ok"}],
+                    "usage": {"prompt_tokens": 1, "completion_tokens": 1}}
+
+    class _FakeSession:
+        def post(self, url, **kwargs):
+            calls.append(url)
+            return _FakeResponse()
+
+    monkeypatch.setattr(llm, "_SESSION", _FakeSession())
+
+    out = llm._call_provider(
+        label="primary", base_url="https://p.example", api_key="k",
+        model="m", messages=[{"role": "user", "content": "hi"}],
+        max_tokens=8, timeout=5, temperature=0.5,
+        json_response=False, thinking=None)
+    assert out == "ok"
+    assert calls == ["https://p.example/v1/messages"]

@@ -58,6 +58,11 @@ import time
 
 import requests
 
+# Module-level session: provider legs reuse one connection pool instead of a
+# fresh TCP+TLS handshake per attempt (C-F2). Retry chains are exactly where
+# this pays — the fallback leg often fires seconds after the primary died.
+_SESSION = requests.Session()
+
 MINIMAX_BASE = 'https://api.minimaxi.com/anthropic'
 MINIMAX_MODEL = 'MiniMax-M3'
 MINIMAX_MAX_TOKENS = 131072  # M3 maxOutput
@@ -233,7 +238,7 @@ def _call_provider(label, base_url, api_key, model, messages, max_tokens,
             last_err = last_err or 'budget exhausted before any attempt completed'
             break
         try:
-            r = requests.post(f'{base_url}/v1/messages',
+            r = _SESSION.post(f'{base_url}/v1/messages',
                               json=body, headers=headers, timeout=per_attempt)
             if r.status_code == 200:
                 data = r.json()
@@ -294,7 +299,7 @@ def _call_provider_openai_compatible(label, base_url, api_key, model, messages,
             last_err = last_err or 'budget exhausted before any attempt completed'
             break
         try:
-            r = requests.post(f'{base_url}/chat/completions',
+            r = _SESSION.post(f'{base_url}/chat/completions',
                               json=body, headers=headers, timeout=per_attempt)
             if r.status_code == 200:
                 data = r.json()
