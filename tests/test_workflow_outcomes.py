@@ -438,6 +438,11 @@ def test_a_receipt_reconciles_a_slot_whose_sender_was_killed_after_the_send(
     record = outcomes.load_ledger()["records"][0]
     assert record["stages"]["primary_delivery"]["status"] == "success"
     assert record["stages"]["primary_delivery"]["source"] == "delivery_receipt"
+    # The receipt carries the per-channel facts (#968): the reconciled stage
+    # must name them, not fold them back into "wechat_or_telegram".
+    assert record["stages"]["primary_delivery"]["channel"] == "wechat+telegram"
+    assert record["stages"]["primary_delivery"]["wechat_ok"] is True
+    assert record["stages"]["primary_delivery"]["telegram_ok"] is True
     assert record["final_product"]["status"] == "success"
 
 
@@ -452,6 +457,29 @@ def test_reconciliation_records_a_failed_send_as_failed(tmp_path, monkeypatch):
     assert outcomes.reconcile_delivery_receipts() == 1
     record = outcomes.load_ledger()["records"][0]
     assert record["stages"]["primary_delivery"]["status"] == "failed"
+
+
+def test_a_reconciled_wechat_drop_is_counted_by_the_summary(tmp_path, monkeypatch):
+    """#771's count reads wechat_ok/telegram_ok flags. A reconciled slot whose
+    receipt says WeChat failed and Telegram carried it must land in
+    `wechat_dropped_telegram_covered`, not vanish behind a constant string."""
+    from clawock.publish.outcomes import summarize_records
+
+    _isolate(tmp_path, monkeypatch)
+    tmp = _receipts(tmp_path, monkeypatch)
+    slot = "2026-07-24T13:30:00+08:00"
+    job = "港股午后快报"
+    outcomes.record_stage(job, "preflight", "success", slot=slot)
+    outcomes.record_stage(job, "llm", "success", slot=slot)
+    (tmp / "report-sent-hk-pm-2026-07-24.json").write_text(
+        json.dumps({"sent_ok": False, "tg_ok": True, "market": "hk", "phase": "pm"})
+    )
+    assert outcomes.reconcile_delivery_receipts() == 1
+    summary = summarize_records(
+        outcomes.load_ledger()["records"], hours=36,
+        now=datetime(2026, 7, 24, 20, 0, tzinfo=outcomes.HKT),
+    )
+    assert summary["wechat_dropped_telegram_covered"] == 1
 
 
 def test_reconciliation_never_invents_a_slot_the_ledger_is_not_tracking(
