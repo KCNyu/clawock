@@ -86,14 +86,18 @@ def test_no_inline_lane_classification_left_in_the_workflow():
     python -c one-liner."""
     from workflow_contract_helpers import step_block
 
-    assert TEXT.count("ops/ci/push_scope.py") >= 3, (
-        "detector, lint scope and CodeQL scope all route through one classifier")
+    # Two invocations, not three: #910 deleted CodeQL's own copy and made the
+    # `analyze` job read `lint`'s published classification instead of starting
+    # three runners to recompute it. What must stay true is the property this
+    # test was written for — every gate reads the one classifier, and none of
+    # them grows its own diff-parsing bash.
+    assert TEXT.count("ops/ci/push_scope.py") >= 2, (
+        "the lint/scope job and the detector both route through one classifier")
     assert "ops/ci/smoke_fx.py" in TEXT, (
         "smoke-data-fetch must run the script, not an inline python -c")
 
-    for step in ("Did any workflow file change?",
+    for step in ("Classify this event",
                  "Detect code changes",
-                 "Did the push touch anything analysable?",
                  "FX fallback chain"):
         block = step_block(CI, step)
         assert "python3 -c" not in block and 'case "$f"' not in block, (

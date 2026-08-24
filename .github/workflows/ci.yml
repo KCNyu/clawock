@@ -89,6 +89,14 @@ jobs:
     # Was actionlint.yml: a 12-second lint should not pay for its own workflow
     # file, its own trigger block and its own runner on every event. The job
     # name keeps the required `lint` context byte-identical.
+    #
+    # It is also this workflow's scope job, and deliberately not a *new* job:
+    # it already runs on every event and already pays a checkout to classify
+    # the push, so `analyze` can read the answer from here instead of starting
+    # three runners to compute it again (#910). Adding a separate `scope` job
+    # would have cost every run an extra runner to save three on 22% of pushes.
+    outputs:
+      analysable: ${{ steps.scope.outputs.analysable }}
     runs-on: ubuntu-latest
     timeout-minutes: 3
     steps:
@@ -101,23 +109,28 @@ jobs:
       # .github/workflows/ instead; undiffable ranges lint anyway (fail toward
       # running a 12s check rather than skipping it). Classification lives in
       # ops/ci/push_scope.py — the same classifier the other two gates read.
-      - name: Did any workflow file change?
+      #
+      # The whole classification is published (not just `workflows=`): the
+      # `analysable` lane is what gates CodeQL below. Non-push events answer
+      # "everything" for both lanes — a PR is always linted and always
+      # analysed, which is what the required contexts need.
+      - name: Classify this event
         id: scope
         env:
           BASE_SHA: ${{ github.event.before }}
         run: |
           set -euo pipefail
           if [ "${{ github.event_name }}" != "push" ]; then
-            echo "workflows=true" >> "$GITHUB_OUTPUT"
+            printf 'workflows=true\nanalysable=true\n' >> "$GITHUB_OUTPUT"
             exit 0
           fi
           if [ -n "${BASE_SHA:-}" ] && [ "${BASE_SHA}" != "0000000000000000000000000000000000000000" ] \
              && git fetch --quiet --depth=1 origin "${BASE_SHA}"; then
             python3 ops/ci/push_scope.py --base "${BASE_SHA}" --head HEAD \
-              | grep '^workflows=' >> "$GITHUB_OUTPUT"
+              | tee -a "$GITHUB_OUTPUT"
           else
-            echo "no diffable base (${BASE_SHA:-}) — linting"
-            echo "workflows=true" >> "$GITHUB_OUTPUT"
+            echo "no diffable base (${BASE_SHA:-}) — linting and analysing"
+            printf 'workflows=true\nanalysable=true\n' >> "$GITHUB_OUTPUT"
           fi
 
       - name: Install pinned actionlint
@@ -631,7 +644,26 @@ jobs:
     # private ignore-list — plus the data-path guard below for the handful of
     # watched-but-unanalysable files this trigger does list (portfolio.json,
     # memory plans/theses).
+    #
+    # The gate moved from a step to the job (#910). It used to live in two
+    # `if:`s on the CodeQL steps, which meant an unanalysable push still
+    # started three runners, checked out the tree and re-ran the classifier
+    # just to conclude there was nothing to do — measured 6 of the last 27
+    # push runs, three jobs each. Reading `lint`'s classification instead
+    # skips the jobs outright.
+    #
+    # `always()` is required because `needs: lint` would otherwise cancel this
+    # job whenever lint is skipped, and `needs.lint.result != 'success'` is the
+    # fail-open half: if the classifier could not run, analyse. A gate that
+    # silently drops CodeQL when its input is missing is the failure mode this
+    # repository has been bitten by before — a discovery gate must fail toward
+    # doing the work. test_ci_codeql_gate.py pins both halves.
     name: Analyze (${{ matrix.language }})
+    needs: lint
+    if: >-
+      ${{ always() && (github.event_name != 'push'
+          || needs.lint.result != 'success'
+          || needs.lint.outputs.analysable == 'true') }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     permissions:
@@ -656,28 +688,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
 
-      # Push lane only: skip the analysis when every changed path is one of the
-      # automation-written data paths that carry no analysable code. Mirrors
-      # the ignore-list codeql.yml carried when this lived in its own file;
-      # undiffable ranges analyse anyway (fail toward running).
-      - name: Did the push touch anything analysable?
-        id: scope
-        if: github.event_name == 'push'
-        env:
-          BASE_SHA: ${{ github.event.before }}
-        run: |
-          set -euo pipefail
-          if [ -n "${BASE_SHA:-}" ] && [ "${BASE_SHA}" != "0000000000000000000000000000000000000000" ] \
-             && git fetch --quiet --depth=1 origin "${BASE_SHA}"; then
-            python3 ops/ci/push_scope.py --base "${BASE_SHA}" --head HEAD \
-              | grep '^analysable=' >> "$GITHUB_OUTPUT"
-          else
-            echo "no diffable base (${BASE_SHA:-}) — analysing"
-            echo "analysable=true" >> "$GITHUB_OUTPUT"
-          fi
-
       - name: Initialize CodeQL
-        if: github.event_name != 'push' || steps.scope.outputs.analysable == 'true'
         uses: github/codeql-action/init@v4
         with:
           languages: ${{ matrix.language }}
@@ -688,7 +699,6 @@ jobs:
           # separate decision with its own alert backlog.
 
       - name: Perform CodeQL analysis
-        if: github.event_name != 'push' || steps.scope.outputs.analysable == 'true'
         uses: github/codeql-action/analyze@v4
         with:
           category: "/language:${{ matrix.language }}"
