@@ -19,6 +19,37 @@ from pathlib import Path
 from clawock.automation.llm import chat
 from clawock.decision import ledger as decision_v2
 
+# Prompt budget for the single-turn weekly review, measured in serialized-JSON
+# characters. A sanity bound, not a writing target: the old prompt embedded
+# `json.dumps(bundle)[:40000]`, sized when the bundle was small. By 2026-08 the
+# bundle serialized to 702K characters, so the slice kept 5.7% of it, landed
+# mid-string (a malformed JSON tail), and silently hid decision_metrics /
+# snapshots / current_risk / input_warnings behind a cut the model could not
+# see — while the prompt's question 3 asks for exactly the current risk
+# numbers (#959). Same defect class brief_fallback.prepare_context fixed for
+# the daily brief: never cut a serialized string; drop whole values instead
+# and declare what was dropped.
+PROMPT_BUDGET_CHARS = 200_000
+
+# Machine-owned fields on decision / episode records that no review question
+# consumes; the harness already distills them into decision_episodes /
+# decision_metrics. signal_provenance alone was ~76% of the decisions bytes in
+# committed plans and also rides on every episode representative.
+DECISION_PROMPT_DROP_FIELDS = ('signal_provenance',)
+
+# Per-holding fields the review questions can actually use (book composition
+# start-vs-end for contributor/drag attribution). Intraday OHLCV/volume/
+# trade-tape detail and gold_dca stay out of the prompt; the NAV series they
+# would support lives in bundle_evidence.nav_points.
+HOLDING_PROMPT_FIELDS = ('ticker', 'name', 'current_value',
+                         'pnl_percent', 'today_change_pct')
+
+# Top-level sections that may be omitted WHOLE, largest first, when the
+# projected payload still exceeds the budget. Everything else — window,
+# bundle_evidence, decision_episodes, current_risk, input_warnings — is small
+# and load-bearing for specific questions, so it is never dropped.
+OMITTABLE_SECTIONS = ('plans', 'snapshots', 'decision_metrics')
+
 
 def _load_json(path, kind, errors):
     try:
@@ -211,6 +242,93 @@ def validate_bundle(bundle):
     return evidence
 
 
+def _compact(value):
+    return json.dumps(value, ensure_ascii=False, separators=(',', ':'))
+
+
+def _slim_decision(decision):
+    if not isinstance(decision, dict):
+        return decision
+    return {k: v for k, v in decision.items()
+            if k not in DECISION_PROMPT_DROP_FIELDS}
+
+
+def _slim_snapshot(snapshot):
+    """Keep per-leg totals plus per-holding attribution fields for a snapshot day."""
+    slim = {'last_updated': snapshot.get('last_updated')}
+    portfolios = snapshot.get('portfolios')
+    legs = {}
+    for leg, pf in (portfolios or {}).items():
+        if not isinstance(pf, dict):
+            legs[leg] = pf
+            continue
+        cash = pf.get('cash_usd') if leg == 'us_stocks' else pf.get('cash_hkd')
+        holdings = [
+            {field: holding.get(field) for field in HOLDING_PROMPT_FIELDS}
+            for holding in pf.get('holdings') or []
+            if isinstance(holding, dict)
+        ]
+        legs[leg] = {
+            'total_current_value': pf.get('total_current_value'),
+            'total_pnl': pf.get('total_pnl'),
+            'today_total_change': pf.get('today_total_change'),
+            'cash': cash,
+            'holdings': holdings,
+        }
+    slim['portfolios'] = legs
+    return slim
+
+
+def build_prompt_payload(bundle, budget=PROMPT_BUDGET_CHARS):
+    """Project the aggregated bundle into the payload the LLM prompt embeds.
+
+    Two layers, both structural:
+
+    1. Projection — strip machine-owned bulk no question consumes (per-decision
+       provenance; per-holding market microdetail). On committed 2026-08 data
+       this takes the bundle from 702K to 145–280K characters depending on how
+       decision-heavy the week was.
+    2. Whole-value omission — if the projected payload still exceeds `budget`,
+       drop entire sections largest-first from OMITTABLE_SECTIONS and declare
+       each in a top-level `_omitted` manifest that rides inside the payload,
+       so the model is told about the gap instead of silently reading a sliced
+       half-JSON. On heavy weeks this drops `plans` first, which is deliberate:
+       its content is the daily raw view of the same decisions decision_episodes
+       and decision_metrics already distill. The serialized result must always
+       json.loads cleanly; there is deliberately no character-slice fallback.
+    """
+    def project_plan(entry):
+        data = entry.get('data') or {}
+        projected = dict(data)
+        if isinstance(data.get('decisions'), list):
+            projected['decisions'] = [_slim_decision(d) for d in data['decisions']]
+        return {'date': entry.get('date'), 'data': projected}
+
+    payload = dict(bundle)
+    payload['plans'] = [project_plan(p) for p in bundle.get('plans') or []]
+    payload['snapshots'] = [_slim_snapshot(s) for s in bundle.get('snapshots') or []]
+    if isinstance(bundle.get('decision_episodes'), list):
+        payload['decision_episodes'] = [
+            _slim_decision(e) for e in bundle['decision_episodes']]
+
+    omitted = []
+    while True:
+        # The manifest is part of the payload, so it is re-attached every pass:
+        # dropping a section may let a smaller one survive, and the final
+        # manifest must name exactly what is missing from this payload.
+        payload['_omitted'] = omitted
+        if len(_compact(payload)) <= budget:
+            break
+        sizes = [(len(_compact(payload[name])), name)
+                 for name in OMITTABLE_SECTIONS if name in payload]
+        if not sizes:
+            break  # nothing omittable left: stay honest rather than slice
+        size, name = max(sizes)
+        payload.pop(name)
+        omitted.append({'section': name, 'bytes': size})
+    return payload
+
+
 def main():
     bundle = aggregate_week()
     validate_bundle(bundle)
@@ -218,6 +336,7 @@ def main():
 
     system = "You are Rick, kcn's HK+US stock analyst. Write a weekly portfolio review."
 
+    payload = build_prompt_payload(bundle)
     user = (
         f"根据这一周（{week_id}）的 brief / plan / decision v2 / risk 数据, "
         f"写一篇 markdown 周复盘。长度 1500-2500 字。"
@@ -228,7 +347,9 @@ def main():
         "2. **决策兑现**: 按 strategy episode 汇总触发、执行和 win/loss；不要把每日重复 call 当独立样本\n"
         "3. **风险演变**: 当前 risk.json 数值, β/Vol/Max DD/Sharpe 怎么走?\n"
         "4. **下周关注 3 条**: actionable (ticker + 触发条件 + 仓位影响)\n\n"
-        f"数据 bundle (JSON):\n```json\n{json.dumps(bundle, ensure_ascii=False)[:40000]}\n```\n\n"
+        f"数据 bundle (JSON):\n```json\n{json.dumps(payload, ensure_ascii=False)}\n```\n\n"
+        "若上面 JSON 含 `_omitted`，对应 section 因 prompt 预算被整体省略——"
+        "相关小节必须如实写数据缺口，禁止编造。\n\n"
         "直接出 markdown, 不要客套."
     )
 
