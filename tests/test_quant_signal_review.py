@@ -122,9 +122,12 @@ def test_empty_history_has_no_rates_or_unlocked_factors(monkeypatch):
             "ci_method": "date_ticker_two_way_cluster_bootstrap",
             "edge_significant": False,
             "reverse_edge_significant": False,
+            "sample_sufficient": False,
+            "min_n": 20,
+            "non_overlap_cap": 0,
             "decision_direction": None,
             "usable": False,
-            "note": "date/ticker 聚类不足，方向结论不入决策",
+            "note": "样本 < 20，方向结论不入决策（#934 与文档承诺对齐）",
         }
         for factor in result["factors"].values()
     )
@@ -172,9 +175,16 @@ def test_low_hit_rate_reverses_only_when_cluster_ci_is_below_half(monkeypatch):
     assert factor["ci95"] == [0.0, 0.0]
     assert factor["edge_significant"] is False
     assert factor["reverse_edge_significant"] is True
-    assert factor["decision_direction"] == "reverse"
-    assert factor["usable"] is True
-    assert "反向" in result["summary"]
+    # #934 alignment with setup_review: decision_direction only carries a
+    # value when the conclusion is actually usable; a reverse reading is
+    # surfaced via reverse_edge_significant/note, never auto-traded.
+    assert factor["decision_direction"] is None
+    assert factor["usable"] is False
+    assert "反向" in factor["note"]
+    # 旧契约把「反向 CI 成立」也标 usable=True 并写进 summary —— 等于自动反向
+    # 入决策。对齐 setup_review（#819/#934）：反向只展示（reverse_edge_
+    # significant/note），永不解锁，更不自动反向交易。
+    assert "trend_on_follow" not in result["summary"]
 
 
 def test_cluster_ci_crossing_half_stays_out_of_decisions(monkeypatch):
@@ -247,3 +257,21 @@ def test_cluster_ci_requires_both_date_and_ticker_clusters():
     ]
     assert review.clustered_ci(one_date) is None
     assert review.clustered_ci(one_ticker) is None
+
+
+def test_twenty_events_with_perfect_ci_still_need_min_n(monkeypatch):
+    """The #934 core case: 15 events, every one a hit — the cluster CI clears
+    50% entirely, but the documented 「样本<20 不解锁」 rule must hold. Under
+    the old code this exact shape unlocked usable=True on n=15."""
+    result = _run_review(
+        monkeypatch,
+        _clustered_factor_days("trend_on_follow", [[True] * 5] * 3),
+    )
+
+    factor = result["factors"]["trend_on_follow"]
+    assert factor["n_events"] == 15
+    assert factor["hit_rate"] == 1.0
+    assert factor["sample_sufficient"] is False
+    assert factor["usable"] is False
+    assert factor["decision_direction"] is None
+    assert "trend_on_follow" not in result["summary"]

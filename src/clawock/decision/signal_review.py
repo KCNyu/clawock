@@ -12,8 +12,10 @@
   stop_breached   → 破吊灯线后 T+5 继续跌的比例（止损线是否值得执行）
 
 写 assets/data/quant_signal_review.json。公开 events/dates/tickers 三种样本数并使用
-date×ticker 双向聚类 bootstrap CI。CI 跨 50% 不入决策；低于 50% 也只有在反向
-CI 整体成立时才允许反向解读，不按 raw n 自动解锁。
+date×ticker 双向聚类 bootstrap CI。解锁纪律与 t0_setup_review 对齐（#934）：
+MIN_N=20 样本不足不得当结论引用，CI 跨 50% 不入决策；低于 50% 也只有在反向
+CI 整体成立时才允许反向解读。T+5/T+20 窗口逐日重叠 → 披露 non_overlap_cap
+（标的数 × 天数 ÷ horizon），n 超过它时结论打折。
 纯本地文件运算，无网络请求，brief preflight 每日顺跑。
 """
 import json
@@ -27,6 +29,10 @@ from clawock.workspace import workspace_root
 WS = workspace_root(Path.cwd())
 HIST = WS / 'assets' / 'data' / 'quant_signals_history.jsonl'
 OUT = WS / 'assets' / 'data' / 'quant_signal_review.json'
+
+# 因子结论可被引用的最小样本量——与 setup_review.MIN_N 同一条纪律。此前文档
+# 承诺「样本<20 不解锁」但代码没有这个闸（#934），小样本假解锁全部偏向高估。
+MIN_N = 20
 
 # 因子 → (触发条件, 预期方向: +1=涨算命中 / -1=跌算命中, 结算窗口天数)
 FACTOR_TESTS = {
@@ -86,7 +92,8 @@ def main(argv=None):
                 continue
     days.sort(key=lambda d: d['as_of'])
 
-    stats = {k: {'n': 0, 'hits': 0, 'observations': []} for k in FACTOR_TESTS}
+    stats = {k: {'n': 0, 'hits': 0, 'observations': [], 'horizon': h}
+             for k, (_, _, h) in FACTOR_TESTS.items()}
     for i, day in enumerate(days):
         for sym, sig in (day.get('rows') or {}).items():
             c0 = sig.get('close')
@@ -120,15 +127,23 @@ def main(argv=None):
         reverse_sig = ci is not None and ci[1] < 0.5
         direction = ('original' if edge_sig else
                      'reverse' if reverse_sig else None)
-        usable_now = direction is not None
-        if ci is None:
+        # Unlock discipline, aligned with setup_review (#934): the sample-size
+        # gate comes first — a tiny-n CI clearing 50% is noise, not edge — then
+        # the cluster-CI gate decides the direction.
+        sample_sufficient = s['n'] >= MIN_N
+        if not sample_sufficient:
+            note = f'样本 < {MIN_N}，方向结论不入决策（#934 与文档承诺对齐）'
+            direction = None
+        elif ci is None:
             note = 'date/ticker 聚类不足，方向结论不入决策'
-        elif not usable_now:
+        elif direction is None:
             note = '聚类 CI 跨 50%，方向结论不入决策'
         elif reverse_sig:
             note = '反向聚类 CI 完全低于 50%，仅允许反向解读'
         else:
             note = ''
+        usable_now = (sample_sufficient and ci is not None
+                      and direction == 'original')
         factors[name] = {'n_events': s['n'],
                          'n_dates': len(dates),
                          'n_tickers': len(tickers),
@@ -137,7 +152,11 @@ def main(argv=None):
                          'ci_method': 'date_ticker_two_way_cluster_bootstrap',
                          'edge_significant': edge_sig,
                          'reverse_edge_significant': reverse_sig,
-                         'decision_direction': direction,
+                         'sample_sufficient': sample_sufficient,
+                         'min_n': MIN_N,
+                         'non_overlap_cap': (len(tickers) * (len(days) // s['horizon'])
+                                             if s['horizon'] else 0),
+                         'decision_direction': direction if usable_now else None,
                          'usable': usable_now,
                          'note': note}
         if usable_now and wr is not None:
