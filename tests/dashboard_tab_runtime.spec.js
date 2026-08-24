@@ -835,10 +835,10 @@ async function testHoldingsAndHeroNeverTruncate(browser, base) {
   // 数据到达前 #hero-rail 是空的。在给它 min-height 之前它高 1px，填满后
   // 85px（桌面），每次加载都跳一次 —— 实测这一下就是整页 CLS 的大头
   // (0.26 -> 0.04)。这里量的是「预留 == 实测」，比断言一个 CLS 数字稳。
-  // 六格 → 四格 → 三格（今日搬进自己那一行，Brier 出首屏）。这条闸量的从来
-  // 不是格数本身，而是「预留 == 实测」，格数只是用来钉住某次改版没有把断点
-  // 改塌。
-  for (const [width, expectCols] of [[390, 2], [900, 3], [1440, 3]]) {
+  // 六格 → 四格 → 今日搬进自己那一行后是美股/港股/距峰值/遵守率四格。
+  // 这条闸量的从来不是格数本身，而是「预留 == 实测」，格数只是用来钉住
+  // 某次改版没有把断点改塌。
+  for (const [width, expectCols] of [[390, 2], [900, 4], [1440, 4]]) {
     const context = await browser.newContext({ viewport: { width, height: 900 } });
     const page = await context.newPage();
     await stubLiveOrigin(page);
@@ -860,6 +860,58 @@ async function testHoldingsAndHeroNeverTruncate(browser, base) {
     assert.equal(after.cols, expectCols, `hero rail column count changed at ${width}px`);
     assert.equal(reserved, after.height,
       `hero rail shifts by ${after.height - reserved}px when data lands at ${width}px`);
+
+    // 每日盈亏柱必须整体落在自己的槽位容器里：柱子按槽位中心对齐后，首末
+    // 柱两侧各留半个槽位。此前 left:i/n 把第一根柱的中心压在容器左缘，
+    // max-width 9px 的柱有一半（4.5px）悬在容器外 —— 修的是落点，不是粗细：
+    // 「疏密随宽度变、粗细不变」的规矩由 max-width 继续承担，这里只闸
+    // 「柱体不得溢出容器左右缘」。
+    const barFit = await page.evaluate(() => {
+      const bars = document.querySelector(".ht-chart .rc-bars");
+      if (!bars) return null;
+      const bc = bars.getBoundingClientRect();
+      let minL = Infinity, maxR = -Infinity, count = 0;
+      for (const b of bars.querySelectorAll("i")) {
+        const r = b.getBoundingClientRect();
+        minL = Math.min(minL, r.left); maxR = Math.max(maxR, r.right); count += 1;
+      }
+      // clearance 语义：≥0 = 柱体在容器内，负数 = 溢出该侧的像素数。
+      return count ? { clearL: minL - bc.left, clearR: bc.right - maxR, count } : null;
+    });
+    assert(barFit && barFit.count > 5, `daily bars missing at ${width}px`);
+    assert(barFit.clearL >= -0.5 && barFit.clearR >= -0.5,
+      `daily bars overflow their container at ${width}px ` +
+      `(left ${barFit.clearL.toFixed(1)}px, right ${barFit.clearR.toFixed(1)}px)`);
+
+    // 数据健康的「在期」分段必须是品牌蓝，不是灰墨也不是涨跌色（#920 判据：
+    // 数据状态不参与赚亏表述）。color-mix 的计算值序列化成 color(srgb …)，
+    // 和 rgb() 形式的 token 比字符串永不相等 —— 期望值用探针走同一条
+    // color-mix 路径解析出来，两边同一序列化才比得出真伪。
+    const health = await page.evaluate(() => {
+      const probe = document.createElement("span");
+      document.body.appendChild(probe);
+      const tint = c => {
+        probe.style.color = "";
+        probe.style.color = c;
+        return getComputedStyle(probe).color;
+      };
+      const okSegs = [...document.querySelectorAll(".dh-seg.is-ok i")];
+      const fills = okSegs.map(s => getComputedStyle(s).backgroundColor);
+      // 探针读完再摘：摘掉之后 getComputedStyle 读的是游离节点，颜色恒为空。
+      const accentBlue = tint("color-mix(in srgb, var(--accent) 82%, transparent)");
+      const oldGrey = tint("color-mix(in srgb, var(--text) 38%, transparent)");
+      const negRed = tint("var(--negative)");
+      probe.remove();
+      return { accentBlue, oldGrey, negRed, fills };
+    });
+    if (health.fills.length) {
+      assert(health.fills.every(f => f === health.accentBlue),
+        `in-period health segments drifted off the brand blue: ${health.fills[0]} vs ${health.accentBlue}`);
+      assert(health.fills[0] !== health.oldGrey,
+        "in-period health segments render as plain ink — the ok state went back to grey");
+      assert(health.fills[0] !== health.negRed,
+        "in-period health segments carry a P&L colour — data state is not an up/down");
+    }
     await context.close();
   }
 

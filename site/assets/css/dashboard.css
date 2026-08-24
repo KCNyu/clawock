@@ -217,7 +217,8 @@
     .refresh-btn,
     .desk-rail,
     .status-banner,
-    .hero-deck {
+    .hero-deck,
+    .overview-verdict {
       -webkit-backdrop-filter: none;
       backdrop-filter: none;
     }
@@ -229,6 +230,10 @@
     .desk-rail { background: var(--surface-1); }
     .status-banner { background: var(--accent-soft); }
     .hero-deck { background: var(--surface-1); }
+    /* 判定卡的玻璃底是 55% 半透明面：blur 关掉后必须整体回实色，否则变成
+       「无模糊的透底」，背后的文字会从卡里透出来叠字。两段类名提高特异度
+       —— 这条闸在源码里排在 .overview-verdict 本体之前，同特异度会输。 */
+    .card.overview-verdict { background: var(--surface-1); }
     /* Same reason the sheens go: they are light passing through a material.
        On an opaque surface they are just a gradient nobody asked for. */
     .card, .hero-deck, .overview-strip { background-image: none; }
@@ -246,9 +251,13 @@
        page is not dead flat. Both are wide and low-contrast on purpose —
        visible as depth, never as a visible band. `background-attachment:
        fixed` keeps them still while panels scroll (apple-design §14: no
-       full-viewport moving background). */
+       full-viewport moving background).
+       2026-08-24: key light 拉高到 860px —— 判定卡改成半透明毛玻璃后，它
+       背后必须真的有光可糊（#887 判据）：原来的 620px 衰减在判定卡那一段
+       已经归零，玻璃糊的是一片平色。拉高之后光穿过两张玻璃面，材质才读得
+       出来。 */
     background:
-      radial-gradient(1100px 620px at 50% -14%, var(--bg-glow), transparent 68%),
+      radial-gradient(1240px 860px at 50% -12%, var(--bg-glow), transparent 70%),
       radial-gradient(900px 700px at 88% 108%, var(--bg-glow-2), transparent 72%),
       var(--bg);
     background-attachment: fixed;
@@ -2255,7 +2264,7 @@
      行数是固定的（标签 / 值 / 变化 / 备注），不会因为数据长短再变。
      min-height 而不是 height：真渲染出来更高时不裁。 */
   .hero-rail {
-    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+    display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
     border-top: 1px solid var(--border-subtle);
     /* 每格多了一件图形（比例条 / 每日柱）+ 一行说明，比纯数字那版高一档。
        152 = 四格并排时的数据态实测（768~1920 全档同高）。 */
@@ -2425,14 +2434,18 @@
   }
   .dh-seg i {
     position: absolute; left: 0; right: 0; bottom: 0; height: var(--used, 40%);
-    background: color-mix(in srgb, var(--text) 38%, transparent);
+    /* 在期=品牌蓝（#920「灰改品牌蓝」同判据）：数据新鲜度不是涨跌，
+       灰一片读不出「健康」和「没数据」的区别，涨跌色又不参与赚亏之外的
+       表述。逾期/缺失仍由 --warning/--red 接管（下方 is-* 覆盖）。
+       色彩预算仍是：涨跌两色 + 真告警红 + 品牌蓝，没有第四种装饰色。 */
+    background: color-mix(in srgb, var(--accent) 82%, transparent);
     border-radius: 3px;
   }
   .bs-dot {
     display: inline-block; width: 7px; height: 7px; border-radius: 50%;
     background: var(--text-tertiary); vertical-align: middle; margin-right: 2px;
   }
-  .bs-dot[data-tone="ok"] { background: var(--positive, var(--green)); }
+  .bs-dot[data-tone="ok"] { background: var(--accent); }
   .bs-dot[data-tone="warn"] { background: var(--warning); }
   .bs-dot[data-tone="bad"] { background: var(--negative, var(--red)); }
   .dh-caption {
@@ -2457,7 +2470,7 @@
     height: 4px; border-radius: 2px; overflow: hidden;
     background: color-mix(in srgb, var(--text) 8%, transparent);
   }
-  .dh-bar i { display: block; height: 100%; background: color-mix(in srgb, var(--text) 42%, transparent); }
+  .dh-bar i { display: block; height: 100%; background: color-mix(in srgb, var(--accent) 75%, transparent); }
   .dh-row.is-late .dh-bar i, .dh-row.is-missing .dh-bar i { background: var(--warning); opacity: 1; }
   .dh-row.is-missing .dh-bar i { background: var(--red); }
   .dh-state { color: var(--text-tertiary); text-align: right; white-space: nowrap; }
@@ -2501,6 +2514,16 @@
      的伴排改为独占整行。 */
   .overview-verdict {
     grid-column: 1 / -1; padding: 20px var(--card-inset) 18px;
+    /* 首屏第二块浮起来的表面（指挥台之后）：DSH 插件同款玻璃配方 ——
+       不透明色写在前（引擎不支持 color-mix/backdrop-filter 时退回实色卡），
+       半透明主题面 + backdrop blur + saturate。结构判据（#887）：毛玻璃
+       成立先证明背后有东西可糊 —— body 两盏 fixed 光已拉高到覆盖这一段，
+       指挥台的落影也从这层透出去；凹槽/量表那套光影不叠 blur，不做
+       「玻璃里再糊一层玻璃」。 */
+    background: var(--surface-1);
+    background: var(--sheen-1), var(--glass-card);
+    -webkit-backdrop-filter: blur(24px) saturate(170%);
+    backdrop-filter: blur(24px) saturate(170%);
     /* 原来的 480px 地板是为和 Equity 卡凑同一行；挪走后按各档实测内容高度
        重新预留（数据到达前占位，否则判定卡长高会把下方整列推下去 —— CLS
        实测 0.11，预留后回到基线）。
@@ -2508,21 +2531,52 @@
        is-pending 不占位的（#890），横幅日它出现时会在卡内把要点/硬闸往下推
        —— 整卡地板吸收这种内部重排，子行地板会把这次重排漏成页面级位移。
        地板值 = 构图定稿后横幅日扫宽实测上界 +2（见各断点注释）。
-       504：判词从 34px 大字报降到 19px 导语后重量的上界（1024 档 503）——
-       原来的 478 比数据态还矮，数据一到卡就长 10~25px，等于这条地板一直是
-       空的。 */
-    min-height: 504px;
+       2026-08-24 构图改双栏（宽屏左判词右硬闸），整卡数据态高度大幅收窄，
+       三档地板随之重量（值见 min-height 与各断点覆盖，横幅日扫宽取上界）。 */
+    min-height: 296px;
+  }
+  /* 宽屏双栏：左列=这张卡「说的话」（判定句 + 要点），右列=这张卡「管的
+     事」（触发中的硬闸）。此前四段全宽竖排、段段一条发丝线，整卡读成一摞
+     通栏横幅 —— 「大字报」的第二层（第一层字号 #927 已收）：构图要有主次
+     分栏。DOM 不动，grid-areas 重排；<1024 回单列自然流。 */
+  @media (min-width: 1024px) {
+    .overview-verdict {
+      display: grid;
+      grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+      grid-template-rows: auto auto 1fr;
+      grid-template-areas:
+        "head gates"
+        "verdict gates"
+        "points gates";
+      align-items: stretch; align-content: start;
+    }
+    .overview-verdict-head { grid-area: head; }
+    .overview-status { grid-area: verdict; }
+    .overview-verdict .today-highlights { grid-area: points; align-content: start; }
+    .overview-gates {
+      grid-area: gates; height: 100%;
+      border-top: 0; border-left: 1px solid var(--border-subtle);
+      padding-left: 28px; margin-left: 28px;
+    }
   }
   .overview-verdict-head,
   .overview-gates-head {
     display: flex; align-items: center; justify-content: space-between; gap: 10px;
   }
+  /* 眉标并成一行：「决策面板 · 今日判定」—— 两条竖排的 micro 眉标是同一层
+      语义说了两遍版式。h3 语义保留（卡的 accessible name），视觉降为行内。 */
+  .overview-verdict-head > div:first-child {
+    display: flex; align-items: baseline; gap: 9px; min-width: 0;
+  }
   /* 「今日判定」降级为 kicker：这张卡真正的话是下面那句判词，标题本身退成
      与「决策面板」同档的眉标，把字阶让给内容。 */
   .overview-verdict-head h3 {
-    margin: 5px 0 0; color: var(--text-tertiary);
+    margin: 0; color: var(--text-tertiary);
     font-size: var(--fs-micro); font-weight: 600;
     letter-spacing: .09em; text-transform: uppercase;
+  }
+  .overview-verdict-head h3::before {
+    content: "·"; margin-right: 9px; color: var(--text-faint);
   }
   .overview-jump,
   .overview-strip-link {
@@ -2535,30 +2589,44 @@
     outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 3px;
   }
   /* 判词行：这张卡的主句。三种行式样统一为无盒 + 发丝线：去胶囊底色与蓝点，
-     上下发丝线夹住；时间戳保持 mono micro。 */
+      上下发丝线夹住。 */
   /* 2026-08-24：--fs-verdict（24~34px、600 字重）把这句话渲染成了一张大字报
      （kcn：「今日判定那个大字报不要，太奇怪了」）。它不是标题，是这张卡的
      导语句 —— 一句会天天变的状态描述。降到 --fs-xl / 550 字重 / 1.55 行高，
      并把负字距收回 0：字距是随字号定的，19px 上再收紧只会挤。
-     仍然是这张卡里最大的字（其余行 13px），层级没丢，只是不再喊。 */
+     仍然是这张卡里最大的字（其余行 13px），层级没丢，只是不再喊。
+     时间戳从句中挪到句下：原来 sb-time 是行内 flex 尾巴，句子一折行它就
+     悬在第一行行尾的半空中，读起来像句子的一部分。 */
   .overview-status {
-    margin: 14px 0 12px; padding: 13px 0;
+    display: block;
+    margin: 14px 0 0; padding: 13px 0 12px;
     background: none; border: 0; border-radius: 0;
     border-top: 1px solid var(--border-subtle);
-    border-bottom: 1px solid var(--border-subtle);
+    border-bottom: 0;
     -webkit-backdrop-filter: none; backdrop-filter: none;
     font-size: var(--fs-xl); line-height: 1.55; letter-spacing: 0;
     max-width: 68ch;
   }
   .overview-status .sb-pulse { display: none; }
   .overview-status .sb-text { font-weight: 550; }
+  .overview-status .sb-time {
+    display: block; margin-top: 7px;
+    font-size: var(--fs-micro); color: var(--text-faint);
+    font-family: var(--mono); white-space: nowrap;
+  }
+  /* 要点行 = 判定句的注脚：整块左缩进挂一条发丝竖线（引文层级），行间不再
+      一条条横线 —— 横线节奏和硬闸区重复，竖线才读得出来「这几行是上面那句
+      的展开」。真告警行仍整行红字。 */
   .overview-verdict .today-highlights {
-    display: grid; grid-template-columns: 1fr; gap: 6px;
-    margin: 0 0 14px; min-height: 0;
+    display: grid; grid-template-columns: 1fr; gap: 0;
+    margin: 12px 0 0; min-height: 0;
   }
   .overview-verdict .hl-chip {
-    min-width: 0; padding: 12px 0; font-size: var(--fs-sm); overflow-wrap: anywhere;
+    min-width: 0; padding: 7px 0 7px 13px; font-size: var(--fs-sm);
+    overflow-wrap: anywhere; color: var(--text-secondary);
+    border-bottom: 0; border-left: 2px solid var(--border-subtle);
   }
+  .overview-verdict .hl-chip:last-child { padding-bottom: 0; }
   .overview-gates {
     padding-top: 16px; border-top: 1px solid var(--border-subtle);
   }
@@ -2687,7 +2755,7 @@
   .hl-chip.hl-alert { color: var(--red); font-weight: 600; }
 
   @media (min-width: 768px) and (max-width: 1023px) {
-    .hero-rail { grid-template-columns: repeat(3, minmax(0, 1fr)); min-height: 152px; }
+    .hero-rail { grid-template-columns: repeat(4, minmax(0, 1fr)); min-height: 152px; }
     /* 506：要点行升到 44px 后 768px 端横幅折行的实测上界（504）+2。 */
     .overview-verdict { min-height: 506px; }
     .overview-verdict, .overview-strip,

@@ -756,7 +756,11 @@
         const h = Math.max(4, Math.abs(x.v) / maxAbs * 46);
         const cls = x.v > 0 ? "up" : x.v < 0 ? "down" : "flat";
         const pos = x.v >= 0 ? `bottom:50%` : `top:50%`;
-        return `<i class="${cls}" style="left:${(i * w).toFixed(2)}%;`
+        // 槽位中心对齐：(i+0.5)/n 让每根柱落在自己槽位的正中，首末柱两侧
+        // 各留半个槽位。此前用 i/n 对齐，第一根柱的中心正好压在容器左缘，
+        // 9px 柱的一半（4.5px）被推出容器外 —— 疏密随宽度变、粗细不变
+        // 的规矩不动，动的只是柱在槽内的落点。
+        return `<i class="${cls}" style="left:${((i + 0.5) * w).toFixed(2)}%;`
           + `width:${Math.max(1.2, w * 0.58).toFixed(2)}%;${pos};height:${h.toFixed(1)}%"></i>`;
       }).join("");
       const up = d.filter(x => x.v > 0).length;
@@ -764,8 +768,9 @@
         + `近 ${d.length} 个交易日每日盈亏：${up} 天为正、${d.length - up} 天为负">`
         + `${bars}</div><div class="rc-cap">近 ${d.length} 日 · ${up} 涨 ${d.length - up} 跌</div>`;
     };
-    // 统计轨只剩「钱在哪、守不守纪律」三格，每格自带一件图形：
+    // 统计轨四格，每格自带一件图形：
     //   · 美股 / 港股 —— 值 + 占账面比例条（比例是形状问题，不是数字问题）
+    //   · 距峰值 —— 峰→现回撤 + 自最低收复量表（同一序列的第三个参照点）
     //   · 遵守率 30d —— 值 + 量表条
     // 今日搬进了自己那一行（上面），自评 Brier 挪出首屏（Reflect 的 Brier 卡、
     // 决策带 KPI、Plan 三处都在，首屏这格是全站第四份）。
@@ -773,6 +778,26 @@
       ? us.value_usd / bookUsd * 100 : null;
     const shareHk = (has(hk.value_hkd) && has(bookUsd) && fx && bookUsd > 0)
       ? (hk.value_hkd / fx) / bookUsd * 100 : null;
+    // 距峰值：与 spark/柱图同一条序列上的「峰 → 现」。主数答「比起投点」，
+    // 今日行答「比昨天」，这一格答「比这一轮最高点」—— 三个参照点互相不可
+    // 推导，少了它，「这轮回撤收复了多少」在首屏没有答案（风控页那套回撤
+    // 闸问的是同一个问题）。量表是自最低点的收复进度，说明行给峰值本身。
+    const ptsAll = heroProfitSeries();
+    let peakCell = null;
+    if (ptsAll.length >= 3) {
+      let hi = -Infinity, hiAt = "", lo = Infinity;
+      ptsAll.forEach(p => {
+        if (p.v > hi) { hi = p.v; hiAt = p.date; }
+        if (p.v < lo) lo = p.v;
+      });
+      const nowV = ptsAll[ptsAll.length - 1].v;
+      const dd = nowV - hi;
+      const span = hi - lo;
+      const recov = span > 0 ? Math.max(0, Math.min(100, (nowV - lo) / span * 100)) : null;
+      peakCell = cell("距峰值",
+        `<span class="${pnlClass(dd)}">${heroMoney(dd, "USD")}</span>`,
+        railMeter(recov, `峰值 ${heroMoney(hi, "USD")} · ${String(hiAt || "").slice(5)}`));
+    }
     railEl.innerHTML = [
       cell("美股", withDelta(fmtMoney(us.value_usd, "USD"),
         `${heroMoney(us.pnl_usd, "USD")} · ${fmtPct(us.pnl_pct)}`, pnlClass(us.pnl_usd)),
@@ -780,13 +805,14 @@
       cell("港股", withDelta(fmtMoney(hk.value_hkd, "HKD"),
         `${heroMoney(hk.pnl_hkd, "HKD")} · ${fmtPct(hk.pnl_pct)}`, pnlClass(hk.pnl_hkd)),
         railMeter(shareHk, `占账面 ${shareHk == null ? DASH : shareHk.toFixed(0) + "%"}`)),
+      peakCell,
       cell("遵守率 30d", ae.rate == null ? DASH : (ae.rate * 100).toFixed(1) + "%",
         // stranded = 核验窗口关闭时仍没有答案的 call，永远不会结算。只报 known
         // 会高估这个比率覆盖了多少记录，所以两个数一起给。
         railMeter(ae.rate == null ? null : ae.rate * 100,
           `主动 call · n=${ae.known == null ? DASH : ae.known}`
           + (ae.stranded ? ` · ${ae.stranded} 未能核验` : ""))),
-    ].join("");
+    ].filter(Boolean).join("");
 
     // 今日行：一个 USD-eq 合计 + 美股/港股两个分项 + 一条与上方走势图同宽的
     // 每日盈亏柱。三个数放在一起才有意义（合计回答「今天亏了多少」，分项回答
@@ -1113,6 +1139,10 @@
     const loss = (g.pnl_abs || 0) < 0;
     const pnlColor = loss ? 'var(--negative)' : 'var(--positive)';
     const sign = (g.pnl_percent || 0) >= 0 ? '+' : '';
+    // 回本状态分档：净值在成本线上方（含打平）之后，整套「回本需涨」的话术
+    // 都要换方向 —— 需涨变负数不是「要跌」，是已经在上面了。2026-08-24 起
+    // 持仓真实越线（avg_cost 3.3538 / nav 3.3774），下面所有回本表述按此分档。
+    const aboveWater = g.breakeven_upside_pct != null && g.breakeven_upside_pct <= 0;
 
     document.getElementById('gold-sub').textContent = `${g.fund_code} · ${g.fund_name}`;
 
@@ -1136,7 +1166,9 @@
         ${cell('累计投入', '¥' + num(g.principal_effective != null ? g.principal_effective : g.principal_invested))}
         ${cell('平均成本', num(g.avg_cost, 4))}
         ${cell('当前净值', num(g.nav, 4) + navChgStr)}
-        ${cell('回本需涨', `<span style="color:${loss ? 'var(--warning)' : 'var(--positive)'}">${(g.breakeven_upside_pct >= 0 ? '+' : '') + num(g.breakeven_upside_pct, 1)}%</span>`)}
+        ${aboveWater
+          ? cell('成本线上方', `<span style="color:var(--positive)">+${num(-(g.breakeven_upside_pct || 0), 1)}%</span>`)
+          : cell('回本需涨', `<span style="color:var(--warning)">${g.breakeven_upside_pct == null ? DASH : '+' + num(g.breakeven_upside_pct, 1) + '%'}</span>`)}
         ${cell('已投', `${g.days_invested ?? DASH} 交易日`)}
         ${cell('约定投', `${g.installments_est ?? DASH} 笔 ×¥${num(g.daily_amount)}`)}
       </div>`;
@@ -1154,16 +1186,22 @@
         const dchg = dg.change_pct;
         const dcolor = dchg == null ? 'var(--neutral)' : (dchg >= 0 ? 'var(--positive)' : 'var(--negative)');
         const retained = dg.quote_status === 'retained';
+        // 国内口径自己的回本分档（与基金口径同号，但各自算，不借用）。
+        const dgAbove = dg.breakeven_upside_pct != null && dg.breakeven_upside_pct <= 0;
+        const dgBeColor = dgAbove ? 'var(--positive)' : 'var(--warning)';
+        const dgBeTxt = dgAbove
+          ? `成本线上方 <b style="color:${dgBeColor}">${num(-(dg.breakeven_upside_pct || 0), 2)}%</b>`
+          : `距回本 <b style="color:${dgBeColor}">${dg.breakeven_upside_pct == null ? DASH : '+' + num(dg.breakeven_upside_pct, 2) + '%'}</b>`;
         goldDomestic.innerHTML =
           `<div style="margin:12px 0 4px;padding:12px;border-radius:6px;background:color-mix(in srgb,var(--positive) 6%,transparent);border:1px solid color-mix(in srgb,var(--positive) 24%,transparent)">
              <div class="muted" style="font-size:var(--fs-micro);text-transform:none;letter-spacing:0">国内基准 · 上金所 Au99.99</div>
              <div style="display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:end;gap:10px;margin-top:7px">
                <div><div class="muted" style="font-size:var(--fs-micro)">当前金价</div><div style="font-size:var(--fs-xl);font-weight:700;white-space:nowrap">¥${num(dg.price_cny_g, 2)}<span style="font-size:var(--fs-xs);color:var(--muted,#999)">/克</span></div></div>
                <div class="muted" aria-hidden="true" style="padding-bottom:4px">→</div>
-               <div><div class="muted" style="font-size:var(--fs-micro)">我的回本价</div><div style="font-size:var(--fs-xl);font-weight:700;color:var(--warning);white-space:nowrap">¥${num(dg.breakeven_cny_g, 2)}<span style="font-size:var(--fs-xs);color:var(--muted,#999)">/克</span></div></div>
+               <div><div class="muted" style="font-size:var(--fs-micro)">我的回本价</div><div style="font-size:var(--fs-xl);font-weight:700;color:${dgBeColor};white-space:nowrap">¥${num(dg.breakeven_cny_g, 2)}<span style="font-size:var(--fs-xs);color:var(--muted,#999)">/克</span></div></div>
              </div>
              <div class="muted" style="font-size:var(--fs-xs);margin-top:7px;text-transform:none;letter-spacing:0">
-               距回本 <b style="color:var(--warning)">+${num(dg.breakeven_upside_pct, 2)}%</b>
+               ${dgBeTxt}
                ${dchg == null ? '' : ` · 当日 <b style="color:${dcolor}">${dchg >= 0 ? '+' : ''}${num(dchg, 2)}%</b>`}
                ${dg.low_cny_g != null && dg.high_cny_g != null ? ` · 日内 ¥${num(dg.low_cny_g, 0)}~${num(dg.high_cny_g, 0)}` : ''}
              </div>
@@ -1189,6 +1227,11 @@
           : (g.nav ? ld.xau_usd * g.avg_cost / g.nav : null);
         const fundBePct = ld.fund_breakeven_upside_pct != null
           ? ld.fund_breakeven_upside_pct : g.breakeven_upside_pct;
+        const fundAbove = fundBePct != null && fundBePct <= 0;
+        const fundBeColor = fundAbove ? 'var(--positive)' : 'var(--warning)';
+        const fundBeTxt = fundAbove
+          ? `成本线上方 <b style="color:${fundBeColor}">${num(-fundBePct, 2)}%</b>`
+          : `距回本 <b style="color:${fundBeColor}">${fundBePct == null ? DASH : '+' + num(fundBePct, 2) + '%'}</b>`;
         // 伦敦金保留为国际辅助口径，显式区分现价与真基金回本映射。
         let html =
           `<div style="margin:12px 0 4px;padding:8px 12px;border-radius:6px;background:color-mix(in srgb,var(--warning) 7%,transparent);border:1px solid color-mix(in srgb,var(--warning) 25%,transparent)">
@@ -1196,10 +1239,10 @@
              <div style="display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:end;gap:10px;margin-top:7px">
                <div><div class="muted" style="font-size:var(--fs-micro)">当前金价</div><div style="font-size:var(--fs-xl);font-weight:700;white-space:nowrap">$${num(ld.xau_usd, 2)}<span style="font-size:var(--fs-xs);color:var(--muted,#999)">/oz</span></div></div>
                <div class="muted" aria-hidden="true" style="padding-bottom:4px">→</div>
-               <div><div class="muted" style="font-size:var(--fs-micro)">按当前汇率回本</div><div style="font-size:var(--fs-xl);font-weight:700;color:var(--warning);white-space:nowrap">$${num(fundBeXau, 2)}<span style="font-size:var(--fs-xs);color:var(--muted,#999)">/oz</span></div></div>
+               <div><div class="muted" style="font-size:var(--fs-micro)">按当前汇率回本</div><div style="font-size:var(--fs-xl);font-weight:700;color:${fundBeColor};white-space:nowrap">$${num(fundBeXau, 2)}<span style="font-size:var(--fs-xs);color:var(--muted,#999)">/oz</span></div></div>
              </div>
              <div class="muted" style="font-size:var(--fs-xs);margin-top:5px;text-transform:none;letter-spacing:0">
-               距回本 <b style="color:var(--warning)">+${num(fundBePct, 2)}%</b>${xchgStr}
+               ${fundBeTxt}${xchgStr}
                ${ld.xau_high != null && ld.xau_low != null ? ` · 日内 ${num(ld.xau_low, 0)}~${num(ld.xau_high, 0)}` : ''}
                · USDCNY ${num(ld.usdcny, 4)} · 假设汇率/内外盘价差不变
              </div>`;
@@ -1236,18 +1279,22 @@
                  ${de.current_value_cny != null ? `· 对应现值 <b style="color:${dColor}">¥${num(de.current_value_cny)}</b> (${de.pnl_pct >= 0 ? '+' : ''}${num(de.pnl_pct, 2)}%)` : ''}
                </div>
              </div>`;
-          // 摊薄轨迹：继续同额定投伦敦金 → 均成本 $/oz 往下移、回本门槛下降
+          // 摊薄轨迹：继续同额定投伦敦金 → 均成本 $/oz 移动方向由数据说话
+          //（现货在均价下方时摊薄下移、上方时反而上抬 —— 回本后这句文案
+          // 曾固定写「下移」，与它自己表格里的数字打架）。
           const lproj = (de.projection || []).filter(p => p && p.avg_cost_usd_oz != null);
           if (lproj.length) {
             const MON = { 20: '+1月', 40: '+2月', 60: '+3月', 120: '+半年', 250: '+1年' };
+            const lDir = de.avg_cost_usd_oz != null && lproj[lproj.length - 1].avg_cost_usd_oz >= de.avg_cost_usd_oz ? '上移' : '下移';
+            const deAbove = de.breakeven_upside_pct != null && de.breakeven_upside_pct <= 0;
             const lrows = lproj.map(p =>
               `<tr><td style="padding:4px 8px">${MON[p.days] || ('+' + p.days + '日')}</td>
                 <td style="padding:4px 8px;text-align:right">$${num(p.avg_cost_usd_oz, 0)}</td>
-                <td style="padding:4px 8px;text-align:right;color:var(--positive)">+${num(p.breakeven_upside_pct, 1)}%</td></tr>`).join('');
+                <td style="padding:4px 8px;text-align:right;color:${deAbove ? 'var(--text-secondary)' : 'var(--positive)'}">${p.breakeven_upside_pct == null ? DASH : (p.breakeven_upside_pct >= 0 ? '+' : '') + num(p.breakeven_upside_pct, 1) + '%'}</td></tr>`).join('');
             html +=
-              `<div class="muted" style="font-size:var(--fs-micro);margin:8px 0 2px;text-transform:none;letter-spacing:0">若金价/汇率不动、继续每日定投 → 持金成本 $/oz 下移</div>
+              `<div class="muted" style="font-size:var(--fs-micro);margin:8px 0 2px;text-transform:none;letter-spacing:0">若金价/汇率不动、继续每日定投 → 持金成本 $/oz ${lDir}</div>
                <table style="width:100%;font-size:var(--fs-sm);border-collapse:collapse">
-                 <tr class="muted" style="font-size:var(--fs-micro)"><th scope="col" style="padding:4px 8px;text-align:left;font-weight:inherit">继续</th><th scope="col" style="padding:4px 8px;text-align:right;font-weight:inherit">均成本/oz</th><th scope="col" style="padding:4px 8px;text-align:right;font-weight:inherit">回本只需涨</th></tr>
+                 <tr class="muted" style="font-size:var(--fs-micro)"><th scope="col" style="padding:4px 8px;text-align:left;font-weight:inherit">继续</th><th scope="col" style="padding:4px 8px;text-align:right;font-weight:inherit">均成本/oz</th><th scope="col" style="padding:4px 8px;text-align:right;font-weight:inherit">距成本线</th></tr>
                ${lrows}</table>`;
           }
           html += `</div></details>`;
@@ -1297,32 +1344,38 @@
       const avg = g.avg_cost;
       const avgY = (avg >= lo && avg <= hi) ? y(avg) : null;
       const lastV = hist[hist.length - 1][1];
+      // 成本线的颜色跟着回本状态走：在上方=要守的线（amber），越线之后=
+      // 已经站上去的参照（绿）。线本身语义不变，只换情绪。
+      const costColor = aboveWater ? 'var(--positive)' : 'var(--warning)';
       sp.innerHTML =
         `<svg viewBox="0 0 ${W} ${H}" width="100%" height="${H}" preserveAspectRatio="none" style="margin-top:4px">
-          ${avgY != null ? `<line x1="0" y1="${avgY.toFixed(1)}" x2="${W}" y2="${avgY.toFixed(1)}" stroke="var(--warning)" stroke-width="1" stroke-dasharray="3 2" opacity="0.7"/>` : ''}
+          ${avgY != null ? `<line x1="0" y1="${avgY.toFixed(1)}" x2="${W}" y2="${avgY.toFixed(1)}" stroke="${costColor}" stroke-width="1" stroke-dasharray="3 2" opacity="0.7"/>` : ''}
           <polyline points="${pts}" fill="none" stroke="var(--warning)" stroke-width="1.6"/>
           <circle cx="${x(startIdx).toFixed(1)}" cy="${y(hist[startIdx][1]).toFixed(1)}" r="2.6" fill="var(--accent)"/>
           <circle cx="${x(hist.length - 1).toFixed(1)}" cy="${y(lastV).toFixed(1)}" r="2.6" fill="${pnlColor}"/>
         </svg>
         <div class="muted" style="font-size:var(--fs-micro);display:flex;justify-content:space-between;text-transform:none;letter-spacing:0">
           <span style="color:var(--accent)">${hist[startIdx][0]} 起投 ${num(hist[startIdx][1], 3)}</span>
-          <span style="color:var(--warning)">成本线 ${num(avg, 3)}</span>
+          <span style="color:${costColor}">成本线 ${num(avg, 3)}</span>
           <span>区间 ${num(lo, 3)}~${num(hi, 3)}</span>
         </div>`;
     } else { sp.innerHTML = ''; }
 
-    // 定投摊薄预测 (假设净值不动, 继续投 → 回本门槛下移)
+    // 定投摊薄预测 (假设净值不动, 继续投 → 成本线移动方向由数据说话：
+    // 净值在成本线下方时定投把它往下拽，越线之后同样的机制反过来把它
+    // 抬高 —— 文案跟着数字走，不再固定写「下移」。)
     const proj = g.projection || [];
     if (proj.length) {
       const MONTH = { 20: '+1月', 40: '+2月', 60: '+3月', 120: '+半年', 250: '+1年' };
+      const projDir = g.avg_cost != null && proj[proj.length - 1].avg_cost >= g.avg_cost ? '上移、安全垫收窄' : '下移';
       const rows = proj.map(p =>
         `<tr><td style="padding:4px 8px">${MONTH[p.days] || ('+' + p.days + '日')}</td>
           <td style="padding:4px 8px;text-align:right">${num(p.avg_cost, 3)}</td>
-          <td style="padding:4px 8px;text-align:right;color:var(--positive)">+${num(p.breakeven_upside_pct, 1)}%</td></tr>`).join('');
+          <td style="padding:4px 8px;text-align:right;color:${aboveWater ? 'var(--text-secondary)' : 'var(--positive)'}">${p.breakeven_upside_pct == null ? DASH : (p.breakeven_upside_pct >= 0 ? '+' : '') + num(p.breakeven_upside_pct, 1) + '%'}</td></tr>`).join('');
       document.getElementById('gold-proj').innerHTML =
-        `<div class="muted" style="font-size:var(--fs-micro);margin:8px 0 2px;text-transform:none;letter-spacing:0">若净值原地不动、继续每日定投 → 成本线/回本门槛下移</div>
+        `<div class="muted" style="font-size:var(--fs-micro);margin:8px 0 2px;text-transform:none;letter-spacing:0">若净值原地不动、继续每日定投 → 成本线${projDir}</div>
          <table style="width:100%;font-size:var(--fs-sm);border-collapse:collapse">
-           <tr class="muted" style="font-size:var(--fs-micro)"><th scope="col" style="padding:4px 8px;text-align:left;font-weight:inherit">继续</th><th scope="col" style="padding:4px 8px;text-align:right;font-weight:inherit">平均成本</th><th scope="col" style="padding:4px 8px;text-align:right;font-weight:inherit">回本只需涨</th></tr>
+           <tr class="muted" style="font-size:var(--fs-micro)"><th scope="col" style="padding:4px 8px;text-align:left;font-weight:inherit">继续</th><th scope="col" style="padding:4px 8px;text-align:right;font-weight:inherit">平均成本</th><th scope="col" style="padding:4px 8px;text-align:right;font-weight:inherit">距成本线</th></tr>
            ${rows}</table>`;
     } else { document.getElementById('gold-proj').innerHTML = ''; }
 
