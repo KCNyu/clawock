@@ -274,12 +274,14 @@ def _call_provider(label, base_url, api_key, model, messages, max_tokens,
 
 def _call_provider_openai_compatible(label, base_url, api_key, model, messages,
                                      max_tokens, temperature, json_response,
-                                     thinking, timeout=None, deadline=None):
+                                     timeout=None, deadline=None):
     """One provider over the OpenAI-compatible /chat/completions shape, with
     retries. Returns content str or raises RuntimeError. Unlike Anthropic
     Messages: system stays inline as a message role (no lift-out needed), and
     there is no first-class thinking block — reasoning (if any) rides along as
-    `reasoning_content` on the assistant message, which we don't read."""
+    `reasoning_content` on the assistant message, which we don't read. The
+    Anthropic leg's `thinking` knob has no equivalent here; it was previously
+    accepted and silently ignored (C-F4)."""
     timeout = timeout or TIMEOUT
     body = {
         'model': model,
@@ -333,8 +335,9 @@ def _call_provider_openai_compatible(label, base_url, api_key, model, messages,
 
 def chat(system: str = '', user: str = '', messages: list = None,
          max_tokens: int = 32000, temperature: float = 0.7,
-         model: str = OPENCODE_MODEL, base_url: str = OPENCODE_BASE,
-         api_key: str = None, thinking_disabled: bool = False,
+         fallback_model: str = OPENCODE_MODEL,
+         fallback_base_url: str = OPENCODE_BASE,
+         fallback_api_key: str = None, thinking_disabled: bool = False,
          json_response: bool = False, fallback: bool = True,
          timeout: int = None, deadline_seconds: float = None) -> str:
     """Call MiniMax M3; on total failure fall back to opencode-go's DeepSeek V4
@@ -342,6 +345,12 @@ def chat(system: str = '', user: str = '', messages: list = None,
     OpenAI-compatible) — see module docstring. Returns assistant content
     string, or raises if BOTH providers fail. Set fallback=False to use
     MiniMax only (no opencode-go fallback).
+
+    Naming is load-bearing (C-F4): `fallback_model/base_url/api_key` apply ONLY
+    to the opencode-go fallback leg. The primary provider and its endpoint are
+    MINIMAX_* module constants by decree — the old generic names (`model=`,
+    `base_url=`) read as if they retargeted the primary and silently did not;
+    the four call sites passed none of them.
 
     timeout: per-attempt seconds, default TIMEOUT (180). Big jobs need more: the
     daily brief prefills ~100KB of context and generates ~20K tokens with thinking
@@ -399,13 +408,14 @@ def chat(system: str = '', user: str = '', messages: list = None,
     # 2026-08-16, kcn: Xiaomi's token-plan key had already died (HTTP 401,
     # issue #695) — swapped the fallback to opencode-go's DeepSeek V4 Flash
     # (issue #697). If unset, the fallback is auto-skipped (no OPENCODE_API_KEY).
-    opencode_key = api_key or os.environ.get('OPENCODE_API_KEY')
+    opencode_key = (fallback_api_key
+                    or os.environ.get('OPENCODE_API_KEY'))
     if fallback and opencode_key:
         try:
             return _call_provider_openai_compatible(
-                'opencode', base_url, opencode_key, model, messages,
-                min(max_tokens, OPENCODE_MAX_TOKENS),
-                temperature, json_response, thinking, timeout,
+                'opencode', fallback_base_url, opencode_key, fallback_model,
+                messages, min(max_tokens, OPENCODE_MAX_TOKENS),
+                temperature, json_response, timeout,
                 deadline=chain_deadline)
         except Exception as e:
             errors.append(f'opencode[{e}]')
