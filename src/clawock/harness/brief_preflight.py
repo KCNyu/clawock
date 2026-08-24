@@ -341,22 +341,44 @@ def collect_peer_scan(portfolio):
     return peer_scan.collect(portfolio)
 
 
+# Two-level memo for the follow-up verification sweep (#916): every decision
+# row asks the same one-or-two dates, and each ask used to cost a `git log`
+# plus a `git show` with a full JSON re-parse (~5s/slot of pure re-read).
+_shares_sha_cache = {}   # date_iso -> commit sha
+_shares_pf_cache = {}    # sha -> parsed portfolio.json
+
+
 def _shares_at_date(ticker, date_iso):
     """Get shares of `ticker` from portfolio.json as committed on/before `date_iso`.
-    Returns int shares, or None if can't determine."""
+    Returns int shares, or None if can't determine.
+
+    Past-date answers are immutable — today's commits cannot rewrite what was
+    HEAD before a past day — so the caches are exact there. A today-keyed sha
+    can go stale if a bot commits mid-preflight; the verdict self-heals on the
+    next slot's fresh process.
+    """
     try:
-        r = subprocess.run(
-            ['git', '-C', str(WS), 'log', '--pretty=%H',
-             f'--before={date_iso} 23:59:59', '-1', '--', 'portfolio.json'],
-            capture_output=True, text=True, timeout=10)
-        sha = r.stdout.strip()
-        if not sha:
-            return None
-        r = subprocess.run(['git', '-C', str(WS), 'show', f'{sha}:portfolio.json'],
-                           capture_output=True, text=True, timeout=10)
-        if r.returncode != 0:
-            return None
-        pf = json.loads(r.stdout)
+        sha = _shares_sha_cache.get(date_iso)
+        if sha is None:
+            r = subprocess.run(
+                ['git', '-C', str(WS), 'log', '--pretty=%H',
+                 f'--before={date_iso} 23:59:59', '-1', '--', 'portfolio.json'],
+                capture_output=True, text=True, timeout=10)
+            sha = r.stdout.strip()
+            if not sha:
+                return None
+            _shares_sha_cache[date_iso] = sha
+        pf = _shares_pf_cache.get(sha)
+        if pf is None:
+            r = subprocess.run(['git', '-C', str(WS), 'show', f'{sha}:portfolio.json'],
+                               capture_output=True, text=True, timeout=10)
+            if r.returncode != 0:
+                return None
+            try:
+                pf = json.loads(r.stdout)
+            except ValueError:
+                return None
+            _shares_pf_cache[sha] = pf
         for region in ('hk_stocks', 'us_stocks'):
             for h in pf['portfolios'][region]['holdings']:
                 if h['ticker'] == ticker:
