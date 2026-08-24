@@ -711,25 +711,32 @@ async function testHoldingsAndHeroNeverTruncate(browser, base) {
     assert.equal(sub.lineClipped, false, "hero sub-line is clipped at 390px");
     assert.deepEqual(sub.segClipped, [], "a hero sub-line segment is clipped");
 
+    // 「今日」在 #911 里从统计轨的一格搬成了自己一行（柱图挤在 ~230px 的格子
+    // 里缩略看像随机方块），同时把美股/港股当日分项补了回来 —— 并成一格时
+    // 那两个数被合掉了。闸跟着搬：合计的 %、两个市场的分项、以及那张柱图，
+    // 三样都必须在首屏且不被截断。
     const today = await page.evaluate(() => {
-      const cell = [...document.querySelectorAll(".hero-rail-cell")]
-        .find(c => c.querySelector(".hero-rail-k")?.textContent.trim() === "今日");
-      if (!cell) return null;
-      const parts = [...cell.querySelectorAll(".hero-rail-v, .hero-rail-d, .rc-cap")];
+      const row = document.getElementById("hero-today");
+      if (!row || !row.textContent.trim()) return null;
+      const parts = [...row.querySelectorAll(".ht-total, .ht-leg, .rc-cap")];
       return {
-        text: cell.textContent,
+        text: row.textContent,
+        legs: row.querySelectorAll(".ht-leg").length,
         clipped: parts.filter(p => p.scrollWidth > p.clientWidth + 1).map(p => p.textContent),
-        bars: cell.querySelectorAll(".rc-bars > i").length,
+        bars: row.querySelectorAll(".rc-bars > i").length,
       };
     });
-    assert(today, "the 今日 rail cell is gone — today's move left the first screen");
-    assert.match(today.text, /%/, "the 今日 rail cell dropped the today percentage");
-    assert.deepEqual(today.clipped, [], "the 今日 rail cell truncates a value");
-    assert(today.bars > 5, `今日 cell drew ${today.bars} daily bars — the chart is missing`);
+    assert(today, "the 今日 row is gone — today's move left the first screen");
+    assert.match(today.text, /%/, "the 今日 row dropped the today percentage");
+    assert.equal(today.legs, 2, "the 今日 row must keep the US / HK split, not just the total");
+    assert.match(today.text, /美股/, "the 今日 row lost the US leg");
+    assert.match(today.text, /港股/, "the 今日 row lost the HK leg");
+    assert.deepEqual(today.clipped, [], "the 今日 row truncates a value");
+    assert(today.bars > 5, `今日 row drew ${today.bars} daily bars — the chart is missing`);
 
     // 统计轨每一格的说明行同理：它们带着样本量和「未能核验」的条数，
     // nowrap + ellipsis 一挤就把这些数字整段吃掉。
-    const caps = await page.evaluate(() => [...document.querySelectorAll(".hero-rail .rc-cap")]
+    const caps = await page.evaluate(() => [...document.querySelectorAll(".hero-rail .rc-cap, .hero-today .rc-cap")]
       .filter(c => c.scrollWidth > c.clientWidth + 1).map(c => c.textContent));
     assert.deepEqual(caps, [], "a hero rail caption is truncated at 390px");
     await context.close();
@@ -828,10 +835,10 @@ async function testHoldingsAndHeroNeverTruncate(browser, base) {
   // 数据到达前 #hero-rail 是空的。在给它 min-height 之前它高 1px，填满后
   // 85px（桌面），每次加载都跳一次 —— 实测这一下就是整页 CLS 的大头
   // (0.26 -> 0.04)。这里量的是「预留 == 实测」，比断言一个 CLS 数字稳。
-  // 六格 → 四格（#911：每格换一件图形，今日两格并一格，Brier 出首屏），所以
-  // 宽屏这档从 6 改成 4。这条闸量的从来不是格数本身，而是「预留 == 实测」，
-  // 格数只是用来钉住某次改版没有把断点改塌。
-  for (const [width, expectCols] of [[390, 2], [900, 4], [1440, 4]]) {
+  // 六格 → 四格 → 三格（今日搬进自己那一行，Brier 出首屏）。这条闸量的从来
+  // 不是格数本身，而是「预留 == 实测」，格数只是用来钉住某次改版没有把断点
+  // 改塌。
+  for (const [width, expectCols] of [[390, 2], [900, 3], [1440, 3]]) {
     const context = await browser.newContext({ viewport: { width, height: 900 } });
     const page = await context.newPage();
     await stubLiveOrigin(page);

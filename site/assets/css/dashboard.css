@@ -113,7 +113,6 @@
   /* 判词档（overview-status 的盘中判定句）：display(64) 与 lg(15) 之间原来
      是真空，而判词此前只有 12px —— 全页语义最重的一句话是全页最小的字之一，
      比统计轨的 13px 还小（语义倒置）。补在 28-34 档，桌面落在区间内。 */
-  --fs-verdict: clamp(24px, 2.4vw, 34px);
   --fs-xxl: 26px;
   --fs-xl: 19px;
   --fs-lg: 15px;
@@ -2094,7 +2093,7 @@
      空白 —— 那不是留白，是构图没写完（主数越大越明显）。右栏放的不是第二
      张图，是同一个数的历史形状。 */
   .hero-deck-lead {
-    padding: 38px var(--card-inset) 32px;
+    padding: 28px var(--card-inset) 24px;
     position: relative;
     display: grid; grid-template-columns: minmax(0, 1fr);
   }
@@ -2138,7 +2137,7 @@
   @media (min-width: 1024px) {
     /* 长走势条配更高的画布：宽度放大后 108px 会把形状压扁。主数收到 56px 之后
        这块面板的重心从「一个大数字」挪到「一张图」，画布跟着抬到 190px。 */
-    .hero-spark { grid-template-rows: 190px 16px; margin-top: 0; }
+    .hero-spark { grid-template-rows: 148px 16px; margin-top: 0; }
   }
   /* 图坐在一格玻璃凹槽里：顶边受光、内壁一圈发丝、槽底比面板略沉。
      刻意不是第二层毛玻璃 —— 半透明面叠半透明面会把可读性叠没
@@ -2180,13 +2179,6 @@
     stroke: var(--border-strong); stroke-width: 1; opacity: .45;
     vector-effect: non-scaling-stroke;
   }
-  /* 零轴刻度：标在线的上方，不压在线上。零轴贴顶（全程亏损）时翻到线下。 */
-  .hs-zero-tag {
-    position: absolute; left: 10px; transform: translateY(-100%);
-    padding-bottom: 2px; pointer-events: none;
-    font: 600 10px/1 var(--mono); color: var(--text-tertiary);
-  }
-  .hs-zero-tag.is-top { transform: none; padding: 3px 0 0; }
   /* 脚注：把「多长、最低到过哪、从那以后回来多少」写成字。大数字只回答
      「现在亏多少」，这一行回答的是它是怎么走到这儿的 —— 首屏原来没有
      任何一处给得出这三个数。 */
@@ -2263,7 +2255,7 @@
      行数是固定的（标签 / 值 / 变化 / 备注），不会因为数据长短再变。
      min-height 而不是 height：真渲染出来更高时不裁。 */
   .hero-rail {
-    display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
     border-top: 1px solid var(--border-subtle);
     /* 每格多了一件图形（比例条 / 每日柱）+ 一行说明，比纯数字那版高一档。
        152 = 四格并排时的数据态实测（768~1920 全档同高）。 */
@@ -2273,7 +2265,7 @@
     padding: 0 var(--card-inset); column-gap: 16px;
   }
   .hero-rail-cell {
-    min-width: 0; padding: 14px 0 16px;
+    min-width: 0; padding: 12px 0 14px;
   }
   .hero-rail-k {
     color: var(--text-tertiary); font: 600 var(--fs-micro)/1.2 var(--font);
@@ -2292,13 +2284,65 @@
   }
   .hero-rail-d.pos { color: var(--positive); }
   .hero-rail-d.neg { color: var(--negative); }
+  /* 今日行：左侧数字（合计 + 美股/港股分项）、右侧一条与上方走势图同宽的
+     每日盈亏柱。列比和上面那行一致（3:5），所以两张图左缘对齐、右缘对齐，
+     读成同一张版面的上下两层，而不是两块拼贴。 */
+  .hero-today {
+    display: grid; grid-template-columns: minmax(0, 1fr);
+    gap: 12px; padding: 13px var(--card-inset) 15px;
+    border-top: 1px solid var(--border-subtle);
+    /* 三档预留，每档都是「该宽度下的确定高度」：≤1023 单列（数字在上、柱图
+       在下）208；1024~1199 双列但分项竖排 126；≥1200 分项一行 104。 */
+    min-height: 208px;
+  }
+  @media (min-width: 1024px) {
+    .hero-today {
+      grid-template-columns: minmax(0, 3fr) minmax(400px, 5fr);
+      column-gap: 64px; align-items: center; min-height: 126px;
+    }
+  }
+  @media (min-width: 1200px) {
+    .hero-today { min-height: 104px; }
+  }
+  .ht-nums { min-width: 0; }
+  .ht-total {
+    margin-top: 7px; color: var(--text); font: 700 var(--fs-xxl)/1.15 var(--mono);
+    letter-spacing: -.015em; font-variant-numeric: tabular-nums; white-space: nowrap;
+  }
+  /* 和主数同一条规矩：这是全屏第二大的数字，用降过彩度的那一档，
+     小字（%、分项）仍然满彩度。 */
+  .ht-total.pos { color: var(--positive-display); }
+  .ht-total.neg { color: var(--negative-display); }
+  .ht-total-pct { font-size: var(--fs-lg); font-weight: 600; }
+  /* 分项行：宽屏一行，窄屏每边各占一行。**不靠 flex-wrap 自己折** —— 折不折
+     取决于列宽和数字位数，行高因此在不同宽度、不同数字下不一样，预留就没法
+     量准（这一行的高度必须是宽度的确定函数，不能是数据的函数）。 */
+  .ht-legs {
+    margin-top: 8px; display: flex; flex-wrap: nowrap; align-items: baseline; gap: 8px;
+    color: var(--text-secondary); font: 500 var(--fs-md)/1.4 var(--mono);
+  }
+  @media (max-width: 1199px) {
+    .ht-legs { flex-direction: column; align-items: flex-start; gap: 4px; }
+    .ht-legs > .hds-sep { display: none; }
+  }
+  .ht-leg { display: inline-flex; align-items: baseline; gap: 5px; white-space: nowrap; }
+  .ht-leg-k { color: var(--text-tertiary); }
+  .ht-leg b { font-weight: 700; color: var(--text); }
+  .ht-leg b.pos, .ht-legs .pos { color: var(--positive); }
+  .ht-leg b.neg, .ht-legs .neg { color: var(--negative); }
+  .ht-chart { min-width: 0; }
+  /* 柱子拿到整行宽度之后可以更高：原来挤在 ~230px 的格子里，20 根柱缩略看
+     像一排随机方块。 */
+  .ht-chart .rc-bars { margin-top: 0; height: 46px; }
+  .ht-chart .rc-cap { margin-top: 8px; }
+
   /* 比例条 = 玻璃凹槽 + 受光填充：槽内壁一圈高光边、槽口一道内阴影，填充
      顶边亮一线。和 spark 的凹槽同一套光影语汇，一眼是同族材质。 */
   .rc-meter {
-    /* 和每日柱共用一条 30px 的图形带（上下留白把 6px 的条压在中线上）：
-       否则一行里 6px 的条和 30px 的柱图会让四格的说明行高低不齐。 */
-    margin-top: 9px; height: 6px; border-radius: 3px; overflow: hidden;
-    margin-top: 21px; margin-bottom: 12px;
+    /* 和每日柱共用一条图形带（上下留白把 6px 的条压在中线上），说明行才齐。
+       封顶 220px：三格版每格 ~590px，满宽的细条读成加载进度条而不是比例。 */
+    height: 6px; border-radius: 3px; overflow: hidden; max-width: 220px;
+    margin: 21px 0 12px;
     background: color-mix(in srgb, var(--text-primary) 7%, transparent);
     box-shadow: inset 0 1px 1.5px rgba(0, 0, 0, .10), inset 0 0 0 1px var(--spec-1);
   }
@@ -2322,6 +2366,10 @@
   }
   .rc-bars > i {
     position: absolute; border-radius: 1.5px;
+    /* 槽位给的是百分比宽，行拉宽之后 20 根柱会长成 30px 的方块（缩略看像
+       一排随机色块）。封顶 9px 并按槽位中心对齐：疏密随宽度变，柱子本身
+       的粗细不变。 */
+    max-width: 9px; transform: translateX(-50%);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, .4);
   }
   .rc-bars > i.up { background: var(--positive); }
@@ -2459,15 +2507,18 @@
        地板保持整卡一级、不下沉到子行：盘中横幅在 overview 是
        is-pending 不占位的（#890），横幅日它出现时会在卡内把要点/硬闸往下推
        —— 整卡地板吸收这种内部重排，子行地板会把这次重排漏成页面级位移。
-       地板值 = 构图定稿后横幅日扫宽实测上界 +2（见各断点注释）。 */
-    min-height: 478px;
+       地板值 = 构图定稿后横幅日扫宽实测上界 +2（见各断点注释）。
+       504：判词从 34px 大字报降到 19px 导语后重量的上界（1024 档 503）——
+       原来的 478 比数据态还矮，数据一到卡就长 10~25px，等于这条地板一直是
+       空的。 */
+    min-height: 504px;
   }
   .overview-verdict-head,
   .overview-gates-head {
     display: flex; align-items: center; justify-content: space-between; gap: 10px;
   }
-  /* 「今日判定」降级为 kicker：这张卡真正的话是下面的判词（--fs-verdict），
-     标题本身退成与「决策面板」同档的眉标，把字阶让给内容。 */
+  /* 「今日判定」降级为 kicker：这张卡真正的话是下面那句判词，标题本身退成
+     与「决策面板」同档的眉标，把字阶让给内容。 */
   .overview-verdict-head h3 {
     margin: 5px 0 0; color: var(--text-tertiary);
     font-size: var(--fs-micro); font-weight: 600;
@@ -2483,19 +2534,24 @@
   .overview-strip-link:focus-visible {
     outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 3px;
   }
-  /* 判词行：这张卡的主句，升到 --fs-verdict 档（原 12px 是全页最小字之一，
-     语义倒置）。三种行式样统一为无盒 + 发丝线：去胶囊底色与蓝点，
-     上下发丝线夹住，字重 600 承担告警语气；时间戳保持 mono micro。 */
+  /* 判词行：这张卡的主句。三种行式样统一为无盒 + 发丝线：去胶囊底色与蓝点，
+     上下发丝线夹住；时间戳保持 mono micro。 */
+  /* 2026-08-24：--fs-verdict（24~34px、600 字重）把这句话渲染成了一张大字报
+     （kcn：「今日判定那个大字报不要，太奇怪了」）。它不是标题，是这张卡的
+     导语句 —— 一句会天天变的状态描述。降到 --fs-xl / 550 字重 / 1.55 行高，
+     并把负字距收回 0：字距是随字号定的，19px 上再收紧只会挤。
+     仍然是这张卡里最大的字（其余行 13px），层级没丢，只是不再喊。 */
   .overview-status {
-    margin: 14px 0 12px; padding: 12px 0;
+    margin: 14px 0 12px; padding: 13px 0;
     background: none; border: 0; border-radius: 0;
     border-top: 1px solid var(--border-subtle);
     border-bottom: 1px solid var(--border-subtle);
     -webkit-backdrop-filter: none; backdrop-filter: none;
-    font-size: var(--fs-verdict); line-height: 1.3; letter-spacing: -.01em;
+    font-size: var(--fs-xl); line-height: 1.55; letter-spacing: 0;
+    max-width: 68ch;
   }
   .overview-status .sb-pulse { display: none; }
-  .overview-status .sb-text { font-weight: 600; }
+  .overview-status .sb-text { font-weight: 550; }
   .overview-verdict .today-highlights {
     display: grid; grid-template-columns: 1fr; gap: 6px;
     margin: 0 0 14px; min-height: 0;
@@ -2631,7 +2687,7 @@
   .hl-chip.hl-alert { color: var(--red); font-weight: 600; }
 
   @media (min-width: 768px) and (max-width: 1023px) {
-    .hero-rail { grid-template-columns: repeat(4, minmax(0, 1fr)); min-height: 152px; }
+    .hero-rail { grid-template-columns: repeat(3, minmax(0, 1fr)); min-height: 152px; }
     /* 506：要点行升到 44px 后 768px 端横幅折行的实测上界（504）+2。 */
     .overview-verdict { min-height: 506px; }
     .overview-verdict, .overview-strip,

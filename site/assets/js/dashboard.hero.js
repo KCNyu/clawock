@@ -723,6 +723,7 @@
     const ae = safe(m, "execution_by_kind", "active") || {};
     // 一格一次视觉起停：值和「它自己的变化」并成一行，限定语进标签，
     // 只有真正额外的信息（样本量、基线）才留副行。信息一条不少。(#879)
+    const legPct = (v, chg) => (has(v) && has(chg) && (v - chg) > 0) ? chg / (v - chg) * 100 : null;
     const cell = (k, v, s, cls) =>
       `<div class="hero-rail-cell"><div class="hero-rail-k">${k}</div>`
       + `<div class="hero-rail-v ${cls || ""}">${v}</div>`
@@ -742,7 +743,7 @@
     // 近 n 个交易日的每日盈亏柱。数据源就是 spark 那条序列的一阶差分 ——
     // 同源同算法，不另开一条口径（首屏两处画同一件事却对不上，是这块面板
     // 反复出过的问题）。
-    const railDailyBars = (n) => {
+    const dailyBars = (n) => {
       const pts = heroProfitSeries();
       if (pts.length < 3) return `<div class="rc-bars" aria-hidden="true"></div>`;
       const d = [];
@@ -763,16 +764,11 @@
         + `近 ${d.length} 个交易日每日盈亏：${up} 天为正、${d.length - up} 天为负">`
         + `${bars}</div><div class="rc-cap">近 ${d.length} 日 · ${up} 涨 ${d.length - up} 跌</div>`;
     };
-    // 统计轨 6 格 → 4 格，每格自带一件图形。六格全是数字时它读成一张对账单，
-    // 而首屏是天天看的东西：看的是形状，不是逐位读数（kcn 2026-08-24：「数字
-    // 太多太乱，下面多点图好看」）。
+    // 统计轨只剩「钱在哪、守不守纪律」三格，每格自带一件图形：
     //   · 美股 / 港股 —— 值 + 占账面比例条（比例是形状问题，不是数字问题）
-    //   · 今日 —— 美港合并成一个 USD-eq 数（原来两格是同一件事的两个货币面），
-    //             省下的位置给近 14 个交易日的每日盈亏柱：一格里第一次能看出
-    //             「今天这根在最近的分布里算大还是算小」
     //   · 遵守率 30d —— 值 + 量表条
-    // 自评 Brier 挪出首屏：它在 Reflect 的 Brier 卡、决策带 KPI、Plan 三处都在，
-    // 首屏这一格是全站第四份。
+    // 今日搬进了自己那一行（上面），自评 Brier 挪出首屏（Reflect 的 Brier 卡、
+    // 决策带 KPI、Plan 三处都在，首屏这格是全站第四份）。
     const shareUs = (has(us.value_usd) && has(bookUsd) && bookUsd > 0)
       ? us.value_usd / bookUsd * 100 : null;
     const shareHk = (has(hk.value_hkd) && has(bookUsd) && fx && bookUsd > 0)
@@ -784,9 +780,6 @@
       cell("港股", withDelta(fmtMoney(hk.value_hkd, "HKD"),
         `${heroMoney(hk.pnl_hkd, "HKD")} · ${fmtPct(hk.pnl_pct)}`, pnlClass(hk.pnl_hkd)),
         railMeter(shareHk, `占账面 ${shareHk == null ? DASH : shareHk.toFixed(0) + "%"}`)),
-      cell("今日", withDelta(heroMoney(todayUsd, "USD"),
-        todayPct == null ? "" : fmtPct(todayPct), pnlClass(todayPct)),
-        railDailyBars(20), pnlClass(todayUsd)),
       cell("遵守率 30d", ae.rate == null ? DASH : (ae.rate * 100).toFixed(1) + "%",
         // stranded = 核验窗口关闭时仍没有答案的 call，永远不会结算。只报 known
         // 会高估这个比率覆盖了多少记录，所以两个数一起给。
@@ -794,6 +787,34 @@
           `主动 call · n=${ae.known == null ? DASH : ae.known}`
           + (ae.stranded ? ` · ${ae.stranded} 未能核验` : ""))),
     ].join("");
+
+    // 今日行：一个 USD-eq 合计 + 美股/港股两个分项 + 一条与上方走势图同宽的
+    // 每日盈亏柱。三个数放在一起才有意义（合计回答「今天亏了多少」，分项回答
+    // 「亏在哪边」），柱子回答「这根在最近的分布里算大还是算小」。
+    const todayEl = document.getElementById("hero-today");
+    if (todayEl) {
+      const usTodayPct = legPct(us.value_usd, us.today_change_usd);
+      const hkTodayPct = legPct(hk.value_hkd, hk.today_change_hkd);
+      const leg = (k, v, pct, cls) =>
+        `<span class="ht-leg"><span class="ht-leg-k">${k}</span>`
+        + `<b class="${cls}">${v}</b>`
+        + (pct == null ? "" : ` <span class="${pnlClass(pct)}">${fmtPct(pct)}</span>`)
+        + `</span>`;
+      todayEl.innerHTML =
+        `<div class="ht-nums">`
+        + `<div class="overview-card-kicker">今日 · USD 等值</div>`
+        + `<div class="ht-total ${pnlClass(todayUsd)}">${heroMoney(todayUsd, "USD")}`
+        + (todayPct == null ? "" : ` <span class="ht-total-pct">${fmtPct(todayPct)}</span>`)
+        + `</div>`
+        + `<div class="ht-legs">`
+        + leg("美股", heroMoney(us.today_change_usd, "USD"), usTodayPct,
+          pnlClass(us.today_change_usd))
+        + `<span class="hds-sep">·</span>`
+        + leg("港股", heroMoney(hk.today_change_hkd, "HKD"), hkTodayPct,
+          pnlClass(hk.today_change_hkd))
+        + `</div></div>`
+        + `<div class="ht-chart">${dailyBars(20)}</div>`;
+    }
 
     renderHeroSpark();
   }
@@ -861,7 +882,6 @@
     // 最低点就在末端时没有「自最低」可说（那句会退化成 +$0）。
     const recovered = li < vals.length - 2 ? last - lowest : null;
 
-    const zeroPct = Math.max(0, Math.min(100, zeroY / H * 100));
     const label = `总盈亏 ${vals.length} 个交易日走势：最低 ${heroMoney(lowest, "USD")}`
       + `（${pts[li].date}）`
       + (recovered != null ? `，自最低 ${heroMoney(recovered, "USD")}` : "")
@@ -894,10 +914,9 @@
       + ` x2="${x(li).toFixed(1)}" y2="${y(lowest).toFixed(1)}"/>`
       + `<path class="hs-line" d="${line}"/>`
       + `</svg>`
-      // 零轴刻度是 HTML 不是 SVG 文本：viewBox 被 preserveAspectRatio="none"
-      // 横向拉伸，写在 SVG 里的字会跟着拉扁。零轴贴顶时改标在线下方。
-      + `<span class="hs-zero-tag${zeroPct < 14 ? " is-top" : ""}" style="top:${zeroPct.toFixed(2)}%"`
-      + ` aria-hidden="true">0</span>`
+      // 零轴刻度已去掉（kcn 2026-08-24：「大图的 0 可以不要」）。零轴那条线
+      // 本身留着 —— 它是曲线读正负的唯一参照，标签只是给它写名字，而这条线
+      // 在一张只有一个量纲的图里不需要名字。
       + `</div>`
       + `<div class="hs-foot">${foot}</div>`;
       // 端点标记已移除（kcn 2026-08-24：spark 末端涨跌色圆点没用，去掉）。
