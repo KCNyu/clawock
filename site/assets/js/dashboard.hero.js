@@ -699,11 +699,21 @@
       if (fx) {
         const at = fxMeta.fetched_at ? new Date(fxMeta.fetched_at) : null;
         const stamp = at && !isNaN(at) ? at.toISOString().replace("T", " ").slice(0, 16) + "Z" : "";
-        fxEl.textContent = `账面 ${fmtMoney(bookUsd, "USD")}`
+        // 逐段包 span：整行以前是一个 textContent，浏览器于是在任何空格处
+        // 断行 —— 1200 档实测把时间戳劈成「2026-」+「08-24 00:03Z」，一个
+        // 值被折成两半。段内 nowrap、段间可断，和上面那行副行同一套规矩。
+        const segs = [`账面 ${fmtMoney(bookUsd, "USD")}`
           + (has(us.value_usd) && has(hk.value_hkd)
-            ? ` / ${fmtMoney(us.value_usd * fx + hk.value_hkd, "HKD")}` : "")
-          + ` · USDHKD ${fmtNum(fx, 4)}`
-          + (fxMeta.source ? ` · ${fxMeta.source}` : "") + (stamp ? ` · ${stamp}` : "");
+            ? ` / ${fmtMoney(us.value_usd * fx + hk.value_hkd, "HKD")}` : "")];
+        segs.push(`USDHKD ${fmtNum(fx, 4)}`);
+        if (fxMeta.source) segs.push(String(fxMeta.source));
+        if (stamp) segs.push(stamp);
+        // 分隔点跟着前一段走、断行机会交给 <wbr>：否则折行会落在分隔点之前，
+        // 第二行以「· 」开头，读起来像少了个词。
+        fxEl.innerHTML = segs
+          .map((t, i) => `<span>${escapeHtml(t)}${i < segs.length - 1 ? " · " : ""}</span>`
+            + (i < segs.length - 1 ? "<wbr>" : ""))
+          .join("");
       } else {
         fxEl.textContent = "FX unavailable";
       }
@@ -755,6 +765,8 @@
   // 两条线画同一件事却形状不同 —— 所以这里照抄 charts.js 的合并视图逻辑：
   // 同一日期只留一条、连续两条属于同一交易时段的只留后一条（美股时段跨港股
   // 午夜会落进两个港股日期，见 openclaw-us-crossday-double-count）。
+  // 日期跟着值一起带出来：走势条要标注的「最低点在哪天」只能来自这里，
+  // 在渲染端重新对齐一次序列必然会和这里的去重逻辑漂移。
   function heroProfitSeries() {
     const fx = safe(DATA, "fx", "usdhkd");
     if (!fx) return [];
@@ -772,17 +784,26 @@
       return true;
     });
     return series
-      .map(s => (s.us_profit == null || s.hk_profit == null) ? null : s.us_profit + s.hk_profit / fx)
-      .filter(v => v != null && isFinite(v));
+      .map(s => (s.us_profit == null || s.hk_profit == null)
+        ? null
+        : { date: s.date, v: s.us_profit + s.hk_profit / fx })
+      .filter(p => p && isFinite(p.v));
+  }
+
+  // 「2026-07-24」→「07-24」：走势条的脚注要的是位置，不是完整日期，年份
+  // 已经由出处行给了。
+  function heroSparkDay(iso) {
+    return typeof iso === "string" && iso.length >= 10 ? iso.slice(5) : String(iso || "");
   }
 
   function renderHeroSpark() {
     const host = document.getElementById("hero-spark");
     if (!host) return;
-    const vals = heroProfitSeries();
+    const pts = heroProfitSeries();
     // 两点以下画不出趋势。容器高度由 CSS 占住，所以这里清空不会让页面跳。
-    if (vals.length < 3) { host.replaceChildren(); return; }
+    if (pts.length < 3) { host.replaceChildren(); return; }
 
+    const vals = pts.map(p => p.v);
     const W = 1000, H = 200, PAD = 6;            // viewBox 坐标，实际尺寸由 CSS 给
     const lo = Math.min(...vals, 0), hi = Math.max(...vals, 0);
     const span = (hi - lo) || 1;
@@ -794,24 +815,53 @@
     const last = vals[vals.length - 1];
     const tone = last > 0 ? "pos" : last < 0 ? "neg" : "flat";
 
-    // 填充按**零轴**分色，不是按最后一个值分色：这条曲线前半段是赚的、后半段
-    // 才转亏，用单一色填满会把一段盈利期涂成亏损色 —— 图会说谎。硬停在 zeroY
-    // 的渐变正好在零轴处换色，不需要 clipPath。
-    const stop = Math.max(0, Math.min(1, zeroY / H));
-    const gid = "hs-grad";
-    const label = `总盈亏 ${vals.length} 个交易日走势：最低 ${heroMoney(lo, "USD")}`
-      + `，最高 ${heroMoney(hi, "USD")}，当前 ${heroMoney(last, "USD")}`;
+    // 最低点：给这条线一把标尺。没有它，形状只说得出「跌过又爬回来一点」，
+    // 说不出跌到过哪、爬回来多少 —— 而那正是大数字回答不了的那半个问题。
+    let li = 0;
+    for (let i = 1; i < vals.length; i++) if (vals[i] < vals[li]) li = i;
+    const lowest = vals[li];
+    // 最低点就在末端时没有「自最低」可说（那句会退化成 +$0）。
+    const recovered = li < vals.length - 2 ? last - lowest : null;
+
+    const zeroPct = Math.max(0, Math.min(100, zeroY / H * 100));
+    const label = `总盈亏 ${vals.length} 个交易日走势：最低 ${heroMoney(lowest, "USD")}`
+      + `（${pts[li].date}）`
+      + (recovered != null ? `，自最低 ${heroMoney(recovered, "USD")}` : "")
+      + `，最高 ${heroMoney(Math.max(...vals), "USD")}，当前 ${heroMoney(last, "USD")}`;
+
+    const foot =
+      `<span class="hs-foot-range">${escapeHtml(heroSparkDay(pts[0].date))} → `
+      + `${escapeHtml(heroSparkDay(pts[pts.length - 1].date))} · ${vals.length} 个交易日</span>`
+      + `<span class="hs-foot-low">最低 ${escapeHtml(heroMoney(lowest, "USD"))}`
+      + `（${escapeHtml(heroSparkDay(pts[li].date))}）`
+      + (recovered != null
+        ? ` · 自最低 ${escapeHtml(heroMoney(recovered, "USD"))}`
+        : "")
+      + `</span>`;
+
     host.innerHTML =
-      `<svg class="hero-spark-svg ${tone}" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"`
+      `<div class="hs-plot">`
+      + `<svg class="hero-spark-svg ${tone}" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"`
       + ` role="img" aria-label="${escapeHtml(label)}">`
-      + `<defs><linearGradient id="${gid}" gradientUnits="objectBoundingBox" x1="0" y1="0" x2="0" y2="1">`
-      + `<stop offset="0" class="hs-up"/><stop offset="${stop.toFixed(4)}" class="hs-up"/>`
-      + `<stop offset="${stop.toFixed(4)}" class="hs-down"/><stop offset="1" class="hs-down"/>`
+      + `<defs><linearGradient id="hs-fade" gradientUnits="objectBoundingBox"`
+      + ` x1="0" y1="0" x2="0" y2="1">`
+      + `<stop offset="0" class="hs-fade-near"/><stop offset="1" class="hs-fade-far"/>`
       + `</linearGradient></defs>`
-      + `<path class="hs-area" d="${area}" fill="url(#${gid})"/>`
+      + `<path class="hs-area" d="${area}"/>`
       + `<line class="hs-zero" x1="0" y1="${zeroY.toFixed(1)}" x2="${W}" y2="${zeroY.toFixed(1)}"/>`
+      // 最低点竖线把脚注里的「最低」钉在曲线上的具体位置：从画布顶垂到那个
+      // 点为止。（不能反过来从最低点垂到底：最低点就是画布底，那条线长度为
+      // 零，画了等于没画。）比零轴更淡，才不会被读成第二条坐标轴。
+      + `<line class="hs-low" x1="${x(li).toFixed(1)}" y1="0"`
+      + ` x2="${x(li).toFixed(1)}" y2="${y(lowest).toFixed(1)}"/>`
       + `<path class="hs-line" d="${line}"/>`
       + `</svg>`
+      // 零轴刻度是 HTML 不是 SVG 文本：viewBox 被 preserveAspectRatio="none"
+      // 横向拉伸，写在 SVG 里的字会跟着拉扁。零轴贴顶时改标在线下方。
+      + `<span class="hs-zero-tag${zeroPct < 14 ? " is-top" : ""}" style="top:${zeroPct.toFixed(2)}%"`
+      + ` aria-hidden="true">0</span>`
+      + `</div>`
+      + `<div class="hs-foot">${foot}</div>`;
       // 端点标记已移除（kcn 2026-08-24：spark 末端涨跌色圆点没用，去掉）。
   }
 
