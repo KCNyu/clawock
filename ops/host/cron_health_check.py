@@ -505,16 +505,32 @@ def check_dashboard_build():
             'ok': True, 'warn_count': 0, 'repair_count': 0, 'age_hours': age_hours}
 
 
-def _market_closed_today(market):
-    """True if `market` ('hk'/'us') is on holiday/weekend today (its own TZ). Used to
-    suppress false 'missing commit' reds: a market-report cron on that market's holiday
-    is correctly skipped by preflight's holiday gate (memory: openclaw-market-holiday-gate),
+def _market_closed_on(market, day=None):
+    """True if `market` ('hk'/'us') is closed on `day` (default: today, its own TZ).
+
+    Used to suppress false 'missing commit' reds: a market-report cron on that market's
+    holiday is correctly skipped by preflight's holiday gate (memory: openclaw-market-holiday-gate),
     so it produces no commit by design. Fail-open (False) if the calendar is unavailable."""
     try:
         from clawock import sessions as _tc
-        return not _tc.is_trading_day(market)
+        return not _tc.is_trading_day(market, day)
     except Exception:
         return False
+
+
+def _market_closed_today(market):
+    return _market_closed_on(market)
+
+
+# Jobs whose slots exist only because the US session crosses HKT midnight: their
+# Tue–Sat slots monitor the PREVIOUS day's US session (#454's rule — a fill typed
+# Saturday 01:08 HKT traded Friday). Judging them on the slot's own calendar date
+# got both directions wrong at once: every Saturday read as "US closed" (always
+# true) so the Friday-session slots were recorded in the ledgers and verified by
+# no one, while a US holiday's own skip surfaced as a missing report on the NEXT
+# trading morning, whose calendar says open. The holiday gate must ask about the
+# session day, not the wall-clock day (#955).
+SESSION_DAY_OFFSET_JOBS = frozenset({'美股收盘报告', '美股盘中盯盘-overnight'})
 
 
 def main():
@@ -568,7 +584,19 @@ def main():
         both_closed = name == '盘前深度简报' and all(
             _market_closed_today(m) for m in ('hk', 'us')
         )
-        if expected_past and ((mkt and _market_closed_today(mkt)) or both_closed):
+        market_closed = False
+        if mkt:
+            session_day = None
+            if name in SESSION_DAY_OFFSET_JOBS:
+                try:
+                    session_day = (
+                        now.astimezone(ZoneInfo(tz)).date() - timedelta(days=1))
+                except Exception:
+                    session_day = None  # fail open into the same-day gate below
+            market_closed = (
+                _market_closed_on(mkt, session_day)
+                if session_day is not None else _market_closed_today(mkt))
+        if expected_past and (market_closed or both_closed):
             label = f'{mkt.upper()} 休市' if mkt else 'HK + US 均休市'
             report.append({
                 'name': name, 'schedule': expr, 'tz': tz,
