@@ -38,12 +38,14 @@ from clawock.portfolio.guardrail import (  # noqa: F401  (re-export)
     compute_risk_guardrail,
 )
 import argparse
+import concurrent.futures
 import json
 import math
 import os
 import re
 import subprocess
 import sys
+import time
 from datetime import datetime, date, timezone, timedelta
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -924,63 +926,9 @@ def load_influencer_feed(issues):
         return {}
 
 
-def main(argv=None):
-    # This script took no arguments at all, so `--help` was not "unsupported" —
-    # it was ignored, and the full preflight ran: live price fetches, SEC EDGAR,
-    # Tavily. A probe meant to cost nothing did a minutes-long real run.
-    #
-    # CI wraps this call in `|| true`, which reads like the case was handled. It
-    # is not: `|| true` catches a non-zero exit, and this never exited non-zero —
-    # it hung. On 2026-08-06 that consumed the validate job's entire 10-minute
-    # budget and failed a PR that had nothing to do with it.
-    #
-    # Parsing argv also restores the contract the repo relies on when an agent
-    # probes a script: `--help` exits 0 having done nothing, and an unknown flag
-    # exits 2 rather than being silently ignored — the latter is what turns
-    # "mistyped argument plus valid input" into a successful-looking no-op.
-    argparse.ArgumentParser(
-        description=(
-            "Deterministic data collection for the daily-deep-brief harness. "
-            "Takes no arguments; the date comes from TODAY or HKT now()."
-        ),
-    ).parse_args(argv)
-
-    # Date in HKT (the system's canonical TZ), or honor the TODAY env that the
-    # brief-fallback workflow exports — so the context filename here always matches
-    # the date the fallback script reads. Naive now() = runner UTC, which mismatched
-    # HKT in the 16:00–23:59 UTC window and broke off-schedule fallback runs.
-    today = (os.environ.get('TODAY')
-             or datetime.now(timezone(timedelta(hours=8))).strftime('%Y-%m-%d'))
-    TMP_DIR.mkdir(parents=True, exist_ok=True)
-    SNAPSHOT_DIR.mkdir(parents=True, exist_ok=True)
-    issues = []
-    job_name = '盘前深度简报'
-    slot = workflow_outcomes.slot_for_job(job_name)
-    workflow_outcomes.record_stage(job_name, 'preflight', 'pending', slot=slot)
-
-    # Holiday/weekend gate: the brief covers both markets, so skip ONLY when both
-    # HK and US are closed (still runs if either trades). At 08:00 HKT the relevant
-    # US session is the just-closed NY day, which trading_calendar reads correctly
-    # (NY-local date is still the prior calendar day at that hour).
-    hk_closed = trading_calendar.closed_reason('hk')
-    us_closed = trading_calendar.closed_reason('us')
-    if hk_closed and us_closed:
-        workflow_outcomes.record_stage(
-            job_name, 'preflight', 'skipped', slot=slot,
-            reason=f'港股{hk_closed}+美股{us_closed}',
-        )
-        result = {'status': 'market_closed', 'date': today,
-                  'reason': f'港股{hk_closed}+美股{us_closed}', 'skip': True}
-        (TMP_DIR / f'brief-context-{today}.json').write_text(
-            json.dumps(result, ensure_ascii=False, indent=2))
-        print(f'=== MARKET CLOSED — 港股{hk_closed} + 美股{us_closed} ({today}) ===')
-        print('SKIP：两市均休市，不生成简报、不调用 send/postflight，本回合结束。')
-        print(json.dumps(result, ensure_ascii=False, indent=2))
-        return 0
-
-    print(f'═════ brief_preflight.py | {today} ═════')
-
+def analyze_us():
     # [1] Refresh prices
+    issues = []
     print('\n[1/14] Refresh US prices')
     us_out, us_ok = _run_clawock('analyze-us', ['--no-news'])
     if not us_ok:
@@ -988,7 +936,11 @@ def main(argv=None):
         print(f'   ⚠️  {issues[-1]}')
     else:
         print('   ✓ done')
+    return None, issues
 
+
+def analyze_hk():
+    issues = []
     print('[2/14] Refresh HK prices')
     hk_out, hk_ok = _run_clawock('analyze-hk', ['--no-news'])
     if not hk_ok:
@@ -996,49 +948,23 @@ def main(argv=None):
         print(f'   ⚠️  {issues[-1]}')
     else:
         print('   ✓ done')
+    return None, issues
 
+
+def fx_rate():
     # [3] FX
+    issues = []
     print('[3/14] FX rate')
     fx = fetch_fx_rate()
     if 'error' in fx:
         issues.append(f'FX fallback used: {fx["error"][-200:]}')
     print(f'   USDHKD = {fx["rate"]}  ({fx["source"]})')
+    return fx, issues
 
-    # [4] Snapshot
-    print('[4/14] Portfolio snapshot')
-    portfolio_path = WS / 'portfolio.json'
-    snapshot_path  = SNAPSHOT_DIR / f'{today}.json'
-    snapshot_path.write_bytes(portfolio_path.read_bytes())
-    print(f'   ✓ {snapshot_path.name}')
 
-    # Load for downstream
-    portfolio = json.loads(portfolio_path.read_text())
-
-    # [5] Concentration
-    print('[5/14] Concentration')
-    hk_conc = compute_concentration(portfolio['portfolios']['hk_stocks']['holdings'])
-    us_conc = compute_concentration(portfolio['portfolios']['us_stocks']['holdings'])
-    lookthrough = compute_lookthrough_exposure(portfolio)
-    print(f'   HK: HHI={hk_conc.get("hhi"):.3f} {hk_conc.get("verdict")} '
-          f'(Top2 {hk_conc.get("top2_pct")}%)')
-    print(f'   US: HHI={us_conc.get("hhi"):.3f} {us_conc.get("verdict")} '
-          f'(Top2 {us_conc.get("top2_pct")}%)')
-    print(f'   Look-through: HK factor HHI={lookthrough["hk"]["factor_hhi"]:.3f}; '
-          f'US factor HHI={lookthrough["us"]["factor_hhi"]:.3f}')
-
-    # Book totals (FX-aware)
-    rate = fx['rate']
-    hk_pnl_hkd = portfolio['portfolios']['hk_stocks'].get('total_pnl', 0)
-    us_pnl_usd = portfolio['portfolios']['us_stocks'].get('total_pnl', 0)
-    book = {
-        'hk_pnl_hkd':      round(hk_pnl_hkd, 2),
-        'us_pnl_usd':      round(us_pnl_usd, 2),
-        'usd_base_total':  round(hk_pnl_hkd / rate + us_pnl_usd, 2),
-        'hkd_base_total':  round(hk_pnl_hkd + us_pnl_usd * rate, 2),
-        'fx_used':         rate,
-    }
-
+def _node_filings(portfolio):
     # [6] SEC EDGAR
+    issues = []
     print('[6/14] SEC EDGAR US singles')
     us_fund = collect_us_fundamentals(portfolio)
     for t, data in us_fund.items():
@@ -1048,29 +974,21 @@ def main(argv=None):
         else:
             kf = data.get('key_financials', {})
             print(f'   ✓ {t}: {len(kf)} concepts')
+    return us_fund, issues
 
-    # [7] Retrospective
-    print('[7/14] Retrospective')
-    prior_plan = find_prior_plan(today)
-    retro = compute_retrospective(prior_plan, portfolio)
-    if retro.get('prior_plan_date'):
-        actions = retro['decisions']
-        fired = sum(1 for a in actions if a.get('trigger_fired') is True)
-        not_fired = sum(1 for a in actions if a.get('trigger_fired') is False)
-        ambiguous = sum(1 for a in actions if a.get('trigger_fired') is None and 'error' not in a)
-        print(f'   prior plan: {retro["prior_plan_date"]}')
-        print(f'   fired: {fired}   not fired: {not_fired}   ambiguous (manual/event): {ambiguous}')
-        print(f'   conf cal: 80%+ {retro["confidence_calibration"]["conf_80_100"]}, '
-              f'60-79% {retro["confidence_calibration"]["conf_60_79"]}')
-    else:
-        print(f'   first run (no prior plan)')
 
+def peer_scan_node(portfolio):
     # [8] Peer scan — for each active holding, fetch peer prices + flag divergence
+    issues = []
     print('[8/14] Peer scan')
     peer_scan = collect_peer_scan(portfolio)
     print(f'   {len(peer_scan)} holdings with peer data; {sum(1 for h in peer_scan.values() if h.get("divergence_signal"))} divergence signals')
+    return peer_scan, issues
 
+
+def daily_bars_node():
     # [9] Canonical bars — must precede [10]: settling only reads this store.
+    issues = []
     print('[9/14] Refresh canonical daily bars')
     bars = refresh_daily_bars()
     if not bars.get('ok'):
@@ -1109,35 +1027,12 @@ def main(argv=None):
             # Informational: thin names skip sessions legitimately. See bars_staleness.
             print(f'     {leg} behind leg: '
                   + ', '.join(f'{t}@{d}' for t, d in st['laggards'].items()))
+    return None, issues
 
-    # [10] V2 episode metrics — triggered-only, strategy-aware, cluster-bootstrap
-    print('[10/14] Decision metrics v2')
-    decision_metrics = compute_decision_metrics()
-    # Brier is never printed bare: alone it reads as "0.295, close enough to 0".
-    # It only means something against the constant-forecast baseline it has to beat.
-    print(f'   {decision_metrics.get("settled_episodes", 0)} settled episodes / '
-          f'{decision_metrics.get("raw_decisions", 0)} raw decisions; '
-          f'Brier={decision_metrics.get("brier")} vs constant-forecast baseline '
-          f'{decision_metrics.get("brier_baseline_loo")} '
-          f'({"beats" if decision_metrics.get("brier_beats_baseline") else "LOSES to"} it)')
-    hierarchical = decision_metrics.get('hierarchical_calibration') or {}
-    prequential = hierarchical.get('after_warmup') or {}
-    print(f'   hierarchical prequential: n={prequential.get("n", 0)} '
-          f'Brier={prequential.get("calibrated_brier")} vs raw '
-          f'{prequential.get("raw_brier")}; '
-          f'{hierarchical.get("abstained_predictions", 0)} historical abstentions / '
-          f'{hierarchical.get("edge_supported_predictions", 0)} edge-supported')
-    active_v2 = decision_metrics.get('active') or {}
-    print(f'   active: n={active_v2.get("n_episodes", 0)} '
-          f'avg benefit={active_v2.get("avg_benefit_pct")}%, '
-          f'cluster CI={active_v2.get("cluster_ci95")}')
 
-    # [9b] Reflection memory — per held ticker, prior call outcomes (TradingAgents-style)
-    reflections = compute_reflections(portfolio)
-    if reflections:
-        print(f'[9b/11] Reflections: {len(reflections)} held tickers with prior-call history')
-
+def portfolio_risk_node():
     # [10] Risk metrics — Tier 2: β / vol / DD / Sharpe / margin sim
+    issues = []
     print('[11/14] Risk metrics')
     risk = {}
     try:
@@ -1164,8 +1059,12 @@ def main(argv=None):
                 print(f'   ⚠ {a["type"]:18s} ({a["severity"]:6s}) {a["detail"][:80]}')
     except Exception as e:
         print(f'   ⚠ risk metrics failed: {e}')
+    return risk, issues
 
+
+def regime_node():
     # [10b] Leverage dial — HSTECH 200DMA trend + 20d vol → leveraged-ETF cap multiplier
+    issues = []
     lev_regime = None
     try:
         subprocess.run(['clawock', 'regime'],
@@ -1176,9 +1075,13 @@ def main(argv=None):
             print(f'   🧭 lev_regime: {lev_regime.get("tier")} (×{lev_regime.get("lev_cap_mult")}) — {lev_regime.get("label","")}')
     except Exception as e:
         print(f'   ⚠ lev_regime compute failed: {e}')
+    return lev_regime, issues
 
+
+def quant_node():
     # [10b2] 量化因子层 — 趋势/动量/RSI/z-score/ATR吊灯止损/vol-target（纯算术，
     # LLM 技术面判断只准引用此表）。merge-not-overwrite，单只抓空保留旧值。
+    issues = []
     quant_signals = {}
     try:
         subprocess.run(['clawock', 'quant'],
@@ -1195,9 +1098,13 @@ def main(argv=None):
                   + '; '.join(f'{k}:{v}' for k, v in list(tags.items())[:4]) + ' …')
     except Exception as e:
         print(f'   ⚠ quant_signals compute failed: {e}')
+    return quant_signals, issues
 
+
+def quant_review_node():
     # [10b3] 因子 edge 自检 — 历史留痕 vs forward return 对账（自迭代：因子话语权由
     # hit_rate 决定，样本<20 不解锁）。纯本地文件运算。
+    issues = []
     quant_review = {}
     try:
         subprocess.run(['clawock', 'quant-review'],
@@ -1208,11 +1115,15 @@ def main(argv=None):
             print(f'   📐 factor edge: {quant_review.get("summary", "")[:80]}')
     except Exception as e:
         print(f'   ⚠ quant_signal_review failed: {e}')
+    return quant_review, issues
 
+
+def cross_factor_node(portfolio):
     # [10b3b] Cross-sectional factor research — curated peers + 1x underlyings,
     # sector-neutral ranks and strictly prospective activation. The full artifact
     # stays on disk; context gets a compact view to avoid spending brief tokens on
     # 38 complete research rows. `usable_for_decisions=false` is a hard boundary.
+    issues = []
     cross_sectional_factor = {}
     cross_sectional_factor_ctx = {}
     try:
@@ -1260,17 +1171,25 @@ def main(argv=None):
             )
     except Exception as e:
         print(f'   ⚠ cross-sectional factor failed: {e}')
+    return cross_sectional_factor_ctx, issues
 
+
+def evidence_node():
     # 证据页：读上面刚刷新的产物重新生成，保证「测了什么、什么没通过」不落后于事实。
+    issues = []
     try:
         subprocess.run(['clawock', 'evidence'],
                        capture_output=True, text=True, timeout=60, check=False)
     except Exception as e:
         print(f'   ⚠ evidence page rebuild failed: {e}')
+    return None, issues
 
+
+def peer_residual_node(portfolio):
     # [10b3c] Curated peer residual/leadership research. HK taxonomy is explicitly
     # manual-only; leveraged products are folded to 1x before basket construction.
     # As with the broader cross-sectional layer, inactive rules are display-only.
+    issues = []
     peer_residual_ctx = {}
     try:
         subprocess.run(
@@ -1312,9 +1231,13 @@ def main(argv=None):
             )
     except Exception as e:
         print(f'   ⚠ peer residual engine failed: {e}')
+    return peer_residual_ctx, issues
 
+
+def t0_node():
     # [10b4] T+0 牌面评级 — 零额外请求（从已抓字段 + quant ATR 推导），追高检测。
     # 紧跟 quant_signals 之后跑（依赖其 ATR 刷新）。
+    issues = []
     t0_setups = {}
     try:
         subprocess.run(['clawock', 't0'],
@@ -1327,9 +1250,13 @@ def main(argv=None):
                   + (f' — 🔴 追高: {", ".join(chase)}' if chase else ''))
     except Exception as e:
         print(f'   ⚠ t0_setups compute failed: {e}')
+    return t0_setups, issues
 
+
+def t0_review_node():
     # [10b4b] T+0 牌面 edge 自检 — 牌面评级对账 T+1 forward return（数据背书）。
     # 零网络：结算用历史留痕的 close，绝不每分钟抓价。
+    issues = []
     t0_review = {}
     try:
         subprocess.run(['clawock', 't0-review'],
@@ -1340,67 +1267,24 @@ def main(argv=None):
             print(f'   🎯 T+0 牌面背书: {t0_review.get("summary", "")[:80]}')
     except Exception as e:
         print(f'   ⚠ t0_setup_review failed: {e}')
+    return t0_review, issues
 
+
+def em_news_node():
     # [10b6] 中文消息源 — Eastmoney HK 持仓新闻 + 7x24 快讯（信息广度，喂 catalyst-gate）。
     # 借鉴 UZI-Skill 的数据源广度；信息收集是 LLM 强项 + kcn token 充足。失败 fail-soft。
+    issues = []
     try:
         subprocess.run(['clawock', 'em-news'], cwd=WS,
                        capture_output=True, text=True, timeout=60, check=False)
     except Exception as e:
         print(f'   ⚠ clawock em-news failed: {e}')
+    return None, issues
 
-    # [10b5] 数据体检闸 — 把历史踩过的数字 bug 固化成自动门。warn-only 注入 context
-    # （遵 feedback_no_individual_cron_alerts 不推送），ERROR 由 build_status 健康卡暴露。
-    integrity = {}
-    try:
-        from clawock.portfolio import integrity as _pi
-        integrity = _pi.check()
-        if not integrity['ok']:
-            print(f'   🔴 数据体检 {integrity["error_count"]} ERROR：')
-            for f in integrity['findings']:
-                if f['level'] == 'ERROR':
-                    print(f'      • {f["code"]}: {f["msg"][:90]}')
-        elif integrity['warn_count']:
-            print(f'   🟡 数据体检 {integrity["warn_count"]} WARN（见 integrity_report.json）')
-        else:
-            print('   ✅ 数据体检全过')
-    except Exception as e:
-        print(f'   ⚠ integrity check failed: {e}')
 
-    # [10c] Risk guardrails — position-sizing / leverage hard caps → trim/cut directives
-    guardrail = compute_risk_guardrail(
-        portfolio['portfolios']['hk_stocks']['holdings'],
-        portfolio['portfolios']['us_stocks']['holdings'],
-        hk_conc, us_conc, risk, lev_regime=lev_regime)
-    guardrail = risk_discipline.attach_breach_ids(guardrail)
-    _append_guardrail_history(today, guardrail, hk_conc, us_conc, risk)
-    discipline = {}
-    try:
-        discipline = risk_discipline.reconcile_guardrail(
-            guardrail, portfolio)
-    except Exception as e:
-        discipline = {'error': f'{type(e).__name__}: {e}', 'records': []}
-        issues.append(f'risk discipline reconcile failed: {type(e).__name__}')
-    print(f'   guardrail: {guardrail["breach_count"]} breaches/stops — {guardrail["directive"][:64]}')
-    if discipline.get('error'):
-        print(f'   🔴 durable risk ledger failed: {discipline["error"]}')
-    else:
-        print(f'   durable risk ledger: {discipline.get("open_count", 0)} open / '
-              f'{discipline.get("overridden_count", 0)} overridden / '
-              f'oldest {discipline.get("oldest_open_days", 0)}d')
-    for b in guardrail['breaches']:
-        print(f'   ⛔ {b["type"]:20s} ({b["severity"]:6s}) {b["detail"][:78]}')
-    for s in guardrail['hard_stop_watch']:
-        print(f'   🛑 {s["detail"][:78]}')
-
-    # [10d] 解套数学 — 纯算术回本表（浮亏持仓回本所需涨幅 / 2x 横盘 decay 成本）
-    breakeven = compute_breakeven_math(
-        portfolio['portfolios']['hk_stocks']['holdings'],
-        portfolio['portfolios']['us_stocks']['holdings'], lev_regime=lev_regime)
-    print(f'   breakeven: {len(breakeven["rows"])} 只浮亏持仓入表')
-
+def catalysts_node():
     # [11] Catalyst calendar — next 14d earnings + FOMC + macro
-    print('[12/14] Fetch catalysts')
+    issues = []
     catalysts = {}
     try:
         result = subprocess.run(
@@ -1424,10 +1308,14 @@ def main(argv=None):
     except Exception as e:
         print(f'   ⚠ catalysts step failed: {e}')
         issues.append(f'catalysts step exception: {type(e).__name__}')
+    return catalysts, issues
 
+
+def news_evidence_node():
     # [11b] News evidence graph — normalize filings/news/calendar nodes, expire
     # repeated summaries and apply deterministic source/novelty/confirmation
     # gates. Only a compact decision envelope enters the LLM context.
+    issues = []
     news_evidence_ctx = {}
     try:
         graph_run = subprocess.run(
@@ -1488,9 +1376,13 @@ def main(argv=None):
         issues.append(
             f'news evidence graph exception: {type(e).__name__}'
         )
+    return news_evidence_ctx, issues
 
+
+def benchmark_node():
     # Benchmark history (SPY + HSI/HSTECH) for the Equity Curve overlay.
     # Refreshed once per day at brief time; consumed by build_dashboard.
+    issues = []
     print('[13/14] Fetch benchmark history')
     try:
         bm_out, bm_ok = _run_clawock('benchmark', timeout=30)
@@ -1504,6 +1396,327 @@ def main(argv=None):
     except Exception as e:
         print(f'   ⚠ benchmark step failed: {e}')
         issues.append(f'benchmark step exception: {type(e).__name__}')
+    return None, issues
+
+
+NODE_ORDER = [
+    # Every spawn node in today's textual execution order (#916). After each
+    # wave joins, the parent extends `issues` from the wave's results in this
+    # order — so an identical failure set produces a byte-identical
+    # context['issues'] (and therefore generation_id) regardless of thread
+    # completion order.
+    'analyze_us', 'analyze_hk', 'fx_rate', '_node_filings',
+    'peer_scan_node', 'daily_bars_node', 'portfolio_risk_node',
+    'regime_node', 'quant_node', 'quant_review_node',
+    'cross_factor_node', 'evidence_node', 'peer_residual_node',
+    't0_node', 't0_review_node', 'em_news_node',
+    'catalysts_node', 'news_evidence_node', 'benchmark_node',
+]
+
+
+def _timed(fn):
+    """Run one node callable; return (payload, issues, wall_s).
+
+    Timing only — deliberately no try/except here: every node keeps its own
+    original except branch and timeout cap verbatim, and a wrapper handler
+    would change per-node failure semantics (#916)."""
+    started = time.monotonic()
+    payload, node_issues = fn()
+    return payload, node_issues, time.monotonic() - started
+
+
+def _run_wave(nodes, *, max_workers=2):
+    """Run one DAG wave of subprocess nodes concurrently.
+
+    nodes maps a NODE_ORDER name to a zero-arg callable returning
+    (payload, issues); returns {name: (payload, issues, wall_s)}. Process
+    isolation is unchanged — still one clawock subprocess per node; only the
+    scheduling is concurrent, capped at max_workers=2 for the 2C/2GB box (#916).
+    """
+    results = {}
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as pool:
+        pending = {pool.submit(_timed, fn): name for name, fn in nodes.items()}
+        for future in concurrent.futures.as_completed(pending):
+            results[pending[future]] = future.result()
+    return results
+
+
+def main(argv=None):
+    # This script took no arguments at all, so `--help` was not "unsupported" —
+    # it was ignored, and the full preflight ran: live price fetches, SEC EDGAR,
+    # Tavily. A probe meant to cost nothing did a minutes-long real run.
+    #
+    # CI wraps this call in `|| true`, which reads like the case was handled. It
+    # is not: `|| true` catches a non-zero exit, and this never exited non-zero —
+    # it hung. On 2026-08-06 that consumed the validate job's entire 10-minute
+    # budget and failed a PR that had nothing to do with it.
+    #
+    # Parsing argv also restores the contract the repo relies on when an agent
+    # probes a script: `--help` exits 0 having done nothing, and an unknown flag
+    # exits 2 rather than being silently ignored — the latter is what turns
+    # "mistyped argument plus valid input" into a successful-looking no-op.
+    argparse.ArgumentParser(
+        description=(
+            "Deterministic data collection for the daily-deep-brief harness. "
+            "Takes no arguments; the date comes from TODAY or HKT now()."
+        ),
+    ).parse_args(argv)
+
+    # Date in HKT (the system's canonical TZ), or honor the TODAY env that the
+    # brief-fallback workflow exports — so the context filename here always matches
+    # the date the fallback script reads. Naive now() = runner UTC, which mismatched
+    # HKT in the 16:00–23:59 UTC window and broke off-schedule fallback runs.
+    today = (os.environ.get('TODAY')
+             or datetime.now(timezone(timedelta(hours=8))).strftime('%Y-%m-%d'))
+    TMP_DIR.mkdir(parents=True, exist_ok=True)
+    SNAPSHOT_DIR.mkdir(parents=True, exist_ok=True)
+    issues = []
+    job_name = '盘前深度简报'
+    slot = workflow_outcomes.slot_for_job(job_name)
+    workflow_outcomes.record_stage(job_name, 'preflight', 'pending', slot=slot)
+
+    # Holiday/weekend gate: the brief covers both markets, so skip ONLY when both
+    # HK and US are closed (still runs if either trades). At 08:00 HKT the relevant
+    # US session is the just-closed NY day, which trading_calendar reads correctly
+    # (NY-local date is still the prior calendar day at that hour).
+    hk_closed = trading_calendar.closed_reason('hk')
+    us_closed = trading_calendar.closed_reason('us')
+    if hk_closed and us_closed:
+        workflow_outcomes.record_stage(
+            job_name, 'preflight', 'skipped', slot=slot,
+            reason=f'港股{hk_closed}+美股{us_closed}',
+        )
+        result = {'status': 'market_closed', 'date': today,
+                  'reason': f'港股{hk_closed}+美股{us_closed}', 'skip': True}
+        (TMP_DIR / f'brief-context-{today}.json').write_text(
+            json.dumps(result, ensure_ascii=False, indent=2))
+        print(f'=== MARKET CLOSED — 港股{hk_closed} + 美股{us_closed} ({today}) ===')
+        print('SKIP：两市均休市，不生成简报、不调用 send/postflight，本回合结束。')
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        return 0
+
+    print(f'═════ brief_preflight.py | {today} ═════')
+
+    step_timings = {}
+
+    def _join(results):
+        """Merge one wave into `issues`/`step_timings`; return {name: payload}.
+
+        Issue strings are appended by the parent AFTER the wave join, in
+        NODE_ORDER (= today's textual order), so an identical failure set
+        yields a byte-identical context['issues'] — and therefore generation_id
+        — regardless of thread completion order (#916)."""
+        payloads = {}
+        for name in NODE_ORDER:
+            if name not in results:
+                continue
+            payload, node_issues, wall_s = results[name]
+            issues.extend(node_issues)
+            step_timings[name] = {'ok': not node_issues, 'wall_s': wall_s}
+            payloads[name] = payload
+        return payloads
+
+    def _run_serial(name, fn):
+        """Serial-prefix node: identical accounting to waved nodes."""
+        return _join({name: _timed(fn)})[name]
+
+    # [1]+[2] Price refreshes are STRICTLY SERIAL, never parallel: analyze-us
+    # then analyze-hk each read-modify-write the SAME portfolio.json
+    # (us_analysis.update_us_portfolio writes it; hk_analysis writes the same
+    # path), so concurrent execution would lose one side's update (#916 §1.2).
+    _run_serial('analyze_us', analyze_us)
+    _run_serial('analyze_hk', analyze_hk)
+
+    # [4] Snapshot
+    print('[4/14] Portfolio snapshot')
+    portfolio_path = WS / 'portfolio.json'
+    snapshot_path  = SNAPSHOT_DIR / f'{today}.json'
+    snapshot_path.write_bytes(portfolio_path.read_bytes())
+    print(f'   ✓ {snapshot_path.name}')
+
+    # Load for downstream
+    portfolio = json.loads(portfolio_path.read_text())
+
+    # [5] Concentration
+    print('[5/14] Concentration')
+    hk_conc = compute_concentration(portfolio['portfolios']['hk_stocks']['holdings'])
+    us_conc = compute_concentration(portfolio['portfolios']['us_stocks']['holdings'])
+    lookthrough = compute_lookthrough_exposure(portfolio)
+    print(f'   HK: HHI={hk_conc.get("hhi"):.3f} {hk_conc.get("verdict")} '
+          f'(Top2 {hk_conc.get("top2_pct")}%)')
+    print(f'   US: HHI={us_conc.get("hhi"):.3f} {us_conc.get("verdict")} '
+          f'(Top2 {us_conc.get("top2_pct")}%)')
+    print(f'   Look-through: HK factor HHI={lookthrough["hk"]["factor_hhi"]:.3f}; '
+          f'US factor HHI={lookthrough["us"]["factor_hhi"]:.3f}')
+
+    # [6] SEC EDGAR — strictly serial loop inside collect_us_fundamentals: the
+    # SEC rate limiter is an in-process global, so parallel spawns would clone
+    # N copies of it (#916 §1.4).
+    us_fund = _run_serial('_node_filings', lambda: _node_filings(portfolio))
+
+    # [7] Retrospective
+    print('[7/14] Retrospective')
+    prior_plan = find_prior_plan(today)
+    retro = compute_retrospective(prior_plan, portfolio)
+    if retro.get('prior_plan_date'):
+        actions = retro['decisions']
+        fired = sum(1 for a in actions if a.get('trigger_fired') is True)
+        not_fired = sum(1 for a in actions if a.get('trigger_fired') is False)
+        ambiguous = sum(1 for a in actions if a.get('trigger_fired') is None and 'error' not in a)
+        print(f'   prior plan: {retro["prior_plan_date"]}')
+        print(f'   fired: {fired}   not fired: {not_fired}   ambiguous (manual/event): {ambiguous}')
+        print(f'   conf cal: 80%+ {retro["confidence_calibration"]["conf_80_100"]}, '
+              f'60-79% {retro["confidence_calibration"]["conf_60_79"]}')
+    else:
+        print(f'   first run (no prior plan)')
+
+    # [8]-[13] DAG waves (#916 §1.2/§1.3): serial prefix done, now three
+    # concurrent waves separated by barriers, each capped at max_workers=2.
+    # Wave membership carries every true dependency edge:
+    #   WAVE1 — inputs are self-sufficient (fx, peers, bars, risk, regime,
+    #           quant, em-news, catalysts, peer-residual); write targets are
+    #           pairwise disjoint.
+    #   barrier
+    #   WAVE2 — quant-review/cross-factor/t0 read quant's outputs from WAVE1;
+    #           news-evidence builds its graph from the em-news + catalysts
+    #           artifacts finished at the barrier; benchmark STARTS only after
+    #           regime FINISHED at the barrier — regime must read YESTERDAY'S
+    #           benchmark.json while the benchmark node rewrites that same
+    #           file, so this ordering is a byte-determinism constraint, not a
+    #           data dependency (#916 §1.2).
+    #   barrier
+    #   WAVE3 — t0-review reconciles t0's history jsonl from WAVE2; evidence
+    #           rebuilds the page from the quant-review + cross-factor
+    #           artifacts finalized at the barrier.
+    w1 = _join(_run_wave({
+        'fx_rate': fx_rate,
+        'peer_scan_node': lambda: peer_scan_node(portfolio),
+        'daily_bars_node': daily_bars_node,
+        'portfolio_risk_node': portfolio_risk_node,
+        'regime_node': regime_node,
+        'quant_node': quant_node,
+        'em_news_node': em_news_node,
+        'catalysts_node': catalysts_node,
+        'peer_residual_node': lambda: peer_residual_node(portfolio),
+    }))
+    fx = w1['fx_rate']
+    peer_scan = w1['peer_scan_node']
+    risk = w1['portfolio_risk_node']
+    lev_regime = w1['regime_node']
+    quant_signals = w1['quant_node']
+    catalysts = w1['catalysts_node']
+    peer_residual_ctx = w1['peer_residual_node']
+
+    # Book totals (FX-aware) — moved here from the old [5] block: fx now
+    # completes in WAVE1 and rate is its only input (pure arithmetic; nothing
+    # between the prefix and this point consumes it).
+    rate = fx['rate']
+    hk_pnl_hkd = portfolio['portfolios']['hk_stocks'].get('total_pnl', 0)
+    us_pnl_usd = portfolio['portfolios']['us_stocks'].get('total_pnl', 0)
+    book = {
+        'hk_pnl_hkd':      round(hk_pnl_hkd, 2),
+        'us_pnl_usd':      round(us_pnl_usd, 2),
+        'usd_base_total':  round(hk_pnl_hkd / rate + us_pnl_usd, 2),
+        'hkd_base_total':  round(hk_pnl_hkd + us_pnl_usd * rate, 2),
+        'fx_used':         rate,
+    }
+
+    w2 = _join(_run_wave({
+        'quant_review_node': quant_review_node,
+        'cross_factor_node': lambda: cross_factor_node(portfolio),
+        't0_node': t0_node,
+        'news_evidence_node': news_evidence_node,
+        'benchmark_node': benchmark_node,
+    }))
+    quant_review = w2['quant_review_node']
+    cross_sectional_factor_ctx = w2['cross_factor_node']
+    t0_setups = w2['t0_node']
+    news_evidence_ctx = w2['news_evidence_node']
+
+    w3 = _join(_run_wave({
+        't0_review_node': t0_review_node,
+        'evidence_node': evidence_node,
+    }))
+    t0_review = w3['t0_review_node']
+
+    # [10] V2 episode metrics — triggered-only, strategy-aware, cluster-bootstrap.
+    # Settle runs only AFTER daily-bars finished at the WAVE1 barrier: settling
+    # reads the canonical bar store and never fetches (#916 §1.2).
+    print('[10/14] Decision metrics v2')
+    decision_metrics = compute_decision_metrics()
+    # Brier is never printed bare: alone it reads as "0.295, close enough to 0".
+    # It only means something against the constant-forecast baseline it has to beat.
+    print(f'   {decision_metrics.get("settled_episodes", 0)} settled episodes / '
+          f'{decision_metrics.get("raw_decisions", 0)} raw decisions; '
+          f'Brier={decision_metrics.get("brier")} vs constant-forecast baseline '
+          f'{decision_metrics.get("brier_baseline_loo")} '
+          f'({"beats" if decision_metrics.get("brier_beats_baseline") else "LOSES to"} it)')
+    hierarchical = decision_metrics.get('hierarchical_calibration') or {}
+    prequential = hierarchical.get('after_warmup') or {}
+    print(f'   hierarchical prequential: n={prequential.get("n", 0)} '
+          f'Brier={prequential.get("calibrated_brier")} vs raw '
+          f'{prequential.get("raw_brier")}; '
+          f'{hierarchical.get("abstained_predictions", 0)} historical abstentions / '
+          f'{hierarchical.get("edge_supported_predictions", 0)} edge-supported')
+    active_v2 = decision_metrics.get('active') or {}
+    print(f'   active: n={active_v2.get("n_episodes", 0)} '
+          f'avg benefit={active_v2.get("avg_benefit_pct")}%, '
+          f'cluster CI={active_v2.get("cluster_ci95")}')
+
+    # [9b] Reflection memory — per held ticker, prior call outcomes (TradingAgents-style)
+    reflections = compute_reflections(portfolio)
+    if reflections:
+        print(f'[9b/11] Reflections: {len(reflections)} held tickers with prior-call history')
+
+    # [10b5] 数据体检闸 — 把历史踩过的数字 bug 固化成自动门。warn-only 注入 context
+    # （遵 feedback_no_individual_cron_alerts 不推送），ERROR 由 build_status 健康卡暴露。
+    integrity = {}
+    try:
+        from clawock.portfolio import integrity as _pi
+        integrity = _pi.check()
+        if not integrity['ok']:
+            print(f'   🔴 数据体检 {integrity["error_count"]} ERROR：')
+            for f in integrity['findings']:
+                if f['level'] == 'ERROR':
+                    print(f'      • {f["code"]}: {f["msg"][:90]}')
+        elif integrity['warn_count']:
+            print(f'   🟡 数据体检 {integrity["warn_count"]} WARN（见 integrity_report.json）')
+        else:
+            print('   ✅ 数据体检全过')
+    except Exception as e:
+        print(f'   ⚠ integrity check failed: {e}')
+
+    # [10c] Risk guardrails — position-sizing / leverage hard caps → trim/cut directives
+    guardrail = compute_risk_guardrail(
+        portfolio['portfolios']['hk_stocks']['holdings'],
+        portfolio['portfolios']['us_stocks']['holdings'],
+        hk_conc, us_conc, risk, lev_regime=lev_regime)
+    guardrail = risk_discipline.attach_breach_ids(guardrail)
+    _append_guardrail_history(today, guardrail, hk_conc, us_conc, risk)
+    discipline = {}
+    try:
+        discipline = risk_discipline.reconcile_guardrail(
+            guardrail, portfolio)
+    except Exception as e:
+        discipline = {'error': f'{type(e).__name__}: {e}', 'records': []}
+        issues.append(f'risk discipline reconcile failed: {type(e).__name__}')
+    print(f'   guardrail: {guardrail["breach_count"]} breaches/stops — {guardrail["directive"][:64]}')
+    if discipline.get('error'):
+        print(f'   🔴 durable risk ledger failed: {discipline["error"]}')
+    else:
+        print(f'   durable risk ledger: {discipline.get("open_count", 0)} open / '
+              f'{discipline.get("overridden_count", 0)} overridden / '
+              f'oldest {discipline.get("oldest_open_days", 0)}d')
+    for b in guardrail['breaches']:
+        print(f'   ⛔ {b["type"]:20s} ({b["severity"]:6s}) {b["detail"][:78]}')
+    for s in guardrail['hard_stop_watch']:
+        print(f'   🛑 {s["detail"][:78]}')
+
+    # [10d] 解套数学 — 纯算术回本表（浮亏持仓回本所需涨幅 / 2x 横盘 decay 成本）
+    breakeven = compute_breakeven_math(
+        portfolio['portfolios']['hk_stocks']['holdings'],
+        portfolio['portfolios']['us_stocks']['holdings'], lev_regime=lev_regime)
+    print(f'   breakeven: {len(breakeven["rows"])} 只浮亏持仓入表')
 
     # [13] Macro + sentiment snapshots — written by GH Action (macro-scan / sentiment-scan).
     # Read-only here; brief LLM consumes the trimmed subset so "▎大盘速读" and
@@ -1638,6 +1851,7 @@ def main(argv=None):
         context_path=str(ctx_path),
         context_generation_id=context['generation_id'],
         model_context_bytes=bundle_manifest['budget']['always_loaded_bytes'],
+        step_timings=step_timings,  # additive detail: per-node ok/wall_s (#916 §1.5)
     )
     return 0 if not issues else 1
 
