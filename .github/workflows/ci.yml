@@ -393,6 +393,10 @@ jobs:
         # instead of running the tests again, so the published badge is the same
         # number this job gated on — not a second, independently drifting
         # measurement. Only master pushes have a consumer; PR runs skip the upload.
+        # Deliberately NOT gated on the code lane as well: a dsh-only master push
+        # then warns about zero files here (#957) — noise, but gating a lane read
+        # on the starting event is the exact shape test_ci_trigger_paths.py bans
+        # after #750, and the consuming job below carries the real gate.
         if: github.event_name == 'push' && github.ref == 'refs/heads/master'
         uses: actions/upload-artifact@v7
         with:
@@ -562,10 +566,16 @@ jobs:
   publish-coverage:
     # Master only: the README badge must show what is on master, never a number
     # from an unmerged branch. PRs still get the floor gate in `validate` above.
+    # Gated on the same lane answer that produced the artifact: a dsh-only
+    # master push runs no pytest, uploads no coverage-report.json, and this job
+    # used to start anyway and die in download-artifact on the missing file —
+    # four of the last eight red master runs were exactly that false alarm (#957).
     runs-on: ubuntu-latest
     timeout-minutes: 4
     needs: validate
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    if: >-
+      ${{ github.event_name == 'push' && github.ref == 'refs/heads/master'
+          && needs.validate.outputs.code == 'true' }}
     # Serialize with the other commit-pushing workflows (job-scoped, so PR runs of
     # `validate` are never queued behind a data-write job).
     concurrency:
