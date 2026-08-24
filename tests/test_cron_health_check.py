@@ -190,3 +190,113 @@ def test_commit_evidence_degrades_to_zero_when_git_fails(monkeypatch):
         cron_health_check.subprocess, "run",
         lambda *a, **k: SimpleNamespace(returncode=128, stdout=""))
     assert cron_health_check.commit_count_today("anything") == 0
+
+
+# ── #955: cross-midnight US jobs are judged on their SESSION day ────────────
+# 美股盘中盯盘-overnight (00:00–02:30 HKT dow 2-6) and 美股收盘报告 (04:00 HKT
+# dow 2-6) monitor the PREVIOUS day's US session — the dow mask reaches into
+# Saturday precisely because the session crosses HKT midnight (#454's rule).
+# Judging on the slot's own calendar date got both directions wrong: every
+# Saturday read as "US closed" so the Friday-session slots were written into
+# the ledgers and verified by no one, while a US holiday's own preflight skip
+# surfaced as a missing report on the next trading morning.
+
+_CONTRACT = ROOT / "config" / "cron-schedules.json"
+
+
+def _run_health_at(monkeypatch, capsys, now_utc, *, heartbeats=None,
+                   commit_stamps=()):
+    """Drive cron_health_check.main() against the real contract at a frozen instant."""
+    ledger = {
+        "schema_version": 1,
+        "monitoring_started_at": "2026-08-01T00:00:00+08:00",
+        "events": [
+            {"job": job, "slot": slot, "state": state}
+            for job, slot, state in (heartbeats or [])
+        ],
+    }
+    import tempfile
+    handle, hb_name = tempfile.mkstemp(suffix=".json")
+    hb = Path(hb_name)
+    hb.write_text(json.dumps(ledger))
+    out_file = hb.with_name("outcomes.json")
+    out_file.write_text(json.dumps({"schema_version": 1, "records": []}))
+
+    class _Frozen(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return now_utc if tz is None else now_utc.astimezone(tz)
+
+    monkeypatch.setattr(cron_health_check, "datetime", _Frozen)
+    # The holiday gate must judge the frozen instant, not the real wall clock:
+    # is_trading_day(market) with no date falls back to sessions' own "today".
+    from clawock import sessions as _sessions
+    monkeypatch.setattr(
+        _sessions, "_today_in_market",
+        lambda market: now_utc.astimezone(ZoneInfo(
+            "America/New_York" if market == "us" else "Asia/Hong_Kong")).date())
+    cache = [(stamp, subject) for stamp, subject in commit_stamps] or None
+    monkeypatch.setattr(cron_health_check, "_commit_log_cache",
+                        [] if commit_stamps == () else cache)
+    monkeypatch.setattr(cron_health_check, "check_dashboard_build",
+                        lambda: {"state": "absent", "detail": "t", "age_hours": None})
+    monkeypatch.setattr(cron_health_check, "check_scheduled_publisher",
+                        lambda now=None, path=None: {"state": "ok", "detail": "t",
+                                                     "age_hours": 1.0})
+    monkeypatch.setattr(sys, "argv", [
+        "cron_health_check.py", "--json",
+        "--jobs-file", str(_CONTRACT),
+        "--heartbeats-file", str(hb),
+        "--outcomes-file", str(out_file),
+    ])
+    try:
+        cron_health_check.main()
+    except SystemExit as exc:  # exit codes are asserted nowhere here; the row
+        assert exc.code in (0, 1, 2), exc  # statuses above carry the verdicts
+    return {r["name"]: r for r in json.loads(capsys.readouterr().out)["jobs"]}
+
+
+def _overnight_slots():
+    """The six Saturday-2026-08-22 overnight slots, all completed."""
+    return [
+        ("美股盘中盯盘-overnight", f"2026-08-22T0{h}:{m:02d}:00+08:00", "completed")
+        for h, m in ((0, 0), (0, 30), (1, 0), (1, 30), (2, 0), (2, 30))
+    ]
+
+
+def test_saturday_run_verifies_the_friday_session_slots(monkeypatch, capsys):
+    """Sat 2026-08-22 17:17 HKT after a normal Friday session: the six overnight
+    slots are heartbeat-verified and the close report's 04:00 commit is counted —
+    not waved off as 'holiday' by a calendar that only knows Saturday is closed."""
+    rows = _run_health_at(
+        monkeypatch, capsys,
+        datetime(2026, 8, 22, 9, 17, tzinfo=timezone.utc),
+        heartbeats=_overnight_slots(),
+        commit_stamps=[("2026-08-22T04:06:00+08:00", "dashboard: 美股收盘报告 (us close)")],
+    )
+    overnight = rows["美股盘中盯盘-overnight"]
+    assert overnight["status"] == "ok-heartbeat", overnight
+    assert "6/6" in overnight["detail"]
+    close = rows["美股收盘报告"]
+    assert close["status"] == "ok", close
+    assert "1/1 commits OK" in close["detail"]
+
+
+def test_a_us_holiday_session_suppresses_its_saturday_slots_without_a_red(monkeypatch, capsys):
+    """Sat 2026-07-04 17:17 HKT: Friday Jul 3 was Independence Day (observed), so
+    the session genuinely did not happen — 'holiday' is correct and must not be
+    reported as a miss even though no Saturday evidence exists."""
+    rows = _run_health_at(
+        monkeypatch, capsys, datetime(2026, 7, 4, 9, 17, tzinfo=timezone.utc))
+    assert rows["美股盘中盯盘-overnight"]["status"] == "holiday"
+    assert rows["美股收盘报告"]["status"] == "holiday"
+
+
+def test_a_monday_holiday_does_not_red_the_tuesday_close_report(monkeypatch, capsys):
+    """Tue 2026-05-26 17:17 HKT: Monday May 25 was Memorial Day, so preflight had
+    skipped the Tue 04:00 close slot by design. The old gate judged Tuesday's own
+    calendar (a trading day) and read that skip as a missing commit."""
+    rows = _run_health_at(
+        monkeypatch, capsys, datetime(2026, 5, 26, 9, 17, tzinfo=timezone.utc))
+    assert rows["美股收盘报告"]["status"] == "holiday"
+    assert rows["美股盘中盯盘-overnight"]["status"] == "holiday"

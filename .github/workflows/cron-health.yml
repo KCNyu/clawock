@@ -1,6 +1,10 @@
 name: Cron Health Check
 
-# 17:17 HKT = 09:17 UTC 工作日 — 港股收盘后、美股开盘前 一窗口。
+# 17:17 HKT = 09:17 UTC, 周一至周六 — 港股收盘后、美股开盘前 一窗口。
+# 周六也要跑：美股盘中盯盘-overnight 的最后六个槽（00:00–02:30 HKT, dow 6）和
+# 美股收盘报告的 04:00 槽属于**周五的美股场次**（dow 掩码 2-6 正因此跨到周六），
+# 健康闸按场次日（slot 本地日期 −1）判定（#955）；没有周六这一次运行，这些槽的
+# heartbeat/commit 就写进 ledger 后无人核验——每周固定一个场次的两张网失明。
 #
 # 这里原来写着「避开整点：GitHub 官方说明整点高负载会延迟甚至丢弃 scheduled
 # runs」，隐含「非整点就准时」。**这条被本档自己的数据证伪了**（#781）：它就在
@@ -20,6 +24,10 @@ name: Cron Health Check
 on:
   schedule:
     - cron: '17 9 * * 1-5'
+    # Saturday: the overnight monitor's last slots and the US close report land
+    # on Sat 00:00-04:00 HKT but belong to FRIDAY's session — without a weekend
+    # run nobody ever verified them (#955).
+    - cron: '17 9 * * 6'
   workflow_dispatch:
 
 permissions:
