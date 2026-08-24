@@ -29,6 +29,12 @@ jobs:
         env:
           OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
           MINIMAX_API_KEY: ${{ secrets.MINIMAX_API_KEY }}
+          # Chain deadline (brief-fallback 2026-08-17 defect class): without it
+          # a hung primary burns timeout(180)x3 per provider inside a 12-minute
+          # job and the fallback is unreachable. 600s of 720s leaves the
+          # validate + commit steps their share; the review prose fits both
+          # legs at that size.
+          CLAWOCK_LLM_DEADLINE_SECONDS: '600'
         run: clawock-weekly-review
 
       - name: Validate generated review

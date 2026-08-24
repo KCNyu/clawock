@@ -37,6 +37,13 @@ jobs:
         env:
           OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
           MINIMAX_API_KEY: ${{ secrets.MINIMAX_API_KEY }}
+          # Chain deadline (brief-fallback 2026-08-17 defect class): a hung
+          # primary must not eat the whole job before the fallback answers.
+          # This scan retries the whole chain once on failure, so the budget is
+          # sized for two chains inside the 8-minute job: 2 x 210s = 7min,
+          # leaving setup/validate/commit their share. Relevance-filter outputs
+          # are tiny — both legs fit comfortably.
+          CLAWOCK_LLM_DEADLINE_SECONDS: '210'
         run: clawock-influencer-scan
 
       - name: Validate influencer coverage

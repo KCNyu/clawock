@@ -31,6 +31,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 from clawock.workspace import workspace_root
+from clawock.safe_io import safe_write_json, safe_write_text
 from clawock import sessions as trading_calendar
 from clawock.context import brief as brief_context
 from clawock.decision import ledger as decision_v2
@@ -251,9 +252,10 @@ def normalize_plan_json(path, ledger_path=None, *, decision_packet=None,
                 normalized, decision_packet
             )
         if write and normalized != authored:
-            path.write_text(
-                json.dumps(normalized, ensure_ascii=False, indent=2) + '\n'
-            )
+            # Atomic write: this process is SIGTERM-prone (60s exec timeout,
+            # #508/#765) and a torn plan.json would fail every downstream
+            # consumer the same day.
+            safe_write_json(str(path), normalized)
     except Exception as exc:
         return _normalization_result(
             [f'plan.json 标准化失败: {exc}'], authored, return_plan
@@ -375,6 +377,22 @@ def validate_plan_json(path, context=None, decision_packet=None):
             if s.get('ticker') not in cut_tickers:
                 issues.append(f'杠杆硬止损未处理: {s["ticker"]} ({s["detail"]}) — plan 里没有对应 cut')
     return issues
+
+
+def load_preflight_context(ctx_path):
+    """Return (context, blocking_issue) for today's preflight bundle.
+
+    Fail closed: with a missing or unparseable context every context-dependent
+    gate in main() would silently no-op while the ledger still recorded
+    ``success`` — so both cases surface as a critical issue ('解析失败' /
+    '缺失' are in CRITICAL_KEYWORDS) instead of a quiet None.
+    """
+    if not ctx_path.exists():
+        return None, 'brief context 缺失（preflight 未产出 memory/.tmp bundle）'
+    try:
+        return json.loads(ctx_path.read_text()), None
+    except Exception as exc:
+        return None, f'brief context 解析失败: {exc}'
 
 
 def validate_markdown(path, context=None):
@@ -501,7 +519,7 @@ def log_decisions(today):
     for d in plan['decisions']:
         if d.get('simulated_entry_price') is None:
             d['simulated_entry_price'] = _current_price_for(d.get('ticker'))
-    plan_path.write_text(json.dumps(plan, ensure_ascii=False, indent=2) + '\n')
+    safe_write_json(str(plan_path), plan)
     inserted, updated = decision_v2.upsert_plan_decisions(plan)
     ledger = decision_v2.load_decisions()
     settled = decision_v2.settle_decisions(ledger)
@@ -627,7 +645,9 @@ def _ensure_jekyll_front_matter(md_path, date):
             f'风控硬闸与 AI 自评战绩（诚实公开，承认主动操作跑输躺平）。')
     fm = (f'---\nlayout: default\ntitle: 盘前深度简报 · {date}\n'
           f'description: "{desc}"\n---\n\n')
-    md_path.write_text(fm + content)
+    # Atomic write — the GHA fallback publishes this file straight to Pages; a
+    # torn write here would ship half a brief.
+    safe_write_text(str(md_path), fm + content)
 
 
 def main(argv=None):
@@ -662,17 +682,17 @@ def main(argv=None):
     # Ensure Jekyll can render this brief as a Pages page (not just GitHub blob jump)
     _ensure_jekyll_front_matter(md_path, today)
 
-    # Load preflight context (for cross-validation)
+    # Load preflight context (for cross-validation). Fail closed: a missing or
+    # unparseable context would silently skip every context-dependent hard gate
+    # below (generation pin, position/leverage回查, peer divergence,
+    # macro/sentiment) while the ledger still recorded success.
     ctx_path = WS / 'memory' / '.tmp' / f'brief-context-{today}.json'
-    context = None
-    if ctx_path.exists():
-        try:
-            context = json.loads(ctx_path.read_text())
-        except Exception:
-            pass
+    context, context_issue = load_preflight_context(ctx_path)
 
     readability = assess_brief_readability(md_path)
     issues = []
+    if context_issue:
+        issues.append(context_issue)
     manifest_path = ctx_path.with_suffix('') / 'manifest.json'
     decision_packet = None
     if context and context.get('generation_id'):
@@ -780,15 +800,6 @@ def main(argv=None):
                          + ('\n- ...' if len(issues) > 5 else '')
                          + '\n\n')
 
-    commit_ok, commit_msg = maybe_commit(
-        publication_status, today, dry_run=args.dry_run
-    )
-    if (status in ('pass', 'warn') and projection_ready
-            and not args.dry_run):
-        data_plane_status = dashboard_publication_state(WS)
-    else:
-        data_plane_status = 'skipped'
-
     # ── WeChat delivery (decoupled from the cron's announce) ──────────────────
     # The cron now runs delivery=none. The announce used to fire at the END of a
     # long agent turn with a token captured at turn START → expired mid-turn
@@ -875,6 +886,23 @@ def main(argv=None):
             if not wechat_sent:
                 print(f'warn: WeChat send failed (watchdog will retry): {str(send_out)[:200]}',
                       file=sys.stderr)
+
+    # ── Commit AFTER delivery (report/intraday order, #765) ───────────────────
+    # maybe_commit runs log_decisions + rebuild_dashboard + git push — seconds of
+    # local work the reader never sees. Delivering first means the card lands a
+    # full dashboard-rebuild earlier and brief_watchdog's 08:30 pass finds the
+    # sent-marker already written instead of racing a still-running postflight
+    # (the TG double-card window). The card itself is order-independent: it reads
+    # the LLM's brief-card file, or plan fields (book/decisions) that
+    # log_decisions never rewrites.
+    commit_ok, commit_msg = maybe_commit(
+        publication_status, today, dry_run=args.dry_run
+    )
+    if (status in ('pass', 'warn') and projection_ready
+            and not args.dry_run):
+        data_plane_status = dashboard_publication_state(WS)
+    else:
+        data_plane_status = 'skipped'
 
     result = {
         'status':        status,
