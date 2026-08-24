@@ -678,7 +678,7 @@ jobs:
 
       - name: Initialize CodeQL
         if: github.event_name != 'push' || steps.scope.outputs.analysable == 'true'
-        uses: github/codeql-action/init@v3
+        uses: github/codeql-action/init@v4
         with:
           languages: ${{ matrix.language }}
           build-mode: ${{ matrix.build-mode }}
@@ -689,6 +689,6 @@ jobs:
 
       - name: Perform CodeQL analysis
         if: github.event_name != 'push' || steps.scope.outputs.analysable == 'true'
-        uses: github/codeql-action/analyze@v3
+        uses: github/codeql-action/analyze@v4
         with:
           category: "/language:${{ matrix.language }}"
