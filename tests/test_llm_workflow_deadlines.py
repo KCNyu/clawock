@@ -18,11 +18,15 @@ ROOT = Path(__file__).resolve().parents[1]
 DEADLINE_KEY = "CLAWOCK_LLM_DEADLINE_SECONDS"
 
 # (workflow file, job id) for every job that invokes an LLM provider chain.
+# CHAINS: how many independent provider chains the job can run (influencer
+# scans twice daily in one workflow — two dispatch invocations, but one chain
+# per RUN). A job that legitimately chains N provider calls back-to-back must
+# declare a deadline covering the aggregate, not one leg (E-P2④).
 LLM_JOBS = [
-    ("brief-fallback.yml", "fallback"),
-    ("news-digest.yml", "digest"),
-    ("influencer-scan.yml", "scan"),
-    ("weekly-review.yml", "review"),
+    ("brief-fallback.yml", "fallback", 1),
+    ("news-digest.yml", "digest", 1),
+    ("influencer-scan.yml", "scan", 1),
+    ("weekly-review.yml", "review", 1),
 ]
 
 
@@ -45,16 +49,17 @@ def _deadline_seconds(job):
     return float(values[0])
 
 
-@pytest.mark.parametrize("workflow_name,job_id", LLM_JOBS)
-def test_the_provider_chain_fits_inside_the_job(workflow_name, job_id):
+@pytest.mark.parametrize("workflow_name,job_id,chains", LLM_JOBS)
+def test_the_provider_chain_fits_inside_the_job(workflow_name, job_id, chains):
     job = _workflow(workflow_name)["jobs"][job_id]
 
-    budget = _deadline_seconds(job)
+    budget = _deadline_seconds(job) * chains
     job_seconds = float(job["timeout-minutes"]) * 60
 
     assert budget < job_seconds, (
-        f"{workflow_name}: the LLM budget must fit inside the job, or the "
-        f"second provider is unreachable code rather than a fallback"
+        f"{workflow_name}: {chains} chain(s) x deadline must fit inside the "
+        f"job, or the second provider is unreachable code rather than a "
+        f"fallback"
     )
     assert job_seconds - budget >= 60, (
         f"{workflow_name}: setup, validation and commit still have to fit in "

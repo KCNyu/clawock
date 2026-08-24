@@ -86,6 +86,7 @@ logs/*
 
 # Preflight transient context (regenerated every brief run)
 memory/.tmp/
+memory/.tmp-*
 
 # OpenClaw memory system internals (not for public consumption)
 memory/.dreams/

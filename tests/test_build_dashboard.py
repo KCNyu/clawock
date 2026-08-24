@@ -888,6 +888,9 @@ def test_gha_freshness_registry_matches_workflow_crons():
         # false-red every calm day.
         missing = expected - set(keys)
         assert not missing, f"{artifact} lost its cron for {missing}"
+        assert len(keys) == len(set(keys)), (
+            f"{workflow}: duplicated identical cron tiers are always a typo"
+        )
         extras = [key for key in keys if key not in expected]
         for _, weekdays, hour, minute in extras:
             earlier = [
