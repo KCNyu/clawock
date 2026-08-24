@@ -1102,8 +1102,9 @@ def quant_node():
 
 
 def quant_review_node():
-    # [10b3] 因子 edge 自检 — 历史留痕 vs forward return 对账（自迭代：因子话语权由
-    # hit_rate 决定，样本<20 不解锁）。纯本地文件运算。
+    # [10b3] 因子 edge 自检 — 历史留痕 vs forward return 对账（自迭代：MIN_N=20
+    # 样本闸 + 聚类 CI 越线才解锁，#934 与 t0_setup_review 同纪律；反向只展示
+    # 不入决策）。纯本地文件运算。
     issues = []
     quant_review = {}
     try:
