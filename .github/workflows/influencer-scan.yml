@@ -5,7 +5,12 @@ name: Influence Radar (Trump / Musk / Serenity)
 # Runs twice on (HKT) weekdays:
 #   21:40 UTC Sun–Thu = 05:40 HKT Mon–Fri  → ~2.3h before the 08:00 HKT brief (buffer for
 #                                            GH Actions' 1–2h scheduled-cron delay)
-#   12:50 UTC Mon–Fri = 20:50 HKT Mon–Fri  → 10 min before US news digest / US open prep
+#   12:50 UTC Mon–Fri = 20:50 HKT Mon–Fri  → nominally 10 min before the US news
+#                                            digest, but this slot's own median drift
+#                                            is ~74min (schedule-drift.json), so in
+#                                            practice it lands near/after the digest.
+#                                            Kept for the twice-daily coverage, not
+#                                            the ordering.
 # First cron is dow 0-4 (21:40+8h wraps to next HKT day; 1-5 would miss Monday's brief).
 # Second cron does NOT wrap (12:50+8=20:50 same day) so it stays 1-5. bash ops/host/check_crons.sh --timeline
 on:

@@ -127,3 +127,43 @@ def test_weekly_health_runs_it_with_the_permission_it_needs():
     assert "ops/ci/workflow_health.py" in workflow
     assert "actions: read" in workflow
     assert "GH_TOKEN: ${{ github.token }}" in workflow
+
+
+def test_the_rollup_surfaces_on_the_run_page(tmp_path, monkeypatch, capsys):
+    """A green continue-on-error step with log-only output is how three days of
+    news-digest failures stayed invisible; the summary table and the
+    ::warning:: annotations are what make a bad week visible on the run page."""
+    summary = tmp_path / "step-summary.md"
+    monkeypatch.setenv("GITHUB_STEP_SUMMARY", str(summary))
+    result = {
+        "as_of": NOW.isoformat(),
+        "lookback_days": wh.LOOKBACK_DAYS,
+        "scheduled_workflows": 2,
+        "needs_attention": 1,
+        "workflows": [
+            {"workflow": "healthy.yml", "status": "ok", "last_run": NOW.isoformat(),
+             "last_conclusion": "success", "consecutive_failures": 0,
+             "failures_in_window": 0, "overdue_hours": None,
+             "expected_interval_hours": 24},
+            {"workflow": "broken.yml", "status": "attention",
+             "last_run": NOW.isoformat(), "last_conclusion": "failure",
+             "consecutive_failures": 3, "failures_in_window": 3,
+             "overdue_hours": 30, "expected_interval_hours": 24},
+        ],
+    }
+
+    wh._surface(result)
+
+    text = summary.read_text()
+    assert "Scheduled workflow health" in text
+    assert "broken.yml" in text and "3 consecutive failures" in text
+    assert "no run for 30h" in text
+    out = capsys.readouterr().out
+    assert "::warning::scheduled workflow broken.yml:" in out
+    assert "healthy.yml" not in out.split("::warning::")[-1]
+
+
+def test_surface_is_a_noop_without_a_runner_summary(tmp_path, monkeypatch):
+    monkeypatch.delenv("GITHUB_STEP_SUMMARY", raising=False)
+    wh._surface({"needs_attention": 0, "scheduled_workflows": 0,
+                 "lookback_days": 7, "workflows": []})  # must not raise

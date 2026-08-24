@@ -868,19 +868,36 @@ def test_gha_freshness_registry_matches_workflow_crons():
         assert len(expressions) == text.count("- cron:"), (
             f"unsupported cron syntax in {workflow}"
         )
-        actual = set()
-        for expression in expressions:
+        def _key(expression):
             minute, hour, dom, month, dow = expression.split()
             assert dom == month == "*"
             assert minute.isdigit() and hour.isdigit()
-            actual.add(("UTC", _cron_python_weekdays(dow), int(hour), int(minute)))
+            return ("UTC", _cron_python_weekdays(dow), int(hour), int(minute))
 
+        keys = [_key(expression) for expression in expressions]
         policy = dashboard._FRESHNESS_POLICY[artifact]["schedule"]
         expected = {
             (fire["timezone"], tuple(fire["weekdays"]), fire["hour"], fire["minute"])
             for fire in policy["fires"]
         }
-        assert actual == expected, f"{artifact} cadence drifted from {workflow}"
+        # Multi-tier workflows (the brief-fallback pattern): every declared
+        # fire keeps a verbatim cron tier, but extra LATER same-day tiers are
+        # allowed as idempotent retries. A retry must never move the freshness
+        # expectation — on a low-drift day the primary already committed and
+        # the retry no-ops, so demanding data newer than the retry would
+        # false-red every calm day.
+        missing = expected - set(keys)
+        assert not missing, f"{artifact} lost its cron for {missing}"
+        extras = [key for key in keys if key not in expected]
+        for _, weekdays, hour, minute in extras:
+            earlier = [
+                e for e in expected
+                if e[1] == weekdays and (e[2], e[3]) < (hour, minute)
+            ]
+            assert earlier, (
+                f"{workflow}: extra tier {(hour, minute)} on {weekdays} is not "
+                f"a later same-day retry of a declared fire"
+            )
         assert sorted(fire["grace_hours"] for fire in policy["fires"]) == (
             expected_graces[artifact]
         )

@@ -24,6 +24,7 @@ on:
 
 permissions:
   contents: read
+  actions: read      # the Actions-side health fold-in reads run history via gh
 
 jobs:
   check:
@@ -61,3 +62,25 @@ jobs:
           # On a miss this exits non-zero and remains visible in Actions. We deliberately
           # do NOT open an issue: per kcn's "no per-cron alerts" preference the daily review
           # covers it.
+
+      - name: Fold Actions-side failures into the daily summary
+        # cron_health_check only sees host-side products; a scheduled workflow
+        # that fails (or stops firing) on the Actions side was previously
+        # visible only in weekly-health's log-only rollup. --json is report-only
+        # and needs read access to run history.
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+            echo "## Scheduled workflow health (Actions side)"
+            python3 ops/ci/workflow_health.py --json | python3 -c '
+              import json, sys
+              r = json.load(sys.stdin)
+              print(f"needs attention: {r[\"needs_attention\"]} of {r[\"scheduled_workflows\"]} "
+                    f"(lookback {r[\"lookback_days\"]}d)")
+              for w in r["workflows"]:
+                  if w["status"] == "attention":
+                      print(f"- ⚠ {w[\"workflow\"]}: last={w[\"last_conclusion\"] or \"-\"}")
+            '
+          } >> "$GITHUB_STEP_SUMMARY"

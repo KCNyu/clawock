@@ -80,6 +80,12 @@ OPENCLAW_CONFIG = _OPENCLAW_PATHS.config_file
 # runtime coupling the ratchet bans, and the host tools directory belongs to
 # whoever runs the check, not to this repository.
 HOST_TOOLS_DIR = Path.home() / 'tools'
+# The pipx-style launcher directory: every watchdog/DST entry point in
+# config/cron-schedules.json starts with <home>/.local/bin/clawock-*, so an
+# audit that only knows ~/tools skips exactly the commands whose silent death
+# matters most (#775 class — the DST syncer died for 8 days while every
+# repository-side gate stayed green).
+LAUNCHER_BIN_DIR = Path.home() / '.local' / 'bin'
 
 MEMORY_INDEX_LOG = LIVE_WORKSPACE / 'logs' / 'memory_index.log'
 # Nightly reindex is 05:10 HKT; 30h lets one run slip into the next daily review
@@ -764,7 +770,8 @@ def _host_crontab_target_audit(crontab_text):
                 continue
             target = Path(token)
             if not any(target.is_relative_to(root)
-                       for root in (LIVE_WORKSPACE, HOST_TOOLS_DIR)):
+                       for root in (LIVE_WORKSPACE, HOST_TOOLS_DIR,
+                                    LAUNCHER_BIN_DIR)):
                 continue
             if not os.path.exists(target):
                 missing.append(token)

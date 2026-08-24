@@ -50,8 +50,43 @@ def humansize(n):
     return f'{n:.1f} TB'
 
 
+# Every SESSIONS_DIR sweep rule in one place: (report label, name predicate,
+# retention days). A file may match several rules (e.g. x.bak-1.jsonl matches
+# both the plain-.jsonl and the bak rule); it is deleted iff ANY matching
+# rule's cutoff makes it stale — exactly what the old per-rule passes did —
+# and is reported under its most permissive match.
+SESSION_RULES = [
+    ('trajectory.jsonl',
+     lambda n: n.endswith('.trajectory.jsonl'),
+     KEEP_TRAJECTORY_DAYS),
+    ('plain .jsonl',
+     lambda n: n.endswith('.jsonl'),
+     KEEP_SESSION_DAYS),
+    ('.json sidecar',
+     lambda n: n.endswith('.json'),
+     KEEP_SESSION_DAYS),
+    ('bak / pre-cleanup',
+     lambda n: '.bak-' in n or '.pre-cleanup-' in n or n.endswith('.bak'),
+     KEEP_BAK_DAYS),
+    # Stale rename leftovers like *.jsonl.1779044443580 (epoch-ms suffix)
+    ('tmp / numeric-suffix',
+     lambda n: any(n.endswith(suf) for suf in ('.tmp', '.old')) or
+               n.split('.')[-1].isdigit() and len(n.split('.')[-1]) >= 10,
+     KEEP_BAK_DAYS),
+    # Tombstones like *.jsonl.deleted.2026-06-14T19-00-50.702Z / *.jsonl.reset.<iso>.
+    # The suffix is an ISO timestamp ending in "Z", so it matches none of the
+    # predicates above (not .jsonl/.json/.bak, and "702Z" is not .isdigit()) —
+    # these accumulated unbounded until 2026-07-15 (78 files back to 06-13).
+    # The live transcript is already gone by the time one is written, so they
+    # age out on the same clock as a plain session.
+    ('deleted / reset tombstone',
+     lambda n: '.jsonl.deleted.' in n or '.jsonl.reset.' in n,
+     KEEP_SESSION_DAYS),
+]
+
+
 def gc_files(pattern_predicate, cutoff_ts, label, dry_run, dirpath=None):
-    """Walk dirpath (default SESSIONS_DIR), delete files matching predicate(name) older than cutoff."""
+    """Walk dirpath (default SESSIONS_DIR), delete matching files older than cutoff."""
     dirpath = dirpath or SESSIONS_DIR
     if not dirpath.exists():
         return 0, 0
@@ -77,6 +112,46 @@ def gc_files(pattern_predicate, cutoff_ts, label, dry_run, dirpath=None):
                 print(f'  skip {p.name}: {e}', file=sys.stderr)
     print(f'  {label}: {n_files} files, {humansize(n_bytes)}')
     return n_files, n_bytes
+
+
+def gc_sessions_dir(now_ts, dry_run):
+    """One traversal for every SESSIONS_DIR rule.
+
+    The sweeps used to be six full iterdir() passes re-stating every candidate
+    twice (~18k stats a night); each file is now visited once and statted once.
+    """
+    if not SESSIONS_DIR.exists():
+        return 0, 0
+    per_rule = {label: [0, 0] for label, _, _ in SESSION_RULES}
+    for p in SESSIONS_DIR.iterdir():
+        if not p.is_file():
+            continue
+        try:
+            st = p.stat()
+        except FileNotFoundError:
+            continue
+        matches = [(label, now_ts - days * 86400)
+                   for label, pred, days in SESSION_RULES if pred(p.name)]
+        if not matches:
+            continue
+        label, cutoff = max(matches, key=lambda m: m[1])
+        if st.st_mtime >= cutoff:
+            continue
+        per_rule[label][0] += 1
+        per_rule[label][1] += st.st_size
+        if not dry_run:
+            try:
+                p.unlink()
+            except OSError as e:
+                print(f'  skip {p.name}: {e}', file=sys.stderr)
+    total_files, total_bytes = 0, 0
+    for label, _, _ in SESSION_RULES:
+        n, b = per_rule[label]
+        if n:
+            print(f'  {label}: {n} files, {humansize(b)}')
+        total_files += n
+        total_bytes += b
+    return total_files, total_bytes
 
 
 def gc_handoff(dry_run):
@@ -110,67 +185,7 @@ def main():
     print(f'  keep trajectory ≤ {KEEP_TRAJECTORY_DAYS}d, session ≤ {KEEP_SESSION_DAYS}d, '
           f'bak ≤ {KEEP_BAK_DAYS}d, workspace .tmp ≤ {KEEP_TMP_DAYS}d')
 
-    total_files, total_bytes = 0, 0
-
-    # trajectory.jsonl — biggest disk hog, shortest retention
-    f, b = gc_files(
-        lambda n: n.endswith('.trajectory.jsonl'),
-        now - KEEP_TRAJECTORY_DAYS * 86400,
-        'trajectory.jsonl', args.dry_run,
-    )
-    total_files += f
-    total_bytes += b
-
-    # Plain .jsonl (no trajectory suffix) — main session log
-    f, b = gc_files(
-        lambda n: n.endswith('.jsonl') and not n.endswith('.trajectory.jsonl'),
-        now - KEEP_SESSION_DAYS * 86400,
-        'plain .jsonl', args.dry_run,
-    )
-    total_files += f
-    total_bytes += b
-
-    # .json sidecars (metadata)
-    f, b = gc_files(
-        lambda n: n.endswith('.json'),
-        now - KEEP_SESSION_DAYS * 86400,
-        '.json sidecar', args.dry_run,
-    )
-    total_files += f
-    total_bytes += b
-
-    # *.bak-{PID}-{ts}, *.pre-cleanup-*, *.bak — anywhere in name
-    f, b = gc_files(
-        lambda n: '.bak-' in n or '.pre-cleanup-' in n or n.endswith('.bak'),
-        now - KEEP_BAK_DAYS * 86400,
-        'bak / pre-cleanup', args.dry_run,
-    )
-    total_files += f
-    total_bytes += b
-
-    # Stale rename leftovers like *.jsonl.1779044443580 (epoch-ms suffix)
-    f, b = gc_files(
-        lambda n: any(n.endswith(suf) for suf in ('.tmp', '.old')) or
-                  n.split('.')[-1].isdigit() and len(n.split('.')[-1]) >= 10,
-        now - KEEP_BAK_DAYS * 86400,
-        'tmp / numeric-suffix', args.dry_run,
-    )
-    total_files += f
-    total_bytes += b
-
-    # Tombstones like *.jsonl.deleted.2026-06-14T19-00-50.702Z / *.jsonl.reset.<iso>.
-    # The suffix is an ISO timestamp ending in "Z", so it matches none of the
-    # predicates above (not .jsonl/.json/.bak, and "702Z" is not .isdigit()) —
-    # these accumulated unbounded until 2026-07-15 (78 files back to 06-13).
-    # The live transcript is already gone by the time one is written, so they
-    # age out on the same clock as a plain session.
-    f, b = gc_files(
-        lambda n: '.jsonl.deleted.' in n or '.jsonl.reset.' in n,
-        now - KEEP_SESSION_DAYS * 86400,
-        'deleted / reset tombstone', args.dry_run,
-    )
-    total_files += f
-    total_bytes += b
+    total_files, total_bytes = gc_sessions_dir(now, args.dry_run)
 
     # workspace memory/.tmp — preflight contexts / sidecars / scratch PNGs.
     # Everything here is per-date scratch that builders read by "newest mtime"
