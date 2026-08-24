@@ -685,14 +685,14 @@
     // 三段各自成一个 span：CSS 让段内 nowrap、段间可折行。原来整行是
     // `nowrap + text-overflow: ellipsis`，390px 上稳定截在「今日 +$807.18…」，
     // 今日涨跌幅从来没显示过 —— 首屏截掉一个数字就是丢信息，不是排版取舍。
+    // 「今日」从这里拿掉：它在下面统计轨里有自己的一格，而且那一格还带 14 天
+    // 的每日柱。同一个数在一屏里出现两次不是信息更全，是把首屏读成一张对账单
+    // （kcn 2026-08-24：「下面其实和中间数字信息重复」）。副行只留主数拆不出来
+    // 的那一半：落袋 vs 浮动。
     subEl.innerHTML =
       `<span class="hds-seg">已实现 <b class="${pnlClass(realUsd)}">${heroMoney(realUsd, "USD")}</b></span>`
       + `<span class="hds-sep">·</span>`
-      + `<span class="hds-seg">浮动 <b class="${pnlClass(unrealUsd)}">${heroMoney(unrealUsd, "USD")}</b></span>`
-      + `<span class="hds-sep">·</span>`
-      + `<span class="hds-seg">今日 <b class="${pnlClass(todayUsd)}">${heroMoney(todayUsd, "USD")}</b>`
-      + (todayPct != null ? ` <span class="${pnlClass(todayPct)}">${fmtPct(todayPct)}</span>` : "")
-      + `</span>`;
+      + `<span class="hds-seg">浮动 <b class="${pnlClass(unrealUsd)}">${heroMoney(unrealUsd, "USD")}</b></span>`;
 
     const fxEl = document.getElementById("fx-rate-usd");
     if (fxEl) {
@@ -702,10 +702,10 @@
         // 逐段包 span：整行以前是一个 textContent，浏览器于是在任何空格处
         // 断行 —— 1200 档实测把时间戳劈成「2026-」+「08-24 00:03Z」，一个
         // 值被折成两半。段内 nowrap、段间可断，和上面那行副行同一套规矩。
-        const segs = [`账面 ${fmtMoney(bookUsd, "USD")}`
-          + (has(us.value_usd) && has(hk.value_hkd)
-            ? ` / ${fmtMoney(us.value_usd * fx + hk.value_hkd, "HKD")}` : "")];
-        segs.push(`USDHKD ${fmtNum(fx, 4)}`);
+        // 账面总额也拿掉了：它逐字等于统计轨里美股 + 港股两格之和（换算后），
+        // 首屏因此有两处在说同一笔钱。这一行退回它本来的职责——出处：汇率、
+        // 汇率来源、取数时刻。
+        const segs = [`USDHKD ${fmtNum(fx, 4)}`];
         if (fxMeta.source) segs.push(String(fxMeta.source));
         if (stamp) segs.push(stamp);
         // 分隔点跟着前一段走、断行机会交给 <wbr>：否则折行会落在分隔点之前，
@@ -720,9 +720,6 @@
     }
 
     // 分市场的今日涨跌幅：原来的 Today's P&L 卡有这两个数，合并后不能丢
-    const legPct = (v, chg) => (has(v) && has(chg) && (v - chg) > 0) ? chg / (v - chg) * 100 : null;
-    const usTodayPct = legPct(us.value_usd, us.today_change_usd);
-    const hkTodayPct = legPct(hk.value_hkd, hk.today_change_hkd);
     const ae = safe(m, "execution_by_kind", "active") || {};
     // 一格一次视觉起停：值和「它自己的变化」并成一行，限定语进标签，
     // 只有真正额外的信息（样本量、基线）才留副行。信息一条不少。(#879)
@@ -732,29 +729,70 @@
       + (s ? `<div class="hero-rail-s">${s}</div>` : "") + `</div>`;
     const withDelta = (v, delta, cls) =>
       `${v} <span class="hero-rail-d ${cls || ""}">${delta}</span>`;
+
+    // 比例条：玻璃凹槽 + 受光的填充。条本身不带涨跌色 —— 它答的是「这笔钱有
+    // 多大一块」，不是赚还是亏，上涨跌色会把两个问题搅在一起。
+    const railMeter = (pct, caption) => {
+      const w = (pct == null || !isFinite(pct)) ? null : Math.max(0, Math.min(100, pct));
+      return `<div class="rc-meter" aria-hidden="true">`
+        + (w == null ? "" : `<i style="width:${w.toFixed(1)}%"></i>`)
+        + `</div><div class="rc-cap">${caption}</div>`;
+    };
+
+    // 近 n 个交易日的每日盈亏柱。数据源就是 spark 那条序列的一阶差分 ——
+    // 同源同算法，不另开一条口径（首屏两处画同一件事却对不上，是这块面板
+    // 反复出过的问题）。
+    const railDailyBars = (n) => {
+      const pts = heroProfitSeries();
+      if (pts.length < 3) return `<div class="rc-bars" aria-hidden="true"></div>`;
+      const d = [];
+      for (let i = Math.max(1, pts.length - n); i < pts.length; i++) {
+        d.push({ date: pts[i].date, v: pts[i].v - pts[i - 1].v });
+      }
+      const maxAbs = Math.max(...d.map(x => Math.abs(x.v)), 1);
+      const w = 100 / d.length;
+      const bars = d.map((x, i) => {
+        const h = Math.max(4, Math.abs(x.v) / maxAbs * 46);
+        const cls = x.v > 0 ? "up" : x.v < 0 ? "down" : "flat";
+        const pos = x.v >= 0 ? `bottom:50%` : `top:50%`;
+        return `<i class="${cls}" style="left:${(i * w).toFixed(2)}%;`
+          + `width:${Math.max(1.2, w * 0.58).toFixed(2)}%;${pos};height:${h.toFixed(1)}%"></i>`;
+      }).join("");
+      const up = d.filter(x => x.v > 0).length;
+      return `<div class="rc-bars" role="img" aria-label="`
+        + `近 ${d.length} 个交易日每日盈亏：${up} 天为正、${d.length - up} 天为负">`
+        + `${bars}</div><div class="rc-cap">近 ${d.length} 日 · ${up} 涨 ${d.length - up} 跌</div>`;
+    };
+    // 统计轨 6 格 → 4 格，每格自带一件图形。六格全是数字时它读成一张对账单，
+    // 而首屏是天天看的东西：看的是形状，不是逐位读数（kcn 2026-08-24：「数字
+    // 太多太乱，下面多点图好看」）。
+    //   · 美股 / 港股 —— 值 + 占账面比例条（比例是形状问题，不是数字问题）
+    //   · 今日 —— 美港合并成一个 USD-eq 数（原来两格是同一件事的两个货币面），
+    //             省下的位置给近 14 个交易日的每日盈亏柱：一格里第一次能看出
+    //             「今天这根在最近的分布里算大还是算小」
+    //   · 遵守率 30d —— 值 + 量表条
+    // 自评 Brier 挪出首屏：它在 Reflect 的 Brier 卡、决策带 KPI、Plan 三处都在，
+    // 首屏这一格是全站第四份。
+    const shareUs = (has(us.value_usd) && has(bookUsd) && bookUsd > 0)
+      ? us.value_usd / bookUsd * 100 : null;
+    const shareHk = (has(hk.value_hkd) && has(bookUsd) && fx && bookUsd > 0)
+      ? (hk.value_hkd / fx) / bookUsd * 100 : null;
     railEl.innerHTML = [
       cell("美股", withDelta(fmtMoney(us.value_usd, "USD"),
-        `${heroMoney(us.pnl_usd, "USD")} · ${fmtPct(us.pnl_pct)}`, pnlClass(us.pnl_usd))),
+        `${heroMoney(us.pnl_usd, "USD")} · ${fmtPct(us.pnl_pct)}`, pnlClass(us.pnl_usd)),
+        railMeter(shareUs, `占账面 ${shareUs == null ? DASH : shareUs.toFixed(0) + "%"}`)),
       cell("港股", withDelta(fmtMoney(hk.value_hkd, "HKD"),
-        `${heroMoney(hk.pnl_hkd, "HKD")} · ${fmtPct(hk.pnl_pct)}`, pnlClass(hk.pnl_hkd))),
-      cell("今日美股", withDelta(heroMoney(us.today_change_usd, "USD"),
-        usTodayPct == null ? "" : fmtPct(usTodayPct), pnlClass(usTodayPct)), "", pnlClass(us.today_change_usd)),
-      cell("今日港股", withDelta(heroMoney(hk.today_change_hkd, "HKD"),
-        hkTodayPct == null ? "" : fmtPct(hkTodayPct), pnlClass(hkTodayPct)), "", pnlClass(hk.today_change_hkd)),
-      // 「已实现 · USD-eq」和「浮动 · USD-eq」曾经在这里各占一格，而它们和
-      // 主数下面那行副行是**逐字相同**的两个数（跨 tab 数字差集实测：这两个
-      // 值在全站只出现在这两处，副行一处、统计轨一处，相距 30px）。同一个
-      // 数字在一屏内说两遍不是「信息更全」，是把八格里的两格用掉了。
-      // 副行保留它们，这里不再重复。
+        `${heroMoney(hk.pnl_hkd, "HKD")} · ${fmtPct(hk.pnl_pct)}`, pnlClass(hk.pnl_hkd)),
+        railMeter(shareHk, `占账面 ${shareHk == null ? DASH : shareHk.toFixed(0) + "%"}`)),
+      cell("今日", withDelta(heroMoney(todayUsd, "USD"),
+        todayPct == null ? "" : fmtPct(todayPct), pnlClass(todayPct)),
+        railDailyBars(20), pnlClass(todayUsd)),
       cell("遵守率 30d", ae.rate == null ? DASH : (ae.rate * 100).toFixed(1) + "%",
         // stranded = 核验窗口关闭时仍没有答案的 call，永远不会结算。只报 known
         // 会高估这个比率覆盖了多少记录，所以两个数一起给。
-        `主动 call · n=${ae.known == null ? DASH : ae.known}`
-        + (ae.stranded ? ` · ${ae.stranded} 未能核验` : "")),
-      cell("自评 Brier", m.brier == null ? DASH : m.brier.toFixed(3),
-        `vs LOO ${m.brier_baseline_loo == null ? DASH : m.brier_baseline_loo.toFixed(3)}`
-        + (safe(m, "calibration", "active", "n") != null ? ` · active n=${m.calibration.active.n}` : ""),
-        m.brier_beats_baseline === true ? "pos" : m.brier_beats_baseline === false ? "neg" : ""),
+        railMeter(ae.rate == null ? null : ae.rate * 100,
+          `主动 call · n=${ae.known == null ? DASH : ae.known}`
+          + (ae.stranded ? ` · ${ae.stranded} 未能核验` : ""))),
     ].join("");
 
     renderHeroSpark();
