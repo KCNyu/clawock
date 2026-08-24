@@ -676,37 +676,38 @@ def bars_staleness():
 
 
 def _recent_price_moves(tickers, lookback_sessions=5):
-    """Per-ticker price move over the last N snapshot sessions — fuels the
+    """Per-ticker price move over the last N closed sessions — fuels the
     'is this news already priced in?' judgement (2026-05-30). A bull market
     prices good news fast: if the stock already ran on a catalyst, acting on
     that headline is chasing. Returns {ticker: {'px_pct': float, 'n_sessions': int}}.
-    Derived from memory/snapshots/{date}.json (current_price per holding); no fetch."""
-    import glob
+
+    Source discipline (2026-08 audit, #963): this used to string together
+    `current_price` from the last few memory/snapshots/*.json files, but that
+    field carries fetch vintage, not session identity — across 15 snapshots,
+    00100's current_price was the previous close 7 times, that day's close 3,
+    an intraday print 5 (see market_data/bars.py header). A priced-in signal
+    built from it can read "already ran" or "hasn't moved" purely as an
+    artefact of when each cron happened to fetch. The move now reads closes
+    from the canonical bar store: session-dated, raw, completed sessions only,
+    and [9] refreshes it earlier in this same preflight. A ticker the store
+    does not cover gets no move at all — SKILL.md already defines a null
+    recent_move as 无快照 — never a snapshot-vintage substitute."""
     want = set(tickers)
     if not want:
         return {}
-    files = sorted(f for f in glob.glob(str(SNAPSHOT_DIR / '*.json')))
-    # keep the most recent (lookback+1) snapshots so a 5-session move has both ends
-    files = files[-(lookback_sessions + 1):]
-    if len(files) < 2:
-        return {}
-    series = {t: [] for t in want}  # ticker -> [px oldest..newest]
-    for fp in files:
-        try:
-            snap = json.loads(Path(fp).read_text())
-        except Exception:
-            continue
-        for leg in ('us_stocks', 'hk_stocks'):
-            for h in (snap.get('portfolios', {}).get(leg, {}) or {}).get('holdings', []) or []:
-                tk = h.get('ticker')
-                px = h.get('current_price')
-                if tk in want and px not in (None, 0):
-                    series[tk].append(px)
     out = {}
-    for tk, pxs in series.items():
-        if len(pxs) >= 2 and pxs[0]:
-            out[tk] = {'px_pct': round((pxs[-1] / pxs[0] - 1) * 100, 1),
-                       'n_sessions': len(pxs) - 1}
+    for tk in sorted(want):
+        try:
+            doc = json.loads((WS / 'memory' / 'bars' / f'{tk}.json').read_text())
+            closes = [bar.get('close') for _, bar in sorted((doc.get('bars') or {}).items())]
+        except (OSError, json.JSONDecodeError, ValueError):
+            continue
+        closes = [c for c in closes if isinstance(c, (int, float)) and c]
+        window = closes[-(lookback_sessions + 1):]
+        if len(window) < 2 or not window[0]:
+            continue
+        out[tk] = {'px_pct': round((window[-1] / window[0] - 1) * 100, 1),
+                   'n_sessions': len(window) - 1}
     return out
 
 

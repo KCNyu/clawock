@@ -248,6 +248,25 @@ def fail_closed_artifacts(today, prepared):
     return md, plan
 
 
+def build_system_prompt(soul: str, bootstrap: str) -> str:
+    """The off-host brief writer's system prompt: both files WHOLE.
+
+    This used to be `{soul[:1000]}\\n\\n{bootstrap[:2000]}` — slice sizes picked
+    when the files were smaller and never revisited. On committed 2026-08 text
+    the SOUL cut landed right before `## Operating mode (this workspace)`
+    ("Have a view, name the trade" / "Cite numbers, not vibes") and kept 39% of
+    the file; the BOOTSTRAP cut landed mid-sentence inside C+.2 and dropped C+.3
+    risk alerts, B+ research lifecycle and all of C. 输出约束 — the exact
+    constraint list postflight validates the fallback's output against
+    (#962). Same defect class as #959/#961, one layer up: never slice a
+    whole document into a prompt. Both files together are ~7.6KB against a
+    400KB context budget, so there is no size pressure to manage — any future
+    budget belongs in prepare_context, which trims structurally and declares
+    what it dropped.
+    """
+    return f"You are Rick, kcn's stock analyst. {soul.strip()}\n\n{bootstrap.strip()}"
+
+
 def main():
     today = (os.environ.get('TODAY') or date.today().isoformat()).strip()
     ctx_path = Path(f'memory/.tmp/brief-context-{today}.json')
@@ -268,7 +287,7 @@ def main():
     soul = Path('SOUL.md').read_text()
     bootstrap = Path('BOOTSTRAP.md').read_text()
 
-    system = f"You are Rick, kcn's stock analyst. {soul[:1000]}\n\n{bootstrap[:2000]}"
+    system = build_system_prompt(soul, bootstrap)
     user = (
         f"按下面 SKILL.md 规则跑 daily-deep-brief, 输出完整 markdown + 末尾 ```json``` block 给 plan.json schema.\n\n"
         f"SKILL.md:\n{skill}\n\n"
