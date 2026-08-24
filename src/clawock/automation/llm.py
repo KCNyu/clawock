@@ -206,7 +206,7 @@ class _HTTPErr(Exception):
     """Non-200/429 answer; str() is exactly the historical last_err text."""
 
 
-def _run_with_retries(label, timeout, deadline, once):
+def _run_with_retries(label, timeout, deadline, once, attempts_sink=None):
     """Shared retry skeleton for both provider legs (C-F5).
 
     once(attempt, per_attempt) returns the assistant content string on a 200,
@@ -215,15 +215,23 @@ def _run_with_retries(label, timeout, deadline, once):
     Budget exhaustion breaks the loop with the same message both legs have
     always produced. Kept as one copy so the two wire protocols cannot drift
     apart in retry semantics again.
+
+    attempts_sink: optional list; receives the number of attempts actually
+    run when the leg settles either way (C-F3a leg stats).
     """
     last_err = None
+    attempts_run = 0
     for attempt in range(1, MAX_RETRIES + 1):
         per_attempt = _attempt_timeout(timeout, deadline, label)
         if per_attempt is None:
             last_err = last_err or 'budget exhausted before any attempt completed'
             break
+        attempts_run = attempt
         try:
-            return once(attempt, per_attempt)
+            content = once(attempt, per_attempt)
+            if attempts_sink is not None:
+                attempts_sink.append(attempt)
+            return content
         except requests.Timeout:
             last_err = f'timeout after {per_attempt}s'
             print(f'  {label}: {last_err} (attempt {attempt})', file=sys.stderr)
@@ -238,6 +246,8 @@ def _run_with_retries(label, timeout, deadline, once):
             last_err = f'{type(e).__name__}: {e}'
             print(f'  {label}: {last_err}', file=sys.stderr)
         _backoff(2 * attempt, deadline, label)
+    if attempts_sink is not None:
+        attempts_sink.append(attempts_run)
     raise RuntimeError(f'{label} failed after {MAX_RETRIES} attempts: {last_err}')
 
 
@@ -352,7 +362,8 @@ def chat(system: str = '', user: str = '', messages: list = None,
          fallback_base_url: str = OPENCODE_BASE,
          fallback_api_key: str = None, thinking_disabled: bool = False,
          json_response: bool = False, fallback: bool = True,
-         timeout: int = None, deadline_seconds: float = None) -> str:
+         timeout: int = None, deadline_seconds: float = None,
+         stats_out: dict = None) -> str:
     """Call MiniMax M3; on total failure fall back to opencode-go's DeepSeek V4
     Flash. The two are NOT the same wire protocol (Anthropic Messages vs
     OpenAI-compatible) — see module docstring. Returns assistant content
@@ -403,13 +414,34 @@ def chat(system: str = '', user: str = '', messages: list = None,
                         else started + float(deadline_seconds) * PRIMARY_BUDGET_SHARE)
 
     # ── Primary: MiniMax M3 (Anthropic Messages) ──
+    # C-F3a: per-leg wall time + attempts land in stats_out when the caller
+    # wants them — the job log otherwise shows only per-attempt token lines
+    # and nothing about which leg won or what the chain actually cost.
+    def _leg(provider, fn):
+        if stats_out is None:
+            return fn()          # zero-overhead path: no kwarg reaches fakes
+        t0 = time.monotonic()
+        attempts = []
+        try:
+            out = fn(attempts_sink=attempts)
+            stats_out.setdefault('legs', []).append(
+                {'provider': provider, 'ok': True, 'attempts': len(attempts),
+                 'wall_s': round(time.monotonic() - t0, 2)})
+            return out
+        except Exception as e:
+            stats_out.setdefault('legs', []).append(
+                {'provider': provider, 'ok': False, 'attempts': len(attempts),
+                 'wall_s': round(time.monotonic() - t0, 2), 'error': str(e)[:160]})
+            raise
+
     mm_key = os.environ.get('MINIMAX_API_KEY')
     if mm_key:
         try:
-            return _call_provider('minimax', MINIMAX_BASE, mm_key, MINIMAX_MODEL,
-                                  messages, min(max_tokens, MINIMAX_MAX_TOKENS),
-                                  temperature, json_response, thinking, timeout,
-                                  deadline=primary_deadline)
+            return _leg('minimax', lambda **kw: _call_provider(
+                'minimax', MINIMAX_BASE, mm_key, MINIMAX_MODEL,
+                messages, min(max_tokens, MINIMAX_MAX_TOKENS),
+                temperature, json_response, thinking, timeout,
+                deadline=primary_deadline, **kw))
         except Exception as e:
             errors.append(f'minimax[{e}]')
             print('  ⚠️ minimax exhausted — falling back to OpenCode Zen DeepSeek V4 Flash',
@@ -425,11 +457,11 @@ def chat(system: str = '', user: str = '', messages: list = None,
                     or os.environ.get('OPENCODE_API_KEY'))
     if fallback and opencode_key:
         try:
-            return _call_provider_openai_compatible(
+            return _leg('opencode', lambda **kw: _call_provider_openai_compatible(
                 'opencode', fallback_base_url, opencode_key, fallback_model,
                 messages, min(max_tokens, OPENCODE_MAX_TOKENS),
                 temperature, json_response, timeout,
-                deadline=chain_deadline)
+                deadline=chain_deadline, **kw))
         except Exception as e:
             errors.append(f'opencode[{e}]')
     elif fallback and not opencode_key:

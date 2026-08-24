@@ -289,8 +289,19 @@ def main():
     # recovery path could not physically emit a complete brief.
     # timeout=900: the full-context brief prefills ~116KB and thinks before emitting
     # ~20K tokens; the 180s default timed out 3x on 2026-07-16 and killed the run.
+    stats = {}
     out = chat(system=system, user=user, max_tokens=BRIEF_MAX_TOKENS,
-               temperature=0.6, timeout=900)
+               temperature=0.6, timeout=900, stats_out=stats)
+    # C-F3a: one grep-able line saying which leg won and what each cost —
+    # before this, the job log had per-attempt token lines but nothing that
+    # answered "did the fallback write today's brief, and how slow was it?".
+    legs = stats.get('legs') or []
+    if legs:
+        print('LLM chain: ' + ' | '.join(
+            f"{l['provider']} {'OK' if l['ok'] else 'FAIL'} "
+            f"attempts={l['attempts']} {l['wall_s']}s"
+            + (f" ({l.get('error', '')[:60]})" if not l['ok'] else '')
+            for l in legs))
 
     # Split markdown + plan.json (see split_brief_and_plan for the tolerance rules).
     md_part, json_part = split_brief_and_plan(out)
