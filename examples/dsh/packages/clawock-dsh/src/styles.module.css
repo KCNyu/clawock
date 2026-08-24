@@ -986,6 +986,16 @@ body[data-ds-dark-theme] .pbc {
    不带该属性,保持墨色、low 红走 tone。 */
 .pbc .bchip-v[data-used-level="ok"] { color:var(--ok) }
 .pbc .bchip-v[data-used-level="mid"] { color:var(--warn) }
+/* 头条窗口的重置时刻:小号等宽,回答「什么时候恢复」,面板每窗一行
+   (bp-win-reset)是同一视觉语言的完整版。 */
+.pbc .bchip-reset {
+  font-family:var(--mono);
+  font-size:11px;
+  font-weight:500;
+  font-variant-numeric:tabular-nums;
+  white-space:nowrap;
+  color:var(--cap)
+}
 /* 第二窗口(周限额)副读数:比主读数低一级,同轴排版,不挤主数。 */
 .pbc .bchip-sub {
   font:500 11px/1 var(--font);
