@@ -812,10 +812,7 @@
       + `<line class="hs-zero" x1="0" y1="${zeroY.toFixed(1)}" x2="${W}" y2="${zeroY.toFixed(1)}"/>`
       + `<path class="hs-line" d="${line}"/>`
       + `</svg>`
-      // 端点标记不能用 SVG 圆：preserveAspectRatio="none" 会把它压成椭圆。
-      // 用绝对定位的 DOM 点，按百分比放，形状不受拉伸影响。
-      + `<i class="hero-spark-dot ${tone}" style="left:${(x(vals.length - 1) / W * 100).toFixed(2)}%;`
-      + `top:${(y(last) / H * 100).toFixed(2)}%"></i>`;
+      // 端点标记已移除（kcn 2026-08-24：spark 末端涨跌色圆点没用，去掉）。
   }
 
   // 数据健康：原来只有页脚一条 29px 小条，逐文件明细全塞在 title 提示里，
