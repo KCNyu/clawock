@@ -73,6 +73,7 @@ def max_drawdown(nav, dates=None):
     peak_i = 0
     mdd = 0.0
     trough_i = 0
+    mdd_peak_i = 0
     for i, v in enumerate(nav):
         if v > peak:
             peak = v
