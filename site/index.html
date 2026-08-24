@@ -157,11 +157,22 @@ layout: null
            指挥台是整页唯一的毛玻璃面：主数 + 一行拆解 + 一条低对比统计轨。 -->
       <div class="card hero-deck">
         <div class="hero-deck-lead">
+          <div class="hero-deck-copy">
           <div class="overview-card-kicker">总盈亏 · USD 等值</div>
           <div class="hero-deck-pnl" id="hero-pnl">—</div>
-          <div class="hero-deck-sub" id="hero-sub">—</div>
-          <div class="hero-deck-fx" id="fx-rate-usd">—</div>
-          <span class="overview-fx-mirror" id="fx-rate-hkd" aria-hidden="true"></span>
+          <!-- 拆解行与出处行在宽屏共用一行：主数左对齐后，卡片右侧本来是一大片
+               空白，读起来像「没填满的表格格子」而不是留白。出处行靠右锚住右缘，
+               顺带省掉一行高度。窄屏 flex-wrap 自然回到上下两行。 -->
+          <div class="hero-deck-line">
+            <div class="hero-deck-sub" id="hero-sub">—</div>
+            <div class="hero-deck-fx" id="fx-rate-usd">—</div>
+          </div>
+            <span class="overview-fx-mirror" id="fx-rate-hkd" aria-hidden="true"></span>
+          </div>
+          <!-- 主数的历史，不是第二张图：同一个「总盈亏」口径画成纯形状（无坐标轴、
+               无刻度、无图例），回答大数字回答不了的那半个问题——它是一路跌下来的，
+               还是刚从更深的地方爬回来的。完整可交互的曲线仍在下面那张卡里。 -->
+          <div class="hero-spark" id="hero-spark"></div>
         </div>
         <div class="hero-rail" id="hero-rail"></div>
       </div>

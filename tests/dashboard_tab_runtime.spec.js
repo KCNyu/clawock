@@ -770,11 +770,35 @@ async function testHoldingsAndHeroNeverTruncate(browser, base) {
     await context.close();
   }
 
+  // — 统计轨不得重复副行已经给过的数字 —
+  // 「已实现 · USD-eq」和「浮动 · USD-eq」曾各占一格，而它们和主数下面那行
+  // 是逐字相同的两个值，相距 30px。同一个数字在一屏内说两遍不是信息更全。
+  {
+    const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+    const page = await context.newPage();
+    await stubLiveOrigin(page);
+    await page.goto(base, { waitUntil: "networkidle" });
+    await waitForData(page);
+    const dup = await page.evaluate(() => {
+      const sub = document.getElementById("hero-sub").textContent.replace(/\s+/g, "");
+      return [...document.querySelectorAll(".hero-rail-cell")]
+        .map(cell => ({
+          k: cell.querySelector(".hero-rail-k")?.textContent.trim(),
+          // 只比「值」本身，不含它自己的变化幅度：变化幅度是这一格独有的。
+          v: (cell.querySelector(".hero-rail-v")?.firstChild?.textContent || "").trim(),
+        }))
+        .filter(c => c.v && sub.includes(c.v.replace(/\s+/g, "")));
+    });
+    assert.deepEqual(dup, [],
+      "a hero rail cell restates a number the sub-line already shows");
+    await context.close();
+  }
+
   // — 首屏统计轨必须自己占住高度 —
   // 数据到达前 #hero-rail 是空的。在给它 min-height 之前它高 1px，填满后
   // 85px（桌面），每次加载都跳一次 —— 实测这一下就是整页 CLS 的大头
   // (0.26 -> 0.04)。这里量的是「预留 == 实测」，比断言一个 CLS 数字稳。
-  for (const [width, expectCols] of [[390, 2], [900, 4], [1440, 8]]) {
+  for (const [width, expectCols] of [[390, 2], [900, 4], [1440, 6]]) {
     const context = await browser.newContext({ viewport: { width, height: 900 } });
     const page = await context.newPage();
     await stubLiveOrigin(page);
@@ -796,6 +820,59 @@ async function testHoldingsAndHeroNeverTruncate(browser, base) {
     assert.equal(after.cols, expectCols, `hero rail column count changed at ${width}px`);
     assert.equal(reserved, after.height,
       `hero rail shifts by ${after.height - reserved}px when data lands at ${width}px`);
+    await context.close();
+  }
+
+  // — 首屏缩略走势：必须画的是主数自己，而且必须由首帧 bundle 画出来 —
+  // 这条走势线在 dashboard.hero.js（首屏加载的那份）和 dashboard.render.js
+  // 之间是手工双份。本轮第一次实现时只落进了 render.js，于是生产路径上
+  // 它根本不存在，而页面零报错。这里在**没有进过任何详情 tab**的状态下断言，
+  // 走的就是首帧那条路。
+  {
+    const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+    const page = await context.newPage();
+    await stubLiveOrigin(page);
+    await page.goto(base, { waitUntil: "domcontentloaded" });
+    // 数据到达前容器就得占住高度，否则它一画出来就是一次 CLS。
+    const reserved = await page.evaluate(() =>
+      Math.round(document.getElementById("hero-spark").getBoundingClientRect().height));
+    assert(reserved > 40, `hero spark reserves no height before data (${reserved}px)`);
+    await waitForData(page);
+    await page.waitForSelector(".hero-spark-svg", { timeout: 5000 });
+
+    const spark = await page.evaluate(() => {
+      const host = document.getElementById("hero-spark");
+      const svg = host.querySelector(".hero-spark-svg");
+      const stops = [...svg.querySelectorAll("linearGradient stop")]
+        .map(s => ({ offset: s.getAttribute("offset"), cls: s.getAttribute("class") }));
+      return {
+        height: Math.round(host.getBoundingClientRect().height),
+        label: svg.getAttribute("aria-label") || "",
+        points: (svg.querySelector(".hs-line")?.getAttribute("d") || "").split("L").length,
+        stops,
+        headline: document.getElementById("hero-pnl").textContent.trim(),
+        tone: svg.classList.contains("neg") ? "neg"
+          : svg.classList.contains("pos") ? "pos" : "flat",
+        dotTone: host.querySelector(".hero-spark-dot")?.className || "",
+      };
+    });
+
+    assert.equal(spark.height, reserved,
+      `hero spark shifts by ${spark.height - reserved}px when it draws`);
+    assert(spark.points > 10, `hero spark drew only ${spark.points} points`);
+    // 画的必须是主数本身：aria-label 的「当前」值要和大数字逐字相同。
+    // 不比对的话，这条线画成「账面市值」「净值」都不会有人发现。
+    const current = /当前\s*(\S+)$/.exec(spark.label);
+    assert(current, `hero spark aria-label has no 当前 value: ${spark.label}`);
+    assert.equal(current[1], spark.headline,
+      "hero spark does not end at the headline number — it is plotting a different series");
+    // 填充必须在零轴分色，否则曲线里赚钱的那一段会被涂成亏损色。
+    assert.deepEqual(spark.stops.map(s => s.cls), ["hs-up", "hs-up", "hs-down", "hs-down"],
+      "hero spark fill is not split at the zero axis");
+    assert.equal(spark.stops[1].offset, spark.stops[2].offset,
+      "hero spark gradient does not hard-stop at the zero axis");
+    assert(spark.dotTone.includes(spark.tone),
+      `hero spark endpoint dot tone (${spark.dotTone}) disagrees with the curve (${spark.tone})`);
     await context.close();
   }
 
