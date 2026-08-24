@@ -29,6 +29,12 @@ jobs:
           FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY }}
           OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
           MINIMAX_API_KEY: ${{ secrets.MINIMAX_API_KEY }}
+          # Same defect brief-fallback fixed on 2026-08-17: without a chain
+          # deadline a hung primary burns timeout(180)x3 per provider and the
+          # runner kills this 10-minute job before the fallback is ever asked.
+          # 360s leaves room for the serial fetch loop (~3.6min worst case)
+          # plus validate/commit/push inside the job budget.
+          CLAWOCK_LLM_DEADLINE_SECONDS: '360'
         run: clawock-news-digest
 
       - name: Validate generated digest
