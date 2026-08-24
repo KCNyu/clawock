@@ -336,7 +336,12 @@ environment — and completes one full run. ([#436], [#379])
 [#665]: https://github.com/KCNyu/clawock/issues/665
 [#676]: https://github.com/KCNyu/clawock/pull/676
 [#684]: https://github.com/KCNyu/clawock/pull/684
-[Unreleased]: https://github.com/KCNyu/clawock/compare/v0.1.7...HEAD
+[Unreleased]: https://github.com/KCNyu/clawock/compare/v0.1.8...HEAD
+[0.1.8]: https://github.com/KCNyu/clawock/compare/v0.1.7...v0.1.8
+[#741]: https://github.com/KCNyu/clawock/issues/741
+[#744]: https://github.com/KCNyu/clawock/pull/744
+[0.1.4]: https://github.com/KCNyu/clawock/compare/v0.1.3...v0.1.4
+[0.1.3]: https://github.com/KCNyu/clawock/compare/v0.1.2...v0.1.3
 [0.1.7]: https://github.com/KCNyu/clawock/compare/v0.1.6...v0.1.7
 [0.1.6]: https://github.com/KCNyu/clawock/compare/v0.1.5...v0.1.6
 [0.1.5]: https://github.com/KCNyu/clawock/compare/v0.1.4...v0.1.5
@@ -359,4 +364,3 @@ environment — and completes one full run. ([#436], [#379])
 [#730]: https://github.com/KCNyu/clawock/issues/730
 [#731]: https://github.com/KCNyu/clawock/issues/731
 [#732]: https://github.com/KCNyu/clawock/issues/732
-[#733]: https://github.com/KCNyu/clawock/pull/733
