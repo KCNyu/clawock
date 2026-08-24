@@ -468,8 +468,17 @@ def write_decisions(decisions: list[dict], path: Path = LEDGER) -> None:
             os.unlink(tmp)
 
 
-def upsert_plan_decisions(plan: dict, path: Path = LEDGER) -> tuple[int, int]:
-    existing = load_decisions(path)
+def upsert_plan_decisions(
+    plan: dict, path: Path = LEDGER,
+    ledger: list[dict] | None = None, write: bool = True,
+) -> tuple[int, int]:
+    """Upsert one plan's decisions into the ledger.
+
+    Callers orchestrating several ledger steps in one invocation (#916) pass
+    their already-loaded ``ledger`` and ``write=False``, then settle and write
+    once; standalone callers keep the old load-mutate-write behavior.
+    """
+    existing = ledger if ledger is not None else load_decisions(path)
     by_id = {d.get("decision_id"): d for d in existing}
     inserted = updated = 0
     for d in plan.get("decisions") or []:
@@ -490,7 +499,8 @@ def upsert_plan_decisions(plan: dict, path: Path = LEDGER) -> tuple[int, int]:
             by_id[did] = d
             inserted += 1
     assign_episode_ids(existing)
-    write_decisions(existing, path)
+    if write:
+        write_decisions(existing, path)
     return inserted, updated
 
 

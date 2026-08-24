@@ -41,6 +41,16 @@ KEEP_SESSION_DAYS    = int(os.environ.get('GC_KEEP_SESSION_DAYS',    '14'))
 KEEP_BAK_DAYS        = int(os.environ.get('GC_KEEP_BAK_DAYS',        '3'))
 KEEP_TMP_DAYS        = int(os.environ.get('GC_KEEP_TMP_DAYS',        '14'))
 
+for _name, _days in (('GC_KEEP_TRAJECTORY_DAYS', KEEP_TRAJECTORY_DAYS),
+                     ('GC_KEEP_SESSION_DAYS', KEEP_SESSION_DAYS),
+                     ('GC_KEEP_BAK_DAYS', KEEP_BAK_DAYS),
+                     ('GC_KEEP_TMP_DAYS', KEEP_TMP_DAYS)):
+    if _days < 0:
+        # A negative retention makes "older than cutoff" true for files that
+        # do not exist yet — i.e. delete everything, then keep deleting.
+        raise SystemExit(f'gc_sessions: {_name}={_days} is negative; '
+                         f'refusing to run (see #930)')
+
 
 def humansize(n):
     for unit in ['B', 'KB', 'MB', 'GB']:
@@ -114,12 +124,23 @@ def gc_files(pattern_predicate, cutoff_ts, label, dry_run, dirpath=None):
     return n_files, n_bytes
 
 
-def gc_sessions_dir(now_ts, dry_run):
+def gc_sessions_dir(now_ts, dry_run, allow_future=False):
     """One traversal for every SESSIONS_DIR rule.
 
     The sweeps used to be six full iterdir() passes re-stating every candidate
     twice (~18k stats a night); each file is now visited once and statted once.
+
+    A far-future ``now_ts`` makes every file stale by definition — one wrong
+    argument deletes the whole tree (the agent-E incident, #930: a review
+    simulation passed a synthetic 2027 timestamp against the real default
+    SESSIONS_DIR). Refuse such clocks loudly; the CLI passes time.time() and
+    never trips this.
     """
+    if not allow_future and now_ts > time.time() + 300:
+        raise ValueError(
+            f'now_ts ({now_ts}) is more than 5 minutes ahead of the wall '
+            f'clock — refusing bulk deletion; pass allow_future=True only '
+            f'from a test/simulation with an explicit scratch directory')
     if not SESSIONS_DIR.exists():
         return 0, 0
     per_rule = {label: [0, 0] for label, _, _ in SESSION_RULES}
