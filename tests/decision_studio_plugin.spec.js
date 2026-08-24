@@ -828,6 +828,11 @@ test("client: stylesheet is loader-owned and keeps the dark-theme and tone contr
   assert.match(css, hashed("bp-row"), "panel per-provider row required");
   assert.match(css, hashed("bal-rf"), "ghost refresh button required");
   assert.match(css, hashed("bp-win-bar"), "per-window progress bar required");
+  // Colour tiers are part of the contract: the pill number and the bar fill
+  // both key off the usage direction (ok green / mid yellow / low red).
+  assert.match(css, /_bchip-v\[data-used-level=ok\]/, "pill green tier selector required");
+  assert.match(css, /_bchip-v\[data-used-level=mid\]/, "pill yellow tier selector required");
+  assert.match(css, /_bp-win-fill\[data-balance-state=mid\]/, "bar approach-band selector required");
   // lightningcss minifies the attribute selector's quotes away; the
   // contract is the data attribute itself, not its quoting.
   assert.match(css, /_bchip-v\[data-balance-state=low\]/, "chip low value selector required");
@@ -1405,6 +1410,14 @@ test("client: the header chip headlines one provider and the panel pins the rest
   assert.equal(f.chip[0]["data-pb-provider"], "deepseek", "default headline is the first configured row");
   assert.equal(f.chip[0]["data-balance-state"], "ok");
   assert.ok(f.texts.includes("¥110"), "the headlined value renders");
+  const chipValueDefault = (function findChipValue(node) {
+    if (node == null || Array.isArray(node)) return null;
+    if (typeof node === "object" && node.props && typeof node.props.className === "string" &&
+        node.props.className.includes("bchip-v")) return node.props;
+    for (const child of node.children || []) { const hit = findChipValue(child); if (hit) return hit; }
+    return null;
+  })(tree);
+  assert.equal(chipValueDefault["data-used-level"], undefined, "money headlines carry no usage tier");
   // Panel: mounted closed, every provider listed with its own tone.
   assert.equal(f.openAttr, "false", "the panel renders closed but mounted");
   assert.deepEqual(f.panel.map((n) => n.props["data-pb-provider"]), ["deepseek", "minimax", "claude"]);
@@ -1424,6 +1437,14 @@ test("client: the header chip headlines one provider and the panel pins the rest
   assert.equal(f.chip[0]["data-balance-state"], "ok");
   assert.equal(store._get().selected, "minimax", "the pin survives in registration-store state");
   assert.ok(f.texts.includes("24%"), "the pinned quota reading renders (used direction)");
+  const chipValueQuota = (function findChipValue2(node) {
+    if (node == null || Array.isArray(node)) return null;
+    if (typeof node === "object" && node.props && typeof node.props.className === "string" &&
+        node.props.className.includes("bchip-v")) return node.props;
+    for (const child of node.children || []) { const hit = findChipValue2(child); if (hit) return hit; }
+    return null;
+  })(tree);
+  assert.equal(chipValueQuota["data-used-level"], "ok", "the pill number tints by usage tier — green while usage is low");
   assert.ok(
     f.texts.some((t) => t.includes("周 10%")),
     "the weekly limit rides along on the pill as a muted sub-reading",
@@ -1509,11 +1530,11 @@ test("client: the panel says each provider's story once, abnormal rows loudest",
   );
   disposeReactEffects();
 
-  // Past the watermark the bar itself flips to the warning tone — the same
-  // discipline as the dots, applied per window rather than per provider. In
-  // used direction: warn at ≥ 100−threshold = 80%.
+  // The bar colours by usage tier per window — yellow in the approach band
+  // (60–79), red inside it (≥80 at the default watermark), green below.
   const LOW_MM = JSON.parse(JSON.stringify(MM_ROW_OK));
-  LOW_MM.result.snapshot.windows = [{ label: "5h", percent: 24, resetAt: "" }, { label: "周", percent: 88, resetAt: "" }];
+  LOW_MM.result.snapshot.totalBalance = "65";
+  LOW_MM.result.snapshot.windows = [{ label: "5h", percent: 65, resetAt: "" }, { label: "周", percent: 88, resetAt: "" }];
   const ctx2 = {
     effect() {},
     get() { return { balance: async () => ({ ok: true, value: { providers: [LOW_MM], refreshMs: 60000 } }) }; },
@@ -1538,7 +1559,15 @@ test("client: the panel says each provider's story once, abnormal rows loudest",
     }
     (node.children || []).forEach(walkFills);
   })(tree2);
-  assert.deepEqual(fills2.map((p) => p["data-balance-state"]), ["ok", "low"], "only the starved window goes warning-red");
+  assert.deepEqual(fills2.map((p) => p["data-balance-state"]), ["mid", "low"], "the approach band goes yellow, the watermark red — per window");
+  const chipValueMid = (function findChipValue3(node) {
+    if (node == null || Array.isArray(node)) return null;
+    if (typeof node === "object" && node.props && typeof node.props.className === "string" &&
+        node.props.className.includes("bchip-v")) return node.props;
+    for (const child of node.children || []) { const hit = findChipValue3(child); if (hit) return hit; }
+    return null;
+  })(tree2);
+  assert.equal(chipValueMid["data-used-level"], "mid", "the pill headline tints yellow in the approach band");
   disposeReactEffects();
 });
 
@@ -1553,15 +1582,18 @@ test("client: _rowDisplay and _balanceNote project one provider's answer", async
   const snap = (total, extra = {}) => ({ isAvailable: true, unit: "money", currency: "CNY", totalBalance: total, grantedBalance: "", toppedUpBalance: "", asOf: AS_OF, note: "", windows: [], ...extra });
   const answer = (over = {}) => ({ configured: true, snapshot: snap("110.00"), status: "fresh", low: false, message: null, threshold: 20, refreshMs: 60000, ...over });
   // Money rows keep the old shape; quota rows read as used percent and
-  // surface the second window (周限额) as a muted pill suffix.
-  assert.deepEqual(api._rowDisplay(null), { tone: "none", value: "—", sub: null, title: "余额加载中" });
+  // surface the second window (周限额) as a muted pill suffix. Colour tiers
+  // (level) follow the usage direction: green low, yellow near, red inside.
+  assert.deepEqual(api._rowDisplay(null), { tone: "none", value: "—", sub: null, level: null, title: "余额加载中" });
   const okRow = api._rowDisplay(answer());
   assert.equal(okRow.tone, "ok");
+  assert.equal(okRow.level, null, "money rows have no usage tier — colour stays tonal");
   assert.equal(okRow.sub, null, "money rows carry no window suffix");
   assert.ok(!okRow.title.includes("更新于"), "the fetch timestamp must not repeat in the row");
   assert.match(api._rowDisplay(answer({ snapshot: snap("7.50", { currency: "USD" }) })).value, /^\$7\.5/);
   const pct = api._rowDisplay(answer({ snapshot: snap("76", { unit: "pct", currency: "" }) }));
   assert.equal(pct.value, "76%", "quota reads as percent, never money");
+  assert.equal(pct.level, "mid", "76% used sits in the warning band (60–79 at the default watermark)");
   assert.equal(pct.sub, null, "a single-window plan has no suffix");
   const dual = api._rowDisplay(answer({
     snapshot: snap("76", {
@@ -1570,6 +1602,12 @@ test("client: _rowDisplay and _balanceNote project one provider's answer", async
     }),
   }));
   assert.equal(dual.sub, "· 周 90%", "the weekly limit is the pill's second reading");
+  assert.deepEqual(
+    api._usedLevel(null, 20), "ok",
+    "an unreadable reading never lights a warning colour",
+  );
+  assert.deepEqual([59, 60, 79, 80].map((p) => api._usedLevel(p, 20)), ["ok", "mid", "mid", "low"],
+    "tier edges land exactly at 100−2·lowPct and 100−lowPct");
   const primaryGone = api._rowDisplay(answer({
     snapshot: snap("", {
       unit: "pct", currency: "", isAvailable: true,
@@ -1577,6 +1615,7 @@ test("client: _rowDisplay and _balanceNote project one provider's answer", async
     }),
   }));
   assert.equal(primaryGone.value, "31%", "when the headline window is absent the readable one steps up");
+  assert.equal(primaryGone.level, "ok", "the stepped-up reading is tiered by its own number");
   assert.equal(api._rowDisplay(answer({ snapshot: snap("9.00", { isAvailable: false }) })).tone, "low");
   // Healthy = silence. Every abnormal reading gets exactly one sentence.
   assert.equal(api._balanceNote(null), null);

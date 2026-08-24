@@ -979,7 +979,13 @@ body[data-ds-dark-theme] .pbc {
   color:var(--text)
 }
 .pbc .bchip-v[data-balance-state="low"] { color:var(--bad) }
+.pbc .bchip-v[data-balance-state="stale"] { color:var(--warn) }
 .pbc .bchip-v[data-balance-state="none"] { color:var(--cap); font-weight:500 }
+/* 配额头条数字按用量档位染色(kcn 配色口径):低用量=安心绿,逼近上限
+   先黄后红;档位阈值由 lowPct 派生(默认 20 → 60% 黄 / 80% 红)。金额行
+   不带该属性,保持墨色、low 红走 tone。 */
+.pbc .bchip-v[data-used-level="ok"] { color:var(--ok) }
+.pbc .bchip-v[data-used-level="mid"] { color:var(--warn) }
 /* 第二窗口(周限额)副读数:比主读数低一级,同轴排版,不挤主数。 */
 .pbc .bchip-sub {
   font:500 11px/1 var(--font);
@@ -1155,9 +1161,12 @@ body[data-ds-dark-theme] .pbc {
 .pbc .bp-win-fill {
   height:100%;
   border-radius:2px;
-  background:color-mix(in srgb, var(--text) 42%, transparent);
+  /* 填充=已使用量,颜色按用量档位(kcn 配色口径):低=绿、逼近上限先黄
+     后红——不再是中性墨水,条的本身颜色就是状态读数。 */
+  background:var(--ok);
   transition:background .15s
 }
+.pbc .bp-win-fill[data-balance-state="mid"] { background:var(--warn) }
 .pbc .bp-win-fill[data-balance-state="low"] { background:var(--bad) }
 .pbc .bp-win-fill[data-balance-state="stale"] { background:var(--warn) }
 .pbc .bp-note, .pbc .bp-sub {
