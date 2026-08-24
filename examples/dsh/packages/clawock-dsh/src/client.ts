@@ -470,9 +470,10 @@ export type BalanceTone = 'ok' | 'low' | 'stale' | 'none'
  * the chip and panel render only these fields, so the view never keeps
  * a second copy of the tone rules — the host already decided status and low.
  * The title is the whole hover story: split, quota windows, stale reason,
- * fetch time. Quota rows ('pct' unit) read as remaining percent, not money,
- * and carry the second window ('周'/'本周') as a muted pill suffix — both
- * limits visible at the header without opening the panel.
+ * fetch time. Quota rows ('pct' unit) read as USED percent (kcn: 「已使用」
+ * 比「剩余」直观), not money, and carry the second window ('周'/'本周') as a
+ * muted pill suffix — both limits visible at the header without opening the
+ * panel.
  */
 export function _rowDisplay(result: BalanceResult | null): { tone: BalanceTone; value: string; sub: string | null; title: string } {
   if (result === null) return { tone: 'none', value: '—', sub: null, title: '余额加载中' }
@@ -501,7 +502,7 @@ export function _rowDisplay(result: BalanceResult | null): { tone: BalanceTone; 
   // 更新时间不重复展示:轮询是静默的,手动刷新有 ✓ 反馈——时间戳只增加噪音。
   const parts = [
     snapshot.unit === 'pct'
-      ? (snapshot.note !== '' ? snapshot.note : '配额窗口余量')
+      ? (snapshot.note !== '' ? snapshot.note : '配额窗口已使用')
       : 'API 余额',
     !isPct && snapshot.grantedBalance !== '' ? '赠金 ' + symbol + snapshot.grantedBalance : null,
     !isPct && snapshot.toppedUpBalance !== '' ? '充值 ' + symbol + snapshot.toppedUpBalance : null,
@@ -527,7 +528,8 @@ export function _balanceNote(result: BalanceResult | null): string | null {
     return result.snapshot.unit === 'pct' ? '该窗口额度已用尽' : '官方接口判定余额不足'
   }
   if (result.low) {
-    if (result.snapshot.unit === 'pct') return '窗口余量不足 ' + result.threshold + '%'
+    // threshold 是「剩余水位」(lowPct),已使用方向 = 100 − threshold。
+    if (result.snapshot.unit === 'pct') return '窗口已使用达 ' + (100 - result.threshold) + '%'
     const symbol = result.snapshot.currency === 'USD' ? '$' : result.snapshot.currency === 'CNY' ? '¥' : ''
     return '余额偏低,低于阈值 ' + symbol + result.threshold
   }
@@ -590,12 +592,14 @@ function renderRowDetail(row: {
   if (row.note !== null) return null
   const wins = row.result.snapshot?.windows ?? []
   if (wins.length > 0) {
-    // 每窗一行:文字读数 + 发丝进度条。条的语义=剩余量,低水位换警示色;
-    // 静态渲染不做 width 动画(宽度动画在审校里是红线),数据刷新整帧替换。
+    // 每窗一行:文字读数 + 发丝进度条。percent 是已使用方向(kcn 定的口径),
+    // 条的填充=已使用量,用到接近满格才亮红(used ≥ 100−threshold);与旧
+    // 「剩余」语义正好相反,警示方向已随数据同步翻转。静态渲染不做 width
+    // 动画(宽度动画在审校里是红线),数据刷新整帧替换。
     return h('div', { className: cx('bp-wins') },
       wins.map((w) => {
         const pct = w.percent === null ? null : Math.max(0, Math.min(100, Math.round(w.percent)))
-        const low = pct !== null && row.result.snapshot?.unit === 'pct' && pct <= row.result.threshold
+        const low = pct !== null && row.result.snapshot?.unit === 'pct' && pct >= 100 - row.result.threshold
         const state = low ? 'low' : row.view.tone === 'stale' ? 'stale' : 'ok'
         return h('div', { className: cx('bp-win'), key: w.label },
           h('div', { className: cx('bp-win-line') },

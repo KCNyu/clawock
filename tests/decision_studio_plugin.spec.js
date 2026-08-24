@@ -222,11 +222,11 @@ const DS_ROW_OK = {
 };
 const MM_ROW_OK = {
   provider: "minimax", label: "MiniMax",
-  result: { configured: true, snapshot: { isAvailable: true, unit: "pct", currency: "", totalBalance: "76", grantedBalance: "", toppedUpBalance: "", asOf: AS_OF, note: "5h 窗口剩余 76% · 周窗口剩余 90%", windows: [{ label: "5h", percent: 76, resetAt: "21:00" }, { label: "周", percent: 90, resetAt: "周四 21:00" }] }, status: "fresh", low: false, message: null, threshold: 20, refreshMs: 60000 },
+  result: { configured: true, snapshot: { isAvailable: true, unit: "pct", currency: "", totalBalance: "24", grantedBalance: "", toppedUpBalance: "", asOf: AS_OF, note: "5h 窗口已使用 24% · 周窗口已使用 10%", windows: [{ label: "5h", percent: 24, resetAt: "21:00" }, { label: "周", percent: 10, resetAt: "周四 21:00" }] }, status: "fresh", low: false, message: null, threshold: 20, refreshMs: 60000 },
 };
 const CL_ROW_OK = {
   provider: "claude", label: "Claude",
-  result: { configured: true, snapshot: { isAvailable: true, unit: "pct", currency: "", totalBalance: "64", grantedBalance: "", toppedUpBalance: "", asOf: AS_OF, note: "会话窗口剩余 64% · 本周剩余 31%", windows: [{ label: "会话", percent: 64, resetAt: "10:00" }, { label: "本周", percent: 31, resetAt: "周四 10:00" }] }, status: "fresh", low: false, message: null, threshold: 20, refreshMs: 60000 },
+  result: { configured: true, snapshot: { isAvailable: true, unit: "pct", currency: "", totalBalance: "36", grantedBalance: "", toppedUpBalance: "", asOf: AS_OF, note: "会话窗口已使用 36% · 本周已使用 69%", windows: [{ label: "会话", percent: 36, resetAt: "10:00" }, { label: "本周", percent: 69, resetAt: "周四 10:00" }] }, status: "fresh", low: false, message: null, threshold: 20, refreshMs: 60000 },
 };
 const BALANCES_OK = { providers: [DS_ROW_OK, MM_ROW_OK, CL_ROW_OK], refreshMs: 60000 };
 const QUIET_BALANCES = { providers: [], refreshMs: 60000 };
@@ -1155,14 +1155,16 @@ test("balance: CNY picking, tolerant parsing and the service's polite-cadence st
   assert.equal(noKey.snapshot, null);
   assert.match(noKey.message, /未配置/);
 
-  // --- MiniMax: Token Plan quota windows, percent-based, HTTP-200 failures ---
-  const { createMinimaxService, parseMinimaxRemains, windowRemainingPercent } = balance;
+  // --- MiniMax: Token Plan quota windows, USED-percent display direction ---
+  const { createMinimaxService, parseMinimaxRemains, windowUsedPercent } = balance;
 
-  // Percent field wins; counts derive it; unreadable stays null (never guessed).
-  assert.equal(windowRemainingPercent({ current_interval_remaining_percent: 88.4 }), 88.4);
-  assert.equal(windowRemainingPercent({ current_interval_total_count: 5000000, current_interval_usage_count: 1250000 }), 75);
-  assert.equal(windowRemainingPercent({ current_interval_total_count: 0, current_interval_usage_count: 0 }), null);
-  assert.equal(windowRemainingPercent({}), null);
+  // The upstream percent field reports REMAINING and is complemented; raw
+  // counts already are consumption and divide as-is; unreadable stays null.
+  assert.equal(windowUsedPercent({ current_interval_remaining_percent: 88.4 }), 100 - 88.4);
+  assert.equal(windowUsedPercent({ current_interval_remaining_percent: 0 }), 100, "a fresh window reads as fully unused");
+  assert.equal(windowUsedPercent({ current_interval_total_count: 5000000, current_interval_usage_count: 1250000 }), 25);
+  assert.equal(windowUsedPercent({ current_interval_total_count: 0, current_interval_usage_count: 0 }), null);
+  assert.equal(windowUsedPercent({}), null);
 
   // The general bucket is the text/coding plan every account carries.
   const mmParsed = parseMinimaxRemains({
@@ -1173,8 +1175,8 @@ test("balance: CNY picking, tolerant parsing and the service's polite-cadence st
     ],
   }, AS_OF);
   assert.equal(mmParsed.unit, "pct");
-  assert.equal(mmParsed.totalBalance, "76", "percent is rounded for display only");
-  assert.deepEqual(mmParsed.windows.map((w) => [w.label, w.percent]), [["5h", 76], ["周", 90]]);
+  assert.equal(mmParsed.totalBalance, "24", "remaining 76.4 → used 23.6, rounded for display only");
+  assert.deepEqual(mmParsed.windows.map((w) => [w.label, w.percent]), [["5h", 24], ["周", 10]]);
   assert.match(mmParsed.windows[0].resetAt, /^\d{2}:\d{2}$/);
   assert.throws(() => parseMinimaxRemains({ base_resp: { status_code: 0 } }, AS_OF), /model_remains/);
   // Epoch seconds AND milliseconds both read; garbage does not crash.
@@ -1207,7 +1209,7 @@ test("balance: CNY picking, tolerant parsing and the service's polite-cadence st
     }), { status: 200, headers: { "content-type": "application/json" } });
     const lowQuota = await createMinimaxService({ credentials: { resolve: async () => ({ value: "mm-test" }) } }).get(true);
     assert.equal(lowQuota.status, "fresh");
-    assert.equal(lowQuota.low, true, "12% remaining must read low against the 20% default");
+    assert.equal(lowQuota.low, true, "remaining 12% → used 88% ≥ 100−20, the watermark in used direction");
     assert.equal(lowQuota.snapshot.unit, "pct");
   } finally {
     globalThis.fetch = originalFetch;
@@ -1278,7 +1280,8 @@ test("balance: claude subscription windows via the OAuth usage endpoint", async 
     claudeAiOauth: { accessToken: "sk-ant-oat01-test", refreshToken: "ort01", expiresAt: future, subscriptionType: "max" },
   }));
 
-  // utilization is consumption; our reading is REMAINING percent.
+  // utilization IS the used percent (kcn: 「已使用」直观) — rendered verbatim,
+  // no complementing anywhere.
   const usageBody = {
     five_hour: { utilization: 36, resets_at: "2026-08-24T02:00:00Z" },
     seven_day: { utilization: 69 },
@@ -1297,11 +1300,11 @@ test("balance: claude subscription windows via the OAuth usage endpoint", async 
     const fresh = await svc.get(true);
     assert.equal(fresh.status, "fresh");
     assert.equal(fresh.snapshot.unit, "pct");
-    assert.equal(fresh.snapshot.totalBalance, "64", "100 - 36 utilized = 64 remaining");
-    assert.deepEqual(fresh.snapshot.windows.map((w) => [w.label, w.percent]), [["会话", 64], ["本周", 31]]);
+    assert.equal(fresh.snapshot.totalBalance, "36", "utilization reads through untouched");
+    assert.deepEqual(fresh.snapshot.windows.map((w) => [w.label, w.percent]), [["会话", 36], ["本周", 69]]);
     assert.match(fresh.snapshot.windows[0].resetAt, /^\d{2}:\d{2}$/);
-    assert.match(fresh.snapshot.note, /会话窗口剩余 64%/);
-    assert.match(fresh.snapshot.note, /本周剩余 31%/, "note mirrors the weekly window");
+    assert.match(fresh.snapshot.note, /会话窗口已使用 36%/);
+    assert.match(fresh.snapshot.note, /本周已使用 69%/, "note mirrors the weekly window");
     assert.equal(sawHeaders["anthropic-beta"], "oauth-2025-04-20", "the beta header is required");
     assert.equal(sawHeaders.authorization, "Bearer sk-ant-oat01-test");
 
@@ -1420,9 +1423,9 @@ test("client: the header chip headlines one provider and the panel pins the rest
   assert.equal(f.chip[0]["data-pb-provider"], "minimax", "clicking a panel row pins it as the headline");
   assert.equal(f.chip[0]["data-balance-state"], "ok");
   assert.equal(store._get().selected, "minimax", "the pin survives in registration-store state");
-  assert.ok(f.texts.includes("76%"), "the pinned quota reading renders");
+  assert.ok(f.texts.includes("24%"), "the pinned quota reading renders (used direction)");
   assert.ok(
-    f.texts.some((t) => t.includes("周 90%")),
+    f.texts.some((t) => t.includes("周 10%")),
     "the weekly limit rides along on the pill as a muted sub-reading",
   );
 
@@ -1498,7 +1501,7 @@ test("client: the panel says each provider's story once, abnormal rows loudest",
     (node.children || []).forEach(walkFills);
   })(tree);
   assert.equal(fills.length, 2, "each quota window renders one remaining-bar");
-  assert.deepEqual(fills.map((p) => p.style.width), ["76%", "90%"], "bar length mirrors the window reading");
+  assert.deepEqual(fills.map((p) => p.style.width), ["24%", "10%"], "bar length mirrors the window reading");
   assert.deepEqual(
     fills.map((p) => p["data-balance-state"]),
     ["ok", "ok"],
@@ -1506,10 +1509,11 @@ test("client: the panel says each provider's story once, abnormal rows loudest",
   );
   disposeReactEffects();
 
-  // Below the low watermark the bar itself flips to the warning tone — the
-  // same discipline as the dots, applied per window rather than per provider.
+  // Past the watermark the bar itself flips to the warning tone — the same
+  // discipline as the dots, applied per window rather than per provider. In
+  // used direction: warn at ≥ 100−threshold = 80%.
   const LOW_MM = JSON.parse(JSON.stringify(MM_ROW_OK));
-  LOW_MM.result.snapshot.windows = [{ label: "5h", percent: 76, resetAt: "" }, { label: "周", percent: 12, resetAt: "" }];
+  LOW_MM.result.snapshot.windows = [{ label: "5h", percent: 24, resetAt: "" }, { label: "周", percent: 88, resetAt: "" }];
   const ctx2 = {
     effect() {},
     get() { return { balance: async () => ({ ok: true, value: { providers: [LOW_MM], refreshMs: 60000 } }) }; },
@@ -1548,7 +1552,7 @@ test("client: _rowDisplay and _balanceNote project one provider's answer", async
 
   const snap = (total, extra = {}) => ({ isAvailable: true, unit: "money", currency: "CNY", totalBalance: total, grantedBalance: "", toppedUpBalance: "", asOf: AS_OF, note: "", windows: [], ...extra });
   const answer = (over = {}) => ({ configured: true, snapshot: snap("110.00"), status: "fresh", low: false, message: null, threshold: 20, refreshMs: 60000, ...over });
-  // Money rows keep the old shape; quota rows read as remaining percent and
+  // Money rows keep the old shape; quota rows read as used percent and
   // surface the second window (周限额) as a muted pill suffix.
   assert.deepEqual(api._rowDisplay(null), { tone: "none", value: "—", sub: null, title: "余额加载中" });
   const okRow = api._rowDisplay(answer());
@@ -1583,9 +1587,9 @@ test("client: _rowDisplay and _balanceNote project one provider's answer", async
   assert.match(api._balanceNote(answer({ snapshot: null, status: "failed", message: "网络请求失败" })), /网络请求失败/);
   assert.match(api._balanceNote(answer({ snapshot: snap("9.00", { isAvailable: false }) })), /余额不足/);
   assert.match(
-    api._balanceNote(answer({ snapshot: snap("12", { unit: "pct", currency: "", isAvailable: true }), low: true })),
-    /窗口余量不足 20%/,
-    "quota lows speak in percent",
+    api._balanceNote(answer({ snapshot: snap("88", { unit: "pct", currency: "", isAvailable: true }), low: true })),
+    /窗口已使用达 80%/,
+    "quota lows speak in used percent (remaining watermark 20 flipped)",
   );
 });
 

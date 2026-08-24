@@ -111,20 +111,22 @@ action / run_id,判定和结算是 Python 算的,不是模型说的:
 高度)——胶囊头条显示**一个** provider 的读数(默认第一行;在面板里点任意一行
 即钉选为头条,选择存在注册 store 里,重挂不丢),带双窗口的 provider(MiniMax
 5h+周、Claude 会话+本周)在头条直接附**周限额副读数**,不用点开就能看到;
-点开小面板看全部 provider 明细(每窗口一行文字读数 + 发丝进度条,低水位变红)
-与手动刷新。它不是 Decision Mind 的一部分:账户状态是应用级 chrome,
-不是交易语义:
+点开小面板看全部 provider 明细(每窗口一行文字读数 + 发丝进度条,用到接近
+满格变红)与手动刷新。它不是 Decision Mind 的一部分:账户状态是应用级 chrome,
+不是交易语义。配额读数一律是**已使用 %**(kcn:「剩余」不直观;进度条填充=
+已使用量,越满越接近红线):
 
 | Provider | 口径 | 读数 |
 | :--- | :--- | :--- |
-| DeepSeek | 官方 `GET /user/balance`(凭据缝 → 环境变量) | 余额 ¥(CNY 行优先),面板见赠金/充值拆分 |
-| MiniMax | 官方 `GET /v1/token_plan/remains`(Token Plan 配额窗口) | 窗口剩余 %(`general` 桶);key 解析链=凭据缝 → env → **openclaw 网关配置**(`~/.openclaw/openclaw.json` 的 `models.providers.minimax.apiKey`) |
-| Claude | 订阅制额度:OAuth `GET /api/oauth/usage`(`anthropic-beta: oauth-2025-04-20`),token 读自 `~/.claude/.credentials.json` | 会话窗口剩余 %(utilization 取补)+ 本周剩余;面板附各窗口重置时间 |
+| DeepSeek | 官方 `GET /user/balance`(凭据缝 → 环境变量) | 余额 ¥(CNY 行优先,金额口径不变),面板见赠金/充值拆分 |
+| MiniMax | 官方 `GET /v1/token_plan/remains`(Token Plan 配额窗口) | 窗口已使用 %(上游报剩余则取补;`general` 桶);key 解析链=凭据缝 → env → **openclaw 网关配置**(`~/.openclaw/openclaw.json` 的 `models.providers.minimax.apiKey`) |
+| Claude | 订阅制额度:OAuth `GET /api/oauth/usage`(`anthropic-beta: oauth-2025-04-20`),token 读自 `~/.claude/.credentials.json` | 会话窗口已使用 %(utilization 本来就是用量,**直读不再取补**)+ 本周已使用;面板附各窗口重置时间 |
 
 - OpenCode Zen **无公开余额接口**(上游 issue 还开着),不做假装有数的行;
 - 某家未配置 = 面板里诚实的一行「未配置」,不隐藏也不报错;
-- 低额红点:DeepSeek ≤¥20、MiniMax 窗口余量 ≤20%、Claude 会话窗口 ≤20%
-  (各自可配);进度条按同一水位逐窗变红,不只标 provider 整体;
+- 低额红点:DeepSeek ≤¥20、MiniMax/Claude **已使用 ≥80%**(即剩余 ≤20%);
+  `*LowPct` 配置字段保持「剩余水位」原义不动,已有配置值无需改,只是展示
+  方向翻转了;进度条按同一水位逐窗变红,不只标 provider 整体;
 - 刷新失败保留最近一次快照并标注 stale(黄点);瞬时 429 不抹掉真数字;
 - Claude 的 OAuth token 归 Claude Code 所有,本插件**只读不刷新**——过期时
   面板显示「请在终端跑一次 claude 刷新登录」;

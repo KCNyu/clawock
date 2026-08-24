@@ -64,16 +64,18 @@ function parseBalancePayload(body, asOf) {
 }
 const finiteNumber = (value) => typeof value === "number" && isFinite(value) ? value : null;
 /**
-* Remaining percent of one quota window: the explicit percent field when the
-* plan reports one, otherwise derived from total/used counts (MiniMax ships
-* both shapes across plan generations). null = unreadable, never guessed.
+* Used percent of one quota window — the chip's display direction (kcn:
+* 「已使用」比「剩余」直观). The explicit percent field reports REMAINING and
+* is complemented here; raw counts are already consumption and divide as-is
+* (MiniMax ships both shapes across plan generations). null = unreadable,
+* never guessed.
 */
-function windowRemainingPercent(entry) {
+function windowUsedPercent(entry) {
 	const direct = finiteNumber(entry.current_interval_remaining_percent);
-	if (direct !== null) return Math.min(100, Math.max(0, direct));
+	if (direct !== null) return Math.min(100, Math.max(0, 100 - direct));
 	const total = finiteNumber(entry.current_interval_total_count);
 	const used = finiteNumber(entry.current_interval_usage_count);
-	if (total !== null && total > 0 && used !== null && used >= 0) return Math.min(100, Math.max(0, (total - used) / total * 100));
+	if (total !== null && total > 0 && used !== null && used >= 0) return Math.min(100, Math.max(0, used / total * 100));
 	return null;
 }
 /**
@@ -106,34 +108,35 @@ function formatReset(epochOrIso) {
 /**
 * The successful Token Plan payload → snapshot. Percent-based by design:
 * plans report either percent fields or raw counts, and tokens are not money
-* — the chip reads "还剩多少窗口额度", never a fabricated ¥ figure.
+* — the chip reads "窗口额度用了多少"(已使用方向), never a fabricated ¥ figure.
 */
 function parseMinimaxRemains(body, asOf) {
 	const raw = typeof body === "object" && body !== null ? body : {};
 	const buckets = Array.isArray(raw.model_remains) ? raw.model_remains : [];
 	const entry = buckets.find((b) => b.model === "general") ?? buckets[0];
 	if (entry === void 0) throw new Error("MiniMax 响应里没有 model_remains 数据");
-	const pct = windowRemainingPercent(entry);
-	const weekly = finiteNumber(entry.current_weekly_remaining_percent);
+	const used = windowUsedPercent(entry);
+	const weeklyRemaining = finiteNumber(entry.current_weekly_remaining_percent);
+	const weeklyUsed = weeklyRemaining === null ? null : Math.min(100, Math.max(0, 100 - weeklyRemaining));
 	const windows = [];
-	if (pct !== null) windows.push({
+	if (used !== null) windows.push({
 		label: "5h",
-		percent: Math.round(pct),
+		percent: Math.round(used),
 		resetAt: formatReset(entry.end_time)
 	});
-	if (weekly !== null) windows.push({
+	if (weeklyUsed !== null) windows.push({
 		label: "周",
-		percent: Math.round(weekly),
+		percent: Math.round(weeklyUsed),
 		resetAt: formatReset(entry.weekly_end_time)
 	});
 	const notes = [];
-	if (pct !== null) notes.push("5h 窗口剩余 " + Math.round(pct) + "%");
-	if (weekly !== null) notes.push("周窗口剩余 " + Math.round(weekly) + "%");
+	if (used !== null) notes.push("5h 窗口已使用 " + Math.round(used) + "%");
+	if (weeklyUsed !== null) notes.push("周窗口已使用 " + Math.round(weeklyUsed) + "%");
 	return {
-		isAvailable: pct !== null && pct > 0,
+		isAvailable: used !== null && used < 100,
 		unit: "pct",
 		currency: "",
-		totalBalance: pct === null ? "" : String(Math.round(pct)),
+		totalBalance: used === null ? "" : String(Math.round(used)),
 		grantedBalance: "",
 		toppedUpBalance: "",
 		asOf,
@@ -247,6 +250,18 @@ const numOrInfinity = (value) => {
 	const parsed = Number.parseFloat(value);
 	return isFinite(parsed) ? parsed : Number.POSITIVE_INFINITY;
 };
+/**
+* The snapshot's used-percent reading, or null when it isn't a percent unit
+* or carries no parseable number. The null guard is the point: under the old
+* REMAINING direction an unreadable value read as +∞ and safely missed the
+* watermark; under USED that same +∞ would read as "everything consumed" and
+* light every red dot. An absent reading must stay silent.
+*/
+function usedPercentOf(snapshot) {
+	if (snapshot.unit !== "pct") return null;
+	const parsed = Number.parseFloat(snapshot.totalBalance);
+	return isFinite(parsed) ? parsed : null;
+}
 /** DeepSeek row: official money balance, CNY entry preferred. */
 function createBalanceService(deps, config = {}) {
 	const baseUrl = config.baseUrl ?? "https://api.deepseek.com";
@@ -280,7 +295,7 @@ function createBalanceService(deps, config = {}) {
 			}
 			return parseBalancePayload(body, (/* @__PURE__ */ new Date()).toISOString());
 		},
-		isLow: (snapshot) => snapshot.unit === "pct" ? numOrInfinity(snapshot.totalBalance) <= threshold : snapshot.isAvailable && numOrInfinity(snapshot.totalBalance) <= threshold
+		isLow: (snapshot) => snapshot.unit === "money" && snapshot.isAvailable && numOrInfinity(snapshot.totalBalance) <= threshold
 	});
 }
 /** MiniMax row: official Token Plan quota windows, percent-based. */
@@ -322,7 +337,10 @@ function createMinimaxService(deps, config = {}) {
 			}
 			return parseMinimaxRemains(body, (/* @__PURE__ */ new Date()).toISOString());
 		},
-		isLow: (snapshot) => snapshot.unit === "pct" ? numOrInfinity(snapshot.totalBalance) <= lowPct : false
+		isLow: (snapshot) => {
+			const used = usedPercentOf(snapshot);
+			return used !== null && used >= 100 - lowPct;
+		}
 	});
 }
 /**
@@ -336,37 +354,38 @@ function readClaudeCredentials(path) {
 	return { creds };
 }
 /**
-* Successful usage payload → snapshot, in REMAINING percent (utilization is
-* consumption). five_hour gates active sessions so it is the headline; any
-* bucket may be absent/null depending on plan.
+* Successful usage payload → snapshot, in USED percent — utilization already
+* IS consumption, so it renders verbatim with no complementing (kcn:
+* 「已使用」比「剩余」直观). five_hour gates active sessions so it is the
+* headline; any bucket may be absent/null depending on plan.
 */
 function parseClaudeUsage(body, asOf) {
 	const raw = typeof body === "object" && body !== null ? body : {};
 	const u5 = finiteNumber(raw.five_hour?.utilization);
 	const u7 = finiteNumber(raw.seven_day?.utilization);
 	if (u5 === null && u7 === null) throw new Error("Claude 响应里没有可用的用量窗口");
-	const remaining = u5 === null ? null : Math.round(Math.min(100, Math.max(0, 100 - u5)));
+	const used = u5 === null ? null : Math.round(Math.min(100, Math.max(0, u5)));
 	const windows = [];
 	if (u5 !== null) windows.push({
 		label: "会话",
-		percent: remaining,
+		percent: used,
 		resetAt: formatReset(raw.five_hour?.resets_at ?? null)
 	});
 	if (u7 !== null) windows.push({
 		label: "本周",
-		percent: Math.round(Math.min(100, Math.max(0, 100 - u7))),
+		percent: Math.round(Math.min(100, Math.max(0, u7))),
 		resetAt: formatReset(raw.seven_day?.resets_at ?? null)
 	});
 	const notes = [];
-	if (u5 !== null) notes.push("会话窗口剩余 " + remaining + "%");
-	if (u7 !== null) notes.push("本周剩余 " + Math.round(100 - u7) + "%");
+	if (u5 !== null) notes.push("会话窗口已使用 " + used + "%");
+	if (u7 !== null) notes.push("本周已使用 " + Math.round(u7) + "%");
 	const extraUtil = raw.extra_usage?.is_enabled === true ? finiteNumber(raw.extra_usage?.utilization ?? void 0) : null;
 	if (extraUtil !== null) notes.push("附加额度已用 " + Math.round(extraUtil) + "%");
 	return {
-		isAvailable: remaining === null ? false : remaining > 0,
+		isAvailable: used === null ? false : used < 100,
 		unit: "pct",
 		currency: "",
-		totalBalance: remaining === null ? "" : String(remaining),
+		totalBalance: used === null ? "" : String(used),
 		grantedBalance: "",
 		toppedUpBalance: "",
 		asOf,
@@ -414,8 +433,11 @@ function createClaudeService(deps, config = {}) {
 			}
 			return parseClaudeUsage(body, (/* @__PURE__ */ new Date()).toISOString());
 		},
-		isLow: (snapshot) => snapshot.unit === "pct" ? numOrInfinity(snapshot.totalBalance) <= lowPct : false
+		isLow: (snapshot) => {
+			const used = usedPercentOf(snapshot);
+			return used !== null && used >= 100 - lowPct;
+		}
 	});
 }
 //#endregion
-export { DEEPSEEK_KEY_REF, DEFAULT_BALANCE_BASE_URL, DEFAULT_BALANCE_REFRESH_MS, DEFAULT_BALANCE_THRESHOLD, DEFAULT_CLAUDE_CREDENTIALS_PATH, DEFAULT_CLAUDE_LOW_PCT, DEFAULT_CLAUDE_USAGE_URL, DEFAULT_MINIMAX_BASE_URL, DEFAULT_MINIMAX_LOW_PCT, DEFAULT_OPENCLAW_CONFIG_PATH, MINIMAX_KEY_REF, createBalanceService, createClaudeService, createMinimaxService, formatReset, parseBalancePayload, parseClaudeUsage, parseMinimaxRemains, pickCnyBalanceInfo, readClaudeCredentials, readJsonFile, windowRemainingPercent };
+export { DEEPSEEK_KEY_REF, DEFAULT_BALANCE_BASE_URL, DEFAULT_BALANCE_REFRESH_MS, DEFAULT_BALANCE_THRESHOLD, DEFAULT_CLAUDE_CREDENTIALS_PATH, DEFAULT_CLAUDE_LOW_PCT, DEFAULT_CLAUDE_USAGE_URL, DEFAULT_MINIMAX_BASE_URL, DEFAULT_MINIMAX_LOW_PCT, DEFAULT_OPENCLAW_CONFIG_PATH, MINIMAX_KEY_REF, createBalanceService, createClaudeService, createMinimaxService, formatReset, parseBalancePayload, parseClaudeUsage, parseMinimaxRemains, pickCnyBalanceInfo, readClaudeCredentials, readJsonFile, windowUsedPercent };

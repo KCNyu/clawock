@@ -5029,9 +5029,10 @@ function relativeDay(iso, today) {
 * the chip and panel render only these fields, so the view never keeps
 * a second copy of the tone rules — the host already decided status and low.
 * The title is the whole hover story: split, quota windows, stale reason,
-* fetch time. Quota rows ('pct' unit) read as remaining percent, not money,
-* and carry the second window ('周'/'本周') as a muted pill suffix — both
-* limits visible at the header without opening the panel.
+* fetch time. Quota rows ('pct' unit) read as USED percent (kcn: 「已使用」
+* 比「剩余」直观), not money, and carry the second window ('周'/'本周') as a
+* muted pill suffix — both limits visible at the header without opening the
+* panel.
 */
 function _rowDisplay(result) {
 	if (result === null) return {
@@ -5065,7 +5066,7 @@ function _rowDisplay(result) {
 		value,
 		sub,
 		title: [
-			snapshot.unit === "pct" ? snapshot.note !== "" ? snapshot.note : "配额窗口余量" : "API 余额",
+			snapshot.unit === "pct" ? snapshot.note !== "" ? snapshot.note : "配额窗口已使用" : "API 余额",
 			!isPct && snapshot.grantedBalance !== "" ? "赠金 " + symbol + snapshot.grantedBalance : null,
 			!isPct && snapshot.toppedUpBalance !== "" ? "充值 " + symbol + snapshot.toppedUpBalance : null,
 			snapshot.isAvailable ? null : isPct ? "该窗口额度已用尽" : "官方接口判定余额不足",
@@ -5085,7 +5086,7 @@ function _balanceNote(result) {
 	if (result.status === "stale") return "刷新失败,显示最近一次" + (result.message !== null ? ":" + result.message : "");
 	if (!result.snapshot.isAvailable) return result.snapshot.unit === "pct" ? "该窗口额度已用尽" : "官方接口判定余额不足";
 	if (result.low) {
-		if (result.snapshot.unit === "pct") return "窗口余量不足 " + result.threshold + "%";
+		if (result.snapshot.unit === "pct") return "窗口已使用达 " + (100 - result.threshold) + "%";
 		return "余额偏低,低于阈值 " + (result.snapshot.currency === "USD" ? "$" : result.snapshot.currency === "CNY" ? "¥" : "") + result.threshold;
 	}
 	return null;
@@ -5119,7 +5120,7 @@ function renderRowDetail(row) {
 	const wins = row.result.snapshot?.windows ?? [];
 	if (wins.length > 0) return h("div", { className: cx("bp-wins") }, wins.map((w) => {
 		const pct = w.percent === null ? null : Math.max(0, Math.min(100, Math.round(w.percent)));
-		const state = pct !== null && row.result.snapshot?.unit === "pct" && pct <= row.result.threshold ? "low" : row.view.tone === "stale" ? "stale" : "ok";
+		const state = pct !== null && row.result.snapshot?.unit === "pct" && pct >= 100 - row.result.threshold ? "low" : row.view.tone === "stale" ? "stale" : "ok";
 		return h("div", {
 			className: cx("bp-win"),
 			key: w.label
