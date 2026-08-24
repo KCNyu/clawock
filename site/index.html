@@ -177,6 +177,12 @@ layout: null
                的净值表现区；首屏只保留这一条形状，不再两条同源曲线上下堆叠。 -->
           <div class="hero-spark" id="hero-spark"></div>
         </div>
+        <!-- 「今日」独占一行：它原来是统计轨里的一格，20 根日盈亏柱被压在
+             ~230px 宽的格子里，缩略看像一排随机方块（kcn 2026-08-24：「柱状图
+             缩略看很奇怪，比如说单独成一行」）。独立成行之后柱子拿到和上面
+             那张走势图同宽的画布，美股/港股的当日分项也回得来 —— 那两个数在
+             并成一格时被合掉了。 -->
+        <div class="hero-today" id="hero-today"></div>
         <div class="hero-rail" id="hero-rail"></div>
       </div>
 
