@@ -315,6 +315,18 @@ def main(argv=None):
     close = closes[-1]
     trend_on, vol_ok, tier, mult, label = classify(close, ma, vol)
     dist = round((close / ma - 1) * 100, 1) if ma else None
+    missing_inputs = [name for name, value in (('ma', ma), ('vol', vol))
+                      if value is None]
+    if missing_inputs:
+        rationale = (
+            f'HSTECH 数据不完整（bars={len(closes)}，'
+            f'{"、".join(missing_inputs)}不可用）→ 保守档处理：'
+            f'HK 杠杆ETF上限 ×{mult:g}（{tier}）')
+    else:
+        rationale = (f'HSTECH {close:.0f} {"高于" if trend_on else "低于"} {MA_WINDOW}日线 '
+                     f'{ma:.0f} ({dist:+.1f}%)；20日波动 {vol*100:.0f}% '
+                     f'{"<" if vol_ok else "≥"} {int(VOL_CAP*100)}% 上限。'
+                     f'→ HK 杠杆ETF上限 ×{mult:g}（{tier}）')
 
     out = {
         'generated_at': datetime.now(timezone.utc).isoformat(),
@@ -334,11 +346,10 @@ def main(argv=None):
         'tier': tier,
         'lev_cap_mult': mult,
         'label': label,
-        'rationale': (f'HSTECH {close:.0f} {"高于" if trend_on else "低于"} {MA_WINDOW}日线 '
-                      f'{ma:.0f} ({dist:+.1f}%)；20日波动 {vol*100:.0f}% '
-                      f'{"<" if vol_ok else "≥"} {int(VOL_CAP*100)}% 上限。'
-                      f'→ HK 杠杆ETF上限 ×{mult:g}（{tier}）'),
+        'rationale': rationale,
     }
+    if missing_inputs:
+        out['missing_inputs'] = missing_inputs
     # Top-level fields above describe the HK (HSTECH) dial; mirror under 'hk' and add 'us'.
     out['hk'] = {'tier': tier, 'lev_cap_mult': mult, 'label': label,
                  'close': out['close'], 'ma': out['ma'], 'dist_ma_pct': dist,
