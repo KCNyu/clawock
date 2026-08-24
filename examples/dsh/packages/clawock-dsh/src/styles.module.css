@@ -1,6 +1,6 @@
 /* Decision Mind — presentation layer.
  *
- * Three rules this sheet answers to, all of them read off the Harness's own
+ * Four rules this sheet answers to, all of them read off the Harness's own
  * client packages rather than invented here:
  *
  *   1. One width axis. The host publishes `--dsh-chat-content-width` (748px,
@@ -20,6 +20,17 @@
  *      (green/red/amber) stay local on purpose: `--dsw-alias-state-*-primary`
  *      is tuned for dots and icons (green-500 = #22c55e is ~2.1:1 on white)
  *      and would fail contrast as the focal number on this board.
+ *   4. Material, not paint. In this host's light theme the card surface AND
+ *      the page base are both white — an opaque card is invisible except for
+ *      its border, which is why the board read as flat slabs. Cards are glass
+ *      now: translucent fill + backdrop blur + saturate (the host's own
+ *      DropOverlay recipe) over an ambient brand glow painted at the top of
+ *      `.dmt`, because frosted glass needs something behind it to blur; plus
+ *      a specular top edge and a negative-spread ambient shadow (positive
+ *      spread on a light page is grey glow, not depth). The expanded detail
+ *      is glass too but as a translucent ink tray with NO second
+ *      backdrop-filter — blur inside blur reads as mud, and the group's own
+ *      filter already covers the tray's backdrop.
  *
  * Layout: a day group is one bordered container of hairline-separated rows,
  * and a row is one line — dot · date · ticker · action · size · verdict ·
@@ -39,7 +50,6 @@
   --border:var(--dsw-alias-border-l1, rgba(17,24,39,.06));
   --border2:var(--dsw-alias-border-l2, rgba(17,24,39,.10));
   --hover:var(--dsw-alias-interactive-bg-hover, rgba(17,24,39,.05));
-  --brand-soft:rgba(65,118,230,.07);
   --ok:#1B8644;
   --ok-soft:#E6FAED;
   --bad:#C01313;
@@ -53,19 +63,39 @@
   --tint-strong:rgba(0,0,0,.12);
   --t1-up-border:rgba(27,132,68,.18);
   --t1-down-border:rgba(192,19,19,.18);
+  /* Glass material (rule 4). `--glass-fill` is the translucent card surface;
+     `--sheen` is the top light that fades out down the panel; `--edge-light`
+     is the specular 1px top edge; `--shadow-ambient` uses a negative spread
+     so it reads as depth on a light page instead of grey glow. `--card-solid`
+     is the OPAQUE composite of the glass over the page — timeline dots punch
+     through the rail with it, because a translucent dot would let the rail
+     show through. The two radial glows are the light source behind the glass:
+     anchored to the top of the board so the first screen has something to
+     blur, scrolling away naturally with the content. */
+  --glass-fill:color-mix(in srgb, var(--surface) 84%, transparent);
+  --sheen:linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,0) 96px);
+  --edge-light:rgba(255,255,255,.65);
+  --shadow-ambient:0 12px 32px -14px rgba(16,24,40,.18);
+  --card-solid:#FFFFFF;
+  --glow-1:rgba(65,118,230,.07);
+  --glow-2:rgba(120,106,240,.05);
   --radius:12px;
   --font:var(--dsw-font-family, -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif);
   --mono:var(--ds-font-family-code, ui-monospace,SFMono-Regular,Menlo,Consolas,monospace);
   font:13px/1.45 var(--font);
   color:var(--text);
   -webkit-font-smoothing:antialiased;
-  min-height:100%
+  min-height:100%;
+  background:
+    radial-gradient(620px 300px at 22% -40px, var(--glow-1), transparent 70%) no-repeat,
+    radial-gradient(720px 340px at 88% 260px, var(--glow-2), transparent 72%) no-repeat
 }
 /* Dark theme: only what the host tokens do not carry — the semantic P&L
-   colours and the alpha tints layered on a dark surface. Everything else
-   flips through `--dsw-*` with the app. */
+   colours, the alpha tints layered on a dark surface and the glass material
+   (dark glass runs more opaque than light glass to keep text contrast, with a
+   fainter sheen/edge — the specular line is what sells depth on near-black).
+   Everything else flips through `--dsw-*` with the app. */
 body[data-ds-dark-theme] .dmt {
-  --brand-soft:rgba(108,151,242,.12);
   --ok:#3FCB74;
   --ok-soft:#153824;
   --bad:#F2554F;
@@ -78,7 +108,16 @@ body[data-ds-dark-theme] .dmt {
   --tint-mid:rgba(255,255,255,.12);
   --tint-strong:rgba(255,255,255,.18);
   --t1-up-border:rgba(63,203,116,.35);
-  --t1-down-border:rgba(242,85,79,.35)
+  --t1-down-border:rgba(242,85,79,.35);
+  /* #232324 = the host's own dark layer-1 (neutral-bluish-875): the opaque
+     composite the timeline dots punch with. */
+  --glass-fill:color-mix(in srgb, var(--surface) 76%, transparent);
+  --sheen:linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,0) 160px);
+  --edge-light:rgba(255,255,255,.10);
+  --shadow-ambient:0 14px 34px -16px rgba(0,0,0,.55);
+  --card-solid:#232324;
+  --glow-1:rgba(108,151,242,.10);
+  --glow-2:rgba(146,124,242,.07)
 }
 /* The header is not a bar across the view, and it does not hold the viewport
    hostage while you scroll. Two pieces:
@@ -104,10 +143,16 @@ body[data-ds-dark-theme] .dmt {
   max-width:calc(var(--col) - 28px);
   margin:0 auto;
   padding:10px 12px 11px;
+  /* Glass, not paint (rule 4). The opaque surface is declared first so an
+     engine without color-mix falls back to the old solid card; the glass line
+     layers the sheen ON TOP of the translucent fill. */
   background:var(--surface);
+  background:var(--sheen), var(--glass-fill);
+  -webkit-backdrop-filter:blur(14px) saturate(1.4);
+  backdrop-filter:blur(14px) saturate(1.4);
   border:1px solid var(--border2);
   border-radius:var(--radius);
-  box-shadow:var(--dsw-shadow-lv2, var(--shadow-sm))
+  box-shadow:var(--shadow-ambient), inset 0 1px 0 var(--edge-light)
 }
 .dmt .tt {
   display:flex;
@@ -190,9 +235,22 @@ body[data-ds-dark-theme] .dmt {
      pre-frost plain band instead of a transparent one (#833). */
   background:var(--page);
   background:color-mix(in srgb, var(--page) 72%, transparent);
-  -webkit-backdrop-filter:blur(10px) saturate(1.5);
-  backdrop-filter:blur(10px) saturate(1.5);
+  -webkit-backdrop-filter:blur(14px) saturate(1.5);
+  backdrop-filter:blur(14px) saturate(1.5);
   padding:8px 0 6px
+}
+/* The composer-seat trick from ConversationRoot: a short fade band under the
+   sticky band so rows melt into it instead of hard-cutting at its edge —
+   "content passes underneath" reads as one continuous surface. */
+.dmt .bar::after {
+  content:"";
+  position:absolute;
+  left:0;
+  right:0;
+  top:100%;
+  height:9px;
+  pointer-events:none;
+  background:linear-gradient(180deg, color-mix(in srgb, var(--page) 45%, transparent), transparent)
 }
 .dmt .bin {
   box-sizing:border-box;
@@ -305,8 +363,14 @@ body[data-ds-dark-theme] .dmt {
   gap:0 10px;
   border:1px solid var(--border2);
   border-radius:var(--radius);
+  /* Same glass as the header card (rule 4); opaque fallback first. The
+     group's filter covers its whole box — including the expanded detail —
+     which is why the tray inside needs no blur of its own. */
   background:var(--surface);
-  box-shadow:var(--dsw-shadow-lv2, var(--shadow-sm));
+  background:var(--sheen), var(--glass-fill);
+  -webkit-backdrop-filter:blur(14px) saturate(1.4);
+  backdrop-filter:blur(14px) saturate(1.4);
+  box-shadow:var(--shadow-ambient), inset 0 1px 0 var(--edge-light);
   overflow:hidden
 }
 /* Every row draws on the day's tracks (`subgrid`), so ticker, action and size
@@ -336,19 +400,22 @@ body[data-ds-dark-theme] .dmt {
   .dmt .cell:hover {
     background:var(--hover)
   }
+  /* Micro-affordance that the row expands; suppressed while open so it can
+     never fight the chevron's own rotation. */
+  .dmt .cell:not(.open):hover .chev {
+    transform:translateY(1px);
+    color:var(--text2)
+  }
 }
 .dmt .cell:focus-visible {
   outline:1px solid var(--brand);
   outline-offset:-2px
 }
-/* Open row: the brand wash fades out downwards so a tall timeline does not
-   paint itself a solid slab, and the leading rail is a rounded capsule that
-   fades with it — the old 3px solid inset stroke ran the full height of the
-   expanded row and read as a broken blue line over a 600px timeline. */
-.dmt .cell.open {
-  background:linear-gradient(180deg, var(--brand-soft), transparent 72%);
-  box-shadow:none
-}
+/* Open row: no full-width wash any more — "open" is carried by the inset
+   glass tray below (one clear signal, not two competing ones) plus the leading
+   rail, a rounded capsule that fades out downwards. The old 3px solid inset
+   stroke ran the full height of the expanded row and read as a broken blue
+   line over a 600px timeline. */
 .dmt .cell.open::before {
   content:"";
   position:absolute;
@@ -524,7 +591,6 @@ body[data-ds-dark-theme] .dmt {
 .dmt .cell.open .detail {
   grid-template-rows:1fr;
   opacity:1;
-  border-top:1px solid var(--tint-border);
   margin-top:9px
 }
 /* Zero padding here on purpose: a closed row's `0fr` track collapses the
@@ -536,8 +602,19 @@ body[data-ds-dark-theme] .dmt {
   min-height:0;
   padding:0
 }
+/* The expanded detail is glass too (kcn: 点开也应该是透明的质感) — but as a
+   translucent INK tray with no backdrop-filter of its own: the group's filter
+   already blurs everything behind this box, and blur inside blur reads as
+   mud. The inset hairline + faint ink wash + specular edge make it read as a
+   recessed panel sitting on the frosted group, and the side margins keep the
+   group's rounded rail visible around it. */
 .dmt .dbody {
-  padding:12px 12px 12px
+  margin:0 10px 10px;
+  padding:12px;
+  border:1px solid var(--tint-border);
+  border-radius:10px;
+  background:var(--tint-soft);
+  box-shadow:inset 0 1px 0 var(--edge-light)
 }
 .dmt .trhead {
   display:flex;
@@ -583,7 +660,10 @@ body[data-ds-dark-theme] .dmt {
   width:10px;
   height:10px;
   border-radius:50%;
-  background:var(--surface);
+  /* Opaque composite (--card-solid), not the translucent surface: these dots
+     punch through the rail line, and a translucent dot would let the rail
+     show through their centre. */
+  background:var(--card-solid);
   border:2px solid var(--cap);
   box-sizing:border-box
 }
@@ -673,7 +753,13 @@ body[data-ds-dark-theme] .dmt {
   padding:48px 20px;
   text-align:center;
   color:var(--cap);
-  font:400 13px/1.5 var(--font)
+  font:400 13px/1.5 var(--font);
+  /* Same quiet material as the board: hairline + glass fill + specular edge,
+     no blur of its own (there is nothing moving behind an empty state). */
+  border:1px dashed var(--tint-border);
+  border-radius:var(--radius);
+  background:var(--glass-fill);
+  box-shadow:inset 0 1px 0 var(--edge-light)
 }
 .dmt .trace-more {
   display:block;
@@ -706,6 +792,10 @@ body[data-ds-dark-theme] .dmt {
   border:1px solid var(--border2);
   border-radius:var(--radius);
   background:var(--surface);
+  background:var(--sheen), var(--glass-fill);
+  -webkit-backdrop-filter:blur(14px) saturate(1.4);
+  backdrop-filter:blur(14px) saturate(1.4);
+  box-shadow:var(--shadow-ambient), inset 0 1px 0 var(--edge-light);
   margin:8px 0
 }
 .dmt .skel-dot {
@@ -733,6 +823,18 @@ body[data-ds-dark-theme] .dmt {
 @keyframes clawock-shimmer {
   to { transform:translateX(100%) }
 }
+/* Entrance: each day header and its group rise once when they mount (first
+   load, filter switch, fold toggle) — the list re-reading as one motion is
+   what tells you the filter actually did something. Uniform timing on
+   purpose: per-card stagger across many days reads as gimmick, not craft. */
+.dmt .day,
+.dmt .group {
+  animation:clawock-rise .28s cubic-bezier(.22,1,.36,1) both
+}
+@keyframes clawock-rise {
+  from { opacity:0; transform:translateY(8px) }
+  to { opacity:1; transform:none }
+}
 .dmt .skel-bar.w40 {
   width:40%
 }
@@ -740,9 +842,10 @@ body[data-ds-dark-theme] .dmt {
   width:20%
 }
 /* Reduced motion: keep the opacity/colour transitions that aid
-   comprehension, drop the movement — chevron rotation, the 0fr height
-   animation (content still opens, it just snaps), group entrances and the
-   skeleton sweep. Mirrors the host's own handling (AppFrame etc.). */
+   comprehension, drop the movement — chevron rotation, the hover nudge, the
+   0fr height animation (content still opens, it just snaps), day/group
+   entrances and the skeleton sweep. Mirrors the host's own handling
+   (AppFrame etc.). */
 @media (prefers-reduced-motion: reduce) {
   .dmt .chev {
     transition:none
@@ -755,6 +858,10 @@ body[data-ds-dark-theme] .dmt {
     transition:background .12s,color .12s,border-color .12s
   }
   .dmt .skel-bar::after {
+    animation:none
+  }
+  .dmt .day,
+  .dmt .group {
     animation:none
   }
 }
@@ -869,7 +976,8 @@ body[data-ds-dark-theme] .dmt {
     margin-top:0
   }
   .dmt .dbody {
-    padding:10px 12px 12px
+    margin:0 8px 8px;
+    padding:10px 11px 11px
   }
   .dmt .trace {
     padding-left:16px
@@ -879,6 +987,38 @@ body[data-ds-dark-theme] .dmt {
   }
   .dmt .trace::before {
     left:3px
+  }
+  /* Blur is the expensive part on phone GPUs — halve the radius on every
+     glass surface, keep the saturate lift so the material still reads. */
+  .dmt .tin,
+  .dmt .group,
+  .dmt .skel {
+    -webkit-backdrop-filter:blur(7px) saturate(1.4);
+    backdrop-filter:blur(7px) saturate(1.4)
+  }
+}
+
+/* Reduced transparency: frost over — solid surfaces, no blur, no sheen or
+   glow (they are light THROUGH material; on solid paint they are just
+   gradient cruft), the bar's fade band goes with it, shadows return to the
+   host's own lv2. */
+@media (prefers-reduced-transparency: reduce) {
+  .dmt {
+    background:none
+  }
+  .dmt .tin,
+  .dmt .group,
+  .dmt .skel {
+    background:var(--surface);
+    -webkit-backdrop-filter:none;
+    backdrop-filter:none;
+    box-shadow:var(--dsw-shadow-lv2, var(--shadow-sm))
+  }
+  .dmt .bar {
+    background:var(--page)
+  }
+  .dmt .bar::after {
+    content:none
   }
 }
 
