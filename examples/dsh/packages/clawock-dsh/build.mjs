@@ -91,6 +91,94 @@ await run(['--config', 'tsdown.client.config.mjs'])
 await exec(node, [tsc, '-p', 'tsconfig.declarations.json', '--pretty', 'false'], { cwd: pkg })
 await wrapWebClient(join(pkg, 'lib/client.js'))
 await patchTypertAlignment()
+await patchTypertBalance()
+
+/**
+ * Same discipline as the alignment patch: the clawock checkout cannot
+ * regenerate the Typert host face, so the committed artifacts carry the
+ * balance wire fields by hand. Re-assert after every build, idempotently;
+ * a missing anchor throws instead of silently shipping a box the wire
+ * cannot carry.
+ */
+async function patchTypertBalance() {
+  const files = ['lib/typert.host.js', 'lib/typert.remote-client.js']
+  const invocationMarker = `id: 'clawock-dsh#clawockStudio/balance',`
+  const schemaAnchor = 'const clawock_dsh_clawockStudio_get_parameter_0$schema = z.string()'
+  const invocationAnchor = `    {
+      id: 'clawock-dsh#clawockStudio/get',`
+  const balanceSchemas = `const clawock_dsh_clawockStudio_balance_parameter_0$schema = z.boolean()
+const clawock_dsh_clawockStudio_balance_result$schema = z.object({
+  'providers': z.array(z.object({
+  'provider': z.string(),
+  'label': z.string(),
+  'result': z.object({
+  'configured': z.boolean(),
+  'snapshot': z.union([z.literal(null), z.object({
+  'isAvailable': z.boolean(),
+  'unit': z.string(),
+  'currency': z.string(),
+  'totalBalance': z.string(),
+  'grantedBalance': z.string(),
+  'toppedUpBalance': z.string(),
+  'asOf': z.string(),
+  'note': z.string(),
+  'windows': z.array(z.object({
+  'label': z.string(),
+  'percent': z.union([z.number(), z.literal(null)]),
+  'resetAt': z.string(),
+})),
+})]),
+  'status': z.union([z.literal("fresh"), z.literal("cached"), z.literal("stale"), z.literal("failed"), z.literal("no-key")]),
+  'low': z.boolean(),
+  'message': z.union([z.literal(null), z.string()]),
+  'threshold': z.number(),
+  'refreshMs': z.number(),
+}),
+})),
+  'refreshMs': z.number(),
+})
+`
+  const balanceInvocation = `    {
+      id: 'clawock-dsh#clawockStudio/balance',
+      service: 'clawockStudio',
+      namespace: 'clawockStudio',
+      method: 'balance',
+      invocation: { kind: 'direct' },
+      parameters: [
+        {
+          name: 'force',
+          wire: 'force',
+          source: 'json',
+          codec: {
+            mode: 'strict',
+            typeSymbol: 'clawock-dsh#clawockStudio/balance:force',
+            schema: clawock_dsh_clawockStudio_balance_parameter_0$schema,
+          },
+        },
+      ],
+      result: {
+        mode: 'strict',
+        typeSymbol: 'clawock-dsh/types#BalancesResult',
+        schema: clawock_dsh_clawockStudio_balance_result$schema,
+      },
+      sourceLocation: {"file":"packages/clawock-dsh/src/index.ts","line":121,"column":3},
+    },
+`
+  for (const rel of files) {
+    const file = join(pkg, rel)
+    let source = await readFile(file, 'utf8')
+    if (source.includes(invocationMarker)) continue
+    if (!source.includes(schemaAnchor) || !source.includes(invocationAnchor)) {
+      throw new Error(`patchTypertBalance: anchor missing in ${rel} — generator output changed?`)
+    }
+    source = source.replace(schemaAnchor, `${balanceSchemas}${schemaAnchor}`)
+    source = source.replace(invocationAnchor, `${balanceInvocation}${invocationAnchor}`)
+    await writeFile(file, source)
+    console.log(`patched ${rel}: +clawockStudio.balance`)
+  }
+}
+
+
 console.log('built clawock-dsh/lib')
 
 /**

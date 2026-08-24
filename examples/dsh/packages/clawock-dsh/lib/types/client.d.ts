@@ -25,7 +25,7 @@ import type { Context } from '@deepseek-ai/cordis';
 import type { TypertClientRemote } from '@deepseek-ai/dsh-typert-protocol';
 import type { PropsStore } from '@deepseek-ai/dsh-client-ui-slots';
 import * as React from 'react';
-import type { EnrichedTrade, TraceDecision, TraceT1 } from './types.ts';
+import type { BalanceResult, BalancesResult, EnrichedTrade, TraceDecision, TraceT1 } from './types.ts';
 /** The four trace filters offered above the list. */
 export type TraceFilter = 'all' | 'miss' | 'sold' | 'dec';
 /**
@@ -119,6 +119,54 @@ export interface DisplayEntry {
 }
 /** Display projection of one trace (test seam). */
 export declare function _displayEntry(trace: EnrichedTrade): DisplayEntry;
+/** The four visual states one provider's reading can take. */
+export type BalanceTone = 'ok' | 'low' | 'stale' | 'none';
+/**
+ * Display projection of ONE provider's answer (test seam, like _displayEntry):
+ * the chip and panel render only these fields, so the view never keeps
+ * a second copy of the tone rules — the host already decided status and low.
+ * The title is the whole hover story: split, quota windows, stale reason,
+ * fetch time. Quota rows ('pct' unit) read as remaining percent, not money,
+ * and carry the second window ('周'/'本周') as a muted pill suffix — both
+ * limits visible at the header without opening the panel.
+ */
+export declare function _rowDisplay(result: BalanceResult | null): {
+    tone: BalanceTone;
+    value: string;
+    sub: string | null;
+    title: string;
+};
+/**
+ * The one line a panel row says out loud when something is wrong — stale
+ * reason, unconfigured key, insufficient balance/quota. A healthy number
+ * earns no caption at all; null means silence.
+ */
+export declare function _balanceNote(result: BalanceResult | null): string | null;
+/** What the header chip's `inject` factory hands the component. */
+export interface BalancesInjected {
+    /** The last multi-provider answer this registration fetched, or null cold. */
+    cachedBalances: () => BalancesResult | null;
+    /** Fetch all providers; `force` bypasses the host TTLs (the manual refresh). */
+    fetchBalances: (force: boolean) => Promise<BalancesResult>;
+}
+/**
+ * Which provider the pill headlines. null = auto (first configured row);
+ * a click on a panel row pins that provider. Registration-store state, so
+ * the choice survives the ring's remounts.
+ */
+export interface BalanceUiState {
+    selected: string | null;
+}
+/** Store factory — called inside `apply`, never a module-level handle. */
+export declare function createBalanceStore(): import("@deepseek-ai/dsh-client-runtime/client").EngineStoreHandle<BalanceUiState, {
+    select: (draft: BalanceUiState, provider: string) => void;
+}>;
+/** The chip's registration store handle type (derived, like DecisionMind's). */
+export type BalanceStore = ReturnType<typeof createBalanceStore>;
+export type BalanceChipProps = BalancesInjected & PropsStore<BalanceStore> & {
+    sessionId: string;
+};
+export declare function ProviderBalanceChip(props: BalanceChipProps): React.ReactElement;
 export declare function DecisionMind(props: DecisionMindProps): React.ReactElement;
 /** Services required by the registration and the mounted Remote face. */
 export declare const inject: string[];

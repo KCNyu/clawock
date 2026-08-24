@@ -142,3 +142,78 @@ export interface TracesResult {
     rateSource: string | null;
     lastUpdated: string | null;
 }
+/** One quota window worth its own line in the panel's per-window grid. */
+export interface BalanceWindow {
+    /** Short label rendered verbatim: '5h' | '周' | '会话' | '本周'. */
+    label: string;
+    /** Remaining percent of this window; null when the plan doesn't report it. */
+    percent: number | null;
+    /** Preformatted LOCAL reset stamp ('15:00' / '周四 21:00'); '' when unknown. */
+    resetAt: string;
+}
+/**
+ * One account/quota reading as answered by the provider's official endpoint,
+ * with the entry the host picked to display. Numeric readings stay strings so
+ * no rounding happens on the wire; the client formats for display only.
+ */
+export interface BalanceSnapshot {
+    /** Whether the API reports the account usable (sufficient balance / quota left). */
+    isAvailable: boolean;
+    /**
+     * How `totalBalance` reads: 'money' carries a currency symbol via
+     * `currency` ('CNY' | 'USD' | ''), 'pct' carries a remaining-percent number
+     * (quota windows). '' defaults to 'money'.
+     */
+    unit: string;
+    /** 'CNY' | 'USD' | '' — the displayed entry's currency (money unit only). */
+    currency: string;
+    /** Total available balance ("110.00") or remaining percent ("62"). */
+    totalBalance: string;
+    /** Not-expired granted balance (DeepSeek money accounts; '' elsewhere). */
+    grantedBalance: string;
+    /** Topped-up balance (DeepSeek money accounts; '' elsewhere). */
+    toppedUpBalance: string;
+    /** ISO timestamp of the upstream fetch that produced this snapshot. */
+    asOf: string;
+    /** One context line for the panel (quota windows, resets); '' when none. */
+    note: string;
+    /** Per-window grid for the panel; money accounts send []. */
+    windows: BalanceWindow[];
+}
+/** One provider's row in the balance panel: identity plus the same in-band answer. */
+export interface ProviderBalance {
+    /** Stable id: 'deepseek' | 'minimax'. */
+    provider: string;
+    /** Human label rendered verbatim ('DeepSeek', 'MiniMax'). */
+    label: string;
+    result: BalanceResult;
+}
+/**
+ * The whole balance answer across providers. In-band by design: balance()
+ * never throws — per-provider 'no-key' / 'failed' / 'stale' statuses carry a
+ * Chinese message the view renders verbatim, and a stale read keeps the last
+ * good snapshot so a transient 429 cannot erase a real number.
+ */
+export interface BalancesResult {
+    /** Rows in stable display order (deepseek first). */
+    providers: ProviderBalance[];
+    /** Suggested client poll interval in ms. */
+    refreshMs: number;
+}
+/** One provider's answer. Same in-band contract the single-provider box had. */
+export interface BalanceResult {
+    /** Whether this provider's API key is configured at all (seam or env). */
+    configured: boolean;
+    /** Last good snapshot, kept across failed refreshes (null on cold start). */
+    snapshot: BalanceSnapshot | null;
+    /** 'fresh' | 'cached' | 'stale' | 'failed' | 'no-key' — decided host-side. */
+    status: 'fresh' | 'cached' | 'stale' | 'failed' | 'no-key';
+    /** Balance/quota at or below the low threshold (only when readable). */
+    low: boolean;
+    /** Human-readable reason for failed/no-key, null while good. */
+    message: string | null;
+    /** Effective low threshold, in the displayed entry's unit. */
+    threshold: number;
+    /** Suggested client poll interval in ms. */
+    refreshMs: number;
+}
