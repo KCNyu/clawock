@@ -19,6 +19,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import sys
 from datetime import datetime, timedelta, timezone
@@ -198,19 +199,62 @@ def main(argv=None) -> int:
           f"needs attention: {result['needs_attention']}")
     for row in result["workflows"]:
         mark = {"ok": "✓", "noted": "·", "attention": "⚠"}[row["status"]]
-        detail = []
-        if row["consecutive_failures"]:
-            detail.append(f"{row['consecutive_failures']} consecutive failures")
-        elif row["failures_in_window"]:
-            detail.append(f"{row['failures_in_window']} failure(s) in {LOOKBACK_DAYS}d")
-        if row["overdue_hours"]:
-            detail.append(f"no run for {row['overdue_hours']}h "
-                          f"(expected every ~{row['expected_interval_hours']}h)")
+        detail = _row_detail(row)
         print(f"  {mark} {row['workflow']:26} last={row['last_conclusion'] or '-'}"
               f"@{(row['last_run'] or '-')[:16]}"
-              + (f"  {'; '.join(detail)}" if detail else ""))
+              + (f"  {detail}" if detail else ""))
+    _surface(result)
     # Report only: a weekly rollup must not fail the job it runs inside.
     return 0
+
+
+def _row_detail(row):
+    detail = []
+    if row["consecutive_failures"]:
+        detail.append(f"{row['consecutive_failures']} consecutive failures")
+    elif row["failures_in_window"]:
+        detail.append(f"{row['failures_in_window']} failure(s) in {LOOKBACK_DAYS}d")
+    if row["overdue_hours"]:
+        detail.append(f"no run for {row['overdue_hours']}h "
+                      f"(expected every ~{row['expected_interval_hours']}h)")
+    return "; ".join(detail)
+
+
+def _surface(result):
+    """Put the rollup where a weekly report can actually be seen.
+
+    The step log scrolls away and continue-on-error keeps the run green, so the
+    aggregate view of Actions-side health used to live only in a log line
+    nobody opens. $GITHUB_STEP_SUMMARY (set on runners) gets a persistent
+    table, and each attention row becomes a ::warning:: annotation on the run
+    page itself. Still report-only: no exit-code change, no notifications.
+    """
+    summary_path = os.environ.get("GITHUB_STEP_SUMMARY")
+    if summary_path:
+        lines = [
+            "## Scheduled workflow health",
+            f"needs attention: {result['needs_attention']} of "
+            f"{result['scheduled_workflows']} "
+            f"(lookback {result['lookback_days']}d)",
+            "",
+            "| workflow | last run | detail |",
+            "|---|---|---|",
+        ]
+        for row in result["workflows"]:
+            detail = _row_detail(row) or "—"
+            lines.append(
+                f"| {row['workflow']} | {(row['last_conclusion'] or '-')} "
+                f"@{(row['last_run'] or '-')[:16]} | {detail} |"
+            )
+        try:
+            with open(summary_path, "a", encoding="utf-8") as fh:
+                fh.write("\n".join(lines) + "\n")
+        except OSError as exc:
+            print(f"warn: step summary write failed: {exc}", file=sys.stderr)
+    for row in result["workflows"]:
+        if row["status"] == "attention":
+            print(f"::warning::scheduled workflow {row['workflow']}: "
+                  f"{_row_detail(row) or 'needs attention'}")
 
 
 if __name__ == "__main__":

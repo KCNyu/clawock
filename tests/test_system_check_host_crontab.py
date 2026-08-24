@@ -40,11 +40,14 @@ def host_roots(system_check, monkeypatch, tmp_path):
     this machine's real workspace or tools directory."""
     workspace = tmp_path / "workspace"
     tools = tmp_path / "tools"
+    launchers = tmp_path / ".local" / "bin"
     workspace.mkdir()
     tools.mkdir()
+    launchers.mkdir(parents=True)
     monkeypatch.setattr(system_check, "LIVE_WORKSPACE", workspace)
     monkeypatch.setattr(system_check, "HOST_TOOLS_DIR", tools)
-    return workspace, tools
+    monkeypatch.setattr(system_check, "LAUNCHER_BIN_DIR", launchers)
+    return workspace, tools, launchers
 
 
 def _run(system_check, monkeypatch, stdout="", returncode=0):
@@ -60,7 +63,7 @@ def _run(system_check, monkeypatch, stdout="", returncode=0):
 
 def test_a_workspace_script_behind_python3_that_vanished_is_critical(
         system_check, monkeypatch, host_roots):
-    workspace, _ = host_roots
+    workspace, _, _ = host_roots
     dead = workspace / "ops" / "growth" / "indexnow_submit.py"
     checks = _run(system_check, monkeypatch, stdout=(
         f"0 12 * * * /usr/bin/python3 {dead} >> {workspace}/logs/indexnow.log 2>&1\n"
@@ -74,7 +77,7 @@ def test_a_workspace_script_behind_python3_that_vanished_is_critical(
 
 def test_a_tools_script_that_vanished_is_critical(
         system_check, monkeypatch, host_roots):
-    _, tools = host_roots
+    _, tools, _ = host_roots
     dead = tools / "clawock-autoloop" / "run.sh"
     checks = _run(system_check, monkeypatch, stdout=f"0 23 * * * {dead}\n")
 
@@ -86,7 +89,7 @@ def test_a_tools_script_that_vanished_is_critical(
 
 def test_existing_scripts_keep_the_gate_green(
         system_check, monkeypatch, host_roots):
-    workspace, _ = host_roots
+    workspace, _, _ = host_roots
     live = workspace / "ops" / "host" / "sync_us_cron_dst.py"
     live.parent.mkdir(parents=True)
     live.write_text("")
@@ -101,7 +104,7 @@ def test_existing_scripts_keep_the_gate_green(
 
 def test_a_redirect_target_is_not_judged_as_a_missing_file(
         system_check, monkeypatch, host_roots):
-    workspace, _ = host_roots
+    workspace, _, _ = host_roots
     live = workspace / "ops" / "host" / "sync_us_cron_dst.py"
     live.parent.mkdir(parents=True)
     live.write_text("")
@@ -136,6 +139,32 @@ def test_absolute_paths_outside_the_host_roots_are_not_judged(
         system_check, monkeypatch, host_roots):
     checks = _run(system_check, monkeypatch, stdout=(
         "0 9 * * * /usr/bin/python3 /opt/missing_thing.py\n"))
+
+    assert checks == [("host crontab targets", system_check.OK,
+                       "1 lines · no missing targets")]
+
+
+def test_a_vanished_launcher_is_critical_not_skipped(
+        system_check, monkeypatch, host_roots):
+    """Every watchdog command in the contract starts with a ~/.local/bin
+    launcher; before this root joined the audit those tokens were skipped, so
+    a renamed launcher would have silenced the whole fallback layer invisibly
+    (#775 class)."""
+    launchers = host_roots[-1]
+    dead = launchers / "clawock-brief-watchdog"
+    checks = _run(system_check, monkeypatch, stdout=f"*/10 0-1 * * * {dead}\n")
+
+    assert checks == [
+        ("host crontab targets", system_check.CRITICAL,
+         f"crontab points at missing file: {dead}"),
+    ]
+
+
+def test_a_present_launcher_stays_clean(system_check, monkeypatch, host_roots):
+    launchers = host_roots[-1]
+    alive = launchers / "clawock-intraday-watchdog"
+    alive.write_text("#!/bin/sh\n")
+    checks = _run(system_check, monkeypatch, stdout=f"*/10 22-23 * * * {alive}\n")
 
     assert checks == [("host crontab targets", system_check.OK,
                        "1 lines · no missing targets")]
