@@ -13,6 +13,12 @@ name: Macro Scan
 on:
   schedule:
     - cron: '45 21 * * 0-4'
+    # Second attempt (brief-fallback multi-tier pattern): measured drift
+    # (assets/data/schedule-drift.json, n=20) maxes at 199min against this
+    # slot's ~135min pre-brief buffer — the same "brief read yesterday's
+    # sidecar" window sentiment has. Idempotent overwrite; an already-fresh
+    # retry costs a no-op commit step.
+    - cron: '55 21 * * 0-4'
   workflow_dispatch:
 
 # Serialize with other commit-pushing workflows

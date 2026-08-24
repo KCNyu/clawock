@@ -159,3 +159,34 @@ def test_a_closed_weekend_is_silence_by_design():
         result = cron_health_check.check_scheduled_publisher(now=now, path=stale)
     assert result["state"] == "ok"
     assert "非交易日" in result["detail"]
+
+
+def test_commit_evidence_is_fetched_once_not_once_per_job(monkeypatch):
+    """Eleven enabled jobs used to mean eleven near-identical `git log`
+    subprocesses; the job loop now shares a single fetch."""
+    calls = []
+
+    def fake_run(cmd, **kwargs):
+        calls.append(cmd)
+        stamp = datetime.now(HKT).isoformat()
+        return SimpleNamespace(
+            returncode=0,
+            stdout=f"{stamp}\x00dashboard: 港股收盘报告 (hk 15:06 HKT)\n",
+        )
+
+    monkeypatch.setattr(cron_health_check.subprocess, "run", fake_run)
+    monkeypatch.setattr(cron_health_check, "_commit_log_cache", None)
+
+    patterns = ["港股收盘报告", "港股收盘报告", "美股.*收盘", "no-such-pattern"]
+    counts = [cron_health_check.commit_count_today(p) for p in patterns]
+
+    assert counts == [1, 1, 0, 0]
+    assert len(calls) == 1
+
+
+def test_commit_evidence_degrades_to_zero_when_git_fails(monkeypatch):
+    monkeypatch.setattr(cron_health_check, "_commit_log_cache", None)
+    monkeypatch.setattr(
+        cron_health_check.subprocess, "run",
+        lambda *a, **k: SimpleNamespace(returncode=128, stdout=""))
+    assert cron_health_check.commit_count_today("anything") == 0

@@ -1,6 +1,10 @@
 name: US News Digest (off-host LLM)
 
-# 工作日 21:00 HKT = 13:00 UTC, 美股开盘前 30 分钟
+# Nominally 21:00 HKT (13:00 UTC). Measured drift for this slot is median
+# ~75min / max ~157min (assets/data/schedule-drift.json), so the digest
+# typically lands ~22:15 HKT and can run past the 21:30 HKT US open — treat it
+# as an around-the-open product, not a pre-open one. Re-timing the cron needs
+# two weeks of drift data for the new slot first (#780/#781).
 on:
   schedule:
     - cron: '0 13 * * 1-5'

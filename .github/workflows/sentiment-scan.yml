@@ -12,6 +12,13 @@ on:
     # dow 0-4 not 1-5: 21:30 UTC + 8h wraps to the next HKT day → 1-5 would fire Tue–Sat,
     # missing Monday. Verify with: bash ops/host/check_crons.sh --timeline
     - cron: '30 21 * * 0-4'
+    # Second attempt (brief-fallback multi-tier pattern): measured drift
+    # (assets/data/schedule-drift.json, n=20) maxes at 213min against this
+    # slot's ~150min pre-brief buffer, so ~1 run in 20 landed after the 00:00
+    # UTC brief and it read the previous day's sidecar. The scan overwrites
+    # idempotently and the commit step no-ops without changes — an already-
+    # fresh retry costs nothing.
+    - cron: '55 21 * * 0-4'
   workflow_dispatch:
 
 # Serialize with other commit-pushing workflows

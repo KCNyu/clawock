@@ -177,6 +177,36 @@ def runs_finished_today(job_id, provider=None):
         return None
 
 
+_commit_log_cache = None
+
+
+def _commit_log_entries():
+    """Fetch (committer-ISO, subject) pairs once per process.
+
+    commit_count_today runs once per enabled job (~11), and each call used to
+    re-run the same `git log -n 500` subprocess and re-parse the same lines;
+    the job loop now shares a single fetch. A failed fetch degrades to an
+    empty list — identical to the old per-call failure path (count 0).
+    """
+    global _commit_log_cache
+    if _commit_log_cache is None:
+        entries = []
+        try:
+            r = subprocess.run(
+                ['git', '-C', str(WS), 'log', '-n', '500', '--format=%cI%x00%s'],
+                capture_output=True, text=True, timeout=15,
+            )
+            if r.returncode == 0:
+                for line in r.stdout.splitlines():
+                    if '\x00' in line:
+                        stamp, subject = line.split('\x00', 1)
+                        entries.append((stamp, subject))
+        except Exception:
+            pass
+        _commit_log_cache = entries
+    return _commit_log_cache
+
+
 def commit_count_today(commit_pattern):
     """Count matching commits whose committer date falls on today in HKT.
 
@@ -187,27 +217,15 @@ def commit_count_today(commit_pattern):
     if not commit_pattern:
         return None  # Mode 7 uses heartbeats; dream has no output contract
     today = datetime.now(HKT).date()
-    try:
-        r = subprocess.run(
-            ['git', '-C', str(WS), 'log', '-n', '500', '--format=%cI%x00%s'],
-            capture_output=True, text=True, timeout=15,
-        )
-        if r.returncode != 0:
-            return 0
-        count = 0
-        for line in r.stdout.splitlines():
-            if '\x00' not in line:
-                continue
-            stamp, subject = line.split('\x00', 1)
-            try:
-                commit_day = datetime.fromisoformat(stamp).astimezone(HKT).date()
-            except ValueError:
-                continue
-            if commit_day == today and re.search(commit_pattern, subject):
-                count += 1
-        return count
-    except Exception:
-        return 0
+    count = 0
+    for stamp, subject in _commit_log_entries():
+        try:
+            commit_day = datetime.fromisoformat(stamp).astimezone(HKT).date()
+        except ValueError:
+            continue
+        if commit_day == today and re.search(commit_pattern, subject):
+            count += 1
+    return count
 
 
 def load_runtime_jobs(jobs_file=None):

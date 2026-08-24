@@ -9,7 +9,11 @@
 #
 # 鲁棒性: 只 stage MEMORY.md/DREAMS.md (不碰宿主其它在写的脏文件);push 被拒时用
 # rebase.autoStash 自动绕开"工作区脏 → pull --rebase 拒跑"的坑;真冲突则留本地不死循环。
-set -uo pipefail
+# -e: an unguarded failed `git add` used to fall through to
+# `git diff --cached --quiet` == true and print 「无变化,跳过」 — a transient
+# index.lock collision with the publisher (dream fires 03:20, publisher every
+# 20min in the same worktree) silently dropped that night's promotion.
+set -euo pipefail
 
 WS=/root/.openclaw/workspace
 cd "$WS" || exit 1
@@ -20,7 +24,8 @@ cd "$WS" || exit 1
 BOT_NAME="github-actions[bot]"
 BOT_EMAIL="41898282+github-actions[bot]@users.noreply.github.com"
 
-git add MEMORY.md DREAMS.md
+git add MEMORY.md DREAMS.md \
+  || { echo "$(date -Is) dreaming-commit: git add 失败(疑似 index.lock 撞车)"; exit 1; }
 if git diff --cached --quiet; then
   echo "$(date -Is) dreaming-commit: MEMORY/DREAMS 无变化,跳过"
   exit 0

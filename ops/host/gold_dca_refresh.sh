@@ -9,7 +9,11 @@
 # 本脚本刚写入的 gold 字段(2026-06-10 23:30 撞车,gold 数据被回退一天,06-11 复盘后挪到 23:50)。
 #
 # 真值字段 principal_invested / units_held 由 kcn 对账后手填,本脚本绝不改。
-set -uo pipefail
+# -e: an unguarded failed step used to fall through to `git diff --cached
+# --quiet` == true and report 「净值无变化」 — e.g. losing the night's NAV to a
+# transient index.lock collision with the 20-minute publisher looked identical
+# to "nothing changed". Every remaining command is either guarded or fatal.
+set -euo pipefail
 
 WS=/root/.openclaw/workspace
 cd "$WS" || exit 1
@@ -21,14 +25,18 @@ cd "$WS" || exit 1
 # 重建本机副本,但不再入库:四个产物已随 #314 迁到 data-plane 分支,
 # 由定时 publisher 发布(最多落后 20 分钟)。这里再 `git add` 它们会因为
 # .gitignore 直接失败,而不是静默跳过。
-/root/.local/bin/clawock dashboard-build     || { echo "$(date -Is) gold dashboard-build 失败"; exit 1; }
+# --skip-if-unchanged (#846): 节假日/重复值之夜指纹不变就跳过整场 ~12MB 重建,
+# 与 publisher 同一语义。有新净值时照常全量构建。
+/root/.local/bin/clawock dashboard-build --skip-if-unchanged \
+  || { echo "$(date -Is) gold dashboard-build 失败"; exit 1; }
 
 # 自动任务 → 用 bot 身份提交,但走 `git -c`(单次注入)而非 `git config`(持久),
 # 否则会污染交互 Claude-Code 会话的提交身份(kcn 要那些 = KCNyu)。
 BOT_NAME="github-actions[bot]"
 BOT_EMAIL="41898282+github-actions[bot]@users.noreply.github.com"
 
-git add portfolio.json
+git add portfolio.json \
+  || { echo "$(date -Is) gold-refresh: git add 失败(疑似 index.lock 撞车),当晚数据不入库"; exit 1; }
 if git diff --cached --quiet; then
   echo "$(date -Is) gold-refresh: 净值无变化,跳过"
   exit 0
