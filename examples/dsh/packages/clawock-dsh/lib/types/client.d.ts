@@ -138,19 +138,23 @@ export declare function _usedLevel(percent: number | null, threshold: number): U
  * fetch time. Quota rows ('pct' unit) read as USED percent (kcn: 「已使用」
  * 比「剩余」直观), not money, and carry the second window ('周'/'本周') as a
  * muted pill suffix — both limits visible at the header without opening the
- * panel.
+ * panel. An exhausted window gets no caption at all (kcn 反馈: 文案只会重复):
+ * the reading itself says 100% and `reset` carries when it frees up.
  */
 export declare function _rowDisplay(result: BalanceResult | null): {
     tone: BalanceTone;
     value: string;
     sub: string | null;
+    reset: string | null;
     level: UsedLevel | null;
     title: string;
 };
 /**
  * The one line a panel row says out loud when something is wrong — stale
- * reason, unconfigured key, insufficient balance/quota. A healthy number
- * earns no caption at all; null means silence.
+ * reason, unconfigured key, insufficient money balance. A healthy number
+ * earns no caption at all; null means silence. An exhausted quota window
+ * is silence too (kcn 反馈): its 100% bar and reset stamp in the per-window
+ * rows are the message; a caption would only replace them.
  */
 export declare function _balanceNote(result: BalanceResult | null): string | null;
 /** What the header chip's `inject` factory hands the component. */
