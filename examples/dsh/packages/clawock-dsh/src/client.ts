@@ -465,6 +465,23 @@ function relativeDay(iso: string, today: string): string {
 /** The four visual states one provider's reading can take. */
 export type BalanceTone = 'ok' | 'low' | 'stale' | 'none'
 
+/** Usage-direction colour tier of a used-percent reading. */
+export type UsedLevel = 'ok' | 'mid' | 'low'
+
+/**
+ * Colour tier for one used-percent reading against the REMAINING-watermark
+ * threshold (lowPct). kcn 的配色口径:已使用低 = 正常绿(--ok),逼近额度
+ * 上限先黄(--warn)再红(--bad)。档位从既有 lowPct 派生,不新增配置:
+ * warn at 100−2·lowPct, red inside 100−lowPct(默认 20 → 60% 黄 / 80% 红)。
+ * 档位只决定颜色,绝不增删信息(kcn 反馈 #908:变红不许吃掉任何字段)。
+ */
+export function _usedLevel(percent: number | null, threshold: number): UsedLevel {
+  if (percent === null) return 'ok'
+  if (percent >= 100 - threshold) return 'low'
+  if (percent >= 100 - 2 * threshold) return 'mid'
+  return 'ok'
+}
+
 /**
  * Display projection of ONE provider's answer (test seam, like _displayEntry):
  * the chip and panel render only these fields, so the view never keeps
@@ -476,10 +493,10 @@ export type BalanceTone = 'ok' | 'low' | 'stale' | 'none'
  * panel. An exhausted window gets no caption at all (kcn 反馈: 文案只会重复):
  * the reading itself says 100% and `reset` carries when it frees up.
  */
-export function _rowDisplay(result: BalanceResult | null): { tone: BalanceTone; value: string; sub: string | null; reset: string | null; title: string } {
-  if (result === null) return { tone: 'none', value: '—', sub: null, reset: null, title: '余额加载中' }
-  if (!result.configured) return { tone: 'none', value: '未配置', sub: null, reset: null, title: result.message ?? '未配置 API Key' }
-  if (result.snapshot === null) return { tone: 'none', value: '—', sub: null, reset: null, title: result.message ?? '余额获取失败' }
+export function _rowDisplay(result: BalanceResult | null): { tone: BalanceTone; value: string; sub: string | null; reset: string | null; level: UsedLevel | null; title: string } {
+  if (result === null) return { tone: 'none', value: '—', sub: null, reset: null, level: null, title: '余额加载中' }
+  if (!result.configured) return { tone: 'none', value: '未配置', sub: null, reset: null, level: null, title: result.message ?? '未配置 API Key' }
+  if (result.snapshot === null) return { tone: 'none', value: '—', sub: null, reset: null, level: null, title: result.message ?? '余额获取失败' }
   const snapshot = result.snapshot
   const isPct = snapshot.unit === 'pct'
   const symbol = isPct ? '' : snapshot.currency === 'USD' ? '$' : snapshot.currency === 'CNY' ? '¥' : ''
@@ -518,7 +535,11 @@ export function _rowDisplay(result: BalanceResult | null): { tone: BalanceTone; 
     snapshot.isAvailable || isPct ? null : '官方接口判定余额不足',
     result.status === 'stale' && result.message !== null ? '刷新失败,显示最近一次: ' + result.message : null,
   ].filter((part): part is string => part !== null)
-  return { tone, value, sub, reset, title: parts.join(' · ') }
+  // 头条数字的用量档位(染色用):配额行按实际显示的那个数取档;金额行
+  // 没有用量语义,level 为 null,颜色仍走 tone(money low = 红)。
+  const shownPct = isPct ? (isFinite(parsed) ? parsed : (pctWins.length > 0 ? pctWins[0].percent as number : null)) : null
+  const level: UsedLevel | null = shownPct === null ? null : _usedLevel(Math.round(shownPct), result.threshold)
+  return { tone, value, sub, reset, level, title: parts.join(' · ') }
 }
 
 /**
@@ -592,7 +613,10 @@ export type BalanceChipProps = BalancesInjected & PropsStore<BalanceStore> & { s
  * The per-provider detail under its headline: quota providers get one line
  * per window — label / remaining / reset right-aligned — so the 5h and week
  * resets scan as a column instead of drowning in a sentence. Money rows keep
- * their granted/topped-up split. Abnormal notes render above this path.
+ * their granted/topped-up split. A note does NOT suppress this detail when
+ * readable windows exist (kcn 反馈 #908: 变色只改颜色,绝不动信息量)——
+ * the watermark/stale caption rides along; only data-less abnormal rows
+ * (unconfigured / fetch-failed) speak through the note alone.
  */
 function renderRowDetail(row: {
   provider: string
@@ -600,16 +624,16 @@ function renderRowDetail(row: {
   view: { tone: BalanceTone; value: string; title: string }
   note: string | null
 }): React.ReactElement | null {
-  if (row.note !== null) return null
   const wins = row.result.snapshot?.windows ?? []
   if (wins.length > 0) {
     // 每窗一行:文字读数 + 发丝进度条。percent 是已使用方向(kcn 定的口径),
-    // 填充是统一的中性墨水色——就是一条普通进度条,不随用量变色(kcn 反馈);
-    // 唯一例外是 stale(刷新失败,读数不可信),黄是错误状态不是用量显示。
-    // 静态渲染不做 width 动画,数据刷新整帧替换。
+    // 填充按用量档位走(kcn 配色,恢复):低=绿、≥60% 黄、≥80% 红,stale 黄
+    // 盖过(数字不可信优先于用量档)。档位只染色——label/百分比/条/reset
+    // 在任何档位都完整保留。静态渲染不做 width 动画,数据刷新整帧替换。
     return h('div', { className: cx('bp-wins') },
       wins.map((w) => {
         const pct = w.percent === null ? null : Math.max(0, Math.min(100, Math.round(w.percent)))
+        const state = row.view.tone === 'stale' ? 'stale' : _usedLevel(pct, row.result.threshold)
         return h('div', { className: cx('bp-win'), key: w.label },
           h('div', { className: cx('bp-win-line') },
             h('span', { className: cx('bp-win-label') }, w.label),
@@ -619,10 +643,12 @@ function renderRowDetail(row: {
             h('div', {
               className: cx('bp-win-fill'),
               style: pct === null ? { width: '0%' } : { width: pct + '%' },
-              'data-balance-state': row.view.tone === 'stale' ? 'stale' : undefined,
+              'data-balance-state': state,
             })))
       }))
   }
+  // 无窗的异常行(未配置/拉取失败)note 即全部内容,不再走正文重复一遍。
+  if (row.note !== null) return null
   const title = row.view.title
   if (title === '') return null
   // Money rows: drop the leading 'API 余额' label — the row already says who.
@@ -695,14 +721,6 @@ export function ProviderBalanceChip(props: BalanceChipProps): React.ReactElement
   }))
   // 胶囊只讲一个 provider:选中的优先,否则第一行(稳定的 deepseek-first 序)。
   const primary = rows.find((row) => row.provider === selected) ?? rows[0]
-  // 头条数字只在账户出错时离开墨色:stale(刷新失败)黄、未加载灰、金额行
-  // low(官方判定余额不足)红。配额行的用量水位不上色(kcn 反馈:「已使用
-  // 到 80% 会变色」这类特殊显示不要)——读数交给那条普通进度条自己讲。
-  const valueState = primary === undefined
-    ? 'none'
-    : primary.view.tone === 'low' && primary.result.snapshot?.unit !== 'pct'
-      ? 'low'
-      : primary.view.tone === 'ok' ? undefined : primary.view.tone
   const refresh = (): void => {
     setData((current) => ({ ...current, loading: true }))
     runBalances(true)
@@ -728,7 +746,10 @@ export function ProviderBalanceChip(props: BalanceChipProps): React.ReactElement
           h('span', { className: cx('bchip-dot') }),
           h('span', {
             className: cx('bchip-v'),
-            'data-balance-state': valueState,
+            'data-balance-state': primary.view.tone,
+            // 用量档位染色(kcn 配色口径,恢复):配额行 ok 绿/mid 黄/low 红;
+            // 金额行 level=null 不带属性,保持墨色、low 红走 tone。
+            'data-used-level': primary.view.level === null ? undefined : primary.view.level,
           }, primary.view.value),
           // 头条窗口的重置时刻(kcn 反馈:额度用尽要知道什么时候恢复),
           // 面板每窗一行里有完整版,这里是小字同款。
@@ -770,9 +791,15 @@ export function ProviderBalanceChip(props: BalanceChipProps): React.ReactElement
               ? h('span', { className: cx('bp-pin') })
               : null),
           h('span', { className: cx('bp-v', row.view.tone === 'low' ? 'bad' : ''), 'data-balance-state': row.view.tone }, row.view.value),
-          row.note !== null
-            ? h('div', { className: cx('bp-note', row.view.tone === 'stale' ? 'warn' : 'bad') }, row.note)
-            : renderRowDetail(row)))))
+          // note 与明细并存,不再二选一(#908 根因:互斥三元让水位/stale
+          // 警示句把每窗读数、进度条、重置时间整个顶掉)。无窗的异常行由
+          // renderRowDetail 自己返回 null,仍是「只讲一句」。
+          [
+            row.note !== null
+              ? h('div', { className: cx('bp-note', row.view.tone === 'stale' ? 'warn' : 'bad'), key: 'note' }, row.note)
+              : null,
+            renderRowDetail(row),
+          ]))))
 }
 
 export function DecisionMind(props: DecisionMindProps): React.ReactElement {
