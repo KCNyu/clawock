@@ -465,6 +465,22 @@ function relativeDay(iso: string, today: string): string {
 /** The four visual states one provider's reading can take. */
 export type BalanceTone = 'ok' | 'low' | 'stale' | 'none'
 
+/** Usage-direction colour tier of a used-percent reading. */
+export type UsedLevel = 'ok' | 'mid' | 'low'
+
+/**
+ * Colour tier for one used-percent reading against the REMAINING-watermark
+ * threshold (lowPct). kcn 的配色口径:已使用低 = 正常绿(--ok),逼近额度
+ * 上限先黄(--warn)再红(--bad)。档位从既有 lowPct 派生,不新增配置:
+ * warn at 100−2·lowPct, red inside 100−lowPct(默认 20 → 60% 黄 / 80% 红)。
+ */
+export function _usedLevel(percent: number | null, threshold: number): UsedLevel {
+  if (percent === null) return 'ok'
+  if (percent >= 100 - threshold) return 'low'
+  if (percent >= 100 - 2 * threshold) return 'mid'
+  return 'ok'
+}
+
 /**
  * Display projection of ONE provider's answer (test seam, like _displayEntry):
  * the chip and panel render only these fields, so the view never keeps
@@ -475,10 +491,10 @@ export type BalanceTone = 'ok' | 'low' | 'stale' | 'none'
  * muted pill suffix — both limits visible at the header without opening the
  * panel.
  */
-export function _rowDisplay(result: BalanceResult | null): { tone: BalanceTone; value: string; sub: string | null; title: string } {
-  if (result === null) return { tone: 'none', value: '—', sub: null, title: '余额加载中' }
-  if (!result.configured) return { tone: 'none', value: '未配置', sub: null, title: result.message ?? '未配置 API Key' }
-  if (result.snapshot === null) return { tone: 'none', value: '—', sub: null, title: result.message ?? '余额获取失败' }
+export function _rowDisplay(result: BalanceResult | null): { tone: BalanceTone; value: string; sub: string | null; level: UsedLevel | null; title: string } {
+  if (result === null) return { tone: 'none', value: '—', sub: null, level: null, title: '余额加载中' }
+  if (!result.configured) return { tone: 'none', value: '未配置', sub: null, level: null, title: result.message ?? '未配置 API Key' }
+  if (result.snapshot === null) return { tone: 'none', value: '—', sub: null, level: null, title: result.message ?? '余额获取失败' }
   const snapshot = result.snapshot
   const isPct = snapshot.unit === 'pct'
   const symbol = isPct ? '' : snapshot.currency === 'USD' ? '$' : snapshot.currency === 'CNY' ? '¥' : ''
@@ -509,7 +525,11 @@ export function _rowDisplay(result: BalanceResult | null): { tone: BalanceTone; 
     snapshot.isAvailable ? null : (isPct ? '该窗口额度已用尽' : '官方接口判定余额不足'),
     result.status === 'stale' && result.message !== null ? '刷新失败,显示最近一次: ' + result.message : null,
   ].filter((part): part is string => part !== null)
-  return { tone, value, sub, title: parts.join(' · ') }
+  // 头条数字的用量档位(染色用):配额行按实际显示的那个数取档;金额行
+  // 没有用量语义,level 为 null,颜色仍走 tone(money low = 红)。
+  const shownPct = isPct ? (isFinite(parsed) ? parsed : (pctWins.length > 0 ? pctWins[0].percent as number : null)) : null
+  const level: UsedLevel | null = shownPct === null ? null : _usedLevel(Math.round(shownPct), result.threshold)
+  return { tone, value, sub, level, title: parts.join(' · ') }
 }
 
 /**
@@ -593,14 +613,12 @@ function renderRowDetail(row: {
   const wins = row.result.snapshot?.windows ?? []
   if (wins.length > 0) {
     // 每窗一行:文字读数 + 发丝进度条。percent 是已使用方向(kcn 定的口径),
-    // 条的填充=已使用量,用到接近满格才亮红(used ≥ 100−threshold);与旧
-    // 「剩余」语义正好相反,警示方向已随数据同步翻转。静态渲染不做 width
-    // 动画(宽度动画在审校里是红线),数据刷新整帧替换。
+    // 填充色按用量档位走(kcn 配色):低=绿、≥60% 黄、≥80% 红,stale 黄盖过
+    // (数字不可信优先于用量档)。静态渲染不做 width 动画,数据刷新整帧替换。
     return h('div', { className: cx('bp-wins') },
       wins.map((w) => {
         const pct = w.percent === null ? null : Math.max(0, Math.min(100, Math.round(w.percent)))
-        const low = pct !== null && row.result.snapshot?.unit === 'pct' && pct >= 100 - row.result.threshold
-        const state = low ? 'low' : row.view.tone === 'stale' ? 'stale' : 'ok'
+        const state = row.view.tone === 'stale' ? 'stale' : _usedLevel(pct, row.result.threshold)
         return h('div', { className: cx('bp-win'), key: w.label },
           h('div', { className: cx('bp-win-line') },
             h('span', { className: cx('bp-win-label') }, w.label),
@@ -709,7 +727,13 @@ export function ProviderBalanceChip(props: BalanceChipProps): React.ReactElement
         ? h('span', { className: cx('bchip-item') }, h('span', { className: cx('bchip-dot') }), '—')
         : h('span', { className: cx('bchip-item'), 'data-pb-provider': primary.provider, 'data-pb-role': 'chip', 'data-balance-state': primary.view.tone },
           h('span', { className: cx('bchip-dot') }),
-          h('span', { className: cx('bchip-v'), 'data-balance-state': primary.view.tone }, primary.view.value),
+          h('span', {
+            className: cx('bchip-v'),
+            'data-balance-state': primary.view.tone,
+            // 用量档位染色(kcn 配色口径):配额行 ok 绿/mid 黄/low 红;
+            // 金额行 level=null 不带属性,保持墨色、low 红走 tone。
+            'data-used-level': primary.view.level === null ? undefined : primary.view.level,
+          }, primary.view.value),
           // 周限额副读数:装饰性重复(面板/悬浮里有完整版),对读屏静音。
           primary.view.sub === null
             ? null
