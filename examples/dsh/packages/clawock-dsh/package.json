@@ -1,6 +1,6 @@
 {
   "name": "clawock-dsh",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "description": "DSH (DeepSeek Harness) plugin for investment decisions: evidence-gated research, a forced bull/bear debate, Python-settled outcomes the model cannot grade, and the Decision Mind tab that pins every real trade to its plan and T+1 verdict",
   "license": "MIT",
   "repository": {
@@ -62,6 +62,7 @@
     "skills",
     "lib/index.js",
     "lib/client.js",
+    "lib/balance.js",
     "lib/scan.js",
     "lib/ledger.js",
     "lib/freshness.js",

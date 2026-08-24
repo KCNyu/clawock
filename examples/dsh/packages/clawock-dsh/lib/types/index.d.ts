@@ -10,9 +10,39 @@
  */
 import { TypertRemoteService } from '@deepseek-ai/dsh-typert-protocol';
 import type { Context } from '@deepseek-ai/cordis';
-import type { LedgerResult, ListRunsResult, PlansResult, PortfolioResult, RunDetailResult, TracesResult } from './types.ts';
+import type { BalancesResult, LedgerResult, ListRunsResult, PlansResult, PortfolioResult, RunDetailResult, TracesResult } from './types.ts';
+/**
+ * Row-level config the profile patch may set (see cordis.patch.yml).
+ */
+export interface ClawockStudioConfig {
+    /** DeepSeek upstream root for the balance chip; /user/balance is appended. */
+    balanceBaseUrl?: string;
+    /** Red-dot threshold in the displayed entry's currency (CNY/USD units). */
+    balanceThreshold?: number;
+    /** Suggested client poll interval in ms. */
+    balanceRefreshMs?: number;
+    /** MiniMax upstream root; /v1/token_plan/remains is appended. */
+    minimaxBaseUrl?: string;
+    /** Credentials seam reference for the MiniMax key (env fallback same name). */
+    minimaxKeyRef?: string;
+    /** Red dot when MiniMax quota windows drop to/below this remaining percent. */
+    minimaxLowPct?: number;
+    /** openclaw gateway config fallback for provider keys (models.providers.*). */
+    minimaxOpenclawConfigPath?: string;
+    /** Claude Code OAuth credentials file (claudeAiOauth.accessToken). */
+    claudeCredentialsPath?: string;
+    /** The undocumented /api/oauth/usage endpoint; overridable for tests. */
+    claudeUsageUrl?: string;
+    /** Red dot when the Claude session window's remaining percent is low. */
+    claudeLowPct?: number;
+}
 export declare class ClawockStudioGateway extends TypertRemoteService {
-    static inject: readonly [];
+    static inject: readonly ['credentials'];
+    /**
+     * cordis mixes the injected services onto the instance at construction;
+     * this type-only declaration types `this.credentials` without a cast,
+     * and `declare` fields emit nothing at runtime.
+     */
     /**
      * Signature-keyed trace cache per workspace (see freshness.ts). Owned by the
      * service instance rather than module scope: a module-level cache would
@@ -21,7 +51,13 @@ export declare class ClawockStudioGateway extends TypertRemoteService {
      * instance. Instance lifetime follows the fiber; a hit still costs µs.
      */
     private readonly tracesCache;
-    constructor(ctx: Context);
+    /**
+     * Per-provider balance services, built lazily on first use — instance-scoped
+     * like tracesCache, and constructed here rather than in the constructor so
+     * the gateway constructor keeps the exact super(ctx, serviceKey) shape.
+     */
+    private balanceServices;
+    constructor(ctx: Context, config?: ClawockStudioConfig);
     /** @returns Prepared runs (newest first), with decision/receipt presence flags. */
     list(): ListRunsResult;
     /**
@@ -45,6 +81,21 @@ export declare class ClawockStudioGateway extends TypertRemoteService {
      * client can cache across tab mounts and re-fetch only on a real change.
      */
     traces(): TracesResult;
+    /**
+     * The header chip's answer: every provider's official endpoint, each
+     * answered with that adapter's own key. In-band by design — never throws;
+     * per-provider statuses 'no-key' / 'failed' / 'stale' carry a Chinese
+     * message and a stale read keeps the last good snapshot. A provider with
+     * no key configured is an honest row, not a hidden one.
+     * @param force - bypass the TTL caches (the manual refresh button).
+     */
+    balance(force: boolean): Promise<BalancesResult>;
 }
+/**
+ * Services the profile mixes into this plugin's context (the function-
+ * plugin form — the class's `static inject` is its type mirror). The
+ * gateway reaches the credential seam through `this.ctx.credentials`.
+ */
+export declare const inject: string[];
 export declare const name = "clawock-dsh";
-export declare function apply(ctx: Context): void;
+export declare function apply(ctx: Context, config?: ClawockStudioConfig): void;
