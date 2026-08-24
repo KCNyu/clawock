@@ -170,12 +170,13 @@ filters the noise and links what's left to actual holdings and sectors: stance
 and whether it touches your book, is already sitting in the pre-open brief —
 nobody has to go scroll social media for it.
 
-A concrete example: on 2026-08-13 Trump announced a de minimis tariff-loophole
-ruling; the radar matched it to retail/e-commerce and linked it to the Hang
-Seng Tech position, and the summary landed in the next day's brief. The scan
-the day before (2026-08-14) found 3 posts and **zero holding hits** — an empty
-result is published as an empty result, not skipped. What's shown above is one
-hit; misses go in the brief exactly as often as they happen.
+A concrete example: in the scan of 2026-08-17 21:54 UTC, five Musk/SpaceX
+posts all matched real holdings (held_hits=5, the SPCH/SPCX cluster), and the
+next morning's brief carried it verbatim — 撞持仓 (5 条全中 SPCH/SPCX). The
+following scan (2026-08-18 13:31 UTC) found 1 post and **zero holding hits** —
+an empty result is published as an empty result, not skipped. Both entries can
+be checked against the published briefs of those two days. What's shown above
+is one hit; misses go in the brief exactly as often as they happen.
 
 ## How it decides
 
