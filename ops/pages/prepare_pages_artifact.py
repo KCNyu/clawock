@@ -96,13 +96,21 @@ def prepare(
 
     # Stage by allowlist instead of pruning the Jekyll tree: a new internal file
     # cannot become public merely because Jekyll learned how to render it.
+    # repository_only is enforced here too, not just documented: an include
+    # pattern that starts overlapping a repository-only path must fail toward
+    # excluding the file (and say so), never publish it by accident.
     copied: list[str] = []
+    skipped: list[str] = []
     for pattern in includes:
         for source in site_dir.glob(pattern):
             if not source.is_file():
                 continue
             source.resolve().relative_to(site_dir)
             relative = source.relative_to(site_dir)
+            if any(fnmatch.fnmatch(relative.as_posix(), pattern)
+                   for pattern in repository_only):
+                skipped.append(relative.as_posix())
+                continue
             destination = output_dir / relative
             destination.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(source, destination)
@@ -131,6 +139,7 @@ def prepare(
     print(
         f"Pages artifact: {before:,} -> {after:,} bytes "
         f"({before - after:,} excluded; {len(set(copied))} public files; "
+        f"{len(skipped)} repository-only files skipped; "
         f"{removed_sitemap_urls} sitemap URLs excluded)"
     )
     return before, after
