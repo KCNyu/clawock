@@ -5,3 +5,20 @@
 - insert:
     - id: clawock-studio
       name: clawock-dsh
+      # The gateway's balance chip resolves each provider's key through the
+      # credentials seam; the row must declare the service so the profile
+      # mixes it into the plugin context (ctx.credentials).
+      inject: [credentials]
+      # Optional balance-chip overrides (defaults shown). The row config reaches
+      # the gateway's constructor; a change takes effect on the next dsh restart.
+      # config:
+      #   balanceBaseUrl: 'https://api.deepseek.com'   # DeepSeek upstream root
+      #   balanceThreshold: 20                         # red dot at/below this (CNY/USD)
+      #   balanceRefreshMs: 60000                      # suggested poll interval (min 60s)
+      #   minimaxBaseUrl: 'https://api.minimaxi.com'   # MiniMax upstream root
+      #   minimaxKeyRef: 'MINIMAX_API_KEY'             # credentials seam ref (env fallback same name)
+      #   minimaxLowPct: 20                            # red dot when quota windows <= this remaining %
+      #   minimaxOpenclawConfigPath: '/root/.openclaw/openclaw.json'  # key fallback: models.providers.minimax.apiKey
+      #   claudeCredentialsPath: '/root/.claude/.credentials.json'    # Claude Code OAuth file (read-only)
+      #   claudeUsageUrl: 'https://api.anthropic.com/api/oauth/usage' # subscription quota endpoint
+      #   claudeLowPct: 20                             # red dot when the session window <= this remaining %

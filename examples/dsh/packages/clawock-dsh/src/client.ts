@@ -31,7 +31,7 @@ import { defineStore } from '@deepseek-ai/dsh-client-runtime/client'
 // @types/react devDependency.
 import * as React from 'react'
 import styles from './styles.module.css'
-import type { EnrichedTrade, TraceDecision, TraceT1, TracesResult } from './types.ts'
+import type { BalanceResult, BalancesResult, EnrichedTrade, TraceDecision, TraceT1, TracesResult } from './types.ts'
 
 const { createElement, useEffect, useRef, useState } = React
 
@@ -462,6 +462,289 @@ function relativeDay(iso: string, today: string): string {
   return parseInt(iso.slice(5, 7)) + '月' + parseInt(iso.slice(8, 10)) + '日'
 }
 
+/** The four visual states one provider's reading can take. */
+export type BalanceTone = 'ok' | 'low' | 'stale' | 'none'
+
+/**
+ * Display projection of ONE provider's answer (test seam, like _displayEntry):
+ * the chip and panel render only these fields, so the view never keeps
+ * a second copy of the tone rules — the host already decided status and low.
+ * The title is the whole hover story: split, quota windows, stale reason,
+ * fetch time. Quota rows ('pct' unit) read as remaining percent, not money,
+ * and carry the second window ('周'/'本周') as a muted pill suffix — both
+ * limits visible at the header without opening the panel.
+ */
+export function _rowDisplay(result: BalanceResult | null): { tone: BalanceTone; value: string; sub: string | null; title: string } {
+  if (result === null) return { tone: 'none', value: '—', sub: null, title: '余额加载中' }
+  if (!result.configured) return { tone: 'none', value: '未配置', sub: null, title: result.message ?? '未配置 API Key' }
+  if (result.snapshot === null) return { tone: 'none', value: '—', sub: null, title: result.message ?? '余额获取失败' }
+  const snapshot = result.snapshot
+  const isPct = snapshot.unit === 'pct'
+  const symbol = isPct ? '' : snapshot.currency === 'USD' ? '$' : snapshot.currency === 'CNY' ? '¥' : ''
+  // The headline reads the first window (parsers mirror it into totalBalance);
+  // when the primary window is absent this cycle (Claude between sessions),
+  // the first readable window steps up instead of rendering a bare '—'.
+  const pctWins = isPct && Array.isArray(snapshot.windows)
+    ? snapshot.windows.filter((w) => w.percent !== null)
+    : []
+  const parsed = Number.parseFloat(snapshot.totalBalance)
+  const value = isFinite(parsed)
+    ? (isPct ? String(Math.round(parsed)) + '%' : symbol + parsed.toLocaleString(undefined, { maximumFractionDigits: 2 }))
+    : pctWins.length > 0
+      ? String(Math.round(pctWins[0].percent as number)) + '%'
+      : (snapshot.totalBalance === '' ? '—' : symbol + snapshot.totalBalance)
+  const second = pctWins.length > 1 ? pctWins[1] : null
+  const sub = second !== null ? '· ' + second.label + ' ' + Math.round(second.percent as number) + '%' : null
+  const tone: BalanceTone = result.status === 'stale'
+    ? 'stale'
+    : (result.low || !snapshot.isAvailable ? 'low' : 'ok')
+  // 更新时间不重复展示:轮询是静默的,手动刷新有 ✓ 反馈——时间戳只增加噪音。
+  const parts = [
+    snapshot.unit === 'pct'
+      ? (snapshot.note !== '' ? snapshot.note : '配额窗口余量')
+      : 'API 余额',
+    !isPct && snapshot.grantedBalance !== '' ? '赠金 ' + symbol + snapshot.grantedBalance : null,
+    !isPct && snapshot.toppedUpBalance !== '' ? '充值 ' + symbol + snapshot.toppedUpBalance : null,
+    snapshot.isAvailable ? null : (isPct ? '该窗口额度已用尽' : '官方接口判定余额不足'),
+    result.status === 'stale' && result.message !== null ? '刷新失败,显示最近一次: ' + result.message : null,
+  ].filter((part): part is string => part !== null)
+  return { tone, value, sub, title: parts.join(' · ') }
+}
+
+/**
+ * The one line a panel row says out loud when something is wrong — stale
+ * reason, unconfigured key, insufficient balance/quota. A healthy number
+ * earns no caption at all; null means silence.
+ */
+export function _balanceNote(result: BalanceResult | null): string | null {
+  if (result === null) return null
+  if (!result.configured) return result.message ?? '未配置 API Key'
+  if (result.snapshot === null) return result.message ?? '余额获取失败'
+  if (result.status === 'stale') {
+    return '刷新失败,显示最近一次' + (result.message !== null ? ':' + result.message : '')
+  }
+  if (!result.snapshot.isAvailable) {
+    return result.snapshot.unit === 'pct' ? '该窗口额度已用尽' : '官方接口判定余额不足'
+  }
+  if (result.low) {
+    if (result.snapshot.unit === 'pct') return '窗口余量不足 ' + result.threshold + '%'
+    const symbol = result.snapshot.currency === 'USD' ? '$' : result.snapshot.currency === 'CNY' ? '¥' : ''
+    return '余额偏低,低于阈值 ' + symbol + result.threshold
+  }
+  return null
+}
+
+/** What the header chip's `inject` factory hands the component. */
+export interface BalancesInjected {
+  /** The last multi-provider answer this registration fetched, or null cold. */
+  cachedBalances: () => BalancesResult | null
+  /** Fetch all providers; `force` bypasses the host TTLs (the manual refresh). */
+  fetchBalances: (force: boolean) => Promise<BalancesResult>
+}
+
+/**
+ * Which provider the pill headlines. null = auto (first configured row);
+ * a click on a panel row pins that provider. Registration-store state, so
+ * the choice survives the ring's remounts.
+ */
+export interface BalanceUiState {
+  selected: string | null
+}
+
+/** Store factory — called inside `apply`, never a module-level handle. */
+export function createBalanceStore() {
+  return defineStore({
+    init: (): BalanceUiState => ({ selected: null }),
+    actions: {
+      select: (draft, provider: string) => { draft.selected = provider },
+    },
+  })
+}
+
+/** The chip's registration store handle type (derived, like DecisionMind's). */
+export type BalanceStore = ReturnType<typeof createBalanceStore>
+
+export type BalanceChipProps = BalancesInjected & PropsStore<BalanceStore> & { sessionId: string }
+
+/**
+ * The session-header chip (#871's final home): account status is app chrome,
+ * not decision data and not its own tab. The pill headlines ONE provider —
+ * the pinned one (registration store) or the first configured row — and the
+ * panel lists every provider; clicking a row pins it as the headline, which
+ * reads as "the balance of whichever service I'm actually burning". Same
+ * contracts: [data-balance-state], [data-pb-provider], [data-pb-role],
+ * [data-refresh], no emoji.
+ */
+/**
+ * The per-provider detail under its headline: quota providers get one line
+ * per window — label / remaining / reset right-aligned — so the 5h and week
+ * resets scan as a column instead of drowning in a sentence. Money rows keep
+ * their granted/topped-up split. Abnormal notes render above this path.
+ */
+function renderRowDetail(row: {
+  provider: string
+  result: BalanceResult
+  view: { tone: BalanceTone; value: string; title: string }
+  note: string | null
+}): React.ReactElement | null {
+  if (row.note !== null) return null
+  const wins = row.result.snapshot?.windows ?? []
+  if (wins.length > 0) {
+    // 每窗一行:文字读数 + 发丝进度条。条的语义=剩余量,低水位换警示色;
+    // 静态渲染不做 width 动画(宽度动画在审校里是红线),数据刷新整帧替换。
+    return h('div', { className: cx('bp-wins') },
+      wins.map((w) => {
+        const pct = w.percent === null ? null : Math.max(0, Math.min(100, Math.round(w.percent)))
+        const low = pct !== null && row.result.snapshot?.unit === 'pct' && pct <= row.result.threshold
+        const state = low ? 'low' : row.view.tone === 'stale' ? 'stale' : 'ok'
+        return h('div', { className: cx('bp-win'), key: w.label },
+          h('div', { className: cx('bp-win-line') },
+            h('span', { className: cx('bp-win-label') }, w.label),
+            h('span', { className: cx('bp-win-pct') }, w.percent === null ? '—' : Math.round(w.percent) + '%'),
+            h('span', { className: cx('bp-win-reset') }, w.resetAt === '' ? '' : '↻ ' + w.resetAt)),
+          h('div', { className: cx('bp-win-bar') },
+            h('div', {
+              className: cx('bp-win-fill'),
+              style: pct === null ? { width: '0%' } : { width: pct + '%' },
+              'data-balance-state': state,
+            })))
+      }))
+  }
+  const title = row.view.title
+  if (title === '') return null
+  // Money rows: drop the leading 'API 余额' label — the row already says who.
+  const body = title.startsWith('API 余额 · ') ? title.slice('API 余额 · '.length) : title
+  return h('div', { className: cx('bp-sub') }, body)
+}
+
+export function ProviderBalanceChip(props: BalanceChipProps): React.ReactElement {
+  const mountedRef = useRef(true)
+  const [data, setData] = useState<{ result: BalancesResult | null; loading: boolean }>(
+    () => ({ result: props.cachedBalances(), loading: false }),
+  )
+  const selected = props.useStore((state) => state.selected)
+  const select = (provider: string): void => { props.actions.select(provider) }
+  const [open, setOpen] = useState(false)
+  const [flash, setFlash] = useState<'ok' | 'same' | null>(null)
+  const flashTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const rootRef = useRef<HTMLSpanElement | null>(null)
+
+  const runBalances = (force: boolean): void => {
+    props.fetchBalances(force).then((result) => {
+      if (!mountedRef.current) return
+      setData({ result, loading: false })
+      if (force) {
+        // #870 语义:拉到新数据 → ✓(品牌色),命中缓存 → ↻ 变绿,1.2s 回落。
+        setFlash(result.providers.some((p) => p.result.status === 'fresh') ? 'ok' : 'same')
+        if (flashTimerRef.current !== null) clearTimeout(flashTimerRef.current)
+        flashTimerRef.current = setTimeout(() => { setFlash(null) }, 1200)
+      }
+    }, () => {
+      if (mountedRef.current) setData((current) => ({ ...current, loading: false }))
+    })
+  }
+
+  useEffect(() => {
+    mountedRef.current = true
+    runBalances(false)
+    return () => {
+      mountedRef.current = false
+      if (flashTimerRef.current !== null) clearTimeout(flashTimerRef.current)
+    }
+  }, [props.sessionId])
+
+  useEffect(() => {
+    const intervalMs = Math.max(60000, data.result?.refreshMs ?? 60000)
+    const timer = setInterval(() => { runBalances(false) }, intervalMs)
+    return () => clearInterval(timer)
+  }, [data.result?.refreshMs, props.sessionId])
+
+  // 打开时:Escape 关闭,点外面关闭(document 存在才挂——测试环境无 DOM)。
+  useEffect(() => {
+    if (!open || typeof document === 'undefined') return undefined
+    const onKey = (event: KeyboardEvent): void => { if (event.key === 'Escape') setOpen(false) }
+    const onDown = (event: MouseEvent): void => {
+      const root = rootRef.current
+      if (root !== null && event.target instanceof Node && !root.contains(event.target)) setOpen(false)
+    }
+    document.addEventListener('keydown', onKey)
+    document.addEventListener('mousedown', onDown)
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      document.removeEventListener('mousedown', onDown)
+    }
+  }, [open])
+
+  const rows = (data.result?.providers ?? []).map((provider) => ({
+    ...provider,
+    view: _rowDisplay(provider.result),
+    note: _balanceNote(provider.result),
+  }))
+  // 胶囊只讲一个 provider:选中的优先,否则第一行(稳定的 deepseek-first 序)。
+  const primary = rows.find((row) => row.provider === selected) ?? rows[0]
+  const refresh = (): void => {
+    setData((current) => ({ ...current, loading: true }))
+    runBalances(true)
+  }
+
+  return h('span', { className: cx('pbc'), ref: rootRef },
+    h('button', {
+      type: 'button',
+      className: cx('bchip'),
+      'data-balance-state': primary !== undefined ? primary.view.tone : 'none',
+      'data-pb-provider': primary !== undefined ? primary.provider : '',
+      'aria-expanded': open,
+      'aria-haspopup': 'dialog',
+      'aria-label': '各模型服务余额',
+      title: primary !== undefined
+        ? primary.label + ' · ' + primary.view.title + (rows.length > 1 ? '(点击查看其他服务)' : '')
+        : '余额加载中',
+      onClick: () => { setOpen(!open) },
+    },
+      primary === undefined
+        ? h('span', { className: cx('bchip-item') }, h('span', { className: cx('bchip-dot') }), '—')
+        : h('span', { className: cx('bchip-item'), 'data-pb-provider': primary.provider, 'data-pb-role': 'chip', 'data-balance-state': primary.view.tone },
+          h('span', { className: cx('bchip-dot') }),
+          h('span', { className: cx('bchip-v'), 'data-balance-state': primary.view.tone }, primary.view.value),
+          // 周限额副读数:装饰性重复(面板/悬浮里有完整版),对读屏静音。
+          primary.view.sub === null
+            ? null
+            : h('span', { className: cx('bchip-sub'), 'aria-hidden': 'true' }, primary.view.sub))),
+    h('div', { className: cx('bp'), 'data-open': open ? 'true' : 'false', role: open ? 'dialog' : 'none', 'aria-label': '各模型服务余额' },
+      h('div', { className: cx('bp-head') },
+        h('span', { className: cx('bp-title') }, 'API 余额'),
+        h('button', {
+          type: 'button',
+          className: cx('bal-rf', data.loading && 'spin', flash === 'ok' && 'flash-ok', flash === 'same' && 'flash-same'),
+          'data-refresh': 'true',
+          'aria-label': '刷新全部余额',
+          title: '立即刷新',
+          onClick: refresh,
+        }, flash === 'ok' ? '✓' : '↻')),
+      rows.length === 0
+        ? h('div', { className: cx('bp-empty') }, '正在读取各服务余额…')
+        : rows.map((row) => h('button', {
+          type: 'button',
+          key: row.provider,
+          className: cx('bp-row'),
+          'data-pb-provider': row.provider,
+          'data-pb-role': 'panel',
+          // 点行=把该 provider 钉成胶囊头条;当前头条行带 aria-pressed。
+          'aria-pressed': row.provider === (primary !== undefined ? primary.provider : ''),
+          onClick: () => { select(row.provider) },
+        },
+          h('span', { className: cx('bp-dot'), 'data-balance-state': row.view.tone }),
+          h('span', { className: cx('bp-label') },
+            row.label,
+            row.provider === (primary !== undefined ? primary.provider : '')
+              ? h('span', { className: cx('bp-pin') })
+              : null),
+          h('span', { className: cx('bp-v', row.view.tone === 'low' ? 'bad' : ''), 'data-balance-state': row.view.tone }, row.view.value),
+          row.note !== null
+            ? h('div', { className: cx('bp-note', row.view.tone === 'stale' ? 'warn' : 'bad') }, row.note)
+            : renderRowDetail(row)))))
+}
+
 export function DecisionMind(props: DecisionMindProps): React.ReactElement {
   const filter = props.useStore((state) => state.filter)
   const open = props.useStore((state) => state.open)
@@ -698,6 +981,7 @@ export async function apply(ctx: Context & ClientContributionContext): Promise<v
   // data belongs to this plugin instance, never to a module-level singleton
   // (which would leak across plugin reloads) and never to the UI store.
   let cached: TraceSnapshot | null = null
+  let cachedBalances: BalancesResult | null = null
   const call = async <T>(method: string, args: unknown[] = []): Promise<T> => {
     const result = await studioRemote[method]!(...args) as RemoteResult<T>
     if (!result.ok) {
@@ -724,6 +1008,17 @@ export async function apply(ctx: Context & ClientContributionContext): Promise<v
       return { snapshot, changed }
     },
   })
+  // The chip is app-level account chrome, not decision data — it lives in the
+  // session header's utilities seat with its own inject face and cache, so
+  // the Decision Mind view carries trading semantics only.
+  const balancesInjected = (): BalancesInjected => ({
+    cachedBalances: () => cachedBalances,
+    fetchBalances: async (force) => {
+      const result = await call<BalancesResult>('balance', [force])
+      cachedBalances = result
+      return result
+    },
+  })
   const store = createDecisionMindStore()
   ctx.slots.inject('conversation.view', () => ctx.slots.register({
     name: 'conversation.view',
@@ -733,4 +1028,12 @@ export async function apply(ctx: Context & ClientContributionContext): Promise<v
     store,
     inject: injected,
   }, DecisionMind))
+  const balancesStore = createBalanceStore()
+  ctx.slots.inject('conversation.session.header.utilities', () => ctx.slots.register({
+    name: 'conversation.session.header.utilities',
+    id: 'provider-balance',
+    order: 90,
+    store: balancesStore,
+    inject: balancesInjected,
+  }, ProviderBalanceChip))
 }

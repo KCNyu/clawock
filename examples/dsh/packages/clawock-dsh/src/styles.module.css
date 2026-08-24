@@ -881,3 +881,391 @@ body[data-ds-dark-theme] .dmt {
     left:3px
   }
 }
+
+/* API balance — session-header utility chip (the standalone tab AND the
+   Decision-Mind-header capsule each lasted one round): account status is app
+   chrome, so it renders beside the session title on every tab — one glass
+   pill carrying every provider's reading inline, tap = small origin-aware
+   panel with the per-provider story and the manual refresh. This renders
+   OUTSIDE .dmt, so it owns its variable scope; same #868/#869 material
+   recipe (translucent theme surface + backdrop blur + saturate), opaque
+   colour first. Contracts: [data-balance-state], [data-pb-provider],
+   [data-open], [data-refresh], no emoji. */
+.pbc {
+  --surface:var(--dsw-alias-bg-layer-1, #FFFFFF);
+  --text:var(--dsw-alias-label-primary, #15171B);
+  --text3:var(--dsw-alias-label-tertiary, #81858C);
+  --cap:var(--dsw-alias-label-caption, #ADB2B8);
+  --brand:var(--dsw-alias-state-business-primary, #4176E6);
+  --hover:var(--dsw-alias-interactive-bg-hover, rgba(17,24,39,.05));
+  --ok:#1B8644;
+  --bad:#C01313;
+  --warn:#AA6924;
+  --shadow-lg:0 16px 40px rgba(16,24,40,.16), 0 2px 10px rgba(16,24,40,.08);
+  --tint-border:rgba(0,0,0,.05);
+  --pop-surface:rgba(255,255,255,.72);
+  --edge-light:rgba(255,255,255,.55);
+  --font:var(--dsw-font-family, -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif);
+  position:relative;
+  display:inline-flex
+}
+body[data-ds-dark-theme] .pbc {
+  --ok:#3FCB74;
+  --bad:#F2554F;
+  --warn:#E0A752;
+  --shadow-lg:0 16px 40px rgba(0,0,0,.52), 0 2px 10px rgba(0,0,0,.36);
+  --tint-border:rgba(255,255,255,.08);
+  --pop-surface:rgba(28,30,34,.78);
+  --edge-light:rgba(255,255,255,.12)
+}
+.pbc .bchip {
+  position:relative;
+  display:inline-flex;
+  align-items:center;
+  gap:10px;
+  height:26px;
+  padding:0 11px;
+  border-radius:13px;
+  border:1px solid var(--tint-border);
+  background:var(--surface);
+  background:color-mix(in srgb, var(--surface) 62%, transparent);
+  -webkit-backdrop-filter:blur(10px) saturate(1.6);
+  backdrop-filter:blur(10px) saturate(1.6);
+  box-shadow:var(--dsw-shadow-lv1, 0 1px 2px rgba(16,24,40,.04)), inset 0 1px 0 var(--edge-light);
+  font:500 12px/1 var(--font);
+  color:var(--text3);
+  cursor:pointer;
+  transition:background .12s,color .12s,transform .16s cubic-bezier(.23,1,.32,1)
+}
+.pbc .bchip::after {
+  content:"";
+  position:absolute;
+  inset:-7px;
+  border-radius:20px
+}
+.pbc .bchip:active {
+  transform:scale(.96)
+}
+@media (hover: hover) and (pointer: fine) {
+  .pbc .bchip:hover {
+    background:color-mix(in srgb, var(--surface) 80%, transparent)
+  }
+}
+.pbc .bchip:focus-visible {
+  outline:1px solid var(--brand);
+  outline-offset:1px
+}
+.pbc .bchip-item {
+  display:inline-flex;
+  align-items:center;
+  gap:5px
+}
+.pbc .bchip-dot {
+  flex:none;
+  width:6px;
+  height:6px;
+  border-radius:50%;
+  background:var(--cap);
+  transition:background .15s
+}
+.pbc .bchip-item[data-balance-state="ok"] .bchip-dot { background:var(--ok) }
+.pbc .bchip-item[data-balance-state="low"] .bchip-dot { background:var(--bad) }
+.pbc .bchip-item[data-balance-state="stale"] .bchip-dot { background:var(--warn) }
+.pbc .bchip-v {
+  font:600 12px/1 var(--font);
+  font-variant-numeric:tabular-nums;
+  letter-spacing:-.01em;
+  white-space:nowrap;
+  color:var(--text)
+}
+.pbc .bchip-v[data-balance-state="low"] { color:var(--bad) }
+.pbc .bchip-v[data-balance-state="none"] { color:var(--cap); font-weight:500 }
+/* 第二窗口(周限额)副读数:比主读数低一级,同轴排版,不挤主数。 */
+.pbc .bchip-sub {
+  font:500 11px/1 var(--font);
+  font-variant-numeric:tabular-nums;
+  letter-spacing:.01em;
+  white-space:nowrap;
+  color:var(--text3)
+}
+/* The panel: anchored to its trigger (transform-origin top right), enters
+   from scale(.97)+4px up — nothing appears from nowhere — and never steals
+   a click while leaving (pointer-events none). */
+.pbc .bp {
+  position:absolute;
+  top:calc(100% + 8px);
+  right:0;
+  z-index:60;
+  width:max-content;
+  max-width:min(300px, calc(100vw - 24px));
+  min-width:min(220px, calc(100vw - 24px));
+  padding:10px 12px 8px;
+  border-radius:12px;
+  border:1px solid var(--tint-border);
+  background:var(--surface);
+  background:color-mix(in srgb, var(--pop-surface) 100%, transparent);
+  -webkit-backdrop-filter:blur(28px) saturate(1.8);
+  backdrop-filter:blur(28px) saturate(1.8);
+  box-shadow:var(--shadow-lg), inset 0 1px 0 var(--edge-light);
+  transform-origin:top right;
+  transition:transform .16s cubic-bezier(.23,1,.32,1),opacity .16s cubic-bezier(.23,1,.32,1)
+}
+.pbc .bp[data-open="false"] {
+  opacity:0;
+  transform:scale(.97) translateY(-4px);
+  pointer-events:none
+}
+.pbc .bp-head {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  margin-bottom:2px
+}
+.pbc .bp-title {
+  font:600 11px/1.3 var(--font);
+  letter-spacing:.04em;
+  color:var(--cap)
+}
+.pbc .bp-row {
+  display:grid;
+  grid-template-columns:auto auto 1fr;
+  align-items:center;
+  column-gap:8px;
+  row-gap:3px;
+  width:100%;
+  padding:8px 6px;
+  margin:0 -6px;
+  border:0;
+  background:transparent;
+  font:inherit;
+  color:inherit;
+  text-align:left;
+  cursor:pointer;
+  border-radius:8px;
+  transition:background .12s,transform .16s cubic-bezier(.23,1,.32,1)
+}
+.pbc .bp-row + .bp-row {
+  position:relative;
+  border-radius:0 0 8px 8px
+}
+.pbc .bp-row + .bp-row::before {
+  content:"";
+  position:absolute;
+  top:0;
+  left:6px;
+  right:6px;
+  height:1px;
+  background:var(--tint-border)
+}
+@media (hover: hover) and (pointer: fine) {
+  .pbc .bp-row:hover {
+    background:var(--hover)
+  }
+}
+.pbc .bp-row:active {
+  transform:scale(.98);
+  background:var(--hover)
+}
+.pbc .bp-row:focus-visible {
+  outline:1px solid var(--brand);
+  outline-offset:-1px
+}
+.pbc .bp-dot {
+  width:7px;
+  height:7px;
+  border-radius:50%;
+  background:var(--cap)
+}
+.pbc .bp-dot[data-balance-state="ok"] { background:var(--ok) }
+.pbc .bp-dot[data-balance-state="low"] { background:var(--bad) }
+.pbc .bp-dot[data-balance-state="stale"] { background:var(--warn) }
+.pbc .bp-label {
+  display:inline-flex;
+  align-items:center;
+  gap:5px;
+  font:500 12px/1.4 var(--font);
+  color:var(--text)
+}
+.pbc .bp-pin {
+  flex:none;
+  width:5px;
+  height:5px;
+  border-radius:50%;
+  background:var(--brand)
+}
+.pbc .bp-v {
+  justify-self:end;
+  font:650 13px/1.2 var(--font);
+  font-variant-numeric:tabular-nums;
+  letter-spacing:-.01em;
+  white-space:nowrap;
+  color:var(--text)
+}
+.pbc .bp-v.bad {
+  color:var(--bad)
+}
+/* Per-window grid: one line per quota window — label / remaining / reset —
+   plus a hairline remaining-bar under it. The bar is a translucent ink track
+   ON the frosted panel (no second glass layer — glass inside glass reads as
+   mud), fill at ink strength, warning tones only below the low watermark. */
+.pbc .bp-wins {
+  grid-column:1 / -1;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  margin-top:2px
+}
+.pbc .bp-win {
+  display:flex;
+  flex-direction:column;
+  gap:3px;
+  font-size:11px
+}
+.pbc .bp-win-line {
+  display:flex;
+  align-items:baseline;
+  gap:8px;
+  line-height:1.5
+}
+.pbc .bp-win-label {
+  color:var(--cap);
+  min-width:30px;
+  letter-spacing:.02em
+}
+.pbc .bp-win-pct {
+  margin-left:auto;
+  font-weight:600;
+  color:var(--text);
+  font-variant-numeric:tabular-nums
+}
+.pbc .bp-win-reset {
+  color:var(--cap);
+  font-family:var(--mono);
+  font-size:10.5px;
+  min-width:58px;
+  text-align:right;
+  font-variant-numeric:tabular-nums
+}
+.pbc .bp-win-bar {
+  height:3px;
+  border-radius:2px;
+  overflow:hidden;
+  background:color-mix(in srgb, var(--text) 9%, transparent)
+}
+.pbc .bp-win-fill {
+  height:100%;
+  border-radius:2px;
+  background:color-mix(in srgb, var(--text) 42%, transparent);
+  transition:background .15s
+}
+.pbc .bp-win-fill[data-balance-state="low"] { background:var(--bad) }
+.pbc .bp-win-fill[data-balance-state="stale"] { background:var(--warn) }
+.pbc .bp-note, .pbc .bp-sub {
+  grid-column:1 / -1;
+  font:400 11px/1.5 var(--font);
+  overflow-wrap:anywhere
+}
+.pbc .bp-sub { color:var(--cap) }
+.pbc .bp-note.warn { color:var(--warn) }
+.pbc .bp-note.bad { color:var(--bad) }
+.pbc .bp-empty {
+  padding:8px 0 10px;
+  font:400 12px/1.5 var(--font);
+  color:var(--cap)
+}
+/* The manual refresh is a ghost circular icon button (#870): transparent,
+   no border, tint only on hover; its state is the icon's shape. The ::after
+   ring extends the hit target to ~36px without moving a visual pixel. */
+.pbc .bal-rf {
+  position:relative;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  width:22px;
+  height:22px;
+  border:0;
+  border-radius:50%;
+  padding:0;
+  background:transparent;
+  color:var(--text3);
+  font:600 12px/1 var(--font);
+  cursor:pointer;
+  transition:background .12s,color .12s,transform .16s cubic-bezier(.23,1,.32,1)
+}
+.pbc .bal-rf::after {
+  content:"";
+  position:absolute;
+  inset:-9px;
+  border-radius:50%
+}
+.pbc .bal-rf:active {
+  transform:scale(.95)
+}
+@media (hover: hover) and (pointer: fine) {
+  .pbc .bal-rf:hover {
+    background:var(--hover);
+    color:var(--text)
+  }
+}
+.pbc .bal-rf:focus-visible {
+  outline:1px solid var(--brand);
+  outline-offset:1px
+}
+.pbc .bal-rf.spin {
+  animation:clawock-spin .8s linear infinite
+}
+.pbc .bal-rf.flash-ok {
+  color:var(--brand)
+}
+.pbc .bal-rf.flash-same {
+  color:var(--ok)
+}
+@keyframes clawock-spin {
+  to { transform:rotate(360deg) }
+}
+/* Reduced motion: no scale/translate travel anywhere; opacity carries the
+   enter/exit and the colour flashes remain — they aid comprehension. */
+@media (prefers-reduced-motion: reduce) {
+  .pbc .bchip, .pbc .bal-rf {
+    transition:background .12s,color .12s
+  }
+  .pbc .bp {
+    transition:opacity .16s ease
+  }
+  .pbc .bp[data-open="false"] {
+    transform:none
+  }
+  .pbc .bchip:active, .pbc .bal-rf:active {
+    transform:none
+  }
+  .pbc .bal-rf.spin {
+    animation:none
+  }
+  .pbc .bp-win-fill {
+    transition:none
+  }
+}
+/* Mobile: blur is the expensive part on phone GPUs — halve the radius,
+   keep the saturate lift so the material still reads as glass. */
+@media (max-width: 520px) {
+  .pbc .bchip {
+    -webkit-backdrop-filter:blur(7px) saturate(1.4);
+    backdrop-filter:blur(7px) saturate(1.4)
+  }
+  .pbc .bp {
+    -webkit-backdrop-filter:blur(14px) saturate(1.5);
+    backdrop-filter:blur(14px) saturate(1.5)
+  }
+}
+/* Reduced transparency: frost over — solid surfaces, no blur cost. */
+@media (prefers-reduced-transparency: reduce) {
+  .pbc .bchip {
+    background:var(--surface);
+    -webkit-backdrop-filter:none;
+    backdrop-filter:none
+  }
+  .pbc .bp {
+    background:var(--surface);
+    -webkit-backdrop-filter:none;
+    backdrop-filter:none
+  }

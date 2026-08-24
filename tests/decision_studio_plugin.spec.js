@@ -166,9 +166,25 @@ function clientUrl() {
   return pathToFileURL(path.join(PLUGIN, "lib", "client.js")).href + "?v=" + importCounter;
 }
 
+// Effect cleanups the stub collects: the view's poll effect arms a real
+// interval, and a leaked one would keep the test runner's loop alive.
+let reactEffectCleanups = [];
+function disposeReactEffects() {
+  for (const cleanup of reactEffectCleanups) {
+    if (typeof cleanup === "function") cleanup();
+  }
+  reactEffectCleanups = [];
+}
+
 function makeReactStub() {
-  let state = null;
+  // Cursor-based slots: useState(n) binds to slot n for EVERY render, so a
+  // setter write survives re-renders the way React state does. Callers that
+  // render the same component twice and want fresh state call _resetCursor()
+  // first (the old append-per-render behaviour, kept for older tests).
+  const slots = [];
+  let cursor = 0;
   return {
+    _resetCursor() { cursor = 0; },
     createElement(type, props, ...children) {
       if (typeof type === "function") {
         // Mini-renderer: invoke function components so their subtrees appear.
@@ -177,22 +193,54 @@ function makeReactStub() {
       return { type, props: props || {}, children };
     },
     useState(initial) {
-      if (state === null) state = typeof initial === "function" ? initial() : initial;
+      const index = cursor++;
+      if (index >= slots.length) slots.push(typeof initial === "function" ? initial() : initial);
       return [
-        state,
+        slots[index],
         (updater) => {
-          state = typeof updater === "function" ? updater(state) : updater;
+          slots[index] = typeof updater === "function" ? updater(slots[index]) : updater;
         },
       ];
     },
     useEffect(fn) {
-      fn(); // React runs effects after render; cleanup only on unmount/re-run
+      reactEffectCleanups.push(fn()); // runs like a mount; cleanup is collected
     },
     useRef(initial) {
-      // The view uses a ref for its own root element; without a DOM the
-      // scroll-restore effect must simply do nothing.
+      // The views use refs for roots, mount flags and timers; without a DOM
+      // the scroll/outside-click effects must simply do nothing, and the rest
+      // are plain { current } holders.
       return { current: initial === undefined ? null : initial };
     },
+  };
+}
+
+/** Balance fixtures: per-provider rows and the whole-chip envelope. */
+const AS_OF = "2026-08-23T10:00:00.000Z";
+const DS_ROW_OK = {
+  provider: "deepseek", label: "DeepSeek",
+  result: { configured: true, snapshot: { isAvailable: true, unit: "money", currency: "CNY", totalBalance: "110.00", grantedBalance: "10.00", toppedUpBalance: "100.00", asOf: AS_OF, note: "", windows: [] }, status: "fresh", low: false, message: null, threshold: 20, refreshMs: 60000 },
+};
+const MM_ROW_OK = {
+  provider: "minimax", label: "MiniMax",
+  result: { configured: true, snapshot: { isAvailable: true, unit: "pct", currency: "", totalBalance: "76", grantedBalance: "", toppedUpBalance: "", asOf: AS_OF, note: "5h 窗口剩余 76% · 周窗口剩余 90%", windows: [{ label: "5h", percent: 76, resetAt: "21:00" }, { label: "周", percent: 90, resetAt: "周四 21:00" }] }, status: "fresh", low: false, message: null, threshold: 20, refreshMs: 60000 },
+};
+const CL_ROW_OK = {
+  provider: "claude", label: "Claude",
+  result: { configured: true, snapshot: { isAvailable: true, unit: "pct", currency: "", totalBalance: "64", grantedBalance: "", toppedUpBalance: "", asOf: AS_OF, note: "会话窗口剩余 64% · 本周剩余 31%", windows: [{ label: "会话", percent: 64, resetAt: "10:00" }, { label: "本周", percent: 31, resetAt: "周四 10:00" }] }, status: "fresh", low: false, message: null, threshold: 20, refreshMs: 60000 },
+};
+const BALANCES_OK = { providers: [DS_ROW_OK, MM_ROW_OK, CL_ROW_OK], refreshMs: 60000 };
+const QUIET_BALANCES = { providers: [], refreshMs: 60000 };
+/** The balances channel stub for renders that don't exercise the chip. */
+function balanceProps() {
+  return { cachedBalances: () => null, fetchBalances: async () => QUIET_BALANCES };
+}
+/** Chip selection store stub: same surface the registration store provides. */
+function makeBalanceStoreStub(initial = null) {
+  let s = { selected: initial };
+  return {
+    useStore: (sel) => sel(s),
+    actions: { select(provider) { s = { ...s, selected: provider }; } },
+    _get: () => s,
   };
 }
 
@@ -252,48 +300,66 @@ test("client: registers the Decision Mind tab and mounts the remote face", async
   });
   assert.deepEqual(api.inject, ["slots", "remote"]);
 
-  let registered = null;
-  let component = null;
   const remoteFace = {
     ledger: async () => ({ ok: true, value: { entries: [] } }),
     portfolio: async () => ({ ok: true, value: { books: [] } }),
     plans: async () => ({ ok: true, value: { plans: [] } }),
     traces: async () => ({ ok: true, value: { workspaceKey: "ws1", signature: "sig1", trades: [], rate: null } }),
     get: async (runId) => ({ ok: true, value: { runId } }),
+    balance: async () => ({ ok: true, value: BALANCES_OK }),
   };
   const ctx = {
     effect() {},
     get(name) { assert.equal(name, "remote.clawockStudio"); return remoteFace; },
     slots: {
-      inject(name, fn) { assert.equal(name, "conversation.view"); this._fn = fn; },
-      register(definition, Component) { registered = definition; component = Component; },
+      inject(name, fn) { (this._seats ??= []).push(name); (this._fns ??= []).push(fn); },
+      register(definition, Component) { (this._regs ??= []).push({ definition, Component }); },
     },
     remote: {
       $mount: async (descriptors) => {
-        assert.equal(descriptors.descriptors.length, 6);
+        assert.equal(descriptors.descriptors.length, 7);
         // gateway invoke() validates args against descriptor.parameters.length —
         // get(runId) must declare its argument or every call would throw.
         const getDesc = descriptors.descriptors.find((d) => d.method === "get");
         assert.ok(getDesc, "get descriptor present");
         assert.equal(getDesc.parameters.length, 1, "get(runId) must declare its argument");
         assert.equal(getDesc.parameters[0].name, "runId");
+        // The balance box rides the same Remote face: its descriptor must
+        // declare the force argument the host's balance(force) takes.
+        const balDesc = descriptors.descriptors.find((d) => d.method === "balance");
+        assert.ok(balDesc, "balance descriptor present");
+        assert.equal(balDesc.parameters.length, 1, "balance(force) must declare its argument");
+        assert.equal(balDesc.parameters[0].name, "force");
       },
     },
   };
   await api.apply(ctx);
-  ctx.slots._fn();
-  assert.equal(registered.id, "decision-studio");
+  for (const fn of ctx.slots._fns) fn();
+  // Two registrations, two different seats: the tab ring carries Decision
+  // Mind ONLY (the standalone 余额 tab lasted one session), and account
+  // status lives in the session header's utilities seat as app chrome.
+  assert.deepEqual(ctx.slots._seats, ["conversation.view", "conversation.session.header.utilities"],
+    "tab ring for decisions, utilities seat for account chrome — nothing else");
+  assert.equal(ctx.slots._regs.length, 2, "tab + header utility, nothing else");
+  const registered = ctx.slots._regs.find((r) => r.definition.id === "decision-studio").definition;
+  const chipReg = ctx.slots._regs.find((r) => r.definition.id === "provider-balance");
+  assert.ok(chipReg, "the balance chip is registered");
   assert.equal(registered.order, 30);
   assert.equal(registered.label(), "Decision Mind");
+  assert.equal(chipReg.definition.name, "conversation.session.header.utilities",
+    "the chip must ride the utilities seat, never the tab ring");
+  assert.equal(chipReg.definition.order, 90);
   // Official registration store: UI state survives the ring's unmount/remount.
   assert.ok(registered.store, "registration must declare a per-session store");
   assert.deepEqual(registered.store.spec.init(), { filter: "all", open: null, visibleDateCount: 3, foldedDates: [], scrollTop: 0 });
 
   const injected = registered.inject("s1");
   // The inject face is the view's only live-data channel: a snapshot reader
-  // plus a fetch that reports whether the host's answer actually changed.
+  // plus a fetch that reports whether the host answered actually changed.
   assert.equal(typeof injected.cachedTraces, "function");
   assert.equal(typeof injected.fetchTraces, "function");
+  assert.equal(injected.cachedBalance === undefined && injected.cachedBalances === undefined, true,
+    "Decision Mind carries no balance channel — trading semantics only");
   assert.equal(injected.cachedTraces(), null, "a fresh registration has no snapshot yet");
   const first = await injected.fetchTraces();
   assert.deepEqual(first.snapshot.trades, []);
@@ -301,7 +367,18 @@ test("client: registers the Decision Mind tab and mounts the remote face", async
   assert.ok(injected.cachedTraces(), "the fetched snapshot is cached in the apply closure");
   const second = await injected.fetchTraces();
   assert.equal(second.changed, false, "the same workspace signature must not re-render");
-  assert.equal(typeof component, "function");
+
+  // The chip's inject face owns the balance channel with its own cache.
+  const balInjected = chipReg.definition.inject("s1");
+  assert.equal(typeof balInjected.cachedBalances, "function");
+  assert.equal(balInjected.cachedBalances(), null, "a fresh registration has no balances answer yet");
+  const bal = await balInjected.fetchBalances(false);
+  assert.deepEqual(bal.providers.map((r) => r.provider), ["deepseek", "minimax", "claude"],
+    "stable display order across the three providers");
+  assert.equal(bal.providers[0].result.snapshot.totalBalance, "110.00");
+  assert.ok(balInjected.cachedBalances(), "the fetched answer is cached in the apply closure");
+  // The chip's pinned-provider choice is registration-store state.
+  assert.deepEqual(chipReg.definition.store.spec.init(), { selected: null });
 });
 
 test("client: _displayEntry projects a trace with its decision and T+1", async () => {
@@ -343,8 +420,6 @@ test("client: renders the single decision-trace view from the mounted remote", a
     throw new Error(`unexpected require: ${s}`);
   });
 
-  let registered = null;
-  let component = null;
   const remoteFace = {
     traces: async () => ({ ok: true, value: { workspaceKey: "ws1", signature: "sig1", trades: [
       { ticker: "SPCH", market: "US", currency: "USD", date: "2026-08-15", action: "buy",
@@ -375,14 +450,16 @@ test("client: renders the single decision-trace view from the mounted remote", a
     effect() {},
     get() { return remoteFace; },
     slots: {
-      inject(name, fn) { this._fn = fn; },
-      register(definition, Component) { registered = definition; component = Component; },
+      inject(name, fn) { (this._fns ??= []).push(fn); },
+      register(definition, Component) { this._regs ??= []; this._regs.push({ definition, Component }); },
     },
     remote: { $mount: async () => {} },
   };
   await api.apply(ctx);
-  ctx.slots._fn();
-  const injected = registered.inject("s1");
+  for (const fn of ctx.slots._fns) fn();
+  const __ds = ctx.slots._regs.find((r) => r.definition.id === "decision-studio");
+  const component = __ds.Component;
+  const injected = __ds.definition.inject("s1");
 
   const store = makeStoreStub();
   const tick = () => new Promise((resolve) => setImmediate(resolve));
@@ -503,6 +580,7 @@ test("client: renders the single decision-trace view from the mounted remote", a
   // so it shows the position's figure, marked as the position's.
   assert.match(joined2, /该持仓当前浮动/);
   assert.doesNotMatch(joined2, /盈亏\s*[-+\d]/, "a bare 盈亏 label may not carry either figure");
+  disposeReactEffects();
 });
 
 test("T+1 reading: one host-side dead zone drives chip, node and verdict (#665/#713)", async () => {
@@ -580,8 +658,6 @@ test("client: trace list batches older days behind 'show earlier' and folds by d
     mk("EEE", "2026-08-05"),
   ];
 
-  let registered = null;
-  let component = null;
   const remoteFace = {
     traces: async () => ({ ok: true, value: { workspaceKey: "ws1", signature: "sig1", trades, rate: null } }),
     ledger: async () => ({ ok: true, value: { entries: [] } }),
@@ -591,12 +667,14 @@ test("client: trace list batches older days behind 'show earlier' and folds by d
   const ctx = {
     effect() {},
     get() { return remoteFace; },
-    slots: { inject(n, fn) { this._fn = fn; }, register(definition, Component) { registered = definition; component = Component; } },
+    slots: { inject(n, fn) { (this._fns ??= []).push(fn); }, register(definition, Component) { (this._regs ??= []).push({ definition, Component }); } },
     remote: { $mount: async () => {} },
   };
   await api.apply(ctx);
-  ctx.slots._fn();
-  const injected = registered.inject("s1");
+  for (const fn of ctx.slots._fns) fn();
+  const __ds = ctx.slots._regs.find((r) => r.definition.id === "decision-studio");
+  const component = __ds.Component;
+  const injected = __ds.definition.inject("s1");
 
   const store = makeStoreStub();
   const tick = () => new Promise((resolve) => setImmediate(resolve));
@@ -674,6 +752,7 @@ test("client: trace list batches older days behind 'show earlier' and folds by d
   await tick();
   tree = render();
   assert.match(collectText(), /AAA/, "unfolding restores the cell");
+  disposeReactEffects();
 });
 
 test("client: the bundle loads with no DOM and owns no module-level state (#729)", async () => {
@@ -694,15 +773,19 @@ test("client: the bundle loads with no DOM and owns no module-level state (#729)
 
   const ctx = {
     effect() {}, get() { return { traces: async () => ({ ok: true, value: { trades: [] } }) }; },
-    slots: { inject(n, fn) { this._fn = fn; }, register() {} },
+    slots: { inject(n, fn) { (this._fns ??= []).push(fn); }, register() {} },
     remote: { $mount: async () => {} },
   };
   await api.apply(ctx);
-  ctx.slots._fn();
-  assert.equal(counter.calls, 1, "apply() creates exactly one store handle");
+  for (const fn of ctx.slots._fns) fn();
+  assert.equal(counter.calls, 2, "apply() creates exactly two store handles (Decision Mind + chip selection)");
   const one = api.createDecisionMindStore();
   const two = api.createDecisionMindStore();
   assert.notEqual(one, two, "each factory call must yield its own handle, never a shared singleton");
+  const chipA = api.createBalanceStore();
+  const chipB = api.createBalanceStore();
+  assert.notEqual(chipA, chipB, "the chip store is also per-call, never a module singleton");
+  assert.deepEqual(chipA.spec.init(), { selected: null });
 });
 
 test("client: stylesheet is loader-owned and keeps the dark-theme and tone contract (#704/#685/#729)", async () => {
@@ -735,6 +818,20 @@ test("client: stylesheet is loader-owned and keeps the dark-theme and tone contr
   assert.match(css, /_detail\{[^}]*grid-template-rows:0fr/, "folded detail must default to 0fr");
   assert.match(css, hashed("stats"), "header stats block required");
   assert.match(css, hashed("filters"), "filter row block required");
+  // The balance capsule is part of the same sheet contract: its classes must
+  // exist (a cx() token with no rule renders verbatim, unhashed) and the low
+  // state's red dot must be selectable through the stable data attribute.
+  assert.match(css, hashed("bchip"), "header balance chip block required");
+  assert.match(css, hashed("bchip-dot"), "per-provider chip dot required");
+  assert.match(css, hashed("bchip-sub"), "weekly sub-reading class required");
+  assert.match(css, hashed("bp"), "provider panel block required");
+  assert.match(css, hashed("bp-row"), "panel per-provider row required");
+  assert.match(css, hashed("bal-rf"), "ghost refresh button required");
+  assert.match(css, hashed("bp-win-bar"), "per-window progress bar required");
+  // lightningcss minifies the attribute selector's quotes away; the
+  // contract is the data attribute itself, not its quoting.
+  assert.match(css, /_bchip-v\[data-balance-state=low\]/, "chip low value selector required");
+  assert.match(css, /_bp\[data-open=false\]/, "closed-panel state selector required");
   assert.match(css, hashed("skel"), "cold-start skeleton block required");
   // The three host-layout contracts this tab lives inside. Each of them was a
   // visible defect before 2026-08-22, and none is observable from the rendered
@@ -973,5 +1070,524 @@ test("freshness: trace cache is signature-keyed and µs-hit", async () => {
   assert.match(key, /^[0-9a-f]{12}$/);
   assert.notEqual(key, freshness.workspaceKeyOf("/tmp/ws-b"));
 });
+
+test("balance: CNY picking, tolerant parsing and the service's polite-cadence states", async () => {
+  const balance = await import(pathToFileURL(path.join(PLUGIN, "lib", "balance.js")).href);
+  const { createBalanceService, parseBalancePayload, pickCnyBalanceInfo } = balance;
+
+  // Entry picking: CNY preferred case-insensitively; the first entry is the
+  // fallback; an empty payload reads as absent, never as a throw.
+  const infos = [
+    { currency: "USD", total_balance: "5.00" },
+    { currency: "cny", total_balance: "110.00" },
+  ];
+  assert.equal(pickCnyBalanceInfo(infos).currency, "cny");
+  assert.equal(pickCnyBalanceInfo([{ currency: "USD" }]).currency, "USD");
+  assert.equal(pickCnyBalanceInfo(undefined), undefined);
+  assert.equal(pickCnyBalanceInfo([]), undefined);
+
+  // Parsing is tolerant: a shape drift degrades to '' / false instead of
+  // throwing, so the box reads empty rather than crashing the tab.
+  const parsed = parseBalancePayload({
+    is_available: true,
+    balance_infos: [{ currency: "CNY", total_balance: "110.00", granted_balance: "10.00", topped_up_balance: "100.00" }],
+  }, "2026-08-23T10:00:00.000Z");
+  assert.equal(parsed.totalBalance, "110.00");
+  assert.equal(parsed.grantedBalance, "10.00");
+  assert.equal(parsed.isAvailable, true);
+  const degraded = parseBalancePayload({ nope: true }, "2026-08-23T10:00:00.000Z");
+  assert.equal(degraded.totalBalance, "");
+  assert.equal(degraded.isAvailable, false);
+
+  // Service: key from the credentials seam, TTL cache, forced refresh,
+  // in-flight join, stale retention and the host-side low reading.
+  let upstreamCalls = 0;
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async (url, init) => {
+    upstreamCalls += 1;
+    assert.match(String(url), /\/user\/balance$/);
+    assert.equal(init.headers.authorization, "Bearer sk-test");
+    return new Response(JSON.stringify({
+      is_available: true,
+      balance_infos: [{ currency: "CNY", total_balance: "9.00", granted_balance: "0.00", topped_up_balance: "9.00" }],
+    }), { status: 200, headers: { "content-type": "application/json" } });
+  };
+  try {
+    const service = createBalanceService({ credentials: { resolve: async () => ({ value: "sk-test" }) } }, { threshold: 10, refreshMs: 60000 });
+
+    const fresh = await service.get(false);
+    assert.equal(fresh.status, "fresh");
+    assert.equal(fresh.snapshot.totalBalance, "9.00");
+    assert.equal(fresh.low, true, "9 ≤ 10 must read low, decided host-side");
+    assert.equal(fresh.threshold, 10);
+
+    const cached = await service.get(false);
+    assert.equal(cached.status, "cached");
+    assert.equal(upstreamCalls, 1, "the TTL window serves from cache");
+
+    const forced = await service.get(true);
+    assert.equal(forced.status, "fresh");
+    assert.equal(upstreamCalls, 2, "force bypasses the TTL");
+
+    // Two concurrent callers join one upstream request.
+    const [a, b] = await Promise.all([service.get(true), service.get(true)]);
+    assert.equal(a.snapshot.totalBalance, "9.00");
+    assert.equal(b.snapshot.totalBalance, "9.00");
+    assert.equal(upstreamCalls, 3, "a racing poll joins the in-flight run");
+
+    // A failed refresh keeps the last good snapshot and reports stale —
+    // a transient 429 cannot erase a real number.
+    globalThis.fetch = async () => { throw new Error("down"); };
+    const stale = await service.get(true);
+    assert.equal(stale.status, "stale");
+    assert.equal(stale.snapshot.totalBalance, "9.00");
+    assert.match(stale.message, /down/);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+
+  // No key anywhere → in-band no-key, never a throw.
+  const noKeyService = createBalanceService({ credentials: { resolve: async () => undefined } });
+  const noKey = await noKeyService.get(false);
+  assert.equal(noKey.status, "no-key");
+  assert.equal(noKey.status, "no-key");
+  assert.equal(noKey.configured, false);
+  assert.equal(noKey.snapshot, null);
+  assert.match(noKey.message, /未配置/);
+
+  // --- MiniMax: Token Plan quota windows, percent-based, HTTP-200 failures ---
+  const { createMinimaxService, parseMinimaxRemains, windowRemainingPercent } = balance;
+
+  // Percent field wins; counts derive it; unreadable stays null (never guessed).
+  assert.equal(windowRemainingPercent({ current_interval_remaining_percent: 88.4 }), 88.4);
+  assert.equal(windowRemainingPercent({ current_interval_total_count: 5000000, current_interval_usage_count: 1250000 }), 75);
+  assert.equal(windowRemainingPercent({ current_interval_total_count: 0, current_interval_usage_count: 0 }), null);
+  assert.equal(windowRemainingPercent({}), null);
+
+  // The general bucket is the text/coding plan every account carries.
+  const mmParsed = parseMinimaxRemains({
+    base_resp: { status_code: 0, status_msg: "success" },
+    model_remains: [
+      { model: "video", current_interval_remaining_percent: 40 },
+      { model: "general", current_interval_remaining_percent: 76.4, current_weekly_remaining_percent: 90, end_time: Date.now() + 3600_000 },
+    ],
+  }, AS_OF);
+  assert.equal(mmParsed.unit, "pct");
+  assert.equal(mmParsed.totalBalance, "76", "percent is rounded for display only");
+  assert.deepEqual(mmParsed.windows.map((w) => [w.label, w.percent]), [["5h", 76], ["周", 90]]);
+  assert.match(mmParsed.windows[0].resetAt, /^\d{2}:\d{2}$/);
+  assert.throws(() => parseMinimaxRemains({ base_resp: { status_code: 0 } }, AS_OF), /model_remains/);
+  // Epoch seconds AND milliseconds both read; garbage does not crash.
+  const withReset = parseMinimaxRemains({
+    base_resp: { status_code: 0 },
+    model_remains: [{ model: "general", current_interval_remaining_percent: 50, end_time: 1785196800000 }],
+  }, AS_OF);
+  assert.match(withReset.windows[0].resetAt, /^\d{2}:\d{2}$/);
+
+  let minimaxCalls = 0;
+  globalThis.fetch = async (url, init) => {
+    minimaxCalls += 1;
+    assert.match(String(url), /\/v1\/token_plan\/remains$/);
+    assert.equal(init.headers.authorization, "Bearer mm-test");
+    // A HTTP-200 body can still be a business failure — the envelope decides.
+    return new Response(JSON.stringify({
+      base_resp: { status_code: 1004, status_msg: "login fail" },
+    }), { status: 200, headers: { "content-type": "application/json" } });
+  };
+  try {
+    const mmService = createMinimaxService({ credentials: { resolve: async () => ({ value: "mm-test" }) } });
+    const authFail = await mmService.get(true);
+    assert.equal(authFail.status, "failed");
+    assert.match(authFail.message, /无效或已过期/);
+    assert.match(authFail.message, /login fail/, "the upstream reason rides along");
+
+    globalThis.fetch = async () => new Response(JSON.stringify({
+      base_resp: { status_code: 0, status_msg: "success" },
+      model_remains: [{ model: "general", current_interval_remaining_percent: 12 }],
+    }), { status: 200, headers: { "content-type": "application/json" } });
+    const lowQuota = await createMinimaxService({ credentials: { resolve: async () => ({ value: "mm-test" }) } }).get(true);
+    assert.equal(lowQuota.status, "fresh");
+    assert.equal(lowQuota.low, true, "12% remaining must read low against the 20% default");
+    assert.equal(lowQuota.snapshot.unit, "pct");
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+
+  // MiniMax with no key configured ANYWHERE (seam, env, then the gateway
+  // config fallback) is an honest panel row, not an error. That fallback must
+  // be pointed at a missing file — the real one carries the production key.
+  const mmMissing = { credentials: { resolve: async () => undefined }, env: {} };
+  const savedEnv = process.env.MINIMAX_API_KEY;
+  delete process.env.MINIMAX_API_KEY;
+  try {
+    const mmNoKey = await createMinimaxService(
+      { credentials: { resolve: async () => undefined } },
+      { openclawConfigPath: "/nonexistent/provider-keys.json" },
+    ).get(false);
+    assert.equal(mmNoKey.status, "no-key");
+    assert.match(mmNoKey.message, /未配置/);
+  } finally {
+    if (savedEnv !== undefined) process.env.MINIMAX_API_KEY = savedEnv;
+  }
+
+  // The openclaw-config fallback: when seam and env are both empty, the
+  // gateway's own models.providers.<name>.apiKey answers.
+  const osMod = await import("node:os");
+  const fsMod = await import("node:fs");
+  const pathMod = await import("node:path");
+  const tmpCfg = fsMod.mkdtempSync(pathMod.join(osMod.tmpdir(), "pb-"));
+  const cfgPath = pathMod.join(tmpCfg, "gateway-keys.json");
+  fsMod.writeFileSync(cfgPath, JSON.stringify({ models: { providers: { minimax: { apiKey: "mm-from-openclaw" } } } }));
+  let sawAuth = "";
+  globalThis.fetch = async (url, init) => {
+    sawAuth = init.headers.authorization;
+    return new Response(JSON.stringify({
+      base_resp: { status_code: 0, status_msg: "success" },
+      model_remains: [{ model: "general", current_interval_remaining_percent: 50 }],
+    }), { status: 200, headers: { "content-type": "application/json" } });
+  };
+  try {
+    const mmFallback = await createMinimaxService(
+      { credentials: { resolve: async () => undefined } },
+      { openclawConfigPath: cfgPath },
+    ).get(true);
+    assert.equal(sawAuth, "Bearer mm-from-openclaw", "key resolved from the openclaw gateway config");
+    assert.equal(mmFallback.status, "fresh");
+  } finally {
+    globalThis.fetch = originalFetch;
+    fsMod.rmSync(tmpCfg, { recursive: true, force: true });
+  }
+});
+
+test("balance: claude subscription windows via the OAuth usage endpoint", async () => {
+  const originalFetch = globalThis.fetch;
+  const balance = await import(pathToFileURL(path.join(PLUGIN, "lib", "balance.js")).href);
+  const { createClaudeService, parseClaudeUsage, readClaudeCredentials } = balance;
+  const osMod = await import("node:os");
+  const fsMod = await import("node:fs");
+  const pathMod = await import("node:path");
+
+  // Credentials file parsing: tolerant of absence.
+  assert.equal(readClaudeCredentials("/nonexistent/creds.json"), undefined);
+
+  const tmp = fsMod.mkdtempSync(pathMod.join(osMod.tmpdir(), "pc-"));
+  const credsPath = pathMod.join(tmp, ".credentials.json");
+  const future = Date.now() + 3600_000;
+  const past = Date.now() - 1000;
+  fsMod.writeFileSync(credsPath, JSON.stringify({
+    claudeAiOauth: { accessToken: "sk-ant-oat01-test", refreshToken: "ort01", expiresAt: future, subscriptionType: "max" },
+  }));
+
+  // utilization is consumption; our reading is REMAINING percent.
+  const usageBody = {
+    five_hour: { utilization: 36, resets_at: "2026-08-24T02:00:00Z" },
+    seven_day: { utilization: 69 },
+  };
+  let sawHeaders = {};
+  globalThis.fetch = async (url, init) => {
+    sawHeaders = init.headers;
+    assert.match(String(url), /api\.anthropic\.com\/api\/oauth\/usage$/);
+    return new Response(JSON.stringify(usageBody), { status: 200, headers: { "content-type": "application/json" } });
+  };
+  try {
+    const svc = createClaudeService(
+      { credentials: { resolve: async () => undefined } },
+      { credentialsPath: credsPath, usageUrl: "https://api.anthropic.com/api/oauth/usage" },
+    );
+    const fresh = await svc.get(true);
+    assert.equal(fresh.status, "fresh");
+    assert.equal(fresh.snapshot.unit, "pct");
+    assert.equal(fresh.snapshot.totalBalance, "64", "100 - 36 utilized = 64 remaining");
+    assert.deepEqual(fresh.snapshot.windows.map((w) => [w.label, w.percent]), [["会话", 64], ["本周", 31]]);
+    assert.match(fresh.snapshot.windows[0].resetAt, /^\d{2}:\d{2}$/);
+    assert.match(fresh.snapshot.note, /会话窗口剩余 64%/);
+    assert.match(fresh.snapshot.note, /本周剩余 31%/, "note mirrors the weekly window");
+    assert.equal(sawHeaders["anthropic-beta"], "oauth-2025-04-20", "the beta header is required");
+    assert.equal(sawHeaders.authorization, "Bearer sk-ant-oat01-test");
+
+    // Expired login → honest failed row telling kcn to re-run claude once.
+    fsMod.writeFileSync(credsPath, JSON.stringify({
+      claudeAiOauth: { accessToken: "stale", refreshToken: "r", expiresAt: past },
+    }));
+    const expired = await createClaudeService(
+      { credentials: { resolve: async () => undefined } },
+      { credentialsPath: credsPath, usageUrl: "https://api.anthropic.com/api/oauth/usage" },
+    ).get(true);
+    assert.equal(expired.status, "failed");
+    assert.match(expired.message, /过期/);
+
+    // Missing file entirely → in-band no-key.
+    const none = await createClaudeService(
+      { credentials: { resolve: async () => undefined } },
+      { credentialsPath: "/nonexistent/creds.json", usageUrl: "https://api.anthropic.com/api/oauth/usage" },
+    ).get(false);
+    assert.equal(none.status, "no-key");
+  } finally {
+    globalThis.fetch = originalFetch;
+    fsMod.rmSync(tmp, { recursive: true, force: true });
+  }
+
+  // Both windows absent → honest failure, never a fabricated number.
+  assert.throws(() => parseClaudeUsage({}, AS_OF), /用量窗口/);
+});
+
+test("typert: the frozen artifacts carry the balance wire on both faces", () => {
+  // The clawock checkout cannot regenerate the Typert face (see build.mjs):
+  // these committed files ARE the wire. A method missing here is a method
+  // the client cannot call — the same class of failure as #738's alignment.
+  for (const rel of ["lib/typert.host.js", "lib/typert.remote-client.js"]) {
+    const src = fs.readFileSync(path.join(PLUGIN, rel), "utf8");
+    assert.match(src, /id: 'clawock-dsh#clawockStudio\/balance'/, rel);
+    assert.match(src, /clawock_dsh_clawockStudio_balance_parameter_0\$schema = z\.boolean\(\)/, rel + " force codec");
+    assert.match(src, /typeSymbol: 'clawock-dsh\/types#BalancesResult'/, rel + " result type (multi-provider envelope)");
+    assert.match(src, /'providers': z\.array\(z\.object\(/, rel + " per-provider rows on the wire");
+    assert.match(src, /'unit': z\.string\(\)/, rel + " snapshot unit discriminator");
+    assert.match(src, /'refreshMs': z\.number\(\)/, rel + " result schema field");
+  }
+});
+
+test("client: the header chip headlines one provider and the panel pins the rest", async () => {
+  const loaded = await loadClient();
+  const reactStub = makeReactStub();
+  const api = loaded.factory((s) => {
+    if (s === "@deepseek-ai/dsh-client-runtime/client") return makeRuntimeStub();
+    if (s === "react") return reactStub;
+    throw new Error(`unexpected require: ${s}`);
+  });
+
+  // DeepSeek low + MiniMax healthy: the pill headlines the FIRST row until a
+  // panel click pins another one.
+  const envelope = { providers: [DS_ROW_OK, MM_ROW_OK, CL_ROW_OK], refreshMs: 60000 };
+  const remoteFace = { balance: async () => ({ ok: true, value: envelope }) };
+  const ctx = {
+    effect() {},
+    get() { return remoteFace; },
+    slots: { inject(n, fn) { (this._fns ??= []).push(fn); }, register(definition, Component) { (this._regs ??= []).push({ definition, Component }); } },
+    remote: { $mount: async () => {} },
+  };
+  await api.apply(ctx);
+  for (const fn of ctx.slots._fns) fn();
+  const __chip = ctx.slots._regs.find((r) => r.definition.id === "provider-balance");
+  const Chip = __chip.Component;
+  const injected = __chip.definition.inject("s1");
+  const store = makeBalanceStoreStub();
+
+  const tick = () => new Promise((resolve) => setImmediate(resolve));
+  const render = () => { reactStub._resetCursor(); return Chip({ sessionId: "s1", useStore: store.useStore, actions: store.actions, ...injected }); };
+
+  // Collect chip item / panel rows separately via data-pb-role.
+  const collect = (tree) => {
+    const found = { chip: [], panel: [], openAttr: null, trigger: null, refresh: null, texts: [] };
+    (function walk(node) {
+      if (node == null) return;
+      if (Array.isArray(node)) { node.forEach(walk); return; }
+      if (typeof node === "string") { found.texts.push(node); return; }
+      const p = node.props || {};
+      if (p["data-pb-role"] === "chip") found.chip.push(p);
+      if (p["data-pb-role"] === "panel") found.panel.push(node);
+      if (p["data-open"] !== undefined) found.openAttr = p["data-open"];
+      if (p["aria-haspopup"] === "dialog") found.trigger = node;
+      if (p["data-refresh"] === "true") found.refresh = node;
+      (node.children || []).forEach(walk);
+    })(tree);
+    return found;
+  };
+
+  let tree = render();
+  await tick(); await tick(); await tick();
+  tree = render();
+  let f = collect(tree);
+  // Pill: exactly ONE headline reading — deepseek, the stable first row.
+  assert.equal(f.chip.length, 1, "the pill headlines exactly one provider");
+  assert.equal(f.chip[0]["data-pb-provider"], "deepseek", "default headline is the first configured row");
+  assert.equal(f.chip[0]["data-balance-state"], "ok");
+  assert.ok(f.texts.includes("¥110"), "the headlined value renders");
+  // Panel: mounted closed, every provider listed with its own tone.
+  assert.equal(f.openAttr, "false", "the panel renders closed but mounted");
+  assert.deepEqual(f.panel.map((n) => n.props["data-pb-provider"]), ["deepseek", "minimax", "claude"]);
+  assert.ok(f.refresh, "the manual refresh lives in the panel header");
+
+  // Open → click the minimax row → the pill re-headlines minimax (persisted).
+  f.trigger.props.onClick();
+  tree = render();
+  f = collect(tree);
+  assert.equal(f.openAttr, "true", "the panel opens from the trigger");
+  const mmRow = f.panel.find((n) => n.props["data-pb-provider"] === "minimax");
+  assert.ok(mmRow, "panel rows are buttons");
+  mmRow.props.onClick();
+  tree = render();
+  f = collect(tree);
+  assert.equal(f.chip[0]["data-pb-provider"], "minimax", "clicking a panel row pins it as the headline");
+  assert.equal(f.chip[0]["data-balance-state"], "ok");
+  assert.equal(store._get().selected, "minimax", "the pin survives in registration-store state");
+  assert.ok(f.texts.includes("76%"), "the pinned quota reading renders");
+  assert.ok(
+    f.texts.some((t) => t.includes("周 90%")),
+    "the weekly limit rides along on the pill as a muted sub-reading",
+  );
+
+  // Manual refresh resolves through the same remote face without throwing.
+  f.refresh.props.onClick();
+  await tick(); await tick();
+  assert.ok(true, "manual refresh resolves without throwing");
+  disposeReactEffects();
+});
+
+test("client: the panel says each provider's story once, abnormal rows loudest", async () => {
+  const loaded = await loadClient();
+  const reactStub = makeReactStub();
+  const api = loaded.factory((s) => {
+    if (s === "@deepseek-ai/dsh-client-runtime/client") return makeRuntimeStub();
+    if (s === "react") return reactStub;
+    throw new Error(`unexpected require: ${s}`);
+  });
+
+  const envelope = {
+    providers: [
+      { provider: "deepseek", label: "DeepSeek", result: { configured: false, snapshot: null, status: "no-key", low: false, message: "未配置 DeepSeek API Key(设置 → 模型 → DeepSeek)", threshold: 20, refreshMs: 60000 } },
+      MM_ROW_OK,
+    ],
+    refreshMs: 60000,
+  };
+  const ctx = {
+    effect() {},
+    get() { return { balance: async () => ({ ok: true, value: envelope }) }; },
+    slots: { inject(n, fn) { (this._fns ??= []).push(fn); }, register(definition, Component) { (this._regs ??= []).push({ definition, Component }); } },
+    remote: { $mount: async () => {} },
+  };
+  await api.apply(ctx);
+  for (const fn of ctx.slots._fns) fn();
+  const __pb = ctx.slots._regs.find((r) => r.definition.id === "provider-balance");
+  const Chip = __pb.Component;
+  const injected = __pb.definition.inject("s1");
+  const store = makeBalanceStoreStub();
+  const tick = () => new Promise((resolve) => setImmediate(resolve));
+  const render = () => { reactStub._resetCursor(); return Chip({ sessionId: "s1", useStore: store.useStore, actions: store.actions, ...injected }); };
+
+  let tree = render();
+  await tick(); await tick(); await tick();
+  // Open the panel.
+  (function findTrigger(node) {
+    if (node == null || Array.isArray(node)) return null;
+    if (node.props && node.props["aria-haspopup"] === "dialog") { node.props.onClick(); return node; }
+    for (const child of node.children || []) { const hit = findTrigger(child); if (hit) return hit; }
+    return null;
+  })(tree);
+  tree = render();
+
+  const texts = [];
+  (function walk(node) {
+    if (node == null) return;
+    if (Array.isArray(node)) { node.forEach(walk); return; }
+    if (typeof node === "string") { texts.push(node); return; }
+    (node.children || []).forEach(walk);
+  })(tree);
+  assert.ok(texts.includes("API 余额"), "panel carries its title");
+  assert.ok(texts.some((t) => t.includes("未配置")), "a keyless provider is an honest row, not hidden");
+  assert.ok(texts.includes("MiniMax"), "provider labels render verbatim");
+  assert.ok(texts.includes("5h"), "per-window labels render as a scannable column");
+  assert.ok(texts.includes("周"), "both windows surface their own line");
+  const fills = [];
+  (function walkFills(node) {
+    if (node == null) return;
+    if (Array.isArray(node)) { node.forEach(walkFills); return; }
+    if (typeof node === "object" && node.props !== null && typeof node.props === "object" &&
+        typeof node.props.className === "string" && node.props.className.includes("bp-win-fill")) {
+      fills.push(node.props);
+    }
+    (node.children || []).forEach(walkFills);
+  })(tree);
+  assert.equal(fills.length, 2, "each quota window renders one remaining-bar");
+  assert.deepEqual(fills.map((p) => p.style.width), ["76%", "90%"], "bar length mirrors the window reading");
+  assert.deepEqual(
+    fills.map((p) => p["data-balance-state"]),
+    ["ok", "ok"],
+    "healthy windows stay ink-toned",
+  );
+  disposeReactEffects();
+
+  // Below the low watermark the bar itself flips to the warning tone — the
+  // same discipline as the dots, applied per window rather than per provider.
+  const LOW_MM = JSON.parse(JSON.stringify(MM_ROW_OK));
+  LOW_MM.result.snapshot.windows = [{ label: "5h", percent: 76, resetAt: "" }, { label: "周", percent: 12, resetAt: "" }];
+  const ctx2 = {
+    effect() {},
+    get() { return { balance: async () => ({ ok: true, value: { providers: [LOW_MM], refreshMs: 60000 } }) }; },
+    slots: { inject(n, fn) { (this._fns ??= []).push(fn); }, register(definition, Component) { (this._regs ??= []).push({ definition, Component }); } },
+    remote: { $mount: async () => {} },
+  };
+  await api.apply(ctx2);
+  for (const fn of ctx2.slots._fns) fn();
+  const __pb2 = ctx2.slots._regs.find((r) => r.definition.id === "provider-balance");
+  const store2 = makeBalanceStoreStub();
+  const render2 = () => { reactStub._resetCursor(); return __pb2.Component({ sessionId: "s2", useStore: store2.useStore, actions: store2.actions, ...__pb2.definition.inject("s2") }); };
+  let tree2 = render2();
+  await tick(); await tick(); await tick();
+  tree2 = render2();
+  const fills2 = [];
+  (function walkFills(node) {
+    if (node == null) return;
+    if (Array.isArray(node)) { node.forEach(walkFills); return; }
+    if (typeof node === "object" && node.props !== null && typeof node.props === "object" &&
+        typeof node.props.className === "string" && node.props.className.includes("bp-win-fill")) {
+      fills2.push(node.props);
+    }
+    (node.children || []).forEach(walkFills);
+  })(tree2);
+  assert.deepEqual(fills2.map((p) => p["data-balance-state"]), ["ok", "low"], "only the starved window goes warning-red");
+  disposeReactEffects();
+});
+
+test("client: _rowDisplay and _balanceNote project one provider's answer", async () => {
+  const loaded = await loadClient();
+  const api = loaded.factory((s) => {
+    if (s === "@deepseek-ai/dsh-client-runtime/client") return makeRuntimeStub();
+    if (s === "react") return makeReactStub();
+    throw new Error(`unexpected require: ${s}`);
+  });
+
+  const snap = (total, extra = {}) => ({ isAvailable: true, unit: "money", currency: "CNY", totalBalance: total, grantedBalance: "", toppedUpBalance: "", asOf: AS_OF, note: "", windows: [], ...extra });
+  const answer = (over = {}) => ({ configured: true, snapshot: snap("110.00"), status: "fresh", low: false, message: null, threshold: 20, refreshMs: 60000, ...over });
+  // Money rows keep the old shape; quota rows read as remaining percent and
+  // surface the second window (周限额) as a muted pill suffix.
+  assert.deepEqual(api._rowDisplay(null), { tone: "none", value: "—", sub: null, title: "余额加载中" });
+  const okRow = api._rowDisplay(answer());
+  assert.equal(okRow.tone, "ok");
+  assert.equal(okRow.sub, null, "money rows carry no window suffix");
+  assert.ok(!okRow.title.includes("更新于"), "the fetch timestamp must not repeat in the row");
+  assert.match(api._rowDisplay(answer({ snapshot: snap("7.50", { currency: "USD" }) })).value, /^\$7\.5/);
+  const pct = api._rowDisplay(answer({ snapshot: snap("76", { unit: "pct", currency: "" }) }));
+  assert.equal(pct.value, "76%", "quota reads as percent, never money");
+  assert.equal(pct.sub, null, "a single-window plan has no suffix");
+  const dual = api._rowDisplay(answer({
+    snapshot: snap("76", {
+      unit: "pct", currency: "",
+      windows: [{ label: "5h", percent: 76, resetAt: "21:00" }, { label: "周", percent: 90, resetAt: "" }],
+    }),
+  }));
+  assert.equal(dual.sub, "· 周 90%", "the weekly limit is the pill's second reading");
+  const primaryGone = api._rowDisplay(answer({
+    snapshot: snap("", {
+      unit: "pct", currency: "", isAvailable: true,
+      windows: [{ label: "会话", percent: null, resetAt: "" }, { label: "本周", percent: 31, resetAt: "" }],
+    }),
+  }));
+  assert.equal(primaryGone.value, "31%", "when the headline window is absent the readable one steps up");
+  assert.equal(api._rowDisplay(answer({ snapshot: snap("9.00", { isAvailable: false }) })).tone, "low");
+  // Healthy = silence. Every abnormal reading gets exactly one sentence.
+  assert.equal(api._balanceNote(null), null);
+  assert.equal(api._balanceNote(answer()), null);
+  assert.match(api._balanceNote(answer({ snapshot: snap("5.00"), low: true })), /低于阈值 ¥20/);
+  assert.match(api._balanceNote(answer({ status: "stale", message: "请求过于频繁" })), /刷新失败.*请求过于频繁/);
+  assert.match(api._balanceNote({ configured: false, snapshot: null, status: "no-key", low: false, message: "未配置 DeepSeek API Key", threshold: 20, refreshMs: 60000 }), /未配置/);
+  assert.match(api._balanceNote(answer({ snapshot: null, status: "failed", message: "网络请求失败" })), /网络请求失败/);
+  assert.match(api._balanceNote(answer({ snapshot: snap("9.00", { isAvailable: false }) })), /余额不足/);
+  assert.match(
+    api._balanceNote(answer({ snapshot: snap("12", { unit: "pct", currency: "", isAvailable: true }), low: true })),
+    /窗口余量不足 20%/,
+    "quota lows speak in percent",
+  );
+});
+
 
 

@@ -14,6 +14,7 @@ export default defineConfig({
     scan: 'src/scan.ts',
     ledger: 'src/ledger.ts',
     freshness: 'src/freshness.ts',
+    balance: 'src/balance.ts',
   },
   outDir: 'lib',
   format: ['esm'],

@@ -4,6 +4,37 @@ import { z } from 'zod'
 const JsonValueRemoteCodec$schema = z.union([z.literal(null), z.string(), z.number(), z.literal(false), z.literal(true), z.array(z.lazy(() => JsonValueRemoteCodec$schema)), z.record(z.string(), z.lazy(() => JsonValueRemoteCodec$schema))])
 const JsonValueRemoteCodec$schema2 = z.union([z.literal(null), z.string(), z.number(), z.literal(false), z.literal(true), z.array(z.lazy(() => JsonValueRemoteCodec$schema2)), z.record(z.string(), z.lazy(() => JsonValueRemoteCodec$schema2))])
 const JsonValueRemoteCodec$schema3 = z.union([z.literal(null), z.string(), z.number(), z.literal(false), z.literal(true), z.array(z.lazy(() => JsonValueRemoteCodec$schema3)), z.record(z.string(), z.lazy(() => JsonValueRemoteCodec$schema3))])
+const clawock_dsh_clawockStudio_balance_parameter_0$schema = z.boolean()
+const clawock_dsh_clawockStudio_balance_result$schema = z.object({
+  'providers': z.array(z.object({
+  'provider': z.string(),
+  'label': z.string(),
+  'result': z.object({
+  'configured': z.boolean(),
+  'snapshot': z.union([z.literal(null), z.object({
+  'isAvailable': z.boolean(),
+  'unit': z.string(),
+  'currency': z.string(),
+  'totalBalance': z.string(),
+  'grantedBalance': z.string(),
+  'toppedUpBalance': z.string(),
+  'asOf': z.string(),
+  'note': z.string(),
+  'windows': z.array(z.object({
+  'label': z.string(),
+  'percent': z.union([z.number(), z.literal(null)]),
+  'resetAt': z.string(),
+})),
+})]),
+  'status': z.union([z.literal("fresh"), z.literal("cached"), z.literal("stale"), z.literal("failed"), z.literal("no-key")]),
+  'low': z.boolean(),
+  'message': z.union([z.literal(null), z.string()]),
+  'threshold': z.number(),
+  'refreshMs': z.number(),
+}),
+})),
+  'refreshMs': z.number(),
+})
 const clawock_dsh_clawockStudio_get_parameter_0$schema = z.string()
 const clawock_dsh_clawockStudio_get_result$schema = z.object({
   'runId': z.string(),
@@ -113,6 +144,31 @@ const clawock_dsh_clawockStudio_traces_result$schema = z.object({
 export const TYPERT_REMOTE = {
   package: 'clawock-dsh',
   descriptors: [
+    {
+      id: 'clawock-dsh#clawockStudio/balance',
+      service: 'clawockStudio',
+      namespace: 'clawockStudio',
+      method: 'balance',
+      invocation: { kind: 'direct' },
+      parameters: [
+        {
+          name: 'force',
+          wire: 'force',
+          source: 'json',
+          codec: {
+            mode: 'strict',
+            typeSymbol: 'clawock-dsh#clawockStudio/balance:force',
+            schema: clawock_dsh_clawockStudio_balance_parameter_0$schema,
+          },
+        },
+      ],
+      result: {
+        mode: 'strict',
+        typeSymbol: 'clawock-dsh/types#BalancesResult',
+        schema: clawock_dsh_clawockStudio_balance_result$schema,
+      },
+      sourceLocation: {"file":"packages/clawock-dsh/src/index.ts","line":121,"column":3},
+    },
     {
       id: 'clawock-dsh#clawockStudio/get',
       service: 'clawockStudio',
