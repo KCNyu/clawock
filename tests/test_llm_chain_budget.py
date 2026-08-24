@@ -197,3 +197,43 @@ def test_budget_exhausted_before_any_attempt_names_the_cause(monkeypatch):
             max_tokens=8, timeout=30, temperature=0.5,
             json_response=False, thinking=None)
     assert calls == []   # no request was ever fired
+
+
+def test_stats_out_records_leg_outcomes_and_attempts(keys, monkeypatch):
+    """C-F3a: the job log used to show only per-attempt token lines — nothing
+    about which leg won or what each cost. stats_out now carries per-leg
+    {provider, ok, attempts, wall_s} for whoever prints or ships it."""
+    seen = {"primary_attempts": 0}
+
+    def fake_primary(label, base_url, api_key, model, messages, max_tokens,
+                     temperature, json_response, thinking, timeout=None,
+                     deadline=None, attempts_sink=None):
+        for attempt in range(1, llm.MAX_RETRIES + 1):
+            per = llm._attempt_timeout(timeout, deadline, label)
+            if per is None:
+                break
+            seen["primary_attempts"] += 1
+            time.sleep(0.01)
+            if attempts_sink is not None:
+                attempts_sink.append(attempt)   # model the real leg's reporting
+        raise RuntimeError("primary exhausted")
+
+    def fake_fallback(label, base_url, api_key, model, messages, max_tokens,
+                      temperature, json_response, timeout=None, deadline=None,
+                      attempts_sink=None):
+        if attempts_sink is not None:
+            attempts_sink.append(1)
+        return "fallback answered"
+
+    monkeypatch.setattr(llm, "_call_provider", fake_primary)
+    monkeypatch.setattr(llm, "_call_provider_openai_compatible", fake_fallback)
+
+    stats = {}
+    out = llm.chat(user="hi", timeout=30, deadline_seconds=20.0,
+                   stats_out=stats)
+
+    assert out == "fallback answered"
+    legs = {leg["provider"]: leg for leg in stats["legs"]}
+    assert legs["minimax"]["ok"] is False and legs["minimax"]["attempts"] == 3
+    assert legs["opencode"]["ok"] is True and legs["opencode"]["attempts"] == 1
+    assert legs["minimax"]["wall_s"] >= 0 and "error" in legs["minimax"]
