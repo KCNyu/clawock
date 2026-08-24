@@ -66,6 +66,22 @@ def test_smoke_data_fetch_only_boots_for_code_changes():
     assert "if: needs.validate.outputs.code == 'true'" in job
 
 
+def test_coverage_publish_chain_reads_the_lane_that_produces_the_artifact():
+    """publish-coverage must not outlive the artifact it downloads.
+
+    `examples/dsh/**` lights only the dsplugin lane (ops/ci/push_scope.py), so a
+    dsh-only master push runs no pytest and produces no coverage-report.json.
+    The consuming job used to start anyway and die hard in download-artifact on
+    the missing file — four of the last eight red master runs were that false
+    alarm (#957, runs 32760585564 / 32759484885 / 32680826301 / 32680290940).
+    The upload side stays warn-only on purpose: gating a lane read on the
+    starting event is the shape test_ci_trigger_paths.py bans after #750.
+    """
+    job = TEXT.split("\n  publish-coverage:", 1)[1].split("\n  smoke-data-fetch:", 1)[0]
+    assert "needs.validate.outputs.code == 'true'" in job, (
+        "publish-coverage must skip when the suite never measured anything")
+
+
 def test_validate_publishes_its_detector_answer_as_a_job_output():
     job = TEXT.split("\n  validate:", 1)[1].split("\n  publish-coverage:", 1)[0]
     assert "code: ${{ steps.changes.outputs.code }}" in job
