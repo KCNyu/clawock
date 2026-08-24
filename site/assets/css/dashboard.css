@@ -2076,6 +2076,13 @@
     }
   }
   .hero-deck-copy { min-width: 0; }
+  /* 脚手架（「—」占位）到数据态的高度差必须先占住，否则副行折行会把
+     deck 以下整列推下去 —— Equity 卡挪走后它下方直接是判定卡/统计条，
+     可见位移面积变大，CLS 实测 390px 从 ~0.037 回退到 ~0.11。142 = 数据态
+     实测（sub 两行 + fx 一行）；桌面单行放得下，不需要预留。 */
+  @media (max-width: 1023px) {
+    .hero-deck-copy { min-height: 142px; }
+  }
 
   /* 缩略走势：纯形状，没有坐标轴/刻度/图例。高度由 CSS 固定占住，数据没到
      或点数不足时容器仍然是这个高度 —— 不占的话它一到就是一次 CLS。 */
@@ -2264,15 +2271,8 @@
   .dh-row.is-late .dh-state { color: var(--warning); }
   .dh-row.is-missing .dh-state { color: var(--red); }
 
-  .overview-equity {
-    grid-column: span 8; min-height: 480px; padding: 18px 18px 12px;
-  }
-  .overview-equity .card-head { align-items: flex-start; }
-  .overview-equity .card-head h3 {
-    margin: 5px 0 0; color: var(--text); font-size: var(--fs-lg);
-    letter-spacing: -.01em; text-transform: none;
-  }
-  .overview-equity-hint { max-width: 92%; margin: -2px 0 4px; }
+  /* Equity Curve 卡的专属规则随卡片一起挪走了：标题用通用 .card h3，
+     图高用通用 .chart-box（与相邻 Daily P&L 同高成对）。 */
   .chart-note > summary {
     display: inline-block; cursor: pointer; list-style: none;
     color: var(--text-tertiary); font: 600 var(--fs-micro)/1.4 var(--mono);
@@ -2285,7 +2285,6 @@
   .chart-note > p {
     margin: 4px 0 2px; color: var(--text-tertiary); font: 500 var(--fs-xs)/1.55 var(--mono);
   }
-  .overview-equity-chart { min-height: 390px; height: 390px; }
   /* The chart sits inside the mobile horizontal pager. Allow the browser to
      resolve both axes so a horizontal drag still changes tabs; pointercancel
      below clears chart hover state once scrolling takes ownership. */
@@ -2302,9 +2301,17 @@
   }
   .native-equity-window[hidden] { display: none; }
   .native-equity-window input { min-width: 0; flex: 1; accent-color: var(--accent); }
-  .overview-equity-chart { position: relative; }
+  /* tooltip 以 #chart-equity 为定位父级（原 overview-equity-chart 的 relative 职责） */
+  #chart-equity { position: relative; }
+  /* Equity Curve 卡已挪去 Reflect 净值表现区（与 Daily P&L 同区、共用市场切换器）。
+     Overview 首屏只留 hero-deck 的 spark 一条形状；今日判定从「Equity(8) + 判定(4)」
+     的伴排改为独占整行。 */
   .overview-verdict {
-    grid-column: span 4; min-height: 480px; padding: 18px;
+    grid-column: 1 / -1; padding: 18px;
+    /* 原来的 480px 地板是为和 Equity 卡凑同一行；挪走后按各档实测内容高度
+       重新预留（数据到达前占位，否则判定卡长高会把下方整列推下去 —— CLS
+       实测 0.11，预留后回到基线）。 */
+    min-height: 420px;
   }
   .overview-verdict-head,
   .overview-gates-head {
@@ -2459,14 +2466,15 @@
 
   @media (min-width: 768px) and (max-width: 1023px) {
     .hero-rail { grid-template-columns: repeat(4, minmax(0, 1fr)); min-height: 168px; }
-    .overview-equity, .overview-verdict, .overview-strip,
+    .overview-verdict { min-height: 430px; }
+    .overview-verdict, .overview-strip,
     .overview-command > .hero-honesty-card,
     .overview-command > .hero-gold-card { grid-column: 1 / -1; }
   }
   @media (max-width: 767px) {
     .overview-command { display: flex; flex-direction: column; gap: 12px; }
     .hero-deck, .hero-health,
-    .overview-equity, .overview-verdict, .overview-strip,
+    .overview-verdict, .overview-strip,
     .overview-command > .hero-honesty-card,
     .overview-command > .hero-gold-card { width: 100%; min-width: 0; }
     .hero-deck { grid-template-columns: minmax(0, 1fr); }
@@ -2481,9 +2489,8 @@
     .dh-file { display: none; }
     .dh-bar { grid-column: 1 / -1; }
     .dh-detail { grid-column: 1 / -1; white-space: normal; }
-    .overview-equity, .overview-verdict { min-height: 0; }
-    .overview-equity-chart { min-height: 300px; height: 300px; }
-    .overview-equity-hint { max-width: none; }
+    /* 390px 实测 486：窄屏判定卡内容折行更多，地板取上界（同 hero-rail 的取舍）。 */
+    .overview-verdict { min-height: 490px; }
     .overview-strip { display: flex; flex-direction: column; }
     .overview-strip-cell {
       min-height: 0; border-right: 0; border-bottom: 1px solid var(--border-subtle);

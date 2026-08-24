@@ -350,6 +350,9 @@ async function testEquityTouch(browser, base) {
   await stubLiveOrigin(page);
   await page.goto(base, { waitUntil: "networkidle" });
   await waitForData(page);
+  // Equity Curve 已从 Overview 挪进 Reflect（首屏曲线减负），触屏契约跟着卡片走。
+  await page.locator('.tab-btn[data-tab="reflect"]').click();
+  await waitForTab(page, "reflect");
   await page.locator(".native-equity-canvas").scrollIntoViewIfNeeded();
   const box = await page.locator(".native-equity-canvas").boundingBox();
   assert(box, "equity canvas has no layout box");
@@ -373,14 +376,16 @@ async function testEquityTouch(browser, base) {
   assert.match(hkTooltip, /% 不适用/,
     "negative-profit HK drawdown did not explain its amount fallback");
 
-  const xs = [box.x + box.width - 5, 300, 250, 200, 150, 100, 45];
+  // Reflect 已是 pager 最后一页：向左滑没有下一页，改为向右滑回上一页（plan），
+  // 验证的仍是「离开图表所在页后，悬停/点选留下的 tooltip 必须清掉」。
+  const xs = [45, 100, 150, 200, 250, 300, box.x + box.width - 5];
   await dispatchTouch(session, "touchStart", [{ x: xs[0], y }]);
   for (const x of xs.slice(1)) {
     await dispatchTouch(session, "touchMove", [{ x, y }]);
     await page.waitForTimeout(20);
   }
   await dispatchTouch(session, "touchEnd", []);
-  await page.waitForFunction(() => document.querySelector(".tab-btn.active")?.dataset.tab === "drill");
+  await page.waitForFunction(() => document.querySelector(".tab-btn.active")?.dataset.tab === "plan");
   assert.equal(await page.locator(".native-equity-tooltip").isVisible(), false,
     "pager swipe left a stale chart tooltip");
   assert.deepEqual(state.failures, []);
