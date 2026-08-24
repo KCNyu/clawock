@@ -94,7 +94,10 @@
 
   /* 字阶（#880）：全站只有这 8 档，禁裸 px 字号。
      mono 只用于数字与代码，sans 用于所有文字。 */
-  --fs-display: clamp(30px, 3.4vw, 48px);
+  /* 48px 在 1440 宽、240 高的整幅卡片里读起来是「一个统计数字」而不是
+     标题；上限提到 64，下限不动（390px 上仍是 30px，主数禁断行的约束
+     没有变松）。 */
+  --fs-display: clamp(30px, 4.4vw, 64px);
   --fs-xxl: 26px;
   --fs-xl: 19px;
   --fs-lg: 15px;
@@ -2058,10 +2061,65 @@
     background: radial-gradient(closest-side, var(--bg-glow), transparent 78%);
     pointer-events: none;
   }
+  /* 宽屏两栏：文字一栏 + 缩略走势一栏。主数左对齐后卡片右侧本来是一大片
+     空白 —— 那不是留白，是构图没写完（主数越大越明显）。右栏放的不是第二
+     张图，是同一个数的历史形状。 */
   .hero-deck-lead {
-    padding: 26px 24px 20px;
+    padding: 32px 28px 26px;
     position: relative;
+    display: grid; grid-template-columns: minmax(0, 1fr);
   }
+  @media (min-width: 1024px) {
+    .hero-deck-lead {
+      grid-template-columns: minmax(0, auto) minmax(260px, 1fr);
+      column-gap: 44px; align-items: center;
+    }
+  }
+  .hero-deck-copy { min-width: 0; }
+
+  /* 缩略走势：纯形状，没有坐标轴/刻度/图例。高度由 CSS 固定占住，数据没到
+     或点数不足时容器仍然是这个高度 —— 不占的话它一到就是一次 CLS。 */
+  .hero-spark {
+    position: relative; height: 56px; margin-top: 18px; min-width: 0;
+  }
+  @media (min-width: 1024px) {
+    .hero-spark { height: 108px; margin-top: 0; }
+  }
+  .hero-spark-svg { display: block; width: 100%; height: 100%; }
+  .hero-spark-svg.pos { color: var(--positive); }
+  .hero-spark-svg.neg { color: var(--negative); }
+  .hero-spark-svg.flat { color: var(--text-tertiary); }
+  /* 面积以零轴为界分色（渐变在 zeroY 处硬停）：零上用涨色、零下用跌色。
+     用单一色填满会把曲线前半段的盈利期涂成亏损色 —— 图会说谎。 */
+  .hs-area { opacity: .9; }
+  .hs-up { stop-color: var(--positive); stop-opacity: .14; }
+  .hs-down { stop-color: var(--negative); stop-opacity: .14; }
+  .hs-zero { stroke: var(--border-strong); stroke-width: 1; vector-effect: non-scaling-stroke; }
+  /* viewBox 被 preserveAspectRatio="none" 拉伸，描边必须 non-scaling 才不会
+     在宽屏上被横向拉成粗细不匀的一条。 */
+  /* 线本身取中性色：正负已经由填充和主数说清楚了，再给线上色就会出现
+     「红线压在绿色盈利区上」这种自相矛盾的画面。 */
+  .hs-line {
+    fill: none; stroke: var(--text-secondary); stroke-width: 1.75;
+    stroke-linejoin: round; stroke-linecap: round;
+    vector-effect: non-scaling-stroke;
+  }
+  /* 端点用 DOM 元素而不是 SVG 圆：同样因为 preserveAspectRatio="none"，
+     SVG 里的正圆会被压成椭圆。 */
+  .hero-spark-dot {
+    position: absolute; width: 7px; height: 7px; border-radius: 50%;
+    transform: translate(-50%, -50%); pointer-events: none;
+    box-shadow: 0 0 0 3px var(--surface-1);
+  }
+  .hero-spark-dot.pos { background: var(--positive); }
+  .hero-spark-dot.neg { background: var(--negative); }
+  .hero-spark-dot.flat { background: var(--text-tertiary); }
+  /* 主数以前恒定 var(--text)：`.hero-deck-pnl` 和 `.pos/.neg` 同为一个类，
+     按源序前者赢 —— 于是全页最大的那个数字是唯一一个不带涨跌色的数字，
+     而它正下方那行三个小数字全都带色。全站规矩是「颜色只留涨跌」，
+     这里就是最该用掉那次配额的地方。显式提到 0,2,0 特异度。 */
+  .hero-deck-pnl.pos { color: var(--positive); }
+  .hero-deck-pnl.neg { color: var(--negative); }
   .hero-deck-pnl {
     margin-top: 12px; color: var(--text); font: 700 var(--fs-display)/1 var(--mono);
     letter-spacing: var(--tr-display); font-variant-numeric: tabular-nums;
@@ -2082,9 +2140,21 @@
   /* 折行后行首不留孤立的间隔点 */
   .hero-deck-sub .hds-seg { display: inline-flex; align-items: baseline; gap: 5px; }
   .hero-deck-sub b { font-weight: 700; color: var(--text); }
+  .hero-deck-line {
+    display: flex; align-items: baseline; justify-content: space-between;
+    gap: 10px 28px; flex-wrap: wrap;
+  }
   .hero-deck-fx {
     margin-top: 9px; color: var(--text-tertiary); font: 500 var(--fs-micro)/1.4 var(--mono);
     overflow-wrap: anywhere;
+  }
+  /* 同一行时不要再压 9px 的上边距，两段按基线对齐 */
+  .hero-deck-line > .hero-deck-fx { margin-top: 0; text-align: right; }
+  @media (max-width: 1023px) {
+    /* 换行之后它又是「下面一行」，把间距还回去 */
+    .hero-deck-line { gap: 0; }
+    .hero-deck-line > .hero-deck-fx { margin-top: 9px; text-align: left; }
+    .hero-deck-line > * { flex: 1 1 100%; }
   }
   /* 首屏最大的一次跳：8 格统计轨在数据到达前是空的（高 1px），到达后
      撑到 85px —— 实测这一下就占了整页 CLS 0.26 里的大头，而它每次加载
@@ -2092,7 +2162,7 @@
      行数是固定的（标签 / 值 / 变化 / 备注），不会因为数据长短再变。
      min-height 而不是 height：真渲染出来更高时不裁。 */
   .hero-rail {
-    display: grid; grid-template-columns: repeat(8, minmax(0, 1fr));
+    display: grid; grid-template-columns: repeat(6, minmax(0, 1fr));
     border-top: 1px solid var(--border-subtle);
     min-height: 85px;
   }
@@ -2388,7 +2458,7 @@
   .hl-chip .hl-ic { align-self: center; }
 
   @media (min-width: 768px) and (max-width: 1023px) {
-    .hero-rail { grid-template-columns: repeat(4, minmax(0, 1fr)); min-height: 170px; }
+    .hero-rail { grid-template-columns: repeat(4, minmax(0, 1fr)); min-height: 168px; }
     .overview-equity, .overview-verdict, .overview-strip,
     .overview-command > .hero-honesty-card,
     .overview-command > .hero-gold-card { grid-column: 1 / -1; }
@@ -2401,10 +2471,10 @@
     .overview-command > .hero-gold-card { width: 100%; min-width: 0; }
     .hero-deck { grid-template-columns: minmax(0, 1fr); }
     .hero-deck-lead { border-right: 0; }
-    /* 317 而不是 312：430-767px 这一段「主动 call · n=76 · 9 未能核验」那格
-       的备注折成两行，比 390px 窄档高 5px。取上界，宁可窄档多留 5px 空白
-       也不要宽档跳一下。 */
-    .hero-rail { grid-template-columns: repeat(2, minmax(0, 1fr)); min-height: 317px; }
+    /* 252 而不是 248：430-767px 这一段「主动 call · n=76 · 9 未能核验」那格
+       的备注折成两行，比 390px 窄档高 4px。取上界，宁可窄档多留 4px 空白
+       也不要宽档跳一下。（去掉两格重复后是 3 行，不是原来的 4 行。） */
+    .hero-rail { grid-template-columns: repeat(2, minmax(0, 1fr)); min-height: 252px; }
     .dh-row {
       grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px; row-gap: 4px;
     }
