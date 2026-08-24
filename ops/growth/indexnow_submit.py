@@ -7,12 +7,18 @@ that are new or whose content actually changed.
 
 Google does not consume IndexNow — for Google use GSC "Request Indexing".
 
-Change detection uses each page's HTTP validator (ETag, else Last-Modified) from
-a cheap HEAD request, recorded per URL in `logs/indexnow_seen.json`
-(machine-local, gitignored). A URL-only ledger would mean an edited brief, a
-revised weekly, or a `_layouts/` change is never re-announced — silently, and
-forever. IndexNow asks publishers to submit on change, so re-POSTing unchanged
-URLs daily is equally wrong in the other direction.
+Change detection hashes each page's response body (sha256), recorded per URL
+in `logs/indexnow_seen.json` (machine-local, gitignored). A URL-only ledger
+would mean an edited brief, a revised weekly, or a `_layouts/` change is never
+re-announced — silently, and forever. IndexNow asks publishers to submit on
+change, so re-POSTing unchanged URLs daily is equally wrong in the other
+direction.
+
+Not an ETag/Last-Modified comparison: GitHub Pages rebuilds every page on each
+push to master and stamps the rebuild batch into every ETag prefix, so
+validator-based detection saw every URL as changed dozens of times a day and
+re-announced the whole sitemap daily (#975). Body hashing costs one GET per
+URL per run; that is the price of "actually changed" meaning anything.
 
 Usage:
   python3 ops/growth/indexnow_submit.py             # new + changed URLs
@@ -23,6 +29,7 @@ Usage:
 """
 import argparse
 import glob
+import hashlib
 import json
 import os
 import re
@@ -54,27 +61,28 @@ def sitemap_urls():
     return re.findall(r"<loc>([^<]+)</loc>", xml)
 
 
-def validator(url):
-    """ETag (preferred) or Last-Modified for a URL. None if unreachable — an
-    unreachable page is skipped rather than guessed at in either direction."""
-    req = urllib.request.Request(url, method="HEAD")
+def digest(url):
+    """sha256 of the response body. None if unreachable — an unreachable page
+    is skipped rather than guessed at in either direction."""
     try:
-        with urllib.request.urlopen(req, timeout=15) as r:
-            return r.headers.get("ETag") or r.headers.get("Last-Modified")
+        with urllib.request.urlopen(url, timeout=20) as r:
+            return hashlib.sha256(r.read()).hexdigest()
     except (urllib.error.URLError, OSError) as e:
-        print(f"WARN: HEAD {url} failed ({e}) — skipping this URL", file=sys.stderr)
+        print(f"WARN: GET {url} failed ({e}) — skipping this URL", file=sys.stderr)
         return None
 
 
 def load_seen():
-    """URL -> validator. A missing/corrupt ledger degrades to empty: that
-    re-submits once, which beats the cron dying on a bad file."""
+    """URL -> body digest. A missing/corrupt ledger degrades to empty: that
+    re-submits once, which beats the cron dying on a bad file. The old ETag-era
+    key ("validators") is gone by design (#975): reading it back would keep the
+    daily full-resubmit alive for one more generation."""
     try:
         with open(STATE, encoding="utf-8") as f:
             data = json.load(f)
-        seen = data["validators"]
+        seen = data["digests"]
         if not isinstance(seen, dict):
-            raise TypeError("validators is not an object")
+            raise TypeError("digests is not an object")
         return seen
     except FileNotFoundError:
         return {}
@@ -97,7 +105,7 @@ def save_seen(updates):
     tmp = f"{STATE}.{os.getpid()}.tmp"
     try:
         with open(tmp, "w", encoding="utf-8") as f:
-            json.dump({"validators": dict(sorted(merged.items()))}, f, indent=1)
+            json.dump({"digests": dict(sorted(merged.items()))}, f, indent=1)
         os.replace(tmp, STATE)
     finally:
         if os.path.exists(tmp):
@@ -105,14 +113,14 @@ def save_seen(updates):
 
 
 def select(args):
-    """Return (urls_to_submit, {url: validator} to record on success)."""
+    """Return (urls_to_submit, {url: digest} to record on success)."""
     if args.urls:
-        return args.urls, {u: v for u in args.urls if (v := validator(u))}
+        return args.urls, {u: d for u in args.urls if (d := digest(u))}
     urls = sitemap_urls()
     if not urls:
         raise SystemExit("ERROR: sitemap returned no URLs")
     seen = load_seen()
-    current = {u: v for u in urls if (v := validator(u)) is not None}
+    current = {u: d for u in urls if (d := digest(u)) is not None}
     if args.all:
         return urls, current
     changed = [u for u in urls if u in current and current[u] != seen.get(u)]
@@ -145,7 +153,7 @@ def parse_args(argv):
     p.add_argument("--all", action="store_true", help="submit every sitemap URL")
     p.add_argument("--dry-run", action="store_true", help="print, do not POST")
     p.add_argument("--record-only", action="store_true",
-                   help="record current validators without submitting "
+                   help="record current digests without submitting "
                         "(seeds the ledger after a manual backfill)")
     args = p.parse_args(argv)
     if args.urls and args.all:
@@ -156,14 +164,14 @@ def parse_args(argv):
 def main(argv=None):
     args = parse_args(sys.argv[1:] if argv is None else argv)
     # A real submission cannot possibly succeed without the public key. Resolve
-    # it before fetching the sitemap and issuing one HEAD per URL, so a deleted
+    # it before fetching the sitemap and fetching each URL body, so a deleted
     # or unpublished key fails cheaply instead of doing guaranteed-wasted work.
     # Inspection modes deliberately remain useful while the key is being fixed.
     key = None if args.record_only or args.dry_run else find_key()
     urls, record = select(args)
     if args.record_only:
         save_seen(record)
-        print(f"IndexNow — recorded {len(record)} validator(s), submitted nothing")
+        print(f"IndexNow — recorded {len(record)} digest(s), submitted nothing")
         return
     if not urls:
         print("IndexNow — nothing new or changed to submit")

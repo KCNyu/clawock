@@ -251,6 +251,19 @@ def test_readme_gif_stays_available_from_repository():
     ) in readme
 
 
+def test_seo_logo_resolves_once_to_a_real_asset():
+    """jekyll-seo-tag prepends url+baseurl to `logo` itself, so a baseurl-
+    prefixed value shipped clawock/clawock/… (404) in every rendered page's
+    JSON-LD publisher block (#974). The value must be site-root relative and
+    must land on an asset the Pages artifact actually ships."""
+    config = (ROOT / "site/_config.yml").read_text()
+    baseurl = re.search(r"^baseurl:\s*(\S+)", config, re.M).group(1)
+    logo = re.search(r"^logo:\s*(\S+)", config, re.M).group(1)
+    assert logo.startswith("/")
+    assert not logo.startswith(f"/{baseurl.strip('/')}")
+    assert (ROOT / "site" / logo.lstrip("/")).is_file()
+
+
 def test_site_staging_joins_owned_source_and_runtime_inputs(tmp_path):
     output = tmp_path / "site-source"
     subprocess.run(
