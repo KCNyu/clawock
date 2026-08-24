@@ -895,3 +895,34 @@ def test_assign_episode_ids_skips_mind_ledger_rows():
     broken = {"decision_id": "d3", "ticker": "00100", "strategy_id": "core", "action": "hold"}
     assign_episode_ids([broken])
     assert "episode_id" not in broken
+
+
+class TestSharesLookupMemoization(unittest.TestCase):
+    """#916: the verification sweep asks the same dates once per decision row;
+    each repeat must not re-run git log + git show + full JSON parse."""
+
+    def test_repeated_dates_and_tickers_are_served_from_cache(self):
+        import json as _json
+        from types import SimpleNamespace
+        from clawock.harness import brief_preflight
+
+        calls = []
+        pf = {"portfolios": {"hk_stocks": {"holdings": [
+            {"ticker": "00700", "shares": 100}]}},
+            "us_stocks": {"holdings": []}}
+
+        def fake_run(cmd, **kwargs):
+            calls.append(cmd[:3])
+            if cmd[1] == "log":
+                return SimpleNamespace(returncode=0, stdout="abc123\n")
+            return SimpleNamespace(returncode=0, stdout=_json.dumps(pf))
+
+        monkey = mock.patch.object
+        with monkey(brief_preflight.subprocess, "run", fake_run), \
+             monkey(brief_preflight, "_shares_sha_cache", {}), \
+             monkey(brief_preflight, "_shares_pf_cache", {}):
+            self.assertEqual(brief_preflight._shares_at_date("00700", "2026-08-01"), 100)
+            self.assertEqual(brief_preflight._shares_at_date("00700", "2026-08-01"), 100)
+            self.assertEqual(len(calls), 2)      # log+show once, then cached
+            self.assertIsNone(brief_preflight._shares_at_date("00388", "2026-08-01"))
+            self.assertEqual(len(calls), 2)      # second ticker reuses the file
