@@ -489,12 +489,13 @@ export function _usedLevel(percent: number | null, threshold: number): UsedLevel
  * fetch time. Quota rows ('pct' unit) read as USED percent (kcn: 「已使用」
  * 比「剩余」直观), not money, and carry the second window ('周'/'本周') as a
  * muted pill suffix — both limits visible at the header without opening the
- * panel.
+ * panel. An exhausted window gets no caption at all (kcn 反馈: 文案只会重复):
+ * the reading itself says 100% and `reset` carries when it frees up.
  */
-export function _rowDisplay(result: BalanceResult | null): { tone: BalanceTone; value: string; sub: string | null; level: UsedLevel | null; title: string } {
-  if (result === null) return { tone: 'none', value: '—', sub: null, level: null, title: '余额加载中' }
-  if (!result.configured) return { tone: 'none', value: '未配置', sub: null, level: null, title: result.message ?? '未配置 API Key' }
-  if (result.snapshot === null) return { tone: 'none', value: '—', sub: null, level: null, title: result.message ?? '余额获取失败' }
+export function _rowDisplay(result: BalanceResult | null): { tone: BalanceTone; value: string; sub: string | null; reset: string | null; level: UsedLevel | null; title: string } {
+  if (result === null) return { tone: 'none', value: '—', sub: null, reset: null, level: null, title: '余额加载中' }
+  if (!result.configured) return { tone: 'none', value: '未配置', sub: null, reset: null, level: null, title: result.message ?? '未配置 API Key' }
+  if (result.snapshot === null) return { tone: 'none', value: '—', sub: null, reset: null, level: null, title: result.message ?? '余额获取失败' }
   const snapshot = result.snapshot
   const isPct = snapshot.unit === 'pct'
   const symbol = isPct ? '' : snapshot.currency === 'USD' ? '$' : snapshot.currency === 'CNY' ? '¥' : ''
@@ -511,7 +512,13 @@ export function _rowDisplay(result: BalanceResult | null): { tone: BalanceTone; 
       ? String(Math.round(pctWins[0].percent as number)) + '%'
       : (snapshot.totalBalance === '' ? '—' : symbol + snapshot.totalBalance)
   const second = pctWins.length > 1 ? pctWins[1] : null
-  const sub = second !== null ? '· ' + second.label + ' ' + Math.round(second.percent as number) + '%' : null
+  // 头条窗口自己的重置时刻(↻ 前缀,面板每窗一行同款):额度用尽时用户要能
+  // 看到「什么时候恢复」而不是一句「已用尽」。跟头条数字同一个窗——头条
+  // 缺窗时步进到第一个可读窗,重置也跟着那一个走。
+  const reset = pctWins.length > 0 && pctWins[0].resetAt !== '' ? pctWins[0].resetAt : null
+  const sub = second !== null
+    ? '· ' + second.label + ' ' + Math.round(second.percent as number) + '%' + (second.resetAt !== '' ? ' ↻' + second.resetAt : '')
+    : null
   const tone: BalanceTone = result.status === 'stale'
     ? 'stale'
     : (result.low || !snapshot.isAvailable ? 'low' : 'ok')
@@ -522,20 +529,24 @@ export function _rowDisplay(result: BalanceResult | null): { tone: BalanceTone; 
       : 'API 余额',
     !isPct && snapshot.grantedBalance !== '' ? '赠金 ' + symbol + snapshot.grantedBalance : null,
     !isPct && snapshot.toppedUpBalance !== '' ? '充值 ' + symbol + snapshot.toppedUpBalance : null,
-    snapshot.isAvailable ? null : (isPct ? '该窗口额度已用尽' : '官方接口判定余额不足'),
+    // 用尽不再说话(kcn 反馈):配额行的进度条(100%)+重置时间自己会讲,
+    // 一句「已用尽」只会把那两样顶掉。金额行没有条可讲,保留原句。
+    snapshot.isAvailable || isPct ? null : '官方接口判定余额不足',
     result.status === 'stale' && result.message !== null ? '刷新失败,显示最近一次: ' + result.message : null,
   ].filter((part): part is string => part !== null)
   // 头条数字的用量档位(染色用):配额行按实际显示的那个数取档;金额行
   // 没有用量语义,level 为 null,颜色仍走 tone(money low = 红)。
   const shownPct = isPct ? (isFinite(parsed) ? parsed : (pctWins.length > 0 ? pctWins[0].percent as number : null)) : null
   const level: UsedLevel | null = shownPct === null ? null : _usedLevel(Math.round(shownPct), result.threshold)
-  return { tone, value, sub, level, title: parts.join(' · ') }
+  return { tone, value, sub, reset, level, title: parts.join(' · ') }
 }
 
 /**
  * The one line a panel row says out loud when something is wrong — stale
- * reason, unconfigured key, insufficient balance/quota. A healthy number
- * earns no caption at all; null means silence.
+ * reason, unconfigured key, insufficient money balance. A healthy number
+ * earns no caption at all; null means silence. An exhausted quota window
+ * is silence too (kcn 反馈): its 100% bar and reset stamp in the per-window
+ * rows are the message; a caption would only replace them.
  */
 export function _balanceNote(result: BalanceResult | null): string | null {
   if (result === null) return null
@@ -545,7 +556,7 @@ export function _balanceNote(result: BalanceResult | null): string | null {
     return '刷新失败,显示最近一次' + (result.message !== null ? ':' + result.message : '')
   }
   if (!result.snapshot.isAvailable) {
-    return result.snapshot.unit === 'pct' ? '该窗口额度已用尽' : '官方接口判定余额不足'
+    return result.snapshot.unit === 'pct' ? null : '官方接口判定余额不足'
   }
   if (result.low) {
     // threshold 是「剩余水位」(lowPct),已使用方向 = 100 − threshold。
@@ -734,7 +745,13 @@ export function ProviderBalanceChip(props: BalanceChipProps): React.ReactElement
             // 金额行 level=null 不带属性,保持墨色、low 红走 tone。
             'data-used-level': primary.view.level === null ? undefined : primary.view.level,
           }, primary.view.value),
-          // 周限额副读数:装饰性重复(面板/悬浮里有完整版),对读屏静音。
+          // 头条窗口的重置时刻(kcn 反馈:额度用尽要知道什么时候恢复),
+          // 面板每窗一行里有完整版,这里是小字同款。
+          primary.view.reset === null
+            ? null
+            : h('span', { className: cx('bchip-reset') }, '↻ ' + primary.view.reset),
+          // 周限额副读数(含它自己的重置时刻):装饰性重复(面板/悬浮里有
+          // 完整版),对读屏静音。
           primary.view.sub === null
             ? null
             : h('span', { className: cx('bchip-sub'), 'aria-hidden': 'true' }, primary.view.sub))),

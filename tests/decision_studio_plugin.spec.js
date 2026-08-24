@@ -824,6 +824,7 @@ test("client: stylesheet is loader-owned and keeps the dark-theme and tone contr
   assert.match(css, hashed("bchip"), "header balance chip block required");
   assert.match(css, hashed("bchip-dot"), "per-provider chip dot required");
   assert.match(css, hashed("bchip-sub"), "weekly sub-reading class required");
+  assert.match(css, hashed("bchip-reset"), "headline-window reset stamp class required (kcn: 用尽也要能看到什么时候重置)");
   assert.match(css, hashed("bp"), "provider panel block required");
   assert.match(css, hashed("bp-row"), "panel per-provider row required");
   assert.match(css, hashed("bal-rf"), "ghost refresh button required");
@@ -1584,7 +1585,7 @@ test("client: _rowDisplay and _balanceNote project one provider's answer", async
   // Money rows keep the old shape; quota rows read as used percent and
   // surface the second window (周限额) as a muted pill suffix. Colour tiers
   // (level) follow the usage direction: green low, yellow near, red inside.
-  assert.deepEqual(api._rowDisplay(null), { tone: "none", value: "—", sub: null, level: null, title: "余额加载中" });
+  assert.deepEqual(api._rowDisplay(null), { tone: "none", value: "—", sub: null, reset: null, level: null, title: "余额加载中" });
   const okRow = api._rowDisplay(answer());
   assert.equal(okRow.tone, "ok");
   assert.equal(okRow.level, null, "money rows have no usage tier — colour stays tonal");
@@ -1602,6 +1603,14 @@ test("client: _rowDisplay and _balanceNote project one provider's answer", async
     }),
   }));
   assert.equal(dual.sub, "· 周 90%", "the weekly limit is the pill's second reading");
+  const dualReset = api._rowDisplay(answer({
+    snapshot: snap("76", {
+      unit: "pct", currency: "",
+      windows: [{ label: "5h", percent: 76, resetAt: "21:00" }, { label: "周", percent: 90, resetAt: "周四 21:00" }],
+    }),
+  }));
+  assert.equal(dualReset.reset, "21:00", "the headline window's reset rides along for the chip");
+  assert.equal(dualReset.sub, "· 周 90% ↻周四 21:00", "the weekly suffix carries its own reset");
   assert.deepEqual(
     api._usedLevel(null, 20), "ok",
     "an unreadable reading never lights a warning colour",
@@ -1617,6 +1626,23 @@ test("client: _rowDisplay and _balanceNote project one provider's answer", async
   assert.equal(primaryGone.value, "31%", "when the headline window is absent the readable one steps up");
   assert.equal(primaryGone.level, "ok", "the stepped-up reading is tiered by its own number");
   assert.equal(api._rowDisplay(answer({ snapshot: snap("9.00", { isAvailable: false }) })).tone, "low");
+  // Exhausted quota (kcn 反馈): no caption anywhere — the 100% reading and
+  // the reset stamp are the message; money rows keep their sentence.
+  const usedUp = api._rowDisplay(answer({
+    snapshot: snap("100", {
+      unit: "pct", currency: "", isAvailable: false,
+      windows: [{ label: "5h", percent: 100, resetAt: "21:00" }, { label: "周", percent: 100, resetAt: "周四 21:00" }],
+    }),
+    low: true,
+  }));
+  assert.equal(usedUp.value, "100%", "an exhausted window reads as a plain 100% used");
+  assert.ok(!usedUp.title.includes("已用尽"), "the exhausted caption is gone from the title");
+  assert.equal(usedUp.reset, "21:00", "the reset stamp survives so the user knows when it frees up");
+  assert.equal(usedUp.level, "low", "100% used tints red like any other inside-watermark reading");
+  assert.equal(api._balanceNote(
+    answer({ snapshot: snap("100", { unit: "pct", currency: "", isAvailable: false }), low: true }),
+  ), null, "an exhausted quota row is silent — its bar and reset speak");
+  assert.match(api._rowDisplay(answer({ snapshot: snap("9.00", { isAvailable: false }) })).title, /余额不足/, "money rows keep the official-insufficient sentence");
   // Healthy = silence. Every abnormal reading gets exactly one sentence.
   assert.equal(api._balanceNote(null), null);
   assert.equal(api._balanceNote(answer()), null);
@@ -1630,6 +1656,58 @@ test("client: _rowDisplay and _balanceNote project one provider's answer", async
     /窗口已使用达 80%/,
     "quota lows speak in used percent (remaining watermark 20 flipped)",
   );
+});
+
+test("client: an exhausted quota row shows its 100% bars and resets instead of a caption", async () => {
+  const loaded = await loadClient();
+  const reactStub = makeReactStub();
+  const api = loaded.factory((s) => {
+    if (s === "@deepseek-ai/dsh-client-runtime/client") return makeRuntimeStub();
+    if (s === "react") return reactStub;
+    throw new Error(`unexpected require: ${s}`);
+  });
+
+  // MiniMax with both windows burned to 100% — the old build said
+  // 「该窗口额度已用尽」 and dropped the per-window bars and resets with it.
+  const EXHAUSTED_MM = {
+    provider: "minimax", label: "MiniMax",
+    result: { configured: true, snapshot: { isAvailable: false, unit: "pct", currency: "", totalBalance: "100", grantedBalance: "", toppedUpBalance: "", asOf: AS_OF, note: "5h 窗口已使用 100% · 周窗口已使用 100%", windows: [{ label: "5h", percent: 100, resetAt: "21:00" }, { label: "周", percent: 100, resetAt: "周四 21:00" }] }, status: "fresh", low: true, message: null, threshold: 20, refreshMs: 60000 },
+  };
+  const ctx = {
+    effect() {},
+    get() { return { balance: async () => ({ ok: true, value: { providers: [EXHAUSTED_MM], refreshMs: 60000 } }) }; },
+    slots: { inject(n, fn) { (this._fns ??= []).push(fn); }, register(definition, Component) { (this._regs ??= []).push({ definition, Component }); } },
+    remote: { $mount: async () => {} },
+  };
+  await api.apply(ctx);
+  for (const fn of ctx.slots._fns) fn();
+  const __pb = ctx.slots._regs.find((r) => r.definition.id === "provider-balance");
+  const store = makeBalanceStoreStub();
+  const tick = () => new Promise((resolve) => setImmediate(resolve));
+  const render = () => { reactStub._resetCursor(); return __pb.Component({ sessionId: "s1", useStore: store.useStore, actions: store.actions, ...__pb.definition.inject("s1") }); };
+
+  let tree = render();
+  await tick(); await tick(); await tick();
+  tree = render();
+
+  const texts = [];
+  const fills = [];
+  (function walk(node) {
+    if (node == null) return;
+    if (Array.isArray(node)) { node.forEach(walk); return; }
+    if (typeof node === "string") { texts.push(node); return; }
+    if (typeof node === "object" && node.props !== null && typeof node.props === "object" &&
+        typeof node.props.className === "string" && node.props.className.includes("bp-win-fill")) {
+      fills.push(node.props);
+    }
+    (node.children || []).forEach(walk);
+  })(tree);
+  assert.ok(!texts.some((t) => t.includes("已用尽")), "the exhausted state never speaks as a caption");
+  assert.deepEqual(fills.map((p) => p.style.width), ["100%", "100%"], "both burned windows show a full bar");
+  assert.ok(texts.includes("↻ 21:00"), "the panel row carries its reset stamp");
+  assert.ok(texts.includes("↻ 周四 21:00"), "so does the weekly one");
+  assert.ok(texts.some((t) => t.includes("周 100% ↻周四 21:00")), "the pill's weekly suffix carries its own reset");
+  disposeReactEffects();
 });
 
 
