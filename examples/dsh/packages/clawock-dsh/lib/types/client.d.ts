@@ -121,15 +121,6 @@ export interface DisplayEntry {
 export declare function _displayEntry(trace: EnrichedTrade): DisplayEntry;
 /** The four visual states one provider's reading can take. */
 export type BalanceTone = 'ok' | 'low' | 'stale' | 'none';
-/** Usage-direction colour tier of a used-percent reading. */
-export type UsedLevel = 'ok' | 'mid' | 'low';
-/**
- * Colour tier for one used-percent reading against the REMAINING-watermark
- * threshold (lowPct). kcn 的配色口径:已使用低 = 正常绿(--ok),逼近额度
- * 上限先黄(--warn)再红(--bad)。档位从既有 lowPct 派生,不新增配置:
- * warn at 100−2·lowPct, red inside 100−lowPct(默认 20 → 60% 黄 / 80% 红)。
- */
-export declare function _usedLevel(percent: number | null, threshold: number): UsedLevel;
 /**
  * Display projection of ONE provider's answer (test seam, like _displayEntry):
  * the chip and panel render only these fields, so the view never keeps
@@ -146,7 +137,6 @@ export declare function _rowDisplay(result: BalanceResult | null): {
     value: string;
     sub: string | null;
     reset: string | null;
-    level: UsedLevel | null;
     title: string;
 };
 /**
