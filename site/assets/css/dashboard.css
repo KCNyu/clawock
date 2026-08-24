@@ -94,10 +94,10 @@
 
   /* 字阶（#880）：全站只有这 8 档，禁裸 px 字号。
      mono 只用于数字与代码，sans 用于所有文字。 */
-  /* 48px 在 1440 宽、240 高的整幅卡片里读起来是「一个统计数字」而不是
-     标题；上限提到 64，下限不动（390px 上仍是 30px，主数禁断行的约束
-     没有变松）。 */
-  --fs-display: clamp(30px, 4.4vw, 64px);
+  /* 主数是首屏唯一主角（Stocks 个股页的报价位）：5.8vw 斜率让 1440 落在
+     ~84px、1200 落在 ~70px；下限提到 32，390px 端 nowrap 禁断行的约束
+     没有变松（7 字形 ≈150px，远窄于内容列）。 */
+  --fs-display: clamp(32px, 5.8vw, 84px);
   /* 判词档（overview-status 的盘中判定句）：display(64) 与 lg(15) 之间原来
      是真空，而判词此前只有 12px —— 全页语义最重的一句话是全页最小的字之一，
      比统计轨的 13px 还小（语义倒置）。补在 28-34 档，桌面落在区间内。 */
@@ -2058,7 +2058,12 @@
     -webkit-backdrop-filter: blur(28px) saturate(180%);
     backdrop-filter: blur(28px) saturate(180%);
     border-color: var(--border-strong);
-    box-shadow: inset 0 1px 0 var(--spec-2), var(--shadow-card-hover);
+    /* 比卡片更厚，但阴影下延收在台↔卡的 12px 间距内：--shadow-card-hover
+       的 44px blur 会把整片暗影铺到判定卡顶上，「两块表面」读成「一坨」。
+       收成 24px blur / -16px spread，落影在间距线附近收干净。 */
+    box-shadow: inset 0 1px 0 var(--spec-2),
+                0 1px 2px rgba(0,0,0,.42),
+                0 12px 24px -16px rgba(0,0,0,.7);
   }
   /* A soft pool of light under the headline number. Not a coloured box and
      not a glow on the glyphs — an ambient lift behind the focal point, which
@@ -2074,20 +2079,27 @@
      空白 —— 那不是留白，是构图没写完（主数越大越明显）。右栏放的不是第二
      张图，是同一个数的历史形状。 */
   .hero-deck-lead {
-    padding: 32px var(--card-inset) 26px;
+    padding: 38px var(--card-inset) 32px;
     position: relative;
     display: grid; grid-template-columns: minmax(0, 1fr);
   }
   @media (min-width: 1024px) {
+    /* 指挥台左右分栏：左 copy 右 spark（≥400px），3:5 锁比例——列宽不随
+       数据长度漂移（auto 会跟着副行 max-content 走），spark 在 1440 拿到
+       ~790px 长走势条（Stocks 个股页构图），大数字与它的历史形状等重，
+       是这块表面的主轴。 */
     .hero-deck-lead {
-      grid-template-columns: minmax(0, auto) minmax(260px, 1fr);
-      column-gap: 44px; align-items: center;
+      grid-template-columns: minmax(0, 3fr) minmax(400px, 5fr);
+      column-gap: 64px; align-items: center;
     }
-    /* 桌面副行+出处行占位：数字一长（如 2026-08-24 的 -4.83% 日），出处行
-       在 ≤1280 档就折到第二行，deck 一次性长高 24px、把判定卡以下整列推走
-       —— 实测单次 CLS 0.14，是桌面位移的大头。折行点随数据长度漂移，按
-       「宁可多留空白」的 rail 同款取舍，≥1024 一律按两行占位（57px）。 */
-    .hero-deck-line { min-height: 57px; }
+    /* copy 列定高：副行在 ≤~1300 档会折成两行（copy 列被 3:5 锁定后窄于
+       副行单行宽），数据一到 deck 就长高 ~20px。按 <1024 的 142px 同款
+       思路，≥1024 也按数据态实高占位：184 = 锁列后扫宽 copy 数据态实高
+       上界（副行两行触顶），pre/post 同高即零位移。 */
+    .hero-deck-copy { min-height: 184px; }
+    /* 光学对位：主数基线与 spark 零轴带（零轴的纵位随数据浮动，能钉住的
+       是这条带）差 ≤ 半行。整体上提 4px 纯绘制偏移，不动布局、不产生位移。 */
+    .hero-deck-copy { position: relative; top: -4px; }
   }
   .hero-deck-copy { min-width: 0; }
   /* 脚手架（「—」占位）到数据态的高度差必须先占住，否则副行折行会把
@@ -2104,7 +2116,8 @@
     position: relative; height: 56px; margin-top: 18px; min-width: 0;
   }
   @media (min-width: 1024px) {
-    .hero-spark { height: 108px; margin-top: 0; }
+    /* 长走势条配更高的画布：宽度放大后 108px 会把形状压扁。 */
+    .hero-spark { height: 132px; margin-top: 0; }
   }
   .hero-spark-svg { display: block; width: 100%; height: 100%; }
   .hero-spark-svg.pos { color: var(--positive); }
@@ -2153,21 +2166,14 @@
   /* 折行后行首不留孤立的间隔点 */
   .hero-deck-sub .hds-seg { display: inline-flex; align-items: baseline; gap: 5px; }
   .hero-deck-sub b { font-weight: 700; color: var(--text); }
+  /* 拆解行与出处行上下两行（Stocks 构图）：副行是主数的直接展开，出处行
+     是脚注 —— 不再同行右锚把 copy 列撑宽、挤掉 spark 的宽度。 */
   .hero-deck-line {
-    display: flex; align-items: baseline; justify-content: space-between;
-    gap: 10px 28px; flex-wrap: wrap;
+    display: block;
   }
   .hero-deck-fx {
     margin-top: 9px; color: var(--text-tertiary); font: 500 var(--fs-micro)/1.4 var(--mono);
     overflow-wrap: anywhere;
-  }
-  /* 同一行时不要再压 9px 的上边距，两段按基线对齐 */
-  .hero-deck-line > .hero-deck-fx { margin-top: 0; text-align: right; }
-  @media (max-width: 1023px) {
-    /* 换行之后它又是「下面一行」，把间距还回去 */
-    .hero-deck-line { gap: 0; }
-    .hero-deck-line > .hero-deck-fx { margin-top: 9px; text-align: left; }
-    .hero-deck-line > * { flex: 1 1 100%; }
   }
   /* 首屏最大的一次跳：8 格统计轨在数据到达前是空的（高 1px），到达后
      撑到 85px —— 实测这一下就占了整页 CLS 0.26 里的大头，而它每次加载
@@ -2316,16 +2322,15 @@
      Overview 首屏只留 hero-deck 的 spark 一条形状；今日判定从「Equity(8) + 判定(4)」
      的伴排改为独占整行。 */
   .overview-verdict {
-    grid-column: 1 / -1; padding: 18px var(--card-inset);
+    grid-column: 1 / -1; padding: 20px var(--card-inset) 18px;
     /* 原来的 480px 地板是为和 Equity 卡凑同一行；挪走后按各档实测内容高度
        重新预留（数据到达前占位，否则判定卡长高会把下方整列推下去 —— CLS
        实测 0.11，预留后回到基线）。
        地板保持整卡一级、不下沉到子行：盘中横幅在 overview 是
        is-pending 不占位的（#890），横幅日它出现时会在卡内把要点/硬闸往下推
        —— 整卡地板吸收这种内部重排，子行地板会把这次重排漏成页面级位移。
-       441 = 判词升到 --fs-verdict 后的横幅日实测上界（1024-1920 扫宽最高
-       439@1100，取上界+2）。 */
-    min-height: 441px;
+       地板值 = 构图定稿后横幅日扫宽实测上界 +2（见各断点注释）。 */
+    min-height: 478px;
   }
   .overview-verdict-head,
   .overview-gates-head {
@@ -2366,17 +2371,17 @@
     margin: 0 0 14px; min-height: 0;
   }
   .overview-verdict .hl-chip {
-    min-width: 0; padding: 7px 0; font-size: var(--fs-sm); overflow-wrap: anywhere;
+    min-width: 0; padding: 12px 0; font-size: var(--fs-sm); overflow-wrap: anywhere;
   }
   .overview-gates {
-    padding-top: 12px; border-top: 1px solid var(--border-subtle);
+    padding-top: 16px; border-top: 1px solid var(--border-subtle);
   }
   .overview-gates-head {
     color: var(--text-secondary); font: 700 var(--fs-micro)/1.2 var(--mono);
     letter-spacing: .06em; text-transform: uppercase;
   }
   .overview-gates-directive {
-    display: -webkit-box; margin-top: 7px; overflow: hidden;
+    display: -webkit-box; margin-top: 8px; overflow: hidden;
     -webkit-box-orient: vertical; -webkit-line-clamp: 2;
     color: var(--text-tertiary); font-size: var(--fs-micro); line-height: 1.45;
   }
@@ -2497,8 +2502,8 @@
 
   @media (min-width: 768px) and (max-width: 1023px) {
     .hero-rail { grid-template-columns: repeat(4, minmax(0, 1fr)); min-height: 168px; }
-    /* 469：判词升档后 768px 端横幅折三行的实测上界（467）+2。 */
-    .overview-verdict { min-height: 469px; }
+    /* 506：要点行升到 44px 后 768px 端横幅折行的实测上界（504）+2。 */
+    .overview-verdict { min-height: 506px; }
     .overview-verdict, .overview-strip,
     .overview-command > .hero-honesty-card,
     .overview-command > .hero-gold-card { grid-column: 1 / -1; }
@@ -2522,8 +2527,8 @@
     .dh-file { display: none; }
     .dh-bar { grid-column: 1 / -1; }
     .dh-detail { grid-column: 1 / -1; white-space: normal; }
-    /* 527：判词升档后 390px 实测上界（525）+2（同 hero-rail 的取舍）。 */
-    .overview-verdict { min-height: 527px; }
+    /* 564：要点行升到 44px 后 390px 实测上界（562）+2（同 hero-rail 的取舍）。 */
+    .overview-verdict { min-height: 564px; }
     .overview-strip { display: flex; flex-direction: column; }
     .overview-strip-cell {
       min-height: 0; border-right: 0; border-bottom: 1px solid var(--border-subtle);
