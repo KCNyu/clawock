@@ -25,6 +25,39 @@ from clawock import instruments as instrument_registry
 from clawock.automation.llm import chat
 from clawock.market_data.sentiment import fetch_google_news
 
+# Serialized-size budget for the raw-news JSON embedded in the prompt. The old
+# `json.dumps(raw)[:25000]` slice cut mid-string on busy days: a malformed JSON
+# tail plus tickers that silently vanished while the digest was still expected
+# to cover them (#959). Tickers are now included or skipped WHOLE; skipped ones
+# are declared in `_omitted_tickers` so the model reports the gap instead of
+# inventing around it.
+NEWS_PROMPT_BUDGET_CHARS = 25_000
+
+
+def build_news_payload(raw, budget=NEWS_PROMPT_BUDGET_CHARS):
+    """Whole-ticker projection of the fetched news under a serialized budget.
+
+    Inclusion order follows `raw` so earlier (portfolio-order) tickers win
+    contention. The `_omitted_tickers` manifest is sized into the budget from
+    the start so adding it can never push the payload back over budget.
+    """
+    def compact(value):
+        return json.dumps(value, ensure_ascii=False, separators=(',', ':'))
+
+    included = {}
+    omitted = []
+    used = len(compact({'_omitted_tickers': omitted}))
+    for ticker, items in raw.items():
+        piece = len(compact({ticker: items})) + 1  # + separator overhead
+        if used + piece <= budget:
+            included[ticker] = items
+            used += piece
+        else:
+            omitted.append(ticker)
+    if omitted:
+        included['_omitted_tickers'] = omitted
+    return included
+
 
 def _fetch_finnhub(ticker, since, until, key):
     """Returns list of dicts (may be empty) or None on error."""
@@ -178,6 +211,8 @@ def main():
 
     system = "You are Rick, kcn's stock analyst. Distill US holding news into actionable bullets."
 
+    news_payload = build_news_payload(raw)
+
     user = (
         "下面 US holdings 过去 48h 新闻 (来源 Finnhub 或 Google News RSS, "
         "每条 `origin` 字段标注). 提炼成 markdown digest:\n\n"
@@ -197,9 +232,11 @@ def main():
         "- 不许说 \"需要进一步研究\" 这种废话\n"
         + (f"- 持仓映射: 以下公司是通过杠杆 ETF 持有的 {json.dumps(held_via, ensure_ascii=False)};"
            " 写 implication 时点明持有的是哪只 ETF, 并说明 2x 会放大该消息\n" if held_via else "")
+        + "- 若 Raw news 含 `_omitted_tickers`，这些 ticker 的新闻因 prompt 预算被整体省略，"
+          "对应小节必须如实写数据缺口，禁止编造\n"
         + "- 直接出 markdown\n\n"
         +
-        f"Raw news (JSON):\n```json\n{json.dumps(raw, ensure_ascii=False)[:25000]}\n```\n"
+        f"Raw news (JSON):\n```json\n{json.dumps(news_payload, ensure_ascii=False)}\n```\n"
     )
 
     # News digest: short output but enable thinking helps prioritize signal vs noise
