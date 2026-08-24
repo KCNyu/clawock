@@ -1,9 +1,9 @@
 {
-  "checked_at": "2026-08-24T17:04:29Z",
+  "checked_at": "2026-08-24T17:35:49Z",
   "ok": true,
   "build_ok": true,
   "publish_ok": true,
   "warn_count": 3,
   "repair_count": 0,
-  "tail": "  brief-context source: brief-context-2026-08-24.json\n✓ wrote /root/.openclaw/workspace/assets/data/overview.json (48,133 bytes)\n✓ wrote /root/.openclaw/workspace/assets/data/dashboard.json (188,767 bytes)\n✓ wrote /root/.openclaw/workspace/assets/data/decision_audit.json (decision audit sidecar)\n✓ wrote /root/.openclaw/workspace/assets/data/shadow_portfolio.json (shadow portfolio sidecar, 模拟·非实盘)\n  US: 16 holdings, 5 active, value $3201\n  HK: 7 holdings, 5 active, value HK$67183\n  Snapshots: 75 embedded / 75 on disk\n  Plans: 5 embedded / 69 on disk\n  Snapshots: 75 | Plans: 5\n  FX USDHKD: 7.8405 (Frankfurter)\n  warn: insights dropped bear_case for unknown ticker 00100 MINIMAX-W\n  warn: insights dropped bear_case for unknown ticker SPCH 2xSPCX\n  warn: insights dropped bear_case for unknown ticker CRCL Circle\n\n  ✓ data-plane: published 6 outputs as 6392609b55d1 → git@github.com:KCNyu/clawock.git data-plane\n✓ data-plane: requested data-plane-published → KCNyu/clawock"
+  "tail": "  brief-context source: brief-context-2026-08-24.json\n✓ wrote /root/.openclaw/workspace/assets/data/overview.json (48,215 bytes)\n✓ wrote /root/.openclaw/workspace/assets/data/dashboard.json (189,152 bytes)\n✓ wrote /root/.openclaw/workspace/assets/data/decision_audit.json (decision audit sidecar)\n✓ wrote /root/.openclaw/workspace/assets/data/shadow_portfolio.json (shadow portfolio sidecar, 模拟·非实盘)\n  US: 16 holdings, 5 active, value $3173\n  HK: 7 holdings, 5 active, value HK$67183\n  Snapshots: 75 embedded / 75 on disk\n  Plans: 5 embedded / 69 on disk\n  Snapshots: 75 | Plans: 5\n  FX USDHKD: 7.8405 (Frankfurter)\n  warn: insights dropped bear_case for unknown ticker 00100 MINIMAX-W\n  warn: insights dropped bear_case for unknown ticker SPCH 2xSPCX\n  warn: insights dropped bear_case for unknown ticker CRCL Circle\n\n  ✓ data-plane: published 6 outputs as 2bc45f221d4a → git@github.com:KCNyu/clawock.git data-plane\n✓ data-plane: requested data-plane-published → KCNyu/clawock"
 }
