@@ -261,7 +261,7 @@ def _derive_final(record):
                     in {None, "published", "current", "skipped"}
                 )
             )
-            or preflight == "warning"
+            or preflight in {"warning", "failed"}
         )
         status = "degraded" if degraded else "success"
         reason = (

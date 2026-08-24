@@ -8,9 +8,11 @@ under the same lock, avoiding another independent git writer.
 from __future__ import annotations
 
 import argparse
+import fcntl
 import json
 import os
 import sys
+from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
@@ -78,50 +80,68 @@ def _atomic_write(path: Path, data: dict) -> None:
     os.replace(tmp, path)
 
 
+@contextmanager
+def _locked():
+    """Same convention as workflow_outcomes._locked(): record() is an unlocked
+    read-modify-write over a shared ledger and the writers genuinely overlap —
+    the intraday watchdog fires slot+10min while the model turn can run ~16min,
+    so postflight's 'completed' and a watchdog backstop can race. Without the
+    lock one writer's ledger silently erases the other's event (false gap in
+    the published coverage sidecar). Derived from LOCAL_PATH so test fixtures
+    that redirect it stay isolated."""
+    lock_path = LOCAL_PATH.with_suffix(LOCAL_PATH.suffix + ".lock")
+    lock_path.parent.mkdir(parents=True, exist_ok=True)
+    with lock_path.open("a+") as lock:
+        fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
+        yield
+
+
 def record(market: str, state: str, *, at: datetime | None = None,
            job_name: str | None = None, slot: str | None = None, **details) -> dict:
     now = _now(at)
     derived_name, derived_slot = slot_for(market, now)
     job_name = job_name or derived_name
     slot = slot or derived_slot
-    ledger, from_disk = _load()
-    # A brand-new ledger gets stamped with real wall-clock now inside _empty();
-    # anchor monitoring_started_at to this first record's slot boundary instead,
-    # otherwise the current slot (crons fire a few minutes past the boundary)
-    # is judged as "before monitoring began" and silently dropped from coverage.
-    # Only re-anchor when no ledger existed on disk — a valid ledger that merely
-    # has no live events keeps its real monitoring epoch (don't erase earlier gaps).
-    was_fresh = not from_disk
-    cutoff = now - timedelta(hours=KEEP_HOURS)
-    events = []
-    current = None
-    for event in ledger.get("events", []):
-        try:
-            event_time = datetime.fromisoformat(event["slot"])
-            if event_time.tzinfo is None:
-                event_time = event_time.replace(tzinfo=HKT)
-        except Exception:
-            continue
-        if event_time.astimezone(timezone.utc) < cutoff:
-            continue
-        if event.get("job") == job_name and event.get("slot") == slot:
-            current = dict(event)
-        else:
-            events.append(event)
-    current = current or {"job": job_name, "market": market, "slot": slot}
-    current.update({"state": state, "updated_at": now.isoformat()})
-    for key, value in details.items():
-        if value is not None:
-            current[key] = value
-    events.append(current)
-    events.sort(key=lambda e: (e.get("slot", ""), e.get("job", "")))
-    ledger["schema_version"] = SCHEMA_VERSION
-    if was_fresh:
-        ledger["monitoring_started_at"] = slot
-    ledger.setdefault("monitoring_started_at", now.isoformat())
-    ledger["updated_at"] = now.isoformat()
-    ledger["events"] = events
-    _atomic_write(LOCAL_PATH, ledger)
+    # Lock spans load→merge→write (same convention as workflow_outcomes).
+    with _locked():
+        ledger, from_disk = _load()
+        # A brand-new ledger gets stamped with real wall-clock now inside _empty();
+        # anchor monitoring_started_at to this first record's slot boundary instead,
+        # otherwise the current slot (crons fire a few minutes past the boundary)
+        # is judged as "before monitoring began" and silently dropped from coverage.
+        # Only re-anchor when no ledger existed on disk — a valid ledger that merely
+        # has no live events keeps its real monitoring epoch (don't erase earlier gaps).
+        was_fresh = not from_disk
+        cutoff = now - timedelta(hours=KEEP_HOURS)
+        events = []
+        current = None
+        for event in ledger.get("events", []):
+            try:
+                event_time = datetime.fromisoformat(event["slot"])
+                if event_time.tzinfo is None:
+                    event_time = event_time.replace(tzinfo=HKT)
+            except Exception:
+                continue
+            if event_time.astimezone(timezone.utc) < cutoff:
+                continue
+            if event.get("job") == job_name and event.get("slot") == slot:
+                current = dict(event)
+            else:
+                events.append(event)
+        current = current or {"job": job_name, "market": market, "slot": slot}
+        current.update({"state": state, "updated_at": now.isoformat()})
+        for key, value in details.items():
+            if value is not None:
+                current[key] = value
+        events.append(current)
+        events.sort(key=lambda e: (e.get("slot", ""), e.get("job", "")))
+        ledger["schema_version"] = SCHEMA_VERSION
+        if was_fresh:
+            ledger["monitoring_started_at"] = slot
+        ledger.setdefault("monitoring_started_at", now.isoformat())
+        ledger["updated_at"] = now.isoformat()
+        ledger["events"] = events
+        _atomic_write(LOCAL_PATH, ledger)
     # Tests and one-off callers redirect LOCAL_PATH to an isolated fixture. Do
     # not let that write a second ledger in the real workspace.
     if LOCAL_PATH == WS / "memory" / ".tmp" / "cron-heartbeats.json":
