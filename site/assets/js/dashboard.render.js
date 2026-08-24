@@ -1144,9 +1144,9 @@
         <div class="anomaly ${sev}">
           <span class="icon">${icon}</span>
           <div class="body">
-            <span class="ticker">${a.ticker || DASH}</span>
-            <span class="muted"> · ${a.type || ""}</span>
-            <div class="detail">${a.detail || ""}</div>
+            <span class="ticker">${escapeHtml(a.ticker || DASH)}</span>
+            <span class="muted"> · ${escapeHtml(a.type || "")}</span>
+            <div class="detail">${escapeHtml(a.detail || "")}</div>
           </div>
         </div>
       `;
@@ -1259,9 +1259,9 @@
                   (x.type || 'MACRO');
       const detail = x.detail || x.title || x.time || '—';
       return `<div class="catalyst-row ${x._type}">
-        <span class="date">${x.date || '—'}</span>
-        <span class="ticker">${tag}</span>
-        <span class="detail">${detail}</span>
+        <span class="date">${escapeHtml(x.date || '—')}</span>
+        <span class="ticker">${escapeHtml(tag)}</span>
+        <span class="detail">${escapeHtml(detail)}</span>
       </div>`;
     }).join('');
 
@@ -1503,13 +1503,16 @@
     if (!withSignal.length) { wrap.innerHTML = ''; return; }
     const regionTag = (r) => r === 'us_stocks' ? 'US' : (r === 'hk_stocks' ? 'HK' : '');
     wrap.innerHTML = withSignal.map(t => {
+      // 标题是 Google News / Reddit 的第三方文本：完整转义，不做 `<`-only 的
+      // 半吊子处理 —— 后者只防标签注入，任何把标题挪进属性的后续改动都会
+      // 把它变成洞。与 influencer feed 的 escapeHtml 同一约定。
       const newsLis = t.news.slice(0, 3).map(n =>
-        `<li>${(n.title || '').replace(/</g, '&lt;')}</li>`).join('');
+        `<li>${escapeHtml(n.title || '')}</li>`).join('');
       const redditLis = t.reddit_posts.slice(0, 3).map(p =>
-        `<li>${(p.title || '').replace(/</g, '&lt;')} <span style="color:var(--text-dim);font-size:var(--fs-micro);">· ${p.score || 0}↑ ${p.num_comments || 0}💬</span></li>`).join('');
+        `<li>${escapeHtml(p.title || '')} <span style="color:var(--text-dim);font-size:var(--fs-micro);">· ${p.score || 0}↑ ${p.num_comments || 0}💬</span></li>`).join('');
       return `<details class="sd-row">
         <summary>
-          <span class="sd-tk">${t.ticker}</span>
+          <span class="sd-tk">${escapeHtml(t.ticker)}</span>
           <span class="sd-reg">${regionTag(t.region)}</span>
           <span class="sd-counts"><strong>${t.reddit}</strong>R · <strong>${t.news.length}</strong>N</span>
         </summary>
@@ -1551,7 +1554,7 @@
     wrap.innerHTML =
       `<div class="rb-hdr">Risk keywords (${hits.length})</div>` +
       hits.map(h =>
-        `<div class="rb-row"><span class="rb-tk">${h.ticker}</span>` +
+        `<div class="rb-row"><span class="rb-tk">${escapeHtml(h.ticker)}</span>` +
         h.kws.map(k => `<span class="rb-kw">${k}</span>`).join('') +
         `</div>`).join('');
   }
