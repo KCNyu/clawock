@@ -193,8 +193,11 @@
     // The verdict column is intentionally compact. Movers/anomalies have their
     // own linked strip below and catalysts live in Signals, so the first three
     // decision-driving changes are the overview payload.
+    // No icon slot: the old 7px status dot read as AI-flavoured (kcn: 彩色圆点
+    // = AI 味). Row semantics live in position, weight and — for true alerts —
+    // the red text colour, never in a coloured dot.
     el.innerHTML = chips.slice(0, 3).map(c =>
-      `<span class="hl-chip ${c.cls}"><span class="hl-ic">${c.icon}</span>${c.txt}</span>`).join("");
+      `<span class="hl-chip ${c.cls}">${c.txt}</span>`).join("");
   }
 
   // 🪞 诚实自评卡 — 把这轮做的诚实层(风险调整判决 / catalyst 纪律 / 辩论决断 / 因子 CI)聚一处

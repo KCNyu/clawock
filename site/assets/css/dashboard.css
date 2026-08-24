@@ -98,6 +98,10 @@
      标题；上限提到 64，下限不动（390px 上仍是 30px，主数禁断行的约束
      没有变松）。 */
   --fs-display: clamp(30px, 4.4vw, 64px);
+  /* 判词档（overview-status 的盘中判定句）：display(64) 与 lg(15) 之间原来
+     是真空，而判词此前只有 12px —— 全页语义最重的一句话是全页最小的字之一，
+     比统计轨的 13px 还小（语义倒置）。补在 28-34 档，桌面落在区间内。 */
+  --fs-verdict: clamp(24px, 2.4vw, 34px);
   --fs-xxl: 26px;
   --fs-xl: 19px;
   --fs-lg: 15px;
@@ -105,6 +109,11 @@
   --fs-sm: 12px;
   --fs-xs: 11px;
   --fs-micro: 10px;
+
+  /* 首屏内容左基线：hero-deck-lead / hero-rail / overview-verdict 的内容
+     左缘共用这一个 inset（实测改前三处 57/45/47px 三个值）。rail 的缩进
+     加在容器（track 内缩）上，格内不再各吃一份左 padding。 */
+  --card-inset: 28px;
 
   /* 字距随字号走（apple-design §15）：一个固定 letter-spacing 必然在某一端
      是错的 —— 字号越大，同样的字距看起来越松，所以大字收、正文归零、
@@ -208,7 +217,7 @@
     .hero-deck { background: var(--surface-1); }
     /* Same reason the sheens go: they are light passing through a material.
        On an opaque surface they are just a gradient nobody asked for. */
-    .card, .hero-deck { background-image: none; }
+    .card, .hero-deck, .overview-strip { background-image: none; }
     .hero-deck-lead::before { display: none; }
   }
   body {
@@ -2065,7 +2074,7 @@
      空白 —— 那不是留白，是构图没写完（主数越大越明显）。右栏放的不是第二
      张图，是同一个数的历史形状。 */
   .hero-deck-lead {
-    padding: 32px 28px 26px;
+    padding: 32px var(--card-inset) 26px;
     position: relative;
     display: grid; grid-template-columns: minmax(0, 1fr);
   }
@@ -2074,6 +2083,11 @@
       grid-template-columns: minmax(0, auto) minmax(260px, 1fr);
       column-gap: 44px; align-items: center;
     }
+    /* 桌面副行+出处行占位：数字一长（如 2026-08-24 的 -4.83% 日），出处行
+       在 ≤1280 档就折到第二行，deck 一次性长高 24px、把判定卡以下整列推走
+       —— 实测单次 CLS 0.14，是桌面位移的大头。折行点随数据长度漂移，按
+       「宁可多留空白」的 rail 同款取舍，≥1024 一律按两行占位（57px）。 */
+    .hero-deck-line { min-height: 57px; }
   }
   .hero-deck-copy { min-width: 0; }
   /* 脚手架（「—」占位）到数据态的高度差必须先占住，否则副行折行会把
@@ -2172,9 +2186,12 @@
     display: grid; grid-template-columns: repeat(6, minmax(0, 1fr));
     border-top: 1px solid var(--border-subtle);
     min-height: 85px;
+    /* 左基线走容器 inset（track 内缩），列距用 gap —— 格内不再各带左
+       padding，第一格文本与 hero-deck-lead 的内容左缘严格对齐。 */
+    padding: 0 var(--card-inset); column-gap: 16px;
   }
   .hero-rail-cell {
-    min-width: 0; padding: 14px 16px 16px;
+    min-width: 0; padding: 14px 0 16px;
   }
   .hero-rail-k {
     color: var(--text-tertiary); font: 600 var(--fs-micro)/1.2 var(--font);
@@ -2307,19 +2324,27 @@
      Overview 首屏只留 hero-deck 的 spark 一条形状；今日判定从「Equity(8) + 判定(4)」
      的伴排改为独占整行。 */
   .overview-verdict {
-    grid-column: 1 / -1; padding: 18px;
+    grid-column: 1 / -1; padding: 18px var(--card-inset);
     /* 原来的 480px 地板是为和 Equity 卡凑同一行；挪走后按各档实测内容高度
        重新预留（数据到达前占位，否则判定卡长高会把下方整列推下去 —— CLS
-       实测 0.11，预留后回到基线）。 */
-    min-height: 420px;
+       实测 0.11，预留后回到基线）。
+       地板保持整卡一级、不下沉到子行：盘中横幅在 overview 是
+       is-pending 不占位的（#890），横幅日它出现时会在卡内把要点/硬闸往下推
+       —— 整卡地板吸收这种内部重排，子行地板会把这次重排漏成页面级位移。
+       441 = 判词升到 --fs-verdict 后的横幅日实测上界（1024-1920 扫宽最高
+       439@1100，取上界+2）。 */
+    min-height: 441px;
   }
   .overview-verdict-head,
   .overview-gates-head {
     display: flex; align-items: center; justify-content: space-between; gap: 10px;
   }
+  /* 「今日判定」降级为 kicker：这张卡真正的话是下面的判词（--fs-verdict），
+     标题本身退成与「决策面板」同档的眉标，把字阶让给内容。 */
   .overview-verdict-head h3 {
-    margin: 5px 0 0; color: var(--text); font-size: var(--fs-lg);
-    letter-spacing: -.01em; text-transform: uppercase;
+    margin: 5px 0 0; color: var(--text-tertiary);
+    font-size: var(--fs-micro); font-weight: 600;
+    letter-spacing: .09em; text-transform: uppercase;
   }
   .overview-jump,
   .overview-strip-link {
@@ -2331,9 +2356,19 @@
   .overview-strip-link:focus-visible {
     outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 3px;
   }
+  /* 判词行：这张卡的主句，升到 --fs-verdict 档（原 12px 是全页最小字之一，
+     语义倒置）。三种行式样统一为无盒 + 发丝线：去胶囊底色与蓝点，
+     上下发丝线夹住，字重 600 承担告警语气；时间戳保持 mono micro。 */
   .overview-status {
-    margin: 14px 0 12px; padding: 10px 11px; font-size: var(--fs-sm);
+    margin: 14px 0 12px; padding: 12px 0;
+    background: none; border: 0; border-radius: 0;
+    border-top: 1px solid var(--border-subtle);
+    border-bottom: 1px solid var(--border-subtle);
+    -webkit-backdrop-filter: none; backdrop-filter: none;
+    font-size: var(--fs-verdict); line-height: 1.3; letter-spacing: -.01em;
   }
+  .overview-status .sb-pulse { display: none; }
+  .overview-status .sb-text { font-weight: 600; }
   .overview-verdict .today-highlights {
     display: grid; grid-template-columns: 1fr; gap: 6px;
     margin: 0 0 14px; min-height: 0;
@@ -2353,15 +2388,27 @@
     -webkit-box-orient: vertical; -webkit-line-clamp: 2;
     color: var(--text-tertiary); font-size: var(--fs-micro); line-height: 1.45;
   }
-  .overview-gates .risk-alerts { margin-top: 8px; gap: 6px; }
+  .overview-gates .risk-alerts { margin-top: 8px; gap: 0; }
+  /* 硬闸行与要点行统一为无盒 + 发丝线：去底色与圆角，行间发丝线分隔，
+     严重度由左侧 2px 色条承载（红=high / amber=medium），icon 圆点退场。 */
   .overview-gates .risk-alert {
-    align-items: flex-start; padding: 7px 9px; font-size: var(--fs-micro); line-height: 1.35;
+    align-items: flex-start; padding: 8px 0 8px 10px;
+    font-size: var(--fs-micro); line-height: 1.35;
+    background: none; border: 0; border-radius: 0;
+    border-top: 1px solid var(--border-subtle);
+    border-left: 2px solid var(--red);
   }
+  .overview-gates .risk-alert.medium { border-left-color: var(--warning); }
+  .overview-gates .risk-alert .icon { display: none; }
   .overview-strip {
     grid-column: 1 / -1; min-width: 0;
     display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, .8fr) minmax(0, .8fr);
-    border: 1px solid var(--border-subtle); border-radius: 12px;
-    background: var(--surface-1); overflow: hidden;
+    border: 1px solid var(--border-subtle); border-radius: 16px;
+    /* 与 .card 同族的三件套（sheen/specular/负 spread 阴影）+ 同一 16px
+       圆角 —— 它原来是裸 div，首屏三块表面里唯一的例外。 */
+    background: var(--sheen-1), var(--surface-1);
+    box-shadow: inset 0 1px 0 var(--spec-1), var(--shadow-card);
+    overflow: hidden;
   }
   .overview-strip-cell {
     position: relative; min-width: 0; min-height: 122px; padding: 12px 14px;
@@ -2449,29 +2496,23 @@
     color: var(--text);
   }
   .hl-chip:last-child { border-bottom: 0; }
-  /* The icon slot is a status dot now — the emoji that lived here read as
-     AI-flavoured (ui-ux-pro-max: no emoji as icons). Colour inherits from the
-     chip's semantic state class below. */
-  .hl-chip .hl-ic {
-    width: 7px; height: 7px; border-radius: 50%;
-    background: currentColor; flex: none;
-  }
-  /* 颜色只留给圆点；文字保持墨色，除了真正的告警 */
+  /* 无 icon 槽：emoji 图标（#869 前）和接替它的 7px 状态圆点都读作「AI 味」
+     （kcn：彩色圆点 = AI 味）。行语义由行位置、字重与（仅真告警的）红色
+     文字承载，不再由任何圆点承载；渲染端（hero.js/render.js 双份）已不再
+     输出 .hl-ic。 */
+  /* 真告警整行红字（全站唯一的非涨跌红） */
   .hl-chip.hl-alert { color: var(--red); font-weight: 600; }
-  .hl-chip.hl-warn  .hl-ic { background: var(--amber); }
-  .hl-chip.hl-up    .hl-ic { background: var(--green); }
-  .hl-chip.hl-down  .hl-ic { background: var(--red); }
-  .hl-chip.hl-info  .hl-ic { background: var(--accent); }
-  .hl-chip .hl-ic { align-self: center; }
 
   @media (min-width: 768px) and (max-width: 1023px) {
     .hero-rail { grid-template-columns: repeat(4, minmax(0, 1fr)); min-height: 168px; }
-    .overview-verdict { min-height: 430px; }
+    /* 469：判词升档后 768px 端横幅折三行的实测上界（467）+2。 */
+    .overview-verdict { min-height: 469px; }
     .overview-verdict, .overview-strip,
     .overview-command > .hero-honesty-card,
     .overview-command > .hero-gold-card { grid-column: 1 / -1; }
   }
   @media (max-width: 767px) {
+    :root { --card-inset: 20px; }
     .overview-command { display: flex; flex-direction: column; gap: 12px; }
     .hero-deck, .hero-health,
     .overview-verdict, .overview-strip,
@@ -2489,8 +2530,8 @@
     .dh-file { display: none; }
     .dh-bar { grid-column: 1 / -1; }
     .dh-detail { grid-column: 1 / -1; white-space: normal; }
-    /* 390px 实测 486：窄屏判定卡内容折行更多，地板取上界（同 hero-rail 的取舍）。 */
-    .overview-verdict { min-height: 490px; }
+    /* 527：判词升档后 390px 实测上界（525）+2（同 hero-rail 的取舍）。 */
+    .overview-verdict { min-height: 527px; }
     .overview-strip { display: flex; flex-direction: column; }
     .overview-strip-cell {
       min-height: 0; border-right: 0; border-bottom: 1px solid var(--border-subtle);
@@ -2506,8 +2547,8 @@
     .hero-deck-pnl { font-size: var(--fs-display); }
     .hero-deck-sub { font-size: var(--fs-sm); }
     .hero-rail-v { font-size: var(--fs-lg); }
-    .hero-deck-lead { padding: 22px 18px 18px; }
-    .hero-rail-cell { padding: 12px 14px 14px; }
+    .hero-deck-lead { padding: 22px var(--card-inset) 18px; }
+    .hero-rail-cell { padding: 12px 0 14px; }
     .dh-seg { width: 11px; height: 26px; }
   }
 
