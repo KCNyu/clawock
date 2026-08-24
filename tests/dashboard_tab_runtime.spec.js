@@ -848,18 +848,45 @@ async function testHoldingsAndHeroNeverTruncate(browser, base) {
     const spark = await page.evaluate(() => {
       const host = document.getElementById("hero-spark");
       const svg = host.querySelector(".hero-spark-svg");
-      const stops = [...svg.querySelectorAll("linearGradient stop")]
-        .map(s => ({ offset: s.getAttribute("offset"), cls: s.getAttribute("class") }));
+      const area = svg.querySelector(".hs-area");
+      const cs = area && getComputedStyle(area);
+      const root = getComputedStyle(document.documentElement);
+      const probe = document.createElement("span");
+      document.body.appendChild(probe);
+      const tint = c => {
+        probe.style.color = "";
+        probe.style.color = root.getPropertyValue(c).trim();
+        return getComputedStyle(probe).color;
+      };
       return {
         height: Math.round(host.getBoundingClientRect().height),
         label: svg.getAttribute("aria-label") || "",
         points: (svg.querySelector(".hs-line")?.getAttribute("d") || "").split("L").length,
-        stops,
+        // 面积填充：整段 fill 声明 + 两个 stop 的解析色。中性材质不能带涨跌色。
+        areaFill: cs ? cs.fill : "",
+        stopColors: [...svg.querySelectorAll("linearGradient stop")]
+          .map(s => getComputedStyle(s).stopColor),
+        // token 值经探针解析成 rgb() 再比：直接比 `#F05B67` 和 `rgb(240,91,103)`
+        // 永远不相等，那样的断言是恒真的，等于没闸。
+        pnlTokens: ["--positive", "--negative", "--text-primary"].map(tint),
+        foot: host.querySelector(".hs-foot")?.textContent.trim() || "",
+        // 脚注横向溢出＝数字被静默切掉。带数字的那半句必须整段在框内。
+        footLowFits: (() => {
+          const f = host.querySelector(".hs-foot");
+          const low = host.querySelector(".hs-foot-low");
+          if (!f || !low) return false;
+          const fb = f.getBoundingClientRect(), lb = low.getBoundingClientRect();
+          return low.scrollWidth <= Math.ceil(lb.width) + 1
+            && lb.right <= Math.ceil(fb.right) + 1 && lb.left >= Math.floor(fb.left) - 1;
+        })(),
+        lowMark: !!svg.querySelector(".hs-low"),
         headline: document.getElementById("hero-pnl").textContent.trim(),
         tone: svg.classList.contains("neg") ? "neg"
           : svg.classList.contains("pos") ? "pos" : "flat",
       };
     });
+    // 探针留在页面上会污染后面的断言，evaluate 里取完就删。
+    await page.evaluate(() => document.body.lastElementChild?.remove());
 
     assert.equal(spark.height, reserved,
       `hero spark shifts by ${spark.height - reserved}px when it draws`);
@@ -870,11 +897,28 @@ async function testHoldingsAndHeroNeverTruncate(browser, base) {
     assert(current, `hero spark aria-label has no 当前 value: ${spark.label}`);
     assert.equal(current[1], spark.headline,
       "hero spark does not end at the headline number — it is plotting a different series");
-    // 填充必须在零轴分色，否则曲线里赚钱的那一段会被涂成亏损色。
-    assert.deepEqual(spark.stops.map(s => s.cls), ["hs-up", "hs-up", "hs-down", "hs-down"],
-      "hero spark fill is not split at the zero axis");
-    assert.equal(spark.stops[1].offset, spark.stops[2].offset,
-      "hero spark gradient does not hard-stop at the zero axis");
+    // 面积是材质不是信号：不许带涨跌色。以前它按零轴分成红/绿两段，那是为了
+    // 「别把盈利期涂成亏损色」；现在整片中性，结构上就撒不了那个谎，代价是
+    // 得钉住「没人后来又把涨跌色加回填充里」——首屏那片红正是这么来的。
+    const [posRGB, negRGB, inkRGB] = spark.pnlTokens;
+    // 反空转：三个 token 必须解析成互不相同的 rgb()，否则下面那条比对
+    // 会因为「什么都相等/什么都不等」而恒真。
+    assert(posRGB && negRGB && inkRGB && posRGB !== inkRGB && negRGB !== inkRGB,
+      `P&L / ink tokens did not resolve distinctly: ${spark.pnlTokens.join(" | ")}`);
+    assert(spark.stopColors.length >= 2,
+      `hero spark area has no gradient stops (${spark.stopColors.length})`);
+    for (const c of spark.stopColors) {
+      assert.equal(c, inkRGB,
+        `hero spark area fill is not the neutral ink (${c}) — a P&L colour crept back in`);
+    }
+    // 脚注三件事：区间、最低点、自最低回来多少。少一件这条线就退回纯形状。
+    for (const want of ["个交易日", "最低", "自最低"]) {
+      assert(spark.foot.includes(want),
+        `hero spark footer is missing 「${want}」: ${spark.foot}`);
+    }
+    assert(spark.lowMark, "hero spark has no low-point marker line");
+    assert(spark.footLowFits,
+      "hero spark footer clips the numbers — 最低/自最低 must never be truncated");
     await context.close();
   }
 
