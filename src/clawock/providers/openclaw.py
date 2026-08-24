@@ -29,12 +29,10 @@ from typing import Mapping
 # should set CLAWOCK_OPENCLAW_BIN to an absolute path.
 OPENCLAW_BIN = shutil.which("openclaw") or "openclaw"
 DEFAULT_OPENCLAW_HOME = Path.home() / ".openclaw"
-# Compatibility aliases remain environment-neutral. New code should accept an
-# OpenClawPaths object or call runtime_paths() so overrides are resolved at use.
-OPENCLAW_HOME = DEFAULT_OPENCLAW_HOME
-CRON_RUNS_DIR = OPENCLAW_HOME / "cron" / "runs"
-CRON_JOBS_JSON = OPENCLAW_HOME / "cron" / "jobs.json"
-STATE_DB = OPENCLAW_HOME / "state" / "openclaw.sqlite"
+# (C-F8/#917) The old module-level compatibility aliases (OPENCLAW_HOME,
+# CRON_RUNS_DIR, CRON_JOBS_JSON, STATE_DB and the :673 workspace trio) are
+# gone: every consumer resolves through runtime_paths()/OpenClawPaths so
+# overrides apply at use, not at import.
 
 
 @dataclass(frozen=True)
@@ -179,10 +177,6 @@ def runtime_env(env: Mapping[str, str] | None = None) -> dict:
             existing.append(entry)
     resolved["PATH"] = os.pathsep.join(existing)
     return resolved
-
-
-# Legacy import surface, now discovered instead of fixed to one pnpm store.
-INSTALL_DIR = _discover_install_dir(OPENCLAW_BIN)
 
 
 def runtime_paths(environ: Mapping[str, str] | None = None) -> OpenClawPaths:
@@ -663,18 +657,6 @@ def build_cron_edit_argv(job_id: str, patch: dict, *,
 
 
 # ── Runtime layout and availability ──────────────────────────────────────────
-# Where this runtime keeps the things an operator check needs to look at, and
-# whether it is installed at all (#330 step 3). These were literals in
-# `system_check.py`, which is the last consumer to migrate — deliberately, since
-# it is what proves the earlier steps did not break anything.
-
-# Legacy path imports follow the generic current-user default. Operator code
-# that can target multiple runtimes should use runtime_paths() instead.
-LIVE_WORKSPACE = OPENCLAW_HOME / "workspace"
-CONFIG_FILE = OPENCLAW_HOME / "openclaw.json"
-MEMORY_INDEX_DB = OPENCLAW_HOME / "agents" / "main" / "agent" / "openclaw-agent.sqlite"
-
-
 def is_installed(paths: OpenClawPaths | None = None) -> bool:
     """Whether this runtime is present on this host.
 
