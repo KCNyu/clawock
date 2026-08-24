@@ -2,7 +2,10 @@ title: clawock
 description: Agent-native investment decision workflows with deterministic reconciliation and a live HK + US proof
 url: https://kcnyu.github.io
 baseurl: /clawock
-logo: /clawock/assets/logo-mark.svg
+# Site-root relative on purpose: jekyll-seo-tag prepends url+baseurl itself,
+# so a baseurl-prefixed value here shipped clawock/clawock/… (404) in every
+# rendered page's JSON-LD publisher block (#974).
+logo: /assets/logo-mark.svg
 
 # SEO: jekyll-sitemap auto-generates /sitemap.xml on every build (lastmod stays fresh,
 # unlike a hand-written static file). GitHub Pages supports this plugin natively.

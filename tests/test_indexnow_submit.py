@@ -108,3 +108,58 @@ def test_a_failed_post_does_not_record_the_urls(monkeypatch):
     with pytest.raises(RuntimeError):
         module.main([])
     assert saved == []
+
+
+# --- selection must compare page content, not per-build validators (#975) ---
+#
+# GitHub Pages rebuilds every page on each push to master and stamps the
+# rebuild batch into every ETag prefix, so the old HEAD/ETag ledger saw every
+# URL as changed dozens of times a day and re-announced the whole sitemap
+# daily. These tests pin that identical bodies are never resubmitted and only
+# real changes/new pages are.
+
+import argparse
+import hashlib
+
+
+ARGS = argparse.Namespace(urls=[], all=False)
+
+
+def test_identical_bodies_across_runs_are_not_resubmitted(monkeypatch):
+    module = _load()
+    bodies = {"https://x/a": b"same", "https://x/b": b"same"}
+    monkeypatch.setattr(module, "sitemap_urls", lambda: list(bodies))
+    monkeypatch.setattr(
+        module, "load_seen",
+        lambda: {u: hashlib.sha256(b).hexdigest() for u, b in bodies.items()})
+    monkeypatch.setattr(
+        module, "digest",
+        lambda u: hashlib.sha256(bodies[u]).hexdigest())
+    urls, record = module.select(ARGS)
+    assert urls == []
+    assert record == {}
+
+
+def test_changed_and_new_pages_are_submitted_unreachable_are_skipped(monkeypatch):
+    module = _load()
+    bodies = {"https://x/a": b"unchanged", "https://x/b": b"edited v2"}
+    seen = {"https://x/a": hashlib.sha256(b"unchanged").hexdigest(),
+            "https://x/b": hashlib.sha256(b"edited v1").hexdigest()}
+    monkeypatch.setattr(module, "sitemap_urls", lambda: list(bodies) + ["https://x/c"])
+    monkeypatch.setattr(module, "load_seen", lambda: dict(seen))
+    monkeypatch.setattr(
+        module, "digest",
+        lambda u: None if u.endswith("/c") else hashlib.sha256(bodies[u]).hexdigest())
+    urls, record = module.select(ARGS)
+    assert urls == ["https://x/b"]
+    assert record == {"https://x/b": hashlib.sha256(b"edited v2").hexdigest()}
+
+
+def test_ledger_schema_is_body_digests_not_etags(monkeypatch, tmp_path):
+    """The ETag-era ledger key must not be read back: its values change on
+    every Pages rebuild, so honoring them resurrects the daily full submit."""
+    module = _load()
+    (tmp_path / "seen.json").write_text('{"validators": {"u": "\"deadbeef-1\""}}')
+    monkeypatch.setattr(module, "STATE", str(tmp_path / "seen.json"))
+    assert module.load_seen() == {}
+
