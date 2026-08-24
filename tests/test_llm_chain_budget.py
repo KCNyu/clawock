@@ -237,3 +237,32 @@ def test_stats_out_records_leg_outcomes_and_attempts(keys, monkeypatch):
     assert legs["minimax"]["ok"] is False and legs["minimax"]["attempts"] == 3
     assert legs["opencode"]["ok"] is True and legs["opencode"]["attempts"] == 1
     assert legs["minimax"]["wall_s"] >= 0 and "error" in legs["minimax"]
+
+
+def test_stats_out_over_the_real_provider_signature(keys, monkeypatch):
+    """J-P0-1 regression: the stats plumbing once called the real provider
+    functions with attempts_sink while neither accepted it — TypeError before
+    any request, killing exactly the fallback path that runs when things are
+    already broken. The earlier test's fake had quietly grown the parameter;
+    this one fakes only the wire."""
+    class R:
+        status_code = 200
+
+        def json(self):
+            return {"choices": [{"message": {"content": "ok"},
+                                 "finish_reason": "stop"}], "usage": {}}
+
+    class S:
+        def post(self, url, **kw):
+            assert "attempts_sink" not in kw, "sink must not reach wire kwargs"
+            return R()
+
+    monkeypatch.setattr(llm, "_SESSION", S())
+
+    stats = {}
+    llm.chat(user="hi", timeout=10, temperature=0.5, fallback=False,
+             stats_out=stats)
+
+    leg = stats["legs"][0]
+    assert leg == {"provider": "minimax", "ok": True, "attempts": 1,
+                   "wall_s": leg["wall_s"]}

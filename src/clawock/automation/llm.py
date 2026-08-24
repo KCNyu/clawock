@@ -253,7 +253,7 @@ def _run_with_retries(label, timeout, deadline, once, attempts_sink=None):
 
 def _call_provider(label, base_url, api_key, model, messages, max_tokens,
                    temperature, json_response, thinking, timeout=None,
-                   deadline=None):
+                   deadline=None, attempts_sink=None):
     """One provider over Anthropic Messages, with retries. Returns content str
     or raises RuntimeError."""
     timeout = timeout or TIMEOUT
@@ -309,12 +309,14 @@ def _call_provider(label, base_url, api_key, model, messages, max_tokens,
         cleaned = _clean(text)
         return _extract_json(cleaned) if json_response else cleaned
 
-    return _run_with_retries(label, timeout, deadline, once)
+    return _run_with_retries(label, timeout, deadline, once,
+                             attempts_sink=attempts_sink)
 
 
 def _call_provider_openai_compatible(label, base_url, api_key, model, messages,
                                      max_tokens, temperature, json_response,
-                                     timeout=None, deadline=None):
+                                     timeout=None, deadline=None,
+                                     attempts_sink=None):
     """One provider over the OpenAI-compatible /chat/completions shape, with
     retries. Returns content str or raises RuntimeError. Unlike Anthropic
     Messages: system stays inline as a message role (no lift-out needed), and
@@ -353,7 +355,8 @@ def _call_provider_openai_compatible(label, base_url, api_key, model, messages,
         cleaned = _clean(text)
         return _extract_json(cleaned) if json_response else cleaned
 
-    return _run_with_retries(label, timeout, deadline, once)
+    return _run_with_retries(label, timeout, deadline, once,
+                             attempts_sink=attempts_sink)
 
 
 def chat(system: str = '', user: str = '', messages: list = None,
