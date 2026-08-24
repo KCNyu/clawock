@@ -42,7 +42,7 @@ def test_brief_actually_calls_the_installed_bar_fetcher(monkeypatch):
 def test_bars_are_fetched_before_the_ledger_settles():
     """Settling only reads the store, so a fetch after it lands a day late."""
     body = inspect.getsource(brief_preflight.main)
-    fetch_at = body.index('refresh_daily_bars()')
+    fetch_at = body.index('daily_bars_node()')
     settle_at = body.index('compute_decision_metrics()')
     assert fetch_at < settle_at, (
         'bars are refreshed after the ledger settles; the fetch would only take '
