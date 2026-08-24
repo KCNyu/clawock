@@ -51,8 +51,10 @@ def _record(monkeypatch, primary_delay: float):
                 break
         raise RuntimeError("primary exhausted")
 
+    # Mirrors _call_provider_openai_compatible AFTER C-F4 dropped its dead
+    # `thinking` parameter — keep in sync when the leg signature moves.
     def fake_fallback(label, base_url, api_key, model, messages, max_tokens,
-                      temperature, json_response, thinking, timeout=None, deadline=None):
+                      temperature, json_response, timeout=None, deadline=None):
         seen["fallback_called"] = True
         seen["fallback_timeout"] = llm._attempt_timeout(timeout, deadline, label)
         return "fallback answered"
