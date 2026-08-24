@@ -58,6 +58,22 @@ def test_stages_remain_independent_and_primary_delivery_can_be_degraded(
     assert record["stages"]["watchdog_delivery"]["status"] == "unknown"
 
 
+def test_preflight_failure_degrades_a_delivered_product(tmp_path, monkeypatch):
+    # A failed preflight (e.g. unreadable context bundle) must never combine
+    # with a successful primary delivery into a clean "success" verdict.
+    _isolate(tmp_path, monkeypatch)
+    slot = "2026-07-24T08:00:00+08:00"
+    job = "盘前深度简报"
+
+    outcomes.record_stage(job, "preflight", "failed", slot=slot,
+                          reason="brief context 解析失败")
+    outcomes.record_stage(job, "llm", "success", slot=slot)
+    outcomes.record_stage(job, "postflight", "success", slot=slot)
+    record = outcomes.record_stage(job, "primary_delivery", "success", slot=slot)
+
+    assert record["final_product"]["status"] == "degraded"
+
+
 def test_readability_advisory_detail_does_not_degrade_a_delivered_product(
     tmp_path, monkeypatch
 ):

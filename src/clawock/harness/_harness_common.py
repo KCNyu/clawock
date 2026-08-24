@@ -171,11 +171,21 @@ def sync_gha_data_files(ws=None):
         if fetch.returncode != 0:
             return False, f'fetch failed: {fetch.stderr[-150:]}'
 
+        relpaths = [f'assets/data/{f}' for f in GHA_DATA_FILES]
+        # Fast path: one checkout for the whole batch (this chain runs on every
+        # postflight slot; N spawns here were N needless git startups).
+        batch = subprocess.run(
+            ['git', 'checkout', 'origin/master', '--', *relpaths],
+            capture_output=True, text=True, timeout=10, cwd=str(ws),
+        )
+        if batch.returncode == 0:
+            return True, f'synced {len(GHA_DATA_FILES)}/{len(GHA_DATA_FILES)}'
+        # A missing artifact on origin would fail the whole batch — fall back to
+        # the per-file checkout so the files that do exist still refresh.
         synced = []
         for f in GHA_DATA_FILES:
-            relpath = f'assets/data/{f}'
             r = subprocess.run(
-                ['git', 'checkout', 'origin/master', '--', relpath],
+                ['git', 'checkout', 'origin/master', '--', f'assets/data/{f}'],
                 capture_output=True, text=True, timeout=10, cwd=str(ws),
             )
             if r.returncode == 0:

@@ -207,6 +207,11 @@ def test_main_normalizes_before_calling_plan_validation(tmp_path, monkeypatch):
         "date": today,
         "decisions": [_authored_decision()],
     }))
+    # A present-but-minimal context: postflight fails closed without one, and
+    # this test exercises plan normalization, not the context gate.
+    ctx_dir = tmp_path / "memory" / ".tmp"
+    ctx_dir.mkdir()
+    (ctx_dir / f"brief-context-{today}.json").write_text("{}")
     observed = {}
 
     def assert_normalized(path, **_kwargs):
@@ -247,6 +252,10 @@ def test_dry_run_validates_normalized_plan_without_rewriting_source(
         "decisions": [_authored_decision()],
     })
     plan_path.write_text(authored)
+    # Present-but-minimal context: postflight fails closed without one.
+    ctx_dir = tmp_path / "memory" / ".tmp"
+    ctx_dir.mkdir(parents=True, exist_ok=True)
+    (ctx_dir / f"brief-context-{today}.json").write_text("{}")
     before_mtime = plan_path.stat().st_mtime_ns
     observed = {}
     validate = brief_postflight.validate_plan_json
