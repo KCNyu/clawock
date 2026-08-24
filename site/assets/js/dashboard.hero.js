@@ -728,8 +728,11 @@
         usTodayPct == null ? "" : fmtPct(usTodayPct), pnlClass(usTodayPct)), "", pnlClass(us.today_change_usd)),
       cell("今日港股", withDelta(heroMoney(hk.today_change_hkd, "HKD"),
         hkTodayPct == null ? "" : fmtPct(hkTodayPct), pnlClass(hkTodayPct)), "", pnlClass(hk.today_change_hkd)),
-      cell("已实现 · USD-eq", heroMoney(realUsd, "USD"), "", pnlClass(realUsd)),
-      cell("浮动 · USD-eq", heroMoney(unrealUsd, "USD"), "", pnlClass(unrealUsd)),
+      // 「已实现 · USD-eq」和「浮动 · USD-eq」曾经在这里各占一格，而它们和
+      // 主数下面那行副行是**逐字相同**的两个数（跨 tab 数字差集实测：这两个
+      // 值在全站只出现在这两处，副行一处、统计轨一处，相距 30px）。同一个
+      // 数字在一屏内说两遍不是「信息更全」，是把八格里的两格用掉了。
+      // 副行保留它们，这里不再重复。
       cell("遵守率 30d", ae.rate == null ? DASH : (ae.rate * 100).toFixed(1) + "%",
         // stranded = 核验窗口关闭时仍没有答案的 call，永远不会结算。只报 known
         // 会高估这个比率覆盖了多少记录，所以两个数一起给。
@@ -740,6 +743,76 @@
         + (safe(m, "calibration", "active", "n") != null ? ` · active n=${m.calibration.active.n}` : ""),
         m.brier_beats_baseline === true ? "pos" : m.brier_beats_baseline === false ? "neg" : ""),
     ].join("");
+
+    renderHeroSpark();
+  }
+
+  // 首屏缩略走势：主数（总盈亏 = 已实现 + 浮动）自己的历史。
+  // 口径必须和下面那张 Equity Curve 的「总利润」线**同源同算法**，否则一屏里
+  // 两条线画同一件事却形状不同 —— 所以这里照抄 charts.js 的合并视图逻辑：
+  // 同一日期只留一条、连续两条属于同一交易时段的只留后一条（美股时段跨港股
+  // 午夜会落进两个港股日期，见 openclaw-us-crossday-double-count）。
+  function heroProfitSeries() {
+    const fx = safe(DATA, "fx", "usdhkd");
+    if (!fx) return [];
+    const snaps = (safe(DATA, "overview_equity") || safe(DATA, "snapshots") || [])
+      .filter(s => s.us_total_value != null || s.hk_total_value != null);
+    const byDate = new Map();
+    snaps.forEach(s => byDate.set(s.date, s));
+    let series = Array.from(byDate.values()).sort((a, b) => a.date.localeCompare(b.date));
+    series = series.filter((s, i) => {
+      const next = series[i + 1];
+      if (!next) return true;
+      if (s.us_asof && s.hk_asof && next.us_asof && next.hk_asof) {
+        return !(s.us_asof === next.us_asof && s.hk_asof === next.hk_asof);
+      }
+      return true;
+    });
+    return series
+      .map(s => (s.us_profit == null || s.hk_profit == null) ? null : s.us_profit + s.hk_profit / fx)
+      .filter(v => v != null && isFinite(v));
+  }
+
+  function renderHeroSpark() {
+    const host = document.getElementById("hero-spark");
+    if (!host) return;
+    const vals = heroProfitSeries();
+    // 两点以下画不出趋势。容器高度由 CSS 占住，所以这里清空不会让页面跳。
+    if (vals.length < 3) { host.replaceChildren(); return; }
+
+    const W = 1000, H = 200, PAD = 6;            // viewBox 坐标，实际尺寸由 CSS 给
+    const lo = Math.min(...vals, 0), hi = Math.max(...vals, 0);
+    const span = (hi - lo) || 1;
+    const x = i => PAD + i * (W - PAD * 2) / (vals.length - 1);
+    const y = v => PAD + (hi - v) * (H - PAD * 2) / span;
+    const line = vals.map((v, i) => `${i ? "L" : "M"}${x(i).toFixed(1)} ${y(v).toFixed(1)}`).join(" ");
+    const zeroY = y(0);
+    const area = `${line} L${x(vals.length - 1).toFixed(1)} ${zeroY.toFixed(1)} L${x(0).toFixed(1)} ${zeroY.toFixed(1)} Z`;
+    const last = vals[vals.length - 1];
+    const tone = last > 0 ? "pos" : last < 0 ? "neg" : "flat";
+
+    // 填充按**零轴**分色，不是按最后一个值分色：这条曲线前半段是赚的、后半段
+    // 才转亏，用单一色填满会把一段盈利期涂成亏损色 —— 图会说谎。硬停在 zeroY
+    // 的渐变正好在零轴处换色，不需要 clipPath。
+    const stop = Math.max(0, Math.min(1, zeroY / H));
+    const gid = "hs-grad";
+    const label = `总盈亏 ${vals.length} 个交易日走势：最低 ${heroMoney(lo, "USD")}`
+      + `，最高 ${heroMoney(hi, "USD")}，当前 ${heroMoney(last, "USD")}`;
+    host.innerHTML =
+      `<svg class="hero-spark-svg ${tone}" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"`
+      + ` role="img" aria-label="${escapeHtml(label)}">`
+      + `<defs><linearGradient id="${gid}" gradientUnits="objectBoundingBox" x1="0" y1="0" x2="0" y2="1">`
+      + `<stop offset="0" class="hs-up"/><stop offset="${stop.toFixed(4)}" class="hs-up"/>`
+      + `<stop offset="${stop.toFixed(4)}" class="hs-down"/><stop offset="1" class="hs-down"/>`
+      + `</linearGradient></defs>`
+      + `<path class="hs-area" d="${area}" fill="url(#${gid})"/>`
+      + `<line class="hs-zero" x1="0" y1="${zeroY.toFixed(1)}" x2="${W}" y2="${zeroY.toFixed(1)}"/>`
+      + `<path class="hs-line" d="${line}"/>`
+      + `</svg>`
+      // 端点标记不能用 SVG 圆：preserveAspectRatio="none" 会把它压成椭圆。
+      // 用绝对定位的 DOM 点，按百分比放，形状不受拉伸影响。
+      + `<i class="hero-spark-dot ${tone}" style="left:${(x(vals.length - 1) / W * 100).toFixed(2)}%;`
+      + `top:${(y(last) / H * 100).toFixed(2)}%"></i>`;
   }
 
   // 数据健康：原来只有页脚一条 29px 小条，逐文件明细全塞在 title 提示里，
