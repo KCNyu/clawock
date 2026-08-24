@@ -493,14 +493,26 @@
     if (btn) btn.classList.add("is-loading");
     if (triggeredByUser && btn) btn.setAttribute("disabled", "true");
     try {
-      // Auto-polls revalidate the small Overview projection via ETag/Last-Modified.
-      // The full cross-tab document is fetched only at the detail consumer boundary.
-      // A user-initiated refresh keeps the old cache-buster so it ALWAYS punches
-      // through stale intermediary caches (WeChat webview / carrier proxies).
-      const url = _dataUrl("overview", triggeredByUser ? "?t=" + Date.now() : "");
-      const res = await fetch(url, { cache: triggeredByUser ? "no-store" : "no-cache" });
-      if (!res.ok) throw new Error("HTTP " + res.status);
-      const json = await res.json();
+      // index.html starts the first overview.json fetch while the head is still
+      // parsing, because this deferred script only runs after every stylesheet
+      // has downloaded. Adopt that promise on the cold automatic load so the
+      // request overlaps the CSS/JS download instead of serializing behind it.
+      // The handle is consumed once and deleted: polls and manual refreshes
+      // always take the fetch below, and so does a null adoption (offline,
+      // non-200, bad JSON at boot time) — same contract, one request saved.
+      let json = window.__overviewBoot && !triggeredByUser
+        ? await window.__overviewBoot : null;
+      delete window.__overviewBoot;
+      if (!json) {
+        // Auto-polls revalidate the small Overview projection via ETag/Last-Modified.
+        // The full cross-tab document is fetched only at the detail consumer boundary.
+        // A user-initiated refresh keeps the old cache-buster so it ALWAYS punches
+        // through stale intermediary caches (WeChat webview / carrier proxies).
+        const url = _dataUrl("overview", triggeredByUser ? "?t=" + Date.now() : "");
+        const res = await fetch(url, { cache: triggeredByUser ? "no-store" : "no-cache" });
+        if (!res.ok) throw new Error("HTTP " + res.status);
+        json = await res.json();
+      }
       if (json.schema_version !== 1 || json.projection !== "overview" ||
           !_generation(json)) {
         throw new Error("invalid Overview projection envelope");

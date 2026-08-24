@@ -80,6 +80,18 @@ layout: null
      bundle; its only former canvas chart moved to Reflect), so phones landing on
      Overview never download this bundle. -->
 <link rel="stylesheet" href="assets/css/dashboard.css">
+<!-- First-paint data race: the four deferred scripts only execute after this
+     stylesheet has downloaded, and dashboard.ui.js is the last of them, so its
+     overview.json request used to serialize behind ~250KB of CSS+JS on every
+     cold visit. Start the one LCP fetch here instead; loadData() adopts the
+     promise exactly once and deletes it, so polls and manual refreshes are
+     untouched, and any failure falls back to that normal fetch path. -->
+<script>
+  window.__overviewBoot =
+    fetch("assets/data/overview.json", { cache: "no-cache" })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .catch(function () { return null; });
+</script>
 </head>
 <body>
 <noscript><div style="padding: var(--space-4);max-width:680px;margin:0 auto;color:var(--text-secondary);font-size:var(--fs-md);line-height:1.6">

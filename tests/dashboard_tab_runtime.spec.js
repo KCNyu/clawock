@@ -66,13 +66,16 @@ async function stubLiveOrigin(page, options = {}) {
 }
 
 function observe(page) {
-  const result = { detailRequests: 0, fullRequests: 0, failures: [], errors: [] };
+  const result = { detailRequests: 0, fullRequests: 0, overviewRequests: 0, failures: [], errors: [] };
   page.on("request", request => {
     const pathname = new URL(request.url()).pathname;
     if (pathname === DETAIL_PATH) result.detailRequests += 1;
     // Counted on either origin: the point of the assertion is that detail tabs
     // share one request for the full document, not where it was served from.
     if (pathname.endsWith("/assets/data/dashboard.json")) result.fullRequests += 1;
+    // Same either-origin rule: the cold load must fetch the LCP projection
+    // exactly once no matter who started it (head boot fetch vs loadData).
+    if (pathname.endsWith("/assets/data/overview.json")) result.overviewRequests += 1;
   });
   page.on("response", response => {
     const url = new URL(response.url());
@@ -118,6 +121,11 @@ async function testRuntime(browser, base) {
   await waitForData(page);
   assert.equal(state.detailRequests, 0, "Overview downloaded the detail renderer");
   assert.equal(state.fullRequests, 0, "Overview downloaded the full dashboard document");
+  // The head boot fetch and the loadData() fetch must dedupe into one request:
+  // two downloads of the LCP projection would mean the adoption handoff broke
+  // and every cold visitor pays the projection twice.
+  assert.equal(state.overviewRequests, 1,
+    "cold load fetched the Overview projection more than once");
   await page.evaluate(() => {
     const original = window.render;
     window.__coreRenderCalls = 0;
@@ -129,6 +137,9 @@ async function testRuntime(browser, base) {
   await page.evaluate(() => loadData(false));
   assert.equal(await page.evaluate(() => window.__coreRenderCalls), 0,
     "unchanged Overview poll replayed the core renderer");
+  // The boot handle is gone after the cold load, so this poll does its own fetch.
+  assert.equal(state.overviewRequests, 2,
+    "the poll did not issue its own Overview request (boot handle leaked?)");
 
   for (const tab of TABS) {
     await page.click(`.tab-btn[data-tab="${tab}"]`);

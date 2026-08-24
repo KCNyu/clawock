@@ -61,6 +61,7 @@
     "assets/dashboard.gif",
     "assets/data/*.jsonl",
     "memory/*.jsonl",
+    "docs/visual-regression/**",
     "tests/**"
   ]
 }
