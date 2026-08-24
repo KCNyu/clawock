@@ -56,7 +56,12 @@ export interface MinimaxConfig {
   baseUrl?: string
   /** Credentials seam reference for the MiniMax key (env fallback same name). */
   keyRef?: string
-  /** Red dot when a quota window's remaining percent drops to/below this. */
+  /**
+   * Red dot watermark in REMAINING terms: warn when a quota window's
+   * remaining percent has fallen to/below this (default 20). The chip
+   * displays the used direction (≥ `100 - lowPct`% used), but the config
+   * keeps its original meaning so existing values stay valid.
+   */
   lowPct?: number
   /**
    * openclaw gateway config to fall back to when the seam and env are both
@@ -70,7 +75,11 @@ export interface ClaudeConfig {
   credentialsPath?: string
   /** The undocumented /api/oauth/usage endpoint; overridable for tests. */
   usageUrl?: string
-  /** Red dot when the session window's remaining percent drops to/below this. */
+  /**
+   * Red dot watermark in REMAINING terms for the session window: warn when
+   * remaining has fallen to/below this (default 20, i.e. ≥80% used). The
+   * displayed number is used percent; the config meaning is unchanged.
+   */
   lowPct?: number
 }
 
@@ -166,17 +175,19 @@ const finiteNumber = (value: unknown): number | null =>
   typeof value === 'number' && isFinite(value) ? value : null
 
 /**
- * Remaining percent of one quota window: the explicit percent field when the
- * plan reports one, otherwise derived from total/used counts (MiniMax ships
- * both shapes across plan generations). null = unreadable, never guessed.
+ * Used percent of one quota window — the chip's display direction (kcn:
+ * 「已使用」比「剩余」直观). The explicit percent field reports REMAINING and
+ * is complemented here; raw counts are already consumption and divide as-is
+ * (MiniMax ships both shapes across plan generations). null = unreadable,
+ * never guessed.
  */
-export function windowRemainingPercent(entry: MinimaxRemainsEntry): number | null {
+export function windowUsedPercent(entry: MinimaxRemainsEntry): number | null {
   const direct = finiteNumber(entry.current_interval_remaining_percent)
-  if (direct !== null) return Math.min(100, Math.max(0, direct))
+  if (direct !== null) return Math.min(100, Math.max(0, 100 - direct))
   const total = finiteNumber(entry.current_interval_total_count)
   const used = finiteNumber(entry.current_interval_usage_count)
   if (total !== null && total > 0 && used !== null && used >= 0) {
-    return Math.min(100, Math.max(0, ((total - used) / total) * 100))
+    return Math.min(100, Math.max(0, (used / total) * 100))
   }
   return null
 }
@@ -213,7 +224,7 @@ function resetClock(epoch: unknown): string | null {
 /**
  * The successful Token Plan payload → snapshot. Percent-based by design:
  * plans report either percent fields or raw counts, and tokens are not money
- * — the chip reads "还剩多少窗口额度", never a fabricated ¥ figure.
+ * — the chip reads "窗口额度用了多少"(已使用方向), never a fabricated ¥ figure.
  */
 export function parseMinimaxRemains(body: unknown, asOf: string): BalanceSnapshot {
   const raw = (typeof body === 'object' && body !== null ? body : {}) as RawRemainsBody
@@ -221,19 +232,20 @@ export function parseMinimaxRemains(body: unknown, asOf: string): BalanceSnapsho
   // `general` is the text/coding bucket every plan carries; video et al are add-ons.
   const entry = buckets.find((b) => b.model === 'general') ?? buckets[0]
   if (entry === undefined) throw new Error('MiniMax 响应里没有 model_remains 数据')
-  const pct = windowRemainingPercent(entry)
-  const weekly = finiteNumber(entry.current_weekly_remaining_percent)
+  const used = windowUsedPercent(entry)
+  const weeklyRemaining = finiteNumber(entry.current_weekly_remaining_percent)
+  const weeklyUsed = weeklyRemaining === null ? null : Math.min(100, Math.max(0, 100 - weeklyRemaining))
   const windows: BalanceWindow[] = []
-  if (pct !== null) windows.push({ label: '5h', percent: Math.round(pct), resetAt: formatReset(entry.end_time as number | undefined) })
-  if (weekly !== null) windows.push({ label: '周', percent: Math.round(weekly), resetAt: formatReset(entry.weekly_end_time as number | undefined) })
+  if (used !== null) windows.push({ label: '5h', percent: Math.round(used), resetAt: formatReset(entry.end_time as number | undefined) })
+  if (weeklyUsed !== null) windows.push({ label: '周', percent: Math.round(weeklyUsed), resetAt: formatReset(entry.weekly_end_time as number | undefined) })
   const notes: string[] = []
-  if (pct !== null) notes.push('5h 窗口剩余 ' + Math.round(pct) + '%')
-  if (weekly !== null) notes.push('周窗口剩余 ' + Math.round(weekly) + '%')
+  if (used !== null) notes.push('5h 窗口已使用 ' + Math.round(used) + '%')
+  if (weeklyUsed !== null) notes.push('周窗口已使用 ' + Math.round(weeklyUsed) + '%')
   return {
-    isAvailable: pct !== null && pct > 0,
+    isAvailable: used !== null && used < 100,
     unit: 'pct',
     currency: '',
-    totalBalance: pct === null ? '' : String(Math.round(pct)),
+    totalBalance: used === null ? '' : String(Math.round(used)),
     grantedBalance: '',
     toppedUpBalance: '',
     asOf,
@@ -391,6 +403,19 @@ const numOrInfinity = (value: string): number => {
   return isFinite(parsed) ? parsed : Number.POSITIVE_INFINITY
 }
 
+/**
+ * The snapshot's used-percent reading, or null when it isn't a percent unit
+ * or carries no parseable number. The null guard is the point: under the old
+ * REMAINING direction an unreadable value read as +∞ and safely missed the
+ * watermark; under USED that same +∞ would read as "everything consumed" and
+ * light every red dot. An absent reading must stay silent.
+ */
+function usedPercentOf(snapshot: BalanceSnapshot): number | null {
+  if (snapshot.unit !== 'pct') return null
+  const parsed = Number.parseFloat(snapshot.totalBalance)
+  return isFinite(parsed) ? parsed : null
+}
+
 /** DeepSeek row: official money balance, CNY entry preferred. */
 export function createBalanceService(
   deps: { credentials: BalanceCredentials },
@@ -428,9 +453,11 @@ export function createBalanceService(
       }
       return parseBalancePayload(body, new Date().toISOString())
     },
-    isLow: (snapshot) => snapshot.unit === 'pct'
-      ? numOrInfinity(snapshot.totalBalance) <= threshold
-      : snapshot.isAvailable && numOrInfinity(snapshot.totalBalance) <= threshold,
+    // DeepSeek is money, not quota — its snapshots are always unit 'money'
+    // (parseBalancePayload), so the low check stays a plain balance floor.
+    isLow: (snapshot) => snapshot.unit === 'money'
+      && snapshot.isAvailable
+      && numOrInfinity(snapshot.totalBalance) <= threshold,
   })
 }
 
@@ -481,9 +508,13 @@ export function createMinimaxService(
       }
       return parseMinimaxRemains(body, new Date().toISOString())
     },
-    isLow: (snapshot) => snapshot.unit === 'pct'
-      ? numOrInfinity(snapshot.totalBalance) <= lowPct
-      : false,
+    // lowPct keeps its 「剩余水位」meaning (warn when remaining ≤ lowPct) so
+    // existing configs survive the display flip verbatim; in the used
+    // direction that is used ≥ 100 − lowPct.
+    isLow: (snapshot) => {
+      const used = usedPercentOf(snapshot)
+      return used !== null && used >= 100 - lowPct
+    },
   })
 }
 
@@ -528,29 +559,30 @@ const localClock = (iso: string): string | null => {
 }
 
 /**
- * Successful usage payload → snapshot, in REMAINING percent (utilization is
- * consumption). five_hour gates active sessions so it is the headline; any
- * bucket may be absent/null depending on plan.
+ * Successful usage payload → snapshot, in USED percent — utilization already
+ * IS consumption, so it renders verbatim with no complementing (kcn:
+ * 「已使用」比「剩余」直观). five_hour gates active sessions so it is the
+ * headline; any bucket may be absent/null depending on plan.
  */
 export function parseClaudeUsage(body: unknown, asOf: string): BalanceSnapshot {
   const raw = (typeof body === 'object' && body !== null ? body : {}) as RawClaudeUsage
   const u5 = finiteNumber(raw.five_hour?.utilization)
   const u7 = finiteNumber(raw.seven_day?.utilization)
   if (u5 === null && u7 === null) throw new Error('Claude 响应里没有可用的用量窗口')
-  const remaining = u5 === null ? null : Math.round(Math.min(100, Math.max(0, 100 - u5)))
+  const used = u5 === null ? null : Math.round(Math.min(100, Math.max(0, u5)))
   const windows: BalanceWindow[] = []
-  if (u5 !== null) windows.push({ label: '会话', percent: remaining, resetAt: formatReset(raw.five_hour?.resets_at ?? null) })
-  if (u7 !== null) windows.push({ label: '本周', percent: Math.round(Math.min(100, Math.max(0, 100 - u7))), resetAt: formatReset(raw.seven_day?.resets_at ?? null) })
+  if (u5 !== null) windows.push({ label: '会话', percent: used, resetAt: formatReset(raw.five_hour?.resets_at ?? null) })
+  if (u7 !== null) windows.push({ label: '本周', percent: Math.round(Math.min(100, Math.max(0, u7))), resetAt: formatReset(raw.seven_day?.resets_at ?? null) })
   const notes: string[] = []
-  if (u5 !== null) notes.push('会话窗口剩余 ' + remaining + '%')
-  if (u7 !== null) notes.push('本周剩余 ' + Math.round(100 - u7) + '%')
+  if (u5 !== null) notes.push('会话窗口已使用 ' + used + '%')
+  if (u7 !== null) notes.push('本周已使用 ' + Math.round(u7) + '%')
   const extraUtil = raw.extra_usage?.is_enabled === true ? finiteNumber(raw.extra_usage?.utilization ?? undefined) : null
   if (extraUtil !== null) notes.push('附加额度已用 ' + Math.round(extraUtil) + '%')
   return {
-    isAvailable: remaining === null ? false : remaining > 0,
+    isAvailable: used === null ? false : used < 100,
     unit: 'pct',
     currency: '',
-    totalBalance: remaining === null ? '' : String(remaining),
+    totalBalance: used === null ? '' : String(used),
     grantedBalance: '',
     toppedUpBalance: '',
     asOf,
@@ -610,8 +642,11 @@ export function createClaudeService(
       }
       return parseClaudeUsage(body, new Date().toISOString())
     },
-    isLow: (snapshot) => snapshot.unit === 'pct'
-      ? numOrInfinity(snapshot.totalBalance) <= lowPct
-      : false,
+    // Same 「剩余水位」 contract as MiniMax: lowPct means remaining ≤ lowPct,
+    // which in the used direction is used ≥ 100 − lowPct.
+    isLow: (snapshot) => {
+      const used = usedPercentOf(snapshot)
+      return used !== null && used >= 100 - lowPct
+    },
   })
 }

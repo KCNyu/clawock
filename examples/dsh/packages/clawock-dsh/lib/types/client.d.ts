@@ -126,9 +126,10 @@ export type BalanceTone = 'ok' | 'low' | 'stale' | 'none';
  * the chip and panel render only these fields, so the view never keeps
  * a second copy of the tone rules — the host already decided status and low.
  * The title is the whole hover story: split, quota windows, stale reason,
- * fetch time. Quota rows ('pct' unit) read as remaining percent, not money,
- * and carry the second window ('周'/'本周') as a muted pill suffix — both
- * limits visible at the header without opening the panel.
+ * fetch time. Quota rows ('pct' unit) read as USED percent (kcn: 「已使用」
+ * 比「剩余」直观), not money, and carry the second window ('周'/'本周') as a
+ * muted pill suffix — both limits visible at the header without opening the
+ * panel.
  */
 export declare function _rowDisplay(result: BalanceResult | null): {
     tone: BalanceTone;
