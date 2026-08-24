@@ -510,7 +510,7 @@ def _receipt_delivered(payload):
 
 
 def _receipt_claims(path):
-    """Yield (job, slot_date_or_none, slot_or_none, delivered) for one receipt."""
+    """Yield (job, slot_date_or_none, slot_or_none, receipt) for one receipt."""
     try:
         payload = json.loads(path.read_text())
     except (OSError, json.JSONDecodeError):
@@ -525,15 +525,20 @@ def _receipt_claims(path):
         except ValueError:
             return None
         # report-sent-{market}-{phase}-{YYYY-MM-DD}.json
-        return job, name[: -len(".json")].rsplit("-", 3)[-3:], None, delivered
+        return job, name[: -len(".json")].rsplit("-", 3)[-3:], None, payload
     if name.startswith("intraday-sent-"):
         # The intraday receipt names its own job and slot, so it needs no parsing.
         job, slot = payload.get("job"), payload.get("slot")
         if not job or not slot:
             return None
-        return job, None, slot, delivered
+        return job, None, slot, payload
     if name.startswith("brief-sent-"):
-        return job_for(brief=True), name[len("brief-sent-"): -len(".json")].split("-"), None, delivered
+        return (
+            job_for(brief=True),
+            name[len("brief-sent-"): -len(".json")].split("-"),
+            None,
+            payload,
+        )
     return None
 
 
@@ -553,8 +558,8 @@ def reconcile_delivery_receipts():
             parsed = _receipt_claims(path)
             if not parsed:
                 continue
-            job, date_parts, slot, delivered = parsed
-            claims[(job, slot, tuple(date_parts) if date_parts else None)] = delivered
+            job, date_parts, slot, receipt = parsed
+            claims[(job, slot, tuple(date_parts) if date_parts else None)] = receipt
         if not claims:
             return 0
         filled = 0
@@ -565,15 +570,26 @@ def reconcile_delivery_receipts():
                 if stage.get("status") != "unknown":
                     continue
                 job, slot = record.get("job"), record.get("slot")
-                delivered = claims.get((job, slot, None))
-                if delivered is None:
-                    delivered = claims.get((job, None, tuple(str(slot)[:10].split("-"))))
-                if delivered is None:
+                receipt = claims.get((job, slot, None))
+                if receipt is None:
+                    receipt = claims.get(
+                        (job, None, tuple(str(slot)[:10].split("-")))
+                    )
+                if receipt is None:
                     continue
+                delivered = _receipt_delivered(receipt)
+                # The receipt carries the per-channel facts (#771): write them
+                # through instead of the old constant "wechat_or_telegram",
+                # which made every reconciled slot invisible to the
+                # wechat-dropped / telegram-covered count.
+                wechat_ok = receipt.get("sent_ok") is True
+                telegram_ok = receipt.get("tg_ok") is True
                 record["stages"]["primary_delivery"] = _stage(
                     "success" if delivered else "failed",
                     at=_now().isoformat(),
-                    channel="wechat_or_telegram",
+                    channel=delivery_channel(wechat_ok, telegram_ok),
+                    wechat_ok=wechat_ok,
+                    telegram_ok=telegram_ok,
                     source="delivery_receipt",
                 )
                 record["final_product"] = _derive_final(record)

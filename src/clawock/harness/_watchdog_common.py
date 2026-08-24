@@ -492,6 +492,46 @@ def cron_run_ended_in_failure(job, today, now=None):
     return False if last_status else None
 
 
+def attempt_still_running(context, last_run):
+    """Is a newer attempt in flight than the newest FINISHED run for this slot?
+
+    openclaw writes a run record only with `action: "finished"`, so an attempt
+    that is currently executing is invisible to a watchdog reading run history —
+    the newest *completed* run can be an `error` from an attempt that has
+    already been superseded. The preflight context is the signal that is already
+    on disk: it is written at the start of an attempt, so a context generated
+    AFTER the newest finished run ended means another attempt began after that
+    run and has not finished.
+
+    2026-08-11 00:00 US is the case this exists for: attempts at 00:00, 00:01:55
+    and 00:03:30 all errored, the fourth started 00:07:14 and ran 275s, and the
+    watchdog judged at 00:10:44 on attempt 3's error. It sent the deterministic
+    fallback one second before postflight delivered the real report.
+
+    Deferring is safe in one direction only, and it is the right direction: a
+    genuinely dead slot writes no newer context, so a real miss still gets its
+    backstop. Sending for work that then succeeds is a duplicate, which is what
+    this whole gate ordering exists to prevent.
+
+    Shared rather than copied on purpose: the rule was born in intraday_watchdog
+    and report_watchdog kept judging still-running slots for weeks because the
+    second mode never learned what lived in the first one's file — the exact
+    drift the same_generation_window sharing note (#458) already warned about.
+    """
+    generated_at = (context or {}).get('generated_at')
+    finished_ms = (last_run or {}).get('ts')
+    if not generated_at or not isinstance(finished_ms, (int, float)):
+        return False
+    try:
+        started = datetime.fromisoformat(generated_at)
+    except (TypeError, ValueError):
+        return False
+    if started.tzinfo is None:
+        started = started.replace(tzinfo=HKT)
+    finished = datetime.fromtimestamp(finished_ms / 1000, HKT)
+    return started > finished
+
+
 def rerun_cron_job(job_id, dry_run=False):
     """Queue one more run of an on-host cron job. Returns (ok, tail)."""
     if dry_run:
