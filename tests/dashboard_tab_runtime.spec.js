@@ -870,6 +870,15 @@ async function testHoldingsAndHeroNeverTruncate(browser, base) {
         // 永远不相等，那样的断言是恒真的，等于没闸。
         pnlTokens: ["--positive", "--negative", "--text-primary"].map(tint),
         foot: host.querySelector(".hs-foot")?.textContent.trim() || "",
+        // 脚注横向溢出＝数字被静默切掉。带数字的那半句必须整段在框内。
+        footLowFits: (() => {
+          const f = host.querySelector(".hs-foot");
+          const low = host.querySelector(".hs-foot-low");
+          if (!f || !low) return false;
+          const fb = f.getBoundingClientRect(), lb = low.getBoundingClientRect();
+          return low.scrollWidth <= Math.ceil(lb.width) + 1
+            && lb.right <= Math.ceil(fb.right) + 1 && lb.left >= Math.floor(fb.left) - 1;
+        })(),
         lowMark: !!svg.querySelector(".hs-low"),
         headline: document.getElementById("hero-pnl").textContent.trim(),
         tone: svg.classList.contains("neg") ? "neg"
@@ -908,6 +917,8 @@ async function testHoldingsAndHeroNeverTruncate(browser, base) {
         `hero spark footer is missing 「${want}」: ${spark.foot}`);
     }
     assert(spark.lowMark, "hero spark has no low-point marker line");
+    assert(spark.footLowFits,
+      "hero spark footer clips the numbers — 最低/自最低 must never be truncated");
     await context.close();
   }
 

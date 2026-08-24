@@ -2169,7 +2169,11 @@
     font: 500 var(--fs-xs)/1.3 var(--mono); color: var(--text-tertiary);
     white-space: nowrap; overflow: hidden;
   }
-  .hs-foot-low { color: var(--text-secondary); }
+  /* 挤不下时先牺牲区间那半句，带数字的那半句永远整段留着。默认的 flex 收缩
+     会两边一起压，而压到带数字的一边就是「ellipsis 把涨跌幅吃掉」那个老
+     错误的翻版 —— 首屏的数字被截掉不是排版问题，是丢信息。 */
+  .hs-foot-range { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+  .hs-foot-low { color: var(--text-secondary); flex: none; }
   /* 窄屏一行放不下两段：区间让位，留下带尺度的那半句。 */
   @media (max-width: 1023px) {
     .hs-foot { justify-content: flex-start; }
