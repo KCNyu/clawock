@@ -105,7 +105,11 @@
   /* 主数是首屏唯一主角（Stocks 个股页的报价位）：5.8vw 斜率让 1440 落在
      ~84px、1200 落在 ~70px；下限提到 32，390px 端 nowrap 禁断行的约束
      没有变松（7 字形 ≈150px，远窄于内容列）。 */
-  --fs-display: clamp(32px, 5.8vw, 84px);
+  /* 84px 是给「第一次看见」设计的；这块面板是天天看的东西，一眼扫的是形状
+     不是逐位读数，84px 让主数变成一堵墙（kcn 2026-08-24：「数字太大了，
+     dashboard 一眼天天看」）。收到 56px：仍然是全页最大、仍然一眼先看到，
+     但和判词、统计轨回到同一张版面里。 */
+  --fs-display: clamp(30px, 4vw, 56px);
   /* 判词档（overview-status 的盘中判定句）：display(64) 与 lg(15) 之间原来
      是真空，而判词此前只有 12px —— 全页语义最重的一句话是全页最小的字之一，
      比统计轨的 13px 还小（语义倒置）。补在 28-34 档，桌面落在区间内。 */
@@ -2107,7 +2111,10 @@
        副行单行宽），数据一到 deck 就长高 ~20px。按 <1024 的 142px 同款
        思路，≥1024 也按数据态实高占位：184 = 锁列后扫宽 copy 数据态实高
        上界（副行两行触顶），pre/post 同高即零位移。 */
-    .hero-deck-copy { min-height: 184px; }
+    /* 数据态实测上界 111px（≥1300 档，主数 56px + 副行一行 + 出处行一行），
+       取 112。主数从 84 收到 56、副行去掉「今日」、出处行去掉账面之后，原来
+       那个 184 就成了一块 70px 的空洞：左栏文字停在半空，右栏图一直到底。 */
+    .hero-deck-copy { min-height: 112px; }
     /* 光学对位：主数基线与 spark 零轴带（零轴的纵位随数据浮动，能钉住的
        是这条带）差 ≤ 半行。整体上提 4px 纯绘制偏移，不动布局、不产生位移。 */
     .hero-deck-copy { position: relative; top: -4px; }
@@ -2118,7 +2125,7 @@
      可见位移面积变大，CLS 实测 390px 从 ~0.037 回退到 ~0.11。142 = 数据态
      实测（sub 两行 + fx 一行）；桌面单行放得下，不需要预留。 */
   @media (max-width: 1023px) {
-    .hero-deck-copy { min-height: 142px; }
+    .hero-deck-copy { min-height: 88px; }
   }
 
   /* 缩略走势：形状 + 三处参照（零轴刻度、最低点竖线、脚注区间）。高度由
@@ -2129,10 +2136,25 @@
     display: grid; grid-template-rows: 56px 16px; row-gap: 8px;
   }
   @media (min-width: 1024px) {
-    /* 长走势条配更高的画布：宽度放大后 108px 会把形状压扁。 */
-    .hero-spark { grid-template-rows: 132px 16px; margin-top: 0; }
+    /* 长走势条配更高的画布：宽度放大后 108px 会把形状压扁。主数收到 56px 之后
+       这块面板的重心从「一个大数字」挪到「一张图」，画布跟着抬到 190px。 */
+    .hero-spark { grid-template-rows: 190px 16px; margin-top: 0; }
   }
-  .hs-plot { position: relative; min-width: 0; }
+  /* 图坐在一格玻璃凹槽里：顶边受光、内壁一圈发丝、槽底比面板略沉。
+     刻意不是第二层毛玻璃 —— 半透明面叠半透明面会把可读性叠没
+     （apple-design §12），凹槽只借它的光影语汇，不再叠一层 blur。 */
+  .hs-plot {
+    position: relative; min-width: 0; border-radius: 14px; overflow: hidden;
+    background:
+      linear-gradient(180deg,
+        color-mix(in srgb, var(--surface-1) 60%, transparent),
+        color-mix(in srgb, var(--surface-1) 12%, transparent) 62%,
+        transparent);
+    box-shadow:
+      inset 0 1px 0 var(--spec-1),
+      inset 0 0 0 1px color-mix(in srgb, var(--border-subtle) 55%, transparent),
+      inset 0 -14px 24px -22px rgba(0, 0, 0, .45);
+  }
   .hero-spark-svg { display: block; width: 100%; height: 100%; }
   .hero-spark-svg.pos { color: var(--positive); }
   .hero-spark-svg.neg { color: var(--negative); }
@@ -2145,8 +2167,12 @@
   .hs-area { fill: url(#hs-fade); }
   /* 平铺一层等浓度的灰会让面积读成一块「板」压在曲线下面。渐变让它在贴着
      零轴的那一侧最浓、往外化开 —— 这是材质，不是色块。 */
-  .hs-fade-near { stop-color: var(--text-primary); stop-opacity: .10; }
-  .hs-fade-far { stop-color: var(--text-primary); stop-opacity: .015; }
+  /* 面积从中性墨换成品牌蓝：中性那版把首屏读成了一张灰卡（kcn 2026-08-24：
+     「灰度太灰了，作为开屏不吸引人」）。蓝不是涨跌色 —— 它不参与「这段是赚
+     还是亏」的表述，那件事由曲线在零轴哪一侧、以及主数的符号回答，所以它既
+     不会撒谎，也不会再给首屏添一块红。 */
+  .hs-fade-near { stop-color: var(--accent); stop-opacity: .20; }
+  .hs-fade-far { stop-color: var(--accent); stop-opacity: .015; }
   .hs-zero { stroke: var(--border-strong); stroke-width: 1; vector-effect: non-scaling-stroke; }
   /* 最低点竖线：脚注说「最低 −$5,571（07-24）」，这条线说那天在哪。比零轴
      淡一档，否则两条同权重的直线会被读成一套坐标系。 */
@@ -2156,7 +2182,7 @@
   }
   /* 零轴刻度：标在线的上方，不压在线上。零轴贴顶（全程亏损）时翻到线下。 */
   .hs-zero-tag {
-    position: absolute; left: 0; transform: translateY(-100%);
+    position: absolute; left: 10px; transform: translateY(-100%);
     padding-bottom: 2px; pointer-events: none;
     font: 600 10px/1 var(--mono); color: var(--text-tertiary);
   }
@@ -2184,7 +2210,7 @@
   /* 线本身取中性色：正负已经由填充和主数说清楚了，再给线上色就会出现
      「红线压在绿色盈利区上」这种自相矛盾的画面。 */
   .hs-line {
-    fill: none; stroke: var(--text-secondary); stroke-width: 1.75;
+    fill: none; stroke: var(--accent-strong); stroke-width: 2;
     stroke-linejoin: round; stroke-linecap: round;
     vector-effect: non-scaling-stroke;
   }
@@ -2237,9 +2263,11 @@
      行数是固定的（标签 / 值 / 变化 / 备注），不会因为数据长短再变。
      min-height 而不是 height：真渲染出来更高时不裁。 */
   .hero-rail {
-    display: grid; grid-template-columns: repeat(6, minmax(0, 1fr));
+    display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
     border-top: 1px solid var(--border-subtle);
-    min-height: 85px;
+    /* 每格多了一件图形（比例条 / 每日柱）+ 一行说明，比纯数字那版高一档。
+       152 = 四格并排时的数据态实测（768~1920 全档同高）。 */
+    min-height: 152px;
     /* 左基线走容器 inset（track 内缩），列距用 gap —— 格内不再各带左
        padding，第一格文本与 hero-deck-lead 的内容左缘严格对齐。 */
     padding: 0 var(--card-inset); column-gap: 16px;
@@ -2264,6 +2292,52 @@
   }
   .hero-rail-d.pos { color: var(--positive); }
   .hero-rail-d.neg { color: var(--negative); }
+  /* 比例条 = 玻璃凹槽 + 受光填充：槽内壁一圈高光边、槽口一道内阴影，填充
+     顶边亮一线。和 spark 的凹槽同一套光影语汇，一眼是同族材质。 */
+  .rc-meter {
+    /* 和每日柱共用一条 30px 的图形带（上下留白把 6px 的条压在中线上）：
+       否则一行里 6px 的条和 30px 的柱图会让四格的说明行高低不齐。 */
+    margin-top: 9px; height: 6px; border-radius: 3px; overflow: hidden;
+    margin-top: 21px; margin-bottom: 12px;
+    background: color-mix(in srgb, var(--text-primary) 7%, transparent);
+    box-shadow: inset 0 1px 1.5px rgba(0, 0, 0, .10), inset 0 0 0 1px var(--spec-1);
+  }
+  .rc-meter > i {
+    display: block; height: 100%; border-radius: 3px;
+    background: linear-gradient(180deg,
+      color-mix(in srgb, var(--accent) 72%, #fff), var(--accent));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .55);
+  }
+  /* 每日盈亏柱：零轴居中，正上负下。柱子小、面积小，所以用满彩度的涨跌色
+     ——「小面积要彩度才看得见，大面积要收彩度才不吵」是同一条规矩的两端。 */
+  .rc-bars {
+    position: relative; margin-top: 9px; height: 30px; border-radius: 6px;
+    margin-bottom: 9px;
+    background: color-mix(in srgb, var(--text-primary) 4%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--border-subtle) 45%, transparent);
+  }
+  .rc-bars::before {
+    content: ""; position: absolute; left: 6px; right: 6px; top: 50%; height: 1px;
+    background: color-mix(in srgb, var(--border-strong) 70%, transparent);
+  }
+  .rc-bars > i {
+    position: absolute; border-radius: 1.5px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .4);
+  }
+  .rc-bars > i.up { background: var(--positive); }
+  .rc-bars > i.down { background: var(--negative); }
+  .rc-bars > i.flat { background: var(--text-tertiary); }
+  .rc-cap {
+    color: var(--text-tertiary);
+    font: 500 var(--fs-xs)/1.3 var(--mono);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  /* 窄屏两列时「主动 call · n=82 · 3 未能核验」放不下一行，nowrap+ellipsis
+     会把「3 未能核验」整段吃掉 —— 那不是排版取舍，是把一个数字删了
+     （和 #909 脚注、#890 副行同一族缺陷）。窄屏改成允许折行。 */
+  @media (max-width: 767px) {
+    .rc-cap { white-space: normal; overflow: visible; text-overflow: clip; }
+  }
   .hero-rail-s {
     margin-top: 5px; color: var(--text-tertiary); font: 500 var(--fs-micro)/1.35 var(--font);
     font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
@@ -2557,7 +2631,7 @@
   .hl-chip.hl-alert { color: var(--red); font-weight: 600; }
 
   @media (min-width: 768px) and (max-width: 1023px) {
-    .hero-rail { grid-template-columns: repeat(4, minmax(0, 1fr)); min-height: 168px; }
+    .hero-rail { grid-template-columns: repeat(4, minmax(0, 1fr)); min-height: 152px; }
     /* 506：要点行升到 44px 后 768px 端横幅折行的实测上界（504）+2。 */
     .overview-verdict { min-height: 506px; }
     .overview-verdict, .overview-strip,
@@ -2576,7 +2650,8 @@
     /* 252 而不是 248：430-767px 这一段「主动 call · n=76 · 9 未能核验」那格
        的备注折成两行，比 390px 窄档高 4px。取上界，宁可窄档多留 4px 空白
        也不要宽档跳一下。（去掉两格重复后是 3 行，不是原来的 4 行。） */
-    .hero-rail { grid-template-columns: repeat(2, minmax(0, 1fr)); min-height: 252px; }
+    /* 两列 × 两行 + 每格一件图形：293 = 360~600 全档数据态实测上界。 */
+    .hero-rail { grid-template-columns: repeat(2, minmax(0, 1fr)); min-height: 293px; }
     .dh-row {
       grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px; row-gap: 4px;
     }
