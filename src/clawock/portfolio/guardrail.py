@@ -335,8 +335,13 @@ def compute_risk_guardrail(hk_holdings, us_holdings, hk_conc, us_conc, risk,
     # portfolio-level β from risk.json
     us_risk = risk.get('us') or {}
     us_beta = us_risk.get('beta_spx')
+    # A revived block (#1036) carries β of unknown age: risk.py only keeps the
+    # last good stats when this run's fetch failed, so `stale` means "not
+    # measured today". A HIGH-severity trim directive must not be sourced from
+    # data whose age the flag itself admits is unknown.
     beta_eligible = (
-        us_risk.get('threshold_eligible', True)
+        not us_risk.get('stale')
+        and us_risk.get('threshold_eligible', True)
         and us_risk.get('beta_threshold_eligible', True)
     )
     if (beta_eligible and isinstance(us_beta, (int, float))

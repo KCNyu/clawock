@@ -195,7 +195,9 @@ def read_rows(*, anomalies=None, radar=None, levels=None, early_trend=None,
             # #819: the breakout state alone carries the measured edge
             # (8-month bars backtest: hit >50% at T+1/5/10/20, avg fwd positive;
             # deep-dip adds failed all four horizons — the original 逢低 assumption).
-            # A primary filing upgrades the wording, it is not the promotion key.
+            # Promotion shape: breakout promotes by itself; a primary filing is
+            # the promotion key only for near_breakout/at_high, where it never
+            # substitutes for the level — the ask stays "get above prior_20d_high".
             verdict = "candidate"
             if primary:
                 why = (f"一手公告 + 技术面{radar_row.get('state_zh') or radar_row.get('state')}"
