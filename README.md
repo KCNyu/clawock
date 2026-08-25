@@ -173,10 +173,10 @@ nobody has to go scroll social media for it.
 A concrete example: in the scan of 2026-08-17 21:54 UTC, five Musk/SpaceX
 posts all matched real holdings (held_hits=5, the SPCH/SPCX cluster), and the
 next morning's brief carried it verbatim — 撞持仓 (5 条全中 SPCH/SPCX). The
-following scan (2026-08-18 13:31 UTC) found 1 post and **zero holding hits** —
-an empty result is published as an empty result, not skipped. Both entries can
-be checked against the published briefs of those two days. What's shown above
-is one hit; misses go in the brief exactly as often as they happen.
+scan the following day's brief quotes (2026-08-18 21:52 UTC) found 1 post and
+**zero holding hits** — an empty result is published as an empty result, not
+skipped. Both entries can be checked against the published briefs of those
+two days. Misses go in the brief exactly as often as they happen.
 
 ## How it decides
 
@@ -256,7 +256,7 @@ Two properties keep this from decaying into copy. The page is **generated from t
 
 The model writes opinions. The arithmetic that could corrupt the record runs in Python and is unit-tested.
 
-That path is covered by a large unit-test suite — it's what keeps the system stable. Currencies never sum (HKD and USD are shown separately, rate and timestamp stamped), risk caps are checked every brief (single name ≤35%, Top-2 ≤70%, portfolio β ≤3.0, stop at −18%), and a thesis moves only on new evidence, never on a price move alone.
+That path is covered by a large unit-test suite — it's what keeps the system stable. Currencies never sum (HKD and USD are shown separately, rate and timestamp stamped), risk caps are checked every brief (single name ≤35%, correlated cluster ≤70%, portfolio β ≤3.0, stop at −18%), and a thesis moves only on new evidence, never on a price move alone.
 
 <details>
 <summary><b>All twelve rules, what the code actually does for each</b></summary>
@@ -266,7 +266,7 @@ That path is covered by a large unit-test suite — it's what keeps the system s
 | Rule | What the code does |
 |---|---|
 | **Currencies never sum** | HKD and USD are shown in both views with the rate + timestamp stamped; adding them naively is a meaningless number. |
-| **Risk caps, checked every brief** | Single name ≤35%, Top-2 ≤70%, leverage-ETF sleeve ≤50%, portfolio β ≤3.0, stop at −18%. Each breach has a durable age, acknowledgement, expiring override and execution-evidence record; same-risk adds freeze until compliance. Execution stays human. |
+| **Risk caps, checked every brief** | Single name ≤35%, correlated cluster ≤70% (measured correlation clusters, applied when coverage is sufficient), leverage-ETF sleeve ≤50%, portfolio β ≤3.0, stop at −18%. Each breach has a durable age, acknowledgement, expiring override and execution-evidence record; same-risk adds freeze until compliance. Execution stays human. |
 | **Concentration per leg** | `HHI = Σ wᵢ²` per book: `<0.15` ✅ · `0.15–0.25` 🟡 · `0.25–0.40` 🟠 · `>0.40` 🔴. Never blended across currencies. |
 | **Leverage judged by regime** | A 200-day-trend × volatility dial caps the leverage-ETF sleeve (×1 / ×0.5 / ×0); daily-reset 2×/3× products skip fundamentals entirely. |
 | **Return on peak principal** | Return % uses peak net deposits from the cash-flow ledger, not `cost − realized` — a realized win must not fake a higher return. |
