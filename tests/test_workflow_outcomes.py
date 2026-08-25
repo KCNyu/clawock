@@ -211,6 +211,82 @@ def test_heartbeat_bridge_marks_data_publish_failure_as_postflight_warning(
     assert record["final_product"]["status"] == "degraded"
 
 
+def test_heartbeat_bridge_maps_the_publish_failed_state_like_completed(
+    tmp_path, monkeypatch
+):
+    """intraday_postflight emits state='publish_failed' when the sends landed
+    but the data plane did not publish. That state used to fall through every
+    bridge branch, so a slot kcn actually received kept no llm/postflight/
+    primary evidence and its final_product stayed pending forever (#1005)."""
+    _isolate(tmp_path, monkeypatch)
+    outcomes.record_from_heartbeat(
+        {
+            "job": "美股盘中盯盘",
+            "market": "us",
+            "slot": "2026-07-24T22:00:00+08:00",
+            "state": "publish_failed",
+            "postflight_status": "pass",
+            "data_plane_status": "committed_local",
+            "wechat_sent": True,
+            "telegram_sent": True,
+        }
+    )
+
+    record = outcomes.load_ledger()["records"][0]
+    assert record["stages"]["llm"]["status"] == "success"
+    assert record["stages"]["postflight"]["status"] == "warning"
+    assert record["stages"]["primary_delivery"]["status"] == "success"
+    assert record["final_product"]["status"] == "degraded"
+
+
+def test_a_send_claim_declined_process_never_files_the_primary_verdict(
+    tmp_path, monkeypatch
+):
+    """A process claim_send refused is not a witness of the delivery: filing its
+    wechat_sent=False as a verdict overwrote the concurrent claim holder's
+    success whenever the declined process's slow commit work let it write last
+    (#1006). Its llm/postflight evidence still counts; only the primary verdict
+    is left to the process that actually sent."""
+    _isolate(tmp_path, monkeypatch)
+    outcomes.record_from_heartbeat(
+        {
+            "job": "美股盘中盯盘",
+            "market": "us",
+            "slot": "2026-07-24T22:00:00+08:00",
+            "state": "completed",
+            "postflight_status": "pass",
+            "wechat_sent": False,
+            "send_claim_declined": True,
+        }
+    )
+
+    record = outcomes.load_ledger()["records"][0]
+    assert record["stages"]["llm"]["status"] == "success"
+    assert record["stages"]["primary_delivery"]["status"] == "unknown"
+
+
+def test_a_declined_flag_does_not_suppress_a_confirmed_delivery(
+    tmp_path, monkeypatch
+):
+    _isolate(tmp_path, monkeypatch)
+    outcomes.record_from_heartbeat(
+        {
+            "job": "美股盘中盯盘",
+            "market": "us",
+            "slot": "2026-07-24T22:00:00+08:00",
+            "state": "completed",
+            "postflight_status": "pass",
+            "wechat_sent": False,
+            "telegram_sent": True,
+            "send_claim_declined": True,
+        }
+    )
+
+    record = outcomes.load_ledger()["records"][0]
+    assert record["stages"]["primary_delivery"]["status"] == "success"
+    assert record["stages"]["primary_delivery"]["channel"] == "telegram"
+
+
 def test_market_closed_is_a_skipped_product_not_a_failure(tmp_path, monkeypatch):
     _isolate(tmp_path, monkeypatch)
     record = outcomes.record_stage(
