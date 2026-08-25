@@ -33,6 +33,12 @@ BRANCH="${LIVE_BRANCH:-master}"
 check_only=0
 [ "${1:-}" = "--check" ] && check_only=1
 
+# The pull below goes through the shared #1038 migration guard (same helper
+# safe_push.sh sources) so every autostash pull site protects dirty daily
+# notes identically.
+# shellcheck source=ops/publish/untrack_guard.sh
+. "$(dirname "${BASH_SOURCE[0]}")/../publish/untrack_guard.sh"
+
 test -d "$CHECKOUT/.git" || { echo "not a git checkout: $CHECKOUT" >&2; exit 2; }
 cd "$CHECKOUT"
 
@@ -65,8 +71,14 @@ if [ "$check_only" = "1" ]; then
 fi
 
 # autostash because the live tree is nearly always dirty — cron writes market
-# data into it all day. Same reasoning as ops/publish/safe_push.sh.
-git -c rebase.autoStash=true pull --rebase -q "$REMOTE" "$BRANCH"
+# data into it all day. Same reasoning as ops/publish/safe_push.sh. The pull is
+# wrapped in the #1038 migration guard: while master carries the daily-notes
+# untracking, a dirty tracked diary meeting this pull would otherwise become a
+# modify/delete stash-pop conflict.
+if ! pull_guarded "$REMOTE" "$BRANCH" -q; then
+  echo "✗ pull --rebase failed — checkout left untouched, investigate before retrying" >&2
+  exit 1
+fi
 echo "fast-forwarded to $(git rev-parse --short HEAD)"
 
 if [ "$needs_venv" = "1" ]; then
