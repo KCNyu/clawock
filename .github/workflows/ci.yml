@@ -570,28 +570,27 @@ jobs:
         if: steps.changes.outputs.code == 'true'
         run: |
           set -euo pipefail
-          strip_volatile() {
-            python3 - "$1" <<'PY'
-            import json, sys
-            VOLATILE = {"generated_at", "generation_id", "as_of", "age_hours"}
-            def strip(node):
-                if isinstance(node, dict):
-                    return {k: strip(v) for k, v in node.items()
-                            if k not in VOLATILE}
-                if isinstance(node, list):
-                    return [strip(v) for v in node]
-                return node
-            with open(sys.argv[1]) as f:
-                print(json.dumps(strip(json.load(f)), sort_keys=True))
-            PY
-          }
+          cat > "${RUNNER_TEMP:-/tmp}/strip_volatile.py" <<'PY'
+          import json, sys
+          VOLATILE = {"generated_at", "generation_id", "as_of", "age_hours"}
+          def strip(node):
+              if isinstance(node, dict):
+                  return {k: strip(v) for k, v in node.items()
+                          if k not in VOLATILE}
+              if isinstance(node, list):
+                  return [strip(v) for v in node]
+              return node
+          with open(sys.argv[1]) as f:
+              print(json.dumps(strip(json.load(f)), sort_keys=True))
+          PY
+          strip="${RUNNER_TEMP:-/tmp}/strip_volatile.py"
           tmp="$(mktemp -d)"
           for name in overview dashboard decision_audit shadow_portfolio; do
-            strip_volatile "assets/data/$name.json" > "$tmp/$name.first"
+            python3 "$strip" "assets/data/$name.json" > "$tmp/$name.first"
           done
           clawock dashboard-build > /dev/null
           for name in overview dashboard decision_audit shadow_portfolio; do
-            if ! strip_volatile "assets/data/$name.json" | diff -u "$tmp/$name.first" -; then
+            if ! python3 "$strip" "assets/data/$name.json" | diff -u "$tmp/$name.first" -; then
               echo "::error::dashboard rebuild moved bytes beyond generation stamps ($name)"
               exit 1
             fi
