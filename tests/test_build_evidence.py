@@ -188,3 +188,77 @@ def test_a_single_cluster_sample_is_labelled_instead_of_showing_a_bare_rate(
 
     assert "单一簇" in row
     assert "锁定" not in row, "a single-cluster sample is not the same as a CI that straddles 50%"
+
+
+def test_small_sample_ci_clearing_50pct_is_never_a_decision_grade_pass(
+        tmp_path, monkeypatch):
+    """#935 made the sample floor the first gate: an n<MIN_N factor whose
+    clustered CI clears 50% is noise, whatever edge_significant claims. The
+    evidence page must not render it as unlocked (#982)."""
+    monkeypatch.setattr(ev, "DATA", tmp_path)
+    (tmp_path / "quant_signal_review.json").write_text(json.dumps({
+        "unlock_rule": "cluster_ci_entirely_above_or_below_50pct",
+        "days_logged": 12,
+        "factors": {"tiny": {"hit_rate": 0.75, "ci95": [0.60, 0.90],
+                             "n_events": 4, "n_dates": 2, "n_tickers": 2,
+                             "edge_significant": True,
+                             "sample_sufficient": False, "min_n": 20,
+                             "usable": False}},
+    }))
+
+    section = ev.factor_section()
+
+    assert section["verdict"] == ev.VERDICT["undecided"]
+    assert section["verdict"] != ev.VERDICT["passed"]
+    row = section["rows"][0][1]
+    assert "可入决策" not in row
+    assert "样本不足" in row
+
+
+def test_unlock_count_and_verdict_follow_the_usable_gate(tmp_path, monkeypatch):
+    """unlocked/passed are keyed on #935's usable gate (#982): edge_significant
+    alone ignores the sample floor and would count a 4-event factor."""
+    monkeypatch.setattr(ev, "DATA", tmp_path)
+    (tmp_path / "quant_signal_review.json").write_text(json.dumps({
+        "unlock_rule": "cluster_ci_entirely_above_or_below_50pct",
+        "days_logged": 40,
+        "factors": {
+            "real_edge": {"hit_rate": 0.62, "ci95": [0.55, 0.70],
+                          "n_events": 120, "n_dates": 30, "n_tickers": 8,
+                          "edge_significant": True,
+                          "sample_sufficient": True, "usable": True},
+            "tiny": {"hit_rate": 0.75, "ci95": [0.60, 0.90],
+                     "n_events": 4, "n_dates": 2, "n_tickers": 2,
+                     "edge_significant": True,
+                     "sample_sufficient": False, "usable": False},
+        },
+    }))
+
+    section = ev.factor_section()
+
+    assert section["verdict"] == ev.VERDICT["passed"]
+    assert section["reading"].startswith(
+        "解锁规则是 `cluster_ci_entirely_above_or_below_50pct`")
+    assert any("✅ 可入决策" in text for _, text in section["rows"])
+    assert any("样本不足" in text for _, text in section["rows"])
+
+
+def test_reverse_only_factor_reads_as_reverse_not_straddling(
+        tmp_path, monkeypatch):
+    """A reverse-significant CI is a different verdict from a straddling one;
+    conflating them hides the only reading the data actually supports (#982)."""
+    monkeypatch.setattr(ev, "DATA", tmp_path)
+    (tmp_path / "quant_signal_review.json").write_text(json.dumps({
+        "unlock_rule": "cluster_ci_entirely_above_or_below_50pct",
+        "days_logged": 40,
+        "factors": {"inverted": {"hit_rate": 0.30, "ci95": [0.15, 0.42],
+                                 "n_events": 80, "n_dates": 25,
+                                 "n_tickers": 6, "edge_significant": False,
+                                 "reverse_edge_significant": True,
+                                 "sample_sufficient": True, "usable": False}},
+    }))
+
+    row = ev.factor_section()["rows"][0][1]
+
+    assert "反向" in row
+    assert "锁定" not in row

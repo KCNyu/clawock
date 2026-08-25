@@ -114,3 +114,38 @@ def test_leveraged_candidate_never_gets_unvalidated_exploration():
     assert candidate["observed"] is True
     assert candidate["exploration_ready"] is False
     assert "leveraged_requires_validated_evidence" in candidate["blockers"]
+
+
+def test_peer_dispersion_multiple_zero_is_not_swallowed_into_default():
+    """#666: `early_peer_dispersion_multiple: 0` means any positive residual
+    counts as peer leadership; `X or DEFAULT` would silently restore 1.5."""
+    candidate = early_trend.classify(
+        {"usable": True, "close": 11, "prior_20d_high": 10, "zscore20": 1},
+        {"residual_5d": .01, "dispersion_5d": .05,
+         "available_peer_count": 4},
+        {}, [], leveraged=False,
+        policy=dict(POLICY, early_peer_dispersion_multiple=0), market="US",
+    )
+
+    assert candidate["observed"] is True
+    assert "no_short_peer_leadership" not in candidate["blockers"]
+
+
+def test_missing_dispersion_multiple_still_defaults_to_one_point_five():
+    policy = {k: v for k, v in POLICY.items()
+              if k != "early_peer_dispersion_multiple"}
+    weak = early_trend.classify(
+        {"usable": True, "close": 11, "prior_20d_high": 10, "zscore20": 1},
+        {"residual_5d": .04, "dispersion_5d": .05,
+         "available_peer_count": 4},
+        {}, [], leveraged=False, policy=policy, market="US",
+    )
+    strong = early_trend.classify(
+        {"usable": True, "close": 11, "prior_20d_high": 10, "zscore20": 1},
+        {"residual_5d": .2, "dispersion_5d": .05,
+         "available_peer_count": 4},
+        {}, [], leveraged=False, policy=policy, market="US",
+    )
+
+    assert weak["observed"] is False, "0.8x residual must stay below the 1.5 default"
+    assert strong["observed"] is True, "4x residual clears the 1.5 default"
