@@ -298,3 +298,47 @@ def test_twenty_events_with_perfect_ci_still_need_min_n(monkeypatch):
     assert factor["usable"] is False
     assert factor["decision_direction"] is None
     assert "trend_on_follow" not in result["summary"]
+
+
+def _frozen_feed_days():
+    """RKLB-shaped poison: five sessions pinned at 100 then a fake -40% snap.
+
+    Every pair inside the run settles fwd=0 (an automatic miss), and the
+    unfreeze boundary manufactures a move that never traded — exactly what
+    quant_signals_history.jsonl carried for RKLB/HOOD in 2026-06/07.
+    """
+    days = []
+    closes = {"FRZ": [100.0] * 5 + [60.0], "LIVE": [100.0, 110.0]}
+    for index in range(6):
+        rows = {}
+        for symbol, series in closes.items():
+            if index < len(series):
+                rows[symbol] = {"close": series[index], "trend_on": True}
+        days.append({"as_of": f"day-{index}", "rows": rows})
+    return days
+
+
+def test_frozen_feed_runs_never_become_factor_observations(monkeypatch):
+    result = _run_review(monkeypatch, _frozen_feed_days())
+
+    factor = result["factors"]["trend_on_follow"]
+    # LIVE contributes its one real observation; FRZ's five frozen-source
+    # pairs (four flat, one manufactured crash) contribute none.
+    assert factor["n_events"] == 1
+    assert factor["hit_rate"] == 1.0
+    assert result["frozen_feed_excluded"] == 5
+
+
+def test_weekend_flat_pairs_still_count_as_observations(monkeypatch):
+    # A legitimate 2-session flat stretch (weekend carry of Friday's close)
+    # is below FROZEN_RUN_MIN and must keep producing observations.
+    days = [
+        {"as_of": "fri", "rows": {"W": {"close": 100.0, "trend_on": True}}},
+        {"as_of": "sat", "rows": {"W": {"close": 100.0, "trend_on": True}}},
+        {"as_of": "sun", "rows": {"W": {"close": 100.5, "trend_on": True}}},
+    ]
+    result = _run_review(monkeypatch, days)
+
+    factor = result["factors"]["trend_on_follow"]
+    assert factor["n_events"] == 2
+    assert result["frozen_feed_excluded"] == 0
