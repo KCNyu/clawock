@@ -34,6 +34,10 @@ from clawock.market_data.sentiment import fetch_google_news
 NEWS_PROMPT_BUDGET_CHARS = 25_000
 
 
+def _compact(value):
+    return json.dumps(value, ensure_ascii=False, separators=(',', ':'))
+
+
 def build_news_payload(raw, budget=NEWS_PROMPT_BUDGET_CHARS):
     """Whole-ticker projection of the fetched news under a serialized budget.
 
@@ -47,14 +51,11 @@ def build_news_payload(raw, budget=NEWS_PROMPT_BUDGET_CHARS):
     still exceeds `budget` is a manifest that alone is bigger than it: naming
     what was dropped is the honesty record, so it is kept whole rather than cut.
     """
-    def compact(value):
-        return json.dumps(value, ensure_ascii=False, separators=(',', ':'))
-
     included = {}
     omitted = []
-    used = len(compact({'_omitted_tickers': omitted}))
+    used = len(_compact({'_omitted_tickers': omitted}))
     for ticker, items in raw.items():
-        piece = len(compact({ticker: items})) + 1  # + separator overhead
+        piece = len(_compact({ticker: items})) + 1  # + separator overhead
         if used + piece <= budget:
             included[ticker] = items
             used += piece
@@ -66,7 +67,7 @@ def build_news_payload(raw, budget=NEWS_PROMPT_BUDGET_CHARS):
     # manifest stays in input order: a demoted ticker precedes every ticker the
     # greedy pass had already skipped.
     tail = [ticker for ticker in raw if ticker in included]
-    while tail and len(compact(included)) > budget:
+    while tail and len(_compact(included)) > budget:
         ticker = tail.pop()
         del included[ticker]
         omitted.insert(0, ticker)
@@ -191,6 +192,39 @@ def _write_artifact(tickers, raw, source_status, *, digest='', no_material_news=
     return out
 
 
+def build_user_prompt(news_payload, held_via):
+    """Assemble the user turn. The JSON fence embeds exactly the serialization
+    the budget was enforced against — `_compact`, byte for byte (#1000). The
+    first cut embedded `json.dumps(news_payload)` with default separators, so a
+    payload that measured just under 25,000 shipped larger and the budget was
+    not an upper bound on what actually left the door."""
+    return (
+        "下面 US holdings 过去 48h 新闻 (来源 Finnhub 或 Google News RSS, "
+        "每条 `origin` 字段标注). 提炼成 markdown digest:\n\n"
+        "## 格式 (严格遵守)\n\n"
+        "### Top 3-5 移动信号 (跨 ticker 排序)\n"
+        "- TICKER: 1 行核心 fact + 1 行 implication for kcn's position\n"
+        "- ...\n\n"
+        "### Per-ticker 简报 (有新闻才列)\n"
+        "- TICKER: 关键事件 - 影响判断 (1 行)\n\n"
+        "### 风险 watch (若有)\n"
+        "- 任何 financial guidance / regulatory / 大股东减持 / 失败合约 等 risk 关键词\n\n"
+        "要求:\n"
+        "- 总长 ≤ 500 字 (digest 不是 brief)\n"
+        "- 重复 / 营销稿 / 通用市场新闻 -> 忽略\n"
+        "- 优先 ticker-specific catalyst (财报 / 合约 / 监管 / 大单)\n"
+        "- gnews-rss 项只有标题没 summary, 要靠标题关键词判断, 不要编造细节\n"
+        "- 不许说 \"需要进一步研究\" 这种废话\n"
+        + (f"- 持仓映射: 以下公司是通过杠杆 ETF 持有的 {json.dumps(held_via, ensure_ascii=False)};"
+           " 写 implication 时点明持有的是哪只 ETF, 并说明 2x 会放大该消息\n" if held_via else "")
+        + "- 若 Raw news 含 `_omitted_tickers`，这些 ticker 的新闻因 prompt 预算被整体省略，"
+          "对应小节必须如实写数据缺口，禁止编造\n"
+        + "- 直接出 markdown\n\n"
+        +
+        f"Raw news (JSON):\n```json\n{_compact(news_payload)}\n```\n"
+    )
+
+
 def main():
     pf = json.load(open('portfolio.json'))
     held = [h['ticker'] for h in pf['portfolios']['us_stocks']['holdings']
@@ -228,31 +262,7 @@ def main():
 
     news_payload = build_news_payload(raw)
 
-    user = (
-        "下面 US holdings 过去 48h 新闻 (来源 Finnhub 或 Google News RSS, "
-        "每条 `origin` 字段标注). 提炼成 markdown digest:\n\n"
-        "## 格式 (严格遵守)\n\n"
-        "### Top 3-5 移动信号 (跨 ticker 排序)\n"
-        "- TICKER: 1 行核心 fact + 1 行 implication for kcn's position\n"
-        "- ...\n\n"
-        "### Per-ticker 简报 (有新闻才列)\n"
-        "- TICKER: 关键事件 - 影响判断 (1 行)\n\n"
-        "### 风险 watch (若有)\n"
-        "- 任何 financial guidance / regulatory / 大股东减持 / 失败合约 等 risk 关键词\n\n"
-        "要求:\n"
-        "- 总长 ≤ 500 字 (digest 不是 brief)\n"
-        "- 重复 / 营销稿 / 通用市场新闻 -> 忽略\n"
-        "- 优先 ticker-specific catalyst (财报 / 合约 / 监管 / 大单)\n"
-        "- gnews-rss 项只有标题没 summary, 要靠标题关键词判断, 不要编造细节\n"
-        "- 不许说 \"需要进一步研究\" 这种废话\n"
-        + (f"- 持仓映射: 以下公司是通过杠杆 ETF 持有的 {json.dumps(held_via, ensure_ascii=False)};"
-           " 写 implication 时点明持有的是哪只 ETF, 并说明 2x 会放大该消息\n" if held_via else "")
-        + "- 若 Raw news 含 `_omitted_tickers`，这些 ticker 的新闻因 prompt 预算被整体省略，"
-          "对应小节必须如实写数据缺口，禁止编造\n"
-        + "- 直接出 markdown\n\n"
-        +
-        f"Raw news (JSON):\n```json\n{json.dumps(news_payload, ensure_ascii=False)}\n```\n"
-    )
+    user = build_user_prompt(news_payload, held_via)
 
     # News digest: short output but enable thinking helps prioritize signal vs noise
     digest = chat(system=system, user=user, max_tokens=32000, temperature=0.5)
