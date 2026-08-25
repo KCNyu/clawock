@@ -198,29 +198,65 @@ layout: null
         <div class="hero-rail" id="hero-rail"></div>
       </div>
 
-      <aside class="card overview-verdict" aria-labelledby="overview-verdict-title">
-        <div class="overview-verdict-head">
-          <div>
-            <div class="overview-card-kicker">决策面板</div>
-            <h3 id="overview-verdict-title">今日判定</h3>
-          </div>
-          <button class="overview-jump" type="button" data-jump-tab="risk">去风险页</button>
+      <!-- 判定卡第五次迭代：大白板否掉（kcn），改单词卡式牌组 —— 顶牌全显，
+           后续三张 scale+translateY 露边；横滑手势 / 指示点 / 自动轮播三通道
+           换牌。每张牌一个主题，按现有数据面拆：今日判定 / 触发中的硬闸 /
+           执行纪律 / 黄金回本。引擎在 dashboard.hero.js 与 dashboard.render.js
+           双实现逐字同步（setupVerdictDeck）。 -->
+      <section class="card verdict-deck" id="verdict-deck" aria-roledescription="轮播" aria-label="决策面板">
+        <div class="verdict-deck-stage" id="verdict-deck-stage">
+          <article class="deck-card" data-theme="今日判定" aria-labelledby="overview-verdict-title">
+            <div class="overview-verdict-head">
+              <div>
+                <div class="overview-card-kicker">决策面板</div>
+                <h3 id="overview-verdict-title">今日判定</h3>
+              </div>
+              <button class="overview-jump" type="button" data-jump-tab="risk">去风险页</button>
+            </div>
+            <div class="status-banner overview-status is-pending" id="overview-status-banner">
+              <span class="sb-pulse" aria-hidden="true"></span>
+              <span class="sb-text" id="overview-sb-text"></span>
+              <span class="sb-time" id="overview-sb-time"></span>
+            </div>
+            <div id="today-highlights" class="today-highlights"></div>
+          </article>
+          <article class="deck-card" data-theme="硬闸" aria-labelledby="deck-gates-title">
+            <div class="overview-verdict-head">
+              <div>
+                <div class="overview-card-kicker">风险</div>
+                <h3 id="deck-gates-title">触发中的硬闸</h3>
+              </div>
+              <span class="badge muted" id="overview-guardrail-count"></span>
+            </div>
+            <div class="overview-gates">
+              <div class="overview-gates-directive" id="overview-guardrail-directive"></div>
+              <div class="risk-alerts" id="overview-guardrail-list"></div>
+            </div>
+            <button class="overview-jump deck-card-jump" type="button" data-jump-tab="risk">去风险页 →</button>
+          </article>
+          <article class="deck-card" data-theme="纪律" aria-labelledby="deck-discipline-title">
+            <div class="overview-verdict-head">
+              <div>
+                <div class="overview-card-kicker">纪律</div>
+                <h3 id="deck-discipline-title">执行纪律</h3>
+              </div>
+              <button class="overview-jump" type="button" data-jump-tab="drill">看持仓</button>
+            </div>
+            <div id="deck-discipline" class="today-highlights"></div>
+          </article>
+          <article class="deck-card" data-theme="黄金回本" aria-labelledby="deck-gold-title">
+            <div class="overview-verdict-head">
+              <div>
+                <div class="overview-card-kicker">黄金 DCA</div>
+                <h3 id="deck-gold-title">黄金回本</h3>
+              </div>
+              <span class="badge muted" id="deck-gold-badge"></span>
+            </div>
+            <div id="deck-gold" class="today-highlights"></div>
+          </article>
         </div>
-        <div class="status-banner overview-status is-pending" id="overview-status-banner">
-          <span class="sb-pulse" aria-hidden="true"></span>
-          <span class="sb-text" id="overview-sb-text"></span>
-          <span class="sb-time" id="overview-sb-time"></span>
-        </div>
-        <div id="today-highlights" class="today-highlights"></div>
-        <div class="overview-gates">
-          <div class="overview-gates-head">
-            <span>触发中的硬闸</span>
-            <span class="badge muted" id="overview-guardrail-count"></span>
-          </div>
-          <div class="overview-gates-directive" id="overview-guardrail-directive"></div>
-          <div class="risk-alerts" id="overview-guardrail-list"></div>
-        </div>
-      </aside>
+        <div class="deck-dots" id="verdict-deck-dots" role="group" aria-label="换牌"></div>
+      </section>
 
       <div class="overview-strip" aria-label="Secondary overview">
         <section class="overview-strip-cell overview-market">

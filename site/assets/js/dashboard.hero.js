@@ -92,20 +92,31 @@
 
   // A. Hero top "今日要点" triage strip — pure synthesis of the compiled
   // Overview projection. Answers "what should I look at today" in 5s.
+  // 第四次迭代修正二（券商终端化）：状态/数值/档位一律徽章 chip（label+
+  // value+delta 三段式，tone ok/warn/bad），同类一排、放不下折行，不做段落；
+  // 能画的数据画微图（接近度计量条、异动零轴迷你柱），文字退为 caption。
+  // 判词句本体由 CSS 压成一行 caption —— 成段 prose 在这张卡里没有位置。
   function renderTodayHighlights() {
     const el = document.getElementById("today-highlights");
     if (!el) return;
     const chips = [];
+    const chip = (tone, k, v, d, meterPct) =>
+      `<span class="hl-chip tone-${tone}"><span class="hl-k">${k}</span>`
+      + (v ? `<span class="hl-v">${v}</span>` : "")
+      + (d ? `<span class="hl-d">${d}</span>` : "")
+      + (meterPct == null ? ""
+        : `<span class="hl-meter" aria-hidden="true"><i style="width:${meterPct.toFixed(1)}%"></i></span>`)
+      + `</span>`;
 
     // 0. Regime — the day's default stance (same risk_on/neutral/risk_off the brief acts on)
     const rg = safe(DATA, "regime");
     if (rg && rg.label) {
-      const map = { risk_on:  { cls:"hl-up",    ic:"", stance:"默认持有, 别瞎动" },
-                    neutral:  { cls:"hl-info",  ic:"", stance:"按 frame 常规" },
-                    risk_off: { cls:"hl-alert", ic:"", stance:"防御, 优先减杠杆" } };
+      const map = { risk_on:  { tone:"ok",   stance:"默认持有" },
+                    neutral:  { tone:"flat", stance:"按 frame 常规" },
+                    risk_off: { tone:"bad",  stance:"防御·先减杠杆" } };
       const r = map[rg.label] || map.neutral;
-      chips.push({ cls: r.cls, icon: r.ic,
-        txt: `Regime ${escapeHtml(rg.label.replace("_"," "))} · ${escapeHtml(r.stance)}` });
+      chips.push(chip(r.tone, "Regime",
+        escapeHtml(rg.label.replace("_", " ")), escapeHtml(r.stance)));
     }
 
     // What changed since the previous decision set. Counts are dynamic and come
@@ -115,32 +126,31 @@
     const newN = dd.new_count || 0;
     const triggeredN = dd.triggered_count || 0;
     if (dd.has_material_change || changedN || newN || triggeredN) {
-      chips.push({
-        cls: triggeredN ? "hl-alert" : "hl-info",
-        icon: "",
-        txt: `决策变化 · 新增 ${newN} · 修改 ${changedN} · 触发 ${triggeredN}`,
-      });
+      chips.push(chip(triggeredN ? "bad" : changedN || newN ? "warn" : "ok",
+        "决策变化·新/改/触", `${newN}/${changedN}/${triggeredN}`));
     }
 
     // (30d 自评指标 — 主动 vs 持有 alpha + catalyst 纪律 — 不再在此重复;
     //  它们是回顾性统计,归属正下方的 🪞 诚实自评卡,不属于「今日速读」。)
 
-    // 1. Nearest-to-firing trigger (from the shared watch-level resolver)
+    // 1. Nearest-to-firing trigger (from the shared watch-level resolver)。
+    // 接近度画成计量条：|dist| 归一到 0~10%（10% 外一律读作「远」），条只答
+    // 「多近」，精确距离仍在 delta 文本；轨宽写死在 CSS，不随数据变。
     const near = (computeWatchRows().rows || []).find(r => r.ad != null);
     if (near) {
       const fire = near.ad < 2;
-      chips.push({ cls: fire ? "hl-alert" : "hl-info", icon: "",
-        txt: `${escapeHtml(near.who)} ${escapeHtml(near.label)} ${fmtMoney(near.val, near.ccy)}`
-           + ` · 现 ${fmtMoney(near.cur, near.ccy)} (${fmtPct(near.dist,1)})${fire ? " 即将触发" : ""}` });
+      const meter = Math.max(0, Math.min(100, 100 - near.ad * 10));
+      chips.push(chip(fire ? "bad" : near.ad < 5 ? "warn" : "flat",
+        `${escapeHtml(near.who)}·${escapeHtml(near.label)}`,
+        fmtMoney(near.val, near.ccy),
+        `现 ${fmtMoney(near.cur, near.ccy)} ${fmtPct(near.dist, 1)}${fire ? " ⚠" : ""}`,
+        meter));
     }
 
-    // 2. Biggest mover today (today_movers is pre-sorted by |pct| desc)
-    const movers = safe(DATA, "today_movers") || [];
-    if (movers.length) {
-      const m = movers[0]; const up = (m.today_change_pct || 0) >= 0;
-      chips.push({ cls: up ? "hl-up" : "hl-down", icon: "",
-        txt: `今日最大波动 ${escapeHtml(m.ticker)} ${fmtPct(m.today_change_pct,1)}` });
-    }
+    // 2. Movers today (today_movers is pre-sorted by |pct| desc)：不另设
+    //    「最大波动」chip —— top3 本来就画成零轴柱（图为主），首格即最大，
+    //    同一个数说两遍是把首屏读成对账单。
+    const movers = (safe(DATA, "today_movers") || []).slice(0, 3);
 
     // 3. Top anomaly (high severity first)
     const anomalies = (safe(DATA, "anomalies") || []).slice()
@@ -148,9 +158,9 @@
     if (anomalies.length) {
       const a = anomalies[0];
       const highN = anomalies.filter(x => x.severity === "high").length;
-      chips.push({ cls: a.severity === "high" ? "hl-alert" : "hl-warn", icon: "",
-        txt: (highN > 1 ? `${highN} 项高危异常 · ` : `异常 `)
-           + `${escapeHtml(a.ticker)}: ${escapeHtml(a.detail)}` });
+      chips.push(chip(a.severity === "high" ? "bad" : "warn",
+        highN > 1 ? `异常×${highN}` : "异常",
+        escapeHtml(a.ticker), escapeHtml(a.detail)));
     }
 
     // 4. Catalyst dated today
@@ -163,9 +173,13 @@
     (cat.macro_events||[]).forEach(e => { if (e.date === today) todays.push(`${e.type} ${e.detail}`); });
     (cat.earnings||[]).forEach(e => { if (String(e.date||"").slice(0,10) === today) todays.push(`财报 ${e.ticker||e.symbol||""}`); });
     (cat.fomc||[]).forEach(e => { if (String(e.date||"").slice(0,10) === today) todays.push(`FOMC ${e.detail||""}`); });
-    if (todays.length) chips.push({ cls:"hl-info", icon:"", txt:`今日事件 · ${escapeHtml(todays[0])}` });
+    if (todays.length) {
+      const head = todays[0].split(" ")[0] || "";
+      const rest = todays[0].slice(head.length).trim();
+      chips.push(chip("flat", "今日事件", escapeHtml(head), escapeHtml(rest)));
+    }
 
-    if (!chips.length) {
+    if (!chips.length && !movers.length) {
       el.style.display = "";
       el.replaceChildren();
       return;
@@ -177,8 +191,24 @@
     // No icon slot: the old 7px status dot read as AI-flavoured (kcn: 彩色圆点
     // = AI 味). Row semantics live in position, weight and — for true alerts —
     // the red text colour, never in a coloured dot.
-    el.innerHTML = chips.slice(0, 3).map(c =>
-      `<span class="hl-chip ${c.cls}">${c.txt}</span>`).join("");
+    // 异动零轴柱：top3 各一根，高度 = |pct| 归一（最低 3px 可见），px 写死 ——
+    // 构图不随数据变；ticker+pct 退为柱下 caption（图为主，文字只做注脚）。
+    const maxAbs = Math.max(...movers.map(x => Math.abs(x.today_change_pct || 0)), 1);
+    const mvCell = x => {
+      const pct = x.today_change_pct || 0;
+      const h = Math.max(3, Math.abs(pct) / maxAbs * 17);
+      return `<div class="hl-mv"><div class="hl-mv-bar">`
+        + `<i class="${pct >= 0 ? "up" : "down"}" style="height:${h.toFixed(1)}px"></i></div>`
+        + `<div class="hl-mv-cap"><span class="hl-mv-t">${escapeHtml(x.ticker || DASH)}</span>`
+        + `<span class="hl-mv-p ${pct >= 0 ? "pos" : "neg"}">${fmtPct(pct, 1)}</span></div></div>`;
+    };
+    const moversRow = movers.length
+      ? `<div class="hl-movers" style="grid-template-columns:repeat(${movers.length},minmax(0,1fr))"`
+        + ` role="img" aria-label="今日异动前 ${movers.length}：`
+        + movers.map(x => `${x.ticker} ${fmtPct(x.today_change_pct, 1)}`).join("、")
+        + `">${movers.map(mvCell).join("")}</div>`
+      : "";
+    el.innerHTML = chips.slice(0, 5).join("") + moversRow;
   }
 
   // 🪞 诚实自评卡 — 把这轮做的诚实层(风险调整判决 / catalyst 纪律 / 辩论决断 / 因子 CI)聚一处
@@ -329,6 +359,7 @@
     hero: [
       renderCommandDeck, renderDataHealth, renderRiskGuardrail, renderOverviewSummaries,
       renderMarketSnapshot, renderTodayHighlights, renderHonesty, renderGoldDca,
+      renderVerdictDeckSides,
     ],
   };
   let RENDER_VERSION = 0;
@@ -1073,6 +1104,260 @@
 
   // 持仓决策矩阵优先消费 harness 编译的 versioned projection。旧 dashboard
   // join 仅作跨版本部署期间的 fallback；Pages 不再是投资规则的 owner。
+  // ── 判定牌组（第五次迭代）──────────────────────────────────────────
+  // 大白板被否（kcn），改单词卡式牌组：顶牌全显，下层三张以
+  // scale(.95/.90)+translateY 露边；换牌三通道 = 横滑手势 / 指示点 /
+  // 自动轮播（7s 一张，hover/交互即暂停，落位后恢复）。
+  // 物理按 Apple Fluid Interfaces：默认临界阻尼（damping 1.0，
+  // response .32s）；只有甩动释放才给 bounce；手势期 1:1 跟手、任意
+  // 时刻可打断可反向；释放把速度交给弹簧，落点用动量投影
+  // （current + (v/1000)·d/(1−d), d≈0.998）选最近吸附点；边界
+  // rubber-band 渐进抵抗。只写 transform/opacity，禁 keyframes；
+  // reduced-motion 全套退化为交叉淡化 + 指示点切换。
+  // ⚠ 与 dashboard.render.js 的本函数逐字同步（parity 棘轮只准同步）。
+  function setupVerdictDeck() {
+    const deck = document.getElementById("verdict-deck");
+    const stage = document.getElementById("verdict-deck-stage");
+    if (!deck || !stage || deck.dataset.deckBound) return;
+    deck.dataset.deckBound = "1";
+    const cards = Array.from(stage.querySelectorAll(".deck-card"));
+    const n = cards.length;
+    if (!n) return;
+    const dotsBox = document.getElementById("verdict-deck-dots");
+    const RM = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const AUTOPLAY_MS = 7000;      // 6~8s 一张
+    const RESPONSE = 0.32;         // 默认弹簧 response（秒）
+    const FLICK_ZETA = 0.62;       // 只有甩动释放允许 bounce（overshoot ~10%）
+    const PROJ_D = 0.998;          // 动量投影衰减（iOS 食谱）
+    const HORIZON = PROJ_D / (1 - PROJ_D) / 1000;   // ≈0.499s
+    let idx = 0;        // 吸附位
+    let cur = 0;        // 连续位置（牌为单位；静止时 == idx）
+    let velC = 0;       // 弹簧速度（cards/s；跟手速度在释放时换算交接）
+    let raf = 0;
+    let press = 1;      // 按压 scale（pointer-down 即响应，松开回 1）
+    let drag = null;    // { x0, lx, lt, moved }
+    let vPxMs = 0;      // 跟手速度（px/ms，EMA）
+    let hover = false, focused = false;   // 自动轮播的暂停条件
+    let movedFlag = false;               // 拖过的手不触发牌内点击
+    const dots = [];
+    for (let i = 0; i < n; i++) {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "deck-dot";
+      b.setAttribute("aria-label", `第 ${i + 1} 张：${cards[i].dataset.theme || ""}`);
+      b.appendChild(document.createElement("i"));
+      b.addEventListener("click", () => goTo(i));
+      dotsBox.appendChild(b); dots.push(b);
+    }
+    const W = () => stage.clientWidth || 1;
+    function pose(i) {
+      // 单一真值来源：由连续位置 cur 推每张牌的 transform/z。fr≠0 时
+      // 相邻两张构成「滑出 × 升起」对，其余按深度静置（露边暗示）。
+      const fr = cur - Math.floor(cur);
+      const base = fr >= 0 ? Math.floor(cur) : Math.floor(cur) + 1;
+      const dir = fr === 0 ? 0 : (fr > 0 ? 1 : -1);
+      let tx = 0, sc = 1, ty = 0, z = 1, vis = true;
+      if (dir !== 0 && i === base) {
+        tx = -fr * W(); z = n + 2;                 // 滑出层（一直在上）
+      } else if (dir !== 0 && i === base + dir) {
+        const u = Math.abs(fr);
+        sc = 0.95 + 0.05 * u; ty = 12 * (1 - u); z = n + 1;   // 升起层
+      } else {
+        const m = Math.abs(i - idx);
+        sc = Math.max(0.90, 1 - 0.05 * m);
+        ty = Math.min(22, 12 * m);
+        z = Math.max(1, n - m);
+        if (m === 0) { sc = 1; ty = 0; z = n; }    // 静止顶牌
+        if (m >= 3) vis = false;
+      }
+      const el = cards[i];
+      el.style.zIndex = z;
+      el.style.visibility = vis ? "visible" : "hidden";
+      el.style.transform =
+        `translate3d(${tx.toFixed(2)}px, ${ty.toFixed(2)}px, 0)`
+        + ` scale(${(sc * press).toFixed(4)})`;
+      const top = i === idx && dir === 0;
+      if (el.inert !== !top) el.inert = !top;
+      el.setAttribute("aria-hidden", top ? "false" : "true");
+    }
+    function paint() { for (let i = 0; i < n; i++) pose(i); }
+    function paintDots() {
+      dots.forEach((d, i) => d.setAttribute("aria-current", i === idx ? "true" : "false"));
+    }
+    function spring(target, zeta, response) {
+      cancelAnimationFrame(raf);
+      if (RM.matches) { cur = target; idx = target; enter(); paint(); paintDots(); return; }
+      const omega = 2 * Math.PI / response;
+      const k = omega * omega, c = 2 * zeta * omega;
+      let t0 = performance.now();
+      const step = (t) => {
+        const dt = Math.min(Math.max((t - t0) / 1000, 0.001), 1 / 30); t0 = t;
+        velC += (-k * (cur - target) - c * velC) * dt;
+        cur += velC * dt;
+        if (Math.abs(cur - target) < 0.0006 && Math.abs(velC) < 0.004) {
+          cur = target; velC = 0; idx = target; raf = 0;
+          enter(); paint(); paintDots(); restartAuto();
+          return;
+        }
+        paint();
+        raf = requestAnimationFrame(step);
+      };
+      raf = requestAnimationFrame(step);
+    }
+    function goTo(i) {
+      i = Math.max(0, Math.min(n - 1, i));
+      pauseAuto();
+      spring(i, 1.0, 0.36);
+    }
+    // 牌内元素入场 stagger（30~80ms）：只在每张牌第一次成为顶牌时播一次。
+    function enter() {
+      const el = cards[idx];
+      if (el.dataset.staggered || RM.matches) return;
+      el.dataset.staggered = "1";
+      el.classList.add("deck-preenter", "deck-enter");
+      // 强制 reflow 让初态落定后立即摘除 —— 不用双 rAF：落定后页面可能
+      // 不再产帧（headless/后台标签），rAF 回调会饿死，牌就永远停在初态。
+      void el.offsetWidth;
+      el.classList.remove("deck-preenter");
+      setTimeout(() => el.classList.remove("deck-enter"), 450);
+    }
+    stage.addEventListener("pointerdown", (e) => {
+      if (e.pointerType === "mouse" && e.button !== 0) return;
+      pauseAuto();
+      if (raf) { cancelAnimationFrame(raf); raf = 0; }   // 弹簧随时可打断
+      drag = { x0: e.clientX, lx: e.clientX, lt: performance.now(), moved: false };
+      vPxMs = 0; press = 0.97;
+      try { stage.setPointerCapture(e.pointerId); } catch (_) {}
+      stage.classList.add("is-dragging");
+      paint();
+    });
+    stage.addEventListener("pointermove", (e) => {
+      if (!drag) return;
+      const now = performance.now();
+      const dx = e.clientX - drag.x0;
+      if (Math.abs(dx) > 6) { drag.moved = true; movedFlag = true; }
+      const instV = (e.clientX - drag.lx) / Math.max(now - drag.lt, 1);
+      vPxMs = instV * 0.75 + vPxMs * 0.25;               // EMA 平滑
+      drag.lx = e.clientX; drag.lt = now;
+      let off = dx;                                      // 1:1 跟手（尊重抓取偏移）
+      if ((idx === 0 && dx > 0) || (idx === n - 1 && dx < 0)) {
+        const over = Math.abs(dx);
+        off = Math.sign(dx) * over / (1 + over / 110);   // rubber-band 渐进抵抗
+      }
+      cur = idx - off / W();
+      paint();
+    });
+    const release = () => {
+      if (!drag) return;
+      const moved = drag.moved;
+      drag = null; press = 1;
+      stage.classList.remove("is-dragging");
+      if (!moved) { cur = idx; velC = 0; paint(); restartAuto(); return; }
+      // 速度交接给弹簧；落点 = 动量投影的最近吸附点。甩动（|v| 高）才用
+      // bounce 阻尼，普通释放临界阻尼。
+      velC = -vPxMs * 1000 / W();
+      const proj = cur + velC * HORIZON;
+      const target = Math.max(0, Math.min(n - 1, Math.round(proj)));
+      const fast = Math.abs(velC) > 0.9;
+      spring(target, fast ? FLICK_ZETA : 1.0, fast ? 0.36 : RESPONSE);
+    };
+    stage.addEventListener("pointerup", release);
+    stage.addEventListener("pointercancel", release);
+    // 拖过的手不触发牌内点击（capture 阶段吞掉）。
+    stage.addEventListener("click", (e) => {
+      if (movedFlag) { e.stopPropagation(); e.preventDefault(); movedFlag = false; }
+    }, true);
+    stage.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowLeft") { e.preventDefault(); goTo(idx - 1); }
+      if (e.key === "ArrowRight") { e.preventDefault(); goTo(idx + 1); }
+    });
+    deck.addEventListener("pointerenter", () => { hover = true; pauseAuto(); });
+    deck.addEventListener("pointerleave", () => { hover = false; restartAuto(); });
+    deck.addEventListener("focusin", () => { focused = true; pauseAuto(); });
+    deck.addEventListener("focusout", () => { focused = false; restartAuto(); });
+    document.addEventListener("visibilitychange", () => {
+      if (document.hidden) pauseAuto(); else restartAuto();
+    });
+    window.addEventListener("resize", () => { cur = idx; velC = 0; paint(); }, { passive: true });
+    // 自动轮播与指示点进度同源：一个 200ms tick 驱动推进与填充；
+    // 暂停即冻结（elapsed 累计制，不用绝对时刻）。
+    let elapsed = 0, autoOn = false, lastTick = 0;
+    function pauseAuto() { autoOn = false; }
+    function restartAuto() {
+      if (RM.matches || document.hidden || hover || focused || autoOn || raf) return;
+      autoOn = true; lastTick = performance.now();
+    }
+    setInterval(() => {
+      const now = performance.now();
+      if (autoOn) {
+        elapsed += now - lastTick;
+        if (elapsed >= AUTOPLAY_MS && !drag && !raf) {
+          elapsed = 0;
+          spring((idx + 1) % n, 1.0, 0.38);   // 自动切换 ≤400ms
+        }
+      }
+      lastTick = now;
+      const fill = dots[idx] && dots[idx].firstChild;
+      if (fill) fill.style.transform =
+        `scaleX(${autoOn ? Math.min(elapsed / AUTOPLAY_MS, 1).toFixed(3) : "0"})`;
+    }, 200);
+    paint(); paintDots(); enter(); restartAuto();
+  }
+
+  // 纪律 / 黄金回本两张副牌的内容渲染。数据缺口必须明说（muted 占位），
+  // 不装作没有这一格。⚠ 与 dashboard.render.js 逐字同步。
+  function renderVerdictDeckSides() {
+    setupVerdictDeck();
+    const mk = (tone, k, v, d, meterPct) =>
+      `<span class="hl-chip tone-${tone}"><span class="hl-k">${k}</span>`
+      + (v ? `<span class="hl-v">${v}</span>` : "")
+      + (d ? `<span class="hl-d">${d}</span>` : "")
+      + (meterPct == null ? ""
+        : `<span class="hl-meter" aria-hidden="true"><i style="width:${meterPct.toFixed(1)}%"></i></span>`)
+      + `</span>`;
+    const disc = document.getElementById("deck-discipline");
+    if (disc) {
+      const m = safe(DATA, "decision_metrics") || {};
+      const act = safe(safe(m, "execution_by_kind"), "active") || {};
+      const chips = [];
+      if (m.brier != null) {
+        chips.push(mk(m.brier_beats_baseline ? "ok" : "warn", "Brier·30d",
+          Number(m.brier).toFixed(3),
+          m.brier_baseline_loo == null ? "" : `基线 ${Number(m.brier_baseline_loo).toFixed(3)}`));
+      }
+      if (act.rate != null) {
+        chips.push(mk("flat", "执行率",
+          `${(act.rate * 100).toFixed(1)}%`,
+          act.known == null ? "" : `${act.known} 笔可核`));
+      }
+      if (m.raw_decisions != null) {
+        chips.push(mk("flat", "样本", `${m.raw_decisions}`, "近 30d 决策"));
+      }
+      disc.innerHTML = chips.length ? chips.join("")
+        : '<span class="hl-chip"><span class="hl-k">决策指标未生成</span></span>';
+    }
+    const gold = document.getElementById("deck-gold");
+    if (gold) {
+      const g = safe(DATA, "gold_dca") || {};
+      const badge = document.getElementById("deck-gold-badge");
+      if (badge) badge.textContent = g.fund_code ? String(g.fund_code) : "";
+      const ups = g.breakeven_upside_pct;
+      if (ups == null || g.nav == null) {
+        gold.innerHTML = '<span class="hl-chip"><span class="hl-k">回本数据缺</span></span>';
+      } else {
+        const above = ups <= 0;
+        const meter = Math.max(0, Math.min(100, 100 - Math.abs(ups) * 10));
+        const num = (v, dp) => Number(v).toLocaleString("zh-CN",
+          { minimumFractionDigits: dp, maximumFractionDigits: dp });
+        gold.innerHTML =
+          mk(above ? "ok" : Math.abs(ups) > 5 ? "bad" : "warn", "回本",
+            above ? `已越线 ${Math.abs(ups).toFixed(1)}%` : `需涨 ${ups.toFixed(1)}%`,
+            "", meter)
+          + mk("flat", "净值/成本", `${num(g.nav, 4)} / ${num(g.avg_cost, 4)}`)
+          + mk("flat", "现值", `¥${num(g.current_value, 0)}`,
+            (g.pnl_percent >= 0 ? "+" : "") + `${num(g.pnl_percent, 2)}%`);
+      }
+    }
+  }
   function renderRiskGuardrail() {
     const g = safe(DATA, "risk_guardrail") || {};
     const targets = [

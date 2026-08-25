@@ -173,13 +173,18 @@
   @media (prefers-color-scheme: light) {
     :root {
       /* 亮色 canvas 纸色：白玻璃要有可对的底。before 实测亮色面底只差
-         11~20 级且无色度差（strip 甚至纯白 255 打在 233 的底上）—— #995
-         同款判据：先给页面一个非白的 canvas，白玻璃才有得透。 */
-      --bg: #E7ECF3;
-      /* 副光同样从绿改蓝（理由同 :root：第四种装饰色 + 底色偏绿）。 */
-      --bg-glow: rgba(64,140,196,.22);
-      --bg-glow-2: rgba(48,132,226,.10);
-      --bg-glow-3: rgba(84,168,255,.07);
+          11~20 级且无色度差（strip 甚至纯白 255 打在 233 的底上）—— #995
+          同款判据：先给页面一个非白的 canvas，白玻璃才有得透。
+          2026-08-25 第五次迭代修正：纸色与三盏光池全部去蓝相 —— #1002 把
+          canvas 提到 #E7ECF3、光池抬到蓝 .22/.10/.07 后，页沟槽实测
+          (223,230,238)，B−R=16（改前 #F3F6F9 时代实测 (237,242,246)，
+          B−R=9），整页读成「蓝底」。canvas 回到原中性白；光池保留几何与
+          明度语言，色相同步中和：主光是白光池，两盏副光是中性灰的影池，
+          玻璃 saturate(182%) 再没有蓝色相可放大。暗主题不动。 */
+      --bg: #F3F6F9;
+      --bg-glow: rgba(255,255,255,.45);
+      --bg-glow-2: rgba(148,157,166,.09);
+      --bg-glow-3: rgba(148,157,166,.07);
       --surface-0: #F8FAFC;
       --surface-1: #FFFFFF;
       --surface-2: #F2F5F8;
@@ -270,7 +275,7 @@
     body .desk-rail,
     body .status-banner,
     body .hero-deck,
-    body .card.overview-verdict,
+    body .card.verdict-deck .deck-card,
     body .overview-strip {
       -webkit-backdrop-filter: none;
       backdrop-filter: none;
@@ -289,8 +294,11 @@
     body .hero-deck { background: var(--surface-1); }
     /* 玻璃面 blur 关掉后必须整体回实色，否则变成「无模糊的透底」，背后的
        文字会从卡里透出来叠字。 */
-    body .card.overview-verdict { background: var(--surface-1); }
+    body .card.verdict-deck .deck-card { background: var(--surface-1); }
     body .overview-strip { background: var(--surface-1); }
+    /* 判定牌自画光池（2026-08-25 第五次迭代起）同属「光穿过材质」，实色
+       表面上一并关掉 —— 本块注释自己的判据，v1 漏了这条。 */
+    body .verdict-deck .deck-card::before { display: none; }
     /* Same reason the sheens go: they are light passing through a material.
        On an opaque surface they are just a gradient nobody asked for. */
     body .card, body .hero-deck, body .overview-strip { background-image: none; }
@@ -2572,96 +2580,116 @@
   /* Equity Curve 卡已挪去 Reflect 净值表现区（与 Daily P&L 同区、共用市场切换器）。
      Overview 首屏只留 hero-deck 的 spark 一条形状；今日判定从「Equity(8) + 判定(4)」
      的伴排改为独占整行。 */
-  .overview-verdict {
-    grid-column: 1 / -1; padding: 20px var(--card-inset) 18px;
-    position: relative; /* 光池 ::before 的定位父级 */
-    /* 首屏第二块浮起来的表面（指挥台之后）：DSH 插件同款玻璃配方 ——
-       不透明色写在前（引擎不支持 color-mix/backdrop-filter 时退回实色卡），
-       半透明主题面 + backdrop blur + saturate。结构判据（#887）：毛玻璃
-       成立先证明背后有东西可糊 —— body 两盏 fixed 光已拉高到覆盖这一段，
-       指挥台的落影也从这层透出去；凹槽/量表那套光影不叠 blur，不做
-       「玻璃里再糊一层玻璃」。 */
-    background: var(--surface-1);
-    background: var(--sheen-1), var(--glass-card);
-    -webkit-backdrop-filter: var(--blur-card);
-    backdrop-filter: var(--blur-card);
-    /* 原来的 480px 地板是为和 Equity 卡凑同一行；挪走后按各档实测内容高度
-       重新预留（数据到达前占位，否则判定卡长高会把下方整列推下去 —— CLS
-       实测 0.11，预留后回到基线）。
-       地板保持整卡一级、不下沉到子行：盘中横幅在 overview 是
-       is-pending 不占位的（#890），横幅日它出现时会在卡内把要点/硬闸往下推
-       —— 整卡地板吸收这种内部重排，子行地板会把这次重排漏成页面级位移。
-       地板值 = 构图定稿后横幅日扫宽实测上界 +2（见各断点注释）。
-       2026-08-24 构图改双栏（宽屏左判词右硬闸），整卡数据态高度大幅收窄，
-       三档地板随之重量（值见 min-height 与各断点覆盖，横幅日扫宽取上界）。 */
-    /* 地板 = 构图定稿后横幅日扫宽实测上界 +2。2026-08-25 第三次迭代后
-       重扫：mono 数字改变判词折行、右列改仪表面板，1200/1024 实测 317
-       （旧构图 314、旧地板 296 本就已低于当日横幅），地板提到 319。 */
+  /* ── 判定牌组（第五次迭代）──────────────────────────────────────
+     大白板被否（kcn：完全重构成卡片堆叠/轮换播放），改单词卡式牌组：
+     顶牌全显，后续三张在下层以 scale+translateY 露边暗示可换。容器占
+     原 .overview-verdict 的栅格槽与地板；每张牌一个主题，玻璃配方不变
+     （半透明面 + 斜向 sheen + 高光切边 + 自画光池），从「一张大白板」
+     收成「一叠玻璃牌」。 */
+  .verdict-deck {
+    grid-column: 1 / -1;
+    display: flex; flex-direction: column; gap: 10px;
+    position: relative;
+    /* 地板跟随原判定卡三档（319/506/571，横幅日扫宽上界 +2）：牌组拆张
+       后单牌内容更短，旧地板是安全上界 —— 预留只增不减，CLS 不劣化。 */
     min-height: 319px;
   }
-  /* 自画光池：玻璃配方的最后一味（DSH 页面光同思路，收进材质自己）。
-     body 的 key light 已拉到 860px，但那是页面的光，长页下段会衰减；
-     材质在自己表面上方画一池极弱的冷光，frost 全卡都有东西可糊。画在
-     玻璃面之上、内容之下（backdrop-filter 让本卡成为 stacking context，
-     z-index:-1 落在两者之间），不叠第二层 blur —— 玻璃里再糊玻璃是泥。 */
-  .overview-verdict::before {
+  .verdict-deck-stage {
+    position: relative; flex: 1; min-height: 0;
+    /* 横滑是手势主通道；纵向滚动必须照常（pan-y 只锁横向）。 */
+    touch-action: pan-y; cursor: grab;
+  }
+  .verdict-deck-stage.is-dragging { cursor: grabbing; }
+  .deck-card {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    padding: 20px var(--card-inset) 18px;
+    overflow: hidden;
+    border-radius: var(--radius);
+    /* 牌本体 = 玻璃内表面（配方沿第四次迭代）：半透明面透出页面光，
+       斜向 sheen 给「斜着反光」的读感，inset 环是切边凭据，::before
+       是长页下段的自画光池。不透明色写在前兜底。凹槽/量表光影不叠
+       blur —— 玻璃里再糊玻璃是泥（#937）。 */
+    background: var(--surface-1);
+    background:
+      linear-gradient(115deg, rgba(255,255,255,.085), rgba(255,255,255,.02) 30%, transparent 52%),
+      var(--sheen-1), var(--glass-card);
+    -webkit-backdrop-filter: var(--blur-card);
+    backdrop-filter: var(--blur-card);
+    box-shadow:
+      inset 0 0 0 1px rgba(255,255,255,.055),
+      inset 0 1px 0 var(--spec-2),
+      var(--edge-bottom), var(--shadow-card);
+    /* 换牌动画只动 transform/opacity；transform 由 JS 逐帧写入
+       （弹簧积分），CSS 不再另给 transition 免得双重插值。 */
+    will-change: transform;
+  }
+  @media (prefers-color-scheme: light) {
+    .deck-card {
+      background:
+        linear-gradient(115deg, rgba(255,255,255,.8), rgba(255,255,255,.22) 30%, transparent 52%),
+        var(--sheen-1), var(--glass-card);
+      box-shadow:
+        inset 0 0 0 1px rgba(255,255,255,.95),
+        inset 0 1px 0 var(--spec-2),
+        var(--edge-bottom), var(--shadow-card);
+    }
+  }
+  .deck-card::before {
     content: ""; position: absolute; inset: 0; z-index: -1;
     border-radius: inherit; pointer-events: none;
     background: radial-gradient(540px 210px at 14% -30px,
       rgba(255,255,255,.05), transparent 70%);
   }
   @media (prefers-color-scheme: light) {
-    .overview-verdict::before {
-      /* 亮色主题白光不可见，换一池极弱的冷色；浓度仍以「读作深度、
-         绝不读作色带」为界。 */
+    .deck-card::before {
       background: radial-gradient(540px 210px at 14% -30px,
         rgba(0,110,184,.045), transparent 70%);
     }
   }
-  /* 宽屏双栏：左列=这张卡「说的话」（判定句 + 要点），右列=这张卡「管的
-     事」（触发中的硬闸）。此前四段全宽竖排、段段一条发丝线，整卡读成一摞
-     通栏横幅 —— 「大字报」的第二层（第一层字号 #927 已收）：构图要有主次
-     分栏。DOM 不动，grid-areas 重排；<1024 回单列自然流。 */
-  @media (min-width: 1024px) {
-    .overview-verdict {
-      display: grid;
-      grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
-      grid-template-rows: auto auto 1fr;
-      grid-template-areas:
-        "head gates"
-        "verdict gates"
-        "points gates";
-      align-items: stretch; align-content: start;
-    }
-    .overview-verdict-head { grid-area: head; }
-    .overview-status { grid-area: verdict; }
-    .overview-verdict .today-highlights { grid-area: points; align-content: start; }
-    .overview-gates {
-      grid-area: gates;
-      /* 右列从「发丝线分栏」升级为嵌进玻璃的仪表面板：材质分层（玻璃面上
-         一块实色内衬）替代字号分层 —— 这是「层级靠结构与材质」的正文。
-         内衬必须用不透明复合色 --card-2：玻璃上的凹槽若再走半透明，就是
-         「玻璃里开天窗」，糊出来是一团泥（#937 打孔判据）。内衬自己的
-         高光边（inset spec）让它读作下沉的 well 而不是贴上去的纸。 */
-      background: var(--card-2);
-      border: 1px solid var(--border-subtle);
-      border-radius: 12px;
-      padding: 14px 16px 12px; margin-left: 24px;
-      box-shadow: inset 0 1px 0 var(--spec-1);
-      /* 内衬只抱内容、不 stretch 到左列底：well 里的空白是「没有数据」，
-         玻璃上的空白是「构图留白」，两者别混。暗主题下面板与玻璃面只差
-         几个灰阶，边线提到 border-strong 才读得出边界（亮面玻璃差更大，
-         仍用 subtle）。 */
-      align-self: start;
-    }
-    /* 暗主题下面板与玻璃面只差几个灰阶，边线提到 border-strong 才读得出
-       边界；亮面玻璃对比更大，保持 subtle。 */
-    @media (prefers-color-scheme: dark) {
-      .overview-verdict .overview-gates { border-color: var(--border-strong); }
-    }
+  /* 进度指示点兼自动轮播进度条：轨是发丝底，填充 scaleX 由 JS 按
+     剩余时间逐帧写（禁 keyframes）。高度固定 —— 构图常量。 */
+  .deck-dots {
+    flex: 0 0 auto;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    height: 12px; padding: 1px 0;
   }
-  .overview-verdict-head,
-  .overview-gates-head {
+  .deck-dot {
+    appearance: none; border: 0; padding: 0; margin: 0;
+    width: 26px; height: 4px; border-radius: 2px;
+    background: var(--border-subtle); cursor: pointer;
+    position: relative; overflow: hidden;
+  }
+  .deck-dot i {
+    position: absolute; inset: 0; border-radius: inherit;
+    background: var(--text-faint);
+    transform: scaleX(0); transform-origin: left center;
+  }
+  .deck-dot[aria-current="true"] i { background: var(--text-secondary); }
+  .deck-dot:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  /* 牌内元素入场 stagger（30~80ms）：临时类压住初态，去类后 transition
+     生效；delay 挂 nth-child，400ms 后由 JS 摘除 delay 类。 */
+  .deck-card > * { transition: opacity .24s var(--ease-out), transform .24s var(--ease-out); }
+  .deck-card.deck-preenter > * { transition: none; opacity: 0; transform: translateY(6px); }
+  .deck-card.deck-enter > *:nth-child(1) { transition-delay: 30ms; }
+  .deck-card.deck-enter > *:nth-child(2) { transition-delay: 55ms; }
+  .deck-card.deck-enter > *:nth-child(n+3) { transition-delay: 80ms; }
+  /* reduced-motion 全套退化：无位移、无轮播（JS 同源判断），换牌退化为
+     交叉淡化 + 指示点切换。 */
+  @media (prefers-reduced-motion: reduce) {
+    .deck-card,
+    .deck-card > * { transition-duration: .16s !important; transition-delay: 0s !important; }
+    .deck-preenter > * { opacity: 0; transform: none; }
+  }
+  /* 牌内硬闸区：原「段间发丝线」是通栏卡的分段语言；独立成牌后它就是
+     牌的正文，去掉段首线与顶垫。 */
+  .verdict-deck .overview-gates { border-top: 0; padding-top: 0; margin: 12px 0 0; }
+  /* 牌尾跳转钮：贴牌底（flex 列的 margin-top:auto），不随内容长短漂。 */
+  .deck-card-jump { margin-top: auto; align-self: flex-end; }
+  /* 牌组化后双栏 grid-areas 与「玻璃上的仪表面板 well」一并退场：硬闸
+     升为独立一张牌（主题即边界，比分栏更强），well 的材质分层职责由
+     「牌与牌的堆叠」接管 —— 玻璃上不再开凹槽（#937 判据不变）。 */
+  .overview-verdict-head {
     display: flex; align-items: center; justify-content: space-between; gap: 10px;
   }
   /* 眉标并成一行：「决策面板 · 今日判定」—— 两条竖排的 micro 眉标是同一层
@@ -2689,45 +2717,112 @@
   .overview-strip-link:focus-visible {
     outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 3px;
   }
-  /* 判词行：这张卡的主句。三种行式样统一为无盒 + 发丝线：去胶囊底色与蓝点，
-      上下发丝线夹住。 */
-  /* 2026-08-24：--fs-verdict（24~34px、600 字重）把这句话渲染成了一张大字报
-     （kcn：「今日判定那个大字报不要，太奇怪了」）。它不是标题，是这张卡的
-     导语句 —— 一句会天天变的状态描述。降到 --fs-xl / 550 字重 / 1.55 行高，
-     并把负字距收回 0：字距是随字号定的，19px 上再收紧只会挤。
-     仍然是这张卡里最大的字（其余行 13px），层级没丢，只是不再喊。
-     时间戳从句中挪到句下：原来 sb-time 是行内 flex 尾巴，句子一折行它就
-     悬在第一行行尾的半空中，读起来像句子的一部分。 */
+  /* 判词行：2026-08-24 从大字报降到 --fs-xl；第四次迭代再降一档 ——
+     券商终端里没有成段 prose，判词句退成一行 caption（--fs-sm / 次级色 /
+     单行截断，全文进 title），结构信息全部拆进下面的 chip。发丝线上下夹住
+     的版式保留：它就是终端里那行「快照注脚」。 */
   .overview-status {
     display: block;
-    margin: 14px 0 0; padding: 13px 0 12px;
+    margin: 12px 0 0; padding: 10px 0 0;
     background: none; border: 0; border-radius: 0;
     border-top: 1px solid var(--border-subtle);
     border-bottom: 0;
     -webkit-backdrop-filter: none; backdrop-filter: none;
-    font-size: var(--fs-xl); line-height: 1.55; letter-spacing: 0;
-    max-width: 68ch;
+    font-size: var(--fs-sm); line-height: 1.5; letter-spacing: 0;
   }
   .overview-status .sb-pulse { display: none; }
-  .overview-status .sb-text { font-weight: 550; }
+  .overview-status .sb-text {
+    font-weight: 500; color: var(--text-secondary);
+    display: -webkit-box; -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1; overflow: hidden;
+  }
   .overview-status .sb-time {
-    display: block; margin-top: 7px;
+    display: block; margin-top: 6px;
     font-size: var(--fs-micro); color: var(--text-faint);
     font-family: var(--mono); white-space: nowrap;
   }
-  /* 要点行 = 判定句的注脚：整块左缩进挂一条发丝竖线（引文层级），行间不再
-      一条条横线 —— 横线节奏和硬闸区重复，竖线才读得出来「这几行是上面那句
-      的展开」。真告警行仍整行红字。 */
-  .overview-verdict .today-highlights {
-    display: grid; grid-template-columns: 1fr; gap: 0;
+  /* 要点区 = 终端的状态行：同类信息一排徽章 chip，放不下折行，不做段落。
+     chip 三段式 label+value+delta；统一高度 24 / 圆角 7 / micro 字阶 /
+     发丝线描边；数值段 mono tabular（仓库字规：mono 只用于数字）。
+     底色用不透明 --card-2 —— 玻璃上的开孔必须不透明（#937 打孔判据），
+     tone 只染边线与 value，不染整底：满屏色底是行情软件最廉价的读感。 */
+  .deck-card .today-highlights {
+    display: flex; flex-wrap: wrap; gap: 6px;
     margin: 12px 0 0; min-height: 0;
   }
-  .overview-verdict .hl-chip {
-    min-width: 0; padding: 7px 0 7px 13px; font-size: var(--fs-sm);
-    overflow-wrap: anywhere; color: var(--text-secondary);
-    border-bottom: 0; border-left: 2px solid var(--border-subtle);
+  .deck-card .hl-chip {
+    display: inline-flex; align-items: center; gap: 7px;
+    min-width: 0; max-width: 100%; height: 24px; padding: 0 9px;
+    background: var(--card-2); border: 1px solid var(--border-subtle);
+    border-radius: 7px; font-size: var(--fs-micro); line-height: 1;
   }
-  .overview-verdict .hl-chip:last-child { padding-bottom: 0; }
+  .deck-card .hl-chip .hl-k {
+    flex: 0 0 auto; color: var(--text-tertiary);
+    font-weight: 600; white-space: nowrap;
+  }
+  .deck-card .hl-chip .hl-v {
+    font-family: var(--mono); font-size: var(--fs-xs); font-weight: 600;
+    font-variant-numeric: tabular-nums; white-space: nowrap;
+  }
+  .deck-card .hl-chip .hl-d {
+    min-width: 0; color: var(--text-faint); white-space: nowrap;
+    overflow: hidden; text-overflow: ellipsis;
+  }
+  /* tone 三档 + 中性：ok/warn/bad 只动边线与 value 色（delta 保持中性），
+     浓度取「读得出档位」的最低混色。 */
+  .deck-card .hl-chip.tone-ok { border-color: color-mix(in srgb, var(--positive) 32%, var(--border-subtle)); }
+  .deck-card .hl-chip.tone-ok .hl-v { color: var(--positive); }
+  .deck-card .hl-chip.tone-warn { border-color: color-mix(in srgb, var(--warning) 40%, var(--border-subtle)); }
+  .deck-card .hl-chip.tone-warn .hl-v { color: var(--warning); }
+  .deck-card .hl-chip.tone-bad { border-color: color-mix(in srgb, var(--negative) 45%, var(--border-subtle)); }
+  .deck-card .hl-chip.tone-bad .hl-v { color: var(--negative); }
+  /* 距离计量条（最近触发 chip 内）：到档位的接近度画成条，不写形容词。
+     轨宽写死 44px —— 图形宽度是构图的函数，不是 dist 的函数（CLS 判据）；
+     填充宽度由 JS 按 |dist| 归一后写入，精确值仍在 title。 */
+  .deck-card .hl-meter {
+    position: relative; flex: 0 0 auto; width: 44px; height: 4px;
+    border-radius: 2px; background: var(--border-subtle); overflow: hidden;
+  }
+  .deck-card .hl-meter i {
+    position: absolute; top: 0; bottom: 0; left: 0; border-radius: 2px;
+    background: var(--text-faint);
+  }
+  .deck-card .tone-warn .hl-meter i { background: var(--warning); }
+  .deck-card .tone-bad .hl-meter i { background: var(--negative); }
+  /* 异动迷你柱：今日 top movers 画成一排零轴柱（图为主），ticker+pct 退为
+     caption。柱高/柱位由 JS 写死 px —— 容器高度固定 26px，构图不随数据变。 */
+  .deck-card .hl-movers {
+    display: grid; width: 100%; max-width: 480px;
+    margin: 2px 0 0; padding: 10px 0 0;
+    border-top: 1px solid var(--border-subtle);
+  }
+  .deck-card .hl-mv { min-width: 0; }
+  /* 40px 画布、零轴居中：柱最长 17px（JS 归一），上下各留 3px —— 柱永远
+     待在画布内，构图是常量，不是数据的函数。 */
+  .deck-card .hl-mv-bar { position: relative; height: 40px; }
+  .deck-card .hl-mv-bar::before {
+    content: ""; position: absolute; left: 0; right: 0; top: 50%;
+    border-top: 1px solid var(--border-subtle);
+  }
+  .deck-card .hl-mv-bar i {
+    position: absolute; left: 50%; transform: translateX(-50%);
+    width: 14px; border-radius: 2px;
+  }
+  .deck-card .hl-mv-bar i.up { background: var(--positive); bottom: 50%; }
+  .deck-card .hl-mv-bar i.down { background: var(--negative); top: 50%; }
+  .deck-card .hl-mv-cap {
+    display: flex; align-items: baseline; justify-content: center;
+    gap: 6px; margin-top: 5px; min-width: 0;
+    font-size: var(--fs-micro); line-height: 1;
+  }
+  .deck-card .hl-mv-t {
+    color: var(--text-tertiary); font-weight: 600;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .deck-card .hl-mv-p {
+    flex: 0 0 auto; font-family: var(--mono); font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
   .overview-gates {
     padding-top: 16px; border-top: 1px solid var(--border-subtle);
   }
@@ -2737,14 +2832,14 @@
   }
   .overview-gates-directive {
     display: -webkit-box; margin-top: 8px; overflow: hidden;
-    -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical; -webkit-line-clamp: 1;
     color: var(--text-tertiary); font-size: var(--fs-micro); line-height: 1.45;
   }
   .overview-gates .risk-alerts { margin-top: 8px; gap: 0; }
-  /* 硬闸行与要点行统一为无盒 + 发丝线：去底色与圆角，行间发丝线分隔，
-     严重度由左侧 2px 色条承载（红=high / amber=medium），icon 圆点退场。 */
+  /* 硬闸行：无盒 + 发丝线，行间对齐列（终端读感）；严重度由左侧 2px 色条
+     承载（红=high / amber=medium），icon 圆点退场。计数本身已在表头点阵。 */
   .overview-gates .risk-alert {
-    align-items: flex-start; padding: 8px 0 8px 10px;
+    align-items: flex-start; padding: 7px 0 7px 10px;
     font-size: var(--fs-micro); line-height: 1.35;
     background: none; border: 0; border-radius: 0;
     border-top: 1px solid var(--border-subtle);
@@ -2755,15 +2850,16 @@
   /* 硬闸计数控件（JS renderRiskGuardrail 落进 overview-guardrail-count）：
      10 槽点阵，on=触发中（红）/ off=空槽（发丝线色）。尺寸间距写死 ——
      这个图形的宽度只随构图变、不随 breach_count 变。徽章自身的胶囊底
-     退场：面板里它是一枚读数，不是一枚按钮。 */
-  .overview-gates-head .badge { background: none; padding: 0; }
-  .overview-gates-head .gt-tally { display: inline-flex; align-items: center; gap: 4px; }
-  .overview-gates-head .gt-dot {
+     退场：面板里它是一枚读数，不是一枚按钮。牌组化后它挂在牌头右侧
+     （原 .overview-gates-head 已随双栏退场）。 */
+  .deck-card .badge { background: none; padding: 0; }
+  .deck-card .gt-tally { display: inline-flex; align-items: center; gap: 4px; }
+  .deck-card .gt-dot {
     width: 5px; height: 5px; border-radius: 50%;
     background: var(--border-strong); opacity: .45;
   }
-  .overview-gates-head .gt-dot.on { background: var(--negative); opacity: 1; }
-  .overview-gates-head .gt-more {
+  .deck-card .gt-dot.on { background: var(--negative); opacity: 1; }
+  .deck-card .gt-more {
     margin-left: 2px; font: 600 var(--fs-micro)/1 var(--mono);
     color: var(--negative);
   }
@@ -2779,14 +2875,11 @@
      opacity/transform（不参与布局，CLS 不受影响）；刷新时类不翻转，不会
      重播；不支持 :has 的引擎直接呈现；reduced-motion 由全局闸与本闸双覆盖。 */
   @media (prefers-reduced-motion: no-preference) {
-    .overview-verdict:has(.overview-status:not(.is-pending)) .overview-status {
+    .verdict-deck .deck-card:first-child:has(.overview-status:not(.is-pending)) .overview-status {
       animation: verdict-rise var(--duration-standard) var(--ease-out) backwards;
     }
-    .overview-verdict:has(.overview-status:not(.is-pending)) .today-highlights {
+    .verdict-deck .deck-card:first-child:has(.overview-status:not(.is-pending)) .today-highlights {
       animation: verdict-rise var(--duration-standard) var(--ease-out) 60ms backwards;
-    }
-    .overview-verdict:has(.overview-status:not(.is-pending)) .overview-gates {
-      animation: verdict-rise var(--duration-standard) var(--ease-out) 120ms backwards;
     }
   }
   @keyframes verdict-rise {
@@ -2905,8 +2998,8 @@
   @media (min-width: 768px) and (max-width: 1023px) {
     .hero-rail { grid-template-columns: repeat(4, minmax(0, 1fr)); min-height: 152px; }
     /* 506：768px 端横幅日实测（504，与旧构图持平）+2。 */
-    .overview-verdict { min-height: 506px; }
-    .overview-verdict, .overview-strip,
+    .verdict-deck { min-height: 506px; }
+    .verdict-deck, .overview-strip,
     .overview-command > .hero-honesty-card,
     .overview-command > .hero-gold-card { grid-column: 1 / -1; }
   }
@@ -2914,7 +3007,7 @@
     :root { --card-inset: 20px; }
     .overview-command { display: flex; flex-direction: column; gap: 12px; }
     .hero-deck, .hero-health,
-    .overview-verdict, .overview-strip,
+    .verdict-deck, .overview-strip,
     .overview-command > .hero-honesty-card,
     .overview-command > .hero-gold-card { width: 100%; min-width: 0; }
     .hero-deck { grid-template-columns: minmax(0, 1fr); }
@@ -2932,7 +3025,7 @@
     .dh-detail { grid-column: 1 / -1; white-space: normal; }
     /* 571：390px 横幅日实测 569（旧构图 566、旧地板 564 同样已破）
        +2 —— 增量来自 mono 数字在窄列的折行变化。 */
-    .overview-verdict { min-height: 571px; }
+    .verdict-deck { min-height: 571px; }
     .overview-strip { display: flex; flex-direction: column; }
     .overview-strip-cell {
       min-height: 0; border-right: 0; border-bottom: 1px solid var(--border-subtle);
