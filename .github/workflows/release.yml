@@ -231,7 +231,15 @@ jobs:
       - name: Pack the DSH skill package for the release
         # Idempotent bump: `npm version <same>` exits non-zero (#617). When the
         # tag version already equals package.json, just pack what is there.
+        env:
+          # Same runner hardening as the npm publish job: a lockfile generated
+          # behind a mirror registry stalls every fetch here too (see that
+          # job's 2026-08-17 note).
+          NODE_OPTIONS: --dns-result-order=ipv4first
+          NO_UPDATE_NOTIFIER: '1'
+          npm_config_replace_registry_host: 'always'
         run: |
+          set -euo pipefail
           cd examples/dsh/packages/clawock-dsh
           target="${GITHUB_REF_NAME#v}"
           current="$(node -p "require('./package.json').version")"
@@ -240,6 +248,18 @@ jobs:
           else
             echo "dsh-plugin already at $target — skipping bump"
           fi
+          # Rebuild lib from src exactly like the npm job does before it
+          # publishes, then refuse to ship a stale tree. The release tgz and
+          # the npm tarball carry the same version number, so they must be the
+          # same build — #712 was that failure mode with two producers. A tag
+          # can point at a commit no CI run ever gated (validate's
+          # rebuild-is-no-op check is lane-gated), so this cannot be inherited.
+          npm install --include=dev --no-audit --no-fund
+          npm run build
+          git diff --exit-code -- lib || {
+            echo "::error::committed lib/ differs from a fresh build at this tag — the release tgz would diverge from the published npm tarball; fix lib on master and cut a new tag"
+            exit 1
+          }
           npm pack
 
       - name: Render the public-package changelog section

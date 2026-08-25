@@ -102,6 +102,35 @@ def test_the_release_pins_the_npm_that_publishes():
     publish_at = workflow.index("publish_dsh_plugin.sh")
     assert pin_at < publish_at, "the pin has to come before the publish, not after"
 
+def test_the_release_tgz_is_rebuilt_from_source_and_refuses_a_stale_tree():
+    """The release asset and the npm tarball carry the same version number, so
+    they must be the same build.
+
+    #712 was "one version number, two sets of files", found by hand months
+    later. The npm half always rebuilds before publishing
+    (publish_dsh_plugin.sh); the GitHub Release half used to pack whatever
+    lib/ was committed at the tag — equal only when the tag happened to sit on
+    a commit whose lane-gated rebuild-is-no-op check ran (#998). A tag can
+    point at a commit no CI run ever gated, so the release job has to enforce
+    it itself: build, then hard-fail on a dirty lib/ instead of attaching a
+    divergent tgz to an immutable release page.
+    """
+    workflow = WORKFLOW.read_text(encoding="utf-8")
+    release_job = workflow.split("\n  github-release:\n", 1)[1]
+
+    bump_at = release_job.index('npm version "$target" --no-git-tag-version')
+    install_at = release_job.index("npm install --include=dev")
+    build_at = release_job.index("npm run build")
+    guard_at = release_job.index("git diff --exit-code -- lib")
+    pack_at = release_job.index("\n          npm pack")
+    assert bump_at < install_at < build_at < guard_at < pack_at, (
+        "the pack must come after a from-source rebuild and its stale-tree guard"
+    )
+    assert "diverge from the published npm tarball" in release_job, (
+        "the failure message must name what a stale tree actually breaks"
+    )
+
+
 def test_npm_only_dispatch_runs_only_npm_and_never_a_github_release():
     """Repairing the npm side of a half-published version must not need a tag
     and must not create a GitHub Release.
