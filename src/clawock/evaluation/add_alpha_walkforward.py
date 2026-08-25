@@ -9,7 +9,6 @@ from __future__ import annotations
 
 import argparse
 import copy
-import hashlib
 import json
 import random
 import statistics
@@ -17,6 +16,7 @@ from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 
+from clawock import history_store
 from clawock.decision import add_alpha, early_trend, signals
 from clawock.evidence import news_evidence_graph, run_card
 from clawock.market_data import factors, peer_residuals
@@ -41,17 +41,9 @@ def _json(path):
 
 
 def _jsonl(path):
-    rows = []
-    for line in Path(path).read_text(encoding="utf-8").splitlines():
-        try:
-            rows.append(json.loads(line))
-        except json.JSONDecodeError:
-            continue
-    return sorted(rows, key=lambda row: str(row.get("as_of") or ""))
-
-
-def _digest(path):
-    return "sha256:" + hashlib.sha256(Path(path).read_bytes()).hexdigest()[:16]
+    # 归档 + 热窗（#951）：point-in-time 回放是从第一行开始的，读窗口一短，
+    # episode 统计与评估区间就跟着变 —— 这正是当初不能「顺手加 cap」的原因。
+    return history_store.load_series(path)
 
 
 
@@ -598,7 +590,9 @@ def main(argv=None):
                 "bars": len(rows),
                 "first_session": str((rows[0] if rows else {}).get("as_of")),
                 "last_session": str((rows[-1] if rows else {}).get("as_of")),
-                "digest": _digest(path),
+                # 摘要必须覆盖被计数的那批行：拆出 archive 之后，工作文件
+                # 只剩热窗，按文件字节取摘要会与 bars（完整序列）不同源。
+                "digest": history_store.series_digest(path),
             })
         for spec in config["symbols"]:
             bars = (fetched.get(spec["ticker"]) or {}).get("bars") or []
