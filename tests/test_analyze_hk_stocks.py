@@ -4,7 +4,9 @@ All quote inputs are synthetic Tencent wire-format responses.  These tests do
 not call fetchers or patch a transport: the exercised surface is deterministic.
 """
 
+import json
 import sys
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
 import pytest
@@ -78,6 +80,7 @@ def test_parse_gtimg_hk_quote_uses_definitional_price_and_day_range_fields():
         "h": 512.0,
         "l": 499.5,
         "lot_size": None,
+        "volume": None,
         "dp": 1.5,
     }
 
@@ -174,6 +177,145 @@ def test_parse_gtimg_valid_quote_without_day_range_does_not_fabricate_range():
     assert parsed is not None
     assert parsed["h"] is None
     assert parsed["l"] is None
+
+
+def test_parse_gtimg_carries_hk_volume_from_field_6():
+    fields = [""] * 40
+    fields[1] = "MINIMAX-W"
+    fields[3] = "299.600"
+    fields[4] = "312.200"
+    fields[5] = "312.000"
+    fields[6] = "12136215"
+    fields[33] = "323.600"
+    fields[34] = "290.400"
+
+    parsed = hk._parse_gtimg('v_hk00100="' + "~".join(fields) + '";')
+
+    assert parsed is not None
+    assert parsed["volume"] == 12136215
+
+
+def test_parse_gtimg_without_volume_field_does_not_fabricate_volume():
+    # Field 6 absent/empty → volume must stay None so callers preserve the
+    # prior verified value instead of inventing one.
+    fields = [""] * 40
+    fields[1] = "MINIMAX-W"
+    fields[3] = "299.600"
+    fields[4] = "312.200"
+
+    parsed = hk._parse_gtimg('v_hk00100="' + "~".join(fields) + '";')
+
+    assert parsed is not None
+    assert parsed["volume"] is None
+
+
+def test_update_hk_portfolio_stamps_prev_close_to_prior_session_and_writes_volume(
+    tmp_path, monkeypatch
+):
+    port = {
+        "portfolios": {
+            "hk_stocks": {
+                "holdings": [
+                    {
+                        "ticker": "00100",
+                        "shares": 100.0,
+                        "cost_basis": 300.0,
+                        "current_price": 312.0,
+                        "prev_close": 312.2,
+                        "prev_close_date": "2026-08-25",
+                        "day_session_date": "2026-08-25",
+                        "day_open": 312.0,
+                        "day_high": 323.6,
+                        "day_low": 290.4,
+                        "volume": 38060,
+                        "lot_size": 500,
+                    }
+                ]
+            }
+        }
+    }
+    p = tmp_path / "portfolio.json"
+    p.write_text(json.dumps(port))
+    monkeypatch.setattr(hk, "PORTFOLIO_PATH", str(p))
+
+    quote = {
+        "name": "MINIMAX-W",
+        "c": 299.6,
+        "pc": 312.2,
+        "o": 312.0,
+        "h": 323.6,
+        "l": 290.4,
+        "lot_size": 500,
+        "volume": 12136215,
+        "dp": -4.04,
+        "_src": "Tencent",
+    }
+    monkeypatch.setattr(hk, "fetch_hk_quotes", lambda codes: {"00100": quote})
+    monkeypatch.setattr(hk, "fetch_indices", lambda: {})
+
+    data = hk.update_hk_portfolio(dry_run=True)
+    h = data["portfolios"]["hk_stocks"]["holdings"][0]
+
+    # prev_close_date must be the PRIOR HK trading session, never today — this
+    # is the fix that re-arms integrity's STALE_PRICE gate.
+    assert h["prev_close_date"] != "2026-08-25"
+    now_hkt = datetime.now(timezone(timedelta(hours=8)))
+    expected = hk.trading_calendar.previous_trading_day("hk", now_hkt.date()).isoformat()
+    assert h["prev_close_date"] == expected
+    assert h["prev_close_date"] < h["day_session_date"]
+
+    # Volume must be overwritten with the real traded volume from Tencent
+    # parts[6], replacing the stale legacy 38060.
+    assert h["volume"] == 12136215
+
+
+def test_update_hk_portfolio_preserves_volume_when_quote_lacks_volume(
+    tmp_path, monkeypatch
+):
+    port = {
+        "portfolios": {
+            "hk_stocks": {
+                "holdings": [
+                    {
+                        "ticker": "00100",
+                        "shares": 100.0,
+                        "cost_basis": 300.0,
+                        "current_price": 312.0,
+                        "prev_close": 312.2,
+                        "day_open": 312.0,
+                        "day_high": 323.6,
+                        "day_low": 290.4,
+                        "volume": 38060,
+                        "lot_size": 500,
+                    }
+                ]
+            }
+        }
+    }
+    p = tmp_path / "portfolio.json"
+    p.write_text(json.dumps(port))
+    monkeypatch.setattr(hk, "PORTFOLIO_PATH", str(p))
+
+    # Fallback source that does not expose volume.
+    quote = {
+        "name": "MINIMAX-W",
+        "c": 299.6,
+        "pc": 312.2,
+        "o": 312.0,
+        "h": 323.6,
+        "l": 290.4,
+        "lot_size": 500,
+        "dp": -4.04,
+        "_src": "Eastmoney",
+    }
+    monkeypatch.setattr(hk, "fetch_hk_quotes", lambda codes: {"00100": quote})
+    monkeypatch.setattr(hk, "fetch_indices", lambda: {})
+
+    data = hk.update_hk_portfolio(dry_run=True)
+    h = data["portfolios"]["hk_stocks"]["holdings"][0]
+
+    # Without a volume on the quote, the prior verified value must be kept.
+    assert h["volume"] == 38060
 
 
 @pytest.mark.parametrize(
