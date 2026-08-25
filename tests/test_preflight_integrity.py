@@ -542,6 +542,25 @@ def test_staleness_accepts_last_session_and_warns_one_session_behind(run_check):
     )
 
 
+def test_stale_price_gate_fires_only_when_prev_close_date_is_prior_session(run_check):
+    # current == prev_close: with the FIXED HK stamp (prev_close_date is the prior
+    # session, strictly before day_session_date) integrity's STALE_PRICE gate must
+    # fire. This is the gate that the old "stamp today" behaviour silently disabled.
+    fixed = _holding(ticker="00100", current=312.2, previous=312.2)
+    fixed["prev_close_date"] = "2026-07-16"
+    fixed["day_session_date"] = "2026-07-17"
+    report_fixed = run_check(_portfolio_data(region="hk_stocks", holdings=[fixed]))
+    assert any(f["code"] == "STALE_PRICE" for f in report_fixed["findings"])
+
+    # Legacy (broken) stamp: prev_close_date == day_session_date ("today"). The
+    # gate must NOT fire for exactly this row — reproducing the disabled-gate bug.
+    broken = _holding(ticker="00100", current=312.2, previous=312.2)
+    broken["prev_close_date"] = "2026-07-17"
+    broken["day_session_date"] = "2026-07-17"
+    report_broken = run_check(_portfolio_data(region="hk_stocks", holdings=[broken]))
+    assert not any(f["code"] == "STALE_PRICE" for f in report_broken["findings"])
+
+
 @pytest.mark.xfail(
     strict=True,
     reason=(

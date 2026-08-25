@@ -417,13 +417,13 @@
       },
       "schedule": {
         "kind": "cron",
-        "expr": "0 16 * * 1-5",
+        "expr": "10 16 * * 1-5",
         "tz": "Asia/Shanghai"
       },
       "watchdog": {
         "schedule": {
           "kind": "cron",
-          "expr": "15 16 * * 1-5",
+          "expr": "20 16 * * 1-5",
           "tz": "Asia/Hong_Kong"
         },
         "command": "/root/.local/bin/clawock-report-watchdog --market hk --phase close --job-name \"港股收盘报告\" >> /root/.openclaw/workspace/logs/watchdog.cron.log 2>&1"

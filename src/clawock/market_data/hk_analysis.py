@@ -24,6 +24,7 @@ import requests
 from clawock.credentials import load_api_keys as _load_api_keys
 from clawock.market_data import integrity as bar_checks
 from clawock.market_data.eastmoney_http import em_get
+from clawock import sessions as trading_calendar
 from clawock.instruments import INSTRUMENTS
 from clawock.portfolio.books import region_book
 from clawock.workspace import workspace_root
@@ -79,11 +80,18 @@ def _parse_gtimg(text: str) -> Optional[Dict]:
         lot_size = int(float(parts[60])) if len(parts) > 60 and parts[60] else None
         if lot_size is not None and lot_size <= 0:
             lot_size = None
+        # Tencent field 6 is the traded volume (shares). HK refresh historically
+        # never wrote it, leaving a stale legacy value in snapshots; capture it
+        # from the same wire line so a refresh can overwrite the stale field.
+        vol = int(float(parts[6])) if len(parts) > 6 and parts[6] else None
+        if vol is not None and vol <= 0:
+            vol = None
         return {
             'name': parts[1],
             'c': price, 'pc': pc, 'o': op,
             'h': hi, 'l': lo,
             'lot_size': lot_size,
+            'volume': vol,
             'dp': _pct(price, pc),
         }
     except Exception:
@@ -382,6 +390,13 @@ def update_hk_portfolio(dry_run: bool = False) -> Dict:
     print(f"  Fetched {len(quotes)}/{len(codes)} prices from Tencent gtimg")
 
     today_date = now_hkt.strftime('%Y-%m-%d')
+    # A prior close belongs to the PRIOR HK session, never today. Stamping
+    # today_date here (the old behaviour) produced holdings whose
+    # prev_close_date equalled the session date — an impossible state that also
+    # switched off integrity's STALE_PRICE gate for exactly the rows that needed
+    # it. Align with the US path (us_quotes.py) and use the HK trading calendar.
+    hk_prev_session = trading_calendar.previous_trading_day(
+        'hk', now_hkt.date()).isoformat()
     updated, missing, range_warns = [], [], []
 
     for h in active:
@@ -411,7 +426,7 @@ def update_hk_portfolio(dry_run: bool = False) -> Dict:
 
         h['current_price']    = round(c, 3)
         h['prev_close']       = round(pc, 3)
-        h['prev_close_date']  = today_date
+        h['prev_close_date']  = hk_prev_session
         h['today_change_pct'] = round(q['dp'], 2)
         h['current_value']    = round(c * shrs, 2)
         h['pnl_abs']          = round((c - cost) * shrs, 2)
@@ -423,6 +438,11 @@ def update_hk_portfolio(dry_run: bool = False) -> Dict:
         # prior verified lot when absent, but never invent a one-share HK lot.
         if q.get('lot_size'):
             h['lot_size'] = int(q['lot_size'])
+        # Volume: Tencent primary carries traded volume (parts[6]); fallback
+        # sources generally do not. Overwrite when present, else preserve the
+        # prior verified value — never invent a volume.
+        if q.get('volume'):
+            h['volume'] = int(q['volume'])
 
         # 日内区间 — 仅当本次行情带 open/high/low 时覆盖，避免旧交易日残留值
         # （Tencent 主源有；stooq/yfinance fallback 没有则保持上次真值不写脏数据）

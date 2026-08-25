@@ -35,7 +35,7 @@ keeps an exclusive window; standard time therefore has two fewer US intraday slo
 | 盘中盯盘 | `*/30 10-11,14-15 * * 1-5` · Asia/Shanghai | Mode 7 | `intraday --hk` | `10,40 10-11,14-15 * * 1-5` · Asia/Hong_Kong |
 | 港股午盘报告 | `0 12 * * 1-5` · Asia/Shanghai | Mode 6 | `report --hk mid` | `12 12 * * 1-5` · Asia/Hong_Kong |
 | 港股午后快报 | `30 13 * * 1-5` · Asia/Shanghai | Mode 6 | `report --hk pm` | `42 13 * * 1-5` · Asia/Hong_Kong |
-| 港股收盘报告 | `0 16 * * 1-5` · Asia/Shanghai | Mode 6 | `report --hk close` | `15 16 * * 1-5` · Asia/Hong_Kong |
+| 港股收盘报告 | `10 16 * * 1-5` · Asia/Shanghai | Mode 6 | `report --hk close` | `20 16 * * 1-5` · Asia/Hong_Kong |
 | 美股开盘报告 | EDT `30 21 * * 1-5`<br>EST `30 22 * * 1-5` | Mode 6 | `report --us open` | EDT `45 21 * * 1-5`<br>EST `45 22 * * 1-5` |
 | 美股盘中盯盘 | EDT `*/30 22-23 * * 1-5`<br>EST `*/30 23 * * 1-5` | Mode 7 | `intraday --us` | EDT `10,40 22-23 * * 1-5`<br>EST `10,40 23 * * 1-5` |
 
