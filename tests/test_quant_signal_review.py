@@ -329,16 +329,51 @@ def test_frozen_feed_runs_never_become_factor_observations(monkeypatch):
     assert result["frozen_feed_excluded"] == 5
 
 
-def test_weekend_flat_pairs_still_count_as_observations(monkeypatch):
-    # A legitimate 2-session flat stretch (weekend carry of Friday's close)
-    # is below FROZEN_RUN_MIN and must keep producing observations.
+def test_short_flat_pairs_still_count_as_observations(monkeypatch):
+    # A legitimate 2-session flat stretch is below FROZEN_RUN_MIN and must
+    # keep producing observations (weekday labels: ISO weekends are a
+    # different gate — see test_weekend_as_of_rows_never_settle...).
     days = [
+        {"as_of": "thu", "rows": {"W": {"close": 100.0, "trend_on": True}}},
         {"as_of": "fri", "rows": {"W": {"close": 100.0, "trend_on": True}}},
-        {"as_of": "sat", "rows": {"W": {"close": 100.0, "trend_on": True}}},
-        {"as_of": "sun", "rows": {"W": {"close": 100.5, "trend_on": True}}},
+        {"as_of": "mon", "rows": {"W": {"close": 100.5, "trend_on": True}}},
     ]
     result = _run_review(monkeypatch, days)
 
     factor = result["factors"]["trend_on_follow"]
     assert factor["n_events"] == 2
     assert result["frozen_feed_excluded"] == 0
+
+
+def test_weekend_as_of_rows_never_settle_and_are_disclosed(monkeypatch):
+    """#1050: 周末留痕行不是交易时段。
+
+    周日触发不产生观测；周一盘前快照与周日逐字重复时，周一触发的观测
+    顺延到周二的真实收盘结算。旧实现会把两对重复快照都算成 fwd=0 的伪
+    miss（n=3/hits=1）。
+    """
+    days = [
+        {"as_of": "2026-08-07", "rows": {"W": {"close": 100.0, "trend_on": True}}},
+        {"as_of": "2026-08-09", "rows": {"W": {"close": 100.0, "trend_on": True}}},
+        {"as_of": "2026-08-10", "rows": {"W": {"close": 100.0, "trend_on": True}}},
+        {"as_of": "2026-08-11", "rows": {"W": {"close": 110.0}}},
+    ]
+    result = _run_review(monkeypatch, days)
+
+    factor = result["factors"]["trend_on_follow"]
+    assert factor["n_events"] == 2   # 周日的触发被剔除，剩 Fri→Mon、Mon→Tue
+    assert factor["hit_rate"] == 0.5
+    assert result["weekend_rows_excluded"] == 1
+
+
+def test_all_weekend_history_unlocks_nothing(monkeypatch):
+    days = [
+        {"as_of": "2026-08-08", "rows": {"W": {"close": 100.0, "trend_on": True}}},
+        {"as_of": "2026-08-09", "rows": {"W": {"close": 90.0}}},
+    ]
+    result = _run_review(monkeypatch, days)
+
+    factor = result["factors"]["trend_on_follow"]
+    assert factor["n_events"] == 0
+    assert factor["usable"] is False
+    assert result["weekend_rows_excluded"] == 1
