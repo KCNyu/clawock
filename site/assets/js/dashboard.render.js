@@ -2259,8 +2259,20 @@
     const compactRows = rows.slice().sort((a, b) =>
       Number(b.severity === "high") - Number(a.severity === "high"));
     targets.forEach(({ countEl, dirEl, listEl, compact }) => {
-      countEl.textContent = n ? `${n} 触发` : '无';
-      countEl.style.color = n ? 'var(--negative)' : 'var(--positive)';
+      // 「9 触发」红字是判定卡里最后一个裸读数：数量改用点阵计数表达
+      // （一眼扫出严重度，不用读数），精确值退到 aria-label/title。槽位
+      // 固定 10 个 —— 图形宽度是构图的函数，不是 breach_count 的函数
+      // （CLS 预留判据）；超容收进 +n，轨宽不变。
+      const CAP = 10;
+      const dots = [];
+      for (let i = 0; i < CAP; i++)
+        dots.push(`<i class="gt-dot${i < Math.min(n, CAP) ? " on" : ""}"></i>`);
+      if (n > CAP) dots.push(`<i class="gt-more">+${n - CAP}</i>`);
+      countEl.innerHTML = n
+        ? `<span class="gt-tally" role="img" aria-label="${n} 项硬闸触发中"`
+          + ` title="${n} 项触发">${dots.join("")}</span>`
+        : '无';
+      countEl.style.color = n ? '' : 'var(--positive)';
       if (dirEl) dirEl.textContent = compact
         ? stripEmoji(g.directive)
         : stripEmoji([g.directive, g.reentry_rule].filter(Boolean).join(' '));
@@ -2893,6 +2905,12 @@
 
   function renderStatusBanner() {
     const txt = safe(DATA, "status_banner");
+    // 判词句里的数字是这句话的骨架。仓库字规是「mono 只用于数字与代码」，
+    // 但这句话此前整句 sans，数字埋在 prose 里没有排版层级 —— 层级靠字族
+    // 切换，不靠放大加重（大字报的根子就是拿字号当层级）。escapeHtml 之
+    // 后再包：正则只命中 [+-0-9.%]，包出来的 span 无注入面。
+    const verdictNums = s => escapeHtml(s)
+      .replace(/[+-]?\d+(?:\.\d+)?%/g, m => `<span class="sb-n">${m}</span>`);
     const targets = [
       {
         banner: document.getElementById("status-banner"),
@@ -2928,7 +2946,7 @@
       banner.classList.remove("is-pending");
       banner.classList.remove("is-empty");
       banner.removeAttribute("aria-hidden");
-      if (text) text.textContent = txt;
+      if (text) text.innerHTML = verdictNums(txt);
       if (time) time.textContent = t;
     });
   }

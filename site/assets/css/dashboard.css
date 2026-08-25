@@ -2574,6 +2574,7 @@
      的伴排改为独占整行。 */
   .overview-verdict {
     grid-column: 1 / -1; padding: 20px var(--card-inset) 18px;
+    position: relative; /* 光池 ::before 的定位父级 */
     /* 首屏第二块浮起来的表面（指挥台之后）：DSH 插件同款玻璃配方 ——
        不透明色写在前（引擎不支持 color-mix/backdrop-filter 时退回实色卡），
        半透明主题面 + backdrop blur + saturate。结构判据（#887）：毛玻璃
@@ -2593,7 +2594,29 @@
        地板值 = 构图定稿后横幅日扫宽实测上界 +2（见各断点注释）。
        2026-08-24 构图改双栏（宽屏左判词右硬闸），整卡数据态高度大幅收窄，
        三档地板随之重量（值见 min-height 与各断点覆盖，横幅日扫宽取上界）。 */
-    min-height: 296px;
+    /* 地板 = 构图定稿后横幅日扫宽实测上界 +2。2026-08-25 第三次迭代后
+       重扫：mono 数字改变判词折行、右列改仪表面板，1200/1024 实测 317
+       （旧构图 314、旧地板 296 本就已低于当日横幅），地板提到 319。 */
+    min-height: 319px;
+  }
+  /* 自画光池：玻璃配方的最后一味（DSH 页面光同思路，收进材质自己）。
+     body 的 key light 已拉到 860px，但那是页面的光，长页下段会衰减；
+     材质在自己表面上方画一池极弱的冷光，frost 全卡都有东西可糊。画在
+     玻璃面之上、内容之下（backdrop-filter 让本卡成为 stacking context，
+     z-index:-1 落在两者之间），不叠第二层 blur —— 玻璃里再糊玻璃是泥。 */
+  .overview-verdict::before {
+    content: ""; position: absolute; inset: 0; z-index: -1;
+    border-radius: inherit; pointer-events: none;
+    background: radial-gradient(540px 210px at 14% -30px,
+      rgba(255,255,255,.05), transparent 70%);
+  }
+  @media (prefers-color-scheme: light) {
+    .overview-verdict::before {
+      /* 亮色主题白光不可见，换一池极弱的冷色；浓度仍以「读作深度、
+         绝不读作色带」为界。 */
+      background: radial-gradient(540px 210px at 14% -30px,
+        rgba(0,110,184,.045), transparent 70%);
+    }
   }
   /* 宽屏双栏：左列=这张卡「说的话」（判定句 + 要点），右列=这张卡「管的
      事」（触发中的硬闸）。此前四段全宽竖排、段段一条发丝线，整卡读成一摞
@@ -2614,9 +2637,27 @@
     .overview-status { grid-area: verdict; }
     .overview-verdict .today-highlights { grid-area: points; align-content: start; }
     .overview-gates {
-      grid-area: gates; height: 100%;
-      border-top: 0; border-left: 1px solid var(--border-subtle);
-      padding-left: 28px; margin-left: 28px;
+      grid-area: gates;
+      /* 右列从「发丝线分栏」升级为嵌进玻璃的仪表面板：材质分层（玻璃面上
+         一块实色内衬）替代字号分层 —— 这是「层级靠结构与材质」的正文。
+         内衬必须用不透明复合色 --card-2：玻璃上的凹槽若再走半透明，就是
+         「玻璃里开天窗」，糊出来是一团泥（#937 打孔判据）。内衬自己的
+         高光边（inset spec）让它读作下沉的 well 而不是贴上去的纸。 */
+      background: var(--card-2);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 14px 16px 12px; margin-left: 24px;
+      box-shadow: inset 0 1px 0 var(--spec-1);
+      /* 内衬只抱内容、不 stretch 到左列底：well 里的空白是「没有数据」，
+         玻璃上的空白是「构图留白」，两者别混。暗主题下面板与玻璃面只差
+         几个灰阶，边线提到 border-strong 才读得出边界（亮面玻璃差更大，
+         仍用 subtle）。 */
+      align-self: start;
+    }
+    /* 暗主题下面板与玻璃面只差几个灰阶，边线提到 border-strong 才读得出
+       边界；亮面玻璃对比更大，保持 subtle。 */
+    @media (prefers-color-scheme: dark) {
+      .overview-verdict .overview-gates { border-color: var(--border-strong); }
     }
   }
   .overview-verdict-head,
@@ -2711,6 +2752,46 @@
   }
   .overview-gates .risk-alert.medium { border-left-color: var(--warning); }
   .overview-gates .risk-alert .icon { display: none; }
+  /* 硬闸计数控件（JS renderRiskGuardrail 落进 overview-guardrail-count）：
+     10 槽点阵，on=触发中（红）/ off=空槽（发丝线色）。尺寸间距写死 ——
+     这个图形的宽度只随构图变、不随 breach_count 变。徽章自身的胶囊底
+     退场：面板里它是一枚读数，不是一枚按钮。 */
+  .overview-gates-head .badge { background: none; padding: 0; }
+  .overview-gates-head .gt-tally { display: inline-flex; align-items: center; gap: 4px; }
+  .overview-gates-head .gt-dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--border-strong); opacity: .45;
+  }
+  .overview-gates-head .gt-dot.on { background: var(--negative); opacity: 1; }
+  .overview-gates-head .gt-more {
+    margin-left: 2px; font: 600 var(--fs-micro)/1 var(--mono);
+    color: var(--negative);
+  }
+  /* 判词句的数字（JS verdictNums 包裹）：mono tabular，同字号同色 ——
+     仓库字规「mono 只用于数字」本来就该由这句话带头执行。层级靠字族
+     切换，不靠放大加重。.94em 是 mono 的光学补偿，两种字族同行等高。 */
+  .overview-status .sb-n {
+    font-family: var(--mono); font-size: .94em; font-weight: 500;
+    font-variant-numeric: tabular-nums; letter-spacing: 0;
+  }
+  /* 入场（#873 语言）：数据落位那一刻（横幅离开 is-pending 是数据到达的
+     唯一 DOM 信号），判词 → 要点 → 硬闸依次浮起 10px，一拍 60ms。只动
+     opacity/transform（不参与布局，CLS 不受影响）；刷新时类不翻转，不会
+     重播；不支持 :has 的引擎直接呈现；reduced-motion 由全局闸与本闸双覆盖。 */
+  @media (prefers-reduced-motion: no-preference) {
+    .overview-verdict:has(.overview-status:not(.is-pending)) .overview-status {
+      animation: verdict-rise var(--duration-standard) var(--ease-out) backwards;
+    }
+    .overview-verdict:has(.overview-status:not(.is-pending)) .today-highlights {
+      animation: verdict-rise var(--duration-standard) var(--ease-out) 60ms backwards;
+    }
+    .overview-verdict:has(.overview-status:not(.is-pending)) .overview-gates {
+      animation: verdict-rise var(--duration-standard) var(--ease-out) 120ms backwards;
+    }
+  }
+  @keyframes verdict-rise {
+    from { opacity: 0; transform: translateY(10px); }
+  }
   .overview-strip {
     grid-column: 1 / -1; min-width: 0;
     display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, .8fr) minmax(0, .8fr);
@@ -2823,7 +2904,7 @@
 
   @media (min-width: 768px) and (max-width: 1023px) {
     .hero-rail { grid-template-columns: repeat(4, minmax(0, 1fr)); min-height: 152px; }
-    /* 506：要点行升到 44px 后 768px 端横幅折行的实测上界（504）+2。 */
+    /* 506：768px 端横幅日实测（504，与旧构图持平）+2。 */
     .overview-verdict { min-height: 506px; }
     .overview-verdict, .overview-strip,
     .overview-command > .hero-honesty-card,
@@ -2849,8 +2930,9 @@
     .dh-file { display: none; }
     .dh-bar { grid-column: 1 / -1; }
     .dh-detail { grid-column: 1 / -1; white-space: normal; }
-    /* 564：要点行升到 44px 后 390px 实测上界（562）+2（同 hero-rail 的取舍）。 */
-    .overview-verdict { min-height: 564px; }
+    /* 571：390px 横幅日实测 569（旧构图 566、旧地板 564 同样已破）
+       +2 —— 增量来自 mono 数字在窄列的折行变化。 */
+    .overview-verdict { min-height: 571px; }
     .overview-strip { display: flex; flex-direction: column; }
     .overview-strip-cell {
       min-height: 0; border-right: 0; border-bottom: 1px solid var(--border-subtle);
