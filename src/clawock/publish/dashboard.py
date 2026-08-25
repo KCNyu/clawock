@@ -21,19 +21,23 @@ from pathlib import Path
 from typing import NamedTuple
 from zoneinfo import ZoneInfo
 
-# Strict YYYY-MM-DD.json — rejects baselines/backups/archives that share the
-# snapshots dir (e.g. 2026-05-16-saturday-baseline.json caused duplicate 5-16
-# rows in the equity curve before this filter was added).
-SNAPSHOT_FNAME_RE = re.compile(r'^\d{4}-\d{2}-\d{2}\.json$')
-# A session key inside a canonical bar document (memory/bars/<ticker>.json).
-SESSION_DATE_RE = re.compile(r'^\d{4}-\d{2}-\d{2}$')
-
 from clawock.workspace import workspace_root
+from clawock import history_store
 from clawock import instruments as instrument_registry
 from clawock import json_repair
 from clawock.decision import ledger as decision_v2
 from clawock.publish import outputs as dashboard_outputs
 from clawock.publish import outcomes as dashboard_outcomes
+
+# Strict YYYY-MM-DD.json — rejects baselines/backups/archives that share the
+# snapshots dir (e.g. 2026-05-16-saturday-baseline.json caused duplicate 5-16
+# rows in the equity curve before this filter was added). Aliased to the
+# history_store constant so the #1040 roller and this reader cannot drift
+# apart: what the roller archives must stay exactly what the equity curve
+# already ignores.
+SNAPSHOT_FNAME_RE = history_store.DATED_FILE_RE
+# A session key inside a canonical bar document (memory/bars/<ticker>.json).
+SESSION_DATE_RE = re.compile(r'^\d{4}-\d{2}-\d{2}$')
 
 WS_ROOT = workspace_root(Path.cwd())
 OUT_DIR = WS_ROOT / 'assets' / 'data'

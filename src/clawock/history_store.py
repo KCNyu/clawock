@@ -30,11 +30,19 @@ So the decision (2026-08-25) is a **storage split, not a semantic change**:
 The archive is also the seam: moving cold rows off master (to the data branch or
 out of the repo) later becomes a change of one path here, instead of a migration
 of four writers and three readers.
+
+#951 originally covered only row-level JSONL series. ``memory/snapshots/`` has
+the same disease in file form (#1040): one dated file per trading day, readers
+that look at at most the last 90 entries, storage that grows forever. Those are
+handled by :func:`roll_dated_files`, the file-level analogue of
+``split_window``: whole files past the hot window move into a sibling
+``_archive/`` directory instead of rows being partitioned across two files.
 """
 from __future__ import annotations
 
 import hashlib
 import json
+import re
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
@@ -46,6 +54,15 @@ from clawock.safe_io import safe_write_text
 HOT_WINDOW_DAYS = 180
 
 DATE_KEY = 'as_of'
+
+# A file whose entire name is a date — the memory/snapshots/ shape
+# (``2026-08-26.json``). Strict full match on purpose: tagged one-offs like
+# ``2026-05-16-saturday-baseline.json`` are not daily churn (never rewritten),
+# and the dashboard's snapshot filter must keep agreeing with this set, so
+# ``publish.dashboard.SNAPSHOT_FNAME_RE`` is aliased to this constant.
+DATED_FILE_RE = re.compile(r'^\d{4}-\d{2}-\d{2}\.json$')
+
+ARCHIVE_DIR_NAME = '_archive'
 
 
 def archive_path(path) -> Path:
@@ -150,3 +167,45 @@ def series_digest(path) -> str:
         )
         hasher.update(b'\n')
     return 'sha256:' + hasher.hexdigest()[:16]
+
+
+def roll_dated_files(directory, *, keep_days=HOT_WINDOW_DAYS, today=None) -> list:
+    """Move dated files older than ``keep_days`` into ``directory/_archive/``.
+
+    The file-level analogue of :func:`split_window` (#1040): every consumer of
+    ``memory/snapshots/`` looks at a bounded recent window (dashboard embeds 90,
+    sparklines take 8, weekly review reads its own week), so keeping 180 days
+    flat costs nothing semantic and bounds what every future checkout carries.
+
+    Same conservatism as :func:`split_window`: a file whose name is not a bare
+    date cannot be proven old and is never touched — which also keeps this safe
+    to point at mixed directories. The archive directory itself is never
+    scanned or rewritten; like the JSONL archive it is write-once parking.
+
+    Returns the names moved (empty on nothing-to-do), so the caller can report
+    or no-op. Callers must commit from a pathspec that covers the archive dir
+    (the morning brief postflight's ``git add memory/`` does; the intraday
+    postflights' explicit-file adds do not, which is why only preflight rolls).
+    """
+    today = today or datetime.now(timezone.utc).date()
+    if isinstance(today, str):
+        today = date.fromisoformat(today[:10])
+    if isinstance(today, datetime):
+        today = today.date()
+    cutoff = (today - timedelta(days=keep_days)).isoformat()
+    directory = Path(directory)
+    if not directory.is_dir():
+        return []
+    archive = directory / ARCHIVE_DIR_NAME
+    moved = []
+    for p in sorted(directory.iterdir()):
+        if not p.is_file() or not DATED_FILE_RE.match(p.name):
+            continue
+        if p.name[:10] >= cutoff:
+            continue
+        archive.mkdir(parents=True, exist_ok=True)
+        target = archive / p.name
+        if not target.exists():
+            p.rename(target)
+            moved.append(p.name)
+    return moved

@@ -63,3 +63,15 @@ def test_fingerprint_cache_round_trips(tmp_path):
     # A torn cache must read as absent, never raise.
     (ws / FINGERPRINT_CACHE).write_text('not json')
     assert _read_fingerprint_cache(ws) is None
+
+
+def test_snapshot_filter_and_the_1040_roller_cannot_drift_apart():
+    """#1040: 滚动窗口把冷快照挪进 _archive/ 的前提是「dashboard 本来就不读它」。
+
+    这个前提靠两条定义完全一致来保证——所以直接断言同一个对象，而不是两份
+    各自维护、迟早漂移的正则字符串。
+    """
+    from clawock import history_store
+    from clawock.publish.dashboard import SNAPSHOT_FNAME_RE
+
+    assert SNAPSHOT_FNAME_RE is history_store.DATED_FILE_RE
