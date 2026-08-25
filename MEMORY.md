@@ -115,32 +115,17 @@ _（空）_
 2026-08-09 清空了七条 8/4 的促销摘录：它们把四天前的 `USD −7,426.69 / HKD −58,244.56`
 以「长期记忆」的身份注进主会话，正是最容易被当成当前值引用的形状。
 
-## Promoted From Short-Term Memory (2026-08-24)
+## Promoted From Short-Term Memory (2026-08-26)
 
-<!-- openclaw-memory-promotion:memory:memory/2026-08-19-pre-open.md:13:13 -->
-- 盘前深度简报｜2026-08-19 周三 08:00 HKT: > └─ US leg: USD−1,112.96 ≈ HKD−8,729.66 [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-19-pre-open.md:13-13]
-<!-- openclaw-memory-promotion:memory:memory/2026-08-19-pre-open.md:19:22 -->
-- ▎昨日 plan 兑现度（2026-08-18）: | Action | Plan | 实际 | 模拟 ±$ | 评 | |---|---|---|---|---| | Cut 6,200 股 07226 @开盘 2x→1x | 砍 6200股 | broker 0 成交 (0股) | +HK$272.8 机会成本 vs hold | ✗ trigger 触发但 broker 未执, 今日继续挂单 | | Cut 10 股 RKLX @开盘 2x→1x | 砍 10股 | broker 0 成交 (0股) | +$13.5 vs hold | ✗ 同上, 今日继续 | [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-19-pre-open.md:19-22]
-<!-- openclaw-memory-promotion:memory:memory/2026-08-19-pre-open.md:2:4 -->
-- layout: default title: 盘前深度简报 · 2026-08-19 description: "clawock 盘前深度简报 2026-08-19：港股 + 美股真实持仓的多空辩论、量化因子、风控硬闸与 AI 自评战绩（诚实公开，承认主动操作跑输躺平）。" [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-19-pre-open.md:2-4]
-<!-- openclaw-memory-promotion:memory:memory/2026-08-19-pre-open.md:23:24 -->
-- ▎昨日 plan 兑现度（2026-08-18）: | Cut 270 股 SPCH @开盘 2x→1x | 砍 270股 | broker 0 成交 (0股) | −$116.1 vs hold | ✗ 同上, 今日继续 (但 absolute PnL 仍负, 政策需执行) | | Hold 00100 / 02208 / 03032 / 03033 / CRCL / SKHY / SPCX | 持有 | 持有 | 跟随机行情 | ✓ 全部执行 | [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-19-pre-open.md:23-24]
-<!-- openclaw-memory-promotion:memory:memory/2026-08-19-pre-open.md:26:26 -->
-- ▎昨日 plan 兑现度（2026-08-18）: ▎Confidence calibration (累计) [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-19-pre-open.md:26-26]
-<!-- openclaw-memory-promotion:memory:memory/2026-08-19-pre-open.md:9:12 -->
-- 盘前深度简报｜2026-08-19 周三 08:00 HKT: > **regime**: HK amber (杠杆+集中 双超) · US red (β 5.26、SPCH 79.6%) → **risk_off 偏** + 仓位硬闸强制执行 > **FX**: USDHKD = 7.8437 (Frankfurter, 2026-08-19 00:01 UTC) — 抓取于 preflight > **book 双视角**: USD-base total = **−5,652.51 USD** ≈ HKD-base total = **−44,336.56 HKD**（含两段 fx 换算） > ├─ HK leg: HKD−35,606.84 ≈ USD−4,540.30 [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-19-pre-open.md:9-12]
-
-## Promoted From Short-Term Memory (2026-08-25)
-
-<!-- openclaw-memory-promotion:memory:memory/2026-08-20-pre-open.md:11:14 -->
-- Header: **Regime**: 🧭 macro `risk_on`（VIX 14.89 / F&G 56.3 greed / SPX+NDX 收红），但**持仓 risk 制度**HK=amber / US=red（杠杆+集中度+β 三重硬闸）; **FX**: USDHKD=7.8416，Frankfurter 抓取 2026-08-20 00:00 UTC; **Book 双视角**:; **USD-base**: -USD$6,324.78 [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-20-pre-open.md:11-14]
-<!-- openclaw-memory-promotion:memory:memory/2026-08-20-pre-open.md:15:17 -->
-- Header: **HKD-base**: -HK$49,596.36 (≈ -USD$6,325.32 @ 7.8416); HK leg HK$65,588.80 现值 / -HK$39,687.64 浮亏; US leg US$3,260.99 现值 / -US$1,263.61 浮亏 [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-20-pre-open.md:15-17]
-<!-- openclaw-memory-promotion:memory:memory/2026-08-20-pre-open.md:2:4 -->
-- layout: default title: 盘前深度简报 · 2026-08-20 description: "clawock 盘前深度简报 2026-08-20：港股 + 美股真实持仓的多空辩论、量化因子、风控硬闸与 AI 自评战绩（诚实公开，承认主动操作跑输躺平）。" [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-20-pre-open.md:2-4]
-<!-- openclaw-memory-promotion:memory:memory/2026-08-20-pre-open.md:21:24 -->
-- ▎仓位明细 (HK): | 代码 | 名 | 股 | 成本 | 现价 | 今日% | 浮% | 浮$ | |---|---|---|---|---|---|---|---| | 00100 | MINIMAX-W | 120 | 517.6 | 292.4 | -8.3% | -47.1% | -HK$27,024 | | 07226 | XL二南方恒科 | 6,200 | 4.36 | 3.38 | -2.3% | -22.5% | -HK$6,084 | [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-20-pre-open.md:21-24]
-<!-- openclaw-memory-promotion:memory:memory/2026-08-20-pre-open.md:25:27 -->
-- ▎仓位明细 (HK): | 03033 | 南方恒生科技 | 1,000 | 5.14 | 4.60 | -1.1% | -10.5% | -HK$540 | | 02208 | 金风科技 | 400 | 14.10 | 10.02 | -8.3% | -28.9% | -HK$1,632 | | 03032 | 恒生科技ETF | 200 | 5.40 | 4.68 | -1.4% | -13.3% | -HK$144 | [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-20-pre-open.md:25-27]
-<!-- openclaw-memory-promotion:memory:memory/2026-08-20-pre-open.md:29:29 -->
-- ▎仓位明细 (HK): HK leg 现值 HK$65,588.80 ｜ HHI 0.397 ⚠️ ｜ Top2 85.5%（00100 53.5% + 07226 32.0%） [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-20-pre-open.md:29-29]
+<!-- openclaw-memory-promotion:memory:memory/2026-08-21-pre-open.md:11:14 -->
+- Header: **Regime**: 🧭 macro `neutral`（VIX 16.01 +7.5% / F&G 52.5 neutral / SPX -0.87% NDX -1.0% 同向下行 / HSI +0.8% / HSTECH 4700.53 +0.39% 隔夜偏弱）→ 主动 call 正常按 frame 判断, 无 regime 封顶; **持仓 risk 制度**: HK=amber (×0.5, 杠杆 ETF cap 25%) / US=red (regime_delever, 杠杆 ETF cap 25%) → 主动 add 门槛大幅提高, 杠杆腿必须 swap; **FX**: USDHKD=7.8438, Frankfurter 抓取 2026-08-21 00:00 UTC; **Book 双视角**: [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-21-pre-open.md:11-14]
+<!-- openclaw-memory-promotion:memory:memory/2026-08-21-pre-open.md:15:18 -->
+- Header: **USD-base**: -US$6,255.54; **HKD-base**: -HK$49,067.21 (≈ -US$6,255.39 @ 7.8438); HK leg HK$67,836.80 现值 / -HK$37,439.64 浮亏; US leg US$3,123.20 现值 / -US$1,482.39 浮亏 [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-21-pre-open.md:15-18]
+<!-- openclaw-memory-promotion:memory:memory/2026-08-21-pre-open.md:2:4 -->
+- layout: default title: 盘前深度简报 · 2026-08-21 description: "clawock 盘前深度简报 2026-08-21：3 票硬止损同时触发, 6 仓位硬闸+US β 5.33 严重超 cap, 杠杆纪律性 swap 2x→1x 是今日唯一硬要求。" [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-21-pre-open.md:2-4]
+<!-- openclaw-memory-promotion:memory:memory/2026-08-21-pre-open.md:22:25 -->
+- ▎仓位明细 (HK): | 代码 | 名 | 股 | 成本 | 现价 | 今日% | 浮% | 浮$ | |---|---|---|---|---|---|---|---| | 00100 | MINIMAX-W | 120 | 517.60 | 310.40 | +6.2% | -43.9% | -HK$24,864 | | 07226 | XL二南方恒科 | 6,200 | 4.36 | 3.404 | +0.7% | -22.0% | -HK$5,927 | [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-21-pre-open.md:22-25]
+<!-- openclaw-memory-promotion:memory:memory/2026-08-21-pre-open.md:26:28 -->
+- ▎仓位明细 (HK): | 03033 | 南方恒生科技 | 1,000 | 5.14 | 4.606 | +0.1% | -10.4% | -HK$534 | | 02208 | 金风科技 | 400 | 14.10 | 9.84 | -1.8% | -30.1% | -HK$1,704 | | 03032 | 恒生科技ETF | 200 | 5.40 | 4.71 | +0.6% | -12.9% | -HK$138 | [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-21-pre-open.md:26-28]
+<!-- openclaw-memory-promotion:memory:memory/2026-08-21-pre-open.md:30:30 -->
+- ▎仓位明细 (HK): HK leg 现值 HK$67,836.80 ｜ HHI 0.406 🔴 ｜ Top2 86.0%（00100 54.9% + 07226 31.1%） [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-21-pre-open.md:30-30]
