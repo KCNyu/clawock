@@ -987,19 +987,48 @@
     const files = (bs.files || []).slice();
     const late = files.filter(f => f.present === false || f.stale);
     const degraded = (wc.recovered || 0) + (wc.degraded || 0);
+    // 「1 档成品恢复或降级」答不出是哪一档（kcn 2026-08-25：「如果有降级的应该
+    // 标注出来是哪个」）。台账 recent[] 里逐档带着 job/slot 与 final_product，
+    // 点名只是把已经在手的字段读出来。recent 有条数上限，点不满就说「等 N 档」，
+    // 不假装列全。
+    const SOFT_CN = { recovered: "恢复", degraded: "降级", artifact_only: "仅存档",
+                      failed: "FAILED" };
+    // 点名读的是台账自己给的 degraded_slots（全窗口、有上限），不是 recent ——
+    // recent 是尾巴不是集合，忙日里它一条降级都装不下（实测 16 条尾巴全是
+    // 盘中盯盘，16:00 那次「恢复」早被挤出去了）。
+    const jobsWith = (...states) => (wf.degraded_slots || [])
+      .filter(r => states.includes((r || {}).status))
+      .map(r => `${r.job || "未具名任务"} ${SOFT_CN[r.status] || ""}`.trim());
+    const nameThem = (total, names) => {
+      if (!names.length) return "";
+      const head = names.slice(0, 2).join(" · ");
+      return total > names.slice(0, 2).length
+        ? `${head} 等 ${total} 档` : head;
+    };
 
     let tone = "ok", verdict = "全部数据面在期";
-    if ((wc.failed || 0) > 0) { tone = "bad"; verdict = `成品流程 ${wc.failed} 档 FAILED`; }
+    if ((wc.failed || 0) > 0) {
+      tone = "bad";
+      verdict = nameThem(wc.failed, jobsWith("failed")) || `成品流程 ${wc.failed} 档 FAILED`;
+    }
     else if ((ig.error_count || 0) > 0) { tone = "bad"; verdict = `体检 ${ig.error_count} 项 ERROR`; }
     else if (late.length) { tone = "warn"; verdict = `${late.length} 个数据面逾期`; }
     else if ((ig.warn_count || 0) > 0) { tone = "warn"; verdict = `体检 ${ig.warn_count} 项 WARN`; }
-    else if (degraded) { tone = "warn"; verdict = `${degraded} 档成品恢复或降级`; }
+    else if (degraded) {
+      tone = "warn";
+      verdict = nameThem(degraded, jobsWith("recovered", "degraded"))
+        || `${degraded} 档成品恢复或降级`;
+    }
     root.dataset.tone = tone;
     if (verdictEl) verdictEl.textContent = verdict;
     if (metaEl) {
       const bits = [`${files.length} 个数据面`];
       bits.push(`体检 ${ig.error_count || 0} ERROR / ${ig.warn_count || 0} WARN`);
       if (degraded) bits.push(`${degraded} 档恢复或降级`);
+      // 微信单通道掉投：上游 ret=-2，kcn 已定不修也不告警（#771），但「这一
+      // 窗口掉了几档」必须答得上来。它不改 tone —— 成品由 Telegram 兜住了。
+      if (wf.wechat_dropped_telegram_covered)
+        bits.push(`微信掉投 ${wf.wechat_dropped_telegram_covered} 档 · TG 已兜`);
       if (bs.generated_at) bits.push(`构建 ${String(bs.generated_at).replace("T", " ").slice(0, 16)}`);
       metaEl.textContent = bits.join(" · ");
     }
@@ -1055,7 +1084,31 @@
     }
 
     if (filesEl) {
-      filesEl.innerHTML = files
+      // 逐项里先摆投递：掉的是哪几档、几点的，只有这里答得出（表头那行只有
+      // 计数）。用同一套 dh-row 栅格，状态列写「TG 已兜」——它不是告警。
+      // 同理走 wechat_dropped_slots（全窗口）而不是 recent 里的通道位。
+      const dropped = wf.wechat_dropped_slots || [];
+      const droppedTotal = wf.wechat_dropped_telegram_covered || dropped.length;
+      const unnamed = Math.max(0, droppedTotal - dropped.length);
+      const deliveryRows = dropped.length
+        ? `<div class="dh-sub">投递 · 微信掉投（上游 ret=-2，已知不修）</div>`
+          + dropped.map(r => `<div class="dh-row is-delivery">`
+            + `<span class="dh-name">${escapeHtml(r.job || "未具名任务")}</span>`
+            + `<span class="dh-file">${escapeHtml(String(r.slot || "").slice(0, 16).replace("T", " "))}</span>`
+            + `<span class="dh-bar"></span>`
+            + `<span class="dh-detail">微信 sendMessage ret=-2 prepare failed</span>`
+            + `<span class="dh-state">TG 已兜</span></div>`).join("")
+          // 名单有上限，超出的那几档必须说出来 —— 否则「掉投 9 档」配 8 行
+          // 会读成列全了。
+          + (unnamed
+            ? `<div class="dh-row is-delivery"><span class="dh-name muted">另有 ${unnamed} 档</span>`
+              + `<span class="dh-file"></span><span class="dh-bar"></span>`
+              + `<span class="dh-detail">更早的槽位见 workflow-outcomes.json</span>`
+              + `<span class="dh-state"></span></div>`
+            : "")
+          + `<div class="dh-sub">数据面</div>`
+        : "";
+      filesEl.innerHTML = deliveryRows + files
         .slice()
         .sort((a, b) => usage(b) - usage(a))
         .map(f => {

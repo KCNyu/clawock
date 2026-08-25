@@ -535,6 +535,36 @@ def test_reconciliation_records_a_failed_send_as_failed(tmp_path, monkeypatch):
     assert record["stages"]["primary_delivery"]["status"] == "failed"
 
 
+def test_the_summary_names_the_slot_that_only_half_shipped(tmp_path, monkeypatch):
+    """「1 档成品恢复或降级」答不出是哪一档（kcn 2026-08-25）。
+
+    点名不能靠 ``recent`` —— 它是按时间截断的尾巴，忙日里 16 条全是盘中盯盘，
+    当天唯一那次 recovered 早被挤出去了。全窗口扫一遍、单独出一张有上限的表，
+    才是「哪一档」这个问题的答案。
+    """
+    from clawock.publish.outcomes import summarize_records
+
+    now = datetime(2026, 7, 24, 20, 0, tzinfo=outcomes.HKT)
+    records = [
+        {"job": "港股收盘报告", "slot": "2026-07-24T16:00:00+08:00",
+         "final_product": {"status": "recovered"}},
+    ] + [
+        # 16 条更晚的正常槽位：足够把上面那条挤出 recent 尾巴。
+        {"job": "盘中盯盘", "slot": f"2026-07-24T17:{minute:02d}:00+08:00",
+         "final_product": {"status": "success"}}
+        for minute in range(0, 32, 2)
+    ]
+
+    summary = summarize_records(records, hours=36, now=now)
+
+    assert all(row["job"] != "港股收盘报告" for row in summary["recent"]), (
+        "fixture no longer exercises the case: the soft slot still fits in recent")
+    assert summary["degraded_slots"] == [
+        {"job": "港股收盘报告", "slot": "2026-07-24T16:00:00+08:00",
+         "status": "recovered"},
+    ]
+
+
 def test_a_reconciled_wechat_drop_is_counted_by_the_summary(tmp_path, monkeypatch):
     """#771's count reads wechat_ok/telegram_ok flags. A reconciled slot whose
     receipt says WeChat failed and Telegram carried it must land in
@@ -556,6 +586,8 @@ def test_a_reconciled_wechat_drop_is_counted_by_the_summary(tmp_path, monkeypatc
         now=datetime(2026, 7, 24, 20, 0, tzinfo=outcomes.HKT),
     )
     assert summary["wechat_dropped_telegram_covered"] == 1
+    # 数得出还要点得出：卡片逐项要写「掉的是哪一档、几点的」。
+    assert summary["wechat_dropped_slots"] == [{"job": job, "slot": slot}]
 
 
 def test_reconciliation_never_invents_a_slot_the_ledger_is_not_tracking(

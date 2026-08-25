@@ -2529,6 +2529,14 @@
     font: 500 var(--fs-xs)/1.35 var(--mono); font-variant-numeric: tabular-nums;
   }
   .dh-row:last-child { border-bottom: 0; }
+  /* 逐项里的分组标题（投递 / 数据面）：两组读的是两件事，中间要有个界。 */
+  .dh-sub {
+    padding: 10px 0 4px; color: var(--text-tertiary);
+    font: 700 var(--fs-micro)/1.2 var(--mono); letter-spacing: .08em;
+  }
+  .dh-sub:first-child { padding-top: 4px; }
+  /* 投递行没有期限用量可画：空的灰槽会被读成「一根 0% 的条」。 */
+  .dh-row.is-delivery .dh-bar { background: none; }
   .dh-name { color: var(--text); font-weight: 700; white-space: nowrap; }
   .dh-file, .dh-detail {
     color: var(--text-tertiary); min-width: 0;
