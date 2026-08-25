@@ -130,8 +130,16 @@
         "决策变化·新/改/触", `${newN}/${changedN}/${triggeredN}`));
     }
 
-    // (30d 自评指标 — 主动 vs 持有 alpha + catalyst 纪律 — 不再在此重复;
-    //  它们是回顾性统计,归属正下方的 🪞 诚实自评卡,不属于「今日速读」。)
+    // 30d 自评里只放一枚 Brier：它是「今日判定」这张牌自己的成绩单（判得准
+    // 不准 vs 留一法基线），首屏别处没有。执行率/样本不放 —— 正上方 hero-rail
+    // 第四格已经是「遵守率 30D 8.5% · 主动 call n=82」，同一个数说两遍。
+    // （第七次迭代把执行纪律牌删掉时，唯一独有的就是这一枚，并进来。）
+    const dm = safe(DATA, "decision_metrics") || {};
+    if (dm.brier != null) {
+      chips.push(chip(dm.brier_beats_baseline ? "ok" : "warn", "Brier·30d",
+        Number(dm.brier).toFixed(3),
+        dm.brier_baseline_loo == null ? "" : `基线 ${Number(dm.brier_baseline_loo).toFixed(3)}`));
+    }
 
     // 1. Nearest-to-firing trigger (from the shared watch-level resolver)。
     // 接近度画成计量条：|dist| 归一到 0~10%（10% 外一律读作「远」），条只答
@@ -152,16 +160,9 @@
     //    同一个数说两遍是把首屏读成对账单。
     const movers = (safe(DATA, "today_movers") || []).slice(0, 3);
 
-    // 3. Top anomaly (high severity first)
-    const anomalies = (safe(DATA, "anomalies") || []).slice()
-      .sort((a,b) => (b.severity==="high"?1:0) - (a.severity==="high"?1:0));
-    if (anomalies.length) {
-      const a = anomalies[0];
-      const highN = anomalies.filter(x => x.severity === "high").length;
-      chips.push(chip(a.severity === "high" ? "bad" : "warn",
-        highN > 1 ? `异常×${highN}` : "异常",
-        escapeHtml(a.ticker), escapeHtml(a.detail)));
-    }
+    // 3. 异常不在这里出 chip：下面 overview-strip 的「异常」格印的是同一条
+    //    （实测两处都是「6 · SPCH weight 79.6% + pnl -31.0%」），而那格还多
+    //    一个 high 计数。同一个数在首屏出现两次就是 kcn 说的「和下面重复」。
 
     // 4. Catalyst dated today
     const cat = safe(DATA, "catalysts") || {};
@@ -320,24 +321,12 @@
     }
   }
 
+  // 「今日异动」那格在第七次迭代随 DOM 一起删了：它只印首位异动一个数，
+  // 而判定牌的零轴柱印的是同一份 today_movers 的 top3。这里只剩异常两格。
   function renderOverviewSummaries() {
-    const moverEl = document.getElementById("overview-mover-summary");
     const anomalyCount = document.getElementById("overview-anomaly-count");
     const anomalySummary = document.getElementById("overview-anomaly-summary");
-    const movers = (safe(DATA, "today_movers") || []).slice().sort((a, b) =>
-      Math.abs(b.today_change_pct || 0) - Math.abs(a.today_change_pct || 0)
-    );
     const anomalies = safe(DATA, "anomalies") || [];
-    if (moverEl) {
-      if (!movers.length) {
-        moverEl.textContent = "No ≥3% movers";
-        moverEl.className = "overview-mover-summary neutral";
-      } else {
-        const m = movers[0];
-        moverEl.innerHTML = `<span class="tk">${escapeHtml(m.ticker || DASH)}</span>${fmtPct(m.today_change_pct, 1)}`;
-        moverEl.className = "overview-mover-summary " + pnlClass(m.today_change_pct);
-      }
-    }
     if (anomalyCount) {
       anomalyCount.textContent = String(anomalies.length);
       anomalyCount.className = "overview-anomaly-count " +
@@ -359,7 +348,7 @@
     hero: [
       renderCommandDeck, renderDataHealth, renderRiskGuardrail, renderOverviewSummaries,
       renderMarketSnapshot, renderTodayHighlights, renderHonesty, renderGoldDca,
-      renderVerdictDeckSides,
+      setupVerdictDeck,
     ],
   };
   let RENDER_VERSION = 0;
@@ -1283,61 +1272,6 @@
   }
 
 
-  // 纪律 / 黄金回本两张副牌的内容渲染。数据缺口必须明说（muted 占位），
-  // 不装作没有这一格。⚠ 与 dashboard.render.js 逐字同步。
-  function renderVerdictDeckSides() {
-    setupVerdictDeck();
-    const mk = (tone, k, v, d, meterPct) =>
-      `<span class="hl-chip tone-${tone}"><span class="hl-k">${k}</span>`
-      + (v ? `<span class="hl-v">${v}</span>` : "")
-      + (d ? `<span class="hl-d">${d}</span>` : "")
-      + (meterPct == null ? ""
-        : `<span class="hl-meter" aria-hidden="true"><i style="width:${meterPct.toFixed(1)}%"></i></span>`)
-      + `</span>`;
-    const disc = document.getElementById("deck-discipline");
-    if (disc) {
-      const m = safe(DATA, "decision_metrics") || {};
-      const act = safe(safe(m, "execution_by_kind"), "active") || {};
-      const chips = [];
-      if (m.brier != null) {
-        chips.push(mk(m.brier_beats_baseline ? "ok" : "warn", "Brier·30d",
-          Number(m.brier).toFixed(3),
-          m.brier_baseline_loo == null ? "" : `基线 ${Number(m.brier_baseline_loo).toFixed(3)}`));
-      }
-      if (act.rate != null) {
-        chips.push(mk("flat", "执行率",
-          `${(act.rate * 100).toFixed(1)}%`,
-          act.known == null ? "" : `${act.known} 笔可核`));
-      }
-      if (m.raw_decisions != null) {
-        chips.push(mk("flat", "样本", `${m.raw_decisions}`, "近 30d 决策"));
-      }
-      disc.innerHTML = chips.length ? chips.join("")
-        : '<span class="hl-chip"><span class="hl-k">决策指标未生成</span></span>';
-    }
-    const gold = document.getElementById("deck-gold");
-    if (gold) {
-      const g = safe(DATA, "gold_dca") || {};
-      const badge = document.getElementById("deck-gold-badge");
-      if (badge) badge.textContent = g.fund_code ? String(g.fund_code) : "";
-      const ups = g.breakeven_upside_pct;
-      if (ups == null || g.nav == null) {
-        gold.innerHTML = '<span class="hl-chip"><span class="hl-k">回本数据缺</span></span>';
-      } else {
-        const above = ups <= 0;
-        const meter = Math.max(0, Math.min(100, 100 - Math.abs(ups) * 10));
-        const num = (v, dp) => Number(v).toLocaleString("zh-CN",
-          { minimumFractionDigits: dp, maximumFractionDigits: dp });
-        gold.innerHTML =
-          mk(above ? "ok" : Math.abs(ups) > 5 ? "bad" : "warn", "回本",
-            above ? `已越线 ${Math.abs(ups).toFixed(1)}%` : `需涨 ${ups.toFixed(1)}%`,
-            "", meter)
-          + mk("flat", "净值/成本", `${num(g.nav, 4)} / ${num(g.avg_cost, 4)}`)
-          + mk("flat", "现值", `¥${num(g.current_value, 0)}`,
-            (g.pnl_percent >= 0 ? "+" : "") + `${num(g.pnl_percent, 2)}%`);
-      }
-    }
-  }
   function renderRiskGuardrail() {
     const g = safe(DATA, "risk_guardrail") || {};
     const targets = [

@@ -198,12 +198,18 @@ layout: null
         <div class="hero-rail" id="hero-rail"></div>
       </div>
 
-      <!-- 判定卡第五次迭代：大白板否掉（kcn），改单词卡式牌组 —— 顶牌全显，
-           后续两张固定 8px 露边；横滑手势 / 指示点 / 方向键三通道换牌
-           （第六次迭代撤掉 7s 自动轮播：首屏不该有自己转的东西）。每张牌一个
-           主题，按现有数据面拆：今日判定 / 触发中的硬闸 / 执行纪律 / 黄金回本。
-           引擎在 dashboard.hero.js 与 dashboard.render.js 双实现逐字同步
-           （setupVerdictDeck）。 -->
+      <!-- 单词卡牌组：顶牌全显，后一张固定 8px 露边；横滑手势 / 指示点 /
+           方向键三通道换牌（第六次迭代撤掉 7s 自动轮播：首屏不该有自己转的
+           东西）。第七次迭代（kcn：「几张卡留白很多，切来切去其实就几个文字，
+           而且内容会和下面重复」）把四张收到两张 —— 清点见 PR：
+             · 黄金回本牌（实测高 85.5px）= 下方 #gold-dca-card 的逐字子集，
+               而后者还带金价/伦敦金/摊薄表/spark ⇒ 删牌，留完整卡。
+             · 执行纪律牌（实测高 92.4px）的「执行率 8.5% · 82 笔可核」= 正上方
+               hero-rail 第四格「遵守率 30D 8.5% · 主动 call n=82」⇒ 删牌，
+               牌上唯一独有的 Brier·30d 并进今日判定的 chip 行。
+           剩下的两张各自独有：今日判定（判词 + Regime + 决策变化 + 最近触发
+           + 异动零轴柱）/ 触发中的硬闸。引擎在 dashboard.hero.js 与
+           dashboard.render.js 双实现逐字同步（setupVerdictDeck）。 -->
       <section class="card verdict-deck" id="verdict-deck" aria-roledescription="轮播" aria-label="决策面板">
         <div class="verdict-deck-stage" id="verdict-deck-stage">
           <article class="deck-card" data-theme="今日判定" aria-labelledby="overview-verdict-title">
@@ -235,30 +241,13 @@ layout: null
             </div>
             <button class="overview-jump deck-card-jump" type="button" data-jump-tab="risk">去风险页 →</button>
           </article>
-          <article class="deck-card" data-theme="纪律" aria-labelledby="deck-discipline-title">
-            <div class="overview-verdict-head">
-              <div>
-                <div class="overview-card-kicker">纪律</div>
-                <h3 id="deck-discipline-title">执行纪律</h3>
-              </div>
-              <button class="overview-jump" type="button" data-jump-tab="drill">看持仓</button>
-            </div>
-            <div id="deck-discipline" class="today-highlights"></div>
-          </article>
-          <article class="deck-card" data-theme="黄金回本" aria-labelledby="deck-gold-title">
-            <div class="overview-verdict-head">
-              <div>
-                <div class="overview-card-kicker">黄金 DCA</div>
-                <h3 id="deck-gold-title">黄金回本</h3>
-              </div>
-              <span class="badge muted" id="deck-gold-badge"></span>
-            </div>
-            <div id="deck-gold" class="today-highlights"></div>
-          </article>
         </div>
         <div class="deck-dots" id="verdict-deck-dots" role="group" aria-label="换牌"></div>
       </section>
 
+      <!-- 两格（第七次迭代前是三格）：「今日异动」格只印首位异动一个数
+           （实测「RKLX -11.9%」），而判定牌的零轴柱印的是 top3 同一份
+           today_movers —— 同一个数在首屏出现两次，留更全的那份。 -->
       <div class="overview-strip" aria-label="Secondary overview">
         <section class="overview-strip-cell overview-market">
           <button class="overview-strip-link" type="button" data-jump-tab="market">
@@ -269,12 +258,6 @@ layout: null
             <div class="empty-state">No index data.</div>
           </div>
           <div class="rs-row muted" id="market-rs"></div>
-        </section>
-        <section class="overview-strip-cell">
-          <button class="overview-strip-link" type="button" data-jump-tab="drill">
-            <span>今日异动</span><span aria-hidden="true">持仓 →</span>
-          </button>
-          <div class="overview-mover-summary" id="overview-mover-summary">—</div>
         </section>
         <section class="overview-strip-cell">
           <button class="overview-strip-link" type="button" data-jump-tab="drill">
