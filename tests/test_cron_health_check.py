@@ -300,3 +300,58 @@ def test_a_monday_holiday_does_not_red_the_tuesday_close_report(monkeypatch, cap
         monkeypatch, capsys, datetime(2026, 5, 26, 9, 17, tzinfo=timezone.utc))
     assert rows["美股收盘报告"]["status"] == "holiday"
     assert rows["美股盘中盯盘-overnight"]["status"] == "holiday"
+
+
+# ── #996: the US EVENING jobs are verified by the NEXT day's run ────────────
+# 美股开盘报告 (21:30/22:30 HKT) and the 美股盘中盯盘 evening half-hour slots fire
+# after every cron-health window of their own calendar day (17:17 HKT, worst
+# observed drift ≈20:35), and both evidence sources read only TODAY — so their
+# products landed in the ledgers and were verified by no one, the weekday-wide
+# version of #955's Saturday hole.
+
+def _evening_slots():
+    """Monday 2026-08-24's four US evening intraday slots, all completed."""
+    return [
+        ("美股盘中盯盘", f"2026-08-24T2{h}:{m:02d}:00+08:00", "completed")
+        for h, m in ((2, 0), (2, 30), (3, 0), (3, 30))
+    ]
+
+
+def test_the_next_days_run_verifies_the_previous_evening_products(monkeypatch, capsys):
+    """Tue 17:17 HKT after a normal Monday: Monday evening's open-report commit
+    and intraday heartbeats must be counted — not waved through as 'idle'."""
+    rows = _run_health_at(
+        monkeypatch, capsys,
+        datetime(2026, 8, 25, 9, 17, tzinfo=timezone.utc),
+        heartbeats=_evening_slots(),
+        commit_stamps=[("2026-08-24T21:36:00+08:00",
+                        "dashboard: 美股开盘报告 (us open 21:30 HKT)")],
+    )
+    open_row = rows["美股开盘报告"]
+    assert open_row["status"] == "ok", open_row
+    assert "1/1 commits OK" in open_row["detail"]
+    intraday = rows["美股盘中盯盘"]
+    assert intraday["status"] == "ok-heartbeat", intraday
+    assert "4/4" in intraday["detail"]
+
+
+def test_a_missing_previous_evening_commit_is_a_miss_not_idle(monkeypatch, capsys):
+    """Anti-idle: with no matching commit from Monday evening, the open report
+    reads as MISSING on Tuesday — the verdict that never fired before."""
+    rows = _run_health_at(
+        monkeypatch, capsys,
+        datetime(2026, 8, 25, 9, 17, tzinfo=timezone.utc),
+        heartbeats=_evening_slots(),
+        commit_stamps=[("2026-08-24T21:36:00+08:00", "dashboard: 港股收盘报告")],
+    )
+    assert rows["美股开盘报告"]["status"] == "missing", rows["美股开盘报告"]
+
+
+def test_a_us_holiday_suppresses_the_previous_evening_slots_without_a_red(monkeypatch, capsys):
+    """Tue 2026-05-26 17:17 HKT: Monday May 25 (Memorial Day) had no US session,
+    so Monday evening's open report was skipped by design — the verify-day gate
+    asks MONDAY's calendar and stays quiet despite zero evidence."""
+    rows = _run_health_at(
+        monkeypatch, capsys, datetime(2026, 5, 26, 9, 17, tzinfo=timezone.utc))
+    assert rows["美股开盘报告"]["status"] == "holiday"
+    assert rows["美股盘中盯盘"]["status"] == "holiday"
