@@ -498,3 +498,89 @@ def parse_holdings_anomalies(stdout):
             'reason': '跳空/异动' if severe else '日内大幅波动',
         })
     return anomalies
+
+
+# ── rendered signal lines ─────────────────────────────────────────────────
+# One reader for both harnesses (#918). The two used to differ in a way that
+# left each leg with its own blind spot:
+#
+#   * intraday matched whole tokens against ('ALERT','WATCH','STOP','TRIM'),
+#     so it never saw the **US** renderer's label, which is `STOP-LOSS`
+#     (`us_analysis.generate_signal`). Verified on the 2026-08-25 US close
+#     block: two `▼ STOP-LOSS …` lines counted as zero, and `decide_alert`
+#     wakes on `stop + alert`, so a US position hitting its stop line could
+#     pass a slot in silence.
+#   * report matched substrings (`'WATCH' in line`), which caught STOP-LOSS by
+#     accident but also reads `WATCHDOG` as a WATCH signal and never counted
+#     ALERT at all — the one level that outranks STOP.
+#
+# So: whole-token match (never a substring), against the vocabulary *both*
+# renderers actually emit. Severity is the level, not the spelling.
+SIGNAL_LEVELS = ('ALERT', 'WATCH', 'STOP', 'TRIM')
+
+# Rendered word (letters only, so `✋STOP?` / `STOP?` / `STOP-LOSS` all land)
+# → canonical level. HK writes `ALERT / WATCH / TRIM / STOP?`, US writes
+# `WATCH / TRIM / STOP-LOSS` (plus BUY/HOLD variants, which are not risk
+# signals and are deliberately absent here).
+SIGNAL_WORDS = {
+    'ALERT': 'ALERT',
+    'WATCH': 'WATCH',
+    'TRIM': 'TRIM',
+    'STOP': 'STOP',
+    'STOPLOSS': 'STOP',
+}
+
+_SIGNAL_SECTION = '⚠️ 信号'
+_REASON_BULLETS = ('·', '•', '-')
+_SECTION_ENDS = ('📉', '📰')
+
+
+def read_signal_line(line):
+    """`(level, ticker)` for a rendered signal line, or `(None, None)`.
+
+    Both renderers write `<marker> <LEVEL> <ticker> | …`, so the level is one
+    of the first two tokens — it never merely *appears inside* one. That
+    distinction is the whole point: `WATCHDOG` contains WATCH, and a substring
+    test reads that line as a signal and publishes the next word as its ticker.
+    """
+    tokens = (line or '').split()
+    # `· …` 是渲染器给理由行用的续行标记，不是一条信号 —— 理由文案里出现
+    # STOP/WATCH 这类词是正常的（「浮亏 -31.0% 警惕止损」那种），跟着数就会
+    # 把一条信号数成两条。
+    if tokens and tokens[0] in _REASON_BULLETS:
+        return None, None
+    for index, token in enumerate(tokens[:2]):
+        word = re.sub(r'[^A-Z]', '', token.upper())
+        level = SIGNAL_WORDS.get(word)
+        if level:
+            ticker = tokens[index + 1] if index + 1 < len(tokens) else None
+            return level, ticker
+    return None, None
+
+
+def parse_signal_lines(stdout):
+    """`(counts, detail)` over the rendered `⚠️ 信号` block.
+
+    The block runs until the risk (`📉`) or news (`📰`) line. Reason lines
+    inside it are indented `· …` continuations and carry no level, so they
+    fall out on their own.
+    """
+    counts = {level.lower(): 0 for level in SIGNAL_LEVELS}
+    detail = []
+    in_signals = False
+    for line in (stdout or '').splitlines():
+        if _SIGNAL_SECTION in line or line.strip() == '信号':
+            in_signals = True
+            continue
+        if not in_signals:
+            continue
+        stripped = line.strip()
+        if stripped.startswith(_SECTION_ENDS):
+            break
+        if not stripped:
+            continue
+        level, ticker = read_signal_line(stripped)
+        if level:
+            counts[level.lower()] += 1
+            detail.append({'level': level, 'line': stripped, 'ticker': ticker})
+    return counts, detail
