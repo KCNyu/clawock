@@ -233,8 +233,27 @@ def _is_hk_ticker(t):
     return t.isdigit() and len(t) <= 5
 
 
-def compute_retrospective(prior_plan_path, portfolio):
-    """V2 retrospective: each strategy decision is scored only if its condition fired."""
+def compute_retrospective(prior_plan_path, portfolio, ledger_decisions=None):
+    """Yesterday's plan, scored by the settled ledger — never by a snapshot.
+
+    Until #964 this function recomputed its own trigger verdicts from the
+    portfolio snapshot's ``current_price`` / ``day_open`` / ``day_high`` /
+    ``day_low``. Those fields carry the vintage of whichever cron last fetched,
+    not of a trading session — the repo's own ``market_data/bars`` docstring
+    lists the damage (00100 showed one identical (high, low) across four
+    different sessions; ``current_price`` was the previous close in half the
+    snapshots). So the same decision could carry two contradictory verdicts in
+    one context bundle: the ledger's, settled against canonical bars, and this
+    one's. The LLM was fed both and asked to calibrate confidence on them.
+
+    There is now one verdict per decision, and it is the ledger's. This function
+    only *joins*: plan-side facts (what was authorised, at what confidence) meet
+    ``evaluation`` (what the bars say happened), and every scored field carries
+    ``verdict_source`` so a reader can tell join from judgement. The money-shaped
+    ``simulated_pnl`` is gone with the snapshot prices it was made of;
+    ``benefit_t1_pct`` from the ledger is the same question answered against
+    session-dated bars.
+    """
     if not prior_plan_path:
         return {'prior_plan_date': None, 'decisions': [], 'note': 'first run (no prior plan)'}
 
@@ -245,54 +264,35 @@ def compute_retrospective(prior_plan_path, portfolio):
 
     all_holdings = (portfolio['portfolios']['hk_stocks']['holdings'] +
                     portfolio['portfolios']['us_stocks']['holdings'])
-    htmap = {h['ticker']: h for h in all_holdings}
+    held = {h['ticker'] for h in all_holdings}
+
+    by_id = {}
+    by_plan = {}
+    for settled in ledger_decisions or []:
+        if settled.get('decision_id'):
+            by_id[settled['decision_id']] = settled
+        by_plan.setdefault(
+            (settled.get('plan_date'), settled.get('ticker'), settled.get('action')),
+            settled,
+        )
 
     results = []
     for action in prior.get('decisions', []):
         ticker = action.get('ticker')
-        h = htmap.get(ticker)
-        if not h:
-            results.append({
-                'ticker': ticker, 'error': 'ticker no longer in portfolio', 'plan': action,
-            })
-            continue
-
+        bucket = action.get('action', '')
         condition = action.get('condition') or {}
-        trigger_type  = condition.get('type', 'manual')
-        trigger_price = condition.get('price')
-        size_shares   = (action.get('size') or {}).get('shares')
-        bucket        = action.get('action', '')
+        # decision_id is the join key; the (date, ticker, action) fallback covers
+        # plans authored before ids existed. A miss is reported as a miss — an
+        # unsettled decision must not be silently scored here, because "score it
+        # myself" is exactly the second implementation #964 removed.
+        settled = (by_id.get(action.get('decision_id'))
+                   or by_plan.get((prior.get('date'), ticker, bucket)))
+        evaluation = (settled or {}).get('evaluation') or {}
 
-        current   = h.get('current_price', 0)
-        prev_close = h.get('prev_close', current)
-        open_px   = h.get('day_open', current)
-        day_high  = h.get('day_high', current)
-        day_low   = h.get('day_low', current)
-
-        fired = None
-        if trigger_type == 'open':
-            fired = True
-        elif trigger_type == 'price_above' and trigger_price is not None:
-            fired = day_high >= trigger_price
-        elif trigger_type == 'price_below' and trigger_price is not None:
-            fired = day_low <= trigger_price
-        # index_breakdown / event / manual → leave as None (LLM judges)
-
-        sim_pnl = None
-        execution_price = None
-        if fired and size_shares:
-            if trigger_type == 'open':
-                execution_price = open_px
-            elif trigger_price is not None:
-                execution_price = trigger_price
-
-            if execution_price is not None:
-                # Sell-side actions: PnL = (execution - current) × shares (positive = good)
-                if bucket in ('cut', 'trim_on_rebound', 't_only'):
-                    sim_pnl = round((execution_price - current) * size_shares, 2)
-                # Buy-side actions: PnL = (current - execution) × shares (positive = good)
-                elif bucket == 'add_only_on_trigger':
-                    sim_pnl = round((current - execution_price) * size_shares, 2)
+        session = evaluation.get('trigger_session')
+        if settled is not None and not session:
+            session, _reason = decision_v2.evaluation_session(settled)
+        day_bar = decision_v2.bar(ticker, session) if session else None
 
         results.append({
             'ticker':                   ticker,
@@ -300,21 +300,30 @@ def compute_retrospective(prior_plan_path, portfolio):
             'episode_id':               action.get('episode_id'),
             'thesis_id':                action.get('thesis_id'),
             'strategy_id':              action.get('strategy_id'),
-            'action':                    bucket,
-            'plan_trigger_type':        trigger_type,
-            'plan_trigger_price':       trigger_price,
-            'plan_size_shares':         size_shares,
+            'action':                   bucket,
+            'plan_trigger_type':        condition.get('type', 'manual'),
+            'plan_trigger_price':       condition.get('price'),
+            'plan_size_shares':         (action.get('size') or {}).get('shares'),
             'plan_confidence':          action.get('confidence'),
             'plan_rationale':           action.get('rationale'),
-            'actual_open':              open_px,
-            'actual_close':             current,
-            'actual_day_high':          day_high,
-            'actual_day_low':           day_low,
-            'actual_prev_close':        prev_close,
-            'trigger_fired':            fired,
-            'simulated_execution_price': execution_price,
-            'simulated_pnl':            sim_pnl,
-            'pnl_currency':             'HKD' if _is_hk_ticker(ticker) else 'USD',
+            'still_held':               ticker in held,
+            # —— 以下全部来自 decision_v2 的结算，本函数不自己判 ——
+            'trigger_fired':            evaluation.get('triggered'),
+            'trigger_session':          session,
+            'settlement_status':        evaluation.get('status'),
+            'outcome':                  evaluation.get('outcome'),
+            'execution_price':          (evaluation.get('execution_price')
+                                         if evaluation.get('execution_price') is not None
+                                         else evaluation.get('reference_price')),
+            'benefit_t1_pct':           evaluation.get('benefit_t1_pct'),
+            'session_bar':              ({k: day_bar[k] for k in ('open', 'high', 'low', 'close')}
+                                         if day_bar else None),
+            'verdict_source':           ('decision_ledger' if settled is not None
+                                         else 'unsettled_no_ledger_row'),
+            'verdict_basis':            'memory/bars (session-dated, unadjusted)',
+            'verdict_note':             (evaluation.get('not_evaluable_reason')
+                                         or evaluation.get('pending_reason')
+                                         or evaluation.get('fill_reason')),
         })
 
     # Confidence calibration buckets
@@ -329,6 +338,7 @@ def compute_retrospective(prior_plan_path, portfolio):
     return {
         'prior_plan_date': prior.get('date'),
         'prior_plan_path': str(prior_plan_path),
+        'verdict_source': 'decision_v2 ledger settled against memory/bars',
         'decisions':       results,
         'confidence_calibration': {
             'conf_80_100':  _calib(0.80, 1.01),
@@ -1558,21 +1568,10 @@ def main(argv=None):
     # N copies of it (#916 §1.4).
     us_fund = _run_serial('_node_filings', lambda: _node_filings(portfolio))
 
-    # [7] Retrospective
-    print('[7/14] Retrospective')
+    # [7] Retrospective — only the plan lookup happens here. The scoring moved
+    # below the settle step (#964): the verdicts are the ledger's now, and the
+    # ledger is not settled against today's bars until [10].
     prior_plan = find_prior_plan(today)
-    retro = compute_retrospective(prior_plan, portfolio)
-    if retro.get('prior_plan_date'):
-        actions = retro['decisions']
-        fired = sum(1 for a in actions if a.get('trigger_fired') is True)
-        not_fired = sum(1 for a in actions if a.get('trigger_fired') is False)
-        ambiguous = sum(1 for a in actions if a.get('trigger_fired') is None and 'error' not in a)
-        print(f'   prior plan: {retro["prior_plan_date"]}')
-        print(f'   fired: {fired}   not fired: {not_fired}   ambiguous (manual/event): {ambiguous}')
-        print(f'   conf cal: 80%+ {retro["confidence_calibration"]["conf_80_100"]}, '
-              f'60-79% {retro["confidence_calibration"]["conf_60_79"]}')
-    else:
-        print(f'   first run (no prior plan)')
 
     # [8]-[13] DAG waves (#916 §1.2/§1.3): serial prefix done, now three
     # concurrent waves separated by barriers, each capped at max_workers=2.
@@ -1671,6 +1670,24 @@ def main(argv=None):
     print(f'   active: n={active_v2.get("n_episodes", 0)} '
           f'avg benefit={active_v2.get("avg_benefit_pct")}%, '
           f'cluster CI={active_v2.get("cluster_ci95")}')
+
+    # [7b] Retrospective — deliberately after [10]. It reads the settled ledger
+    # (which reads canonical bars) instead of scoring yesterday's plan against
+    # the portfolio snapshot, so there is one verdict per decision rather than
+    # two contradictory ones in the same context bundle (#964).
+    print('[7b/14] Retrospective')
+    retro = compute_retrospective(prior_plan, portfolio, decision_v2.load_decisions())
+    if retro.get('prior_plan_date'):
+        actions = retro['decisions']
+        fired = sum(1 for a in actions if a.get('trigger_fired') is True)
+        not_fired = sum(1 for a in actions if a.get('trigger_fired') is False)
+        ambiguous = sum(1 for a in actions if a.get('trigger_fired') is None)
+        print(f'   prior plan: {retro["prior_plan_date"]} (verdicts from the v2 ledger)')
+        print(f'   fired: {fired}   not fired: {not_fired}   unsettled/ambiguous: {ambiguous}')
+        print(f'   conf cal: 80%+ {retro["confidence_calibration"]["conf_80_100"]}, '
+              f'60-79% {retro["confidence_calibration"]["conf_60_79"]}')
+    else:
+        print('   first run (no prior plan)')
 
     # [9b] Reflection memory — per held ticker, prior call outcomes (TradingAgents-style)
     reflections = compute_reflections(portfolio)
