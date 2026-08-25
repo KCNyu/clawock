@@ -45,7 +45,6 @@ After any of the following changes, run a git commit automatically — no need t
 | Change | Commit |
 |---|---|
 | `portfolio.json` updated (price refresh / buy / sell) | `portfolio: <brief>` |
-| `memory/YYYY-MM-DD.md` created or updated | `memory: daily notes YYYY-MM-DD` |
 | Harness produced new `memory/{date}-pre-open.md` + `-plan.json` | `memory: daily deep brief <date>` (postflight auto-commits) |
 | KCNyu harness/publisher refreshed dashboard outputs | publish the complete semantic generation through the data plane; do not stage individual generated files ad hoc |
 | `assets/data/risk.json` refreshed via `clawock portfolio-risk` | bundled with brief commit |
