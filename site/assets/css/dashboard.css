@@ -2603,8 +2603,9 @@
        不是今天这份数据）。≥1024 档 = 226.39 + 露边 16 + gap 8 + 指示点 10
        = 260.39，+2。牌是绝对定位的，牌组高度本来就只由这条 min-height 决定
        ——预留是宽度的确定函数，不是数据的函数；数据变多的失败模式是牌内
-       截断，所以余量按构图上限留，不按当日实测留。 */
-    min-height: 262px;
+       截断，所以余量按构图上限留，不按当日实测留。第八次迭代（正文吃满
+       盒子 + 异动条改横排）重扫：≥1024 忙日上界 220.89 + 34 = 254.89，+2。 */
+    min-height: 257px;
   }
   .verdict-deck-stage {
     position: relative; flex: 1; min-height: 0;
@@ -2701,7 +2702,24 @@
   }
   /* 牌内硬闸区：原「段间发丝线」是通栏卡的分段语言；独立成牌后它就是
      牌的正文，去掉段首线与顶垫。 */
-  .verdict-deck .overview-gates { border-top: 0; padding-top: 0; margin: 10px 0 0; }
+  .verdict-deck .overview-gates {
+    border-top: 0; padding-top: 0; margin: 10px 0 0;
+    display: flex; flex-direction: column; flex: 1; min-height: 0;
+  }
+  /* 同一条「正文吃满盒子」：三行硬闸把牌里剩下的高度分掉（行高上限 88px，
+     免得数据少的日子把三行拉成三块板），尾注与跳转钮不参与分配。 */
+  .verdict-deck .overview-gates .risk-alerts { flex: 1; }
+  .verdict-deck .overview-gates .risk-alert {
+    flex: 1 1 auto; max-height: 88px; align-items: center;
+  }
+  /* hard stop（critical）与限额超标（high）在牌上都是红条，用条宽分档：
+     3px = 已经跌穿硬止损线，2px = 限额/敞口超标。 */
+  .overview-gates .risk-alert.critical { border-left-width: 3px; }
+  .overview-gates-more {
+    flex: 0 0 auto; padding: 7px 0 0;
+    border-top: 1px solid var(--border-subtle);
+    color: var(--text-faint); font-size: var(--fs-micro); line-height: 1.35;
+  }
   /* 牌尾跳转钮：贴牌底（flex 列的 margin-top:auto），不随内容长短漂。 */
   .deck-card-jump { margin-top: auto; align-self: flex-end; }
   /* 牌组化后双栏 grid-areas 与「玻璃上的仪表面板 well」一并退场：硬闸
@@ -2764,9 +2782,29 @@
      发丝线描边；数值段 mono tabular（仓库字规：mono 只用于数字）。
      底色用不透明 --card-2 —— 玻璃上的开孔必须不透明（#937 打孔判据），
      tone 只染边线与 value，不染整底：满屏色底是行情软件最廉价的读感。 */
+  /* 第八次迭代：牌是绝对定位、撑满台面的（inset: 0 0 16px），而正文只有
+     判词 + chip + 三根柱 —— 实测 1200 档正文 196px 待在 244px 的牌里，390 档
+     256px 待在 364px 里，牌底那 48px / 108px 就是 kcn 说的「留白很多」。地板
+     本身不动（它是宽度的确定函数，CLS 判据不变），改成正文吃满盒子：chip 行
+     按内容占高，柱区 flex:1 拿走剩下的全部高度 —— 预留的空气变成画布。 */
+  /* 今日判定牌 ≥1024 是双栏：判词 + chip 走左栏，异动条走右栏并吃满两行高。
+     原来判词、chip、异动条是从上往下三条带，1144px 的牌上每条带右边都空着
+     一大截 —— kcn「几张卡留白很多」的另一半就是这个横向的空。栏宽是宽度的
+     函数，不是数据的函数（CLS 判据不变）；窄档回单栏（见下方两个媒体块）。 */
+  .verdict-deck .deck-card:first-child {
+    display: grid; column-gap: 18px;
+    grid-template-columns: minmax(0, 1fr) minmax(232px, 31%);
+    grid-template-rows: auto auto minmax(0, 1fr);
+    grid-template-areas: "head head" "verdict movers" "chips movers";
+    align-content: stretch;
+  }
+  .verdict-deck .deck-card:first-child > .overview-verdict-head { grid-area: head; }
+  .verdict-deck .deck-card:first-child > .overview-status { grid-area: verdict; }
+  .verdict-deck .deck-card:first-child > .today-highlights { grid-area: chips; }
+  .verdict-deck .deck-card:first-child > .today-movers { grid-area: movers; }
   .deck-card .today-highlights {
-    display: flex; flex-wrap: wrap; gap: 6px;
-    margin: 10px 0 0; min-height: 0;
+    display: flex; flex-wrap: wrap; align-content: flex-start; gap: 6px;
+    margin: 10px 0 0; min-height: 0; min-width: 0;
   }
   .deck-card .hl-chip {
     display: inline-flex; align-items: center; gap: 7px;
@@ -2809,36 +2847,49 @@
   .deck-card .tone-bad .hl-meter i { background: var(--negative); }
   /* 异动迷你柱：今日 top movers 画成一排零轴柱（图为主），ticker+pct 退为
      caption。柱高/柱位由 JS 写死 px —— 容器高度固定 26px，构图不随数据变。 */
+  /* 异动条：一行一只，ticker | 零轴分叉条 | pct。左栏是判词 + chip，两栏之间
+     用发丝线分栏（单栏时改成上边线，见媒体块）。行随牌高分配（flex:1，
+     上限 48px —— 数据少的日子不把三行拉成三块板）。 */
+  .deck-card .today-movers {
+    display: flex; flex-direction: column; min-height: 0;
+    margin: 10px 0 0; padding-left: 18px;
+    border-left: 1px solid var(--border-subtle);
+  }
   .deck-card .hl-movers {
-    display: grid; width: 100%; max-width: 480px;
-    margin: 2px 0 0; padding: 10px 0 0;
-    border-top: 1px solid var(--border-subtle);
+    display: flex; flex-direction: column; gap: 6px; min-width: 0;
+    flex: 1; min-height: 0;
   }
-  .deck-card .hl-mv { min-width: 0; }
-  /* 40px 画布、零轴居中：柱最长 17px（JS 归一），上下各留 3px —— 柱永远
-     待在画布内，构图是常量，不是数据的函数。 */
-  .deck-card .hl-mv-bar { position: relative; height: 40px; }
-  .deck-card .hl-mv-bar::before {
-    content: ""; position: absolute; left: 0; right: 0; top: 50%;
-    border-top: 1px solid var(--border-subtle);
+  .deck-card .hl-mv-head {
+    flex: 0 0 auto; color: var(--text-tertiary);
+    font: 600 var(--fs-micro)/1 var(--mono); letter-spacing: .09em;
   }
-  .deck-card .hl-mv-bar i {
-    position: absolute; left: 50%; transform: translateX(-50%);
-    width: 14px; border-radius: 2px;
-  }
-  .deck-card .hl-mv-bar i.up { background: var(--positive); bottom: 50%; }
-  .deck-card .hl-mv-bar i.down { background: var(--negative); top: 50%; }
-  .deck-card .hl-mv-cap {
-    display: flex; align-items: baseline; justify-content: center;
-    gap: 6px; margin-top: 5px; min-width: 0;
+  .deck-card .hl-mv {
+    display: flex; align-items: center; gap: 8px;
+    flex: 1 1 auto; max-height: 48px; min-width: 0;
     font-size: var(--fs-micro); line-height: 1;
   }
+  /* 零轴居中的双向条：条长 = 半幅的 92%（JS 归一后写百分比），左右各留
+     4% —— 条永远待在轨内，构图随盒子变，不随数据变。 */
+  .deck-card .hl-mv-bar {
+    position: relative; flex: 1 1 auto; min-width: 0; height: 8px;
+    border-radius: 2px; background: var(--card-2);
+  }
+  .deck-card .hl-mv-bar::before {
+    content: ""; position: absolute; top: -3px; bottom: -3px; left: 50%;
+    border-left: 1px solid var(--border-subtle);
+  }
+  .deck-card .hl-mv-bar i {
+    position: absolute; top: 0; bottom: 0; min-width: 3px; border-radius: 2px;
+  }
+  .deck-card .hl-mv-bar i.up { left: 50%; background: var(--positive); }
+  .deck-card .hl-mv-bar i.down { right: 50%; background: var(--negative); }
   .deck-card .hl-mv-t {
-    color: var(--text-tertiary); font-weight: 600;
+    flex: 0 0 52px; color: var(--text-tertiary); font-weight: 600;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
   .deck-card .hl-mv-p {
-    flex: 0 0 auto; font-family: var(--mono); font-weight: 600;
+    flex: 0 0 52px; text-align: right;
+    font-family: var(--mono); font-weight: 600;
     font-variant-numeric: tabular-nums;
   }
   .overview-gates {
@@ -3013,13 +3064,30 @@
 
   @media (min-width: 768px) and (max-width: 1023px) {
     .hero-rail { grid-template-columns: repeat(4, minmax(0, 1fr)); min-height: 152px; }
-    /* 292：768~1023 扫宽忙日实测上界 256.39（在 780）+ 露边 16 + gap 8
-       + 指示点 10 = 290.39，+2。旧值 506 是通栏卡时代的安全上界，牌组
-       拆张后高出 214px 纯留白。 */
-    .verdict-deck { min-height: 292px; }
+    /* 296：768~1023 扫宽忙日实测上界 260.39（在 780）+ 露边 16 + gap 8
+       + 指示点 10 = 294.39，+2（第八次迭代重扫：异动条多一行小标题）。 */
+    .verdict-deck { min-height: 296px; }
+    /* 窄档回单栏：判词、chip、异动条上下三带，分栏线转成上边线。剩余高度
+       只给异动条那一带（chip 带按内容高，拉高它没有意义）。 */
+    .verdict-deck .deck-card:first-child {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: auto auto auto minmax(0, 1fr);
+      grid-template-areas: "head" "verdict" "chips" "movers";
+    }
+    .deck-card .today-movers {
+      padding: 10px 0 0; border-left: 0;
+      border-top: 1px solid var(--border-subtle);
+    }
+
     .verdict-deck, .overview-strip,
     .overview-command > .hero-honesty-card,
     .overview-command > .hero-gold-card { grid-column: 1 / -1; }
+  }
+  /* 1024~1199 单独一档（第八次迭代新增）：牌在 ≥1024 走双栏，左栏在这一档
+     只有 ~600px，忙日 5 枚 chip 要多折一行 ⇒ 忙日上界 249.39（在 1040）+ 露边
+     16 + gap 8 + 指示点 10 = 283.39，+2。≥1200 左栏够宽，回到 257。 */
+  @media (min-width: 1024px) and (max-width: 1199px) {
+    .verdict-deck { min-height: 285px; }
   }
   @media (max-width: 767px) {
     :root { --card-inset: 20px; }
@@ -3041,9 +3109,22 @@
     .dh-file { display: none; }
     .dh-bar { grid-column: 1 / -1; }
     .dh-detail { grid-column: 1 / -1; white-space: normal; }
-    /* 382：360~767 扫宽忙日实测上界 346.39（在 360）+ 露边 16 + gap 8
-       + 指示点 10 = 380.39，+2。窄档是留白重灾区：旧 571 高出 189px。 */
-    .verdict-deck { min-height: 382px; }
+    /* 386：360~767 扫宽忙日实测上界 350.39（在 360）+ 露边 16 + gap 8
+       + 指示点 10 = 384.39，+2（第八次迭代重扫）。窄档是留白重灾区，但那
+       段空高现在被异动条吃掉：地板不动，正文吃满。 */
+    .verdict-deck { min-height: 386px; }
+    /* 窄档回单栏：判词、chip、异动条上下三带，分栏线转成上边线。剩余高度
+       只给异动条那一带（chip 带按内容高，拉高它没有意义）。 */
+    .verdict-deck .deck-card:first-child {
+      grid-template-columns: minmax(0, 1fr);
+      grid-template-rows: auto auto auto minmax(0, 1fr);
+      grid-template-areas: "head" "verdict" "chips" "movers";
+    }
+    .deck-card .today-movers {
+      padding: 10px 0 0; border-left: 0;
+      border-top: 1px solid var(--border-subtle);
+    }
+
     .overview-strip { display: flex; flex-direction: column; }
     .overview-strip-cell {
       min-height: 0; border-right: 0; border-bottom: 1px solid var(--border-subtle);

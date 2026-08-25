@@ -226,6 +226,10 @@ layout: null
               <span class="sb-time" id="overview-sb-time"></span>
             </div>
             <div id="today-highlights" class="today-highlights"></div>
+            <!-- 异动条自己的挂载点（第八次迭代）：牌在 ≥1024 是双栏 grid，
+                 判词+chip 走左栏、异动条走右栏并吃满两行高。挂在 chip 里
+                 的时候它只能跟着 chip 走，右边那半张牌永远是空的。 -->
+            <div id="today-movers" class="today-movers"></div>
           </article>
           <article class="deck-card" data-theme="硬闸" aria-labelledby="deck-gates-title">
             <div class="overview-verdict-head">

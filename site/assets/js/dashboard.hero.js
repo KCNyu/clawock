@@ -98,6 +98,7 @@
   // 判词句本体由 CSS 压成一行 caption —— 成段 prose 在这张卡里没有位置。
   function renderTodayHighlights() {
     const el = document.getElementById("today-highlights");
+    const mvEl = document.getElementById("today-movers");
     if (!el) return;
     const chips = [];
     const chip = (tone, k, v, d, meterPct) =>
@@ -183,6 +184,7 @@
     if (!chips.length && !movers.length) {
       el.style.display = "";
       el.replaceChildren();
+      if (mvEl) mvEl.replaceChildren();
       return;
     }
     el.style.display = "";
@@ -192,24 +194,29 @@
     // No icon slot: the old 7px status dot read as AI-flavoured (kcn: 彩色圆点
     // = AI 味). Row semantics live in position, weight and — for true alerts —
     // the red text colour, never in a coloured dot.
-    // 异动零轴柱：top3 各一根，高度 = |pct| 归一（最低 3px 可见），px 写死 ——
-    // 构图不随数据变；ticker+pct 退为柱下 caption（图为主，文字只做注脚）。
+    // 异动条（第八次迭代把竖柱转成横条）：竖柱在 1144px 宽的牌上是三根
+    // 14px 的孤棍，宽度全是空的；横条一行一只（ticker | 零轴分叉条 | pct），
+    // 窄盒宽盒都填得满，且 ticker/pct 回到同一行而不是柱下 caption。
+    // 条长 = |pct| 归一后取半幅的 92%，写百分比 —— 构图随盒子变、不随数据变。
     const maxAbs = Math.max(...movers.map(x => Math.abs(x.today_change_pct || 0)), 1);
-    const mvCell = x => {
+    const mvRow = x => {
       const pct = x.today_change_pct || 0;
-      const h = Math.max(3, Math.abs(pct) / maxAbs * 17);
-      return `<div class="hl-mv"><div class="hl-mv-bar">`
-        + `<i class="${pct >= 0 ? "up" : "down"}" style="height:${h.toFixed(1)}px"></i></div>`
-        + `<div class="hl-mv-cap"><span class="hl-mv-t">${escapeHtml(x.ticker || DASH)}</span>`
-        + `<span class="hl-mv-p ${pct >= 0 ? "pos" : "neg"}">${fmtPct(pct, 1)}</span></div></div>`;
+      const w = Math.abs(pct) / maxAbs * 46;
+      return `<div class="hl-mv">`
+        + `<span class="hl-mv-t">${escapeHtml(x.ticker || DASH)}</span>`
+        + `<span class="hl-mv-bar"><i class="${pct >= 0 ? "up" : "down"}"`
+        + ` style="width:${w.toFixed(1)}%"></i></span>`
+        + `<span class="hl-mv-p ${pct >= 0 ? "pos" : "neg"}">${fmtPct(pct, 1)}</span></div>`;
     };
     const moversRow = movers.length
-      ? `<div class="hl-movers" style="grid-template-columns:repeat(${movers.length},minmax(0,1fr))"`
-        + ` role="img" aria-label="今日异动前 ${movers.length}：`
+      ? `<div class="hl-movers" role="img" aria-label="今日异动前 ${movers.length}：`
         + movers.map(x => `${x.ticker} ${fmtPct(x.today_change_pct, 1)}`).join("、")
-        + `">${movers.map(mvCell).join("")}</div>`
+        + `"><div class="hl-mv-head">今日异动</div>${movers.map(mvRow).join("")}</div>`
       : "";
-    el.innerHTML = chips.slice(0, 5).join("") + moversRow;
+    // chip 与异动条各自落到自己的挂载点：≥1024 时它们是牌上左右两栏，
+    // 窄档回到上下两带（版式全在 CSS，渲染端不判断宽度）。
+    el.innerHTML = chips.slice(0, 5).join("");
+    if (mvEl) mvEl.innerHTML = moversRow;
   }
 
   // 🪞 诚实自评卡 — 把这轮做的诚实层(风险调整判决 / catalyst 纪律 / 辩论决断 / 因子 CI)聚一处
@@ -1310,10 +1317,16 @@
        </div>`;
     const rows = [
       ...breaches.map(b => ({ icon: ICON[b.type] || '', severity: b.severity, detail: stripEmoji(b.detail), action: stripEmoji(b.action) })),
-      ...stops.map(s => ({ icon: '', severity: 'high', detail: stripEmoji(s.detail), action: stripEmoji(s.action) })),
+      ...stops.map(s => ({ icon: '', severity: s.severity || 'critical', detail: stripEmoji(s.detail), action: stripEmoji(s.action) })),
     ];
+    // 严重度排序（第八次迭代）：原来把 hard stop 一律降写成 high，再按
+    // 「是不是 high」排 —— 同为 high 时排序稳定，于是 6 条 breach 永远排在
+    // 3 条 hard stop 前面，牌上那三个槽位只看得到限额比例，而「已经跌穿
+    // -18% 硬止损线」的三只（数据里本来就是 critical）从不上首屏。槽位按
+    // 数据自己的严重度给，不按数组下标给。
+    const SEV_RANK = { critical: 3, high: 2, medium: 1 };
     const compactRows = rows.slice().sort((a, b) =>
-      Number(b.severity === "high") - Number(a.severity === "high"));
+      (SEV_RANK[b.severity] || 0) - (SEV_RANK[a.severity] || 0));
     targets.forEach(({ countEl, dirEl, listEl, compact }) => {
       // 「9 触发」红字是判定卡里最后一个裸读数：数量改用点阵计数表达
       // （一眼扫出严重度，不用读数），精确值退到 aria-label/title。槽位
@@ -1334,7 +1347,13 @@
         : stripEmoji([g.directive, g.reentry_rule].filter(Boolean).join(' '));
       const visibleRows = compact ? compactRows.slice(0, 3) : rows;
       const html = visibleRows.map(r => row(r.icon, r.severity, r.detail, compact ? "" : r.action)).join('');
-      listEl.innerHTML = html || '<div class="muted" style="font-size:var(--fs-sm)">仓位/单因子/杠杆均在阈值内</div>';
+      // 牌上只有三个槽位，9 条里剩下的 6 条原来是无声消失的（表头点阵是
+      // 严重度密度，读不出「还有几条没列」）。补一行尾注说清被折叠的量。
+      const hidden = compact ? Math.max(0, compactRows.length - visibleRows.length) : 0;
+      const tail = hidden
+        ? `<div class="overview-gates-more">另有 ${hidden} 项未列出</div>` : '';
+      listEl.innerHTML = (html && html + tail)
+        || '<div class="muted" style="font-size:var(--fs-sm)">仓位/单因子/杠杆均在阈值内</div>';
     });
   }
 

@@ -1044,6 +1044,71 @@ async function testHoldingsAndHeroNeverTruncate(browser, base) {
   }
 }
 
+// 判定牌组第八次迭代（kcn：「几张卡留白很多，切来切去其实就几个文字」）钉两条：
+//   1. 牌是绝对定位、撑满台面的，所以「牌里有多少空高」= 地板 − 正文。正文
+//      必须吃满盒子，剩余高度归异动条那一带 —— 否则地板每抬一档就多一段空气。
+//   2. 牌上只有三个槽位，选哪三条必须按数据自己的严重度，不按数组下标：
+//      hard stop（critical，已跌穿 -18% 硬止损线）不能被同为 high 的限额条挤掉。
+async function testVerdictDeckFillsItsBoxAndRanksGatesBySeverity(browser, base) {
+  const RANK = { critical: 3, high: 2, medium: 1 };
+  for (const [width, height] of [[1200, 900], [390, 844]]) {
+    const context = await browser.newContext({ viewport: { width, height } });
+    const page = await context.newPage();
+    await stubLiveOrigin(page);
+    await page.goto(base, { waitUntil: "networkidle" });
+    await waitForData(page);
+    await page.waitForSelector("#today-movers .hl-movers", { timeout: 5000 });
+
+    const fill = await page.evaluate(() => {
+      const card = document.querySelector(".verdict-deck .deck-card");
+      const movers = document.querySelector("#today-movers .hl-movers");
+      const bars = document.querySelectorAll("#today-movers .hl-mv-bar i");
+      const cs = getComputedStyle(card);
+      const inner = card.getBoundingClientRect().bottom - parseFloat(cs.paddingBottom);
+      return {
+        slack: inner - movers.getBoundingClientRect().bottom,
+        moversHeight: movers.getBoundingClientRect().height,
+        bars: bars.length,
+        widest: Math.max(0, ...[...bars].map(b => b.getBoundingClientRect().width)),
+      };
+    });
+    // 反空转：没有柱就谈不上「柱区吃满」，这条断言必须有东西可量。
+    assert(fill.bars > 0, `no mover bars rendered at ${width}px`);
+    assert(fill.widest > 1, `mover bars have no width at ${width}px`);
+    assert(fill.slack <= 16 && fill.slack >= -1,
+      `verdict card leaves ${Math.round(fill.slack)}px of dead air below its content `
+      + `at ${width}px — the reserved floor must be spent on the chart, not on air`);
+
+    const gate = await page.evaluate(() => {
+      // DATA 是脚本顶层的 let，不是 window 的属性 —— 走 window.DATA 会恒空，
+      // 于是下面的排序断言变成「空 vs 空」的恒真闸。
+      const g = (typeof DATA === "undefined" ? null : DATA.risk_guardrail) || {};
+      const all = [
+        ...(g.breaches || []).map(b => b.severity || "high"),
+        ...(g.hard_stop_watch || []).map(s => s.severity || "critical"),
+      ];
+      const list = document.getElementById("overview-guardrail-list");
+      const shown = [...list.querySelectorAll(".risk-alert")]
+        .map(el => [...el.classList].find(c => c !== "risk-alert") || "high");
+      const more = list.querySelector(".overview-gates-more");
+      return { all, shown, more: more ? more.textContent.trim() : null };
+    });
+    assert(gate.all.length > 0 && gate.shown.length > 0,
+      `gate card rendered nothing to rank at ${width}px`);
+    const ranked = gate.all.map(s => RANK[s] || 0).sort((a, b) => b - a);
+    const shownRanks = gate.shown.map(s => RANK[s] || 0).sort((a, b) => b - a);
+    assert.deepEqual(shownRanks, ranked.slice(0, gate.shown.length),
+      `gate card shows ${gate.shown.join("/")} but the payload's worst are `
+      + `${gate.all.slice().sort((a, b) => (RANK[b] || 0) - (RANK[a] || 0)).slice(0, gate.shown.length).join("/")}`);
+    const hidden = gate.all.length - gate.shown.length;
+    if (hidden > 0) {
+      assert(gate.more && gate.more.includes(String(hidden)),
+        `gate card hides ${hidden} rows without saying so (tail: ${gate.more})`);
+    }
+    await context.close();
+  }
+}
+
 async function main() {
   const server = serveWorkspace();
   await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
@@ -1062,6 +1127,7 @@ async function main() {
     await testHeaderSharesTheContentColumn(browser, base);
     await testTraceRowsFitPhoneWidths(browser, base);
     await testHoldingsAndHeroNeverTruncate(browser, base);
+    await testVerdictDeckFillsItsBoxAndRanksGatesBySeverity(browser, base);
   } finally {
     await browser.close();
     await new Promise(resolve => server.close(resolve));
