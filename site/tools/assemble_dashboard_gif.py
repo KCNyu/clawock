@@ -40,6 +40,29 @@ HOLD_BOTTOM_MS = 850         # pause once scrolled to the bottom
 VSCROLL_MS = 110     # each vertical-scroll frame
 SLIDE_MS = 80        # each horizontal-slide frame
 
+SEED_GLOBS = [       # where the UI's own chromatic colors are defined; scanned so
+                     # their exact values can be protected in the GIF palette below
+    os.path.join("site", "assets", "css", "dashboard.css"),
+    os.path.join("site", "_layouts", "default.html"),
+    os.path.join("site", "assets", "js", "*.js"),
+]
+
+
+def _ui_seed_colors():
+    """Exact chromatic hex colors the shipped dashboard sources define."""
+    found = set()
+    for pattern in SEED_GLOBS:
+        for path in glob.glob(os.path.join(ROOT, pattern)):
+            try:
+                text = open(path, encoding="utf-8", errors="ignore").read()
+            except OSError:
+                continue
+            for hx in re.findall(r"#[0-9a-fA-F]{6}\b", text):
+                color = tuple(int(hx[i:i + 2], 16) for i in (1, 3, 5))
+                if max(color) - min(color) > 40:   # chromatic only: neutrals quantize fine
+                    found.add(color)
+    return sorted(found)
+
 
 def _ease(t):        # ease-in-out cubic — smooth start & stop
     return 4 * t ** 3 if t < 0.5 else 1 - (-2 * t + 2) ** 3 / 2
@@ -83,13 +106,31 @@ for i in range(6):
         frames.append(canvas)
         durations.append(SLIDE_MS)
 
-# One global adaptive palette derived from every frame → colors stay true and stable
+# One global palette derived from every frame → colors stay true and stable
 # across frames (per-frame palettes drift toward grey and flicker). No dither: the UI
 # is flat color, and dithering just adds noise + bloats the file.
+#
+# MEDIANCUT alone washed the accents out: ~95% of every frame is near-white, so its
+# population-based box split spent ~205 of 256 slots on indistinguishable whites and
+# left the whole saturated UI sharing 2-3 muddy entries — #36A3FF mapped ~105 RGB
+# units away, which read as a grey hero animation. Seed the palette with the UI's
+# exact chromatic colors first (echarts' default light palette included — charts use
+# it whenever they don't override the series colors), then let MEDIANCUT fill the
+# rest with the neutrals it is good at; mapping stays nearest-color without dither.
 _stack = Image.new("RGB", (OW, VH * len(frames)))
 for _i, _f in enumerate(frames):
     _stack.paste(_f, (0, VH * _i))
-_pal = _stack.quantize(colors=COLORS, method=Image.MEDIANCUT)
+_seeds = _ui_seed_colors()
+_fill = _stack.quantize(colors=max(32, COLORS - len(_seeds)),
+                        method=Image.MEDIANCUT).getpalette()
+_palette, _seen = [], set()
+for _c in _seeds + list(zip(_fill[0::3], _fill[1::3], _fill[2::3])):
+    if _c not in _seen:
+        _seen.add(_c)
+        _palette.append(_c)
+_pal = Image.new("P", (1, 1))
+_flat = [v for _c in _palette[:COLORS] for v in _c]
+_pal.putpalette(_flat + [0] * (768 - len(_flat)))
 frames = [f.quantize(palette=_pal, dither=Image.Dither.NONE) for f in frames]
 frames[0].save(OUT, save_all=True, append_images=frames[1:],
                duration=durations, loop=0, optimize=True, disposal=2)
