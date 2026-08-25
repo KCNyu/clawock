@@ -376,7 +376,15 @@ def record_from_heartbeat(event):
         if event.get("failure_stage") == "input":
             record_stage(job, "llm", "failed", slot=slot, **details)
         record_stage(job, "postflight", "failed", slot=slot, **details)
-    elif state == "completed":
+    elif state in {"completed", "publish_failed"}:
+        # `publish_failed` is the heartbeat intraday_postflight emits when the
+        # sends succeeded but the dashboard data plane did not publish. It used
+        # to fall through every branch here, so a slot kcn actually received
+        # kept no llm/postflight/primary evidence at all and its final_product
+        # stayed pending forever (#1005) — #765's "delivered report filed as
+        # pending" through the data-plane door. The completed mapping below
+        # already grades it honestly: data_plane_status outside the ok set
+        # makes postflight `warning`, not `success`.
         postflight = event.get("postflight_status")
         data_plane = event.get("data_plane_status")
         data_plane_ok = data_plane in {None, "published", "current"}
@@ -395,16 +403,28 @@ def record_from_heartbeat(event):
         )
         wechat_ok = event.get("wechat_sent") is True
         telegram_ok = event.get("telegram_sent") is True
-        record_stage(
-            job,
-            "primary_delivery",
-            "success" if (wechat_ok or telegram_ok) else "failed",
-            slot=slot,
-            **{**details,
-               "channel": delivery_channel(wechat_ok, telegram_ok),
-               "wechat_ok": wechat_ok,
-               "telegram_ok": telegram_ok},
-        )
+        if event.get("send_claim_declined") and not (wechat_ok or telegram_ok):
+            # This process was REFUSED the send right by claim_send, so it is
+            # not a witness of this slot's delivery — recording its
+            # wechat_sent=False as a verdict overwrote the concurrent claim
+            # holder's success whenever the declined process's slow
+            # commit/publish work let it write last (#1006). The holder owns
+            # the verdict; if it died, receipt reconciliation fills the unknown
+            # stage and the watchdog backstop still fires. Detect-but-never-
+            # silence is intact: nothing is downgraded, only left to the one
+            # process that actually sent.
+            pass
+        else:
+            record_stage(
+                job,
+                "primary_delivery",
+                "success" if (wechat_ok or telegram_ok) else "failed",
+                slot=slot,
+                **{**details,
+                   "channel": delivery_channel(wechat_ok, telegram_ok),
+                   "wechat_ok": wechat_ok,
+                   "telegram_ok": telegram_ok},
+            )
     elif state == "watchdog_backstop":
         record_stage(job, "watchdog_delivery", "success", slot=slot, **details)
     elif state in {"watchdog_failed", "watchdog_rejected"}:

@@ -466,6 +466,10 @@ def main(argv=None):
     # a CONFIRMED failure (never doubles a report that went out here).
     wechat_sent = None
     tg_ok = None
+    # Set when claim_send refuses this process the send right: it then has no
+    # evidence about whether delivery happened and must not file a
+    # primary_delivery verdict over the concurrent holder's (#1006).
+    send_claim_declined = False
     marker = TMP / f'intraday-sent-{args.market}.json'
     # Idempotency: if openclaw auto-retried this run (post-turn summary-gen failure),
     # the report already went out on the prior attempt — skip the re-send. Intraday's
@@ -514,6 +518,7 @@ def main(argv=None):
                 log({'tag': f'intraday-{args.market}', 'action': 'send-claim-declined',
                      'reason': claim_reason})
                 wechat_sent, send_out = False, f'send-claim-declined: {claim_reason}'
+                send_claim_declined = True
             else:
                 mark_send_started(claim_path)
                 try:
@@ -607,6 +612,9 @@ def main(argv=None):
         # The ledger needs the same escalating/advisory split the banner uses:
         # an advisory-only slot delivered a clean report (#764).
         escalating_count=len(escalating), advisory_count=len(advisories),
+        # None is dropped by record(): only a genuine decline carries the flag
+        # that tells the outcome bridge this process holds no delivery verdict.
+        send_claim_declined=send_claim_declined or None,
     )
     result['heartbeat'] = {
         'job': heartbeat.get('job'), 'slot': heartbeat.get('slot'),
