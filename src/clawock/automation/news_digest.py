@@ -210,7 +210,7 @@ def build_user_prompt(news_payload, held_via):
         "### 风险 watch (若有)\n"
         "- 任何 financial guidance / regulatory / 大股东减持 / 失败合约 等 risk 关键词\n\n"
         "要求:\n"
-        "- 总长 ≤ 500 字 (digest 不是 brief)\n"
+        "- 这是 digest 不是 brief：短即是特性，密度优先，长度自己判断\n"
         "- 重复 / 营销稿 / 通用市场新闻 -> 忽略\n"
         "- 优先 ticker-specific catalyst (财报 / 合约 / 监管 / 大单)\n"
         "- gnews-rss 项只有标题没 summary, 要靠标题关键词判断, 不要编造细节\n"
