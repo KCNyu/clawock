@@ -225,6 +225,13 @@ def test_builder_stages_only_public_consumers(tmp_path):
     assert not list((output / "assets/data").glob("*.jsonl"))
     assert not (output / "memory/decisions.jsonl").exists()
     assert not (output / "tests").exists()
+    # Ops-side measurement artifacts (#993): written by cron workflows and read
+    # back from the checkout/raw paths — no page or script fetches them from
+    # Pages, so the *.json include must not carry them into the artifact.
+    assert (site / "assets/data/schedule-drift.json").is_file()
+    assert (site / "assets/data/repo-traffic.json").is_file()
+    assert not (output / "assets/data/schedule-drift.json").exists()
+    assert not (output / "assets/data/repo-traffic.json").exists()
     assert not (output / "docs/visual-regression/issue-206").exists()
     assert (output / "docs/architecture.md").is_file()
     sitemap_locs = [
