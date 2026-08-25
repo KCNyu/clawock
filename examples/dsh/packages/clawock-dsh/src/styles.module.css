@@ -22,15 +22,29 @@
  *      and would fail contrast as the focal number on this board.
  *   4. Material, not paint. In this host's light theme the card surface AND
  *      the page base are both white — an opaque card is invisible except for
- *      its border, which is why the board read as flat slabs. Cards are glass
- *      now: translucent fill + backdrop blur + saturate (the host's own
- *      DropOverlay recipe) over an ambient brand glow painted at the top of
- *      `.dmt`, because frosted glass needs something behind it to blur; plus
- *      a specular top edge and a negative-spread ambient shadow (positive
- *      spread on a light page is grey glow, not depth). The expanded detail
- *      is glass too but as a translucent ink tray with NO second
- *      backdrop-filter — blur inside blur reads as mud, and the group's own
- *      filter already covers the tray's backdrop.
+ *      its border, which is why the board read as flat slabs. Frosting a
+ *      white card over a white page does not fix that: measured on the live
+ *      build, the card interior came back 255,255,255 and the left-hand glow
+ *      pool 253 — the material was blurring nothing, so it read as matte
+ *      plastic rather than glass.
+ *      So the board brings back the layer separation the host's light theme
+ *      collapsed: `.dmt` paints its OWN canvas (`--canvas`, a cool light
+ *      base, the grouped-list pattern) and the brand glow pools sit on that
+ *      canvas, giving the glass a lit backdrop everywhere instead of only in
+ *      two spots. Cards are then translucent fill + backdrop blur + saturate
+ *      (the host's own DropOverlay recipe) floating ABOVE the canvas, so the
+ *      panel reads brighter and cooler than its surroundings — which is what
+ *      "透亮" is: contrast between the pane and what is behind it, not a
+ *      lower alpha on a white-on-white stack.
+ *      Depth comes from three edges, not one: a specular top edge, a faint
+ *      dark bottom edge (the pane has thickness), and a two-part shadow —
+ *      a 1px contact line plus a wide negative-spread ambient (positive
+ *      spread on a light page is grey glow, not depth). Blur radius and
+ *      saturation are tiered by surface size (`.tin` > `.group` > chip), so
+ *      the board has thick glass and thin glass rather than one setting.
+ *      The expanded detail is glass too but as a recessed ink tray with NO
+ *      second backdrop-filter — blur inside blur reads as mud, and the
+ *      group's own filter already covers the tray's backdrop.
  *
  * Layout: a day group is one bordered container of hairline-separated rows,
  * and a row is one line — dot · date · ticker · action · size · verdict ·
@@ -50,35 +64,69 @@
   --border:var(--dsw-alias-border-l1, rgba(17,24,39,.06));
   --border2:var(--dsw-alias-border-l2, rgba(17,24,39,.10));
   --hover:var(--dsw-alias-interactive-bg-hover, rgba(17,24,39,.05));
-  --ok:#1B8644;
+  /* P&L semantics, re-derived for the new material. Contrast is owed against
+     what a pixel actually IS, not against the token the surface came from,
+     and this board now has three different text beds — measured on the live
+     build at 1440px: the day pane 251.7, the header pane over the glow 243.6,
+     the expanded tray 231.5. `.pnl` is 15.5px/700, bold but under 18.66px, so
+     it is normal text and owes 4.5:1.
+       #1B8644 (old) → 4.51 / 4.31 / 3.83 — it only ever passed because the
+       card used to be pure white, and it already failed inside the tray.
+       #18763E (new) → 5.54 / 5.29 / 4.70, and 5.21 on the opaque `.t1` chip.
+       #AA6924 (old) → 4.31 / 4.11 / 3.66, under AA on white too (4.42).
+       #8F571B (new) → 5.78 / 5.51 / 4.90.
+       #C01313 → 6.13 / 5.85 / 5.20, already clear, unchanged.
+     The darker green also lands the up-colour at the same visual weight as
+     the down-colour (the old pair was ~50% apart in luminance, so gains
+     shouted louder than losses). */
+  --ok:#18763E;
   --ok-soft:#E6FAED;
   --bad:#C01313;
   --bad-soft:#FDEBEE;
-  --warn:#AA6924;
-  --warn-soft:rgba(170,105,36,.10);
+  --warn:#8F571B;
+  --warn-soft:rgba(143,87,27,.10);
   --shadow-sm:0 1px 2px rgba(16,24,40,.04);
   --tint-soft:rgba(0,0,0,.03);
   --tint-border:rgba(0,0,0,.05);
   --tint-mid:rgba(0,0,0,.08);
   --tint-strong:rgba(0,0,0,.12);
-  --t1-up-border:rgba(27,132,68,.18);
+  --t1-up-border:rgba(24,118,62,.18);
   --t1-down-border:rgba(192,19,19,.18);
-  /* Glass material (rule 4). `--glass-fill` is the translucent card surface;
-     `--sheen` is the top light that fades out down the panel; `--edge-light`
-     is the specular 1px top edge; `--shadow-ambient` uses a negative spread
-     so it reads as depth on a light page instead of grey glow. `--card-solid`
-     is the OPAQUE composite of the glass over the page — timeline dots punch
-     through the rail with it, because a translucent dot would let the rail
-     show through. The two radial glows are the light source behind the glass:
-     anchored to the top of the board so the first screen has something to
-     blur, scrolling away naturally with the content. */
-  --glass-fill:color-mix(in srgb, var(--surface) 78%, transparent);
-  --sheen:linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,0) 96px);
-  --edge-light:rgba(255,255,255,.65);
-  --shadow-ambient:0 12px 32px -14px rgba(16,24,40,.18);
-  --card-solid:#FFFFFF;
-  --glow-1:rgba(65,118,230,.12);
-  --glow-2:rgba(120,106,240,.08);
+  /* Glass material (rule 4).
+     `--canvas` is the board's own base layer — the piece the host's light
+     theme does not provide (its bg-base and bg-layer-1 are both #FFF), and
+     without it every card is white glass over a white page, which measures
+     255 inside the card and cannot read as glass at any alpha.
+     `--glass-fill` is the card pane, `--glass-fill-2` the thicker pour for
+     the two large surfaces; `--sheen` is the top light, decaying fast so it
+     reads as a specular gradient and not as a milky wash; `--edge-light` /
+     `--edge-dark` are the 1px lit and shaded edges that give the pane
+     thickness; `--shadow-ambient` is a 1px contact line plus a wide
+     negative-spread ambient (positive spread on a light page is grey glow,
+     not depth). `--tray-fill` / `--tray-shadow` are the recessed well the
+     expanded detail sits in. `--card-solid` is the OPAQUE composite of the
+     glass AND the tray over the canvas — timeline dots punch through the
+     rail with it, because a translucent dot would let the rail show through
+     their centre; it tracks the material, so it moves when the fill moves.
+     The three radial glows are the light sources on the canvas: two anchored
+     to the top of the board (the first screen always has something to blur,
+     scrolling away naturally with the content) and one anchored to its
+     bottom, so a long list is lit at both ends instead of running out into
+     bare canvas. One hue family (brand blue + its violet neighbour) on
+     purpose — a third unrelated accent reads as decoration, not as light. */
+  --canvas:#F0F2F7;
+  --glass-fill:color-mix(in srgb, var(--surface) 74%, transparent);
+  --glass-fill-2:color-mix(in srgb, var(--surface) 66%, transparent);
+  --sheen:linear-gradient(180deg, rgba(255,255,255,.72), rgba(255,255,255,.16) 34px, rgba(255,255,255,0) 108px);
+  --edge-light:rgba(255,255,255,.90);
+  --edge-dark:rgba(16,24,40,.05);
+  --shadow-ambient:0 1px 2px -1px rgba(16,24,40,.10), 0 18px 44px -20px rgba(16,24,40,.34);
+  --tray-fill:linear-gradient(180deg, rgba(16,24,40,.055), rgba(16,24,40,.028) 64px);
+  --tray-shadow:inset 0 1px 3px -1px rgba(16,24,40,.13);
+  --card-solid:#F3F4F6;
+  --glow-1:rgba(65,118,230,.16);
+  --glow-2:rgba(104,108,238,.115);
+  --glow-3:rgba(65,118,230,.07);
   --radius:12px;
   --font:var(--dsw-font-family, -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif);
   --mono:var(--ds-font-family-code, ui-monospace,SFMono-Regular,Menlo,Consolas,monospace);
@@ -86,9 +134,15 @@
   color:var(--text);
   -webkit-font-smoothing:antialiased;
   min-height:100%;
-  background:
-    radial-gradient(780px 360px at 20% -60px, var(--glow-1), transparent 70%) no-repeat,
-    radial-gradient(880px 420px at 88% 300px, var(--glow-2), transparent 72%) no-repeat
+  /* Canvas first, glows on top of it. Declared as longhands so the canvas
+     colour survives the reduced-transparency override, which only drops the
+     image layer. */
+  background-color:var(--canvas);
+  background-image:
+    radial-gradient(900px 420px at 20% -40px, var(--glow-1), transparent 70%),
+    radial-gradient(980px 460px at 88% 260px, var(--glow-2), transparent 72%),
+    radial-gradient(820px 400px at 44% 100%, var(--glow-3), transparent 70%);
+  background-repeat:no-repeat
 }
 /* Dark theme: only what the host tokens do not carry — the semantic P&L
    colours, the alpha tints layered on a dark surface and the glass material
@@ -98,7 +152,11 @@
 body[data-ds-dark-theme] .dmt {
   --ok:#3FCB74;
   --ok-soft:#153824;
-  --bad:#F2554F;
+  /* Measured on the dark pane after the new pour (47.7,47.3,51.0): #F2554F is
+     3.91:1 and was already 4.01:1 before it — under AA on both. #FA716A is
+     4.82:1 there and 5.32:1 on the header pane. Green (6.32) and amber (6.20)
+     were already clear and are unchanged. */
+  --bad:#FA716A;
   --bad-soft:#3B1516;
   --warn:#E0A752;
   --warn-soft:rgba(224,167,82,.14);
@@ -108,16 +166,25 @@ body[data-ds-dark-theme] .dmt {
   --tint-mid:rgba(255,255,255,.12);
   --tint-strong:rgba(255,255,255,.18);
   --t1-up-border:rgba(63,203,116,.35);
-  --t1-down-border:rgba(242,85,79,.35);
+  --t1-down-border:rgba(250,113,106,.35);
   /* #232324 = the host's own dark layer-1 (neutral-bluish-875): the opaque
-     composite the timeline dots punch with. */
-  --glass-fill:color-mix(in srgb, var(--surface) 76%, transparent);
-  --sheen:linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,0) 160px);
-  --edge-light:rgba(255,255,255,.10);
-  --shadow-ambient:0 14px 34px -16px rgba(0,0,0,.55);
+     composite the timeline dots punch with. Kept as-is after the new pour —
+     measured, the dark tray lands at 41 and the dot at 35, so it still reads
+     as a punched ring rather than a bright disc. (The light theme's
+     `--card-solid` had to move: its tray got lighter, not darker.) */
+  --canvas:var(--page);
+  --glass-fill:color-mix(in srgb, var(--surface) 70%, transparent);
+  --glass-fill-2:color-mix(in srgb, var(--surface) 62%, transparent);
+  --sheen:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.03) 40px, rgba(255,255,255,0) 170px);
+  --edge-light:rgba(255,255,255,.14);
+  --edge-dark:rgba(0,0,0,.30);
+  --shadow-ambient:0 1px 2px -1px rgba(0,0,0,.50), 0 20px 48px -22px rgba(0,0,0,.72);
+  --tray-fill:linear-gradient(180deg, rgba(0,0,0,.30), rgba(0,0,0,.16) 64px);
+  --tray-shadow:inset 0 1px 3px -1px rgba(0,0,0,.45);
   --card-solid:#232324;
-  --glow-1:rgba(108,151,242,.13);
-  --glow-2:rgba(146,124,242,.09)
+  --glow-1:rgba(108,151,242,.20);
+  --glow-2:rgba(146,124,242,.15);
+  --glow-3:rgba(108,151,242,.10)
 }
 /* The header is not a bar across the view, and it does not hold the viewport
    hostage while you scroll. Two pieces:
@@ -145,14 +212,17 @@ body[data-ds-dark-theme] .dmt {
   padding:10px 12px 11px;
   /* Glass, not paint (rule 4). The opaque surface is declared first so an
      engine without color-mix falls back to the old solid card; the glass line
-     layers the sheen ON TOP of the translucent fill. */
+     layers the sheen ON TOP of the translucent fill. This is the board's
+     largest single pane, so it gets the thick pour: the widest blur and the
+     strongest saturation lift, which is what makes the brand glow read as
+     colour through the pane rather than as grey. */
   background:var(--surface);
-  background:var(--sheen), var(--glass-fill);
-  -webkit-backdrop-filter:blur(14px) saturate(1.4);
-  backdrop-filter:blur(14px) saturate(1.4);
+  background:var(--sheen), var(--glass-fill-2);
+  -webkit-backdrop-filter:blur(28px) saturate(1.85);
+  backdrop-filter:blur(28px) saturate(1.85);
   border:1px solid var(--border2);
   border-radius:var(--radius);
-  box-shadow:var(--shadow-ambient), inset 0 1px 0 var(--edge-light)
+  box-shadow:var(--shadow-ambient), inset 0 1px 0 var(--edge-light), inset 0 -1px 0 var(--edge-dark)
 }
 .dmt .tt {
   display:flex;
@@ -233,10 +303,10 @@ body[data-ds-dark-theme] .dmt {
      backdrop blur + a saturate lift, see ui-attachment/DropOverlay). The
      opaque colour comes first so an engine without color-mix degrades to the
      pre-frost plain band instead of a transparent one (#833). */
-  background:var(--page);
-  background:color-mix(in srgb, var(--page) 72%, transparent);
-  -webkit-backdrop-filter:blur(14px) saturate(1.5);
-  backdrop-filter:blur(14px) saturate(1.5);
+  background:var(--canvas);
+  background:color-mix(in srgb, var(--canvas) 62%, transparent);
+  -webkit-backdrop-filter:blur(24px) saturate(1.8);
+  backdrop-filter:blur(24px) saturate(1.8);
   padding:8px 0 6px
 }
 /* The composer-seat trick from ConversationRoot: a short fade band under the
@@ -250,7 +320,7 @@ body[data-ds-dark-theme] .dmt {
   top:100%;
   height:9px;
   pointer-events:none;
-  background:linear-gradient(180deg, color-mix(in srgb, var(--page) 45%, transparent), transparent)
+  background:linear-gradient(180deg, color-mix(in srgb, var(--canvas) 45%, transparent), transparent)
 }
 .dmt .bin {
   box-sizing:border-box;
@@ -363,14 +433,16 @@ body[data-ds-dark-theme] .dmt {
   gap:0 10px;
   border:1px solid var(--border2);
   border-radius:var(--radius);
-  /* Same glass as the header card (rule 4); opaque fallback first. The
-     group's filter covers its whole box — including the expanded detail —
-     which is why the tray inside needs no blur of its own. */
+  /* Same recipe as the header card (rule 4), one tier thinner — a day group
+     is a stack of rows, not a single slab, so it sits closer to the canvas
+     than `.tin` does. Opaque fallback first. The group's filter covers its
+     whole box — including the expanded detail — which is why the tray inside
+     needs no blur of its own. */
   background:var(--surface);
   background:var(--sheen), var(--glass-fill);
-  -webkit-backdrop-filter:blur(14px) saturate(1.4);
-  backdrop-filter:blur(14px) saturate(1.4);
-  box-shadow:var(--shadow-ambient), inset 0 1px 0 var(--edge-light);
+  -webkit-backdrop-filter:blur(20px) saturate(1.7);
+  backdrop-filter:blur(20px) saturate(1.7);
+  box-shadow:var(--shadow-ambient), inset 0 1px 0 var(--edge-light), inset 0 -1px 0 var(--edge-dark);
   overflow:hidden
 }
 /* Every row draws on the day's tracks (`subgrid`), so ticker, action and size
@@ -603,18 +675,21 @@ body[data-ds-dark-theme] .dmt {
   padding:0
 }
 /* The expanded detail is glass too (kcn: 点开也应该是透明的质感) — but as a
-   translucent INK tray with no backdrop-filter of its own: the group's filter
+   recessed INK well with no backdrop-filter of its own: the group's filter
    already blurs everything behind this box, and blur inside blur reads as
-   mud. The inset hairline + faint ink wash + specular edge make it read as a
-   recessed panel sitting on the frosted group, and the side margins keep the
-   group's rounded rail visible around it. */
+   mud. The lighting is inverted on purpose — the ink wash is darkest at the
+   top and a shadow falls from the upper lip, while the specular line moves to
+   the BOTTOM inner edge. That is what a recess looks like; the previous
+   top-lit edge was the raised-panel language on a sunken box, which is why
+   the open state read as another flat card. The side margins keep the group's
+   rounded rail visible around it. */
 .dmt .dbody {
   margin:0 10px 10px;
   padding:12px;
   border:1px solid var(--tint-border);
   border-radius:10px;
-  background:var(--tint-soft);
-  box-shadow:inset 0 1px 0 var(--edge-light)
+  background:var(--tray-fill);
+  box-shadow:var(--tray-shadow), inset 0 -1px 0 var(--edge-light)
 }
 .dmt .trhead {
   display:flex;
@@ -759,7 +834,7 @@ body[data-ds-dark-theme] .dmt {
   border:1px dashed var(--tint-border);
   border-radius:var(--radius);
   background:var(--glass-fill);
-  box-shadow:inset 0 1px 0 var(--edge-light)
+  box-shadow:inset 0 1px 0 var(--edge-light), inset 0 -1px 0 var(--edge-dark)
 }
 .dmt .trace-more {
   display:block;
@@ -793,9 +868,9 @@ body[data-ds-dark-theme] .dmt {
   border-radius:var(--radius);
   background:var(--surface);
   background:var(--sheen), var(--glass-fill);
-  -webkit-backdrop-filter:blur(14px) saturate(1.4);
-  backdrop-filter:blur(14px) saturate(1.4);
-  box-shadow:var(--shadow-ambient), inset 0 1px 0 var(--edge-light);
+  -webkit-backdrop-filter:blur(20px) saturate(1.7);
+  backdrop-filter:blur(20px) saturate(1.7);
+  box-shadow:var(--shadow-ambient), inset 0 1px 0 var(--edge-light), inset 0 -1px 0 var(--edge-dark);
   margin:8px 0
 }
 .dmt .skel-dot {
@@ -989,22 +1064,35 @@ body[data-ds-dark-theme] .dmt {
     left:3px
   }
   /* Blur is the expensive part on phone GPUs — halve the radius on every
-     glass surface, keep the saturate lift so the material still reads. */
-  .dmt .tin,
+     glass surface, keep the saturate lift so the material still reads, and
+     keep the desktop tiering (thick pane / thin pane) rather than collapsing
+     every surface onto one radius. */
+  .dmt .tin {
+    -webkit-backdrop-filter:blur(14px) saturate(1.85);
+    backdrop-filter:blur(14px) saturate(1.85)
+  }
   .dmt .group,
   .dmt .skel {
-    -webkit-backdrop-filter:blur(7px) saturate(1.4);
-    backdrop-filter:blur(7px) saturate(1.4)
+    -webkit-backdrop-filter:blur(10px) saturate(1.7);
+    backdrop-filter:blur(10px) saturate(1.7)
+  }
+  .dmt .bar {
+    -webkit-backdrop-filter:blur(12px) saturate(1.8);
+    backdrop-filter:blur(12px) saturate(1.8)
   }
 }
 
 /* Reduced transparency: frost over — solid surfaces, no blur, no sheen or
    glow (they are light THROUGH material; on solid paint they are just
    gradient cruft), the bar's fade band goes with it, shadows return to the
-   host's own lv2. */
+   host's own lv2. The canvas STAYS: it is flat paint, not material, and it is
+   the only thing separating an opaque white card from an opaque white page —
+   dropping it would hand this user back the flat board the whole batch is
+   about. The tray's inverted wash flattens to the plain ink tint for the same
+   reason a sheen does. */
 @media (prefers-reduced-transparency: reduce) {
   .dmt {
-    background:none
+    background-image:none
   }
   .dmt .tin,
   .dmt .group,
@@ -1014,8 +1102,14 @@ body[data-ds-dark-theme] .dmt {
     backdrop-filter:none;
     box-shadow:var(--dsw-shadow-lv2, var(--shadow-sm))
   }
+  .dmt .dbody {
+    background:var(--tint-soft);
+    box-shadow:none
+  }
   .dmt .bar {
-    background:var(--page)
+    background:var(--canvas);
+    -webkit-backdrop-filter:none;
+    backdrop-filter:none
   }
   .dmt .bar::after {
     content:none
@@ -1038,9 +1132,9 @@ body[data-ds-dark-theme] .dmt {
   --cap:var(--dsw-alias-label-caption, #ADB2B8);
   --brand:var(--dsw-alias-state-business-primary, #4176E6);
   --hover:var(--dsw-alias-interactive-bg-hover, rgba(17,24,39,.05));
-  --ok:#1B8644;
+  --ok:#18763E;
   --bad:#C01313;
-  --warn:#AA6924;
+  --warn:#8F571B;
   --shadow-lg:0 16px 40px rgba(16,24,40,.16), 0 2px 10px rgba(16,24,40,.08);
   --tint-border:rgba(0,0,0,.05);
   --pop-surface:rgba(255,255,255,.72);
@@ -1051,7 +1145,7 @@ body[data-ds-dark-theme] .dmt {
 }
 body[data-ds-dark-theme] .pbc {
   --ok:#3FCB74;
-  --bad:#F2554F;
+  --bad:#FA716A;
   --warn:#E0A752;
   --shadow-lg:0 16px 40px rgba(0,0,0,.52), 0 2px 10px rgba(0,0,0,.36);
   --tint-border:rgba(255,255,255,.08);
@@ -1068,9 +1162,9 @@ body[data-ds-dark-theme] .pbc {
   border-radius:13px;
   border:1px solid var(--tint-border);
   background:var(--surface);
-  background:color-mix(in srgb, var(--surface) 62%, transparent);
-  -webkit-backdrop-filter:blur(10px) saturate(1.6);
-  backdrop-filter:blur(10px) saturate(1.6);
+  background:color-mix(in srgb, var(--surface) 58%, transparent);
+  -webkit-backdrop-filter:blur(12px) saturate(1.75);
+  backdrop-filter:blur(12px) saturate(1.75);
   box-shadow:var(--dsw-shadow-lv1, 0 1px 2px rgba(16,24,40,.04)), inset 0 1px 0 var(--edge-light);
   font:500 12px/1 var(--font);
   color:var(--text3);
@@ -1164,8 +1258,8 @@ body[data-ds-dark-theme] .pbc {
   border:1px solid var(--tint-border);
   background:var(--surface);
   background:color-mix(in srgb, var(--pop-surface) 100%, transparent);
-  -webkit-backdrop-filter:blur(28px) saturate(1.8);
-  backdrop-filter:blur(28px) saturate(1.8);
+  -webkit-backdrop-filter:blur(30px) saturate(1.9);
+  backdrop-filter:blur(30px) saturate(1.9);
   box-shadow:var(--shadow-lg), inset 0 1px 0 var(--edge-light);
   transform-origin:top right;
   transition:transform .16s cubic-bezier(.23,1,.32,1),opacity .16s cubic-bezier(.23,1,.32,1)
