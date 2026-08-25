@@ -1024,21 +1024,34 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
 
 
 def _decision_provenance(packet: dict, ticker: str) -> dict | None:
-    """Machine-owned point-in-time signal state for one ledger decision."""
+    """Machine-owned point-in-time signal state for one ledger decision.
+
+    Hot/cold tiering (#1039): only fields with a reader of the persisted copy
+    survive here. The one live consumer is the ledger's prospective overlay
+    metrics, which reads ``sizing`` (+ ``schema_version`` as its gate); the
+    identity fields keep the snapshot hash-bound to its generation. The cold
+    majority — ``information.attention_components``/``event_components`` and
+    the whole ``factor``/``peer_residual`` blocks — had zero readers from
+    storage yet was ~85% of per-decision bytes (Aug 2026 plans averaged 42KB,
+    3.5 months at 4.4x). Every dropped block is recoverable from a canonical
+    store: news/factor/peer histories are committed daily under the #951
+    rolling windows, and the full generation-bound packet stays on disk in the
+    preflight run bundle. Persisting the copies re-uploaded the same bytes into
+    every plan row, every ledger row and every future clone.
+    """
     row = (packet.get("tickers") or {}).get(str(ticker))
     if not row:
         return None
     execution = row.get("execution") or {}
     quant = row.get("quant") or {}
+    information = copy.deepcopy(row.get("information") or {})
+    for cold_key in ("attention_components", "event_components"):
+        information.pop(cold_key, None)
     return {
         "schema_version": 1,
         "context_generation_id": (packet.get("_meta") or {}).get("generation_id"),
         "observed_at": packet.get("generated_at"),
-        "information": copy.deepcopy(row.get("information") or {}),
-        "factor": copy.deepcopy(quant.get("factor") or {}),
-        "peer_residual": copy.deepcopy(quant.get("peer_residual") or {}),
-        "add_authority": copy.deepcopy(quant.get("add_authority") or {}),
-        "early_trend": copy.deepcopy(quant.get("early_trend") or {}),
+        "information": information,
         "sizing": copy.deepcopy(execution.get("information_overlay") or {}),
         "authority": {
             "max_add_shares": (row.get("constraints") or {}).get("max_add_shares"),
@@ -1056,7 +1069,9 @@ def bind_plan_provenance(plan: dict, packet: dict) -> dict:
 
     The packet is hash-bound to the preflight generation.  Persisting this copy
     is what makes later T+1/T+5/T+20 attribution use the facts visible at the
-    decision, rather than today's revised news/factor files.
+    decision, rather than today's revised news/factor files. Only the hot tier
+    persists (see ``_decision_provenance``); cold signal detail stays in the
+    run bundle on disk and in the committed #951 history series.
     """
     bound = copy.deepcopy(plan)
     for decision in bound.get("decisions") or []:

@@ -801,11 +801,23 @@ def test_plan_provenance_is_replaced_from_generation_bound_packet():
 
     provenance = bound["decisions"][0]["signal_provenance"]
     assert provenance["context_generation_id"] == packet["_meta"]["generation_id"]
-    assert provenance["information"] == packet["tickers"]["00100"]["information"]
+    # Hot tier (#1039): scalars the overlay metrics and identity fields read.
     assert provenance["information"].get("signed_score") != 999
-    assert provenance["early_trend"] == (
-        packet["tickers"]["00100"]["quant"]["early_trend"]
+    assert provenance["information"] == {
+        k: v for k, v in packet["tickers"]["00100"]["information"].items()
+        if k not in ("attention_components", "event_components")
+    }
+    assert provenance["sizing"] == (
+        packet["tickers"]["00100"]["execution"]["information_overlay"]
     )
+    # Cold tier: zero-reader bulk whose canonical stores are the committed
+    # news/factor/peer histories plus the on-disk run bundle. Must not come
+    # back: one regression here re-grows master ~3MB/month (see #1039).
+    for cold_key in ("attention_components", "event_components"):
+        assert cold_key not in provenance["information"]
+    for cold_block in ("factor", "peer_residual", "add_authority",
+                       "early_trend"):
+        assert cold_block not in provenance
 
 
 def _catalyst(action, evidence_id, ticker="00100"):
