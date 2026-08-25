@@ -2,11 +2,22 @@
      CSS Variables — dark first, light overrides via @media
      ========================================================= */
   :root {
-    --bg: #070A0F;
-    --bg-glow: rgba(54,163,255,.16);
-    --bg-glow-2: rgba(40,192,141,.055);
-    --surface-0: #0B1017;
-    --surface-1: #0F1620;
+    /* 2026-08-25 材质批：canvas 与 surface 先拉开 headroom。「透亮」是面与
+       背后的对比，不是更低的 alpha —— before 实测（1440×1400）玻璃面比旁边
+       裸底还暗 8~11 级：面是「压在光上的暗板」，不是「透光的材质」。页底压
+       深、材质色提亮，玻璃才有可住的中间地带。同一条判据刚在 DSH 插件 #995
+       被像素实测坐实（白玻璃盖白页=面底差 0 级）。 */
+    --bg: #05070C;
+    /* 光池全部收进品牌蓝一族。原来的副光是 --positive 那支绿——既是色彩预算
+       外的第四种装饰色，又让整页底色偏绿＝「在赚」，和主数说的话打架。
+       三盏而不是两盏：顶部主光 + 右下副光 + 左下锚定光。before 取证：沟槽
+       灰阶从顶部 33 跌到中部 22 后就不再变化——长页下半段背后是裸底，判定卡
+       /统计条的玻璃糊的是一块平色。第三盏给下半段补上可糊的光。 */
+    --bg-glow: rgba(54,163,255,.26);
+    --bg-glow-2: rgba(48,132,226,.11);
+    --bg-glow-3: rgba(84,168,255,.08);
+    --surface-0: #0A0F17;
+    --surface-1: #131E2C;
     --surface-2: #141E2A;
     --surface-3: #1A2634;
     --overlay: #202E3E;
@@ -71,17 +82,33 @@
     --spec-2: rgba(255,255,255,.085);
     --sheen-1: linear-gradient(180deg, rgba(255,255,255,.038), rgba(255,255,255,0) 88px);
     --sheen-2: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.012) 180px, rgba(255,255,255,0));
+    /* 厚度是三条边，不是一条。只有 specular 顶边的表面读成一张贴纸；补上
+       「暗底边」和更深的接触线之后才是一块有厚度的板压在页面上。
+       before 实测：deck/verdict 落影带只比远底深 2~3 级 = 深度不可读。 */
+    --edge-bottom: inset 0 -1px 0 rgba(0,0,0,.55);
     --shadow-topbar: 0 1px 0 rgba(0,0,0,.2), 0 8px 24px rgba(0,0,0,.22);
     --shadow-card:
-      0 1px 2px rgba(0,0,0,.38),
-      0 10px 28px -10px rgba(0,0,0,.62);
+      0 1px 2px -1px rgba(0,0,0,.62),
+      0 14px 34px -14px rgba(0,0,0,.7);
     --shadow-card-hover:
-      0 1px 2px rgba(0,0,0,.42),
-      0 18px 44px -14px rgba(0,0,0,.7);
-    --glass-topbar: rgba(11,16,23,.6);
-    /* 指挥台毛玻璃：整页第二块浮动层。Apple「更大的表面 = 更厚的材质」——
-       主面比 topbar 更实一点、blur 更深；light 主题由 color-mix 随 surface-1 走。 */
-    --glass-card: color-mix(in srgb, var(--surface-1) 55%, transparent);
+      0 1px 2px -1px rgba(0,0,0,.66),
+      0 22px 52px -16px rgba(0,0,0,.78);
+    --glass-topbar: rgba(11,16,23,.52);
+    /* ── 玻璃分档（2026-08-25）────────────────────────────────────
+       首屏此前 deck/verdict 共用同一个 --glass-card（55%），strip 干脆是
+       实心 —— 三块表面读成「同一种板铺了两遍+一块死板」。厚薄要由填充
+       浓度 + 饱和提升 + 边的亮度一起说，方向是物理的：越厚越靠近材质自己
+       的颜色，越薄越透出背后。saturate 才是「玻璃」的真凭据：同一盏光池
+       在玻璃里比在玻璃外更蓝，这个色度差是纯 alpha 调不出来的。
+         deck    最大的面 → 最厚：填充最浓、blur 最深、saturate 最高
+         card    verdict 中间档
+         thin    strip / 次要表面最薄一档（次要表面本来就该退后） */
+    --glass-deck: color-mix(in srgb, var(--surface-1) 62%, transparent);
+    --glass-card: color-mix(in srgb, var(--surface-1) 57%, transparent);
+    --glass-thin: color-mix(in srgb, var(--surface-1) 44%, transparent);
+    --blur-deck: blur(30px) saturate(200%);
+    --blur-card: blur(22px) saturate(182%);
+    --blur-thin: blur(14px) saturate(166%);
     --radius: 10px;
     --radius-sm: 6px;
     --gap: 12px;
@@ -145,9 +172,14 @@
   .sect-divider { letter-spacing: var(--tr-lg); }
   @media (prefers-color-scheme: light) {
     :root {
-      --bg: #F3F6F9;
-      --bg-glow: rgba(64,140,196,.16);
-      --bg-glow-2: rgba(8,115,79,.05);
+      /* 亮色 canvas 纸色：白玻璃要有可对的底。before 实测亮色面底只差
+         11~20 级且无色度差（strip 甚至纯白 255 打在 233 的底上）—— #995
+         同款判据：先给页面一个非白的 canvas，白玻璃才有得透。 */
+      --bg: #E7ECF3;
+      /* 副光同样从绿改蓝（理由同 :root：第四种装饰色 + 底色偏绿）。 */
+      --bg-glow: rgba(64,140,196,.22);
+      --bg-glow-2: rgba(48,132,226,.10);
+      --bg-glow-3: rgba(84,168,255,.07);
       --surface-0: #F8FAFC;
       --surface-1: #FFFFFF;
       --surface-2: #F2F5F8;
@@ -174,17 +206,22 @@
          is what does the separating (it reads fine on a light page). */
       --spec-1: rgba(255,255,255,.9);
       --spec-2: rgba(255,255,255,1);
+      --edge-bottom: inset 0 -1px 0 rgba(18,33,48,.16);
       --sheen-1: linear-gradient(180deg, rgba(255,255,255,.6), rgba(255,255,255,0) 88px);
       --sheen-2: linear-gradient(180deg, rgba(255,255,255,.75), rgba(255,255,255,.2) 180px, rgba(255,255,255,0));
       --shadow-topbar: 0 1px 0 rgba(18,33,48,.06), 0 8px 24px rgba(18,33,48,.08);
       --shadow-card:
-        0 1px 2px rgba(18,33,48,.06),
-        0 10px 28px -10px rgba(18,33,48,.14);
+        0 1px 2px -1px rgba(18,33,48,.1),
+        0 14px 34px -14px rgba(18,33,48,.22);
       --shadow-card-hover:
-        0 1px 2px rgba(18,33,48,.07),
-        0 18px 44px -14px rgba(18,33,48,.18);
+        0 1px 2px -1px rgba(18,33,48,.12),
+        0 22px 52px -16px rgba(18,33,48,.26);
       --glass-topbar: rgba(248,250,252,.72);
-      --glass-card: color-mix(in srgb, var(--surface-1) 58%, transparent);
+      /* 亮色玻璃分档：白玻璃按同一物理方向分厚薄（deck 厚 → thin 薄）。
+         白玻璃的「透」读的是 canvas 纸色与光池从面下透出来的程度。 */
+      --glass-deck: color-mix(in srgb, #FFFFFF 64%, transparent);
+      --glass-card: color-mix(in srgb, #FFFFFF 50%, transparent);
+      --glass-thin: color-mix(in srgb, #FFFFFF 42%, transparent);
     }
     /* Preserve the quiet timestamp hierarchy without blending below WCAG AA.
        Written as `.muted.asof-faded` on purpose: every element carrying this
@@ -201,6 +238,17 @@
 
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
+  /* 手机（≤560px）blur 减半保 saturate（#995 同款判据）：小屏上大面积
+     blur 的渲染代价与玻璃读感不成比例，半径减半、饱和保留——色度差才是
+     「这是玻璃」的真凭据。 */
+  @media (max-width: 560px) {
+    :root {
+      --blur-deck: blur(15px) saturate(200%);
+      --blur-card: blur(11px) saturate(182%);
+      --blur-thin: blur(7px) saturate(166%);
+    }
+  }
+
   /* OS-level reduced motion: kill decorative animation (banner pulse, refresh spin,
      bar transitions). JS smooth-scrolls check the same media query. */
   @media (prefers-reduced-motion: reduce) {
@@ -211,33 +259,42 @@
     }
   }
   /* OS-level reduced transparency: drop the frosted surfaces back to solid
-     (apple-design skill: frostier/solid, blur off). */
+     (apple-design skill: frostier/solid, blur off).
+     ⚠ 特异度必须压过文件后段的单类名主规则——2026-08-25 CDP 实测：本块自
+     #887 落地起就因「同特异度后者赢」对 .topbar/.hero-deck/.status-banner
+     全部失效，只有双类名的 .card.overview-verdict 真正生效过。全部选择器加
+     body 前缀（0,1,1）是结构性修法，别再依赖源码顺序。 */
   @media (prefers-reduced-transparency: reduce) {
-    .topbar,
-    .refresh-btn,
-    .desk-rail,
-    .status-banner,
-    .hero-deck,
-    .overview-verdict {
+    body .topbar,
+    body .refresh-btn,
+    body .desk-rail,
+    body .status-banner,
+    body .hero-deck,
+    body .card.overview-verdict,
+    body .overview-strip {
       -webkit-backdrop-filter: none;
       backdrop-filter: none;
     }
-    .topbar { background: var(--surface-0); border-bottom: 1px solid var(--border-strong); }
+    /* 光池与 sheen 一起关（#887 判据：它们是「光穿过材质」，实色表面上
+       就是多余的渐变）。canvas 底色保留——漆不是材质，丢了就把「平」还给
+       这类用户。 */
+    html body { background-color: var(--bg); background-image: none; }
+    body .topbar { background: var(--surface-0); border-bottom: 1px solid var(--border-strong); }
     /* The scroll-edge fade is a translucency effect too — with transparency
        off it would be a grey smear over opaque content. Back to a hairline. */
-    .topbar::after { display: none; }
-    .refresh-btn { background: var(--card); }
-    .desk-rail { background: var(--surface-1); }
-    .status-banner { background: var(--accent-soft); }
-    .hero-deck { background: var(--surface-1); }
-    /* 判定卡的玻璃底是 55% 半透明面：blur 关掉后必须整体回实色，否则变成
-       「无模糊的透底」，背后的文字会从卡里透出来叠字。两段类名提高特异度
-       —— 这条闸在源码里排在 .overview-verdict 本体之前，同特异度会输。 */
-    .card.overview-verdict { background: var(--surface-1); }
+    body .topbar::after { display: none; }
+    body .refresh-btn { background: var(--card); }
+    body .desk-rail { background: var(--surface-1); }
+    body .status-banner { background: var(--accent-soft); }
+    body .hero-deck { background: var(--surface-1); }
+    /* 玻璃面 blur 关掉后必须整体回实色，否则变成「无模糊的透底」，背后的
+       文字会从卡里透出来叠字。 */
+    body .card.overview-verdict { background: var(--surface-1); }
+    body .overview-strip { background: var(--surface-1); }
     /* Same reason the sheens go: they are light passing through a material.
        On an opaque surface they are just a gradient nobody asked for. */
-    .card, .hero-deck, .overview-strip { background-image: none; }
-    .hero-deck-lead::before { display: none; }
+    body .card, body .hero-deck, body .overview-strip { background-image: none; }
+    body .hero-deck-lead::before { display: none; }
   }
   body {
     /* The page's own light. Frosted chrome only reads as frosted if there is
@@ -259,6 +316,7 @@
     background:
       radial-gradient(1240px 860px at 50% -12%, var(--bg-glow), transparent 70%),
       radial-gradient(900px 700px at 88% 108%, var(--bg-glow-2), transparent 72%),
+      radial-gradient(820px 640px at 4% 112%, var(--bg-glow-3), transparent 74%),
       var(--bg);
     background-attachment: fixed;
     color: var(--text);
@@ -658,7 +716,7 @@
     background: var(--sheen-1), var(--card);
     border: 1px solid var(--border-subtle);
     border-radius: 16px;
-    box-shadow: inset 0 1px 0 var(--spec-1), var(--shadow-card);
+    box-shadow: inset 0 1px 0 var(--spec-1), var(--edge-bottom), var(--shadow-card);
     padding: var(--space-4);
     margin-bottom: var(--gap);
     transition: transform var(--duration-fast) var(--ease-out),
@@ -2077,16 +2135,18 @@
        surface reads as a thicker one, so this must be visibly heavier than
        a card, not the same recipe at the same weight. */
     background: var(--surface-1);
-    background: var(--sheen-2), var(--glass-card);
-    -webkit-backdrop-filter: blur(28px) saturate(180%);
-    backdrop-filter: blur(28px) saturate(180%);
+    background: var(--sheen-2), var(--glass-deck);
+    -webkit-backdrop-filter: var(--blur-deck);
+    backdrop-filter: var(--blur-deck);
     border-color: var(--border-strong);
-    /* 比卡片更厚，但阴影下延收在台↔卡的 12px 间距内：--shadow-card-hover
-       的 44px blur 会把整片暗影铺到判定卡顶上，「两块表面」读成「一坨」。
-       收成 24px blur / -16px spread，落影在间距线附近收干净。 */
+    /* 比卡片更厚，但阴影下延收在台↔卡的 12px 间距内：hover 档的 52px blur
+       会把整片暗影铺到判定卡顶上，「两块表面」读成「一坨」。收成 30px blur
+       / -16px spread，落影在间距线附近收干净。三条边 = 高光顶边 + 暗底边 +
+       接触线（#995 同款厚度语言）。 */
     box-shadow: inset 0 1px 0 var(--spec-2),
-                0 1px 2px rgba(0,0,0,.42),
-                0 12px 24px -16px rgba(0,0,0,.7);
+                var(--edge-bottom),
+                0 1px 2px -1px rgba(0,0,0,.5),
+                0 12px 30px -16px rgba(0,0,0,.72);
   }
   /* A soft pool of light under the headline number. Not a coloured box and
      not a glow on the glyphs — an ambient lift behind the focal point, which
@@ -2522,8 +2582,8 @@
        「玻璃里再糊一层玻璃」。 */
     background: var(--surface-1);
     background: var(--sheen-1), var(--glass-card);
-    -webkit-backdrop-filter: blur(24px) saturate(170%);
-    backdrop-filter: blur(24px) saturate(170%);
+    -webkit-backdrop-filter: var(--blur-card);
+    backdrop-filter: var(--blur-card);
     /* 原来的 480px 地板是为和 Equity 卡凑同一行；挪走后按各档实测内容高度
        重新预留（数据到达前占位，否则判定卡长高会把下方整列推下去 —— CLS
        实测 0.11，预留后回到基线）。
@@ -2656,9 +2716,16 @@
     display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, .8fr) minmax(0, .8fr);
     border: 1px solid var(--border-subtle); border-radius: 16px;
     /* 与 .card 同族的三件套（sheen/specular/负 spread 阴影）+ 同一 16px
-       圆角 —— 它原来是裸 div，首屏三块表面里唯一的例外。 */
-    background: var(--sheen-1), var(--surface-1);
-    box-shadow: inset 0 1px 0 var(--spec-1), var(--shadow-card);
+       圆角 —— 它原来是裸 div，首屏三块表面里唯一的例外。
+       2026-08-25：升为最薄的玻璃档。before 实测它是首屏唯一「读得出来」的
+       面（纯白/近黑实心 vs 面底差 20+ 级），但代价是它和 deck/verdict 分属
+       两种材质——首屏三块表面要同一族语言。thin 档让背后的光池透上来，
+       次要表面本来就该退后。 */
+    background: var(--surface-1);
+    background: var(--sheen-1), var(--glass-thin);
+    -webkit-backdrop-filter: var(--blur-thin);
+    backdrop-filter: var(--blur-thin);
+    box-shadow: inset 0 1px 0 var(--spec-1), var(--edge-bottom), var(--shadow-card);
     overflow: hidden;
   }
   .overview-strip-cell {
