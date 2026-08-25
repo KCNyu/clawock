@@ -190,11 +190,16 @@ def test_the_unread_workflow_stage_detail_stays_out(payload):
 
     assert isinstance(wf["counts"], dict)
     assert "raw_error_but_product_usable" in wf
+    # 通道级真值（#772 起在台账里，2026-08-25 起才有读者）：窗口计数 + 逐档
+    # 两个布尔。这不是「把 stages 加回来」—— 上面那条闸删的是 24KB 无人读的
+    # 心跳明细，这里进来的是数据健康卡逐项要点名的那两位。
+    assert "wechat_dropped_telegram_covered" in wf
     for record in wf["recent"]:
         for field in ("job", "slot", "raw_execution", "final_product"):
             assert field in record, field
         assert record["raw_execution"]["status"]
         assert record["final_product"]["status"]
+        assert set(record["primary_delivery"]) == {"wechat_ok", "telegram_ok"}
 
 
 def test_dashboard_trim_keeps_readability_without_full_stage_detail():
