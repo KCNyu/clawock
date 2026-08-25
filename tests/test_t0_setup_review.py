@@ -100,7 +100,7 @@ def test_weekend_rows_never_settle_and_are_disclosed(monkeypatch):
     chase = result["grades"]["chase_low_quality"]
     assert chase["n"] == 20                      # 只有周五的触发入账
     assert chase["hit_rate"] == 1.0              # 100→90 跌，direction=-1 全命中
-    assert result["weekend_rows_excluded"] == 20  # 周六行的 20 条触发被剔除
+    assert result["closed_market_rows_excluded"] == 20  # 周六行的 20 条触发被剔除
 
 
 def test_weekend_only_history_produces_no_observations(monkeypatch):
@@ -114,4 +114,32 @@ def test_weekend_only_history_produces_no_observations(monkeypatch):
     chase = result["grades"]["chase_low_quality"]
     assert chase["n"] == 0
     assert chase["usable"] is False
-    assert result["weekend_rows_excluded"] == 20
+    assert result["closed_market_rows_excluded"] == 20
+
+
+def test_holiday_ghost_rows_never_settle_and_windows_defer_per_market(monkeypatch):
+    """#1056: 工作日节假日（交易日历整日休市）与周末同判，按各自市场。
+
+    2026-07-03 是美股 Independence Day 观察日：US 标的周四的触发顺延到
+    下一个开市留痕日结算；周五幽灵行的收盘不入账——旧实现（只剔周末）
+    会把周四→幽灵行、幽灵行→周一两对都算上，其中重复收盘对 fwd≡0 双向
+    必 miss。同一天 HK 开市，0700 的行是真时段照常结算。
+    """
+    us_thu = {"W": {"grade_label": "追高低质", "close": 100.0}}
+    us_ghost = {"W": {"grade_label": "追高低质", "close": 110.0}}
+    hk_fri = {"0700": {"grade_label": "", "close": 90.0}}
+    us_mon = {"W": {"grade_label": "", "close": 90.0}}
+    days = [
+        {"as_of": "2026-07-02", "rows": {**us_thu, "0700": us_thu["W"]}},
+        {"as_of": "2026-07-03", "rows": {**us_ghost, **hk_fri}},
+        {"as_of": "2026-07-06", "rows": dict(us_mon)},
+    ]
+    result = _run(monkeypatch, days)
+
+    chase = result["grades"]["chase_low_quality"]
+    # US: 周四触发顺延周一(100→90 跌，direction=-1 命中)；HK: 周四触发按
+    # 真实周五时段结算(100→90 命中)。幽灵行不产生观测。
+    assert chase["n"] == 2
+    assert chase["hit_rate"] == 1.0
+    # 只有 US 幽灵行的 1 条触发被剔除并披露（HK 同日是开市真时段）。
+    assert result["closed_market_rows_excluded"] == 1

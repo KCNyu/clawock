@@ -363,7 +363,7 @@ def test_weekend_as_of_rows_never_settle_and_are_disclosed(monkeypatch):
     factor = result["factors"]["trend_on_follow"]
     assert factor["n_events"] == 2   # 周日的触发被剔除，剩 Fri→Mon、Mon→Tue
     assert factor["hit_rate"] == 0.5
-    assert result["weekend_rows_excluded"] == 1
+    assert result["closed_market_rows_excluded"] == 1
 
 
 def test_all_weekend_history_unlocks_nothing(monkeypatch):
@@ -376,4 +376,35 @@ def test_all_weekend_history_unlocks_nothing(monkeypatch):
     factor = result["factors"]["trend_on_follow"]
     assert factor["n_events"] == 0
     assert factor["usable"] is False
-    assert result["weekend_rows_excluded"] == 1
+    assert result["closed_market_rows_excluded"] == 1
+
+
+def test_holiday_ghost_rows_never_settle_and_windows_defer_per_market(monkeypatch):
+    """#1056: 工作日节假日（交易日历整日休市）与周末同判。
+
+    2026-07-03 是美股 Independence Day 观察日：US 标的周四的触发顺延到
+    下一个开市留痕日结算，周五幽灵行的重复收盘（fwd 恒 0、双向必 miss）
+    不产生观测；同一天 HK 开市，0700 的行是真时段照常结算。
+    旧实现（只剔周末）会给出 n=3/hits=1：周四→幽灵行 +10%、幽灵行→周一
+    fwd=0 的伪 miss 也入了账。
+    """
+    days = [
+        {"as_of": "2026-07-02", "rows": {
+            "W": {"close": 100.0, "trend_on": True},
+            "0700": {"close": 100.0, "trend_on": True},
+        }},
+        {"as_of": "2026-07-03", "rows": {
+            "W": {"close": 110.0, "trend_on": True},
+            "0700": {"close": 90.0},
+        }},
+        {"as_of": "2026-07-06", "rows": {"W": {"close": 110.0}}},
+        {"as_of": "2026-07-07", "rows": {"W": {"close": 121.0}}},
+    ]
+    result = _run_review(monkeypatch, days)
+
+    factor = result["factors"]["trend_on_follow"]
+    # W: 周四触发顺延周一(+10% hit)；HK: 周四触发按真实周五时段结算(-10% miss)。
+    assert factor["n_events"] == 2
+    assert factor["hit_rate"] == 0.5
+    # 只有 US 幽灵行上的那次本会触发的计数被剔除并披露。
+    assert result["closed_market_rows_excluded"] == 1
