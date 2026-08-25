@@ -1130,6 +1130,8 @@ async function testVerdictDeckFillsItsBoxAndRanksGatesBySeverity(browser, base) 
     }
     await context.close();
   }
+}
+
 // 数据健康卡：降级/恢复必须点名是哪一档（kcn 2026-08-25：「如果有降级的应该
 // 标注出来是哪个」），微信单通道掉投必须可数、可点名（#771 让它在 summarizer
 // 里可数，但那个计数从没进过任何读者能看到的地方）。
