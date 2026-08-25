@@ -93,8 +93,11 @@ def test_short_history_window_is_config_driven(tmp_path, monkeypatch):
 def test_provisional_setups_fallback_only_for_new_listings(monkeypatch):
     """A 25-bar mature name (or one without a listing date) must NOT get the
     short view — it surfaces as insufficient_bars instead (#608)."""
+    # Relative to today because provisional_setups gates on date.today():
+    # a hardcoded listing_date aged out of the 45-day window on 2026-08-25
+    # and failed both suites from then on (#981).
     new_detail = {'label': 'SKHY', 'code': 'x', 'region': 'US',
-                  'listing_date': '2026-07-10'}
+                  'listing_date': (date.today() - timedelta(days=10)).isoformat()}
     mature = {'label': 'NVDA', 'code': 'y', 'region': 'US',
               'listing_date': '1999-01-22'}
     no_date = {'label': 'ZZZ', 'code': 'z', 'region': 'US'}
