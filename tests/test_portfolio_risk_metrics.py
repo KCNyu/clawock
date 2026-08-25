@@ -277,6 +277,56 @@ def test_build_alerts_does_not_fire_at_the_strict_threshold_boundaries():
     assert risk.build_alerts(us, None, combined, leverage) == []
 
 
+def test_build_alerts_withholds_high_beta_from_a_stale_revived_block():
+    """#1036: `stale` means this run never measured β; the disclosure alert
+    fires instead of a threshold action sourced from unknown-age data."""
+    us = {"beta_spx": 4.4, "stale": True, "stale_since": "2026-08-20T00:00:00+00:00"}
+
+    alerts = risk.build_alerts(us, None, None, {"combined_avg": 1.0})
+
+    assert [alert["type"] for alert in alerts] == ["risk_data_stale"]
+
+
+def test_revive_stale_block_keeps_the_first_failure_timestamp_across_runs():
+    # First failed fetch: the stamp comes from the previous (good) file.
+    revived, stale = risk._revive_stale_block(
+        None, [{"ticker": "PLTU"}], {"beta_spx": 3.4},
+        "current_value_usd", 123.456, "2026-08-25T00:00:00+00:00",
+    )
+
+    assert stale is True
+    assert revived["stale"] is True
+    assert revived["stale_since"] == "2026-08-25T00:00:00+00:00"
+    assert revived["current_value_usd"] == 123.46
+
+    # Second consecutive failure revives an already-stale block: the original
+    # stamp must survive, not walk forward and shrink the disclosed age.
+    revived_again, stale_again = risk._revive_stale_block(
+        None, [{"ticker": "PLTU"}], revived,
+        "current_value_usd", 200.0, "2026-08-26T00:00:00+00:00",
+    )
+
+    assert stale_again is True
+    assert revived_again["stale_since"] == "2026-08-25T00:00:00+00:00"
+    assert revived_again["current_value_usd"] == 200.0
+
+
+def test_revive_stale_block_is_a_noop_without_the_failure_conditions():
+    block = {"beta_spx": 3.4}
+    # Stats exist this run → pass through untouched.
+    assert risk._revive_stale_block(
+        block, [{"ticker": "X"}], {}, "current_value_usd", 1.0,
+    ) == (block, False)
+    # No positions left → nothing to keep alive.
+    assert risk._revive_stale_block(
+        None, [], {"beta_spx": 3.4}, "current_value_usd", 1.0,
+    ) == (None, False)
+    # No usable previous block → nothing to revive from.
+    assert risk._revive_stale_block(
+        None, [{"ticker": "X"}], "junk", "current_value_usd", 1.0,
+    ) == (None, False)
+
+
 def test_dynamic_stream_does_not_let_a_new_listing_truncate_established_names():
     holdings = [
         {

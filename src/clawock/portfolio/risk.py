@@ -1057,8 +1057,13 @@ def build_alerts(us, hk, combined, leverage, correlation=None):
                 ),
             })
     combined_eligible = bool(combined and combined.get('threshold_eligible', True))
+    # β of unknown age must not raise a threshold action (#1036): a stale block
+    # is the last good measurement, not a current one. high_vol/deep_dd below
+    # read `combined`, which compute_combined only ever builds from current
+    # streams — it cannot be revived, so it needs no stale check.
     us_eligible = bool(
-        us and us.get('threshold_eligible', True)
+        us and not us.get('stale')
+        and us.get('threshold_eligible', True)
         and us.get('beta_threshold_eligible', True)
     )
     if (us_eligible and us.get('beta_spx') is not None
@@ -1166,6 +1171,32 @@ def load_risk_config(path: Path | str) -> dict[str, str]:
 
 
 # ----------------------------------------------------------------------------
+# Stale-block revival (#1036)
+# ----------------------------------------------------------------------------
+
+def _revive_stale_block(out_block, holdings, prev_block, value_key, value,
+                        prev_generated_at=None):
+    """If this run produced no stats but we still hold positions, reuse the
+    last good stats and mark stale; always refresh the live position value.
+
+    ``stale_since`` must survive consecutive failures: run N revives the block
+    written by run N-1, so seeding the timestamp from the previous file's
+    ``generated_at`` would walk it forward one failure at a time and shrink the
+    disclosed age of numbers that have not been re-measured since the FIRST
+    failed fetch. An already-stale block keeps its original stamp.
+    """
+    if out_block is not None or not holdings:
+        return out_block, False
+    if not isinstance(prev_block, dict):
+        return out_block, False
+    revived = dict(prev_block)
+    revived['stale'] = True
+    revived['stale_since'] = prev_block.get('stale_since') or prev_generated_at
+    revived[value_key] = round(value, 2)  # live value, never stale
+    return revived, True
+
+
+# ----------------------------------------------------------------------------
 # Main
 # ----------------------------------------------------------------------------
 
@@ -1230,25 +1261,14 @@ def main(argv=None):
         except Exception:
             prev = {}
 
-    def _preserve_stale(out_block, holdings, prev_block, value_key, value):
-        """If this run produced no stats but we still hold positions, reuse the
-        last good stats and mark stale; always refresh the live position value."""
-        if out_block is not None or not holdings:
-            return out_block, False
-        if not isinstance(prev_block, dict):
-            return out_block, False
-        revived = dict(prev_block)
-        revived['stale'] = True
-        revived['stale_since'] = prev.get('generated_at')
-        revived[value_key] = round(value, 2)  # live value, never stale
-        return revived, True
-
     us_value = sum(h['current_value'] for h in us_holdings)
     hk_value = sum(h['current_value'] for h in hk_holdings)
-    us_out, us_stale = _preserve_stale(us_out, us_holdings, prev.get('us'),
-                                       'current_value_usd', us_value)
-    hk_out, hk_stale = _preserve_stale(hk_out, hk_holdings, prev.get('hk'),
-                                       'current_value_hkd', hk_value)
+    us_out, us_stale = _revive_stale_block(us_out, us_holdings, prev.get('us'),
+                                           'current_value_usd', us_value,
+                                           prev.get('generated_at'))
+    hk_out, hk_stale = _revive_stale_block(hk_out, hk_holdings, prev.get('hk'),
+                                           'current_value_hkd', hk_value,
+                                           prev.get('generated_at'))
     if us_stale:
         print('  WARN: US risk fetch empty — kept previous β/vol block (stale), '
               'value refreshed from holdings', file=sys.stderr)
