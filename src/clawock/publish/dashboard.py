@@ -189,6 +189,13 @@ def compile_overview_projection(dashboard):
             'raw_execution': _fields(row.get('raw_execution'), ('status',)),
             'final_product': _fields(row.get('final_product'), ('status',)),
             'readability': _fields(row.get('readability'), ('status', 'bytes')),
+            # Channel truth per slot. The summary count answers "how many did
+            # WeChat drop"; only the per-row flags can answer "which ones", and
+            # the card is the only consumer that can show either (#771 made the
+            # count exist in the summarizer — it never reached a reader).
+            'primary_delivery': _fields(
+                (row.get('stages') or {}).get('primary_delivery'),
+                ('wechat_ok', 'telegram_ok')),
         }
         for row in workflow.get('recent') or [] if isinstance(row, dict)
     ]
@@ -247,7 +254,16 @@ def compile_overview_projection(dashboard):
             'calibration': {'active': active_calibration},
         },
         'workflow_outcomes': {
-            **_fields(workflow, ('counts', 'raw_error_but_product_usable')),
+            **_fields(workflow, (
+                'counts', 'raw_error_but_product_usable',
+                # Computed since #772 and, until now, dropped here: the card
+                # could not answer "how many did WeChat drop this window" even
+                # though the ledger knew. A count with no consumer is not a fix.
+                'wechat_dropped_telegram_covered',
+                # …and "which ones". Both lists are window-wide and capped;
+                # `recent` cannot answer this because it is a tail, not a set.
+                'wechat_dropped_slots', 'degraded_slots',
+            )),
             'recent': compact_recent,
         },
         'risk_guardrail': {
@@ -338,6 +354,14 @@ def trim_workflow_outcomes(summary):
         stages = record.get('stages')
         compact = {k: v for k, v in record.items() if k != 'stages'}
         if isinstance(stages, dict):
+            # 通道位随行留下：数据健康卡的逐项要答「微信掉的是哪几档」，
+            # 而全量 payload 在首帧之后会把 DATA 整个换掉 —— 只在 overview
+            # 投影里留，卡片一秒后就失忆。两个布尔，不是把 stages 加回来。
+            delivery = stages.get('primary_delivery')
+            if isinstance(delivery, dict):
+                compact['primary_delivery'] = {
+                    key: delivery.get(key) for key in ('wechat_ok', 'telegram_ok')
+                }
             # llm is written immediately before the dashboard build, so it is
             # current even on a same-slot retry whose older postflight detail is
             # still present. Both stages carry the same assessment on first run.

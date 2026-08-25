@@ -122,6 +122,55 @@ def test_workflow_card_folds_the_published_ledger_into_counts(monkeypatch, tmp_p
     assert "stages" not in card["recent"][0]
 
 
+def test_the_overview_projection_carries_channel_truth_to_its_reader():
+    """微信掉投在 summarizer 里可数（#771/#772）却从没进过 payload。
+
+    数据健康卡要答两个问题：这一窗口掉了几档（计数）、掉的是哪几档（逐档
+    通道位）。两者都只有 overview 投影能送到读者面前，所以这条闸钉的是
+    「计数与逐档布尔一起过投影」，不是某个渲染字符串。
+    """
+    projection = dashboard.compile_overview_projection({
+        'workflow_outcomes': {
+            'counts': {'success': 2},
+            'raw_error_but_product_usable': 1,
+            'wechat_dropped_telegram_covered': 2,
+            'degraded_slots': [{
+                'job': '港股收盘报告', 'slot': '2026-08-25T16:00:00+08:00',
+                'status': 'recovered',
+            }],
+            'wechat_dropped_slots': [{
+                'job': '港股收盘报告', 'slot': '2026-08-25T16:00:00+08:00',
+            }],
+            'recent': [{
+                'job': '港股收盘报告',
+                'slot': '2026-08-25T16:00:00+08:00',
+                'raw_execution': {'status': 'error'},
+                'final_product': {'status': 'recovered'},
+                'stages': {'primary_delivery': {
+                    'status': 'success', 'channel': 'wechat+telegram',
+                    'wechat_ok': False, 'telegram_ok': True,
+                }},
+            }],
+        },
+    })
+
+    card = projection['workflow_outcomes']
+    assert card['wechat_dropped_telegram_covered'] == 2
+    # 点名用的两张表整张过投影：卡片要答「哪一档降级」「微信掉的是哪几档」，
+    # 而 recent 是尾巴（有条数上限），忙日里一条都装不下。
+    assert card['degraded_slots'] == [
+        {'job': '港股收盘报告', 'slot': '2026-08-25T16:00:00+08:00',
+         'status': 'recovered'},
+    ]
+    assert card['wechat_dropped_slots'] == [
+        {'job': '港股收盘报告', 'slot': '2026-08-25T16:00:00+08:00'},
+    ]
+    row = card['recent'][0]
+    assert row['primary_delivery'] == {'wechat_ok': False, 'telegram_ok': True}
+    # 心跳明细仍然不许整块跟过来（#816 的体积闸）。
+    assert 'stages' not in row
+
+
 def test_a_checkout_without_the_ledger_republishes_the_last_workflow_card(
         monkeypatch, tmp_path):
     """`--previous` must actually reach the published payload, not just `preserved`.

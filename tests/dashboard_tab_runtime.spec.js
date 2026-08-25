@@ -47,19 +47,42 @@ function serveWorkspace() {
 // assert both that the first paint never went there and that a poll always does.
 async function stubLiveOrigin(page, options = {}) {
   const served = [];
+  // 首帧的 overview.json 走同源（index.html 里那条 head 抢跑的 fetch），
+  // 只拦 LIVE origin 的话 patch 会漏掉第一帧、断言跑在真实数据上。
+  if (options.patch) {
+    await page.route("**/assets/data/*.json", async route => {
+      const name = path.basename(new URL(route.request().url()).pathname);
+      const file = path.resolve(ROOT, "assets/data", name);
+      if (!fs.existsSync(file)) return route.fallback();
+      const patched = options.patch(name, JSON.parse(fs.readFileSync(file, "utf8")));
+      if (!patched) return route.fallback();
+      await route.fulfill({
+        status: 200,
+        headers: { "content-type": "application/json; charset=utf-8" },
+        body: JSON.stringify(patched),
+      });
+    });
+  }
   await page.route(LIVE_DATA_ORIGIN + "**", async route => {
     const name = path.basename(new URL(route.request().url()).pathname);
     served.push(name);
     if (options.fail) return route.abort("failed");
     const file = path.resolve(ROOT, "assets/data", name);
     if (!fs.existsSync(file)) return route.fulfill({ status: 404, body: "not found" });
+    let body = fs.readFileSync(file, "utf8");
+    // 有些断言要的是「某个形状的 payload 会被渲染成什么」，而不是今天这份
+    // 数据长什么样。patch 让用例自己造那个形状，免得闸随当日数据时灵时不灵。
+    if (options.patch) {
+      const patched = options.patch(name, JSON.parse(body));
+      if (patched) body = JSON.stringify(patched);
+    }
     await route.fulfill({
       status: 200,
       headers: {
         "content-type": "application/json; charset=utf-8",
         "access-control-allow-origin": "*",
       },
-      body: fs.readFileSync(file, "utf8"),
+      body,
     });
   });
   return served;
@@ -1109,6 +1132,78 @@ async function testVerdictDeckFillsItsBoxAndRanksGatesBySeverity(browser, base) 
   }
 }
 
+// 数据健康卡：降级/恢复必须点名是哪一档（kcn 2026-08-25：「如果有降级的应该
+// 标注出来是哪个」），微信单通道掉投必须可数、可点名（#771 让它在 summarizer
+// 里可数，但那个计数从没进过任何读者能看到的地方）。
+async function testDataHealthNamesTheDegradedSlotAndWeChatDrops(browser, base) {
+  const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const page = await context.newPage();
+  await stubLiveOrigin(page, {
+    patch: (name, json) => {
+      // overview 与 dashboard 两份都要打：首帧吃 overview，随后整份 dashboard
+      // 会把 DATA 换掉 —— 只打一份的话断言会跑在被覆盖后的真实数据上。
+      if (name !== "overview.json" && name !== "dashboard.json") return null;
+      // 体检干净、数据面全部在期 —— 把判词的其它分支让开，只留「恢复/降级」。
+      json.build_status = json.build_status || {};
+      json.build_status.integrity = { error_count: 0, warn_count: 0 };
+      json.build_status.files = (json.build_status.files || []).map(f => ({
+        ...f, present: true, stale: false,
+      }));
+      json.workflow_outcomes = {
+        counts: { success: 9, recovered: 1 },
+        raw_error_but_product_usable: 2,
+        wechat_dropped_telegram_covered: 3,
+        degraded_slots: [
+          { job: "港股收盘报告", slot: "2026-08-25T16:00:00+08:00", status: "recovered" },
+        ],
+        wechat_dropped_slots: [
+          { job: "港股收盘报告", slot: "2026-08-25T16:00:00+08:00" },
+          { job: "盘中盯盘", slot: "2026-08-25T15:30:00+08:00" },
+        ],
+        recent: [
+          {
+            job: "港股收盘报告", slot: "2026-08-25T16:00:00+08:00",
+            raw_execution: { status: "error" },
+            final_product: { status: "recovered" },
+            primary_delivery: { wechat_ok: false, telegram_ok: true },
+          },
+          {
+            job: "盘中盯盘", slot: "2026-08-25T15:30:00+08:00",
+            raw_execution: { status: "ok" },
+            final_product: { status: "success" },
+            primary_delivery: { wechat_ok: false, telegram_ok: true },
+          },
+        ],
+      };
+      return json;
+    },
+  });
+  await page.goto(base, { waitUntil: "networkidle" });
+  await waitForData(page);
+  await page.waitForSelector("#data-health:not(.is-pending)", { timeout: 5000 });
+
+  const head = await page.evaluate(() => ({
+    verdict: (document.getElementById("dh-verdict") || document.getElementById("dh-title")).textContent.trim(),
+    meta: document.getElementById("dh-meta").textContent.trim(),
+  }));
+  assert(head.verdict.includes("港股收盘报告"),
+    `data-health verdict does not name the degraded slot: ${head.verdict}`);
+  assert(head.verdict.includes("恢复"),
+    `data-health verdict does not say what happened to it: ${head.verdict}`);
+  assert(/微信掉投\s*3\s*档/.test(head.meta),
+    `data-health meta does not carry the WeChat drop count: ${head.meta}`);
+
+  await page.click("#dh-toggle");
+  const rows = await page.evaluate(() =>
+    [...document.querySelectorAll("#dh-files .dh-row")].map(r => r.textContent.replace(/\s+/g, " ").trim()));
+  const dropRows = rows.filter(t => t.includes("TG 已兜"));
+  assert.equal(dropRows.length, 2,
+    `expected both WeChat-dropped slots listed, got ${dropRows.length}: ${dropRows.join(" | ")}`);
+  assert(dropRows.some(t => t.includes("港股收盘报告") && t.includes("2026-08-25 16:00")),
+    `dropped slot rows do not name job + slot: ${dropRows.join(" | ")}`);
+  await context.close();
+}
+
 async function main() {
   const server = serveWorkspace();
   await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
@@ -1128,6 +1223,7 @@ async function main() {
     await testTraceRowsFitPhoneWidths(browser, base);
     await testHoldingsAndHeroNeverTruncate(browser, base);
     await testVerdictDeckFillsItsBoxAndRanksGatesBySeverity(browser, base);
+    await testDataHealthNamesTheDegradedSlotAndWeChatDrops(browser, base);
   } finally {
     await browser.close();
     await new Promise(resolve => server.close(resolve));
