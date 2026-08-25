@@ -60,6 +60,8 @@
   "repository_only": [
     "assets/dashboard.gif",
     "assets/data/*.jsonl",
+    "assets/data/repo-traffic.json",
+    "assets/data/schedule-drift.json",
     "memory/*.jsonl",
     "docs/visual-regression/**",
     "tests/**"
