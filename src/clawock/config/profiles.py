@@ -22,10 +22,10 @@ PROFILE_NAME = "profile.json"
 _ID = re.compile(r"^[a-z][a-z0-9_-]*$")
 _TOP_LEVEL = frozenset({
     "schema_version", "id", "locale", "timezone", "markets", "workflows",
-    "resources", "policies", "templates", "delivery",
+    "resources", "policies", "delivery",
 })
 _MARKET_FIELDS = frozenset({"timezone", "label", "analysis_command", "skill"})
-_WORKFLOW_FIELDS = frozenset({"enabled", "markets", "policy", "template"})
+_WORKFLOW_FIELDS = frozenset({"enabled", "markets", "policy"})
 _DELIVERY_FIELDS = frozenset({"provider", "targets"})
 _TARGET_FIELDS = frozenset({"source", "key"})
 
@@ -45,7 +45,6 @@ class WorkflowProfile:
     enabled: bool
     markets: tuple[str, ...]
     policy: str | None = None
-    template: str | None = None
 
 
 @dataclass(frozen=True)
@@ -63,7 +62,6 @@ class Profile:
     workflows: Mapping[str, WorkflowProfile]
     resources: Mapping[str, str]
     policies: Mapping[str, Any]
-    templates: Mapping[str, str]
     delivery_provider: str
     delivery_targets: Mapping[str, DeliveryTarget]
     path: Path
@@ -204,9 +202,6 @@ def load_profile(workspace: Path | str, profile: Path | str | None = None) -> Pr
         workflows[key] = WorkflowProfile(
             key=key, enabled=enabled, markets=tuple(selected_markets),
             policy=_optional_text(workflow.get("policy"), f"workflows.{key}.policy"),
-            template=_optional_text(
-                workflow.get("template"), f"workflows.{key}.template"
-            ),
         )
 
     raw_resources = _object(data.get("resources"), "resources")
@@ -215,11 +210,6 @@ def load_profile(workspace: Path | str, profile: Path | str | None = None) -> Pr
         for key, value in raw_resources.items()
     }
     policies = _object(data.get("policies"), "policies")
-    raw_templates = _object(data.get("templates"), "templates")
-    templates = {
-        key: _relative_path(value, f"templates.{key}")
-        for key, value in raw_templates.items()
-    }
 
     delivery = _object(data.get("delivery"), "delivery")
     _known_fields(delivery, _DELIVERY_FIELDS, "delivery")
@@ -250,7 +240,7 @@ def load_profile(workspace: Path | str, profile: Path | str | None = None) -> Pr
         markets=MappingProxyType(markets), workflows=MappingProxyType(workflows),
         resources=MappingProxyType(resources),
         policies=MappingProxyType(dict(policies)),
-        templates=MappingProxyType(templates), delivery_provider=provider,
+        delivery_provider=provider,
         delivery_targets=MappingProxyType(targets), path=path, workspace=root,
     )
 
@@ -276,13 +266,11 @@ def describe_profile(profile: Profile) -> dict:
                 "enabled": value.enabled,
                 "markets": list(value.markets),
                 "policy": value.policy,
-                "template": value.template,
             }
             for key, value in profile.workflows.items()
         },
         "resources": dict(profile.resources),
         "policies": dict(profile.policies),
-        "templates": dict(profile.templates),
         "delivery": {
             "provider": profile.delivery_provider,
             "targets": {
