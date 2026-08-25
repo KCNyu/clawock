@@ -28,7 +28,11 @@ def classify(technical: dict, peer: dict, information: dict, events: list[dict],
     dispersion = _number(peer.get("dispersion_5d"))
     peers = int(peer.get("available_peer_count") or 0)
     market_policy = (policy.get("markets") or {}).get(str(market).upper()) or {}
-    multiple = _number(policy.get("early_peer_dispersion_multiple")) or 1.5
+    # #666: explicit None check — `early_peer_dispersion_multiple: 0` is legal
+    # config (any positive residual counts as leadership) and must not be
+    # swallowed into the default, same discipline as the keys below.
+    raw_multiple = policy.get("early_peer_dispersion_multiple")
+    multiple = float(raw_multiple) if raw_multiple is not None else 1.5
     # #666: explicit None checks, never `X or DEFAULT` — a config value of 0
     # (e.g. `minimum_peer_count: 0` = 不设同行样本下限) is legal and must not
     # be swallowed into the default.
