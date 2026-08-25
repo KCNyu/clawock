@@ -347,7 +347,7 @@ def build_user_prompt(payload):
     the sanity bound was not the bound of what actually left the door."""
     return (
         f"根据这一周（{payload['week']}）的 brief / plan / decision v2 / risk 数据, "
-        f"写一篇 markdown 周复盘。长度 1500-2500 字。"
+        f"写一篇 markdown 周复盘。长度自己判断，不设字数目标。"
         "\n\n"
         "重点回答 4 个问题:\n"
         "1. **本周净值**: 总市值 USD-base 周初 vs 周末, "
