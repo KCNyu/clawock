@@ -70,15 +70,41 @@ def test_dirty_diary_meeting_its_deletion_is_restored(desk):
     assert not (checkout / BACKUP_DIR).exists(), "backup must clean up after itself"
 
 
-def test_clean_diary_is_deleted_not_resurrected(desk):
+def test_clean_diary_survives_the_untracking_on_disk(desk):
+    """The point of the guard: index deletion flows through, the DISK copy stays.
+
+    A plain --ff-only merge silently removes a clean tracked file whose path
+    master deleted — that is the data-loss path for workspace continuity
+    (AGENTS.md reads today+yesterday from disk)."""
     upstream, checkout = desk
     (upstream / DIARY).unlink()
     _run(upstream, "commit", "-qam", "untrack daily notes")
 
     r = _guarded_pull(checkout)
     assert r.returncode == 0, r.stderr
-    assert not (checkout / DIARY).exists(), \
-        "guard only protects dirty copies — a clean deletion must flow through"
+    # Untracked (master no longer carries it), but very much still on disk.
+    assert (checkout / DIARY).read_text() == "base day log\n"
+    assert not (checkout / BACKUP_DIR).exists()
+
+
+def test_ff_only_publisher_path_is_also_guarded(desk):
+    """publish_dashboard.sh merges --ff-only every 20 minutes; drive the same
+    backup/restore pair around its merge shape directly."""
+    upstream, checkout = desk
+    (upstream / DIARY).unlink()
+    _run(upstream, "commit", "-qam", "untrack daily notes")
+    _run(checkout, "fetch", "-q", "origin", "master")
+    script = (
+        f'set -e\n. "{GUARD}"\n'
+        'pull_guard_backup origin master\n'
+        f'rm "{DIARY}"   # what --ff-only does to a clean path master deleted\n'
+        'pull_guard_restore\n'
+    )
+    r = subprocess.run(["bash", "-c", script], cwd=str(checkout),
+                       capture_output=True, text=True,
+                       env={"PATH": "/usr/bin:/bin", "HOME": str(checkout)})
+    assert r.returncode == 0, r.stderr
+    assert (checkout / DIARY).read_text() == "base day log\n"
     assert not (checkout / BACKUP_DIR).exists()
 
 
@@ -120,14 +146,19 @@ def test_no_deletions_means_plain_fast_forward(desk):
 
 
 def test_both_host_side_pull_sites_use_the_guard():
-    """Contract pin: the two autostash pull sites must go through the shared
-    wrapper, so a third raw pull cannot quietly reopen the window."""
+    """Contract pin: all three merge sites must go through the shared helper,
+    so a fourth raw merge cannot quietly reopen the window."""
     for script in (ROOT / "ops/host/refresh_live.sh",
-                   ROOT / "ops/publish/safe_push.sh"):
+                   ROOT / "ops/publish/safe_push.sh",
+                   ROOT / "ops/publish/publish_dashboard.sh"):
         text = script.read_text(encoding="utf-8")
         assert "ops/publish/untrack_guard.sh" in text, \
             f"{script.name} no longer sources the guard"
-        assert "pull_guarded " in text, \
-            f"{script.name} no longer calls pull_guarded"
+    for script, fn in ((ROOT / "ops/host/refresh_live.sh", "pull_guarded"),
+                       (ROOT / "ops/publish/safe_push.sh", "pull_guarded"),
+                       (ROOT / "ops/publish/publish_dashboard.sh",
+                        "pull_guard_backup")):
+        assert f"{fn} " in (script.read_text(encoding="utf-8")), \
+            f"{script.name} no longer calls {fn}"
     text = GUARD.read_text(encoding="utf-8")
     assert "rebase.autoStash=true" in text, "the wrapper lost the autostash knob"

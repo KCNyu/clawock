@@ -3,15 +3,21 @@
 # Sourced (never executed) by ops/host/refresh_live.sh and ops/publish/safe_push.sh.
 #
 # Why this exists (#1038): master stops tracking the daily notes
-# `memory/YYYY-MM-DD.md`. On the live box those files are written all day by
-# openclaw sessions and committed by several autonomous writers, so a pull
-# carrying their deletion can meet a locally-dirty tracked copy. Under
-# `rebase.autoStash=true` that turns into a modify/delete stash-pop conflict —
-# an aborted postflight push at best, a re-staged diary or a lost day of notes
-# at worst. Before the pull, `pull_guard_backup` copies every dirty tracked
-# bare-dated daily note the incoming range deletes to
-# `memory/.tmp/pre-untrack-backup/`; after the pull (either outcome),
-# `pull_guard_restore` puts back any copy the rebase removed and cleans up.
+# `memory/YYYY-MM-DD.md`. They stay workspace continuity — AGENTS.md reads
+# today+yesterday from disk, the openclaw memory index rglobs the tree — so
+# the untracking must remove them from the INDEX without removing them from
+# any DISK. Three merge paths reach a working tree:
+#   • ops/publish/safe_push.sh retry loop — autostash pull;
+#   • ops/host/refresh_live.sh — autostash pull;
+#   • ops/publish/publish_dashboard.sh — plain --ff-only merge (refuses on
+#     dirty files, so a dirty diary only ever delays it — but it SILENTLY
+#     DELETES clean ones, which is precisely what must not happen).
+# Before the merge, `pull_guard_backup` copies every locally-present daily
+# note the incoming range deletes (clean or dirty — clean ones are the ff
+# path's victim, dirty ones the stash-pop hazard) to
+# `memory/.tmp/pre-untrack-backup/`; afterwards `pull_guard_restore` puts
+# back whatever the merge removed and cleans up. Restored files are
+# untracked, and ignored once the matching .gitignore rule arrives.
 #
 # Scope is exactly `^memory/YYYY-MM-DD\.md$` — the untracking commit's surface.
 # Deletions of any other path are not guarded, so behaviour for them is
@@ -29,13 +35,14 @@ _pull_guard_root() {
 }
 
 pull_guard_backup() {
-  # $1 = remote, $2 = branch. Records dirty tracked dailies the incoming range
-  # deletes. Fetches first because callers reach here without a fresh
-  # remote-tracking ref (safe_push only fetches for its money check).
+  # $1 = remote, $2 = branch. Records every locally-present daily note the
+  # incoming range deletes — clean or dirty. Callers must have fetched the
+  # remote recently enough that "$1/$2" answers "what a merge would bring":
+  # pull_guarded fetches itself, publish_dashboard reuses the fetch its
+  # ff-merge already needed.
   local root deleted f dest
   root="$(_pull_guard_root)"
   [ -n "$root" ] || return 0
-  git fetch -q "$1" "$2" >/dev/null 2>&1 || true
   deleted="$(git diff --name-only "HEAD..$1/$2" -- memory/ 2>/dev/null \
     | grep -E '^memory/[0-9]{4}-[0-9]{2}-[0-9]{2}\.md$' || true)"
   [ -n "$deleted" ] || return 0
@@ -43,24 +50,21 @@ pull_guard_backup() {
   mkdir -p "$dest" 2>/dev/null || return 0
   while IFS= read -r f; do
     [ -n "$f" ] || continue
-    # Only a locally-modified tracked copy has something a stash pop can lose;
-    # a clean file just gets deleted, which is exactly what master wants.
-    if git diff --quiet HEAD -- "$f" 2>/dev/null; then
-      continue
-    fi
+    # Present on disk is the only criterion: a clean copy is what the ff
+    # merge deletes outright, a dirty one what a stash pop can mangle.
     if [ ! -f "$root/$f" ]; then
-      continue  # already deleted locally — nothing to preserve
+      continue
     fi
     mkdir -p "$dest/$(dirname "$f")" 2>/dev/null || continue
     cp -p "$root/$f" "$dest/$f" 2>/dev/null &&
-      echo "pull-guard: backed up dirty $f before pull" >&2
+      echo "pull-guard: backed up $f before merge" >&2
   done <<EOF
 $deleted
 EOF
 }
 
 pull_guard_restore() {
-  # Puts back any backup whose path the rebase removed, then clears the
+  # Puts back any backup whose path the merge removed, then clears the
   # backup dir. Restored files are untracked (master no longer carries them);
   # once the .gitignore rule from the same migration lands they are also
   # ignored, so the tree ends quiet either way.
@@ -92,6 +96,7 @@ pull_guarded() {
   local remote="$1" branch="$2"
   shift 2
   local rc=0
+  git fetch -q "$remote" "$branch" >/dev/null 2>&1 || true
   pull_guard_backup "$remote" "$branch"
   git -c rebase.autoStash=true pull --rebase "$remote" "$branch" "$@" || rc=$?
   pull_guard_restore
