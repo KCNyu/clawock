@@ -344,6 +344,7 @@ jobs:
         if: steps.changes.outputs.code == 'true'
         run: |
           python3 -m pytest tests/ -q \
+            --durations=20 \
             --cov=clawock.publish.dashboard \
             --cov=clawock.evaluation \
             --cov=clawock.harness \
@@ -555,13 +556,48 @@ jobs:
           print('decision_audit.json: Reflect backtest OK')
           PY
 
-      - name: Run build_dashboard sanity
+      # The step this replaces ran the build twice more over a comment reading
+      # "confirm it runs idempotently" — two bare invocations, no comparison, so
+      # the claim was never checked (and byte equality is not even the
+      # invariant: measured on consecutive builds over unchanged inputs, exactly
+      # four kinds of bytes move — generation_id/generated_at/as_of, which are
+      # wall-clock by design, and build_status.files[].age_hours, which is
+      # round((now - source mtime)/3600, 1) at dashboard.py). So determinism is
+      # asserted where it actually holds: after stripping exactly those keys,
+      # a second build must be JSON-identical to the first. One build instead
+      # of two, and the check finally has teeth.
+      - name: Rebuild is deterministic apart from generation stamps
         if: steps.changes.outputs.code == 'true'
         run: |
-          # confirm it runs idempotently
-          clawock dashboard-build
-          clawock dashboard-build
-          echo "OK: build_dashboard idempotent"
+          set -euo pipefail
+          strip_volatile() {
+            python3 - "$1" <<'PY'
+            import json, sys
+            VOLATILE = {"generated_at", "generation_id", "as_of", "age_hours"}
+            def strip(node):
+                if isinstance(node, dict):
+                    return {k: strip(v) for k, v in node.items()
+                            if k not in VOLATILE}
+                if isinstance(node, list):
+                    return [strip(v) for v in node]
+                return node
+            with open(sys.argv[1]) as f:
+                print(json.dumps(strip(json.load(f)), sort_keys=True))
+            PY
+          }
+          tmp="$(mktemp -d)"
+          for name in overview dashboard decision_audit shadow_portfolio; do
+            strip_volatile "assets/data/$name.json" > "$tmp/$name.first"
+          done
+          clawock dashboard-build > /dev/null
+          for name in overview dashboard decision_audit shadow_portfolio; do
+            if ! strip_volatile "assets/data/$name.json" | diff -u "$tmp/$name.first" -; then
+              echo "::error::dashboard rebuild moved bytes beyond generation stamps ($name)"
+              exit 1
+            fi
+          done
+          rm -rf "$tmp"
+          echo "OK: rebuild deterministic modulo generation stamps"
 
   publish-coverage:
     # Master only: the README badge must show what is on master, never a number
