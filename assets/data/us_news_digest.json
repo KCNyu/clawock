@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-24T13:42:01.294872",
+  "generated_at": "2026-08-25T13:40:35.166870",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -15,52 +15,59 @@
       "SPCH"
     ]
   },
-  "digest_markdown": "### Top 移动信号\n- **CRCL**: 两日反弹 17% + Bitcoin 行情 + IBM 专利合作 + 9月 Arc 主网上线 — Bernstein 给 $140 目标，催化剂集中但已较 ATH 跌 70%，kcn 持有正股需注意高位接盘风险\n- **RKLB**: 特朗普签署 2030 年 1000 次发射/年目标 (现 178 次) — 联邦需求端硬催化，**RKLX 2x 杠杆放大上行**，Q4 Neutron 首飞前是关键窗口\n- **SPCX**: Anthropic $2T 估值被华尔街老兵点名\"公开市场重估警示\" — 以 SPCX 私转公过程为参照，**SPCH 2x 杠杆放大情绪波动**，情绪面偏负\n- **CRCL**: Susquehanna 直言\"更多竞争者涌现\" — 与 Cathie Wood\"颠覆者\"判断背离，空头叙事升温\n- **RKLB**: 59x 营收 + Neutron 仍未首飞 — 估值严重依赖未交付里程碑，**RKLX 2x 杠杆放大利空回撤**，任何首飞延期都将被惩罚\n\n### Per-ticker\n- **CRCL**: 9月三催化 (Arc 主网 / BTC 行情 / IBM 专利) — 多空分歧极大，期权 IV 隐含大波动\n- **RKLB**: 锗供应链高度依赖中国 (军用/航天关键金属) + Mars 收购扩张 — 基本面正向但地缘供应链是软肋\n- **SPCX**: Musk 称中国为头号对手，点名蓝箭航天朱雀三号成功回收 — 复用火箭竞争升温\n\n### 风险 watch\n- **RKLB** 锗/关键矿物供应链集中度 (中国主导，禁运敏感)\n- **CRCL** 70% 回撤 + 竞争者涌入 + 监管不确定性\n- **SPCX** 公开市场重定价风险 (Anthropic IPO 提供负面锚)\n\n**SKHY**: Finnhub 推送为 Micron 文章，误标 ticker，无相关催化，忽略。",
+  "digest_markdown": "## Top 移动信号\n- **RKLB**: Trump 行政令目标 2030 年 1000 次发射/年（去年 178 次），商业航天需求 5x 化 → **RKLX 2x 杠杆 ETF 同步放大**，政府订单可见度提升，Neutron Q4 首飞催化叠加\n- **SKHY**: Micron CEO 公开警告 AI 内存供应紧缺可能持续到 2028，叠加 Needham 上调 PT 至 $220（前值 $200）→ 内存超级周期叙事强化，多季度可见度\n- **CRCL**: Bernstein 维持 $140 PT，Susquehanna 上调至 $92（前 $69）但仅 Neutral，Cathie Wood 公开力挺 → 分析师共识在 $92–$140 区间，看多但分歧存在\n- **RKLB**: Q2 营收 $234M + backlog $2.36B，但 SeekingAlpha 点名 germanium 供应链（中国主导）风险 → **RKLX 2x 杠杆下风险也被放大**\n- **SPCX**: SeekingAlpha 指出 SpaceX 估值含 \"Musk Premium\"，Starship 延迟 + Starlink 利润率承压 → **SPCH 2x 杠杆下估值回撤风险放大**\n\n## Per-ticker 简报\n- **CRCL**: 多家分析师上调 PT（Bernstein $140 / Susquehanna $92），Wood 公开站台 + \"picks-and-shovels\" 论调，短期情绪面强但 Neutral 评级提示估值分歧\n- **RKLB**: Q2 业绩 + backlog 强劲，Q4 Neutron 首飞 + Trump 1,000 次发射目标双催化；供应链 germanium 依赖中国是结构性 soft spot\n- **SPCX**: 持仓本质是 SpaceX 私募敞口（SPCH 2x），当前主要风险为 Starship 进度 + Starlink 利润率，而非发射需求\n- **SKHY**: Needham Buy + PT $220 + Micron CEO 内存紧缺论 = 内存三剑客（SKHY/MU/三星）基本面共振；但当日 \"memory stocks slide\" 显示宏观关税（Trump 威胁 2027 对加 50% 关税）仍是短期逆风\n\n## 风险 Watch\n- **CRCL**: 分析师集中唱多 → 拥挤交易风险；USDC 增长依赖 Clarity Act 立法进度\n- **RKLB/RKLX**: Germanium 供应链单点暴露（中国主导），如对华出口管制再收紧将直接打击生产\n- **SPCX/SPCH**: Starship 任何延期或 Starlink ARPU 下修都会触发 \"Musk Premium\" 杀估值；非公开市场估值波动本身不可对冲\n- **SKHY**: Trump 关税威胁扩散至内存板块（\"memory stocks slide\" 标题），宏观 trade war 风险盖过基本面利好\n- **数据缺口**: 本批新闻覆盖完整（CRCL/RKLB/SPCX/SKHY 均有 feeds），无 `_omitted_tickers`",
   "raw_news_counts": {
     "CRCL": 5,
-    "RKLB": 5,
+    "RKLB": 4,
     "SPCX": 5,
-    "SKHY": 1
+    "SKHY": 5
   },
   "raw_news_evidence": {
     "CRCL": [
       {
-        "headline": "CRCL Stock Is Down 33% In The Last Year — Why Cathie Wood Is Still Calling It A 'Disrupter’",
-        "datetime": "Mon, 24 Aug 2026 07:43:03 GMT",
-        "source": "Yahoo Finance",
-        "origin": "gnews-rss",
-        "url": "https://news.google.com/rss/articles/CBMikgFBVV95cUxOdklDeWNmZjlZMFRkUFBtb1VhS25pX2JqNGdPd0tFUWI5T1pCNmFzbWRka19KbS1QTS00UHRLdndnMzUxQk1zQVhnd29FRWpoWG4xRkJXMTRBWTY1RklyTXZIWXpGcFNfdEFmVkxncTI0M0szeWwwczg0QUxBZFFSZ2N2TUZ5UF9aZXRIczdqMWs3UQ?oc=5"
+        "headline": "Ethereum, Circle, Coinbase Make Up Analyst's 'Galactic Three'—Here's Why",
+        "datetime": 1787586392,
+        "source": "Benzinga",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=f31fed0cff34322ffe3643adb016ec414d9305a6da4c0787525512b1a52b48b2"
       },
       {
-        "headline": "CRCL Stock Faces September Catalysts: Bernstein Sees $140 Target, Susquehanna Says ‘More Competitors Are Showing Up’",
-        "datetime": "Mon, 24 Aug 2026 13:19:00 GMT",
-        "source": "Stocktwits",
-        "origin": "gnews-rss",
-        "url": "https://news.google.com/rss/articles/CBMirwFBVV95cUxQM1czWDFadVk2UzNnOHhPR3U5NGoxLWtDdUNJQzdJV2M3RXA4dWlJSTAzT1dONWpsNGUzekZXZEk3TnYyb01NQlRJWFBsbFNFWUFhaDN5YVN6R3l4V2hPWl9RbE0tdk1Tam1IUE5ITVJudlRxdElrN0JNTDVTeFVqYTFpbkFqWURNN0RwYWl0SnBxUEZqcEhaeUJBTkFPWFZPQUZMTmxFNmhnUklRTjM4?oc=5"
+        "headline": "CRCL Could Hit $140, Says Bernstein as Cathie Wood Praises Circle's Disruption",
+        "datetime": 1787576676,
+        "source": "Benzinga",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=0487416f5380eb40a931d840bf2e3b3de84997948a78449513f32137615fef26"
       },
       {
-        "headline": "CRCL Stock Jumps As Bitcoin Rally And IBM Patent Deal Fuel Momentum",
-        "datetime": "Mon, 24 Aug 2026 13:17:00 GMT",
-        "source": "StocksToTrade",
-        "origin": "gnews-rss",
-        "url": "https://news.google.com/rss/articles/CBMihAFBVV95cUxOdkY4eWNDaEladTN5ZUNSSE13S1I1Y0xMcjNXU3h4cnBzUmZNMTAxSmNGX2VjbEdoRmtvR21rSFViT0RhUHdxQ05JMjk0QUR3ZWtLaWZSeHEzYi0wdHNxdVpmY1g4ZkVxWGczeVpnYmlwUno5bEdkN2tNMkdoNXFtZmlLOGU?oc=5"
+        "headline": "Circle Internet: This Is My Picks-And-Shovels Trade For Bitcoin's Breakout",
+        "datetime": 1787563902,
+        "source": "SeekingAlpha",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=44e03053226379535e0f02bc7ba54cd6a5e7d67651c9fa03ad2efb735fefaff0"
       },
       {
-        "headline": "Circle Stock Is Down More Than 70% From Its All-Time High. Is It Time to Update the Investment Thesis for CRCL Stock?",
-        "datetime": "Sun, 23 Aug 2026 16:23:00 GMT",
-        "source": "The Motley Fool",
-        "origin": "gnews-rss",
-        "url": "https://news.google.com/rss/articles/CBMiggFBVV95cUxOTURfaXlBZ3BsTGF0UU1qYXYzc2dFNkV5RzZzMXBiYThxSkxNcEF1NFVSY3lLTzJLU2JsX3dOVWJQY1cyTHIwMkN6aVpLd1N4T0RndzMzYUJlY05LWVpCZ3pyOTA2SUNDRkM1aTlCRkVZc3R6bjloUXBwLS1NajJYMzZR?oc=5"
+        "headline": "Susquehanna Maintains Neutral on Circle Internet Group, Raises Price Target to $92",
+        "datetime": 1787563560,
+        "source": "Benzinga",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=e2d0f514d97769b79c138154e82072136ea4442968b3aa25abd5c3564004a3c4"
       },
       {
-        "headline": "Circle (CRCL.US) surges 17% in two days: fundamentals unchanged, Arc mainnet launch in September becomes key",
-        "datetime": "Mon, 24 Aug 2026 10:01:17 GMT",
-        "source": "Moomoo",
-        "origin": "gnews-rss",
-        "url": "https://news.google.com/rss/articles/CBMipwFBVV95cUxNYUI3d1M1cUF4bTJZQ0p6aW5pelphMTBXX25vekdVVFhiQlBhaWFjR3NreHNILTdtdU1PRXdJLUZzWTBuOXpBMTJ3bURQdF83MkNNMmpxcjRGMVlRRWVfcEZhMWVkUjZmeEx4QUlrVmc0OWx2bUlSdmpDbHh3dVlvVzlTWWZ6bVVKRmx2MXdsbzQ3Y0EzeDJlSnZjSVgxN0J5Yl9NN3BGYw?oc=5"
+        "headline": "Cathie Wood Says Analysts Can’t ‘Fathom’ Circle, Calls It a ‘Prime Beneficiary’ of Payments Disruption",
+        "datetime": 1787551293,
+        "source": "Benzinga",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=943fe35796ce0d7d1cc01c6c78e57e773460b2fac8f4cde6fe88495067c7f3cb"
       }
     ],
     "RKLB": [
+      {
+        "headline": "Why I'm Buying Rocket Lab Over SpaceX",
+        "datetime": 1787588784,
+        "source": "SeekingAlpha",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=bdea5d91cb40a72b9e379a4bc8e5a3072e74a51a0372ce21f6948c33f457449f"
+      },
       {
         "headline": "RKLX: A Tactical Buy On Rocket Lab's 2x ETF With Q4 Neutron Launch On The Horizon",
         "datetime": 1787562657,
@@ -81,79 +88,93 @@
         "source": "Yahoo",
         "origin": "finnhub",
         "url": "https://finnhub.io/api/news?id=2433d951c0562ac6b93cfc15cd07f82079a1a269f27f7824664156bb63702a75"
-      },
-      {
-        "headline": "Rocket Lab Trades at 59 Times Revenue With Neutron Still Unflown",
-        "datetime": 1787410021,
-        "source": "Yahoo",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=495ccceaae0994cd94b70045390ddd383be3c6812d583ed0a8f74302151644aa"
-      },
-      {
-        "headline": "Rocket Lab: Mars Ambition & Growing Backlog Outweighs Delayed Neutron Timing (Rating Upgrade)",
-        "datetime": 1787394600,
-        "source": "SeekingAlpha",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=27d9b15adf1ebcddf806cdc21edc1a3bcf1d5124ec8a20fb38b62e3e3417e4c1"
       }
     ],
     "SPCX": [
       {
-        "headline": "Space Exploration Technologies (SPCX) Says China Is Its Top Rival In AI And Rockets",
-        "datetime": 1787508458,
-        "source": "Yahoo",
+        "headline": "Why I'm Buying Rocket Lab Over SpaceX",
+        "datetime": 1787588784,
+        "source": "SeekingAlpha",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=bb817bd5ddd861be7e738e512709f45b545e08f280646e25a3c7baa62723e118"
+        "url": "https://finnhub.io/api/news?id=bdea5d91cb40a72b9e379a4bc8e5a3072e74a51a0372ce21f6948c33f457449f"
       },
       {
-        "headline": "SpaceX Stock: Boom or Bust?",
-        "datetime": 1787500560,
-        "source": "Yahoo",
+        "headline": "I'm Buying Space Without Buying Space Stocks",
+        "datetime": 1787584352,
+        "source": "SeekingAlpha",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=96d93b9e87ac2a739f47ad94f2fcb719a0b5d23ee7506d58ccd544a6709f1eef"
+        "url": "https://finnhub.io/api/news?id=e89ff924121c4d507af2bdb39b027e963a1e0d98993da6562c4a289f5f0cf0c4"
       },
       {
-        "headline": "AT&T's Dividend Costs the Company a Fixed Amount Every Quarter Regardless of Competitive Pressure From Starlink or Cable Rivals. Here's the Coverage Ratio That Actually Determines Whether It's Safe.",
-        "datetime": 1787495700,
-        "source": "Yahoo",
+        "headline": "Trump Bought Dividend Stocks And Dumped AI (The Real Story)",
+        "datetime": 1787583032,
+        "source": "SeekingAlpha",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=3b770c115f74bfa901898a497772a0fb5b1a5a513231f593481d6678bbfefedf"
+        "url": "https://finnhub.io/api/news?id=e04988931136a24c3c0c73e63ae859a7199eaaad6bf968af6e2a93a6548b2ef5"
       },
       {
-        "headline": "Exclusive: Anthropic's $2 Trillion Valuation Faces a Reality Check—SPCX Offers a Warning, Wall Street Veteran Says",
-        "datetime": 1787493629,
-        "source": "Yahoo",
+        "headline": "EXCLUSIVE: How AI's $220 Billion Bond Boom Competes With the Treasury",
+        "datetime": 1787581265,
+        "source": "Benzinga",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=31a349850b8d80427f0d0b874bd73be43c85bf452daecd2863ceef07f75dd949"
+        "url": "https://finnhub.io/api/news?id=2bb2ded5a800effa78cb8653a84a46706ba0529ec7d7f6407e9c3107b4344745"
       },
       {
-        "headline": "Anthropic Could Outdo SpaceX With Its IPO. Here's How Much Investors Think It's Worth Right Now and Why.",
-        "datetime": 1787484300,
-        "source": "Yahoo",
+        "headline": "SpaceX's Possibilities Are Endless But It Is Still Too Early",
+        "datetime": 1787580000,
+        "source": "SeekingAlpha",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=457c0d6eb40f5dd91a266d96f5e3bf8fabc0f49574d7aa629ec0c5588e0d302d"
+        "url": "https://finnhub.io/api/news?id=351dfe4be2aae2f93a35fb1df78c3a0b1e74c990ef491405ebc1c50f5f9bf242"
       }
     ],
     "SKHY": [
       {
-        "headline": "Micron: Don't Get Shaken Out",
-        "datetime": 1787538077,
+        "headline": "Smartkem shares are trading lower. The company announced a non-binding letter of intent to acquire all outstanding shares of Carbonium Core in exchange for shares of Smartkem Series B Convertible Pref",
+        "datetime": 1787586004,
+        "source": "Benzinga",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=28a0b1d17e9f4125a0a962072507893cab5497146ee4fa9163f537a2140b0c0d"
+      },
+      {
+        "headline": "The AI Trade Deleveraged, Its Suppliers Didn't",
+        "datetime": 1787578264,
         "source": "SeekingAlpha",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=fe36881a4d718d7140f47a6d3353d0baebeebb06f3e66bd65d557984df5ebb63"
+        "url": "https://finnhub.io/api/news?id=40c34d0dd1185e79e8e69ffced14328b57b23f6c3c8acb7d14289e1b76115d73"
+      },
+      {
+        "headline": "Memory Stocks Slide as Trump Threatens 50% Tariffs on Canadian Autos, Steel in 2027: Stock Market Today",
+        "datetime": 1787577416,
+        "source": "Benzinga",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=539e86b6c26dd71952d0007d07a6d7d868936c0d602967ec5eab590a5dc43689"
+      },
+      {
+        "headline": "Needham Maintains Buy on SK hynix, Raises Price Target to $220",
+        "datetime": 1787575713,
+        "source": "Benzinga",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=5f1d325d54d0961be581121bab13ea9c39c511abba06635388735ade7297ed51"
+      },
+      {
+        "headline": "Micron CEO Sounds Alarm on AI Memory Crunch — Supply May Not Catch Up Until 2028 as Demand Keeps Growing: MU Stock Falls 4% (UPDATED)",
+        "datetime": 1787562774,
+        "source": "Benzinga",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=f8c00c97fd33769dd07237165cc0b6a749019315716090aac38224849b4cda90"
       }
     ]
   },
   "news_source_per_ticker": {
-    "CRCL": "gnews-rss",
+    "CRCL": "finnhub",
     "RKLB": "finnhub",
     "SPCX": "finnhub",
     "SKHY": "finnhub"
   },
   "source_status": {
     "CRCL": {
-      "finnhub": "success_empty",
-      "google_news": "success"
+      "finnhub": "success",
+      "google_news": "not_attempted"
     },
     "RKLB": {
       "finnhub": "success",
