@@ -223,6 +223,25 @@ def require(symbol: str) -> dict:
     return meta
 
 
+def market_for_symbol(symbol: str) -> str:
+    """The trading calendar this symbol settles on: ``'hk'`` or ``'us'``.
+
+    The registry's ``region`` is the single source; the fallbacks only exist so
+    a symbol that predates or outruns the registry still lands deterministically
+    instead of raising in an offline reviewer. Bare digit codes are HKEX stock
+    codes, ``HS*`` index proxies (HSTECH) ride the HK calendar, everything else
+    alphabetic is assumed US-listed — the same assumption every history row
+    writer already makes.
+    """
+    region = str((get(str(symbol)) or {}).get("region") or "").lower()
+    if region in ("hk", "us"):
+        return region
+    code = str(symbol or "")
+    if code.isdigit() or code.upper().startswith("HS"):
+        return "hk"
+    return "us"
+
+
 def is_leveraged(symbol: str) -> bool:
     meta = get(symbol)
     return bool(meta and meta["leverage_multiple"] > 1)
