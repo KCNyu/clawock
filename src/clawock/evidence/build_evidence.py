@@ -123,8 +123,12 @@ def factor_section() -> dict | None:
         single_cluster = (stats.get('n_tickers') or 0) < 2 or (stats.get('n_dates') or 0) < 2
         if single_cluster:
             verdict_text = '⚪ 样本只覆盖单一簇，算不出聚类 CI —— 无法解读'
-        elif stats.get('edge_significant'):
+        elif stats.get('sample_sufficient') is False:
+            verdict_text = '⚪ 样本不足 MIN_N，方向结论不入决策（#934）'
+        elif stats.get('usable'):
             verdict_text = '✅ 可入决策'
+        elif stats.get('reverse_edge_significant'):
+            verdict_text = '↩️ 反向聚类 CI 显著：仅允许反向解读，不入正向决策（#935）'
         else:
             verdict_text = '⚪ CI 跨 50%，锁定'
         rows.append((
@@ -133,13 +137,18 @@ def factor_section() -> dict | None:
             f"CI95 {'—' if not ci else f'[{ci[0] * 100:.1f}%, {ci[1] * 100:.1f}%]'} · "
             f"n={stats.get('n_events')}（{stats.get('n_dates')} 日 × {stats.get('n_tickers')} 标的）· "
             f"{verdict_text}"))
-    unlocked = sum(1 for s in factors.values() if s.get('edge_significant'))
+    # #935 made `usable` (sample floor first, then clustered-CI direction) the
+    # only decision-grade gate; `edge_significant` ignores the sample floor, so
+    # an n<4..19 factor with a clean CI would render as unlocked — the exact
+    # overestimate this page exists to prevent.
+    unlocked = sum(1 for s in factors.values() if s.get('usable'))
     return {
         'title': '量化因子 edge',
         'verdict': VERDICT['passed'] if unlocked else VERDICT['undecided'],
         'rows': rows,
         'reading': (
-            f"解锁规则是 `{review.get('unlock_rule')}`：置信区间必须整体落在 50% 一侧。"
+            f"解锁规则是 `{review.get('unlock_rule')}`：先过样本闸（MIN_N，#934），"
+            f"置信区间还必须整体落在 50% 一侧。"
             f"目前 {unlocked}/{len(factors)} 个因子达标。"
             f"**CI 跨 50% 是「样本还不够」，不是「因子无效」**——两者的处置相同（不入决策），"
             f"结论不同。"),
