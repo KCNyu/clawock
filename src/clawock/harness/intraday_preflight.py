@@ -84,54 +84,16 @@ def _fetch_bars_cached(code, cnt=400):
 # runs under cron, whose PATH is /usr/bin:/bin (#438, #443).
 
 
-SIGNAL_LEVELS = ('ALERT', 'WATCH', 'STOP', 'TRIM')
-
-
-def read_signal_line(line):
-    """`(level, ticker)` for a rendered signal line, or `(None, None)`.
-
-    The renderer writes `✋ STOP? 02208 金风科技 | …` — marker, level, code. The
-    level must therefore *be* one of the first two tokens, not appear inside
-    one: `WATCHDOG` contains WATCH and a substring test reads that line as a
-    signal, then publishes the following word as its ticker. Letters only, so
-    `✋STOP?` and `STOP?` both normalise to STOP however the emoji lands.
-
-    Reading the code here, once, is also what keeps consumers from matching the
-    display text — a substring test lets a one-letter US ticker match any word
-    on the line, and reads a bare figure in the P&L cell as a code.
-    """
-    tokens = (line or '').split()
-    for index, token in enumerate(tokens[:2]):
-        word = re.sub(r'[^A-Z]', '', token.upper())
-        if word in SIGNAL_LEVELS:
-            ticker = tokens[index + 1] if index + 1 < len(tokens) else None
-            return word, ticker
-    return None, None
+# 信号词表/读行/分段都在 _harness_common（#918：两个 preflight 曾各存一份，
+# 且各自有盲区 —— 这边不认 US 的 `STOP-LOSS`，那边拿子串匹配把 `WATCHDOG`
+# 读成 WATCH）。这里只保留名字，consumer 与测试引用的是这些。
+SIGNAL_LEVELS = _harness_common.SIGNAL_LEVELS
+read_signal_line = _harness_common.read_signal_line
 
 
 def parse_signals(stdout):
-    counts = {level.lower(): 0 for level in SIGNAL_LEVELS}
-    in_signals = False
-    signals_detail = []
-    for line in stdout.splitlines():
-        if '⚠️ 信号' in line:
-            in_signals = True
-            continue
-        if in_signals:
-            s = line.strip()
-            if s.startswith('📉') or s.startswith('📰'):
-                break
-            if not s:
-                continue
-            # ALERT is the most severe line the renderer emits (a -8% day) and
-            # it was in none of these counts — so the one level that outranks
-            # STOP was invisible to every consumer, including the entry/risk
-            # contradiction check below.
-            level, ticker = read_signal_line(s)
-            if level:
-                counts[level.lower()] += 1
-                signals_detail.append({'level': level, 'line': s, 'ticker': ticker})
-    return counts, signals_detail
+    """`(counts, detail)` —— 实现在 _harness_common.parse_signal_lines。"""
+    return _harness_common.parse_signal_lines(stdout)
 
 
 def decide_alert(signals, anomalies):

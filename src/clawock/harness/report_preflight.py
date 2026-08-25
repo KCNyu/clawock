@@ -39,7 +39,7 @@ Output keys:
   plan_context:       {plan_date, exec_mode, open[<=12], carried_over} — what the
                       08:00 brief already decided for this leg and has not filled
                       yet; {} when there is no open decision (see plan_surface)
-  needs_risk_section: bool (true if STOP+TRIM >= 2)
+  needs_risk_section: bool (true if any ALERT, or STOP+TRIM >= 2)
 """
 
 from clawock.harness import _harness_common
@@ -209,24 +209,14 @@ COMMIT_PHASE_CN = {
 
 
 def parse_signals(stdout):
-    """Count WATCH/STOP/TRIM markers in the signals section."""
-    counts = {'watch': 0, 'stop': 0, 'trim': 0}
-    in_signals = False
-    for line in stdout.splitlines():
-        if '⚠️ 信号' in line or '信号' == line.strip():
-            in_signals = True
-            continue
-        if in_signals:
-            if line.startswith('📉') or line.startswith('📰') or not line.strip():
-                if line.startswith('📉') or line.startswith('📰'):
-                    break
-                continue
-            if 'WATCH' in line:
-                counts['watch'] += 1
-            elif 'STOP' in line:
-                counts['stop'] += 1
-            elif 'TRIM' in line:
-                counts['trim'] += 1
+    """本档的信号计数。实现在 _harness_common（#918）。
+
+    换成语义读行之后这份计数有两处真实变化，都不是重构副作用：
+    ALERT 第一次进得来（HK 渲染器 -8% 那档，此前这里一个字都不数），
+    而 `WATCHDOG` 这类含有 WATCH 子串的行不再被数成 WATCH。
+    US 的 `STOP-LOSS` 仍然算 STOP —— 词表认的是两个渲染器都会写的词。
+    """
+    counts, _detail = _harness_common.parse_signal_lines(stdout)
     return counts
 
 
@@ -372,7 +362,11 @@ def main(argv=None):
         'plan_context':       plan_ctx,
         'mover_thesis':       mover_thesis,
         'mover_news':         mover_news_ctx,
-        'needs_risk_section': (signals['stop'] + signals['trim']) >= 2,
+        # 语义分档，不是数数（kcn 2026-08-26：「根据合适的语意来告警，不要做
+        # 硬匹配」）：ALERT 是渲染端最严重的一行（当日 -8%），它单独一条就压
+        # 过两条 STOP/TRIM，所以它自己就要一段风险提示。
+        'needs_risk_section': (signals['alert'] >= 1
+                               or (signals['stop'] + signals['trim']) >= 2),
     }
     result['context_id'] = compute_context_id(result)
 
