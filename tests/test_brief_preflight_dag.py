@@ -111,6 +111,42 @@ def _fresh_stamp():
     return datetime.now(timezone.utc).isoformat()
 
 
+def _spawned_command(argv):
+    """Which package command an argv spawns.
+
+    Since #918 preflight spawns ``[sys.executable, '-m', 'clawock', <cmd>, …]``
+    rather than the bare console script, so the command is no longer ``argv[1]``
+    — and reading position 1 would silently classify every spawn as ``-m``,
+    which is how the parallelism assertions below would go quietly vacuous.
+    """
+    argv = [str(a) for a in argv]
+    if 'clawock' in argv:
+        index = argv.index('clawock')
+        if index + 1 < len(argv):
+            return argv[index + 1]
+    return argv[1] if len(argv) > 1 else argv[0]
+
+
+def _filings_tickers(argv):
+    """Tickers in a `filings` spawn (#918 batch mode: one spawn, N tickers)."""
+    argv = [str(a) for a in argv]
+    index = argv.index('clawock') + 2 if 'clawock' in argv else 1
+    return [a for a in argv[index:] if not a.startswith('-')]
+
+
+def _filings_response(argv, single_payload):
+    """Mirror the CLI's contract: one ticker keeps its shape, N wrap in `batch`.
+
+    The fake has to honour this, otherwise it silently answers a batch request
+    with a single-ticker body and preflight files every US single as failed —
+    which is a defect in the fake, and would read as a defect in the code.
+    """
+    tickers = _filings_tickers(argv)
+    if len(tickers) <= 1:
+        return single_payload
+    return json.dumps({'batch': {t: json.loads(single_payload) for t in tickers}})
+
+
 class _SpawnRecorder:
     """Stands in for subprocess.run and _run_clawock inside preflight."""
 
@@ -123,7 +159,7 @@ class _SpawnRecorder:
         self.max_parallel_filings = 0
 
     def subprocess_run(self, argv, **kwargs):
-        command = argv[1] if len(argv) > 1 else argv[0]
+        command = _spawned_command(argv)
         with self.lock:
             self.calls.append(('subprocess', command, list(argv)))
             self.running[command] += 1
@@ -133,6 +169,8 @@ class _SpawnRecorder:
         try:
             time.sleep(self.delays.get(command, 0))
             rc, out = self.plan.get(command, (0, ''))
+            if command == 'filings' and rc == 0:
+                out = _filings_response(argv, out)
             return subprocess.CompletedProcess(argv, rc, stdout=out, stderr='')
         finally:
             with self.lock:
@@ -307,8 +345,17 @@ def test_wave_nodes_execute_exactly_once_and_respect_edges(tmp_path, monkeypatch
     # settle reads the canonical bar store, so bars finish first
     assert tl.start['_decision_metrics'] >= tl.end['daily_bars_node']
 
-    # SEC filings stay strictly serial inside collect_us_fundamentals
+    # SEC filings stay strictly serial inside collect_us_fundamentals — and
+    # since #918 they are one spawn for the whole list, not one spawn per
+    # ticker: the SEC throttle is an in-process `_last_call`, so N spawns would
+    # each hold their own limiter.
     assert run.recorder.max_parallel_filings == 1
+    filings_spawns = [argv for kind, command, argv in run.recorder.calls
+                      if kind == 'subprocess' and command == 'filings']
+    assert len(filings_spawns) == 1, (
+        f'filings spawned {len(filings_spawns)} times; batch mode means once')
+    assert len(_filings_tickers(filings_spawns[0])) > 1, (
+        'fixture no longer exercises the batch path')
 
     assert run.exit_code == 0
     assert run.issues == []

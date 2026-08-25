@@ -307,8 +307,11 @@ def rebuild_dashboard(ws=None):
         from clawock.automation import workflow_outcomes
         workflow_outcomes.publish()
         r = subprocess.run(
+            # 走本解释器的 -m 而不是 PATH 上的 console script（#918）：装在
+            # 别处的入口点与这里 import 的包可能不是同一份，而缺失时的失败
+            # 是安静的（FileNotFoundError 被上面的宽 except 吞掉）。
             ['flock', DASHBOARD_PUBLISH_LOCK,
-             'clawock', 'dashboard-build',
+             sys.executable, '-m', 'clawock', 'dashboard-build',
              '--previous', str(previous / 'assets' / 'data' / 'dashboard.json')],
             capture_output=True, text=True, timeout=30, cwd=str(ws),
         )
@@ -443,3 +446,55 @@ def run_analyze(market):
         return r.returncode, r.stdout, r.stderr
     except subprocess.TimeoutExpired:
         return -1, '', f'{module} timeout (120s)'
+
+
+# ── holdings md-table anomalies ───────────────────────────────────────────
+# Both report_preflight and intraday_preflight parsed the same seven-column
+# holdings table with the same ≥3% rule and the same ≥5% split, in two copies
+# that had already drifted apart in what they emitted per row (`severity` vs
+# `reason`) — and a change to the row shape would have had to be made twice
+# (#918). One parser, superset row: callers keep reading the key they always
+# read. The gate itself (≥3% is an anomaly, ≥5% is the severe half) is
+# unchanged — this move is not the place to renegotiate it.
+_ANOMALY_PCT = re.compile(r'([+\-])([\d\.]+)%')
+ANOMALY_MOVE_PCT = 3.0
+ANOMALY_SEVERE_PCT = 5.0
+
+
+def parse_holdings_anomalies(stdout):
+    """Rows of the `--md-table` holdings block whose day move is ≥3%.
+
+    Row shape (7 cols, both markets, since 2026-05-21):
+      HK: `| 00100 | 60 | 822.83 | 722.00 | +5.1% | -12.2% | -6,050 |`
+      US: `| RKLB |  5 |  71.00 | 134.28 | +0.0% | +89.1% |   +316 |`
+    Cell[0]=ticker, [1]=shares, [2]=cost, [3]=price, [4]=today%, [5]=pnl%,
+    [6]=pnl_abs. Header / separator rows are filtered (代码 / `:---`).
+    """
+    anomalies = []
+    for line in (stdout or '').splitlines():
+        s = line.strip()
+        if not s.startswith('|') or not s.endswith('|'):
+            continue
+        cells = [c.strip() for c in s.strip('|').split('|')]
+        if len(cells) < 7:
+            continue
+        ticker = cells[0]
+        if ticker == '代码' or ticker.startswith(':'):  # header / separator
+            continue
+        match = _ANOMALY_PCT.search(cells[4])
+        if not match:
+            continue
+        sign, pct_str = match.groups()
+        pct = float(pct_str)
+        if pct < ANOMALY_MOVE_PCT:
+            continue
+        severe = pct >= ANOMALY_SEVERE_PCT
+        anomalies.append({
+            'ticker': ticker,
+            'move_pct': (1 if sign == '+' else -1) * pct,
+            # 两个键都给：severity 是 intraday（以及下游 add_side）读的，
+            # reason 是 report 的输出契约。合并时任何一边都不该丢字段。
+            'severity': 'high' if severe else 'medium',
+            'reason': '跳空/异动' if severe else '日内大幅波动',
+        })
+    return anomalies

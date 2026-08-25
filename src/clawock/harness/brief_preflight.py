@@ -97,11 +97,25 @@ def _run(script, args=None, timeout=120):
         return f'{type(e).__name__}: {e}', False
 
 
+def clawock_argv(command, *args):
+    """argv for one package command, run through *this* interpreter (#918).
+
+    Spawning the bare console script makes every one of these steps depend on
+    whatever is on PATH — and the failure mode is quiet: under the user
+    crontab's ``PATH=/usr/bin:/bin`` the entry point is simply not there,
+    ``FileNotFoundError`` gets swallowed by the callers' broad excepts, and the
+    step reports that it did nothing wrong. ``sys.executable -m clawock`` runs
+    the package that is actually imported here, so there is no second install
+    to keep in sync and no PATH to get wrong.
+    """
+    return [sys.executable, '-m', 'clawock', command, *args]
+
+
 def _run_clawock(command, args=None, timeout=120):
-    """Run one installed package command in the selected workspace."""
+    """Run one package command in the selected workspace."""
     try:
         result = subprocess.run(
-            ['clawock', command] + (args or []), cwd=WS,
+            clawock_argv(command, *(args or [])), cwd=WS,
             capture_output=True, text=True, timeout=timeout)
         return (result.stdout or '') + (result.stderr or ''), result.returncode == 0
     except Exception as exc:
@@ -127,7 +141,7 @@ def _technical_setup_usage():
 def fetch_fx_rate():
     try:
         result = subprocess.run(
-            ['clawock', 'fx', '--json'], cwd=WS, capture_output=True,
+            clawock_argv('fx', '--json'), cwd=WS, capture_output=True,
             text=True, timeout=30)
         out, ok = result.stdout, result.returncode == 0
     except Exception as exc:
@@ -143,28 +157,41 @@ def fetch_fx_rate():
 
 
 def collect_us_fundamentals(portfolio):
-    """Pull SEC EDGAR --financials for each non-leveraged US single."""
-    fundamentals = {}
-    for h in portfolio['portfolios']['us_stocks']['holdings']:
-        if h.get('shares', 0) <= 0 or _is_leveraged_etf(h):
-            continue
-        ticker = h['ticker']
-        try:
-            result = subprocess.run(
-                ['clawock', 'filings', ticker, '--financials', '--json'],
-                cwd=WS, capture_output=True, text=True, timeout=30,
-            )
-            out, ok = result.stdout, result.returncode == 0
-        except Exception as exc:
-            out, ok = f'{type(exc).__name__}: {exc}', False
-        if not ok:
-            fundamentals[ticker] = {'error': out[-300:]}
-            continue
-        try:
-            fundamentals[ticker] = json.loads(out)
-        except json.JSONDecodeError:
-            fundamentals[ticker] = {'error': 'parse failed', 'raw': out[:300]}
-    return fundamentals
+    """Pull SEC EDGAR --financials for the non-leveraged US singles, in one spawn.
+
+    One process for the whole list, not one per ticker (#918). The SEC throttle
+    inside ``market_data.filings`` is an in-process ``_last_call``, so N spawns
+    hold N independent limiters — which is why this loop could never simply be
+    parallelised, and why the batch mode exists instead. Sequential inside that
+    single process keeps the desk's request rate the one it declares.
+    """
+    tickers = [h['ticker'] for h in portfolio['portfolios']['us_stocks']['holdings']
+               if h.get('shares', 0) > 0 and not _is_leveraged_etf(h)]
+    if not tickers:
+        return {}
+    # 单只时保持原来的单只形状；两只以上走 batch。超时按只数给，别让第五只
+    # 去挤第一只的预算。
+    timeout = 30 if len(tickers) == 1 else 20 * len(tickers)
+    try:
+        result = subprocess.run(
+            clawock_argv('filings', *tickers, '--financials', '--json'),
+            cwd=WS, capture_output=True, text=True, timeout=timeout,
+        )
+        out, ok = result.stdout, result.returncode == 0
+    except Exception as exc:
+        out, ok = f'{type(exc).__name__}: {exc}', False
+    if not ok:
+        return {ticker: {'error': out[-300:]} for ticker in tickers}
+    try:
+        payload = json.loads(out)
+    except json.JSONDecodeError:
+        return {ticker: {'error': 'parse failed', 'raw': out[:300]}
+                for ticker in tickers}
+    if len(tickers) == 1:
+        return {tickers[0]: payload}
+    batch = payload.get('batch') or {}
+    return {ticker: batch.get(ticker, {'error': 'missing from batch response'})
+            for ticker in tickers}
 
 
 
@@ -597,7 +624,7 @@ def refresh_daily_bars():
     settled against; fetch_daily_bars never overwrites one, so that surfaces as an
     issue for a human to resolve with --repair rather than being applied here.
     """
-    cmd = ['clawock', 'daily-bars']
+    cmd = clawock_argv('daily-bars')
     try:
         r = subprocess.run(cmd, cwd=WS, capture_output=True, text=True, timeout=300)
     except Exception as e:
@@ -1047,7 +1074,7 @@ def portfolio_risk_node():
     print('[11/14] Risk metrics')
     risk = {}
     try:
-        r = subprocess.run(['clawock', 'portfolio-risk'], cwd=WS,
+        r = subprocess.run(clawock_argv('portfolio-risk'), cwd=WS,
                            capture_output=True, text=True, timeout=180, check=False)
         if r.returncode != 0:
             tail = (r.stderr or r.stdout or '')[-500:]
@@ -1078,7 +1105,7 @@ def regime_node():
     issues = []
     lev_regime = None
     try:
-        subprocess.run(['clawock', 'regime'],
+        subprocess.run(clawock_argv('regime'),
                        capture_output=True, text=True, timeout=60, check=False)
         lr_path = WS / 'assets' / 'data' / 'lev_regime.json'
         if lr_path.exists():
@@ -1095,7 +1122,7 @@ def quant_node():
     issues = []
     quant_signals = {}
     try:
-        subprocess.run(['clawock', 'quant'],
+        subprocess.run(clawock_argv('quant'),
                        capture_output=True, text=True, timeout=120, check=False)
         qs_path = WS / 'assets' / 'data' / 'quant_signals.json'
         if qs_path.exists():
@@ -1119,7 +1146,7 @@ def quant_review_node():
     issues = []
     quant_review = {}
     try:
-        subprocess.run(['clawock', 'quant-review'],
+        subprocess.run(clawock_argv('quant-review'),
                        capture_output=True, text=True, timeout=60, check=False)
         qr_path = WS / 'assets' / 'data' / 'quant_signal_review.json'
         if qr_path.exists():
@@ -1140,7 +1167,7 @@ def cross_factor_node(portfolio):
     cross_sectional_factor_ctx = {}
     try:
         subprocess.run(
-            ['clawock', 'cross-factor'],
+            clawock_argv('cross-factor'),
             capture_output=True, text=True, timeout=240, check=False,
         )
         cs_path = WS / 'assets' / 'data' / 'cross_sectional_factor.json'
@@ -1190,7 +1217,7 @@ def evidence_node():
     # 证据页：读上面刚刷新的产物重新生成，保证「测了什么、什么没通过」不落后于事实。
     issues = []
     try:
-        subprocess.run(['clawock', 'evidence'],
+        subprocess.run(clawock_argv('evidence'),
                        capture_output=True, text=True, timeout=60, check=False)
     except Exception as e:
         print(f'   ⚠ evidence page rebuild failed: {e}')
@@ -1205,7 +1232,7 @@ def peer_residual_node(portfolio):
     peer_residual_ctx = {}
     try:
         subprocess.run(
-            ['clawock', 'peer-residual'],
+            clawock_argv('peer-residual'),
             capture_output=True, text=True, timeout=180, check=False,
         )
         pr_path = WS / 'assets' / 'data' / 'peer_residual.json'
@@ -1252,7 +1279,7 @@ def t0_node():
     issues = []
     t0_setups = {}
     try:
-        subprocess.run(['clawock', 't0'],
+        subprocess.run(clawock_argv('t0'),
                        capture_output=True, text=True, timeout=60, check=False)
         t0_path = WS / 'assets' / 'data' / 't0_setups.json'
         if t0_path.exists():
@@ -1271,7 +1298,7 @@ def t0_review_node():
     issues = []
     t0_review = {}
     try:
-        subprocess.run(['clawock', 't0-review'],
+        subprocess.run(clawock_argv('t0-review'),
                        capture_output=True, text=True, timeout=60, check=False)
         tr_path = WS / 'assets' / 'data' / 't0_setup_review.json'
         if tr_path.exists():
@@ -1287,7 +1314,7 @@ def em_news_node():
     # 借鉴 UZI-Skill 的数据源广度；信息收集是 LLM 强项 + kcn token 充足。失败 fail-soft。
     issues = []
     try:
-        subprocess.run(['clawock', 'em-news'], cwd=WS,
+        subprocess.run(clawock_argv('em-news'), cwd=WS,
                        capture_output=True, text=True, timeout=60, check=False)
     except Exception as e:
         print(f'   ⚠ clawock em-news failed: {e}')
@@ -1300,7 +1327,7 @@ def catalysts_node():
     catalysts = {}
     try:
         result = subprocess.run(
-            ['clawock', 'catalysts', '--json'], cwd=WS,
+            clawock_argv('catalysts', '--json'), cwd=WS,
             capture_output=True, text=True, timeout=60)
         cat_out, cat_ok = result.stdout, result.returncode == 0
         if not cat_ok:
@@ -1331,7 +1358,7 @@ def news_evidence_node():
     news_evidence_ctx = {}
     try:
         graph_run = subprocess.run(
-            ['clawock', 'news-evidence'], capture_output=True, text=True,
+            clawock_argv('news-evidence'), capture_output=True, text=True,
             timeout=150, check=False,
         )
         graph_out = (graph_run.stdout or '') + (graph_run.stderr or '')
