@@ -275,6 +275,22 @@ def test_us_beta_action_is_withheld_when_benchmark_overlap_is_ineligible(preflig
     assert result["breach_count"] == 0
 
 
+def test_us_beta_action_is_withheld_while_the_block_is_stale_revived(preflight):
+    """#1036: a revived block carries β of unknown age — the flag itself says
+    this run failed to measure it, so it must not source a HIGH trim directive."""
+    result = _evaluate(
+        preflight,
+        risk={"us": {
+            "beta_spx": 4.2,
+            "stale": True,
+            "stale_since": "2026-08-20T00:00:00+00:00",
+        }},
+    )
+
+    assert result["breaches"] == []
+    assert result["breach_count"] == 0
+
+
 def test_leveraged_etf_loss_exactly_minus_18_triggers_inclusive_stop(preflight):
     result = _evaluate(preflight, us=[
         _holding("PLTU", 25, leveraged=True, pnl_pct=-18),
