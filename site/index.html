@@ -199,10 +199,11 @@ layout: null
       </div>
 
       <!-- 判定卡第五次迭代：大白板否掉（kcn），改单词卡式牌组 —— 顶牌全显，
-           后续三张 scale+translateY 露边；横滑手势 / 指示点 / 自动轮播三通道
-           换牌。每张牌一个主题，按现有数据面拆：今日判定 / 触发中的硬闸 /
-           执行纪律 / 黄金回本。引擎在 dashboard.hero.js 与 dashboard.render.js
-           双实现逐字同步（setupVerdictDeck）。 -->
+           后续两张固定 8px 露边；横滑手势 / 指示点 / 方向键三通道换牌
+           （第六次迭代撤掉 7s 自动轮播：首屏不该有自己转的东西）。每张牌一个
+           主题，按现有数据面拆：今日判定 / 触发中的硬闸 / 执行纪律 / 黄金回本。
+           引擎在 dashboard.hero.js 与 dashboard.render.js 双实现逐字同步
+           （setupVerdictDeck）。 -->
       <section class="card verdict-deck" id="verdict-deck" aria-roledescription="轮播" aria-label="决策面板">
         <div class="verdict-deck-stage" id="verdict-deck-stage">
           <article class="deck-card" data-theme="今日判定" aria-labelledby="overview-verdict-title">

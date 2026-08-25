@@ -2580,30 +2580,49 @@
   /* Equity Curve 卡已挪去 Reflect 净值表现区（与 Daily P&L 同区、共用市场切换器）。
      Overview 首屏只留 hero-deck 的 spark 一条形状；今日判定从「Equity(8) + 判定(4)」
      的伴排改为独占整行。 */
-  /* ── 判定牌组（第五次迭代）──────────────────────────────────────
+  /* ── 判定牌组（第五次迭代建形，第六次迭代调交互与间距）──────────
      大白板被否（kcn：完全重构成卡片堆叠/轮换播放），改单词卡式牌组：
-     顶牌全显，后续三张在下层以 scale+translateY 露边暗示可换。容器占
-     原 .overview-verdict 的栅格槽与地板；每张牌一个主题，玻璃配方不变
-     （半透明面 + 斜向 sheen + 高光切边 + 自画光池），从「一张大白板」
-     收成「一叠玻璃牌」。 */
+     顶牌全显，后续两张在下层露边暗示可换。容器占原 .overview-verdict
+     的栅格槽与地板；每张牌一个主题，玻璃配方不变（半透明面 + 斜向 sheen
+     + 高光切边 + 自画光池），从「一张大白板」收成「一叠玻璃牌」。
+     第六次迭代（kcn：「堆叠交互太诡异，而且留白太多」）只动两件事：
+     交互几何（露边尺度 / 台面裁剪 / 撤自动轮播，见 stage 与 JS 注释）
+     与间距（外层托盘、牌内纵向内衬、三档地板）。画风与配色一字未动。 */
   .verdict-deck {
     grid-column: 1 / -1;
-    display: flex; flex-direction: column; gap: 10px;
+    display: flex; flex-direction: column; gap: 8px;
     position: relative;
-    /* 地板跟随原判定卡三档（319/506/571，横幅日扫宽上界 +2）：牌组拆张
-       后单牌内容更短，旧地板是安全上界 —— 预留只增不减，CLS 不劣化。 */
-    min-height: 319px;
+    /* 外层那圈 .card 的面/边/影/内衬全部撤掉（第六次迭代）：牌自己就是
+       玻璃面，外面再套一层就是玻璃里糊玻璃（#937），而且那 16px 内衬把
+       牌面推得比正上方 hero 卡窄 17px —— 首屏三块面的左缘本来就该对齐。
+       撤掉之后横向省 34px、纵向省 32px，全是纯留白。 */
+    padding: 0; border: 0; border-radius: 0;
+    background: none; box-shadow: none;
+    /* 地板三档全部按新构图重测：360~1920 每 20px 扫一遍，每档取「忙日」
+       上界（5 枚 chip 全到位 + 硬闸 3 行长 detail，都是渲染端的构图上限，
+       不是今天这份数据）。≥1024 档 = 226.39 + 露边 16 + gap 8 + 指示点 10
+       = 260.39，+2。牌是绝对定位的，牌组高度本来就只由这条 min-height 决定
+       ——预留是宽度的确定函数，不是数据的函数；数据变多的失败模式是牌内
+       截断，所以余量按构图上限留，不按当日实测留。 */
+    min-height: 262px;
   }
   .verdict-deck-stage {
     position: relative; flex: 1; min-height: 0;
     /* 横滑是手势主通道；纵向滚动必须照常（pan-y 只锁横向）。 */
     touch-action: pan-y; cursor: grab;
+    /* 牌桌要有边：before 实测抽走的牌横移到 x=-160（牌组左缘 x=28 之外）
+       盖住相邻区块 —— 这是「堆叠交互诡异」的头号来源。clip 而不是 hidden，
+       不产生滚动容器；clip-margin 只留牌影出边的余量。 */
+    overflow: clip; overflow-clip-margin: 8px;
   }
   .verdict-deck-stage.is-dragging { cursor: grabbing; }
   .deck-card {
-    position: absolute; inset: 0;
+    /* 底部留出两层露边的位置（2 × 8px），下层牌不越出台面。 */
+    position: absolute; inset: 0 0 16px 0;
     display: flex; flex-direction: column;
-    padding: 20px var(--card-inset) 18px;
+    /* 纵向内衬 20/18 → 16/16：横向仍走 --card-inset，和上方 hero 卡同列
+       对齐；「留白太多」收的是纵向那一档。 */
+    padding: 16px var(--card-inset);
     overflow: hidden;
     border-radius: var(--radius);
     /* 牌本体 = 玻璃内表面（配方沿第四次迭代）：半透明面透出页面光，
@@ -2647,26 +2666,25 @@
         rgba(0,110,184,.045), transparent 70%);
     }
   }
-  /* 进度指示点兼自动轮播进度条：轨是发丝底，填充 scaleX 由 JS 按
-     剩余时间逐帧写（禁 keyframes）。高度固定 —— 构图常量。 */
+  /* 指示点：自动轮播撤掉之后它不再兼任进度条，26px 的条状点也就没有
+     理由了 —— 收成 5px 圆点，跟同一张牌里的硬闸点阵（.gt-dot）同一套
+     计数语言。高度固定 10px —— 构图常量。 */
   .deck-dots {
     flex: 0 0 auto;
-    display: flex; align-items: center; justify-content: center; gap: 8px;
-    height: 12px; padding: 1px 0;
+    display: flex; align-items: center; justify-content: center; gap: 7px;
+    height: 10px;
   }
   .deck-dot {
     appearance: none; border: 0; padding: 0; margin: 0;
-    width: 26px; height: 4px; border-radius: 2px;
-    background: var(--border-subtle); cursor: pointer;
-    position: relative; overflow: hidden;
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--border-strong); opacity: .45; cursor: pointer;
+    transition: opacity var(--duration-fast) var(--ease-out),
+                transform var(--duration-fast) var(--ease-out);
   }
-  .deck-dot i {
-    position: absolute; inset: 0; border-radius: inherit;
-    background: var(--text-faint);
-    transform: scaleX(0); transform-origin: left center;
-  }
-  .deck-dot[aria-current="true"] i { background: var(--text-secondary); }
-  .deck-dot:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .deck-dot[aria-current="true"] { background: var(--text-secondary); opacity: 1; }
+  .deck-dot:active { transform: scale(.8); }
+  .deck-dot:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+  @media (prefers-reduced-motion: reduce) { .deck-dot { transition: none; } }
   /* 牌内元素入场 stagger（30~80ms）：临时类压住初态，去类后 transition
      生效；delay 挂 nth-child，400ms 后由 JS 摘除 delay 类。 */
   .deck-card > * { transition: opacity .24s var(--ease-out), transform .24s var(--ease-out); }
@@ -2683,7 +2701,7 @@
   }
   /* 牌内硬闸区：原「段间发丝线」是通栏卡的分段语言；独立成牌后它就是
      牌的正文，去掉段首线与顶垫。 */
-  .verdict-deck .overview-gates { border-top: 0; padding-top: 0; margin: 12px 0 0; }
+  .verdict-deck .overview-gates { border-top: 0; padding-top: 0; margin: 10px 0 0; }
   /* 牌尾跳转钮：贴牌底（flex 列的 margin-top:auto），不随内容长短漂。 */
   .deck-card-jump { margin-top: auto; align-self: flex-end; }
   /* 牌组化后双栏 grid-areas 与「玻璃上的仪表面板 well」一并退场：硬闸
@@ -2723,7 +2741,7 @@
      的版式保留：它就是终端里那行「快照注脚」。 */
   .overview-status {
     display: block;
-    margin: 12px 0 0; padding: 10px 0 0;
+    margin: 10px 0 0; padding: 9px 0 0;
     background: none; border: 0; border-radius: 0;
     border-top: 1px solid var(--border-subtle);
     border-bottom: 0;
@@ -2748,7 +2766,7 @@
      tone 只染边线与 value，不染整底：满屏色底是行情软件最廉价的读感。 */
   .deck-card .today-highlights {
     display: flex; flex-wrap: wrap; gap: 6px;
-    margin: 12px 0 0; min-height: 0;
+    margin: 10px 0 0; min-height: 0;
   }
   .deck-card .hl-chip {
     display: inline-flex; align-items: center; gap: 7px;
@@ -2997,8 +3015,10 @@
 
   @media (min-width: 768px) and (max-width: 1023px) {
     .hero-rail { grid-template-columns: repeat(4, minmax(0, 1fr)); min-height: 152px; }
-    /* 506：768px 端横幅日实测（504，与旧构图持平）+2。 */
-    .verdict-deck { min-height: 506px; }
+    /* 292：768~1023 扫宽忙日实测上界 256.39（在 780）+ 露边 16 + gap 8
+       + 指示点 10 = 290.39，+2。旧值 506 是通栏卡时代的安全上界，牌组
+       拆张后高出 214px 纯留白。 */
+    .verdict-deck { min-height: 292px; }
     .verdict-deck, .overview-strip,
     .overview-command > .hero-honesty-card,
     .overview-command > .hero-gold-card { grid-column: 1 / -1; }
@@ -3023,9 +3043,9 @@
     .dh-file { display: none; }
     .dh-bar { grid-column: 1 / -1; }
     .dh-detail { grid-column: 1 / -1; white-space: normal; }
-    /* 571：390px 横幅日实测 569（旧构图 566、旧地板 564 同样已破）
-       +2 —— 增量来自 mono 数字在窄列的折行变化。 */
-    .verdict-deck { min-height: 571px; }
+    /* 382：360~767 扫宽忙日实测上界 346.39（在 360）+ 露边 16 + gap 8
+       + 指示点 10 = 380.39，+2。窄档是留白重灾区：旧 571 高出 189px。 */
+    .verdict-deck { min-height: 382px; }
     .overview-strip { display: flex; flex-direction: column; }
     .overview-strip-cell {
       min-height: 0; border-right: 0; border-bottom: 1px solid var(--border-subtle);
