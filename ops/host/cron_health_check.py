@@ -207,8 +207,8 @@ def _commit_log_entries():
     return _commit_log_cache
 
 
-def commit_count_today(commit_pattern):
-    """Count matching commits whose committer date falls on today in HKT.
+def commit_count_on(commit_pattern, day):
+    """Count matching commits whose committer date falls on `day` (HKT date).
 
     GitHub runners use UTC. `git log --since=<today> 00:00` therefore dropped the
     04:00-HKT US-close commit (20:00 UTC on the prior date) and reported a false
@@ -216,16 +216,19 @@ def commit_count_today(commit_pattern):
     """
     if not commit_pattern:
         return None  # Mode 7 uses heartbeats; dream has no output contract
-    today = datetime.now(HKT).date()
     count = 0
     for stamp, subject in _commit_log_entries():
         try:
             commit_day = datetime.fromisoformat(stamp).astimezone(HKT).date()
         except ValueError:
             continue
-        if commit_day == today and re.search(commit_pattern, subject):
+        if commit_day == day and re.search(commit_pattern, subject):
             count += 1
     return count
+
+
+def commit_count_today(commit_pattern):
+    return commit_count_on(commit_pattern, datetime.now(HKT).date())
 
 
 def load_runtime_jobs(jobs_file=None):
@@ -326,8 +329,12 @@ def backstop_covered_slots(job_name, slots, tz_name, outcomes, today=None):
     return covered
 
 
-def heartbeat_coverage(job_name, slots, tz_name, now, ledger):
-    """Return monitored/healthy/missing slot sets for one intraday job."""
+def heartbeat_coverage(job_name, slots, tz_name, now, ledger, day=None):
+    """Return monitored/healthy/missing slot sets for one intraday job.
+
+    `day` overrides the calendar day the slots belong to (#996): post-window
+    jobs are verified against YESTERDAY's events, not the run's own day.
+    """
     if not ledger:
         return {'monitored': slots, 'healthy': [], 'missing': slots,
                 'failed': [], 'pending': []}
@@ -338,7 +345,7 @@ def heartbeat_coverage(job_name, slots, tz_name, now, ledger):
     except Exception:
         started = datetime.min.replace(tzinfo=timezone.utc)
     tz = ZoneInfo(tz_name)
-    local_day = now.astimezone(tz).date()
+    local_day = day or now.astimezone(tz).date()
     monitored = []
     for slot in slots:
         hour, minute = map(int, slot.split(':'))
@@ -532,6 +539,17 @@ def _market_closed_today(market):
 # session day, not the wall-clock day (#955).
 SESSION_DAY_OFFSET_JOBS = frozenset({'美股收盘报告', '美股盘中盯盘-overnight'})
 
+# Jobs whose slots fire AFTER every health window of their own calendar day
+# (this check runs 17:17 HKT; the worst observed schedule drift lands ~20:35):
+# 美股开盘报告 21:30/22:30 and the 美股盘中盯盘 evening half-hour slots. A same-day
+# expectation can never see them — parse_cron_slots only expands the target
+# date and the filter keeps only slots already past, so both jobs sat in
+# permanent 'idle' while their commits/heartbeats went unverified by anyone,
+# the weekday-wide version of #955's Saturday hole (#996). The NEXT day's run
+# verifies YESTERDAY's slots instead; unlike SESSION_DAY_OFFSET_JOBS these do
+# not cross HKT midnight, so the session day IS the slot's own date.
+POST_WINDOW_JOBS = frozenset({'美股开盘报告', '美股盘中盯盘'})
+
 
 def main():
     ap = argparse.ArgumentParser()
@@ -564,16 +582,26 @@ def main():
         sched = job.get('schedule', {})
         expr = sched.get('expr','')
         tz = sched.get('tz') or 'Asia/Shanghai'
-        expected = parse_cron_slots(expr, tz, now)
+        # Post-window jobs (#996) are judged on YESTERDAY's schedule and
+        # yesterday's evidence; every other job keeps today.
+        post_window = name in POST_WINDOW_JOBS
+        expected_day = now - timedelta(days=1) if post_window else now
+        expected = parse_cron_slots(expr, tz, expected_day)
         # Only check slots already past
         try:
             from zoneinfo import ZoneInfo
             now_local = now.astimezone(ZoneInfo(tz)).strftime('%H:%M')
         except Exception:
             now_local = now.strftime('%H:%M')
-        expected_past = [s for s in expected if s <= now_local]
+        if post_window:
+            # Yesterday's slots are past by construction; the HH:MM filter
+            # would wrongly drop the ones firing after 17:17.
+            expected_past = list(expected)
+        else:
+            expected_past = [s for s in expected if s <= now_local]
         commit_pat = COMMIT_PATTERNS.get(name)
-        commit_n = commit_count_today(commit_pat)
+        verify_date = expected_day.astimezone(HKT).date()
+        commit_n = commit_count_on(commit_pat, verify_date)
         # Advisory second evidence source (#262). Reported, never acted on.
         runs_n = runs_finished_today(job.get('id'))
 
@@ -593,6 +621,10 @@ def main():
                         now.astimezone(ZoneInfo(tz)).date() - timedelta(days=1))
                 except Exception:
                     session_day = None  # fail open into the same-day gate below
+            elif post_window:
+                # No midnight crossing here: the slots' own date IS the session
+                # day being verified (#996).
+                session_day = verify_date
             market_closed = (
                 _market_closed_on(mkt, session_day)
                 if session_day is not None else _market_closed_today(mkt))
@@ -616,8 +648,7 @@ def main():
                 # 生 commit，见 backstop_covered_slots）。两者是不同的红，分开报（#696）。
                 gap = len(expected_past) - commit_n
                 covered = backstop_covered_slots(
-                    name, expected_past, tz, outcomes_ledger,
-                    today=now.astimezone(ZoneInfo(tz)).date())
+                    name, expected_past, tz, outcomes_ledger, today=verify_date)
                 if len(covered) >= gap:
                     status = 'backstop'
                     detail = (f'expected {len(expected_past)} commits, got {commit_n} — '
@@ -634,7 +665,8 @@ def main():
             else:
                 detail = f'{commit_n}/{len(expected_past)} commits OK'
         elif name in ('盘中盯盘', '美股盘中盯盘', '美股盘中盯盘-overnight'):
-            coverage = heartbeat_coverage(name, expected_past, tz, now, heartbeat_ledger)
+            coverage = heartbeat_coverage(name, expected_past, tz, now,
+                                          heartbeat_ledger, day=verify_date)
             if not coverage['monitored']:
                 detail = f'{len(expected_past)} slot(s) before heartbeat monitoring start'
                 status = 'monitoring-grace'
