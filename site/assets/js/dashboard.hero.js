@@ -1104,16 +1104,27 @@
 
   // 持仓决策矩阵优先消费 harness 编译的 versioned projection。旧 dashboard
   // join 仅作跨版本部署期间的 fallback；Pages 不再是投资规则的 owner。
-  // ── 判定牌组（第五次迭代）──────────────────────────────────────────
-  // 大白板被否（kcn），改单词卡式牌组：顶牌全显，下层三张以
-  // scale(.95/.90)+translateY 露边；换牌三通道 = 横滑手势 / 指示点 /
-  // 自动轮播（7s 一张，hover/交互即暂停，落位后恢复）。
-  // 物理按 Apple Fluid Interfaces：默认临界阻尼（damping 1.0，
-  // response .32s）；只有甩动释放才给 bounce；手势期 1:1 跟手、任意
-  // 时刻可打断可反向；释放把速度交给弹簧，落点用动量投影
-  // （current + (v/1000)·d/(1−d), d≈0.998）选最近吸附点；边界
-  // rubber-band 渐进抵抗。只写 transform/opacity，禁 keyframes；
-  // reduced-motion 全套退化为交叉淡化 + 指示点切换。
+  // ── 判定牌组（第六次迭代）──────────────────────────────────────────
+  // 形态不变（单词卡牌组：顶牌全显、下层露边、横滑/指示点/方向键换牌），
+  // 画风与配色一字未动；这一轮只修「堆叠交互诡异」的四个几何/行为来源：
+  //  1. 滑出层的位移 before 实测跑到 x=-160（牌组左缘 x=28 之外），盖住
+  //     相邻区块 —— 牌桌没有边。stage 改 overflow:clip，抽走的牌消失在
+  //     台面边缘（CSS 侧）。
+  //  2. 中间态是两套牌位拼出来的：滑出层横移 × 升起层原地缩放，而第三张
+  //     在整段过程里冻在 m=2、等 idx 一变才跳。改成单一连续模型 —— 每张
+  //     牌的位姿只由「深度 d = i - cur」推出，d<0 是正在抽走，d≥0 是台面
+  //     第 d 层。没有分支，也就没有撕裂。
+  //  3. 深度改成固定 8px 露边 + 固定 8px 单边缩进（由 scaleX 换算）。原来
+  //     的 uniform scale 让露边随宽度变，1200 档只露 4px，读作「牌没放齐」。
+  //     z-index 同时降为静态 n-i：牌只会往左抽走，压序永远是「序号小的在
+  //     上」，逐帧改 z 是多余的闪烁源。
+  //  4. 撤掉两件自我表演：7s 自动轮播（首屏不该有自己转的东西；换牌三通道
+  //     仍在）与整叠 0.97 按压缩放（1144px 的面缩 3% 读作版面抽搐，跟手
+  //     位移本身就是按压反馈）。
+  // 物理保留 Apple Fluid Interfaces 那套：手势 1:1 跟手、任意时刻可打断可
+  // 反向、释放把速度交给弹簧、落点用动量投影、边界 rubber-band 渐进抵抗；
+  // 阻尼统一临界（换牌不弹），一次只走一张。只写 transform/opacity，禁
+  // keyframes；reduced-motion 直接落位。
   // ⚠ 与 dashboard.render.js 的本函数逐字同步（parity 棘轮只准同步）。
   function setupVerdictDeck() {
     const deck = document.getElementById("verdict-deck");
@@ -1125,57 +1136,51 @@
     if (!n) return;
     const dotsBox = document.getElementById("verdict-deck-dots");
     const RM = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const AUTOPLAY_MS = 7000;      // 6~8s 一张
-    const RESPONSE = 0.32;         // 默认弹簧 response（秒）
-    const FLICK_ZETA = 0.62;       // 只有甩动释放允许 bounce（overshoot ~10%）
-    const PROJ_D = 0.998;          // 动量投影衰减（iOS 食谱）
+    const SPRING = 0.26;      // 换牌弹簧 response（秒）：实测到位（≤1.7px
+                              // 残差）397ms，压在「轮播切换 ≤400ms」之内
+    const PROJ_D = 0.998;     // 动量投影衰减（iOS 食谱）
     const HORIZON = PROJ_D / (1 - PROJ_D) / 1000;   // ≈0.499s
+    const PEEK = 8;           // 每层露边（px；恒定，不随宽度变）
+    const INSET = 8;          // 每层单边缩进（px；由 scaleX 换算）
+    const DEPTH = 2;          // 台面上最多两层露边
+    const SNAP = 0.25;        // 换一张的位移阈值（牌宽占比；动量投影后判）
     let idx = 0;        // 吸附位
     let cur = 0;        // 连续位置（牌为单位；静止时 == idx）
     let velC = 0;       // 弹簧速度（cards/s；跟手速度在释放时换算交接）
     let raf = 0;
-    let press = 1;      // 按压 scale（pointer-down 即响应，松开回 1）
     let drag = null;    // { x0, lx, lt, moved }
     let vPxMs = 0;      // 跟手速度（px/ms，EMA）
-    let hover = false, focused = false;   // 自动轮播的暂停条件
-    let movedFlag = false;               // 拖过的手不触发牌内点击
+    let movedFlag = false;   // 拖过的手不触发牌内点击
     const dots = [];
     for (let i = 0; i < n; i++) {
       const b = document.createElement("button");
       b.type = "button"; b.className = "deck-dot";
       b.setAttribute("aria-label", `第 ${i + 1} 张：${cards[i].dataset.theme || ""}`);
-      b.appendChild(document.createElement("i"));
       b.addEventListener("click", () => goTo(i));
       dotsBox.appendChild(b); dots.push(b);
+      cards[i].style.zIndex = n - i;
     }
     const W = () => stage.clientWidth || 1;
     function pose(i) {
-      // 单一真值来源：由连续位置 cur 推每张牌的 transform/z。fr≠0 时
-      // 相邻两张构成「滑出 × 升起」对，其余按深度静置（露边暗示）。
-      const fr = cur - Math.floor(cur);
-      const base = fr >= 0 ? Math.floor(cur) : Math.floor(cur) + 1;
-      const dir = fr === 0 ? 0 : (fr > 0 ? 1 : -1);
-      let tx = 0, sc = 1, ty = 0, z = 1, vis = true;
-      if (dir !== 0 && i === base) {
-        tx = -fr * W(); z = n + 2;                 // 滑出层（一直在上）
-      } else if (dir !== 0 && i === base + dir) {
-        const u = Math.abs(fr);
-        sc = 0.95 + 0.05 * u; ty = 12 * (1 - u); z = n + 1;   // 升起层
-      } else {
-        const m = Math.abs(i - idx);
-        sc = Math.max(0.90, 1 - 0.05 * m);
-        ty = Math.min(22, 12 * m);
-        z = Math.max(1, n - m);
-        if (m === 0) { sc = 1; ty = 0; z = n; }    // 静止顶牌
-        if (m >= 3) vis = false;
-      }
       const el = cards[i];
-      el.style.zIndex = z;
+      const d = i - cur;
+      let tx = 0, ty = 0, sx = 1, op = 1, vis = true;
+      if (d <= -1 || d > DEPTH + 0.2) {
+        vis = false;                                   // 抽完的 / 太深的
+      } else if (d < 0) {
+        const u = -d;                                  // 抽走进度 0→1
+        tx = -u * W();
+        op = u <= 0.5 ? 1 : Math.max(0, 1 - (u - 0.5) / 0.5);
+      } else {
+        const dd = Math.min(d, DEPTH);                 // 台面第 d 层
+        ty = PEEK * dd;
+        sx = Math.max(0, 1 - 2 * INSET * dd / W());
+      }
       el.style.visibility = vis ? "visible" : "hidden";
+      el.style.opacity = op === 1 ? "" : op.toFixed(3);
       el.style.transform =
-        `translate3d(${tx.toFixed(2)}px, ${ty.toFixed(2)}px, 0)`
-        + ` scale(${(sc * press).toFixed(4)})`;
-      const top = i === idx && dir === 0;
+        `translate3d(${tx.toFixed(2)}px, ${ty.toFixed(2)}px, 0) scaleX(${sx.toFixed(5)})`;
+      const top = i === idx && d === 0;
       if (el.inert !== !top) el.inert = !top;
       el.setAttribute("aria-hidden", top ? "false" : "true");
     }
@@ -1183,19 +1188,19 @@
     function paintDots() {
       dots.forEach((d, i) => d.setAttribute("aria-current", i === idx ? "true" : "false"));
     }
-    function spring(target, zeta, response) {
+    function spring(target) {
       cancelAnimationFrame(raf);
-      if (RM.matches) { cur = target; idx = target; enter(); paint(); paintDots(); return; }
-      const omega = 2 * Math.PI / response;
-      const k = omega * omega, c = 2 * zeta * omega;
+      if (RM.matches) { cur = target; idx = target; velC = 0; raf = 0; enter(); paint(); paintDots(); return; }
+      const omega = 2 * Math.PI / SPRING;
+      const k = omega * omega, c = 2 * omega;     // ζ=1：临界阻尼，换牌不过冲
       let t0 = performance.now();
       const step = (t) => {
         const dt = Math.min(Math.max((t - t0) / 1000, 0.001), 1 / 30); t0 = t;
         velC += (-k * (cur - target) - c * velC) * dt;
         cur += velC * dt;
-        if (Math.abs(cur - target) < 0.0006 && Math.abs(velC) < 0.004) {
+        if (Math.abs(cur - target) < 0.0015 && Math.abs(velC) < 0.02) {
           cur = target; velC = 0; idx = target; raf = 0;
-          enter(); paint(); paintDots(); restartAuto();
+          enter(); paint(); paintDots();
           return;
         }
         paint();
@@ -1205,8 +1210,12 @@
     }
     function goTo(i) {
       i = Math.max(0, Math.min(n - 1, i));
-      pauseAuto();
-      spring(i, 1.0, 0.36);
+      // 指示点点到第 4 张不该让中间两张各飞一遍（实测 >1s，破 400ms 闸）：
+      // 先把位置瞬移到目标的邻位，只演一张牌的抽走/上浮，换牌时长有界。
+      if (Math.abs(i - idx) > 1) {
+        idx = i - Math.sign(i - idx); cur = idx; velC = 0; paint(); paintDots();
+      }
+      spring(i);
     }
     // 牌内元素入场 stagger（30~80ms）：只在每张牌第一次成为顶牌时播一次。
     function enter() {
@@ -1222,13 +1231,11 @@
     }
     stage.addEventListener("pointerdown", (e) => {
       if (e.pointerType === "mouse" && e.button !== 0) return;
-      pauseAuto();
       if (raf) { cancelAnimationFrame(raf); raf = 0; }   // 弹簧随时可打断
       drag = { x0: e.clientX, lx: e.clientX, lt: performance.now(), moved: false };
-      vPxMs = 0; press = 0.97;
+      vPxMs = 0;
       try { stage.setPointerCapture(e.pointerId); } catch (_) {}
       stage.classList.add("is-dragging");
-      paint();
     });
     stage.addEventListener("pointermove", (e) => {
       if (!drag) return;
@@ -1249,16 +1256,17 @@
     const release = () => {
       if (!drag) return;
       const moved = drag.moved;
-      drag = null; press = 1;
+      drag = null;
       stage.classList.remove("is-dragging");
-      if (!moved) { cur = idx; velC = 0; paint(); restartAuto(); return; }
-      // 速度交接给弹簧；落点 = 动量投影的最近吸附点。甩动（|v| 高）才用
-      // bounce 阻尼，普通释放临界阻尼。
-      velC = -vPxMs * 1000 / W();
-      const proj = cur + velC * HORIZON;
-      const target = Math.max(0, Math.min(n - 1, Math.round(proj)));
-      const fast = Math.abs(velC) > 0.9;
-      spring(target, fast ? FLICK_ZETA : 1.0, fast ? 0.36 : RESPONSE);
+      if (!moved) { cur = idx; velC = 0; paint(); return; }
+      // 速度交接给弹簧；落点 = 动量投影过阈值就走一张，绝不跳两张 ——
+      // 一叠牌一次只抽一张，这是牌组的语言，也让 1:1 跟手不必拖满整张牌宽。
+      // 速度上限 4 cards/s ≈ 两倍于人手最猛的甩动：不夹的话一次抽动能
+      // 灌进十几 cards/s，弹簧被推得大幅过冲，落位要 500ms 以上。
+      velC = Math.max(-4, Math.min(4, -vPxMs * 1000 / W()));
+      const proj = cur + velC * HORIZON - idx;
+      const step = Math.abs(proj) > SNAP ? Math.sign(proj) : 0;
+      spring(Math.max(0, Math.min(n - 1, idx + step)));
     };
     stage.addEventListener("pointerup", release);
     stage.addEventListener("pointercancel", release);
@@ -1270,38 +1278,10 @@
       if (e.key === "ArrowLeft") { e.preventDefault(); goTo(idx - 1); }
       if (e.key === "ArrowRight") { e.preventDefault(); goTo(idx + 1); }
     });
-    deck.addEventListener("pointerenter", () => { hover = true; pauseAuto(); });
-    deck.addEventListener("pointerleave", () => { hover = false; restartAuto(); });
-    deck.addEventListener("focusin", () => { focused = true; pauseAuto(); });
-    deck.addEventListener("focusout", () => { focused = false; restartAuto(); });
-    document.addEventListener("visibilitychange", () => {
-      if (document.hidden) pauseAuto(); else restartAuto();
-    });
     window.addEventListener("resize", () => { cur = idx; velC = 0; paint(); }, { passive: true });
-    // 自动轮播与指示点进度同源：一个 200ms tick 驱动推进与填充；
-    // 暂停即冻结（elapsed 累计制，不用绝对时刻）。
-    let elapsed = 0, autoOn = false, lastTick = 0;
-    function pauseAuto() { autoOn = false; }
-    function restartAuto() {
-      if (RM.matches || document.hidden || hover || focused || autoOn || raf) return;
-      autoOn = true; lastTick = performance.now();
-    }
-    setInterval(() => {
-      const now = performance.now();
-      if (autoOn) {
-        elapsed += now - lastTick;
-        if (elapsed >= AUTOPLAY_MS && !drag && !raf) {
-          elapsed = 0;
-          spring((idx + 1) % n, 1.0, 0.38);   // 自动切换 ≤400ms
-        }
-      }
-      lastTick = now;
-      const fill = dots[idx] && dots[idx].firstChild;
-      if (fill) fill.style.transform =
-        `scaleX(${autoOn ? Math.min(elapsed / AUTOPLAY_MS, 1).toFixed(3) : "0"})`;
-    }, 200);
-    paint(); paintDots(); enter(); restartAuto();
+    paint(); paintDots(); enter();
   }
+
 
   // 纪律 / 黄金回本两张副牌的内容渲染。数据缺口必须明说（muted 占位），
   // 不装作没有这一格。⚠ 与 dashboard.render.js 逐字同步。
