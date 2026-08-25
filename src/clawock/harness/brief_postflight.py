@@ -486,26 +486,19 @@ from ._watchdog_common import (  # noqa: E402
 )
 
 
-def _current_price_for(ticker):
-    """Look up the freshest current_price for ticker in portfolio.json.
-    Used as fallback `sim_entry_price` when LLM forgot to set
-    `simulated_entry_price` on the plan action — without it the future
-    outcome resolver can't compute cut/trim/add win/loss (see
-    brief_preflight._resolve_pending_outcomes)."""
-    try:
-        pf = json.loads((WS / 'portfolio.json').read_text())
-    except Exception:
-        return ''
-    for region in ('us_stocks', 'hk_stocks'):
-        for h in pf['portfolios'].get(region, {}).get('holdings', []) or []:
-            if h.get('ticker') == ticker:
-                cp = h.get('current_price')
-                return cp if cp not in (None, 0) else ''
-    return ''
-
-
 def log_decisions(today):
-    """Upsert today's validated, normalized plan into the v2 decision ledger."""
+    """Upsert today's validated, normalized plan into the v2 decision ledger.
+
+    `simulated_entry_price` is never backfilled here (#1003): it used to be
+    filled from portfolio.json `current_price`, whose docstring justified the
+    write with `brief_preflight._resolve_pending_outcomes` — a function the v2
+    refactor (a563b3c0) deleted. The live resolver, decision_v2.settle_decisions,
+    derives every entry/fill from canonical memory/bars and never reads this
+    field; the only consumers left render it as the public dashboard's
+    plannedPrice when execution_price is absent. Backfilling it meant publishing
+    a fetch-vintage quote (bars.py: previous close 7/15, intraday 5/15 on 00100)
+    as a price nobody ever planned. What the LLM authored stays; nothing is
+    invented."""
     plan_path = WS / 'memory' / f'{today}-plan.json'
 
     if not plan_path.exists():
@@ -516,10 +509,6 @@ def log_decisions(today):
         return
     if plan.get('schema_version') != 2 or not plan.get('decisions'):
         return
-    for d in plan['decisions']:
-        if d.get('simulated_entry_price') is None:
-            d['simulated_entry_price'] = _current_price_for(d.get('ticker'))
-    safe_write_json(str(plan_path), plan)
     # One load, mutate in memory, write once only if something changed (#916):
     # the old sequence was upsert(load+write) then load+settle+write — two full
     # rewrites per brief even on the common no-new-decisions day.
