@@ -212,6 +212,18 @@ def test_parse_gtimg_without_volume_field_does_not_fabricate_volume():
 def test_update_hk_portfolio_stamps_prev_close_to_prior_session_and_writes_volume(
     tmp_path, monkeypatch
 ):
+    """前收日必须是**上一个**港股交易日，永远不是今天（#1021 修的就是这个）。
+
+    夹具里的日期从真实时钟推出来，不写死：写死 "2026-08-25" 的那一版在
+    2026-08-26 00:00 HKT 整条 master 变红 —— 它当时代表「今天」，第二天就
+    代表「上一个交易日」，断言的意思跟着翻了个面。测试里的日期字面量和文案
+    里的实时数字是同一类东西：都会过期。
+    """
+    now_hkt = datetime.now(timezone(timedelta(hours=8)))
+    today = now_hkt.date().isoformat()
+    prior_session = hk.trading_calendar.previous_trading_day(
+        "hk", now_hkt.date()).isoformat()
+
     port = {
         "portfolios": {
             "hk_stocks": {
@@ -222,8 +234,9 @@ def test_update_hk_portfolio_stamps_prev_close_to_prior_session_and_writes_volum
                         "cost_basis": 300.0,
                         "current_price": 312.0,
                         "prev_close": 312.2,
-                        "prev_close_date": "2026-08-25",
-                        "day_session_date": "2026-08-25",
+                        # 坏状态：前收日 == 当日 session，正是要被修掉的那个
+                        "prev_close_date": today,
+                        "day_session_date": today,
                         "day_open": 312.0,
                         "day_high": 323.6,
                         "day_low": 290.4,
@@ -258,10 +271,8 @@ def test_update_hk_portfolio_stamps_prev_close_to_prior_session_and_writes_volum
 
     # prev_close_date must be the PRIOR HK trading session, never today — this
     # is the fix that re-arms integrity's STALE_PRICE gate.
-    assert h["prev_close_date"] != "2026-08-25"
-    now_hkt = datetime.now(timezone(timedelta(hours=8)))
-    expected = hk.trading_calendar.previous_trading_day("hk", now_hkt.date()).isoformat()
-    assert h["prev_close_date"] == expected
+    assert h["prev_close_date"] == prior_session
+    assert h["prev_close_date"] != today
     assert h["prev_close_date"] < h["day_session_date"]
 
     # Volume must be overwritten with the real traded volume from Tencent
