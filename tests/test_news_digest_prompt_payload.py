@@ -27,6 +27,13 @@ def _raw(tickers):
             for i, ticker in enumerate(tickers)}
 
 
+def _fixed_size_raw(tickers):
+    """Three items per ticker whatever the universe size — `_raw` scales items
+    with the ticker count, which starves a 300-ticker budget test of any
+    ticker small enough to include."""
+    return {ticker: [_news_item(i) for i in range(3)] for ticker in tickers}
+
+
 def _compact(value):
     return json.dumps(value, ensure_ascii=False, separators=(',', ':'))
 
@@ -64,3 +71,41 @@ def test_over_budget_tickers_are_included_or_skipped_whole():
     first_skip = min(tickers.index(t) for t in skipped)
     last_include = max((tickers.index(t) for t in included), default=-1)
     assert last_include < first_skip
+
+
+def test_the_omission_manifest_cannot_push_the_payload_back_over_budget():
+    """#989: the manifest rides inside the payload, so reserving only the empty
+    list under-counted it. 300 oversized tickers serialized to 26,602 chars
+    against a 25,000 budget — the word "budget" only means something if it is
+    an upper bound."""
+    tickers = [f'T{i:03d}' for i in range(300)]
+    raw = _fixed_size_raw(tickers)
+
+    budget = 25_000
+    payload = build_news_payload(raw, budget=budget)
+    serialized = _compact(payload)
+
+    assert json.loads(serialized) == payload
+    assert len(serialized) <= budget
+    # Still whole-ticker, still declared, still input-ordered after the demotion.
+    skipped = payload['_omitted_tickers']
+    included = [t for t in tickers if t in payload]
+    assert included, 'the budget is big enough for some tickers'
+    assert sorted(included + skipped) == sorted(tickers)
+    for ticker in included:
+        assert payload[ticker] == raw[ticker]
+    assert max(tickers.index(t) for t in included) < min(
+        tickers.index(t) for t in skipped)
+
+
+def test_a_manifest_bigger_than_the_budget_is_kept_whole_not_sliced():
+    """The one honest overrun: when naming what was dropped costs more than the
+    budget itself, the manifest still ships intact — a sliced manifest would be
+    a payload that lies about what is missing."""
+    tickers = [f'T{i:03d}' for i in range(300)]
+
+    payload = build_news_payload(_fixed_size_raw(tickers), budget=500)
+
+    assert [t for t in tickers if t in payload] == []
+    assert payload['_omitted_tickers'] == tickers
+    assert json.loads(_compact(payload)) == payload

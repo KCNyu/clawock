@@ -38,8 +38,14 @@ def build_news_payload(raw, budget=NEWS_PROMPT_BUDGET_CHARS):
     """Whole-ticker projection of the fetched news under a serialized budget.
 
     Inclusion order follows `raw` so earlier (portfolio-order) tickers win
-    contention. The `_omitted_tickers` manifest is sized into the budget from
-    the start so adding it can never push the payload back over budget.
+    contention. The `_omitted_tickers` manifest rides inside the payload, so it
+    is reserved before the first ticker AND reconciled after the last: a long
+    omission list grows the manifest past its empty-list reservation, which is
+    how 288 omissions pushed a 25,000-char budget to 26,602 (#989). The
+    reconciliation demotes whole tickers from the tail of the included set —
+    never a slice — until the serialized payload really fits. The one case that
+    still exceeds `budget` is a manifest that alone is bigger than it: naming
+    what was dropped is the honesty record, so it is kept whole rather than cut.
     """
     def compact(value):
         return json.dumps(value, ensure_ascii=False, separators=(',', ':'))
@@ -55,6 +61,15 @@ def build_news_payload(raw, budget=NEWS_PROMPT_BUDGET_CHARS):
         else:
             omitted.append(ticker)
     if omitted:
+        included['_omitted_tickers'] = omitted
+    # Demote from the tail so the surviving set stays a prefix of `raw` and the
+    # manifest stays in input order: a demoted ticker precedes every ticker the
+    # greedy pass had already skipped.
+    tail = [ticker for ticker in raw if ticker in included]
+    while tail and len(compact(included)) > budget:
+        ticker = tail.pop()
+        del included[ticker]
+        omitted.insert(0, ticker)
         included['_omitted_tickers'] = omitted
     return included
 
