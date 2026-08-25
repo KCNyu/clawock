@@ -173,13 +173,18 @@
   @media (prefers-color-scheme: light) {
     :root {
       /* 亮色 canvas 纸色：白玻璃要有可对的底。before 实测亮色面底只差
-         11~20 级且无色度差（strip 甚至纯白 255 打在 233 的底上）—— #995
-         同款判据：先给页面一个非白的 canvas，白玻璃才有得透。 */
-      --bg: #E7ECF3;
-      /* 副光同样从绿改蓝（理由同 :root：第四种装饰色 + 底色偏绿）。 */
-      --bg-glow: rgba(64,140,196,.22);
-      --bg-glow-2: rgba(48,132,226,.10);
-      --bg-glow-3: rgba(84,168,255,.07);
+          11~20 级且无色度差（strip 甚至纯白 255 打在 233 的底上）—— #995
+          同款判据：先给页面一个非白的 canvas，白玻璃才有得透。
+          2026-08-25 第五次迭代修正：纸色与三盏光池全部去蓝相 —— #1002 把
+          canvas 提到 #E7ECF3、光池抬到蓝 .22/.10/.07 后，页沟槽实测
+          (223,230,238)，B−R=16（改前 #F3F6F9 时代实测 (237,242,246)，
+          B−R=9），整页读成「蓝底」。canvas 回到原中性白；光池保留几何与
+          明度语言，色相同步中和：主光是白光池，两盏副光是中性灰的影池，
+          玻璃 saturate(182%) 再没有蓝色相可放大。暗主题不动。 */
+      --bg: #F3F6F9;
+      --bg-glow: rgba(255,255,255,.45);
+      --bg-glow-2: rgba(148,157,166,.09);
+      --bg-glow-3: rgba(148,157,166,.07);
       --surface-0: #F8FAFC;
       --surface-1: #FFFFFF;
       --surface-2: #F2F5F8;
@@ -291,6 +296,9 @@
        文字会从卡里透出来叠字。 */
     body .card.overview-verdict { background: var(--surface-1); }
     body .overview-strip { background: var(--surface-1); }
+    /* 判定卡自画光池（2026-08-25 第四次迭代起）同属「光穿过材质」，实色
+       表面上一并关掉 —— 本块注释自己的判据，v1 漏了这条。 */
+    body .card.overview-verdict::before { display: none; }
     /* Same reason the sheens go: they are light passing through a material.
        On an opaque surface they are just a gradient nobody asked for. */
     body .card, body .hero-deck, body .overview-strip { background-image: none; }
