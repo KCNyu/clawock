@@ -17,6 +17,13 @@ MIN_N=20 样本不足不得当结论引用，CI 跨 50% 不入决策；低于 50
 CI 整体成立时才允许反向解读。T+5/T+20 窗口逐日重叠 → 披露 non_overlap_cap
 （标的数 × 天数 ÷ horizon），n 超过它时结论打折。
 纯本地文件运算，无网络请求，brief preflight 每日顺跑。
+
+冻结价闸：2026-06/07 的留痕里 RKLB 连续 30 个交易日卡在 114.78、HOOD 卡在
+112.9（写入侧当时还没有 per-row freshness 闸），forward return 对这种冻结对
+恒为 0，把每个因子的命中率系统性压低——trend_on_follow 公开值 10%，其中
+32/40 个观测是伪影。连续多个留痕日同一收盘价在真实市场几乎不出现（周末/
+假日顺延造成的同价 ≤2–3 天），≥4 判为断源：这些 ticker-日不产生任何观测，
+排除量披露在 frozen_feed_excluded，数据本身保留不作改写。
 """
 import json
 import random
@@ -34,6 +41,39 @@ OUT = WS / 'assets' / 'data' / 'quant_signal_review.json'
 # 因子结论可被引用的最小样本量——与 setup_review.MIN_N 同一条纪律。此前文档
 # 承诺「样本<20 不解锁」但代码没有这个闸（#934），小样本假解锁全部偏向高估。
 MIN_N = 20
+
+# 同一标的连续 ≥FROZEN_RUN_MIN 个留痕日收盘价完全相同 = 行情源断流（见
+# docstring 的 RKLB/HOOD 事故）。周末/假日顺延造成的合法同价最多 2–3 天。
+FROZEN_RUN_MIN = 4
+
+
+def frozen_ticker_days(days):
+    """{(ticker, as_of)} 收盘价处在 ≥FROZEN_RUN_MIN 连续同价行程里的 ticker-日。
+
+    只认「完全相等」：真实市场的平盘极少逐分不差，而断流的缓存价必然逐字节
+    相同——这正是 2026-06/07 污染被事后检出的签名。
+    """
+    series = {}
+    for day in days:
+        as_of = day.get('as_of')
+        if not as_of:
+            continue
+        for sym, sig in (day.get('rows') or {}).items():
+            close = (sig or {}).get('close')
+            if close is not None:
+                series.setdefault(sym, []).append((as_of, close))
+    frozen = set()
+    for sym, points in series.items():
+        run = []
+        for as_of, close in points:
+            if run and close != run[-1][1]:
+                if len(run) >= FROZEN_RUN_MIN:
+                    frozen.update((sym, d) for d, _ in run)
+                run = []
+            run.append((as_of, close))
+        if len(run) >= FROZEN_RUN_MIN:
+            frozen.update((sym, d) for d, _ in run)
+    return frozen
 
 # 因子 → (触发条件, 预期方向: +1=涨算命中 / -1=跌算命中, 结算窗口天数)
 FACTOR_TESTS = {
@@ -91,6 +131,8 @@ def main(argv=None):
 
     stats = {k: {'n': 0, 'hits': 0, 'observations': [], 'horizon': h}
              for k, (_, _, h) in FACTOR_TESTS.items()}
+    frozen = frozen_ticker_days(days)
+    frozen_excluded = 0
     for i, day in enumerate(days):
         for sym, sig in (day.get('rows') or {}).items():
             c0 = sig.get('close')
@@ -101,8 +143,13 @@ def main(argv=None):
                     continue          # 窗口未到期，留给未来结算
                 if not cond(sig):
                     continue
-                c1 = ((days[i + horizon].get('rows') or {}).get(sym) or {}).get('close')
+                settle_day = days[i + horizon]
+                c1 = ((settle_day.get('rows') or {}).get(sym) or {}).get('close')
                 if not c1:
+                    continue
+                if (sym, day['as_of']) in frozen or (sym, settle_day['as_of']) in frozen:
+                    # 冻结价观测：fwd 恒 0 或假跳变，两个方向都是伪影。
+                    frozen_excluded += 1
                     continue
                 fwd = c1 / c0 - 1
                 stats[name]['n'] += 1
@@ -167,13 +214,15 @@ def main(argv=None):
                else f'没有因子通过聚类 CI 50% 闸（{len(days)} 天留痕）——结论未解锁')
     out = {'as_of': date.today().isoformat(), 'days_logged': len(days),
            'unlock_rule': 'cluster_ci_entirely_above_or_below_50pct',
+           'frozen_feed_excluded': frozen_excluded,
            'factors': factors, 'summary': summary,
            'discipline': ('自迭代规则：公开 n_events/n_dates/n_tickers；date×ticker 双向聚类 '
                           'CI 跨 50% 不入决策；只有反向 CI 整体低于 50% 才允许反向解读。driven_by='
                           'technical 的整体战绩以 dashboard 的实时 decision_metrics.by_driver.technical '
                           '为准，不使用固定百分比。')}
     safe_write_json(OUT, out)
-    print(f'  review: {len(days)} days, summary: {summary}')
+    skipped = f'，冻结价剔除 {frozen_excluded} 个观测' if frozen_excluded else ''
+    print(f'  review: {len(days)} days, summary: {summary}{skipped}')
 
 
 if __name__ == '__main__':
