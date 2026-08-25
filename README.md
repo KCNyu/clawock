@@ -164,7 +164,8 @@ The catalyst probe is the narrow, time-sensitive one: it fires **only for names 
 ### Influencer radar
 
 The system scans **Trump (Truth Social, first-party) and Musk (news
-aggregation)** one to two times a day on the HK/US session clock, then an LLM
+aggregation)** twice every trading day over a rolling 48-hour lookback window,
+then an LLM
 filters the noise and links what's left to actual holdings and sectors: stance
 (endorse / oppose), relevance, and a plain-language summary. Who said what,
 and whether it touches your book, is already sitting in the pre-open brief —
