@@ -15,8 +15,7 @@
     "intraday": {
       "enabled": true,
       "markets": ["hk"],
-      "policy": "intraday",
-      "template": "intraday"
+      "policy": "intraday"
     }
   },
   "resources": {
@@ -29,9 +28,6 @@
       "max_setup_lines": 3,
       "quote_fresh_minutes": 10
     }
-  },
-  "templates": {
-    "intraday": "config/intraday.md"
   },
   "delivery": {
     "provider": "filesystem",

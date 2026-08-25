@@ -38,7 +38,7 @@ market_data provider DTO -> decision strategy -> package lifecycle -> runtime/pr
   scope, instrument look-through, signal state, risk/exploration contract and
   its bounded state. It accepts a generic workspace/book and explicit policy;
   it does not know KCNyu, OpenClaw, a delivery target or prose layout.
-- A profile supplies declarative markets, policies, templates, schedules,
+- A profile supplies declarative markets, policies, schedules,
   resources and delivery selection. Phase wiring, rendering, watchdog behavior
   and reusable policy stay in `src/clawock/`; host and repository side effects
   stay in `ops/`.
@@ -67,7 +67,7 @@ host/repository wiring belongs in operations.
 | `src/clawock/market_data/` | portable providers, canonical bars, sessions, quotes, filings and market context |
 | `src/clawock/evidence/` | provenance, run cards, research surface and public evidence generation |
 | `src/clawock/context/`, `harness/`, `automation/`, `publish/`, `workflows/`, `providers/` | complete lifecycle, scheduling/watchdogs, strategies, artifact protocol and runtime integrations |
-| `config/profiles/` | declarative profile values, resource references, schedules, locale/templates and delivery selection |
+| `config/profiles/` | declarative profile values, resource references, schedules, locale and delivery selection |
 | `ops/host/` | this host's cron, scheduler inspection, session maintenance and launcher wiring |
 | `ops/publish/` | the only protected-branch and data-plane publisher implementation |
 | `ops/ci/` | coverage and scheduled-workflow health used by GitHub Actions |

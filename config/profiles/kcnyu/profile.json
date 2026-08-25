@@ -21,20 +21,17 @@
     "brief": {
       "enabled": true,
       "markets": ["hk", "us"],
-      "policy": "brief",
-      "template": "brief"
+      "policy": "brief"
     },
     "report": {
       "enabled": true,
       "markets": ["hk", "us"],
-      "policy": "report",
-      "template": "report"
+      "policy": "report"
     },
     "intraday": {
       "enabled": true,
       "markets": ["hk", "us"],
-      "policy": "intraday",
-      "template": "intraday"
+      "policy": "intraday"
     }
   },
   "resources": {
@@ -67,11 +64,6 @@
     "brief": {
       "markets_must_both_be_closed_to_skip": true
     }
-  },
-  "templates": {
-    "brief": "config/cron-payloads/brief.md",
-    "report": "config/cron-payloads/report.md",
-    "intraday": "config/cron-payloads/intraday.md"
   },
   "delivery": {
     "provider": "openclaw",

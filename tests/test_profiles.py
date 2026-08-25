@@ -58,3 +58,20 @@ def test_profile_rejects_unknown_code_shaped_configuration(tmp_path):
         assert "unknown fields" in str(exc)
     else:
         raise AssertionError("profile accepted executable instance configuration")
+
+
+def test_profile_templates_surface_stays_deleted(tmp_path):
+    source = json.loads((ROOT / "examples/profiles/minimal/profile.json").read_text())
+    source["templates"] = {"intraday": "config/cron-payloads/intraday.md"}
+    path = tmp_path / "profile.json"
+    path.write_text(json.dumps(source))
+
+    try:
+        load_profile(tmp_path, "profile.json")
+    except ValueError as exc:
+        assert "unknown fields" in str(exc)
+    else:
+        raise AssertionError(
+            "profile accepted the unconsumed templates surface; "
+            "payload templates belong to config/cron-schedules.json"
+        )
