@@ -1,4 +1,6 @@
 """High-cost invariants unique to the investment decision workflow."""
+from pathlib import Path
+
 import copy
 import json
 
@@ -6,6 +8,12 @@ from clawock.workflows import (
     load_workflow,
     render_workflow_schema,
     validators_for,
+)
+
+PLUGIN_CONTRACT_TWIN = (
+    Path(__file__).resolve().parents[1]
+    / "examples" / "dsh" / "packages" / "clawock-dsh"
+    / "skills" / "investment-decision" / "references" / "decision-contract.md"
 )
 
 
@@ -83,3 +91,32 @@ def test_codex_schema_is_a_relaxed_projection_not_the_final_validator():
     invalid = _example()
     invalid["decision"]["evidence_ids"] = ["filing-growth", "filing-growth"]
     assert "duplicate_evidence_reference" in _codes(invalid)
+
+
+def test_the_dsh_plugin_contract_twin_tracks_the_pack_copy():
+    """The decision contract ships twice on purpose: once in the wheel pack
+    that `clawock workflow install` copies into workspaces, once inside the
+    npm plugin package. Both teach the same contract the same validators.py
+    enforces, so they must not diverge — and they have before: #646 had to
+    hand-patch both trees because the prose taught fields publish rejects.
+
+    No build step shares the two files, so this pin is the only thing that
+    turns a silent fork into a required-check failure. If divergence is ever
+    deliberate, edit both copies consciously and relax this test in the same
+    commit with a reason.
+    """
+    pack_copy = load_workflow("investment-decision").resource.joinpath(
+        "references/decision-contract.md"
+    )
+    assert pack_copy.is_file(), f"pack contract missing: {pack_copy}"
+    assert PLUGIN_CONTRACT_TWIN.is_file(), (
+        f"plugin package contract missing: {PLUGIN_CONTRACT_TWIN}"
+    )
+    assert PLUGIN_CONTRACT_TWIN.read_bytes() == pack_copy.read_bytes(), (
+        "the two shipped copies of references/decision-contract.md diverged:\n"
+        f"  pack:   {pack_copy}\n"
+        f"  plugin: {PLUGIN_CONTRACT_TWIN}\n"
+        "Both teach one contract enforced by one validator. Copy the edited "
+        "side over the other (or, if the audiences truly need different docs, "
+        "consciously relax this pin with a reason in the same commit)."
+    )
