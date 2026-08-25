@@ -18,7 +18,7 @@ harness's way in, and the contract never changes between them.
 | Claude Code | a CLAUDE.md instruction block, auto-loaded per workspace | [`claude-code/CLAUDE.md`](claude-code/CLAUDE.md) | `<workspace>/CLAUDE.md` |
 | Codex | an AGENTS.md instruction block, auto-loaded from the workspace root | [`codex/AGENTS.md`](codex/AGENTS.md) | `<workspace>/AGENTS.md` |
 | DeepSeek Harness | agent calls the clawock CLI through its bash tool; the contract is unchanged | [`dsh/instruction.md`](dsh/instruction.md) | workspace instruction / system prompt |
-| DSH plugin | npm-distributable skill package (and future Decision Studio UI) | [`dsh/plugin/`](dsh/plugin/) | `dsh plugin --profile web add clawock-dsh` + `cp` the skill into `~/.dsh/skills/` (see its [README](dsh/plugin/README.md)) |
+| DSH plugin | npm-distributable skill package (and future Decision Studio UI) | [`dsh/packages/clawock-dsh/`](dsh/packages/clawock-dsh/) | `dsh plugin --profile web add clawock-dsh` + `cp` the skill into `~/.dsh/skills/` (see its [README](dsh/packages/clawock-dsh/README.md)) |
 | Profiles | a second desk selects markets, workflows, resources, policy, presentation and delivery declaratively — the harness *profile* surface (e.g. the `intraday` desk workflow), distinct from the per-workspace decision contract above | [`profiles/`](profiles/) | reference |
 
 The point of the middle column is that it never changes: the harness only
