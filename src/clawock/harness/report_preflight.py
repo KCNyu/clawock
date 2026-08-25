@@ -42,6 +42,7 @@ Output keys:
   needs_risk_section: bool (true if STOP+TRIM >= 2)
 """
 
+from clawock.harness import _harness_common
 from clawock.harness._harness_common import run_analyze
 import argparse
 import json
@@ -230,41 +231,8 @@ def parse_signals(stdout):
 
 
 def parse_anomalies(stdout):
-    """Find tickers with ≥3% intraday move from md-table holdings rows.
-
-    Row shape (7 cols, both markets, since 2026-05-21):
-      HK: `| 00100 | 60 | 822.83 | 722.00 | +5.1% | -12.2% | -6,050 |`
-      US: `| RKLB |  5 |  71.00 | 134.28 | +0.0% | +89.1% |   +316 |`
-    Cell[0]=ticker, [1]=shares, [2]=cost, [3]=price, [4]=today%,
-    [5]=pnl%, [6]=pnl_abs ($).
-    """
-    anomalies = []
-    pct_re = re.compile(r'([+\-])([\d\.]+)%')
-    for line in stdout.splitlines():
-        s = line.strip()
-        if not s.startswith('|') or not s.endswith('|'):
-            continue
-        cells = [c.strip() for c in s.strip('|').split('|')]
-        if len(cells) < 7:
-            continue
-        ticker = cells[0]
-        if ticker == '代码' or ticker.startswith(':'):  # header / separator
-            continue
-        today = cells[4]
-        m = pct_re.search(today)
-        if not m:
-            continue
-        sign, pct_str = m.groups()
-        pct = float(pct_str)
-        if pct < 3.0:
-            continue
-        direction = 1 if sign == '+' else -1
-        anomalies.append({
-            'ticker':   ticker,
-            'move_pct': direction * pct,
-            'reason':   '跳空/异动' if pct >= 5 else '日内大幅波动',
-        })
-    return anomalies
+    """≥3% 异动行。实现在 _harness_common —— 两个 preflight 曾各存一份（#918）。"""
+    return _harness_common.parse_holdings_anomalies(stdout)
 
 
 def parse_hk_indices(stdout):

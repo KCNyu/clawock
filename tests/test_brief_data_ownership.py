@@ -70,8 +70,16 @@ def test_preflight_writes_are_committed():
 
 
 def _preflight_utilities():
-    """The packaged commands preflight shells out to, read from its own source."""
-    return sorted(set(re.findall(r"\[\s*'clawock',\s*'([a-z0-9-]+)'", PREFLIGHT)))
+    """The packaged commands preflight shells out to, read from its own source.
+
+    The spawn shape moved twice: `scripts/data/<name>.py` → `['clawock', cmd]`
+    (#429) → `clawock_argv(cmd)` (#918, so the command runs through *this*
+    interpreter instead of whatever the PATH has). Both times the pattern had
+    to follow, and the failure mode of not following is this discovery quietly
+    returning nothing — which is what the anti-vacuity assertion below exists
+    to catch.
+    """
+    return sorted(set(re.findall(r"clawock_argv\(\s*'([a-z0-9-]+)'", PREFLIGHT)))
 
 
 def _utility_outputs():

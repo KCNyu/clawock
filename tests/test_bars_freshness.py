@@ -35,7 +35,8 @@ def test_brief_actually_calls_the_installed_bar_fetcher(monkeypatch):
     result = brief_preflight.refresh_daily_bars()
 
     assert result['ok'] is True
-    assert calls[0][0] == ['clawock', 'daily-bars']
+    # #918：走本解释器的 -m，不再依赖 PATH 上的 console script。
+    assert calls[0][0] == [sys.executable, '-m', 'clawock', 'daily-bars']
     assert calls[0][1]['cwd'] == brief_preflight.WS
 
 
