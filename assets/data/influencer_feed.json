@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-24T21:56:34.366783+00:00",
+  "generated_at": "2026-08-25T13:37:15.360829+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -13,104 +13,133 @@
   },
   "llm_filtered": true,
   "counts": {
-    "total": 18,
-    "held_hits": 0,
-    "new_ideas": 0,
-    "sector_hits": 4
+    "total": 10,
+    "held_hits": 2,
+    "new_ideas": 3,
+    "sector_hits": 2
   },
   "items": [
     {
       "author": "Musk",
-      "text": "Elon Musk Says SpaceX Needs More Power Than New York City in a Heatwave. These 2 Nuclear Stocks Should Benefit.",
+      "text": "Musk Sees SpaceX’s Orbital Data Center Launch Near End of 2027",
       "url": "",
-      "published": "Mon, 24 Aug 2026 20:02:25 GMT",
+      "published": "Mon, 24 Aug 2026 18:45:22 GMT",
       "origin": "gnews-rss",
-      "source": "The Motley Fool",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI",
-        "航天",
-        "核电",
-        "核能"
+      "source": "Bloomberg",
+      "tickers": [
+        "SPCX",
+        "SPCH"
       ],
-      "sector_holdings": [
+      "held": [
         "SPCH",
         "SPCX"
       ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "AI",
+        "数据中心"
+      ],
+      "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 88,
-      "summary_cn": "Musk称SpaceX所需电力将超NYC热浪峰值，倒推两家核电股受益——属SpaceX生态受益者，间接利好KCN持有的SPCX/SPCH。"
+      "relevance": 90,
+      "summary_cn": "Musk 称 SpaceX 轨道数据中心将于 2027 年底前发射，直接利好 kcn 重仓的 SPCX/SPCH，并强化 AI 算力太空化主题。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk Admits China Is \"By Far\" Strongest AI Competitor, As Chinese Robot Just Beat Usain Bolt's 100m World Record",
+      "text": "Trump bought shares in Elon Musk's SpaceX in June, financial disclosure shows",
       "url": "",
-      "published": "Mon, 24 Aug 2026 14:16:57 GMT",
+      "published": "Mon, 24 Aug 2026 18:57:27 GMT",
       "origin": "gnews-rss",
-      "source": "24/7 Wall St.",
-      "tickers": [],
-      "held": [],
+      "source": "Reuters",
+      "tickers": [
+        "SPCX",
+        "SPCH"
+      ],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
       "new_ideas": [],
       "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 88,
+      "summary_cn": "Trump 6 月被披露买入了 Musk 的 SpaceX 股份，对 kcn 重仓的 SPCX/SPCH 形成直接利好背书。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk Praises New SpaceX and NVIDIA Partnership, Yet Both Stocks Fall",
+      "url": "",
+      "published": "Mon, 24 Aug 2026 21:39:52 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [
+        "NVDA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "NVDA"
+      ],
+      "sectors": [
+        "航天",
         "AI",
-        "中国",
-        "机器人",
         "半导体"
       ],
       "sector_holdings": [
-        "03032",
-        "03033",
-        "07226",
+        "00100",
         "SKHY"
       ],
-      "stance": "neutral",
-      "relevance": 75,
-      "summary_cn": "Musk承认中国'遥遥领先'是AI最强竞争者，且中国机器人破百米世界纪录——强化中国AI/机器人叙事，间接利好KCN恒科持仓及SK海力士(AI算力链)。"
+      "stance": "endorse",
+      "relevance": 82,
+      "summary_cn": "Musk 称赞 SpaceX 与 NVIDIA 新合作，AI/航天产业链融合加速；NVDA 被直接点名（虽股价当日下跌）。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk's Tesla Has 'Massive Advantage' Before Selling Optimus in the Market, Says This Analyst — Crypt",
+      "text": "Elon Musk's Tesla Hikes Cybertruck Prices by More Than 7% Despite Sluggish Sales",
       "url": "",
-      "published": "Mon, 24 Aug 2026 05:29:28 GMT",
+      "published": "Tue, 25 Aug 2026 10:29:44 GMT",
       "origin": "gnews-rss",
       "source": "Benzinga",
-      "tickers": [],
+      "tickers": [
+        "TSLA"
+      ],
       "held": [],
-      "new_ideas": [],
+      "new_ideas": [
+        "TSLA"
+      ],
       "sectors": [
-        "AI",
-        "机器人"
+        "电动车"
       ],
-      "sector_holdings": [
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "endorse",
-      "relevance": 68,
-      "summary_cn": "分析师称Tesla的Optimus机器人具备'巨大优势'，AI/人形机器人主题情绪利好，间接利好KCN持有的恒生科技ETF。"
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "Tesla 在 Cybertruck 销售疲软下仍涨价逾 7%，需求与定价能力受质疑。"
     },
     {
-      "author": "Trump",
-      "text": "RT @katy_libertyMark Levin just laid it out clearly. Trump is cutting and reviewing regulations to restore American energy independence, put more money in people’s paychecks, and make homeownership attainable again — while still looking out for the environment and American workers. Blue-state governors are sabotaging that progress every chance they get. Democrats claim “he’s not focused on affordability.” He’s all about affordability. They’re just furious he’s delivering it. Stop listening to the liberal media and your blue-state governors. Do your own research. The Democrats have been the rea",
-      "url": "https://trumpstruth.org/statuses/41148",
-      "published": "2026-08-24T05:23:41+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
+      "author": "Musk",
+      "text": "Will Tesla's new solar ambitions join Elon Musk's hall of fame or shame? (TSLA:NASDAQ)",
+      "url": "",
+      "published": "Tue, 25 Aug 2026 10:53:27 GMT",
+      "origin": "gnews-rss",
+      "source": "Seeking Alpha",
+      "tickers": [
+        "TSLA"
+      ],
       "held": [],
-      "new_ideas": [],
+      "new_ideas": [
+        "TSLA"
+      ],
       "sectors": [
-        "能源",
-        "监管"
+        "新能源",
+        "太阳能"
       ],
-      "sector_holdings": [
-        "02208"
-      ],
-      "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "Trump转发Mark Levin，强调削减监管以恢复美国能源独立、降汽油价格；利好金风科技所属的能源/风电板块。"
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 52,
+      "summary_cn": "报道讨论 Tesla 新太阳能业务前景成败难料，对 Musk 副业线中性观察。"
     },
     {
       "author": "Trump",
@@ -122,14 +151,33 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "关税",
-        "汽车",
-        "钢铁"
+        "关税"
       ],
-      "sector_holdings": [],
+      "sector_holdings": [
+        "02208"
+      ],
       "stance": "attack",
-      "relevance": 82,
-      "summary_cn": "Trump宣布2027年1月1日起对加拿大汽车/汽车零部件/钢铁关税提至50%，强关税冲击加墨整车与零部件板块。"
+      "relevance": 75,
+      "summary_cn": "Trump 宣布 2027 年 1 月 1 日起对加拿大汽车、卡车、汽车零部件及钢铁关税提至 50%，并称加拿大长期占美国便宜。"
+    },
+    {
+      "author": "Trump",
+      "text": "Trump’s Tariffs Force Some Canadian Companies to Consider Moving South: https://www.nytimes.com/2026/08/12/world/canada/canada-tariffs-manufacturing-trade-trump.html",
+      "url": "https://trumpstruth.org/statuses/41172",
+      "published": "2026-08-24T16:56:22+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "关税"
+      ],
+      "sector_holdings": [
+        "02208"
+      ],
+      "stance": "neutral",
+      "relevance": 62,
+      "summary_cn": "Trump 关税正迫使部分加拿大企业考虑南迁至美国，关税政策对北美制造业格局有重塑影响。"
     },
     {
       "author": "Trump",
@@ -142,49 +190,12 @@
       "new_ideas": [],
       "sectors": [
         "地缘政治",
-        "原油",
-        "军工"
+        "能源"
       ],
       "sector_holdings": [],
       "stance": "attack",
-      "relevance": 68,
-      "summary_cn": "Trump酝酿对伊朗'碾压式'经济封锁，油价/避险资产/军工或有结构性扰动。"
-    },
-    {
-      "author": "Trump",
-      "text": "RT @realDonaldTrumpCanada wants the benefits of being a State, without being one!!! They have also charged our great farmers, for many years, massive amounts of Tariffs. No more!!! President DJT",
-      "url": "https://trumpstruth.org/statuses/41129",
-      "published": "2026-08-23T13:11:09+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "关税",
-        "农业"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 65,
-      "summary_cn": "Trump重申加拿大长期高关税伤害美国农民，威胁对加报复性关税，与条目6互为加强。"
-    },
-    {
-      "author": "Trump",
-      "text": "Trump’s Tariffs Force Some Canadian Companies to Consider Moving South: https://www.nytimes.com/2026/08/12/world/canada/canada-tariffs-manufacturing-trade-trump.html",
-      "url": "https://trumpstruth.org/statuses/41172",
-      "published": "2026-08-24T16:56:22+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "关税",
-        "制造业"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 62,
-      "summary_cn": "NYT报道：Trump关税迫使部分加拿大企业考虑南迁美国北美制造业格局受冲击。"
+      "relevance": 60,
+      "summary_cn": "Trump 拟以'碾压式'经济封锁迫使伊朗屈服，地缘风险升温，油价与避险资产或受波及。"
     },
     {
       "author": "Trump",
@@ -197,49 +208,12 @@
       "new_ideas": [],
       "sectors": [
         "地缘政治",
-        "能源",
-        "军工"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 58,
-      "summary_cn": "Trump称伊朗正全面崩溃，配合后续经济封锁言论，原油/军工/避险资产或受扰动。"
-    },
-    {
-      "author": "Trump",
-      "text": "Lots of “bluster” from Doug Ford, who is the Premier of the Canadian Province of Ontario, but who is better known as the less charismatic, intelligent, and overall unimpressive brother of the late, great, Rob Ford. America has been carrying Canada for decades, but no longer! The U.S.A. will always be far bigger, richer, and stronger than Canada. Without the United States, Canada couldn’t survive — It’s where they get all of their money and, because of their current bad leadership, primarily Governor Carney, and his Flunky, Ford, they will not be allowed to keep taking advantage of the United S",
-      "url": "https://trumpstruth.org/statuses/41175",
-      "published": "2026-08-24T18:03:17+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "关税",
-        "美加贸易"
+        "能源"
       ],
       "sector_holdings": [],
       "stance": "attack",
       "relevance": 55,
-      "summary_cn": "Trump抨击加拿大/Ontario省长及Carney总理，配合后续关税升级，指向对加贸易强硬路线。"
-    },
-    {
-      "author": "Trump",
-      "text": "Canada wants the benefits of being a State, without being one!!! They have also charged our great farmers, for many years, massive amounts of Tariffs. No more!!! President DJT",
-      "url": "https://trumpstruth.org/statuses/41128",
-      "published": "2026-08-23T05:06:38+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "关税",
-        "农业"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 55,
-      "summary_cn": "Trump再次炮轰加拿大对美农产品征收高额关税，与条目17/6同一主线，重复报道去重后保留信号略低。"
+      "summary_cn": "Trump 宣称伊朗正'完全崩溃'，配合第 16 条经济封锁言论，暗示对伊朗将加码施压。"
     },
     {
       "author": "Trump",
@@ -251,108 +225,40 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "能源",
-        "汽油价格"
+        "能源"
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 52,
-      "summary_cn": "Trump EPA提前结束夏季汽油标准以压低美国零售油价，能源/炼油板块政策利好。"
-    },
+      "relevance": 55,
+      "summary_cn": "Trump  EPA 提前终止夏季汽油规则以压低美国油价，能源监管松绑方向延续。"
+    }
+  ],
+  "held_hits": [
     {
       "author": "Musk",
-      "text": "GAO finds Elon Musk's DOGE inflated claims of $110 billion in savings for federal government",
+      "text": "Musk Sees SpaceX’s Orbital Data Center Launch Near End of 2027",
       "url": "",
-      "published": "Thu, 06 Aug 2026 07:00:00 GMT",
+      "published": "Mon, 24 Aug 2026 18:45:22 GMT",
       "origin": "gnews-rss",
-      "source": "CNBC",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "政府效率",
-        "财政"
+      "source": "Bloomberg",
+      "tickers": [
+        "SPCX",
+        "SPCH"
       ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "GAO报告指Musk的DOGE虚报1100亿美元联邦节省，DOGE叙事可信度遭质疑，政策执行风险上升。"
-    },
-    {
-      "author": "Musk",
-      "text": "'It’s hard to know exactly what the objective of DOGE was': Former IRS boss warns Elon Musk’s cuts to the tax agency will be felt in years to come",
-      "url": "",
-      "published": "Mon, 24 Aug 2026 16:50:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Fortune",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "政府效率",
-        "财政"
+      "held": [
+        "SPCH",
+        "SPCX"
       ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "前IRS负责人警告Musk主导的DOGE削减IRS预算的长期影响，财政/税务执行效率主题。"
-    },
-    {
-      "author": "Trump",
-      "text": "Trump Bump: Tax refunds jumped 17% after president’s signature law, GAO reports: https://justthenews.com/government/federal-agencies/total-tax-refunds-issued-2025-jumped-17-compared-2024-paper-check",
-      "url": "https://trumpstruth.org/statuses/41136",
-      "published": "2026-08-24T02:53:04+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
       "new_ideas": [],
       "sectors": [
-        "税改",
-        "宏观"
+        "航天",
+        "AI",
+        "数据中心"
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 50,
-      "summary_cn": "Trump标志性税改法案落地后退税同比增17%，宏观消费力提振信号。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk’s Social Security reset is coming even after DOGE’s death — protect your check whether you like him or not",
-      "url": "",
-      "published": "Mon, 24 Aug 2026 16:39:19 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "社会保障",
-        "政府效率"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 48,
-      "summary_cn": "DOGE'已死'但Musk对Social Security的重置仍在推进，影响退休/医保相关板块情绪。"
-    },
-    {
-      "author": "Musk",
-      "text": "Tesla Is Giving Up on Solar Roof Tiles as Elon Musk Leans Into Fossil Fuels",
-      "url": "",
-      "published": "Sat, 22 Aug 2026 18:04:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Futurism",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "电动车",
-        "太阳能",
-        "化石能源"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 45,
-      "summary_cn": "Tesla放弃太阳能屋顶转向化石能源，Musk战略转向信号；本身非上市标的，但可能影响TSLA情绪。"
+      "relevance": 90,
+      "summary_cn": "Musk 称 SpaceX 轨道数据中心将于 2027 年底前发射，直接利好 kcn 重仓的 SPCX/SPCH，并强化 AI 算力太空化主题。"
     },
     {
       "author": "Musk",
@@ -361,111 +267,136 @@
       "published": "Mon, 24 Aug 2026 18:57:27 GMT",
       "origin": "gnews-rss",
       "source": "Reuters",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 45,
-      "summary_cn": "财务披露显示Trump六月购入SpaceX股份——SpaceX未上市，但映射出Trump本人对航天板块的背书态度。"
-    }
-  ],
-  "held_hits": [],
-  "new_ideas": [],
-  "sector_hits": [
-    {
-      "author": "Musk",
-      "text": "Elon Musk Says SpaceX Needs More Power Than New York City in a Heatwave. These 2 Nuclear Stocks Should Benefit.",
-      "url": "",
-      "published": "Mon, 24 Aug 2026 20:02:25 GMT",
-      "origin": "gnews-rss",
-      "source": "The Motley Fool",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI",
-        "航天",
-        "核电",
-        "核能"
+      "tickers": [
+        "SPCX",
+        "SPCH"
       ],
-      "sector_holdings": [
+      "held": [
         "SPCH",
         "SPCX"
       ],
-      "stance": "endorse",
-      "relevance": 88,
-      "summary_cn": "Musk称SpaceX所需电力将超NYC热浪峰值，倒推两家核电股受益——属SpaceX生态受益者，间接利好KCN持有的SPCX/SPCH。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk Admits China Is \"By Far\" Strongest AI Competitor, As Chinese Robot Just Beat Usain Bolt's 100m World Record",
-      "url": "",
-      "published": "Mon, 24 Aug 2026 14:16:57 GMT",
-      "origin": "gnews-rss",
-      "source": "24/7 Wall St.",
-      "tickers": [],
-      "held": [],
       "new_ideas": [],
       "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 88,
+      "summary_cn": "Trump 6 月被披露买入了 Musk 的 SpaceX 股份，对 kcn 重仓的 SPCX/SPCH 形成直接利好背书。"
+    }
+  ],
+  "new_ideas": [
+    {
+      "author": "Musk",
+      "text": "Elon Musk Praises New SpaceX and NVIDIA Partnership, Yet Both Stocks Fall",
+      "url": "",
+      "published": "Mon, 24 Aug 2026 21:39:52 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [
+        "NVDA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "NVDA"
+      ],
+      "sectors": [
+        "航天",
         "AI",
-        "中国",
-        "机器人",
         "半导体"
       ],
       "sector_holdings": [
-        "03032",
-        "03033",
-        "07226",
+        "00100",
         "SKHY"
       ],
-      "stance": "neutral",
-      "relevance": 75,
-      "summary_cn": "Musk承认中国'遥遥领先'是AI最强竞争者，且中国机器人破百米世界纪录——强化中国AI/机器人叙事，间接利好KCN恒科持仓及SK海力士(AI算力链)。"
+      "stance": "endorse",
+      "relevance": 82,
+      "summary_cn": "Musk 称赞 SpaceX 与 NVIDIA 新合作，AI/航天产业链融合加速；NVDA 被直接点名（虽股价当日下跌）。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk's Tesla Has 'Massive Advantage' Before Selling Optimus in the Market, Says This Analyst — Crypt",
+      "text": "Elon Musk's Tesla Hikes Cybertruck Prices by More Than 7% Despite Sluggish Sales",
       "url": "",
-      "published": "Mon, 24 Aug 2026 05:29:28 GMT",
+      "published": "Tue, 25 Aug 2026 10:29:44 GMT",
       "origin": "gnews-rss",
       "source": "Benzinga",
-      "tickers": [],
+      "tickers": [
+        "TSLA"
+      ],
       "held": [],
-      "new_ideas": [],
+      "new_ideas": [
+        "TSLA"
+      ],
       "sectors": [
-        "AI",
-        "机器人"
+        "电动车"
       ],
-      "sector_holdings": [
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "endorse",
-      "relevance": 68,
-      "summary_cn": "分析师称Tesla的Optimus机器人具备'巨大优势'，AI/人形机器人主题情绪利好，间接利好KCN持有的恒生科技ETF。"
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "Tesla 在 Cybertruck 销售疲软下仍涨价逾 7%，需求与定价能力受质疑。"
     },
     {
+      "author": "Musk",
+      "text": "Will Tesla's new solar ambitions join Elon Musk's hall of fame or shame? (TSLA:NASDAQ)",
+      "url": "",
+      "published": "Tue, 25 Aug 2026 10:53:27 GMT",
+      "origin": "gnews-rss",
+      "source": "Seeking Alpha",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "新能源",
+        "太阳能"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 52,
+      "summary_cn": "报道讨论 Tesla 新太阳能业务前景成败难料，对 Musk 副业线中性观察。"
+    }
+  ],
+  "sector_hits": [
+    {
       "author": "Trump",
-      "text": "RT @katy_libertyMark Levin just laid it out clearly. Trump is cutting and reviewing regulations to restore American energy independence, put more money in people’s paychecks, and make homeownership attainable again — while still looking out for the environment and American workers. Blue-state governors are sabotaging that progress every chance they get. Democrats claim “he’s not focused on affordability.” He’s all about affordability. They’re just furious he’s delivering it. Stop listening to the liberal media and your blue-state governors. Do your own research. The Democrats have been the rea",
-      "url": "https://trumpstruth.org/statuses/41148",
-      "published": "2026-08-24T05:23:41+00:00",
+      "text": "Canada has been ripping off the United States of America for years. Their ridiculously high tariffs on our Farmers and farm products has made life impossible for these great American Patriots, and has long created a 60 Billion Dollar Deficit between our two Countries. Not sustainable, and NOT ANYMORE! On January First, 2027, Tariffs on all Cars, Trucks, both large and small, Automotive Parts, and Steel, will be increased to 50%. Build in the U.S. and there are ZERO TARIFFS. Canada will be treated like a State no longer! On Trade, and in other ways, also, they are among the worst Nations in the",
+      "url": "https://trumpstruth.org/statuses/41154",
+      "published": "2026-08-24T13:38:26+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "能源",
-        "监管"
+        "关税"
       ],
       "sector_holdings": [
         "02208"
       ],
-      "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "Trump转发Mark Levin，强调削减监管以恢复美国能源独立、降汽油价格；利好金风科技所属的能源/风电板块。"
+      "stance": "attack",
+      "relevance": 75,
+      "summary_cn": "Trump 宣布 2027 年 1 月 1 日起对加拿大汽车、卡车、汽车零部件及钢铁关税提至 50%，并称加拿大长期占美国便宜。"
+    },
+    {
+      "author": "Trump",
+      "text": "Trump’s Tariffs Force Some Canadian Companies to Consider Moving South: https://www.nytimes.com/2026/08/12/world/canada/canada-tariffs-manufacturing-trade-trump.html",
+      "url": "https://trumpstruth.org/statuses/41172",
+      "published": "2026-08-24T16:56:22+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "关税"
+      ],
+      "sector_holdings": [
+        "02208"
+      ],
+      "stance": "neutral",
+      "relevance": 62,
+      "summary_cn": "Trump 关税正迫使部分加拿大企业考虑南迁至美国，关税政策对北美制造业格局有重塑影响。"
     }
   ]
 }
