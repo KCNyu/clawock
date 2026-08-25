@@ -32,7 +32,7 @@ policy.
   the maintainer to want it. If the same fix can live in `src/clawock/`, that is
   where it belongs.
 
-`docs/reference/product-vs-instance.md` states the ownership rule per directory.
+`docs/reference/product-profile-operations.md` states the ownership rule per directory.
 The deciding question there is the same one to ask before opening a PR: *would a
 third party running clawock with their own book need this change?*
 
