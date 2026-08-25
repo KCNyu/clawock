@@ -2590,11 +2590,21 @@
      与间距（外层托盘、牌内纵向内衬、三档地板）。画风与配色一字未动。 */
   .verdict-deck {
     grid-column: 1 / -1;
-    display: flex; flex-direction: column; gap: 10px;
+    display: flex; flex-direction: column; gap: 8px;
     position: relative;
-    /* 地板跟随原判定卡三档（319/506/571，横幅日扫宽上界 +2）：牌组拆张
-       后单牌内容更短，旧地板是安全上界 —— 预留只增不减，CLS 不劣化。 */
-    min-height: 319px;
+    /* 外层那圈 .card 的面/边/影/内衬全部撤掉（第六次迭代）：牌自己就是
+       玻璃面，外面再套一层就是玻璃里糊玻璃（#937），而且那 16px 内衬把
+       牌面推得比正上方 hero 卡窄 17px —— 首屏三块面的左缘本来就该对齐。
+       撤掉之后横向省 34px、纵向省 32px，全是纯留白。 */
+    padding: 0; border: 0; border-radius: 0;
+    background: none; box-shadow: none;
+    /* 地板三档全部按新构图重测：360~1920 每 20px 扫一遍，每档取「忙日」
+       上界（5 枚 chip 全到位 + 硬闸 3 行长 detail，都是渲染端的构图上限，
+       不是今天这份数据）。≥1024 档 = 226.39 + 露边 16 + gap 8 + 指示点 10
+       = 260.39，+2。牌是绝对定位的，牌组高度本来就只由这条 min-height 决定
+       ——预留是宽度的确定函数，不是数据的函数；数据变多的失败模式是牌内
+       截断，所以余量按构图上限留，不按当日实测留。 */
+    min-height: 262px;
   }
   .verdict-deck-stage {
     position: relative; flex: 1; min-height: 0;
@@ -2610,7 +2620,9 @@
     /* 底部留出两层露边的位置（2 × 8px），下层牌不越出台面。 */
     position: absolute; inset: 0 0 16px 0;
     display: flex; flex-direction: column;
-    padding: 20px var(--card-inset) 18px;
+    /* 纵向内衬 20/18 → 16/16：横向仍走 --card-inset，和上方 hero 卡同列
+       对齐；「留白太多」收的是纵向那一档。 */
+    padding: 16px var(--card-inset);
     overflow: hidden;
     border-radius: var(--radius);
     /* 牌本体 = 玻璃内表面（配方沿第四次迭代）：半透明面透出页面光，
@@ -2689,7 +2701,7 @@
   }
   /* 牌内硬闸区：原「段间发丝线」是通栏卡的分段语言；独立成牌后它就是
      牌的正文，去掉段首线与顶垫。 */
-  .verdict-deck .overview-gates { border-top: 0; padding-top: 0; margin: 12px 0 0; }
+  .verdict-deck .overview-gates { border-top: 0; padding-top: 0; margin: 10px 0 0; }
   /* 牌尾跳转钮：贴牌底（flex 列的 margin-top:auto），不随内容长短漂。 */
   .deck-card-jump { margin-top: auto; align-self: flex-end; }
   /* 牌组化后双栏 grid-areas 与「玻璃上的仪表面板 well」一并退场：硬闸
@@ -2729,7 +2741,7 @@
      的版式保留：它就是终端里那行「快照注脚」。 */
   .overview-status {
     display: block;
-    margin: 12px 0 0; padding: 10px 0 0;
+    margin: 10px 0 0; padding: 9px 0 0;
     background: none; border: 0; border-radius: 0;
     border-top: 1px solid var(--border-subtle);
     border-bottom: 0;
@@ -2754,7 +2766,7 @@
      tone 只染边线与 value，不染整底：满屏色底是行情软件最廉价的读感。 */
   .deck-card .today-highlights {
     display: flex; flex-wrap: wrap; gap: 6px;
-    margin: 12px 0 0; min-height: 0;
+    margin: 10px 0 0; min-height: 0;
   }
   .deck-card .hl-chip {
     display: inline-flex; align-items: center; gap: 7px;
@@ -3003,8 +3015,10 @@
 
   @media (min-width: 768px) and (max-width: 1023px) {
     .hero-rail { grid-template-columns: repeat(4, minmax(0, 1fr)); min-height: 152px; }
-    /* 506：768px 端横幅日实测（504，与旧构图持平）+2。 */
-    .verdict-deck { min-height: 506px; }
+    /* 292：768~1023 扫宽忙日实测上界 256.39（在 780）+ 露边 16 + gap 8
+       + 指示点 10 = 290.39，+2。旧值 506 是通栏卡时代的安全上界，牌组
+       拆张后高出 214px 纯留白。 */
+    .verdict-deck { min-height: 292px; }
     .verdict-deck, .overview-strip,
     .overview-command > .hero-honesty-card,
     .overview-command > .hero-gold-card { grid-column: 1 / -1; }
@@ -3029,9 +3043,9 @@
     .dh-file { display: none; }
     .dh-bar { grid-column: 1 / -1; }
     .dh-detail { grid-column: 1 / -1; white-space: normal; }
-    /* 571：390px 横幅日实测 569（旧构图 566、旧地板 564 同样已破）
-       +2 —— 增量来自 mono 数字在窄列的折行变化。 */
-    .verdict-deck { min-height: 571px; }
+    /* 382：360~767 扫宽忙日实测上界 346.39（在 360）+ 露边 16 + gap 8
+       + 指示点 10 = 380.39，+2。窄档是留白重灾区：旧 571 高出 189px。 */
+    .verdict-deck { min-height: 382px; }
     .overview-strip { display: flex; flex-direction: column; }
     .overview-strip-cell {
       min-height: 0; border-right: 0; border-bottom: 1px solid var(--border-subtle);
