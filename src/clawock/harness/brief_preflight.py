@@ -52,6 +52,7 @@ from zoneinfo import ZoneInfo
 
 from clawock.workspace import workspace_root
 from clawock import sessions as trading_calendar
+from clawock import history_store
 from clawock.context import brief as brief_context
 from clawock.decision import ledger as decision_v2
 from clawock.decision import packet as brief_decision_packet
@@ -1574,6 +1575,17 @@ def main(argv=None):
     snapshot_path  = SNAPSHOT_DIR / f'{today}.json'
     snapshot_path.write_bytes(portfolio_path.read_bytes())
     print(f'   ✓ {snapshot_path.name}')
+
+    # Roll cold snapshots into _archive/ (#1040): readers look at ≤90 entries,
+    # storage was unbounded. Runs HERE and only here — this postflight commits
+    # with a directory-scoped `git add memory/` that carries the moves; the
+    # intraday/report postflights stage explicit paths and would strand them.
+    try:
+        rolled = history_store.roll_dated_files(SNAPSHOT_DIR, today=today)
+        if rolled:
+            print(f'   ✓ archived {len(rolled)} cold snapshot(s)')
+    except Exception as exc:  # non-fatal: rolling must never kill the brief
+        print(f'   ! snapshot roll skipped: {exc}')
 
     # Load for downstream
     portfolio = json.loads(portfolio_path.read_text())

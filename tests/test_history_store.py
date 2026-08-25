@@ -112,3 +112,68 @@ def test_an_old_cluster_stays_recurrent_after_it_moves_into_the_archive(
 
     assert event['novelty_reason'] == 'cluster_old_but_recurrent'
     assert event['novelty_score'] == 0.8
+
+
+# ── #1040: 文件级滚动（memory/snapshots/ 的 dated file 形态）────────────────
+
+
+def _snap(tmp_path, name, body='{}'):
+    p = tmp_path / name
+    p.write_text(body)
+    return p
+
+
+def test_a_cold_dated_file_moves_into_the_archive_and_a_hot_one_stays(tmp_path):
+    old = _snap(tmp_path, '2026-01-05.json')
+    recent = _snap(tmp_path, '2026-08-20.json')
+
+    moved = history_store.roll_dated_files(tmp_path, today=TODAY)
+
+    assert moved == ['2026-01-05.json']
+    assert not old.exists()
+    assert (tmp_path / '_archive' / '2026-01-05.json').read_text() == '{}'
+    assert recent.exists()
+
+
+def test_undated_and_tagged_names_are_never_touched(tmp_path):
+    """名字证明不了日期的文件不动——和 split_window 对无 as_of 行的处理同一条
+    保守原则。带 tag 的一次性基线（2026-05-16-saturday-baseline.json 形态）
+    从不被改写，留着没有日成本，滚它只会白动 fingerprint。"""
+    baseline = _snap(tmp_path, '2026-01-05-saturday-baseline.json')
+    tickerish = _snap(tmp_path, 'notes.json')
+
+    moved = history_store.roll_dated_files(tmp_path, today=TODAY)
+
+    assert moved == []
+    assert baseline.exists() and tickerish.exists()
+
+
+def test_rolling_is_idempotent_and_never_rewrites_the_archive(tmp_path):
+    cold = _snap(tmp_path, '2026-01-05.json')
+    history_store.roll_dated_files(tmp_path, today=TODAY)
+    archived_bytes = (tmp_path / '_archive' / '2026-01-05.json').read_bytes()
+
+    moved_again = history_store.roll_dated_files(tmp_path, today=TODAY)
+
+    assert moved_again == []
+    assert not cold.exists()
+    # 冷档是一次性停放：二次滚动既不复制也不改写已归档内容。
+    assert list((tmp_path / '_archive').iterdir()) == \
+        [tmp_path / '_archive' / '2026-01-05.json']
+    assert (tmp_path / '_archive' / '2026-01-05.json').read_bytes() == archived_bytes
+
+
+def test_roll_never_scans_or_touches_the_archive_interior(tmp_path):
+    history_store.roll_dated_files(tmp_path, today=TODAY)  # creates nothing yet
+    archive = tmp_path / '_archive'
+    archive.mkdir()
+    ancient_in_archive = _snap(archive, '2025-01-01.json')
+
+    moved = history_store.roll_dated_files(tmp_path, today=TODAY)
+
+    assert moved == []
+    assert ancient_in_archive.exists()
+
+
+def test_roll_on_a_missing_directory_is_a_no_op(tmp_path):
+    assert history_store.roll_dated_files(tmp_path / 'nope', today=TODAY) == []
