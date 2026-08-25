@@ -1229,8 +1229,8 @@
       const note = m.note ? `<div class="mover-note">${escLLM(m.note)}</div>` : "";
       return `
         <div class="mover-card ${dir}${m.note ? ' has-note' : ''}">
-          <div class="tk">${m.ticker || DASH}</div>
-          <div class="nm">${m.name || ""}</div>
+          <div class="tk">${escapeHtml(m.ticker || DASH)}</div>
+          <div class="nm">${escapeHtml(m.name || "")}</div>
           <div class="pct ${pnlClass(p)}">${fmtPct(p, 2)}</div>
           <div class="px">${fmtMoney(m.current_price, ccy)}</div>
           ${note}
@@ -1469,11 +1469,19 @@
       const fedDiv = document.createElement('div');
       fedDiv.className = 'fed-latest';
       fedDiv.style.cssText = 'margin-top:8px;padding: var(--space-2) var(--space-3);background:var(--card-2);border-radius:var(--radius-sm);font-size:var(--fs-xs);border-left:3px solid var(--accent-2);';
-      const rows = m.fed_press.slice(0, 3).map(p =>
-        `<div style="margin:3px 0;">
-          <span style="color:var(--text-dim);font-size:var(--fs-micro);margin-right:8px;">${p.date}</span>
-          <a href="${p.url}" target="_blank" rel="noopener" style="color:var(--text);text-decoration:none;">${(p.title || '').substring(0, 130)}</a>
-        </div>`).join('');
+      const rows = m.fed_press.slice(0, 3).map(p => {
+        // Fed RSS 的 title/link 是外部 XML 原文：文本完整转义；href 只接受
+        // https —— escapeHtml 防属性逃逸，但不防 javascript: scheme。
+        const safeUrl = /^https:\/\//i.test(p.url || '') ? escapeHtml(p.url) : null;
+        const title = escapeHtml((p.title || '').substring(0, 130));
+        const link = safeUrl
+          ? `<a href="${safeUrl}" target="_blank" rel="noopener" style="color:var(--text);text-decoration:none;">${title}</a>`
+          : title;
+        return `<div style="margin:3px 0;">
+          <span style="color:var(--text-dim);font-size:var(--fs-micro);margin-right:8px;">${escapeHtml(p.date)}</span>
+          ${link}
+        </div>`;
+      }).join('');
       fedDiv.innerHTML = `<div style="color:var(--text-dim);font-size:var(--fs-micro);margin-bottom:2px;">Fed press · past 7d</div>${rows}`;
       wrap.appendChild(fedDiv);
     }
@@ -2767,12 +2775,12 @@
       return `
         <div class="plan-action">
           <div>
-            <div class="tk">${a.ticker || DASH}</div>
-            <div class="date">${a.date || ""}</div>
+            <div class="tk">${escapeHtml(a.ticker || DASH)}</div>
+            <div class="date">${escapeHtml(a.date || "")}</div>
           </div>
           <div>
-            <div>${a.action || DASH}${bucketWinBadge(a.action)}${driverChip(a.driven_by)}</div>
-            <div class="meta">${a.strategy_id || DASH} · conf ${conf} · ${cond.type || DASH} · 方向分 ${pnl}</div>
+            <div>${escapeHtml(a.action || DASH)}${bucketWinBadge(a.action)}${driverChip(a.driven_by)}</div>
+            <div class="meta">${escapeHtml(a.strategy_id || DASH)} · conf ${conf} · ${escapeHtml(cond.type || DASH)} · 方向分 ${pnl}</div>
           </div>
           <div class="outcome ${oc}">${oc}</div>
         </div>
