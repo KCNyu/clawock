@@ -23,6 +23,7 @@ from pathlib import Path
 
 import requests
 
+from clawock import history_store
 from clawock.safe_io import safe_write_json, safe_write_text
 from clawock.workspace import workspace_root
 
@@ -658,15 +659,9 @@ def retrospective_walk_forward(config, fetched):
 
 
 def _load_history():
-    if not HISTORY.exists():
-        return []
-    rows = []
-    for line in HISTORY.read_text().splitlines():
-        try:
-            rows.append(json.loads(line))
-        except Exception:
-            continue
-    return sorted(rows, key=lambda row: row.get('as_of') or '')
+    # 归档 + 热窗：prospective_walk_forward 是从第一行开始回放的，只读工作
+    # 文件会缩短评估窗口、改掉 hit rate（#951）。
+    return history_store.load_series(HISTORY)
 
 
 def prospective_walk_forward(config, fetched, history):
@@ -834,13 +829,7 @@ def update_history(as_of, rows, registered_at):
         if str(row.get('as_of') or '')[:10] != as_of
     ]
     existing.append(_history_snapshot(as_of, rows, registered_at))
-    existing.sort(key=lambda row: row['as_of'])
-    safe_write_text(
-        str(HISTORY),
-        '\n'.join(json.dumps(row, ensure_ascii=False, separators=(',', ':'))
-                  for row in existing) + '\n',
-    )
-    return existing
+    return history_store.write_series(HISTORY, existing)
 
 
 def main(argv=None):

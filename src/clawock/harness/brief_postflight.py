@@ -595,6 +595,10 @@ def maybe_commit(status, today, dry_run=False):
                             'assets/data/catalysts.json',
                             'assets/data/news_evidence_graph.json',
                             'assets/data/news_evidence_history.jsonl',
+                            # 滚动窗口的冷段（#951）。目录里有 .gitkeep，所以
+                            # 归档还没生成的日子这条 pathspec 也匹配得到 ——
+                            # 匹配不到 git add 会失败，而失败会带走整次提交。
+                            'assets/data/archive/',
                             'assets/data/em_news.json',
                             'assets/data/guardrail_history.jsonl',
                             'assets/data/t0_setups.json',

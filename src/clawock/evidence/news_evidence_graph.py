@@ -20,6 +20,7 @@ from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from urllib.parse import urlparse
 
+from clawock import history_store
 from clawock.workspace import workspace_root
 
 WS = workspace_root(Path.cwd())
@@ -617,15 +618,9 @@ def deduplicate_events(events):
 
 
 def _load_history():
-    if not HISTORY.exists():
-        return []
-    out = []
-    for line in HISTORY.read_text().splitlines():
-        try:
-            out.append(json.loads(line))
-        except Exception:
-            continue
-    return out
+    # 归档 + 热窗 = 完整序列。只读工作文件就是 #951 要避免的那种截断：
+    # 越过 novelty_lookback 的 cluster 会从「旧事重提」(0.8) 变成「全新」(1.0)。
+    return history_store.load_series(HISTORY)
 
 
 def apply_novelty(policy, events, history, now):
@@ -1374,13 +1369,8 @@ def update_history(as_of, events, prior=None):
             for event in events
         ],
     })
-    snapshots.sort(key=lambda row: row['as_of'])
-    safe_write_text(
-        str(HISTORY),
-        '\n'.join(json.dumps(row, ensure_ascii=False, separators=(',', ':'))
-                  for row in snapshots) + '\n',
-    )
-    return snapshots
+    # 热窗写工作文件、冷段进 archive；返回的仍是完整序列（#951）。
+    return history_store.write_series(HISTORY, snapshots)
 
 
 def _backfill_information_components(policy, snapshots, cutoff):
