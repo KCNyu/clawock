@@ -18,7 +18,7 @@ negative, every loss on the page, every number reproducible from
 
 - [GitHub repository](https://github.com/KCNyu/clawock): source, issues, PRs
 - [Live dashboard](https://kcnyu.github.io/clawock/): positions, risk, self-graded scorecard
-- [Daily briefs](https://kcnyu.github.io/clawock/briefs.html): published morning reads (bilingual)
+- [Daily briefs](https://kcnyu.github.io/clawock/briefs.html): published morning reads (Chinese; the bilingual part is the data coverage behind them)
 - [Evidence & refutation](https://kcnyu.github.io/clawock/evidence.html): what was tested and what failed
 - [FAQ](https://kcnyu.github.io/clawock/faq.html): questions new users ask
 - [简体中文 README](https://github.com/KCNyu/clawock/blob/master/README.zh.md)
