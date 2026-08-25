@@ -49,8 +49,8 @@ def _two_day_fixture():
         first[f"E{i}"] = {"grade_label": "偏高位", "close": 100.0}
         second[f"E{i}"] = {"grade_label": "", "close": 90.0}
     return [
-        {"as_of": "2026-07-24", "rows": first},
-        {"as_of": "2026-07-25", "rows": second},
+        {"as_of": "2026-07-23", "rows": first},
+        {"as_of": "2026-07-24", "rows": second},
     ]
 
 
@@ -79,3 +79,39 @@ def test_small_sample_never_unlocks_even_with_perfect_hits(monkeypatch):
     assert elevated["sample_sufficient"] is False
     assert elevated["usable"] is False
     assert elevated["note"] == "样本不足，不得当结论引用方向"
+
+
+def test_weekend_rows_never_settle_and_are_disclosed(monkeypatch):
+    """#1050: 周五触发顺延到周一结算；周六幽灵行不产生观测且被披露。
+
+    闭市日报价源漂移（Sat 收盘既不等于 Fri 也不等于 Mon），跨它算出的
+    forward return 是伪观测——旧实现会给 n=40（含 Sat→Mon 的伪对）。
+    """
+    fri = {f"C{i}": {"grade_label": "追高低质", "close": 100.0} for i in range(20)}
+    sat = {f"C{i}": {"grade_label": "追高低质", "close": 101.0} for i in range(20)}
+    mon = {f"C{i}": {"grade_label": "", "close": 90.0} for i in range(20)}
+    days = [
+        {"as_of": "2026-08-07", "rows": fri},   # 周五：触发，顺延周一结算
+        {"as_of": "2026-08-08", "rows": sat},   # 周六：幽灵行，不产生观测
+        {"as_of": "2026-08-10", "rows": mon},   # 周一：真实下一时段
+    ]
+    result = _run(monkeypatch, days)
+
+    chase = result["grades"]["chase_low_quality"]
+    assert chase["n"] == 20                      # 只有周五的触发入账
+    assert chase["hit_rate"] == 1.0              # 100→90 跌，direction=-1 全命中
+    assert result["weekend_rows_excluded"] == 20  # 周六行的 20 条触发被剔除
+
+
+def test_weekend_only_history_produces_no_observations(monkeypatch):
+    """全部留痕都落在周末时，任何牌面都不产生观测、不得解锁。"""
+    sat = {f"C{i}": {"grade_label": "追高低质", "close": 100.0} for i in range(20)}
+    sun = {f"C{i}": {"grade_label": "", "close": 50.0} for i in range(20)}
+    result = _run(monkeypatch, [
+        {"as_of": "2026-08-08", "rows": sat},
+        {"as_of": "2026-08-09", "rows": sun},
+    ])
+    chase = result["grades"]["chase_low_quality"]
+    assert chase["n"] == 0
+    assert chase["usable"] is False
+    assert result["weekend_rows_excluded"] == 20

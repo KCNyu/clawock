@@ -24,9 +24,17 @@ CI 整体成立时才允许反向解读。T+5/T+20 窗口逐日重叠 → 披露
 32/40 个观测是伪影。连续多个留痕日同一收盘价在真实市场几乎不出现（周末/
 假日顺延造成的同价 ≤2–3 天），≥4 判为断源：这些 ticker-日不产生任何观测，
 排除量披露在 frozen_feed_excluded，数据本身保留不作改写。
+
+周末行闸（#1050）：留痕器任何时刻跑都会落一行，周六/周日永远没有 HK/US
+交易时段——闭市日报价源会漂移，或与下一交易日盘前快照逐字重复（实测
+07-26≡07-27、08-09≡08-10 全 ticker 收盘集相同），跨它结算的 forward
+return 是伪观测。触发日在周末的因子行不产生观测并计入 weekend_rows_excluded；
+工作日触发的观测改按非周末行序列结算（周五顺延到周一），horizon 数的是
+交易时段行数而不是原始行数。
 """
 import json
 import random
+from datetime import date as real_date
 from datetime import date
 from pathlib import Path
 
@@ -45,6 +53,31 @@ MIN_N = 20
 # 同一标的连续 ≥FROZEN_RUN_MIN 个留痕日收盘价完全相同 = 行情源断流（见
 # docstring 的 RKLB/HOOD 事故）。周末/假日顺延造成的合法同价最多 2–3 天。
 FROZEN_RUN_MIN = 4
+
+
+def _is_weekend(day):
+    """周六/周日永远不是 HK/US 交易时段；无法解析的日期按工作日保留。
+
+    用 real_date 而非模块级 date：测试会替换后者（_FixedDate 只造 today）。
+    """
+    try:
+        return real_date.fromisoformat(str(day)[:10]).weekday() >= 5
+    except ValueError:
+        return False
+
+
+def _weekend_trigger_rows(days):
+    """周末行里本会触发计数的因子行数——它们不再产生任何观测（#1050）。"""
+    n = 0
+    for day in days:
+        if not _is_weekend(day.get('as_of')):
+            continue
+        for sig in (day.get('rows') or {}).values():
+            if not sig.get('close'):
+                continue
+            if any(cond(sig) for cond, _, _ in FACTOR_TESTS.values()):
+                n += 1
+    return n
 
 
 def frozen_ticker_days(days):
@@ -133,17 +166,21 @@ def main(argv=None):
              for k, (_, _, h) in FACTOR_TESTS.items()}
     frozen = frozen_ticker_days(days)
     frozen_excluded = 0
-    for i, day in enumerate(days):
+    # 周末行不是交易时段（#1050）：结算只在非周末行序列上走，horizon 数的
+    # 是时段行数；触发日在周末的因子行由 _weekend_trigger_rows 单独披露。
+    sessions = [day for day in days if not _is_weekend(day.get('as_of'))]
+    weekend_excluded = _weekend_trigger_rows(days)
+    for i, day in enumerate(sessions):
         for sym, sig in (day.get('rows') or {}).items():
             c0 = sig.get('close')
             if not c0:
                 continue
             for name, (cond, direction, horizon) in FACTOR_TESTS.items():
-                if i + horizon >= len(days):
+                if i + horizon >= len(sessions):
                     continue          # 窗口未到期，留给未来结算
                 if not cond(sig):
                     continue
-                settle_day = days[i + horizon]
+                settle_day = sessions[i + horizon]
                 c1 = ((settle_day.get('rows') or {}).get(sym) or {}).get('close')
                 if not c1:
                     continue
@@ -198,7 +235,7 @@ def main(argv=None):
                          'reverse_edge_significant': reverse_sig,
                          'sample_sufficient': sample_sufficient,
                          'min_n': MIN_N,
-                         'non_overlap_cap': (len(tickers) * (len(days) // s['horizon'])
+                         'non_overlap_cap': (len(tickers) * (len(sessions) // s['horizon'])
                                              if s['horizon'] else 0),
                          'decision_direction': direction if usable_now else None,
                          'usable': usable_now,
@@ -215,6 +252,7 @@ def main(argv=None):
     out = {'as_of': date.today().isoformat(), 'days_logged': len(days),
            'unlock_rule': 'cluster_ci_entirely_above_or_below_50pct',
            'frozen_feed_excluded': frozen_excluded,
+           'weekend_rows_excluded': weekend_excluded,
            'factors': factors, 'summary': summary,
            'discipline': ('自迭代规则：公开 n_events/n_dates/n_tickers；date×ticker 双向聚类 '
                           'CI 跨 50% 不入决策；只有反向 CI 整体低于 50% 才允许反向解读。driven_by='
@@ -222,7 +260,8 @@ def main(argv=None):
                           '为准，不使用固定百分比。')}
     safe_write_json(OUT, out)
     skipped = f'，冻结价剔除 {frozen_excluded} 个观测' if frozen_excluded else ''
-    print(f'  review: {len(days)} days, summary: {summary}{skipped}')
+    wk = f'，周末行剔除 {weekend_excluded} 个观测' if weekend_excluded else ''
+    print(f'  review: {len(days)} days, summary: {summary}{skipped}{wk}')
 
 
 if __name__ == '__main__':
