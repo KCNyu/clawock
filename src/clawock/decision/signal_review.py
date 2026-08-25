@@ -25,12 +25,15 @@ CI 整体成立时才允许反向解读。T+5/T+20 窗口逐日重叠 → 披露
 假日顺延造成的同价 ≤2–3 天），≥4 判为断源：这些 ticker-日不产生任何观测，
 排除量披露在 frozen_feed_excluded，数据本身保留不作改写。
 
-周末行闸（#1050）：留痕器任何时刻跑都会落一行，周六/周日永远没有 HK/US
-交易时段——闭市日报价源会漂移，或与下一交易日盘前快照逐字重复（实测
-07-26≡07-27、08-09≡08-10 全 ticker 收盘集相同），跨它结算的 forward
-return 是伪观测。触发日在周末的因子行不产生观测并计入 weekend_rows_excluded；
-工作日触发的观测改按非周末行序列结算（周五顺延到周一），horizon 数的是
-交易时段行数而不是原始行数。
+闭市日行闸（#1050 剔周末，#1056 推广到交易日历整日休市）：留痕器任何时刻跑都会落
+一行，而周六/周日和节假日永远没有对应市场的交易时段——闭市日报价源会漂移，或与
+下一交易日盘前快照逐字重复（实测 07-26≡07-27、08-09≡08-10 全 ticker 收盘集相同；
+07-03 美股休市日 MSFT/HOOD 收盘 = 下周一遍），跨它结算的 forward return 是伪观测
+（重复行 fwd 恒 0，对 ±方向都是必 miss）。结算按「标的所属市场的开市留痕日」序列走：
+触发日闭市的因子行不产生观测并计入 closed_market_rows_excluded；开市触发的窗口
+顺延到该标的自己的第 N 个开市留痕行（周五顺延周一的同语义推广），horizon 数的是
+时段行而不是原始行。市场归属单一出处 instruments registry；日历未覆盖的年份
+fail-open 不剔数据。
 """
 import json
 import random
@@ -39,6 +42,8 @@ from datetime import date
 from pathlib import Path
 
 from clawock import history_store
+from clawock import instruments
+from clawock import sessions as trading_calendar
 from clawock.safe_io import safe_write_json
 from clawock.workspace import workspace_root
 
@@ -55,24 +60,35 @@ MIN_N = 20
 FROZEN_RUN_MIN = 4
 
 
-def _is_weekend(day):
-    """周六/周日永远不是 HK/US 交易时段；无法解析的日期按工作日保留。
+def _session_open(ticker, day):
+    """该标的所属市场在 day 是否有交易时段。
+
+    周六/周日与交易日历里的整日休市（节假日）都算闭市；日期无法解析或
+    日历未覆盖该年份时 fail-open 当开市——宁可少剔一行，绝不静默丢真时段。
 
     用 real_date 而非模块级 date：测试会替换后者（_FixedDate 只造 today）。
     """
     try:
-        return real_date.fromisoformat(str(day)[:10]).weekday() >= 5
+        d = real_date.fromisoformat(str(day)[:10])
     except ValueError:
-        return False
+        return True
+    try:
+        return trading_calendar.is_trading_day(
+            instruments.market_for_symbol(ticker), d)
+    except Exception:
+        return True
 
 
-def _weekend_trigger_rows(days):
-    """周末行里本会触发计数的因子行数——它们不再产生任何观测（#1050）。"""
+def _closed_trigger_rows(days):
+    """闭市留痕日里本会触发计数的因子行数——它们不再产生任何观测（#1050/#1056）。
+
+    按标的各自的市场判断：US 休市日（07-03）的 HK 行是真时段，反之亦然。
+    """
     n = 0
     for day in days:
-        if not _is_weekend(day.get('as_of')):
-            continue
-        for sig in (day.get('rows') or {}).values():
+        for sym, sig in (day.get('rows') or {}).items():
+            if _session_open(sym, day.get('as_of')):
+                continue
             if not sig.get('close'):
                 continue
             if any(cond(sig) for cond, _, _ in FACTOR_TESTS.values()):
@@ -166,25 +182,35 @@ def main(argv=None):
              for k, (_, _, h) in FACTOR_TESTS.items()}
     frozen = frozen_ticker_days(days)
     frozen_excluded = 0
-    # 周末行不是交易时段（#1050）：结算只在非周末行序列上走，horizon 数的
-    # 是时段行数；触发日在周末的因子行由 _weekend_trigger_rows 单独披露。
-    sessions = [day for day in days if not _is_weekend(day.get('as_of'))]
-    weekend_excluded = _weekend_trigger_rows(days)
-    for i, day in enumerate(sessions):
-        for sym, sig in (day.get('rows') or {}).items():
+    # 闭市留痕行不是交易时段（#1050/#1056）：每只标的走自己的开市留痕日序列，
+    # 触发日闭市的因子行由 _closed_trigger_rows 单独披露；horizon 数的是该
+    # 标的自己的时段行数，跨闭市日的窗口顺延到它的下一个时段行。
+    closed_excluded = _closed_trigger_rows(days)
+    universe = sorted({sym for day in days for sym in ((day.get('rows')) or {})})
+    seq_max = 0
+    for sym in universe:
+        seq = []
+        for day in days:
+            if not _session_open(sym, day.get('as_of')):
+                continue
+            sig = (day.get('rows') or {}).get(sym)
+            if sig is not None:
+                seq.append((day['as_of'], sig))
+        seq_max = max(seq_max, len(seq))
+        for i, (as_of, sig) in enumerate(seq):
             c0 = sig.get('close')
             if not c0:
                 continue
             for name, (cond, direction, horizon) in FACTOR_TESTS.items():
-                if i + horizon >= len(sessions):
+                if i + horizon >= len(seq):
                     continue          # 窗口未到期，留给未来结算
                 if not cond(sig):
                     continue
-                settle_day = sessions[i + horizon]
-                c1 = ((settle_day.get('rows') or {}).get(sym) or {}).get('close')
+                settle_as_of, settle_sig = seq[i + horizon]
+                c1 = settle_sig.get('close')
                 if not c1:
                     continue
-                if (sym, day['as_of']) in frozen or (sym, settle_day['as_of']) in frozen:
+                if (sym, as_of) in frozen or (sym, settle_as_of) in frozen:
                     # 冻结价观测：fwd 恒 0 或假跳变，两个方向都是伪影。
                     frozen_excluded += 1
                     continue
@@ -193,7 +219,7 @@ def main(argv=None):
                 hit = fwd * direction > 0
                 stats[name]['hits'] += 1 if hit else 0
                 stats[name]['observations'].append({
-                    'date': day['as_of'], 'ticker': sym, 'hit': hit,
+                    'date': as_of, 'ticker': sym, 'hit': hit,
                 })
 
     factors = {}
@@ -235,8 +261,8 @@ def main(argv=None):
                          'reverse_edge_significant': reverse_sig,
                          'sample_sufficient': sample_sufficient,
                          'min_n': MIN_N,
-                         'non_overlap_cap': (len(tickers) * (len(sessions) // s['horizon'])
-                                             if s['horizon'] else 0),
+                         'non_overlap_cap': (len(tickers) * (seq_max // s['horizon'])
+                                            if s['horizon'] else 0),
                          'decision_direction': direction if usable_now else None,
                          'usable': usable_now,
                          'note': note}
@@ -252,7 +278,7 @@ def main(argv=None):
     out = {'as_of': date.today().isoformat(), 'days_logged': len(days),
            'unlock_rule': 'cluster_ci_entirely_above_or_below_50pct',
            'frozen_feed_excluded': frozen_excluded,
-           'weekend_rows_excluded': weekend_excluded,
+           'closed_market_rows_excluded': closed_excluded,
            'factors': factors, 'summary': summary,
            'discipline': ('自迭代规则：公开 n_events/n_dates/n_tickers；date×ticker 双向聚类 '
                           'CI 跨 50% 不入决策；只有反向 CI 整体低于 50% 才允许反向解读。driven_by='
@@ -260,8 +286,8 @@ def main(argv=None):
                           '为准，不使用固定百分比。')}
     safe_write_json(OUT, out)
     skipped = f'，冻结价剔除 {frozen_excluded} 个观测' if frozen_excluded else ''
-    wk = f'，周末行剔除 {weekend_excluded} 个观测' if weekend_excluded else ''
-    print(f'  review: {len(days)} days, summary: {summary}{skipped}{wk}')
+    closed = f'，闭市日剔除 {closed_excluded} 个观测' if closed_excluded else ''
+    print(f'  review: {len(days)} days, summary: {summary}{skipped}{closed}')
 
 
 if __name__ == '__main__':

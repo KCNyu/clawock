@@ -184,3 +184,17 @@ def test_leveraged_exposure_ignores_closed_positions_with_stale_values():
     assert build_dashboard.compute_leveraged_etf_exposure(
         portfolio, fx_rate=7.84
     ) == live
+
+
+def test_market_for_symbol_registry_first_with_deterministic_fallback():
+    """#1056: settlement gates need each symbol's calendar. The registry's
+    region is the single source; the fallback only covers symbols that predate
+    or outrun it, and must stay deterministic (digits→HK, HS* index→HK,
+    other alphabetic→US)."""
+    registered = next(iter(instrument_registry.INSTRUMENTS))
+    assert instrument_registry.market_for_symbol(registered) == (
+        instrument_registry.INSTRUMENTS[registered]["region"].lower()
+    )
+    assert instrument_registry.market_for_symbol("0700") == "hk"
+    assert instrument_registry.market_for_symbol("HSOMEINDEX") == "hk"
+    assert instrument_registry.market_for_symbol("NOTINREG") == "us"
