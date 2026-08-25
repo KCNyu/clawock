@@ -1,0 +1,5 @@
+# 冷段留痕（#951）：assets/data/*_history.jsonl 的滚动窗口之外的行搬到这里。
+# 由 clawock.history_store 写入；读者一律走 history_store.load_series（工作
+# 文件 + 归档），所以序列本身没有断点。这个占位文件让 brief_postflight 的
+# `git add assets/data/archive/` 在归档还没生成的日子也能匹配到路径 ——
+# 该 add 列表里的 pathspec 匹配不到就会让整次提交失败。

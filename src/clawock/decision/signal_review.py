@@ -23,6 +23,7 @@ import random
 from datetime import date
 from pathlib import Path
 
+from clawock import history_store
 from clawock.safe_io import safe_write_json
 from clawock.workspace import workspace_root
 
@@ -80,17 +81,13 @@ def clustered_ci(observations, samples=2000):
 
 def main(argv=None):
     del argv
-    if not HIST.exists():
+    # 「文件还没有」才 skip；「文件在但今天零行」仍要出零状态卡（否则解锁
+    # 视图会因为一天没留痕而整块消失）。这条分界原来就在，别被 #951 改掉。
+    if not (HIST.exists() or history_store.archive_path(HIST).exists()):
         print('  no history yet — skip')
         return
-    days = []
-    for line in HIST.read_text().splitlines():
-        if line.strip():
-            try:
-                days.append(json.loads(line))
-            except Exception:
-                continue
-    days.sort(key=lambda d: d['as_of'])
+    # 归档 + 热窗（#951）：命中率是逐日回放算出来的，读窗口一短，n 就变小。
+    days = history_store.load_series(HIST)
 
     stats = {k: {'n': 0, 'hits': 0, 'observations': [], 'horizon': h}
              for k, (_, _, h) in FACTOR_TESTS.items()}

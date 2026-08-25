@@ -33,6 +33,7 @@ from zoneinfo import ZoneInfo
 import requests
 
 from clawock import sessions as trading_calendar
+from clawock import history_store
 from clawock.instruments import require as require_instrument
 from clawock.safe_io import load_json_cached, safe_write_json
 from clawock.workspace import workspace_root
@@ -707,13 +708,13 @@ def main(argv=None):
                                           'stop_distance_pct', 'mom_1m', 'dist_ma200_pct')}
                                      for k, v in rows.items()
                                      if v.get('status') == 'fresh'}}, ensure_ascii=False)
-    lines = []
-    if HIST.exists():
-        lines = [l for l in HIST.read_text().splitlines()
-                 if l.strip() and json.loads(l).get('as_of') != out['as_of']]
-    lines.append(hist_line)
-    HIST.write_text('\n'.join(lines) + '\n')
-    print(f'  history: {len(lines)} days in {HIST.name}')
+    # 热窗写工作文件、冷段进 archive（#951）；读侧（signal_review）走
+    # history_store.load_series，窗口与命中率不受影响。
+    rows = [row for row in history_store.load_series(HIST)
+            if row.get('as_of') != out['as_of']]
+    rows.append(json.loads(hist_line))
+    rows = history_store.write_series(HIST, rows)
+    print(f'  history: {len(rows)} days in {HIST.name}')
 
 
 if __name__ == '__main__':

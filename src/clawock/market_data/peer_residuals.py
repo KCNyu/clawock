@@ -18,6 +18,7 @@ import statistics
 from datetime import date, datetime, timezone
 from pathlib import Path
 
+from clawock import history_store
 from clawock.market_data.factors import (
     _last_index,
     _liquidity,
@@ -451,15 +452,8 @@ def retrospective_calibration(rule_config, taxonomy, fetched):
 
 
 def _load_history():
-    if not HISTORY.exists():
-        return []
-    rows = []
-    for line in HISTORY.read_text().splitlines():
-        try:
-            rows.append(json.loads(line))
-        except Exception:
-            continue
-    return rows
+    # 归档 + 热窗（#951）：同行残差的回放同样从第一行开始。
+    return history_store.load_series(HISTORY)
 
 
 def update_history(as_of, live_rows, registered_at):
@@ -480,13 +474,7 @@ def update_history(as_of, live_rows, registered_at):
             for target, row in live_rows.items()
         },
     })
-    existing.sort(key=lambda row: row['as_of'])
-    safe_write_text(
-        str(HISTORY),
-        '\n'.join(json.dumps(row, ensure_ascii=False, separators=(',', ':'))
-                  for row in existing) + '\n',
-    )
-    return existing
+    return history_store.write_series(HISTORY, existing)
 
 
 def prospective_calibration(rule_config, taxonomy, fetched, history):

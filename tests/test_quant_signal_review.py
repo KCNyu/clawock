@@ -1,4 +1,6 @@
 import json
+import pathlib
+import tempfile
 import sys
 from datetime import date as real_date
 from pathlib import Path
@@ -13,16 +15,37 @@ from clawock.decision import signal_review as review  # noqa: E402
 
 
 class _HistoryStub:
-    """In-memory stand-in that keeps aggregation tests free of file I/O."""
+    """A throwaway history file the aggregation tests can point ``HIST`` at.
+
+    Kept as a class (rather than a fixture) so the existing call sites stay
+    one-liners. It is a real file since #951: the reader now goes through
+    ``history_store.load_series``, which reads the working file *and* its
+    archive — an in-memory stand-in would silently bypass the half of the
+    series that split introduced.
+    """
 
     def __init__(self, days):
-        self._text = "\n".join(json.dumps(day) for day in days)
+        self._dir = tempfile.TemporaryDirectory()
+        self._path = pathlib.Path(self._dir.name) / "quant_signals_history.jsonl"
+        self._path.write_text(
+            "\n".join(json.dumps(day) for day in days) + "\n", encoding="utf-8")
+
+    def __fspath__(self):
+        return str(self._path)
+
+    @property
+    def parent(self):
+        return self._path.parent
+
+    @property
+    def name(self):
+        return self._path.name
 
     def exists(self):
-        return True
+        return self._path.exists()
 
-    def read_text(self):
-        return self._text
+    def read_text(self, *args, **kwargs):
+        return self._path.read_text(*args, **kwargs)
 
 
 class _FixedDate:
