@@ -73,3 +73,114 @@ def test_high_confidence_rate_is_active_only_and_renders_its_sample_size():
     assert s['high_conf_n'] == 1
     assert 'high-conviction active calls: 100% (n=1)' in rick_broadcast.render_en(s)
     assert '高信心主动判断:100%(n=1)' in rick_broadcast.render_zh(s)
+
+
+# ---------------------------------------------------------------------------
+# Broadcast-on-change gate (#978): the cron wrapper must not republish a
+# byte-identical note. Asserted on invocation counts of stubbed executables,
+# not on the script's text.
+# ---------------------------------------------------------------------------
+
+STUB_NODE = r'''#!/usr/bin/env bash
+echo "$@" >> "$GATE_TEST_LOG"
+if [[ -f "$GATE_TEST_NODE_FAIL" ]]; then exit 1; fi
+exit 0
+'''
+
+STUB_PY = r'''#!/usr/bin/env bash
+cat "$GATE_TEST_TEXT"
+'''
+
+
+def _run_wrapper(tmp_path, monkeypatch):
+    """Copy ops/growth/rick_broadcast_nostr.sh into a sandbox, point its two
+    host constants at the sandbox, and run it with stubbed python3/node."""
+    import os
+    import shutil
+    import subprocess
+    import textwrap
+
+    src = ROOT / 'ops' / 'growth' / 'rick_broadcast_nostr.sh'
+    script = tmp_path / 'wrapper.sh'
+    body = src.read_text(encoding='utf-8')
+    # The sandbox replaces exactly the two literals the coupling ratchet pins.
+    body = body.replace('cd /root/.openclaw/workspace', f'cd "{tmp_path}/ws"')
+    body = body.replace('KEYFILE=/root/.openclaw/nostr-rick.key',
+                        f'KEYFILE="{tmp_path}/nostr-rick.key"')
+    assert '/root/.openclaw' not in body, 'sandbox copy must not touch real host paths'
+    script.write_text(body, encoding='utf-8')
+    script.chmod(0o755)
+
+    (tmp_path / 'ws').mkdir(exist_ok=True)
+    (tmp_path / 'ws' / 'ops' / 'growth').mkdir(parents=True, exist_ok=True)
+    shutil.copy(src.parent / 'rick_broadcast.py',
+                tmp_path / 'ws' / 'ops' / 'growth' / 'rick_broadcast.py')
+    (tmp_path / 'nostr-rick.key').write_text('nsec-gate-test-only', encoding='utf-8')
+
+    log = tmp_path / 'calls.log'
+    log.write_text('', encoding='utf-8')
+    fail_flag = tmp_path / 'make-node-fail'
+    text_file = tmp_path / 'post.txt'
+    text_file.write_text('scorecard v1', encoding='utf-8')
+
+    stubs = tmp_path / 'stubs'
+    stubs.mkdir()
+    for name, body_ in (('node', STUB_NODE), ('python3', STUB_PY)):
+        p = stubs / name
+        p.write_text(body_, encoding='utf-8')
+        p.chmod(0o755)
+
+    env = dict(os.environ)
+    env['PATH'] = f'{stubs}:{env["PATH"]}'
+    env['GATE_TEST_LOG'] = str(log)
+    env['GATE_TEST_NODE_FAIL'] = str(fail_flag)
+    env['GATE_TEST_TEXT'] = str(text_file)
+
+    def run():
+        return subprocess.run(['bash', str(script)], env=env,
+                              capture_output=True, text=True)
+
+    return run, log, fail_flag, text_file
+
+
+def test_wrapper_skips_a_byte_identical_republish_and_publishes_changes(tmp_path, monkeypatch):
+    import subprocess
+    run, log, fail_flag, text_file = _run_wrapper(tmp_path, monkeypatch)
+
+    first = run()
+    assert first.returncode == 0, first.stderr
+    assert len(log.read_text().splitlines()) == 1  # python3 + node → node called once
+
+    second = run()  # same scorecard text: the duplicate is skipped
+    assert second.returncode == 0, second.stderr
+    assert len(log.read_text().splitlines()) == 1, (
+        'an unchanged scorecard must not reach the publisher again')
+
+    text_file.write_text('scorecard v2 — settled 10 new', encoding='utf-8')
+    third = run()
+    assert third.returncode == 0, third.stderr
+    assert len(log.read_text().splitlines()) == 2, (
+        'changed scorecard text must publish')
+
+
+def test_wrapper_state_only_advances_after_a_confirmed_publish(tmp_path, monkeypatch):
+    import subprocess
+    run, log, fail_flag, text_file = _run_wrapper(tmp_path, monkeypatch)
+
+    assert run().returncode == 0
+    state = tmp_path / 'ws' / 'logs' / 'nostr_last_post.sha256'
+    digest_after_ok = state.read_text().strip()
+
+    text_file.write_text('scorecard v2', encoding='utf-8')
+    fail_flag.write_text('x', encoding='utf-8')  # relays reject everything
+    failed = run()
+    assert failed.returncode != 0
+    assert state.read_text().strip() == digest_after_ok, (
+        'a failed publish must not record its digest as published')
+
+    fail_flag.unlink()  # relays recover: the unpublished text retries next night
+    retried = run()
+    assert retried.returncode == 0, retried.stderr
+    assert len(log.read_text().splitlines()) == 3
+    assert state.read_text().strip() != digest_after_ok
+

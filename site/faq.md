@@ -90,8 +90,9 @@ free and open source (MIT).
 Polygon, SEC EDGAR, HKEX, Finnhub, Frankfurter, Reddit, Google News and more —
 bilingual HK + US coverage, with multi-source fallback on critical paths. The
 influencer radar scans Trump (Truth Social primary feed) and Musk (news
-aggregation) every 48 hours, links statements to your holdings, and records
-misses as well as hits.
+aggregation) twice every trading day over a rolling 48-hour lookback window
+(so weekend statements still surface before Monday's brief), links statements
+to your holdings, and records misses as well as hits.
 
 ## Why is it open source? What's the catch?
 

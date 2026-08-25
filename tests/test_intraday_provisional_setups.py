@@ -13,7 +13,7 @@ two of the three rules are statements about a close, and the bar has not closed,
 so a row is a reason to look, never an entry that fired.
 """
 from pathlib import Path
-from datetime import datetime
+from datetime import date, datetime, timedelta
 from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -321,8 +321,11 @@ def test_short_history_name_is_evaluated_not_reported_as_insufficient():
     no setup and no error. A mature name without a listing_date stays on the
     strict 30-bar gate (#608) and is covered in test_short_history_signals.
     """
+    # Relative to today because provisional_setups gates on date.today();
+    # a hardcoded 2026-07-10 aged out of the 45-day window (#981).
     universe = [{'label': 'SKHY', 'code': 'hkSKHY', 'region': 'US',
-                 'source_holdings': ['SKHY'], 'listing_date': '2026-07-10'}]
+                 'source_holdings': ['SKHY'],
+                 'listing_date': (date.today() - timedelta(days=10)).isoformat()}]
     out = S.provisional_setups(universe, fetch=lambda code, cnt: _flat(25, 10.0))
 
     assert out == {'rows': [], 'confirmed_at_close': False}
