@@ -24,4 +24,28 @@ NOSTR_PRIVATE_KEY="$(cat "$KEYFILE")"
 export NOSTR_PRIVATE_KEY
 
 # Generate the post from live data, then sign + publish to public relays.
-python3 ops/growth/rick_broadcast.py --lang en | node ops/growth/nostr_publish.js
+#
+# Broadcast-on-change: the scorecard text only moves when T+1 settlement moves
+# it, and reposting a byte-identical note every evening is machine spam on the
+# one channel that is fully automated (relay-verified: four consecutive days of
+# identical content in Aug 2026). Skip when the rendered text matches the last
+# SUCCESSFULLY published digest. Fail-open toward visibility: no state file or
+# an unreadable one publishes as before, and the state only advances after
+# nostr_publish.js exits 0 (a relay accepted), so a failed publish retries the
+# next night instead of eating that day's post.
+POST="$(python3 ops/growth/rick_broadcast.py --lang en)"
+DIGEST="$(printf '%s' "$POST" | sha256sum | cut -d' ' -f1)"
+STATE="$(pwd)/logs/nostr_last_post.sha256"
+
+if [[ -f "$STATE" ]] && [[ "$(cat "$STATE" 2>/dev/null)" == "$DIGEST" ]]; then
+  echo "$(date -Is) scorecard unchanged since last publish ($DIGEST) — skip duplicate"
+  exit 0
+fi
+
+if printf '%s\n' "$POST" | node ops/growth/nostr_publish.js; then
+  mkdir -p "$(dirname "$STATE")"
+  echo "$DIGEST" > "$STATE"
+else
+  echo "$(date -Is) publish failed; digest not recorded — will retry next run" >&2
+  exit 1
+fi
