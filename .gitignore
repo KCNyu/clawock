@@ -100,6 +100,16 @@ memory/dreaming/
 # `memory/YYYY-MM-DD.md` day log, none of which match this shape.
 memory/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]-[0-9][0-9][0-9][0-9].md
 
+# Daily notes (`memory/YYYY-MM-DD.md`) — untracked as of #1038. Same reasoning
+# as the transcripts above: they are workspace continuity (AGENTS.md "Every
+# Session" reads today+yesterday from disk), not repository data. Zero
+# repo-level consumers: stage_site globs only *-pre-open.md, no code/workflow/
+# test reads a bare-dated diary, and the openclaw memory index rglobs the
+# working tree, so untracking loses nothing anywhere. The existing 37 were
+# removed from the index with their content kept on disk; new days are born
+# ignored. Writers that sweep `git add memory/` skip these silently.
+memory/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9].md
+
 # Misc
 share/
 
