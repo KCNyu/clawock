@@ -808,6 +808,10 @@ def main(argv=None):
     # deterministic compact card from plan.json (build_brief_card).
     wechat_sent = None
     tg_ok = None
+    # Set when claim_send refuses this process the send right: it then holds no
+    # delivery evidence and must not file a primary_delivery verdict over the
+    # concurrent holder's (#1006).
+    claim_declined = False
     brief_marker = WS / 'memory' / '.tmp' / f'brief-sent-{today}.json'
     # Idempotency: brief marker is per-date, fires once/day. If it already shows a
     # delivery this run is an openclaw auto-retry of a turn that errored only in
@@ -839,6 +843,7 @@ def main(argv=None):
                   f'did not land', file=sys.stderr)
             log({'tag': 'brief', 'action': 'send-claim-declined', 'reason': claim_reason})
             wechat_sent, send_out = False, f'send-claim-declined: {claim_reason}'
+            claim_declined = True
         else:
             if not args.dry_run:
                 mark_send_started(claim_path)
@@ -938,17 +943,22 @@ def main(argv=None):
         commit_ok=commit_ok,
         readability=readability,
     )
-    workflow_outcomes.record_stage(
-        job_name,
-        'primary_delivery',
-        ('success' if (wechat_sent or tg_ok) else
-         ('not_required' if status == 'fail' else 'failed')),
-        slot=slot,
-        dry_run=args.dry_run,
-        channel=workflow_outcomes.delivery_channel(bool(wechat_sent), bool(tg_ok)),
-        wechat_ok=bool(wechat_sent),
-        telegram_ok=bool(tg_ok),
-    )
+    # A declined claim process never sent, so it must not file the primary
+    # verdict — the concurrent holder owns it, and a false `failed` written
+    # after the holder's `success` would stand (reconciliation only fills
+    # unknown stages) even though kcn got the card (#1006).
+    if not claim_declined:
+        workflow_outcomes.record_stage(
+            job_name,
+            'primary_delivery',
+            ('success' if (wechat_sent or tg_ok) else
+             ('not_required' if status == 'fail' else 'failed')),
+            slot=slot,
+            dry_run=args.dry_run,
+            channel=workflow_outcomes.delivery_channel(bool(wechat_sent), bool(tg_ok)),
+            wechat_ok=bool(wechat_sent),
+            telegram_ok=bool(tg_ok),
+        )
     print(json.dumps(result, ensure_ascii=False, indent=2))
     if (not args.dry_run and status in ('pass', 'warn')
             and (not projection_ready or data_plane_status != 'published')):

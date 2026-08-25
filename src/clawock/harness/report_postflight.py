@@ -503,6 +503,10 @@ def main(argv=None):
             upgrading = True
 
     send_claim = 'not-required'
+    # True when claim_send refused this process the send right: it then holds no
+    # delivery evidence and must not file a primary_delivery verdict over the
+    # concurrent holder's (#1006).
+    claim_declined = False
     if blocked:
         print(f'idempotency: {args.market}-{args.phase} already delivered today — skip re-send',
               file=sys.stderr)
@@ -532,6 +536,7 @@ def main(argv=None):
             log({'tag': f'{args.market}-{args.phase}', 'action': 'send-claim-declined',
                  'reason': send_claim})
             wechat_sent = False
+            claim_declined = True
         else:
             wechat_sent, _ = deliver_wechat(args.market, args.phase, today, wechat_prefix, body,
                                             delivery_state=delivery_state,
@@ -550,23 +555,27 @@ def main(argv=None):
     # because the receipts are pruned within days (#771). WeChat's `ret=-2
     # prepare failed` is a known, upstream-wontfix, periodic failure that kcn has
     # decided not to chase; that is a reason to make it countable, not invisible.
-    wechat_ok = bool(wechat_sent)
-    telegram_ok = False
-    try:
-        telegram_ok = json.loads(report_marker.read_text()).get('tg_ok') is True
-    except Exception:
-        pass
-    primary_delivery_ok = wechat_ok or telegram_ok
-    workflow_outcomes.record_stage(
-        job_name,
-        'primary_delivery',
-        'success' if primary_delivery_ok else 'failed',
-        slot=slot,
-        channel=workflow_outcomes.delivery_channel(wechat_ok, telegram_ok),
-        wechat_ok=wechat_ok,
-        telegram_ok=telegram_ok,
-        deterministic_fallback=(status == 'fail'),
-    )
+    # A declined claim process records nothing: the concurrent holder owns this
+    # verdict, and a late false `failed` would stand forever because receipt
+    # reconciliation only fills unknown stages (#1006).
+    if not claim_declined:
+        wechat_ok = bool(wechat_sent)
+        telegram_ok = False
+        try:
+            telegram_ok = json.loads(report_marker.read_text()).get('tg_ok') is True
+        except Exception:
+            pass
+        primary_delivery_ok = wechat_ok or telegram_ok
+        workflow_outcomes.record_stage(
+            job_name,
+            'primary_delivery',
+            'success' if primary_delivery_ok else 'failed',
+            slot=slot,
+            channel=workflow_outcomes.delivery_channel(wechat_ok, telegram_ok),
+            wechat_ok=wechat_ok,
+            telegram_ok=telegram_ok,
+            deterministic_fallback=(status == 'fail'),
+        )
 
     commit_ok, commit_msg = maybe_commit(status, ctx['commit_msg'])
     data_plane_status = classify_data_plane(commit_ok, commit_msg)
