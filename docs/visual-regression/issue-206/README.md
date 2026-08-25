@@ -15,17 +15,17 @@ horizontal overflow (`scrollWidth == clientWidth`) at every measured width.
 
 | Before | After |
 |---|---|
-| ![Overview before at 1440px](../../../assets/visual-regression/issue-206/before-1440.jpg) | ![Overview after at 1440px](../../../assets/visual-regression/issue-206/after-1440.jpg) |
+| ![Overview before at 1440px](before-1440.jpg) | ![Overview after at 1440px](after-1440.jpg) |
 
 ## 1920px
 
 | Before | After |
 |---|---|
-| ![Overview before at 1920px](../../../assets/visual-regression/issue-206/before-1920.jpg) | ![Overview after at 1920px](../../../assets/visual-regression/issue-206/after-1920.jpg) |
+| ![Overview before at 1920px](before-1920.jpg) | ![Overview after at 1920px](after-1920.jpg) |
 
 ## 390px mobile regression
 
 The desktop media query does not apply. Card order, widths, pager behavior, and
 the Gold table's horizontal-scrolling rules are unchanged.
 
-![Overview after at 390px](../../../assets/visual-regression/issue-206/after-390.jpg)
+![Overview after at 390px](after-390.jpg)
