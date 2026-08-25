@@ -107,8 +107,8 @@ def prepare(
                 continue
             source.resolve().relative_to(site_dir)
             relative = source.relative_to(site_dir)
-            if any(fnmatch.fnmatch(relative.as_posix(), pattern)
-                   for pattern in repository_only):
+            if any(fnmatch.fnmatch(relative.as_posix(), blocked)
+                   for blocked in repository_only):
                 skipped.append(relative.as_posix())
                 continue
             destination = output_dir / relative

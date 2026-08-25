@@ -44,10 +44,20 @@ DECISION_PROMPT_DROP_FIELDS = ('signal_provenance',)
 HOLDING_PROMPT_FIELDS = ('ticker', 'name', 'current_value',
                          'pnl_percent', 'today_change_pct')
 
-# Top-level sections that may be omitted WHOLE, largest first, when the
-# projected payload still exceeds the budget. Everything else — window,
-# bundle_evidence, decision_episodes, current_risk, input_warnings — is small
-# and load-bearing for specific questions, so it is never dropped.
+# Top-level sections that may be omitted WHOLE when the projected payload still
+# exceeds the budget, IN THE ORDER THEY ARE SACRIFICED. Everything else —
+# window, bundle_evidence, decision_episodes, current_risk, input_warnings — is
+# small and load-bearing for a specific question, so it is never dropped.
+#
+# ORDER IS BY PURPOSE, NOT BY SIZE (#991). This used to drop the largest section
+# first. On 2026-W30 data that drops plans (83,809 chars) and would take
+# decision_metrics (32,380) next, ahead of snapshots (19,368) — question 2's
+# distilled per-strategy win/loss sacrificed to keep the raw daily book
+# composition, purely because that section happened to be bigger. `plans` is the
+# daily raw view of decisions that decision_episodes and decision_metrics already
+# distill, so it goes first; `snapshots` is book composition, which only question
+# 1's attribution touches; `decision_metrics` is question 2's answer and goes
+# last, only when dropping the other two was not enough.
 OMITTABLE_SECTIONS = ('plans', 'snapshots', 'decision_metrics')
 
 
@@ -289,7 +299,8 @@ def build_prompt_payload(bundle, budget=PROMPT_BUDGET_CHARS):
        this takes the bundle from 702K to 145–280K characters depending on how
        decision-heavy the week was.
     2. Whole-value omission — if the projected payload still exceeds `budget`,
-       drop entire sections largest-first from OMITTABLE_SECTIONS and declare
+       drop entire sections in OMITTABLE_SECTIONS order — by what each question
+       still needs, never by which happens to be biggest (#991) — and declare
        each in a top-level `_omitted` manifest that rides inside the payload,
        so the model is told about the gap instead of silently reading a sliced
        half-JSON. On heavy weeks this drops `plans` first, which is deliberate:
@@ -313,19 +324,17 @@ def build_prompt_payload(bundle, budget=PROMPT_BUDGET_CHARS):
 
     omitted = []
     while True:
-        # The manifest is part of the payload, so it is re-attached every pass:
-        # dropping a section may let a smaller one survive, and the final
-        # manifest must name exactly what is missing from this payload.
+        # The manifest is part of the payload and grows with every drop, so it
+        # is re-attached and re-measured each pass: the budget check must see
+        # the payload as it will actually be serialized, manifest included.
         payload['_omitted'] = omitted
         if len(_compact(payload)) <= budget:
             break
-        sizes = [(len(_compact(payload[name])), name)
-                 for name in OMITTABLE_SECTIONS if name in payload]
-        if not sizes:
+        name = next((s for s in OMITTABLE_SECTIONS if s in payload), None)
+        if name is None:
             break  # nothing omittable left: stay honest rather than slice
-        size, name = max(sizes)
-        payload.pop(name)
-        omitted.append({'section': name, 'bytes': size})
+        omitted.append({'section': name,
+                        'bytes': len(_compact(payload.pop(name)))})
     return payload
 
 

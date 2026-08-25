@@ -44,6 +44,7 @@ Exit 0 always (non-fatal cron); actions logged to logs/watchdog.jsonl.
 import argparse
 import json
 import sys
+import time
 from datetime import datetime
 from pathlib import Path
 
@@ -54,6 +55,13 @@ from ._watchdog_common import (
 )
 
 LOOP_THRESHOLD = 5                 # transcript loop_score ≥ this ⇒ mimo repeat-loop ⇒ garbage
+# How long an in-flight attempt may hold this watchdog before it judges anyway.
+# 600s covers the measured single-attempt distribution with room to spare
+# (median 196s, p90 354s, max 576s across the six report jobs, last 50 runs each)
+# — see #988. Unlike intraday_watchdog, this one runs ONCE per slot, so the wait
+# is what replaces "the next pass will look again".
+INFLIGHT_WAIT_S = 600
+INFLIGHT_POLL_S = 30
 MARKER_FRESH_MS = 120 * 60 * 1000  # postflight send-marker older than this ⇒ treat as not-this-slot
 REGEN_WINDOW_S = 30 * 60           # context rebuilt within this of the delivered one ⇒ same slot
 REGEN_BACKWARD_S = 60              # tolerance for a context timestamped just before the marker's
@@ -136,13 +144,26 @@ def wechat_gap_reason(claim):
     return None
 
 
+def _read_json(path):
+    """Best-effort JSON read — a missing or half-written file reads as {}."""
+    try:
+        return json.loads(path.read_text())
+    except Exception:
+        return {}
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--market', choices=['hk', 'us'], required=True)
     ap.add_argument('--phase', choices=['open', 'mid', 'pm', 'close'], required=True)
     ap.add_argument('--job-name', required=True, help='cron job name to inspect')
     ap.add_argument('--dry-run', action='store_true')
+    ap.add_argument('--inflight-wait-s', type=int, default=None,
+                    help='seconds to wait out an in-flight attempt before judging '
+                         f'anyway (default {INFLIGHT_WAIT_S}; 0 in --dry-run)')
     args = ap.parse_args()
+    inflight_wait_s = (args.inflight_wait_s if args.inflight_wait_s is not None
+                       else (0 if args.dry_run else INFLIGHT_WAIT_S))
 
     today = datetime.now(HKT).strftime('%Y-%m-%d')
     tag = f'{args.market}-{args.phase}'
@@ -173,18 +194,12 @@ def main():
     ctx_path = WS / 'memory' / '.tmp' / f'report-context-{args.market}-{args.phase}-{today}.json'
     # One read, one generation: a cron retry rewrites this file mid-flight, so
     # re-reading it per field could mix two generations' block and id.
-    ctx = {}
-    try:
-        ctx = json.loads(ctx_path.read_text())
-    except Exception:
-        ctx = {}
+    ctx = _read_json(ctx_path)
     raw_block = (ctx.get('raw_wechat_block') or '').strip()
     raw_block_first = raw_block.splitlines()[0] if raw_block else None
     if not raw_block_first:
         log({'tag': tag, 'action': 'skip', 'reason': 'no preflight raw_wechat_block (cron likely never ran)'})
         return 0
-
-    ctx_id = ctx.get('context_id')
 
     # --- In-flight gate: never judge a slot that has not finished -------------
     # Shared rule, born in intraday_watchdog after 2026-08-11 00:00 US: the run
@@ -193,14 +208,59 @@ def main():
     # sends the deterministic fallback while the real report is still being
     # generated — kcn gets both, one minute apart. A context written after the
     # newest finished run ended is the on-disk proof another attempt is live.
-    if attempt_still_running(ctx, last):
-        log({'tag': tag, 'action': 'defer',
+    #
+    # WAIT, DON'T DEFER (#988). intraday_watchdog can simply return: it runs at
+    # :10 and :40 all session, so deferring means "the next pass looks again".
+    # This watchdog is a single crontab line per slot — returning here IS the
+    # verdict, and a retry chain that never delivers would leave kcn with no
+    # report and no backstop, with one `defer` line as the only trace. So hold
+    # the slot open instead: poll until the attempt finishes (then judge on ITS
+    # run record and context), or until the budget runs out (then judge anyway
+    # and say so). The marker gate below still runs first either way, so an
+    # attempt that lands during the wait is recognised as delivered, not doubled.
+    waited = 0
+    while attempt_still_running(ctx, last) and waited < inflight_wait_s:
+        log({'tag': tag, 'action': 'wait-inflight',
              'reason': 'a newer attempt is still running — preflight context '
                        'postdates the newest finished run',
              'context_generated_at': ctx.get('generated_at'),
              'last_finished_ms': last.get('ts'),
+             'waited_s': waited, 'budget_s': inflight_wait_s,
              'run_at': run_at})
-        return 0
+        time.sleep(min(INFLIGHT_POLL_S, inflight_wait_s - waited))
+        waited += INFLIGHT_POLL_S
+        runs_today = today_runs(job_id) or runs_today
+        last = runs_today[-1]
+        ctx = _read_json(ctx_path)
+    if waited:
+        # Whatever the wait produced, the slot's facts moved: re-derive every
+        # field taken from `last` or `ctx` above before judging on them.
+        run_at = last.get('runAtMs')
+        session_id = last.get('sessionId')
+        summary = last.get('summary', '')
+        flag = WS / 'memory' / '.tmp' / f'watchdog-{tag}-{run_at}.done'
+        if flag.exists():
+            log({'tag': tag, 'action': 'skip',
+                 'reason': 'already handled this slot (dedupe flag, after wait)'})
+            return 0
+        raw_block = (ctx.get('raw_wechat_block') or '').strip()
+        raw_block_first = raw_block.splitlines()[0] if raw_block else None
+        if not raw_block_first:
+            log({'tag': tag, 'action': 'skip',
+                 'reason': 'no preflight raw_wechat_block after wait'})
+            return 0
+        still_running = attempt_still_running(ctx, last)
+        log({'tag': tag,
+             # Never `defer` again: this line always precedes a real verdict.
+             'action': 'proceed-after-wait' if still_running else 'attempt-finished',
+             'reason': ('in-flight budget exhausted — judging on the evidence '
+                        'that exists' if still_running else
+                        'the in-flight attempt finished; judging on its run'),
+             'waited_s': waited, 'budget_s': inflight_wait_s,
+             'context_generated_at': ctx.get('generated_at'),
+             'last_finished_ms': last.get('ts'), 'run_at': run_at})
+
+    ctx_id = ctx.get('context_id')
 
     marker_path = WS / 'memory' / '.tmp' / f'report-sent-{args.market}-{args.phase}-{today}.json'
     marker = None

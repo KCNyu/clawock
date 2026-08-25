@@ -518,7 +518,9 @@ def _receipt_claims(path):
     if not isinstance(payload, dict):
         return None
     name = path.name
-    delivered = _receipt_delivered(payload)
+    # The whole receipt travels, not a pre-computed verdict: the caller needs
+    # the per-channel flags too (#968), and `_receipt_delivered` is applied at
+    # the point of use.
     if name.startswith("report-sent-"):
         try:
             job = job_for(payload.get("market"), payload.get("phase"))
