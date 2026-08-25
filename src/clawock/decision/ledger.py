@@ -41,7 +41,6 @@ from clawock.workspace import workspace_root
 # from site-packages or a source checkout path.
 WS = workspace_root(Path.cwd())
 LEDGER = WS / "memory" / "decisions.jsonl"
-SNAP_DIR = WS / "memory" / "snapshots"
 
 SCHEMA_VERSION = 2
 # Bumped when the meaning of an evaluation changes, so a stale row is identifiable.
@@ -502,35 +501,6 @@ def upsert_plan_decisions(
     if write:
         write_decisions(existing, path)
     return inserted, updated
-
-
-_SNAP_CACHE: dict[str, dict | None] = {}
-
-
-def snapshot_dates() -> list[str]:
-    return sorted(p.stem for p in SNAP_DIR.glob("20*.json"))
-
-
-def load_snapshot(day: str) -> dict | None:
-    if day not in _SNAP_CACHE:
-        p = SNAP_DIR / f"{day}.json"
-        try:
-            _SNAP_CACHE[day] = json.loads(p.read_text()) if p.exists() else None
-        except Exception:
-            _SNAP_CACHE[day] = None
-    return _SNAP_CACHE[day]
-
-
-def holding_from_snapshot(snapshot: dict | None, ticker: str) -> dict | None:
-    for region in ("hk_stocks", "us_stocks"):
-        for h in (snapshot or {}).get("portfolios", {}).get(region, {}).get("holdings", []):
-            if str(h.get("ticker")) == str(ticker):
-                return h
-    return None
-
-
-def _price(snapshot: dict | None, ticker: str, field: str = "current_price"):
-    return _float((holding_from_snapshot(snapshot, ticker) or {}).get(field))
 
 
 # ---------------------------------------------------------------------------
