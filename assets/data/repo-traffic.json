@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-23T05:43:34Z",
+  "generated_at": "2026-08-25T04:20:45Z",
   "repo": "KCNyu/clawock",
   "note": "views/clones are per-day series merged across runs. referrers/paths are 14-day aggregates captured as dated snapshots and must not be summed or differenced as daily values.",
   "views": [
@@ -77,6 +77,16 @@
       "timestamp": "2026-08-21T00:00:00Z",
       "count": 6,
       "uniques": 4
+    },
+    {
+      "timestamp": "2026-08-22T00:00:00Z",
+      "count": 19,
+      "uniques": 5
+    },
+    {
+      "timestamp": "2026-08-23T00:00:00Z",
+      "count": 23,
+      "uniques": 7
     }
   ],
   "clones": [
@@ -154,6 +164,16 @@
       "timestamp": "2026-08-21T00:00:00Z",
       "count": 833,
       "uniques": 87
+    },
+    {
+      "timestamp": "2026-08-22T00:00:00Z",
+      "count": 572,
+      "uniques": 42
+    },
+    {
+      "timestamp": "2026-08-23T00:00:00Z",
+      "count": 574,
+      "uniques": 60
     }
   ],
   "referrers_snapshots": [
@@ -205,6 +225,32 @@
         {
           "referrer": "zhihu.com",
           "count": 1,
+          "uniques": 1
+        }
+      ]
+    },
+    {
+      "captured_at": "2026-08-25T04:20:45Z",
+      "window_days": 14,
+      "rows": [
+        {
+          "referrer": "github.com",
+          "count": 36,
+          "uniques": 16
+        },
+        {
+          "referrer": "Google",
+          "count": 8,
+          "uniques": 3
+        },
+        {
+          "referrer": "kcnyu.github.io",
+          "count": 3,
+          "uniques": 1
+        },
+        {
+          "referrer": "chatgpt.com",
+          "count": 2,
           "uniques": 1
         }
       ]
@@ -342,6 +388,72 @@
           "uniques": 1
         }
       ]
+    },
+    {
+      "captured_at": "2026-08-25T04:20:45Z",
+      "window_days": 14,
+      "rows": [
+        {
+          "path": "/KCNyu/clawock",
+          "title": "Overview",
+          "count": 102,
+          "uniques": 42
+        },
+        {
+          "path": "/KCNyu/clawock/blob/master/README.zh.md",
+          "title": "/blob/master/README.zh.md",
+          "count": 17,
+          "uniques": 12
+        },
+        {
+          "path": "/KCNyu/clawock/issues",
+          "title": "/issues",
+          "count": 7,
+          "uniques": 7
+        },
+        {
+          "path": "/KCNyu/clawock/pulls",
+          "title": "/pulls",
+          "count": 6,
+          "uniques": 4
+        },
+        {
+          "path": "/KCNyu/clawock/blob/master/examples/README.md",
+          "title": "/blob/master/examples/README.md",
+          "count": 5,
+          "uniques": 5
+        },
+        {
+          "path": "/KCNyu/clawock/blob/master/skills/hk-stock-analysis/SKILL.md",
+          "title": "/blob/master/skills/hk-stock-analysis/SKILL.md",
+          "count": 5,
+          "uniques": 5
+        },
+        {
+          "path": "/KCNyu/clawock/actions/metrics/usage",
+          "title": "/actions/metrics/usage",
+          "count": 5,
+          "uniques": 1
+        },
+        {
+          "path": "/KCNyu/clawock/blob/master/DREAMS.md",
+          "title": "/blob/master/DREAMS.md",
+          "count": 4,
+          "uniques": 4
+        },
+        {
+          "path": "/KCNyu/clawock/blob/master/skills/portfolio-swarm-review/SKILL.md",
+          "title": "/blob/master/skills/portfolio-swarm-review/SKILL.md",
+          "count": 4,
+          "uniques": 4
+        },
+        {
+          "path": "/KCNyu/clawock/blob/master/skills/us-stock-analysis/SKILL.md",
+          "title": "/blob/master/skills/us-stock-analysis/SKILL.md",
+          "count": 4,
+          "uniques": 4
+        }
+      ]
     }
   ],
   "package_downloads": [
@@ -365,6 +477,15 @@
         "downloads": 1160,
         "start": "2026-07-23",
         "end": "2026-08-21"
+      }
+    },
+    {
+      "captured_at": "2026-08-25T04:20:45Z",
+      "pypi_error": "https://pypistats.org/api/packages/clawock/recent -> HTTP 429 Too Many Requests",
+      "npm": {
+        "downloads": 1200,
+        "start": "2026-07-25",
+        "end": "2026-08-23"
       }
     }
   ]
