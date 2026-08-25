@@ -364,29 +364,43 @@ def summarize(ticker: str, as_json: bool = False) -> Dict:
     return result
 
 
-def _parse_args(argv: List[str]) -> Tuple[str, str, Optional[List[str]], bool]:
+def _parse_args(argv: List[str]) -> Tuple[List[str], str, Optional[List[str]], bool]:
+    """(tickers, mode, form_types, as_json).
+
+    More than one ticker is a *batch*, not a suggestion to run in parallel: the
+    SEC throttle below is an in-process ``_last_call``, so N concurrent spawns
+    each get their own limiter and the desk starts talking to EDGAR N times
+    faster than its own rule allows (#918). One process, tickers in sequence,
+    one limiter.
+    """
     args = [a for a in argv if not a.startswith('--')]
     as_json = '--json' in argv
 
     if not args:
         print(__doc__)
         sys.exit(1)
-    ticker = args[0].upper()
-
+    # A form-type list is positional too («--filings 8-K,10-Q»), so it must not
+    # be mistaken for a ticker.
+    form_type_arg = None
     if '--filings' in argv:
         idx = argv.index('--filings')
-        # Optional form-type list right after --filings
-        types = None
         if idx + 1 < len(argv) and not argv[idx + 1].startswith('--'):
-            types = [t.strip().upper() for t in argv[idx + 1].split(',')]
-        return ticker, 'filings', types, as_json
+            form_type_arg = argv[idx + 1]
+    tickers = [a.upper() for a in args if a != form_type_arg]
+    ticker = tickers[0]
+
+    del ticker
+    if '--filings' in argv:
+        types = ([t.strip().upper() for t in form_type_arg.split(',')]
+                 if form_type_arg else None)
+        return tickers, 'filings', types, as_json
     if '--form4' in argv:
-        return ticker, 'form4', None, as_json
+        return tickers, 'form4', None, as_json
     if '--financials' in argv:
-        return ticker, 'financials', None, as_json
+        return tickers, 'financials', None, as_json
     if '--13f' in argv:
-        return ticker, '13f', None, as_json
-    return ticker, 'summary', None, as_json
+        return tickers, '13f', None, as_json
+    return tickers, 'summary', None, as_json
 
 
 def main(argv=None):
@@ -394,8 +408,25 @@ def main(argv=None):
     if '-h' in argv or '--help' in argv:
         print(__doc__)
         return 0
-    ticker, mode, form_types, as_json = _parse_args(argv)
+    tickers, mode, form_types, as_json = _parse_args(argv)
 
+    if len(tickers) > 1:
+        # 批量：一个进程里顺序跑，共用同一个 _throttle。单只的输出形状一个字
+        # 不动，批量另包一层 batch —— 免得调用方要按 ticker 数目切换解析。
+        batch = {}
+        for one in tickers:
+            batch[one] = _run_one(one, mode, form_types, as_json)
+        if as_json:
+            print(json.dumps({'batch': batch}, indent=2, ensure_ascii=False))
+        return 0
+
+    result = _run_one(tickers[0], mode, form_types, as_json)
+    if as_json:
+        print(json.dumps(result, indent=2, ensure_ascii=False))
+    return 0
+
+
+def _run_one(ticker, mode, form_types, as_json):
     if mode == 'summary':
         result = summarize(ticker, as_json=as_json)
     elif mode == 'filings':
@@ -421,10 +452,7 @@ def main(argv=None):
             _print_filings(ticker, thirteen)
     else:
         result = {}
-
-    if as_json:
-        print(json.dumps(result, indent=2, ensure_ascii=False))
-    return 0
+    return result
 
 
 if __name__ == '__main__':
