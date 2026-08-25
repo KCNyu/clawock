@@ -213,8 +213,9 @@ def aggregate_week(today=None):
     return {
         'week': week_id,
         'window': f'{start.isoformat()} -> {today.isoformat()}',
-        # Keep compact, deterministic evidence before bulky raw inputs: main()
-        # truncates the serialized bundle at 40k characters for the LLM prompt.
+        # Compact, deterministic evidence first, bulky raw inputs after: the
+        # reader meets verifiable numbers before prose-heavy raw views. Nothing
+        # is truncated here — budget enforcement lives in build_prompt_payload.
         'bundle_evidence': bundle_evidence,
         'plans': plans,
         'decision_episodes': decision_episodes,
@@ -338,16 +339,14 @@ def build_prompt_payload(bundle, budget=PROMPT_BUDGET_CHARS):
     return payload
 
 
-def main():
-    bundle = aggregate_week()
-    validate_bundle(bundle)
-    week_id = bundle['week']
-
-    system = "You are Rick, kcn's HK+US stock analyst. Write a weekly portfolio review."
-
-    payload = build_prompt_payload(bundle)
-    user = (
-        f"根据这一周（{week_id}）的 brief / plan / decision v2 / risk 数据, "
+def build_user_prompt(payload):
+    """Assemble the user turn. The JSON fence embeds exactly the serialization
+    the budget was enforced against — `_compact`, byte for byte (#1000). The
+    first cut embedded `json.dumps(payload)` with default separators, so every
+    shipped prompt carried ~7% more characters than the check had measured and
+    the sanity bound was not the bound of what actually left the door."""
+    return (
+        f"根据这一周（{payload['week']}）的 brief / plan / decision v2 / risk 数据, "
         f"写一篇 markdown 周复盘。长度 1500-2500 字。"
         "\n\n"
         "重点回答 4 个问题:\n"
@@ -356,11 +355,22 @@ def main():
         "2. **决策兑现**: 按 strategy episode 汇总触发、执行和 win/loss；不要把每日重复 call 当独立样本\n"
         "3. **风险演变**: 当前 risk.json 数值, β/Vol/Max DD/Sharpe 怎么走?\n"
         "4. **下周关注 3 条**: actionable (ticker + 触发条件 + 仓位影响)\n\n"
-        f"数据 bundle (JSON):\n```json\n{json.dumps(payload, ensure_ascii=False)}\n```\n\n"
+        f"数据 bundle (JSON):\n```json\n{_compact(payload)}\n```\n\n"
         "若上面 JSON 含 `_omitted`，对应 section 因 prompt 预算被整体省略——"
         "相关小节必须如实写数据缺口，禁止编造。\n\n"
         "直接出 markdown, 不要客套."
     )
+
+
+def main():
+    bundle = aggregate_week()
+    validate_bundle(bundle)
+    week_id = bundle['week']
+
+    system = "You are Rick, kcn's HK+US stock analyst. Write a weekly portfolio review."
+
+    payload = build_prompt_payload(bundle)
+    user = build_user_prompt(payload)
 
     # Weekly review benefits most from thinking + depth (1 turn, complex synthesis)
     out = chat(system=system, user=user, max_tokens=32000, temperature=0.6)

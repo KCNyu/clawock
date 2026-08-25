@@ -66,6 +66,23 @@ def test_real_committed_week_payload_is_whole_and_complete():
         assert section not in payload
 
 
+def test_the_embedded_json_is_byte_identical_to_the_budget_checked_serialization():
+    """#1000: main() embedded `json.dumps(payload)` with default separators while
+    the budget was enforced on `_compact` — the shipped prompt ran ~7% larger
+    than the checked bound (13,066 extra characters on committed W30 data), so
+    PROMPT_BUDGET_CHARS was not the bound of what actually left the door."""
+    bundle = weekly.aggregate_week(today=date(2026, 7, 24))
+
+    payload = weekly.build_prompt_payload(bundle)
+    prompt = weekly.build_user_prompt(payload)
+    embedded = prompt.split('```json\n', 1)[1].split('\n```', 1)[0]
+
+    assert embedded == _compact(payload), (
+        'the model must see exactly the bytes the budget was enforced against')
+    assert json.loads(embedded) == payload
+    assert len(embedded) <= weekly.PROMPT_BUDGET_CHARS
+
+
 def test_oversized_bundle_omits_whole_sections_and_declares_them():
     bundle = _oversized_bundle()
 

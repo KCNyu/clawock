@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import json
 
-from clawock.automation.news_digest import build_news_payload
+from clawock.automation.news_digest import build_news_payload, build_user_prompt
 
 
 def _news_item(seed):
@@ -96,6 +96,24 @@ def test_the_omission_manifest_cannot_push_the_payload_back_over_budget():
         assert payload[ticker] == raw[ticker]
     assert max(tickers.index(t) for t in included) < min(
         tickers.index(t) for t in skipped)
+
+
+def test_the_embedded_json_is_byte_identical_to_the_budget_checked_serialization():
+    """#1000: the fence embedded `json.dumps(news_payload)` with default
+    separators while the budget was enforced on compact serialization — a
+    payload measured just under 25,000 shipped larger, so the budget was not an
+    upper bound on what actually left the door."""
+    tickers = [f'T{i:02d}' for i in range(12)]
+    payload = build_news_payload(_fixed_size_raw(tickers), budget=6000)
+
+    prompt = build_user_prompt(payload, held_via={'PLTR': ['PLTU']})
+    embedded = prompt.split('```json\n', 1)[1].split('\n```', 1)[0]
+
+    assert embedded == _compact(payload), (
+        'the model must see exactly the bytes the budget was enforced against')
+    assert json.loads(embedded) == payload
+    assert len(embedded) <= 6000
+    assert '_omitted_tickers' in payload  # oversized fixture: omissions declared
 
 
 def test_a_manifest_bigger_than_the_budget_is_kept_whole_not_sliced():
