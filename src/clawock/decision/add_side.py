@@ -23,7 +23,10 @@ every number from its inputs — the rules below are the ones already written do
   `breakout` state (close > prior 20-day high, not overheated) — the one add
   shape the 8-month bars backtest (#819) measured with a positive edge at every
   horizon (T+1/5/10/20 hit 52.5/54.0/52.5/55.9%, avg fwd +16.25% at T+20; HK
-  T+20 59.4%). Near-breakout/at-high without a primary filing stay `wait`
+  T+20 59.4%). This module only ever runs in the intraday slot, where "close"
+  is the live print and the close itself is still pending — rows say so
+  explicitly, and the backtest numbers are quoted as close-confirmed. Near-
+  breakout/at-high without a primary filing stay `wait`
   (no standalone edge). Soft news and sentiment remain colour, never an
   active-operation reason.
 * **Everything else is `wait`, with what would change it.** A price anomaly with no
@@ -212,8 +215,11 @@ def read_rows(*, anomalies=None, radar=None, levels=None, early_trend=None,
                     needs = f"{lead}{radar_row.get('prior_20d_high')} 并守住"
             else:
                 state_zh = radar_row.get('state_zh') or radar_row.get('state')
-                why = (f"技术面{state_zh}:收盘站上前 20 日高且未过热"
-                       f"(回测:四个周期命中率均>50%)")
+                # 本模块只在盘中档运行（intraday_preflight）：雷达的 close 是
+                # 实时价，收盘未确认——#819 回测度量的是收盘确认的突破，文案
+                # 不得把现价触发说成已确认的收盘事实。
+                why = (f"技术面{state_zh}:现价站上前 20 日高且未过热(盘中、收盘未确认;"
+                       f"回测口径为收盘确认:四个周期命中率均>50%)")
                 lead = f"{_proxy_of(radar_row)} 守住 " if _proxy_of(radar_row) else "守住 "
                 needs = f"{lead}{radar_row.get('prior_20d_high')}(回踩不破再谈加仓)"
         else:
@@ -312,7 +318,7 @@ def read_rows(*, anomalies=None, radar=None, levels=None, early_trend=None,
         "candidate_count": sum(r["verdict"] == "candidate" for r in rows),
         "wait_count": sum(r["verdict"] == "wait" for r in rows),
         "reject_count": sum(r["verdict"] == "reject" for r in rows),
-        "policy": ("技术突破(收盘站上前 20 日高且未过热)即 candidate,"
+        "policy": ("技术突破(现价站上前 20 日高且未过热,盘中读数、收盘未确认)即 candidate,"
                    "一手公告升级措辞;软消息/情绪只能停在 wait;"
                    "纪律动作未了结一律 reject。三态都不是下单授权。"),
     }

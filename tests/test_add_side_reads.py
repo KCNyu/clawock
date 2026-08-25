@@ -514,6 +514,9 @@ def test_a_technical_breakout_alone_is_a_candidate():
     row = _row(out, "02208")
     assert row["verdict"] == "candidate"
     assert "突破" in row["why"], row["why"]
+    # 本模块只在盘中档运行：现价触发必须说成未确认，不得断言已收盘（#1051）
+    assert "收盘未确认" in row["why"], row["why"]
+    assert "收盘确认" in row["why"], row["why"]
     assert row["needs"].startswith("守住 11.72"), row["needs"]
     assert out["candidate_count"] == 1
 

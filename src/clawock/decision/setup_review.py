@@ -16,6 +16,11 @@
   • sample_sufficient 只回答样本够不够；edge_supported 只回答 Wilson CI
     是否完整高于 50%。两者同时为真才 usable，禁止再用 raw n 自动解锁
   • 结算按 (日期, 标的) 去重取当日最后一条（端午盘中多条 → 取收盘牌面）
+  • 周末留痕行不产生结算观测（#1050）：留痕器任何时刻跑都会落一行，而闭市日
+    报价源会漂移或与下一交易日盘前快照逐字重复——跨它算出的 forward return
+    是伪观测（实测把 chase_low_quality 的 T+1 命中率从干净段 63.0% 拖到公开值
+    54.0%，解锁判词被压翻转）。读取侧防御、数据不改写，与 quant_signal_review
+    的冻结价闸同一模式。
 
 输出 assets/data/t0_setup_review.json。brief preflight 每日顺跑，dashboard🎯卡展示。
 """
@@ -23,6 +28,7 @@ import json
 import math
 import sys
 from datetime import date
+from datetime import date as real_date
 from pathlib import Path
 
 
@@ -84,17 +90,49 @@ def _load_days():
     return [{'as_of': d, 'rows': by_day[d]} for d in sorted(by_day)]
 
 
+def _is_weekend(day):
+    """周六/周日永远不是 HK/US 交易时段；无法解析的日期按工作日保留。
+
+    用 real_date 而非模块级 date：测试会替换后者（_FixedDate 只造 today）。
+    """
+    try:
+        return real_date.fromisoformat(str(day)[:10]).weekday() >= 5
+    except ValueError:
+        return False
+
+
+def _weekend_trigger_rows(days):
+    """周末行里本会触发计数的牌面行数——它们不再产生任何观测（#1050）。"""
+    n = 0
+    for d in days:
+        if not _is_weekend(d.get('as_of')):
+            continue
+        for m in (d.get('rows') or {}).values():
+            if not m.get('close'):
+                continue
+            lab = m.get('grade_label') or ''
+            if any(cond(lab) for cond, _ in GRADE_TESTS.values()):
+                n += 1
+    return n
+
+
 def _settle(days, horizon):
     """Run the grade-vs-forward-return accounting for one horizon.
+
+    Settlement walks non-weekend rows only (#1050): a Friday trigger settles
+    against the next weekday row, and weekend rows produce no observations at
+    all — their closes are closed-market drift or duplicated pre-open
+    snapshots, never session closes.
 
     Returns (stats, grades, usable_lines) — the same three things main()
     assembles, so a multi-horizon run is one loop instead of a copy.
     """
+    sessions = [d for d in days if not _is_weekend(d.get('as_of'))]
     stats = {k: {'n': 0, 'hits': 0, 'fwd_sum': 0.0} for k in GRADE_TESTS}
-    for i, day in enumerate(days):
-        if i + horizon >= len(days):
+    for i, day in enumerate(sessions):
+        if i + horizon >= len(sessions):
             continue  # 窗口未到期
-        nxt = days[i + horizon]['rows']
+        nxt = sessions[i + horizon]['rows']
         for t, m in day['rows'].items():
             c0 = m.get('close')
             lab = m.get('grade_label') or ''
@@ -110,8 +148,8 @@ def _settle(days, horizon):
                     s['fwd_sum'] += fwd * direction  # 方向化收益(正=警示/预测被证实)
     # #819:这些窗口是重叠的(Wilson CI 假设独立),写一个非重叠上限估计,
     # 免得 n=210 被当成 210 个独立样本。
-    tickers = {t for d in days for t in d['rows']}
-    non_overlap_cap = len(tickers) * (len(days) // horizon) if horizon else 0
+    tickers = {t for d in sessions for t in d['rows']}
+    non_overlap_cap = len(tickers) * (len(sessions) // horizon) if horizon else 0
     grades = {}
     usable = []
     for name, s in stats.items():
@@ -161,6 +199,7 @@ def main(argv=None):
         print('  no t0 history yet — skip')
         return 0
 
+    weekend_rows = _weekend_trigger_rows(days)
     _, grades, usable = _settle(days, HORIZON)
 
     summary = ('、'.join(usable) if usable
@@ -176,6 +215,9 @@ def main(argv=None):
     out = {
         'as_of': date.today().isoformat(), 'days_logged': len(days),
         'min_n': MIN_N, 'horizon': HORIZON, 'grades': grades, 'summary': summary,
+        # #1050:周末行不结算。days_logged 是原始留痕天数；weekend_rows_excluded
+        # 是其中本会触发计数、现不再产生观测的牌面行数。
+        'weekend_rows_excluded': weekend_rows,
         # #819:同一条留痕的 T+1/5/10/20 对账,horizons 键顺序即周期。
         'multi_horizon': multi,
         'overlap_note': ('留痕窗口重叠,Wilson CI 假设独立,故偏乐观;'
