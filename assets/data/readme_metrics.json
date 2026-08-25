@@ -1,8 +1,8 @@
 {
- "generated_at": "2026-08-24T12:38:45",
+ "generated_at": "2026-08-26T00:12:05",
  "as_of": "2026-08",
- "days": 99,
- "rows": 701,
+ "days": 100,
+ "rows": 711,
  "settled": 178,
  "active_pct": 55,
  "active_n": 73,
@@ -12,8 +12,8 @@
  "hi_n": 33,
  "active_ci": "44%–66%",
  "hi_ci": "41%–75%",
- "return_pct": "-19.82",
+ "return_pct": "-21.13",
  "followed": 358,
  "not_followed": 313,
- "unknown": 30
+ "unknown": 40
 }

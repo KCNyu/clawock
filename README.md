@@ -78,7 +78,7 @@ broker, and the same script CI executes against every published wheel:
 - **The model can't grade itself.** LLMs propose trades; Python settles them and computes the scorecard.
 - **One thesis, one episode.** Repeated opinions on the same thesis count once. Each episode is settled from canonical vendor bars, with declared gap-fill rules when a session is missing.
 - **The ledger has to reconcile.** A money-conservation check runs before every push; if cash, positions, and P&L don't balance, nothing is published.
-- **Built to keep running.** Scheduled Hong Kong and US sessions produce bilingual briefs and refresh the live dashboard through the trading day.
+- **Built to keep running.** Scheduled Hong Kong and US sessions produce the daily briefs and refresh the live dashboard through the trading day.
 
 ## How it works
 
