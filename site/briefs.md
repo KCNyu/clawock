@@ -1,7 +1,7 @@
 ---
 layout: default
 title: clawock · daily briefs
-description: 全部历史每日深度简报 + 手写笔记 + plan.json
+description: 全部历史每日深度简报 + 周复盘
 ---
 
 # Daily Briefs
@@ -31,34 +31,6 @@ description: 全部历史每日深度简报 + 手写笔记 + plan.json
   <li>
     <a href="{{ f.url | relative_url }}">{{ f.path | split: '/' | last | replace: '.md', '' }}</a>
   </li>
-{% endfor %}
-</ul>
-
-## Daily Notes · 手写笔记
-
-<ul class="brief-list">
-{% for f in sorted %}
-  {% if f.path contains '/memory/' and f.extname == '.md' and f.name != '_TEMPLATE.md' %}
-    {% unless f.path contains '-pre-open' or f.path contains 'recovery_log' or f.path contains '6_month_review' or f.path contains 'archive_index' %}
-  <li>
-    <a href="https://github.com/KCNyu/clawock/blob/master{{ f.path }}">{{ f.name | replace: '.md', '' }}</a>
-  </li>
-    {% endunless %}
-  {% endif %}
-{% endfor %}
-</ul>
-
-## Plan archive · 历史 plan.json
-
-Self-learning loop 用，给次日 retrospective 算 trigger / P&L / confidence calibration。
-
-<ul class="brief-list">
-{% for f in sorted %}
-  {% if f.path contains '/memory/' and f.extname == '.json' and f.path contains '-plan' %}
-  <li>
-    <a href="https://github.com/KCNyu/clawock/blob/master{{ f.path }}">{{ f.name }}</a>
-  </li>
-  {% endif %}
 {% endfor %}
 </ul>
 

@@ -70,6 +70,45 @@ def test_faq_page_is_required_public_and_has_an_entry_point():
     assert WORKFLOW.count("'site/**'") == 2
 
 
+def test_briefs_liquid_loops_iterate_defined_collections():
+    """#1047: `{% for f in sorted %}` iterated a variable nobody ever assigned.
+
+    Liquid renders zero passes for a nil iterable and raises nothing, so the
+    Daily Notes and Plan archive sections shipped as bare headings from the day
+    the page was created — while the front-matter description promised both.
+    Every ``for`` iterable in a site markdown page must therefore be either a
+    Jekyll-provided collection (``site.*``) or a name the same file assigns
+    (or an outer loop variable) before use.
+    """
+    pages = sorted((ROOT / "site").glob("*.md"))
+    liquid_pages = [p for p in pages if "{%" in p.read_text()]
+    assert liquid_pages, (
+        "no site markdown page carries Liquid anymore — this test has stopped "
+        "following the templates"
+    )
+    for page in liquid_pages:
+        text = page.read_text()
+        assigned = set(re.findall(r"{%-?\s*assign\s+(\w+)\s*=", text))
+        loop_vars: list[str] = []
+        problems = []
+        loops = 0
+        for m in re.finditer(r"{%-?\s*for\s+(\w+)\s+in\s+([\w.]+)", text):
+            var, iterable = m.groups()
+            base = iterable.split(".")[0]
+            loops += 1
+            if base in assigned or base == "site" or base in loop_vars:
+                loop_vars.append(var)
+                continue
+            problems.append(f"{page.name}: for {var} in {iterable}")
+            loop_vars.append(var)
+        if loops:
+            assert problems == [], (
+                f"{problems} iterate undefined Liquid variables — nil renders "
+                f"zero passes, so the section silently ships empty (#1047). "
+                f"Assign the variable first or iterate site.* directly."
+            )
+
+
 def test_indexnow_key_is_required_public_and_triggers_deploy():
     """The key proves ownership to IndexNow; without it every submit 403s.
 
