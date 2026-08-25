@@ -117,6 +117,7 @@
   // 判词句本体由 CSS 压成一行 caption —— 成段 prose 在这张卡里没有位置。
   function renderTodayHighlights() {
     const el = document.getElementById("today-highlights");
+    const mvEl = document.getElementById("today-movers");
     if (!el) return;
     const chips = [];
     const chip = (tone, k, v, d, meterPct) =>
@@ -149,8 +150,16 @@
         "决策变化·新/改/触", `${newN}/${changedN}/${triggeredN}`));
     }
 
-    // (30d 自评指标 — 主动 vs 持有 alpha + catalyst 纪律 — 不再在此重复;
-    //  它们是回顾性统计,归属正下方的 🪞 诚实自评卡,不属于「今日速读」。)
+    // 30d 自评里只放一枚 Brier：它是「今日判定」这张牌自己的成绩单（判得准
+    // 不准 vs 留一法基线），首屏别处没有。执行率/样本不放 —— 正上方 hero-rail
+    // 第四格已经是「遵守率 30D 8.5% · 主动 call n=82」，同一个数说两遍。
+    // （第七次迭代把执行纪律牌删掉时，唯一独有的就是这一枚，并进来。）
+    const dm = safe(DATA, "decision_metrics") || {};
+    if (dm.brier != null) {
+      chips.push(chip(dm.brier_beats_baseline ? "ok" : "warn", "Brier·30d",
+        Number(dm.brier).toFixed(3),
+        dm.brier_baseline_loo == null ? "" : `基线 ${Number(dm.brier_baseline_loo).toFixed(3)}`));
+    }
 
     // 1. Nearest-to-firing trigger (from the shared watch-level resolver)。
     // 接近度画成计量条：|dist| 归一到 0~10%（10% 外一律读作「远」），条只答
@@ -171,16 +180,9 @@
     //    同一个数说两遍是把首屏读成对账单。
     const movers = (safe(DATA, "today_movers") || []).slice(0, 3);
 
-    // 3. Top anomaly (high severity first)
-    const anomalies = (safe(DATA, "anomalies") || []).slice()
-      .sort((a,b) => (b.severity==="high"?1:0) - (a.severity==="high"?1:0));
-    if (anomalies.length) {
-      const a = anomalies[0];
-      const highN = anomalies.filter(x => x.severity === "high").length;
-      chips.push(chip(a.severity === "high" ? "bad" : "warn",
-        highN > 1 ? `异常×${highN}` : "异常",
-        escapeHtml(a.ticker), escapeHtml(a.detail)));
-    }
+    // 3. 异常不在这里出 chip：下面 overview-strip 的「异常」格印的是同一条
+    //    （实测两处都是「6 · SPCH weight 79.6% + pnl -31.0%」），而那格还多
+    //    一个 high 计数。同一个数在首屏出现两次就是 kcn 说的「和下面重复」。
 
     // 4. Catalyst dated today
     const cat = safe(DATA, "catalysts") || {};
@@ -201,6 +203,7 @@
     if (!chips.length && !movers.length) {
       el.style.display = "";
       el.replaceChildren();
+      if (mvEl) mvEl.replaceChildren();
       return;
     }
     el.style.display = "";
@@ -210,24 +213,29 @@
     // No icon slot: the old 7px status dot read as AI-flavoured (kcn: 彩色圆点
     // = AI 味). Row semantics live in position, weight and — for true alerts —
     // the red text colour, never in a coloured dot.
-    // 异动零轴柱：top3 各一根，高度 = |pct| 归一（最低 3px 可见），px 写死 ——
-    // 构图不随数据变；ticker+pct 退为柱下 caption（图为主，文字只做注脚）。
+    // 异动条（第八次迭代把竖柱转成横条）：竖柱在 1144px 宽的牌上是三根
+    // 14px 的孤棍，宽度全是空的；横条一行一只（ticker | 零轴分叉条 | pct），
+    // 窄盒宽盒都填得满，且 ticker/pct 回到同一行而不是柱下 caption。
+    // 条长 = |pct| 归一后取半幅的 92%，写百分比 —— 构图随盒子变、不随数据变。
     const maxAbs = Math.max(...movers.map(x => Math.abs(x.today_change_pct || 0)), 1);
-    const mvCell = x => {
+    const mvRow = x => {
       const pct = x.today_change_pct || 0;
-      const h = Math.max(3, Math.abs(pct) / maxAbs * 17);
-      return `<div class="hl-mv"><div class="hl-mv-bar">`
-        + `<i class="${pct >= 0 ? "up" : "down"}" style="height:${h.toFixed(1)}px"></i></div>`
-        + `<div class="hl-mv-cap"><span class="hl-mv-t">${escapeHtml(x.ticker || DASH)}</span>`
-        + `<span class="hl-mv-p ${pct >= 0 ? "pos" : "neg"}">${fmtPct(pct, 1)}</span></div></div>`;
+      const w = Math.abs(pct) / maxAbs * 46;
+      return `<div class="hl-mv">`
+        + `<span class="hl-mv-t">${escapeHtml(x.ticker || DASH)}</span>`
+        + `<span class="hl-mv-bar"><i class="${pct >= 0 ? "up" : "down"}"`
+        + ` style="width:${w.toFixed(1)}%"></i></span>`
+        + `<span class="hl-mv-p ${pct >= 0 ? "pos" : "neg"}">${fmtPct(pct, 1)}</span></div>`;
     };
     const moversRow = movers.length
-      ? `<div class="hl-movers" style="grid-template-columns:repeat(${movers.length},minmax(0,1fr))"`
-        + ` role="img" aria-label="今日异动前 ${movers.length}：`
+      ? `<div class="hl-movers" role="img" aria-label="今日异动前 ${movers.length}：`
         + movers.map(x => `${x.ticker} ${fmtPct(x.today_change_pct, 1)}`).join("、")
-        + `">${movers.map(mvCell).join("")}</div>`
+        + `"><div class="hl-mv-head">今日异动</div>${movers.map(mvRow).join("")}</div>`
       : "";
-    el.innerHTML = chips.slice(0, 5).join("") + moversRow;
+    // chip 与异动条各自落到自己的挂载点：≥1024 时它们是牌上左右两栏，
+    // 窄档回到上下两带（版式全在 CSS，渲染端不判断宽度）。
+    el.innerHTML = chips.slice(0, 5).join("");
+    if (mvEl) mvEl.innerHTML = moversRow;
   }
 
   // 🪞 诚实自评卡 — 把这轮做的诚实层(风险调整判决 / catalyst 纪律 / 辩论决断 / 因子 CI)聚一处
@@ -333,24 +341,12 @@
     }
   }
 
+  // 「今日异动」那格在第七次迭代随 DOM 一起删了：它只印首位异动一个数，
+  // 而判定牌的零轴柱印的是同一份 today_movers 的 top3。这里只剩异常两格。
   function renderOverviewSummaries() {
-    const moverEl = document.getElementById("overview-mover-summary");
     const anomalyCount = document.getElementById("overview-anomaly-count");
     const anomalySummary = document.getElementById("overview-anomaly-summary");
-    const movers = (safe(DATA, "today_movers") || []).slice().sort((a, b) =>
-      Math.abs(b.today_change_pct || 0) - Math.abs(a.today_change_pct || 0)
-    );
     const anomalies = safe(DATA, "anomalies") || [];
-    if (moverEl) {
-      if (!movers.length) {
-        moverEl.textContent = "No ≥3% movers";
-        moverEl.className = "overview-mover-summary neutral";
-      } else {
-        const m = movers[0];
-        moverEl.innerHTML = `<span class="tk">${escapeHtml(m.ticker || DASH)}</span>${fmtPct(m.today_change_pct, 1)}`;
-        moverEl.className = "overview-mover-summary " + pnlClass(m.today_change_pct);
-      }
-    }
     if (anomalyCount) {
       anomalyCount.textContent = String(anomalies.length);
       anomalyCount.className = "overview-anomaly-count " +
@@ -369,7 +365,7 @@
     hero: [
       renderTodayHighlights, renderHonesty, renderMarketSnapshot, renderCommandDeck,
       renderDataHealth, renderRiskGuardrail, renderOverviewSummaries, renderGoldDca,
-      renderVerdictDeckSides,
+      setupVerdictDeck,
     ],
     drill: [
       renderBook, renderAddCampaign, renderMovers,
@@ -2426,61 +2422,6 @@
   }
 
 
-  // 纪律 / 黄金回本两张副牌的内容渲染。数据缺口必须明说（muted 占位），
-  // 不装作没有这一格。⚠ 与 dashboard.render.js 逐字同步。
-  function renderVerdictDeckSides() {
-    setupVerdictDeck();
-    const mk = (tone, k, v, d, meterPct) =>
-      `<span class="hl-chip tone-${tone}"><span class="hl-k">${k}</span>`
-      + (v ? `<span class="hl-v">${v}</span>` : "")
-      + (d ? `<span class="hl-d">${d}</span>` : "")
-      + (meterPct == null ? ""
-        : `<span class="hl-meter" aria-hidden="true"><i style="width:${meterPct.toFixed(1)}%"></i></span>`)
-      + `</span>`;
-    const disc = document.getElementById("deck-discipline");
-    if (disc) {
-      const m = safe(DATA, "decision_metrics") || {};
-      const act = safe(safe(m, "execution_by_kind"), "active") || {};
-      const chips = [];
-      if (m.brier != null) {
-        chips.push(mk(m.brier_beats_baseline ? "ok" : "warn", "Brier·30d",
-          Number(m.brier).toFixed(3),
-          m.brier_baseline_loo == null ? "" : `基线 ${Number(m.brier_baseline_loo).toFixed(3)}`));
-      }
-      if (act.rate != null) {
-        chips.push(mk("flat", "执行率",
-          `${(act.rate * 100).toFixed(1)}%`,
-          act.known == null ? "" : `${act.known} 笔可核`));
-      }
-      if (m.raw_decisions != null) {
-        chips.push(mk("flat", "样本", `${m.raw_decisions}`, "近 30d 决策"));
-      }
-      disc.innerHTML = chips.length ? chips.join("")
-        : '<span class="hl-chip"><span class="hl-k">决策指标未生成</span></span>';
-    }
-    const gold = document.getElementById("deck-gold");
-    if (gold) {
-      const g = safe(DATA, "gold_dca") || {};
-      const badge = document.getElementById("deck-gold-badge");
-      if (badge) badge.textContent = g.fund_code ? String(g.fund_code) : "";
-      const ups = g.breakeven_upside_pct;
-      if (ups == null || g.nav == null) {
-        gold.innerHTML = '<span class="hl-chip"><span class="hl-k">回本数据缺</span></span>';
-      } else {
-        const above = ups <= 0;
-        const meter = Math.max(0, Math.min(100, 100 - Math.abs(ups) * 10));
-        const num = (v, dp) => Number(v).toLocaleString("zh-CN",
-          { minimumFractionDigits: dp, maximumFractionDigits: dp });
-        gold.innerHTML =
-          mk(above ? "ok" : Math.abs(ups) > 5 ? "bad" : "warn", "回本",
-            above ? `已越线 ${Math.abs(ups).toFixed(1)}%` : `需涨 ${ups.toFixed(1)}%`,
-            "", meter)
-          + mk("flat", "净值/成本", `${num(g.nav, 4)} / ${num(g.avg_cost, 4)}`)
-          + mk("flat", "现值", `¥${num(g.current_value, 0)}`,
-            (g.pnl_percent >= 0 ? "+" : "") + `${num(g.pnl_percent, 2)}%`);
-      }
-    }
-  }
   function renderRiskGuardrail() {
     const g = safe(DATA, "risk_guardrail") || {};
     const targets = [
@@ -2519,10 +2460,16 @@
        </div>`;
     const rows = [
       ...breaches.map(b => ({ icon: ICON[b.type] || '', severity: b.severity, detail: stripEmoji(b.detail), action: stripEmoji(b.action) })),
-      ...stops.map(s => ({ icon: '', severity: 'high', detail: stripEmoji(s.detail), action: stripEmoji(s.action) })),
+      ...stops.map(s => ({ icon: '', severity: s.severity || 'critical', detail: stripEmoji(s.detail), action: stripEmoji(s.action) })),
     ];
+    // 严重度排序（第八次迭代）：原来把 hard stop 一律降写成 high，再按
+    // 「是不是 high」排 —— 同为 high 时排序稳定，于是 6 条 breach 永远排在
+    // 3 条 hard stop 前面，牌上那三个槽位只看得到限额比例，而「已经跌穿
+    // -18% 硬止损线」的三只（数据里本来就是 critical）从不上首屏。槽位按
+    // 数据自己的严重度给，不按数组下标给。
+    const SEV_RANK = { critical: 3, high: 2, medium: 1 };
     const compactRows = rows.slice().sort((a, b) =>
-      Number(b.severity === "high") - Number(a.severity === "high"));
+      (SEV_RANK[b.severity] || 0) - (SEV_RANK[a.severity] || 0));
     targets.forEach(({ countEl, dirEl, listEl, compact }) => {
       // 「9 触发」红字是判定卡里最后一个裸读数：数量改用点阵计数表达
       // （一眼扫出严重度，不用读数），精确值退到 aria-label/title。槽位
@@ -2543,7 +2490,13 @@
         : stripEmoji([g.directive, g.reentry_rule].filter(Boolean).join(' '));
       const visibleRows = compact ? compactRows.slice(0, 3) : rows;
       const html = visibleRows.map(r => row(r.icon, r.severity, r.detail, compact ? "" : r.action)).join('');
-      listEl.innerHTML = html || '<div class="muted" style="font-size:var(--fs-sm)">仓位/单因子/杠杆均在阈值内</div>';
+      // 牌上只有三个槽位，9 条里剩下的 6 条原来是无声消失的（表头点阵是
+      // 严重度密度，读不出「还有几条没列」）。补一行尾注说清被折叠的量。
+      const hidden = compact ? Math.max(0, compactRows.length - visibleRows.length) : 0;
+      const tail = hidden
+        ? `<div class="overview-gates-more">另有 ${hidden} 项未列出</div>` : '';
+      listEl.innerHTML = (html && html + tail)
+        || '<div class="muted" style="font-size:var(--fs-sm)">仓位/单因子/杠杆均在阈值内</div>';
     });
   }
 

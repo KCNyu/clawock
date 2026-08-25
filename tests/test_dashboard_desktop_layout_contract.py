@@ -130,3 +130,30 @@ def test_issue_206_visual_regression_evidence_is_shipped():
         assert image.stat().st_size > 20_000, f"missing/empty screenshot: {name}"
         assert name in readme
     assert "scrollWidth == clientWidth" in readme
+
+
+def test_overview_keeps_one_owner_per_first_screen_fact():
+    """首屏同一个数只能有一个 owner（第七次迭代，kcn：「内容会和下面重复」）。
+
+    v6 之前判定牌组四张里有两张是别处的子集：黄金回本牌是下方
+    ``#gold-dca-card`` 的逐字子集，执行纪律牌的「执行率 / 笔可核」是正上方
+    hero-rail 第四格「遵守率 30D · 主动 call n=」的同一对数字；牌组的异动
+    零轴柱与 strip 的「今日异动」格同吃 ``today_movers``。删掉的是重复的那
+    一份，留下的是更全的那份 —— 这条闸钉的就是「不许把它们加回来」，而不是
+    某个具体的牌数。
+    """
+    # 黄金 / 纪律：牌上的挂载点没了，完整卡还在
+    assert 'id="deck-gold"' not in HTML
+    assert 'id="deck-discipline"' not in HTML
+    assert 'id="gold-dca-card"' in HTML
+    # 异动：strip 的摘要格没了，判定牌的 top3 零轴柱还在（hl-mv 由 JS 生成，
+    # 这里钉的是它的样式契约仍在，且 strip 不再有第二个 owner）
+    assert 'id="overview-mover-summary"' not in HTML
+    assert ".deck-card .hl-mv-bar" in CSS
+    assert HTML.count('class="overview-strip-cell') == 2
+    # 异常：只留 strip 那一格（牌上的 chip 由 renderTodayHighlights 生成，
+    # 两份 bundle 里都不许再出现那枚 chip 的构造）
+    assert 'id="overview-anomaly-count"' in HTML
+    for bundle in ("dashboard.hero.js", "dashboard.render.js"):
+        js = (ROOT / "site" / "assets" / "js" / bundle).read_text()
+        assert "异常×${highN}" not in js
