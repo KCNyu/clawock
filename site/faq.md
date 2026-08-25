@@ -80,8 +80,9 @@ clawock run prepare --workspace ./my-decision
 ```
 
 Or hand the repository URL to your agent and let it run
-`bash examples/cli/minimal-run/run.sh` first — a no-model, no-network proof of one
-complete decision loop. Model costs ride on your own API key; clawock itself is
+`bash examples/cli/minimal-run/run.sh` first — a no-model proof of one complete
+decision loop that needs no credentials and no broker (the one network step is
+installing clawock from PyPI). Model costs ride on your own API key; clawock itself is
 free and open source (MIT).
 
 ## Where does the data come from?
