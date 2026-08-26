@@ -1193,6 +1193,25 @@ def check_benchmark_freshness(r):
                          for k, v in sorted(freshness.items())))
 
 
+def _unthesised_holdings():
+    """Active holdings with no canonical thesis document, by ticker."""
+    try:
+        from clawock.decision import theses as thesis_registry
+        docs, _ = thesis_registry.load_registry(WS / 'memory' / 'theses')
+        have = {str(doc.get('ticker')) for doc in docs}
+        book = json.loads((WS / 'portfolio.json').read_text(encoding='utf-8'))
+    except Exception:      # noqa: BLE001 — a broken probe must not fail closed
+        return []
+    out = []
+    for port in (book.get('portfolios') or {}).values():
+        for holding in (port or {}).get('holdings') or []:
+            ticker = str(holding.get('ticker') or '')
+            shares = holding.get('shares') or 0
+            if ticker and shares > 0 and ticker not in have:
+                out.append(ticker)
+    return sorted(out)
+
+
 def check_research_artifacts(r):
     """Thesis, earnings and entry-gate artifacts must stay valid.
 
@@ -1214,20 +1233,32 @@ def check_research_artifacts(r):
     elif result['status'] == 'warn':
         r.add('research artifacts', WARNING,
               f"{tally} valid; open work: " + '; '.join(result['warnings'][:4]))
-    elif not any(counts.values()):
+    elif not counts['theses'] and _unthesised_holdings():
         # "Zero valid artifacts" and "no open work" are the same sentence to a
-        # validator and opposite facts to a reader. All three directories hold
-        # nothing but their READMEs, no recurring job writes them (`clawock
-        # thesis` is a manual CLI), and this check has reported OK for it every
-        # push. That silence is load-bearing: `_execution_view` blocks every add
-        # on `no_approved_setup` and `thesis_gate` never leaves
-        # "exploration_only", so a permanently empty research layer holds the
-        # entire add side shut — 0 add decisions in the 26 days to 2026-08-26,
-        # the last one 2026-07-20 (#1075).
+        # validator and opposite facts to a reader — but say the RIGHT thing
+        # about it. The first version of this branch claimed an empty research
+        # layer held the add side shut; it does not, and the wrong text shipped
+        # for one evening (#1075 → corrected same night).
+        #
+        # What is actually true: the canonical thesis registry is a KILL SWITCH.
+        # Only `state ∈ {broken, damaged, weakening}` changes a number — it
+        # zeroes the tranche. `intact` and "no document at all" size identically.
+        # So an empty registry does not block anything; it means the switch has
+        # never been armed, and the day a holding's story breaks there is nothing
+        # to trip. Named per holding because that is the unit somebody would act
+        # on.
+        #
+        # Entry gates and earnings artifacts are deliberately NOT part of this
+        # condition: `research-governance.json` requires a gate only for
+        # positions opened on or after `gate_required_from` (2026-07-27), and
+        # every current holding predates it. Zero gates is the policy working,
+        # not a gap — `ungated_positions` already warns about the real case.
+        names = _unthesised_holdings()
         r.add('research artifacts', WARNING,
-              'no research artifact has ever been produced (0 theses · 0 earnings · '
-              '0 gates) and no recurring job writes them — the add side is gated '
-              'on a layer that never fills')
+              f'{tally} valid; the thesis kill-switch is unarmed for '
+              f'{len(names)} active holding(s) ({", ".join(names[:4])}'
+              f'{"…" if len(names) > 4 else ""}) — nothing can trip when a '
+              f'story breaks')
     else:
         r.add('research artifacts', OK, f'{tally} valid · no open research work')
 
