@@ -286,6 +286,50 @@ def _tolerated(node_id: str) -> bool:
     return any(node_id.startswith(prefix) for prefix in TOLERATED_WRITERS)
 
 
+def pytest_sessionfinish(session, exitstatus):
+    """Fail the RUN when an untolerated writer touched published state.
+
+    This assertion used to live in
+    `test_import_layering.py::test_no_new_test_writes_to_published_state`, whose
+    docstring said "this runs last by name". It is not last: pytest collects by
+    path, and `test_i...` is followed by everything from `test_j` to `test_w` —
+    `test_validate_sidecars.py` among them. Measured on 2026-08-26, a full suite
+    printed
+
+        tests/test_validate_sidecars.py::test_real_committed_dashboard_passes  <-- NEW
+            created: assets/data/dashboard.json, ...
+
+    and reported no failure for it: the marker was rendered, the assertion had
+    already run. **A writer in any module sorting after the guard was invisible
+    to it** — which is the half of the suite the guard was least likely to be
+    watching, since the dashboard-shaped modules live there.
+
+    A session hook has no position in the collection order, so there is nothing
+    left to sort after it (#1089).
+    """
+    if session.config.getoption("collectonly", False):
+        return
+    # xdist: every worker gets its own session and its own copy of the four
+    # files, so attribution is meaningless — the reasoning is unchanged from the
+    # assertion this replaces.
+    if getattr(session.config, "workerinput", None) is not None:
+        return
+    offenders = sorted({e["test"] for e in _WRITE_LOG if not _tolerated(e["test"])})
+    if offenders:
+        session.exitstatus = 1
+        reporter = session.config.pluginmanager.get_plugin("terminalreporter")
+        if reporter is not None:
+            reporter.write_line("")
+            reporter.write_line(
+                "ERROR: these tests wrote into the checkout and are not on the "
+                f"tolerated list: {offenders}", red=True)
+            reporter.write_line(
+                "Point them at an isolated workspace "
+                "(monkeypatch.setenv('CLAWOCK_WORKSPACE', str(tmp_path))) rather "
+                "than adding them to TOLERATED_WRITERS — that list is meant to "
+                "shrink.", red=True)
+
+
 def pytest_terminal_summary(terminalreporter):
     """Print the attribution table, so a polluted run explains itself."""
     if not _WRITE_LOG:
