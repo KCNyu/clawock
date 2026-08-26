@@ -149,6 +149,58 @@ def _information_support(
     return bool(modes), modes, sorted(set(positive_events + attention_events))
 
 
+def _technical_support(technical: dict, policy: dict) -> tuple[bool, list[str]]:
+    """A confirmed 20-day breakout, not overheated — the one shape with a measured edge.
+
+    #856 backtested eight months of real bars, 28 non-overlapping votes, and this
+    is the only formation that came back positive at every horizon:
+
+        breakout (close > prior 20d high, z < 2)
+            H1 52.5%  H5 54.0%  H10 52.5%  H20 55.9% [49,63] avg +16.25%
+            HK leg    H20 59.4% avg +38.7%
+        deep dip (<= 92% of the 20d high)
+            H1 49.2%  H5 43.9%  H10 42.7%  H20 44.0%   — a coin flip or worse
+
+    #856 wired it into `add_side.py`, which only `intraday_preflight` and
+    `intraday_postflight` import — the lane that TALKS. `classify_authority`,
+    the lane that DECIDES, took `(factor, peer, information)` and never saw a
+    price trend at all, so a clean breakout contributed exactly zero to add
+    authority. Measured 2026-08-26: `blocker_counts` was
+    `{'independent_evidence_families': 8}` on a ten-name book, and August closed
+    with zero add decisions.
+
+    Deliberately conservative in three ways:
+
+    * it is a THIRD family, not a relaxation — `minimum_evidence_families` stays
+      at 2, so a breakout still has to be joined by factor/peer or by first-hand
+      information before anything is authorised;
+    * it never contributes to `validated`, which keeps requiring evidence marked
+      `usable_for_decisions`. A price pattern is not a due-diligence artifact,
+      and the leveraged names in particular must keep failing
+      `leveraged_requires_validated_evidence`;
+    * the overheat filter is the policy's own `early_no_chase_zscore`, not a new
+      number. On the day this shipped it is what excluded CRCL (z = 2.13).
+    """
+    close = _number(technical.get("close"))
+    prior_high = _number(technical.get("prior_20d_high"))
+    zscore = _number(technical.get("zscore20"))
+    if close is None or prior_high is None or prior_high <= 0:
+        return False, []
+    if technical.get("status") not in (None, "fresh"):
+        # A stale technical row is not evidence of anything. Same discipline the
+        # packet already applies to quant rows.
+        return False, []
+    if close <= prior_high:
+        return False, []
+    ceiling = _number(policy.get("early_no_chase_zscore"))
+    if ceiling is not None and zscore is not None and zscore >= ceiling:
+        return False, [f"breakout 但 z={zscore:.2f} ≥ {ceiling:g} 过热,不追"]
+    return True, [
+        f"收盘 {close:g} 站上前 20 日高 {prior_high:g}"
+        + (f",z={zscore:.2f} 未过热" if zscore is not None else "")
+    ]
+
+
 def classify_authority(
     factor: dict,
     peer: dict,
@@ -158,6 +210,7 @@ def classify_authority(
     policy: dict,
     market: str,
     continuing: bool = False,
+    technical: dict | None = None,
 ) -> dict:
     """Return a stateful-campaign eligibility tier and auditable blockers."""
     market_policy = _market_policy(policy, market)
@@ -169,11 +222,14 @@ def classify_authority(
         information, policy, market_policy
     )
 
+    technical_ok, technical_reasons = _technical_support(technical or {}, policy)
+
     price_relative_ok = factor_ok or peer_ok
     families = [
         name for name, passed in (
             ("price_relative", price_relative_ok),
             ("point_in_time_information", info_ok),
+            ("technical_breakout", technical_ok),
         ) if passed
     ]
     sources = [
@@ -181,6 +237,7 @@ def classify_authority(
             ("factor", factor_ok),
             ("peer_residual", peer_ok),
             ("information", info_ok),
+            ("technical_breakout", technical_ok),
         ) if passed
     ]
     blockers = []
@@ -220,12 +277,26 @@ def classify_authority(
         "peer_rules": peer_reasons,
         "information_modes": info_modes,
         "information_event_ids": event_ids,
+        # Only when it fired. This dict is emitted once PER TICKER inside a
+        # 96KB packet, so a per-row string that is empty nine times out of ten
+        # is pure budget — the first cut of this blew the cap by 1.8KB.
+        **({"technical_reasons": technical_reasons} if technical_reasons else {}),
         "blockers": sorted(set(blockers)),
-        "discipline": (
-            "one price-relative family plus point-in-time information authorise "
-            "capital; technical confirmation only schedules the tranche"
-        ),
+        # `discipline` used to live here, one identical copy per ticker: 125
+        # bytes × 10 holdings inside a 96KB cap that had 873 bytes of headroom
+        # left, and nothing read it. A constant belongs in the packet once —
+        # see AUTHORITY_DISCIPLINE, published under `add_alpha_policy`.
     }
+
+
+#: What the tiers mean, stated once for the whole packet rather than per row.
+AUTHORITY_DISCIPLINE = (
+    "any two independent families authorise exploration capital "
+    "(price-relative / point-in-time information / confirmed un-overheated "
+    "20-day breakout); validated still needs decision-usable evidence on both "
+    "the price and information sides, so a price pattern never promotes a "
+    "leveraged name"
+)
 
 
 def confirmation_setup(
