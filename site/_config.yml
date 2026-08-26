@@ -37,7 +37,6 @@ exclude:
   - SESSION_HANDOFF.md
   - DREAMS.md
   - HEARTBEAT.md
-  - docs/archive/    # historical internal designs; not public Pages runbooks
   - finance-ai-demo/
   - testgen-go/
 
