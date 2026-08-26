@@ -134,3 +134,8 @@ _（空）_
 - ▎仓位明细 (HK): | 03033 | 南方恒生科技 | 1,000 | 5.14 | 4.606 | +0.1% | -10.4% | -HK$534 | | 02208 | 金风科技 | 400 | 14.10 | 9.84 | -1.8% | -30.1% | -HK$1,704 | | 03032 | 恒生科技ETF | 200 | 5.40 | 4.71 | +0.6% | -12.9% | -HK$138 | [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-21-pre-open.md:26-28]
 <!-- openclaw-memory-promotion:memory:memory/2026-08-21-pre-open.md:30:30 -->
 - ▎仓位明细 (HK): HK leg 现值 HK$67,836.80 ｜ HHI 0.406 🔴 ｜ Top2 86.0%（00100 54.9% + 07226 31.1%） [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-21-pre-open.md:30-30]
+
+## Promoted From Short-Term Memory (2026-08-27)
+
+<!-- openclaw-memory-promotion:memory:memory/2026-08-20-pre-open.md:33:36 -->
+- ▎仓位明细 (US): | 代码 | 名 | 股 | 成本 | 现价 | 今日% | 浮% | 浮$ | |---|---|---|---|---|---|---|---| | SPCH | 2x Long SpaceX | 290 | 12.20 | 8.94 | -5.4% | -26.7% | -US$946 | | RKLX | 2x Long RKLB | 10 | 49.69 | 21.54 | -8.7% | -56.7% | -US$282 | [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-20-pre-open.md:33-36]
