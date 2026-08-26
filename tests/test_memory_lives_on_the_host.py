@@ -168,3 +168,44 @@ def test_a_missing_index_is_itself_the_warning(system_check, live):
     name, severity, message = _curation(system_check)
     assert severity == system_check.WARNING
     assert "MEMORY.md is missing" in message
+
+
+def test_the_health_gate_requires_the_index_where_it_lives_and_nowhere_else(
+        system_check, monkeypatch, tmp_path):
+    """#1071 fallout, caught by the gate blocking every push on the live box.
+
+    `check_root_allowlist` explains the TRACKED root surface, so leaving
+    MEMORY.md / DREAMS.md in `config/root-allowlist.json` after untracking them
+    reported "missing: DREAMS.md, MEMORY.md" as CRITICAL — and pre-push runs
+    this file, so the 20-minute publisher, every watchdog and every agent push
+    were blocked at once. The mirror-image mistake is just as bad: requiring
+    MEMORY.md of every checkout turns each agent worktree's pre-push CRITICAL.
+    So it is required exactly where it lives.
+    """
+    import json as _json
+    entries = _json.loads(
+        (ROOT / "config" / "root-allowlist.json").read_text(encoding="utf-8"))["entries"]
+    assert "MEMORY.md" not in entries and "DREAMS.md" not in entries, (
+        "an allowlist entry with no tracked path is a CRITICAL that blocks "
+        "every push on the live box")
+
+    assert "MEMORY.md" not in system_check.BASELINE_TRACKED
+    assert system_check.BASELINE_HOST_LOCAL == ["MEMORY.md"]
+
+    # A checkout that is not the live workspace: tracked baseline only.
+    elsewhere = tmp_path / "worktree"
+    elsewhere.mkdir()
+    for name in system_check.BASELINE_TRACKED:
+        (elsewhere / name).write_text("x", encoding="utf-8")
+    monkeypatch.setattr(system_check, "WS", elsewhere)
+    monkeypatch.setattr(system_check, "LIVE_WORKSPACE", tmp_path / "live")
+    result = system_check.Result()
+    system_check.check_baseline_files(result)
+    assert result.checks[0][1] == system_check.OK, result.checks
+
+    # The live workspace without its memory index: that is the CRITICAL.
+    monkeypatch.setattr(system_check, "LIVE_WORKSPACE", elsewhere)
+    result = system_check.Result()
+    system_check.check_baseline_files(result)
+    assert result.checks[0][1] == system_check.CRITICAL
+    assert "MEMORY.md" in result.checks[0][2]

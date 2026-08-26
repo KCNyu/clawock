@@ -111,10 +111,27 @@ class Result:
         return sum(1 for _, s, _ in self.checks if s == OK)
 
 
+# Shipped in the repository: every checkout, worktree and CI runner has them.
+BASELINE_TRACKED = ['SOUL.md', 'IDENTITY.md', 'USER.md', 'TOOLS.md',
+                    'AGENTS.md', 'CLAUDE.md', 'BOOTSTRAP.md', 'portfolio.json']
+# The agent's memory index: host-local and untracked since #1071, so it is
+# required of the LIVE workspace and absent from every worktree by design.
+BASELINE_HOST_LOCAL = ['MEMORY.md']
+
+
 def check_baseline_files(r):
-    """All required bootstrap + workspace MD files exist."""
-    required = ['SOUL.md', 'IDENTITY.md', 'USER.md', 'MEMORY.md', 'TOOLS.md',
-                'AGENTS.md', 'CLAUDE.md', 'BOOTSTRAP.md', 'portfolio.json']
+    """All required bootstrap + workspace files exist.
+
+    Two tiers, because they have two different truths. The tracked documents
+    must be in whatever checkout this runs from. `MEMORY.md` is the agent's
+    memory index — host-local by design — so requiring it everywhere would turn
+    every agent worktree's pre-push into a CRITICAL and block the PR flow; and
+    NOT requiring it on the live box would let the memory the runtime injects
+    disappear unnoticed. It is checked where it is supposed to be.
+    """
+    required = list(BASELINE_TRACKED)
+    if WS.resolve() == LIVE_WORKSPACE.resolve():
+        required += BASELINE_HOST_LOCAL
     missing = [f for f in required if not (WS / f).exists()]
     if missing:
         r.add('baseline files', CRITICAL, f'missing: {missing}')
