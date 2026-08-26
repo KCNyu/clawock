@@ -30,9 +30,16 @@ def test_live_openclaw_profiles_distinguish_chat_cron_and_heartbeat():
         "interactive", "isolated-cron", "heartbeat-full", "heartbeat-light",
         "bootstrap-pending", "subagent",
     }
-    for profile in ("interactive", "isolated-cron", "heartbeat-full", "subagent"):
+    # The checkout is not a workspace: MEMORY.md is the agent's memory index,
+    # host-local and untracked since #1071, so it is present on a live box and
+    # absent in a clean CI checkout. Allow exactly that one gap — as a subset
+    # assertion, so a second context file quietly leaving the repository cannot
+    # hide behind it, and so this reads the same in both environments.
+    HOST_LOCAL = {"MEMORY.md"}
+    for profile in profile_names():
         result = audit(ROOT, profile=profile)
-        assert result["ok"], result
+        assert set(result["missing"]) <= HOST_LOCAL, result
+        assert result["empty"] == [], result
 
 
 def test_portable_assembler_is_exact_and_skills_are_lazy(tmp_path):
@@ -214,7 +221,11 @@ def _context_docs():
         for profile in manifest["profiles"].values()
         for name in profile.get("bootstrap", [])
     )
-    return [(name, (ROOT / name).read_text(encoding="utf-8")) for name in names]
+    # MEMORY.md is host-local (#1071): present on a live box, absent in a clean
+    # checkout. Skipping what is not here keeps this scan about the documents
+    # the repository actually ships.
+    return [(name, (ROOT / name).read_text(encoding="utf-8"))
+            for name in names if (ROOT / name).is_file()]
 
 
 def _repo_paths(body):
