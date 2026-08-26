@@ -101,13 +101,17 @@ Never use the repository-admin bypass for an interactive code change.
 
 ## Memory
 
-You wake up fresh each session. `MEMORY.md` is your continuity. It lives on the
-host and is **not in the repository** (#1071) — same shape as the interactive
-coding agents' own store: an index of one-line hooks, each pointing at a topic
-file under `memory/`, maintained by comparing the two and cleaning what the
-index no longer claims. `ops/system_check.py` reports both kinds of drift
-(a topic file nothing links to, a link that resolves to nothing) before every
-push; acting on the report is a judgement call, not a scheduled deletion.
+You wake up fresh each session. `MEMORY.md` is your continuity, and it **is** in
+the repository (#1074) — it is yours: openclaw's dreaming job appends to it at
+03:00 HKT, `ops/host/commit_dreaming.sh` commits it at 03:20, and every cron
+payload is assembled from it. Keep it self-contained; write the conclusion into
+the index rather than into a side file.
+
+What must NOT enter the repository is `memory/*.md` — those are written by the
+interactive coding agents (Claude Code / Codex) in their own memory format, their
+durable store is `/root/.shared-memory`, and a copy here is a leak. `.gitignore`
+and `.githooks/pre-commit` both refuse that class; `ops/system_check.py` reports
+any that pile up on the host so somebody can clean them.
 - **Long-term:** `MEMORY.md` — curated wisdom; **only load in main session**, do NOT load in shared contexts (Discord, group chats)
 - Don't keep "mental notes" — if it matters, write it to `MEMORY.md` (or, for the
   interactive coding agents, their own durable memory outside this repository).

@@ -92,14 +92,21 @@ memory/.tmp-*
 memory/.dreams/
 memory/dreaming/
 
-# ── The agent's memory lives on the host, never in git (#1071) ─────────────
-# kcn, 2026-08-26: 「这些 memory 可以有但……不能进仓库」「类似于我们 shared memory 那种
-# index+md 形式的维护，然后对照清理」。So the workspace memory has the same shape the
-# interactive agents' own store has — `MEMORY.md` is the index, `memory/*.md` are the
-# topic files it links — and it is maintained by comparing the two, not by a timer
-# and not through version control. `ops/system_check.py::check_memory_index_health`
-# reports orphans and dangling links before every push; the cleanup is a judgement
-# call somebody makes, which is exactly why it is a report and not a cron job.
+# ── Coding-agent prose never enters the repository (#1069/#1071/#1074) ─────
+# kcn, 2026-08-26: 「memory.md dreams.md 可以提交呀 但是 memory/*.md 不应该吧 那个是
+# coding agent 写的 不是 clawock 里面很多都是过期的」。Three different things used to
+# share one rule; they have three different authors:
+#
+#   MEMORY.md   openclaw core dreaming (03:00 HKT) + the main session. Clawock
+#               runtime state, injected into every cron payload, and named as the
+#               authority by eight tracked instruction files (BOOTSTRAP, SOUL,
+#               AGENTS, IDENTITY, CLAUDE, USER, TOOLS, INVESTMENT_SOP). TRACKED.
+#   DREAMS.md   the same dreaming job's raw log. Same author, same cadence. TRACKED.
+#   memory/*.md written by the interactive coding agents (Claude Code / Codex),
+#               in THEIR memory format (`name:`/`description:`/`metadata:`
+#               frontmatter, `[[wiki-links]]`). Their durable store is
+#               /root/.shared-memory; a copy here is a leak, and most of them are
+#               stale. IGNORED.
 #
 # Stated as a CLASS on purpose: #1062 listed sixteen files by exact name, so the
 # seventeenth — written by a session that had no idea the list existed — went
@@ -107,8 +114,6 @@ memory/dreaming/
 # the bare day log, the promoted chat transcript (forty of them, carrying WeChat
 # and Telegram session keys), and one-off named notes. `.githooks/pre-commit`
 # refuses the class too, because `git add -f` walks past this file.
-/MEMORY.md
-/DREAMS.md
 memory/*.md
 
 # The two exceptions are not memory: the published daily brief (stage_site
