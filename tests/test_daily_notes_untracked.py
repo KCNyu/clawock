@@ -10,6 +10,7 @@ exactly the bare-dated diaries — not their `-pre-open.md` / `-plan.json` twins
 which are site-rendered and schema-gated respectively; and no instruction file
 may ask a session to read or write one, which is how the habit would come back.
 """
+import json
 import re
 import subprocess
 from pathlib import Path
@@ -58,19 +59,110 @@ def test_agents_md_auto_commit_table_no_longer_commits_dailies():
         "a writer following it would re-stage ignored files by force"
 
 
+# The instruction surface: everything a session is told to read at startup, plus
+# the skills those sessions route into. #1066 cleaned AGENTS.md and left nine
+# other files still pointing at the diaries — the sweep is the point, so the
+# scan is a glob, not a list.
+INSTRUCTION_DOCS = ("AGENTS.md", "CLAUDE.md", "BOOTSTRAP.md", "MEMORY.md",
+                    "TOOLS.md", "USER.md", "INVESTMENT_SOP.md", "SOUL.md",
+                    "IDENTITY.md", "HEARTBEAT.md")
+
+
+def _instruction_texts():
+    for name in INSTRUCTION_DOCS:
+        path = ROOT / name
+        if path.exists():
+            yield name, path.read_text(encoding="utf-8")
+    for path in sorted(ROOT.glob("skills/*/SKILL.md")):
+        yield path.relative_to(ROOT).as_posix(), path.read_text(encoding="utf-8")
+
+
 def test_no_instruction_file_asks_a_session_to_read_or_write_a_diary():
     """The habit comes back through the instructions, not through the code.
 
     AGENTS.md used to open with "Read `memory/YYYY-MM-DD.md` (today +
     yesterday)" and list the diaries as continuity. A session following that
-    now finds nothing on disk and would helpfully start writing them again —
-    into an ignored path no one reads, which is exactly the pile just cleared.
+    finds nothing on disk and helpfully starts writing them again — into an
+    ignored path no one reads, which is exactly the pile that was cleared.
+
+    #1066 fixed AGENTS.md only. Nine other instruction files still carried the
+    same pointer (CLAUDE.md's required reads, INVESTMENT_SOP's write rules,
+    TOOLS.md's maintenance table, two portfolio skills' required reads), so a
+    session reading any of them would have restarted the habit that afternoon.
     """
-    text = (ROOT / "AGENTS.md").read_text(encoding="utf-8")
-    assert "Read `memory/YYYY-MM-DD.md`" not in text, \
-        "AGENTS.md points a session back at the retired diaries"
-    assert "**Daily notes:**" not in text, \
-        "AGENTS.md still lists the diaries as continuity"
-    assert "retired in #1038" in text, (
+    diary = re.compile(r"memory/(\{[^}]*\})?\s*YYYY-MM-DD(\{[^}]*\})?\.md")
+    offenders = {}
+    for name, text in _instruction_texts():
+        hits = [line.strip() for line in text.splitlines()
+                if diary.search(line) and "retired in #1038" not in line]
+        # AGENTS.md carries the one allowed mention: the note saying they are gone.
+        if name == "AGENTS.md":
+            hits = [h for h in hits if not h.startswith(("- Dated diaries", "then removed"))]
+        if hits:
+            offenders[name] = hits
+    assert offenders == {}, (
+        f"instruction files still point at the retired diaries: {offenders}")
+    assert "retired in #1038" in (ROOT / "AGENTS.md").read_text(encoding="utf-8"), (
         "the note explaining that the diaries are gone is what stops the next "
         "session from recreating them; keep it")
+
+
+def test_no_instruction_file_keeps_a_hand_maintained_holdings_mirror():
+    """#1067: a ticker list nobody syncs is worse than no ticker list.
+
+    `memory/current-portfolio-summary.md` was written on 2026-05-14 and read by
+    five instruction surfaces — INVESTMENT_SOP, MEMORY.md, TOOLS.md and both
+    portfolio skills — as "the active ticker list (also lists exited names so
+    you know what NOT to analyze)". By 2026-08-26 it named RKLB / PLTU / SOXL /
+    ROBN / MSFU as active (all `shares == 0`), never mentioned SPCX / SPCH /
+    SKHY (all held), and declared the Korean chain dead while SKHY was in the
+    book — which the risk-review skill had copied into "Do not run any KR
+    fetch". `portfolio.json` answers both halves exactly, so the mirror is
+    deleted and nothing may reintroduce one.
+    """
+    offenders = {name: [line.strip() for line in text.splitlines()
+                        if "current-portfolio-summary" in line]
+                 for name, text in _instruction_texts()}
+    offenders = {k: v for k, v in offenders.items() if v}
+    assert offenders == {}, (
+        f"the hand-maintained holdings mirror is referenced again: {offenders}")
+    assert not (ROOT / "memory" / "current-portfolio-summary.md").exists(), \
+        "the mirror is back on disk; active/exited comes from portfolio.json"
+
+
+def test_no_instruction_file_calls_a_held_position_exited():
+    """The mirror's actual damage: a skill told not to look at a live holding.
+
+    Generalised past the one file — any instruction that names a ticker in an
+    "exited / no longer tracked" sentence is checked against the book.
+    """
+    book = json.loads((ROOT / "portfolio.json").read_text(encoding="utf-8"))
+    held = {h["ticker"] for leg in book["portfolios"].values()
+            for h in leg.get("holdings", []) if (h.get("shares") or 0) > 0}
+    assert held, "an empty book would make this assertion vacuous"
+
+    claim = re.compile(r"已清仓|不再追踪|no longer tracked|is exited|are exited", re.I)
+    ticker = re.compile(r"\b([A-Z]{2,5}|\d{5})\b")
+    # Only the clause carrying the claim counts. "07709/07747 are exited, but
+    # SKHY can be held" is the correct sentence, and a line-wide scan would read
+    # it as calling SKHY exited — the opposite of what it says.
+    contrast = re.compile(r"\bbut\b|但|而(?!已)|except|however", re.I)
+    offenders = {}
+    for name, text in _instruction_texts():
+        for line in text.splitlines():
+            hit = claim.search(line)
+            if not hit:
+                continue
+            clause = line[:hit.end()]
+            cut = None
+            for sep in contrast.finditer(clause):
+                cut = sep.start()
+            clause = clause[cut:] if cut is not None else clause
+            for sep in ("。", ". ", "; ", "；"):
+                if sep in clause:
+                    clause = clause.rsplit(sep, 1)[-1]
+            named = held & set(ticker.findall(clause))
+            if named:
+                offenders.setdefault(name, []).append((sorted(named), line.strip()))
+    assert offenders == {}, (
+        f"instruction files call a held position exited: {offenders}")
