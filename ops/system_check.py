@@ -1147,6 +1147,52 @@ def check_memory_curation(r):
         r.add('memory curation', OK, 'index and topic files agree')
 
 
+def check_benchmark_freshness(r):
+    """The benchmark overlay must say how old its last point is.
+
+    Retaining previous bars when a fetch returns empty is correct and silent.
+    On 2026-08-26 the file was written at 00:03Z with HSI/HSTECH through 08-25
+    and SPY still at 08-21 — two completed US sessions behind — and nothing
+    said so anywhere: the equity curve drew today's book against a two-day-old
+    benchmark and `regime.py` derived the US leverage regime from the same
+    series.
+
+    Read from the value stored AT WRITE TIME, not recomputed now. Recomputing
+    would flag every HK evening between the 16:00 close and the next morning's
+    fetch, which is not staleness — it is the schedule. A job that stops running
+    altogether is a different failure and `check_host_cron_logs` owns it.
+    """
+    path = WS / 'assets' / 'data' / 'benchmark.json'
+    if not path.is_file():
+        r.add('benchmark freshness', WARNING, 'assets/data/benchmark.json missing')
+        return
+    try:
+        data = json.loads(path.read_text(encoding='utf-8'))
+    except Exception as e:  # noqa: BLE001
+        r.add('benchmark freshness', WARNING, f'unreadable: {e}')
+        return
+    freshness = data.get('freshness')
+    if not freshness:
+        r.add('benchmark freshness', WARNING,
+              'no freshness block — the writer predates it, so how stale the '
+              'overlay is cannot be answered from the file')
+        return
+    stale = []
+    for key, row in sorted(freshness.items()):
+        behind = row.get('sessions_behind')
+        expected = row.get('expected_lag_sessions') or 0
+        if behind is None or behind <= expected:
+            continue
+        stale.append(f"{key} {behind} session(s) behind "
+                     f"(last {row.get('last_session')}, normal {expected})")
+    if stale:
+        r.add('benchmark freshness', WARNING, '; '.join(stale))
+    else:
+        r.add('benchmark freshness', OK,
+              ' · '.join(f"{k} @ {v.get('last_session')}"
+                         for k, v in sorted(freshness.items())))
+
+
 def check_research_artifacts(r):
     """Thesis, earnings and entry-gate artifacts must stay valid.
 
@@ -1197,6 +1243,7 @@ def main():
         check_trading_calendar_horizon,
         check_memory_index,
         check_memory_curation,
+        check_benchmark_freshness,
     ]
     for c in checks:
         try:
