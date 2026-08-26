@@ -45,6 +45,14 @@ CODE_GLOBS = [
     "pytest.ini",
     "portfolio.json",
     "memory/*-plan.json",
+    # The ledger itself (#1063). It is the sole input of three gates in the
+    # validate job — plan-origin cross-check, per-row schema, settle
+    # idempotence — and was in no lane, so a commit that touched ONLY
+    # decisions.jsonl ran none of them. That is how a fabricated row reached
+    # master on 2026-08-26 and how its removal had to be verified by a manual
+    # workflow_dispatch. Named exactly, not `memory/*.jsonl`: the sibling
+    # archive/history files are automation output nothing validates.
+    "memory/decisions.jsonl",
     "memory/theses/*",
     "memory/earnings/*",
     "memory/entry-gates/*",

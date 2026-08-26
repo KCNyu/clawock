@@ -50,6 +50,37 @@ os.environ["CLAWOCK_DELIVERY_DISABLED"] = "1"
 ROOT = Path(__file__).resolve().parents[1]
 DASHBOARD = ROOT / "assets" / "data" / "dashboard.json"
 
+# A test process must also be physically incapable of writing ANOTHER
+# workspace's published state (#1063).
+#
+# `CLAWOCK_WORKSPACE` is a permanent export in this host's shell, so a suite run
+# from a worktree resolved `WS` — and `LEDGER`, which reaches load/upsert/write
+# as a definition-time default argument captured at import — to the LIVE
+# checkout instead of the checkout under test. That is how a fixture decision
+# (`dec-20260824-00100-add_only_on_trigger`) was written into the live
+# `memory/decisions.jsonl`, settled against real bars by the next brief,
+# committed to master by the daily memory commit, and finally caught by the
+# plan-origin cross-check in CI — a day later and three artifacts downstream.
+#
+# The write guard below could not see it: `_watched_state()` stats paths under
+# ROOT, and those writes landed in a different tree entirely. A guard anchored
+# to the wrong directory reports a clean run no matter what the suite does, so
+# the fix belongs here, before any test module imports anything.
+#
+# Removed rather than repointed at ROOT: unset is the shape every GitHub
+# Actions run already has, `workspace_root()` then falls back to the package's
+# own checkout (= ROOT, because the sys.path inserts below make clawock resolve
+# from src/ here), and a test that behaves differently when the variable merely
+# EXISTS stays honest — `test_context_audit_covers_every_profile` is one, and
+# pinning a value would have hidden that from every local run.
+# Per-test `monkeypatch.setenv` isolation is untouched: this runs once, at
+# import, and those tests set the variable to their own tmp_path afterwards.
+_foreign_workspace = os.environ.pop("CLAWOCK_WORKSPACE", None)
+if _foreign_workspace:
+    print(f"conftest: dropped CLAWOCK_WORKSPACE={_foreign_workspace}; the suite "
+          f"only ever touches the checkout under test ({ROOT}) — see #1063",
+          file=sys.stderr)
+
 # Import time, not fixture time: collection imports the test modules, which
 # import remaining operator scripts by bare name. See the module docstring.
 sys.path.insert(0, str(ROOT / "src"))

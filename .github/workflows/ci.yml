@@ -45,6 +45,9 @@ on:
       - 'examples/dsh/**'
       - 'portfolio.json'
       - 'memory/**-plan.json'
+      # The decision ledger: three validate-job gates read it and nothing else
+      # feeds them, so a ledger-only commit used to start no run at all (#1063).
+      - 'memory/decisions.jsonl'
       # Research artifacts are validated by the suite below, so a
       # bad thesis/earnings/gate artifact must be able to red it.
       - 'memory/theses/**'
