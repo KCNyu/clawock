@@ -110,60 +110,93 @@ def test_the_critical_mandate_wins_when_a_target_carries_several():
 
 # ── The layer the timing gate waits on has never filled (#1075) ──────────────
 
-def test_an_empty_research_layer_is_reported_not_blessed(monkeypatch, tmp_path):
-    """"0 valid" and "no open work" are one sentence to a validator and
-    opposite facts to a reader.
+def test_the_thesis_gate_is_a_kill_switch_and_says_so(monkeypatch, tmp_path):
+    """The corrected version of a claim that shipped wrong for one evening.
 
-    `memory/theses/`, `memory/entry-gates/` and `memory/earnings/` hold nothing
-    but READMEs; `clawock thesis` is a manual CLI and no cron writes them. The
-    gate said OK on every push while `_execution_view` blocked every add on
-    `no_approved_setup` — the add side held shut by a layer that never fills.
+    The first pass of #1075 said an empty `memory/theses/` held the add side
+    shut. It does not. `_execution_view` only changes a number for
+    `state ∈ {broken, damaged, weakening}` — it zeroes the tranche; `intact` and
+    "no document" size identically, and the line that used to sit under
+    `exploration_only` was `min(x, x)` under a comment claiming it stopped
+    pyramiding (`max_tranches` does that). So an empty registry is not a closed
+    door, it is an unarmed switch — and the gate has to say the true thing,
+    because "0 valid · no open research work" said nothing at all.
+
+    Entry gates stay out of the condition on purpose: governance requires one
+    only for positions opened on/after `gate_required_from` (2026-07-27) and
+    every current holding predates it, so zero gates is the policy working.
     """
-    import importlib.util, sys
+    import importlib.util, json as _json, sys as _sys
     from pathlib import Path
     root = Path(__file__).resolve().parents[1]
     for path in (root, root / "src"):
-        if str(path) not in sys.path:
-            sys.path.insert(0, str(path))
+        if str(path) not in _sys.path:
+            _sys.path.insert(0, str(path))
     spec = importlib.util.spec_from_file_location(
         "sc_research", root / "ops" / "system_check.py")
     sc = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(sc)
 
-    def result_with(counts, status="pass"):
-        return {"status": status, "errors": [], "warnings": [], "counts": counts}
+    book = tmp_path / "portfolio.json"
+    book.write_text(_json.dumps({"portfolios": {"hk": {"holdings": [
+        {"ticker": "00100", "shares": 120}, {"ticker": "07226", "shares": 6200},
+        {"ticker": "SOLD", "shares": 0},
+    ]}}}), encoding="utf-8")
+    (tmp_path / "memory" / "theses").mkdir(parents=True)
+    monkeypatch.setattr(sc, "WS", tmp_path)
 
     def run(counts, status="pass"):
         import clawock.evidence.research_surface as rs
-        monkeypatch.setattr(rs, "check", lambda: result_with(counts, status))
+        monkeypatch.setattr(rs, "check", lambda: {
+            "status": status, "errors": [], "warnings": [], "counts": counts})
         r = sc.Result()
         sc.check_research_artifacts(r)
         return r.checks[0]
 
     _, severity, message = run(
         {"theses": 0, "earnings_artifacts": 0, "entry_gates": 0})
-    assert severity == sc.WARNING, "an empty layer read as 'no open research work'"
-    assert "never" in message
+    assert severity == sc.WARNING
+    assert "kill-switch is unarmed" in message
+    assert "2 active holding" in message, "a cleared position is not a gap"
+    assert "SOLD" not in message
 
-    # Green half: a layer that HAS produced something and has nothing pending
-    # is genuinely fine, and must not start warning.
-    _, severity, _ = run({"theses": 2, "earnings_artifacts": 0, "entry_gates": 1})
-    assert severity == sc.OK
+    # Green half 1: a thesis for every active holding — nothing to report, even
+    # with zero entry gates and zero earnings artifacts.
+    _, severity, _ = run({"theses": 2, "earnings_artifacts": 0, "entry_gates": 0})
+    assert severity == sc.OK, (
+        "zero entry gates is the governance policy working, not a finding")
+
+    # Green half 2: real open work still comes through the existing warn path.
+    _, severity, message = run(
+        {"theses": 2, "earnings_artifacts": 1, "entry_gates": 1}, status="warn")
+    assert severity == sc.WARNING
 
 
-def test_the_skill_tells_the_writer_the_mandate_exists():
-    """A capability the plan writer is never told about is an inert fix.
+def test_a_thesis_only_ever_subtracts(monkeypatch):
+    """intact and unknown must size identically; only a broken story cuts.
 
-    The skill already said 「同一份 plan 中可证明净降 factor exposure 的 2x→1x 配对
-    换仓不受阻」 while `_constraints` forbade exactly that — the instruction and
-    the packet contradicted each other and the packet won, silently, for 42
-    days. Now that they agree, the writer still has to be told which field
-    carries the authorisation and that a mandated target needs no setup.
+    This is the assertion the removed `min(x, x)` pretended to be. If somebody
+    later wants a thesis to ENABLE something, this test is the one that has to
+    change on purpose.
     """
-    from pathlib import Path
-    skill = (Path(__file__).resolve().parents[1] / "skills" / "daily-deep-brief"
-             / "SKILL.md").read_text(encoding="utf-8")
-    for token in ("swap_mandate", "transaction_group_id", "target_held",
-                  "decision_overdue"):
-        assert token in skill, (
-            f"the packet publishes {token} and nothing tells the writer to read it")
+    holding = {"ticker": "T", "shares": 100, "current_price": 10.0}
+    technical = {"setups": [{"setup_id": "alpha_confirmation", "campaign_id": "c",
+                             "max_tranches": 1, "tranche_pct_of_position": 0.25}]}
+
+    def size(state):
+        view = packet._execution_view(
+            holding, "US", 10_000.0, 10_000.0, technical,
+            {"state": state}, False, authority_tier="exploration",
+        )
+        return view["max_add_shares"], view["thesis_gate"]
+
+    unknown, unknown_gate = size("unknown")
+    intact, intact_gate = size("intact")
+    broken, broken_gate = size("broken")
+
+    assert unknown == intact, (
+        "a canonical thesis must not silently change sizing — that is what the "
+        "no-op comment implied and the code never did")
+    assert (unknown_gate, intact_gate, broken_gate) == (
+        "exploration_only", "intact", "blocked")
+    assert broken == 0, "a broken story is the one case that must cut the tranche"
