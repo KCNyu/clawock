@@ -149,3 +149,21 @@ def test_an_empty_research_layer_is_reported_not_blessed(monkeypatch, tmp_path):
     # is genuinely fine, and must not start warning.
     _, severity, _ = run({"theses": 2, "earnings_artifacts": 0, "entry_gates": 1})
     assert severity == sc.OK
+
+
+def test_the_skill_tells_the_writer_the_mandate_exists():
+    """A capability the plan writer is never told about is an inert fix.
+
+    The skill already said 「同一份 plan 中可证明净降 factor exposure 的 2x→1x 配对
+    换仓不受阻」 while `_constraints` forbade exactly that — the instruction and
+    the packet contradicted each other and the packet won, silently, for 42
+    days. Now that they agree, the writer still has to be told which field
+    carries the authorisation and that a mandated target needs no setup.
+    """
+    from pathlib import Path
+    skill = (Path(__file__).resolve().parents[1] / "skills" / "daily-deep-brief"
+             / "SKILL.md").read_text(encoding="utf-8")
+    for token in ("swap_mandate", "transaction_group_id", "target_held",
+                  "decision_overdue"):
+        assert token in skill, (
+            f"the packet publishes {token} and nothing tells the writer to read it")
