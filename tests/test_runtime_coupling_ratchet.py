@@ -431,9 +431,6 @@ HOST_OWNED_SHELL = {
     "ops/publish/publish_identity.sh": (
         1, "refuses the runtime's commit identity outside the live checkout — "
            "the path is the safety check, not a dependency"),
-    "ops/host/commit_dreaming.sh": (
-        1, "backstop commit for a cron owned by OpenClaw core; it has no "
-           "meaning off this host"),
     "ops/host/gold_dca_refresh.sh": (
         1, "host cron wrapper around the installed CLI, run from the live "
            "checkout"),
