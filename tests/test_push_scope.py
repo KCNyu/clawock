@@ -76,10 +76,13 @@ SCENARIOS = [
         _lanes(), False,
         id="scheduled-scan payloads: zero CI (no loop from CI's own coverage commit)"),
     pytest.param(
-        ["memory/archive/2026-W33.csv", "memory/weekly/2026-W34.md",
-         "memory/decisions.jsonl"],
+        ["memory/archive/2026-W33.csv", "memory/weekly/2026-W34.md"],
         _lanes(), False,
-        id="eod-archive / weekly-review / ledger commits: zero CI"),
+        id="eod-archive / weekly-review commits: zero CI"),
+    pytest.param(
+        ["memory/decisions.jsonl"],
+        _lanes(code=True, analysable=False), True,
+        id="ledger-only commit: suite runs (#1063), CodeQL still skips"),
     pytest.param(
         ["site/assets/shadow-backtest.png", "site/assets/social-card.png",
          "site/assets/dsh-decision-mind.png"],
