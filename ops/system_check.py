@@ -1168,6 +1168,20 @@ def check_research_artifacts(r):
     elif result['status'] == 'warn':
         r.add('research artifacts', WARNING,
               f"{tally} valid; open work: " + '; '.join(result['warnings'][:4]))
+    elif not any(counts.values()):
+        # "Zero valid artifacts" and "no open work" are the same sentence to a
+        # validator and opposite facts to a reader. All three directories hold
+        # nothing but their READMEs, no recurring job writes them (`clawock
+        # thesis` is a manual CLI), and this check has reported OK for it every
+        # push. That silence is load-bearing: `_execution_view` blocks every add
+        # on `no_approved_setup` and `thesis_gate` never leaves
+        # "exploration_only", so a permanently empty research layer holds the
+        # entire add side shut — 0 add decisions in the 26 days to 2026-08-26,
+        # the last one 2026-07-20 (#1075).
+        r.add('research artifacts', WARNING,
+              'no research artifact has ever been produced (0 theses · 0 earnings · '
+              '0 gates) and no recurring job writes them — the add side is gated '
+              'on a layer that never fills')
     else:
         r.add('research artifacts', OK, f'{tally} valid · no open research work')
 
