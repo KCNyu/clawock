@@ -25,6 +25,25 @@ GUARDRAIL_HISTORY = WS / "assets" / "data" / "guardrail_history.jsonl"
 SCHEMA_VERSION = 1
 
 ADD_ACTIONS = {"add_only_on_trigger", "add_on_breakout"}
+
+#: How long an open breach may stand with nobody having decided anything about
+#: it before the ledger says so out loud.
+#:
+#: The worst state a risk system can be in is not "breached" — it is "breached,
+#: told every day, never executed, and never declined either". Measured on
+#: 2026-08-26: three `hard_stop / critical` records open **42 days**, every one
+#: `acknowledgement: unacknowledged` / `override: none` / `execution: pending`,
+#: while the plan re-issued the same three cuts 53 / 38 / 45 times with zero
+#: executions. The ledger read "nobody has looked at this", when what had
+#: actually happened is that somebody looked at it every single day and chose
+#: not to act. `override` exists to record exactly that and had never been used.
+#:
+#: Ten calendar days: long enough that an ordinary execution delay (a weekend, a
+#: holiday, waiting for a level) never trips it, short enough that six weeks is
+#: unambiguous. Deliberately NOT derived from `not_followed` counts in
+#: `decisions.jsonl` — that is a different file with a different write path, and
+#: a gate that needs a cross-file join is a gate that breaks quietly.
+STANDING_DECISION_DAYS = 10
 SELL_ACTIONS = {"cut", "trim_on_rebound", "t_only"}
 
 
@@ -315,6 +334,7 @@ def reconcile_guardrail(
             execution["status"] = "evidence_present"
         record["age_days"] = _age_days(
             record.get("current_opened_at"), current_time)
+        record["standing"] = _standing(record)
         by_id[breach_id] = record
 
     for breach_id, record in by_id.items():
@@ -363,7 +383,35 @@ def reconcile_guardrail(
         ),
         "oldest_open_days": max(
             [r.get("age_days") or 0 for r in active] or [0]),
+        "decision_overdue_count": sum(
+            bool((r.get("standing") or {}).get("decision_overdue")) for r in active),
         "records": active,
+    }
+
+
+def _standing(record: dict) -> dict:
+    """Has this breach been standing without anybody deciding anything?
+
+    Three exits close it, and the ledger accepts any of them: execute the
+    required action, acknowledge it (seen, accepted, still open), or override it
+    (declined on purpose, with a reason and a revisit date). Only the absence of
+    all three is overdue. See STANDING_DECISION_DAYS for the measurement that
+    made this necessary.
+    """
+    age = int(record.get("age_days") or 0)
+    acknowledged = (
+        (record.get("acknowledgement") or {}).get("status") == "acknowledged")
+    overridden = (record.get("override") or {}).get("status") == "active"
+    executed = (
+        (record.get("execution") or {}).get("status") == "confirmed")
+    undecided = not (acknowledged or overridden or executed)
+    return {
+        "days_open": age,
+        "threshold_days": STANDING_DECISION_DAYS,
+        "undecided": undecided,
+        "decision_overdue": bool(undecided and age >= STANDING_DECISION_DAYS),
+        # Named so the reader does not have to infer what would clear it.
+        "closes_with": ["execute", "acknowledge", "override"],
     }
 
 

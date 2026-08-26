@@ -548,6 +548,10 @@ def _risk_map(context: dict, active: set[str]) -> dict[str, list[dict]]:
                 "severity": row.get("severity") or "high",
                 "detail": row.get("detail"),
                 "action_text": row.get("action"),
+                # Standing-without-a-decision travels with the breach: the plan
+                # writer is the one who can turn it into an execute, an
+                # acknowledge or an override (#1075).
+                "standing": row.get("standing") or {},
                 "required_reduction": {
                     key: reduction.get(key)
                     for key in (
@@ -570,6 +574,7 @@ def _risk_map(context: dict, active: set[str]) -> dict[str, list[dict]]:
             "severity": "critical",
             "detail": row.get("detail"),
             "action_text": row.get("action"),
+            "standing": row.get("standing") or {},
             "required_reduction": {
                 key: reduction.get(key)
                 for key in (
@@ -580,6 +585,80 @@ def _risk_map(context: dict, active: set[str]) -> dict[str, list[dict]]:
             },
         })
     return out
+
+
+def _swap_mandates(risks: dict) -> dict:
+    """Target ticker → the open breaches that require buying INTO it.
+
+    A leveraged hard stop prescribes two legs, and says so in its own words:
+    「07226 触发杠杆 ETF 硬止损 → 换仓 1x 同因子 03033（敞口保留、停 decay,
+    **规则非择时**）」. Only the sell leg was ever expressible. `_constraints`
+    gates every add on `bool(setup_ids)` — an approved technical setup — so the
+    buy leg of a RULE was made conditional on TIMING, and the plan writer said
+    so out loud on 2026-08-26: 「07226 砍完 swap 03033 路径被 packet add 限制
+    阻挡 (allowed=[hold_and_watch, watch])」.
+
+    The gate it was waiting on has never opened. `memory/theses/`,
+    `memory/entry-gates/` and `memory/earnings/` hold nothing but READMEs and no
+    recurring job writes them, so `thesis_state` is permanently "unknown" and
+    `setups` permanently empty. Measured: 07226 / RKLX / SPCH have been told to
+    cut 53 / 38 / 45 times with **zero** executions, three hard stops have been
+    open 42 days unacknowledged, and the last `add_only_on_trigger` of any kind
+    was 2026-07-20. Half a prescription is not a smaller version of the
+    prescription — it is "sell and hold the cash", which is a different call
+    that nobody made.
+    """
+    out: dict[str, list[dict]] = {}
+    for source, rows in (risks or {}).items():
+        for row in rows or []:
+            reduction = row.get("required_reduction") or {}
+            target = str(reduction.get("swap_to") or "")
+            if not target or target == str(source):
+                continue
+            out.setdefault(target, []).append({
+                "from_ticker": str(source),
+                "breach_id": row.get("breach_id"),
+                "kind": row.get("kind"),
+                "severity": row.get("severity"),
+                "detail": row.get("detail"),
+                "action_text": row.get("action_text"),
+                "max_value": reduction.get("minimum_value"),
+                "currency": reduction.get("currency"),
+            })
+    return out
+
+
+def _swap_mandate_view(mandates: list[dict], risks: list[dict]) -> dict | None:
+    """The authorisation this ticker carries as a swap TARGET, or None.
+
+    Refused when the target is itself breaching: the rule moves exposure out of
+    a broken leg into an intact one, so buying into a second breach would
+    satisfy the letter of the swap while making the book worse.
+    """
+    if not mandates or risks:
+        return None
+    ranked = sorted(
+        mandates,
+        key=lambda m: (m.get("severity") != "critical", str(m.get("from_ticker"))),
+    )
+    primary = ranked[0]
+    return {
+        "authorised_by": "risk_rule",
+        "from_ticker": primary["from_ticker"],
+        "breach_id": primary.get("breach_id"),
+        "severity": primary.get("severity"),
+        "max_value": primary.get("max_value"),
+        "currency": primary.get("currency"),
+        # The two legs are one transaction. `decision_audit`'s swap pairing
+        # already refuses to pair cross-ticker legs without it
+        # (`swap_pairing_requires_transaction_group_id`), so a buy leg filed
+        # without one is measured as a naked buy against the wrong baseline.
+        "requires_transaction_group_id": True,
+        # Named, not free: the mandate authorises buying THIS ticker because a
+        # specific breach names it, and nothing else.
+        "requires_action": "add_only_on_trigger",
+        "all_mandates": ranked,
+    }
 
 
 def _status(technical: dict, risks: list[dict]) -> dict:
@@ -599,7 +678,8 @@ def _status(technical: dict, risks: list[dict]) -> dict:
 
 
 def _constraints(shares: int, risks: list[dict], actionable_ids: list[str],
-                 technical: dict, execution: dict) -> dict:
+                 technical: dict, execution: dict,
+                 swap_mandates: list[dict] | None = None) -> dict:
     hard_stop = any(row.get("kind") == "hard_stop" for row in risks)
     direct_risk = bool(risks)
     if hard_stop:
@@ -632,6 +712,13 @@ def _constraints(shares: int, risks: list[dict], actionable_ids: list[str],
         allowed += ["add_only_on_trigger"]
         if "confirmed_breakout" in setup_ids:
             allowed += ["add_on_breakout"]
+    # The buy leg of a hard-stop swap is authorised by the RULE, not by timing:
+    # it needs no setup, no thesis and no add authority, because the exposure it
+    # buys is exposure the book already holds in a decaying wrapper. See
+    # _swap_mandates for why gating it on `setup_ids` closed it permanently.
+    swap_mandate = _swap_mandate_view(swap_mandates or [], risks)
+    if swap_mandate:
+        allowed += ["add_only_on_trigger"]
     return {
         "allowed_actions": list(dict.fromkeys(allowed)),
         "forced_action_one_of": forced,
@@ -639,6 +726,7 @@ def _constraints(shares: int, risks: list[dict], actionable_ids: list[str],
         "active_action_requires_evidence": True,
         "actionable_evidence_ids": actionable_ids,
         "technical_setup_ids": setup_ids,
+        "swap_mandate": swap_mandate,
         "max_add_shares": execution.get("max_add_shares", 0),
         "position_room_shares": execution.get("position_room_shares", 0),
         "max_add_value": execution.get("max_add_value", 0),
@@ -692,6 +780,7 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
         )
     setup_usage = context.get("technical_setup_usage") or {}
     risks = _risk_map(context, active)
+    swap_mandates = _swap_mandates(risks)
     tickers = {}
     portfolios = (context.get("portfolio") or {}).get("portfolios") or {}
     invested = {
@@ -846,7 +935,8 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
             "risk": ticker_risks,
             "status": _status(technical, ticker_risks),
             "constraints": _constraints(
-                shares, ticker_risks, actionable_ids, technical, execution
+                shares, ticker_risks, actionable_ids, technical, execution,
+                swap_mandates.get(ticker) or [],
             ),
         }
 
@@ -1016,6 +1106,21 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
             "candidates": candidates,
             "zero_output_visible": True,
         },
+        # Every swap a breach prescribes, INCLUDING the ones whose target the
+        # book does not currently hold. `tickers` only carries active holdings,
+        # so RKLX's mandate — 「换仓 1x 同因子 RKLB」, and RKLB was cleared on
+        # 6/13 — had nowhere to appear at all: the sell leg was forced and the
+        # buy leg was not merely blocked, it was invisible. A prescription the
+        # plan writer cannot see is one nobody can decline on purpose either.
+        "swap_mandates": [
+            {
+                "to_ticker": target,
+                "target_held": target in tickers,
+                **mandate,
+            }
+            for target, mandates in sorted(swap_mandates.items())
+            for mandate in mandates
+        ],
     }
     size = len(_compact(packet).encode("utf-8"))
     if size > MAX_PACKET_BYTES:
