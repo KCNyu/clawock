@@ -20,10 +20,6 @@ BRANCH="${2:-master}"
 # being restated per publisher. It also owns wiping an ephemeral Actions key.
 # shellcheck source=ops/publish/publish_identity.sh
 . "$(dirname "${BASH_SOURCE[0]}")/publish_identity.sh"
-# The autostash pull below goes through the shared #1038 migration guard so
-# every pull site protects dirty daily notes identically.
-# shellcheck source=ops/publish/untrack_guard.sh
-. "$(dirname "${BASH_SOURCE[0]}")/untrack_guard.sh"
 # Locating the money checker is shared with .githooks/pre-push for the same
 # reason: PATH is not a reliable way to find it, and one gate learning that
 # while the other does not is how a book gets published unverified.
@@ -95,10 +91,8 @@ for i in $(seq 1 $MAX_RETRIES); do
   echo "push failed attempt $i, trying rebase (autostash)…"
 
   # -c rebase.autoStash=true → tolerate a dirty working tree during the rebase.
-  # Wrapped in the #1038 migration guard: while master carries the daily-notes
-  # untracking, a dirty tracked diary meeting this pull would otherwise become
-  # a modify/delete stash-pop conflict that aborts this push mid-flight.
-  if pull_guarded "$REMOTE" "$BRANCH"; then
+  git fetch -q "$REMOTE" "$BRANCH" >/dev/null 2>&1 || true
+  if git -c rebase.autoStash=true pull --rebase "$REMOTE" "$BRANCH"; then
     echo "  rebase clean, will retry push"
     sleep $((i * 3))
   else

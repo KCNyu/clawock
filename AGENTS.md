@@ -8,9 +8,8 @@ Before doing anything else:
 
 1. Read `SOUL.md` — who you are
 2. Read `USER.md` — who you're helping
-3. Read `memory/YYYY-MM-DD.md` (today + yesterday) for recent context
-4. **If in MAIN SESSION** (direct chat with kcn): Also read `MEMORY.md` + `TOOLS.md`
-5. **If the question is investment-related**: also read `INVESTMENT_SOP.md` and route per the skill table below
+3. **If in MAIN SESSION** (direct chat with kcn): Also read `MEMORY.md` + `TOOLS.md`
+4. **If the question is investment-related**: also read `INVESTMENT_SOP.md` and route per the skill table below
 
 Don't ask permission. Just do it.
 
@@ -102,10 +101,14 @@ Never use the repository-admin bypass for an interactive code change.
 
 ## Memory
 
-You wake up fresh each session. These files are your continuity:
-- **Daily notes:** `memory/YYYY-MM-DD.md` — raw logs
+You wake up fresh each session. `MEMORY.md` is your continuity:
 - **Long-term:** `MEMORY.md` — curated wisdom; **only load in main session**, do NOT load in shared contexts (Discord, group chats)
-- Don't keep "mental notes" — if it matters, write it to a file
+- Don't keep "mental notes" — if it matters, write it to `MEMORY.md` (or, for the
+  interactive coding agents, their own durable memory outside this repository).
+- Dated diaries (`memory/YYYY-MM-DD.md`) were retired in #1038: untracked first,
+  then removed from disk. They were raw session logs nothing read back — the
+  curated surfaces (`MEMORY.md`, the interactive agents' own memory) carry what
+  actually gets reused. Do not start writing them again.
 
 ## Safety
 
