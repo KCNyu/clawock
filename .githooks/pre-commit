@@ -137,5 +137,25 @@ if [ -n "$SECRETS_HIT" ]; then
   exit 1
 fi
 
+# ──────────────────────────────────────────────────────────────────────────
+# 5. No workspace memory prose (#1069)
+# ──────────────────────────────────────────────────────────────────────────
+# .gitignore keeps this class out of `git add memory/`, but `git add -f` and a
+# `git commit -a` on a file that was tracked before the rule existed both walk
+# straight past it — which is how forty chat transcripts carrying WeChat and
+# Telegram session keys reached a public repository. The prose is host-local
+# and pruned on a clock (`ops/host/prune_memory_prose.py`); nothing in the
+# repository reads it.
+PROSE=$(echo "$STAGED" | grep -E '^memory/[0-9]{4}-[0-9]{2}-[0-9]{2}(-[^/]*)?\.md$' \
+        | grep -vE -- '-pre-open\.md$' \
+        | grep -vE '^memory/2026-06-23-2225-spch-infinite-ammo\.md$' || true)
+if [ -n "$PROSE" ]; then
+  echo "  ✗ workspace memory prose is staged — it must not enter the repo (#1069):" >&2
+  echo "$PROSE" | sed 's/^/      /' >&2
+  echo "  → keep it on the host; the retention job ages it out." >&2
+  echo "  → deliberate exception? add it to .gitignore's re-include list first." >&2
+  exit 1
+fi
+
 # All checks passed
 exit 0

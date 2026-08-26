@@ -92,49 +92,34 @@ memory/.tmp-*
 memory/.dreams/
 memory/dreaming/
 
-# Promoted chat-session transcripts (`memory/YYYY-MM-DD-HHMM.md`). OpenClaw writes
-# them for its own memory search, which reads the working tree — so they stay on
-# the host and out of git. Forty of them were tracked into a public repository
-# carrying WeChat/Telegram session keys, and nothing in the codebase ever read
-# one: every reader globs `*-plan.json`, `*-pre-open.md`, or the dated
-# `memory/YYYY-MM-DD.md` day log, none of which match this shape.
-memory/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]-[0-9][0-9][0-9][0-9].md
-
-# Daily notes (`memory/YYYY-MM-DD.md`) — untracked in #1038 and, since
-# 2026-08-26, gone from disk too: they were raw per-session logs with zero
-# consumers anywhere (stage_site globs only *-pre-open.md; no code, workflow or
-# test reads a bare-dated diary), and the curated surfaces — `MEMORY.md` here,
-# the interactive coding agents' own durable memory outside this repository —
-# are what actually gets read back. The rule stays so a writer that sweeps
-# `git add memory/` cannot re-introduce them; AGENTS.md no longer asks anyone
-# to write one.
+# ── Workspace memory prose (#1069) ──────────────────────────────────────────
+# kcn's rule, 2026-08-26: 「这些 memory 可以有但要定时清理而且不能进 repo」 —— the
+# same shape the interactive agents' own memory has: a curated index that is
+# kept (`MEMORY.md`), and raw per-session prose that lives on the host and ages
+# out. `ops/host/prune_memory_prose.py` owns the clock; these rules own the
+# "never in the repo" half.
+#
+# Everything dated under memory/ is prose unless it is one of the two tracked
+# product surfaces re-included below. Stated as a CLASS on purpose: #1062 named
+# sixteen files one by one, so the seventeenth — written by a session that had
+# no idea the list existed — went straight into a public repository. Three
+# shapes have already arrived this way: the bare day log
+# (`memory/YYYY-MM-DD.md`), the promoted chat transcript
+# (`memory/YYYY-MM-DD-HHMM.md`, forty of which were tracked carrying
+# WeChat/Telegram session keys), and one-off named notes
+# (`memory/YYYY-MM-DD-some-topic.md`: travel, OAuth setup, one-day policy memos).
+# No reader in the codebase globs any of them — every consumer asks for
+# `*-plan.json`, `*-pre-open.md`, or a directory that is not memory/ at all.
 memory/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9].md
+memory/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]-*.md
 
-# One-off dated prose, untracked 2026-08-26 (#1038 follow-up): personal
-# workspace notes (travel, OAuth/larkbot setup, one-day policy memos) with zero
-# repo-level consumers — verified per file by grep across src/ops/site/tests/
-# docs before untracking. Listed by exact name because no glob separates them
-# from briefs that must stay tracked, and an ignore rule is what keeps the
-# postflight's directory-scoped `git add memory/` from re-tracking them.
-# Disk copies stay; git history preserves the public past. The two strategy
-# ruling source docs (2026-06-23-2225-spch-infinite-ammo.md,
-# analysis-2026-08-15-add-gap.md) deliberately remain tracked.
-memory/2026-04-05-skills-policy.md
-memory/2026-04-06-tools-access.md
-memory/2026-04-07-hk-storage.md
-memory/2026-04-07-larkbot-lock.md
-memory/2026-04-07-oauth-plan.md
-memory/2026-04-07-startup-greeting.md
-memory/2026-04-08-skills-policy.md
-memory/2026-04-12-trading-strategy.md
-memory/2026-04-14-leveraged-etf.md
-memory/2026-04-15-portfolio-review.md
-memory/2026-04-15-skillhub-policy.md
-memory/2026-04-15-trade-correction.md
-memory/2026-04-20-airport-lounge.md
-memory/2026-04-21-hongkong-defensive.md
-memory/2026-04-21-hotel-map.md
-memory/2026-06-07-rklb-serenity-research.md
+# The two dated surfaces that are repository data, not prose: the published
+# daily brief (stage_site renders it onto the site) and its schema-gated plan.
+!memory/*-pre-open.md
+!memory/*-plan.json
+# One deliberately tracked ruling source: kcn's own WeChat instruction for the
+# SPCH averaging-down campaign. Named, because it is an exception to the class.
+!memory/2026-06-23-2225-spch-infinite-ammo.md
 
 # Misc
 share/
