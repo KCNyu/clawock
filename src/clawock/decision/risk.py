@@ -44,7 +44,10 @@ ADD_ACTIONS = {"add_only_on_trigger", "add_on_breakout"}
 #: `decisions.jsonl` — that is a different file with a different write path, and
 #: a gate that needs a cross-file join is a gate that breaks quietly.
 STANDING_DECISION_DAYS = 10
-SELL_ACTIONS = {"cut", "trim_on_rebound", "t_only"}
+# Imported, not re-typed: `actions.py` calls itself the vocabulary "shared by
+# decision workflow components", and a second literal is a twin that agrees
+# until the day somebody adds an action word to one of them (#1089).
+from clawock.decision.actions import SELL_ACTIONS  # noqa: F401
 
 
 def _now(value=None) -> datetime:
