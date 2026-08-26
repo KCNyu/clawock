@@ -303,6 +303,15 @@ def _execution_view(holding: dict, leg: str, capital: float, cash: float,
     suggested = min(suggested, position_room_shares)
     max_tranche_shares = suggested
 
+    # The canonical thesis registry is a KILL SWITCH, not a licence. Only the
+    # first branch changes a number; `intact` and `exploration_only` size
+    # identically, and saying so plainly matters because the line that used to
+    # sit under `exploration_only` was `min(max_tranche_shares, suggested)` —
+    # applied one statement after `max_tranche_shares = suggested`, i.e. a
+    # no-op — under a comment claiming it stopped pyramiding. Pyramiding is
+    # stopped by the campaign's own `max_tranches` (1 for exploration), which is
+    # where it has always actually been enforced. A restriction that lives only
+    # in a comment is worse than no restriction: the next reader budgets for it.
     thesis_state = thesis.get("state") or "unknown"
     if thesis_state in {"broken", "damaged", "weakening"}:
         thesis_gate = "blocked"
@@ -310,10 +319,9 @@ def _execution_view(holding: dict, leg: str, capital: float, cash: float,
     elif thesis_state == "intact":
         thesis_gate = "intact"
     else:
-        # No canonical thesis is not treated as intact. It may gather one small
-        # prospective sample, but cannot pyramid multiple tranches.
+        # No canonical thesis. Not treated as intact, but it costs nothing here:
+        # a name with no thesis is sized by its evidence tier like any other.
         thesis_gate = "exploration_only"
-        max_tranche_shares = min(max_tranche_shares, suggested)
 
     blockers = []
     if leveraged and authority_tier != "validated":
@@ -598,15 +606,22 @@ def _swap_mandates(risks: dict) -> dict:
     so out loud on 2026-08-26: 「07226 砍完 swap 03033 路径被 packet add 限制
     阻挡 (allowed=[hold_and_watch, watch])」.
 
-    The gate it was waiting on has never opened. `memory/theses/`,
-    `memory/entry-gates/` and `memory/earnings/` hold nothing but READMEs and no
-    recurring job writes them, so `thesis_state` is permanently "unknown" and
-    `setups` permanently empty. Measured: 07226 / RKLX / SPCH have been told to
-    cut 53 / 38 / 45 times with **zero** executions, three hard stops have been
-    open 42 days unacknowledged, and the last `add_only_on_trigger` of any kind
-    was 2026-07-20. Half a prescription is not a smaller version of the
+    Measured: 07226 / RKLX / SPCH have been told to cut 53 / 38 / 45 times with
+    **zero** executions, and three hard stops have been open 42 days
+    unacknowledged. Half a prescription is not a smaller version of the
     prescription — it is "sell and hold the cash", which is a different call
     that nobody made.
+
+    CORRECTION (2026-08-26, same night): the first version of this docstring
+    blamed an empty `memory/theses/` for the closed buy leg. That was wrong and
+    is recorded here rather than quietly deleted, because the wrong version
+    shipped. The swap targets were blocked by `no_approved_setup` — they carry
+    no quant setup, which is ordinary for a name nobody is running an add
+    campaign on — and the thesis registry has nothing to do with it. The add
+    side at large is NOT shut: it is gated on `add_authority.tier`, which on the
+    same day rated CRCL `eligible`. What is true is narrower and is exactly what
+    this function fixes: a RULE's buy leg must not be gated on a TIMING artifact
+    at all.
     """
     out: dict[str, list[dict]] = {}
     for source, rows in (risks or {}).items():
