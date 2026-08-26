@@ -76,10 +76,21 @@ GRADE_CN = {'chase_low_quality': '🔴 追高低质', 'elevated': '🟡 偏高�
 
 
 def _load_days():
-    """读 jsonl → 按 (date, ticker) 去重取当日最后一条 → 按日期排序的列表。"""
+    """读 jsonl → 按 (**该标的所属市场的交易日**, ticker) 去重取最后一条。
+
+    去重的键必须是行情自己的日子，不是留痕器的墙钟日子。`as_of` 是主机
+    HKT 日期，而美股一场 session 跨 HKT 午夜（21:30 开、次日 04:00 收），
+    于是同一个 `as_of` 下混着两场 session 的行：HKT 白天写的是**上一场**的
+    收盘，21:30 之后写的才是当天的。按 `as_of` 折叠 = 把两场行情压成一个
+    观测，而原注释「取收盘牌面」对美股名从来没兑现过——那一场的后半段
+    （00:00-04:00）已经落到下一个 `as_of` 里去了。
+
+    留痕器现在直接写 `session_date`（#1077）。老行没有这个字段，读取侧
+    回落到 `as_of`：与冻结价闸同一模式——防在读取侧，不改写已有数据。
+    """
     if not HIST.exists():
         return []
-    by_day = {}   # date -> {ticker: {grade_label, close}}
+    by_day = {}   # session date -> {ticker: {grade_label, close}}
     for line in HIST.read_text().splitlines():
         if not line.strip():
             continue
@@ -87,12 +98,12 @@ def _load_days():
             rec = json.loads(line)
         except Exception:
             continue
-        d = rec.get('as_of')
-        if not d:
+        fallback = rec.get('as_of')
+        if not fallback:
             continue
-        day = by_day.setdefault(d, {})
         for t, m in (rec.get('rows') or {}).items():
-            day[t] = m   # 后写覆盖 → 当日最后一条
+            d = m.get('session_date') or fallback
+            by_day.setdefault(d, {})[t] = m   # 后写覆盖 → 该 session 最后一条
     return [{'as_of': d, 'rows': by_day[d]} for d in sorted(by_day)]
 
 

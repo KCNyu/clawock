@@ -44,7 +44,7 @@ from __future__ import annotations
 
 import argparse
 import sys
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, time, timedelta
 from zoneinfo import ZoneInfo
 
 # --- Full-day market closures (weekday ones are what matter; weekend-falling
@@ -223,6 +223,49 @@ def previous_trading_day(market: str, d: date) -> date:
             return probe
         probe -= timedelta(days=1)
     raise ValueError(f"no {market} trading day found before {d}")
+
+
+#: Regular-hours trading windows in market-local time. HK breaks for lunch; a
+#: half day is the morning window alone (`HK_HALF_DAYS`). Pre/post-market is
+#: deliberately NOT a session: every consumer of this predicate is asking "is
+#: today's bar still being written", and an extended-hours print does not move
+#: the day range these gates are built on.
+SESSION_WINDOWS = {
+    "hk": ((time(9, 30), time(12, 0)), (time(13, 0), time(16, 0))),
+    "us": ((time(9, 30), time(16, 0)),),
+}
+
+
+def in_session(market: str, at: datetime | None = None) -> bool:
+    """Is `market` trading RIGHT NOW — calendar day AND clock.
+
+    `closed_reason` answers a different question: whether the market trades on
+    a given DATE. Reading it as "is it open" is how `compute_t0_setups` came to
+    enrich US holdings from Hong Kong's afternoon: on any weekday
+    `closed_reason("us")` is None, so at 15:33 HKT — six hours before the US
+    open — the US rows were built from the previous session's close and filed
+    with today's `as_of`, graded "现价在当日区间 84% 高位" off a bar that had
+    closed the day before.
+
+    Past the holiday table's horizon `closed_reason` fails OPEN, and so does
+    this: an unextended table must never make a real trading day look shut.
+    """
+    market = market.lower()
+    if market not in SESSION_WINDOWS:
+        raise ValueError(f"unknown market {market!r} (use 'hk' or 'us')")
+    tz = ZoneInfo(MARKET_TZ[market])
+    now = at.astimezone(tz) if at else datetime.now(tz)
+    session = "afternoon" if market == "hk" else "full"
+    if closed_reason(market, now.date(), session=session) is not None:
+        # A HK half day is shut in the afternoon but open in the morning, so a
+        # blanket False here would call 11:00 on a half day closed.
+        if not (market == "hk" and now.date().isoformat() in HK_HALF_DAYS):
+            return False
+    windows = SESSION_WINDOWS[market]
+    if market == "hk" and now.date().isoformat() in HK_HALF_DAYS:
+        windows = windows[:1]
+    clock = now.time()
+    return any(start <= clock < end for start, end in windows)
 
 
 def closed_reason(market: str, d: date | None = None,

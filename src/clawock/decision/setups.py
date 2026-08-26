@@ -170,6 +170,7 @@ def compute(intraday=False):
 
     rows = {}
     market_closed = {}
+    session_date = {}
     for port in pf.get('portfolios', {}).values():
         if not isinstance(port, dict):
             continue
@@ -180,14 +181,33 @@ def compute(intraday=False):
             market = _market_of(t)
             if market and market not in market_closed:
                 try:
-                    market_closed[market] = tc.closed_reason(market) is not None
+                    # Clock, not calendar (#1077). `closed_reason` answers "does
+                    # this market trade today", which is None on any weekday —
+                    # so from Hong Kong's morning the US rows were enriched and
+                    # graded six hours before the US open, off the PREVIOUS
+                    # session's close, and filed under today's date.
+                    market_closed[market] = not tc.in_session(market)
                 except Exception:
                     market_closed[market] = None
-            do_intraday = intraday and not market_closed.get(market, True)
+            # `is False` on purpose: an unknown (the probe raised) records None,
+            # and `not None` is True — so the old form turned a crashed session
+            # check into permission to enrich. Enrich only when we positively
+            # know the market is open.
+            do_intraday = intraday and market_closed.get(market) is False
             cur = _num(h.get('current_price'))
             qrow = quant.get(t, {})
             if qrow.get('status') not in (None, 'fresh'):
                 qrow = {}
+            if market and market not in session_date:
+                try:
+                    day = tc.latest_completed_session(market)
+                    # Mid-session the bar being written IS today's, and it is
+                    # the one this card grades.
+                    if not market_closed.get(market, True):
+                        day = tc._today_in_market(market)
+                    session_date[market] = day.isoformat() if day else None
+                except Exception:
+                    session_date[market] = None
             m = {'market': market}
             m.update(holding_metrics(h, qrow))
             if t in LEVERAGED:
@@ -210,6 +230,11 @@ def compute(intraday=False):
     return {
         'as_of': datetime.now().astimezone().isoformat(timespec='seconds'),
         'market_closed': market_closed,
+        # Which market session each row's numbers belong to. `as_of` is a host
+        # wall clock in HKT, and a US session straddles the HKT midnight, so
+        # the two are NOT the same day for US names — settling on `as_of`
+        # folded two different sessions into one observation (#1077).
+        'session_date': session_date,
         'intraday_enriched': intraday,
         'note': '牌面质量评级，非买卖信号。追高检测 = 当日高位+振幅耗尽时买入为低质。',
         'rows': rows,
@@ -220,8 +245,10 @@ def persist_history(data):
     """每次运行追加一行留痕，供 t0_setup_review.py 对账（零网络）。
     只记结算需要的精简字段：grade_label + range_pos + close（= 记录时现价）。"""
     from datetime import date as _date
+    session_date = data.get('session_date') or {}
     rows = {t: {'grade_label': m.get('grade_label'), 'range_pos': m.get('range_pos'),
-                'close': m.get('current'), 'market': m.get('market')}
+                'close': m.get('current'), 'market': m.get('market'),
+                'session_date': session_date.get(m.get('market'))}
             for t, m in data.get('rows', {}).items() if m.get('current') is not None}
     if not rows:
         return

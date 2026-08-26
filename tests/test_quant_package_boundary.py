@@ -61,7 +61,9 @@ def test_t0_derives_market_from_registry_not_the_book_name(tmp_path, monkeypatch
     quant_file.write_text(json.dumps({"rows": {}}), encoding="utf-8")
     monkeypatch.setattr(t0, "PORTFOLIO", portfolio)
     monkeypatch.setattr(t0, "QUANT", quant_file)
-    monkeypatch.setattr(t0.tc, "closed_reason", lambda market: "closed")
+    # `in_session` since #1077: the card is graded on whether the market is
+    # trading right now, not on whether it trades today.
+    monkeypatch.setattr(t0.tc, "in_session", lambda market: False)
 
     result = t0.compute()
 
