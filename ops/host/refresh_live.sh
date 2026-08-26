@@ -33,12 +33,6 @@ BRANCH="${LIVE_BRANCH:-master}"
 check_only=0
 [ "${1:-}" = "--check" ] && check_only=1
 
-# The pull below goes through the shared #1038 migration guard (same helper
-# safe_push.sh sources) so every autostash pull site protects dirty daily
-# notes identically.
-# shellcheck source=ops/publish/untrack_guard.sh
-. "$(dirname "${BASH_SOURCE[0]}")/../publish/untrack_guard.sh"
-
 test -d "$CHECKOUT/.git" || { echo "not a git checkout: $CHECKOUT" >&2; exit 2; }
 cd "$CHECKOUT"
 
@@ -75,7 +69,11 @@ fi
 # wrapped in the #1038 migration guard: while master carries the daily-notes
 # untracking, a dirty tracked diary meeting this pull would otherwise become a
 # modify/delete stash-pop conflict.
-if ! pull_guarded "$REMOTE" "$BRANCH" -q; then
+# autostash: this checkout is almost always dirty with in-flight generated
+# files (dashboard rebuilds, dreaming appends), and a plain --rebase refuses on
+# a dirty tree.
+git fetch -q "$REMOTE" "$BRANCH" >/dev/null 2>&1 || true
+if ! git -c rebase.autoStash=true pull --rebase "$REMOTE" "$BRANCH" -q; then
   echo "✗ pull --rebase failed — checkout left untouched, investigate before retrying" >&2
   exit 1
 fi

@@ -1,10 +1,14 @@
-"""#1038: the daily notes are workspace continuity, not repository data.
+"""#1038: the daily notes are neither repository data nor continuity any more.
 
-Untracking them must stay true over time: no new `memory/YYYY-MM-DD.md` may
-re-enter the index (the auto-commit table row is gone, but a future writer
-could still sweep one up), and the .gitignore rule must cover exactly the
-bare-dated diaries — not their `-pre-open.md` / `-plan.json` twins, which are
-site-rendered and schema-gated respectively.
+They were untracked first and, on 2026-08-26, removed from disk: raw per-session
+logs with zero consumers, superseded by the curated surfaces (`MEMORY.md` here,
+the interactive coding agents' own durable memory outside this repository).
+
+Staying retired has three halves. No new `memory/YYYY-MM-DD.md` may re-enter the
+index (a future writer could still sweep one up); the .gitignore rule must cover
+exactly the bare-dated diaries — not their `-pre-open.md` / `-plan.json` twins,
+which are site-rendered and schema-gated respectively; and no instruction file
+may ask a session to read or write one, which is how the habit would come back.
 """
 import re
 import subprocess
@@ -52,3 +56,21 @@ def test_agents_md_auto_commit_table_no_longer_commits_dailies():
     assert "`memory/YYYY-MM-DD.md` created or updated" not in text, \
         "the auto-commit table row was removed with the untracking (#1038); " \
         "a writer following it would re-stage ignored files by force"
+
+
+def test_no_instruction_file_asks_a_session_to_read_or_write_a_diary():
+    """The habit comes back through the instructions, not through the code.
+
+    AGENTS.md used to open with "Read `memory/YYYY-MM-DD.md` (today +
+    yesterday)" and list the diaries as continuity. A session following that
+    now finds nothing on disk and would helpfully start writing them again —
+    into an ignored path no one reads, which is exactly the pile just cleared.
+    """
+    text = (ROOT / "AGENTS.md").read_text(encoding="utf-8")
+    assert "Read `memory/YYYY-MM-DD.md`" not in text, \
+        "AGENTS.md points a session back at the retired diaries"
+    assert "**Daily notes:**" not in text, \
+        "AGENTS.md still lists the diaries as continuity"
+    assert "retired in #1038" in text, (
+        "the note explaining that the diaries are gone is what stops the next "
+        "session from recreating them; keep it")
