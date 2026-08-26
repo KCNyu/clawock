@@ -114,6 +114,54 @@ def fetch_tencent_hk_daily(sym: str, days: int) -> List[Dict]:
         return []
 
 
+SERIES_MARKET = {'SPY': 'us', 'HSI': 'hk', 'HSTECH': 'hk'}
+
+
+def _freshness(series: Dict[str, List[Dict]]) -> Dict[str, Dict]:
+    """How many completed sessions each series is behind, per market.
+
+    Retaining the previous bars when a fetch comes back empty is the right
+    behaviour ([[openclaw-fetcher-merge-not-overwrite]]) and it is also silent:
+    on 2026-08-26 the file was written at 00:03Z with HSI/HSTECH through 08-25
+    and **SPY still at 08-21**, two completed US sessions behind, and nothing
+    anywhere said so. The equity-curve overlay drew today's portfolio against a
+    two-day-old benchmark, and `regime.py` computed the US leverage regime from
+    the same stale series.
+
+    One session behind is the normal Polygon shape for this key and is not
+    reported as a problem; the number is published either way so the reader can
+    see what the last point actually is.
+    """
+    from clawock import sessions
+
+    out: Dict[str, Dict] = {}
+    for key, rows in (series or {}).items():
+        market = SERIES_MARKET.get(key)
+        last = (rows or [])[-1].get('date') if rows else None
+        behind = None
+        if market and last:
+            try:
+                probe = sessions.latest_completed_session(market)
+                behind = 0
+                while probe is not None and probe.isoformat() > last:
+                    behind += 1
+                    probe = sessions.previous_trading_day(market, probe)
+                    if behind > 30:      # broken table, not a stale feed
+                        behind = None
+                        break
+            except Exception:
+                behind = None
+        out[key] = {
+            'market': market,
+            'last_session': last,
+            'sessions_behind': behind,
+            # Polygon's aggregates for this key land one session late as a rule,
+            # so one is the floor of normal rather than evidence of a failure.
+            'expected_lag_sessions': 1 if market == 'us' else 0,
+        }
+    return out
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument('--days', type=int, default=DEFAULT_DAYS,
@@ -160,6 +208,7 @@ def main(argv=None) -> int:
         'generated_at': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
         'window_days': args.days,
         'series': series,
+        'freshness': _freshness(series),
     }
 
     if args.dry_run:

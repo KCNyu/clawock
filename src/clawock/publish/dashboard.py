@@ -142,6 +142,10 @@ MAX_SNAPSHOTS_EMBEDDED = 90        # ≈ 4 months of trading days (kept in dashb
 MAX_PLANS_EMBEDDED     = 5         # last 5 plans (each can be a few KB)
 MAX_PLAN_BYTES         = 4096      # cap each plan blob to 4KB; if larger, just keep summary
 MAX_OUT_BYTES          = 200_000   # final dashboard.json hard cap (~200KB)
+#: Never trim the embedded snapshot series below this. `decision_metrics` reads
+#: `snapshots[-30:]`, so a shorter series silently changes what that window
+#: means rather than merely shortening a chart.
+MIN_SNAPSHOTS_UNDER_BUDGET = 30
 MAX_OVERVIEW_BYTES      = 80_000    # Hero-only projection hard cap
 
 
@@ -3510,12 +3514,44 @@ def build_projection(previous_source=None, shadow_previous=None):
         payload = serialize_dashboard_payload(out)
         size_bytes = len(payload.encode('utf-8'))
         if size_bytes > MAX_OUT_BYTES:
-            # Dropping the plans is the only lever here; publishing an oversized
-            # payload still beats not publishing, but say so — on 2026-07-28 the
-            # file shipped 3.7KB over the cap with only the line above to show
-            # for it, which reads as "handled".
+            # Second lever: shorten the embedded snapshot series from the OLD
+            # end. It is the largest single section (37KB of 195KB at 76 rows,
+            # ~489 bytes each) and the only one that grows by one row every
+            # trading day, so it — not `recent_plans` — is what actually walks
+            # this payload into the cap. Measured 2026-08-26: 195,680 bytes with
+            # 4,320 to spare and MAX_SNAPSHOTS_EMBEDDED=90 still 14 rows away,
+            # i.e. the cap arrives in ~9 trading days and then stays breached.
+            #
+            # Oldest-first, because the equity curve's recent shape is what is
+            # read; and never below MIN_SNAPSHOTS_UNDER_BUDGET, because past
+            # that point the trim stops being cosmetic.
+            kept = list(out.get('snapshots') or [])
+            dropped = 0
+            while (size_bytes > MAX_OUT_BYTES
+                   and len(kept) > MIN_SNAPSHOTS_UNDER_BUDGET):
+                kept.pop(0)
+                dropped += 1
+                out['snapshots'] = kept
+                payload = serialize_dashboard_payload(out)
+                size_bytes = len(payload.encode('utf-8'))
+            if dropped:
+                # Recorded IN the payload, not only on stderr: `recent_plans`
+                # already learned this lesson (`recent_plans_dropped`), and a
+                # degradation that lives only in a build log is one no gate can
+                # read back.
+                out['snapshots_trimmed_for_budget'] = dropped
+                payload = serialize_dashboard_payload(out)
+                size_bytes = len(payload.encode('utf-8'))
+                print(f'⚠️  dropped the {dropped} oldest snapshot(s) to fit the '
+                      f'{MAX_OUT_BYTES} cap — now {size_bytes} bytes', file=sys.stderr)
+        if size_bytes > MAX_OUT_BYTES:
+            # Both levers spent; publishing an oversized payload still beats not
+            # publishing, but say so — on 2026-07-28 the file shipped 3.7KB over
+            # the cap with only the line above to show for it, which reads as
+            # "handled".
             print(f'⚠️  payload STILL {size_bytes} bytes > {MAX_OUT_BYTES} cap after '
-                  f'dropping recent_plans — publishing over cap', file=sys.stderr)
+                  f'dropping recent_plans and trimming snapshots — publishing over cap',
+                  file=sys.stderr)
 
     overview_payload = serialize_dashboard_payload(compile_overview_projection(out))
     overview_size = len(overview_payload.encode('utf-8'))
