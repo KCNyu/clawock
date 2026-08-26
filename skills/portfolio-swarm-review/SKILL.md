@@ -12,11 +12,13 @@ Multi-agent portfolio review. Structure mirrors the TauricResearch/TradingAgents
 In this order:
 1. `/root/.openclaw/workspace/MEMORY.md`
 2. `/root/.openclaw/workspace/portfolio.json`
-3. `/root/.openclaw/workspace/memory/current-portfolio-summary.md`
-4. `/root/.openclaw/workspace/INVESTMENT_SOP.md`
-5. Recent daily memory files when recent trades affect interpretation
-6. `/root/.openclaw/workspace/TOOLS.md` for data chain detail
-7. `../daily-deep-brief/references/technical-playbooks.md` before any add / average-down synthesis
+3. `/root/.openclaw/workspace/INVESTMENT_SOP.md`
+4. `/root/.openclaw/workspace/TOOLS.md` for data chain detail
+5. `../daily-deep-brief/references/technical-playbooks.md` before any add / average-down synthesis
+
+Active vs exited comes from `portfolio.json` alone (`shares > 0` / `== 0`); the
+hand-maintained summary that used to be step 3 drifted 3.5 months and was deleted
+(#1067).
 
 ## Fresh data rule
 
@@ -27,11 +29,12 @@ Refresh quotes before producing conclusions:
 /root/.local/bin/clawock analyze-hk    # HK Tencent + Eastmoney full-batch cross-check/fallback → stooq → yfinance
 ```
 
-If a leg is stale, name the exact ticker and limit confidence on conclusions involving it. **00100 only has Tencent** — flag explicitly if that leg fails. KR linkage (07709/07747) is exited; do not run any KR-side fetch.
+If a leg is stale, name the exact ticker and limit confidence on conclusions involving it. **00100 only has Tencent** — flag explicitly if that leg fails. KR linkage: 07709/07747 are exited, but SKHY (SK Hynix ADR) can be held — check
+`portfolio.json` rather than assuming the whole chain is dead.
 
 ## Holdings bucketing — read each run, do not hardcode
 
-Pull live set from `portfolio.json` (`shares > 0`) and `current-portfolio-summary.md`. Stable bucket structure; contents drift:
+Pull live set from `portfolio.json` (`shares > 0`). Stable bucket structure; contents drift:
 
 - **US growth / single-name beta** — active US non-leveraged growth names
 - **US leverage ETF** — anything `is_leveraged_etf: true`

@@ -158,12 +158,11 @@ manifest 若出现 `extras`，表示新 feature 被隔离而没有偷长常驻 c
 
 #### Required reads (delta vs `AGENTS.md` baseline)
 
-`AGENTS.md` 已要求每个 session 都读 SOUL.md / USER.md / MEMORY.md / TOOLS.md / 当日 daily memory，**这里不重复**。仅追加：
+`AGENTS.md` 已要求每个 session 都读 SOUL.md / USER.md / MEMORY.md / TOOLS.md，**这里不重复**。仅追加：
 
 1. `portfolio.json` — 持仓 ground truth（preflight 已刷过价）
 2. `memory/{昨天 YYYY-MM-DD}-pre-open.md` 如果存在 — 上次 thesis 和 next-session plan
-3. `memory/{昨天 YYYY-MM-DD}.md` 如果存在 — 用户手写笔记
-4. `INVESTMENT_SOP.md` — 启动顺序参考
+3. `INVESTMENT_SOP.md` — 启动顺序参考
 
 `context.research_surface` 同样只读，但**必须被消费**：
 - `reviews_due` 非空 → 在简报里点名该票 + 披露日期，并说明下一步走 `earnings-review` skill（不要在简报里现编财报数字）。

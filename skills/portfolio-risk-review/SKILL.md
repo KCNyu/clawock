@@ -12,11 +12,14 @@ Single-pass portfolio review. For multi-role analyst framework, use `portfolio-s
 In this order:
 1. `/root/.openclaw/workspace/MEMORY.md` — rules, traps, user preferences
 2. `/root/.openclaw/workspace/portfolio.json` — authoritative holdings
-3. `/root/.openclaw/workspace/memory/current-portfolio-summary.md` — active ticker list (also lists exited names so you know what NOT to analyze)
-4. `/root/.openclaw/workspace/memory/theses/*.json` — canonical thesis state when present
-5. `../daily-deep-brief/references/technical-playbooks.md` — read before any add / average-down plan
-6. Recent `memory/YYYY-MM-DD.md` entries when recent trades matter
-7. `/root/.openclaw/workspace/TOOLS.md` — data chain reference if anything fails
+3. `/root/.openclaw/workspace/memory/theses/*.json` — canonical thesis state when present
+4. `../daily-deep-brief/references/technical-playbooks.md` — read before any add / average-down plan
+5. `/root/.openclaw/workspace/TOOLS.md` — data chain reference if anything fails
+
+`portfolio.json` is the only active/exited list: `shares > 0` is held, `shares == 0`
+is exited. There is no hand-maintained summary any more — the one that used to sit
+here went 3.5 months without a sync and ended up naming seven held positions as
+exited (#1067).
 
 The thesis registry is read-only during a portfolio review. Missing files mean
 `unknown`, not permission to reconstruct a baseline from prior prose. Price moves
@@ -38,11 +41,13 @@ may change valuation but cannot by themselves change business, moat, or manageme
 
 If any leg of the fallback fails for a holding, mark that line stale in the output. Special trap: **00100 only has Tencent** — Tencent down means 00100 is stale.
 
-KR linkage names are no longer tracked (07709/07747 exited per `current-portfolio-summary.md`). Do not run any KR fetch.
+KR linkage: 07709/07747 are exited (`shares == 0`), but SKHY (SK Hynix ADR) can be
+held — check `portfolio.json` before deciding whether a KR fetch is needed rather
+than assuming the chain is dead.
 
 ## Holdings bucketing
 
-**Do not hardcode tickers here** — names rotate. Pull the active list from `portfolio.json` (`shares > 0`) and `current-portfolio-summary.md`, then bucket by category each run:
+**Do not hardcode tickers here** — names rotate. Pull the active list from `portfolio.json` (`shares > 0`), then bucket by category each run:
 
 | Bucket | What goes in |
 |---|---|
@@ -53,7 +58,7 @@ KR linkage names are no longer tracked (07709/07747 exited per `current-portfoli
 | **HK single-name** | Individual HK equities (currently 00100 AI, 02208 wind) |
 | **HK leverage ETF** | 2x/3x recipes (currently 07226 南方2x恒科) |
 
-The framing is stable; the contents drift. Verify each session against `current-portfolio-summary.md`.
+The framing is stable; the contents drift. Verify each session against `portfolio.json`.
 
 ## Four-lens analysis
 

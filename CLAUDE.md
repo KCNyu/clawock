@@ -13,9 +13,8 @@ Entry pointer for Claude Code in kcn's investment workspace. Same workflow as `A
 2. `USER.md` — who kcn is + preferences
 3. `MEMORY.md` — iron data rules + known traps
 4. `TOOLS.md` — scripts / fallback chains / skill routing / cron map
-5. `memory/YYYY-MM-DD.md` (today + yesterday) — recent context
-6. `INVESTMENT_SOP.md` — investment-question startup sequence
-7. `portfolio.json` — lazy-load when needed
+5. `INVESTMENT_SOP.md` — investment-question startup sequence
+6. `portfolio.json` — lazy-load when needed
 
 ## What lives where
 
@@ -30,7 +29,6 @@ Entry pointer for Claude Code in kcn's investment workspace. Same workflow as `A
 | Harness CLI / live profile | `clawock brief\|report\|intraday`; package-owned lifecycle selected by `CLAWOCK_PROFILE` |
 | Host / publish / CI / growth wiring | `ops/{host,publish,ci,growth}/` |
 | Repository automation | installed `clawock-*` commands and named `ops/*` entry points |
-| Daily logs (template `_TEMPLATE.md`) | `memory/YYYY-MM-DD.md` |
 | Daily deep brief output | `memory/{date}-pre-open.md` + `memory/{date}-plan.json` |
 | Daily portfolio snapshots | `memory/snapshots/{date}.json` |
 | Preflight context (gitignored) | `memory/.tmp/` |
