@@ -2107,6 +2107,10 @@ def compute_backtest(decisions: list[dict]) -> dict:
         reps = episode_representatives(decisions, horizon)
         active = [r for r in reps if r.get("action") in ACTIVE_ACTIONS]
         followed = [r for r in reps if (r.get("execution") or {}).get("status") == "followed"]
+        passive = [r for r in reps if r.get("action") in PASSIVE_ACTIONS]
+        followed_active = [
+            r for r in followed if r.get("action") in ACTIVE_ACTIONS
+        ]
         horizons[horizon] = {
             # Keep the complete AI track record, including HOLD/WATCH episodes.
             # This is the v2 continuation of the migrated v1 "all calls" line;
@@ -2114,13 +2118,38 @@ def compute_backtest(decisions: list[dict]) -> dict:
             # as evidence that cut/trim/add timing has alpha.
             "all": _aggregate(reps, key),
             "active": _aggregate(active, key),
+            # The beta this book carried, shown rather than left implicit.
+            # `_benefit` gives a HOLD the underlying's own move, so a hold in a
+            # falling market scores a loss however right the hold was — and
+            # 103 of the 166 August decisions were holds on a book down 28-66%.
+            # Without this column the reader has no way to see how much of
+            # `all` and `followed` is simply the market (#1087).
+            "passive": _aggregate(passive, key),
             "followed": _aggregate(followed, key),
+            # `followed` mixes both, which is why it reads as "listening to the
+            # AI loses money, significantly" — measured 2026-08-26 at T+1:
+            # n=107, 32.7%, −1.86%, CI [−3.25, −0.62]. This is the same question
+            # asked of the calls that were actually a decision to do something.
+            "followed_active": _aggregate(followed_active, key),
             "by_strategy": _breakdown(reps, lambda r: r.get("strategy_id"), key),
             "all_curve": _compounded_curve(reps, key),
             "active_curve": _compounded_curve(active, key),
             "followed_curve": _compounded_curve(followed, key),
             "all_win_rate_curve": _cumulative_win_rate_curve(reps, key),
             "active_win_rate_curve": _cumulative_win_rate_curve(active, key),
+            # Named per column, because the columns do NOT answer the same
+            # question and nothing on the surface said so. A benchmark-relative
+            # benefit for the passive legs would be the richer fix and is not
+            # available: `benchmark.json` keeps a 60-day window (from
+            # 2026-06-29) while the episodes start 2026-05-17, so six weeks of
+            # the sample have no benchmark to be relative to.
+            "measures": {
+                "all": "every episode, active and passive — AI track record",
+                "active": "cut/trim/add timing only — the alpha question",
+                "passive": "hold/watch only — the underlying's own move, i.e. beta",
+                "followed": "every executed episode, active and passive mixed",
+                "followed_active": "executed episodes that were a decision to act",
+            },
         }
     return {
         "schema_version": SCHEMA_VERSION,
