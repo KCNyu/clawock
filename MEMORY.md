@@ -14,10 +14,8 @@
 
 ### 投资问题工作流
 凡是问到 `持仓` / `portfolio` / `美股` / `港股` / `加仓/减仓`，按顺序读：
-1. `portfolio.json`（权威持仓）
-2. `memory/current-portfolio-summary.md`（ticker 列表）
-3. 最近 1-3 篇 `memory/YYYY-MM-DD.md`
-4. 工作流细节见 `INVESTMENT_SOP.md`
+1. `portfolio.json`（权威持仓；`shares > 0` 活跃，`== 0` 已清仓）
+2. 工作流细节见 `INVESTMENT_SOP.md`
 
 ---
 
@@ -101,7 +99,8 @@
 
 ## 持仓数据
 - **单一来源：`portfolio.json`**，不在此维护副本
-- ticker 列表：`memory/current-portfolio-summary.md`（提高检索命中）
+- ticker 列表也不另立文件：手工副本 2026-05-14 起就没同步过，到 08-26 已经把 7 个在持
+  的名字写成清仓、把 3 个清掉的写成活跃（#1067）。活跃 / 已清仓一律看 `shares`
 
 ## Promoted From Short-Term Memory
 

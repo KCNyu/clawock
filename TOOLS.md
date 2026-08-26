@@ -4,8 +4,7 @@
 - 权威持仓：`portfolio.json`
 - 长期规则与偏好：`MEMORY.md`
 - 投资工作流：`INVESTMENT_SOP.md`
-- 当前持仓摘要：`memory/current-portfolio-summary.md`
-- 每日复盘/交易日志：`memory/YYYY-MM-DD.md`
+- 活跃 / 已清仓：`portfolio.json` 的 `shares`（>0 活跃，==0 已清仓），不另立副本
 - 可移植工具与工作流：安装后的 `clawock`；源码归 `src/clawock/`
 - Harness 入口（cron 调起）：`clawock brief|report|intraday`；实现与策略都由根 `clawock` wheel 持有，profile 只选值和资源
 - Host / publish / CI / growth 运维：`ops/{host,publish,ci,growth}/`
@@ -49,10 +48,8 @@
 ### 1. 回答投资问题
 按顺序读取：
 1. `MEMORY.md`
-2. `portfolio.json`
-3. `memory/current-portfolio-summary.md`
-4. 需要时再读最近 `memory/YYYY-MM-DD.md`
-5. 拉最新价格后再分析
+2. `portfolio.json`（`shares` 直接给出活跃 / 已清仓）
+3. 拉最新价格后再分析
 
 ### 2. 更新价格
 ```bash
@@ -130,7 +127,7 @@ clawock us-quotes     # 仅刷美股价格
 
 **Single source of truth：`portfolio.json`**（不在此重复，避免漂移）
 
-结构特征（风格/集中度/已清仓名单）见 `memory/current-portfolio-summary.md`，不在此重复。
+已清仓名单同样从 `portfolio.json` 读（`shares == 0`）；集中度看 `assets/data/risk.json`。
 
 ---
 
@@ -233,7 +230,6 @@ clawhub install <slug>
 ---
 
 ## 维护建议
-- 交易发生后：记录 `holdings[].trades[]` + broker 真值叶子，跑 `clawock reconcile`，再更新当天 `memory/YYYY-MM-DD.md`
+- 交易发生后：记录 `holdings[].trades[]` + broker 真值叶子，跑 `clawock reconcile`
 - 规则变化后：更新 `MEMORY.md`
-- 持仓结构明显变化后：更新 `memory/current-portfolio-summary.md`
 - 脚本数据源变化后：同步更新 `TOOLS.md` 与 `MEMORY.md`

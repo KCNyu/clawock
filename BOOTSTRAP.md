@@ -106,7 +106,7 @@ context.json 的决策/自进化字段，**必须用上**：
 SOUL.md · USER.md · MEMORY.md · TOOLS.md · INVESTMENT_SOP.md · portfolio.json
 
 Cron 触发的 session：直接按 SKILL.md 的 Mode 模板跑 4 步。
-Topic / chat 触发的 session：先读相关 memory/YYYY-MM-DD.md，再回答。
+Topic / chat 触发的 session：先按上面的 required reads 补全上下文，再回答。
 
 ---
 
