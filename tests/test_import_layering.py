@@ -19,6 +19,7 @@ someone to go looking.
 from __future__ import annotations
 
 import ast
+import inspect
 from collections import defaultdict
 from pathlib import Path
 
@@ -266,54 +267,49 @@ def test_the_allowlists_only_ever_shrink():
     )
 
 
-def test_no_new_test_writes_to_published_state(request):
-    """A test that writes into the checkout changes what later tests see.
+def test_the_write_guard_has_no_position_in_the_collection_order(request):
+    """The guard moved to `pytest_sessionfinish` (#1089).
 
-    #816: `assets/data/workflow-outcomes.json` is untracked and absent in a
-    clean tree. One test created it, it persisted between runs, and it armed an
-    assertion in a different module that is dormant otherwise — a failure that
-    only ever appeared in full-suite order and passed on its own, twice, before
-    anyone could say which test was responsible.
+    It used to be this test, whose own docstring claimed "this runs last by
+    name". It was not last — pytest collects by path and `test_i...` is followed
+    by `test_j` through `test_w`, including `test_validate_sidecars.py`.
+    Measured 2026-08-26: a full suite rendered
 
-    This runs last by name and reads the attribution log the conftest fixture
-    builds.
+        tests/test_validate_sidecars.py::test_real_committed_dashboard_passes  <-- NEW
+
+    and failed for something else entirely. A writer in any module sorting after
+    the guard was invisible to it, and the dashboard-shaped modules — the ones
+    most likely to write — all live there.
+
+    What is left here is the reason it moved, plus the attribution log's own
+    shape. The enforcement is a session hook, which nothing can sort after.
 
     On parallelism, measured rather than assumed — and the measurement killed
-    the idea. #816 claimed emptying this list would unlock `-n auto` and take
-    the pytest step from 89s to ~30s. With the writers isolated and the session
-    rebuild behind a file lock, `-n 4` does pass, three runs at 175/182/191s
-    against ~195s serial: **5-10%, not 3x**. The top twelve tests account for
-    ~121s of a 208s run and every one of them is subprocess-bound — an
-    installer, a wheel install, safe_push, watchdogs with real waits — so the
-    suite is not wide, it is deep in a few places. A fourth parallel run also
-    produced one failure that would not reproduce.
-
-    So xdist stays off: a few percent is not worth a flake class. The isolation
-    was still worth doing on its own — it fixed a real order-dependent failure.
-    The way to make this suite faster is those twelve tests, not more workers.
+    the idea. #816 claimed emptying the tolerated list would unlock `-n auto`
+    and take the pytest step from 89s to ~30s. With the writers isolated and the
+    session rebuild behind a file lock, `-n 4` does pass, three runs at
+    175/182/191s against ~195s serial: **5-10%, not 3x**. The top twelve tests
+    account for ~121s of a 208s run and every one of them is subprocess-bound.
+    So xdist stays off: a few percent is not worth a flake class.
     """
-    from conftest import _WRITE_LOG, _tolerated  # noqa: PLC0415
+    import conftest  # noqa: PLC0415
 
-    if not _WRITE_LOG:
+    assert hasattr(conftest, "pytest_sessionfinish"), (
+        "the enforcement must be a session hook; a test can always be sorted "
+        "after by adding a module with a later name")
+    source = inspect.getsource(conftest.pytest_sessionfinish)
+    assert "_tolerated" in source and "exitstatus" in source, (
+        "the hook must both apply the allowlist and actually fail the run")
+
+    if not _WRITE_LOG_or_skip():
         pytest.skip("no writes recorded — this ran outside a full-suite session")
+    for entry in conftest._WRITE_LOG:
+        assert set(entry) >= {"test", "created", "removed", "changed"}, entry
 
-    # Under xdist the attribution is not trustworthy and neither is the result:
-    # every worker gets its own session, so N workers each run the dashboard
-    # rebuild against the same four files at once, and a write by one worker
-    # lands in whatever test another worker happened to be running. Measured on
-    # `-n 4`: this named test_hook_entrypoints_can_import_clawock, which writes
-    # nothing. The suite is not parallel-safe yet — see the module docstring —
-    # and pretending to check it here would be worse than saying so.
-    if getattr(request.config, "workerinput", None) is not None:
-        pytest.skip("write attribution is not valid under xdist; see #816")
 
-    offenders = sorted({e["test"] for e in _WRITE_LOG if not _tolerated(e["test"])})
-    assert not offenders, (
-        "these tests wrote into the checkout and are not on the tolerated list: "
-        f"{offenders}. Point them at an isolated workspace "
-        "(monkeypatch.setenv('CLAWOCK_WORKSPACE', str(tmp_path))) rather than "
-        "adding them to TOLERATED_WRITERS — that list is meant to shrink."
-    )
+def _WRITE_LOG_or_skip():
+    from conftest import _WRITE_LOG  # noqa: PLC0415
+    return _WRITE_LOG
 
 
 def test_the_tolerated_writer_list_only_shrinks():
