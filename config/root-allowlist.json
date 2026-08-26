@@ -34,8 +34,8 @@
    "consumer": "Claude Code entry context"
   },
   "DREAMS.md": {
-   "owner": "runtime compatibility",
-   "consumer": "OpenClaw dreaming promotion"
+   "owner": "host-local, untracked (#1071)",
+   "consumer": "OpenClaw dreaming promotion writes it; nothing in the repo reads it"
   },
   "HEARTBEAT.md": {
    "owner": "runtime compatibility",
@@ -54,8 +54,8 @@
    "consumer": "package metadata, GitHub and Pages staging"
   },
   "MEMORY.md": {
-   "owner": "runtime compatibility",
-   "consumer": "OpenClaw main-session memory"
+   "owner": "host-local, untracked (#1071)",
+   "consumer": "OpenClaw main-session memory — the index of memory/*.md"
   },
   "NOTICE": {
    "owner": "legal",

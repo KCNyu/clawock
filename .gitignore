@@ -92,34 +92,28 @@ memory/.tmp-*
 memory/.dreams/
 memory/dreaming/
 
-# ── Workspace memory prose (#1069) ──────────────────────────────────────────
-# kcn's rule, 2026-08-26: 「这些 memory 可以有但要定时清理而且不能进 repo」 —— the
-# same shape the interactive agents' own memory has: a curated index that is
-# kept (`MEMORY.md`), and raw per-session prose that lives on the host and ages
-# out. `ops/host/prune_memory_prose.py` owns the clock; these rules own the
-# "never in the repo" half.
+# ── The agent's memory lives on the host, never in git (#1071) ─────────────
+# kcn, 2026-08-26: 「这些 memory 可以有但……不能进仓库」「类似于我们 shared memory 那种
+# index+md 形式的维护，然后对照清理」。So the workspace memory has the same shape the
+# interactive agents' own store has — `MEMORY.md` is the index, `memory/*.md` are the
+# topic files it links — and it is maintained by comparing the two, not by a timer
+# and not through version control. `ops/system_check.py::check_memory_index_health`
+# reports orphans and dangling links before every push; the cleanup is a judgement
+# call somebody makes, which is exactly why it is a report and not a cron job.
 #
-# Everything dated under memory/ is prose unless it is one of the two tracked
-# product surfaces re-included below. Stated as a CLASS on purpose: #1062 named
-# sixteen files one by one, so the seventeenth — written by a session that had
-# no idea the list existed — went straight into a public repository. Three
-# shapes have already arrived this way: the bare day log
-# (`memory/YYYY-MM-DD.md`), the promoted chat transcript
-# (`memory/YYYY-MM-DD-HHMM.md`, forty of which were tracked carrying
-# WeChat/Telegram session keys), and one-off named notes
-# (`memory/YYYY-MM-DD-some-topic.md`: travel, OAuth setup, one-day policy memos).
-# No reader in the codebase globs any of them — every consumer asks for
-# `*-plan.json`, `*-pre-open.md`, or a directory that is not memory/ at all.
-memory/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9].md
-memory/[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]-*.md
+# Stated as a CLASS on purpose: #1062 listed sixteen files by exact name, so the
+# seventeenth — written by a session that had no idea the list existed — went
+# straight into a public repository. Three shapes have already arrived that way:
+# the bare day log, the promoted chat transcript (forty of them, carrying WeChat
+# and Telegram session keys), and one-off named notes. `.githooks/pre-commit`
+# refuses the class too, because `git add -f` walks past this file.
+/MEMORY.md
+/DREAMS.md
+memory/*.md
 
-# The two dated surfaces that are repository data, not prose: the published
-# daily brief (stage_site renders it onto the site) and its schema-gated plan.
+# The two exceptions are not memory: the published daily brief (stage_site
+# renders it onto the site) and the plan behind it are repository data.
 !memory/*-pre-open.md
-!memory/*-plan.json
-# One deliberately tracked ruling source: kcn's own WeChat instruction for the
-# SPCH averaging-down campaign. Named, because it is an exception to the class.
-!memory/2026-06-23-2225-spch-infinite-ammo.md
 
 # Misc
 share/

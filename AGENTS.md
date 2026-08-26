@@ -101,7 +101,13 @@ Never use the repository-admin bypass for an interactive code change.
 
 ## Memory
 
-You wake up fresh each session. `MEMORY.md` is your continuity:
+You wake up fresh each session. `MEMORY.md` is your continuity. It lives on the
+host and is **not in the repository** (#1071) — same shape as the interactive
+coding agents' own store: an index of one-line hooks, each pointing at a topic
+file under `memory/`, maintained by comparing the two and cleaning what the
+index no longer claims. `ops/system_check.py` reports both kinds of drift
+(a topic file nothing links to, a link that resolves to nothing) before every
+push; acting on the report is a judgement call, not a scheduled deletion.
 - **Long-term:** `MEMORY.md` — curated wisdom; **only load in main session**, do NOT load in shared contexts (Discord, group chats)
 - Don't keep "mental notes" — if it matters, write it to `MEMORY.md` (or, for the
   interactive coding agents, their own durable memory outside this repository).

@@ -1065,6 +1065,74 @@ def check_memory_index(r):
               f'{indexed} files embedded · patches applied · reindex {age:.0f}h ago')
 
 
+def _memory_curation_gaps():
+    """Compare the memory index against the topic files on disk.
+
+    Returns (orphans, dangling): topic files nothing links to, and links that
+    resolve to nothing. Both are read from the LIVE workspace, because the
+    memory is host-local by design (#1071) — git carries none of it.
+    """
+    index = LIVE_WORKSPACE / 'MEMORY.md'
+    if not index.is_file():
+        return None, None
+    text = index.read_text(encoding='utf-8', errors='ignore')
+
+    linked = set()
+    for match in re.finditer(r'(?:\(|`|\[\[|\s)(memory/[^\s`)\]]+\.md)', text):
+        linked.add(match.group(1))
+    for match in re.finditer(r'\[\[([^\]]+)\]\]', text):     # shared-memory wiki links
+        linked.add(f'memory/{match.group(1)}.md')
+
+    on_disk = set()
+    for path in sorted((LIVE_WORKSPACE / 'memory').glob('*.md')):
+        # Product surfaces, not memory: the published brief is indexed by the
+        # site, not by MEMORY.md.
+        if path.name.endswith('-pre-open.md'):
+            continue
+        on_disk.add(f'memory/{path.name}')
+
+    orphans = sorted(on_disk - linked)
+    dangling = sorted(name for name in linked
+                      if not (LIVE_WORKSPACE / name).is_file())
+    return orphans, dangling
+
+
+def check_memory_curation(r):
+    """The memory is an index plus topic files; drift shows up as both halves.
+
+    kcn's shape (2026-08-26): 「类似于我们 shared memory 那种 index+md 形式的维护，
+    然后对照清理」. `MEMORY.md` is the index; `memory/*.md` are the topic files.
+    A topic file nothing links to is a note that will never be recalled — the
+    pile that has to be cleaned. A link pointing at a file that is gone is the
+    same drift from the other side.
+
+    Deliberately a REPORT, not a deletion, and deliberately not on a timer:
+    which note is finished is a judgement, and a job that decides it by mtime
+    would delete the one durable note somebody wrote three months ago and never
+    had to touch again. WARN so it surfaces on every push without blocking one.
+    """
+    if not LIVE_WORKSPACE.is_dir():
+        r.add('memory curation', OK, 'no live workspace on this host (skipped)')
+        return
+    orphans, dangling = _memory_curation_gaps()
+    if orphans is None:
+        r.add('memory curation', WARNING,
+              'MEMORY.md is missing from the live workspace — the index is the '
+              'entry point every session reads')
+        return
+    problems = []
+    if orphans:
+        problems.append(f'{len(orphans)} topic file(s) not in the index '
+                        f'(e.g. {orphans[0]})')
+    if dangling:
+        problems.append(f'{len(dangling)} index link(s) resolve to nothing '
+                        f'(e.g. {dangling[0]})')
+    if problems:
+        r.add('memory curation', WARNING, '; '.join(problems))
+    else:
+        r.add('memory curation', OK, 'index and topic files agree')
+
+
 def check_research_artifacts(r):
     """Thesis, earnings and entry-gate artifacts must stay valid.
 
@@ -1114,6 +1182,7 @@ def main():
         check_research_artifacts,
         check_trading_calendar_horizon,
         check_memory_index,
+        check_memory_curation,
     ]
     for c in checks:
         try:
