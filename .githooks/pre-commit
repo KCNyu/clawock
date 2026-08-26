@@ -138,20 +138,24 @@ if [ -n "$SECRETS_HIT" ]; then
 fi
 
 # ──────────────────────────────────────────────────────────────────────────
-# 5. The agent memory never enters the repository (#1069/#1071)
+# 5. Coding-agent prose never enters the repository (#1069/#1071/#1074)
 # ──────────────────────────────────────────────────────────────────────────
 # .gitignore keeps the class out of `git add memory/`, but `git add -f` and a
 # `git commit -a` on a file that was tracked before the rule existed both walk
 # straight past it — which is how forty chat transcripts carrying WeChat and
-# Telegram session keys reached a public repository. The memory is host-local
-# and maintained against its own index (#1071); nothing in the repository
-# reads it.
-PROSE=$(echo "$STAGED" | grep -E '^(MEMORY\.md|DREAMS\.md|memory/[^/]+\.md)$' \
+# Telegram session keys reached a public repository.
+#
+# The class is `memory/*.md` ONLY. `MEMORY.md` and `DREAMS.md` sit in the root,
+# are written by openclaw's own dreaming job, and are clawock runtime state that
+# eight tracked instruction files name as the authority — #1072 swept them in
+# with the coding agents' notes, which is the mistake #1074 undoes. Do not widen
+# this pattern back over them.
+PROSE=$(echo "$STAGED" | grep -E '^memory/[^/]+\.md$' \
         | grep -vE -- '-pre-open\.md$' || true)
 if [ -n "$PROSE" ]; then
-  echo "  ✗ workspace memory prose is staged — it must not enter the repo (#1069):" >&2
+  echo "  ✗ coding-agent memory prose is staged — it must not enter the repo (#1074):" >&2
   echo "$PROSE" | sed 's/^/      /' >&2
-  echo "  → keep it on the host; MEMORY.md indexes it, system_check reports orphans." >&2
+  echo "  → it belongs in /root/.shared-memory, not in this repository." >&2
   echo "  → deliberate exception? add it to .gitignore's re-include list first." >&2
   exit 1
 fi

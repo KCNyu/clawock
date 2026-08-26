@@ -234,6 +234,8 @@ def load_crontab():
             name = f"watchdog {mk.group(1) if mk else '?'} intraday"
         elif 'brief_watchdog' in cmd:
             name = 'watchdog brief'
+        elif 'commit_dreaming' in cmd:
+            name = 'commit_dreaming'
         elif 'gc_sessions' in cmd:
             name = 'gc_sessions'
         elif 'publish_dashboard' in cmd:
