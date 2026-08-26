@@ -472,6 +472,7 @@ def categorize(issues):
 from clawock.harness.validation import (
     categorize_issues,
     check_md_table_column_consistency,
+    product_status,
     split_advisory,
 )
 from ._harness_common import (  # noqa: E402
@@ -732,10 +733,13 @@ def main(argv=None):
     # advisory-only slot delivers a clean product and must not be filed as a
     # degraded one (#764).
     escalating, advisories = split_advisory(issues)
+    # What shipped, not what the checker noticed — the same correction #768 made
+    # to final_product, applied to the stage and the commit subject (#1076).
+    product = product_status(status, escalating)
     workflow_outcomes.record_stage(
         job_name,
         'llm',
-        'success' if status == 'pass' else ('warning' if status == 'warn' else 'failed'),
+        'success' if product == 'pass' else ('warning' if product == 'warn' else 'failed'),
         slot=slot,
         dry_run=args.dry_run,
         issue_count=len(issues),
@@ -776,7 +780,7 @@ def main(argv=None):
         or status == 'fail'
         or projection_status in {'valid', 'missing', 'invalid'}
     )
-    publication_status = status if projection_ready else 'fail'
+    publication_status = product if projection_ready else 'fail'
     # This is the only release of the off-host committer.  Judgment validity is
     # deliberately not required: missing/invalid prose still writes a complete
     # deterministic projection.  A writer exception or absent decision packet is
@@ -933,10 +937,10 @@ def main(argv=None):
         job_name,
         'postflight',
         ('success'
-         if (status == 'pass' and projection_ready
+         if (product == 'pass' and projection_ready
              and data_plane_status in {'published', 'skipped'})
          else ('warning'
-               if (status == 'warn' and projection_ready
+               if (product == 'warn' and projection_ready
                    and data_plane_status in {'published', 'skipped'})
                else 'failed')),
         slot=slot,

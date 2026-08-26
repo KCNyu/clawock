@@ -219,3 +219,118 @@ def test_absent_market_units_stay_one_advisory(hc):
     issue = hc.check_numeric_claims("今日 +8.8%，背离 7pp，放大 3x，偏离 4σ。", CTX)
     assert len(issue) == 1
     assert all(label in issue[0] for label in ("+8.8%", "7pp", "3x", "4σ"))
+
+
+# ── Rounding is not invention (#1076) ─────────────────────────────────────────
+# Measured before the fix: over three days of live runs, 26 of 64 slots carried
+# an advisory and EVERY one of them had escalating_count == 0 — i.e. the gate
+# only ever fired on clean reports. Replaying the five reports of 2026-08-26
+# through it, four of the five findings were the model writing "+8%" where the
+# context said 8.2. A gate that cries on 40% of good reports teaches its reader
+# to skip the line, which is the failure `advisory_prefix` is documented to
+# avoid.
+
+@pytest.mark.parametrize("written, context_value", [
+    ("+8%", 8.2),        # 2026-08-26 hk-pm: 02208 +8.2%
+    ("-36%", 36.3),      # 2026-08-26 hk-open: 00100 浮亏 -36.3%
+    ("80%", 79.61),      # 2026-08-26 us-open: SPCH 单名 79.61%
+    ("-2.1σ", 2.13),     # 2026-08-26 hk-close: z=-2.13σ
+])
+def test_a_rounded_restatement_is_not_an_invented_number(hc, written, context_value):
+    ctx = {"peer_scan": {"X": {"self_pct_1d": context_value}}}
+    if written.endswith("σ"):
+        ctx = {"peer_scan": {"X": {"zscore20": context_value}}}
+    assert hc.check_numeric_claims(f"读数 {written}。", ctx) == []
+
+
+@pytest.mark.parametrize("written, context_value", [
+    ("+8%", 8.9),        # a whole-number claim admits ±0.5, not ±0.9
+    ("8.2%", 8.9),       # one decimal admits ±0.05
+    ("-2.1σ", 2.4),
+])
+def test_the_tolerance_is_not_wide_enough_to_swallow_an_invention(
+        hc, written, context_value):
+    ctx = {"peer_scan": {"X": {"self_pct_1d": context_value}}}
+    if written.endswith("σ"):
+        ctx = {"peer_scan": {"X": {"zscore20": context_value}}}
+    issue = hc.check_numeric_claims(f"读数 {written}。", ctx)
+    assert issue and "context 里没有的数字" in issue[0]
+
+
+def test_writing_more_precisely_buys_a_tighter_gate(hc):
+    """The width comes from the writing, which is the right incentive.
+
+    8.4 is inside what "8%" claims and outside what "8.4x"-precision claims —
+    so the same context answers differently depending on how precisely the
+    report chose to speak.
+    """
+    ctx = {"peer_scan": {"X": {"self_pct_1d": 8.4}}}
+    assert hc.check_numeric_claims("读数 8%。", ctx) == []
+    assert hc.check_numeric_claims("读数 8.3%。", ctx)
+
+
+def test_real_mental_arithmetic_still_reports(hc):
+    """2026-08-26 hk-close, the one true finding of the five.
+
+    The report divided 1.49 by 0.82 and wrote the quotient as "≈1.8x". Neither
+    1.8 nor anything within a rounding of it is in the context as a multiple,
+    and that is exactly what this gate is for.
+    """
+    ctx = {"raw_wechat_block": "07226 +1.49%  恒科 +0.82%"}
+    issue = hc.check_numeric_claims("杠杆放大比 ≈1.8x 正常区间。", ctx)
+    assert issue and "1.8x" in issue[0]
+
+
+def test_both_bounds_of_a_range_are_unit_checked(hc):
+    """The lower bound used to be checked against nothing at all.
+
+    `_UNIT_CLAIMS['percent']` matches the number adjacent to `%`, and a range
+    writes the unit once — so "0.2~0.5%" only ever tested 0.5. The defect this
+    gate was built for ("+0.3~-0.4%" against a context of +0.3% each) has a
+    fabricated bound on the low side too.
+    """
+    ctx = {"peer_scan": {"X": {"self_pct_1d": 0.5}}}
+    issue = hc.check_numeric_claims("同业今日在 0.2~0.5% 之间。", ctx)
+    assert issue and "0.2%" in issue[0], issue
+
+
+# ── An advisory-only run produced a clean report (#1076) ──────────────────────
+
+def test_product_status_reads_what_shipped_not_what_the_checker_noticed(hc):
+    advisory = [f"context 里没有的数字: 4pp {hc.ADVISORY_MARK}"]
+    escalating, advisories = hc.split_advisory(advisory)
+    status = hc.categorize_issues(advisory, ("严重",))
+    assert status == "warn", "the checker still notices it"
+    assert hc.product_status(status, escalating) == "pass", (
+        "but the reader downstream must see the clean report that shipped")
+
+
+def test_product_status_never_softens_a_real_finding(hc):
+    for issues, expected in (
+        ([], "pass"),
+        (["表格被改写"], "warn"),
+        (["表格被改写", f"数字 {hc.ADVISORY_MARK}"], "warn"),
+        (["严重: 数据块缺失"], "fail"),
+    ):
+        escalating, _ = hc.split_advisory(issues)
+        status = hc.categorize_issues(issues, ("严重",))
+        assert hc.product_status(status, escalating) == expected, issues
+
+
+@pytest.mark.parametrize("module_name", [
+    "clawock.harness.report_postflight",
+    "clawock.harness.intraday_postflight",
+    "clawock.harness.brief_postflight",
+])
+def test_every_postflight_reports_the_product_not_the_check(module_name):
+    """All three wrote `(validation warnings)` on clean reports (#1076).
+
+    #768 corrected the ledger's final_product column and stopped there. Reading
+    `product` instead of `status` at the stage record and the commit subject is
+    the rest of that same fix, asserted here per module so a fourth postflight
+    cannot be added with the old reading.
+    """
+    module = importlib.import_module(module_name)
+    source = Path(module.__file__).read_text(encoding="utf-8")
+    assert "product_status(status, escalating)" in source, (
+        f"{module_name} still files the checker's verdict as the product")

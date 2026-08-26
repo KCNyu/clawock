@@ -49,6 +49,7 @@ from clawock.harness.validation import (
     categorize_issues,
     check_numeric_claims,
     check_raw_tables_verbatim,
+    product_status,
     split_advisory,
     validate_forbidden_phrases,
 )
@@ -444,6 +445,8 @@ def main(argv=None):
     # The banner counts and lists ESCALATING issues only; advisory findings get
     # their own line below, so a truncated list can never drop them (#134).
     escalating, advisories = split_advisory(issues)
+    # What shipped, not what the checker noticed — see product_status (#1076).
+    product = product_status(status, escalating)
     if status == 'pass' or not escalating:
         banner = ''
     elif status == 'warn':
@@ -590,7 +593,7 @@ def main(argv=None):
         'data_plane_status': data_plane_status,
         'narrative_status': {
             'pass': 'success', 'warn': 'warning', 'fail': 'failed',
-        }[status],
+        }[product],
         'insights_sidecar': insights_written,
     }
     heartbeat = ctx.get('heartbeat') or {}
@@ -605,7 +608,7 @@ def main(argv=None):
         args.market,
         heartbeat_state,
         job_name=heartbeat.get('job'), slot=heartbeat.get('slot'),
-        postflight_status=status, wechat_sent=wechat_sent,
+        postflight_status=product, wechat_sent=wechat_sent,
         telegram_sent=tg_ok, dashboard_published=dashboard_published,
         data_plane_status=data_plane_status,
         insights_sidecar=insights_written, issue_count=len(issues),
@@ -623,7 +626,7 @@ def main(argv=None):
     print(json.dumps(result, ensure_ascii=False, indent=2))
     if not publication_ok:
         return 2
-    return 0 if status == 'pass' else (1 if status == 'warn' else 2)
+    return 0 if product == 'pass' else (1 if product == 'warn' else 2)
 
 
 if __name__ == '__main__':

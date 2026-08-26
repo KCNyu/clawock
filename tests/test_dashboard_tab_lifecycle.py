@@ -15,11 +15,43 @@ def _sidecar_keys() -> set[str]:
     return set(re.findall(r"([a-z][a-z0-9_]+)\s*:", block))
 
 
-def test_every_mapped_sidecar_has_a_valid_seed_before_browser_fetches_it():
-    """A new optional producer must not ship a first-party 404 window."""
+def _data_plane_outputs() -> set[str]:
+    """The artifacts the publisher puts on the `data-plane` branch (#314).
+
+    Declared in the repository, so this resolves identically in a clean
+    checkout, a worktree and CI.
+    """
+    config = json.loads(
+        (ROOT / "config" / "dashboard-outputs.json").read_text(encoding="utf-8"))
+    return set(config["outputs"])
+
+
+def test_every_mapped_sidecar_has_a_producer_before_browser_fetches_it():
+    """A new optional producer must not ship a first-party 404 window.
+
+    Two publication routes reach the browser and the test has to know both, or
+    it measures the machine instead of the contract. A sidecar either ships a
+    schema-valid seed in the repository, or it is one of the build outputs #314
+    took OUT of the repository and onto the `data-plane` branch — those are
+    gitignored by design, so requiring a checked-in file made this assertion
+    pass only where a dashboard build had already run. It failed in every clean
+    worktree and passed in CI purely because an earlier test wrote the file,
+    which is the worst shape a gate can have: green by side effect.
+
+    Asserted against the tracked declaration instead, it is strictly stronger —
+    a sidecar mapped with neither a seed nor a declared producer is a real 404
+    and is now caught anywhere.
+    """
+    published = _data_plane_outputs()
     for key in _sidecar_keys():
-        path = ROOT / "assets" / "data" / f"{key}.json"
-        assert path.is_file(), f"{path} needs a schema-valid seed before mapping"
+        relative = f"assets/data/{key}.json"
+        path = ROOT / relative
+        if relative in published:
+            continue
+        assert path.is_file(), (
+            f"{relative} is mapped in SIDECAR_TAB but has neither a seed in the "
+            f"repository nor an entry in config/dashboard-outputs.json — the "
+            f"browser would fetch a 404")
         assert isinstance(json.loads(path.read_text()), dict)
 
 
