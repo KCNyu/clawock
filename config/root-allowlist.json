@@ -1,6 +1,5 @@
 {
  "schema_version": 1,
- "note": "Explains the TRACKED top-level surface only. MEMORY.md and DREAMS.md were entries here until #1071; they are the agent's memory — host-local and untracked — and an entry with no tracked path is a CRITICAL 'missing' that blocks every push, so they must not come back.",
  "entries": {
   ".githooks": {
    "owner": "repository safety",
@@ -34,6 +33,10 @@
    "owner": "runtime compatibility",
    "consumer": "Claude Code entry context"
   },
+  "DREAMS.md": {
+   "owner": "runtime compatibility",
+   "consumer": "OpenClaw dreaming promotion (03:00 HKT) appends it; commit_dreaming.sh commits it"
+  },
   "HEARTBEAT.md": {
    "owner": "runtime compatibility",
    "consumer": "OpenClaw heartbeat"
@@ -49,6 +52,10 @@
   "LICENSE": {
    "owner": "legal",
    "consumer": "package metadata, GitHub and Pages staging"
+  },
+  "MEMORY.md": {
+   "owner": "runtime compatibility",
+   "consumer": "OpenClaw main-session memory; named as the authority by eight tracked instruction files"
   },
   "NOTICE": {
    "owner": "legal",

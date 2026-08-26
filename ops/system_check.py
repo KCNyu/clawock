@@ -112,26 +112,22 @@ class Result:
 
 
 # Shipped in the repository: every checkout, worktree and CI runner has them.
-BASELINE_TRACKED = ['SOUL.md', 'IDENTITY.md', 'USER.md', 'TOOLS.md',
+# MEMORY.md is back on this list as of #1074 — it is clawock runtime state
+# (openclaw's dreaming job writes it, every cron payload gets it, and eight of
+# the files beside it name it as the authority), not coding-agent prose. #1072
+# swept it out with `memory/*.md`, which forced the two-tier split #1073 had to
+# invent; both are gone now that the tracked surface tells the truth again.
+BASELINE_TRACKED = ['SOUL.md', 'IDENTITY.md', 'USER.md', 'MEMORY.md', 'TOOLS.md',
                     'AGENTS.md', 'CLAUDE.md', 'BOOTSTRAP.md', 'portfolio.json']
-# The agent's memory index: host-local and untracked since #1071, so it is
-# required of the LIVE workspace and absent from every worktree by design.
-BASELINE_HOST_LOCAL = ['MEMORY.md']
 
 
 def check_baseline_files(r):
     """All required bootstrap + workspace files exist.
 
-    Two tiers, because they have two different truths. The tracked documents
-    must be in whatever checkout this runs from. `MEMORY.md` is the agent's
-    memory index — host-local by design — so requiring it everywhere would turn
-    every agent worktree's pre-push into a CRITICAL and block the PR flow; and
-    NOT requiring it on the live box would let the memory the runtime injects
-    disappear unnoticed. It is checked where it is supposed to be.
+    One tier, because they now have one truth: every one of these is tracked, so
+    every checkout — live workspace, agent worktree, CI runner — must have it.
     """
     required = list(BASELINE_TRACKED)
-    if WS.resolve() == LIVE_WORKSPACE.resolve():
-        required += BASELINE_HOST_LOCAL
     missing = [f for f in required if not (WS / f).exists()]
     if missing:
         r.add('baseline files', CRITICAL, f'missing: {missing}')
@@ -1086,8 +1082,9 @@ def _memory_curation_gaps():
     """Compare the memory index against the topic files on disk.
 
     Returns (orphans, dangling): topic files nothing links to, and links that
-    resolve to nothing. Both are read from the LIVE workspace, because the
-    memory is host-local by design (#1071) — git carries none of it.
+    resolve to nothing. Both are read from the LIVE workspace: the index is
+    tracked (#1074) but the topic files it points at are host-local, so only
+    the live box can see both halves at once.
     """
     index = LIVE_WORKSPACE / 'MEMORY.md'
     if not index.is_file():
