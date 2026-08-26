@@ -283,8 +283,7 @@ def _safe_push_in(repo):
     push under whatever git happens to be configured with, and an unreadable
     money checker must fail rather than skip the money gate.
     """
-    for name in ("safe_push.sh", "publish_identity.sh", "money_checker.sh",
-                 "untrack_guard.sh"):
+    for name in ("safe_push.sh", "publish_identity.sh", "money_checker.sh"):
         (repo / name).write_text((ROOT / "ops" / "publish" / name).read_text())
     return repo / "safe_push.sh"
 

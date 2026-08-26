@@ -36,17 +36,8 @@ if ! flock -n 9; then
 fi
 
 # Fetch first so we build on top of the latest sidecars other writers pushed.
-# The ff-merge below goes through the shared #1038 migration guard: a plain
-# --ff-only merge silently DELETES clean daily notes from disk when master
-# stops tracking them — exactly what must not happen to workspace continuity.
-# The guard backs them up and restores them after; dirty ones make this merge
-# refuse outright (unchanged), which only delays the tick.
-# shellcheck source=ops/publish/untrack_guard.sh
-. "$(dirname "${BASH_SOURCE[0]}")/untrack_guard.sh"
 git fetch -q origin master || true
-pull_guard_backup origin master
 git merge -q --ff-only origin/master 2>/dev/null || true
-pull_guard_restore
 
 # The last published generation, materialised out of the data branch. Two things
 # need it and both used to get it from this repository: the recovery source for
