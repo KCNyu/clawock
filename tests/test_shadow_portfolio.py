@@ -394,7 +394,14 @@ def test_fill_counts_separate_real_assumed_fallback_and_skipped():
         "ohlc_assumption": 1,
         "canonical_close_fallback": 1,
         "skipped": 1,
+        # #1088: the skip keeps its cause. DDD is a `cut` on a zero-share
+        # holding, so the simulated policy is selling what it never held — the
+        # bucket that turned out to be 225 of the live run's 238 skips.
+        "skipped:skipped_no_inventory": 1,
     }
+    assert sum(
+        value for key, value in counts.items() if key.startswith("skipped:")
+    ) == counts["skipped"], "the breakdown must partition the total, not extend it"
 
 
 def test_cumulative_diff_is_followed_minus_buy_hold_with_both_signs():
