@@ -88,6 +88,7 @@ from clawock.harness.validation import (
     categorize_issues,
     check_numeric_claims,
     check_raw_tables_verbatim,
+    product_status,
     split_advisory,
     validate_forbidden_phrases,
 )
@@ -444,10 +445,12 @@ def main(argv=None):
     # distinction: an advisory-only slot delivers a clean report and must not be
     # filed as a degraded product (#764).
     escalating, advisories = split_advisory(issues)
+    # What shipped, not what the checker noticed — see product_status (#1076).
+    product = product_status(status, escalating)
     workflow_outcomes.record_stage(
         job_name,
         'llm',
-        'success' if status == 'pass' else ('warning' if status == 'warn' else 'failed'),
+        'success' if product == 'pass' else ('warning' if product == 'warn' else 'failed'),
         slot=slot,
         context_id=ctx.get('context_id'),
         issue_count=len(issues),
@@ -577,7 +580,7 @@ def main(argv=None):
             deterministic_fallback=(status == 'fail'),
         )
 
-    commit_ok, commit_msg = maybe_commit(status, ctx['commit_msg'])
+    commit_ok, commit_msg = maybe_commit(product, ctx['commit_msg'])
     data_plane_status = classify_data_plane(commit_ok, commit_msg)
 
     result = {
@@ -598,7 +601,7 @@ def main(argv=None):
         'data_plane_status': data_plane_status,
         'narrative_status': {
             'pass': 'success', 'warn': 'warning', 'fail': 'failed',
-        }[status],
+        }[product],
         'n_chars':       len(body),
     }
     # Even a rejected prose report can have a successful postflight: the harness
@@ -608,7 +611,7 @@ def main(argv=None):
         job_name,
         'postflight',
         'success'
-        if status == 'pass' and data_plane_status in {'published', 'current'}
+        if product == 'pass' and data_plane_status in {'published', 'current'}
         else 'warning',
         slot=slot,
         delivered=result['delivered'],
@@ -620,7 +623,7 @@ def main(argv=None):
     print(json.dumps(result, ensure_ascii=False, indent=2))
     if data_plane_status not in {'published', 'current'}:
         return 2
-    return 0 if status == 'pass' else (1 if status == 'warn' else 2)
+    return 0 if product == 'pass' else (1 if product == 'warn' else 2)
 
 
 if __name__ == '__main__':
