@@ -646,6 +646,39 @@ def attribute_fills(events: list[dict], final_prices: dict[str, float]) -> dict:
     }
 
 
+#: Below this share of legs actually filled, `cumulative_diff` is not a
+#: description of the policy — it is a description of 28 of its 266 legs.
+MIN_REPRESENTATIVE_FILL_RATE = 0.5
+
+
+def _coverage_view(curves: dict) -> dict:
+    """How much of the policy the simulated curve actually contains.
+
+    `estimand` claims the net value of following EVERY triggered active call.
+    When most legs never fill, that sentence is still printed and the number
+    beside it means something much narrower. This is the denominator, stated
+    where the numerator is.
+    """
+    filled = skipped = 0
+    for result in curves.values():
+        counts = (result.get("counts") or {}).get("fill_types") or {}
+        for kind, value in counts.items():
+            if kind == "skipped":
+                skipped += int(value or 0)
+            elif not str(kind).startswith("skipped:"):
+                filled += int(value or 0)
+    total = filled + skipped
+    rate = round(filled / total, 4) if total else None
+    return {
+        "filled_legs": filled,
+        "skipped_legs": skipped,
+        "fill_rate": rate,
+        "minimum_representative_fill_rate": MIN_REPRESENTATIVE_FILL_RATE,
+        "representative": bool(
+            rate is not None and rate >= MIN_REPRESENTATIVE_FILL_RATE),
+    }
+
+
 def _attribution_identity(attribution: dict, cumulative_diff) -> dict:
     """Does the decomposition reproduce the published gap?
 
@@ -817,7 +850,16 @@ def simulate_leg(
                 if leg_fill.get("filled_shares", 0) > 0:
                     fill_counts[leg_fill.get("fill_type") or "missing"] += 1
                 else:
+                    # Keep the reason. Every leg already carries one
+                    # (`skipped_no_fill_price` / `_no_inventory` / `_no_cash`),
+                    # and collapsing them into a single bucket is what made 238
+                    # skips unreadable: a missing bar is a DATA problem, no cash
+                    # is the simulation's own accounting, and no inventory means
+                    # the policy sold something it never held. Three different
+                    # answers to "why is coverage 10%", reported as one number.
                     fill_counts["skipped"] += 1
+                    reason = str(leg_fill.get("status") or "skipped_unknown")
+                    fill_counts[f"skipped:{reason}"] += 1
             filled_legs = sum(leg_fill.get("filled_shares", 0) > 0 for leg_fill in legs)
             events.append({
                 "date": day,
@@ -961,6 +1003,14 @@ def simulate_leg(
                 "ohlc_assumption": fill_counts["ohlc_assumption"],
                 "canonical_close_fallback": fill_counts["canonical_close_fallback"],
                 "skipped": fill_counts["skipped"],
+                # Why each skip happened. A hand-listed projection is what hid
+                # them: the loop had the reason and this dict dropped it, so
+                # "238 skipped" could not be read as data gap vs simulation
+                # accounting vs a policy selling what it never held.
+                **{
+                    key: value for key, value in sorted(fill_counts.items())
+                    if str(key).startswith("skipped:")
+                },
             },
         },
         "mark_coverage": {
@@ -1020,13 +1070,25 @@ def build_shadow_portfolio(
             currency: result["cumulative_diff"]
             for currency, result in curves.items()
         },
+        # In the SAME object as the number it qualifies, because the reader who
+        # takes `cumulative_diff` for "what following the advice is worth" is
+        # exactly the reader who will not go looking for a denominator in
+        # `fill_counts`. Measured 2026-08-26: HK$24,548 rested on 28 filled legs
+        # against 238 skipped — 10.5% — and nothing beside the number said so.
+        "coverage": _coverage_view(curves),
         "fill_counts": {
             kind: sum(
-                result["counts"]["fill_types"][kind] for result in curves.values()
+                (result["counts"]["fill_types"] or {}).get(kind, 0)
+                for result in curves.values()
             )
-            for kind in (
-                "real_trade", "ohlc_assumption",
-                "canonical_close_fallback", "skipped",
+            for kind in sorted(
+                {
+                    key
+                    for result in curves.values()
+                    for key in (result["counts"]["fill_types"] or {})
+                }
+                | {"real_trade", "ohlc_assumption",
+                   "canonical_close_fallback", "skipped"}
             )
         },
         "fx_policy": {
