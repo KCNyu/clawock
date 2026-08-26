@@ -118,6 +118,43 @@ MAX_NUMERIC_SAMPLES = 4
 MIN_CHECKED_AMOUNT = 1_000
 
 
+def _rounding_tolerance(raw, magnitude=None):
+    """Half a unit of the last digit the model actually wrote.
+
+    A report that writes "+8%" where the context says 8.2 has rounded for
+    readability; it has not invented a number. Demanding an exact match made
+    that indistinguishable from a fabrication, and the result was noise at a
+    rate nobody could keep reading past: over three days of live runs, 26 of 64
+    slots carried an advisory and every one of them was a rounding — measured,
+    not estimated. `advisory_prefix` is documented as needing to read as
+    information rather than a warning; a check that cries at 40% of clean
+    reports trains the opposite.
+
+    The width is derived from the writing, not configured: "8" claims one
+    significant place and admits [7.5, 8.5]; "8.2" claims a tenth and admits
+    [8.15, 8.25]. Writing more precisely therefore buys a tighter gate, which
+    is the right incentive. A magnitude suffix scales it with the value, so
+    "1.5 万" admits ±500 rather than ±0.05.
+    """
+    text = str(raw)
+    decimals = len(text.split('.', 1)[1]) if '.' in text else 0
+    return 0.5 * (10 ** -decimals) * _MAGNITUDE.get(magnitude, 1)
+
+
+def _states(known, value, tolerance):
+    """Does `known` hold a number `value` could be a rounding of?
+
+    Exact membership stays the fast path — the tolerance only ever widens what
+    already matched, so no previously-quiet report can start reporting.
+    """
+    if value is None:
+        return True
+    target = round(abs(value), 4)
+    if target in known:
+        return True
+    return any(abs(candidate - target) <= tolerance for candidate in known)
+
+
 def _as_number(raw, magnitude=None):
     try:
         value = float(str(raw).replace(',', ''))
@@ -215,31 +252,46 @@ def check_numeric_claims(text, ctx):
     known_by_unit = _context_unit_numbers(ctx)
     unverified = []
 
-    def check(value, label):
-        if value is None or round(abs(value), 4) in known:
+    def check(value, label, tolerance):
+        if _states(known, value, tolerance):
             return
         if label not in unverified:
             unverified.append(label)
 
     for raw, magnitude in _SHARE_CLAIM.findall(text):
-        check(_as_number(raw, magnitude), f'{raw}{magnitude or ""}股')
+        check(_as_number(raw, magnitude), f'{raw}{magnitude or ""}股',
+              _rounding_tolerance(raw, magnitude))
     for cur_num, cur_mag, num_cur, mag_cur in _CURRENCY_CLAIM.findall(text):
         raw, magnitude = (cur_num, cur_mag) if cur_num else (num_cur, mag_cur)
         amount = _as_number(raw, magnitude)
         if amount is not None and abs(amount) >= MIN_CHECKED_AMOUNT:
-            check(amount, f'{raw}{magnitude or ""}')
+            check(amount, f'{raw}{magnitude or ""}',
+                  _rounding_tolerance(raw, magnitude))
+
+    def check_unit(unit, raw, at):
+        if unit == 'percent' and _is_hypothetical_percent(text, at):
+            return
+        # The unit set stays exact-per-unit on purpose: a rounding is a rounding
+        # of the SAME quantity, so widening tolerance must not also let a percent
+        # authorize a multiple. Only the width changes here.
+        if _states(known_by_unit[unit], _as_number(raw), _rounding_tolerance(raw)):
+            return
+        label = f'{raw}{_UNIT_LABELS[unit]}'
+        if label not in unverified:
+            unverified.append(label)
 
     for unit, pattern in _UNIT_CLAIMS.items():
         for match in pattern.finditer(text):
-            if unit == 'percent' and _is_hypothetical_percent(text, match.start()):
-                continue
-            raw = match.group(1)
-            value = _as_number(raw)
-            if value is None or round(abs(value), 4) in known_by_unit[unit]:
-                continue
-            label = f'{raw}{_UNIT_LABELS[unit]}'
-            if label not in unverified:
-                unverified.append(label)
+            check_unit(unit, match.group(1), match.start())
+
+    # A range carries its unit once, at the end: `_UNIT_CLAIMS['percent']` only
+    # ever saw the upper bound, so the lower bound of "0.2~0.5%" was never
+    # checked against anything. That blind spot was invisible while the upper
+    # bound alone kept these findings alive — the shipped "+0.3~-0.4%" defect
+    # this gate exists for is a fabricated LOWER bound as much as an upper one.
+    for lo, hi in _RANGE.findall(text):
+        for raw in (lo, hi):
+            check_unit('percent', raw, text.find(raw))
 
     impossible = [
         f'{lo}~{hi}%' for lo, hi in _RANGE.findall(text)
@@ -298,6 +350,30 @@ def advisory_prefix(advisories, shown=2):
     body = '; '.join(a.replace(ADVISORY_MARK, '').strip() for a in advisories[:shown])
     more = f'；另 {len(advisories) - shown} 条' if len(advisories) > shown else ''
     return f'ℹ️ 数字校验（不影响投递）：{body}{more}\n\n'
+
+
+def product_status(status, escalating):
+    """What the run PRODUCED, as opposed to what the checker noticed.
+
+    `categorize_issues` answers "is there anything worth saying" and so returns
+    `warn` for an advisory-only run. That is right for the checker and wrong for
+    every reader downstream: `split_advisory` already leaves the banner empty,
+    so the delivered report is clean and says so with a `ℹ️ 不影响投递` line —
+    while the commit subject read `(validation warnings)` and the ledger stage
+    read `warning`. The same fact, told two ways, depending on where you looked.
+
+    #768 fixed exactly this for the ledger's `final_product` column and stopped
+    there; measured over the three days after it, 26 of 64 slots were filed as
+    degraded generation and **every one had `escalating_count == 0`**. This is
+    the same correction applied at the two remaining readers, from one place so
+    they cannot drift apart again.
+
+    `fail` is never softened: it is only reachable with a critical or with more
+    escalating issues than `warn_max`, both of which mean escalating is present.
+    """
+    if status == 'warn' and not escalating:
+        return 'pass'
+    return status
 
 
 def categorize_issues(issues, critical_substrings, warn_max=2, extra_critical=None):
