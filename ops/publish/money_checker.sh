@@ -28,7 +28,17 @@ money_checker_kind() {
     echo installed
     return 0
   fi
-  if [ -n "$1" ] && PYTHONPATH="$1/src" \
+  # Ask the filesystem BEFORE the interpreter. An editable install writes a
+  # .pth into site-packages, so `import clawock.cli` succeeds from anywhere on
+  # a developer box regardless of PYTHONPATH — this branch answered "checkout"
+  # for a root with no `src/` at all, and then verified the book with whatever
+  # copy of the package happened to be importable rather than the one being
+  # published. Same class as `clawock --version` on an editable install: the
+  # answer is about the host, not about the code under test. It is also why the
+  # gate's own contract test passed in CI (nothing installed) and failed on the
+  # live box (everything installed) — a gate that reports on the machine is not
+  # reporting on the contract.
+  if [ -n "$1" ] && [ -f "$1/src/clawock/cli.py" ] && PYTHONPATH="$1/src" \
        python3 -c 'import clawock.cli' >/dev/null 2>&1; then
     echo checkout
     return 0
