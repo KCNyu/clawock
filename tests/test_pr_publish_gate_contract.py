@@ -364,3 +364,48 @@ def test_safe_push_runs_the_money_check_when_the_money_file_moves(tmp_path):
     assert result.returncode == 4
     assert marker.exists(), "the package integrity command was not invoked"
     assert "does not reconcile" in result.stdout
+
+
+def test_the_checkout_fallback_must_come_from_the_checkout(tmp_path):
+    """"Importable somewhere" is not "provided by the root being published".
+
+    `money_checker.sh` documents the fallback as running the package *out of
+    the checkout*. It probed that with a bare `import clawock.cli` under a
+    PYTHONPATH — but an editable install puts a .pth in site-packages, so the
+    import succeeds anywhere on a machine that has clawock installed, and the
+    probe answered "checkout" for a root with no `src/` in it. The gate then
+    verified the book with whatever copy of the package was importable instead
+    of the one being published.
+
+    That also made the gate's own contract test report on the machine rather
+    than on the contract: green in CI (nothing installed), red on the live box
+    (editable install). Asserted from both sides here, so neither environment
+    can make it pass for the wrong reason.
+    """
+    probe = (
+        f'set -e\n'
+        f'. "{ROOT}/ops/publish/money_checker.sh"\n'
+        f'money_checker_kind "$1" || echo unresolved\n'
+    )
+
+    def kind(root):
+        done = subprocess.run(
+            ["/bin/bash", "-c", probe, "bash", str(root)],
+            capture_output=True, text=True,
+            # `clawock` off PATH so the "installed" branch cannot answer first;
+            # os.environ is inherited on purpose, because an inherited editable
+            # install is exactly the condition that broke this.
+            env={**os.environ, "PATH": "/usr/bin:/bin"},
+        )
+        return done.stdout.strip()
+
+    bare = tmp_path / "no-src"
+    bare.mkdir()
+    assert kind(bare) == "unresolved", (
+        "a root that ships no src/ must not resolve as 'checkout', however "
+        "importable the package happens to be on this host")
+
+    with_src = tmp_path / "with-src"
+    with_src.mkdir()
+    (with_src / "src").symlink_to(ROOT / "src")
+    assert kind(with_src) == "checkout"
