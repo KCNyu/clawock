@@ -96,6 +96,17 @@ reference 的三种技术 staged setup，或 packet 编译出的 `alpha_confirma
 只安排未来 1–5 个本地交易日的执行。Bull/Bear 可反证、否决或降档，不能凭措辞
 创造 authority、提高 tier 或改股数。
 
+**证据族现在有三个(#1086)**：`price_relative`(因子/同业残差)、
+`point_in_time_information`(一手披露)、**`technical_breakout`**(收盘站上前 20 日高
+且 z < `early_no_chase_zscore`)。第三族是 #856 回测里**唯一四周期全绿**的形态
+(H20 55.9% avg +16.25%；港股 H20 59.4% avg +38.7%)，此前只喂给盘中消息、
+对决策没有任何权重。
+
+三条边界不许越：**门槛仍是两族**(突破单独不授权任何东西)；突破**不算 validated**
+(validated 仍要两侧都有 `usable_for_decisions` 的证据)；因此**杠杆腿不会被价格形态
+提拔**，`leveraged_requires_validated_evidence` 照旧。授权成立时
+`add_authority.technical_reasons` 会写明是哪一次突破——**引用它，不要自己重算价位**。
+
 `quant.early_trend.observed=true` 是 harness 已发现的提前布局候选：必须让 Bull 写最强的
 可证伪提前布局论点，让 Bear 写 priced-in/拥挤/来源质量反驳，Judge 再给
 `candidate|wait|reject`。Judge 只能把 deterministic candidate 保留、等待或否决；不得把

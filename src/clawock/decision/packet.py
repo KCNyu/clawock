@@ -850,6 +850,10 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
             policy=add_policy,
             market=leg,
             continuing=continuing_alpha,
+            # The decision lane never saw a price trend until #1086: the one
+            # formation #856 measured positive at every horizon fed only the
+            # intraday message.
+            technical=technical,
         )
         if alpha_authority.get("tier") == "exploration":
             # A current-universe backfill can discover an interaction worth
@@ -1056,15 +1060,19 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
             ],
         },
         "add_alpha_policy": {
-            key: add_policy.get(key)
-            for key in (
-                "schema_version", "registered_at", "minimum_evidence_families",
-                "confirmation_window_sessions", "exploration_max_tranches",
-                "exploration_tranche_pct", "validated_max_tranches",
-                "exploration_max_book_pct", "early_peer_dispersion_multiple",
-                "early_no_chase_zscore",
-                "validated_tranche_pct", "markets", "discipline",
-            )
+            **{
+                key: add_policy.get(key)
+                for key in (
+                    "schema_version", "registered_at", "minimum_evidence_families",
+                    "confirmation_window_sessions", "exploration_max_tranches",
+                    "exploration_tranche_pct", "validated_max_tranches",
+                    "exploration_max_book_pct", "early_peer_dispersion_multiple",
+                    "early_no_chase_zscore",
+                    "validated_tranche_pct", "markets", "discipline",
+                )
+            },
+            # Stated once for the packet instead of once per holding (#1086).
+            "authority_discipline": add_alpha.AUTHORITY_DISCIPLINE,
         },
         "add_alpha_diagnostics": {
             "held_names": len(tickers),

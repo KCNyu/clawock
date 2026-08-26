@@ -544,8 +544,13 @@ def test_early_exploration_reports_its_real_tranche_and_evidence_families():
 
     assert row["state"] == "exploration_ready"
     assert row["target_tranche_level"] == .25
+    # `close 11 > prior_20d_high 10` with `zscore20 1` is a clean, un-overheated
+    # breakout, so #1086's third family fires here too. That this fixture — built
+    # for a different purpose — lights it up end-to-end through `compile_packet`
+    # is the evidence that the classifier is actually handed the price trend,
+    # rather than merely having grown a parameter nobody passes.
     assert row["evidence_families"] == [
-        "point_in_time_information", "price_relative",
+        "point_in_time_information", "price_relative", "technical_breakout",
     ]
     assert row["entry_price"] == 11
 
