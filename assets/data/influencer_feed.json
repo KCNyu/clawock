@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-25T21:55:49.593079+00:00",
+  "generated_at": "2026-08-26T13:41:58.127230+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -11,41 +11,139 @@
     "musk": "success",
     "serenity": "failed"
   },
-  "llm_filtered": false,
+  "llm_filtered": true,
   "counts": {
-    "total": 34,
-    "held_hits": 0,
-    "new_ideas": 0,
-    "sector_hits": 0
+    "total": 15,
+    "held_hits": 3,
+    "new_ideas": 3,
+    "sector_hits": 5
   },
   "items": [
     {
       "author": "Musk",
-      "text": "Trump Bought Shares in Elon Musk's SpaceX in June",
+      "text": "Musk's SpaceX announces $100 billion plan for new spaceport in Louisiana",
       "url": "",
-      "published": "Tue, 25 Aug 2026 18:12:42 GMT",
+      "published": "Tue, 25 Aug 2026 21:35:22 GMT",
       "origin": "gnews-rss",
-      "source": "GV Wire",
+      "source": "CBS News",
       "tickers": [],
-      "held": [],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
       "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "sectors": [
+        "航天",
+        "基础设施"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 78,
+      "summary_cn": "Musk旗下SpaceX宣布在路易斯安那州投资1000亿美元建设新太空港，重大资本开支利好SpaceX相关持仓。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk won't face election bribery charges in Wisconsin, state prosecutor says - ABC News",
+      "text": "Trump bought shares in Elon Musk's SpaceX in June, financial disclosure shows",
       "url": "",
-      "published": "Tue, 25 Aug 2026 17:41:39 GMT",
+      "published": "Mon, 24 Aug 2026 17:18:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Reuters",
+      "tickers": [],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "政治人物持仓"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 75,
+      "summary_cn": "财务披露显示Trump今年6月买入了Mus旗下SpaceX的股份，总统背书直接利好SpaceX持仓。"
+    },
+    {
+      "author": "Musk",
+      "text": "Zelenskyy awards Elon Musk Ukraine’s Order of Freedom for Starlink role - ABC News",
+      "url": "",
+      "published": "Wed, 26 Aug 2026 11:53:34 GMT",
       "origin": "gnews-rss",
       "source": "ABC News - Breaking News, Latest News and Videos",
       "tickers": [],
-      "held": [],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
       "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "sectors": [
+        "航天",
+        "国防",
+        "地缘政治"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 62,
+      "summary_cn": "乌克兰总统泽连斯基因Starlink贡献向Musk授予'自由勋章'，强化SpaceX/Starlink地缘政治价值。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk's SpaceX and Tesla Are Building a $16.8 Billion Chip Factory 5 Times Bigger Than Earth's Largest Building. What Does That Mean for Both Stocks?",
+      "url": "",
+      "published": "Fri, 21 Aug 2026 20:57:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "半导体",
+        "AI",
+        "电动车",
+        "航天"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226",
+        "SKHY",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 80,
+      "summary_cn": "Musk旗下SpaceX和Tesla将合建168亿美元的芯片工厂，规模为地球最大建筑的5倍，利好Tesla及半导体供应链。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk Could Help Oklo's Stock Price Soar. Here's Why.",
+      "url": "",
+      "published": "Wed, 26 Aug 2026 01:05:00 GMT",
+      "origin": "gnews-rss",
+      "source": "The Motley Fool",
+      "tickers": [
+        "OKLO"
+      ],
+      "held": [],
+      "new_ideas": [
+        "OKLO"
+      ],
+      "sectors": [
+        "核电",
+        "AI基础设施",
+        "能源"
+      ],
+      "sector_holdings": [
+        "SKHY"
+      ],
+      "stance": "endorse",
+      "relevance": 72,
+      "summary_cn": "报道称Musk可能推动Oklo股价飙升，Musk与Oklo在能源/AI数据中心供电领域关联，看多OKLO。"
     },
     {
       "author": "Musk",
@@ -54,371 +152,465 @@
       "published": "Tue, 25 Aug 2026 17:31:16 GMT",
       "origin": "gnews-rss",
       "source": "Yahoo Finance",
-      "tickers": [],
+      "tickers": [
+        "TSLA"
+      ],
       "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk Should Reach for the Next Frontier—Not Buy the Last One",
-      "url": "",
-      "published": "Tue, 25 Aug 2026 16:45:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Daily Signal",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Musk",
-      "text": "The worst kept secret in Louisiana: SpaceX announcement finally happened",
-      "url": "",
-      "published": "Tue, 25 Aug 2026 16:14:31 GMT",
-      "origin": "gnews-rss",
-      "source": "KATC",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX to build $100 billion rocket launch facility on Louisiana’s coast. See details.",
-      "url": "",
-      "published": "Tue, 25 Aug 2026 16:04:00 GMT",
-      "origin": "gnews-rss",
-      "source": "NOLA.com",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk's data centers are pushing out a family that's owned land since \"before people of color were allowed to\"",
-      "url": "",
-      "published": "Tue, 25 Aug 2026 14:37:01 GMT",
-      "origin": "gnews-rss",
-      "source": "CBS News",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Musk",
-      "text": "Not ‘Used to Losing’: Apparent Elon Musk Pep Talk to His Cursor Staff Paints Sad Picture",
-      "url": "",
-      "published": "Tue, 25 Aug 2026 01:45:56 GMT",
-      "origin": "gnews-rss",
-      "source": "Gizmodo",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "S&P Global: ‘US Business Is Booming’: https://www.breitbart.com/economy/2026/08/21/biz-is-booming/",
-      "url": "https://trumpstruth.org/statuses/41203",
-      "published": "2026-08-25T15:40:59+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "RT @realwayneroot\"US BUSINESS IS BOOMING.\" My great friend & financial advisor Kip Herriage of VRAinsider called this first. I took ball & ran with it. Trump economy is BOOMING. Yet no one knows it because commie media is gaslighting America. Yes prices still high, but that's 100% Biden's inflation. Inflation growth under Trump is lowest among recent presidents. Big stocks are booming to all time highs, profits all time highs, earnings all time highs- Trump economy is exploding to Reagan levels- while fake news media scams you into thinking it's bad. This is biggest scam in history (other than",
-      "url": "https://trumpstruth.org/statuses/41204",
-      "published": "2026-08-25T15:40:43+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "America must put AI to work defending our critical infrastructure: https://www.washingtonexaminer.com/restoring-america/faith-freedom-self-reliance/4671085/america-ai-work-defending-infrastructure/",
-      "url": "https://trumpstruth.org/statuses/41207",
-      "published": "2026-08-25T15:40:09+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "Reigniting the American dream: Donald Trump, Dave McCormick, and Jamie Dimon unveil a massive manufacturing push in Pennsylvania: https://www.washingtonexaminer.com/opinion/columnists/4652360/trump-dave-mccormick-jamie-dimon-manufacturing-push-pennsylvania/",
-      "url": "https://trumpstruth.org/statuses/41197",
-      "published": "2026-08-25T15:37:21+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "Over the last 10 years, the United States lost, on average, 60 Billion Dollars a year with Canada. No more! President DJT",
-      "url": "https://trumpstruth.org/statuses/41188",
-      "published": "2026-08-25T14:00:40+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "Canada has been “Ripping Off” the U.S.A. for decades. They have been charging our Farmers 400% Tariffs, and more. They have driven many wonderful U.S. companies out of business. For 10 years they wouldn’t certify Gulfstream Jets, until I got involved. They wanted 100% of the market for Gulfstream’s Canadian competitor. I deal with many countries, and Canada is easily the most difficult and unreasonable. They feel entitled, but they are not a State, and will be entitled no longer! President DJT",
-      "url": "https://trumpstruth.org/statuses/41187",
-      "published": "2026-08-25T13:40:40+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "Based on my very good relationship with Kim Jong Un, of North Korea, I was not happy with the fact that the United States had, long ago, agreed to participate in Joint Military Exercises with South Korea. These exercises are not only costly, with much of these costs paid for by the United States of America (as usual!), but send a signal that is totally inappropriate and hostile, to a Country that, as long as Donald J. Trump has been President, has been unthreatening and respectful. Therefore, and based on the fact that it was too late to cancel, I instructed Secretary of War, Pete Hegseth, to ",
-      "url": "https://trumpstruth.org/statuses/41186",
-      "published": "2026-08-25T13:32:02+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "It was my Honor to welcome now Senator Darline Graham Nordone (The sister of the Late, Great Lindsey Graham!), from the Wonderful State of South Carolina, into the Oval Office. We have known each other for a long time — She is a spectacular person, and a true American Patriot. Lindsey was one of the greatest people and Senators I have ever known, and his sister shares his deep love of our Country, and the State of South Carolina. During her visit, I asked Darline, for the Good of our Nation, to run for the U.S. Senate in the Special Republican Primary on Tuesday, August 25, 2026. She accepted,",
-      "url": "https://trumpstruth.org/statuses/41181",
-      "published": "2026-08-25T01:15:27+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "MAGA Warrior Mike Mazzei is running for Governor in Oklahoma, where I was the ONLY President to win ALL 77 Counties in three straight Elections (Ronald Reagan was second!). Additionally, I won more votes than any Candidate in the State’s History! I LOVE Oklahoma, and Mike Mazzei has my COMPLETE and TOTAL Endorsement for Governor!   Meanwhile, his Runoff Election Opponent, Gentner Drummond, is a FAKE Republican, who donated to SLEEPY Joe Biden, and the totally corrupt and anti-American “Lincoln Project,” which is now in shambles because of their views on Open Borders, Men playing in Women’s Spo",
-      "url": "https://trumpstruth.org/statuses/41182",
-      "published": "2026-08-25T01:14:56+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "Lots of “bluster” from Doug Ford, who is the Premier of the Canadian Province of Ontario, but who is better known as the less charismatic, intelligent, and overall unimpressive brother of the late, great, Rob Ford. America has been carrying Canada for decades, but no longer! The U.S.A. will always be far bigger, richer, and stronger than Canada. Without the United States, Canada couldn’t survive — It’s where they get all of their money and, because of their current bad leadership, primarily Governor Carney, and his Flunky, Ford, they will not be allowed to keep taking advantage of the United S",
-      "url": "https://trumpstruth.org/statuses/41175",
-      "published": "2026-08-24T18:03:17+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "RT @realDonaldTrumpThe Radical Left Democrats are going CRAZY with Fake Polls. They’re putting them out at levels never seen before. They’re called, “Demoralization Operations,” where they try to demoralize Republicans so that they don’t go out and vote — But the actual Polls are tremendous, and the Spirit in our Country has never been higher. We’re winning against EVERYONE, including Iran, whose Country is in Economic and Military Death Spiral. Thank you for your attention to this matter! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/41159",
-      "published": "2026-08-24T17:03:21+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "What our spies cut out of the China file: https://www.washingtonexaminer.com/magazine-features/4685521/what-us-spies-cut-china-file-2020/",
-      "url": "https://trumpstruth.org/statuses/41168",
-      "published": "2026-08-24T16:57:28+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "Unearthed DOJ emails expose turmoil over Biden-era memo urging crackdown on parents: https://www.foxnews.com/politics/unearthed-doj-emails-expose-turmoil-over-biden-era-memo-urging-crackdown-parents",
-      "url": "https://trumpstruth.org/statuses/41170",
-      "published": "2026-08-24T16:56:53+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "AI",
+        "电动车",
+        "机器人",
+        "加密货币"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "endorse",
+      "relevance": 68,
+      "summary_cn": "分析师称Tesla在销售Optimus机器人前已具'巨大优势'，并提及加密预测市场对2026年上市的押注，看多Tesla/Optimus。"
     },
     {
       "author": "Trump",
       "text": "Trump’s Tariffs Force Some Canadian Companies to Consider Moving South: https://www.nytimes.com/2026/08/12/world/canada/canada-tariffs-manufacturing-trade-trump.html",
-      "url": "https://trumpstruth.org/statuses/41172",
+      "url": "https://www.trumpstruth.org/statuses/41172",
       "published": "2026-08-24T16:56:22+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
+      "sectors": [
+        "关税",
+        "制造业",
+        "美加贸易"
+      ],
+      "sector_holdings": [
+        "02208"
+      ],
       "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "relevance": 65,
+      "summary_cn": "NYT报道Trump关税迫使部分加拿大企业考虑迁往美国本土生产，利好美国制造业、可能冲击加拿大供应链。"
     },
     {
       "author": "Trump",
-      "text": "The Radical Left Democrats are going CRAZY with Fake Polls. They’re putting them out at levels never seen before. They’re called, “Demoralization Operations,” where they try to demoralize Republicans so that they don’t go out and vote — But the actual Polls are tremendous, and the Spirit in our Country has never been higher. We’re winning against EVERYONE, including Iran, whose Country is in Economic and Military Death Spiral. Thank you for your attention to this matter! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/41156",
-      "published": "2026-08-24T16:10:57+00:00",
+      "text": "America must put AI to work defending our critical infrastructure: https://www.washingtonexaminer.com/restoring-america/faith-freedom-self-reliance/4671085/america-ai-work-defending-infrastructure/",
+      "url": "https://www.trumpstruth.org/statuses/41207",
+      "published": "2026-08-25T15:40:09+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "sectors": [
+        "AI",
+        "基础设施"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226",
+        "SKHY"
+      ],
+      "stance": "endorse",
+      "relevance": 60,
+      "summary_cn": "Trump发文主张美国必须用AI保卫关键基础设施，政策层面利好AI板块。"
     },
     {
       "author": "Trump",
-      "text": "Canada has been ripping off the United States of America for years. Their ridiculously high tariffs on our Farmers and farm products has made life impossible for these great American Patriots, and has long created a 60 Billion Dollar Deficit between our two Countries. Not sustainable, and NOT ANYMORE! On January First, 2027, Tariffs on all Cars, Trucks, both large and small, Automotive Parts, and Steel, will be increased to 50%. Build in the U.S. and there are ZERO TARIFFS. Canada will be treated like a State no longer! On Trade, and in other ways, also, they are among the worst Nations in the",
-      "url": "https://trumpstruth.org/statuses/41154",
-      "published": "2026-08-24T13:38:26+00:00",
+      "text": "S&P Global: ‘US Business Is Booming’: https://www.breitbart.com/economy/2026/08/21/biz-is-booming/",
+      "url": "https://www.trumpstruth.org/statuses/41203",
+      "published": "2026-08-25T15:40:59+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "sectors": [
+        "宏观经济"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "endorse",
+      "relevance": 55,
+      "summary_cn": "Trump转发S&P Global报道，宣称美国商业正在蓬勃发展，整体宏观看多情绪。"
     },
     {
       "author": "Trump",
-      "text": "RT @realDonaldTrumpMy Endorsements are stronger than ever — Not to mention the fact that good people are getting elected that never had the chance! Here is an accurate list of the last number of seasons. There has never been anything close! It is an Honor that I take very seriously. The few that lost were done out of loyalty. It was almost impossible for them to win but, I felt obligated to go with them because they were, in my opinion, good people! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/41153",
-      "published": "2026-08-24T13:09:48+00:00",
+      "text": "RT @realwayneroot\"US BUSINESS IS BOOMING.\" My great friend & financial advisor Kip Herriage of VRAinsider called this first. I took ball & ran with it. Trump economy is BOOMING. Yet no one knows it because commie media is gaslighting America. Yes prices still high, but that's 100% Biden's inflation. Inflation growth under Trump is lowest among recent presidents. Big stocks are booming to all time highs, profits all time highs, earnings all time highs- Trump economy is exploding to Reagan levels- while fake news media scams you into thinking it's bad. This is biggest scam in history (other than",
+      "url": "https://www.trumpstruth.org/statuses/41204",
+      "published": "2026-08-25T15:40:43+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "sectors": [
+        "宏观经济",
+        "美股"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "endorse",
+      "relevance": 55,
+      "summary_cn": "Trump阵营宣传Trump经济下美股创历史新高、盈利创纪录，整体看多美国经济和股市。"
     },
     {
       "author": "Trump",
-      "text": "IRAN IS COMPLETELY COLLAPSING!!! President DJT",
-      "url": "https://trumpstruth.org/statuses/41151",
-      "published": "2026-08-24T12:41:54+00:00",
+      "text": "Reigniting the American dream: Donald Trump, Dave McCormick, and Jamie Dimon unveil a massive manufacturing push in Pennsylvania: https://www.washingtonexaminer.com/opinion/columnists/4652360/trump-dave-mccormick-jamie-dimon-manufacturing-push-pennsylvania/",
+      "url": "https://www.trumpstruth.org/statuses/41197",
+      "published": "2026-08-25T15:37:21+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "sectors": [
+        "制造业",
+        "工业"
+      ],
+      "sector_holdings": [
+        "02208"
+      ],
+      "stance": "endorse",
+      "relevance": 50,
+      "summary_cn": "Trump与McCormick、Dimon在宾州推出大规模制造业投资计划，利好美国制造业。"
     },
     {
       "author": "Trump",
-      "text": "RT @katy_libertyMark Levin just laid it out clearly. Trump is cutting and reviewing regulations to restore American energy independence, put more money in people’s paychecks, and make homeownership attainable again — while still looking out for the environment and American workers. Blue-state governors are sabotaging that progress every chance they get. Democrats claim “he’s not focused on affordability.” He’s all about affordability. They’re just furious he’s delivering it. Stop listening to the liberal media and your blue-state governors. Do your own research. The Democrats have been the rea",
-      "url": "https://trumpstruth.org/statuses/41148",
-      "published": "2026-08-24T05:23:41+00:00",
+      "text": "Canada has been “Ripping Off” the U.S.A. for decades. They have been charging our Farmers 400% Tariffs, and more. They have driven many wonderful U.S. companies out of business. For 10 years they wouldn’t certify Gulfstream Jets, until I got involved. They wanted 100% of the market for Gulfstream’s Canadian competitor. I deal with many countries, and Canada is easily the most difficult and unreasonable. They feel entitled, but they are not a State, and will be entitled no longer! President DJT",
+      "url": "https://www.trumpstruth.org/statuses/41187",
+      "published": "2026-08-25T13:40:40+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "sectors": [
+        "关税",
+        "航空航天",
+        "美加贸易"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 62,
+      "summary_cn": "Trump抨击加拿大对美农产品征400%关税、不认证Gulfstream公务机，威胁贸易报复，牵连航空航天板块。"
     },
     {
       "author": "Trump",
-      "text": "The Midterm Meltdown: https://pro.paradigmnewsletters.org/p/awn_midtermmeltdown_0626/LAWN6816/?h=true",
-      "url": "https://trumpstruth.org/statuses/41142",
-      "published": "2026-08-24T04:34:10+00:00",
+      "text": "Over the last 10 years, the United States lost, on average, 60 Billion Dollars a year with Canada. No more! President DJT",
+      "url": "https://www.trumpstruth.org/statuses/41188",
+      "published": "2026-08-25T14:00:40+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "sectors": [
+        "关税",
+        "美加贸易"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 58,
+      "summary_cn": "Trump声称美国过去十年年均从加拿大损失600亿美元，暗示将采取强硬贸易/关税措施。"
     },
     {
       "author": "Trump",
-      "text": "Trump Bump: Tax refunds jumped 17% after president’s signature law, GAO reports: https://justthenews.com/government/federal-agencies/total-tax-refunds-issued-2025-jumped-17-compared-2024-paper-check",
-      "url": "https://trumpstruth.org/statuses/41136",
-      "published": "2026-08-24T02:53:04+00:00",
+      "text": "Lots of “bluster” from Doug Ford, who is the Premier of the Canadian Province of Ontario, but who is better known as the less charismatic, intelligent, and overall unimpressive brother of the late, great, Rob Ford. America has been carrying Canada for decades, but no longer! The U.S.A. will always be far bigger, richer, and stronger than Canada. Without the United States, Canada couldn’t survive — It’s where they get all of their money and, because of their current bad leadership, primarily Governor Carney, and his Flunky, Ford, they will not be allowed to keep taking advantage of the United S",
+      "url": "https://www.trumpstruth.org/statuses/41175",
+      "published": "2026-08-24T18:03:17+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "sectors": [
+        "关税",
+        "美加贸易"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 58,
+      "summary_cn": "Trump抨击加拿大省长Ford和总理Carney，扬言不再让加拿大占美国便宜，关税/贸易摩擦升温。"
     },
     {
       "author": "Trump",
-      "text": "Intel Politics: NSA sat on election threat reporting over Trump ‘deep state’ label, memo shows: https://justthenews.com/government/security/nsa-analyst-agency-sat-2016-election-interference-intel-avoid-trump-era",
-      "url": "https://trumpstruth.org/statuses/41138",
-      "published": "2026-08-24T02:51:52+00:00",
+      "text": "Based on my very good relationship with Kim Jong Un, of North Korea, I was not happy with the fact that the United States had, long ago, agreed to participate in Joint Military Exercises with South Korea. These exercises are not only costly, with much of these costs paid for by the United States of America (as usual!), but send a signal that is totally inappropriate and hostile, to a Country that, as long as Donald J. Trump has been President, has been unthreatening and respectful. Therefore, and based on the fact that it was too late to cancel, I instructed Secretary of War, Pete Hegseth, to ",
+      "url": "https://www.trumpstruth.org/statuses/41186",
+      "published": "2026-08-25T13:32:02+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
+      "sectors": [
+        "国防",
+        "地缘政治"
+      ],
+      "sector_holdings": [],
       "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "relevance": 52,
+      "summary_cn": "Trump基于与金正恩关系叫停美韩联合军演，缩减国防开支并释放缓和信号。"
     }
   ],
-  "held_hits": [],
-  "new_ideas": [],
-  "sector_hits": []
+  "held_hits": [
+    {
+      "author": "Musk",
+      "text": "Musk's SpaceX announces $100 billion plan for new spaceport in Louisiana",
+      "url": "",
+      "published": "Tue, 25 Aug 2026 21:35:22 GMT",
+      "origin": "gnews-rss",
+      "source": "CBS News",
+      "tickers": [],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "基础设施"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 78,
+      "summary_cn": "Musk旗下SpaceX宣布在路易斯安那州投资1000亿美元建设新太空港，重大资本开支利好SpaceX相关持仓。"
+    },
+    {
+      "author": "Musk",
+      "text": "Trump bought shares in Elon Musk's SpaceX in June, financial disclosure shows",
+      "url": "",
+      "published": "Mon, 24 Aug 2026 17:18:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Reuters",
+      "tickers": [],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "政治人物持仓"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 75,
+      "summary_cn": "财务披露显示Trump今年6月买入了Mus旗下SpaceX的股份，总统背书直接利好SpaceX持仓。"
+    },
+    {
+      "author": "Musk",
+      "text": "Zelenskyy awards Elon Musk Ukraine’s Order of Freedom for Starlink role - ABC News",
+      "url": "",
+      "published": "Wed, 26 Aug 2026 11:53:34 GMT",
+      "origin": "gnews-rss",
+      "source": "ABC News - Breaking News, Latest News and Videos",
+      "tickers": [],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "国防",
+        "地缘政治"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 62,
+      "summary_cn": "乌克兰总统泽连斯基因Starlink贡献向Musk授予'自由勋章'，强化SpaceX/Starlink地缘政治价值。"
+    }
+  ],
+  "new_ideas": [
+    {
+      "author": "Musk",
+      "text": "Elon Musk's SpaceX and Tesla Are Building a $16.8 Billion Chip Factory 5 Times Bigger Than Earth's Largest Building. What Does That Mean for Both Stocks?",
+      "url": "",
+      "published": "Fri, 21 Aug 2026 20:57:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "半导体",
+        "AI",
+        "电动车",
+        "航天"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226",
+        "SKHY",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 80,
+      "summary_cn": "Musk旗下SpaceX和Tesla将合建168亿美元的芯片工厂，规模为地球最大建筑的5倍，利好Tesla及半导体供应链。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk Could Help Oklo's Stock Price Soar. Here's Why.",
+      "url": "",
+      "published": "Wed, 26 Aug 2026 01:05:00 GMT",
+      "origin": "gnews-rss",
+      "source": "The Motley Fool",
+      "tickers": [
+        "OKLO"
+      ],
+      "held": [],
+      "new_ideas": [
+        "OKLO"
+      ],
+      "sectors": [
+        "核电",
+        "AI基础设施",
+        "能源"
+      ],
+      "sector_holdings": [
+        "SKHY"
+      ],
+      "stance": "endorse",
+      "relevance": 72,
+      "summary_cn": "报道称Musk可能推动Oklo股价飙升，Musk与Oklo在能源/AI数据中心供电领域关联，看多OKLO。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk's Tesla Has 'Massive Advantage' Before Selling Optimus in the Market, Says This Analyst — Crypto Prediction Market Weighs 2026 Launch Odds",
+      "url": "",
+      "published": "Tue, 25 Aug 2026 17:31:16 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "AI",
+        "电动车",
+        "机器人",
+        "加密货币"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "endorse",
+      "relevance": 68,
+      "summary_cn": "分析师称Tesla在销售Optimus机器人前已具'巨大优势'，并提及加密预测市场对2026年上市的押注，看多Tesla/Optimus。"
+    }
+  ],
+  "sector_hits": [
+    {
+      "author": "Trump",
+      "text": "Trump’s Tariffs Force Some Canadian Companies to Consider Moving South: https://www.nytimes.com/2026/08/12/world/canada/canada-tariffs-manufacturing-trade-trump.html",
+      "url": "https://www.trumpstruth.org/statuses/41172",
+      "published": "2026-08-24T16:56:22+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "关税",
+        "制造业",
+        "美加贸易"
+      ],
+      "sector_holdings": [
+        "02208"
+      ],
+      "stance": "neutral",
+      "relevance": 65,
+      "summary_cn": "NYT报道Trump关税迫使部分加拿大企业考虑迁往美国本土生产，利好美国制造业、可能冲击加拿大供应链。"
+    },
+    {
+      "author": "Trump",
+      "text": "America must put AI to work defending our critical infrastructure: https://www.washingtonexaminer.com/restoring-america/faith-freedom-self-reliance/4671085/america-ai-work-defending-infrastructure/",
+      "url": "https://www.trumpstruth.org/statuses/41207",
+      "published": "2026-08-25T15:40:09+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI",
+        "基础设施"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226",
+        "SKHY"
+      ],
+      "stance": "endorse",
+      "relevance": 60,
+      "summary_cn": "Trump发文主张美国必须用AI保卫关键基础设施，政策层面利好AI板块。"
+    },
+    {
+      "author": "Trump",
+      "text": "S&P Global: ‘US Business Is Booming’: https://www.breitbart.com/economy/2026/08/21/biz-is-booming/",
+      "url": "https://www.trumpstruth.org/statuses/41203",
+      "published": "2026-08-25T15:40:59+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "宏观经济"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "endorse",
+      "relevance": 55,
+      "summary_cn": "Trump转发S&P Global报道，宣称美国商业正在蓬勃发展，整体宏观看多情绪。"
+    },
+    {
+      "author": "Trump",
+      "text": "RT @realwayneroot\"US BUSINESS IS BOOMING.\" My great friend & financial advisor Kip Herriage of VRAinsider called this first. I took ball & ran with it. Trump economy is BOOMING. Yet no one knows it because commie media is gaslighting America. Yes prices still high, but that's 100% Biden's inflation. Inflation growth under Trump is lowest among recent presidents. Big stocks are booming to all time highs, profits all time highs, earnings all time highs- Trump economy is exploding to Reagan levels- while fake news media scams you into thinking it's bad. This is biggest scam in history (other than",
+      "url": "https://www.trumpstruth.org/statuses/41204",
+      "published": "2026-08-25T15:40:43+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "宏观经济",
+        "美股"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "endorse",
+      "relevance": 55,
+      "summary_cn": "Trump阵营宣传Trump经济下美股创历史新高、盈利创纪录，整体看多美国经济和股市。"
+    },
+    {
+      "author": "Trump",
+      "text": "Reigniting the American dream: Donald Trump, Dave McCormick, and Jamie Dimon unveil a massive manufacturing push in Pennsylvania: https://www.washingtonexaminer.com/opinion/columnists/4652360/trump-dave-mccormick-jamie-dimon-manufacturing-push-pennsylvania/",
+      "url": "https://www.trumpstruth.org/statuses/41197",
+      "published": "2026-08-25T15:37:21+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "制造业",
+        "工业"
+      ],
+      "sector_holdings": [
+        "02208"
+      ],
+      "stance": "endorse",
+      "relevance": 50,
+      "summary_cn": "Trump与McCormick、Dimon在宾州推出大规模制造业投资计划，利好美国制造业。"
+    }
+  ]
 }
