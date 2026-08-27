@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "note": "每个 cadence 的 context 顶层块清单(与各 preflight result dict 的键一致)。README 分档表 Blocks 行与这里对死(CI 测试 test_preflight_block_counts.py):改 preflight 增删块时必须同步本文件,否则 README 表红。数字取自实际产出的 context 文件,2026-08-27 实测:brief 38 / report 17 / intraday 30(README 旧值 37/16/29 各滞后了一个键)。",
+  "blocks": {
+    "brief": [
+      "generated_at", "date", "fx", "portfolio_path", "snapshot_path",
+      "portfolio", "book_totals", "concentration", "lookthrough_exposure",
+      "risk_guardrail", "risk_discipline", "breakeven_math", "quant_signals",
+      "quant_signal_review", "cross_sectional_factor", "peer_residual",
+      "t0_setups", "t0_setup_review", "integrity", "us_fundamentals",
+      "retrospective", "peer_scan", "decision_metrics", "reflections",
+      "risk_metrics", "catalysts", "news_evidence_graph", "thesis_registry",
+      "open_decisions", "technical_setup_usage", "research_surface", "macro",
+      "sentiment", "influencer", "em_news", "watch_list", "issues",
+      "generation_id"
+    ],
+    "report": [
+      "status", "market", "phase", "date", "generated_at",
+      "raw_wechat_block", "title", "commit_msg", "signal_count", "anomalies",
+      "index_direction", "peer_scan", "plan_context", "mover_thesis",
+      "mover_news", "needs_risk_section", "context_id"
+    ],
+    "intraday": [
+      "status", "market", "date", "time", "generated_at",
+      "raw_wechat_block", "delivery_mode", "always_full", "semantic_unchanged",
+      "semantic_state", "semantic_delta", "quote_coverage",
+      "provisional_setups", "early_trend_candidates", "opportunity_radar",
+      "add_side_reads", "signal_count", "signals_detail", "anomalies",
+      "should_alert", "alert_reasons", "t0_setups", "peer_scan",
+      "plan_context", "mover_thesis", "mover_news",
+      "active_information_candidates", "known_catalysts", "heartbeat",
+      "context_id"
+    ]
+  }
+}
