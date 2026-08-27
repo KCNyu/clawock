@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-26T13:41:58.127230+00:00",
+  "generated_at": "2026-08-27T01:01:18.401996+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -13,12 +13,34 @@
   },
   "llm_filtered": true,
   "counts": {
-    "total": 15,
-    "held_hits": 3,
-    "new_ideas": 3,
-    "sector_hits": 5
+    "total": 18,
+    "held_hits": 0,
+    "new_ideas": 0,
+    "sector_hits": 9
   },
   "items": [
+    {
+      "author": "Musk",
+      "text": "Elon Musk, Gov. Landry discuss SpaceX’s $100B Louisiana launch site",
+      "url": "",
+      "published": "Wed, 26 Aug 2026 20:34:21 GMT",
+      "origin": "gnews-rss",
+      "source": "Fox Business",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "基础设施"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 82,
+      "summary_cn": "Musk与路易斯安那州长Landry讨论SpaceX 1000亿美元发射场落地计划，重大项目推进。"
+    },
     {
       "author": "Musk",
       "text": "Musk's SpaceX announces $100 billion plan for new spaceport in Louisiana",
@@ -27,200 +49,131 @@
       "origin": "gnews-rss",
       "source": "CBS News",
       "tickers": [],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
+      "held": [],
       "new_ideas": [],
       "sectors": [
         "航天",
         "基础设施"
       ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 78,
-      "summary_cn": "Musk旗下SpaceX宣布在路易斯安那州投资1000亿美元建设新太空港，重大资本开支利好SpaceX相关持仓。"
-    },
-    {
-      "author": "Musk",
-      "text": "Trump bought shares in Elon Musk's SpaceX in June, financial disclosure shows",
-      "url": "",
-      "published": "Mon, 24 Aug 2026 17:18:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Reuters",
-      "tickers": [],
-      "held": [
+      "sector_holdings": [
         "SPCH",
         "SPCX"
       ],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "政治人物持仓"
-      ],
-      "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 75,
-      "summary_cn": "财务披露显示Trump今年6月买入了Mus旗下SpaceX的股份，总统背书直接利好SpaceX持仓。"
+      "relevance": 82,
+      "summary_cn": "SpaceX宣布在路易斯安那州投资1000亿美元建设新航天发射场，重大利好SpaceX及其杠杆ETF。"
     },
     {
       "author": "Musk",
-      "text": "Zelenskyy awards Elon Musk Ukraine’s Order of Freedom for Starlink role - ABC News",
+      "text": "Elon Musk given high state honor by Ukrainian President Volodymyr Zelenskyy",
       "url": "",
-      "published": "Wed, 26 Aug 2026 11:53:34 GMT",
+      "published": "Wed, 26 Aug 2026 19:38:21 GMT",
       "origin": "gnews-rss",
-      "source": "ABC News - Breaking News, Latest News and Videos",
+      "source": "Austin American-Statesman",
       "tickers": [],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
+      "held": [],
       "new_ideas": [],
       "sectors": [
         "航天",
-        "国防",
         "地缘政治"
       ],
-      "sector_holdings": [],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
       "stance": "endorse",
-      "relevance": 62,
-      "summary_cn": "乌克兰总统泽连斯基因Starlink贡献向Musk授予'自由勋章'，强化SpaceX/Starlink地缘政治价值。"
+      "relevance": 72,
+      "summary_cn": "Musk获乌克兰总统泽连斯基颁发国家荣誉勋章，Starlink战略价值获国际认可。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk's SpaceX and Tesla Are Building a $16.8 Billion Chip Factory 5 Times Bigger Than Earth's Largest Building. What Does That Mean for Both Stocks?",
+      "text": "Zelenskyy gives Ukraine's Order of Freedom award to Musk for Starlink's role in war effort",
       "url": "",
-      "published": "Fri, 21 Aug 2026 20:57:00 GMT",
+      "published": "Wed, 26 Aug 2026 18:09:37 GMT",
       "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [
-        "TSLA"
-      ],
+      "source": "PBS",
+      "tickers": [],
       "held": [],
-      "new_ideas": [
-        "TSLA"
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "地缘政治"
       ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 72,
+      "summary_cn": "泽连斯基向Musk颁发乌克兰'自由勋章'，表彰Starlink在战时中的关键作用，提升SpaceX国际声誉。"
+    },
+    {
+      "author": "Trump",
+      "text": "Apple to invest $30 billion in US chip manufacturing: https://www.foxbusiness.com/media/apple-invest-30-billion-us-chip-manufacturing",
+      "url": "https://trumpstruth.org/statuses/41246",
+      "published": "2026-08-26T16:21:18+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
       "sectors": [
         "半导体",
         "AI",
-        "电动车",
-        "航天"
-      ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226",
-        "SKHY",
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
-      "relevance": 80,
-      "summary_cn": "Musk旗下SpaceX和Tesla将合建168亿美元的芯片工厂，规模为地球最大建筑的5倍，利好Tesla及半导体供应链。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk Could Help Oklo's Stock Price Soar. Here's Why.",
-      "url": "",
-      "published": "Wed, 26 Aug 2026 01:05:00 GMT",
-      "origin": "gnews-rss",
-      "source": "The Motley Fool",
-      "tickers": [
-        "OKLO"
-      ],
-      "held": [],
-      "new_ideas": [
-        "OKLO"
-      ],
-      "sectors": [
-        "核电",
-        "AI基础设施",
-        "能源"
+        "制造业"
       ],
       "sector_holdings": [
         "SKHY"
       ],
       "stance": "endorse",
       "relevance": 72,
-      "summary_cn": "报道称Musk可能推动Oklo股价飙升，Musk与Oklo在能源/AI数据中心供电领域关联，看多OKLO。"
+      "summary_cn": "苹果宣布在美国芯片制造领域投资300亿美元，利好半导体供应链(含SK海力士)。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk's Tesla Has 'Massive Advantage' Before Selling Optimus in the Market, Says This Analyst — Crypto Prediction Market Weighs 2026 Launch Odds",
+      "text": "Ukraine awards Musk high state honour as it seeks to use Starlink more",
       "url": "",
-      "published": "Tue, 25 Aug 2026 17:31:16 GMT",
+      "published": "Wed, 26 Aug 2026 10:45:45 GMT",
       "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [
-        "TSLA"
-      ],
+      "source": "Reuters",
+      "tickers": [],
       "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
+      "new_ideas": [],
       "sectors": [
-        "AI",
-        "电动车",
-        "机器人",
+        "航天",
+        "地缘政治"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 70,
+      "summary_cn": "乌克兰向Musk授予国家荣誉勋章，意在深化Starlink在战时及重建中的应用，利好SpaceX。"
+    },
+    {
+      "author": "Trump",
+      "text": "RT @realwayneroot\"US BUSINESS IS BOOMING.\" My great friend & financial advisor Kip Herriage of VRAinsider called this first. I took ball & ran with it. Trump economy is BOOMING. Yet no one knows it because commie media is gaslighting America. Yes prices still high, but that's 100% Biden's inflation. Inflation growth under Trump is lowest among recent presidents. Big stocks are booming to all time highs, profits all time highs, earnings all time highs- Trump economy is exploding to Reagan levels- while fake news media scams you into thinking it's bad. This is biggest scam in history (other than",
+      "url": "https://trumpstruth.org/statuses/41204",
+      "published": "2026-08-25T15:40:43+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "宏观经济",
         "加密货币"
       ],
       "sector_holdings": [
         "CRCL"
       ],
       "stance": "endorse",
-      "relevance": 68,
-      "summary_cn": "分析师称Tesla在销售Optimus机器人前已具'巨大优势'，并提及加密预测市场对2026年上市的押注，看多Tesla/Optimus。"
-    },
-    {
-      "author": "Trump",
-      "text": "Trump’s Tariffs Force Some Canadian Companies to Consider Moving South: https://www.nytimes.com/2026/08/12/world/canada/canada-tariffs-manufacturing-trade-trump.html",
-      "url": "https://www.trumpstruth.org/statuses/41172",
-      "published": "2026-08-24T16:56:22+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "关税",
-        "制造业",
-        "美加贸易"
-      ],
-      "sector_holdings": [
-        "02208"
-      ],
-      "stance": "neutral",
-      "relevance": 65,
-      "summary_cn": "NYT报道Trump关税迫使部分加拿大企业考虑迁往美国本土生产，利好美国制造业、可能冲击加拿大供应链。"
-    },
-    {
-      "author": "Trump",
-      "text": "America must put AI to work defending our critical infrastructure: https://www.washingtonexaminer.com/restoring-america/faith-freedom-self-reliance/4671085/america-ai-work-defending-infrastructure/",
-      "url": "https://www.trumpstruth.org/statuses/41207",
-      "published": "2026-08-25T15:40:09+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI",
-        "基础设施"
-      ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226",
-        "SKHY"
-      ],
-      "stance": "endorse",
-      "relevance": 60,
-      "summary_cn": "Trump发文主张美国必须用AI保卫关键基础设施，政策层面利好AI板块。"
+      "relevance": 62,
+      "summary_cn": "特朗普阵营宣称'美国商业蓬勃发展'，大股票与盈利创历史新高，并抨击媒体唱衰经济。"
     },
     {
       "author": "Trump",
       "text": "S&P Global: ‘US Business Is Booming’: https://www.breitbart.com/economy/2026/08/21/biz-is-booming/",
-      "url": "https://www.trumpstruth.org/statuses/41203",
+      "url": "https://trumpstruth.org/statuses/41203",
       "published": "2026-08-25T15:40:59+00:00",
       "origin": "truthsocial",
       "tickers": [],
@@ -233,53 +186,35 @@
         "CRCL"
       ],
       "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "Trump转发S&P Global报道，宣称美国商业正在蓬勃发展，整体宏观看多情绪。"
+      "relevance": 58,
+      "summary_cn": "标普全球称'美国商业正在蓬勃发展'，特朗普转发背书其经济成就。"
     },
     {
-      "author": "Trump",
-      "text": "RT @realwayneroot\"US BUSINESS IS BOOMING.\" My great friend & financial advisor Kip Herriage of VRAinsider called this first. I took ball & ran with it. Trump economy is BOOMING. Yet no one knows it because commie media is gaslighting America. Yes prices still high, but that's 100% Biden's inflation. Inflation growth under Trump is lowest among recent presidents. Big stocks are booming to all time highs, profits all time highs, earnings all time highs- Trump economy is exploding to Reagan levels- while fake news media scams you into thinking it's bad. This is biggest scam in history (other than",
-      "url": "https://www.trumpstruth.org/statuses/41204",
-      "published": "2026-08-25T15:40:43+00:00",
-      "origin": "truthsocial",
+      "author": "Musk",
+      "text": "Elon Musk Reveals Why SpaceX Launched Tesla’s Roadster Into Orbit: ‘We Didn’t Want to Risk Anything Valuable’",
+      "url": "",
+      "published": "Wed, 26 Aug 2026 23:30:44 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "宏观经济",
-        "美股"
+        "航天",
+        "电动车"
       ],
       "sector_holdings": [
-        "CRCL"
+        "SPCH",
+        "SPCX"
       ],
-      "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "Trump阵营宣传Trump经济下美股创历史新高、盈利创纪录，整体看多美国经济和股市。"
-    },
-    {
-      "author": "Trump",
-      "text": "Reigniting the American dream: Donald Trump, Dave McCormick, and Jamie Dimon unveil a massive manufacturing push in Pennsylvania: https://www.washingtonexaminer.com/opinion/columnists/4652360/trump-dave-mccormick-jamie-dimon-manufacturing-push-pennsylvania/",
-      "url": "https://www.trumpstruth.org/statuses/41197",
-      "published": "2026-08-25T15:37:21+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "制造业",
-        "工业"
-      ],
-      "sector_holdings": [
-        "02208"
-      ],
-      "stance": "endorse",
+      "stance": "neutral",
       "relevance": 50,
-      "summary_cn": "Trump与McCormick、Dimon在宾州推出大规模制造业投资计划，利好美国制造业。"
+      "summary_cn": "Musk透露SpaceX当年将Tesla Roadster射入太空的原因：'不想冒险放任何有价值的东西'。"
     },
     {
       "author": "Trump",
       "text": "Canada has been “Ripping Off” the U.S.A. for decades. They have been charging our Farmers 400% Tariffs, and more. They have driven many wonderful U.S. companies out of business. For 10 years they wouldn’t certify Gulfstream Jets, until I got involved. They wanted 100% of the market for Gulfstream’s Canadian competitor. I deal with many countries, and Canada is easily the most difficult and unreasonable. They feel entitled, but they are not a State, and will be entitled no longer! President DJT",
-      "url": "https://www.trumpstruth.org/statuses/41187",
+      "url": "https://trumpstruth.org/statuses/41187",
       "published": "2026-08-25T13:40:40+00:00",
       "origin": "truthsocial",
       "tickers": [],
@@ -287,18 +222,18 @@
       "new_ideas": [],
       "sectors": [
         "关税",
-        "航空航天",
-        "美加贸易"
+        "贸易",
+        "航空航天"
       ],
       "sector_holdings": [],
       "stance": "attack",
-      "relevance": 62,
-      "summary_cn": "Trump抨击加拿大对美农产品征400%关税、不认证Gulfstream公务机，威胁贸易报复，牵连航空航天板块。"
+      "relevance": 65,
+      "summary_cn": "特朗普抨击加拿大长期'占美国便宜'，对其征收400%关税并排斥湾流飞机进入，贸易摩擦升级。"
     },
     {
       "author": "Trump",
       "text": "Over the last 10 years, the United States lost, on average, 60 Billion Dollars a year with Canada. No more! President DJT",
-      "url": "https://www.trumpstruth.org/statuses/41188",
+      "url": "https://trumpstruth.org/statuses/41188",
       "published": "2026-08-25T14:00:40+00:00",
       "origin": "truthsocial",
       "tickers": [],
@@ -306,233 +241,55 @@
       "new_ideas": [],
       "sectors": [
         "关税",
-        "美加贸易"
+        "贸易"
       ],
       "sector_holdings": [],
       "stance": "attack",
       "relevance": 58,
-      "summary_cn": "Trump声称美国过去十年年均从加拿大损失600亿美元，暗示将采取强硬贸易/关税措施。"
+      "summary_cn": "特朗普宣称过去10年美国对加拿大年均贸易逆差600亿美元，暗示将采取强硬贸易行动。"
     },
     {
       "author": "Trump",
-      "text": "Lots of “bluster” from Doug Ford, who is the Premier of the Canadian Province of Ontario, but who is better known as the less charismatic, intelligent, and overall unimpressive brother of the late, great, Rob Ford. America has been carrying Canada for decades, but no longer! The U.S.A. will always be far bigger, richer, and stronger than Canada. Without the United States, Canada couldn’t survive — It’s where they get all of their money and, because of their current bad leadership, primarily Governor Carney, and his Flunky, Ford, they will not be allowed to keep taking advantage of the United S",
-      "url": "https://www.trumpstruth.org/statuses/41175",
-      "published": "2026-08-24T18:03:17+00:00",
+      "text": "Trump Unleashes Scott Bessent on Iran: https://www.wsj.com/opinion/donald-trump-scott-bessent-sanctions-iran-oil-economy-96362772",
+      "url": "https://trumpstruth.org/statuses/41252",
+      "published": "2026-08-26T16:26:54+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "关税",
-        "美加贸易"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 58,
-      "summary_cn": "Trump抨击加拿大省长Ford和总理Carney，扬言不再让加拿大占美国便宜，关税/贸易摩擦升温。"
-    },
-    {
-      "author": "Trump",
-      "text": "Based on my very good relationship with Kim Jong Un, of North Korea, I was not happy with the fact that the United States had, long ago, agreed to participate in Joint Military Exercises with South Korea. These exercises are not only costly, with much of these costs paid for by the United States of America (as usual!), but send a signal that is totally inappropriate and hostile, to a Country that, as long as Donald J. Trump has been President, has been unthreatening and respectful. Therefore, and based on the fact that it was too late to cancel, I instructed Secretary of War, Pete Hegseth, to ",
-      "url": "https://www.trumpstruth.org/statuses/41186",
-      "published": "2026-08-25T13:32:02+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "国防",
-        "地缘政治"
+        "能源",
+        "地缘政治",
+        "制裁"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 52,
-      "summary_cn": "Trump基于与金正恩关系叫停美韩联合军演，缩减国防开支并释放缓和信号。"
-    }
-  ],
-  "held_hits": [
-    {
-      "author": "Musk",
-      "text": "Musk's SpaceX announces $100 billion plan for new spaceport in Louisiana",
-      "url": "",
-      "published": "Tue, 25 Aug 2026 21:35:22 GMT",
-      "origin": "gnews-rss",
-      "source": "CBS News",
-      "tickers": [],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "基础设施"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 78,
-      "summary_cn": "Musk旗下SpaceX宣布在路易斯安那州投资1000亿美元建设新太空港，重大资本开支利好SpaceX相关持仓。"
+      "relevance": 55,
+      "summary_cn": "特朗普授权财长Bessent对伊朗发动经济攻势，动用制裁手段切断伊朗经济命脉。"
     },
-    {
-      "author": "Musk",
-      "text": "Trump bought shares in Elon Musk's SpaceX in June, financial disclosure shows",
-      "url": "",
-      "published": "Mon, 24 Aug 2026 17:18:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Reuters",
-      "tickers": [],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "政治人物持仓"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 75,
-      "summary_cn": "财务披露显示Trump今年6月买入了Mus旗下SpaceX的股份，总统背书直接利好SpaceX持仓。"
-    },
-    {
-      "author": "Musk",
-      "text": "Zelenskyy awards Elon Musk Ukraine’s Order of Freedom for Starlink role - ABC News",
-      "url": "",
-      "published": "Wed, 26 Aug 2026 11:53:34 GMT",
-      "origin": "gnews-rss",
-      "source": "ABC News - Breaking News, Latest News and Videos",
-      "tickers": [],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "国防",
-        "地缘政治"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 62,
-      "summary_cn": "乌克兰总统泽连斯基因Starlink贡献向Musk授予'自由勋章'，强化SpaceX/Starlink地缘政治价值。"
-    }
-  ],
-  "new_ideas": [
-    {
-      "author": "Musk",
-      "text": "Elon Musk's SpaceX and Tesla Are Building a $16.8 Billion Chip Factory 5 Times Bigger Than Earth's Largest Building. What Does That Mean for Both Stocks?",
-      "url": "",
-      "published": "Fri, 21 Aug 2026 20:57:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "半导体",
-        "AI",
-        "电动车",
-        "航天"
-      ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226",
-        "SKHY",
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
-      "relevance": 80,
-      "summary_cn": "Musk旗下SpaceX和Tesla将合建168亿美元的芯片工厂，规模为地球最大建筑的5倍，利好Tesla及半导体供应链。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk Could Help Oklo's Stock Price Soar. Here's Why.",
-      "url": "",
-      "published": "Wed, 26 Aug 2026 01:05:00 GMT",
-      "origin": "gnews-rss",
-      "source": "The Motley Fool",
-      "tickers": [
-        "OKLO"
-      ],
-      "held": [],
-      "new_ideas": [
-        "OKLO"
-      ],
-      "sectors": [
-        "核电",
-        "AI基础设施",
-        "能源"
-      ],
-      "sector_holdings": [
-        "SKHY"
-      ],
-      "stance": "endorse",
-      "relevance": 72,
-      "summary_cn": "报道称Musk可能推动Oklo股价飙升，Musk与Oklo在能源/AI数据中心供电领域关联，看多OKLO。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk's Tesla Has 'Massive Advantage' Before Selling Optimus in the Market, Says This Analyst — Crypto Prediction Market Weighs 2026 Launch Odds",
-      "url": "",
-      "published": "Tue, 25 Aug 2026 17:31:16 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "AI",
-        "电动车",
-        "机器人",
-        "加密货币"
-      ],
-      "sector_holdings": [
-        "CRCL"
-      ],
-      "stance": "endorse",
-      "relevance": 68,
-      "summary_cn": "分析师称Tesla在销售Optimus机器人前已具'巨大优势'，并提及加密预测市场对2026年上市的押注，看多Tesla/Optimus。"
-    }
-  ],
-  "sector_hits": [
     {
       "author": "Trump",
-      "text": "Trump’s Tariffs Force Some Canadian Companies to Consider Moving South: https://www.nytimes.com/2026/08/12/world/canada/canada-tariffs-manufacturing-trade-trump.html",
-      "url": "https://www.trumpstruth.org/statuses/41172",
-      "published": "2026-08-24T16:56:22+00:00",
+      "text": "Bessent: Iran’s Leadership ‘Panicking’ Under Trump Economic Offensive — Vows to Sever ‘Every Economic Lifeline’: https://www.breitbart.com/politics/2026/08/25/bessent-irans-leadership-panicking-under-trump-economic-offensive-vows-to-sever-every-economic-lifeline/",
+      "url": "https://trumpstruth.org/statuses/41241",
+      "published": "2026-08-26T16:22:27+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "关税",
-        "制造业",
-        "美加贸易"
+        "能源",
+        "地缘政治",
+        "制裁"
       ],
-      "sector_holdings": [
-        "02208"
-      ],
+      "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 65,
-      "summary_cn": "NYT报道Trump关税迫使部分加拿大企业考虑迁往美国本土生产，利好美国制造业、可能冲击加拿大供应链。"
+      "relevance": 55,
+      "summary_cn": "Bessent称伊朗领导层在特朗普经济攻势下'恐慌'，誓言切断其每一条经济命脉。"
     },
     {
       "author": "Trump",
       "text": "America must put AI to work defending our critical infrastructure: https://www.washingtonexaminer.com/restoring-america/faith-freedom-self-reliance/4671085/america-ai-work-defending-infrastructure/",
-      "url": "https://www.trumpstruth.org/statuses/41207",
+      "url": "https://trumpstruth.org/statuses/41207",
       "published": "2026-08-25T15:40:09+00:00",
       "origin": "truthsocial",
       "tickers": [],
@@ -542,21 +299,242 @@
         "AI",
         "基础设施"
       ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 55,
+      "summary_cn": "特朗普主张将AI用于保卫美国关键基础设施，利好AI应用主题。"
+    },
+    {
+      "author": "Trump",
+      "text": "Reigniting the American dream: Donald Trump, Dave McCormick, and Jamie Dimon unveil a massive manufacturing push in Pennsylvania: https://www.washingtonexaminer.com/opinion/columnists/4652360/trump-dave-mccormick-jamie-dimon-manufacturing-push-pennsylvania/",
+      "url": "https://trumpstruth.org/statuses/41197",
+      "published": "2026-08-25T15:37:21+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "制造业"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 55,
+      "summary_cn": "特朗普、McCormick与摩根大通Dimon在宾州联合推出大规模制造业投资计划。"
+    },
+    {
+      "author": "Musk",
+      "text": "'It’s hard to know exactly what the objective of DOGE was': Former IRS boss warns Elon Musk’s cuts to the tax agency will be felt in years to come",
+      "url": "",
+      "published": "Mon, 24 Aug 2026 16:50:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Fortune",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "财政",
+        "政府效率"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 50,
+      "summary_cn": "前国税局局长警告，Musk主导的DOGE削减IRS预算的长期负面影响将在未来数年显现。"
+    },
+    {
+      "author": "Trump",
+      "text": "JD Vance, Ohio Figures Give Rousing Middletown Speech on Manufacturing Investments: https://www.dailysignal.com/2026/08/24/jd-vance-ohio-figures-give-rousing-middletown-speech-on-manufacturing-investments/",
+      "url": "https://trumpstruth.org/statuses/41260",
+      "published": "2026-08-26T16:35:11+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "制造业"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 50,
+      "summary_cn": "JD Vance在俄亥俄州就制造业投资发表演讲，传递制造业回流利好信号。"
+    },
+    {
+      "author": "Musk",
+      "text": "Judge Dismisses Lawsuit by Elon Musk's X Challenging New York Hate Speech Law",
+      "url": "",
+      "published": "Wed, 26 Aug 2026 22:07:00 GMT",
+      "origin": "gnews-rss",
+      "source": "U.S. News & World Report",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "社交媒体",
+        "监管"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 48,
+      "summary_cn": "法院驳回Musk旗下X对纽约仇恨言论法的诉讼，X在监管合规上遇阻。"
+    }
+  ],
+  "held_hits": [],
+  "new_ideas": [],
+  "sector_hits": [
+    {
+      "author": "Musk",
+      "text": "Elon Musk, Gov. Landry discuss SpaceX’s $100B Louisiana launch site",
+      "url": "",
+      "published": "Wed, 26 Aug 2026 20:34:21 GMT",
+      "origin": "gnews-rss",
+      "source": "Fox Business",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "基础设施"
+      ],
       "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 82,
+      "summary_cn": "Musk与路易斯安那州长Landry讨论SpaceX 1000亿美元发射场落地计划，重大项目推进。"
+    },
+    {
+      "author": "Musk",
+      "text": "Musk's SpaceX announces $100 billion plan for new spaceport in Louisiana",
+      "url": "",
+      "published": "Tue, 25 Aug 2026 21:35:22 GMT",
+      "origin": "gnews-rss",
+      "source": "CBS News",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "基础设施"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 82,
+      "summary_cn": "SpaceX宣布在路易斯安那州投资1000亿美元建设新航天发射场，重大利好SpaceX及其杠杆ETF。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk given high state honor by Ukrainian President Volodymyr Zelenskyy",
+      "url": "",
+      "published": "Wed, 26 Aug 2026 19:38:21 GMT",
+      "origin": "gnews-rss",
+      "source": "Austin American-Statesman",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "地缘政治"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 72,
+      "summary_cn": "Musk获乌克兰总统泽连斯基颁发国家荣誉勋章，Starlink战略价值获国际认可。"
+    },
+    {
+      "author": "Musk",
+      "text": "Zelenskyy gives Ukraine's Order of Freedom award to Musk for Starlink's role in war effort",
+      "url": "",
+      "published": "Wed, 26 Aug 2026 18:09:37 GMT",
+      "origin": "gnews-rss",
+      "source": "PBS",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "地缘政治"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 72,
+      "summary_cn": "泽连斯基向Musk颁发乌克兰'自由勋章'，表彰Starlink在战时中的关键作用，提升SpaceX国际声誉。"
+    },
+    {
+      "author": "Trump",
+      "text": "Apple to invest $30 billion in US chip manufacturing: https://www.foxbusiness.com/media/apple-invest-30-billion-us-chip-manufacturing",
+      "url": "https://trumpstruth.org/statuses/41246",
+      "published": "2026-08-26T16:21:18+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "半导体",
+        "AI",
+        "制造业"
+      ],
+      "sector_holdings": [
         "SKHY"
       ],
       "stance": "endorse",
-      "relevance": 60,
-      "summary_cn": "Trump发文主张美国必须用AI保卫关键基础设施，政策层面利好AI板块。"
+      "relevance": 72,
+      "summary_cn": "苹果宣布在美国芯片制造领域投资300亿美元，利好半导体供应链(含SK海力士)。"
+    },
+    {
+      "author": "Musk",
+      "text": "Ukraine awards Musk high state honour as it seeks to use Starlink more",
+      "url": "",
+      "published": "Wed, 26 Aug 2026 10:45:45 GMT",
+      "origin": "gnews-rss",
+      "source": "Reuters",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "地缘政治"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 70,
+      "summary_cn": "乌克兰向Musk授予国家荣誉勋章，意在深化Starlink在战时及重建中的应用，利好SpaceX。"
+    },
+    {
+      "author": "Trump",
+      "text": "RT @realwayneroot\"US BUSINESS IS BOOMING.\" My great friend & financial advisor Kip Herriage of VRAinsider called this first. I took ball & ran with it. Trump economy is BOOMING. Yet no one knows it because commie media is gaslighting America. Yes prices still high, but that's 100% Biden's inflation. Inflation growth under Trump is lowest among recent presidents. Big stocks are booming to all time highs, profits all time highs, earnings all time highs- Trump economy is exploding to Reagan levels- while fake news media scams you into thinking it's bad. This is biggest scam in history (other than",
+      "url": "https://trumpstruth.org/statuses/41204",
+      "published": "2026-08-25T15:40:43+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "宏观经济",
+        "加密货币"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "endorse",
+      "relevance": 62,
+      "summary_cn": "特朗普阵营宣称'美国商业蓬勃发展'，大股票与盈利创历史新高，并抨击媒体唱衰经济。"
     },
     {
       "author": "Trump",
       "text": "S&P Global: ‘US Business Is Booming’: https://www.breitbart.com/economy/2026/08/21/biz-is-booming/",
-      "url": "https://www.trumpstruth.org/statuses/41203",
+      "url": "https://trumpstruth.org/statuses/41203",
       "published": "2026-08-25T15:40:59+00:00",
       "origin": "truthsocial",
       "tickers": [],
@@ -569,48 +547,30 @@
         "CRCL"
       ],
       "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "Trump转发S&P Global报道，宣称美国商业正在蓬勃发展，整体宏观看多情绪。"
+      "relevance": 58,
+      "summary_cn": "标普全球称'美国商业正在蓬勃发展'，特朗普转发背书其经济成就。"
     },
     {
-      "author": "Trump",
-      "text": "RT @realwayneroot\"US BUSINESS IS BOOMING.\" My great friend & financial advisor Kip Herriage of VRAinsider called this first. I took ball & ran with it. Trump economy is BOOMING. Yet no one knows it because commie media is gaslighting America. Yes prices still high, but that's 100% Biden's inflation. Inflation growth under Trump is lowest among recent presidents. Big stocks are booming to all time highs, profits all time highs, earnings all time highs- Trump economy is exploding to Reagan levels- while fake news media scams you into thinking it's bad. This is biggest scam in history (other than",
-      "url": "https://www.trumpstruth.org/statuses/41204",
-      "published": "2026-08-25T15:40:43+00:00",
-      "origin": "truthsocial",
+      "author": "Musk",
+      "text": "Elon Musk Reveals Why SpaceX Launched Tesla’s Roadster Into Orbit: ‘We Didn’t Want to Risk Anything Valuable’",
+      "url": "",
+      "published": "Wed, 26 Aug 2026 23:30:44 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "宏观经济",
-        "美股"
+        "航天",
+        "电动车"
       ],
       "sector_holdings": [
-        "CRCL"
+        "SPCH",
+        "SPCX"
       ],
-      "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "Trump阵营宣传Trump经济下美股创历史新高、盈利创纪录，整体看多美国经济和股市。"
-    },
-    {
-      "author": "Trump",
-      "text": "Reigniting the American dream: Donald Trump, Dave McCormick, and Jamie Dimon unveil a massive manufacturing push in Pennsylvania: https://www.washingtonexaminer.com/opinion/columnists/4652360/trump-dave-mccormick-jamie-dimon-manufacturing-push-pennsylvania/",
-      "url": "https://www.trumpstruth.org/statuses/41197",
-      "published": "2026-08-25T15:37:21+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "制造业",
-        "工业"
-      ],
-      "sector_holdings": [
-        "02208"
-      ],
-      "stance": "endorse",
+      "stance": "neutral",
       "relevance": 50,
-      "summary_cn": "Trump与McCormick、Dimon在宾州推出大规模制造业投资计划，利好美国制造业。"
+      "summary_cn": "Musk透露SpaceX当年将Tesla Roadster射入太空的原因：'不想冒险放任何有价值的东西'。"
     }
   ]
 }
