@@ -13,6 +13,32 @@ versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 The newest heading here has to match the version in `pyproject.toml` — CI fails
 otherwise, so a release cannot ship an entry that was never written.
 
+## [0.1.9] — 2026-08-27
+
+Refresh release: same version train for the Python package and the DSH
+plugin; the plugin's published tree is unchanged from 0.1.8 (the desk's
+Decision Mind UI work landed in the data plane, not the npm package).
+
+### Changed
+
+- **Breakout is now a third evidence family for add authority ([#1086]).** A
+  confirmed, un-overheated 20-day breakout counts as an independent family;
+  any two families authorise a capped exploration slice, while validated
+  tranches still require decision-usable evidence on both the price and the
+  information side. The README wording was aligned with the shipped behaviour.
+- **Earnings quality requires at least four comparable periods on every
+  cadence ([#1097]),** matching the documented contract (annual filers now need
+  four fiscal years).
+- **The thesis registry is a pure kill-switch ([#1085]):** an `intact` thesis
+  sizes exactly like an undocumented one, and only `broken` / `damaged` /
+  `weakening` states reduce tranches. The empty `min(x, x)` identity was
+  removed and a test pins the subtract-only semantics.
+
+### Added
+
+- **`add_alpha_walkforward` now splits fills by price structure and volatility
+  regime ([#1107])** — measurement only, no behaviour change.
+
 ## [0.1.8] — 2026-08-17
 
 The Python package's code is identical to 0.1.7. This version exists to ship the
