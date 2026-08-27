@@ -42,4 +42,4 @@ def test_registry_lists_are_unique_snake_case():
         names = blocks[cadence]
         assert names, cadence
         assert len(set(names)) == len(names), f"{cadence} has duplicates"
-        assert all(re.fullmatch(r"[a-z_]+", n) for n in names), cadence
+        assert all(re.fullmatch(r"[a-z0-9_]+", n) for n in names), cadence
