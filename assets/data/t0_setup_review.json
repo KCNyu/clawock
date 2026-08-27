@@ -1,5 +1,5 @@
 {
-  "as_of": "2026-08-26",
+  "as_of": "2026-08-27",
   "days_logged": 83,
   "min_n": 20,
   "horizon": 1,
@@ -43,17 +43,17 @@
     "oversold_low": {
       "label": "🟡 低位/超卖",
       "n": 227,
-      "hit_rate": 0.48,
+      "hit_rate": 0.489,
       "ci95": [
-        0.416,
-        0.545
+        0.425,
+        0.554
       ],
       "edge_significant": false,
       "sample_sufficient": true,
       "edge_supported": false,
       "reverse_edge_supported": false,
       "decision_direction": null,
-      "avg_dir_fwd_pct": -0.33,
+      "avg_dir_fwd_pct": -0.3,
       "usable": false,
       "note": "Wilson CI 跨 50%，正向 edge 未获支持",
       "non_overlap_cap": 1050
@@ -104,17 +104,17 @@
         "oversold_low": {
           "label": "🟡 低位/超卖",
           "n": 227,
-          "hit_rate": 0.48,
+          "hit_rate": 0.489,
           "ci95": [
-            0.416,
-            0.545
+            0.425,
+            0.554
           ],
           "edge_significant": false,
           "sample_sufficient": true,
           "edge_supported": false,
           "reverse_edge_supported": false,
           "decision_direction": null,
-          "avg_dir_fwd_pct": -0.33,
+          "avg_dir_fwd_pct": -0.3,
           "usable": false,
           "note": "Wilson CI 跨 50%，正向 edge 未获支持",
           "non_overlap_cap": 1050
@@ -138,7 +138,7 @@
           "edge_supported": false,
           "reverse_edge_supported": false,
           "decision_direction": null,
-          "avg_dir_fwd_pct": 0.95,
+          "avg_dir_fwd_pct": 0.97,
           "usable": false,
           "note": "Wilson CI 跨 50%，正向 edge 未获支持",
           "non_overlap_cap": 210
@@ -164,17 +164,17 @@
         "oversold_low": {
           "label": "🟡 低位/超卖",
           "n": 204,
-          "hit_rate": 0.451,
+          "hit_rate": 0.456,
           "ci95": [
-            0.384,
-            0.52
+            0.389,
+            0.524
           ],
           "edge_significant": false,
           "sample_sufficient": true,
           "edge_supported": false,
           "reverse_edge_supported": false,
           "decision_direction": null,
-          "avg_dir_fwd_pct": -0.95,
+          "avg_dir_fwd_pct": -0.91,
           "usable": false,
           "note": "Wilson CI 跨 50%，正向 edge 未获支持",
           "non_overlap_cap": 210
@@ -198,7 +198,7 @@
           "edge_supported": true,
           "reverse_edge_supported": false,
           "decision_direction": "original",
-          "avg_dir_fwd_pct": 2.37,
+          "avg_dir_fwd_pct": 2.29,
           "usable": true,
           "note": "",
           "non_overlap_cap": 105
@@ -216,7 +216,7 @@
           "edge_supported": false,
           "reverse_edge_supported": false,
           "decision_direction": null,
-          "avg_dir_fwd_pct": -1.16,
+          "avg_dir_fwd_pct": -1.15,
           "usable": false,
           "note": "Wilson CI 跨 50%，正向 edge 未获支持",
           "non_overlap_cap": 105
@@ -248,17 +248,17 @@
         "chase_low_quality": {
           "label": "🔴 追高低质",
           "n": 83,
-          "hit_rate": 0.506,
+          "hit_rate": 0.494,
           "ci95": [
-            0.401,
-            0.611
+            0.389,
+            0.599
           ],
           "edge_significant": false,
           "sample_sufficient": true,
           "edge_supported": false,
           "reverse_edge_supported": false,
           "decision_direction": null,
-          "avg_dir_fwd_pct": 2.06,
+          "avg_dir_fwd_pct": 1.94,
           "usable": false,
           "note": "Wilson CI 跨 50%，正向 edge 未获支持",
           "non_overlap_cap": 45
@@ -294,7 +294,7 @@
           "edge_supported": false,
           "reverse_edge_supported": false,
           "decision_direction": null,
-          "avg_dir_fwd_pct": -3.89,
+          "avg_dir_fwd_pct": -3.91,
           "usable": false,
           "note": "Wilson CI 跨 50%，正向 edge 未获支持",
           "non_overlap_cap": 45
