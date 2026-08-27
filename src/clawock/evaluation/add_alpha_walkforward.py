@@ -181,6 +181,64 @@ def _summary(rows):
     }
 
 
+def _split_summary(rows, key):
+    """Group rows by a per-row bucket field and summarize each non-empty group.
+
+    #1098/#1099: measurement-first instrumentation. The splits only *report*
+    the same fills by price structure and volatility regime; they change no
+    fill, no authority tier and no live behaviour.
+    """
+    buckets = {}
+    for row in rows:
+        bucket = row.get(key)
+        if bucket:
+            buckets.setdefault(bucket, []).append(row)
+    return {
+        bucket: _summary(group) for bucket, group in sorted(buckets.items())
+    }
+
+
+# #856 taxonomy: 突破 = 收盘站上前 20 日高;深跌抄底 = ≤ 20 日高的 92%。
+DEEP_DIP_RATIO = 0.92
+
+
+def _structure_bucket(bars, signal_date, price):
+    """Fill price structure vs the prior 20-day high: breakout / near_high / deep_dip."""
+    prior = [row for row in bars if row.get("date") < signal_date][-20:]
+    if not prior:
+        return None
+    high20 = max(row["high"] for row in prior)
+    if price >= high20:
+        return "breakout"
+    if price / high20 > DEEP_DIP_RATIO:
+        return "near_high"
+    return "deep_dip"
+
+
+def _vol_regime(bars, signal_date):
+    """20d realized vol at the signal date vs the ticker's own trailing median."""
+    closes = [row["close"] for row in bars if row.get("date") <= signal_date]
+    if len(closes) < 26:
+        return None
+
+    def _rv(seq):
+        if len(seq) < 2:
+            return None
+        return statistics.pstdev(
+            seq[i] / seq[i - 1] - 1 for i in range(1, len(seq))
+        )
+
+    recent = _rv(closes[-21:])
+    windows = [_rv(closes[i - 20:i]) for i in range(21, len(closes) + 1)]
+    windows = [w for w in windows if w is not None]
+    if recent is None or not windows:
+        return None
+    median = statistics.median(windows)
+    if median <= 0:
+        return None
+    return "high_vol" if recent > median else "low_vol"
+
+
 def _snapshot_cutoff(snapshot):
     raw = snapshot.get("observed_at") or f'{str(snapshot.get("as_of") or "")[:10]}T23:59:59+00:00'
     try:
@@ -401,6 +459,10 @@ def evaluate(config, policy, news_policy, fetched, factor_history, peer_history,
             )
             if not fill:
                 continue
+            # #1098/#1099 measurement splits: price structure vs 20d high and
+            # volatility regime, attached to every fill row for later slicing.
+            structure = _structure_bucket(bars, signal_date, fill["price"])
+            vol_regime = _vol_regime(bars, signal_date)
             peer_row = (peers.get(signal_date) or peers.get(snapshot_date) or {}).get(ticker) or {}
             peer_view = {
                 "triggered_rules": peer_row.get("triggered_rules") or [],
@@ -445,6 +507,8 @@ def evaluate(config, policy, news_policy, fetched, factor_history, peer_history,
                             "ticker": ticker,
                             "return": value,
                             "fill_reason": fill["fill_reason"],
+                            "structure": structure,
+                            "vol_regime": vol_regime,
                         })
         # Early lane is evaluated independently of the mature setup/fill lane.
         # One row per economic exposure (never both SPCX and SPCH), using only
@@ -524,7 +588,11 @@ def evaluate(config, policy, news_policy, fetched, factor_history, peer_history,
     metrics = {
         market: {
             variant: {
-                f"t{horizon}": _summary(rows)
+                f"t{horizon}": {
+                    **_summary(rows),
+                    "by_structure": _split_summary(rows, "structure"),
+                    "by_vol_regime": _split_summary(rows, "vol_regime"),
+                }
                 for horizon, rows in horizons.items()
             }
             for variant, horizons in variants.items()
@@ -613,6 +681,7 @@ def main(argv=None):
                 "confirmation_window_sessions": policy["confirmation_window_sessions"],
                 "variants": list(VARIANTS),
                 "early_variants": ["observed", "information_confirmed", "exploration_ready"],
+                "split_dimensions": ["structure", "vol_regime"],
                 "policy_version": add_alpha.POLICY_VERSION,
                 "parameter_fit": "none; pre-registered thresholds",
             },
@@ -627,6 +696,7 @@ def main(argv=None):
                 "Same-day entry/invalidation ambiguity is invalidated, never assumed filled.",
                 "Early candidates are one row per underlying and use signal-date-close features with T+1/T+5 future closes only as outcomes.",
                 "The early history is small; every result remains collecting/diagnostic, never validated alpha.",
+                "Fills are sliced by price structure (breakout / near_high / deep_dip vs prior 20d high) and 20d volatility regime (high/low vs the ticker's own median): measurement only, no behavioural change (#1098/#1099).",
             ],
         )
     print(json.dumps({"metrics": metrics, "run_card": str(card_path) if card_path else None}, ensure_ascii=False, indent=2))
