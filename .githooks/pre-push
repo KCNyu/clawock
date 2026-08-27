@@ -24,6 +24,27 @@ if [ -n "$UPDATES" ] && ! printf '%s\n' "$UPDATES" | awk '$3 == "refs/heads/mast
   exit 0
 fi
 
+# ──────────────────────────────────────────────────────────────────────────
+# Identity whitelist on the pushed range (author AND committer).
+# 2026-08-27: a bare `kcn@users.noreply.github.com` commit pushed to master
+# was attributed by GitHub to a stranger's account.
+# ──────────────────────────────────────────────────────────────────────────
+. "$(dirname "$0")/_identity_check.sh"
+PUSHED_IDENTS="$(printf '%s\n' "$UPDATES" | \
+  awk '$3 == "refs/heads/master" && $4 !~ /^0+$/ { print $2, $4 }' | \
+  while read -r lsha rsha; do
+    git log --format='%an <%ae>|%cn <%ce>' "$rsha..$lsha" 2>/dev/null
+  done)"
+if [ -n "$PUSHED_IDENTS" ]; then
+  if ! printf '%s\n' "$PUSHED_IDENTS" | tr '|' '\n' | sort -u | \
+      while read -r ident; do check_identities "$ident"; done; then
+    echo "🚫 push blocked — a pushed commit carries an unrecognized identity"
+    echo "   fix: git commit --amend --author='KCNyu <shengyu.li.evgeny@gmail.com>'"
+    echo "   Override (rare): git push --no-verify"
+    exit 1
+  fi
+fi
+
 # A missing checker used to `exit 0` here, which did two wrong things at once:
 # it read "the checker is absent" as "the checks passed", and because this sits
 # ABOVE the money gate it also took preflight_integrity down with it — two

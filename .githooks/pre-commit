@@ -15,6 +15,21 @@ cd "$WS"
 STAGED=$(git diff --cached --name-only --diff-filter=ACM)
 
 # ──────────────────────────────────────────────────────────────────────────
+# 0. Commit identity — author/committer must map to a known account
+#    (2026-08-27: a bare `kcn@users.noreply.github.com` commit was attributed
+#    by GitHub to a stranger's account; the ID-prefixed noreply format or the
+#    KCNyu gmail are the only valid identities)
+# ──────────────────────────────────────────────────────────────────────────
+. "$(dirname "$0")/_identity_check.sh"
+AUTHOR_EMAIL="${GIT_AUTHOR_EMAIL:-$(git var GIT_AUTHOR_IDENT | sed -n 's/^.*<\([^>]*\)>.*$/\1/p')}"
+COMMITTER_EMAIL="${GIT_COMMITTER_EMAIL:-$(git var GIT_COMMITTER_IDENT | sed -n 's/^.*<\([^>]*\)>.*$/\1/p')}"
+if ! check_identities "<$AUTHOR_EMAIL>" "<$COMMITTER_EMAIL>"; then
+  echo "    fix: git -c user.name=KCNyu -c user.email=shengyu.li.evgeny@gmail.com"
+  echo "         commit --amend --reset-author"
+  exit 1
+fi
+
+# ──────────────────────────────────────────────────────────────────────────
 # 1. portfolio.json — must be valid JSON + have required structure
 # ──────────────────────────────────────────────────────────────────────────
 if echo "$STAGED" | grep -qE '^portfolio\.json$'; then
