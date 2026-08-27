@@ -188,13 +188,17 @@ Analysis resolves into explicit, gated strategy decisions — and one stock can 
 
 ### Low-frequency add campaigns
 
-Adding to a position needs two independent signals to agree: a price/peer
-signal (factor rank plus curated-peer residual) and a separate, point-in-time
-news signal (reliable positive surprise or accelerating attention) — not one
-moving average mistaken for alpha. Negative information or peer-laggard
-evidence blocks it outright, sizing stays capped and tranche-based (a warming
-policy earns a small exploration slice, not validated authority), and a small
-rank wobble can't churn permission off and on.
+Adding to a position needs two independent evidence families to agree:
+price-relative (factor rank plus curated-peer residual), point-in-time news
+(reliable positive surprise or accelerating attention), or a confirmed
+un-overheated 20-day breakout — not one moving average mistaken for alpha.
+Any two families authorise a capped exploration slice; validated authority
+still requires decision-usable evidence on both the price and the information
+side, so a price pattern can never promote a leveraged name. Negative
+information or peer-laggard evidence blocks it outright, sizing stays capped
+and tranche-based (a warming policy earns a small exploration slice, not
+validated authority), and a small rank wobble can't churn permission off and
+on.
 - **Falsify, don't confirm.** In a risk-on tape the default is HOLD. A bullish story doesn't trigger a buy until it clears a disconfirming check and an "is this already priced in?" test on the last few days' move.
 - **Regime over timing.** Leverage isn't timed; a 200-day-trend × volatility dial sets the cap. The backtested lesson: the edge was in *de-leveraging in the wrong regime*, not in calling tops.
 
@@ -245,7 +249,7 @@ A layer has to clear a stated bar before it is allowed to influence a decision, 
 
 - **Factor edges** must have a two-way clustered bootstrap interval that does not straddle 50%. An interval that straddles it means the sample is too small, which is a different statement from "the factor does not work" — both keep it out of decisions, and the distinction is published.
 - **The cross-sectional layer** is pre-registered. Only snapshots recorded after registration count toward activation, so a retrospective result can never switch it on.
-- **The leverage dial** is scored out of sample: thresholds are calibrated on a leading window and graded on the next one, and its timing is tested against a null that circularly shifts the same exposure path against returns — preserving its shape and time-in-market while destroying only the alignment.
+- **The leverage dial** is scored out of sample: thresholds are calibrated on a leading window and graded on the next one, and its timing is tested against a null that circularly shifts the same exposure path against returns — preserving its shape and time-in-market while destroying only the alignment. The dial is a **risk-budget control, not a timing signal**: its durable claim is less exposure in hostile regimes, while calling turns is exactly the part that cannot be distinguished from chance.
 
 Results are published whether or not they flatter the system. The dial's permutation test is the current example: on the sample available, its timing cannot be distinguished from chance, and that is stated on the page rather than left out of it. A failure to reject is not a refutation, and the page says which one it is.
 
@@ -257,7 +261,7 @@ Two properties keep this from decaying into copy. The page is **generated from t
 
 The model writes opinions. The arithmetic that could corrupt the record runs in Python and is unit-tested.
 
-That path is covered by a large unit-test suite — it's what keeps the system stable. Currencies never sum (HKD and USD are shown separately, rate and timestamp stamped), risk caps are checked every brief (single name ≤35%, correlated cluster ≤70%, portfolio β ≤3.0, stop at −18%), and a thesis moves only on new evidence, never on a price move alone.
+That path is covered by a large unit-test suite — it's what keeps the system stable. Currencies never sum (HKD and USD are shown separately, rate and timestamp stamped), risk caps are checked every brief (single name ≤60% hard cap with a 35% review band for the non-leveraged core, ≤35% for leveraged single names, correlated cluster ≤70%, portfolio β ≤3.0, stop at −18%), and a thesis moves only on new evidence, never on a price move alone.
 
 <details>
 <summary><b>All twelve rules, what the code actually does for each</b></summary>
@@ -267,13 +271,13 @@ That path is covered by a large unit-test suite — it's what keeps the system s
 | Rule | What the code does |
 |---|---|
 | **Currencies never sum** | HKD and USD are shown in both views with the rate + timestamp stamped; adding them naively is a meaningless number. |
-| **Risk caps, checked every brief** | Single name ≤35%, correlated cluster ≤70% (measured correlation clusters, applied when coverage is sufficient), leverage-ETF sleeve ≤50%, portfolio β ≤3.0, stop at −18%. Each breach has a durable age, acknowledgement, expiring override and execution-evidence record; same-risk adds freeze until compliance. Execution stays human. |
+| **Risk caps, checked every brief** | Single name: leveraged ≤35% hard; non-leveraged core ≤60% hard with a 35–60% review band (advisory, never a forced sale). Correlated cluster ≤70% (measured correlation clusters, applied when coverage is sufficient), leverage-ETF sleeve ≤50%, portfolio β ≤3.0, stop at −18%. Each breach has a durable age, acknowledgement, expiring override and execution-evidence record; same-risk adds freeze until compliance. Execution stays human. |
 | **Concentration per leg** | `HHI = Σ wᵢ²` per book: `<0.15` ✅ · `0.15–0.25` 🟡 · `0.25–0.40` 🟠 · `>0.40` 🔴. Never blended across currencies. |
-| **Leverage judged by regime** | A 200-day-trend × volatility dial caps the leverage-ETF sleeve (×1 / ×0.5 / ×0); daily-reset 2×/3× products skip fundamentals entirely. |
+| **Leverage judged by regime** | A 200-day-trend × volatility dial caps the leverage-ETF sleeve (×1 / ×0.5 / ×0) as a risk-budget control, not a timing signal — its measured value is less exposure in hostile regimes, and its timing cannot be distinguished from chance (see the testing section); daily-reset 2×/3× products skip fundamentals entirely. |
 | **Return on peak principal** | Return % uses peak net deposits from the cash-flow ledger, not `cost − realized` — a realized win must not fake a higher return. |
 | **News needs an evidence graph** | Filings, issuer/exchange news, calendars, and headlines are deduplicated into expiring event IDs. A reliable, novel, negative event with price/volume or validated peer confirmation may drive defensive action. Positive surprise or accelerating attention can only join price-relative evidence in a capped add exploration; it cannot trade alone. |
 | **Unproven signals get an exploration boundary** | A quant factor cannot claim validated authority until it clears prospective activation. While warming up, a pre-registered interaction can collect one capped tranche per ticker/policy; the ledger keeps that evidence grade distinct. |
-| **Add authority needs quant × information** | Factor and peer residual count as one price-relative family, not two votes. A second point-in-time news surprise/attention family must agree before an exploration or validated tranche exists; technical prices only time that already-authorized capital. |
+| **Add authority needs two independent families** | Factor and peer residual count as one price-relative family, not two votes. Any two independent families — price-relative, point-in-time news surprise/attention, or a confirmed un-overheated 20-day breakout — authorise a capped exploration slice; validated tranches still require decision-usable evidence on both the price and the information side, so a price pattern can never promote a leveraged name. |
 | **Published research numbers need two sources** | Long-form numbers carry a provenance manifest: exact Decimal arithmetic, two independent sources per figure, and a tolerance cap the manifest cannot raise for itself. A single-sourced or disagreeing figure blocks release of the artifact that quotes it. |
 | **A thesis moves only on new evidence** | Assumptions, red lines and valuation anchors live in versioned JSON. A dimension may change only with evidence observed after the last check; a price move can reprice valuation but cannot touch business, moat or management; triggering *and* clearing a red line both need evidence. A missing baseline stays `unknown` instead of being reconstructed from prose. |
 | **Earnings quality is computed, not asserted** | Cash conversion, working-capital gaps, dilution, SBC share and guidance outcomes are derived in code from at least four comparable periods. A basis or currency switch mid-history is an error, a missing input reads `unavailable` with a reason, and footnote claims require a primary issuer document. |
