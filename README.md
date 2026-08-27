@@ -157,6 +157,8 @@ is a daily artifact and would be stale by construction.
 | **History** | retrospective, decision metrics, reflections, data-integrity report | — | heartbeat slot state |
 | **Today's plan** | writes it | the morning's still-open decisions for this leg | the morning's still-open decisions for this leg |
 
+Block counts are the top-level context sections each cadence emits, pinned by CI (`tests/test_readme_parity.py`) against the preflights' own context dicts — packet-identifying envelope keys (`context_id` / `generation_id`) are not counted, which is why a written artifact carries one key more than this number.
+
 The catalyst probe is the narrow, time-sensitive one: it fires **only for names that already moved**, reads exchange and regulator filings first (SEC acceptance timestamps, HKEX announcements), classifies each item as interrupt, context or noise, and states `no_recent_filing` explicitly rather than letting an empty block read as "nothing happened".
 
 </details>
