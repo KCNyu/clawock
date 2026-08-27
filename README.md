@@ -148,7 +148,7 @@ is a daily artifact and would be stale by construction.
 | | Pre-open brief | Open / midday / afternoon / close | Intraday check-in |
 |---|---|---|---|
 | **When** | 08:00 HKT, weekdays | HK 09:30 · 12:00 · 13:30 · 16:00 · US open and close | every 30 min while a market is open |
-| **Blocks** | 38 | 17 | 30 |
+| **Blocks** | 37 | 16 | 29 |
 | **Position truth** | holdings, book totals, concentration, leverage look-through | fresh quote block | fresh quote block |
 | **Risk** | guardrail, discipline ledger, β/vol/drawdown, breakeven math | risk section only when signals demand it | signal counts and detail |
 | **Signals** | quant factors and their hit-rate review, cross-sectional factor, peer residual, T+0 setups | peer/sector scan | peer/sector scan, T+0 setups, anomaly flags, entry setups and early-trend candidates re-run on the open bar, price-surface opportunity radar |
@@ -157,7 +157,7 @@ is a daily artifact and would be stale by construction.
 | **History** | retrospective, decision metrics, reflections, data-integrity report | — | heartbeat slot state |
 | **Today's plan** | writes it | the morning's still-open decisions for this leg | the morning's still-open decisions for this leg |
 
-Block counts are the top-level context sections each cadence emits, pinned by CI against [`config/preflight-blocks.json`](https://github.com/KCNyu/clawock/blob/master/config/preflight-blocks.json) — a preflight that gains or drops a block without updating the registry turns this row red.
+Block counts are the top-level context sections each cadence emits, pinned by CI (`tests/test_readme_parity.py`) against the preflights' own context dicts — packet-identifying envelope keys (`context_id` / `generation_id`) are not counted, which is why a written artifact carries one key more than this number.
 
 The catalyst probe is the narrow, time-sensitive one: it fires **only for names that already moved**, reads exchange and regulator filings first (SEC acceptance timestamps, HKEX announcements), classifies each item as interrupt, context or noise, and states `no_recent_filing` explicitly rather than letting an empty block read as "nothing happened".
 
