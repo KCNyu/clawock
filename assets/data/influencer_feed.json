@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-27T01:01:18.401996+00:00",
+  "generated_at": "2026-08-27T22:38:42.862143+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -13,69 +13,24 @@
   },
   "llm_filtered": true,
   "counts": {
-    "total": 18,
+    "total": 10,
     "held_hits": 0,
     "new_ideas": 0,
-    "sector_hits": 9
+    "sector_hits": 5
   },
   "items": [
     {
       "author": "Musk",
-      "text": "Elon Musk, Gov. Landry discuss SpaceX’s $100B Louisiana launch site",
+      "text": "Musk plans $100 billion SpaceX launch site in coastal Louisiana",
       "url": "",
-      "published": "Wed, 26 Aug 2026 20:34:21 GMT",
+      "published": "Tue, 25 Aug 2026 22:40:55 GMT",
       "origin": "gnews-rss",
-      "source": "Fox Business",
+      "source": "Louisiana Illuminator",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天",
-        "基础设施"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
-      "relevance": 82,
-      "summary_cn": "Musk与路易斯安那州长Landry讨论SpaceX 1000亿美元发射场落地计划，重大项目推进。"
-    },
-    {
-      "author": "Musk",
-      "text": "Musk's SpaceX announces $100 billion plan for new spaceport in Louisiana",
-      "url": "",
-      "published": "Tue, 25 Aug 2026 21:35:22 GMT",
-      "origin": "gnews-rss",
-      "source": "CBS News",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "基础设施"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
-      "relevance": 82,
-      "summary_cn": "SpaceX宣布在路易斯安那州投资1000亿美元建设新航天发射场，重大利好SpaceX及其杠杆ETF。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk given high state honor by Ukrainian President Volodymyr Zelenskyy",
-      "url": "",
-      "published": "Wed, 26 Aug 2026 19:38:21 GMT",
-      "origin": "gnews-rss",
-      "source": "Austin American-Statesman",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "地缘政治"
+        "航天"
       ],
       "sector_holdings": [
         "SPCH",
@@ -83,34 +38,12 @@
       ],
       "stance": "endorse",
       "relevance": 72,
-      "summary_cn": "Musk获乌克兰总统泽连斯基颁发国家荣誉勋章，Starlink战略价值获国际认可。"
-    },
-    {
-      "author": "Musk",
-      "text": "Zelenskyy gives Ukraine's Order of Freedom award to Musk for Starlink's role in war effort",
-      "url": "",
-      "published": "Wed, 26 Aug 2026 18:09:37 GMT",
-      "origin": "gnews-rss",
-      "source": "PBS",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "地缘政治"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
-      "relevance": 72,
-      "summary_cn": "泽连斯基向Musk颁发乌克兰'自由勋章'，表彰Starlink在战时中的关键作用，提升SpaceX国际声誉。"
+      "summary_cn": "Musk宣布在路易斯安那州沿海投资1000亿美元建设SpaceX超级发射场，重大资本开支扩张直接利好kcn的SPCX/SPCH。"
     },
     {
       "author": "Trump",
       "text": "Apple to invest $30 billion in US chip manufacturing: https://www.foxbusiness.com/media/apple-invest-30-billion-us-chip-manufacturing",
-      "url": "https://trumpstruth.org/statuses/41246",
+      "url": "https://www.trumpstruth.org/statuses/41246",
       "published": "2026-08-26T16:21:18+00:00",
       "origin": "truthsocial",
       "tickers": [],
@@ -119,139 +52,101 @@
       "sectors": [
         "半导体",
         "AI",
-        "制造业"
+        "关税"
       ],
       "sector_holdings": [
         "SKHY"
       ],
       "stance": "endorse",
-      "relevance": 72,
-      "summary_cn": "苹果宣布在美国芯片制造领域投资300亿美元，利好半导体供应链(含SK海力士)。"
+      "relevance": 68,
+      "summary_cn": "Apple宣布在美国追加300亿美元芯片制造投资，强化本土半导体制造主题，间接利好SK海力士等存储/AI供应链。"
     },
     {
-      "author": "Musk",
-      "text": "Ukraine awards Musk high state honour as it seeks to use Starlink more",
-      "url": "",
-      "published": "Wed, 26 Aug 2026 10:45:45 GMT",
-      "origin": "gnews-rss",
-      "source": "Reuters",
+      "author": "Trump",
+      "text": "GREAT NEWS! Micron, one of the “HOTTEST” Companies in the World, just announced a MASSIVE 10 BILLION DOLLAR Investment in new Research Labs right here in America. They are keeping us at the absolute forefront of A.I. and Advanced Computing! 🇺🇸   Combined with their previous TREMENDOUS 250 BILLION DOLLAR commitment, they are creating over tens of thousands of Great American Jobs. We are bringing Critical Technologies BACK to the U.S.A. Because of our Great Policies, Companies are investing TRILLIONS.    I have made it clear that America will lead the way to a new Golden Age of Science. The resu",
+      "url": "https://www.trumpstruth.org/statuses/41269",
+      "published": "2026-08-27T18:31:52+00:00",
+      "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天",
-        "地缘政治"
+        "半导体",
+        "AI"
+      ],
+      "sector_holdings": [
+        "SKHY"
+      ],
+      "stance": "endorse",
+      "relevance": 62,
+      "summary_cn": "Trump发文盛赞Micron在美国本土追加100亿美元(累计2500亿美元)投资AI研发实验室，利好半导体/AI板块，SK海力士属同链条间接受益。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk’s SpaceX to expand beyond Texas Starbase with new Louisiana spaceport dedicated to Starship",
+      "url": "",
+      "published": "Tue, 25 Aug 2026 20:10:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Scientific American",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
       ],
       "sector_holdings": [
         "SPCH",
         "SPCX"
       ],
       "stance": "endorse",
-      "relevance": 70,
-      "summary_cn": "乌克兰向Musk授予国家荣誉勋章，意在深化Starlink在战时及重建中的应用，利好SpaceX。"
-    },
-    {
-      "author": "Trump",
-      "text": "RT @realwayneroot\"US BUSINESS IS BOOMING.\" My great friend & financial advisor Kip Herriage of VRAinsider called this first. I took ball & ran with it. Trump economy is BOOMING. Yet no one knows it because commie media is gaslighting America. Yes prices still high, but that's 100% Biden's inflation. Inflation growth under Trump is lowest among recent presidents. Big stocks are booming to all time highs, profits all time highs, earnings all time highs- Trump economy is exploding to Reagan levels- while fake news media scams you into thinking it's bad. This is biggest scam in history (other than",
-      "url": "https://trumpstruth.org/statuses/41204",
-      "published": "2026-08-25T15:40:43+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "宏观经济",
-        "加密货币"
-      ],
-      "sector_holdings": [
-        "CRCL"
-      ],
-      "stance": "endorse",
-      "relevance": 62,
-      "summary_cn": "特朗普阵营宣称'美国商业蓬勃发展'，大股票与盈利创历史新高，并抨击媒体唱衰经济。"
-    },
-    {
-      "author": "Trump",
-      "text": "S&P Global: ‘US Business Is Booming’: https://www.breitbart.com/economy/2026/08/21/biz-is-booming/",
-      "url": "https://trumpstruth.org/statuses/41203",
-      "published": "2026-08-25T15:40:59+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "宏观经济"
-      ],
-      "sector_holdings": [
-        "CRCL"
-      ],
-      "stance": "endorse",
-      "relevance": 58,
-      "summary_cn": "标普全球称'美国商业正在蓬勃发展'，特朗普转发背书其经济成就。"
+      "relevance": 60,
+      "summary_cn": "SpaceX计划在德州Starbase之外扩建Louisiana新太空港，专用于Starship，扩张信号利好kcn的SPCX/SPCH。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk Reveals Why SpaceX Launched Tesla’s Roadster Into Orbit: ‘We Didn’t Want to Risk Anything Valuable’",
+      "text": "Elon Musk and Morgan Stanley’s SpaceX Predictions Are 7 Years Apart",
       "url": "",
-      "published": "Wed, 26 Aug 2026 23:30:44 GMT",
+      "published": "Thu, 27 Aug 2026 21:31:00 GMT",
+      "origin": "gnews-rss",
+      "source": "BeInCrypto",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 58,
+      "summary_cn": "Musk与Morgan Stanley对SpaceX估值/发射预测时间表差异巨大(差7年)，市场关注SpaceX成长路径，间接利好kcn持仓SPCX/SPCH。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk Is Expanding Tesla's Robotaxi Network Beyond Austin and Miami. Here's Why That's Important for the Future Success of the Stock.",
+      "url": "",
+      "published": "Thu, 27 Aug 2026 18:25:00 GMT",
       "origin": "gnews-rss",
       "source": "Yahoo Finance",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天",
-        "电动车"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "Musk透露SpaceX当年将Tesla Roadster射入太空的原因：'不想冒险放任何有价值的东西'。"
-    },
-    {
-      "author": "Trump",
-      "text": "Canada has been “Ripping Off” the U.S.A. for decades. They have been charging our Farmers 400% Tariffs, and more. They have driven many wonderful U.S. companies out of business. For 10 years they wouldn’t certify Gulfstream Jets, until I got involved. They wanted 100% of the market for Gulfstream’s Canadian competitor. I deal with many countries, and Canada is easily the most difficult and unreasonable. They feel entitled, but they are not a State, and will be entitled no longer! President DJT",
-      "url": "https://trumpstruth.org/statuses/41187",
-      "published": "2026-08-25T13:40:40+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "关税",
-        "贸易",
-        "航空航天"
+        "电动车",
+        "自动驾驶",
+        "AI"
       ],
       "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 65,
-      "summary_cn": "特朗普抨击加拿大长期'占美国便宜'，对其征收400%关税并排斥湾流飞机进入，贸易摩擦升级。"
-    },
-    {
-      "author": "Trump",
-      "text": "Over the last 10 years, the United States lost, on average, 60 Billion Dollars a year with Canada. No more! President DJT",
-      "url": "https://trumpstruth.org/statuses/41188",
-      "published": "2026-08-25T14:00:40+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "关税",
-        "贸易"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 58,
-      "summary_cn": "特朗普宣称过去10年美国对加拿大年均贸易逆差600亿美元，暗示将采取强硬贸易行动。"
+      "stance": "endorse",
+      "relevance": 55,
+      "summary_cn": "Tesla Robotaxi网络将从Austin和Miami扩张，Musk力推Robotaxi业务进展，正面信号。"
     },
     {
       "author": "Trump",
       "text": "Trump Unleashes Scott Bessent on Iran: https://www.wsj.com/opinion/donald-trump-scott-bessent-sanctions-iran-oil-economy-96362772",
-      "url": "https://trumpstruth.org/statuses/41252",
+      "url": "https://www.trumpstruth.org/statuses/41252",
       "published": "2026-08-26T16:26:54+00:00",
       "origin": "truthsocial",
       "tickers": [],
@@ -263,118 +158,63 @@
         "制裁"
       ],
       "sector_holdings": [],
-      "stance": "neutral",
+      "stance": "attack",
       "relevance": 55,
-      "summary_cn": "特朗普授权财长Bessent对伊朗发动经济攻势，动用制裁手段切断伊朗经济命脉。"
-    },
-    {
-      "author": "Trump",
-      "text": "Bessent: Iran’s Leadership ‘Panicking’ Under Trump Economic Offensive — Vows to Sever ‘Every Economic Lifeline’: https://www.breitbart.com/politics/2026/08/25/bessent-irans-leadership-panicking-under-trump-economic-offensive-vows-to-sever-every-economic-lifeline/",
-      "url": "https://trumpstruth.org/statuses/41241",
-      "published": "2026-08-26T16:22:27+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "能源",
-        "地缘政治",
-        "制裁"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "Bessent称伊朗领导层在特朗普经济攻势下'恐慌'，誓言切断其每一条经济命脉。"
-    },
-    {
-      "author": "Trump",
-      "text": "America must put AI to work defending our critical infrastructure: https://www.washingtonexaminer.com/restoring-america/faith-freedom-self-reliance/4671085/america-ai-work-defending-infrastructure/",
-      "url": "https://trumpstruth.org/statuses/41207",
-      "published": "2026-08-25T15:40:09+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI",
-        "基础设施"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "特朗普主张将AI用于保卫美国关键基础设施，利好AI应用主题。"
-    },
-    {
-      "author": "Trump",
-      "text": "Reigniting the American dream: Donald Trump, Dave McCormick, and Jamie Dimon unveil a massive manufacturing push in Pennsylvania: https://www.washingtonexaminer.com/opinion/columnists/4652360/trump-dave-mccormick-jamie-dimon-manufacturing-push-pennsylvania/",
-      "url": "https://trumpstruth.org/statuses/41197",
-      "published": "2026-08-25T15:37:21+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "制造业"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "特朗普、McCormick与摩根大通Dimon在宾州联合推出大规模制造业投资计划。"
+      "summary_cn": "Trump派财长Bessent主导对伊朗经济绞杀(制裁石油等生命线)，宏观层面影响原油与避险资产，无直接持仓关联。"
     },
     {
       "author": "Musk",
-      "text": "'It’s hard to know exactly what the objective of DOGE was': Former IRS boss warns Elon Musk’s cuts to the tax agency will be felt in years to come",
+      "text": "Elon Musk's xAI Sued For Using Child Survivor Photos To Generate Abusive Content",
       "url": "",
-      "published": "Mon, 24 Aug 2026 16:50:00 GMT",
+      "published": "Thu, 27 Aug 2026 21:39:52 GMT",
       "origin": "gnews-rss",
-      "source": "Fortune",
+      "source": "NDTV",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "财政",
-        "政府效率"
+        "AI"
       ],
       "sector_holdings": [],
       "stance": "attack",
       "relevance": 50,
-      "summary_cn": "前国税局局长警告，Musk主导的DOGE削减IRS预算的长期负面影响将在未来数年显现。"
-    },
-    {
-      "author": "Trump",
-      "text": "JD Vance, Ohio Figures Give Rousing Middletown Speech on Manufacturing Investments: https://www.dailysignal.com/2026/08/24/jd-vance-ohio-figures-give-rousing-middletown-speech-on-manufacturing-investments/",
-      "url": "https://trumpstruth.org/statuses/41260",
-      "published": "2026-08-26T16:35:11+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "制造业"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "JD Vance在俄亥俄州就制造业投资发表演讲，传递制造业回流利好信号。"
+      "summary_cn": "xAI因被指控用未成年幸存者照片生成虐待内容遭起诉，AI伦理与监管风险信号，可能拖累整个AI板块情绪。"
     },
     {
       "author": "Musk",
-      "text": "Judge Dismisses Lawsuit by Elon Musk's X Challenging New York Hate Speech Law",
+      "text": "Elon Musk's SpacexAI faces another lawsuit from child sexual abuse survivor",
       "url": "",
-      "published": "Wed, 26 Aug 2026 22:07:00 GMT",
+      "published": "Thu, 27 Aug 2026 16:50:43 GMT",
       "origin": "gnews-rss",
-      "source": "U.S. News & World Report",
+      "source": "Mashable",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "社交媒体",
-        "监管"
+        "AI"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 48,
+      "summary_cn": "xAI再因儿童性虐内容相关诉讼被起诉，与条目15同主题，重复报道合并弱化。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk: The 100 Most Influential People in AI 2026",
+      "url": "",
+      "published": "Thu, 27 Aug 2026 12:02:19 GMT",
+      "origin": "gnews-rss",
+      "source": "Time Magazine",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 48,
-      "summary_cn": "法院驳回Musk旗下X对纽约仇恨言论法的诉讼，X在监管合规上遇阻。"
+      "relevance": 45,
+      "summary_cn": "Musk入选《TIME》2026 AI领域最具影响力100人，象征性荣誉，无直接市场含义。"
     }
   ],
   "held_hits": [],
@@ -382,61 +222,16 @@
   "sector_hits": [
     {
       "author": "Musk",
-      "text": "Elon Musk, Gov. Landry discuss SpaceX’s $100B Louisiana launch site",
+      "text": "Musk plans $100 billion SpaceX launch site in coastal Louisiana",
       "url": "",
-      "published": "Wed, 26 Aug 2026 20:34:21 GMT",
+      "published": "Tue, 25 Aug 2026 22:40:55 GMT",
       "origin": "gnews-rss",
-      "source": "Fox Business",
+      "source": "Louisiana Illuminator",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天",
-        "基础设施"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
-      "relevance": 82,
-      "summary_cn": "Musk与路易斯安那州长Landry讨论SpaceX 1000亿美元发射场落地计划，重大项目推进。"
-    },
-    {
-      "author": "Musk",
-      "text": "Musk's SpaceX announces $100 billion plan for new spaceport in Louisiana",
-      "url": "",
-      "published": "Tue, 25 Aug 2026 21:35:22 GMT",
-      "origin": "gnews-rss",
-      "source": "CBS News",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "基础设施"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
-      "relevance": 82,
-      "summary_cn": "SpaceX宣布在路易斯安那州投资1000亿美元建设新航天发射场，重大利好SpaceX及其杠杆ETF。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk given high state honor by Ukrainian President Volodymyr Zelenskyy",
-      "url": "",
-      "published": "Wed, 26 Aug 2026 19:38:21 GMT",
-      "origin": "gnews-rss",
-      "source": "Austin American-Statesman",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "地缘政治"
+        "航天"
       ],
       "sector_holdings": [
         "SPCH",
@@ -444,34 +239,12 @@
       ],
       "stance": "endorse",
       "relevance": 72,
-      "summary_cn": "Musk获乌克兰总统泽连斯基颁发国家荣誉勋章，Starlink战略价值获国际认可。"
-    },
-    {
-      "author": "Musk",
-      "text": "Zelenskyy gives Ukraine's Order of Freedom award to Musk for Starlink's role in war effort",
-      "url": "",
-      "published": "Wed, 26 Aug 2026 18:09:37 GMT",
-      "origin": "gnews-rss",
-      "source": "PBS",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "地缘政治"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
-      "relevance": 72,
-      "summary_cn": "泽连斯基向Musk颁发乌克兰'自由勋章'，表彰Starlink在战时中的关键作用，提升SpaceX国际声誉。"
+      "summary_cn": "Musk宣布在路易斯安那州沿海投资1000亿美元建设SpaceX超级发射场，重大资本开支扩张直接利好kcn的SPCX/SPCH。"
     },
     {
       "author": "Trump",
       "text": "Apple to invest $30 billion in US chip manufacturing: https://www.foxbusiness.com/media/apple-invest-30-billion-us-chip-manufacturing",
-      "url": "https://trumpstruth.org/statuses/41246",
+      "url": "https://www.trumpstruth.org/statuses/41246",
       "published": "2026-08-26T16:21:18+00:00",
       "origin": "truthsocial",
       "tickers": [],
@@ -480,97 +253,76 @@
       "sectors": [
         "半导体",
         "AI",
-        "制造业"
+        "关税"
       ],
       "sector_holdings": [
         "SKHY"
       ],
       "stance": "endorse",
-      "relevance": 72,
-      "summary_cn": "苹果宣布在美国芯片制造领域投资300亿美元，利好半导体供应链(含SK海力士)。"
-    },
-    {
-      "author": "Musk",
-      "text": "Ukraine awards Musk high state honour as it seeks to use Starlink more",
-      "url": "",
-      "published": "Wed, 26 Aug 2026 10:45:45 GMT",
-      "origin": "gnews-rss",
-      "source": "Reuters",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "地缘政治"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
-      "relevance": 70,
-      "summary_cn": "乌克兰向Musk授予国家荣誉勋章，意在深化Starlink在战时及重建中的应用，利好SpaceX。"
+      "relevance": 68,
+      "summary_cn": "Apple宣布在美国追加300亿美元芯片制造投资，强化本土半导体制造主题，间接利好SK海力士等存储/AI供应链。"
     },
     {
       "author": "Trump",
-      "text": "RT @realwayneroot\"US BUSINESS IS BOOMING.\" My great friend & financial advisor Kip Herriage of VRAinsider called this first. I took ball & ran with it. Trump economy is BOOMING. Yet no one knows it because commie media is gaslighting America. Yes prices still high, but that's 100% Biden's inflation. Inflation growth under Trump is lowest among recent presidents. Big stocks are booming to all time highs, profits all time highs, earnings all time highs- Trump economy is exploding to Reagan levels- while fake news media scams you into thinking it's bad. This is biggest scam in history (other than",
-      "url": "https://trumpstruth.org/statuses/41204",
-      "published": "2026-08-25T15:40:43+00:00",
+      "text": "GREAT NEWS! Micron, one of the “HOTTEST” Companies in the World, just announced a MASSIVE 10 BILLION DOLLAR Investment in new Research Labs right here in America. They are keeping us at the absolute forefront of A.I. and Advanced Computing! 🇺🇸   Combined with their previous TREMENDOUS 250 BILLION DOLLAR commitment, they are creating over tens of thousands of Great American Jobs. We are bringing Critical Technologies BACK to the U.S.A. Because of our Great Policies, Companies are investing TRILLIONS.    I have made it clear that America will lead the way to a new Golden Age of Science. The resu",
+      "url": "https://www.trumpstruth.org/statuses/41269",
+      "published": "2026-08-27T18:31:52+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "宏观经济",
-        "加密货币"
+        "半导体",
+        "AI"
       ],
       "sector_holdings": [
-        "CRCL"
+        "SKHY"
       ],
       "stance": "endorse",
       "relevance": 62,
-      "summary_cn": "特朗普阵营宣称'美国商业蓬勃发展'，大股票与盈利创历史新高，并抨击媒体唱衰经济。"
-    },
-    {
-      "author": "Trump",
-      "text": "S&P Global: ‘US Business Is Booming’: https://www.breitbart.com/economy/2026/08/21/biz-is-booming/",
-      "url": "https://trumpstruth.org/statuses/41203",
-      "published": "2026-08-25T15:40:59+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "宏观经济"
-      ],
-      "sector_holdings": [
-        "CRCL"
-      ],
-      "stance": "endorse",
-      "relevance": 58,
-      "summary_cn": "标普全球称'美国商业正在蓬勃发展'，特朗普转发背书其经济成就。"
+      "summary_cn": "Trump发文盛赞Micron在美国本土追加100亿美元(累计2500亿美元)投资AI研发实验室，利好半导体/AI板块，SK海力士属同链条间接受益。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk Reveals Why SpaceX Launched Tesla’s Roadster Into Orbit: ‘We Didn’t Want to Risk Anything Valuable’",
+      "text": "Elon Musk’s SpaceX to expand beyond Texas Starbase with new Louisiana spaceport dedicated to Starship",
       "url": "",
-      "published": "Wed, 26 Aug 2026 23:30:44 GMT",
+      "published": "Tue, 25 Aug 2026 20:10:00 GMT",
       "origin": "gnews-rss",
-      "source": "Yahoo Finance",
+      "source": "Scientific American",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天",
-        "电动车"
+        "航天"
       ],
       "sector_holdings": [
         "SPCH",
         "SPCX"
       ],
-      "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "Musk透露SpaceX当年将Tesla Roadster射入太空的原因：'不想冒险放任何有价值的东西'。"
+      "stance": "endorse",
+      "relevance": 60,
+      "summary_cn": "SpaceX计划在德州Starbase之外扩建Louisiana新太空港，专用于Starship，扩张信号利好kcn的SPCX/SPCH。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk and Morgan Stanley’s SpaceX Predictions Are 7 Years Apart",
+      "url": "",
+      "published": "Thu, 27 Aug 2026 21:31:00 GMT",
+      "origin": "gnews-rss",
+      "source": "BeInCrypto",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 58,
+      "summary_cn": "Musk与Morgan Stanley对SpaceX估值/发射预测时间表差异巨大(差7年)，市场关注SpaceX成长路径，间接利好kcn持仓SPCX/SPCH。"
     }
   ]
 }
