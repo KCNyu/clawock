@@ -107,6 +107,11 @@ def test_the_pre_commit_hook_refuses_staged_memory(tmp_path):
     hook.write_text((ROOT / ".githooks" / "pre-commit").read_text(encoding="utf-8"),
                     encoding="utf-8")
     hook.chmod(0o755)
+    identity = repo / ".githooks" / "_identity_check.sh"
+    identity.write_text(
+        (ROOT / ".githooks" / "_identity_check.sh").read_text(encoding="utf-8"),
+        encoding="utf-8")
+    identity.chmod(0o755)
     _git(repo, "config", "core.hooksPath", ".githooks")
 
     (repo / "MEMORY.md").write_text("index\n", encoding="utf-8")
@@ -117,7 +122,8 @@ def test_the_pre_commit_hook_refuses_staged_memory(tmp_path):
 
     def commit():
         return subprocess.run(
-            ["git", "-C", str(repo), "-c", "user.email=t@t", "-c", "user.name=t",
+            ["git", "-C", str(repo), "-c", "user.email=shengyu.li.evgeny@gmail.com",
+             "-c", "user.name=KCNyu",
              "commit", "-m", "sweep"], capture_output=True, text=True)
 
     done = commit()

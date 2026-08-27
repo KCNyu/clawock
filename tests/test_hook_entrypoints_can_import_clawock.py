@@ -43,10 +43,10 @@ def _stripped_env(repo: Path) -> dict:
     return {
         "PATH": "/usr/bin:/bin",
         "HOME": str(repo),
-        "GIT_AUTHOR_NAME": "t",
-        "GIT_AUTHOR_EMAIL": "t@example.com",
-        "GIT_COMMITTER_NAME": "t",
-        "GIT_COMMITTER_EMAIL": "t@example.com",
+        "GIT_AUTHOR_NAME": "KCNyu",
+        "GIT_AUTHOR_EMAIL": "shengyu.li.evgeny@gmail.com",
+        "GIT_COMMITTER_NAME": "KCNyu",
+        "GIT_COMMITTER_EMAIL": "shengyu.li.evgeny@gmail.com",
     }
 
 
@@ -65,6 +65,9 @@ def repo_with_staged_plan(tmp_path):
     hooks.mkdir()
     shutil.copy2(HOOK, hooks / "pre-commit")
     (hooks / "pre-commit").chmod(0o755)
+    shutil.copy2(ROOT / ".githooks" / "_identity_check.sh",
+                 hooks / "_identity_check.sh")
+    (hooks / "_identity_check.sh").chmod(0o755)
 
     subprocess.run(["git", "init", "-q"], cwd=repo, check=True)
     subprocess.run(["git", "config", "core.hooksPath", ".githooks"], cwd=repo, check=True)
