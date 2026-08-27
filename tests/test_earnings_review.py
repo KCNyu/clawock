@@ -97,6 +97,20 @@ def test_short_history_and_out_of_order_history_fail(us):
     )
 
 
+def test_annual_cadence_also_needs_four_comparable_periods(us):
+    # README 契约是「至少四个可比期」,对 annual 发行人也一样(#1097):
+    # 三个财年的可比期必须被拒。
+    assert er.CADENCES == {"quarterly": 4, "semiannual": 4, "annual": 4}
+    annual = copy.deepcopy(us)
+    annual["cadence"] = "annual"
+    annual["comparables"] = annual["comparables"][:3]
+    errors = er.validate_artifact(annual, now=NOW)
+    assert any(
+        "annual cadence needs at least 4 comparable periods" in error
+        for error in errors
+    )
+
+
 def test_period_and_publication_dates_must_be_coherent(us):
     early = copy.deepcopy(us)
     early["published_at"] = "2026-01-05T20:05:00+00:00"

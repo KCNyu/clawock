@@ -47,7 +47,9 @@ SOURCE_CLASSES = PRIMARY_SOURCES | STRUCTURED_SOURCES | THIRD_PARTY_SOURCES
 # a separate basis and may never be compared against a GAAP one.
 BASES = {"GAAP", "IFRS", "HKFRS", "non_GAAP"}
 MARKET_BASES = {"US": {"GAAP", "non_GAAP"}, "HK": {"IFRS", "HKFRS", "non_GAAP"}}
-CADENCES = {"quarterly": 4, "semiannual": 4, "annual": 3}
+# README 契约:盈利质量从「至少四个可比期」算。每个节奏都要求 ≥4 期——
+# annual 发行人也需要四个财年(曾为 3,与文档口径不一致,见 #1097)。
+CADENCES = {"quarterly": 4, "semiannual": 4, "annual": 4}
 FOOTNOTE_CATEGORIES = {
     "related_party", "contingency", "accounting_policy_change",
     "goodwill_intangibles", "customer_concentration", "supplier_concentration",
