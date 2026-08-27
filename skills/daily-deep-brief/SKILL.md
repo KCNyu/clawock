@@ -264,6 +264,8 @@ manifest 若出现 `extras`，表示新 feature 被隔离而没有偷长常驻 c
 
 引用：每方至少引 2 个具体 Tier 1 数据点（不是 vibes）。
 
+**Devil's advocate（#1101）**：Bear 除组装"减仓 + 砍仓"案外，必须**点名攻击当前最强共识**——即 Tier 1 表里最被看好的票 / 最强势的多头论点，并写明攻击的是哪个结论。不许只挑软柿子；若确实无强共识，明说"无强共识，攻击次强"并给出理由。目的：压制群体思维与锚定，别让辩论顺着第一个观点滑下去。
+
 #### Tier 3 — 3 个 Risk Voice + Judge
 
 | Voice | 立场 | 必须做的 |
@@ -276,6 +278,7 @@ manifest 若出现 `extras`，表示新 feature 被隔离而没有偷长常驻 c
 - kcn 风险偏好 = **激进**（USER.md），Aggressive 默认略多权重
 - **但** trending down regime 启动时 Conservative 权重 +1 档
 - 数据 stale 任何一段 → 涉及票 confidence -10pp
+- **视角轮换（#1101）**：三位风险官的首位表态权每 4 个交易日轮换（Aggressive → Conservative → Neutral → 循环），当日首位 voice 写进 pre-open.md。轮换只改表态顺序与框架设定，**不改** kcn 激进偏好的权重规则。
 
 输出策略级 decision。**同一股票同一天允许多条决策**，例如 `core_position` 继续持有，同时 `intraday_t` 做日内 T；两者不能互相覆盖。
 
