@@ -205,14 +205,22 @@ def _ledger_repo(tmp_path, *, with_portfolio=True):
     return tmp_path
 
 
+def _install_prepush(repo):
+    """Copy pre-push plus the shared identity whitelist it sources."""
+    hook = repo / "pre-push"
+    hook.write_text((ROOT / ".githooks" / "pre-push").read_text())
+    (repo / "_identity_check.sh").write_text(
+        (ROOT / ".githooks" / "_identity_check.sh").read_text())
+    return hook
+
+
 def test_pre_push_refuses_a_ledger_workspace_whose_checker_is_missing(tmp_path):
     """A missing checker used to `exit 0` — reading "absent" as "passed", and
     because that sits above the money gate it disarmed preflight_integrity too.
     Verified before the fix: system_check.py removed + an unreconciled book
     pushed clean."""
     repo = _ledger_repo(tmp_path)
-    hook = repo / "pre-push"
-    hook.write_text((ROOT / ".githooks" / "pre-push").read_text())
+    hook = _install_prepush(repo)
 
     result = subprocess.run(["bash", str(hook)], cwd=repo, capture_output=True,
                             text=True, input="")
@@ -226,8 +234,7 @@ def test_pre_push_still_allows_a_repo_that_carries_no_money_file(tmp_path):
     """The fail-closed branch must not turn into a blanket block on any repo
     without the checker — only a ledger workspace is a broken install."""
     repo = _ledger_repo(tmp_path, with_portfolio=False)
-    hook = repo / "pre-push"
-    hook.write_text((ROOT / ".githooks" / "pre-push").read_text())
+    hook = _install_prepush(repo)
 
     result = subprocess.run(["bash", str(hook)], cwd=repo, capture_output=True,
                             text=True, input="")
@@ -244,8 +251,7 @@ def test_pre_push_does_not_apply_master_ledger_gates_to_data_plane(tmp_path):
     deleting the hook body cannot satisfy both assertions.
     """
     repo = _ledger_repo(tmp_path)
-    hook = repo / "pre-push"
-    hook.write_text((ROOT / ".githooks" / "pre-push").read_text())
+    hook = _install_prepush(repo)
     zero = "0" * 40
     one = "1" * 40
 
