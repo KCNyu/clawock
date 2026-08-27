@@ -210,7 +210,8 @@ The daily deep brief runs a structured **multi-agent debate**, adapted from [Tra
 
 - **Analyst lenses.** Fundamental, technical, sentiment, and sector-rotation agents read the *same* context and merge into one table. Every claim must cite numeric context.
 - **Bull vs Bear.** Two researchers build opposing cases, each citing concrete analyst data points. The protocol asks them to **genuinely disagree on at least one position** and to record it, so unanimous agreement reads as a flag rather than evidence.
-- **Risk voices + a Judge.** Aggressive, Conservative, and Neutral each argue their corner. A Judge weighs them, **names the strategy frame driving each decision**, and resolves the argument into `plan.json` — which enters the next session's grading pipeline.
+- **Devil's advocate.** The Bear researcher is assigned to name and attack the session's strongest consensus view — never the weakest — so a lopsided bull tape cannot go unchallenged by cherry-picking, and the attack it lands is written down.
+- **Risk voices + a Judge.** Aggressive, Conservative, and Neutral each argue their corner; the first-mover voice rotates every four trading days so the framing cannot calcify. A Judge weighs them, **names the strategy frame driving each decision**, and resolves the argument into `plan.json` — which enters the next session's grading pipeline.
 
 ## The public scorecard
 
