@@ -139,3 +139,8 @@ _（空）_
 
 <!-- openclaw-memory-promotion:memory:memory/2026-08-20-pre-open.md:33:36 -->
 - ▎仓位明细 (US): | 代码 | 名 | 股 | 成本 | 现价 | 今日% | 浮% | 浮$ | |---|---|---|---|---|---|---|---| | SPCH | 2x Long SpaceX | 290 | 12.20 | 8.94 | -5.4% | -26.7% | -US$946 | | RKLX | 2x Long RKLB | 10 | 49.69 | 21.54 | -8.7% | -56.7% | -US$282 | [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-20-pre-open.md:33-36]
+
+## Promoted From Short-Term Memory (2026-08-28)
+
+<!-- openclaw-memory-promotion:memory:memory/2026-08-21-pre-open.md:34:37 -->
+- ▎仓位明细 (US): | 代码 | 名 | 股 | 成本 | 现价 | 今日% | 浮% | 浮$ | |---|---|---|---|---|---|---|---| | SPCH | 2x Long SpaceX | 290 | 12.20 | 8.20 | +0.4% | -32.8% | -US$1,160 | | RKLX | 2x Long RKLB | 10 | 49.69 | 19.88 | -7.7% | -60.0% | -US$298 | [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-21-pre-open.md:34-37]
