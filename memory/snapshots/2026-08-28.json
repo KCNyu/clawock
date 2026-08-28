@@ -1,6 +1,6 @@
 {
   "owner": "kcn",
-  "last_updated": "2026/08/29 02:30 HKT",
+  "last_updated": "2026/08/29 04:03 HKT",
   "portfolios": {
     "us_stocks": {
       "currency": "USD",
@@ -97,10 +97,10 @@
           "ticker": "CRCL",
           "shares": 2,
           "cost_basis": 87,
-          "current_price": 87.34,
-          "today_change_pct": -7.3217,
-          "pnl_percent": 0.3908,
-          "data_source": "Finnhub Aug 28, 2026 14:30 ET",
+          "current_price": 87.14,
+          "today_change_pct": -7.534,
+          "pnl_percent": 0.1609,
+          "data_source": "Finnhub Aug 28, 2026 16:03 ET",
           "note": "2026-02-26/03-02 共买入14股(@88.35+@86.45,均价≈87);2026-03-04 卖4股@103.21(+64.84);03-11 卖5股@120(+165);03-23 卖3股@127(+120);剩余2股长期持有(看好稳定币+agent支付赛道)",
           "trades": [
             {
@@ -143,12 +143,12 @@
             }
           ],
           "day_high": 93.958,
-          "day_low": 87.2,
+          "day_low": 86.91,
           "day_open": 92.61,
           "prev_close": 94.24,
-          "current_value": 174.68,
-          "pnl_abs": 0.68,
-          "today_change": -13.8,
+          "current_value": 174.28,
+          "pnl_abs": 0.28,
+          "today_change": -14.2,
           "name": "Circle Internet Group Inc-A",
           "volume": 1834174,
           "prev_close_date": "2026-08-27",
@@ -475,17 +475,17 @@
           "ticker": "RKLX",
           "shares": 10,
           "cost_basis": 49.69,
-          "current_price": 15.01,
-          "today_change_pct": -10.9727,
-          "pnl_percent": -69.7927,
-          "data_source": "Finnhub Aug 28, 2026 14:30 ET",
+          "current_price": 15.31,
+          "today_change_pct": -9.1934,
+          "pnl_percent": -69.189,
+          "data_source": "Finnhub Aug 28, 2026 16:03 ET",
           "day_high": 16.535,
           "day_low": 14.86,
           "day_open": 16.52,
           "prev_close": 16.86,
-          "current_value": 150.1,
-          "pnl_abs": -346.8,
-          "today_change": -18.5,
+          "current_value": 153.1,
+          "pnl_abs": -343.8,
+          "today_change": -15.5,
           "note": "2x RKLB杠杆ETF,纳指100入指波段仓(生效日6/22),$49.69建仓,目标$60-68,止损$46",
           "trades": [
             {
@@ -611,13 +611,13 @@
           "name": "SpaceX",
           "shares": 1,
           "cost_basis": 147.5,
-          "current_price": 140.14,
-          "current_value": 140.14,
-          "pnl_abs": -7.36,
-          "pnl_percent": -4.9898,
-          "today_change": -0.73,
-          "today_change_pct": -0.5182,
-          "data_source": "Finnhub Aug 28, 2026 14:30 ET",
+          "current_price": 141.5,
+          "current_value": 141.5,
+          "pnl_abs": -6.0,
+          "pnl_percent": -4.0678,
+          "today_change": 0.63,
+          "today_change_pct": 0.4472,
+          "data_source": "Finnhub Aug 28, 2026 16:03 ET",
           "trades": [
             {
               "date": "2026-06-12",
@@ -655,13 +655,13 @@
           "name": "Leverage Shares 2X Long SpaceX Daily ETF",
           "shares": 300,
           "cost_basis": 12.06,
-          "current_price": 8.94,
-          "current_value": 2682.0,
-          "pnl_abs": -936.0,
-          "pnl_percent": -25.8706,
-          "data_source": "Finnhub Aug 28, 2026 14:30 ET",
-          "today_change": -27.0,
-          "today_change_pct": -0.9967,
+          "current_price": 9.12,
+          "current_value": 2736.0,
+          "pnl_abs": -882.0,
+          "pnl_percent": -24.3781,
+          "data_source": "Finnhub Aug 28, 2026 16:03 ET",
+          "today_change": 27.0,
+          "today_change_pct": 0.9967,
           "trades": [
             {
               "date": "2026-07-22",
@@ -921,11 +921,11 @@
           "name": "SK海力士 ADR",
           "shares": 1,
           "cost_basis": 169.185,
-          "current_price": 161.15,
-          "current_value": 161.15,
-          "pnl_abs": -8.03,
-          "pnl_percent": -4.7492,
-          "data_source": "Finnhub Aug 28, 2026 14:30 ET",
+          "current_price": 161.04,
+          "current_value": 161.04,
+          "pnl_abs": -8.15,
+          "pnl_percent": -4.8143,
+          "data_source": "Finnhub Aug 28, 2026 16:03 ET",
           "day_high": 163.56,
           "day_low": 157.97,
           "note": "2026-07-10 IPO首日(发行价$149,史上第二大全球股票发行仅次于SpaceX)169.185买入1股,用户报告成交。临时代码SKHYV已于2026-07-13转为正式代码SKHY",
@@ -940,18 +940,18 @@
           ],
           "prev_close": 161.61,
           "prev_close_date": "2026-08-27",
-          "today_change_pct": -0.2846,
+          "today_change_pct": -0.3527,
           "day_session_date": "2026-08-28",
-          "today_change": -0.46,
+          "today_change": -0.57,
           "day_open": 159.21,
           "volume": 2087325
         }
       ],
       "total_cost": 4605.59,
-      "total_current_value": 3308.07,
-      "total_pnl": -1297.51,
-      "total_pnl_percent": -28.1726,
-      "today_total_change": -60.49,
+      "total_current_value": 3365.92,
+      "total_pnl": -1239.66,
+      "total_pnl_percent": -26.9166,
+      "today_total_change": -2.64,
       "realized_pnl": 2347.68,
       "realized_note": "NVDA 3股@197.5(+29.19) + CRCL 4股@103.21(+64.84) + CRCL 5股@120(+165) + CRCL 3股@127(+120) + NVDA 3股@199.41(+34.92) + QQQ 1股@631.3(+9.03) + TQQQ 8股@54.45(+69.76) + HOOD 5股@88.36(+74.3) + OKLO 2股@68(+10.34) + TCOM 5股@53.86(+5.6) + SOXL 5股@112(+100.65) + RKLX 4股@75(+113.2) + RKLX 2股@91.03(+88.66) + SOXL 3股@170.8(+236.79) + SOXL 2股@217.17(+250.6) + RKLB 5股@100.17(+145.85) + SPCX 5股@168(+48.5) + RKLX 10股@53.93(+7.3) + SPCH 20股@18.42(+34.8) + ROBN 20股@35.175(+231.85) + ROBN 10股@40(+164.17) + ROBN 10股@37(+134.18) + MSFU 5股@31.19(+10.3) + MSFU 5股@32(+14.35) + PLTU 4股@45(+16.17) + PLTU 5股@49(+40.2143) + MSFU 10股@37.32(+81.9) + PLTU 5股@50(+45.2143)",
       "last_updated": "Jun 24, 2026 16:00 ET close",
@@ -960,28 +960,28 @@
       "indices_snapshot": {
         "SPX": {
           "name": "S&P 500",
-          "price": 7708.67,
+          "price": 7711.49,
           "prev_close": 7730.99,
-          "change_pct": -0.289,
-          "source": "Tencent usINX index @ 2026-08-28 14:30 ET"
+          "change_pct": -0.252,
+          "source": "Tencent usINX index @ 2026-08-28 16:03 ET"
         },
         "NDX": {
           "name": "Nasdaq 100",
-          "price": 29430.07,
+          "price": 29433.43,
           "prev_close": 29641.56,
-          "change_pct": -0.714,
-          "source": "Tencent usNDX index @ 2026-08-28 14:30 ET"
+          "change_pct": -0.702,
+          "source": "Tencent usNDX index @ 2026-08-28 16:03 ET"
         },
         "DJI": {
           "name": "Dow Jones",
-          "price": 53522.32,
+          "price": 53559.34,
           "prev_close": 53569.44,
-          "change_pct": -0.088,
-          "source": "Tencent usDJI index @ 2026-08-28 14:30 ET"
+          "change_pct": -0.019,
+          "source": "Tencent usDJI index @ 2026-08-28 16:03 ET"
         }
       },
       "last_trade_update": "2026-06-13 00:02 HKT",
-      "last_afterhours_attempted": "2026-08-27 16:02 EDT",
+      "last_afterhours_attempted": "2026-08-28 16:03 EDT",
       "last_closed_attempted": "2026-08-27 20:02 EDT",
       "last_premarket_attempted": "2026-08-25 05:54 EDT",
       "premarket_fetch_status": {
@@ -1068,7 +1068,7 @@
         "source_counts": {
           "Finnhub": 5
         },
-        "updated_at": "2026-08-27 16:02 EDT",
+        "updated_at": "2026-08-28 16:03 EDT",
         "note": "Multi-provider fetch. Sources: 5x Finnhub"
       },
       "closed_fetch_status": {
