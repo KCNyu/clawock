@@ -29,6 +29,10 @@ from pathlib import Path
 
 from clawock import sessions as _cal
 from clawock.decision.mind_record import validate_mind_record
+# One implementation of the interval, not a second copy of the algebra: the
+# scorecard and the T+0 setup review answer the same question ("is this rate
+# distinguishable from a coin flip?") and must not be able to disagree.
+from clawock.decision.setup_review import wilson_ci
 from clawock.decision.actions import (
     ACTIVE_ACTIONS,
     ADD_ACTIONS,
@@ -1340,14 +1344,25 @@ def _aggregate(rows: list[dict], benefit_key: str) -> dict:
              _float((r.get("evaluation") or {}).get("capital"))) for r in rows]
     vals = [(v, c) for v, c in vals if v is not None]
     if not vals:
-        return {"n_episodes": 0, "win_rate": None, "avg_benefit_pct": None,
+        return {"n_episodes": 0, "win_rate": None, "win_rate_ci95": None,
+                "avg_benefit_pct": None,
                 "capital_weighted_benefit_pct": None, "cluster_ci95": None}
     plain = [v for v, _ in vals]
     weighted = [(v, c) for v, c in vals if c and c > 0]
     cw = sum(v * c for v, c in weighted) / sum(c for _, c in weighted) if weighted else None
+    wins = sum(v > 0 for v in plain)
     return {
         "n_episodes": len(vals),
-        "win_rate": round(sum(v > 0 for v in plain) / len(plain), 4),
+        "win_rate": round(wins / len(plain), 4),
+        # The win rate's own uncertainty. `cluster_ci95` below is an interval on
+        # the average benefit, and it was the only band the scorecard showed —
+        # sitting beside a hit rate it does not describe. On a book this size the
+        # published rate is one number over a couple of dozen episodes, and a
+        # rate without its band reads as an edge at exactly the sample sizes
+        # where it cannot be one (#1115). Wilson rather than normal-approximate:
+        # it stays inside [0, 1] and does not degenerate near 0 or 1, which is
+        # where a small bucket usually lives.
+        "win_rate_ci95": wilson_ci(wins, len(plain)),
         "avg_benefit_pct": round(sum(plain) / len(plain), 4),
         "capital_weighted_benefit_pct": round(cw, 4) if cw is not None else None,
         "capital_coverage_pct": round(100 * len(weighted) / len(vals), 1),
