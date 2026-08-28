@@ -3468,14 +3468,31 @@
     } else {
       const wr = active.win_rate * 100;
       const avg = active.avg_benefit_pct;
-      const ci = active.cluster_ci95 ? ` · CI [${active.cluster_ci95[0].toFixed(2)}, ${active.cluster_ci95[1].toFixed(2)}]` : "";
+      // 两条区间量的是两件事：wrCi 是胜率自己的 95% Wilson 带，ci 是「平均方向
+      // 分」的 cluster bootstrap 带。以前只印后者，就贴在胜率旁边 —— 读者会把
+      // 一个不描述这个数的区间当成这个数的区间。所以两条都带标签。
+      const wc = active.win_rate_ci95;
+      const wrCi = wc ? ` · 胜率95%CI ${(wc[0] * 100).toFixed(0)}–${(wc[1] * 100).toFixed(0)}%` : "";
+      const ci = active.cluster_ci95 ? ` · 方向分CI [${active.cluster_ci95[0].toFixed(2)}, ${active.cluster_ci95[1].toFixed(2)}]` : "";
       setVal("plan-winrate", wr.toFixed(1) + "%");
       const cov = calib.coverage_active || {};
       const covNote = cov.episodes_unresolved
         ? ` · 另有 ${cov.episodes_unresolved} 条判不了（休市/需人工核实）`
         : "";
-      setSub("plan-winrate-sub", `n=${active.n_episodes} · avg ${avg == null ? "—" : (avg >= 0 ? "+" : "") + avg.toFixed(2) + "%"}${ci}${covNote}`);
-      setClass("plan-winrate", wr > 50 ? "pos" : (wr < 50 ? "neg" : "neutral"));
+      setSub("plan-winrate-sub", `n=${active.n_episodes}${wrCi} · avg ${avg == null ? "—" : (avg >= 0 ? "+" : "") + avg.toFixed(2) + "%"}${ci}${covNote}`);
+      // 颜色只在区间整条落在 50% 一侧时才表态。区间跨过 50% 的胜率与抛硬币在
+      // 统计上分不开，把它染绿就是在这本账最小的样本上宣布一个 edge —— 这正是
+      // #1115 说的「容易被读成 edge」。同一判据在 by-driver 里已经用了
+      // (`edge_significant` = cluster CI 不跨零)，这里是它在胜率上的版本。
+      const decided = wc ? (wc[0] > 0.5 ? "pos" : (wc[1] < 0.5 ? "neg" : "neutral"))
+                         : (wr > 50 ? "pos" : (wr < 50 ? "neg" : "neutral"));
+      setClass("plan-winrate", decided);
+      const cell = document.getElementById("plan-winrate");
+      if (cell) {
+        cell.title = wc && decided === "neutral"
+          ? `95% 置信区间 ${(wc[0] * 100).toFixed(0)}–${(wc[1] * 100).toFixed(0)}% 跨过 50%：这个样本量下与抛硬币分不开，故不着色`
+          : "";
+      }
     }
 
     if (brier == null) {
