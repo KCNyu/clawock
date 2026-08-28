@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 """Suggest same-industry peers without changing the curated peer map.
 
-US suggestions come from Finnhub's peer-symbol endpoint. HK suggestions use
-East Money to resolve the holding's industry board and then list that board's
-HK constituents. This module is deliberately fail-safe: source failures are
-diagnosed on stderr and always become an empty suggestion list.
+US suggestions come from Finnhub's peer-symbol endpoint. HK suggestions come
+from East Money's F10 industry-comparison report, which answers the whole
+question in one call: given ``00100.HK`` it returns the industry it is filed
+under and every other HK listing in it, with market cap to rank them by.
+
+This module is deliberately fail-safe: source failures are diagnosed on stderr
+and always become an empty suggestion list.
 """
 
 from __future__ import annotations
@@ -27,20 +30,42 @@ API_KEYS_PATH = WS / ".api_keys"
 MAX_AUTO_PEERS = 6
 TIMEOUT = 10
 
-# US same-industry peers via Finnhub are live and verified. HK is NOT wired yet:
-# East Money HK industry boards use ``HK\d+`` codes (00100's 软件服务 board is
-# HK28), not the A-share ``BK\d+``, and the board-constituent endpoint
-# ``clist/get?fs=b:HK28`` returns no rows — the HK constituent query is still
-# unresolved against live data. ``_suggest_hk`` keeps the resolved parts (industry
-# lookup + board match with the corrected code shape) behind this flag so it is
-# ready once the constituent endpoint is confirmed; until then HK holdings get no
-# auto peers and, importantly, make no wasted East Money calls per scan.
+# US same-industry peers via Finnhub are live and verified.
+#
+# HK was blocked for months on the wrong endpoint. The quote API's board
+# constituent query (``clist/get?fs=b:HK28``) does not accept the ``HK\d+``
+# board-code family that ``slist/get`` hands back, and no selector spelling
+# fixes that. The F10 industry-comparison report does not need one: filter
+# ``RPT_PCF10_INDUSTRY_SCALE`` by ``SECUCODE`` and East Money returns the
+# holding's industry plus its HK constituents ranked by market cap, in a single
+# call — 176 rows for 00100 (软件服务), verified live.
+#
+# The flag stays off anyway, and not because the mechanism is unproven.
+# ``peer_residuals.load_rule_config`` refuses to load unless
+# ``automatic_hk_peer_discovery`` is false: the peer-residual rules
+# (leader_continuation / laggard_avoidance / mean_reversion) were pre-registered
+# against the curated peer universe in ``memory/peer-map.json``. Turning
+# discovery on silently re-registers them against a different universe, which
+# invalidates the prospective evidence collected so far. That is a research
+# decision, taken deliberately with a re-registration, not a wiring change —
+# see #1122. Until then HK holdings get no auto peers and make no East Money
+# calls per scan.
 HK_AUTO_PEERS_ENABLED = False
 
 FINNHUB_PEERS_URL = "https://finnhub.io/api/v1/stock/peers"
-EM_STOCK_INFO_URL = "https://push2.eastmoney.com/api/qt/stock/get"
-EM_STOCK_BOARDS_URL = "https://push2.eastmoney.com/api/qt/slist/get"
-EM_BOARD_CONSTITUENTS_URL = "https://push2.eastmoney.com/api/qt/clist/get"
+EM_HK_INDUSTRY_URL = "https://datacenter.eastmoney.com/securities/api/data/v1/get"
+# 规模对比: the industry peer table behind the F10 page's 行业对比 tab. Chosen over
+# the valuation/growth reports because it is the only one carrying market cap,
+# and "the six biggest names in this industry" is the peer set a human would
+# pick — a PE-ranked list would hand back whichever six are cheapest today.
+EM_HK_INDUSTRY_REPORT = "RPT_PCF10_INDUSTRY_SCALE"
+# 8xxxx is the RMB counter of a dual-counter listing (80700 is 00700's), the
+# same company twice. Zero-padding keeps GEM codes like 08083 out of this.
+EM_HK_DUAL_COUNTER = re.compile(r"^8\d{4}$")
+# The report's rows are not all companies: it ends with aggregates such as
+# 行业平均, which carry a label where the code belongs. Measured live on 00100 —
+# 行业平均 was the sixth "peer" until this existed.
+EM_HK_CODE = re.compile(r"^\d{5}$")
 
 
 def _diag(ticker: str, message: str) -> None:
@@ -129,92 +154,59 @@ def _suggest_us(ticker: str, curated_tickers: Iterable[object]) -> list[dict]:
 
 
 def _suggest_hk(ticker: str, curated_tickers: Iterable[object]) -> list[dict]:
+    """Same-industry HK peers, ranked by market cap, in one East Money call.
+
+    The report is keyed by the holding itself: filtering ``SECUCODE`` to
+    ``00100.HK`` returns one row per company in 00100's industry, each carrying
+    the industry name and the peer's code, name and market cap. There is no
+    board code in the chain at all, which is why this works where the quote
+    API's ``fs=b:HK28`` constituent query never did.
+    """
     symbol = _norm_hk(ticker)
-    secid = f"116.{symbol}"
 
-    info_response = em_get(
-        EM_STOCK_INFO_URL,
+    response = em_get(
+        EM_HK_INDUSTRY_URL,
         params={
-            "fltt": "2",
-            "invt": "2",
-            "secid": secid,
-            "fields": "f57,f58,f127",
+            "reportName": EM_HK_INDUSTRY_REPORT,
+            "columns": ("SECUCODE,SECURITY_CODE,TYPE_ID,TYPE_NAME,"
+                        "CORRE_SECURITY_CODE,CORRE_SECUCODE,CORRE_SECURITY_NAME,"
+                        "HKTOTAL_MARKET_CAP"),
+            "filter": f'(SECUCODE="{symbol}.HK")',
+            "pageNumber": "1",
+            "pageSize": "50",
+            # Ranked here rather than in Python: the report is paged, so sorting
+            # after the fetch would rank page one instead of the industry.
+            "sortColumns": "HKTOTAL_MARKET_CAP",
+            "sortTypes": "-1",
+            "source": "F10",
+            "client": "PC",
         },
+        headers={"Referer": "https://emweb.securities.eastmoney.com/"},
         timeout=TIMEOUT,
-        label="auto-peer HK industry",
+        label="auto-peer HK industry peers",
     )
-    info = (_response_json(info_response, "East Money stock info").get("data") or {})
-    industry = str(info.get("f127") or "").strip()
-    if not industry:
-        _diag(symbol, "East Money returned no industry")
-        return []
-
-    boards_response = em_get(
-        EM_STOCK_BOARDS_URL,
-        params={
-            "fltt": "2",
-            "invt": "2",
-            "secid": secid,
-            "spt": "3",
-            "pi": "0",
-            "pz": "200",
-            "po": "1",
-            "fields": "f12,f14",
-        },
-        headers={"Referer": "https://quote.eastmoney.com/"},
-        timeout=TIMEOUT,
-        label="auto-peer HK board",
-    )
-    boards = _rows(_response_json(boards_response, "East Money stock boards"))
-    if not boards:
-        _diag(symbol, "East Money returned no board memberships")
-        return []
-
-    def board_match(row):
-        name = re.sub(r"\s+", "", str(row.get("f14") or ""))
-        target = re.sub(r"\s+", "", industry)
-        return name == target
-
-    board = next((row for row in boards if board_match(row)), None)
-    board_code = str((board or {}).get("f12") or "")
-    # HK industry boards are HK\d+ (e.g. HK28); A-share boards are BK\d+.
-    if not re.fullmatch(r"(?:BK|HK)\d+", board_code):
-        _diag(symbol, f"East Money could not map industry {industry!r} to a board")
-        return []
-
-    constituents_response = em_get(
-        EM_BOARD_CONSTITUENTS_URL,
-        params={
-            "pn": "1",
-            "pz": "200",
-            "po": "1",
-            "np": "1",
-            "fltt": "2",
-            "invt": "2",
-            "fid": "f20",
-            "fs": f"b:{board_code}",
-            "fields": "f12,f13,f14",
-        },
-        headers={"Referer": f"https://quote.eastmoney.com/bk/90.{board_code}.html"},
-        timeout=TIMEOUT,
-        label="auto-peer HK constituents",
-    )
-    rows = _rows(_response_json(constituents_response, "East Money constituents"))
+    payload = _response_json(response, "East Money HK industry comparison")
+    result = payload.get("result") if isinstance(payload, dict) else None
+    rows = (result or {}).get("data") or []
     if not rows:
-        _diag(symbol, f"East Money board {board_code} returned no constituents")
+        _diag(symbol, "East Money returned no HK industry comparison rows")
         return []
 
+    industry = str((rows[0] or {}).get("TYPE_NAME") or "").strip()
     blocked = _excluded(symbol, "hk", curated_tickers)
     out = []
     seen = set()
     for row in rows:
-        # f13 is East Money's market id. Requiring 116 prevents an A-share
-        # industry board with the same display name from leaking into HK peers.
-        if str(row.get("f13") or "") != "116":
-            continue
-        candidate = _norm_hk(row.get("f12"))
-        name = str(row.get("f14") or "").strip()
+        candidate = _norm_hk(row.get("CORRE_SECURITY_CODE"))
+        name = str(row.get("CORRE_SECURITY_NAME") or "").strip()
         if not candidate or not name or candidate in blocked or candidate in seen:
+            continue
+        # The dual counter is the same issuer trading in RMB; as a peer it is a
+        # copy of a name already in the list, and as a residual it would be that
+        # name's own FX basis.
+        if EM_HK_DUAL_COUNTER.match(candidate):
+            continue
+        if not EM_HK_CODE.match(candidate):
             continue
         seen.add(candidate)
         out.append({
@@ -222,11 +214,12 @@ def _suggest_hk(ticker: str, curated_tickers: Iterable[object]) -> list[dict]:
             "region": "hk",
             "name": name,
             "source": "eastmoney",
+            "industry": industry,
         })
         if len(out) == MAX_AUTO_PEERS:
             break
     if not out:
-        _diag(symbol, f"East Money board {board_code} returned no eligible HK peers")
+        _diag(symbol, f"East Money industry {industry or '?'} returned no eligible HK peers")
     return out
 
 
@@ -242,9 +235,12 @@ def suggest_auto_peers(ticker, region, curated_tickers) -> list[dict]:
             return _suggest_us(ticker, curated_tickers)
         if normalized_region == "hk":
             if not HK_AUTO_PEERS_ENABLED:
+                # The source works (see the flag's comment); what is off is the
+                # switch, because turning it on re-registers the peer-residual
+                # rules against a different peer universe.
                 _diag(str(ticker),
-                      "HK auto-peers not wired yet (East Money board-constituent "
-                      "endpoint unresolved); skipping")
+                      "HK auto-peers held off pending peer-residual rule "
+                      "re-registration (#1122); skipping")
                 return []
             return _suggest_hk(ticker, curated_tickers)
         _diag(str(ticker), f"unsupported region {region!r}")
