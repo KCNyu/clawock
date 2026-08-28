@@ -39,6 +39,13 @@ cost_basis/prev_close/trades[])复原，且都有一道闸守着。计算链：
                    → 全绿放行。2026-07-27 PLTU 账面 0.00%（实为 +6.3%）、
                    SKHY 账面 -0.31%（实为 -6.2%）就是这么过闸的。
                    两个独立价格四位小数完全相等 ≈ 不可能，本身即是最强判据。
+报告里还有一段 quote_sources（不是闸，是台账）：逐区列出每只活跃持仓的报价
+provider 与去重计数。降级取回来的价与健康价在算术上完全一致，唯一的差别是
+data_source 里的 provider 名，而在这之前没有任何消费者读过那个名字 —— 于是
+「取到了价」和「主源还活着」是同一件事（#1116）。刻意不做成 WARN：实测
+2026-08-19..28 美股整本账天天走 Finnhub（Nasdaq 的 /info 端点不带前收，
+_quote_is_complete 因此弃用它——链在正常工作），逐日报警只会喂出一条没人看的
+黄灯。真正的降级另有其闸：报价源给不出前收 → quote_incomplete → STALE_PRICE。
   REALIZED_SUM   realized_pnl ≈ Σ(trades 里 realized_pnl)                WARN
   COST_BASIS     trades 账本完整(净股==shares)时 cost_basis==移动加权价  ERROR
                  → 算均价漏冲减 T+0 卖出 → 把已卖低价买单留在分母,均价偏低
@@ -145,6 +152,25 @@ def _extract_iso(s):
             except ValueError:
                 continue
     return None
+
+
+# 主源：报价链第一档。其余档都能取到价——那正是问题：降级后的账本在算术上
+# 自洽，唯一的差别是 data_source 里的 provider 名。
+PRIMARY_QUOTE_SOURCE = {'us': ('Nasdaq API',), 'hk': ('Tencent',)}
+
+
+def _quote_provider(data_source):
+    """data_source 形如 "Tencent+Eastmoney Aug 28 15:32 HKT" → provider 段。
+
+    时间戳部分由各 fetcher 自己格式化，provider 段永远在最前，所以按第一个
+    "月 日" 之前切；切不出来就整串当 provider（宁可多报一次也不要漏报）。
+    """
+    text = str(data_source or '').strip()
+    if not text:
+        return None
+    import re
+    m = re.search(r'\s+(?:\d{4}[/-]\d{1,2}|[A-Za-z]{3}\s+\d{1,2}|\d{1,2}:\d{2})', text)
+    return (text[:m.start()] if m else text).strip() or None
 
 
 def _prev_snapshot_cash(region, field):
@@ -256,6 +282,7 @@ def check(portfolio_path=PORTFOLIO):
         findings.append({'code': code, 'level': level, 'region': region,
                          'ticker': ticker, 'msg': msg})
 
+    quote_ledger = {}
     region_market = {'us_stocks': 'us', 'hk_stocks': 'hk'}
     region_ccy = {'us_stocks': 'USD', 'hk_stocks': 'HKD'}
 
@@ -328,6 +355,7 @@ def check(portfolio_path=PORTFOLIO):
         # 逐只 -----------------------------------------------------------
         sib_dirs = {}
         asofs = set()
+        quote_sources = {}
         for h in active:
             t = h.get('ticker')
             cur = _num(h.get('current_price'))
@@ -409,6 +437,12 @@ def check(portfolio_path=PORTFOLIO):
             if t in HSTECH_SIBLINGS and chg is not None:
                 sib_dirs[t] = chg
 
+            # 报价 provider 台账（#1116）。不判对错，只把此前只存在于 stdout
+            # 的东西记进报告，让「今天这本账是谁定的价」变成可读的一行。
+            provider = _quote_provider(h.get('data_source'))
+            if sh and provider:
+                quote_sources.setdefault(provider, []).append(t)
+
             # 收集 us_asof
             if market == 'us':
                 src = h.get('data_source') or ''
@@ -452,6 +486,16 @@ def check(portfolio_path=PORTFOLIO):
                     f'{t} 报价不完整（缺前收/日内区间），所有 provider 都没给全；'
                     f'day_high/day_low 仅由本地累积器推得，别当真实区间读',
                     region, t)
+
+        if quote_sources:
+            quote_ledger[region] = {
+                'primary': PRIMARY_QUOTE_SOURCE.get(market or '', [None])[0],
+                'by_source': {src: sorted(ts) for src, ts in sorted(quote_sources.items())},
+                'primary_priced': sum(
+                    len(ts) for src, ts in quote_sources.items()
+                    if src.startswith(PRIMARY_QUOTE_SOURCE.get(market or '', ('\0',)))),
+                'active': len(active),
+            }
 
         # LEV_DIRECTION：恒科族两只以上且方向不一致
         nz = {k: v for k, v in sib_dirs.items() if abs(v) > 0.05}
@@ -552,6 +596,9 @@ def check(portfolio_path=PORTFOLIO):
         'error_count': len(errors),
         'warn_count': len(warns),
         'findings': findings,
+        # 台账而非判决：消费者（brief context / 面板）读它就能说出「今天这本账
+        # 是谁定的价、主源覆盖了几只」，不必再去翻某次 cron 的 stdout。
+        'quote_sources': quote_ledger,
     }
     return report
 

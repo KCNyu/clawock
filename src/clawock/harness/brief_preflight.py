@@ -1748,6 +1748,15 @@ def main(argv=None):
             print(f'   🟡 数据体检 {integrity["warn_count"]} WARN（见 integrity_report.json）')
         else:
             print('   ✅ 数据体检全过')
+        # 报价来源台账（#1116）：主源没覆盖满时说一句「今天这本账是谁定的价」。
+        # 不是告警（全本走 fallback 是常态，见 integrity 的 quote_sources 注释），
+        # 但它此前只存在于某次 cron 的 stdout 里，等于不存在。
+        for _region, _row in (integrity.get('quote_sources') or {}).items():
+            if _row['primary_priced'] < _row['active']:
+                _others = ', '.join(
+                    f'{src}×{len(ts)}' for src, ts in _row['by_source'].items())
+                print(f'   ℹ️ {_region} 报价 {_row["primary_priced"]}/{_row["active"]} '
+                      f'来自主源 {_row["primary"]}（{_others}）')
     except Exception as e:
         print(f'   ⚠ integrity check failed: {e}')
 
