@@ -294,6 +294,9 @@
     "claim-provenance": {
       "reason": "gate: a quoted backtest number must still be in the card it cites"
     },
+    "signal-panel": {
+      "reason": "measures registered signal histories that other layers already collected, and never feeds a decision — evaluation, not collection"
+    },
     "scorecard-provenance": {
       "reason": "names the ledger slice and code a published scorecard number came from — provenance, not a measurement"
     },
