@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-27T22:38:42.862143+00:00",
+  "generated_at": "2026-08-28T05:35:32.483804+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -13,12 +13,135 @@
   },
   "llm_filtered": true,
   "counts": {
-    "total": 10,
+    "total": 15,
     "held_hits": 0,
-    "new_ideas": 0,
-    "sector_hits": 5
+    "new_ideas": 5,
+    "sector_hits": 2
   },
   "items": [
+    {
+      "author": "Trump",
+      "text": "GREAT NEWS! Micron, one of the “HOTTEST” Companies in the World, just announced a MASSIVE 10 BILLION DOLLAR Investment in new Research Labs right here in America. They are keeping us at the absolute forefront of A.I. and Advanced Computing! 🇺🇸   Combined with their previous TREMENDOUS 250 BILLION DOLLAR commitment, they are creating over tens of thousands of Great American Jobs. We are bringing Critical Technologies BACK to the U.S.A. Because of our Great Policies, Companies are investing TRILLIONS.    I have made it clear that America will lead the way to a new Golden Age of Science. The resu",
+      "url": "https://trumpstruth.org/statuses/41269",
+      "published": "2026-08-27T18:31:52+00:00",
+      "origin": "truthsocial",
+      "tickers": [
+        "MU"
+      ],
+      "held": [],
+      "new_ideas": [
+        "MU"
+      ],
+      "sectors": [
+        "半导体",
+        "AI",
+        "美国先进计算"
+      ],
+      "sector_holdings": [
+        "SKHY"
+      ],
+      "stance": "endorse",
+      "relevance": 91,
+      "summary_cn": "特朗普赞扬美光追加百亿美元美国研发投资，称其巩固美国AI和先进计算领先地位。"
+    },
+    {
+      "author": "Trump",
+      "text": "Nvidia just announced Record Sales of 96.2 Billion Dollars, forecasting a 70% rise in Revenue in 2028. Congratulations to Jensen Huang on these incredible numbers, and the Company’s Great Success. Only in America! President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/41288",
+      "published": "2026-08-27T21:24:30+00:00",
+      "origin": "truthsocial",
+      "tickers": [
+        "NVDA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "NVDA"
+      ],
+      "sectors": [
+        "半导体",
+        "AI"
+      ],
+      "sector_holdings": [
+        "SKHY"
+      ],
+      "stance": "endorse",
+      "relevance": 90,
+      "summary_cn": "特朗普祝贺英伟达创纪录销售并看好其2028年营收增长前景。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk Is Expanding Tesla's Robotaxi Network Beyond Austin and Miami. Here's Why That's Important for the Future Success of the Stock.",
+      "url": "",
+      "published": "Thu, 27 Aug 2026 19:05:00 GMT",
+      "origin": "gnews-rss",
+      "source": "The Motley Fool",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "自动驾驶",
+        "机器人出租车",
+        "AI"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 86,
+      "summary_cn": "马斯克正将特斯拉机器人出租车网络扩展至奥斯汀和迈阿密之外，外界认为利好特斯拉未来。"
+    },
+    {
+      "author": "Trump",
+      "text": "Apple to invest $30 billion in US chip manufacturing: https://www.foxbusiness.com/media/apple-invest-30-billion-us-chip-manufacturing",
+      "url": "https://trumpstruth.org/statuses/41246",
+      "published": "2026-08-26T16:21:18+00:00",
+      "origin": "truthsocial",
+      "tickers": [
+        "AAPL"
+      ],
+      "held": [],
+      "new_ideas": [
+        "AAPL"
+      ],
+      "sectors": [
+        "半导体",
+        "美国制造业",
+        "芯片供应链"
+      ],
+      "sector_holdings": [
+        "SKHY"
+      ],
+      "stance": "endorse",
+      "relevance": 86,
+      "summary_cn": "特朗普阵营报道苹果将投资300亿美元扩大美国芯片制造。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk Teases Tesla Vehicle 'Way Cooler Than a Minivan'—Is the Robovan Finally Coming?",
+      "url": "",
+      "published": "Fri, 28 Aug 2026 03:31:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Autos",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "自动驾驶",
+        "机器人出租车"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 70,
+      "summary_cn": "马斯克预告特斯拉可能推出比小型货车更酷的新车型，市场猜测或为Robovan。"
+    },
     {
       "author": "Musk",
       "text": "Musk plans $100 billion SpaceX launch site in coastal Louisiana",
@@ -30,56 +153,16 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天"
+        "航天",
+        "基础设施投资"
       ],
       "sector_holdings": [
         "SPCH",
         "SPCX"
       ],
       "stance": "endorse",
-      "relevance": 72,
-      "summary_cn": "Musk宣布在路易斯安那州沿海投资1000亿美元建设SpaceX超级发射场，重大资本开支扩张直接利好kcn的SPCX/SPCH。"
-    },
-    {
-      "author": "Trump",
-      "text": "Apple to invest $30 billion in US chip manufacturing: https://www.foxbusiness.com/media/apple-invest-30-billion-us-chip-manufacturing",
-      "url": "https://www.trumpstruth.org/statuses/41246",
-      "published": "2026-08-26T16:21:18+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "半导体",
-        "AI",
-        "关税"
-      ],
-      "sector_holdings": [
-        "SKHY"
-      ],
-      "stance": "endorse",
-      "relevance": 68,
-      "summary_cn": "Apple宣布在美国追加300亿美元芯片制造投资，强化本土半导体制造主题，间接利好SK海力士等存储/AI供应链。"
-    },
-    {
-      "author": "Trump",
-      "text": "GREAT NEWS! Micron, one of the “HOTTEST” Companies in the World, just announced a MASSIVE 10 BILLION DOLLAR Investment in new Research Labs right here in America. They are keeping us at the absolute forefront of A.I. and Advanced Computing! 🇺🇸   Combined with their previous TREMENDOUS 250 BILLION DOLLAR commitment, they are creating over tens of thousands of Great American Jobs. We are bringing Critical Technologies BACK to the U.S.A. Because of our Great Policies, Companies are investing TRILLIONS.    I have made it clear that America will lead the way to a new Golden Age of Science. The resu",
-      "url": "https://www.trumpstruth.org/statuses/41269",
-      "published": "2026-08-27T18:31:52+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "半导体",
-        "AI"
-      ],
-      "sector_holdings": [
-        "SKHY"
-      ],
-      "stance": "endorse",
-      "relevance": 62,
-      "summary_cn": "Trump发文盛赞Micron在美国本土追加100亿美元(累计2500亿美元)投资AI研发实验室，利好半导体/AI板块，SK海力士属同链条间接受益。"
+      "relevance": 84,
+      "summary_cn": "马斯克计划在路易斯安那海岸投资1000亿美元建设SpaceX发射基地。"
     },
     {
       "author": "Musk",
@@ -99,86 +182,46 @@
         "SPCX"
       ],
       "stance": "endorse",
-      "relevance": 60,
-      "summary_cn": "SpaceX计划在德州Starbase之外扩建Louisiana新太空港，专用于Starship，扩张信号利好kcn的SPCX/SPCH。"
+      "relevance": 82,
+      "summary_cn": "马斯克的SpaceX计划在得州星港之外建设新的路易斯安那航天港。"
     },
     {
-      "author": "Musk",
-      "text": "Elon Musk and Morgan Stanley’s SpaceX Predictions Are 7 Years Apart",
-      "url": "",
-      "published": "Thu, 27 Aug 2026 21:31:00 GMT",
-      "origin": "gnews-rss",
-      "source": "BeInCrypto",
+      "author": "Trump",
+      "text": "Bessent: Iran’s Leadership ‘Panicking’ Under Trump Economic Offensive — Vows to Sever ‘Every Economic Lifeline’: https://www.breitbart.com/politics/2026/08/25/bessent-irans-leadership-panicking-under-trump-economic-offensive-vows-to-sever-every-economic-lifeline/",
+      "url": "https://trumpstruth.org/statuses/41241",
+      "published": "2026-08-26T16:22:27+00:00",
+      "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
-      "relevance": 58,
-      "summary_cn": "Musk与Morgan Stanley对SpaceX估值/发射预测时间表差异巨大(差7年)，市场关注SpaceX成长路径，间接利好kcn持仓SPCX/SPCH。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk Is Expanding Tesla's Robotaxi Network Beyond Austin and Miami. Here's Why That's Important for the Future Success of the Stock.",
-      "url": "",
-      "published": "Thu, 27 Aug 2026 18:25:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "电动车",
-        "自动驾驶",
-        "AI"
+        "伊朗制裁",
+        "石油",
+        "地缘政治"
       ],
       "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "Tesla Robotaxi网络将从Austin和Miami扩张，Musk力推Robotaxi业务进展，正面信号。"
+      "stance": "attack",
+      "relevance": 76,
+      "summary_cn": "贝森特称特朗普对伊朗经济攻势正令其领导层恐慌，并誓言切断所有经济支持。"
     },
     {
       "author": "Trump",
       "text": "Trump Unleashes Scott Bessent on Iran: https://www.wsj.com/opinion/donald-trump-scott-bessent-sanctions-iran-oil-economy-96362772",
-      "url": "https://www.trumpstruth.org/statuses/41252",
+      "url": "https://trumpstruth.org/statuses/41252",
       "published": "2026-08-26T16:26:54+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "能源",
-        "地缘政治",
-        "制裁"
+        "伊朗制裁",
+        "石油",
+        "地缘政治"
       ],
       "sector_holdings": [],
       "stance": "attack",
-      "relevance": 55,
-      "summary_cn": "Trump派财长Bessent主导对伊朗经济绞杀(制裁石油等生命线)，宏观层面影响原油与避险资产，无直接持仓关联。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk's xAI Sued For Using Child Survivor Photos To Generate Abusive Content",
-      "url": "",
-      "published": "Thu, 27 Aug 2026 21:39:52 GMT",
-      "origin": "gnews-rss",
-      "source": "NDTV",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 50,
-      "summary_cn": "xAI因被指控用未成年幸存者照片生成虐待内容遭起诉，AI伦理与监管风险信号，可能拖累整个AI板块情绪。"
+      "relevance": 75,
+      "summary_cn": "特朗普政府财政部长称将通过制裁伊朗石油经济切断其经济命脉。"
     },
     {
       "author": "Musk",
@@ -191,12 +234,72 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "AI"
+        "AI",
+        "社交媒体",
+        "法律监管"
       ],
       "sector_holdings": [],
       "stance": "attack",
-      "relevance": 48,
-      "summary_cn": "xAI再因儿童性虐内容相关诉讼被起诉，与条目15同主题，重复报道合并弱化。"
+      "relevance": 68,
+      "summary_cn": "马斯克旗下SpaceXAI因涉及未成年人的内容风险再遭诉讼，增加法律与平台监管压力。"
+    },
+    {
+      "author": "Trump",
+      "text": "JD Vance, Ohio Figures Give Rousing Middletown Speech on Manufacturing Investments: https://www.dailysignal.com/2026/08/24/jd-vance-ohio-figures-give-rousing-middletown-speech-on-manufacturing-investments/",
+      "url": "https://trumpstruth.org/statuses/41260",
+      "published": "2026-08-26T16:35:11+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "美国制造业",
+        "投资"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 63,
+      "summary_cn": "特朗普阵营强调俄亥俄州制造业投资及本土制造政策。"
+    },
+    {
+      "author": "Musk",
+      "text": "Judge dismisses lawsuit by Elon Musk's X challenging New York hate speech law",
+      "url": "",
+      "published": "Wed, 26 Aug 2026 23:02:50 GMT",
+      "origin": "gnews-rss",
+      "source": "Reuters",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "社交媒体",
+        "监管",
+        "仇恨言论法规"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 61,
+      "summary_cn": "法院驳回马斯克旗下X针对纽约州仇恨言论法律的挑战，对X监管风险边际有利。"
+    },
+    {
+      "author": "Trump",
+      "text": "The Great Governor of South Dakota, Larry Rhoden, is doing a fantastic job for \"The Mount Rushmore State,\" a place I love, and WON BIG, six times, including Primaries, in 2016, 2020, and 2024!   Larry is a Fourth-Generation South Dakotan, successful Businessman, Rancher, former State Legislator, and now, as Governor, has strongly served the Wonderful People of South Dakota during a career \"loaded up\" with accolades and wins. He is working tirelessly to Champion South Dakota Values, Promote our Amazing Farmers and Ranchers, Grow the Economy, Cut Taxes and Regulations, Advance MADE IN THE U.S.A.",
+      "url": "https://trumpstruth.org/statuses/41267",
+      "published": "2026-08-27T16:48:49+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "美国经济",
+        "减税",
+        "监管",
+        "农业"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 60,
+      "summary_cn": "特朗普赞扬南达科他州长推动经济增长、减税、放松监管及美国制造。"
     },
     {
       "author": "Musk",
@@ -212,13 +315,156 @@
         "AI"
       ],
       "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 58,
+      "summary_cn": "马斯克入选2026年AI领域最具影响力人物，强化其AI行业影响力背书。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk's data centers are pushing out a family that's owned land since \"before people of color were allowed to\"",
+      "url": "",
+      "published": "Thu, 27 Aug 2026 18:57:26 GMT",
+      "origin": "gnews-rss",
+      "source": "CBS News",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "数据中心",
+        "AI基础设施"
+      ],
+      "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 45,
-      "summary_cn": "Musk入选《TIME》2026 AI领域最具影响力100人，象征性荣誉，无直接市场含义。"
+      "relevance": 52,
+      "summary_cn": "马斯克的数据中心扩张涉及土地占用及社区关系风险。"
     }
   ],
   "held_hits": [],
-  "new_ideas": [],
+  "new_ideas": [
+    {
+      "author": "Trump",
+      "text": "GREAT NEWS! Micron, one of the “HOTTEST” Companies in the World, just announced a MASSIVE 10 BILLION DOLLAR Investment in new Research Labs right here in America. They are keeping us at the absolute forefront of A.I. and Advanced Computing! 🇺🇸   Combined with their previous TREMENDOUS 250 BILLION DOLLAR commitment, they are creating over tens of thousands of Great American Jobs. We are bringing Critical Technologies BACK to the U.S.A. Because of our Great Policies, Companies are investing TRILLIONS.    I have made it clear that America will lead the way to a new Golden Age of Science. The resu",
+      "url": "https://trumpstruth.org/statuses/41269",
+      "published": "2026-08-27T18:31:52+00:00",
+      "origin": "truthsocial",
+      "tickers": [
+        "MU"
+      ],
+      "held": [],
+      "new_ideas": [
+        "MU"
+      ],
+      "sectors": [
+        "半导体",
+        "AI",
+        "美国先进计算"
+      ],
+      "sector_holdings": [
+        "SKHY"
+      ],
+      "stance": "endorse",
+      "relevance": 91,
+      "summary_cn": "特朗普赞扬美光追加百亿美元美国研发投资，称其巩固美国AI和先进计算领先地位。"
+    },
+    {
+      "author": "Trump",
+      "text": "Nvidia just announced Record Sales of 96.2 Billion Dollars, forecasting a 70% rise in Revenue in 2028. Congratulations to Jensen Huang on these incredible numbers, and the Company’s Great Success. Only in America! President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/41288",
+      "published": "2026-08-27T21:24:30+00:00",
+      "origin": "truthsocial",
+      "tickers": [
+        "NVDA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "NVDA"
+      ],
+      "sectors": [
+        "半导体",
+        "AI"
+      ],
+      "sector_holdings": [
+        "SKHY"
+      ],
+      "stance": "endorse",
+      "relevance": 90,
+      "summary_cn": "特朗普祝贺英伟达创纪录销售并看好其2028年营收增长前景。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk Is Expanding Tesla's Robotaxi Network Beyond Austin and Miami. Here's Why That's Important for the Future Success of the Stock.",
+      "url": "",
+      "published": "Thu, 27 Aug 2026 19:05:00 GMT",
+      "origin": "gnews-rss",
+      "source": "The Motley Fool",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "自动驾驶",
+        "机器人出租车",
+        "AI"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 86,
+      "summary_cn": "马斯克正将特斯拉机器人出租车网络扩展至奥斯汀和迈阿密之外，外界认为利好特斯拉未来。"
+    },
+    {
+      "author": "Trump",
+      "text": "Apple to invest $30 billion in US chip manufacturing: https://www.foxbusiness.com/media/apple-invest-30-billion-us-chip-manufacturing",
+      "url": "https://trumpstruth.org/statuses/41246",
+      "published": "2026-08-26T16:21:18+00:00",
+      "origin": "truthsocial",
+      "tickers": [
+        "AAPL"
+      ],
+      "held": [],
+      "new_ideas": [
+        "AAPL"
+      ],
+      "sectors": [
+        "半导体",
+        "美国制造业",
+        "芯片供应链"
+      ],
+      "sector_holdings": [
+        "SKHY"
+      ],
+      "stance": "endorse",
+      "relevance": 86,
+      "summary_cn": "特朗普阵营报道苹果将投资300亿美元扩大美国芯片制造。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk Teases Tesla Vehicle 'Way Cooler Than a Minivan'—Is the Robovan Finally Coming?",
+      "url": "",
+      "published": "Fri, 28 Aug 2026 03:31:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Autos",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "自动驾驶",
+        "机器人出租车"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 70,
+      "summary_cn": "马斯克预告特斯拉可能推出比小型货车更酷的新车型，市场猜测或为Robovan。"
+    }
+  ],
   "sector_hits": [
     {
       "author": "Musk",
@@ -231,56 +477,16 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天"
+        "航天",
+        "基础设施投资"
       ],
       "sector_holdings": [
         "SPCH",
         "SPCX"
       ],
       "stance": "endorse",
-      "relevance": 72,
-      "summary_cn": "Musk宣布在路易斯安那州沿海投资1000亿美元建设SpaceX超级发射场，重大资本开支扩张直接利好kcn的SPCX/SPCH。"
-    },
-    {
-      "author": "Trump",
-      "text": "Apple to invest $30 billion in US chip manufacturing: https://www.foxbusiness.com/media/apple-invest-30-billion-us-chip-manufacturing",
-      "url": "https://www.trumpstruth.org/statuses/41246",
-      "published": "2026-08-26T16:21:18+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "半导体",
-        "AI",
-        "关税"
-      ],
-      "sector_holdings": [
-        "SKHY"
-      ],
-      "stance": "endorse",
-      "relevance": 68,
-      "summary_cn": "Apple宣布在美国追加300亿美元芯片制造投资，强化本土半导体制造主题，间接利好SK海力士等存储/AI供应链。"
-    },
-    {
-      "author": "Trump",
-      "text": "GREAT NEWS! Micron, one of the “HOTTEST” Companies in the World, just announced a MASSIVE 10 BILLION DOLLAR Investment in new Research Labs right here in America. They are keeping us at the absolute forefront of A.I. and Advanced Computing! 🇺🇸   Combined with their previous TREMENDOUS 250 BILLION DOLLAR commitment, they are creating over tens of thousands of Great American Jobs. We are bringing Critical Technologies BACK to the U.S.A. Because of our Great Policies, Companies are investing TRILLIONS.    I have made it clear that America will lead the way to a new Golden Age of Science. The resu",
-      "url": "https://www.trumpstruth.org/statuses/41269",
-      "published": "2026-08-27T18:31:52+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "半导体",
-        "AI"
-      ],
-      "sector_holdings": [
-        "SKHY"
-      ],
-      "stance": "endorse",
-      "relevance": 62,
-      "summary_cn": "Trump发文盛赞Micron在美国本土追加100亿美元(累计2500亿美元)投资AI研发实验室，利好半导体/AI板块，SK海力士属同链条间接受益。"
+      "relevance": 84,
+      "summary_cn": "马斯克计划在路易斯安那海岸投资1000亿美元建设SpaceX发射基地。"
     },
     {
       "author": "Musk",
@@ -300,29 +506,8 @@
         "SPCX"
       ],
       "stance": "endorse",
-      "relevance": 60,
-      "summary_cn": "SpaceX计划在德州Starbase之外扩建Louisiana新太空港，专用于Starship，扩张信号利好kcn的SPCX/SPCH。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk and Morgan Stanley’s SpaceX Predictions Are 7 Years Apart",
-      "url": "",
-      "published": "Thu, 27 Aug 2026 21:31:00 GMT",
-      "origin": "gnews-rss",
-      "source": "BeInCrypto",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
-      "relevance": 58,
-      "summary_cn": "Musk与Morgan Stanley对SpaceX估值/发射预测时间表差异巨大(差7年)，市场关注SpaceX成长路径，间接利好kcn持仓SPCX/SPCH。"
+      "relevance": 82,
+      "summary_cn": "马斯克的SpaceX计划在得州星港之外建设新的路易斯安那航天港。"
     }
   ]
 }
