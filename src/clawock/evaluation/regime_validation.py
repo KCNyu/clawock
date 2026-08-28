@@ -21,11 +21,17 @@ What this measures
 1. **Walk-forward** — thresholds are chosen on a training window and scored on
    the *next* window only, rolling forward. Per-window out-of-sample results, not
    one full-period headline.
-2. **Permutation** — the null is "the dial's timing carries no information". The
+2. **Selection (PBO)** — walk-forward reports four draws of "does the chosen
+   threshold hold up"; with 16 candidates on one index that is too few to
+   separate a rule from a search. Combinatorially symmetric cross-validation
+   ranks the same candidates in both halves of every symmetric split, purged
+   with a two-sided embargo, and reports how often the in-sample winner lands
+   below the out-of-sample median (#1114).
+3. **Permutation** — the null is "the dial's timing carries no information". The
    exposure path is circularly shifted against the returns, which preserves its
    length, its time-in-market and its autocorrelation while destroying the
    alignment. The p-value is where the observed improvement lands in that null.
-3. **Sensitivity** — the metric surface over the (MA, vol-cap) grid, so a
+4. **Sensitivity** — the metric surface over the (MA, vol-cap) grid, so a
    knife-edge fit is visible rather than implied.
 
 It models the *production* dial
@@ -39,7 +45,7 @@ This never writes to the live pipeline. It prints, and it leaves a run card.
 
 Run:
   clawock validate-regime-dial
-  clawock validate-regime-dial --folds 4 --permutations 5000
+  clawock validate-regime-dial --folds 4 --permutations 5000 --groups 8
 """
 from __future__ import annotations
 
@@ -53,6 +59,7 @@ from pathlib import Path
 import requests
 
 from clawock.decision import regime as compute_regime
+from clawock.evaluation import cscv
 from clawock.evidence import run_card
 from clawock.workspace import workspace_root
 
@@ -285,6 +292,113 @@ def walk_forward(dates, closes, *, folds=4, ma_grid=MA_GRID, vol_grid=VOL_CAP_GR
     }
 
 
+# ── 1b. selection: probability of backtest overfitting ──────────────────────
+
+#: Fraction of the sample embargoed on each side of a test block. One percent is
+#: López de Prado's default and is what the label horizon needs here (the dial's
+#: label is one session). It is deliberately *not* the 200-bar MA window: a
+#: trailing mean is available in real time, so sharing it across a boundary is
+#: not look-ahead, and embargoing it would delete most of every training half —
+#: a purge that leaves nothing to select on measures nothing.
+EMBARGO_FRACTION = 0.01
+
+
+def _config_columns(closes, ma_grid, vol_grid):
+    """Per-bar (dial return, always-on return) for every threshold pair.
+
+    Computed once over the whole sample and sliced afterwards, which is sound
+    precisely because `exposure_path` is trailing-only: bar i's exposure is
+    built from closes through i-1 whichever window it is later scored in.
+    """
+    configs, columns = [], []
+    for ma_window in ma_grid:
+        for vol_cap in vol_grid:
+            returns, exposure, _ = exposure_path(
+                closes, ma_window=ma_window, vol_cap=vol_cap)
+            if not returns:
+                continue
+            configs.append({'ma': ma_window, 'vol_cap': vol_cap})
+            columns.append([(exposure[i] * returns[i], BASE_LEVERAGE * returns[i])
+                            for i in range(len(returns))])
+    return configs, columns
+
+
+def _drawdown_improvement(pairs):
+    """The selection objective, over an arbitrary subset of bars.
+
+    Same quantity `_score` ranks on, so CSCV measures the search that
+    `best_thresholds` actually performs rather than a proxy for it.
+    """
+    if not pairs:
+        return None
+    dial = hold = 1.0
+    dial_peak = hold_peak = 1.0
+    dial_dd = hold_dd = 0.0
+    for dial_ret, hold_ret in pairs:
+        dial *= 1 + dial_ret
+        hold *= 1 + hold_ret
+        dial_peak, hold_peak = max(dial_peak, dial), max(hold_peak, hold)
+        dial_dd = min(dial_dd, dial / dial_peak - 1)
+        hold_dd = min(hold_dd, hold / hold_peak - 1)
+    return dial_dd - hold_dd
+
+
+def overfitting_probability(closes, *, ma_grid=MA_GRID, vol_grid=VOL_CAP_GRID,
+                            groups=8, embargo=None):
+    """How often the best in-sample threshold pair is below median out of sample.
+
+    Walk-forward answers this once per fold and reports the answer as a table;
+    with 16 candidates on one index and roughly one crash in the sample, four
+    draws cannot separate a rule from a search. CSCV takes every symmetric
+    half-split of the sample instead, so the same 16 candidates are ranked
+    against each other in both halves ~70 times.
+    """
+    configs, columns = _config_columns(closes, ma_grid, vol_grid)
+    if not configs:
+        return {'status': 'insufficient_sample',
+                'reason': 'no threshold pair produced a usable exposure path',
+                'pbo': None}
+    warmup = max(ma_grid) + PROD_VOL_WINDOW
+    length = min(len(column) for column in columns)
+    if length <= warmup:
+        return {'status': 'insufficient_sample',
+                'reason': (f'{length} scored bars do not clear a {warmup}-bar '
+                           'warmup'), 'pbo': None}
+    matrix = [[column[i] for column in columns] for i in range(warmup, length)]
+    if embargo is None:
+        embargo = max(1, round(EMBARGO_FRACTION * len(matrix)))
+    result = cscv.probability_of_backtest_overfitting(
+        matrix, _drawdown_improvement, n_groups=groups, embargo=embargo)
+    result['configs'] = configs
+    result['objective'] = 'drawdown improvement vs an always-on 2x sleeve'
+    # Read the number with this in hand: the shipped objective rewards being out
+    # of the market, and de-risking reduces drawdown whether or not the timing
+    # carries information. So a low PBO here says the *ranking* of thresholds is
+    # stable across halves — not that the dial pays. The permutation test below
+    # is what answers the second question, and the two are reported together for
+    # that reason.
+    result['caveat'] = (
+        'the objective is the shipped one (drawdown improvement), which any '
+        'de-risking rule improves; PBO measures rank stability of the search, '
+        'the permutation test measures whether the timing carries information')
+    result['warmup_bars_dropped'] = warmup
+    if result.get('status') == 'measured':
+        result['selected_thresholds'] = [
+            configs[index] for index in result['selected_configs']]
+        production = next(
+            (index for index, config in enumerate(configs)
+             if config['ma'] == PROD_MA
+             and abs(config['vol_cap'] - PROD_VOL_CAP) < 1e-9), None)
+        # How often the search would have landed on the thresholds that ship.
+        # A dial the search never picks is not disqualified — it was
+        # pre-registered, not fitted — but the gap belongs in the report rather
+        # than in the reader's head.
+        result['production_selected_share'] = round(
+            (result['selection_counts'].get(str(production), 0)
+             / result['n_splits']) if production is not None else 0.0, 4)
+    return result
+
+
 # ── 2. permutation ──────────────────────────────────────────────────────────
 
 def permutation_test(returns, exposure, *, permutations=2000, seed=20260802):
@@ -383,14 +497,22 @@ def sensitivity_surface(closes, ma_grid=MA_GRID, vol_grid=VOL_CAP_GRID):
 # ── CLI ─────────────────────────────────────────────────────────────────────
 
 def main(argv=None) -> int:
-    argparse.ArgumentParser(prog='clawock validate-regime-dial',
-                            description=__doc__).parse_args(argv)
-    ap = argparse.ArgumentParser(description=__doc__)
+    # One parser, parsing the argv it was handed. There used to be two: an empty
+    # one that consumed `argv` so `--help` would answer through the CLI, and a
+    # second that re-read `sys.argv` for the real flags. The first rejected every
+    # flag the second defined, so `clawock validate-regime-dial --folds 4` — the
+    # invocation this module's own docstring documents — exited 2 without ever
+    # running. A `--help` gate is satisfied by any parser; it does not need a
+    # parser that answers nothing else.
+    ap = argparse.ArgumentParser(prog='clawock validate-regime-dial',
+                                 description=__doc__)
     ap.add_argument('--folds', type=int, default=4)
     ap.add_argument('--permutations', type=int, default=2000)
+    ap.add_argument('--groups', type=int, default=8,
+                    help='CSCV groups; every symmetric half-split is scored')
     ap.add_argument('--no-card', action='store_true',
                     help='skip writing a run card (for ad-hoc exploration)')
-    args = ap.parse_args()
+    args = ap.parse_args(argv)
 
     data = fetch_hstech()
     if len(data) < 400:
@@ -429,6 +551,31 @@ def main(argv=None) -> int:
         print(f'  {wf["folds_with_shallower_drawdown"]}/{wf["n_folds"]} folds '
               f'improved drawdown out of sample · thresholds {wf["threshold_stability"]}')
 
+    pbo = overfitting_probability(closes, groups=args.groups)
+    print('\n--- selection (how much of the fit is the search itself?) ---')
+    if pbo.get('status') != 'measured':
+        print(f'  unavailable: {pbo.get("reason")}')
+    else:
+        print(f'  PBO {pbo["pbo"]:.2f} over {pbo["n_splits"]} symmetric splits of '
+              f'{pbo["n_configs"]} threshold pairs · '
+              f'embargo {pbo["embargo"]} bars '
+              f'(~{pbo["purged_per_split"]:.0f} training bars purged per split)')
+        print(f'  the in-sample winner stayed above the out-of-sample median in '
+              f'{pbo["splits_where_the_winner_stayed_above_median"]}/'
+              f'{pbo["n_splits"]} splits · '
+              f'mean OOS degradation {pbo["mean_out_of_sample_degradation"]*100:+.1f}pp')
+        ranked = sorted(pbo['selection_counts'].items(),
+                        key=lambda kv: -kv[1])[:3]
+        top = ' · '.join(
+            f'{pbo["configs"][int(index)]["ma"]}/'
+            f'{pbo["configs"][int(index)]["vol_cap"]:.2f} '
+            f'({count}/{pbo["n_splits"]})' for index, count in ranked)
+        print(f'  {len(pbo["selection_counts"])} distinct pairs won at least one '
+              f'split; most often {top}')
+        print(f'  production {PROD_MA}/{PROD_VOL_CAP:.2f} won '
+              f'{pbo["production_selected_share"]*100:.0f}% of splits · '
+              f'{pbo["caveat"]}')
+
     perm = permutation_test(full_returns, full_exposure,
                             permutations=args.permutations)
     print('\n--- permutation test (null: the timing carries no information) ---')
@@ -455,6 +602,7 @@ def main(argv=None) -> int:
         card = run_card.record(
             'regime_dial_validation',
             params={'folds': args.folds, 'permutations': args.permutations,
+                    'cscv_groups': args.groups,
                     'ma_grid': list(MA_GRID), 'vol_cap_grid': list(VOL_CAP_GRID),
                     'production': {'ma': PROD_MA, 'vol_cap': PROD_VOL_CAP,
                                    'vol_window': PROD_VOL_WINDOW},
@@ -464,11 +612,16 @@ def main(argv=None) -> int:
                      'last_session': dates[-1],
                      'digest': run_card.series_digest(data)}],
             metrics={'in_sample': in_sample, 'tier_distribution': tiers,
-                     'walk_forward': wf, 'permutation': perm,
+                     'walk_forward': wf, 'overfitting': pbo, 'permutation': perm,
                      'sensitivity': surface},
-            code_files=[__file__, Path(compute_regime.__file__)],
+            code_files=[__file__, Path(compute_regime.__file__),
+                        Path(cscv.__file__)],
             notes=['models the production tier mapping (green/amber/red -> '
-                   '1.0/0.5/0.0) applied to a 2x sleeve, not 2x->cash'],
+                   '1.0/0.5/0.0) applied to a 2x sleeve, not 2x->cash',
+                   'PBO is combinatorially symmetric cross-validation over the '
+                   'same 16 threshold pairs walk-forward selects from, purged '
+                   'with a two-sided embargo; it measures the search, not the '
+                   'skill of the shipped pre-registered dial'],
         )
         print(f'\nrun card: {card.relative_to(WS)}')
     return 0
