@@ -324,6 +324,11 @@ runtime. The emitted request is for the external agent to consume. The agent
 writes `decision.json`; `clawock run publish` validates it and emits the
 correlated generation receipt. The packaged example can smoke the lifecycle
 without a model (`bash examples/cli/minimal-run/run.sh`), and
+[`examples/cli/workflow-run/run.sh`](https://github.com/KCNyu/clawock/blob/master/examples/cli/workflow-run/run.sh)
+runs the four commands above verbatim on every pull request — clean virtualenv,
+emptied environment, wheel only — publishing a real `decision.json` taken from
+the pack the wheel installs, and checking that a decision with its opposing case
+removed is still *refused* in a directory that has never seen this repository.
 [`examples/`](https://github.com/KCNyu/clawock/blob/master/examples/README.md) shows the
 same run driven from a pure CLI, an OpenClaw skill, a Claude Code instruction, a Codex AGENTS.md,
 and a DeepSeek Harness agent — the harness never touches the contract.
