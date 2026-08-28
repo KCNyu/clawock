@@ -148,7 +148,7 @@ def main(argv=None) -> int:
     else:
         source = args.ref or (args.ledger or LEDGER_PATH)
         _print_checks(
-            f'scorecard provenance: computed_at={provenance.get("computed_at")} '
+            f'scorecard provenance: generated_at={provenance.get("generated_at")} '
             f'commit={provenance.get("code_commit")} vs {source}', result)
         print('OK' if result['ok'] else 'MISMATCH')
     return 0 if result['ok'] else 1

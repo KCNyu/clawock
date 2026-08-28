@@ -197,7 +197,12 @@ def build(decisions, *, window_days: int, cutoff: str, counts: dict,
         code.append({'file': path.name, 'digest': _file_digest(path)})
     return {
         'schema_version': SCHEMA_VERSION,
-        'computed_at': generated_at or datetime.now(timezone.utc).isoformat(
+        # `generated_at`, not `computed_at`: it is run_card's name for the same
+        # thing, and CI's rebuild-determinism gate strips exactly this key set
+        # ({generated_at, generation_id, as_of, age_hours}) before diffing two
+        # builds. A second name for a timestamp would make every rebuild look
+        # like a changed payload.
+        'generated_at': generated_at or datetime.now(timezone.utc).isoformat(
             timespec='seconds'),
         'code_commit': _git_commit(),
         'code': code,
