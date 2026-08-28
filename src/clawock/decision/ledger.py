@@ -38,6 +38,7 @@ from clawock.decision.actions import (
     ADD_ACTIONS,
     PASSIVE_ACTIONS,
     SELL_ACTIONS,
+    STRATEGY_FRAMES,
 )
 from clawock import scorecard_provenance
 from clawock.workspace import workspace_root
@@ -165,6 +166,56 @@ def infer_strategy(action: dict) -> str:
     return "core_position"
 
 
+#: Longest debate text kept per field. The block rides in every plan and every
+#: ledger row; a bear case that needs more than this is a brief section, and the
+#: brief is where it belongs.
+DEBATE_TEXT_CHARS = 600
+
+DEBATE_TEXT_FIELDS = ("bull", "bear", "attacked_consensus", "judge")
+
+
+def normalize_debate(raw) -> dict | None:
+    """The debate that produced one decision, as data rather than prose (#1117).
+
+    The brief already runs Bull, Bear, a named devil's advocate attack and a
+    Judge that must pick strategy frames — and then publishes a summary in which
+    none of it is separable. A reader cannot check that the opposing case
+    existed, only that the write-up says it did.
+
+    Deliberately lenient, and that is the whole design of this first step. This
+    field is written by a model, inside a cron that must produce a brief every
+    morning: a strict schema here buys structure by adding a new way for the
+    08:00 pipeline to go red. So unknown keys are dropped, values are coerced
+    and trimmed, unknown frames are discarded, and a block with nothing in it
+    becomes ``None`` rather than an empty object that would inflate coverage.
+
+    Nothing is silenced by that leniency: `compute_debate_metrics` publishes how
+    many decisions actually carry a bear case, so degradation shows up as a
+    falling series rather than as a quietly accepted empty block. Making the
+    field required is the next step, and it should be taken against that series,
+    not against a hope.
+    """
+    if not isinstance(raw, dict):
+        return None
+    out = {}
+    for field in DEBATE_TEXT_FIELDS:
+        value = raw.get(field)
+        if isinstance(value, str) and value.strip():
+            out[field] = value.strip()[:DEBATE_TEXT_CHARS]
+    frames = raw.get("frames")
+    if isinstance(frames, str):
+        frames = [frames]
+    if isinstance(frames, list):
+        kept = []
+        for frame in frames:
+            name = str(frame or "").strip()
+            if name in STRATEGY_FRAMES and name not in kept:
+                kept.append(name)
+        if kept:
+            out["frames"] = kept[:3]
+    return out or None
+
+
 def legacy_action_to_decision(action: dict, plan_date: str, ordinal: int = 0) -> dict:
     ticker = str(action.get("ticker") or "").strip()
     act = action.get("action") or action.get("bucket") or "watch"
@@ -216,6 +267,10 @@ def legacy_action_to_decision(action: dict, plan_date: str, ordinal: int = 0) ->
         "evidence_event_id": action.get("evidence_event_id"),
         "regime": action.get("regime") if action.get("regime") in REGIMES else "unknown",
         "rationale": action.get("rationale") or "",
+        # The Bull/Bear/devil's-advocate/Judge structure behind this row, when
+        # the brief emitted it. None, not {}, when it did not: absent and empty
+        # are different facts and coverage counts them differently (#1117).
+        "debate": normalize_debate(action.get("debate")),
         "technical_setup_id": action.get("technical_setup_id"),
         "technical_campaign_id": action.get("technical_campaign_id"),
         "invalidation_price": _float(action.get("invalidation_price")),
@@ -364,6 +419,26 @@ def validate_decision(d: dict) -> list[str]:
     override = d.get("override") or {}
     if override.get("status", "none") not in ("none", "active", "expired", "revoked"):
         errors.append(f"bad override.status {override.get('status')!r}")
+    # Shape only, and only when present. `normalize_debate` has already coerced
+    # anything the brief emitted, so this can only fire on a hand-written or
+    # externally produced plan — which is exactly where an unreadable debate
+    # block should be refused rather than stored (#1117).
+    debate = d.get("debate")
+    if debate is not None:
+        if not isinstance(debate, dict) or not debate:
+            errors.append("debate must be null or a non-empty object")
+        else:
+            unknown = set(debate) - set(DEBATE_TEXT_FIELDS) - {"frames"}
+            if unknown:
+                errors.append(f"unknown debate field(s) {sorted(unknown)}")
+            for field in DEBATE_TEXT_FIELDS:
+                if field in debate and not isinstance(debate[field], str):
+                    errors.append(f"debate.{field} must be text")
+            frames = debate.get("frames")
+            if frames is not None and (
+                    not isinstance(frames, list)
+                    or any(frame not in STRATEGY_FRAMES for frame in frames)):
+                errors.append("debate.frames must be strategy frames from the menu")
     return errors
 
 

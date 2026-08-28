@@ -713,7 +713,14 @@ postflight 严格 schema 校验：
       "regime": "risk_off",
       "contested": true,
       "rationale": "降低杠杆 beta；这是组合政策型再平衡，不是预测",
-      "thesis_invalidation": "若 crypto rev 环比转正 / DAU 回升 → 论点失效，停止减仓"
+      "thesis_invalidation": "若 crypto rev 环比转正 / DAU 回升 → 论点失效，停止减仓",
+      "debate": {
+        "bull": "crypto rev 若回暖，减到 50% 会踏空反弹",
+        "bear": "杠杆 beta 在 risk_off 下放大回撤，DAU 连续两季下滑无止跌迹象",
+        "attacked_consensus": "攻击的是「AI 板块整体还有一波」这条最强共识",
+        "frames": ["technical_breakdown", "relative_strength"],
+        "judge": "纪律优先：政策型减仓不等预测兑现"
+      }
     },
     {
       "strategy_id": "intraday_t",
@@ -752,6 +759,12 @@ postflight 严格 schema 校验：
 - `size.shares`（整数，**主动 call（`cut`/`trim_on_rebound`/`t_only`/`add_only_on_trigger`/`add_on_breakout`）必填**；`hold_and_watch`/`watch` 不需要)：股数是这条 call 日后唯一能被折算成钱的凭据。面板上那条金额曲线已撤（见上条铁律），但**重建一套可信对照账本必须有股数，当天没填就永远补不回来**。宁可给保守估数也别留空。填**你真的会动的股数**,不是仓位上限。
 - 所有 add 都必须逐字填写 packet setup 的 `technical_setup_id`、`technical_campaign_id`、`invalidation_price`、`condition.valid_for_sessions` 与 `tranche_number=next_tranche_number`。`alpha_confirmation` 的 `driven_by` 应按真正主导证据写 `peer`/`catalyst`/`sentiment`，不能因为技术只负责 timing 就洗成 `technical`。exploration 只是 0.25 target tranche 的前瞻采样，不是 validated；每日重置杠杆产品不能走 exploration。港股 `size.shares` 必须为 `lot_size` 的整手倍数；美股当前只支持整数股。已有 open add 或 `remaining_tranches=0` 时不得重复开单。
 - `contested` ∈ {`true`, `false`}（每个 decision 必填）：Tier 2 的 Bull 与 Bear 是否真的在该策略上分歧。
+- `debate`（object，主动 call 应填，`hold_and_watch`/`watch` 选填）：**把已经发生的辩论落成可核对的结构**（#1117）。Bull/Bear/devil's advocate/Judge frame 这四件事你本来就在 markdown 里写，但读者只能看到结论，无法核对反方是否真的存在——「我们辩过」在没有记录之前只是一句自述。字段：
+  - `bull` / `bear`：这条 decision 上双方最强的一句话（各 ≤600 字符，超出截断）。`bear` 是这块的重点：赢的那面本来就在 `rationale` 里。
+  - `attacked_consensus`：本轮 devil's advocate（见 § Tier 2 铁律）点名攻击的那条最强共识。与该票无关时可省略，别为了填而编。
+  - `frames`：`Judge — strategy frames` 表里为这条 action 选的 1–3 个 frame，逐字照抄枚举值。
+  - `judge`：Judge 的合成判词一句话（不是 Bull/Bear 的复述）。
+  - **不会因为格式错误让 08:00 流水线变红**：postflight 的 normalizer 会裁剪超长文本、丢弃未知键与不在枚举内的 frame，整块为空则记为「没写」。但缺席是被数出来的——dashboard 的 `debate_coverage.bear_case_pct` 就是这条纪律的实测曲线，别用空块凑覆盖率。
 - `thesis_invalidation`（string，主动 cut/trim/add 必填；hold 选填）：**借鉴 UZI-Skill 的 thesis-tracking**——这个仓位的论点**会被什么具体催化推翻**？把 catalyst-gate(cut #1)落地成「论点+失效条件」：你只在这个**失效催化真的发生**时动手，而不是技术面波动。例：「crypto rev 环比转正则停止减仓」。这逼着每个主动 call 绑定一个可被证伪的硬催化，而非"看着toppy"。
 - `thesis_id` 必须沿用 `context.thesis_registry.theses.<ticker>.thesis_id`（resolved 时）；registry 为 `unknown` 时保留已有 decision ID，不得新造一个“看起来像历史”的 canonical thesis。`context.retrospective.decisions[].thesis_ref` 是只读解析结果。
 
