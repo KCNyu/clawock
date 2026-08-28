@@ -672,6 +672,52 @@ jobs:
       - name: FX fallback chain
         run: python3 ops/ci/smoke_fx.py
 
+  portable-workflow:
+    # The headline claim, executed against a built wheel on every PR (#1111).
+    #
+    # `release.yml` already runs the two isolated examples, but only at tag
+    # time: a PR could break "a stranger can install this and finish a run" and
+    # nothing would say so until someone cut a version. And what those two
+    # scripts prove is the *base* loop — `init` with no workflow pinned,
+    # publishing a literal `{"answer":"smoke"}`. The investment-decision
+    # contract, which is what the README sells (`workflow install` -> `init
+    # --workflow` -> a real `decision.json`), was only ever exercised inside
+    # this checkout by `tests/test_portable_workflow.py`. A gate that lives in
+    # this repository's test suite is a promise about this repository.
+    #
+    # Runs on every PR rather than behind the code lane: the claim this backs
+    # is a documentation claim as much as a code one, so a docs-only PR that
+    # rewrites the "Run it on your own book" block must still face it. ~40s.
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    needs: validate
+    if: >-
+      ${{ github.event_name == 'pull_request'
+          || needs.validate.outputs.code == 'true' }}
+    steps:
+      - uses: actions/checkout@v7
+
+      # Same install as release.yml's build job — `build` is declared in the
+      # `release` extra, not hand-written here (tests/test_workspace_portability
+      # refuses a package list growing back into a workflow). The editable
+      # install lands in the runner's interpreter; the scripts below run in
+      # their own virtualenv and assert that the `clawock` they import came
+      # from it, so this cannot be what makes them pass.
+      - name: Set up clawock (Python)
+        uses: ./.github/actions/clawock-python
+        with:
+          install: '.[release]'
+
+      - name: Build the wheel under test
+        run: python -m build --wheel --outdir dist
+
+      - name: Foreign workspace publishes a real decision.json
+        run: examples/cli/workflow-run/run.sh dist/*.whl
+
+      - name: Isolated install completes one base run
+        # The release-time check, moved forward to the PR that would break it.
+        run: examples/cli/minimal-run/run.sh dist/*.whl
+
   analyze:
     # Was codeql.yml — advanced setup replacing GitHub's default (#782).
     #

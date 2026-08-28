@@ -13,7 +13,8 @@ harness's way in, and the contract never changes between them.
 | harness | how the agent participates | file | copy to |
 |---|---|---|---|
 | CLI (no model) | a literal stands in for the agent; proves the whole loop with no model and no pinned workflow | [`cli/run.sh`](cli/run.sh) | run as-is |
-| CLI (isolated install) | clean virtualenv installs the wheel and finishes one complete run — `init` → `run prepare` → `run publish` — with no checkout, no Git, no OpenClaw and an emptied environment; exercised by `release.yml` | [`cli/minimal-run/run.sh`](cli/minimal-run/run.sh) | run as-is |
+| CLI (isolated install) | clean virtualenv installs the wheel and finishes one complete run — `init` → `run prepare` → `run publish` — with no checkout, no Git, no OpenClaw and an emptied environment; exercised by `release.yml` and by `ci.yml` on every pull request | [`cli/minimal-run/run.sh`](cli/minimal-run/run.sh) | run as-is |
+| CLI (foreign workspace) | the README's own "run it on your own book" order — `workflow install` into a directory that is not a workspace yet, `init --workflow`, then a real `decision.json` from the installed pack; asserts the contract gate refuses a one-sided decision from the wheel too | [`cli/workflow-run/run.sh`](cli/workflow-run/run.sh) | run as-is |
 | OpenClaw | a SKILL.md tells the agent to read `request.json` and write `decision.json` | [`openclaw/SKILL.md`](openclaw/SKILL.md) | `<workspace>/skills/investment-decision/SKILL.md` |
 | Claude Code | a CLAUDE.md instruction block, auto-loaded per workspace | [`claude-code/CLAUDE.md`](claude-code/CLAUDE.md) | `<workspace>/CLAUDE.md` |
 | Codex | an AGENTS.md instruction block, auto-loaded from the workspace root | [`codex/AGENTS.md`](codex/AGENTS.md) | `<workspace>/AGENTS.md` |

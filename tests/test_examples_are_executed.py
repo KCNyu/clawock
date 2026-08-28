@@ -17,13 +17,20 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 EXAMPLE = ROOT / 'examples' / 'cli' / 'minimal-run' / 'run.sh'
+# The same discipline one level up: the *workflow* run, which is what the README
+# actually sells (#1111). minimal-run proves the base loop; this one proves the
+# investment-decision contract travels inside the wheel.
+WORKFLOW_EXAMPLE = ROOT / 'examples' / 'cli' / 'workflow-run' / 'run.sh'
+ISOLATED = (EXAMPLE, WORKFLOW_EXAMPLE)
 RELEASE = ROOT / '.github' / 'workflows' / 'release.yml'
+CI = ROOT / '.github' / 'workflows' / 'ci.yml'
 
 
 def test_the_example_exists_and_is_executable():
-    assert EXAMPLE.exists(), 'the blueprint lists examples/; this is the first one'
-    mode = EXAMPLE.stat().st_mode
-    assert mode & stat.S_IXUSR, 'a proof a reader cannot run is not a proof'
+    for path in ISOLATED:
+        assert path.exists(), f'{path} is referenced by CI and by the README'
+        mode = path.stat().st_mode
+        assert mode & stat.S_IXUSR, 'a proof a reader cannot run is not a proof'
 
 
 def test_the_release_workflow_runs_the_example_rather_than_its_own_copy():
@@ -40,32 +47,77 @@ def test_the_release_workflow_runs_the_example_rather_than_its_own_copy():
         'the inline copy is back; there must be exactly one set of steps')
 
 
+def test_the_foreign_workspace_example_is_run_on_every_pull_request():
+    """A release-time-only proof is a proof about the tag, not about the change
+    that breaks it. Both isolated scripts now run in ci.yml, and the
+    workflow-run one runs on every PR — including a docs-only PR, because the
+    claim it backs ("Run it on your own book") is a README claim."""
+    workflow = CI.read_text()
+    block = workflow.split('\n  portable-workflow:', 1)
+    assert len(block) == 2, 'ci.yml must carry the portable-workflow job'
+    job = block[1].split('\n  analyze:', 1)[0]
+    assert 'examples/cli/workflow-run/run.sh' in job
+    assert 'examples/cli/minimal-run/run.sh' in job, (
+        'the release-time isolated run belongs on the PR that would break it')
+    assert "github.event_name == 'pull_request'" in job, (
+        'a docs-only PR must still face the claim it is editing')
+    assert job.count('dist/*.whl') == 2, (
+        'both scripts must run against the wheel this job just built, not '
+        'against whatever PyPI is serving today')
+
+
+def test_the_foreign_workspace_example_asserts_both_directions():
+    """Publishing a valid decision only shows the pack ships. The assertion that
+    carries the weight is the refusal: the contract gate firing from an
+    installed wheel, in a directory that has never seen this repository."""
+    script = WORKFLOW_EXAMPLE.read_text()
+    assert 'workflow install investment-decision' in script
+    assert "status'] == 'published'" in script
+    assert "status'] == 'rejected'" in script
+    for code in ('insufficient_opposing_evidence', 'unsupported_bear_case'):
+        assert code in script, f'the refusal must name {code}'
+    assert '$status" -ne 0' in script, (
+        'a rejected publish must also exit non-zero, or a caller that only '
+        'reads the exit code treats a refusal as a success')
+    # The example artifact has to come out of the installed pack. Copying it
+    # from the checkout would reintroduce exactly the dependency under test.
+    assert '.agents/skills/investment-decision/assets/decision.example.json' in script
+
+
 def test_the_example_clears_the_environment_for_every_call():
     """`env -i` is the substance of the claim. Without it a pass can come from a
     variable the runner happens to export, which is exactly how "works on my
     box" survives to a user."""
-    script = EXAMPLE.read_text()
-    assert 'env -i' in script
-    assert re.search(r'HOME="?\$\{?workdir', script), (
-        'HOME must be redirected too, or the run reads the caller dotfiles')
+    for path in ISOLATED:
+        script = path.read_text()
+        assert 'env -i' in script, path
+        assert re.search(r'HOME="?\$\{?workdir', script), (
+            f'{path.name}: HOME must be redirected too, or the run reads the '
+            'caller dotfiles')
 
 
 def test_the_example_does_not_reach_back_into_the_repository():
     """It proves the package works *without* this checkout, so referring to the
     source tree would make the proof circular."""
-    script = EXAMPLE.read_text()
-    for forbidden in ('src/clawock', 'PYTHONPATH', 'pip install -e',
-                      'git clone', '/root/'):
-        assert forbidden not in script, f'{forbidden!r} makes the proof circular'
+    for path in ISOLATED:
+        script = path.read_text()
+        for forbidden in ('src/clawock', 'pip install -e', 'git clone', '/root/'):
+            assert forbidden not in script, (
+                f'{path.name}: {forbidden!r} makes the proof circular')
+        # PYTHONPATH may be *named* (workflow-run asserts the import did not
+        # come from one), but never set.
+        assert not re.search(r'PYTHONPATH=', script), (
+            f'{path.name}: setting PYTHONPATH makes the proof circular')
 
 
 def test_the_example_installs_from_the_index_when_given_no_artifact():
     """The default path is what a stranger runs after #379 lands. CI passes the
     wheel under test instead, and both have to keep working."""
-    script = EXAMPLE.read_text()
-    assert 'pip" install --quiet clawock' in script or \
-           'pip install --quiet clawock' in script, (
-        'the no-argument path must install the published package')
+    for path in ISOLATED:
+        script = path.read_text()
+        assert 'pip" install --quiet clawock' in script or \
+               'pip install --quiet clawock' in script, (
+            f'{path.name}: the no-argument path must install the published package')
 
 
 def test_every_example_directory_is_listed_in_the_readme():
