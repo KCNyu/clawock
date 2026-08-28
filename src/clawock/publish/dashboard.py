@@ -1163,6 +1163,7 @@ def compute_debate_metrics(recent=20):
     """
     paths = sorted(glob.glob(str(WS_ROOT / 'memory' / '*-plan.json')))[-recent:]
     n_actions = n_active = n_contested = n_contested_known = 0
+    n_debate = n_bear = n_attacked = n_frames = 0
     buckets = {}
     plans_n = 0
     for p in paths:
@@ -1184,6 +1185,19 @@ def compute_debate_metrics(recent=20):
             if isinstance(c, bool):
                 n_contested_known += 1
                 n_contested += 1 if c else 0
+            # `contested` is the debate's verdict compressed to one bit; these
+            # count whether the debate itself was recorded (#1117). A claim that
+            # both sides were argued is checkable only if the losing side is on
+            # the page, so `bear` is counted separately from "any block".
+            debate = a.get('debate')
+            if isinstance(debate, dict) and debate:
+                n_debate += 1
+                if str(debate.get('bear') or '').strip():
+                    n_bear += 1
+                if str(debate.get('attacked_consensus') or '').strip():
+                    n_attacked += 1
+                if debate.get('frames'):
+                    n_frames += 1
     if not n_actions:
         return None
     return {
@@ -1194,9 +1208,23 @@ def compute_debate_metrics(recent=20):
         'contested_rate': (round(n_contested / n_contested_known, 3)
                            if n_contested_known else None),
         'contested_coverage': n_contested_known,
+        # Stage 1 of #1117 is deliberately un-gated: the field is optional, so
+        # this series is what says whether the structure is actually being
+        # emitted. It is the evidence a later required-field gate should be
+        # argued from.
+        'debate_coverage': {
+            'decisions': n_actions,
+            'with_debate': n_debate,
+            'with_bear_case': n_bear,
+            'with_attacked_consensus': n_attacked,
+            'with_frames': n_frames,
+            'bear_case_pct': round(100 * n_bear / n_actions, 1) if n_actions else None,
+        },
         'note': ('辩论产出量化：decisiveness 低=risk_on 里 Judge 大多回 HOLD，'
                  '一行默认规则即可复现，3-5x token 的辩论边际可疑。contested_rate '
-                 '待 plan 开始标记后，与 calibration 联合检验「被争议的 call 是否校准更好」。'),
+                 '待 plan 开始标记后，与 calibration 联合检验「被争议的 call 是否校准更好」。'
+                 'debate_coverage 量的是另一件事：辩论本身有没有留下可核对的结构'
+                 '（反方案文、被攻击的共识、Judge frame），而不是它得出了什么结论。'),
     }
 
 

@@ -3943,6 +3943,11 @@
       bits.push(`active overrides ${metrics.active_overrides}`);
     if (dm && dm.decisiveness_pct != null)
       bits.push(`辩论决断率 ${dm.decisiveness_pct}%`);
+    // 决断率说的是辩论得出了什么；这一条说的是辩论有没有留下能核对的反方案文
+    // —— 「我们真的辩过」在没有记录之前只是一句自述（#1117）。
+    const dc = dm && dm.debate_coverage;
+    if (dc && dc.bear_case_pct != null)
+      bits.push(`留了反方案文 ${dc.bear_case_pct}%（${dc.with_bear_case}/${dc.decisions}）`);
     if (bits.length) el.insertAdjacentHTML("afterbegin",
       `<div style="font-size:var(--fs-xs);opacity:.75;margin-bottom:var(--space-2)">${bits.join(" · ")}</div>`);
   }
