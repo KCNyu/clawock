@@ -74,7 +74,7 @@ broker, and the same script CI executes against every published wheel:
 - **The loop continues after the answer.** Evidence, the opposing case, thesis,
   decision, execution, and observed outcome share one lineage. Measured results
   can propose bounded parameter changes, but never silently rewrite strategy.
-- **Real money, graded in public.** One live Hong Kong + US brokerage account, with a public scorecard that keeps every eligible result — the losses included, and the fact that the active calls haven't beaten buy-and-hold.
+- **Real money, graded in public.** One live Hong Kong + US brokerage account, with a public scorecard that keeps every eligible result — the losses included, and the fact that the active calls haven't beaten buy-and-hold. Each published headline names the ledger slice, window and commit it was computed from, and `clawock scorecard-provenance --check` recomputes it from `memory/decisions.jsonl` — a re-graded row inside a published window shows up as a mismatch.
 - **The model can't grade itself.** LLMs propose trades; Python settles them and computes the scorecard.
 - **One thesis, one episode.** Repeated opinions on the same thesis count once. Each episode is settled from canonical vendor bars, with declared gap-fill rules when a session is missing.
 - **The ledger has to reconcile.** A money-conservation check runs before every push; if cash, positions, and P&L don't balance, nothing is published.

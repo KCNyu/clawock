@@ -294,6 +294,9 @@
     "claim-provenance": {
       "reason": "gate: a quoted backtest number must still be in the card it cites"
     },
+    "scorecard-provenance": {
+      "reason": "names the ledger slice and code a published scorecard number came from — provenance, not a measurement"
+    },
     "provenance": {
       "reason": "gate: a published research figure needs two independent sources"
     },
