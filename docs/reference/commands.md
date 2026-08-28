@@ -26,7 +26,7 @@ title: clawock · command reference
 
 ## Installed commands / 已安装命令
 
-**65 commands** are installed by the single `clawock` distribution: 53 CLI subcommands and 12 standalone scripts. 41 of them collect or compute information and appear under the layer they feed; the remaining 24 publish, gate, record or schedule, and are listed with the reason they are not collection.
+**66 commands** are installed by the single `clawock` distribution: 54 CLI subcommands and 12 standalone scripts. 41 of them collect or compute information and appear under the layer they feed; the remaining 25 publish, gate, record or schedule, and are listed with the reason they are not collection.
 
 本节由生成器从两份 registry 与 `config/information-layers.json` 推导，不手写；新增或删除一条命令，这张表自己会变。
 
@@ -139,6 +139,7 @@ These are installed commands too. They are listed here so the catalog is the who
 | `clawock evidence` | `clawock.evidence.build_evidence` | renders the public evidence page from artifacts; it collects nothing |
 | `clawock run-card` | `clawock.evidence.run_card` | records that a backtest ran and against what — provenance, not a measurement |
 | `clawock claim-provenance` | `clawock.evidence.claim_provenance` | gate: a quoted backtest number must still be in the card it cites |
+| `clawock signal-panel` | `clawock.evaluation.signal_panel` | measures registered signal histories that other layers already collected, and never feeds a decision — evaluation, not collection |
 | `clawock scorecard-provenance` | `clawock.evidence.scorecard_verify` | names the ledger slice and code a published scorecard number came from — provenance, not a measurement |
 | `clawock provenance` | `clawock.provenance` | gate: a published research figure needs two independent sources |
 | `clawock mark-followed` | `clawock.decision.execution` | writes execution ground truth into the decision ledger |
