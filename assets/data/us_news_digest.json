@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-27T22:41:47.093985",
+  "generated_at": "2026-08-28T22:48:22.058876",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -15,7 +15,7 @@
       "SPCH"
     ]
   },
-  "digest_markdown": "## Top 移动信号\n\n- **SKHY**: Trump admin weighing new sweeping semiconductor tariffs — bearish near-term overhang on SK Hynix US-listed equity; HBM supply chain globally exposed.\n- **SKHY**: NVIDIA signals memory (not demand) is the AI bottleneck; HBM4E volume production at $4B Indiana facility H2 2029 confirms capacity moat — bullish structural thesis intact.\n- **RKLB (via RKLX, 2x)**: $2.36B backlog + $456M suborbital defense contracts scaling independent of Neutron — thesis-strengthening catalyst; 2x leverage amplifies upside on any bullish re-rating.\n- **SPCX (via SPCH, 2x)**: Musk, Altman, Huang, Sacks all at US-hosted G20 tech summit — sentiment catalyst for AI/space narrative supporting SpaceX ecosystem; 2x amplifies beta to thematic flows.\n- **CRCL**: Wolfe keeps Underperform but hikes PT $50→$65 (+30%) — Street slowly conceding upside, still no Buy rating; modest tailwind only.\n\n## Per-ticker 简报\n\n- **CRCL**: Wolfe maintains Underperform, PT $50→$65 — Street warming but no rating upgrade; neutral-to-mild-positive.\n- **RKLB**: Whale options activity detected in industrials (RKLB included) — flow signal, watch for unusual call volume; bullish tape confirmed by SeekingAlpha strong-buy thesis ($234M Q2 rev, $2.36B backlog).\n- **SPCX**: Crown Castle \"2026 Reset working\" piece is adjacent tower-infrastructure, low direct relevance to SpaceX; Musk/Grok \"I'll cover your losses\" promo is noise; G20 tech meeting is the real signal.\n- **SKHY**: $4B Indiana packaging facility groundbreaking + HBM4E production timeline — multi-year capacity lock-in bullish; offset by Trump semi-tariff threat and NVIDIA margin compression narrative (71-72% Q4 GM).\n\n## 风险 Watch\n\n- **Semi tariffs**: Trump admin weighing new sweeping chip tariffs (Politico) — direct risk to SKHY if exports hit.\n- **NVIDIA margin wall**: First AI-cycle GM compression (memory costs) — read-through to NVDA suppliers including SK Hynix; if sustained, multiple compression risk.\n- **CRCL**: Persistent Underperform rating despite PT hike — analyst not yet convinced on fundamentals.\n\n## 数据缺口\n\n- 无 (本批 raw news 覆盖所有 4 个持仓 ticker；`_omitted_tickers` 未出现).",
+  "digest_markdown": "## Top 移动信号\n\n- **SKHY**: Memory supercycle confirmation stacking — CXMT +874% H1, SK Hynix CEO warns shortage through 2030, Korean chip exports to US +68.7%, analyst initiates Buy. Implication: HBM thesis intact through decade; kcn's SKHY position benefits from sustained pricing power.\n- **SPCX**: SpaceX Q2: 92% revenue growth, Starlink surge, heavy AI capex/burn. Firefly CEO independently confirms launch demand > supply. Implication: held via **SPCH (2x)** — revenue beat amplifies, but cash burn narrative keeps volatility elevated.\n- **RKLB**: Defense business standalone strong ($456M suborbital contracts don't need Neutron), but valuation stretched + cash burn + Neutron delays flagged. NASA orbital data centers is a thematic tailwind. Implication: held via **RKLX (2x)** — 2x amplifies both the defense bid and any downgrade on Neutron timing.\n- **CRCL**: Sell-side PT cut 11.66% to $105.25 — first analyst downgrade signal in window. Implication: bearish mark on recent IPO momentum; watch for follow-through.\n- **AI trade**: Cathie Wood trimming AMD after 120% rally + Micron down on Nvidia margin fears + US chip tariff chatter. Implication: late-cycle AI rotation risk; SKHY/Micron dispersion theme still working but crowding is a yellow flag.\n\n## Per-ticker 简报\n\n- **CRCL**: PT lowered to $105.25 (-11.66%) — bearish analyst action.\n- **RKLB**: Defense segment de-risked from Neutron ($456M backlog); valuation/cash burn remains the bear case. RKLX 2x magnifies both directions.\n- **SPCX**: Q2 topline strong (92% growth), AI capex spend heavy. Firefly validates launch TAM. SPCH 2x = bigger swings on earnings.\n- **SKHY**: Buy initiation, HBM leadership, $4B Indiana fab + HBM4E by 2029. Shortage thesis extended to 2030 by CEO.\n\n## Risk Watch\n\n- **AI crowding**: Cathie trim + Micron selloff + Nvidia margin disclosure = first signs of AI-trade fatigue.\n- **Chip tariffs**: Potential US chip tariffs cited in Micron drop — direct SKHY exposure.\n- **SpaceX burn**: Heavy AI capex + cash burn flagged despite 92% revenue growth — sustainability question for SPCH.\n- **RKLB execution**: Neutron delays + rising cash burn = downside catalyst risk for RKLX.\n- **CRCL valuation reset**: First PT cut post-IPO; more downgrades likely if price holds.",
   "raw_news_counts": {
     "CRCL": 1,
     "RKLB": 5,
@@ -25,14 +25,21 @@
   "raw_news_evidence": {
     "CRCL": [
       {
-        "headline": "Wolfe Research Maintains Underperform on Circle Internet Group, Raises Price Target to $65",
-        "datetime": 1787654490,
-        "source": "Benzinga",
+        "headline": "Circle Internet Group (CRCL) Price Target Decreased by 11.66% to 105.25",
+        "datetime": 1787913026,
+        "source": "Fintel",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=5cdcc5fb3d4b7e9010977bed4ac19dbbc2accb30dd10e247b044e1af40bc8d25"
+        "url": "https://finnhub.io/api/news?id=d63a2ce49bedff1f83c538969523591e3f4b86bdbf8e3bb5fd86a110639eedc7"
       }
     ],
     "RKLB": [
+      {
+        "headline": "Rocket Lab: The Dream That Hasn't Launched Yet",
+        "datetime": 1787922996,
+        "source": "SeekingAlpha",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=9cd9061f0361785d0cc69388c979206a233e69a0fa62c868b477c9ab9a524ee2"
+      },
       {
         "headline": "10 Industrials Stocks Whale Activity In Today’s Session",
         "datetime": 1787837726,
@@ -60,87 +67,80 @@
         "source": "Benzinga",
         "origin": "finnhub",
         "url": "https://finnhub.io/api/news?id=8bc80989313ca0d53f9e16305de7d94faef11342bff5bb6361de6001a3ffbdc4"
-      },
-      {
-        "headline": "Rocket Lab Is Becoming Much Bigger Than Neutron",
-        "datetime": 1787751057,
-        "source": "SeekingAlpha",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=10bce86c1cc3499ccff489362466cee215c96cb189bb1a6ea8c711441adb79ce"
       }
     ],
     "SPCX": [
       {
-        "headline": "Nvidia's Unusual Move Answers AI Trade’s Key Question; $40 Trillion US Debt Bomb Ticks; Key Fed Speech Awaited",
-        "datetime": 1787835602,
-        "source": "Benzinga",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=586f505d7e72db784aca8e169728a1f0dfc9b7687c426d0c491ba3ce7f044961"
-      },
-      {
-        "headline": "Musk, Altman, Huang All Set to Speak at US-Hosted G20 Tech Meeting",
-        "datetime": 1787832144,
-        "source": "Benzinga",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=928dac1b0876210bcef59afd95f29e617a0aa20ba821b0cd9fb9bc9a3889e5fe"
-      },
-      {
-        "headline": "Crown Castle: The 2026 Reset Is Working, But The Market Has Yet To Catch Up",
-        "datetime": 1787829040,
+        "headline": "SpaceX: Buy This Debt-Fueled Launch Into AI",
+        "datetime": 1787919109,
         "source": "SeekingAlpha",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=d662318b839c89527b8564002269827367b068a79c61a22f9ac96dca6fcd6828"
+        "url": "https://finnhub.io/api/news?id=5b252218236d9b2948f4df18df01700d6c723223f319f5fbd3bfda749fa9fc1b"
       },
       {
-        "headline": "'SpaceX’s Musk, David Sacks to Join Altman, Huang at G20 Event' - Bloomberg News",
-        "datetime": 1787822740,
+        "headline": "Cathie Wood Trims AMD After a 120% Rally — Is the AI Trade Getting Too Crowded?",
+        "datetime": 1787919084,
         "source": "Benzinga",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=dd93d7bba9a487ea3362f87122596b84ad15601c767ceed90e94f66c27cdd3b6"
+        "url": "https://finnhub.io/api/news?id=00ca459523d00476785ba984c3513109ae093739e21e9ba21e3bb04f30aa7dd6"
       },
       {
-        "headline": "Would You Let Elon Musk’s Grok Bot Control Your Bank Account? Elon Musk Says He’ll Cover You If the AI Messes Up (UPDATED)",
-        "datetime": 1787821689,
+        "headline": "After A Decade Of Underperformance, Comcast Is Finally Ready To Rebound",
+        "datetime": 1787905016,
+        "source": "SeekingAlpha",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=33ebafc4f52a9bf164710a41af76d75cdb60bbe0443ab14ff6822944696a2693"
+      },
+      {
+        "headline": "Anthropic Is Chasing a $2T Valuation — A Wall Street Veteran Says Its Biggest IPO Risk Isn't What Investors Think",
+        "datetime": 1787904480,
         "source": "Benzinga",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=071c5f5cc9eeb291825c844aa48bd961c19adae851818425ce4d5a353e9c4677"
+        "url": "https://finnhub.io/api/news?id=518d0ca717d124d5bf0e6929a08c174f04dabd3ffbab4a053632540aca46e1eb"
+      },
+      {
+        "headline": "EXCLUSIVE: SpaceX May Lead the Launch Market, but Firefly CEO Says There's Still a Rocket Shortage",
+        "datetime": 1787903887,
+        "source": "Benzinga",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=e49e963c2841de896d3a965abe1130b7b2501a5ffb1b98b8eede6b72d1683a3e"
       }
     ],
     "SKHY": [
       {
-        "headline": "Sk Hynix CEO Says To Begin Volume Production Of Next-generation Hbm4e Chips At Indiana Facility In H2 2029; Indiana Expected To Become Key U.S. HBM Production Base",
-        "datetime": 1787829108,
-        "source": "Benzinga",
+        "headline": "SK Hynix: Higher Revenue Than Micron, Cheaper Than Micron (Initiating Buy)",
+        "datetime": 1787917161,
+        "source": "SeekingAlpha",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=2526e71f2e9880de67f5414208c633ebbd121e6f2f2847c8e112f46d7879b56b"
+        "url": "https://finnhub.io/api/news?id=672ed4a3fc4226d22bbc4ab60c35413c294172c4ffe0795d8ca072e84c3afc5b"
       },
       {
-        "headline": "'SK Hynix holds groundbreaking ceremony for $4 billion Indiana AI chip packaging facility' - Reuters",
-        "datetime": 1787826534,
+        "headline": "China's CXMT Revenue Explodes 874% in H1 as AI Memory Boom Fuels DRAM Shortage",
+        "datetime": 1787908399,
         "source": "Benzinga",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=5a5679e2b55778d8ba085498dee08e6d212f6b8c10c2d433a7ce8df3e117376f"
+        "url": "https://finnhub.io/api/news?id=8f8285a536e06bf255ba1763e7c310f82c1d967678c269131f20f0ac89a8cb33"
       },
       {
-        "headline": "Nvidia’s AI Boom Hits Its First Margin Wall: Memory Prices",
-        "datetime": 1787823045,
+        "headline": "SK Hynix CEO Warns Memory Shortage Will Persist Through 2030 as Chipmaker Builds $4 Billion Indiana Fab",
+        "datetime": 1787886298,
         "source": "Benzinga",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=de3011caa2aef34c17458c6ba9a06e97cf9845af7dde54c7545d22aef4474606"
+        "url": "https://finnhub.io/api/news?id=e063aee044c38acb6826acef9d28185d42d5ded46ae418d4765193891a018767"
       },
       {
-        "headline": "NVIDIA’s Biggest AI Bottleneck Isn’t Demand—It’s Memory",
-        "datetime": 1787820181,
+        "headline": "Trump's Tariffs Were Built to Close the Trade Gap. The AI Buildout Is Keeping It Open",
+        "datetime": 1787846167,
         "source": "Benzinga",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=f5eb42b39183e6b7214da4c7bf6e3e89832acc87f1006edfaf65f7de2a60b5ab"
+        "url": "https://finnhub.io/api/news?id=dd12854616980f70c13cbb84943a82a1cb271e5a24adcc8ee750ac4cc99aed05"
       },
       {
-        "headline": "Reported Earlier, Trump Administration Weighing New Round Of Sweeping Tariffs On Semiconductors - Politico Exclusive",
-        "datetime": 1787813927,
+        "headline": "Why Is Micron Stock Falling on Thursday?",
+        "datetime": 1787838006,
         "source": "Benzinga",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=3f4bf6e0fbedf08703d18a4efd629fe09f8419c5e2765b24945f152fb81edeb4"
+        "url": "https://finnhub.io/api/news?id=016b9cc85245b159a6629dc1edb1d0234e1bf4158d1351f0f2cc6b55c2da0b4a"
       }
     ]
   },
