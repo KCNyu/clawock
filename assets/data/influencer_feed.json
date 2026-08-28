@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-28T05:35:32.483804+00:00",
+  "generated_at": "2026-08-28T22:44:24.108937+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -13,12 +13,76 @@
   },
   "llm_filtered": true,
   "counts": {
-    "total": 15,
-    "held_hits": 0,
-    "new_ideas": 5,
-    "sector_hits": 2
+    "total": 17,
+    "held_hits": 3,
+    "new_ideas": 3,
+    "sector_hits": 3
   },
   "items": [
+    {
+      "author": "Musk",
+      "text": "Musk's SpaceX announces $100 billion plan for new spaceport in Louisiana",
+      "url": "",
+      "published": "Tue, 25 Aug 2026 21:35:22 GMT",
+      "origin": "gnews-rss",
+      "source": "CBS News",
+      "tickers": [],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "基建"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 78,
+      "summary_cn": "Musk旗下SpaceX宣布在路易斯安那投资1000亿美元建设新太空港，资本开支规模庞大支撑估值。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk predicts SpaceX revenue could reach $3.5T by 2033",
+      "url": "",
+      "published": "Fri, 28 Aug 2026 19:41:40 GMT",
+      "origin": "gnews-rss",
+      "source": "Fox Business",
+      "tickers": [],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 78,
+      "summary_cn": "Musk预测SpaceX到2033年营收有望达3.5万亿美元，极度乐观叙事利好其私募估值/杠杆ETF。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk Thinks SpaceX Can Hit $3.5 Trillion in Revenue. Wall Street Isn’t Buying It.",
+      "url": "",
+      "published": "Fri, 28 Aug 2026 11:55:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Barron's",
+      "tickers": [],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 75,
+      "summary_cn": "华尔街对Musk关于SpaceX营收可达3.5万亿美元的乐观预测持怀疑态度，估值预期分歧明显。"
+    },
     {
       "author": "Trump",
       "text": "GREAT NEWS! Micron, one of the “HOTTEST” Companies in the World, just announced a MASSIVE 10 BILLION DOLLAR Investment in new Research Labs right here in America. They are keeping us at the absolute forefront of A.I. and Advanced Computing! 🇺🇸   Combined with their previous TREMENDOUS 250 BILLION DOLLAR commitment, they are creating over tens of thousands of Great American Jobs. We are bringing Critical Technologies BACK to the U.S.A. Because of our Great Policies, Companies are investing TRILLIONS.    I have made it clear that America will lead the way to a new Golden Age of Science. The resu",
@@ -35,14 +99,14 @@
       "sectors": [
         "半导体",
         "AI",
-        "美国先进计算"
+        "国产制造"
       ],
       "sector_holdings": [
         "SKHY"
       ],
       "stance": "endorse",
-      "relevance": 91,
-      "summary_cn": "特朗普赞扬美光追加百亿美元美国研发投资，称其巩固美国AI和先进计算领先地位。"
+      "relevance": 85,
+      "summary_cn": "Trump力挺美光追加100亿美元投资美国研发实验室，叠加此前2500亿承诺，称将关键科技拉回美国。"
     },
     {
       "author": "Trump",
@@ -58,248 +122,97 @@
         "NVDA"
       ],
       "sectors": [
-        "半导体",
-        "AI"
+        "AI",
+        "半导体"
       ],
       "sector_holdings": [
         "SKHY"
-      ],
-      "stance": "endorse",
-      "relevance": 90,
-      "summary_cn": "特朗普祝贺英伟达创纪录销售并看好其2028年营收增长前景。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk Is Expanding Tesla's Robotaxi Network Beyond Austin and Miami. Here's Why That's Important for the Future Success of the Stock.",
-      "url": "",
-      "published": "Thu, 27 Aug 2026 19:05:00 GMT",
-      "origin": "gnews-rss",
-      "source": "The Motley Fool",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车",
-        "自动驾驶",
-        "机器人出租车",
-        "AI"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 86,
-      "summary_cn": "马斯克正将特斯拉机器人出租车网络扩展至奥斯汀和迈阿密之外，外界认为利好特斯拉未来。"
-    },
-    {
-      "author": "Trump",
-      "text": "Apple to invest $30 billion in US chip manufacturing: https://www.foxbusiness.com/media/apple-invest-30-billion-us-chip-manufacturing",
-      "url": "https://trumpstruth.org/statuses/41246",
-      "published": "2026-08-26T16:21:18+00:00",
-      "origin": "truthsocial",
-      "tickers": [
-        "AAPL"
-      ],
-      "held": [],
-      "new_ideas": [
-        "AAPL"
-      ],
-      "sectors": [
-        "半导体",
-        "美国制造业",
-        "芯片供应链"
-      ],
-      "sector_holdings": [
-        "SKHY"
-      ],
-      "stance": "endorse",
-      "relevance": 86,
-      "summary_cn": "特朗普阵营报道苹果将投资300亿美元扩大美国芯片制造。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk Teases Tesla Vehicle 'Way Cooler Than a Minivan'—Is the Robovan Finally Coming?",
-      "url": "",
-      "published": "Fri, 28 Aug 2026 03:31:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Autos",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车",
-        "自动驾驶",
-        "机器人出租车"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 70,
-      "summary_cn": "马斯克预告特斯拉可能推出比小型货车更酷的新车型，市场猜测或为Robovan。"
-    },
-    {
-      "author": "Musk",
-      "text": "Musk plans $100 billion SpaceX launch site in coastal Louisiana",
-      "url": "",
-      "published": "Tue, 25 Aug 2026 22:40:55 GMT",
-      "origin": "gnews-rss",
-      "source": "Louisiana Illuminator",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "基础设施投资"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
-      "relevance": 84,
-      "summary_cn": "马斯克计划在路易斯安那海岸投资1000亿美元建设SpaceX发射基地。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk’s SpaceX to expand beyond Texas Starbase with new Louisiana spaceport dedicated to Starship",
-      "url": "",
-      "published": "Tue, 25 Aug 2026 20:10:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Scientific American",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
       ],
       "stance": "endorse",
       "relevance": 82,
-      "summary_cn": "马斯克的SpaceX计划在得州星港之外建设新的路易斯安那航天港。"
-    },
-    {
-      "author": "Trump",
-      "text": "Bessent: Iran’s Leadership ‘Panicking’ Under Trump Economic Offensive — Vows to Sever ‘Every Economic Lifeline’: https://www.breitbart.com/politics/2026/08/25/bessent-irans-leadership-panicking-under-trump-economic-offensive-vows-to-sever-every-economic-lifeline/",
-      "url": "https://trumpstruth.org/statuses/41241",
-      "published": "2026-08-26T16:22:27+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "伊朗制裁",
-        "石油",
-        "地缘政治"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 76,
-      "summary_cn": "贝森特称特朗普对伊朗经济攻势正令其领导层恐慌，并誓言切断所有经济支持。"
-    },
-    {
-      "author": "Trump",
-      "text": "Trump Unleashes Scott Bessent on Iran: https://www.wsj.com/opinion/donald-trump-scott-bessent-sanctions-iran-oil-economy-96362772",
-      "url": "https://trumpstruth.org/statuses/41252",
-      "published": "2026-08-26T16:26:54+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "伊朗制裁",
-        "石油",
-        "地缘政治"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 75,
-      "summary_cn": "特朗普政府财政部长称将通过制裁伊朗石油经济切断其经济命脉。"
+      "summary_cn": "Trump祝贺Nvidia录得962亿美元创纪录营收、2028年营收预增70%，公开为AI龙头背书。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk's SpacexAI faces another lawsuit from child sexual abuse survivor",
+      "text": "Elon Musk's Tesla Hikes Cybertruck Prices by More Than 7% Despite Sluggish Sales",
       "url": "",
-      "published": "Thu, 27 Aug 2026 16:50:43 GMT",
+      "published": "Thu, 27 Aug 2026 00:31:00 GMT",
       "origin": "gnews-rss",
-      "source": "Mashable",
-      "tickers": [],
+      "source": "Yahoo Finance",
+      "tickers": [
+        "TSLA"
+      ],
       "held": [],
-      "new_ideas": [],
+      "new_ideas": [
+        "TSLA"
+      ],
       "sectors": [
-        "AI",
-        "社交媒体",
-        "法律监管"
+        "电动车"
       ],
       "sector_holdings": [],
       "stance": "attack",
-      "relevance": 68,
-      "summary_cn": "马斯克旗下SpaceXAI因涉及未成年人的内容风险再遭诉讼，增加法律与平台监管压力。"
-    },
-    {
-      "author": "Trump",
-      "text": "JD Vance, Ohio Figures Give Rousing Middletown Speech on Manufacturing Investments: https://www.dailysignal.com/2026/08/24/jd-vance-ohio-figures-give-rousing-middletown-speech-on-manufacturing-investments/",
-      "url": "https://trumpstruth.org/statuses/41260",
-      "published": "2026-08-26T16:35:11+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "美国制造业",
-        "投资"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 63,
-      "summary_cn": "特朗普阵营强调俄亥俄州制造业投资及本土制造政策。"
-    },
-    {
-      "author": "Musk",
-      "text": "Judge dismisses lawsuit by Elon Musk's X challenging New York hate speech law",
-      "url": "",
-      "published": "Wed, 26 Aug 2026 23:02:50 GMT",
-      "origin": "gnews-rss",
-      "source": "Reuters",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "社交媒体",
-        "监管",
-        "仇恨言论法规"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 61,
-      "summary_cn": "法院驳回马斯克旗下X针对纽约州仇恨言论法律的挑战，对X监管风险边际有利。"
-    },
-    {
-      "author": "Trump",
-      "text": "The Great Governor of South Dakota, Larry Rhoden, is doing a fantastic job for \"The Mount Rushmore State,\" a place I love, and WON BIG, six times, including Primaries, in 2016, 2020, and 2024!   Larry is a Fourth-Generation South Dakotan, successful Businessman, Rancher, former State Legislator, and now, as Governor, has strongly served the Wonderful People of South Dakota during a career \"loaded up\" with accolades and wins. He is working tirelessly to Champion South Dakota Values, Promote our Amazing Farmers and Ranchers, Grow the Economy, Cut Taxes and Regulations, Advance MADE IN THE U.S.A.",
-      "url": "https://trumpstruth.org/statuses/41267",
-      "published": "2026-08-27T16:48:49+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "美国经济",
-        "减税",
-        "监管",
-        "农业"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
       "relevance": 60,
-      "summary_cn": "特朗普赞扬南达科他州长推动经济增长、减税、放松监管及美国制造。"
+      "summary_cn": "Tesla在Cybertruck销量疲软背景下仍涨价逾7%，需求疲软+提价令市场担忧基本面。"
+    },
+    {
+      "author": "Trump",
+      "text": "FBI Shuts Down Sprawling China-Linked Hacking Network: https://www.wsj.com/tech/cybersecurity/fbi-shuts-down-sprawling-china-linked-hacking-network-61eade59",
+      "url": "https://trumpstruth.org/statuses/41342",
+      "published": "2026-08-28T18:05:46+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "网络安全",
+        "中美关系"
+      ],
+      "sector_holdings": [
+        "SKHY"
+      ],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "FBI端掉一个中国关联的大规模黑客网络，中美科技/网络对抗升级，半导体供应链紧张感增加。"
+    },
+    {
+      "author": "Trump",
+      "text": "Iran Is a Failing Nation! President DJT",
+      "url": "https://trumpstruth.org/statuses/41296",
+      "published": "2026-08-27T22:31:58+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "地缘政治",
+        "能源",
+        "国防"
+      ],
+      "sector_holdings": [
+        "02208"
+      ],
+      "stance": "attack",
+      "relevance": 55,
+      "summary_cn": "Trump称伊朗是'失败国家'，对伊强硬姿态升级，可能扰动油价和地缘风险。"
+    },
+    {
+      "author": "Trump",
+      "text": "RT: https://truthsocial.com/users/realDonaldTrump/statuses/117173814168760364So big a deal!",
+      "url": "https://trumpstruth.org/statuses/41316",
+      "published": "2026-08-28T15:22:02+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI"
+      ],
+      "sector_holdings": [
+        "SKHY"
+      ],
+      "stance": "endorse",
+      "relevance": 50,
+      "summary_cn": "Trump转发某条内容并称'超大事件'，疑似关联AI/重大政策利好，未具名。"
     },
     {
       "author": "Musk",
@@ -316,30 +229,204 @@
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 58,
-      "summary_cn": "马斯克入选2026年AI领域最具影响力人物，强化其AI行业影响力背书。"
+      "relevance": 62,
+      "summary_cn": "Musk入选《时代》2026年AI领域最具影响力100人，巩固其在AI产业话语权。"
     },
     {
-      "author": "Musk",
-      "text": "Elon Musk's data centers are pushing out a family that's owned land since \"before people of color were allowed to\"",
-      "url": "",
-      "published": "Thu, 27 Aug 2026 18:57:26 GMT",
-      "origin": "gnews-rss",
-      "source": "CBS News",
+      "author": "Trump",
+      "text": "Trump Moves to Ban Some Foreign Energy Equipment From Grid: https://www.bloomberg.com/news/articles/2026-08-26/trump-signs-order-to-ban-some-foreign-energy-equipment-from-grid",
+      "url": "https://trumpstruth.org/statuses/41344",
+      "published": "2026-08-28T18:05:30+00:00",
+      "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "数据中心",
-        "AI基础设施"
+        "能源",
+        "电网设备",
+        "国产替代"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 58,
+      "summary_cn": "Trump签署行政令禁止部分外国能源设备接入美国电网，利好本土电力设备制造商。"
+    },
+    {
+      "author": "Trump",
+      "text": "Laura Ingraham: “Year-to-date, the goods and services deficit decreased $189.3 billion, or 33.8 percent, from the same period in 2025. Exports increased $198.3 billion or 11.7 percent. Imports increased $9.0 billion or 0.4 percent.”  SO MUCH FOR THE TARRIFFS dragging down the economy — they're doing precisely what they were intended to do — level the playing field so our manufacturing can compete fairly and thrive.  EXCELLENT news!     Exports from January to June of each year:   Jan-June 2024:  $1.599 trillion Jan-June 2025:  $1.693 trillion Jan-June 2026:  $1.891 trillionA tribute to HIM.\"",
+      "url": "https://trumpstruth.org/statuses/41335",
+      "published": "2026-08-28T18:07:05+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "关税",
+        "出口贸易"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 55,
+      "summary_cn": "Trump援引贸易数据力挺关税政策，称关税未拖累经济反而扩大出口、缩窄逆差，为关税成效背书。"
+    },
+    {
+      "author": "Musk",
+      "text": "Musk’s AI company sues its users as victim lawsuits over Grok deepfakes mount",
+      "url": "",
+      "published": "Fri, 28 Aug 2026 09:03:56 GMT",
+      "origin": "gnews-rss",
+      "source": "Politico",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI",
+        "社交媒体"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 52,
+      "summary_cn": "Musk的xAI公司因Grok深伪内容遭受害用户反诉，AI法律/声誉风险上升。"
+    },
+    {
+      "author": "Trump",
+      "text": "White House to Announce New Drug Pricing Deals With Biotechs: https://www.bloomberg.com/news/articles/2026-08-26/white-house-to-announce-new-drug-pricing-deals-with-biotechs",
+      "url": "https://trumpstruth.org/statuses/41337",
+      "published": "2026-08-28T18:06:23+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "生物医药",
+        "医保定价"
       ],
       "sector_holdings": [],
       "stance": "neutral",
       "relevance": 52,
-      "summary_cn": "马斯克的数据中心扩张涉及土地占用及社区关系风险。"
+      "summary_cn": "白宫将宣布与生物科技公司达成新的药品定价协议，可能压制药企利润空间。"
+    },
+    {
+      "author": "Trump",
+      "text": "Jonathan Hunt of FoxNews did a particularly inaccurate report on the Failing Islamic Republic of Iran. I don’t want to meet, they do. In fact, they are begging to make a deal. Bret Baier should straighten out his flunkies, for a change! President DJT",
+      "url": "https://trumpstruth.org/statuses/41294",
+      "published": "2026-08-27T22:19:57+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "地缘政治",
+        "原油"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 52,
+      "summary_cn": "Trump否认主动寻求与伊朗会面，称德黑兰'乞求谈判'，对伊外交强硬。"
+    },
+    {
+      "author": "Trump",
+      "text": "Trump Effect: Prescription Drug Prices Fall At Record-Breaking Pace: https://www.breitbart.com/politics/2026/08/12/trump-effect-prescription-drug-prices-fall-for-fifth-month-this-year/",
+      "url": "https://trumpstruth.org/statuses/41317",
+      "published": "2026-08-28T15:21:54+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "生物医药",
+        "医保定价"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 50,
+      "summary_cn": "Trump称'Trump效应'下处方药价格连续五个月创纪录下跌，强化药价压制叙事。"
+    },
+    {
+      "author": "Trump",
+      "text": "“The Department of Justice secured a $22 million settlement with Deloitte concerning False Claims Act violations in connection with Deloitte’s use of DEI policies in hiring and employment.”",
+      "url": "https://trumpstruth.org/statuses/41327",
+      "published": "2026-08-28T15:59:19+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "监管",
+        "咨询"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 45,
+      "summary_cn": "司法部以DEI政策违规为由与Deloitte达成2200万美元和解，反DEI监管延续。"
     }
   ],
-  "held_hits": [],
+  "held_hits": [
+    {
+      "author": "Musk",
+      "text": "Musk's SpaceX announces $100 billion plan for new spaceport in Louisiana",
+      "url": "",
+      "published": "Tue, 25 Aug 2026 21:35:22 GMT",
+      "origin": "gnews-rss",
+      "source": "CBS News",
+      "tickers": [],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "基建"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 78,
+      "summary_cn": "Musk旗下SpaceX宣布在路易斯安那投资1000亿美元建设新太空港，资本开支规模庞大支撑估值。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk predicts SpaceX revenue could reach $3.5T by 2033",
+      "url": "",
+      "published": "Fri, 28 Aug 2026 19:41:40 GMT",
+      "origin": "gnews-rss",
+      "source": "Fox Business",
+      "tickers": [],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 78,
+      "summary_cn": "Musk预测SpaceX到2033年营收有望达3.5万亿美元，极度乐观叙事利好其私募估值/杠杆ETF。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk Thinks SpaceX Can Hit $3.5 Trillion in Revenue. Wall Street Isn’t Buying It.",
+      "url": "",
+      "published": "Fri, 28 Aug 2026 11:55:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Barron's",
+      "tickers": [],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 75,
+      "summary_cn": "华尔街对Musk关于SpaceX营收可达3.5万亿美元的乐观预测持怀疑态度，估值预期分歧明显。"
+    }
+  ],
   "new_ideas": [
     {
       "author": "Trump",
@@ -357,14 +444,14 @@
       "sectors": [
         "半导体",
         "AI",
-        "美国先进计算"
+        "国产制造"
       ],
       "sector_holdings": [
         "SKHY"
       ],
       "stance": "endorse",
-      "relevance": 91,
-      "summary_cn": "特朗普赞扬美光追加百亿美元美国研发投资，称其巩固美国AI和先进计算领先地位。"
+      "relevance": 85,
+      "summary_cn": "Trump力挺美光追加100亿美元投资美国研发实验室，叠加此前2500亿承诺，称将关键科技拉回美国。"
     },
     {
       "author": "Trump",
@@ -380,23 +467,23 @@
         "NVDA"
       ],
       "sectors": [
-        "半导体",
-        "AI"
+        "AI",
+        "半导体"
       ],
       "sector_holdings": [
         "SKHY"
       ],
       "stance": "endorse",
-      "relevance": 90,
-      "summary_cn": "特朗普祝贺英伟达创纪录销售并看好其2028年营收增长前景。"
+      "relevance": 82,
+      "summary_cn": "Trump祝贺Nvidia录得962亿美元创纪录营收、2028年营收预增70%，公开为AI龙头背书。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk Is Expanding Tesla's Robotaxi Network Beyond Austin and Miami. Here's Why That's Important for the Future Success of the Stock.",
+      "text": "Elon Musk's Tesla Hikes Cybertruck Prices by More Than 7% Despite Sluggish Sales",
       "url": "",
-      "published": "Thu, 27 Aug 2026 19:05:00 GMT",
+      "published": "Thu, 27 Aug 2026 00:31:00 GMT",
       "origin": "gnews-rss",
-      "source": "The Motley Fool",
+      "source": "Yahoo Finance",
       "tickers": [
         "TSLA"
       ],
@@ -405,109 +492,74 @@
         "TSLA"
       ],
       "sectors": [
-        "电动车",
-        "自动驾驶",
-        "机器人出租车",
-        "AI"
+        "电动车"
       ],
       "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 86,
-      "summary_cn": "马斯克正将特斯拉机器人出租车网络扩展至奥斯汀和迈阿密之外，外界认为利好特斯拉未来。"
-    },
-    {
-      "author": "Trump",
-      "text": "Apple to invest $30 billion in US chip manufacturing: https://www.foxbusiness.com/media/apple-invest-30-billion-us-chip-manufacturing",
-      "url": "https://trumpstruth.org/statuses/41246",
-      "published": "2026-08-26T16:21:18+00:00",
-      "origin": "truthsocial",
-      "tickers": [
-        "AAPL"
-      ],
-      "held": [],
-      "new_ideas": [
-        "AAPL"
-      ],
-      "sectors": [
-        "半导体",
-        "美国制造业",
-        "芯片供应链"
-      ],
-      "sector_holdings": [
-        "SKHY"
-      ],
-      "stance": "endorse",
-      "relevance": 86,
-      "summary_cn": "特朗普阵营报道苹果将投资300亿美元扩大美国芯片制造。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk Teases Tesla Vehicle 'Way Cooler Than a Minivan'—Is the Robovan Finally Coming?",
-      "url": "",
-      "published": "Fri, 28 Aug 2026 03:31:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Autos",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车",
-        "自动驾驶",
-        "机器人出租车"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 70,
-      "summary_cn": "马斯克预告特斯拉可能推出比小型货车更酷的新车型，市场猜测或为Robovan。"
+      "stance": "attack",
+      "relevance": 60,
+      "summary_cn": "Tesla在Cybertruck销量疲软背景下仍涨价逾7%，需求疲软+提价令市场担忧基本面。"
     }
   ],
   "sector_hits": [
     {
-      "author": "Musk",
-      "text": "Musk plans $100 billion SpaceX launch site in coastal Louisiana",
-      "url": "",
-      "published": "Tue, 25 Aug 2026 22:40:55 GMT",
-      "origin": "gnews-rss",
-      "source": "Louisiana Illuminator",
+      "author": "Trump",
+      "text": "FBI Shuts Down Sprawling China-Linked Hacking Network: https://www.wsj.com/tech/cybersecurity/fbi-shuts-down-sprawling-china-linked-hacking-network-61eade59",
+      "url": "https://trumpstruth.org/statuses/41342",
+      "published": "2026-08-28T18:05:46+00:00",
+      "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天",
-        "基础设施投资"
+        "网络安全",
+        "中美关系"
       ],
       "sector_holdings": [
-        "SPCH",
-        "SPCX"
+        "SKHY"
       ],
-      "stance": "endorse",
-      "relevance": 84,
-      "summary_cn": "马斯克计划在路易斯安那海岸投资1000亿美元建设SpaceX发射基地。"
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "FBI端掉一个中国关联的大规模黑客网络，中美科技/网络对抗升级，半导体供应链紧张感增加。"
     },
     {
-      "author": "Musk",
-      "text": "Elon Musk’s SpaceX to expand beyond Texas Starbase with new Louisiana spaceport dedicated to Starship",
-      "url": "",
-      "published": "Tue, 25 Aug 2026 20:10:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Scientific American",
+      "author": "Trump",
+      "text": "Iran Is a Failing Nation! President DJT",
+      "url": "https://trumpstruth.org/statuses/41296",
+      "published": "2026-08-27T22:31:58+00:00",
+      "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天"
+        "地缘政治",
+        "能源",
+        "国防"
       ],
       "sector_holdings": [
-        "SPCH",
-        "SPCX"
+        "02208"
+      ],
+      "stance": "attack",
+      "relevance": 55,
+      "summary_cn": "Trump称伊朗是'失败国家'，对伊强硬姿态升级，可能扰动油价和地缘风险。"
+    },
+    {
+      "author": "Trump",
+      "text": "RT: https://truthsocial.com/users/realDonaldTrump/statuses/117173814168760364So big a deal!",
+      "url": "https://trumpstruth.org/statuses/41316",
+      "published": "2026-08-28T15:22:02+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI"
+      ],
+      "sector_holdings": [
+        "SKHY"
       ],
       "stance": "endorse",
-      "relevance": 82,
-      "summary_cn": "马斯克的SpaceX计划在得州星港之外建设新的路易斯安那航天港。"
+      "relevance": 50,
+      "summary_cn": "Trump转发某条内容并称'超大事件'，疑似关联AI/重大政策利好，未具名。"
     }
   ]
 }
