@@ -39,6 +39,7 @@ from clawock.decision.actions import (
     PASSIVE_ACTIONS,
     SELL_ACTIONS,
 )
+from clawock import scorecard_provenance
 from clawock.workspace import workspace_root
 
 # Installed package code resolves user state from the caller's workspace, never
@@ -1782,7 +1783,8 @@ def hierarchical_prequential_calibration(rows: list[dict]) -> dict:
     }
 
 
-def compute_metrics(decisions: list[dict], window_days: int = 30) -> dict:
+def compute_metrics(decisions: list[dict], window_days: int = 30,
+                    cutoff: str | None = None) -> dict:
     """The scorecard the UI labels "30d" — so every field here must BE 30d.
 
     ``execution`` and the override count used to be tallied over the whole
@@ -1793,7 +1795,11 @@ def compute_metrics(decisions: list[dict], window_days: int = 30) -> dict:
     decides membership. The lifetime record lives in the money and win-rate
     curves, which are deliberately unwindowed.
     """
-    cutoff = (datetime.now(HKT).date() - timedelta(days=window_days)).isoformat()
+    # An explicit cutoff is how a third party re-derives a published number: the
+    # rolling default answers "30 days before now", which is a different window
+    # every day, so verification would compare two populations rather than two
+    # computations of one (see `evidence.scorecard_provenance`).
+    cutoff = cutoff or (datetime.now(HKT).date() - timedelta(days=window_days)).isoformat()
     in_window = [d for d in decisions if (d.get("plan_date") or "") >= cutoff]
     lifetime_reps = episode_representatives(decisions, "t1")
     reps = [r for r in lifetime_reps if r.get("plan_date", "") >= cutoff]
@@ -1978,13 +1984,27 @@ def compute_metrics(decisions: list[dict], window_days: int = 30) -> dict:
             "horizons": horizons,
         }
 
+    counts = {
+        "raw_decisions": len(in_window),
+        "episodes": len({d.get("episode_id") for d in in_window}),
+        "settled_episodes": len(reps),
+    }
     return {
         "schema_version": SCHEMA_VERSION,
         "method": "episode-level; triggered-only; date-cluster bootstrap; capital-weighted where size exists",
         "window_days": window_days,
-        "raw_decisions": len(in_window),
-        "episodes": len({d.get("episode_id") for d in in_window}),
-        "settled_episodes": len(reps),
+        # Which rows produced these numbers, and under which metric definition.
+        # Every headline below is a claim about a population the reader cannot
+        # see; this names it precisely enough to be recomputed from the public
+        # ledger (#1113).
+        "provenance": scorecard_provenance.build(
+            decisions,
+            window_days=window_days,
+            cutoff=cutoff,
+            counts=counts,
+            code_files=(Path(__file__),),
+        ),
+        **counts,
         # Headline calibration = ACTIVE only. A HOLD's confidence is a different
         # claim and used to be averaged in, which is how 191 passive stances ended up
         # grading the model's ability to call a trade.

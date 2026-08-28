@@ -3557,6 +3557,24 @@
       `<div style="text-align:center; color:var(--text-faint); font-size:var(--fs-sm); padding:20px 0;">
          No settled decision episodes yet.
        </div>`;
+
+    // 这张卡上的每个数都是对一群「你看不见的行」的断言。这一行把那群行说
+    // 死：哪个文件、哪段日期、多少行、算它的代码是哪个 commit，以及别人怎么
+    // 自己复算一遍。指纹只盖记分真正读的字段，所以改文案不动它、重判一条
+    // 输赢会动它（#1113）。
+    const prov = calib.provenance || {};
+    const provEl = document.getElementById("plan-provenance");
+    if (provEl) {
+      const led = prov.ledger || {}, win = prov.window || {};
+      provEl.textContent = led.slice_digest
+        ? `这些数出自 ${led.path} 的 ${led.slice_rows} 行`
+          + `（${win.first_plan_date} → ${win.last_plan_date}）`
+          + ` · 代码 ${prov.code_commit || "—"}`
+          + ` · 切片指纹 ${led.slice_digest}`
+          + ` · 自己复算：${prov.verify || "clawock scorecard-provenance --check"}`
+        : "";
+      provEl.hidden = !led.slice_digest;
+    }
   }
 
   // =========================================================

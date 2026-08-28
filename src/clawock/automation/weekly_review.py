@@ -37,6 +37,13 @@ PROMPT_BUDGET_CHARS = 200_000
 # committed plans and also rides on every episode representative.
 DECISION_PROMPT_DROP_FIELDS = ('signal_provenance',)
 
+# Publication bookkeeping on `decision_metrics`, not review material:
+# `provenance` names the ledger slice, window and code commit a published
+# scorecard number came from (#1113). A public reader needs it to trace a
+# number back to its rows; the weekly review is handed the numbers themselves,
+# so in the prompt it is a kilobyte of digest the model cannot use.
+METRICS_PROMPT_DROP_FIELDS = ('provenance',)
+
 # Per-holding fields the review questions can actually use (book composition
 # start-vs-end for contributor/drag attribution). Intraday OHLCV/volume/
 # trade-tape detail and gold_dca stay out of the prompt; the NAV series they
@@ -317,6 +324,11 @@ def build_prompt_payload(bundle, budget=PROMPT_BUDGET_CHARS):
         return {'date': entry.get('date'), 'data': projected}
 
     payload = dict(bundle)
+    metrics = bundle.get('decision_metrics')
+    if isinstance(metrics, dict):
+        payload['decision_metrics'] = {
+            k: v for k, v in metrics.items()
+            if k not in METRICS_PROMPT_DROP_FIELDS}
     payload['plans'] = [project_plan(p) for p in bundle.get('plans') or []]
     payload['snapshots'] = [_slim_snapshot(s) for s in bundle.get('snapshots') or []]
     if isinstance(bundle.get('decision_episodes'), list):
