@@ -27,8 +27,9 @@ def _day(ts: str, count: int, uniques: int) -> dict:
     return {"timestamp": ts, "count": count, "uniques": uniques}
 
 
-def _github(views: list[dict], clones: list[dict], referrers=None, paths=None) -> dict:
-    return {
+def _github(views: list[dict], clones: list[dict], referrers=None, paths=None,
+            repo=None) -> dict:
+    payload = {
         "views": {"count": sum(d["count"] for d in views),
                   "uniques": 1, "views": views},
         "clones": {"count": sum(d["count"] for d in clones),
@@ -36,6 +37,9 @@ def _github(views: list[dict], clones: list[dict], referrers=None, paths=None) -
         "referrers": referrers if referrers is not None else [],
         "paths": paths if paths is not None else [],
     }
+    if repo is not None:
+        payload["repo"] = repo
+    return payload
 
 
 NOW = dt.datetime(2026, 8, 22, 3, 38, tzinfo=dt.timezone.utc)
@@ -116,6 +120,50 @@ def test_package_downloads_are_advisory_and_never_lose_the_github_half():
     assert merged["views"][0]["count"] == 20
     assert merged["package_downloads"][0]["npm_error"] == "HTTP 503"
     assert merged["package_downloads"][0]["pypi"]["last_month"] == 896
+
+
+def test_authority_counts_are_snapshots_that_accumulate_into_a_curve():
+    """Stars/forks are running totals, so the point is the series, not the value.
+
+    Tracking them at all is the correction #1120 asked for: the distribution
+    gap is standing, not crawl budget, and the number was previously only
+    whatever `gh repo view` printed the day someone ran it.
+    """
+    first, _ = repo_traffic.merge({}, _github([], [], repo={
+        "stargazers_count": 13, "forks_count": 1,
+        "subscribers_count": 2, "open_issues_count": 12}), {}, NOW)
+    second, _ = repo_traffic.merge(first, _github([], [], repo={
+        "stargazers_count": 15, "forks_count": 1,
+        "subscribers_count": 2, "open_issues_count": 9}), {}, LATER)
+
+    snaps = second["authority_snapshots"]
+    assert [s["captured_at"] for s in snaps] == [
+        "2026-08-22T03:38:00Z", "2026-08-26T03:38:00Z"]
+    assert [s["stargazers"] for s in snaps] == [13, 15]
+    assert snaps[1]["open_issues"] == 9
+
+
+def test_a_rerun_in_the_same_minute_replaces_the_authority_snapshot():
+    first, _ = repo_traffic.merge({}, _github([], [], repo={"stargazers_count": 13}), {}, NOW)
+    second, _ = repo_traffic.merge(first, _github([], [], repo={"stargazers_count": 14}), {}, NOW)
+
+    assert len(second["authority_snapshots"]) == 1
+    assert second["authority_snapshots"][0]["stargazers"] == 14
+
+
+def test_a_missing_repo_block_keeps_both_the_traffic_and_the_prior_authority():
+    """Authority never ages out, so it must never be able to cost a capture.
+
+    A file written before this section existed, or a caller that did not ask
+    for the repo block, keeps its traffic half and its earlier snapshots
+    instead of failing over a secondary metric.
+    """
+    seeded, _ = repo_traffic.merge({}, _github([], [], repo={"stargazers_count": 13}), {}, NOW)
+    merged, _ = repo_traffic.merge(
+        seeded, _github([_day("2026-08-25T00:00:00Z", 7, 3)], []), {}, LATER)
+
+    assert merged["views"][-1]["count"] == 7
+    assert [s["stargazers"] for s in merged["authority_snapshots"]] == [13]
 
 
 def test_a_missing_token_is_an_error_not_an_empty_reading(monkeypatch, capsys):

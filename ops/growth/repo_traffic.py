@@ -29,6 +29,12 @@ Package downloads ride along because they are the same kind of perishable
 rolling window, and because the package pages turn out to be the highest-traffic
 surface this project has (#790).
 
+Stars, forks and watchers ride along for the opposite reason (#1120): they are
+running totals that never age out, so no capture can lose them — but nothing was
+writing them down either, and "indexed but with no standing" is the real
+distribution gap, not crawl budget. Stored as dated snapshots so the KPI is a
+curve rather than whatever the number happened to be the day someone looked.
+
 Usage:
     repo_traffic.py                      # merge into assets/data/repo-traffic.json
     repo_traffic.py --print              # show what would be written, write nothing
@@ -81,7 +87,16 @@ def fetch_github(token: str) -> dict[str, Any]:
     clones = _get_json(f"{base}/clones?per=day", token)
     referrers = _get_json(f"{base}/popular/referrers", token)
     paths = _get_json(f"{base}/popular/paths", token)
-    return {"views": views, "clones": clones, "referrers": referrers, "paths": paths}
+    # Authority, alongside reach (#1120). The distribution problem was framed
+    # for a long time as crawl budget; it is not — the site is indexed, the
+    # package is on PyPI, a search returns all three surfaces. What is missing
+    # is standing: stars, forks, people watching. Those are the numbers a
+    # reader of this repository actually weighs it by, and until now the only
+    # place they existed was whatever `gh repo view` printed the day someone
+    # ran it.
+    repo = _get_json(f"https://api.github.com/repos/{REPO}", token)
+    return {"views": views, "clones": clones, "referrers": referrers,
+            "paths": paths, "repo": repo}
 
 
 def fetch_packages() -> dict[str, Any]:
@@ -169,6 +184,27 @@ def merge(previous: dict[str, Any], github: dict[str, Any], packages: dict[str, 
         history.append({"captured_at": stamp, "window_days": 14, "rows": payload})
         merged[f"{name}_snapshots"] = sorted(history, key=lambda s: s["captured_at"])
 
+    # Authority is a running total, not a window: unlike views and clones it
+    # cannot age out, so this is a dated snapshot series rather than a merge.
+    # It is also the one section that survives a missing input — an older
+    # capture file, or a caller that did not ask for the repo block, keeps its
+    # traffic half rather than failing over a secondary metric.
+    repo_meta = github.get("repo")
+    if isinstance(repo_meta, dict):
+        authority = [s for s in previous.get("authority_snapshots", [])
+                     if s.get("captured_at") != stamp]
+        authority.append({
+            "captured_at": stamp,
+            "stargazers": repo_meta.get("stargazers_count"),
+            "forks": repo_meta.get("forks_count"),
+            "watchers": repo_meta.get("subscribers_count"),
+            "open_issues": repo_meta.get("open_issues_count"),
+        })
+        merged["authority_snapshots"] = sorted(authority,
+                                               key=lambda s: s["captured_at"])
+    elif previous.get("authority_snapshots"):
+        merged["authority_snapshots"] = previous["authority_snapshots"]
+
     pkg_history = [s for s in previous.get("package_downloads", [])
                    if s.get("captured_at") != stamp]
     pkg_history.append({"captured_at": stamp, **packages})
@@ -223,6 +259,10 @@ def main(argv: list[str] | None = None) -> int:
     print(f"clones 14d: {c14['count']} / {c14['uniques']} unique")
     print("referrers: " + ", ".join(
         f"{r['referrer']} {r['count']}/{r['uniques']}u" for r in github["referrers"][:6]) or "(none)")
+    if merged.get("authority_snapshots"):
+        latest = merged["authority_snapshots"][-1]
+        print(f"authority: {latest['stargazers']}★ · {latest['forks']} forks · "
+              f"{latest['watchers']} watching")
     print(f"series: +{stats['views_added']} view days, +{stats['clones_added']} clone days, "
           f"{stats['views_revised'] + stats['clones_revised']} revised")
     print(f"history now spans {len(merged['views'])} view days / {len(merged['clones'])} clone days")
