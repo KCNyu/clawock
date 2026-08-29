@@ -120,29 +120,19 @@ _（空）_
 2026-08-09 清空了七条 8/4 的促销摘录：它们把四天前的 `USD −7,426.69 / HKD −58,244.56`
 以「长期记忆」的身份注进主会话，正是最容易被当成当前值引用的形状。
 
-## Promoted From Short-Term Memory (2026-08-27)
+## Promoted From Short-Term Memory (2026-08-30)
 
-<!-- openclaw-memory-promotion:memory:memory/2026-08-20-pre-open.md:33:36 -->
-- ▎仓位明细 (US): | 代码 | 名 | 股 | 成本 | 现价 | 今日% | 浮% | 浮$ | |---|---|---|---|---|---|---|---| | SPCH | 2x Long SpaceX | 290 | 12.20 | 8.94 | -5.4% | -26.7% | -US$946 | | RKLX | 2x Long RKLB | 10 | 49.69 | 21.54 | -8.7% | -56.7% | -US$282 | [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-20-pre-open.md:33-36]
-
-## Promoted From Short-Term Memory (2026-08-28)
-
-<!-- openclaw-memory-promotion:memory:memory/2026-08-21-pre-open.md:34:37 -->
-- ▎仓位明细 (US): | 代码 | 名 | 股 | 成本 | 现价 | 今日% | 浮% | 浮$ | |---|---|---|---|---|---|---|---| | SPCH | 2x Long SpaceX | 290 | 12.20 | 8.20 | +0.4% | -32.8% | -US$1,160 | | RKLX | 2x Long RKLB | 10 | 49.69 | 19.88 | -7.7% | -60.0% | -US$298 | [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-21-pre-open.md:34-37]
-
-## Promoted From Short-Term Memory (2026-08-29)
-
-<!-- openclaw-memory-promotion:memory:memory/2026-08-24-pre-open.md:10:13 -->
-- 📊 盘前深度简报｜2026-08-24 周一 08:00 HKT: 🧭 **Regime**: HK=amber / US=red（risk_directive 6 仓位硬闸 + 3 杠杆止损触发）; **macro.regime=risk_on** (VIX 15.13 calm, SPX +0.43% / NDX +0.43% 同向上行, F&G 55.2 greed) — 但 local 集中度问题主导, regime guard 优先; **FX**: USDHKD = **7.8405** (Frankfurter, 抓取于 2026-08-24 00:03 UTC); **真实总浮盈亏**: **USD$-5,494.41** ≈ **HKD$-43,078.89** (双视角, 不直接相加); HK leg: HKD$-32,404.44 (72872 当前 / 105276 成本) [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-24-pre-open.md:10-13]
-<!-- openclaw-memory-promotion:memory:memory/2026-08-24-pre-open.md:14:16 -->
-- 📊 盘前深度简报｜2026-08-24 周一 08:00 HKT: US leg: USD$-1,361.45 (3244 当前 / 4606 成本); **HHI**: HK **0.422 🔴 危险集中** (Top2 86.8% = 00100 57.17% + 07226 29.68%) | US **0.639 🔴 危险集中** (Top2 85.3% = SPCH 79.25% + RKLX 6.07%); Look-through factor: HK 0.464 / US 0.777 — 表面分散, 实际单因子主导 (杠杆 ETF + AI/HSTECH 集中) [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-24-pre-open.md:14-16]
-<!-- openclaw-memory-promotion:memory:memory/2026-08-24-pre-open.md:2:4 -->
-- layout: default title: 盘前深度简报 · 2026-08-24 description: "clawock 盘前深度简报 2026-08-24：港股 + 美股真实持仓的多空辩论、量化因子、风控硬闸与 AI 自评战绩（诚实公开，承认主动操作跑输躺平）。" [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-24-pre-open.md:2-4]
-<!-- openclaw-memory-promotion:memory:memory/2026-08-24-pre-open.md:22:25 -->
-- HK leg (HKD): | 代码 | 股 | 成本 | 现价 | 今日 | 浮% | 浮$ | |---|---|---|---|---|---|---| | 00100 MINIMAX-W | 120 | 553.08 | 347.20 | +11.86% | -37.22% | -24,706 | | 02208 金风科技 | 400 | 14.08 | 9.90 | +0.61% | -29.71% | -1,674 | [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-24-pre-open.md:22-25]
-<!-- openclaw-memory-promotion:memory:memory/2026-08-24-pre-open.md:26:29 -->
-- HK leg (HKD): | 03032 恒生科技ETF | 200 | 5.41 | 4.762 | +1.10% | -11.90% | -129 | | 03033 南方恒生科技 | 1000 | 5.14 | 4.670 | +1.39% | -9.14% | -470 | | 07226 XL二南方恒科 | 6200 | 4.36 | 3.488 | +2.47% | -20.06% | -5,426 | | **HK 现金** | | | | | | **17,597 HKD** | [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-24-pre-open.md:26-29]
-<!-- openclaw-memory-promotion:memory:memory/2026-08-24-pre-open.md:33:36 -->
-- US leg (USD): | 代码 | 股 | 成本 | 现价 | 今日 | 浮% | 浮$ | |---|---|---|---|---|---|---| | CRCL Circle | 2 | 87.00 | 87.98 | +5.16% | +1.13% | +1.96 | | RKLX 2xRKLB | 10 | 49.69 | 19.68 | -1.01% | **-60.39%** | -300 | [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-24-pre-open.md:33-36]
-<!-- openclaw-memory-promotion:memory:memory/2026-08-24-pre-open.md:9:9 -->
-- 📊 盘前深度简报｜2026-08-24 周一 08:00 HKT: **Header · FX · Book** [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-24-pre-open.md:9-9]
+<!-- openclaw-memory-promotion:memory:memory/2026-08-25-pre-open.md:10:13 -->
+- 📊 盘前深度简报｜2026-08-25 周二 08:00 HKT: 🧭 **Regime**: HK=amber / US=red (portfolio-regime 由 hard stop + 6 仓位硬闸主导); **macro.regime=neutral** (VIX 15.85, SPX -0.28% / NDX -0.76% 同向下行, F&G 55.0 greed) — 较 8/24 risk_on 退一档; **FX**: USDHKD = **7.8368** (Frankfurter, 抓取于 2026-08-25 00:07 UTC); **真实总浮盈亏**: **USD$-6,393.25** ≈ **HKD$-50,102.62** (双视角, 不直接相加); HK leg: HKD$-38,578.84 (current 66,697.60 / cost 105,276.44) [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-25-pre-open.md:10-13]
+<!-- openclaw-memory-promotion:memory:memory/2026-08-25-pre-open.md:14:17 -->
+- 📊 盘前深度简报｜2026-08-25 周二 08:00 HKT: US leg: USD$-1,470.47 (current 3,135.11 / cost 4,605.58); **HHI**: HK **0.414 🔴 危险集中** (Top2 86.2% = 00100 56.17% + 07226 30.06%) | US **0.644 🔴 危险集中** (Top2 85.2% = SPCH 79.61% + CRCL 5.60%); 隐含因子集中: HK 杠杆 30.1% > 25% amber cap; US 杠杆 85.1% > 50% cap; US β 5.41 > 3.0 cap; SPCH 79.61% > 35% mandatory; 硬止损: 07226 -25.9% / RKLX -65.1% / SPCH -31.0% 全部 ≤ -18% 线 (持续 41d) [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-25-pre-open.md:14-17]
+<!-- openclaw-memory-promotion:memory:memory/2026-08-25-pre-open.md:2:4 -->
+- layout: default title: 盘前深度简报 · 2026-08-25 description: "clawock 盘前深度简报 2026-08-25：港股 + 美股真实持仓的多空辩论、量化因子、风控硬闸与 AI 自评战绩（诚实公开，承认主动操作跑输躺平）。" [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-25-pre-open.md:2-4]
+<!-- openclaw-memory-promotion:memory:memory/2026-08-25-pre-open.md:23:26 -->
+- HK leg (HKD): | 代码 | 股 | 成本 | 现价 | 今日 | 浮% | 浮$ | |---|---|---|---|---|---|---| | 00100 MINIMAX-W | 120 | 553.08 | 312.20 | -10.16% | -43.56% | -28,905 | | 02208 金风科技 | 400 | 14.08 | 9.425 | -4.80% | -33.10% | -1,863 | [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-25-pre-open.md:23-26]
+<!-- openclaw-memory-promotion:memory:memory/2026-08-25-pre-open.md:27:30 -->
+- HK leg (HKD): | 03032 恒生科技ETF | 200 | 5.41 | 4.584 | -3.74% | -15.20% | -165 | | 03033 南方恒生科技 | 1000 | 5.14 | 4.496 | -3.72% | -12.49% | -644 | | 07226 XL二南方恒科 | 6200 | 4.36 | 3.234 | -7.28% | **-25.92%** | -6,978 | | **HK 现金** | | | | | | **17,597 HKD** | [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-25-pre-open.md:27-30]
+<!-- openclaw-memory-promotion:memory:memory/2026-08-25-pre-open.md:34:37 -->
+- US leg (USD): | 代码 | 股 | 成本 | 现价 | 今日 | 浮% | 浮$ | |---|---|---|---|---|---|---| | CRCL Circle | 2 | 87.00 | 87.72 | -0.30% | +0.83% | +1.44 | | RKLX 2xRKLB | 10 | 49.69 | 17.33 | -11.92% | **-65.13%** | -323.6 | [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-25-pre-open.md:34-37]
+<!-- openclaw-memory-promotion:memory:memory/2026-08-25-pre-open.md:9:9 -->
+- 📊 盘前深度简报｜2026-08-25 周二 08:00 HKT: **Header · FX · Book** [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-25-pre-open.md:9-9]
