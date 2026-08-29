@@ -586,35 +586,52 @@ def test_rebuild_byte_identical_excluding_timestamp():
 
 ---
 
-## 11.5 反哺路径合规矩阵(本节为 kcn 拍板而设)
+## 11.5 反哺路径合规矩阵(本节为 kcn 拍板而设,08-29 第二次修正)
 
-决策地图的产出 = 「信号 × 决策 × 结算」三维投影。用户提了一个更深的问题:**这些数据能反哺每日决策吗?** 严格按 CLAWOCK_PRODUCT_GOAL 切分成 5 层:
+决策地图的产出 = 「信号 × 决策 × 结算」三维投影。用户提了一个更深的问题:**这些数据能反哺每日决策吗?我们本身就需要调整决策因子,让 input 自进化而不是改 runtime**。这其实是 clawock 产品的**核心价值**,不是越界 — 但要分清楚 input 维度 vs runtime 维度。
+
+完整论证见 memory `clawock-input-evolution-boundary.md`(08-29 写入,纠正早期 `clawock-self-improving-boundary.md` 的误读)。
+
+### 核心判据:input 进化 vs runtime 进化
+
+| | Input 维度 ✅ | Runtime 维度 ❌ |
+|---|---|---|
+| 改的是什么 | **静态 artifact 文件**(JSON / JSONL / 数字 / 文本) | **LLM 行为**(prompt / tool 权重 / agent 循环) |
+| 改的是谁的状态 | clawock 内部(input 数字、weight、threshold) | clawock 之外的 runtime(model prompt / tool registry / agent loop) |
+| 回滚方式 | git revert / 改 JSON / 删 `signal_provenance` 一行 | 需要重启 model / 改 agent 循环(不可 git 化) |
+| 产物形式 | 可被 git diff、可被 CI 校验 | runtime state,clawock 看不到也管不了 |
+| 历史路径 | `thesis_registry.py drift` / `signal-panel` / `research_provenance.py` / `quant_signal_review` | 没有历史路径,会撞 `peer_residuals.load_rule_config` 红线 |
+
+满足 3 条 = input 维度,可做。任意一条不满足 = 跨进 runtime,禁止。
+
+---
 
 ### Level 1 — Read-side 反哺 ✅ 完全合规
 
 **做法**:决策地图 PRD(#1189-#1195)展示「信号 → 决策 → 结算」反向链路。
 
-**为什么合规**:
-- "evidence-led"(at_snapshot 表) ✓
-- "reviewable"(信息源倒排卡 + 决策 × 信号矩阵) ✓
-- "versioned"(时间线) ✓
-- "reversible"(**能反查**改理由,**不是改决策本身**) ✓
-- 不动合约 / 不动 cron / 不写决策 / 不引入搜索 ✓
+**为什么合规**:不写 / 不改 / 不跨进 runtime,只读 ledger + 5 类信号快照。
 
 **已落到 issue #1189-#1195**,Phase 1 可立刻做。
 
 ---
 
-### Level 2 — Write-side 反哺 = 把 at_snapshot 写回 ledger 锚点 ❌ 越界
+### Level 2 — Write-side 反哺 = 把 at_snapshot 写回 ledger 锚点 ✅ **部分合规**(原判越界,08-29 纠正)
 
 **做法**:决策合约加 `signal_snapshot_ref` 字段,指向决策当时的 at_snapshot。
 
-**为什么越界**:
-- memory `clawock-feature-batch-honesty-slices.md`「账本是 ledger 不可变」原则
-- 动 `decision/ledger.py` = 动产品边界
-- 任何 schema 改动都要回填旧决策(741 行),本身就是回填质量风险
+**早期判越界的理由**(已纠正):
+- ❌ 误以为这是 "self-improving 越界" — 错,这是 **input 维度写静态锚点**
+- ✅ 真正的问题是:动 `decision/ledger.py` 的 schema 改动需要回填 + 测试钉兼容性
 
-**例外**:如要做,必须先开 product-boundary issue 给 kcn 拍板,且要先写迁移方案 + 测试钉死旧 ledger 兼容性。
+**重新判定的合规边界**:
+- `signal_snapshot_ref` 是**静态锚点**(决策时点的 reference,数字本身不变)
+- 它**不动** decision 的 rationale / action / 后续判断
+- 它让 ledger 追溯变可观测,这是 Level 1 的延伸
+
+**例外规则**(必须满足才合规):
+- 写回 ledger 的字段必须是**只读事实**(数字、ref、snapshot),不能写"基于这个 snapshot 的判断"/"自调权重"等决策性字段
+- 需要 kcn 拍板 + schema migration plan + 测试钉死兼容性
 
 ---
 
@@ -622,9 +639,7 @@ def test_rebuild_byte_identical_excluding_timestamp():
 
 **做法**:brief 生成时 prompt 注入一段「过去 20 条决策 + signal-panel 最近 IC」。
 
-**为什么半合规**:
-- 不动合约、不写决策、不引入搜索 — 满足 Level 1 的所有约束
-- 但**触发了一个新风险**:模型可能用这些数字做权重
+**判定**:这是 **input 维度**(把已发布的数字作为 context),但需要闸**防止它跨进 runtime**(不让数字驱动决策路径)。
 
 **三道闸必须装**:
 
@@ -640,10 +655,11 @@ def test_rebuild_byte_identical_excluding_timestamp():
 
 **做法**:model 不动,但 `decision/ledger.py` 加逻辑,根据 signal-panel 自动把 `driven_by: technical` 改为 `driven_by: factor`。
 
-**为什么越界**:
+**为什么越界**(跨进 runtime 维度):
 - memory `clawock-driven-by-canonical-risk-rule.md`:`driven_by` 必须来自 risk rule,**不能来自信号表现**
 - memory `clawock-add-side-gate-structurally-closed.md`:加仓闸有结构约束,不是「如果 IC 高就开」
 - 这是**自动搜索**,正是 memory `clawock-open-issue-batch-2026-08-29.md` 反复警告的「仓库拒绝的搜索」
+- 改的是 decision 的归因路径(runtime 决策路径),不只是 input
 
 **例外**:禁止。
 
@@ -655,70 +671,122 @@ def test_rebuild_byte_identical_excluding_timestamp():
 
 **为什么绝对越界**:
 - product-goal 原文 "clawock must not become a **model client, agent runtime, or agent launcher**"
-- 外部 runtime 拥有 model / conversation / memory / skills / ReAct 循环;clawock 拥有 harness
+- 改的是 model / agent 循环本身,跨进 runtime 维度
 - 越过这条线 = clawock 变成第二个 runtime,产品定位崩
 
 **例外**:禁止。
 
 ---
 
-### 为什么 self-improving 在 clawock 里不可取(五条理由)
+### Level 6 — Input 维度的自进化 ✅ **产品核心价值**(新发现,08-29 补)
 
-#### 1. 审计性 = 产品定位的核心卖点
+**做法**:决策因子、thesis、research surface、信号权重**在受闸条件下自适应**。
 
-memory `clawock-no-live-numbers-in-static-copy.md` + `clawock-information-layer-taxonomy-artifact.md` 都强调:
+这就是 kcn 描述的产品形态,**clawock 已经在做**:
 
-> "在一个卖点就是诚实的仓库里"
+| 模块 | 形式 | 闸 |
+|---|---|---|
+| `thesis_registry.py drift` | thesis 文档自适应 | evidence-driven drift gate |
+| `signal-panel` | 测信号 IC + PBO | CI 闸 + weight 不自动调 |
+| `research_provenance.py` | 研究产物喂回 brief | artifact 合法性闸 |
+| `quant_signal_review` | 信号衰减判定 | n>=20 解锁门 + cluster bootstrap |
+| `combined_regime.py` | regime 探测 | OOS 验证 |
+| `cross_sectional_factor` | 因子打分 | per-factor IC 测(#1133 修了后) |
+| `#1159` Insight scoring | 信号评分闭环 | 不改决策路径 |
+| `#1161` Factor tear-sheet | 因子分析 | 不改决策路径 |
+| Decision 地图 PRD(#1189-#1195) | 反查 at_snapshot | 只读 |
 
-自我调优意味着:**模型看了自己的产出 → 改下次产出**。这是循环引用,审计链断在「模型自己看了自己的数字」。诚实性 = 不可声明。
-
-#### 2. governed improvement 的 cost curve 不是线性的
-
-定位原文:"outcome evaluation and **governed improvement adoption**"。
-
-governed = 闸 + 契约 + 测试 + CI + 可回滚。每加一条自我调优路径,闸的数量**指数增长**:
-- 信号 → 决策权重: 1 闸
-- 信号 → 模型 prompt: 1 闸 + 模型 version pin
-- 模型 → 信号: 1 闸 + feedback loop validation
-- 任意两条路径并行:再加 N 闸 + 一致性测试
-
-clawock 当前的 strength 在**宽度**(8 个信息层、741 行决策、25 份 plan)。**深度**(每个信号被采信多少次、被怎么采信)还是 0。深度 = 反哺的真正收益,但**只能走 governed 路径**走,不能绕过。
-
-#### 3. rationale 闭环 = 真正的陷阱
-
-决策 rationale 文本是模型原文。memory 反复警告:`rationale` 是模型写作的**事后辩护**,不是决策驱动的因果(memory `clawock-driven-by-canonical-risk-rule.md`:`driven_by` 必须从 risk rule,**不是从 rationale 反推**)。
-
-自我调优必然涉及「上轮 rationale → 本轮决策权重」。这就是把 rationale 从「事后辩护」提升为「驱动因果」——**定位反转**。一次可以,十次就开始污染整个 ledger。
-
-#### 4. 五条具体 memory 已经踩过同类坑
-
-- `clawock-cron-false-red-recovered-bash.md`:自动判定假红(metric 自己解 metric)
-- `clawock-feature-batch-honesty-slices.md`:risk 卡 fail-OPEN(`X or DEFAULT` 当 0 合法反模式)
-- `clawock-snapshot-realized-runs-ahead.md`:load_snapshots 用重算覆盖快照存值 → 发布的权益曲线真错
-- `clawock-share-ledger-deficit.md`:`trades[]` 重放缺口,9 只仓位被错算
-- `clawock-signal-parser-blindspots-2026-08-26.md`:两个 harness 反向盲区(US STOP-LOSS 数不到)
-
-**五条都不是自我调优,但全部是「测量面/计算面与产品面耦合」导致的隐藏 bug**。自我调优会让这种耦合**乘以 N**。
-
-#### 5. clawock 是 portable plugin,不是单一 runtime
-
-product-goal:"**install decision intelligence into any agent**"。
-
-自我调优的隐含前提 = 单一 model + 单一 runtime + 单一记忆 = 单一反馈环。clawock 是**插件**,model / memory / conversation 都在外部 runtime。**没有「clawock 自己」可调**,只有「外部 runtime 行为可能因 clawock 输出而变」——这才是 Level 3 的真实形态。
-
-如果硬要做 Level 4/5,实际效果是:**clawock 把自我调优逻辑塞进自己的代码里**,外部 runtime 不参与,等于 clawock 偷偷变成 runtime —— 直接撞产品定位红线。
+**核心特征**:
+- 进化的是 **input 内容**(数字、权重、阈值、文本)
+- 进化走的路径是**显式的 artifact 文件**(JSON / JSONL),每一步可被 git diff 看到
+- 进化**有闸**:每次 push、每个 PR、有显式校验测试
+- 进化的产出被 `clawock <command>` 重新读取,workflow 本身不变
 
 ---
 
-### 可行路径(本节判断结果)
+### Level 7 — Input 自进化 + LLM 决策仍由 LLM 做 ✅ **正解**(08-29 补)
+
+**做法**:
+- 决策因子 + thesis + signal weight **受闸自进化**(Level 6)
+- LLM 看到这些 input,基于自己的判断做决策
+- LLM 的决策路径**由外部 runtime 拥有**,不受 clawock 影响
+
+这就是 kcn 描述的最终产品形态:
+
+> "我们本身就需要调整我们的决策因子,我们只是让 input 进化,而不改变 runtime 本身。我们类似于一套**自进化可迁移的 workflow** / 基于各种 runtime 框架的 agent"
+
+**关键判据**:
+- clawock 输出 = **input**(数字、文本、artifact)
+- LLM = **消费者**(input 端)
+- LLM 自己的判断路径 = **runtime**,clawock 看不到也管不了
+- clawock **只改 LLM 看到的数字**,不改 LLM
+
+与 product-goal 的 "**install decision intelligence into any agent**" 完全吻合。
+
+---
+
+### 为什么 "input 进化 vs runtime 进化" 的区分是产品关键(三条理由)
+
+#### 1. 审计性可以保留(input 维度)
+
+input 维度的进化产物都是 **可被 git diff** 的 JSON / JSONL,审计链不断:
+- 改动前:git diff 看到 input 数字变了
+- 改动后:CI 跑闸,product 数字是否仍然正确
+- 任何时候:git revert 就能回滚
+
+诚实性 = 可声明(因为改动路径是显式的)。
+
+#### 2. governed improvement 的 cost curve 是线性的(input 维度)
+
+input 维度每加一条进化路径,闸的数量**线性增长**:
+- 新因子:1 闸
+- 新 signal weight 调优:1 闸
+- 新 thesis 类型:1 闸
+- 任意两条并存:无新闸(都走同一个 CI)
+
+clawock 当前的 strength 在**宽度**(8 个信息层、741 行决策、25 份 plan)。**深度**(每个信号被采信多少次、被怎么采信)还是 0。深度 = 反哺的真正收益,**走 input 维度 + 受闸**,成本可控。
+
+#### 3. rationale 闭环可控(input 维度)
+
+决策 rationale 文本是模型原文。memory `clawock-driven-by-canonical-risk-rule.md` 警告:`rationale` 是模型写作的**事后辩护**,不是决策驱动的因果。
+
+input 维度进化**不动 rationale / action / 后续判断**,只动**输入给模型的数字 / 文本**。rationale 仍然是模型的输出,不是被 clawock 反向推理出来的。定位反转不发生。
+
+#### 反例:为什么 runtime 维度仍越界
+
+如果跨进 runtime:
+- `clawock` 改 model prompt → 等于 clawock 变成 model client(红线)
+- `clawock` 改 tool 权重 → 等于 clawock 变成 agent launcher(红线)
+- `clawock` 自动调 `driven_by` → 等于 clawock 改 runtime 决策路径(撞 `peer_residuals.load_rule_config` 红线)
+- `clawock` 改 agent 循环 → 等于 clawock 变成 agent runtime(红线)
+
+每一条都是 product-goal 明文禁止的。
+
+---
+
+### 可行路径(本节判断结果,08-29 第二次修正)
 
 | 路径 | 合规性 | 状态 |
 |---|---|---|
-| 决策地图 PRD #1189-#1195 | ✅ Level 1 | Phase 1 可立刻做 |
-| Level 3 inference-side | ⚠️ Level 3 + 三道闸 | 待 kcn 拍板开新 issue |
-| Level 2 / 4 / 5 | ❌ 越界 | 不做 |
+| 决策地图 PRD #1189-#1195 | ✅ Level 1 (Read-side) | Phase 1 可立刻做 |
+| Level 2 Write-side(ledger 锚点) | ✅ **部分合规**(input 维度) | 待 kcn 拍板 + schema migration plan |
+| Level 3 Inference-side | ⚠️ 三道闸后合规 | 待 kcn 拍板开新 issue |
+| Level 6 Input 自进化 | ✅ **核心价值**(clawock 已在做) | 继续推进(无新 work) |
+| Level 7 Input 自进化 + LLM 决策仍由 LLM 做 | ✅ **正解** | 这就是产品形态本身 |
+| Level 4 Auto-rebalance `driven_by` | ❌ 越界(runtime 维度) | 不做 |
+| Level 5 Self-tuning 模型 | ❌ 绝对越界(product-goal 红线) | 不做 |
 
-完整论证 / 关联 memory 见 `clawock-self-improving-boundary.md`(08-29 写入)。
+完整论证见 `clawock-input-evolution-boundary.md`(08-29 写入,纠正早期 `clawock-self-improving-boundary.md` 的误读)。
+
+### 关键结论
+
+> clawock workflow **本来就是自进化的**(Level 6 / Level 7),这是产品的**核心价值**。
+>
+> 进化发生在 **input 维度**(决策因子 / thesis / research surface / 信号权重),受闸、走 artifact、可回滚、可 git diff。
+>
+> 进化**不发生**在 **runtime 维度**(model / prompt / agent 循环 / 工具权重)— 那是 product-goal 明文禁止的越界。
+>
+> 决策地图 PRD = Level 1 Read-side + Level 6 Input 自进化的**可观测化**:把已经在自进化的 input 维度,从隐性(in 模型 context)变成显性(在 dashboard),让 kcn 能看到、能审、能调。
 
 ---
 
