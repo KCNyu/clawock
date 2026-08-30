@@ -435,6 +435,16 @@ def _information_view(graph: dict, ticker: str, source_ticker: str) -> dict:
         "activation_blockers": list(
             ((overlay.get("activation") or {}).get("blockers") or [])
         ),
+        # What would flip `usable_for_decisions`, as `{check: [actual, required]}`.
+        # The blocker list names which check fails; this says how far off it is,
+        # which is the difference between "blocked" and "blocked for another
+        # thirteen sessions" (#1132).
+        "activation_progress": {
+            str(name): [check.get("actual"), check.get("required")]
+            for name, check in sorted(
+                ((overlay.get("activation") or {}).get("checks") or {}).items())
+            if isinstance(check, dict)
+        },
     }
 
 

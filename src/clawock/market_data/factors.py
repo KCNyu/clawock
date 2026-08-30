@@ -817,10 +817,103 @@ def _history_snapshot(as_of, rows, registered_at):
                 'market_percentile': row.get('market_percentile'),
                 'sector_universe_size': row.get('sector_universe_size'),
                 'factor_coverage_pct': row['factor_coverage_pct'],
+                # The constituents the composite is a weighted mean of (#1133).
+                # `rank_snapshot` has always computed these and the snapshot
+                # dropped them, which made the composite the one published
+                # research surface that could not be diagnosed from its own
+                # registered history: a reversed polarity in one factor and an
+                # ordinary bad month for all nine look identical once only the
+                # weighted mean survives.
+                'sector_neutral_ranks': dict(row.get('sector_neutral_ranks') or {}),
+                'ranks_provenance': row.get('ranks_provenance') or 'recorded_at_snapshot',
             }
             for ticker, row in rows.items()
         },
     }
+
+
+def backfill_history_ranks(config, fetched, history, *, quality_by_date=None):
+    """Reconstruct the constituent ranks for already-registered snapshots.
+
+    The persistence fix above only helps sessions that have not happened yet,
+    and #1133's question — is the composite's negative IC a polarity error or a
+    bad month — is being asked about the twenty-four sessions already on the
+    record. `rank_snapshot` is point-in-time by construction: it indexes each
+    ticker's bars at `as_of` and computes the same sector-neutral ranks the live
+    path computes, so re-running it over the registered dates reconstructs
+    exactly what that session saw.
+
+    One factor cannot be reconstructed and is left out rather than faked:
+    `quality_profitability` comes from filed fundamentals, and the cache holds
+    today's facts, not the facts as they stood on a Friday in July. Using them
+    would be a look-ahead in the one factor whose whole point is that it is
+    slow-moving. It carries 5% of the weight; every row records which factors it
+    actually got, so the omission is countable rather than assumed.
+
+    Rows are only ever *added to*: an existing `sector_neutral_ranks` recorded
+    live is never overwritten by a reconstruction.
+    """
+    quality_by_date = quality_by_date or {}
+    out = []
+    for snapshot in history:
+        as_of = str(snapshot.get('as_of') or '')[:10]
+        rows = snapshot.get('rows') or {}
+        if not as_of or not rows:
+            out.append(snapshot)
+            continue
+        try:
+            rebuilt = rank_snapshot(config, fetched, as_of,
+                                    quality=quality_by_date.get(as_of))
+        except (ValueError, KeyError):
+            out.append(snapshot)
+            continue
+        updated = dict(snapshot)
+        updated['rows'] = {}
+        for ticker, row in rows.items():
+            row = dict(row)
+            if not row.get('sector_neutral_ranks'):
+                ranks = (rebuilt.get(ticker) or {}).get('sector_neutral_ranks')
+                if ranks:
+                    row['sector_neutral_ranks'] = dict(ranks)
+                    row['ranks_provenance'] = 'reconstructed_point_in_time_from_bars'
+                    # What the reconstruction could and could not see, so a
+                    # reader can tell a missing factor from a zero one.
+                    row['ranks_factors_reconstructed'] = sorted(ranks)
+            updated['rows'][ticker] = row
+        out.append(updated)
+    return out
+
+
+def reconstruction_fidelity(history, config):
+    """How closely the reconstructed ranks reproduce the recorded composite.
+
+    A reconstruction nobody checked is a second dataset, not the same one. This
+    recomputes the weighted mean from the reconstructed ranks and reports the
+    Spearman correlation against the composite that was actually registered, per
+    session. Anything but a near-1 correlation means the reconstruction is not
+    the thing it claims to be and the constituent ICs below it are meaningless.
+    """
+    weights = config['factor_weights']
+    out = []
+    for snapshot in history:
+        recorded, rebuilt = [], []
+        for row in (snapshot.get('rows') or {}).values():
+            ranks = row.get('sector_neutral_ranks') or {}
+            score = row.get('composite_score')
+            available = [(float(weights[name]), value)
+                         for name, value in ranks.items() if name in weights]
+            if not available or not isinstance(score, (int, float)):
+                continue
+            recorded.append(float(score))
+            rebuilt.append(sum(weight * value for weight, value in available)
+                           / sum(weight for weight, _ in available))
+        if len(recorded) >= 3:
+            out.append({
+                'as_of': str(snapshot.get('as_of') or '')[:10],
+                'n': len(recorded),
+                'spearman': spearman(recorded, rebuilt),
+            })
+    return out
 
 
 def update_history(as_of, rows, registered_at):
@@ -837,10 +930,29 @@ def main(argv=None):
     parser.add_argument('--no-fundamentals', action='store_true',
                         help='use a valid cache only; do not refresh SEC facts')
     parser.add_argument('--config', default=str(CONFIG))
+    parser.add_argument(
+        '--backfill-history-ranks', action='store_true',
+        help=('reconstruct sector-neutral constituent ranks for registered '
+              'snapshots that predate their persistence (#1133), print the '
+              'fidelity check, and exit without touching the live snapshot'))
     args = parser.parse_args(argv)
 
     config = load_config(args.config)
     fetched = fetch_universe(config)
+    if args.backfill_history_ranks:
+        history = backfill_history_ranks(config, fetched, _load_history())
+        # Written through the same writer the daily append uses. A second
+        # serialisation would reformat every historical row and leave the file
+        # in two styles the moment cron next appends to it.
+        history_store.write_series(HISTORY, history)
+        fidelity = reconstruction_fidelity(history, config)
+        print(json.dumps({
+            'snapshots': len(history),
+            'reconstruction_fidelity': fidelity,
+            'worst_spearman': min((row['spearman'] for row in fidelity
+                                   if row['spearman'] is not None), default=None),
+        }, ensure_ascii=False, indent=2))
+        return 0
     successful = {
         ticker: result for ticker, result in fetched.items() if result.get('bars')
     }
