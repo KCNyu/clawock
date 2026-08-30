@@ -269,15 +269,17 @@ def test_no_decorative_emoji_in_glossary():
 def test_glossary_link_in_readmes():
     """Both READMEs must reference docs/glossary.md so readers can find it.
 
-    The English README is also the PyPI project page, so the reference there is
-    plain text rather than a Markdown link — relative links render broken on
-    PyPI. The Chinese README is GitHub-only and uses a Markdown link.
+    The English README is also the PyPI project page (pyproject.toml sets
+    `readme = "README.md"`); relative links render broken there, so the
+    English reference must use an absolute github.com URL. The Chinese
+    README is GitHub-only and a relative link is fine there.
     """
     en = (ROOT / "README.md").read_text(encoding="utf-8")
     zh = (ROOT / "README.zh.md").read_text(encoding="utf-8")
-    assert "docs/glossary.md" in en, (
-        "README.md must mention docs/glossary.md (PyPI page — text only, no link)"
+    assert "https://github.com/KCNyu/clawock/blob/master/docs/glossary.md" in en, (
+        "README.md must link to docs/glossary.md via the absolute github.com "
+        "blob URL (PyPI page cannot resolve relative paths)"
     )
     assert "docs/glossary.md" in zh, (
-        "README.zh.md must link to docs/glossary.md (GitHub-only, link OK)"
+        "README.zh.md must reference docs/glossary.md (GitHub-only — relative link is OK)"
     )
