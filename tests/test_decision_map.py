@@ -86,6 +86,13 @@ STUB_PANEL = {
 }
 
 
+def _decoded(payload, field, index):
+    """What `decisions[field][index]` means, through `codes`."""
+    raw = payload['decisions'][field][index]
+    vocabulary = payload['codes'].get(field)
+    return vocabulary[raw] if vocabulary else raw
+
+
 def _payload(monkeypatch, decisions, snapshots, panel=None):
     monkeypatch.setattr(dm, 'load_signal_snapshots', lambda *a, **k: snapshots)
     monkeypatch.setattr(dm, 'canonical_bar_manifest', lambda: {})
@@ -135,14 +142,21 @@ def test_the_timeline_indexes_into_the_columns_instead_of_copying_them(monkeypat
                  _decision('d1', 'BBB', '2026-06-02')]
     payload = _payload(monkeypatch, decisions, {})
     assert payload['ticker_timelines'] == {'AAA': [0], 'BBB': [1]}
-    assert payload['decisions']['ticker'][0] == 'AAA'
+    assert _decoded(payload, 'ticker', 0) == 'AAA'
 
 
-def test_the_matrix_points_at_the_cards_rather_than_restating_them(monkeypatch):
-    """Two copies of one aggregate are two things that can disagree."""
-    payload = _payload(monkeypatch, [_decision('d0', 'AAA', '2026-06-01')], {})
-    assert payload['decision_signal_matrix']['source'] == 'info_source_cards[].by_action'
-    assert 'rows' not in payload['decision_signal_matrix']
+def test_the_matrix_is_the_board_and_is_not_published_twice(monkeypatch):
+    """Two copies of one aggregate are two things that can disagree.
+
+    `decision_signal_matrix` used to be a pointer saying "the matrix is
+    `info_source_cards[].by_action`". Once the page became one board, the
+    pointer had no reader either.
+    """
+    payload = _payload(monkeypatch, [_decision('d0', 'AAA', '2026-06-01')],
+                       {'2026-06-01': {'AAA': {'quant.rsi14': 50.0}}})
+    assert 'decision_signal_matrix' not in payload
+    card = payload['info_source_cards'][0]
+    assert set(card['by_action']) <= set(payload['actions'])
 
 
 def test_degradation_drops_prose_before_it_drops_signal_rows(monkeypatch):
@@ -343,6 +357,81 @@ def test_the_panel_block_is_dropped_before_the_timelines_are(monkeypatch):
                for card in stripped['info_source_cards'])
     # And it says so, so the page does not report a dropped block as a finding.
     assert stripped['signal_panel']['dropped'] == 'payload budget'
+
+
+def test_a_kind_counts_a_decision_once_however_many_of_its_signals_joined(monkeypatch):
+    """The roll-up the board's parent rows read, and the reason it is published.
+
+    A decision that joined `quant.rsi14` and `quant.trend` is one decision quant
+    saw. Summing the signal rows in the browser — the obvious thing to do with
+    the old payload — would have counted it twice and claimed quant a coverage
+    it does not have, on the page whose whole first number is coverage.
+    """
+    decisions = [_decision(f'd{index}', 'AAA', f'2026-06-{index + 1:02d}')
+                 for index in range(4)]
+    snapshots = {f'2026-06-{index + 1:02d}':
+                 {'AAA': {'quant.rsi14': 50.0, 'quant.trend': 1.0}}
+                 for index in range(4)}
+    payload = _payload(monkeypatch, decisions, snapshots)
+
+    kind = next(card for card in payload['source_kind_cards']
+                if card['signal'] == 'quant')
+    signals = [card for card in payload['info_source_cards']
+               if card['source_kind'] == 'quant']
+    assert len(signals) == 2
+    assert sum(card['decisions_joined'] for card in signals) == 8
+    assert kind['decisions_joined'] == 4
+    assert kind['decision_coverage_pct'] == 100.0
+    assert sorted(kind['signals']) == ['quant.rsi14', 'quant.trend']
+    # And the buckets are over the same distinct set, not the doubled one.
+    assert kind['by_action']['cut']['count'] == 4
+
+
+def test_a_kind_bucket_is_never_larger_than_the_book(monkeypatch):
+    """The invariant that survives a rewrite: distinct decisions, so <= total."""
+    decisions = [_decision(f'd{index}', 'AAA', f'2026-06-{index + 1:02d}')
+                 for index in range(6)]
+    snapshots = {f'2026-06-{index + 1:02d}':
+                 {'AAA': {'quant.rsi14': 50.0, 'quant.trend': 1.0,
+                          'news.hard_catalyst': 1.0}}
+                 for index in range(6)}
+    payload = _payload(monkeypatch, decisions, snapshots)
+    total = payload['kpi']['decisions']
+    for card in payload['source_kind_cards']:
+        assert card['decisions_joined'] <= total
+        assert sum(bucket['count'] for bucket in card['by_action'].values()) <= total
+
+
+def test_repeated_columns_are_a_vocabulary_plus_indices(monkeypatch):
+    """51KB of a 200KB budget was 741 copies of about a dozen strings."""
+    decisions = [_decision('d0', 'AAA', '2026-06-01', action='cut'),
+                 _decision('d1', 'AAA', '2026-06-01', action='cut'),
+                 _decision('d2', 'BBB', '2026-06-02', action='watch')]
+    payload = _payload(monkeypatch, decisions, {})
+    assert payload['codes']['action'] == ['cut', 'watch']
+    assert payload['decisions']['action'] == [0, 0, 1]
+    assert payload['codes']['ticker'] == ['AAA', 'BBB']
+    assert set(payload['codes']) == set(dm.CODED_COLUMNS)
+    # Round-trips: the column still says what it said.
+    for index, expected in enumerate(('cut', 'cut', 'watch')):
+        assert _decoded(payload, 'action', index) == expected
+    # Columns that are not coded stay values.
+    assert 'confidence' not in payload['codes']
+    assert payload['decisions']['confidence'][0] == 0.7
+
+
+def test_coding_shrinks_the_payload_it_was_added_for(monkeypatch):
+    decisions = [_decision(f'd{index}', 'AAA', '2026-06-01',
+                           action='hold_and_watch', strategy_id='core_position')
+                 for index in range(200)]
+    payload = _payload(monkeypatch, decisions, {})
+    plain = dict(payload, decisions=dict(
+        payload['decisions'],
+        **{field: [payload['codes'][field][value]
+                   for value in payload['decisions'][field]]
+           for field in dm.CODED_COLUMNS}))
+    plain.pop('codes')
+    assert len(dm.encode(payload)) < len(dm.encode(plain)) * 0.75
 
 
 def test_the_encoding_that_is_measured_is_the_encoding_that_is_written():

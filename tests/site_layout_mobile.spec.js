@@ -57,7 +57,7 @@ function decimapFixture() {
       <div class="dm-timeline">
         <div class="dm-row"><b>0700.HK</b><div class="dm-track" id="track">${dots}</div></div>
       </div>
-      <div class="dm-matrix-wrap"><table class="dm-matrix"><tr><th>signal</th><td>1</td></tr></table></div>
+      <div class="dm-board-wrap"><table class="dm-board"><tr><th class="dm-src">bar</th><td class="dm-cell">1</td></tr></table></div>
       <aside class="dm-drawer" id="drawer"><div>body</div></aside>
     </div>`;
 }

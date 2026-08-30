@@ -1,104 +1,216 @@
 ---
 layout: default
 title: clawock · Decision Map
-description: 741 条决策与它们做出时的信号快照，同一张表上。哪个信息源站在哪一类动作旁边，之后发生了什么。
+description: 741 条决策与它们做出时的信号快照，收敛成一块板。哪个信息源站在哪一类动作旁边，之后发生了什么。
 permalink: /decimap/
 ---
 
 <style>
-  /* Decision Map. Scoped under .decimap so nothing here can reach the layout's
-     own typography rules for rendered brief content. */
+  /* Decision Map. One board, one timeline, one drawer.
+     Scoped under .decimap so nothing here can reach the layout's own
+     typography rules for rendered brief content. */
   .decimap { --dm-gap: 14px; font-size: 14px; }
+  .decimap h1 { margin: 0 0 6px; }
   .decimap h2 { margin: 26px 0 4px; font-size: 15px; letter-spacing: .01em; }
   .decimap .dm-sub { margin: 0 0 12px; color: var(--text-dim); font-size: 12.5px; line-height: 1.55; }
-  .decimap .dm-mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  .decimap .dm-warn { color: var(--red); }
 
-  .dm-status { display: flex; flex-wrap: wrap; gap: 8px 18px; padding: 12px 14px;
+  /* The diverging pair for forward return. NOT the site's green/red: measured
+     with the dataviz validator, #16a34a vs #dc2626 is deltaE 5.0 under simulated
+     deuteranopia — below the deltaE 6 floor. On two or three numbers that is
+     survivable; on a board of ~200 tinted cells it means the whole encoding
+     collapses to one gray for a colourblind reader. Blue-red clears it
+     (deltaE 27.3 protan light, 19.2 protan dark) and blue is already this
+     site's accent, so the board does not read as a foreign object. Every cell
+     prints its signed number as well, so colour is never the only channel. */
+  .decimap {
+    --dm-pos: var(--accent);
+    --dm-neg: var(--red);
+  }
+
+  /* KPI strip */
+  .dm-kpi { display: flex; flex-wrap: wrap; gap: 6px 16px; padding: 11px 13px;
     border: 1px solid var(--border); border-radius: var(--radius);
-    background: var(--card); margin: 4px 0 6px; }
-  .dm-status b { font-weight: 600; }
-  .dm-status .dm-warn { color: var(--red); }
+    background: var(--card); margin: 4px 0 10px;
+    font-family: var(--mono); font-size: 12px; font-variant-numeric: tabular-nums; }
+  .dm-kpi b { font-weight: 600; color: var(--text); font-size: 13px; }
+  .dm-kpi span { color: var(--text-dim); white-space: nowrap; }
+  .dm-kpi .dm-warn { white-space: normal; }
 
-  .dm-filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 6px; }
-  .dm-filters select, .dm-filters button {
+  /* controls */
+  .dm-controls { display: flex; flex-wrap: wrap; align-items: center;
+    gap: 8px 10px; margin: 0 0 8px; font-size: 12.5px; color: var(--text-dim); }
+  .dm-controls select, .dm-controls button {
     font: inherit; color: var(--text); background: var(--card-2);
     border: 1px solid var(--border); border-radius: var(--radius-sm);
     padding: 6px 9px; }
-  .dm-filters button { cursor: pointer; }
-  .dm-filters button:hover { border-color: var(--accent); }
+  .dm-controls button { cursor: pointer; }
+  .dm-controls button:hover { border-color: var(--accent); }
+  .dm-seg { display: inline-flex; border: 1px solid var(--border);
+    border-radius: var(--radius-sm); overflow: hidden; }
+  .dm-seg button { border: 0; border-radius: 0; background: var(--card-2);
+    font-family: var(--mono); padding: 6px 11px; }
+  .dm-seg button + button { border-left: 1px solid var(--border); }
+  .dm-seg button[aria-pressed="true"] { background: var(--accent); color: #fff; }
 
-  .dm-cards { display: grid; gap: var(--dm-gap);
-    grid-template-columns: repeat(auto-fill, minmax(268px, 1fr)); }
-  .dm-card { border: 1px solid var(--border); border-radius: var(--radius);
-    background: var(--card); padding: 12px 13px; }
-  .dm-card h3 { margin: 0 0 2px; font-size: 13px; font-weight: 600; overflow-wrap: anywhere; }
-  .dm-card .dm-kind { display: inline-block; font-size: 10.5px; letter-spacing: .06em;
-    text-transform: uppercase; color: var(--text-dim); margin-bottom: 8px; }
-  .dm-card .dm-cov { font-size: 12px; color: var(--text-dim); margin-bottom: 8px; }
-  .dm-card .dm-ic { font-size: 11.5px; color: var(--text-dim); margin: 0 0 8px;
-    font-family: var(--mono); font-variant-numeric: tabular-nums;
-    padding-top: 7px; border-top: 1px solid var(--border); }
-  .dm-card .dm-ic b { color: var(--text); font-weight: 600; }
-  .dm-card .dm-ic.is-clear b { color: var(--accent); }
-  .dm-card .dm-ic-none { font-family: inherit; opacity: .7; }
-  .dm-selection { margin: 2px 0 12px; }
-  .dm-bar { height: 5px; border-radius: 3px; background: var(--card-2); overflow: hidden; margin: 6px 0 9px; }
-  .dm-bar > i { display: block; height: 100%; background: var(--accent); }
-  .dm-mini { width: 100%; border-collapse: collapse; font-size: 11.5px; }
-  .dm-mini th { text-align: right; font-weight: 500; color: var(--text-dim); padding: 2px 0 4px; }
-  .dm-mini th:first-child { text-align: left; }
-  .dm-mini td { text-align: right; padding: 2px 0; font-family: var(--mono); font-variant-numeric: tabular-nums; }
-  .dm-mini td:first-child { text-align: left; font-family: inherit; }
+  /* the board — horizontal scroll lives here and only here: the page itself
+     must never scroll sideways. */
+  .dm-board-wrap { overflow-x: auto; border: 1px solid var(--border);
+    border-radius: var(--radius); background: var(--card); }
+  .dm-board { border-collapse: separate; border-spacing: 0;
+    font-size: 12px; width: 100%; min-width: 720px;
+    font-variant-numeric: tabular-nums; }
+  .dm-board th, .dm-board td { padding: 0; }
+  /* The layout styles `article table th` as an uppercased 11px label, which is
+     right for a rendered brief's table and wrong here: the row header holds a
+     signal's actual name, and `QUANT.DIST_MA200_PCT` is not what it is called.
+     Reset before setting our own. */
+  .decimap table th { text-transform: none; letter-spacing: normal;
+    font-size: inherit; color: inherit; }
+  .dm-board thead th { position: sticky; top: 0; z-index: 3;
+    background: var(--card); color: var(--text-dim); font-weight: 500;
+    text-align: center; white-space: nowrap; padding: 8px 6px;
+    border-bottom: 1px solid var(--border); font-family: var(--mono);
+    font-size: 11px; letter-spacing: .02em; }
+  .dm-board thead th.dm-src, .dm-board thead th.dm-covh { text-align: left; }
+  /* The source column is the row's identity; it stays put while the actions
+     scroll under a thumb. */
+  .dm-board .dm-src { position: sticky; left: 0; z-index: 2;
+    background: var(--card); text-align: left; white-space: nowrap;
+    padding: 5px 10px 5px 8px; border-right: 1px solid var(--border);
+    min-width: 176px; }
+  .dm-board thead th.dm-src { z-index: 4; }
+  .dm-board tbody tr + tr td, .dm-board tbody tr + tr th { border-top: 1px solid var(--border); }
+  .dm-board tbody tr:hover .dm-src { background: var(--card-2); }
+  .dm-board tbody tr.dm-signal:hover .dm-src { background: var(--border); }
 
-  .dm-matrix-wrap { overflow-x: auto; }
-  .dm-matrix { border-collapse: collapse; font-size: 12px; min-width: 640px; }
-  .dm-matrix th, .dm-matrix td { padding: 5px 9px; border-bottom: 1px solid var(--border); }
-  .dm-matrix th { text-align: left; color: var(--text-dim); font-weight: 500; white-space: nowrap; }
-  .dm-matrix td { text-align: center; font-family: var(--mono); font-variant-numeric: tabular-nums; }
-  .dm-matrix td.dm-empty { color: var(--text-dim); opacity: .45; }
-  .dm-matrix tbody th { text-align: left; overflow-wrap: anywhere; }
+  .dm-twist { display: inline-flex; align-items: center; gap: 7px;
+    background: none; border: 0; padding: 3px 2px; margin: 0; cursor: pointer;
+    color: var(--text); font: inherit; text-align: left; }
+  .dm-twist i { display: inline-block; width: 9px; font-style: normal;
+    color: var(--text-dim); transition: transform .12s ease; }
+  .dm-twist[aria-expanded="true"] i { transform: rotate(90deg); }
+  .dm-kindname { font-weight: 600; letter-spacing: .01em; }
+  .dm-count { color: var(--text-dim); font-family: var(--mono); font-size: 11px; }
+  .dm-signal td, .dm-signal th.dm-src { background: var(--card-2); }
+  .dm-signal .dm-src { padding-left: 26px; }
+  .dm-signal .dm-name { font-family: var(--mono); font-size: 11.5px;
+    color: var(--text); overflow-wrap: anywhere; }
 
+  /* Coverage as a length, not a card. The old grid gave a source that saw 12%
+     of the book exactly as much area as one that saw 42%. */
+  .dm-cov { width: 118px; padding: 4px 10px 4px 6px !important; }
+  .dm-covbar { height: 6px; border-radius: 3px; background: var(--border);
+    overflow: hidden; margin-bottom: 2px; }
+  .dm-covbar > i { display: block; height: 100%; background: var(--accent); }
+  .dm-covtext { font-family: var(--mono); font-size: 10.5px; color: var(--text-dim); }
+
+  .dm-cell { text-align: center; padding: 4px 5px !important; min-width: 62px;
+    cursor: pointer; }
+  .dm-cell:hover, .dm-cell:focus-visible { outline: 2px solid var(--accent);
+    outline-offset: -2px; }
+  .dm-cell .dm-n { display: block; font-family: var(--mono); font-size: 11.5px;
+    color: var(--text); font-weight: 600; }
+  .dm-cell .dm-m { display: block; font-family: var(--mono); font-size: 10.5px;
+    color: var(--text-dim); }
+  .dm-empty { text-align: center; color: var(--text-dim); opacity: .35; }
+
+  .dm-ic { width: 132px; padding: 4px 10px !important; }
+  .dm-icval { font-family: var(--mono); font-size: 11.5px; }
+  .dm-icval.is-clear { color: var(--accent); font-weight: 600; }
+  .dm-whisker { position: relative; height: 7px; margin-top: 4px;
+    background: var(--border); border-radius: 2px; }
+  .dm-whisker > i { position: absolute; top: 0; height: 100%;
+    background: var(--text-dim); border-radius: 2px; opacity: .55; }
+  .dm-whisker > u { position: absolute; top: -2px; width: 2px; height: 11px;
+    background: var(--text); text-decoration: none; }
+  /* The zero line. Without it a whisker sitting entirely on one side of zero
+     looks the same as one straddling it. */
+  .dm-whisker > s { position: absolute; top: -3px; width: 1px; height: 13px;
+    background: var(--text-dim); text-decoration: none; }
+
+  .dm-scalenote { display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: center;
+    margin: 8px 2px 0; font-size: 11.5px; color: var(--text-dim); line-height: 1.5; }
+  .dm-ramp { display: inline-flex; align-items: center; gap: 3px; }
+  .dm-ramp span { display: inline-block; width: 22px; height: 11px;
+    border: 1px solid var(--border); border-radius: 2px; }
+
+  /* timeline */
   .dm-timeline { border: 1px solid var(--border); border-radius: var(--radius);
     background: var(--card); padding: 4px 0; }
   .dm-row { display: grid; grid-template-columns: 78px 1fr; align-items: center;
     gap: 10px; padding: 5px 12px; }
   .dm-row + .dm-row { border-top: 1px solid var(--border); }
-  .dm-row > b { font-size: 12px; font-weight: 600; }
+  .dm-row > b { font-size: 12px; font-weight: 600; font-family: var(--mono); }
   .dm-track { position: relative; height: 20px; }
+  /* Shape as well as colour. The four action classes used to be four hues and
+     nothing else, which is the same colour-only encoding the board avoids.
+     The shape lives on `::before`, not on the button: `clip-path` on the button
+     clips its `::after` too, and that pseudo-element is the touch target. */
   .dm-dot { position: absolute; top: 5px; width: 9px; height: 9px; margin-left: -4px;
-    border-radius: 50%; border: 0; padding: 0; cursor: pointer;
+    border: 0; padding: 0; background: none; cursor: pointer; }
+  .dm-dot::before { content: ''; position: absolute; inset: 0; border-radius: 50%;
     background: var(--text-dim); transition: transform .12s ease; }
-  .dm-dot:hover, .dm-dot:focus-visible { transform: scale(1.5); outline: none; }
-  .dm-dot.is-buy { background: var(--green); }
-  .dm-dot.is-sell { background: var(--red); }
-  .dm-dot.is-hold { background: var(--accent); }
+  .dm-dot:hover::before, .dm-dot:focus-visible::before { transform: scale(1.5); }
+  .dm-dot:focus-visible { outline: none; }
+  .dm-dot.is-buy::before { background: var(--green); border-radius: 1px;
+    clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+  .dm-dot.is-sell::before { background: var(--red); border-radius: 1px;
+    clip-path: polygon(0 0, 100% 0, 50% 100%); }
+  .dm-dot.is-hold::before { background: var(--accent); }
+  .dm-dot.is-other::before { background: var(--text-dim); border-radius: 1px;
+    clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); }
   .dm-legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 11.5px;
-    color: var(--text-dim); margin: 8px 2px 0; }
-  .dm-legend i { display: inline-block; width: 8px; height: 8px; border-radius: 50%;
-    margin-right: 5px; vertical-align: 0; }
+    color: var(--text-dim); margin: 8px 2px 0; align-items: center; }
+  .dm-legend i { display: inline-block; position: relative; width: 10px;
+    height: 10px; margin-right: 6px; vertical-align: -1px; top: 0; }
 
+  /* drawer */
   .dm-drawer { position: fixed; inset: 0 0 0 auto; width: min(430px, 94vw);
     background: var(--card); border-left: 1px solid var(--border);
     padding: 16px 18px 40px; overflow-y: auto; z-index: 60;
     transform: translateX(100%); transition: transform .18s ease; }
   .dm-drawer.is-open { transform: none; }
-  .dm-drawer h3 { margin: 0 0 2px; font-size: 15px; }
+  .dm-drawer h3 { margin: 0 0 2px; font-size: 15px; overflow-wrap: anywhere; }
   .dm-drawer .dm-close { position: absolute; top: 12px; right: 14px;
     background: none; border: 0; color: var(--text-dim); font-size: 20px; cursor: pointer; }
   .dm-kv { width: 100%; border-collapse: collapse; font-size: 12.5px; margin: 8px 0 4px; }
   .dm-kv th { text-align: left; font-weight: 500; color: var(--text-dim); padding: 3px 0; width: 46%; }
   .dm-kv td { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; padding: 3px 0; }
+  .dm-hits { list-style: none; margin: 8px 0 0; padding: 0; }
+  .dm-hits li { border-top: 1px solid var(--border); }
+  .dm-hits button { width: 100%; display: flex; justify-content: space-between;
+    gap: 10px; background: none; border: 0; color: var(--text); cursor: pointer;
+    font: inherit; font-size: 12.5px; padding: 8px 2px; text-align: left; }
+  .dm-hits button:hover { background: var(--card-2); }
+  .dm-hits em { font-style: normal; color: var(--text-dim);
+    font-family: var(--mono); font-size: 11.5px; }
   .dm-scrim { position: fixed; inset: 0; background: rgba(0,0,0,.42); z-index: 55; }
   [hidden] { display: none !important; }
 
   @media (max-width: 640px) {
     .dm-row { grid-template-columns: 62px 1fr; }
-    .decimap .dm-cards { grid-template-columns: 1fr; }
-    /* A right-hand slide-out is a desktop shape. On a phone `min(430px, 94vw)`
+    /* 176 + 118 of label columns is the whole width of a phone: the board
+       opened on two columns of names and no data at all. Narrow both until at
+       least three action columns are on screen before the first scroll. */
+    .dm-board { min-width: 640px; }
+    /* Let a long signal name wrap instead of forcing the sticky column as wide
+       as `quant.stop_distance_pct`, which alone was half a phone. */
+    .dm-board .dm-src { min-width: 104px; max-width: 118px;
+      white-space: normal; padding: 5px 7px; }
+    .dm-signal .dm-name { display: block; line-height: 1.25; }
+    .dm-signal .dm-src { padding-left: 18px; }
+
+    .dm-cov { width: 68px; padding: 4px 6px 4px 5px !important; }
+    .dm-covtext { font-size: 10px; }
+    .dm-cell { min-width: 56px; }
+    .dm-ic { width: 96px; min-width: 88px; padding: 4px 7px !important; }
+    .dm-board thead th { font-size: 10px; padding: 7px 5px;
+      white-space: normal; line-height: 1.25; }
+    /* A right-hand slide-out is a desktop shape. On a phone min(430px, 94vw)
        covered the page anyway, minus a 6% sliver of scrim nobody can aim at, so
        it read as a broken full-screen view rather than a panel. A bottom sheet
-       is the same drawer in the shape the surface actually has: it keeps the
-       page's top edge visible, so there is somewhere obvious to tap back to. */
+       is the same drawer in the shape the surface actually has. */
     .dm-drawer {
       inset: auto 0 0 0; width: 100%; max-height: 86vh;
       border-left: 0; border-top: 1px solid var(--border);
@@ -109,75 +221,67 @@ permalink: /decimap/
   }
 
   /* Touch, not hover. The timeline dot is 9px across — under a finger that is a
-     coin toss between two adjacent decisions and the scrim behind them, and the
-     timeline is the page's only way into a decision. The dot grows a little and
-     grows a hit area that extends well past it *vertically*, where there is
-     nothing to mis-hit; horizontally it stays tight, because neighbouring dots
-     on a busy ticker are only a few pixels apart and slop there would just move
-     the mis-taps around. */
+     coin toss between two adjacent decisions and the scrim behind them. The dot
+     grows a little and grows a hit area that extends well past it *vertically*,
+     where there is nothing to mis-hit; horizontally it stays tight, because
+     neighbouring dots on a busy ticker are only a few pixels apart and slop
+     there would just move the mis-taps around. */
   @media (pointer: coarse) {
     .dm-row { padding: 7px 12px; }
     .dm-track { height: 26px; }
     .dm-dot { width: 12px; height: 12px; top: 7px; margin-left: -6px; }
     .dm-dot::after { content: ''; position: absolute; inset: -11px -2px; }
-    .dm-dot:hover { transform: none; }
-    .dm-dot:focus-visible { transform: scale(1.4); }
-    .dm-filters select, .dm-filters button { padding: 9px 10px; }
+    .dm-dot:hover::before { transform: none; }
+    .dm-dot:focus-visible::before { transform: scale(1.4); }
+    .dm-legend i::after { content: none; }
+    .dm-controls select, .dm-controls button { padding: 9px 10px; }
+    .dm-seg button { padding: 9px 13px; }
+    .dm-cell { min-width: 66px; padding: 8px 5px !important; }
+    .dm-twist { padding: 8px 2px; }
     .dm-close { min-width: 44px; min-height: 44px; }
   }
   @media (prefers-reduced-motion: reduce) {
-    .dm-drawer, .dm-dot { transition: none; }
+    .dm-drawer, .dm-dot::before, .dm-twist i { transition: none; }
   }
 </style>
 
 <div class="decimap" id="decimap">
   <h1>Decision Map</h1>
   <p class="dm-sub">
-    741 条决策与它们<strong>做出时</strong>的信号快照，放在同一张表上。
-    这一页只读：它不写决策，不改账本契约，也不把任何相关性提升成一条激活规则。
+    741 条决策与它们<strong>做出时</strong>的信号快照，收敛成<strong>一块板</strong>：
+    行是信息源（可展开成它的信号），列是实际采取的动作，格是「这个源站在那类动作旁边多少次、
+    之后的中位收益是多少」。这一页只读：它不写决策，不改账本契约，也不把任何相关性提升成一条激活规则。
   </p>
 
-  <div class="dm-status" id="dm-status">载入中…</div>
+  <div class="dm-kpi" id="dm-kpi">载入中…</div>
 
-  <h2>信息源倒排</h2>
-  <p class="dm-sub">
-    每张卡 = 一个已注册信号。<strong>覆盖率是先读的那个数</strong>：一个只看得见 12% 决策的源
-    不是「效应弱」，是<strong>当时不在场</strong>。快照年龄同理 —— join 是单向且有界的，
-    只有 <code>as_of ≤ plan_date</code> 且在年龄上限内的快照才会被用上。
-  </p>
-  <div class="dm-filters">
-    <label>源
-      <select id="dm-kind"><option value="">全部</option></select>
-    </label>
-    <label>横期
-      <select id="dm-horizon">
-        <option value="t5">t5</option><option value="t1">t1</option><option value="t20">t20</option>
-      </select>
-    </label>
-    <label>票
-      <select id="dm-ticker"><option value="">全部</option></select>
-    </label>
+  <div class="dm-controls">
+    <span>横期</span>
+    <span class="dm-seg" id="dm-horizon" role="group" aria-label="横期">
+      <button type="button" data-h="t1" aria-pressed="false">t1</button>
+      <button type="button" data-h="t5" aria-pressed="true">t5</button>
+      <button type="button" data-h="t20" aria-pressed="false">t20</button>
+    </span>
+    <button type="button" id="dm-expand">展开全部</button>
     <button type="button" id="dm-reset">重置</button>
   </div>
-  <p class="dm-sub dm-selection" id="dm-selection"></p>
-  <div class="dm-cards" id="dm-cards"></div>
 
-  <h2>决策 × 信号</h2>
-  <p class="dm-sub">
-    行 = 信号，列 = 实际采取的动作，格 = 该信号站在那类动作旁边的次数 / 之后的中位收益。
-    <strong>这不是因果</strong>：一个信号出现在 <code>cut</code> 旁边，可能是它促成了砍单，
-    也可能是砍单那天恰好什么信号都在。
-  </p>
-  <div class="dm-matrix-wrap"><table class="dm-matrix" id="dm-matrix"></table></div>
+  <div class="dm-board-wrap"><table class="dm-board" id="dm-board"></table></div>
+
+  <div class="dm-scalenote" id="dm-scale"></div>
+  <p class="dm-sub" style="margin-top:10px" id="dm-caveat"></p>
 
   <h2>时间线</h2>
-  <p class="dm-sub">每票一条。点一个圆点看那条决策做出时的信号快照与之后的结果。</p>
+  <p class="dm-sub">每票一条。点一个标记看那条决策做出时的信号快照与之后的结果。</p>
+  <div class="dm-controls">
+    <label>票 <select id="dm-ticker"><option value="">全部</option></select></label>
+  </div>
   <div class="dm-timeline" id="dm-timeline"></div>
   <div class="dm-legend">
-    <span><i style="background:var(--green)"></i>加仓</span>
-    <span><i style="background:var(--red)"></i>减/砍</span>
-    <span><i style="background:var(--accent)"></i>持有/观察</span>
-    <span><i style="background:var(--text-dim)"></i>其他</span>
+    <span><i class="dm-dot is-buy"></i>加仓</span>
+    <span><i class="dm-dot is-sell"></i>减/砍</span>
+    <span><i class="dm-dot is-hold"></i>持有/观察</span>
+    <span><i class="dm-dot is-other"></i>其他</span>
   </div>
 
   <div class="dm-scrim" id="dm-scrim" hidden></div>
@@ -193,24 +297,24 @@ permalink: /decimap/
   var SELL = { cut: 1, trim_on_rebound: 1, t_only: 1 };
   var BUY = { add_only_on_trigger: 1, add_on_breakout: 1 };
   var HOLD = { hold_and_watch: 1, watch: 1 };
-  var state = { data: null, kind: '', horizon: 't5', ticker: '' };
+  var state = { data: null, horizon: 't5', ticker: '', open: {}, scale: 1 };
 
   function el(id) { return document.getElementById(id); }
   // Every string interpolated into innerHTML below goes through this. Ticker
   // symbols and action names are ours, but `rationale` is prose an LLM wrote
-  // into the ledger and signal names come from whatever sources are registered
-  // — treating either as trusted markup is how a research page grows a script
-  // injection. CodeQL flagged the matrix renderer; the fix is applied to every
-  // interpolation, not to the line that was caught.
+  // and the payload is fetched at runtime, so nothing here is trusted markup.
   function esc(value) {
     return String(value === null || value === undefined ? '' : value)
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+      .replace(/"/g, '&quot;');
   }
   function fmt(value, digits) {
-    if (value === null || value === undefined) return '—';
-    if (typeof value !== 'number') return esc(value);
-    return value.toFixed(digits === undefined ? 2 : digits);
+    if (value === null || value === undefined || isNaN(value)) return '—';
+    return Number(value).toFixed(digits === undefined ? 2 : digits);
+  }
+  function signed(value, digits) {
+    if (value === null || value === undefined || isNaN(value)) return '—';
+    return (value >= 0 ? '+' : '') + Number(value).toFixed(digits === undefined ? 2 : digits);
   }
   function pct(value) {
     return value === null || value === undefined ? '—' : (value * 100).toFixed(0) + '%';
@@ -219,169 +323,231 @@ permalink: /decimap/
     if (BUY[action]) return 'is-buy';
     if (SELL[action]) return 'is-sell';
     if (HOLD[action]) return 'is-hold';
-    return '';
+    return 'is-other';
   }
 
-  function renderStatus() {
-    var d = state.data, c = d.coverage, g = d.degradation || {}, k = d.kpi || {};
+  // `decisions[field][i]` is an index into `codes[field]` for the coded
+  // columns and a plain value for the rest. One accessor, so no call site has
+  // to remember which is which.
+  function cell(field, index) {
+    var d = state.data, column = d.decisions[field];
+    if (!column) return null;
+    var raw = column[index];
+    var vocabulary = (d.codes || {})[field];
+    return vocabulary ? vocabulary[raw] : raw;
+  }
+
+  // The board's rows, in tree order: a kind, then its signals when open.
+  function boardRows() {
+    var d = state.data, out = [];
+    (d.source_kind_cards || []).forEach(function (kind) {
+      out.push({ card: kind, kind: true, name: kind.signal });
+      if (!state.open[kind.signal]) return;
+      d.info_source_cards.forEach(function (card) {
+        if (card.source_kind === kind.signal) {
+          out.push({ card: card, kind: false, name: card.signal });
+        }
+      });
+    });
+    return out;
+  }
+
+  // The fill scale is a display choice, so it is derived from the data and
+  // stated in the legend rather than hard-coded. The 90th percentile of
+  // |median|, not the maximum: one bucket of twelve decisions medians −35%,
+  // and scaling to it left every other cell on the board colourless. Anything
+  // past the cap is clipped to full colour and the legend says so.
+  function fillScale(horizon) {
+    // Every card, not just the visible rows: a value's colour must not change
+    // because some other kind was expanded.
+    var d = state.data, magnitudes = [];
+    (d.source_kind_cards || []).concat(d.info_source_cards).forEach(function (card) {
+      var buckets = card.by_action || {};
+      Object.keys(buckets).forEach(function (action) {
+        var median = buckets[action]['median_' + horizon + '_pct'];
+        if (median !== null && median !== undefined) magnitudes.push(Math.abs(median));
+      });
+    });
+    if (!magnitudes.length) return 1;
+    magnitudes.sort(function (a, b) { return a - b; });
+    return Math.max(0.5, magnitudes[Math.floor(magnitudes.length * 0.90)] || 1);
+  }
+
+  function cellHtml(row, action, horizon) {
+    var bucket = (row.card.by_action || {})[action];
+    if (!bucket) return '<td class="dm-empty">·</td>';
+    var median = bucket['median_' + horizon + '_pct'];
+    var settled = bucket['n_' + horizon];
+    var weight = 0, pole = '';
+    if (median !== null && median !== undefined) {
+      weight = Math.min(1, Math.abs(median) / state.scale);
+      pole = median >= 0 ? 'var(--dm-pos)' : 'var(--dm-neg)';
+    }
+    var background = weight
+      ? 'background:color-mix(in oklab, ' + pole + ' '
+        + (weight * 62).toFixed(1) + '%, var(--card))'
+      : '';
+    var title = row.name + ' · ' + action + ' · ' + bucket.count + ' 条决策 · '
+      + settled + ' 条已结算 · 中位 ' + horizon + ' ' + signed(median, 2)
+      + '% · 胜率 ' + pct(bucket['win_rate_' + horizon]);
+    return '<td class="dm-cell" style="' + background + '" tabindex="0" role="button"'
+      + ' data-row="' + esc(row.name) + '" data-action="' + esc(action) + '"'
+      + ' title="' + esc(title) + '" aria-label="' + esc(title) + '">'
+      + '<span class="dm-n">' + bucket.count + '</span>'
+      + '<span class="dm-m">' + signed(median, 1) + '</span></td>';
+  }
+
+  function icHtml(row, horizon) {
+    if (row.kind) {
+      return '<td class="dm-ic dm-empty" title="IC 是单个信号在截面上的秩相关，'
+        + '按信息源汇总没有定义">·</td>';
+    }
+    var panel = row.card.panel && row.card.panel[horizon];
+    if (!panel) {
+      var dropped = (state.data.signal_panel || {}).dropped;
+      return '<td class="dm-ic dm-empty" title="'
+        + (dropped ? 'payload 降级时丢了，跑 clawock signal-panel 可复现'
+                   : '这个信号没有进入过可评分的截面') + '">—</td>';
+    }
+    var band = panel.ic_cluster_ci95;
+    var value = '<span class="dm-icval' + (panel.ic_clears_zero ? ' is-clear' : '')
+      + '">' + signed(panel.mean_ic, 3) + '</span>';
+    var whisker = '';
+    if (band) {
+      // One fixed axis for every row: IC lives in [-1, 1] and in practice well
+      // inside [-0.5, 0.5], so the bars are comparable down the column.
+      var span = 0.5;
+      var place = function (point) {
+        return Math.max(0, Math.min(100, (point + span) / (2 * span) * 100));
+      };
+      whisker = '<div class="dm-whisker">'
+        + '<i style="left:' + place(band[0]).toFixed(1) + '%;width:'
+        + Math.max(1, place(band[1]) - place(band[0])).toFixed(1) + '%"></i>'
+        + '<s style="left:50%"></s>'
+        + '<u style="left:' + place(panel.mean_ic).toFixed(1) + '%"></u></div>';
+    }
+    var title = row.name + ' ' + horizon + ' rank IC ' + signed(panel.mean_ic, 4)
+      + (band ? ' · 95% CI [' + signed(band[0], 3) + ', ' + signed(band[1], 3) + ']' : '')
+      + ' · ' + panel.n_sessions + ' 个交易日 · ' + panel.status;
+    return '<td class="dm-ic" title="' + esc(title) + '">' + value + whisker + '</td>';
+  }
+
+  function renderBoard() {
+    var d = state.data, horizon = state.horizon;
+    var actions = d.actions || [];
+    var rows = boardRows();
+    state.scale = fillScale(horizon);
+
+    var head = '<thead><tr><th class="dm-src">信息源</th>'
+      + '<th class="dm-covh">覆盖</th>';
+    actions.forEach(function (action) {
+      // A break opportunity after each underscore. `add_only_on_trigger` set on
+      // one line is 128px, which on a 390px phone is most of the room left
+      // after the two label columns — the header, not the data, was the thing
+      // pushing every cell off screen.
+      head += '<th title="' + esc(action) + '">'
+        + esc(action).replace(/_/g, '_<wbr>') + '</th>';
+    });
+    head += '<th>IC ' + esc(horizon) + '</th></tr></thead><tbody>';
+
+    var body = '';
+    rows.forEach(function (row) {
+      var card = row.card;
+      var name = row.kind
+        ? '<button class="dm-twist" type="button" data-kind="' + esc(row.name) + '"'
+          + ' aria-expanded="' + (state.open[row.name] ? 'true' : 'false') + '">'
+          + '<i>&#9656;</i><span class="dm-kindname">' + esc(row.name) + '</span>'
+          + '<span class="dm-count">' + (card.signals || []).length + '</span></button>'
+        : '<span class="dm-name">' + esc(row.name) + '</span>';
+      body += '<tr class="' + (row.kind ? 'dm-kind' : 'dm-signal') + '">'
+        + '<th class="dm-src" scope="row">' + name + '</th>'
+        + '<td class="dm-cov" title="' + esc(row.name + ' join 上了 '
+            + card.decisions_joined + ' / ' + d.kpi.decisions + ' 条决策；快照年龄 中位 '
+            + fmt(card.median_snapshot_age_sessions, 1) + ' / 最大 '
+            + fmt(card.max_snapshot_age_sessions, 0) + ' session') + '">'
+        + '<div class="dm-covbar"><i style="width:'
+        + Math.min(100, card.decision_coverage_pct).toFixed(1) + '%"></i></div>'
+        + '<span class="dm-covtext">' + card.decision_coverage_pct.toFixed(1) + '% · '
+        + card.decisions_joined + '</span></td>';
+      actions.forEach(function (action) { body += cellHtml(row, action, horizon); });
+      body += icHtml(row, horizon) + '</tr>';
+    });
+
+    el('dm-board').innerHTML = head + body + '</tbody>';
+
+    el('dm-scale').innerHTML =
+      '<span class="dm-ramp">'
+      + '<span style="background:color-mix(in oklab, var(--dm-neg) 62%, var(--card))"></span>'
+      + '<span style="background:color-mix(in oklab, var(--dm-neg) 25%, var(--card))"></span>'
+      + '<span style="background:var(--card)"></span>'
+      + '<span style="background:color-mix(in oklab, var(--dm-pos) 25%, var(--card))"></span>'
+      + '<span style="background:color-mix(in oklab, var(--dm-pos) 62%, var(--card))"></span>'
+      + '</span>'
+      + '<span>底色 = 该格的中位 ' + esc(horizon) + ' 收益，满色为 ≥±'
+      + state.scale.toFixed(1) + '%（全板 |中位| 的 90 分位；更极端的格子截到满色，'
+      + '不随展开变化）。'
+      + '颜色只重复格子里已经印着的带符号数字，不是唯一通道。</span>'
+      + '<span>格子上面那行是 n（决策条数），不是已结算条数 —— 悬停看两者。</span>';
+
+    var caveat = (d.signal_panel || {}).interval_caveat;
+    var selection = ((d.signal_panel || {}).selection || {})[horizon];
+    var text = '这不是因果：一个信号出现在 <code>cut</code> 旁边，'
+      + '可能是它促成了砍单，也可能是砍单那天恰好什么信号都在。';
+    if (selection && selection.status === 'measured' && selection.pbo !== null
+        && selection.pbo !== undefined) {
+      text += ' 在这个横期上挑赢家的过拟合概率 <b>PBO ' + selection.pbo.toFixed(2)
+        + '</b>（' + selection.n_splits + ' 次对半切分）'
+        + (selection.pbo >= 0.5 ? '——<b>还不能挑赢家</b>。' : '。');
+    }
+    if (caveat) text += ' 区间口径：' + esc(caveat);
+    el('dm-caveat').innerHTML = text;
+  }
+
+  function renderKpi() {
+    var d = state.data, k = d.kpi || {}, c = d.coverage || {}, g = d.degradation || {};
     // Every number here is echoed in the payload rather than counted in the
-    // browser, so the banner and the file cannot drift apart.
+    // browser, so the strip and the file cannot drift apart.
     var parts = [
       '<span><b>' + (k.decisions || c.decisions) + '</b> 决策</span>',
       '<span><b>' + (k.sessions || c.sessions) + '</b> 个交易日</span>',
       '<span><b>' + (k.tickers || c.tickers) + '</b> 票</span>',
-      '<span><b>' + (k.signals_referenced || c.signals) + '</b> 信号</span>',
+      '<span><b>' + (k.signals_referenced || c.signals) + '</b> 信号 / '
+        + (d.source_kind_cards || []).length + ' 源</span>',
       '<span><b>' + fmt(k.decision_signal_coverage_pct, 1) + '%</b> 有快照</span>',
-      '<span>' + esc(c.first_decision) + ' → ' + esc(d.as_of) + '</span>',
-      '<span>payload <b>' + Math.round((g.bytes || 0) / 1024) + ' KB</b></span>'
+      '<span>' + esc(c.first_decision) + ' → ' + esc(d.as_of) + '</span>'
     ];
-    if (k.panel_as_of) {
-      parts.splice(6, 0, '<span>IC 面板至 ' + esc(k.panel_as_of) + '</span>');
-    }
+    if (k.panel_as_of) parts.push('<span>IC 面板至 ' + esc(k.panel_as_of) + '</span>');
+    parts.push('<span>payload <b>' + Math.round((g.bytes || 0) / 1024) + ' KB</b></span>');
     // A page that silently shows less than it says it does is worse than one
     // that shows a banner. The degradation level is always printed.
     if (g.level && g.level !== 'full') {
       parts.push('<span class="dm-warn">降级 <b>' + esc(g.level) + '</b> — '
         + esc(g.cost) + '</span>');
     }
-    el('dm-status').innerHTML = parts.join('');
-  }
-
-  function visibleIndices() {
-    var d = state.data, ids = d.decisions.decision_id || [], out = [];
-    for (var i = 0; i < ids.length; i++) {
-      if (state.ticker && d.decisions.ticker[i] !== state.ticker) continue;
-      out.push(i);
-    }
-    return out;
-  }
-
-  // The IC and its interval come from `clawock signal-panel` and are published
-  // verbatim in `card.panel`. Nothing on this page computes a rank correlation:
-  // a second implementation of one number is two numbers that can disagree.
-  function panelLine(card, horizon) {
-    var row = card.panel && card.panel[horizon];
-    if (!row) {
-      // Two different absences, and saying the wrong one is worse than saying
-      // nothing: a signal that never entered a scorable cross-section is a
-      // finding, a block dropped for payload budget is not.
-      var dropped = (state.data.signal_panel || {}).dropped;
-      return '<div class="dm-ic dm-ic-none">' + esc(horizon) + ' IC —（'
-        + (dropped ? 'payload 降级时丢了，跑 clawock signal-panel 可复现'
-                   : '这个信号没有进入过可评分的截面') + '）</div>';
-    }
-    var band = row.ic_cluster_ci95;
-    var interval = band
-      ? '[' + signed(band[0]) + ', ' + signed(band[1]) + ']'
-      : '—';
-    return '<div class="dm-ic' + (row.ic_clears_zero ? ' is-clear' : '') + '">'
-      + esc(horizon) + ' IC <b>' + signed(row.mean_ic) + '</b> '
-      + interval + ' · ' + row.n_sessions + ' 日 · ' + esc(row.status)
-      + (row.ic_clears_zero ? ' <span title="区间不含 0，样本是诊断级">*</span>' : '')
-      + '</div>';
-  }
-
-  function signed(value) {
-    if (value === null || value === undefined) return '—';
-    return (value >= 0 ? '+' : '') + value.toFixed(3);
-  }
-
-  // PBO belongs to the panel, not to any one signal: it is the probability that
-  // the best signal in-sample is below median out-of-sample. Printed beside the
-  // cards because it is the number that says whether picking a winner off them
-  // means anything at all.
-  function renderSelection() {
-    var panel = state.data.signal_panel, node = el('dm-selection');
-    if (!node) return;
-    var row = panel && panel.selection && panel.selection[state.horizon];
-    if (!row || row.status !== 'measured' || row.pbo === null) {
-      node.textContent = '';
-      return;
-    }
-    node.innerHTML = '这个横期上挑赢家的过拟合概率 <b>PBO ' + row.pbo.toFixed(2)
-      + '</b>（' + row.n_splits + ' 次对半切分）—— '
-      + (row.pbo >= 0.5
-          ? '样本内最好的那个信号，样本外掉到中位数以下的次数超过一半：<b>还不能挑赢家</b>。'
-          : '样本内最好的那个信号，样本外多数时候仍在中位数以上。')
-      + ' 区间口径：' + esc(panel.interval_caveat || '');
-  }
-
-  function renderCards() {
-    var d = state.data, horizon = state.horizon, html = '';
-    var cards = d.info_source_cards.filter(function (card) {
-      return !state.kind || card.source_kind === state.kind;
-    });
-    if (!cards.length) { el('dm-cards').innerHTML = '<p class="dm-sub">没有匹配的信号。</p>'; return; }
-    cards.forEach(function (card) {
-      var rows = '';
-      Object.keys(card.by_action).sort().forEach(function (action) {
-        var bucket = card.by_action[action];
-        rows += '<tr><td>' + esc(action) + '</td><td>' + bucket.count + '</td><td>'
-          + fmt(bucket['median_' + horizon + '_pct'], 2) + '</td><td>'
-          + pct(bucket['win_rate_' + horizon]) + '</td></tr>';
-      });
-      html += '<article class="dm-card">'
-        + '<span class="dm-kind">' + esc(card.source_kind) + '</span>'
-        + '<h3>' + esc(card.signal) + '</h3>'
-        + '<div class="dm-bar"><i style="width:' + Math.min(100, card.decision_coverage_pct) + '%"></i></div>'
-        + '<div class="dm-cov">覆盖 <b>' + card.decision_coverage_pct.toFixed(1) + '%</b>'
-        + ' （' + card.decisions_joined + ' 条）· 快照年龄 中位 '
-        + fmt(card.median_snapshot_age_sessions, 1) + ' / 最大 '
-        + fmt(card.max_snapshot_age_sessions, 0) + ' session</div>'
-        + panelLine(card, horizon)
-        + '<table class="dm-mini"><thead><tr><th>动作</th><th>n</th><th>中位 '
-        + esc(horizon) + '</th><th>胜率</th></tr></thead><tbody>' + rows + '</tbody></table>'
-        + '</article>';
-    });
-    el('dm-cards').innerHTML = html;
-  }
-
-  function renderMatrix() {
-    var d = state.data, horizon = state.horizon;
-    var actions = d.decision_signal_matrix.actions;
-    var cards = d.info_source_cards.filter(function (card) {
-      return !state.kind || card.source_kind === state.kind;
-    });
-    var head = '<thead><tr><th>信号</th>';
-    actions.forEach(function (action) { head += '<th>' + esc(action) + '</th>'; });
-    head += '</tr></thead><tbody>';
-    var body = '';
-    cards.forEach(function (card) {
-      body += '<tr><th>' + esc(card.signal) + '</th>';
-      actions.forEach(function (action) {
-        var bucket = card.by_action[action];
-        if (!bucket) { body += '<td class="dm-empty">·</td>'; return; }
-        var median = bucket['median_' + horizon + '_pct'];
-        body += '<td>' + bucket.count + (median === null || median === undefined
-          ? '' : '<br><span style="color:' + (median >= 0 ? 'var(--green)' : 'var(--red)')
-            + '">' + fmt(median, 1) + '</span>') + '</td>';
-      });
-      body += '</tr>';
-    });
-    el('dm-matrix').innerHTML = head + body + '</tbody>';
+    el('dm-kpi').innerHTML = parts.join('');
   }
 
   function renderTimeline() {
     var d = state.data, html = '';
-    var dates = d.decisions.plan_date || [];
-    if (!dates.length) {
+    var count = (d.decisions.decision_id || []).length;
+    if (!count) {
       el('dm-timeline').innerHTML = '<p class="dm-sub" style="padding:10px 12px">'
         + '时间线在当前降级档位下不可用。</p>';
       return;
     }
-    var first = dates[0], last = dates[dates.length - 1];
+    var first = cell('plan_date', 0), last = cell('plan_date', count - 1);
     var span = Math.max(1, Date.parse(last) - Date.parse(first));
-    var tickers = Object.keys(d.ticker_timelines).sort();
-    tickers.forEach(function (ticker) {
+    Object.keys(d.ticker_timelines).sort().forEach(function (ticker) {
       if (state.ticker && ticker !== state.ticker) return;
       var dots = '';
       d.ticker_timelines[ticker].forEach(function (index) {
-        var left = (Date.parse(dates[index]) - Date.parse(first)) / span * 100;
-        var action = d.decisions.action[index];
+        var date = cell('plan_date', index);
+        var left = (Date.parse(date) - Date.parse(first)) / span * 100;
+        var action = cell('action', index);
         dots += '<button class="dm-dot ' + actionClass(action) + '" style="left:'
           + left.toFixed(2) + '%" data-i="' + Number(index) + '" title="'
-          + esc(dates[index]) + ' · ' + esc(action) + '" aria-label="'
-          + esc(ticker) + ' ' + esc(dates[index]) + ' ' + esc(action) + '"></button>';
+          + esc(date) + ' · ' + esc(action) + '" aria-label="'
+          + esc(ticker) + ' ' + esc(date) + ' ' + esc(action) + '"></button>';
       });
       html += '<div class="dm-row"><b>' + esc(ticker) + '</b><div class="dm-track">'
         + dots + '</div></div>';
@@ -390,48 +556,103 @@ permalink: /decimap/
       || '<p class="dm-sub" style="padding:10px 12px">没有匹配的票。</p>';
   }
 
-  function openDrawer(index) {
-    var d = state.data, cols = d.decisions;
-    var snapshot = (d.decision_snapshots || [])[index];
-    var html = '<h3>' + esc(cols.ticker[index]) + ' · ' + esc(cols.action[index]) + '</h3>'
-      + '<p class="dm-sub">' + esc(cols.plan_date[index]) + ' · '
-      + esc(cols.driven_by[index] || '—') + ' · '
-      + esc(cols.strategy_id[index] || '—') + '</p>';
-    html += '<table class="dm-kv"><tbody>'
-      + '<tr><th>信心</th><td>' + fmt(cols.confidence[index], 2) + '</td></tr>'
-      + '<tr><th>结果</th><td>' + esc(cols.outcome[index] || '—') + '</td></tr>'
-      + '<tr><th>t1 / t5 / t20</th><td>' + fmt(cols.t1[index]) + ' / '
-      + fmt(cols.t5[index]) + ' / ' + fmt(cols.t20[index]) + '</td></tr>'
-      + '<tr><th>快照年龄</th><td>'
-      + fmt(cols.snapshot_age_sessions[index], 0) + ' session</td></tr>'
-      + '</tbody></table>';
-    var keywords = (cols.rationale_keywords || [])[index] || [];
-    if (keywords.length) {
-      html += '<p class="dm-sub">理由关键词：' + esc(keywords.join(' · ')) + '</p>';
-    }
-    if (cols.rationale && cols.rationale[index]) {
-      html += '<p class="dm-sub">' + esc(cols.rationale[index]) + '</p>';
-    }
-    if (snapshot) {
-      var rows = '';
-      d.signal_order.forEach(function (signal, position) {
-        var value = snapshot[position];
-        if (value === null || value === undefined) return;
-        rows += '<tr><th>' + esc(signal) + '</th><td>' + fmt(value, 4) + '</td></tr>';
-      });
-      html += '<h3 style="margin-top:14px">决策时的信号</h3>'
-        + (rows ? '<table class="dm-kv"><tbody>' + rows + '</tbody></table>'
-                : '<p class="dm-sub">这条决策的 plan date 上没有任何注册快照在年龄上限内。</p>');
-    } else {
-      html += '<h3 style="margin-top:14px">决策时的信号</h3>'
-        + '<p class="dm-sub">这条决策早于 payload 的快照保留窗口（见顶部降级提示）。'
-        + '完整值在 <code>memory/decisions.jsonl</code> 与注册历史里。</p>';
-    }
+  function showDrawer(html) {
     el('dm-drawer-body').innerHTML = html;
     el('dm-drawer').classList.add('is-open');
     el('dm-drawer').setAttribute('aria-hidden', 'false');
     el('dm-scrim').hidden = false;
     el('dm-close').focus();
+  }
+
+  // A cell is a bucket, so opening one lists the decisions in it. The list is a
+  // filter over published rows — this signal was present on that decision and
+  // the action matches — never a recomputation of the bucket's own numbers,
+  // which are printed above it exactly as the payload carries them.
+  function openBucket(name, action) {
+    var d = state.data, horizon = state.horizon;
+    var position = d.signal_order.indexOf(name);
+    var positions = position >= 0 ? [position]
+      : d.signal_order.map(function (signal, index) {
+          return signal.split('.')[0] === name ? index : -1;
+        }).filter(function (index) { return index >= 0; });
+    var card = (d.source_kind_cards || []).concat(d.info_source_cards)
+      .filter(function (row) { return row.signal === name; })[0];
+    var bucket = ((card || {}).by_action || {})[action] || {};
+
+    var items = [], snapshots = d.decision_snapshots || [];
+    (d.decisions.decision_id || []).forEach(function (id, index) {
+      if (cell('action', index) !== action) return;
+      var row = snapshots[index];
+      if (!row) return;
+      var present = positions.some(function (at) {
+        return row[at] !== null && row[at] !== undefined;
+      });
+      if (present) items.push(index);
+    });
+    items.sort(function (a, b) {
+      return String(cell('plan_date', b)).localeCompare(String(cell('plan_date', a)));
+    });
+
+    var html = '<h3>' + esc(name) + ' · ' + esc(action) + '</h3>'
+      + '<p class="dm-sub">' + (bucket.count || 0) + ' 条决策 · '
+      + (bucket['n_' + horizon] || 0) + ' 条在 ' + esc(horizon) + ' 上已结算 · 中位 '
+      + signed(bucket['median_' + horizon + '_pct'], 2)
+      + '% · 胜率 ' + pct(bucket['win_rate_' + horizon]) + '</p>';
+    if (items.length < (bucket.count || 0)) {
+      html += '<p class="dm-sub">下面只列得出 ' + items.length + ' 条：'
+        + '较早的决策在当前降级档位下没有保留信号快照行，它们仍然计入上面的桶。</p>';
+    }
+    html += '<ul class="dm-hits">' + items.map(function (index) {
+      return '<li><button type="button" data-i="' + index + '">'
+        + '<span>' + esc(cell('ticker', index)) + ' <em>'
+        + esc(cell('plan_date', index)) + '</em></span>'
+        + '<em>' + (d.decisions[horizon][index] === null
+            || d.decisions[horizon][index] === undefined
+              ? '未结算' : signed(d.decisions[horizon][index], 2) + '%')
+        + '</em></button></li>';
+    }).join('') + '</ul>';
+    showDrawer(html);
+  }
+
+  function openDecision(index) {
+    var d = state.data;
+    var snapshot = (d.decision_snapshots || [])[index];
+    var html = '<h3>' + esc(cell('ticker', index)) + ' · '
+      + esc(cell('action', index)) + '</h3>'
+      + '<p class="dm-sub">' + esc(cell('plan_date', index)) + ' · '
+      + esc(cell('driven_by', index) || '—') + ' · '
+      + esc(cell('strategy_id', index) || '—') + '</p>';
+    html += '<table class="dm-kv"><tbody>'
+      + '<tr><th>信心</th><td>' + fmt(d.decisions.confidence[index], 2) + '</td></tr>'
+      + '<tr><th>结果</th><td>' + esc(cell('outcome', index) || '—') + '</td></tr>'
+      + '<tr><th>t1 / t5 / t20</th><td>' + fmt(d.decisions.t1[index]) + ' / '
+      + fmt(d.decisions.t5[index]) + ' / ' + fmt(d.decisions.t20[index]) + '</td></tr>'
+      + '<tr><th>快照年龄</th><td>'
+      + fmt(d.decisions.snapshot_age_sessions[index], 0) + ' session</td></tr>'
+      + '</tbody></table>';
+    var keywords = (d.decisions.rationale_keywords || [])[index] || [];
+    if (keywords.length) {
+      html += '<p class="dm-sub">理由关键词：' + esc(keywords.join(' · ')) + '</p>';
+    }
+    if (d.decisions.rationale && d.decisions.rationale[index]) {
+      html += '<p class="dm-sub">' + esc(d.decisions.rationale[index]) + '</p>';
+    }
+    if (snapshot) {
+      var signalRows = '';
+      d.signal_order.forEach(function (signal, position) {
+        var value = snapshot[position];
+        if (value === null || value === undefined) return;
+        signalRows += '<tr><th>' + esc(signal) + '</th><td>' + fmt(value, 4) + '</td></tr>';
+      });
+      html += '<h3 style="margin-top:14px">决策时的信号</h3>'
+        + (signalRows ? '<table class="dm-kv"><tbody>' + signalRows + '</tbody></table>'
+                      : '<p class="dm-sub">这条决策的 plan date 上没有任何注册快照在年龄上限内。</p>');
+    } else {
+      html += '<h3 style="margin-top:14px">决策时的信号</h3>'
+        + '<p class="dm-sub">这条决策早于 payload 的快照保留窗口（见顶部降级提示）。'
+        + '完整值在 <code>memory/decisions.jsonl</code> 与注册历史里。</p>';
+    }
+    showDrawer(html);
   }
 
   function closeDrawer() {
@@ -440,34 +661,68 @@ permalink: /decimap/
     el('dm-scrim').hidden = true;
   }
 
-  function renderAll() {
-    renderStatus(); renderSelection(); renderCards();
-    renderMatrix(); renderTimeline();
-  }
+  function renderAll() { renderKpi(); renderBoard(); renderTimeline(); }
 
   function boot(data) {
     state.data = data;
-    var kinds = {};
-    data.info_source_cards.forEach(function (card) { kinds[card.source_kind] = 1; });
-    Object.keys(kinds).sort().forEach(function (kind) {
-      el('dm-kind').insertAdjacentHTML('beforeend',
-        '<option value="' + esc(kind) + '">' + esc(kind) + '</option>');
-    });
     Object.keys(data.ticker_timelines).sort().forEach(function (ticker) {
       el('dm-ticker').insertAdjacentHTML('beforeend',
         '<option value="' + esc(ticker) + '">' + esc(ticker) + '</option>');
     });
-    el('dm-kind').addEventListener('change', function () { state.kind = this.value; renderAll(); });
-    el('dm-horizon').addEventListener('change', function () { state.horizon = this.value; renderAll(); });
-    el('dm-ticker').addEventListener('change', function () { state.ticker = this.value; renderAll(); });
-    el('dm-reset').addEventListener('click', function () {
-      state.kind = ''; state.horizon = 't5'; state.ticker = '';
-      el('dm-kind').value = ''; el('dm-horizon').value = 't5'; el('dm-ticker').value = '';
+    el('dm-horizon').addEventListener('click', function (event) {
+      var button = event.target.closest('button[data-h]');
+      if (!button) return;
+      state.horizon = button.dataset.h;
+      [].forEach.call(this.querySelectorAll('button'), function (other) {
+        other.setAttribute('aria-pressed', other === button ? 'true' : 'false');
+      });
       renderAll();
+    });
+    el('dm-ticker').addEventListener('change', function () {
+      state.ticker = this.value; renderTimeline();
+    });
+    el('dm-expand').addEventListener('click', function () {
+      var kinds = (state.data.source_kind_cards || []).map(function (row) {
+        return row.signal;
+      });
+      var anyClosed = kinds.some(function (kind) { return !state.open[kind]; });
+      kinds.forEach(function (kind) { state.open[kind] = anyClosed; });
+      this.textContent = anyClosed ? '收起全部' : '展开全部';
+      renderBoard();
+    });
+    el('dm-reset').addEventListener('click', function () {
+      state.horizon = 't5'; state.ticker = ''; state.open = {};
+      el('dm-ticker').value = '';
+      el('dm-expand').textContent = '展开全部';
+      [].forEach.call(el('dm-horizon').querySelectorAll('button'), function (button) {
+        button.setAttribute('aria-pressed', button.dataset.h === 't5' ? 'true' : 'false');
+      });
+      renderAll();
+    });
+    el('dm-board').addEventListener('click', function (event) {
+      var twist = event.target.closest('.dm-twist');
+      if (twist) {
+        state.open[twist.dataset.kind] = !state.open[twist.dataset.kind];
+        renderBoard();
+        return;
+      }
+      var target = event.target.closest('.dm-cell');
+      if (target) openBucket(target.dataset.row, target.dataset.action);
+    });
+    el('dm-board').addEventListener('keydown', function (event) {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      var target = event.target.closest('.dm-cell');
+      if (!target) return;
+      event.preventDefault();
+      openBucket(target.dataset.row, target.dataset.action);
     });
     el('dm-timeline').addEventListener('click', function (event) {
       var dot = event.target.closest('.dm-dot');
-      if (dot) openDrawer(Number(dot.dataset.i));
+      if (dot) openDecision(Number(dot.dataset.i));
+    });
+    el('dm-drawer-body').addEventListener('click', function (event) {
+      var hit = event.target.closest('.dm-hits button');
+      if (hit) openDecision(Number(hit.dataset.i));
     });
     el('dm-close').addEventListener('click', closeDrawer);
     el('dm-scrim').addEventListener('click', closeDrawer);
@@ -486,7 +741,7 @@ permalink: /decimap/
     })
     .then(boot)
     .catch(function (error) {
-      el('dm-status').innerHTML = '<span class="dm-warn">载入 decision_map.json 失败：'
+      el('dm-kpi').innerHTML = '<span class="dm-warn">载入 decision_map.json 失败：'
         + esc(error.message) + '。它由 <code>clawock decision-map</code> 生成。</span>';
     });
 })();

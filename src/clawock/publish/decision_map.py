@@ -83,11 +83,33 @@ SIZE_MARGIN = 64
 
 HORIZONS = ('t1', 't5', 't20')
 
+#: Columns whose values come from a small vocabulary and were published as 741
+#: copies of a dozen strings. Measured on the live ledger: `strategy_id` 12.1KB,
+#: `action` 10.3KB for seven distinct words, `plan_date` 9.6KB for 73 dates,
+#: `driven_by` 8.6KB, `outcome` 5.6KB, `ticker` 5.5KB for eighteen names — 51KB
+#: of a 200KB budget spent on repetition. Each becomes a vocabulary published
+#: once plus a column of integers into it, which is the same argument
+#: `signal_order` already makes one level up.
+CODED_COLUMNS = ('ticker', 'plan_date', 'action', 'driven_by', 'strategy_id',
+                 'outcome')
+
 #: What a card shows from the panel. Copied verbatim — a rounding here would be
 #: a third version of the number, differing from the panel in the last digit for
 #: no reason a reader could discover.
 PANEL_FIELDS = ('mean_ic', 'ic_cluster_ci95', 'n_observations', 'n_sessions',
                 'status', 'ic_clears_zero')
+
+
+def _code(values) -> tuple[list, list[int]]:
+    """(vocabulary, indices). Order of first appearance, so it is stable."""
+    vocabulary, position, out = [], {}, []
+    for value in values:
+        key = (type(value).__name__, value)
+        if key not in position:
+            position[key] = len(vocabulary)
+            vocabulary.append(value)
+        out.append(position[key])
+    return vocabulary, out
 
 
 def _extractors():
@@ -271,6 +293,13 @@ def build(ledger_rows=None, data_dir: Path | None = None,
     per_signal = defaultdict(lambda: defaultdict(list))
     coverage = Counter()
     age_by_signal = defaultdict(list)
+    # Per *kind*, keyed by decision so one decision that joined three of a
+    # kind's signals counts once. Summing the signal rows in the browser would
+    # count it three times, and the roll-up would claim a coverage the kind
+    # does not have — which is the one number this page exists to keep honest.
+    per_kind = defaultdict(lambda: defaultdict(dict))
+    kind_decisions = defaultdict(set)
+    age_by_kind = defaultdict(list)
     for decision in rows:
         decision_id = str(decision.get('decision_id') or '')
         if not decision_id:
@@ -315,6 +344,12 @@ def build(ledger_rows=None, data_dir: Path | None = None,
             per_signal[signal][action].append(
                 {'value': value, **{horizon: outcomes.get(horizon)
                                     for horizon in HORIZONS}})
+            kind = signal.split('.', 1)[0]
+            if decision_id not in kind_decisions[kind]:
+                kind_decisions[kind].add(decision_id)
+                age_by_kind[kind].append(joined['ages'][signal])
+            per_kind[kind][action][decision_id] = {
+                horizon: outcomes.get(horizon) for horizon in HORIZONS}
 
     def _bucket(observations):
         settled = {horizon: [row[horizon] for row in observations
@@ -331,14 +366,13 @@ def build(ledger_rows=None, data_dir: Path | None = None,
         return out
 
     actions = sorted({row['action'] for row in lookup.values()})
-    cards = []
-    for signal in sorted(per_signal):
-        ages = age_by_signal[signal]
-        cards.append({
-            'signal': signal,
-            'source_kind': signal.split('.', 1)[0],
-            'decisions_joined': coverage[signal],
-            'decision_coverage_pct': round(100 * coverage[signal] / max(1, len(lookup)), 2),
+
+    def _card(name, joined_count, ages, buckets, **extra):
+        return {
+            'signal': name,
+            'decisions_joined': joined_count,
+            'decision_coverage_pct': round(
+                100 * joined_count / max(1, len(lookup)), 2),
             # The number that separates "weak effect" from "was not there".
             'median_snapshot_age_sessions': (round(statistics.median(ages), 1)
                                              if ages else None),
@@ -347,13 +381,32 @@ def build(ledger_rows=None, data_dir: Path | None = None,
             # of the 33 x 7 grid is empty — a factor rank has never been beside
             # a `reject` — and publishing the empty cells cost half the card
             # section to say "count: 0" 150 times.
-            'by_action': {action: _bucket(per_signal[signal][action])
-                          for action in actions if per_signal[signal].get(action)},
+            'by_action': {action: _bucket(buckets[action])
+                          for action in actions if buckets.get(action)},
+            **extra,
+        }
+
+    kind_cards = []
+    for kind in sorted(per_kind):
+        kind_cards.append(_card(
+            kind, len(kind_decisions[kind]), age_by_kind[kind],
+            {action: list(rows_by_id.values())
+             for action, rows_by_id in per_kind[kind].items()},
+            source_kind=kind,
+            signals=sorted(name for name in per_signal
+                           if name.split('.', 1)[0] == kind),
+        ))
+
+    cards = []
+    for signal in sorted(per_signal):
+        cards.append(_card(
+            signal, coverage[signal], age_by_signal[signal], per_signal[signal],
+            source_kind=signal.split('.', 1)[0],
             # From the panel, not from here. A card whose signal never entered a
             # scorable cross-section has no panel entry, and `null` says that
             # rather than implying a measurement of zero.
-            'panel': panel['by_signal'].get(signal),
-        })
+            panel=panel['by_signal'].get(signal),
+        ))
 
     # Columnar, twice over. Repeating up to thirty-three signal names inside
     # each of 741 entries — and then eleven field names on top — was 80% of the
@@ -386,6 +439,10 @@ def build(ledger_rows=None, data_dir: Path | None = None,
             row[position[signal]] = (round(value, 3) if isinstance(value, float)
                                      else value)
         snapshot_rows.append(row)
+    codes = {}
+    for field in CODED_COLUMNS:
+        codes[field], columns[field] = _code(columns[field])
+
     index_of = {key: index for index, key in enumerate(ordered_ids)}
     timelines = {ticker: [index_of[event['decision_id']] for event in events
                           if event['decision_id'] in index_of]
@@ -410,6 +467,10 @@ def build(ledger_rows=None, data_dir: Path | None = None,
                      'carries the age that was used'),
         },
         'actions': actions,
+        # The board's parent rows. Kind coverage is over the kind's *distinct*
+        # decisions, so it is never the sum of its signals' — a decision that
+        # joined `quant.rsi14` and `quant.trend` is one decision quant saw.
+        'source_kind_cards': kind_cards,
         # One line, always on. Every number in it is echoed here rather than
         # counted in the browser, so "the banner says 741" and "the payload
         # holds 741" is a comparison a reader can make without reading the JS.
@@ -439,18 +500,15 @@ def build(ledger_rows=None, data_dir: Path | None = None,
             'as_of', 'first_session', 'sessions', 'rows', 'selection', 'method',
             'interval_caveat', 'source')},
         'info_source_cards': cards,
-        # The ROW B matrix is `info_source_cards[].by_action` — the same signal
-        # x action buckets, computed once. Publishing it twice cost 43KB of a
-        # 200KB budget to say nothing new, and two copies of an aggregate are
-        # two things that can disagree.
-        'decision_signal_matrix': {'actions': actions,
-                                   'source': 'info_source_cards[].by_action'},
         # Indices into `decisions`, not copies of it. The duplicated form spent
         # 88KB restating an action and an outcome that were already there, and
         # gave the page two places to read the same fact from.
         'ticker_timelines': {ticker: sorted(indices)
                              for ticker, indices in sorted(timelines.items())},
         'decisions': columns,
+        # `decisions[field][i]` is an index into `codes[field]` for every field
+        # named here, and a value for every field that is not.
+        'codes': codes,
         'decision_snapshots': snapshot_rows,
     }
 
