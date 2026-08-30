@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-28T22:44:24.108937+00:00",
+  "generated_at": "2026-08-30T23:47:25.906209+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -14,205 +14,336 @@
   "llm_filtered": true,
   "counts": {
     "total": 17,
-    "held_hits": 3,
+    "held_hits": 0,
     "new_ideas": 3,
-    "sector_hits": 3
+    "sector_hits": 5
   },
   "items": [
     {
+      "author": "Trump",
+      "text": "When I announced that I was running in the 2024 Presidential Election, right at the beginning, Ford was getting ready to close their Big Factory, in Detroit. Then, because I was leading in the Polls, they figured they would leave it open a little longer to see what happened. Now it’s running 24/7, and it’s one of the most profitable Car Plants in the World! There are many other examples, for both Ford, General Motors, and others. I’ve revived, and indeed saved, the Automobile Business in our America. That’s because of what I’ve done with TARIFFS. One of the Worst Abusers is Canada. I don’t wan",
+      "url": "https://trumpstruth.org/statuses/41397",
+      "published": "2026-08-30T18:16:09+00:00",
+      "origin": "truthsocial",
+      "tickers": [
+        "F",
+        "GM"
+      ],
+      "held": [],
+      "new_ideas": [
+        "F",
+        "GM"
+      ],
+      "sectors": [
+        "汽车",
+        "关税"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 68,
+      "summary_cn": "特朗普将福特、通用汽车在美工厂满负荷运营归功于自己的关税政策，并抨击加拿大的关税滥用行为。"
+    },
+    {
+      "author": "Trump",
+      "text": "RT @sergiogorPresident Trump is the Greatest JOBS President in American History. He works tirelessly every day to create millions of high-paying Jobs, drive Trillions of Dollars in Investment, and reinvigorate our Economy. Just this week, President Trump and the Prime Minister of Bangladesh made another incredible Deal, with Bangladesh committing to spend Billions of Dollars to buy more Boeing Aircraft, significantly increasing their initial order. Our President is Making America, and our partners, Great Again!",
+      "url": "https://trumpstruth.org/statuses/41395",
+      "published": "2026-08-30T16:29:19+00:00",
+      "origin": "truthsocial",
+      "tickers": [
+        "BA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "BA"
+      ],
+      "sectors": [
+        "航空航天"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 58,
+      "summary_cn": "特朗普转发内容称孟加拉国与美达成数十亿美元波音飞机采购大单，利好波音。"
+    },
+    {
+      "author": "Trump",
+      "text": "President Trump is the Greatest JOBS President in American History. He works tirelessly every day to create millions of high-paying Jobs, drive Trillions of Dollars in Investment, and reinvigorate our Economy. Just this week, President Trump and the Prime Minister of Bangladesh made another incredible Deal, with Bangladesh committing to spend Billions of Dollars to buy more Boeing Aircraft, significantly increasing their initial order. Our President is Making America, and our partners, Great Again!",
+      "url": "https://trumpstruth.org/statuses/41396",
+      "published": "2026-08-30T16:15:39+00:00",
+      "origin": "truthsocial",
+      "tickers": [
+        "BA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "BA"
+      ],
+      "sectors": [
+        "航空航天"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 52,
+      "summary_cn": "与第3条重复报道孟加拉国采购波音飞机，仅留信息量更高的一条，此条不另列（已合并）。"
+    },
+    {
       "author": "Musk",
-      "text": "Musk's SpaceX announces $100 billion plan for new spaceport in Louisiana",
+      "text": "Elon Musk Envisions SpaceX Revenue To Hit $3.5 Trillion, Seven Years Ahead Of Morgan Stanley Estimates",
       "url": "",
-      "published": "Tue, 25 Aug 2026 21:35:22 GMT",
+      "published": "Thu, 27 Aug 2026 23:45:28 GMT",
       "origin": "gnews-rss",
-      "source": "CBS News",
+      "source": "Yahoo Finance",
       "tickers": [],
-      "held": [
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [
+        "RKLX",
         "SPCH",
         "SPCX"
       ],
+      "stance": "endorse",
+      "relevance": 72,
+      "summary_cn": "Musk预计SpaceX年化营收将达3.5万亿美元，远超摩根士丹士预测，对kcn持有的SpaceX及杠杆标的（SPCX/SPCH/RKLX）形成强烈看多背书。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk Owns 48.4% of SpaceX, a New Filing Shows. Here's Why That Matters for Everyone Else Holding the Stock.",
+      "url": "",
+      "published": "Sun, 30 Aug 2026 14:15:00 GMT",
+      "origin": "gnews-rss",
+      "source": "The Motley Fool",
+      "tickers": [],
+      "held": [],
       "new_ideas": [],
       "sectors": [
         "航天",
-        "基建"
+        "私募股权"
       ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 78,
-      "summary_cn": "Musk旗下SpaceX宣布在路易斯安那投资1000亿美元建设新太空港，资本开支规模庞大支撑估值。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk predicts SpaceX revenue could reach $3.5T by 2033",
-      "url": "",
-      "published": "Fri, 28 Aug 2026 19:41:40 GMT",
-      "origin": "gnews-rss",
-      "source": "Fox Business",
-      "tickers": [],
-      "held": [
+      "sector_holdings": [
+        "RKLX",
         "SPCH",
         "SPCX"
       ],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 78,
-      "summary_cn": "Musk预测SpaceX到2033年营收有望达3.5万亿美元，极度乐观叙事利好其私募估值/杠杆ETF。"
+      "relevance": 70,
+      "summary_cn": "披露Musk持有SpaceX 48.4%股份的新文件，强化SpaceX股东价值叙事，利好kcn持有的SpaceX相关标的。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk Thinks SpaceX Can Hit $3.5 Trillion in Revenue. Wall Street Isn’t Buying It.",
+      "text": "Musk’s faster path to more gas turbines comes with pollution problem",
       "url": "",
-      "published": "Fri, 28 Aug 2026 11:55:00 GMT",
+      "published": "Sun, 30 Aug 2026 16:54:25 GMT",
       "origin": "gnews-rss",
-      "source": "Barron's",
-      "tickers": [],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 75,
-      "summary_cn": "华尔街对Musk关于SpaceX营收可达3.5万亿美元的乐观预测持怀疑态度，估值预期分歧明显。"
-    },
-    {
-      "author": "Trump",
-      "text": "GREAT NEWS! Micron, one of the “HOTTEST” Companies in the World, just announced a MASSIVE 10 BILLION DOLLAR Investment in new Research Labs right here in America. They are keeping us at the absolute forefront of A.I. and Advanced Computing! 🇺🇸   Combined with their previous TREMENDOUS 250 BILLION DOLLAR commitment, they are creating over tens of thousands of Great American Jobs. We are bringing Critical Technologies BACK to the U.S.A. Because of our Great Policies, Companies are investing TRILLIONS.    I have made it clear that America will lead the way to a new Golden Age of Science. The resu",
-      "url": "https://trumpstruth.org/statuses/41269",
-      "published": "2026-08-27T18:31:52+00:00",
-      "origin": "truthsocial",
-      "tickers": [
-        "MU"
-      ],
-      "held": [],
-      "new_ideas": [
-        "MU"
-      ],
-      "sectors": [
-        "半导体",
-        "AI",
-        "国产制造"
-      ],
-      "sector_holdings": [
-        "SKHY"
-      ],
-      "stance": "endorse",
-      "relevance": 85,
-      "summary_cn": "Trump力挺美光追加100亿美元投资美国研发实验室，叠加此前2500亿承诺，称将关键科技拉回美国。"
-    },
-    {
-      "author": "Trump",
-      "text": "Nvidia just announced Record Sales of 96.2 Billion Dollars, forecasting a 70% rise in Revenue in 2028. Congratulations to Jensen Huang on these incredible numbers, and the Company’s Great Success. Only in America! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/41288",
-      "published": "2026-08-27T21:24:30+00:00",
-      "origin": "truthsocial",
-      "tickers": [
-        "NVDA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "NVDA"
-      ],
-      "sectors": [
-        "AI",
-        "半导体"
-      ],
-      "sector_holdings": [
-        "SKHY"
-      ],
-      "stance": "endorse",
-      "relevance": 82,
-      "summary_cn": "Trump祝贺Nvidia录得962亿美元创纪录营收、2028年营收预增70%，公开为AI龙头背书。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk's Tesla Hikes Cybertruck Prices by More Than 7% Despite Sluggish Sales",
-      "url": "",
-      "published": "Thu, 27 Aug 2026 00:31:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 60,
-      "summary_cn": "Tesla在Cybertruck销量疲软背景下仍涨价逾7%，需求疲软+提价令市场担忧基本面。"
-    },
-    {
-      "author": "Trump",
-      "text": "FBI Shuts Down Sprawling China-Linked Hacking Network: https://www.wsj.com/tech/cybersecurity/fbi-shuts-down-sprawling-china-linked-hacking-network-61eade59",
-      "url": "https://trumpstruth.org/statuses/41342",
-      "published": "2026-08-28T18:05:46+00:00",
-      "origin": "truthsocial",
+      "source": "TechCrunch",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "网络安全",
-        "中美关系"
-      ],
-      "sector_holdings": [
-        "SKHY"
-      ],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "FBI端掉一个中国关联的大规模黑客网络，中美科技/网络对抗升级，半导体供应链紧张感增加。"
-    },
-    {
-      "author": "Trump",
-      "text": "Iran Is a Failing Nation! President DJT",
-      "url": "https://trumpstruth.org/statuses/41296",
-      "published": "2026-08-27T22:31:58+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "地缘政治",
         "能源",
-        "国防"
+        "电力设备",
+        "AI基础设施"
       ],
       "sector_holdings": [
-        "02208"
+        "SKHY"
       ],
-      "stance": "attack",
+      "stance": "neutral",
       "relevance": 55,
-      "summary_cn": "Trump称伊朗是'失败国家'，对伊强硬姿态升级，可能扰动油价和地缘风险。"
+      "summary_cn": "Musk为加速AI算力部署大量上马燃气轮机，但带来污染争议，对电力/能源设备板块（含SK海力士所在的半导体电力需求链）有间接影响。"
     },
     {
       "author": "Trump",
-      "text": "RT: https://truthsocial.com/users/realDonaldTrump/statuses/117173814168760364So big a deal!",
-      "url": "https://trumpstruth.org/statuses/41316",
-      "published": "2026-08-28T15:22:02+00:00",
+      "text": "Congratulations to NASA Administrator Jared Isaacman, and the Great Patriots at NASA, on a successful launch. This is THE GOLDEN AGE OF AMERICA! President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/41389",
+      "published": "2026-08-30T13:59:40+00:00",
       "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 55,
+      "summary_cn": "特朗普祝贺NASA及局长Isaacman成功发射，航天板块情绪利好，软关联到kcn持有的SpaceX相关标的。"
+    },
+    {
+      "author": "Musk",
+      "text": "OpenAI to end model access to Cursor after acquisition by Elon Musk's SpaceX",
+      "url": "",
+      "published": "Sat, 29 Aug 2026 19:05:55 GMT",
+      "origin": "gnews-rss",
+      "source": "CNBC",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI",
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "neutral",
+      "relevance": 50,
+      "summary_cn": "报道称OpenAI将在Musk旗下SpaceX收购Cursor后切断其模型访问，间接凸显SpaceX跨界AI布局，软关联到kcn持有的SpaceX标的。"
+    },
+    {
+      "author": "Trump",
+      "text": "Trump’s historic oil deal with Venezuela realigns global energy and puts OPEC, Canada on notice: https://justthenews.com/government/white-house/trump-announces-massive-oil-deal-venezuela",
+      "url": "https://trumpstruth.org/statuses/41383",
+      "published": "2026-08-30T12:19:44+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "石油",
+        "能源",
+        "委内瑞拉",
+        "OPEC"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 65,
+      "summary_cn": "特朗普与委内瑞拉达成'史上最大'石油协议，被解读为重塑全球能源格局、对OPEC和加拿大发出警告。"
+    },
+    {
+      "author": "Trump",
+      "text": "Let all Canadian Companies that are doing business with America move to the United States, immediately. Many of them are Companies that moved out years ago due to stupid U.S. Leadership. When you move back, there are no TARIFFS! President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/41398",
+      "published": "2026-08-30T18:26:25+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "关税",
+        "制造业",
+        "汽车"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 62,
+      "summary_cn": "特朗普喊话加拿大企业迁回美国，承诺无关税，意在重振美国制造业与汽车产业。"
+    },
+    {
+      "author": "Trump",
+      "text": "Canadian businesses are pouring into the United States. We want to make our own cars, etc. That’s what’s going to happen. Canada has been ripping us off for years — NO LONGER! President DJT",
+      "url": "https://trumpstruth.org/statuses/41390",
+      "published": "2026-08-30T13:55:53+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "关税",
+        "汽车",
+        "加拿大"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 58,
+      "summary_cn": "特朗普宣称加拿大企业正涌入美国，要在美国造车，强化对加关税与制造业回流叙事。"
+    },
+    {
+      "author": "Trump",
+      "text": "Our deal with Venezuela is the biggest oil deal, by far, in World history! President DJT",
+      "url": "https://trumpstruth.org/statuses/41357",
+      "published": "2026-08-29T00:21:20+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "石油",
+        "能源",
+        "委内瑞拉"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 58,
+      "summary_cn": "特朗普宣称美委石油协议是'世界史上最大'，提振美国能源供给预期。"
+    },
+    {
+      "author": "Trump",
+      "text": "One of the things I am going to do with the Venezuelan Oil is fill up the Strategic National Reserves which, because of Sleepy Joe Biden, has been virtually emptied. The “topping out” process will begin very shortly, and is a Gift from Venezuela to the People of the United States. Thank you! President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/41391",
+      "published": "2026-08-30T14:10:20+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "石油",
+        "能源",
+        "委内瑞拉"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "特朗普称将用委内瑞拉石油补充已近枯竭的美国战略石油储备。"
+    },
+    {
+      "author": "Musk",
+      "text": "Musk’s AI company sues its users as victim lawsuits over Grok deepfakes mount",
+      "url": "",
+      "published": "Fri, 28 Aug 2026 09:00:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Politico",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI",
+        "法律监管"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 52,
+      "summary_cn": "xAI因Grok深伪丑闻反诉用户，AI监管与平台责任话题再度升温。"
+    },
+    {
+      "author": "Musk",
+      "text": "OpenAI cuts off Cursor's AI models, deepening feud with Musk",
+      "url": "",
+      "published": "Sun, 30 Aug 2026 15:03:18 GMT",
+      "origin": "gnews-rss",
+      "source": "Mashable",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
         "AI"
       ],
-      "sector_holdings": [
-        "SKHY"
-      ],
-      "stance": "endorse",
+      "sector_holdings": [],
+      "stance": "neutral",
       "relevance": 50,
-      "summary_cn": "Trump转发某条内容并称'超大事件'，疑似关联AI/重大政策利好，未具名。"
+      "summary_cn": "OpenAI切断对Cursor的AI模型供应，Musk与OpenAI矛盾进一步深化，AI行业竞争叙事升温。"
+    },
+    {
+      "author": "Musk",
+      "text": "OpenAI Cancels Cursor Partnership Citing Distrust of Elon Musk",
+      "url": "",
+      "published": "Sun, 30 Aug 2026 21:11:15 GMT",
+      "origin": "gnews-rss",
+      "source": "PYMNTS.com",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 48,
+      "summary_cn": "OpenAI以'不信任Musk'为由终止与Cursor合作，与第14、16条同事件，不重复返回。"
     },
     {
       "author": "Musk",
@@ -229,337 +360,188 @@
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 62,
-      "summary_cn": "Musk入选《时代》2026年AI领域最具影响力100人，巩固其在AI产业话语权。"
+      "relevance": 45,
+      "summary_cn": "Musk入选《时代》2026 AI领域最具影响力百人榜，仅为荣誉性背书，市场含义较弱。"
+    }
+  ],
+  "held_hits": [],
+  "new_ideas": [
+    {
+      "author": "Trump",
+      "text": "When I announced that I was running in the 2024 Presidential Election, right at the beginning, Ford was getting ready to close their Big Factory, in Detroit. Then, because I was leading in the Polls, they figured they would leave it open a little longer to see what happened. Now it’s running 24/7, and it’s one of the most profitable Car Plants in the World! There are many other examples, for both Ford, General Motors, and others. I’ve revived, and indeed saved, the Automobile Business in our America. That’s because of what I’ve done with TARIFFS. One of the Worst Abusers is Canada. I don’t wan",
+      "url": "https://trumpstruth.org/statuses/41397",
+      "published": "2026-08-30T18:16:09+00:00",
+      "origin": "truthsocial",
+      "tickers": [
+        "F",
+        "GM"
+      ],
+      "held": [],
+      "new_ideas": [
+        "F",
+        "GM"
+      ],
+      "sectors": [
+        "汽车",
+        "关税"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 68,
+      "summary_cn": "特朗普将福特、通用汽车在美工厂满负荷运营归功于自己的关税政策，并抨击加拿大的关税滥用行为。"
     },
     {
       "author": "Trump",
-      "text": "Trump Moves to Ban Some Foreign Energy Equipment From Grid: https://www.bloomberg.com/news/articles/2026-08-26/trump-signs-order-to-ban-some-foreign-energy-equipment-from-grid",
-      "url": "https://trumpstruth.org/statuses/41344",
-      "published": "2026-08-28T18:05:30+00:00",
+      "text": "RT @sergiogorPresident Trump is the Greatest JOBS President in American History. He works tirelessly every day to create millions of high-paying Jobs, drive Trillions of Dollars in Investment, and reinvigorate our Economy. Just this week, President Trump and the Prime Minister of Bangladesh made another incredible Deal, with Bangladesh committing to spend Billions of Dollars to buy more Boeing Aircraft, significantly increasing their initial order. Our President is Making America, and our partners, Great Again!",
+      "url": "https://trumpstruth.org/statuses/41395",
+      "published": "2026-08-30T16:29:19+00:00",
       "origin": "truthsocial",
-      "tickers": [],
+      "tickers": [
+        "BA"
+      ],
       "held": [],
-      "new_ideas": [],
+      "new_ideas": [
+        "BA"
+      ],
       "sectors": [
-        "能源",
-        "电网设备",
-        "国产替代"
+        "航空航天"
       ],
       "sector_holdings": [],
       "stance": "endorse",
       "relevance": 58,
-      "summary_cn": "Trump签署行政令禁止部分外国能源设备接入美国电网，利好本土电力设备制造商。"
+      "summary_cn": "特朗普转发内容称孟加拉国与美达成数十亿美元波音飞机采购大单，利好波音。"
     },
     {
       "author": "Trump",
-      "text": "Laura Ingraham: “Year-to-date, the goods and services deficit decreased $189.3 billion, or 33.8 percent, from the same period in 2025. Exports increased $198.3 billion or 11.7 percent. Imports increased $9.0 billion or 0.4 percent.”  SO MUCH FOR THE TARRIFFS dragging down the economy — they're doing precisely what they were intended to do — level the playing field so our manufacturing can compete fairly and thrive.  EXCELLENT news!     Exports from January to June of each year:   Jan-June 2024:  $1.599 trillion Jan-June 2025:  $1.693 trillion Jan-June 2026:  $1.891 trillionA tribute to HIM.\"",
-      "url": "https://trumpstruth.org/statuses/41335",
-      "published": "2026-08-28T18:07:05+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "关税",
-        "出口贸易"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "Trump援引贸易数据力挺关税政策，称关税未拖累经济反而扩大出口、缩窄逆差，为关税成效背书。"
-    },
-    {
-      "author": "Musk",
-      "text": "Musk’s AI company sues its users as victim lawsuits over Grok deepfakes mount",
-      "url": "",
-      "published": "Fri, 28 Aug 2026 09:03:56 GMT",
-      "origin": "gnews-rss",
-      "source": "Politico",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI",
-        "社交媒体"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 52,
-      "summary_cn": "Musk的xAI公司因Grok深伪内容遭受害用户反诉，AI法律/声誉风险上升。"
-    },
-    {
-      "author": "Trump",
-      "text": "White House to Announce New Drug Pricing Deals With Biotechs: https://www.bloomberg.com/news/articles/2026-08-26/white-house-to-announce-new-drug-pricing-deals-with-biotechs",
-      "url": "https://trumpstruth.org/statuses/41337",
-      "published": "2026-08-28T18:06:23+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "生物医药",
-        "医保定价"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 52,
-      "summary_cn": "白宫将宣布与生物科技公司达成新的药品定价协议，可能压制药企利润空间。"
-    },
-    {
-      "author": "Trump",
-      "text": "Jonathan Hunt of FoxNews did a particularly inaccurate report on the Failing Islamic Republic of Iran. I don’t want to meet, they do. In fact, they are begging to make a deal. Bret Baier should straighten out his flunkies, for a change! President DJT",
-      "url": "https://trumpstruth.org/statuses/41294",
-      "published": "2026-08-27T22:19:57+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "地缘政治",
-        "原油"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 52,
-      "summary_cn": "Trump否认主动寻求与伊朗会面，称德黑兰'乞求谈判'，对伊外交强硬。"
-    },
-    {
-      "author": "Trump",
-      "text": "Trump Effect: Prescription Drug Prices Fall At Record-Breaking Pace: https://www.breitbart.com/politics/2026/08/12/trump-effect-prescription-drug-prices-fall-for-fifth-month-this-year/",
-      "url": "https://trumpstruth.org/statuses/41317",
-      "published": "2026-08-28T15:21:54+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "生物医药",
-        "医保定价"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 50,
-      "summary_cn": "Trump称'Trump效应'下处方药价格连续五个月创纪录下跌，强化药价压制叙事。"
-    },
-    {
-      "author": "Trump",
-      "text": "“The Department of Justice secured a $22 million settlement with Deloitte concerning False Claims Act violations in connection with Deloitte’s use of DEI policies in hiring and employment.”",
-      "url": "https://trumpstruth.org/statuses/41327",
-      "published": "2026-08-28T15:59:19+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "监管",
-        "咨询"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 45,
-      "summary_cn": "司法部以DEI政策违规为由与Deloitte达成2200万美元和解，反DEI监管延续。"
-    }
-  ],
-  "held_hits": [
-    {
-      "author": "Musk",
-      "text": "Musk's SpaceX announces $100 billion plan for new spaceport in Louisiana",
-      "url": "",
-      "published": "Tue, 25 Aug 2026 21:35:22 GMT",
-      "origin": "gnews-rss",
-      "source": "CBS News",
-      "tickers": [],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "基建"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 78,
-      "summary_cn": "Musk旗下SpaceX宣布在路易斯安那投资1000亿美元建设新太空港，资本开支规模庞大支撑估值。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk predicts SpaceX revenue could reach $3.5T by 2033",
-      "url": "",
-      "published": "Fri, 28 Aug 2026 19:41:40 GMT",
-      "origin": "gnews-rss",
-      "source": "Fox Business",
-      "tickers": [],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 78,
-      "summary_cn": "Musk预测SpaceX到2033年营收有望达3.5万亿美元，极度乐观叙事利好其私募估值/杠杆ETF。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk Thinks SpaceX Can Hit $3.5 Trillion in Revenue. Wall Street Isn’t Buying It.",
-      "url": "",
-      "published": "Fri, 28 Aug 2026 11:55:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Barron's",
-      "tickers": [],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 75,
-      "summary_cn": "华尔街对Musk关于SpaceX营收可达3.5万亿美元的乐观预测持怀疑态度，估值预期分歧明显。"
-    }
-  ],
-  "new_ideas": [
-    {
-      "author": "Trump",
-      "text": "GREAT NEWS! Micron, one of the “HOTTEST” Companies in the World, just announced a MASSIVE 10 BILLION DOLLAR Investment in new Research Labs right here in America. They are keeping us at the absolute forefront of A.I. and Advanced Computing! 🇺🇸   Combined with their previous TREMENDOUS 250 BILLION DOLLAR commitment, they are creating over tens of thousands of Great American Jobs. We are bringing Critical Technologies BACK to the U.S.A. Because of our Great Policies, Companies are investing TRILLIONS.    I have made it clear that America will lead the way to a new Golden Age of Science. The resu",
-      "url": "https://trumpstruth.org/statuses/41269",
-      "published": "2026-08-27T18:31:52+00:00",
+      "text": "President Trump is the Greatest JOBS President in American History. He works tirelessly every day to create millions of high-paying Jobs, drive Trillions of Dollars in Investment, and reinvigorate our Economy. Just this week, President Trump and the Prime Minister of Bangladesh made another incredible Deal, with Bangladesh committing to spend Billions of Dollars to buy more Boeing Aircraft, significantly increasing their initial order. Our President is Making America, and our partners, Great Again!",
+      "url": "https://trumpstruth.org/statuses/41396",
+      "published": "2026-08-30T16:15:39+00:00",
       "origin": "truthsocial",
       "tickers": [
-        "MU"
+        "BA"
       ],
       "held": [],
       "new_ideas": [
-        "MU"
+        "BA"
       ],
       "sectors": [
-        "半导体",
-        "AI",
-        "国产制造"
-      ],
-      "sector_holdings": [
-        "SKHY"
-      ],
-      "stance": "endorse",
-      "relevance": 85,
-      "summary_cn": "Trump力挺美光追加100亿美元投资美国研发实验室，叠加此前2500亿承诺，称将关键科技拉回美国。"
-    },
-    {
-      "author": "Trump",
-      "text": "Nvidia just announced Record Sales of 96.2 Billion Dollars, forecasting a 70% rise in Revenue in 2028. Congratulations to Jensen Huang on these incredible numbers, and the Company’s Great Success. Only in America! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/41288",
-      "published": "2026-08-27T21:24:30+00:00",
-      "origin": "truthsocial",
-      "tickers": [
-        "NVDA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "NVDA"
-      ],
-      "sectors": [
-        "AI",
-        "半导体"
-      ],
-      "sector_holdings": [
-        "SKHY"
-      ],
-      "stance": "endorse",
-      "relevance": 82,
-      "summary_cn": "Trump祝贺Nvidia录得962亿美元创纪录营收、2028年营收预增70%，公开为AI龙头背书。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk's Tesla Hikes Cybertruck Prices by More Than 7% Despite Sluggish Sales",
-      "url": "",
-      "published": "Thu, 27 Aug 2026 00:31:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车"
+        "航空航天"
       ],
       "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 60,
-      "summary_cn": "Tesla在Cybertruck销量疲软背景下仍涨价逾7%，需求疲软+提价令市场担忧基本面。"
+      "stance": "endorse",
+      "relevance": 52,
+      "summary_cn": "与第3条重复报道孟加拉国采购波音飞机，仅留信息量更高的一条，此条不另列（已合并）。"
     }
   ],
   "sector_hits": [
     {
-      "author": "Trump",
-      "text": "FBI Shuts Down Sprawling China-Linked Hacking Network: https://www.wsj.com/tech/cybersecurity/fbi-shuts-down-sprawling-china-linked-hacking-network-61eade59",
-      "url": "https://trumpstruth.org/statuses/41342",
-      "published": "2026-08-28T18:05:46+00:00",
-      "origin": "truthsocial",
+      "author": "Musk",
+      "text": "Elon Musk Envisions SpaceX Revenue To Hit $3.5 Trillion, Seven Years Ahead Of Morgan Stanley Estimates",
+      "url": "",
+      "published": "Thu, 27 Aug 2026 23:45:28 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "网络安全",
-        "中美关系"
+        "航天"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 72,
+      "summary_cn": "Musk预计SpaceX年化营收将达3.5万亿美元，远超摩根士丹士预测，对kcn持有的SpaceX及杠杆标的（SPCX/SPCH/RKLX）形成强烈看多背书。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk Owns 48.4% of SpaceX, a New Filing Shows. Here's Why That Matters for Everyone Else Holding the Stock.",
+      "url": "",
+      "published": "Sun, 30 Aug 2026 14:15:00 GMT",
+      "origin": "gnews-rss",
+      "source": "The Motley Fool",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "私募股权"
+      ],
+      "sector_holdings": [
+        "RKLX",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 70,
+      "summary_cn": "披露Musk持有SpaceX 48.4%股份的新文件，强化SpaceX股东价值叙事，利好kcn持有的SpaceX相关标的。"
+    },
+    {
+      "author": "Musk",
+      "text": "Musk’s faster path to more gas turbines comes with pollution problem",
+      "url": "",
+      "published": "Sun, 30 Aug 2026 16:54:25 GMT",
+      "origin": "gnews-rss",
+      "source": "TechCrunch",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "能源",
+        "电力设备",
+        "AI基础设施"
       ],
       "sector_holdings": [
         "SKHY"
       ],
       "stance": "neutral",
       "relevance": 55,
-      "summary_cn": "FBI端掉一个中国关联的大规模黑客网络，中美科技/网络对抗升级，半导体供应链紧张感增加。"
+      "summary_cn": "Musk为加速AI算力部署大量上马燃气轮机，但带来污染争议，对电力/能源设备板块（含SK海力士所在的半导体电力需求链）有间接影响。"
     },
     {
       "author": "Trump",
-      "text": "Iran Is a Failing Nation! President DJT",
-      "url": "https://trumpstruth.org/statuses/41296",
-      "published": "2026-08-27T22:31:58+00:00",
+      "text": "Congratulations to NASA Administrator Jared Isaacman, and the Great Patriots at NASA, on a successful launch. This is THE GOLDEN AGE OF AMERICA! President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/41389",
+      "published": "2026-08-30T13:59:40+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "地缘政治",
-        "能源",
-        "国防"
+        "航天"
       ],
       "sector_holdings": [
-        "02208"
-      ],
-      "stance": "attack",
-      "relevance": 55,
-      "summary_cn": "Trump称伊朗是'失败国家'，对伊强硬姿态升级，可能扰动油价和地缘风险。"
-    },
-    {
-      "author": "Trump",
-      "text": "RT: https://truthsocial.com/users/realDonaldTrump/statuses/117173814168760364So big a deal!",
-      "url": "https://trumpstruth.org/statuses/41316",
-      "published": "2026-08-28T15:22:02+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI"
-      ],
-      "sector_holdings": [
-        "SKHY"
+        "SPCH",
+        "SPCX"
       ],
       "stance": "endorse",
+      "relevance": 55,
+      "summary_cn": "特朗普祝贺NASA及局长Isaacman成功发射，航天板块情绪利好，软关联到kcn持有的SpaceX相关标的。"
+    },
+    {
+      "author": "Musk",
+      "text": "OpenAI to end model access to Cursor after acquisition by Elon Musk's SpaceX",
+      "url": "",
+      "published": "Sat, 29 Aug 2026 19:05:55 GMT",
+      "origin": "gnews-rss",
+      "source": "CNBC",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI",
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "neutral",
       "relevance": 50,
-      "summary_cn": "Trump转发某条内容并称'超大事件'，疑似关联AI/重大政策利好，未具名。"
+      "summary_cn": "报道称OpenAI将在Musk旗下SpaceX收购Cursor后切断其模型访问，间接凸显SpaceX跨界AI布局，软关联到kcn持有的SpaceX标的。"
     }
   ]
 }
