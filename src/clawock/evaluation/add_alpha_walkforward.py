@@ -13,10 +13,12 @@ import json
 import math
 import random
 import statistics
+import time
 from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
 
+from clawock import seeds
 from clawock import history_store
 from clawock.decision import add_alpha, early_trend, signals
 from clawock.evaluation import bootstrap as block_bootstrap
@@ -149,7 +151,7 @@ def _cluster_ci(rows, field, samples=1000):
     dates = sorted(by_date)
     if len(dates) < 3:
         return None
-    rnd = random.Random(20260813)
+    rnd = random.Random(seeds.seed('add_alpha_cluster_bootstrap'))
     draws = []
     for _ in range(samples):
         chosen = [rnd.choice(dates) for _ in dates]
@@ -747,6 +749,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--no-card", action="store_true")
     args = parser.parse_args(argv)
+    started_at = time.monotonic()
     config = _json(FACTOR_CONFIG)
     policy = _json(ALPHA_POLICY)
     news_policy = _json(NEWS_POLICY)
@@ -805,6 +808,11 @@ def main(argv=None):
             inputs=inputs,
             metrics=metrics,
             code_files=[Path(__file__), Path(add_alpha.__file__), Path(early_trend.__file__)],
+            # The thresholds this run used come out of these files; recording
+            # only the ones passed explicitly described a policy whose other
+            # contents also decided the answer (#1139).
+            config_files=[FACTOR_CONFIG, ALPHA_POLICY, NEWS_POLICY],
+            started_at=started_at,
             notes=[
                 "US and HK are ranked and evaluated separately.",
                 "Production classify_authority and confirmation primitives are reused directly.",

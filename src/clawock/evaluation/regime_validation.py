@@ -58,6 +58,7 @@ from pathlib import Path
 
 import requests
 
+from clawock import seeds
 from clawock.decision import regime as compute_regime
 from clawock.evaluation import cscv
 from clawock.evidence import run_card
@@ -401,7 +402,7 @@ def overfitting_probability(closes, *, ma_grid=MA_GRID, vol_grid=VOL_CAP_GRID,
 
 # ── 2. permutation ──────────────────────────────────────────────────────────
 
-def permutation_test(returns, exposure, *, permutations=2000, seed=20260802):
+def permutation_test(returns, exposure, *, permutations=2000, seed=seeds.seed('regime_permutation')):
     """Circular-shift null: same exposure path, wrong place in time.
 
     Shuffling the exposure vector outright would destroy its autocorrelation and

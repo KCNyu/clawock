@@ -41,6 +41,7 @@ from datetime import date as real_date
 from datetime import date
 from pathlib import Path
 
+from clawock import seeds
 from clawock import history_store
 from clawock import instruments
 from clawock import sessions as trading_calendar
@@ -143,7 +144,7 @@ def clustered_ci(observations, samples=2000):
     tickers = sorted({row['ticker'] for row in observations})
     if len(dates) < 2 or len(tickers) < 2:
         return None
-    rnd = random.Random(20260717)
+    rnd = random.Random(seeds.seed('decision_cluster_bootstrap'))
     draws = []
     for _ in range(samples):
         date_counts = {d: 0 for d in dates}

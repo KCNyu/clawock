@@ -72,9 +72,11 @@ import argparse
 import json
 import math
 import statistics
+import time
 from collections import defaultdict
 from pathlib import Path
 
+from clawock import seeds
 from clawock import history_store
 from clawock.decision.ledger import leg_sessions, load_ticker_bars
 from clawock.decision.setup_review import wilson_ci
@@ -486,7 +488,7 @@ def daily_ics(rows, horizon: str) -> dict:
     return out
 
 
-def _cluster_ci(values_by_day: dict, samples: int = 2000, seed: int = 20260829):
+def _cluster_ci(values_by_day: dict, samples: int = 2000, seed: int = seeds.seed('signal_panel_cluster_bootstrap')):
     """Bootstrap over sessions, not rows — one busy day is one observation."""
     import random
 
@@ -962,6 +964,7 @@ def main(argv=None) -> int:
                         help='print the panel rows instead of the scorecard')
     parser.add_argument('--no-card', action='store_true')
     args = parser.parse_args(argv)
+    started_at = time.monotonic()
 
     panel = build_panel()
     if args.panel:
@@ -1083,6 +1086,8 @@ def main(argv=None) -> int:
                     'floors': {'min_sessions': MIN_SESSIONS,
                                'min_observations': MIN_OBSERVATIONS},
                     'entry': 'first close strictly after the snapshot'},
+            config_files=[WS / 'config' / 'factor-universe.json'],
+            started_at=started_at,
             inputs=[{'symbol': name, 'source': 'registered point-in-time history',
                      'bars': len(history_store.load_series(DATA / name)),
                      'first_session': None, 'last_session': None,

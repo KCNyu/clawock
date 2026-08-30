@@ -24,6 +24,7 @@ from pathlib import Path
 
 import requests
 
+from clawock import seeds
 from clawock import history_store
 from clawock.market_data import bar_signals
 from clawock.safe_io import safe_write_json, safe_write_text
@@ -555,7 +556,7 @@ def clustered_mean_ci(observations, samples=1000):
     tickers = sorted({row['ticker'] for row in observations})
     if len(dates) < 2 or len(tickers) < 2:
         return None
-    rnd = random.Random(20260726)
+    rnd = random.Random(seeds.seed('factor_walk_forward_bootstrap'))
     draws = []
     for _ in range(samples):
         date_counts = {value: 0 for value in dates}
