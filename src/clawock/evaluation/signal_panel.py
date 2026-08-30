@@ -81,6 +81,7 @@ from clawock.decision.setup_review import wilson_ci
 from clawock.evaluation import cscv
 from clawock.evidence import run_card
 from clawock.instruments import canonical_bar_manifest
+from clawock.labeling import triple_barrier
 from clawock.workspace import workspace_root
 
 WS = workspace_root(Path.cwd())
@@ -316,6 +317,89 @@ def forward_returns(ticker: str, leg: str, as_of: str,
     return out
 
 
+#: Barriers in units of the name's own daily volatility. Two up, one down is
+#: the asymmetry the book's own rule already has — a chandelier stop exits on a
+#: single adverse move while a target is only reached by a sustained one — and
+#: it is pre-registered here rather than searched.
+BARRIER_PROFIT_MULTIPLE = 2.0
+BARRIER_STOP_MULTIPLE = 1.0
+
+_barrier_cache: dict = {}
+
+
+def _bar_series(ticker: str, leg: str):
+    """The name's bars as an ordered list, keyed by leg session, cached.
+
+    `triple_barrier` walks forward bar by bar and needs highs and lows; the
+    panel's own `load_ticker_bars` returns a date-keyed dict, and rebuilding the
+    ordered list for ten thousand rows is the whole cost of the path-aware
+    outcome.
+    """
+    key = (ticker, leg)
+    if key not in _barrier_cache:
+        bars = load_ticker_bars(ticker) or {}
+        days = [day for day in leg_sessions(leg) if day in bars]
+        series = []
+        for day in days:
+            bar = bars.get(day) or {}
+            close = _number(bar.get('close'))
+            high = _number(bar.get('high'))
+            low = _number(bar.get('low'))
+            if close is None:
+                continue
+            series.append({'date': day, 'close': close,
+                           'high': high if high is not None else close,
+                           'low': low if low is not None else close})
+        volatility = triple_barrier.daily_volatility(
+            [bar['close'] for bar in series])
+        _barrier_cache[key] = (series, {bar['date']: index
+                                        for index, bar in enumerate(series)},
+                               volatility)
+    return _barrier_cache[key]
+
+
+def path_aware_returns(ticker: str, leg: str, as_of: str,
+                       horizons=HORIZONS) -> dict:
+    """The same forward windows, ended by whichever barrier is touched first.
+
+    `forward_returns` above scores every signal against the close `h` sessions
+    later, which is the outcome of a position this book does not hold: it runs a
+    chandelier stop, and a breach is a standard exit rather than a paper loss to
+    sit through. A name that fell 18% intraday on day two and closed the week up
+    3% is `+3%` to that function and would have been `-18%` in the account.
+
+    The barrier is the book's real one — `22d high - 3 x ATR(14)`, recomputed at
+    every step so it trails — and intraday touches count, because a stop checked
+    only at the close is not the stop being run.
+    """
+    series, index_of, volatility = _bar_series(ticker, leg)
+    if not series:
+        return {}
+    entry_index = None
+    for index, bar in enumerate(series):
+        if bar['date'] > as_of:
+            entry_index = index
+            break
+    if entry_index is None or entry_index >= len(volatility):
+        return {}
+    unit = volatility[entry_index]
+    if not unit:
+        return {}
+    out = {}
+    for horizon in horizons:
+        if entry_index + horizon >= len(series):
+            continue
+        result = triple_barrier.apply_barriers(
+            series, entry_index, horizon=horizon,
+            profit_multiple=BARRIER_PROFIT_MULTIPLE,
+            stop_multiple=BARRIER_STOP_MULTIPLE, volatility=unit,
+            use_chandelier=True)
+        if result:
+            out[f'p{horizon}'] = round(100 * result['return'], 6)
+            out[f'b{horizon}'] = result['barrier']
+    return out
+
+
 def build_panel(data_dir: Path | None = None, manifest=None) -> list[dict]:
     """Long-format panel: one row per (session, ticker, signal)."""
     data_dir = Path(data_dir or DATA)
@@ -341,6 +425,7 @@ def build_panel(data_dir: Path | None = None, manifest=None) -> list[dict]:
                 forward = forward_returns(ticker, leg, as_of)
                 if not forward:
                     continue
+                forward.update(path_aware_returns(ticker, leg, as_of))
                 # One observation per (session, ticker, signal). The T+0 setup
                 # history writes ~14 intraday snapshots a day, so without this a
                 # ticker enters that session's cross-section fourteen times and
@@ -762,6 +847,44 @@ def _factor_weights() -> dict:
         return {}
 
 
+#: Signals whose *definition* contains the barrier's own rule. Scoring these
+#: against a stop-based label is close to tautological: `quant.stop_distance_pct`
+#: is literally the distance to the chandelier stop, so a name near it is stopped
+#: out on the first adverse session by construction, and its -0.63 path-aware IC
+#: is a restatement of the label rather than a finding about the signal. Named
+#: here so the panel prints the warning instead of a reader having to notice.
+CIRCULAR_AGAINST_BARRIER = {
+    'quant.stop_distance_pct': 'the barrier is this signal, measured from the other side',
+    'quant.rsi14': 'oversold names are the ones already near the trailing stop',
+    'quant.zscore20': 'same drawdown, expressed in standard deviations',
+    'quant.mom_1m': 'a falling month is a name that has already run down to its stop',
+}
+
+
+def _barrier_mix(panel) -> dict:
+    """Which barrier ended each window, per horizon.
+
+    Published because it is how the path-aware column is read: a horizon whose
+    outcomes are 70% `stop` is describing a rule that mostly gets stopped out,
+    and any IC computed over it is a statement about that fact as much as about
+    the signal.
+    """
+    out = {}
+    for horizon in HORIZONS:
+        seen = {}
+        for row in panel:
+            barrier = row.get(f'b{horizon}')
+            if barrier:
+                seen[barrier] = seen.get(barrier, 0) + 1
+        if seen:
+            total = sum(seen.values())
+            out[f'p{horizon}'] = {
+                **seen,
+                'stopped_share': round(seen.get('stop', 0) / total, 4),
+            }
+    return out
+
+
 def evaluate(panel) -> dict:
     by_signal = defaultdict(list)
     for row in panel:
@@ -770,6 +893,17 @@ def evaluate(panel) -> dict:
         signal: {
             **{horizon: score_signal(rows, horizon)
                for horizon in ('t1', 't5', 't20')},
+            # The same signal against an outcome the book could have realised:
+            # each window ended by whichever barrier is touched first, with the
+            # production chandelier stop trailing underneath (#1164). The pair
+            # is the point — a signal whose IC survives the stop and one whose
+            # IC was an artefact of holding through the drawdown look identical
+            # on the fixed-horizon column alone.
+            'path_aware': {
+                **{horizon: score_signal(rows, horizon)
+                   for horizon in ('p1', 'p5', 'p20')},
+                'circular_against_barrier': CIRCULAR_AGAINST_BARRIER.get(signal),
+            },
             # Alphalens' two questions that a mean IC cannot answer (#1161):
             # where in the cross-section the information sits, and what holding
             # the signal would cost to maintain.
@@ -785,6 +919,7 @@ def evaluate(panel) -> dict:
         'method': ('cross-sectional rank IC per session, averaged; interval '
                    'bootstrapped over sessions; directional hit rate only where '
                    'the direction was registered in advance'),
+        'barriers': _barrier_mix(panel),
         'coverage': {
             'rows': len(panel),
             'signals': len(by_signal),
@@ -894,6 +1029,28 @@ def main(argv=None) -> int:
     print('  q1 = lowest signal value. spread = q3 - q1, interval clustered by '
           'session. turnover = share of the top bucket replaced between '
           'consecutive registered sessions: an edge quoted without it is gross.')
+
+    path_horizon = 'p' + args.horizon[1:]
+    barriers = result['barriers'].get(path_horizon) or {}
+    if barriers:
+        print(f'\n--- {args.horizon} against an outcome the book could have held '
+              f'(trailing chandelier stop; {barriers["stopped_share"]:.0%} of '
+              f'windows end at the stop) ---')
+        print(f'{"signal":<28}{"fixed":>9}{"path-aware":>12}{"delta":>9}  note')
+        for signal, sections in result['signals'].items():
+            fixed = sections[args.horizon]
+            aware = sections['path_aware'][path_horizon]
+            if fixed['mean_ic'] is None or aware['mean_ic'] is None:
+                continue
+            note = sections['path_aware'].get('circular_against_barrier')
+            marks = ('*' if fixed['ic_clears_zero'] else ' ') + \
+                    ('*' if aware['ic_clears_zero'] else ' ')
+            print(f'{signal:<28}{fixed["mean_ic"]:>+9.4f}{aware["mean_ic"]:>+12.4f}'
+                  f'{aware["mean_ic"] - fixed["mean_ic"]:>+9.4f}  {marks}'
+                  f'{"  CIRCULAR: " + note if note else ""}')
+        print('  the fixed column scores a position held to the horizon through '
+              'any drawdown; this book exits on a chandelier breach, so where '
+              'the two disagree the fixed one is describing a trade nobody made.')
 
     polarity = result['composite_polarity'][args.horizon]
     if polarity.get('status') == 'measured':
