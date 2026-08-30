@@ -152,6 +152,17 @@ def setup_signals(payload) -> list[tuple[str, str, float]]:
 
 
 def factor_signals(payload) -> list[tuple[str, str, float]]:
+    """The composite, its market percentile, and every constituent rank.
+
+    The constituents are what make the composite diagnosable (#1133). Scoring
+    only the weighted mean cannot separate the two explanations for a negative
+    IC — one factor entering with a reversed polarity, or nine factors having an
+    ordinary bad month — and those need different responses: the first is a
+    defect with a regression test, the second is evidence to re-check when the
+    panel is three times longer. Snapshots registered before the constituents
+    were persisted simply contribute no constituent rows, which the panel's own
+    per-signal session counts already make visible.
+    """
     out = []
     for ticker, row in _rows_of(payload).items():
         if not isinstance(row, dict):
@@ -160,6 +171,12 @@ def factor_signals(payload) -> list[tuple[str, str, float]]:
             value = _number(row.get(field))
             if value is not None:
                 out.append((str(ticker), f'factor.{field}', value))
+        ranks = row.get('sector_neutral_ranks')
+        if isinstance(ranks, dict):
+            for factor, value in ranks.items():
+                number = _number(value)
+                if number is not None:
+                    out.append((str(ticker), f'factor.rank.{factor}', number))
     return out
 
 
@@ -464,6 +481,112 @@ def selection_pbo(panel, horizon: str, *, groups: int = 8) -> dict:
     return result
 
 
+#: Every constituent of the cross-sectional composite enters with a positive
+#: weight over a centered rank, so the composite's own construction declares each
+#: one "higher is better". That declaration is what the measured IC sign is
+#: compared against; it is read from the same weights the composite uses rather
+#: than typed here twice.
+def composite_polarity(signals, horizon: str, *, weights=None) -> dict:
+    """Is the composite's negative IC one broken factor or a bad month? (#1133)
+
+    The two explanations demand opposite responses — a reversed polarity is a
+    defect to fix with a regression test, an adverse regime is evidence to
+    re-check when the panel is three times longer — and at eighteen sessions
+    they look identical from the composite alone. The discriminator is not
+    statistical, it is structural: **a polarity error lives in one factor.** If
+    one constituent carries essentially all of the negative IC while the rest
+    straddle zero, the composite is broken. If five constituents are negative
+    together, the cross-section simply ranked the other way this month, and
+    inverting anything would be the exact search this repository refuses.
+
+    Reports the split and the verdict; it never changes a sign.
+    """
+    weights = weights or {}
+    rows = []
+    for signal, horizons in signals.items():
+        if not signal.startswith('factor.rank.'):
+            continue
+        row = horizons.get(horizon) or {}
+        if row.get('mean_ic') is None or not row.get('n_sessions'):
+            continue
+        rows.append({
+            'factor': signal[len('factor.rank.'):],
+            'declared_direction': 'higher_is_better',
+            'weight': weights.get(signal[len('factor.rank.'):]),
+            'mean_ic': row['mean_ic'],
+            'measured_direction': ('higher_is_better' if row['mean_ic'] > 0
+                                   else 'higher_is_worse'),
+            'agrees_with_declaration': row['mean_ic'] > 0,
+            'ic_clears_zero': bool(row.get('ic_clears_zero')),
+            'n_sessions': row['n_sessions'],
+            'n_observations': row['n_observations'],
+        })
+    composite = (signals.get('factor.composite_score') or {}).get(horizon) or {}
+    if not rows:
+        return {'status': 'no_constituents',
+                'reason': ('no snapshot in the registered history carries '
+                           'sector_neutral_ranks; run '
+                           '`clawock factors --backfill-history-ranks`'),
+                'composite_mean_ic': composite.get('mean_ic'),
+                'constituents': []}
+    rows.sort(key=lambda row: row['mean_ic'])
+    negative_clearing = [row for row in rows
+                         if row['ic_clears_zero'] and row['mean_ic'] < 0]
+    total_negative = sum(-row['mean_ic'] for row in rows if row['mean_ic'] < 0)
+    worst_share = ((-rows[0]['mean_ic'] / total_negative)
+                   if total_negative > 0 else None)
+    if composite.get('mean_ic') is not None and composite['mean_ic'] >= 0:
+        verdict = 'composite_is_not_negative_at_this_horizon'
+    elif len(negative_clearing) >= 3:
+        verdict = 'regime'
+    elif len(negative_clearing) == 1 and worst_share is not None and worst_share > 0.6:
+        verdict = 'polarity_suspect'
+    else:
+        verdict = 'inconclusive'
+    return {
+        'status': 'measured',
+        'horizon': horizon,
+        'composite_mean_ic': composite.get('mean_ic'),
+        'composite_n_sessions': composite.get('n_sessions'),
+        'constituents': rows,
+        'n_constituents': len(rows),
+        'n_negative_clearing_zero': len(negative_clearing),
+        'worst_factor': rows[0]['factor'],
+        'worst_factor_share_of_negative_ic': (round(worst_share, 4)
+                                              if worst_share is not None else None),
+        'verdict': verdict,
+        'reading': {
+            'polarity_suspect': ('one constituent carries the negative IC: read '
+                                 'the composite construction for a reversed sign '
+                                 'and pin the direction with a test'),
+            'regime': ('several independent constituents ranked backwards '
+                       'together: this is a month, not a defect; record it with '
+                       'the session count and re-check when the panel is longer'),
+            'inconclusive': ('neither concentrated nor broad; do not act on the '
+                             'sign'),
+            'composite_is_not_negative_at_this_horizon': (
+                'nothing to discriminate at this horizon'),
+        }[verdict],
+        'discipline': ('this function never inverts a sign; at this sample size '
+                       'that would be the search the repository refuses'),
+    }
+
+
+def _factor_weights() -> dict:
+    """The registered composite weights, or {} when the config is unreadable.
+
+    Read rather than restated: a second copy of the weights would drift, and the
+    polarity table's whole claim is that it compares the measurement against the
+    composite's own declaration.
+    """
+    try:
+        return dict(json.loads(
+            (WS / 'config' / 'factor-universe.json').read_text(encoding='utf-8')
+        ).get('factor_weights') or {})
+    except (OSError, ValueError):
+        return {}
+
+
 def evaluate(panel) -> dict:
     by_signal = defaultdict(list)
     for row in panel:
@@ -492,6 +615,9 @@ def evaluate(panel) -> dict:
         'signals': signals,
         'selection': {horizon: selection_pbo(panel, horizon)
                       for horizon in ('t1', 't5', 't20')},
+        'composite_polarity': {
+            horizon: composite_polarity(signals, horizon, weights=_factor_weights())
+            for horizon in ('t1', 't5', 't20')},
         'claim': 'diagnostic_never_validated_alpha',
         # The one thing a reader will otherwise get wrong. The session bootstrap
         # treats sessions as exchangeable, which they are for t1 and are NOT for
@@ -561,6 +687,22 @@ def main(argv=None) -> int:
         if picked:
             print('  most often selected: '
                   + ' · '.join(f'{name} ({count})' for name, count in picked))
+    polarity = result['composite_polarity'][args.horizon]
+    if polarity.get('status') == 'measured':
+        print(f'\n--- composite: polarity or regime? ({polarity["n_constituents"]} '
+              f'constituents, {polarity["composite_n_sessions"]} sessions) ---')
+        print(f'{"factor":<26}{"weight":>8}{"declared":>10}{"mean IC":>10}'
+              f'{"measured":>16}')
+        for row in polarity['constituents']:
+            weight = f'{row["weight"]:.2f}' if row['weight'] is not None else '—'
+            mark = ' *' if row['ic_clears_zero'] else ''
+            print(f'{row["factor"]:<26}{weight:>8}{"+":>10}'
+                  f'{row["mean_ic"]:>+10.4f}'
+                  f'{("+" if row["agrees_with_declaration"] else "-"):>16}{mark}')
+        print(f'  verdict: {polarity["verdict"]} — {polarity["reading"]}')
+    elif polarity.get('status') == 'no_constituents':
+        print(f'\n--- composite polarity unavailable: {polarity["reason"]}')
+
     print('\n* = interval clears zero on a diagnostic sample. Never "validated": '
           'nothing here was pre-registered as a rule.')
     if args.horizon != 't1':

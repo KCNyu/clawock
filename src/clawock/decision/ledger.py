@@ -1978,7 +1978,18 @@ def compute_metrics(decisions: list[dict], window_days: int = 30,
         This is intentionally per decision rather than episode elected/averaged:
         every tactical tranche has its own packet, multiplier and forward path.
         Date-cluster intervals keep a busy news day from pretending to be many
-        independent samples. Empty cohorts are evidence of warm-up, not success.
+        independent samples.
+
+        **Empty is not always warm-up (#1132).** The eligible cohort is the
+        intersection of two conditions, and on the live ledger each one occurs
+        while the intersection never does: 7 rows are tactical-entry adds (all
+        of them older than packet emission) and 120 rows carry a v1 packet (all
+        of them on `hold_and_watch` or `cut`). An intersection that is empty
+        because its two sides do not overlap does not fill by waiting, and
+        printing `warming_up` for it told the dashboard to show progress where
+        there was none. `reachability` below publishes the three counts so the
+        difference between "small" and "unreachable" is visible in the payload
+        rather than inferred, and `status` says which one this is.
         """
         eligible = [
             row for row in rows
@@ -2049,13 +2060,118 @@ def compute_metrics(decisions: list[dict], window_days: int = 30,
                     for name, group in sorted(by_contributor.items())
                 },
             }
+        # Reachability is measured over the **whole ledger**, not the 30-day
+        # window the cohort above uses. The window is what hid this: the seven
+        # tactical adds are all older than thirty days, so inside the window the
+        # first count is zero and "warming up" reads as true. It is the lifetime
+        # counts that show the two sides never meet.
+        packet_rows = [
+            row for row in decisions
+            if isinstance(row.get("signal_provenance"), dict)
+            and (row.get("signal_provenance") or {}).get("schema_version") == 1
+        ]
+        tactical_adds = [
+            row for row in decisions
+            if row.get("strategy_id") == "tactical_entry"
+            and row.get("action") in ADD_ACTIONS
+        ]
+        lifetime_eligible = [
+            row for row in tactical_adds
+            if isinstance(row.get("signal_provenance"), dict)
+            and (row.get("signal_provenance") or {}).get("schema_version") == 1
+        ]
+
+        def _information(row):
+            return ((row.get("signal_provenance") or {}).get("information") or {})
+
+        def _sizing(row):
+            return ((row.get("signal_provenance") or {}).get("sizing") or {})
+
+        packet_actions = Counter(
+            str(row.get("action") or "unknown") for row in packet_rows)
+        usable_packets = [
+            row for row in packet_rows
+            if _information(row).get("usable_for_decisions")
+        ]
+        # The second gate, measured rather than assumed. `usable_for_decisions`
+        # is set by the information overlay's own activation checks; the packets
+        # carry how far along those are, so the answer to "what would flip it"
+        # is in the ledger instead of only in the evidence graph.
+        progress = {}
+        for row in packet_rows:
+            for name, pair in (_information(row).get("activation_progress") or {}).items():
+                if isinstance(pair, (list, tuple)) and len(pair) == 2:
+                    previous = progress.get(name)
+                    if previous is None or pair[0] > previous[0]:
+                        progress[name] = [pair[0], pair[1]]
+        blockers = sorted({
+            str(name) for row in packet_rows
+            for name in (_information(row).get("activation_blockers") or [])
+        })
+        reachability = {
+            "scope": "whole ledger, not the 30-day window",
+            "tactical_entry_adds": len(tactical_adds),
+            "rows_with_v1_packet": len(packet_rows),
+            "in_both": len(lifetime_eligible),
+            "in_both_in_window": len(eligible),
+            "packet_actions": dict(sorted(packet_actions.items())),
+            "packet_dates": len({row.get("plan_date") for row in packet_rows}),
+            "packets_with_usable_information": len(usable_packets),
+            "decisions_with_sizing_contributors": sum(
+                1 for row in packet_rows if _sizing(row).get("contributors")),
+            # Empty until packets written after #1132 land: the field is carried
+            # by the packet, and the 120 already on the ledger predate it. The
+            # blocker list is what the existing packets could say.
+            "information_activation_progress": progress,
+            "information_activation_blockers": blockers,
+        }
+        if eligible:
+            status = "collecting"
+        elif tactical_adds and packet_rows and not lifetime_eligible:
+            # Both sides occur; only the intersection does not. Waiting does not
+            # fix this, and the name has to say so.
+            status = "unreachable_cohort"
+        else:
+            status = "warming_up"
+        reachability["verdict"] = {
+            "collecting": "the cohort has rows; the interval is the question",
+            "unreachable_cohort": (
+                "both conditions occur separately and never together; this does "
+                "not fill by waiting"
+            ),
+            "warming_up": (
+                "at least one of the two conditions has never occurred; the "
+                "cohort is genuinely early"
+            ),
+        }[status]
+
         return {
-            "status": "collecting" if eligible else "warming_up",
+            "status": status,
             "n_eligible_decisions": len(eligible),
             "method": (
                 "prospective tactical-entry decisions only; immutable packet-time "
                 "snapshots; date-cluster CI; no retrospective reconstruction"
             ),
+            "reachability": reachability,
+            # The population that does occur, kept under its own name so it can
+            # never be read as the prospective cohort above. These are every
+            # packet-carrying decision split by the action actually taken —
+            # measurable today, and a different claim: it says what happened
+            # after a decision that saw the information layer, not what the
+            # information layer added to an add.
+            "packet_carrying_population": {
+                horizon: {
+                    action: bucket(
+                        [row for row in packet_rows if row.get("action") == action],
+                        key)
+                    for action in sorted(packet_actions)
+                }
+                for horizon, key in (
+                    ("t1", "benefit_t1_pct"),
+                    ("t5", "benefit_t5_pct"),
+                    ("t20", "benefit_t20_pct"),
+                )
+            },
             "horizons": horizons,
         }
 
