@@ -10,7 +10,8 @@
     "assets/data/em_news.json",
     "assets/data/decision_audit.json",
     "assets/data/shadow_portfolio.json",
-    "assets/data/brief_projection.json"
+    "assets/data/brief_projection.json",
+    "assets/data/decision_map.json"
   ],
   "required_pages": [
     "index.html",
@@ -19,6 +20,7 @@
     "briefs.html",
     "evidence.html",
     "faq.html",
+    "decimap/index.html",
     "llms.txt",
     "robots.txt",
     "sitemap.xml",
@@ -39,6 +41,7 @@
     "briefs.html",
     "evidence.html",
     "faq.html",
+    "decimap/index.html",
     "llms.txt",
     "robots.txt",
     "sitemap.xml",

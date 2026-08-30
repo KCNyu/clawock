@@ -3,15 +3,22 @@ import json
 import re
 import shutil
 import subprocess
+import sys
 import xml.etree.ElementTree as ET
+
+import pytest
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "ops" / "pages"))
+import prepare_pages_artifact  # noqa: E402
+from prepare_pages_artifact import rendered_pages  # noqa: E402
 CONTRACT = json.loads((ROOT / "config/pages-public.json").read_text())
 WORKFLOW = (ROOT / ".github/workflows/pages.yml").read_text()
 UI = (ROOT / "site/assets/js/dashboard.ui.js").read_text()
 INDEX = (ROOT / "site/index.html").read_text()
+DECIMAP = (ROOT / "site/decimap/index.html").read_text()
 INDEXNOW_KEY = "4fb2df1611ed42e5b67fd6171a237acb.txt"
 GOOGLE_VERIFICATION = "google7be5b41525cebe9d.html"
 
@@ -21,9 +28,19 @@ def _sidecar_keys() -> set[str]:
     return set(re.findall(r"([a-z][a-z0-9_]+)\s*:", block))
 
 
+def _page_fetches(source: str) -> set[str]:
+    """`assets/data/...json` a page fetches by literal name."""
+    return set(re.findall(r"'(assets/data/[a-z0-9_]+\.json)'", source))
+
+
 def test_every_browser_fetch_is_declared_public():
     expected = {"assets/data/overview.json", "assets/data/dashboard.json"}
     expected.update(f"assets/data/{key}.json" for key in _sidecar_keys())
+    # The dashboard is no longer the only page that fetches. `decimap` reads
+    # `decision_map.json` and shipped with it undeclared: a glob in
+    # `artifact_include` happened to publish it, so the page would have worked
+    # right up until the day the glob narrowed, with no gate in between.
+    expected.update(_page_fetches(DECIMAP))
 
     assert set(CONTRACT["browser_data"]) == expected
     for asset in (
@@ -223,6 +240,11 @@ def test_builder_stages_only_public_consumers(tmp_path):
         INDEXNOW_KEY, GOOGLE_VERIFICATION,
     ):
         (site / path).write_text("ok")
+    # Every page Jekyll renders out of site/ has to exist here, because the
+    # preparer now refuses to publish an artifact that is missing one.
+    for emitted in rendered_pages():
+        (site / emitted).parent.mkdir(parents=True, exist_ok=True)
+        (site / emitted).write_text("ok")
     (site / "sitemap.xml").write_text(
         '<?xml version="1.0" encoding="UTF-8"?>'
         '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
@@ -281,12 +303,80 @@ def test_builder_stages_only_public_consumers(tmp_path):
     assert (output / INDEXNOW_KEY).is_file()
     assert (output / GOOGLE_VERIFICATION).is_file()
     assert (output / "faq.html").is_file()
+    assert (output / "decimap/index.html").is_file()
     assert (output / "llms.txt").is_file()
     assert (output / "assets/data/dashboard.json").is_file()
     assert (output / "assets/data/overview.json").is_file()
     assert (ROOT / "site/assets/dashboard.gif").stat().st_size == source_gif_size
     assert all(path.is_file() for path in source_jsonl)
     assert "Pages artifact:" in result.stdout
+
+
+def _minimal_site(site: Path) -> None:
+    """The smallest `_site` the preparer accepts: everything required_pages names."""
+    shutil.copytree(ROOT / "site/assets", site / "assets")
+    shutil.copytree(ROOT / "assets/data", site / "assets/data", dirs_exist_ok=True)
+    for path in CONTRACT["required_pages"]:
+        target = site / path
+        if target.exists():
+            continue
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text("ok")
+    (site / "sitemap.xml").write_text(
+        '<?xml version="1.0" encoding="UTF-8"?>'
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+        '<url><loc>https://kcnyu.github.io/clawock/</loc></url>'
+        '</urlset>'
+    )
+
+
+def test_a_page_that_never_reaches_the_artifact_fails_the_build(tmp_path):
+    """The shape that made /decimap/ a 404 for its first hours on the site.
+
+    `site/decimap/index.html` existed, the shared nav linked to it, and the link
+    checker was satisfied because the *source* file was there. What decides
+    whether a URL exists is `artifact_include`, and nothing compared the two —
+    so the page was staged into `_site`, dropped on the way to `_pages`, and
+    every gate stayed green.
+    """
+    source_root = tmp_path / "repo"
+    (source_root / "site").mkdir(parents=True)
+    (source_root / "site" / "index.html").write_text("---\nlayout: null\n---\nok")
+    (source_root / "site" / "newpage.md").write_text("---\ntitle: new\n---\nbody")
+
+    site = tmp_path / "_site"
+    site.mkdir()
+    _minimal_site(site)
+    (site / "newpage.html").write_text("ok")
+
+    with pytest.raises(ValueError) as failure:
+        prepare_pages_artifact.prepare(site, tmp_path / "_pages",
+                                       source_root=source_root)
+    assert "newpage.html" in str(failure.value)
+    assert "artifact_include" in str(failure.value)
+
+
+def test_a_static_file_without_front_matter_is_not_treated_as_a_page(tmp_path):
+    """`optional_front_matter` is off, so Jekyll emits no page for one."""
+    source_root = tmp_path / "repo"
+    (source_root / "site").mkdir(parents=True)
+    (source_root / "site" / "index.html").write_text("---\nlayout: null\n---\nok")
+    (source_root / "site" / "README.md").write_text("# Website source\n")
+    assert set(prepare_pages_artifact.rendered_pages(source_root)) == {"index.html"}
+
+
+def test_every_page_in_the_site_source_is_published_or_declared_internal():
+    """The same check the builder runs, against the checkout's own contract."""
+    includes = CONTRACT["artifact_include"]
+    blocked = CONTRACT["repository_only"]
+    unreachable = sorted(
+        emitted for emitted in rendered_pages()
+        if not any(fnmatch.fnmatch(emitted, pattern) for pattern in includes)
+        and not any(fnmatch.fnmatch(emitted, pattern) for pattern in blocked)
+    )
+    assert unreachable == [], (
+        "pages exist under site/ that the Pages artifact never publishes: "
+        f"{unreachable}")
 
 
 def test_readme_gif_stays_available_from_repository():
