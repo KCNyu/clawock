@@ -80,7 +80,7 @@ broker, and the same script CI executes against every published wheel:
 - **The ledger has to reconcile.** A money-conservation check runs before every push; if cash, positions, and P&L don't balance, nothing is published.
 - **Built to keep running.** Scheduled Hong Kong and US sessions produce the daily briefs and refresh the live dashboard through the trading day.
 
-For the canonical EN/ZH rendering of every project term — composite, regime, DSR, CSCV, triple barrier, run card and the rest — see the [glossary](docs/glossary.md).
+For the canonical EN/ZH rendering of every project term — composite, regime, DSR, CSCV, triple barrier, run card and the rest — see `docs/glossary.md` on GitHub.
 
 ## How it works
 

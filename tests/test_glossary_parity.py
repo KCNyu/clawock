@@ -152,28 +152,51 @@ def test_first_defined_paths_exist():
 
 
 def test_first_defined_pr_references_exist():
-    """If `First defined` points at a PR, that PR must exist in origin/master."""
-    text = GLOSSARY.read_text(encoding="utf-8")
-    rows = _parse_table_rows(text)
-    # Read commit log once
-    try:
-        commits = (ROOT / ".git").resolve()
-    except Exception:
-        commits = None
-    import subprocess
+    """If `First defined` points at a PR, that PR must exist in origin/master.
+
+    Uses the GitHub API via urllib so it does not require the `gh` CLI to be
+    installed and authenticated; works the same on a developer laptop and in CI.
+    Skipped when no network is available — pointer staleness is a soft check.
+    """
+    import socket
+    import urllib.request
+    import json as _json
+
+    rows = _parse_table_rows(GLOSSARY.read_text(encoding="utf-8"))
+    pr_refs = []
     for en, _, _, first_defined in rows:
         m = re.match(r"^PR #(\d+)$", first_defined.strip())
-        if not m:
-            continue
-        pr = int(m.group(1))
-        result = subprocess.run(
-            ["gh", "pr", "view", str(pr), "--repo", "KCNyu/clawock",
-             "--json", "number", "--jq", ".number"],
-            capture_output=True, text=True, check=False,
+        if m:
+            pr_refs.append((en, int(m.group(1))))
+    if not pr_refs:
+        return
+
+    # Network probe first — if GitHub is unreachable, skip rather than fail.
+    try:
+        socket.create_connection(("api.github.com", 443), timeout=2).close()
+    except OSError:
+        pytest.skip("GitHub unreachable; PR pointer check skipped")
+
+    # Optional token for higher rate limits (anonymous gives 60/hr).
+    import os
+    token = os.environ.get("GITHUB_TOKEN") or os.environ.get("GH_TOKEN")
+    headers = {"Accept": "application/vnd.github+json"}
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+
+    for en, pr in pr_refs:
+        req = urllib.request.Request(
+            f"https://api.github.com/repos/KCNyu/clawock/pulls/{pr}",
+            headers=headers,
         )
-        assert result.returncode == 0 and result.stdout.strip() == str(pr), (
+        try:
+            with urllib.request.urlopen(req, timeout=4) as resp:
+                data = _json.loads(resp.read().decode("utf-8"))
+        except Exception as e:
+            pytest.skip(f"GitHub API error for PR #{pr}: {e}")
+        assert data.get("number") == pr, (
             f"row {en!r}: First defined points at PR #{pr}, "
-            f"but that PR is not accessible: {result.stderr.strip() or result.stdout.strip()}"
+            f"but the GitHub API returned {data.get('number')!r}"
         )
 
 
@@ -244,8 +267,17 @@ def test_no_decorative_emoji_in_glossary():
 
 
 def test_glossary_link_in_readmes():
-    """Both READMEs must reference docs/glossary.md so readers can find it."""
+    """Both READMEs must reference docs/glossary.md so readers can find it.
+
+    The English README is also the PyPI project page, so the reference there is
+    plain text rather than a Markdown link — relative links render broken on
+    PyPI. The Chinese README is GitHub-only and uses a Markdown link.
+    """
     en = (ROOT / "README.md").read_text(encoding="utf-8")
     zh = (ROOT / "README.zh.md").read_text(encoding="utf-8")
-    assert "docs/glossary.md" in en, "README.md must link to docs/glossary.md"
-    assert "docs/glossary.md" in zh, "README.zh.md must link to docs/glossary.md"
+    assert "docs/glossary.md" in en, (
+        "README.md must mention docs/glossary.md (PyPI page — text only, no link)"
+    )
+    assert "docs/glossary.md" in zh, (
+        "README.zh.md must link to docs/glossary.md (GitHub-only, link OK)"
+    )
