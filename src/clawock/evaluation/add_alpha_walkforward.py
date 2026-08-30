@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import copy
 import json
+import math
 import random
 import statistics
 from collections import defaultdict
@@ -18,6 +19,8 @@ from pathlib import Path
 
 from clawock import history_store
 from clawock.decision import add_alpha, early_trend, signals
+from clawock.evaluation import bootstrap as block_bootstrap
+from clawock.evaluation import cscv, deflated_sharpe
 from clawock.evidence import news_evidence_graph, run_card
 from clawock.market_data import factors, peer_residuals
 from clawock.workspace import workspace_root
@@ -159,6 +162,23 @@ def _cluster_ci(rows, field, samples=1000):
     ]
 
 
+def _block_ci(rows, field):
+    """Cluster-and-block bootstrap interval for the mean of `field`.
+
+    `_cluster_ci` above resamples dates independently, which is right for the
+    fills sharing a session and wrong for the sessions sharing a regime. This
+    one resamples runs of consecutive sessions instead, choosing the run length
+    from the data (Politis & White) and reporting it, so a reader can tell a
+    genuinely serially-independent series from one where the choice mattered.
+    """
+    by_date = defaultdict(list)
+    for row in rows:
+        value = _number(row.get(field))
+        if value is not None:
+            by_date[row["date"]].append(value)
+    return block_bootstrap.clustered_block_ci(by_date)
+
+
 def _summary(rows):
     values = [row["return"] for row in rows]
     excess = [row["excess_vs_setup"] for row in rows if row.get("excess_vs_setup") is not None]
@@ -173,6 +193,11 @@ def _summary(rows):
             round(statistics.fmean(excess), 6) if excess else None
         ),
         "excess_date_cluster_ci95": _cluster_ci(rows, "excess_vs_setup"),
+        # The same quantity under a resampling that also keeps the serial
+        # dependence (#1148). Both are printed because the difference is the
+        # finding: when the block length comes back 1 the two agree by
+        # construction, and when it does not, the older interval was narrow.
+        "excess_block_ci95": _block_ci(rows, "excess_vs_setup"),
         "status": (
             "diagnostic"
             if len({row["date"] for row in rows}) >= 8 and len(rows) >= 20
@@ -376,6 +401,94 @@ def _factor_rows(snapshot, config_by_ticker):
             ),
             "usable_for_decisions": False,
         }
+    return out
+
+
+#: Every cell a reader's eye can land on in the variant table: four variants
+#: across three horizons. The deflation has to be for the whole table, not for
+#: the row that happened to win, because the winner was chosen from all of it.
+SEARCH_SIZE = len(VARIANTS) * len(HORIZONS)
+
+
+def _daily_variant_matrix(market_observations, horizon):
+    """Per-session mean return of every variant, on the sessions all of them traded.
+
+    Restricted to the common sessions on purpose: the comparison being priced is
+    "which variant would I have picked", and a variant that only traded in the
+    good weeks would win that comparison by having skipped the bad ones rather
+    than by ranking better.
+    """
+    by_variant = {}
+    for variant in VARIANTS:
+        by_date = defaultdict(list)
+        for row in market_observations[variant][horizon]:
+            by_date[row["date"]].append(row["return"])
+        by_variant[variant] = {day: statistics.fmean(values)
+                               for day, values in by_date.items()}
+    common = sorted(set.intersection(*(set(values) for values in by_variant.values()))
+                    if by_variant else [])
+    matrix = [[by_variant[variant][day] for variant in VARIANTS] for day in common]
+    return common, matrix
+
+
+def _selection_rigor(observations):
+    """Price the variant search itself: PBO across splits, DSR against the null.
+
+    The variant table is a search — twelve cells, and the sentence a reader
+    writes from it names the best one. Two independent corrections say what that
+    sentence is worth, and they are reported together because they fail in
+    different directions:
+
+    * **PBO** (`evaluation.cscv`) resamples the *ranking*. It answers "when I
+      pick the winner on half the sessions, how often is it below median on the
+      other half". It needs enough sessions to fill eight groups and says
+      `insufficient_sample` rather than guessing.
+    * **DSR** (`evaluation.deflated_sharpe`) deflates the *level*. It answers
+      "how much of this Sharpe is the expected maximum of twelve draws". It
+      needs twenty sessions and the spread of the twelve Sharpe ratios.
+
+    A high DSR with a high PBO is a real edge whose ranking among near-ties is
+    unstable; the reverse is a stable ranking of a difference too small to
+    distinguish from the search. Neither number is the other's complement.
+    """
+    out = {}
+    for market, market_observations in observations.items():
+        per_market = {}
+        for horizon in HORIZONS:
+            sessions, matrix = _daily_variant_matrix(market_observations, horizon)
+            entry = {
+                "n_sessions_all_variants_traded": len(sessions),
+                "variants": list(VARIANTS),
+                "search_size": SEARCH_SIZE,
+            }
+            if not matrix:
+                entry["status"] = "no_common_sessions"
+                entry["pbo"] = None
+                entry["deflated_sharpe"] = None
+                per_market[f"t{horizon}"] = entry
+                continue
+            # One session is one observation here, so the embargo is measured in
+            # sessions and one session on each side is enough: the label is the
+            # forward return of a fill entered on that session, and the feature
+            # is that session's close.
+            entry["pbo"] = cscv.probability_of_backtest_overfitting(
+                matrix, lambda values: statistics.fmean(values) if values else None,
+                n_groups=8, embargo=max(1, horizon))
+            sharpes = [deflated_sharpe.sharpe([row[index] for row in matrix])
+                       for index in range(len(VARIANTS))]
+            best = max(range(len(VARIANTS)),
+                       key=lambda index: sharpes[index] if sharpes[index] is not None else -math.inf)
+            entry["best_variant_by_sharpe"] = VARIANTS[best] if sharpes[best] is not None else None
+            entry["variant_sharpe"] = {
+                variant: (round(value, 6) if value is not None else None)
+                for variant, value in zip(VARIANTS, sharpes)}
+            entry["deflated_sharpe"] = deflated_sharpe.deflated_sharpe_ratio(
+                [row[best] for row in matrix],
+                n_trials=SEARCH_SIZE,
+                trial_sharpes=[value for value in sharpes if value is not None])
+            entry["status"] = "measured"
+            per_market[f"t{horizon}"] = entry
+        out[market] = per_market
     return out
 
 
@@ -609,6 +722,7 @@ def evaluate(config, policy, news_policy, fetched, factor_history, peer_history,
         }
         for market, states in early_observations.items()
     }
+    metrics["selection_rigor"] = _selection_rigor(observations)
     metrics["coverage"] = {
         **coverage,
         "authority_classifications": authority_counts,
@@ -684,6 +798,9 @@ def main(argv=None):
                 "split_dimensions": ["structure", "vol_regime"],
                 "policy_version": add_alpha.POLICY_VERSION,
                 "parameter_fit": "none; pre-registered thresholds",
+                "search_size": SEARCH_SIZE,
+                "selection_corrections": ["cscv_pbo", "deflated_sharpe"],
+                "interval_estimator": "stationary block bootstrap over session clusters; BCa",
             },
             inputs=inputs,
             metrics=metrics,
@@ -696,6 +813,8 @@ def main(argv=None):
                 "Same-day entry/invalidation ambiguity is invalidated, never assumed filled.",
                 "Early candidates are one row per underlying and use signal-date-close features with T+1/T+5 future closes only as outcomes.",
                 "The early history is small; every result remains collecting/diagnostic, never validated alpha.",
+                "The variant table is a twelve-cell search: selection_rigor prices it with CSCV PBO (ranking) and the deflated Sharpe ratio (level). They are separate corrections and 1-DSR is not PBO.",
+                "Interval estimates resample runs of consecutive sessions, not single sessions; block length is chosen by Politis & White and printed, and a block length of 1 means the data showed no serial dependence.",
                 "Fills are sliced by price structure (breakout / near_high / deep_dip vs prior 20d high) and 20d volatility regime (high/low vs the ticker's own median): measurement only, no behavioural change (#1098/#1099).",
             ],
         )
