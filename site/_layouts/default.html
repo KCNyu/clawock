@@ -75,11 +75,37 @@
   }
   .nav-link:hover { color: var(--text); background: var(--card-2); }
   .nav-link.active { color: var(--accent); background: var(--card-2); }
+  /* Below this width the brand and five links stop fitting on one line. At
+     375px they come to roughly 382px, so `flex-wrap` broke the nav onto a
+     second line and `justify-content: space-between` then shoved that line
+     against the right edge — a ragged two-row header on every phone. Giving the
+     nav its own full-width row is the same information in a shape a phone can
+     hold. `nowrap` + `overflow-x: auto` is the safety valve: on a 320px screen,
+     or the day a sixth link is added, the failure mode is a scroll rather than
+     another ragged wrap. */
+  @media (max-width: 600px) {
+    header.topbar { padding: 8px 12px; }
+    .topbar-row { flex-wrap: wrap; row-gap: 4px; }
+    .brand { flex: 1 1 auto; }
+    .topbar-actions {
+      flex: 1 0 100%;
+      flex-wrap: nowrap;
+      justify-content: space-between;
+      overflow-x: auto;
+      scrollbar-width: none;
+      /* Bleed to the header's own padding so the first and last link sit flush
+         with the content below them instead of inside a phantom inset. */
+      margin: 0 -12px; padding: 0 12px; gap: 2px;
+    }
+    .topbar-actions::-webkit-scrollbar { display: none; }
+    /* A touch target, not a mouse target: 12.5px text with 8px of vertical
+       padding is ~37px tall, against the ~30px this row used to be. */
+    .nav-link { flex: 0 0 auto; padding: 8px 9px; font-size: 12.5px; }
+  }
   @media (max-width: 480px) {
     .brand-mark { width: 22px; height: 22px; }
     .brand h1 { font-size: 16px; }
     .brand .tag { display: none; }
-    .nav-link { padding: 5px 7px; font-size: 12px; }
   }
 
   /* Article */

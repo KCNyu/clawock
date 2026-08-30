@@ -64,6 +64,45 @@ def reconcile_sitemap(output_dir: Path, site_url: str) -> int:
     return removed
 
 
+
+def rendered_pages(source_root: Path = ROOT) -> dict[str, str]:
+    """Every page `site/` will make Jekyll render, and where it lands.
+
+    The allowlist decides what reaches the artifact, and until #1206 nothing
+    checked it against the pages that actually exist. `site/decimap/index.html`
+    shipped, the nav linked to it, `assets/data/decision_map.json` was public
+    because a glob happened to cover it — and the page itself was silently left
+    out of `artifact_include`, so /decimap/ was a 404 on a site whose every
+    other gate was green. A link check over the *source* tree cannot see that:
+    the file is there. Only the artifact knows.
+
+    Front matter is what makes a file a page (`optional_front_matter` is off in
+    `_config.yml`), so that is the test. Returns {artifact path: source path}.
+    """
+    site = source_root / "site"
+    out: dict[str, str] = {}
+    for source in sorted(site.rglob("*")):
+        if not source.is_file() or source.suffix not in {".html", ".md"}:
+            continue
+        relative = source.relative_to(site)
+        if relative.parts[0].startswith("_"):
+            continue  # _layouts, _includes: rendered into pages, never emitted
+        text = source.read_text(encoding="utf-8")
+        if not text.startswith("---"):
+            continue  # a static file, copied as-is; Jekyll emits no page for it
+        front = text.split("---", 2)[1] if text.count("---") >= 2 else ""
+        permalink = next((line.split(":", 1)[1].strip().strip("'\"")
+                          for line in front.splitlines()
+                          if line.startswith("permalink:")), None)
+        if permalink:
+            target = permalink.strip("/")
+            emitted = f"{target}/index.html" if target else "index.html"
+        else:
+            emitted = relative.with_suffix(".html").as_posix()
+        out[emitted] = relative.as_posix()
+    return out
+
+
 def prepare(
     site_dir: Path,
     output_dir: Path,
@@ -123,6 +162,20 @@ def prepare(
     ]
     if missing_pages:
         raise ValueError(f"required pages missing from artifact: {missing_pages}")
+
+    # Fail toward "a page nobody can reach is a build failure", not toward a
+    # silent 404. A new page under `site/` is publishable by default; keeping it
+    # out of the artifact is allowed, but only by saying so in `repository_only`.
+    unreachable = sorted(
+        f"{emitted} (from site/{source})"
+        for emitted, source in rendered_pages(source_root).items()
+        if not (output_dir / emitted).is_file()
+        and not any(fnmatch.fnmatch(emitted, blocked) for blocked in repository_only)
+    )
+    if unreachable:
+        raise ValueError(
+            "pages exist in site/ but are not in the published artifact — add "
+            f"them to artifact_include or to repository_only: {unreachable}")
 
     # Optional sidecars may not exist before their first producer run. Once one
     # exists in the checkout, Jekyll and the public staging step must preserve it.

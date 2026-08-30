@@ -82,8 +82,14 @@ DATA_GLOBS = [
     "openclaw-workspace-state.json",
 ]
 
-# Byte-identical to the grep -E patterns the inline detector carried.
-UI_RE = r"^(site/assets/(css|js)/|site/index\.html$|tests/dashboard_tab_runtime\.spec\.js$)"
+# Started byte-identical to the grep -E patterns the inline detector carried.
+# `site/_layouts/` and `site/decimap/` were added after the shared header
+# shipped a two-row nav to every phone: `site/index.html` is `layout: null`, so
+# the dashboard contract never renders the layout, and nothing in this pattern
+# used to make a change to it run a browser at all.
+UI_RE = (r"^(site/assets/(css|js)/|site/index\.html$|site/_layouts/|"
+         r"site/decimap/|"
+         r"tests/(dashboard_tab_runtime|site_layout_mobile)\.spec\.js$)")
 DSPLUGIN_RE = r"^(examples/dsh/|tests/decision_studio_plugin\.spec\.js$|tests/dsh_plugin_package_contract\.mjs$)"
 
 WORKFLOWS_PREFIX = ".github/workflows/"

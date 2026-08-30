@@ -13,6 +13,7 @@ site-wide nav worse than a missing one: it is spent on a URL that cannot exist.
 """
 from __future__ import annotations
 
+import fnmatch
 import json
 import re
 from pathlib import Path
@@ -26,6 +27,22 @@ SITE = ROOT / "site"
 # undeclared artifact is exactly the thing worth failing on.
 PUBLIC = json.loads((ROOT / "config" / "pages-public.json").read_text())
 PUBLISHED = set(PUBLIC["browser_data"]) | set(PUBLIC["required_pages"])
+
+
+def published(artifact_path: str) -> bool:
+    """Will the Pages artifact actually carry this path?
+
+    Existence in `site/` is not the question. `site/decimap/index.html` existed,
+    the nav linked to it, this check passed — and the page was a 404, because
+    `artifact_include` is what decides which files reach the artifact and
+    nothing compared the two. So the allowlist is the authority here.
+    """
+    if artifact_path in PUBLISHED:
+        return True
+    return (any(fnmatch.fnmatch(artifact_path, pattern)
+                for pattern in PUBLIC["artifact_include"])
+            and not any(fnmatch.fnmatch(artifact_path, pattern)
+                        for pattern in PUBLIC["repository_only"]))
 
 HREF = re.compile(r'href="([^"]+)"')
 MARKDOWN_LINK = re.compile(r'(?<!!)\[[^\]]*\]\(([^)\s]+)')
@@ -66,14 +83,17 @@ def internal_links() -> list[tuple[Path, str]]:
 def resolves(link: str) -> bool:
     relative = link.lstrip("/")
     if relative in {"", "./"}:
-        return (SITE / "index.html").exists()
+        return (SITE / "index.html").exists() and published("index.html")
     if relative in PUBLISHED:
         return True
     candidate = SITE / relative
-    if candidate.is_file():
-        return True
     if relative.endswith("/"):
-        return any((candidate / f"index{s}").exists() for s in (".html", ".md"))
+        # A directory URL is served by its index. Both halves have to hold: the
+        # source exists *and* the artifact carries it.
+        return (any((candidate / f"index{s}").exists() for s in (".html", ".md"))
+                and published(f"{relative}index.html"))
+    if candidate.is_file():
+        return published(relative)
     if relative.endswith(".html"):
         # Jekyll emits page.html from page.md — but only for a *page*, and what
         # makes a markdown file a page is front matter. `optional_front_matter`
@@ -82,7 +102,9 @@ def resolves(link: str) -> bool:
         # it exists, which is why linking to /README.html looked safe, and
         # /README.html has never resolved.
         source = candidate.with_suffix(".md")
-        return source.exists() and source.read_text(encoding="utf-8").startswith("---")
+        return (source.exists()
+                and source.read_text(encoding="utf-8").startswith("---")
+                and published(relative))
     return False
 
 

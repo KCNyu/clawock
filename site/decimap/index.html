@@ -31,7 +31,7 @@ permalink: /decimap/
     grid-template-columns: repeat(auto-fill, minmax(268px, 1fr)); }
   .dm-card { border: 1px solid var(--border); border-radius: var(--radius);
     background: var(--card); padding: 12px 13px; }
-  .dm-card h3 { margin: 0 0 2px; font-size: 13px; font-weight: 600; word-break: break-all; }
+  .dm-card h3 { margin: 0 0 2px; font-size: 13px; font-weight: 600; overflow-wrap: anywhere; }
   .dm-card .dm-kind { display: inline-block; font-size: 10.5px; letter-spacing: .06em;
     text-transform: uppercase; color: var(--text-dim); margin-bottom: 8px; }
   .dm-card .dm-cov { font-size: 12px; color: var(--text-dim); margin-bottom: 8px; }
@@ -49,7 +49,7 @@ permalink: /decimap/
   .dm-matrix th { text-align: left; color: var(--text-dim); font-weight: 500; white-space: nowrap; }
   .dm-matrix td { text-align: center; font-family: var(--mono); font-variant-numeric: tabular-nums; }
   .dm-matrix td.dm-empty { color: var(--text-dim); opacity: .45; }
-  .dm-matrix tbody th { text-align: left; word-break: break-all; }
+  .dm-matrix tbody th { text-align: left; overflow-wrap: anywhere; }
 
   .dm-timeline { border: 1px solid var(--border); border-radius: var(--radius);
     background: var(--card); padding: 4px 0; }
@@ -87,6 +87,36 @@ permalink: /decimap/
   @media (max-width: 640px) {
     .dm-row { grid-template-columns: 62px 1fr; }
     .decimap .dm-cards { grid-template-columns: 1fr; }
+    /* A right-hand slide-out is a desktop shape. On a phone `min(430px, 94vw)`
+       covered the page anyway, minus a 6% sliver of scrim nobody can aim at, so
+       it read as a broken full-screen view rather than a panel. A bottom sheet
+       is the same drawer in the shape the surface actually has: it keeps the
+       page's top edge visible, so there is somewhere obvious to tap back to. */
+    .dm-drawer {
+      inset: auto 0 0 0; width: 100%; max-height: 86vh;
+      border-left: 0; border-top: 1px solid var(--border);
+      border-radius: 14px 14px 0 0; padding: 18px 16px 32px;
+      transform: translateY(100%);
+    }
+    .dm-drawer .dm-close { font-size: 24px; padding: 4px 8px; top: 8px; right: 8px; }
+  }
+
+  /* Touch, not hover. The timeline dot is 9px across — under a finger that is a
+     coin toss between two adjacent decisions and the scrim behind them, and the
+     timeline is the page's only way into a decision. The dot grows a little and
+     grows a hit area that extends well past it *vertically*, where there is
+     nothing to mis-hit; horizontally it stays tight, because neighbouring dots
+     on a busy ticker are only a few pixels apart and slop there would just move
+     the mis-taps around. */
+  @media (pointer: coarse) {
+    .dm-row { padding: 7px 12px; }
+    .dm-track { height: 26px; }
+    .dm-dot { width: 12px; height: 12px; top: 7px; margin-left: -6px; }
+    .dm-dot::after { content: ''; position: absolute; inset: -11px -2px; }
+    .dm-dot:hover { transform: none; }
+    .dm-dot:focus-visible { transform: scale(1.4); }
+    .dm-filters select, .dm-filters button { padding: 9px 10px; }
+    .dm-close { min-width: 44px; min-height: 44px; }
   }
   @media (prefers-reduced-motion: reduce) {
     .dm-drawer, .dm-dot { transition: none; }

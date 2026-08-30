@@ -279,6 +279,13 @@ jobs:
         if: steps.changes.outputs.ui == 'true'
         run: node tests/dashboard_tab_runtime.spec.js
 
+      # The Jekyll chrome every non-dashboard page renders into. `site/index.html`
+      # is `layout: null`, so nothing above measures the shared header at all —
+      # which is how it shipped a two-row nav to every phone.
+      - name: Browser contract — the shared layout on a phone
+        if: steps.changes.outputs.ui == 'true'
+        run: node tests/site_layout_mobile.spec.js
+
       - name: Set up Node for Decision Studio plugin contract
         if: steps.changes.outputs.dsplugin == 'true'
         uses: actions/setup-node@v7
