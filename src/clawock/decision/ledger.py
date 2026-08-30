@@ -27,6 +27,7 @@ from collections import Counter, defaultdict
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
+from clawock import seeds
 from clawock import sessions as _cal
 from clawock.decision.mind_record import validate_mind_record
 # One implementation of the interval, not a second copy of the algebra: the
@@ -1134,7 +1135,7 @@ def _paired_block_ci(events: list[dict], samples: int = 2000) -> list[float] | N
     blocks = sorted(groups)
     if len(blocks) < 3:
         return None
-    rnd = random.Random(20260717)
+    rnd = random.Random(seeds.seed('decision_cluster_bootstrap'))
     draws = []
     for _ in range(samples):
         values = []
@@ -1402,7 +1403,7 @@ def _cluster_ci(rows: list[dict], value_fn, samples: int = 1000) -> list[float] 
     dates = sorted(groups)
     if len(dates) < 3:
         return None
-    rnd = random.Random(20260714)
+    rnd = random.Random(seeds.seed('decision_episode_bootstrap'))
     stats = []
     for _ in range(samples):
         vals = []

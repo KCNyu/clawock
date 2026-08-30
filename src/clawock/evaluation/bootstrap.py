@@ -51,6 +51,8 @@ import math
 import random
 import statistics
 
+from clawock import seeds
+
 #: Politis & White's own bound. Beyond this the "block" is a sizeable fraction
 #: of the sample and the resample stops being a resample.
 def _max_block(n: int) -> int:
@@ -260,7 +262,7 @@ def bca_interval(draws, point_estimate, jackknife_values, alpha: float = 0.05) -
 
 
 def clustered_block_ci(values_by_cluster: dict, *, samples: int = 2000,
-                       seed: int = 20260830, alpha: float = 0.05,
+                       seed: int = seeds.seed('block_bootstrap'), alpha: float = 0.05,
                        block_length: float | None = None) -> dict | None:
     """Confidence interval for the pooled mean under both dependencies.
 
