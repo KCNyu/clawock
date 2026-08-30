@@ -10,6 +10,7 @@ also blocked until historical universe membership is available.
 Writes:
   assets/data/cross_sectional_factor.json
   assets/data/cross_sectional_factor_history.jsonl
+  assets/data/bar_signal_history.jsonl
 """
 
 import argparse

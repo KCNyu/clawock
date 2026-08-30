@@ -591,6 +591,7 @@ def maybe_commit(status, today, dry_run=False):
                             'assets/data/quant_signal_review.json',
                             'assets/data/cross_sectional_factor.json',
                             'assets/data/cross_sectional_factor_history.jsonl',
+                            'assets/data/bar_signal_history.jsonl',
                             'assets/data/peer_residual.json',
                             'assets/data/peer_residual_history.jsonl',
                             'assets/data/catalysts.json',
