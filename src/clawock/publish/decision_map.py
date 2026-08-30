@@ -57,7 +57,11 @@ DATA = WS / 'assets' / 'data'
 LEDGER = WS / 'memory' / 'decisions.jsonl'
 OUT = DATA / 'decision_map.json'
 
-SCHEMA_VERSION = 1
+#: 2 adds `kpi` and `signal_panel` (#1194). Bumped rather than left alone
+#: because the payload gained blocks the page now reads unconditionally: a
+#: checkout carrying a version-1 file next to version-2 code is a stale artifact,
+#: and the published-payload test says so instead of skipping quietly.
+SCHEMA_VERSION = 2
 
 #: A snapshot older than this is a different market, and joining it to a
 #: decision would attribute one week's signals to another week's judgement.
@@ -78,6 +82,12 @@ MAX_BYTES = 200_000
 SIZE_MARGIN = 64
 
 HORIZONS = ('t1', 't5', 't20')
+
+#: What a card shows from the panel. Copied verbatim — a rounding here would be
+#: a third version of the number, differing from the panel in the last digit for
+#: no reason a reader could discover.
+PANEL_FIELDS = ('mean_ic', 'ic_cluster_ci95', 'n_observations', 'n_sessions',
+                'status', 'ic_clears_zero')
 
 
 def _extractors():
@@ -199,9 +209,57 @@ RATIONALE_VOCABULARY = (
 )
 
 
-def build(ledger_rows=None, data_dir: Path | None = None) -> dict:
+
+def panel_scores(data_dir: Path | None = None, evaluation: dict | None = None) -> dict:
+    r"""IC, its interval and the selection PBO — read from `signal_panel`.
+
+    Computing them here would give the site a second implementation of the same
+    number, and two implementations of one number are two things that can
+    disagree: the panel would report a signal's t5 IC as +0.19 while the card
+    beside the decisions it stood next to said +0.17, and nobody could say which
+    was wrong. `evaluation.signal_panel.evaluate` is the only place in this
+    repository a rank IC is computed. This republishes the fields the cards
+    render, unrounded and unrecomputed — `grep -rn 'spearman\|rank_ic'` over
+    this module is empty by construction, and a test keeps it that way.
+
+    The cost is about twenty seconds inside the dashboard publish, which is the
+    price of the numbers being the same numbers. `evaluation` is injectable so a
+    test does not pay it twice.
+    """
+    from clawock.evaluation import signal_panel
+
+    if evaluation is None:
+        evaluation = signal_panel.evaluate(signal_panel.build_panel(
+            Path(data_dir or DATA)))
+    coverage = evaluation['coverage']
+    by_signal = {
+        signal: {horizon: {field: sections[horizon][field] for field in PANEL_FIELDS}
+                 for horizon in HORIZONS}
+        for signal, sections in evaluation['signals'].items()
+    }
+    selection = {
+        horizon: {field: evaluation['selection'][horizon].get(field)
+                  for field in ('status', 'pbo', 'n_splits')}
+        for horizon in HORIZONS
+    }
+    return {
+        'as_of': coverage['last_session'],
+        'first_session': coverage['first_session'],
+        'sessions': coverage['sessions'],
+        'rows': coverage['rows'],
+        'selection': selection,
+        'by_signal': by_signal,
+        'method': evaluation['method'],
+        'interval_caveat': evaluation['interval_caveat'],
+        'source': 'clawock signal-panel (evaluation.signal_panel.evaluate)',
+    }
+
+
+def build(ledger_rows=None, data_dir: Path | None = None,
+          panel: dict | None = None) -> dict:
     """Assemble the payload. Pure — writing is a separate step."""
     data_dir = Path(data_dir or DATA)
+    panel = panel if panel is not None else panel_scores(data_dir)
     rows = ledger_rows if ledger_rows is not None else [
         json.loads(line) for line in LEDGER.read_text(encoding='utf-8').splitlines()
         if line.strip()]
@@ -291,6 +349,10 @@ def build(ledger_rows=None, data_dir: Path | None = None) -> dict:
             # section to say "count: 0" 150 times.
             'by_action': {action: _bucket(per_signal[signal][action])
                           for action in actions if per_signal[signal].get(action)},
+            # From the panel, not from here. A card whose signal never entered a
+            # scorable cross-section has no panel entry, and `null` says that
+            # rather than implying a measurement of zero.
+            'panel': panel['by_signal'].get(signal),
         })
 
     # Columnar, twice over. Repeating up to thirty-three signal names inside
@@ -330,6 +392,7 @@ def build(ledger_rows=None, data_dir: Path | None = None) -> dict:
                  for ticker, events in timelines.items()}
 
     dates = sorted(entry['plan_date'] for entry in lookup.values() if entry['plan_date'])
+    joined_any = sum(1 for entry in lookup.values() if entry['at'])
     return {
         'signal_order': signal_order,
         'schema_version': SCHEMA_VERSION,
@@ -347,6 +410,34 @@ def build(ledger_rows=None, data_dir: Path | None = None) -> dict:
                      'carries the age that was used'),
         },
         'actions': actions,
+        # One line, always on. Every number in it is echoed here rather than
+        # counted in the browser, so "the banner says 741" and "the payload
+        # holds 741" is a comparison a reader can make without reading the JS.
+        'kpi': {
+            'decisions': len(lookup),
+            'sessions': len(set(dates)),
+            'ticker_sessions': len({(entry['ticker'], entry['plan_date'])
+                                    for entry in lookup.values()}),
+            'tickers': len(timelines),
+            'signals_referenced': len(cards),
+            'decisions_with_any_signal': joined_any,
+            # The headline number of the whole page, and the one that is easiest
+            # to read as a verdict on the signals: it is not. A decision with no
+            # joined snapshot is one the registered histories did not exist for
+            # yet, not one the signals had nothing to say about.
+            'decision_signal_coverage_pct': round(
+                100 * joined_any / max(1, len(lookup)), 1),
+            'panel_as_of': panel['as_of'],
+            'reading': ('this counts a decision with at least one joined '
+                        'snapshot; no single source reaches half the book, and '
+                        'the per-source figure on each card is the one that says '
+                        'whether that source was there'),
+        },
+        # IC, its interval and the selection PBO, computed once by
+        # `clawock signal-panel` and republished — never recomputed here.
+        'signal_panel': {key: panel[key] for key in (
+            'as_of', 'first_session', 'sessions', 'rows', 'selection', 'method',
+            'interval_caveat', 'source')},
         'info_source_cards': cards,
         # The ROW B matrix is `info_source_cards[].by_action` — the same signal
         # x action buckets, computed once. Publishing it twice cost 43KB of a
@@ -374,6 +465,13 @@ DEGRADATION = (
     ('recent_decisions_only',
      f'signal snapshot kept for the most recent {DRAWER_LIMIT} decisions; older '
      f'ones keep their action, outcome and place on the timeline'),
+    # Between the two because of what it costs to recover. The panel block is
+    # 15KB and it is the only part of this payload that another command will
+    # reprint on demand (`clawock signal-panel`); the timelines and the drawer
+    # are the page. Without this step the fall from "the map is a little
+    # shorter" to "the map is a table of aggregates" was a single 9KB stumble.
+    ('no_panel_scores', 'per-signal IC and interval dropped; run '
+                        '`clawock signal-panel` for them'),
     ('cards_and_matrix_only', 'timelines and drawer dropped'),
 )
 
@@ -418,6 +516,12 @@ def degrade(payload: dict, max_bytes: int = MAX_BYTES) -> dict:
             payload['decision_snapshots'] = (
                 [None] * cut + rows[cut:])
         elif level == 'recent_decisions_only':
+            payload['info_source_cards'] = [
+                {key: value for key, value in card.items() if key != 'panel'}
+                for card in payload['info_source_cards']]
+            payload['signal_panel'] = dict(payload['signal_panel'],
+                                           dropped='payload budget')
+        elif level == 'no_panel_scores':
             payload['ticker_timelines'] = {}
             payload['decisions'] = {}
             payload['decision_snapshots'] = []

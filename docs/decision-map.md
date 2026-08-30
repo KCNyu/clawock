@@ -628,22 +628,40 @@ def test_rebuild_byte_identical_excluding_timestamp():
 
 **依赖**:Phase 2
 
-### Phase 4:与 #1131 signal-panel 字段复用 + KPI 收敛(1 PR,可选)
+### Phase 4:与 #1131 signal-panel 字段复用 + KPI 收敛(已交付,#1194)
 
-**触发条件**:Phase 3 合并
+**产物(实际)**:
+- `publish.decision_map.panel_scores()` 调 `evaluation.signal_panel.evaluate()`,
+  把 `mean_ic / ic_cluster_ci95 / n_observations / n_sessions / status /
+  ic_clears_zero` 原样搬进每张卡的 `panel` 块,**一位数都不四舍五入**。
+  `tests/test_decision_map.py::test_no_rank_correlation_is_computed_in_this_module`
+  用 tokenize 扫标识符钉死这一点(不是子串扫全文——模块的 docstring 本来就要
+  提 spearman 来解释为什么这里不算)。
+- PBO 是**挑选**的属性不是单个信号的属性,所以发一次在 `signal_panel.selection`,
+  页面印在卡片区上方,不进卡。
+- KPI 不新开一条 banner,而是把原来那条常驻状态条补全:
+  `N 决策 · N 个交易日 · N 票 · M 信号 · K% 有快照 · 首→末 · IC 面板至 X · payload N KB`。
+  每个数都在 payload 的 `kpi` 里 echo 一次,浏览器不再自己数。
+- 降级阶梯多一档 `no_panel_scores`,插在 `recent_decisions_only` 与
+  `cards_and_matrix_only` 之间:panel 块 15KB 且是**唯一另有命令能重印**的部分
+  (`clawock signal-panel`),而时间线和抽屉就是这一页本身。
 
-**产物**:
-- ROW A 的 IC/CI95/PBO 字段改为从 `signal-panel` 输出取,**不重复计算**
-- 加 `kpi:decision_count / kpi:active_signal_coverage / kpi:signal_to_decision_ratio`
-- 顶部摘要一行:`N decisions over N sessions · M signals referenced · KX decision-to-signal coverage`
+**成本**:decision-map 构建从 ~1s 变成 ~20s(build_panel 5s + evaluate 15s),
+落在 `_harness_common` 那 180s 超时里。这是「两处数字是同一个数字」的价钱。
 
-**验收**:IC/PBO 字段值与 `signal-panel --as-of` 输出 byte-identical
+**与原计划的出入**:`signal-panel` 没有 `--as-of` 这个 flag(它按注册历史的全期算),
+所以验收改成「同一次 build 里,卡上的值与 `signal_panel.evaluate()` 的输出逐字段相等」,
+实测 33 张卡 × 3 个 horizon **0 处不一致**。
+`kpi:signal_to_decision_ratio` 没做:它和 `decision_signal_coverage_pct` 是同一件事
+的两种写法,发两遍就是两个会打架的数。
 
-**依赖**:Phase 3 + #1131 PR 已是基线
+**注意**:`kpi.decision_signal_coverage_pct` 数的是「至少有一个源join上」的决策
+(实测 88.8%),和卡上「单个源覆盖率没有超过 42%」不矛盾也不可互换——payload 里
+`kpi.reading` 那行就是为了让人不要把前者读成对信号的判词。
 
 ### Phase 5:与 signal_panel 双向回写 + 历史回顾(可选,远期)
 
-**触发条件**:Phase 4 合并 + 用户多次反馈需求
+**触发条件**:Phase 4 合并(已满足) + 用户多次反馈需求
 
 **产物**:
 - "前 X 期表现"对比视图
