@@ -26,7 +26,7 @@ title: clawock · command reference
 
 ## Installed commands / 已安装命令
 
-**66 commands** are installed by the single `clawock` distribution: 54 CLI subcommands and 12 standalone scripts. 41 of them collect or compute information and appear under the layer they feed; the remaining 25 publish, gate, record or schedule, and are listed with the reason they are not collection.
+**67 commands** are installed by the single `clawock` distribution: 55 CLI subcommands and 12 standalone scripts. 41 of them collect or compute information and appear under the layer they feed; the remaining 26 publish, gate, record or schedule, and are listed with the reason they are not collection.
 
 本节由生成器从两份 registry 与 `config/information-layers.json` 推导，不手写；新增或删除一条命令，这张表自己会变。
 
@@ -134,6 +134,7 @@ These are installed commands too. They are listed here so the catalog is the who
 | Command | Module | Why it is not collection |
 |---|---|---|
 | `clawock dashboard-build` | `clawock.publish.dashboard` | publishes the dashboard projection from data the layers already produced |
+| `clawock decision-map` | `clawock.publish.decision_map` | joins decisions to signal histories the layers already collected and publishes the projection; it acquires nothing and decides nothing |
 | `clawock dashboard-outputs` | `clawock.publish.outputs` | publication ownership and semantic diffs for generated write sets |
 | `clawock validate-sidecar` | `clawock.publish.artifacts` | behavioral validation of a publication artifact |
 | `clawock evidence` | `clawock.evidence.build_evidence` | renders the public evidence page from artifacts; it collects nothing |

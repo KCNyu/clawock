@@ -318,6 +318,22 @@ def rebuild_dashboard(ws=None):
         build_ok = r.returncode == 0
         publish_ok = None
         full = r.stdout + r.stderr
+        # The decision map rides the same cadence but deliberately not the same
+        # generation: `clawock.publish.outputs` owns a four-file write set that
+        # is swapped in atomically, and a fifth file whose failure is survivable
+        # does not belong inside a contract whose whole point is that all four
+        # land or none do. It is a read-only view — a broken one costs a page,
+        # not a number — so its return code is recorded and never gates the
+        # publish.
+        if build_ok:
+            try:
+                mapped = subprocess.run(
+                    [sys.executable, '-m', 'clawock', 'decision-map'],
+                    capture_output=True, text=True, timeout=180, cwd=str(ws),
+                )
+                full += mapped.stdout + mapped.stderr
+            except (OSError, subprocess.SubprocessError) as error:
+                full += f'\ndecision-map: {error}'
         if build_ok:
             publish_ok, publish_detail = _publish_generation(ws)
             full += publish_detail

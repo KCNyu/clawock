@@ -1,0 +1,394 @@
+---
+layout: default
+title: clawock · Decision Map
+description: 741 条决策与它们做出时的信号快照，同一张表上。哪个信息源站在哪一类动作旁边，之后发生了什么。
+permalink: /decimap/
+---
+
+<style>
+  /* Decision Map. Scoped under .decimap so nothing here can reach the layout's
+     own typography rules for rendered brief content. */
+  .decimap { --dm-gap: 14px; font-size: 14px; }
+  .decimap h2 { margin: 26px 0 4px; font-size: 15px; letter-spacing: .01em; }
+  .decimap .dm-sub { margin: 0 0 12px; color: var(--text-dim); font-size: 12.5px; line-height: 1.55; }
+  .decimap .dm-mono { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+
+  .dm-status { display: flex; flex-wrap: wrap; gap: 8px 18px; padding: 12px 14px;
+    border: 1px solid var(--border); border-radius: var(--radius);
+    background: var(--card); margin: 4px 0 6px; }
+  .dm-status b { font-weight: 600; }
+  .dm-status .dm-warn { color: var(--red); }
+
+  .dm-filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0 6px; }
+  .dm-filters select, .dm-filters button {
+    font: inherit; color: var(--text); background: var(--card-2);
+    border: 1px solid var(--border); border-radius: var(--radius-sm);
+    padding: 6px 9px; }
+  .dm-filters button { cursor: pointer; }
+  .dm-filters button:hover { border-color: var(--accent); }
+
+  .dm-cards { display: grid; gap: var(--dm-gap);
+    grid-template-columns: repeat(auto-fill, minmax(268px, 1fr)); }
+  .dm-card { border: 1px solid var(--border); border-radius: var(--radius);
+    background: var(--card); padding: 12px 13px; }
+  .dm-card h3 { margin: 0 0 2px; font-size: 13px; font-weight: 600; word-break: break-all; }
+  .dm-card .dm-kind { display: inline-block; font-size: 10.5px; letter-spacing: .06em;
+    text-transform: uppercase; color: var(--text-dim); margin-bottom: 8px; }
+  .dm-card .dm-cov { font-size: 12px; color: var(--text-dim); margin-bottom: 8px; }
+  .dm-bar { height: 5px; border-radius: 3px; background: var(--card-2); overflow: hidden; margin: 6px 0 9px; }
+  .dm-bar > i { display: block; height: 100%; background: var(--accent); }
+  .dm-mini { width: 100%; border-collapse: collapse; font-size: 11.5px; }
+  .dm-mini th { text-align: right; font-weight: 500; color: var(--text-dim); padding: 2px 0 4px; }
+  .dm-mini th:first-child { text-align: left; }
+  .dm-mini td { text-align: right; padding: 2px 0; font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  .dm-mini td:first-child { text-align: left; font-family: inherit; }
+
+  .dm-matrix-wrap { overflow-x: auto; }
+  .dm-matrix { border-collapse: collapse; font-size: 12px; min-width: 640px; }
+  .dm-matrix th, .dm-matrix td { padding: 5px 9px; border-bottom: 1px solid var(--border); }
+  .dm-matrix th { text-align: left; color: var(--text-dim); font-weight: 500; white-space: nowrap; }
+  .dm-matrix td { text-align: center; font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  .dm-matrix td.dm-empty { color: var(--text-dim); opacity: .45; }
+  .dm-matrix tbody th { text-align: left; word-break: break-all; }
+
+  .dm-timeline { border: 1px solid var(--border); border-radius: var(--radius);
+    background: var(--card); padding: 4px 0; }
+  .dm-row { display: grid; grid-template-columns: 78px 1fr; align-items: center;
+    gap: 10px; padding: 5px 12px; }
+  .dm-row + .dm-row { border-top: 1px solid var(--border); }
+  .dm-row > b { font-size: 12px; font-weight: 600; }
+  .dm-track { position: relative; height: 20px; }
+  .dm-dot { position: absolute; top: 5px; width: 9px; height: 9px; margin-left: -4px;
+    border-radius: 50%; border: 0; padding: 0; cursor: pointer;
+    background: var(--text-dim); transition: transform .12s ease; }
+  .dm-dot:hover, .dm-dot:focus-visible { transform: scale(1.5); outline: none; }
+  .dm-dot.is-buy { background: var(--green); }
+  .dm-dot.is-sell { background: var(--red); }
+  .dm-dot.is-hold { background: var(--accent); }
+  .dm-legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 11.5px;
+    color: var(--text-dim); margin: 8px 2px 0; }
+  .dm-legend i { display: inline-block; width: 8px; height: 8px; border-radius: 50%;
+    margin-right: 5px; vertical-align: 0; }
+
+  .dm-drawer { position: fixed; inset: 0 0 0 auto; width: min(430px, 94vw);
+    background: var(--card); border-left: 1px solid var(--border);
+    padding: 16px 18px 40px; overflow-y: auto; z-index: 60;
+    transform: translateX(100%); transition: transform .18s ease; }
+  .dm-drawer.is-open { transform: none; }
+  .dm-drawer h3 { margin: 0 0 2px; font-size: 15px; }
+  .dm-drawer .dm-close { position: absolute; top: 12px; right: 14px;
+    background: none; border: 0; color: var(--text-dim); font-size: 20px; cursor: pointer; }
+  .dm-kv { width: 100%; border-collapse: collapse; font-size: 12.5px; margin: 8px 0 4px; }
+  .dm-kv th { text-align: left; font-weight: 500; color: var(--text-dim); padding: 3px 0; width: 46%; }
+  .dm-kv td { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; padding: 3px 0; }
+  .dm-scrim { position: fixed; inset: 0; background: rgba(0,0,0,.42); z-index: 55; }
+  [hidden] { display: none !important; }
+
+  @media (max-width: 640px) {
+    .dm-row { grid-template-columns: 62px 1fr; }
+    .decimap .dm-cards { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .dm-drawer, .dm-dot { transition: none; }
+  }
+</style>
+
+<div class="decimap" id="decimap">
+  <h1>Decision Map</h1>
+  <p class="dm-sub">
+    741 条决策与它们<strong>做出时</strong>的信号快照，放在同一张表上。
+    这一页只读：它不写决策，不改账本契约，也不把任何相关性提升成一条激活规则。
+  </p>
+
+  <div class="dm-status" id="dm-status">载入中…</div>
+
+  <h2>信息源倒排</h2>
+  <p class="dm-sub">
+    每张卡 = 一个已注册信号。<strong>覆盖率是先读的那个数</strong>：一个只看得见 12% 决策的源
+    不是「效应弱」，是<strong>当时不在场</strong>。快照年龄同理 —— join 是单向且有界的，
+    只有 <code>as_of ≤ plan_date</code> 且在年龄上限内的快照才会被用上。
+  </p>
+  <div class="dm-filters">
+    <label>源
+      <select id="dm-kind"><option value="">全部</option></select>
+    </label>
+    <label>横期
+      <select id="dm-horizon">
+        <option value="t5">t5</option><option value="t1">t1</option><option value="t20">t20</option>
+      </select>
+    </label>
+    <label>票
+      <select id="dm-ticker"><option value="">全部</option></select>
+    </label>
+    <button type="button" id="dm-reset">重置</button>
+  </div>
+  <div class="dm-cards" id="dm-cards"></div>
+
+  <h2>决策 × 信号</h2>
+  <p class="dm-sub">
+    行 = 信号，列 = 实际采取的动作，格 = 该信号站在那类动作旁边的次数 / 之后的中位收益。
+    <strong>这不是因果</strong>：一个信号出现在 <code>cut</code> 旁边，可能是它促成了砍单，
+    也可能是砍单那天恰好什么信号都在。
+  </p>
+  <div class="dm-matrix-wrap"><table class="dm-matrix" id="dm-matrix"></table></div>
+
+  <h2>时间线</h2>
+  <p class="dm-sub">每票一条。点一个圆点看那条决策做出时的信号快照与之后的结果。</p>
+  <div class="dm-timeline" id="dm-timeline"></div>
+  <div class="dm-legend">
+    <span><i style="background:var(--green)"></i>加仓</span>
+    <span><i style="background:var(--red)"></i>减/砍</span>
+    <span><i style="background:var(--accent)"></i>持有/观察</span>
+    <span><i style="background:var(--text-dim)"></i>其他</span>
+  </div>
+
+  <div class="dm-scrim" id="dm-scrim" hidden></div>
+  <aside class="dm-drawer" id="dm-drawer" aria-hidden="true" aria-label="决策详情">
+    <button class="dm-close" type="button" id="dm-close" aria-label="关闭">&times;</button>
+    <div id="dm-drawer-body"></div>
+  </aside>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var SELL = { cut: 1, trim_on_rebound: 1, t_only: 1 };
+  var BUY = { add_only_on_trigger: 1, add_on_breakout: 1 };
+  var HOLD = { hold_and_watch: 1, watch: 1 };
+  var state = { data: null, kind: '', horizon: 't5', ticker: '' };
+
+  function el(id) { return document.getElementById(id); }
+  // Every string interpolated into innerHTML below goes through this. Ticker
+  // symbols and action names are ours, but `rationale` is prose an LLM wrote
+  // into the ledger and signal names come from whatever sources are registered
+  // — treating either as trusted markup is how a research page grows a script
+  // injection. CodeQL flagged the matrix renderer; the fix is applied to every
+  // interpolation, not to the line that was caught.
+  function esc(value) {
+    return String(value === null || value === undefined ? '' : value)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+  function fmt(value, digits) {
+    if (value === null || value === undefined) return '—';
+    if (typeof value !== 'number') return esc(value);
+    return value.toFixed(digits === undefined ? 2 : digits);
+  }
+  function pct(value) {
+    return value === null || value === undefined ? '—' : (value * 100).toFixed(0) + '%';
+  }
+  function actionClass(action) {
+    if (BUY[action]) return 'is-buy';
+    if (SELL[action]) return 'is-sell';
+    if (HOLD[action]) return 'is-hold';
+    return '';
+  }
+
+  function renderStatus() {
+    var d = state.data, c = d.coverage, g = d.degradation || {};
+    var parts = [
+      '<span><b>' + c.decisions + '</b> 决策</span>',
+      '<span><b>' + c.signals + '</b> 信号</span>',
+      '<span><b>' + c.tickers + '</b> 票</span>',
+      '<span>' + esc(c.first_decision) + ' → ' + esc(d.as_of) + '</span>',
+      '<span>payload <b>' + Math.round((g.bytes || 0) / 1024) + ' KB</b></span>'
+    ];
+    // A page that silently shows less than it says it does is worse than one
+    // that shows a banner. The degradation level is always printed.
+    if (g.level && g.level !== 'full') {
+      parts.push('<span class="dm-warn">降级 <b>' + esc(g.level) + '</b> — '
+        + esc(g.cost) + '</span>');
+    }
+    el('dm-status').innerHTML = parts.join('');
+  }
+
+  function visibleIndices() {
+    var d = state.data, ids = d.decisions.decision_id || [], out = [];
+    for (var i = 0; i < ids.length; i++) {
+      if (state.ticker && d.decisions.ticker[i] !== state.ticker) continue;
+      out.push(i);
+    }
+    return out;
+  }
+
+  function renderCards() {
+    var d = state.data, horizon = state.horizon, html = '';
+    var cards = d.info_source_cards.filter(function (card) {
+      return !state.kind || card.source_kind === state.kind;
+    });
+    if (!cards.length) { el('dm-cards').innerHTML = '<p class="dm-sub">没有匹配的信号。</p>'; return; }
+    cards.forEach(function (card) {
+      var rows = '';
+      Object.keys(card.by_action).sort().forEach(function (action) {
+        var bucket = card.by_action[action];
+        rows += '<tr><td>' + esc(action) + '</td><td>' + bucket.count + '</td><td>'
+          + fmt(bucket['median_' + horizon + '_pct'], 2) + '</td><td>'
+          + pct(bucket['win_rate_' + horizon]) + '</td></tr>';
+      });
+      html += '<article class="dm-card">'
+        + '<span class="dm-kind">' + esc(card.source_kind) + '</span>'
+        + '<h3>' + esc(card.signal) + '</h3>'
+        + '<div class="dm-bar"><i style="width:' + Math.min(100, card.decision_coverage_pct) + '%"></i></div>'
+        + '<div class="dm-cov">覆盖 <b>' + card.decision_coverage_pct.toFixed(1) + '%</b>'
+        + ' （' + card.decisions_joined + ' 条）· 快照年龄 中位 '
+        + fmt(card.median_snapshot_age_sessions, 1) + ' / 最大 '
+        + fmt(card.max_snapshot_age_sessions, 0) + ' session</div>'
+        + '<table class="dm-mini"><thead><tr><th>动作</th><th>n</th><th>中位 '
+        + esc(horizon) + '</th><th>胜率</th></tr></thead><tbody>' + rows + '</tbody></table>'
+        + '</article>';
+    });
+    el('dm-cards').innerHTML = html;
+  }
+
+  function renderMatrix() {
+    var d = state.data, horizon = state.horizon;
+    var actions = d.decision_signal_matrix.actions;
+    var cards = d.info_source_cards.filter(function (card) {
+      return !state.kind || card.source_kind === state.kind;
+    });
+    var head = '<thead><tr><th>信号</th>';
+    actions.forEach(function (action) { head += '<th>' + esc(action) + '</th>'; });
+    head += '</tr></thead><tbody>';
+    var body = '';
+    cards.forEach(function (card) {
+      body += '<tr><th>' + esc(card.signal) + '</th>';
+      actions.forEach(function (action) {
+        var bucket = card.by_action[action];
+        if (!bucket) { body += '<td class="dm-empty">·</td>'; return; }
+        var median = bucket['median_' + horizon + '_pct'];
+        body += '<td>' + bucket.count + (median === null || median === undefined
+          ? '' : '<br><span style="color:' + (median >= 0 ? 'var(--green)' : 'var(--red)')
+            + '">' + fmt(median, 1) + '</span>') + '</td>';
+      });
+      body += '</tr>';
+    });
+    el('dm-matrix').innerHTML = head + body + '</tbody>';
+  }
+
+  function renderTimeline() {
+    var d = state.data, html = '';
+    var dates = d.decisions.plan_date || [];
+    if (!dates.length) {
+      el('dm-timeline').innerHTML = '<p class="dm-sub" style="padding:10px 12px">'
+        + '时间线在当前降级档位下不可用。</p>';
+      return;
+    }
+    var first = dates[0], last = dates[dates.length - 1];
+    var span = Math.max(1, Date.parse(last) - Date.parse(first));
+    var tickers = Object.keys(d.ticker_timelines).sort();
+    tickers.forEach(function (ticker) {
+      if (state.ticker && ticker !== state.ticker) return;
+      var dots = '';
+      d.ticker_timelines[ticker].forEach(function (index) {
+        var left = (Date.parse(dates[index]) - Date.parse(first)) / span * 100;
+        var action = d.decisions.action[index];
+        dots += '<button class="dm-dot ' + actionClass(action) + '" style="left:'
+          + left.toFixed(2) + '%" data-i="' + Number(index) + '" title="'
+          + esc(dates[index]) + ' · ' + esc(action) + '" aria-label="'
+          + esc(ticker) + ' ' + esc(dates[index]) + ' ' + esc(action) + '"></button>';
+      });
+      html += '<div class="dm-row"><b>' + esc(ticker) + '</b><div class="dm-track">'
+        + dots + '</div></div>';
+    });
+    el('dm-timeline').innerHTML = html
+      || '<p class="dm-sub" style="padding:10px 12px">没有匹配的票。</p>';
+  }
+
+  function openDrawer(index) {
+    var d = state.data, cols = d.decisions;
+    var snapshot = (d.decision_snapshots || [])[index];
+    var html = '<h3>' + esc(cols.ticker[index]) + ' · ' + esc(cols.action[index]) + '</h3>'
+      + '<p class="dm-sub">' + esc(cols.plan_date[index]) + ' · '
+      + esc(cols.driven_by[index] || '—') + ' · '
+      + esc(cols.strategy_id[index] || '—') + '</p>';
+    html += '<table class="dm-kv"><tbody>'
+      + '<tr><th>信心</th><td>' + fmt(cols.confidence[index], 2) + '</td></tr>'
+      + '<tr><th>结果</th><td>' + esc(cols.outcome[index] || '—') + '</td></tr>'
+      + '<tr><th>t1 / t5 / t20</th><td>' + fmt(cols.t1[index]) + ' / '
+      + fmt(cols.t5[index]) + ' / ' + fmt(cols.t20[index]) + '</td></tr>'
+      + '<tr><th>快照年龄</th><td>'
+      + fmt(cols.snapshot_age_sessions[index], 0) + ' session</td></tr>'
+      + '</tbody></table>';
+    var keywords = (cols.rationale_keywords || [])[index] || [];
+    if (keywords.length) {
+      html += '<p class="dm-sub">理由关键词：' + esc(keywords.join(' · ')) + '</p>';
+    }
+    if (cols.rationale && cols.rationale[index]) {
+      html += '<p class="dm-sub">' + esc(cols.rationale[index]) + '</p>';
+    }
+    if (snapshot) {
+      var rows = '';
+      d.signal_order.forEach(function (signal, position) {
+        var value = snapshot[position];
+        if (value === null || value === undefined) return;
+        rows += '<tr><th>' + esc(signal) + '</th><td>' + fmt(value, 4) + '</td></tr>';
+      });
+      html += '<h3 style="margin-top:14px">决策时的信号</h3>'
+        + (rows ? '<table class="dm-kv"><tbody>' + rows + '</tbody></table>'
+                : '<p class="dm-sub">这条决策的 plan date 上没有任何注册快照在年龄上限内。</p>');
+    } else {
+      html += '<h3 style="margin-top:14px">决策时的信号</h3>'
+        + '<p class="dm-sub">这条决策早于 payload 的快照保留窗口（见顶部降级提示）。'
+        + '完整值在 <code>memory/decisions.jsonl</code> 与注册历史里。</p>';
+    }
+    el('dm-drawer-body').innerHTML = html;
+    el('dm-drawer').classList.add('is-open');
+    el('dm-drawer').setAttribute('aria-hidden', 'false');
+    el('dm-scrim').hidden = false;
+    el('dm-close').focus();
+  }
+
+  function closeDrawer() {
+    el('dm-drawer').classList.remove('is-open');
+    el('dm-drawer').setAttribute('aria-hidden', 'true');
+    el('dm-scrim').hidden = true;
+  }
+
+  function renderAll() { renderStatus(); renderCards(); renderMatrix(); renderTimeline(); }
+
+  function boot(data) {
+    state.data = data;
+    var kinds = {};
+    data.info_source_cards.forEach(function (card) { kinds[card.source_kind] = 1; });
+    Object.keys(kinds).sort().forEach(function (kind) {
+      el('dm-kind').insertAdjacentHTML('beforeend',
+        '<option value="' + esc(kind) + '">' + esc(kind) + '</option>');
+    });
+    Object.keys(data.ticker_timelines).sort().forEach(function (ticker) {
+      el('dm-ticker').insertAdjacentHTML('beforeend',
+        '<option value="' + esc(ticker) + '">' + esc(ticker) + '</option>');
+    });
+    el('dm-kind').addEventListener('change', function () { state.kind = this.value; renderAll(); });
+    el('dm-horizon').addEventListener('change', function () { state.horizon = this.value; renderAll(); });
+    el('dm-ticker').addEventListener('change', function () { state.ticker = this.value; renderAll(); });
+    el('dm-reset').addEventListener('click', function () {
+      state.kind = ''; state.horizon = 't5'; state.ticker = '';
+      el('dm-kind').value = ''; el('dm-horizon').value = 't5'; el('dm-ticker').value = '';
+      renderAll();
+    });
+    el('dm-timeline').addEventListener('click', function (event) {
+      var dot = event.target.closest('.dm-dot');
+      if (dot) openDrawer(Number(dot.dataset.i));
+    });
+    el('dm-close').addEventListener('click', closeDrawer);
+    el('dm-scrim').addEventListener('click', closeDrawer);
+    document.addEventListener('keydown', function (event) {
+      if (event.key === 'Escape') closeDrawer();
+    });
+    renderAll();
+  }
+
+  var base = document.querySelector('link[rel="icon"]');
+  var prefix = base ? base.getAttribute('href').replace(/assets\/icons\/.*$/, '') : '../';
+  fetch(prefix + 'assets/data/decision_map.json', { cache: 'no-store' })
+    .then(function (response) {
+      if (!response.ok) throw new Error('HTTP ' + response.status);
+      return response.json();
+    })
+    .then(boot)
+    .catch(function (error) {
+      el('dm-status').innerHTML = '<span class="dm-warn">载入 decision_map.json 失败：'
+        + esc(error.message) + '。它由 <code>clawock decision-map</code> 生成。</span>';
+    });
+})();
+</script>
