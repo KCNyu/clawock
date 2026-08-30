@@ -279,6 +279,9 @@
     "dashboard-build": {
       "reason": "publishes the dashboard projection from data the layers already produced"
     },
+    "decision-map": {
+      "reason": "joins decisions to signal histories the layers already collected and publishes the projection; it acquires nothing and decides nothing"
+    },
     "dashboard-outputs": {
       "reason": "publication ownership and semantic diffs for generated write sets"
     },
