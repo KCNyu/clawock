@@ -37,6 +37,7 @@ SEEDS = {
     'add_alpha_cluster_bootstrap': 20260813,
     'signal_panel_cluster_bootstrap': 20260829,
     'block_bootstrap': 20260830,
+    'drift_session_permutation': 20260830,
 }
 
 

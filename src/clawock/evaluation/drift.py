@@ -52,6 +52,8 @@ import math
 import random
 import statistics
 
+from clawock import seeds
+
 #: Conventional PSI read-off. Published with the number because a bare 0.18 is
 #: not interpretable and the levels are the only reason to prefer PSI over the
 #: two better-behaved statistics beside it.
@@ -152,7 +154,8 @@ def _by_session(rows, key='value'):
 
 
 def session_permutation_p(reference_sessions, current_sessions, statistic,
-                          *, permutations=500, seed=20260830):
+                          *, permutations=500,
+                          seed=seeds.seed('drift_session_permutation')):
     """Null built by swapping whole sessions between the windows.
 
     The textbook p-value for any of these statistics assumes independent
