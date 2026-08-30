@@ -24,6 +24,7 @@ from pathlib import Path
 import requests
 
 from clawock import history_store
+from clawock.market_data import bar_signals
 from clawock.safe_io import safe_write_json, safe_write_text
 from clawock.workspace import workspace_root
 
@@ -31,6 +32,12 @@ WS = workspace_root(Path.cwd())
 CONFIG = WS / 'config' / 'factor-universe.json'
 OUT = WS / 'assets' / 'data' / 'cross_sectional_factor.json'
 HISTORY = WS / 'assets' / 'data' / 'cross_sectional_factor_history.jsonl'
+#: Bar-derived liquidity and volatility estimators get their own registered
+#: history rather than riding in the factor snapshot. They are not constituents
+#: of the composite and putting them in the same file would say they were, and
+#: would add about 16KB to every rewrite of a file whose daily churn is already
+#: the reason `history_store` exists.
+BAR_SIGNAL_HISTORY = WS / 'assets' / 'data' / 'bar_signal_history.jsonl'
 CACHE = WS / '.cache' / 'cross_sectional_quality.json'
 
 TENCENT_QUOTE = 'https://qt.gtimg.cn/q='
@@ -518,6 +525,18 @@ def rank_snapshot(config, fetched, as_of, quality=None, region=None):
             raw[ticker]['market_percentile'] = round(percentile, 4)
     for ticker, row in raw.items():
         row['sector_universe_size'] = len(by_sector.get(row['sector']) or [])
+        # Bar-derived liquidity and volatility estimators (#1172/#1173). They do
+        # not enter `composite_score`: `factor_weights` must exactly match
+        # `RAW_FACTORS` and sum to one, so adding a constituent is a
+        # re-registration and a research decision. They ride along in the
+        # registered history so `clawock signal-panel` can score them
+        # point-in-time, which is the order this repository does things in.
+        bars = (fetched.get(ticker) or {}).get('bars') or []
+        index = _last_index(bars, as_of)
+        row['bar_signals'] = {
+            key: (round(value, 6) if isinstance(value, float) else value)
+            for key, value in bar_signals.bar_signal_row(bars, index).items()
+        }
     return raw
 
 
@@ -916,6 +935,60 @@ def reconstruction_fidelity(history, config):
     return out
 
 
+def bar_signal_snapshot(as_of, rows, registered_at):
+    return {
+        'as_of': as_of,
+        'registered_at': registered_at,
+        'rows': {ticker: dict(row.get('bar_signals') or {})
+                 for ticker, row in rows.items()
+                 if row.get('bar_signals')},
+        'availability': bar_signals.availability(
+            {ticker: row['bar_signals'] for ticker, row in rows.items()
+             if row.get('bar_signals')}),
+    }
+
+
+def update_bar_signal_history(as_of, rows, registered_at):
+    existing = [
+        row for row in history_store.load_series(BAR_SIGNAL_HISTORY)
+        if str(row.get('as_of') or '')[:10] != as_of
+    ]
+    existing.append(bar_signal_snapshot(as_of, rows, registered_at))
+    return history_store.write_series(BAR_SIGNAL_HISTORY, existing)
+
+
+def backfill_bar_signal_history(config, fetched, dates, registered_at):
+    """Rebuild the bar-derived history for a list of already-registered dates.
+
+    Every estimator here is a pure function of the bars at or before `as_of`, so
+    unlike the quality factor there is nothing today's data could leak backwards
+    into a July session — the reconstruction *is* the point-in-time value, not
+    an approximation of it.
+    """
+    existing = {str(row.get('as_of') or '')[:10]: row
+                for row in history_store.load_series(BAR_SIGNAL_HISTORY)}
+    for as_of in dates:
+        if as_of in existing:
+            continue
+        rows = {}
+        for spec in config['symbols']:
+            bars = (fetched.get(spec['ticker']) or {}).get('bars') or []
+            index = _last_index(bars, as_of)
+            if index is None:
+                continue
+            row = {key: (round(value, 6) if isinstance(value, float) else value)
+                   for key, value in bar_signals.bar_signal_row(bars, index).items()}
+            if any(value is not None for value in row.values()):
+                rows[spec['ticker']] = row
+        if rows:
+            existing[as_of] = {
+                'as_of': as_of, 'registered_at': registered_at, 'rows': rows,
+                'availability': bar_signals.availability(rows),
+            }
+    return history_store.write_series(
+        BAR_SIGNAL_HISTORY, [existing[key] for key in sorted(existing)])
+
+
 def update_history(as_of, rows, registered_at):
     existing = [
         row for row in _load_history()
@@ -945,9 +1018,14 @@ def main(argv=None):
         # serialisation would reformat every historical row and leave the file
         # in two styles the moment cron next appends to it.
         history_store.write_series(HISTORY, history)
+        bar_history = backfill_bar_signal_history(
+            config, fetched,
+            [str(row.get('as_of') or '')[:10] for row in history],
+            config['registered_at'])
         fidelity = reconstruction_fidelity(history, config)
         print(json.dumps({
             'snapshots': len(history),
+            'bar_signal_snapshots': len(bar_history),
             'reconstruction_fidelity': fidelity,
             'worst_spearman': min((row['spearman'] for row in fidelity
                                    if row['spearman'] is not None), default=None),
@@ -965,6 +1043,7 @@ def main(argv=None):
     )
     live_rows = rank_snapshot(config, fetched, as_of, quality=quality)
     history = update_history(as_of, live_rows, config['registered_at'])
+    update_bar_signal_history(as_of, live_rows, config['registered_at'])
     retrospective = retrospective_walk_forward(config, fetched)
     prospective = prospective_walk_forward(config, fetched, history)
 
