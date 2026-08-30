@@ -123,6 +123,7 @@ Sources: local snapshots + canonical bars
 | `clawock evaluate-us-leverage` | `clawock.evaluation.us_leverage` | the same regime backtest for the US 2x sleeve |
 | `clawock evaluate-combined-regime` | `clawock.evaluation.combined_regime` | the whole book at current USD weights |
 | `clawock validate-regime-dial` | `clawock.evaluation.regime_validation` | out-of-sample and circular-shift null for the dial's timing |
+| `clawock validate-regime-hmm` | `clawock.evaluation.regime_hmm` | posterior regimes with a duration, scored on the dial's own circular-shift null |
 | `clawock shadow` | `clawock.decision.shadow` | replays triggered calls against buy-and-hold to measure simulated timing alpha |
 | `clawock audit-resettle` | `clawock.decision.settlement` | dry-run bar-based re-settle that reports every verdict it would change |
 | `clawock evaluate-add-alpha` | `clawock.evaluation.add_alpha_walkforward` | point-in-time diagnostic replay of price-relative and information interaction adds |

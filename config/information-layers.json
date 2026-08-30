@@ -261,6 +261,10 @@
           "note": "out-of-sample and circular-shift null for the dial's timing"
         },
         {
+          "command": "validate-regime-hmm",
+          "note": "posterior regimes with a duration, scored on the dial's own circular-shift null"
+        },
+        {
           "command": "shadow",
           "note": "replays triggered calls against buy-and-hold to measure simulated timing alpha"
         },

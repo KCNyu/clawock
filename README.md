@@ -98,7 +98,7 @@ Every trading day the system pulls fresh prices, FX, volatility, earnings and ma
 
 ## The information layer
 
-Reading the market is most of what the LLM does, so the widest part of the system is data collection. The repository catalogs **41 fetch and compute modules across 8 layers**, with **bilingual Hong Kong + US coverage** — live quotes, SEC + Eastmoney filings, capital flow, earnings calendars, macro (VIX / DXY / 10Y), Reddit and news sentiment, and market-moving social feeds. Each brief consumes the subset relevant to that market and session. Collection stays broad; the decision layer stays constrained.
+Reading the market is most of what the LLM does, so the widest part of the system is data collection. The repository catalogs **42 fetch and compute modules across 8 layers**, with **bilingual Hong Kong + US coverage** — live quotes, SEC + Eastmoney filings, capital flow, earnings calendars, macro (VIX / DXY / 10Y), Reddit and news sentiment, and market-moving social feeds. Each brief consumes the subset relevant to that market and session. Collection stays broad; the decision layer stays constrained.
 
 ![clawock information flow — eight layers of fetch and compute modules are assembled by a deterministic Python preflight into a fingerprinted context.json; the LLM reads the file and writes its analysis; Python postflight validates and settles before publish](https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/information-flow.svg)
 
@@ -116,7 +116,7 @@ Reading the market is most of what the LLM does, so the widest part of the syste
 | 5 · Macro & sentiment | 3 | Yahoo · Reddit · CNN · social feeds |
 | 6 · Quant & risk | 9 | deterministic math over price history |
 | 7 · Book & FX integrity | 6 | Frankfurter · the reconciliation ledger · local invariants |
-| 8 · Backtest & calibration | 7 | local snapshots + canonical bars |
+| 8 · Backtest & calibration | 8 | local snapshots + canonical bars |
 
 The fetch layer degrades gracefully: every live Eastmoney call routes through **one throttled gateway**, critical paths (quotes, FX) use **multi-source fallback**, and an empty fetch **keeps the prior value** instead of overwriting a good series with a blank. Public sources include Tencent, stooq, yfinance, Frankfurter, SEC EDGAR, Finnhub, Nasdaq, Eastmoney, Polygon, Alpha Vantage, Reddit, and Google News — full command and provider catalog in [the command reference](https://github.com/KCNyu/clawock/blob/master/docs/reference/commands.md), whose inventory is generated from the same registries this table is checked against. Which module sits in which layer is itself an artifact — [`config/information-layers.json`](https://github.com/KCNyu/clawock/blob/master/config/information-layers.json), where every packaged command is either in a layer or listed with the reason it is not collection — and CI checks the table above against it, so a module that moves cannot leave its count standing.
 
