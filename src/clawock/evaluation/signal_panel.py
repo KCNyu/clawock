@@ -180,6 +180,31 @@ def factor_signals(payload) -> list[tuple[str, str, float]]:
     return out
 
 
+def bar_signals(payload) -> list[tuple[str, str, float]]:
+    """Bar-derived liquidity and volatility estimators (#1172/#1173).
+
+    Their own source, their own namespace. They are not constituents of the
+    composite — `factor_weights` must exactly match the pre-registered
+    `RAW_FACTORS` — and reading `bar.roll_spread_pct` as something the composite
+    was built from would be wrong in the direction that matters.
+
+    A `None` here is not a gap in coverage. Roll's spread has no real root when
+    the serial covariance of price changes is positive, which happens on
+    trending names; the row omits it rather than reporting zero, which would be
+    the most liquid value in the cross-section, assigned to exactly the names
+    where the model does not apply.
+    """
+    out = []
+    for ticker, row in _rows_of(payload).items():
+        if not isinstance(row, dict):
+            continue
+        for field, value in row.items():
+            number = _number(value)
+            if number is not None:
+                out.append((str(ticker), f'bar.{field}', number))
+    return out
+
+
 def peer_signals(payload) -> list[tuple[str, str, float]]:
     """How many pre-registered peer rules fired for this name that session."""
     out = []
@@ -243,6 +268,7 @@ SOURCES = (
     ('quant_signals_history.jsonl', quant_signals),
     ('t0_setups_history.jsonl', setup_signals),
     ('cross_sectional_factor_history.jsonl', factor_signals),
+    ('bar_signal_history.jsonl', bar_signals),
     ('peer_residual_history.jsonl', peer_signals),
     ('news_evidence_history.jsonl', news_signals),
 )
