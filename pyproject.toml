@@ -42,12 +42,29 @@ classifiers = [
 dependencies = [
     # 2.32 is the floor past CVE-2024-35195 (redirect header leak in 2.31.x).
     "requests>=2.32",
+    # numpy was in an optional `compute` extra while `portfolio/risk.py` — the
+    # module behind the packaged `portfolio-risk` command — imported it at the
+    # top level unconditionally. A clean `pip install clawock` therefore shipped
+    # a first-class command that raised ImportError on its first line. It is
+    # required because it already was; the metadata was the part that was wrong.
+    "numpy>=1.26",
+    # Required for the same reason, from 2026-08-30: the evaluation and risk
+    # lanes (shrinkage estimators, hierarchical clustering, optimisation,
+    # distribution tails, eigendecomposition) are not code that should be
+    # hand-rolled to keep a wheel small. The alternative on offer was a package
+    # where half the analysis commands fail on a clean install, which is worse
+    # for "install decision intelligence into any agent" than a bigger download.
+    "scipy>=1.11",
 ]
 
 [project.optional-dependencies]
-# Numeric work: risk metrics, correlation x-ray, regime validation.
-compute = ["numpy>=1.26"]
-evaluation = ["numpy>=1.26", "matplotlib>=3.8"]
+# Kept as an alias, not a set: numpy and scipy are required dependencies as of
+# 2026-08-30, so `.[compute]` now installs the base package. The name stays
+# because three call sites use it (a workflow, the launcher installer, and the
+# composite action's documentation) and breaking those to delete an empty list
+# is a worse trade than one line of explanation.
+compute = []
+evaluation = ["matplotlib>=3.8"]
 # Screenshot and social-card validation.
 imaging = ["Pillow>=10"]
 # Search Console visibility pull (ops/growth/crawl_visibility.py). Declared here
@@ -63,7 +80,7 @@ release = ["build>=1.2", "twine>=5"]
 # parses .github/ISSUE_TEMPLATE/config.yml as structured data rather than
 # substring-matching it, and a test module that cannot import does not fail —
 # it stops the whole suite at collection while the run still looks like it ran.
-test = ["pytest>=8", "pytest-cov>=5", "numpy>=1.26", "Pillow>=10", "PyYAML>=6"]
+test = ["pytest>=8", "pytest-cov>=5", "Pillow>=10", "PyYAML>=6"]
 
 [project.urls]
 Homepage = "https://github.com/KCNyu/clawock"

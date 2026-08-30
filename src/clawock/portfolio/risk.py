@@ -28,6 +28,9 @@ import numpy as np
 import requests
 
 from clawock.credentials import load_api_keys
+from clawock.portfolio import allocation as _allocation
+from clawock.portfolio import covariance as _covariance
+from clawock.portfolio import stress as _stress
 from clawock.portfolio.fx import get_usdhkd
 from clawock.instruments import get as get_instrument
 from clawock.instruments import leverage_map, require as require_instrument
@@ -846,10 +849,22 @@ def correlation_xray(holdings_by_leg, series_by_leg, fx_hkd_to_usd):
     pairs = [p for p in pairs if p['rho'] is not None]
     pairs.sort(key=lambda p: -abs(p['rho']))
 
+    # Everything above this line is computed from `np.corrcoef`, and at this
+    # shape that estimator is not a neutral choice: ten names on ~35 common
+    # sessions is 55 parameters from 350 observations, where the Marchenko-
+    # Pastur law says the sample eigenvalues are systematically spread wider
+    # than the true ones. `effective_bets` is dominated by the top eigenvalue,
+    # the biased-up one, so a concentrated book's concentration is *understated*
+    # by the estimator measuring it. The blocks below publish the shrunk version
+    # beside the sample one rather than replacing it, so the size of the
+    # correction is visible instead of assumed (#1186/#1162/#1165).
+    deep = _deep_risk_view(matrix, w, tickers, common)
+
     return {
         'effective_names': _round_finite(1.0 / hhi if hhi > 0 else None, 2),
         'effective_bets': _round_finite(
             1.0 / quadratic if quadratic > 0 else None, 2),
+        **deep,
         'diversification_ratio': _round_finite(
             weighted_sigma / sigma_p if sigma_p > 0 else None, 3),
         'var_95': _round_finite(float(np.percentile(portfolio, 5))),
@@ -869,6 +884,61 @@ def correlation_xray(holdings_by_leg, series_by_leg, fx_hkd_to_usd):
             100 * total / book_value if book_value > 0 else None, 2),
         'cluster_rho': CLUSTER_RHO,
         'basis': 'USD-converted current weights over sessions both legs traded',
+    }
+
+
+def _deep_risk_view(matrix, weights, tickers, dates) -> dict:
+    """Conditioning, shrinkage, risk attribution and stress, on one covariance.
+
+    Wrapped in its own function and its own try/except because these are an
+    addition to a payload the dashboard already depends on: a new estimator that
+    raises on some future degenerate window must not take the whole correlation
+    x-ray — and the risk card built on it — down with it. The failure is
+    reported in the payload rather than swallowed.
+    """
+    try:
+        spectrum = _covariance.spectrum_report(matrix)
+        shrunk = _covariance.ledoit_wolf(matrix)
+        covariance = shrunk['covariance']
+        contributions = _allocation.risk_contributions(weights, covariance, tickers)
+        reference = _allocation.hierarchical_risk_parity(covariance, tickers)
+        shrunk_bets = _allocation.effective_bets(weights, covariance)
+        scenarios = _stress.scenario_suite(
+            covariance, weights, tickers, returns=matrix, dates=dates)
+    except (ValueError, np.linalg.LinAlgError) as error:
+        return {'deep_risk': {'status': 'unavailable', 'reason': str(error)}}
+
+    rows = contributions.get('rows') or []
+    widest = max(rows, key=lambda row: row['risk_share_minus_weight_share'],
+                 default=None)
+    return {
+        'deep_risk': {
+            'status': 'measured',
+            # Whether the numbers above are a refinement or a rescue. Only the
+            # eigenvalues above the upper Marchenko-Pastur edge are structure;
+            # the rest is what an independent book of this shape would produce.
+            'conditioning': {
+                'observations_per_parameter': spectrum['observations_per_parameter'],
+                'eigenvalues_above_noise': spectrum['eigenvalues_above_noise'],
+                'n_names': spectrum['n_names'],
+                'marchenko_pastur_edges': spectrum['marchenko_pastur_edges'],
+                'condition_number': spectrum['condition_number'],
+                'variance_share_of_top_eigenvalue': spectrum[
+                    'variance_share_of_top_eigenvalue'],
+            },
+            'shrinkage': {
+                'intensity': shrunk['shrinkage'],
+                'target_average_correlation': shrunk['target_average_correlation'],
+                'method': shrunk['method'],
+                'effective_bets': shrunk_bets['effective_bets'],
+                'diversification_ratio': shrunk_bets['diversification_ratio'],
+            },
+            # Weight is not risk. This is the sentence the x-ray could not say.
+            'risk_contributions': rows,
+            'largest_risk_overweight': widest,
+            'reference_allocation': reference,
+            'stress': scenarios,
+        }
     }
 
 

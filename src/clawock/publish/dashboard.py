@@ -326,6 +326,55 @@ def trim_decision_metrics(metrics):
     return metrics
 
 
+def trim_deep_risk(risk):
+    """Keep the sentences, drop the working, for the copy embedded in the payload.
+
+    `correlation.deep_risk` is about 4KB of per-name risk contributions, an HRP
+    reference allocation and three stress scenarios — the same shape as the
+    calibrator and regime-history trims above, and here for the same reason: the
+    card reads a handful of headline numbers and the detail is already published
+    in full at `assets/data/risk.json`, one fetch away. The payload has roughly
+    20KB of headroom under the 200KB cap and this block would take a fifth of it
+    to be rendered by nothing.
+
+    What survives is what a reader would act on: how badly conditioned the
+    estimate is, how hard it had to be shrunk, the single largest risk
+    overweight, and the two numbers from the shock.
+    """
+    if not isinstance(risk, dict):
+        return risk
+    correlation = risk.get('correlation')
+    if not isinstance(correlation, dict):
+        return risk
+    deep = correlation.get('deep_risk')
+    if not isinstance(deep, dict) or deep.get('status') != 'measured':
+        return risk
+    shock = ((deep.get('stress') or {}).get('correlated_shock') or {})
+    reverse = ((deep.get('stress') or {}).get('reverse_stress') or {})
+    summary = {
+        'status': 'measured',
+        'conditioning': deep.get('conditioning'),
+        'shrinkage': deep.get('shrinkage'),
+        'largest_risk_overweight': deep.get('largest_risk_overweight'),
+        'top_position_shock': {
+            'name': (deep.get('stress') or {}).get('top_position'),
+            'move': (shock.get('shocked') or {}).get(
+                (deep.get('stress') or {}).get('top_position')),
+            'portfolio_return': shock.get('portfolio_return'),
+            'portfolio_return_if_others_held_still':
+                shock.get('portfolio_return_if_others_held_still'),
+            'contagion_share': shock.get('contagion_share'),
+        },
+        'sigmas_to_lose': {
+            key: value.get('sigmas_away')
+            for key, value in reverse.items() if isinstance(value, dict)
+        },
+        'detail_source': 'assets/data/risk.json',
+    }
+    return {**risk,
+            'correlation': {**correlation, 'deep_risk': summary}}
+
+
 def trim_lev_regime(lev_regime):
     """The dial as the card needs it: everything except the unrendered history."""
     if not isinstance(lev_regime, dict):
@@ -3332,7 +3381,7 @@ def build_projection(previous_source=None, shadow_previous=None):
     risk_path = WS_ROOT / 'assets' / 'data' / 'risk.json'
     if risk_path.exists():
         try:
-            out['risk'] = json.loads(risk_path.read_text())
+            out['risk'] = trim_deep_risk(json.loads(risk_path.read_text()))
         except Exception as e:
             print(f'  warn: risk.json parse fail: {e}', file=sys.stderr)
             out['risk'] = None
