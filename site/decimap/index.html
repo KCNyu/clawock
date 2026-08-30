@@ -158,9 +158,20 @@ permalink: /decimap/
   var state = { data: null, kind: '', horizon: 't5', ticker: '' };
 
   function el(id) { return document.getElementById(id); }
+  // Every string interpolated into innerHTML below goes through this. Ticker
+  // symbols and action names are ours, but `rationale` is prose an LLM wrote
+  // into the ledger and signal names come from whatever sources are registered
+  // — treating either as trusted markup is how a research page grows a script
+  // injection. CodeQL flagged the matrix renderer; the fix is applied to every
+  // interpolation, not to the line that was caught.
+  function esc(value) {
+    return String(value === null || value === undefined ? '' : value)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
   function fmt(value, digits) {
     if (value === null || value === undefined) return '—';
-    if (typeof value !== 'number') return String(value);
+    if (typeof value !== 'number') return esc(value);
     return value.toFixed(digits === undefined ? 2 : digits);
   }
   function pct(value) {
@@ -179,13 +190,14 @@ permalink: /decimap/
       '<span><b>' + c.decisions + '</b> 决策</span>',
       '<span><b>' + c.signals + '</b> 信号</span>',
       '<span><b>' + c.tickers + '</b> 票</span>',
-      '<span>' + c.first_decision + ' → ' + d.as_of + '</span>',
+      '<span>' + esc(c.first_decision) + ' → ' + esc(d.as_of) + '</span>',
       '<span>payload <b>' + Math.round((g.bytes || 0) / 1024) + ' KB</b></span>'
     ];
     // A page that silently shows less than it says it does is worse than one
     // that shows a banner. The degradation level is always printed.
     if (g.level && g.level !== 'full') {
-      parts.push('<span class="dm-warn">降级 <b>' + g.level + '</b> — ' + g.cost + '</span>');
+      parts.push('<span class="dm-warn">降级 <b>' + esc(g.level) + '</b> — '
+        + esc(g.cost) + '</span>');
     }
     el('dm-status').innerHTML = parts.join('');
   }
@@ -209,20 +221,20 @@ permalink: /decimap/
       var rows = '';
       Object.keys(card.by_action).sort().forEach(function (action) {
         var bucket = card.by_action[action];
-        rows += '<tr><td>' + action + '</td><td>' + bucket.count + '</td><td>'
+        rows += '<tr><td>' + esc(action) + '</td><td>' + bucket.count + '</td><td>'
           + fmt(bucket['median_' + horizon + '_pct'], 2) + '</td><td>'
           + pct(bucket['win_rate_' + horizon]) + '</td></tr>';
       });
       html += '<article class="dm-card">'
-        + '<span class="dm-kind">' + card.source_kind + '</span>'
-        + '<h3>' + card.signal + '</h3>'
+        + '<span class="dm-kind">' + esc(card.source_kind) + '</span>'
+        + '<h3>' + esc(card.signal) + '</h3>'
         + '<div class="dm-bar"><i style="width:' + Math.min(100, card.decision_coverage_pct) + '%"></i></div>'
         + '<div class="dm-cov">覆盖 <b>' + card.decision_coverage_pct.toFixed(1) + '%</b>'
         + ' （' + card.decisions_joined + ' 条）· 快照年龄 中位 '
         + fmt(card.median_snapshot_age_sessions, 1) + ' / 最大 '
         + fmt(card.max_snapshot_age_sessions, 0) + ' session</div>'
         + '<table class="dm-mini"><thead><tr><th>动作</th><th>n</th><th>中位 '
-        + horizon + '</th><th>胜率</th></tr></thead><tbody>' + rows + '</tbody></table>'
+        + esc(horizon) + '</th><th>胜率</th></tr></thead><tbody>' + rows + '</tbody></table>'
         + '</article>';
     });
     el('dm-cards').innerHTML = html;
@@ -235,11 +247,11 @@ permalink: /decimap/
       return !state.kind || card.source_kind === state.kind;
     });
     var head = '<thead><tr><th>信号</th>';
-    actions.forEach(function (action) { head += '<th>' + action + '</th>'; });
+    actions.forEach(function (action) { head += '<th>' + esc(action) + '</th>'; });
     head += '</tr></thead><tbody>';
     var body = '';
     cards.forEach(function (card) {
-      body += '<tr><th>' + card.signal + '</th>';
+      body += '<tr><th>' + esc(card.signal) + '</th>';
       actions.forEach(function (action) {
         var bucket = card.by_action[action];
         if (!bucket) { body += '<td class="dm-empty">·</td>'; return; }
@@ -271,10 +283,12 @@ permalink: /decimap/
         var left = (Date.parse(dates[index]) - Date.parse(first)) / span * 100;
         var action = d.decisions.action[index];
         dots += '<button class="dm-dot ' + actionClass(action) + '" style="left:'
-          + left.toFixed(2) + '%" data-i="' + index + '" title="' + dates[index]
-          + ' · ' + action + '" aria-label="' + ticker + ' ' + dates[index] + ' ' + action + '"></button>';
+          + left.toFixed(2) + '%" data-i="' + Number(index) + '" title="'
+          + esc(dates[index]) + ' · ' + esc(action) + '" aria-label="'
+          + esc(ticker) + ' ' + esc(dates[index]) + ' ' + esc(action) + '"></button>';
       });
-      html += '<div class="dm-row"><b>' + ticker + '</b><div class="dm-track">' + dots + '</div></div>';
+      html += '<div class="dm-row"><b>' + esc(ticker) + '</b><div class="dm-track">'
+        + dots + '</div></div>';
     });
     el('dm-timeline').innerHTML = html
       || '<p class="dm-sub" style="padding:10px 12px">没有匹配的票。</p>';
@@ -283,12 +297,13 @@ permalink: /decimap/
   function openDrawer(index) {
     var d = state.data, cols = d.decisions;
     var snapshot = (d.decision_snapshots || [])[index];
-    var html = '<h3>' + cols.ticker[index] + ' · ' + cols.action[index] + '</h3>'
-      + '<p class="dm-sub">' + cols.plan_date[index] + ' · ' + (cols.driven_by[index] || '—')
-      + ' · ' + (cols.strategy_id[index] || '—') + '</p>';
+    var html = '<h3>' + esc(cols.ticker[index]) + ' · ' + esc(cols.action[index]) + '</h3>'
+      + '<p class="dm-sub">' + esc(cols.plan_date[index]) + ' · '
+      + esc(cols.driven_by[index] || '—') + ' · '
+      + esc(cols.strategy_id[index] || '—') + '</p>';
     html += '<table class="dm-kv"><tbody>'
       + '<tr><th>信心</th><td>' + fmt(cols.confidence[index], 2) + '</td></tr>'
-      + '<tr><th>结果</th><td>' + (cols.outcome[index] || '—') + '</td></tr>'
+      + '<tr><th>结果</th><td>' + esc(cols.outcome[index] || '—') + '</td></tr>'
       + '<tr><th>t1 / t5 / t20</th><td>' + fmt(cols.t1[index]) + ' / '
       + fmt(cols.t5[index]) + ' / ' + fmt(cols.t20[index]) + '</td></tr>'
       + '<tr><th>快照年龄</th><td>'
@@ -296,17 +311,17 @@ permalink: /decimap/
       + '</tbody></table>';
     var keywords = (cols.rationale_keywords || [])[index] || [];
     if (keywords.length) {
-      html += '<p class="dm-sub">理由关键词：' + keywords.join(' · ') + '</p>';
+      html += '<p class="dm-sub">理由关键词：' + esc(keywords.join(' · ')) + '</p>';
     }
     if (cols.rationale && cols.rationale[index]) {
-      html += '<p class="dm-sub">' + cols.rationale[index] + '</p>';
+      html += '<p class="dm-sub">' + esc(cols.rationale[index]) + '</p>';
     }
     if (snapshot) {
       var rows = '';
       d.signal_order.forEach(function (signal, position) {
         var value = snapshot[position];
         if (value === null || value === undefined) return;
-        rows += '<tr><th>' + signal + '</th><td>' + fmt(value, 4) + '</td></tr>';
+        rows += '<tr><th>' + esc(signal) + '</th><td>' + fmt(value, 4) + '</td></tr>';
       });
       html += '<h3 style="margin-top:14px">决策时的信号</h3>'
         + (rows ? '<table class="dm-kv"><tbody>' + rows + '</tbody></table>'
@@ -337,11 +352,11 @@ permalink: /decimap/
     data.info_source_cards.forEach(function (card) { kinds[card.source_kind] = 1; });
     Object.keys(kinds).sort().forEach(function (kind) {
       el('dm-kind').insertAdjacentHTML('beforeend',
-        '<option value="' + kind + '">' + kind + '</option>');
+        '<option value="' + esc(kind) + '">' + esc(kind) + '</option>');
     });
     Object.keys(data.ticker_timelines).sort().forEach(function (ticker) {
       el('dm-ticker').insertAdjacentHTML('beforeend',
-        '<option value="' + ticker + '">' + ticker + '</option>');
+        '<option value="' + esc(ticker) + '">' + esc(ticker) + '</option>');
     });
     el('dm-kind').addEventListener('change', function () { state.kind = this.value; renderAll(); });
     el('dm-horizon').addEventListener('change', function () { state.horizon = this.value; renderAll(); });
@@ -373,7 +388,7 @@ permalink: /decimap/
     .then(boot)
     .catch(function (error) {
       el('dm-status').innerHTML = '<span class="dm-warn">载入 decision_map.json 失败：'
-        + error.message + '。它由 <code>clawock decision-map</code> 生成。</span>';
+        + esc(error.message) + '。它由 <code>clawock decision-map</code> 生成。</span>';
     });
 })();
 </script>
