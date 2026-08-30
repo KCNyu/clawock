@@ -1546,15 +1546,15 @@
   },
   "market_context": {},
   "gold_dca": {
-    "principal_invested": 17299.0,
     "start_date": "2026-01-22",
-    "fund_code": "000217",
-    "currency": "CNY",
+    "fund_name": "华安黄金ETF联接C",
     "daily_amount": 200,
-    "reconciled_date": "2026-06-09",
+    "currency": "CNY",
+    "fund_code": "000217",
     "principal_note": "对账基线(自动累加模式)。2026-06-09 kcn 对账:现值 15470 + 盈亏 -1829 → 本金 17299,份额 = 15470/净值3.1867 = 4854.55。此后每个 A 股交易日自动 +200@当日净值。补投对账:把 principal_invested/units_held 改成新真实数字、reconciled_date 改成对账当天即可,自动累加归零重算。",
     "units_held": 4854.55,
-    "fund_name": "华安黄金ETF联接C",
+    "principal_invested": 17299.0,
+    "reconciled_date": "2026-06-09",
     "nav": 3.346,
     "nav_date": "2026-08-28",
     "nav_change_pct": 0.2,
@@ -2178,7 +2178,7 @@
         3.346
       ]
     ],
-    "last_updated": "2026-08-29T15:50:25.084740Z",
+    "last_updated": "2026-08-30T15:50:48.349599Z",
     "domestic_gold": {
       "symbol": "Au99.99",
       "price_cny_g": 995.05,
@@ -2189,7 +2189,7 @@
       "change_pct": 0.28,
       "weighted_avg_cny_g": 991.05,
       "source": "sge_quotation_daily_new",
-      "fetched_at": "2026-08-29T15:50:16.940170Z",
+      "fetched_at": "2026-08-30T15:50:43.320693Z",
       "breakeven_cny_g": 997.37,
       "breakeven_upside_pct": 0.23,
       "quote_status": "fresh"
@@ -3945,7 +3945,7 @@
         ]
       ],
       "hist_advisory": null,
-      "last_updated": "2026-08-29T15:50:25.085980Z"
+      "last_updated": "2026-08-30T15:50:48.350367Z"
     }
   }
 }
