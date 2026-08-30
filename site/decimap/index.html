@@ -35,6 +35,13 @@ permalink: /decimap/
   .dm-card .dm-kind { display: inline-block; font-size: 10.5px; letter-spacing: .06em;
     text-transform: uppercase; color: var(--text-dim); margin-bottom: 8px; }
   .dm-card .dm-cov { font-size: 12px; color: var(--text-dim); margin-bottom: 8px; }
+  .dm-card .dm-ic { font-size: 11.5px; color: var(--text-dim); margin: 0 0 8px;
+    font-family: var(--mono); font-variant-numeric: tabular-nums;
+    padding-top: 7px; border-top: 1px solid var(--border); }
+  .dm-card .dm-ic b { color: var(--text); font-weight: 600; }
+  .dm-card .dm-ic.is-clear b { color: var(--accent); }
+  .dm-card .dm-ic-none { font-family: inherit; opacity: .7; }
+  .dm-selection { margin: 2px 0 12px; }
   .dm-bar { height: 5px; border-radius: 3px; background: var(--card-2); overflow: hidden; margin: 6px 0 9px; }
   .dm-bar > i { display: block; height: 100%; background: var(--accent); }
   .dm-mini { width: 100%; border-collapse: collapse; font-size: 11.5px; }
@@ -122,6 +129,7 @@ permalink: /decimap/
     </label>
     <button type="button" id="dm-reset">重置</button>
   </div>
+  <p class="dm-sub dm-selection" id="dm-selection"></p>
   <div class="dm-cards" id="dm-cards"></div>
 
   <h2>决策 × 信号</h2>
@@ -185,14 +193,21 @@ permalink: /decimap/
   }
 
   function renderStatus() {
-    var d = state.data, c = d.coverage, g = d.degradation || {};
+    var d = state.data, c = d.coverage, g = d.degradation || {}, k = d.kpi || {};
+    // Every number here is echoed in the payload rather than counted in the
+    // browser, so the banner and the file cannot drift apart.
     var parts = [
-      '<span><b>' + c.decisions + '</b> 决策</span>',
-      '<span><b>' + c.signals + '</b> 信号</span>',
-      '<span><b>' + c.tickers + '</b> 票</span>',
+      '<span><b>' + (k.decisions || c.decisions) + '</b> 决策</span>',
+      '<span><b>' + (k.sessions || c.sessions) + '</b> 个交易日</span>',
+      '<span><b>' + (k.tickers || c.tickers) + '</b> 票</span>',
+      '<span><b>' + (k.signals_referenced || c.signals) + '</b> 信号</span>',
+      '<span><b>' + fmt(k.decision_signal_coverage_pct, 1) + '%</b> 有快照</span>',
       '<span>' + esc(c.first_decision) + ' → ' + esc(d.as_of) + '</span>',
       '<span>payload <b>' + Math.round((g.bytes || 0) / 1024) + ' KB</b></span>'
     ];
+    if (k.panel_as_of) {
+      parts.splice(6, 0, '<span>IC 面板至 ' + esc(k.panel_as_of) + '</span>');
+    }
     // A page that silently shows less than it says it does is worse than one
     // that shows a banner. The degradation level is always printed.
     if (g.level && g.level !== 'full') {
@@ -209,6 +224,56 @@ permalink: /decimap/
       out.push(i);
     }
     return out;
+  }
+
+  // The IC and its interval come from `clawock signal-panel` and are published
+  // verbatim in `card.panel`. Nothing on this page computes a rank correlation:
+  // a second implementation of one number is two numbers that can disagree.
+  function panelLine(card, horizon) {
+    var row = card.panel && card.panel[horizon];
+    if (!row) {
+      // Two different absences, and saying the wrong one is worse than saying
+      // nothing: a signal that never entered a scorable cross-section is a
+      // finding, a block dropped for payload budget is not.
+      var dropped = (state.data.signal_panel || {}).dropped;
+      return '<div class="dm-ic dm-ic-none">' + esc(horizon) + ' IC —（'
+        + (dropped ? 'payload 降级时丢了，跑 clawock signal-panel 可复现'
+                   : '这个信号没有进入过可评分的截面') + '）</div>';
+    }
+    var band = row.ic_cluster_ci95;
+    var interval = band
+      ? '[' + signed(band[0]) + ', ' + signed(band[1]) + ']'
+      : '—';
+    return '<div class="dm-ic' + (row.ic_clears_zero ? ' is-clear' : '') + '">'
+      + esc(horizon) + ' IC <b>' + signed(row.mean_ic) + '</b> '
+      + interval + ' · ' + row.n_sessions + ' 日 · ' + esc(row.status)
+      + (row.ic_clears_zero ? ' <span title="区间不含 0，样本是诊断级">*</span>' : '')
+      + '</div>';
+  }
+
+  function signed(value) {
+    if (value === null || value === undefined) return '—';
+    return (value >= 0 ? '+' : '') + value.toFixed(3);
+  }
+
+  // PBO belongs to the panel, not to any one signal: it is the probability that
+  // the best signal in-sample is below median out-of-sample. Printed beside the
+  // cards because it is the number that says whether picking a winner off them
+  // means anything at all.
+  function renderSelection() {
+    var panel = state.data.signal_panel, node = el('dm-selection');
+    if (!node) return;
+    var row = panel && panel.selection && panel.selection[state.horizon];
+    if (!row || row.status !== 'measured' || row.pbo === null) {
+      node.textContent = '';
+      return;
+    }
+    node.innerHTML = '这个横期上挑赢家的过拟合概率 <b>PBO ' + row.pbo.toFixed(2)
+      + '</b>（' + row.n_splits + ' 次对半切分）—— '
+      + (row.pbo >= 0.5
+          ? '样本内最好的那个信号，样本外掉到中位数以下的次数超过一半：<b>还不能挑赢家</b>。'
+          : '样本内最好的那个信号，样本外多数时候仍在中位数以上。')
+      + ' 区间口径：' + esc(panel.interval_caveat || '');
   }
 
   function renderCards() {
@@ -233,6 +298,7 @@ permalink: /decimap/
         + ' （' + card.decisions_joined + ' 条）· 快照年龄 中位 '
         + fmt(card.median_snapshot_age_sessions, 1) + ' / 最大 '
         + fmt(card.max_snapshot_age_sessions, 0) + ' session</div>'
+        + panelLine(card, horizon)
         + '<table class="dm-mini"><thead><tr><th>动作</th><th>n</th><th>中位 '
         + esc(horizon) + '</th><th>胜率</th></tr></thead><tbody>' + rows + '</tbody></table>'
         + '</article>';
@@ -344,7 +410,10 @@ permalink: /decimap/
     el('dm-scrim').hidden = true;
   }
 
-  function renderAll() { renderStatus(); renderCards(); renderMatrix(); renderTimeline(); }
+  function renderAll() {
+    renderStatus(); renderSelection(); renderCards();
+    renderMatrix(); renderTimeline();
+  }
 
   function boot(data) {
     state.data = data;

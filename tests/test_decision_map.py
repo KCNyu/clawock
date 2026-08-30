@@ -65,11 +65,32 @@ def test_the_nearest_eligible_snapshot_wins_per_signal():
     assert joined['ages'] == {'quant.rsi14': 1, 'news.signed_score': 2}
 
 
-def _payload(monkeypatch, decisions, snapshots):
+#: A panel result shaped like `panel_scores` returns, so `build` does not have
+#: to fit a hidden Markov of bar history to test a join. The real thing is
+#: exercised against `signal_panel.evaluate` in its own test below.
+STUB_PANEL = {
+    'as_of': '2026-06-30', 'first_session': '2026-05-16', 'sessions': 30,
+    'rows': 900,
+    'selection': {'t1': {'status': 'measured', 'pbo': 0.61, 'n_splits': 70},
+                  't5': {'status': 'measured', 'pbo': 0.34, 'n_splits': 70},
+                  't20': {'status': 'insufficient_sample', 'pbo': None,
+                          'n_splits': None}},
+    'by_signal': {'quant.rsi14': {
+        horizon: {'mean_ic': 0.1234, 'ic_cluster_ci95': [-0.02, 0.27],
+                  'n_observations': 120, 'n_sessions': 20,
+                  'status': 'diagnostic', 'ic_clears_zero': False}
+        for horizon in dm.HORIZONS}},
+    'method': 'cross-sectional rank IC per session, averaged',
+    'interval_caveat': 't20 bands are optimistic',
+    'source': 'clawock signal-panel (evaluation.signal_panel.evaluate)',
+}
+
+
+def _payload(monkeypatch, decisions, snapshots, panel=None):
     monkeypatch.setattr(dm, 'load_signal_snapshots', lambda *a, **k: snapshots)
     monkeypatch.setattr(dm, 'canonical_bar_manifest', lambda: {})
     monkeypatch.setattr(dm, 'leg_sessions', lambda leg: [])
-    return dm.build(ledger_rows=decisions)
+    return dm.build(ledger_rows=decisions, panel=panel or STUB_PANEL)
 
 
 def test_coverage_is_published_per_signal(monkeypatch):
@@ -154,8 +175,14 @@ def test_an_older_decision_keeps_its_timeline_marker_when_its_snapshot_is_droppe
     rows = at_level_two['decision_snapshots']
     cut = max(0, len(rows) - dm.DRAWER_LIMIT)
     at_level_two['decision_snapshots'] = [None] * cut + rows[cut:]
-    at_level_two['degradation'] = {'level': 'recent_decisions_only', 'cost': '',
-                                   'levels': [], 'bytes': 0}
+    # The real dict, not a placeholder: `degradation` is written into the
+    # payload it measures, so a shorter stand-in here makes the reconstructed
+    # size smaller than the one `degrade` actually weighs — and the slack below
+    # then silently stops being the thing that decides the level.
+    at_level_two['degradation'] = {
+        'level': 'recent_decisions_only',
+        'cost': dict(dm.DEGRADATION)['recent_decisions_only'],
+        'levels': [name for name, _ in dm.DEGRADATION], 'bytes': 0}
     payload = dm.degrade(built, max_bytes=len(dm.encode(at_level_two).encode())
                          + dm.SIZE_MARGIN + 200)
     assert payload['degradation']['level'] == 'recent_decisions_only'
@@ -163,6 +190,159 @@ def test_an_older_decision_keeps_its_timeline_marker_when_its_snapshot_is_droppe
     assert len(payload['ticker_timelines']['AAA']) == len(decisions)
     kept = sum(1 for row in payload['decision_snapshots'] if row)
     assert 0 < kept <= dm.DRAWER_LIMIT
+
+
+def test_the_cards_republish_the_panel_instead_of_recomputing_it(monkeypatch):
+    """One implementation of a rank IC, not two.
+
+    A second one here would let the panel print a signal's t5 IC as +0.19 while
+    the card beside the decisions it stood next to said +0.17, with nothing to
+    say which was wrong.
+    """
+    payload = _payload(monkeypatch, [_decision('d0', 'AAA', '2026-06-01')],
+                       {'2026-06-01': {'AAA': {'quant.rsi14': 50.0}}})
+    card = next(c for c in payload['info_source_cards']
+                if c['signal'] == 'quant.rsi14')
+    for horizon in dm.HORIZONS:
+        assert card['panel'][horizon] == STUB_PANEL['by_signal']['quant.rsi14'][horizon]
+    # Verbatim, including the digits: rounding here would be a third version of
+    # a number that already exists twice on the site.
+    assert card['panel']['t5']['mean_ic'] == 0.1234
+
+
+def test_no_rank_correlation_is_computed_in_this_module():
+    """The gate behind the claim above, and the only one that survives a rewrite.
+
+    Names, not text: the docstring is allowed to *say* `spearman` while
+    explaining why nothing here computes one, and a substring check over the
+    file would fail on its own documentation.
+    """
+    import io
+    import tokenize
+
+    with open(dm.__file__, encoding='utf-8') as handle:
+        names = {token.string for token in tokenize.generate_tokens(
+            io.StringIO(handle.read()).readline)
+            if token.type == tokenize.NAME}
+    banned = {name for name in names
+              if any(mark in name.lower()
+                     for mark in ('spearman', 'rank_ic', 'pearson', 'corrcoef'))}
+    assert banned == set(), (
+        f'{sorted(banned)} in decision_map: the IC would have a second '
+        'implementation and the two can disagree')
+
+
+def test_a_signal_the_panel_never_scored_reads_as_absent_not_as_zero(monkeypatch):
+    payload = _payload(monkeypatch, [_decision('d0', 'AAA', '2026-06-01')],
+                       {'2026-06-01': {'AAA': {'quant.rsi14': 50.0,
+                                               'news.hard_catalyst': 1.0}}})
+    absent = next(c for c in payload['info_source_cards']
+                  if c['signal'] == 'news.hard_catalyst')
+    assert absent['panel'] is None
+
+
+def test_the_selection_pbo_is_published_once_for_the_panel_not_per_signal(monkeypatch):
+    """PBO is a property of choosing among the signals, not of any one of them."""
+    payload = _payload(monkeypatch, [_decision('d0', 'AAA', '2026-06-01')], {})
+    assert payload['signal_panel']['selection'] == STUB_PANEL['selection']
+    assert 'by_signal' not in payload['signal_panel']
+    for card in payload['info_source_cards']:
+        assert 'pbo' not in (card.get('panel') or {})
+
+
+def test_the_kpi_numbers_are_echoed_so_the_banner_can_be_checked(monkeypatch):
+    """Counted at build time and published, not counted in the browser."""
+    decisions = [
+        _decision('d0', 'AAA', '2026-06-01'),
+        _decision('d1', 'AAA', '2026-06-02'),
+        _decision('d2', 'BBB', '2026-06-02'),
+        _decision('d3', 'BBB', '2026-06-20'),
+    ]
+    snapshots = {'2026-06-01': {'AAA': {'quant.rsi14': 50.0}},
+                 '2026-06-02': {'AAA': {'quant.rsi14': 51.0}}}
+    payload = _payload(monkeypatch, decisions, snapshots)
+    kpi = payload['kpi']
+    assert kpi['decisions'] == 4
+    assert kpi['sessions'] == 3                # 06-01, 06-02, 06-20
+    assert kpi['ticker_sessions'] == 4         # every ticker x date pair distinct
+    assert kpi['tickers'] == 2
+    assert kpi['signals_referenced'] == len(payload['info_source_cards'])
+    # AAA joins on both its dates; BBB never has a snapshot of its own.
+    assert kpi['decisions_with_any_signal'] == 2
+    assert kpi['decision_signal_coverage_pct'] == 50.0
+    assert kpi['panel_as_of'] == STUB_PANEL['as_of']
+
+
+def test_the_two_dates_the_page_shows_are_both_named(monkeypatch):
+    """The map's last decision and the panel's last session are different facts.
+
+    Forcing them equal would be a lie in whichever direction it was forced:
+    signals are written on days no decision was made.
+    """
+    payload = _payload(monkeypatch, [_decision('d0', 'AAA', '2026-06-01')], {})
+    assert payload['as_of'] == '2026-06-01'
+    assert payload['signal_panel']['as_of'] == STUB_PANEL['as_of']
+    assert payload['kpi']['panel_as_of'] == payload['signal_panel']['as_of']
+
+
+def test_panel_scores_reshapes_signal_panel_without_touching_its_numbers():
+    """The adapter, against a real `evaluate` payload rather than a mock of it."""
+    evaluation = {
+        'coverage': {'last_session': '2026-08-25', 'first_session': '2026-05-16',
+                     'sessions': 83, 'rows': 10032},
+        'signals': {'quant.rsi14': {
+            horizon: {'mean_ic': -0.2037, 'ic_cluster_ci95': [-0.31, -0.09],
+                      'n_observations': 517, 'n_sessions': 42,
+                      'status': 'diagnostic', 'ic_clears_zero': True,
+                      'directional_hit_rate': 0.44}
+            for horizon in dm.HORIZONS}},
+        'selection': {horizon: {'status': 'measured', 'pbo': 0.34,
+                                'n_splits': 70, 'selected_signals': {'a': 3}}
+                      for horizon in dm.HORIZONS},
+        'method': 'cross-sectional rank IC per session, averaged',
+        'interval_caveat': 't20 bands are optimistic',
+    }
+    panel = dm.panel_scores(evaluation=evaluation)
+    row = panel['by_signal']['quant.rsi14']['t5']
+    assert row['mean_ic'] == -0.2037
+    assert row['ic_cluster_ci95'] == [-0.31, -0.09]
+    assert row['ic_clears_zero'] is True
+    # Only the published fields travel: the hit rate has its own registration
+    # rules and belongs on the panel, not on a card about decision adjacency.
+    assert set(row) == set(dm.PANEL_FIELDS)
+    assert panel['as_of'] == '2026-08-25'
+    assert panel['selection']['t5'] == {'status': 'measured', 'pbo': 0.34,
+                                        'n_splits': 70}
+
+
+def test_the_panel_block_is_dropped_before_the_timelines_are(monkeypatch):
+    """What it costs to recover decides the order.
+
+    `clawock signal-panel` reprints the IC block on demand; nothing reprints the
+    timeline, and the timeline is what the page is for. Without this step the
+    fall was one 9KB stumble from a slightly shorter map to a table of
+    aggregates.
+    """
+    decisions = [_decision(f'd{index}', 'AAA', f'2026-06-{index % 28 + 1:02d}')
+                 for index in range(400)]
+    snapshots = {f'2026-06-{index:02d}': {'AAA': {'quant.rsi14': 50.0}}
+                 for index in range(1, 29)}
+    built = _payload(monkeypatch, decisions, snapshots)
+    assert dm.DEGRADATION[3][0] == 'no_panel_scores'
+    assert [name for name, _ in dm.DEGRADATION].index('no_panel_scores') < \
+        [name for name, _ in dm.DEGRADATION].index('cards_and_matrix_only')
+
+    # Squeeze until exactly the panel step is needed.
+    full = len(dm.encode(built).encode('utf-8'))
+    stripped = dm.degrade(json.loads(dm.encode(built)), max_bytes=full // 3)
+    assert stripped['degradation']['level'] in ('no_panel_scores',
+                                                'cards_and_matrix_only')
+    if stripped['degradation']['level'] == 'no_panel_scores':
+        assert stripped['ticker_timelines']
+    assert all(card.get('panel') is None
+               for card in stripped['info_source_cards'])
+    # And it says so, so the page does not report a dropped block as a finding.
+    assert stripped['signal_panel']['dropped'] == 'payload budget'
 
 
 def test_the_encoding_that_is_measured_is_the_encoding_that_is_written():
@@ -193,6 +373,24 @@ def test_the_published_payload_is_under_budget_and_names_its_level():
     assert payload['schema_version'] == dm.SCHEMA_VERSION
     assert payload['degradation']['level'] in [name for name, _ in dm.DEGRADATION]
     assert payload['generated_at']
+
+    # The panel block, as it actually shipped. `panel_scores` copies the fields
+    # out of `signal_panel.evaluate` and rounds nothing, so any extra key here
+    # would mean the shipped file grew a number this module invented.
+    panel = payload.get('signal_panel') or {}
+    if not panel.get('dropped'):
+        assert panel['source'].startswith('clawock signal-panel')
+        assert len(panel['as_of']) == 10
+        for card in payload['info_source_cards']:
+            if card.get('panel') is None:
+                continue
+            assert set(card['panel']) == set(dm.HORIZONS)
+            for row in card['panel'].values():
+                assert set(row) == set(dm.PANEL_FIELDS)
+    kpi = payload['kpi']
+    assert kpi['decisions'] == payload['coverage']['decisions']
+    assert kpi['sessions'] == payload['coverage']['sessions']
+    assert 0 <= kpi['decision_signal_coverage_pct'] <= 100
 
 
 def test_rebuilding_is_deterministic_apart_from_the_timestamp(monkeypatch):
