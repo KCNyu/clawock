@@ -435,6 +435,155 @@ def score_signal(rows, horizon: str) -> dict:
     return result
 
 
+#: Tertiles, not quintiles. The cross-section is about twenty-one names on a
+#: good session; five buckets leaves four names each, and a "quintile return" of
+#: four names is one name's bad week wearing a statistic's name.
+QUANTILES = 3
+
+#: Below this the session's cross-section cannot be split into `QUANTILES`
+#: buckets with anything in them.
+MIN_CROSS_SECTION = QUANTILES * 2
+
+
+def _quantile_buckets(pairs, quantiles: int = QUANTILES):
+    """Assign one session's (value, forward) pairs to near-equal buckets by value.
+
+    Ties are broken by the order the sort produced rather than shared across the
+    boundary. That is deliberate and it is the conservative choice: a signal that
+    is constant across the cross-section gets buckets that differ only by noise,
+    so its spread goes to zero rather than becoming undefined and dropping the
+    session — which would silently restrict the measurement to the days the
+    signal happened to be lively.
+    """
+    ordered = sorted(pairs, key=lambda pair: pair[0])
+    edges = [round(len(ordered) * index / quantiles) for index in range(quantiles + 1)]
+    return [ordered[edges[index]:edges[index + 1]] for index in range(quantiles)]
+
+
+def quantile_structure(rows, horizon: str, *, quantiles: int = QUANTILES) -> dict:
+    """Mean forward return by signal quantile, and the long-short spread (#1161).
+
+    The rank IC beside this answers "does the ordering carry information". It
+    cannot answer the question that decides how a signal would be used: **is the
+    information on both ends, or one?** A signal whose top bucket outperforms
+    while its bottom bucket is indistinguishable from the middle is a long-only
+    screen; one whose bottom bucket carries everything is an avoid-list; only a
+    signal with both ends live supports a long-short reading. An IC of the same
+    magnitude is produced by all three.
+
+    The spread interval is bootstrapped over sessions, like every other interval
+    on this panel: a session where twenty names all moved together is one
+    observation, not twenty.
+    """
+    by_day = defaultdict(list)
+    for row in rows:
+        value, forward = row.get('value'), row.get(horizon)
+        if value is not None and forward is not None:
+            by_day[row['as_of']].append((float(value), float(forward)))
+    usable = {day: pairs for day, pairs in by_day.items()
+              if len(pairs) >= MIN_CROSS_SECTION}
+    if len(usable) < MIN_SESSIONS:
+        return {'status': 'collecting', 'n_sessions': len(usable),
+                'n_sessions_too_narrow': len(by_day) - len(usable),
+                'quantiles': quantiles, 'spread': None, 'buckets': None}
+    per_day_bucket_means = defaultdict(dict)
+    for day, pairs in usable.items():
+        for index, bucket in enumerate(_quantile_buckets(pairs, quantiles)):
+            if bucket:
+                per_day_bucket_means[day][index] = statistics.fmean(
+                    forward for _, forward in bucket)
+    buckets = {}
+    for index in range(quantiles):
+        values = {day: means[index] for day, means in per_day_bucket_means.items()
+                  if index in means}
+        buckets[f'q{index + 1}'] = {
+            'mean_forward_return': round(statistics.fmean(values.values()), 6)
+            if values else None,
+            'n_sessions': len(values),
+        }
+    spread_by_day = {
+        day: means[quantiles - 1] - means[0]
+        for day, means in per_day_bucket_means.items()
+        if 0 in means and quantiles - 1 in means
+    }
+    interval = _cluster_ci(spread_by_day) if spread_by_day else None
+    monotone = [buckets[f'q{index + 1}']['mean_forward_return']
+                for index in range(quantiles)]
+    return {
+        'status': 'diagnostic',
+        'quantiles': quantiles,
+        'n_sessions': len(usable),
+        'n_sessions_too_narrow': len(by_day) - len(usable),
+        'buckets': buckets,
+        'spread': round(statistics.fmean(spread_by_day.values()), 6)
+        if spread_by_day else None,
+        'spread_ci95': interval,
+        'spread_clears_zero': bool(interval and (interval[0] > 0 or interval[1] < 0)),
+        # Which end carries it. Reported as the two halves of the spread rather
+        # than as a verdict, because the reader's threshold for "one-sided" is
+        # not this function's to pick.
+        'top_minus_middle': (
+            round(monotone[-1] - monotone[quantiles // 2], 6)
+            if None not in monotone else None),
+        'middle_minus_bottom': (
+            round(monotone[quantiles // 2] - monotone[0], 6)
+            if None not in monotone else None),
+        'monotone': (all(monotone[index] <= monotone[index + 1]
+                         for index in range(quantiles - 1))
+                     or all(monotone[index] >= monotone[index + 1]
+                            for index in range(quantiles - 1)))
+        if None not in monotone else None,
+    }
+
+
+def persistence(rows, *, quantiles: int = QUANTILES) -> dict:
+    """How fast the signal churns, and how fast its ordering decays (#1161).
+
+    Two costs a mean IC hides. **Turnover** is how much of the top bucket has to
+    be replaced between consecutive sessions — a signal with a real edge and 90%
+    daily turnover pays for that edge in spread every day, and a report that
+    prints the edge without the turnover is quoting a gross number. **Rank
+    autocorrelation** is the same thing from the other side: how much of
+    yesterday's ordering survives into today.
+
+    Both are computed only across *consecutive registered sessions*, so a gap in
+    the history is a gap rather than an artificially low turnover.
+    """
+    by_day = defaultdict(dict)
+    for row in rows:
+        if row.get('value') is not None:
+            by_day[row['as_of']][row['ticker']] = float(row['value'])
+    days = sorted(by_day)
+    turnovers, autocorrelations = [], []
+    for previous, current in zip(days, days[1:]):
+        before, after = by_day[previous], by_day[current]
+        shared = sorted(set(before) & set(after))
+        if len(shared) >= MIN_CROSS_SECTION:
+            autocorrelation = _spearman(
+                [(before[ticker], after[ticker]) for ticker in shared])
+            if autocorrelation is not None:
+                autocorrelations.append(autocorrelation)
+        for source, target, bucket in ((before, after, 'top'),):
+            if len(source) < MIN_CROSS_SECTION or len(target) < MIN_CROSS_SECTION:
+                continue
+            def top_names(values):
+                ordered = sorted(values, key=lambda name: values[name], reverse=True)
+                return set(ordered[:max(1, len(ordered) // quantiles)])
+            was, now = top_names(source), top_names(target)
+            if now:
+                turnovers.append(len(now - was) / len(now))
+    return {
+        'n_session_pairs': max(0, len(days) - 1),
+        'top_bucket_turnover': round(statistics.fmean(turnovers), 4)
+        if turnovers else None,
+        'rank_autocorrelation': round(statistics.fmean(autocorrelations), 4)
+        if autocorrelations else None,
+        'reading': ('turnover is the share of the top bucket replaced between '
+                    'consecutive registered sessions; an edge quoted without it '
+                    'is a gross number'),
+    }
+
+
 def selection_pbo(panel, horizon: str, *, groups: int = 8) -> dict:
     """How much of the best-looking source is the thirteen-way search itself.
 
@@ -592,8 +741,16 @@ def evaluate(panel) -> dict:
     for row in panel:
         by_signal[row['signal']].append(row)
     signals = {
-        signal: {horizon: score_signal(rows, horizon)
-                 for horizon in ('t1', 't5', 't20')}
+        signal: {
+            **{horizon: score_signal(rows, horizon)
+               for horizon in ('t1', 't5', 't20')},
+            # Alphalens' two questions that a mean IC cannot answer (#1161):
+            # where in the cross-section the information sits, and what holding
+            # the signal would cost to maintain.
+            'quantiles': {horizon: quantile_structure(rows, horizon)
+                          for horizon in ('t1', 't5', 't20')},
+            'persistence': persistence(rows),
+        }
         for signal, rows in sorted(by_signal.items())
     }
     sessions = sorted({row['as_of'] for row in panel})
@@ -687,6 +844,31 @@ def main(argv=None) -> int:
         if picked:
             print('  most often selected: '
                   + ' · '.join(f'{name} ({count})' for name, count in picked))
+    print(f'\n--- {args.horizon} quantile structure and cost to hold '
+          f'({QUANTILES} buckets) ---')
+    print(f'{"signal":<28}{"q1":>9}{"q2":>9}{"q3":>9}{"spread":>9}'
+          f'{"turnover":>10}{"rank AC":>9}')
+    for signal, sections in result['signals'].items():
+        quantiles = sections['quantiles'][args.horizon]
+        holding = sections['persistence']
+        if quantiles.get('status') != 'diagnostic':
+            continue
+        cells = [quantiles['buckets'][f'q{index + 1}']['mean_forward_return']
+                 for index in range(quantiles['quantiles'])]
+        text = ''.join(f'{value:>+9.4f}' if value is not None else f'{"—":>9}'
+                       for value in cells)
+        spread = quantiles['spread']
+        turnover = holding['top_bucket_turnover']
+        autocorrelation = holding['rank_autocorrelation']
+        print(f'{signal:<28}{text}'
+              f'{(f"{spread:+.4f}" if spread is not None else "—"):>9}'
+              f'{(f"{turnover:.2f}" if turnover is not None else "—"):>10}'
+              f'{(f"{autocorrelation:+.2f}" if autocorrelation is not None else "—"):>9}'
+              f'{" *" if quantiles["spread_clears_zero"] else ""}')
+    print('  q1 = lowest signal value. spread = q3 - q1, interval clustered by '
+          'session. turnover = share of the top bucket replaced between '
+          'consecutive registered sessions: an edge quoted without it is gross.')
+
     polarity = result['composite_polarity'][args.horizon]
     if polarity.get('status') == 'measured':
         print(f'\n--- composite: polarity or regime? ({polarity["n_constituents"]} '
