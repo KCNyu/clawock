@@ -60,7 +60,7 @@ clawock 是一套真实港美股账户上运行的 AI 投研系统,解决一个�
 
 ## 信息层
 
-仓库编录了 **8 层、41 个抓取与计算模块**,港股美股双语覆盖:
+仓库编录了 **8 层、42 个抓取与计算模块**,港股美股双语覆盖:
 
 <details>
 <summary><b>全部 8 层,逐行展开</b> —— 模块数与主要来源</summary>
@@ -76,7 +76,7 @@ clawock 是一套真实港美股账户上运行的 AI 投研系统,解决一个�
 | 5 · 宏观/情绪 | 3 | Yahoo · Reddit · CNN · 社交 feed |
 | 6 · 量化与风险 | 9 | 对价格历史做确定性计算 |
 | 7 · 账本/汇率校验 | 6 | Frankfurter · 对账账本 · 本地不变量 |
-| 8 · 回测/自省 | 7 | 本地快照 + 基准行情 |
+| 8 · 回测/自省 | 8 | 本地快照 + 基准行情 |
 
 抓取层优雅降级:东财统一走节流网关,报价/汇率多源兜底,抓空保留旧值。41 个模块的命令清单(`analyze-hk` `us-quotes` `filings` `fundflow` `em-news` `macro` `quant` `fx` `shadow` `evaluate-*` 等)由[命令参考](docs/reference/commands.md)按 registry 生成——上面的表格与清单由 CI 对着 [`config/information-layers.json`](config/information-layers.json) 核对,模块搬了家,数字不会留在原地。
 

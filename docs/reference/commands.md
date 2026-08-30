@@ -26,7 +26,7 @@ title: clawock · command reference
 
 ## Installed commands / 已安装命令
 
-**67 commands** are installed by the single `clawock` distribution: 55 CLI subcommands and 12 standalone scripts. 41 of them collect or compute information and appear under the layer they feed; the remaining 26 publish, gate, record or schedule, and are listed with the reason they are not collection.
+**68 commands** are installed by the single `clawock` distribution: 56 CLI subcommands and 12 standalone scripts. 42 of them collect or compute information and appear under the layer they feed; the remaining 26 publish, gate, record or schedule, and are listed with the reason they are not collection.
 
 本节由生成器从两份 registry 与 `config/information-layers.json` 推导，不手写；新增或删除一条命令，这张表自己会变。
 
@@ -123,6 +123,7 @@ Sources: local snapshots + canonical bars
 | `clawock evaluate-us-leverage` | `clawock.evaluation.us_leverage` | the same regime backtest for the US 2x sleeve |
 | `clawock evaluate-combined-regime` | `clawock.evaluation.combined_regime` | the whole book at current USD weights |
 | `clawock validate-regime-dial` | `clawock.evaluation.regime_validation` | out-of-sample and circular-shift null for the dial's timing |
+| `clawock validate-regime-hmm` | `clawock.evaluation.regime_hmm` | posterior regimes with a duration, scored on the dial's own circular-shift null |
 | `clawock shadow` | `clawock.decision.shadow` | replays triggered calls against buy-and-hold to measure simulated timing alpha |
 | `clawock audit-resettle` | `clawock.decision.settlement` | dry-run bar-based re-settle that reports every verdict it would change |
 | `clawock evaluate-add-alpha` | `clawock.evaluation.add_alpha_walkforward` | point-in-time diagnostic replay of price-relative and information interaction adds |

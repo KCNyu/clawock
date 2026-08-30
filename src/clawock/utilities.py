@@ -70,6 +70,7 @@ PACKAGED_UTILITIES = {
     "thesis": "clawock.decision.theses",
     "us-quotes": "clawock.market_data.us_quotes",
     "validate-regime-dial": "clawock.evaluation.regime_validation",
+    "validate-regime-hmm": "clawock.evaluation.regime_hmm",
     "validate-sidecar": "clawock.publish.artifacts",
     "watch-list": "clawock.decision.watch_list",
 }
@@ -149,6 +150,8 @@ UTILITY_HELP = {
     "thesis": "validate thesis state or evaluate evidence-only drift",
     "us-quotes": "refresh US holdings through the provider fallback chain",
     "validate-regime-dial": "walk-forward validate the production regime dial",
+    "validate-regime-hmm":
+        "fit hidden market regimes and test them against the dial",
     "validate-sidecar": "validate a workflow-generated sidecar artifact",
     "watch-list": "scan non-held AI watch names for price opportunities",
 }
