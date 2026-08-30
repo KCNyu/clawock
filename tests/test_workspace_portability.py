@@ -45,13 +45,27 @@ def test_no_workflow_reinstates_a_hand_written_package_list():
 
 
 def test_the_declared_extras_cover_what_the_suite_imports():
-    extras = tomllib.load(open(ROOT / "pyproject.toml", "rb"))[
-        "project"]["optional-dependencies"]
-    names = {dep.split(">")[0].split("=")[0].strip().lower()
-             for dep in extras["test"]}
+    """`.[test]` plus the required dependencies must cover every suite import.
 
-    # numpy is required to *collect* tests, not merely to pass one of them.
-    assert {"pytest", "pytest-cov", "numpy", "pillow"} <= names, names
+    The gate used to read `extras["test"]` alone, which was right while numpy
+    lived in an optional group. It is a required dependency as of 2026-08-30 —
+    `portfolio/risk.py` had been importing it at the top level all along, so a
+    clean install already shipped a `portfolio-risk` command that raised on its
+    first line. Requiring a package to *also* be listed in the test extra would
+    make the correct declaration fail this gate, so the union is what is checked.
+    """
+    project = tomllib.load(open(ROOT / "pyproject.toml", "rb"))["project"]
+
+    def distributions(specifiers):
+        return {re.split(r"[><=!\[~;]", spec)[0].strip().lower()
+                for spec in specifiers}
+
+    installed = (distributions(project["dependencies"])
+                 | distributions(project["optional-dependencies"]["test"]))
+    # Every one of these is needed to *collect* the suite, not merely to pass
+    # one of its tests: a module that cannot import does not fail, it stops the
+    # run at collection while the run still looks like it ran.
+    assert {"pytest", "pytest-cov", "numpy", "scipy", "pillow"} <= installed, installed
 
 
 def test_the_engine_runs_against_a_workspace_that_is_not_this_one(tmp_path):
