@@ -751,7 +751,17 @@ def cosend_telegram(message, tag, dry_run=False):
         ok, out = send_telegram(KCN_TELEGRAM, message, dry_run)
     except Exception as e:
         ok, out = False, str(e)[:300]
-    log({'tag': tag, 'action': 'telegram-cosend', 'sent_ok': bool(ok), 'dry_run': bool(dry_run)})
+    entry = {'tag': tag, 'action': 'telegram-cosend', 'sent_ok': bool(ok),
+             'dry_run': bool(dry_run)}
+    if not ok:
+        # The failure tail used to be returned to a caller that dropped it, so a
+        # failed co-send left no reason anywhere — three of them on 2026-08-31
+        # (brief 08:08, hk-open 09:34, intraday-hk 10:04) each cost a watchdog
+        # mirror and none of them can be explained after the fact. `tg_ok=false`
+        # is what makes the watchdog fire, so the reason belongs in the same log
+        # as the firing.
+        entry['detail'] = (out or 'no output from the transport')[-300:]
+    log(entry)
     return ok, out
 
 

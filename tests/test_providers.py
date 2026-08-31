@@ -73,6 +73,41 @@ def test_a_timeout_is_unknown_because_the_message_may_have_gone():
     assert sent.status == "unknown"
 
 
+def test_a_nonzero_exit_that_still_named_a_message_is_unknown_not_failed():
+    """2026-08-31: the exit code lost a race the delivery had already won.
+
+    The brief's Telegram co-send was recorded failed at 08:08:50; the gateway
+    handed Telegram messageId 1164 at 08:08:54. `failed` wrote tg_ok=false into
+    the marker, the watchdog read that as "never arrived" and mirrored the same
+    card at 08:30. An id in the transport's own output is evidence of the
+    opposite, so it downgrades the verdict to `unknown` — which still mirrors
+    when nothing else confirms, but no longer asserts a miss.
+    """
+    out = '{"action":"send","messageId":"1164","payload":{"ok":true}}\nEPIPE'
+    sent = OpenClawDelivery(runner=lambda cmd: (1, out)).send(
+        "telegram", "123", "hello")
+
+    assert sent.status == "unknown"
+    assert sent.reached_target is False
+    assert sent.worth_mirroring is True
+
+
+def test_a_nonzero_exit_with_no_message_id_is_still_a_failure():
+    sent = OpenClawDelivery(runner=lambda cmd: (1, "connection refused")).send(
+        "telegram", "123", "hello")
+
+    assert sent.status == "failed"
+    assert "connection refused" in sent.detail
+
+
+def test_a_null_message_id_is_not_evidence_of_delivery():
+    """The transport saying it has no id is the opposite of naming one."""
+    sent = OpenClawDelivery(runner=lambda cmd: (1, '{"messageId": null}')).send(
+        "telegram", "123", "hello")
+
+    assert sent.status == "failed"
+
+
 def test_a_missing_binary_reports_instead_of_raising():
     def missing(cmd):
         raise FileNotFoundError(cmd[0])
