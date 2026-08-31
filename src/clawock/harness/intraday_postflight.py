@@ -612,6 +612,10 @@ def main(argv=None):
         telegram_sent=tg_ok, dashboard_published=dashboard_published,
         data_plane_status=data_plane_status,
         insights_sidecar=insights_written, issue_count=len(issues),
+        # Published so a gate that runs elsewhere can see a lane only this
+        # machine can measure: commits made here that never reached the remote
+        # (#1241). `None` when it cannot be determined — never 0.
+        unpushed_commits=cron_heartbeat.unpushed_commits(),
         # The ledger needs the same escalating/advisory split the banner uses:
         # an advisory-only slot delivered a clean report (#764).
         escalating_count=len(escalating), advisory_count=len(advisories),

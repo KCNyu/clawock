@@ -355,3 +355,59 @@ def test_a_us_holiday_suppresses_the_previous_evening_slots_without_a_red(monkey
         monkeypatch, capsys, datetime(2026, 5, 26, 9, 17, tzinfo=timezone.utc))
     assert rows["美股开盘报告"]["status"] == "holiday"
     assert rows["美股盘中盯盘"]["status"] == "holiday"
+
+
+# --- publish backlog (#1241) ------------------------------------------------
+#
+# This gate runs on GitHub Actions, against artifacts that were *published*. A
+# checkout that commits and never pushes looks from here exactly like one that
+# had nothing to say — which is how six commits sat unpushed for eight hours on
+# 2026-08-31 while `data-plane` published on schedule and every visible surface
+# stayed green. Only the host can measure it; it carries the number in the
+# heartbeat and these read it.
+
+def _ledger(*counts):
+    return {"events": [{"slot": f"2026-08-31T1{i}:00:00+08:00",
+                        **({} if count is None else {"unpushed_commits": count})}
+                       for i, count in enumerate(counts)]}
+
+
+def test_a_backlog_the_size_of_the_incident_is_degraded():
+    result = cron_health_check.publish_backlog(_ledger(0, 6))
+
+    assert result["state"] == "degraded"
+    assert result["count"] == 6
+    assert "never published" in result["detail"]
+
+
+def test_a_normal_publish_cycle_is_not_a_backlog():
+    assert cron_health_check.publish_backlog(_ledger(0, 1))["state"] == "ok"
+
+
+def test_only_the_newest_heartbeat_that_carries_the_field_decides():
+    """An old degraded reading must not outlive the recovery that followed it."""
+    result = cron_health_check.publish_backlog(_ledger(9, 9, 0))
+
+    assert (result["state"], result["count"]) == ("ok", 0)
+
+
+def test_a_host_that_cannot_measure_it_is_absent_not_zero():
+    """The failure being guarded is a lane that looked fine because nobody looked.
+
+    Reporting `absent` as `0 unpushed` would rebuild exactly that.
+    """
+    assert cron_health_check.publish_backlog(_ledger(None, None))["state"] == "absent"
+    assert cron_health_check.publish_backlog({"events": []})["state"] == "absent"
+    assert cron_health_check.publish_backlog({})["count"] is None
+
+
+def test_the_host_measurement_says_none_rather_than_zero_when_it_cannot_tell(tmp_path):
+    from clawock.automation import cron_heartbeat
+
+    assert cron_heartbeat.unpushed_commits(tmp_path) is None, (
+        "a directory that is not a git checkout has no backlog to report, and "
+        "0 would be a claim it cannot make"
+    )
+    assert cron_heartbeat.unpushed_commits(ROOT) is not None, (
+        "this checkout can be asked, so the answer must be a number"
+    )
