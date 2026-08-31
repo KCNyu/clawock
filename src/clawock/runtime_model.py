@@ -15,7 +15,11 @@ from typing import Any, Mapping
 
 
 WORKFLOWS = ("brief", "report", "intraday")
-PHASES = ("preflight", "postflight")
+# `render` is the brief's third phase: it turns the model's judgment into the
+# published report. Every workflow has preflight/postflight; only the brief has
+# something to render, and `harness.runner.PHASE_MODULES` is what says which
+# (workflow, phase) pairs actually exist.
+PHASES = ("preflight", "postflight", "render")
 
 
 @dataclass(frozen=True)
