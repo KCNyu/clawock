@@ -198,6 +198,34 @@ def test_normalization_failure_is_fail_closed(tmp_path, monkeypatch):
     assert brief_postflight.categorize(issues) == "fail"
 
 
+def _filled_judgment(generation_id="generation-fixture", tickers=()):
+    """A judgment that passes validation, so postflight's gap check stays quiet.
+
+    Since #1232 the report is rendered from the judgment, so an absent one is a
+    reported issue (`_judgment_gap_issues`). These fixtures are about the plan
+    and publication paths, not about that check, and they should not go quiet by
+    accident.
+    """
+    from clawock.decision.packet import judgment_template
+
+    overlay = judgment_template({
+        "_meta": {"generation_id": generation_id},
+        "tickers": {ticker: {} for ticker in tickers},
+    })
+    overlay["portfolio_assessment"] = "fixture assessment"
+    overlay["portfolio_counterargument"] = "fixture counterargument"
+    for field, value in list(overlay["narrative"].items()):
+        if field == "risk_voice_first":
+            continue
+        overlay["narrative"][field] = (
+            ["fixture step"] if isinstance(value, list) else "fixture text")
+    for row in overlay["ticker_judgments"]:
+        for field, value in list(row.items()):
+            if value == "":
+                row[field] = "fixture text"
+    return overlay
+
+
 def test_main_normalizes_before_calling_plan_validation(tmp_path, monkeypatch):
     today = datetime.now().strftime("%Y-%m-%d")
     plan_path = tmp_path / "memory" / f"{today}-plan.json"
@@ -212,6 +240,8 @@ def test_main_normalizes_before_calling_plan_validation(tmp_path, monkeypatch):
     ctx_dir = tmp_path / "memory" / ".tmp"
     ctx_dir.mkdir()
     (ctx_dir / f"brief-context-{today}.json").write_text("{}")
+    (ctx_dir / f"brief-judgment-{today}.json").write_text(
+        json.dumps(_filled_judgment(), ensure_ascii=False))
     observed = {}
 
     def assert_normalized(path, **_kwargs):
@@ -256,6 +286,8 @@ def test_dry_run_validates_normalized_plan_without_rewriting_source(
     ctx_dir = tmp_path / "memory" / ".tmp"
     ctx_dir.mkdir(parents=True, exist_ok=True)
     (ctx_dir / f"brief-context-{today}.json").write_text("{}")
+    (ctx_dir / f"brief-judgment-{today}.json").write_text(
+        json.dumps(_filled_judgment(), ensure_ascii=False))
     before_mtime = plan_path.stat().st_mtime_ns
     observed = {}
     validate = brief_postflight.validate_plan_json

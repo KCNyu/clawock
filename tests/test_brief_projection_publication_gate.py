@@ -8,11 +8,41 @@ from datetime import datetime
 from clawock.harness import brief_postflight as postflight
 
 
+def _filled_judgment(generation_id="generation-fixture", tickers=()):
+    """A judgment that passes validation, so postflight's gap check stays quiet.
+
+    Since #1232 the report is rendered from the judgment, so an absent one is a
+    reported issue (`_judgment_gap_issues`). These fixtures are about the plan
+    and publication paths, not about that check, and they should not go quiet by
+    accident.
+    """
+    from clawock.decision.packet import judgment_template
+
+    overlay = judgment_template({
+        "_meta": {"generation_id": generation_id},
+        "tickers": {ticker: {} for ticker in tickers},
+    })
+    overlay["portfolio_assessment"] = "fixture assessment"
+    overlay["portfolio_counterargument"] = "fixture counterargument"
+    for field, value in list(overlay["narrative"].items()):
+        if field == "risk_voice_first":
+            continue
+        overlay["narrative"][field] = (
+            ["fixture step"] if isinstance(value, list) else "fixture text")
+    for row in overlay["ticker_judgments"]:
+        for field, value in list(row.items()):
+            if value == "":
+                row[field] = "fixture text"
+    return overlay
+
+
 def _run_postflight(tmp_path, monkeypatch, capsys, *, projection_error=None):
     today = datetime.now().strftime('%Y-%m-%d')
     context_path = tmp_path / 'memory' / '.tmp' / f'brief-context-{today}.json'
     context_path.parent.mkdir(parents=True)
     context_path.write_text(json.dumps({'generation_id': 'generation-fixture'}))
+    (context_path.parent / f'brief-judgment-{today}.json').write_text(
+        json.dumps(_filled_judgment(), ensure_ascii=False))
 
     stages = []
     commits = []
