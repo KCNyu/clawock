@@ -39,7 +39,7 @@ jobs:
       - name: Set up clawock (Python)
         uses: ./.github/actions/clawock-python
 
-      - name: Scan sentiment (Reddit search RSS + Google News)
+      - name: Scan sentiment (Reddit + Google News)
         run: clawock sentiment --workspace .
 
       - name: Validate sentiment coverage

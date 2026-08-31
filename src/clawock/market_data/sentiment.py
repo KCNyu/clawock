@@ -231,7 +231,7 @@ def _feed_entries(text: str, cutoff: datetime) -> tuple[list[dict], int]:
     return kept, total
 
 
-def fetch_reddit(query: str, *, sleep=time.sleep):
+def fetch_reddit(query: str, *, sleep=None):
     """(feed text, status). `status` is `ok`, `throttled` or `failed`.
 
     A 429 is kept distinct from every other failure on purpose: throttled means
@@ -240,6 +240,11 @@ def fetch_reddit(query: str, *, sleep=time.sleep):
     moving the scan somewhere else, and a single `failed` bucket cannot tell
     anyone which one happened.
     """
+    # Resolved at call time, not bound in the signature: a default of
+    # `time.sleep` is captured at import, so a test patching this module's
+    # `time.sleep` would still sleep through the real backoff — measured at 105
+    # seconds in one suite run before this line existed.
+    sleep = sleep or time.sleep
     url = f'{REDDIT_SEARCH}?q={quote(query)}&sort=new&limit={REDDIT_LIMIT}'
     status = 'failed'
     for wait in REDDIT_RETRY_WAITS:
@@ -257,7 +262,7 @@ def fetch_reddit(query: str, *, sleep=time.sleep):
     return None, status
 
 
-def scan_reddit(rows, registry, *, now=None, sleep=time.sleep, fetch=None):
+def scan_reddit(rows, registry, *, now=None, sleep=None, fetch=None):
     """Fill every row's Reddit fields from one search, or mark them unfetched.
 
     The contract that matters is the failure one: when the feed does not come
@@ -266,6 +271,7 @@ def scan_reddit(rows, registry, *, now=None, sleep=time.sleep, fetch=None):
     day from 2026-05-17 to 2026-08-31 while the old JSON endpoint answered 403
     to every request (#1237).
     """
+    sleep = sleep or time.sleep
     terms = {row['ticker']: search_terms(row['ticker'], row['name'], registry)
              for row in rows}
     for row in rows:

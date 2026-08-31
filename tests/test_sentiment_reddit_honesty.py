@@ -223,3 +223,23 @@ def test_the_brief_prints_a_dash_not_a_zero_for_a_count_it_does_not_have():
 
     assert '0 mentions' in render(0)
     assert 'mentions' not in render(None) and brief_render.MISSING in render(None)
+
+
+def test_the_retry_backoff_is_reachable_by_a_test_that_patches_this_module(monkeypatch):
+    """A `sleep=time.sleep` default is captured at import, not at call.
+
+    Measured before this was fixed: `test_sentiment_producer_marks_total_http_outage_failed`
+    spent **105 seconds** sleeping through the real 35s + 70s backoff, because
+    it patches `sentiment.time.sleep` and the signature default had already
+    bound the real one.
+    """
+    slept = []
+    monkeypatch.setattr(sp.time, 'sleep', slept.append)
+    monkeypatch.setattr(sp.requests, 'get', lambda *a, **k: _Response(429))
+
+    text, status = sp.fetch_reddit('RKLB')
+
+    assert (text, status) == (None, 'throttled')
+    assert slept == [w for w in sp.REDDIT_RETRY_WAITS if w], (
+        'the backoff has to go through the module attribute a test can reach'
+    )
