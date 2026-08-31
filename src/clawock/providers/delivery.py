@@ -20,6 +20,7 @@ duplicate sends. It has to be its own state.
 from __future__ import annotations
 
 import os
+import re
 import subprocess
 from dataclasses import dataclass, field
 from typing import Protocol
@@ -39,6 +40,21 @@ def delivery_disabled() -> bool:
     return os.environ.get("CLAWOCK_DELIVERY_DISABLED", "").strip().lower() in {
         "1", "true", "yes", "on",
     }
+
+
+_MESSAGE_ID = re.compile(r'"messageId"\s*:\s*"?([^",\s}]+)', re.IGNORECASE)
+
+
+def _names_a_message(output: str | None) -> bool:
+    """Whether the transport's output identifies a message it accepted.
+
+    Only a real id counts: `"messageId": null` is the transport saying it has
+    none, which is the opposite of evidence.
+    """
+    if not output:
+        return False
+    return any(m.group(1).lower() not in ("null", "none", "")
+               for m in _MESSAGE_ID.finditer(output))
 
 
 @dataclass(frozen=True)
@@ -138,7 +154,15 @@ class OpenClawDelivery:
 
         tail = (output or "").strip()[-400:]
         if code != 0:
-            return DeliveryResult("failed", channel, str(target), detail=tail,
+            # A non-zero exit is not proof that nothing was sent. On 2026-08-31
+            # the brief's Telegram co-send was recorded failed at 08:08:50 while
+            # the gateway went on to hand Telegram messageId 1164 at 08:08:54 —
+            # so the marker said tg_ok=false and the watchdog mirrored a card
+            # that had already landed. When the transport's own output names a
+            # message it accepted, treat the exit the way a timeout is treated:
+            # `unknown`, which still mirrors, rather than `failed`.
+            status = "unknown" if _names_a_message(output) else "failed"
+            return DeliveryResult(status, channel, str(target), detail=tail,
                                   idempotency_key=idempotency_key)
         status = "confirmed" if channel in CONFIRMING_CHANNELS else "unknown"
         return DeliveryResult(status, channel, str(target), detail=tail,
