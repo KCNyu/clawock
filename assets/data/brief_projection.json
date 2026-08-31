@@ -1,10 +1,14 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-08-28T08:03:56.627428+08:00",
-  "as_of": "2026-08-28",
-  "context_generation_id": "4f8bb7e1c298e2f0",
+  "generated_at": "2026-08-31T08:02:17.542126+08:00",
+  "as_of": "2026-08-31",
+  "context_generation_id": "b1e701f7fdd16545",
   "judgment_status": "invalid",
   "judgment_issues": [
+    "judgment ticker_judgments[3] disposition candidate cannot upgrade a deterministic non-candidate",
+    "judgment ticker_judgments[4] disposition candidate cannot upgrade a deterministic non-candidate",
+    "judgment ticker_judgments[6] disposition candidate cannot upgrade a deterministic non-candidate",
+    "judgment ticker_judgments[8] disposition candidate cannot upgrade a deterministic non-candidate",
     "judgment ticker_judgments[9] disposition candidate cannot upgrade a deterministic non-candidate"
   ],
   "portfolio_judgment": null,
@@ -14,19 +18,19 @@
       "name": "Defiance Daily Target 2X Long R",
       "leg": "US",
       "facts": {
-        "today_change_pct": 3.82,
-        "pnl_pct": -66.07
+        "today_change_pct": -9.19,
+        "pnl_pct": -69.19
       },
       "technical": {
         "source_ticker": "RKLB",
         "is_proxy": true,
-        "as_of": "2026-08-27",
+        "as_of": "2026-08-28",
         "tag": "趋势OFF · 已破吊灯止损",
         "trend": "off",
-        "rsi14": 38.8,
+        "rsi14": 35.3,
         "rsi_state": "weak",
-        "dist_ma200_pct": -14.5,
-        "pct_52w_range": 25.3,
+        "dist_ma200_pct": -18.6,
+        "pct_52w_range": 22.5,
         "stop_state": "breached",
         "usable": true
       },
@@ -70,19 +74,19 @@
       "name": "XL二南方恒科",
       "leg": "HK",
       "facts": {
-        "today_change_pct": -0.24,
-        "pnl_pct": -25.15
+        "today_change_pct": -0.8,
+        "pnl_pct": -25.74
       },
       "technical": {
         "source_ticker": "HSTECH",
         "is_proxy": true,
-        "as_of": "2026-08-27",
+        "as_of": "2026-08-28",
         "tag": "趋势OFF · 已破吊灯止损",
         "trend": "off",
-        "rsi14": 43.3,
+        "rsi14": 42.5,
         "rsi_state": "weak",
-        "dist_ma200_pct": -9.9,
-        "pct_52w_range": 15.0,
+        "dist_ma200_pct": -10.1,
+        "pct_52w_range": 14.4,
         "stop_state": "breached",
         "usable": true
       },
@@ -125,19 +129,19 @@
       "name": "Leverage Shares 2X Long SpaceX Daily ETF",
       "leg": "US",
       "facts": {
-        "today_change_pct": 1.69,
-        "pnl_pct": -25.12
+        "today_change_pct": 1.0,
+        "pnl_pct": -24.38
       },
       "technical": {
         "source_ticker": "SPCX",
         "is_proxy": true,
-        "as_of": "2026-08-27",
+        "as_of": "2026-08-28",
         "tag": "趋势未知",
         "trend": "unknown",
-        "rsi14": 54.3,
+        "rsi14": 54.8,
         "rsi_state": "neutral",
         "dist_ma200_pct": null,
-        "pct_52w_range": 34.9,
+        "pct_52w_range": 35.5,
         "stop_state": "intact",
         "usable": true
       },
@@ -182,19 +186,19 @@
       "name": "MINIMAX-W",
       "leg": "HK",
       "facts": {
-        "today_change_pct": 3.83,
-        "pnl_pct": -43.12
+        "today_change_pct": -4.51,
+        "pnl_pct": -45.69
       },
       "technical": {
         "source_ticker": "00100",
         "is_proxy": false,
-        "as_of": "2026-08-27",
+        "as_of": "2026-08-28",
         "tag": "趋势未知",
         "trend": "unknown",
-        "rsi14": 50.9,
+        "rsi14": 48.4,
         "rsi_state": "neutral",
         "dist_ma200_pct": null,
-        "pct_52w_range": 11.6,
+        "pct_52w_range": 10.3,
         "stop_state": "intact",
         "usable": true
       },
@@ -221,7 +225,7 @@
       },
       "judgment": null,
       "candidate_disposition": {
-        "deterministic_candidate": true,
+        "deterministic_candidate": false,
         "effective": "wait",
         "discipline": "judgment may downgrade or reject; it cannot create authority"
       }
@@ -231,20 +235,20 @@
       "name": "金风科技",
       "leg": "HK",
       "facts": {
-        "today_change_pct": -1.05,
-        "pnl_pct": -29.46
+        "today_change_pct": -2.21,
+        "pnl_pct": -31.02
       },
       "technical": {
         "source_ticker": "02208",
         "is_proxy": false,
-        "as_of": "2026-08-27",
-        "tag": "趋势OFF",
+        "as_of": "2026-08-28",
+        "tag": "趋势OFF · 已破吊灯止损",
         "trend": "off",
-        "rsi14": 46.6,
-        "rsi_state": "neutral",
-        "dist_ma200_pct": -25.3,
-        "pct_52w_range": 15.9,
-        "stop_state": "intact",
+        "rsi14": 44.4,
+        "rsi_state": "weak",
+        "dist_ma200_pct": -26.8,
+        "pct_52w_range": 13.6,
+        "stop_state": "breached",
         "usable": true
       },
       "quant": {
@@ -280,19 +284,19 @@
       "name": "恒生科技ETF",
       "leg": "HK",
       "facts": {
-        "today_change_pct": -0.04,
-        "pnl_pct": -14.41
+        "today_change_pct": -0.43,
+        "pnl_pct": -14.78
       },
       "technical": {
         "source_ticker": "03032",
         "is_proxy": false,
-        "as_of": "2026-08-27",
+        "as_of": "2026-08-28",
         "tag": "趋势OFF · 已破吊灯止损",
         "trend": "off",
-        "rsi14": 43.9,
+        "rsi14": 42.8,
         "rsi_state": "weak",
-        "dist_ma200_pct": -9.4,
-        "pct_52w_range": 15.5,
+        "dist_ma200_pct": -9.7,
+        "pct_52w_range": 14.7,
         "stop_state": "breached",
         "usable": true
       },
@@ -329,19 +333,19 @@
       "name": "南方恒生科技",
       "leg": "HK",
       "facts": {
-        "today_change_pct": 0.09,
-        "pnl_pct": -11.75
+        "today_change_pct": -0.31,
+        "pnl_pct": -12.02
       },
       "technical": {
         "source_ticker": "03033",
         "is_proxy": false,
-        "as_of": "2026-08-27",
+        "as_of": "2026-08-28",
         "tag": "趋势OFF · 已破吊灯止损",
         "trend": "off",
-        "rsi14": 43.6,
+        "rsi14": 42.8,
         "rsi_state": "weak",
-        "dist_ma200_pct": -9.6,
-        "pct_52w_range": 15.0,
+        "dist_ma200_pct": -9.8,
+        "pct_52w_range": 14.4,
         "stop_state": "breached",
         "usable": true
       },
@@ -374,23 +378,23 @@
       }
     },
     {
-      "ticker": "SPCX",
-      "name": "SpaceX",
+      "ticker": "SKHY",
+      "name": "SK海力士 ADR",
       "leg": "US",
       "facts": {
-        "today_change_pct": 0.89,
-        "pnl_pct": -4.49
+        "today_change_pct": -0.35,
+        "pnl_pct": -4.81
       },
       "technical": {
-        "source_ticker": "SPCX",
+        "source_ticker": "SKHY",
         "is_proxy": false,
-        "as_of": "2026-08-27",
+        "as_of": "2026-08-28",
         "tag": "趋势未知",
         "trend": "unknown",
-        "rsi14": 54.3,
+        "rsi14": 51.2,
         "rsi_state": "neutral",
         "dist_ma200_pct": null,
-        "pct_52w_range": 34.9,
+        "pct_52w_range": 51.0,
         "stop_state": "intact",
         "usable": true
       },
@@ -399,7 +403,7 @@
         "peer_usable": false
       },
       "sentiment": {
-        "source_ticker": "SPCX",
+        "source_ticker": "SKHY",
         "reddit_mentions_7d": 0,
         "headline_count": 3,
         "coverage": "available"
@@ -423,23 +427,23 @@
       }
     },
     {
-      "ticker": "SKHY",
-      "name": "SK海力士 ADR",
+      "ticker": "SPCX",
+      "name": "SpaceX",
       "leg": "US",
       "facts": {
-        "today_change_pct": 2.27,
-        "pnl_pct": -4.48
+        "today_change_pct": 0.45,
+        "pnl_pct": -4.07
       },
       "technical": {
-        "source_ticker": "SKHY",
+        "source_ticker": "SPCX",
         "is_proxy": false,
-        "as_of": "2026-08-27",
+        "as_of": "2026-08-28",
         "tag": "趋势未知",
         "trend": "unknown",
-        "rsi14": 51.5,
+        "rsi14": 54.8,
         "rsi_state": "neutral",
         "dist_ma200_pct": null,
-        "pct_52w_range": 51.9,
+        "pct_52w_range": 35.5,
         "stop_state": "intact",
         "usable": true
       },
@@ -448,7 +452,7 @@
         "peer_usable": false
       },
       "sentiment": {
-        "source_ticker": "SKHY",
+        "source_ticker": "SPCX",
         "reddit_mentions_7d": 0,
         "headline_count": 3,
         "coverage": "available"
@@ -476,19 +480,19 @@
       "name": "Circle Internet Group Inc-A",
       "leg": "US",
       "facts": {
-        "today_change_pct": 4.82,
-        "pnl_pct": 8.32
+        "today_change_pct": -7.53,
+        "pnl_pct": 0.16
       },
       "technical": {
         "source_ticker": "CRCL",
         "is_proxy": false,
-        "as_of": "2026-08-27",
-        "tag": "趋势OFF · RSI超买71.6",
+        "as_of": "2026-08-28",
+        "tag": "趋势OFF",
         "trend": "off",
-        "rsi14": 71.6,
-        "rsi_state": "overbought",
-        "dist_ma200_pct": 11.0,
-        "pct_52w_range": 43.9,
+        "rsi14": 60.9,
+        "rsi_state": "strong",
+        "dist_ma200_pct": 2.7,
+        "pct_52w_range": 36.8,
         "stop_state": "intact",
         "usable": true
       },
@@ -515,7 +519,7 @@
       },
       "judgment": null,
       "candidate_disposition": {
-        "deterministic_candidate": true,
+        "deterministic_candidate": false,
         "effective": "wait",
         "discipline": "judgment may downgrade or reject; it cannot create authority"
       }
@@ -523,8 +527,8 @@
   ],
   "add_campaign": {
     "status": "current",
-    "packet_generated_at": "2026-08-28T08:03:56.627428+08:00",
-    "context_generation_id": "4f8bb7e1c298e2f0",
+    "packet_generated_at": "2026-08-31T08:02:17.542126+08:00",
+    "context_generation_id": "b1e701f7fdd16545",
     "policy": {
       "schema_version": 2,
       "registered_at": "2026-08-13",
@@ -539,21 +543,21 @@
     "diagnostics": {
       "held_names": 10,
       "tier_counts": {
-        "exploration": 2,
-        "none": 8,
+        "exploration": 0,
+        "none": 10,
         "validated": 0
       },
       "candidate_count": 10,
-      "authority_candidate_count": 2,
-      "allowed_candidate_count": 3,
-      "observed_candidate_count": 2,
-      "observed_candidate_rate": 0.2,
-      "observed_idea_count": 2,
+      "authority_candidate_count": 0,
+      "allowed_candidate_count": 2,
+      "observed_candidate_count": 0,
+      "observed_candidate_rate": 0.0,
+      "observed_idea_count": 0,
       "early_exploration_ready_count": 0,
       "early_exploration_ready_idea_count": 0,
-      "candidate_rate": 0.2,
+      "candidate_rate": 0.0,
       "blocker_counts": {
-        "independent_evidence_families": 8,
+        "independent_evidence_families": 10,
         "leveraged_requires_validated_evidence": 3
       },
       "zero_output_visible": true
@@ -564,49 +568,42 @@
         "leg": "HK",
         "source_ticker": "00100",
         "is_proxy": false,
-        "state": "risk_blocked",
-        "tier": "exploration",
-        "target_tranche_level": 0.25,
-        "sources": [
-          "information",
-          "peer_residual"
+        "state": "insufficient_evidence",
+        "tier": "none",
+        "target_tranche_level": 0.0,
+        "sources": [],
+        "evidence_families": [],
+        "authority_blockers": [
+          "independent_evidence_families"
         ],
-        "evidence_families": [
-          "point_in_time_information",
-          "price_relative"
-        ],
-        "authority_blockers": [],
         "execution_blockers": [
-          "tranche_below_market_unit"
+          "no_approved_setup"
         ],
-        "entry_price": 355.8,
-        "invalidation_price": 306.55,
-        "max_add_shares": 0,
+        "entry_price": null,
+        "invalidation_price": null,
+        "max_add_shares": 20,
         "allowed": false,
         "early_trend": {
           "blockers": [
+            "needs_information_confirmation",
             "needs_primary_evidence",
             "no_20d_breakout",
             "no_short_peer_leadership"
           ],
           "discipline": "short-history candidate; price/peer are one family, primary or attention information is independent, and z>=2 waits for a rebreak",
-          "evidence_families": [
-            "point_in_time_information"
-          ],
+          "evidence_families": [],
           "exploration_ready": false,
-          "information_modes": [
-            "attention_acceleration"
-          ],
+          "information_modes": [],
           "market": "HK",
           "metrics": {
-            "attention_acceleration": 1.3535,
+            "attention_acceleration": 1.0625,
             "attention_rank": 0.875,
-            "close": 314.6,
-            "peer_dispersion_5d": 0.0785,
+            "close": 300.4,
+            "peer_dispersion_5d": 0.0524,
             "prior_20d_high": 395.0,
-            "residual_5d": 0.0133,
-            "residual_dispersion_multiple": 0.1694,
-            "zscore20": 0.21
+            "residual_5d": -0.0942,
+            "residual_dispersion_multiple": -1.7977,
+            "zscore20": -0.28
           },
           "observed": false,
           "price_modes": [],
@@ -648,14 +645,14 @@
           "information_modes": [],
           "market": "HK",
           "metrics": {
-            "attention_acceleration": 1.4412,
+            "attention_acceleration": 0.6678,
             "attention_rank": 0.375,
-            "close": 9.935,
-            "peer_dispersion_5d": 0.0407,
+            "close": 9.715,
+            "peer_dispersion_5d": 0.0438,
             "prior_20d_high": 11.72,
-            "residual_5d": 0.0078,
-            "residual_dispersion_multiple": 0.1916,
-            "zscore20": -0.76
+            "residual_5d": 0.0222,
+            "residual_dispersion_multiple": 0.5068,
+            "zscore20": -1.13
           },
           "observed": false,
           "price_modes": [],
@@ -697,14 +694,14 @@
           "information_modes": [],
           "market": "HK",
           "metrics": {
-            "attention_acceleration": 0.7574,
+            "attention_acceleration": 0.4769,
             "attention_rank": 0.125,
-            "close": 4.626,
-            "peer_dispersion_5d": 0.0017,
+            "close": 4.606,
+            "peer_dispersion_5d": 0.0011,
             "prior_20d_high": 4.946,
-            "residual_5d": -0.0014,
-            "residual_dispersion_multiple": -0.8235,
-            "zscore20": -1.35
+            "residual_5d": -0.0003,
+            "residual_dispersion_multiple": -0.2727,
+            "zscore20": -1.38
           },
           "observed": false,
           "price_modes": [],
@@ -746,14 +743,14 @@
           "information_modes": [],
           "market": "HK",
           "metrics": {
-            "attention_acceleration": 1.8533,
+            "attention_acceleration": 0.9059,
             "attention_rank": 0.625,
-            "close": 4.536,
+            "close": 4.522,
             "peer_dispersion_5d": null,
             "prior_20d_high": 4.854,
-            "residual_5d": 0.0026,
+            "residual_5d": 0.0011,
             "residual_dispersion_multiple": null,
-            "zscore20": -1.35
+            "zscore20": -1.33
           },
           "observed": false,
           "price_modes": [],
@@ -800,12 +797,12 @@
           "metrics": {
             "attention_acceleration": null,
             "attention_rank": null,
-            "close": 4620.29,
-            "peer_dispersion_5d": 0.0452,
+            "close": 4605.15,
+            "peer_dispersion_5d": 0.0326,
             "prior_20d_high": 4948.5,
-            "residual_5d": 0.0309,
-            "residual_dispersion_multiple": 0.6836,
-            "zscore20": -1.41
+            "residual_5d": 0.0165,
+            "residual_dispersion_multiple": 0.5061,
+            "zscore20": -1.38
           },
           "observed": false,
           "price_modes": [],
@@ -819,27 +816,30 @@
         "leg": "US",
         "source_ticker": "CRCL",
         "is_proxy": false,
-        "state": "eligible",
-        "tier": "exploration",
-        "target_tranche_level": 0.25,
+        "state": "insufficient_evidence",
+        "tier": "none",
+        "target_tranche_level": 0.0,
         "sources": [
-          "peer_residual",
-          "technical_breakout"
+          "peer_residual"
         ],
         "evidence_families": [
-          "price_relative",
-          "technical_breakout"
+          "price_relative"
         ],
-        "authority_blockers": [],
-        "execution_blockers": [],
-        "entry_price": 94.24,
-        "invalidation_price": 79.5,
+        "authority_blockers": [
+          "independent_evidence_families"
+        ],
+        "execution_blockers": [
+          "no_approved_setup"
+        ],
+        "entry_price": null,
+        "invalidation_price": null,
         "max_add_shares": 1,
-        "allowed": true,
+        "allowed": false,
         "early_trend": {
           "blockers": [
             "needs_information_confirmation",
             "needs_primary_evidence",
+            "no_20d_breakout",
             "no_short_peer_leadership"
           ],
           "discipline": "short-history candidate; price/peer are one family, primary or attention information is independent, and z>=2 waits for a rebreak",
@@ -848,19 +848,17 @@
           "information_modes": [],
           "market": "US",
           "metrics": {
-            "attention_acceleration": 0.5228,
-            "attention_rank": 0.125,
-            "close": 94.24,
-            "peer_dispersion_5d": 0.0733,
-            "prior_20d_high": 93.45,
-            "residual_5d": 0.0294,
-            "residual_dispersion_multiple": 0.4011,
-            "zscore20": 1.83
+            "attention_acceleration": 0.8037,
+            "attention_rank": 0.6429,
+            "close": 87.14,
+            "peer_dispersion_5d": 0.0458,
+            "prior_20d_high": 96.24,
+            "residual_5d": 0.0578,
+            "residual_dispersion_multiple": 1.262,
+            "zscore20": 1.05
           },
           "observed": false,
-          "price_modes": [
-            "20d_breakout"
-          ],
+          "price_modes": [],
           "primary_event_ids": [],
           "schema_version": 1,
           "state": "not_candidate"
@@ -902,14 +900,14 @@
           "information_modes": [],
           "market": "US",
           "metrics": {
-            "attention_acceleration": 1.3312,
-            "attention_rank": 0.375,
-            "close": 67.53,
-            "peer_dispersion_5d": 0.0483,
+            "attention_acceleration": 0.4318,
+            "attention_rank": 0.5,
+            "close": 64.39,
+            "peer_dispersion_5d": 0.0756,
             "prior_20d_high": 86.83,
-            "residual_5d": -0.0425,
-            "residual_dispersion_multiple": -0.8799,
-            "zscore20": -1.28
+            "residual_5d": -0.0254,
+            "residual_dispersion_multiple": -0.336,
+            "zscore20": -1.81
           },
           "observed": false,
           "price_modes": [],
@@ -951,14 +949,14 @@
           "information_modes": [],
           "market": "US",
           "metrics": {
-            "attention_acceleration": 1.3541,
-            "attention_rank": 0.625,
-            "close": 161.61,
-            "peer_dispersion_5d": 0.0385,
+            "attention_acceleration": 0.7527,
+            "attention_rank": 0.7857,
+            "close": 161.04,
+            "peer_dispersion_5d": 0.022,
             "prior_20d_high": 178.43,
-            "residual_5d": -0.0095,
-            "residual_dispersion_multiple": -0.2468,
-            "zscore20": 0.76
+            "residual_5d": -0.0031,
+            "residual_dispersion_multiple": -0.1409,
+            "zscore20": 0.63
           },
           "observed": false,
           "price_modes": [],
@@ -975,12 +973,8 @@
         "state": "insufficient_evidence",
         "tier": "none",
         "target_tranche_level": 0.0,
-        "sources": [
-          "peer_residual"
-        ],
-        "evidence_families": [
-          "price_relative"
-        ],
+        "sources": [],
+        "evidence_families": [],
         "authority_blockers": [
           "independent_evidence_families",
           "leveraged_requires_validated_evidence"
@@ -1007,14 +1001,14 @@
           "information_modes": [],
           "market": "US",
           "metrics": {
-            "attention_acceleration": 1.1464,
-            "attention_rank": 0.875,
-            "close": 140.87,
-            "peer_dispersion_5d": 0.027,
+            "attention_acceleration": 0.8279,
+            "attention_rank": 0.9286,
+            "close": 141.5,
+            "peer_dispersion_5d": 0.048,
             "prior_20d_high": 149.8,
-            "residual_5d": 0.1084,
-            "residual_dispersion_multiple": 4.0148,
-            "zscore20": 0.68
+            "residual_5d": 0.1523,
+            "residual_dispersion_multiple": 3.1729,
+            "zscore20": 0.67
           },
           "observed": false,
           "price_modes": [
@@ -1033,12 +1027,8 @@
         "state": "insufficient_evidence",
         "tier": "none",
         "target_tranche_level": 0.0,
-        "sources": [
-          "peer_residual"
-        ],
-        "evidence_families": [
-          "price_relative"
-        ],
+        "sources": [],
+        "evidence_families": [],
         "authority_blockers": [
           "independent_evidence_families"
         ],
@@ -1061,14 +1051,14 @@
           "information_modes": [],
           "market": "US",
           "metrics": {
-            "attention_acceleration": 1.1464,
-            "attention_rank": 0.875,
-            "close": 140.87,
-            "peer_dispersion_5d": 0.027,
+            "attention_acceleration": 0.8279,
+            "attention_rank": 0.9286,
+            "close": 141.5,
+            "peer_dispersion_5d": 0.048,
             "prior_20d_high": 149.8,
-            "residual_5d": 0.1084,
-            "residual_dispersion_multiple": 4.0148,
-            "zscore20": 0.68
+            "residual_5d": 0.1523,
+            "residual_dispersion_multiple": 3.1729,
+            "zscore20": 0.67
           },
           "observed": false,
           "price_modes": [

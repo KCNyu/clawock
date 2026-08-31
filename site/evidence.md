@@ -27,14 +27,14 @@ description: 我们测了什么、什么没通过。全部数字从产物读取�
 
 ## 量化因子 edge
 
-**判定：⚪ 尚不可判** · 样本：留痕 58 天 · 来源：`assets/data/quant_signal_review.json`
+**判定：⚪ 尚不可判** · 样本：留痕 59 天 · 来源：`assets/data/quant_signal_review.json`
 
 | | |
 |---|---|
 | `rsi_overbought_fade` | 命中率 25.0% · CI95 [0.0%, 100.0%] · n=4（4 日 × 2 标的）· ⚪ 样本不足 MIN_N，方向结论不入决策（#934） |
 | `rsi_oversold_bounce` | 命中率 63.0% · CI95 [30.8%, 100.0%] · n=27（17 日 × 8 标的）· ⚪ CI 跨 50%，锁定 |
 | `stop_breach_continue` | 命中率 52.5% · CI95 [36.5%, 66.2%] · n=219（41 日 × 11 标的）· ⚪ CI 跨 50%，锁定 |
-| `trend_off_avoid` | 命中率 49.7% · CI95 [38.4%, 61.3%] · n=342（50 日 × 10 标的）· ⚪ CI 跨 50%，锁定 |
+| `trend_off_avoid` | 命中率 50.6% · CI95 [38.8%, 62.1%] · n=348（51 日 × 10 标的）· ⚪ CI 跨 50%，锁定 |
 | `trend_on_follow` | 命中率 42.9% · CI95 — · n=7（7 日 × 1 标的）· ⚪ 样本只覆盖单一簇，算不出聚类 CI —— 无法解读 |
 | `zscore_extreme_revert` | 命中率 80.0% · CI95 [0.0%, 100.0%] · n=10（6 日 × 6 标的）· ⚪ 样本不足 MIN_N，方向结论不入决策（#934） |
 
@@ -46,12 +46,12 @@ description: 我们测了什么、什么没通过。全部数字从产物读取�
 
 | | |
 |---|---|
-| `prospective_dates` | 3 / 需要 24 · ⚪ 未达标 |
+| `prospective_dates` | 4 / 需要 24 · ⚪ 未达标 |
 | `prospective_tickers` | 38 / 需要 12 · ✅ |
 | `prospective_sectors` | 8 / 需要 3 · ✅ |
 | `price_coverage` | 1.0 / 需要 0.8 · ✅ |
 | `quality_coverage` | 0.6153846153846154 / 需要 0.6 · ✅ |
-| `clustered_edge` | [-0.105408, -0.002344] / 需要 CI lower > 0.0 · ⚪ 未达标 |
+| `clustered_edge` | [-0.103456, -0.001772] / 需要 CI lower > 0.0 · ⚪ 未达标 |
 | `membership_history` | False / 需要 True · ⚪ 未达标 |
 | `corporate_actions` | Tencent qfq forward-adjusted daily bars / 需要 adjusted · ✅ |
 
@@ -77,4 +77,4 @@ description: 我们测了什么、什么没通过。全部数字从产物读取�
 
 ---
 
-<sub>由 `clawock evidence` 生成于 2026-08-28T04:04:23+08:00。数字全部读自产物；改动结论请改产物，不要改这一页。</sub>
+<sub>由 `clawock evidence` 生成于 2026-08-29T04:05:31+08:00。数字全部读自产物；改动结论请改产物，不要改这一页。</sub>
