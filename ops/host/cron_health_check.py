@@ -249,6 +249,40 @@ def load_runtime_jobs(jobs_file=None):
     return jobs
 
 
+#: A backlog this deep means the host has been committing without publishing
+#: for at least an hour at the publisher's twenty-minute cadence.
+UNPUSHED_WARN_COMMITS = 3
+
+
+def publish_backlog(ledger):
+    """The newest heartbeat's view of commits the host never published (#1241).
+
+    This gate runs on GitHub Actions, against artifacts that were published. A
+    checkout that commits and never pushes looks, from here, exactly like one
+    that had nothing to say — which is how six commits sat unpushed for eight
+    hours on 2026-08-31 while the `data-plane` branch published on schedule and
+    every visible surface stayed green. The host measures it and carries the
+    number in its heartbeat; this reads it.
+
+    `state: absent` when no heartbeat carries the field — an older host, or one
+    that could not run git. Absent is reported as absent, never as zero: the
+    whole failure being guarded here is a lane that looked fine because nobody
+    was looking at it.
+    """
+    for event in reversed(ledger.get('events') or []):
+        count = event.get('unpushed_commits')
+        if count is None:
+            continue
+        if count >= UNPUSHED_WARN_COMMITS:
+            return {'state': 'degraded', 'count': count,
+                    'detail': f'{count} commit(s) committed here and never '
+                              f'published — check what pre-push is refusing'}
+        return {'state': 'ok', 'count': count,
+                'detail': f'{count} unpushed' if count else 'nothing unpushed'}
+    return {'state': 'absent', 'count': None,
+            'detail': 'no heartbeat carries unpushed_commits (older host?)'}
+
+
 def load_heartbeats(path=None):
     """Load the host-local ledger when present, otherwise the published public copy."""
     candidates = ([Path(path)] if path else [
@@ -720,6 +754,13 @@ def main():
     if publisher['state'] in ('stale', 'failed'):
         has_warn = True
 
+    # A backlog is a warn, never a miss: the commits exist and nothing was lost,
+    # what failed is that they never left the machine. Escalating it to exit 1
+    # would redden a day whose reports all went out (#1241).
+    backlog = publish_backlog(heartbeat_ledger)
+    if backlog['state'] == 'degraded':
+        has_warn = True
+
     # Token regressions surface in the daily review, never as a per-cron alert
     # (feedback_no_individual_cron_alerts) and never as a reason to exit non-zero:
     # a job burning 3x its usual tokens is something to look at, not a failure.
@@ -733,6 +774,7 @@ def main():
         'jobs': report,
         'dashboard_build': dash,
         'scheduled_publisher': publisher,
+        'publish_backlog': backlog,
         'token_usage': token_reports,
         'has_missing': has_missing,
         'has_warn': has_warn,
@@ -751,6 +793,8 @@ def main():
         print(f"  {dash_icon} {'dashboard build':25s}  {dash['detail']}")
         pub_icon = DASHBOARD_STATE_ICONS[publisher['state']]
         print(f"  {pub_icon} {'scheduled publisher':25s}  {publisher['detail']}")
+        print(f"  {DASHBOARD_STATE_ICONS[backlog['state']]} "
+              f"{'publish backlog':25s}  {backlog['detail']}")
         for line in cron_token_audit.format_lines(token_regressions):
             print(f"  {line}")
         if has_missing:

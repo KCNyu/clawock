@@ -18,6 +18,7 @@ import re
 import shutil
 import subprocess
 import sys
+import time
 from datetime import date, datetime, timezone
 from pathlib import Path
 
@@ -117,6 +118,17 @@ class Result:
 # the files beside it name it as the authority), not coding-agent prose. #1072
 # swept it out with `memory/*.md`, which forced the two-tier split #1073 had to
 # invent; both are gone now that the tracked surface tells the truth again.
+#: A publisher that commits every twenty minutes reaches three commits in an
+#: hour, so three is "the last hour did not publish" rather than a round number.
+#: The hour bound catches the quiet-session version of the same failure, where
+#: one commit sits unsent all evening.
+BACKLOG_WARN_COMMITS = 3
+BACKLOG_WARN_HOURS = 2.0
+
+#: How far back to look for a hop that cannot recover. Wide enough to survive a
+#: quiet stretch, short enough that a fixed hop stops being reported the same day.
+RUN_SCAN_LIMIT = 40
+
 BASELINE_TRACKED = ['SOUL.md', 'IDENTITY.md', 'USER.md', 'MEMORY.md', 'TOOLS.md',
                     'AGENTS.md', 'CLAUDE.md', 'BOOTSTRAP.md', 'portfolio.json']
 
@@ -713,7 +725,13 @@ def check_cron_paths_exist(r):
         contract = load_contract()
         errors = validate_live_jobs(contract, jobs)
         if errors:
-            r.add('cron runtime contract', CRITICAL, '; '.join(errors[:8]))
+            # Naming the fix in the message is not decoration: on 2026-08-31
+            # this exact CRITICAL blocked every master push for eight hours,
+            # and the reconciler that repairs it in one command
+            # (`sync_cron_payloads.py`) had to be found by reading the tree.
+            r.add('cron runtime contract', CRITICAL,
+                  '; '.join(errors[:8])
+                  + '  → fix: python3 ops/host/sync_cron_payloads.py --apply')
         else:
             transition = next_us_dst_transition()
             next_label = transition.date().isoformat() if transition else 'unknown'
@@ -862,6 +880,108 @@ def _last_meaningful_line(path):
         tail = fh.read().decode('utf-8', 'replace')
     lines = [line.strip() for line in tail.splitlines() if line.strip()]
     return lines[-1] if lines else None
+
+
+def check_publish_backlog(r):
+    """Commits that were made and never left the machine.
+
+    #1241 is the case this exists for. On 2026-08-31 a CRITICAL from
+    `cron runtime contract` made `.githooks/pre-push` refuse every push to
+    master. The publisher kept committing on schedule, the `data-plane` branch
+    kept publishing successfully, the dashboard looked completely alive — and
+    six commits sat unpushed for **eight hours** with nothing measuring it. It
+    was found because someone asked whether the checkout was clean.
+
+    What makes it findable now is that the backlog is a *state*, not an event.
+    An event ("push failed") can be missed if nobody reads the line it was
+    written on, and that is exactly what happened: the refusal went to the
+    stderr of a cron step. A state is still true on the next run, and this
+    reports it every twenty minutes for as long as it lasts.
+
+    **WARN, never CRITICAL, and not by timidity.** This check runs inside the
+    pre-push hook, so a CRITICAL here would refuse the very push that clears the
+    backlog — the measurement would become the thing keeping the number up.
+    Same reasoning as `check_host_cron_logs` above, one step more literal.
+
+    No network: `origin/master` is read at whatever the last fetch left it,
+    which for the publisher is seconds ago because `safe_push.sh` fetches before
+    it pushes. A stale ref can only *under*-report, and under-reporting a
+    backlog is the safe direction for a check that must not block.
+    """
+    if os.environ.get('GITHUB_ACTIONS'):
+        return  # a PR checkout's distance from origin/master is not a backlog
+    try:
+        branch = subprocess.run(
+            ['git', 'rev-parse', '--abbrev-ref', 'HEAD'],
+            capture_output=True, text=True, timeout=10)
+        if branch.returncode != 0 or branch.stdout.strip() != 'master':
+            return  # only the live checkout publishes from master
+        ahead = subprocess.run(
+            ['git', 'rev-list', '--count', 'origin/master..HEAD'],
+            capture_output=True, text=True, timeout=10)
+        if ahead.returncode != 0:
+            return  # no origin/master ref here — a fresh clone or a worktree
+        count = int((ahead.stdout or '0').strip() or 0)
+    except Exception:
+        return
+    if not count:
+        r.add('publish backlog', OK, 'nothing unpushed')
+        return
+    oldest = subprocess.run(
+        ['git', 'log', '-1', '--format=%ct', 'origin/master..HEAD'],
+        capture_output=True, text=True, timeout=10)
+    hours = None
+    try:
+        hours = (time.time() - int(oldest.stdout.strip())) / 3600
+    except Exception:
+        pass
+    age = f'{hours:.1f}h' if hours is not None else 'unknown age'
+    detail = f'{count} commit(s) unpushed, oldest {age}'
+    if count >= BACKLOG_WARN_COMMITS or (hours is not None and hours >= BACKLOG_WARN_HOURS):
+        r.add('publish backlog', WARNING,
+              f'{detail} — the desk is committing but not publishing; '
+              f'check what pre-push is refusing')
+    else:
+        r.add('publish backlog', OK, detail)
+
+
+def check_model_chain_health(r):
+    """A hop that will never recover, told apart from one that just timed out.
+
+    #1242. The scheduled jobs run a three-model fallback chain for their run
+    summary. Two hops are the same MiniMax account and time out at the top of
+    the hour; the third, added precisely so there would be a non-MiniMax leg,
+    now answers `401 Insufficient balance`. All three land in one
+    `FallbackSummaryError: All models failed (3)`, so a permanent billing
+    failure and a transient timeout are indistinguishable — and the chain's
+    real length is 2, from one provider, while it reports as 3.
+
+    Only billing-class failures are reported, and only as a WARN. A timeout is
+    the chain working as designed (the retry succeeds and the report is
+    delivered); a `401 Insufficient balance` never fixes itself, and no amount
+    of retrying it does anything except spend a round trip per slot.
+    """
+    try:
+        sys.path.insert(0, str(_REPO_ROOT / 'ops' / 'host'))
+        import cron_runs  # noqa: PLC0415 - host-only, imported lazily on purpose
+        job_map, _ = cron_runs.load_job_map()
+        if not job_map:
+            return  # no openclaw on this host
+        entries, _ = cron_runs.load_entries('cron', None, None, job_map)
+    except Exception:
+        return
+    dead = {}
+    for entry in entries[:RUN_SCAN_LIMIT]:
+        for hop in re.findall(r'([\w./-]+):\s*([^|]*?)\s*\((billing|auth)\)',
+                              str(entry.get('error') or '')):
+            dead.setdefault(hop[0], hop[1][:60])
+    if dead:
+        named = '; '.join(f'{hop} — {why}' for hop, why in sorted(dead.items()))
+        r.add('model chain', WARNING,
+              f'{len(dead)} hop(s) failing for a reason retrying cannot fix: {named}')
+    else:
+        r.add('model chain', OK, f'no billing-class hop failures in the last '
+                                 f'{RUN_SCAN_LIMIT} runs')
 
 
 def check_host_cron_logs(r):
@@ -1283,6 +1403,8 @@ def main():
         check_cron_paths_exist,
         check_host_crontab_targets,
         check_host_cron_logs,
+        check_publish_backlog,
+        check_model_chain_health,
         check_generated_cron_docs,
         check_research_artifacts,
         check_trading_calendar_horizon,

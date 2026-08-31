@@ -96,6 +96,38 @@ def _locked():
         yield
 
 
+def unpushed_commits(workspace=None) -> int | None:
+    """How many commits this host has made and not published, or `None`.
+
+    Only the host can answer this. The end-of-day health gate runs on GitHub
+    Actions against the *published* artifacts, so a checkout that commits and
+    never pushes is, from there, indistinguishable from one that had nothing to
+    say — which is how six commits sat unpushed for eight hours on 2026-08-31
+    while every published surface looked healthy (#1241). Carrying the number in
+    the heartbeat is what lets a check that cannot see this machine still see
+    this failure.
+
+    `None` for "cannot tell" — no git, no `origin/master`, a detached HEAD —
+    and never `0`, because a checkout that cannot be asked is not a checkout
+    with nothing pending.
+    """
+    import subprocess
+
+    root = Path(workspace) if workspace else WS
+    try:
+        out = subprocess.run(
+            ["git", "rev-list", "--count", "origin/master..HEAD"],
+            capture_output=True, text=True, timeout=10, cwd=str(root))
+    except Exception:
+        return None
+    if out.returncode != 0:
+        return None
+    try:
+        return int(out.stdout.strip())
+    except ValueError:
+        return None
+
+
 def record(market: str, state: str, *, at: datetime | None = None,
            job_name: str | None = None, slot: str | None = None, **details) -> dict:
     now = _now(at)
