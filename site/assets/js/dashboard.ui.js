@@ -276,6 +276,25 @@
     return value && (value.generation_id || value.generated_at);
   }
 
+  // The equity series ships column-packed (#1215): 58% of that section's bytes
+  // were the same eighteen field names on every row, and the cap's only answer
+  // to the growth was to delete the oldest rows. Rebuilt into the row objects
+  // here, once, at the single place the document enters the page — the six
+  // readers of DATA.snapshots see exactly what they always did, and there is no
+  // second shape for one of them to forget about.
+  function _unpackSnapshots(value) {
+    const columns = value?.snapshots_columns;
+    if (!Array.isArray(columns) || !columns.length) return value;
+    const rows = Array.isArray(value.snapshots) ? value.snapshots : [];
+    value.snapshots = rows.map(row => {
+      if (!Array.isArray(row)) return row;
+      const out = {};
+      columns.forEach((name, i) => { out[name] = row[i]; });
+      return out;
+    });
+    return value;
+  }
+
   function _loadFullDashboard(generation, triggeredByUser = false) {
     if (_generation(FULL_DASHBOARD) === generation) return Promise.resolve(FULL_DASHBOARD);
     if (FULL_DASHBOARD_INFLIGHT?.generation === generation) {
@@ -288,7 +307,7 @@
         cache: triggeredByUser || retry ? "no-store" : "no-cache",
       });
       if (!response.ok) throw new Error("dashboard HTTP " + response.status);
-      const value = await response.json();
+      const value = _unpackSnapshots(await response.json());
       if (_generation(value) !== generation) {
         // The live origin caches each file independently for 300 s, so the two
         // halves of one generation can be minutes apart at the edge. `no-store`

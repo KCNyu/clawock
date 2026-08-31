@@ -140,3 +140,78 @@ def test_the_writer_publishes_the_block(system_check):
     assert rows["SPY"]["last_session"] == "2026-08-21"
     assert rows["SPY"]["expected_lag_sessions"] == 1
     assert isinstance(rows["SPY"]["sessions_behind"], int)
+
+
+# ── the cap was a tripwire, not a gate (#1215) ──────────────────────────────
+
+def test_packing_the_equity_series_is_lossless():
+    """Identity, not a summary. The trim lever deletes days; this deletes bytes.
+
+    `snapshots_of` is the only decoder, so the assertion is that a real row set
+    survives a round trip exactly — including a row that is missing a field the
+    others have, which is where a ragged encoding would silently shift every
+    later value one column to the left.
+    """
+    dash = pytest.importorskip("clawock.publish.dashboard")
+    rows = [
+        {"date": "2026-01-02", "us_total_value": 1.5, "hk_cash": None},
+        {"date": "2026-01-03", "us_total_value": 2.0, "hk_cash": 7,
+         "hk_late_arrival": "x"},
+    ]
+    columns, packed = dash.pack_snapshots(rows)
+    assert all(isinstance(row, list) for row in packed)
+    assert all(len(row) == len(columns) for row in packed), 'no ragged rows'
+
+    payload = {"snapshots": packed, dash.SNAPSHOTS_PACKED_COLUMNS_KEY: columns}
+    decoded = dash.snapshots_of(payload)
+    assert decoded[1]["hk_late_arrival"] == "x"
+    assert decoded[0]["hk_late_arrival"] is None, (
+        'a field one row lacks must decode to None, not shift the row')
+    assert [{k: v for k, v in row.items() if v is not None or k in rows[i]}
+            for i, row in enumerate(decoded)] == rows
+
+
+def test_an_unpacked_payload_still_reads(monkeypatch):
+    """Every generation published before this change is still readable."""
+    dash = pytest.importorskip("clawock.publish.dashboard")
+    legacy = {"snapshots": [{"date": "2026-01-02", "us_equity": 3}]}
+    assert dash.snapshots_of(legacy) == legacy["snapshots"]
+
+
+def test_packing_is_what_the_size_levers_measure():
+    """The saving has to be real at the point the cap is enforced.
+
+    Measuring the unpacked dict and publishing the packed one would make the
+    levers fire on a size nobody ships — the same class of mistake as #743,
+    where the gate measured a re-serialized copy.
+    """
+    dash = pytest.importorskip("clawock.publish.dashboard")
+    out = {"snapshots": [
+        {"date": f"2026-01-{i:02d}", "us_total_value": 1000.0 + i,
+         "us_total_cost": 900.0, "hk_total_value": 2000.0,
+         "hk_today_change": -1.0, "hk_realized": 3.0}
+        for i in range(1, 41)]}
+    packed = len(dash.dashboard_wire_payload(out).encode("utf-8"))
+    plain = len(dash.serialize_dashboard_payload(out).encode("utf-8"))
+    assert packed < plain * 0.6, (
+        f'packing saved only {plain - packed} of {plain} bytes; the field names '
+        f'were more than half this section')
+    assert dash.snapshots_of(json.loads(dash.dashboard_wire_payload(out))) == \
+        out["snapshots"], 'the wire form must decode back to what was measured'
+
+
+def test_a_breach_is_recorded_in_the_payload_not_only_on_stderr(monkeypatch):
+    """2026-07-28 shipped 3.7KB over the cap and nothing downstream could tell.
+
+    stderr reaches no gate — not the build card, not the cron log, not
+    watchdog.jsonl — so "publishing over cap" was a decision that left no trace
+    a reader could act on.
+    """
+    dash = pytest.importorskip("clawock.publish.dashboard")
+    source = (ROOT / "src" / "clawock" / "publish" / "dashboard.py").read_text(
+        encoding="utf-8")
+    assert "out['payload_over_cap']" in source, (
+        'the terminal over-cap case must record itself in the payload')
+    marker = source.split("out['payload_over_cap'] = {", 1)[1].split('}', 1)[0]
+    for field in ('bytes', 'cap', 'over_by', 'levers_spent'):
+        assert f"'{field}'" in marker, f'{field} must be in the marker'

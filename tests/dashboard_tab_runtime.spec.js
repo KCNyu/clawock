@@ -122,9 +122,15 @@ async function waitForData(page) {
 async function waitForTab(page, tab) {
   await page.waitForFunction(tab => {
     const panel = document.querySelector(`.panel[data-panel="${tab}"]`);
+    // Rows, not merely an array (#1215): the equity series ships column-packed
+    // and `Array.isArray` is true of both shapes, so the old check would have
+    // gone on passing with the loader's unpack removed and every chart blank.
+    const snaps = DATA?.snapshots;
     const coreReady = tab === "hero"
       ? DATA?.projection === "overview"
-      : Array.isArray(DATA?.snapshots);
+      : Array.isArray(snaps) && snaps.length > 0 &&
+        snaps.every(row => row && typeof row === "object" &&
+                    !Array.isArray(row) && typeof row.date === "string");
     return panel?.classList.contains("active") &&
       coreReady &&
       !panel.hasAttribute("aria-busy") &&
