@@ -266,7 +266,7 @@
         },
         {
           "command": "shadow",
-          "note": "replays triggered calls against buy-and-hold to measure simulated timing alpha"
+          "note": "replays triggered calls against buy-and-hold to measure simulated timing alpha, gross and net of the pre-registered cost model"
         },
         {
           "command": "audit-resettle",
