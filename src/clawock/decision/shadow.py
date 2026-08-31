@@ -30,6 +30,7 @@ from zoneinfo import ZoneInfo
 
 from clawock.decision import ledger as decision_v2
 from clawock import sessions as trading_calendar
+from clawock import costs
 from clawock.safe_io import safe_write_text
 from clawock.workspace import workspace_root
 
@@ -718,6 +719,7 @@ def simulate_leg(
     bar_map_loader: Callable[[str], dict] = decision_v2.load_ticker_bars,
     matched: dict[str, dict] | None = None,
     leg_config: dict[str, dict[str, str]] | None = None,
+    cost_model: costs.CostModel | None = None,
 ) -> dict | None:
     cfg = _leg_cfg(portfolio, leg, leg_config)
     active = _active_triggered(decisions, leg)
@@ -893,67 +895,106 @@ def simulate_leg(
 
     # Re-mark in a simple second pass to keep the curve independent from event
     # serialization details and to include quiet sessions.
-    followed = {"cash": float(seed["cash"]), "inventory": deepcopy(seed["inventory"])}
-    buy_hold = {"cash": float(seed["cash"]), "inventory": deepcopy(seed["inventory"])}
     events_by_date = defaultdict(list)
     for event in events:
         events_by_date[event["date"]].append(event)
-    curve = []
-    missing_marks = []
-    for day in dates:
-        for adjustment in adjustments_by_date.get(day, []):
-            _apply_external_flow(followed, adjustment["amount"])
-            _apply_external_flow(buy_hold, adjustment["amount"])
-        for event in events_by_date.get(day, []):
-            for leg_fill in event["legs"]:
-                qty = leg_fill.get("filled_shares") or 0
-                if qty <= 0:
-                    continue
-                ticker = leg_fill["ticker"]
-                notional = _number(leg_fill.get("notional")) or 0.0
-                if leg_fill["direction"] == "sell":
-                    followed["inventory"][ticker] = max(
-                        0, followed["inventory"].get(ticker, 0) - qty)
-                    followed["cash"] += notional
-                else:
-                    followed["inventory"][ticker] = (
-                        followed["inventory"].get(ticker, 0) + qty)
-                    followed["cash"] -= notional
-        followed_value, followed_missing = _mark(followed, day, bar_loader)
-        baseline_value, baseline_missing = _mark(buy_hold, day, bar_loader)
-        missing = sorted(set(followed_missing) | set(baseline_missing))
-        if missing:
-            if day in expected_dates:
-                required = {
-                    ticker
-                    for state in (followed, buy_hold)
-                    for ticker, qty in state["inventory"].items()
-                    if qty > 0
-                }
-                available = {
-                    ticker for ticker in required
-                    if (_number((bar_loader(ticker, day) or {}).get("close")) or 0) > 0
-                }
-                reason = "no_bar" if required and not available else "partial_coverage"
-                missing_marks.append({
-                    "date": day,
-                    "reason": reason,
-                    "tickers": missing,
-                })
-                curve.append({
-                    "date": day,
-                    "followed_sim": None,
-                    "buy_and_hold": None,
-                    "cumulative_diff": None,
-                    "gap_reason": reason,
-                })
-            continue
-        curve.append({
-            "date": day,
-            "followed_sim": round(followed_value, 2),
-            "buy_and_hold": round(baseline_value, 2),
-            "cumulative_diff": round(followed_value - baseline_value, 2),
-        })
+
+    def _replay(model=None):
+        """The second pass. Run once gross and once net.
+
+        The two runs end exactly `total_charged` apart, and that is a property
+        of this simulator rather than a shortcut taken here: quantities are
+        decided in the *first* pass, against a cash budget that knows nothing
+        about fees, and this pass only replays them. So a fee removes cash and
+        never removes a share, which is the second-order effect a real book
+        would feel — a smaller fill when the cash cap binds — and which is not
+        modelled. `net.limitation` says so in the payload.
+
+        It is still a replay rather than a subtraction on the final number,
+        because the *curve* has to be right at every point, not only at the end.
+        """
+        followed = {"cash": float(seed["cash"]),
+                    "inventory": deepcopy(seed["inventory"])}
+        buy_hold = {"cash": float(seed["cash"]),
+                    "inventory": deepcopy(seed["inventory"])}
+        curve = []
+        missing_marks = []
+        charged = []
+        for day in dates:
+            for adjustment in adjustments_by_date.get(day, []):
+                _apply_external_flow(followed, adjustment["amount"])
+                _apply_external_flow(buy_hold, adjustment["amount"])
+            for event in events_by_date.get(day, []):
+                for leg_fill in event["legs"]:
+                    qty = leg_fill.get("filled_shares") or 0
+                    if qty <= 0:
+                        continue
+                    ticker = leg_fill["ticker"]
+                    notional = _number(leg_fill.get("notional")) or 0.0
+                    if leg_fill["direction"] == "sell":
+                        followed["inventory"][ticker] = max(
+                            0, followed["inventory"].get(ticker, 0) - qty)
+                        followed["cash"] += notional
+                    else:
+                        followed["inventory"][ticker] = (
+                            followed["inventory"].get(ticker, 0) + qty)
+                        followed["cash"] -= notional
+                    if model is None:
+                        continue
+                    # Charged on both sides. A sell pays the same spread and the
+                    # same commission a buy does, and a net curve that only
+                    # haircuts entries is half a haircut.
+                    charge = costs.trade_cost(
+                        notional, leg, day, bar_map_loader(ticker) or {}, model)
+                    followed["cash"] -= charge["total"]
+                    charged.append({
+                        "date": day, "ticker": ticker,
+                        "direction": leg_fill["direction"],
+                        "notional": round(notional, 2), **charge})
+            followed_value, followed_missing = _mark(followed, day, bar_loader)
+            baseline_value, baseline_missing = _mark(buy_hold, day, bar_loader)
+            missing = sorted(set(followed_missing) | set(baseline_missing))
+            if missing:
+                if day in expected_dates:
+                    required = {
+                        ticker
+                        for state in (followed, buy_hold)
+                        for ticker, qty in state["inventory"].items()
+                        if qty > 0
+                    }
+                    available = {
+                        ticker for ticker in required
+                        if (_number((bar_loader(ticker, day) or {}).get("close")) or 0) > 0
+                    }
+                    reason = "no_bar" if required and not available else "partial_coverage"
+                    missing_marks.append({
+                        "date": day,
+                        "reason": reason,
+                        "tickers": missing,
+                    })
+                    curve.append({
+                        "date": day,
+                        "followed_sim": None,
+                        "buy_and_hold": None,
+                        "cumulative_diff": None,
+                        "gap_reason": reason,
+                    })
+                continue
+            curve.append({
+                "date": day,
+                "followed_sim": round(followed_value, 2),
+                "buy_and_hold": round(baseline_value, 2),
+                "cumulative_diff": round(followed_value - baseline_value, 2),
+            })
+        return curve, missing_marks, charged
+
+    curve, missing_marks, _ = _replay()
+    # The same replay with the pre-registered haircut deducted at each fill.
+    # Published beside the gross curve, never instead of it: the gross number is
+    # the one every earlier claim was made with, and two curves that can be
+    # compared are worth more than one that quietly changed meaning.
+    net_curve, _, charges = _replay(cost_model) if cost_model is not None else (
+        [], [], [])
 
     published = [
         point for point in curve if point.get("cumulative_diff") is not None
@@ -979,6 +1020,11 @@ def simulate_leg(
     attribution["as_of"] = final_point["date"] if final_point else None
     attribution["identity"] = _attribution_identity(attribution, final_diff)
 
+    net_published = [
+        point for point in net_curve if point.get("cumulative_diff") is not None
+    ]
+    net_final = net_published[-1] if net_published else None
+
     return {
         "leg": leg,
         "currency": cfg["currency"],
@@ -987,6 +1033,28 @@ def simulate_leg(
         "initial": seed,
         "curve": curve,
         "cumulative_diff": final_diff,
+        # Gross above, net beside it. `curve` and `cumulative_diff` keep the
+        # meaning every earlier claim was made with; `net` is the same replay
+        # with the pre-registered haircut deducted at each fill, so the haircut
+        # lands on the right date rather than only on the final number.
+        "net": {
+            "curve": net_curve,
+            "cumulative_diff": (net_final["cumulative_diff"] if net_final else None),
+            "followed_sim": (net_final["followed_sim"] if net_final else None),
+            "charges": charges,
+            "total_charged": round(sum(row["total"] for row in charges), 2),
+            "charged_legs": len(charges),
+            "assumptions": cost_model.as_dict() if cost_model else None,
+            "reading": ("`curve` is gross. This is the same policy paying the "
+                        "assumed commission and half-spread on every filled leg, "
+                        "buy and sell alike; the assumptions are above and are "
+                        "assumptions, not observations."),
+            "limitation": ("fill quantities are decided before fees are known, "
+                           "so a fee removes cash and never a share: the two "
+                           "books end exactly total_charged apart, and the "
+                           "smaller fill a real cash cap would have forced is "
+                           "not modelled"),
+        } if cost_model is not None else None,
         "attribution": attribution,
         "final": {
             "followed_sim": final_point["followed_sim"] if final_point else None,
@@ -1036,9 +1104,18 @@ def build_shadow_portfolio(
     bar_map_loader: Callable[[str], dict] = decision_v2.load_ticker_bars,
     matched: dict[str, dict] | None = None,
     leg_config: dict[str, dict[str, str]] | None = None,
+    cost_model: costs.CostModel | None = None,
 ) -> dict:
     """Build native-currency curves without adding unlike currencies."""
     as_of = as_of or datetime.now().astimezone().isoformat(timespec="seconds")
+    if cost_model is None:
+        # Loaded rather than defaulted in the signature so the pre-registered
+        # file is what runs, and a checkout without it degrades to gross-only
+        # rather than to a silently different assumption.
+        try:
+            cost_model = costs.CostModel.load()
+        except (OSError, ValueError):
+            cost_model = None
     matched = matched if matched is not None else decision_v2.match_real_executions(
         decisions, portfolio)
     configured = resolve_leg_config(portfolio, decisions, leg_config)
@@ -1054,6 +1131,7 @@ def build_shadow_portfolio(
             bar_map_loader=bar_map_loader,
             matched=matched,
             leg_config=configured,
+            cost_model=cost_model,
         )
         if result:
             curves[result["currency"]] = result
@@ -1063,13 +1141,24 @@ def build_shadow_portfolio(
         "label": "模拟·非实盘",
         "estimand": (
             "跟随全部已触发主动建议的政策模拟净值，相对同起点、同日收盘计价的"
-            "买入持有基线；累计差为模拟 timing alpha"
+            "买入持有基线；累计差为模拟 timing alpha（毛，不含成本）。"
+            "net_cumulative_diff 是同一条回放扣掉 cost_assumptions 里"
+            "预注册的佣金与半点差后的同一个量。"
         ),
         "curves": curves,
         "cumulative_diff": {
             currency: result["cumulative_diff"]
             for currency, result in curves.items()
         },
+        # The same headline after the pre-registered haircut. Beside the gross
+        # figure, in the same object, for the reason `coverage` is: the reader
+        # who takes `cumulative_diff` for "what following the advice is worth"
+        # is exactly the reader who will not go looking for the cost assumption.
+        "net_cumulative_diff": {
+            currency: (result.get("net") or {}).get("cumulative_diff")
+            for currency, result in curves.items()
+        },
+        "cost_assumptions": cost_model.as_dict() if cost_model else None,
         # In the SAME object as the number it qualifies, because the reader who
         # takes `cumulative_diff` for "what following the advice is worth" is
         # exactly the reader who will not go looking for a denominator in

@@ -2206,8 +2206,16 @@
       ? null : (ohlcCount || 0) + (closeCount || 0);
     if (summary) {
       const countText = value => value == null ? DASH : value.toLocaleString("en-US");
-      summary.textContent = `⚠模拟·非实盘 · USD差 ${signedMoney(safe(sidecar, "cumulative_diff", "USD"), "USD")}`
+      // 「差」一直是毛的：shadow 按 qty*price 成交，零佣金零点差。#1213 起
+      // sidecar 同时发净额，两个数并排印 —— 只印一个的那个版本里，读者拿到的
+      // 是一条待打折的择时 alpha，而页面上没有任何一处说它待打折。
+      const netUsd = safe(sidecar, "net_cumulative_diff", "USD");
+      const netHkd = safe(sidecar, "net_cumulative_diff", "HKD");
+      const netText = (netUsd == null && netHkd == null) ? ""
+        : ` · 净 USD ${signedMoney(netUsd, "USD")} / HKD ${signedMoney(netHkd, "HKD")}`;
+      summary.textContent = `⚠模拟·非实盘 · 毛 USD差 ${signedMoney(safe(sidecar, "cumulative_diff", "USD"), "USD")}`
         + ` · HKD差 ${signedMoney(safe(sidecar, "cumulative_diff", "HKD"), "HKD")}`
+        + netText
         + ` · real ${countText(realCount)} / assumed ${countText(assumedCount)} / skipped ${countText(skippedCount)}`
         + (skippedMarks.length ? ` · 缺行情 ${skippedMarks.length}` : "");
     }
@@ -2227,8 +2235,20 @@
       const el = document.getElementById(`shadow-diff-${currency.toLowerCase()}`);
       if (!el) return;
       const value = safe(sidecar, "cumulative_diff", currency);
-      el.textContent = signedMoney(value, currency);
+      const net = safe(sidecar, "net_cumulative_diff", currency);
+      el.textContent = signedMoney(value, currency)
+        + (net == null ? "" : ` (净 ${signedMoney(net, currency)})`);
       el.className = `val ${pnlClass(value)}`;
+      const assumptions = safe(sidecar, "cost_assumptions");
+      if (assumptions) {
+        const commission = safe(assumptions, "assumed_commission_bps",
+          currency === "USD" ? "us" : "hk");
+        const spread = safe(assumptions, "spread_bps",
+          currency === "USD" ? "us" : "hk");
+        el.title = `毛额不含成本。净额按预注册假设扣：佣金 ${commission}bps`
+          + `（假设，非实测）+ 半点差 ${(Number(spread) || 0) * Number(assumptions.spread_share || 0)}bps`
+          + `，冲击成本未建模。`;
+      }
     });
 
     const countMap = {
