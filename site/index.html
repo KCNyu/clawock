@@ -409,7 +409,8 @@ layout: null
       </button>
       <div class="shadow-expanded" id="shadow-portfolio-expanded" hidden>
         <div class="shadow-sim-label">⚠ 模拟·非实盘</div>
-        <p class="shadow-estimand"><b>跟随全部已触发建议的政策模拟 vs 同起点买入持有；累计差=模拟 timing alpha</b></p>
+        <p class="shadow-estimand"><b>跟随全部已触发建议的政策模拟 vs 同起点买入持有；累计差=模拟 timing alpha（毛）</b></p>
+        <p class="shadow-estimand">毛额按 qty×price 成交，不含任何成本。「净」是同一条回放扣掉预注册的佣金与半点差假设后的结果——假设写在 <code>config/cost-model.json</code>，随每一个净值一起发布，冲击成本未建模。</p>
         <div class="empty-state" id="shadow-portfolio-empty">数据不足</div>
         <div class="shadow-coverage-note" id="shadow-coverage-note" style="display:none"></div>
         <div id="shadow-portfolio-content" style="display:none">

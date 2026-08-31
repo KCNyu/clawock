@@ -1,0 +1,26 @@
+{
+  "registered_on": "2026-08-30",
+  "why_this_file_exists": "Every performance number this repository publishes is gross. These are the assumptions under which a net number is also published. They are assumptions, not observations: nothing here reads a broker invoice, so the commission rows are labelled `assumed_` everywhere they surface and a run card carries them beside every result they moved.",
+  "assumed_commission_bps": {
+    "hk": 3.0,
+    "us": 1.0
+  },
+  "assumed_minimum_commission": {
+    "hk": 15.0,
+    "us": 1.0
+  },
+  "spread_source": "fixed",
+  "spread_share": 0.5,
+  "impact_source": "off",
+  "notes": [
+    "spread_source is `fixed` because the alternative was measured and does not survive it. `market_data.bar_signals` already implements Corwin & Schultz (2012) and Roll (1984); over the 27 tickers in the canonical bar manifest, thirty sessions each, Corwin-Schultz puts the HALF-spread at a median of 163 bps, range 27 to 393. Real spreads on these names are single- to low-double-digit bps: at daily frequency the estimator attributes overnight gaps and intraday volatility to the spread, and it overestimates most on exactly the volatile names this book trades. `corwin_schultz` and `roll` remain selectable and every trade records which source produced its number.",
+    "spread_bps is the FULL spread assumption per leg; spread_share is what a crossing order pays of it. When an estimator is selected and declines — its model did not describe that day — the fallback is spread_bps, never zero: zero is the most liquid value in the cross-section and handing it to the names the model failed on is the error that flatters the result.",
+    "spread_share 0.5 is the half-spread a marketable order pays crossing the touch. The shadow book models neither resting nor sweeping orders, so half is the neutral assumption.",
+    "impact_source is off on purpose. Amihud illiquidity is |return| per unit of dollar volume; turning it into a cost needs an order size and a calibration constant, and this book has neither. A haircut produced from an uncalibrated constant would look rigorous and be arbitrary.",
+    "Replace assumed_commission_bps and assumed_minimum_commission with the real schedule and every net number moves with them."
+  ],
+  "spread_bps": {
+    "hk": 12.0,
+    "us": 4.0
+  }
+}
