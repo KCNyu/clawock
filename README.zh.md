@@ -78,6 +78,8 @@ clawock 是一套真实港美股账户上运行的 AI 投研系统,解决一个�
 | 7 · 账本/汇率校验 | 6 | Frankfurter · 对账账本 · 本地不变量 |
 | 8 · 回测/自省 | 8 | 本地快照 + 基准行情 |
 
+覆盖是双语的,但不对称,而且不对称的地方在研究广度不在基础面。行情、基本面、消息面、资金守恒都有真实的港股分支;两项研究广度能力没有:同业发现在美股侧自动抓取、在港股侧读人工策展的 peer-map([`peer_discovery.py`](src/clawock/market_data/peer_discovery.py) —— 机制已实测可用,闸仍关着,等 peer-residual 规则对着更宽的同业域重新登记之后再开),停牌在美股侧是结构化 feed、在港股侧只是一条要人工判读的公告([`mover_evidence.py`](src/clawock/market_data/mover_evidence.py))。即:港股基础覆盖对齐,港股研究广度落后美股。
+
 抓取层优雅降级:东财统一走节流网关,报价/汇率多源兜底,抓空保留旧值。41 个模块的命令清单(`analyze-hk` `us-quotes` `filings` `fundflow` `em-news` `macro` `quant` `fx` `shadow` `evaluate-*` 等)由[命令参考](docs/reference/commands.md)按 registry 生成——上面的表格与清单由 CI 对着 [`config/information-layers.json`](config/information-layers.json) 核对,模块搬了家,数字不会留在原地。
 
 </details>
