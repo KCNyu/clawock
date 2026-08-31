@@ -3049,19 +3049,56 @@ def resolve_previous_source(args):
 
 # ---------------------------------------------------------------------------
 # Input fingerprint (#846): the cheap gate that lets the 20-minute publisher
-# skip a build whose inputs did not move. Everything the projection reads is
-# stat-level covered: five named files, four directories (bars/snapshots/
-# weekly/.tmp sidecars), and the daily plan glob. mtime is read at ns
-# resolution so a same-second rewrite still moves the fingerprint, with size
-# as the second key.
+# skip a build whose inputs did not move. mtime is read at ns resolution so a
+# same-second rewrite still moves the fingerprint, with size as the second key.
+#
+# What this comment used to claim, and why it was wrong (#1217)
+# -------------------------------------------------------------
+# It said "everything the projection reads is stat-level covered: five named
+# files, four directories and the daily plan glob". It was not. The projection
+# embeds most of the data plane — sentiment, macro, the news digest, the
+# influencer feed, the quant signals, the leverage dial, the workflow ledger —
+# and of all of those exactly one, `risk.json`, was in the tuple. Demonstrated
+# by `test_dashboard_fingerprint.py`: rewriting sentiment, macro, lev_regime and
+# workflow-outcomes left the fingerprint byte-identical, so the 72x/day
+# publisher would skip the rebuild and keep serving the previous embed until
+# some *unrelated* input — a bar, a snapshot, portfolio.json — happened to move.
+# The desk changes often enough that this was masked most of the day. It is
+# exactly overnight and at the weekend, when a scheduled scan is the only thing
+# writing, that it was not.
+#
+# The data-plane half is now derived from `_FRESHNESS_POLICY` rather than typed
+# out again. That table already has to list every artifact whose staleness the
+# page reports, so a new embed cannot enter the build without entering the
+# fingerprint — the drift that produced this bug cannot repeat silently, and
+# `test_fingerprint_covers_every_data_plane_file_the_build_reads` runs a real
+# build under an instrumented reader to assert the same thing behaviourally.
+#
+# The build's own outputs are deliberately absent: fingerprinting them would
+# mean every build invalidated the next tick's gate. So are the artifacts some
+# *other* publisher rewrites on every tick (`cron-heartbeats.json`), which the
+# projection does not read and which would defeat the gate for nothing.
 # ---------------------------------------------------------------------------
+
+# Read by the builder but not freshness-policed, so they need naming here.
+_FINGERPRINT_EXTRA_DATA_PLANE = (
+    'workflow-outcomes.json',
+    't0_setups.json',
+    't0_setup_review.json',
+)
+
 FINGERPRINT_FILES = (
     'portfolio.json',
     'memory/decisions.jsonl',
     'memory/fx-rates.jsonl',
-    'assets/data/risk.json',
     '.cache/fx_rate.json',
-)
+) + tuple(sorted(
+    f'assets/data/{name}'
+    for name in set(_FRESHNESS_POLICY) | set(_FINGERPRINT_EXTRA_DATA_PLANE)
+    # portfolio.json is freshness-policed and lives at the workspace root, not
+    # in the data plane; it is named above.
+    if name != 'portfolio.json'
+))
 FINGERPRINT_DIRS = ('memory/bars', 'memory/snapshots', 'memory/weekly', 'memory/.tmp')
 FINGERPRINT_CACHE = '.cache/dashboard-input.json'
 

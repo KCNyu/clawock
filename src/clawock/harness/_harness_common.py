@@ -11,6 +11,7 @@ import json
 import re
 import subprocess
 import sys
+import time
 from pathlib import Path
 
 from clawock.workspace import workspace_root
@@ -99,6 +100,12 @@ def refresh_today_snapshot(ws=None):
 
     Returns (ok, snapshot_filename_or_message). On skip returns (False, msg)
     — caller should treat as non-fatal.
+
+    Identical bytes are not rewritten (#1217). Nothing reads a snapshot's mtime
+    — they are addressed by the date in the filename — but `rebuild_dashboard`'s
+    fingerprint does, and this runs immediately before it. An unconditional
+    write moved the fingerprint on every weekday postflight, which would have
+    made `--skip-if-unchanged` on that path a gate that could never fire.
     """
     from datetime import datetime, timedelta
     ws = ws or WS
@@ -116,7 +123,13 @@ def refresh_today_snapshot(ws=None):
             return False, f'skipped (weekend: {now.strftime("%a %H:%M")})'
         date = target.strftime('%Y-%m-%d')
         snap = ws / 'memory' / 'snapshots' / f'{date}.json'
-        snap.write_bytes(pf.read_bytes())
+        current = pf.read_bytes()
+        try:
+            unchanged = snap.read_bytes() == current
+        except OSError:
+            unchanged = False
+        if not unchanged:
+            snap.write_bytes(current)
         return True, snap.name
     except Exception as e:
         return False, str(e)
@@ -195,7 +208,7 @@ def sync_gha_data_files(ws=None):
         return False, str(e)
 
 
-def _record_dashboard_build(build_ok, publish_ok, output, ws=None):
+def _record_dashboard_build(build_ok, publish_ok, output, ws=None, timings=None):
     """Persist build *and* publication outcomes to the dashboard status file.
 
     Why: report_postflight / brief_postflight call rebuild_dashboard() and discard
@@ -236,6 +249,13 @@ def _record_dashboard_build(build_ok, publish_ok, output, ws=None):
             # Git hooks and remote rules print the useful cause *before* their
             # generic "failed to push" footer. The old 500-char tail hid it.
             'tail': (output or '')[-4000:],
+            # Wall-clock seconds per stage (#1217). The rebuild is the slowest
+            # thing a postflight does and nothing measured it, so "the build got
+            # slower" was only ever an impression. `skipped` says whether the
+            # fingerprint gate fired, which is what makes the seconds readable:
+            # a fast tick that skipped and a fast tick that rebuilt are not the
+            # same fact.
+            'timings_s': dict(timings or {}),
         }
         path = ws / DASHBOARD_BUILD_STATUS
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -275,8 +295,11 @@ def rebuild_dashboard(ws=None):
     health checks cannot turn a frozen public dashboard green.
     """
     ws = ws or WS
+    timings = {}
+    _t0 = time.monotonic()
     refresh_today_snapshot(ws)
     sync_gha_data_files(ws)
+    timings['prepare_inputs'] = round(time.monotonic() - _t0, 3)
     try:
         # Single-publisher lock (2026-07-04): dashboard outputs now have exactly two
         # writer categories — this harness path and the scheduled
@@ -299,22 +322,41 @@ def rebuild_dashboard(ws=None):
         # where recovery matters. Non-fatal: a missing recovery source must not
         # stop a publish, and build_dashboard reports it loudly either way (#315).
         previous = ws / '.data-plane.cache'
+        _t0 = time.monotonic()
         subprocess.run(
             ['python3', str(ws / 'ops' / 'pages' / 'fetch_data_plane.py'),
              '--into', str(previous)],
             capture_output=True, text=True, timeout=60, cwd=str(ws), check=False,
         )
+        timings['fetch_data_plane'] = round(time.monotonic() - _t0, 3)
+
         from clawock.automation import workflow_outcomes
+        _t0 = time.monotonic()
         workflow_outcomes.publish()
+        timings['workflow_outcomes'] = round(time.monotonic() - _t0, 3)
+
+        _t0 = time.monotonic()
         r = subprocess.run(
             # 走本解释器的 -m 而不是 PATH 上的 console script（#918）：装在
             # 别处的入口点与这里 import 的包可能不是同一份，而缺失时的失败
             # 是安静的（FileNotFoundError 被上面的宽 except 吞掉）。
+            #
+            # --skip-if-unchanged (#1217): #846 added the fingerprint gate and
+            # wired it into `publish_dashboard.sh` only, so this path — brief,
+            # report and ~16 intraday postflights, ~19 full rebuilds a day —
+            # kept parsing ~12MB of JSON and re-running settlement whether or
+            # not anything had moved. It is the same gate the publisher has run
+            # 72x/day since; the reason it is only safe to turn on now is that
+            # the fingerprint could not see the data plane until this change,
+            # and this path calls `sync_gha_data_files` immediately before the
+            # build precisely because a scan may just have rewritten it.
             ['flock', DASHBOARD_PUBLISH_LOCK,
              sys.executable, '-m', 'clawock', 'dashboard-build',
-             '--previous', str(previous / 'assets' / 'data' / 'dashboard.json')],
+             '--previous', str(previous / 'assets' / 'data' / 'dashboard.json'),
+             '--skip-if-unchanged'],
             capture_output=True, text=True, timeout=30, cwd=str(ws),
         )
+        timings['dashboard_build'] = round(time.monotonic() - _t0, 3)
         build_ok = r.returncode == 0
         publish_ok = None
         full = r.stdout + r.stderr
@@ -327,21 +369,28 @@ def rebuild_dashboard(ws=None):
         # publish.
         if build_ok:
             try:
+                _t0 = time.monotonic()
                 mapped = subprocess.run(
                     [sys.executable, '-m', 'clawock', 'decision-map'],
                     capture_output=True, text=True, timeout=180, cwd=str(ws),
                 )
+                timings['decision_map'] = round(time.monotonic() - _t0, 3)
                 full += mapped.stdout + mapped.stderr
             except (OSError, subprocess.SubprocessError) as error:
                 full += f'\ndecision-map: {error}'
         if build_ok:
+            _t0 = time.monotonic()
             publish_ok, publish_detail = _publish_generation(ws)
+            timings['publish_generation'] = round(time.monotonic() - _t0, 3)
             full += publish_detail
         ok = bool(build_ok and publish_ok)
-        _record_dashboard_build(build_ok, publish_ok, full, ws)
+        # The gate prints this line and only this line when it fires, so the
+        # seconds above are readable rather than merely small.
+        timings['skipped'] = 'skipping rebuild' in full
+        _record_dashboard_build(build_ok, publish_ok, full, ws, timings)
         return ok, full[-2000:]
     except Exception as e:
-        _record_dashboard_build(False, None, str(e), ws)
+        _record_dashboard_build(False, None, str(e), ws, timings)
         return False, str(e)
 
 
