@@ -499,6 +499,20 @@ permalink: /decimap/
         + '</b>（' + selection.n_splits + ' 次对半切分）'
         + (selection.pbo >= 0.5 ? '——<b>还不能挑赢家</b>。' : '。');
     }
+    var refutation = ((d.signal_panel || {}).refutation || {})[horizon];
+    if (refutation && refutation.signals) {
+      // 置换检验回答的是区间回答不了的那个问题：把「谁持有这个值」在同一天内
+      // 打乱之后，还剩多少信号能给出同样的 IC。两者不一致的那几条要点名。
+      text += ' 把每个交易日内「哪只票拿哪个值」打乱重算，'
+        + '<b>' + refutation.survives_refutation + '/' + refutation.signals
+        + '</b> 条信号仍然给不出同样的 IC（其余 ' + refutation.fails_placebo
+        + ' 条给得出，' + refutation.collecting + ' 条样本还不够）。';
+      var contested = refutation.interval_clears_zero_but_placebo_does_not || [];
+      if (contested.length) {
+        text += ' <b>' + contested.length + '</b> 条的区间说它离开了零、'
+          + '它自己的置换检验说没有：' + esc(contested.join('、')) + '。';
+      }
+    }
     if (caveat) text += ' 区间口径：' + esc(caveat);
     el('dm-caveat').innerHTML = text;
   }

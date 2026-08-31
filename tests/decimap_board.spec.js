@@ -37,9 +37,17 @@ function render() {
     .replace(/\{\{[\s\S]*?\}\}/g, "");
 }
 
-function serve(html) {
+function serve(html, overrides) {
   return http.createServer((request, response) => {
     const name = new URL(request.url, "http://localhost").pathname;
+    if (overrides && Object.prototype.hasOwnProperty.call(overrides, name)) {
+      response.writeHead(200, {
+        "content-type": "application/json; charset=utf-8",
+        "cache-control": "no-store",
+      });
+      response.end(overrides[name]);
+      return;
+    }
     if (name === "/decimap/" || name === "/") {
       response.writeHead(200, { "content-type": "text/html; charset=utf-8" });
       response.end(html);
@@ -188,13 +196,57 @@ async function theKpiStripPrintsWhatThePayloadHolds(browser, base, payload) {
   await context.close();
 }
 
+// The refutation sentence is served a payload that carries the block, rather
+// than whichever payload the publisher last committed. The block appears on
+// master the first time the publisher runs after this merges, and a browser
+// assertion that only fires once the artifact catches up is an assertion that
+// has never run.
+async function theCaveatReportsWhatSurvivedItsPlacebo(browser, payload, html) {
+  const patched = JSON.parse(JSON.stringify(payload));
+  patched.signal_panel = patched.signal_panel || {};
+  patched.signal_panel.refutation = {
+    t1: { signals: 33, collecting: 3, fails_placebo: 30, one_name_flips_it: 0,
+          survives_refutation: 0,
+          interval_clears_zero_but_placebo_does_not: ["factor.rank.relative_strength"] },
+    t5: { signals: 33, collecting: 3, fails_placebo: 22, one_name_flips_it: 0,
+          survives_refutation: 8, interval_clears_zero_but_placebo_does_not: [] },
+    t20: { signals: 33, collecting: 27, fails_placebo: 2, one_name_flips_it: 0,
+           survives_refutation: 4, interval_clears_zero_but_placebo_does_not: [] },
+  };
+  const server = serve(html, {
+    "/assets/data/decision_map.json": JSON.stringify(patched) });
+  await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
+  const base = `http://127.0.0.1:${server.address().port}/decimap/`;
+  try {
+    const { context, page } = await open(browser, base, 1280);
+    const t5 = (await page.textContent("#dm-caveat")).replace(/\s+/g, "");
+    assert(t5.includes("8/33"),
+      `the caveat does not report the t5 survivor count: ${t5}`);
+    assert(!t5.includes("factor.rank.relative_strength"),
+      "nothing is contested at t5 in this fixture; naming a signal there is wrong");
+
+    await page.click('#dm-horizon button[data-h="t1"]');
+    await page.waitForTimeout(120);
+    const t1 = (await page.textContent("#dm-caveat")).replace(/\s+/g, "");
+    assert(t1.includes("0/33"),
+      `switching horizon did not move the survivor count: ${t1}`);
+    assert(t1.includes("factor.rank.relative_strength"),
+      "a signal whose interval and whose own placebo disagree must be named");
+    await context.close();
+  } finally {
+    await new Promise(resolve => server.close(resolve));
+  }
+}
+
+
 async function main() {
   if (!fs.existsSync(PAYLOAD)) {
     console.log("decimap board contract: skipped, no assets/data/decision_map.json");
     return;
   }
   const payload = JSON.parse(fs.readFileSync(PAYLOAD, "utf8"));
-  const server = serve(render());
+  const html = render();
+  const server = serve(html);
   await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
   const base = `http://127.0.0.1:${server.address().port}/decimap/`;
   const executablePath = process.env.CHROME_EXE || undefined;
@@ -207,6 +259,7 @@ async function main() {
     await aCellOpensTheDecisionsItCounts(browser, base);
     await thePageNeverScrollsSidewaysButTheBoardDoes(browser, base);
     await theKpiStripPrintsWhatThePayloadHolds(browser, base, payload);
+    await theCaveatReportsWhatSurvivedItsPlacebo(browser, payload, html);
     console.log("decimap board contract: ok");
   } finally {
     await browser.close();
