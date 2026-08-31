@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-28T22:48:22.058876",
+  "generated_at": "2026-08-31T19:18:42.006667",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -15,9 +15,9 @@
       "SPCH"
     ]
   },
-  "digest_markdown": "## Top 移动信号\n\n- **SKHY**: Memory supercycle confirmation stacking — CXMT +874% H1, SK Hynix CEO warns shortage through 2030, Korean chip exports to US +68.7%, analyst initiates Buy. Implication: HBM thesis intact through decade; kcn's SKHY position benefits from sustained pricing power.\n- **SPCX**: SpaceX Q2: 92% revenue growth, Starlink surge, heavy AI capex/burn. Firefly CEO independently confirms launch demand > supply. Implication: held via **SPCH (2x)** — revenue beat amplifies, but cash burn narrative keeps volatility elevated.\n- **RKLB**: Defense business standalone strong ($456M suborbital contracts don't need Neutron), but valuation stretched + cash burn + Neutron delays flagged. NASA orbital data centers is a thematic tailwind. Implication: held via **RKLX (2x)** — 2x amplifies both the defense bid and any downgrade on Neutron timing.\n- **CRCL**: Sell-side PT cut 11.66% to $105.25 — first analyst downgrade signal in window. Implication: bearish mark on recent IPO momentum; watch for follow-through.\n- **AI trade**: Cathie Wood trimming AMD after 120% rally + Micron down on Nvidia margin fears + US chip tariff chatter. Implication: late-cycle AI rotation risk; SKHY/Micron dispersion theme still working but crowding is a yellow flag.\n\n## Per-ticker 简报\n\n- **CRCL**: PT lowered to $105.25 (-11.66%) — bearish analyst action.\n- **RKLB**: Defense segment de-risked from Neutron ($456M backlog); valuation/cash burn remains the bear case. RKLX 2x magnifies both directions.\n- **SPCX**: Q2 topline strong (92% growth), AI capex spend heavy. Firefly validates launch TAM. SPCH 2x = bigger swings on earnings.\n- **SKHY**: Buy initiation, HBM leadership, $4B Indiana fab + HBM4E by 2029. Shortage thesis extended to 2030 by CEO.\n\n## Risk Watch\n\n- **AI crowding**: Cathie trim + Micron selloff + Nvidia margin disclosure = first signs of AI-trade fatigue.\n- **Chip tariffs**: Potential US chip tariffs cited in Micron drop — direct SKHY exposure.\n- **SpaceX burn**: Heavy AI capex + cash burn flagged despite 92% revenue growth — sustainability question for SPCH.\n- **RKLB execution**: Neutron delays + rising cash burn = downside catalyst risk for RKLX.\n- **CRCL valuation reset**: First PT cut post-IPO; more downgrades likely if price holds.",
+  "digest_markdown": "## Top 移动信号\n- **SKHY**: AI memory需求被Mizuho/BofA重申bullish，SK Hynix正评估日本扩产应对芯片短缺 → SPHY仓位直接受益于结构性AI capex，多重正面催化剂共振\n- **RKLB**: SpaceX-Iridium $8B合同纠纷 + insider $2.8M抛售 + Electron发射因强风延期，三重利空叠加 → RKLX (2x) 将放大跌幅，6%现货跌幅≈12%杠杆敞口\n- **CRCL**: 单日+7.18%、过去47%暴涨后Wall Street对\"银行业务胜利\"分歧，估值已接近fair value → 动量仍在但追高风险显著上升\n- **SPCX**: SpaceX得州建燃气轮机零部件瞄准GE Vernova的AI电力casting瓶颈 → SPCH (2x) 底层标的SpaceX直接切入AI电力供应链，是结构性利好\n\n## Per-ticker 简报\n- **SKHY**: Defiance新PRAM ETF瞄准AI memory + 日本扩产谈判 + Mizuho称memory股\"unbelievable bargains\" — 三条独立利好叠加，板块beta强化\n- **CRCL**: Chelsea Deal + USDC增长叙事支撑+7.18%；但Yahoo Finance标题称\"near fair value after 47% jump\" — 估值天花板信号，需警惕reverse\n- **RKLB**: BofA下调target但维持long-term bullish — 短期承压（发射延期+insider卖+SpaceX纠纷），长期thesis未破\n- **SPCX**: SpaceX得州燃气轮机项目是真正的catalyst，NVDA/Fed Warsh等为noise可忽略\n\n## 风险 Watch\n- **RKLB**: Insider $2.8M抛售（大股东减持信号）+ SpaceX-Iridium $8B合同纠纷可能导致-6%级别波动 — RKLX 2x杠杆下风险放大\n- **CRCL**: 47%暴涨后\"near fair value\"评估，分析师对banking win split → 短期reverse风险\n- **SKHY**: 日本扩产属\"exploring\"阶段，未落地即已priced in部分预期\n- **SPCX**: Iran war油价/防务支出波动为宏观noise，非ticker-specific",
   "raw_news_counts": {
-    "CRCL": 1,
+    "CRCL": 5,
     "RKLB": 5,
     "SPCX": 5,
     "SKHY": 5
@@ -25,139 +25,167 @@
   "raw_news_evidence": {
     "CRCL": [
       {
-        "headline": "Circle Internet Group (CRCL) Price Target Decreased by 11.66% to 105.25",
-        "datetime": 1787913026,
-        "source": "Fintel",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=d63a2ce49bedff1f83c538969523591e3f4b86bdbf8e3bb5fd86a110639eedc7"
+        "headline": "Why Did CRCL Stock Lose Steam? Wall Street Split On Circle’s Banking Win",
+        "datetime": "Sun, 30 Aug 2026 09:44:05 GMT",
+        "source": "Stocktwits",
+        "origin": "gnews-rss",
+        "url": "https://news.google.com/rss/articles/CBMi1wFBVV95cUxQWE1wM0FtcHc1YmFoY1RkcDZhdWQwUGdaOFNWZU84eW5Gd3BFQ1ZJUHJ3dGtibHBxbFkxMDlXdlRoYjZBWl9qUl9URjF2ck12enJOdGJWMlRhVVd4NFZxeDl4b09SdVJWakRRUk9wVFFFSFJOYWxmalA0LVlWaUtvM2oxQkgwZWRpdFpXQnQ5a3hvY1F6WTBKVjZnLWJmSjNmSzdZaWN6OXdabUwwMElTY285NEg5ZWppaTRoNW5DVlAwdllhNjBQa2ROM1JrSVI1cFJtMENOUQ?oc=5"
+      },
+      {
+        "headline": "Circle Internet Group Inc Stock (CRCL) Moved Up by 7.18% on Aug 31: What Signal Does It Send?",
+        "datetime": "Mon, 31 Aug 2026 17:15:16 GMT",
+        "source": "TradingKey",
+        "origin": "gnews-rss",
+        "url": "https://news.google.com/rss/articles/CBMiiwFBVV95cUxQaVdweDFDTzVVVUNnWHhYeXYzeWhBOUNjN09GMlM5LUVwUW44ZU9NWnZZSklxdVpjZkpBaG5TRmVic0VfeDM0eVpmODU0clZGeDJaWVV3QkFocGpJQ0x0bzRVMUs4Q2Z6cmtqQ1FpUVQ2WUVmX3RRZUh6QkpvLUF3T1hMY21Jd05SajV3?oc=5"
+      },
+      {
+        "headline": "Circle Internet Group (NYSE:CRCL) Shares Up 4.4% - Here's What Happened",
+        "datetime": "Mon, 31 Aug 2026 18:03:09 GMT",
+        "source": "MarketBeat",
+        "origin": "gnews-rss",
+        "url": "https://news.google.com/rss/articles/CBMiwgFBVV95cUxOVTVyMkd4S0ZJNjdKVG1OWWFiT3I1QUxubkszOEFyT0lCWm15SExhbUItTnFHNzhOTjk4ellWZ1V0T0FYM0d6U3dBM2ZiRF96WlNnY3lCLUJha081NVZDY29SeDBjQ0RhdFVnY0lreGFDM1dXRVBoRmZMYXJDcmhlVjRmcEJKX2lNQWlLdVFvaE9GZDhUazVNUWxNOVFET0JZalNNVThjcmRSQmZzSFV5eko1YmI1d2xDbTFXclV5UXNsUQ?oc=5"
+      },
+      {
+        "headline": "Circle Internet Group Rises as Investors Weigh Chelsea Deal and USDC Growth",
+        "datetime": "Mon, 31 Aug 2026 16:18:00 GMT",
+        "source": "Quiver Quantitative",
+        "origin": "gnews-rss",
+        "url": "https://news.google.com/rss/articles/CBMirAFBVV95cUxPWHpmVGlkXy0tNW5fSVQ3eTZIbG1SM3I5ZUxqekZobzI5ODFVdzJqRmk5WWVHM2ExUGxMdUdfOHQzNVkyOHRuVW9LWEt1UjBuSF9uUTlNOGN3dGpQT3Y3ZzZhZzVMMTZQVnZ3M19qVWxUeTZTSHFpbEdpbWJ2X2plY2pQSnltOHU0QU42NVlYQ2VwSDEwc1BGWkFuVUFNT01vRXZWX0Nld1YzbGZZ?oc=5"
+      },
+      {
+        "headline": "Circle (CRCL) Stock Trades Near Fair Value After A 47% Jump",
+        "datetime": "Fri, 28 Aug 2026 17:08:48 GMT",
+        "source": "Yahoo Finance",
+        "origin": "gnews-rss",
+        "url": "https://news.google.com/rss/articles/CBMimgFBVV95cUxPQ0RGNWZzU1JoSDZwOXZqWDlld3dJY3VqRmh4SVVkellXMFlpTUtidDVReF9SSTY2ODVtRkZLaWk3dG1jV2ItMDhVRG5rYTZTS2dMUnprRU1ONWFxTjBucVdhQ0JYN2oyUWlabmhrNjdqQ05TN3JNTUc5RHpQM1hLSTUxX1NBYmo1ekVES0VSVFdkbEtaQlFwNDBn?oc=5"
       }
     ],
     "RKLB": [
       {
-        "headline": "Rocket Lab: The Dream That Hasn't Launched Yet",
-        "datetime": 1787922996,
-        "source": "SeekingAlpha",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=9cd9061f0361785d0cc69388c979206a233e69a0fa62c868b477c9ab9a524ee2"
+        "headline": "RKLB Stock Slips Overnight: Strong Winds Delay Electron Launch, Insiders Sell $2.8M Worth Of Shares",
+        "datetime": "Mon, 31 Aug 2026 06:04:00 GMT",
+        "source": "Yahoo Finance",
+        "origin": "gnews-rss",
+        "url": "https://news.google.com/rss/articles/CBMinwFBVV95cUxOTmtmYmNNOFBkcDZZdkVrWDVGOUdKU01Za2FrZDUycXBiaFVaTmxRb2hTckNkRWdPTnlfdVJheXBWaVVYcDJyV2pUb3NTU2xKYnJ6emg2S3A4QVRjb0txamJpOGVWOUZTS2RJaTc2blRSb1NnRGVGbF9mWXhxSE40NlRCTzJsLTM2amJMMVo5OUJWX1VkTkE3QWdYQU1hYnc?oc=5"
       },
       {
-        "headline": "10 Industrials Stocks Whale Activity In Today’s Session",
-        "datetime": 1787837726,
-        "source": "Benzinga",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=2d65dcd8356635bea019bedd859120d43ad89cdad086ff177889b6fb7577593c"
+        "headline": "Why Are Nasdaq, S&P 500 Futures Subdued Premarket? NVDA, AAPL, INTC, CRWD, RKLB, SLS Stocks In Focus",
+        "datetime": "Mon, 31 Aug 2026 08:37:13 GMT",
+        "source": "Stocktwits",
+        "origin": "gnews-rss",
+        "url": "https://news.google.com/rss/articles/CBMi9wFBVV95cUxQb29xeTFVTy1BUXRKcXRjZFd0S2NMMkppMHhfUDNKcXZaTXFvUUhDTnMzREJwOHphWFhzZVV5UjNYN1FBSVEtbFloTnhxdkNoWFNqbHVwTGFUdTB1aGotMXJiTnB0WlBZeGJsUWRzMlp0dzZHQS1sTno3M1EyWERrbmVNYlZJdk5IUi1xcnJCeS10U2ltRFJHRUdfUy01eUFVbWVyWFZldUhnS3E1UkNmNi1FcHhFU3FfYTUtNlVCUUk2QVN5YWhIUzlySnktOWJXY1BxRkZWbVZqbF82bDRqbm0zSkZ3QUdOYXpENmotM2x2bEJNajdF?oc=5"
       },
       {
-        "headline": "Rocket Lab Doesn't Need Neutron To Justify This Quarter, But Does For What's Next",
-        "datetime": 1787822424,
-        "source": "SeekingAlpha",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=910ea47afe775de23d6454cedfb54b913803c6ec098b662f99cf46a0577ee670"
+        "headline": "Rocket Lab Stock (RKLB) Outlook: Top BofA Analyst Trims Target but Says Long-Term Upside Still Strong",
+        "datetime": "Mon, 31 Aug 2026 17:02:05 GMT",
+        "source": "TipRanks",
+        "origin": "gnews-rss",
+        "url": "https://news.google.com/rss/articles/CBMixwFBVV95cUxQMFI1VnNIMXd1cnJGekJhdXZpaDVaeW5sRkhVRU9wRFVYN01DRzZIYWRBRFR2MmE0QmNNQjQ1cVJlRmFvSFJmajN3MV9FY2JyWnVvN1pVRDVVV2dXNGFnS1NEVFFOUUZOdENYSW05c2w4WGljWmNBTGVCZ2hKMmpCSnhtQ3NBOUVTRTV3aGpaajctWHh5OFVrRktDX1BRbk43dFdKZE1fbEtTS04ybUZyel9EUEJmZm9GZ1NZUFBxaVlFeDhoelQw?oc=5"
       },
       {
-        "headline": "NASA Chief Jared Isaacman Wants Data Centers In Space as AI Devours Electricity, Says US Should Tap ‘Free Fusion Reactor’ To Win AI Race",
-        "datetime": 1787802073,
-        "source": "Benzinga",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=0bdb8fedeeb5ead4976ee0171f05a7b783136e67e2e15c32f5869343dfd8ae2c"
+        "headline": "SpaceX-Iridium Dispute Hits Rocket Lab (NASDAQ: RKLB): $8 Billion Deal Sends RKLB Down 6%",
+        "datetime": "Fri, 28 Aug 2026 19:21:45 GMT",
+        "source": "Stocks Down Under",
+        "origin": "gnews-rss",
+        "url": "https://news.google.com/rss/articles/CBMifkFVX3lxTE5MMHNOdU5Gd0IwTkRWbzhJZE9DQ2JFaG8wZDN2ZXQyOUQ4Z09GaU5wVGh2WkdUNzAyaWc0U3hpS2JfVEYwb2JkUmNaaWNqUjY5ejA5NkViUktGYW1LeFdPYXQ4QXFUeG1ObDZDOGUtQXpCNTBXYkdHQ05BS09HQQ?oc=5"
       },
       {
-        "headline": "Why Is AST SpaceMobile Stock Falling on Wednesday?",
-        "datetime": 1787752887,
-        "source": "Benzinga",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=8bc80989313ca0d53f9e16305de7d94faef11342bff5bb6361de6001a3ffbdc4"
+        "headline": "Here's Why Rocket Lab Corporation (RKLB) Could be Great Choice for a Bottom Fisher",
+        "datetime": "Fri, 28 Aug 2026 13:03:30 GMT",
+        "source": "Zacks Investment Research",
+        "origin": "gnews-rss",
+        "url": "https://news.google.com/rss/articles/CBMivAFBVV95cUxON0R0enFJMDVCa2tYaWRrbkpNdUpkaE5JUTNZaE5NVFVyeDQzYkxseDkzNFdzSHVib2ZPQ2ROTzBwOGtDbFo2N3FWbkxnR0pMbng2N2xySmVJRjBqcW5hUG5ZVmZGdEZrVXRWVUJ6eUd5UWlDN044Z2Jjbkp2OE9jeFBjVl9mdFhacFdmZ2FQbS1rM2d2RkYyZGNPS1VDQzYxX29fT3dxV3lVZWZJZmJUZTZXUVk0anBKMV9YMA?oc=5"
       }
     ],
     "SPCX": [
       {
-        "headline": "SpaceX: Buy This Debt-Fueled Launch Into AI",
-        "datetime": 1787919109,
+        "headline": "Elon Musk Is Trying to Break GE Vernova's AI Power Bottleneck",
+        "datetime": 1788171384,
+        "source": "Benzinga",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=ca820e7c876712bef775edba642afe7097a7a9d47df5dc79ee79d082e688e4ae"
+      },
+      {
+        "headline": "Nvidia: Trillions In AI Spend Over 5 Years Keeps The Growth Cycle Intact",
+        "datetime": 1788170417,
         "source": "SeekingAlpha",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=5b252218236d9b2948f4df18df01700d6c723223f319f5fbd3bfda749fa9fc1b"
+        "url": "https://finnhub.io/api/news?id=ca6298f12d71df209bf6b633de9c8b53e91ff0df4a12e2b808d830e97e9371d4"
       },
       {
-        "headline": "Cathie Wood Trims AMD After a 120% Rally — Is the AI Trade Getting Too Crowded?",
-        "datetime": 1787919084,
-        "source": "Benzinga",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=00ca459523d00476785ba984c3513109ae093739e21e9ba21e3bb04f30aa7dd6"
-      },
-      {
-        "headline": "After A Decade Of Underperformance, Comcast Is Finally Ready To Rebound",
-        "datetime": 1787905016,
+        "headline": "XOVR: The ETF That Lets Retail Investors Bet On Private Unicorns",
+        "datetime": 1788169949,
         "source": "SeekingAlpha",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=33ebafc4f52a9bf164710a41af76d75cdb60bbe0443ab14ff6822944696a2693"
+        "url": "https://finnhub.io/api/news?id=4758398ed574477be827a66687b5fb0c9c61cbb2d930b4f36bbf048ff380f48c"
       },
       {
-        "headline": "Anthropic Is Chasing a $2T Valuation — A Wall Street Veteran Says Its Biggest IPO Risk Isn't What Investors Think",
-        "datetime": 1787904480,
-        "source": "Benzinga",
+        "headline": "After The Fed: Analysis Of Warsh On AI, Inflation And The Unknowns (Video)",
+        "datetime": 1788164960,
+        "source": "SeekingAlpha",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=518d0ca717d124d5bf0e6929a08c174f04dabd3ffbab4a053632540aca46e1eb"
+        "url": "https://finnhub.io/api/news?id=c41651ec2da0872185aff3aa7ad3470900318cfee1386bc5100c5df18440d2a5"
       },
       {
-        "headline": "EXCLUSIVE: SpaceX May Lead the Launch Market, but Firefly CEO Says There's Still a Rocket Shortage",
-        "datetime": 1787903887,
+        "headline": "Trump Family Businesses Are Among Iran War’s Winners as Oil and Defense Spending Surge: Report",
+        "datetime": 1788162435,
         "source": "Benzinga",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=e49e963c2841de896d3a965abe1130b7b2501a5ffb1b98b8eede6b72d1683a3e"
+        "url": "https://finnhub.io/api/news?id=abb232eba21b406984512746d131029ee4350ccdbf94a4e923d18ffdb70d6528"
       }
     ],
     "SKHY": [
       {
-        "headline": "SK Hynix: Higher Revenue Than Micron, Cheaper Than Micron (Initiating Buy)",
-        "datetime": 1787917161,
+        "headline": "SK Hynix, Micron Lead A New ETF That Targets Memory, Photonics",
+        "datetime": 1788166686,
+        "source": "Benzinga",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=6dbf92df9be7c218c265890a1c26bce152f49d8c639cbfb54644ae389de76345"
+      },
+      {
+        "headline": "MU and SNDK are ‘Just Unbelievable’ Bargains as Mizuho Reiterates Bullish Stance on Memory Stocks",
+        "datetime": 1788165418,
+        "source": "Benzinga",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=ede8a9a770f7855e4670112b452815f947a4ffbd06c984e5db836d5829004bc9"
+      },
+      {
+        "headline": "After The Fed: Analysis Of Warsh On AI, Inflation And The Unknowns (Video)",
+        "datetime": 1788164960,
         "source": "SeekingAlpha",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=672ed4a3fc4226d22bbc4ab60c35413c294172c4ffe0795d8ca072e84c3afc5b"
+        "url": "https://finnhub.io/api/news?id=c41651ec2da0872185aff3aa7ad3470900318cfee1386bc5100c5df18440d2a5"
       },
       {
-        "headline": "China's CXMT Revenue Explodes 874% in H1 as AI Memory Boom Fuels DRAM Shortage",
-        "datetime": 1787908399,
+        "headline": "SK Hynix To Expand Japan Investments",
+        "datetime": 1788158165,
         "source": "Benzinga",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=8f8285a536e06bf255ba1763e7c310f82c1d967678c269131f20f0ac89a8cb33"
+        "url": "https://finnhub.io/api/news?id=00ca6ead833e9f8925426856bb4d2efc44598336dc38d6092a56ad58fed37bc4"
       },
       {
-        "headline": "SK Hynix CEO Warns Memory Shortage Will Persist Through 2030 as Chipmaker Builds $4 Billion Indiana Fab",
-        "datetime": 1787886298,
+        "headline": "SK Group Chair Says SK Hynix Is 'Looking All Over Japan' For New Manufacturing Plant to Keep Up With AI Chip Demand: Report",
+        "datetime": 1788155246,
         "source": "Benzinga",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=e063aee044c38acb6826acef9d28185d42d5ded46ae418d4765193891a018767"
-      },
-      {
-        "headline": "Trump's Tariffs Were Built to Close the Trade Gap. The AI Buildout Is Keeping It Open",
-        "datetime": 1787846167,
-        "source": "Benzinga",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=dd12854616980f70c13cbb84943a82a1cb271e5a24adcc8ee750ac4cc99aed05"
-      },
-      {
-        "headline": "Why Is Micron Stock Falling on Thursday?",
-        "datetime": 1787838006,
-        "source": "Benzinga",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=016b9cc85245b159a6629dc1edb1d0234e1bf4158d1351f0f2cc6b55c2da0b4a"
+        "url": "https://finnhub.io/api/news?id=9f32dedeb3e4b4d2ee2169de06a0c74d14c0f789f4ebc66abd6f5030210052ee"
       }
     ]
   },
   "news_source_per_ticker": {
-    "CRCL": "finnhub",
-    "RKLB": "finnhub",
+    "CRCL": "gnews-rss",
+    "RKLB": "gnews-rss",
     "SPCX": "finnhub",
     "SKHY": "finnhub"
   },
   "source_status": {
     "CRCL": {
-      "finnhub": "success",
-      "google_news": "not_attempted"
+      "finnhub": "success_empty",
+      "google_news": "success"
     },
     "RKLB": {
-      "finnhub": "success",
-      "google_news": "not_attempted"
+      "finnhub": "success_empty",
+      "google_news": "success"
     },
     "SPCX": {
       "finnhub": "success",
