@@ -207,8 +207,83 @@ class _InMemoryPlanPath:
         return str(self._path)
 
 
+def _citable_refs(context) -> set[str]:
+    """Every debate citation this morning's context can actually back (#1141).
+
+    One set, built once per plan, in the three namespaces
+    `decision.ledger.DEBATE_EVIDENCE_NAMESPACES` declares. A namespace exists
+    only where the context carries something stable to point at — an event id,
+    a breach, a computed signal field — because a citation nobody can resolve
+    reads as evidence without being any.
+    """
+    refs: set[str] = set()
+    context = context or {}
+
+    graph = context.get('news_evidence_graph') or {}
+    for event in graph.get('events') or []:
+        event_id = str((event or {}).get('event_id') or '').strip()
+        if event_id:
+            refs.add(f'news:{event_id}')
+
+    guardrail = context.get('risk_guardrail') or {}
+    for key in ('breaches', 'hard_stop_watch', 'concentration_reviews'):
+        for row in guardrail.get(key) or []:
+            kind = str((row or {}).get('type') or '').strip()
+            if not kind:
+                continue
+            refs.add(f'risk:{kind}')
+            ticker = str((row or {}).get('ticker') or '').strip()
+            if ticker:
+                refs.add(f'risk:{kind}:{ticker}')
+
+    rows = ((context.get('quant_signals') or {}).get('rows')) or {}
+    if isinstance(rows, dict):
+        for ticker, row in rows.items():
+            if not isinstance(row, dict):
+                continue
+            for field, value in row.items():
+                if value is not None:
+                    refs.add(f'quant:{ticker}:{field}')
+    return refs
+
+
+def prune_debate_citations(plan, context):
+    """Drop debate citations the context cannot resolve. Returns what was cut.
+
+    Dropped rather than rejected, on purpose. `validate_plan` is a publish
+    gate: a plan that fails it does not degrade to a thinner brief, it degrades
+    to no brief, and an invented reference in an annotation is not worth that
+    trade. But dropping in silence would leave the debate looking better
+    sourced than it is, so every cut is returned for the caller to file as a
+    degradation — the same detect-but-never-silence shape the rest of this
+    harness uses.
+    """
+    dropped: list[str] = []
+    if not context:
+        return plan, dropped
+    citable = _citable_refs(context)
+    if not citable:
+        return plan, dropped
+    for decision in plan.get('decisions') or []:
+        debate = (decision or {}).get('debate')
+        if not isinstance(debate, dict):
+            continue
+        cited = debate.get('evidence_ids')
+        if not isinstance(cited, list) or not cited:
+            continue
+        kept = [ref for ref in cited if ref in citable]
+        for ref in cited:
+            if ref not in citable:
+                dropped.append(f"{decision.get('decision_id') or '?'}:{ref}")
+        if kept:
+            debate['evidence_ids'] = kept
+        else:
+            debate.pop('evidence_ids', None)
+    return plan, dropped
+
+
 def normalize_plan_json(path, ledger_path=None, *, decision_packet=None,
-                        write=True, return_plan=False):
+                        write=True, return_plan=False, context=None):
     """Fill only machine-owned v2 fields before validation.
 
     ``normalize_authored_plan`` also canonicalizes legacy/default values.  Never
@@ -251,6 +326,13 @@ def normalize_plan_json(path, ledger_path=None, *, decision_packet=None,
             normalized = brief_decision_packet.bind_plan_provenance(
                 normalized, decision_packet
             )
+        normalized, dropped_citations = prune_debate_citations(normalized, context)
+        if dropped_citations:
+            workflow_outcomes.note_degradation(
+                None, 'debate_citation_unresolved',
+                f"{len(dropped_citations)} debate evidence ref(s) matched "
+                f"nothing in this generation's context: "
+                + ', '.join(dropped_citations[:5]))
         if write and normalized != authored:
             # Atomic write: this process is SIGTERM-prone (60s exec timeout,
             # #508/#765) and a torn plan.json would fail every downstream
@@ -711,6 +793,7 @@ def main(argv=None):
         decision_packet=decision_packet,
         write=not args.dry_run,
         return_plan=True,
+        context=context,
     )
     issues += normalization_issues
     validation_path = (

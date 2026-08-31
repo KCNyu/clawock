@@ -139,16 +139,21 @@ def test_the_dashboard_publishes_how_often_the_debate_was_actually_recorded(
     monkeypatch.setattr(dashboard, "WS_ROOT", tmp_path)
     _plan(tmp_path, [
         {"action": "cut", "debate": {"bear": "b", "attacked_consensus": "c",
-                                     "frames": ["momentum"]}},
+                                     "frames": ["momentum"],
+                                     "evidence_ids": ["news:evt_1"]}},
         {"action": "hold_and_watch", "debate": {"bull": "only one side"}},
         {"action": "watch"},
     ])
 
     coverage = dashboard.compute_debate_metrics()["debate_coverage"]
 
+    # `with_evidence_ids` is the second-stage series (#1141): a debate that
+    # cites nothing is counted apart from one that stands on named context,
+    # the same way a missing bear case is counted apart from a missing block.
     assert coverage == {
         "decisions": 3, "with_debate": 2, "with_bear_case": 1,
         "with_attacked_consensus": 1, "with_frames": 1,
+        "with_evidence_ids": 1,
         "bear_case_pct": 33.3,
     }
 

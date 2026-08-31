@@ -1509,6 +1509,11 @@
   .dbt-line { font-size: var(--fs-sm); line-height: 1.45; color: var(--text-dim); margin-top: 6px; }
   .dbt-key { font-weight: 600; color: var(--text); margin-right: 6px; }
   .dbt-frames { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .dbt-frame.dbt-cite {
+    color: var(--accent);
+    border-color: color-mix(in srgb, var(--accent) 35%, transparent);
+    background: color-mix(in srgb, var(--accent) 10%, transparent);
+  }
   .dbt-frame {
     font-size: var(--fs-micro); font-family: var(--mono); padding: 2px 8px;
     border-radius: 5px; background: var(--card); color: var(--text-dim);

@@ -719,7 +719,8 @@ postflight 严格 schema 校验：
         "bear": "杠杆 beta 在 risk_off 下放大回撤，DAU 连续两季下滑无止跌迹象",
         "attacked_consensus": "攻击的是「AI 板块整体还有一波」这条最强共识",
         "frames": ["technical_breakdown", "relative_strength"],
-        "judge": "纪律优先：政策型减仓不等预测兑现"
+        "judge": "纪律优先：政策型减仓不等预测兑现",
+        "evidence_ids": ["risk:leveraged_exposure:07226", "quant:07226:dist_ma200_pct"]
       }
     },
     {
@@ -764,6 +765,11 @@ postflight 严格 schema 校验：
   - `attacked_consensus`：本轮 devil's advocate（见 § Tier 2 铁律）点名攻击的那条最强共识。与该票无关时可省略，别为了填而编。
   - `frames`：`Judge — strategy frames` 表里为这条 action 选的 1–3 个 frame，逐字照抄枚举值。
   - `judge`：Judge 的合成判词一句话（不是 Bull/Bear 的复述）。
+  - `evidence_ids`（≤6 条，选填）：这场辩论**站在**哪几条 context 证据上（#1141）。只认三个能被解析的命名空间，postflight 逐条对着本次 context 核，**核不上的直接丢掉并记一条 degradation**（不会让流水线变红，但会被数出来）：
+    - `news:<event_id>` —— `context.news_evidence_graph.events[].event_id`
+    - `risk:<type>` 或 `risk:<type>:<ticker>` —— `context.risk_guardrail` 的 breach / hard_stop / concentration_review
+    - `quant:<ticker>:<field>` —— `context.quant_signals.rows[<ticker>]` 上一个非空字段（如 `quant:SPCH:dist_ma200_pct`）
+    **没有可引的证据就不填**，别为了填而造 id：造出来的引用比不引更糟，它看起来像证据。portable workflow lane 早就要求每个 case 带 `evidence_ids`（`workflows/validators.py`），这里是把同一条纪律接到日报这条 lane 上。
   - **不会因为格式错误让 08:00 流水线变红**：postflight 的 normalizer 会裁剪超长文本、丢弃未知键与不在枚举内的 frame，整块为空则记为「没写」。但缺席是被数出来的——dashboard 的 `debate_coverage.bear_case_pct` 就是这条纪律的实测曲线，别用空块凑覆盖率。
 - `thesis_invalidation`（string，主动 cut/trim/add 必填；hold 选填）：**借鉴 UZI-Skill 的 thesis-tracking**——这个仓位的论点**会被什么具体催化推翻**？把 catalyst-gate(cut #1)落地成「论点+失效条件」：你只在这个**失效催化真的发生**时动手，而不是技术面波动。例：「crypto rev 环比转正则停止减仓」。这逼着每个主动 call 绑定一个可被证伪的硬催化，而非"看着toppy"。
 - `thesis_id` 必须沿用 `context.thesis_registry.theses.<ticker>.thesis_id`（resolved 时）；registry 为 `unknown` 时保留已有 decision ID，不得新造一个“看起来像历史”的 canonical thesis。`context.retrospective.decisions[].thesis_ref` 是只读解析结果。

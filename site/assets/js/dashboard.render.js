@@ -3180,10 +3180,16 @@
       const line = (label, text) => text
         ? `<div class="dbt-line"><span class="dbt-key">${label}</span>${escLLM(text)}</div>`
         : "";
-      const frames = (r.frames || []).length
-        ? `<div class="dbt-frames">${r.frames.map(
-            f => `<span class="dbt-frame">${escLLM(f)}</span>`).join("")}</div>`
-        : "";
+      const chips = [
+        ...(r.evidence_ids || []).map(
+          ref => `<span class="dbt-frame dbt-cite">${escLLM(ref)}</span>`),
+        ...(r.frames || []).map(f => `<span class="dbt-frame">${escLLM(f)}</span>`),
+      ];
+      // Citations first, then the Judge's frames: what the argument stood on
+      // reads ahead of how it was decided, and a case citing nothing is then
+      // visibly citing nothing (#1141).
+      const frames = chips.length
+        ? `<div class="dbt-frames">${chips.join("")}</div>` : "";
       const conf = r.confidence == null ? "" : ` · 置信 ${Math.round(r.confidence * 100)}%`;
       return `<div class="dbt-case">
         <div class="dbt-head">
