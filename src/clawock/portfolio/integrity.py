@@ -67,6 +67,7 @@ _quote_is_complete 因此弃用它——链在正常工作），逐日报警只�
 """
 import argparse
 import json
+import pathlib
 import sys
 from datetime import date, datetime, timedelta
 from pathlib import Path
@@ -271,6 +272,66 @@ def check_share_ledgers(portfolios):
                         'msg': f'{ticker} 账本缺口从已签收的 {known:.0f} 变成 {deficit:.0f} 股；'
                                f'又多了一笔没有对应买入的卖出'})
     return findings
+
+
+#: How far back the bar-conflict summary looks. A refusal from six months ago
+#: is history; what a reader needs to know is whether a source is disagreeing
+#: *now*, and at what rate.
+BAR_CONFLICT_WINDOW_DAYS = 30
+
+
+def summarize_bar_conflicts(log_path=None, *, now=None,
+                            window_days=BAR_CONFLICT_WINDOW_DAYS) -> dict:
+    """Count the canonical store's refused provider disagreements (#1146).
+
+    `market_data.bars` already detects a stored-vs-fetched disagreement and
+    already refuses to overwrite — the ledger settled against the stored value,
+    so a silent repair would move history. What it could not do was answer "how
+    often, and about what": every refusal was one line in one cron log.
+
+    So the refusals are classified at the point of refusal and appended to
+    `memory/bar-conflicts.jsonl`, and this turns that log into counts by kind
+    over a window. Reporting only, and deliberately: this must not become a
+    publish blocker. The bars were not written, nothing downstream is wrong,
+    and blocking a brief over a provider's revision would trade a visible
+    disagreement for an invisible one.
+    """
+    # `pathlib.Path` rather than this module's `Path`: an existing fixture
+    # replaces that name with a stub reader to feed `check()` a portfolio, and
+    # a summary that exploded under it would take the whole report with it.
+    path = pathlib.Path(log_path) if log_path is not None else (
+        workspace_root(pathlib.Path.cwd()) / 'memory' / 'bar-conflicts.jsonl')
+    summary = {
+        'window_days': window_days,
+        'total': 0,
+        'by_kind': {},
+        'by_ticker': {},
+        'last_seen_at': None,
+        'log': path.name,
+    }
+    if not path.exists():
+        return summary
+    now = now or datetime.now().astimezone()
+    cutoff = (now - timedelta(days=window_days)).date().isoformat()
+    for line in path.read_text(encoding='utf-8').splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            row = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        seen_at = str(row.get('seen_at') or '')
+        if seen_at[:10] < cutoff:
+            continue
+        kind = str(row.get('kind') or 'unknown')
+        ticker = str(row.get('ticker') or 'unknown')
+        summary['total'] += 1
+        summary['by_kind'][kind] = summary['by_kind'].get(kind, 0) + 1
+        summary['by_ticker'][ticker] = summary['by_ticker'].get(ticker, 0) + 1
+        if summary['last_seen_at'] is None or seen_at > summary['last_seen_at']:
+            summary['last_seen_at'] = seen_at
+    return summary
 
 
 def check(portfolio_path=PORTFOLIO):
@@ -590,6 +651,18 @@ def check(portfolio_path=PORTFOLIO):
 
     errors = [f for f in findings if f['level'] == 'ERROR']
     warns = [f for f in findings if f['level'] == 'WARN']
+    # Canonical-store disagreements: counted, named and visible — never a
+    # blocker. See `summarize_bar_conflicts`.
+    bar_conflicts = summarize_bar_conflicts()
+    if bar_conflicts['total']:
+        worst = sorted(bar_conflicts['by_kind'].items(),
+                       key=lambda item: (-item[1], item[0]))
+        add('BAR_CONFLICT', 'WARN',
+            f"canonical bars: {bar_conflicts['total']} refused provider "
+            f"disagreement(s) in {bar_conflicts['window_days']}d — "
+            + ', '.join(f'{kind} {count}' for kind, count in worst))
+        errors = [f for f in findings if f['level'] == 'ERROR']
+        warns = [f for f in findings if f['level'] == 'WARN']
     report = {
         'generated_at': datetime.now().astimezone().isoformat(timespec='seconds'),
         'ok': not errors,
@@ -599,6 +672,7 @@ def check(portfolio_path=PORTFOLIO):
         # 台账而非判决：消费者（brief context / 面板）读它就能说出「今天这本账
         # 是谁定的价、主源覆盖了几只」，不必再去翻某次 cron 的 stdout。
         'quote_sources': quote_ledger,
+        'bar_conflicts': bar_conflicts,
     }
     return report
 

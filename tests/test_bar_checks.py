@@ -217,7 +217,10 @@ def test_an_impossible_bar_is_still_refused_with_the_reason_named(
     added, _, conflicts = mod.merge('TEST', fresh, repair=False)
 
     assert added == 0
-    assert conflicts and 'above high' in conflicts[0]
+    # A refusal is a record now, not a sentence: the reason still has to be in
+    # it, and the kind is what makes a stream of them countable (#1146).
+    assert conflicts and 'above high' in conflicts[0]['detail']
+    assert conflicts[0]['kind'] == 'impossible_bar'
 
 
 # ── the structural gate: nobody re-grows a private copy ─────────────────────

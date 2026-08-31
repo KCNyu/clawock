@@ -201,7 +201,88 @@ def sane(b: dict) -> bool:
     return bar_checks.is_structurally_sane(b)
 
 
-def merge(ticker: str, fresh: list[dict], repair: bool) -> tuple[int, int, list[str]]:
+#: Where a refused conflict is remembered. Append-only, one JSON object per
+#: refusal, because the exit code and the stdout line the fetcher already
+#: prints live in a cron log nobody reads twice: a source that disagrees once
+#: a quarter and one that disagrees every week look identical there (#1146).
+CONFLICT_LOG = WS / "memory" / "bar-conflicts.jsonl"
+
+#: The closed vocabulary a refusal is classified into. Deliberately small, and
+#: deliberately about the *shape* of the disagreement rather than its cause —
+#: "the provider re-priced the whole bar by one ratio" is observable, "the
+#: provider applied a split" is a guess about someone else's system.
+CONFLICT_KINDS = (
+    "impossible_bar",      # fails the structural check outright — never stored
+    "uniform_rescale",     # every leg moved by the same ratio: adjustment signature
+    "close_only",          # only the close moved: a settlement-price revision
+    "rounding",            # every leg moved by < 5bp: precision, not information
+    "bar_revision",        # anything else: a real disagreement about the session
+)
+
+#: Below this, a difference is precision rather than information. 5bp of a
+#: HK$700 close is 35 cents — smaller than one tick on that board.
+ROUNDING_REL_TOL = 5e-4
+#: How close the four ratios must be to each other to read as one rescale.
+RESCALE_REL_TOL = 1e-3
+
+
+def classify_conflict(old: dict, fetched: dict) -> str:
+    """Name the shape of a stored-vs-fetched disagreement.
+
+    The store already refuses to overwrite; what it could not say is *what kind*
+    of disagreement it refused. A weekly stream of `rounding` and a single
+    `bar_revision` on a session the ledger settled against are the same line of
+    output today, and they call for opposite responses.
+    """
+    legs = ("open", "high", "low", "close")
+    moved = [k for k in legs
+             if abs(old.get(k, 0) - fetched.get(k, 0)) > 1e-9]
+    if not moved:
+        return "rounding"
+    relative = [
+        abs(old[k] - fetched[k]) / abs(old[k])
+        for k in legs
+        if isinstance(old.get(k), (int, float)) and old.get(k)
+    ]
+    if relative and max(relative) < ROUNDING_REL_TOL:
+        return "rounding"
+    if moved == ["close"]:
+        return "close_only"
+    ratios = [
+        fetched[k] / old[k]
+        for k in legs
+        if isinstance(old.get(k), (int, float)) and old.get(k)
+        and isinstance(fetched.get(k), (int, float))
+    ]
+    if len(ratios) == len(legs):
+        spread = max(ratios) - min(ratios)
+        if spread <= RESCALE_REL_TOL * max(abs(r) for r in ratios):
+            return "uniform_rescale"
+    return "bar_revision"
+
+
+def record_conflicts(ticker: str, conflicts: list[dict], path: Path | None = None) -> int:
+    """Append refusals to the conflict log. Returns how many rows were written.
+
+    Append-only and never read back by the fetcher: the point is that the rate
+    of disagreement per source becomes a number someone can look at later
+    (`clawock integrity` summarises it), not that this run behaves differently.
+    """
+    if not conflicts:
+        return 0
+    target = Path(path or CONFLICT_LOG)
+    target.parent.mkdir(parents=True, exist_ok=True)
+    seen_at = datetime.now(HKT).isoformat(timespec="seconds")
+    with target.open("a", encoding="utf-8") as fh:
+        for conflict in conflicts:
+            row = dict(conflict)
+            row["ticker"] = ticker
+            row["seen_at"] = seen_at
+            fh.write(json.dumps(row, ensure_ascii=False, sort_keys=True) + "\n")
+    return len(conflicts)
+
+
+def merge(ticker: str, fresh: list[dict], repair: bool) -> tuple[int, int, list[dict]]:
     doc = load_bars(ticker)
     doc.setdefault("tencent", MANIFEST[ticker]["tencent"])
     # The manifest is the declaration; docs written before it existed get it here.
@@ -217,7 +298,11 @@ def merge(ticker: str, fresh: list[dict], repair: bool) -> tuple[int, int, list[
             continue                      # session not finished — never store a live bar
         verdict = bar_checks.check_bar(b)
         if verdict["fatal"]:
-            conflicts.append(f"{d}: insane OHLC {b} ({'; '.join(verdict['fatal'])})")
+            conflicts.append({
+                "date": d, "kind": "impossible_bar",
+                "detail": f"insane OHLC {b} ({'; '.join(verdict['fatal'])})",
+                "fetched": {k: b.get(k) for k in ("open", "high", "low", "close")},
+            })
             continue
         rec = {"open": b["open"], "high": b["high"], "low": b["low"], "close": b["close"],
                "source": "tencent", "adjustment": "raw", "fetched_at": now}
@@ -240,9 +325,14 @@ def merge(ticker: str, fresh: list[dict], repair: bool) -> tuple[int, int, list[
         # A stored bar changed. That is either a provider revision or a source bug; it is
         # never something to apply silently — the ledger already settled against the old one.
         if not repair:
-            conflicts.append(
-                f"{d}: stored O{old['open']}/H{old['high']}/L{old['low']}/C{old['close']} "
-                f"vs fetched O{rec['open']}/H{rec['high']}/L{rec['low']}/C{rec['close']}")
+            conflicts.append({
+                "date": d, "kind": classify_conflict(old, rec),
+                "detail": (
+                    f"stored O{old['open']}/H{old['high']}/L{old['low']}/C{old['close']} "
+                    f"vs fetched O{rec['open']}/H{rec['high']}/L{rec['low']}/C{rec['close']}"),
+                "stored": {k: old[k] for k in ("open", "high", "low", "close")},
+                "fetched": {k: rec[k] for k in ("open", "high", "low", "close")},
+            })
             continue
         rec["revised_from"] = {k: old[k] for k in ("open", "high", "low", "close")}
         rec["revised_at"] = now
@@ -306,14 +396,16 @@ def main(argv=None) -> int:
         added, revised, conflicts = merge(t, fresh, args.repair)
         total_add += added
         total_rev += revised
+        record_conflicts(t, conflicts)
         for c in conflicts:
-            all_conflicts.append(f"{t} {c}")
+            all_conflicts.append(f"{t} {c['date']} [{c['kind']}]: {c['detail']}")
         flag = f" ⚠ {len(conflicts)} conflict" if conflicts else ""
         print(f"  {t:6} +{added:3} bars, {revised} revised, {len(load_bars(t)['bars'])} total{flag}")
 
     print(f"\n{total_add} bars added, {total_rev} revised → {BARS_DIR}")
     if all_conflicts:
         print(f"\n⚠ {len(all_conflicts)} conflicts — stored bars disagree with the provider.")
+        print(f"  Classified and appended to {CONFLICT_LOG}; `clawock integrity` counts them.")
         print("  Nothing was overwritten. Investigate, then re-run with --repair if the")
         print("  provider is right; the ledger settled against the stored values.")
         for c in all_conflicts[:20]:
