@@ -384,9 +384,15 @@ def test_a_recorder_failure_warns_instead_of_breaking_the_caller(
     postflight down with it. Mutation check: remove `import sys` and this test
     fails on the raised NameError, not on the assertion.
     """
-    _isolate(tmp_path, monkeypatch)
+    workspace = _isolate(tmp_path, monkeypatch)
     assert outcomes.record_stage("港股开盘报告", "llm", "not-a-real-status") == {}
-    assert "workflow outcome stage not recorded" in capsys.readouterr().err
+    # stderr is where this used to end. It now also lands in the ledger, which
+    # is the surface that publishes (#1214) — asserted on the row, because the
+    # warning text is prose and the row is the contract.
+    assert "stage_not_recorded" in capsys.readouterr().err
+    rows = _degradations(workspace)
+    assert [row["kind"] for row in rows] == ["stage_not_recorded"], rows
+    assert "港股开盘报告/llm" in rows[0]["detail"]
 
 
 def test_reconciliation_failure_also_only_warns(tmp_path, monkeypatch, capsys):
@@ -398,8 +404,16 @@ def test_reconciliation_failure_also_only_warns(tmp_path, monkeypatch, capsys):
     (receipts / "brief-sent-2026-07-24.json").write_text(
         json.dumps({"sent_ok": True})
     )
+    # Still broad, still non-fatal: `publish()` runs inside
+    # `rebuild_dashboard`'s own try, so letting this raise would trade "a
+    # receipt was not reconciled" for "the dashboard was not published" (#1214).
     assert outcomes.reconcile_delivery_receipts() == 0
-    assert "delivery receipt reconciliation skipped" in capsys.readouterr().err
+    assert "delivery_reconcile_skipped" in capsys.readouterr().err
+    rows = _degradations(ws)
+    assert [row["kind"] for row in rows] == ["delivery_reconcile_skipped"], rows
+    # The exception type is in the detail, so a defect reads as a defect
+    # instead of as a quiet nothing.
+    assert "RuntimeError" in rows[0]["detail"], rows[0]
 
 
 # ── #764: advisory-only findings are not a degraded product ──────────────────
@@ -656,8 +670,13 @@ def test_falling_back_to_the_published_ledger_is_never_silent(
         json.dumps({"schema_version": outcomes.SCHEMA_VERSION, "records": []})
     )
     outcomes.local_path().write_text("{ not json")
-    assert outcomes.load_ledger()["records"] == []
-    assert "falling back to the published copy" in capsys.readouterr().err
+    ledger = outcomes.load_ledger()
+    assert ledger["records"] == []
+    assert "ledger_fallback_to_published" in capsys.readouterr().err
+    # And in the ledger the caller is holding, so the note rides into whatever
+    # that caller writes next rather than living only in a build log (#1214).
+    assert [row["kind"] for row in ledger[outcomes.DEGRADATIONS_KEY]] == [
+        "ledger_fallback_to_published"]
 
 
 # ── #771: which channel actually carried the slot ────────────────────────────
@@ -748,3 +767,151 @@ def test_a_record_without_channel_flags_is_not_counted_as_a_drop():
         "final_product": {"status": "success"},
     }], hours=36, now=now)
     assert summary["wechat_dropped_telegram_covered"] == 0
+
+
+# ── the observer failing to observe itself (#1214) ───────────────────────────
+
+def _degradations(workspace):
+    return json.loads(
+        (workspace / "memory" / ".tmp" / "workflow-outcomes.json").read_text()
+    ).get(outcomes.DEGRADATIONS_KEY) or []
+
+
+def test_a_record_with_no_readable_slot_leaves_a_trace(tmp_path, monkeypatch):
+    """It used to vanish, taking every stage it carried with it.
+
+    `_prune` dropped the whole record on any timestamp it could not parse, so a
+    postflight that wrote one malformed `slot` erased that slot's preflight,
+    LLM, delivery and watchdog stages — and nothing anywhere said a record had
+    been dropped.
+    """
+    workspace = _isolate(tmp_path, monkeypatch)
+    outcomes.record_stage("brief", "preflight", "success",
+                          slot="2026-07-24T08:00:00+08:00")
+
+    ledger = json.loads(
+        (workspace / "memory" / ".tmp" / "workflow-outcomes.json").read_text())
+    ledger["records"].append({"job": "brief", "slot": "not-a-timestamp"})
+    (workspace / "memory" / ".tmp" / "workflow-outcomes.json").write_text(
+        json.dumps(ledger))
+
+    outcomes.record_stage("brief", "llm", "success",
+                          slot="2026-07-24T08:00:00+08:00")
+
+    rows = _degradations(workspace)
+    assert any(row["kind"] == "prune_dropped_unparseable_slot" for row in rows), (
+        f'the dropped record left no trace; degradations={rows}')
+
+
+def test_a_failed_reconcile_says_which_detector_it_disabled(tmp_path, monkeypatch):
+    """A skipped raw-execution reconcile does not degrade false-red detection.
+
+    It disables it: `publish.outcomes` needs `raw_execution.status == "error"`
+    to call a red run false, and a skipped pass leaves that field at "unknown"
+    forever. The skip is still non-fatal — it must not take the desk down — but
+    it can no longer be silent.
+    """
+    workspace = _isolate(tmp_path, monkeypatch)
+    outcomes.record_stage("brief", "preflight", "success",
+                          slot="2026-07-24T08:00:00+08:00")
+
+    def _boom(*_args, **_kwargs):
+        raise OSError("cron runs unreadable")
+
+    monkeypatch.setattr(outcomes, "load_ledger", _boom)
+    assert outcomes.reconcile_raw_execution() is False
+    monkeypatch.undo()
+
+    rows = _degradations(workspace)
+    kinds = [row["kind"] for row in rows]
+    assert "raw_execution_reconcile_skipped" in kinds, kinds
+    detail = next(row for row in rows
+                  if row["kind"] == "raw_execution_reconcile_skipped")["detail"]
+    assert "false-red" in detail, detail
+
+
+def test_a_repeated_degradation_counts_rather_than_floods(tmp_path, monkeypatch):
+    """Twenty identical rows would push the real ones out of the window."""
+    workspace = _isolate(tmp_path, monkeypatch)
+    ledger = outcomes._empty()
+    for _ in range(5):
+        outcomes.note_degradation(ledger, "kind_a", "same detail")
+    outcomes.note_degradation(ledger, "kind_b", "other")
+    rows = ledger[outcomes.DEGRADATIONS_KEY]
+    assert [row["kind"] for row in rows] == ["kind_a", "kind_b"]
+    assert rows[0]["count"] == 5
+    assert rows[0]["first_at"] and rows[0]["last_at"]
+
+
+def test_degradations_ride_into_the_published_copy(tmp_path, monkeypatch):
+    """stderr reaches no gate; `logs/watchdog.jsonl` is not read either.
+
+    `intraday_watchdog` already settled that: "a line in watchdog.jsonl is not
+    something kcn reads, so treating it as surfaced would be exactly the silent
+    downgrade that is forbidden here". The ledger is the surface that publishes.
+    """
+    workspace = _isolate(tmp_path, monkeypatch)
+    outcomes.record_stage("brief", "preflight", "success",
+                          slot="2026-07-24T08:00:00+08:00")
+    outcomes.note_degradation(None, "heartbeat_bridge_failed", "brief/slot: boom")
+    outcomes.publish()
+
+    published = json.loads(
+        (workspace / "assets" / "data" / "workflow-outcomes.json").read_text())
+    kinds = [row["kind"] for row in published.get(outcomes.DEGRADATIONS_KEY) or []]
+    assert "heartbeat_bridge_failed" in kinds, published
+
+
+def test_a_defect_reads_as_a_defect_rather_than_as_a_quiet_nothing(
+        tmp_path, monkeypatch):
+    """Narrowing these handlers was tried and reverted; this is what replaced it.
+
+    `publish()` runs inside `rebuild_dashboard`'s own try, so letting an
+    unnamed exception out of here would trade "a receipt was not reconciled"
+    for "the dashboard was not published" — a worse failure, and one this
+    module exists not to cause. So it still returns 0. What it no longer does
+    is return 0 indistinguishably from "nothing to reconcile": the exception
+    type is in the ledger, and `RecursionError` is not a condition any I/O path
+    produces.
+    """
+    workspace = _isolate(tmp_path, monkeypatch)
+    # A receipt to reconcile, or the pass returns before it reaches the ledger
+    # and the test would be asserting on a path it never took.
+    (workspace / "memory" / ".tmp" / "brief-sent-2026-07-24.json").write_text(
+        json.dumps({"sent_ok": True}))
+
+    def _bug(*_args, **_kwargs):
+        raise RecursionError("a defect, not a fault")
+
+    monkeypatch.setattr(outcomes, "load_ledger", _bug)
+    assert outcomes.reconcile_delivery_receipts() == 0
+    monkeypatch.undo()
+
+    rows = _degradations(workspace)
+    assert [row["kind"] for row in rows] == ["delivery_reconcile_skipped"], rows
+    assert "RecursionError" in rows[0]["detail"], rows[0]
+
+
+def test_the_card_carries_the_faults_beside_the_counts_they_undermine(
+        tmp_path, monkeypatch):
+    """Otherwise the note has only moved from one place nobody reads to another.
+
+    A reconcile that never ran and a reconcile with nothing to do produced the
+    identical card. They still produce the same counts — that is the point of
+    failing open — but the card now says which of the two it is.
+    """
+    from clawock.publish import outcomes as published
+
+    workspace = _isolate(tmp_path, monkeypatch)
+    outcomes.record_stage("brief", "preflight", "success",
+                          slot="2026-07-24T08:00:00+08:00")
+    outcomes.note_degradation(None, "delivery_reconcile_skipped",
+                              "OSError: disk full")
+    outcomes.publish()
+
+    payload = json.loads(
+        (workspace / "assets" / "data" / "workflow-outcomes.json").read_text())
+    rows = published.degradations_of(payload)
+    assert [row["kind"] for row in rows] == ["delivery_reconcile_skipped"], rows
+    # And a clean ledger says nothing, so the field's presence is the signal.
+    assert published.degradations_of({"records": []}) == []

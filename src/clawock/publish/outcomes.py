@@ -32,6 +32,23 @@ SOFT_PRODUCT_STATES = ("recovered", "degraded", "artifact_only", "failed")
 MAX_NAMED = 8
 
 
+DEGRADATIONS_KEY = "degradations"
+
+
+def degradations_of(payload) -> list:
+    """The observation chain's own faults, out of a ledger payload (#1214).
+
+    Lives here rather than in `automation.workflow_outcomes` for the reason
+    `summarize_records` does: the dashboard folds the *published* copy and the
+    desk folds the local one, and two readings of "what went wrong with the
+    bookkeeping" would drift the moment either side changed.
+    """
+    if not isinstance(payload, dict):
+        return []
+    rows = payload.get(DEGRADATIONS_KEY)
+    return [row for row in rows or [] if isinstance(row, dict)]
+
+
 def summarize_records(records, *, hours: int = 36, now: datetime | None = None) -> dict:
     """Fold ledger records into counts, false-red tally and the recent window."""
     now = now or datetime.now(LEDGER_TZ)
