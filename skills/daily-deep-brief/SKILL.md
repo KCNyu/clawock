@@ -1,6 +1,6 @@
 ---
 name: daily-deep-brief
-description: kcn 每个工作日 08:00 HKT 跑一次的盘前全 swarm 深度分析。harness 化：`clawock brief preflight` 计算并编译 typed decision packet，LLM 只做 Tier 1/2/3/Judge 与受限 judgment overlay，`clawock brief postflight` 验证、生成 Pages projection、commit 并自动投递微信。**输出**：完整 markdown、结构化 plan、受限 judgment JSON 与紧凑微信卡。**只在每日 8 点 cron 触发时使用；手动深度分析仍走 portfolio-swarm-review。**
+description: kcn 每个工作日 08:00 HKT 跑一次的盘前全 swarm 深度分析。harness 化：`clawock brief preflight` 计算并编译 typed decision packet，LLM 只写 plan 与受限 judgment（纯文本判断，不写版式），`clawock brief postflight` 校验后由 `brief_render` 渲染报告与微信卡、生成 Pages projection、commit 并自动投递微信。**输出**：结构化 plan、受限 judgment JSON，harness 渲染的 markdown 报告与紧凑微信卡。**只在每日 8 点 cron 触发时使用；手动深度分析仍走 portfolio-swarm-review。**
 ---
 
 # Daily Deep Brief (08:00 HKT, weekday)
@@ -11,12 +11,13 @@ description: kcn 每个工作日 08:00 HKT 跑一次的盘前全 swarm 深度分
 ## Harness 架构（不可越权）
 
 ```
-┌────────────────────┐     ┌───────────────┐     ┌────────────────────┐
-│ clawock brief preflight            │ ──► │ LLM (你 / Rick)│ ──► │ clawock brief postflight │
-│  (确定性 + 幂等)   │     │ (只写判断/反方)│     │ 验证+projection+投递│
-└────────────────────┘     └───────────────┘     └────────────────────┘
-   指标/因子/风险/evidence   查 packet summary/ticker 校验 md+plan+judgment，
-   编译 typed packet         写判断与解释            Pages 只读稳定 projection
+┌──────────────────────┐   ┌────────────────┐   ┌──────────────────────────┐
+│ clawock brief preflight │──►│ LLM (你 / Rick) │──►│ clawock brief postflight  │
+│   (确定性 + 幂等)      │   │ (只写判断/反方) │   │ 校验 → 渲染 → 投递        │
+└──────────────────────┘   └────────────────┘   └──────────────────────────┘
+   指标/因子/风险/evidence     查 packet summary     校验 plan+judgment，
+   编译 typed packet           写 plan + judgment    brief_render 出 md+微信卡，
+                               (纯文本，不写版式)    Pages 只读稳定 projection
 ```
 
 **为什么这样分**：之前完全交给 LLM，模型可能漏快照、漏 HHI、漏 FX、漏 retrospective。
@@ -233,7 +234,7 @@ manifest 若出现 `extras`，表示新 feature 被隔离而没有偷长常驻 c
   - 护栏是硬闸：额度用尽时脚本返回 "Web search unavailable" 并 exit 0，**别当报错**，退回内置搜索即可
 - 每个板块输出：Top 3-5 涨幅 + 你持仓票在榜单中的位置（领涨/落后/中位）
 - **归因句必带**：落后是因为(a) 利好时点（盘后才公布）/ (b) 早盘异常抛压 / (c) β 错配 / (d) 个股逻辑滞后？
-- 输出在 ▎板块全景 段（pre-open.md 必带），引用 ≥3 个具体涨跌幅 + 1 个明确归因
+- 结论写进 `judgment.narrative.sector_read`（纯文本，引 ≥3 个具体涨跌幅 + 1 个明确归因）；报告里的板块表由 harness 从 `context.peer_scan` 渲染，逐票那句判断写在该票的 `peer_read`
 - ⚠️ **持仓自己的数字** (RSI/MA/PnL) 仍然从 core 取，板块这段只 search 板块/同行公开行情
 - **同时落盘到** `memory/.tmp/sector-scan-{date}.json`（build_dashboard 会读，让 GH Pages dashboard 同步显示）。schema：
   ```json
@@ -278,7 +279,7 @@ manifest 若出现 `extras`，表示新 feature 被隔离而没有偷长常驻 c
 - kcn 风险偏好 = **激进**（USER.md），Aggressive 默认略多权重
 - **但** trending down regime 启动时 Conservative 权重 +1 档
 - 数据 stale 任何一段 → 涉及票 confidence -10pp
-- **视角轮换（#1101）**：三位风险官的首位表态权每 4 个交易日轮换（Aggressive → Conservative → Neutral → 循环），当日首位 voice 写进 pre-open.md。轮换只改表态顺序与框架设定，**不改** kcn 激进偏好的权重规则。
+- **视角轮换（#1101）**：三位风险官的首位表态权每 4 个交易日轮换（Aggressive → Conservative → Neutral → 循环），当日首位 voice 写进 `judgment.narrative.risk_voice_first`（harness 据此排序）。轮换只改表态顺序与框架设定，**不改** kcn 激进偏好的权重规则。
 
 输出策略级 decision。**同一股票同一天允许多条决策**，例如 `core_position` 继续持有，同时 `intraday_t` 做日内 T；两者不能互相覆盖。
 
@@ -641,46 +642,38 @@ calibration bundle 的 `decision_metrics` 是 v2 唯一口径：只结算**条�
 - US 开盘后 09:30 ET 关注什么
 - Book-level metric 红线（例：港股浮亏到 X% 触发 forced derisk）
 
-### Step 4: 写输出文件（A 报告 / B plan / C judgment / D insights / E 微信卡）
+### Step 4: 写输出文件（B plan / C judgment / D insights —— A 报告与 E 微信卡由 harness 渲染）
 
-#### A. Markdown 报告 → `memory/{YYYY-MM-DD}-pre-open.md`
+#### A. 报告与微信卡：**你不写，harness 渲染**
 
-结构（**postflight 会校验这些段标记**，缺哪个 fail）：
+`memory/{YYYY-MM-DD}-pre-open.md` 与 `memory/.tmp/brief-card-{YYYY-MM-DD}.txt`
+由 `clawock.harness.brief_render` 从**本次 context + 你的 judgment + 校验后的 plan**
+渲染，postflight 自动跑，不需要你调用。
 
-- `# Header`（regime US/HK 分开 + FX rate + book USD/HKD 双视角）
-- `## ▎仓位明细` —— HK + US 各一张 7 列 markdown 表 `代码 | 股 | 成本 | 现价 | 今日 | 浮% | 浮$`（与 Mode 6/7 cron 完全一致；数据从 core 的 `portfolio.portfolios.{hk,us}_stocks.holdings` 直接取，**只列 shares>0 的**。2026-05-21 起的 visual-width-aware 渲染推荐 import `clawock.adapters.mobile.render_holdings_table`，省得手算 CJK 对齐）
-- `## Retrospective`（来自 calibration bundle 的 retrospective）
-- `## Tier 1` 大表
-- `## Tier 2` Bull vs Bear
-- `## Tier 3` Aggressive/Conservative/Neutral + Judge
-- `## ▎同行扫描` peer rotation matrix (uses `peer_scan` from context)
-- `## ▎大盘速读` macro 一句话 5 行内 (uses `macro` from context; 数据 stale > 36h 时跳过)
-- `## ▎社交舆情速读` per-ticker Reddit + news (uses `sentiment` from context; 无信号票自动剔)
-- `## ▎名人异动/政策风向` Trump/Musk/Serenity radar (uses `influencer` from context; 撞持仓>新机会>板块相关, total=0 或 stale>36h 跳过)
-- `## Confidence` 表
-- `## ▎Decision v2 校准`（使用 `decision_metrics`，按 episode / strategy 展示）
-- `## Next-Session` plan
+**不要写这两个文件。** 你手写的稿子会在 postflight 里被渲染结果覆盖——它不会
+进产品，只会浪费一轮 token。
 
-必须包含的内容关键词（postflight 检查）：
-- "HHI" — 集中度段
-- "USDHKD" 或 "FX" 或 "汇率" — FX 段
-- 不能出现 "合计 -4423" / "合计 -4,423" 这种 HKD+USD 直接相加的历史 bug
+为什么这么分（2026-08-31，kcn 定）：报告过去由模型逐行手写，于是①版式每天重新
+发明一遍，同一张表昨天七列今天六列；②该留在辩论段的推演渗进表格里，读者要在一堆
+过程文字里找"09:30 到底做什么"。现在**模型只出想法，harness 只出版式**：标题层级、
+表格、排序、数字格式、段落顺序全部在代码里，每天同一个位置放同一件事。
 
-**写作时体量预算（在 Step 4-A 内完成，不是 postflight 返工）**：目标 ≤28KB；≥40KB
-属于极端超长，会让成品健康状态降级。按以下分段预算写初稿，给 Markdown 标记留出余量：
+因此：
 
-- Header + book/仓位表 + 核心结论：≤5KB
-- Retrospective + Tier 1：≤6KB
-- Tier 2 + Tier 3/Judge：≤6KB
-- 同行明细完整 + macro + sentiment + influencer：≤5KB（空间不足时先压后三者的重复解释）
-- Confidence + Decision v2 + Next-Session：≤4KB
+- 你写的每一段判断都通过 **B（plan）** 和 **C（judgment）** 进入报告，别处不进。
+- judgment 的文字字段**必须是纯文本**：不许出现 `|`、`#`、`**`、` ``` `、`▎`、
+  行首 `-`/`*`/`1.`/`>`。这不是文风要求——渲染器正在画那张表，你的竖线会落进单元格里
+  把那一行撑成多一列。postflight 会直接判非法并指出是哪个字段。
+- 事实、指标、风控闸、集中度、回本数学、同行涨跌、宏观读数、校准表全部由 harness
+  从 context 取；**你不需要把它们抄进 judgment**，抄了也不会被用。
+- 体量不再由你控制：渲染结果通常 18–22KB，远在 28KB 预算内。原来那套"分段预算 +
+  写完 `wc -c`"的自查随本节一起退役。
 
-初稿写完但仍在 Step 4-A 时，运行 `wc -c memory/{YYYY-MM-DD}-pre-open.md`。若 >28KB，
-在定稿前删除重复解释、缩短逐票叙述、合并同义句；所有必需段落、证据、风险闸和行动必须完整
-保留。**同行明细不是压缩对象**：同行枚举、相对涨跌、持仓位置和归因必须保留；同行组超预算
-时先压 macro / sentiment / influencer 的重复解释。若 ≥40KB，必须先按分段预算收敛再跑
-postflight。**禁止**用 `head`、`truncate`、字符串切片或其他事后硬**截断**；也禁止为了压
-体量删除证据、风险闸或行动段。
+本地想看渲染结果（不写盘）：
+
+```bash
+clawock brief render --dry-run
+```
 
 #### B. 结构化 plan → `memory/{YYYY-MM-DD}-plan.json`
 
@@ -797,7 +790,14 @@ postflight 严格 schema 校验：
   --arg manifest=/root/.openclaw/workspace/memory/.tmp/brief-context-$(date +%Y-%m-%d)/manifest.json
 ```
 
-schema 只允许顶层 `schema_version/context_generation_id/portfolio_assessment/portfolio_counterargument/ticker_judgments`；每票只允许：
+**schema v3（2026-08-31）**：这份文件现在同时是 Pages projection 的判断层
+**和整篇报告的文字来源**——Tier 2/3、板块解读、大盘解读、校准解读、下一时段计划
+都从这里渲染。写漏一个字段，就是发布出去的报告里空一段。
+
+顶层只允许 `schema_version/context_generation_id/portfolio_assessment/
+portfolio_counterargument/narrative/ticker_judgments`。
+
+每票只允许（前九个字段照旧，后四个是 Tier 1 那张表里 harness 算不出来的格）：
 
 ```json
 {
@@ -809,11 +809,46 @@ schema 只允许顶层 `schema_version/context_generation_id/portfolio_assessmen
   "counterargument": "最强反方",
   "rationale": "为何在冲突信号中这样判断",
   "falsifier": "什么事实会推翻当前候选/等待判断",
-  "next_evidence": "下一步要找的一手披露或价格确认"
+  "next_evidence": "下一步要找的一手披露或价格确认",
+  "fundamentals": "Tier 1 · 基本面格：EDGAR/财报/ETF 标的口径",
+  "cross_market": "Tier 1 · 跨市场格：跟随还是背离",
+  "sentiment_read": "Tier 1 · 情绪格：这条消息面对决策的权限（硬催化/软情绪）",
+  "peer_read": "同行扫描那一行的判断：领先/落后说明什么"
 }
 ```
 
-禁止加入价格、RSI、MA、因子分、股数、action、evidence 内容或其他字段。postflight 严格校验后才会把这些文字并入 `assets/data/brief_projection.json`；overlay 缺失/非法时 Pages 仍发布 deterministic rows，只把 `judgment_status` 标为 missing/invalid。
+`narrative`（整篇报告的辩论层，全部必填）：
+
+```json
+{
+  "regime_read": "Header 那行 regime 的解读",
+  "bull": "Tier 2 多头案（引 ≥2 个具体数据点）",
+  "bear": "Tier 2 空头案（同上）",
+  "devils_advocate": "点名攻击当前最强共识",
+  "attacked_consensus": "被攻击的那条共识，一句话",
+  "risk_voice_first": "aggressive|conservative|neutral（今日首位表态，4 个交易日轮换）",
+  "aggressive": "Tier 3 · 抓 upside",
+  "conservative": "Tier 3 · 保本 derisk",
+  "neutral": "Tier 3 · 对每个争议票拍一边",
+  "sector_read": "板块全景的归因结论",
+  "macro_read": "大盘速读的一句判断",
+  "calibration_read": "Decision v2 校准表怎么读",
+  "next_session": ["下一时段第 1 步", "第 2 步"],
+  "data_holes": ["还缺什么数据（可空数组）"]
+}
+```
+
+三条硬规则：
+
+1. **纯文本**。任何字段出现 `|`、`#`、`**`、` ``` `、`▎` 或行首 `-`/`*`/`1.`/`>`
+   都会被 postflight 判非法并点名字段——版式是 harness 的活（见 A 节）。
+2. **不写事实**。禁止加入价格、RSI、MA、因子分、股数、action、evidence 内容；
+   harness 已经从 context 把它们渲染进表里，你重复一遍只会有对不上的风险。
+3. `risk_voice_first` 只决定三位风险官的**表态顺序**，不改 kcn 激进偏好的权重规则。
+
+postflight 严格校验后才把这些文字并入 `assets/data/brief_projection.json`；
+overlay 缺失/非法时 Pages 仍发布 deterministic rows，只把 `judgment_status` 标为
+missing/invalid——但报告的辩论段会因此空着，所以这不是"可选项"。
 
 #### D. LLM 复盘 sidecar → `memory/.tmp/insights-{YYYY-MM-DD}.json`
 
@@ -848,36 +883,14 @@ build_dashboard 会读它，让 dashboard 上 **行为复盘 / 唱反调 Pre-mor
 - **hidden_concentration**：看 sector_exposure + leveraged_etf + 持仓权重，识别表面分散实际同因子；`exposure_pct` 给该因子占组合的估算整数。
 - 全部中文，口吻直接、像私人交易教练，指出问题不安慰。
 
-#### E. 微信卡 → `memory/.tmp/brief-card-{YYYY-MM-DD}.txt`
+#### E. 微信卡：harness 渲染，不用你写
 
-**这是真正发到 kcn 微信的内容**（投递由 Step 5 的 postflight 自动完成，原样发这个文件），所以必须自洽完整、≤1.5KB。数字全来自 `plan.json` + 本次 generation 的 core/bundles，不现编：
+`memory/.tmp/brief-card-{YYYY-MM-DD}.txt` 与报告一起由 `brief_render` 生成：
+标题行 + 核心结论（取 `judgment.portfolio_assessment`）+ Book/HHI + 今日动作
+（取 plan 的 decisions，含 driven_by 与 confidence）+ 触发位（plan 的
+`watch_levels`）+ 完整报告链接。**别再手写这个文件**——写了会被覆盖。
 
-```
-📊 盘前深度简报｜{日期 周X} 08:00 HKT  (USDHKD={rate})
-
-▎核心结论（≤2 句）
-{regime + 今日最关键的一句判断，如 "risk_on 默认 HOLD，AI/高beta 单因子敞口偏高，主动操作克制"}
-
-▎Book
-USD${total} ({pct}%) | HK leg {hk}HKD | US leg {us}USD
-
-▎今日动作（≤4 条，来自 plan.json，标 driven_by）
-1. {ticker} [{strategy_id}] {action} {condition}(conf{%})
-2. …
-
-▎触发位（≤2 条最近的）
-{watch_levels 关键 1-2 条}
-
-▎提前布局候选
-{从 packet.add_alpha_diagnostics 逐字汇总 early hints / exploration / allowed 数量；列最多2票的 candidate|wait 及主要 blocker。allowed=0 也必须显示，禁止把候选隐藏成“无信号”}
-
-📈 完整深度报告（Tier1/2/3 辩论 + 板块全景 + 复盘 + 唱反调）：
-https://kcnyu.github.io/clawock/memory/{date}-pre-open.html
-```
-
-- 链接里 `{date}` 换成今天 `YYYY-MM-DD`（落盘文件名同款），直接打开今天这篇完整 brief MD 页（不是 dashboard 首页）。
-- **🔒 只把紧凑卡写进这个文件**，绝不把完整 markdown brief 塞进来（完整版已在 `pre-open.md` + dashboard）。短卡 = 手机第一屏好读 + 远低于 16KB。
-- 万一漏写这个文件，postflight 会从 `plan.json` 兜底生成一张（信息更少、无"核心结论"叙事），所以别漏。
+想让卡上那句"核心结论"更准，改的是 `judgment.portfolio_assessment`，不是卡本身。
 
 ### Step 5: 跑 postflight（验证 + commit + 自动投递微信）
 
@@ -912,21 +925,20 @@ clawock brief postflight
 > **2026-07-27 教训**：旧规则把 35.8KB 和表格 critical 混在同一个 issues 列表里，模型误把
 > 体量当硬闸，事后一路裁到 23.7KB，既浪费时间/tokens 又引入编辑错误。新规则把体量单独记录：
 > 28–40KB 是结构化 `advisory`，不计入 issues、不让已交付成品变黄；≥40KB 才是实际 `warn`。
-> 无论哪档都保留完整正文，绝不在 postflight 后硬截断。体量应按 Step 4-A 的分段预算在定稿前
-> 收敛，不能牺牲必需段落、证据、风险闸或行动。
+> 无论哪档都保留完整正文，绝不在 postflight 后硬截断。**2026-08-31 起体量不再由模型控制**：报告由 `brief_render` 渲染，通常 18–22KB；这条闸留着是为了在渲染器或持仓规模变化时仍能报警。
 
 ### 投递（Step 5 postflight 内自动，你什么都不用做）
 
 > **🔒 投递已解耦——你绝不要手动发微信、绝不调任何 message/send 工具、也不要把卡片当回复文本贴出来。**
 >
-> pass/warn 时 **`brief_postflight` 自己**会用 fresh-token 短连接把 Step 4-D 的
+> pass/warn 时 **`brief_postflight` 自己**会用 fresh-token 短连接把渲染出的
 > `brief-card-{date}.txt` 投到 kcn 微信（cron 已设 `delivery=none`，这是唯一微信路径），
 > 并同步 Telegram，把两路结果记到 `memory/.tmp/brief-sent-{date}.json`。
 > `brief_watchdog`（08:30）只在 Telegram marker 缺失/失败时补投 Telegram，不重发微信。
 >
 > **为什么这样改（2026-06-08）**：旧的 `delivery=announce` 在长 turn 末尾用 turn 起点抓的 token 投递，brief turn 恒 >160s（173–975s）→ token 必过期 → 静默丢、`delivered=true` 是假信号（见 memory: openclaw-wechat-longturn-token-expiry）。短命 message send 每次抓新 token，且独立于 turn 时长，kcn 实测可靠（同 intraday 架构）。
 >
-> **你的职责到 Step 5 跑完 postflight 为止**：产出 A/B/C/D/E 五个文件 + 跑 postflight。看到 `wechat_sent: true` 即大功告成，**立即结束本轮，不要再追加任何思考或内容**。
+> **你的职责到 Step 5 跑完 postflight 为止**：产出 B/C/D 三个文件（plan / judgment / insights）+ 跑 postflight，报告与微信卡由 postflight 内的 `brief_render` 生成。看到 `wechat_sent: true` 即大功告成，**立即结束本轮，不要再追加任何思考或内容**。
 >
 > **🔒 送达确认铁律（2026-08-15 起，#558）**：
 > postflight **之后禁止**用 exec / list / show 去读 `memory/.tmp/` 下的 marker、claim、sent 文件"眼见为实"确认送达。

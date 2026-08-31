@@ -16,6 +16,7 @@ import hashlib
 import json
 import math
 import os
+import re
 from pathlib import Path
 
 from clawock.decision.actions import ACTIVE_ACTIONS
@@ -25,7 +26,7 @@ from clawock.workspace import workspace_root
 
 
 SCHEMA_VERSION = 1
-JUDGMENT_SCHEMA_VERSION = 2
+JUDGMENT_SCHEMA_VERSION = 3
 PAGES_SCHEMA_VERSION = 1
 MAX_PACKET_BYTES = 96 * 1024
 MAX_QUERY_BYTES = 24 * 1024
@@ -52,7 +53,64 @@ TEXT_LIMITS = {
     "rationale": 500,
     "falsifier": 300,
     "next_evidence": 300,
+    # Tier 1 cells the harness cannot compute: what the filings say, and how the
+    # name sits against its own market.  Short, because they are table cells.
+    "fundamentals": 300,
+    "cross_market": 300,
+    "sentiment_read": 300,
+    "peer_read": 300,
+    # The narrative slots.  These carry the debate the report used to contain as
+    # model-authored markdown; the harness lays them out now, so they are text.
+    "regime_read": 600,
+    "bull": 700,
+    "bear": 700,
+    "devils_advocate": 700,
+    "attacked_consensus": 200,
+    "aggressive": 700,
+    "conservative": 700,
+    "neutral": 900,
+    "sector_read": 700,
+    "macro_read": 600,
+    "calibration_read": 600,
+    "next_session": 400,
+    "data_holes": 400,
 }
+RISK_VOICES = ("aggressive", "conservative", "neutral")
+NARRATIVE_TEXT_FIELDS = (
+    "regime_read", "bull", "bear", "devils_advocate", "attacked_consensus",
+    "aggressive", "conservative", "neutral", "sector_read", "macro_read",
+    "calibration_read",
+)
+NARRATIVE_LIST_FIELDS = {"next_session": (1, 8), "data_holes": (0, 8)}
+ROW_TEXT_FIELDS = (
+    "assessment", "counterargument", "rationale", "falsifier", "next_evidence",
+    "fundamentals", "cross_market", "sentiment_read", "peer_read",
+)
+
+# Layout the model must not emit.  The report's markdown is rendered by
+# `clawock.harness.brief_render` from these fields plus the deterministic
+# context, so a pipe or a heading in a judgment field is not a formatting
+# preference — it lands inside a table cell the harness is already drawing and
+# breaks the row.  Rejecting it here is what keeps "the model writes thoughts,
+# the harness writes layout" true rather than merely intended.
+_LAYOUT_MARKERS = (
+    ("|", "table pipe"),
+    ("```", "code fence"),
+    ("▎", "section ornament"),
+    ("**", "bold marker"),
+)
+_LAYOUT_LINE_START = re.compile(r"^\s*(#{1,6}\s|[-*+]\s|\d+\.\s|>\s)")
+
+
+def _layout_violation(value: str) -> str | None:
+    """The formatting complaint about one prose field, or None if it is prose."""
+    for marker, label in _LAYOUT_MARKERS:
+        if marker in value:
+            return f"contains a {label} ({marker!r})"
+    for line in value.splitlines():
+        if _LAYOUT_LINE_START.match(line):
+            return "starts a line with a markdown heading, bullet or quote marker"
+    return None
 
 
 def _compact(value) -> str:
@@ -1263,6 +1321,22 @@ def judgment_template(packet: dict) -> dict:
         "context_generation_id": generation_id,
         "portfolio_assessment": "",
         "portfolio_counterargument": "",
+        "narrative": {
+            "regime_read": "",
+            "bull": "",
+            "bear": "",
+            "devils_advocate": "",
+            "attacked_consensus": "",
+            "risk_voice_first": "aggressive",
+            "aggressive": "",
+            "conservative": "",
+            "neutral": "",
+            "sector_read": "",
+            "macro_read": "",
+            "calibration_read": "",
+            "next_session": [],
+            "data_holes": [],
+        },
         "ticker_judgments": [
             {
                 "ticker": ticker,
@@ -1274,21 +1348,75 @@ def judgment_template(packet: dict) -> dict:
                 "rationale": "",
                 "falsifier": "",
                 "next_evidence": "",
+                "fundamentals": "",
+                "cross_market": "",
+                "sentiment_read": "",
+                "peer_read": "",
             }
             for ticker in packet.get("tickers", {})
         ],
     }
 
 
+def _prose_issues(value, field: str, label: str) -> list[str]:
+    """One judgment field: present, within budget, and free of layout."""
+    if not isinstance(value, str) or not value.strip():
+        return [f"{label} {field} must be non-empty text"]
+    if len(value) > TEXT_LIMITS[field]:
+        return [f"{label} {field} exceeds {TEXT_LIMITS[field]} chars"]
+    complaint = _layout_violation(value)
+    if complaint:
+        return [f"{label} {field} {complaint}; write the thought, the harness "
+                f"writes the layout"]
+    return []
+
+
+def _narrative_issues(narrative) -> list[str]:
+    """The debate slots the report is rendered from.
+
+    These used to be markdown the model wrote straight into the report, which is
+    why they are checked as hard as the per-ticker rows: an empty `bear` is no
+    longer a thin paragraph, it is a section of the published brief with nothing
+    in it.
+    """
+    if not isinstance(narrative, dict):
+        return ["judgment narrative must be an object"]
+    allowed = set(NARRATIVE_TEXT_FIELDS) | set(NARRATIVE_LIST_FIELDS) | {"risk_voice_first"}
+    issues = []
+    unknown = sorted(set(narrative) - allowed)
+    if unknown:
+        issues.append(f"judgment narrative unknown fields: {unknown}")
+    for field in NARRATIVE_TEXT_FIELDS:
+        issues.extend(_prose_issues(narrative.get(field), field, "judgment narrative"))
+    if narrative.get("risk_voice_first") not in RISK_VOICES:
+        issues.append(
+            "judgment narrative risk_voice_first must be one of "
+            f"{sorted(RISK_VOICES)} (the rotation is the model's to state, "
+            "the ordering is the harness's to render)")
+    for field, (low, high) in NARRATIVE_LIST_FIELDS.items():
+        rows = narrative.get(field)
+        if not isinstance(rows, list):
+            issues.append(f"judgment narrative {field} must be a list")
+            continue
+        if not low <= len(rows) <= high:
+            issues.append(
+                f"judgment narrative {field} must hold {low}-{high} entries, got {len(rows)}")
+        for index, entry in enumerate(rows):
+            issues.extend(
+                _prose_issues(entry, field, f"judgment narrative {field}[{index}]"))
+    return issues
+
+
 def validate_judgment_overlay(packet: dict, overlay: dict) -> list[str]:
     issues = []
     top_allowed = {
         "schema_version", "context_generation_id", "portfolio_assessment",
-        "portfolio_counterargument", "ticker_judgments",
+        "portfolio_counterargument", "narrative", "ticker_judgments",
     }
     row_allowed = {
         "ticker", "verdict", "confidence", "disposition", "assessment",
         "counterargument", "rationale", "falsifier", "next_evidence",
+        "fundamentals", "cross_market", "sentiment_read", "peer_read",
     }
     if not isinstance(overlay, dict):
         return ["judgment overlay must be an object"]
@@ -1301,11 +1429,8 @@ def validate_judgment_overlay(packet: dict, overlay: dict) -> list[str]:
     if overlay.get("context_generation_id") != expected_generation:
         issues.append("judgment context_generation_id missing or stale")
     for field in ("portfolio_assessment", "portfolio_counterargument"):
-        value = overlay.get(field)
-        if not isinstance(value, str) or not value.strip():
-            issues.append(f"judgment {field} must be non-empty text")
-        elif len(value) > TEXT_LIMITS[field]:
-            issues.append(f"judgment {field} exceeds {TEXT_LIMITS[field]} chars")
+        issues.extend(_prose_issues(overlay.get(field), field, "judgment"))
+    issues.extend(_narrative_issues(overlay.get("narrative")))
 
     rows = overlay.get("ticker_judgments")
     if not isinstance(rows, list):
@@ -1346,15 +1471,8 @@ def validate_judgment_overlay(packet: dict, overlay: dict) -> list[str]:
         confidence = _number(row.get("confidence"))
         if confidence is None or not 0 <= confidence <= 1:
             issues.append(f"{label} confidence must be in [0,1]")
-        for field in (
-            "assessment", "counterargument", "rationale", "falsifier",
-            "next_evidence",
-        ):
-            value = row.get(field)
-            if not isinstance(value, str) or not value.strip():
-                issues.append(f"{label} {field} must be non-empty text")
-            elif len(value) > TEXT_LIMITS[field]:
-                issues.append(f"{label} {field} exceeds {TEXT_LIMITS[field]} chars")
+        for field in ROW_TEXT_FIELDS:
+            issues.extend(_prose_issues(row.get(field), field, label))
     missing = sorted(known - seen)
     if missing:
         issues.append(f"judgment missing active tickers: {missing}")
