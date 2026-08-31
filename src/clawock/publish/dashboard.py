@@ -436,6 +436,63 @@ def trim_workflow_outcomes(summary):
     return summary
 
 
+#: How many debated decisions ride the Reflect sidecar. The block is ~1.1KB of
+#: UTF-8 per decision, so a window rather than the whole ledger; the counts in
+#: `debate_metrics` stay whole-ledger, so a shrinking window cannot hide a
+#: falling coverage series.
+DEBATE_SIDECAR_LIMIT = 30
+
+
+def build_debate_sidecar(decisions, limit=DEBATE_SIDECAR_LIMIT):
+    """The debate behind each decision, published rather than asserted (#1117).
+
+    README claims Bull/Bear/Judge with a named devil's advocate. Until now the
+    only public trace of it was a count: `debate_metrics.debate_coverage` said
+    how many decisions carried a debate block, never what was argued. A reader
+    outside this repository could verify that we *recorded* a debate and not
+    that one happened — which is the exact move clawock attacks competitors for.
+
+    So the structured block goes out with the decision it produced: the bull
+    case, the bear case, the consensus that was attacked by name, the Judge's
+    verdict and the strategy frames it was decided under. Text is already
+    capped at `ledger.DEBATE_TEXT_CHARS` upstream, so a runaway field cannot
+    walk this sidecar into the payload budget.
+
+    Rows are newest-first and carry the decision id, so a reader can join them
+    against `recent_decisions` / the ledger and check that the debate published
+    here belongs to the call that was actually made.
+    """
+    rows = []
+    ordered = sorted(
+        decisions or [],
+        key=lambda x: (x.get('created_at', ''), x.get('decision_id', '')),
+        reverse=True,
+    )
+    for d in ordered:
+        debate = d.get('debate')
+        if not isinstance(debate, dict) or not debate:
+            continue
+        row = {
+            'date': d.get('plan_date'),
+            'decision_id': d.get('decision_id'),
+            'ticker': d.get('ticker'),
+            'name': d.get('name'),
+            'action': d.get('action'),
+            'confidence': d.get('confidence'),
+        }
+        for field in decision_v2.DEBATE_TEXT_FIELDS:
+            value = debate.get(field)
+            if isinstance(value, str) and value.strip():
+                row[field] = value.strip()
+        frames = debate.get('frames')
+        if isinstance(frames, list) and frames:
+            row['frames'] = [str(f) for f in frames]
+        rows.append(row)
+        if len(rows) >= limit:
+            break
+    return {'limit': limit, 'rows': rows}
+
+
 def build_decision_audit_payload(decisions, portfolio):
     """Compile the complete Reflect sidecar from one settled decision set.
 
@@ -448,6 +505,10 @@ def build_decision_audit_payload(decisions, portfolio):
         decisions, portfolio, include_records=False
     )
     payload['episode_backtest'] = decision_v2.compute_backtest(decisions)
+    # The debate itself, not just how often one was recorded (#1117). It rides
+    # this sidecar rather than dashboard.json because Reflect is the only tab
+    # that renders it and dashboard.json is the payload under the 200KB cap.
+    payload['debates'] = build_debate_sidecar(decisions)
     return payload
 
 

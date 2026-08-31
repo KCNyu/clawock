@@ -386,7 +386,7 @@
     reflect: [
       renderHonesty, renderBehavioralReview, renderDecisionAudit, renderCalibBadge,
       renderPlanReview, renderCalibByTrigger, renderCalibByDriver,
-      renderDecisionTraces, renderReflectKpi, renderDelta,
+      renderDecisionTraces, renderReflectKpi, renderDelta, renderDebates,
     ],
   };
   let RENDER_VERSION = 0;
@@ -3153,6 +3153,53 @@
         </tr>`).join("")
         + `</tbody></table>`
       : '<div class="empty-state">暂无能按同票/同日/同方向/同股数唯一匹配的真实成交；不会拿 OHLC 假设成交冒充。</div>';
+  }
+
+  // The debate behind each call, published rather than asserted (#1117). The
+  // README claims Bull/Bear/Judge with a named devil's advocate; before this
+  // the only public trace was a coverage count, so a reader could verify that
+  // a debate was *recorded*, not what was argued. Rows ride the Reflect
+  // sidecar (`decision_audit.debates`) and carry the decision id, so each one
+  // can be joined back to the call it produced.
+  function renderDebates() {
+    const block = safe(DATA, "decision_audit", "debates") || {};
+    const rows = block.rows || [];
+    const card = document.getElementById("debate-card");
+    if (!card) return;
+    if (!rows.length) { card.style.display = "none"; return; }
+    card.style.display = "";
+    const ACTION_ZH = {
+      cut: "砍", trim_on_rebound: "反弹减", hold_and_watch: "持有观察",
+      add_only_on_trigger: "触发才加", watch: "观察",
+    };
+    document.getElementById("debate-body").innerHTML = rows.map(r => {
+      const side = (label, cls, text) => text
+        ? `<div class="dbt-side ${cls}"><span class="dbt-lbl">${label}</span>`
+          + `<span class="dbt-text">${escLLM(text)}</span></div>`
+        : "";
+      const line = (label, text) => text
+        ? `<div class="dbt-line"><span class="dbt-key">${label}</span>${escLLM(text)}</div>`
+        : "";
+      const frames = (r.frames || []).length
+        ? `<div class="dbt-frames">${r.frames.map(
+            f => `<span class="dbt-frame">${escLLM(f)}</span>`).join("")}</div>`
+        : "";
+      const conf = r.confidence == null ? "" : ` · 置信 ${Math.round(r.confidence * 100)}%`;
+      return `<div class="dbt-case">
+        <div class="dbt-head">
+          <span class="dbt-tk">${escLLM(r.ticker)}</span>
+          <span class="muted">${escLLM(r.date)} · ${escLLM(ACTION_ZH[r.action] || r.action)}${conf}</span>
+        </div>
+        ${side("多", "dbt-bull", r.bull)}
+        ${side("空", "dbt-bear", r.bear)}
+        ${line("被攻击的共识", r.attacked_consensus)}
+        ${line("Judge", r.judge)}
+        ${frames}
+      </div>`;
+    }).join("");
+    const total = rows.length;
+    document.getElementById("debate-src").textContent =
+      `最近 ${total} 条带辩论记录的决策（窗口上限 ${block.limit || total}）`;
   }
 
   function renderBearCases() {
