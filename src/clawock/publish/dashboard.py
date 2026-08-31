@@ -456,6 +456,74 @@ def serialize_dashboard_payload(value):
     return json.dumps(value, ensure_ascii=False, separators=(',', ':'))
 
 
+SNAPSHOTS_PACKED_COLUMNS_KEY = 'snapshots_columns'
+
+
+def pack_snapshots(rows):
+    """Row dicts -> (column names, row value lists). Identity, not a summary.
+
+    The equity series was 18% of `dashboard.json` and 58% of that was the same
+    eighteen field names repeated on every row: `us_total_value`,
+    `hk_today_change`, `us_realized` and the rest, 262 bytes of key against 187
+    bytes of value (measured 2026-08-31, 79 rows, 449 bytes each). It is the
+    only section that grows by a row every trading day, so it is what walks the
+    payload into the cap — and the cap's only answer was to delete the oldest
+    rows, i.e. to pay for the field names with 46 days of curve.
+
+    Naming the columns once turns ~35.5KB into ~15KB and buys roughly forty
+    trading days of headroom without dropping a single point. `snapshots` stays
+    a non-empty list so the published-shape assertions still hold; the browser
+    rebuilds the dicts on load, so no consumer sees the wire form.
+
+    A row missing a column gets None rather than a shortened list: a ragged row
+    would silently shift every later value into the wrong field.
+    """
+    rows = [row for row in rows or [] if isinstance(row, dict)]
+    if not rows:
+        return [], []
+    columns = []
+    for row in rows:
+        for key in row:
+            if key not in columns:
+                columns.append(key)
+    return columns, [[row.get(name) for name in columns] for row in rows]
+
+
+def unpack_snapshots(columns, rows):
+    """The inverse. Used by the readers that consume a published payload."""
+    columns = list(columns or [])
+    if not columns:
+        return [row for row in rows or [] if isinstance(row, dict)]
+    return [dict(zip(columns, row)) for row in rows or [] if isinstance(row, list)]
+
+
+def snapshots_of(payload):
+    """Row dicts out of a published dashboard payload, packed or not.
+
+    Every reader of a *published* `snapshots` goes through here, so the two
+    encodings cannot drift into two code paths — the mistake that this file
+    already made once with the fingerprint tuple.
+    """
+    if not isinstance(payload, dict):
+        return []
+    rows = payload.get('snapshots') or []
+    return unpack_snapshots(payload.get(SNAPSHOTS_PACKED_COLUMNS_KEY), rows)
+
+
+def dashboard_wire_payload(out):
+    """Serialize the dashboard document with the equity series column-packed.
+
+    `out` is not mutated: `compile_overview_projection` reads `out['snapshots']`
+    as row dicts, and the size levers measure the *wire* bytes, so the two have
+    to see different shapes of the same data at the same moment.
+    """
+    columns, rows = pack_snapshots(out.get('snapshots'))
+    if not columns:
+        return serialize_dashboard_payload(out)
+    return serialize_dashboard_payload(
+        {**out, SNAPSHOTS_PACKED_COLUMNS_KEY: columns, 'snapshots': rows})
+
+
 def _guardrail_sections(portfolio, risk, lev_regime=None):
     from clawock.portfolio.guardrail import (
         compute_breakeven_math,
@@ -3580,7 +3648,7 @@ def build_projection(previous_source=None, shadow_previous=None):
     # dashboard.json is the canonical cross-tab browser document. Keep it compact:
     # detail activation still pays this parse, and producers should not spend
     # recovered headroom on indentation that adds no user value.
-    payload = serialize_dashboard_payload(out)
+    payload = dashboard_wire_payload(out)
     size_bytes = len(payload.encode('utf-8'))
 
     if size_bytes > MAX_OUT_BYTES:
@@ -3588,7 +3656,7 @@ def build_projection(previous_source=None, shadow_previous=None):
         print(f'⚠️  payload still {size_bytes} bytes > {MAX_OUT_BYTES} cap — dropping recent_plans', file=sys.stderr)
         out['recent_plans'] = []
         out['recent_plans_dropped'] = True
-        payload = serialize_dashboard_payload(out)
+        payload = dashboard_wire_payload(out)
         size_bytes = len(payload.encode('utf-8'))
         if size_bytes > MAX_OUT_BYTES:
             # Second lever: shorten the embedded snapshot series from the OLD
@@ -3609,7 +3677,7 @@ def build_projection(previous_source=None, shadow_previous=None):
                 kept.pop(0)
                 dropped += 1
                 out['snapshots'] = kept
-                payload = serialize_dashboard_payload(out)
+                payload = dashboard_wire_payload(out)
                 size_bytes = len(payload.encode('utf-8'))
             if dropped:
                 # Recorded IN the payload, not only on stderr: `recent_plans`
@@ -3617,7 +3685,7 @@ def build_projection(previous_source=None, shadow_previous=None):
                 # degradation that lives only in a build log is one no gate can
                 # read back.
                 out['snapshots_trimmed_for_budget'] = dropped
-                payload = serialize_dashboard_payload(out)
+                payload = dashboard_wire_payload(out)
                 size_bytes = len(payload.encode('utf-8'))
                 print(f'⚠️  dropped the {dropped} oldest snapshot(s) to fit the '
                       f'{MAX_OUT_BYTES} cap — now {size_bytes} bytes', file=sys.stderr)
@@ -3626,6 +3694,30 @@ def build_projection(previous_source=None, shadow_previous=None):
             # publishing, but say so — on 2026-07-28 the file shipped 3.7KB over
             # the cap with only the line above to show for it, which reads as
             # "handled".
+            #
+            # Recorded IN the payload as well (#1215). A stderr line reaches no
+            # gate: not the build card, not the cron log, not watchdog.jsonl. So
+            # the 2026-07-28 breach was invisible to everything that could have
+            # acted on it, and "publishing over cap" was a decision nothing
+            # downstream could see had been taken. `recent_plans_dropped` and
+            # `snapshots_trimmed_for_budget` already live here for this reason;
+            # the terminal case was the one that did not.
+            #
+            # Writing it grows the payload by ~60 bytes, which is the right
+            # trade in a branch that is already over: a breach that is 60 bytes
+            # worse and legible beats one that is silent.
+            # `bytes` is the size with both levers spent and before this marker
+            # was added, which is a fixed number; recording the post-marker size
+            # would be a value that changes itself.
+            out['payload_over_cap'] = {
+                'bytes': size_bytes,
+                'cap': MAX_OUT_BYTES,
+                'over_by': size_bytes - MAX_OUT_BYTES,
+                'levers_spent': ['recent_plans', 'snapshots'],
+                'measured': 'before this marker was written',
+            }
+            payload = dashboard_wire_payload(out)
+            size_bytes = len(payload.encode('utf-8'))
             print(f'⚠️  payload STILL {size_bytes} bytes > {MAX_OUT_BYTES} cap after '
                   f'dropping recent_plans and trimming snapshots — publishing over cap',
                   file=sys.stderr)

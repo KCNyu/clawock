@@ -895,6 +895,23 @@ def validate_dashboard(
         'concentration must be an object')
     assert isinstance(data['snapshots'], list), 'snapshots must be a list'
     assert data['snapshots'], 'snapshots is empty — dashboard would render blank'
+    # Column-packed since #1215. The list assertion above still holds and is now
+    # too weak on its own: a ragged row would shift every later value one field
+    # to the left, which reads as a plausible equity curve rather than as a
+    # fault. Decode and check the shape the page will actually see.
+    from clawock.publish.dashboard import snapshots_of
+    _columns = data.get('snapshots_columns')
+    if _columns:
+        assert isinstance(_columns, list) and all(
+            isinstance(name, str) and name for name in _columns), (
+            'snapshots_columns must be a list of field names')
+        assert all(isinstance(row, list) and len(row) == len(_columns)
+                   for row in data['snapshots']), (
+            'a packed snapshot row does not match snapshots_columns — every '
+            'field after the gap would be read as the wrong metric')
+    _rows = snapshots_of(data)
+    assert _rows and all(row.get('date') for row in _rows), (
+        'every snapshot must decode to a row with a date')
     assert isinstance(data['decision_metrics'], dict), (
         'decision_metrics must be an object')
     assert isinstance(data['decision_delta'], dict), (
