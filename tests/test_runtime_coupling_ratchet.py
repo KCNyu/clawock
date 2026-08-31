@@ -444,6 +444,10 @@ HOST_OWNED_SHELL = {
         2, "host cron wrapper that reads the Nostr key from this machine's "
            "runtime dir and posts from the live checkout — the broadcast has "
            "no meaning off this host"),
+    "ops/host/claude_6am_kicker.sh": (
+        1, "weekday 06:01 HKT launcher for the issue/PR queue: the live "
+           "checkout is the subject of the script, and $LIVE_CHECKOUT "
+           "overrides it exactly as it does for refresh_live.sh"),
     "ops/host/refresh_live.sh": (
         1, "applies a merge to this host: the live checkout is the subject of "
            "the script, not an incidental dependency — and $LIVE_CHECKOUT "
