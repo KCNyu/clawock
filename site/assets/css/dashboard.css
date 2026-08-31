@@ -1489,6 +1489,31 @@
   }
   .bear-lbl.bl-fal   { background: color-mix(in srgb, var(--positive) 15%, transparent); color: var(--positive); }
   .bear-lbl.bl-watch { background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent); }
+  /* debate trail (#1117) — the argument, not just its count */
+  .dbt-case {
+    padding: var(--space-3); margin-bottom: 8px; border-radius: var(--radius-sm);
+    background: var(--card-2); border-left: 3px solid color-mix(in srgb, var(--accent) 50%, transparent);
+  }
+  .dbt-head {
+    display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; margin-bottom: 6px;
+  }
+  .dbt-tk { font-weight: 700; font-family: var(--mono); font-size: var(--fs-md); }
+  .dbt-side { display: flex; gap: 8px; align-items: flex-start; margin-top: 4px; }
+  .dbt-lbl {
+    flex: 0 0 auto; font-size: var(--fs-micro); font-weight: 700; padding: 2px 8px;
+    border-radius: 5px; margin-top: 2px;
+  }
+  .dbt-bull .dbt-lbl { background: color-mix(in srgb, var(--positive) 15%, transparent); color: var(--positive); }
+  .dbt-bear .dbt-lbl { background: color-mix(in srgb, var(--negative) 15%, transparent); color: var(--negative); }
+  .dbt-text { font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
+  .dbt-line { font-size: var(--fs-sm); line-height: 1.45; color: var(--text-dim); margin-top: 6px; }
+  .dbt-key { font-weight: 600; color: var(--text); margin-right: 6px; }
+  .dbt-frames { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .dbt-frame {
+    font-size: var(--fs-micro); font-family: var(--mono); padding: 2px 8px;
+    border-radius: 5px; background: var(--card); color: var(--text-dim);
+    border: 1px solid var(--border);
+  }
   /* hidden concentration */
   .hc-headline { font-size: var(--fs-md); font-weight: 600; line-height: 1.45; margin-bottom: 12px; }
   .hc-bar-row { display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-3); }
