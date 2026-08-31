@@ -244,9 +244,10 @@ def panel_scores(data_dir: Path | None = None, evaluation: dict | None = None) -
     render, unrounded and unrecomputed — `grep -rn 'spearman\|rank_ic'` over
     this module is empty by construction, and a test keeps it that way.
 
-    The cost is about twenty seconds inside the dashboard publish, which is the
-    price of the numbers being the same numbers. `evaluation` is injectable so a
-    test does not pay it twice.
+    The cost is about thirty seconds inside the dashboard publish — twenty for
+    the panel and roughly seven more since the refuters joined it (#1167) —
+    which is the price of the numbers being the same numbers. `evaluation` is
+    injectable so a test does not pay it twice.
     """
     from clawock.evaluation import signal_panel
 
@@ -270,6 +271,11 @@ def panel_scores(data_dir: Path | None = None, evaluation: dict | None = None) -
         'sessions': coverage['sessions'],
         'rows': coverage['rows'],
         'selection': selection,
+        # Counts, not the per-signal p-values: thirty-three signals times three
+        # horizons of placebo detail is a payload this page cannot afford, and
+        # the reader's first question is how many of them survive being
+        # shuffled. `clawock signal-panel --json` has the rest.
+        'refutation': evaluation['refutation_summary'],
         'by_signal': by_signal,
         'method': evaluation['method'],
         'interval_caveat': evaluation['interval_caveat'],
@@ -497,8 +503,8 @@ def build(ledger_rows=None, data_dir: Path | None = None,
         # IC, its interval and the selection PBO, computed once by
         # `clawock signal-panel` and republished — never recomputed here.
         'signal_panel': {key: panel[key] for key in (
-            'as_of', 'first_session', 'sessions', 'rows', 'selection', 'method',
-            'interval_caveat', 'source')},
+            'as_of', 'first_session', 'sessions', 'rows', 'selection',
+            'refutation', 'method', 'interval_caveat', 'source')},
         'info_source_cards': cards,
         # Indices into `decisions`, not copies of it. The duplicated form spent
         # 88KB restating an action and an outcome that were already there, and

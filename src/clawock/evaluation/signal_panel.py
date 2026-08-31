@@ -62,9 +62,30 @@ Two properties make the number publishable rather than decorative:
   overfitting is what separates "this source has weight" from "this source won a
   thirteen-way lottery".
 
+Refuting the number instead of only bounding it
+-----------------------------------------------
+An interval answers "how precisely is this estimated". It does not answer "would
+a signal carrying no information have produced this anyway", and on a
+cross-section of a dozen names it cannot answer "is one name carrying it". Two
+refuters do (#1167):
+
+* **placebo** — permute which name held which value, within each session. The
+  returns, the sessions and the tie pattern are untouched; only the pairing
+  dies. The p-value is against that null, not a textbook one.
+* **leave-one-ticker-out** — drop each name entirely and recompute. The span is
+  informational; a *sign flip* is the finding.
+
+The third refuter in that family, DoWhy's random-common-cause, does not map: it
+adds an irrelevant covariate to an adjustment set, and a rank IC adjusts for
+nothing. The reason the causal-inference port itself stayed closed is unchanged
+and is worth restating beside its refuters — this ledger has no untreated arm,
+so CATE and DML have nothing to identify. Refutation is the half of that
+toolkit that survives without an intervention.
+
 Nothing here changes a decision, a threshold, or a rule. It is a measurement,
 and its status field never reaches `validated` — the strongest verdict available
-is `diagnostic`.
+is `diagnostic`, and `survives_refutation` is a statement about the sessions
+observed, not a registration.
 """
 from __future__ import annotations
 
@@ -473,13 +494,24 @@ def _spearman(pairs) -> float | None:
     return num / (dx * dy)
 
 
-def daily_ics(rows, horizon: str) -> dict:
-    """{session: IC} for one signal at one horizon."""
+def session_pairs(rows, horizon: str) -> dict:
+    """{session: [(signal value, forward return), ...]} for one horizon.
+
+    Factored out of `daily_ics` so the refuters below rank exactly the rows the
+    headline IC ranks. A refutation computed off a second, slightly different
+    row set would refute a number nobody published.
+    """
     by_day = defaultdict(list)
     for row in rows:
         value, forward = row.get('value'), row.get(horizon)
         if value is not None and forward is not None:
             by_day[row['as_of']].append((float(value), float(forward)))
+    return by_day
+
+
+def daily_ics(rows, horizon: str) -> dict:
+    """{session: IC} for one signal at one horizon."""
+    by_day = session_pairs(rows, horizon)
     out = {}
     for day, pairs in by_day.items():
         ic = _spearman(pairs)
@@ -546,6 +578,211 @@ def score_signal(rows, horizon: str) -> dict:
         bool(band and (band[0] > 0 or band[1] < 0))
         if result['status'] == 'diagnostic' else False)
     return result
+
+
+#: How many relabelings the placebo null draws. Same count as the session
+#: permutation in `evaluation.drift`, for the same reason: enough resolution to
+#: separate 0.02 from 0.2, few enough that the panel still fits inside the
+#: decision-map build's budget.
+PLACEBO_PERMUTATIONS = 500
+
+#: A placebo needs sessions to permute within and names to permute across. Below
+#: three names a session ranks nothing; below `MIN_SESSIONS` the panel is
+#: `collecting` and the refuters stay silent rather than produce a p-value for a
+#: number that is not being claimed yet.
+MIN_PLACEBO_CROSS_SECTION = 3
+
+
+def _midranks(values) -> list[float]:
+    """Ranks with ties averaged — the same ladder `_spearman` builds."""
+    order = sorted(range(len(values)), key=lambda i: values[i])
+    out = [0.0] * len(values)
+    i = 0
+    while i < len(order):
+        j = i
+        while j + 1 < len(order) and values[order[j + 1]] == values[order[i]]:
+            j += 1
+        shared = (i + j) / 2 + 1
+        for k in range(i, j + 1):
+            out[order[k]] = shared
+        i = j + 1
+    return out
+
+
+def placebo_null(rows, horizon: str, *,
+                 permutations: int = PLACEBO_PERMUTATIONS,
+                 seed: int = seeds.seed('signal_panel_placebo_permutation')) -> dict | None:
+    """Reshuffle which name held which value, keep the session and the returns.
+
+    DoWhy calls this a placebo-treatment refuter and it is the one refuter from
+    that family this panel can actually run (see the module note below). Within
+    each session the signal's values are permuted across the names present that
+    day; the forward returns, the session structure, the number of names and the
+    tie pattern all stay exactly as they were. What is destroyed is the only
+    thing the IC claims: that *this* name's value stood next to *this* name's
+    return.
+
+    Why the session bootstrap does not already answer this. The bootstrap
+    resamples sessions to say how precisely the mean IC is estimated; it takes
+    the per-session IC as given. The placebo asks the prior question — what IC
+    would a signal with no cross-sectional information have produced on these
+    sessions — and the answer is not the textbook one whenever the cross-section
+    is small or the values are mostly tied. `news.actionable_count` and
+    `peer.triggered_rules` are zero for most names on most days; a rank
+    correlation built on twelve names of which nine are tied has a null far
+    wider than `1/sqrt(n-1)`, and an interval that ignores that reads as
+    evidence when it is arithmetic.
+
+    Two-sided, because the sign of an IC here is a finding rather than a
+    hypothesis: a signal that predicts the reverse of its intuition has still
+    refuted its placebo.
+    """
+    import numpy as np
+
+    days = []
+    for day, pairs in sorted(session_pairs(rows, horizon).items()):
+        if len(pairs) < MIN_PLACEBO_CROSS_SECTION:
+            continue
+        xs = np.asarray(_midranks([p[0] for p in pairs]), dtype=float)
+        ys = np.asarray(_midranks([p[1] for p in pairs]), dtype=float)
+        xc, yc = xs - xs.mean(), ys - ys.mean()
+        sx, sy = float(np.sqrt(xc @ xc)), float(np.sqrt(yc @ yc))
+        if sx == 0 or sy == 0:
+            continue  # a flat cross-section ranks nothing, on any relabeling
+        days.append((xc, yc / (sx * sy)))
+    if len(days) < MIN_SESSIONS:
+        return None
+
+    observed = statistics.fmean(float(xc @ yhat) for xc, yhat in days)
+    rng = np.random.default_rng(seed)
+    draws = np.zeros(permutations, dtype=float)
+    for xc, yhat in days:
+        shuffled = rng.permuted(np.broadcast_to(xc, (permutations, xc.size)).copy(),
+                                axis=1)
+        draws += shuffled @ yhat
+    draws /= len(days)
+
+    at_least = int(np.count_nonzero(np.abs(draws) >= abs(observed)))
+    ordered = np.sort(draws)
+    return {
+        'observed_mean_ic': round(observed, 4),
+        'null_mean_ic': round(float(draws.mean()), 4),
+        'null_ci95': [round(float(ordered[int(0.025 * (permutations - 1))]), 4),
+                      round(float(ordered[int(0.975 * (permutations - 1))]), 4)],
+        # +1 on both sides: the unpermuted labeling is itself one arrangement,
+        # so this null cannot support a p-value of exactly zero.
+        'p_value': round((at_least + 1) / (permutations + 1), 5),
+        'permutations': permutations,
+        'sessions': len(days),
+    }
+
+
+def leave_one_ticker_out(rows, horizon: str) -> dict | None:
+    """Drop each name entirely and recompute the mean IC.
+
+    DoWhy's data-subset refuter, moved to the axis this panel is actually thin
+    on. Subsetting *sessions* is already covered — that is what the clustered
+    bootstrap resamples — but every interval on this page is computed over a
+    cross-section of roughly a dozen names, and none of them can see that one
+    name is carrying the finding. A signal whose IC survives dropping any single
+    name and one whose sign flips when a single name leaves are indistinguishable
+    in the published column, and they are not the same claim.
+
+    The span is reported rather than a pass/fail: a name whose removal moves the
+    IC is not a defect, it is the size of this book's cross-section. A *sign
+    flip* is the part worth naming.
+    """
+    tickers = sorted({row['ticker'] for row in rows if row.get(horizon) is not None})
+    if len(tickers) < MIN_PLACEBO_CROSS_SECTION:
+        return None
+    full_ics = daily_ics(rows, horizon)
+    if not full_ics:
+        return None
+    full = statistics.fmean(full_ics.values())
+
+    without = {}
+    for ticker in tickers:
+        ics = daily_ics([row for row in rows if row['ticker'] != ticker], horizon)
+        if ics:
+            without[ticker] = statistics.fmean(ics.values())
+    if len(without) < MIN_PLACEBO_CROSS_SECTION:
+        return None
+
+    worst = max(without, key=lambda t: abs(without[t] - full))
+    flips = sorted(t for t, value in without.items()
+                   if full != 0 and value * full < 0)
+    return {
+        'n_tickers': len(without),
+        'full_mean_ic': round(full, 4),
+        'ic_range': [round(min(without.values()), 4),
+                     round(max(without.values()), 4)],
+        'largest_swing': {'ticker': worst,
+                          'mean_ic_without': round(without[worst], 4),
+                          'delta': round(without[worst] - full, 4)},
+        'sign_flips': flips,
+    }
+
+
+#: Verdicts, ordered worst-first. Deliberately not a boolean and deliberately
+#: not the word "validated": clearing a placebo says the ranking carried
+#: information on the sessions observed, which is a diagnostic finding, not a
+#: rule that was registered before the data arrived.
+REFUTATION_VERDICTS = (
+    'collecting',            # not enough sessions to refute anything yet
+    'fails_placebo',         # a relabeled signal produces this IC as often
+    'one_name_flips_it',     # clears the placebo, but a single name owns the sign
+    'survives_refutation',   # clears both, on this sample, at this horizon
+)
+
+#: Conventional, and pre-registered here rather than chosen after reading the
+#: p-values. Nothing downstream branches on it — it labels a row.
+PLACEBO_ALPHA = 0.05
+
+
+def refute_signal(rows, horizon: str, score: dict) -> dict:
+    """Both refuters plus the verdict that reads them together."""
+    if score.get('status') != 'diagnostic':
+        return {'verdict': 'collecting', 'placebo': None, 'leave_one_ticker_out': None}
+    placebo = placebo_null(rows, horizon)
+    stability = leave_one_ticker_out(rows, horizon)
+    if placebo is None:
+        verdict = 'collecting'
+    elif placebo['p_value'] > PLACEBO_ALPHA:
+        verdict = 'fails_placebo'
+    elif stability and stability['sign_flips']:
+        verdict = 'one_name_flips_it'
+    else:
+        verdict = 'survives_refutation'
+    return {'verdict': verdict, 'placebo': placebo,
+            'leave_one_ticker_out': stability}
+
+
+def refutation_summary(signals: dict) -> dict:
+    """Per horizon, how many signals each verdict claimed.
+
+    This is the part that goes to the site. The per-signal detail is available
+    from `clawock signal-panel --json`; the payload gets the count, because the
+    reader's question at the top of a page is "how many of these thirteen
+    survive being shuffled", not "what was `quant.rsi14`'s p-value".
+    """
+    out = {}
+    for horizon in ('t1', 't5', 't20'):
+        counts = {verdict: 0 for verdict in REFUTATION_VERDICTS}
+        contested = []
+        for signal, sections in signals.items():
+            counts[sections['refutation'][horizon]['verdict']] += 1
+            placebo = sections['refutation'][horizon]['placebo']
+            # The two strongest things this panel says about a signal, said
+            # about the same signal, disagreeing. `ic_clears_zero` is not
+            # rewritten to mean "and it beat its placebo" — that would change a
+            # published field's meaning under readers who already have it — so
+            # the disagreement is named instead of resolved.
+            if (placebo and sections[horizon].get('ic_clears_zero')
+                    and placebo['p_value'] > PLACEBO_ALPHA):
+                contested.append(signal)
+        out[horizon] = {'signals': len(signals), **counts,
+                        'interval_clears_zero_but_placebo_does_not': sorted(contested)}
+    return out
 
 
 #: Tertiles, not quintiles. The cross-section is about twenty-one names on a
@@ -891,10 +1128,19 @@ def evaluate(panel) -> dict:
     by_signal = defaultdict(list)
     for row in panel:
         by_signal[row['signal']].append(row)
+    scores = {signal: {horizon: score_signal(rows, horizon)
+                       for horizon in ('t1', 't5', 't20')}
+              for signal, rows in by_signal.items()}
     signals = {
         signal: {
-            **{horizon: score_signal(rows, horizon)
-               for horizon in ('t1', 't5', 't20')},
+            **scores[signal],
+            # Two refuters run against every diagnostic row (#1167). The
+            # interval says how precisely the IC is estimated; these say
+            # whether a relabeled signal would have produced it anyway, and
+            # whether one name is carrying it.
+            'refutation': {horizon: refute_signal(rows, horizon,
+                                                  scores[signal][horizon])
+                           for horizon in ('t1', 't5', 't20')},
             # The same signal against an outcome the book could have realised:
             # each window ended by whichever barrier is touched first, with the
             # production chandelier stop trailing underneath (#1164). The pair
@@ -935,6 +1181,7 @@ def evaluate(panel) -> dict:
         'signals': signals,
         'selection': {horizon: selection_pbo(panel, horizon)
                       for horizon in ('t1', 't5', 't20')},
+        'refutation_summary': refutation_summary(signals),
         'composite_polarity': {
             horizon: composite_polarity(signals, horizon, weights=_factor_weights())
             for horizon in ('t1', 't5', 't20')},
@@ -1008,6 +1255,36 @@ def main(argv=None) -> int:
         if picked:
             print('  most often selected: '
                   + ' · '.join(f'{name} ({count})' for name, count in picked))
+    summary = result['refutation_summary'][args.horizon]
+    print(f'\n--- {args.horizon} refutation '
+          f'({PLACEBO_PERMUTATIONS} placebo relabelings per signal) ---')
+    print(f'{"signal":<28}{"mean IC":>9}{"null 95%":>20}{"p":>9}'
+          f'{"worst 1-name IC":>17}  verdict')
+    for signal, sections in result['signals'].items():
+        refutation = sections['refutation'][args.horizon]
+        placebo = refutation['placebo']
+        if not placebo:
+            continue
+        stability = refutation['leave_one_ticker_out'] or {}
+        swing = stability.get('largest_swing') or {}
+        null = placebo['null_ci95']
+        band = f'[{null[0]:+.3f}, {null[1]:+.3f}]'
+        # Built outside the f-string: nesting the same quote inside one is a
+        # 3.12 grammar, and this package supports 3.11.
+        worst = (f'{swing["mean_ic_without"]:+.4f} ({swing["ticker"]})'
+                 if swing else '—')
+        print(f'{signal:<28}{placebo["observed_mean_ic"]:>+9.4f}'
+              f'{band:>20}{placebo["p_value"]:>9.4f}{worst:>17}'
+              f'  {refutation["verdict"]}')
+    contested = summary['interval_clears_zero_but_placebo_does_not']
+    print(f'  {summary["survives_refutation"]}/{summary["signals"]} survive both · '
+          f'{summary["fails_placebo"]} produce this IC as often under a relabeling · '
+          f'{summary["one_name_flips_it"]} lose their sign to one name · '
+          f'{summary["collecting"]} still collecting')
+    if contested:
+        print('  interval says it clears zero, its own placebo does not: '
+              + ' · '.join(contested))
+
     print(f'\n--- {args.horizon} quantile structure and cost to hold '
           f'({QUANTILES} buckets) ---')
     print(f'{"signal":<28}{"q1":>9}{"q2":>9}{"q3":>9}{"spread":>9}'

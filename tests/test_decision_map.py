@@ -80,6 +80,10 @@ STUB_PANEL = {
                   'n_observations': 120, 'n_sessions': 20,
                   'status': 'diagnostic', 'ic_clears_zero': False}
         for horizon in dm.HORIZONS}},
+    'refutation': {horizon: {'signals': 1, 'collecting': 0, 'fails_placebo': 1,
+                             'one_name_flips_it': 0, 'survives_refutation': 0,
+                             'interval_clears_zero_but_placebo_does_not': []}
+                   for horizon in dm.HORIZONS},
     'method': 'cross-sectional rank IC per session, averaged',
     'interval_caveat': 't20 bands are optimistic',
     'source': 'clawock signal-panel (evaluation.signal_panel.evaluate)',
@@ -259,6 +263,7 @@ def test_the_selection_pbo_is_published_once_for_the_panel_not_per_signal(monkey
     """PBO is a property of choosing among the signals, not of any one of them."""
     payload = _payload(monkeypatch, [_decision('d0', 'AAA', '2026-06-01')], {})
     assert payload['signal_panel']['selection'] == STUB_PANEL['selection']
+    assert payload['signal_panel']['refutation'] == STUB_PANEL['refutation']
     assert 'by_signal' not in payload['signal_panel']
     for card in payload['info_source_cards']:
         assert 'pbo' not in (card.get('panel') or {})
@@ -313,6 +318,11 @@ def test_panel_scores_reshapes_signal_panel_without_touching_its_numbers():
         'selection': {horizon: {'status': 'measured', 'pbo': 0.34,
                                 'n_splits': 70, 'selected_signals': {'a': 3}}
                       for horizon in dm.HORIZONS},
+        'refutation_summary': {
+            horizon: {'signals': 1, 'collecting': 0, 'fails_placebo': 0,
+                      'one_name_flips_it': 0, 'survives_refutation': 1,
+                      'interval_clears_zero_but_placebo_does_not': []}
+            for horizon in dm.HORIZONS},
         'method': 'cross-sectional rank IC per session, averaged',
         'interval_caveat': 't20 bands are optimistic',
     }
@@ -327,6 +337,12 @@ def test_panel_scores_reshapes_signal_panel_without_touching_its_numbers():
     assert panel['as_of'] == '2026-08-25'
     assert panel['selection']['t5'] == {'status': 'measured', 'pbo': 0.34,
                                         'n_splits': 70}
+    # Counts travel; the per-signal placebo detail does not — thirty-three
+    # signals of it would cost more payload than the page has to spend.
+    assert panel['refutation']['t5']['survives_refutation'] == 1
+    assert set(panel['refutation']['t5']) == {
+        'signals', 'collecting', 'fails_placebo', 'one_name_flips_it',
+        'survives_refutation', 'interval_clears_zero_but_placebo_does_not'}
 
 
 def test_the_panel_block_is_dropped_before_the_timelines_are(monkeypatch):
