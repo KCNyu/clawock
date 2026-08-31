@@ -264,6 +264,46 @@ def normalize_debate_evidence(raw) -> list[str]:
     return kept[:DEBATE_EVIDENCE_MAX]
 
 
+#: A decision may say how far it expects the name to move, and this is the
+#: widest that claim may be before it is discarded rather than scored. Not a
+#: risk limit — a typo filter: a plan meaning -8% and writing -800 would
+#: otherwise dominate every calibration number it entered.
+MAX_EXPECTED_MOVE_PCT = 100.0
+
+
+def normalize_expected_move(raw) -> float | None:
+    """The move this decision expects, signed, in percent — or `None` (#1159).
+
+    QuantConnect's `InsightScore` grades Direction *and* Magnitude. This ledger
+    has graded direction since it existed — `evaluation.outcome`, and
+    `confidence` against a Brier score — and has never carried a magnitude at
+    all: `confidence` says how sure, `invalidation_price` says where the thesis
+    dies, and neither says how far the name is expected to go. So "the model was
+    right about the direction and wrong about the size by a factor of four" is
+    not a sentence this book can currently form about itself.
+
+    Optional on purpose, and that is the entire first stage. `validate_plan`
+    failing does not produce a thinner brief, it produces **no brief**, so a new
+    required field buys structure by adding a way for the 08:00 pipeline to go
+    dark. #1117 took exactly this route for `debate` — optional, with a coverage
+    series published beside it — and the required-field question is argued from
+    that series later, if at all.
+
+    Zero is kept rather than dropped: "I expect this to go nowhere" is a real
+    forecast and a scorable one. Absent and zero are different facts here, the
+    same way they are for a mention count.
+    """
+    if isinstance(raw, bool) or raw is None:
+        return None
+    try:
+        value = float(raw)
+    except (TypeError, ValueError):
+        return None
+    if not math.isfinite(value) or abs(value) > MAX_EXPECTED_MOVE_PCT:
+        return None
+    return round(value, 3)
+
+
 def legacy_action_to_decision(action: dict, plan_date: str, ordinal: int = 0) -> dict:
     ticker = str(action.get("ticker") or "").strip()
     act = action.get("action") or action.get("bucket") or "watch"
@@ -322,6 +362,9 @@ def legacy_action_to_decision(action: dict, plan_date: str, ordinal: int = 0) ->
         "technical_setup_id": action.get("technical_setup_id"),
         "technical_campaign_id": action.get("technical_campaign_id"),
         "invalidation_price": _float(action.get("invalidation_price")),
+        # How far, not just which way. `None` when the plan did not say, which
+        # is most of them today — the coverage series says how many (#1159).
+        "expected_move_pct": normalize_expected_move(action.get("expected_move_pct")),
         "tranche_number": _int(action.get("tranche_number")),
         # Additive contract marker: pre-2026-08 plans remain valid/readable, while
         # every newly normalized plan is subject to the technical trace rules.

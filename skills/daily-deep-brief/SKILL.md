@@ -702,6 +702,7 @@ postflight 严格 schema 校验：
       "condition": {"type": "open", "price": null, "note": "周一开盘任意价"},
       "size": {"pct": 50, "shares": 20, "capital": 3200},
       "confidence": 0.82,
+      "expected_move_pct": -6.5,
       "driven_by": "risk_rule",
       "regime": "risk_off",
       "contested": true,
@@ -764,6 +765,10 @@ postflight 严格 schema 校验：
     - `quant:<ticker>:<field>` —— `context.quant_signals.rows[<ticker>]` 上一个非空字段（如 `quant:SPCH:dist_ma200_pct`）
     **没有可引的证据就不填**，别为了填而造 id：造出来的引用比不引更糟，它看起来像证据。portable workflow lane 早就要求每个 case 带 `evidence_ids`（`workflows/validators.py`），这里是把同一条纪律接到日报这条 lane 上。
   - **不会因为格式错误让 08:00 流水线变红**：postflight 的 normalizer 会裁剪超长文本、丢弃未知键与不在枚举内的 frame，整块为空则记为「没写」。但缺席是被数出来的——dashboard 的 `debate_coverage.bear_case_pct` 就是这条纪律的实测曲线，别用空块凑覆盖率。
+- `expected_move_pct`（number，选填，带符号，单位 %）：**这条 decision 预期这只票走多远**（#1159）。`confidence` 说的是「多有把握」，`invalidation_price` 说的是「论点在哪死」，**没有一个字段说「走多远」**——所以「方向对、幅度错了四倍」这句话这本账本目前对自己讲不出来。填了之后按 t1 对 `underlying_return_t1_pct` 打分（这只票自己的收益，不是 `benefit_t1_pct` 那个相对不动的反事实）。
+  - 是**预测**不是目标价，也不是止损距离：写 `-8` 表示「我预期它跌 8%」。`0` 是合法且可打分的预测（「预期它不动」），和不填不是一回事。
+  - |值| > 100 会被丢弃（打字过滤，不是风控），丢弃不会让流水线变红。
+  - **没有把握就不要填**：这条和 `debate.evidence_ids` 同一条纪律——编一个数比不填更糟，它看起来像预测。覆盖率发布在 dashboard 的 `magnitude_metrics.coverage_pct`，必填与否以后对着这条序列谈。
 - `thesis_invalidation`（string，主动 cut/trim/add 必填；hold 选填）：**借鉴 UZI-Skill 的 thesis-tracking**——这个仓位的论点**会被什么具体催化推翻**？把 catalyst-gate(cut #1)落地成「论点+失效条件」：你只在这个**失效催化真的发生**时动手，而不是技术面波动。例：「crypto rev 环比转正则停止减仓」。这逼着每个主动 call 绑定一个可被证伪的硬催化，而非"看着toppy"。
 - `thesis_id` 必须沿用 `context.thesis_registry.theses.<ticker>.thesis_id`（resolved 时）；registry 为 `unknown` 时保留已有 decision ID，不得新造一个“看起来像历史”的 canonical thesis。`context.retrospective.decisions[].thesis_ref` 是只读解析结果。
 
