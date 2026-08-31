@@ -470,7 +470,8 @@ def sentiment_section(context, judgment):
             for item in (row.get("news_top") or [])[:3])
         rows.append([
             ticker,
-            f"{row.get('reddit_mentions_7d', 0)} mentions",
+            (f"{row['reddit_mentions_7d']} mentions"
+             if row.get("reddit_mentions_7d") is not None else MISSING),
             keywords or MISSING,
             pct((row.get("recent_move") or {}).get("pct_5d"))
             if isinstance(row.get("recent_move"), dict) else MISSING,

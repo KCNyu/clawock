@@ -4,7 +4,8 @@ name: Sentiment Scan
 # Scheduled this early to absorb GH Actions' typical 1–2h scheduled-cron delay — a job
 # nominally 30 min before the brief used to land AFTER the punctual openclaw brief.
 # Per-ticker sentiment from FREE public sources:
-#   • Reddit JSON   (US: wsb / stocks / investing)
+#   • Reddit search RSS (one site-wide query for the whole book, matched back
+#     to each holding locally — the JSON API answers 403 without OAuth, #1237)
 #   • Google News RSS (US: English; HK: 中文 by Chinese name + EN by ticker)
 # Writes assets/data/sentiment.json (consumed by agent Mode 5 + dashboard).
 on:
@@ -38,7 +39,7 @@ jobs:
       - name: Set up clawock (Python)
         uses: ./.github/actions/clawock-python
 
-      - name: Scan sentiment (Reddit + Google News)
+      - name: Scan sentiment (Reddit search RSS + Google News)
         run: clawock sentiment --workspace .
 
       - name: Validate sentiment coverage

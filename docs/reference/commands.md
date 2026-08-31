@@ -81,7 +81,7 @@ Sources: Yahoo · Reddit · CNN · social feeds
 | Command | Module | What it collects or computes |
 |---|---|---|
 | `clawock macro` | `clawock.market_data.macro` | VIX, 10Y, DXY, Fear & Greed, Federal Reserve releases |
-| `clawock sentiment` | `clawock.market_data.sentiment` | Reddit, Google News and Yahoo RSS scan per active holding |
+| `clawock sentiment` | `clawock.market_data.sentiment` | Reddit search RSS and Google News scan per active holding |
 | `clawock-influencer-scan` | `clawock.automation.influencer` | market-moving statements from high-impact figures, read from primary feeds |
 
 ### Layer 6 · Quant & risk / 量化与风险

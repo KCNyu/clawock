@@ -686,6 +686,11 @@ jobs:
       - name: FX fallback chain
         run: python3 ops/ci/smoke_fx.py
 
+      # Answers the question #1237 left open: the replacement Reddit endpoint
+      # was verified from the project VPS, and the producer runs here.
+      - name: Reddit search feed reachability
+        run: python3 ops/ci/smoke_reddit.py
+
   portable-workflow:
     # The headline claim, executed against a built wheel on every PR (#1111).
     #

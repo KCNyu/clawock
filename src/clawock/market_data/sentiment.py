@@ -1,11 +1,37 @@
 #!/usr/bin/env python3
-"""
-fetch_sentiment.py — daily sentiment scan for every active holding.
+"""Daily retail-chatter and news scan for every active holding.
 
-Sources (all free, no API key):
-  • Reddit JSON       — r/wallstreetbets r/stocks r/investing (US tickers only)
-  • Google News RSS   — covers both US tickers AND HK Chinese-name search
-  • Yahoo Finance RSS — supplement, includes analyst headlines
+Sources (both free, neither needs a key):
+  • Reddit search RSS — site-wide `search.rss`, one request per name
+  • Google News RSS   — US tickers in English, HK names in Chinese
+
+There is no Yahoo Finance source here despite three months of this docstring
+claiming one; the `sources` list never held it.
+
+**Reddit's unauthenticated JSON API is gone.** `reddit.com/r/<sub>/search.json`
+returns `403 Blocked` — measured 2026-08-31 on both `www` and `old` — and has
+returned nothing for the entire recorded history of this artifact: across all 87
+commits of `sentiment.json` since 2026-05-17, every ticker's mention count is 0.
+The old code caught the failure, set `SOURCE_STATUS['reddit'] = 'failed'`, and
+then published `0` anyway, so three consumers — the decision packet, the brief
+and the dashboard — have been reading "nobody is talking about this name" off a
+request that was never answered. The two are not the same sentence.
+
+What replaces it: `search.rss`, which still answers without credentials. It is
+rate limited hard (a second request within ~30s returns 429 with no
+`Retry-After`), so the scan sweeps once, retries what bounced with backoff, and
+stops at a wall-clock budget. **A name the scan could not reach gets `None`, not
+`0`** — that distinction is the whole point of this module's rewrite.
+
+Two things the RSS endpoint changes about the numbers:
+
+* `sort=new&t=week` is ignored — a probe returned entries dated 2012 through
+  today — so the seven-day window is applied here, on each entry's `updated`.
+  The field has carried a `_7d` suffix since it was written; this is the first
+  version where that suffix is true.
+* score and comment counts are not in the feed, so `reddit_posts` no longer
+  carries them. A post with `score: 0` because the feed does not say is the
+  same lie in smaller print.
 
 Writes: assets/data/sentiment.json
 """
@@ -15,21 +41,93 @@ import re
 import sys
 import time
 import xml.etree.ElementTree as ET
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from urllib.parse import quote
 
 import requests
 
+from clawock import instruments
 from clawock.safe_io import safe_write_json
 from clawock.workspace import workspace_root
 
 UA = 'clawock-sentiment-scan/1.0 (github.com/KCNyu/clawock)'
 HEADERS = {'User-Agent': UA}
 
-REDDIT_SUBS = ['wallstreetbets', 'stocks', 'investing']
+#: One request for the whole book, not one per name. Reddit answers an
+#: unauthenticated feed roughly once every thirty seconds — a paced ten-name
+#: sweep measured 1/10 answered — so ten requests is a scan that mostly reports
+#: nothing. An `OR` of every holding's search terms fits in one.
+REDDIT_SEARCH = 'https://www.reddit.com/search.rss'
+
+#: Reddit's search is the recall stage and it is loose: an `OR` of the book's
+#: terms came back with a post about a dental crown. The precision stage is
+#: local — every returned entry is matched against the terms again, here, and an
+#: entry matching none of them is not counted for anyone. Measured on the live
+#: book: 98 entries returned, 97 inside the window, **42** actually naming a
+#: holding.
+REDDIT_LIMIT = 100
+REDDIT_RETRY_WAITS = (0, 35, 70)
 TIMEOUT = 10
+
+#: The declared bot UA is the one that works. A browser-shaped UA was rate
+#: limited on the same request that the bot UA got a 200 for (measured
+#: 2026-08-31), so pretending to be Chrome here would be both dishonest and
+#: worse.
 SOURCE_STATUS = {'reddit': 'failed', 'google_news': 'failed'}
+
+#: How far back a mention counts. Applied here, on each entry's timestamp,
+#: because the endpoint's own `t=week` is ignored under `sort=new` — a probe
+#: returned entries dated 2012 through today.
+MENTION_WINDOW_DAYS = 7
+
+#: Trailing words that describe the wrapper rather than the company, stripped
+#: from a registry name before it becomes a search term. "SpaceX exposure" has
+#: never appeared in a Reddit post; "SpaceX" appears twenty-one times a week.
+#: Declared rather than inferred, and the terms actually used are published per
+#: ticker so a wrong one is visible instead of buried in a count.
+NAME_TAIL_NOISE = (
+    'exposure', 'index', 'etf', 'adr', 'group', 'holdings', 'holding',
+    'markets', 'market', 'inc', 'corp', 'corporation', 'ltd', 'limited',
+    'plc', 'co',
+)
+
+#: Where a mention has to have been made to count. Reddit's site-wide search
+#: is the only endpoint left, and it does not honour a subreddit filter next to
+#: an `OR` of terms, so the scope the old code got from asking three investing
+#: subs directly is reapplied here, on the way back.
+#:
+#: This is not tidying. Measured on the live book without it, `MINIMAX` scored
+#: 16 mentions in a week — from r/abstractgames and r/PiCodingAgent, because
+#: minimax is a game-theory algorithm and one of this book's holdings happens
+#: to share its name. Publishing 16 would have replaced a false zero with a
+#: false sixteen.
+#:
+#: Substrings, matched case-insensitively against the subreddit name, and
+#: published in the artifact so an undercount is auditable rather than assumed.
+#: It undercounts on purpose: r/spacecapital is a real investing community and
+#: this list misses it. A declared undercount is a number a reader can correct;
+#: an overcount from a dictionary word is not.
+FINANCE_SUBREDDIT_MARKS = (
+    'stock', 'invest', 'wallstreetbets', 'wsb', 'trading', 'trader',
+    'finance', 'option', 'dividend', 'bogle', 'market', 'equit', 'shares',
+    'securityanalysis', 'valu',
+)
+
+ATOM = {'a': 'http://www.w3.org/2005/Atom'}
+
+
+def is_finance_sub(sub: str) -> bool:
+    """A subreddit, and one about markets.
+
+    `u/...` is a user profile, not a community: Reddit returns profile posts in
+    site-wide search and one of them (`u/The_optiontrader`) would pass the
+    substring test on `option` alone.
+    """
+    name = (sub or '').strip().lower()
+    if not name or name.startswith('u/'):
+        return False
+    return any(mark in name for mark in FINANCE_SUBREDDIT_MARKS)
 
 
 def load_tickers(workspace):
@@ -46,36 +144,177 @@ def load_tickers(workspace):
     return out
 
 
-def fetch_reddit(ticker, mentions_only=False):
-    """Returns (mention_count, top_posts[]). US-leaning."""
-    if not re.match(r'^[A-Z]+$', ticker):
-        return 0, []  # HK numeric tickers not on Reddit
+def _clean_name(name: str) -> str:
+    """Registry name minus the wrapper words and the share-class suffix."""
+    text = re.sub(r'-[A-Z]$', '', (name or '').strip())
+    parts = text.split()
+    while parts and parts[-1].strip('.,').lower() in NAME_TAIL_NOISE:
+        parts.pop()
+    return ' '.join(parts)
+
+
+def search_terms(ticker: str, name: str, registry: dict) -> list[str]:
+    """What to search Reddit for, on behalf of one holding.
+
+    Derived from `config/instruments.json` rather than a second alias table:
+    the look-through symbol is already registered there, and it is the one
+    people actually write about. Nobody posts about `RKLX`; they post about
+    Rocket Lab, and this book holds RKLX to own RKLB.
+    """
+    row = registry.get(ticker) or {}
+    underlying = row.get('underlying')
+    target = registry.get(underlying) if underlying else None
+    terms = []
+    for candidate in (underlying, ticker if not underlying else None):
+        if candidate and re.fullmatch(r'[A-Z]{2,6}', candidate):
+            terms.append(candidate)
+    for label in ((target or {}).get('name'), name if not target else None):
+        cleaned = _clean_name(label or '')
+        if len(cleaned) >= 3:
+            terms.append(cleaned)
+    seen, out = set(), []
+    for term in terms:
+        if term.lower() not in seen:
+            seen.add(term.lower())
+            out.append(term)
+    return out
+
+
+def _matcher(term: str):
+    """Word-bounded for Latin terms, plain containment for CJK.
+
+    `\b` is defined on word characters, and Chinese has none of them, so a
+    boundary-anchored pattern never matches 金风科技 at all — a silent zero for
+    every Hong Kong name, which is the shape of bug this module is being fixed
+    for.
+    """
+    if re.fullmatch(r'[\x00-\x7f]+', term):
+        return re.compile(rf'\b{re.escape(term)}\b', re.I)
+    return re.compile(re.escape(term))
+
+
+def _within_window(created: str, cutoff: datetime) -> bool:
+    try:
+        stamp = datetime.fromisoformat((created or '').replace('Z', '+00:00'))
+    except (TypeError, ValueError):
+        return False
+    if stamp.tzinfo is None:
+        stamp = stamp.replace(tzinfo=timezone.utc)
+    return stamp >= cutoff
+
+
+def _feed_entries(text: str, cutoff: datetime) -> tuple[list[dict], int]:
+    """(entries inside the window, total entries returned).
+
+    No score and no comment count: the search feed does not carry them. The
+    previous shape defaulted both to zero, which rendered on the dashboard as a
+    post nobody upvoted rather than a number nobody fetched.
+    """
+    root = ET.fromstring(text)
     total = 0
-    posts = []
-    for sub in REDDIT_SUBS:
+    kept = []
+    for entry in root.findall('a:entry', ATOM):
+        total += 1
+        created = (entry.findtext('a:updated', default='', namespaces=ATOM) or '').strip()
+        if not _within_window(created, cutoff):
+            continue
+        link = entry.find('a:link', ATOM)
+        category = entry.find('a:category', ATOM)
+        title = (entry.findtext('a:title', default='', namespaces=ATOM) or '')
+        kept.append({
+            'sub': (category.get('term') if category is not None else '') or '',
+            'title': title[:200],
+            'url': (link.get('href') if link is not None else '') or '',
+            'created': created,
+            '_blob': f'{title} {entry.findtext("a:content", default="", namespaces=ATOM) or ""}',
+        })
+    return kept, total
+
+
+def fetch_reddit(query: str, *, sleep=time.sleep):
+    """(feed text, status). `status` is `ok`, `throttled` or `failed`.
+
+    A 429 is kept distinct from every other failure on purpose: throttled means
+    the source works and this run was unlucky, blocked means it does not work
+    from here at all. The first is worth retrying tomorrow; the second is worth
+    moving the scan somewhere else, and a single `failed` bucket cannot tell
+    anyone which one happened.
+    """
+    url = f'{REDDIT_SEARCH}?q={quote(query)}&sort=new&limit={REDDIT_LIMIT}'
+    status = 'failed'
+    for wait in REDDIT_RETRY_WAITS:
+        if wait:
+            sleep(wait)
         try:
-            url = f'https://www.reddit.com/r/{sub}/search.json?q={ticker}&restrict_sr=1&sort=new&limit=10'
-            r = requests.get(url, headers=HEADERS, timeout=TIMEOUT)
-            if r.status_code != 200:
-                continue
-            SOURCE_STATUS['reddit'] = 'ok'
-            children = r.json().get('data', {}).get('children', [])
-            total += len(children)
-            if mentions_only:
-                continue
-            for c in children[:3]:
-                d = c.get('data', {})
-                posts.append({
-                    'sub':          sub,
-                    'title':        d.get('title', '')[:200],
-                    'score':        d.get('score', 0),
-                    'num_comments': d.get('num_comments', 0),
-                    'created_utc':  d.get('created_utc'),
-                })
-            time.sleep(0.6)
-        except Exception as e:
-            print(f'  ⚠️ reddit {ticker} @ {sub}: {e}', file=sys.stderr)
-    return total, posts[:6]
+            response = requests.get(url, headers=HEADERS, timeout=TIMEOUT)
+        except Exception as exc:
+            print(f'  ⚠️ reddit: {exc}', file=sys.stderr)
+            continue
+        if response.status_code == 200:
+            return response.text, 'ok'
+        status = 'throttled' if response.status_code == 429 else 'failed'
+        print(f'  ⚠️ reddit: HTTP {response.status_code}', file=sys.stderr)
+    return None, status
+
+
+def scan_reddit(rows, registry, *, now=None, sleep=time.sleep, fetch=None):
+    """Fill every row's Reddit fields from one search, or mark them unfetched.
+
+    The contract that matters is the failure one: when the feed does not come
+    back, every count stays `None`. A zero here reads as "nobody is talking
+    about this name", and that sentence was published for every holding every
+    day from 2026-05-17 to 2026-08-31 while the old JSON endpoint answered 403
+    to every request (#1237).
+    """
+    terms = {row['ticker']: search_terms(row['ticker'], row['name'], registry)
+             for row in rows}
+    for row in rows:
+        row['reddit_mentions_7d'] = None
+        row['reddit_posts'] = []
+        row['reddit_status'] = 'not_attempted'
+        row['reddit_mentions_capped'] = False
+        row['reddit_query_terms'] = terms[row['ticker']]
+
+    query = ' OR '.join(sorted({
+        f'"{term}"' if ' ' in term else term
+        for values in terms.values() for term in values}))
+    if not query:
+        SOURCE_STATUS['reddit'] = 'failed'
+        return 0
+    text, status = (fetch or fetch_reddit)(query, sleep=sleep)
+    if status != 'ok' or text is None:
+        for row in rows:
+            row['reddit_status'] = status
+        SOURCE_STATUS['reddit'] = status if status == 'throttled' else 'failed'
+        return 0
+
+    cutoff = (now or datetime.now(timezone.utc)) - timedelta(days=MENTION_WINDOW_DAYS)
+    try:
+        entries, total = _feed_entries(text, cutoff)
+    except ET.ParseError as exc:
+        print(f'  ⚠️ reddit: unparseable feed ({exc})', file=sys.stderr)
+        for row in rows:
+            row['reddit_status'] = 'failed'
+        SOURCE_STATUS['reddit'] = 'failed'
+        return 0
+
+    SOURCE_STATUS['reddit'] = 'ok'
+    # The count is a floor whenever the feed was full and none of it aged out:
+    # there is no page two, so a busier week is indistinguishable from this one
+    # at the top of the list. Saying so beats publishing a total that is not one.
+    capped = total >= REDDIT_LIMIT and len(entries) == total
+    for row in rows:
+        patterns = [_matcher(term) for term in terms[row['ticker']]]
+        matched = [entry for entry in entries
+                   if is_finance_sub(entry['sub'])
+                   and any(pattern.search(entry['_blob']) for pattern in patterns)]
+        row['reddit_status'] = 'ok'
+        row['reddit_mentions_7d'] = len(matched)
+        row['reddit_mentions_capped'] = capped
+        row['reddit_posts'] = [
+            {key: entry[key] for key in ('sub', 'title', 'url', 'created')}
+            for entry in matched[:6]]
+    return sum(1 for row in rows if row['reddit_mentions_7d'])
 
 
 def fetch_google_news(query, hl='en-US', gl='US', limit=8, return_status=False):
@@ -114,7 +353,13 @@ def fetch_google_news(query, hl='en-US', gl='US', limit=8, return_status=False):
 
 
 def scan_ticker(t):
-    """Aggregate per-ticker sentiment from all sources."""
+    """Per-ticker news scan. Reddit is a separate pass — see `scan_reddit`.
+
+    The two sources are no longer interleaved because their rate limits are not
+    comparable: Google News answers every time, Reddit answers about half the
+    time and has to be asked again. Sweeping them together made the whole scan
+    move at the slower one's pace.
+    """
     tk = t['ticker']
     name = t['name']
     region = t['region']
@@ -124,16 +369,20 @@ def scan_ticker(t):
         'ticker': tk,
         'name':   name,
         'region': region,
-        'reddit_mentions_7d': 0,
+        # Reddit fields are filled by `scan_reddit`; `None` until then, because
+        # a name that has not been asked about has no mention count.
+        'reddit_mentions_7d': None,
         'reddit_posts':       [],
+        'reddit_status':      'not_attempted',
+        'reddit_mentions_capped': False,
+        'reddit_query_terms': [],
         'google_news_en':     [],
         'google_news_zh':     [],
     }
 
     if region == 'us_stocks':
-        result['reddit_mentions_7d'], result['reddit_posts'] = fetch_reddit(tk)
         result['google_news_en'] = fetch_google_news(f'{tk} stock', hl='en-US', gl='US', limit=6)
-        print(f'reddit={result["reddit_mentions_7d"]} en_news={len(result["google_news_en"])}', flush=True)
+        print(f'en_news={len(result["google_news_en"])}', flush=True)
     else:  # hk_stocks
         # HK: search by Chinese name first (richer signal than ticker number)
         if name:
@@ -161,13 +410,29 @@ def main(argv=None):
 
     out = {
         'generated_at': datetime.now(timezone.utc).isoformat(),
-        'sources': ['reddit-json-public', 'google-news-rss'],
+        'sources': ['reddit-search-rss', 'google-news-rss'],
+        'mention_window_days': MENTION_WINDOW_DAYS,
+        'reddit_subreddit_marks': list(FINANCE_SUBREDDIT_MARKS),
         'tickers': [],
     }
 
     for t in tickers:
         out['tickers'].append(scan_ticker(t))
         time.sleep(0.3)  # global rate-limit safety
+
+    # Explicit path, `missing_ok`: this producer takes `--workspace`, so the
+    # module-level default (resolved from cwd at import) would read another
+    # book's registry — and a workspace that has registered nothing yet must
+    # still get its news scan rather than an exception.
+    registry = instruments.load_registry(
+        workspace / 'config' / 'instruments.json', missing_ok=True)
+    named = scan_reddit(out['tickers'], registry)
+    if SOURCE_STATUS['reddit'] == 'ok':
+        print(f'  reddit: {named}/{len(out["tickers"])} names mentioned in the '
+              f'last {MENTION_WINDOW_DAYS} days')
+    else:
+        print(f'  reddit: {SOURCE_STATUS["reddit"]} — every count is null, '
+              f'which is not the same as zero')
     out['source_status'] = dict(SOURCE_STATUS)
 
     output.parent.mkdir(parents=True, exist_ok=True)

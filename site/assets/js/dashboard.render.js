@@ -1526,9 +1526,17 @@
 
     // Sentiment aggregate (kept as quick-glance counts; per-ticker drill below)
     if (s.tickers && Array.isArray(s.tickers)) {
-      const totalReddit = s.tickers.reduce((sum, t) => sum + (t.reddit_mentions_7d || 0), 0);
+      // A null count is a name Reddit never answered about, not a name with
+      // nothing said about it (#1237). Summing them as zeros published a total
+      // that looked measured for three months while the source returned 403.
+      const measured = s.tickers.filter(t => typeof t.reddit_mentions_7d === 'number');
+      const totalReddit = measured.reduce((sum, t) => sum + t.reddit_mentions_7d, 0);
       const totalNews = s.tickers.reduce((sum, t) => sum + ((t.google_news_en || []).length + (t.google_news_zh || []).length), 0);
-      if (totalReddit > 0) cells.push({lbl: 'Reddit 7d', val: totalReddit, sub: 'mentions'});
+      if (measured.length) {
+        cells.push({lbl: 'Reddit 7d', val: totalReddit,
+                    sub: measured.length === s.tickers.length
+                      ? 'mentions' : `mentions · ${measured.length}/${s.tickers.length} 只票`});
+      }
       if (totalNews > 0) cells.push({lbl: 'News 7d', val: totalNews, sub: 'articles'});
     }
 
@@ -1582,12 +1590,12 @@
         ticker: t.ticker,
         name: t.name || '',
         region: t.region || '',
-        reddit: t.reddit_mentions_7d || 0,
+        reddit: typeof t.reddit_mentions_7d === 'number' ? t.reddit_mentions_7d : null,
         reddit_posts: t.reddit_posts || [],
         news: [...(t.google_news_en || []), ...(t.google_news_zh || [])],
       }))
       .filter(t => t.reddit > 0 || t.news.length > 0)
-      .sort((a, b) => (b.reddit - a.reddit) || (b.news.length - a.news.length));
+      .sort((a, b) => ((b.reddit || 0) - (a.reddit || 0)) || (b.news.length - a.news.length));
     if (!withSignal.length) { wrap.innerHTML = ''; return; }
     const regionTag = (r) => r === 'us_stocks' ? 'US' : (r === 'hk_stocks' ? 'HK' : '');
     wrap.innerHTML = withSignal.map(t => {
@@ -1596,13 +1604,15 @@
       // 把它变成洞。与 influencer feed 的 escapeHtml 同一约定。
       const newsLis = t.news.slice(0, 3).map(n =>
         `<li>${escapeHtml(n.title || '')}</li>`).join('');
+      // No score and no comment count: the search feed does not carry them, and
+      // `p.score || 0` printed "0↑" on every post ever rendered here.
       const redditLis = t.reddit_posts.slice(0, 3).map(p =>
-        `<li>${escapeHtml(p.title || '')} <span style="color:var(--text-dim);font-size:var(--fs-micro);">· ${p.score || 0}↑ ${p.num_comments || 0}💬</span></li>`).join('');
+        `<li>${escapeHtml(p.title || '')}</li>`).join('');
       return `<details class="sd-row">
         <summary>
           <span class="sd-tk">${escapeHtml(t.ticker)}</span>
           <span class="sd-reg">${regionTag(t.region)}</span>
-          <span class="sd-counts"><strong>${t.reddit}</strong>R · <strong>${t.news.length}</strong>N</span>
+          <span class="sd-counts"><strong>${t.reddit == null ? '—' : t.reddit}</strong>R · <strong>${t.news.length}</strong>N</span>
         </summary>
         <div class="sd-body">
           ${newsLis ? `<div class="sd-grp">News</div><ul>${newsLis}</ul>` :
