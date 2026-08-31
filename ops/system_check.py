@@ -945,6 +945,89 @@ def check_publish_backlog(r):
         r.add('publish backlog', OK, detail)
 
 
+def check_fallback_chain_shape(r):
+    """How many independent legs the scheduled model chain actually has.
+
+    #1242. `check_model_chain_health` below answers "is a hop dead"; this one
+    answers the question that was never asked anywhere: **how long is the chain
+    when you stop counting hops and start counting the things that can fail
+    independently.** A chain of three hops behind one account is one hop with
+    two extra round trips, and it reads as three everywhere — in the contract,
+    in the error string (`All models failed (3)`), and in the run table.
+
+    The number that matters is not the hop count but the count of distinct
+    credentials behind it, because a rate limit, an expired key and an empty
+    balance all hit every hop that shares the credential at the same instant.
+    `minimax` and `minimax-2` are two providers in the contract and one API key
+    in `openclaw.json`; that is the fact this check exists to say out loud.
+
+    Off the live box there is no `openclaw.json`, so credentials cannot be
+    counted and the check reports what the contract alone can prove.
+    """
+    contract = WS / 'config' / 'cron-schedules.json'
+    try:
+        profiles = json.loads(contract.read_text()).get('payload_profiles') or {}
+    except Exception as e:  # noqa: BLE001
+        r.add('fallback chain', CRITICAL, f'cannot read cron contract: {e}')
+        return
+    rotations = {}
+    for name, profile in sorted(profiles.items()):
+        fallbacks = profile.get('fallbacks')
+        if not fallbacks:
+            continue  # a single-model profile declares no chain to measure
+        rotations.setdefault(tuple([profile.get('model'), *fallbacks]), []).append(name)
+    if not rotations:
+        r.add('fallback chain', OK, 'no profile declares a fallback chain')
+        return
+
+    keys = _provider_api_keys()
+    worst = None
+    for rotation, names in sorted(rotations.items(), key=lambda kv: kv[1]):
+        providers = {hop.split('/')[0] for hop in rotation}
+        # An unknown provider is counted as its own credential rather than
+        # folded in with the others: guessing the optimistic direction here
+        # would be the exact overcount this check exists to prevent.
+        creds = {keys.get(p, f'unknown:{p}') for p in providers} if keys else None
+        legs = len(creds) if creds is not None else len(providers)
+        unit = 'credential' if creds is not None else 'provider'
+        detail = (f'{"/".join(names)}: {len(rotation)} hops · '
+                  f'{legs} independent {unit}{"s" if legs != 1 else ""} '
+                  f'({" → ".join(rotation)})')
+        if worst is None or legs < worst[0]:
+            worst = (legs, unit, detail)
+    legs, unit, detail = worst
+    if legs < 2:
+        r.add('fallback chain', WARNING,
+              f'{detail} — every hop fails together; the chain is one leg long')
+    else:
+        r.add('fallback chain', OK, detail)
+
+
+def _provider_api_keys():
+    """provider name → an opaque label for the account behind it. Live box only.
+
+    The caller's only question is whether two providers are the same account,
+    so the credential itself never leaves this function: providers sharing one
+    are handed the same anonymous label (`account-1`, `account-2`, …) and the
+    secrets are dropped on return. Nothing here hashes or stores a key — a
+    fingerprint would be a second copy of the secret for no added answer.
+    """
+    try:
+        config = json.loads(OPENCLAW_CONFIG.read_text())
+    except Exception:  # noqa: BLE001
+        return {}
+    providers = ((config.get('models') or {}).get('providers') or {})
+    accounts, labels = {}, {}
+    for name, provider in providers.items():
+        # baseUrl, then the name: a provider that carries no key of its own is
+        # its own account rather than a silent match with someone else's.
+        identity = str(provider.get('apiKey')
+                       or provider.get('baseUrl') or name)
+        labels[name] = accounts.setdefault(identity, f'account-{len(accounts) + 1}')
+    accounts.clear()
+    return labels
+
+
 def check_model_chain_health(r):
     """A hop that will never recover, told apart from one that just timed out.
 
@@ -1404,6 +1487,7 @@ def main():
         check_host_crontab_targets,
         check_host_cron_logs,
         check_publish_backlog,
+        check_fallback_chain_shape,
         check_model_chain_health,
         check_generated_cron_docs,
         check_research_artifacts,

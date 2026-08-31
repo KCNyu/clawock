@@ -522,6 +522,14 @@ def test_strategy_cron_provider_order_is_fixed_policy():
 
     # This concrete order is policy. Reordering it requires a deliberate human
     # decision; do not make this expectation follow the contract dynamically.
+    #
+    # #1242: `zen/deepseek-v4-flash` left the executed rotation on 2026-09-01.
+    # Its account answers `401 Insufficient balance` — measured again that
+    # morning on both the zen and the go endpoint — so every slot spent a round
+    # trip on a hop that could only fail, and the chain reported three hops long
+    # while two of them were one MiniMax account. It stays in
+    # `model_candidates`, which is the allowed set rather than the rotation:
+    # topping the balance up is the only thing needed to put it back.
     assert {
         name: {
             'model': profiles[name].get('model'),
@@ -532,7 +540,7 @@ def test_strategy_cron_provider_order_is_fixed_policy():
     } == {
         'report': {
             'model': 'minimax/MiniMax-M3',
-            'fallbacks': ['minimax-2/MiniMax-M3', 'zen/deepseek-v4-flash'],
+            'fallbacks': ['minimax-2/MiniMax-M3'],
             'model_candidates': [
                 'minimax/MiniMax-M3',
                 'minimax-2/MiniMax-M3',
@@ -543,7 +551,7 @@ def test_strategy_cron_provider_order_is_fixed_policy():
         },
         'intraday': {
             'model': 'minimax/MiniMax-M3',
-            'fallbacks': ['minimax-2/MiniMax-M3', 'zen/deepseek-v4-flash'],
+            'fallbacks': ['minimax-2/MiniMax-M3'],
             'model_candidates': [
                 'minimax/MiniMax-M3',
                 'minimax-2/MiniMax-M3',
@@ -554,7 +562,7 @@ def test_strategy_cron_provider_order_is_fixed_policy():
         },
         'brief': {
             'model': 'minimax/MiniMax-M3',
-            'fallbacks': ['minimax-2/MiniMax-M3', 'zen/deepseek-v4-flash'],
+            'fallbacks': ['minimax-2/MiniMax-M3'],
             'model_candidates': [
                 'minimax/MiniMax-M3',
                 'minimax-2/MiniMax-M3',

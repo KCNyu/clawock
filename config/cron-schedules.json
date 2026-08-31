@@ -22,8 +22,7 @@
         "anthropic/claude-sonnet-4-6"
       ],
       "fallbacks": [
-        "minimax-2/MiniMax-M3",
-        "zen/deepseek-v4-flash"
+        "minimax-2/MiniMax-M3"
       ],
       "thinking": "adaptive",
       "message_template": "config/cron-payloads/report.md",
@@ -72,8 +71,7 @@
         "anthropic/claude-sonnet-4-6"
       ],
       "fallbacks": [
-        "minimax-2/MiniMax-M3",
-        "zen/deepseek-v4-flash"
+        "minimax-2/MiniMax-M3"
       ],
       "thinking": "adaptive",
       "message_template": "config/cron-payloads/intraday.md",
@@ -135,8 +133,7 @@
         "anthropic/claude-sonnet-4-6"
       ],
       "fallbacks": [
-        "minimax-2/MiniMax-M3",
-        "zen/deepseek-v4-flash"
+        "minimax-2/MiniMax-M3"
       ],
       "thinking": "adaptive",
       "message_template": "config/cron-payloads/brief.md",
