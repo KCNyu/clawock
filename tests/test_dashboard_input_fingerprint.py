@@ -75,3 +75,137 @@ def test_snapshot_filter_and_the_1040_roller_cannot_drift_apart():
     from clawock.publish.dashboard import SNAPSHOT_FNAME_RE
 
     assert SNAPSHOT_FNAME_RE is history_store.DATED_FILE_RE
+
+
+# ── the drift that #846 shipped and #1217 found ─────────────────────────────
+
+def _data_plane_reads(monkeypatch) -> set[str]:
+    """Filenames under assets/data/ that a real projection actually touches.
+
+    Recorded rather than listed. A grep for `_embed(...)` would miss the reads
+    that spell the path out inline — `lev_regime.json`, `macro.json` and the
+    workflow ledger are all read that way — and those were three of the files
+    the fingerprint was missing, so a source-scanning gate would have passed
+    while the bug was live.
+    """
+    import os
+    import pathlib
+
+    from clawock.publish import dashboard
+
+    seen: set[str] = set()
+    # String comparison, not `Path.resolve()`: resolve() calls stat(), which is
+    # one of the methods patched below, and the recursion is immediate.
+    root = os.path.abspath(dashboard.WS_ROOT / 'assets' / 'data')
+
+    def _note(path):
+        text = os.path.abspath(str(path))
+        if os.path.dirname(text) == root:
+            seen.add(os.path.basename(text))
+
+    for name in ('read_text', 'read_bytes', 'open', 'exists', 'stat'):
+        original = getattr(pathlib.Path, name)
+
+        def wrapper(self, *args, _original=original, **kwargs):
+            _note(self)
+            return _original(self, *args, **kwargs)
+
+        monkeypatch.setattr(pathlib.Path, name, wrapper)
+
+    dashboard.build_projection()
+    return seen
+
+
+def test_fingerprint_covers_every_data_plane_file_the_build_reads(monkeypatch):
+    """The gate that keeps #1217 from happening again.
+
+    `--skip-if-unchanged` is only safe while the fingerprint sees everything the
+    build reads. It did not: of the data plane the projection embeds, exactly
+    `risk.json` was fingerprinted, so a scheduled scan pushing a new
+    `sentiment.json` left the fingerprint byte-identical and the publisher
+    skipped the rebuild. This runs a real projection, records what it read, and
+    fails on any input the fingerprint cannot see.
+    """
+    from clawock.publish import dashboard
+
+    covered = {
+        name.split('/')[-1] for name in dashboard.FINGERPRINT_FILES
+        if name.startswith('assets/data/')
+    }
+    # The build's own four outputs are read as the previous generation, never as
+    # an input; fingerprinting them would make every build invalidate the next
+    # tick's gate.
+    outputs = {'dashboard.json', 'overview.json', 'decision_audit.json',
+               'shadow_portfolio.json'}
+
+    read = _data_plane_reads(monkeypatch)
+    assert read, 'the instrumented projection recorded no data-plane read at all'
+    uncovered = {name for name in read
+                 if name.endswith('.json')} - covered - outputs
+    assert not uncovered, (
+        f'the projection reads {sorted(uncovered)} and the fingerprint cannot '
+        f'see them: --skip-if-unchanged would keep publishing a stale embed of '
+        f'each until an unrelated input happened to move')
+
+
+def test_a_scheduled_scan_alone_moves_the_fingerprint(tmp_path):
+    """The concrete case that was silent: overnight, a scan is the only writer.
+
+    Every other input class already had a test here. This one — the data plane —
+    did not, which is why the omission survived from #846 to #1217.
+    """
+    ws = _desk(tmp_path)
+    data = ws / 'assets' / 'data'
+    for name in ('sentiment.json', 'macro.json', 'lev_regime.json',
+                 'workflow-outcomes.json'):
+        (data / name).write_text('{"v": 1}')
+
+    before = dashboard_input_fingerprint(ws)
+    for name in ('sentiment.json', 'macro.json', 'lev_regime.json',
+                 'workflow-outcomes.json'):
+        (data / name).write_text('{"v": 2}')
+    assert dashboard_input_fingerprint(ws) != before, (
+        'a scheduled scan rewriting the embedded data plane must move it')
+
+
+def test_an_unchanged_portfolio_does_not_move_the_snapshot(tmp_path, monkeypatch):
+    """The write that would have made the harness gate unfireable (#1217).
+
+    `refresh_today_snapshot` runs immediately before the fingerprint is taken
+    and used to copy `portfolio.json` over today's snapshot unconditionally, so
+    every weekday postflight moved `memory/snapshots/` whether or not the desk
+    had. Nothing reads a snapshot's mtime, so the write bought nothing and cost
+    the gate its only chance to fire.
+    """
+    from datetime import datetime
+
+    from clawock.harness import _harness_common as harness
+
+    ws = _desk(tmp_path)
+    (ws / 'portfolio.json').write_text('{"holdings": []}')
+
+    class _Weekday(datetime):
+        @classmethod
+        def now(cls, tz=None):
+            return cls(2026, 8, 31, 12, 0)   # a Monday
+
+    monkeypatch.setattr('datetime.datetime', _Weekday)
+
+    ok, name = harness.refresh_today_snapshot(ws)
+    assert ok, name
+    snap = ws / 'memory' / 'snapshots' / name
+    before = snap.stat().st_mtime_ns
+    fingerprint = dashboard_input_fingerprint(ws)
+
+    ok, _ = harness.refresh_today_snapshot(ws)
+    assert ok
+    assert snap.stat().st_mtime_ns == before, (
+        'an unchanged portfolio rewrote the snapshot, which moves the '
+        'fingerprint and leaves --skip-if-unchanged permanently unfireable')
+    assert dashboard_input_fingerprint(ws) == fingerprint
+
+    (ws / 'portfolio.json').write_text('{"holdings": [1]}')
+    ok, _ = harness.refresh_today_snapshot(ws)
+    assert ok
+    assert snap.read_text() == '{"holdings": [1]}', 'a real change must still land'
+    assert dashboard_input_fingerprint(ws) != fingerprint
