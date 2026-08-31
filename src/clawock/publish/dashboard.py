@@ -487,6 +487,9 @@ def build_debate_sidecar(decisions, limit=DEBATE_SIDECAR_LIMIT):
         frames = debate.get('frames')
         if isinstance(frames, list) and frames:
             row['frames'] = [str(f) for f in frames]
+        cited = debate.get('evidence_ids')
+        if isinstance(cited, list) and cited:
+            row['evidence_ids'] = [str(ref) for ref in cited]
         rows.append(row)
         if len(rows) >= limit:
             break
@@ -1341,7 +1344,7 @@ def compute_debate_metrics(recent=20):
     """
     paths = sorted(glob.glob(str(WS_ROOT / 'memory' / '*-plan.json')))[-recent:]
     n_actions = n_active = n_contested = n_contested_known = 0
-    n_debate = n_bear = n_attacked = n_frames = 0
+    n_debate = n_bear = n_attacked = n_frames = n_cited = 0
     buckets = {}
     plans_n = 0
     for p in paths:
@@ -1370,6 +1373,8 @@ def compute_debate_metrics(recent=20):
             debate = a.get('debate')
             if isinstance(debate, dict) and debate:
                 n_debate += 1
+                if debate.get('evidence_ids'):
+                    n_cited += 1
                 if str(debate.get('bear') or '').strip():
                     n_bear += 1
                 if str(debate.get('attacked_consensus') or '').strip():
@@ -1393,6 +1398,7 @@ def compute_debate_metrics(recent=20):
         'debate_coverage': {
             'decisions': n_actions,
             'with_debate': n_debate,
+            'with_evidence_ids': n_cited,
             'with_bear_case': n_bear,
             'with_attacked_consensus': n_attacked,
             'with_frames': n_frames,

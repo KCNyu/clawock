@@ -174,6 +174,26 @@ DEBATE_TEXT_CHARS = 600
 
 DEBATE_TEXT_FIELDS = ("bull", "bear", "attacked_consensus", "judge")
 
+#: Namespaces a debate case may cite, and the only ones postflight can resolve
+#: against the morning's context (#1141). The portable workflow lane has
+#: required `evidence_ids` on each case since `workflows/validators.py`; the
+#: brief lane accepted a debate that cited nothing, so the two lanes disagreed
+#: about whether an argument owes evidence. A namespace exists here only where
+#: the context carries something stable to point at:
+#:
+#:   news:<event_id>          an event in `news_evidence_graph.events`
+#:   risk:<type>[:<ticker>]   a breach or hard stop in `risk_guardrail`
+#:   quant:<ticker>:<field>   a present, non-null field on that ticker's
+#:                            `quant_signals` row
+#:
+#: There is deliberately no free-text namespace. A citation that cannot be
+#: resolved is worth less than no citation: it reads as evidence and is not.
+DEBATE_EVIDENCE_NAMESPACES = ("news", "risk", "quant")
+
+#: Cap per debate block. Six references is already more than a two-paragraph
+#: argument can carry honestly.
+DEBATE_EVIDENCE_MAX = 6
+
 
 def normalize_debate(raw) -> dict | None:
     """The debate that produced one decision, as data rather than prose (#1117).
@@ -214,7 +234,34 @@ def normalize_debate(raw) -> dict | None:
                 kept.append(name)
         if kept:
             out["frames"] = kept[:3]
+    cited = normalize_debate_evidence(raw.get("evidence_ids"))
+    if cited:
+        out["evidence_ids"] = cited
     return out or None
+
+
+def normalize_debate_evidence(raw) -> list[str]:
+    """Citations in a namespace this repository can resolve, deduped and capped.
+
+    Shape only — whether `news:evt_abc` names a real event is a question about
+    the morning's context, which this module does not have; `brief_postflight`
+    answers it and drops what it cannot resolve. Here a reference that is not
+    `<namespace>:<rest>` in a known namespace is discarded, because an
+    unresolvable citation reads as evidence without being any.
+    """
+    if isinstance(raw, str):
+        raw = [raw]
+    if not isinstance(raw, list):
+        return []
+    kept: list[str] = []
+    for item in raw:
+        ref = str(item or "").strip()
+        namespace, _, rest = ref.partition(":")
+        if namespace not in DEBATE_EVIDENCE_NAMESPACES or not rest.strip():
+            continue
+        if ref not in kept:
+            kept.append(ref)
+    return kept[:DEBATE_EVIDENCE_MAX]
 
 
 def legacy_action_to_decision(action: dict, plan_date: str, ordinal: int = 0) -> dict:
@@ -429,12 +476,21 @@ def validate_decision(d: dict) -> list[str]:
         if not isinstance(debate, dict) or not debate:
             errors.append("debate must be null or a non-empty object")
         else:
-            unknown = set(debate) - set(DEBATE_TEXT_FIELDS) - {"frames"}
+            unknown = set(debate) - set(DEBATE_TEXT_FIELDS) - {"frames", "evidence_ids"}
             if unknown:
                 errors.append(f"unknown debate field(s) {sorted(unknown)}")
             for field in DEBATE_TEXT_FIELDS:
                 if field in debate and not isinstance(debate[field], str):
                     errors.append(f"debate.{field} must be text")
+            cited = debate.get("evidence_ids")
+            if cited is not None and (
+                    not isinstance(cited, list)
+                    or any(not isinstance(ref, str) for ref in cited)
+                    or normalize_debate_evidence(cited) != cited):
+                errors.append(
+                    "debate.evidence_ids must be unique refs in "
+                    f"{list(DEBATE_EVIDENCE_NAMESPACES)}, at most "
+                    f"{DEBATE_EVIDENCE_MAX}")
             frames = debate.get("frames")
             if frames is not None and (
                     not isinstance(frames, list)
