@@ -14,6 +14,7 @@ import json
 import math
 import os
 import re
+import statistics
 import sys
 import time
 from datetime import date, datetime, timedelta, timezone
@@ -1409,6 +1410,66 @@ def compute_debate_metrics(recent=20):
                  '待 plan 开始标记后，与 calibration 联合检验「被争议的 call 是否校准更好」。'
                  'debate_coverage 量的是另一件事：辩论本身有没有留下可核对的结构'
                  '（反方案文、被攻击的共识、Judge frame），而不是它得出了什么结论。'),
+    }
+
+
+def compute_magnitude_metrics(rows=None):
+    """Was the size of the move right, not just its direction? (#1159)
+
+    The book grades direction (`evaluation.outcome`) and grades how sure it was
+    (`confidence`, prequentially, by Brier). It has never graded **how far** —
+    QuantConnect's `InsightScore` calls that leg Magnitude, and porting it was
+    closed once on the grounds that it would need a new required field on every
+    decision. It does not: the field is optional, and this is the series that
+    says whether it is being written, exactly as `debate_coverage` did for
+    #1117.
+
+    Scored at t1 only, and deliberately against `underlying_return_t1_pct`
+    rather than `benefit_t1_pct`. Benefit is measured against a counterfactual —
+    it answers "was acting better than not acting" — while a forecast of "this
+    falls 8%" is a claim about the name, so the name's own return is the only
+    honest counterpart. t5 and t20 have no underlying-return column to compare
+    against, so they are not scored rather than scored against the wrong number.
+
+    `mean_error_pct` is signed and is the interesting one: a book that is right
+    about direction and systematically too dramatic about size has a positive
+    bias here and a fine hit rate, and no existing number on this dashboard
+    would show it.
+    """
+    if rows is None:
+        rows = decision_v2.load_decisions(WS_ROOT / 'memory' / 'decisions.jsonl')
+    scored, absolute, signed, agreed = 0, [], [], 0
+    stated = 0
+    for row in rows:
+        expected = row.get('expected_move_pct')
+        if expected is not None:
+            stated += 1
+        evaluation = row.get('evaluation') or {}
+        realized = evaluation.get('underlying_return_t1_pct')
+        if expected is None or realized is None:
+            continue
+        if evaluation.get('status') != 'settled':
+            continue
+        scored += 1
+        absolute.append(abs(float(expected) - float(realized)))
+        signed.append(float(expected) - float(realized))
+        if (float(expected) >= 0) == (float(realized) >= 0):
+            agreed += 1
+    return {
+        'decisions': len(rows),
+        'with_expected_move': stated,
+        'coverage_pct': round(100 * stated / len(rows), 1) if rows else None,
+        'scored_t1': scored,
+        'mean_abs_error_pct': round(statistics.fmean(absolute), 3) if absolute else None,
+        'mean_error_pct': round(statistics.fmean(signed), 3) if signed else None,
+        'direction_agreement': round(agreed / scored, 3) if scored else None,
+        'note': ('幅度校准（#1159）：`expected_move_pct` 是选填字段，这条先是覆盖率序列 —— '
+                 '和 #1117 的 debate 一样，必填与否要对着序列谈，不是对着愿望谈。'
+                 '只在 t1 打分，且对的是 `underlying_return_t1_pct`（这只票自己的收益）'
+                 '而不是 `benefit_t1_pct`（相对不动的反事实）：'
+                 '「预期跌 8%」是关于这只票的断言，拿反事实去对它是对错了东西。'
+                 'mean_error_pct 带符号：方向对、幅度系统性夸大的账本，'
+                 '命中率好看而这个数为正，现有的任何一个指标都看不出来。'),
     }
 
 
@@ -3551,6 +3612,7 @@ def build_projection(previous_source=None, shadow_previous=None):
     # as the ledger total (#737).
     out['decision_trace_scope'] = build_decision_trace_scope(_traces, limit=40)
     out['debate_metrics'] = compute_debate_metrics()
+    out['magnitude_metrics'] = compute_magnitude_metrics()
     out['plan_timeline'] = compute_plan_timeline(plans, limit=15)
     out['weight_confidence'] = compute_weight_confidence(portfolio)
     # v2.1: broker-style analytics
