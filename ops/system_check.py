@@ -12,7 +12,6 @@ Used by:
   • Manual: `python3 ops/system_check.py`
 """
 import glob
-import hashlib
 import json
 import os
 import re
@@ -1005,21 +1004,28 @@ def check_fallback_chain_shape(r):
 
 
 def _provider_api_keys():
-    """provider name → its credential, as an opaque fingerprint. Live box only.
+    """provider name → an opaque label for the account behind it. Live box only.
 
-    The values are never printed and never compared to anything but each other;
-    what the caller needs is only whether two providers are the same account.
+    The caller's only question is whether two providers are the same account,
+    so the credential itself never leaves this function: providers sharing one
+    are handed the same anonymous label (`account-1`, `account-2`, …) and the
+    secrets are dropped on return. Nothing here hashes or stores a key — a
+    fingerprint would be a second copy of the secret for no added answer.
     """
     try:
         config = json.loads(OPENCLAW_CONFIG.read_text())
     except Exception:  # noqa: BLE001
         return {}
     providers = ((config.get('models') or {}).get('providers') or {})
-    keys = {}
+    accounts, labels = {}, {}
     for name, provider in providers.items():
-        secret = provider.get('apiKey') or provider.get('baseUrl') or name
-        keys[name] = hashlib.sha256(str(secret).encode()).hexdigest()[:12]
-    return keys
+        # baseUrl, then the name: a provider that carries no key of its own is
+        # its own account rather than a silent match with someone else's.
+        identity = str(provider.get('apiKey')
+                       or provider.get('baseUrl') or name)
+        labels[name] = accounts.setdefault(identity, f'account-{len(accounts) + 1}')
+    accounts.clear()
+    return labels
 
 
 def check_model_chain_health(r):
