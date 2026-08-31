@@ -84,7 +84,7 @@ def test_a_throttled_feed_publishes_no_count_at_all():
     """The whole point. `None`, never `0`, and the status says which."""
     rows = _rows()
     sp.scan_reddit(rows, REGISTRY, sleep=lambda _seconds: None,
-                   fetch=lambda query, sleep=None: (None, 'throttled'))
+                   fetch=lambda query, sleep=None, between=None: (None, 'throttled'))
 
     assert [row['reddit_mentions_7d'] for row in rows] == [None, None, None]
     assert {row['reddit_status'] for row in rows} == {'throttled'}
@@ -96,7 +96,7 @@ def test_a_throttled_feed_publishes_no_count_at_all():
 def test_an_unparseable_feed_also_publishes_no_count():
     rows = _rows()
     sp.scan_reddit(rows, REGISTRY, sleep=lambda _seconds: None,
-                   fetch=lambda query, sleep=None: ('not xml at all', 'ok'))
+                   fetch=lambda query, sleep=None, between=None: ('not xml at all', 'ok'))
 
     assert [row['reddit_mentions_7d'] for row in rows] == [None, None, None]
     assert sp.SOURCE_STATUS['reddit'] == 'failed'
@@ -118,7 +118,7 @@ def test_a_dictionary_word_in_an_unrelated_subreddit_is_not_a_mention():
         ('u/The_optiontrader', 'MINIMAX update', now - timedelta(days=1), ''),
     ])
     sp.scan_reddit(rows, REGISTRY, now=now, sleep=lambda _s: None,
-                   fetch=lambda query, sleep=None: (feed, 'ok'))
+                   fetch=lambda query, sleep=None, between=None: (feed, 'ok'))
     by_ticker = {row['ticker']: row for row in rows}
 
     assert by_ticker['00100']['reddit_mentions_7d'] == 0
@@ -138,7 +138,7 @@ def test_a_mention_older_than_the_window_does_not_count():
         ('investing', 'Rocket Lab today', now - timedelta(days=1), ''),
     ])
     sp.scan_reddit(rows, REGISTRY, now=now, sleep=lambda _s: None,
-                   fetch=lambda query, sleep=None: (feed, 'ok'))
+                   fetch=lambda query, sleep=None, between=None: (feed, 'ok'))
 
     assert {r['ticker']: r['reddit_mentions_7d'] for r in rows}['RKLX'] == 1
 
@@ -149,7 +149,7 @@ def test_a_full_feed_reports_the_count_as_a_floor():
     feed = _feed([('stocks', 'Rocket Lab', now - timedelta(hours=index), '')
                   for index in range(sp.REDDIT_LIMIT)])
     sp.scan_reddit(rows, REGISTRY, now=now, sleep=lambda _s: None,
-                   fetch=lambda query, sleep=None: (feed, 'ok'))
+                   fetch=lambda query, sleep=None, between=None: (feed, 'ok'))
 
     assert all(row['reddit_mentions_capped'] for row in rows), (
         'there is no page two, so a busier week looks like this one'
@@ -161,13 +161,14 @@ def test_the_producer_retries_a_throttle_before_giving_up(monkeypatch):
 
     def get(url, **kwargs):
         calls.append(url)
-        return _Response(429) if len(calls) < 3 else _Response(200, _feed([]))
+        return _Response(429) if len(calls) < 2 else _Response(200, _feed([]))
 
     monkeypatch.setattr(sp.requests, 'get', get)
     text, status = sp.fetch_reddit('RKLB', sleep=lambda _seconds: None)
 
-    assert (status, len(calls)) == ('ok', 3)
+    assert (status, len(calls)) == ('ok', 2)
     assert text is not None
+    assert len(calls) <= len(sp.REDDIT_RETRY_WAITS)
 
 
 def test_the_validator_refuses_a_number_from_a_source_that_did_not_answer(tmp_path):
@@ -240,6 +241,75 @@ def test_the_retry_backoff_is_reachable_by_a_test_that_patches_this_module(monke
     text, status = sp.fetch_reddit('RKLB')
 
     assert (text, status) == (None, 'throttled')
-    assert slept == [w for w in sp.REDDIT_RETRY_WAITS if w], (
+    waits = [w for w in sp.REDDIT_RETRY_WAITS if w]
+    assert len(slept) == len(waits), (
         'the backoff has to go through the module attribute a test can reach'
     )
+    for actual, wait in zip(slept, waits):
+        assert 0 < actual <= wait, (
+            f'{actual} is not the spacing still owed against {wait}'
+        )
+
+
+def test_the_backoff_is_paid_with_the_other_source_instead_of_a_sleep(monkeypatch):
+    """Up to 105 idle seconds inside a five-minute job, before this.
+
+    Google News does not share Reddit's rate limit, so a minute of news fetching
+    satisfies Reddit's spacing for free. What must be slept is only whatever is
+    still owed afterwards — here the fake news pass burns the whole wait, so
+    nothing is.
+    """
+    clock = {'t': 0.0}
+    slept, ran = [], []
+
+    def news():
+        clock['t'] += 90.0  # a real news sweep, in fake seconds
+        ran.append(True)
+
+    monkeypatch.setattr(sp.requests, 'get', lambda *a, **k: _Response(429))
+
+    text, status = sp.fetch_reddit(
+        'RKLB', sleep=slept.append, monotonic=lambda: clock['t'],
+        between=sp.run_once(news))
+
+    assert (text, status) == (None, 'throttled')
+    assert ran == [True], 'the other source runs once, not once per retry'
+    assert slept == [], (
+        'ninety seconds of news covers a thirty-five second spacing; sleeping '
+        'on top of it is the tax this change removes'
+    )
+    assert len(sp.REDDIT_RETRY_WAITS) == 2, (
+        'a third attempt is a second wait, and the news pass can only pay for '
+        'one — the rest would be idle time in a five-minute job'
+    )
+
+
+def test_the_news_pass_still_runs_when_reddit_answers_immediately():
+    """The fast path never spends the backoff, so the caller must run it."""
+    ran = []
+    once = sp.run_once(lambda: ran.append(True))
+
+    sp.scan_reddit(_rows(), REGISTRY, sleep=lambda _s: None, between=once,
+                   fetch=lambda query, sleep=None, between=None: (_feed([]), 'ok'))
+    once()
+
+    assert ran == [True], 'exactly once, on either path'
+
+
+def test_the_feed_denominator_is_published_beside_the_counts():
+    """Two runs eleven minutes apart scored SPCX 2 and then 0.
+
+    `sort=new` over a fuzzy OR match samples the newest matching posts; it does
+    not enumerate them. Without the sample size beside the counts a daily wobble
+    reads as a change in what people are talking about.
+    """
+    now = datetime.now(timezone.utc)
+    rows = _rows()
+    feed = _feed([
+        ('stocks', 'Rocket Lab today', now - timedelta(days=1), ''),
+        ('stocks', 'Rocket Lab in 2012', now - timedelta(days=400), ''),
+    ])
+    sp.scan_reddit(rows, REGISTRY, now=now, sleep=lambda _s: None,
+                   fetch=lambda query, sleep=None, between=None: (feed, 'ok'))
+
+    assert sp.FEED_SUMMARY == {'entries': 2, 'within_window': 1}

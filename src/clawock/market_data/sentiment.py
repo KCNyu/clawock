@@ -67,7 +67,14 @@ REDDIT_SEARCH = 'https://www.reddit.com/search.rss'
 #: book: 98 entries returned, 97 inside the window, **42** actually naming a
 #: holding.
 REDDIT_LIMIT = 100
-REDDIT_RETRY_WAITS = (0, 35, 70)
+
+#: Minimum spacing between attempts, and **two attempts, not three**. Reddit
+#: refuses for about thirty seconds after answering, so a second try is worth
+#: having; a third was worth 70 more seconds of a five-minute job's budget, and
+#: the news pass can only pay for one wait. The honest-null path exists exactly
+#: so a bad day costs nothing: an unanswered scan publishes no counts, says so,
+#: and asks again tomorrow. That is a better trade than a workflow that idles.
+REDDIT_RETRY_WAITS = (0, 35)
 TIMEOUT = 10
 
 #: The declared bot UA is the one that works. A browser-shaped UA was rate
@@ -75,6 +82,11 @@ TIMEOUT = 10
 #: 2026-08-31), so pretending to be Chrome here would be both dishonest and
 #: worse.
 SOURCE_STATUS = {'reddit': 'failed', 'google_news': 'failed'}
+
+#: What the one Reddit request actually returned, published beside the counts.
+#: The per-ticker number is a filtered slice of this, and without the slice's
+#: denominator it reads like a census.
+FEED_SUMMARY = {'entries': None, 'within_window': None}
 
 #: How far back a mention counts. Applied here, on each entry's timestamp,
 #: because the endpoint's own `t=week` is ignored under `sort=new` — a probe
@@ -231,7 +243,26 @@ def _feed_entries(text: str, cutoff: datetime) -> tuple[list[dict], int]:
     return kept, total
 
 
-def fetch_reddit(query: str, *, sleep=None):
+def run_once(work):
+    """Wrap `work` so it runs on the first call and no-ops afterwards.
+
+    The Reddit backoff spends itself on the news scan, but the news scan has to
+    happen whether or not Reddit ever bounces. Threading "did it run" back out
+    through two return values is the version of this that goes wrong the first
+    time someone adds a third caller.
+    """
+    state = {'done': False}
+
+    def once():
+        if state['done']:
+            return
+        state['done'] = True
+        work()
+
+    return once
+
+
+def fetch_reddit(query: str, *, sleep=None, monotonic=None, between=None):
     """(feed text, status). `status` is `ok`, `throttled` or `failed`.
 
     A 429 is kept distinct from every other failure on purpose: throttled means
@@ -239,17 +270,34 @@ def fetch_reddit(query: str, *, sleep=None):
     from here at all. The first is worth retrying tomorrow; the second is worth
     moving the scan somewhere else, and a single `failed` bucket cannot tell
     anyone which one happened.
+
+    **`REDDIT_RETRY_WAITS` is minimum spacing between attempts, not sleep.**
+    Written as `sleep(wait)` over three attempts it cost this job up to 105
+    seconds of doing literally nothing, inside a workflow with a five-minute
+    budget — while the other source in this module needed about a minute of
+    network time that does not compete for Reddit's rate limit at all. So
+    `between` is the work to do instead of waiting, and only whatever spacing is
+    still owed *after* that work is actually slept. On a normal run that is
+    zero. A backoff a scan can spend on its other half is free; one that blocks
+    is a tax paid on every throttled run.
     """
     # Resolved at call time, not bound in the signature: a default of
     # `time.sleep` is captured at import, so a test patching this module's
     # `time.sleep` would still sleep through the real backoff — measured at 105
     # seconds in one suite run before this line existed.
     sleep = sleep or time.sleep
+    monotonic = monotonic or time.monotonic
     url = f'{REDDIT_SEARCH}?q={quote(query)}&sort=new&limit={REDDIT_LIMIT}'
     status = 'failed'
+    attempted_at = None
     for wait in REDDIT_RETRY_WAITS:
         if wait:
-            sleep(wait)
+            if between is not None:
+                between()  # `run_once` — the caller runs it again and it no-ops
+            owed = wait - (monotonic() - attempted_at)
+            if owed > 0:
+                sleep(owed)
+        attempted_at = monotonic()
         try:
             response = requests.get(url, headers=HEADERS, timeout=TIMEOUT)
         except Exception as exc:
@@ -262,7 +310,7 @@ def fetch_reddit(query: str, *, sleep=None):
     return None, status
 
 
-def scan_reddit(rows, registry, *, now=None, sleep=None, fetch=None):
+def scan_reddit(rows, registry, *, now=None, sleep=None, fetch=None, between=None):
     """Fill every row's Reddit fields from one search, or mark them unfetched.
 
     The contract that matters is the failure one: when the feed does not come
@@ -287,7 +335,7 @@ def scan_reddit(rows, registry, *, now=None, sleep=None, fetch=None):
     if not query:
         SOURCE_STATUS['reddit'] = 'failed'
         return 0
-    text, status = (fetch or fetch_reddit)(query, sleep=sleep)
+    text, status = (fetch or fetch_reddit)(query, sleep=sleep, between=between)
     if status != 'ok' or text is None:
         for row in rows:
             row['reddit_status'] = status
@@ -309,6 +357,13 @@ def scan_reddit(rows, registry, *, now=None, sleep=None, fetch=None):
     # there is no page two, so a busier week is indistinguishable from this one
     # at the top of the list. Saying so beats publishing a total that is not one.
     capped = total >= REDDIT_LIMIT and len(entries) == total
+    # And the denominator travels, because the recall stage is not stable:
+    # two runs eleven minutes apart returned different entry sets for the same
+    # query (SPCX scored 2 and then 0). `sort=new` over a fuzzy OR match is a
+    # *sample* of the newest matching posts, not a census, and a reader who
+    # cannot see how many entries the sample held would read a daily wobble as a
+    # change in what people are talking about.
+    FEED_SUMMARY.update(entries=total, within_window=len(entries))
     for row in rows:
         patterns = [_matcher(term) for term in terms[row['ticker']]]
         matched = [entry for entry in entries
@@ -359,29 +414,25 @@ def fetch_google_news(query, hl='en-US', gl='US', limit=8, return_status=False):
 
 
 def scan_ticker(t):
-    """Per-ticker news scan. Reddit is a separate pass — see `scan_reddit`.
+    """Per-ticker news fields. Reddit is a separate pass — see `scan_reddit`.
 
-    The two sources are no longer interleaved because their rate limits are not
+    The two sources are not swept together because their rate limits are not
     comparable: Google News answers every time, Reddit answers about half the
     time and has to be asked again. Sweeping them together made the whole scan
-    move at the slower one's pace.
+    move at the slower one's pace. They are still *interleaved* in time — this
+    pass is what the Reddit backoff is spent on — but each fills its own fields.
     """
     tk = t['ticker']
     name = t['name']
     region = t['region']
 
     print(f'  [{region[:2]}] {tk} {name[:18]}', end='  ', flush=True)
+    # News fields ONLY. This is merged into a row the Reddit pass may already
+    # have filled, and returning the Reddit skeleton here would blank a real
+    # mention count back to `None` whenever the news pass happened to run second
+    # — which is exactly what happens on the fast path, where Reddit answers on
+    # the first attempt and never spends its backoff on this work.
     result = {
-        'ticker': tk,
-        'name':   name,
-        'region': region,
-        # Reddit fields are filled by `scan_reddit`; `None` until then, because
-        # a name that has not been asked about has no mention count.
-        'reddit_mentions_7d': None,
-        'reddit_posts':       [],
-        'reddit_status':      'not_attempted',
-        'reddit_mentions_capped': False,
-        'reddit_query_terms': [],
         'google_news_en':     [],
         'google_news_zh':     [],
     }
@@ -411,6 +462,7 @@ def main(argv=None):
         output = workspace / output
 
     SOURCE_STATUS.update(reddit='failed', google_news='failed')
+    FEED_SUMMARY.update(entries=None, within_window=None)
     tickers = load_tickers(workspace)
     print(f'Scanning {len(tickers)} active tickers …')
 
@@ -422,9 +474,26 @@ def main(argv=None):
         'tickers': [],
     }
 
-    for t in tickers:
-        out['tickers'].append(scan_ticker(t))
-        time.sleep(0.3)  # global rate-limit safety
+    # Skeleton rows first, news filled in later: the Reddit pass runs one
+    # request for the whole book and may be told to come back in 35 seconds, and
+    # this is the work it spends that wait on. Google News does not share
+    # Reddit's rate limit, so the two are genuinely independent — sleeping
+    # through the backoff with a minute of unrelated fetching still queued was
+    # up to 105 idle seconds inside a five-minute job.
+    out['tickers'] = [{
+        'ticker': t['ticker'], 'name': t['name'], 'region': t['region'],
+        'reddit_mentions_7d': None, 'reddit_posts': [],
+        'reddit_status': 'not_attempted', 'reddit_mentions_capped': False,
+        'reddit_query_terms': [],
+        'google_news_en': [], 'google_news_zh': [],
+    } for t in tickers]
+
+    def news_pass():
+        for row, t in zip(out['tickers'], tickers):
+            row.update(scan_ticker(t))
+            time.sleep(0.3)  # global rate-limit safety
+
+    news = run_once(news_pass)
 
     # Explicit path, `missing_ok`: this producer takes `--workspace`, so the
     # module-level default (resolved from cwd at import) would read another
@@ -432,7 +501,8 @@ def main(argv=None):
     # still get its news scan rather than an exception.
     registry = instruments.load_registry(
         workspace / 'config' / 'instruments.json', missing_ok=True)
-    named = scan_reddit(out['tickers'], registry)
+    named = scan_reddit(out['tickers'], registry, between=news)
+    news()  # no-op when the backoff already spent itself on it
     if SOURCE_STATUS['reddit'] == 'ok':
         print(f'  reddit: {named}/{len(out["tickers"])} names mentioned in the '
               f'last {MENTION_WINDOW_DAYS} days')
@@ -440,6 +510,7 @@ def main(argv=None):
         print(f'  reddit: {SOURCE_STATUS["reddit"]} — every count is null, '
               f'which is not the same as zero')
     out['source_status'] = dict(SOURCE_STATUS)
+    out['reddit_feed'] = dict(FEED_SUMMARY)
 
     output.parent.mkdir(parents=True, exist_ok=True)
     safe_write_json(output, out)
