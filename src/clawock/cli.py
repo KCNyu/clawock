@@ -625,7 +625,11 @@ def main(argv=None) -> int:
 
     for workflow in ("brief", "intraday"):
         harness = sub.add_parser(workflow, help=f"run {workflow} harness in-process")
-        harness.add_argument("harness_phase", choices=("preflight", "postflight"))
+        # `render` is brief-only: it is the step that turns the model's judgment
+        # into the published report, and only the brief has one.
+        phases = (("preflight", "postflight", "render") if workflow == "brief"
+                  else ("preflight", "postflight"))
+        harness.add_argument("harness_phase", choices=phases)
         harness.add_argument("--market", choices=("hk", "us"))
         harness.add_argument("--context-id")
         harness.add_argument("--text-file", type=Path)

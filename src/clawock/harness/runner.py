@@ -15,6 +15,7 @@ from .model import RunRequest
 PHASE_MODULES = {
     ("brief", "preflight"): "clawock.harness.brief_preflight",
     ("brief", "postflight"): "clawock.harness.brief_postflight",
+    ("brief", "render"): "clawock.harness.brief_render",
     ("report", "preflight"): "clawock.harness.report_preflight",
     ("report", "postflight"): "clawock.harness.report_postflight",
     ("intraday", "preflight"): "clawock.harness.intraday_preflight",

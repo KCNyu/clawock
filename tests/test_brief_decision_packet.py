@@ -165,6 +165,26 @@ def _valid_overlay(packet):
         row["rationale"] = "在趋势和风险约束冲突时优先风险。"
         row["falsifier"] = "突破失效或一手证据转负。"
         row["next_evidence"] = "下一时段价格确认与发行人披露。"
+        row["fundamentals"] = "最新披露期营收与利润率无转向。"
+        row["cross_market"] = "跟随指数，未见背离。"
+        row["sentiment_read"] = "热度低，无硬催化。"
+        row["peer_read"] = "板块内中位，不构成换股理由。"
+    overlay["narrative"] = {
+        "regime_read": "两地趋势 OFF，杠杆上限收紧。",
+        "bull": "超卖叠加硬催化，最坏定价已部分吃掉。",
+        "bear": "纪律未执行是最大风险，β 放大回撤。",
+        "devils_advocate": "最强共识建立在单一情绪来源上，不可重复。",
+        "attacked_consensus": "板块仍有 alpha 这条共识",
+        "risk_voice_first": "conservative",
+        "aggressive": "留一半敞口赌反弹。",
+        "conservative": "波动与回撤三条都破阈值，硬闸今天必须执行。",
+        "neutral": "硬闸执行，其余维持持有。",
+        "sector_read": "板块内部分化，持仓落后龙头。",
+        "macro_read": "指数小幅向下但不构成 regime 切换。",
+        "calibration_read": "risk_rule 是唯一 edge 显著的方向。",
+        "next_session": ["开盘后确认成交", "收盘前复核杠杆敞口"],
+        "data_holes": ["财报公告日未确认"],
+    }
     return overlay
 
 
@@ -345,6 +365,48 @@ def test_judgment_can_downgrade_but_cannot_invent_a_candidate():
     issues = packet_mod.validate_judgment_overlay(packet, overlay)
 
     assert any("cannot upgrade" in issue for issue in issues)
+
+
+def test_judgment_prose_may_not_carry_layout():
+    """The report is rendered from these fields, so markdown in them is not a
+    style preference — a pipe lands inside a table cell the harness is drawing.
+    """
+    packet = _compiled()
+
+    for field, value in (
+        ("assessment", "多头 | 空头 各执一词"),
+        ("rationale", "**硬闸优先**"),
+        ("falsifier", "- 收复 200 线"),
+    ):
+        overlay = _valid_overlay(packet)
+        overlay["ticker_judgments"][0][field] = value
+        issues = packet_mod.validate_judgment_overlay(packet, overlay)
+        assert any(field in issue and "harness writes the layout" in issue
+                   for issue in issues), f"{field} accepted layout: {value!r}"
+
+
+def test_judgment_narrative_is_required_and_named():
+    packet = _compiled()
+
+    overlay = _valid_overlay(packet)
+    overlay["narrative"]["bear"] = ""
+    assert any("narrative bear must be non-empty" in issue
+               for issue in packet_mod.validate_judgment_overlay(packet, overlay))
+
+    overlay = _valid_overlay(packet)
+    overlay["narrative"]["risk_voice_first"] = "judge"
+    assert any("risk_voice_first" in issue
+               for issue in packet_mod.validate_judgment_overlay(packet, overlay))
+
+    overlay = _valid_overlay(packet)
+    overlay["narrative"]["tier4"] = "额外一层"
+    assert any("narrative unknown fields" in issue and "tier4" in issue
+               for issue in packet_mod.validate_judgment_overlay(packet, overlay))
+
+    overlay = _valid_overlay(packet)
+    overlay["narrative"]["next_session"] = []
+    assert any("next_session must hold 1-8 entries" in issue
+               for issue in packet_mod.validate_judgment_overlay(packet, overlay))
 
 
 def test_judgment_rejects_a_deterministic_candidate_without_removing_the_hint():

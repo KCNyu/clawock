@@ -564,9 +564,11 @@ from ._harness_common import (  # noqa: E402
     rebuild_dashboard,
 )
 from ._watchdog_common import (  # noqa: E402
+    BRIEF_URL_TMPL,
     resolve_wechat_target, send_wechat, build_brief_card, cosend_telegram, already_delivered,
     claim_send, mark_send_started, release_claim, log,
 )
+from clawock.harness import brief_render  # noqa: E402
 
 
 def log_decisions(today):
@@ -764,9 +766,6 @@ def main(argv=None):
     md_path   = WS / 'memory' / f'{today}-pre-open.md'
     plan_path = WS / 'memory' / f'{today}-plan.json'
 
-    # Ensure Jekyll can render this brief as a Pages page (not just GitHub blob jump)
-    _ensure_jekyll_front_matter(md_path, today)
-
     # Load preflight context (for cross-validation). Fail closed: a missing or
     # unparseable context would silently skip every context-dependent hard gate
     # below (generation pin, position/leverage回查, peer divergence,
@@ -774,7 +773,6 @@ def main(argv=None):
     ctx_path = WS / 'memory' / '.tmp' / f'brief-context-{today}.json'
     context, context_issue = load_preflight_context(ctx_path)
 
-    readability = assess_brief_readability(md_path)
     issues = []
     if context_issue:
         issues.append(context_issue)
@@ -786,8 +784,6 @@ def main(argv=None):
             decision_packet = brief_decision_packet.read_packet(manifest_path)
         except Exception as exc:
             issues.append(f'decision packet 不可用: {exc}')
-    issues += validate_markdown(md_path, context=context)
-    issues += readability_issues(readability)
     normalization_issues, normalized_plan = normalize_plan_json(
         plan_path,
         decision_packet=decision_packet,
@@ -796,6 +792,36 @@ def main(argv=None):
         context=context,
     )
     issues += normalization_issues
+
+    # The report is rendered here, from the judgment and the normalized plan —
+    # the model no longer writes markdown at all (see clawock.harness.
+    # brief_render for why). Rendering after normalization is deliberate: the
+    # published tables then show the same decisions the ledger records.
+    # A renderer that cannot run must not take the brief down with it, so the
+    # failure is an issue and whatever markdown exists still ships.
+    try:
+        render_issues, _ = brief_render.render_from_workspace(
+            WS, today, plan=normalized_plan,
+            page_url=BRIEF_URL_TMPL.format(date=today),
+            write=not args.dry_run)
+        # Unreadable inputs are reported, not escalated here: the consequence —
+        # no report, or yesterday's — is what `validate_markdown` below is for,
+        # and counting it twice can push a warn to a fail on the strength of one
+        # underlying fact.
+        for issue in render_issues:
+            print(f'warn: {issue}', file=sys.stderr)
+    except Exception as exc:
+        issues.append(f'简报渲染失败（保留现有 pre-open.md）: {exc}')
+        print(f'warn: brief render failed: {exc}', file=sys.stderr)
+
+    # Jekyll needs front matter to serve this as a page rather than a blob view.
+    # The renderer emits it, so this now covers the day the renderer could not
+    # run and an earlier file is what ships.
+    _ensure_jekyll_front_matter(md_path, today)
+
+    readability = assess_brief_readability(md_path)
+    issues += validate_markdown(md_path, context=context)
+    issues += readability_issues(readability)
     validation_path = (
         _InMemoryPlanPath(plan_path, normalized_plan)
         if args.dry_run and normalized_plan is not None

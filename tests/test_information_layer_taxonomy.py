@@ -139,7 +139,14 @@ def test_the_harness_phases_are_out_of_scope_on_purpose_and_not_by_omission():
         "the skipped registries must be named in the artifact, not just here")
     note = CONFIG["registries"]["not_classified"]
     from clawock.harness.runner import PHASE_MODULES
-    assert len(PHASE_MODULES) == 6, "the lifecycle registry shrank"
+    # Named, not counted: a bare count treats a new phase (`brief render`,
+    # 2026-08-31) as the same event as a deleted one, and only the second is a
+    # regression. These six are the assemble/deliver pairs the exclusion is
+    # about; anything added beside them is free to exist.
+    for workflow in ("brief", "report", "intraday"):
+        for phase in ("preflight", "postflight"):
+            assert (workflow, phase) in PHASE_MODULES, (
+                f"the lifecycle registry lost {workflow} {phase}")
     assert "phase" in note.lower() or "lifecycle" in note.lower(), (
         "the lifecycle registry is excluded but the artifact does not say so")
 

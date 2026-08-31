@@ -60,10 +60,21 @@ def check_md_table_column_consistency(text):
     """
     issues = []
     for i, tbl in enumerate(_extract_md_tables(text), start=1):
-        counts = {ln.count('|') for ln in tbl}
+        counts = {_cell_separators(ln) for ln in tbl}
         if len(counts) > 1:
             issues.append(f'markdown 表格 #{i} 列数不一致: pipe-segments={sorted(counts)}')
     return issues
+
+
+def _cell_separators(line):
+    r"""Pipes that actually divide cells.
+
+    `\|` is the markdown escape for a literal pipe and renders inside one cell,
+    so counting it as a separator reports a broken table for content that is
+    correct — which is what a news headline ("Market Alert | MINIMAX...") or a
+    quoted rationale does to any renderer that escapes its cells properly.
+    """
+    return len(re.findall(r'(?<!\\)\|', line))
 
 
 def validate_forbidden_phrases(text, phrases, label='报告'):
