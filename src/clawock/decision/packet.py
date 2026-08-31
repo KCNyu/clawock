@@ -557,6 +557,21 @@ def _information_sizing_overlay(info: dict, factor: dict, peer: dict,
     }
 
 
+def _mention_count(raw):
+    """An int when one was measured, `None` when it was not.
+
+    Deliberately not `int(raw or 0)`. A mention count of zero and a mention
+    count that was never fetched are different facts, and the second one was
+    published as the first for the whole life of the sentiment artifact (#1237).
+    """
+    if isinstance(raw, bool) or raw is None:
+        return None
+    try:
+        return int(raw)
+    except (TypeError, ValueError):
+        return None
+
+
 def _sentiment_view(rows: list[dict], ticker: str, source_ticker: str) -> dict:
     row = next(
         (
@@ -571,7 +586,12 @@ def _sentiment_view(rows: list[dict], ticker: str, source_ticker: str) -> dict:
     return {
         "as_of": row.get("as_of"),
         "source_ticker": row.get("ticker") or source_ticker,
-        "reddit_mentions_7d": int(row.get("reddit_mentions_7d") or 0),
+        # `or 0` here told the model "nobody mentioned this name" whenever the
+        # fetch had failed, which was every day for three months (#1237). The
+        # count passes through as-is — `None` when it was not obtained — and the
+        # status travels with it so the reader can tell silence from absence.
+        "reddit_mentions_7d": _mention_count(row.get("reddit_mentions_7d")),
+        "reddit_status": row.get("reddit_status") or ("ok" if row else "missing"),
         "recent_move": row.get("recent_move") if isinstance(row.get("recent_move"), dict) else {},
         "headline_count": len(headlines),
         "headlines": headlines,

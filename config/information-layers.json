@@ -138,7 +138,7 @@
         },
         {
           "command": "sentiment",
-          "note": "Reddit, Google News and Yahoo RSS scan per active holding"
+          "note": "Reddit search RSS and Google News scan per active holding"
         },
         {
           "command": "clawock-influencer-scan",

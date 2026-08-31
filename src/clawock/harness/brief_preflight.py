@@ -884,24 +884,31 @@ def load_macro_and_sentiment(today, issues):
             else:
                 # price-in lens: recent 5-session move per signalled ticker (priced-in check)
                 signalled = [t.get('ticker') for t in s.get('tickers', [])
-                             if t.get('reddit_mentions_7d', 0) or t.get('google_news_en')
+                             if t.get('reddit_mentions_7d') or t.get('google_news_en')
                              or t.get('google_news_zh')]
                 moves = _recent_price_moves(signalled)
                 tickers_out = []
                 for t in s.get('tickers', []):
-                    reddit_n  = t.get('reddit_mentions_7d', 0)
+                    reddit_n  = t.get('reddit_mentions_7d')
+                    reddit_st = t.get('reddit_status') or 'ok'
                     gn_en     = t.get('google_news_en') or []
                     gn_zh     = t.get('google_news_zh') or []
-                    # Skip noise: 0 mention + 0 news
-                    if reddit_n == 0 and not gn_en and not gn_zh:
+                    # Skip noise: nothing measured on either source. A name whose
+                    # Reddit lookup did not answer is NOT quiet — it is unknown,
+                    # and dropping it here would hide the outage rather than the
+                    # noise (#1237).
+                    if not reddit_n and reddit_st == 'ok' and not gn_en and not gn_zh:
                         continue
                     tickers_out.append({
                         'ticker': t.get('ticker'),
                         'name':   t.get('name'),
                         'region': t.get('region'),
                         'reddit_mentions_7d': reddit_n,
-                        'reddit_top': [{'title': p.get('title'), 'score': p.get('score'),
-                                        'comments': p.get('num_comments')}
+                        'reddit_status': reddit_st,
+                        # Title and link only: the search feed carries no score
+                        # and no comment count, and defaulting them to 0 made a
+                        # post nobody fetched look like a post nobody upvoted.
+                        'reddit_top': [{'title': p.get('title'), 'url': p.get('url')}
                                        for p in (t.get('reddit_posts') or [])[:3]],
                         'news_top':   [n.get('title') for n in (gn_en + gn_zh)[:3] if n.get('title')],
                         'recent_move': moves.get(t.get('ticker')),  # {px_pct, n_sessions} or None — priced-in check
@@ -913,8 +920,10 @@ def load_macro_and_sentiment(today, issues):
                     'tickers':     tickers_out,
                 }
                 with_signal = sum(1 for t in tickers_out if t['reddit_mentions_7d'] or t['news_top'])
+                unanswered = sum(1 for t in tickers_out if t['reddit_status'] != 'ok')
                 print(f'   sentiment: {with_signal}/{len(s.get("tickers",[]))} tickers '
-                      f'have reddit/news signal')
+                      f'have reddit/news signal'
+                      + (f'; reddit did not answer for {unanswered}' if unanswered else ''))
     except Exception as e:
         print(f'   ⚠ sentiment load failed: {e}')
         issues.append(f'sentiment load exception: {type(e).__name__}')

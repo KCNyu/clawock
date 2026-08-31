@@ -137,10 +137,22 @@ def validate_sentiment(
         assert isinstance(row.get('name'), str), f'{ticker} name must be a string'
         assert row.get('region') in ('us_stocks', 'hk_stocks'), (
             f'{ticker} has invalid region')
+        # `None` is the correct value for a name Reddit did not answer about,
+        # and it is the only value that is correct: a 0 there says "nobody is
+        # talking about this", which is what three months of published zeros
+        # said while the source returned 403 to every request (#1237). A number
+        # is required exactly when the per-ticker status says one was obtained.
         mentions = row.get('reddit_mentions_7d')
-        assert (isinstance(mentions, int) and not isinstance(mentions, bool)
-                and mentions >= 0), f'{ticker} has invalid reddit mention count'
-        result_count += mentions
+        status = row.get('reddit_status', 'ok')
+        if status == 'ok':
+            assert (isinstance(mentions, int) and not isinstance(mentions, bool)
+                    and mentions >= 0), f'{ticker} has invalid reddit mention count'
+            result_count += mentions
+        else:
+            assert mentions is None, (
+                f'{ticker} publishes a reddit mention count of {mentions!r} while '
+                f'its source status is {status!r} — a count that was never '
+                f'fetched must be null, not a number')
         result_fields = ('reddit_posts', 'google_news_en', 'google_news_zh')
         for field in result_fields:
             results = row.get(field)
