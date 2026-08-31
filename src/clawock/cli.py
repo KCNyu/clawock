@@ -228,6 +228,7 @@ def _harness(args, workflow=None) -> int:
         ("--phase", getattr(args, "market_phase", None)),
         ("--context-id", getattr(args, "context_id", None)),
         ("--text-file", getattr(args, "text_file", None)),
+        ("--date", getattr(args, "date", None)),
     ):
         if value is not None:
             forwarded += [flag, str(value)]
@@ -633,6 +634,7 @@ def main(argv=None) -> int:
         harness.add_argument("--market", choices=("hk", "us"))
         harness.add_argument("--context-id")
         harness.add_argument("--text-file", type=Path)
+        harness.add_argument("--date", help="artifact date (render; default today)")
         harness.add_argument("--dry-run", action="store_true")
         harness.add_argument("--workspace", type=Path, default=None)
         harness.add_argument(
