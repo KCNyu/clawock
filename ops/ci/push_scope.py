@@ -88,8 +88,8 @@ DATA_GLOBS = [
 # the dashboard contract never renders the layout, and nothing in this pattern
 # used to make a change to it run a browser at all.
 UI_RE = (r"^(site/assets/(css|js)/|site/index\.html$|site/_layouts/|"
-         r"site/decimap/|"
-         r"tests/(dashboard_tab_runtime|site_layout_mobile)\.spec\.js$)")
+         r"site/decimap/|src/clawock/publish/decision_map\.py$|"
+         r"tests/(dashboard_tab_runtime|site_layout_mobile|decimap_board)\.spec\.js$)")
 DSPLUGIN_RE = r"^(examples/dsh/|tests/decision_studio_plugin\.spec\.js$|tests/dsh_plugin_package_contract\.mjs$)"
 
 WORKFLOWS_PREFIX = ".github/workflows/"
