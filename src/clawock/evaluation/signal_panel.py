@@ -1268,10 +1268,13 @@ def main(argv=None) -> int:
         stability = refutation['leave_one_ticker_out'] or {}
         swing = stability.get('largest_swing') or {}
         null = placebo['null_ci95']
+        band = f'[{null[0]:+.3f}, {null[1]:+.3f}]'
+        # Built outside the f-string: nesting the same quote inside one is a
+        # 3.12 grammar, and this package supports 3.11.
+        worst = (f'{swing["mean_ic_without"]:+.4f} ({swing["ticker"]})'
+                 if swing else '—')
         print(f'{signal:<28}{placebo["observed_mean_ic"]:>+9.4f}'
-              f'{f"[{null[0]:+.3f}, {null[1]:+.3f}]":>20}'
-              f'{placebo["p_value"]:>9.4f}'
-              f'{(f"{swing.get('mean_ic_without'):+.4f} ({swing.get('ticker')})" if swing else "—"):>17}'
+              f'{band:>20}{placebo["p_value"]:>9.4f}{worst:>17}'
               f'  {refutation["verdict"]}')
     contested = summary['interval_clears_zero_but_placebo_does_not']
     print(f'  {summary["survives_refutation"]}/{summary["signals"]} survive both · '
