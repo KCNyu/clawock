@@ -1,6 +1,6 @@
 /* Decision Mind — presentation layer.
  *
- * Four rules this sheet answers to, all of them read off the Harness's own
+ * Five rules this sheet answers to, all of them read off the Harness's own
  * client packages rather than invented here:
  *
  *   1. One width axis. The host publishes `--dsh-chat-content-width` (748px,
@@ -45,6 +45,21 @@
  *      The expanded detail is glass too but as a recessed ink tray with NO
  *      second backdrop-filter — blur inside blur reads as mud, and the
  *      group's own filter already covers the tray's backdrop.
+ *   5. One type ladder. The host publishes a font *stack*
+ *      (`--dsw-font-family`, `--ds-font-family-code`) but no font *size*
+ *      tokens — dsh-client-ui-theme defines neither `--dsw-font-size-*` nor
+ *      any equivalent — so sizes have to be local. They used to be local AND
+ *      scattered: 47 declarations, 14 distinct px values, written inline at
+ *      the point of use, which is how the sheet grew steps 0.5px apart that
+ *      nothing can tell apart. The ladder below now declares them once, and
+ *      `tests/decision_studio_plugin.spec.js` fails the build if a raw px
+ *      font size reappears outside it.
+ *      The values are unchanged from what kcn iterated to over #937/#939/
+ *      #995 — this is a refactor, not a redesign, and it renders identically.
+ *      The `-l` names are the debt made visible: `--fs-xs` / `--fs-xs-l` are
+ *      11px and 11.5px, and every such twin is a half-step that a later
+ *      visual round should collapse. Collapsing them changes pixels, so it
+ *      is kcn's call, not this refactor's.
  *
  * Layout: a day group is one bordered container of hairline-separated rows,
  * and a row is one line — dot · date · ticker · action · size · verdict ·
@@ -52,6 +67,25 @@
  * row folds back into the two-line form (`.main` / `.sub` stop being
  * `display:contents` and become their own flex lines).
  */
+/* The type ladder (rule 5). Declared for both roots because the balance chip
+   renders OUTSIDE `.dmt` and owns its own variable scope. Steps marked `-l`
+   are half-pixel twins of the step above them; see rule 5. */
+.dmt, .pbc {
+  --fs-nano:9.5px;      /* T+1 chip label */
+  --fs-micro:10px;      /* chevrons, trace timestamps */
+  --fs-caption:10.5px;  /* labels, notes, node captions */
+  --fs-xs:11px;         /* tags, chips, window lines */
+  --fs-xs-l:11.5px;
+  --fs-sm:12px;         /* filters, day headers, panel rows */
+  --fs-sm-l:12.5px;
+  --fs-md:13px;         /* board base, empty state, verdict */
+  --fs-md-l:13.5px;
+  --fs-lg:14px;         /* ticker */
+  --fs-lg-l:14.5px;     /* ticker, narrow layout */
+  --fs-xl:15px;         /* section head, narrow-layout P&L */
+  --fs-xl-l:15.5px;     /* P&L, the board's focal number */
+  --fs-2xl:16px         /* focus stat value */
+}
 .dmt {
   --col:var(--dsh-chat-content-width, 748px);
   --page:var(--dsw-alias-bg-base, #F7F8FA);
@@ -130,7 +164,7 @@
   --radius:12px;
   --font:var(--dsw-font-family, -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif);
   --mono:var(--ds-font-family-code, ui-monospace,SFMono-Regular,Menlo,Consolas,monospace);
-  font:13px/1.45 var(--font);
+  font:var(--fs-md)/1.45 var(--font);
   color:var(--text);
   -webkit-font-smoothing:antialiased;
   min-height:100%;
@@ -229,7 +263,7 @@ body[data-ds-dark-theme] .dmt {
   align-items:baseline;
   flex-wrap:wrap;
   gap:3px 8px;
-  font:650 15px/1.3 var(--font);
+  font:650 var(--fs-xl)/1.3 var(--font);
   letter-spacing:-.01em
 }
 .dmt .tt::before {
@@ -243,7 +277,7 @@ body[data-ds-dark-theme] .dmt {
 }
 .dmt .tt .rate {
   margin-left:auto;
-  font:400 11px/1.3 var(--font);
+  font:400 var(--fs-xs)/1.3 var(--font);
   color:var(--cap);
   font-variant-numeric:tabular-nums;
   white-space:nowrap
@@ -251,7 +285,7 @@ body[data-ds-dark-theme] .dmt {
 .dmt .ts {
   flex:0 1 auto;
   min-width:0;
-  font:400 11.5px/1.4 var(--font);
+  font:400 var(--fs-xs-l)/1.4 var(--font);
   color:var(--cap);
   overflow:hidden;
   text-overflow:ellipsis;
@@ -273,18 +307,18 @@ body[data-ds-dark-theme] .dmt {
   min-width:0
 }
 .dmt .sl {
-  font:500 10.5px/1.3 var(--font);
+  font:500 var(--fs-caption)/1.3 var(--font);
   color:var(--cap);
   letter-spacing:.03em
 }
 .dmt .sv {
-  font:650 13.5px/1.3 var(--font);
+  font:650 var(--fs-md-l)/1.3 var(--font);
   color:var(--text);
   font-variant-numeric:tabular-nums;
   white-space:nowrap
 }
 .dmt .sv.focus {
-  font:700 16px/1.2 var(--font)
+  font:700 var(--fs-2xl)/1.2 var(--font)
 }
 .dmt .sv.up {
   color:var(--ok)
@@ -341,7 +375,7 @@ body[data-ds-dark-theme] .dmt {
   border:0;
   background:transparent;
   color:var(--text3);
-  font:600 12px/1.4 var(--font);
+  font:600 var(--fs-sm)/1.4 var(--font);
   padding:5px 10px;
   border-radius:7px;
   cursor:pointer;
@@ -376,12 +410,12 @@ body[data-ds-dark-theme] .dmt {
   display:flex;
   align-items:center;
   gap:8px;
-  font:650 12.5px/1.3 var(--font);
+  font:650 var(--fs-sm-l)/1.3 var(--font);
   color:var(--text2)
 }
 .dmt .day .n {
   color:var(--cap);
-  font:400 10.5px/1.3 var(--mono);
+  font:400 var(--fs-caption)/1.3 var(--mono);
   margin-left:auto
 }
 .dmt .day::after {
@@ -415,7 +449,7 @@ body[data-ds-dark-theme] .dmt {
   flex:none;
   width:12px;
   text-align:center;
-  font-size:10px;
+  font-size:var(--fs-micro);
   color:var(--cap)
 }
 /* A day is one container, not a stack of floating cards: hairlines between
@@ -516,7 +550,7 @@ body[data-ds-dark-theme] .dmt {
 }
 .dmt .sub .date {
   grid-area:1/3;
-  font:400 11px/1.4 var(--mono);
+  font:400 var(--fs-xs)/1.4 var(--mono);
   color:var(--cap);
   font-variant-numeric:tabular-nums;
   white-space:nowrap
@@ -524,14 +558,14 @@ body[data-ds-dark-theme] .dmt {
 .dmt .tk {
   grid-area:1/4;
   min-width:0;
-  font:650 14px/1.4 var(--font);
+  font:650 var(--fs-lg)/1.4 var(--font);
   letter-spacing:-.01em;
   overflow:hidden;
   text-overflow:ellipsis;
   white-space:nowrap
 }
 .dmt .mkt {
-  font:700 9.5px/1 var(--font);
+  font:700 var(--fs-nano)/1 var(--font);
   margin-left:3px;
   vertical-align:2px;
   color:var(--brand)
@@ -549,7 +583,7 @@ body[data-ds-dark-theme] .dmt {
   border-radius:6px;
   border:1px solid var(--tint-border);
   background:var(--tint-soft);
-  font:600 11.5px/1 var(--font);
+  font:600 var(--fs-xs-l)/1 var(--font);
   color:var(--text2);
   letter-spacing:.02em;
   white-space:nowrap
@@ -558,7 +592,7 @@ body[data-ds-dark-theme] .dmt {
   grid-area:1/6;
   justify-self:start;
   min-width:0;
-  font:500 12.5px/1.4 var(--mono);
+  font:500 var(--fs-sm-l)/1.4 var(--mono);
   color:var(--text2);
   font-variant-numeric:tabular-nums;
   white-space:nowrap;
@@ -574,7 +608,7 @@ body[data-ds-dark-theme] .dmt {
   grid-area:1/9;
   justify-self:end;
   text-align:right;
-  font:700 15.5px/1.2 var(--font);
+  font:700 var(--fs-xl-l)/1.2 var(--font);
   font-variant-numeric:tabular-nums;
   letter-spacing:-.01em
 }
@@ -587,12 +621,12 @@ body[data-ds-dark-theme] .dmt {
 .dmt .pnl.na {
   color:var(--cap);
   font-weight:500;
-  font-size:13px
+  font-size:var(--fs-md)
 }
 /* Marks the focus number as the position's floating percent rather than this
    fill's realized amount — two different quantities in one slot. */
 .dmt .pnlk {
-  font:600 10.5px/1.2 var(--font);
+  font:600 var(--fs-caption)/1.2 var(--font);
   color:var(--cap);
   margin-right:3px;
   letter-spacing:0
@@ -605,7 +639,7 @@ body[data-ds-dark-theme] .dmt {
   height:19px;
   padding:0 6px;
   border-radius:5px;
-  font:600 10.5px/1 var(--font);
+  font:600 var(--fs-caption)/1 var(--font);
   white-space:nowrap;
   font-variant-numeric:tabular-nums
 }
@@ -633,7 +667,7 @@ body[data-ds-dark-theme] .dmt {
   height:19px;
   padding:0 6px;
   border-radius:5px;
-  font:600 10.5px/1 var(--font);
+  font:600 var(--fs-caption)/1 var(--font);
   white-space:nowrap;
   letter-spacing:.02em
 }
@@ -646,7 +680,7 @@ body[data-ds-dark-theme] .dmt {
   grid-area:1/10;
   justify-self:end;
   color:var(--cap);
-  font-size:10px;
+  font-size:var(--fs-micro);
   transition:transform .15s
 }
 .dmt .cell.open .chev {
@@ -695,7 +729,7 @@ body[data-ds-dark-theme] .dmt {
   display:flex;
   align-items:center;
   gap:6px;
-  font:500 10.5px/1.3 var(--font);
+  font:500 var(--fs-caption)/1.3 var(--font);
   color:var(--cap);
   letter-spacing:.05em;
   margin-bottom:8px
@@ -758,18 +792,18 @@ body[data-ds-dark-theme] .dmt {
   border-color:var(--bad)
 }
 .dmt .tnode .tw {
-  font:400 10px/1.4 var(--mono);
+  font:400 var(--fs-micro)/1.4 var(--mono);
   color:var(--cap);
   margin-bottom:1px
 }
 .dmt .tnode .n {
-  font:500 10.5px/1.3 var(--font);
+  font:500 var(--fs-caption)/1.3 var(--font);
   color:var(--cap);
   letter-spacing:.04em;
   margin-bottom:2px
 }
 .dmt .tnode .v {
-  font:600 13px/1.4 var(--font)
+  font:600 var(--fs-md)/1.4 var(--font)
 }
 .dmt .tnode.win .v {
   color:var(--ok)
@@ -790,7 +824,7 @@ body[data-ds-dark-theme] .dmt {
   margin:4px 0 8px
 }
 .dmt .pc {
-  font:400 11px/1.4 var(--font);
+  font:400 var(--fs-xs)/1.4 var(--font);
   padding:2px 8px;
   border-radius:6px;
   background:var(--tint-soft);
@@ -801,7 +835,7 @@ body[data-ds-dark-theme] .dmt {
   margin:7px 0;
   padding:3px 0 3px 10px;
   border-left:3px solid var(--tint-strong);
-  font:400 11.5px/1.6 var(--font);
+  font:400 var(--fs-xs-l)/1.6 var(--font);
   color:var(--text2);
   white-space:pre-wrap;
   overflow-wrap:anywhere
@@ -814,13 +848,13 @@ body[data-ds-dark-theme] .dmt {
 }
 .dmt .tnote .k {
   color:var(--cap);
-  font:600 10.5px/1.4 var(--font)
+  font:600 var(--fs-caption)/1.4 var(--font)
 }
 .dmt .tmiss {
   padding:7px 10px;
   border:1px dashed var(--border2);
   border-radius:6px;
-  font:400 11.5px/1.5 var(--font);
+  font:400 var(--fs-xs-l)/1.5 var(--font);
   color:var(--cap);
   margin-top:8px
 }
@@ -828,7 +862,7 @@ body[data-ds-dark-theme] .dmt {
   padding:48px 20px;
   text-align:center;
   color:var(--cap);
-  font:400 13px/1.5 var(--font);
+  font:400 var(--fs-md)/1.5 var(--font);
   /* Same quiet material as the board: hairline + glass fill + specular edge,
      no blur of its own (there is nothing moving behind an empty state). */
   border:1px dashed var(--tint-border);
@@ -845,7 +879,7 @@ body[data-ds-dark-theme] .dmt {
   border-radius:10px;
   background:transparent;
   color:var(--text2);
-  font:600 12px/1.4 var(--font);
+  font:600 var(--fs-sm)/1.4 var(--font);
   cursor:pointer;
   transition:background .12s,border-color .12s,color .12s,transform .16s cubic-bezier(.23,1,.32,1)
 }
@@ -1014,7 +1048,7 @@ body[data-ds-dark-theme] .dmt {
   }
   .dmt .tk {
     flex:0 1 auto;
-    font-size:14.5px
+    font-size:var(--fs-lg-l)
   }
   .dmt .tag {
     flex:none;
@@ -1023,7 +1057,7 @@ body[data-ds-dark-theme] .dmt {
   }
   .dmt .qty {
     flex:0 1 auto;
-    font-size:12px
+    font-size:var(--fs-sm)
   }
   /* Back in play on the narrow layout: it is what pushes the money to the
      right edge once the row is a flex line again. */
@@ -1034,7 +1068,7 @@ body[data-ds-dark-theme] .dmt {
   }
   .dmt .pnl {
     flex:none;
-    font-size:15px
+    font-size:var(--fs-xl)
   }
   .dmt .t1,
   .dmt .al {
@@ -1166,7 +1200,7 @@ body[data-ds-dark-theme] .pbc {
   -webkit-backdrop-filter:blur(12px) saturate(1.75);
   backdrop-filter:blur(12px) saturate(1.75);
   box-shadow:var(--dsw-shadow-lv1, 0 1px 2px rgba(16,24,40,.04)), inset 0 1px 0 var(--edge-light);
-  font:500 12px/1 var(--font);
+  font:500 var(--fs-sm)/1 var(--font);
   color:var(--text3);
   cursor:pointer;
   transition:background .12s,color .12s,transform .16s cubic-bezier(.23,1,.32,1)
@@ -1206,7 +1240,7 @@ body[data-ds-dark-theme] .pbc {
 .pbc .bchip-item[data-balance-state="low"] .bchip-dot { background:var(--bad) }
 .pbc .bchip-item[data-balance-state="stale"] .bchip-dot { background:var(--warn) }
 .pbc .bchip-v {
-  font:600 12px/1 var(--font);
+  font:600 var(--fs-sm)/1 var(--font);
   font-variant-numeric:tabular-nums;
   letter-spacing:-.01em;
   white-space:nowrap;
@@ -1228,7 +1262,7 @@ body[data-ds-dark-theme] .pbc {
    (bp-win-reset)是同一视觉语言的完整版。 */
 .pbc .bchip-reset {
   font-family:var(--mono);
-  font-size:11px;
+  font-size:var(--fs-xs);
   font-weight:500;
   font-variant-numeric:tabular-nums;
   white-space:nowrap;
@@ -1236,7 +1270,7 @@ body[data-ds-dark-theme] .pbc {
 }
 /* 第二窗口(周限额)副读数:比主读数低一级,同轴排版,不挤主数。 */
 .pbc .bchip-sub {
-  font:500 11px/1 var(--font);
+  font:500 var(--fs-xs)/1 var(--font);
   font-variant-numeric:tabular-nums;
   letter-spacing:.01em;
   white-space:nowrap;
@@ -1276,7 +1310,7 @@ body[data-ds-dark-theme] .pbc {
   margin-bottom:2px
 }
 .pbc .bp-title {
-  font:600 11px/1.3 var(--font);
+  font:600 var(--fs-xs)/1.3 var(--font);
   letter-spacing:.04em;
   color:var(--cap)
 }
@@ -1337,7 +1371,7 @@ body[data-ds-dark-theme] .pbc {
   display:inline-flex;
   align-items:center;
   gap:5px;
-  font:500 12px/1.4 var(--font);
+  font:500 var(--fs-sm)/1.4 var(--font);
   color:var(--text)
 }
 .pbc .bp-pin {
@@ -1349,7 +1383,7 @@ body[data-ds-dark-theme] .pbc {
 }
 .pbc .bp-v {
   justify-self:end;
-  font:650 13px/1.2 var(--font);
+  font:650 var(--fs-md)/1.2 var(--font);
   font-variant-numeric:tabular-nums;
   letter-spacing:-.01em;
   white-space:nowrap;
@@ -1374,7 +1408,7 @@ body[data-ds-dark-theme] .pbc {
   display:flex;
   flex-direction:column;
   gap:3px;
-  font-size:11px
+  font-size:var(--fs-xs)
 }
 .pbc .bp-win-line {
   display:flex;
@@ -1396,7 +1430,7 @@ body[data-ds-dark-theme] .pbc {
 .pbc .bp-win-reset {
   color:var(--cap);
   font-family:var(--mono);
-  font-size:10.5px;
+  font-size:var(--fs-caption);
   min-width:58px;
   text-align:right;
   font-variant-numeric:tabular-nums
@@ -1421,7 +1455,7 @@ body[data-ds-dark-theme] .pbc {
 .pbc .bp-win-fill[data-balance-state="stale"] { background:var(--warn) }
 .pbc .bp-note, .pbc .bp-sub {
   grid-column:1 / -1;
-  font:400 11px/1.5 var(--font);
+  font:400 var(--fs-xs)/1.5 var(--font);
   overflow-wrap:anywhere
 }
 .pbc .bp-sub { color:var(--cap) }
@@ -1429,7 +1463,7 @@ body[data-ds-dark-theme] .pbc {
 .pbc .bp-note.bad { color:var(--bad) }
 .pbc .bp-empty {
   padding:8px 0 10px;
-  font:400 12px/1.5 var(--font);
+  font:400 var(--fs-sm)/1.5 var(--font);
   color:var(--cap)
 }
 /* The manual refresh is a ghost circular icon button (#870): transparent,
@@ -1447,7 +1481,7 @@ body[data-ds-dark-theme] .pbc {
   padding:0;
   background:transparent;
   color:var(--text3);
-  font:600 12px/1 var(--font);
+  font:600 var(--fs-sm)/1 var(--font);
   cursor:pointer;
   transition:background .12s,color .12s,transform .16s cubic-bezier(.23,1,.32,1)
 }
