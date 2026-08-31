@@ -10,6 +10,7 @@ These drive both new checks through fakes, including the branches that only a
 bad day reaches: a green run of the happy path proves nothing about them.
 """
 import importlib.util
+import json
 import subprocess
 import sys
 import time
@@ -186,3 +187,105 @@ def test_a_host_without_openclaw_is_not_reported_as_healthy(
     system_check.check_model_chain_health(result)
 
     assert result.checks == [], "no chain to judge is not the same as a good one"
+
+
+# --- fallback chain shape --------------------------------------------------
+
+def _shape(system_check, monkeypatch, tmp_path, profiles, keys=None):
+    contract = tmp_path / "config"
+    contract.mkdir(exist_ok=True)
+    (contract / "cron-schedules.json").write_text(
+        json.dumps({"payload_profiles": profiles}))
+    monkeypatch.setattr(system_check, "WS", tmp_path)
+    monkeypatch.setattr(system_check, "_provider_api_keys", lambda: keys or {})
+    result = system_check.Result()
+    system_check.check_fallback_chain_shape(result)
+    return result.checks[0]
+
+
+ONE_ACCOUNT = {
+    "report": {
+        "model": "minimax/MiniMax-M3",
+        "fallbacks": ["minimax-2/MiniMax-M3"],
+    },
+}
+
+
+def test_two_hops_on_one_credential_are_reported_as_one_leg(
+        system_check, monkeypatch, tmp_path):
+    """The whole point of #1242: hop count is not chain length.
+
+    `minimax` and `minimax-2` are two providers in the contract and one API key
+    in `openclaw.json`. A rate limit, an expired key or an empty balance takes
+    both at the same instant, so the chain survives nothing that the first hop
+    does not survive.
+    """
+    name, severity, message = _shape(
+        system_check, monkeypatch, tmp_path, ONE_ACCOUNT,
+        keys={"minimax": "aaa", "minimax-2": "aaa"})
+
+    assert (name, severity) == ("fallback chain", system_check.WARNING)
+    assert "2 hops" in message and "1 independent credential" in message
+
+
+def test_a_second_account_makes_the_chain_two_legs(
+        system_check, monkeypatch, tmp_path):
+    name, severity, message = _shape(
+        system_check, monkeypatch, tmp_path,
+        {"report": {"model": "minimax/MiniMax-M3",
+                    "fallbacks": ["minimax-2/MiniMax-M3", "zen/deepseek-v4-flash"]}},
+        keys={"minimax": "aaa", "minimax-2": "aaa", "zen": "bbb"})
+
+    assert (name, severity) == ("fallback chain", system_check.OK)
+    assert "3 hops" in message and "2 independent credentials" in message
+
+
+def test_the_shortest_chain_is_the_one_reported(
+        system_check, monkeypatch, tmp_path):
+    """Two profiles, one healthy and one not: reporting the healthy one would
+    let a single-leg chain hide behind an average."""
+    _, severity, message = _shape(
+        system_check, monkeypatch, tmp_path,
+        {"brief": {"model": "minimax/MiniMax-M3",
+                   "fallbacks": ["minimax-2/MiniMax-M3"]},
+         "report": {"model": "minimax/MiniMax-M3",
+                    "fallbacks": ["zen/deepseek-v4-flash"]}},
+        keys={"minimax": "aaa", "minimax-2": "aaa", "zen": "bbb"})
+
+    assert severity == system_check.WARNING
+    assert message.startswith("brief:")
+
+
+def test_an_unknown_provider_is_not_credited_to_a_known_account(
+        system_check, monkeypatch, tmp_path):
+    """A provider missing from `openclaw.json` counts as its own leg only
+    because guessing the other way would overstate the chain — the direction of
+    the guess is the only thing this check may not get wrong."""
+    _, severity, _ = _shape(
+        system_check, monkeypatch, tmp_path,
+        {"report": {"model": "minimax/MiniMax-M3",
+                    "fallbacks": ["mystery/model-x"]}},
+        keys={"minimax": "aaa"})
+
+    assert severity == system_check.OK
+
+
+def test_a_profile_without_fallbacks_declares_no_chain(
+        system_check, monkeypatch, tmp_path):
+    name, severity, message = _shape(
+        system_check, monkeypatch, tmp_path,
+        {"memory": {"model": "minimax/MiniMax-M3", "fallbacks": []}})
+
+    assert (name, severity) == ("fallback chain", system_check.OK)
+    assert "no profile declares a fallback chain" in message
+
+
+def test_off_the_live_box_the_check_counts_providers_and_says_so(
+        system_check, monkeypatch, tmp_path):
+    """CI has no `openclaw.json`. Claiming a credential count it cannot read
+    would be the invented number this whole issue is about."""
+    _, severity, message = _shape(
+        system_check, monkeypatch, tmp_path, ONE_ACCOUNT, keys={})
+
+    assert severity == system_check.OK
+    assert "2 independent providers" in message
