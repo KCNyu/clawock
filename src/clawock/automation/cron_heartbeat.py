@@ -120,7 +120,9 @@ def record(market: str, state: str, *, at: datetime | None = None,
                 event_time = datetime.fromisoformat(event["slot"])
                 if event_time.tzinfo is None:
                     event_time = event_time.replace(tzinfo=HKT)
-            except Exception:
+            except (KeyError, TypeError, ValueError):
+                # A malformed slot drops the event; named so a defect in this
+                # loop raises instead of quietly emptying the ledger (#1214).
                 continue
             if event_time.astimezone(timezone.utc) < cutoff:
                 continue
@@ -148,7 +150,16 @@ def record(market: str, state: str, *, at: datetime | None = None,
         try:
             workflow_outcomes.record_from_heartbeat(current)
         except Exception as exc:
-            print(f"warn: workflow outcome bridge failed: {exc}", file=sys.stderr)
+            # The heartbeat ledger has the event and the outcome ledger does
+            # not — the two silently fork, and everything downstream reads the
+            # one that is missing the slot. Recorded where the fork is visible:
+            # in the outcome ledger, which is what publishes and what the card
+            # folds (#1214). It still does not raise — a heartbeat that landed
+            # must not be reported as a failed run because the bridge tripped.
+            workflow_outcomes.note_degradation(
+                None, "heartbeat_bridge_failed",
+                f"{current.get('job')}/{current.get('slot')}: {exc}; this slot "
+                f"is in the heartbeat ledger and not in the outcome ledger")
     return current
 
 

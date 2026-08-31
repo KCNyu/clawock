@@ -3022,8 +3022,18 @@ def compute_workflow_outcomes():
         # the adapter reads it back as its own fresh-checkout recovery source.
         # The card wants the window fold of it, so do the fold here rather than
         # trimming raw records into a payload with no `counts` and no `recent`.
-        return trim_workflow_outcomes(dashboard_outcomes.summarize_records(
+        summary = trim_workflow_outcomes(dashboard_outcomes.summarize_records(
             (payload or {}).get('records', [])))
+        # The chain's own faults ride with the counts they call into question
+        # (#1214). Five fail-open handlers used to report onto stderr, which
+        # reaches no gate — so a reconcile that never ran and a reconcile with
+        # nothing to do produced the identical card. `degradations` is normally
+        # absent; when it is not, every number beside it was computed by a
+        # bookkeeping pass that knows it degraded.
+        degradations = dashboard_outcomes.degradations_of(payload)
+        if degradations and isinstance(summary, dict):
+            summary['degradations'] = degradations
+        return summary
     except Exception as e:
         print(f'  warn: workflow outcome summary failed: {e}', file=sys.stderr)
         return None

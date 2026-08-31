@@ -147,6 +147,77 @@ def _empty(now=None):
     }
 
 
+# ── When the observer is the thing that broke (#1214) ────────────────────────
+# Five `except Exception` blocks covered this chain end to end — prune, load,
+# the raw-execution reconcile, the delivery-receipt reconcile, and the heartbeat
+# bridge — and every one of them failed open onto stderr. Each was individually
+# defensible: observation must not interrupt the desk. Composed, they mean a
+# fault in the observation system is invisible to the observation system, which
+# is the failure #776 already demonstrated can run for eight days.
+#
+# Two changes, and neither is "stop failing open".
+#
+# 1. The excepts name what they expect. A corrupt file, a missing key, a bad
+#    timestamp — those are the conditions these paths exist for, and they still
+#    degrade quietly. A TypeError is a bug in this module, and a bug that
+#    silently returns 0 is how "delivery is still `unknown`" becomes permanent.
+#
+# 2. The degradation records itself IN the ledger, which is published and folded
+#    by `summarize`. Not `logs/watchdog.jsonl`: `intraday_watchdog` already
+#    settled that question — "a line in watchdog.jsonl is not something kcn
+#    reads, so treating it as surfaced would be exactly the silent downgrade
+#    that is forbidden here". stderr is worse. The ledger is the one surface
+#    that already reaches the dashboard card and the health check.
+#
+# The counter is deliberately not a raise: a delivery that happened must not be
+# reported as failed because the bookkeeping tripped. It makes the fail-open
+# countable, which is the difference between degrading and disappearing.
+DEGRADATIONS_KEY = "degradations"
+MAX_DEGRADATIONS = 20
+
+
+def note_degradation(ledger, kind, detail, *, at=None):
+    """Record, in the ledger, that this ledger could not be trusted somewhere.
+
+    Mutates and returns `ledger` so a caller that is already holding it under
+    the lock writes the note in the same atomic write as its own change; a
+    caller with no ledger to hand passes None and gets a standalone record.
+    """
+    standalone = ledger is None
+    if standalone:
+        # Read the file, not `load_ledger` (#1214). The most important caller is
+        # the one whose failure *was* `load_ledger`, and routing the note back
+        # through it would raise from inside the handler that exists to keep
+        # this non-fatal. `_read_path` already swallows a torn or missing file.
+        ledger = _read_path(local_path()) or _empty()
+    rows = ledger.get(DEGRADATIONS_KEY)
+    if not isinstance(rows, list):
+        rows = []
+    now = _now(at).isoformat()
+    for row in rows:
+        if row.get("kind") == kind and row.get("detail") == str(detail):
+            row["count"] = int(row.get("count") or 0) + 1
+            row["last_at"] = now
+            break
+    else:
+        rows.append({"kind": kind, "detail": str(detail), "count": 1,
+                     "first_at": now, "last_at": now})
+    # Newest last, oldest evicted: a chain that is failing now matters more than
+    # one that failed three days ago and has not recurred.
+    ledger[DEGRADATIONS_KEY] = rows[-MAX_DEGRADATIONS:]
+    print(f"warn: {kind}: {detail}", file=sys.stderr)
+    if standalone:
+        try:
+            _atomic_write(local_path(), ledger)
+        except OSError as exc:
+            # The one place with nowhere left to write. Say so on stderr and
+            # carry on: this is the observer failing to observe its own failure,
+            # not a reason to take the desk down.
+            print(f"warn: could not record degradation {kind}: {exc}",
+                  file=sys.stderr)
+    return ledger
+
+
 def _read_path(path):
     try:
         data = json.loads(path.read_text())
@@ -159,23 +230,29 @@ def _read_path(path):
     return None
 
 
-def load_ledger():
+def load_ledger(*, note_fallback=True):
     """Local ledger first; the published copy is a last resort, never a silent one.
 
     Falling back to public_path() and then writing that content back to local_path()
     would roll the local ledger back to whatever was last published. It has not
     been observed happening, but a data-losing path must not be invisible.
+
+    "Not invisible" used to mean a line on stderr, which no gate reads. The
+    fallback now rides in the returned ledger's own `degradations` list, so the
+    published copy and the dashboard card carry the fact that every stage
+    recorded since the last publish may be missing. `note_fallback=False` is for
+    `note_degradation` itself, which would otherwise recurse.
     """
     local = _read_path(local_path())
     if local is not None:
         return local
     public = _read_path(public_path())
     if public is not None:
-        print(
-            f"warn: workflow ledger unreadable at {local_path()}; falling back to the "
-            f"published copy — stages recorded since the last publish may be missing",
-            file=sys.stderr,
-        )
+        if note_fallback:
+            note_degradation(
+                public, "ledger_fallback_to_published",
+                f"{local_path()} unreadable; stages recorded since the last "
+                f"publish may be missing")
         return public
     return _empty()
 
@@ -282,18 +359,32 @@ def _derive_final(record):
     return {"status": status, "reason": reason}
 
 
-def _prune(records, now):
+def _prune(records, now, ledger=None):
+    """Drop records older than the window — and count the ones it cannot read.
+
+    An unparseable `slot` used to delete the whole record silently, taking that
+    slot's preflight, LLM, delivery and watchdog stages with it. A missing or
+    malformed timestamp is a real condition this has to survive; it is not a
+    reason for the row to leave no trace of having existed.
+    """
     cutoff = now - timedelta(hours=KEEP_HOURS)
     kept = []
+    unparseable = 0
     for record in records:
         try:
             slot = datetime.fromisoformat(record["slot"])
             if slot.tzinfo is None:
                 slot = slot.replace(tzinfo=HKT)
-        except Exception:
+        except (KeyError, TypeError, ValueError):
+            unparseable += 1
             continue
         if slot.astimezone(timezone.utc) >= cutoff:
             kept.append(record)
+    if unparseable:
+        note_degradation(
+            ledger, "prune_dropped_unparseable_slot",
+            f"{unparseable} record(s) had no readable slot timestamp and were "
+            f"dropped with every stage they carried")
     return kept
 
 
@@ -310,7 +401,7 @@ def record_stage(job_name, stage, status, *, slot=None, at=None, dry_run=False, 
         slot = slot or slot_for_job(job_name, now)
         with _locked():
             ledger = load_ledger()
-            records = _prune(ledger.get("records", []), now)
+            records = _prune(ledger.get("records", []), now, ledger)
             current = next(
                 (
                     dict(record)
@@ -352,7 +443,19 @@ def record_stage(job_name, stage, status, *, slot=None, at=None, dry_run=False, 
             _atomic_write(local_path(), ledger)
         return current
     except Exception as exc:
-        print(f"warn: workflow outcome stage not recorded: {exc}", file=sys.stderr)
+        # Still broad, deliberately (#1214). Narrowing this was the first thing
+        # tried and it is wrong: `publish()` runs inside `rebuild_dashboard`'s
+        # own try, so an unnamed exception here would stop the dashboard being
+        # built at all. Trading "a stage was not recorded" for "nothing was
+        # published" is a worse failure, and it breaks the rule this module
+        # exists under — observation must not interrupt the desk.
+        #
+        # What changes is that it is no longer silent. The exception type goes
+        # into the ledger, so a defect looks like a defect (`RecursionError` in
+        # `stage_not_recorded`) instead of like a quiet nothing.
+        note_degradation(
+            None, "stage_not_recorded",
+            f"{job_name}/{stage}: {type(exc).__name__}: {exc}")
         return {}
 
 
@@ -434,7 +537,9 @@ def record_from_heartbeat(event):
 def _match_run(record, entries):
     try:
         slot_ms = datetime.fromisoformat(record["slot"]).timestamp() * 1000
-    except Exception:
+    except (KeyError, TypeError, ValueError):
+        # No usable slot means no window to match a run against. Counted by
+        # `_prune`, which sees the same records; not counted twice here.
         return None
     candidates = []
     for entry in entries:
@@ -506,7 +611,16 @@ def reconcile_raw_execution():
                 _atomic_write(local_path(), latest)
         return changed
     except Exception as exc:
-        print(f"warn: raw workflow status reconciliation skipped: {exc}", file=sys.stderr)
+        # Broad for the reason above, and counted for this one: skipping leaves
+        # `raw_execution.status` at "unknown", and the false-red
+        # detector in `publish.outcomes` requires status == "error" — so a
+        # silent skip here does not degrade that detector, it disables it. That
+        # is the single most important thing in this module to be able to see
+        # having failed.
+        note_degradation(None, "raw_execution_reconcile_skipped",
+                         f"{type(exc).__name__}: {exc}; raw_execution stays "
+                         f"unknown and false-red detection cannot fire for "
+                         f"those slots")
         return False
 
 
@@ -621,7 +735,10 @@ def reconcile_delivery_receipts():
                 _atomic_write(local_path(), ledger)
         return filled
     except Exception as exc:
-        print(f"warn: delivery receipt reconciliation skipped: {exc}", file=sys.stderr)
+        note_degradation(None, "delivery_reconcile_skipped",
+                         f"{type(exc).__name__}: {exc}; terminal delivery "
+                         f"stays unknown for any slot whose receipt this pass "
+                         f"would have read")
         return 0
 
 
