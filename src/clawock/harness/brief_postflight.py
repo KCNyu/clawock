@@ -737,6 +737,33 @@ def _ensure_jekyll_front_matter(md_path, date):
     safe_write_text(str(md_path), fm + content)
 
 
+def _judgment_gap_issues(judgment_path, decision_packet):
+    """What the reader will be missing, said before the brief ships.
+
+    Split deliberately: an absent judgment leaves the rendered report's Tier
+    2/3, sector, macro and calibration sections empty, while an invalid one
+    still renders (the renderer reads what is there) but is dropped from the
+    Pages projection. Those are different losses and the operator should not
+    have to guess which one happened.
+    """
+    try:
+        overlay = json.loads(Path(judgment_path).read_text(encoding='utf-8'))
+    except FileNotFoundError:
+        return ['judgment 缺失：报告的辩论段（Tier 2/3、板块、大盘、校准）会是空的']
+    except (OSError, ValueError) as exc:
+        return [f'judgment 无法解析（{exc}）：报告的辩论段会是空的']
+    if decision_packet is None:
+        return []
+    overlay_issues = brief_decision_packet.validate_judgment_overlay(
+        decision_packet, overlay)
+    if not overlay_issues:
+        return []
+    shown = '；'.join(overlay_issues[:2])
+    more = f'（共 {len(overlay_issues)} 条）' if len(overlay_issues) > 2 else ''
+    return [f'judgment 未通过校验{more}：{shown} —— 报告按原文渲染，'
+            'Pages projection 会丢掉整个判断层']
+
+
 def main(argv=None):
     import argparse
     ap = argparse.ArgumentParser()
@@ -792,6 +819,14 @@ def main(argv=None):
         context=context,
     )
     issues += normalization_issues
+
+    # A judgment that is absent or does not validate now costs published
+    # content, not just a Pages sidecar field: since #1232 the report's debate
+    # sections are rendered from it. `projection_issues` records the same fact
+    # further down, but only in the result JSON — nothing reads that in time to
+    # notice the brief went out with empty sections.
+    issues += _judgment_gap_issues(
+        WS / 'memory' / '.tmp' / f'brief-judgment-{today}.json', decision_packet)
 
     # The report is rendered here, from the judgment and the normalized plan —
     # the model no longer writes markdown at all (see clawock.harness.
