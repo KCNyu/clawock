@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-31T19:18:42.006667",
+  "generated_at": "2026-09-01T17:03:47.569266",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -15,9 +15,9 @@
       "SPCH"
     ]
   },
-  "digest_markdown": "## Top 移动信号\n- **SKHY**: AI memory需求被Mizuho/BofA重申bullish，SK Hynix正评估日本扩产应对芯片短缺 → SPHY仓位直接受益于结构性AI capex，多重正面催化剂共振\n- **RKLB**: SpaceX-Iridium $8B合同纠纷 + insider $2.8M抛售 + Electron发射因强风延期，三重利空叠加 → RKLX (2x) 将放大跌幅，6%现货跌幅≈12%杠杆敞口\n- **CRCL**: 单日+7.18%、过去47%暴涨后Wall Street对\"银行业务胜利\"分歧，估值已接近fair value → 动量仍在但追高风险显著上升\n- **SPCX**: SpaceX得州建燃气轮机零部件瞄准GE Vernova的AI电力casting瓶颈 → SPCH (2x) 底层标的SpaceX直接切入AI电力供应链，是结构性利好\n\n## Per-ticker 简报\n- **SKHY**: Defiance新PRAM ETF瞄准AI memory + 日本扩产谈判 + Mizuho称memory股\"unbelievable bargains\" — 三条独立利好叠加，板块beta强化\n- **CRCL**: Chelsea Deal + USDC增长叙事支撑+7.18%；但Yahoo Finance标题称\"near fair value after 47% jump\" — 估值天花板信号，需警惕reverse\n- **RKLB**: BofA下调target但维持long-term bullish — 短期承压（发射延期+insider卖+SpaceX纠纷），长期thesis未破\n- **SPCX**: SpaceX得州燃气轮机项目是真正的catalyst，NVDA/Fed Warsh等为noise可忽略\n\n## 风险 Watch\n- **RKLB**: Insider $2.8M抛售（大股东减持信号）+ SpaceX-Iridium $8B合同纠纷可能导致-6%级别波动 — RKLX 2x杠杆下风险放大\n- **CRCL**: 47%暴涨后\"near fair value\"评估，分析师对banking win split → 短期reverse风险\n- **SKHY**: 日本扩产属\"exploring\"阶段，未落地即已priced in部分预期\n- **SPCX**: Iran war油价/防务支出波动为宏观noise，非ticker-specific",
+  "digest_markdown": "## Top 移动信号\n\n- **SPCX/SPCH**: SEC 对私募 SPV 启动专项审查，要求投资公司提供持有 SpaceX 等未上市公司股份的证据 — 含义：直接威胁 SPCH 底层 SPV 结构合规性，2x 杠杆放大下行；建议关注 SPCH 是否披露相关持仓渠道。\n- **RKLB/RKLX**: Cathie Wood 旗下 ARKK 买入 200,303 股 (~$12.8M)，BofA 维持 Buy 给 72% upside，另一大行看翻倍；Electron 延迟但情绪托底 — 含义：机构资金+卖方共识形成顺风，RKLX 2x 杠杆放大上行 beta，但 Electron 延期仍是尾部风险。\n- **CRCL**: ARK 卖出 Palantir (~$26M) 后调仓买入 Block 与 Circle，搭上 BTC/ETH 反弹顺风车 — 含义：smart money 信号积极，短期情绪催化 CRCL；kcn 当前需确认持仓权重是否需要跟随加仓。\n- **SPCX/SPCH**: 多篇主流财经 (Yahoo) 围绕\"下一个亚马逊\"叙事 + IPO 后回调 + Starlink 利润/AI 收入增长 + Starship 轨道测试推进 — 含义：叙事面全面顺风，回调即买入共识正形成，对 SPCH 2x 友好。\n- **SKHY**: Mizuho + BofA 重申 memory 看涨，Mizuho 称 MU/SNDK 为\"不可思议的便宜货\"，SK Hynix 与 Micron 共同领涨新 Defiance PRAM ETF (AI memory/photonics) — 含义：板块 beta 正面，但 HBM3E 来自 CXMT 的竞争加剧需警惕。\n\n## Per-ticker 简报\n\n- **CRCL**: ARK 调仓买入 + BTC/ETH 反弹 — 情绪顺风，短期催化强。\n- **RKLB**: ARKK 加仓 $12.8M + BofA Buy 目标价 72% upside + 大行看 100% upside + Electron 延期未影响盘后情绪 — 机构/卖方共识积聚，Electron 节点是关键催化剂。\n- **SPCX**: 主流财经密集正面叙事 (\"下一个亚马逊\") + IPO 后回调被解读为买点 + SEC 审查 SPV — 叙事强 vs 监管负向同时存在。\n- **SKHY**: 入选新 memory/photonics ETF + 大行持续看涨 — 板块 beta 受益，HBM 竞争是 risk。\n\n## 风险 Watch\n\n- **SPCX/SPCH**: SEC 已开始专项审查 SPV 对 SpaceX/Anthropic 等私募股权的持有合规性 — 监管 catalyst，可直接打击 SPCH 持仓结构透明度。\n- **RKLB/RKLX**: Electron 火箭延期 (标题明示\"delay\") — 任务时间表仍是 Q4/Q1 主要 risk factor。\n- **SKHY/MU memory 板块**: CXMT HBM3E 推进 + Micron 关税不确定性 — 竞争格局与宏观关税双重 risk。\n- **CRCL**: 与 BTC/ETH 高度联动 — crypto 回调会拖累情绪。",
   "raw_news_counts": {
-    "CRCL": 5,
+    "CRCL": 2,
     "RKLB": 5,
     "SPCX": 5,
     "SKHY": 5
@@ -25,116 +25,116 @@
   "raw_news_evidence": {
     "CRCL": [
       {
-        "headline": "Why Did CRCL Stock Lose Steam? Wall Street Split On Circle’s Banking Win",
-        "datetime": "Sun, 30 Aug 2026 09:44:05 GMT",
-        "source": "Stocktwits",
-        "origin": "gnews-rss",
-        "url": "https://news.google.com/rss/articles/CBMi1wFBVV95cUxQWE1wM0FtcHc1YmFoY1RkcDZhdWQwUGdaOFNWZU84eW5Gd3BFQ1ZJUHJ3dGtibHBxbFkxMDlXdlRoYjZBWl9qUl9URjF2ck12enJOdGJWMlRhVVd4NFZxeDl4b09SdVJWakRRUk9wVFFFSFJOYWxmalA0LVlWaUtvM2oxQkgwZWRpdFpXQnQ5a3hvY1F6WTBKVjZnLWJmSjNmSzdZaWN6OXdabUwwMElTY285NEg5ZWppaTRoNW5DVlAwdllhNjBQa2ROM1JrSVI1cFJtMENOUQ?oc=5"
+        "headline": "Cathie Wood Dumps Palantir Shares Worth $26 Million, Bets on Bitcoin-Linked Block and USDC-Issuer Circle Amid Crypto Rally",
+        "datetime": 1788216918,
+        "source": "Benzinga",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=78e7be433f4d54232695ab9d31ab986f864dc93db632692002e2668cc170a4ef"
       },
       {
-        "headline": "Circle Internet Group Inc Stock (CRCL) Moved Up by 7.18% on Aug 31: What Signal Does It Send?",
-        "datetime": "Mon, 31 Aug 2026 17:15:16 GMT",
-        "source": "TradingKey",
-        "origin": "gnews-rss",
-        "url": "https://news.google.com/rss/articles/CBMiiwFBVV95cUxQaVdweDFDTzVVVUNnWHhYeXYzeWhBOUNjN09GMlM5LUVwUW44ZU9NWnZZSklxdVpjZkpBaG5TRmVic0VfeDM0eVpmODU0clZGeDJaWVV3QkFocGpJQ0x0bzRVMUs4Q2Z6cmtqQ1FpUVQ2WUVmX3RRZUh6QkpvLUF3T1hMY21Jd05SajV3?oc=5"
-      },
-      {
-        "headline": "Circle Internet Group (NYSE:CRCL) Shares Up 4.4% - Here's What Happened",
-        "datetime": "Mon, 31 Aug 2026 18:03:09 GMT",
-        "source": "MarketBeat",
-        "origin": "gnews-rss",
-        "url": "https://news.google.com/rss/articles/CBMiwgFBVV95cUxOVTVyMkd4S0ZJNjdKVG1OWWFiT3I1QUxubkszOEFyT0lCWm15SExhbUItTnFHNzhOTjk4ellWZ1V0T0FYM0d6U3dBM2ZiRF96WlNnY3lCLUJha081NVZDY29SeDBjQ0RhdFVnY0lreGFDM1dXRVBoRmZMYXJDcmhlVjRmcEJKX2lNQWlLdVFvaE9GZDhUazVNUWxNOVFET0JZalNNVThjcmRSQmZzSFV5eko1YmI1d2xDbTFXclV5UXNsUQ?oc=5"
-      },
-      {
-        "headline": "Circle Internet Group Rises as Investors Weigh Chelsea Deal and USDC Growth",
-        "datetime": "Mon, 31 Aug 2026 16:18:00 GMT",
-        "source": "Quiver Quantitative",
-        "origin": "gnews-rss",
-        "url": "https://news.google.com/rss/articles/CBMirAFBVV95cUxPWHpmVGlkXy0tNW5fSVQ3eTZIbG1SM3I5ZUxqekZobzI5ODFVdzJqRmk5WWVHM2ExUGxMdUdfOHQzNVkyOHRuVW9LWEt1UjBuSF9uUTlNOGN3dGpQT3Y3ZzZhZzVMMTZQVnZ3M19qVWxUeTZTSHFpbEdpbWJ2X2plY2pQSnltOHU0QU42NVlYQ2VwSDEwc1BGWkFuVUFNT01vRXZWX0Nld1YzbGZZ?oc=5"
-      },
-      {
-        "headline": "Circle (CRCL) Stock Trades Near Fair Value After A 47% Jump",
-        "datetime": "Fri, 28 Aug 2026 17:08:48 GMT",
-        "source": "Yahoo Finance",
-        "origin": "gnews-rss",
-        "url": "https://news.google.com/rss/articles/CBMimgFBVV95cUxPQ0RGNWZzU1JoSDZwOXZqWDlld3dJY3VqRmh4SVVkellXMFlpTUtidDVReF9SSTY2ODVtRkZLaWk3dG1jV2ItMDhVRG5rYTZTS2dMUnprRU1ONWFxTjBucVdhQ0JYN2oyUWlabmhrNjdqQ05TN3JNTUc5RHpQM1hLSTUxX1NBYmo1ekVES0VSVFdkbEtaQlFwNDBn?oc=5"
+        "headline": "10 Information Technology Stocks Whale Activity In Today’s Session",
+        "datetime": 1788183348,
+        "source": "Benzinga",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=fb575e87af9b8cbb3b728c43f2d9c449c0c414b37b1810b534ad42f0fff78134"
       }
     ],
     "RKLB": [
       {
-        "headline": "RKLB Stock Slips Overnight: Strong Winds Delay Electron Launch, Insiders Sell $2.8M Worth Of Shares",
-        "datetime": "Mon, 31 Aug 2026 06:04:00 GMT",
-        "source": "Yahoo Finance",
-        "origin": "gnews-rss",
-        "url": "https://news.google.com/rss/articles/CBMinwFBVV95cUxOTmtmYmNNOFBkcDZZdkVrWDVGOUdKU01Za2FrZDUycXBiaFVaTmxRb2hTckNkRWdPTnlfdVJheXBWaVVYcDJyV2pUb3NTU2xKYnJ6emg2S3A4QVRjb0txamJpOGVWOUZTS2RJaTc2blRSb1NnRGVGbF9mWXhxSE40NlRCTzJsLTM2amJMMVo5OUJWX1VkTkE3QWdYQU1hYnc?oc=5"
+        "headline": "Cathie Wood Sold $26 Million of Palantir to Buy These Two Stocks",
+        "datetime": 1788274124,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=f0516ce1cf48c2f7de40f1b05d61747adf22f55fe3163625008e19b6d6b3eaea"
       },
       {
-        "headline": "Why Are Nasdaq, S&P 500 Futures Subdued Premarket? NVDA, AAPL, INTC, CRWD, RKLB, SLS Stocks In Focus",
-        "datetime": "Mon, 31 Aug 2026 08:37:13 GMT",
-        "source": "Stocktwits",
-        "origin": "gnews-rss",
-        "url": "https://news.google.com/rss/articles/CBMi9wFBVV95cUxQb29xeTFVTy1BUXRKcXRjZFd0S2NMMkppMHhfUDNKcXZaTXFvUUhDTnMzREJwOHphWFhzZVV5UjNYN1FBSVEtbFloTnhxdkNoWFNqbHVwTGFUdTB1aGotMXJiTnB0WlBZeGJsUWRzMlp0dzZHQS1sTno3M1EyWERrbmVNYlZJdk5IUi1xcnJCeS10U2ltRFJHRUdfUy01eUFVbWVyWFZldUhnS3E1UkNmNi1FcHhFU3FfYTUtNlVCUUk2QVN5YWhIUzlySnktOWJXY1BxRkZWbVZqbF82bDRqbm0zSkZ3QUdOYXpENmotM2x2bEJNajdF?oc=5"
+        "headline": "Rocket Lab Keeps Faltering So Why Does One Big Bank Currently Expect 100% Upside?",
+        "datetime": 1788269477,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=08846e20e3de0276ad4bcfe945ca73176e4651fa37fa0b4f792460e9c75624b5"
       },
       {
-        "headline": "Rocket Lab Stock (RKLB) Outlook: Top BofA Analyst Trims Target but Says Long-Term Upside Still Strong",
-        "datetime": "Mon, 31 Aug 2026 17:02:05 GMT",
-        "source": "TipRanks",
-        "origin": "gnews-rss",
-        "url": "https://news.google.com/rss/articles/CBMixwFBVV95cUxQMFI1VnNIMXd1cnJGekJhdXZpaDVaeW5sRkhVRU9wRFVYN01DRzZIYWRBRFR2MmE0QmNNQjQ1cVJlRmFvSFJmajN3MV9FY2JyWnVvN1pVRDVVV2dXNGFnS1NEVFFOUUZOdENYSW05c2w4WGljWmNBTGVCZ2hKMmpCSnhtQ3NBOUVTRTV3aGpaajctWHh5OFVrRktDX1BRbk43dFdKZE1fbEtTS04ybUZyel9EUEJmZm9GZ1NZUFBxaVlFeDhoelQw?oc=5"
+        "headline": "One Space Stock Outran SPCX, ASTS, RKLB And LUNR In August — BofA Says It Can Rally Another 30%",
+        "datetime": 1788255845,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=fa64eecfbdc1b85ae5033afc193533ca81670d414018fe1a705efbed6c8e0fb1"
       },
       {
-        "headline": "SpaceX-Iridium Dispute Hits Rocket Lab (NASDAQ: RKLB): $8 Billion Deal Sends RKLB Down 6%",
-        "datetime": "Fri, 28 Aug 2026 19:21:45 GMT",
-        "source": "Stocks Down Under",
-        "origin": "gnews-rss",
-        "url": "https://news.google.com/rss/articles/CBMifkFVX3lxTE5MMHNOdU5Gd0IwTkRWbzhJZE9DQ2JFaG8wZDN2ZXQyOUQ4Z09GaU5wVGh2WkdUNzAyaWc0U3hpS2JfVEYwb2JkUmNaaWNqUjY5ejA5NkViUktGYW1LeFdPYXQ4QXFUeG1ObDZDOGUtQXpCNTBXYkdHQ05BS09HQQ?oc=5"
+        "headline": "RKLB Stock Rises Overnight Despite Electron Delay — Cathie Wood’s ARK Buy And BofA’s Bullish Call Lift Sentiment",
+        "datetime": 1788229543,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=300d207b4b1e6b2c23f3367659f5587da83e8e32073779329700e41df2d1efb2"
       },
       {
-        "headline": "Here's Why Rocket Lab Corporation (RKLB) Could be Great Choice for a Bottom Fisher",
-        "datetime": "Fri, 28 Aug 2026 13:03:30 GMT",
-        "source": "Zacks Investment Research",
-        "origin": "gnews-rss",
-        "url": "https://news.google.com/rss/articles/CBMivAFBVV95cUxON0R0enFJMDVCa2tYaWRrbkpNdUpkaE5JUTNZaE5NVFVyeDQzYkxseDkzNFdzSHVib2ZPQ2ROTzBwOGtDbFo2N3FWbkxnR0pMbng2N2xySmVJRjBqcW5hUG5ZVmZGdEZrVXRWVUJ6eUd5UWlDN044Z2Jjbkp2OE9jeFBjVl9mdFhacFdmZ2FQbS1rM2d2RkYyZGNPS1VDQzYxX29fT3dxV3lVZWZJZmJUZTZXUVk0anBKMV9YMA?oc=5"
+        "headline": "ValuEngine Weekly Commentary: Will Disruptive Technologies Upend Aerospace Companies?",
+        "datetime": 1788219000,
+        "source": "SeekingAlpha",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=f92e42ba0fd391439b9372466bb070027ee9fafb6e2e1388e5a346dc14508642"
       }
     ],
     "SPCX": [
       {
-        "headline": "Elon Musk Is Trying to Break GE Vernova's AI Power Bottleneck",
-        "datetime": 1788171384,
-        "source": "Benzinga",
+        "headline": "Why SpaceX Is the Next Amazon—and What It Means for the Stock",
+        "datetime": 1788274380,
+        "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=ca820e7c876712bef775edba642afe7097a7a9d47df5dc79ee79d082e688e4ae"
+        "url": "https://finnhub.io/api/news?id=ac217d5ff827931e92bbb774ef85dd9ead14d81b4f7a057ba169389b1c786036"
       },
       {
-        "headline": "Nvidia: Trillions In AI Spend Over 5 Years Keeps The Growth Cycle Intact",
-        "datetime": 1788170417,
-        "source": "SeekingAlpha",
+        "headline": "SpaceX's Wild Ride Since IPO: Time to Buy the Stock Now?",
+        "datetime": 1788274200,
+        "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=ca6298f12d71df209bf6b633de9c8b53e91ff0df4a12e2b808d830e97e9371d4"
+        "url": "https://finnhub.io/api/news?id=02c2e80b4762e1d8d2e83d9c17ce95988e089089888bf19c5ec4aec5b8c156e1"
       },
       {
-        "headline": "XOVR: The ETF That Lets Retail Investors Bet On Private Unicorns",
-        "datetime": 1788169949,
-        "source": "SeekingAlpha",
+        "headline": "VOO’s $1 Trillion Problem: Why SpaceX Stays Out Until 2027",
+        "datetime": 1788272710,
+        "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=4758398ed574477be827a66687b5fb0c9c61cbb2d930b4f36bbf048ff380f48c"
+        "url": "https://finnhub.io/api/news?id=40ed52170707baf662286be7f55ea4635d71c31b98f83dded5ee32fa865a48a5"
       },
       {
-        "headline": "After The Fed: Analysis Of Warsh On AI, Inflation And The Unknowns (Video)",
-        "datetime": 1788164960,
-        "source": "SeekingAlpha",
+        "headline": "SEC demands proof investment firms hold private startup stock",
+        "datetime": 1788270748,
+        "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=c41651ec2da0872185aff3aa7ad3470900318cfee1386bc5100c5df18440d2a5"
+        "url": "https://finnhub.io/api/news?id=fa567bfcaeb2ebab7a4b6b2700384e1f3941cc47622a90176e386c1bd84a2bf1"
       },
       {
-        "headline": "Trump Family Businesses Are Among Iran War’s Winners as Oil and Defense Spending Surge: Report",
-        "datetime": 1788162435,
-        "source": "Benzinga",
+        "headline": "Palantir Leads Tech Stocks as Nasdaq Rebounds",
+        "datetime": 1788268189,
+        "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=abb232eba21b406984512746d131029ee4350ccdbf94a4e923d18ffdb70d6528"
+        "url": "https://finnhub.io/api/news?id=846f21fb1ee3fbdcb96a3264ee866b0207ddfca0dd0324499d238583e9146f27"
       }
     ],
     "SKHY": [
+      {
+        "headline": "What's Going On With Micron Technology Stock Today?",
+        "datetime": 1788253446,
+        "source": "Benzinga",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=697acca67f3c6864a936d88c70558c45781a783fe117a4c17b47e9f8d0693b70"
+      },
+      {
+        "headline": "Micron: Hyperscalers Bought The Fab, Bears Bought Fairy Tales",
+        "datetime": 1788192988,
+        "source": "SeekingAlpha",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=ba94c10d144aa803f0b7952e56c7b6fb36f21512d3cf4f017ead8e8cf86d63de"
+      },
+      {
+        "headline": "CXMT’s HBM3E Push Challenges Micron: These ETFs Play the AI Memory Boom",
+        "datetime": 1788191084,
+        "source": "Benzinga",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=119bd1f1b742d5baf2cc4979373912b11f74479b690a62fef8e507af89beb052"
+      },
       {
         "headline": "SK Hynix, Micron Lead A New ETF That Targets Memory, Photonics",
         "datetime": 1788166686,
@@ -148,44 +148,23 @@
         "source": "Benzinga",
         "origin": "finnhub",
         "url": "https://finnhub.io/api/news?id=ede8a9a770f7855e4670112b452815f947a4ffbd06c984e5db836d5829004bc9"
-      },
-      {
-        "headline": "After The Fed: Analysis Of Warsh On AI, Inflation And The Unknowns (Video)",
-        "datetime": 1788164960,
-        "source": "SeekingAlpha",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=c41651ec2da0872185aff3aa7ad3470900318cfee1386bc5100c5df18440d2a5"
-      },
-      {
-        "headline": "SK Hynix To Expand Japan Investments",
-        "datetime": 1788158165,
-        "source": "Benzinga",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=00ca6ead833e9f8925426856bb4d2efc44598336dc38d6092a56ad58fed37bc4"
-      },
-      {
-        "headline": "SK Group Chair Says SK Hynix Is 'Looking All Over Japan' For New Manufacturing Plant to Keep Up With AI Chip Demand: Report",
-        "datetime": 1788155246,
-        "source": "Benzinga",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=9f32dedeb3e4b4d2ee2169de06a0c74d14c0f789f4ebc66abd6f5030210052ee"
       }
     ]
   },
   "news_source_per_ticker": {
-    "CRCL": "gnews-rss",
-    "RKLB": "gnews-rss",
+    "CRCL": "finnhub",
+    "RKLB": "finnhub",
     "SPCX": "finnhub",
     "SKHY": "finnhub"
   },
   "source_status": {
     "CRCL": {
-      "finnhub": "success_empty",
-      "google_news": "success"
+      "finnhub": "success",
+      "google_news": "not_attempted"
     },
     "RKLB": {
-      "finnhub": "success_empty",
-      "google_news": "success"
+      "finnhub": "success",
+      "google_news": "not_attempted"
     },
     "SPCX": {
       "finnhub": "success",
