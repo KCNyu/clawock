@@ -264,7 +264,13 @@ def compile_overview_projection(dashboard):
         },
         'workflow_outcomes': {
             **_fields(workflow, (
-                'counts', 'raw_error_but_product_usable',
+                'counts',
+                # The window the counts are counted over. Dropped here until
+                # 2026-09-01, which left the Hero's data-health card printing
+                # "37 档" with no denominator — or, worse, guessing one. A count
+                # whose window is unknown is not a number a reader can act on.
+                'window_hours',
+                'raw_error_but_product_usable',
                 # Computed since #772 and, until now, dropped here: the card
                 # could not answer "how many did WeChat drop this window" even
                 # though the ledger knew. A count with no consumer is not a fix.

@@ -2552,8 +2552,13 @@
     margin: 6px 0 0; color: var(--text); font-size: var(--fs-lg);
     letter-spacing: -.01em; text-transform: none;
   }
-  .hero-health[data-tone="warn"] .hero-health-verdict { color: var(--warning); }
-  .hero-health[data-tone="bad"] .hero-health-verdict { color: var(--red); }
+  /* 判词分两截着色：「页面数字可用」印成红的是自相矛盾的 —— 可信度归
+     可信度那半句，告警归待办那半句。 */
+  .hero-health-verdict .dh-trust { color: var(--text); }
+  .hero-health-verdict .dh-trust[data-trust="broken"] { color: var(--red); }
+  .hero-health-verdict .dh-todo { color: var(--text-tertiary); }
+  .hero-health-verdict .dh-todo[data-sev="warn"] { color: var(--warning); }
+  .hero-health-verdict .dh-todo[data-sev="bad"] { color: var(--red); }
   .hero-health-meta {
     margin-top: 6px; color: var(--text-tertiary); font: 500 var(--fs-micro)/1.45 var(--mono);
   }
@@ -2567,13 +2572,84 @@
   @media (hover: hover) and (pointer: fine) {
     .dh-toggle:hover { color: var(--text); border-color: var(--text-tertiary); }
   }
+  /* ── 三条泳道 ────────────────────────────────────────────────────
+     名称 / 计数 / 形状 / 一句话 / 处置牌 —— 五列对齐，三行同栅格。
+     位置固定是整个改动的要点：读者不必每次重新找「新鲜度在哪一行」。
+     形状那列各画各的：数据面是逐面的期限用量条，投递是按档数成比例的
+     构成条，体检是计数点（它没有分母，画比例条等于编一个出来）。 */
+  .dh-lanes-shell {
+    margin-top: 14px; border-top: 1px solid var(--border-subtle);
+  }
+  /* 三行必须逐列对齐 —— 「位置固定」是这块牌唯一的记忆点。每条泳道各是
+     一个 grid 时列宽按各自内容解，三行的说明列就会各起各的 x（实测 体检
+     那行右移 37px）。用 subgrid 让三行吃 .dh-lanes 的同一套列；不支持
+     subgrid 的浏览器落到同一组定死的列宽，一样对得齐。 */
+  .dh-lanes {
+    display: grid; grid-template-columns: 46px 150px 168px minmax(0, 1fr) 58px;
+  }
+  .dh-lane {
+    display: grid; grid-column: 1 / -1; align-items: center;
+    gap: 10px 12px; padding: 9px 0;
+    grid-template-columns: 46px 150px 168px minmax(0, 1fr) 58px;
+    border-bottom: 1px solid var(--border-subtle);
+    font: 500 var(--fs-xs)/1.35 var(--mono); font-variant-numeric: tabular-nums;
+  }
+  @supports (grid-template-columns: subgrid) {
+    .dh-lane { grid-template-columns: subgrid; }
+  }
+  .dh-lane:last-child { border-bottom: 0; }
+  .dh-lane-name {
+    color: var(--text-tertiary); font: 700 var(--fs-micro)/1.2 var(--mono);
+    letter-spacing: .08em; white-space: nowrap;
+  }
+  .dh-lane-stat { color: var(--text); font-weight: 700; white-space: nowrap; }
+  .dh-lane[data-tone="warn"] .dh-lane-stat { color: var(--warning); }
+  .dh-lane[data-tone="bad"] .dh-lane-stat { color: var(--red); }
+  .dh-lane-note {
+    color: var(--text-tertiary); min-width: 0;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  /* 处置牌：四种字面量各一色，含义写在卡片底部的说明行里。牌是文字不是
+     纯色点 —— 只靠颜色区分「要动手 / 只记不动」是拿色觉当说明书。 */
+  .dh-chip {
+    justify-self: end; padding: 3px 7px; border-radius: 6px; white-space: nowrap;
+    font: 700 var(--fs-micro)/1.2 var(--mono); letter-spacing: .04em;
+    color: var(--text-tertiary);
+    background: color-mix(in srgb, var(--text) 7%, transparent);
+  }
+  .dh-chip[data-act="需处理"] {
+    color: var(--red); background: color-mix(in srgb, var(--red) 14%, transparent);
+  }
+  .dh-chip[data-act="观察"] {
+    color: var(--warning); background: color-mix(in srgb, var(--warning) 15%, transparent);
+  }
+  .dh-chip[data-act="正常"] {
+    color: color-mix(in srgb, var(--accent) 88%, var(--text));
+    background: color-mix(in srgb, var(--accent) 12%, transparent);
+  }
+  /* 构成条：段宽按档数成比例，只画有数的段。 */
+  .dh-lane-shape { display: flex; align-items: center; gap: 3px; height: 18px; min-width: 0; }
+  .dh-part {
+    height: 7px; min-width: 3px; border-radius: 2px;
+    background: color-mix(in srgb, var(--accent) 82%, transparent);
+  }
+  .dh-part.is-warn { background: var(--warning); }
+  .dh-part.is-bad { background: var(--red); }
+  .dh-part.is-idle { background: color-mix(in srgb, var(--text) 16%, transparent); }
+  .dh-pip {
+    flex: 0 0 auto; width: 7px; height: 7px; border-radius: 2px;
+    background: color-mix(in srgb, var(--accent) 82%, transparent);
+  }
+  .dh-pip.is-warn { background: var(--warning); }
+  .dh-pip.is-bad { background: var(--red); }
+  /* 数据面那条带子搬进泳道，所以从 32px 高的独立块收成一列的高度。 */
   .dh-strip {
-    display: flex; align-items: flex-end; gap: 5px; margin-top: 14px; flex-wrap: wrap;
-    padding-bottom: 7px; border-bottom: 1px solid var(--border-subtle);
+    display: flex; align-items: flex-end; gap: 3px; flex-wrap: nowrap;
+    min-width: 0; overflow: hidden;
   }
   .dh-seg {
-    position: relative; flex: 0 0 auto; width: 13px; height: 32px;
-    border-radius: 3px; overflow: hidden;
+    position: relative; flex: 1 1 0; min-width: 3px; max-width: 9px; height: 18px;
+    border-radius: 2px; overflow: hidden;
     background: color-mix(in srgb, var(--text) 6%, transparent);
   }
   .dh-seg i {
@@ -2593,14 +2669,17 @@
   .bs-dot[data-tone="warn"] { background: var(--warning); }
   .bs-dot[data-tone="bad"] { background: var(--negative, var(--red)); }
   .dh-caption {
-    margin-top: 8px; color: var(--text-tertiary); font: 500 var(--fs-micro)/1.45 var(--mono);
+    margin-top: 10px; color: var(--text-faint, var(--text-tertiary));
+    font: 500 var(--fs-micro)/1.5 var(--mono);
   }
   .dh-seg.is-late i { background: var(--warning); }
   .dh-seg.is-missing i { background: var(--red); }
   .dh-files { margin-top: 14px; border-top: 1px solid var(--border-subtle); }
   .dh-row {
     display: grid; align-items: center; gap: 12px; padding: 8px 0;
-    grid-template-columns: minmax(76px, auto) minmax(0, 1fr) 84px minmax(0, 1.3fr) 34px;
+    /* 末列 34px 是照「在期 / 逾期 / 缺失」两个字量的，投递行写的是「TG 已兜」
+       四个字（实测 42px），一直在溢出容器。按最长的那个词定宽。 */
+    grid-template-columns: minmax(76px, auto) minmax(0, 1fr) 84px minmax(0, 1.3fr) 46px;
     border-bottom: 1px solid var(--border-subtle);
     font: 500 var(--fs-xs)/1.35 var(--mono); font-variant-numeric: tabular-nums;
   }
@@ -2611,8 +2690,16 @@
     font: 700 var(--fs-micro)/1.2 var(--mono); letter-spacing: .08em;
   }
   .dh-sub:first-child { padding-top: 4px; }
-  /* 投递行没有期限用量可画：空的灰槽会被读成「一根 0% 的条」。 */
-  .dh-row.is-delivery .dh-bar { background: none; }
+  /* 投递行 / 处置行没有期限用量可画：空的灰槽会被读成「一根 0% 的条」。 */
+  .dh-row.is-delivery .dh-bar, .dh-row.is-todo .dh-bar { background: none; }
+  /* 处置行的末列是「下一步去哪看」，不是一个状态词 —— 34px 装不下，
+     单独给它一套列宽，并且左侧留一道红边把待办从台账里挑出来。 */
+  .dh-row.is-todo {
+    grid-template-columns: minmax(76px, auto) minmax(0, 1fr) 0 minmax(0, 1.1fr) minmax(0, 1.2fr);
+    padding-left: 8px; border-left: 2px solid var(--red);
+  }
+  .dh-row.is-todo .dh-name { color: var(--red); }
+  .dh-row.is-todo .dh-state { color: var(--text-secondary); text-align: right; white-space: normal; }
   .dh-name { color: var(--text); font-weight: 700; white-space: nowrap; }
   .dh-file, .dh-detail {
     color: var(--text-tertiary); min-width: 0;
@@ -3191,6 +3278,22 @@
        也不要宽档跳一下。（去掉两格重复后是 3 行，不是原来的 4 行。） */
     /* 两列 × 两行 + 每格一件图形：293 = 360~600 全档数据态实测上界。 */
     .hero-rail { grid-template-columns: repeat(2, minmax(0, 1fr)); min-height: 293px; }
+    /* 窄档泳道收成三带：名称+计数+处置牌一行，形状一行，说明一行。
+       五列硬塞进 360px 会把说明挤成一个省略号，那正是这次要修的病。
+       外层那套 46+150+168+58+1fr 的定死列宽也要一起塌 —— 泳道 span 的是
+       父栅格的轨道和，422px 的和会把处置牌顶到 390px 屏幕外面去。 */
+    .dh-lanes { grid-template-columns: minmax(0, 1fr); }
+    .dh-lane {
+      grid-template-columns: auto minmax(0, 1fr) auto; gap: 6px 10px;
+      grid-template-areas: "name stat chip" "shape shape shape" "note note note";
+    }
+    .dh-lane-name { grid-area: name; }
+    .dh-lane-stat { grid-area: stat; }
+    .dh-lane-shape, .dh-strip { grid-area: shape; }
+    .dh-lane-note { grid-area: note; white-space: normal; }
+    .dh-chip { grid-area: chip; }
+    .dh-row.is-todo { grid-template-columns: minmax(0, 1fr) auto; }
+    .dh-row.is-todo .dh-state { grid-column: 1 / -1; text-align: left; }
     .dh-row {
       grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px; row-gap: 4px;
     }
