@@ -194,6 +194,9 @@ def test_the_unread_workflow_stage_detail_stays_out(payload):
     # 两个布尔。这不是「把 stages 加回来」—— 上面那条闸删的是 24KB 无人读的
     # 心跳明细，这里进来的是数据健康卡逐项要点名的那两位。
     assert "wechat_dropped_telegram_covered" in wf
+    # 计数的分母。少了它，首屏那张数据健康卡只能印「37 档」而说不出是几小时
+    # 里的 37 档 —— 或者自己猜一个窗口，那比不印更坏。
+    assert "window_hours" in wf
     for record in wf["recent"]:
         for field in ("job", "slot", "raw_execution", "final_product"):
             assert field in record, field

@@ -281,7 +281,34 @@ layout: null
           </div>
           <button class="dh-toggle" type="button" id="dh-toggle" aria-expanded="false" aria-controls="dh-files">逐项</button>
         </div>
-        <div class="dh-strip" id="dh-strip" role="img" aria-label="每个数据面的期限用量"></div>
+        <!-- 三条泳道，位置固定：读者每次都在同一个地方找同一件事。
+             ①数据面＝页面上的数字新不新鲜 ②体检＝有没有报错
+             ③投递＝今天的成品有没有送出去。每条各带一枚处置牌，
+             因为「坏了」和「要不要动手」不是同一个判断（#771 的微信掉投
+             永远坏着，但它是已知不修，不该占用注意力）。 -->
+        <div class="dh-lanes-shell"><div class="dh-lanes">
+          <div class="dh-lane" id="dh-lane-files" data-tone="ok">
+            <span class="dh-lane-name">数据面</span>
+            <span class="dh-lane-stat" id="dh-files-stat">&mdash;</span>
+            <div class="dh-strip" id="dh-strip" role="img" aria-label="每个数据面的期限用量"></div>
+            <span class="dh-lane-note" id="dh-files-note"></span>
+            <span class="dh-chip" id="dh-files-chip"></span>
+          </div>
+          <div class="dh-lane" id="dh-lane-integrity" data-tone="ok">
+            <span class="dh-lane-name">体检</span>
+            <span class="dh-lane-stat" id="dh-integrity-stat">&mdash;</span>
+            <div class="dh-lane-shape" id="dh-integrity-shape" role="img" aria-label="体检结果构成"></div>
+            <span class="dh-lane-note" id="dh-integrity-note"></span>
+            <span class="dh-chip" id="dh-integrity-chip"></span>
+          </div>
+          <div class="dh-lane" id="dh-lane-delivery" data-tone="ok">
+            <span class="dh-lane-name">投递</span>
+            <span class="dh-lane-stat" id="dh-delivery-stat">&mdash;</span>
+            <div class="dh-lane-shape" id="dh-delivery-shape" role="img" aria-label="窗口内成品结果构成"></div>
+            <span class="dh-lane-note" id="dh-delivery-note"></span>
+            <span class="dh-chip" id="dh-delivery-chip"></span>
+          </div>
+        </div></div>
         <div class="dh-caption" id="dh-caption"></div>
         <div class="dh-files" id="dh-files" hidden></div>
       </section>

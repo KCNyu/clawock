@@ -1141,6 +1141,9 @@ async function testVerdictDeckFillsItsBoxAndRanksGatesBySeverity(browser, base) 
 // 数据健康卡：降级/恢复必须点名是哪一档（kcn 2026-08-25：「如果有降级的应该
 // 标注出来是哪个」），微信单通道掉投必须可数、可点名（#771 让它在 summarizer
 // 里可数，但那个计数从没进过任何读者能看到的地方）。
+// 点名的位置从判词挪到了「投递」泳道（kcn 2026-09-01：「我也不知道该怎么看」
+// ⇒ 判词只回答「页面上的数字能不能信」，一个任务没落地不改变这个答案）。
+// 断言跟着挪，但要求不变：**不展开就能读到是哪一档、发生了什么**。
 async function testDataHealthNamesTheDegradedSlotAndWeChatDrops(browser, base) {
   const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   const page = await context.newPage();
@@ -1191,13 +1194,30 @@ async function testDataHealthNamesTheDegradedSlotAndWeChatDrops(browser, base) {
   const head = await page.evaluate(() => ({
     verdict: (document.getElementById("dh-verdict") || document.getElementById("dh-title")).textContent.trim(),
     meta: document.getElementById("dh-meta").textContent.trim(),
+    delivery: document.getElementById("dh-delivery-note").textContent.trim(),
+    deliveryChip: document.getElementById("dh-delivery-chip").textContent.trim(),
+    filesChip: document.getElementById("dh-files-chip").textContent.trim(),
+    integrityChip: document.getElementById("dh-integrity-chip").textContent.trim(),
+    caption: document.getElementById("dh-caption").textContent.trim(),
   }));
-  assert(head.verdict.includes("港股收盘报告"),
-    `data-health verdict does not name the degraded slot: ${head.verdict}`);
-  assert(head.verdict.includes("恢复"),
-    `data-health verdict does not say what happened to it: ${head.verdict}`);
+  assert(head.delivery.includes("港股收盘报告"),
+    `delivery lane does not name the degraded slot: ${head.delivery}`);
+  assert(head.delivery.includes("恢复"),
+    `delivery lane does not say what happened to it: ${head.delivery}`);
   assert(/微信掉投\s*3\s*档/.test(head.meta),
     `data-health meta does not carry the WeChat drop count: ${head.meta}`);
+  // 数据面全部在期、体检干净 ⇒ 判词必须说数字可用。把「某一档降级」读成
+  // 「页面数字不可信」正是这块牌以前的病。
+  assert(head.verdict.includes("页面数字可用"),
+    `verdict conflates a degraded slot with untrustworthy numbers: ${head.verdict}`);
+  // 处置牌必须分得开：兜住了的降级是「观察」，不是「需处理」。
+  assert.equal(head.deliveryChip, "观察",
+    `a recovered slot should be watch-only, got ${head.deliveryChip}`);
+  assert.equal(head.filesChip, "正常", `files lane chip: ${head.filesChip}`);
+  assert.equal(head.integrityChip, "正常", `integrity lane chip: ${head.integrityChip}`);
+  // 牌面上的四个字必须在同一屏里有解释，否则它们只是四个没人懂的标签。
+  ["需处理", "观察", "已知不修"].forEach(word => assert(head.caption.includes(word),
+    `disposition legend does not explain "${word}": ${head.caption}`));
 
   await page.click("#dh-toggle");
   const rows = await page.evaluate(() =>

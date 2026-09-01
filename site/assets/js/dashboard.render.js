@@ -966,8 +966,13 @@
       // 端点标记已移除（kcn 2026-08-24：spark 末端涨跌色圆点没用，去掉）。
   }
 
-  // 数据健康：原来只有页脚一条 29px 小条，逐文件明细全塞在 title 提示里，
-  // 触屏根本打不开。这里把它提到首屏，逐项可展开。(#876)
+  // 数据健康：一块牌上压着三个互不相干的问题 —— ①页面上的数字新不新鲜
+  // ②体检有没有报错 ③今天的成品有没有送出去。原来它们被压成「一行判词 +
+  // 一条灰 meta」：判词借的是当下最坏的那一条，另外两条的状态读不出来，
+  // 也读不出该不该动手（kcn 2026-09-01：「我也不知道该怎么看」）。
+  // 现在固定三条泳道 —— 位置不动，每条各带一枚处置牌。判词只回答第一个
+  // 问题：**一个任务没落地不等于页面上的数字是错的**，这两件事必须分开说，
+  // 否则「简报 FAILED」会把一屏可信的数字染成红的。
   // 判过期只认 f.stale —— files[] 有两种新鲜度模式（max_age 比 sla_hours，
   // scheduled_fire 比 deadline_at），自己再算一遍 age>sla 会造出一批假警报。
   function renderDataHealth() {
@@ -986,52 +991,36 @@
     const wc = wf.counts || {};
     const files = (bs.files || []).slice();
     const late = files.filter(f => f.present === false || f.stale);
-    const degraded = (wc.recovered || 0) + (wc.degraded || 0);
-    // 「1 档成品恢复或降级」答不出是哪一档（kcn 2026-08-25：「如果有降级的应该
-    // 标注出来是哪个」）。台账 recent[] 里逐档带着 job/slot 与 final_product，
-    // 点名只是把已经在手的字段读出来。recent 有条数上限，点不满就说「等 N 档」，
-    // 不假装列全。
-    const SOFT_CN = { recovered: "恢复", degraded: "降级", artifact_only: "仅存档",
-                      failed: "FAILED" };
+    const missing = files.filter(f => f.present === false);
+    const failed = wc.failed || 0;
+    const soft = (wc.recovered || 0) + (wc.degraded || 0);
+    const okCount = wc.success || 0;
+    const pending = wc.pending || 0;
+    const slotTotal = okCount + soft + failed + pending;
+    const igErr = ig.error_count || 0;
+    const igWarn = ig.warn_count || 0;
+    const igTop = (ig.top || [])[0] || null;
+    const dropped = wf.wechat_dropped_slots || [];
+    const droppedTotal = wf.wechat_dropped_telegram_covered || dropped.length;
+    // 窗口写不出来就不写 —— 「37 档」配一个猜出来的小时数比没有小时数更坏。
+    const winH = Number(wf.window_hours) > 0 ? Number(wf.window_hours) : null;
+
     // 点名读的是台账自己给的 degraded_slots（全窗口、有上限），不是 recent ——
     // recent 是尾巴不是集合，忙日里它一条降级都装不下（实测 16 条尾巴全是
     // 盘中盯盘，16:00 那次「恢复」早被挤出去了）。
+    const SOFT_CN = { recovered: "恢复", degraded: "降级", artifact_only: "仅存档",
+                      failed: "FAILED" };
     const jobsWith = (...states) => (wf.degraded_slots || [])
       .filter(r => states.includes((r || {}).status))
-      .map(r => `${r.job || "未具名任务"} ${SOFT_CN[r.status] || ""}`.trim());
-    const nameThem = (total, names) => {
-      if (!names.length) return "";
-      const head = names.slice(0, 2).join(" · ");
-      return total > names.slice(0, 2).length
-        ? `${head} 等 ${total} 档` : head;
+      .map(r => ({ job: r.job || "未具名任务", what: SOFT_CN[r.status] || r.status || "",
+                   slot: String(r.slot || "").slice(0, 16).replace("T", " ") }));
+    // 名单有上限，点不满就说「等 N 档」，不假装列全。
+    const nameThem = (total, rows) => {
+      if (!rows.length) return "";
+      const shown = rows.slice(0, 2);
+      const head = shown.map(r => `${r.job} ${r.what}`.trim()).join(" · ");
+      return total > shown.length ? `${head} 等 ${total} 档` : head;
     };
-
-    let tone = "ok", verdict = "全部数据面在期";
-    if ((wc.failed || 0) > 0) {
-      tone = "bad";
-      verdict = nameThem(wc.failed, jobsWith("failed")) || `成品流程 ${wc.failed} 档 FAILED`;
-    }
-    else if ((ig.error_count || 0) > 0) { tone = "bad"; verdict = `体检 ${ig.error_count} 项 ERROR`; }
-    else if (late.length) { tone = "warn"; verdict = `${late.length} 个数据面逾期`; }
-    else if ((ig.warn_count || 0) > 0) { tone = "warn"; verdict = `体检 ${ig.warn_count} 项 WARN`; }
-    else if (degraded) {
-      tone = "warn";
-      verdict = nameThem(degraded, jobsWith("recovered", "degraded"))
-        || `${degraded} 档成品恢复或降级`;
-    }
-    root.dataset.tone = tone;
-    if (verdictEl) verdictEl.textContent = verdict;
-    if (metaEl) {
-      const bits = [`${files.length} 个数据面`];
-      bits.push(`体检 ${ig.error_count || 0} ERROR / ${ig.warn_count || 0} WARN`);
-      if (degraded) bits.push(`${degraded} 档恢复或降级`);
-      // 微信单通道掉投：上游 ret=-2，kcn 已定不修也不告警（#771），但「这一
-      // 窗口掉了几档」必须答得上来。它不改 tone —— 成品由 Telegram 兜住了。
-      if (wf.wechat_dropped_telegram_covered)
-        bits.push(`微信掉投 ${wf.wechat_dropped_telegram_covered} 档 · TG 已兜`);
-      if (bs.generated_at) bits.push(`构建 ${String(bs.generated_at).replace("T", " ").slice(0, 16)}`);
-      metaEl.textContent = bits.join(" · ");
-    }
 
     // 期限用量：max_age 用 age/sla；scheduled_fire 只有到期时刻，用「离截止还有多久
     // ÷ 24h」表达，两者都只是粗略的紧张程度，精确判定始终以 f.stale 为准。
@@ -1065,15 +1054,114 @@
       return `${f.age_hours == null ? DASH : f.age_hours + "h"} / 期限 ${f.sla_hours}h`;
     };
 
+    // ── 三条泳道 ───────────────────────────────────────────────────────
+    // 处置牌只有四种，含义写在卡片底部那行说明里，不靠读者猜：
+    //   需处理 = 页面数字或成品真的受影响；观察 = 兜底已经生效，只记不动；
+    //   已知不修 = kcn 已经拍板不处理；正常 = 没有要说的。
+    const setLane = (key, tone, stat, note, chip) => {
+      const lane = document.getElementById(`dh-lane-${key}`);
+      if (lane) lane.dataset.tone = tone;
+      const statEl = document.getElementById(`dh-${key}-stat`);
+      const noteEl = document.getElementById(`dh-${key}-note`);
+      const chipEl = document.getElementById(`dh-${key}-chip`);
+      if (statEl) statEl.textContent = stat;
+      if (noteEl) noteEl.textContent = note;
+      if (chipEl) { chipEl.textContent = chip; chipEl.dataset.act = chip; }
+    };
+    // 构成条：只画有数的段，段宽按档数成比例 —— 「今天有多少比例是好的」
+    // 是一眼能读的形状，一串数字不是。
+    const drawBar = (id, parts) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const live = parts.filter(p => p.n > 0);
+      const total = live.reduce((a, p) => a + p.n, 0);
+      el.innerHTML = !total ? "" : live.map(p =>
+        `<i class="dh-part is-${p.k}" style="flex:${p.n}"`
+        + ` title="${escapeHtml(p.t)} ${p.n} 档"></i>`).join("");
+    };
+    // 体检没有分母（不存在「一共检查了 N 项」这个数），所以画计数点不画
+    // 构成条 —— 一根没有分母的比例条是编出来的。
+    const drawPips = (id, spec) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const out = [];
+      spec.forEach(([kind, n, title]) => {
+        for (let i = 0; i < Math.min(n, 10); i++) {
+          out.push(`<i class="dh-pip is-${kind}" title="${escapeHtml(title)}"></i>`);
+        }
+      });
+      el.innerHTML = out.join("");
+    };
+
+    const tightest = files.slice().sort((a, b) => usage(b) - usage(a))[0];
+    setLane("files",
+      missing.length ? "bad" : (late.length ? "warn" : "ok"),
+      `${files.length - late.length}/${files.length} 在期`,
+      late.length
+        ? `逾期：${late.map(f => dataFileCn(f.name)).join("、")} —— 页面上这几块是旧数字`
+        : (tightest ? `最紧张 ${dataFileCn(tightest.name)}（${detailOf(tightest)}）` : ""),
+      late.length ? "需处理" : "正常");
+
+    setLane("integrity",
+      igErr ? "bad" : (igWarn ? "warn" : "ok"),
+      `${igErr} ERROR · ${igWarn} WARN`,
+      igTop ? String(igTop.msg || igTop.code || "") : "无异常",
+      igErr ? "需处理" : (igWarn ? "观察" : "正常"));
+    drawPips("dh-integrity-shape", igErr || igWarn
+      ? [["bad", igErr, "ERROR"], ["warn", igWarn, "WARN"]]
+      : [["ok", 1, "无异常"]]);
+
+    setLane("delivery",
+      failed ? "bad" : (soft ? "warn" : "ok"),
+      winH ? `${slotTotal} 档 / ${winH}h` : `${slotTotal} 档`,
+      failed
+        ? `${nameThem(failed, jobsWith("failed")) || `${failed} 档 FAILED`} —— 成品没落地`
+        : (soft
+            ? `${nameThem(soft, jobsWith("recovered", "degraded")) || `${soft} 档恢复或降级`} · 成品已送达`
+            : "全部按时送达"),
+      failed ? "需处理" : (soft ? "观察" : "正常"));
+    drawBar("dh-delivery-shape", [
+      { k: "ok", n: okCount, t: "成功" },
+      { k: "warn", n: soft, t: "恢复或降级" },
+      { k: "bad", n: failed, t: "FAILED" },
+      { k: "idle", n: pending, t: "进行中" },
+    ]);
+
+    // ── 判词只回答一件事：页面上的数字能不能信 ─────────────────────────
+    // 数据面逾期 / 体检 ERROR 会让读者正在看的数字变旧或变错；一个任务
+    // FAILED 不会 —— 它影响的是成品有没有送出去与有没有归档。两者混成
+    // 一句会让人要么过度紧张，要么把真的过期当成「又是那个失败的任务」。
+    const trustBroken = late.length || igErr;
+    const todoCount = (late.length ? 1 : 0) + (igErr ? 1 : 0) + (failed ? 1 : 0);
+    const watchCount = (igErr ? 0 : (igWarn ? 1 : 0)) + (failed ? 0 : (soft ? 1 : 0));
+    const tone = (trustBroken || failed) ? "bad" : ((igWarn || soft) ? "warn" : "ok");
+    const disposition = todoCount ? `${todoCount} 件要处理`
+      : (watchCount ? `${watchCount} 件观察中` : "无事可做");
+    const trustText = trustBroken
+      ? `页面数字存疑 · ${late.length ? `${late.length} 个数据面逾期` : `体检 ${igErr} 项 ERROR`}`
+      : "页面数字可用";
+    root.dataset.tone = tone;
+    if (verdictEl) {
+      // 两截分开着色：把「页面数字可用」印成红的（因为别处有个任务挂了）
+      // 正是这块牌以前最误导人的地方。
+      verdictEl.innerHTML =
+        `<span class="dh-trust" data-trust="${trustBroken ? "broken" : "ok"}">`
+        + `${escapeHtml(trustText)}</span> · `
+        + `<span class="dh-todo" data-sev="${todoCount ? "bad" : (watchCount ? "warn" : "ok")}">`
+        + `${escapeHtml(disposition)}</span>`;
+    }
+
+    if (metaEl) {
+      const bits = [];
+      // 微信单通道掉投：上游 ret=-2，kcn 已定不修也不告警（#771），但「这一
+      // 窗口掉了几档」必须答得上来。它不改 tone，也不占泳道 —— 成品由
+      // Telegram 兜住了，它属于「已知不修」，位置就该在这条安静的行里。
+      if (droppedTotal) bits.push(`微信掉投 ${droppedTotal} 档 · TG 已兜 · 已知不修`);
+      if (bs.generated_at) bits.push(`构建 ${String(bs.generated_at).replace("T", " ").slice(0, 16)}`);
+      metaEl.textContent = bits.join(" · ");
+    }
+
     if (stripEl) {
-      const tightest = files.slice().sort((a, b) => usage(b) - usage(a))[0];
-      const caption = document.getElementById("dh-caption");
-      if (caption) {
-        caption.textContent = !files.length ? ""
-          : late.length
-            ? `逾期：${late.map(f => dataFileCn(f.name)).join("、")}`
-            : `期限用量 · 越高越接近过期 · 最紧张的是${dataFileCn(tightest.name)}（${detailOf(tightest)}）`;
-      }
       stripEl.innerHTML = files.map(f => {
         const st = stateOf(f);
         const pctUsed = Math.round(usage(f) * 100);
@@ -1083,12 +1171,38 @@
       }).join("");
     }
 
+    const caption = document.getElementById("dh-caption");
+    if (caption) {
+      caption.textContent = "处置：需处理＝页面数字或成品真的受影响，要动手；"
+        + "观察＝兜底已生效、成品到了，只记不动；已知不修＝已拍板不处理。";
+    }
+
     if (filesEl) {
-      // 逐项里先摆投递：掉的是哪几档、几点的，只有这里答得出（表头那行只有
-      // 计数）。用同一套 dh-row 栅格，状态列写「TG 已兜」——它不是告警。
-      // 同理走 wechat_dropped_slots（全窗口）而不是 recent 里的通道位。
-      const dropped = wf.wechat_dropped_slots || [];
-      const droppedTotal = wf.wechat_dropped_telegram_covered || dropped.length;
+      // 逐项第一组是「处置清单」：只列 需处理 的那几条，每条带下一步该去
+      // 哪看。剩下两组（投递掉投 / 数据面逐项）是台账，不是待办。
+      const todo = [];
+      late.forEach(f => todo.push({
+        name: dataFileCn(f.name), where: f.name, why: detailOf(f),
+        next: f.present === false ? "文件没生成，查它的生成任务" : "页面上这块是旧数字，查它的生成任务",
+      }));
+      (ig.top || []).filter(t => String(t.level || "").toUpperCase() === "ERROR").forEach(t => todo.push({
+        name: "体检", where: String(t.code || ""), why: String(t.msg || ""),
+        next: "看 assets/data/integrity_report.json",
+      }));
+      jobsWith("failed").forEach(r => todo.push({
+        name: r.job, where: r.slot, why: "成品未落地（final_product=failed）",
+        next: "看 workflow-outcomes.json 里这一槽的 stages",
+      }));
+      const todoRows = todo.length
+        ? `<div class="dh-sub">处置 · 需处理</div>`
+          + todo.map(t => `<div class="dh-row is-todo">`
+            + `<span class="dh-name">${escapeHtml(t.name)}</span>`
+            + `<span class="dh-file">${escapeHtml(t.where)}</span>`
+            + `<span class="dh-bar"></span>`
+            + `<span class="dh-detail">${escapeHtml(t.why)}</span>`
+            + `<span class="dh-state">${escapeHtml(t.next)}</span></div>`).join("")
+        : "";
+
       const unnamed = Math.max(0, droppedTotal - dropped.length);
       const deliveryRows = dropped.length
         ? `<div class="dh-sub">投递 · 微信掉投（上游 ret=-2，已知不修）</div>`
@@ -1106,9 +1220,9 @@
               + `<span class="dh-detail">更早的槽位见 workflow-outcomes.json</span>`
               + `<span class="dh-state"></span></div>`
             : "")
-          + `<div class="dh-sub">数据面</div>`
         : "";
-      filesEl.innerHTML = deliveryRows + files
+
+      filesEl.innerHTML = todoRows + deliveryRows + `<div class="dh-sub">数据面</div>` + files
         .slice()
         .sort((a, b) => usage(b) - usage(a))
         .map(f => {
@@ -1135,8 +1249,6 @@
       });
     }
   }
-
-
   function renderDelta() {
     const tbody = document.getElementById("delta-tbody");
     const d = safe(DATA, "delta");
