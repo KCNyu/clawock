@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-01T00:45:51.238269+00:00",
+  "generated_at": "2026-09-01T16:58:54.871058+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -13,12 +13,82 @@
   },
   "llm_filtered": true,
   "counts": {
-    "total": 20,
-    "held_hits": 4,
-    "new_ideas": 0,
+    "total": 16,
+    "held_hits": 0,
+    "new_ideas": 3,
     "sector_hits": 7
   },
   "items": [
+    {
+      "author": "Musk",
+      "text": "Elon Musk’s Grok can basically control anything in your Tesla now",
+      "url": "",
+      "published": "Tue, 01 Sep 2026 08:15:22 GMT",
+      "origin": "gnews-rss",
+      "source": "Teslarati",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "AI"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 52,
+      "summary_cn": "马斯克xAI的Grok可基本控制特斯拉功能，AI赋能电动车"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk is the 'Thomas Edison of our day' but Tesla stock is priced for perfection, says Tom Hayes",
+      "url": "",
+      "published": "Tue, 01 Sep 2026 14:05:05 GMT",
+      "origin": "gnews-rss",
+      "source": "Fox Business",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 48,
+      "summary_cn": "评论称特斯拉股价已'price for perfection'，警示估值过高"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk's Tesla vs. Jamie Dimon's JPMorgan Chase: Which Stock Has Performed Better Over the Past 5 Years?",
+      "url": "",
+      "published": "Tue, 01 Sep 2026 10:00:00 GMT",
+      "origin": "gnews-rss",
+      "source": "The Motley Fool",
+      "tickers": [
+        "TSLA",
+        "JPM"
+      ],
+      "held": [],
+      "new_ideas": [
+        "JPM",
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "金融"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 48,
+      "summary_cn": "马斯克特斯拉与摩根大通五年股价表现对比报道"
+    },
     {
       "author": "Trump",
       "text": "Trump Asks Congress to Pass Crypto Bill Alongside Executives: https://www.bloomberg.com/news/articles/2026-08-19/trump-asks-congress-to-pass-crypto-bill-alongside-executives",
@@ -26,84 +96,18 @@
       "published": "2026-08-31T15:32:45+00:00",
       "origin": "truthsocial",
       "tickers": [],
-      "held": [
-        "CRCL"
-      ],
+      "held": [],
       "new_ideas": [],
       "sectors": [
         "加密货币",
         "监管"
       ],
-      "sector_holdings": [],
+      "sector_holdings": [
+        "CRCL"
+      ],
       "stance": "endorse",
       "relevance": 78,
-      "summary_cn": "Trump要求国会与业界共同推进加密法案，直接利好稳定币/USDC板块，kcn持仓CRCL受益。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk drops stunning SpaceX forecast",
-      "url": "",
-      "published": "Mon, 31 Aug 2026 23:17:00 GMT",
-      "origin": "gnews-rss",
-      "source": "thestreet.com",
-      "tickers": [],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 75,
-      "summary_cn": "Musk披露惊人SpaceX业绩预测，直接利好kcn持有的SPCX及2倍杠杆SPCH。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX Logs NASA Launch Success, Jumps Into Gas Turbine Business",
-      "url": "",
-      "published": "Mon, 31 Aug 2026 20:35:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Investor's Business Daily",
-      "tickers": [],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "燃气轮机",
-        "能源"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 72,
-      "summary_cn": "SpaceX NASA发射成功，并跨界进入燃气轮机业务，强化kcn持仓SPCX/SPCH业务版图。"
-    },
-    {
-      "author": "Musk",
-      "text": "Our decision on Cursor following its acquisition by SpaceX",
-      "url": "",
-      "published": "Sat, 29 Aug 2026 01:46:12 GMT",
-      "origin": "gnews-rss",
-      "source": "openai.com",
-      "tickers": [],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "AI软件",
-        "航天"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 70,
-      "summary_cn": "Musk发文谈SpaceX收购Cursor后的决策——直接关联kcn持仓SPCX/SPCH。"
+      "summary_cn": "Trump敦促国会与业界高管共同推进加密货币法案立法，利好加密板块"
     },
     {
       "author": "Trump",
@@ -116,60 +120,15 @@
       "new_ideas": [],
       "sectors": [
         "数据中心",
-        "AI基础设施"
+        "AI基础设施",
+        "中国"
       ],
       "sector_holdings": [
-        "03032",
-        "03033",
-        "07226",
         "SKHY"
       ],
       "stance": "endorse",
       "relevance": 72,
-      "summary_cn": "Trump发文力挺数据中心建设，称反数据中心运动令中国开心，相关概念受益。"
-    },
-    {
-      "author": "Trump",
-      "text": "President Trump is the Greatest JOBS President in American History. He works tirelessly every day to create millions of high-paying Jobs, drive Trillions of Dollars in Investment, and reinvigorate our Economy. Just this week, President Trump and the Prime Minister of Bangladesh made another incredible Deal, with Bangladesh committing to spend Billions of Dollars to buy more Boeing Aircraft, significantly increasing their initial order. Our President is Making America, and our partners, Great Again!",
-      "url": "https://trumpstruth.org/statuses/41396",
-      "published": "2026-08-30T16:15:39+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "国防"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
-      "relevance": 72,
-      "summary_cn": "白宫力推Trump就业成就，称孟加拉国承诺加购数十亿美元波音飞机，航天链情绪利好(含未上市Boeing)。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk’s SpaceX Blade Plan Knocks Howmet As HWM Suffers Steepest Slide In 16 Months",
-      "url": "",
-      "published": "Mon, 31 Aug 2026 21:16:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Stocktwits",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "航空发动机"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 70,
-      "summary_cn": "Musk的SpaceX Blade计划冲击Howmet(HWM)，后者股价创16个月最大跌幅，反映SpaceX对上游供应链议价权。"
+      "summary_cn": "Trump力挺美国数据中心建设，痛批反数据中心运动，称中国乐见其成"
     },
     {
       "author": "Trump",
@@ -182,62 +141,36 @@
       "new_ideas": [],
       "sectors": [
         "数据中心",
-        "AI基础设施"
+        "AI基础设施",
+        "中国"
       ],
       "sector_holdings": [
-        "03032",
-        "03033",
-        "07226",
         "SKHY"
       ],
       "stance": "endorse",
-      "relevance": 70,
-      "summary_cn": "Trump再次发文力挺数据中心，称反对者让中国高兴，重复条目但强化信号。"
-    },
-    {
-      "author": "Trump",
-      "text": "Congratulations to NASA Administrator Jared Isaacman, and the Great Patriots at NASA, on a successful launch. This is THE GOLDEN AGE OF AMERICA! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/41389",
-      "published": "2026-08-30T13:59:40+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "NASA"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
-      "relevance": 58,
-      "summary_cn": "Trump祝贺NASA及Isaacman成功发射，称'美国黄金时代'，航天主题情绪利好。"
+      "relevance": 68,
+      "summary_cn": "Trump再次力挺美国数据中心建设，批评地方反对声音利好中国"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk Is Spending $119 Billion on A Single Building Outside Houston. Here’s Who Actually Profits.",
+      "text": "Tesla advances Austin chip facility as Musk's Texas Terafab takes shape",
       "url": "",
-      "published": "Mon, 31 Aug 2026 22:40:14 GMT",
+      "published": "Tue, 01 Sep 2026 09:02:59 GMT",
       "origin": "gnews-rss",
-      "source": "finance.yahoo.com",
+      "source": "Austin American-Statesman",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "AI基础设施",
-        "数据中心"
+        "半导体",
+        "AI基础设施"
       ],
       "sector_holdings": [
-        "03032",
-        "03033",
-        "07226",
         "SKHY"
       ],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "Musk在休斯顿以外耗资1190亿美元建单一建筑，指向超大规模AI数据中心/超级工厂。"
+      "stance": "endorse",
+      "relevance": 62,
+      "summary_cn": "特斯拉推进奥斯汀芯片厂，马斯克德州'Terafab'晶圆厂成型，利好AI芯片供应链"
     },
     {
       "author": "Trump",
@@ -250,33 +183,57 @@
       "new_ideas": [],
       "sectors": [
         "光通信",
-        "半导体"
+        "半导体",
+        "AI基础设施"
       ],
       "sector_holdings": [
         "SKHY"
       ],
       "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "Prysmian投资超10亿美元在北卡扩产光纤光缆制造设施，AI驱动光通信/光纤需求持续景气，间接利好SK海力士等存储链。"
+      "relevance": 60,
+      "summary_cn": "Prysmian投资超10亿美元扩建北卡光纤光缆制造厂，美国AI/光通信产能扩张"
     },
     {
-      "author": "Trump",
-      "text": "Trump’s historic oil deal with Venezuela realigns global energy and puts OPEC, Canada on notice: https://justthenews.com/government/white-house/trump-announces-massive-oil-deal-venezuela",
-      "url": "https://trumpstruth.org/statuses/41383",
-      "published": "2026-08-30T12:19:44+00:00",
-      "origin": "truthsocial",
+      "author": "Musk",
+      "text": "SpaceX sweeteners: How did Louisiana lure Elon Musk’s rocket launch site to its coast?",
+      "url": "",
+      "published": "Tue, 01 Sep 2026 16:15:45 GMT",
+      "origin": "gnews-rss",
+      "source": "Louisiana Illuminator",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "原油",
-        "能源",
-        "OPEC"
+        "航天"
       ],
-      "sector_holdings": [],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
       "stance": "neutral",
-      "relevance": 68,
-      "summary_cn": "Trump与委内瑞拉达成'历史性石油协议'，重塑全球能源格局并警告OPEC与加拿大。"
+      "relevance": 58,
+      "summary_cn": "报道路易斯安那州以补贴吸引SpaceX落户发射场"
+    },
+    {
+      "author": "Musk",
+      "text": "Data Center Dilemma: What's it like to live next to Elon Musk's 'Colossus Cluster'",
+      "url": "",
+      "published": "Tue, 01 Sep 2026 15:09:00 GMT",
+      "origin": "gnews-rss",
+      "source": "WBHM",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "数据中心",
+        "AI基础设施"
+      ],
+      "sector_holdings": [
+        "SKHY"
+      ],
+      "stance": "neutral",
+      "relevance": 58,
+      "summary_cn": "马斯克'巨像集群'数据中心建设对周边社区影响的报道"
     },
     {
       "author": "Trump",
@@ -288,70 +245,89 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "能源",
         "地缘政治",
-        "原油"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 65,
-      "summary_cn": "Trump称Kharg岛(伊朗主要石油出口枢纽)被炸毁，暗示中东原油供给受冲击。"
-    },
-    {
-      "author": "Trump",
-      "text": "One of the things I am going to do with the Venezuelan Oil is fill up the Strategic National Reserves which, because of Sleepy Joe Biden, has been virtually emptied. The “topping out” process will begin very shortly, and is a Gift from Venezuela to the People of the United States. Thank you! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/41391",
-      "published": "2026-08-30T14:10:20+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
         "原油",
-        "能源"
+        "国防"
       ],
       "sector_holdings": [],
       "stance": "neutral",
       "relevance": 62,
-      "summary_cn": "Trump称将用委内瑞拉石油补充战略石油储备(SPR)，影响油价与OPEC格局。"
+      "summary_cn": "Trump发文称伊朗哈尔克岛被摧毁，中东局势升级或推升油价"
     },
     {
       "author": "Musk",
-      "text": "GE Vernova Stock Drops. Is SpaceX Coming for Them Too?",
+      "text": "Elon Musk Talks AI, Robots, and a ‘Crisis of Power’ at G20 Meeting",
       "url": "",
-      "published": "Mon, 31 Aug 2026 20:44:00 GMT",
+      "published": "Tue, 01 Sep 2026 15:39:00 GMT",
       "origin": "gnews-rss",
       "source": "Barron's",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "能源设备",
-        "燃气轮机"
+        "AI",
+        "电力",
+        "机器人"
       ],
       "sector_holdings": [],
-      "stance": "attack",
+      "stance": "neutral",
       "relevance": 60,
-      "summary_cn": "GE Vernova股价下跌，市场担忧SpaceX进军燃气轮机对其构成竞争威胁。"
+      "summary_cn": "马斯克G20会议上谈AI、机器人及'电力危机'，强调算力瓶颈"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk’s Grok can basically control anything in your Tesla now",
+      "text": "OpenAI to end model access to Cursor after acquisition by Elon Musk's SpaceX",
       "url": "",
-      "published": "Mon, 31 Aug 2026 19:36:20 GMT",
+      "published": "Sat, 29 Aug 2026 19:05:55 GMT",
       "origin": "gnews-rss",
-      "source": "Teslarati",
+      "source": "CNBC",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "电动车",
         "AI"
       ],
       "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "报道称SpaceX收购Cursor后OpenAI将终止其模型访问"
+    },
+    {
+      "author": "Trump",
+      "text": "For many years, the USA has been losing more than 60 Billion Dollars a year with Canada. Why??? Our long ago stolen businesses are now coming back to America in order to avoid paying tariffs. They are lining up, just like the rest of the World!!! President DJT",
+      "url": "https://trumpstruth.org/statuses/41405",
+      "published": "2026-08-31T00:26:05+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "关税",
+        "加拿大",
+        "制造业"
+      ],
+      "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 60,
-      "summary_cn": "Musk称Grok可基本控制Tesla任何功能，强化Tesla AI/智能驾驶叙事。"
+      "relevance": 55,
+      "summary_cn": "Trump称美国与加拿大贸易年亏600亿美元，关税正促使加企回流美国"
+    },
+    {
+      "author": "Trump",
+      "text": "Let all Canadian Companies that are doing business with America move to the United States, immediately. Many of them are Companies that moved out years ago due to stupid U.S. Leadership. When you move back, there are no TARIFFS! President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/41398",
+      "published": "2026-08-30T18:26:25+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "关税",
+        "加拿大"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 52,
+      "summary_cn": "Trump喊话在美经营的加企立即迁回美国，回迁可免关税"
     },
     {
       "author": "Trump",
@@ -368,66 +344,84 @@
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 60,
-      "summary_cn": "Trump宣称关税拯救了底特律福特工厂，F/GM受益，加拿大是'最严重滥用者'。"
-    },
+      "relevance": 50,
+      "summary_cn": "Trump自夸关税拯救美国汽车业，福特/通用工厂24/7运转"
+    }
+  ],
+  "held_hits": [],
+  "new_ideas": [
     {
-      "author": "Trump",
-      "text": "For many years, the USA has been losing more than 60 Billion Dollars a year with Canada. Why??? Our long ago stolen businesses are now coming back to America in order to avoid paying tariffs. They are lining up, just like the rest of the World!!! President DJT",
-      "url": "https://trumpstruth.org/statuses/41405",
-      "published": "2026-08-31T00:26:05+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
+      "author": "Musk",
+      "text": "Elon Musk’s Grok can basically control anything in your Tesla now",
+      "url": "",
+      "published": "Tue, 01 Sep 2026 08:15:22 GMT",
+      "origin": "gnews-rss",
+      "source": "Teslarati",
+      "tickers": [
+        "TSLA"
+      ],
       "held": [],
-      "new_ideas": [],
+      "new_ideas": [
+        "TSLA"
+      ],
       "sectors": [
-        "关税",
-        "美加贸易"
+        "电动车",
+        "AI"
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 58,
-      "summary_cn": "Trump称美国与加拿大贸易逆差600亿美元/年，制造业回流美国以规避关税。"
-    },
-    {
-      "author": "Trump",
-      "text": "Let all Canadian Companies that are doing business with America move to the United States, immediately. Many of them are Companies that moved out years ago due to stupid U.S. Leadership. When you move back, there are no TARIFFS! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/41398",
-      "published": "2026-08-30T18:26:25+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "关税",
-        "美加贸易"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "Trump敦促在美经营的加拿大公司立即迁回美国，承诺回流无关税。"
+      "relevance": 52,
+      "summary_cn": "马斯克xAI的Grok可基本控制特斯拉功能，AI赋能电动车"
     },
     {
       "author": "Musk",
-      "text": "Tesla FSD can soon avoid potholes says Elon Musk, who said the same in 2019",
+      "text": "Elon Musk is the 'Thomas Edison of our day' but Tesla stock is priced for perfection, says Tom Hayes",
       "url": "",
-      "published": "Mon, 31 Aug 2026 16:53:00 GMT",
+      "published": "Tue, 01 Sep 2026 14:05:05 GMT",
       "origin": "gnews-rss",
-      "source": "Electrek",
-      "tickers": [],
+      "source": "Fox Business",
+      "tickers": [
+        "TSLA"
+      ],
       "held": [],
-      "new_ideas": [],
+      "new_ideas": [
+        "TSLA"
+      ],
       "sectors": [
-        "电动车",
-        "自动驾驶"
+        "电动车"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 45,
-      "summary_cn": "Musk称Tesla FSD即将能躲避坑洞(此前2019年已说过)，老话题迭代，关注兑现度。"
+      "relevance": 48,
+      "summary_cn": "评论称特斯拉股价已'price for perfection'，警示估值过高"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk's Tesla vs. Jamie Dimon's JPMorgan Chase: Which Stock Has Performed Better Over the Past 5 Years?",
+      "url": "",
+      "published": "Tue, 01 Sep 2026 10:00:00 GMT",
+      "origin": "gnews-rss",
+      "source": "The Motley Fool",
+      "tickers": [
+        "TSLA",
+        "JPM"
+      ],
+      "held": [],
+      "new_ideas": [
+        "JPM",
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "金融"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 48,
+      "summary_cn": "马斯克特斯拉与摩根大通五年股价表现对比报道"
     }
   ],
-  "held_hits": [
+  "sector_hits": [
     {
       "author": "Trump",
       "text": "Trump Asks Congress to Pass Crypto Bill Alongside Executives: https://www.bloomberg.com/news/articles/2026-08-19/trump-asks-congress-to-pass-crypto-bill-alongside-executives",
@@ -435,88 +429,19 @@
       "published": "2026-08-31T15:32:45+00:00",
       "origin": "truthsocial",
       "tickers": [],
-      "held": [
-        "CRCL"
-      ],
+      "held": [],
       "new_ideas": [],
       "sectors": [
         "加密货币",
         "监管"
       ],
-      "sector_holdings": [],
+      "sector_holdings": [
+        "CRCL"
+      ],
       "stance": "endorse",
       "relevance": 78,
-      "summary_cn": "Trump要求国会与业界共同推进加密法案，直接利好稳定币/USDC板块，kcn持仓CRCL受益。"
+      "summary_cn": "Trump敦促国会与业界高管共同推进加密货币法案立法，利好加密板块"
     },
-    {
-      "author": "Musk",
-      "text": "Elon Musk drops stunning SpaceX forecast",
-      "url": "",
-      "published": "Mon, 31 Aug 2026 23:17:00 GMT",
-      "origin": "gnews-rss",
-      "source": "thestreet.com",
-      "tickers": [],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 75,
-      "summary_cn": "Musk披露惊人SpaceX业绩预测，直接利好kcn持有的SPCX及2倍杠杆SPCH。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX Logs NASA Launch Success, Jumps Into Gas Turbine Business",
-      "url": "",
-      "published": "Mon, 31 Aug 2026 20:35:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Investor's Business Daily",
-      "tickers": [],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "燃气轮机",
-        "能源"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 72,
-      "summary_cn": "SpaceX NASA发射成功，并跨界进入燃气轮机业务，强化kcn持仓SPCX/SPCH业务版图。"
-    },
-    {
-      "author": "Musk",
-      "text": "Our decision on Cursor following its acquisition by SpaceX",
-      "url": "",
-      "published": "Sat, 29 Aug 2026 01:46:12 GMT",
-      "origin": "gnews-rss",
-      "source": "openai.com",
-      "tickers": [],
-      "held": [
-        "SPCH",
-        "SPCX"
-      ],
-      "new_ideas": [],
-      "sectors": [
-        "AI软件",
-        "航天"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 70,
-      "summary_cn": "Musk发文谈SpaceX收购Cursor后的决策——直接关联kcn持仓SPCX/SPCH。"
-    }
-  ],
-  "new_ideas": [],
-  "sector_hits": [
     {
       "author": "Trump",
       "text": "RT @realDonaldTrumpThe only reason that communities throughout the U.S.A. should not want Data Centers is if they want to end up being backwards and poor. If they want to be successful and rich, with far lower taxes and jobs all over the place, let Data Reign. The good news is that there are plenty of other places that want them. If we kill the Golden Goose, you will only have yourselves to blame. China could not be happier with this anti Data Center movement. Actually, they can’t believe it is happening! President DJT",
@@ -528,60 +453,15 @@
       "new_ideas": [],
       "sectors": [
         "数据中心",
-        "AI基础设施"
+        "AI基础设施",
+        "中国"
       ],
       "sector_holdings": [
-        "03032",
-        "03033",
-        "07226",
         "SKHY"
       ],
       "stance": "endorse",
       "relevance": 72,
-      "summary_cn": "Trump发文力挺数据中心建设，称反数据中心运动令中国开心，相关概念受益。"
-    },
-    {
-      "author": "Trump",
-      "text": "President Trump is the Greatest JOBS President in American History. He works tirelessly every day to create millions of high-paying Jobs, drive Trillions of Dollars in Investment, and reinvigorate our Economy. Just this week, President Trump and the Prime Minister of Bangladesh made another incredible Deal, with Bangladesh committing to spend Billions of Dollars to buy more Boeing Aircraft, significantly increasing their initial order. Our President is Making America, and our partners, Great Again!",
-      "url": "https://trumpstruth.org/statuses/41396",
-      "published": "2026-08-30T16:15:39+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "国防"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
-      "relevance": 72,
-      "summary_cn": "白宫力推Trump就业成就，称孟加拉国承诺加购数十亿美元波音飞机，航天链情绪利好(含未上市Boeing)。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk’s SpaceX Blade Plan Knocks Howmet As HWM Suffers Steepest Slide In 16 Months",
-      "url": "",
-      "published": "Mon, 31 Aug 2026 21:16:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Stocktwits",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "航空发动机"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 70,
-      "summary_cn": "Musk的SpaceX Blade计划冲击Howmet(HWM)，后者股价创16个月最大跌幅，反映SpaceX对上游供应链议价权。"
+      "summary_cn": "Trump力挺美国数据中心建设，痛批反数据中心运动，称中国乐见其成"
     },
     {
       "author": "Trump",
@@ -594,62 +474,36 @@
       "new_ideas": [],
       "sectors": [
         "数据中心",
-        "AI基础设施"
+        "AI基础设施",
+        "中国"
       ],
       "sector_holdings": [
-        "03032",
-        "03033",
-        "07226",
         "SKHY"
       ],
       "stance": "endorse",
-      "relevance": 70,
-      "summary_cn": "Trump再次发文力挺数据中心，称反对者让中国高兴，重复条目但强化信号。"
-    },
-    {
-      "author": "Trump",
-      "text": "Congratulations to NASA Administrator Jared Isaacman, and the Great Patriots at NASA, on a successful launch. This is THE GOLDEN AGE OF AMERICA! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/41389",
-      "published": "2026-08-30T13:59:40+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "NASA"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
-      "relevance": 58,
-      "summary_cn": "Trump祝贺NASA及Isaacman成功发射，称'美国黄金时代'，航天主题情绪利好。"
+      "relevance": 68,
+      "summary_cn": "Trump再次力挺美国数据中心建设，批评地方反对声音利好中国"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk Is Spending $119 Billion on A Single Building Outside Houston. Here’s Who Actually Profits.",
+      "text": "Tesla advances Austin chip facility as Musk's Texas Terafab takes shape",
       "url": "",
-      "published": "Mon, 31 Aug 2026 22:40:14 GMT",
+      "published": "Tue, 01 Sep 2026 09:02:59 GMT",
       "origin": "gnews-rss",
-      "source": "finance.yahoo.com",
+      "source": "Austin American-Statesman",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "AI基础设施",
-        "数据中心"
+        "半导体",
+        "AI基础设施"
       ],
       "sector_holdings": [
-        "03032",
-        "03033",
-        "07226",
         "SKHY"
       ],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "Musk在休斯顿以外耗资1190亿美元建单一建筑，指向超大规模AI数据中心/超级工厂。"
+      "stance": "endorse",
+      "relevance": 62,
+      "summary_cn": "特斯拉推进奥斯汀芯片厂，马斯克德州'Terafab'晶圆厂成型，利好AI芯片供应链"
     },
     {
       "author": "Trump",
@@ -662,14 +516,57 @@
       "new_ideas": [],
       "sectors": [
         "光通信",
-        "半导体"
+        "半导体",
+        "AI基础设施"
       ],
       "sector_holdings": [
         "SKHY"
       ],
       "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "Prysmian投资超10亿美元在北卡扩产光纤光缆制造设施，AI驱动光通信/光纤需求持续景气，间接利好SK海力士等存储链。"
+      "relevance": 60,
+      "summary_cn": "Prysmian投资超10亿美元扩建北卡光纤光缆制造厂，美国AI/光通信产能扩张"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX sweeteners: How did Louisiana lure Elon Musk’s rocket launch site to its coast?",
+      "url": "",
+      "published": "Tue, 01 Sep 2026 16:15:45 GMT",
+      "origin": "gnews-rss",
+      "source": "Louisiana Illuminator",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "neutral",
+      "relevance": 58,
+      "summary_cn": "报道路易斯安那州以补贴吸引SpaceX落户发射场"
+    },
+    {
+      "author": "Musk",
+      "text": "Data Center Dilemma: What's it like to live next to Elon Musk's 'Colossus Cluster'",
+      "url": "",
+      "published": "Tue, 01 Sep 2026 15:09:00 GMT",
+      "origin": "gnews-rss",
+      "source": "WBHM",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "数据中心",
+        "AI基础设施"
+      ],
+      "sector_holdings": [
+        "SKHY"
+      ],
+      "stance": "neutral",
+      "relevance": 58,
+      "summary_cn": "马斯克'巨像集群'数据中心建设对周边社区影响的报道"
     }
   ]
 }
