@@ -418,6 +418,25 @@ def evaluate_drift(old: dict | None, new: dict, *, now=None) -> dict:
     }
 
 
+def _links_to(doc: dict, decision: dict) -> bool:
+    """Does this thesis actually cover this decision?
+
+    Ticker alone is not the link (#1261). `strategy_scope` says which strategies
+    a thesis speaks for, so a `core_position` thesis attached to an `intraday_t`
+    decision is a cross-strategy false resolve: the dashboard would print
+    "thesis intact" beside a decision the thesis never made a claim about. A
+    decision with no `strategy_id` (legacy rows predate the field) still links on
+    ticker — there is nothing to contradict.
+    """
+    if doc.get("ticker") != decision.get("ticker"):
+        return False
+    strategy_id = decision.get("strategy_id")
+    scope = doc.get("strategy_scope")
+    if not strategy_id or not isinstance(scope, list) or not scope:
+        return True
+    return strategy_id in scope
+
+
 def resolve_decision_links(decisions: list[dict], theses: list[dict]) -> list[dict]:
     """Add resolvable thesis metadata without mutating historical thesis_id."""
     by_id = {doc.get("thesis_id"): doc for doc in theses}
@@ -432,7 +451,7 @@ def resolve_decision_links(decisions: list[dict], theses: list[dict]) -> list[di
                 "schema_version": doc.get("schema_version"),
                 "state": doc.get("state"), "checked_at": doc.get("checked_at"),
             }
-            if doc and doc.get("ticker") == linked.get("ticker")
+            if doc and _links_to(doc, linked)
             else {
                 "status": "mismatch" if doc else "unknown",
                 "thesis_id": thesis_id,
