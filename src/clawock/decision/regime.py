@@ -68,7 +68,6 @@ import json
 import math
 import sys
 from datetime import date, datetime, timezone
-from pathlib import Path
 
 import requests
 
@@ -76,7 +75,7 @@ from clawock.instruments import INSTRUMENTS
 from clawock.safe_io import safe_write_json
 from clawock.workspace import workspace_root
 
-WS = workspace_root(Path.cwd())
+WS = workspace_root()
 OUT_FILE = WS / 'assets' / 'data' / 'lev_regime.json'
 PORTFOLIO = WS / 'portfolio.json'
 TENCENT = 'https://web.ifzq.gtimg.cn/appstock/app/kline/kline'

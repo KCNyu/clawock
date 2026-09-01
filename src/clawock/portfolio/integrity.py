@@ -74,12 +74,12 @@ from pathlib import Path
 
 from clawock.workspace import workspace_root
 
-WS = workspace_root(Path.cwd())
+WS = workspace_root()
 PORTFOLIO = WS / 'portfolio.json'
 def out_path() -> Path:
     """Resolved per call so `CLAWOCK_WORKSPACE` reaches it (#816); frozen at
     import, a test writing a report landed it in the real checkout."""
-    return workspace_root(Path.cwd()) / 'assets' / 'data' / 'integrity_report.json'
+    return workspace_root() / 'assets' / 'data' / 'integrity_report.json'
 
 from clawock.instruments import INSTRUMENTS
 from clawock.portfolio.math import (

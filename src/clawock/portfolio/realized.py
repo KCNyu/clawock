@@ -22,7 +22,7 @@ from clawock.workspace import workspace_root
 
 # The CLI operates on the configured workspace. Library callers pass an
 # in-memory ledger and remain independent of filesystem layout.
-PORTFOLIO_PATH = workspace_root(Path.cwd()) / 'portfolio.json'
+PORTFOLIO_PATH = workspace_root() / 'portfolio.json'
 
 
 def _aggregate(holdings: List[Dict]) -> Tuple[float, str, List[Dict]]:

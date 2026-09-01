@@ -37,7 +37,7 @@ from clawock.instruments import leverage_map, require as require_instrument
 from clawock.safe_io import safe_write_json
 from clawock.workspace import workspace_root
 
-WS_ROOT = workspace_root(Path.cwd())
+WS_ROOT = workspace_root()
 PORTFOLIO_FILE = str(WS_ROOT / 'portfolio.json')
 OUT_FILE = str(WS_ROOT / 'assets' / 'data' / 'risk.json')
 
@@ -1271,7 +1271,7 @@ def _revive_stale_block(out_block, holdings, prev_block, value_key, value,
 # ----------------------------------------------------------------------------
 
 def main(argv=None):
-    workspace = workspace_root(Path.cwd())
+    workspace = workspace_root()
     parser = argparse.ArgumentParser()
     parser.add_argument('--path', type=Path, default=workspace / 'portfolio.json')
     parser.add_argument(

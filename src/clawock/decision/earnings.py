@@ -31,7 +31,7 @@ from clawock import provenance as research_provenance
 from clawock.workspace import engine_config, workspace_root
 from clawock.safe_io import parse_iso_utc as _parse_time
 
-WS = workspace_root(Path.cwd())
+WS = workspace_root()
 SCHEMA_FILE = engine_config("earnings_review.schema.json")
 ARTIFACT_ROOT = WS / "memory" / "earnings"
 SCHEMA_VERSION = 1

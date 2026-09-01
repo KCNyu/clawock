@@ -21,13 +21,12 @@ import json
 import re
 import subprocess
 import sys
-from pathlib import Path
 
 from clawock.instruments import get as get_instrument
 from clawock.market_data.peer_discovery import suggest_auto_peers
 from clawock.workspace import workspace_root
 
-WS = workspace_root(Path.cwd())
+WS = workspace_root()
 
 
 def _has_cjk(s):

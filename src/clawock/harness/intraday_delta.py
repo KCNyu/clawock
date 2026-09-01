@@ -23,7 +23,7 @@ from clawock.market_data import peer_quotes as fetch_peers
 from clawock.automation import cron_heartbeat
 from clawock.safe_io import load_json_cached, safe_write_json
 
-WS = workspace_root(Path.cwd())
+WS = workspace_root()
 HKT = ZoneInfo("Asia/Hong_Kong")
 ET = ZoneInfo("America/New_York")
 PORTFOLIO = WS / "portfolio.json"

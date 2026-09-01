@@ -761,7 +761,7 @@ def main(argv=None):
                         help="render to stdout without writing the artifacts")
     args, _unknown = parser.parse_known_args(argv)
 
-    workspace = Path(args.workspace) if args.workspace else workspace_root(Path.cwd())
+    workspace = Path(args.workspace) if args.workspace else workspace_root()
     date = args.date or _date.today().isoformat()
     from clawock.harness._watchdog_common import BRIEF_URL_TMPL
 

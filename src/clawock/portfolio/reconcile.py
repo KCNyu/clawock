@@ -18,7 +18,7 @@ def main(argv=None) -> int:
     parser.add_argument("--path", type=Path)
     args = parser.parse_args(argv)
 
-    workspace = workspace_root(Path.cwd())
+    workspace = workspace_root()
     portfolio = args.path or workspace / "portfolio.json"
     derivation_policy = workspace / "config" / "portfolio-derivations.json"
     dry = ["--dry-run"] if args.dry_run else []

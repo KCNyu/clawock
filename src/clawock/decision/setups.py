@@ -23,14 +23,13 @@ import json
 import os
 import sys
 from datetime import datetime
-from pathlib import Path
 
 from clawock import sessions as tc
 from clawock.instruments import INSTRUMENTS
 from clawock.safe_io import safe_write_json
 from clawock.workspace import workspace_root
 
-WS = workspace_root(Path.cwd())
+WS = workspace_root()
 PORTFOLIO = WS / 'portfolio.json'
 QUANT = WS / 'assets' / 'data' / 'quant_signals.json'
 OUT = WS / 'assets' / 'data' / 't0_setups.json'

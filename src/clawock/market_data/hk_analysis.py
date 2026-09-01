@@ -16,7 +16,6 @@ Usage:
 import json
 import sys
 from datetime import datetime, timezone, timedelta
-from pathlib import Path
 from typing import Dict, List, Optional
 
 import requests
@@ -29,7 +28,7 @@ from clawock.instruments import INSTRUMENTS
 from clawock.portfolio.books import region_book
 from clawock.workspace import workspace_root
 
-WS_ROOT = workspace_root(Path.cwd())
+WS_ROOT = workspace_root()
 PORTFOLIO_PATH = str(WS_ROOT / 'portfolio.json')
 API_KEYS_PATH = str(WS_ROOT / '.api_keys')
 TIMEOUT = 10

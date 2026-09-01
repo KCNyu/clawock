@@ -26,13 +26,12 @@ import os
 import subprocess
 import sys
 from datetime import datetime
-from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from clawock.safe_io import safe_write_json
 from clawock.workspace import workspace_root
 
-WS_ROOT = str(workspace_root(Path.cwd()))
+WS_ROOT = str(workspace_root())
 
 PORTFOLIO = os.path.join(WS_ROOT, 'portfolio.json')
 

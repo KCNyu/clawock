@@ -36,7 +36,7 @@ from pathlib import Path
 
 from clawock.workspace import workspace_root
 
-WS = workspace_root(Path.cwd())
+WS = workspace_root()
 CARDS_DIR = WS / 'memory' / 'backtests'
 ALLOWLIST = WS / 'config' / 'claim-allowlist.json'
 SURFACES_CONFIG = WS / 'config' / 'claim-provenance.json'

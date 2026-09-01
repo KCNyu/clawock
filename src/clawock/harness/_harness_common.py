@@ -12,11 +12,10 @@ import re
 import subprocess
 import sys
 import time
-from pathlib import Path
 
 from clawock.workspace import workspace_root
 
-WS = workspace_root(Path.cwd())
+WS = workspace_root()
 _CHECKOUT = WS
 
 # Single-publisher mutex for all dashboard build outputs (Option 1, 2026-07-04).

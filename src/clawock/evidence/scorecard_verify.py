@@ -31,7 +31,7 @@ from pathlib import Path
 from clawock import scorecard_provenance as prov
 from clawock.workspace import workspace_root
 
-WS = workspace_root(Path.cwd())
+WS = workspace_root()
 LEDGER_PATH = prov.LEDGER_PATH
 DASHBOARD_PATH = 'assets/data/dashboard.json'
 

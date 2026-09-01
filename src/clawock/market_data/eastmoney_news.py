@@ -153,7 +153,7 @@ def main(argv=None):
     parser.add_argument('--output', type=Path)
     args = parser.parse_args(sys.argv[1:] if argv is None else argv)
     workspace = (args.workspace.expanduser().resolve() if args.workspace
-                 else workspace_root(Path.cwd()))
+                 else workspace_root())
     output = args.output.expanduser() if args.output else None
     if output and not output.is_absolute():
         output = (workspace / output).resolve()

@@ -56,7 +56,7 @@ def _ws() -> Path:
     Resolved per call, `CLAWOCK_WORKSPACE` reaches this module like the
     docstring always claimed. Unset, behaviour is unchanged.
     """
-    return workspace_root(Path.cwd())
+    return workspace_root()
 
 
 def local_path() -> Path:

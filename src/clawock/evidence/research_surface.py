@@ -30,7 +30,7 @@ from clawock.decision import theses as thesis_registry
 from clawock import instruments as instrument_registry
 from clawock.workspace import workspace_root
 
-WS = workspace_root(Path.cwd())
+WS = workspace_root()
 THESIS_DIR = WS / "memory" / "theses"
 EARNINGS_DIR = WS / "memory" / "earnings"
 ENTRY_GATE_DIR = WS / "memory" / "entry-gates"

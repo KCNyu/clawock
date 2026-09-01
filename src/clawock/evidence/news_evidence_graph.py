@@ -23,7 +23,7 @@ from urllib.parse import urlparse
 from clawock import history_store
 from clawock.workspace import workspace_root
 
-WS = workspace_root(Path.cwd())
+WS = workspace_root()
 POLICY = WS / 'config' / 'news-evidence-policy.json'
 PORTFOLIO = WS / 'portfolio.json'
 FACTOR_CONFIG = WS / 'config' / 'factor-universe.json'

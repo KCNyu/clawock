@@ -27,7 +27,6 @@ import json
 import math
 import sys
 from datetime import date, datetime, timedelta, timezone
-from pathlib import Path
 from zoneinfo import ZoneInfo
 
 import requests
@@ -38,7 +37,7 @@ from clawock.instruments import require as require_instrument
 from clawock.safe_io import load_json_cached, safe_write_json
 from clawock.workspace import workspace_root
 
-WS = workspace_root(Path.cwd())
+WS = workspace_root()
 PORTFOLIO = WS / 'portfolio.json'
 OUT = WS / 'assets' / 'data' / 'quant_signals.json'
 HIST = WS / 'assets' / 'data' / 'quant_signals_history.jsonl'
@@ -356,7 +355,7 @@ def _policy_short_history_max_age_days() -> int:
     """
     try:
         policy = json.loads(
-            (workspace_root(Path.cwd()) / "config" / "add-alpha-policy.json")
+            (workspace_root() / "config" / "add-alpha-policy.json")
             .read_text(encoding="utf-8"))
         raw = policy.get("short_history_max_age_days")
         if raw is not None:

@@ -19,7 +19,7 @@ from clawock.instruments import get as get_instrument
 from clawock.instruments import one_x_swap_map
 from clawock.workspace import workspace_root
 
-WS = workspace_root(Path.cwd())
+WS = workspace_root()
 LEDGER = WS / "memory" / "risk_breaches.json"
 GUARDRAIL_HISTORY = WS / "assets" / "data" / "guardrail_history.jsonl"
 SCHEMA_VERSION = 1

@@ -21,7 +21,7 @@ from pathlib import Path
 from clawock.workspace import workspace_root
 
 
-WS = workspace_root(Path.cwd())
+WS = workspace_root()
 TMP = WS / "memory" / ".tmp"
 MAX_MOVERS = 4
 MAX_EVENTS_PER_TICKER = 2

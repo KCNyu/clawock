@@ -29,7 +29,7 @@ from clawock.workspace import workspace_root
 from clawock.safe_io import to_number as _number
 
 
-WS = workspace_root(Path.cwd())
+WS = workspace_root()
 FACTOR_CONFIG = WS / "config" / "factor-universe.json"
 ALPHA_POLICY = WS / "config" / "add-alpha-policy.json"
 NEWS_POLICY = WS / "config" / "news-evidence-policy.json"

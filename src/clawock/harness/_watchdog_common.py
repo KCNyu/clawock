@@ -28,7 +28,7 @@ from pathlib import Path
 
 from clawock.workspace import workspace_root
 
-WS = workspace_root(Path.cwd())
+WS = workspace_root()
 _CHECKOUT = WS
 
 
@@ -40,7 +40,7 @@ def log_path() -> Path:
     appended to the real checkout's log (#816). Resolved per call; unset, the
     path is what it always was.
     """
-    return workspace_root(Path.cwd()) / 'logs' / 'watchdog.jsonl'
+    return workspace_root() / 'logs' / 'watchdog.jsonl'
 HKT = timezone(timedelta(hours=8))
 # The binary path, the cron CLI call and the cron-state fallback chain moved
 # into src/clawock/providers/openclaw.py so this module stops being the largest

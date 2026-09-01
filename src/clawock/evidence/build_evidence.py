@@ -31,7 +31,7 @@ from pathlib import Path
 
 from clawock.workspace import workspace_root
 
-WS = workspace_root(Path.cwd())
+WS = workspace_root()
 OUT = WS / 'site' / 'evidence.md'
 CARDS = WS / 'memory' / 'backtests'
 DATA = WS / 'assets' / 'data'

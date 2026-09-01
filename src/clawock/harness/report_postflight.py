@@ -44,7 +44,7 @@ from pathlib import Path
 from clawock.workspace import workspace_root
 from clawock import sessions as trading_calendar
 
-WS = workspace_root(Path.cwd())
+WS = workspace_root()
 _CHECKOUT = WS
 TMP = WS / 'memory' / '.tmp'
 

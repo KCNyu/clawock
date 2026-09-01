@@ -20,7 +20,7 @@ from pathlib import Path
 
 from clawock.workspace import workspace_root
 
-ROOT = workspace_root(Path.cwd())
+ROOT = workspace_root()
 DASHBOARD_MAX_BYTES = 200_000
 OVERVIEW_MAX_BYTES = 80_000
 DASHBOARD_MONEY_INTEGRITY_CODES = frozenset({

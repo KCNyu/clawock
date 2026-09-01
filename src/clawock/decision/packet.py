@@ -42,7 +42,7 @@ MAX_QUERY_BYTES = 24 * 1024
 # crossing from being a surprise.
 MAX_SUMMARY_BYTES = 48 * 1024
 SUMMARY_BUDGET_WARN_RATIO = 0.8
-ADD_ALPHA_POLICY = workspace_root(Path.cwd()) / "config" / "add-alpha-policy.json"
+ADD_ALPHA_POLICY = workspace_root() / "config" / "add-alpha-policy.json"
 VERDICTS = {"bullish", "neutral", "bearish", "mixed"}
 DISPOSITIONS = {"candidate", "wait", "reject"}
 TEXT_LIMITS = {
@@ -1760,7 +1760,7 @@ def compile_pages_projection(
 
 def _latest_add_alpha_run_card() -> dict | None:
     cards = sorted(
-        (workspace_root(Path.cwd()) / "memory" / "backtests").glob(
+        (workspace_root() / "memory" / "backtests").glob(
             "add_alpha_walkforward-*.json"
         )
     )

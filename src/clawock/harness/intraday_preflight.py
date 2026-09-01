@@ -48,7 +48,7 @@ from clawock.decision import active_information
 from clawock.decision import add_side, early_trend
 from clawock.instruments import is_leveraged_holding
 
-WS = workspace_root(Path.cwd())
+WS = workspace_root()
 TMP = WS / 'memory' / '.tmp'
 
 from ._harness_common import compute_context_id
