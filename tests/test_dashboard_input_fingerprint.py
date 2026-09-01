@@ -209,3 +209,54 @@ def test_an_unchanged_portfolio_does_not_move_the_snapshot(tmp_path, monkeypatch
     assert ok
     assert snap.read_text() == '{"holdings": [1]}', 'a real change must still land'
     assert dashboard_input_fingerprint(ws) != fingerprint
+
+
+def test_the_builds_own_telemetry_does_not_move_the_fingerprint(tmp_path, monkeypatch):
+    """#1247: the second self-writer, found because the gate never fired once.
+
+    `record_preservation` appends a line to memory/.tmp on every build, and
+    memory/.tmp is fingerprinted — so build N moved the fingerprint that build
+    N+1's gate compares against, and `--skip-if-unchanged` was structurally
+    unfireable on both the publisher (72x/day) and harness (~19x/day) paths.
+    Measured before the fix: three consecutive builds against a desk with zero
+    input change all rebuilt, each writing a different fingerprint.
+
+    Driven through `record_preservation` itself rather than by writing the
+    filename here, so renaming the telemetry file fails this test instead of
+    silently re-opening the hole.
+    """
+    from clawock.publish import dashboard
+
+    ws = _desk(tmp_path)
+    monkeypatch.setattr(dashboard, 'WS_ROOT', ws)
+
+    before = dashboard_input_fingerprint(ws)
+    for _ in range(3):
+        dashboard.record_preservation(
+            presence={'insights': True}, taken=[], source=None,
+            out_file=ws / 'assets' / 'data' / 'dashboard.json')
+    written = list((ws / 'memory' / '.tmp').glob('preserve-absent-*.jsonl'))
+    assert written and written[0].read_text().count('\n') == 3, (
+        'the telemetry was not written, so this test proves nothing')
+    assert dashboard_input_fingerprint(ws) == before, (
+        "the build's own telemetry moved the fingerprint: every build "
+        'invalidates the next one and --skip-if-unchanged can never fire')
+
+
+def test_a_real_tmp_sidecar_still_moves_the_fingerprint(tmp_path):
+    """The exclusion must stay a prefix, not become "ignore memory/.tmp".
+
+    brief-context / insights / intraday-insights / sector-scan are embedded in
+    the projection, so making the gate blind to them would swap #1247's stall
+    for #1217's staleness.
+    """
+    from clawock.publish.dashboard import PRESERVE_ABSENT_PREFIX
+
+    ws = _desk(tmp_path)
+    tmp = ws / 'memory' / '.tmp'
+    for name in ('brief-context-2026-09-01.json', 'insights-2026-09-01.json',
+                 'intraday-insights-2026-09-01.json', 'sector-scan-2026-09-01.json'):
+        before = dashboard_input_fingerprint(ws)
+        assert not name.startswith(PRESERVE_ABSENT_PREFIX)
+        (tmp / name).write_text('{"v": 1}')
+        assert dashboard_input_fingerprint(ws) != before, f'{name} must move it'
