@@ -80,6 +80,52 @@ def test_weekly_bundle_with_valid_minimum_inputs_passes(
     ]
 
 
+def test_week_nav_change_is_computed_not_asked_for(tmp_path, monkeypatch):
+    """#1266: the prompt asked the model to subtract week-open from week-close.
+
+    The subtraction is deterministic and nothing downstream re-checks the
+    number the model typed, so the harness does it once and the prompt quotes
+    it. FX differs across the two days on purpose: the HK leg must be converted
+    at each day's own rate, which is exactly the step a model gets wrong.
+    """
+    monkeypatch.chdir(tmp_path)
+    _stub_decisions(monkeypatch)
+    _write_json(tmp_path / 'memory/2026-07-20-plan.json', _plan('2026-07-20', fx=7.80))
+    _write_json(tmp_path / 'memory/2026-07-24-plan.json', _plan(
+        '2026-07-24', fx=7.84, decisions=[{'action': 'hold'}]))
+    _write_json(tmp_path / 'memory/snapshots/2026-07-20.json', _snapshot())
+    end = _snapshot()
+    end['portfolios']['us_stocks']['total_current_value'] = 900.0
+    _write_json(tmp_path / 'memory/snapshots/2026-07-24.json', end)
+    _write_json(tmp_path / 'assets/data/risk.json', {'combined': {'beta': 1.2}})
+
+    evidence = weekly.validate_bundle(weekly.aggregate_week(today=date(2026, 7, 26)))
+    change = evidence['nav_change']
+    start, finish = evidence['nav_points'][0], evidence['nav_points'][-1]
+
+    assert change['start_date'] == '2026-07-20' and change['end_date'] == '2026-07-24'
+    assert change['change_usd'] == round(
+        finish['total_nav_usd'] - start['total_nav_usd'], 2)
+    # The US leg lost 100 USD of value; the HK leg only moved because its rate did.
+    assert change['legs']['us_usd']['change'] == -100.0
+    assert change['legs']['hk_hkd']['change'] == 0.0
+    # NAV, not P&L — the label has to survive, a reader who takes it for P&L
+    # mis-reads any week with a deposit in it.
+    assert 'capital flows' in change['basis']
+
+    prompt = weekly.build_user_prompt(weekly.build_prompt_payload(
+        weekly.aggregate_week(today=date(2026, 7, 26))))
+    assert 'nav_change' in prompt
+
+
+def test_week_nav_change_is_none_rather_than_a_zero_week():
+    assert weekly.week_nav_change([]) is None
+    assert weekly.week_nav_change([{'date': 'x', 'total_nav_usd': 1.0}]) is None
+    assert weekly.week_nav_change(
+        [{'date': 'a', 'total_nav_usd': None}, {'date': 'b', 'total_nav_usd': 2.0}]
+    ) is None
+
+
 def test_weekly_nav_uses_boundary_and_nearest_fx_when_interior_fx_missing(
         tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)

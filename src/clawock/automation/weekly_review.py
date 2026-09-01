@@ -126,6 +126,68 @@ def _snapshot_nav(snapshot, fx_rate):
     }
 
 
+def week_nav_change(nav_points):
+    """Start → end NAV for the week, computed once instead of in the prompt.
+
+    Question 1 of the weekly prompt is "总市值 USD-base 周初 vs 周末, 涨跌".
+    `nav_points` already carries a validated `total_nav_usd` per day, so the
+    subtraction was the one piece of arithmetic still left to the model — and a
+    model that mis-subtracts publishes a wrong headline number that nothing
+    downstream re-checks.
+
+    Named `nav_change`, not P&L, deliberately: this is end-of-week NAV minus
+    start-of-week NAV, so any deposit, withdrawal or inter-leg transfer inside
+    the window sits in it. The prompt says so; attribution stays the model's job,
+    where knowing whether a move came from a trade or from the market is the
+    judgment being asked for.
+
+    Returns None when there are not two dated points — `validate_bundle`
+    already refuses that bundle, so this never quietly reports a zero week.
+    """
+    if not isinstance(nav_points, list) or len(nav_points) < 2:
+        return None
+    first, last = nav_points[0], nav_points[-1]
+    if not (isinstance(first, dict) and isinstance(last, dict)):
+        return None
+    start = first.get('total_nav_usd')
+    end = last.get('total_nav_usd')
+    if not all(isinstance(v, (int, float)) and not isinstance(v, bool)
+               and math.isfinite(v) for v in (start, end)):
+        return None
+    change = end - start
+    legs = {}
+    for name, value_key, cash_key in (
+            ('us_usd', 'us_value_usd', 'us_cash_usd'),
+            ('hk_hkd', 'hk_value_hkd', 'hk_cash_hkd')):
+        leg_start = _leg_total(first, value_key, cash_key)
+        leg_end = _leg_total(last, value_key, cash_key)
+        if leg_start is None or leg_end is None:
+            continue
+        legs[name] = {
+            'start': round(leg_start, 2), 'end': round(leg_end, 2),
+            'change': round(leg_end - leg_start, 2),
+            'change_pct': (round((leg_end - leg_start) / leg_start * 100, 2)
+                           if leg_start else None),
+        }
+    return {
+        'start_date': first.get('date'), 'end_date': last.get('date'),
+        'start_total_nav_usd': round(start, 2),
+        'end_total_nav_usd': round(end, 2),
+        'change_usd': round(change, 2),
+        'change_pct': round(change / start * 100, 2) if start else None,
+        'legs': legs,
+        'basis': 'NAV end-minus-start; includes any capital flows in the window',
+    }
+
+
+def _leg_total(point, value_key, cash_key):
+    value, cash = point.get(value_key), point.get(cash_key)
+    if not all(isinstance(v, (int, float)) and not isinstance(v, bool)
+               and math.isfinite(v) for v in (value, cash)):
+        return None
+    return value + cash
+
+
 def _nearest_plan_fx(snapshot_date, plan_fx):
     if snapshot_date in plan_fx:
         return plan_fx[snapshot_date]
@@ -220,6 +282,7 @@ def aggregate_week(today=None):
         'plan_decisions': plan_decisions,
         'decision_episodes': len(decision_episodes),
         'nav_points': nav_points[-7:],
+        'nav_change': week_nav_change(nav_points[-7:]),
     }
     return {
         'week': week_id,
@@ -365,9 +428,9 @@ def build_user_prompt(payload):
         f"根据这一周（{payload['week']}）的 brief / plan / decision v2 / risk 数据, "
         f"写一篇 markdown 周复盘。长度自己判断，不设字数目标。"
         "\n\n"
-        "重点回答 4 个问题:\n"
-        "1. **本周净值**: 总市值 USD-base 周初 vs 周末, "
-        "涨跌 + 主要贡献者 + 主要拖累\n"
+        "1. **本周净值**: 周初/周末/涨跌三个数 harness 已算好在 "
+        "`bundle_evidence.nav_change`（口径=期末减期初 NAV, 含期内任何出入金）——"
+        "直接引用, 不要自己再从 snapshots 相减; 你要写的是主要贡献者与主要拖累的归因\n"
         "2. **决策兑现**: 按 strategy episode 汇总触发、执行和 win/loss；不要把每日重复 call 当独立样本\n"
         "3. **风险演变**: 当前 risk.json 数值, β/Vol/Max DD/Sharpe 怎么走?\n"
         "4. **下周关注 3 条**: actionable (ticker + 触发条件 + 仓位影响)\n\n"
