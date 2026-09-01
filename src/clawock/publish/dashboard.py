@@ -1654,6 +1654,9 @@ def workspace_relative(path):
         return str(path)
 
 
+PRESERVE_ABSENT_PREFIX = 'preserve-absent-'
+
+
 def record_preservation(presence, taken, source, out_file, at=None, missing=False):
     """Append one line per build to memory/.tmp/preserve-absent-YYYY-MM-DD.jsonl.
 
@@ -1693,7 +1696,7 @@ def record_preservation(presence, taken, source, out_file, at=None, missing=Fals
             'absent_sources': sorted(k for k, present in presence.items() if not present),
             'preserved': taken,
         }, ensure_ascii=False)
-        daily = tmp_dir / f'preserve-absent-{at.date().isoformat()}.jsonl'
+        daily = tmp_dir / f'{PRESERVE_ABSENT_PREFIX}{at.date().isoformat()}.jsonl'
         with daily.open('a', encoding='utf-8') as handle:
             handle.write(line + '\n')
     except Exception as e:
@@ -3307,6 +3310,20 @@ FINGERPRINT_FILES = (
 ))
 FINGERPRINT_DIRS = ('memory/bars', 'memory/snapshots', 'memory/weekly', 'memory/.tmp')
 FINGERPRINT_CACHE = '.cache/dashboard-input.json'
+# Names under FINGERPRINT_DIRS that THIS build writes, so they describe the
+# build rather than feed it. `record_preservation` appends a line to
+# memory/.tmp/preserve-absent-YYYY-MM-DD.jsonl on every build, which is inside
+# the fingerprinted `memory/.tmp` — so each build moved the fingerprint its
+# successor's gate reads, and `--skip-if-unchanged` could never fire once,
+# anywhere (#1247). Same shape as the snapshot writer #1217 fixed; this was the
+# second self-writer and it survived because the gate fails silently: it does
+# not error, it just always rebuilds.
+#
+# Deliberately a prefix tuple and not "drop memory/.tmp": the other sidecars in
+# there — brief-context, insights, intraday-insights, sector-scan — are real
+# inputs the projection embeds, and dropping the whole directory would trade
+# this stall for the #1217 staleness bug in a card nobody watches.
+FINGERPRINT_SELF_WRITTEN = (PRESERVE_ABSENT_PREFIX,)
 
 
 def dashboard_input_fingerprint(ws: Path) -> str:
@@ -3324,6 +3341,9 @@ def dashboard_input_fingerprint(ws: Path) -> str:
             names = sorted(os.listdir(d))
         except OSError:
             names = []
+        # Filtered before the count, or a new day's telemetry file would move
+        # the fingerprint through `count=` even with its stat line excluded.
+        names = [n for n in names if not n.startswith(FINGERPRINT_SELF_WRITTEN)]
         h.update(f'{rel}:count={len(names)}\n'.encode())
         for name in names:
             try:
