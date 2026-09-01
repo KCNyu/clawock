@@ -38,7 +38,6 @@ import sys
 import xml.etree.ElementTree as ET
 from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
-from pathlib import Path
 
 import requests
 
@@ -46,7 +45,7 @@ from clawock.safe_io import safe_write_json
 from clawock.market_data.sentiment import fetch_google_news
 from clawock.workspace import workspace_root
 
-WS_ROOT = str(workspace_root(Path.cwd()))
+WS_ROOT = str(workspace_root())
 OUT_FILE = os.path.join(WS_ROOT, 'assets', 'data', 'influencer_feed.json')
 
 UA = 'clawock-influencer-scan/1.0 (github.com/KCNyu/clawock)'

@@ -32,7 +32,6 @@ import sys
 import os
 import bisect
 from datetime import date, datetime, timezone
-from pathlib import Path
 
 GRAMS_PER_OZ = 31.1035  # 1 金衡盎司(troy oz) = 31.1035 克
 
@@ -40,7 +39,7 @@ from clawock.safe_io import safe_write_json
 from clawock.market_data.eastmoney_http import em_get
 from clawock.workspace import workspace_root
 
-WS_ROOT = str(workspace_root(Path.cwd()))
+WS_ROOT = str(workspace_root())
 
 PORTFOLIO = os.path.join(WS_ROOT, 'portfolio.json')
 

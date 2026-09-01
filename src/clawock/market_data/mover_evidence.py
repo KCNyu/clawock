@@ -42,7 +42,7 @@ from pathlib import Path
 from clawock.workspace import workspace_root  # noqa: E402
 from clawock.market_data import primary_disclosures
 
-WS = workspace_root(Path.cwd())
+WS = workspace_root()
 
 HKT = timezone(timedelta(hours=8))
 MAX_MOVERS = 4

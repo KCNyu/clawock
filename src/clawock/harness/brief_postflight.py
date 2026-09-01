@@ -38,7 +38,7 @@ from clawock.decision import ledger as decision_v2
 from clawock.decision import packet as brief_decision_packet
 from clawock.decision import risk as risk_discipline
 
-WS = workspace_root(Path.cwd())
+WS = workspace_root()
 _CHECKOUT = WS
 
 from clawock.automation import workflow_outcomes  # noqa: E402

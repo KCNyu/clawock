@@ -31,14 +31,13 @@ import os
 import sys
 import time
 from datetime import datetime, timezone
-from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 import requests
 
 from clawock.safe_io import safe_write_json
 from clawock.workspace import workspace_root
 
-WS_ROOT = workspace_root(Path.cwd())
+WS_ROOT = workspace_root()
 API_KEYS_PATH = WS_ROOT / '.api_keys'
 CACHE_DIR = WS_ROOT / '.cache'
 TICKER_CACHE = CACHE_DIR / 'sec_tickers.json'

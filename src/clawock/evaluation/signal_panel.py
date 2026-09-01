@@ -107,7 +107,7 @@ from clawock.instruments import canonical_bar_manifest
 from clawock.labeling import triple_barrier
 from clawock.workspace import workspace_root
 
-WS = workspace_root(Path.cwd())
+WS = workspace_root()
 DATA = WS / 'assets' / 'data'
 HORIZONS = (1, 5, 20)
 

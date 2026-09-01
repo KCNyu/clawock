@@ -29,7 +29,7 @@ from clawock.market_data.factors import (
 from clawock.safe_io import safe_write_json, safe_write_text
 from clawock.workspace import workspace_root
 
-WS = workspace_root(Path.cwd())
+WS = workspace_root()
 RULE_CONFIG = WS / 'config' / 'peer-residual-rules.json'
 FACTOR_CONFIG = WS / 'config' / 'factor-universe.json'
 PEER_MAP = WS / 'memory' / 'peer-map.json'

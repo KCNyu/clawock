@@ -66,7 +66,7 @@ from pathlib import Path
 
 from clawock.workspace import workspace_root
 
-WS = workspace_root(Path.cwd())
+WS = workspace_root()
 CONFIG = WS / 'config' / 'cost-model.json'
 
 #: Half the quoted spread: what an order that crosses the touch pays, relative

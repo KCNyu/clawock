@@ -10,7 +10,7 @@ from pathlib import Path
 
 from clawock.workspace import engine_config, workspace_root
 
-WS = workspace_root(Path.cwd())
+WS = workspace_root()
 SCHEMA_FILE = engine_config("thesis.schema.json")
 SCHEMA_VERSION = 1
 THESIS_STATES = ("unknown", "broken", "damaged", "weakening", "intact")

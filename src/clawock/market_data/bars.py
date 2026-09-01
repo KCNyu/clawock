@@ -58,7 +58,7 @@ from clawock.market_data.eastmoney_http import em_get
 from clawock.instruments import canonical_bar_manifest
 from clawock.workspace import workspace_root
 
-WS = workspace_root(Path.cwd())
+WS = workspace_root()
 BARS_DIR = WS / "memory" / "bars"
 HKT = ZoneInfo("Asia/Hong_Kong")
 ET = ZoneInfo("America/New_York")

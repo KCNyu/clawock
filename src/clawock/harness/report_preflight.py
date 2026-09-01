@@ -50,7 +50,6 @@ import re
 import subprocess
 import sys
 from datetime import datetime
-from pathlib import Path
 
 from clawock.workspace import workspace_root
 from clawock import sessions as trading_calendar
@@ -60,7 +59,7 @@ from clawock.market_data import mover_evidence as mover_news
 from clawock.utilities import PACKAGED_UTILITIES
 from clawock.market_data import peer_scan
 
-WS = workspace_root(Path.cwd())
+WS = workspace_root()
 TMP = WS / 'memory' / '.tmp'
 
 from ._harness_common import (  # noqa: F401 — re-exported for callers/tests

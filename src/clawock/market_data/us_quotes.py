@@ -36,7 +36,7 @@ from clawock.instruments import INSTRUMENTS
 from clawock.portfolio.books import region_book
 from clawock.workspace import workspace_root
 
-WS_ROOT = workspace_root(Path.cwd())
+WS_ROOT = workspace_root()
 PORTFOLIO_PATH = str(WS_ROOT / 'portfolio.json')
 API_KEYS_PATH = str(WS_ROOT / '.api_keys')
 POLYGON_PREV_CACHE_DIR = Path(WS_ROOT) / 'memory' / '.tmp' / 'polygon-prev-close'

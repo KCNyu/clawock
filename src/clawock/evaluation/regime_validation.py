@@ -64,7 +64,7 @@ from clawock.evaluation import cscv
 from clawock.evidence import run_card
 from clawock.workspace import workspace_root
 
-WS = workspace_root(Path.cwd())
+WS = workspace_root()
 TENCENT = 'https://web.ifzq.gtimg.cn/appstock/app/kline/kline'
 
 # Production defaults, imported in spirit from compute_regime so the validated

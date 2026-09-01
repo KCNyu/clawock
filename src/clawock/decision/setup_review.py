@@ -32,7 +32,6 @@ import math
 import sys
 from datetime import date
 from datetime import date as real_date
-from pathlib import Path
 
 from clawock import instruments
 from clawock import sessions as trading_calendar
@@ -54,7 +53,7 @@ def wilson_ci(hits, n, z=1.96):
 from clawock.safe_io import safe_write_json
 from clawock.workspace import workspace_root
 
-WS = workspace_root(Path.cwd())
+WS = workspace_root()
 HIST = WS / 'assets' / 'data' / 't0_setups_history.jsonl'
 OUT = WS / 'assets' / 'data' / 't0_setup_review.json'
 

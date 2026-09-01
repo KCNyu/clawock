@@ -1259,7 +1259,7 @@ def write_shadow_portfolio(
 
 
 def main(argv=None) -> int:
-    workspace = workspace_root(Path.cwd())
+    workspace = workspace_root()
     parser = argparse.ArgumentParser()
     parser.add_argument("--path", type=Path, default=workspace / "portfolio.json")
     parser.add_argument(

@@ -14,7 +14,6 @@ from __future__ import annotations
 
 import re
 import sys
-from pathlib import Path
 from typing import Iterable
 
 import requests
@@ -23,7 +22,7 @@ from clawock.market_data.eastmoney_http import em_get
 from clawock.workspace import workspace_root
 
 
-WS = workspace_root(Path.cwd())
+WS = workspace_root()
 API_KEYS_PATH = WS / ".api_keys"
 
 

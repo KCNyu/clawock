@@ -34,7 +34,7 @@ from clawock.workspace import workspace_root  # noqa: E402
 # it made `--portfolio` default to the real ledger *and* pointed SNAP_DIR at the
 # real memory/snapshots/, so a backfill run from a review checkout rewrote
 # production snapshots in place.
-WS = str(workspace_root(Path.cwd()))
+WS = str(workspace_root())
 SNAP_DIR = os.path.join(WS, 'memory', 'snapshots')
 DATE_RE = re.compile(r'^(\d{4}-\d{2}-\d{2})')
 

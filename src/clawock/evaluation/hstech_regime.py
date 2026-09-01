@@ -26,7 +26,7 @@ from clawock.decision import regime as compute_regime
 from clawock.evidence import run_card
 from clawock.workspace import workspace_root
 
-WS = workspace_root(Path.cwd())
+WS = workspace_root()
 TENCENT = 'https://web.ifzq.gtimg.cn/appstock/app/kline/kline'
 
 

@@ -30,7 +30,7 @@ from clawock.market_data import bar_signals
 from clawock.safe_io import safe_write_json, safe_write_text
 from clawock.workspace import workspace_root
 
-WS = workspace_root(Path.cwd())
+WS = workspace_root()
 CONFIG = WS / 'config' / 'factor-universe.json'
 OUT = WS / 'assets' / 'data' / 'cross_sectional_factor.json'
 HISTORY = WS / 'assets' / 'data' / 'cross_sectional_factor_history.jsonl'

@@ -25,7 +25,7 @@ from clawock.decision import regime as compute_regime
 from clawock.evidence import run_card
 from clawock.workspace import workspace_root
 
-WS = workspace_root(Path.cwd())
+WS = workspace_root()
 OUT = WS / 'memory' / '.tmp'
 OUT.mkdir(parents=True, exist_ok=True)
 UA = ('Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 '

@@ -52,7 +52,7 @@ from clawock.instruments import canonical_bar_manifest
 from clawock.safe_io import safe_write_text, to_number as _number
 from clawock.workspace import workspace_root
 
-WS = workspace_root(Path.cwd())
+WS = workspace_root()
 DATA = WS / 'assets' / 'data'
 LEDGER = WS / 'memory' / 'decisions.jsonl'
 OUT = DATA / 'decision_map.json'

@@ -16,7 +16,7 @@ from typing import Any
 
 from clawock.workspace import engine_config, workspace_root
 
-WS = workspace_root(Path.cwd())
+WS = workspace_root()
 REGISTRY_FILE = WS / "config" / "instruments.json"
 SCHEMA_FILE = engine_config("instruments.schema.json")
 SCHEMA_VERSION = 1

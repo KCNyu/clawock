@@ -17,14 +17,13 @@ import argparse
 import json
 import os
 import time
-from pathlib import Path
 from typing import Optional, Dict
 import requests
 
 from clawock.safe_io import safe_write_json
 from clawock.workspace import workspace_root
 
-WS_ROOT = workspace_root(Path.cwd())
+WS_ROOT = workspace_root()
 CACHE_PATH = str(WS_ROOT / '.cache' / 'fx_rate.json')
 # The durable record, one line per day. The cache above is gitignored and
 # overwritten, so until #323 the only place a past day's rate survived was the

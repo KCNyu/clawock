@@ -15,7 +15,7 @@ from pathlib import Path
 from clawock.publish import write_generation  # noqa: F401
 from clawock.workspace import workspace_root
 
-ROOT = workspace_root(Path.cwd())
+ROOT = workspace_root()
 CONTRACT_NAME = "dashboard-outputs.json"
 
 

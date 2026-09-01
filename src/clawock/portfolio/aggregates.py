@@ -33,7 +33,7 @@ from clawock.portfolio.math import active_holdings, number
 from clawock.safe_io import safe_write_json
 from clawock.workspace import workspace_root
 
-WS = workspace_root(Path.cwd())
+WS = workspace_root()
 PORTFOLIO = WS / 'portfolio.json'
 POLICY = WS / 'config' / 'portfolio-derivations.json'
 

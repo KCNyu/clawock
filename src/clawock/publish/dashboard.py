@@ -40,7 +40,7 @@ SNAPSHOT_FNAME_RE = history_store.DATED_FILE_RE
 # A session key inside a canonical bar document (memory/bars/<ticker>.json).
 SESSION_DATE_RE = re.compile(r'^\d{4}-\d{2}-\d{2}$')
 
-WS_ROOT = workspace_root(Path.cwd())
+WS_ROOT = workspace_root()
 OUT_DIR = WS_ROOT / 'assets' / 'data'
 OUT_FILE = OUT_DIR / 'dashboard.json'
 OVERVIEW_FILE = OUT_DIR / 'overview.json'

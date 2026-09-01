@@ -28,7 +28,7 @@ from clawock.decision import ledger as decision_v2
 from clawock.decision import risk as risk_ledger
 from clawock.workspace import workspace_root
 
-WS = workspace_root(Path.cwd())
+WS = workspace_root()
 MEMORY = WS / "memory"
 LEDGER = MEMORY / "decisions.jsonl"
 

@@ -28,7 +28,7 @@ from clawock import instruments as instrument_registry
 from clawock.workspace import engine_config, workspace_root
 from clawock.safe_io import parse_iso_utc as _parse_time
 
-WS = workspace_root(Path.cwd())
+WS = workspace_root()
 SCHEMA_FILE = engine_config("entry_gate.schema.json")
 VETO_FILE = WS / "config" / "entry-gate-vetoes.json"
 ARTIFACT_ROOT = WS / "memory" / "entry-gates"

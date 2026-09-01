@@ -46,7 +46,7 @@ from clawock.workspace import workspace_root
 
 # Installed package code resolves user state from the caller's workspace, never
 # from site-packages or a source checkout path.
-WS = workspace_root(Path.cwd())
+WS = workspace_root()
 LEDGER = WS / "memory" / "decisions.jsonl"
 
 SCHEMA_VERSION = 2

@@ -47,7 +47,6 @@ import subprocess
 import sys
 import time
 from datetime import datetime, date, timezone, timedelta
-from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from clawock.workspace import workspace_root
@@ -64,7 +63,7 @@ from clawock.evidence import research_surface
 from clawock.market_data import mover_evidence as mover_news
 from clawock.market_data import peer_scan
 
-WS = workspace_root(Path.cwd())
+WS = workspace_root()
 _CHECKOUT = WS
 TMP_DIR = WS / 'memory' / '.tmp'
 SNAPSHOT_DIR = WS / 'memory' / 'snapshots'

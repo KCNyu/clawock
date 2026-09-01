@@ -29,7 +29,7 @@ STRONG_5D_PCT = 8.0
 
 def _watch_list_path() -> Path:
     """Config path, resolved at call time (#620: import must not depend on cwd)."""
-    return workspace_root(Path.cwd()) / "config" / "watch-list.json"
+    return workspace_root() / "config" / "watch-list.json"
 
 
 def _policy_near_pct() -> float:
@@ -41,7 +41,7 @@ def _policy_near_pct() -> float:
     """
     try:
         policy = json.loads(
-            (workspace_root(Path.cwd()) / "config" / "add-alpha-policy.json")
+            (workspace_root() / "config" / "add-alpha-policy.json")
             .read_text(encoding="utf-8"))
         raw = policy.get("opportunity_near_pct")
         if raw is not None:
@@ -55,7 +55,7 @@ def _policy_strong_5d_pct() -> float:
     """`strong_5d_pct` from add-alpha-policy.json, default STRONG_5D_PCT (#640)."""
     try:
         policy = json.loads(
-            (workspace_root(Path.cwd()) / "config" / "add-alpha-policy.json")
+            (workspace_root() / "config" / "add-alpha-policy.json")
             .read_text(encoding="utf-8"))
         raw = policy.get("strong_5d_pct")
         if raw is not None:

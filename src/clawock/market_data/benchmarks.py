@@ -29,7 +29,6 @@ import argparse
 import json
 import sys
 from datetime import datetime, timedelta, timezone
-from pathlib import Path
 from typing import Dict, List
 
 import requests
@@ -38,7 +37,7 @@ from clawock.market_data.us_quotes import load_api_keys
 from clawock.safe_io import safe_write_json
 from clawock.workspace import workspace_root
 
-WS_ROOT = workspace_root(Path.cwd())
+WS_ROOT = workspace_root()
 OUT_FILE = WS_ROOT / 'assets' / 'data' / 'benchmark.json'
 TIMEOUT = 12
 DEFAULT_DAYS = 60
