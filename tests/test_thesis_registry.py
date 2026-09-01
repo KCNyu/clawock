@@ -225,6 +225,24 @@ def test_decision_link_preserves_historical_thesis_id():
     )[0]["thesis_ref"] == {"status": "unknown", "thesis_id": "historic-id"}
 
 
+def test_decision_link_respects_strategy_scope():
+    """#1261: ticker alone linked a `core_position` thesis to an `intraday_t`
+    decision and printed "thesis intact" beside a decision it never covered."""
+    core = thesis()                      # strategy_scope == ["core_position"]
+    assert tr.resolve_decision_links(
+        [{"ticker": "TEST", "thesis_id": "test-core", "strategy_id": "core_position"}],
+        [core],
+    )[0]["thesis_ref"]["status"] == "resolved"
+    assert tr.resolve_decision_links(
+        [{"ticker": "TEST", "thesis_id": "test-core", "strategy_id": "intraday_t"}],
+        [core],
+    )[0]["thesis_ref"]["status"] == "mismatch"
+    # Legacy rows predate strategy_id; ticker still links them.
+    assert tr.resolve_decision_links(
+        [{"ticker": "TEST", "thesis_id": "test-core"}], [core],
+    )[0]["thesis_ref"]["status"] == "resolved"
+
+
 def test_registry_summary_marks_missing_ticker_unknown(tmp_path):
     (tmp_path / "TEST.json").write_text(json.dumps(thesis()))
     summary = tr.registry_summary(tmp_path, ["TEST", "MISSING"])
