@@ -1,64 +1,64 @@
 {
-  "generated_at": "2026-09-01T00:49:04.985160+00:00",
+  "generated_at": "2026-09-01T23:34:02.657054+00:00",
   "vix": {
     "symbol": "^VIX",
-    "price": 14.92,
+    "price": 16.34,
     "prev": 14.43,
-    "change_pct": 3.4,
-    "as_of": 1788207301,
+    "change_pct": 13.24,
+    "as_of": 1788293701,
     "source": "yahoo"
   },
   "treasury_10y": {
     "symbol": "^TNX",
-    "price": 4.758,
-    "prev": 4.72,
-    "change_pct": 0.81,
-    "as_of": 1788202792,
+    "price": 4.796,
+    "prev": 4.758,
+    "change_pct": 0.8,
+    "as_of": 1788289194,
     "source": "yahoo",
-    "yield_pct": 4.758
+    "yield_pct": 4.796
   },
   "dxy": {
     "symbol": "DX-Y.NYB",
-    "price": 99.378,
-    "prev": 99.428,
-    "change_pct": -0.05,
-    "as_of": 1788223143,
+    "price": 99.654,
+    "prev": 99.677,
+    "change_pct": -0.02,
+    "as_of": 1788300299,
     "source": "yahoo"
   },
   "fear_greed": {
-    "score": 49.7,
-    "rating": "neutral",
-    "prev_close": 54.4,
-    "prev_1_week": 56.1,
-    "as_of": "2026-08-31T23:59:43+00:00"
+    "score": 44.6,
+    "rating": "fear",
+    "prev_close": 49.7,
+    "prev_1_week": 56.8,
+    "as_of": "2026-09-01T23:17:34+00:00"
   },
   "hsi": {
     "symbol": "^HSI",
-    "price": 25566.99,
-    "prev": 25584.79,
-    "change_pct": -0.07,
+    "price": 25329.73,
+    "prev": 25566.99,
+    "change_pct": -0.93,
     "source": "tencent"
   },
   "hstech": {
     "symbol": "^HSTECH",
-    "price": 4619.87,
-    "prev": 4605.15,
-    "change_pct": 0.32,
+    "price": 4550.88,
+    "prev": 4619.87,
+    "change_pct": -1.49,
     "source": "tencent"
   },
   "spx": {
     "symbol": "^GSPC",
-    "price": 7686.14,
-    "prev": 7711.76,
-    "change_pct": -0.33,
-    "as_of": 1788210573,
+    "price": 7631.47,
+    "prev": 7686.14,
+    "change_pct": -0.71,
+    "as_of": 1788295536,
     "source": "yahoo"
   },
   "nasdaq": {
     "symbol": "^IXIC",
-    "price": 26370.89,
-    "prev": 26402.42,
-    "change_pct": -0.12,
+    "price": 26099.77,
+    "prev": 26370.89,
+    "change_pct": -1.03,
     "source": "tencent"
   },
   "fed_press": [
@@ -66,11 +66,6 @@
       "date": "2026-08-27",
       "title": "Federal Reserve Board issues enforcement action with former employee of Banco Popular de Puerto Rico",
       "url": "https://www.federalreserve.gov/newsevents/pressreleases/enforcement20260827a.htm"
-    },
-    {
-      "date": "2026-08-25",
-      "title": "Minutes of the Board's discount rate meetings on July 20 and July 29, 2026",
-      "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20260825a.htm"
     }
   ]
 }
