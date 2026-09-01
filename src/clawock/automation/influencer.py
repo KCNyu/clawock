@@ -331,6 +331,7 @@ def llm_filter(candidates, held):
         print('  ⚠️ no LLM provider key — skipping relevance filter (keyword-only)', file=sys.stderr)
         return {}
     from clawock.automation.llm import chat
+    from clawock.automation.output_validate import coerce_scored_items
     held_lines = '\n'.join(f"  - {h['ticker']} ({h['name']}, {h['region']})" for h in held)
     cand_lines = '\n'.join(
         f"[{i}] ({c['author']}) {c['text']}" for i, c in enumerate(candidates)
@@ -351,11 +352,23 @@ def llm_filter(candidates, held):
             raw = chat(system=LLM_SYSTEM, user=user, max_tokens=8000,
                        temperature=0.3, json_response=True, thinking_disabled=True)
             data = json.loads(raw)
-            scored = {int(it['idx']): it for it in data.get('items', []) if 'idx' in it}
+            # Field-check before the caller sees it (#1257): stance/relevance
+            # reach the brief and the evidence graph, and a single non-int idx
+            # used to raise inside the comprehension and lose the whole batch.
+            scored = coerce_scored_items(data)
             if scored:
                 return scored
             print(f'  ⚠️ LLM returned 0 scored items for {len(candidates)} candidates '
                   f'(attempt {attempt}/2)', file=sys.stderr)
+        except RuntimeError as e:
+            # Both vendors already exhausted their retries and the chain
+            # deadline inside this one call (#1260) — attempt 2 would spend the
+            # same budget again against providers that just proved dead, and
+            # the 8-minute job has room for one such chain, not two. Retrying
+            # is for the empty-batch/bad-JSON case above, not a dead chain.
+            print(f'  ⚠️ LLM filter failed (attempt {attempt}/2): {e}', file=sys.stderr)
+            if str(e).startswith('all LLM providers failed'):
+                break
         except Exception as e:
             print(f'  ⚠️ LLM filter failed (attempt {attempt}/2): {e}', file=sys.stderr)
     return {}

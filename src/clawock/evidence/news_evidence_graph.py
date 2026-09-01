@@ -16,6 +16,7 @@ import json
 import math
 import re
 import statistics
+import sys
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 from urllib.parse import urlparse
@@ -335,6 +336,10 @@ def collect_em_events(policy, underlying):
     return events
 
 
+# Bullet-shaped lines only: headings and prose are legitimately skipped.
+_BULLET_RE = re.compile(r'\s*[-*\u2022]\s+\S')
+
+
 def collect_us_news_events(policy, underlying):
     payload = _load(US_NEWS)
     events = []
@@ -356,9 +361,17 @@ def collect_us_news_events(policy, underlying):
         return events
     # Legacy sidecars kept only an LLM digest. Preserve those bullets as weak,
     # explicitly non-primary nodes until the producer starts shipping evidence.
+    # #1258: the regex wants `- **TICKER**: text` exactly. Any drift the model
+    # produces (no bold, dash instead of colon, an emoji prefix) used to `continue`
+    # in silence, so a digest that dropped every event looked identical to a
+    # digest with no events. Count the bullets it could not read and say so —
+    # only bullet-shaped lines, since headings and prose are legitimately skipped.
+    unmatched = 0
     for line in str(payload.get('digest_markdown') or '').splitlines():
         match = re.match(r'\s*-\s+\*\*([^*]+)\*\*:\s*(.+)', line)
         if not match:
+            if _BULLET_RE.match(line):
+                unmatched += 1
             continue
         reported = match.group(1).split('/')[0].strip()
         ticker = underlying.get(reported, reported)
@@ -370,6 +383,10 @@ def collect_us_news_events(policy, underlying):
             published_at=payload.get('generated_at'),
             origin='llm_digest_legacy',
         ))
+    if unmatched:
+        print(f'  ⚠️ news digest: {unmatched} bullet line(s) did not match the '
+              f'`- **TICKER**: text` shape — {len(events)} legacy event(s) kept',
+              file=sys.stderr)
     return events
 
 

@@ -17,7 +17,11 @@ from datetime import date, timedelta
 from pathlib import Path
 
 from clawock.automation.llm import chat
+from clawock.automation.output_validate import validate_sections
 from clawock.decision import ledger as decision_v2
+
+# The four questions build_user_prompt asks for, checked on the way out (#1263).
+WEEKLY_REQUIRED_SECTIONS = ('本周净值', '决策兑现', '风险演变', '下周关注')
 
 # Prompt budget for the single-turn weekly review, measured in serialized-JSON
 # characters. A sanity bound, not a writing target: the old prompt embedded
@@ -386,6 +390,12 @@ def main():
 
     # Weekly review benefits most from thinking + depth (1 turn, complex synthesis)
     out = chat(system=system, user=user, max_tokens=32000, temperature=0.6)
+    # Refuse before writing (#1263): a blank or off-prompt reply used to be
+    # published as that week's review, and nothing downstream re-reads it.
+    # Anchors are the four questions build_user_prompt asks for; the floor is
+    # ~1/10th of a real review (2026-W34 is 11KB).
+    validate_sections(out, label='weekly review',
+                      required=WEEKLY_REQUIRED_SECTIONS, min_chars=1000)
 
     os.makedirs('memory/weekly', exist_ok=True)
     path = Path(f'memory/weekly/{week_id}.md')
