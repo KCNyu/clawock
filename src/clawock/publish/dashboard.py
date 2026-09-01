@@ -613,6 +613,106 @@ def _guardrail_sections(portfolio, risk, lev_regime=None):
     return {'risk_guardrail': guardrail, 'breakeven_math': breakeven}
 
 
+GUARDRAIL_HISTORY_NAME = 'guardrail_history.jsonl'
+GUARDRAIL_HISTORY_DAYS = 30
+
+
+def load_guardrail_history(ws=None, limit=None):
+    """Every recorded guardrail verdict, oldest first (or the last `limit`).
+
+    Read whole by default: a breach's age must be measured against the whole
+    record, while only the tail is worth the payload budget. Coupling the two
+    would make every age read "30 天+" the moment the chart window filled.
+
+    `brief_preflight._append_guardrail_history` writes one row per brief and is
+    idempotent by date, so a row is a trading day rather than a calendar day —
+    weekends and holidays are absent, not zero. Callers must count rows, never
+    subtract dates.
+
+    Never raises: the risk card must still render when this file is missing (a
+    fresh clone has none) or when a line is torn mid-append.
+    """
+    path = Path(ws or WS_ROOT) / 'assets' / 'data' / GUARDRAIL_HISTORY_NAME
+    rows = []
+    try:
+        text = path.read_text(encoding='utf-8')
+    except (OSError, UnicodeDecodeError):
+        return []
+    for line in text.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            row = json.loads(line)
+        except ValueError:
+            continue
+        if isinstance(row, dict) and isinstance(row.get('date'), str):
+            rows.append(row)
+    rows.sort(key=lambda r: r['date'])
+    return rows[-limit:] if limit else rows
+
+
+def _breach_identity(row):
+    """What makes two breaches, recorded on different days, the same breach."""
+    if not isinstance(row, dict):
+        return None
+    return (row.get('type') or 'hard_stop', row.get('leg'), row.get('ticker'))
+
+
+def _consecutive_age(identity, history, key):
+    """How many of the newest consecutive recorded days carry `identity`.
+
+    Returns (days, capped). `capped` says the streak reaches the oldest row on
+    record, so the true age is at least this — the file starts 2026-07-15 and
+    nothing before it can be reconstructed. Rendering ">= 34" as "34" would be
+    the card asserting a number it does not have.
+    """
+    days = 0
+    for row in reversed(history):
+        present = any(_breach_identity(r) == identity for r in (row.get(key) or []))
+        if not present:
+            break
+        days += 1
+    return days, bool(days) and days == len(history)
+
+
+def annotate_guardrail_history(guardrail, history):
+    """Give the risk card the two questions it could not answer (#1252).
+
+    Until now it rendered only the current `breaches` / `hard_stop_watch`, so it
+    answered "what is tripped right now" and nothing else. The data for the other
+    two was already being published — `guardrail_history.jsonl` has carried a
+    full daily row since 2026-07-15 — it just never reached the browser:
+
+      * trend — is the gate tightening or loosening? (34 recorded days run
+        12 -> 6, which the card could not show)
+      * age — how long has THIS breach been tripped?
+
+    An age of 0 is meaningful and kept: the breach is live now but was not in
+    the newest recorded row, i.e. it appeared after this morning's brief.
+    Mutates `guardrail` in place and returns it. Never raises.
+    """
+    if not isinstance(guardrail, dict) or guardrail.get('computed') is False:
+        return guardrail
+    try:
+        guardrail['breach_history'] = [
+            {'date': row['date'], 'count': row.get('breach_count')}
+            for row in history if isinstance(row.get('breach_count'), int)
+        ][-GUARDRAIL_HISTORY_DAYS:]
+        for key in ('breaches', 'hard_stop_watch'):
+            for entry in (guardrail.get(key) or []):
+                if not isinstance(entry, dict):
+                    continue
+                days, capped = _consecutive_age(
+                    _breach_identity(entry), history, key)
+                entry['age_days'] = days
+                if capped:
+                    entry['age_capped'] = True
+    except Exception as e:  # a decoration must not be able to fail a publish
+        print(f'  warn: guardrail history annotate failed: {e}', file=sys.stderr)
+    return guardrail
+
+
 def compute_guardrail_outputs(portfolio, risk, lev_regime=None):
     """Compute the two live risk cards without ever failing the dashboard build.
 
@@ -3294,6 +3394,10 @@ _FINGERPRINT_EXTRA_DATA_PLANE = (
     'workflow-outcomes.json',
     't0_setups.json',
     't0_setup_review.json',
+    # Read by `annotate_guardrail_history`. `brief_preflight` appends to it in
+    # the same run that then rebuilds the dashboard, so a fingerprint that
+    # could not see it would let --skip-if-unchanged publish yesterday's trend.
+    GUARDRAIL_HISTORY_NAME,
 )
 
 FINGERPRINT_FILES = (
@@ -3673,6 +3777,7 @@ def build_projection(previous_source=None, shadow_previous=None):
 
     out.update(compute_guardrail_outputs(
         portfolio, out.get('risk') or {}, lev_regime=lev_regime))
+    annotate_guardrail_history(out.get('risk_guardrail'), load_guardrail_history())
 
     # Embed GH Action outputs into dashboard.json so the static page can render them
     def _embed(key, fname):
