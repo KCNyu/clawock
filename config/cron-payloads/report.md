@@ -25,6 +25,8 @@ clawock report postflight --market {{market}} --phase {{phase}} --context-id <St
 `--context-id` 必须照抄 Step 1 打印的那个。pass/warn 自动拼装+发送+刷新 snapshot/dashboard+提交推送。
 这是**唯一微信路径**，并同步 Telegram；本 cron 配 `--no-deliver`，不会再 announce 你的回复文本。
 
+⚠️ **postflight 不设超时、不 kill、不因为「已经发出去了」就收尾。** 它是「先投递、后提交」两段（#765），提交那一段要刷 snapshot/dashboard 再 push，几十秒到几分钟。**杀在中间会留下「投递成功但没提交」**——微信/TG 都到了，`portfolio: {{market_name}}{{phase}}价格更新` 那个 commit 却不存在，而所有腿看到的都是成功，所以没有任何东西会重跑。2026-08-31 与 09-01 的港股开盘报告就是这样各丢了一次提交（父壳超时 SIGTERM，模型据此判「子进程早已完成发送，不再重跑」）。判完成只看 postflight 自己返回的 `status` + `commit_ok`。
+
 **Step 4 - 输出**
 把 postflight 返回的 `status` + `issues` 作为本回合最终文本回复（仅留痕）。
 ❌ **禁用 message/send 工具** —— postflight 已经发过了，你再手动调会撞成双发（2026-06-03 教训）。

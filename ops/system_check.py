@@ -1116,6 +1116,69 @@ def check_host_cron_logs(r):
         r.add('host cron logs', OK, f'{checked} host cron logs · none end on a crash')
 
 
+def check_delivered_but_unarchived(r):
+    """A product that reached kcn but never reached git.
+
+    2026-09-01 is the case this exists for. The 08:00 brief was delivered to
+    WeChat and Telegram (`brief-sent-2026-09-01.json`, `sent_ok`/`tg_ok` both
+    true) and `memory/2026-09-01-pre-open.md` was never committed, so the link
+    printed on the card kcn actually received 404'd all day, `briefs.html` stopped
+    at 08-31, and `memory/decisions.jsonl` — whose *only* carrier is the daily
+    brief commit — did not move for a whole trading day. The same thing cost the
+    HK open report its commit on 08-31 and 09-01.
+
+    The mechanism is the postflights' own ordering: deliver first, commit second
+    (#765). Anything that kills the process in between leaves a state where
+    **every existing gate reads success** — the send marker is written, the
+    ledger's `primary_delivery` is `success`, the watchdog sees a fresh marker
+    with `tg_ok`, and the model's own wrap-up reads the marker and stops. On
+    2026-09-01 the killer was the agent's own `timeout 90` wrapper; the payloads
+    now carve postflight out of that rule, but the wrapper is not the only way to
+    die between the two halves, so the *state* needs a gate rather than the cause.
+
+    Criterion, stated as exactly what it is: **today's brief was delivered and its
+    markdown is not tracked by git.** `git ls-files --error-unmatch` answers
+    "tracked", which is the property that matters — a file staged but uncommitted
+    still has not left the desk, and one that is neither is the 09-01 case.
+
+    WARN, not CRITICAL, for the reason `check_publish_backlog` gives one function
+    up: this runs inside `.githooks/pre-push`, and the fix for the state it
+    reports is *a push*. A CRITICAL would refuse the very commit that clears it.
+
+    Weekends, holidays and any day before the brief has been delivered are
+    silent: no send marker, nothing to say.
+    """
+    # 主机 TZ 是 Asia/Shanghai(+0800)，与 HKT 同偏移，所以本地日期就是场次日；
+    # 不引 zoneinfo 是为了让这个文件在任何 checkout 上都零依赖地跑起来。
+    today = date.today().strftime('%Y-%m-%d')
+    marker = WS / 'memory' / '.tmp' / f'brief-sent-{today}.json'
+    if not marker.is_file():
+        return  # not delivered (yet) — nothing is owed to git
+    try:
+        sent = json.loads(marker.read_text())
+    except Exception:
+        return
+    if not (sent.get('sent_ok') or sent.get('tg_ok')):
+        return  # marker exists but nothing went out; a different failure owns it
+    unarchived = []
+    for rel in (f'memory/{today}-pre-open.md', f'memory/{today}-plan.json'):
+        if not (WS / rel).exists():
+            continue  # absent is the miss detector's business, not this one
+        tracked = subprocess.run(
+            ['git', 'ls-files', '--error-unmatch', rel],
+            capture_output=True, text=True, timeout=10, cwd=str(WS))
+        if tracked.returncode != 0:
+            unarchived.append(rel)
+    if unarchived:
+        r.add('delivered but unarchived', WARNING,
+              f'{today} brief was delivered but {", ".join(unarchived)} '
+              f'is not tracked — postflight died between delivery and commit; '
+              f'the public brief page will 404 until it is committed')
+    else:
+        r.add('delivered but unarchived', OK,
+              f'{today} brief delivered and archived')
+
+
 def check_generated_cron_docs(r):
     """Generated schedule documentation must exactly match the contract."""
     result = subprocess.run(
@@ -1487,6 +1550,7 @@ def main():
         check_host_crontab_targets,
         check_host_cron_logs,
         check_publish_backlog,
+        check_delivered_but_unarchived,
         check_fallback_chain_shape,
         check_model_chain_health,
         check_generated_cron_docs,
