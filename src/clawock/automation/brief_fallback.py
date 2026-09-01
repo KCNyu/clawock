@@ -17,6 +17,7 @@ from datetime import date
 from pathlib import Path
 
 from clawock.automation.llm import chat
+from clawock.automation.output_validate import validate_sections
 from clawock.decision import ledger as decision_v2
 
 # Output budget for the single-turn brief. Thinking is enabled, and _call_provider
@@ -25,6 +26,11 @@ from clawock.decision import ledger as decision_v2
 # (~20K tokens) plus the trailing plan.json block, so this leaves roughly 4x headroom
 # and stays well under MiniMax M3's 131072 cap. See the call site for why 32000 failed.
 BRIEF_MAX_TOKENS = 96000
+
+# Structural anchors every SKILL.md brief carries, matched as substrings so the
+# model's own heading decoration does not fail a good brief.
+BRIEF_REQUIRED_SECTIONS = ('仓位明细', 'Retrospective', 'Tier 1', 'Tier 2',
+                           'Tier 3', 'Next-Session Plan')
 
 
 def split_brief_and_plan(out):
@@ -353,6 +359,14 @@ def main():
     errors = decision_v2.validate_plan(plan)
     if errors:
         raise SystemExit('plan.json v2 validation failed: ' + '; '.join(errors))
+    # The markdown half was never checked (#1262): a reply that carried a valid
+    # plan.json after an empty or stub brief published a blank pre-open.md, and
+    # the workflow's own skip gate keys on that file existing, so every later
+    # fallback that day self-skipped. Anchors are SKILL.md sections that survive
+    # the model's own heading style (`## ▎仓位明细 (HK)` matches `仓位明细`);
+    # the floor is ~1/10th of the real artifact (2026-07-16 ran 26KB).
+    validate_sections(md_part, label='brief markdown',
+                      required=BRIEF_REQUIRED_SECTIONS, min_chars=2000)
     Path(f'memory/{today}-pre-open.md').write_text(md_with_fm)
     Path(f'memory/{today}-plan.json').write_text(json.dumps(plan, ensure_ascii=False, indent=2))
     print(f'  wrote pre-open.md + plan.json ({len(plan.get("decisions", []))} decisions)')

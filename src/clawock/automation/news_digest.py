@@ -23,7 +23,13 @@ import requests
 
 from clawock import instruments as instrument_registry
 from clawock.automation.llm import chat
+from clawock.automation.output_validate import validate_sections
 from clawock.market_data.sentiment import fetch_google_news
+
+# Sections build_user_prompt demands, checked on the way out (#1264).
+# `移动信号`, not `Top`: a bare case-insensitive `top` also matches
+# "stop-loss", which would wave through a digest with no signals section.
+DIGEST_REQUIRED_SECTIONS = ('移动信号', 'Per-ticker')
 
 # Serialized-size budget for the raw-news JSON embedded in the prompt. The old
 # `json.dumps(raw)[:25000]` slice cut mid-string on busy days: a malformed JSON
@@ -266,6 +272,13 @@ def main():
 
     # News digest: short output but enable thinking helps prioritize signal vs noise
     digest = chat(system=system, user=user, max_tokens=32000, temperature=0.5)
+    # Refuse before the artifact is written (#1264): us_news_digest.json is
+    # read by the brief and by news_evidence_graph, both of which treat an
+    # empty digest_markdown as "no news" rather than "the model failed".
+    # 风险 watch is deliberately not required — the prompt makes it conditional
+    # ("若有"). The floor is ~1/3rd of a live digest (2026-09-01 ran 1,079).
+    validate_sections(digest, label='news digest',
+                      required=DIGEST_REQUIRED_SECTIONS, min_chars=300)
 
     _write_artifact(tickers, raw, source_status, digest=digest, held_via=held_via)
     print(f'  digest size: {len(digest)} chars')
