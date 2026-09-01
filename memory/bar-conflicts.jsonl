@@ -1,0 +1,1 @@
+{"date": "2026-08-26", "detail": "stored O512.09/H516.39/L509.3/C515.4 vs fetched O512.09/H516.39/L509.26/C515.4", "fetched": {"close": 515.4, "high": 516.39, "low": 509.26, "open": 512.09}, "kind": "rounding", "seen_at": "2026-09-01T08:01:47+08:00", "stored": {"close": 515.4, "high": 516.39, "low": 509.3, "open": 512.09}, "ticker": "SOXX"}
