@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-09-01T23:34:02.657054+00:00",
+  "generated_at": "2026-09-01T23:35:46.140233+00:00",
   "vix": {
     "symbol": "^VIX",
     "price": 16.34,
-    "prev": 14.43,
-    "change_pct": 13.24,
+    "prev": 14.92,
+    "change_pct": 9.52,
     "as_of": 1788293701,
     "source": "yahoo"
   },
