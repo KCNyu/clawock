@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-29T10:24:10Z",
+  "generated_at": "2026-09-01T08:53:52Z",
   "repo": "KCNyu/clawock",
   "note": "views/clones are per-day series merged across runs. referrers/paths are 14-day aggregates captured as dated snapshots and must not be summed or differenced as daily values.",
   "views": [
@@ -107,6 +107,26 @@
       "timestamp": "2026-08-27T00:00:00Z",
       "count": 11,
       "uniques": 4
+    },
+    {
+      "timestamp": "2026-08-28T00:00:00Z",
+      "count": 16,
+      "uniques": 10
+    },
+    {
+      "timestamp": "2026-08-29T00:00:00Z",
+      "count": 10,
+      "uniques": 10
+    },
+    {
+      "timestamp": "2026-08-30T00:00:00Z",
+      "count": 6,
+      "uniques": 3
+    },
+    {
+      "timestamp": "2026-08-31T00:00:00Z",
+      "count": 1,
+      "uniques": 1
     }
   ],
   "clones": [
@@ -214,6 +234,26 @@
       "timestamp": "2026-08-27T00:00:00Z",
       "count": 504,
       "uniques": 75
+    },
+    {
+      "timestamp": "2026-08-28T00:00:00Z",
+      "count": 565,
+      "uniques": 71
+    },
+    {
+      "timestamp": "2026-08-29T00:00:00Z",
+      "count": 221,
+      "uniques": 75
+    },
+    {
+      "timestamp": "2026-08-30T00:00:00Z",
+      "count": 1547,
+      "uniques": 55
+    },
+    {
+      "timestamp": "2026-08-31T00:00:00Z",
+      "count": 813,
+      "uniques": 64
     }
   ],
   "referrers_snapshots": [
@@ -303,6 +343,32 @@
           "referrer": "github.com",
           "count": 48,
           "uniques": 24
+        },
+        {
+          "referrer": "Google",
+          "count": 8,
+          "uniques": 3
+        },
+        {
+          "referrer": "kcnyu.github.io",
+          "count": 3,
+          "uniques": 1
+        },
+        {
+          "referrer": "chatgpt.com",
+          "count": 2,
+          "uniques": 1
+        }
+      ]
+    },
+    {
+      "captured_at": "2026-09-01T08:53:52Z",
+      "window_days": 14,
+      "rows": [
+        {
+          "referrer": "github.com",
+          "count": 38,
+          "uniques": 21
         },
         {
           "referrer": "Google",
@@ -586,6 +652,72 @@
           "uniques": 1
         }
       ]
+    },
+    {
+      "captured_at": "2026-09-01T08:53:52Z",
+      "window_days": 14,
+      "rows": [
+        {
+          "path": "/KCNyu/clawock",
+          "title": "Overview",
+          "count": 125,
+          "uniques": 37
+        },
+        {
+          "path": "/KCNyu/clawock/blob/master/DREAMS.md",
+          "title": "/blob/master/DREAMS.md",
+          "count": 14,
+          "uniques": 14
+        },
+        {
+          "path": "/KCNyu/clawock/blob/master/README.zh.md",
+          "title": "/blob/master/README.zh.md",
+          "count": 14,
+          "uniques": 10
+        },
+        {
+          "path": "/KCNyu/clawock/issues",
+          "title": "/issues",
+          "count": 5,
+          "uniques": 4
+        },
+        {
+          "path": "/KCNyu/clawock/pulls",
+          "title": "/pulls",
+          "count": 4,
+          "uniques": 4
+        },
+        {
+          "path": "/KCNyu/clawock/actions/metrics/usage",
+          "title": "/actions/metrics/usage",
+          "count": 4,
+          "uniques": 1
+        },
+        {
+          "path": "/KCNyu/clawock/network/dependencies",
+          "title": "/network/dependencies",
+          "count": 3,
+          "uniques": 1
+        },
+        {
+          "path": "/KCNyu/clawock/tree/master/docs",
+          "title": "/tree/master/docs",
+          "count": 3,
+          "uniques": 1
+        },
+        {
+          "path": "/KCNyu/clawock/blob/master/README.md",
+          "title": "/blob/master/README.md",
+          "count": 2,
+          "uniques": 2
+        },
+        {
+          "path": "/KCNyu/clawock/blob/master/TOOLS.md",
+          "title": "/blob/master/TOOLS.md",
+          "count": 2,
+          "uniques": 2
+        }
+      ]
     }
   ],
   "authority_snapshots": [
@@ -595,6 +727,13 @@
       "forks": 1,
       "watchers": 0,
       "open_issues": 68
+    },
+    {
+      "captured_at": "2026-09-01T08:53:52Z",
+      "stargazers": 14,
+      "forks": 1,
+      "watchers": 0,
+      "open_issues": 9
     }
   ],
   "package_downloads": [
@@ -640,6 +779,15 @@
         "downloads": 1448,
         "start": "2026-07-30",
         "end": "2026-08-28"
+      }
+    },
+    {
+      "captured_at": "2026-09-01T08:53:52Z",
+      "pypi_error": "https://pypistats.org/api/packages/clawock/recent -> HTTP 429 Too Many Requests",
+      "npm": {
+        "downloads": 1461,
+        "start": "2026-07-31",
+        "end": "2026-08-29"
       }
     }
   ]
