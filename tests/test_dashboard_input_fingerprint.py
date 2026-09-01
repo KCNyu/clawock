@@ -140,8 +140,10 @@ def test_fingerprint_covers_every_data_plane_file_the_build_reads(monkeypatch):
 
     read = _data_plane_reads(monkeypatch)
     assert read, 'the instrumented projection recorded no data-plane read at all'
+    # .jsonl too: the gate was `.json` only, so `guardrail_history.jsonl` could
+    # have been wired into the projection (#1252) without this noticing.
     uncovered = {name for name in read
-                 if name.endswith('.json')} - covered - outputs
+                 if name.endswith(('.json', '.jsonl'))} - covered - outputs
     assert not uncovered, (
         f'the projection reads {sorted(uncovered)} and the fingerprint cannot '
         f'see them: --skip-if-unchanged would keep publishing a stale embed of '

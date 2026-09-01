@@ -2505,6 +2505,43 @@
   }
 
 
+  // 硬闸计数的走势。刻意不用 sparklineSVG：那支按「末值 > 首值 = 绿」着色，
+  // 而这里的极性是反的 —— 闸触发得少是好事，12 → 6 必须读成收敛而不是下跌。
+  // 固定尺寸，所以它不参与布局位移（CLS 判据同 hero-rail 预留）。
+  function guardrailTrendSVG(counts, w = 76, h = 16) {
+    const pts = counts.filter(v => typeof v === "number" && isFinite(v));
+    if (pts.length < 2) return "";
+    const min = Math.min(...pts), max = Math.max(...pts);
+    const range = max - min || 1;
+    const stepX = (w - 4) / (pts.length - 1);
+    const xy = (v, i) => [2 + i * stepX, h - 2 - ((v - min) / range) * (h - 4)];
+    const path = pts.map((v, i) => {
+      const [x, y] = xy(v, i);
+      return `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`;
+    }).join(" ");
+    const first = pts[0], last = pts[pts.length - 1];
+    const cls = last < first ? "gt-easing" : (last > first ? "gt-tightening" : "gt-flat");
+    const [lx, ly] = xy(last, pts.length - 1);
+    return `<svg class="gt-spark ${cls}" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" aria-hidden="true">`
+      + `<path d="${path}" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"/>`
+      + `<circle cx="${lx.toFixed(1)}" cy="${ly.toFixed(1)}" r="1.7" fill="currentColor"/></svg>`;
+  }
+
+  // 「这条闸触发多久了」。天数是**简报记录日**（guardrail_history 每份简报一行、
+  // 按日期幂等），所以周末和假日是缺行不是 0 —— 数行，不减日期。capped 表示这段
+  // 连续记录一直顶到文件最早一行（2026-07-15 开始，之前的重建不出来），所以写
+  // 「N 天+」而不是把一个下界当成确数印出来。
+  function guardrailAgeLabel(entry) {
+    const days = entry && entry.age_days;
+    if (typeof days !== "number") return "";
+    const line = (cls, title, text) =>
+      `<span class="risk-age ${cls}" title="${title}">${text}</span>`;
+    if (days === 0) return line("is-new", "今晨简报记录时还没有这一条", "今日新增");
+    const capped = entry.age_capped === true;
+    return line("", `按简报记录日计，非日历日${capped ? "；记录始于文件最早一行，实际可能更久" : ""}`,
+                `连续 ${days} 天${capped ? "+" : ""}`);
+  }
+
   function renderRiskGuardrail() {
     const g = safe(DATA, "risk_guardrail") || {};
     const targets = [
@@ -2536,14 +2573,15 @@
     const breaches = g.breaches || [], stops = g.hard_stop_watch || [];
     const n = g.breach_count || 0;
     const ICON = {};
-    const row = (icon, sev, detail, action) =>
+    const row = (icon, sev, detail, action, age) =>
       `<div class="risk-alert ${sev || 'high'}">
          <span class="icon">${icon}</span>
          <div><strong>${detail || ''}</strong>${action ? `<div class="muted" style="font-size:var(--fs-xs);margin-top:2px">→ ${action}</div>` : ''}</div>
+         ${age || ''}
        </div>`;
     const rows = [
-      ...breaches.map(b => ({ icon: ICON[b.type] || '', severity: b.severity, detail: stripEmoji(b.detail), action: stripEmoji(b.action) })),
-      ...stops.map(s => ({ icon: '', severity: s.severity || 'critical', detail: stripEmoji(s.detail), action: stripEmoji(s.action) })),
+      ...breaches.map(b => ({ icon: ICON[b.type] || '', severity: b.severity, detail: stripEmoji(b.detail), action: stripEmoji(b.action), age: guardrailAgeLabel(b) })),
+      ...stops.map(s => ({ icon: '', severity: s.severity || 'critical', detail: stripEmoji(s.detail), action: stripEmoji(s.action), age: guardrailAgeLabel(s) })),
     ];
     // 严重度排序（第八次迭代）：原来把 hard stop 一律降写成 high，再按
     // 「是不是 high」排 —— 同为 high 时排序稳定，于是 6 条 breach 永远排在
@@ -2572,7 +2610,7 @@
         ? stripEmoji(g.directive)
         : stripEmoji([g.directive, g.reentry_rule].filter(Boolean).join(' '));
       const visibleRows = compact ? compactRows.slice(0, 3) : rows;
-      const html = visibleRows.map(r => row(r.icon, r.severity, r.detail, compact ? "" : r.action)).join('');
+      const html = visibleRows.map(r => row(r.icon, r.severity, r.detail, compact ? "" : r.action, compact ? "" : r.age)).join('');
       // 牌上只有三个槽位，9 条里剩下的 6 条原来是无声消失的（表头点阵是
       // 严重度密度，读不出「还有几条没列」）。补一行尾注说清被折叠的量。
       const hidden = compact ? Math.max(0, compactRows.length - visibleRows.length) : 0;
@@ -2581,6 +2619,23 @@
       listEl.innerHTML = (html && html + tail)
         || '<div class="muted" style="font-size:var(--fs-sm)">仓位/单因子/杠杆均在阈值内</div>';
     });
+
+    // 走势只上完整卡：overview 的紧凑卡只有三个槽位，再加一行会挤掉一条闸。
+    const trendEl = document.getElementById("guardrail-trend");
+    if (trendEl) {
+      const hist = (g.breach_history || []).filter(p => p && typeof p.count === "number");
+      const svg = guardrailTrendSVG(hist.map(p => p.count));
+      if (!svg) {
+        trendEl.hidden = true;
+        trendEl.innerHTML = "";
+      } else {
+        const first = hist[0], last = hist[hist.length - 1];
+        trendEl.hidden = false;
+        trendEl.innerHTML = `<span class="gt-trend-lbl">近 ${hist.length} 个记录日</span>${svg}`
+          + `<span class="gt-trend-val">${first.count} → ${last.count}</span>`
+          + `<span class="gt-trend-span">${escapeHtml(first.date)} 起</span>`;
+      }
+    }
   }
 
   function renderQuantSignals() {

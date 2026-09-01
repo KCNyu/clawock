@@ -1032,6 +1032,52 @@
     background: var(--red); flex: none; margin-top: 4px;
   }
   .risk-alert.medium .icon { background: var(--warning); }
+
+  /* 硬闸的两个时间维度 (#1252)：整卡的走势 + 每条的在闸时长。
+     两者的数据 guardrail_history.jsonl 从 2026-07-15 起每份简报写一行，一直在
+     发、README 的「风控纪律」也靠它，但从来没有任何消费者把它送到浏览器 ——
+     所以这张卡在此之前只答得了「现在触发了什么」。 */
+  .gt-trend {
+    display: flex; align-items: center; gap: var(--space-2);
+    height: 18px; margin: 2px 0 var(--space-2);
+    font-size: var(--fs-micro); color: var(--text-dim);
+    font-variant-numeric: tabular-nums;
+  }
+  .gt-trend[hidden] { display: none; }
+  .gt-trend-lbl { text-transform: uppercase; letter-spacing: 0.05em; }
+  .gt-spark { flex: none; }
+  /* 极性是反的：闸触发得少是好事，所以「收敛」是绿的。这也是这支
+     sparkline 不复用 sparklineSVG 的原因 —— 那支按末值高于首值上色。 */
+  .gt-spark.gt-easing { color: var(--green); }
+  .gt-spark.gt-tightening { color: var(--red); }
+  .gt-spark.gt-flat { color: var(--text-faint); }
+  .gt-trend-val { color: var(--text-secondary); font-weight: 600; }
+  .gt-trend-span { margin-left: auto; color: var(--text-faint); }
+
+  /* 时长标只上完整卡：overview 的紧凑卡只有三个槽位，多一枚标就挤掉一条闸。
+     宽屏挂在行右端（读作这一行的元数据）；窄屏 wrap 到自己一行，因为在
+     390px 上它会从正文抢走约 90px，而硬闸的 detail 本来就是全卡最长的一段。
+     只在 #guardrail-list 下改 flex：.risk-alert 也是回本卡和紧凑卡的行。 */
+  #guardrail-list .risk-alert > div { flex: 1 1 auto; min-width: 0; }
+  .risk-age {
+    flex: none; margin-left: auto; align-self: flex-start;
+    padding: 1px 6px; white-space: nowrap; letter-spacing: 0;
+    font-size: var(--fs-micro); font-variant-numeric: tabular-nums;
+    color: var(--text-dim); background: var(--surface-1);
+    border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);
+  }
+  .risk-age.is-new { color: var(--warning); border-color: var(--warning); }
+  /* 窄屏才 wrap。宽屏不能开 flex-wrap：正文列的 flex-basis 是 auto(=max-content)，
+     一开 wrap，长 detail 会在收缩之前先把整行折掉，连左边那颗严重度圆点都被
+     顶到自己一行。 */
+  @media (max-width: 600px) {
+    #guardrail-list .risk-alert { flex-wrap: wrap; }
+    #guardrail-list .risk-alert > div { flex: 1 1 100%; }
+    /* 圆点和左侧 3px 色条编码的是同一件事（severity），窄屏留一个就够：
+       正文列占满一行之后，圆点会被顶成孤零零的一行。 */
+    #guardrail-list .risk-alert > .icon { display: none; }
+    .risk-age { margin-top: var(--space-1); }
+  }
   @media (max-width: 480px) {
     .risk-grid { grid-template-columns: repeat(2, 1fr); }
   }
@@ -2960,13 +3006,17 @@
      退场：面板里它是一枚读数，不是一枚按钮。牌组化后它挂在牌头右侧
      （原 .overview-gates-head 已随双栏退场）。 */
   .deck-card .badge { background: none; padding: 0; }
-  .deck-card .gt-tally { display: inline-flex; align-items: center; gap: 4px; }
-  .deck-card .gt-dot {
+  /* 点阵计数是 #1022 为判定牌做的，选择器却写死在 .deck-card 下 —— 同一段
+     HTML 也由 renderRiskGuardrail 渲到独立的 #guardrail-card 上，在那里
+     .gt-dot 是没有尺寸的空 <i>，「几条闸触发中」整个不可见。计数语言本身
+     跟牌无关，去掉作用域即可，值一个没动。 */
+  .gt-tally { display: inline-flex; align-items: center; gap: 4px; }
+  .gt-dot {
     width: 5px; height: 5px; border-radius: 50%;
     background: var(--border-strong); opacity: .45;
   }
-  .deck-card .gt-dot.on { background: var(--negative); opacity: 1; }
-  .deck-card .gt-more {
+  .gt-dot.on { background: var(--negative); opacity: 1; }
+  .gt-more {
     margin-left: 2px; font: 600 var(--fs-micro)/1 var(--mono);
     color: var(--negative);
   }
