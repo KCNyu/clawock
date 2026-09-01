@@ -29,6 +29,18 @@ def run_check(pi, monkeypatch):
 
     def run(data, *, last_session="2026-07-17", previous_cash=None):
         payload = json.dumps(data)
+        # `summarize_bar_conflicts` is the one collaborator that still reaches
+        # the filesystem: with no explicit log it resolves
+        # `workspace_root(Path.cwd())/memory/bar-conflicts.jsonl`, so "entirely
+        # in memory" was true only while that file happened not to exist. The
+        # day one real (benign, rounding-class) disagreement got committed,
+        # thirty-four assertions here went red on data none of them are about
+        # (2026-09-01). Tests that ARE about bar conflicts stub this themselves —
+        # see tests/test_bar_conflict_classification.py.
+        monkeypatch.setattr(pi, "summarize_bar_conflicts", lambda *a, **k: {
+            "window_days": 30, "total": 0, "by_kind": {}, "by_ticker": {},
+            "last_seen_at": None, "log": "bar-conflicts.jsonl",
+        })
         monkeypatch.setattr(
             pi,
             "Path",

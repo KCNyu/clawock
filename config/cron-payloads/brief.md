@@ -20,6 +20,8 @@ clawock brief preflight
 **跑命令的两条硬约束（同属「工具报错=整轮记 error」那一族）**
 - 脚本路径**照抄 SKILL.md，不要猜**。猜错了不许全盘扫描：`find /` 会被转入后台会话，而**主动 `process kill` 掉它的 toolResult 带 isError**，整个 cron 会被记成 error —— 2026-08-21 的简报就是这样在两个渠道都投递成功之后仍然判红的。
 - 任何可能长跑的命令自己用 `timeout` 包住（如 `timeout 20 <cmd>`），让它自己结束，这样就永远不需要 kill。
+- **`clawock brief postflight` 是这条规则的例外：绝不给它包 `timeout`，也不要 kill 它。** 它是「先投递、后提交」两段（#765 的顺序），提交那一段要跑 log_decisions + 重建 dashboard + push，几十秒到几分钟，在机器吃紧时更久。杀在中间的结果是**投递成功了但简报没入库**：`memory/{date}-pre-open.md` 与 `plan.json` 留在工作区不进 git，公开页 404，决策台账整天不动（日更简报的 commit 是那个台账唯一的搬运工）。2026-09-01 就是这样丢的：`timeout 90` 退出码 124，而 `brief-sent-*.json` 已经写好，于是看起来完全成功。
+- **看到 `memory/.tmp/brief-sent-{date}.json` 只说明「投出去了」，不说明 postflight 跑完了。** 判完成看它自己那份 JSON 里的 `commit_ok`；`commit_ok: false` 就是没入库，要把 postflight 重跑到底，不要收尾。
 
 **Step 3 - Swarm 分析（你的创造性工作）**
 - ⚡ **板块全景**（必跑 tavily-search）：板块名读 `memory/peer-map.json` 各 ticker 的 `theme` 字段（持仓动态，不要写死任何 ticker），每个板块拉今日 Top 涨幅榜 + 你持仓在榜单的位置（领涨/落后/中位）+ 1 句归因（催化时点/早盘抛压/β 错配）

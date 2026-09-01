@@ -78,23 +78,29 @@ jobs:
       - name: Fold Actions-side failures into the daily summary
         # cron_health_check only sees host-side products; a scheduled workflow
         # that fails (or stops firing) on the Actions side was previously
-        # visible only in weekly-health's log-only rollup. --json is report-only
-        # and needs read access to run history.
+        # visible only in weekly-health's log-only rollup. The rollup is
+        # report-only and needs read access to run history.
         if: always()
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           # Report-only end to end: a gh hiccup here must cost a note in the
           # summary, not redden a health check that has its own verdict.
-          {
-            echo "## Scheduled workflow health (Actions side)"
-            python3 ops/ci/workflow_health.py --json 2>/dev/null | python3 -c '
-              import json, sys
-              r = json.load(sys.stdin)
-              print(f"needs attention: {r[\"needs_attention\"]} of {r[\"scheduled_workflows\"]} "
-                    f"(lookback {r[\"lookback_days\"]}d)")
-              for w in r["workflows"]:
-                  if w["status"] == "attention":
-                      print(f"- ⚠ {w[\"workflow\"]}: last={w[\"last_conclusion\"] or \"-\"}")
-            ' || echo "(Actions-side rollup unavailable this run — see weekly-health)"
-          } >> "$GITHUB_STEP_SUMMARY"
+          #
+          # This used to re-implement the rollup as an inline `python3 -c` whose
+          # script body was indented to match the YAML block — so Python read it
+          # as `IndentationError: unexpected indent` on **every** run since the
+          # step was added, and the `|| echo` fallback swallowed the error. The
+          # step is `if: always()`, so nothing ever went red over it and the
+          # rollup silently printed nothing for its whole life (found 2026-09-01
+          # while reading a genuinely red run). Same class as #1230: a branch
+          # that only runs when something is wrong is not exercised by a green
+          # run — and an inline heredoc cannot be the fix either, because a YAML
+          # block scalar cannot carry a terminator at column 0.
+          #
+          # `workflow_health.py` already writes the markdown table to
+          # $GITHUB_STEP_SUMMARY itself (and returns 0 by contract), so the
+          # inline copy was redundant as well as broken. Call the script.
+          python3 ops/ci/workflow_health.py \
+            || echo "Actions-side rollup unavailable this run — see weekly-health." \
+               >> "$GITHUB_STEP_SUMMARY"

@@ -17,6 +17,37 @@ ROOT = Path(__file__).resolve().parents[1]
 from clawock.evidence import build_evidence as ev
 
 
+def unsourced_figures(page, sources):
+    """Figures on the page that no source artifact can account for.
+
+    Two ways a figure is accounted for: it is printed verbatim, or some source
+    value *rounds to* it at the precision the page printed (`_pct` also scales
+    ratios by 100, and `\\d+\\.\\d+` never captures a sign, so both are allowed for).
+
+    The previous fallback asked whether the figure's first three digits appear
+    anywhere in the concatenated sources. That is a coincidence check, not a
+    provenance one — and on 2026-09-01 the coincidence ran out: `4.13` is read
+    from `mean_return: 0.041296`, which rounds UP so the digits genuinely
+    differ, and it had been passing only because some unrelated artifact
+    happened to contain "413". The daily rebuild moved those artifacts and a
+    correctly-read number was reported as typed. Asking the real question is
+    both stronger (it cannot be satisfied by an unrelated coincidence) and
+    correct on rounding.
+    """
+    source_numbers = [float(tok) for tok in re.findall(r"-?\d+\.?\d*", sources)]
+
+    def sourced(raw):
+        stem = raw.rstrip("0").rstrip(".")
+        if stem and (stem in sources or stem.lstrip("0") in sources):
+            return True
+        digits = len(raw.partition(".")[2])
+        target = float(raw)
+        return any(round(abs(value) * scale, digits) == target
+                   for value in source_numbers for scale in (1.0, 100.0))
+
+    return sorted({raw for raw in re.findall(r"\d+\.\d+", page) if not sourced(raw)})
+
+
 def test_every_number_on_the_page_comes_from_an_artifact():
     """A figure present on the page but absent from every source artifact was
     typed, not read."""
@@ -27,18 +58,24 @@ def test_every_number_on_the_page_comes_from_an_artifact():
                      ROOT / "assets" / "data" / "quant_signal_review.json",
                      ROOT / "assets" / "data" / "cross_sectional_factor.json"]
         if path.exists())
+    typed = unsourced_figures(page, sources)
+    assert not typed, f"figures that no artifact contains: {typed}"
 
-    typed = []
-    for raw in re.findall(r"\d+\.\d+", page):
-        # The page rounds what it reads, so match on the leading digits rather
-        # than demanding the full-precision string.
-        stem = raw.rstrip("0").rstrip(".")
-        if stem and stem not in sources and stem.lstrip("0") not in sources:
-            digits = stem.replace(".", "")
-            if digits[:3] not in sources.replace(".", ""):
-                typed.append(raw)
 
-    assert not typed, f"figures that no artifact contains: {sorted(set(typed))}"
+def test_a_rounded_reading_is_sourced_and_an_invented_one_is_not():
+    """The gate has to survive rounding without going blind to typing.
+
+    Without this pair the fix for the 2026-09-01 false positive could have been
+    "accept everything", and nothing in the suite would have noticed.
+    """
+    sources = '{"mean_return": 0.041296, "drawdown": -0.91649, "n": 4}'
+    # read, then rounded (up, and scaled by 100) — and the negative one whose
+    # sign the page regex cannot see
+    assert unsourced_figures("mean 4.13% vs -91.6%", sources) == []
+    # verbatim
+    assert unsourced_figures("raw 0.041296", sources) == []
+    # typed: no source value rounds to either of these
+    assert unsourced_figures("mean 4.19% and 7.77%", sources) == ["4.19", "7.77"]
 
 
 def test_an_inconclusive_result_never_renders_as_a_pass(tmp_path, monkeypatch):

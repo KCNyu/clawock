@@ -144,6 +144,16 @@ def test_the_report_names_them_and_still_publishes(tmp_path, monkeypatch):
     """
     from clawock.portfolio import integrity
 
+    # `check()` takes no log path: with none, `summarize_bar_conflicts` resolves
+    # `workspace_root(Path.cwd())/memory/bar-conflicts.jsonl`, so the "clean"
+    # assertion below was reading the **desk's real conflict log** and passed
+    # only while that file did not exist in the checkout. One real (benign,
+    # rounding-class) disagreement got committed on 2026-09-01 and it went red.
+    # Point the resolver at an empty scratch workspace via the documented env
+    # override — that still exercises the real fallback path, which stubbing
+    # the summariser would not.
+    monkeypatch.setenv('CLAWOCK_WORKSPACE', str(tmp_path))
+
     book = tmp_path / 'portfolio.json'
     book.write_text(json.dumps({'portfolios': {}}))
 

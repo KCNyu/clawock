@@ -8,7 +8,7 @@
 ```
 clawock intraday preflight --market {{market}}
 ```
-本流程所有脚本 exec 调用都显式设置 `timeout: 300`。
+本流程所有脚本 exec 调用都显式设置 `timeout: 300`，**`clawock intraday postflight` 除外 —— 它不设超时也不 kill**。postflight 是「先投递、后提交」两段（#765），提交那一段在机器吃紧时会超过 300s；杀在中间会留下「投递成功但没提交」，而投递标记会让每一条腿都看到成功，没有东西会重跑（2026-09-01 简报与港股开盘各丢一次提交就是这样）。判完成看它返回的 `commit_ok`，不看有没有收到卡片。
 若 exec 返回 `Command still running`，只用 `process` poll 对应 session；禁止新开 exec 用 sleep/ps/ls/grep 探测进度。preflight 内置休市闸；若输出 `status: market_closed`，立即结束，不生成报告、不调用 postflight/send/message。
 输出 `memory/.tmp/intraday-context-{{market}}-latest.json`，同一份 JSON 也打到 stdout。关键字段 `should_alert` + `alert_reasons` + `anomalies`，以及 `context_id` —— **Step 3 要原样回传**。
 
