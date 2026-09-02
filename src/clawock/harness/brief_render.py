@@ -34,8 +34,25 @@ VOICE_LABELS = {
     "conservative": "Conservative（保本 derisk）",
     "neutral": "Neutral（拍中线）",
 }
+# Verdict is the one categorical column in the Confidence table, and it was
+# plain text: ten rows of 看多/看空/中性 that had to be read line by line to see
+# which way the book leaned (#1272).  The cell is now a badge: a glyph and the
+# label inside a class the stylesheet tints.
+#
+# The glyph is not decoration, it is the portable half.  The brief is read on
+# three surfaces: GitHub Pages renders the markdown through kramdown and gets
+# the CSS class (`site/_layouts/default.html` maps `.verdict-*` onto the same
+# --green/--red tokens the dashboard uses, so the colour follows the reader's
+# light/dark preference); GitHub's own markdown sanitiser drops `class` and
+# `style` and keeps the inner text; a plain-text reader sees neither.  A glyph
+# inside the span survives all three, which a hardcoded `#10b981` — the issue's
+# suggestion — survives in exactly none of them, and would be wrong in one of
+# the two themes even where it did land.
 VERDICT_LABELS = {
-    "bullish": "看多", "bearish": "看空", "neutral": "中性", "mixed": "分歧",
+    "bullish": {"label": "看多", "glyph": "🟢"},
+    "bearish": {"label": "看空", "glyph": "🔴"},
+    "neutral": {"label": "中性", "glyph": "⚪"},
+    "mixed": {"label": "分歧", "glyph": "🟠"},
 }
 MISSING = "—"
 
@@ -499,6 +516,20 @@ def influencer_section(context):
     return "\n".join(out)
 
 
+def verdict_badge(value):
+    """A verdict cell: glyph + label, tinted by the site's own tokens.
+
+    An unknown verdict falls through to its own text rather than being dropped
+    or coloured — `packet.VERDICTS` is the enum's authority and rendering is the
+    wrong place to reject one, same rule as every other cell here.
+    """
+    spec = VERDICT_LABELS.get(value)
+    if spec is None:
+        return text(value)
+    return (f'<span class="verdict verdict-{value}">'
+            f'{spec["glyph"]} {spec["label"]}</span>')
+
+
 def confidence_section(judgment, plan):
     judgments = _judgments(judgment)
     rows = []
@@ -510,7 +541,7 @@ def confidence_section(judgment, plan):
             ticker,
             text(decision.get("action")),
             pct((confidence or 0) * 100, digits=0, sign=False),
-            VERDICT_LABELS.get(row.get("verdict"), text(row.get("verdict"))),
+            verdict_badge(row.get("verdict")),
             text(row.get("rationale")),
             text(row.get("falsifier")),
         ])
