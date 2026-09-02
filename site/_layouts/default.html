@@ -155,6 +155,15 @@
   }
   article table th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-dim); }
   article hr { border: 0; border-top: 1px solid var(--border); margin: 20px 0; }
+  /* Verdict badges in the brief's Confidence table (#1272). The glyph is
+     rendered by `brief_render.verdict_badge` and carries the signal on
+     surfaces that strip this class (GitHub's markdown sanitiser); here the
+     class adds the theme-correct tint, so the column reads at a glance. */
+  article .verdict { font-weight: 600; white-space: nowrap; }
+  article .verdict-bullish { color: var(--green); }
+  article .verdict-bearish { color: var(--red); }
+  article .verdict-neutral { color: var(--text-dim); }
+  article .verdict-mixed   { color: var(--accent-2); }
 
   /* Mobile: 宽表(如 7 列持仓表)横向滚动而非溢出撑破布局 */
   @media (max-width: 600px) {

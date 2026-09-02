@@ -7,8 +7,11 @@ must produce the same document, model text lands in slots rather than deciding
 them, and no string reaching a table can add a column to it.
 """
 import json
+from pathlib import Path
 
 import pytest
+
+ROOT = Path(__file__).resolve().parents[1]
 
 from clawock.harness import brief_render as render
 from clawock.harness.validation import check_md_table_column_consistency
@@ -256,3 +259,57 @@ def test_unreadable_inputs_report_instead_of_overwriting_the_report(tmp_path):
     assert body is None
     assert issues and "渲染跳过" in issues[0]
     assert existing.read_text(encoding="utf-8") == "previously published"
+
+
+def test_verdict_reads_as_a_badge_not_a_word():
+    """The Confidence table's one categorical column has to be scannable.
+
+    Before #1272 the cell was the bare word 看空, so which way the book leaned
+    could only be read row by row.  The badge carries the same word plus the
+    two things a scan needs: a glyph, and a class the stylesheet tints.
+    """
+    cell = render.verdict_badge("bearish")
+
+    assert cell == '<span class="verdict verdict-bearish">🔴 看空</span>'
+    assert "看空" in cell, "the word stays — the glyph adds to it, never replaces it"
+
+
+def test_every_contract_verdict_has_a_badge():
+    """`packet.VERDICTS` is the enum's authority; a value it admits and this
+    module has no badge for would render as a raw `mixed` in the table."""
+    from clawock.decision import packet
+
+    assert set(render.VERDICT_LABELS) == packet.VERDICTS
+    for verdict in packet.VERDICTS:
+        assert render.verdict_badge(verdict).startswith(
+            f'<span class="verdict verdict-{verdict}">')
+
+
+def test_an_unknown_verdict_still_prints_itself():
+    """Same rule as every other cell: rendering does not reject producer data.
+    An off-enum verdict is postflight's to refuse, not the renderer's to drop."""
+    assert render.verdict_badge("euphoric") == "euphoric"
+    assert render.verdict_badge(None) == render.MISSING
+
+
+def test_the_confidence_table_carries_the_badge():
+    body = render.render_brief(CONTEXT, _judgment(), PLAN, date="2026-08-31")
+    table = body[body.index("## Confidence"):body.index("## ▎Decision v2 校准")]
+
+    assert '<span class="verdict verdict-bearish">🔴 看空</span>' in table
+    assert "| 看空 |" not in table, "the plain-text cell is what #1272 replaced"
+
+
+def test_the_stylesheet_tints_every_badge_class():
+    """The class is only worth emitting if the page that renders the brief
+    defines it — `site/_layouts/default.html` is the layout for memory/*.md."""
+    from clawock.decision import packet
+
+    layout = (ROOT / "site" / "_layouts" / "default.html").read_text(
+        encoding="utf-8")
+
+    for verdict in packet.VERDICTS:
+        assert f"article .verdict-{verdict}" in layout, verdict
+    # Tokens, not literals: the layout redefines --green/--red under
+    # prefers-color-scheme, so a hardcoded hex would be wrong in one theme.
+    assert "var(--green)" in layout and "var(--red)" in layout
