@@ -27,35 +27,35 @@ description: 我们测了什么、什么没通过。全部数字从产物读取�
 
 ## 量化因子 edge
 
-**判定：⚪ 尚不可判** · 样本：留痕 60 天 · 来源：`assets/data/quant_signal_review.json`
+**判定：⚪ 尚不可判** · 样本：留痕 61 天 · 来源：`assets/data/quant_signal_review.json`
 
 | | |
 |---|---|
 | `rsi_overbought_fade` | 命中率 25.0% · CI95 [0.0%, 100.0%] · n=4（4 日 × 2 标的）· ⚪ 样本不足 MIN_N，方向结论不入决策（#934） |
 | `rsi_oversold_bounce` | 命中率 63.0% · CI95 [30.8%, 100.0%] · n=27（17 日 × 8 标的）· ⚪ CI 跨 50%，锁定 |
-| `stop_breach_continue` | 命中率 51.6% · CI95 [34.8%, 66.3%] · n=223（42 日 × 11 标的）· ⚪ CI 跨 50%，锁定 |
-| `trend_off_avoid` | 命中率 50.0% · CI95 [39.1%, 61.8%] · n=352（52 日 × 10 标的）· ⚪ CI 跨 50%，锁定 |
+| `stop_breach_continue` | 命中率 52.6% · CI95 [37.2%, 66.5%] · n=228（43 日 × 11 标的）· ⚪ CI 跨 50%，锁定 |
+| `trend_off_avoid` | 命中率 50.6% · CI95 [39.3%, 62.2%] · n=358（53 日 × 10 标的）· ⚪ CI 跨 50%，锁定 |
 | `trend_on_follow` | 命中率 42.9% · CI95 — · n=7（7 日 × 1 标的）· ⚪ 样本只覆盖单一簇，算不出聚类 CI —— 无法解读 |
-| `zscore_extreme_revert` | 命中率 84.6% · CI95 [25.0%, 100.0%] · n=13（7 日 × 6 标的）· ⚪ 样本不足 MIN_N，方向结论不入决策（#934） |
+| `zscore_extreme_revert` | 命中率 68.8% · CI95 [20.0%, 100.0%] · n=16（8 日 × 6 标的）· ⚪ 样本不足 MIN_N，方向结论不入决策（#934） |
 
 > 解锁规则是 `cluster_ci_entirely_above_or_below_50pct`：先过样本闸（MIN_N，#934），置信区间还必须整体落在 50% 一侧。目前 0/6 个因子达标。**CI 跨 50% 是「样本还不够」，不是「因子无效」**——两者的处置相同（不入决策），结论不同。
 
 ## 截面因子（预注册）
 
-**判定：⏳ 尚未到期** · 样本：预注册于 2026-07-26 · 来源：`assets/data/cross_sectional_factor.json`
+**判定：⚪ 尚不可判** · 样本：预注册于 2026-07-26 · 来源：`assets/data/cross_sectional_factor.json`
 
 | | |
 |---|---|
-| `prospective_dates` | 0 / 需要 24 · ⚪ 未达标 |
-| `prospective_tickers` | 0 / 需要 12 · ⚪ 未达标 |
-| `prospective_sectors` | 0 / 需要 3 · ⚪ 未达标 |
-| `price_coverage` | 0.0 / 需要 0.8 · ⚪ 未达标 |
-| `quality_coverage` | 0 / 需要 0.6 · ⚪ 未达标 |
-| `clustered_edge` | None / 需要 CI lower > 0.0 · ⚪ 未达标 |
+| `prospective_dates` | 6 / 需要 24 · ⚪ 未达标 |
+| `prospective_tickers` | 38 / 需要 12 · ✅ |
+| `prospective_sectors` | 8 / 需要 3 · ✅ |
+| `price_coverage` | 1.0 / 需要 0.8 · ✅ |
+| `quality_coverage` | 0.6153846153846154 / 需要 0.6 · ✅ |
+| `clustered_edge` | [-0.096809, 0.003042] / 需要 CI lower > 0.0 · ⚪ 未达标 |
 | `membership_history` | False / 需要 True · ⚪ 未达标 |
 | `corporate_actions` | Tencent qfq forward-adjusted daily bars / 需要 adjusted · ✅ |
 
-> **这不是一条没通过的检验，是还没到期。** 前瞻收益要 21 个交易日才算得出来，注册后的快照一条都还没满窗，所以计数必然是 0（最早可测 2026-08-24，按当前节奏最早 2026-09-24 才可能激活）。这一层只用 `registered_at` 之后记录的快照，回溯结果永远不能激活它——代价就是必须等，而等待和失败是两件事。
+> 这一层**只用 `registered_at` 之后记录的快照**做样本外验证，回溯结果永远不能激活它。目前仍未达标，因此不参与任何决策。「还没通过」被公开写出来，是为了让它日后通过时那句话有意义。
 
 ## 低频加仓交互（新 campaign）
 
@@ -77,4 +77,4 @@ description: 我们测了什么、什么没通过。全部数字从产物读取�
 
 ---
 
-<sub>由 `clawock evidence` 生成于 2026-09-01T04:03:16+08:00。数字全部读自产物；改动结论请改产物，不要改这一页。</sub>
+<sub>由 `clawock evidence` 生成于 2026-09-02T04:04:33+08:00。数字全部读自产物；改动结论请改产物，不要改这一页。</sub>

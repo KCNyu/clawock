@@ -1,6 +1,6 @@
 {
-  "as_of": "2026-09-01",
-  "days_logged": 60,
+  "as_of": "2026-09-02",
+  "days_logged": 61,
   "unlock_rule": "cluster_ci_entirely_above_or_below_50pct",
   "frozen_feed_excluded": 73,
   "closed_market_rows_excluded": 35,
@@ -16,19 +16,19 @@
       "reverse_edge_significant": false,
       "sample_sufficient": false,
       "min_n": 20,
-      "non_overlap_cap": 56,
+      "non_overlap_cap": 57,
       "decision_direction": null,
       "usable": false,
       "note": "样本 < 20，方向结论不入决策（#934 与文档承诺对齐）"
     },
     "trend_off_avoid": {
-      "n_events": 352,
-      "n_dates": 52,
+      "n_events": 358,
+      "n_dates": 53,
       "n_tickers": 10,
-      "hit_rate": 0.5,
+      "hit_rate": 0.506,
       "ci95": [
-        0.391,
-        0.618
+        0.393,
+        0.622
       ],
       "ci_method": "date_ticker_two_way_cluster_bootstrap",
       "edge_significant": false,
@@ -79,12 +79,12 @@
       "note": "样本 < 20，方向结论不入决策（#934 与文档承诺对齐）"
     },
     "zscore_extreme_revert": {
-      "n_events": 13,
-      "n_dates": 7,
+      "n_events": 16,
+      "n_dates": 8,
       "n_tickers": 6,
-      "hit_rate": 0.846,
+      "hit_rate": 0.688,
       "ci95": [
-        0.25,
+        0.2,
         1.0
       ],
       "ci_method": "date_ticker_two_way_cluster_bootstrap",
@@ -98,13 +98,13 @@
       "note": "样本 < 20，方向结论不入决策（#934 与文档承诺对齐）"
     },
     "stop_breach_continue": {
-      "n_events": 223,
-      "n_dates": 42,
+      "n_events": 228,
+      "n_dates": 43,
       "n_tickers": 11,
-      "hit_rate": 0.516,
+      "hit_rate": 0.526,
       "ci95": [
-        0.348,
-        0.663
+        0.372,
+        0.665
       ],
       "ci_method": "date_ticker_two_way_cluster_bootstrap",
       "edge_significant": false,
@@ -117,6 +117,6 @@
       "note": "聚类 CI 跨 50%，方向结论不入决策"
     }
   },
-  "summary": "没有因子通过聚类 CI 50% 闸（60 天留痕）——结论未解锁",
+  "summary": "没有因子通过聚类 CI 50% 闸（61 天留痕）——结论未解锁",
   "discipline": "自迭代规则：公开 n_events/n_dates/n_tickers；date×ticker 双向聚类 CI 跨 50% 不入决策；只有反向 CI 整体低于 50% 才允许反向解读。driven_by=technical 的整体战绩以 dashboard 的实时 decision_metrics.by_driver.technical 为准，不使用固定百分比。"
 }

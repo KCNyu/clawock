@@ -1,30 +1,30 @@
 {
-  "generated_at": "2026-09-01T00:13:40.300848+00:00",
-  "as_of": "2026-08-31",
+  "generated_at": "2026-09-02T00:00:52.500337+00:00",
+  "as_of": "2026-09-01",
   "index": "HSTECH",
   "source": "tencent",
-  "bars": 1391,
-  "close": 4619.87,
+  "bars": 1392,
+  "close": 4550.88,
   "ma_window": 200,
-  "ma": 5114.09,
-  "dist_ma_pct": -9.7,
+  "ma": 5107.12,
+  "dist_ma_pct": -10.9,
   "vol_window": 20,
-  "vol_annualized": 0.2178,
+  "vol_annualized": 0.2213,
   "vol_cap": 0.5,
   "trend_on": false,
   "vol_ok": true,
   "tier": "amber",
   "lev_cap_mult": 0.5,
   "label": "趋势OFF：杠杆敞口上限砍半",
-  "rationale": "HSTECH 4620 低于 200日线 5114 (-9.7%)；20日波动 22% < 50% 上限。→ HK 杠杆ETF上限 ×0.5（amber）",
+  "rationale": "HSTECH 4551 低于 200日线 5107 (-10.9%)；20日波动 22% < 50% 上限。→ HK 杠杆ETF上限 ×0.5（amber）",
   "hk": {
     "tier": "amber",
     "lev_cap_mult": 0.5,
     "label": "趋势OFF：杠杆敞口上限砍半",
-    "close": 4619.87,
-    "ma": 5114.09,
-    "dist_ma_pct": -9.7,
-    "vol_annualized": 0.2178,
+    "close": 4550.88,
+    "ma": 5107.12,
+    "dist_ma_pct": -10.9,
+    "vol_annualized": 0.2213,
     "trend_on": false,
     "vol_ok": true
   },
@@ -33,30 +33,40 @@
       {
         "etf": "RKLX",
         "underlying": "RKLB",
-        "state": "unknown",
-        "note": "insufficient history (0 bars)"
+        "close": 62.54,
+        "ma": 79.19,
+        "ma_window": 200,
+        "dist_ma_pct": -21.0,
+        "vol_annualized": 0.5331,
+        "vol_n_returns": 20,
+        "vol_hot_cap": 0.7,
+        "trend_on": false,
+        "vol_hot": false,
+        "state": "watch",
+        "regime_basis": "ma_200_and_20d_realized_vol"
       },
       {
         "etf": "SPCH",
         "underlying": "SPCX",
-        "state": "unknown",
-        "note": "insufficient history (0 bars)"
+        "close": 142.23,
+        "ma": 141.58,
+        "ma_window": 5,
+        "dist_ma_pct": 0.5,
+        "vol_annualized": null,
+        "trend_on": true,
+        "state": "ok",
+        "regime_basis": "short_ma_5",
+        "note": "SPCX 新上市仅 56 bars，不足 200DMA → 用 5日均线做右侧确认（非完整 regime）。趋势确认(>短均)→可持杠杆"
       }
     ],
-    "tier": "green",
-    "label": "美股各2x标的趋势ON",
+    "tier": "amber",
+    "label": "1 只趋势off(波动未过热) → 观察，暂不强砍",
     "vol_hot_cap": 0.7,
     "cut_count": 0,
-    "watch_count": 0
+    "watch_count": 1
   },
   "regime_history": {
     "hk": {
-      "2026-01-20": {
-        "trend_on": true,
-        "dist_ma_pct": 2.0,
-        "mom_pct": -2.4,
-        "regime3": "chop"
-      },
       "2026-01-21": {
         "trend_on": true,
         "dist_ma_pct": 3.1,
@@ -949,6 +959,12 @@
         "trend_on": false,
         "dist_ma_pct": -9.7,
         "mom_pct": -3.4,
+        "regime3": "bear"
+      },
+      "2026-09-01": {
+        "trend_on": false,
+        "dist_ma_pct": -10.9,
+        "mom_pct": -4.0,
         "regime3": "bear"
       }
     },
