@@ -12,6 +12,7 @@ Two directions matter equally here:
 """
 from __future__ import annotations
 
+import ast
 import json
 import re
 from pathlib import Path
@@ -96,20 +97,115 @@ def test_real_committed_artifacts_pass_their_own_anchors():
                               min_chars=300)
 
 
-def test_call_sites_validate_before_they_write():
+# ── call-site coverage (#1273) ───────────────────────────────────────────────
+#
+# The gate lives at the call sites, not inside `llm.chat()` (see
+# output_validate's docstring: chat() is transport and does not know what its
+# caller asked the model for). That placement buys enforcement per call site
+# and costs the one thing a gate inside chat() would have given for free —
+# **coverage**. A fifth call site added next month gets no gate and nothing
+# fails; today's three-module string-index check could not have noticed,
+# because it only looked at the modules it already knew about.
+#
+# So the check is inverted here: enumerate every `chat()` call in the tree by
+# AST, and assert each one is a call site this table knows is gated. Adding a
+# call site now fails this test until it is either gated or listed.
+SOURCE_ROOTS = ('src/clawock', 'ops')
+GATED_CALL_SITES = {
+    ('src/clawock/automation/brief_fallback.py', 'main'): 'validate_sections',
+    ('src/clawock/automation/weekly_review.py', 'main'): 'validate_sections',
+    ('src/clawock/automation/news_digest.py', 'main'): 'validate_sections',
+    ('src/clawock/automation/influencer.py', 'llm_filter'): 'coerce_scored_items',
+}
+# Anything that puts the model's words somewhere another job will read them.
+WRITE_CALLS = {'write_text', 'write_bytes', '_write_artifact', 'dump', 'dumps'}
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def _called_names(node):
+    """Every function name called anywhere under `node`, with its line."""
+    for child in ast.walk(node):
+        if not isinstance(child, ast.Call):
+            continue
+        func = child.func
+        if isinstance(func, ast.Name):
+            yield func.id, child.lineno
+        elif isinstance(func, ast.Attribute):
+            yield func.attr, child.lineno
+
+
+def _functions(tree):
+    """Top-level and nested function definitions, outermost first."""
+    for node in ast.walk(tree):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            yield node
+
+
+def _chat_call_sites():
+    """`{(relative path, enclosing function): [line, ...]}` for every chat()."""
+    sites = {}
+    for root in SOURCE_ROOTS:
+        for path in sorted((ROOT / root).rglob('*.py')):
+            relative = path.relative_to(ROOT).as_posix()
+            tree = ast.parse(path.read_text(encoding='utf-8'))
+            for function in _functions(tree):
+                lines = [line for name, line in _called_names(function)
+                         if name == 'chat']
+                if lines:
+                    sites.setdefault((relative, function.name), []).extend(lines)
+    return sites
+
+
+def test_every_llm_call_site_is_one_the_gate_covers():
+    """A new `chat()` caller must not reach an artifact ungated.
+
+    This is the coverage half of #1265: the gate is per call site, so the only
+    thing that can keep it complete is a check that counts the call sites.
+    """
+    found = _chat_call_sites()
+
+    assert set(found) == set(GATED_CALL_SITES), (
+        'ungated chat() call site(s): '
+        f'{sorted(set(found) - set(GATED_CALL_SITES))}; '
+        'gate the output through clawock.automation.output_validate and list '
+        'it in GATED_CALL_SITES (or, if it is gone, drop it from the table)'
+    )
+    # `chat()` is imported from exactly one module, so the AST name cannot be
+    # some other project's chat().
+    for relative, _ in found:
+        source = (ROOT / relative).read_text(encoding='utf-8')
+        assert 'from clawock.automation.llm import chat' in source, relative
+
+
+@pytest.mark.parametrize('site', sorted(GATED_CALL_SITES))
+def test_the_call_site_validates_between_the_reply_and_the_write(site):
     """The gate is worthless if it runs after the artifact is on disk (the
-    2026-07-16 lesson that put plan validation ahead of the write)."""
-    for module, write_marker in (
-        (brief_fallback, "Path(f'memory/{today}-pre-open.md').write_text"),
-        (weekly_review, 'path.write_text'),
-        (news_digest, '_write_artifact(tickers, raw, source_status, digest='),
-    ):
-        source = Path(module.__file__).read_text()
-        gate = source.index('validate_sections(')
-        # first write that follows the chat() call, not an earlier fail-closed one
-        after_chat = source.index('= chat(')
-        write = source.index(write_marker, after_chat)
-        assert gate < write, f'{module.__name__} writes before it validates'
+    2026-07-16 lesson that put plan validation ahead of the write).
+
+    Line order inside the calling function is the assertion, which is why this
+    reads the AST rather than `str.index`: the old string search scanned the
+    whole module, so a gate call in an unrelated function would have satisfied
+    it, and it could say nothing at all about influencer (whose gate guards a
+    return value, not a write).
+    """
+    relative, function_name = site
+    gate = GATED_CALL_SITES[site]
+    tree = ast.parse((ROOT / relative).read_text(encoding='utf-8'))
+    function = next(f for f in _functions(tree) if f.name == function_name)
+    calls = list(_called_names(function))
+
+    chat_line = min(line for name, line in calls if name == 'chat')
+    gate_lines = [line for name, line in calls if name == gate]
+    assert gate_lines, f'{relative}:{function_name} never calls {gate}()'
+    assert min(gate_lines) > chat_line, (
+        f'{relative}:{function_name} validates before it has a reply')
+
+    writes = [line for name, line in calls
+              if name in WRITE_CALLS and line > chat_line]
+    if writes:
+        assert min(gate_lines) < min(writes), (
+            f'{relative}:{function_name} writes before it validates')
 
 
 # ── influencer structured gate ───────────────────────────────────────────────
