@@ -771,7 +771,7 @@ def test_brief_fire_is_skipped_when_both_covered_markets_are_closed(
     status = dashboard.compute_build_status(portfolio, data_dir, at=at)
     risk = next(row for row in status["files"] if row["name"] == "risk.json")
 
-    assert risk["latest_due_at"] == "2026-04-03T00:00:00+00:00"
+    assert risk["latest_due_at"] == "2026-04-03T00:03:00+00:00"
     assert risk["stale"] is False
 
 
@@ -786,7 +786,7 @@ def test_brief_artifact_turns_stale_after_next_required_fire(monkeypatch, tmp_pa
     status = dashboard.compute_build_status(portfolio, data_dir, at=at)
     risk = next(row for row in status["files"] if row["name"] == "risk.json")
 
-    assert risk["latest_due_at"] == "2026-04-07T00:00:00+00:00"
+    assert risk["latest_due_at"] == "2026-04-07T00:03:00+00:00"
     assert risk["stale"] is True
 
 
@@ -961,13 +961,13 @@ def test_brief_freshness_registry_matches_host_cron_contract():
 
     assert job["schedule"] == {
         "kind": "cron",
-        "expr": "0 8 * * 1-5",
+        "expr": "3 8 * * 1-5",
         "tz": "Asia/Shanghai",
     }
     assert dashboard._BRIEF_FIRE == {
         "weekdays": (0, 1, 2, 3, 4),
         "hour": 8,
-        "minute": 0,
+        "minute": 3,
         "grace_hours": 6,
         "timezone": "Asia/Shanghai",
         "required_when": "any_market_open",

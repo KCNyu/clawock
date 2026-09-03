@@ -58,13 +58,13 @@ def test_us_schedules_follow_new_york_dst_without_moving_dreaming_window():
 
     assert cron_contract.us_season(july) == 'daylight'
     assert cron_contract.us_season(january) == 'standard'
-    assert cron_contract.effective_schedule(jobs['美股开盘报告'], july)['expr'] == '30 21 * * 1-5'
-    assert cron_contract.effective_schedule(jobs['美股开盘报告'], january)['expr'] == '30 22 * * 1-5'
-    assert cron_contract.effective_schedule(jobs['美股收盘报告'], july)['expr'] == '0 4 * * 2-6'
-    assert cron_contract.effective_schedule(jobs['美股收盘报告'], january)['expr'] == '0 5 * * 2-6'
-    assert cron_contract.effective_schedule(jobs['美股盘中盯盘'], january)['expr'] == '*/30 23 * * 1-5'
+    assert cron_contract.effective_schedule(jobs['美股开盘报告'], july)['expr'] == '33 21 * * 1-5'
+    assert cron_contract.effective_schedule(jobs['美股开盘报告'], january)['expr'] == '33 22 * * 1-5'
+    assert cron_contract.effective_schedule(jobs['美股收盘报告'], july)['expr'] == '3 4 * * 2-6'
+    assert cron_contract.effective_schedule(jobs['美股收盘报告'], january)['expr'] == '3 5 * * 2-6'
+    assert cron_contract.effective_schedule(jobs['美股盘中盯盘'], january)['expr'] == '3,33 23 * * 1-5'
     # 03:00 remains reserved for Memory Dreaming even in standard time.
-    assert jobs['美股盘中盯盘-overnight']['schedule']['expr'] == '*/30 0-2 * * 2-6'
+    assert jobs['美股盘中盯盘-overnight']['schedule']['expr'] == '3,33 0-2 * * 2-6'
 
 
 def test_us_season_changes_at_real_2026_transition_instants():
@@ -761,3 +761,43 @@ def test_only_the_brief_profile_pins_a_timeout_for_now():
     pinned = [name for name, profile in data['payload_profiles'].items()
               if profile.get('timeout_seconds') is not None]
     assert pinned == ['brief']
+
+
+def test_no_llm_slot_is_scheduled_on_the_hour_or_half_hour():
+    """A slot that fires at :00 or :30 loses ~40% of its first attempts.
+
+    Measured on this host over 2026-08-30..09-03, 1538 MiniMax requests, by
+    the wall-clock minute the request was issued:
+
+        :00 / :01 / :30 / :31   318 requests   125 header timeouts  39.3%
+        every other minute     1220 requests     0 header timeouts   0.0%
+
+    Controlling for prefix-cache warmth by counting only the *opening* request
+    of a run leaves the same split (40.4% vs 1.7%). MiniMax holds an overloaded
+    request 100-143s before it returns a 429 (see the calibration notes in
+    patch-minimax-response-header-timeout.sh), so our 60s header deadline turns
+    the top-of-the-hour crowd into a two-minute dead run; the watchdog then
+    re-dispatches off the boundary and succeeds. 港股收盘报告 moved to :10 on
+    2026-08-25 for an unrelated reason (the HKEX CAS window) and has not timed
+    out since — the natural experiment that this gate generalises.
+
+    Memory Dreaming is the documented exception: 03:00 is outside the busy
+    window and it has never timed out (17/17 green over the same span).
+    """
+    data = contract()
+    off_peak = {'Memory Dreaming Promotion'}
+    on_boundary = []
+    for job in data['jobs']:
+        if job['name'] in off_peak:
+            continue
+        schedules = [job['schedule']] if job.get('schedule') else []
+        schedules += list((job.get('seasonal_schedules') or {}).values())
+        for schedule in schedules:
+            minute = schedule['expr'].split(' ', 1)[0]
+            if minute.startswith('*/') or any(
+                    part.isdigit() and int(part) % 30 == 0
+                    for part in minute.split(',')):
+                on_boundary.append(f"{job['name']}: {schedule['expr']}")
+    assert not on_boundary, (
+        'these slots fire at :00/:30, where ~40% of first attempts are lost: '
+        + '; '.join(on_boundary))

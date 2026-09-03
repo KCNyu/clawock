@@ -2981,7 +2981,7 @@ _BRIEF_FRESHNESS_ARTIFACTS = frozenset({
 # GitHub scans, the brief intentionally skips a fire when both covered markets
 # are closed, so its descriptor mirrors that producer gate.
 _BRIEF_FIRE = _scheduled_fire(
-    _MON_FRI, 8, 0, 6, tz='Asia/Shanghai', required_when='any_market_open'
+    _MON_FRI, 8, 3, 6, tz='Asia/Shanghai', required_when='any_market_open'
 )
 
 

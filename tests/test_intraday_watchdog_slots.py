@@ -34,7 +34,7 @@ def test_hk_watchdog_runs_after_the_observed_long_turn_window():
 
     assert job['watchdog']['schedule'] == {
         'kind': 'cron',
-        'expr': '10,40 10-11,14-15 * * 1-5',
+        'expr': '13,43 10-11,14-15 * * 1-5',
         'tz': 'Asia/Hong_Kong',
     }
 

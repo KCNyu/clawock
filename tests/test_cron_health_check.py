@@ -260,19 +260,19 @@ def _overnight_slots():
     """The six Saturday-2026-08-22 overnight slots, all completed."""
     return [
         ("美股盘中盯盘-overnight", f"2026-08-22T0{h}:{m:02d}:00+08:00", "completed")
-        for h, m in ((0, 0), (0, 30), (1, 0), (1, 30), (2, 0), (2, 30))
+        for h, m in ((0, 3), (0, 33), (1, 3), (1, 33), (2, 3), (2, 33))
     ]
 
 
 def test_saturday_run_verifies_the_friday_session_slots(monkeypatch, capsys):
     """Sat 2026-08-22 17:17 HKT after a normal Friday session: the six overnight
-    slots are heartbeat-verified and the close report's 04:00 commit is counted —
+    slots are heartbeat-verified and the close report's 04:03 commit is counted —
     not waved off as 'holiday' by a calendar that only knows Saturday is closed."""
     rows = _run_health_at(
         monkeypatch, capsys,
         datetime(2026, 8, 22, 9, 17, tzinfo=timezone.utc),
         heartbeats=_overnight_slots(),
-        commit_stamps=[("2026-08-22T04:06:00+08:00", "dashboard: 美股收盘报告 (us close)")],
+        commit_stamps=[("2026-08-22T04:09:00+08:00", "dashboard: 美股收盘报告 (us close)")],
     )
     overnight = rows["美股盘中盯盘-overnight"]
     assert overnight["status"] == "ok-heartbeat", overnight
@@ -303,7 +303,7 @@ def test_a_monday_holiday_does_not_red_the_tuesday_close_report(monkeypatch, cap
 
 
 # ── #996: the US EVENING jobs are verified by the NEXT day's run ────────────
-# 美股开盘报告 (21:30/22:30 HKT) and the 美股盘中盯盘 evening half-hour slots fire
+# 美股开盘报告 (21:33/22:33 HKT) and the 美股盘中盯盘 evening half-hour slots fire
 # after every cron-health window of their own calendar day (17:17 HKT, worst
 # observed drift ≈20:35), and both evidence sources read only TODAY — so their
 # products landed in the ledgers and were verified by no one, the weekday-wide
@@ -313,7 +313,7 @@ def _evening_slots():
     """Monday 2026-08-24's four US evening intraday slots, all completed."""
     return [
         ("美股盘中盯盘", f"2026-08-24T2{h}:{m:02d}:00+08:00", "completed")
-        for h, m in ((2, 0), (2, 30), (3, 0), (3, 30))
+        for h, m in ((2, 3), (2, 33), (3, 3), (3, 33))
     ]
 
 
@@ -325,7 +325,7 @@ def test_the_next_days_run_verifies_the_previous_evening_products(monkeypatch, c
         datetime(2026, 8, 25, 9, 17, tzinfo=timezone.utc),
         heartbeats=_evening_slots(),
         commit_stamps=[("2026-08-24T21:36:00+08:00",
-                        "dashboard: 美股开盘报告 (us open 21:30 HKT)")],
+                        "dashboard: 美股开盘报告 (us open 21:33 HKT)")],
     )
     open_row = rows["美股开盘报告"]
     assert open_row["status"] == "ok", open_row

@@ -27,17 +27,17 @@ keeps an exclusive window; standard time therefore has two fewer US intraday slo
 
 | Job | OpenClaw schedule | Mode | Harness | System watchdog |
 |---|---|---|---|---|
-| 美股盘中盯盘-overnight | `*/30 0-2 * * 2-6` · Asia/Shanghai | Mode 7 | `intraday --us` | `10,40 0-2 * * 2-6` · Asia/Hong_Kong |
+| 美股盘中盯盘-overnight | `3,33 0-2 * * 2-6` · Asia/Shanghai | Mode 7 | `intraday --us` | `13,43 0-2 * * 2-6` · Asia/Hong_Kong |
 | Memory Dreaming Promotion | `0 3 * * *` · host HKT | memory-core | `—` | — |
-| 美股收盘报告 | EDT `0 4 * * 2-6`<br>EST `0 5 * * 2-6` | Mode 6 | `report --us close` | EDT `20 4 * * 2-6`<br>EST `20 5 * * 2-6` |
-| 盘前深度简报 | `0 8 * * 1-5` · Asia/Shanghai | daily-deep-brief | `brief_*` | `30 8 * * 1-5` · Asia/Hong_Kong<br>`5 9 * * 1-5` · Asia/Hong_Kong · miss-detector: brief never written (08:30 is inside the landing window) |
-| 港股开盘报告 | `30 9 * * 1-5` · Asia/Shanghai | Mode 6 | `report --hk open` | `45 9 * * 1-5` · Asia/Hong_Kong |
-| 盘中盯盘 | `*/30 10-11,14-15 * * 1-5` · Asia/Shanghai | Mode 7 | `intraday --hk` | `10,40 10-11,14-15 * * 1-5` · Asia/Hong_Kong |
-| 港股午盘报告 | `0 12 * * 1-5` · Asia/Shanghai | Mode 6 | `report --hk mid` | `12 12 * * 1-5` · Asia/Hong_Kong |
-| 港股午后快报 | `30 13 * * 1-5` · Asia/Shanghai | Mode 6 | `report --hk pm` | `42 13 * * 1-5` · Asia/Hong_Kong |
+| 美股收盘报告 | EDT `3 4 * * 2-6`<br>EST `3 5 * * 2-6` | Mode 6 | `report --us close` | EDT `23 4 * * 2-6`<br>EST `23 5 * * 2-6` |
+| 盘前深度简报 | `3 8 * * 1-5` · Asia/Shanghai | daily-deep-brief | `brief_*` | `33 8 * * 1-5` · Asia/Hong_Kong<br>`5 9 * * 1-5` · Asia/Hong_Kong · miss-detector: brief never written (08:33 is inside the landing window) |
+| 港股开盘报告 | `33 9 * * 1-5` · Asia/Shanghai | Mode 6 | `report --hk open` | `48 9 * * 1-5` · Asia/Hong_Kong |
+| 盘中盯盘 | `3,33 10-11,14-15 * * 1-5` · Asia/Shanghai | Mode 7 | `intraday --hk` | `13,43 10-11,14-15 * * 1-5` · Asia/Hong_Kong |
+| 港股午盘报告 | `3 12 * * 1-5` · Asia/Shanghai | Mode 6 | `report --hk mid` | `15 12 * * 1-5` · Asia/Hong_Kong |
+| 港股午后快报 | `33 13 * * 1-5` · Asia/Shanghai | Mode 6 | `report --hk pm` | `45 13 * * 1-5` · Asia/Hong_Kong |
 | 港股收盘报告 | `10 16 * * 1-5` · Asia/Shanghai | Mode 6 | `report --hk close` | `20 16 * * 1-5` · Asia/Hong_Kong |
-| 美股开盘报告 | EDT `30 21 * * 1-5`<br>EST `30 22 * * 1-5` | Mode 6 | `report --us open` | EDT `45 21 * * 1-5`<br>EST `45 22 * * 1-5` |
-| 美股盘中盯盘 | EDT `*/30 22-23 * * 1-5`<br>EST `*/30 23 * * 1-5` | Mode 7 | `intraday --us` | EDT `10,40 22-23 * * 1-5`<br>EST `10,40 23 * * 1-5` |
+| 美股开盘报告 | EDT `33 21 * * 1-5`<br>EST `33 22 * * 1-5` | Mode 6 | `report --us open` | EDT `48 21 * * 1-5`<br>EST `48 22 * * 1-5` |
+| 美股盘中盯盘 | EDT `3,33 22-23 * * 1-5`<br>EST `3,33 23 * * 1-5` | Mode 7 | `intraday --us` | EDT `13,43 22-23 * * 1-5`<br>EST `13,43 23 * * 1-5` |
 
 ## Operational invariants / 运维不变量
 
