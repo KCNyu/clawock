@@ -56,6 +56,17 @@ TERMINAL_HEARTBEAT_STATES = {
 }
 HEARTBEAT_GRACE_MINUTES = 25
 
+# How far a heartbeat event may sit from an expected slot and still count as
+# that slot's evidence. `cron_heartbeat.slot_for()` buckets every event onto
+# the half-hour grid (:00/:30) regardless of the minute the job actually fired
+# on; the contract's `expr` is the fire minute, not the bucket (#1278 moved
+# these three jobs to 3,33 specifically to dodge MiniMax's on-the-hour
+# congestion). An exact HH:MM join between the two therefore never matches —
+# same failure `clawock.publish.cron_schedule._records_by_slot` already snaps
+# around for the dashboard timetable panel; this constant and the matching
+# below mirror that fix (its SNAP_MINUTES) for the health check's own join.
+HEARTBEAT_SNAP_MINUTES = 15
+
 # Indexed directly (not .get) so a state added to check_dashboard_build without
 # an icon fails here loudly instead of printing a blank cell. Module-level so the
 # tests can index the real map rather than restate it.
@@ -324,14 +335,23 @@ def heartbeat_coverage(job_name, slots, tz_name, now, ledger, day=None):
         started = datetime.min.replace(tzinfo=timezone.utc)
     tz = ZoneInfo(tz_name)
     local_day = day or now.astimezone(tz).date()
+    grid = []
     monitored = []
     for slot in slots:
         hour, minute = map(int, slot.split(':'))
         slot_dt = datetime.combine(local_day, datetime.min.time(), tzinfo=tz).replace(
             hour=hour, minute=minute
         )
+        grid.append((slot, slot_dt))
         if slot_dt.astimezone(timezone.utc) >= started.astimezone(timezone.utc):
             monitored.append(slot)
+    # Snap each event to its nearest expected slot rather than an exact HH:MM
+    # join — see HEARTBEAT_SNAP_MINUTES. Tolerance is capped at half the gap
+    # between adjacent slots so two slots can never both claim one event.
+    tolerance = timedelta(minutes=HEARTBEAT_SNAP_MINUTES)
+    if len(grid) > 1:
+        gaps = [later[1] - earlier[1] for earlier, later in zip(grid, grid[1:])]
+        tolerance = min(tolerance, min(gaps) / 2)
     events = {}
     for event in ledger.get('events', []):
         if event.get('job') != job_name:
@@ -343,8 +363,11 @@ def heartbeat_coverage(job_name, slots, tz_name, now, ledger, day=None):
             event_local = event_dt.astimezone(tz)
         except Exception:
             continue
-        if event_local.date() == local_day:
-            events[event_local.strftime('%H:%M')] = event
+        if event_local.date() != local_day:
+            continue
+        nearest = min(grid, key=lambda cell: abs(cell[1] - event_local), default=None)
+        if nearest and abs(nearest[1] - event_local) <= tolerance:
+            events.setdefault(nearest[0], event)
     healthy, failed, missing, pending = [], [], [], []
     for slot in monitored:
         hour, minute = map(int, slot.split(':'))

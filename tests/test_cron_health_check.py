@@ -148,6 +148,70 @@ def test_backstop_covered_slots_ignores_a_stale_recovered_record_from_another_da
     assert covered == set()
 
 
+# ── #1278 follow-up: a schedule move must not paint every heartbeat slot red ──
+# `cron_heartbeat.slot_for()` buckets every event onto the half-hour grid
+# (:00/:30), independent of the minute the job actually fired on. #1278 moved
+# 盘中盯盘/美股盘中盯盘/美股盘中盯盘-overnight's `expr` to `3,33` specifically to
+# dodge MiniMax's on-the-hour congestion, so the slots this check expects are
+# now minutes off that grid. An exact HH:MM join (the pre-fix behaviour) would
+# never match a single event, painting the whole day red for a job that ran
+# fine — the same failure `cron_schedule._records_by_slot` was already fixed
+# for on the dashboard timetable panel; these tests hold the health check to
+# the same standard.
+def _heartbeat_ledger(events):
+    return {
+        "schema_version": 1,
+        "monitoring_started_at": "2026-09-01T00:00:00+08:00",
+        "events": events,
+    }
+
+
+def _heartbeat_event(job, slot_iso, state="completed"):
+    return {"job": job, "slot": slot_iso, "state": state}
+
+
+def test_heartbeat_events_snap_to_the_grid_so_a_schedule_move_is_not_all_missed():
+    from datetime import date
+    ledger = _heartbeat_ledger([
+        _heartbeat_event("美股盘中盯盘-overnight", "2026-09-04T00:00:00+08:00"),
+        _heartbeat_event("美股盘中盯盘-overnight", "2026-09-04T00:30:00+08:00"),
+    ])
+    now = datetime(2026, 9, 4, 1, 0, tzinfo=timezone.utc)  # 09:00 HKT
+    coverage = cron_health_check.heartbeat_coverage(
+        "美股盘中盯盘-overnight", ["00:03", "00:33"], "Asia/Hong_Kong", now, ledger,
+        day=date(2026, 9, 4))
+    assert coverage["missing"] == []
+    assert sorted(coverage["healthy"]) == ["00:03", "00:33"]
+
+
+def test_heartbeat_snapping_never_lets_one_event_answer_for_two_slots():
+    from datetime import date
+    # A single event exactly between two expected slots must not satisfy both.
+    ledger = _heartbeat_ledger([
+        _heartbeat_event("盘中盯盘", "2026-09-04T10:15:00+08:00"),
+    ])
+    now = datetime(2026, 9, 4, 3, 0, tzinfo=timezone.utc)  # 11:00 HKT
+    coverage = cron_health_check.heartbeat_coverage(
+        "盘中盯盘", ["10:03", "10:33"], "Asia/Hong_Kong", now, ledger,
+        day=date(2026, 9, 4))
+    assert len(coverage["healthy"]) == 1
+    assert len(coverage["missing"]) == 1
+
+
+def test_a_heartbeat_slot_with_no_event_anywhere_near_it_still_reports_missing():
+    from datetime import date
+    ledger = _heartbeat_ledger([
+        _heartbeat_event("盘中盯盘", "2026-09-04T10:00:00+08:00"),
+        # 10:30 never ran — nothing within tolerance of it.
+    ])
+    now = datetime(2026, 9, 4, 3, 0, tzinfo=timezone.utc)  # 11:00 HKT
+    coverage = cron_health_check.heartbeat_coverage(
+        "盘中盯盘", ["10:03", "10:33"], "Asia/Hong_Kong", now, ledger,
+        day=date(2026, 9, 4))
+    assert coverage["healthy"] == ["10:03"]
+    assert coverage["missing"] == ["10:33"]
+
+
 def test_a_closed_weekend_is_silence_by_design():
     # 2026-08-09 12:00 HKT is a Sunday: no session to publish into, so an old
     # generation is correct and must not be reported as a stalled publisher.
