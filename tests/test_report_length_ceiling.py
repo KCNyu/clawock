@@ -37,7 +37,7 @@ def test_a_repeat_loop_still_fails_closed():
 
     def intraday_len(n):
         text = body + '填' * (n - len(body))
-        return [i for i in intraday_postflight.validate(text, {}) if '报告长度' in i]
+        return [i for i in intraday_postflight.validate(text, {}, text) if '报告长度' in i]
 
     assert intraday_len(hard) == [f'报告长度 {hard} 字 > {soft} 软上限 (warn)']
     assert intraday_len(hard + 1) == [f'报告长度 {hard + 1} 字 > {hard} 上限']
@@ -45,14 +45,14 @@ def test_a_repeat_loop_still_fails_closed():
         [f'报告长度 {hard + 1} 字 > {hard} 上限']) == 'fail'
 
     for market in ('hk', 'us'):
-        assert [i for i in postflight.validate('填' * (hard + 1), {'market': market})
+        assert [i for i in postflight.validate('填' * (hard + 1), {'market': market}, '填' * (hard + 1))
                 if '报告长度' in i] == [f'报告长度 {hard + 1} 字 > {hard} 上限']
 
 
 def test_a_normal_length_report_is_no_longer_flagged():
     # 2,900 chars is roughly what the reports ran at under the old 2,800 target;
     # nothing at that size may produce a length issue any more.
-    assert [i for i in postflight.validate('填' * 2_900, {'market': 'us'})
+    assert [i for i in postflight.validate('填' * 2_900, {'market': 'us'}, '填' * 2_900)
             if '报告长度' in i] == []
 
 

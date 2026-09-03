@@ -493,6 +493,6 @@ def test_mover_attribution_has_room_under_the_ceiling():
 
     worst_case_measured = 2_898
     assert report_postflight.CHAR_LIMITS["soft"] > worst_case_measured
-    assert [i for i in report_postflight.validate("填" * worst_case_measured,
-                                                  {"market": "us"})
+    body = "填" * worst_case_measured
+    assert [i for i in report_postflight.validate(body, {"market": "us"}, body)
             if "报告长度" in i] == []

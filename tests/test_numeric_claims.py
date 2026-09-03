@@ -145,8 +145,7 @@ def test_both_postflights_run_the_gate(module_name):
         "日内可能再伤 1.5-2 万 HK$。"
     )
     ctx = dict(CTX, needs_risk_section=False, should_alert=False, market="hk")
-    issues = module.validate(prose, ctx) if module_name == "intraday_postflight" \
-        else module.validate(prose, ctx, prose_only=True, model_text=prose)
+    issues = module.validate(prose, ctx, prose)
     assert any("不许心算" in issue for issue in issues), issues
 
 

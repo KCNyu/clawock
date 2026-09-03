@@ -193,7 +193,7 @@ def _report(args) -> int:
     prose = Path(args.prose).read_text() if args.prose else sys.stdin.read()
 
     body = assemble_message(context, prose)
-    issues = validate(body, context, prose_only=True, model_text=prose)
+    issues = validate(body, context, prose)
     verdict = categorize(issues)
 
     result = {

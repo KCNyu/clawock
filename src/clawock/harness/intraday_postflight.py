@@ -15,20 +15,21 @@ Empty or stale input is reported as `status: input_error` — a plumbing failure
 distinct from `fail` (the report itself is bad). It still exits non-zero: this is
 the delivery gate, and a false green is worse than a false red.
 
-Two input modes, selected by `--context-id`:
-  prose (canonical, with --context-id): the model writes ONLY the ▎我的看法 prose;
-      assemble_message() prepends the harness-owned data block at send time.
-  legacy (no --context-id): the model's text IS the whole message and the data
-      block is checked for a byte-exact copy. Kept so a cron payload that has not
-      been migrated yet still delivers.
+Input (the only shape, since #1279): `--context-id` + `--text-file`. The model
+writes ONLY the ▎我的看法 prose; assemble_message() prepends the harness-owned
+data block at send time, so the block never makes a round trip through the model.
+
+  The `legacy` shape — no --context-id, the model's text IS the whole message and
+  the data block is checked for a byte-exact copy afterwards — was retired in
+  #1279. Its stated removal condition (every cron payload passing --context-id)
+  had been met since the payload rewrite, so it was a branch that could no longer
+  run and therefore could not be trusted to work when reached.
 
 Validates:
   1. ▎我的看法 段必须存在 + 段内容 ≥ 60 字（防敷衍 1 句话）
   2. 总长度闸与 Mode 6 共用 clawock.harness.validation.REPORT_CHAR_LIMITS（防复读死循环，不是写作目标）
-  3. legacy 模式：必须以 raw_wechat_block 开头且表格逐字符复制
-     prose 模式：数据块由 harness 拼装，无往返可校验
-  4. 若 preflight should_alert=true：报告必须提到至少一个异动票或 alert_reason
-  5. 无敷衍 phrases
+  3. 若 preflight should_alert=true：报告必须提到至少一个异动票或 alert_reason
+  4. 无敷衍 phrases
 
 Note: Mode 7 does NOT commit portfolio.json. For every usable preflight context,
 including a slot whose prose is rejected, it rebuilds dashboard.json and commits
@@ -48,7 +49,6 @@ from clawock.harness.validation import (
     advisory_prefix,
     categorize_issues,
     check_numeric_claims,
-    check_raw_tables_verbatim,
     product_status,
     split_advisory,
     validate_forbidden_phrases,
@@ -196,28 +196,19 @@ def assemble_message(ctx, prose):
     return '\n\n'.join(p for p in parts if p)
 
 
-def validate(text, ctx, prose_only=False, model_text=None):
+def validate(text, ctx, model_text):
     """Validate the delivered check-in.
 
-    `text` is what gets sent. `model_text` is the part the MODEL wrote; in prose
-    mode that is the prose alone, in legacy mode it is the whole report.
-
-    The content rules — 我的看法 段, anomaly mention, forbidden phrases, numeric
-    claims — MUST run against model_text, never the assembled body. The prepended
-    block itself contains the anomaly tickers and section-looking tokens, so
-    checking the body would let prose that names none of the movers pass because
+    `text` is what gets sent; `model_text` is the part the MODEL wrote — the prose
+    alone. The content rules — 我的看法 段, anomaly mention, forbidden phrases,
+    numeric claims — MUST run against model_text, never the assembled body. The
+    prepended block itself contains the anomaly tickers and section-looking tokens,
+    so checking the body would let prose that names none of the movers pass because
     the table does. Only the length limit is a property of the assembled body.
     (Same split as report_postflight.validate — see its docstring.)
     """
     issues = []
-    checked = text if model_text is None else model_text
-
-    raw = ctx.get('raw_wechat_block', '').strip()
-    if raw and not prose_only:
-        first_line = raw.splitlines()[0]
-        if first_line not in text:
-            issues.append(f'报告未包含原始数据块首行 "{first_line[:40]}..." (verbatim 失败)')
-        issues.extend(check_raw_tables_verbatim(text, raw))
+    checked = model_text
 
     if REQUIRED_SECTION not in checked:
         issues.append(f'缺段标记 "{REQUIRED_SECTION}"')
@@ -355,11 +346,10 @@ def main(argv=None):
     parser.add_argument('--market', choices=['hk', 'us'], required=True)
     parser.add_argument('--text-file',
                         help='report text file (canonical path; stdin only for manual runs)')
-    parser.add_argument('--context-id',
-                        help='the context_id printed by intraday_preflight. Passing it '
-                             'selects prose mode: the file holds ONLY the ▎我的看法 prose '
-                             'and the harness prepends the data block. Omit for legacy '
-                             'whole-report input.')
+    parser.add_argument('--context-id', required=True,
+                        help='the context_id printed by intraday_preflight; must equal '
+                             'the context on disk. The file holds ONLY the ▎我的看法 '
+                             'prose and the harness prepends the data block.')
     args = parser.parse_args(argv)
 
     # Holiday/weekend gate: no send/publish on a closed market.
@@ -395,8 +385,6 @@ def main(argv=None):
     if in_err:
         return input_error(args.market, in_err)
 
-    prose_only = args.context_id is not None
-
     # ── Generation gate (prose mode only) ────────────────────────────────────
     # The model echoes the context_id it wrote against. A mismatch means the
     # context on disk was replaced after the prose was written — the agent ran
@@ -404,24 +392,22 @@ def main(argv=None):
     # prose would produce an internally contradictory check-in that LOOKS clean,
     # so refuse to assemble and fall through to the data-block-only path.
     stale_generation = (
-        prose_only and not receipt_only
-        and args.context_id != ctx.get('context_id')
+        not receipt_only and args.context_id != ctx.get('context_id')
     )
 
     # Keep the model's own text for the content rules; assemble the delivered
     # body separately, so the prepended block never satisfies a rule on the
     # model's behalf.
-    model_text = text if prose_only else None
+    model_text = text
     if receipt_only and not stale_generation:
         text = (ctx.get('raw_wechat_block') or '').strip()
-    elif prose_only and not stale_generation:
+    elif not stale_generation:
         text = assemble_message(ctx, text)
 
     issues = ([f'context_id 不匹配: 模型基于 {args.context_id}，当前 context 是 '
                f'{ctx.get("context_id")} — 散文与数据不同代，拒绝拼装']
               if stale_generation
-              else ([] if receipt_only else validate(
-                  text, ctx, prose_only=prose_only, model_text=model_text)))
+              else ([] if receipt_only else validate(text, ctx, model_text)))
     status = 'fail' if stale_generation else categorize(issues)
 
     # Step 2.5 sidecar liveness (warn-only, stderr — NOT in the WeChat report):
@@ -580,8 +566,7 @@ def main(argv=None):
     result = {
         'status':        status,
         'market':        args.market,
-        'mode':          ('unchanged_receipt' if receipt_only else
-                          ('prose' if prose_only else 'legacy')),
+        'mode':          'unchanged_receipt' if receipt_only else 'prose',
         'time':          datetime.now().strftime('%H:%M'),
         'issues':        issues,
         'wechat_prefix': wechat_prefix,
