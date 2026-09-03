@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-03T16:42:39.953388+00:00",
+  "generated_at": "2026-09-03T23:29:59.438671+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -14,133 +14,35 @@
   "llm_filtered": true,
   "counts": {
     "total": 12,
-    "held_hits": 0,
-    "new_ideas": 6,
-    "sector_hits": 0
+    "held_hits": 2,
+    "new_ideas": 0,
+    "sector_hits": 1
   },
   "items": [
     {
       "author": "Musk",
-      "text": "Elon Musk Says Google and Anthropic Turned to SpaceX For AI Compute Because Power is Tight, Says SPCX Built its Own Plants to Move Faster",
+      "text": "SpaceX investors may be overlooking a major risk: There’s no replacing Elon Musk",
       "url": "",
-      "published": "Thu, 03 Sep 2026 15:01:04 GMT",
+      "published": "Wed, 02 Sep 2026 09:00:30 GMT",
       "origin": "gnews-rss",
-      "source": "Yahoo Finance",
+      "source": "CNN",
       "tickers": [
-        "GOOGL"
+        "SPCX",
+        "SPCH"
       ],
-      "held": [],
-      "new_ideas": [
-        "GOOGL"
+      "held": [
+        "SPCH",
+        "SPCX"
       ],
+      "new_ideas": [],
       "sectors": [
-        "AI",
         "航天",
-        "电力/能源"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
-      "relevance": 88,
-      "summary_cn": "马斯克称Google和Anthropic因电力紧张转向SpaceX求AI算力，并称SPCX自建电厂提速；强化SpaceX AI算力叙事(直接利好SPCX/SPCH)。"
-    },
-    {
-      "author": "Trump",
-      "text": "Nvidia, Wall Street Firms Strike AI Financing Deal Targeting $500 Billion: https://www.wsj.com/business/deals/nvidia-wall-street-firms-strike-ai-financing-deal-targeting-500-billion-c50377db",
-      "url": "https://trumpstruth.org/statuses/41459",
-      "published": "2026-09-01T19:39:33+00:00",
-      "origin": "truthsocial",
-      "tickers": [
-        "NVDA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "NVDA"
-      ],
-      "sectors": [
-        "AI",
-        "半导体",
-        "金融"
-      ],
-      "sector_holdings": [
-        "SKHY"
-      ],
-      "stance": "endorse",
-      "relevance": 88,
-      "summary_cn": "特朗普转发英伟达联合华尔街机构达成5000亿美元AI融资交易，看多AI基建主题。"
-    },
-    {
-      "author": "Trump",
-      "text": "NVIDIA AI Factory Compute Is Becoming an Investable Asset Class: https://x.com/JensenHuang/article/2086934705207959965",
-      "url": "https://trumpstruth.org/statuses/41460",
-      "published": "2026-09-01T19:39:26+00:00",
-      "origin": "truthsocial",
-      "tickers": [
-        "NVDA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "NVDA"
-      ],
-      "sectors": [
-        "AI",
-        "半导体"
-      ],
-      "sector_holdings": [
-        "SKHY"
-      ],
-      "stance": "endorse",
-      "relevance": 80,
-      "summary_cn": "特朗普转发黄仁勋观点：英伟达AI算力工厂正成为可投资资产类别，强化AI主题。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX sweeteners: How did Louisiana lure Elon Musk’s rocket launch site to its coast?",
-      "url": "",
-      "published": "Tue, 01 Sep 2026 16:15:45 GMT",
-      "origin": "gnews-rss",
-      "source": "Louisiana Illuminator",
-      "tickers": [
-        "SPC"
-      ],
-      "held": [],
-      "new_ideas": [
-        "SPC"
-      ],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 78,
-      "summary_cn": "马斯克/媒体讨论路易斯安那州如何吸引SpaceX发射场落地，利好SpaceX生态(SPCX/SPCH持仓)。"
-    },
-    {
-      "author": "Musk",
-      "text": "Tesla’s Impossible Comeback",
-      "url": "",
-      "published": "Thu, 03 Sep 2026 14:24:00 GMT",
-      "origin": "gnews-rss",
-      "source": "24/7 Wall St.",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车"
+        "私募/未上市"
       ],
       "sector_holdings": [],
-      "stance": "endorse",
+      "stance": "neutral",
       "relevance": 72,
-      "summary_cn": "媒体标题'Tesla的不可逆回归'，叙事层面看多Tesla。"
+      "summary_cn": "报道指出SpaceX投资者可能低估了Musk不可替代带来的风险——直接涉及kcn持有的SpaceX相关标的，需警惕集中度风险。"
     },
     {
       "author": "Musk",
@@ -150,259 +52,243 @@
       "origin": "gnews-rss",
       "source": "thestreet.com",
       "tickers": [
-        "TSLA"
+        "SPCX",
+        "SPCH"
       ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
+      "held": [
+        "SPCH",
+        "SPCX"
       ],
+      "new_ideas": [],
       "sectors": [
-        "电动车",
-        "航天"
+        "航天",
+        "电动车"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 65,
+      "summary_cn": "Musk向Tesla与SpaceX投资者发出强烈信号，内容未详但直接影响kcn持有的SpaceX敞口。"
+    },
+    {
+      "author": "Musk",
+      "text": "SpaceX sweeteners: How did Louisiana lure Elon Musk’s rocket launch site to its coast?",
+      "url": "",
+      "published": "Tue, 01 Sep 2026 16:15:45 GMT",
+      "origin": "gnews-rss",
+      "source": "Louisiana Illuminator",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "基建"
       ],
       "sector_holdings": [
         "SPCH",
         "SPCX"
       ],
       "stance": "neutral",
-      "relevance": 70,
-      "summary_cn": "马斯克向Tesla和SpaceX投资者发表强力表态，间接利好马斯克系生态(SPCX/SPCH持仓关联)。"
-    },
-    {
-      "author": "Trump",
-      "text": "RT @realDonaldTrumpThe United States is, as we speak, striking Iranian Targets near the Strait of Hormuz. The strikes are large and powerful, and in retaliation for the Iranians’ failed attempt at adding sea mines to the Strait, which currently has no mines (They have been completely removed or detonated!), and the Iranians shooting eight missiles, all successfully knocked down, at our Military Base in Jordan. If the failed Nation of Iran retaliates for this very justified attack, they will be hit again at a much harder and higher level, but it will not be the biggest attack of them all, that ",
-      "url": "https://trumpstruth.org/statuses/41458",
-      "published": "2026-09-01T19:39:58+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "地缘政治",
-        "能源",
-        "国防"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 72,
-      "summary_cn": "特朗普宣布美军打击伊朗霍尔木兹海峡附近目标，重大地缘冲突直接影响油价与避险资产。"
-    },
-    {
-      "author": "Trump",
-      "text": "The United States is, as we speak, striking Iranian Targets near the Strait of Hormuz. The strikes are large and powerful, and in retaliation for the Iranians’ failed attempt at adding sea mines to the Strait, which currently has no mines (They have been completely removed or detonated!), and the Iranians shooting eight missiles, all successfully knocked down, at our Military Base in Jordan. If the failed Nation of Iran retaliates for this very justified attack, they will be hit again at a much harder and higher level, but it will not be the biggest attack of them all, that is waiting in the w",
-      "url": "https://trumpstruth.org/statuses/41445",
-      "published": "2026-09-01T17:25:46+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "地缘政治",
-        "能源",
-        "国防"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 72,
-      "summary_cn": "特朗普宣布美军打击伊朗目标(霍尔木兹海峡附近)，与第16条同一事件，仅保留更具细节的一条则此处降权；但仍为同事件，保留作为另一时间点佐证。实际合并保留一条即可。"
+      "relevance": 52,
+      "summary_cn": "报道SpaceX路易斯安那火箭发射场落地，间接利好kcn持有的SpaceX相关标的，无具体上市公司信号。"
     },
     {
       "author": "Trump",
       "text": "I’m not trying to force Iran to the bargaining table, as ABC Fake News reported. I couldn’t care less if they sign a worthless, to them, agreement. I like our position now much better, with almost total control of the Hormuz Strait, and their economy totally collapsing. They are just playing out the inevitable. When are the Iranian people going to rise up and fight? President DJT",
-      "url": "https://trumpstruth.org/statuses/41477",
+      "url": "https://www.trumpstruth.org/statuses/41477",
       "published": "2026-09-02T01:13:08+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "地缘政治",
         "能源",
-        "国防"
+        "原油",
+        "中东地缘",
+        "军工"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 65,
-      "summary_cn": "特朗普表态对伊朗谈判不感兴趣、强调控制霍尔木兹海峡，油价/地缘风险溢价升温。"
-    },
-    {
-      "author": "Trump",
-      "text": "Beyond lowering drug prices, Trump ups national security by restoring America’s pharma supply chain: https://justthenews.com/government/white-house/drug-announcements-larger-impact-beyond-lower-prices-securing-americas",
-      "url": "https://trumpstruth.org/statuses/41484",
-      "published": "2026-09-02T11:58:40+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "医疗保健",
-        "制药供应链"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "特朗普将降低药价与恢复美国制药供应链挂钩，关乎国家医药自主。"
-    },
-    {
-      "author": "Trump",
-      "text": "We are unleashing American Energy Dominance! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/41463",
-      "published": "2026-09-01T20:04:08+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "能源"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "特朗普重申'美国能源主导'口号，能源板块政策红利叙事。"
+      "relevance": 60,
+      "summary_cn": "Trump称已几乎完全控制霍尔木兹海峡、伊朗经济崩溃——中东局势升级直接利好原油/黄金/军工，利空风险资产。"
     },
     {
       "author": "Trump",
       "text": "Cheaper drugs, cheaper beef, cheaper gas. Trump lines up fall affordability before Labor Day: https://justthenews.com/government/white-house/cheaper-drugs-cheaper-beef-cheaper-gas-trump-lines-his-fall-affordability",
-      "url": "https://trumpstruth.org/statuses/41483",
+      "url": "https://www.trumpstruth.org/statuses/41483",
       "published": "2026-09-02T11:58:57+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
+        "药品",
         "能源",
-        "医疗保健"
+        "消费",
+        "通胀"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 58,
+      "summary_cn": "Trump在劳动节前承诺药品、牛肉、汽油价格下降，涉民生通胀话题，对消费/能源板块有间接情绪影响。"
+    },
+    {
+      "author": "Musk",
+      "text": "Tesla's steering-wheel-free Cybercabs are rolling into Texas",
+      "url": "",
+      "published": "Thu, 03 Sep 2026 17:11:58 GMT",
+      "origin": "gnews-rss",
+      "source": "Chron",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "电动车",
+        "自动驾驶"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 55,
+      "summary_cn": "Tesla无方向盘Cybercab进入德州路测，利好自动驾驶/Robotaxi叙事但Tesla不在kcn持仓。"
+    },
+    {
+      "author": "Trump",
+      "text": "Beyond lowering drug prices, Trump ups national security by restoring America’s pharma supply chain: https://justthenews.com/government/white-house/drug-announcements-larger-impact-beyond-lower-prices-securing-americas",
+      "url": "https://www.trumpstruth.org/statuses/41484",
+      "published": "2026-09-02T11:58:40+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "医药",
+        "制药供应链",
+        "国家安全"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 55,
+      "summary_cn": "Trump以国家安全为由推动恢复美国制药供应链，药企/仿制药板块可能获政策倾斜。"
+    },
+    {
+      "author": "Trump",
+      "text": "For the treasonous SCUM that refuses to accurately report on our Military Operation in Iran, we have virtually unlimited amounts of Mid to High Grade Ammunition, far more than we could ever use for this, or for any other War (which is highly unlikely!), that could improbably take place. In addition, we are producing Munitions at levels never seen before. We are stockpiling and preparing for any contingency that could happen. We are taking them for ourselves, the U.S.A., rather than selling them to others, but the sales to Allies will soon again, begin. Also, please let it be known, that the Bi",
+      "url": "https://www.trumpstruth.org/statuses/41494",
+      "published": "2026-09-03T14:56:21+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "军工",
+        "国防",
+        "中东地缘"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 52,
+      "summary_cn": "Trump声称美军弹药充足并停止对外军售、转向对伊朗军事行动，利好军工板块但压制盟友军购预期。"
+    },
+    {
+      "author": "Trump",
+      "text": "It is very good for Canadian Politicians like Prime Minister Carney to make President Donald J. Trump “the enemy,” until their Economy collapses, then it will prove to be very bad for Politics — Worse than anything that has ever happened to a Canadian Politician. Just watch! President DONALD J. TRUMP",
+      "url": "https://www.trumpstruth.org/statuses/41496",
+      "published": "2026-09-03T15:14:24+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "关税",
+        "美加关系"
       ],
       "sector_holdings": [],
       "stance": "neutral",
       "relevance": 50,
-      "summary_cn": "特朗普强调秋季前实现药价、牛肉、汽油降价，涉及消费品/能源板块宏观叙事。"
-    }
-  ],
-  "held_hits": [],
-  "new_ideas": [
-    {
-      "author": "Musk",
-      "text": "Elon Musk Says Google and Anthropic Turned to SpaceX For AI Compute Because Power is Tight, Says SPCX Built its Own Plants to Move Faster",
-      "url": "",
-      "published": "Thu, 03 Sep 2026 15:01:04 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [
-        "GOOGL"
-      ],
-      "held": [],
-      "new_ideas": [
-        "GOOGL"
-      ],
-      "sectors": [
-        "AI",
-        "航天",
-        "电力/能源"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
-      "relevance": 88,
-      "summary_cn": "马斯克称Google和Anthropic因电力紧张转向SpaceX求AI算力，并称SPCX自建电厂提速；强化SpaceX AI算力叙事(直接利好SPCX/SPCH)。"
-    },
-    {
-      "author": "Trump",
-      "text": "Nvidia, Wall Street Firms Strike AI Financing Deal Targeting $500 Billion: https://www.wsj.com/business/deals/nvidia-wall-street-firms-strike-ai-financing-deal-targeting-500-billion-c50377db",
-      "url": "https://trumpstruth.org/statuses/41459",
-      "published": "2026-09-01T19:39:33+00:00",
-      "origin": "truthsocial",
-      "tickers": [
-        "NVDA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "NVDA"
-      ],
-      "sectors": [
-        "AI",
-        "半导体",
-        "金融"
-      ],
-      "sector_holdings": [
-        "SKHY"
-      ],
-      "stance": "endorse",
-      "relevance": 88,
-      "summary_cn": "特朗普转发英伟达联合华尔街机构达成5000亿美元AI融资交易，看多AI基建主题。"
-    },
-    {
-      "author": "Trump",
-      "text": "NVIDIA AI Factory Compute Is Becoming an Investable Asset Class: https://x.com/JensenHuang/article/2086934705207959965",
-      "url": "https://trumpstruth.org/statuses/41460",
-      "published": "2026-09-01T19:39:26+00:00",
-      "origin": "truthsocial",
-      "tickers": [
-        "NVDA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "NVDA"
-      ],
-      "sectors": [
-        "AI",
-        "半导体"
-      ],
-      "sector_holdings": [
-        "SKHY"
-      ],
-      "stance": "endorse",
-      "relevance": 80,
-      "summary_cn": "特朗普转发黄仁勋观点：英伟达AI算力工厂正成为可投资资产类别，强化AI主题。"
+      "summary_cn": "Trump警告加拿大政客不要把对抗美国当作政治筹码，暗示关税压力将让加拿大经济承压——地缘政治紧张升级信号。"
     },
     {
       "author": "Musk",
-      "text": "SpaceX sweeteners: How did Louisiana lure Elon Musk’s rocket launch site to its coast?",
+      "text": "Daily 5 report for Sept. 3: Elon Musk bets on Cybercab. Analysts say Tesla still has to prove it’s safe",
       "url": "",
-      "published": "Tue, 01 Sep 2026 16:15:45 GMT",
+      "published": "Thu, 03 Sep 2026 19:00:00 GMT",
       "origin": "gnews-rss",
-      "source": "Louisiana Illuminator",
-      "tickers": [
-        "SPC"
-      ],
+      "source": "autonews.com",
+      "tickers": [],
       "held": [],
-      "new_ideas": [
-        "SPC"
-      ],
+      "new_ideas": [],
       "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 78,
-      "summary_cn": "马斯克/媒体讨论路易斯安那州如何吸引SpaceX发射场落地，利好SpaceX生态(SPCX/SPCH持仓)。"
-    },
-    {
-      "author": "Musk",
-      "text": "Tesla’s Impossible Comeback",
-      "url": "",
-      "published": "Thu, 03 Sep 2026 14:24:00 GMT",
-      "origin": "gnews-rss",
-      "source": "24/7 Wall St.",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车"
+        "电动车",
+        "自动驾驶"
       ],
       "sector_holdings": [],
-      "stance": "endorse",
+      "stance": "neutral",
+      "relevance": 48,
+      "summary_cn": "分析师指出Cybercab仍需证明安全性，Musk下注Robotaxi但验证未完成，间接影响电动车板块情绪。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk unleashes first wave of spending on key races in the midterms",
+      "url": "",
+      "published": "Thu, 03 Sep 2026 02:57:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Politico",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "美国政治",
+        "中期选举"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 48,
+      "summary_cn": "Musk启动首波中期选举支出，影响美国政治风向，间接影响监管/科技板块政策预期。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk-backed super PAC reports $800,000 in first burst of midterm spending, largely in Maine and Texas",
+      "url": "",
+      "published": "Thu, 03 Sep 2026 04:05:42 GMT",
+      "origin": "gnews-rss",
+      "source": "CBS News",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "美国政治",
+        "中期选举"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 45,
+      "summary_cn": "Musk支持的超级PAC首期支出80万美元于缅因州和德州中期选举，金额有限但具风向标意义。"
+    }
+  ],
+  "held_hits": [
+    {
+      "author": "Musk",
+      "text": "SpaceX investors may be overlooking a major risk: There’s no replacing Elon Musk",
+      "url": "",
+      "published": "Wed, 02 Sep 2026 09:00:30 GMT",
+      "origin": "gnews-rss",
+      "source": "CNN",
+      "tickers": [
+        "SPCX",
+        "SPCH"
+      ],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "私募/未上市"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
       "relevance": 72,
-      "summary_cn": "媒体标题'Tesla的不可逆回归'，叙事层面看多Tesla。"
+      "summary_cn": "报道指出SpaceX投资者可能低估了Musk不可替代带来的风险——直接涉及kcn持有的SpaceX相关标的，需警惕集中度风险。"
     },
     {
       "author": "Musk",
@@ -412,24 +298,47 @@
       "origin": "gnews-rss",
       "source": "thestreet.com",
       "tickers": [
-        "TSLA"
+        "SPCX",
+        "SPCH"
       ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
+      "held": [
+        "SPCH",
+        "SPCX"
       ],
+      "new_ideas": [],
       "sectors": [
-        "电动车",
-        "航天"
+        "航天",
+        "电动车"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 65,
+      "summary_cn": "Musk向Tesla与SpaceX投资者发出强烈信号，内容未详但直接影响kcn持有的SpaceX敞口。"
+    }
+  ],
+  "new_ideas": [],
+  "sector_hits": [
+    {
+      "author": "Musk",
+      "text": "SpaceX sweeteners: How did Louisiana lure Elon Musk’s rocket launch site to its coast?",
+      "url": "",
+      "published": "Tue, 01 Sep 2026 16:15:45 GMT",
+      "origin": "gnews-rss",
+      "source": "Louisiana Illuminator",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "基建"
       ],
       "sector_holdings": [
         "SPCH",
         "SPCX"
       ],
       "stance": "neutral",
-      "relevance": 70,
-      "summary_cn": "马斯克向Tesla和SpaceX投资者发表强力表态，间接利好马斯克系生态(SPCX/SPCH持仓关联)。"
+      "relevance": 52,
+      "summary_cn": "报道SpaceX路易斯安那火箭发射场落地，间接利好kcn持有的SpaceX相关标的，无具体上市公司信号。"
     }
-  ],
-  "sector_hits": []
+  ]
 }
