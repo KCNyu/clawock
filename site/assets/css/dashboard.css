@@ -2689,7 +2689,9 @@
   .dh-pip[data-tone="ok-soft"] { background: transparent; box-shadow: inset 0 0 0 1.5px var(--positive); }
   .dh-pip[data-unmonitored="1"] { opacity: .5; }
 
-  .dh-rail { margin-top: 12px; display: grid; gap: 5px; }
+  /* 名字列宽度只在一处定义，行、坐标轴、「现在」竖线三处共用同一个数，
+     否则刻度和每行的点会各自对齐到不同的 x 原点，读起来是错位的。 */
+  .dh-rail { margin-top: 12px; display: grid; gap: 6px; --dh-rail-label-w: 10.5em; }
   .dh-rail-head {
     display: flex; align-items: baseline; justify-content: space-between;
     gap: 10px; flex-wrap: wrap;
@@ -2702,31 +2704,62 @@
     display: inline-flex; align-items: center; gap: 4px;
     color: var(--text-tertiary); font: 500 var(--fs-micro)/1 var(--mono);
   }
-  /* 轨道按时刻绝对定位，不是等距排列：等距会把 10:03 和 21:33 画成邻居，而
-     「一整个下午没有槽」正是该被看见的东西。刻度线只给 06/12/18 三条，多了
-     就从「看一眼」变成「读一张图」。 */
-  .dh-rail-track {
-    position: relative; height: 20px; border-radius: 4px;
-    background: var(--surface-1); border: 1px solid var(--border-subtle);
-    background-image: linear-gradient(to right,
-      transparent calc(25% - .5px), var(--border-subtle) calc(25% - .5px),
-      var(--border-subtle) calc(25% + .5px), transparent calc(25% + .5px)),
-      linear-gradient(to right,
-      transparent calc(50% - .5px), var(--border-subtle) calc(50% - .5px),
-      var(--border-subtle) calc(50% + .5px), transparent calc(50% + .5px)),
-      linear-gradient(to right,
-      transparent calc(75% - .5px), var(--border-subtle) calc(75% - .5px),
-      var(--border-subtle) calc(75% + .5px), transparent calc(75% + .5px));
+  /* 每个 job 一条独立的行，共用同一把刻度尺——原来所有 job 的点挤在一条轨道
+     上，只能靠悬停猜是哪个 job；一行一个名字，位置不用猜。刻度线每小时一条、
+     每 3 小时标一个数字，比原来只有 00/06/12/18/24 四个地标精确得多。 */
+  .dh-rail-body { position: relative; }
+  .dh-rail-rows {
+    display: grid; gap: 3px; padding: 6px 0;
+    border-radius: 4px; background: var(--surface-1); border: 1px solid var(--border-subtle);
+  }
+  .dh-rail-row {
+    display: grid; grid-template-columns: var(--dh-rail-label-w) 1fr;
+    gap: 8px; align-items: center; padding: 0 8px;
+  }
+  .dh-rail-row-name {
+    color: var(--text-tertiary); font: 500 var(--fs-micro)/1.3 var(--mono);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .dh-rail-row-track {
+    position: relative; height: 12px;
+    background-image: repeating-linear-gradient(to right,
+      var(--border-subtle) 0, var(--border-subtle) 1px,
+      transparent 1px, transparent calc(100% / 24));
   }
   .dh-pip.is-slot {
-    position: absolute; top: 4px; width: 3px; height: 12px; border-radius: 1.5px;
-    transform: translateX(-1.5px); border-radius: 1.5px;
+    position: absolute; top: 2px; width: 3px; height: 8px; border-radius: 1.5px;
+    transform: translateX(-1.5px);
   }
   .dh-pip.is-slot[data-tone="ok-soft"] { box-shadow: inset 0 0 0 1.5px var(--positive); }
+  /* 「现在」——一条竖线贯穿所有行，分开「已经跑过」和「还没轮到」，不然一个
+     还没到点的灰点和一个真的没跑的灰点在视觉上完全一样。 */
+  .dh-rail-now {
+    position: absolute; top: -3px; bottom: 0; width: 2px;
+    background: var(--accent); opacity: .8; pointer-events: none;
+  }
+  /* 线顶上一个小三角，不然 2px 的竖线在密集的针脚里太容易被当成又一条刻度线。 */
+  .dh-rail-now::before {
+    content: ""; position: absolute; top: -3px; left: 50%;
+    width: 0; height: 0; transform: translateX(-50%);
+    border-left: 3px solid transparent; border-right: 3px solid transparent;
+    border-top: 4px solid var(--accent); opacity: .9;
+  }
   .dh-rail-axis {
     display: flex; justify-content: space-between;
+    /* +8px 对齐 .dh-rail-row 的左内边距，+1px 让首尾刻度不贴着圆角描边。 */
+    padding: 0 1px 0 calc(var(--dh-rail-label-w) + 8px);
     color: var(--text-faint, var(--text-tertiary));
     font: 500 var(--fs-micro)/1 var(--mono);
+  }
+  /* 「现在」——一条竖线贯穿所有行；left 落在同一把尺子上：先让过名字列，
+     剩下的宽度才是 0-100% 对应的 00:00-24:00，JS 只需要给一个 0-1 的分数。 */
+  .dh-rail-now {
+    left: calc(var(--dh-rail-label-w) + 8px
+      + (100% - var(--dh-rail-label-w) - 16px) * var(--now-frac, 0));
+  }
+  @media (max-width: 560px) {
+    .dh-rail { --dh-rail-label-w: 6.4em; }
+    .dh-rail-row-name { font-size: 10px; }
   }
   /* 逐项里那一组：灯挤在 .dh-bar 这一列，槽多时在自己格里横滚，不让整页横滚。 */
   .dh-row.is-cron .dh-bar.is-lamps {

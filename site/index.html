@@ -310,18 +310,25 @@ layout: null
           </div>
         </div></div>
         <!-- 今天的槽位轨。投递泳道给的是 36 小时里成品落地的比例，这条给
-             同一件事加上时间轴：按 24 小时刻度摆位，于是场次和空档也读得出来。
-             它**没有自己的判词** —— 判词归投递泳道，同一个主题两处各说一句，
-             就是两个答案开始互相漂移的地方（#1270 拆开这块牌的原因）。 -->
+             同一件事加上时间轴。它**没有自己的判词**——判词只在上面「处置 ·
+             需处理」清单和这一行摘要里说一次，不重复一份（#1270 拆开这块牌
+             的原因）。每个 job 一条独立的行、共用同一把刻度尺，不用悬停就能
+             读出「谁 · 什么时候」；刻度每 3 小时标一个数字、每小时一条细线，
+             比原来只有 00/06/12/18/24 四个地标精确得多，另有一条「现在」竖线
+             区分「已经跑过」和「还没轮到」。 -->
         <div class="dh-rail" id="dh-rail" hidden>
           <div class="dh-rail-head">
             <span class="dh-rail-name" id="dh-rail-name">今天</span>
             <span class="dh-rail-keys" id="dh-rail-keys" aria-hidden="true"></span>
           </div>
-          <div class="dh-rail-track" id="dh-rail-track" role="img"
-               aria-label="今天每个定时任务槽位的结果，按时刻摆放"></div>
+          <div class="dh-rail-body">
+            <div class="dh-rail-rows" id="dh-rail-rows" role="img"
+                 aria-label="今天每个定时任务的槽位，按 job 分行、按时刻摆放"></div>
+            <i class="dh-rail-now" id="dh-rail-now" title="现在" hidden></i>
+          </div>
           <div class="dh-rail-axis" aria-hidden="true">
-            <span>00</span><span>06</span><span>12</span><span>18</span><span>24</span>
+            <span>00</span><span>03</span><span>06</span><span>09</span>
+            <span>12</span><span>15</span><span>18</span><span>21</span><span>24</span>
           </div>
         </div>
         <div class="dh-caption" id="dh-caption"></div>

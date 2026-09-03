@@ -12,6 +12,15 @@ only joins two things that already exist:
 A slot with no record yet is not a failure until its grace window has passed;
 before that it is simply upcoming, which is why this needs `now` and not just
 the date.
+
+Every non-`ok` slot also carries a `note`: {disposition, text}. `disposition`
+reuses the data-health card's own four words (需处理/观察/已知不修/正常) so the
+reader is not asked to learn a second vocabulary. `text` is a sentence built
+purely from fields the ledger already published for that slot — never a new
+pass/fail judgment, only a description of the one the ledger already made.
+The `degraded` split in particular mirrors `workflow_outcomes._advisory_only`
+exactly (`escalating_count == 0`), reading the same field it reads, so this
+narrates the ledger's reasoning rather than inventing a second one.
 """
 from __future__ import annotations
 
@@ -54,6 +63,85 @@ def _has_harness(job):
     """
     harness = str(job.get('harness') or '').strip()
     return bool(harness) and harness not in {'-', '—', '–'}
+
+
+#: The same four words the data-health card already uses for disposition —
+#: one vocabulary across the whole card, not a second one invented here.
+NEEDS_ACTION, WATCH, KNOWN_NOT_FIXED, NORMAL = (
+    'needs_action', 'watch', 'known_not_fixed', 'normal')
+
+
+def _note(disposition, text):
+    return {'disposition': disposition, 'text': text}
+
+
+def _narrate_recovered(record):
+    # #1278: MiniMax holds an overloaded request 100-143s before it 429s, and
+    # the schedule was moved specifically so the FIRST attempt of a slot lands
+    # off the top of the hour. A slot that still needed the watchdog is the
+    # rarer case that first attempt lost anyway — the retry is the system
+    # working as designed, not a fault to chase.
+    return _note(WATCH, '首次投递超时，watchdog 重投后送达；这是已知机制'
+                        '（MiniMax 过载超时，重投几乎必成，见 #1278），无需处理')
+
+
+def _narrate_degraded(record):
+    postflight = (record.get('stages') or {}).get('postflight') or {}
+    delivery = (record.get('stages') or {}).get('primary_delivery') or {}
+    wechat_ok = delivery.get('wechat_ok')
+    telegram_ok = delivery.get('telegram_ok')
+    escalating = postflight.get('escalating_count')
+    issues = postflight.get('issue_count') or 0
+    data_plane = postflight.get('data_plane_status')
+
+    # WeChat's context-token drop is diagnosed and deliberately left unfixed
+    # (#771) — Telegram is the reliable channel on those slots, not a gap.
+    if wechat_ok is False and telegram_ok:
+        return _note(KNOWN_NOT_FIXED,
+                    '微信投递失败（上游 ret=-2 prepare failed），Telegram 已接住；'
+                    '已知不修（#771）')
+    # `escalating_count` is the exact field `_advisory_only` reads — a nonzero
+    # count is the same signal that made the ledger call this slot degraded,
+    # not a re-judgment of it.
+    if escalating:
+        return _note(NEEDS_ACTION,
+                    f'内容校验有 {issues} 条问题，其中 {escalating} 条不是仅供参考的'
+                    '——报告已投递但可能有误，查 workflow-outcomes.json 这一槽的 stages')
+    # The other way `_advisory_only`'s AND fails: content was clean but the
+    # dashboard commit had not published yet the moment this record was
+    # written. The scheduled publisher ticks every 20 minutes and catches up
+    # on its own — this is a bookkeeping lag, not a delivery problem.
+    if data_plane and data_plane not in {'published', 'current', 'skipped'}:
+        return _note(WATCH,
+                    '两个渠道都已送达，内容校验没有问题；仪表盘发布还在排队，'
+                    '几分钟内自动追上，无需处理')
+    reason = (record.get('final_product') or {}).get('reason')
+    return _note(WATCH, reason or '降级送达')
+
+
+def _narrate_failed(record):
+    return _note(NEEDS_ACTION, '这一槽没有产出，成品未落地——这段时间没有报告送达')
+
+
+_MISSED_NOTE = _note(
+    NEEDS_ACTION, '到点了但账本里没有这一槽的记录，需要看是不是卡住了')
+_UNMONITORED_NOTE = _note(
+    NORMAL, '这个 job 没有 harness，账本本来就看不到它的记录，不代表没跑')
+
+_NARRATORS = {
+    'recovered': _narrate_recovered,
+    'degraded': _narrate_degraded,
+    'failed': _narrate_failed,
+}
+
+
+def _note_for(state, record):
+    """The note for one cell, or None when a bare light says everything."""
+    if record and state in _NARRATORS:
+        return _NARRATORS[state](record)
+    if state == 'missed':
+        return _MISSED_NOTE
+    return None
 
 
 def _local_slots(job, day_utc):
@@ -129,8 +217,8 @@ def timetable(contract, records, *, now=None):
         # there also describes a job that simply has not run for a few days.
         if not _has_harness(job):
             rows.append({'job': name, 'tz': tz_name, 'unmonitored': True,
-                         'slots': [{'at': slot, 'state': 'unmonitored'}
-                                   for slot in slots]})
+                         'slots': [{'at': slot, 'state': 'unmonitored',
+                                   'note': _UNMONITORED_NOTE} for slot in slots]})
             continue
         found = _records_by_slot(records, name, day, tz, slots)
         cells = []
@@ -148,7 +236,11 @@ def timetable(contract, records, *, now=None):
                 state = 'running'
             else:
                 state = 'missed'
-            cells.append({'at': slot, 'state': state})
+            cell = {'at': slot, 'state': state}
+            note = _note_for(state, record)
+            if note:
+                cell['note'] = note
+            cells.append(cell)
         rows.append({'job': name, 'tz': tz_name, 'slots': cells})
     return {
         'date': now.astimezone(HKT).strftime('%Y-%m-%d'),
