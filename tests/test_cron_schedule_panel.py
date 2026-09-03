@@ -130,3 +130,89 @@ def test_the_overview_projection_carries_the_timetable():
     projected = compile_overview_projection({'cron_schedule': {'jobs': [{'job': 'x'}]}})
 
     assert projected['cron_schedule'] == {'jobs': [{'job': 'x'}]}
+
+
+# ── notes: 每个非 ok 灯配一句话，说的是账本已经知道的事，不重新判定 ──────
+
+def _record_with(status, **stages):
+    record = _record('2026-09-03T10:03:00+08:00', status)
+    record['stages'] = stages
+    return record
+
+
+def test_a_recovered_slot_explains_the_watchdog_mechanism():
+    result = timetable(_contract('3 10 * * 1-5'), [
+        _record('2026-09-03T10:03:00+08:00', 'recovered'),
+    ], now=datetime(2026, 9, 3, 12, 0, tzinfo=HKT))
+
+    note = result['jobs'][0]['slots'][0]['note']
+    assert note['disposition'] == 'watch'
+    assert '首次投递超时' in note['text'] and '无需处理' in note['text']
+
+
+def test_degraded_with_a_real_content_issue_reads_as_needs_action():
+    """escalating_count > 0 is the exact field `_advisory_only` reads to call a
+    slot degraded — the note must read the same field, not a different one."""
+    record = _record_with('degraded', postflight={
+        'issue_count': 3, 'escalating_count': 1, 'data_plane_status': 'published',
+    }, primary_delivery={'wechat_ok': True, 'telegram_ok': True})
+    result = timetable(_contract('3 10 * * 1-5'), [record],
+                       now=datetime(2026, 9, 3, 12, 0, tzinfo=HKT))
+
+    note = result['jobs'][0]['slots'][0]['note']
+    assert note['disposition'] == 'needs_action'
+    assert '3 条问题' in note['text'] and '1 条不是仅供参考' in note['text']
+
+
+def test_degraded_from_a_publish_lag_alone_reads_as_watch_not_needs_action():
+    """The pattern behind every degraded slot on 2026-09-03: both channels
+    delivered, content check clean, only the dashboard commit hadn't published
+    yet when the ledger snapshotted. Self-heals within the next publish tick."""
+    record = _record_with('degraded', postflight={
+        'issue_count': 0, 'escalating_count': 0, 'data_plane_status': 'committed_local',
+    }, primary_delivery={'wechat_ok': True, 'telegram_ok': True})
+    result = timetable(_contract('3 10 * * 1-5'), [record],
+                       now=datetime(2026, 9, 3, 12, 0, tzinfo=HKT))
+
+    note = result['jobs'][0]['slots'][0]['note']
+    assert note['disposition'] == 'watch'
+    assert '发布还在排队' in note['text'] and '无需处理' in note['text']
+
+
+def test_degraded_from_a_wechat_drop_reads_as_known_not_fixed():
+    record = _record_with('degraded', postflight={
+        'issue_count': 0, 'escalating_count': 0, 'data_plane_status': 'published',
+    }, primary_delivery={'wechat_ok': False, 'telegram_ok': True})
+    result = timetable(_contract('3 10 * * 1-5'), [record],
+                       now=datetime(2026, 9, 3, 12, 0, tzinfo=HKT))
+
+    note = result['jobs'][0]['slots'][0]['note']
+    assert note['disposition'] == 'known_not_fixed'
+    assert '#771' in note['text']
+
+
+def test_a_failed_slot_reads_as_needs_action():
+    result = timetable(_contract('3 10 * * 1-5'), [
+        _record('2026-09-03T10:03:00+08:00', 'failed'),
+    ], now=datetime(2026, 9, 3, 12, 0, tzinfo=HKT))
+
+    assert result['jobs'][0]['slots'][0]['note']['disposition'] == 'needs_action'
+
+
+def test_a_missed_slot_reads_as_needs_action():
+    result = timetable(_contract('3 10 * * 1-5'),
+                       [_record('2026-09-03T09:33:00+08:00', 'success', job='港股开盘报告')],
+                       now=datetime(2026, 9, 3, 10, 30, tzinfo=HKT))
+
+    assert result['jobs'][0]['slots'][0]['note']['disposition'] == 'needs_action'
+
+
+def test_ok_and_upcoming_slots_carry_no_note():
+    """A note on a plainly-good light is a lie waiting to happen — nothing to
+    explain means nothing gets attached, not an empty string."""
+    result = timetable(_contract(), [
+        _record('2026-09-03T10:03:00+08:00', 'success'),
+    ], now=datetime(2026, 9, 3, 10, 40, tzinfo=HKT))
+
+    for cell in result['jobs'][0]['slots']:
+        assert 'note' not in cell, cell

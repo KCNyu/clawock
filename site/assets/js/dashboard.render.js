@@ -975,10 +975,15 @@
   // 否则「简报 FAILED」会把一屏可信的数字染成红的。
   // 判过期只认 f.stale —— files[] 有两种新鲜度模式（max_age 比 sla_hours，
   // scheduled_fire 比 deadline_at），自己再算一遍 age>sla 会造出一批假警报。
+  const _UNMONITORED_TEXT = "这个 job 没有 harness，账本本来就看不到它的记录，不代表没跑";
+
   // ── 今天的槽位轨（数据健康牌的一部分，不是另一张牌）──
-  // 状态不在这里推导：dashboard.json 的 cron_schedule 已经是 workflow-outcomes
-  // 账本 final_product 的定论，这里只做「定论 → 颜色」。未知状态刻意落到
-  // unknown（灰）而不是绿 —— 新状态该被看见，不该被默认成好。
+  // 灯的颜色仍然是账本 final_product 的定论，这里只做「定论 → 颜色」，不重判。
+  // 颜色只回答「发生了什么」，回答不了「是谁、什么时候、要不要管」——原来所有
+  // job 的点混在一条轨道上，只能靠悬停猜是哪个 job；改成**每个 job 一条独立的
+  // 行**，共用同一条时间轴，一眼就能读出行=job、位置=时刻。判词也先说「要不要
+  // 管」再说「发生了什么」，理由句直接来自 cron_schedule.py 已经翻好的
+  // `note.text`，这里只负责摆出来，不重新组织理由。
   const CRON_STATES = {
     ok:          { tone: "ok",      cn: "正常" },
     recovered:   { tone: "ok-soft", cn: "兜底补上" },
@@ -991,26 +996,44 @@
     unknown:     { tone: "idle",    cn: "状态未知" },
   };
   const cronState = s => (CRON_STATES[s] ? s : "unknown");
+  // 与数据健康卡卡底那行处置说明用的是同一套词——不给读者第二本词典。
+  const DISPOSITION_CN = { needs_action: "需处理", watch: "观察",
+                            known_not_fixed: "已知不修", normal: "正常" };
+  const AXIS_MINUTES = h => (h / 24) * 100;
 
-  // 轨道按 24 小时刻度摆位（不是等距排列）：等距会把 10:03 和 21:33 画成邻居，
-  // 而「一整个下午没有槽」正是读者该看见的东西。
-  function renderCronRail(cs) {
+  function cronCells(cs) {
+    const out = [];
+    ((cs && cs.jobs) || []).forEach(j => (j.slots || []).forEach(s => out.push({
+      job: j.job, at: s.at, state: cronState(s.state), unmonitored: !!j.unmonitored,
+      note: s.note || null,
+    })));
+    return out.sort((a, b) => a.at.localeCompare(b.at));
+  }
+
+  // 真正需要处理的槽位，供顶部「处置 · 需处理」清单合并——那份清单是这张牌上
+  // 唯一「你该做点什么」的地方，cron 的待办不该另起一份藏在轨道里。
+  function cronNeedsAction(cs) {
+    return cronCells(cs).filter(c => c.note && c.note.disposition === "needs_action");
+  }
+
+  function renderCronRail(cs, now) {
     const rail = document.getElementById("dh-rail");
     if (!rail) return null;
-    const jobs = (cs && cs.jobs) || [];
+    const jobs = ((cs && cs.jobs) || []).filter(j => (j.slots || []).length);
     if (!jobs.length) { rail.hidden = true; return null; }
     rail.hidden = false;
 
-    const cells = [];
-    jobs.forEach(j => (j.slots || []).forEach(s => cells.push({
-      job: j.job, at: s.at, state: cronState(s.state), unmonitored: !!j.unmonitored,
-    })));
-    cells.sort((a, b) => a.at.localeCompare(b.at));
-
+    const cells = cronCells(cs);
     const counts = {};
     cells.forEach(c => { counts[c.state] = (counts[c.state] || 0) + 1; });
     const n = k => counts[k] || 0;
+    const byDisposition = { needs_action: [], watch: [], known_not_fixed: [] };
+    cells.filter(c => c.note).forEach(c => { (byDisposition[c.note.disposition] || []).push(c); });
 
+    // 这一行不发第二份判词——那正是 #1270 拆牌的原因：一件事只能有一处说
+    // 「要不要处理」。真正需要处理的槽位并进了卡上唯一的「处置 · 需处理」
+    // 清单（见 cronNeedsAction），这里只用中性语气报事实，把「已经知道不用管
+    // 的」也顺手说穿，省得读者自己去猜那个黄点是不是真的要紧。
     const nameEl = document.getElementById("dh-rail-name");
     if (nameEl) {
       const bits = [`${cells.length} 槽`];
@@ -1021,16 +1044,17 @@
       if (n("failed") + n("missed")) bits.push(`${n("failed") + n("missed")} 没落地`);
       if (n("running")) bits.push(`${n("running")} 进行中`);
       if (n("upcoming")) bits.push(`${n("upcoming")} 待跑`);
-      // 账本看不到的那些也要报出来，否则「26 槽」后面跟的分项加起来只有 25，
-      // 剩下的那一个无人认领 —— 有计数没分母正是 #1270 拆这块牌的病因之一。
+      // 账本看不到的也要报出来，否则「26 槽」后面的分项加起来只有 25，剩下
+      // 那一个无人认领——有计数没分母正是 #1270 拆这块牌的病因之一。
       if (n("unmonitored")) bits.push(`${n("unmonitored")} 账本看不到`);
+      if (byDisposition.watch.length) bits.push(`${byDisposition.watch.length} 处已送达只是发布慢了几分钟`);
+      if (byDisposition.known_not_fixed.length) bits.push(`${byDisposition.known_not_fixed.length} 处已知不修`);
+      if (byDisposition.needs_action.length) bits.push(`${byDisposition.needs_action.length} 处见上方「需处理」`);
       nameEl.textContent = `今天 · ${bits.join(" · ")}`;
     }
 
     const keysEl = document.getElementById("dh-rail-keys");
     if (keysEl) {
-      // 图例只列今天真的出现过的状态。把「没跑」常驻在图例里，会让一个全绿的
-      // 早晨看起来也有红色可言。
       const seen = ["ok", "recovered", "degraded", "failed", "missed", "running",
                     "upcoming", "unmonitored"].filter(k => n(k));
       keysEl.innerHTML = seen.map(k =>
@@ -1038,47 +1062,64 @@
         + `${escapeHtml(CRON_STATES[k].cn)}</span>`).join("");
     }
 
-    const track = document.getElementById("dh-rail-track");
-    if (track) {
-      track.innerHTML = cells.map(c => {
-        const [h, m] = c.at.split(":").map(Number);
-        const left = ((h * 60 + m) / 1440) * 100;
-        const label = `${c.job} ${c.at} ${CRON_STATES[c.state].cn}`;
-        return `<i class="dh-pip is-slot" data-tone="${CRON_STATES[c.state].tone}"`
-          + `${c.unmonitored ? ' data-unmonitored="1"' : ""}`
-          + ` style="left:${left.toFixed(3)}%" title="${escapeHtml(label)}"></i>`;
+    // 轴刻度：每 3 小时一个数字、每小时一条细线（CSS 背景画），比原来只有
+    // 00/06/12/18/24 四个地标精确得多；同一条轴下面每个 job 一行，行内的点
+    // 用同一把尺子绝对定位，于是「谁、什么时候」不用悬停就读得出来。
+    const rowsEl = document.getElementById("dh-rail-rows");
+    if (rowsEl) {
+      rowsEl.innerHTML = jobs.map(j => {
+        const slots = (j.slots || []).map(s => ({ ...s, state: cronState(s.state) }));
+        const pips = slots.map(s => {
+          const [h, m] = s.at.split(":").map(Number);
+          const left = AXIS_MINUTES(h + m / 60);
+          const tail = s.note ? `：${s.note.text}` : "";
+          const label = `${j.job} ${s.at} ${CRON_STATES[s.state].cn}${tail}`;
+          return `<i class="dh-pip is-slot" data-tone="${CRON_STATES[s.state].tone}"`
+            + `${j.unmonitored ? ' data-unmonitored="1"' : ""}`
+            + ` style="left:${left.toFixed(3)}%" title="${escapeHtml(label)}"></i>`;
+        }).join("");
+        return `<div class="dh-rail-row">`
+          + `<span class="dh-rail-row-name" title="${escapeHtml(j.job)}">${escapeHtml(j.job)}</span>`
+          + `<span class="dh-rail-row-track">${pips}</span></div>`;
       }).join("");
     }
-    return { cells, counts };
+    const nowEl = document.getElementById("dh-rail-now");
+    if (nowEl && now) {
+      // 百分比留给 CSS 算——它知道名字列多宽，这里只给一个 0-1 的分数。
+      nowEl.style.setProperty("--now-frac", (AXIS_MINUTES(now.getHours() + now.getMinutes() / 60) / 100).toFixed(4));
+      nowEl.hidden = false;
+    }
+    return { cells, byDisposition };
   }
 
-  // 逐项里的一组：沿用这张牌已有的 .dh-row 语法（名/位置/条/说明/状态五列），
-  // 灯就放在 .dh-bar 那一列 —— 不另发明一张表。
+  // 逐项里的一组：沿用这张牌已有的 .dh-row 五列语法（名/位置/条/说明/状态），
+  // 灯放进 .dh-bar 那一列——说明列现在印的是那一句「为什么」，不是裸时刻表。
   function cronScheduleRows(cs) {
     const jobs = (cs && cs.jobs) || [];
     if (!jobs.length) return "";
+    const RANK = { needs_action: 0, known_not_fixed: 1, watch: 2 };
     return `<div class="dh-sub">定时任务 · 今天每槽</div>` + jobs.map(j => {
       const slots = (j.slots || []).map(s => ({ ...s, state: cronState(s.state) }));
-      const bad = slots.filter(s => ["failed", "missed"].includes(s.state));
-      const soft = slots.filter(s => ["degraded", "recovered"].includes(s.state));
+      const noted = slots.filter(s => s.note)
+        .sort((a, b) => (RANK[a.note.disposition] ?? 9) - (RANK[b.note.disposition] ?? 9));
+      const worst = noted[0];
       const waiting = slots.filter(s => ["upcoming", "running"].includes(s.state));
+
       const state = j.unmonitored ? "账本看不到"
-        : bad.length ? `${bad.length} 没落地`
-        : soft.length ? `${soft.length} ${CRON_STATES[soft[0].state].cn}`
+        : worst ? `${noted.length > 1 ? `${noted.length} ` : ""}${DISPOSITION_CN[worst.note.disposition]}`
         : waiting.length && waiting.length < slots.length ? "已跑的正常"
-        : waiting.length ? "待跑"
-        : "正常";
-      const why = j.unmonitored
-        ? "这个 job 没有 harness，账本永远不会有它的记录"
-        : (bad.length || soft.length
-            ? [...bad, ...soft].slice(0, 3)
-                .map(s => `${s.at} ${CRON_STATES[s.state].cn}`).join(" · ")
-            : slots.map(s => s.at).join(" · "));
-      const lamps = slots.map(s =>
-        `<i class="dh-pip" data-tone="${CRON_STATES[s.state].tone}"`
-        + ` title="${escapeHtml(`${s.at} ${CRON_STATES[s.state].cn}`)}"></i>`).join("");
-      const rowState = j.unmonitored ? "idle" : bad.length ? "bad" : soft.length ? "warn" : "ok";
-      return `<div class="dh-row is-cron" data-tone="${rowState}">`
+        : waiting.length ? "待跑" : "正常";
+      const why = j.unmonitored ? _UNMONITORED_TEXT
+        : worst ? worst.note.text + (noted.length > 1 ? `（等 ${noted.length} 条）` : "")
+        : slots.map(s => s.at).join(" · ");
+      const lamps = slots.map(s => {
+        const tail = s.note ? `：${s.note.text}` : "";
+        return `<i class="dh-pip" data-tone="${CRON_STATES[s.state].tone}"`
+          + ` title="${escapeHtml(`${s.at} ${CRON_STATES[s.state].cn}${tail}`)}"></i>`;
+      }).join("");
+      const rowTone = j.unmonitored ? "idle"
+        : worst ? (worst.note.disposition === "needs_action" ? "bad" : "warn") : "ok";
+      return `<div class="dh-row is-cron" data-tone="${rowTone}">`
         + `<span class="dh-name">${escapeHtml(j.job)}</span>`
         + `<span class="dh-file">${escapeHtml(slots.length > 1 ? `${slots.length} 槽` : slots[0] ? slots[0].at : "")}</span>`
         + `<span class="dh-bar is-lamps">${lamps}</span>`
@@ -1086,7 +1127,6 @@
         + `<span class="dh-state">${escapeHtml(state)}</span></div>`;
     }).join("");
   }
-
   function renderDataHealth() {
     const root = document.getElementById("data-health");
     if (!root) return;
@@ -1240,7 +1280,7 @@
     ]);
 
     // 槽位轨：投递泳道之后紧接着的同一件事，加上时间轴。它不参与判词。
-    renderCronRail(safe(DATA, "cron_schedule"));
+    renderCronRail(safe(DATA, "cron_schedule"), new Date());
 
     // ── 判词只回答一件事：页面上的数字能不能信 ─────────────────────────
     // 数据面逾期 / 体检 ERROR 会让读者正在看的数字变旧或变错；一个任务
@@ -1307,6 +1347,13 @@
       jobsWith("failed").forEach(r => todo.push({
         name: r.job, where: r.slot, why: "成品未落地（final_product=failed）",
         next: "看 workflow-outcomes.json 里这一槽的 stages",
+      }));
+      // cron 今天的待办并进同一份清单——「你该做点什么」只该有一个地方，
+      // 不能轨道一份、这里再一份，读者要去两处对才能确认没漏。
+      cronNeedsAction(safe(DATA, "cron_schedule")).forEach(c => todo.push({
+        name: c.job, where: c.at, why: c.note.text,
+        next: c.note.disposition === "needs_action" && c.state === "missed"
+          ? "看 openclaw cron 有没有卡住" : "看 workflow-outcomes.json 这一槽的 stages",
       }));
       const todoRows = todo.length
         ? `<div class="dh-sub">处置 · 需处理</div>`
