@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-02T23:31:48.153471+00:00",
+  "generated_at": "2026-09-03T16:42:39.953388+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -11,277 +11,162 @@
     "musk": "success",
     "serenity": "failed"
   },
-  "llm_filtered": false,
+  "llm_filtered": true,
   "counts": {
-    "total": 40,
+    "total": 12,
     "held_hits": 0,
-    "new_ideas": 0,
+    "new_ideas": 6,
     "sector_hits": 0
   },
   "items": [
     {
       "author": "Musk",
-      "text": "Elon Musk Unmasked in Alex Gibney Documentary: “Insane a Person This Chaotic Has So Much Power”",
+      "text": "Elon Musk Says Google and Anthropic Turned to SpaceX For AI Compute Because Power is Tight, Says SPCX Built its Own Plants to Move Faster",
       "url": "",
-      "published": "Wed, 02 Sep 2026 13:00:21 GMT",
+      "published": "Thu, 03 Sep 2026 15:01:04 GMT",
       "origin": "gnews-rss",
-      "source": "The Hollywood Reporter",
-      "tickers": [],
+      "source": "Yahoo Finance",
+      "tickers": [
+        "GOOGL"
+      ],
       "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "new_ideas": [
+        "GOOGL"
+      ],
+      "sectors": [
+        "AI",
+        "航天",
+        "电力/能源"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 88,
+      "summary_cn": "马斯克称Google和Anthropic因电力紧张转向SpaceX求AI算力，并称SPCX自建电厂提速；强化SpaceX AI算力叙事(直接利好SPCX/SPCH)。"
+    },
+    {
+      "author": "Trump",
+      "text": "Nvidia, Wall Street Firms Strike AI Financing Deal Targeting $500 Billion: https://www.wsj.com/business/deals/nvidia-wall-street-firms-strike-ai-financing-deal-targeting-500-billion-c50377db",
+      "url": "https://trumpstruth.org/statuses/41459",
+      "published": "2026-09-01T19:39:33+00:00",
+      "origin": "truthsocial",
+      "tickers": [
+        "NVDA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "NVDA"
+      ],
+      "sectors": [
+        "AI",
+        "半导体",
+        "金融"
+      ],
+      "sector_holdings": [
+        "SKHY"
+      ],
+      "stance": "endorse",
+      "relevance": 88,
+      "summary_cn": "特朗普转发英伟达联合华尔街机构达成5000亿美元AI融资交易，看多AI基建主题。"
+    },
+    {
+      "author": "Trump",
+      "text": "NVIDIA AI Factory Compute Is Becoming an Investable Asset Class: https://x.com/JensenHuang/article/2086934705207959965",
+      "url": "https://trumpstruth.org/statuses/41460",
+      "published": "2026-09-01T19:39:26+00:00",
+      "origin": "truthsocial",
+      "tickers": [
+        "NVDA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "NVDA"
+      ],
+      "sectors": [
+        "AI",
+        "半导体"
+      ],
+      "sector_holdings": [
+        "SKHY"
+      ],
+      "stance": "endorse",
+      "relevance": 80,
+      "summary_cn": "特朗普转发黄仁勋观点：英伟达AI算力工厂正成为可投资资产类别，强化AI主题。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk’s heterodox robotaxi philosophy gets put to the test",
+      "text": "SpaceX sweeteners: How did Louisiana lure Elon Musk’s rocket launch site to its coast?",
       "url": "",
-      "published": "Wed, 02 Sep 2026 12:00:00 GMT",
+      "published": "Tue, 01 Sep 2026 16:15:45 GMT",
       "origin": "gnews-rss",
-      "source": "The Verge",
-      "tickers": [],
+      "source": "Louisiana Illuminator",
+      "tickers": [
+        "SPC"
+      ],
       "held": [],
-      "new_ideas": [],
+      "new_ideas": [
+        "SPC"
+      ],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
       "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "relevance": 78,
+      "summary_cn": "马斯克/媒体讨论路易斯安那州如何吸引SpaceX发射场落地，利好SpaceX生态(SPCX/SPCH持仓)。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk Wants to Make Power-Turbine Components. It Won’t Be Easy.",
+      "text": "Tesla’s Impossible Comeback",
       "url": "",
-      "published": "Wed, 02 Sep 2026 09:30:00 GMT",
+      "published": "Thu, 03 Sep 2026 14:24:00 GMT",
       "origin": "gnews-rss",
-      "source": "WSJ",
-      "tickers": [],
+      "source": "24/7 Wall St.",
+      "tickers": [
+        "TSLA"
+      ],
       "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 72,
+      "summary_cn": "媒体标题'Tesla的不可逆回归'，叙事层面看多Tesla。"
     },
     {
       "author": "Musk",
-      "text": "SpaceX investors may be overlooking a major risk: There’s no replacing Elon Musk",
+      "text": "Elon Musk sends a strong message to Tesla and SpaceX investors",
       "url": "",
-      "published": "Wed, 02 Sep 2026 09:00:30 GMT",
+      "published": "Thu, 03 Sep 2026 11:37:00 GMT",
       "origin": "gnews-rss",
-      "source": "CNN",
-      "tickers": [],
+      "source": "thestreet.com",
+      "tickers": [
+        "TSLA"
+      ],
       "held": [],
-      "new_ideas": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
       "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "Apple Maps has just announced that it has changed the name of Lake Ontario to Lake America, so now that very important change of names, between Google Maps and Apple Maps, is complete, ratified, and binding. Thank you for your attention to this matter! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/41487",
-      "published": "2026-09-02T20:09:30+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "We have hundreds of happy construction workers in D.C. busily doing their job building the finest Ballroom/Military complex anywhere in the World. There is nothing like it, and never will be! It was a long, hard, fight in the Court System, but the winner is, as always under “TRUMP,” the U.S.A. Also, it is important to remember, the Ballroom is a 400 Million Dollar gift the America! President DJT",
-      "url": "https://trumpstruth.org/statuses/41485",
-      "published": "2026-09-02T14:36:22+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "Cheaper drugs, cheaper beef, cheaper gas. Trump lines up fall affordability before Labor Day: https://justthenews.com/government/white-house/cheaper-drugs-cheaper-beef-cheaper-gas-trump-lines-his-fall-affordability",
-      "url": "https://trumpstruth.org/statuses/41483",
-      "published": "2026-09-02T11:58:57+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "Beyond lowering drug prices, Trump ups national security by restoring America’s pharma supply chain: https://justthenews.com/government/white-house/drug-announcements-larger-impact-beyond-lower-prices-securing-americas",
-      "url": "https://trumpstruth.org/statuses/41484",
-      "published": "2026-09-02T11:58:40+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "I’m not trying to force Iran to the bargaining table, as ABC Fake News reported. I couldn’t care less if they sign a worthless, to them, agreement. I like our position now much better, with almost total control of the Hormuz Strait, and their economy totally collapsing. They are just playing out the inevitable. When are the Iranian people going to rise up and fight? President DJT",
-      "url": "https://trumpstruth.org/statuses/41477",
-      "published": "2026-09-02T01:13:08+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "Very productive and positive conversations were had today at the G20 Finance Ministers Meeting in Asheville. North Carolina is a GREAT State — Strong, resilient, and filled with incredible people. After Hurricane Helene, Sleepy Joe turned his back on this beautiful State, but as soon as I came into Office, I worked hard, and got everything done in record time. I NEVER forgot North Carolina, and never will. I WON BIG there three times, and North Carolinians know I will ALWAYS have their backs! Thank you to Secretary of the Treasury, Scott Bessent, who is working hard for us, and doing a fantast",
-      "url": "https://trumpstruth.org/statuses/41476",
-      "published": "2026-09-01T22:55:26+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "I just informed Governor Greg Abbott, of the GREAT State of Texas (who has my Complete and Total Endorsement for Re-Election!), that I am sending 50.5 Million Dollars to assist recovery efforts from the severe storms, winds, tornadoes, and flooding that hit them hard. Texas is a special place, and I will be back soon to support Governor Abbott, Lieutenant Governor Dan Patrick, Ken Paxton for U.S. Senate, and the entire ticket of Republican Candidates, who have my Complete and Total Endorsement. See you soon! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/41474",
-      "published": "2026-09-01T22:42:32+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "I just spoke with Governor Kelly Armstrong, of the beautiful State of North Dakota, and told him I am approving 3.4 Million Dollars for the severe storms, winds, and tornadoes they recently experienced. I love the people of North Dakota, which I won BIG all three times. MAGA! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/41473",
-      "published": "2026-09-01T22:34:44+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "I just informed Senator Roger Marshall, who has my Complete and Total Endorsement, that I am granting 13.2 Million Dollars and, separately, 7.3 Million Dollars, to help the wonderful people of Kansas recover from the TWO storms that hit their State this summer, causing severe winds, tornadoes, and flooding. Thank you for your attention to this matter! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/41472",
-      "published": "2026-09-01T22:29:08+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "I just informed Governor Mike Kehoe that I am approving 19.9 Million Dollars for the Great State of Missouri, in order to assist recovery efforts after the severe storms, winds, and flooding they have recently experienced. The people of Missouri are tough, smart, and truly Great Patriots — I will never let you down! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/41471",
-      "published": "2026-09-01T22:23:20+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "I just spoke with Governor Larry Rhoden, of the Great State of South Dakota, and informed him that I am approving 3.4 Million Dollars for severe storms, winds, tornadoes, and flooding. I am also granting 1.7 Million Dollars to the Oglala Sioux Tribe for severe storms, tornadoes, and flooding — I have asked the Governor to so inform the Tribe. South Dakota is a special place, which I won by Historic Margins, three times, and I will always deliver BIG for them! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/41470",
-      "published": "2026-09-01T22:18:07+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "It is my Great Honor to endorse America First Patriot, Ralph Alvarado, M.D., who is running to represent the incredible people of Kentucky’s 6th Congressional District.   A true friend to MAGA, Ralph was a featured Speaker at the 2016 Republican National Convention, and a Member of the National Hispanic Advisory Council for “TRUMP” – RALPH HAS BEEN WITH US FROM THE VERY BEGINNING! A very successful Family Physician, and former Kentucky State Senator, Ralph has dedicated his life to serving his Community. As your next Congressman, Ralph will fight tirelessly to Grow the Economy, Promote our Ama",
-      "url": "https://trumpstruth.org/statuses/41469",
-      "published": "2026-09-01T22:06:10+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "I just informed Andy Barr, who is running to be the next Senator from the incredible Commonwealth of Kentucky, that I am approving 9.1 Million Dollars for severe storms, winds, flooding, landslides, and mudslides, that they are recovering from. The Great People of Kentucky are resilient, smart, and tough, and I am with them all the way. Vote for Andy Barr — He has my Complete and Total Endorsement, and he will never let you down! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/41468",
-      "published": "2026-09-01T22:04:51+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "I just spoke to the future Senator (Hopefully!) from the Great State of Iowa, Ashley Hinson, and told her that I am approving 5 Million Dollars for the severe storms and flooding they recently experienced. I love Iowa, and won it BIG all three times, by Record Margins. Iowa will recover, FAST, and be stronger than ever before! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/41467",
-      "published": "2026-09-01T21:52:42+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "We are unleashing American Energy Dominance! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/41463",
-      "published": "2026-09-01T20:04:08+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "Communism is an INHUMAN ideology that has led to DEATH and DESTRUCTION around the World! I have been warning Americans about it for decades, and the threat to our Country has never been greater. Fortunately, Patriots Jack Posobiec and Joshua Lisec know how to fight back hard, and WIN. We must stop the SOCIALIST REVOLUTION. “Unhumans” is a fantastic book — Get your copy today! President DONALD J. TRUMP https://amzn.to/4qusHG2",
-      "url": "https://trumpstruth.org/statuses/41464",
-      "published": "2026-09-01T20:01:32+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "relevance": 70,
+      "summary_cn": "马斯克向Tesla和SpaceX投资者发表强力表态，间接利好马斯克系生态(SPCX/SPCH持仓关联)。"
     },
     {
       "author": "Trump",
@@ -292,9 +177,136 @@
       "tickers": [],
       "held": [],
       "new_ideas": [],
+      "sectors": [
+        "地缘政治",
+        "能源",
+        "国防"
+      ],
+      "sector_holdings": [],
       "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "relevance": 72,
+      "summary_cn": "特朗普宣布美军打击伊朗霍尔木兹海峡附近目标，重大地缘冲突直接影响油价与避险资产。"
+    },
+    {
+      "author": "Trump",
+      "text": "The United States is, as we speak, striking Iranian Targets near the Strait of Hormuz. The strikes are large and powerful, and in retaliation for the Iranians’ failed attempt at adding sea mines to the Strait, which currently has no mines (They have been completely removed or detonated!), and the Iranians shooting eight missiles, all successfully knocked down, at our Military Base in Jordan. If the failed Nation of Iran retaliates for this very justified attack, they will be hit again at a much harder and higher level, but it will not be the biggest attack of them all, that is waiting in the w",
+      "url": "https://trumpstruth.org/statuses/41445",
+      "published": "2026-09-01T17:25:46+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "地缘政治",
+        "能源",
+        "国防"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 72,
+      "summary_cn": "特朗普宣布美军打击伊朗目标(霍尔木兹海峡附近)，与第16条同一事件，仅保留更具细节的一条则此处降权；但仍为同事件，保留作为另一时间点佐证。实际合并保留一条即可。"
+    },
+    {
+      "author": "Trump",
+      "text": "I’m not trying to force Iran to the bargaining table, as ABC Fake News reported. I couldn’t care less if they sign a worthless, to them, agreement. I like our position now much better, with almost total control of the Hormuz Strait, and their economy totally collapsing. They are just playing out the inevitable. When are the Iranian people going to rise up and fight? President DJT",
+      "url": "https://trumpstruth.org/statuses/41477",
+      "published": "2026-09-02T01:13:08+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "地缘政治",
+        "能源",
+        "国防"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 65,
+      "summary_cn": "特朗普表态对伊朗谈判不感兴趣、强调控制霍尔木兹海峡，油价/地缘风险溢价升温。"
+    },
+    {
+      "author": "Trump",
+      "text": "Beyond lowering drug prices, Trump ups national security by restoring America’s pharma supply chain: https://justthenews.com/government/white-house/drug-announcements-larger-impact-beyond-lower-prices-securing-americas",
+      "url": "https://trumpstruth.org/statuses/41484",
+      "published": "2026-09-02T11:58:40+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "医疗保健",
+        "制药供应链"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 55,
+      "summary_cn": "特朗普将降低药价与恢复美国制药供应链挂钩，关乎国家医药自主。"
+    },
+    {
+      "author": "Trump",
+      "text": "We are unleashing American Energy Dominance! President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/41463",
+      "published": "2026-09-01T20:04:08+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "能源"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 55,
+      "summary_cn": "特朗普重申'美国能源主导'口号，能源板块政策红利叙事。"
+    },
+    {
+      "author": "Trump",
+      "text": "Cheaper drugs, cheaper beef, cheaper gas. Trump lines up fall affordability before Labor Day: https://justthenews.com/government/white-house/cheaper-drugs-cheaper-beef-cheaper-gas-trump-lines-his-fall-affordability",
+      "url": "https://trumpstruth.org/statuses/41483",
+      "published": "2026-09-02T11:58:57+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "能源",
+        "医疗保健"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 50,
+      "summary_cn": "特朗普强调秋季前实现药价、牛肉、汽油降价，涉及消费品/能源板块宏观叙事。"
+    }
+  ],
+  "held_hits": [],
+  "new_ideas": [
+    {
+      "author": "Musk",
+      "text": "Elon Musk Says Google and Anthropic Turned to SpaceX For AI Compute Because Power is Tight, Says SPCX Built its Own Plants to Move Faster",
+      "url": "",
+      "published": "Thu, 03 Sep 2026 15:01:04 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [
+        "GOOGL"
+      ],
+      "held": [],
+      "new_ideas": [
+        "GOOGL"
+      ],
+      "sectors": [
+        "AI",
+        "航天",
+        "电力/能源"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 88,
+      "summary_cn": "马斯克称Google和Anthropic因电力紧张转向SpaceX求AI算力，并称SPCX自建电厂提速；强化SpaceX AI算力叙事(直接利好SPCX/SPCH)。"
     },
     {
       "author": "Trump",
@@ -302,12 +314,24 @@
       "url": "https://trumpstruth.org/statuses/41459",
       "published": "2026-09-01T19:39:33+00:00",
       "origin": "truthsocial",
-      "tickers": [],
+      "tickers": [
+        "NVDA"
+      ],
       "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "new_ideas": [
+        "NVDA"
+      ],
+      "sectors": [
+        "AI",
+        "半导体",
+        "金融"
+      ],
+      "sector_holdings": [
+        "SKHY"
+      ],
+      "stance": "endorse",
+      "relevance": 88,
+      "summary_cn": "特朗普转发英伟达联合华尔街机构达成5000亿美元AI融资交易，看多AI基建主题。"
     },
     {
       "author": "Trump",
@@ -315,106 +339,97 @@
       "url": "https://trumpstruth.org/statuses/41460",
       "published": "2026-09-01T19:39:26+00:00",
       "origin": "truthsocial",
-      "tickers": [],
+      "tickers": [
+        "NVDA"
+      ],
       "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "new_ideas": [
+        "NVDA"
+      ],
+      "sectors": [
+        "AI",
+        "半导体"
+      ],
+      "sector_holdings": [
+        "SKHY"
+      ],
+      "stance": "endorse",
+      "relevance": 80,
+      "summary_cn": "特朗普转发黄仁勋观点：英伟达AI算力工厂正成为可投资资产类别，强化AI主题。"
     },
     {
-      "author": "Trump",
-      "text": "It is my Great Honor to endorse America First Patriot, Keith Faber, who is running to be the next Attorney General of the Incredible State of Ohio, a place I love and WON BIG in 2016, 2020, and 2024!   As the Highly Respected Ohio Auditor of State, and former President of the Ohio Senate, Keith has proven he has the Courage and Wisdom to deliver strong results for the incredible people of his fantastic State and Nation. As your next Attorney General, Keith will continue working tirelessly to Ensure LAW AND ORDER, Champion our Law Enforcement and First Responders, Support our Brave Military/Vet",
-      "url": "https://trumpstruth.org/statuses/41461",
-      "published": "2026-09-01T19:39:08+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
+      "author": "Musk",
+      "text": "SpaceX sweeteners: How did Louisiana lure Elon Musk’s rocket launch site to its coast?",
+      "url": "",
+      "published": "Tue, 01 Sep 2026 16:15:45 GMT",
+      "origin": "gnews-rss",
+      "source": "Louisiana Illuminator",
+      "tickers": [
+        "SPC"
+      ],
       "held": [],
-      "new_ideas": [],
+      "new_ideas": [
+        "SPC"
+      ],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
       "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "relevance": 78,
+      "summary_cn": "马斯克/媒体讨论路易斯安那州如何吸引SpaceX发射场落地，利好SpaceX生态(SPCX/SPCH持仓)。"
     },
     {
-      "author": "Trump",
-      "text": "It is my Great Honor to endorse America First Patriot, Warren Petersen, who is running to be the next Attorney General of the Wonderful State of Arizona!   As Arizona Senate President, Warren has proven he has the Courage and Wisdom to deliver strong results for the incredible people of his wonderful State and Nation. As your next Attorney General, Warren will continue fighting tirelessly to Ensure LAW AND ORDER, Champion our Law Enforcement and First Responders, Support our Military/Veterans, Safeguard our Elections, Keep our Border SECURE, Stop Migrant Crime, Uphold our Constitution, and Pro",
-      "url": "https://trumpstruth.org/statuses/41462",
-      "published": "2026-09-01T19:38:52+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
+      "author": "Musk",
+      "text": "Tesla’s Impossible Comeback",
+      "url": "",
+      "published": "Thu, 03 Sep 2026 14:24:00 GMT",
+      "origin": "gnews-rss",
+      "source": "24/7 Wall St.",
+      "tickers": [
+        "TSLA"
+      ],
       "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 72,
+      "summary_cn": "媒体标题'Tesla的不可逆回归'，叙事层面看多Tesla。"
     },
     {
-      "author": "Trump",
-      "text": "It is my Great Honor to endorse “MAGA” Mayes Middleton, who is running to be the next Attorney General of the Wonderful State of Texas, a place I love and WON BIG three times, including with 6.4 Million Votes in 2024 (The most Votes in History, BY FAR)!   As a 7th Generation Texan, dedicated Rancher, highly respected State Senator, and very successful President of Middleton Oil Company, Mayes has served the Lone Star State during a career “loaded up” with accolades and wins. Mayes has a great wife, Martha Ann, and four beautiful children. As your next Attorney General, Mayes will continue work",
-      "url": "https://trumpstruth.org/statuses/41452",
-      "published": "2026-09-01T19:33:40+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
+      "author": "Musk",
+      "text": "Elon Musk sends a strong message to Tesla and SpaceX investors",
+      "url": "",
+      "published": "Thu, 03 Sep 2026 11:37:00 GMT",
+      "origin": "gnews-rss",
+      "source": "thestreet.com",
+      "tickers": [
+        "TSLA"
+      ],
       "held": [],
-      "new_ideas": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
       "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "It is my Great Honor to endorse America First Patriot, Scott Singer, who is running to represent the incredible people of Florida’s 25th Congressional District!   A Proven Leader, Scott has served his Community as the Highly Respected Mayor of Boca Raton, and as a very successful Businessman, prior to running for Congress. His opponent, Jared Moskowitz, voted against NO TAX ON TIPS, NO TAX ON OVERTIME, and NO TAX ON SOCIAL SECURITY and, if he and the Dumocrats ever got in, all of these things would be terminated. He wants massive Tax Increases, Open Borders, Men playing in Women’s Sports, and ",
-      "url": "https://trumpstruth.org/statuses/41453",
-      "published": "2026-09-01T19:33:05+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "It is my Great Honor to endorse America First Patriot, Casey Askar, who is running to represent the tremendous people of Florida’s 22nd Congressional District!   A Brave U.S. Marine Corps Veteran, and now, as a successful Businessman, Casey has a Proven Record of Success — He is a WINNER! His opponent, Pia Dandiya, is a Radical Left Democrat who is opposed to NO TAX ON TIPS, NO TAX ON OVERTIME, and NO TAX ON SOCIAL SECURITY and, if she and the Dumocrats ever got in, all of these things will be terminated. She wants massive Tax Increases, Open Borders, Men playing in Women’s Sports, and Transge",
-      "url": "https://trumpstruth.org/statuses/41454",
-      "published": "2026-09-01T19:32:37+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "It is my Great Honor to endorse MAGA Warrior, Jim Schwartzel, who is running to represent the wonderful people of Florida’s 19th Congressional District!   A very successful Businessman, Civic Leader, and Conservative Activist, Jim has dedicated his life to serving his Community. In Congress, Jim will work tirelessly to Grow our Economy, Cut Taxes and Regulations, Promote MADE IN THE U.S.A., Champion American Energy DOMINANCE, Keep our Border SECURE, Stop Migrant Crime, Strengthen our Military/Veterans, Advance Election Integrity, and Defend our always under siege Second Amendment.   Jim Schwar",
-      "url": "https://trumpstruth.org/statuses/41455",
-      "published": "2026-09-01T19:32:19+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "It is my Great Honor to endorse America First Patriot, Mike Beltran, who is running to represent the tremendous people of Florida’s 14th Congressional District!   A Harvard Law School Graduate, and very successful Lawyer and Businessman, Mike knows the Wisdom and Courage required to uphold our Constitution, and promote LAW AND ORDER. His opponent, Kathy Castor, voted against NO TAX ON TIPS, NO TAX ON OVERTIME, and NO TAX ON SOCIAL SECURITY and, if she and the Dumocrats ever got in, all of these things would be terminated. She wants massive Tax Increases, Open Borders, Men playing in Women’s Sp",
-      "url": "https://trumpstruth.org/statuses/41456",
-      "published": "2026-09-01T19:31:45+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "relevance": 70,
+      "summary_cn": "马斯克向Tesla和SpaceX投资者发表强力表态，间接利好马斯克系生态(SPCX/SPCH持仓关联)。"
     }
   ],
-  "held_hits": [],
-  "new_ideas": [],
   "sector_hits": []
 }
