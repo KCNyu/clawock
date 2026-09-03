@@ -232,8 +232,13 @@ def aggregate_week(today=None):
                     plans.append({'date': d_str, 'data': plan})
 
     decisions = decision_v2.load_decisions()
+    # Both edges, like plans and snapshots above: the ledger is not windowed,
+    # so a lower bound alone lets every later episode into a past week's bundle
+    # (#1276 — reviewing 2026-W30 carried 54 episodes from after it, 167K of
+    # the 200K prompt budget, which pushed decision_metrics out of the payload).
+    week_start, week_end = start.isoformat(), today.isoformat()
     decision_episodes = [r for r in decision_v2.episode_representatives(decisions, 't1')
-                         if r.get('plan_date', '') >= start.isoformat()]
+                         if week_start <= r.get('plan_date', '') <= week_end]
 
     snapshots = []
     snapshot_records = []
