@@ -1144,6 +1144,76 @@ async function testVerdictDeckFillsItsBoxAndRanksGatesBySeverity(browser, base) 
 // 点名的位置从判词挪到了「投递」泳道（kcn 2026-09-01：「我也不知道该怎么看」
 // ⇒ 判词只回答「页面上的数字能不能信」，一个任务没落地不改变这个答案）。
 // 断言跟着挪，但要求不变：**不展开就能读到是哪一档、发生了什么**。
+async function testCronRailAccountsForEverySlotWithoutASecondVerdict(browser, base) {
+  // #1270 拆开这块牌的判据是「某个任务挂了」和「页面上的数字不可信」不能共用
+  // 一行判词。时刻表折进来时最容易犯的错就是给它再配一句判词 —— 于是同一件事
+  // 在一张牌上有两个说法。这里钉三件事：每个槽都有一根针、摘要里的分项加起来
+  // 等于总数（有计数没分母是同一个病）、以及降级不会把判词读成数字不可信。
+  const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const page = await context.newPage();
+  await stubLiveOrigin(page, {
+    patch: (name, json) => {
+      if (name !== "overview.json" && name !== "dashboard.json") return null;
+      json.build_status = json.build_status || {};
+      json.build_status.integrity = { error_count: 0, warn_count: 0 };
+      json.build_status.files = (json.build_status.files || []).map(f => ({
+        ...f, present: true, stale: false,
+      }));
+      json.workflow_outcomes = { counts: { success: 9, degraded: 1 }, degraded_slots: [] };
+      json.cron_schedule = {
+        date: "2026-09-03",
+        jobs: [
+          { job: "盘前深度简报", slots: [{ at: "08:03", state: "ok" }] },
+          { job: "盘中盯盘", slots: [
+            { at: "10:03", state: "degraded" }, { at: "10:33", state: "ok" },
+            { at: "14:03", state: "upcoming" },
+          ] },
+          { job: "Memory Dreaming Promotion", unmonitored: true,
+            slots: [{ at: "03:00", state: "unmonitored" }] },
+        ],
+      };
+      return json;
+    },
+  });
+  await page.goto(base, { waitUntil: "networkidle" });
+  await waitForData(page);
+  await page.waitForSelector("#data-health:not(.is-pending)", { timeout: 5000 });
+
+  const rail = await page.evaluate(() => ({
+    hidden: document.getElementById("dh-rail").hidden,
+    pips: document.querySelectorAll("#dh-rail-track .dh-pip").length,
+    summary: document.getElementById("dh-rail-name").textContent.trim(),
+    verdict: (document.getElementById("dh-verdict")
+      || document.getElementById("dh-title")).textContent.trim(),
+  }));
+
+  assert.equal(rail.hidden, false, "cron rail is hidden even though slots exist");
+  assert.equal(rail.pips, 5, `rail drew ${rail.pips} pips for 5 scheduled slots`);
+
+  const total = Number((rail.summary.match(/(\d+)\s*槽/) || [])[1]);
+  const parts = [...rail.summary.matchAll(/(\d+)\s*(落地|降级|没落地|进行中|待跑|账本看不到)/g)]
+    .filter(m => m[2] !== "落地" || true)
+    .reduce((sum, m) => sum + Number(m[1]), 0);
+  assert.equal(total, 5, `rail total says ${total}, expected 5`);
+  assert.equal(parts, total,
+    `rail breakdown sums to ${parts} but claims ${total} slots — a count with no denominator`);
+
+  // 一次降级不得把可信度那半读成存疑（#1270 的核心断言，折进来后仍须成立）。
+  assert.ok(rail.verdict.includes("页面数字可用"),
+    `a degraded cron slot moved the trust verdict: ${rail.verdict}`);
+
+  const cronRows = await page.evaluate(async () => {
+    document.getElementById("dh-toggle").click();
+    await new Promise(r => setTimeout(r, 50));
+    return [...document.querySelectorAll("#dh-files .dh-row.is-cron")]
+      .map(r => r.querySelector(".dh-name").textContent.trim());
+  });
+  assert.deepEqual(cronRows, ["盘前深度简报", "盘中盯盘", "Memory Dreaming Promotion"],
+    `逐项 is missing the per-job timetable rows: ${cronRows.join(", ")}`);
+
+  await context.close();
+}
+
 async function testDataHealthNamesTheDegradedSlotAndWeChatDrops(browser, base) {
   const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   const page = await context.newPage();
@@ -1250,6 +1320,7 @@ async function main() {
     await testHoldingsAndHeroNeverTruncate(browser, base);
     await testVerdictDeckFillsItsBoxAndRanksGatesBySeverity(browser, base);
     await testDataHealthNamesTheDegradedSlotAndWeChatDrops(browser, base);
+    await testCronRailAccountsForEverySlotWithoutASecondVerdict(browser, base);
   } finally {
     await browser.close();
     await new Promise(resolve => server.close(resolve));

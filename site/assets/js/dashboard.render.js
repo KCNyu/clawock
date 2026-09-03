@@ -364,7 +364,7 @@
   const TAB_RENDERERS = {
     hero: [
       renderTodayHighlights, renderHonesty, renderMarketSnapshot, renderCommandDeck,
-      renderDataHealth, renderCronSchedule, renderRiskGuardrail, renderOverviewSummaries, renderGoldDca,
+      renderDataHealth, renderRiskGuardrail, renderOverviewSummaries, renderGoldDca,
       setupVerdictDeck,
     ],
     drill: [
@@ -975,6 +975,118 @@
   // 否则「简报 FAILED」会把一屏可信的数字染成红的。
   // 判过期只认 f.stale —— files[] 有两种新鲜度模式（max_age 比 sla_hours，
   // scheduled_fire 比 deadline_at），自己再算一遍 age>sla 会造出一批假警报。
+  // ── 今天的槽位轨（数据健康牌的一部分，不是另一张牌）──
+  // 状态不在这里推导：dashboard.json 的 cron_schedule 已经是 workflow-outcomes
+  // 账本 final_product 的定论，这里只做「定论 → 颜色」。未知状态刻意落到
+  // unknown（灰）而不是绿 —— 新状态该被看见，不该被默认成好。
+  const CRON_STATES = {
+    ok:          { tone: "ok",      cn: "正常" },
+    recovered:   { tone: "ok-soft", cn: "兜底补上" },
+    degraded:    { tone: "warn",    cn: "降级送达" },
+    failed:      { tone: "bad",     cn: "未落地" },
+    missed:      { tone: "bad",     cn: "没跑" },
+    running:     { tone: "live",    cn: "进行中" },
+    upcoming:    { tone: "idle",    cn: "待跑" },
+    unmonitored: { tone: "idle",    cn: "账本看不到" },
+    unknown:     { tone: "idle",    cn: "状态未知" },
+  };
+  const cronState = s => (CRON_STATES[s] ? s : "unknown");
+
+  // 轨道按 24 小时刻度摆位（不是等距排列）：等距会把 10:03 和 21:33 画成邻居，
+  // 而「一整个下午没有槽」正是读者该看见的东西。
+  function renderCronRail(cs) {
+    const rail = document.getElementById("dh-rail");
+    if (!rail) return null;
+    const jobs = (cs && cs.jobs) || [];
+    if (!jobs.length) { rail.hidden = true; return null; }
+    rail.hidden = false;
+
+    const cells = [];
+    jobs.forEach(j => (j.slots || []).forEach(s => cells.push({
+      job: j.job, at: s.at, state: cronState(s.state), unmonitored: !!j.unmonitored,
+    })));
+    cells.sort((a, b) => a.at.localeCompare(b.at));
+
+    const counts = {};
+    cells.forEach(c => { counts[c.state] = (counts[c.state] || 0) + 1; });
+    const n = k => counts[k] || 0;
+
+    const nameEl = document.getElementById("dh-rail-name");
+    if (nameEl) {
+      const bits = [`${cells.length} 槽`];
+      const landed = n("ok") + n("recovered");
+      if (landed) bits.push(`${landed} 落地`);
+      if (n("recovered")) bits.push(`其中 ${n("recovered")} 靠兜底`);
+      if (n("degraded")) bits.push(`${n("degraded")} 降级`);
+      if (n("failed") + n("missed")) bits.push(`${n("failed") + n("missed")} 没落地`);
+      if (n("running")) bits.push(`${n("running")} 进行中`);
+      if (n("upcoming")) bits.push(`${n("upcoming")} 待跑`);
+      // 账本看不到的那些也要报出来，否则「26 槽」后面跟的分项加起来只有 25，
+      // 剩下的那一个无人认领 —— 有计数没分母正是 #1270 拆这块牌的病因之一。
+      if (n("unmonitored")) bits.push(`${n("unmonitored")} 账本看不到`);
+      nameEl.textContent = `今天 · ${bits.join(" · ")}`;
+    }
+
+    const keysEl = document.getElementById("dh-rail-keys");
+    if (keysEl) {
+      // 图例只列今天真的出现过的状态。把「没跑」常驻在图例里，会让一个全绿的
+      // 早晨看起来也有红色可言。
+      const seen = ["ok", "recovered", "degraded", "failed", "missed", "running",
+                    "upcoming", "unmonitored"].filter(k => n(k));
+      keysEl.innerHTML = seen.map(k =>
+        `<span class="dh-rail-key"><i class="dh-pip" data-tone="${CRON_STATES[k].tone}"></i>`
+        + `${escapeHtml(CRON_STATES[k].cn)}</span>`).join("");
+    }
+
+    const track = document.getElementById("dh-rail-track");
+    if (track) {
+      track.innerHTML = cells.map(c => {
+        const [h, m] = c.at.split(":").map(Number);
+        const left = ((h * 60 + m) / 1440) * 100;
+        const label = `${c.job} ${c.at} ${CRON_STATES[c.state].cn}`;
+        return `<i class="dh-pip is-slot" data-tone="${CRON_STATES[c.state].tone}"`
+          + `${c.unmonitored ? ' data-unmonitored="1"' : ""}`
+          + ` style="left:${left.toFixed(3)}%" title="${escapeHtml(label)}"></i>`;
+      }).join("");
+    }
+    return { cells, counts };
+  }
+
+  // 逐项里的一组：沿用这张牌已有的 .dh-row 语法（名/位置/条/说明/状态五列），
+  // 灯就放在 .dh-bar 那一列 —— 不另发明一张表。
+  function cronScheduleRows(cs) {
+    const jobs = (cs && cs.jobs) || [];
+    if (!jobs.length) return "";
+    return `<div class="dh-sub">定时任务 · 今天每槽</div>` + jobs.map(j => {
+      const slots = (j.slots || []).map(s => ({ ...s, state: cronState(s.state) }));
+      const bad = slots.filter(s => ["failed", "missed"].includes(s.state));
+      const soft = slots.filter(s => ["degraded", "recovered"].includes(s.state));
+      const waiting = slots.filter(s => ["upcoming", "running"].includes(s.state));
+      const state = j.unmonitored ? "账本看不到"
+        : bad.length ? `${bad.length} 没落地`
+        : soft.length ? `${soft.length} ${CRON_STATES[soft[0].state].cn}`
+        : waiting.length && waiting.length < slots.length ? "已跑的正常"
+        : waiting.length ? "待跑"
+        : "正常";
+      const why = j.unmonitored
+        ? "这个 job 没有 harness，账本永远不会有它的记录"
+        : (bad.length || soft.length
+            ? [...bad, ...soft].slice(0, 3)
+                .map(s => `${s.at} ${CRON_STATES[s.state].cn}`).join(" · ")
+            : slots.map(s => s.at).join(" · "));
+      const lamps = slots.map(s =>
+        `<i class="dh-pip" data-tone="${CRON_STATES[s.state].tone}"`
+        + ` title="${escapeHtml(`${s.at} ${CRON_STATES[s.state].cn}`)}"></i>`).join("");
+      const rowState = j.unmonitored ? "idle" : bad.length ? "bad" : soft.length ? "warn" : "ok";
+      return `<div class="dh-row is-cron" data-tone="${rowState}">`
+        + `<span class="dh-name">${escapeHtml(j.job)}</span>`
+        + `<span class="dh-file">${escapeHtml(slots.length > 1 ? `${slots.length} 槽` : slots[0] ? slots[0].at : "")}</span>`
+        + `<span class="dh-bar is-lamps">${lamps}</span>`
+        + `<span class="dh-detail">${escapeHtml(why)}</span>`
+        + `<span class="dh-state">${escapeHtml(state)}</span></div>`;
+    }).join("");
+  }
+
   function renderDataHealth() {
     const root = document.getElementById("data-health");
     if (!root) return;
@@ -1127,6 +1239,9 @@
       { k: "idle", n: pending, t: "进行中" },
     ]);
 
+    // 槽位轨：投递泳道之后紧接着的同一件事，加上时间轴。它不参与判词。
+    renderCronRail(safe(DATA, "cron_schedule"));
+
     // ── 判词只回答一件事：页面上的数字能不能信 ─────────────────────────
     // 数据面逾期 / 体检 ERROR 会让读者正在看的数字变旧或变错；一个任务
     // FAILED 不会 —— 它影响的是成品有没有送出去与有没有归档。两者混成
@@ -1222,7 +1337,8 @@
             : "")
         : "";
 
-      filesEl.innerHTML = todoRows + deliveryRows + `<div class="dh-sub">数据面</div>` + files
+      const cronRows = cronScheduleRows(safe(DATA, "cron_schedule"));
+      filesEl.innerHTML = todoRows + cronRows + deliveryRows + `<div class="dh-sub">数据面</div>` + files
         .slice()
         .sort((a, b) => usage(b) - usage(a))
         .map(f => {
@@ -1247,93 +1363,6 @@
         toggle.textContent = open ? "收起" : "逐项";
         if (filesEl) filesEl.hidden = !open;
       });
-    }
-  }
-
-  // ── 定时任务时刻表 ──
-  // 每槽一枚灯。状态不在这里推导：dashboard.json 的 cron_schedule 里已经是
-  // workflow-outcomes 账本 final_product 的定论，前端只做「定论 → 颜色」的映射。
-  // 未知状态刻意落到 unknown（灰）而不是绿——新状态该被看见，不该被默认成好。
-  const CRON_STATES = {
-    ok:          { tone: "ok",      cn: "正常" },
-    recovered:   { tone: "ok-soft", cn: "兜底补上" },
-    degraded:    { tone: "warn",    cn: "降级送达" },
-    failed:      { tone: "bad",     cn: "未落地" },
-    missed:      { tone: "bad",     cn: "没跑" },
-    running:     { tone: "live",    cn: "进行中" },
-    upcoming:    { tone: "idle",    cn: "待跑" },
-    unmonitored: { tone: "idle",    cn: "账本看不到" },
-    unknown:     { tone: "idle",    cn: "状态未知" },
-  };
-
-  function renderCronSchedule() {
-    const root = document.getElementById("cron-board");
-    if (!root) return;
-    const cs = safe(DATA, "cron_schedule");
-    const jobs = (cs && cs.jobs) || [];
-    if (!jobs.length) { root.hidden = true; return; }
-    root.hidden = false;
-    root.classList.remove("is-pending");
-
-    const rowsEl = document.getElementById("cb-rows");
-    const counts = {};
-    let scheduled = 0;
-    jobs.forEach(j => (j.slots || []).forEach(s => {
-      const key = CRON_STATES[s.state] ? s.state : "unknown";
-      counts[key] = (counts[key] || 0) + 1;
-      if (key !== "unmonitored") scheduled += 1;
-    }));
-    const n = k => counts[k] || 0;
-    const landed = n("ok") + n("recovered");
-    const broken = n("failed") + n("missed");
-
-    // 判词只说落地了多少、坏了多少。把「兜底补上」单列，因为它和「首次即成」
-    // 是两件事：都送到了，但一个烧掉了一次尝试。
-    // 判词只能说到证据为止：有降级就不许说「正常」，有兜底就点出来——都送到了，
-    // 但一个是首次即成、一个烧掉了一次尝试，混成一句话就把区别抹掉了。
-    const verdictEl = root.querySelector(".cb-verdict");
-    if (verdictEl) {
-      verdictEl.textContent =
-        broken ? `${broken} 槽没落地`
-        : n("degraded") ? `${n("degraded")} 槽降级送达`
-        : n("recovered") ? `${n("recovered")} 槽靠兜底补上`
-        : (n("upcoming") + n("running") ? "已跑的都正常" : "今天全部正常");
-    }
-    root.dataset.tone = broken ? "bad" : (n("degraded") || n("recovered") ? "warn" : "ok");
-
-    const bits = [];
-    if (landed) bits.push(`${landed} 落地`);
-    if (n("recovered")) bits.push(`其中 ${n("recovered")} 靠兜底`);
-    if (n("degraded")) bits.push(`${n("degraded")} 降级`);
-    if (broken) bits.push(`${broken} 没落地`);
-    if (n("running")) bits.push(`${n("running")} 进行中`);
-    if (n("upcoming")) bits.push(`${n("upcoming")} 待跑`);
-    const metaEl = document.getElementById("cb-meta");
-    if (metaEl) {
-      metaEl.textContent = `${cs.date || ""} · 共 ${scheduled} 槽` +
-        (bits.length ? ` · ${bits.join(" · ")}` : "");
-    }
-
-    const legendEl = document.getElementById("cb-legend");
-    if (legendEl) {
-      legendEl.innerHTML = ["ok", "recovered", "degraded", "missed", "upcoming"]
-        .map(k => `<span class="cb-key"><i class="cb-dot" data-tone="${CRON_STATES[k].tone}"></i>`
-          + `${escapeHtml(CRON_STATES[k].cn)}</span>`).join("");
-    }
-
-    if (rowsEl) {
-      rowsEl.innerHTML = jobs.map(j => {
-        const slots = (j.slots || []).map(s => {
-          const st = CRON_STATES[s.state] ? s.state : "unknown";
-          const label = `${j.job} ${s.at} ${CRON_STATES[st].cn}`;
-          return `<span class="cb-slot" data-tone="${CRON_STATES[st].tone}" title="${escapeHtml(label)}"`
-            + ` aria-label="${escapeHtml(label)}"><i class="cb-dot" data-tone="${CRON_STATES[st].tone}"></i>`
-            + `${escapeHtml(s.at)}</span>`;
-        }).join("");
-        return `<div class="cb-row"${j.unmonitored ? ' data-unmonitored="1"' : ""}>`
-          + `<span class="cb-job">${escapeHtml(j.job)}</span>`
-          + `<span class="cb-slots">${slots}</span></div>`;
-      }).join("");
     }
   }
 
