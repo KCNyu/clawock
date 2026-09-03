@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-02T16:55:19.120953",
+  "generated_at": "2026-09-03T16:45:35.368244",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -15,7 +15,7 @@
       "SPCH"
     ]
   },
-  "digest_markdown": "## kcn US holdings — 48h digest\n\n### Top 跨 ticker 移动信号\n- **CRCL**: Cathie Wood 减持 PLTR $26M，转入 Block + Circle，背景是 BTC/ETH 全面反弹 — kcn 的 CRCL 直仓获机构资金流入背书，crypto beta 持续走强。\n- **RKLB (held via RKLX, 2x)**: Blue Origin 抢走 NASA $700M Mars 通讯 orbiter 合约 — 单一合约失标，叙事打击明显；RKLX 会把这一负面放大约 2 倍。\n- **RKLB (held via RKLX, 2x)**: 第 94 次 Electron 发射成功（Synspective \"Owl Around The World\"）+ YTD +43.7% — 执行节奏稳定，部分对冲合约失分。\n- **SPCX (held via SPCH, 2x)**: GitLab 财报后大涨但分析师喊\"还不是买点\"，3 个月已 +46% — 若 SPCH 篮子含 GTLB，SPCH 会把\"涨多回吐\"风险 2x 化。\n- **Memory/AI 主题 (SKHY 间接相关)**: Micron 看多 (2028 supply risk fading) vs Penguin Solutions 遭降评 — 内存景气看法分化，AI capex 主线未破但周期末段风险上升。\n\n### Per-ticker 简报\n- **CRCL**: ARK 主动加码 + crypto rally 双驱动 — 持仓短期 momentum 偏多。\n- **RKLB**: 94th launch 顺利但 NASA Mars 合约输给 Blue Origin — 利空大于利好，期权 IV 短期或上行。\n- **SPCX**: 篮子主题（MANGOS、AI datacenter spend）继续被卖方推 — 顺风，但 GitLab 估值警示意味追高谨慎。\n- **SKHY**: 48h 无 ticker-direct catalyst；命中的均为 memory/AI/Tesla 主题外溢 — 对持仓净影响中性，无动作依据。\n\n### Risk watch\n- RKLB 失标 NASA Mars 通讯合约 → 政府订单竞争加剧信号。\n- GitLab \"not a buy\" +3m +46% → SPCH 篮子内若含 GTLB，追高回撤风险。\n- Penguin Solutions 降评至 Sell → 内存周期高位疑虑，需监控 SKHY 敞口是否承压。\n- CRCL 与 BTC/ETH 高联动 → 加密盘整会直接拖累。",
+  "digest_markdown": "## Top 移动信号 (跨 ticker 排序)\n\n- **RKLB → RKLX**: 太空板块系统性杀估值 — LUNR 3 个月 -46.4%, RKLB 同期 ~-49%, Planet Labs 拿到欧洲国防合约仍跌 8%. kcn 持有的是 **RKLX (2x)**, 板块 beta 下跌会被双倍放大; 临近财报, 板块情绪脆弱\n- **SPCX → SPCH**: SpaceX 垂直整合冲击 Howmet (HWM) — SpaceX 开始自产燃气涡轮叶片, 从客户变竞争对手, 同时向 Google / Anthropic 输出 AI 算力. kcn 持有的是 **SPCH (2x)**, SpaceX 护城河加深为正, 但 HWM 类邻标承压会拖累板块情绪\n- **SPCX → SPCH**: Starship Test 14 数日内发射, 是 SPCH 近期最大 binary catalyst. **2x 杠杆意味着发射成功/失败都会造成极端日内波动**\n- **SKHY**: HBM 市占 ~50% 稳固, HBF / HBS 新形态内存叙事升温 — AI 内存结构性受益方, 直接持仓正面\n- **CRCL**: BTC 急涨带动 CRCL 跟涨, 纯粹 beta 行情, 非独立 alpha\n\n## Per-ticker 简报\n\n- **CRCL**: BTC 拉升 + 数字资产板块情绪修复, 短线跟涨 — 与 BTC 高度同步, 无独立催化剂\n- **RKLB** (via **RKLX** 2x): 3 个月 -49%, 已签史上最大发射合约但市场不买; 核心风险 = Neutron 尚未首飞 + 现金消耗前置. **RKLX 2x 会把任何财报 / Neutron 进展放大 2 倍**\n- **SPCX** (via **SPCH** 2x): 三重催化剂叠加 — AI 算力对外租赁 / Starship 14 号试验数日内 / 自研涡轮叶片挤压供应链对手. **SPCH 2x 杠杆, Starship 结果决定短期方向**\n- **SKHY**: HBM 龙头叙事 + HBF / HBS 新品类布局, SeekingAlpha 看多基调, 直接持仓无需杠杆\n\n## 风险 watch\n\n- **内存周期见顶信号**: Micron Q4 财报面临\"impossible expectations\" + Penguin Solutions 因周期性盈利被降级. 若 MU 财报 miss, SKHY 短期回调风险高\n- **太空板块 pre-earnings 杀估值**: LUNR / RKLB / Planet 同步走弱, 若今晚财报再爆雷, RKLX 2x 下行风险显著\n- **Starship Test 14 binary event**: 数日内, SPCH (2x) 持仓需提前评估波动承受度\n- **大额减持信号**: Cathie Wood 减持 4 万股 Shopify (不在持仓), 反映 ARK 在 8 月 25% 涨幅后获利了结, 关注同类成长股情绪外溢",
   "raw_news_counts": {
     "CRCL": 2,
     "RKLB": 5,
@@ -25,129 +25,129 @@
   "raw_news_evidence": {
     "CRCL": [
       {
-        "headline": "Cathie Wood Dumps Palantir Shares Worth $26 Million, Bets on Bitcoin-Linked Block and USDC-Issuer Circle Amid Crypto Rally",
-        "datetime": 1788216918,
+        "headline": "Circle Stock Surges Thursday: What's Happening?",
+        "datetime": 1788434402,
         "source": "Benzinga",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=78e7be433f4d54232695ab9d31ab986f864dc93db632692002e2668cc170a4ef"
+        "url": "https://finnhub.io/api/news?id=7c1aeadfe2fd040b9565063e49dcb5dbf2ec9360e683a209eed4f7fc5019756f"
       },
       {
-        "headline": "10 Information Technology Stocks Whale Activity In Today’s Session",
-        "datetime": 1788183348,
+        "headline": "Summit Therapeutics, HUTCHMED, Tesla And Other Big Stocks Moving Higher On Thursday",
+        "datetime": 1788429293,
         "source": "Benzinga",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=fb575e87af9b8cbb3b728c43f2d9c449c0c414b37b1810b534ad42f0fff78134"
+        "url": "https://finnhub.io/api/news?id=78b6e6a3545db6bc88953d4060180499490462c852822786b036f43f6e7a62a8"
       }
     ],
     "RKLB": [
       {
-        "headline": "Rocket Lab Surges 43.7% in a Year: Is There More Room to Run?",
-        "datetime": 1788361020,
+        "headline": "LUNR Falls 46.4% in 3 Months. Is the Sell-Off a Buying Opportunity?",
+        "datetime": 1788450000,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=a6f7bb6fd225743116df9142c191f16c0701bcff3a212b80a9ddf459e29fbfd1"
+        "url": "https://finnhub.io/api/news?id=7002117a55637922023ede508df4ced428d39d10e0fb97f2ba2e90b63abbef71"
       },
       {
-        "headline": "3 Drone Tech Stocks Well-Positioned for Long-Term Growth",
-        "datetime": 1788360900,
+        "headline": "How Long Can Rocket Lab Stock Wait On Neutron?",
+        "datetime": 1788448109,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=ba3701ba6779b6c3ad63c2ec3b8e0bf08588ab1de627c7a236c204e39cc68312"
+        "url": "https://finnhub.io/api/news?id=1af6470c7319f688b5fa447db91d92b931edf9a0314ded0f261fa5144172900a"
+      },
+      {
+        "headline": "Planet Labs Sinks 8% Despite New Defense Contract, Intuitive Machines Pulls Back, AST SpaceMobile Sits Out Broad-Market Rally",
+        "datetime": 1788448026,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=acd8fd188f7a90fd4f684a99a8a933f997ce77344e4397dcd1a5292e50736f6a"
       },
       {
         "headline": "A Guide to Space ETF Investment",
-        "datetime": 1788360180,
+        "datetime": 1788441780,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=c69f29df355f4fa362a73bcf9048debfe93cfa66034652252ace146b69dc0474"
+        "url": "https://finnhub.io/api/news?id=c9c7321dbfd625adf567494cccb9c9090c48ef0b3161629d15766612324bde13"
       },
       {
-        "headline": "Blue Origin Beats Rocket Lab, Wins $700 Million Mars Communications Contract",
-        "datetime": 1788358740,
-        "source": "Yahoo",
+        "headline": "Cathie Wood Trims 40K Shopify Shares After August Rally: Where ARK Is Reinvesting?",
+        "datetime": 1788430420,
+        "source": "Benzinga",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=36ab9511eb012591ca61e78c2e4fd0da7d25e091d42fc788361515e362d6ce99"
-      },
-      {
-        "headline": "MISSION SUCCESS: Rocket Lab Launches 94th Electron Mission",
-        "datetime": 1788357960,
-        "source": "Yahoo",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=d2efb667721a90f9ba11c2e5e2bd2e8a93330ce44eac67c32c2e96dd06afe8cd"
+        "url": "https://finnhub.io/api/news?id=52b0c5cc9265ada4adb29f6799dbfeab761349bd03a8b961caa80d80db7e86c5"
       }
     ],
     "SPCX": [
       {
-        "headline": "MANGOS ETFs: The Next Big AI Tech Investing Theme",
-        "datetime": 1788361200,
+        "headline": "Why Is SpaceX (SPCX) Up 30% Since Last Earnings Report?",
+        "datetime": 1788449424,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=fc29396f8bf8629913d35b8fb5583ced6c8212c0c34fd38f98c9131bd5e4c098"
+        "url": "https://finnhub.io/api/news?id=fb744717a0614cc370682eca4918696d40a68feb4fafbb9867ce9d536072c793"
       },
       {
-        "headline": "GitLab Stock Soars After Earnings. It’s Still Not a Buy, Analyst Says.",
-        "datetime": 1788360960,
+        "headline": "Elon Musk Says Google and Anthropic Turned to SpaceX For AI Compute Because Power is Tight, Says SPCX Built its Own Plants to Move Faster",
+        "datetime": 1788447664,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=0e23b824cb2e8a4b780fa93cf197862c41fd2a2ff18e56ac26bcad5ccaf56a41"
+        "url": "https://finnhub.io/api/news?id=af419a9ae2abc900503bcfa80d1bd19907499e413758ccc773f2383fa8355720"
       },
       {
-        "headline": "4 Stocks to Buy Now to Ride the AI Data Center Spending Boom",
-        "datetime": 1788360720,
+        "headline": "Elon Musk sends a strong message to Tesla and SpaceX investors",
+        "datetime": 1788446220,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=e59b437f7c611781eedb4a687a630a6d991f3469db1b4c4506059fb83c9bc072"
+        "url": "https://finnhub.io/api/news?id=d62fe39f90811baac0c7824beb6babdcf771b22ebe20f589639a3614dbea03cc"
       },
       {
-        "headline": "Here's What $1,000 in Visa Stock at Its IPO Would Be Worth Today",
-        "datetime": 1788360240,
+        "headline": "SpaceX Starship Test 14 Could Be Days Away. Why the Stock Needs It to Go Well.",
+        "datetime": 1788446040,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=f2f241c200b32a0df8fc046bab1545bdd6ca06ebfeda66a556267e46c6164c5d"
+        "url": "https://finnhub.io/api/news?id=b23437dabf316ffb67110fb41632f3611962c1a2c6c4063e6af1da951e21225f"
       },
       {
-        "headline": "A Guide to Space ETF Investment",
-        "datetime": 1788360180,
+        "headline": "Howmet Aerospace (HWM) Is Facing New Competition In Gas Turbine Blade Casting",
+        "datetime": 1788444668,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=c69f29df355f4fa362a73bcf9048debfe93cfa66034652252ace146b69dc0474"
+        "url": "https://finnhub.io/api/news?id=f53fcb3d159411b05009dadc0e1b0f71daa40a72621007954fca0b6612a4aada"
       }
     ],
     "SKHY": [
+      {
+        "headline": "SK hynix: The HBF And HBS Bet You Don't Want To Miss",
+        "datetime": 1788438281,
+        "source": "SeekingAlpha",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=887796fea0fb412bbf9e14f53a892de6de1d46e74c92a87c9d2fdac2a82d8960"
+      },
+      {
+        "headline": "Micron: The Q4 Report Has Impossible Expectations",
+        "datetime": 1788437197,
+        "source": "SeekingAlpha",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=19eb02e94fa6c07886ea41aab03064d9f8338ea46d928c165a3aa75b6af41036"
+      },
+      {
+        "headline": "NetApp, Hewlett Packard Enterprise And Other Big Stocks Moving Lower In Thursday’s Pre-Market Session",
+        "datetime": 1788422523,
+        "source": "Benzinga",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=90cad7999b172d6267658f46259c5302a7c0070150839dfc04b4a629a7ae2bf6"
+      },
+      {
+        "headline": "AGIX Vs. CHAT: I'm Buying The Loser",
+        "datetime": 1788406597,
+        "source": "SeekingAlpha",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=7861a469391d2e4332d86912e29f5d04d1349175d52c37120bddef2dcf2ca53f"
+      },
       {
         "headline": "Penguin Solutions: Not A Good Way To Invest In Memory (Downgrade)",
         "datetime": 1788352261,
         "source": "SeekingAlpha",
         "origin": "finnhub",
         "url": "https://finnhub.io/api/news?id=32332e82fdb180d45db4b70289e5b43abcc87c0fbed5490cdd99c6992bbaee70"
-      },
-      {
-        "headline": "Gary Black Warns Tesla Risks Falling Behind in the Self-Driving Race: ‘Unsupervised Autonomy Is Becoming Table Stakes’",
-        "datetime": 1788328999,
-        "source": "Benzinga",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=6e591822ce09b7c8100a511f19676d86b07e0ba8ecafac31e918e668b3b1a4b9"
-      },
-      {
-        "headline": "Dell CEO Jeff Clarke Reveals AI Boom Runs on Endless Scrambling for Scarce Parts: 'This Is What We Do' and 'We Love It'",
-        "datetime": 1788312728,
-        "source": "Benzinga",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=6a6414115d630214eb6364bc3f100a7921b4d2f26fc11ec699e7b7146d22c734"
-      },
-      {
-        "headline": "Micron's 2028 Risk Is Fading",
-        "datetime": 1788280086,
-        "source": "SeekingAlpha",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=f17e4c86b9a7c4fcadd84e37fe97046890daafa28811e9553150962101dbb76e"
-      },
-      {
-        "headline": "Under the Radar: 5 Stocks Riding Asia's Next Growth Wave",
-        "datetime": 1788267430,
-        "source": "Benzinga",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=6c0f6f0cfb4f5e2e46c383a0c468347eeea7e8a97537de1879b91cfe25c7f988"
       }
     ]
   },
