@@ -281,6 +281,12 @@ def compile_overview_projection(dashboard):
             )),
             'recent': compact_recent,
         },
+        # Passed through whole rather than field-picked: it is already the
+        # folded shape (~1.4 KB) and every key is one the panel draws. The two
+        # comments above are what a field-picked projection costs — a card on
+        # the critical path printing a count with no denominator because the
+        # projection quietly dropped the field that carried it.
+        'cron_schedule': dashboard.get('cron_schedule'),
         'risk_guardrail': {
             **_fields(guardrail, (
                 'computed', 'error', 'breach_count', 'directive',
@@ -3276,6 +3282,23 @@ def compute_workflow_outcomes():
         return None
 
 
+def compute_cron_schedule():
+    """Today's cron timetable for the schedule panel, or None if unavailable.
+
+    Fail-soft on purpose: an unreadable contract or ledger costs the panel, never
+    the build. The card then hides, which is what every other optional workspace
+    input here does.
+    """
+    try:
+        from clawock.publish.cron_schedule import timetable  # noqa: PLC0415
+        from clawock.scheduling import load_contract  # noqa: PLC0415
+        payload = load_json(WS_ROOT / 'assets' / 'data' / 'workflow-outcomes.json')
+        return timetable(load_contract(), (payload or {}).get('records', []))
+    except Exception as e:
+        print(f'  warn: cron schedule panel failed: {e}', file=sys.stderr)
+        return None
+
+
 def parse_args(argv=None):
     parser = argparse.ArgumentParser(
         description='Build the public dashboard payloads from the workspace.')
@@ -3646,6 +3669,15 @@ def build_projection(previous_source=None, shadow_previous=None):
     out['workflow_outcomes'] = compute_workflow_outcomes()
     _presence['workflow_outcomes'] = bool(
         (out.get('workflow_outcomes') or {}).get('recent'))
+
+    # Today's timetable, one light per slot. Built from the same ledger the card
+    # above folds — the panel must not develop a second opinion about whether a
+    # slot landed — joined against the tracked contract for what SHOULD have run.
+    # ~1.4 KB, kept inside dashboard.json rather than published as a new output:
+    # the outputs contract, the fingerprint list and the root allowlist would all
+    # have to agree about a new file, and none of that buys the reader anything.
+    out['cron_schedule'] = compute_cron_schedule()
+    _presence['cron_schedule'] = bool((out.get('cron_schedule') or {}).get('jobs'))
 
     # ── LLM narrative sidecars (agent-written in Step 3; text-only, no keys) ──
     # Each sidecar is validated (validate_insights / validate_intraday_insights)

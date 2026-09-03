@@ -116,3 +116,17 @@ def test_a_day_the_job_does_not_fire_produces_no_row():
     ledger = [_record('2026-09-05T09:33:00+08:00', 'success', job='港股开盘报告')]
 
     assert timetable(_contract(), ledger, now=saturday)['jobs'] == []
+
+
+def test_the_overview_projection_carries_the_timetable():
+    """The first screen reads overview.json, not dashboard.json.
+
+    A projection that drops the key renders an empty card forever and nothing
+    fails — the same shape as the `window_hours` and `wechat_dropped_*` fields
+    this file's neighbours had to add back after the card went out without them.
+    """
+    from clawock.publish.dashboard import compile_overview_projection
+
+    projected = compile_overview_projection({'cron_schedule': {'jobs': [{'job': 'x'}]}})
+
+    assert projected['cron_schedule'] == {'jobs': [{'job': 'x'}]}

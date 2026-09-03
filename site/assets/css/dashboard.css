@@ -2668,6 +2668,77 @@
   .bs-dot[data-tone="ok"] { background: var(--accent); }
   .bs-dot[data-tone="warn"] { background: var(--warning); }
   .bs-dot[data-tone="bad"] { background: var(--negative, var(--red)); }
+  /* ── 定时任务时刻表 ──
+     色彩预算不变：绿=落地、黄=降级、红=没落地、蓝=进行中、灰=还没到。
+     「兜底补上」不引入第四种颜色——它也落地了，只是烧掉了一次尝试，所以用
+     空心圆这个**形状**差别表示，颜色仍是绿的。档位只染色不减信息。 */
+  /* 与数据健康卡同宽：时刻表是横向的，占一列会把每一行都挤成一个字。 */
+  .cron-board { grid-column: 1 / -1; display: grid; gap: 12px;
+                padding: 16px 18px 14px; }
+  .cb-head {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 12px; flex-wrap: wrap;
+  }
+  .cb-verdict { margin: 2px 0 0; font-size: var(--fs-lg, 1.05rem); font-weight: 600; }
+  .cron-board[data-tone="warn"] .cb-verdict { color: var(--warning); }
+  .cron-board[data-tone="bad"] .cb-verdict { color: var(--negative, var(--red)); }
+  .cb-meta {
+    margin-top: 4px; color: var(--text-tertiary);
+    font: 500 var(--fs-micro)/1.5 var(--mono);
+  }
+  .cb-legend { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: center; }
+  .cb-key {
+    display: inline-flex; align-items: center; gap: 4px;
+    color: var(--text-tertiary); font: 500 var(--fs-micro)/1 var(--mono);
+  }
+  .cb-dot {
+    display: inline-block; width: 7px; height: 7px; border-radius: 50%;
+    background: var(--neutral, var(--text-tertiary)); flex: none;
+  }
+  .cb-dot[data-tone="ok"]   { background: var(--positive); }
+  .cb-dot[data-tone="warn"] { background: var(--warning); }
+  .cb-dot[data-tone="bad"]  { background: var(--negative, var(--red)); }
+  .cb-dot[data-tone="live"] { background: var(--accent); }
+  .cb-dot[data-tone="idle"] { background: transparent; box-shadow: inset 0 0 0 1px var(--border-strong); }
+  /* 落地了，但靠 watchdog 补的：同一个绿，空心。 */
+  .cb-dot[data-tone="ok-soft"] {
+    background: transparent; box-shadow: inset 0 0 0 1.5px var(--positive);
+  }
+  .cb-rows { display: grid; gap: 2px; }
+  .cb-row {
+    display: grid; grid-template-columns: minmax(6.5em, max-content) 1fr;
+    gap: 10px; align-items: center; padding: 4px 0;
+    border-top: 1px solid var(--border-subtle);
+  }
+  .cb-row:first-child { border-top: 0; }
+  /* 账本看不到的 job：虚线边把它和「待跑」分开——两者都不是绿的，但一个是
+     「还没到」，一个是「永远不会有记录」，读者不该把它们看成同一件事。 */
+  .cb-row[data-unmonitored="1"] { opacity: .6; }
+  .cb-row[data-unmonitored="1"] .cb-slot { border-style: dashed; }
+  .cb-job {
+    color: var(--text-secondary); font: 500 var(--fs-micro)/1.4 var(--sans, inherit);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  /* 槽多的时候在自己这一行里横向滚动，不让整页横滚。 */
+  .cb-slots {
+    display: flex; gap: 4px; overflow-x: auto; padding-bottom: 2px;
+    scrollbar-width: none;
+  }
+  .cb-slots::-webkit-scrollbar { display: none; }
+  .cb-slot {
+    display: inline-flex; align-items: center; gap: 4px; flex: none;
+    padding: 2px 7px; border-radius: 999px;
+    border: 1px solid var(--border-subtle); background: var(--surface-1);
+    color: var(--text-tertiary); font: 500 var(--fs-micro)/1.5 var(--mono);
+  }
+  .cb-slot[data-tone="ok"]      { color: var(--text-secondary); }
+  .cb-slot[data-tone="ok-soft"] { color: var(--text-secondary); }
+  .cb-slot[data-tone="warn"]    { color: var(--warning); border-color: color-mix(in srgb, var(--warning) 34%, transparent); }
+  .cb-slot[data-tone="bad"]     { color: var(--negative, var(--red)); border-color: color-mix(in srgb, var(--negative, var(--red)) 40%, transparent); }
+  .cb-slot[data-tone="live"]    { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 34%, transparent); }
+  @media (max-width: 560px) {
+    .cb-row { grid-template-columns: 1fr; gap: 2px; }
+  }
   .dh-caption {
     margin-top: 10px; color: var(--text-faint, var(--text-tertiary));
     font: 500 var(--fs-micro)/1.5 var(--mono);
