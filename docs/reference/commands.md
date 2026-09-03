@@ -190,7 +190,7 @@ These are installed commands too. They are listed here so the catalog is the who
 `CLAWOCK_PROFILE` 只选择声明式配置和资源，不加载第二个 Python distribution。
 旧的 `scripts/harness/` 回滚别名已在 installed-command 切换验证后删除。
 
-**Daily deep brief**（08:00 HKT cron）
+**Daily deep brief**（08:03 HKT cron）
 - **`clawock brief preflight`**：刷 US/HK 价 + FX + portfolio snapshot + HHI 算法 + SEC EDGAR (仅 `is_leveraged_etf=false`) + retrospective vs 上次 plan.json。输出 `memory/.tmp/brief-context-{date}.json`
 - **`clawock brief render`**：从 `brief-context-{date}.json` + `brief-judgment-{date}.json` + `{date}-plan.json` 渲染 `memory/{date}-pre-open.md` 与 `memory/.tmp/brief-card-{date}.txt`。模型只写 judgment 里的判断文字，标题/表格/排序/数字格式全在代码里（`--dry-run` 打到 stdout 不写盘）。postflight 会自己跑一次，日常不用手动调
 - **`clawock brief postflight`**：校验 plan schema + judgment overlay，用校验后的 plan 渲染报告与微信卡，再校验产物（段标记 / HHI / FX / HKD+USD bug pattern）；pass/warn 自动 commit

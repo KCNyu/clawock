@@ -13,6 +13,20 @@ from clawock.config.profiles import ENV_VAR as PROFILE_ENV_VAR
 from clawock.config.profiles import load_profile
 from clawock.workspace import workspace_root
 
+#: The pre-open brief's own firing time, as printed on every artifact kcn reads
+#: (the markdown title, the WeChat/Telegram card, the watchdog's fallback card).
+#: It is the time the *cron* fires — not a market event — so it moves whenever
+#: the schedule moves, and a stale copy is a label that quietly lies about when
+#: the work happened. #1278 moved the slot 08:00 -> 08:03 and left every printed
+#: label three minutes in the past; `test_the_printed_brief_time_follows_the_cron
+#: _contract` now fails if the contract and this constant disagree, so the next
+#: schedule change cannot leave the labels behind.
+#:
+#: A constant rather than a contract read on purpose: rendering a delivered
+#: artifact must not depend on a file being present.
+BRIEF_JOB_NAME = '盘前深度简报'
+BRIEF_SLOT_HKT = '08:03'
+
 HKT = ZoneInfo("Asia/Hong_Kong")
 ET = ZoneInfo("America/New_York")
 TEMPLATE_TOKEN = re.compile(r"\{\{([a-z][a-z0-9_]*)\}\}")

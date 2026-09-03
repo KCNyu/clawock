@@ -26,6 +26,7 @@ from collections import Counter
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 
+from clawock.scheduling import BRIEF_SLOT_HKT
 from clawock.workspace import workspace_root
 
 WS = workspace_root()
@@ -308,7 +309,7 @@ def _inject_early_candidate_section(card, packet):
 
 
 def build_brief_card(today, decision_packet=None):
-    """The WeChat card for the 08:00 盘前深度简报 — single source of truth shared by
+    """The WeChat card for the 盘前深度简报 — single source of truth shared by
     brief_postflight (primary send) and brief_watchdog (backstop).
 
     Preference order:
@@ -330,7 +331,7 @@ def build_brief_card(today, decision_packet=None):
                 return _inject_early_candidate_section(txt, decision_packet)
     except Exception:
         pass  # fall through to deterministic build
-    lines = [f'📊 盘前深度简报｜{today} 08:00 HKT']
+    lines = [f'📊 盘前深度简报｜{today} {BRIEF_SLOT_HKT} HKT']
     try:
         plan = json.loads((WS / 'memory' / f'{today}-plan.json').read_text())
         bk = plan.get('book') or {}

@@ -28,6 +28,8 @@ import json
 from datetime import date as _date
 from pathlib import Path
 
+from clawock.scheduling import BRIEF_SLOT_HKT
+
 WEEKDAYS = ("周一", "周二", "周三", "周四", "周五", "周六", "周日")
 VOICE_LABELS = {
     "aggressive": "Aggressive（抓 upside）",
@@ -612,7 +614,7 @@ def render_brief(context, judgment, plan, *, date=None, sector_scan=None):
         weekday = WEEKDAYS[_date.fromisoformat(date).weekday()]
     except ValueError:
         pass
-    title = f"盘前深度简报｜{date} {weekday} 08:00 HKT".strip()
+    title = f"盘前深度简报｜{date} {weekday} {BRIEF_SLOT_HKT} HKT".strip()
 
     blocks = [
         "---",
@@ -679,7 +681,7 @@ def render_card(context, judgment, plan, *, date=None, page_url=None):
     book = context.get("book_totals") or {}
     fx = context.get("fx") or {}
     concentration = context.get("concentration") or {}
-    lines = [f"📊 盘前深度简报｜{date} 08:00 HKT  (USDHKD={num(fx.get('rate'), 4)})", ""]
+    lines = [f"📊 盘前深度简报｜{date} {BRIEF_SLOT_HKT} HKT  (USDHKD={num(fx.get('rate'), 4)})", ""]
     lines += ["▎核心结论", text(judgment.get("portfolio_assessment")), ""]
     lines += ["▎Book",
               f"USD${money(book.get('usd_base_total'), digits=0)}"
