@@ -313,6 +313,22 @@ layout: null
         <div class="dh-files" id="dh-files" hidden></div>
       </section>
 
+      <!-- 定时任务时刻表：数据健康卡回答「页面上的数字能不能信」，这张回答
+           「今天每个槽有没有按时跑成」。判定不在前端算——直接印
+           workflow-outcomes 账本里 final_product 的定论，前端只负责上色，
+           否则面板会和账本各说各话。 -->
+      <section class="card cron-board is-pending" id="cron-board" aria-labelledby="cb-title" hidden>
+        <div class="cb-head">
+          <div>
+            <div class="overview-card-kicker">定时任务</div>
+            <h3 id="cb-title" class="cb-verdict">&mdash;</h3>
+            <div class="cb-meta" id="cb-meta">&mdash;</div>
+          </div>
+          <div class="cb-legend" id="cb-legend" aria-hidden="true"></div>
+        </div>
+        <div class="cb-rows" id="cb-rows"></div>
+      </section>
+
       <div class="card hero-gold-card is-pending" id="gold-dca-card">
         <h3>Gold DCA <span class="muted" id="gold-sub" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:var(--fs-xs)"></span></h3>
         <div id="gold-hero"></div>

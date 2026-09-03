@@ -353,7 +353,7 @@
   // registry mutable avoids parsing 100KB+ of functions that Overview cannot call.
   const TAB_RENDERERS = {
     hero: [
-      renderCommandDeck, renderDataHealth, renderRiskGuardrail, renderOverviewSummaries,
+      renderCommandDeck, renderDataHealth, renderCronSchedule, renderRiskGuardrail, renderOverviewSummaries,
       renderMarketSnapshot, renderTodayHighlights, renderHonesty, renderGoldDca,
       setupVerdictDeck,
     ],
@@ -1258,6 +1258,94 @@
       });
     }
   }
+
+  // ── 定时任务时刻表 ──
+  // 每槽一枚灯。状态不在这里推导：dashboard.json 的 cron_schedule 里已经是
+  // workflow-outcomes 账本 final_product 的定论，前端只做「定论 → 颜色」的映射。
+  // 未知状态刻意落到 unknown（灰）而不是绿——新状态该被看见，不该被默认成好。
+  const CRON_STATES = {
+    ok:          { tone: "ok",      cn: "正常" },
+    recovered:   { tone: "ok-soft", cn: "兜底补上" },
+    degraded:    { tone: "warn",    cn: "降级送达" },
+    failed:      { tone: "bad",     cn: "未落地" },
+    missed:      { tone: "bad",     cn: "没跑" },
+    running:     { tone: "live",    cn: "进行中" },
+    upcoming:    { tone: "idle",    cn: "待跑" },
+    unmonitored: { tone: "idle",    cn: "账本看不到" },
+    unknown:     { tone: "idle",    cn: "状态未知" },
+  };
+
+  function renderCronSchedule() {
+    const root = document.getElementById("cron-board");
+    if (!root) return;
+    const cs = safe(DATA, "cron_schedule");
+    const jobs = (cs && cs.jobs) || [];
+    if (!jobs.length) { root.hidden = true; return; }
+    root.hidden = false;
+    root.classList.remove("is-pending");
+
+    const rowsEl = document.getElementById("cb-rows");
+    const counts = {};
+    let scheduled = 0;
+    jobs.forEach(j => (j.slots || []).forEach(s => {
+      const key = CRON_STATES[s.state] ? s.state : "unknown";
+      counts[key] = (counts[key] || 0) + 1;
+      if (key !== "unmonitored") scheduled += 1;
+    }));
+    const n = k => counts[k] || 0;
+    const landed = n("ok") + n("recovered");
+    const broken = n("failed") + n("missed");
+
+    // 判词只说落地了多少、坏了多少。把「兜底补上」单列，因为它和「首次即成」
+    // 是两件事：都送到了，但一个烧掉了一次尝试。
+    // 判词只能说到证据为止：有降级就不许说「正常」，有兜底就点出来——都送到了，
+    // 但一个是首次即成、一个烧掉了一次尝试，混成一句话就把区别抹掉了。
+    const verdictEl = root.querySelector(".cb-verdict");
+    if (verdictEl) {
+      verdictEl.textContent =
+        broken ? `${broken} 槽没落地`
+        : n("degraded") ? `${n("degraded")} 槽降级送达`
+        : n("recovered") ? `${n("recovered")} 槽靠兜底补上`
+        : (n("upcoming") + n("running") ? "已跑的都正常" : "今天全部正常");
+    }
+    root.dataset.tone = broken ? "bad" : (n("degraded") || n("recovered") ? "warn" : "ok");
+
+    const bits = [];
+    if (landed) bits.push(`${landed} 落地`);
+    if (n("recovered")) bits.push(`其中 ${n("recovered")} 靠兜底`);
+    if (n("degraded")) bits.push(`${n("degraded")} 降级`);
+    if (broken) bits.push(`${broken} 没落地`);
+    if (n("running")) bits.push(`${n("running")} 进行中`);
+    if (n("upcoming")) bits.push(`${n("upcoming")} 待跑`);
+    const metaEl = document.getElementById("cb-meta");
+    if (metaEl) {
+      metaEl.textContent = `${cs.date || ""} · 共 ${scheduled} 槽` +
+        (bits.length ? ` · ${bits.join(" · ")}` : "");
+    }
+
+    const legendEl = document.getElementById("cb-legend");
+    if (legendEl) {
+      legendEl.innerHTML = ["ok", "recovered", "degraded", "missed", "upcoming"]
+        .map(k => `<span class="cb-key"><i class="cb-dot" data-tone="${CRON_STATES[k].tone}"></i>`
+          + `${escapeHtml(CRON_STATES[k].cn)}</span>`).join("");
+    }
+
+    if (rowsEl) {
+      rowsEl.innerHTML = jobs.map(j => {
+        const slots = (j.slots || []).map(s => {
+          const st = CRON_STATES[s.state] ? s.state : "unknown";
+          const label = `${j.job} ${s.at} ${CRON_STATES[st].cn}`;
+          return `<span class="cb-slot" data-tone="${CRON_STATES[st].tone}" title="${escapeHtml(label)}"`
+            + ` aria-label="${escapeHtml(label)}"><i class="cb-dot" data-tone="${CRON_STATES[st].tone}"></i>`
+            + `${escapeHtml(s.at)}</span>`;
+        }).join("");
+        return `<div class="cb-row"${j.unmonitored ? ' data-unmonitored="1"' : ""}>`
+          + `<span class="cb-job">${escapeHtml(j.job)}</span>`
+          + `<span class="cb-slots">${slots}</span></div>`;
+      }).join("");
+    }
+  }
+
   function flatHoldings() {
     const us = (safe(DATA, "holdings", "us") || []).map(h => ({ ...h, region: "us" }));
     const hk = (safe(DATA, "holdings", "hk") || []).map(h => ({ ...h, region: "hk" }));
