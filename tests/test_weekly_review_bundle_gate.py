@@ -195,3 +195,34 @@ def test_weekly_malformed_snapshot_names_missing_nav_before_llm(
     message = str(exc_info.value)
     assert 'start/end NAV from two dated snapshots' in message
     assert 'memory/snapshots/2026-07-24.json' in message
+
+
+def test_the_episode_window_is_closed_on_both_edges(tmp_path, monkeypatch):
+    """#1276: episodes were filtered by `plan_date >= start` only. The decision
+    ledger is not windowed, so a past week's bundle collected every episode
+    logged after it too — on 2026-W30 that was 54 extra episodes (167K chars)
+    which ate the prompt budget and pushed decision_metrics out of the payload.
+    plans and snapshots have always been bounded on both edges; so is this."""
+    monkeypatch.chdir(tmp_path)
+    episodes = [
+        {'plan_date': '2026-07-16', 'ticker': 'BEFORE'},
+        {'plan_date': '2026-07-17', 'ticker': 'START'},
+        {'plan_date': '2026-07-21', 'ticker': 'INSIDE'},
+        {'plan_date': '2026-07-24', 'ticker': 'END'},
+        {'plan_date': '2026-07-25', 'ticker': 'AFTER'},
+        {'plan_date': '2026-09-03', 'ticker': 'MUCH_LATER'},
+    ]
+    monkeypatch.setattr(weekly.decision_v2, 'load_decisions', lambda: [])
+    monkeypatch.setattr(
+        weekly.decision_v2, 'episode_representatives',
+        lambda _decisions, _horizon: episodes)
+    monkeypatch.setattr(
+        weekly.decision_v2, 'compute_metrics', lambda _decisions: {'total': 0})
+    _write_json(tmp_path / 'memory/2026-07-24-plan.json', _plan('2026-07-24'))
+    _write_json(tmp_path / 'assets/data/risk.json', {'combined': {'beta': 1.2}})
+
+    bundle = weekly.aggregate_week(today=date(2026, 7, 24))
+
+    assert [e['ticker'] for e in bundle['decision_episodes']] == [
+        'START', 'INSIDE', 'END']
+    assert bundle['bundle_evidence']['decision_episodes'] == 3
