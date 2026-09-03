@@ -19,35 +19,24 @@ from clawock.harness.validation import (
     categorize_issues,
     check_md_table_column_consistency,
     check_numeric_claims,
-    check_raw_tables_verbatim,
     validate_forbidden_phrases,
 )
 
 REQUIRED_SECTIONS = ['▎情绪面', '▎技术面', '▎操作建议']
 FORBIDDEN_PHRASES = ['数据待获取', '等待数据', '数据缺失（占位）', 'TODO', 'TBD']
 
-# A real report is always >500 字 (raw_wechat_block alone ≈600). Anything this
-# short is a broken pipe, not a report — never deliver it. 2026-06-17: the cron
-# LLM issued the file-write and `report_postflight ... <<< "$(cat report.txt)"`
-# as PARALLEL tool calls in one turn; cat raced the write, read a missing file →
-# empty stdin (n_chars=1). The validator (correctly) failed it, but deliver_wechat
-# sends on ALL statuses incl. fail → kcn got a scary empty "🔴 Validation FAILED"
-# banner before the model's serial retry delivered the real report. Guard the
-# degenerate-input case BEFORE send/commit so a broken pipe never reaches WeChat.
-MIN_REPORT_CHARS = 50
-def _unusable_context(ctx, prose_only):
+def _unusable_context(ctx):
     """Reason string if the context can't back a report, else None.
 
     preflight writes blockless sentinels (status preflight_failed / market_closed)
     that carry none of the deterministic fields postflight assembles from. Anything
-    but a 'ok' status with a nonempty raw block + title + commit_msg — plus a
-    context_id in prose mode — is not a report context.
+    but a 'ok' status with a nonempty raw block + title + commit_msg + context_id
+    is not a report context.
     """
     if ctx.get('status') != 'ok':
         return f'context status={ctx.get("status")!r}（preflight 未产出可用数据），跳过投递+commit'
-    missing = [k for k in ('raw_wechat_block', 'title', 'commit_msg') if not (ctx.get(k) or '').strip()]
-    if prose_only and not (ctx.get('context_id') or '').strip():
-        missing.append('context_id')
+    missing = [k for k in ('raw_wechat_block', 'title', 'commit_msg', 'context_id')
+               if not (ctx.get(k) or '').strip()]
     if missing:
         return f'context 缺字段 {missing}，跳过投递+commit'
     return None
@@ -72,40 +61,30 @@ def assemble_message(ctx, prose):
     return '\n\n'.join(p for p in parts if p)
 
 
-def validate(body, ctx, prose_only=False, model_text=None):
+def validate(body, ctx, model_text):
     """Validate the delivered message.
 
-    `body` is what gets sent. `model_text` is the part the MODEL wrote; in prose
-    mode that is the prose alone, in legacy mode it is the whole report (== body).
-
-    The content rules — sections, risk section, anomaly mention, forbidden phrases
-    — MUST run against model_text, never body. In prose mode assemble_message has
-    already prepended the raw data block, and that block itself contains the
-    anomaly tickers and (potentially) section-looking tokens: checking body would
-    let prose that mentions none of the movers pass because the table does. Only
-    the length limit is a property of the assembled body. (2026-07-24 review.)
+    `body` is what gets sent; `model_text` is the part the MODEL wrote — the prose
+    alone. The content rules — sections, risk section, anomaly mention, forbidden
+    phrases — MUST run against model_text, never body: assemble_message has already
+    prepended the raw data block, and that block itself contains the anomaly tickers
+    and (potentially) section-looking tokens, so checking body would let prose that
+    mentions none of the movers pass because the table does. Only the length limit
+    is a property of the assembled body. (2026-07-24 review.)
     """
     issues = []
-    checked = body if model_text is None else model_text
+    checked = model_text
 
-    # 1. raw block 必须 verbatim 出现（legacy path only — see docstring）
-    raw = ctx.get('raw_wechat_block', '').strip()
-    if raw and not prose_only:
-        first_line = raw.splitlines()[0]
-        if first_line not in body:
-            issues.append(f'报告未包含原始数据块首行 "{first_line[:40]}..." (verbatim 验证失败)')
-        issues.extend(check_raw_tables_verbatim(body, raw))
-
-    # 2. 必有三段标记（模型文本）
+    # 1. 必有三段标记（模型文本）
     for sec in REQUIRED_SECTIONS:
         if sec not in checked:
             issues.append(f'缺段标记 "{sec}"')
 
-    # 3. 风险提示段（若 preflight 标了 needs；模型文本）
+    # 2. 风险提示段（若 preflight 标了 needs；模型文本）
     if ctx.get('needs_risk_section') and '▎风险提示' not in checked:
         issues.append('preflight 标 needs_risk_section=true 但未见 "▎风险提示" 段')
 
-    # 4. 长度 —— 按投递全文 (per-market)
+    # 3. 长度 —— 按投递全文 (per-market)
     n_chars = len(body)
     soft, hard = CHAR_LIMITS['soft'], CHAR_LIMITS['hard']
     if n_chars > hard:
@@ -113,7 +92,7 @@ def validate(body, ctx, prose_only=False, model_text=None):
     elif n_chars > soft:
         issues.append(f'报告长度 {n_chars} 字 > {soft} 软上限 (warn)')
 
-    # 5. 异动票必须被提到（模型文本 —— 数据块里本就有票代码，不能拿它顶）
+    # 4. 异动票必须被提到（模型文本 —— 数据块里本就有票代码，不能拿它顶）
     anomalies = ctx.get('anomalies', [])
     if anomalies:
         mentioned = [a['ticker'] for a in anomalies if a['ticker'] in checked]
@@ -121,16 +100,16 @@ def validate(body, ctx, prose_only=False, model_text=None):
             tickers = ', '.join(a['ticker'] for a in anomalies)
             issues.append(f'preflight 标了 {len(anomalies)} 个 ≥3% 异动票 ({tickers}) 但报告全部未提及')
 
-    # 6. 敷衍 phrases（模型文本）
+    # 5. 敷衍 phrases（模型文本）
     issues.extend(validate_forbidden_phrases(checked, FORBIDDEN_PHRASES))
 
-    # 7. 数字必须来自 context（模型文本）—— 一条聚合 warn，见 check_numeric_claims
+    # 6. 数字必须来自 context（模型文本）—— 一条聚合 warn，见 check_numeric_claims
     issues.extend(check_numeric_claims(checked, ctx))
 
     return issues
 
 
-CRITICAL_KEYWORDS = ['缺段标记', '未包含原始数据块', '敷衍词', '表格行未 verbatim']
+CRITICAL_KEYWORDS = ['缺段标记', '敷衍词']
 
 
 def _is_hard_char_limit(issue):

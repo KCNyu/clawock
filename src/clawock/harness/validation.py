@@ -27,27 +27,6 @@ def _extract_md_tables(text):
         yield cur
 
 
-def check_raw_tables_verbatim(text, raw_wechat_block):
-    """Verify every markdown-table line in raw_wechat_block appears verbatim in text.
-
-    preflight builds the holdings table via clawock.adapters.mobile (7-col, known correct).
-    LLMs sometimes paraphrase rows or drop a separator segment when "copying" —
-    e.g. 5/21+ regression where header had 7 cols but separator only 6, breaking
-    markdown renderers. Strict substring match catches that.
-
-    Returns list of issue strings (empty = pass).
-    """
-    if not raw_wechat_block:
-        return []
-    issues = []
-    for tbl in _extract_md_tables(raw_wechat_block):
-        for ln in tbl:
-            if ln not in text:
-                issues.append(f'表格行未 verbatim 复制: "{ln.strip()[:50]}..."')
-                break  # one issue per table is enough
-    return issues
-
-
 def check_md_table_column_consistency(text):
     """Verify every markdown table inside text has uniform pipe-segment counts
     across its header/separator/data rows.

@@ -1,3 +1,4 @@
+import ast
 import importlib.util
 import json
 import subprocess
@@ -424,7 +425,8 @@ def test_intraday_main_stops_on_empty_input_and_blames_the_context_slot(monkeypa
 
     recorded = {}
     monkeypatch.setattr(sys, 'stdin', io.StringIO(''))
-    monkeypatch.setattr(sys, 'argv', ['intraday_postflight.py', '--market', 'hk'])
+    monkeypatch.setattr(sys, 'argv', ['intraday_postflight.py', '--market', 'hk',
+                                      '--context-id', 'ctx-abc'])
     monkeypatch.setattr(intraday_postflight.trading_calendar, 'closed_reason', lambda m: None)
     monkeypatch.setattr(intraday_postflight, 'load_context', lambda m: (
         {'heartbeat': {'job': '盘中盯盘', 'slot': '2026-07-23T10:00:00+08:00'}}, None))
@@ -801,3 +803,34 @@ def test_no_llm_slot_is_scheduled_on_the_hour_or_half_hour():
     assert not on_boundary, (
         'these slots fire at :00/:30, where ~40% of first attempts are lost: '
         + '; '.join(on_boundary))
+
+
+def test_both_postflights_require_the_context_id():
+    """#1279: the data block travels harness -> message, never through the model.
+
+    That property holds only while `--context-id` is mandatory. The legacy shape
+    it replaced — the model hands over the whole report and its copy of the block
+    is verbatim-checked afterwards — was kept "until every payload passes
+    --context-id", met that condition, and then sat unexercised: a branch no green
+    run touches cannot be trusted to work when it is finally reached
+    (fallback-branches-are-invisible-to-green-runs). Making the flag optional
+    again would silently restore that shape, so the declaration is read out of the
+    source rather than trusted to a comment beside it.
+    """
+    for relative in ('src/clawock/harness/report_postflight.py',
+                     'src/clawock/harness/intraday_postflight.py'):
+        tree = ast.parse((ROOT / relative).read_text(encoding='utf-8'))
+        declarations = [
+            node for node in ast.walk(tree)
+            if isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Attribute)
+            and node.func.attr == 'add_argument'
+            and any(isinstance(a, ast.Constant) and a.value == '--context-id'
+                    for a in node.args)
+        ]
+        assert len(declarations) == 1, f'{relative}: expected one --context-id'
+        required = next((kw.value for kw in declarations[0].keywords
+                         if kw.arg == 'required'), None)
+        assert isinstance(required, ast.Constant) and required.value is True, (
+            f'{relative}: --context-id must be required=True; an optional flag '
+            'is the legacy whole-report input coming back')

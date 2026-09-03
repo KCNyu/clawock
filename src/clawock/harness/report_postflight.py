@@ -4,22 +4,24 @@ report_postflight.py — Mode 6 (briefing) harness postflight.
 
 Assembles, validates and publishes the Mode 6 briefing.
 
-Two input modes:
-  prose  (--context-id ID --text-file PATH)  the model supplies ONLY the analysis
+Input (the only shape, since #1279):
+  --context-id ID --text-file PATH   the model supplies ONLY the analysis
          sections; this script prepends ctx['title'] + ctx['raw_wechat_block'].
          ID must equal the context's `context_id` or the run is rejected.
-  legacy (no --context-id)                   the model supplies the whole report
-         including its own copy of the data block, which is then verbatim-checked.
-         Kept so a master deploy that lands before the cron payloads are updated
-         still delivers; remove once every payload passes --context-id.
+
+  The `legacy` shape — no --context-id, the model hands over the whole report
+  including its own copy of the data block, verbatim-checked after the fact —
+  was retired in #1279. Its stated removal condition ("once every payload passes
+  --context-id") had been met since the payload rewrite, so it was a branch that
+  could no longer run: unexercised by every green run and therefore unable to
+  work when reached. The data block now only ever travels harness -> message.
 
 Validates (on the assembled message):
   1. ▎情绪面 / ▎技术面 / ▎操作建议 三段标记齐全
   2. 若 preflight needs_risk_section=true, 必须有 ▎风险提示 段
   3. 总长度闸 clawock.harness.validation.REPORT_CHAR_LIMITS（防复读死循环，不是写作目标；#334）
-  4. legacy only: 必须以 raw_wechat_block 开头（prose 模式由本脚本拼，无需校验）
-  5. 如果 preflight 有 anomalies，报告必须提到至少一个 anomaly 票
-  6. 没有"等待数据/数据待获取"等敷衍词
+  4. 如果 preflight 有 anomalies，报告必须提到至少一个 anomaly 票
+  5. 没有"等待数据/数据待获取"等敷衍词
 
 Delivery is fail-closed (2026-07-24): pass/warn send the full body; fail sends
 the data block ALONE — never the rejected prose. Deterministic data publication
@@ -29,7 +31,7 @@ nothing. A slot whose only delivery was a fail-closed data block may be
 superseded exactly once by a validated report (see claim_upgrade).
 
 Outputs JSON to stdout:
-  {"status": "pass|warn|fail", "mode": "prose|legacy", "issues": [...], ...}
+  {"status": "pass|warn|fail", "mode": "prose", "issues": [...], ...}
 """
 
 import argparse
@@ -59,7 +61,6 @@ from clawock.automation import workflow_outcomes  # noqa: E402
 # retired with #267: nothing outside imported them through here, so they were an
 # indirection with no consumer.
 from clawock.harness.report import (  # noqa: E402
-    MIN_REPORT_CHARS,
     _unusable_context,
     assemble_message,
     categorize,
@@ -87,7 +88,6 @@ from clawock.harness.validation import (
     advisory_prefix,
     categorize_issues,
     check_numeric_claims,
-    check_raw_tables_verbatim,
     product_status,
     split_advisory,
     validate_forbidden_phrases,
@@ -316,11 +316,10 @@ def main(argv=None):
     parser.add_argument('--market', choices=['hk', 'us'], required=True)
     parser.add_argument('--phase', choices=['open', 'mid', 'pm', 'close'], required=True)
     parser.add_argument('--text-file', help='briefing text file (default: stdin)')
-    parser.add_argument('--context-id',
-                        help='context_id echoed from preflight. Its presence selects '
-                             'prose mode: the input is the analysis sections only and '
-                             'this script prepends title + raw_wechat_block itself. '
-                             'Omit for the legacy full-report input.')
+    parser.add_argument('--context-id', required=True,
+                        help='context_id echoed from preflight; must equal the '
+                             'context on disk. The model supplies prose only — '
+                             'the harness prepends the data block.')
     args = parser.parse_args(argv)
     job_name = workflow_outcomes.job_for(args.market, args.phase)
     slot = workflow_outcomes.slot_for_job(job_name)
@@ -363,7 +362,6 @@ def main(argv=None):
 
     today = datetime.now().strftime('%Y-%m-%d')
     ctx, ctx_err = load_context(args.market, args.phase, today)
-    prose_only = args.context_id is not None
 
     # A missing OR unusable context both mean "preflight did not produce data to
     # assemble". preflight writes a blockless sentinel on a fetch failure
@@ -371,7 +369,7 @@ def main(argv=None):
     # commit_msg or context_id; assembling against it would send a banner-only
     # message and then crash on ctx['commit_msg']. Reject before any send/commit,
     # non-zero, so the run record shows preflight is the breakage. (2026-07-24 review.)
-    ctx_bad = ctx_err or _unusable_context(ctx, prose_only)
+    ctx_bad = ctx_err or _unusable_context(ctx)
     if ctx_bad:
         workflow_outcomes.record_stage(
             job_name, 'preflight', 'failed', slot=slot, reason=ctx_bad
@@ -389,54 +387,26 @@ def main(argv=None):
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 2
 
-    # Degenerate/empty input = broken pipe. Legacy input is a whole report so the
-    # 50-字 floor is a real broken-pipe signal there; prose is a few sections and
-    # a terse-but-valid one can sit under 50 chars, so read_prose_text's own
-    # empty/missing/stale gate already covers the prose plumbing failure. Apply
-    # the char floor to legacy input only. (2026-07-24 review.)
-    if not prose_only and len(text.strip()) < MIN_REPORT_CHARS:
-        workflow_outcomes.record_stage(
-            job_name, 'llm', 'failed', slot=slot, reason='degenerate_input'
-        )
-        workflow_outcomes.record_stage(
-            job_name, 'postflight', 'failed', slot=slot, reason='degenerate_input'
-        )
-        result = {
-            'status': 'fail',
-            'market': args.market,
-            'phase': args.phase,
-            'date': today,
-            'issues': [f'report text 仅 {len(text.strip())} 字 (< {MIN_REPORT_CHARS}) '
-                       f'— 疑似空管道（写文件与读取竞态），跳过投递+commit'],
-            'wechat_prefix': '',
-            'wechat_sent': False,
-            'commit_ok': False,
-            'commit_msg': 'skipped (degenerate empty report text)',
-            'n_chars': len(text),
-        }
-        print(json.dumps(result, ensure_ascii=False, indent=2))
-        return 2
-
-    # ── Generation gate (prose mode only) ────────────────────────────────────
+    # ── Generation gate ──────────────────────────────────────────────────────
     # The model echoes the context_id it wrote against. A mismatch means the
     # context on disk was replaced after the prose was written — exactly what
     # happened on 2026-07-24, where the agent ran preflight a second time
     # mid-turn. Assembling fresh numbers under stale prose would produce an
     # internally contradictory report that LOOKS clean, which is worse than the
     # loud banner we got, so refuse to assemble and fall back to data-only.
-    stale_generation = prose_only and args.context_id != ctx.get('context_id')
+    stale_generation = args.context_id != ctx.get('context_id')
 
     # Keep the model's own text for the content rules; assemble the delivered body
     # separately. Validating the assembled body would let the prepended data block
     # satisfy the anomaly/section rules on the model's behalf. (2026-07-24 review.)
-    model_text = text if prose_only else None
-    if prose_only and not stale_generation:
+    model_text = text
+    if not stale_generation:
         text = assemble_message(ctx, text)
 
     issues = ([f'context_id 不匹配: 模型基于 {args.context_id}，当前 context 是 '
                f'{ctx.get("context_id")} — 散文与数据不同代，拒绝拼装']
               if stale_generation
-              else validate(text, ctx, prose_only=prose_only, model_text=model_text))
+              else validate(text, ctx, model_text))
     status = categorize(issues) if not stale_generation else 'fail'
 
     # The banner counts and lists ESCALATING issues only; advisory findings get
@@ -588,7 +558,7 @@ def main(argv=None):
         'market':        args.market,
         'phase':         args.phase,
         'date':          today,
-        'mode':          'prose' if prose_only else 'legacy',
+        'mode':          'prose',
         'issues':        issues,
         'wechat_prefix': wechat_prefix,
         'wechat_sent':   wechat_sent,

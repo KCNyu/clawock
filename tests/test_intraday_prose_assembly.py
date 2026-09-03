@@ -87,26 +87,23 @@ def test_assembled_message_takes_the_table_from_the_context(pf):
 
 
 def test_the_same_slot_that_failed_on_a_space_now_passes(pf):
-    """The 2026-07-28 00:30 incident, both ways round.
+    """The 2026-07-28 00:30 incident, after the input shape that caused it.
 
-    Legacy: the model retypes the table, pads RKLX's 浮$ cell one space wider,
-    and the strict substring match escalates to `fail` — which ships the data
-    block alone and drops the analysis. Prose: the model never types the row, so
-    the identical slot delivers the identical numbers AND the prose.
+    Back then the model retyped the table, padded RKLX's 浮$ cell one space
+    wider, and the strict substring match escalated to `fail` — shipping the
+    data block alone and dropping the analysis. The model no longer types the
+    row at all: the harness prepends the block, so the identical slot delivers
+    the identical numbers AND the prose. #1279 removed the retyped-table input
+    shape and the verbatim rules with it, so the failure mode is now structural
+    rather than merely checked for.
     """
-    legacy_text = BLOCK.replace(
-        '| RKLX  |    10 |  49.69 |  17.07 |  +4.6% | -65.6% |    -326 |',
-        MANGLED_ROW) + '\n\n' + PROSE
-    legacy_issues = pf.validate(legacy_text, _ctx())
-
-    assert [i for i in legacy_issues if 'verbatim' in i], legacy_issues
-    assert pf.categorize(legacy_issues) == 'fail'
-
     body = pf.assemble_message(_ctx(), PROSE)
-    prose_issues = pf.validate(body, _ctx(), prose_only=True, model_text=PROSE)
+    prose_issues = pf.validate(body, _ctx(), PROSE)
 
     assert pf.categorize(prose_issues) == 'pass', prose_issues
     assert PROSE.strip() in body
+    # The mangled row cannot reach the message: it is not an input any more.
+    assert MANGLED_ROW not in body
 
 
 # ── the block must not answer the content rules on the model's behalf ────────
@@ -118,7 +115,7 @@ def test_anomaly_rule_reads_the_prose_not_the_prepended_block(pf):
     ctx = _ctx(raw_wechat_block=BLOCK + '\n| SKHY  |     1 | 169.19 | 140.72 |')
 
     issues = pf.validate(pf.assemble_message(ctx, silent), ctx,
-                         prose_only=True, model_text=silent)
+                         silent)
 
     assert [i for i in issues if 'should_alert' in i], issues
 
@@ -130,7 +127,7 @@ def test_length_limit_measures_the_delivered_body(pf):
     prose = '▎我的看法\n' + 'x' * (hard - 100)
     body = pf.assemble_message(_ctx(), prose)
 
-    issues = pf.validate(body, _ctx(), prose_only=True, model_text=prose)
+    issues = pf.validate(body, _ctx(), prose)
 
     assert [i for i in issues if str(hard) in i], issues
     assert len(body) > len(prose)
@@ -410,7 +407,7 @@ def test_prose_that_ignores_the_add_side_rows_is_flagged(pf):
              '继续按 08:00 计划执行，不新增动作，等收盘再看一次。\n')
     ctx = _ctx(**ADD_SIDE_CTX)
     issues = pf.validate(pf.assemble_message(ctx, prose), ctx,
-                         prose_only=True, model_text=prose)
+                         prose)
     flagged = [i for i in issues if '加仓侧读数' in i]
     assert flagged, issues
     # Advisory: it may never turn a deliverable report into a non-delivery.
@@ -424,7 +421,7 @@ def test_prose_that_writes_the_row_is_not_flagged(pf):
              '纪律单继续挂着；其余持仓按 08:00 计划不动。\n')
     ctx = _ctx(**ADD_SIDE_CTX)
     issues = pf.validate(pf.assemble_message(ctx, prose), ctx,
-                         prose_only=True, model_text=prose)
+                         prose)
     assert not [i for i in issues if '加仓侧读数' in i], issues
 
 
@@ -435,5 +432,5 @@ def test_no_rows_means_no_demand(pf):
              '其余持仓按计划，等收盘再看一次，不新增动作。\n')
     ctx = _ctx(add_side_reads={'rows': []})
     issues = pf.validate(pf.assemble_message(ctx, prose), ctx,
-                         prose_only=True, model_text=prose)
+                         prose)
     assert not [i for i in issues if '加仓侧读数' in i], issues

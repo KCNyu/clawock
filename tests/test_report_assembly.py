@@ -84,22 +84,21 @@ def test_assembled_message_uses_the_context_block_not_the_model_text(pf):
     assert msg.index(FRESH_BLOCK) < msg.index('▎情绪面')
 
 
-def test_verbatim_and_table_rules_are_skipped_in_prose_mode(pf):
+def test_the_block_is_harness_owned_and_never_verbatim_checked(pf):
     """The model no longer copies the block, so asserting it copied correctly
-    would just be the harness checking its own string concatenation."""
+    would just be the harness checking its own string concatenation. #1279
+    removed the verbatim rules with the legacy input shape they belonged to."""
     ctx = _ctx()
     assembled = pf.assemble_message(ctx, PROSE)
 
-    assert pf.validate(assembled, ctx, prose_only=True, model_text=PROSE) == []
-    # the same prose WITHOUT the block still fails the legacy rules
-    legacy_issues = pf.validate(PROSE, ctx, prose_only=False)
-    assert any('verbatim' in i for i in legacy_issues)
+    assert pf.validate(assembled, ctx, PROSE) == []
+    assert not hasattr(pf, 'check_raw_tables_verbatim')
 
 
 def test_prose_mode_still_judges_what_the_model_actually_wrote(pf):
     ctx = _ctx(needs_risk_section=True)
     thin = '▎情绪面\n数据待获取\n'
-    issues = pf.validate(pf.assemble_message(ctx, thin), ctx, prose_only=True, model_text=thin)
+    issues = pf.validate(pf.assemble_message(ctx, thin), ctx, thin)
 
     assert any('缺段标记 "▎技术面"' in i for i in issues)
     assert any('▎风险提示' in i for i in issues)
@@ -119,10 +118,10 @@ def test_content_rules_run_on_prose_not_the_prepended_block(pf):
     assembled = pf.assemble_message(ctx, prose)
     assert 'CRCL' in assembled  # the table carries it
 
-    issues = pf.validate(assembled, ctx, prose_only=True, model_text=prose)
+    issues = pf.validate(assembled, ctx, prose)
     assert any('异动票' in i and 'CRCL' in i for i in issues)
     # and the bug: validating the assembled body would MISS it
-    assert not any('异动票' in i for i in pf.validate(assembled, ctx, prose_only=True))
+    assert not any('异动票' in i for i in pf.validate(assembled, ctx, assembled))
 
 
 def test_length_is_measured_on_the_assembled_message(pf):
@@ -136,9 +135,9 @@ def test_length_is_measured_on_the_assembled_message(pf):
     assembled = pf.assemble_message(ctx, prose)
     assert len(prose) < soft < len(assembled)
 
-    assert [i for i in pf.validate(prose, ctx, prose_only=True, model_text=prose)
+    assert [i for i in pf.validate(prose, ctx, prose)
             if '报告长度' in i] == []
-    assert [i for i in pf.validate(assembled, ctx, prose_only=True, model_text=prose)
+    assert [i for i in pf.validate(assembled, ctx, prose)
             if '报告长度' in i] == [f'报告长度 {len(assembled)} 字 > {soft} 软上限 (warn)']
 
 
@@ -308,9 +307,7 @@ def run_main(pf, sent, monkeypatch, tmp_path):
             old = datetime_minus_minutes(age_minutes)
             os.utime(body, (old, old))
         argv = ['report_postflight.py', '--market', 'us', '--phase', 'close',
-                '--text-file', str(body)]
-        if context_id:
-            argv += ['--context-id', context_id]
+                '--text-file', str(body), '--context-id', context_id]
         monkeypatch.setattr(sys, 'argv', argv)
         import io
         from contextlib import redirect_stdout
@@ -381,11 +378,7 @@ def test_failed_narrative_still_commits_the_money_file_and_nothing_ignored(pf, m
 
 def test_a_failed_slot_can_be_superseded_once_then_locks(run_main, sent, pf):
     """Fail-closed is only acceptable if the corrected report can still land."""
-    def pf_min_chars():
-        return pf.MIN_REPORT_CHARS
-
     bad = '▎情绪面\n' + '数据待获取，等待数据回补后再补充解读。' * 3 + '\n'
-    assert len(bad) > pf_min_chars()
     rc1, out1 = run_main(bad, context_id='abc123def456')
     # banner names the offending phrase; the BODY must stop at the data block
     assert out1['status'] == 'fail'
@@ -431,21 +424,6 @@ def test_main_rejects_an_unusable_context_without_sending_or_crashing(
     assert out['status'] == 'preflight_error'
     assert out['wechat_sent'] is False and out['commit_ok'] is False
     assert 'messages' not in sent  # nothing delivered
-
-
-def test_legacy_failed_report_also_ships_the_data_block_only(run_main, sent):
-    """Dual-stack: a legacy (no --context-id) run that fails validation must ALSO
-    fall back to the data block, not deliver the model's rejected full text —
-    this closes 07-24 on the legacy path during the migration window."""
-    legacy_bad = f'{FRESH_BLOCK}\n\n▎情绪面\n数据待获取\n'  # missing 技术面/操作建议
-    rc, out = run_main(legacy_bad, context_id=None)
-
-    assert out['status'] == 'fail' and out['mode'] == 'legacy'
-    body = sent['messages'][0]
-    # ends at the data block ⇒ the model's rejected text is gone (数据待获取 still
-    # appears once, in the banner, which is expected — it names the failure)
-    assert body.endswith(FRESH_BLOCK.strip())
-    assert '▎情绪面' not in body
 
 
 # ── watchdog must not mistake prose mode for a dead run ────────────────────
