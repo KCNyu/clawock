@@ -168,6 +168,65 @@ def load_contract(path: str | Path | None = None, *, workspace: str | Path | Non
     return data
 
 
+# Expanding a cron expression into the slots it fires on a given day has exactly
+# one implementation on purpose: the health check asks "did these slots happen"
+# and the dashboard panel asks "what should have happened today". Two expanders
+# would let those answers drift apart while both looked right.
+def parse_cron_slots(expr, tz_name, target_date_utc):
+    """Given cron expr like `*/30 10-11,14-15 * * 1-5` + tz, return list of
+    HH:MM strings that should fire on `target_date_utc` (UTC datetime).
+
+    Simple parser: handles minute (*/N or list), hour (range,list), DOW.
+    """
+    parts = expr.split()
+    if len(parts) < 5:
+        return []
+    m_field, h_field, _dom, _mo, dow_field = parts[:5]
+
+    # Minute: */N or list
+    def parse_field(field, lo, hi):
+        vals = set()
+        for tok in field.split(','):
+            tok = tok.strip()
+            if tok == '*':
+                vals.update(range(lo, hi+1))
+            elif tok.startswith('*/'):
+                step = int(tok[2:])
+                vals.update(range(lo, hi+1, step))
+            elif '-' in tok:
+                a, b = tok.split('-')
+                # may have /step
+                step = 1
+                if '/' in b:
+                    b, step = b.split('/')
+                    step = int(step)
+                vals.update(range(int(a), int(b)+1, step))
+            else:
+                vals.add(int(tok))
+        return sorted(vals)
+
+    mins = parse_field(m_field, 0, 59)
+    hours = parse_field(h_field, 0, 23)
+    dows = set(parse_field(dow_field, 0, 7))
+    # 0 and 7 both = Sunday in cron
+    if 7 in dows:
+        dows.discard(7); dows.add(0)
+
+    # Get target date in target tz
+    try:
+        tz = ZoneInfo(tz_name)
+    except Exception:
+        tz = timezone.utc
+    target_local = target_date_utc.astimezone(tz)
+    # cron DOW: 0=Sun, 1=Mon, ..., 6=Sat
+    py_weekday = target_local.weekday()  # 0=Mon
+    cron_dow = (py_weekday + 1) % 7      # convert: Mon→1 ... Sun→0
+    if cron_dow not in dows:
+        return []
+
+    return [f"{h:02d}:{m:02d}" for h in hours for m in mins]
+
+
 def us_season(at: datetime | None = None) -> str:
     """Return daylight/standard using the actual New York UTC offset."""
     at = at or datetime.now(timezone.utc)
