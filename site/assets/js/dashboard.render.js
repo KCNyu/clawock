@@ -1372,7 +1372,7 @@
       }
     }
     if (!sectors.length) {
-      wrap.innerHTML = '<div class="empty-state">等待今日 brief 写入 sector-scan（08:00 HKT 后刷新）</div>';
+      wrap.innerHTML = '<div class="empty-state">等待今日 brief 写入 sector-scan（08:03 HKT 后刷新）</div>';
       return;
     }
     const escape = s => String(s == null ? "" : s).replace(/[<>&"]/g, c => ({"<":"&lt;",">":"&gt;","&":"&amp;","\"":"&quot;"}[c]));

@@ -34,7 +34,7 @@ as a get-rich signal.
 
 Three things it delivers today:
 
-1. A daily 08:00 brief with a chain of evidence, delivered to WeChat;
+1. A daily 08:03 brief with a chain of evidence, delivered to WeChat;
 2. An audit framework where every decision can be recomputed and checked
    (`clawock audit-resettle`, `clawock reconcile`, `clawock integrity`);
 3. An honest baseline — any future strategy or agent can be compared against

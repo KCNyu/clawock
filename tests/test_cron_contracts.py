@@ -834,3 +834,46 @@ def test_both_postflights_require_the_context_id():
         assert isinstance(required, ast.Constant) and required.value is True, (
             f'{relative}: --context-id must be required=True; an optional flag '
             'is the legacy whole-report input coming back')
+
+
+def test_the_printed_brief_time_follows_the_cron_contract():
+    """A printed time is a claim about when the work happened.
+
+    #1278 moved the brief 08:00 -> 08:03 and left the markdown title, the
+    WeChat/Telegram card and the watchdog's fallback card all saying 08:00 —
+    three artifacts kcn reads every morning, each quietly three minutes wrong.
+    Nothing caught it because the labels were string literals with no link to
+    the schedule that produced them. Tie them together here, so moving the slot
+    again either updates the constant or fails.
+
+    Market times (HK opens 09:30, US closes 04:00 HKT) are NOT this: they are
+    facts about the exchanges and do not move when our cron does.
+    """
+    from clawock import scheduling
+
+    job = next(j for j in contract()['jobs']
+               if j['name'] == scheduling.BRIEF_JOB_NAME)
+    minute, hour = job['schedule']['expr'].split()[:2]
+    assert f'{int(hour):02d}:{int(minute):02d}' == scheduling.BRIEF_SLOT_HKT, (
+        'the brief cron moved but the time printed on the brief did not; '
+        'update clawock.scheduling.BRIEF_SLOT_HKT')
+
+
+def test_every_artifact_that_prints_the_brief_time_reads_the_constant():
+    """The gate above is only worth having while nothing re-hardcodes the time.
+
+    Counting the call sites is what keeps a coverage gate honest (#1273): a
+    fourth artifact that prints its own literal would satisfy the constant check
+    and still be wrong.
+    """
+    printers = {
+        'src/clawock/harness/brief_render.py': 2,      # markdown title + card
+        'src/clawock/harness/_watchdog_common.py': 1,  # fallback card
+    }
+    for relative, expected in printers.items():
+        source = (ROOT / relative).read_text(encoding='utf-8')
+        assert source.count('BRIEF_SLOT_HKT') == expected + 1, (
+            f'{relative}: expected {expected} use(s) of BRIEF_SLOT_HKT plus its '
+            'import')
+        assert '盘前深度简报｜{date} 08:' not in source.replace(' ', ''), (
+            f'{relative}: a hard-coded brief time is back')
