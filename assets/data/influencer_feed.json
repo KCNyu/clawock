@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-03T23:29:59.438671+00:00",
+  "generated_at": "2026-09-04T16:37:14.551260+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -13,185 +13,174 @@
   },
   "llm_filtered": true,
   "counts": {
-    "total": 12,
-    "held_hits": 2,
-    "new_ideas": 0,
+    "total": 9,
+    "held_hits": 0,
+    "new_ideas": 5,
     "sector_hits": 1
   },
   "items": [
     {
       "author": "Musk",
-      "text": "SpaceX investors may be overlooking a major risk: There’s no replacing Elon Musk",
+      "text": "Trump administration opens probe into Tesla’s self-driving Cybercab",
       "url": "",
-      "published": "Wed, 02 Sep 2026 09:00:30 GMT",
+      "published": "Fri, 04 Sep 2026 14:17:00 GMT",
       "origin": "gnews-rss",
-      "source": "CNN",
+      "source": "Politico",
       "tickers": [
-        "SPCX",
-        "SPCH"
+        "TSLA"
       ],
-      "held": [
-        "SPCH",
-        "SPCX"
+      "held": [],
+      "new_ideas": [
+        "TSLA"
       ],
-      "new_ideas": [],
       "sectors": [
-        "航天",
-        "私募/未上市"
+        "自动驾驶",
+        "Robotaxi",
+        "监管"
       ],
       "sector_holdings": [],
-      "stance": "neutral",
+      "stance": "attack",
+      "relevance": 73,
+      "summary_cn": "Trump 政府就 Tesla 自动驾驶 Cybercab 启动调查，监管风险叠加，TSLA 短期承压。"
+    },
+    {
+      "author": "Musk",
+      "text": "Feds Open Probe Into Elon Musk’s Autonomous Taxis - News of the United States",
+      "url": "",
+      "published": "Fri, 04 Sep 2026 15:24:44 GMT",
+      "origin": "gnews-rss",
+      "source": "News of the United States - NOTUS",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "自动驾驶",
+        "Robotaxi",
+        "监管"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
       "relevance": 72,
-      "summary_cn": "报道指出SpaceX投资者可能低估了Musk不可替代带来的风险——直接涉及kcn持有的SpaceX相关标的，需警惕集中度风险。"
+      "summary_cn": "美联邦对 Musk 旗下自动驾驶出租车（Tesla Cybercab）开启调查，监管不确定性利空 TSLA。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk sends a strong message to Tesla and SpaceX investors",
+      "text": "Tesla Begins Offering Rides in a Car Without a Steering Wheel",
       "url": "",
-      "published": "Thu, 03 Sep 2026 11:37:00 GMT",
+      "published": "Fri, 04 Sep 2026 12:25:00 GMT",
       "origin": "gnews-rss",
-      "source": "thestreet.com",
+      "source": "The New York Times",
       "tickers": [
-        "SPCX",
-        "SPCH"
+        "TSLA"
       ],
-      "held": [
-        "SPCH",
-        "SPCX"
+      "held": [],
+      "new_ideas": [
+        "TSLA"
       ],
-      "new_ideas": [],
       "sectors": [
-        "航天",
-        "电动车"
+        "自动驾驶",
+        "Robotaxi"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 65,
+      "summary_cn": "Tesla 启动无方向盘车型的自动驾驶载客服务，Robotaxi 商业化落地，对 TSLA 偏利好。"
+    },
+    {
+      "author": "Musk",
+      "text": "Musk launches steering-wheel-free taxi service in bet riders lose 'no control' fears and hop inside",
+      "url": "",
+      "published": "Fri, 04 Sep 2026 01:42:00 GMT",
+      "origin": "gnews-rss",
+      "source": "AP News",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "自动驾驶",
+        "Robotaxi"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 62,
+      "summary_cn": "Musk 推出无方向盘出租车服务，力推乘客克服'失控'顾虑上车，利好 TSLA Robotaxi 叙事。"
+    },
+    {
+      "author": "Musk",
+      "text": "Tesla’s Cybercab robotaxi has hit the streets. Regulators have questions.",
+      "url": "",
+      "published": "Fri, 04 Sep 2026 16:32:22 GMT",
+      "origin": "gnews-rss",
+      "source": "The Washington Post",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "自动驾驶",
+        "Robotaxi"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 65,
-      "summary_cn": "Musk向Tesla与SpaceX投资者发出强烈信号，内容未详但直接影响kcn持有的SpaceX敞口。"
+      "relevance": 60,
+      "summary_cn": "Tesla Cybercab robotaxi 上路，监管机构存疑，对 TSLA 既是里程碑也是潜在监管风险点。"
     },
     {
       "author": "Musk",
-      "text": "SpaceX sweeteners: How did Louisiana lure Elon Musk’s rocket launch site to its coast?",
+      "text": "SpaceX’s Turbine Blades Harken New Era of DIY Supply Chains",
       "url": "",
-      "published": "Tue, 01 Sep 2026 16:15:45 GMT",
+      "published": "Fri, 04 Sep 2026 14:00:08 GMT",
       "origin": "gnews-rss",
-      "source": "Louisiana Illuminator",
+      "source": "Bloomberg.com",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
         "航天",
-        "基建"
+        "供应链"
       ],
       "sector_holdings": [
         "SPCH",
         "SPCX"
       ],
-      "stance": "neutral",
-      "relevance": 52,
-      "summary_cn": "报道SpaceX路易斯安那火箭发射场落地，间接利好kcn持有的SpaceX相关标的，无具体上市公司信号。"
-    },
-    {
-      "author": "Trump",
-      "text": "I’m not trying to force Iran to the bargaining table, as ABC Fake News reported. I couldn’t care less if they sign a worthless, to them, agreement. I like our position now much better, with almost total control of the Hormuz Strait, and their economy totally collapsing. They are just playing out the inevitable. When are the Iranian people going to rise up and fight? President DJT",
-      "url": "https://www.trumpstruth.org/statuses/41477",
-      "published": "2026-09-02T01:13:08+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "能源",
-        "原油",
-        "中东地缘",
-        "军工"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
+      "stance": "endorse",
       "relevance": 60,
-      "summary_cn": "Trump称已几乎完全控制霍尔木兹海峡、伊朗经济崩溃——中东局势升级直接利好原油/黄金/军工，利空风险资产。"
+      "summary_cn": "SpaceX 自研涡轮叶片、打造 DIY 供应链，利好其长期降本与估值，间接利好 kcn 持有的 SPCX/SPCH（SpaceX 敞口）。"
     },
     {
       "author": "Trump",
-      "text": "Cheaper drugs, cheaper beef, cheaper gas. Trump lines up fall affordability before Labor Day: https://justthenews.com/government/white-house/cheaper-drugs-cheaper-beef-cheaper-gas-trump-lines-his-fall-affordability",
-      "url": "https://www.trumpstruth.org/statuses/41483",
-      "published": "2026-09-02T11:58:57+00:00",
+      "text": "Great jobs number just announced, breaking all estimates (except mine!) by double and triple - And you haven’t seen anything yet! EMPLOYERS ADDED 162,000 JOB IN AUGUST. Lower the interest rates because the U.S.A. is a much stronger credit than it was just a short time ago! A STRONG COUNTRY MEANS A LOWER INTEREST RATE - IT’S A BETTER CREDIT…Very simple! We should have the LOWEST RATE of any country in the World, like “the old days.” Without the United States agreeing to allow them their big surpluses, and we could stop that immediately, they would no longer be considered financially ELITE! LOWE",
+      "url": "https://trumpstruth.org/statuses/41509",
+      "published": "2026-09-04T13:41:46+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "药品",
-        "能源",
-        "消费",
-        "通胀"
+        "宏观利率",
+        "就业",
+        "美联储"
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 58,
-      "summary_cn": "Trump在劳动节前承诺药品、牛肉、汽油价格下降，涉民生通胀话题，对消费/能源板块有间接情绪影响。"
-    },
-    {
-      "author": "Musk",
-      "text": "Tesla's steering-wheel-free Cybercabs are rolling into Texas",
-      "url": "",
-      "published": "Thu, 03 Sep 2026 17:11:58 GMT",
-      "origin": "gnews-rss",
-      "source": "Chron",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "电动车",
-        "自动驾驶"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "Tesla无方向盘Cybercab进入德州路测，利好自动驾驶/Robotaxi叙事但Tesla不在kcn持仓。"
-    },
-    {
-      "author": "Trump",
-      "text": "Beyond lowering drug prices, Trump ups national security by restoring America’s pharma supply chain: https://justthenews.com/government/white-house/drug-announcements-larger-impact-beyond-lower-prices-securing-americas",
-      "url": "https://www.trumpstruth.org/statuses/41484",
-      "published": "2026-09-02T11:58:40+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "医药",
-        "制药供应链",
-        "国家安全"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "Trump以国家安全为由推动恢复美国制药供应链，药企/仿制药板块可能获政策倾斜。"
-    },
-    {
-      "author": "Trump",
-      "text": "For the treasonous SCUM that refuses to accurately report on our Military Operation in Iran, we have virtually unlimited amounts of Mid to High Grade Ammunition, far more than we could ever use for this, or for any other War (which is highly unlikely!), that could improbably take place. In addition, we are producing Munitions at levels never seen before. We are stockpiling and preparing for any contingency that could happen. We are taking them for ourselves, the U.S.A., rather than selling them to others, but the sales to Allies will soon again, begin. Also, please let it be known, that the Bi",
-      "url": "https://www.trumpstruth.org/statuses/41494",
-      "published": "2026-09-03T14:56:21+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "军工",
-        "国防",
-        "中东地缘"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 52,
-      "summary_cn": "Trump声称美军弹药充足并停止对外军售、转向对伊朗军事行动，利好军工板块但压制盟友军购预期。"
+      "relevance": 75,
+      "summary_cn": "Trump 吹嘘8月非农新增16.2万超预期，并施压美联储降息，称强美国信用应享最低利率，利好风险资产、利空美元。"
     },
     {
       "author": "Trump",
       "text": "It is very good for Canadian Politicians like Prime Minister Carney to make President Donald J. Trump “the enemy,” until their Economy collapses, then it will prove to be very bad for Politics — Worse than anything that has ever happened to a Canadian Politician. Just watch! President DONALD J. TRUMP",
-      "url": "https://www.trumpstruth.org/statuses/41496",
+      "url": "https://trumpstruth.org/statuses/41496",
       "published": "2026-09-03T15:14:24+00:00",
       "origin": "truthsocial",
       "tickers": [],
@@ -199,146 +188,174 @@
       "new_ideas": [],
       "sectors": [
         "关税",
-        "美加关系"
+        "加美贸易"
       ],
       "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "Trump警告加拿大政客不要把对抗美国当作政治筹码，暗示关税压力将让加拿大经济承压——地缘政治紧张升级信号。"
+      "stance": "attack",
+      "relevance": 55,
+      "summary_cn": "Trump 威胁加拿大总理 Carney，称把 Trump 当敌人将损害加拿大经济，暗示加美贸易/关税博弈持续。"
     },
     {
-      "author": "Musk",
-      "text": "Daily 5 report for Sept. 3: Elon Musk bets on Cybercab. Analysts say Tesla still has to prove it’s safe",
-      "url": "",
-      "published": "Thu, 03 Sep 2026 19:00:00 GMT",
-      "origin": "gnews-rss",
-      "source": "autonews.com",
+      "author": "Trump",
+      "text": "For the treasonous SCUM that refuses to accurately report on our Military Operation in Iran, we have virtually unlimited amounts of Mid to High Grade Ammunition, far more than we could ever use for this, or for any other War (which is highly unlikely!), that could improbably take place. In addition, we are producing Munitions at levels never seen before. We are stockpiling and preparing for any contingency that could happen. We are taking them for ourselves, the U.S.A., rather than selling them to others, but the sales to Allies will soon again, begin. Also, please let it be known, that the Bi",
+      "url": "https://trumpstruth.org/statuses/41494",
+      "published": "2026-09-03T14:56:21+00:00",
+      "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "电动车",
-        "自动驾驶"
+        "国防军工",
+        "伊朗地缘"
       ],
       "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 48,
-      "summary_cn": "分析师指出Cybercab仍需证明安全性，Musk下注Robotaxi但验证未完成，间接影响电动车板块情绪。"
-    },
+      "stance": "endorse",
+      "relevance": 50,
+      "summary_cn": "Trump 称美国军工生产/弹药库存创纪录、暂缓对外军售，涉伊朗军事行动背景，军工板块情绪正面。"
+    }
+  ],
+  "held_hits": [],
+  "new_ideas": [
     {
       "author": "Musk",
-      "text": "Elon Musk unleashes first wave of spending on key races in the midterms",
+      "text": "Trump administration opens probe into Tesla’s self-driving Cybercab",
       "url": "",
-      "published": "Thu, 03 Sep 2026 02:57:00 GMT",
+      "published": "Fri, 04 Sep 2026 14:17:00 GMT",
       "origin": "gnews-rss",
       "source": "Politico",
-      "tickers": [],
+      "tickers": [
+        "TSLA"
+      ],
       "held": [],
-      "new_ideas": [],
+      "new_ideas": [
+        "TSLA"
+      ],
       "sectors": [
-        "美国政治",
-        "中期选举"
+        "自动驾驶",
+        "Robotaxi",
+        "监管"
       ],
       "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 48,
-      "summary_cn": "Musk启动首波中期选举支出，影响美国政治风向，间接影响监管/科技板块政策预期。"
+      "stance": "attack",
+      "relevance": 73,
+      "summary_cn": "Trump 政府就 Tesla 自动驾驶 Cybercab 启动调查，监管风险叠加，TSLA 短期承压。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk-backed super PAC reports $800,000 in first burst of midterm spending, largely in Maine and Texas",
+      "text": "Feds Open Probe Into Elon Musk’s Autonomous Taxis - News of the United States",
       "url": "",
-      "published": "Thu, 03 Sep 2026 04:05:42 GMT",
+      "published": "Fri, 04 Sep 2026 15:24:44 GMT",
       "origin": "gnews-rss",
-      "source": "CBS News",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "美国政治",
-        "中期选举"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 45,
-      "summary_cn": "Musk支持的超级PAC首期支出80万美元于缅因州和德州中期选举，金额有限但具风向标意义。"
-    }
-  ],
-  "held_hits": [
-    {
-      "author": "Musk",
-      "text": "SpaceX investors may be overlooking a major risk: There’s no replacing Elon Musk",
-      "url": "",
-      "published": "Wed, 02 Sep 2026 09:00:30 GMT",
-      "origin": "gnews-rss",
-      "source": "CNN",
+      "source": "News of the United States - NOTUS",
       "tickers": [
-        "SPCX",
-        "SPCH"
+        "TSLA"
       ],
-      "held": [
-        "SPCH",
-        "SPCX"
+      "held": [],
+      "new_ideas": [
+        "TSLA"
       ],
-      "new_ideas": [],
       "sectors": [
-        "航天",
-        "私募/未上市"
+        "自动驾驶",
+        "Robotaxi",
+        "监管"
       ],
       "sector_holdings": [],
-      "stance": "neutral",
+      "stance": "attack",
       "relevance": 72,
-      "summary_cn": "报道指出SpaceX投资者可能低估了Musk不可替代带来的风险——直接涉及kcn持有的SpaceX相关标的，需警惕集中度风险。"
+      "summary_cn": "美联邦对 Musk 旗下自动驾驶出租车（Tesla Cybercab）开启调查，监管不确定性利空 TSLA。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk sends a strong message to Tesla and SpaceX investors",
+      "text": "Tesla Begins Offering Rides in a Car Without a Steering Wheel",
       "url": "",
-      "published": "Thu, 03 Sep 2026 11:37:00 GMT",
+      "published": "Fri, 04 Sep 2026 12:25:00 GMT",
       "origin": "gnews-rss",
-      "source": "thestreet.com",
+      "source": "The New York Times",
       "tickers": [
-        "SPCX",
-        "SPCH"
+        "TSLA"
       ],
-      "held": [
-        "SPCH",
-        "SPCX"
+      "held": [],
+      "new_ideas": [
+        "TSLA"
       ],
-      "new_ideas": [],
       "sectors": [
-        "航天",
-        "电动车"
+        "自动驾驶",
+        "Robotaxi"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 65,
+      "summary_cn": "Tesla 启动无方向盘车型的自动驾驶载客服务，Robotaxi 商业化落地，对 TSLA 偏利好。"
+    },
+    {
+      "author": "Musk",
+      "text": "Musk launches steering-wheel-free taxi service in bet riders lose 'no control' fears and hop inside",
+      "url": "",
+      "published": "Fri, 04 Sep 2026 01:42:00 GMT",
+      "origin": "gnews-rss",
+      "source": "AP News",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "自动驾驶",
+        "Robotaxi"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 62,
+      "summary_cn": "Musk 推出无方向盘出租车服务，力推乘客克服'失控'顾虑上车，利好 TSLA Robotaxi 叙事。"
+    },
+    {
+      "author": "Musk",
+      "text": "Tesla’s Cybercab robotaxi has hit the streets. Regulators have questions.",
+      "url": "",
+      "published": "Fri, 04 Sep 2026 16:32:22 GMT",
+      "origin": "gnews-rss",
+      "source": "The Washington Post",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "自动驾驶",
+        "Robotaxi"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 65,
-      "summary_cn": "Musk向Tesla与SpaceX投资者发出强烈信号，内容未详但直接影响kcn持有的SpaceX敞口。"
+      "relevance": 60,
+      "summary_cn": "Tesla Cybercab robotaxi 上路，监管机构存疑，对 TSLA 既是里程碑也是潜在监管风险点。"
     }
   ],
-  "new_ideas": [],
   "sector_hits": [
     {
       "author": "Musk",
-      "text": "SpaceX sweeteners: How did Louisiana lure Elon Musk’s rocket launch site to its coast?",
+      "text": "SpaceX’s Turbine Blades Harken New Era of DIY Supply Chains",
       "url": "",
-      "published": "Tue, 01 Sep 2026 16:15:45 GMT",
+      "published": "Fri, 04 Sep 2026 14:00:08 GMT",
       "origin": "gnews-rss",
-      "source": "Louisiana Illuminator",
+      "source": "Bloomberg.com",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
         "航天",
-        "基建"
+        "供应链"
       ],
       "sector_holdings": [
         "SPCH",
         "SPCX"
       ],
-      "stance": "neutral",
-      "relevance": 52,
-      "summary_cn": "报道SpaceX路易斯安那火箭发射场落地，间接利好kcn持有的SpaceX相关标的，无具体上市公司信号。"
+      "stance": "endorse",
+      "relevance": 60,
+      "summary_cn": "SpaceX 自研涡轮叶片、打造 DIY 供应链，利好其长期降本与估值，间接利好 kcn 持有的 SPCX/SPCH（SpaceX 敞口）。"
     }
   ]
 }
