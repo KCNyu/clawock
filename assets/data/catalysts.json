@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-09-03T08:08:52.912504+08:00",
+  "generated_at": "2026-09-04T08:04:23.380159+08:00",
   "lookback_window_days": 14,
-  "window_start": "2026-09-03",
-  "window_end": "2026-09-17",
+  "window_start": "2026-09-04",
+  "window_end": "2026-09-18",
   "earnings_queried": [
     "CRCL",
     "RKLB",
@@ -36,6 +36,6 @@
     "macro_count": 2,
     "scheduled_count": 0,
     "scheduled_undated": 0,
-    "highest_impact_within_7d": "NFP 2026-09-04"
+    "highest_impact_within_7d": "CPI 2026-09-11"
   }
 }
