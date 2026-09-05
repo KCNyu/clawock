@@ -476,9 +476,13 @@ jobs:
           # EDGAR, Tavily — and ate the job's entire 10-minute budget, failing an
           # unrelated PR. A probe must cost nothing, and if it ever stops being
           # free this fails in seconds instead of taking the job down with it.
+          # The list is asserted against `harness.runner.PHASE_MODULES` by
+          # tests/test_ci_consolidation_contract.py: a phase added to the
+          # registry without being added here fails `validate`, so this cannot
+          # silently fall behind again (#1312, `brief render` was missing).
           for cli in report_preflight report_postflight \
                      intraday_preflight intraday_postflight \
-                     brief_preflight brief_postflight; do
+                     brief_preflight brief_postflight brief_render; do
             timeout 30 env CLAWOCK_PROFILE=kcnyu clawock "${cli%%_*}" "${cli##*_}" --help > /dev/null \
               || { echo "::error::$cli.py --help did not exit 0 within 30s"; exit 1; }
           done
