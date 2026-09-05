@@ -121,26 +121,53 @@ def test_no_inline_lane_classification_left_in_the_workflow():
             "where tests can drive it")
 
 
-def test_the_argparse_check_covers_every_registered_harness_phase():
-    """The probe list must be the registry, not a copy of it that ages.
+def test_every_workflow_probing_argparse_goes_through_the_shared_script():
+    """The probe list must be the registry, not two copies of it that age.
 
-    `argparse-check harness CLIs` hardcodes the phases it loads. `brief render`
-    shipped in `harness.runner.PHASE_MODULES` and never made it into that list,
-    so for the whole life of the step a broken `render` parser was invisible to
-    CI (#1312) — the same shape as every other gate that enumerates its own
-    members by hand. Asserting the two lists against each other is what stops
-    the next phase from landing outside the probe.
+    `brief render` shipped in `harness.runner.PHASE_MODULES` and never made it
+    into ci.yml's hand-written list, so a broken `render` parser was invisible
+    to CI for the life of the step (#1312). Fixing that list left the second
+    copy — weekly-health.yml — four phases behind instead (#1317). Both now run
+    `ops/ci/argparse_probe.py`, which reads the registry, so the only thing
+    these assertions have to hold is that no workflow grows a third list.
     """
-    from clawock.harness.runner import PHASE_MODULES
     from workflow_contract_helpers import step_block
 
-    block = step_block(CI, "argparse-check harness CLIs")
-    listed = re.search(r"for cli in (.+?); do", block, re.DOTALL)
-    assert listed, "the step no longer loops over an explicit CLI list"
-    probed = {tuple(token.split("_", 1))
-              for token in listed.group(1).replace("\\", " ").split()}
+    probe = ROOT / "ops" / "ci" / "argparse_probe.py"
+    assert probe.exists(), "the shared probe is gone; both workflows call it"
 
-    assert probed == set(PHASE_MODULES), (
-        "argparse-check and PHASE_MODULES disagree; "
-        f"only in the registry: {sorted(set(PHASE_MODULES) - probed)}, "
-        f"only in ci.yml: {sorted(probed - set(PHASE_MODULES))}")
+    for workflow, step in ((CI, "argparse-check harness CLIs"),
+                           (WORKFLOWS / "weekly-health.yml",
+                            "argparse contracts unchanged")):
+        block = step_block(workflow, step)
+        assert "ops/ci/argparse_probe.py" in block, (
+            f"{workflow.name}'s `{step}` no longer runs the shared probe")
+        assert "--help" not in block, (
+            f"{workflow.name}'s `{step}` grew its own CLI list again; the list "
+            "belongs in harness.runner.PHASE_MODULES, which the probe reads")
+
+
+def test_the_shared_probe_reads_the_phase_registry():
+    """The probe is only a fix while it derives its members from the registry.
+
+    A probe that hardcodes the same seven phases is the bug with one more file
+    in it, and nothing else in this suite would notice.
+    """
+    from clawock.harness.runner import PHASE_MODULES
+    import argparse_probe as probe_module
+
+    ran = []
+
+    def fake_probe(command, timeout, env):
+        ran.append(command)
+        return True, ""
+
+    original = probe_module.probe
+    probe_module.probe = fake_probe
+    try:
+        assert probe_module.main([]) == 0
+    finally:
+        probe_module.probe = original
+
+    assert set(ran) == {f"{w} {p}" for w, p in PHASE_MODULES}, (
+        "the probe does not walk PHASE_MODULES; a new phase would land unprobed")

@@ -35,12 +35,9 @@ jobs:
         run: python3 ops/host/generate_cron_docs.py --check
 
       - name: argparse contracts unchanged
-        run: |
-          set -e
-          CLAWOCK_PROFILE=kcnyu clawock report preflight --help > /dev/null
-          CLAWOCK_PROFILE=kcnyu clawock report postflight --help > /dev/null
-          CLAWOCK_PROFILE=kcnyu clawock intraday preflight --help > /dev/null
-          CLAWOCK_PROFILE=kcnyu clawock intraday postflight --help > /dev/null
+        # Same probe as ci.yml, from the same registry. Two hand-written lists
+        # is how this step spent its life four phases behind (#1317).
+        run: python3 ops/ci/argparse_probe.py
 
       - name: Public data sources reachable
         continue-on-error: true
