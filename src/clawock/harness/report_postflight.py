@@ -44,6 +44,7 @@ from datetime import datetime
 from pathlib import Path
 
 from clawock.workspace import workspace_root
+from clawock.safe_io import safe_write_text
 from clawock import sessions as trading_calendar
 
 WS = workspace_root()
@@ -219,7 +220,7 @@ def deliver_wechat(market, phase, date, wechat_prefix, text, delivery_state='del
     tg_ok, _tg_out = cosend_telegram(message, f'{market}-{phase}')
     marker = TMP / f'report-sent-{market}-{phase}-{date}.json'
     try:
-        marker.write_text(json.dumps({
+        safe_write_text(str(marker), json.dumps({
             'ts': int(datetime.now().timestamp() * 1000),
             'sent_ok': bool(sent_ok),
             'tg_ok': bool(tg_ok),

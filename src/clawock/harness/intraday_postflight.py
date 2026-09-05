@@ -67,7 +67,7 @@ from ._watchdog_common import (  # noqa: E402
 
 from clawock.workspace import workspace_root
 from clawock import sessions as trading_calendar
-from clawock.safe_io import safe_write_json
+from clawock.safe_io import safe_write_json, safe_write_text
 
 WS = workspace_root()
 _CHECKOUT = WS
@@ -526,7 +526,7 @@ def main(argv=None):
                 # declined claim writing one would tell intraday_watchdog this
                 # slot was handled while nothing went out (#508).
                 try:
-                    marker.write_text(json.dumps(delivery_marker_payload(
+                    safe_write_text(str(marker), json.dumps(delivery_marker_payload(
                         ctx,
                         ts=int(datetime.now().timestamp() * 1000),
                         sent_ok=wechat_sent,
