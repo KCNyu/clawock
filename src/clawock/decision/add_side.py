@@ -63,6 +63,74 @@ IN_PLAY_STATES = ("breakout", "near_breakout", "at_high")
 ROW_STATES = IN_PLAY_STATES + ("wait_rebreak",)
 
 
+# One definition of "where is this name against its 20-day high", used by both
+# readers. `intraday_preflight.collect_opportunity_radar` classifies the live
+# print with it; `daily_radar` below classifies the settled close. Two copies of
+# these four comparisons is exactly the shape that lets a brief and a slot
+# disagree about the same name on the same day.
+def classify_level(close, prior_20d_high, zscore20, *, near_pct, no_chase_z):
+    """(state, state_zh) for one name, or None when it is not an add-side read.
+
+    `breakout` is the only state the #819 backtest measured an edge on, and the
+    overheat check is why it is not simply `close > prior`: a name that gapped
+    far above its 20-day mean is a chase, not a breakout, so it degrades to
+    `wait_rebreak` rather than promoting.
+    """
+    if close is None or prior_20d_high is None or prior_20d_high <= 0:
+        return None
+    if close > prior_20d_high and (zscore20 is None or zscore20 < no_chase_z):
+        return "breakout", "机会·突破"
+    if close > prior_20d_high:
+        return "wait_rebreak", "机会·等回踩"
+    if close >= prior_20d_high * (1 - near_pct / 100):
+        return "near_breakout", "机会·接近"
+    return None
+
+
+def daily_radar(signals_by_label, *, near_pct, no_chase_z, holdings_of=None):
+    """`{rows, levels}` from settled daily bars — the radar, one day later.
+
+    The intraday radar reads a live print and says so; this one reads the close
+    the market actually printed, which is the quantity #819 measured. It exists
+    because the daily brief — the only process that writes decisions — had no
+    opportunity input at all: between 2026-07-20 and 2026-09-05 the bar store
+    held 48 close-confirmed breakouts across 18 names and the ledger recorded
+    zero add decisions, because the breakout was computed in the intraday slot,
+    which cannot write one.
+
+    `signals_by_label` maps a label to the output of `signals.compute_signals`,
+    so every number here is copied from that one computation. No fetch, no
+    threshold of its own: both come from `config/add-alpha-policy.json` through
+    the caller, the same file the intraday radar reads.
+    """
+    rows, levels = [], {}
+    for label, sig in sorted((signals_by_label or {}).items()):
+        if not sig:
+            continue
+        close, prior = sig.get("close"), sig.get("prior_20d_high")
+        state = classify_level(close, prior, sig.get("zscore20"),
+                               near_pct=near_pct, no_chase_z=no_chase_z)
+        if close is not None and prior:
+            levels.setdefault(label, {
+                "prior_20d_high": prior, "close": close,
+                "pct_from_high": round((close / prior - 1) * 100, 2)})
+        if state is None:
+            continue
+        rows.append({
+            "label": label,
+            "setup_id": f"opportunity:{state[0]}",
+            "state": state[0],
+            "state_zh": state[1],
+            "holdings": list((holdings_of or {}).get(label) or [label]),
+            "close": close,
+            "prior_20d_high": prior,
+            "pct_from_high": round((close / prior - 1) * 100, 2),
+            "zscore20": sig.get("zscore20"),
+        })
+    rows.sort(key=lambda row: row["pct_from_high"], reverse=True)
+    return {"rows": rows, "levels": levels, "confirmed_at_close": True}
+
+
 def _radar_index(radar):
     """holdings ticker -> radar row. A row can cover several holdings (an index
     proxy: HSTECH covers 07226), so both the label and every holding map to it.
@@ -165,7 +233,8 @@ def _open_risk_action(plan_context, ticker):
 
 
 def read_rows(*, anomalies=None, radar=None, levels=None, early_trend=None,
-              mover_news=None, mover_thesis=None, plan_context=None):
+              mover_news=None, mover_thesis=None, plan_context=None,
+              close_confirmed=False):
     """Join the packet's own answers into add-side reads, most acute first.
 
     Every field is copied from an input; nothing here is derived arithmetic, so a
@@ -215,10 +284,14 @@ def read_rows(*, anomalies=None, radar=None, levels=None, early_trend=None,
                     needs = f"{lead}{radar_row.get('prior_20d_high')} 并守住"
             else:
                 state_zh = radar_row.get('state_zh') or radar_row.get('state')
-                # 本模块只在盘中档运行（intraday_preflight）：雷达的 close 是
-                # 实时价，收盘未确认——#819 回测度量的是收盘确认的突破，文案
-                # 不得把现价触发说成已确认的收盘事实。
-                why = (f"技术面{state_zh}:现价站上前 20 日高且未过热(盘中、收盘未确认;"
+                # 盘中档（intraday_preflight）的 close 是实时价，收盘未确认——
+                # #819 回测度量的是收盘确认的突破，文案不得把现价触发说成已确认
+                # 的收盘事实。简报档（brief_preflight）读的就是已收的日线，措辞
+                # 因此不同：同一个判据，两种确认程度，各说各的那一种。
+                why = (f"技术面{state_zh}:收盘站上前 20 日高且未过热(收盘确认;"
+                       f"回测口径同为收盘确认:四个周期命中率均>50%)"
+                       if close_confirmed else
+                       f"技术面{state_zh}:现价站上前 20 日高且未过热(盘中、收盘未确认;"
                        f"回测口径为收盘确认:四个周期命中率均>50%)")
                 lead = f"{_proxy_of(radar_row)} 守住 " if _proxy_of(radar_row) else "守住 "
                 needs = f"{lead}{radar_row.get('prior_20d_high')}(回踩不破再谈加仓)"
@@ -318,7 +391,10 @@ def read_rows(*, anomalies=None, radar=None, levels=None, early_trend=None,
         "candidate_count": sum(r["verdict"] == "candidate" for r in rows),
         "wait_count": sum(r["verdict"] == "wait" for r in rows),
         "reject_count": sum(r["verdict"] == "reject" for r in rows),
-        "policy": ("技术突破(现价站上前 20 日高且未过热,盘中读数、收盘未确认)即 candidate,"
-                   "一手公告升级措辞;软消息/情绪只能停在 wait;"
-                   "纪律动作未了结一律 reject。三态都不是下单授权。"),
+        "confirmed_at_close": bool(close_confirmed),
+        "policy": (("技术突破(收盘站上前 20 日高且未过热,收盘确认)即 candidate,"
+                    if close_confirmed else
+                    "技术突破(现价站上前 20 日高且未过热,盘中读数、收盘未确认)即 candidate,")
+                   + "一手公告升级措辞;软消息/情绪只能停在 wait;"
+                     "纪律动作未了结一律 reject。三态都不是下单授权。"),
     }

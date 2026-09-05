@@ -436,14 +436,15 @@ def collect_opportunity_radar(market):
         if label:
             levels.setdefault(label, {'prior_20d_high': prior, 'close': close,
                                       'pct_from_high': round(pct_from_high, 2)})
-        if close > prior and (z is None or z < no_chase_z):
-            state, state_zh = 'breakout', '机会·突破'
-        elif close > prior:
-            state, state_zh = 'wait_rebreak', '机会·等回踩'
-        elif close >= prior * (1 - near_pct / 100):
-            state, state_zh = 'near_breakout', '机会·接近'
-        else:
+        # One definition, two readers (#819): `add_side.classify_level` is also
+        # what the daily brief's close-confirmed radar calls, so a slot and a
+        # brief cannot disagree about where the same name sits.
+        classified = add_side.classify_level(close, prior, z,
+                                             near_pct=near_pct,
+                                             no_chase_z=no_chase_z)
+        if classified is None:
             continue
+        state, state_zh = classified
         rows.append({
             'label': label,
             'setup_id': f"opportunity:{state}",

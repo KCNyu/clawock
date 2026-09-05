@@ -219,8 +219,12 @@ def test_the_live_context_shape_still_feeds_it():
         anomalies=ctx["anomalies"], radar=ctx["opportunity_radar"],
         early_trend=ctx["early_trend_candidates"], mover_news=ctx["mover_news"],
         mover_thesis=ctx["mover_thesis"], plan_context=ctx["plan_context"])
+    # `confirmed_at_close` joined the shape when the daily brief became a second
+    # caller: the same rows mean something different once the close is settled,
+    # and the wording has to say which one it is.
     assert set(out) == {"rows", "candidate_count", "wait_count", "reject_count",
-                        "policy"}
+                        "policy", "confirmed_at_close"}
+    assert out["confirmed_at_close"] is False, "the intraday slot never has the close"
     assert all(r["verdict"] in add_side.VERDICTS for r in out["rows"])
 
 
