@@ -1685,6 +1685,115 @@ def _latest_brief_context():
         return None, None
 
 
+def compute_add_side(shape_cards_dir=None):
+    """The add side, as the brief already computed it — projected, not recomputed.
+
+    Every number here is copied from something that already exists: the brief
+    context carries `opportunity` / `add_alpha_activation` / `action_track_record`
+    (#1337, #1340), and the newest `add_shapes` run card carries the shape study
+    (#1341). Recomputing any of it here would create a second answer to the same
+    question, which is the failure this whole line of work started from.
+
+    It exists because the dashboard could show a book with no add decisions in
+    it and no way to ask why. The answer has three parts and all three are
+    quantities, not prose: which evidence families are still warming up and how
+    far, what the add side read today and what would settle it, and what each
+    entry shape has historically been worth against a baseline.
+    """
+    _, context = _latest_brief_context()
+    context = context or {}
+    opportunity = context.get('opportunity') or {}
+    activation = context.get('add_alpha_activation') or {}
+    track = (context.get('action_track_record') or {}).get('by_action') or {}
+
+    families = []
+    for name, row in (activation.get('families') or {}).items():
+        progress = None
+        for counter, pair in (row.get('progress') or {}).items():
+            # The countdown only; a pass/fail flag has nothing to count down.
+            if (isinstance(pair, list) and len(pair) == 2
+                    and all(isinstance(x, (int, float)) and not isinstance(x, bool)
+                            for x in pair) and pair[0] < pair[1]):
+                progress = {'counter': counter, 'have': pair[0], 'need': pair[1]}
+                break
+        families.append({
+            'name': name,
+            'active': bool(row.get('active')),
+            'progress': progress,
+            'blockers': list(row.get('blockers') or [])[:3],
+        })
+
+    rows = []
+    for row in (opportunity.get('rows') or [])[:8]:
+        evidence = row.get('evidence') or {}
+        rows.append({
+            'ticker': row.get('ticker'),
+            'verdict': row.get('verdict'),
+            'why': (row.get('why') or '')[:90],
+            'needs': (row.get('needs') or '')[:70],
+            'prior_20d_high': evidence.get('prior_20d_high'),
+            'pct_from_high': evidence.get('pct_from_high'),
+        })
+
+    shapes = _latest_shape_study(shape_cards_dir)
+    return {
+        'as_of': context.get('date'),
+        # The brief only started emitting these blocks on 2026-09-05, so a
+        # checkout whose newest context predates that has the shape study and
+        # nothing else. Saying which is the difference between an empty card and
+        # a card that looks broken.
+        'pending': not opportunity,
+        'counts': opportunity.get('counts') or {},
+        'why_no_candidate': opportunity.get('why_no_candidate'),
+        'policy': opportunity.get('policy'),
+        'cold_start': bool(activation.get('cold_start')),
+        'families': families,
+        'rows': rows,
+        'shapes': shapes,
+        'track_record': {
+            action: {'hit_rate': seat.get('hit_rate'), 'win': seat.get('win'),
+                     'loss': seat.get('loss'), 'settled': seat.get('settled')}
+            for action, seat in track.items()
+            if action in ('cut', 'trim_on_rebound', 'add_only_on_trigger')
+        },
+    }
+
+
+def _latest_shape_study(cards_dir=None):
+    """The newest `add_shapes` run card's metrics, or None.
+
+    A run card rather than a live recomputation on purpose: the card records the
+    exact bars and parameters behind the numbers, so what the dashboard shows is
+    re-derivable with `clawock run-card --run-id …` instead of being a figure
+    that only ever existed on a web page.
+    """
+    directory = Path(cards_dir) if cards_dir else WS_ROOT / 'memory' / 'backtests'
+    try:
+        cards = sorted(directory.glob('add_shapes-*.json'))
+        if not cards:
+            return None
+        card = load_json(str(max(cards, key=os.path.getmtime)))
+    except Exception as e:
+        print(f'  warn: add_shapes run card unreadable: {e}', file=sys.stderr)
+        return None
+    metrics = (card or {}).get('metrics') or {}
+    if not metrics.get('shapes'):
+        return None
+    keep = ('breakout', 'breakout_overheated', 'pullback_in_uptrend', 'deep_dip')
+    trimmed = {}
+    for name in keep:
+        seat = metrics['shapes'].get(name) or {}
+        row = {h: [cell.get('n'), cell.get('hit_rate'), cell.get('mean_pct')]
+               for h, cell in seat.items() if isinstance(cell, dict)}
+        if row:
+            trimmed[name] = row
+    baseline = {h: [cell.get('n'), cell.get('hit_rate'), cell.get('mean_pct')]
+                for h, cell in (metrics.get('baseline') or {}).items()
+                if isinstance(cell, dict)}
+    return {'shapes': trimmed, 'baseline': baseline,
+            'names': metrics.get('names'), 'run_id': (card or {}).get('run_id')}
+
+
 def load_previous_payload(path):
     """Return `(payload_or_None, missing)` for a previously published dashboard.
 
@@ -3887,6 +3996,11 @@ def build_projection(previous_source=None, shadow_previous=None):
     _embed('t0_setups', 't0_setups.json')              # compute_t0_setups.py: T+0 牌面评级(追高检测)
     _embed('t0_setup_review', 't0_setup_review.json')  # t0_setup_review.py: 牌面命中率背书(T+1对账)
     _embed('catalysts', 'catalysts.json')              # clawock catalysts + brief preflight
+    # The add side: why there is or is not an add today, projected from the
+    # brief context and the add_shapes run card (#1337/#1340/#1341). A book with
+    # no add decisions in it and no way to ask why is how 47 days of sell-only
+    # advice went unquestioned.
+    out['add_side'] = compute_add_side()
     _embed('benchmark', 'benchmark.json')              # fetch_benchmark_history.py: SPY/HSI/HSTECH daily close
     # 基准新鲜度守卫 — Polygon/HSI 抓取偶发限流会让 benchmark.json 停更(曾停到6天),
     # equity curve 的 SPY/恒科等值线会静默退化成平线。被动暴露 staleness 给前端显示小字

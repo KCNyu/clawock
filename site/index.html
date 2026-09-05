@@ -763,6 +763,12 @@ layout: null
   <section class="panel" data-panel="plan">
     <h2>Plan</h2>
 
+    <div class="card lead" id="add-side-card" style="display:none">
+      <h3>加仓面 <span class="muted" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:var(--fs-xs)">Add side · 收盘确认</span></h3>
+      <p class="chart-hint">为什么今天有/没有加仓建议。三个证据族任意两族成立才授权试探仓——两族没开机时，「任意两族」就退化成「必须追涨」。三态都不是下单授权。</p>
+      <div id="add-side-body"></div>
+    </div>
+
     <div class="card" id="watch-levels-card" style="display:none">
       <h3>今日触发位 <span class="muted" id="watch-levels-date" style="text-transform:none;letter-spacing:0;font-weight:500;font-size:var(--fs-xs)">Watch Levels</span></h3>
       <p class="chart-hint">盘前计划写死的触发价位 vs 现价。距离越近越该盯，&lt;2% 标红。</p>
