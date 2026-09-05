@@ -99,10 +99,28 @@ launcher="${CLAWOCK_LAUNCHER:-$HOME/.local/bin/clawock}"
 [ -x "$launcher" ] && "$launcher" --version
 if command -v dsh >/dev/null; then
   bundle="examples/dsh/packages/clawock-dsh/lib/client.js"
-  if curl -fs http://127.0.0.1:3081/plugins/clawock-dsh/client.js \
-      | cmp -s - "$bundle"; then
+  # dsh 0.1.2 retired the per-plugin URL this check used to fetch: client
+  # bundles are served only through the module loader's combo URL carrying the
+  # current graph rev (`/plugins/clawock-dsh/client.js` answers 404 now, and
+  # so does the combo shape with any other rev), and the body is the committed
+  # file plus a trailing sourceMappingURL comment. The `/plugins/events` graph
+  # is where that URL is published — and it is one of the few routes 0.1.2's
+  # new browser-session auth leaves open, so this check still needs no cookie.
+  # Both fetches land in a file: under `pipefail`, `head -c` closing the pipe
+  # early would fail the whole pipeline on SIGPIPE and read as "not serving".
+  graph="$(curl -sN --max-time 5 http://127.0.0.1:3081/plugins/events 2>/dev/null \
+           | grep -m1 '^data: ' || true)"
+  url="$(printf '%s' "${graph#data: }" | python3 -c 'import json, sys
+raw = sys.stdin.read().strip()
+entries = json.loads(raw)["graph"]["entries"] if raw else []
+print(next((e["url"] for e in entries if e["id"] == "clawock-dsh"), ""))' || true)"
+  served="$(mktemp)"
+  [ -n "$url" ] && curl -fs --max-time 30 -o "$served" "http://127.0.0.1:3081$url" || true
+  if [ -s "$served" ] && head -c "$(wc -c < "$bundle")" "$served" | cmp -s - "$bundle"; then
     echo "dsh serves the checkout's client bundle"
+    rm -f "$served"
   else
+    rm -f "$served"
     echo "dsh is NOT serving $bundle — investigate before trusting the desk" >&2
     exit 1
   fi

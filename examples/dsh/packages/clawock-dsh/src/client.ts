@@ -26,7 +26,7 @@ import { TYPERT_REMOTE } from 'clawock-dsh/remote'
 import type { Context } from '@deepseek-ai/cordis'
 import type { TypertClientRemote, TypertRemoteContribution } from '@deepseek-ai/dsh-typert-protocol'
 import type { PropsStore } from '@deepseek-ai/dsh-client-ui-slots'
-import { defineStore } from '@deepseek-ai/dsh-client-runtime/client'
+import { defineStore } from '@deepseek-ai/dsh-client-store'
 // The loader module table provides React at runtime; the types come from the
 // @types/react devDependency.
 import * as React from 'react'

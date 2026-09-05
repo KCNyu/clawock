@@ -45,7 +45,7 @@ export interface DecisionMindState {
  * Store factory — called once inside `apply`. Never a module-level handle:
  * the module cache would make it a singleton shared across plugin reloads.
  */
-export declare function createDecisionMindStore(): import("@deepseek-ai/dsh-client-runtime/client").EngineStoreHandle<DecisionMindState, {
+export declare function createDecisionMindStore(): import("@deepseek-ai/dsh-client-store").EngineStoreHandle<DecisionMindState, {
     setFilter: (draft: DecisionMindState, value: TraceFilter) => void;
     toggleOpen: (draft: DecisionMindState, key: string) => void;
     showMoreDates: (draft: DecisionMindState, count: number) => void;
@@ -174,7 +174,7 @@ export interface BalanceUiState {
     selected: string | null;
 }
 /** Store factory — called inside `apply`, never a module-level handle. */
-export declare function createBalanceStore(): import("@deepseek-ai/dsh-client-runtime/client").EngineStoreHandle<BalanceUiState, {
+export declare function createBalanceStore(): import("@deepseek-ai/dsh-client-store").EngineStoreHandle<BalanceUiState, {
     select: (draft: BalanceUiState, provider: string) => void;
 }>;
 /** The chip's registration store handle type (derived, like DecisionMind's). */
