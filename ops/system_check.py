@@ -1067,6 +1067,97 @@ def check_model_chain_health(r):
                                  f'{RUN_SCAN_LIMIT} runs')
 
 
+DELIVERY_DEGRADED_FAILURE_RATE = 0.20
+DELIVERY_HEALTHY_SUCCESS_RATE = 0.95
+
+
+def check_delivery_channel_health(r):
+    """A delivery leg that is quietly rotting, told apart from one bad slot.
+
+    Sibling of :func:`check_model_chain_health`, for the other chain. Every
+    report co-sends to WeChat and Telegram and the slot counts as delivered if
+    either lands, which is the right design — WeChat cannot confirm a cold-session
+    drop, so gating on it would suppress real reports. The cost of that design is
+    that **one leg can fail a third of the time and nothing says so**: the
+    postflight prints a warning to stderr, the watchdog correctly stays quiet
+    because Telegram carried the slot, and no gate or view ever adds the failures
+    up. Measured 2026-09-06 over the ledger's own four-day window: Telegram
+    98/100, WeChat 67/100, and WeChat trending 84% -> 76% -> 68% across three
+    consecutive days without a single alert anywhere.
+
+    Two different things get reported, because they need different answers:
+
+    * a slot where **every** channel failed is a report that did not reach a
+      human, and the watchdog's re-send is the only thing that saved it;
+    * a channel far below its sibling is a leg degrading behind a working
+      fallback — nothing is lost today, and that is exactly why it goes unseen.
+
+    Channels are enumerated from the `*_ok` fields the ledger actually carries
+    rather than from a hardcoded pair, so a third channel is covered the day it
+    starts writing its result (the same reason the packaging and argparse gates
+    read their real source instead of a list someone has to remember to
+    update).
+
+    WARNING, never CRITICAL: a push is not the thing to block over a delivery
+    statistic, and `check_model_chain_health` set that precedent for the chain
+    next door.
+    """
+    try:
+        sys.path.insert(0, str(_REPO_ROOT / 'src'))
+        from clawock.automation import workflow_outcomes  # noqa: PLC0415
+        ledger = json.loads(workflow_outcomes.public_path().read_text(encoding='utf-8'))
+    except Exception:
+        return  # no ledger on this host yet
+    records = ledger.get('records') or []
+
+    slots = []
+    for rec in records:
+        delivery = ((rec.get('stages') or {}).get('primary_delivery') or {})
+        channels = {k[:-3]: bool(v) for k, v in delivery.items()
+                    if k.endswith('_ok') and isinstance(v, bool)}
+        if channels:
+            slots.append((rec.get('slot') or '', channels))
+    if not slots:
+        return
+    slots.sort(key=lambda s: s[0])
+    slots = slots[-RUN_SCAN_LIMIT:]
+
+    names = sorted({name for _, ch in slots for name in ch})
+    totals = {n: [0, 0] for n in names}  # name -> [ok, seen]
+    silent = []
+    for slot, ch in slots:
+        for name, ok in ch.items():
+            totals[name][1] += 1
+            totals[name][0] += 1 if ok else 0
+        if ch and not any(ch.values()):
+            silent.append(slot)
+
+    def rate(name):
+        ok, seen = totals[name]
+        return ok / seen if seen else 1.0
+
+    tally = ' · '.join(f'{n} {totals[n][0]}/{totals[n][1]}' for n in names)
+    if silent:
+        shown = ', '.join(silent[-4:])
+        r.add('delivery channels', WARNING,
+              f'{len(silent)} slot(s) where every channel failed — only the '
+              f'watchdog re-send stood between these and a missed report: {shown} '
+              f'({tally} over the last {len(slots)} slots)')
+        return
+    healthy = [n for n in names if rate(n) >= DELIVERY_HEALTHY_SUCCESS_RATE]
+    rotting = [n for n in names
+               if (1 - rate(n)) >= DELIVERY_DEGRADED_FAILURE_RATE and n not in healthy]
+    if rotting and healthy:
+        named = '; '.join(f'{n} {rate(n) * 100:.0f}%' for n in rotting)
+        r.add('delivery channels', WARNING,
+              f'{named} while {"/".join(healthy)} carries every slot — nothing is '
+              f'lost today, which is why this leg can rot unnoticed '
+              f'({tally} over the last {len(slots)} slots)')
+    else:
+        r.add('delivery channels', OK,
+              f'{tally} over the last {len(slots)} slots')
+
+
 def check_host_cron_logs(r):
     """A host cron job whose log ends in a crash has been failing unnoticed.
 
@@ -1553,6 +1644,7 @@ def main():
         check_delivered_but_unarchived,
         check_fallback_chain_shape,
         check_model_chain_health,
+        check_delivery_channel_health,
         check_generated_cron_docs,
         check_research_artifacts,
         check_trading_calendar_horizon,
