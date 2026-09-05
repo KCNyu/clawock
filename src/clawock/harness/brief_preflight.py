@@ -2014,6 +2014,15 @@ def main(argv=None):
         # The add side. Sits next to open_decisions deliberately: the discipline
         # half of the same question has been in this context since the start.
         'opportunity': opportunity,
+        # Where each add-side evidence family is in its warm-up. The packet has
+        # carried this for a while; the brief never printed it, so a zero add
+        # side read as "nothing qualified" when it meant "two of the three
+        # families are still collecting their first 24 prospective dates".
+        'add_alpha_activation': brief_decision_packet.add_alpha_activation({
+            'cross_sectional_factor': cross_sectional_factor_ctx,
+            'peer_residual': peer_residual_ctx,
+            'news_evidence_graph': news_evidence_ctx,
+        }),
         # What each kind of advice has actually been worth. Sits in the context
         # rather than only on the dashboard because the sentence it qualifies
         # ("cut 700 股, confidence 0.92") is printed in the brief.

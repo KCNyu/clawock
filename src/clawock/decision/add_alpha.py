@@ -211,8 +211,32 @@ def classify_authority(
     market: str,
     continuing: bool = False,
     technical: dict | None = None,
+    cold_start: bool = False,
 ) -> dict:
-    """Return a stateful-campaign eligibility tier and auditable blockers."""
+    """Return a stateful-campaign eligibility tier and auditable blockers.
+
+    `cold_start` says at least one of the three families is still warming up —
+    the caller reads it off the activation counters, never off a date. It exists
+    because of what those counters looked like on 2026-09-05:
+
+        cross_sectional_factor  prospective_dates  8/24
+        news evidence graph     history_dates     16/24
+        peer_residual           blockers: dates, signed_residual_ci
+
+    Two of the three families were structurally unable to fire, so
+    `minimum_evidence_families = 2` could only be met by pairing the survivor
+    with `technical_breakout` — which turns "any two families" into "a breakout
+    is mandatory", i.e. the chase-only behaviour kcn objected to on 2026-09-05
+    (「如果只是追涨杀跌太low了」). Ten holdings, ten
+    `independent_evidence_families` blockers, zero adds in 47 days.
+
+    The exception this enables is deliberately the smallest one that changes
+    that: ONE family, half the exploration tranche, never a leveraged name,
+    never over a negative-information block, and — because it still goes through
+    `campaign_setup` — never a market order, only a price-confirmation trigger.
+    It retires itself: once the counters fill, `cold_start` is False and the
+    two-family rule is the only rule again.
+    """
     market_policy = _market_policy(policy, market)
     factor_ok, factor_reasons = _factor_support(
         factor, market_policy, continuing=continuing
@@ -249,7 +273,14 @@ def classify_authority(
         and signed <= -float(policy["minimum_information_score"])
     ):
         blockers.append("negative_information")
-    if len(families) < policy["minimum_evidence_families"]:
+    cold_start_relief = (
+        cold_start
+        and bool(policy.get("cold_start_single_family_enabled"))
+        and len(families) == 1
+        and not leveraged
+        and not peer_negatives
+    )
+    if len(families) < policy["minimum_evidence_families"] and not cold_start_relief:
         blockers.append("independent_evidence_families")
     validated_price = bool(
         (factor_ok and factor.get("usable_for_decisions"))
@@ -261,6 +292,11 @@ def classify_authority(
         blockers.append("leveraged_requires_validated_evidence")
     if not blockers and validated:
         tier = "validated"
+    elif not blockers and cold_start_relief and policy.get("exploration_enabled"):
+        # Its own name, never folded into `exploration`: a reader of the ledger
+        # has to be able to tell a two-family authorisation from a one-family
+        # one taken while the other families were still warming up.
+        tier = "exploration_cold_start"
     elif not blockers and policy.get("exploration_enabled"):
         tier = "exploration"
     else:
@@ -282,6 +318,7 @@ def classify_authority(
         # is pure budget — the first cut of this blew the cap by 1.8KB.
         **({"technical_reasons": technical_reasons} if technical_reasons else {}),
         "blockers": sorted(set(blockers)),
+        **({"cold_start_relief": True} if cold_start_relief else {}),
         # `discipline` used to live here, one identical copy per ticker: 125
         # bytes × 10 holdings inside a 96KB cap that had 873 bytes of headroom
         # left, and nothing read it. A constant belongs in the packet once —
@@ -295,7 +332,9 @@ AUTHORITY_DISCIPLINE = (
     "(price-relative / point-in-time information / confirmed un-overheated "
     "20-day breakout); validated still needs decision-usable evidence on both "
     "the price and information sides, so a price pattern never promotes a "
-    "leveraged name"
+    "leveraged name. While a family is still warming up, one family plus a "
+    "price confirmation authorises HALF an exploration slice on a non-leveraged "
+    "name — the exception retires itself when the activation counters fill"
 )
 
 
@@ -307,7 +346,8 @@ def confirmation_setup(
     ticker: str,
 ) -> dict | None:
     """Build a multi-session, gap-aware execution intent for one campaign."""
-    if authority.get("tier") not in {"exploration", "validated"}:
+    if authority.get("tier") not in {"exploration", "validated",
+                                     "exploration_cold_start"}:
         return None
     if not technical.get("usable") or technical.get("stop_state") != "intact":
         return None
@@ -341,15 +381,22 @@ def confirmation_setup(
         "entry_price": levels["entry_price"],
         "invalidation_price": levels["invalidation_price"],
         "max_tranches": (
-            policy["validated_max_tranches"]
-            if tier == "validated" else policy["exploration_max_tranches"]
+            policy["validated_max_tranches"] if tier == "validated"
+            else 1 if tier == "exploration_cold_start"
+            else policy["exploration_max_tranches"]
         ),
         "tranche_pct_of_position": (
-            policy["validated_tranche_pct"]
-            if tier == "validated" else policy["exploration_tranche_pct"]
+            policy["validated_tranche_pct"] if tier == "validated"
+            # Half the exploration slice. The families are least validated
+            # exactly while they are warming up, so the one period that relaxes
+            # the count is the one that must not relax the size.
+            else policy["cold_start_tranche_pct"] if tier == "exploration_cold_start"
+            else policy["exploration_tranche_pct"]
         ),
         "authority_tier": tier,
-        "target_tranche_level": 0.25 if tier == "exploration" else 1.0,
+        "target_tranche_level": (
+            0.125 if tier == "exploration_cold_start"
+            else 0.25 if tier == "exploration" else 1.0),
         "authority_sources": list(authority.get("sources") or []),
         "evidence_families": list(authority.get("evidence_families") or []),
         "signal_date": signal_date,
