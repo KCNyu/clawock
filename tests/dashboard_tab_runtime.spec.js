@@ -1144,6 +1144,71 @@ async function testVerdictDeckFillsItsBoxAndRanksGatesBySeverity(browser, base) 
 // 点名的位置从判词挪到了「投递」泳道（kcn 2026-09-01：「我也不知道该怎么看」
 // ⇒ 判词只回答「页面上的数字能不能信」，一个任务没落地不改变这个答案）。
 // 断言跟着挪，但要求不变：**不展开就能读到是哪一档、发生了什么**。
+async function testAddSideCardExplainsWhyThereIsNoAdd(browser, base) {
+  // 47 天里 48 次收盘突破对 0 条加仓建议，而面板上没有任何地方能问「为什么」。
+  // 这张牌就是那个答案，它有三部分且三部分都是数字：证据族开机到哪了、今天的
+  // 读数是什么、每种入场形态历史上值多少。这里钉住的是最容易被做丢的那两样：
+  // 「没有候选的原因」必须显示出来（静默的零就是当初那 47 天），以及形态表必须
+  // 带基线行（命中 50% 在基线也是 50% 的地方毫无意义）。
+  const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const page = await context.newPage();
+  await stubLiveOrigin(page, {
+    patch: (name, json) => {
+      if (name !== "overview.json" && name !== "dashboard.json") return null;
+      json.add_side = {
+        as_of: "2026-09-05", pending: false, cold_start: true,
+        counts: { candidate: 0, wait: 9, reject: 1 },
+        why_no_candidate: "3 只已收盘站上前 20 日高，但 z≥2 判为追高：ROBN z=2.96",
+        families: [
+          { name: "price_relative_factor", active: false,
+            progress: { counter: "prospective_dates", have: 8, need: 24 },
+            blockers: ["prospective_dates"] },
+          { name: "point_in_time_information", active: false,
+            progress: { counter: "history_dates", have: 16, need: 24 },
+            blockers: ["history_dates"] },
+        ],
+        rows: [{ ticker: "CRCL", verdict: "wait", why: "窗口内无一手公告",
+                 needs: "站上 96.4", prior_20d_high: 96.4, pct_from_high: -7.09 }],
+        shapes: {
+          names: 25, run_id: "add_shapes-20260905-deadbeef",
+          shapes: {
+            breakout: { t1: [93, .548, 1.44], t5: [93, .591, 3.77], t20: [84, .655, 20.06] },
+            pullback_in_uptrend: { t1: [436, .456, -.24], t5: [413, .455, .64], t20: [313, .383, 3.99] },
+          },
+          baseline: { t1: [3135, .506, .26], t5: [3035, .486, 1.13], t20: [2660, .501, 5.24] },
+        },
+        track_record: { cut: { hit_rate: .5258, win: 112, loss: 101, settled: 213 } },
+      };
+      return json;
+    },
+  });
+  const state = observe(page);
+  await page.goto(base, { waitUntil: "networkidle" });
+  await waitForData(page);
+  await page.click('.tab-btn[data-tab="plan"]');
+  await waitForTab(page, "plan");
+
+  const card = page.locator("#add-side-card");
+  await card.waitFor({ state: "visible" });
+  const text = await card.innerText();
+  assert.match(text, /没有候选的原因/,
+    "a silent zero add side is exactly the 47 days this card exists to end");
+  assert.match(text, /ROBN z=2\.96/, "the reason lost the names and numbers behind it");
+  assert.match(text, /基线 · 随便哪一天/,
+    "the shape table lost its baseline row — every hit rate now reads as better than it is");
+  assert.match(text, /冷启动/, "the cold-start state was not surfaced");
+  assert.match(text, /8\/24|16\/24/, "the family warm-up counters are not rendered");
+
+  const bars = await page.locator("#add-side-card .add-family-bar i").evaluateAll(
+    nodes => nodes.map(node => node.style.width));
+  assert(bars.length >= 2 && bars.every(width => /%$/.test(width)),
+    "the warm-up bars carry no width, so the progress is invisible");
+
+  assert.deepEqual(state.failures, []);
+  assert.deepEqual(state.errors, []);
+  await page.close();
+}
+
 async function testCronRailAccountsForEverySlotWithoutASecondVerdict(browser, base) {
   // #1270 拆开这块牌的判据是「某个任务挂了」和「页面上的数字不可信」不能共用
   // 一行判词。时刻表折进来时最容易犯的错就是给它再配一句判词 —— 于是同一件事
@@ -1395,6 +1460,7 @@ async function main() {
     await testHoldingsAndHeroNeverTruncate(browser, base);
     await testVerdictDeckFillsItsBoxAndRanksGatesBySeverity(browser, base);
     await testDataHealthNamesTheDegradedSlotAndWeChatDrops(browser, base);
+    await testAddSideCardExplainsWhyThereIsNoAdd(browser, base);
     await testCronRailAccountsForEverySlotWithoutASecondVerdict(browser, base);
     await testCronNeedsActionMergesIntoTheOneTodoListButWatchDoesNot(browser, base);
   } finally {

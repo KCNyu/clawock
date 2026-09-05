@@ -1412,6 +1412,43 @@
   .matrix-status.positive::before { background: var(--positive); }
   .matrix-status.neutral::before { background: var(--neutral); }
 
+  /* Add side — the counts, the family warm-up bars and the two tables that
+     answer "why is there no add today". Reuses .holdings-table for the tables
+     so the type scale and the sticky header come from one place. */
+  .add-counts { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-bottom: var(--space-3); }
+  .add-chip {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px; border-radius: 999px; background: var(--surface-3);
+    color: var(--text-dim); font: var(--fs-xs)/1 var(--mono);
+    border: 1px solid var(--border);
+  }
+  .add-chip b { color: var(--text); font-size: var(--fs-sm); }
+  .add-chip.is-candidate { border-color: var(--positive); color: var(--text); }
+  .add-chip.is-reject { border-color: var(--warning); }
+  .add-chip.is-cold { border-style: dashed; }
+  .add-why {
+    margin: 0 0 var(--space-3); padding: var(--space-3);
+    background: var(--surface-3); border-radius: var(--radius-sm);
+    border-left: 2px solid var(--accent); font-size: var(--fs-sm); line-height: 1.6;
+  }
+  .add-families { display: flex; flex-direction: column; gap: 6px; margin-bottom: var(--space-3); }
+  .add-family {
+    display: grid; grid-template-columns: minmax(9em, 1.2fr) minmax(60px, 1fr) minmax(7em, auto);
+    align-items: center; gap: var(--space-3); font-size: var(--fs-xs);
+  }
+  .add-family-name { color: var(--text-dim); }
+  .add-family-bar {
+    height: 5px; border-radius: 3px; background: var(--surface-3); overflow: hidden;
+  }
+  .add-family-bar i { display: block; height: 100%; background: var(--accent); }
+  .add-family-detail { color: var(--text-faint); font-family: var(--mono); text-align: right; }
+  .add-family-detail.is-on { color: var(--positive); }
+  .add-table .add-why-cell {
+    white-space: normal; line-height: 1.45; font-size: var(--fs-micro); color: var(--text-dim);
+  }
+  /* The row every hit rate above has to be read against. */
+  .add-table tr.add-baseline > td { border-top: 1px solid var(--border); color: var(--text-faint); }
+
   /* Plan actions */
   .plan-actions { display: flex; flex-direction: column; gap: 8px; }
   .plan-action {

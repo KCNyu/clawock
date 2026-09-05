@@ -78,6 +78,123 @@
     return { date: latest.date || null, rows };
   }
 
+  // ── Add side ────────────────────────────────────────────────────────────
+  // Why there is, or is not, an add today. The dashboard could show 47 days of
+  // sell-only advice with no way to ask why: the reason lives in three
+  // quantities the payload now carries (#1337/#1340/#1341) — which evidence
+  // families are still warming up and how far, what the add side read today
+  // and what would settle it, and what each entry shape has been worth against
+  // a baseline. Nothing here is computed in the browser; every number is
+  // projected from the brief context or from an `add_shapes` run card.
+  const ADD_VERDICT_LABEL = { candidate: "候选", wait: "等", reject: "挡住" };
+  const ADD_FAMILY_LABEL = {
+    price_relative_factor: "价格相对 · 量化因子",
+    price_relative_peer: "价格相对 · 同行残差",
+    point_in_time_information: "时点信息 · 新闻/关注度",
+  };
+  const ADD_SHAPE_LABEL = {
+    breakout: "突破（未过热）",
+    breakout_overheated: "突破但过热",
+    pullback_in_uptrend: "上升趋势中的回踩",
+    deep_dip: "深跌",
+  };
+
+  function renderAddSide() {
+    const card = document.getElementById("add-side-card");
+    const body = document.getElementById("add-side-body");
+    if (!card || !body) return;
+    const data = safe(DATA, "add_side");
+    if (!data) { card.style.display = "none"; return; }
+    card.style.display = "";
+
+    const counts = data.counts || {};
+    const parts = [];
+
+    if (data.pending) {
+      parts.push(`<div class="empty-state">加仓读数要等下一次盘前简报生成（本条从简报 context 投影，不在面板里重算）。</div>`);
+    } else {
+      const chip = (key, cls) =>
+        `<span class="add-chip ${cls}">${ADD_VERDICT_LABEL[key]} <b>${counts[key] ?? 0}</b></span>`;
+      parts.push(`<div class="add-counts">${chip("candidate", "is-candidate")}` +
+        `${chip("wait", "is-wait")}${chip("reject", "is-reject")}` +
+        (data.cold_start ? `<span class="add-chip is-cold">冷启动期 · 单族半仓</span>` : "") +
+        `</div>`);
+      if (data.why_no_candidate) {
+        parts.push(`<p class="add-why"><b>今天没有候选的原因</b>：${escapeHtml(data.why_no_candidate)}</p>`);
+      }
+    }
+
+    const families = data.families || [];
+    if (families.length) {
+      parts.push(`<div class="sub-block-head">证据族开机状态</div>`);
+      parts.push(`<div class="add-families">` + families.map(row => {
+        const label = ADD_FAMILY_LABEL[row.name] || row.name;
+        const progress = row.progress;
+        const pctDone = progress ? Math.min(100, Math.round(progress.have / progress.need * 100)) : (row.active ? 100 : 0);
+        const detail = row.active ? "已激活"
+          : progress ? `${progress.counter} ${progress.have}/${progress.need}`
+          : (row.blockers || []).join("、") || "预热中";
+        return `<div class="add-family">` +
+          `<span class="add-family-name">${escapeHtml(label)}</span>` +
+          `<span class="add-family-bar"><i style="width:${pctDone}%"></i></span>` +
+          `<span class="add-family-detail ${row.active ? "is-on" : ""}">${escapeHtml(detail)}</span>` +
+          `</div>`;
+      }).join("") + `</div>`);
+    }
+
+    const rows = data.rows || [];
+    if (rows.length) {
+      parts.push(`<div class="sub-block-head">今天的读数</div>`);
+      parts.push(`<div class="table-wrap"><table class="holdings-table add-table"><thead><tr>` +
+        `<th>标的</th><th>判定</th><th>为什么</th><th>要什么才算数</th><th class="num">距 20 日高</th>` +
+        `</tr></thead><tbody>` + rows.map(row => {
+          const pct = row.pct_from_high;
+          return `<tr><td><span class="ticker">${escapeHtml(row.ticker || DASH)}</span></td>` +
+            `<td><span class="matrix-status ${row.verdict === "candidate" ? "positive" : row.verdict === "reject" ? "elevated" : "neutral"}">` +
+            `${escapeHtml(ADD_VERDICT_LABEL[row.verdict] || row.verdict || DASH)}</span></td>` +
+            `<td class="add-why-cell">${escapeHtml(row.why || DASH)}</td>` +
+            `<td class="add-why-cell">${escapeHtml(row.needs || DASH)}</td>` +
+            `<td class="num">${pct == null ? DASH : `${pct > 0 ? "+" : ""}${Number(pct).toFixed(2)}%`}</td></tr>`;
+        }).join("") + `</tbody></table></div>`);
+    }
+
+    const study = data.shapes;
+    if (study && study.shapes) {
+      const horizons = ["t1", "t5", "t20"];
+      const cell = triple => triple
+        ? `${(triple[1] * 100).toFixed(1)}%<span class="muted"> ${triple[2] > 0 ? "+" : ""}${Number(triple[2]).toFixed(2)}%</span>`
+        : DASH;
+      const bodyRows = Object.keys(ADD_SHAPE_LABEL)
+        .filter(name => study.shapes[name])
+        .map(name => `<tr><td>${escapeHtml(ADD_SHAPE_LABEL[name])}</td>` +
+          horizons.map(h => `<td class="num">${cell(study.shapes[name][h])}</td>`).join("") + `</tr>`)
+        .join("");
+      // The baseline row is the point: a shape hitting 50% is worth nothing
+      // where a random session hits 50.1%.
+      const baseRow = `<tr class="add-baseline"><td>基线 · 随便哪一天</td>` +
+        horizons.map(h => `<td class="num">${cell((study.baseline || {})[h])}</td>`).join("") + `</tr>`;
+      parts.push(`<div class="sub-block-head">入场形态历史命中率 <span class="muted">${study.names || DASH} 只票 · 命中率 / 均值</span></div>`);
+      parts.push(`<div class="table-wrap"><table class="holdings-table add-table"><thead><tr>` +
+        `<th>形态</th><th class="num">T+1</th><th class="num">T+5</th><th class="num">T+20</th>` +
+        `</tr></thead><tbody>${bodyRows}${baseRow}</tbody></table></div>`);
+      parts.push(`<p class="chart-hint">样本高度重叠、幸存者偏差、单一上行 regime —— 这三条限制比其中三行之间的差异还大。` +
+        `对着基线读，别单看。可复跑：<code>clawock evaluate-add-shapes</code>${study.run_id ? ` · run card <code>${escapeHtml(study.run_id)}</code>` : ""}。</p>`);
+    }
+
+    const track = data.track_record || {};
+    const trackParts = Object.entries(track)
+      .filter(([, seat]) => seat && seat.settled)
+      .map(([action, seat]) =>
+        `<code>${escapeHtml(action)}</code> ${(seat.hit_rate * 100).toFixed(1)}% ` +
+        `<span class="muted">(${seat.win}胜/${seat.loss}负, n=${seat.settled})</span>`);
+    if (trackParts.length) {
+      parts.push(`<p class="chart-hint"><b>这几类建议的历史命中率</b>（T+1，假设成交）：` +
+        `${trackParts.join(" · ")} —— 命中率不是执行理由，是读建议时的先验。</p>`);
+    }
+
+    body.innerHTML = parts.join("");
+  }
+
   function renderWatchLevels() {
     const card = document.getElementById("watch-levels-card");
     const list = document.getElementById("watch-levels-list");
@@ -380,7 +497,7 @@
       renderNewsDigest, renderMacro, renderPeerDivergence, renderSectorContext,
     ],
     plan: [
-      renderWatchLevels, renderPlanActions, renderPlanTimeline,
+      renderAddSide, renderWatchLevels, renderPlanActions, renderPlanTimeline,
       renderBearCases, renderHiddenConcentration,
     ],
     reflect: [
