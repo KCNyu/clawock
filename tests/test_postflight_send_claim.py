@@ -29,6 +29,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 
 ROOT = Path(__file__).resolve().parents[1]
 NOW_MS = int(1786584800 * 1000)
@@ -208,3 +210,66 @@ def test_mark_send_started_flips_a_claim_to_mid_send(tmp_path):
     held = json.loads(claim.read_text())
     assert isinstance(held['send_started_at'], int)
     assert held['pid'] == json.loads(claim.read_text())['pid']
+
+
+# --- the marker's own durability (#1311) ------------------------------------
+#
+# The claim closes the window between two live senders. It says nothing about
+# the window inside the marker write itself: `Path.write_text` truncates first
+# and writes second, so a process killed between the two leaves a marker that
+# parses as nothing at all. `already_delivered` answers False for an unreadable
+# marker — deliberately, so a genuine miss is never muted — which means a torn
+# marker and a never-sent slot are the same answer, and the watchdog re-sends a
+# report kcn already has. The claim cannot catch it: claims expire in 30
+# minutes (SEND_CLAIM_STALE_MS) and the re-send arrives later than that.
+#
+# This branch only runs when a process dies mid-write, so no green run can
+# exercise it (see memory: fallback-branches-are-invisible-to-green-runs). The
+# gate is therefore static: every delivery-marker write must route through the
+# atomic writer, checked by enumerating the three postflights rather than by
+# naming the lines that happen to be wrong today.
+
+POSTFLIGHTS = ('brief_postflight', 'report_postflight', 'intraday_postflight')
+
+
+def test_a_torn_marker_reads_as_never_delivered(tmp_path):
+    """Why atomicity is not cosmetic here: this is the re-send."""
+    c = _common()
+    marker = tmp_path / 'report-sent-hk-open-2026-09-05.json'
+    payload = json.dumps({'ts': NOW_MS, 'sent_ok': True, 'tg_ok': True})
+
+    marker.write_text(payload)
+    assert c.already_delivered(marker) is True
+
+    # what a SIGKILL between truncate and write leaves behind
+    marker.write_text(payload[:len(payload) // 2])
+    assert c.already_delivered(marker) is False, (
+        'a half-written marker must not be readable as delivered — it is not; '
+        'that is the bug, because the caller then sends again')
+
+    marker.write_text('')
+    assert c.already_delivered(marker) is False
+
+
+@pytest.mark.parametrize('module', POSTFLIGHTS)
+def test_every_delivery_marker_write_is_atomic(module):
+    """No postflight may write its send marker with bare `write_text`."""
+    import ast
+
+    source = Path(__file__).resolve().parents[1] / 'src' / 'clawock' / 'harness' / f'{module}.py'
+    tree = ast.parse(source.read_text(encoding='utf-8'))
+
+    offenders = []
+    for node in ast.walk(tree):
+        if not (isinstance(node, ast.Call)
+                and isinstance(node.func, ast.Attribute)
+                and node.func.attr == 'write_text'):
+            continue
+        target = ast.unparse(node.func.value)
+        if 'marker' in target:
+            offenders.append(f'{module}.py:{node.lineno}: {target}.write_text(...)')
+
+    assert not offenders, (
+        'delivery markers must be written with clawock.safe_io.safe_write_text '
+        '(tmp + fsync + os.replace), not Path.write_text, which truncates the '
+        'previous marker before it writes the new one:\n  ' + '\n  '.join(offenders))

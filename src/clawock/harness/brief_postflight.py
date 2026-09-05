@@ -1025,7 +1025,7 @@ def main(argv=None):
             else:
                 try:
                     brief_marker.parent.mkdir(parents=True, exist_ok=True)
-                    brief_marker.write_text(json.dumps({
+                    safe_write_text(str(brief_marker), json.dumps({
                         'ts': int(datetime.now().timestamp() * 1000),
                         'sent_ok': bool(wechat_sent),
                         'tg_ok': bool(tg_ok),
