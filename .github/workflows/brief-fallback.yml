@@ -85,7 +85,7 @@ jobs:
       - name: Set up clawock (Python)
         uses: ./.github/actions/clawock-python
         with:
-          install: '.[compute]'
+          install: '.[market]'
 
       # Set git identity up front: brief_postflight commits internally (rebuild
       # dashboard + auto-commit), so it needs an identity well before the final
