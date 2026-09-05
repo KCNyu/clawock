@@ -23,15 +23,28 @@ import argparse
 import os
 import subprocess
 import sys
+from pathlib import Path
+
+# Importing clawock must not depend on how this script happened to be started
+# (tests/test_harness_import_independence.py), and spawning the CLI must not
+# depend on the caller's PATH: under the user crontab that is /usr/bin:/bin,
+# where the console script in ~/.local/bin does not exist. `clawock_argv` is
+# the one resolver for that, shared with system_check.
+_REPO_ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(_REPO_ROOT))
+sys.path.insert(0, str(_REPO_ROOT / "src"))
+sys.path.insert(0, str(_REPO_ROOT / "ops"))
+
+from system_check import clawock_argv  # noqa: E402
 
 
 def probe(command: str, timeout: float, env: dict[str, str]) -> tuple[bool, str]:
     """Run `clawock <workflow> <phase> --help`. Returns (ok, reason)."""
     workflow, phase = command.split(" ", 1)
+    argv, spawn_env = clawock_argv(workflow, phase, "--help", env=env)
     try:
         done = subprocess.run(
-            ["clawock", workflow, phase, "--help"],
-            capture_output=True, text=True, timeout=timeout, env=env,
+            argv, capture_output=True, text=True, timeout=timeout, env=spawn_env,
         )
     except subprocess.TimeoutExpired:
         return False, f"--help did not return within {timeout:g}s (it is doing real work)"
