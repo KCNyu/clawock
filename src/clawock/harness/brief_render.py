@@ -267,6 +267,53 @@ def opportunity_section(context):
     return "\n".join(lines)
 
 
+def market_trend_section(context):
+    """Both legs' trend reads, each with the window it was measured over.
+
+    The brief printed one 「趋势OFF：杠杆敞口上限砍半」 line and nothing else about
+    market direction. That line is HSTECH against its 200-day mean, and it caps
+    the HK leveraged sleeve only — `portfolio/guardrail.py` has applied the US
+    leg's own per-name dial since it was written. Read as a market call it says
+    the desk thinks nothing is going up, which on 2026-09-05 was not what the US
+    book looked like at all. Printing both legs with their windows turns an
+    implicit market call into a stated one that can be argued with.
+    """
+    regime = ((context.get("risk_guardrail") or {}).get("lev_regime")) or {}
+    history = regime.get("regime_history") or {}
+    meta = history.get("meta") or {}
+    lines = ["### 大盘趋势（两条腿各自的读数）", ""]
+    rows = []
+
+    dist = regime.get("dist_ma_pct")
+    rows.append([
+        f"HK · {text(regime.get('index') or 'HSTECH')}",
+        f"{regime.get('ma_window', 200)}日线",
+        f"{dist:+.1f}%" if isinstance(dist, (int, float)) else "—",
+        "ON" if regime.get("trend_on") else "OFF",
+        text(regime.get("label")),
+    ])
+
+    us_days = history.get("us") or {}
+    latest = us_days.get(max(us_days)) if us_days else {}
+    trend_on = latest.get("trend_on")
+    us_dist = latest.get("dist_ma_pct")
+    rows.append([
+        f"US · {text(meta.get('us_index') or '—')}",
+        (f"{meta.get('ma_window', 200)}日线" if trend_on is not None
+         else f"近{meta.get('mom_window', 10)}日动量"),
+        (f"{us_dist:+.1f}%" if isinstance(us_dist, (int, float))
+         else (f"{latest['mom_pct']:+.1f}%" if isinstance(latest.get("mom_pct"), (int, float)) else "—")),
+        ("ON" if trend_on else "OFF") if trend_on is not None else "未知",
+        text(latest.get("regime3") or "—"),
+    ])
+
+    lines.append(table(["腿", "窗口", "距均线/动量", "趋势", "读数"], rows))
+    if meta.get("note"):
+        lines += ["", f"_{text(meta['note'])}_"]
+    lines += ["", "_HK 的趋势闸只收紧 HK 杠杆腿的上限；US 杠杆腿走它自己的 per-name dial_"]
+    return "\n".join(lines)
+
+
 def risk_section(context):
     guard = context.get("risk_guardrail") or {}
     discipline = context.get("risk_discipline") or {}
@@ -700,6 +747,8 @@ def render_brief(context, judgment, plan, *, date=None, sector_scan=None):
         risk_section(context),
         "",
         opportunity_section(context),
+        "",
+        market_trend_section(context),
         "",
         breakeven_section(context),
         "",
