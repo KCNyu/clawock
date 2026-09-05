@@ -275,6 +275,10 @@
         {
           "command": "evaluate-add-alpha",
           "note": "point-in-time diagnostic replay of price-relative and information interaction adds"
+        },
+        {
+          "command": "evaluate-add-shapes",
+          "note": "descriptive pass over the bar store: what each add-side entry shape has been worth against the unconditional baseline; not walk-forward"
         }
       ]
     }

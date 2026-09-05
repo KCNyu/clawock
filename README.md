@@ -98,7 +98,7 @@ Every trading day the system pulls fresh prices, FX, volatility, earnings and ma
 
 ## The information layer
 
-Reading the market is most of what the LLM does, so the widest part of the system is data collection. The repository catalogs **42 fetch and compute modules across 8 layers**, with **bilingual Hong Kong + US coverage** — live quotes, SEC + Eastmoney filings, capital flow, earnings calendars, macro (VIX / DXY / 10Y), Reddit and news sentiment, and market-moving social feeds. Each brief consumes the subset relevant to that market and session. Collection stays broad; the decision layer stays constrained.
+Reading the market is most of what the LLM does, so the widest part of the system is data collection. The repository catalogs **43 fetch and compute modules across 8 layers**, with **bilingual Hong Kong + US coverage** — live quotes, SEC + Eastmoney filings, capital flow, earnings calendars, macro (VIX / DXY / 10Y), Reddit and news sentiment, and market-moving social feeds. Each brief consumes the subset relevant to that market and session. Collection stays broad; the decision layer stays constrained.
 
 Coverage is bilingual, but it is not symmetric, and the asymmetry is in research breadth rather than in the basics. Quotes, fundamentals, news and cash-flow reconciliation all have real Hong Kong branches. Two research-breadth capabilities do not: same-industry peers are discovered automatically for US names and read from a curated map for Hong Kong ones ([`peer_discovery.py`](https://github.com/KCNyu/clawock/blob/master/src/clawock/market_data/peer_discovery.py) — the mechanism is verified, the flag stays off until the peer-residual rules are re-registered against the wider universe), and US trading halts arrive as a structured feed while a Hong Kong suspension arrives as an announcement that the triage rules mark for a human ([`mover_evidence.py`](https://github.com/KCNyu/clawock/blob/master/src/clawock/market_data/mover_evidence.py)). So: Hong Kong base coverage on par, Hong Kong research breadth behind US.
 
@@ -118,7 +118,7 @@ Coverage is bilingual, but it is not symmetric, and the asymmetry is in research
 | 5 · Macro & sentiment | 3 | Yahoo · Reddit · CNN · social feeds |
 | 6 · Quant & risk | 9 | deterministic math over price history |
 | 7 · Book & FX integrity | 6 | Frankfurter · the reconciliation ledger · local invariants |
-| 8 · Backtest & calibration | 8 | local snapshots + canonical bars |
+| 8 · Backtest & calibration | 9 | local snapshots + canonical bars |
 
 The fetch layer degrades gracefully: every live Eastmoney call routes through **one throttled gateway**, critical paths (quotes, FX) use **multi-source fallback**, and an empty fetch **keeps the prior value** instead of overwriting a good series with a blank. Public sources include Tencent, stooq, yfinance, Frankfurter, SEC EDGAR, Finnhub, Nasdaq, Eastmoney, Polygon, Alpha Vantage, Reddit, and Google News — full command and provider catalog in [the command reference](https://github.com/KCNyu/clawock/blob/master/docs/reference/commands.md), whose inventory is generated from the same registries this table is checked against. Which module sits in which layer is itself an artifact — [`config/information-layers.json`](https://github.com/KCNyu/clawock/blob/master/config/information-layers.json), where every packaged command is either in a layer or listed with the reason it is not collection — and CI checks the table above against it, so a module that moves cannot leave its count standing.
 

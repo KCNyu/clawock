@@ -1,0 +1,365 @@
+{
+  "schema_version": 2,
+  "run_id": "add_shapes-20260905-20816ffa",
+  "backtest": "add_shapes",
+  "generated_at": "2026-09-05T11:33:08+00:00",
+  "git_commit": "591d5b96",
+  "reproduction_key": "sha256:20816ffab54c0a2f",
+  "params": {
+    "horizons": [
+      1,
+      5,
+      20
+    ],
+    "lookback": 20,
+    "deep_dip_pct": 8.0,
+    "no_chase_z": 2.0,
+    "min_bars": 60
+  },
+  "inputs": [
+    {
+      "symbol": "00100",
+      "source": "memory/bars",
+      "first": "2026-01-09",
+      "last": "2026-09-03",
+      "bars": 160
+    },
+    {
+      "symbol": "02208",
+      "source": "memory/bars",
+      "first": "2025-12-01",
+      "last": "2026-09-03",
+      "bars": 186
+    },
+    {
+      "symbol": "02513",
+      "source": "memory/bars",
+      "first": "2026-01-08",
+      "last": "2026-09-03",
+      "bars": 161
+    },
+    {
+      "symbol": "03032",
+      "source": "memory/bars",
+      "first": "2025-12-01",
+      "last": "2026-09-03",
+      "bars": 186
+    },
+    {
+      "symbol": "03033",
+      "source": "memory/bars",
+      "first": "2025-12-01",
+      "last": "2026-09-03",
+      "bars": 186
+    },
+    {
+      "symbol": "03317",
+      "source": "memory/bars",
+      "first": "2025-12-30",
+      "last": "2026-09-03",
+      "bars": 167
+    },
+    {
+      "symbol": "07226",
+      "source": "memory/bars",
+      "first": "2025-12-01",
+      "last": "2026-09-03",
+      "bars": 186
+    },
+    {
+      "symbol": "07709",
+      "source": "memory/bars",
+      "first": "2025-12-01",
+      "last": "2026-09-03",
+      "bars": 186
+    },
+    {
+      "symbol": "07747",
+      "source": "memory/bars",
+      "first": "2025-12-01",
+      "last": "2026-09-03",
+      "bars": 186
+    },
+    {
+      "symbol": "CRCL",
+      "source": "memory/bars",
+      "first": "2025-12-01",
+      "last": "2026-09-03",
+      "bars": 191
+    },
+    {
+      "symbol": "HOOD",
+      "source": "memory/bars",
+      "first": "2025-12-01",
+      "last": "2026-09-03",
+      "bars": 191
+    },
+    {
+      "symbol": "MSFT",
+      "source": "memory/bars",
+      "first": "2025-12-01",
+      "last": "2026-09-03",
+      "bars": 191
+    },
+    {
+      "symbol": "MSFU",
+      "source": "memory/bars",
+      "first": "2025-12-01",
+      "last": "2026-09-03",
+      "bars": 191
+    },
+    {
+      "symbol": "NVDA",
+      "source": "memory/bars",
+      "first": "2025-12-01",
+      "last": "2026-09-03",
+      "bars": 191
+    },
+    {
+      "symbol": "OKLO",
+      "source": "memory/bars",
+      "first": "2025-12-01",
+      "last": "2026-09-03",
+      "bars": 191
+    },
+    {
+      "symbol": "PLTR",
+      "source": "memory/bars",
+      "first": "2025-12-01",
+      "last": "2026-09-03",
+      "bars": 191
+    },
+    {
+      "symbol": "PLTU",
+      "source": "memory/bars",
+      "first": "2025-12-01",
+      "last": "2026-09-03",
+      "bars": 191
+    },
+    {
+      "symbol": "QQQ",
+      "source": "memory/bars",
+      "first": "2025-12-01",
+      "last": "2026-09-03",
+      "bars": 191
+    },
+    {
+      "symbol": "RKLB",
+      "source": "memory/bars",
+      "first": "2025-12-01",
+      "last": "2026-09-03",
+      "bars": 191
+    },
+    {
+      "symbol": "RKLX",
+      "source": "memory/bars",
+      "first": "2025-12-01",
+      "last": "2026-09-03",
+      "bars": 191
+    },
+    {
+      "symbol": "ROBN",
+      "source": "memory/bars",
+      "first": "2025-12-01",
+      "last": "2026-09-03",
+      "bars": 191
+    },
+    {
+      "symbol": "SKHY",
+      "source": "memory/bars",
+      "first": "2026-07-10",
+      "last": "2026-09-03",
+      "bars": 40
+    },
+    {
+      "symbol": "SOXL",
+      "source": "memory/bars",
+      "first": "2025-12-01",
+      "last": "2026-09-03",
+      "bars": 191
+    },
+    {
+      "symbol": "SOXX",
+      "source": "memory/bars",
+      "first": "2025-12-01",
+      "last": "2026-09-03",
+      "bars": 191
+    },
+    {
+      "symbol": "SPCH",
+      "source": "memory/bars",
+      "first": "2026-06-15",
+      "last": "2026-09-03",
+      "bars": 57
+    },
+    {
+      "symbol": "SPCX",
+      "source": "memory/bars",
+      "first": "2026-06-12",
+      "last": "2026-09-03",
+      "bars": 58
+    },
+    {
+      "symbol": "TCOM",
+      "source": "memory/bars",
+      "first": "2025-12-01",
+      "last": "2026-09-03",
+      "bars": 191
+    },
+    {
+      "symbol": "TQQQ",
+      "source": "memory/bars",
+      "first": "2025-12-01",
+      "last": "2026-09-03",
+      "bars": 191
+    }
+  ],
+  "code": [
+    {
+      "file": "add_shapes.py",
+      "digest": "sha256:afb54acf293dead6"
+    }
+  ],
+  "config": [
+    {
+      "file": "config/add-alpha-policy.json",
+      "digest": "sha256:705a2654af28d6e5"
+    }
+  ],
+  "seeds": {
+    "decision_episode_bootstrap": 20260714,
+    "decision_cluster_bootstrap": 20260717,
+    "factor_walk_forward_bootstrap": 20260726,
+    "regime_permutation": 20260802,
+    "add_alpha_cluster_bootstrap": 20260813,
+    "signal_panel_cluster_bootstrap": 20260829,
+    "block_bootstrap": 20260830,
+    "drift_session_permutation": 20260830,
+    "signal_panel_placebo_permutation": 20260831
+  },
+  "environment": {
+    "python": "3.12.3",
+    "implementation": "CPython",
+    "platform": "linux",
+    "libraries": {
+      "numpy": "1.26.4",
+      "scipy": "1.11.4",
+      "requests": "2.34.2"
+    }
+  },
+  "execution": {
+    "wall_seconds": -1788195215.874,
+    "peak_rss_kb": 46108
+  },
+  "metrics": {
+    "shapes": {
+      "breakout": {
+        "t1": {
+          "n": 93,
+          "hit_rate": 0.5484,
+          "mean_pct": 1.437,
+          "median_pct": 0.194
+        },
+        "t5": {
+          "n": 93,
+          "hit_rate": 0.5914,
+          "mean_pct": 3.768,
+          "median_pct": 2.722
+        },
+        "t20": {
+          "n": 84,
+          "hit_rate": 0.6548,
+          "mean_pct": 20.059,
+          "median_pct": 10.371
+        }
+      },
+      "breakout_overheated": {
+        "t1": {
+          "n": 158,
+          "hit_rate": 0.538,
+          "mean_pct": 0.603,
+          "median_pct": 0.464
+        },
+        "t5": {
+          "n": 158,
+          "hit_rate": 0.5316,
+          "mean_pct": 1.267,
+          "median_pct": 1.226
+        },
+        "t20": {
+          "n": 141,
+          "hit_rate": 0.5177,
+          "mean_pct": 11.354,
+          "median_pct": 1.666
+        }
+      },
+      "deep_dip": {
+        "t1": {
+          "n": 1966,
+          "hit_rate": 0.5107,
+          "mean_pct": 0.366,
+          "median_pct": 0.119
+        },
+        "t5": {
+          "n": 1905,
+          "hit_rate": 0.4882,
+          "mean_pct": 1.341,
+          "median_pct": -0.341
+        },
+        "t20": {
+          "n": 1721,
+          "hit_rate": 0.502,
+          "mean_pct": 4.286,
+          "median_pct": 0.097
+        }
+      },
+      "pullback_in_uptrend": {
+        "t1": {
+          "n": 436,
+          "hit_rate": 0.4564,
+          "mean_pct": -0.236,
+          "median_pct": -0.355
+        },
+        "t5": {
+          "n": 413,
+          "hit_rate": 0.4552,
+          "mean_pct": 0.644,
+          "median_pct": -0.918
+        },
+        "t20": {
+          "n": 313,
+          "hit_rate": 0.3834,
+          "mean_pct": 3.989,
+          "median_pct": -3.927
+        }
+      }
+    },
+    "baseline": {
+      "t1": {
+        "n": 3135,
+        "hit_rate": 0.5065,
+        "mean_pct": 0.256,
+        "median_pct": 0.047
+      },
+      "t5": {
+        "n": 3035,
+        "hit_rate": 0.486,
+        "mean_pct": 1.132,
+        "median_pct": -0.323
+      },
+      "t20": {
+        "n": 2660,
+        "hit_rate": 0.5008,
+        "mean_pct": 5.24,
+        "median_pct": 0.044
+      }
+    },
+    "names": 25
+  },
+  "metrics_digest": "sha256:ceb08bd540ee7e3e",
+  "notes": [
+    "Descriptive pass, not walk-forward: clawock evaluate-add-alpha is the out-of-sample evaluator and this must not be quoted as one.",
+    "Samples overlap (every session of every name is a candidate), the universe is survivorship-limited, and the window is one regime."
+  ],
+  "data_boundary": "derived metrics and source names only; no raw vendor bars"
+}
