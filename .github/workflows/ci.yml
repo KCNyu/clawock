@@ -466,27 +466,7 @@ jobs:
 
       - name: argparse-check harness CLIs
         if: steps.changes.outputs.code == 'true'
-        run: |
-          set -e
-          # `timeout` is the point of this step as much as the exit code. The two
-          # brief scripts used to be wrapped in `|| true`, which reads like the
-          # case was handled: it is not, because `|| true` catches a non-zero
-          # exit and what actually happened was a HANG. brief_preflight took no
-          # arguments at all, so --help ran the whole preflight — live fetches,
-          # EDGAR, Tavily — and ate the job's entire 10-minute budget, failing an
-          # unrelated PR. A probe must cost nothing, and if it ever stops being
-          # free this fails in seconds instead of taking the job down with it.
-          # The list is asserted against `harness.runner.PHASE_MODULES` by
-          # tests/test_ci_consolidation_contract.py: a phase added to the
-          # registry without being added here fails `validate`, so this cannot
-          # silently fall behind again (#1312, `brief render` was missing).
-          for cli in report_preflight report_postflight \
-                     intraday_preflight intraday_postflight \
-                     brief_preflight brief_postflight brief_render; do
-            timeout 30 env CLAWOCK_PROFILE=kcnyu clawock "${cli%%_*}" "${cli##*_}" --help > /dev/null \
-              || { echo "::error::$cli.py --help did not exit 0 within 30s"; exit 1; }
-          done
-          echo "OK: all argparse parsers loadable"
+        run: python3 ops/ci/argparse_probe.py
 
       - name: Schema-validate portfolio.json
         if: steps.changes.outputs.code == 'true'
