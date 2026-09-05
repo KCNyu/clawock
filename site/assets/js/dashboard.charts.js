@@ -270,11 +270,22 @@
     };
   }
 
+  // ECharts animates on a canvas, so the global `@media (prefers-reduced-motion:
+  // reduce)` block in dashboard.css cannot reach it, and the bundle reads the
+  // query nowhere itself (0 matchMedia references in echarts.min.js). Every
+  // other motion system on this page checks the preference — CSS through that
+  // block, both decks and the smooth scroll through matchMedia — so the chart
+  // intro was the one place where turning motion off in the OS did nothing
+  // (#1315). Queried live, not latched at load: the ECharts bundle is tab-lazy,
+  // so a chart is often built minutes after the page opened.
+  const CHART_RM = window.matchMedia("(prefers-reduced-motion: reduce)");
+
   function baseChartOpts() {
     return {
       textStyle: { color: chartTextColor(), fontFamily: getCSS("--font") },
       backgroundColor: "transparent",
-      animationDuration: 200,
+      // 0 is ECharts' documented "no animation": the series lands drawn.
+      animationDuration: CHART_RM.matches ? 0 : 200,
       // Animate the FIRST paint only. Data-only updates (the 60s background poll, a
       // scoped sidecar refresh, a US/HK toggle) reapply the option on the existing
       // instance; a non-zero update duration re-runs the intro animation and reads as

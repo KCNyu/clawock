@@ -2307,29 +2307,51 @@
       });
     }
 
-    // Wire sort headers
-    document.querySelectorAll("#book-table thead th").forEach(th => {
-      th.onclick = () => {
-        const k = th.dataset.sort;
-        if (!k) return;
-        if (bookSort && bookSort.key === k) bookSort.dir = bookSort.dir === "asc" ? "desc" : "asc";
-        else bookSort = { key: k, dir: "desc" };
-        document.querySelectorAll("#book-table thead th").forEach(x => {
-          const isActive = bookSort && x.dataset.sort === bookSort.key;
-          x.classList.toggle("active-sort", !!isActive);
-          const label = x.textContent.replace(/[▲▼]/g, "").trim();
-          x.replaceChildren();
-          x.append(label);
-          if (isActive) {
-            const arrow = document.createElement("span");
-            arrow.className = "arr";
-            arrow.textContent = bookSort.dir === "asc" ? "▲" : "▼";
-            x.append(" ", arrow);
-          }
+    // Wire sort headers. The clickable thing is a real <button> inside the
+    // <th> (the ARIA sortable-table pattern): the header keeps its columnheader
+    // role and carries aria-sort, while focus, Enter/Space and "this is
+    // operable" come free from the button instead of being re-implemented. The
+    // previous `th.onclick` had none of the three — no tabindex, no key
+    // handler, no exposed sort state — in the same table whose rows already had
+    // all of them (#1316), so the column order was mouse-only.
+    const sortHeads = document.querySelectorAll("#book-table thead th[data-sort]");
+    const paintSortState = () => {
+      sortHeads.forEach(th => {
+        const isActive = !!bookSort && th.dataset.sort === bookSort.key;
+        th.classList.toggle("active-sort", isActive);
+        // Only a real sort may claim one. The markup used to ship `active-sort`
+        // plus a ▼ on 市值 while the default order is the verdict rank, which
+        // aria-sort would now read out as a sort that is not happening.
+        th.setAttribute("aria-sort", !isActive ? "none"
+          : bookSort.dir === "asc" ? "ascending" : "descending");
+        const btn = th.querySelector("button.sort-btn");
+        if (!btn) return;
+        btn.replaceChildren(btn.textContent.replace(/[▲▼]/g, "").trim());
+        if (isActive) {
+          const arrow = document.createElement("span");
+          arrow.className = "arr";
+          arrow.setAttribute("aria-hidden", "true");
+          arrow.textContent = bookSort.dir === "asc" ? "▲" : "▼";
+          btn.append(" ", arrow);
+        }
+      });
+    };
+    const thead = document.querySelector("#book-table thead");
+    if (thead && thead.dataset.wired !== "1") {
+      thead.dataset.wired = "1";   // renderBook() runs on every refresh; listeners must not stack
+      sortHeads.forEach(th => {
+        const btn = th.querySelector("button.sort-btn");
+        if (!btn) return;
+        btn.addEventListener("click", () => {
+          const k = th.dataset.sort;
+          if (bookSort && bookSort.key === k) bookSort.dir = bookSort.dir === "asc" ? "desc" : "asc";
+          else bookSort = { key: k, dir: "desc" };
+          paintSortState();
+          renderBook();
         });
-        renderBook();
-      };
-    });
+      });
+    }
+    paintSortState();
     // end sort headers
   }
 
