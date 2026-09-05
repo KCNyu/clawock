@@ -55,6 +55,8 @@ from clawock import history_store
 from clawock.context import brief as brief_context
 from clawock.decision import ledger as decision_v2
 from clawock.decision import packet as brief_decision_packet
+from clawock.decision import add_side
+from clawock.decision import signals as bar_signals
 from clawock.decision import plans as decision_plans
 from clawock.decision import risk as risk_discipline
 from clawock.decision import theses as thesis_registry
@@ -120,6 +122,128 @@ def _run_clawock(command, args=None, timeout=120):
         return (result.stdout or '') + (result.stderr or ''), result.returncode == 0
     except Exception as exc:
         return f'{type(exc).__name__}: {exc}', False
+
+
+def _action_track_record():
+    """How each kind of advice has actually settled, for the brief to print.
+
+    The brief tells kcn to cut 700 shares at confidence 0.92 and says nothing
+    about how the last two hundred cuts went. They went 112–101 (52.6%) at T+1,
+    which is a coin flip, and a reader who knew that would read the same
+    sentence differently. Counting is all this does: the outcomes were already
+    written by `settle_decisions`, and `not_triggered` is kept separate because
+    a conditional order that never filled is not a wrong call.
+    """
+    try:
+        rows = decision_v2.load_decisions()
+    except Exception as exc:  # noqa: BLE001 — the brief must survive a bad ledger
+        return {'error': f'{type(exc).__name__}: {exc}'[:160], 'by_action': {}}
+    tally = {}
+    for row in rows:
+        action = row.get('action')
+        outcome = ((row.get('evaluation') or {}).get('outcome'))
+        if not action or outcome not in ('win', 'loss', 'flat', 'not_triggered'):
+            continue
+        seat = tally.setdefault(action, {'win': 0, 'loss': 0, 'flat': 0, 'not_triggered': 0})
+        seat[outcome] += 1
+    for action, seat in tally.items():
+        settled = seat['win'] + seat['loss'] + seat['flat']
+        seat['settled'] = settled
+        seat['hit_rate'] = round(seat['win'] / settled, 4) if settled else None
+    return {'horizon': 'T+1 (evaluation.outcome, fill assumed)',
+            'by_action': tally}
+
+
+def _opportunity_reads(open_decisions):
+    """The add side of the book, read off the settled daily bars.
+
+    WHY THIS EXISTS. Until 2026-09-05 the brief context carried 34 fields and
+    not one of them was an opportunity: portfolio, guardrail, discipline, macro,
+    sentiment, quant signals — every input described risk or state. The model
+    that writes the day's decisions therefore never saw a breakout, and the
+    ledger shows exactly that: 789 decisions in which `risk_rule` (which does
+    get an explicit "cut N shares" input) wrote 135 cuts at mean confidence
+    0.81, while `catalyst`/`macro`/`sentiment`/`peer` wrote `hold_and_watch`
+    145 times out of 148. Between 07-20 and 09-05 the bar store held 48
+    close-confirmed breakouts across 18 names and the ledger recorded zero add
+    decisions — not because the desk decided against them, because the process
+    that writes decisions could not see them.
+
+    Nothing here authorises anything, and nothing here is a new rule: the states
+    come from `add_side.classify_level`, the thresholds from
+    `config/add-alpha-policy.json`, the numbers from `signals.compute_signals`
+    over `memory/bars`, and the verdicts from the same `add_side.read_rows` the
+    intraday slot uses — with `close_confirmed=True`, because this reader is
+    looking at closes the market actually printed rather than a live quote.
+    """
+    try:
+        policy = json.loads((WS / 'config' / 'add-alpha-policy.json').read_text())
+    except Exception:  # noqa: BLE001 — a missing policy must not red the brief
+        policy = {}
+    raw_near, raw_z = policy.get('opportunity_near_pct'), policy.get('early_no_chase_zscore')
+    near_pct = float(raw_near) if raw_near is not None else 5.0
+    no_chase_z = float(raw_z) if raw_z is not None else 2.0
+
+    signals_by_label, unreadable = {}, []
+    bars_dir = WS / 'memory' / 'bars'
+    for path in sorted(bars_dir.glob('*.json')):
+        label = path.stem
+        try:
+            doc = json.loads(path.read_text())
+            if doc.get('retired'):
+                continue
+            store = doc.get('bars') or {}
+            rows = [{'date': day, **{k: store[day][k] for k in ('open', 'high', 'low', 'close')}}
+                    for day in sorted(store)
+                    if all(store[day].get(k) is not None for k in ('open', 'high', 'low', 'close'))]
+            signals_by_label[label] = bar_signals.compute_signals(rows)
+        except Exception as exc:  # noqa: BLE001 — one bad file is not a red cron
+            unreadable.append({'label': label, 'error': f'{type(exc).__name__}: {exc}'[:160]})
+
+    radar = add_side.daily_radar(signals_by_label, near_pct=near_pct, no_chase_z=no_chase_z)
+    reads = add_side.read_rows(radar=radar, levels=radar.get('levels'),
+                               plan_context=open_decisions, close_confirmed=True)
+    rows = reads['rows']
+
+    # A silent zero is what produced 「为什么只有卖出」— say which of the three
+    # reasons it was, so an empty add side is an answer and not an absence.
+    over = [r for r in (radar.get('rows') or []) if r['state'] == 'wait_rebreak']
+    if reads['candidate_count']:
+        why_none = None
+    elif not signals_by_label:
+        why_none = '没有可读的日线（memory/bars 空或全部不可解析）'
+    elif over:
+        # The most informative zero of the three: the breakout DID happen and
+        # the no-chase filter demoted it. Naming the names and the z is what
+        # lets kcn argue with the threshold instead of with the silence.
+        names = '、'.join(f"{r['label']} z={r['zscore20']}" for r in over[:4])
+        why_none = (f'{len(over)} 只已收盘站上前 20 日高，但 z≥{no_chase_z:g} 判为追高'
+                    f'（policy: 等回踩不破再谈）：{names}')
+    elif reads['reject_count']:
+        why_none = (f"{reads['reject_count']} 只被未了结的纪律动作挡住"
+                    f"（先把 cut/trim 走完，再谈加仓）")
+    else:
+        nearest = sorted(((v.get('pct_from_high'), k)
+                          for k, v in (radar.get('levels') or {}).items()
+                          if v.get('pct_from_high') is not None), reverse=True)[:3]
+        near_txt = '、'.join(f'{k} {p:+.1f}%' for p, k in nearest) or '无可比价位'
+        why_none = (f'全部持仓收盘未站上前 20 日高，最接近的三只：{near_txt}'
+                    f'（突破是唯一有回测边缘的加仓形态，#819）')
+
+    return {
+        'schema_version': 1,
+        'confirmed_at_close': True,
+        'policy': reads['policy'],
+        'near_pct': near_pct,
+        'no_chase_zscore': no_chase_z,
+        'counts': {'candidate': reads['candidate_count'],
+                   'wait': reads['wait_count'],
+                   'reject': reads['reject_count']},
+        'rows': rows,
+        'levels': radar.get('levels') or {},
+        'why_no_candidate': why_none,
+        'unreadable': unreadable,
+    }
 
 
 def _technical_setup_usage():
@@ -1850,6 +1974,13 @@ def main(argv=None):
         hk_results_fetch=_fetch_hk_results_notices,
     )
 
+    open_decisions = decision_plans.open_decisions_context(today=today)
+    opportunity = _opportunity_reads(open_decisions)
+    track_record = _action_track_record()
+    _c = opportunity['counts']
+    print(f"   🎯 加仓面: candidate {_c['candidate']} / wait {_c['wait']} / reject {_c['reject']}"
+          + (f" — {opportunity['why_no_candidate']}" if opportunity['why_no_candidate'] else ''))
+
     context = {
         'generated_at':  datetime.now(timezone(timedelta(hours=8))).isoformat(),
         'date':          today,
@@ -1879,7 +2010,14 @@ def main(argv=None):
         'catalysts':     catalysts,
         'news_evidence_graph': news_evidence_ctx,
         'thesis_registry': thesis_registry_ctx,
-        'open_decisions': decision_plans.open_decisions_context(today=today),
+        'open_decisions': open_decisions,
+        # The add side. Sits next to open_decisions deliberately: the discipline
+        # half of the same question has been in this context since the start.
+        'opportunity': opportunity,
+        # What each kind of advice has actually been worth. Sits in the context
+        # rather than only on the dashboard because the sentence it qualifies
+        # ("cut 700 股, confidence 0.92") is printed in the brief.
+        'action_track_record': track_record,
         'technical_setup_usage': _technical_setup_usage(),
         'research_surface': research_surface_ctx,
         'macro':         macro_trim,

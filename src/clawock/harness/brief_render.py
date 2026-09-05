@@ -206,6 +206,67 @@ def concentration_section(context):
         ["Leg", "HHI", "判定", "Top2", "腿总值"], rows)
 
 
+def _track_record_line(context, actions):
+    """One line: how this kind of advice has actually settled.
+
+    A cut printed at confidence 0.92 reads differently beside "历史 52.6%
+    (n=213)", and the number was already in the ledger — it just never appeared
+    next to the sentence it qualifies.
+    """
+    record = (context.get("action_track_record") or {}).get("by_action") or {}
+    parts = []
+    for action in actions:
+        seat = record.get(action) or {}
+        if not seat.get("settled"):
+            continue
+        parts.append(f"`{action}` {seat['hit_rate'] * 100:.1f}% "
+                     f"({seat['win']}胜/{seat['loss']}负, n={seat['settled']}"
+                     + (f", 未触发 {seat['not_triggered']}" if seat.get("not_triggered") else "")
+                     + ")")
+    if not parts:
+        return "_历史命中率：台账里还没有已结算样本_"
+    return ("**这类建议的历史命中率**（T+1，假设成交）：" + " · ".join(parts)
+            + "　— 命中率不是执行理由，是读这条建议时的先验")
+
+
+def opportunity_section(context):
+    """The add side, printed whether or not it has anything to say.
+
+    Before 2026-09-05 this section did not exist and neither did its input: the
+    brief context held 34 fields, all of them risk or state, so a breakout the
+    bar store had recorded could not reach the model that writes the day's
+    decisions. Between 07-20 and 09-05 that was 48 close-confirmed breakouts
+    across 18 names against zero add decisions. An empty add side is fine; a
+    silent one is what made the advice stream read as sell-only.
+    """
+    read = context.get("opportunity") or {}
+    counts = read.get("counts") or {}
+    lines = ["### 加仓面（opportunity · 收盘确认）", ""]
+    if not read:
+        return "\n".join(lines + ["_context 里没有 opportunity 读数（preflight 版本过旧）_"])
+    lines.append(
+        f"candidate **{counts.get('candidate', 0)}** / wait {counts.get('wait', 0)} "
+        f"/ reject {counts.get('reject', 0)}　·　{text(read.get('policy'))}")
+    lines.append("")
+    if read.get("why_no_candidate"):
+        lines.append(f"**今天没有 candidate 的原因**：{text(read['why_no_candidate'])}")
+        lines.append("")
+    rows = []
+    for row in (read.get("rows") or [])[:8]:
+        evidence = row.get("evidence") or {}
+        level = evidence.get("prior_20d_high") or evidence.get("proxy_prior_20d_high")
+        rows.append([text(row.get("ticker")), text(row.get("verdict")),
+                     text(row.get("why")), text(row.get("needs")),
+                     text(f"{level:g}" if isinstance(level, (int, float)) else "—")])
+    if rows:
+        lines.append(table(["标的", "判定", "为什么", "要什么才算数", "前20日高"], rows))
+    else:
+        lines.append("_没有任何名字进入加仓读数区间_")
+    lines.append("")
+    lines.append(_track_record_line(context, ("add_only_on_trigger",)))
+    return "\n".join(lines)
+
+
 def risk_section(context):
     guard = context.get("risk_guardrail") or {}
     discipline = context.get("risk_discipline") or {}
@@ -219,6 +280,8 @@ def risk_section(context):
                      text(item.get("breach_id"))])
 
     lines = ["### 风险纪律（risk_discipline / risk_guardrail）", ""]
+    lines.append(_track_record_line(context, ("cut", "trim_on_rebound")))
+    lines.append("")
     lines.append(
         f"open **{discipline.get('open_count', 0)}** / overridden "
         f"{discipline.get('overridden_count', 0)} / unacknowledged "
@@ -635,6 +698,8 @@ def render_brief(context, judgment, plan, *, date=None, sector_scan=None):
         concentration_section(context),
         "",
         risk_section(context),
+        "",
+        opportunity_section(context),
         "",
         breakeven_section(context),
         "",
