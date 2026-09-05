@@ -130,6 +130,37 @@ def test_no_instruction_file_keeps_a_hand_maintained_holdings_mirror():
         "the mirror is back on disk; active/exited comes from portfolio.json"
 
 
+_EXIT_CLAIM = re.compile(r"已清仓|不再追踪|no longer tracked|is exited|are exited", re.I)
+_TICKER = re.compile(r"\b([A-Z]{2,5}|\d{5})\b")
+# Only the clause carrying the claim counts. "07709/07747 are exited, but SKHY
+# can be held" is the correct sentence, and a line-wide scan would read it as
+# calling SKHY exited — the opposite of what it says.
+_CONTRAST = re.compile(r"\bbut\b|但|而(?!已)|except|however", re.I)
+# `|` ends a clause for the same reason `。` does. The dreaming promoter
+# flattens a whole markdown table onto one MEMORY.md line, and a row's cells are
+# unrelated facts: "| RKLX | -69.2% | … | RKLB（已清仓，swap_to=null） |" says the
+# *swap target* RKLB is exited, about the held position RKLX. Without the cell
+# boundary the scan pulled RKLX out of column 1 into RKLB's claim in column 5,
+# and master went red on 2026-09-05 over a line that is right.
+_CLAUSE_ENDS = ("。", ". ", "; ", "；", "|")
+
+
+def _exit_claim_clause(line):
+    """The part of `line` that actually carries an exit claim, or None."""
+    hit = _EXIT_CLAIM.search(line)
+    if not hit:
+        return None
+    clause = line[:hit.end()]
+    cut = None
+    for sep in _CONTRAST.finditer(clause):
+        cut = sep.start()
+    clause = clause[cut:] if cut is not None else clause
+    for sep in _CLAUSE_ENDS:
+        if sep in clause:
+            clause = clause.rsplit(sep, 1)[-1]
+    return clause
+
+
 def test_no_instruction_file_calls_a_held_position_exited():
     """The mirror's actual damage: a skill told not to look at a live holding.
 
@@ -141,28 +172,33 @@ def test_no_instruction_file_calls_a_held_position_exited():
             for h in leg.get("holdings", []) if (h.get("shares") or 0) > 0}
     assert held, "an empty book would make this assertion vacuous"
 
-    claim = re.compile(r"已清仓|不再追踪|no longer tracked|is exited|are exited", re.I)
-    ticker = re.compile(r"\b([A-Z]{2,5}|\d{5})\b")
-    # Only the clause carrying the claim counts. "07709/07747 are exited, but
-    # SKHY can be held" is the correct sentence, and a line-wide scan would read
-    # it as calling SKHY exited — the opposite of what it says.
-    contrast = re.compile(r"\bbut\b|但|而(?!已)|except|however", re.I)
     offenders = {}
     for name, text in _instruction_texts():
         for line in text.splitlines():
-            hit = claim.search(line)
-            if not hit:
+            clause = _exit_claim_clause(line)
+            if clause is None:
                 continue
-            clause = line[:hit.end()]
-            cut = None
-            for sep in contrast.finditer(clause):
-                cut = sep.start()
-            clause = clause[cut:] if cut is not None else clause
-            for sep in ("。", ". ", "; ", "；"):
-                if sep in clause:
-                    clause = clause.rsplit(sep, 1)[-1]
-            named = held & set(ticker.findall(clause))
+            named = held & set(_TICKER.findall(clause))
             if named:
                 offenders.setdefault(name, []).append((sorted(named), line.strip()))
     assert offenders == {}, (
         f"instruction files call a held position exited: {offenders}")
+
+
+def test_the_exit_claim_scan_reads_a_table_row_by_cell():
+    """The clause rule is the whole gate; pin both directions of it.
+
+    Without these the `|` boundary could be widened until nothing ever trips,
+    and the check would stay green by seeing nothing — the failure mode this
+    module exists to prevent, one level up.
+    """
+    row = ("| RKLX | -69.2% | 5.24% | +224.6% | RKLB（已清仓，swap_to=null） "
+           "| +89.9% |")
+    assert "RKLX" not in _exit_claim_clause(row)
+    assert "RKLB" in _exit_claim_clause(row)
+    # A real offender has no cell wall to hide behind.
+    assert "RKLX" in _exit_claim_clause("RKLX 已清仓，不用再看了")
+    assert "SKHY" in _exit_claim_clause("Do not fetch KR: SKHY is exited.")
+    # The contrast rule still holds.
+    assert "SKHY" not in _exit_claim_clause("07709/07747 are exited, but SKHY is held")
+    assert _exit_claim_clause("RKLX is a held position") is None
