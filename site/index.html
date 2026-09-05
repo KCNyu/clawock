@@ -370,16 +370,16 @@ layout: null
         <table class="holdings-table book-table" id="book-table">
           <thead>
             <tr>
-              <th data-sort="ticker">标的</th>
-              <th data-sort="name" class="col-p2">名称</th>
+              <th data-sort="ticker" aria-sort="none"><button type="button" class="sort-btn">标的</button></th>
+              <th data-sort="name" class="col-p2" aria-sort="none"><button type="button" class="sort-btn">名称</button></th>
               <th>状态</th>
-              <th data-sort="shares" class="num col-p2">股数</th>
-              <th data-sort="cost_basis" class="num col-p2">成本</th>
-              <th data-sort="current_price" class="num">现价</th>
-              <th data-sort="current_value" class="num active-sort">市值 <span class="arr">&#x25BC;</span></th>
+              <th data-sort="shares" class="num col-p2" aria-sort="none"><button type="button" class="sort-btn">股数</button></th>
+              <th data-sort="cost_basis" class="num col-p2" aria-sort="none"><button type="button" class="sort-btn">成本</button></th>
+              <th data-sort="current_price" class="num" aria-sort="none"><button type="button" class="sort-btn">现价</button></th>
+              <th data-sort="current_value" class="num" aria-sort="none"><button type="button" class="sort-btn">市值</button></th>
               <th class="num spark-col col-p3">8 日</th>
-              <th data-sort="today_change_pct" class="num">今日</th>
-              <th data-sort="pnl_percent" class="num">盈亏</th>
+              <th data-sort="today_change_pct" class="num" aria-sort="none"><button type="button" class="sort-btn">今日</button></th>
+              <th data-sort="pnl_percent" class="num" aria-sort="none"><button type="button" class="sort-btn">盈亏</button></th>
             </tr>
           </thead>
           <tbody id="book-tbody"></tbody>
