@@ -627,9 +627,16 @@
       } else if (hoverIndex === 0) rows.push("总利润较昨日: <b>首日</b>");
       tooltip.innerHTML = `<b>${escapeHtml(model.dates[hoverIndex])}</b><br>${rows.join("<br>")}`;
       tooltip.hidden = false;
+      // Measure once, then place. The old order read offsetWidth after writing
+      // innerHTML and offsetHeight after writing style.left, so each mousemove
+      // over the chart forced two synchronous layouts instead of one. Hoisting
+      // both reads is safe because the tooltip is absolutely positioned with a
+      // max-width and no `right`: its box is content-driven and `left` cannot
+      // change it.
+      const tipW = tooltip.offsetWidth, tipH = tooltip.offsetHeight;
       const x = event.clientX - rect.left;
-      tooltip.style.left = Math.min(Math.max(8, x + 12), Math.max(8, rect.width - tooltip.offsetWidth - 8)) + "px";
-      tooltip.style.top = Math.max(8, event.clientY - rect.top - tooltip.offsetHeight - 10) + "px";
+      tooltip.style.left = Math.min(Math.max(8, x + 12), Math.max(8, rect.width - tipW - 8)) + "px";
+      tooltip.style.top = Math.max(8, event.clientY - rect.top - tipH - 10) + "px";
       scheduleDraw();
     }
 
