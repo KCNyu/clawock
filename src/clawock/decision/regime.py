@@ -254,19 +254,56 @@ def build_regime_history(dates, closes, lookback=150):
     return hist
 
 
+# The US proxy, longest series first. benchmark.json is capped at ~60 days, and
+# 60 days can never answer the 200-day question — so `trend_on` was structurally
+# None on the US leg for as long as it has existed, leaving a ±3% band on ten
+# days of momentum as the desk's only read on the direction of the US market.
+# The bar store keeps the same closes without the cap (QQQ: 191 sessions on
+# 2026-09-05, one more each session), so the same definition the HK leg uses
+# starts answering here the day the history is long enough. Definition
+# unchanged, window unchanged, threshold unchanged: only the source is wider.
+US_PROXIES = ('QQQ', 'SPY')
+
+
+def _bar_store_series(ticker):
+    try:
+        doc = json.loads((WS / 'memory' / 'bars' / f'{ticker}.json').read_text())
+    except Exception:  # noqa: BLE001 — absence is normal, not an error
+        return [], []
+    bars = doc.get('bars') or {}
+    pts = [(day, float(bars[day]['close'])) for day in sorted(bars)
+           if isinstance(bars.get(day), dict) and bars[day].get('close') is not None]
+    return [d for d, _ in pts], [c for _, c in pts]
+
+
 def load_spy_series():
-    """US market-direction proxy for the regime split. tencent only returns 1 bar for
-    ETFs/indices, so reuse the SPY daily series already maintained in benchmark.json
-    (~60d). Enough for MOM_WINDOW momentum; not for 200DMA (trend_on stays None on US)."""
+    """US market-direction proxy: the longest close series this workspace holds.
+
+    Named for its history (it was SPY-from-benchmark.json only). The label of
+    whichever source wins is reported in `meta.us_index` so a reader can tell
+    which index the bull/bear call is about.
+    """
+    best = ([], [], None)
+    for ticker in US_PROXIES:
+        dates, closes = _bar_store_series(ticker)
+        if len(closes) > len(best[1]):
+            best = (dates, closes, ticker)
     try:
         bench = json.loads((WS / 'assets' / 'data' / 'benchmark.json').read_text())
         spy = (bench.get('series') or {}).get('SPY') or []
-        pts = [(x['date'], float(x['close'])) for x in spy if x.get('close') is not None]
-        pts.sort(key=lambda p: p[0])
-        return [d for d, _ in pts], [c for _, c in pts]
+        pts = sorted((x['date'], float(x['close'])) for x in spy
+                     if x.get('close') is not None)
+        if len(pts) > len(best[1]):
+            best = ([d for d, _ in pts], [c for _, c in pts], 'SPY(benchmark)')
     except Exception as e:
-        print(f'  warn: SPY series load failed (US regime skipped): {e}', file=sys.stderr)
-        return [], []
+        print(f'  warn: SPY series load failed: {e}', file=sys.stderr)
+    if not best[1]:
+        print('  warn: no US proxy series available (US regime skipped)', file=sys.stderr)
+    globals()['_US_PROXY_LABEL'] = best[2]
+    return best[0], best[1]
+
+
+_US_PROXY_LABEL = None
 
 
 def compute(closes):
@@ -355,15 +392,23 @@ def main(argv=None):
                  'vol_annualized': out['vol_annualized'], 'trend_on': trend_on, 'vol_ok': vol_ok}
     out['us'] = compute_us()
     # regime_history: per-market per-date regime for the alpha-by-regime dashboard bucket.
-    # hk ← HSTECH (full history: 200DMA + momentum); us ← SPY proxy (momentum only).
+    # hk ← HSTECH (full history: 200DMA + momentum); us ← the longest US proxy
+    # series this workspace holds, so the 200DMA answer arrives on its own the
+    # session the history is long enough instead of never (#US-trend).
     us_dates, us_closes = load_spy_series()
+    us_label = _US_PROXY_LABEL or 'none'
+    us_note = ('trend_on=200日线；US 用 %s，共 %d 根' % (us_label, len(us_closes))
+               + ('（≥200，已可判趋势）' if len(us_closes) >= MA_WINDOW
+                  else '（<200，trend_on 仍为 null，还差 %d 个交易日）'
+                       % (MA_WINDOW - len(us_closes))))
     out['regime_history'] = {
         'hk': build_regime_history(dates, closes),
         'us': build_regime_history(us_dates, us_closes) if us_closes else {},
-        'meta': {'hk_index': 'HSTECH', 'us_index': 'SPY(proxy)',
+        'meta': {'hk_index': 'HSTECH', 'us_index': us_label,
+                 'us_bars': len(us_closes), 'ma_window': MA_WINDOW,
                  'mom_window': MOM_WINDOW, 'mom_band_pct': MOM_BAND,
-                 'note': 'regime3=近%d日动量分 牛(>+%g%%)/熊(<-%g%%)/震荡；trend_on=200日线(US 因样本<200 为 null)'
-                         % (MOM_WINDOW, MOM_BAND, MOM_BAND)},
+                 'note': 'regime3=近%d日动量分 牛(>+%g%%)/熊(<-%g%%)/震荡；'
+                         % (MOM_WINDOW, MOM_BAND, MOM_BAND) + us_note},
     }
 
     if args.dry_run:
