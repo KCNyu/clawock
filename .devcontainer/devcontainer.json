@@ -7,7 +7,7 @@
   // package list, for the same reason the workflows stopped writing their own
   // `pip install` lines: a second source of truth drifts unseen. A CI assertion
   // holds this line and pyproject's extras together.
-  "postCreateCommand": "pip install --upgrade pip && pip install -e '.[compute,test]'",
+  "postCreateCommand": "pip install --upgrade pip && pip install -e '.[market,test]'",
 
   "postAttachCommand": {
     "next-steps": "bash .devcontainer/welcome.sh"

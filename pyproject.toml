@@ -58,12 +58,22 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# Kept as an alias, not a set: numpy and scipy are required dependencies as of
-# 2026-08-30, so `.[compute]` now installs the base package. The name stays
-# because three call sites use it (a workflow, the launcher installer, and the
-# composite action's documentation) and breaking those to delete an empty list
-# is a worse trade than one line of explanation.
-compute = []
+# `compute = []` lived here from 2026-08-30, when numpy and scipy became
+# required and the extra was kept as an alias so its three call sites would not
+# break. That trade stopped being cheap once the composite action's own docs
+# told users to pass a `compute` selector "when the job needs the heavier
+# dependency set" while the heavier set was nothing at all (#1321). The call sites now ask
+# for what they actually need, which is the market-data fallback below.
+#
+# yfinance is the last hop of both quote chains — tier 4 for HK
+# (market_data/hk_analysis.py, after Tencent / Eastmoney / stooq) and provider 5
+# for US (market_data/us_quotes.py). Both import it lazily inside a try, so a
+# missing package does not crash: it silently deletes the bottom of the fallback
+# chain, which is exactly the hop that only ever runs when the others are
+# already rate-limited (#1325). It is an extra rather than a required
+# dependency because that chain has four other hops and yfinance drags pandas
+# behind it; it is *declared* because a fallback nobody can install is not one.
+market = ["yfinance>=0.2"]
 evaluation = ["matplotlib>=3.8"]
 # Screenshot and social-card validation.
 imaging = ["Pillow>=10"]

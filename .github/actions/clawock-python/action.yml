@@ -23,8 +23,12 @@ inputs:
   install:
     description: >-
       pip target for the editable install. Pass an extras selector such as
-      `.[compute]` when the job needs the heavier dependency set, or `none` when
+      `.[market]` when the job needs an extra declared in pyproject.toml (that
+      one adds the yfinance fallback both quote chains end on), or `none` when
       the job only runs stdlib scripts and wants nothing but the pinned Python.
+      Only names that exist and are non-empty may be advertised here: this line
+      recommended a `compute` selector for "the heavier dependency set" for a
+      week after that extra became an empty list (#1321).
       `none` exists so those jobs still come through this door: the version has
       to be decided in one place even when the install is not.
     required: false

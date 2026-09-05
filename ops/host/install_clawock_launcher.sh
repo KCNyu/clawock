@@ -14,7 +14,7 @@ TARGET_DIR="$(dirname "$TARGET")"
 [ -f "$CHECKOUT/src/clawock/cli.py" ] || { echo "not a clawock checkout: $CHECKOUT" >&2; exit 1; }
 mkdir -p "$TARGET_DIR"
 python3 -m venv "$VENV"
-"$VENV/bin/python" -m pip install --quiet -e "${CHECKOUT}[compute]"
+"$VENV/bin/python" -m pip install --quiet -e "${CHECKOUT}[market]"
 
 cat > "$TARGET" <<LAUNCHER
 #!/usr/bin/env bash
