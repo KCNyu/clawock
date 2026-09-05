@@ -120,19 +120,19 @@ _（空）_
 2026-08-09 清空了七条 8/4 的促销摘录：它们把四天前的 `USD −7,426.69 / HKD −58,244.56`
 以「长期记忆」的身份注进主会话，正是最容易被当成当前值引用的形状。
 
-## Promoted From Short-Term Memory (2026-09-05)
+## Promoted From Short-Term Memory (2026-09-06)
 
-<!-- openclaw-memory-promotion:memory:memory/2026-08-31-pre-open.md:15:18 -->
-- ▎Header — Book 双视角（HK + USD 不能直接相加）: 真实总浮亏: USD$-6,317.88 ≈ HKD$-49,529.68 ├─ HK 段: HKD$-39,811.24 (-37.82%) ≈ USD$-5,078.12 └─ US 段: USD$-1,239.66 (-26.92%) ≈ HKD$-9,718.52 HK 现金: 17,597 HKD | US 现金: 264.28 USD [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-31-pre-open.md:15-18]
-<!-- openclaw-memory-promotion:memory:memory/2026-08-31-pre-open.md:2:4 -->
-- layout: default title: 盘前深度简报 · 2026-08-31 description: "clawock 盘前深度简报 2026-08-31：港股 + 美股真实持仓的多空辩论、量化因子、风控硬闸与 AI 自评战绩（诚实公开，承认主动操作跑输躺平）。" [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-31-pre-open.md:2-4]
-<!-- openclaw-memory-promotion:memory:memory/2026-08-31-pre-open.md:21:21 -->
-- ▎Header — Book 双视角（HK + USD 不能直接相加）: **▎集中度风险（core.concentration）** [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-31-pre-open.md:21-21]
-<!-- openclaw-memory-promotion:memory:memory/2026-08-31-pre-open.md:22:23 -->
-- ▎Header — Book 双视角（HK + USD 不能直接相加）: HK HHI **0.406 🔴 危险** | 00100 55.06% + 07226 30.69% = Top2 **85.75%**（review band 35-60% 之 00100 单独 advisory；07226 是真双核）; US HHI **0.67 🔴 危险** | SPCH **81.29%** + RKLX 4.55% = Top2 **85.84%**（SPCH 单名即超 mandatory 35% cap；US 杠杆 85.8% > 50% cap；US β 5.087 > 3.0 cap） [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-31-pre-open.md:22-23]
-<!-- openclaw-memory-promotion:memory:memory/2026-08-31-pre-open.md:25:26 -->
-- ▎Header — Book 双视角（HK + USD 不能直接相加）: **▎风险纪律（risk_discipline, 7 open / 0 overridden / oldest 47d）** 4 breach + 3 hard_stop，**全部 7 条 unacknowledged**：07226 (-25.7%)、RKLX (-69.2%)、SPCH (-24.4%) 三条硬止损线早过；HK lev 30.7%/US lev 85.8%/SPCH single 81.29%/US β 5.087 四条仓位硬闸全 high。**明日是 5+ 天 plan 三 cut 全 not_followed 的第 6 天**——昨天 retro 8/28 plan 的 3 cut (07226/RKLX/SPCH) 仍 pending。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-31-pre-open.md:25-26]
-<!-- openclaw-memory-promotion:memory:memory/2026-08-31-pre-open.md:28:31 -->
-- ▎Header — Book 双视角（HK + USD 不能直接相加）: **▎Breakeven math** (引用 context.breakeven_math) | Ticker | 浮% | 2x chop drag/月 | 回本需 | swap 1x 标的 | 半年窗含 drag 等效 underlying 需 | |---|---|---|---|---|---| | RKLX | -69.2% | 5.24% | +224.6% | RKLB（已清仓，swap_to=null） | +89.9% | [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-31-pre-open.md:28-31]
-<!-- openclaw-memory-promotion:memory:memory/2026-08-31-pre-open.md:9:10 -->
-- 盘前深度简报｜2026-08-31 周一 08:00 HKT: **🧭 Regime**: HK amber（趋势OFF，杠杆敞口上限×0.5=25%）· US amber（趋势OFF，1票watch）· macro neutral（VIX 14.43, SPX/NDX 同向下行-0.25%/-0.70%） **FX**: USDHKD = **7.8396**（Frankfurter, 抓取于 2026-08-31 00:00 UTC） [score=0.803 recalls=0 avg=0.620 source=memory/2026-08-31-pre-open.md:9-10]
+<!-- openclaw-memory-promotion:memory:memory/2026-09-01-pre-open.md:11:11 -->
+- 盘前深度简报｜2026-09-01 周二 08:00 HKT: **反方**：如果今天再次写 '建议 cut' 但 kcn 不执行，discipline 失效第 8 天比第 7 天更差；8/24-31 三 cut 全 not_followed 已经说明 plan→execution 链条断了，今天需要的是 (a) 把 cut 和 swap buy 合成 transaction_group_id atomic 成交，(b) 把 9/1 21:30 HKT / US 21:30 ET 的具体执行时点写到 next_session plan 让人无法'忘了'。最差结果不是 cut 错，而是又写一次 cut 但仍然不成交——意味着 plan 在累计纪律债。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-01-pre-open.md:11-11]
+<!-- openclaw-memory-promotion:memory:memory/2026-09-01-pre-open.md:15:15 -->
+- Header — Book 双视角（HK + USD 不能直接相加）: **🧭 Regime**: neutral · HK amber + US neutral + macro neutral (VIX 14.43 calm 但 SPX/NDX 同向下行 -0.25%/-0.52%)。regime 不是 risk_off，所以 core_position 默认 hold；但 discipline breach 是独立维度，不受 regime 豁免——regime=risk_on HOLD 默认的唯一豁免是借机减杠杆不是反向豁免降杠杆。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-01-pre-open.md:15-15]
+<!-- openclaw-memory-promotion:memory:memory/2026-09-01-pre-open.md:17:17 -->
+- Header — Book 双视角（HK + USD 不能直接相加）: **FX**: USDHKD = **7.8379**（Frankfurter，抓取于 2026-09-01T00:01:41.724842+00:00） [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-01-pre-open.md:17-17]
+<!-- openclaw-memory-promotion:memory:memory/2026-09-01-pre-open.md:2:4 -->
+- layout: default title: 盘前深度简报｜2026-09-01 周二 08:00 HKT description: "clawock 盘前深度简报 2026-09-01：港股 + 美股真实持仓的多空辩论、量化因子、风控硬闸与决策校准。" [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-01-pre-open.md:2-4]
+<!-- openclaw-memory-promotion:memory:memory/2026-09-01-pre-open.md:20:23 -->
+- Header — Book 双视角（HK + USD 不能直接相加）: 真实总浮亏: USD$-5,458.06 ≈ HKD$-42,779.76 ├─ HK 段: HKD$-33,904.04 (-32.20%) └─ US 段: USD$-1,132.41 (-24.59%) HK 现金: 17,597 HKD | US 现金: 264.28 USD [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-01-pre-open.md:20-23]
+<!-- openclaw-memory-promotion:memory:memory/2026-09-01-pre-open.md:28:31 -->
+- 集中度（core.concentration）: | Leg | HHI | 判定 | Top2 | 腿总值 | |---|---|---|---|---| | HK | 0.432 | 🔴 危险集中 | 87.00% | 71,372 | | US | 0.670 | 🔴 危险集中 | 86.80% | 3,473 | [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-01-pre-open.md:28-31]
+<!-- openclaw-memory-promotion:memory:memory/2026-09-01-pre-open.md:9:9 -->
+- 盘前深度简报｜2026-09-01 周二 08:00 HKT: Book 浮亏 USD-5458 / HKD-42780 接近 -30% 总仓；3 个杠杆 ETF 全破硬止损线 (RKLX -69.7% / 07226 -25.2% / SPCH -22.0%) 站 breach 第 8 天；HK leg HHI 0.43 / US leg HHI 0.67 双双 🔴 危险集中 (00100 58.7% + 07226 28.3% Top2=87% / SPCH 81.3% + RKLX 4.3% Top2=86.8%)。今天 3 个 risk_rebalance cut 都是纪律执行不是择时，reflections by_driver=risk_rule edge_significant=true 校准支撑；7 个 core_position hold 是 reflection 31-58% 胜率下的中性默认，reflections 多次提示主动 call 多半没跑赢持有。9/1 是 discipline 失效第 7 天 (8/24-31 连续 6 天 plan 三 cut 全 not_followed)，今天的 plan 不再重复 '建议 cut' 而是把 2x→1x swap 的两条腿 (cut + add) 同步写出 atomic 成交。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-01-pre-open.md:9-9]
