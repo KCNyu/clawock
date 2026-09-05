@@ -41,10 +41,12 @@ ops/host/install_clawock_launcher.sh to refresh this metadata)
 That drift is cosmetic and expected; it was still read as a missing feature once
 ([#745](https://github.com/KCNyu/clawock/issues/745)), which is why the string
 now names the checkout. `git -C /root/.openclaw/workspace log --oneline -1` is
-the real answer for the Python half, and for the plugin half it is
-`curl -s http://127.0.0.1:3081/plugins/clawock-dsh/client.js | cmp -
-examples/dsh/packages/clawock-dsh/lib/client.js` — `refresh_live.sh` runs both
-checks itself after it installs anything.
+the real answer for the Python half, and for the plugin half it is the served
+bundle: since dsh 0.1.2 a client bundle has no per-plugin URL, so read
+`clawock-dsh`'s entry out of the `/plugins/events` module graph and compare
+the served bytes against `examples/dsh/packages/clawock-dsh/lib/client.js`
+(the response carries a trailing `sourceMappingURL` comment the file does not)
+— `refresh_live.sh` runs both checks itself after it installs anything.
 
 Cut a release when the outside world needs the change — a PyPI/npm user, a
 documented install line, a version a skill contract names — and batch fixes into

@@ -4,7 +4,7 @@ window.__ModuleLoader__.load({
     var module = { exports: {} };
     var exports = module.exports;
     Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
-const { defineStore } = require("@deepseek-ai/dsh-client-runtime/client");
+const { defineStore } = require("@deepseek-ai/dsh-client-store");
 const React = require("react");
 //#region node_modules/zod/v4/core/core.js
 var _a$1;

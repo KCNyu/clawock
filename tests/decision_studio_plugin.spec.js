@@ -294,7 +294,7 @@ test("client: registers the Decision Mind tab and mounts the remote face", async
   const loaded = await loadClient();
   assert.equal(loaded.id, "clawock-dsh");
   const api = loaded.factory((s) => {
-    if (s === "@deepseek-ai/dsh-client-runtime/client") return makeRuntimeStub();
+    if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
     if (s === "react") return makeReactStub();
     throw new Error(`unexpected require: ${s}`);
   });
@@ -384,7 +384,7 @@ test("client: registers the Decision Mind tab and mounts the remote face", async
 test("client: _displayEntry projects a trace with its decision and T+1", async () => {
   const loaded = await loadClient();
   const api = loaded.factory((s) => {
-    if (s === "@deepseek-ai/dsh-client-runtime/client") return makeRuntimeStub();
+    if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
     if (s === "react") return makeReactStub();
     throw new Error(`unexpected require: ${s}`);
   });
@@ -415,7 +415,7 @@ test("client: _displayEntry projects a trace with its decision and T+1", async (
 test("client: renders the single decision-trace view from the mounted remote", async () => {
   const loaded = await loadClient();
   const api = loaded.factory((s) => {
-    if (s === "@deepseek-ai/dsh-client-runtime/client") return makeRuntimeStub();
+    if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
     if (s === "react") return makeReactStub();
     throw new Error(`unexpected require: ${s}`);
   });
@@ -587,7 +587,7 @@ test("T+1 reading: one host-side dead zone drives chip, node and verdict (#665/#
   const ledger = await import(pathToFileURL(path.join(PLUGIN, "lib", "ledger.js")).href);
   const loaded = await loadClient();
   const api = loaded.factory((s) => {
-    if (s === "@deepseek-ai/dsh-client-runtime/client") return makeRuntimeStub();
+    if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
     if (s === "react") return makeReactStub();
     throw new Error(`unexpected require: ${s}`);
   });
@@ -640,7 +640,7 @@ test("T+1 reading: one host-side dead zone drives chip, node and verdict (#665/#
 test("client: trace list batches older days behind 'show earlier' and folds by day", async () => {
   const loaded = await loadClient();
   const api = loaded.factory((s) => {
-    if (s === "@deepseek-ai/dsh-client-runtime/client") return makeRuntimeStub();
+    if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
     if (s === "react") return makeReactStub();
     throw new Error(`unexpected require: ${s}`);
   });
@@ -764,7 +764,7 @@ test("client: the bundle loads with no DOM and owns no module-level state (#729)
   const counter = { calls: 0 };
   const loaded = await loadClient();
   const api = loaded.factory((s) => {
-    if (s === "@deepseek-ai/dsh-client-runtime/client") return makeRuntimeStub(counter);
+    if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub(counter);
     if (s === "react") return makeReactStub();
     throw new Error(`unexpected require: ${s}`);
   });
@@ -796,7 +796,7 @@ test("client: stylesheet is loader-owned and keeps the dark-theme and tone contr
   const injected = await withDocumentStub(async (collected) => {
     const loaded = await loadClient();
     loaded.factory((s) => {
-      if (s === "@deepseek-ai/dsh-client-runtime/client") return makeRuntimeStub();
+      if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
       if (s === "react") return makeReactStub();
       throw new Error(`unexpected require: ${s}`);
     });
@@ -1398,7 +1398,7 @@ test("client: the header chip headlines one provider and the panel pins the rest
   const loaded = await loadClient();
   const reactStub = makeReactStub();
   const api = loaded.factory((s) => {
-    if (s === "@deepseek-ai/dsh-client-runtime/client") return makeRuntimeStub();
+    if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
     if (s === "react") return reactStub;
     throw new Error(`unexpected require: ${s}`);
   });
@@ -1501,7 +1501,7 @@ test("client: the panel says each provider's story once, abnormal rows loudest",
   const loaded = await loadClient();
   const reactStub = makeReactStub();
   const api = loaded.factory((s) => {
-    if (s === "@deepseek-ai/dsh-client-runtime/client") return makeRuntimeStub();
+    if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
     if (s === "react") return reactStub;
     throw new Error(`unexpected require: ${s}`);
   });
@@ -1680,7 +1680,7 @@ test("client: the panel says each provider's story once, abnormal rows loudest",
 test("client: _rowDisplay and _balanceNote project one provider's answer", async () => {
   const loaded = await loadClient();
   const api = loaded.factory((s) => {
-    if (s === "@deepseek-ai/dsh-client-runtime/client") return makeRuntimeStub();
+    if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
     if (s === "react") return makeReactStub();
     throw new Error(`unexpected require: ${s}`);
   });
@@ -1768,7 +1768,7 @@ test("client: an exhausted quota row shows its 100% bars and resets instead of a
   const loaded = await loadClient();
   const reactStub = makeReactStub();
   const api = loaded.factory((s) => {
-    if (s === "@deepseek-ai/dsh-client-runtime/client") return makeRuntimeStub();
+    if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
     if (s === "react") return reactStub;
     throw new Error(`unexpected require: ${s}`);
   });
