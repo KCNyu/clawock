@@ -596,6 +596,14 @@ def test_early_exploration_reports_its_real_tranche_and_evidence_families():
     context["news_evidence_graph"]["events"][0].update({
         "source_type": "issuer_announcement", "impact_direction": "positive",
     })
+    # This case is about the EARLY lane, which is the path a name takes when
+    # `classify_authority` refuses it. The 2026-09-05 cold-start relief gives a
+    # single-family name a half-slice instead of a refusal, which would route
+    # this fixture through the authority lane and never reach the assertions
+    # below. Turning it off states which of the two lanes is under test rather
+    # than leaving the answer to whichever feature shipped last.
+    context.setdefault("add_alpha_policy", dict(packet_mod._add_alpha_policy(context)))
+    context["add_alpha_policy"]["cold_start_single_family_enabled"] = False
     packet = packet_mod.compile_packet(
         context, brief_context.compute_generation_id(context)
     )

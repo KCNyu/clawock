@@ -264,6 +264,29 @@ def opportunity_section(context):
         lines.append("_没有任何名字进入加仓读数区间_")
     lines.append("")
     lines.append(_track_record_line(context, ("add_only_on_trigger",)))
+
+    act = context.get("add_alpha_activation") or {}
+    families = act.get("families") or {}
+    if families:
+        lines += ["", "**三个证据族的开机状态**（任意两族成立才授权试探仓；"
+                      "两族没上线时「任意两族」就退化成「必须追涨」）：", ""]
+        rows = []
+        for name, row in families.items():
+            progress = row.get("progress") or {}
+            counters = "、".join(
+                f"{k} {v[0]}/{v[1]}" for k, v in progress.items()
+                # `isinstance(False, int)` is True, so bool checks would render
+                # as "membership_history False/True" — a pass/fail flag is not a
+                # counter and has nothing to count down.
+                if isinstance(v, list) and len(v) == 2
+                and all(isinstance(x, (int, float)) and not isinstance(x, bool) for x in v)
+                and v[0] < v[1]) or "—"
+            rows.append([name, "✅ 已激活" if row.get("active") else "⏳ 预热中",
+                         counters, "、".join(row.get("blockers") or []) or "—"])
+        lines.append(table(["证据族", "状态", "还差", "blocker"], rows))
+        if act.get("cold_start"):
+            lines += ["", "_冷启动期：单族 + 价格确认 + 非杠杆 ⇒ 半个试探仓（policy "
+                          "`cold_start_single_family_enabled`）；计数器填满后此例外自动失效_"]
     return "\n".join(lines)
 
 

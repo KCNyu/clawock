@@ -839,6 +839,56 @@ def _constraints(shares: int, risks: list[dict], actionable_ids: list[str],
     }
 
 
+def add_alpha_activation(context: dict) -> dict:
+    """Where each add-side evidence family is in its warm-up, from its own counters.
+
+    Read from the three producers rather than from a date: `cross_sectional_factor`
+    and `peer_residual` publish their own activation checks, and the news evidence
+    graph publishes its `history_dates` / `cross_section_tickers` progress. On
+    2026-09-05 that was factor 8/24, information 16/24, peer missing dates and
+    signed_residual_ci — two of three families structurally unable to fire, which
+    is why "any two families" behaved like "a breakout is mandatory".
+    """
+    factor_act = (context.get("cross_sectional_factor") or {}).get("activation") or {}
+    peer_act = (context.get("peer_residual") or {}).get("rule_activation") or {}
+    info_act = (
+        ((context.get("news_evidence_graph") or {}).get("information_overlay") or {})
+        .get("activation") or {}
+    )
+
+    def _progress(checks):
+        out = {}
+        for name, check in (checks or {}).items():
+            if isinstance(check, dict) and "actual" in check:
+                out[name] = [check.get("actual"), check.get("required")]
+        return out
+
+    families = {
+        "price_relative_factor": {
+            "active": bool(factor_act.get("active")),
+            "usable_for_decisions": bool(factor_act.get("usable_for_decisions")),
+            "progress": _progress(factor_act.get("checks")),
+            "blockers": list(factor_act.get("blockers") or []),
+        },
+        "price_relative_peer": {
+            "active": bool(peer_act.get("active")),
+            "usable_for_decisions": bool(peer_act.get("usable_for_decisions")),
+            "blockers": sorted({
+                blocker
+                for rule in peer_act.values() if isinstance(rule, dict)
+                for blocker in (rule.get("blockers") or [])
+            }) or list(peer_act.get("blockers") or []),
+        },
+        "point_in_time_information": {
+            "active": bool(info_act.get("active")),
+            "progress": _progress(info_act.get("checks")),
+            "blockers": list(info_act.get("blockers") or []),
+        },
+    }
+    warming = sorted(name for name, row in families.items() if not row["active"])
+    return {"families": families, "warming_up": warming, "cold_start": bool(warming)}
+
+
 def compile_packet(context: dict, generation_id: str | None = None) -> dict:
     generation_id = generation_id or context.get("generation_id")
     if not generation_id:
@@ -859,6 +909,7 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
     events = (context.get("news_evidence_graph") or {}).get("events") or []
     evidence_graph = context.get("news_evidence_graph") or {}
     add_policy = _add_alpha_policy(context)
+    alpha_activation = add_alpha_activation(context)
     proxies = _proxy_map(context)
     holdings = list(_active_holdings(context))
     active = {str(holding.get("ticker")) for _, holding in holdings}
@@ -957,6 +1008,7 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
             # formation #856 measured positive at every horizon fed only the
             # intraday message.
             technical=technical,
+            cold_start=alpha_activation["cold_start"],
         )
         if alpha_authority.get("tier") == "exploration":
             # A current-universe backfill can discover an interaction worth
@@ -1178,11 +1230,18 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
             "authority_discipline": add_alpha.AUTHORITY_DISCIPLINE,
         },
         "add_alpha_diagnostics": {
+            # Why the count of authorised names is what it is. Without this a
+            # zero reads as "nothing qualified" when it means "two of the three
+            # families are still collecting their first 24 prospective dates".
+            "activation": alpha_activation,
             "held_names": len(tickers),
             "tier_counts": tier_counts,
             "candidate_count": len(candidates),
             "authority_candidate_count": sum(
                 row["tier"] in {"exploration", "validated"} for row in candidates
+            ),
+            "cold_start_candidate_count": sum(
+                row["tier"] == "exploration_cold_start" for row in candidates
             ),
             "allowed_candidate_count": sum(bool(row["allowed"]) for row in candidates),
             "observed_candidate_count": sum(
