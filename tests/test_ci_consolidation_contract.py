@@ -119,3 +119,28 @@ def test_no_inline_lane_classification_left_in_the_workflow():
         assert "python3 -c" not in block and 'case "$f"' not in block, (
             f"{step} grew inline logic; it belongs in ops/ci/push_scope.py "
             "where tests can drive it")
+
+
+def test_the_argparse_check_covers_every_registered_harness_phase():
+    """The probe list must be the registry, not a copy of it that ages.
+
+    `argparse-check harness CLIs` hardcodes the phases it loads. `brief render`
+    shipped in `harness.runner.PHASE_MODULES` and never made it into that list,
+    so for the whole life of the step a broken `render` parser was invisible to
+    CI (#1312) — the same shape as every other gate that enumerates its own
+    members by hand. Asserting the two lists against each other is what stops
+    the next phase from landing outside the probe.
+    """
+    from clawock.harness.runner import PHASE_MODULES
+    from workflow_contract_helpers import step_block
+
+    block = step_block(CI, "argparse-check harness CLIs")
+    listed = re.search(r"for cli in (.+?); do", block, re.DOTALL)
+    assert listed, "the step no longer loops over an explicit CLI list"
+    probed = {tuple(token.split("_", 1))
+              for token in listed.group(1).replace("\\", " ").split()}
+
+    assert probed == set(PHASE_MODULES), (
+        "argparse-check and PHASE_MODULES disagree; "
+        f"only in the registry: {sorted(set(PHASE_MODULES) - probed)}, "
+        f"only in ci.yml: {sorted(probed - set(PHASE_MODULES))}")
