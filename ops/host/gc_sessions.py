@@ -13,6 +13,11 @@ This script removes:
   - sessions/bak-* / pre-cleanup-*  older than KEEP_BAK_DAYS
   - gateway-supervisor-restart-handoff.json if expired
 
+and trims (does not delete) the workspace's append-only cron logs back to their
+last KEEP_LOG_LINES lines once they pass KEEP_LOG_MB. Nothing rotated them:
+`logs/publish_dashboard.log` reached 10,484 lines and `logs/watchdog.jsonl`
+99 days of delivery evidence, both still growing (#1324).
+
 Defaults are conservative; tune via env vars if needed.
 Designed to run as a daily cron (~03:00 HKT, after overnight monitor ends 02:30
 and before US close 04:05 — see openclaw-intraday-cron-no-overlap memory).
@@ -35,11 +40,19 @@ _OPENCLAW_PATHS = runtime_paths()
 SESSIONS_DIR = _OPENCLAW_PATHS.sessions_dir
 HANDOFF_FILE = _OPENCLAW_PATHS.supervisor_handoff
 WORKSPACE_TMP = _OPENCLAW_PATHS.workspace_memory_tmp
+LOGS_DIR = _OPENCLAW_PATHS.workspace / 'logs'
 
 KEEP_TRAJECTORY_DAYS = int(os.environ.get('GC_KEEP_TRAJECTORY_DAYS', '7'))
 KEEP_SESSION_DAYS    = int(os.environ.get('GC_KEEP_SESSION_DAYS',    '14'))
 KEEP_BAK_DAYS        = int(os.environ.get('GC_KEEP_BAK_DAYS',        '3'))
 KEEP_TMP_DAYS        = int(os.environ.get('GC_KEEP_TMP_DAYS',        '14'))
+KEEP_LOG_MB          = float(os.environ.get('GC_KEEP_LOG_MB',        '2'))
+KEEP_LOG_LINES       = int(os.environ.get('GC_KEEP_LOG_LINES',       '2000'))
+LOG_QUIET_SECONDS    = int(os.environ.get('GC_LOG_QUIET_SECONDS',    '60'))
+# Hysteresis: trim at five times the tail we keep, so a given log is rewritten
+# about once a year instead of every night.
+TRIM_AT_MULTIPLE     = int(os.environ.get('GC_TRIM_AT_MULTIPLE',     '5'))
+READ_FLOOR_BYTES     = int(os.environ.get('GC_LOG_READ_FLOOR_BYTES', str(128 * 1024)))
 
 for _name, _days in (('GC_KEEP_TRAJECTORY_DAYS', KEEP_TRAJECTORY_DAYS),
                      ('GC_KEEP_SESSION_DAYS', KEEP_SESSION_DAYS),
@@ -175,6 +188,70 @@ def gc_sessions_dir(now_ts, dry_run, allow_future=False):
     return total_files, total_bytes
 
 
+def trim_logs(now_ts, dry_run, dirpath=None):
+    """Copy-truncate over-long append-only logs, keeping their last lines.
+
+    Everything under `logs/` is append-only and nothing reads it from the
+    front: `ops/system_check.py` reads a fixed tail of each host cron log
+    looking for a crash, and `intraday_watchdog` says outright that a line in
+    watchdog.jsonl "is not something kcn reads". So the retention that fits is
+    a tail, not an age — an age cutoff on a single ever-growing file deletes
+    either all of it or none of it.
+
+    A file is trimmed when it holds more than TRIM_AT_LINES lines (five times
+    what we keep, so this rewrites a given log about once a year rather than
+    every night) or when it is over KEEP_LOG_MB, which catches the pathological
+    single-huge-line case a line count would miss. Files under READ_FLOOR are
+    never opened.
+
+    Copy-truncate rather than rename: the cron lines redirect with `>>`, so a
+    running job holds an O_APPEND descriptor on this inode. Renaming the file
+    sends that job's remaining output to a file nobody will look at again;
+    rewriting the same inode keeps every writer pointed at the live log. Only
+    `.log` and `.jsonl` are eligible — `logs/` also holds state files like
+    `brief_postflight_status.json`, which are read whole and must not be cut.
+    """
+    dirpath = dirpath or LOGS_DIR
+    if not dirpath.exists():
+        return 0, 0
+    cap = int(KEEP_LOG_MB * 1024 * 1024)
+    n_files, n_bytes = 0, 0
+    for p in sorted(dirpath.iterdir()):
+        if not p.is_file() or p.suffix not in ('.log', '.jsonl'):
+            continue
+        try:
+            st = p.stat()
+        except FileNotFoundError:
+            continue
+        if st.st_size < READ_FLOOR_BYTES:
+            continue
+        # A log written to in the last minute may have an appender mid-line;
+        # leave it for tomorrow rather than race it for the bytes it is over.
+        if now_ts - st.st_mtime < LOG_QUIET_SECONDS:
+            continue
+        try:
+            with p.open('r+', encoding='utf-8', errors='replace') as f:
+                lines = f.readlines()
+                if len(lines) <= KEEP_LOG_LINES * TRIM_AT_MULTIPLE and st.st_size <= cap:
+                    continue
+                kept = lines[-KEEP_LOG_LINES:]
+                if not dry_run:
+                    f.seek(0)
+                    f.writelines(kept)
+                    f.truncate()
+        except OSError as e:
+            print(f'  skip {p.name}: {e}', file=sys.stderr)
+            continue
+        freed = st.st_size - sum(len(line.encode('utf-8')) for line in kept)
+        n_files += 1
+        n_bytes += max(freed, 0)
+        print(f'  trimmed {p.name}: {len(lines)} lines / {humansize(st.st_size)} '
+              f'→ last {len(kept)}')
+    print(f'  logs (> {KEEP_LOG_LINES * TRIM_AT_MULTIPLE} lines or '
+          f'{KEEP_LOG_MB:g} MB): {n_files} files, {humansize(n_bytes)}')
+    return n_files, n_bytes
+
+
 def gc_handoff(dry_run):
     if not HANDOFF_FILE.exists():
         return False
@@ -204,7 +281,8 @@ def main():
     now = time.time()
     print(f'gc_sessions: dir={SESSIONS_DIR} dry_run={args.dry_run}')
     print(f'  keep trajectory ≤ {KEEP_TRAJECTORY_DAYS}d, session ≤ {KEEP_SESSION_DAYS}d, '
-          f'bak ≤ {KEEP_BAK_DAYS}d, workspace .tmp ≤ {KEEP_TMP_DAYS}d')
+          f'bak ≤ {KEEP_BAK_DAYS}d, workspace .tmp ≤ {KEEP_TMP_DAYS}d, '
+          f'logs ≤ {KEEP_LOG_MB:g} MB (tail {KEEP_LOG_LINES} lines)')
 
     total_files, total_bytes = gc_sessions_dir(now, args.dry_run)
 
@@ -221,6 +299,10 @@ def main():
     )
     total_files += f
     total_bytes += b
+
+    # Reported on its own line, not folded into the totals below: a trimmed
+    # log is still there, and "freed 3 files" would be a lie about it.
+    trim_logs(now, args.dry_run)
 
     # Expired gateway-supervisor-restart-handoff
     gc_handoff(args.dry_run)
