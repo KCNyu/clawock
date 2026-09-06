@@ -101,11 +101,19 @@ fi
 # Supplied through the environment rather than `-c`: GIT_COMMITTER_* wins over
 # config AND over the empty gecos name that is the actual failure on a runner,
 # and it touches no config file at all.
+# Both reads are guarded: under `set -e` a failing command substitution inside
+# an array assignment aborts the whole script, which would turn "git could not
+# answer a question about HEAD" into "nothing was published". With no answer we
+# simply have nothing better to offer than the behaviour that was here before.
 REPLAY_ID=()
 if ! git var GIT_COMMITTER_IDENT >/dev/null 2>&1; then
-  REPLAY_ID=(env "GIT_COMMITTER_NAME=$(git log -1 --format=%cn)"
-                 "GIT_COMMITTER_EMAIL=$(git log -1 --format=%ce)")
-  echo "▸ no git identity here — replaying as $(git log -1 --format='%cn <%ce>')"
+  _REPLAY_NAME="$(git log -1 --format=%cn 2>/dev/null || true)"
+  _REPLAY_EMAIL="$(git log -1 --format=%ce 2>/dev/null || true)"
+  if [ -n "$_REPLAY_NAME" ] && [ -n "$_REPLAY_EMAIL" ]; then
+    REPLAY_ID=(env "GIT_COMMITTER_NAME=$_REPLAY_NAME"
+                   "GIT_COMMITTER_EMAIL=$_REPLAY_EMAIL")
+    echo "▸ no git identity here — replaying as $_REPLAY_NAME <$_REPLAY_EMAIL>"
+  fi
 fi
 
 for i in $(seq 1 $MAX_RETRIES); do
