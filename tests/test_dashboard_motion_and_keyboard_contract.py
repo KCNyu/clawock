@@ -148,3 +148,48 @@ def test_a_panel_whose_load_failed_offers_a_way_back():
     assert "panel.prepend" in helper, "the message has to reach the panel itself"
     assert ".panel-load-error" in CSS and ".panel-load-retry" in CSS
 
+
+#: Properties whose read forces the browser to flush pending style writes.
+LAYOUT_READS = re.compile(
+    r"clientWidth|clientHeight|offsetWidth|offsetHeight|scrollWidth|scrollHeight"
+    r"|getBoundingClientRect")
+
+
+def _function_body(source: str, name: str) -> str:
+    """The braces-balanced body of `function <name>(`."""
+    start = source.index(f"function {name}(")
+    depth = 0
+    for i in range(source.index("{", start), len(source)):
+        if source[i] == "{":
+            depth += 1
+        elif source[i] == "}":
+            depth -= 1
+            if depth == 0:
+                return source[start:i + 1]
+    raise AssertionError(f"unbalanced body for {name}")
+
+
+def test_the_deck_measures_once_per_paint_not_once_per_card():
+    """A layout read inside a per-card writer is a read after a write.
+
+    `pose` sets `visibility`, `opacity` and `transform` on one card, and `paint`
+    runs it once per card from inside the spring's `requestAnimationFrame` loop.
+    Reading `stage.clientWidth` inside `pose` therefore flushed layout again for
+    every card after the first, on every frame of every deck transition — the
+    read-write-read-write alternation the worklist defines as thrash, as opposed
+    to the one-read-then-write that computing a position legitimately needs.
+
+    The width belongs to the stage, not to the card, so `paint` measures once and
+    hands it down. Both bundles carry this deck by hand (see
+    `test_dashboard_bundle_parity`), so both are asserted.
+    """
+    for path in (JS_DIR / "dashboard.hero.js", JS_DIR / "dashboard.render.js"):
+        source = path.read_text(encoding="utf-8")
+        pose = _function_body(source, "pose")
+        assert not LAYOUT_READS.search(pose), (
+            f"{path.name}: `pose` reads layout while writing card styles; "
+            "measure in `paint` and pass the value in")
+        paint = _function_body(source, "paint")
+        assert "W()" in paint and "pose(i, w)" in paint, (
+            f"{path.name}: `paint` must take the one measurement the cards share")
+
