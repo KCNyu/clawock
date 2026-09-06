@@ -541,6 +541,38 @@
   .pager { display: contents; }   /* desktop: transparent — panels join the grid */
   .panel { display: block; }
 
+  /* ── The two panel states that had no picture ──
+     A tab's data arrives asynchronously and the markup only ever showed the
+     success state: `aria-busy` was set and removed with nothing styled on it,
+     and a failed load wrote to the console. A panel that never filled in
+     therefore looked exactly like a panel with nothing in it — card chrome, a
+     table header, no rows, which reads as "you hold nothing".
+     The pulse is animation-only, so the global prefers-reduced-motion rule
+     above already flattens it. */
+  .panel[aria-busy="true"] { animation: panel-busy 1.1s var(--ease-out) infinite alternate; }
+  @keyframes panel-busy { from { opacity: .5; } to { opacity: .82; } }
+
+  /* The box is addressed through the state the JS sets, so `data-load-error` is
+     load-bearing rather than a comment: no attribute, no message. */
+  .panel-load-error { display: none; }
+  .panel[data-load-error] > .panel-load-error {
+    display: flex; align-items: center; gap: var(--space-3);
+    flex-wrap: wrap;
+    margin: 0 0 var(--space-4);
+    padding: var(--space-3) var(--space-4);
+    background: var(--card-2);
+    border: 1px dashed var(--border-strong);
+    border-radius: var(--radius-sm);
+    color: var(--text-dim); font-size: var(--fs-sm);
+  }
+  .panel-load-retry {
+    font: inherit; color: var(--text); cursor: pointer;
+    background: transparent;
+    border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
+    padding: 4px 12px;
+  }
+  .panel-load-retry:hover { background: var(--border); }
+
   /* ── Mobile (<1024px): iOS-native paged tabs ──
      Fixed chrome (header + footer), the content area is a horizontal
      scroll-snap pager. Each tab is its own page that scrolls vertically.
