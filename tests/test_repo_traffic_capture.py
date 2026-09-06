@@ -13,6 +13,7 @@ import json
 from pathlib import Path
 
 import pytest
+import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = ROOT / "ops" / "growth" / "repo_traffic.py"
@@ -205,3 +206,46 @@ def test_a_contiguous_or_overlapping_window_is_not_a_gap():
     assert repo_traffic.find_gap(stored, [_day("2026-08-20T00:00:00Z", 5, 2)]) is None
     assert repo_traffic.find_gap(stored, [_day("2026-08-21T00:00:00Z", 6, 2)]) is None
     assert repo_traffic.find_gap([], [_day("2026-08-21T00:00:00Z", 6, 2)]) is None
+
+
+def test_one_capture_failing_does_not_discard_the_other_measurement():
+    """The rule this file already enforces inside the script, enforced around it.
+
+    `test_package_downloads_are_advisory_and_never_lose_the_github_half` pins
+    that a registry outage still writes the GitHub half. The workflow that runs
+    the script did the opposite: two perishable captures in one job under
+    `set -euo pipefail`, and a commit step with no condition — so a failure in
+    either one threw away whatever the other had already merged. Both 2026-08
+    failures (runs 32550935688, 32619875646) died in the first step, and the
+    drift capture never ran at all.
+
+    Neither window can be re-fetched: the Traffic API keeps 14 days and the
+    Actions API ages runs out. Losing one because the other failed is the one
+    kind of loss the header of this workflow says cannot be repaired later.
+    """
+    job = yaml.safe_load(
+        (ROOT / ".github/workflows/repo-traffic.yml").read_text(encoding="utf-8")
+    )["jobs"]["capture"]
+    steps = job["steps"]
+    names = [step.get("name") for step in steps]
+    by_name = {step.get("name"): step for step in steps}
+
+    captures = [s for s in steps if s.get("id") in {"traffic", "drift"}]
+    assert len(captures) == 2, "both perishable captures must be identifiable by id"
+    for step in captures:
+        assert step.get("continue-on-error") is True, (
+            f"{step.get('name')!r} still ends the job, taking the other "
+            f"measurement's data with it")
+
+    commit = next(n for n in names if n and n.startswith("Commit"))
+    verdict = next(n for n in names if n and "fails the run" in n)
+    assert names.index(commit) < names.index(verdict), (
+        "the commit has to land before the run is failed, or tolerating the "
+        "capture failure buys nothing")
+
+    # Tolerating the failure must not hide it: a scheduled workflow that ends
+    # green when a capture died is invisible to weekly-health's rollup.
+    condition = by_name[verdict]["if"]
+    assert "steps.traffic.outcome" in condition and "steps.drift.outcome" in condition
+    assert "exit 1" in by_name[verdict]["run"]
+
