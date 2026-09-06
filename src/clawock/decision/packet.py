@@ -54,6 +54,21 @@ PACKET_BUDGET_WARN_RATIO = 0.8
 INFORMATION_COLD_KEYS = ("attention_components", "event_components")
 
 
+#: Sections `decision_packet_query` may narrow a ticker row to.
+#:
+#: Every structured key a compiled row carries belongs here. The list used to
+#: live in `tools/context_tools.py` and had drifted to seven of the twelve:
+#: `information` — the one section `summary_view` does not project either — had
+#: no path of its own at all, so the only way to read it was the whole-row query
+#: both the tool description and SKILL.md tell the agent not to make. Owned here
+#: because this module is what builds the rows; `test_brief_decision_packet`
+#: compiles one and compares.
+QUERYABLE_SECTIONS = (
+    "facts", "technical", "thesis", "execution", "quant", "sentiment",
+    "history", "information", "evidence", "risk", "status", "constraints",
+)
+
+
 def _without_cold_components(information: dict) -> dict:
     """`information` minus the per-event component lists.
 
