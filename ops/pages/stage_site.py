@@ -19,6 +19,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[2]
 
 WEEK_FILE_RE = re.compile(r"^(\d{4})-W(\d{2})\.md$")
+BRIEF_FILE_RE = re.compile(r"^(\d{4})-(\d{2})-(\d{2})-pre-open\.md$")
 
 # The review workflow fires `cron: '0 14 * * 0'` — Sunday 14:00 UTC, the last
 # day of the ISO week it writes. GitHub's scheduled runs drift: the 2026-08-30
@@ -28,6 +29,71 @@ WEEK_FILE_RE = re.compile(r"^(\d{4})-W(\d{2})\.md$")
 _REVIEW_FIRE_WEEKDAY = 6  # Sunday
 _REVIEW_FIRE_HOUR = 14
 _REVIEW_GRACE_HOURS = 8
+
+
+# The daily brief fires `3 8 * * 1-5` in Asia/Shanghai — a host cron, not a
+# GitHub schedule, so it does not drift by hours the way the weekly review does.
+# The grace is still generous: a brief that has not landed by the afternoon is
+# the case this index exists to show, and the 09:05 miss-detector watchdog owns
+# the minutes. Asia/Shanghai has no DST, so a fixed +08:00 is exact.
+_BRIEF_TZ = timezone(timedelta(hours=8))
+_BRIEF_FIRE_HOUR = 8
+_BRIEF_FIRE_MINUTE = 3
+_BRIEF_GRACE_HOURS = 8
+
+
+def _last_due_brief_day(now: datetime) -> date:
+    """The most recent weekday whose 08:03 fire is past its grace."""
+    cutoff = now.astimezone(_BRIEF_TZ) - timedelta(hours=_BRIEF_GRACE_HOURS)
+    candidate = cutoff.replace(hour=_BRIEF_FIRE_HOUR, minute=_BRIEF_FIRE_MINUTE,
+                               second=0, microsecond=0)
+    if candidate > cutoff:
+        candidate -= timedelta(days=1)
+    while candidate.weekday() > 4:  # Sat/Sun carry no fire at all
+        candidate -= timedelta(days=1)
+    return candidate.date()
+
+
+def daily_index(source_root: Path = ROOT, *, now: datetime = None) -> list[dict]:
+    """Every weekday the brief series should contain, newest first.
+
+    Same defect the weekly index was carrying, on the same page, one section
+    higher: the list was `site.pages` — the files that exist — so a weekday the
+    brief never landed on simply is not there. `memory/` has no brief for
+    2026-06-04, 2026-06-12, 2026-08-11 or 2026-08-12, and on all four days the
+    host was up and committing intraday refreshes; the reader's only clue was
+    that a date is absent from a list of dates, and for the newest day there is
+    no clue at all.
+
+    Weekdays, because that is what `3 8 * * 1-5` fires on — market holidays
+    included, which is why 2026-07-01 (HK closed) has a brief. Days outside that
+    rule are listed when a file exists for them (the hand-run weekend briefs of
+    2026-05), never demanded when one does not.
+    """
+    now = now or datetime.now(timezone.utc)
+    directory = source_root / "memory"
+    present = {}
+    for path in sorted(directory.glob("*-pre-open.md")) if directory.is_dir() else []:
+        match = BRIEF_FILE_RE.match(path.name)
+        if match:
+            present[date(*(int(part) for part in match.groups()))] = path.name
+    if not present:
+        return []
+
+    days = set(present)
+    cursor, end = min(present), max(max(present), _last_due_brief_day(now))
+    while cursor <= end:
+        if cursor.weekday() <= 4:
+            days.add(cursor)
+        cursor += timedelta(days=1)
+    return [
+        {
+            "date": day.isoformat(),
+            "present": day in present,
+            "path": f"memory/{day.isoformat()}-pre-open.md",
+        }
+        for day in sorted(days, reverse=True)
+    ]
 
 
 def _iso_weeks(first: tuple[int, int], last: tuple[int, int]) -> list[tuple[int, int]]:
@@ -118,6 +184,25 @@ def _write_weekly_index(output_dir: Path, source_root: Path) -> None:
     )
 
 
+def _write_daily_index(output_dir: Path, source_root: Path) -> None:
+    """Same reason as the weekly index: "is this day due yet" is clock
+    arithmetic, and Liquid gets the newest row — the one with nothing after it —
+    wrong precisely because there is nothing after it to compare against."""
+    rows = daily_index(source_root)
+    if not rows:
+        return
+    lines = []
+    for row in rows:
+        lines.append(f"- date: \"{row['date']}\"")
+        lines.append(f"  present: {'true' if row['present'] else 'false'}")
+        lines.append(f"  path: \"{row['path']}\"")
+    data_dir = output_dir / "_data"
+    data_dir.mkdir(parents=True, exist_ok=True)
+    (data_dir / "daily_briefs.yml").write_text(
+        "\n".join(lines) + "\n", encoding="utf-8"
+    )
+
+
 def _copy(source: Path, destination: Path) -> None:
     if source.is_dir():
         shutil.copytree(source, destination, dirs_exist_ok=True)
@@ -149,6 +234,7 @@ def stage(output_dir: Path, *, source_root: Path = ROOT) -> Path:
         _copy(report, output_dir / "memory" / report.name)
     _copy(source_root / "memory" / "weekly", output_dir / "memory" / "weekly")
     _write_weekly_index(output_dir, source_root)
+    _write_daily_index(output_dir, source_root)
 
     print(f"staged Jekyll source: {site_source} + public runtime inputs -> {output_dir}")
     return output_dir

@@ -10,13 +10,16 @@ description: 全部历史每日深度简报 + 周复盘
 
 ## Daily Deep Brief · 盘前深度简报
 
-按日期倒序（Pages 站内渲染，不跳 GitHub）：
+列的是**每一个应该有简报的工作日**（`3 8 * * 1-5`），不是每一个存在的文件——2026-06-04 / 06-12 / 08-11 / 08-12 四天主机活着、盘中刷新照跑，但 08:03 那一份没有落盘。缺口留在这里给人看见，而不是让日期自己跳过去。按日期倒序（Pages 站内渲染，不跳 GitHub）：
 
 <ul class="brief-list">
-{% assign briefs = site.pages | where_exp: "p", "p.path contains 'memory/'" | where_exp: "p", "p.path contains '-pre-open'" | sort: 'path' | reverse %}
-{% for f in briefs %}
+{% assign briefs = site.pages | where_exp: "p", "p.path contains 'memory/'" | where_exp: "p", "p.path contains '-pre-open'" %}
+{% for d in site.data.daily_briefs %}
+  {% assign hit = false %}
+  {% for p in briefs %}{% if p.path == d.path %}{% assign hit = p %}{% endif %}{% endfor %}
   <li>
-    <a href="{{ f.url | relative_url }}">{{ f.path | split: '/' | last | replace: '.md', '' | replace: '-pre-open', '' }}</a>
+    {% if hit %}<a href="{{ hit.url | relative_url }}">{{ d.date }}</a>
+    {% else %}<span class="brief-missing" title="当天的简报没有生成">{{ d.date }} · 未生成</span>{% endif %}
   </li>
 {% endfor %}
 </ul>
