@@ -302,55 +302,71 @@ def test_the_write_guard_has_no_position_in_the_collection_order(request):
     # the moment the verdict moved into a helper — a refactor with no behaviour
     # change turned this red, which is a test asserting the shape of the code
     # rather than what it does.
-    tolerated = next(iter(conftest.TOLERATED_WRITERS))
-    allowed = {"test": tolerated, "created": ["assets/data/dashboard.json"],
-               "removed": [], "changed": []}
+    # The allowlist is empty now, so the interesting cases are "nothing wrote"
+    # and "something did". A tolerated entry is still constructed rather than
+    # taken from the set, because the mechanism has to keep working the day
+    # someone argues one back in.
     intruder = {"test": "tests/test_made_up.py::test_writes", "created": [],
                 "removed": [], "changed": ["memory/decisions.jsonl"]}
 
-    assert conftest._offenders([allowed]) == set()
-    assert conftest._offenders([allowed, intruder]) == {intruder["test"]}
+    assert conftest._offenders([]) == set()
+    assert conftest._offenders([intruder]) == {intruder["test"]}
+    assert conftest._tolerated(intruder["test"]) is False
+
+    # Excused by PATH, not by test name. `record_preservation` appends build
+    # telemetry to `memory/.tmp/preserve-absent-*.jsonl` against WS_ROOT on
+    # purpose, so `--out-dir` does not move it and the session rebuild trips this
+    # watcher once per run. Excusing the file keeps that quiet; excusing the test
+    # would have excused everything else it touches, which is the shape the old
+    # `TOLERATED_WRITERS` had and the reason it could not be trusted under -n.
+    telemetry = {"test": "tests/test_dashboard_payload_size.py::test_payload_stays_under_the_published_cap",
+                 "created": ["memory/.tmp/preserve-absent-2026-09-06.jsonl"],
+                 "removed": [], "changed": []}
+    also_wrote = {**telemetry, "changed": ["memory/decisions.jsonl"]}
+    assert conftest._offenders([telemetry]) == set()
+    assert conftest._offenders([also_wrote]) == {also_wrote["test"]}, (
+        "excusing the telemetry file must not excuse the test that wrote it")
     assert "exitstatus" in inspect.signature(conftest.pytest_sessionfinish).parameters, (
         "the hook must be able to fail the run")
 
 
-def test_a_parallel_run_reports_without_judging():
-    """Under `-n` this guard cannot tell a writer from a bystander.
+def test_the_verdict_is_reached_once_over_the_whole_run():
+    """Under `-n` the guard used to be absent, not merely imprecise.
 
-    Both directions were measured on 2026-09-06 under `-n 2`, and each one is a
-    wrong answer:
+    `pytest_sessionfinish` returned on every worker — attribution across four
+    partial logs looked meaningless — and the controller's own log is empty
+    because it runs no tests. So `pytest -n` enforced nothing at all, and the
+    only thing that said so was a comment (#1364).
 
-    * the session rebuild ran in one worker and a test in the other reported the
-      same four payloads as `created`, because its window overlapped the build —
-      an innocent test named `<-- NEW`;
-    * scoping the verdict to "paths no tolerated writer touched" fixes that and
-      breaks the other way: a planted writer of `logs/zz-temp-offender.log` was
-      excused, because the tolerated test had also observed that file appear.
-      The run exited 0 with a real new writer in it.
-
-    So the parallel path reports and returns, and the serial verdict stays the
-    authoritative one. This pins that the hook actually distinguishes the two —
-    a future edit that "simplifies" it into judging in parallel has to argue
-    with the two measurements above.
+    Workers now ship their log through `workeroutput` and the controller joins
+    them, which is what makes one verdict over the whole run possible. With the
+    session rebuild building into its own directory, nothing in this suite is
+    supposed to write into the checkout any more, so "this run wrote" is a sound
+    conclusion in either mode — only the naming needs a serial run, and the
+    parallel branch says so instead of pretending.
     """
     import conftest  # noqa: PLC0415
 
     source = inspect.getsource(conftest.pytest_sessionfinish)
     assert "_WRITES_FROM_WORKERS" in source, (
         "the verdict must join the workers' logs before deciding anything")
-    joined = source.split("if _WRITES_FROM_WORKERS:", 1)
-    assert len(joined) == 2, "the parallel path must be an explicit branch"
-    assert "return" in joined[1].split("offenders = ")[0], (
-        "the parallel branch must return before the verdict, not fall through")
+    assert "workeroutput" in source, (
+        "a worker must ship its log rather than judging on its own partial view")
+    assert hasattr(conftest, "pytest_testnodedown"), (
+        "the controller needs the join hook; without it every worker's log is "
+        "dropped and -n enforces nothing")
 
 
-def test_the_tolerated_writer_list_only_shrinks():
+def test_the_tolerated_writer_list_is_empty_and_stays_empty():
     from conftest import TOLERATED_WRITERS  # noqa: PLC0415
 
-    assert len(TOLERATED_WRITERS) <= 1, (
-        "a test was added to the write allowlist. The one entry left is the "
-        "session dashboard rebuild, which is supposed to run against the real "
-        "tree; everything else now isolates its workspace (#816)."
+    assert TOLERATED_WRITERS == set(), (
+        f"a test was added to the write allowlist: {sorted(TOLERATED_WRITERS)}. "
+        "The last entry left when the session rebuild moved to its own "
+        "--out-dir (#1364), and an empty list is what lets the write guard "
+        "reach a verdict under -n as well as serially — one exception and the "
+        "guard is back to being unable to tell a writer from a bystander. Point "
+        "the test at an isolated workspace instead."
     )
 
 
