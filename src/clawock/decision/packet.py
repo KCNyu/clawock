@@ -46,6 +46,31 @@ SUMMARY_BUDGET_WARN_RATIO = 0.8
 #: The packet ceiling needs the same early word as the summary's; see
 #: the note at the raise in `compile_packet` for why it was missing.
 PACKET_BUDGET_WARN_RATIO = 0.8
+
+#: The per-event arithmetic behind `information`'s scores. #1039 tiered these
+#: out of the persisted ledger provenance as "zero-reader bulk"; the same two
+#: lists were still copied into the packet itself, where the cap is hard and a
+#: crossing is a `ValueError` that takes the whole pre-open brief down.
+INFORMATION_COLD_KEYS = ("attention_components", "event_components")
+
+
+def _without_cold_components(information: dict) -> dict:
+    """`information` minus the per-event component lists.
+
+    They have to exist while the packet is being built — `classify_authority`
+    reads `event_components` to find the positive events that authorise an add,
+    and both lists to collect the evidence ids it cites — so this drops them at
+    the point of storage, never at the point of computation. What survives is
+    what any reader of the stored packet uses: the scores, the ranks, the
+    counts, and (in `quant.add_authority`) the event ids the authority decision
+    actually cited.
+
+    Their canonical store is `assets/data/news_evidence_graph.json`, committed
+    daily under the #951 rolling windows — the same store #1039 named.
+    """
+    return {k: v for k, v in (information or {}).items()
+            if k not in INFORMATION_COLD_KEYS}
+
 ADD_ALPHA_POLICY = workspace_root() / "config" / "add-alpha-policy.json"
 VERDICTS = {"bullish", "neutral", "bearish", "mixed"}
 DISPOSITIONS = {"candidate", "wait", "reject"}
@@ -1139,7 +1164,11 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
             },
             "sentiment": _sentiment_view(sentiment_rows, ticker, source_ticker),
             "history": _history_view(context, ticker),
-            "information": information_view,
+            # Trimmed here, not in `_information_view`: the full view is what
+            # `classify_authority` and `_information_sizing_overlay` above were
+            # given, and stripping it earlier would quietly withdraw the add
+            # authority those two grant.
+            "information": _without_cold_components(information_view),
             "evidence": matching_events,
             "risk": ticker_risks,
             "status": _status(technical, ticker_risks),
@@ -1387,9 +1416,9 @@ def _decision_provenance(packet: dict, ticker: str) -> dict | None:
         return None
     execution = row.get("execution") or {}
     quant = row.get("quant") or {}
-    information = copy.deepcopy(row.get("information") or {})
-    for cold_key in ("attention_components", "event_components"):
-        information.pop(cold_key, None)
+    # Still stripped here: a packet written before the components stopped being
+    # stored (or read back from an older run bundle) carries them.
+    information = _without_cold_components(copy.deepcopy(row.get("information") or {}))
     return {
         "schema_version": 1,
         "context_generation_id": (packet.get("_meta") or {}).get("generation_id"),
