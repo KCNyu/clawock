@@ -360,7 +360,8 @@ def test_a_multi_source_label_is_not_counted_as_coupling():
         "would reward removing multi-source support")
 
 
-def test_the_cron_writes_moved_rather_than_vanished():
+def test_the_cron_writes_moved_rather_than_vanished(
+        resolves_the_real_openclaw_binary):
     """The schedule writers are the reason this metric exists.
 
     The substring classifier missed them while reporting a falling number, so
