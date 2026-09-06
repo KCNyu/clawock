@@ -199,3 +199,41 @@ def test_timeline_returns_nonzero_when_live_state_is_empty(monkeypatch, capsys):
 
     assert timeline.main() == 2
     assert "no live CLI/SQLite state" in capsys.readouterr().err
+
+
+def test_one_name_for_the_runtime(monkeypatch):
+    """`OPENCLAW_BIN` and `runtime_paths().binary` must not disagree.
+
+    `providers.openclaw` names the runtime twice: `OPENCLAW_BIN` is a
+    `shutil.which` constant computed at import, and `runtime_paths().binary`
+    reads `CLAWOCK_OPENCLAW_BIN` on every call. Every production call site — the
+    two `cron_cli_json`/`run_cron_job` probes and `build_cron_edit_argv` — uses
+    the second. Nothing outside tests uses the first.
+
+    They agreed on the live box and on CI by coincidence: on the box both
+    resolve the same install, and on a runner with no runtime both fall back to
+    the bare name. So three tests asserted argv against the constant and passed
+    everywhere, right up until something set the documented override — at which
+    point the constant kept answering with a path the code had not used.
+
+    This is the assertion those three should have been making. It fails if the
+    constant ever becomes load-bearing again, or if a call site stops honouring
+    the override.
+    """
+    monkeypatch.setenv("CLAWOCK_OPENCLAW_BIN", "/opt/example/openclaw")
+
+    seen = []
+
+    class Result:
+        stdout = "{}"
+
+    provider.cron_cli_json(["list", "--json"],
+                           runner=lambda cmd: seen.append(cmd) or Result())
+    provider.run_cron_job("job-1", runner=lambda cmd: seen.append(cmd) or Result())
+    edit = provider.build_cron_edit_argv("job-1", {"enabled": True})
+
+    used = {argv[0] for argv in seen} | {edit[0]}
+    assert used == {"/opt/example/openclaw"}, (
+        f"a call site ignored CLAWOCK_OPENCLAW_BIN: {sorted(used)}")
+    assert provider.runtime_paths().binary == "/opt/example/openclaw"
+

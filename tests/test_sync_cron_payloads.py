@@ -11,7 +11,7 @@ sys.path.insert(0, str(ROOT))
 
 from clawock import scheduling as cron_contract
 import sync_cron_payloads
-from clawock.providers.openclaw import OPENCLAW_BIN
+from clawock.providers.openclaw import runtime_paths
 
 
 JULY = datetime(2026, 7, 30, 0, tzinfo=timezone.utc)
@@ -62,8 +62,7 @@ def test_exact_contract_is_an_idempotent_noop():
     assert errors == []
 
 
-def test_drift_plan_and_command_patch_only_declared_fields(
-        resolves_the_real_openclaw_binary):
+def test_drift_plan_and_command_patch_only_declared_fields():
     data = contract()
     live = live_from_contract(data)
     job = next(item for item in live if item["name"] == "美股盘中盯盘")
@@ -81,7 +80,7 @@ def test_drift_plan_and_command_patch_only_declared_fields(
         "thinking", "fallbacks", "toolsAllow", "message"
     }
     command = sync_cron_payloads.build_edit_command(change)
-    assert command[0] == OPENCLAW_BIN
+    assert command[0] == runtime_paths().binary
     assert command[1:4] == ["cron", "edit", job["id"]]
     assert command[command.index("--thinking") + 1] == "adaptive"
     profile = data["payload_profiles"]["intraday"]
@@ -166,8 +165,7 @@ def test_running_changed_job_is_a_precondition_error():
     ]
 
 
-def test_apply_stops_at_first_failure_and_uses_argv(
-        resolves_the_real_openclaw_binary):
+def test_apply_stops_at_first_failure_and_uses_argv():
     changes = [
         {
             "id": "one",
@@ -194,7 +192,7 @@ def test_apply_stops_at_first_failure_and_uses_argv(
     # argv[0] is the absolute binary, not a bare name resolved off PATH (#330
     # step 2). The DST sync runs from crontab, where the bare form only works
     # because that entry happens to use a login shell.
-    assert calls[0][0][0] == OPENCLAW_BIN
+    assert calls[0][0][0] == runtime_paths().binary
     assert calls[0][0][1:4] == ["cron", "edit", "one"]
     assert "first" in errors[0]
     assert "boom" in errors[0]

@@ -360,8 +360,7 @@ def test_a_multi_source_label_is_not_counted_as_coupling():
         "would reward removing multi-source support")
 
 
-def test_the_cron_writes_moved_rather_than_vanished(
-        resolves_the_real_openclaw_binary):
+def test_the_cron_writes_moved_rather_than_vanished():
     """The schedule writers are the reason this metric exists.
 
     The substring classifier missed them while reporting a falling number, so
@@ -389,7 +388,7 @@ def test_the_cron_writes_moved_rather_than_vanished(
     adapter = importlib.import_module("clawock.providers.openclaw")
     argv = adapter.build_cron_edit_argv(
         "job-id", {"schedule": {"expr": "0 8 * * 1-5", "tz": "Asia/Shanghai"}})
-    assert argv[0] == adapter.OPENCLAW_BIN
+    assert argv[0] == adapter.runtime_paths().binary
     assert argv[1:4] == ["cron", "edit", "job-id"]
     assert "--exact" in argv, (
         "a schedule edit must pin the slot exactly; a scheduler stagger is how "
