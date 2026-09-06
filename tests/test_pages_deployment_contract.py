@@ -1,3 +1,19 @@
+"""Contracts for what the published Pages artifact may and must contain.
+
+2026-09-06: two tests in here passed only because of a side effect.
+`test_builder_stages_only_public_consumers` and
+`test_site_staging_joins_owned_source_and_runtime_inputs` both needed
+`assets/data/overview.json`, which is gitignored — the four dashboard payloads
+left master in #314 — so a clean checkout does not carry it. What supplied it
+was `tests/test_dashboard_payload_size.py`, which sorts earlier by path and
+rebuilds against the real tree on purpose (it is the single entry in conftest's
+`TOLERATED_WRITERS`). Run this file alone: two failures. Run the whole suite:
+green. CI has only ever run the suite, so nothing said so.
+
+Both are now built from the repository alone, and the enforcement the first one
+leans on has a test of its own — deleting the `missing_pages` raise used to
+leave this module entirely green.
+"""
 import fnmatch
 import json
 import re
@@ -228,6 +244,61 @@ def test_the_browser_reads_the_same_branch_and_files_the_publisher_writes():
         f"browser reads {sorted(browser)}, publisher writes {sorted(published)}")
 
 
+def _stage_publishable_site(site):
+    """A `_site/` that the preparer should accept, built from nothing but the repo.
+
+    Extracted so the fixture has one definition: two tests need a site that
+    satisfies the whole contract, and a second hand-maintained copy of it is how
+    they would drift apart.
+    """
+    shutil.copytree(ROOT / "site/assets", site / "assets")
+    shutil.copytree(ROOT / "assets/data", site / "assets/data")
+    (site / "index.html").write_text("ok")
+    for path in (
+        "briefs.html", "evidence.html", "faq.html", "llms.txt",
+        "robots.txt", "manifest.webmanifest",
+        INDEXNOW_KEY, GOOGLE_VERIFICATION,
+    ):
+        (site / path).write_text("ok")
+    # The preparer refuses to publish an artifact missing a required page, and
+    # both `required_pages` and `browser_data` name runtime outputs a clean
+    # checkout does not carry (the four dashboard payloads left master in #314
+    # and are gitignored). Write them here so this fixture stands on its own:
+    # what is under test is the contract — every required page present, every
+    # repository_only path excluded — not whether a previous test happened to
+    # leave a dashboard rebuild in the checkout.
+    for required in (*CONTRACT["required_pages"], *CONTRACT["browser_data"]):
+        target = site / required
+        if not target.exists():
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text("{}" if required.endswith(".json") else "ok")
+    # Every page Jekyll renders out of site/ has to exist here, because the
+    # preparer now refuses to publish an artifact that is missing one.
+    for emitted in rendered_pages():
+        (site / emitted).parent.mkdir(parents=True, exist_ok=True)
+        (site / emitted).write_text("ok")
+    (site / "sitemap.xml").write_text(
+        '<?xml version="1.0" encoding="UTF-8"?>'
+        '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'
+        '<url><loc>https://kcnyu.github.io/clawock/</loc></url>'
+        '<url><loc>https://kcnyu.github.io/clawock/tests/private.html</loc></url>'
+        '</urlset>'
+    )
+    (site / "tests").mkdir()
+    (site / "tests/private.txt").write_text("not public")
+    (site / "memory").mkdir()
+    (site / "memory/decisions.jsonl").write_text("{}\n")
+    # QA fixtures ride inside docs/, which IS publicly included as a whole —
+    # they are kept out only by the repository_only contract, so this pair
+    # pins both halves: the sibling doc ships, the regression captures do not.
+    (site / "docs/visual-regression/issue-206").mkdir(parents=True)
+    (site / "docs/visual-regression/issue-206/before-1440.jpg").write_bytes(b"\xff\xd8")
+    (site / "docs/architecture.md").write_text("ok")
+    source_gif_size = (ROOT / "site/assets/dashboard.gif").stat().st_size
+    source_jsonl = sorted((ROOT / "assets/data").glob("*.jsonl"))
+
+
+
 def test_builder_stages_only_public_consumers(tmp_path):
     site = tmp_path / "_site"
     output = tmp_path / "_pages"
@@ -240,6 +311,18 @@ def test_builder_stages_only_public_consumers(tmp_path):
         INDEXNOW_KEY, GOOGLE_VERIFICATION,
     ):
         (site / path).write_text("ok")
+    # The preparer refuses to publish an artifact missing a required page, and
+    # both `required_pages` and `browser_data` name runtime outputs a clean
+    # checkout does not carry (the four dashboard payloads left master in #314
+    # and are gitignored). Write them here so this fixture stands on its own:
+    # what is under test is the contract — every required page present, every
+    # repository_only path excluded — not whether a previous test happened to
+    # leave a dashboard rebuild in the checkout.
+    for required in (*CONTRACT["required_pages"], *CONTRACT["browser_data"]):
+        target = site / required
+        if not target.exists():
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text("{}" if required.endswith(".json") else "ok")
     # Every page Jekyll renders out of site/ has to exist here, because the
     # preparer now refuses to publish an artifact that is missing one.
     for emitted in rendered_pages():
@@ -400,6 +483,34 @@ def test_seo_logo_resolves_once_to_a_real_asset():
     assert (ROOT / "site" / logo.lstrip("/")).is_file()
 
 
+def test_the_preparer_refuses_an_artifact_missing_a_required_page(tmp_path):
+    """The claim `test_builder_stages_only_public_consumers` leans on, asserted.
+
+    That test writes every `required_pages` entry into its fixture so it stands
+    on its own, which is only safe while the preparer actually enforces the list.
+    Measured 2026-09-06: replacing the `missing_pages` raise with `if False`
+    left the whole module green — the enforcement was load-bearing and untested,
+    so it could have been deleted by anyone tidying the preparer.
+    """
+    site = tmp_path / "_site"
+    output = tmp_path / "_pages"
+    _stage_publishable_site(site)
+    # A required page the *unreachable* check cannot also catch. Deleting
+    # `faq.html` proved nothing: it is rendered out of `site/`, so removing it
+    # trips "a page nobody can reach is a build failure" whether or not
+    # `required_pages` is enforced at all — the mutation stayed green.
+    (site / "assets/data/overview.json").unlink()
+
+    result = subprocess.run(
+        ["python3", str(ROOT / "ops/pages/prepare_pages_artifact.py"),
+         "--site-dir", str(site), "--output-dir", str(output)],
+        capture_output=True, text=True,
+    )
+    assert result.returncode != 0, "a missing required page published anyway"
+    assert "overview.json" in result.stderr, (
+        f"the failure does not name the page that is missing: {result.stderr[-400:]}")
+
+
 def test_site_staging_joins_owned_source_and_runtime_inputs(tmp_path):
     output = tmp_path / "site-source"
     subprocess.run(
@@ -416,6 +527,17 @@ def test_site_staging_joins_owned_source_and_runtime_inputs(tmp_path):
     assert (output / "index.html").is_file()
     assert (output / "_config.yml").is_file()
     assert (output / "assets/js/dashboard.core.js").is_file()
-    assert (output / "assets/data/overview.json").is_file()
+    # A runtime input that is TRACKED, so the join is proven from a clean
+    # checkout. This used to assert `overview.json`, which is gitignored (the
+    # four dashboard outputs left master in #314) — so the assertion only held
+    # when something else had already written it into the checkout, and the
+    # something else was `test_dashboard_payload_size.py`, which sorts earlier by
+    # path and rebuilds against the real tree on purpose. Run this file alone and
+    # both tests in it failed; run the suite and they passed. See the module
+    # docstring.
+    assert (output / "assets/data/benchmark.json").is_file()
+    if (ROOT / "assets/data/overview.json").is_file():
+        assert (output / "assets/data/overview.json").is_file(), (
+            "the data plane is materialised in this checkout but staging dropped it")
     assert (output / "docs/architecture/harness.md").is_file()
     assert not (output / "portfolio.json").exists()
