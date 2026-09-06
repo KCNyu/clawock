@@ -171,7 +171,7 @@ def header_section(context, judgment):
     hk_book, _ = _holdings(context, "hk")
     us_book, _ = _holdings(context, "us")
 
-    lines = ["## Header — Book 双视角（HK + USD 不能直接相加）", ""]
+    lines = ["### 双币账本（HK + USD 不能直接相加）", ""]
     lines.append(f"**🧭 Regime**: {text(regime)} · {text(_narrative(judgment).get('regime_read'))}")
     lines.append("")
     lines.append(
@@ -202,7 +202,7 @@ def concentration_section(context):
             pct(row.get("top2_pct"), sign=False),
             money(row.get("leg_total"), digits=0),
         ])
-    return "### 集中度（core.concentration）\n\n" + table(
+    return "### 集中度\n\n" + table(
         ["Leg", "HHI", "判定", "Top2", "腿总值"], rows)
 
 
@@ -241,7 +241,7 @@ def opportunity_section(context):
     """
     read = context.get("opportunity") or {}
     counts = read.get("counts") or {}
-    lines = ["### 加仓面（opportunity · 收盘确认）", ""]
+    lines = ["### 加仓面（收盘确认）", ""]
     if not read:
         return "\n".join(lines + ["_context 里没有 opportunity 读数（preflight 版本过旧）_"])
     lines.append(
@@ -349,7 +349,7 @@ def risk_section(context):
                      text(item.get("severity")), text(item.get("detail")),
                      text(item.get("breach_id"))])
 
-    lines = ["### 风险纪律（risk_discipline / risk_guardrail）", ""]
+    lines = ["### 风控硬闸", ""]
     lines.append(_track_record_line(context, ("cut", "trim_on_rebound")))
     lines.append("")
     lines.append(
@@ -384,7 +384,7 @@ def breakeven_section(context):
         ])
     if not rows:
         return ""
-    out = ["### Breakeven math（context.breakeven_math）", "",
+    out = ["### 回本测算", "",
            table(["Ticker", "浮%", "2x chop drag/月", "回本需", "半年窗含 drag 等效标的需"], rows)]
     note = math_block.get("note")
     if note:
@@ -393,7 +393,7 @@ def breakeven_section(context):
 
 
 def holdings_section(context):
-    out = ["## ▎仓位明细"]
+    out = ["### 仓位明细"]
     for leg, currency in (("hk", "HKD"), ("us", "USD")):
         book, held = _holdings(context, leg)
         if not held:
@@ -433,7 +433,7 @@ def retrospective_section(context):
                  else row.get("outcome") or row.get("verdict")),
         ])
     prior = retro.get("prior_plan_date")
-    head = f"## Retrospective（{text(prior)} plan）"
+    head = f"### 昨日兑现（{text(prior)} 的 plan）"
     if not rows:
         return head + "\n\n上一份 plan 无可对账决策。"
     return head + "\n\n" + table(
@@ -483,25 +483,26 @@ def tier1_section(context, judgment):
         ])) or MISSING
         rows.append([ticker, market, text(row.get("fundamentals")),
                      text(row.get("sentiment_read")), text(row.get("cross_market"))])
-    return "## Tier 1 — 4 Analyst 大表\n\n" + table(
+    return "### 分析师四格\n\n" + table(
         ["票", "Market（harness 计算）", "Fundamentals", "Sentiment", "Cross-Market"], rows)
 
 
 def tier2_section(judgment):
     narrative = _narrative(judgment)
     return "\n".join([
-        "## Tier 2 — Bull vs Bear",
+        "### 多空对辩",
         "",
-        "**▎Bull**", "", text(narrative.get("bull")),
+        "**看多**", "", text(narrative.get("bull")),
         "",
-        "**▎Bear**", "", text(narrative.get("bear")),
+        "**看空**", "", text(narrative.get("bear")),
         "",
-        f"**▎Devil's advocate** — 攻击的共识：{text(narrative.get('attacked_consensus'))}",
+        f"**魔鬼代言人** — 攻击的共识：{text(narrative.get('attacked_consensus'))}",
         "", text(narrative.get("devils_advocate")),
     ])
 
 
-def tier3_section(judgment, plan):
+def risk_voices_section(judgment):
+    """The three risk officers, in the rotation the model declared."""
     narrative = _narrative(judgment)
     voices = ("aggressive", "conservative", "neutral")
     first = narrative.get("risk_voice_first")
@@ -510,12 +511,21 @@ def tier3_section(judgment, plan):
         # produce three named voices rather than a section headed "None".
         first = voices[0]
     ordered = [first] + [voice for voice in voices if voice != first]
-    out = ["## Tier 3 — 3 Risk Voices + Judge", ""]
+    out = ["### 风险官三票", ""]
     for index, voice in enumerate(ordered):
         label = VOICE_LABELS.get(voice, voice)
         suffix = " · 今日首位表态" if index == 0 else ""
-        out += [f"**▎{label}{suffix}**", "", text(narrative.get(voice)), ""]
+        out += [f"**{label}{suffix}**", "", text(narrative.get(voice)), ""]
+    return "\n".join(out).rstrip()
 
+
+def judge_section(plan):
+    """The calls themselves — what the harness validated and the ledger records.
+
+    Split out of the old `Tier 3 — 3 Risk Voices + Judge` because those are two
+    different questions: the voices are the argument, this is the answer. Under
+    the four-part layout the answer opens the report and the argument follows it.
+    """
     rows = []
     for decision in (plan.get("decisions") or []):
         debate = decision.get("debate") or {}
@@ -527,9 +537,8 @@ def tier3_section(judgment, plan):
             text(decision.get("driven_by")),
             text(decision.get("rationale")),
         ])
-    out += ["### Judge — 合成判词（来自 plan.json，harness 校验过边界）", "",
-            table(["Ticker", "Action", "Frame", "Strategy", "driven_by", "理由"], rows)]
-    return "\n".join(out)
+    return "### 今日动作\n\n" + table(
+        ["Ticker", "Action", "Frame", "Strategy", "driven_by", "理由"], rows)
 
 
 def sector_section(sector_scan, judgment):
@@ -543,7 +552,7 @@ def sector_section(sector_scan, judgment):
     sectors = (sector_scan or {}).get("sectors") or []
     read = text(_narrative(judgment).get("sector_read"))
     if not sectors:
-        return "\n".join(["## ▎板块全景", "", read])
+        return "\n".join(["### 板块全景", "", read])
     rows = []
     for sector in sectors:
         movers = "、".join(
@@ -558,7 +567,7 @@ def sector_section(sector_scan, judgment):
                 movers or MISSING,
                 text(own.get("attribution")),
             ])
-    out = ["## ▎板块全景", "",
+    out = ["### 板块全景", "",
            table(["板块", "持仓", "今日", "位置", "板块 Top", "归因"], rows), "", read]
     return "\n".join(out)
 
@@ -582,7 +591,7 @@ def peer_section(context, judgment):
             f"{gap:+.2f}pp" if gap is not None else MISSING,
             text((judgments.get(ticker) or {}).get("peer_read")),
         ])
-    return "## ▎同行扫描\n\n" + table(
+    return "### 同行扫描\n\n" + table(
         ["持仓", "主题", "今日 self", "最强同行", "差距", "判断"], rows)
 
 
@@ -605,7 +614,7 @@ def macro_section(context, judgment):
         parts.append(f"10Y **{pct(macro.get('treasury_10y_yield_pct'), sign=False)}**")
     body = " · ".join(part for part in parts if part)
     return "\n".join([
-        "## ▎大盘速读", "",
+        "### 大盘速读", "",
         f"{body}（as_of {text(macro.get('as_of'))}, age {num(macro.get('age_hours'), 1)}h）",
         "", text(_narrative(judgment).get("macro_read")),
     ])
@@ -631,7 +640,7 @@ def sentiment_section(context, judgment):
         ])
     if not rows:
         return ""
-    return "## ▎社交舆情速读\n\n" + table(
+    return "### 社交舆情\n\n" + table(
         ["票", "Reddit 7d", "新闻关键词", "近 5 日", "信号判断"], rows)
 
 
@@ -640,7 +649,7 @@ def influencer_section(context):
     counts = influencer.get("counts") or {}
     if not counts.get("total"):
         return ""
-    out = [f"## ▎名人异动/政策风向（age {num(influencer.get('age_hours'), 1)}h）", "",
+    out = [f"### 名人异动 / 政策风向（{num(influencer.get('age_hours'), 1)}h 前）", "",
            f"撞持仓 **{counts.get('held_hits', 0)}** · 新机会 {counts.get('new_ideas', 0)}"
            f" · 板块相关 {counts.get('sector_hits', 0)}", ""]
     for bucket, label in (("held_hits", "撞持仓"), ("new_ideas", "新机会"),
@@ -680,7 +689,7 @@ def confidence_section(judgment, plan):
             text(row.get("rationale")),
             text(row.get("falsifier")),
         ])
-    return "## Confidence\n\n" + table(
+    return "### 信心与判定\n\n" + table(
         ["Ticker", "Action", "Confidence", "Verdict", "理由", "证伪条件"], rows)
 
 
@@ -714,7 +723,7 @@ def calibration_section(context, judgment):
             _interval(row.get("cluster_ci95")),
             "✅" if row.get("edge_significant") else "—",
         ])
-    out = ["## ▎Decision v2 校准（decision_metrics）", "", head, ""]
+    out = ["### 决策校准", "", head, ""]
     if rows:
         out += [table(["driven_by", "n", "avg benefit", "cluster CI95", "edge"], rows), ""]
     out.append(text(_narrative(judgment).get("calibration_read")))
@@ -724,7 +733,7 @@ def calibration_section(context, judgment):
 def next_session_section(judgment):
     steps = _narrative(judgment).get("next_session") or []
     body = "\n".join(f"{index}. {text(step)}" for index, step in enumerate(steps, 1))
-    return "## Next-Session Plan\n\n" + (body or "无。")
+    return "### 下一节点\n\n" + (body or "无。")
 
 
 def data_holes_section(context, judgment):
@@ -733,8 +742,8 @@ def data_holes_section(context, judgment):
     surface = (context.get("research_surface") or {}).get("errors") or []
     holes += [str(error) for error in surface]
     if not holes:
-        return "## ▎待补（data holes）\n\n无。"
-    return "## ▎待补（data holes）\n\n" + "\n".join(f"- {text(hole)}" for hole in holes)
+        return "### 待补\n\n无。"
+    return "### 待补\n\n" + "\n".join(f"- {text(hole)}" for hole in holes)
 
 
 # --- documents -------------------------------------------------------------
@@ -748,6 +757,56 @@ def render_brief(context, judgment, plan, *, date=None, sector_scan=None):
     except ValueError:
         pass
     title = f"盘前深度简报｜{date} {weekday} {BRIEF_SLOT_HKT} HKT".strip()
+
+    # Four parts, in this order and nowhere else (2026-09-06, kcn: 「就和盘中一样」).
+    #
+    # It used to be twenty flat `##` sections with four heading conventions
+    # competing in one document — `## Header — Book 双视角`, `### 集中度
+    # （core.concentration）`, `## ▎仓位明细`, `## Tier 1 — 4 Analyst 大表` — and
+    # the layout stylesheet draws a rule above every `h2`, so the page arrived as
+    # twenty equally-weighted slabs with internal field names printed in the
+    # headings. Nothing told a reader which block was the decision and which was
+    # background.
+    #
+    # Every section still renders; none of the analysis was cut (kcn: 「内容可以
+    # 稍微精简，但该有的输出决策分析都要有，不要砍」). What changed is that the
+    # twenty are grouped under four `##` parts with one `###` convention beneath
+    # them, and the reference material moves inside a `<details>` so the page
+    # opens on the call rather than on the book.
+    #
+    # The intraday check-in is the model this follows: harness data block plus
+    # one model paragraph, and the reader never wonders where to start.
+    parts = [
+        ("今天做什么", [
+            judge_section(plan),
+            confidence_section(judgment, plan),
+            next_session_section(judgment),
+        ]),
+        ("我的看法", [
+            tier2_section(judgment),
+            risk_voices_section(judgment),
+            tier1_section(context, judgment),
+        ]),
+        ("这本账现在什么样", [
+            header_section(context, judgment),
+            concentration_section(context),
+            risk_section(context),
+            opportunity_section(context),
+            breakeven_section(context),
+            holdings_section(context),
+            market_trend_section(context),
+        ]),
+    ]
+    appendix = [
+        retrospective_section(context),
+        peer_section(context, judgment),
+        sector_section(sector_scan, judgment),
+        macro_section(context, judgment),
+        sentiment_section(context, judgment),
+        influencer_section(context),
+        calibration_section(context, judgment),
+        data_holes_section(context, judgment),
+    ]
 
     blocks = [
         "---",
@@ -763,47 +822,35 @@ def render_brief(context, judgment, plan, *, date=None, sector_scan=None):
         "",
         f"**反方**：{text(judgment.get('portfolio_counterargument'))}",
         "",
-        header_section(context, judgment),
-        "",
-        concentration_section(context),
-        "",
-        risk_section(context),
-        "",
-        opportunity_section(context),
-        "",
-        market_trend_section(context),
-        "",
-        breakeven_section(context),
-        "",
-        holdings_section(context),
-        "",
-        retrospective_section(context),
-        "",
-        tier1_section(context, judgment),
-        "",
-        tier2_section(judgment),
-        "",
-        tier3_section(judgment, plan),
-        "",
-        peer_section(context, judgment),
-        "",
-        sector_section(sector_scan, judgment),
-        "",
-        macro_section(context, judgment),
-        "",
-        sentiment_section(context, judgment),
-        "",
-        influencer_section(context),
-        "",
-        confidence_section(judgment, plan),
-        "",
-        calibration_section(context, judgment),
-        "",
-        next_session_section(judgment),
-        "",
-        data_holes_section(context, judgment),
-        "",
     ]
+    for heading, sections in parts:
+        rendered = [section for section in sections if section and section.strip()]
+        if not rendered:
+            continue
+        blocks += [f"## {heading}", ""]
+        for section in rendered:
+            blocks += [section, ""]
+
+    # `<details>` rather than a fifth part: this is the material a reader consults
+    # when a number above surprises them, not material they read every morning.
+    #
+    # `markdown="1"` is load-bearing, not decoration. The site runs kramdown with
+    # `input: GFM` and kramdown does NOT parse markdown inside a block-level HTML
+    # element unless the element says so — without the attribute every table in
+    # this appendix ships to the page as literal pipe characters, and nothing in
+    # the markdown validator would notice because the markdown itself is fine.
+    # `test_brief_render_layout` pins it for that reason.
+    kept = [section for section in appendix if section and section.strip()]
+    if kept:
+        blocks += [
+            "<details class=\"brief-appendix\" markdown=\"1\">",
+            "<summary>背景与校准</summary>",
+            "",
+        ]
+        for section in kept:
+            blocks += [section, ""]
+        blocks += ["</details>", ""]
+
     body = "\n".join(block for block in blocks if block is not None)
     # Collapse the blank lines an omitted section leaves behind, so a quiet day
     # does not publish a page full of gaps.

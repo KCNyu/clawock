@@ -109,11 +109,18 @@ def _judgment(**overrides):
 def test_the_report_is_rendered_in_one_fixed_order():
     body = render.render_brief(CONTEXT, _judgment(), PLAN, date="2026-08-31")
 
-    order = ["# 盘前深度简报", "## Header", "### 集中度", "### 风险纪律",
-             "### Breakeven math", "## ▎仓位明细", "## Retrospective", "## Tier 1",
-             "## Tier 2", "## Tier 3", "### Judge", "## ▎同行扫描", "## ▎大盘速读",
-             "## ▎社交舆情速读", "## Confidence", "## ▎Decision v2 校准",
-             "## Next-Session Plan", "## ▎待补"]
+    # Four parts, then the folded appendix (2026-09-06). The order of the
+    # subsections inside a part is pinned here for the same reason the flat list
+    # used to be: the report's shape is a decision, not an accident of which
+    # section function happened to be appended last.
+    order = ["# 盘前深度简报",
+             "## 今天做什么", "### 今日动作", "### 信心与判定", "### 下一节点",
+             "## 我的看法", "### 多空对辩", "### 风险官三票", "### 分析师四格",
+             "## 这本账现在什么样", "### 双币账本", "### 集中度", "### 风控硬闸",
+             "### 回本测算", "### 仓位明细", "### 大盘趋势",
+             "<details class=\"brief-appendix\"", "<summary>背景与校准</summary>",
+             "### 昨日兑现", "### 同行扫描", "### 大盘速读", "### 社交舆情",
+             "### 决策校准", "### 待补", "</details>"]
     positions = [body.index(heading) for heading in order]
     assert positions == sorted(positions), (
         "section order is the harness's, and it must not depend on the judgment")
@@ -141,13 +148,13 @@ def test_model_text_lands_in_the_slot_it_was_written_for():
 
     bull = body.index("最坏定价已吃掉大半。")
     bear = body.index("纪律未执行是最大风险。")
-    assert body.index("## Tier 2") < bull < bear < body.index("## Tier 3")
+    assert body.index("### 多空对辩") < bull < bear < body.index("### 风险官三票")
     assert "板块仍有 alpha" in body
 
 
 def test_the_first_risk_voice_is_the_one_the_judgment_named():
     body = render.render_brief(CONTEXT, _judgment(), PLAN, date="2026-08-31")
-    tier3 = body[body.index("## Tier 3"):body.index("### Judge")]
+    tier3 = body[body.index("### 风险官三票"):body.index("### 分析师四格")]
 
     assert tier3.index("Conservative") < tier3.index("Aggressive"), (
         "the rotation is stated by the model and ordered by the harness")
@@ -159,7 +166,7 @@ def test_a_missing_narrative_field_reads_as_a_hole_not_as_None():
     body = render.render_brief(CONTEXT, judgment, PLAN, date="2026-08-31")
 
     assert "None" not in body
-    macro = body[body.index("## ▎大盘速读"):body.index("## ▎社交舆情速读")]
+    macro = body[body.index("### 大盘速读"):body.index("### 社交舆情")]
     assert render.MISSING in macro
 
 
@@ -175,7 +182,7 @@ def test_the_judge_table_comes_from_the_plan_not_the_prose():
     """The plan is the validated boundary; the report must not restate it in the
     model's own words, or the two can disagree about what was decided."""
     body = render.render_brief(CONTEXT, _judgment(), PLAN, date="2026-08-31")
-    judge = body[body.index("### Judge"):body.index("## ▎同行扫描")]
+    judge = body[body.index("### 今日动作"):body.index("### 信心与判定")]
 
     assert "**cut**" in judge and "risk_rebalance" in judge
     assert "technical_breakdown + relative_strength" in judge
@@ -195,7 +202,7 @@ SECTOR_SCAN = {
 def test_the_sector_sweep_is_rendered_when_the_scan_exists():
     body = render.render_brief(CONTEXT, _judgment(), PLAN, date="2026-08-31",
                                sector_scan=SECTOR_SCAN)
-    sector = body[body.index("## ▎板块全景"):body.index("## ▎大盘速读")]
+    sector = body[body.index("### 板块全景"):body.index("### 大盘速读")]
 
     assert "09678" in sector and "落后" in sector
     assert "利好盘后才公布" in sector
@@ -205,7 +212,7 @@ def test_the_sector_sweep_is_rendered_when_the_scan_exists():
 def test_a_missing_sector_scan_still_publishes_the_read():
     """A day the search quota was spent still has to publish."""
     body = render.render_brief(CONTEXT, _judgment(), PLAN, date="2026-08-31")
-    sector = body[body.index("## ▎板块全景"):body.index("## ▎大盘速读")]
+    sector = body[body.index("### 板块全景"):body.index("### 大盘速读")]
 
     assert "板块内部分化。" in sector
     assert "|" not in sector, "no table when there is no scan"
@@ -294,7 +301,7 @@ def test_an_unknown_verdict_still_prints_itself():
 
 def test_the_confidence_table_carries_the_badge():
     body = render.render_brief(CONTEXT, _judgment(), PLAN, date="2026-08-31")
-    table = body[body.index("## Confidence"):body.index("## ▎Decision v2 校准")]
+    table = body[body.index("### 信心与判定"):body.index("### 下一节点")]
 
     assert '<span class="verdict verdict-bearish">🔴 看空</span>' in table
     assert "| 看空 |" not in table, "the plain-text cell is what #1272 replaced"
@@ -313,3 +320,53 @@ def test_the_stylesheet_tints_every_badge_class():
     # Tokens, not literals: the layout redefines --green/--red under
     # prefers-color-scheme, so a hardcoded hex would be wrong in one theme.
     assert "var(--green)" in layout and "var(--red)" in layout
+
+
+# ── the four-part layout, and the two ways it can silently break ────────────
+
+def test_the_appendix_says_markdown_1_or_every_table_in_it_ships_as_pipes():
+    """Load-bearing attribute, not decoration.
+
+    The site runs kramdown with `input: GFM`, and kramdown does not parse
+    markdown inside a block-level HTML element unless the element says so. Drop
+    `markdown="1"` and every table in the appendix reaches the page as literal
+    `|` characters — while the markdown itself stays valid, so neither
+    `validate_markdown` nor the table-column checker would see anything wrong.
+    """
+    body = render.render_brief(CONTEXT, _judgment(), PLAN, date="2026-08-31")
+    opening = body[body.index("<details"):body.index(">", body.index("<details")) + 1]
+    assert 'markdown="1"' in opening, (
+        f"appendix opens as {opening!r} — kramdown will ship its tables as text")
+
+
+def test_the_reference_material_is_folded_and_the_call_is_not():
+    """The page has to open on the decision, not on the book."""
+    body = render.render_brief(CONTEXT, _judgment(), PLAN, date="2026-08-31")
+    fold = body.index("<details")
+    for heading in ("## 今天做什么", "## 我的看法", "## 这本账现在什么样"):
+        assert body.index(heading) < fold, f"{heading} was folded away"
+    for heading in ("### 昨日兑现", "### 决策校准", "### 待补"):
+        assert body.index(heading) > fold, f"{heading} is reference material, not the call"
+    assert body.index("## 今天做什么") < body.index("## 我的看法"), (
+        "the answer comes before the argument")
+
+
+def test_exactly_four_parts_and_one_subsection_convention():
+    """Twenty flat `##` with four heading styles is the thing this replaced.
+
+    `##` is a part; `###` is a subsection; nothing else. The old report mixed
+    `## Header — Book 双视角`, `### 集中度（core.concentration）`, `## ▎仓位明细`
+    and `## Tier 1 — 4 Analyst 大表` in one document, and printed internal field
+    names in the headings a reader sees.
+    """
+    body = render.render_brief(CONTEXT, _judgment(), PLAN, date="2026-08-31")
+    parts = [line for line in body.splitlines() if line.startswith("## ")]
+    assert parts == ["## 今天做什么", "## 我的看法", "## 这本账现在什么样"], parts
+    subs = [line for line in body.splitlines() if line.startswith("### ")]
+    assert subs, "the parts have no subsections"
+    for line in parts + subs:
+        assert "▎" not in line, f"{line!r} still carries the card ornament"
+        for leak in ("core.", "context.", "risk_discipline", "decision_metrics",
+                     "Tier ", "plan.json"):
+            assert leak not in line, f"{line!r} prints an internal name at the reader"
+
