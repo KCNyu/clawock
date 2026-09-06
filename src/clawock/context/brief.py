@@ -41,6 +41,31 @@ CORE_FIELDS = (
     "issues",
 )
 
+#: Fields only code reads. `decision/packet.py` compiles both of these into the
+#: decision packet; no prompt ever opens them, and the SKILL documents a load
+#: command for every bundle except the one they land in.
+#:
+#: Naming them is the point. `extras` is computed as "everything not assigned
+#: above", so it is the *default* destination for a field nobody classified —
+#: and it is the one bundle the model is never told to load. A field that lands
+#: there by omission is written, shipped, and unreachable, with nothing raised
+#: and nothing logged: the mechanism #1337 was, one level up. The contract test
+#: in `tests/test_context_contract.py` is what keeps this list honest.
+CODE_ONLY_FIELDS = (
+    # Compiled into the decision packet by `decision/packet.py`.
+    "open_decisions",
+    "technical_setup_usage",
+    # Rendered by the harness, not read by a prompt: `harness/brief_render.py`
+    # prints all three into the brief and `publish/dashboard.py` puts them on the
+    # add-side card (#1337-#1341). The model reaches the same facts through the
+    # packet's own projections (`quant.add_authority`, `quant.early_trend`,
+    # `packet.add_alpha_activation`), which is why they are code-only here rather
+    # than a bundle the prompt is told to load.
+    "opportunity",
+    "add_alpha_activation",
+    "action_track_record",
+)
+
 BUNDLE_FIELDS = {
     "risk_detail": (
         "breakeven_math",

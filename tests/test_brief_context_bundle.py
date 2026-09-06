@@ -186,3 +186,78 @@ def test_watch_list_is_a_market_bundle_field_not_extras():
     silently silenced (a field nothing prints is a detector that has been
     silenced, #515)."""
     assert "watch_list" in brief_context.BUNDLE_FIELDS["market"]
+
+
+def _preflight_context_fields() -> set[str]:
+    """The keys of the `context = {...}` literal `brief_preflight` builds.
+
+    Read statically rather than by running preflight: this has to hold for a
+    field the day it is added, and preflight needs the whole live workspace.
+    """
+    import ast
+
+    source = (ROOT / "src/clawock/harness/brief_preflight.py").read_text(encoding="utf-8")
+    tree = ast.parse(source)
+    best: set[str] = set()
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Assign) or not isinstance(node.value, ast.Dict):
+            continue
+        targets = [t.id for t in node.targets if isinstance(t, ast.Name)]
+        if "context" not in targets:
+            continue
+        keys = {k.value for k in node.value.keys
+                if isinstance(k, ast.Constant) and isinstance(k.value, str)}
+        if len(keys) > len(best):
+            best = keys
+    assert len(best) > 20, "could not find the preflight context literal"
+    return best
+
+
+def test_every_context_field_is_classified_rather_than_defaulted():
+    """`extras` is the destination for a field nobody classified.
+
+    `write_run_bundle` computes it as "everything not assigned above", and it is
+    the one bundle SKILL.md never gives a load command for. So a field that
+    lands there by omission is written, shipped and unreachable, with nothing
+    raised and nothing logged — the shape #1337 was, one level up: the signal
+    exists and the process that writes decisions has no path to it.
+
+    `test_watch_list_is_a_market_bundle_field_not_extras` pins that for one
+    field (#602). This is the same assertion over the set, which is what the
+    coverage-vs-enforcement judgement in #1273 asks for: a gate on N call sites
+    needs a second gate that enumerates N.
+    """
+    classified = (
+        set(brief_context.CORE_FIELDS)
+        | {field for fields in brief_context.BUNDLE_FIELDS.values() for field in fields}
+        | set(brief_context.CODE_ONLY_FIELDS)
+        | {"generation_id"}
+    )
+    unclassified = sorted(_preflight_context_fields() - classified)
+
+    assert not unclassified, (
+        f"these context fields fall through to `extras`: {unclassified}. Classify "
+        "each one: CORE_FIELDS if every prompt must see it, a BUNDLE_FIELDS group "
+        "if the model should be able to load it on demand, CODE_ONLY_FIELDS if "
+        "only the packet builder reads it. Leaving it to the default ships it to "
+        "a bundle nothing opens.")
+
+
+def test_the_skill_documents_a_load_command_for_every_loadable_bundle():
+    """A bundle the SKILL never names is a bundle the model never opens.
+
+    The pairing is the point: `extras` is deliberately absent from the skill,
+    which is exactly why nothing may land there by accident.
+    """
+    import re
+
+    skill = (ROOT / "skills/daily-deep-brief/SKILL.md").read_text(encoding="utf-8")
+    documented = set(re.findall(r"--arg bundle=([a-z_]+)", skill))
+
+    assert documented == set(brief_context.BUNDLE_FIELDS), (
+        f"documented={sorted(documented)} "
+        f"loadable={sorted(brief_context.BUNDLE_FIELDS)}")
+    assert "extras" not in documented, (
+        "documenting `extras` would make the accident survivable instead of "
+        "impossible; the fields that belong there are the ones only code reads")
+
