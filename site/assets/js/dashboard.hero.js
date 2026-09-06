@@ -1487,7 +1487,14 @@
       cards[i].style.zIndex = n - i;
     }
     const W = () => stage.clientWidth || 1;
-    function pose(i) {
+    // `pose` writes transform/opacity/visibility on a card, so a layout read
+    // inside it is a read after a write — and `paint` runs it once per card,
+    // inside the spring's requestAnimationFrame loop. Reading `stage.clientWidth`
+    // there flushed layout again for every card after the first, every frame.
+    // The width is a property of the stage, not of the card: measure once in
+    // `paint` and hand it down. Same order the equity tooltip had to learn in
+    // #1334 — measure once, then place.
+    function pose(i, w) {
       const el = cards[i];
       const d = i - cur;
       let tx = 0, ty = 0, sx = 1, op = 1, vis = true;
@@ -1495,12 +1502,12 @@
         vis = false;                                   // 抽完的 / 太深的
       } else if (d < 0) {
         const u = -d;                                  // 抽走进度 0→1
-        tx = -u * W();
+        tx = -u * w;
         op = u <= 0.5 ? 1 : Math.max(0, 1 - (u - 0.5) / 0.5);
       } else {
         const dd = Math.min(d, DEPTH);                 // 台面第 d 层
         ty = PEEK * dd;
-        sx = Math.max(0, 1 - 2 * INSET * dd / W());
+        sx = Math.max(0, 1 - 2 * INSET * dd / w);
       }
       el.style.visibility = vis ? "visible" : "hidden";
       el.style.opacity = op === 1 ? "" : op.toFixed(3);
@@ -1510,7 +1517,7 @@
       if (el.inert !== !top) el.inert = !top;
       el.setAttribute("aria-hidden", top ? "false" : "true");
     }
-    function paint() { for (let i = 0; i < n; i++) pose(i); }
+    function paint() { const w = W(); for (let i = 0; i < n; i++) pose(i, w); }
     function paintDots() {
       dots.forEach((d, i) => d.setAttribute("aria-current", i === idx ? "true" : "false"));
     }
