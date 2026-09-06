@@ -155,7 +155,9 @@ def test_live_dashboard_exposure_has_no_other_and_matches_risk_leverage():
         and h["ticker"] in instrument_registry.leveraged_symbols()
     }
 
-    lookthrough = build_dashboard.compute_lookthrough_exposure(portfolio)
+    # The canonical one. `publish.dashboard` used to re-export it through a
+    # fail-soft wrapper whose only caller was a payload key nothing read.
+    lookthrough = instrument_registry.compute_lookthrough_exposure(portfolio)
     assert lookthrough["us"]["metadata_coverage_pct"] == 100.0
     spacex = next(
         row for row in lookthrough["us"]["factors"] if row["factor"] == "SPACEX"

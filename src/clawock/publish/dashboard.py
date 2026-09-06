@@ -2731,15 +2731,6 @@ def compute_sector_exposure(portfolio):
     return result
 
 
-def compute_lookthrough_exposure(portfolio):
-    """Dashboard-safe wrapper around the canonical exposure computation."""
-    try:
-        return instrument_registry.compute_lookthrough_exposure(portfolio)
-    except Exception as e:
-        print(f'  warn: compute_lookthrough_exposure failed: {e}', file=sys.stderr)
-        return {leg.key: {} for leg in resolve_legs(portfolio)}
-
-
 def compute_reentry_radar(lev_regime, portfolio):
     """再入场雷达 — 把「持币等回 200MA 再布局」的隐性计划显式化。
 
@@ -2820,35 +2811,6 @@ def compute_leveraged_etf_exposure(portfolio, fx_rate):
         ))
     except Exception as e:
         print(f'  warn: compute_leveraged_etf_exposure failed: {e}', file=sys.stderr)
-    return out
-
-
-def compute_current_holdings_extremes(portfolio, top_n=3):
-    """Top-N winners + bottom-N losers across all active holdings (by pnl_percent)."""
-    out = {'winners': [], 'losers': []}
-    try:
-        rows = []
-        for leg in resolve_legs(portfolio):
-            r_key = leg.key
-            for h in portfolio['portfolios'][leg.bucket].get('holdings', []):
-                if h.get('shares', 0) <= 0:
-                    continue
-                p = h.get('pnl_percent')
-                if p is None:
-                    continue
-                rows.append({
-                    'ticker':      h['ticker'],
-                    'name':        h.get('stock_name') or h.get('name', h['ticker']),
-                    'region':      r_key,
-                    'pnl_percent': round(float(p), 2),
-                    'pnl_abs':     h.get('pnl_abs'),
-                    'current_value': h.get('current_value'),
-                })
-        rows.sort(key=lambda x: x['pnl_percent'], reverse=True)
-        out['winners'] = rows[:top_n]
-        out['losers']  = sorted(rows, key=lambda x: x['pnl_percent'])[:top_n]
-    except Exception as e:
-        print(f'  warn: compute_current_holdings_extremes failed: {e}', file=sys.stderr)
     return out
 
 
@@ -3890,7 +3852,6 @@ def build_projection(previous_source=None, shadow_previous=None):
     fx_rate = (out.get('fx') or {}).get('usdhkd')
     out['drawdown'] = compute_drawdown(snapshots, fx_rate)
     out['sector_exposure'] = compute_sector_exposure(portfolio)
-    out['lookthrough_exposure'] = compute_lookthrough_exposure(portfolio)
     out['leveraged_etf'] = compute_leveraged_etf_exposure(portfolio, fx_rate)
     # Tier 2: pull pre-computed risk metrics (from `clawock portfolio-risk`)
     risk_path = WS_ROOT / 'assets' / 'data' / 'risk.json'
@@ -4046,7 +4007,6 @@ def build_projection(previous_source=None, shadow_previous=None):
     except Exception as e:
         print(f'  warn: regime classify failed: {e}', file=sys.stderr)
 
-    out['current_holdings_extremes'] = compute_current_holdings_extremes(portfolio, top_n=3)
     out['today_ranges'] = compute_today_ranges(portfolio, top_n=8)
     out['realized_vs_unrealized'] = compute_realized_vs_unrealized(portfolio, fx_rate)
     out['capital_deployed'] = compute_capital_deployed(portfolio, fx_rate)
