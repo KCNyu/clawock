@@ -11,6 +11,7 @@ Used by:
   • CI weekly-health.yml      (full check)
   • Manual: `python3 ops/system_check.py`
 """
+import functools
 import glob
 import json
 import os
@@ -552,6 +553,30 @@ def check_decision_ledger(r):
         r.add('decisions.jsonl', OK, f'{len(rows)} decisions · {len({x.get("episode_id") for x in rows})} episodes')
 
 
+@functools.lru_cache(maxsize=1)
+def _cron_listing():
+    """The cron schedule, read once for the whole run.
+
+    Two checks need it — `check_cron_paths_exist` for the payload contract and
+    `check_context_capability` for per-job prompt-report coverage — and each was
+    reading it for itself: two identical `openclaw cron list --json` spawns,
+    3.28s and 3.11s measured inside a 10.3s run, inside `.githooks/pre-push`,
+    once per push attempt.
+
+    One read is also the more correct read. Two checks in the same report
+    disagreeing about which jobs exist would be a defect, and a schedule cannot
+    meaningfully change inside the ten seconds this process lives.
+
+    Returns `(read, error)` so each caller keeps the wording it already had for
+    a schedule it could not read. `main()` clears it, so a long-lived caller
+    (the tests) never inherits another run's snapshot.
+    """
+    try:
+        return openclaw_read_jobs(), None
+    except Exception as error:  # noqa: BLE001 — each caller reports its own way
+        return None, error
+
+
 def _cron_jobs_without_prompt_report(sessions):
     """Enabled cron jobs whose newest session carries no `systemPromptReport`.
 
@@ -571,11 +596,13 @@ def _cron_jobs_without_prompt_report(sessions):
     cannot be read — an unreadable schedule is not evidence that every job is
     covered, but it is also not this check's failure to report.
     """
-    try:
-        from clawock.providers.openclaw import cron_cli_json
-
-        listing = cron_cli_json(['list', '--json']) or {}
-    except Exception:
+    listing, error = _cron_listing()
+    # Unchanged semantics: this needs the CLI's flattened `status`, which the
+    # SQLite view does not carry (it has the nested state only), and before the
+    # shared read a CLI that could not answer left this with an empty listing
+    # and therefore no findings. An unreadable schedule is still not evidence
+    # that every job is covered.
+    if error is not None or listing is None or listing.source != 'cli':
         return []
 
     reported = {
@@ -585,7 +612,7 @@ def _cron_jobs_without_prompt_report(sessions):
         and isinstance(entry.get('systemPromptReport'), dict)
     }
     missing = []
-    for job in listing.get('jobs', []) or []:
+    for job in listing.entries or []:
         if not job.get('enabled'):
             continue
         if str(job.get('id')) in reported:
@@ -704,12 +731,11 @@ def check_cron_paths_exist(r):
     files kept only as an explicitly rejected last-resort fossil.
     """
     import re
-    try:
-        cron_read = openclaw_read_jobs()
-        jobs = cron_read.entries
-    except Exception as e:
-        r.add('cron paths', WARNING, f'cron jobs unreadable: {e}')
+    cron_read, error = _cron_listing()
+    if error is not None or cron_read is None:
+        r.add('cron paths', WARNING, f'cron jobs unreadable: {error}')
         return
+    jobs = cron_read.entries
     if not jobs:
         if not openclaw_is_installed():
             # CI runner / dev clone without the openclaw install — nothing to check.
@@ -1670,6 +1696,10 @@ def main():
     # GitHub Secret Scanning + Push Protection own repository-wide credential
     # detection. The pre-commit hook still scans staged additions locally; do
     # not put the old full-tree git-grep back into this latency-sensitive hook.
+    # A fresh snapshot per run: the memo is for the seconds this process lives,
+    # not for a test session that calls main() twice against different stores.
+    _cron_listing.cache_clear()
+
     checks = [
         check_baseline_files,
         check_root_allowlist,

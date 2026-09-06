@@ -122,6 +122,96 @@ def test_a_healthy_chain_is_read_from_the_store_too(
                                                       system_check.OK)]
 
 
+# ── the schedule, once ──────────────────────────────────────────────────────
+
+def _listing(source, jobs):
+    from clawock.providers.openclaw import CronRead
+    return CronRead(jobs, source)
+
+
+def _counting_reader(system_check, monkeypatch, result):
+    reads = []
+    monkeypatch.setattr(system_check, "openclaw_read_jobs",
+                        lambda *a, **k: reads.append(1) or result)
+    system_check._cron_listing.cache_clear()
+    return reads
+
+
+def test_the_schedule_is_read_once_for_the_whole_run(system_check, monkeypatch):
+    """Two checks need the cron listing. Each used to fetch its own, and the
+    fetch is an `openclaw cron list --json` subprocess: two 3.1-3.3s spawns
+    inside a 10.3s run, inside the pre-push hook, once per push attempt.
+
+    Counted at the provider, not at the memo, so this says the same thing about
+    the code that has no memo.
+    """
+    from clawock.providers import openclaw
+
+    spawns = []
+    monkeypatch.setattr(openclaw, "cron_cli_json", lambda *a, **k: spawns.append(1) or {
+        "jobs": [{"id": "job-a", "name": "cron a", "enabled": True,
+                  "status": "ok", "state": {"lastRunStatus": "ok"},
+                  "schedule": {"kind": "cron", "expr": "0 8 * * 1-5"}}]})
+    if hasattr(system_check, "_cron_listing"):
+        system_check._cron_listing.cache_clear()
+
+    for call in (lambda: system_check.check_cron_paths_exist(system_check.Result()),
+                 lambda: system_check._cron_jobs_without_prompt_report({})):
+        try:
+            call()
+        except Exception:  # noqa: BLE001 — the spawn count is the assertion
+            pass
+
+    assert len(spawns) == 1, (
+        f"the schedule was fetched {len(spawns)} times in one run; each fetch "
+        f"is a subprocess")
+
+
+def test_a_new_run_does_not_inherit_the_last_snapshot(system_check, monkeypatch):
+    """The memo is for the seconds one process lives. `main()` clears it, and so
+    must anything that drives these checks twice against different stores."""
+    first = _listing("cli", [{"id": "one", "name": "one", "enabled": True}])
+    second = _listing("cli", [{"id": "two", "name": "two", "enabled": True}])
+    monkeypatch.setattr(system_check, "openclaw_read_jobs", lambda *a, **k: first)
+    system_check._cron_listing.cache_clear()
+
+    assert system_check._cron_listing()[0].entries[0]["id"] == "one"
+    monkeypatch.setattr(system_check, "openclaw_read_jobs", lambda *a, **k: second)
+    assert system_check._cron_listing()[0].entries[0]["id"] == "one", (
+        "the memo did not hold, so both checks pay for their own read")
+    system_check._cron_listing.cache_clear()
+    assert system_check._cron_listing()[0].entries[0]["id"] == "two"
+
+
+def test_prompt_report_coverage_still_declines_a_non_cli_listing(
+        system_check, monkeypatch):
+    """It reads the CLI's flattened `status` to skip a job that is running, and
+    the SQLite view carries the nested state only. Before the shared read, a CLI
+    that could not answer left this with no findings; that has to stay true, or
+    a running job gets named as uncovered."""
+    jobs = [{"id": "job-a", "name": "cron a", "enabled": True,
+             "state": {"lastRunStatus": "ok"}}]
+    _counting_reader(system_check, monkeypatch, _listing("sqlite", jobs))
+
+    assert system_check._cron_jobs_without_prompt_report({}) == []
+
+
+def test_an_unreadable_schedule_is_reported_not_swallowed(
+        system_check, monkeypatch):
+    def explode(*_args, **_kwargs):
+        raise RuntimeError("no runtime here")
+
+    monkeypatch.setattr(system_check, "openclaw_read_jobs", explode)
+    system_check._cron_listing.cache_clear()
+
+    result = system_check.Result()
+    system_check.check_cron_paths_exist(result)
+
+    assert [s for _, s, _ in result.checks] == [system_check.WARNING]
+    assert "no runtime here" in result.checks[0][2]
+    assert system_check._cron_jobs_without_prompt_report({}) == []
+
+
 # ── compiling the sources ───────────────────────────────────────────────────
 
 def _workspace(tmp_path, files):
