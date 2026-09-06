@@ -90,6 +90,7 @@ observed, not a registration.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import math
 import statistics
@@ -1124,6 +1125,100 @@ def _barrier_mix(panel) -> dict:
     return out
 
 
+#: Files whose bytes decide what `evaluate` returns for a given panel. The memo
+#: below is keyed on these as well as on the panel, so editing the scoring code
+#: invalidates every cached answer instead of serving pre-edit numbers. Globs
+#: rather than a list of names: a helper written next to these is covered the
+#: day it appears, and the gate asserts every first-party module this one
+#: imports lands inside them.
+EVALUATION_SOURCES = (
+    'evaluation/*.py',
+    'labeling/*.py',
+    'seeds.py',
+    'decision/setup_review.py',
+)
+
+
+#: The rest of what this module imports from the package: everything that
+#: cannot change what `evaluate` returns. These build the panel, print it, or
+#: write the memo itself — a new bar arriving changes the panel, and the panel
+#: is already the other half of the key. The split is asserted, not assumed: the
+#: gate reads this module's imports and fails on one in neither tuple, so an
+#: import that lands on the evaluation path has to be classified.
+MEMO_NEUTRAL_IMPORTS = (
+    'clawock.history_store',
+    'clawock.decision.ledger',
+    'clawock.instruments',
+    'clawock.workspace',
+    'clawock.evidence.run_card',
+    'clawock.safe_io',
+)
+
+
+def _source_fingerprint() -> str:
+    root = Path(__file__).resolve().parents[1]
+    digest = hashlib.sha256()
+    for pattern in EVALUATION_SOURCES:
+        for path in sorted(root.glob(pattern)):
+            digest.update(path.name.encode('utf-8'))
+            digest.update(path.read_bytes())
+    return digest.hexdigest()
+
+
+def evaluation_key(panel) -> str:
+    """What `evaluate(panel)` is a function of: the rows, and the code."""
+    digest = hashlib.sha256()
+    digest.update(json.dumps(panel, sort_keys=True, default=str,
+                             ensure_ascii=False).encode('utf-8'))
+    digest.update(_source_fingerprint().encode('utf-8'))
+    return digest.hexdigest()
+
+
+def memo_path() -> Path:
+    return WS / 'memory' / '.tmp' / 'signal-panel-evaluation.json'
+
+
+def evaluate_cached(panel, *, path: Path | None = None) -> dict:
+    """`evaluate(panel)`, memoised on what it is a function of.
+
+    This is not a staleness trade. `evaluate` is pure, and every draw inside it
+    is seeded — `_cluster_ci`'s `random.Random(seed)` and the placebo's
+    `np.random.default_rng(seed)` — so the same panel through the same code
+    always produces the same dict. Verified byte for byte before this was
+    written: two runs over the live panel, one 138,027-byte JSON, one hash.
+
+    It is worth having because the panel's leading edge lags the calendar. A row
+    needs its t20 forward returns, so on 2026-09-06 the newest session in the
+    panel was 2026-09-01 — the content changes about once a day, while
+    `rebuild_dashboard` recomputes it on every intraday slot: 20.663s of
+    `timings_s.decision_map` on the live host (2026-09-04), inside the half of
+    the postflight that the cron payloads had to forbid a `timeout` around,
+    because a kill there delivers the report and loses the commit (#765).
+
+    A missing, unreadable, or differently-keyed memo costs one recomputation and
+    nothing else. The file is never authoritative for anything except its own
+    key, and it is written atomically, so a concurrent reader sees one whole
+    answer or the other.
+    """
+    path = path or memo_path()
+    key = evaluation_key(panel)
+    try:
+        cached = json.loads(path.read_text(encoding='utf-8'))
+        if isinstance(cached, dict) and cached.get('key') == key:
+            return cached['evaluation']
+    except Exception:
+        pass  # no memo, a torn one, or one from other code — recompute
+    result = evaluate(panel)
+    try:
+        from clawock.safe_io import safe_write_text
+        path.parent.mkdir(parents=True, exist_ok=True)
+        safe_write_text(str(path), json.dumps(
+            {'key': key, 'evaluation': result}, ensure_ascii=False))
+    except Exception:
+        pass  # a memo that cannot be written is a memo that is not used
+    return result
+
+
 def evaluate(panel) -> dict:
     by_signal = defaultdict(list)
     for row in panel:
@@ -1217,7 +1312,7 @@ def main(argv=None) -> int:
     if args.panel:
         print(json.dumps(panel, ensure_ascii=False, indent=2))
         return 0
-    result = evaluate(panel)
+    result = evaluate_cached(panel)
     if args.json:
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 0

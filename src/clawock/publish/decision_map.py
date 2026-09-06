@@ -252,7 +252,7 @@ def panel_scores(data_dir: Path | None = None, evaluation: dict | None = None) -
     from clawock.evaluation import signal_panel
 
     if evaluation is None:
-        evaluation = signal_panel.evaluate(signal_panel.build_panel(
+        evaluation = signal_panel.evaluate_cached(signal_panel.build_panel(
             Path(data_dir or DATA)))
     coverage = evaluation['coverage']
     by_signal = {
