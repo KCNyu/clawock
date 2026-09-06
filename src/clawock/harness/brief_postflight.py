@@ -53,14 +53,23 @@ from clawock.automation import workflow_outcomes  # noqa: E402
 #   - 同行扫描 / Peer Rotation: lines 332-358 and 509
 # The Chinese labels are the direct localized renderings of those named concepts;
 # 盘前深度简报 is also the prompt's own report name (lines 3 and 635).
+# The section names the rendered report must still contain. 2026-09-06 regrouped
+# twenty flat sections into four parts (`brief_render.render_brief`), so the old
+# names moved — and this table is a THIRD place that has to move with them, next
+# to SKILL.md and the cron payload. It was the only thing that noticed: rendering
+# the new layout against a real generation produced six "缺段标记" issues here
+# while the markdown itself was perfectly valid.
+#
+# Aliases keep the old names accepted so a brief rendered before the change (or
+# by a rolled-back harness) still validates rather than being called broken.
 REQUIRED_MARKDOWN_SECTIONS = {
     'Header': ('Header', '盘前摘要', '盘前深度简报'),
-    'Tier 1': ('Tier 1', '第一层'),
-    'Tier 2': ('Tier 2', '第二层'),
-    'Tier 3': ('Tier 3', '第三层'),
-    'Judge': ('Judge', '裁决'),
-    'Confidence': ('Confidence', '信心'),
-    'Next-Session': ('Next-Session', 'Next Session', '下一交易时段'),
+    '分析师四格': ('分析师四格', 'Tier 1', '第一层'),
+    '多空对辩': ('多空对辩', 'Tier 2', '第二层'),
+    '风险官三票': ('风险官三票', 'Tier 3', '第三层'),
+    '今日动作': ('今日动作', 'Judge', '裁决'),
+    '信心与判定': ('信心与判定', 'Confidence', '信心'),
+    '下一节点': ('下一节点', 'Next-Session', 'Next Session', '下一交易时段'),
     '同行扫描': ('同行扫描', 'Peer Rotation'),
 }
 HKD_USD_BUG_PATTERNS = [
@@ -527,15 +536,15 @@ def validate_markdown(path, context=None):
         # Only enforce when macro is known-fresh. age None = unknown/stale (preflight
         # now omits stale sidecars, but if one reaches here, don't demand the section
         # off unprovable-fresh data — that would fail a correctly-omitted section).
-        if (age is not None and age <= STALE_H) and m.get('vix') and '▎大盘速读' not in text:
+        if (age is not None and age <= STALE_H) and m.get('vix') and '大盘速读' not in text:
             issues.append('pre-open.md 缺 ▎大盘速读 段（context.macro 有 fresh 数据 '
                           f'age={age}h 但 LLM 没写）')
     if context and context.get('sentiment'):
         s = context['sentiment']
         age = s.get('age_hours')
         tickers = s.get('tickers') or []
-        if (age is not None and age <= STALE_H) and tickers and '▎社交舆情' not in text:
-            issues.append(f'pre-open.md 缺 ▎社交舆情速读 段（context.sentiment '
+        if (age is not None and age <= STALE_H) and tickers and '社交舆情' not in text:
+            issues.append(f'pre-open.md 缺「社交舆情」段（context.sentiment '
                           f'{len(tickers)} 个 ticker 有信号 age={age}h 但 LLM 没写）')
 
     return issues

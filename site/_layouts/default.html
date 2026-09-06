@@ -125,10 +125,62 @@
 
   /* Typography for rendered brief content */
   article h1 { font-size: 22px; margin: 0 0 14px; line-height: 1.3; letter-spacing: -0.01em; }
-  article h2 { font-size: 18px; margin: 22px 0 10px; padding-top: 12px; border-top: 1px solid var(--border); color: var(--accent); }
-  article h2:first-child { padding-top: 0; border-top: none; }
-  article h3 { font-size: 15px; margin: 16px 0 8px; color: var(--text); }
+
+  /* Two heading levels, two jobs (2026-09-06). The brief used to be twenty flat
+     `h2`s, and the rule-above-every-h2 rendering turned it into twenty
+     equally-weighted slabs with nothing saying which one was the decision. It is
+     now four `h2` parts with `h3` subsections inside them, so the weight
+     difference has to be visible: the part is a titled band, the subsection is a
+     quiet label. */
+  article h2 {
+    font-size: 17px; font-weight: 650; margin: 30px 0 14px; padding: 10px 14px;
+    color: var(--text); letter-spacing: -0.01em;
+    background: linear-gradient(180deg, var(--card-2), transparent 140%);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  }
+  article h2:first-of-type { margin-top: 22px; }
+  article h3 {
+    font-size: 13px; font-weight: 600; margin: 22px 0 8px;
+    color: var(--text-dim); text-transform: none;
+    letter-spacing: 0.02em;
+  }
+  /* A hairline that starts at the text rather than a full rule: it separates
+     subsections without competing with the part bands above them. */
+  article h3::after {
+    content: ""; display: block; margin-top: 6px;
+    height: 1px; background: var(--border);
+  }
+  article h2 + h3 { margin-top: 4px; }
   article p { margin: 10px 0; }
+
+  /* The reference material the brief folds away. Closed by default is the whole
+     point — the page opens on the call, not on the book. */
+  article details.brief-appendix {
+    margin: 30px 0 0; border: 1px solid var(--border);
+    border-radius: var(--radius-sm); background: var(--card-2);
+    padding: 0 14px;
+  }
+  article details.brief-appendix > summary {
+    cursor: pointer; list-style: none; padding: 12px 0;
+    font-size: 13px; font-weight: 600; color: var(--text-dim);
+    display: flex; align-items: center; gap: 8px;
+  }
+  article details.brief-appendix > summary::-webkit-details-marker { display: none; }
+  article details.brief-appendix > summary::before {
+    content: "▸"; color: var(--accent); font-size: 11px;
+    transition: transform 0.15s ease;
+  }
+  article details.brief-appendix[open] > summary::before { transform: rotate(90deg); }
+  article details.brief-appendix > summary:hover { color: var(--text); }
+  article details.brief-appendix > summary:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px;
+  }
+  article details.brief-appendix[open] > summary { border-bottom: 1px solid var(--border); }
+  article details.brief-appendix > *:last-child { margin-bottom: 14px; }
+  @media (prefers-reduced-motion: reduce) {
+    article details.brief-appendix > summary::before { transition: none; }
+  }
   article ul, article ol { margin: 8px 0; padding-left: 22px; }
   article li { margin: 4px 0; }
   article code {

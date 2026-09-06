@@ -58,7 +58,10 @@ def test_genuinely_omitted_section_still_raises_same_missing_issue(tmp_path):
 
     issues = brief_postflight.validate_markdown(path)
 
-    assert _missing_section_issues(issues) == ['pre-open.md 缺段标记 "Tier 2"']
+    # The concept key is the section's current name (2026-09-06 regrouped the
+    # report into four parts); `## 第二层` stays an accepted alias, which is why
+    # the localized fixture above still validates.
+    assert _missing_section_issues(issues) == ['pre-open.md 缺段标记 "多空对辩"']
     # Keep today's warn/fail threshold semantics: one non-critical issue is a warn;
     # five such issues still fail. The section omission itself remains surfaced.
     assert brief_postflight.categorize(issues) == 'warn'
