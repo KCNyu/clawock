@@ -577,6 +577,30 @@ def _cron_listing():
         return None, error
 
 
+def _cron_coverage_blind():
+    """Why per-job coverage could not be counted this run, or None.
+
+    `_cron_jobs_without_prompt_report` returns an empty list both when every
+    job is covered and when the schedule could not be read at all — and those
+    are not the same answer. The check's own header states that rule for
+    sessions ("nothing to check" and "the thing I check stopped being produced"
+    are not the same answer); the schedule it counts coverage against was the
+    half still merging them, so a run that checked no job at all looked exactly
+    like a run in which every job was fine.
+
+    Silent where there is genuinely nothing to be blind about: a machine with no
+    openclaw (a CI runner, an agent worktree) has no schedule to fail to read.
+    """
+    listing, error = _cron_listing()
+    if error is None and listing is not None and listing.source == 'cli':
+        return None
+    if not openclaw_is_installed():
+        return None
+    source = 'unreadable' if listing is None else listing.source
+    return (f'the cron schedule came back {source}'
+            + (f' ({error})' if error is not None else ''))
+
+
 def _cron_jobs_without_prompt_report(sessions):
     """Enabled cron jobs whose newest session carries no `systemPromptReport`.
 
@@ -597,11 +621,13 @@ def _cron_jobs_without_prompt_report(sessions):
     covered, but it is also not this check's failure to report.
     """
     listing, error = _cron_listing()
-    # Unchanged semantics: this needs the CLI's flattened `status`, which the
-    # SQLite view does not carry (it has the nested state only), and before the
-    # shared read a CLI that could not answer left this with an empty listing
-    # and therefore no findings. An unreadable schedule is still not evidence
-    # that every job is covered.
+    # This needs the CLI's flattened `status` to skip a job that is running;
+    # the SQLite view carries the nested state only. When the CLI cannot
+    # answer, coverage is not empty — it is unknown, and the caller has to be
+    # able to tell those apart. This function's own header states the rule for
+    # sessions ("nothing to check" and "the thing I check stopped being
+    # produced" are not the same answer); the schedule it counts coverage
+    # against was the half still merging them.
     if error is not None or listing is None or listing.source != 'cli':
         return []
 
@@ -685,6 +711,15 @@ def check_context_capability(r):
     # reads OK while one live job is unverifiable (#473). Names, not a count, so
     # the finding says which job to go look at.
     unreported_jobs = _cron_jobs_without_prompt_report(sessions)
+    coverage_blind = _cron_coverage_blind()
+    if coverage_blind:
+        # Not a finding about the jobs — a finding about this gate. A run that
+        # could not read the schedule has checked no job at all, and saying
+        # nothing there is the same silence the paragraph above refuses.
+        r.add('context capability', WARNING,
+              f'per-job prompt-report coverage was not checked: '
+              f'{coverage_blind}, so a job producing no report would not be '
+              f'named by this run')
     if unreported_jobs:
         r.add('context capability', WARNING,
               f'{len(unreported_jobs)} enabled cron job(s) produce no prompt '
