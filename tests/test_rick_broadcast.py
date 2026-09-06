@@ -81,7 +81,17 @@ def test_high_confidence_rate_is_active_only_and_renders_its_sample_size():
 # not on the script's text.
 # ---------------------------------------------------------------------------
 
+# `cat >/dev/null` is not decoration. The wrapper publishes with
+# `printf '%s\n' "$POST" | node …` under `set -o pipefail`, so if the stub exits
+# without draining stdin the pipeline's status can be printf's SIGPIPE (141)
+# rather than node's 0 — the wrapper then reports "publish failed; digest not
+# recorded" for a publish that was accepted. Whether it happens is a scheduling
+# race between printf's write and the reader closing the pipe, which is why it
+# only appeared once CI started running four workers on one runner (2026-09-06,
+# run 34029531224). The real `nostr_publish.js` reads its post from stdin; a
+# stub that does not is the part that was wrong.
 STUB_NODE = r'''#!/usr/bin/env bash
+cat >/dev/null
 echo "$@" >> "$GATE_TEST_LOG"
 if [[ -f "$GATE_TEST_NODE_FAIL" ]]; then exit 1; fi
 exit 0
