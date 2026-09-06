@@ -196,6 +196,39 @@ def test_prompt_report_coverage_still_declines_a_non_cli_listing(
     assert system_check._cron_jobs_without_prompt_report({}) == []
 
 
+def test_coverage_that_could_not_be_counted_says_so(system_check, monkeypatch):
+    """An empty list of uncovered jobs means "every job is covered" OR "no job
+    was looked at", and the report showed the same green line either way. The
+    check's own header refuses that merge for sessions; this is the other half.
+    """
+    jobs = [{"id": "job-a", "name": "cron a", "enabled": True,
+             "state": {"lastRunStatus": "ok"}}]
+    _counting_reader(system_check, monkeypatch, _listing("sqlite", jobs))
+    monkeypatch.setattr(system_check, "openclaw_is_installed", lambda: True)
+
+    reason = system_check._cron_coverage_blind()
+
+    assert reason and "sqlite" in reason, reason
+    assert system_check._cron_jobs_without_prompt_report({}) == [], (
+        "the list is empty either way — which is the whole point")
+
+
+def test_a_machine_with_no_runtime_is_not_called_blind(system_check, monkeypatch):
+    """A CI runner and an agent worktree have no schedule to fail to read.
+    Warning there would be the false alarm this gate exists to avoid."""
+    _counting_reader(system_check, monkeypatch, _listing("sqlite", []))
+    monkeypatch.setattr(system_check, "openclaw_is_installed", lambda: False)
+
+    assert system_check._cron_coverage_blind() is None
+
+
+def test_a_cli_listing_is_not_blind(system_check, monkeypatch):
+    _counting_reader(system_check, monkeypatch, _listing("cli", []))
+    monkeypatch.setattr(system_check, "openclaw_is_installed", lambda: True)
+
+    assert system_check._cron_coverage_blind() is None
+
+
 def test_an_unreadable_schedule_is_reported_not_swallowed(
         system_check, monkeypatch):
     def explode(*_args, **_kwargs):
