@@ -537,7 +537,7 @@ def judge_section(plan):
             text(decision.get("driven_by")),
             text(decision.get("rationale")),
         ])
-    return "### 今日动作\n\n" + table(
+    return f"### {PAGE_ACTION_HEADING}\n\n" + table(
         ["Ticker", "Action", "Frame", "Strategy", "driven_by", "理由"], rows)
 
 
@@ -748,6 +748,15 @@ def data_holes_section(context, judgment):
 
 # --- documents -------------------------------------------------------------
 
+#: Section names the page and the card share. They exist as constants because the
+#: two surfaces are rendered by two functions, and a reader taps from one to the
+#: other: renaming a heading in only one of them is how they drift into looking
+#: like different reports. `test_the_card_and_the_page_agree` pins the pair.
+PAGE_ACTION_HEADING = "今日动作"
+PAGE_BOOK_PART = "这本账现在什么样"
+CARD_BOOK_HEADING = "这本账"
+
+
 def render_brief(context, judgment, plan, *, date=None, sector_scan=None):
     """The full pre-open report.  Order is fixed here and nowhere else."""
     date = date or context.get("date") or ""
@@ -787,7 +796,7 @@ def render_brief(context, judgment, plan, *, date=None, sector_scan=None):
             risk_voices_section(judgment),
             tier1_section(context, judgment),
         ]),
-        ("这本账现在什么样", [
+        (PAGE_BOOK_PART, [
             header_section(context, judgment),
             concentration_section(context),
             risk_section(context),
@@ -860,25 +869,41 @@ def render_brief(context, judgment, plan, *, date=None, sector_scan=None):
 
 
 def render_card(context, judgment, plan, *, date=None, page_url=None):
-    """The WeChat/Telegram card: the same facts, cut to what fits a phone."""
+    """The WeChat/Telegram card: the same facts, cut to what fits a phone.
+
+    Two surfaces, one report. The card is the trimmed one and the page is what a
+    reader opens when the card makes them want more, so the two must agree on
+    what comes first and on what things are called — a reader who taps through
+    should land on the same words in the same order, not on a different document.
+
+    So this follows the page's four-part order (2026-09-06): the call, then the
+    book, then the levels. It used to lead with the book, which put 1.3KB of
+    balance between the reader and the four cuts the brief exists to state.
+
+    What the card deliberately drops, recorded here so the trim is a decision
+    rather than an omission nobody re-examined:
+
+    * `**反方**` — the page opens with the assessment and its counterargument;
+      the card keeps only the assessment. Both are the model's longest prose and
+      two of them is a wall on a phone.
+    * every argument section (多空对辩 / 风险官三票 / 分析师四格) and the whole
+      背景与校准 appendix — that is what the link at the bottom is for.
+
+    `▎` is the card's own ornament and stays here. It was removed from the page
+    headings, where markdown already carries the hierarchy.
+    """
     date = date or context.get("date") or ""
     book = context.get("book_totals") or {}
     fx = context.get("fx") or {}
     concentration = context.get("concentration") or {}
     lines = [f"📊 盘前深度简报｜{date} {BRIEF_SLOT_HKT} HKT  (USDHKD={num(fx.get('rate'), 4)})", ""]
     lines += ["▎核心结论", text(judgment.get("portfolio_assessment")), ""]
-    lines += ["▎Book",
-              f"USD${money(book.get('usd_base_total'), digits=0)}"
-              f" | HK leg HKD${money(book.get('hk_pnl_hkd'), digits=0)}"
-              f" | US leg USD${money(book.get('us_pnl_usd'), digits=0)}",
-              f"HHI: HK {num((concentration.get('hk') or {}).get('hhi'), 3)}"
-              f" · US {num((concentration.get('us') or {}).get('hhi'), 3)}", ""]
 
     actions = [d for d in (plan.get("decisions") or [])
                if d.get("action") not in (None, "hold_and_watch", "watch")]
     holds = [d for d in (plan.get("decisions") or [])
              if d.get("action") in ("hold_and_watch", "watch")]
-    lines.append("▎今日动作")
+    lines.append(f"▎{PAGE_ACTION_HEADING}")
     if actions:
         for index, decision in enumerate(actions, 1):
             size = (decision.get("size") or {}).get("shares")
@@ -895,6 +920,13 @@ def render_card(context, judgment, plan, *, date=None, page_url=None):
                      + "/".join(str(d.get("ticker")) for d in holds)
                      + " hold_and_watch")
     lines.append("")
+
+    lines += [f"▎{CARD_BOOK_HEADING}",
+              f"USD${money(book.get('usd_base_total'), digits=0)}"
+              f" | HK leg HKD${money(book.get('hk_pnl_hkd'), digits=0)}"
+              f" | US leg USD${money(book.get('us_pnl_usd'), digits=0)}",
+              f"HHI: HK {num((concentration.get('hk') or {}).get('hhi'), 3)}"
+              f" · US {num((concentration.get('us') or {}).get('hhi'), 3)}", ""]
 
     levels = plan.get("watch_levels") or {}
     if levels:
