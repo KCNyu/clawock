@@ -450,6 +450,35 @@ def dashboard_publication_state(ws=None):
     return 'published'
 
 
+# Every `git push` inside safe_push.sh re-runs `.githooks/pre-push`, and that
+# hook's cost is `ops/system_check.py` — 53.9 / 56.0 / 59.7 / 61.3 s measured
+# four times on the live host (2026-09-06, idle; a loaded, swapping host is
+# slower). safe_push.sh pays that once per attempt, up to MAX_RETRIES=3, with a
+# 3s + 6s backoff between them. So the budget this call needs is a function of
+# the retry ladder, not a round number:
+#
+#   3 attempts x 90s + 9s of backoff = 279s
+#
+# The old cap was 120s, which could not cover two attempts of a hook measured at
+# ~57s — i.e. the retry machinery that exists to survive a lost push race could
+# never run to the end of its second attempt. Every `push failed` recorded in
+# the openclaw session history (30+ occurrences to 2026-09-05) is this timeout;
+# not one is a refusal by the hook. The commits then sit unpushed until some
+# later push happens to win on its first attempt.
+#
+# There is no outer timeout to respect: the cron payloads say explicitly that
+# the postflight is never wrapped in `timeout` and never killed (#765), and the
+# shell publishers (gold_dca_refresh.sh, commit_dreaming.sh) exec safe_push.sh
+# with no cap at all. This one caller was the only place the script was cut off
+# mid-run.
+SAFE_PUSH_ATTEMPTS = 3            # ops/publish/safe_push.sh MAX_RETRIES
+PREPUSH_ATTEMPT_SECONDS = 90      # pre-push hook (57s measured) + fetch/rebase + transfer
+PUSH_RETRY_BACKOFF_SECONDS = 9    # safe_push.sh: sleep i*3 after attempts 1 and 2
+PUSH_TIMEOUT_SECONDS = (
+    SAFE_PUSH_ATTEMPTS * PREPUSH_ATTEMPT_SECONDS + PUSH_RETRY_BACKOFF_SECONDS
+)
+
+
 def push_with_rebase_retry(remote='origin', branch='master', attempts=3):
     """git push via safe_push.sh — THE single hardened push path. Returns
     (pushed_ok, last_output).
@@ -465,11 +494,16 @@ def push_with_rebase_retry(remote='origin', branch='master', attempts=3):
     Delegating keeps every committer's push behaviour identical, per the header
     contract in safe_push.sh. `attempts` is kept for API compat (safe_push.sh has
     its own MAX_RETRIES=3).
+
+    The timeout is PUSH_TIMEOUT_SECONDS — derived from that retry ladder above,
+    because a cap smaller than the ladder turns every lost push race into a
+    stranded commit.
     """
     script = WS / 'ops' / 'publish' / 'safe_push.sh'
     try:
         r = subprocess.run(['bash', str(script), remote, branch],
-                           capture_output=True, text=True, timeout=120, cwd=str(WS))
+                           capture_output=True, text=True,
+                           timeout=PUSH_TIMEOUT_SECONDS, cwd=str(WS))
         return r.returncode == 0, (r.stdout + r.stderr).strip()[-500:]
     except Exception as e:
         return False, str(e)
