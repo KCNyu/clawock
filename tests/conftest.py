@@ -244,31 +244,17 @@ def pytest_configure(config):
     seam rather than patching the module. A test that genuinely wants the real
     binary sets the variable itself; `monkeypatch.setenv` inside a test wins over
     the value planted here.
+
+    This needed three tests to opt out when it first landed, which was the wrong
+    shape and is gone: they compared `OPENCLAW_BIN` — a `shutil.which` constant
+    computed at import and blind to the environment — against argv the code had
+    built from `runtime_paths().binary`, which honours it. Two names for one
+    runtime, agreeing only by luck, and the sentinel is simply what made the luck
+    run out. They now assert against the name the code actually used, and
+    `test_cron_live_state.test_one_name_for_the_runtime` keeps the two from
+    drifting apart again.
     """
     os.environ.setdefault("CLAWOCK_OPENCLAW_BIN", _NO_OPENCLAW_BINARY)
-
-
-@pytest.fixture
-def resolves_the_real_openclaw_binary(monkeypatch):
-    """Opt out of the sentinel above, for tests that are ABOUT the binary path.
-
-    `providers.openclaw` has two ways to name the runtime: `OPENCLAW_BIN`, a
-    module constant from `shutil.which` computed at import and blind to the
-    environment, and `runtime_paths().binary`, which honours
-    `CLAWOCK_OPENCLAW_BIN`. Tests that assert "the argv we built starts with the
-    binary" compare the first against a call that used the second, so planting a
-    sentinel in the environment makes them disagree about a thing neither is
-    really testing.
-
-    Pinning the override to the constant makes the two agree by construction,
-    which is what those tests always assumed and never said.
-    """
-    monkeypatch.setenv("CLAWOCK_OPENCLAW_BIN", _openclaw_module().OPENCLAW_BIN)
-
-
-def _openclaw_module():
-    from clawock.providers import openclaw  # noqa: PLC0415 - after sys.path setup
-    return openclaw
 
 
 def pytest_sessionstart(session):
