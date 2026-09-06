@@ -13,7 +13,9 @@ concurrency:
 jobs:
   review:
     runs-on: ubuntu-latest
-    timeout-minutes: 12
+    # 15, not 12: the chain deadline below is 700s and the contract test wants a
+    # minute of slack after it for setup, validation and the commit.
+    timeout-minutes: 15
     permissions:
       contents: write
     steps:
@@ -30,11 +32,16 @@ jobs:
           OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
           MINIMAX_API_KEY: ${{ secrets.MINIMAX_API_KEY }}
           # Chain deadline (brief-fallback 2026-08-17 defect class): without it
-          # a hung primary burns timeout(180)x3 per provider inside a 12-minute
-          # job and the fallback is unreachable. 600s of 720s leaves the
-          # validate + commit steps their share; the review prose fits both
-          # legs at that size.
-          CLAWOCK_LLM_DEADLINE_SECONDS: '600'
+          # a hung primary burns timeout x MAX_RETRIES per provider inside the
+          # job and the fallback is unreachable.
+          #
+          # 700, not 600: the primary's share is PRIMARY_BUDGET_SHARE (0.6) of
+          # this, and that share has to cover ONE full-length generation --
+          # 32000 max_tokens at the slowest throughput measured on the eight
+          # scheduled runs 2026-07-12..08-30 (87 tok/s) is 368s. At 600 the
+          # share was 360s, i.e. under a run this job is expected to produce.
+          # 700 of 900 still leaves the validate + commit steps their share.
+          CLAWOCK_LLM_DEADLINE_SECONDS: '700'
         run: clawock-weekly-review
 
       - name: Validate generated review

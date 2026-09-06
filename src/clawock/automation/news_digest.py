@@ -39,6 +39,11 @@ DIGEST_REQUIRED_SECTIONS = ('移动信号', 'Per-ticker')
 # inventing around it.
 NEWS_PROMPT_BUDGET_CHARS = 25_000
 
+# Per-attempt seconds for this job's one generation. See the call site in
+# main() for why it must not be smaller than the primary's share of the chain
+# deadline; tests/test_llm_workflow_deadlines.py enforces it for every LLM job.
+NEWS_DIGEST_LLM_TIMEOUT_SECONDS = 300
+
 
 def _compact(value):
     return json.dumps(value, ensure_ascii=False, separators=(',', ':'))
@@ -271,7 +276,13 @@ def main():
     user = build_user_prompt(news_payload, held_via)
 
     # News digest: short output but enable thinking helps prioritize signal vs noise
-    digest = chat(system=system, user=user, max_tokens=32000, temperature=0.5)
+    # timeout, not the 180s default: the chain deadline this workflow sets gives
+    # the primary 0.6 x 360 = 216s, and a per-attempt slice smaller than that
+    # share cannot be finished by adding attempts -- it just spends the share on
+    # copies of the same doomed call. That is how the weekly review lost
+    # 2026-W33 and 2026-W35. Clamped down to the share by _attempt_timeout.
+    digest = chat(system=system, user=user, max_tokens=32000, temperature=0.5,
+                  timeout=NEWS_DIGEST_LLM_TIMEOUT_SECONDS)
     # Refuse before the artifact is written (#1264): us_news_digest.json is
     # read by the brief and by news_evidence_graph, both of which treat an
     # empty digest_markdown as "no news" rather than "the model failed".
