@@ -264,6 +264,12 @@ def publish_backlog(ledger, now=None):
     for over a day. There was nothing to check, and an instruction to go look at
     something that is not wrong is how a health line stops being read.
 
+    The instruction is deliberately two-sided. It read "check what pre-push is
+    refusing" until 2026-09-06, and that named the wrong half: every `push
+    failed` in the openclaw session history is `safe_push.sh ... timed out after
+    120 seconds`, none is a refusal. A backlog means the push did not land, and
+    the caller hanging up is as much a cause as the hook saying no.
+
     Stale does not escalate. The host measures this live every twenty minutes in
     `system_check.check_publish_backlog`, which is the authority whenever this
     mirror can only see history — and a host silent long enough for the reading
@@ -287,7 +293,8 @@ def publish_backlog(ledger, now=None):
             return {'state': 'degraded', 'count': count,
                     'age_hours': None if age_h is None else round(age_h, 1),
                     'detail': f'{count} commit(s) committed here and never '
-                              f'published — check what pre-push is refusing'}
+                              f'published — the push did not land: refused by '
+                              f'pre-push, or cut off before it finished'}
         return {'state': 'ok', 'count': count,
                 'age_hours': None if age_h is None else round(age_h, 1),
                 'detail': reading}

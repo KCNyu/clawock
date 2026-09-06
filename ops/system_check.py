@@ -940,7 +940,8 @@ def check_publish_backlog(r):
     if count >= BACKLOG_WARN_COMMITS or (hours is not None and hours >= BACKLOG_WARN_HOURS):
         r.add('publish backlog', WARNING,
               f'{detail} — the desk is committing but not publishing; '
-              f'check what pre-push is refusing')
+              f'the push did not land: refused by pre-push, or cut off '
+              f'before it finished')
     else:
         r.add('publish backlog', OK, detail)
 
