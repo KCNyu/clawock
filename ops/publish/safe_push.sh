@@ -83,6 +83,31 @@ if [ -n "$PORTFOLIO_TOUCHED" ]; then
   fi
 fi
 
+# ── Replay identity (2026-09-06) ─────────────────────────────────────────────
+# `pull --rebase` REWRITES commits, so it needs a committer identity — and the
+# bot callers are forbidden to configure one. `gha_commit_push.sh` injects the
+# bot per `git commit` with `-c` precisely so that running in a real workspace
+# can never clobber kcn's interactive identity (memory:
+# feedback-commit-identity-kcnyu), and a GitHub-hosted runner supplies nothing
+# else. So on a runner the rebase died on `fatal: empty ident name` and this
+# script announced "✗ rebase conflict — abort" for a push whose only problem was
+# ref lag: sentiment-scan 2026-08-28 and 2026-08-30, where the retry ladder's
+# entire purpose (survive a lost race) never got to run. The script's header
+# promises every committer identical push behaviour; without this it was one
+# attempt on a runner and three everywhere else.
+#
+# Replayed under HEAD's OWN committer, so this adds no second answer to "who is
+# the bot" and is a no-op wherever git can already resolve an identity.
+# Supplied through the environment rather than `-c`: GIT_COMMITTER_* wins over
+# config AND over the empty gecos name that is the actual failure on a runner,
+# and it touches no config file at all.
+REPLAY_ID=()
+if ! git var GIT_COMMITTER_IDENT >/dev/null 2>&1; then
+  REPLAY_ID=(env "GIT_COMMITTER_NAME=$(git log -1 --format=%cn)"
+                 "GIT_COMMITTER_EMAIL=$(git log -1 --format=%ce)")
+  echo "▸ no git identity here — replaying as $(git log -1 --format='%cn <%ce>')"
+fi
+
 for i in $(seq 1 $MAX_RETRIES); do
   if git push "$REMOTE" "$BRANCH"; then
     echo "✓ pushed on attempt $i"
@@ -92,7 +117,7 @@ for i in $(seq 1 $MAX_RETRIES); do
 
   # -c rebase.autoStash=true → tolerate a dirty working tree during the rebase.
   git fetch -q "$REMOTE" "$BRANCH" >/dev/null 2>&1 || true
-  if git -c rebase.autoStash=true pull --rebase "$REMOTE" "$BRANCH"; then
+  if "${REPLAY_ID[@]}" git -c rebase.autoStash=true pull --rebase "$REMOTE" "$BRANCH"; then
     echo "  rebase clean, will retry push"
     sleep $((i * 3))
   else
@@ -110,7 +135,7 @@ for i in $(seq 1 $MAX_RETRIES); do
           [ -d "$(git rev-parse --git-path rebase-apply)" ]; do
       CONFLICTS=$(git diff --name-only --diff-filter=U)
       if [ -z "$CONFLICTS" ]; then
-        GIT_EDITOR=true git rebase --continue >/dev/null 2>&1 || { AUTO_OK=false; break; }
+        GIT_EDITOR=true "${REPLAY_ID[@]}" git rebase --continue >/dev/null 2>&1 || { AUTO_OK=false; break; }
         continue
       fi
       if echo "$CONFLICTS" | grep -vqE "$GENERATED"; then
@@ -121,7 +146,7 @@ for i in $(seq 1 $MAX_RETRIES); do
         git checkout --theirs -- "$f" 2>/dev/null || git checkout --ours -- "$f" || true
         git add -- "$f"
       done
-      GIT_EDITOR=true git rebase --continue >/dev/null 2>&1 || { AUTO_OK=false; break; }
+      GIT_EDITOR=true "${REPLAY_ID[@]}" git rebase --continue >/dev/null 2>&1 || { AUTO_OK=false; break; }
     done
     if [ "$AUTO_OK" = true ] && ! { [ -d "$(git rev-parse --git-path rebase-merge)" ] || [ -d "$(git rev-parse --git-path rebase-apply)" ]; }; then
       echo "  rebase auto-resolved (generated files only), will retry push"
