@@ -155,6 +155,53 @@ async function aCellOpensTheDecisionsItCounts(browser, base) {
   await context.close();
 }
 
+async function theDrawerTrapsFocusAndGivesItBack(browser, base) {
+  /* The drawer is modal for the mouse — scrim, Escape — and until #1350 it was
+     not modal for the keyboard: Tab walked straight out of it into the board
+     behind the scrim, and closing dropped focus on <body>, so a reader lost
+     their place in a 741-row table.
+
+     Behavioural on purpose. `inert` is the mechanism, but asserting the
+     attribute would pass on a page where the drawer never opens; what has to
+     hold is that the tabbing reader cannot leave and gets their cell back. */
+  const { context, page } = await open(browser, base, 1280);
+  await page.evaluate(() => document.querySelector("#dm-board .dm-cell").focus());
+  const opener = await page.evaluate(() => {
+    const cell = document.querySelector("#dm-board .dm-cell");
+    cell.click();
+    return cell.textContent.trim();
+  });
+  await page.waitForSelector(".dm-drawer.is-open");
+
+  const outside = await page.evaluate(() =>
+    [...document.getElementById("decimap").children]
+      .filter(el => el.id !== "dm-drawer" && el.id !== "dm-scrim" && !el.inert)
+      .map(el => el.id || el.tagName));
+  assert.deepEqual(outside, [],
+    `these siblings stayed reachable behind the open drawer: ${outside.join(", ")}`);
+
+  for (let i = 0; i < 12; i++) await page.keyboard.press("Tab");
+  const stillInside = await page.evaluate(() =>
+    document.getElementById("dm-drawer").contains(document.activeElement));
+  assert(stillInside, "12 tabs walked focus out of the open drawer");
+
+  await page.keyboard.press("Escape");
+  await page.waitForTimeout(80);
+  const back = await page.evaluate(() => ({
+    id: document.activeElement && document.activeElement.id,
+    tag: document.activeElement && document.activeElement.tagName,
+    text: document.activeElement && document.activeElement.textContent.trim(),
+    inertLeft: [...document.getElementById("decimap").children].filter(el => el.inert).length,
+  }));
+  assert.equal(back.inertLeft, 0, "closing the drawer left the page inert");
+  assert.notEqual(back.tag, "BODY",
+    "closing the drawer dropped focus on <body> instead of the cell that opened it");
+  assert.equal(back.text, opener,
+    `focus came back to ${back.tag}#${back.id}, not the cell that opened the drawer`);
+  await context.close();
+}
+
+
 async function thePageNeverScrollsSidewaysButTheBoardDoes(browser, base) {
   for (const width of [320, 390, 1280]) {
     const { context, page } = await open(browser, base, width);
@@ -257,6 +304,7 @@ async function main() {
     await theBoardIsATreeOverThePublishedRollUps(browser, base, payload);
     await noCellUsesColourAsItsOnlyChannel(browser, base);
     await aCellOpensTheDecisionsItCounts(browser, base);
+    await theDrawerTrapsFocusAndGivesItBack(browser, base);
     await thePageNeverScrollsSidewaysButTheBoardDoes(browser, base);
     await theKpiStripPrintsWhatThePayloadHolds(browser, base, payload);
     await theCaveatReportsWhatSurvivedItsPlacebo(browser, payload, html);
