@@ -1407,6 +1407,23 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
               f"ceiling ({len(tickers)} tickers) — overrunning it fails preflight "
               f"outright, so trim a projection before the next holding lands",
               file=sys.stderr)
+    # …and the summary's own warning, which is the one the comment above credits
+    # with the lesson. `SUMMARY_BUDGET_WARN_RATIO` and `summary_budget_report`
+    # were written for 2026-08-17 and then never called outside the tests, so
+    # `near_budget` — "the signal that has to fire while there is still room" —
+    # had nowhere to fire. Both budgets are crossed by the same act (buying a
+    # stock), so both belong on the same alarm, at the one place that runs on
+    # every generation.
+    summary = summary_budget_report(packet)
+    if summary["over_budget"] or summary["near_budget"]:
+        print(f"warn: decision packet summary at {summary['bytes']} bytes is "
+              f"{summary['ratio']:.1%} of the {summary['budget']}-byte ceiling "
+              f"({summary['tickers']} tickers) — "
+              + ("`decision_packet_summary` is already refusing, and it is the "
+                 "brief's only resident input"
+                 if summary["over_budget"] else
+                 "`decision_packet_summary` refuses outright at the line"),
+              file=sys.stderr)
     return packet
 
 

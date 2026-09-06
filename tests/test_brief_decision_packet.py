@@ -1082,6 +1082,48 @@ def test_the_summary_budget_is_measured_against_a_real_sized_book():
     assert report["bytes"] < packet_mod.MAX_PACKET_BYTES
 
 
+def test_the_summary_warning_is_wired_to_something_that_runs(capsys):
+    """The warning existed and nothing ever asked for it.
+
+    `summary_budget_report` and `SUMMARY_BUDGET_WARN_RATIO` were written after
+    2026-08-17, when the summary crossed its cap silently and
+    `decision_packet_summary` — Step 2's 唯一常驻输入 — began refusing. Both
+    were then called only from this file: `near_budget`, described one test
+    below as "the signal that has to fire while there is still room", had
+    nowhere to fire. The packet's own ceiling got its warning in #1349 and its
+    comment credits this one with the lesson, which is how the gap stayed
+    invisible.
+
+    Both budgets are crossed by the same act — buying a stock — so the check
+    belongs where the packet's does: in the one function that runs on every
+    generation.
+    """
+    context = _book_with(2)
+    packet_mod.compile_packet(context, brief_context.compute_generation_id(context))
+    assert "summary at" not in capsys.readouterr().err, (
+        "a small book must not warn, or the signal is noise by the second week")
+
+    # Same code path, a book big enough to be near the line.
+    context = _book_with(2)
+    packet = packet_mod.compile_packet(
+        context, brief_context.compute_generation_id(context))
+    near = int(
+        packet_mod.summary_budget_report(packet)["bytes"]
+        / packet_mod.SUMMARY_BUDGET_WARN_RATIO
+    ) - 1
+    original = packet_mod.MAX_SUMMARY_BYTES
+    packet_mod.MAX_SUMMARY_BYTES = near
+    try:
+        packet_mod.compile_packet(
+            context, brief_context.compute_generation_id(context))
+        warned = capsys.readouterr().err
+    finally:
+        packet_mod.MAX_SUMMARY_BYTES = original
+
+    assert "summary at" in warned, warned
+    assert "resident input" in warned or "refuses outright" in warned, warned
+
+
 def test_a_section_query_keeps_the_tight_cap_the_summary_does_not_use():
     """Two budgets, deliberately: conflating them is what broke production."""
     assert packet_mod.MAX_SUMMARY_BYTES > packet_mod.MAX_QUERY_BYTES
