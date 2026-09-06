@@ -4,7 +4,7 @@
 
 ### AI 争辩。代码结算。连亏损都摆在明面上。
 
-它跑了 **<!-- CW_M:days -->106<!-- /CW_M:days --> 天**,实盘收益 **<!-- CW_M:return_pct -->−20.30%<!-- /CW_M:return_pct -->**——每一笔亏损都摊开在页面上([原始决策记录](https://github.com/KCNyu/clawock/blob/master/memory/decisions.jsonl)),账目都能从命令复算(`clawock audit-resettle` 结算决策账、`clawock reconcile` 复算组合派生、`clawock scorecard-provenance --check` 核对公开记分出自账本的哪几行)。**模型不能给自己打分**——在我们已知范围内,第一个把 AI 战绩交给代码结算的投研台。AI 建议满天飞,谁为结果负责?代码负责。
+它跑了 **<!-- CW_M:days -->112<!-- /CW_M:days --> 天**,实盘收益 **<!-- CW_M:return_pct -->−12.79%<!-- /CW_M:return_pct -->**——每一笔亏损都摊开在页面上([原始决策记录](https://github.com/KCNyu/clawock/blob/master/memory/decisions.jsonl)),账目都能从命令复算(`clawock audit-resettle` 结算决策账、`clawock reconcile` 复算组合派生、`clawock scorecard-provenance --check` 核对公开记分出自账本的哪几行)。**模型不能给自己打分**——在我们已知范围内,第一个把 AI 战绩交给代码结算的投研台。AI 建议满天飞,谁为结果负责?代码负责。
 
 8 层 41 模块信息流 · 多 Agent 辩论 · Python 确定性结算,打包成 `pip install clawock`,装进任何 Agent(Claude Code / Codex / OpenClaw / DeepSeek Harness)。不跟单、不代下单。
 
@@ -140,12 +140,12 @@ clawock 是一套真实港美股账户上运行的 AI 投研系统,解决一个�
 
 <sub><i>“市场不在乎模型有多自信。”</i></sub>
 
-截至 <!-- CW_M:as_of -->2026-08<!-- /CW_M:as_of -->,这个投研台已经公开结算了 **<!-- CW_M:settled -->188<!-- /CW_M:settled --> 条判断**,Python 独立打分:
+截至 <!-- CW_M:as_of -->2026-09<!-- /CW_M:as_of -->,这个投研台已经公开结算了 **<!-- CW_M:settled -->200<!-- /CW_M:settled --> 条判断**,Python 独立打分:
 
 | 组 | 方向命中率 | 样本 |
 |---|---|---|
 | 主动建议(cut / trim / 加仓) | <!-- CW_M:active_pct -->55%<!-- /CW_M:active_pct --> | n=<!-- CW_M:active_n -->76<!-- /CW_M:active_n --> |
-| 只是躺着 hold | <!-- CW_M:hold_pct -->34%<!-- /CW_M:hold_pct --> | n=<!-- CW_M:hold_n -->112<!-- /CW_M:hold_n --> |
+| 只是躺着 hold | <!-- CW_M:hold_pct -->39%<!-- /CW_M:hold_pct --> | n=<!-- CW_M:hold_n -->124<!-- /CW_M:hold_n --> |
 | 高信心主动判断 | <!-- CW_M:hi_pct -->58%<!-- /CW_M:hi_pct --> | n=<!-- CW_M:hi_n -->36<!-- /CW_M:hi_n --> |
 
 翻译成人话:**每 10 次主动判断,对 5 次半——跟抛硬币差不多,连作者都承认。** 所以它只敢吹「不骗你」,不敢吹「赚多少」。
@@ -158,10 +158,10 @@ clawock 是一套真实港美股账户上运行的 AI 投研系统,解决一个�
 
 | 线 | 数字 | 口径 |
 |---|---|---|
-| **决策账本** | <!-- CW_M:rows -->749<!-- /CW_M:rows --> 条记录 → **<!-- CW_M:settled -->188<!-- /CW_M:settled -->** 个已结算案例 | 含重申归组,同一论点重复喊单只算一次;全部公开 |
+| **决策账本** | <!-- CW_M:rows -->789<!-- /CW_M:rows --> 条记录 → **<!-- CW_M:settled -->200<!-- /CW_M:settled -->** 个已结算案例 | 含重申归组,同一论点重复喊单只算一次;全部公开 |
 | **方向命中率** | 主动 **<!-- CW_M:active_pct -->55%<!-- /CW_M:active_pct -->**(n=<!-- CW_M:active_n -->76<!-- /CW_M:active_n -->) | 模型判断的方向对不对,按基准行情结算——**与盈亏无关** |
 | **影子组合**(模拟,非实盘) | 跟随建议 vs 买入持有 | 同一时间线、同日收盘计价回放,见[持仓页](https://kcnyu.github.io/clawock/#drill) |
-| **真实账户** | 收益 **<!-- CW_M:return_pct -->−20.30%<!-- /CW_M:return_pct -->**(实盘,已实现 + 浮动) | 决策执行:followed <!-- CW_M:followed -->386<!-- /CW_M:followed --> / not_followed <!-- CW_M:not_followed -->325<!-- /CW_M:not_followed --> 条 |
+| **真实账户** | 收益 **<!-- CW_M:return_pct -->−12.79%<!-- /CW_M:return_pct -->**(实盘,已实现 + 浮动) | 决策执行:followed <!-- CW_M:followed -->412<!-- /CW_M:followed --> / not_followed <!-- CW_M:not_followed -->337<!-- /CW_M:not_followed --> 条 |
 
 **谁决定跟进?账户所有者。** 每条跟进/不跟进都有记录与来源;在跟进规则集公开审计之前,请把账户收益当作**人机混合的成绩**,而不是模型单独的成绩——这一点我们明说,不藏。
 
@@ -173,7 +173,7 @@ episode: ep-20260731-spcx-hold
 evaluation: loss(按基准行情结算, trigger session 2026-08-10)
 ```
 
-<!-- CW_M:rows -->749<!-- /CW_M:rows --> 条这样的记录全部公开。**每条建议都带执行状态**(followed <!-- CW_M:followed -->386<!-- /CW_M:followed --> / not_followed <!-- CW_M:not_followed -->325<!-- /CW_M:not_followed --> / unknown <!-- CW_M:unknown -->38<!-- /CW_M:unknown -->);影子组合用模拟成交回放,专门暴露「建议 → 成交」的配对差距,而不是藏起来。
+<!-- CW_M:rows -->789<!-- /CW_M:rows --> 条这样的记录全部公开。**每条建议都带执行状态**(followed <!-- CW_M:followed -->412<!-- /CW_M:followed --> / not_followed <!-- CW_M:not_followed -->337<!-- /CW_M:not_followed --> / unknown <!-- CW_M:unknown -->40<!-- /CW_M:unknown -->);影子组合用模拟成交回放,专门暴露「建议 → 成交」的配对差距,而不是藏起来。
 
 命中率 = 模型判断的方向对不对(按基准行情结算);账户收益 = 实盘执行结果。两回事,都公开。
 
