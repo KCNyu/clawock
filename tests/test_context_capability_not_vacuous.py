@@ -16,6 +16,18 @@ import json
 import pytest
 
 
+@pytest.fixture(autouse=True)
+def _fresh_cron_listing():
+    """The cron schedule is read once per system_check run and memoised, so a
+    test that stubs a different listing has to start from an empty memo — the
+    same clear `main()` does before its checks."""
+    import ops.system_check as sc
+
+    sc._cron_listing.cache_clear()
+    yield
+    sc._cron_listing.cache_clear()
+
+
 class _Report:
     def __init__(self):
         self.rows = []
