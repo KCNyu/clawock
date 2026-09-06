@@ -370,3 +370,44 @@ def test_exactly_four_parts_and_one_subsection_convention():
                      "Tier ", "plan.json"):
             assert leak not in line, f"{line!r} prints an internal name at the reader"
 
+
+# ── the trimmed surface and the full one must not drift apart ───────────────
+
+def test_the_card_and_the_page_agree_on_what_comes_first():
+    """A reader taps the card's link expecting the same report, not another one.
+
+    The card used to lead with the book — 1.3KB of balance between the reader and
+    the four cuts the brief exists to state — while the page (after the four-part
+    regroup) leads with the call. Same report, two orders, and whichever one you
+    read second felt wrong.
+    """
+    judgment = _judgment()
+    page = render.render_brief(CONTEXT, judgment, PLAN, date="2026-08-31")
+    card = render.render_card(CONTEXT, judgment, PLAN, date="2026-08-31")
+
+    assert card.index("▎" + render.PAGE_ACTION_HEADING) < card.index("▎" + render.CARD_BOOK_HEADING), (
+        "the card puts the book before the call; the page does not")
+    assert page.index("### " + render.PAGE_ACTION_HEADING) < page.index("## " + render.PAGE_BOOK_PART), (
+        "the page puts the book before the call")
+
+
+def test_both_surfaces_call_the_action_section_the_same_thing():
+    """Renaming a heading on one surface only is how they drift."""
+    judgment = _judgment()
+    page = render.render_brief(CONTEXT, judgment, PLAN, date="2026-08-31")
+    card = render.render_card(CONTEXT, judgment, PLAN, date="2026-08-31")
+    assert f"### {render.PAGE_ACTION_HEADING}" in page
+    assert f"▎{render.PAGE_ACTION_HEADING}" in card
+    assert render.CARD_BOOK_HEADING in render.PAGE_BOOK_PART, (
+        "the card's book heading should read as a short form of the page's part, "
+        f"got {render.CARD_BOOK_HEADING!r} vs {render.PAGE_BOOK_PART!r}")
+
+
+def test_the_card_keeps_its_own_ornament_and_the_page_does_not():
+    """`▎` is the card's hierarchy (plain text has no headings); markdown has its own."""
+    judgment = _judgment()
+    card = render.render_card(CONTEXT, judgment, PLAN, date="2026-08-31")
+    page = render.render_brief(CONTEXT, judgment, PLAN, date="2026-08-31")
+    assert "▎" in card
+    assert not any(line.startswith("#") and "▎" in line for line in page.splitlines())
+
