@@ -96,6 +96,39 @@
   // value+delta 三段式，tone ok/warn/bad），同类一排、放不下折行，不做段落；
   // 能画的数据画微图（接近度计量条、异动零轴迷你柱），文字退为 caption。
   // 判词句本体由 CSS 压成一行 caption —— 成段 prose 在这张卡里没有位置。
+  function moversHeadLabel(DATA) {
+    // The card said 今日异动 whatever the payload's age, and on a weekend those
+    // are Friday's moves — as is Monday morning before the open. About a third
+    // of the hours in a week the word 今日 is wrong.
+    //
+    // The catalyst block in this same card already refuses the browser's idea
+    // of "today" and takes the date from `last_updated`; this is the same
+    // refusal one row up. Both timestamps come out of the payload, so nothing
+    // here depends on the viewer's clock or zone: `last_updated` is HKT
+    // ("2026/09/05 04:03 HKT") and `generated_at` is the build's UTC instant.
+    //
+    // 20 hours, not "a different date": the widest gap inside one trading day
+    // is the US close (04:03 HKT) to the next HK open (09:30 HKT), about five
+    // and a half hours, so 20 cannot fire on a live session — while a weekend
+    // is about fifty.
+    //
+    // The stale label carries no date on purpose. `last_updated` is when the
+    // desk wrote, not which session the numbers are from: the US close lands at
+    // 04:03 HKT, so Friday's US moves are stamped Saturday, and printing that
+    // date would trade one wrong claim for another (#1278: the time on the
+    // artifact follows the cron, the market's own time is a different thing).
+    // The list also mixes both legs, which have different sessions. What the
+    // reader needs is that these are not today's, and that is what it says.
+    var stamp = String(safe(DATA, "last_updated") || "");
+    var match = stamp.match(/^(\d{4})[\/-](\d{2})[\/-](\d{2})\s+(\d{2}):(\d{2})/);
+    var built = Date.parse(String(safe(DATA, "generated_at") || ""));
+    if (!match || !isFinite(built)) return "今日异动";
+    var session = Date.parse(
+      match[1] + "-" + match[2] + "-" + match[3] + "T" + match[4] + ":" + match[5] + ":00+08:00");
+    if (!isFinite(session) || built - session < 20 * 3600 * 1000) return "今日异动";
+    return "异动 · 最近收盘";
+  }
+
   function renderTodayHighlights() {
     const el = document.getElementById("today-highlights");
     const mvEl = document.getElementById("today-movers");
@@ -208,10 +241,11 @@
         + ` style="width:${w.toFixed(1)}%"></i></span>`
         + `<span class="hl-mv-p ${pct >= 0 ? "pos" : "neg"}">${fmtPct(pct, 1)}</span></div>`;
     };
+    const moversHead = moversHeadLabel(DATA);
     const moversRow = movers.length
-      ? `<div class="hl-movers" role="img" aria-label="今日异动前 ${movers.length}：`
+      ? `<div class="hl-movers" role="img" aria-label="${moversHead}前 ${movers.length}：`
         + movers.map(x => `${x.ticker} ${fmtPct(x.today_change_pct, 1)}`).join("、")
-        + `"><div class="hl-mv-head">今日异动</div>${movers.map(mvRow).join("")}</div>`
+        + `"><div class="hl-mv-head">${moversHead}</div>${movers.map(mvRow).join("")}</div>`
       : "";
     // chip 与异动条各自落到自己的挂载点：≥1024 时它们是牌上左右两栏，
     // 窄档回到上下两带（版式全在 CSS，渲染端不判断宽度）。

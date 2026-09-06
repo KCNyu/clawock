@@ -1491,6 +1491,48 @@ async function testDataHealthNamesTheDegradedSlotAndWeChatDrops(browser, base) {
   await context.close();
 }
 
+async function testMoversSayWhichSessionTheyAreFrom(browser, base) {
+  // 「今日异动」印的是 portfolio.json 里的 today_change_pct，也就是最近一次
+  // 报价的涨跌。周末打开面板，那是周五的数字，却顶着「今日」；周一开盘前同样。
+  // 一周里大约三分之一的时间这两个字是错的。同一张牌下面十行的 catalyst 块
+  // 早就拒绝用浏览器的「今天」（它从 last_updated 取日期），这里是同一条拒绝。
+  for (const [label, lastUpdated, generatedAt, expected] of [
+    ["weekend", "2026/09/05 04:03 HKT", "2026-09-06T16:40:05Z", "异动 · 最近收盘"],
+    ["live session", "2026/09/04 16:10 HKT", "2026-09-04T08:15:00Z", "今日异动"],
+  ]) {
+    const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+    const page = await context.newPage();
+    await stubLiveOrigin(page, {
+      patch: (name, json) => {
+        if (name !== "overview.json" && name !== "dashboard.json") return null;
+        json.last_updated = lastUpdated;
+        json.generated_at = generatedAt;
+        json.today_movers = [
+          { ticker: "SKHY", name: "SK", region: "us", today_change_pct: 8.14, current_price: 177 },
+          { ticker: "07226", name: "XL", region: "hk", today_change_pct: 4.4, current_price: 3.18 },
+        ];
+        return json;
+      },
+    });
+    const state = observe(page);
+    await page.goto(base, { waitUntil: "networkidle" });
+    await waitForData(page);
+
+    const head = page.locator(".hl-mv-head");
+    await head.waitFor({ state: "visible" });
+    assert.equal((await head.innerText()).trim(), expected,
+      `${label}: the movers card claims the wrong session`);
+
+    const aria = await page.locator(".hl-movers").getAttribute("aria-label");
+    assert(aria && aria.startsWith(expected),
+      `${label}: the screen-reader label still says something else: ${aria}`);
+
+    assert.deepEqual(state.failures, []);
+    assert.deepEqual(state.errors, []);
+    await context.close();
+  }
+}
+
 async function main() {
   const server = serveWorkspace();
   await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
@@ -1515,6 +1557,7 @@ async function main() {
     await testAPanelSaysWhenItsDataDidNotLoad(browser, base);
     await testCronRailAccountsForEverySlotWithoutASecondVerdict(browser, base);
     await testCronNeedsActionMergesIntoTheOneTodoListButWatchDoesNot(browser, base);
+    await testMoversSayWhichSessionTheyAreFrom(browser, base);
   } finally {
     await browser.close();
     await new Promise(resolve => server.close(resolve));
