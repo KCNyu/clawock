@@ -386,6 +386,17 @@
     rows.push(row("今日决策变化", `新增 ${(delta.new || []).length} · 修改 ${(delta.changed || []).length} · 触发 ${(delta.triggered || []).length} · override ${(delta.active_overrides || []).length}`, "var(--text-dim)"));
     if (dm && dm.decisiveness_pct != null)
       rows.push(row("辩论决断率", `${dm.decisiveness_pct}% · 其余=默认 HOLD`, "var(--text-dim)"));
+    // 幅度校准（#1159）。这一行的价值全在它的符号：方向判对、幅度系统性夸大的账本，
+    // 命中率那几格照样好看，而这里是负的 —— 卡上没有第二个数看得出这件事。
+    // `expected_move_pct` 是选填字段，所以先是一条覆盖率序列。
+    const mag = safe(DATA, "magnitude_metrics");
+    if (mag && mag.decisions)
+      rows.push(row("幅度校准",
+        mag.mean_error_pct == null
+          ? `填了预期 ${mag.with_expected_move}/${mag.decisions} · 还没有可打分的 t1`
+          : `填了预期 ${mag.with_expected_move}/${mag.decisions} · 平均偏差 `
+            + `${mag.mean_error_pct > 0 ? "+" : ""}${mag.mean_error_pct.toFixed(1)}% · n=${mag.scored_t1}`,
+        "var(--text-dim)"));
     const fe = [];
     ["catalyst", "technical", "macro", "peer"].forEach(k => {
       const e = drv[k]; if (!e || e.win_rate == null) return;
