@@ -13,8 +13,6 @@ import pytest
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DASHBOARD = ROOT / "assets" / "data" / "dashboard.json"
-OVERVIEW = ROOT / "assets" / "data" / "overview.json"
 # Bytes, not characters — the unit build_dashboard's MAX_OUT_BYTES and
 # system_check both use, and the only one a visitor actually downloads. This
 # file used to measure `len(read_text())`, and because the payload is heavily
@@ -35,27 +33,28 @@ def _size(obj):
     return len(json.dumps(obj, ensure_ascii=False))
 
 
-def _published_size():
-    """Single source of truth for "how big is it" — see SIZE_CAP on the unit."""
-    return len(DASHBOARD.read_bytes())
-
-
 def test_payload_stays_under_the_published_cap(freshly_built_dashboard):
-    size = _published_size()
+    # Measured on what this run built, not on whatever `assets/data/` happens to
+    # hold. Those were the same file until the rebuild moved to its own output
+    # directory, and "the same file" was doing a lot of unstated work: the size
+    # this asserted came from the checkout, which a previous run may have left
+    # there — so the cap was checked against a payload nobody built on purpose.
+    size = len(freshly_built_dashboard.read_bytes())
     assert size < SIZE_CAP, f"{size:,} bytes; trim or move detail to a sidecar"
 
 
 def test_overview_projection_keeps_canonical_money_health_and_generation_parity(
-        freshly_built_dashboard):
+        freshly_built_dashboard, freshly_built_generation):
     full = json.loads(freshly_built_dashboard.read_text())
-    overview = json.loads(OVERVIEW.read_text())
+    overview_path = freshly_built_generation / "overview.json"
+    overview = json.loads(overview_path.read_text())
 
     assert overview["schema_version"] == 1
     assert overview["projection"] == "overview"
     assert overview["generation_id"] == full["generated_at"]
     for field in ("generated_at", "fx", "totals", "build_status"):
         assert overview[field] == full[field]
-    assert len(OVERVIEW.read_bytes()) < 80_000
+    assert len(overview_path.read_bytes()) < 80_000
 
 
 def test_the_overview_projection_ships_every_execution_field_the_hero_renders(
@@ -104,9 +103,8 @@ def test_the_cap_is_measured_in_the_same_unit_the_builder_enforces(
     # gate's measurement to the byte count is what stops anyone quietly putting
     # `read_text()` back: on this content the assertion below can only hold for
     # the byte reading.
-    characters = len(DASHBOARD.read_text())
-    assert _published_size() > characters
-    assert _published_size() == len(DASHBOARD.read_bytes())
+    characters = len(freshly_built_dashboard.read_text())
+    assert len(freshly_built_dashboard.read_bytes()) > characters
 
     check = (ROOT / "ops" / "system_check.py").read_text()
     assert "out.stat().st_size" in check, "system_check must stay on bytes too"
@@ -300,7 +298,7 @@ def test_the_trim_survives_a_real_rebuild(freshly_built_dashboard):
     assert "regime_history" not in rebuilt["lev_regime"]
     assert "current_group_calibrators" not in rebuilt["decision_metrics"]["hierarchical_calibration"]
     assert all("stages" not in r for r in rebuilt["workflow_outcomes"]["recent"])
-    assert len(DASHBOARD.read_bytes()) < SIZE_CAP
+    assert len(freshly_built_dashboard.read_bytes()) < SIZE_CAP
 
 
 def test_the_brief_still_gets_the_calibrators_the_dashboard_no_longer_ships():

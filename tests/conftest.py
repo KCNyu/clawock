@@ -13,9 +13,10 @@ correct only because `test_dashboard_...` sorts before `test_validate_...`.
 Nothing stated it, so running the money gate on its own was not a valid
 invocation, and any rename, split-by-file or shuffled ordering would have
 reported "money does not reconcile" for what was really an ordering accident.
-It is a session fixture now: requested by name, built once, at most one
-subprocess per session either way. The rebuild is load-bearing; only its
-residue is the problem.
+It is a session fixture now: requested by name, and since #1364 built into its
+own directory rather than into `assets/data/`. It has no residue to restore and
+nothing to coordinate — which is why `TOLERATED_WRITERS` is empty and the write
+guard below can reach a verdict under `-n` as well as serially.
 
 **The import path.** The public and KCNyu distributions are inserted before
 collection so a single test module never depends on editable-install state.
@@ -32,10 +33,8 @@ So: snapshot before, restore after, and verify the restore actually worked.
 Restoring to the session's starting bytes rather than to HEAD keeps a
 developer's own uncommitted edits intact.
 """
-import fcntl
 import os
 import subprocess
-import tempfile
 import sys
 from pathlib import Path
 
@@ -316,15 +315,38 @@ def _attribute_writes_to_the_test_that_made_them(request):
 # `memory/.tmp/**` is the workspace's own scratch area and gitignored, but it is
 # still shared state between tests: two modules writing one ledger there is the
 # same class of coupling, one directory further down. Listed, not exempted.
-TOLERATED_WRITERS = {
-    # The session dashboard rebuild, attributed to whichever test first requests
-    # the fixture. This one is not debt: the builder is supposed to run against
-    # the real tree — the money-reconciliation tests compare its payload with
-    # portfolio.json, and a rebuild into a temp copy would be checking a
-    # different book. Its residue, not its writes, was ever the problem, and the
-    # session fixture below restores all four files.
-    "tests/test_dashboard_payload_size.py::test_payload_stays_under_the_published_cap",
-}
+TOLERATED_WRITERS: set[str] = set()
+
+#: Paths a production code path writes by design, excused by PATH rather than by
+#: test name. The distinction is the point: the old list excused a whole test,
+#: so everything else that test happened to touch was excused with it. This
+#: excuses one file and nothing else, which is what keeps the verdict usable
+#: under `-n`, where the test named is only who was running.
+#:
+#: `record_preservation` appends one line per build to
+#: `memory/.tmp/preserve-absent-YYYY-MM-DD.jsonl`, and does it against
+#: `WS_ROOT` on purpose — the telemetry is about which checkout built, so
+#: `--out-dir` correctly does not move it. `gc_sessions` ages it out at 14 days.
+#:
+#: `assets/data/integrity_report.json` is the second: `money_checker.sh` pins
+#: `CLAWOCK_WORKSPACE` to the root it is guarding, on purpose — the point of the
+#: gate is that it checks the repo being pushed, so no environment a test sets
+#: can redirect it. `restores_untracked_artifact` is what puts the tree back,
+#: and it does: serially the write and the restore both land inside one test's
+#: window and this watcher records nothing. Under `-n` another worker's window
+#: overlaps the middle of that pair and sees a file appear (and a third sees it
+#: go), which is how CI first reported two innocent modules on 2026-09-06.
+#: `.tmp-*` beside it is the atomic write's temp file, which never survives.
+TOLERATED_PATHS = (
+    "memory/.tmp/preserve-absent-",
+    "assets/data/integrity_report.json",
+    "assets/data/.tmp-",
+)
+
+
+def _excused(path: str) -> bool:
+    return path.startswith(TOLERATED_PATHS)
+
 
 def _tolerated(node_id: str) -> bool:
     return any(node_id.startswith(prefix) for prefix in TOLERATED_WRITERS)
@@ -375,11 +397,22 @@ def _offenders(entries) -> set[str]:
       tolerated test had also *observed* that file appear and so the path
       counted as owned. Exit 0 on a run with a real new writer in it.
 
-    A guard that accuses the wrong test, or excuses the right one, is worse than
-    one that says "I cannot tell". So parallel runs get the table and no verdict;
-    see `pytest_sessionfinish`.
+    Since the session rebuild moved to its own output directory there is nothing
+    left that is *supposed* to write here, so the two measurements above no
+    longer have anything to trigger them: a clean run records nothing at all, in
+    either mode. That is what lets the verdict apply under `-n` too — "this run
+    wrote into the checkout" needs no attribution, only the naming does. The
+    parallel run still says which part it cannot vouch for.
     """
-    return {entry["test"] for entry in entries if not _tolerated(entry["test"])}
+    return {
+        entry["test"] for entry in entries
+        if not _tolerated(entry["test"])
+        and any(not _excused(path) for path in _paths_in(entry))
+    }
+
+
+def _paths_in(entry) -> set[str]:
+    return {*entry["created"], *entry["removed"], *entry["changed"]}
 
 
 def pytest_sessionfinish(session, exitstatus):
@@ -412,28 +445,7 @@ def pytest_sessionfinish(session, exitstatus):
         session.config.workeroutput[_WORKER_WRITE_LOG] = list(_WRITE_LOG)
         return
     entries = [*_WRITE_LOG, *_WRITES_FROM_WORKERS]
-    if _WRITES_FROM_WORKERS:
-        # A parallel run reports and does not judge — see `_offenders`. Before
-        # the join above it did neither: `pytest_sessionfinish` returned on every
-        # worker and the controller's own log is empty because it runs no tests,
-        # so `-n` silently switched this guard off and nothing said so.
-        # Deliberately unnamed. Measured: `pytest tests/test_import_layering.py
-        # -n 2` flags `test_no_workflow_or_script_invokes_a_module_by_a_path_
-        # that_moved`, a read-only module that records nothing serially — under
-        # `-n` a bystander's window simply overlaps someone else's write. Naming
-        # innocents every run is how a warning gets trained out of people, so the
-        # parallel mode reports the count and where to get the answer.
-        if _offenders(entries):
-            reporter = session.config.pluginmanager.get_plugin("terminalreporter")
-            if reporter is not None:
-                reporter.write_line("")
-                reporter.write_line(
-                    "NOTE: published state changed during this -n run. Attribution "
-                    "needs a serial run — under xdist the snapshot is global while "
-                    "the tests are not, so this cannot tell a writer from a "
-                    "bystander. `pytest tests/` without -n is the enforcing run.",
-                    yellow=True)
-        return
+    parallel = bool(_WRITES_FROM_WORKERS)
     offenders = sorted(_offenders(entries))
     if offenders:
         session.exitstatus = 1
@@ -445,9 +457,15 @@ def pytest_sessionfinish(session, exitstatus):
                 f"tolerated list: {offenders}", red=True)
             reporter.write_line(
                 "Point them at an isolated workspace "
-                "(monkeypatch.setenv('CLAWOCK_WORKSPACE', str(tmp_path))) rather "
-                "than adding them to TOLERATED_WRITERS — that list is meant to "
-                "shrink.", red=True)
+                "(monkeypatch.setenv('CLAWOCK_WORKSPACE', str(tmp_path)) or a "
+                "tmp --out-dir) rather than adding them to TOLERATED_WRITERS — "
+                "that list is empty now and is meant to stay that way.", red=True)
+            if parallel:
+                reporter.write_line(
+                    "Under -n the names above are who was RUNNING when the write "
+                    "landed, not necessarily who made it: the snapshot is global "
+                    "while the tests are not. The write itself is real either "
+                    "way; re-run serially to find the writer.", yellow=True)
 
 
 def pytest_terminal_summary(terminalreporter):
@@ -469,11 +487,14 @@ def pytest_terminal_summary(terminalreporter):
                 shown = ", ".join(entry[kind][:4])
                 more = f" (+{len(entry[kind]) - 4} more)" if len(entry[kind]) > 4 else ""
                 parts.append(f"{kind}: {shown}{more}")
-        # `<-- NEW` is an accusation, and under `-n` it lands on bystanders as
-        # often as on writers. The table stays (it is an observation, and a
-        # useful one); the verdict marker does not.
-        mark = ("" if _tolerated(entry["test"]) or _WRITES_FROM_WORKERS
-                else "  <-- NEW")
+        # Every entry is now an event worth reading: nothing in this suite is
+        # supposed to write here any more. Under `-n` the name is who was
+        # running, not provably who wrote — the line printed with the verdict
+        # says so rather than the marker carrying a caveat it cannot express.
+        # The marker has to agree with the verdict, or the table trains people
+        # to ignore it: an entry whose every path is excused is not an offence
+        # and must not wear the accusation.
+        mark = "  <-- NEW" if entry["test"] in _offenders([entry]) else ""
         terminalreporter.write_line(
             f"{entry['test']}{mark}\n    " + "\n    ".join(parts))
 
@@ -507,42 +528,46 @@ def _xdist_worker(config) -> str | None:
 
 
 @pytest.fixture(scope="session")
-def freshly_built_dashboard(request, publish_owned_artifacts_are_left_as_found):
-    """The real builder run once, against the real tree, before anything reads
-    the payload it produces.
+def freshly_built_generation(tmp_path_factory):
+    """The real builder, run against the real tree, into an output nobody shares.
 
-    Depends on the restore guard by name so the snapshot is always taken before
-    the first byte is rewritten — the ordering that keeps the rebuild's residue
-    out of a code PR.
+    It used to write into `assets/data/` — the checkout — and everything awkward
+    about this suite followed from that one fact. A session-scoped fixture is
+    once per PROCESS, and under `-n` every worker is a process, so four builders
+    raced on four non-atomically-written files; the answer was a file lock and a
+    stamp so the build happened once and the other workers waited. That made the
+    race safe and left the sharing in place, and the sharing is what the write
+    guard could never see through: with one worker building into a tree every
+    other worker is watching, a bystander's window overlaps the write and the
+    guard cannot tell it from the writer (#1364 measured both directions).
+
+    `--out-dir` was already there. Given its own output tree the build needs no
+    lock, no stamp and no cross-worker agreement — each session builds its own
+    copy in 2.1s, which is cheaper than the coordination it replaces and is the
+    reason `TOLERATED_WRITERS` is now empty.
+
+    Reads the real tree on purpose, and that has not changed: the
+    money-reconciliation tests compare this payload against the checkout's
+    `portfolio.json`, and building from a copied book would be checking a
+    different book.
+    """
+    out = tmp_path_factory.mktemp("built-generation")
+    subprocess.run([sys.executable, "-m", "clawock.publish.dashboard",
+                    "--out-dir", str(out)],
+                   cwd=ROOT, check=True, capture_output=True,
+                   env={**os.environ, "CLAWOCK_PROFILE": "kcnyu",
+                        "PYTHONPATH": str(ROOT / "src")})
+    return out
+
+
+@pytest.fixture(scope="session")
+def freshly_built_dashboard(freshly_built_generation):
+    """The payload itself.
 
     Returns the path rather than the parsed payload: the callers that matter
-    read it as bytes (the size cap) as well as as JSON, and taking the path
-    from the fixture is what makes each of them state the dependency instead of
-    reaching for a module constant that may or may not be fresh.
+    read it as bytes (the size cap) as well as as JSON, and taking the path from
+    the fixture is what makes each of them state the dependency instead of
+    reaching for a module constant that may or may not be fresh — which is
+    exactly what `test_dashboard_payload_size` was still doing for `overview`.
     """
-    # Session-scoped means once per PROCESS, and under xdist every worker is its
-    # own process — so `-n 4` would run four builders against these same four
-    # files at once. They are not written atomically, and a reader in another
-    # worker can see a half-built payload. A file lock makes the build happen
-    # once per run and makes every other worker wait for it, which is both
-    # correct and no slower than the serial case (#816).
-    lock_path = Path(tempfile.gettempdir()) / "clawock-test-dashboard-build.lock"
-    stamp = lock_path.with_suffix(".stamp")
-    build_id = os.environ.get("PYTEST_XDIST_TESTRUNUID", str(os.getpid()))
-
-    with lock_path.open("a+") as lock:
-        fcntl.flock(lock, fcntl.LOCK_EX)
-        try:
-            already = stamp.read_text(encoding="utf-8") if stamp.exists() else ""
-            if already != build_id:
-                # Run through the source tree explicitly; CI installs first, but a
-                # focused local invocation should exercise the same package
-                # without editable state.
-                subprocess.run([sys.executable, "-m", "clawock.publish.dashboard"],
-                               cwd=ROOT, check=True, capture_output=True,
-                               env={**os.environ, "CLAWOCK_PROFILE": "kcnyu",
-                                    "PYTHONPATH": str(ROOT / "src")})
-                stamp.write_text(build_id, encoding="utf-8")
-        finally:
-            fcntl.flock(lock, fcntl.LOCK_UN)
-    return DASHBOARD
+    return freshly_built_generation / "dashboard.json"

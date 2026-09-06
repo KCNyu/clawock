@@ -361,6 +361,7 @@ jobs:
         if: steps.changes.outputs.code == 'true'
         run: |
           python3 -m pytest tests/ -q \
+            -n auto \
             --durations=20 \
             --cov=clawock.publish.dashboard \
             --cov=clawock.evaluation \

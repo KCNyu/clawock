@@ -90,7 +90,7 @@ release = ["build>=1.2", "twine>=5"]
 # parses .github/ISSUE_TEMPLATE/config.yml as structured data rather than
 # substring-matching it, and a test module that cannot import does not fail —
 # it stops the whole suite at collection while the run still looks like it ran.
-test = ["pytest>=8", "pytest-cov>=5", "Pillow>=10", "PyYAML>=6"]
+test = ["pytest>=8", "pytest-cov>=5", "pytest-xdist>=3", "Pillow>=10", "PyYAML>=6"]
 
 [project.urls]
 Homepage = "https://github.com/KCNyu/clawock"
