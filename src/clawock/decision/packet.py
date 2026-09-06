@@ -17,6 +17,7 @@ import json
 import math
 import os
 import re
+import sys
 from pathlib import Path
 
 from clawock.decision.actions import ACTIVE_ACTIONS
@@ -42,6 +43,9 @@ MAX_QUERY_BYTES = 24 * 1024
 # crossing from being a surprise.
 MAX_SUMMARY_BYTES = 48 * 1024
 SUMMARY_BUDGET_WARN_RATIO = 0.8
+#: The packet ceiling needs the same early word as the summary's; see
+#: the note at the raise in `compile_packet` for why it was missing.
+PACKET_BUDGET_WARN_RATIO = 0.8
 ADD_ALPHA_POLICY = workspace_root() / "config" / "add-alpha-policy.json"
 VERDICTS = {"bullish", "neutral", "bearish", "mixed"}
 DISPOSITIONS = {"candidate", "wait", "reject"}
@@ -283,6 +287,51 @@ def _apply_setup_usage(technical: dict, usage: dict) -> dict:
         setup["remaining_tranches"] = max(0, maximum - used)
         setup["next_tranche_number"] = used + 1 if used < maximum else None
     return technical
+
+
+def _history_view(context: dict, ticker: str) -> dict:
+    """How this ticker's own past calls turned out, as the writer can see it.
+
+    `compute_reflections` settles every episode for a held ticker into a win
+    rate, a per-bucket tally (`加×1 胜0; 持×15 胜9`) and the last three calls
+    with their realised benefit. It has run every morning since the reflections
+    step existed — and it went nowhere a decision could read it. SKILL.md
+    Step 2 makes the packet summary the model's *only standing input*
+    ("bundle 是审计深钻，不是默认模型输入"), and the packet carried no per-ticker
+    outcome history at all: the process writing today's call on CRCL could not
+    see that the last 17 calls on CRCL won 59%, and that the one time it added,
+    it lost.
+
+    That is the shape #1337 fixed for the add side — a signal that exists,
+    is even visible on the dashboard, and has no path into the process that
+    writes decisions.
+
+    The last three calls (`recent`) are deliberately NOT projected either, and
+    the reason is a measurement: the packet baseline is 94,071 of 98,304 bytes,
+    so the whole block has ~4.2KB to live in. Carrying `recent` cost 3,868 and
+    landed 295 bytes under a cap whose overrun is a hard `ValueError` — one more
+    holding and the morning brief gets no packet at all, which is the 2026-08-17
+    failure verbatim. The three tallies below cost 936 bytes for the same
+    decision: what the model needs at write time is "how have my calls on this
+    name gone, and in which buckets", and the blow-by-blow is audit depth, which
+    is what the bundle is for.
+
+    `lesson` is deliberately NOT projected. It is a pre-written sentence
+    ("主动 call 多半没跑赢持有，本次谨慎") and this module's contract is that code
+    owns facts and the model owns the opinion overlay. Handing the model a
+    finished conclusion is the one thing the packet boundary exists to prevent;
+    the numbers it was derived from are all here.
+    """
+    row = (context.get("reflections") or {}).get(ticker) or {}
+    if not row:
+        # Emitted even when empty: "this ticker has no settled episodes yet" and
+        # "history was never wired in" must not look the same to a reader.
+        return {"settled_episodes": 0}
+    return {
+        "settled_episodes": row.get("n"),
+        "win_rate": row.get("win_rate"),
+        "by_action": row.get("bucket_history"),
+    }
 
 
 def _thesis_view(context: dict, ticker: str) -> dict:
@@ -1089,6 +1138,7 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
                 },
             },
             "sentiment": _sentiment_view(sentiment_rows, ticker, source_ticker),
+            "history": _history_view(context, ticker),
             "information": information_view,
             "evidence": matching_events,
             "risk": ticker_risks,
@@ -1295,6 +1345,24 @@ def compile_packet(context: dict, generation_id: str | None = None) -> dict:
     size = len(_compact(packet).encode("utf-8"))
     if size > MAX_PACKET_BYTES:
         raise ValueError(f"decision packet exceeds {MAX_PACKET_BYTES} bytes: {size}")
+    if size > MAX_PACKET_BYTES * PACKET_BUDGET_WARN_RATIO:
+        # 2026-08-17 taught this about the *summary* budget: "Nothing warned on
+        # the way past the line, because the trigger was portfolio growth, not a
+        # code change." `SUMMARY_BUDGET_WARN_RATIO` was the answer — and the
+        # packet's own ceiling never got one, so the lesson stopped at the
+        # smaller of the two numbers.
+        #
+        # Measured 2026-09-06 while adding `history`: the packet was already at
+        # 94,071 of 98,304 bytes (95.7%), i.e. past where the summary's warning
+        # would have fired, with nothing anywhere saying so. Overrunning it is a
+        # hard ValueError in preflight, which is the morning brief getting no
+        # packet at all — so the warning has to arrive while there is still room
+        # to act, not at the wall.
+        print(f"warn: decision packet at {size} bytes is "
+              f"{size / MAX_PACKET_BYTES:.1%} of the {MAX_PACKET_BYTES}-byte "
+              f"ceiling ({len(tickers)} tickers) — overrunning it fails preflight "
+              f"outright, so trim a projection before the next holding lands",
+              file=sys.stderr)
     return packet
 
 
@@ -1384,6 +1452,10 @@ def summary_view(packet: dict) -> dict:
                     .get("usable_for_decisions"),
                 },
                 "early_trend": ((row.get("quant") or {}).get("early_trend") or {}),
+                # The summary — not the full packet — is what SKILL.md Step 2
+                # calls the model's 唯一常驻输入, so a field added to
+                # `compile_packet` and not to this projection reaches nobody.
+                "history": row.get("history"),
                 "risk_count": len(row.get("risk") or []),
                 "constraints": row.get("constraints"),
             }
