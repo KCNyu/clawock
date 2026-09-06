@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-04T16:37:14.551260+00:00",
+  "generated_at": "2026-09-06T23:04:48.229687+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -11,351 +11,180 @@
     "musk": "success",
     "serenity": "failed"
   },
-  "llm_filtered": true,
+  "llm_filtered": false,
   "counts": {
-    "total": 9,
+    "total": 12,
     "held_hits": 0,
-    "new_ideas": 5,
-    "sector_hits": 1
+    "new_ideas": 0,
+    "sector_hits": 0
   },
   "items": [
     {
       "author": "Musk",
-      "text": "Trump administration opens probe into Tesla’s self-driving Cybercab",
+      "text": "SpaceX investors may be overlooking a major risk: There’s no replacing Elon Musk",
       "url": "",
-      "published": "Fri, 04 Sep 2026 14:17:00 GMT",
+      "published": "Wed, 02 Sep 2026 09:00:30 GMT",
       "origin": "gnews-rss",
-      "source": "Politico",
-      "tickers": [
-        "TSLA"
-      ],
+      "source": "CNN",
+      "tickers": [],
       "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "自动驾驶",
-        "Robotaxi",
-        "监管"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 73,
-      "summary_cn": "Trump 政府就 Tesla 自动驾驶 Cybercab 启动调查，监管风险叠加，TSLA 短期承压。"
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
     },
     {
       "author": "Musk",
-      "text": "Feds Open Probe Into Elon Musk’s Autonomous Taxis - News of the United States",
+      "text": "'Deeply troubling' Brownsville shooting follows SpaceX land vote",
       "url": "",
-      "published": "Fri, 04 Sep 2026 15:24:44 GMT",
+      "published": "Sun, 06 Sep 2026 17:35:00 GMT",
       "origin": "gnews-rss",
-      "source": "News of the United States - NOTUS",
-      "tickers": [
-        "TSLA"
-      ],
+      "source": "El Paso Times",
+      "tickers": [],
       "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "自动驾驶",
-        "Robotaxi",
-        "监管"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 72,
-      "summary_cn": "美联邦对 Musk 旗下自动驾驶出租车（Tesla Cybercab）开启调查，监管不确定性利空 TSLA。"
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
     },
     {
       "author": "Musk",
-      "text": "Tesla Begins Offering Rides in a Car Without a Steering Wheel",
+      "text": "Elon Musk's Tesla Cybertruck Has A New Ford Rival That Wants To Outsell It 5-To-1",
       "url": "",
-      "published": "Fri, 04 Sep 2026 12:25:00 GMT",
+      "published": "Sun, 06 Sep 2026 16:00:16 GMT",
       "origin": "gnews-rss",
-      "source": "The New York Times",
-      "tickers": [
-        "TSLA"
-      ],
+      "source": "Yahoo Finance",
+      "tickers": [],
       "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "自动驾驶",
-        "Robotaxi"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 65,
-      "summary_cn": "Tesla 启动无方向盘车型的自动驾驶载客服务，Robotaxi 商业化落地，对 TSLA 偏利好。"
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
     },
     {
       "author": "Musk",
-      "text": "Musk launches steering-wheel-free taxi service in bet riders lose 'no control' fears and hop inside",
+      "text": "Elon Musk Says His New Foundry Can Get Gas Turbines Online 18 Months Faster. Here's What This \"Profound Game Changer\" Would Mean for SpaceX and Tesla.",
       "url": "",
-      "published": "Fri, 04 Sep 2026 01:42:00 GMT",
+      "published": "Sun, 06 Sep 2026 02:30:00 GMT",
       "origin": "gnews-rss",
-      "source": "AP News",
-      "tickers": [
-        "TSLA"
-      ],
+      "source": "The Motley Fool",
+      "tickers": [],
       "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "自动驾驶",
-        "Robotaxi"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 62,
-      "summary_cn": "Musk 推出无方向盘出租车服务，力推乘客克服'失控'顾虑上车，利好 TSLA Robotaxi 叙事。"
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk’s Inner Circle Is Pouring Cash Into Making Psychedelics Mainstream",
+      "url": "",
+      "published": "Sat, 05 Sep 2026 16:00:00 GMT",
+      "origin": "gnews-rss",
+      "source": "WSJ",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
     },
     {
       "author": "Musk",
       "text": "Tesla’s Cybercab robotaxi has hit the streets. Regulators have questions.",
       "url": "",
-      "published": "Fri, 04 Sep 2026 16:32:22 GMT",
+      "published": "Fri, 04 Sep 2026 21:45:53 GMT",
       "origin": "gnews-rss",
       "source": "The Washington Post",
-      "tickers": [
-        "TSLA"
-      ],
+      "tickers": [],
       "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "自动驾驶",
-        "Robotaxi"
-      ],
-      "sector_holdings": [],
+      "new_ideas": [],
       "stance": "neutral",
-      "relevance": 60,
-      "summary_cn": "Tesla Cybercab robotaxi 上路，监管机构存疑，对 TSLA 既是里程碑也是潜在监管风险点。"
+      "relevance": null,
+      "summary_cn": ""
     },
     {
       "author": "Musk",
-      "text": "SpaceX’s Turbine Blades Harken New Era of DIY Supply Chains",
+      "text": "Walkinshaw, Thompson Demand Elon Musk Testify Under Oath After GAO Finds DOGE-Driven DHS Savings Claims Vastly Overstated",
       "url": "",
-      "published": "Fri, 04 Sep 2026 14:00:08 GMT",
+      "published": "Fri, 04 Sep 2026 21:04:39 GMT",
       "origin": "gnews-rss",
-      "source": "Bloomberg.com",
+      "source": "House Homeland Democrats (.gov)",
       "tickers": [],
       "held": [],
       "new_ideas": [],
-      "sectors": [
-        "航天",
-        "供应链"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
-      "relevance": 60,
-      "summary_cn": "SpaceX 自研涡轮叶片、打造 DIY 供应链，利好其长期降本与估值，间接利好 kcn 持有的 SPCX/SPCH（SpaceX 敞口）。"
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Musk",
+      "text": "Musk’s xAI loses court bid to block Minnesota's AI ‘nudification’ ban",
+      "url": "",
+      "published": "Fri, 04 Sep 2026 20:11:05 GMT",
+      "origin": "gnews-rss",
+      "source": "Reuters",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
     },
     {
       "author": "Trump",
-      "text": "Great jobs number just announced, breaking all estimates (except mine!) by double and triple - And you haven’t seen anything yet! EMPLOYERS ADDED 162,000 JOB IN AUGUST. Lower the interest rates because the U.S.A. is a much stronger credit than it was just a short time ago! A STRONG COUNTRY MEANS A LOWER INTEREST RATE - IT’S A BETTER CREDIT…Very simple! We should have the LOWEST RATE of any country in the World, like “the old days.” Without the United States agreeing to allow them their big surpluses, and we could stop that immediately, they would no longer be considered financially ELITE! LOWE",
-      "url": "https://trumpstruth.org/statuses/41509",
-      "published": "2026-09-04T13:41:46+00:00",
+      "text": "I do this for our Country, not myself. I’ve made Hundreds of Billions of Dollars on Stocks, and many other type Holdings, for the U.S.A., not myself, and all I do is get criticized by the Radical Left Dumocrats. Very unfair, but what can you do! President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/41565",
+      "published": "2026-09-06T19:17:16+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
-      "sectors": [
-        "宏观利率",
-        "就业",
-        "美联储"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 75,
-      "summary_cn": "Trump 吹嘘8月非农新增16.2万超预期，并施压美联储降息，称强美国信用应享最低利率，利好风险资产、利空美元。"
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
     },
     {
       "author": "Trump",
-      "text": "It is very good for Canadian Politicians like Prime Minister Carney to make President Donald J. Trump “the enemy,” until their Economy collapses, then it will prove to be very bad for Politics — Worse than anything that has ever happened to a Canadian Politician. Just watch! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/41496",
-      "published": "2026-09-03T15:14:24+00:00",
+      "text": "Upon his death, I gave Congressman John Dingell, the Royal Sendoff, MAXED OUT! His wife, Debbie Dingbat, called me and thanked me profusely, while crying uncontrollably. She couldn’t believe I would do such a nice thing! Since then, she says nothing but bad about your favorite President, ME! Every time I see that Third Rate Loser ripping me, I’m amazed, because I’m a loyal person, I don’t do things like that but, that’s OK — It’s Politics. However, it shouldn’t be that way! President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/41543",
+      "published": "2026-09-06T18:44:52+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
-      "sectors": [
-        "关税",
-        "加美贸易"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 55,
-      "summary_cn": "Trump 威胁加拿大总理 Carney，称把 Trump 当敌人将损害加拿大经济，暗示加美贸易/关税博弈持续。"
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
     },
     {
       "author": "Trump",
-      "text": "For the treasonous SCUM that refuses to accurately report on our Military Operation in Iran, we have virtually unlimited amounts of Mid to High Grade Ammunition, far more than we could ever use for this, or for any other War (which is highly unlikely!), that could improbably take place. In addition, we are producing Munitions at levels never seen before. We are stockpiling and preparing for any contingency that could happen. We are taking them for ourselves, the U.S.A., rather than selling them to others, but the sales to Allies will soon again, begin. Also, please let it be known, that the Bi",
-      "url": "https://trumpstruth.org/statuses/41494",
-      "published": "2026-09-03T14:56:21+00:00",
+      "text": "Canada’s (currency) Dollar imbalance with the U.S. is unacceptable. It has been that way for years - but no longer! President DJT",
+      "url": "https://trumpstruth.org/statuses/41532",
+      "published": "2026-09-06T13:10:13+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
-      "sectors": [
-        "国防军工",
-        "伊朗地缘"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 50,
-      "summary_cn": "Trump 称美国军工生产/弹药库存创纪录、暂缓对外军售，涉伊朗军事行动背景，军工板块情绪正面。"
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Trump",
+      "text": "The Greatest RALLY of them all! I’ll be speaking on night one, and hanging around for an earlier closing, and lots of music, on night two!!! See you in Dallas. President DJT",
+      "url": "https://trumpstruth.org/statuses/41523",
+      "published": "2026-09-05T02:09:41+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
     }
   ],
   "held_hits": [],
-  "new_ideas": [
-    {
-      "author": "Musk",
-      "text": "Trump administration opens probe into Tesla’s self-driving Cybercab",
-      "url": "",
-      "published": "Fri, 04 Sep 2026 14:17:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Politico",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "自动驾驶",
-        "Robotaxi",
-        "监管"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 73,
-      "summary_cn": "Trump 政府就 Tesla 自动驾驶 Cybercab 启动调查，监管风险叠加，TSLA 短期承压。"
-    },
-    {
-      "author": "Musk",
-      "text": "Feds Open Probe Into Elon Musk’s Autonomous Taxis - News of the United States",
-      "url": "",
-      "published": "Fri, 04 Sep 2026 15:24:44 GMT",
-      "origin": "gnews-rss",
-      "source": "News of the United States - NOTUS",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "自动驾驶",
-        "Robotaxi",
-        "监管"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 72,
-      "summary_cn": "美联邦对 Musk 旗下自动驾驶出租车（Tesla Cybercab）开启调查，监管不确定性利空 TSLA。"
-    },
-    {
-      "author": "Musk",
-      "text": "Tesla Begins Offering Rides in a Car Without a Steering Wheel",
-      "url": "",
-      "published": "Fri, 04 Sep 2026 12:25:00 GMT",
-      "origin": "gnews-rss",
-      "source": "The New York Times",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "自动驾驶",
-        "Robotaxi"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 65,
-      "summary_cn": "Tesla 启动无方向盘车型的自动驾驶载客服务，Robotaxi 商业化落地，对 TSLA 偏利好。"
-    },
-    {
-      "author": "Musk",
-      "text": "Musk launches steering-wheel-free taxi service in bet riders lose 'no control' fears and hop inside",
-      "url": "",
-      "published": "Fri, 04 Sep 2026 01:42:00 GMT",
-      "origin": "gnews-rss",
-      "source": "AP News",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "自动驾驶",
-        "Robotaxi"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 62,
-      "summary_cn": "Musk 推出无方向盘出租车服务，力推乘客克服'失控'顾虑上车，利好 TSLA Robotaxi 叙事。"
-    },
-    {
-      "author": "Musk",
-      "text": "Tesla’s Cybercab robotaxi has hit the streets. Regulators have questions.",
-      "url": "",
-      "published": "Fri, 04 Sep 2026 16:32:22 GMT",
-      "origin": "gnews-rss",
-      "source": "The Washington Post",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "自动驾驶",
-        "Robotaxi"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 60,
-      "summary_cn": "Tesla Cybercab robotaxi 上路，监管机构存疑，对 TSLA 既是里程碑也是潜在监管风险点。"
-    }
-  ],
-  "sector_hits": [
-    {
-      "author": "Musk",
-      "text": "SpaceX’s Turbine Blades Harken New Era of DIY Supply Chains",
-      "url": "",
-      "published": "Fri, 04 Sep 2026 14:00:08 GMT",
-      "origin": "gnews-rss",
-      "source": "Bloomberg.com",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "供应链"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
-      "relevance": 60,
-      "summary_cn": "SpaceX 自研涡轮叶片、打造 DIY 供应链，利好其长期降本与估值，间接利好 kcn 持有的 SPCX/SPCH（SpaceX 敞口）。"
-    }
-  ]
+  "new_ideas": [],
+  "sector_hits": []
 }
