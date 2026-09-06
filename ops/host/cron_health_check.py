@@ -73,6 +73,9 @@ HEARTBEAT_SNAP_MINUTES = 15
 DASHBOARD_STATE_ICONS = {
     'ok': '✓', 'repaired': '🔧', 'degraded': '⚠', 'stale': '⚠',
     'failed': '✗', 'absent': '·',
+    # A reading that is real but too old to describe now. '·', not '⚠': see
+    # `publish_backlog` for why an unknown is not an alarm here.
+    'stale-measurement': '·',
 }
 
 # Cron name → identifying commit msg patterns
@@ -209,7 +212,35 @@ def load_runtime_jobs(jobs_file=None):
 UNPUSHED_WARN_COMMITS = 3
 
 
-def publish_backlog(ledger):
+#: How old a heartbeat's measurement may be and still describe *now*.
+#:
+#: Only the intraday postflight carries `unpushed_commits`, so the newest
+#: reading on a Sunday afternoon is Friday night's — the crons that would
+#: refresh it do not run on a closed market. 24h keeps a weekday reading
+#: current and stops a weekend from presenting Friday as today.
+BACKLOG_MEASUREMENT_MAX_AGE_H = 24
+
+
+def _measured_at(event):
+    """When this heartbeat was written, or None if it cannot be read.
+
+    `updated_at` is the write time; `slot` is the scheduled boundary it belongs
+    to and is the fallback, because it is the field the ledger is sorted and
+    pruned by and so is always present.
+    """
+    for key in ('updated_at', 'slot'):
+        raw = event.get(key)
+        if not raw:
+            continue
+        try:
+            stamp = datetime.fromisoformat(raw)
+        except (TypeError, ValueError):
+            continue
+        return stamp if stamp.tzinfo else stamp.replace(tzinfo=HKT)
+    return None
+
+
+def publish_backlog(ledger, now=None):
     """The newest heartbeat's view of commits the host never published (#1241).
 
     This gate runs on GitHub Actions, against artifacts that were published. A
@@ -223,17 +254,43 @@ def publish_backlog(ledger):
     that could not run git. Absent is reported as absent, never as zero: the
     whole failure being guarded here is a lane that looked fine because nobody
     was looking at it.
+
+    **`state: stale-measurement` when the reading is older than
+    BACKLOG_MEASUREMENT_MAX_AGE_H.** A number with no age attached is presented
+    as the current state, and this one ages the moment the intraday crons stop:
+    on 2026-09-06 the line read "6 commit(s) committed here and never published
+    — check what pre-push is refusing" for the whole weekend, from a Friday
+    02:43 heartbeat, while the checkout had been at `origin/master..HEAD == 0`
+    for over a day. There was nothing to check, and an instruction to go look at
+    something that is not wrong is how a health line stops being read.
+
+    Stale does not escalate. The host measures this live every twenty minutes in
+    `system_check.check_publish_backlog`, which is the authority whenever this
+    mirror can only see history — and a host silent long enough for the reading
+    to age is already saying so through the missing-cron lines above.
     """
+    now = now or datetime.now(timezone.utc)
     for event in reversed(ledger.get('events') or []):
         count = event.get('unpushed_commits')
         if count is None:
             continue
+        measured_at = _measured_at(event)
+        age_h = (None if measured_at is None
+                 else (now - measured_at).total_seconds() / 3600.0)
+        reading = f'{count} unpushed' if count else 'nothing unpushed'
+        if age_h is not None and age_h > BACKLOG_MEASUREMENT_MAX_AGE_H:
+            return {'state': 'stale-measurement', 'count': count,
+                    'age_hours': round(age_h, 1),
+                    'detail': f'last measured {age_h:.0f}h ago: {reading} — no '
+                              f'heartbeat since, so this is history not now'}
         if count >= UNPUSHED_WARN_COMMITS:
             return {'state': 'degraded', 'count': count,
+                    'age_hours': None if age_h is None else round(age_h, 1),
                     'detail': f'{count} commit(s) committed here and never '
                               f'published — check what pre-push is refusing'}
         return {'state': 'ok', 'count': count,
-                'detail': f'{count} unpushed' if count else 'nothing unpushed'}
+                'age_hours': None if age_h is None else round(age_h, 1),
+                'detail': reading}
     return {'state': 'absent', 'count': None,
             'detail': 'no heartbeat carries unpushed_commits (older host?)'}
 
@@ -724,7 +781,7 @@ def main():
     # A backlog is a warn, never a miss: the commits exist and nothing was lost,
     # what failed is that they never left the machine. Escalating it to exit 1
     # would redden a day whose reports all went out (#1241).
-    backlog = publish_backlog(heartbeat_ledger)
+    backlog = publish_backlog(heartbeat_ledger, now=now)
     if backlog['state'] == 'degraded':
         has_warn = True
 

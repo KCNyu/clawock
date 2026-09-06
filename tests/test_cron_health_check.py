@@ -430,14 +430,20 @@ def test_a_us_holiday_suppresses_the_previous_evening_slots_without_a_red(monkey
 # stayed green. Only the host can measure it; it carries the number in the
 # heartbeat and these read it.
 
+#: The heartbeats below are written between 10:00 and 19:00 HKT on 2026-08-31;
+#: judge them from that evening, i.e. while they still describe the machine.
+_JUDGED_AT = datetime(2026, 8, 31, 20, 0, tzinfo=ZoneInfo("Asia/Hong_Kong"))
+
+
 def _ledger(*counts):
     return {"events": [{"slot": f"2026-08-31T1{i}:00:00+08:00",
+                        "updated_at": f"2026-08-31T1{i}:05:00+08:00",
                         **({} if count is None else {"unpushed_commits": count})}
                        for i, count in enumerate(counts)]}
 
 
 def test_a_backlog_the_size_of_the_incident_is_degraded():
-    result = cron_health_check.publish_backlog(_ledger(0, 6))
+    result = cron_health_check.publish_backlog(_ledger(0, 6), now=_JUDGED_AT)
 
     assert result["state"] == "degraded"
     assert result["count"] == 6
@@ -445,14 +451,58 @@ def test_a_backlog_the_size_of_the_incident_is_degraded():
 
 
 def test_a_normal_publish_cycle_is_not_a_backlog():
-    assert cron_health_check.publish_backlog(_ledger(0, 1))["state"] == "ok"
+    assert cron_health_check.publish_backlog(
+        _ledger(0, 1), now=_JUDGED_AT)["state"] == "ok"
 
 
 def test_only_the_newest_heartbeat_that_carries_the_field_decides():
     """An old degraded reading must not outlive the recovery that followed it."""
-    result = cron_health_check.publish_backlog(_ledger(9, 9, 0))
+    result = cron_health_check.publish_backlog(_ledger(9, 9, 0), now=_JUDGED_AT)
 
     assert (result["state"], result["count"]) == ("ok", 0)
+
+
+def test_a_reading_older_than_the_heartbeats_that_refresh_it_is_not_now():
+    """Measured 2026-09-06: the line read "6 commit(s) committed here and never
+    published — check what pre-push is refusing" all weekend, off a Friday 02:43
+    heartbeat, while `origin/master..HEAD` had been 0 for over a day. Only the
+    intraday postflight writes this number, and those crons do not run on a
+    closed market, so the reading ages every weekend by design.
+
+    An instruction to go look at something that is not wrong is how a health
+    line stops being read.
+    """
+    stale = _JUDGED_AT + timedelta(hours=40)
+    result = cron_health_check.publish_backlog(_ledger(0, 6), now=stale)
+
+    assert result["state"] == "stale-measurement"
+    assert result["count"] == 6, "the last reading is still worth carrying"
+    assert result["age_hours"] > cron_health_check.BACKLOG_MEASUREMENT_MAX_AGE_H
+    assert "history not now" in result["detail"]
+    assert "pre-push" not in result["detail"], (
+        "a stale reading must not tell anyone to go check a refusal that has "
+        "had a day and a half to clear")
+
+
+def test_a_stale_reading_is_printed_as_nothing_to_do():
+    """`⚠` is a claim that something is wrong, and "I last looked on Friday" is
+    not one. The host measures this live every twenty minutes in
+    `system_check.check_publish_backlog`, so the mirror escalating its own
+    unknown would fire every weekend and mean nothing both times."""
+    assert cron_health_check.DASHBOARD_STATE_ICONS["stale-measurement"] == "·"
+    assert cron_health_check.publish_backlog(
+        _ledger(0, 6), now=_JUDGED_AT + timedelta(hours=40)
+    )["state"] != "degraded", "only a fresh reading may escalate"
+
+
+def test_a_measurement_with_no_timestamp_is_still_judged():
+    """`updated_at` is the write time and `slot` the boundary it belongs to;
+    an event carrying neither cannot be aged, and a backlog that cannot be aged
+    is still a backlog."""
+    ledger = {"events": [{"unpushed_commits": 6}]}
+
+    assert cron_health_check.publish_backlog(ledger, now=_JUDGED_AT)["state"] == (
+        "degraded")
 
 
 def test_a_host_that_cannot_measure_it_is_absent_not_zero():
