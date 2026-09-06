@@ -59,11 +59,44 @@ def test_prs_are_never_cancelled_and_master_never_is():
         "part of the ledger and never are")
 
 
-def test_smoke_data_fetch_only_boots_for_code_changes():
-    """A docs-only PR used to pay a full pip install plus two live FX providers."""
-    job = TEXT.split("\n  smoke-data-fetch:", 1)[1].split("\n  analyze:", 1)[0]
-    assert "needs: validate" in job
-    assert "if: needs.validate.outputs.code == 'true'" in job
+def _job(name):
+    rest = TEXT.split(f"\n  {name}:", 1)[1]
+    return rest.split("\n  analyze:", 1)[0].split("\n  portable-workflow:", 1)[0]
+
+
+def test_smoke_data_fetch_does_no_work_for_a_docs_only_change():
+    """A docs-only PR must not pay a pip install plus two live FX providers.
+
+    Asserted on the steps rather than on the job's `needs:`. The gate used to be
+    `if: needs.validate.outputs.code == 'true'` at job level, which bought this
+    property by making the job wait for ALL of validate — 170s for a boolean a
+    1s script produces (measured on run 34020103495). The lane is decided in the
+    job now; what must not come back is the work happening on a docs-only PR.
+    """
+    job = _job("smoke-data-fetch")
+    assert "python3 ops/ci/push_scope.py" in job, (
+        "the job must decide its own lane rather than waiting for validate's")
+    for step in ("clawock-python", "smoke_fx.py", "smoke_reddit.py"):
+        head = job.split(step, 1)[0]
+        assert "steps.changes.outputs.code == 'true'" in head.rsplit("- name:", 1)[-1], (
+            f"{step} runs without the code-lane gate; a docs-only PR pays for it")
+
+
+def test_nothing_waits_for_validate_just_to_read_its_lane():
+    """The two lane-gated jobs run beside validate, not after it.
+
+    `needs: validate` on a job that only reads `needs.validate.outputs.code` puts
+    the whole test suite on its critical path for a value that is available in a
+    second. Run 34020103495: validate 170s, portable-workflow 41s, wall 217s,
+    with the 41s starting only when the 170s finished.
+    """
+    for name in ("smoke-data-fetch", "portable-workflow"):
+        job = _job(name)
+        assert "needs: validate" not in job, (
+            f"{name} is serialised behind the whole test suite to read one boolean")
+    # The one that genuinely consumes validate's artifact keeps its edge.
+    assert "needs: validate" in _job("publish-coverage"), (
+        "publish-coverage downloads coverage-report.json and must not outlive it")
 
 
 def test_coverage_publish_chain_reads_the_lane_that_produces_the_artifact():

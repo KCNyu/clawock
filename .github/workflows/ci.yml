@@ -655,25 +655,43 @@ jobs:
   smoke-data-fetch:
     runs-on: ubuntu-latest
     timeout-minutes: 5
-    needs: validate
-    # Only worth a runner when code changed: a docs-only PR used to pay a full
-    # pip install plus two live FX providers for a probe that cannot be about
-    # the docs. The lane answer comes from validate's detector via its job
-    # output, so no second checkout is spent deciding this.
-    if: needs.validate.outputs.code == 'true'
+    # Only worth the work when code changed: a docs-only PR should not pay a pip
+    # install plus two live FX providers for a probe that cannot be about the
+    # docs. That lane used to be read from `validate`'s job output, which meant
+    # waiting for all of validate to learn it — so the decision is made here now,
+    # by the same one-second script, and the steps below carry the gate instead
+    # of the job.
     continue-on-error: true  # data sources can be flaky; don't fail the pipeline
     steps:
       - uses: actions/checkout@v7
 
+      # The lane, decided here rather than inherited from `validate`. It used to
+      # arrive as `needs.validate.outputs.code`, which cost this job the WHOLE of
+      # validate before it could start: 170s of waiting for a boolean that a 1s
+      # step produces. Measured 2026-09-06 on run 34020103495 — validate 170s,
+      # this job 41s, wall clock 217s, and the two were in series for no reason
+      # but where the value happened to live.
+      - name: Detect code changes
+        id: changes
+        env:
+          BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+          HEAD_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+        run: |
+          python3 ops/ci/push_scope.py --base "$BASE_SHA" --head "$HEAD_SHA" \
+            | tee -a "$GITHUB_OUTPUT"
+
       - name: Set up clawock (Python)
+        if: steps.changes.outputs.code == 'true'
         uses: ./.github/actions/clawock-python
 
       - name: FX fallback chain
+        if: steps.changes.outputs.code == 'true'
         run: python3 ops/ci/smoke_fx.py
 
       # Answers the question #1237 left open: the replacement Reddit endpoint
       # was verified from the project VPS, and the producer runs here.
       - name: Reddit search feed reachability
+        if: steps.changes.outputs.code == 'true'
         run: python3 ops/ci/smoke_reddit.py
 
   portable-workflow:
@@ -694,12 +712,51 @@ jobs:
     # rewrites the "Run it on your own book" block must still face it. ~40s.
     runs-on: ubuntu-latest
     timeout-minutes: 8
-    needs: validate
-    if: >-
-      ${{ github.event_name == 'pull_request'
-          || needs.validate.outputs.code == 'true' }}
     steps:
       - uses: actions/checkout@v7
+
+      # The lane, decided here rather than inherited from `validate`. It used to
+      # arrive as `needs.validate.outputs.code`, which cost this job the WHOLE of
+      # validate before it could start: 170s of waiting for a boolean that a 1s
+      # step produces. Measured 2026-09-06 on run 34020103495 — validate 170s,
+      # this job 41s, wall clock 217s, and the two were in series for no reason
+      # but where the value happened to live.
+      - name: Detect code changes
+        id: changes
+        env:
+          BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
+          HEAD_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+        run: |
+          python3 ops/ci/push_scope.py --base "$BASE_SHA" --head "$HEAD_SHA" \
+            | tee -a "$GITHUB_OUTPUT"
+        # A pull request runs this job regardless — see the paragraph above — so
+        # the lane only decides the push case. Reading it from `validate`'s
+        # output made every PR wait 170s for an answer it was not going to use.
+
+      # Derived in its own step rather than written into each gate below,
+      # because `test_the_heavy_lanes_are_not_gated_on_the_event_that_started
+      # _the_run` forbids `github.event_name` inside a `steps.changes.outputs.*`
+      # condition — and it is right to. That is the #750 shape: those gates read
+      # `event_name == 'pull_request' && changes...` while the detector itself
+      # was PR-only, so on a master push the detector was skipped, the ANDs went
+      # false, and the two most expensive gates in the repository never ran
+      # outside a PR.
+      #
+      # This is the opposite direction — an OR that makes the job run MORE, over
+      # a detector that runs on every event — but a rule that has to be reasoned
+      # about at each call site is a rule that gets it wrong once. So the event
+      # is folded in here, once, and the gates below read one boolean.
+      - name: Lane for this job
+        id: lane
+        env:
+          CODE: ${{ steps.changes.outputs.code }}
+          EVENT: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT" = "pull_request" ] || [ "$CODE" = "true" ]; then
+            echo "run=true" | tee -a "$GITHUB_OUTPUT"
+          else
+            echo "run=false" | tee -a "$GITHUB_OUTPUT"
+          fi
 
       # Same install as release.yml's build job — `build` is declared in the
       # `release` extra, not hand-written here (tests/test_workspace_portability
@@ -708,17 +765,21 @@ jobs:
       # their own virtualenv and assert that the `clawock` they import came
       # from it, so this cannot be what makes them pass.
       - name: Set up clawock (Python)
+        if: steps.lane.outputs.run == 'true'
         uses: ./.github/actions/clawock-python
         with:
           install: '.[release]'
 
       - name: Build the wheel under test
+        if: steps.lane.outputs.run == 'true'
         run: python -m build --wheel --outdir dist
 
       - name: Foreign workspace publishes a real decision.json
+        if: steps.lane.outputs.run == 'true'
         run: examples/cli/workflow-run/run.sh dist/*.whl
 
       - name: Isolated install completes one base run
+        if: steps.lane.outputs.run == 'true'
         # The release-time check, moved forward to the PR that would break it.
         run: examples/cli/minimal-run/run.sh dist/*.whl
 
