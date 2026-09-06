@@ -100,8 +100,24 @@ def test_only_scheduled_workflows_are_assessed():
     assert result["scheduled_workflows"] == len(calls)
 
 
-def test_the_rollup_never_fails_its_host_job(capsys):
-    assert wh.main(["--json"]) == 0 or True       # exit code is always 0 by contract
+def test_the_rollup_never_fails_its_host_job(capsys, monkeypatch):
+    """Exit 0 whatever the rollup found — and without asking GitHub.
+
+    This used to call `wh.main(["--json"])` bare, so every run of the unit suite
+    shelled out to `gh` once per tracked workflow and waited on the network:
+    18.1s on 2026-09-06, and an answer that depended on this host's `gh` auth and
+    on GitHub being up. The assertion never looked at the result (`== 0 or True`
+    cannot fail), so all of that bought nothing.
+
+    `report()` already takes a `runner`, which is the seam the rest of this
+    module tests through; `main` reaches it via the same provider. Feeding it a
+    canned failure is a stronger version of the same claim: the rollup returns 0
+    even when what it found is bad.
+    """
+    monkeypatch.setattr(wh, "fetch_runs",
+                        lambda workflow, limit=20, runner=None: [
+                            run("failure", 1), run("failure", 2)])
+    assert wh.main(["--json"]) == 0
     source = (ROOT / "ops" / "ci" / "workflow_health.py").read_text()
     assert "Report only: a weekly rollup must not fail the job it runs inside." in source
 

@@ -62,7 +62,8 @@ def test_exact_contract_is_an_idempotent_noop():
     assert errors == []
 
 
-def test_drift_plan_and_command_patch_only_declared_fields():
+def test_drift_plan_and_command_patch_only_declared_fields(
+        resolves_the_real_openclaw_binary):
     data = contract()
     live = live_from_contract(data)
     job = next(item for item in live if item["name"] == "美股盘中盯盘")
@@ -165,7 +166,8 @@ def test_running_changed_job_is_a_precondition_error():
     ]
 
 
-def test_apply_stops_at_first_failure_and_uses_argv():
+def test_apply_stops_at_first_failure_and_uses_argv(
+        resolves_the_real_openclaw_binary):
     changes = [
         {
             "id": "one",

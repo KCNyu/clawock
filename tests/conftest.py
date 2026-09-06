@@ -213,6 +213,64 @@ _WRITE_LOG = []
 _LAST_SEEN = {}
 
 
+#: A path that cannot exist, so `openclaw` resolution fails the way it does on
+#: every machine that has no runtime installed — which is every CI runner.
+_NO_OPENCLAW_BINARY = "/nonexistent/clawock-tests-have-no-openclaw"
+
+
+def pytest_configure(config):
+    """No test reaches the live OpenClaw runtime, on any host.
+
+    `providers.openclaw.cron_cli_json` shells out to `openclaw cron … --json`,
+    and that round-trips through the gateway: the module's own comment measures
+    it at ~42s on a loaded host, and 4.6s is ordinary. CI never paid it, because
+    no runner has `openclaw` on PATH and the call fails immediately — so the
+    suite's cost on the one machine that DOES have the runtime was invisible to
+    everything that watches the suite.
+
+    Measured 2026-09-06 on the live box:
+
+        tests/test_brief_watchdog_retry_budget.py     39.4s -> 4.5s   (17 passed)
+
+    Speed is the smaller half. The larger half is that those runs were reaching
+    the real cron of the live trading host to decide what a *unit test* asserted:
+    `alert_brief_missing` stubs `brief_cron_job_state` but calls `brief_cron_job`
+    as well, and nothing stubbed that. A test whose answer depends on whether
+    this particular host has a healthy runtime is a test that means something
+    different for every person who runs it — the same complaint as the two
+    guarantees above, one layer out.
+
+    `CLAWOCK_OPENCLAW_BIN` is the documented override, so this uses the public
+    seam rather than patching the module. A test that genuinely wants the real
+    binary sets the variable itself; `monkeypatch.setenv` inside a test wins over
+    the value planted here.
+    """
+    os.environ.setdefault("CLAWOCK_OPENCLAW_BIN", _NO_OPENCLAW_BINARY)
+
+
+@pytest.fixture
+def resolves_the_real_openclaw_binary(monkeypatch):
+    """Opt out of the sentinel above, for tests that are ABOUT the binary path.
+
+    `providers.openclaw` has two ways to name the runtime: `OPENCLAW_BIN`, a
+    module constant from `shutil.which` computed at import and blind to the
+    environment, and `runtime_paths().binary`, which honours
+    `CLAWOCK_OPENCLAW_BIN`. Tests that assert "the argv we built starts with the
+    binary" compare the first against a call that used the second, so planting a
+    sentinel in the environment makes them disagree about a thing neither is
+    really testing.
+
+    Pinning the override to the constant makes the two agree by construction,
+    which is what those tests always assumed and never said.
+    """
+    monkeypatch.setenv("CLAWOCK_OPENCLAW_BIN", _openclaw_module().OPENCLAW_BIN)
+
+
+def _openclaw_module():
+    from clawock.providers import openclaw  # noqa: PLC0415 - after sys.path setup
+    return openclaw
+
+
 def pytest_sessionstart(session):
     """Baseline before ANY fixture runs.
 
