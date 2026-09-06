@@ -285,7 +285,8 @@ permalink: /decimap/
   </div>
 
   <div class="dm-scrim" id="dm-scrim" hidden></div>
-  <aside class="dm-drawer" id="dm-drawer" aria-hidden="true" aria-label="决策详情">
+  <aside class="dm-drawer" id="dm-drawer" role="dialog" aria-modal="true"
+         aria-hidden="true" aria-label="决策详情">
     <button class="dm-close" type="button" id="dm-close" aria-label="关闭">&times;</button>
     <div id="dm-drawer-body"></div>
   </aside>
@@ -570,11 +571,40 @@ permalink: /decimap/
       || '<p class="dm-sub" style="padding:10px 12px">没有匹配的票。</p>';
   }
 
+  // The drawer is modal: a scrim covers the page and Escape closes it. Until
+  // #1350 that was true for the mouse only — nothing stopped Tab from walking
+  // straight out of the drawer into the board behind the scrim, and closing
+  // dropped focus on <body>, so a keyboard reader lost their place in a 741-row
+  // table and had to start over.
+  //
+  // `inert` on the siblings is how the main dashboard already does this
+  // (dashboard.hero.js:1510, dashboard.render.js:2821): it removes the
+  // background from the tab order and from the accessibility tree in one
+  // attribute, so the trap needs no keydown handler of its own to maintain.
+  // The drawer and its scrim are children of #decimap too, so they are skipped
+  // by identity rather than by making the whole container inert.
+  let drawerReturnFocus = null;
+
+  function setBackgroundInert(on) {
+    const root = el('decimap');
+    const drawer = el('dm-drawer');
+    const scrim = el('dm-scrim');
+    if (!root) return;
+    for (const child of root.children) {
+      if (child === drawer || child === scrim) continue;
+      child.inert = on;
+    }
+  }
+
   function showDrawer(html) {
+    // Captured before focus moves, so closing can put the reader back on the
+    // cell or timeline marker they opened — not on <body>.
+    drawerReturnFocus = document.activeElement;
     el('dm-drawer-body').innerHTML = html;
     el('dm-drawer').classList.add('is-open');
     el('dm-drawer').setAttribute('aria-hidden', 'false');
     el('dm-scrim').hidden = false;
+    setBackgroundInert(true);
     el('dm-close').focus();
   }
 
@@ -673,6 +703,12 @@ permalink: /decimap/
     el('dm-drawer').classList.remove('is-open');
     el('dm-drawer').setAttribute('aria-hidden', 'true');
     el('dm-scrim').hidden = true;
+    setBackgroundInert(false);
+    // Lift inert before restoring focus: focus() on an inert element is a no-op.
+    if (drawerReturnFocus && document.contains(drawerReturnFocus)) {
+      drawerReturnFocus.focus();
+    }
+    drawerReturnFocus = null;
   }
 
   function renderAll() { renderKpi(); renderBoard(); renderTimeline(); }
