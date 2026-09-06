@@ -97,3 +97,54 @@ def test_the_sort_button_has_a_visible_focus_ring():
     assert re.search(r"\.sort-btn:focus-visible\s*\{[^}]*outline:", CSS), (
         "the sort button has no :focus-visible outline; the holdings rows next "
         "to it have had one since they became focusable")
+
+
+# Every attribute the tab machinery sets on a `.panel` is a claim about what
+# that panel is doing. A claim with no rule behind it is invisible to the person
+# looking at the screen.
+PANEL_STATE_ATTR = re.compile(r'panel\.setAttribute\("([a-zA-Z-]+)"')
+
+
+def test_every_panel_state_the_code_sets_has_a_picture():
+    """`aria-busy` was set and removed with nothing styled on it.
+
+    A detail tab loads `dashboard.json` (191 KB, from the data branch) plus
+    `dashboard.render.js` (266 KB) before it can paint. While that is in flight
+    the panel showed its card chrome and an empty table; if it failed, the only
+    trace was `console.error` and the same empty table — which reads as "you
+    hold nothing", not "this did not load". Two of the three states had no
+    picture, so this asserts over the set of state attributes rather than over
+    the one that was missing.
+    """
+    ui = (JS_DIR / "dashboard.ui.js").read_text(encoding="utf-8")
+    states = set(PANEL_STATE_ATTR.findall(ui))
+
+    assert states, "the tab machinery no longer marks panel state at all"
+    for attr in sorted(states):
+        assert f"[{attr}" in CSS, (
+            f'the code sets `{attr}` on a panel and dashboard.css never selects '
+            f"on it, so the state it announces is invisible to anyone looking "
+            f"at the page")
+
+
+def test_a_panel_whose_load_failed_offers_a_way_back():
+    """Report the failure, and make the retry reachable the way #1316 required.
+
+    The failure path must write to the DOM rather than to the console, and the
+    control it offers must be a real `<button>` — the sort headers of this same
+    dashboard were mouse-only for exactly the reason a `<div onclick>` is.
+    """
+    ui = (JS_DIR / "dashboard.ui.js").read_text(encoding="utf-8")
+    # The tab activation's own failure path, not the renderer loader's.
+    activation = ui[ui.index("function activateTabData"):]
+    activation = activation[:activation.index("\n  function ")]
+    failure = activation[activation.index(".catch(error => {"):]
+
+    assert "_showPanelLoadError" in failure, (
+        "a tab whose data never arrived still only reaches the console")
+    helper = ui[ui.index("function _showPanelLoadError"):]
+    helper = helper[:helper.index("\n  function ")]
+    assert 'createElement("button")' in helper, "the retry must be focusable"
+    assert "panel.prepend" in helper, "the message has to reach the panel itself"
+    assert ".panel-load-error" in CSS and ".panel-load-retry" in CSS
+

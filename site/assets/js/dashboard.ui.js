@@ -433,19 +433,60 @@
     return changed.some(Boolean);
   }
 
+  // An async panel has three states and the DOM only ever had a picture for
+  // one of them. `aria-busy` was set and removed with nothing styled on it, and
+  // the failure path below wrote to the console — so a tab whose data never
+  // arrived showed its card chrome and an empty table, which reads as "you hold
+  // nothing" rather than "this did not load". The retry is a real <button> for
+  // the same reason the sort headers became ones in #1316.
+  function _panelErrorBox(panel) {
+    return panel.querySelector(":scope > .panel-load-error");
+  }
+
+  function _showPanelLoadError(panel, t) {
+    if (!panel || _panelErrorBox(panel)) return;
+    const box = document.createElement("div");
+    box.className = "panel-load-error";
+    box.setAttribute("role", "status");
+    const text = document.createElement("span");
+    text.textContent = "这一页的数据没能载入 —— 下面显示的是上一次载入的内容。";
+    const retry = document.createElement("button");
+    retry.type = "button";
+    retry.className = "panel-load-retry";
+    retry.textContent = "重试";
+    retry.addEventListener("click", () => {
+      _clearPanelLoadError(panel);
+      activateTabData(t, true);
+    });
+    box.append(text, retry);
+    panel.prepend(box);
+    panel.setAttribute("data-load-error", "true");
+  }
+
+  function _clearPanelLoadError(panel) {
+    if (!panel) return;
+    panel.removeAttribute("data-load-error");
+    const box = _panelErrorBox(panel);
+    if (box) box.remove();
+  }
+
   function _paintActivatedTab(t) {
     if (!DATA || currentTab() !== t) return;
     renderTab(t);
     ensureTabCharts(t);
     const panel = document.querySelector(`.panel[data-panel="${t}"]`);
     if (panel) panel.removeAttribute("aria-busy");
+    _clearPanelLoadError(panel);
     // Desktop shows one panel at a time. Let its layout settle before resizing
     // an existing chart; mobile's scroll-settle listener owns the same nudge.
     if (!pagerLive()) requestAnimationFrame(() =>
       requestAnimationFrame(() => window.dispatchEvent(new Event("resize"))));
   }
 
-  function activateTabData(t) {
+  // `triggeredByUser` is what the retry button passes: both loaders below take
+  // it and turn it into `no-store`, so pressing 重试 re-hops the network instead
+  // of revalidating its way back to the same failure.
+  function activateTabData(t, triggeredByUser = false) {
     const version = ++TAB_ACTIVATION_VERSION;
     const keys = _sidecarsForTab(t);
     const needsFetch = keys.some(k => {
@@ -470,8 +511,10 @@
     }
     Promise.all([
       _loadTabRuntime(t),
-      needsFull ? _loadFullDashboard(generation) : Promise.resolve(FULL_DASHBOARD),
-      _loadTabSidecars(t),
+      needsFull
+        ? _loadFullDashboard(generation, triggeredByUser)
+        : Promise.resolve(FULL_DASHBOARD),
+      _loadTabSidecars(t, triggeredByUser),
     ])
       .then(() => {
         if (version !== TAB_ACTIVATION_VERSION || !DATA || currentTab() !== t) return;
@@ -481,7 +524,9 @@
       })
       .catch(error => {
         console.error(error);
-        if (version === TAB_ACTIVATION_VERSION && panel) panel.removeAttribute("aria-busy");
+        if (version !== TAB_ACTIVATION_VERSION || !panel) return;
+        panel.removeAttribute("aria-busy");
+        _showPanelLoadError(panel, t);
       });
   }
 

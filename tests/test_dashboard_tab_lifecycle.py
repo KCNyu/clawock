@@ -67,7 +67,12 @@ def test_hidden_tabs_have_no_idle_or_timeout_renderer():
 def test_tab_activation_owns_sidecar_fetch_and_inflight_deduplication():
     for contract in (
         "const SIDECAR_STATE = new Map()",
-        "function activateTabData(t)",
+        # `(t` rather than `(t)`, like the line below it has always been: what
+        # this pins is that tab activation is one named owner of the fetch, not
+        # its arity. The exact form went red when the retry button needed a
+        # `triggeredByUser` argument — a signature is shape, and pinning shape
+        # is how a zero-behaviour change reddens a suite (#1364).
+        "function activateTabData(t",
         "function _loadTabSidecars(t",
         "if (state.inFlight) return state.inFlight",
         "if (state.ready && !state.stale)",

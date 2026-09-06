@@ -1209,6 +1209,57 @@ async function testAddSideCardExplainsWhyThereIsNoAdd(browser, base) {
   await page.close();
 }
 
+async function testAPanelSaysWhenItsDataDidNotLoad(browser, base) {
+  // A detail tab needs dashboard.json (191 KB, normally from the data branch)
+  // before it can paint. When that request failed the only trace was
+  // `console.error`: `aria-busy` came back off and the panel kept its card
+  // chrome and an empty table, which reads as "you hold nothing" rather than
+  // "this did not load". Refuse the document on both origins and check the
+  // panel says so — then let it through and check 重试 actually fills it.
+  const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+  await stubLiveOrigin(page);
+  let refuse = true;
+  await page.route(/\/assets\/data\/dashboard\.json(?:\?.*)?$/, async route => {
+    if (refuse) return route.abort("failed");
+    const body = fs.readFileSync(path.resolve(ROOT, "assets/data/dashboard.json"), "utf8");
+    await route.fulfill({
+      status: 200,
+      headers: {
+        "content-type": "application/json; charset=utf-8",
+        "access-control-allow-origin": "*",
+      },
+      body,
+    });
+  });
+  await page.goto(base, { waitUntil: "domcontentloaded" });
+  await waitForData(page);
+
+  await page.click('.tab-btn[data-tab="drill"]');
+  const panel = page.locator('.panel[data-panel="drill"]');
+  const box = panel.locator(".panel-load-error");
+  await box.waitFor({ state: "visible", timeout: 15000 });
+  assert.equal(await panel.getAttribute("data-load-error"), "true",
+    "the state the CSS selects on must be on the panel itself");
+  assert.equal(await panel.getAttribute("aria-busy"), null,
+    "a panel that failed is not still busy");
+  const retry = box.locator("button");
+  assert.equal(await retry.count(), 1, "the retry must be one real button");
+  assert.equal(
+    await retry.evaluate(el => el === document.activeElement ||
+      el.tagName === "BUTTON" && !el.disabled),
+    true, "the retry has to be reachable by keyboard");
+  assert.equal(await panel.locator("#book-table tbody tr").count(), 0,
+    "nothing painted, which is exactly why the message has to be there");
+
+  refuse = false;
+  await retry.click();
+  await waitForTab(page, "drill");
+  assert.equal(await box.count(), 0, "the message must clear once the data lands");
+  assert.ok(await panel.locator("#book-table tbody tr").count() > 0,
+    "retry did not actually re-fetch");
+  await page.close();
+}
+
 async function testCronRailAccountsForEverySlotWithoutASecondVerdict(browser, base) {
   // #1270 拆开这块牌的判据是「某个任务挂了」和「页面上的数字不可信」不能共用
   // 一行判词。时刻表折进来时最容易犯的错就是给它再配一句判词 —— 于是同一件事
@@ -1461,6 +1512,7 @@ async function main() {
     await testVerdictDeckFillsItsBoxAndRanksGatesBySeverity(browser, base);
     await testDataHealthNamesTheDegradedSlotAndWeChatDrops(browser, base);
     await testAddSideCardExplainsWhyThereIsNoAdd(browser, base);
+    await testAPanelSaysWhenItsDataDidNotLoad(browser, base);
     await testCronRailAccountsForEverySlotWithoutASecondVerdict(browser, base);
     await testCronNeedsActionMergesIntoTheOneTodoListButWatchDoesNot(browser, base);
   } finally {
