@@ -35,6 +35,29 @@ WEEKLY_REQUIRED_SECTIONS = ('本周净值', '决策兑现', '风险演变', '下
 # and declare what was dropped.
 PROMPT_BUDGET_CHARS = 200_000
 
+# Per-attempt seconds for the one generation this job makes.
+#
+# The default (llm.TIMEOUT, 180s) dropped two weeks of review: 2026-W33
+# (run 31952091127) and 2026-W35 (run 33326401496) both died as three
+# consecutive `timeout after 180s` on the primary, and both fallbacks were dead
+# at the time (Xiaomi 401 invalid key / opencode 401 CreditsError), so the whole
+# chain failed and no file was written. Nothing re-runs a scheduled workflow, so
+# an ISO week is simply missing from memory/weekly/ forever.
+#
+# The generation genuinely takes that long. Measured across the eight scheduled
+# runs 2026-07-12..08-30 (`gh run view <id> --log`): 100.6s / 117.5s / 122.8s /
+# 133.2s / 155.6s / 179.5s succeeded, twice it went past 180s. Output is
+# 8.8K-17.6K tokens at 87-150 tok/s, so a full-length answer at the slow end of
+# the observed throughput is 32000 / 87 = 368s.
+#
+# 180 was not too small because the budget was small — the chain deadline gives
+# the primary 0.6 x 700 = 420s. It was too small because a per-attempt timeout
+# below the primary's own share slices that share into pieces, and a generation
+# that needs more than one piece can never finish however many pieces are left:
+# three doomed 180s attempts spend the entire budget. Keep this >= the primary
+# share (tests/test_llm_workflow_deadlines.py enforces it for every LLM job).
+WEEKLY_LLM_TIMEOUT_SECONDS = 420
+
 # Machine-owned fields on decision / episode records that no review question
 # consumes; the harness already distills them into decision_episodes /
 # decision_metrics. signal_provenance alone was ~76% of the decisions bytes in
@@ -457,7 +480,8 @@ def main():
     user = build_user_prompt(payload)
 
     # Weekly review benefits most from thinking + depth (1 turn, complex synthesis)
-    out = chat(system=system, user=user, max_tokens=32000, temperature=0.6)
+    out = chat(system=system, user=user, max_tokens=32000, temperature=0.6,
+               timeout=WEEKLY_LLM_TIMEOUT_SECONDS)
     # Refuse before writing (#1263): a blank or off-prompt reply used to be
     # published as that week's review, and nothing downstream re-reads it.
     # Anchors are the four questions build_user_prompt asks for; the floor is
