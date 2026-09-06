@@ -183,20 +183,29 @@ def check_root_allowlist(r):
 
 
 def check_scripts_compile(r):
-    """All Python scripts compile."""
+    """All Python scripts compile.
+
+    Compiled in-process. This used to spawn `python3 -m py_compile` once per
+    file — 200 interpreter startups for 10.5s of the pre-push hook's 61s, to
+    do work the builtin does in milliseconds. It also left a `__pycache__` for
+    every file it looked at: a check that writes into the tree it is checking.
+
+    `compile()` raises exactly what py_compile reports (SyntaxError, and the
+    null-byte/decoding errors that come with reading source), so the verdict is
+    unchanged — only the process count is.
+    """
     failed = []
     for pat in [
         'src/clawock/**/*.py',
         'ops/**/*.py',
     ]:
-        for f in glob.glob(str(WS / pat), recursive=True):
+        for f in sorted(glob.glob(str(WS / pat), recursive=True)):
             try:
-                rr = subprocess.run(['python3', '-m', 'py_compile', f],
-                                   capture_output=True, text=True, timeout=10)
-                if rr.returncode != 0:
-                    failed.append(f'{Path(f).name}: {rr.stderr[-100:]}')
+                compile(Path(f).read_bytes(), f, 'exec')
+            except SyntaxError as e:
+                failed.append(f'{Path(f).name}: line {e.lineno}: {e.msg}'[:120])
             except Exception as e:
-                failed.append(f'{Path(f).name}: {e}')
+                failed.append(f'{Path(f).name}: {type(e).__name__}: {e}'[:120])
     if failed:
         r.add('scripts compile', CRITICAL, '; '.join(failed))
     else:
@@ -1029,6 +1038,42 @@ def _provider_api_keys():
     return labels
 
 
+def _cron_history(cron_runs):
+    """Every job's finished runs, read from the live store rather than the CLI.
+
+    `auto` shells out to `openclaw cron runs --id` ONCE PER JOB. That is the
+    right preference for a single read — the CLI is the supported interface —
+    but a whole-history sweep multiplies it by the number of jobs, and
+    `ops/host/cron_token_audit.py` already wrote this down on 2026-07-18:
+    "across 11 jobs that took minutes ... this is a read-only report, the
+    fastest honest source wins". The reader below is the one place that
+    conclusion had not reached, and it is the most expensive place to miss it:
+    system_check runs inside `.githooks/pre-push`, once per push ATTEMPT, and
+    safe_push.sh attempts up to three times.
+
+    Measured on the live host, 2026-09-07, same 11 jobs:
+
+        read_runs via CLI      33.66s      read_jobs via CLI      3.34s
+        read_runs via SQLite    0.16s      read_jobs via SQLite   0.02s
+
+    — 37.0s of a 61.1s system_check, 61% of the whole thing, for a check that
+    can only ever produce a WARN and therefore cannot change the hook's verdict.
+    SQLite is also a superset: the CLI caps at 50 runs per job.
+
+    Falls back to `auto` when the store answers nothing, so a host whose SQLite
+    has moved loses the speed rather than the signal.
+    """
+    for backend in ('sqlite', 'auto'):
+        job_map, _ = cron_runs.load_job_map(backend)
+        if not job_map:
+            continue
+        entries, _ = cron_runs.load_entries('cron', None, None, job_map,
+                                            backend=backend)
+        if entries:
+            return job_map, entries
+    return {}, []
+
+
 def check_model_chain_health(r):
     """A hop that will never recover, told apart from one that just timed out.
 
@@ -1048,10 +1093,9 @@ def check_model_chain_health(r):
     try:
         sys.path.insert(0, str(_REPO_ROOT / 'ops' / 'host'))
         import cron_runs  # noqa: PLC0415 - host-only, imported lazily on purpose
-        job_map, _ = cron_runs.load_job_map()
-        if not job_map:
-            return  # no openclaw on this host
-        entries, _ = cron_runs.load_entries('cron', None, None, job_map)
+        job_map, entries = _cron_history(cron_runs)
+        if not entries:
+            return  # no openclaw on this host, or no run history to read
     except Exception:
         return
     dead = {}

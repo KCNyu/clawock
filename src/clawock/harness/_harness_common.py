@@ -471,6 +471,12 @@ def dashboard_publication_state(ws=None):
 # shell publishers (gold_dca_refresh.sh, commit_dreaming.sh) exec safe_push.sh
 # with no cap at all. This one caller was the only place the script was cut off
 # mid-run.
+# 2026-09-07: the hook's own cost is now ~9s — check_model_chain_health was
+# reading the cron history one `openclaw` process per job and
+# check_scripts_compile was spawning py_compile once per file. The ceiling below
+# is deliberately NOT lowered to match: it is sized for a loaded, swapping host,
+# and the failure it prevents (a stranded commit on a lost race) costs more than
+# the seconds it reserves.
 SAFE_PUSH_ATTEMPTS = 3            # ops/publish/safe_push.sh MAX_RETRIES
 PREPUSH_ATTEMPT_SECONDS = 90      # pre-push hook (57s measured) + fetch/rebase + transfer
 PUSH_RETRY_BACKOFF_SECONDS = 9    # safe_push.sh: sleep i*3 after attempts 1 and 2
