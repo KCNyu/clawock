@@ -284,6 +284,62 @@ def test_production_factor_and_peer_keys_reach_add_authority():
     assert "tranche_below_market_unit" in row["execution"]["blockers"]
 
 
+def test_the_authority_reads_the_components_and_the_packet_does_not_store_them():
+    """Trim at storage, never at computation.
+
+    `classify_authority` reads `event_components` to find the positive events
+    that authorise an add and both lists to collect the evidence ids it cites,
+    so a fix that stripped them inside `_information_view` would quietly
+    withdraw the authority instead of shrinking the packet. This asserts both
+    halves at once: the exploration tier is still granted off `positive-1`, and
+    the stored row carries none of the arithmetic that granted it.
+
+    Why it matters that they are gone (#1039 tiered the same two lists out of
+    the ledger for the same reason): on the 2026-09-04 book they were 17,969 of
+    93,780 bytes against a 98,304 hard cap — 95.4% full, one holding from the
+    `ValueError` that took the pre-open brief down on 2026-08-17. Their
+    canonical store is `assets/data/news_evidence_graph.json`, committed daily.
+    """
+    context = _exploration_context()
+
+    packet = packet_mod.compile_packet(
+        context, brief_context.compute_generation_id(context)
+    )
+    row = packet["tickers"]["00100"]
+    authority = row["quant"]["add_authority"]
+
+    assert authority["tier"] == "exploration", (
+        "the components were withdrawn before the decision that reads them")
+    assert "point_in_time_information" in authority["evidence_families"]
+    # The ids the decision cited survive; the rows it read them from do not.
+    assert "positive-1" in authority["information_event_ids"]
+    assert "attention-1" in authority["information_event_ids"]
+    for cold_key in packet_mod.INFORMATION_COLD_KEYS:
+        assert cold_key not in row["information"], (
+            f"{cold_key} is back in the stored packet; it is per-event "
+            f"arithmetic with no reader of the stored copy, and the packet is "
+            f"the one place where bytes are a hard cap")
+    # Everything a reader of the stored packet uses is still there.
+    for kept in ("signed_score", "attention_rank", "attention_acceleration",
+                 "attention_event_count", "attention_source_type_count",
+                 "status", "usable_for_decisions"):
+        assert kept in row["information"]
+
+
+def test_the_summary_the_model_reads_is_unchanged_by_the_trim():
+    """The components were never in the resident input, which is why dropping
+    them buys headroom without taking anything off the model's desk."""
+    context = _exploration_context()
+    packet = packet_mod.compile_packet(
+        context, brief_context.compute_generation_id(context)
+    )
+    summary = packet_mod.summary_view(packet)
+
+    assert "information" not in summary["tickers"][0], (
+        "if the summary ever projects `information`, the cold keys have to be "
+        "reconsidered along with it")
+
+
 def test_exploration_max_book_pct_zero_means_zero_exploration_budget():
     """#666: `exploration_max_book_pct: 0` (0 = 封死探索敞口) is legal config;
     `X or DEFAULT` would silently swallow it into 0.03."""
