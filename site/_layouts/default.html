@@ -237,6 +237,15 @@
     color: var(--text); text-decoration: none;
     font-family: var(--mono); font-size: 14px; display: block;
   }
+  /* A week whose scheduled review failed. Same row, same rhythm, no link and
+     no hover affordance — it has to read as a hole in the series, not as an
+     item someone forgot to make clickable. */
+  .brief-missing {
+    color: var(--text-dim); font-family: var(--mono); font-size: 14px;
+    display: block;
+  }
+  .brief-list li:has(.brief-missing) { background: transparent; border: 1px dashed var(--border); }
+  .brief-list li:has(.brief-missing):hover { background: transparent; }
 
   footer {
     max-width: 1024px; margin: 32px auto 0; padding: 16px;
