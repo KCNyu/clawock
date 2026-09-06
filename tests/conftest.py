@@ -327,7 +327,21 @@ TOLERATED_WRITERS: set[str] = set()
 #: `memory/.tmp/preserve-absent-YYYY-MM-DD.jsonl`, and does it against
 #: `WS_ROOT` on purpose — the telemetry is about which checkout built, so
 #: `--out-dir` correctly does not move it. `gc_sessions` ages it out at 14 days.
-TOLERATED_PATHS = ("memory/.tmp/preserve-absent-",)
+#:
+#: `assets/data/integrity_report.json` is the second: `money_checker.sh` pins
+#: `CLAWOCK_WORKSPACE` to the root it is guarding, on purpose — the point of the
+#: gate is that it checks the repo being pushed, so no environment a test sets
+#: can redirect it. `restores_untracked_artifact` is what puts the tree back,
+#: and it does: serially the write and the restore both land inside one test's
+#: window and this watcher records nothing. Under `-n` another worker's window
+#: overlaps the middle of that pair and sees a file appear (and a third sees it
+#: go), which is how CI first reported two innocent modules on 2026-09-06.
+#: `.tmp-*` beside it is the atomic write's temp file, which never survives.
+TOLERATED_PATHS = (
+    "memory/.tmp/preserve-absent-",
+    "assets/data/integrity_report.json",
+    "assets/data/.tmp-",
+)
 
 
 def _excused(path: str) -> bool:

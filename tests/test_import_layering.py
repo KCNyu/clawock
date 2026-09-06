@@ -324,6 +324,15 @@ def test_the_write_guard_has_no_position_in_the_collection_order(request):
                  "removed": [], "changed": []}
     also_wrote = {**telemetry, "changed": ["memory/decisions.jsonl"]}
     assert conftest._offenders([telemetry]) == set()
+    # The other excused path: `money_checker.sh` writes the integrity report into
+    # the checkout because the gate's whole point is checking the repo being
+    # pushed, and `restores_untracked_artifact` puts it back. Serially the pair
+    # lands inside one window and records nothing; under `-n` a bystander sees
+    # the middle of it, which is what CI reported on 2026-09-06.
+    transient = {"test": "tests/test_readme_renders_off_github.py::test_anything",
+                 "created": ["assets/data/integrity_report.json"],
+                 "removed": ["assets/data/.tmp-abc123.json"], "changed": []}
+    assert conftest._offenders([transient]) == set()
     assert conftest._offenders([also_wrote]) == {also_wrote["test"]}, (
         "excusing the telemetry file must not excuse the test that wrote it")
     assert "exitstatus" in inspect.signature(conftest.pytest_sessionfinish).parameters, (
