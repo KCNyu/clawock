@@ -358,45 +358,21 @@ jobs:
           install: '.[test]'
 
       - name: Unit tests — money-integrity derivations
+        # `--cov=clawock --cov=ops`, not a list of modules. The list was 34
+        # hand-written targets that reached 75 of the 169 modules under
+        # `src/clawock`; the other 94 — 11,385 statements, a third of the
+        # package — sat outside every floor and outside the number the README
+        # badge publishes. Nothing
+        # enumerated the gap, so a new module joined the unmeasured side by
+        # default (`decision/settlement.py`, `decision/add_alpha.py`,
+        # `decision/regime.py`, `decision/plans.py`, `cli.py` all had).
         if: steps.changes.outputs.code == 'true'
         run: |
           python3 -m pytest tests/ -q \
             -n auto \
             --durations=20 \
-            --cov=clawock.publish.dashboard \
-            --cov=clawock.evaluation \
-            --cov=clawock.harness \
-            --cov=clawock.automation \
+            --cov=clawock \
             --cov=ops \
-            --cov=clawock.market_data.integrity \
-            --cov=clawock.market_data.macro \
-            --cov=clawock.market_data.mover_evidence \
-            --cov=clawock.market_data.sentiment \
-            --cov=clawock.context.brief \
-            --cov=clawock.decision.packet \
-            --cov=clawock.evidence.build_evidence \
-            --cov=clawock.decision.ledger \
-            --cov=clawock.decision.earnings \
-            --cov=clawock.decision.entry \
-            --cov=clawock.portfolio.fx \
-            --cov=clawock.instruments \
-            --cov=clawock.json_repair \
-            --cov=clawock.evidence.news_evidence_graph \
-            --cov=clawock.provenance \
-            --cov=clawock.portfolio.realized \
-            --cov=clawock.portfolio.aggregates \
-            --cov=clawock.portfolio.cash \
-            --cov=clawock.portfolio.math \
-            --cov=clawock.portfolio.risk \
-            --cov=clawock.portfolio.integrity \
-            --cov=clawock.decision.risk \
-            --cov=clawock.safe_io \
-            --cov=clawock.evidence.research_surface \
-            --cov=clawock.portfolio.snapshots \
-            --cov=clawock.decision.shadow \
-            --cov=clawock.decision.theses \
-            --cov=clawock.sessions \
-            --cov=clawock.publish.artifacts \
             --cov-report=term-missing:skip-covered \
             --cov-report=json:coverage-report.json
 

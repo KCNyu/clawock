@@ -204,3 +204,40 @@ def test_the_shared_probe_reads_the_phase_registry():
 
     assert set(ran) == {f"{w} {p}" for w, p in PHASE_MODULES}, (
         "the probe does not walk PHASE_MODULES; a new phase would land unprobed")
+
+
+def test_the_coverage_gate_measures_the_whole_package_not_a_list():
+    """A hand-kept `--cov=` list makes a new module unmeasured by default.
+
+    It was 34 targets and it reached 75 of the 169 modules under
+    `src/clawock`. The other 94 — 11,385 statements, a third of the package —
+    had no floor over them and were outside the number `assets/data/coverage.json`
+    publishes to the README badge and the dashboard tile. Nothing enumerated the
+    difference, so `decision/settlement.py`, `decision/add_alpha.py`,
+    `decision/regime.py`, `decision/plans.py` and `cli.py` had all joined the
+    unmeasured side simply by being written after the list was.
+
+    Measured whole-package on 2026-09-06: total 73.2% (floor 52), settlement
+    core 84.2% (floor 75) — the floors hold, so the list was buying nothing the
+    package-level target does not.
+    """
+    targets = set(re.findall(r"--cov=([A-Za-z0-9_.]+)", TEXT))
+    assert targets, "the unit-test step no longer measures coverage at all"
+
+    def measured(dotted: str) -> bool:
+        return any(dotted == t or dotted.startswith(t + ".") for t in targets)
+
+    src = ROOT / "src"
+    missing = sorted(
+        str(path.relative_to(ROOT))
+        for path in src.rglob("*.py")
+        if "__pycache__" not in str(path)
+        and not measured(
+            str(path.relative_to(src))[:-3].replace("/", ".").removesuffix(".__init__")
+        )
+    )
+    assert not missing, (
+        "these modules are outside every --cov= target, so no floor covers them "
+        f"and the published percentage does not describe them: {missing[:8]}"
+        f"{'…' if len(missing) > 8 else ''}")
+
