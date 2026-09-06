@@ -499,6 +499,33 @@ def pytest_terminal_summary(terminalreporter):
             f"{entry['test']}{mark}\n    " + "\n    ".join(parts))
 
 
+def _restore_publish_owned(before):
+    """Put back what moved, and touch nothing that did not.
+
+    An unconditional rewrite puts the same bytes on disk with a new mtime, and
+    the write guard above watches (size, mtime_ns). The fixture below is
+    session-scoped, and under `-n` a session is a WORKER — so the restore ran
+    while the other workers were still running tests, and their windows recorded
+    the four payloads changing. CI named a different innocent module on each run
+    (2026-09-06, PR #1369), and only on branches that touch `site/**` or the UI,
+    because those are the ones where `fetch_data_plane.py` puts these files in
+    the checkout in the first place.
+
+    This is the last of the shared mutable outputs #1365 went after: the session
+    rebuild got its own output tree, and what was left was a restore that could
+    not tell "put it back" from "touch it".
+
+    Returns the paths it actually wrote, so the difference can be asserted.
+    """
+    written = []
+    for path, blob in before.items():
+        target = ROOT / path
+        if not target.exists() or target.read_bytes() != blob:
+            target.write_bytes(blob)
+            written.append(path)
+    return written
+
+
 @pytest.fixture(scope="session", autouse=True)
 def publish_owned_artifacts_are_left_as_found():
     from clawock.publish.outputs import output_paths
@@ -510,8 +537,7 @@ def publish_owned_artifacts_are_left_as_found():
 
     yield
 
-    for path, blob in before.items():
-        (ROOT / path).write_bytes(blob)
+    _restore_publish_owned(before)
 
     status_after = _git_status(outputs)
     if status_before is not None:

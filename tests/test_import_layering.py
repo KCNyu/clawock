@@ -284,13 +284,14 @@ def test_the_write_guard_has_no_position_in_the_collection_order(request):
     What is left here is the reason it moved, plus the attribution log's own
     shape. The enforcement is a session hook, which nothing can sort after.
 
-    On parallelism, measured rather than assumed — and the measurement killed
-    the idea. #816 claimed emptying the tolerated list would unlock `-n auto`
-    and take the pytest step from 89s to ~30s. With the writers isolated and the
-    session rebuild behind a file lock, `-n 4` does pass, three runs at
-    175/182/191s against ~195s serial: **5-10%, not 3x**. The top twelve tests
-    account for ~121s of a 208s run and every one of them is subprocess-bound.
-    So xdist stays off: a few percent is not worth a flake class.
+    On parallelism, measured rather than assumed, twice — and the second
+    measurement reversed the first. While the top twelve tests were
+    subprocess-bound waiting on network and the live host, `-n 4` bought
+    5-10% (175/182/191s against ~195s serial) and xdist stayed off. #1362 took
+    that waiting out, #1365 gave the session rebuild its own output tree, and
+    then `-n auto` was worth it: CI's pytest step went 197s -> 129s. It is on in
+    `ci.yml` now, which is why every shared mutable output in this suite is a
+    flake class rather than an inefficiency.
     """
     import conftest  # noqa: PLC0415
 
@@ -364,6 +365,36 @@ def test_the_verdict_is_reached_once_over_the_whole_run():
     assert hasattr(conftest, "pytest_testnodedown"), (
         "the controller needs the join hook; without it every worker's log is "
         "dropped and -n enforces nothing")
+
+
+def test_restoring_an_unchanged_artifact_does_not_touch_it(tmp_path, monkeypatch):
+    """The restore must be able to be a no-op, or it is itself a writer.
+
+    `publish_owned_artifacts_are_left_as_found` is session-scoped, and under
+    `-n` a session is a worker — so a restore that rewrites unconditionally
+    lands the same bytes with a new mtime while the other workers are mid-test,
+    and the write guard, which watches (size, mtime_ns), records the four
+    payloads as changed against whoever happened to be running. Two CI runs on
+    2026-09-06 named four different innocent modules between them.
+    """
+    import conftest  # noqa: PLC0415
+
+    artifact = tmp_path / "assets" / "data" / "overview.json"
+    artifact.parent.mkdir(parents=True)
+    artifact.write_bytes(b'{"kept": true}')
+    monkeypatch.setattr(conftest, "ROOT", tmp_path)
+    before = {"assets/data/overview.json": artifact.read_bytes()}
+    stat_before = artifact.stat()
+
+    assert conftest._restore_publish_owned(before) == [], (
+        "an unchanged artifact was rewritten; that write is what the guard sees")
+    assert artifact.stat().st_mtime_ns == stat_before.st_mtime_ns
+
+    # And it still restores — the no-op must not have been bought by doing
+    # nothing at all.
+    artifact.write_bytes(b'{"clobbered": true}')
+    assert conftest._restore_publish_owned(before) == ["assets/data/overview.json"]
+    assert artifact.read_bytes() == b'{"kept": true}'
 
 
 def test_the_tolerated_writer_list_is_empty_and_stays_empty():
