@@ -71,3 +71,29 @@ def test_every_documented_script_path_resolves(doc, lineno, raw):
         f"{doc}:{lineno} tells the agent to run `{raw}`, which resolves to no file "
         f"in this repository — the agent will improvise a path instead"
     )
+
+
+def test_the_documented_section_list_is_one_the_tool_accepts():
+    """Same invariant, one step in: an argument a SKILL.md tells the agent to
+    pass has to be one the tool takes.
+
+    The list is written out three times — the packet builds the sections, the
+    tool enum accepts them, and this document tells the agent which to ask for.
+    The middle copy had drifted to seven of twelve; this pins the third one to
+    the first so it cannot drift on its own. A documented value the tool refuses
+    is a `ToolError` in the middle of a brief, which is the same silent no-op
+    #777 was about.
+    """
+    import sys
+
+    sys.path.insert(0, str(ROOT / "src"))
+    from clawock.decision import packet as packet_mod
+
+    text = (SKILLS / "daily-deep-brief" / "SKILL.md").read_text(encoding="utf-8")
+    match = re.search(r"可选 section：`([^`]+)`", text)
+    assert match, "the skill no longer documents the section list"
+    documented = match.group(1).split("|")
+
+    assert documented == list(packet_mod.QUERYABLE_SECTIONS), (
+        f"documented={documented} accepted={list(packet_mod.QUERYABLE_SECTIONS)}")
+

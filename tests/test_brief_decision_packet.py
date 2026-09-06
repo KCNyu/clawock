@@ -326,6 +326,35 @@ def test_the_authority_reads_the_components_and_the_packet_does_not_store_them()
         assert kept in row["information"]
 
 
+def test_every_structured_section_of_a_row_can_be_asked_for_on_its_own():
+    """A dimension with no section is a dimension nobody narrows to.
+
+    `SECTIONS` was hand-kept in the tool layer and had drifted to seven of the
+    twelve structured keys a row carries. `information` was the expensive one:
+    `summary_view` does not project it either, so the only way to read a
+    ticker's information state was the whole-row query that both the tool
+    description ("Prefer a section") and SKILL.md ("需要单一维度时必须带
+    --section") tell the agent not to make. `history` arrived with #1349 and
+    was never added either.
+    """
+    from clawock.tools import context_tools
+
+    context = _exploration_context()
+    packet = packet_mod.compile_packet(
+        context, brief_context.compute_generation_id(context)
+    )
+    row = packet["tickers"]["00100"]
+    structured = {key for key, value in row.items()
+                  if isinstance(value, (dict, list))}
+
+    assert set(packet_mod.QUERYABLE_SECTIONS) == structured, (
+        "a compiled row and the queryable sections have drifted: "
+        f"unqueryable={sorted(structured - set(packet_mod.QUERYABLE_SECTIONS))} "
+        f"unbuilt={sorted(set(packet_mod.QUERYABLE_SECTIONS) - structured)}")
+    # And the tool layer must not keep a second copy of the answer.
+    assert context_tools.SECTIONS is packet_mod.QUERYABLE_SECTIONS
+
+
 def test_the_summary_the_model_reads_is_unchanged_by_the_trim():
     """The components were never in the resident input, which is why dropping
     them buys headroom without taking anything off the model's desk."""
