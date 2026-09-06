@@ -297,19 +297,51 @@ def test_the_write_guard_has_no_position_in_the_collection_order(request):
     assert hasattr(conftest, "pytest_sessionfinish"), (
         "the enforcement must be a session hook; a test can always be sorted "
         "after by adding a module with a later name")
+    # Behaviour, not a grep over the hook's source. The substring form said
+    # "`_tolerated` appears in `pytest_sessionfinish`", which stopped being true
+    # the moment the verdict moved into a helper — a refactor with no behaviour
+    # change turned this red, which is a test asserting the shape of the code
+    # rather than what it does.
+    tolerated = next(iter(conftest.TOLERATED_WRITERS))
+    allowed = {"test": tolerated, "created": ["assets/data/dashboard.json"],
+               "removed": [], "changed": []}
+    intruder = {"test": "tests/test_made_up.py::test_writes", "created": [],
+                "removed": [], "changed": ["memory/decisions.jsonl"]}
+
+    assert conftest._offenders([allowed]) == set()
+    assert conftest._offenders([allowed, intruder]) == {intruder["test"]}
+    assert "exitstatus" in inspect.signature(conftest.pytest_sessionfinish).parameters, (
+        "the hook must be able to fail the run")
+
+
+def test_a_parallel_run_reports_without_judging():
+    """Under `-n` this guard cannot tell a writer from a bystander.
+
+    Both directions were measured on 2026-09-06 under `-n 2`, and each one is a
+    wrong answer:
+
+    * the session rebuild ran in one worker and a test in the other reported the
+      same four payloads as `created`, because its window overlapped the build —
+      an innocent test named `<-- NEW`;
+    * scoping the verdict to "paths no tolerated writer touched" fixes that and
+      breaks the other way: a planted writer of `logs/zz-temp-offender.log` was
+      excused, because the tolerated test had also observed that file appear.
+      The run exited 0 with a real new writer in it.
+
+    So the parallel path reports and returns, and the serial verdict stays the
+    authoritative one. This pins that the hook actually distinguishes the two —
+    a future edit that "simplifies" it into judging in parallel has to argue
+    with the two measurements above.
+    """
+    import conftest  # noqa: PLC0415
+
     source = inspect.getsource(conftest.pytest_sessionfinish)
-    assert "_tolerated" in source and "exitstatus" in source, (
-        "the hook must both apply the allowlist and actually fail the run")
-
-    if not _WRITE_LOG_or_skip():
-        pytest.skip("no writes recorded — this ran outside a full-suite session")
-    for entry in conftest._WRITE_LOG:
-        assert set(entry) >= {"test", "created", "removed", "changed"}, entry
-
-
-def _WRITE_LOG_or_skip():
-    from conftest import _WRITE_LOG  # noqa: PLC0415
-    return _WRITE_LOG
+    assert "_WRITES_FROM_WORKERS" in source, (
+        "the verdict must join the workers' logs before deciding anything")
+    joined = source.split("if _WRITES_FROM_WORKERS:", 1)
+    assert len(joined) == 2, "the parallel path must be an explicit branch"
+    assert "return" in joined[1].split("offenders = ")[0], (
+        "the parallel branch must return before the verdict, not fall through")
 
 
 def test_the_tolerated_writer_list_only_shrinks():

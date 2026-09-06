@@ -330,6 +330,58 @@ def _tolerated(node_id: str) -> bool:
     return any(node_id.startswith(prefix) for prefix in TOLERATED_WRITERS)
 
 
+#: Workers ship their write log to the controller under this key. xdist gives
+#: each worker its own process, so `_WRITE_LOG` is per-worker and the verdict
+#: below can only be reached by the one process that sees all of them.
+_WORKER_WRITE_LOG = "clawock_write_log"
+
+#: Filled on the controller as each worker exits.
+_WRITES_FROM_WORKERS: list[dict] = []
+
+try:  # pragma: no cover - depends on whether the optional plugin is installed
+    import xdist  # noqa: F401  PLC0415
+except ImportError:  # serial-only environment: the hook below would be unknown
+    pass
+else:
+    def pytest_testnodedown(node, error):
+        """Collect one worker's write log as it exits (xdist controller hook).
+
+        This is the join step. Without it, running `-n` silently switched the
+        write guard OFF — `pytest_sessionfinish` bailed out on every worker
+        because attribution across four partial logs is meaningless, and the
+        controller's own log is empty because the controller runs no tests. So
+        the parallel suite enforced nothing, and the only thing that said so was
+        a comment.
+        """
+        payload = getattr(node, "workeroutput", None) or {}
+        _WRITES_FROM_WORKERS.extend(payload.get(_WORKER_WRITE_LOG) or [])
+
+
+def _offenders(entries) -> set[str]:
+    """The tests to fail the run over. Exact, and only meaningful serially.
+
+    This watcher takes a filesystem snapshot around every test, so in a serial
+    run anything that moved between one test's start and its end was moved BY
+    that test. Under `-n` the snapshot is still global while the tests are not,
+    and two measurements on 2026-09-06 show that no rule over these entries can
+    fix that:
+
+    * the session dashboard rebuild ran in one worker and a test in the OTHER
+      worker reported the same four payloads as `created` — its window merely
+      overlapped the build, and it was named `<-- NEW`;
+    * scoping the verdict to "paths no tolerated writer touched" removes that
+      false accusation and immediately buys the opposite one: a deliberately
+      planted writer of `logs/zz-temp-offender.log` was EXCUSED, because the
+      tolerated test had also *observed* that file appear and so the path
+      counted as owned. Exit 0 on a run with a real new writer in it.
+
+    A guard that accuses the wrong test, or excuses the right one, is worse than
+    one that says "I cannot tell". So parallel runs get the table and no verdict;
+    see `pytest_sessionfinish`.
+    """
+    return {entry["test"] for entry in entries if not _tolerated(entry["test"])}
+
+
 def pytest_sessionfinish(session, exitstatus):
     """Fail the RUN when an untolerated writer touched published state.
 
@@ -353,12 +405,36 @@ def pytest_sessionfinish(session, exitstatus):
     """
     if session.config.getoption("collectonly", False):
         return
-    # xdist: every worker gets its own session and its own copy of the four
-    # files, so attribution is meaningless — the reasoning is unchanged from the
-    # assertion this replaces.
+    # xdist: a worker sees only the tests it ran, so it reports rather than
+    # judges. The controller joins the parts in `pytest_testnodedown` and reaches
+    # the verdict once, over the whole run — the same verdict a serial run gets.
     if getattr(session.config, "workerinput", None) is not None:
+        session.config.workeroutput[_WORKER_WRITE_LOG] = list(_WRITE_LOG)
         return
-    offenders = sorted({e["test"] for e in _WRITE_LOG if not _tolerated(e["test"])})
+    entries = [*_WRITE_LOG, *_WRITES_FROM_WORKERS]
+    if _WRITES_FROM_WORKERS:
+        # A parallel run reports and does not judge — see `_offenders`. Before
+        # the join above it did neither: `pytest_sessionfinish` returned on every
+        # worker and the controller's own log is empty because it runs no tests,
+        # so `-n` silently switched this guard off and nothing said so.
+        # Deliberately unnamed. Measured: `pytest tests/test_import_layering.py
+        # -n 2` flags `test_no_workflow_or_script_invokes_a_module_by_a_path_
+        # that_moved`, a read-only module that records nothing serially — under
+        # `-n` a bystander's window simply overlaps someone else's write. Naming
+        # innocents every run is how a warning gets trained out of people, so the
+        # parallel mode reports the count and where to get the answer.
+        if _offenders(entries):
+            reporter = session.config.pluginmanager.get_plugin("terminalreporter")
+            if reporter is not None:
+                reporter.write_line("")
+                reporter.write_line(
+                    "NOTE: published state changed during this -n run. Attribution "
+                    "needs a serial run — under xdist the snapshot is global while "
+                    "the tests are not, so this cannot tell a writer from a "
+                    "bystander. `pytest tests/` without -n is the enforcing run.",
+                    yellow=True)
+        return
+    offenders = sorted(_offenders(entries))
     if offenders:
         session.exitstatus = 1
         reporter = session.config.pluginmanager.get_plugin("terminalreporter")
@@ -375,18 +451,29 @@ def pytest_sessionfinish(session, exitstatus):
 
 
 def pytest_terminal_summary(terminalreporter):
-    """Print the attribution table, so a polluted run explains itself."""
-    if not _WRITE_LOG:
+    """Print the attribution table, so a polluted run explains itself.
+
+    Reads the joined view for the same reason the verdict does: under `-n` the
+    controller writes the summary but ran none of the tests, so its own log is
+    empty and the table would come out blank on exactly the runs most likely to
+    need it.
+    """
+    entries = [*_WRITE_LOG, *_WRITES_FROM_WORKERS]
+    if not entries:
         return
     terminalreporter.section("tests that wrote to published state (#816)")
-    for entry in _WRITE_LOG:
+    for entry in entries:
         parts = []
         for kind in ("created", "removed", "changed"):
             if entry[kind]:
                 shown = ", ".join(entry[kind][:4])
                 more = f" (+{len(entry[kind]) - 4} more)" if len(entry[kind]) > 4 else ""
                 parts.append(f"{kind}: {shown}{more}")
-        mark = "" if _tolerated(entry["test"]) else "  <-- NEW"
+        # `<-- NEW` is an accusation, and under `-n` it lands on bystanders as
+        # often as on writers. The table stays (it is an observation, and a
+        # useful one); the verdict marker does not.
+        mark = ("" if _tolerated(entry["test"]) or _WRITES_FROM_WORKERS
+                else "  <-- NEW")
         terminalreporter.write_line(
             f"{entry['test']}{mark}\n    " + "\n    ".join(parts))
 
