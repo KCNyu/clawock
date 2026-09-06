@@ -47,6 +47,17 @@ jobs:
           install: none
 
       - name: Capture traffic and package downloads
+        id: traffic
+        # Two perishable measurements share this job, and neither may be lost to
+        # the other's failure. `repo_traffic.py` already honours that rule
+        # internally — a registry outage still writes the GitHub half
+        # (`test_package_downloads_are_advisory_and_never_lose_the_github_half`)
+        # — while the YAML around it did the opposite: `set -euo pipefail` plus a
+        # commit step with no `if` meant a failure in either capture threw away
+        # whatever the other one had already merged. Both 2026-08 failures
+        # (runs 32550935688, 32619875646) died in this step, so the drift
+        # capture never ran at all.
+        continue-on-error: true
         env:
           # The Traffic API does not answer to GITHUB_TOKEN — it only takes a
           # PAT/OAuth token with repo scope (measured 2026-08-23: the workflow
@@ -63,6 +74,8 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Measure how late GitHub delivers the scheduled workflows
+        id: drift
+        continue-on-error: true
         # Every scheduled workflow in this repository is late and nobody kept a
         # number (#781). The Actions API ages runs out too, so this is the same
         # shape of perishable measurement as the traffic above — and the numbers
@@ -85,9 +98,24 @@ jobs:
           echo "COMMIT_MESSAGE=measurement: repo traffic + schedule drift $(date -u +%Y-%m-%d)" >> "$GITHUB_ENV"
 
       - name: Commit the merged history
+        # Whatever did land. A capture that failed leaves its file untouched, so
+        # this commits the half that succeeded rather than discarding it — and
+        # it runs before the verdict below, so the data is safe even as the run
+        # goes red.
         env:
           CLAWOCK_PUBLISH_SSH_KEY: ${{ secrets.CLAWOCK_PUBLISH_SSH_KEY }}
         uses: ./.github/actions/clawock-commit
         with:
           paths: assets/data/repo-traffic.json assets/data/schedule-drift.json
           message: ${{ env.COMMIT_MESSAGE }}
+
+      # `continue-on-error` above keeps one capture's failure from erasing the
+      # other's data — it must not also make the failure invisible. A scheduled
+      # workflow that fails silently is what left news-digest red for three days
+      # in July 2026 (see weekly-health's rollup); the run has to end red so the
+      # rollup can name it.
+      - name: A capture that failed still fails the run
+        if: steps.traffic.outcome == 'failure' || steps.drift.outcome == 'failure'
+        run: |
+          echo "traffic=${{ steps.traffic.outcome }} drift=${{ steps.drift.outcome }}" >&2
+          exit 1
