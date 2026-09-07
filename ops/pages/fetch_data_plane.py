@@ -51,6 +51,12 @@ def main() -> int:
     store = GitBranchStore(args.repo, args.branch, remote=args.remote)
     try:
         written = store.fetch(args.into or args.repo, names=DATA_PLANE_FILES)
+    except subprocess.TimeoutExpired as exc:
+        # Same sibling-not-subclass trap as publish_data_branch: a hung remote
+        # reached the caller as a traceback instead of a diagnosis (2026-09-07).
+        print(f"✗ data-plane: reading {args.remote}/{args.branch} exceeded "
+              f"{exc.timeout:g}s — the remote hung", file=sys.stderr)
+        return 1
     except subprocess.CalledProcessError as exc:
         detail = (exc.stderr or b"")
         if isinstance(detail, bytes):

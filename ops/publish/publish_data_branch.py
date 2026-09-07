@@ -112,6 +112,15 @@ def main() -> int:
     )
     try:
         result = store.publish(files, label=generation_label(root))
+    except subprocess.TimeoutExpired as exc:
+        # A timeout is a diagnosis, not a crash. It is a SIBLING of
+        # CalledProcessError, so before 2026-09-07 it fell through every handler
+        # here and reached the caller as a raw traceback — the shape all 12 of
+        # that day's publish failures took in logs/publish_dashboard.log.
+        print(f"✗ data-plane: {' '.join(map(str, exc.cmd))!r} exceeded "
+              f"{exc.timeout:g}s — the remote hung, the generation was not "
+              f"published", file=sys.stderr)
+        return 1
     except subprocess.CalledProcessError as exc:
         # Hooks commonly explain a refusal on stdout while git writes only its
         # generic final line to stderr. Keeping just stderr hid the actual

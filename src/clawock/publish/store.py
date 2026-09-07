@@ -172,6 +172,35 @@ class FilesystemStore:
         return PublishResult(str(self.directory), changed=True)
 
 
+# ── publish budget ────────────────────────────────────────────────────────
+# Named, and exported, because two layers have to agree on them and until
+# 2026-09-07 they only agreed by coincidence: `_harness_common._publish_generation`
+# wrapped the whole publish script in a hardcoded `timeout=120` — the SAME number
+# as one git call below. An outer budget equal to a single inner step cannot
+# accommodate even two of them, so a publish whose first network call hung was
+# killed before its second could start, and the push retry ladder below was
+# unreachable by construction.
+#
+# The numbers are not renegotiated here (a hung remote must still fail the
+# publish rather than park the process, #848). What changes is that the outer
+# budget is now DERIVED from them.
+GIT_CALL_TIMEOUT_SECONDS = 120     # any single git call, local or over the wire
+PUSH_ATTEMPTS = 3                  # GitBranchStore.publish(attempts=)
+PUSH_RETRY_BACKOFF_STEP_SECONDS = 3   # sleep attempt*step between attempts
+
+# One `publish()` makes: ls-remote (default-branch probe) + fetch (compare
+# against the branch) + up to PUSH_ATTEMPTS pushes, with the backoff ladder in
+# between. Local plumbing (hash-object / write-tree / commit-tree) is not counted
+# — it cannot hang on the network, which is the only thing this budget is sized
+# against.
+PUBLISH_NETWORK_CALLS = 2 + PUSH_ATTEMPTS
+PUBLISH_BUDGET_SECONDS = (
+    PUBLISH_NETWORK_CALLS * GIT_CALL_TIMEOUT_SECONDS
+    + sum(attempt * PUSH_RETRY_BACKOFF_STEP_SECONDS
+          for attempt in range(1, PUSH_ATTEMPTS))
+)
+
+
 class GitBranchStore:
     """An orphan, force-updated branch: the generation, and nothing else.
 
@@ -227,7 +256,7 @@ class GitBranchStore:
             input=stdin, capture_output=True, text=True, env=env, check=True,
             # A hung git remote must fail the publish, not park the process
             # forever (#848).
-            timeout=120,
+            timeout=GIT_CALL_TIMEOUT_SECONDS,
         )
         return result.stdout.strip()
 
@@ -243,7 +272,7 @@ class GitBranchStore:
         result = subprocess.run(
             self._argv("cat-file", "blob", f"{ref}:{name}"),
             capture_output=True, check=True,
-            timeout=120,
+            timeout=GIT_CALL_TIMEOUT_SECONDS,
         )
         return result.stdout.decode("utf-8")
 
@@ -310,7 +339,7 @@ class GitBranchStore:
 
     # ── ArtifactStore ───────────────────────────────────────────────────────
     def publish(self, files: Mapping[str, str], *, label: str = "",
-                attempts: int = 3) -> PublishResult:
+                attempts: int = PUSH_ATTEMPTS) -> PublishResult:
         _check_names(files)
         self._reject_protected()
 
@@ -346,10 +375,18 @@ class GitBranchStore:
                 self._git("push", "--force", self.remote,
                           f"{commit}:refs/heads/{self.branch}")
                 break
-            except subprocess.CalledProcessError:
+            # TIMEOUTS ARE THE FAILURE THIS LOOP EXISTS FOR (2026-09-07).
+            # `subprocess.TimeoutExpired` is a SIBLING of `CalledProcessError`,
+            # not a subclass, so catching only the latter meant a push that hung
+            # to the cap raised straight out of the retry — the one failure mode
+            # this ladder was written to survive was the one it could not see.
+            # Every publish failure logged on 2026-09-07 (12 across the day, 6
+            # intraday slots recorded `publish_failed`) was a timeout, so not one
+            # of them was ever retried; they surfaced as raw tracebacks.
+            except (subprocess.CalledProcessError, subprocess.TimeoutExpired):
                 if attempt == attempts:
                     raise
-                time.sleep(attempt * 3)
+                time.sleep(attempt * PUSH_RETRY_BACKOFF_STEP_SECONDS)
         return PublishResult(commit, changed=True)
 
     def fetch(self, into: Path | str, *, names=None) -> list[str]:

@@ -272,3 +272,77 @@ def test_the_filesystem_default_keeps_the_published_layout(tmp_path):
     assert result.receipt == str(out) and result.changed
     assert (out / "assets/data/dashboard.json").read_text(encoding="utf-8") == '{"totals": 1}'
     assert (out / "assets/data/overview.json").read_text(encoding="utf-8") == '{"generation_id": "one"}'
+
+
+# ── the retry could not see the failure it was written for (2026-09-07) ──────
+
+
+def test_a_timed_out_push_is_retried(repo, monkeypatch):
+    """`TimeoutExpired` is a SIBLING of `CalledProcessError`, not a subclass.
+
+    So `except subprocess.CalledProcessError` — the only handler this ladder had
+    — never caught a hung push, and the retry that exists precisely to survive a
+    transient remote raised straight through on the one failure mode that
+    actually occurs. All 12 publish failures logged on 2026-09-07 were timeouts;
+    not one of them was retried.
+    """
+    from clawock.publish import store as store_module
+
+    store = GitBranchStore(repo, "data-plane")
+    real_git = store._git
+    calls = {"push": 0}
+
+    def flaky(*args, **kwargs):
+        if args and args[0] == "push":
+            calls["push"] += 1
+            if calls["push"] == 1:
+                raise subprocess.TimeoutExpired(cmd=["git", "push"], timeout=120)
+        return real_git(*args, **kwargs)
+
+    monkeypatch.setattr(store, "_git", flaky)
+    monkeypatch.setattr(store_module.time, "sleep", lambda _s: None)
+
+    result = store.publish(GENERATION, label="x")
+
+    assert result.changed
+    assert calls["push"] == 2                      # hung once, landed on retry
+    assert _git(repo, "ls-remote", "origin", "data-plane")
+
+
+def test_a_push_that_never_stops_hanging_still_fails(repo, monkeypatch):
+    """Retrying a timeout must not become swallowing it."""
+    from clawock.publish import store as store_module
+
+    store = GitBranchStore(repo, "data-plane")
+    real_git = store._git
+
+    def always_hangs(*args, **kwargs):
+        if args and args[0] == "push":
+            raise subprocess.TimeoutExpired(cmd=["git", "push"], timeout=120)
+        return real_git(*args, **kwargs)
+
+    monkeypatch.setattr(store, "_git", always_hangs)
+    monkeypatch.setattr(store_module.time, "sleep", lambda _s: None)
+
+    with pytest.raises(subprocess.TimeoutExpired):
+        store.publish(GENERATION, label="x")
+
+
+def test_the_outer_publish_budget_can_actually_hold_the_retry_ladder():
+    """The caller's cap and the store's per-call cap have to agree.
+
+    They only agreed by coincidence until 2026-09-07 — both were the literal
+    120, so the budget for the WHOLE publish script equalled the budget for one
+    of the five network calls inside it. A first call that hung consumed the
+    entire outer allowance and the ladder below it was unreachable by
+    construction.
+    """
+    from clawock.harness import _harness_common
+    from clawock.publish import store as store_module
+
+    budget = store_module.PUBLISH_BUDGET_SECONDS
+    assert budget > store_module.GIT_CALL_TIMEOUT_SECONDS * store_module.PUSH_ATTEMPTS
+    # …and the harness caller must use it rather than restate a number.
+    source = Path(_harness_common.__file__).read_text()
+    assert "timeout=publish_store.PUBLISH_BUDGET_SECONDS" in source
+    assert "'publish_generation.sh')],\n            capture_output=True, text=True, timeout=120" not in source
