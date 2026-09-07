@@ -565,16 +565,22 @@ ANOMALY_MOVE_PCT = 3.0
 ANOMALY_SEVERE_PCT = 5.0
 
 
-def parse_holdings_anomalies(stdout):
-    """Rows of the `--md-table` holdings block whose day move is ≥3%.
+def parse_holdings_rows(stdout):
+    """Every row of the `--md-table` holdings block, parsed once.
 
     Row shape (7 cols, both markets, since 2026-05-21):
       HK: `| 00100 | 60 | 822.83 | 722.00 | +5.1% | -12.2% | -6,050 |`
       US: `| RKLB |  5 |  71.00 | 134.28 | +0.0% | +89.1% |   +316 |`
     Cell[0]=ticker, [1]=shares, [2]=cost, [3]=price, [4]=today%, [5]=pnl%,
     [6]=pnl_abs. Header / separator rows are filtered (代码 / `:---`).
+
+    Split out of `parse_holdings_anomalies` (which now filters this) because the
+    ≥3% gate is not the only question the table can answer: a plan condition
+    asks whether a specific ticker crossed a specific price, and that ticker may
+    be flat on the day. Same #918 rule as before — one parser, and callers pick
+    the rows they want out of it.
     """
-    anomalies = []
+    rows = []
     for line in (stdout or '').splitlines():
         s = line.strip()
         if not s.startswith('|') or not s.endswith('|'):
@@ -585,17 +591,44 @@ def parse_holdings_anomalies(stdout):
         ticker = cells[0]
         if ticker == '代码' or ticker.startswith(':'):  # header / separator
             continue
+        move = None
         match = _ANOMALY_PCT.search(cells[4])
-        if not match:
+        if match:
+            sign, pct_str = match.groups()
+            move = (1 if sign == '+' else -1) * float(pct_str)
+        rows.append({
+            'ticker': ticker,
+            'price': _table_number(cells[3]),
+            'move_pct': move,
+        })
+    return rows
+
+
+def _table_number(cell):
+    """A price cell as a float, or None. Thousands separators are stripped;
+    anything else (a dash, an em-dash, an empty cell) is absent, not zero —
+    a missing quote must never read as a price of 0 to a `price_below` gate."""
+    text = re.sub(r'[,\s]', '', str(cell or ''))
+    try:
+        return float(text)
+    except ValueError:
+        return None
+
+
+def parse_holdings_anomalies(stdout):
+    """Rows of the `--md-table` holdings block whose day move is ≥3%."""
+    anomalies = []
+    for row in parse_holdings_rows(stdout):
+        pct_signed = row.get('move_pct')
+        if pct_signed is None:
             continue
-        sign, pct_str = match.groups()
-        pct = float(pct_str)
+        pct = abs(pct_signed)
         if pct < ANOMALY_MOVE_PCT:
             continue
         severe = pct >= ANOMALY_SEVERE_PCT
         anomalies.append({
-            'ticker': ticker,
-            'move_pct': (1 if sign == '+' else -1) * pct,
+            'ticker': row['ticker'],
+            'move_pct': pct_signed,
             # 两个键都给：severity 是 intraday（以及下游 add_side）读的，
             # reason 是 report 的输出契约。合并时任何一边都不该丢字段。
             'severity': 'high' if severe else 'medium',

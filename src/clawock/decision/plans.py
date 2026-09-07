@@ -125,6 +125,15 @@ def _entry(row):
         "action":           row.get("action"),
         "condition":        condition.get("type"),
         "condition_detail": _trim(condition.get("description"), 80),
+        # The number the condition IS. Projected for the same reason sizes are
+        # (#120): a downstream slot that has to restate it from memory gets it
+        # wrong, and one that cannot see it at all says nothing. Dropping it
+        # cost the 2026-09-07 HK session — 00100 carried `price_above 365`,
+        # traded to 393 in the morning, and all eight intraday slots could only
+        # report a generic 异动 because the context said "price_above" with no
+        # price. It closed at 350.8 and the trim never happened, for the second
+        # session running.
+        "condition_price":  condition.get("price"),
         # Sizes are quoted, never restated from memory: the 2026-07-27 slot said
         # "6200 股" for a swap the plan sized at 1000 (issue #120).
         "shares":           size.get("shares"),
@@ -134,6 +143,75 @@ def _entry(row):
         "execution_status": (row.get("execution") or {}).get("status"),
         "rationale":        _trim(row.get("rationale"), RATIONALE_CHARS),
     }
+
+
+PRICE_CONDITIONS = {"price_above": "≥", "price_below": "≤"}
+
+
+def triggered_conditions(plan_context, prices):
+    """Which of the plan's open price conditions this quote set satisfies.
+
+    Pure and total: `prices` is `{ticker: last}`, the return is a list of rows
+    the caller renders and alerts on. Nothing here reads the tape or the clock,
+    so the rule can be asserted rather than observed on a live slot.
+
+    Only `price_above` / `price_below` are evaluated — 223 of the 245 priced
+    conditions in the ledger, and the only two whose subject is a holding the
+    holdings table quotes. `index_breakdown` carries a price for an INDEX; a
+    holding's last is not an answer to it, and guessing would be worse than
+    staying quiet.
+
+    A missing or unparseable quote yields no row. "I could not check" and "the
+    condition is not met" must not be the same output — that conflation is the
+    2026-09-07 defect one layer down.
+    """
+    hits = {}
+    for entry in (plan_context or {}).get("open") or []:
+        kind = entry.get("condition")
+        target = entry.get("condition_price")
+        if kind not in PRICE_CONDITIONS:
+            continue
+        if not isinstance(target, (int, float)) or isinstance(target, bool):
+            continue
+        last = prices.get(entry.get("ticker")) if prices else None
+        if not isinstance(last, (int, float)) or isinstance(last, bool):
+            continue
+        if not (last >= target if kind == "price_above" else last <= target):
+            continue
+        # One line per condition, not per row that restates it. The 08:00 brief
+        # re-hangs an unfilled order under a fresh decision_id, so on
+        # 2026-09-07 the same 00100 trim at ≥365 was open twice — today's and
+        # the 9/4 one it had already failed to execute. Printing it twice is
+        # noise; printing it once and SAYING it is the second session is the
+        # sentence that day needed.
+        key = (entry.get("ticker"), entry.get("action"), kind, float(target))
+        row = hits.get(key)
+        if row is None:
+            hits[key] = {
+                "decision_id": entry.get("decision_id"),
+                "plan_date": entry.get("plan_date"),
+                "ticker": entry.get("ticker"),
+                "action": entry.get("action"),
+                "condition": kind,
+                "condition_price": float(target),
+                "last": float(last),
+                # Signed distance past the line, so a slot can say how far the
+                # trigger is blown rather than only that it is.
+                "through_pct": round((last - target) / target * 100, 2),
+                "shares": entry.get("shares"),
+                "execution_status": entry.get("execution_status"),
+                "open_since": entry.get("plan_date"),
+                "restated_count": 1,
+            }
+            continue
+        row["restated_count"] += 1
+        # The oldest plan_date is the one that matters: it dates how long this
+        # condition has been met-and-unexecuted.
+        for field in ("open_since",):
+            if entry.get("plan_date") and (
+                    not row[field] or str(entry["plan_date"]) < str(row[field])):
+                row[field] = entry["plan_date"]
+    return list(hits.values())
 
 
 def _plan_extras(plan_date, memory_dir):

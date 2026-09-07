@@ -704,6 +704,59 @@ def render_unchanged_receipt(market, block, coverage, active):
     return '\n'.join(lines)
 
 
+ACTION_CN = {
+    'trim_on_rebound': '减仓', 'cut': '清仓', 'add_only_on_trigger': '加仓',
+    'add_on_breakout': '突破加仓', 'hold_and_watch': '持有观察',
+}
+
+
+def append_plan_trigger_section(block, triggered):
+    """Print the plan conditions this slot's quotes satisfy.
+
+    Rendered rather than left in JSON alone, for the #515 reason: a detector
+    whose finding nothing prints has been silenced. This one is the whole point
+    of carrying `condition_price` at all — the model may or may not notice a
+    number buried in the context, but a line in the block is in the message kcn
+    reads.
+    """
+    if not triggered:
+        return block
+    lines = ['', '🎯 计划触发线已破（计划自己的价，不是新阈值）']
+    for row in triggered[:6]:
+        arrow = plan_surface.PRICE_CONDITIONS[row['condition']]
+        action = ACTION_CN.get(row['action'], row['action'])
+        status = '未执行' if row.get('execution_status') == 'unknown' else row.get('execution_status')
+        shares = f"{row['shares']}股" if row.get('shares') else '—'
+        # `open_since` before today is the whole point of the line: a trigger
+        # met for the second session running is not news about the price, it is
+        # news about the order.
+        carried = ''
+        if row.get('open_since') and row['open_since'] != row.get('plan_date'):
+            carried = f"｜自 {row['open_since']} 起未执行"
+        elif (row.get('restated_count') or 1) > 1:
+            carried = f"｜已重挂 ×{row['restated_count']}"
+        lines.append(
+            f"  ◆ {row['ticker']} {action} {shares} | 触发 {arrow}{row['condition_price']:g}"
+            f" | 现价 {row['last']:g}（破线 {row['through_pct']:+g}%）| {status}{carried}"
+        )
+    return block + '\n' + '\n'.join(lines)
+
+
+def apply_plan_trigger_alert(should_alert, reasons, triggered):
+    """A plan condition being met wakes the slot on its own.
+
+    It has to: on 2026-09-07 the only anomaly all session was 00100 moving, and
+    a move is not the same statement as "the trim you planned is now fillable".
+    The trigger can also be satisfied on a quiet day the ≥3% gate never sees.
+    """
+    if not triggered:
+        return should_alert, reasons
+    named = ', '.join(dict.fromkeys(
+        f"{row['ticker']} {plan_surface.PRICE_CONDITIONS[row['condition']]}"
+        f"{row['condition_price']:g}" for row in triggered))
+    return True, [*reasons, f'计划触发: {named}']
+
+
 def apply_active_information_alert(should_alert, reasons, active):
     """A primary event is alert-worthy even when no ticker has moved 3%."""
     rows = [
@@ -881,6 +934,17 @@ def main(argv=None):
     # say what the money is for instead of ending at "sell".
     plan_ctx = attach_reinvest_candidates(
         plan_ctx, opportunity_radar, signals_detail)
+    # Does this slot's tape satisfy any condition the 08:00 plan wrote down?
+    # Deterministic and harness-owned: the plan already named the price, so the
+    # comparison is arithmetic, not judgement. Leaving it to the model is how
+    # 2026-09-07 ended with eight slots of 「跳空/异动」 and a trim trigger blown
+    # by 7.7% that nobody said out loud.
+    plan_triggers = plan_surface.triggered_conditions(
+        plan_ctx,
+        {row['ticker']: row['price']
+         for row in _harness_common.parse_holdings_rows(stdout)
+         if row.get('price') is not None},
+    )
     combined_setups = {
         'rows': (live_setups.get('rows') or [])
         + (early_candidates.get('rows') or [])
@@ -898,6 +962,7 @@ def main(argv=None):
         signals_detail=signals_detail,
         anomalies=anomalies, setups=combined_setups, plans=plan_ctx,
         active_information=active_information_ctx,
+        plan_triggers=plan_triggers,
     )
     prior_doc = intraday_delta.load_delivered_state(WS, args.market)
     prior_state = prior_doc.get('state') if isinstance(prior_doc, dict) else {}
@@ -925,6 +990,9 @@ def main(argv=None):
             raw_block, active_information_ctx,
             event_ids=set(semantic_delta['changed_event_ids']),
         )
+        raw_block = append_plan_trigger_section(raw_block, plan_triggers)
+        should_alert, alert_reasons = apply_plan_trigger_alert(
+            should_alert, alert_reasons, plan_triggers)
         delivery_mode = 'full_delta'
 
     result = {
@@ -953,6 +1021,10 @@ def main(argv=None):
             levels=opportunity_radar.get('levels'),
             early_trend=early_candidates, mover_news=mover_news_ctx,
             mover_thesis=mover_thesis, plan_context=plan_ctx),
+        # Carried on BOTH paths, receipt included: the JSON is the audit trail
+        # for what the slot knew, and a receipt slot that knew a trigger was
+        # still live must not read later as a slot that did not check.
+        'plan_triggers':    plan_triggers,
         'signal_count':     signals,
         'signals_detail':   signals_detail,
         'anomalies':        anomalies,

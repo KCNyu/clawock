@@ -343,6 +343,19 @@ def main(argv=None):
         leg='HK' if args.market == 'hk' else 'US', today=today,
     )
 
+    # Which of those conditions this phase's quotes already satisfy. Data only
+    # here, deliberately: this harness's `raw_wechat_block` is the analyzer's
+    # stdout verbatim (postflight prepends it), so there is no harness-assembled
+    # block to append a section to — the report's prose is written from this
+    # context. intraday_preflight, which does assemble its block, also renders
+    # the section and wakes on it.
+    plan_triggers = plan_surface.triggered_conditions(
+        plan_ctx,
+        {row['ticker']: row['price']
+         for row in _harness_common.parse_holdings_rows(stdout)
+         if row.get('price') is not None},
+    )
+
     result = {
         'status':             'ok',
         'market':             args.market,
@@ -359,6 +372,7 @@ def main(argv=None):
         'index_direction':    indices,
         'peer_scan':          trim_peer_scan(peers),
         'plan_context':       plan_ctx,
+        'plan_triggers':      plan_triggers,
         'mover_thesis':       mover_thesis,
         'mover_news':         mover_news_ctx,
         # 语义分档，不是数数（kcn 2026-08-26：「根据合适的语意来告警，不要做

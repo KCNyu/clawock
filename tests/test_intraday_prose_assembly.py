@@ -434,3 +434,67 @@ def test_no_rows_means_no_demand(pf):
     issues = pf.validate(pf.assemble_message(ctx, prose), ctx,
                          prose)
     assert not [i for i in issues if '加仓侧读数' in i], issues
+
+
+# --- 计划触发线 (2026-09-07) ---------------------------------------------------
+# The block already prints the trigger; this is about whether the PROSE owns it.
+# On 2026-09-07 the 00100 ≥365 trim line was blown by 7.7% and eight slots of
+# prose said nothing about it — the order was never placed, for the second
+# session running.
+
+TRIGGER_ROWS = [{
+    'decision_id': 'dec-554c', 'ticker': '00100', 'action': 'trim_on_rebound',
+    'condition': 'price_above', 'condition_price': 365.0, 'last': 393.0,
+    'through_pct': 7.67, 'shares': 20, 'execution_status': 'unknown',
+    'open_since': '2026-09-04', 'restated_count': 2,
+}]
+
+
+def test_prose_that_ignores_a_blown_trigger_is_flagged(pf):
+    prose = ('▎我的看法\n'
+             'SKHY -9.0% 板块 risk-off，无一手公告；其余持仓按计划，'
+             '等收盘再看一次，今天不新增动作，维持原有仓位不变。\n')
+    ctx = _ctx(plan_triggers=TRIGGER_ROWS)
+
+    issues = pf.validate(pf.assemble_message(ctx, prose), ctx, prose)
+
+    flagged = [i for i in issues if '计划触发线' in i]
+    assert flagged, issues
+    assert '00100' in flagged[0] and '365' in flagged[0]
+
+
+def test_prose_that_names_the_ticker_is_not_flagged(pf):
+    prose = ('▎我的看法\n'
+             '00100 现价 393 已破 ≥365 的减仓线，9/4 挂到今天没执行；'
+             '这一手 20 股该在反弹里了结，其余持仓按计划不动。\n')
+    ctx = _ctx(plan_triggers=TRIGGER_ROWS)
+
+    issues = pf.validate(pf.assemble_message(ctx, prose), ctx, prose)
+
+    assert not [i for i in issues if '计划触发线' in i], issues
+
+
+def test_no_trigger_means_no_demand(pf):
+    """Most slots cross nothing; an empty lane must not nag."""
+    prose = ('▎我的看法\n'
+             'SKHY -9.0% 板块 risk-off，无一手公告；其余持仓按计划，'
+             '等收盘再看一次，今天不新增动作，维持原有仓位不变。\n')
+    ctx = _ctx(plan_triggers=[])
+
+    issues = pf.validate(pf.assemble_message(ctx, prose), ctx, prose)
+
+    assert not [i for i in issues if '计划触发线' in i], issues
+
+
+def test_the_trigger_nag_is_advisory_never_a_block(pf):
+    """feedback-detect-but-never-silence: it may point out a gap, never turn a
+    deliverable report into no report."""
+    prose = ('▎我的看法\n'
+             'SKHY -9.0% 板块 risk-off，无一手公告；其余持仓按计划，'
+             '等收盘再看一次，今天不新增动作，维持原有仓位不变。\n')
+    ctx = _ctx(plan_triggers=TRIGGER_ROWS)
+
+    issues = pf.validate(pf.assemble_message(ctx, prose), ctx, prose)
+
+    flagged = [i for i in issues if '计划触发线' in i]
+    assert all(pf.ADVISORY_MARK in i for i in flagged), flagged

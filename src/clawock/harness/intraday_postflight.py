@@ -247,6 +247,17 @@ def validate(text, ctx, model_text):
     # 进过正文,所以模板加了要求之后必须配一条闸——否则就是又一个「写了没人写」。
     # advisory:它只能提醒漏写,不许把一份已经可发的报告变成不发
     # (feedback-detect-but-never-silence)。
+    # 计划触发线已破却一个字没写 (2026-09-07)。那天 00100 的 ≥365 减仓线被打穿
+    # 7.7%,八个槽的正文一句没提;块里已经印了那一行,这条闸管的是正文有没有认。
+    # 与加仓侧同档:advisory —— 只提醒漏写,不许把一份已经可发的报告变成不发
+    # (feedback-detect-but-never-silence)。
+    trigger_rows = ctx.get('plan_triggers') or []
+    if trigger_rows and not any(row.get('ticker') in checked for row in trigger_rows):
+        named = '/'.join(
+            f"{row['ticker']} {row['condition_price']:g}" for row in trigger_rows[:3])
+        issues.append(
+            f'计划触发线已破但报告一个都没写 ({named}) {ADVISORY_MARK}')
+
     add_rows = (ctx.get('add_side_reads') or {}).get('rows') or []
     if add_rows and not any(row.get('ticker') in checked for row in add_rows):
         verdicts = '/'.join(f"{row['ticker']} {row['verdict']}" for row in add_rows[:3])
