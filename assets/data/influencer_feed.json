@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-07T17:57:07.099772+00:00",
+  "generated_at": "2026-09-07T23:43:28.038414+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -11,14 +11,136 @@
     "musk": "success",
     "serenity": "failed"
   },
-  "llm_filtered": false,
+  "llm_filtered": true,
   "counts": {
-    "total": 21,
+    "total": 12,
     "held_hits": 0,
-    "new_ideas": 0,
-    "sector_hits": 0
+    "new_ideas": 5,
+    "sector_hits": 3
   },
   "items": [
+    {
+      "author": "Musk",
+      "text": "Feds open probe into Musk's steering-wheel-free taxis a day after he began offering rides in Tesla Cybercabs",
+      "url": "",
+      "published": "Fri, 04 Sep 2026 17:23:50 GMT",
+      "origin": "gnews-rss",
+      "source": "ABC7 Bay Area",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "Robotaxi",
+        "电动车",
+        "监管"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 78,
+      "summary_cn": "联邦政府启动对Tesla无方向盘Cybercab Robotaxi的调查，监管风险上升。"
+    },
+    {
+      "author": "Musk",
+      "text": "Tesla’s Cybercab robotaxi has hit the streets. Regulators have questions.",
+      "url": "",
+      "published": "Fri, 04 Sep 2026 21:45:53 GMT",
+      "origin": "gnews-rss",
+      "source": "The Washington Post",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "Robotaxi",
+        "电动车",
+        "监管"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 75,
+      "summary_cn": "Tesla Cybercab已上路，但监管机构存疑——监管不确定性是TSLA Robotaxi故事的关键变量。"
+    },
+    {
+      "author": "Trump",
+      "text": "NO MORE SELLING BOMBARDIER IN THE UNITED STATES! Their products aren’t good enough! Over 50% of their revenue comes from the United States — They live off American Buyers, American Companies, American Airports, and American Service — All while Canada blocks our GREAT American Banks, and Companies, throughout the U.S.A. They even blocked Gulfstream Aerospace from doing business in Canada — Completely unjust and unfair! That Era is OVER! If they want our Market, they must build here, and stop treating America like a “piggybank.” BUY AMERICAN. FLY ON AMERICAN AIRLINERS. ENJOY AMERICAN LIQUOR AND ",
+      "url": "https://trumpstruth.org/statuses/41619",
+      "published": "2026-09-07T17:39:29+00:00",
+      "origin": "truthsocial",
+      "tickers": [
+        "BBD.A",
+        "BBD.B"
+      ],
+      "held": [],
+      "new_ideas": [
+        "BBD.A",
+        "BBD.B"
+      ],
+      "sectors": [
+        "航空",
+        "贸易保护主义"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 70,
+      "summary_cn": "特朗普以国家安全/贸易不公为由封杀庞巴迪在美销售，鼓吹Buy American，利好美国航空制造与本土供应链。"
+    },
+    {
+      "author": "Musk",
+      "text": "Tesla vs SpaceX: Elon Musk's Two Companies Are Chasing the Same AI Prize. Only One Is Positioned to Win It",
+      "url": "",
+      "published": "Mon, 07 Sep 2026 11:49:00 GMT",
+      "origin": "gnews-rss",
+      "source": "24/7 Wall St.",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "AI",
+        "航天",
+        "电动车"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 65,
+      "summary_cn": "分析称Tesla与SpaceX同逐AI桂冠但只有一家能赢——对TSLA偏负面、对SpaceX偏正面。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk Owns 28% of Tesla, a Stake Worth Nearly $350 Billion. Here's Why His Ownership Level Matters for Shareholders.",
+      "url": "",
+      "published": "Mon, 07 Sep 2026 17:07:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "AI"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 50,
+      "summary_cn": "马斯克持有Tesla约28%股份，价值近3500亿美元——持仓集中度对TSLA股东与公司治理具重大影响。"
+    },
     {
       "author": "Musk",
       "text": "SpaceX investors may be overlooking a major risk: There’s no replacing Elon Musk",
@@ -29,9 +151,39 @@
       "tickers": [],
       "held": [],
       "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
       "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "relevance": 70,
+      "summary_cn": "报道称SpaceX投资者可能低估'无人可替代马斯克'的风险，对SPCX/SPCH持仓为关键集中度警示。"
+    },
+    {
+      "author": "Trump",
+      "text": "Except for the RADICAL LEFT that wants to RAISE YOUR TAXES, and wreck our Economy, EVERYONE LOVES TAX CUTS! My Big Beautiful Bill was the BIGGEST relief in HISTORY for hardworking families – Nobody’s seen anything like it!  Now, another HUGE WIN: @SECPaulSAtkins at the SEC slashed Taxes on ETFs, helping MILLIONS of Retirement Investors keep more of their own money, build wealth, and live the American Dream without Government “rip offs.” TOTAL REVOLUTION for Savers. Great job Paul — You’re a STAR! President DONALD J. TRUMPHow millions of everyday investors are getting a tax break: https://www.w",
+      "url": "https://trumpstruth.org/statuses/41599",
+      "published": "2026-09-07T14:00:42+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "ETF",
+        "减税",
+        "退休账户"
+      ],
+      "sector_holdings": [
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "endorse",
+      "relevance": 65,
+      "summary_cn": "特朗普力推SEC主席削减ETF税负，称是储蓄者'全面革命'，对恒生科技ETF及美股ETF均偏利好。"
     },
     {
       "author": "Musk",
@@ -43,65 +195,56 @@
       "tickers": [],
       "held": [],
       "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "sectors": [
+        "AI",
+        "航天",
+        "数据中心"
+      ],
+      "sector_holdings": [
+        "SKHY",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 60,
+      "summary_cn": "马斯克提出'太空数据中心'构想并给出激进时间表，长期利好SpaceX持仓与半导体需求叙事。"
     },
     {
-      "author": "Musk",
-      "text": "Elon Musk’s Inner Circle Is Pouring Cash Into Making Psychedelics Mainstream",
-      "url": "",
-      "published": "Sat, 05 Sep 2026 16:00:00 GMT",
-      "origin": "gnews-rss",
-      "source": "WSJ",
+      "author": "Trump",
+      "text": "Trump cheers strong jobs report, calls for lower interest rates: https://justthenews.com/politics-policy/trump-cheers-strong-jobs-report-calls-lower-interest-rates",
+      "url": "https://trumpstruth.org/statuses/41583",
+      "published": "2026-09-07T00:48:41+00:00",
+      "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "sectors": [
+        "宏观",
+        "利率",
+        "就业"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 70,
+      "summary_cn": "特朗普为强劲就业报告欢呼，并公开施压要求降息——影响整体市场流动性与风险资产定价。"
     },
     {
-      "author": "Musk",
-      "text": "Elon Musk Owns 28% of Tesla, a Stake Worth Nearly $350 Billion. Here's Why His Ownership Level Matters for Shareholders.",
-      "url": "",
-      "published": "Mon, 07 Sep 2026 17:07:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
+      "author": "Trump",
+      "text": "Canada’s (currency) Dollar imbalance with the U.S. is unacceptable. It has been that way for years - but no longer! President DJT",
+      "url": "https://trumpstruth.org/statuses/41532",
+      "published": "2026-09-06T13:10:13+00:00",
+      "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Musk",
-      "text": "Tesla vs SpaceX: Elon Musk's Two Companies Are Chasing the Same AI Prize. Only One Is Positioned to Win It",
-      "url": "",
-      "published": "Mon, 07 Sep 2026 11:49:00 GMT",
-      "origin": "gnews-rss",
-      "source": "24/7 Wall St.",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Musk",
-      "text": "Tesla’s Cybercab robotaxi has hit the streets. Regulators have questions.",
-      "url": "",
-      "published": "Fri, 04 Sep 2026 21:45:53 GMT",
-      "origin": "gnews-rss",
-      "source": "washingtonpost.com",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "sectors": [
+        "外汇",
+        "美加贸易"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 60,
+      "summary_cn": "特朗普抨击加元兑美元汇率失衡，扬言'不会再这样'——贸易摩擦信号，可能扰动跨境板块与金风科技(02208)等加元相关资产。"
     },
     {
       "author": "Musk",
@@ -113,23 +256,84 @@
       "tickers": [],
       "held": [],
       "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "sectors": [
+        "DOGE",
+        "政府效率",
+        "政治风险"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 55,
+      "summary_cn": "国会议员要求马斯克就DOGE相关DHS'节省'数据作假作证——政治与法律风险升温，可能扰动其旗下上市公司。"
     },
     {
-      "author": "Musk",
-      "text": "Musk’s xAI loses court bid to block Minnesota's AI ‘nudification’ ban",
-      "url": "",
-      "published": "Fri, 04 Sep 2026 20:11:05 GMT",
-      "origin": "gnews-rss",
-      "source": "Reuters",
+      "author": "Trump",
+      "text": "US producer prices post largest drop in 14 months; inflation risks still tilted to the upside: https://www.reuters.com/business/us-producer-prices-unexpectedly-fall-june-2026-07-15/",
+      "url": "https://trumpstruth.org/statuses/41622",
+      "published": "2026-09-07T21:35:50+00:00",
+      "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
+      "sectors": [
+        "宏观经济",
+        "通胀"
+      ],
+      "sector_holdings": [],
       "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "relevance": 55,
+      "summary_cn": "美国6月PPI创14个月最大降幅，但通胀风险仍偏上行——影响利率与板块估值。"
+    }
+  ],
+  "held_hits": [],
+  "new_ideas": [
+    {
+      "author": "Musk",
+      "text": "Feds open probe into Musk's steering-wheel-free taxis a day after he began offering rides in Tesla Cybercabs",
+      "url": "",
+      "published": "Fri, 04 Sep 2026 17:23:50 GMT",
+      "origin": "gnews-rss",
+      "source": "ABC7 Bay Area",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "Robotaxi",
+        "电动车",
+        "监管"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 78,
+      "summary_cn": "联邦政府启动对Tesla无方向盘Cybercab Robotaxi的调查，监管风险上升。"
+    },
+    {
+      "author": "Musk",
+      "text": "Tesla’s Cybercab robotaxi has hit the streets. Regulators have questions.",
+      "url": "",
+      "published": "Fri, 04 Sep 2026 21:45:53 GMT",
+      "origin": "gnews-rss",
+      "source": "The Washington Post",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "Robotaxi",
+        "电动车",
+        "监管"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 75,
+      "summary_cn": "Tesla Cybercab已上路，但监管机构存疑——监管不确定性是TSLA Robotaxi故事的关键变量。"
     },
     {
       "author": "Trump",
@@ -137,12 +341,96 @@
       "url": "https://trumpstruth.org/statuses/41619",
       "published": "2026-09-07T17:39:29+00:00",
       "origin": "truthsocial",
+      "tickers": [
+        "BBD.A",
+        "BBD.B"
+      ],
+      "held": [],
+      "new_ideas": [
+        "BBD.A",
+        "BBD.B"
+      ],
+      "sectors": [
+        "航空",
+        "贸易保护主义"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 70,
+      "summary_cn": "特朗普以国家安全/贸易不公为由封杀庞巴迪在美销售，鼓吹Buy American，利好美国航空制造与本土供应链。"
+    },
+    {
+      "author": "Musk",
+      "text": "Tesla vs SpaceX: Elon Musk's Two Companies Are Chasing the Same AI Prize. Only One Is Positioned to Win It",
+      "url": "",
+      "published": "Mon, 07 Sep 2026 11:49:00 GMT",
+      "origin": "gnews-rss",
+      "source": "24/7 Wall St.",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "AI",
+        "航天",
+        "电动车"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 65,
+      "summary_cn": "分析称Tesla与SpaceX同逐AI桂冠但只有一家能赢——对TSLA偏负面、对SpaceX偏正面。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk Owns 28% of Tesla, a Stake Worth Nearly $350 Billion. Here's Why His Ownership Level Matters for Shareholders.",
+      "url": "",
+      "published": "Mon, 07 Sep 2026 17:07:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "AI"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 50,
+      "summary_cn": "马斯克持有Tesla约28%股份，价值近3500亿美元——持仓集中度对TSLA股东与公司治理具重大影响。"
+    }
+  ],
+  "sector_hits": [
+    {
+      "author": "Musk",
+      "text": "SpaceX investors may be overlooking a major risk: There’s no replacing Elon Musk",
+      "url": "",
+      "published": "Wed, 02 Sep 2026 09:00:30 GMT",
+      "origin": "gnews-rss",
+      "source": "CNN",
       "tickers": [],
       "held": [],
       "new_ideas": [],
+      "sectors": [
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
       "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "relevance": 70,
+      "summary_cn": "报道称SpaceX投资者可能低估'无人可替代马斯克'的风险，对SPCX/SPCH持仓为关键集中度警示。"
     },
     {
       "author": "Trump",
@@ -153,155 +441,43 @@
       "tickers": [],
       "held": [],
       "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "sectors": [
+        "ETF",
+        "减税",
+        "退休账户"
+      ],
+      "sector_holdings": [
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "endorse",
+      "relevance": 65,
+      "summary_cn": "特朗普力推SEC主席削减ETF税负，称是储蓄者'全面革命'，对恒生科技ETF及美股ETF均偏利好。"
     },
     {
-      "author": "Trump",
-      "text": "Chandler Hall, representing, on Television, the foolish Center for American Lack of Progress, stated that adding the National Guard to Cities, including our now Great Again, Washington, D.C., had “NO impact on Crime.” How crazy is that. Hall was met with furious dissent. The report is just another Radical Left SCAM, as are the people who fund this gaggle of Lunatics, including George Soros, Bill and Melinda Gates, Google, Apple, Visa, Goldman Sachs, Citigroup, WellsFargo, Bank of America, Walmart, Toyota, T-Mobile, and NBC Universal. Foreign support includes the Embassy of Japan, the Korea Fou",
-      "url": "https://trumpstruth.org/statuses/41596",
-      "published": "2026-09-07T13:50:35+00:00",
-      "origin": "truthsocial",
+      "author": "Musk",
+      "text": "Data centers in space: Four big obstacles and Elon Musk's ambitious timeline",
+      "url": "",
+      "published": "Sun, 06 Sep 2026 23:55:41 GMT",
+      "origin": "gnews-rss",
+      "source": "CNBC",
       "tickers": [],
       "held": [],
       "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "One of the absolutely best Attorney Generals in the Country is James Uthmeier of the Great State of Florida. He stands for everything MAGA - Strong on Crime and Borders, protecting our always under siege Second Amendment, Military and Vets, Low Inflation and Low Taxes, and so much more! As always, James Uthmeier has my Complete and Total Endorsement. He will never let you down!!! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/41593",
-      "published": "2026-09-07T02:24:50+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "New York Times Bestselling Author, Victor Davis Hanson, just wrote what will quickly be considered one of the BEST BOOKS OF THE YEAR (Maybe the BEST!). Entitled, THE COUNTER REVOLUTION, he understands me, perhaps better, than I understand myself. From the brink of disaster, the U.S.A. is now the “hottest” Country anywhere in the World, and it was MAGA, and a lot of Great American Patriots, that got us there. Victor Davis Hanson explains it all, and better than ever before! GET HIS HISTORICALLY IMPORTANT BOOK, NOW. Thank you!!! President DJT",
-      "url": "https://trumpstruth.org/statuses/41591",
-      "published": "2026-09-07T01:49:31+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "Thank you to Congressman Jim Jordan. He is a truly GREAT guy, and a former All-American wrestler, one of the best, ever, in both high school and college. He never gives up! President DJTJim Jordan demands FBI Round River docs after memos reveal targeting of Trump officials, allies: https://justthenews.com/government/congress/emb3pm-jordan-demands-fbi-round-river-docs-after-memos-show-targeting-trump",
-      "url": "https://trumpstruth.org/statuses/41588",
-      "published": "2026-09-07T00:59:09+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "Trump ambassador vows NATO-like reforms to UN after terror scandal: ‘Clean this place up’: https://justthenews.com/government/federal-agencies/clean-place-trump-ambassador-vows-nato-reforms-un-after-terror-scandal",
-      "url": "https://trumpstruth.org/statuses/41581",
-      "published": "2026-09-07T00:49:28+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "Homeland asks DOJ to probe transfer of private state voter data to Zuckerberg-tied nonprofit: https://justthenews.com/government/federal-agencies/6amhomeland-security-refers-alleged-2020-election-voter-data-privacy",
-      "url": "https://trumpstruth.org/statuses/41582",
-      "published": "2026-09-07T00:49:05+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "Trump cheers strong jobs report, calls for lower interest rates: https://justthenews.com/politics-policy/trump-cheers-strong-jobs-report-calls-lower-interest-rates",
-      "url": "https://trumpstruth.org/statuses/41583",
-      "published": "2026-09-07T00:48:41+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "No wonder they like me!!! President DJTWomen account for almost all net U.S. job gains since Trump took office: https://justthenews.com/nation/economy/women-account-almost-all-net-us-job-gains-trump-took-office-report",
-      "url": "https://trumpstruth.org/statuses/41587",
-      "published": "2026-09-07T00:47:22+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "I do this for our Country, not myself. I’ve made Hundreds of Billions of Dollars on Stocks, and many other type Holdings, for the U.S.A., not myself, and all I do is get criticized by the Radical Left Dumocrats. Very unfair, but what can you do! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/41565",
-      "published": "2026-09-06T19:17:16+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "Upon his death, I gave Congressman John Dingell, the Royal Sendoff, MAXED OUT! His wife, Debbie Dingbat, called me and thanked me profusely, while crying uncontrollably. She couldn’t believe I would do such a nice thing! Since then, she says nothing but bad about your favorite President, ME! Every time I see that Third Rate Loser ripping me, I’m amazed, because I’m a loyal person, I don’t do things like that but, that’s OK — It’s Politics. However, it shouldn’t be that way! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/41543",
-      "published": "2026-09-06T18:44:52+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "Canada’s (currency) Dollar imbalance with the U.S. is unacceptable. It has been that way for years - but no longer! President DJT",
-      "url": "https://trumpstruth.org/statuses/41532",
-      "published": "2026-09-06T13:10:13+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "sectors": [
+        "AI",
+        "航天",
+        "数据中心"
+      ],
+      "sector_holdings": [
+        "SKHY",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 60,
+      "summary_cn": "马斯克提出'太空数据中心'构想并给出激进时间表，长期利好SpaceX持仓与半导体需求叙事。"
     }
-  ],
-  "held_hits": [],
-  "new_ideas": [],
-  "sector_hits": []
+  ]
 }
