@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-04T16:39:37.932254",
+  "generated_at": "2026-09-07T18:00:08.406770",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -15,7 +15,7 @@
       "SPCH"
     ]
   },
-  "digest_markdown": "## Top 移动信号\n\n- **SKHY**: AI memory crunch 进入 \"10/10 craziness\", TechInsights 预测 DRAM 价格 2027 前涨 200%+, SK hynix 以 ~50% 份额领跑 HBM → 长线 super-cycle catalyst 已获 sell-side 背书, kcn 持仓逻辑强化\n- **RKLB (via RKLX 2x)**: Cathie Wood/ARK 单日加仓 705,102 股 → 机构级 conviction 信号; RKLX 2x 杠杆将放大反弹弹性\n- **SPCX (via SPCH 2x)**: SpaceX 生态外溢验证 — Boring Company 新一轮估值 $20B (WSJ), Anthropic 按 SpaceX 模板融 $15B revolver → 强化 SPX 持仓隐含 valuation uplift 逻辑; SPCH 2x 杠杆放大\n- **CRCL**: BTC 突破 $80K + Waller 倾向 9 月按兵不动 → 短期 risk-on; 但 8 月非农大超预期 10.6 万, 9 月加息概率从 49.4% 跳到 60.2% → 两股相反力量, 双向波动放大\n- **RKLB 负向**: ChartMill 明确点名 \"space rally narrower than it looks\", mega-cap SPCX 掩盖板块疲软, RKLB/ASTS/VSAT 均 diverging → RKLX 2x 下行风险, 与 ARK 加仓形成短期矛盾\n\n## Per-ticker 简报\n\n- **CRCL**: BTC 站上 $80K + Fed 鸽派信号推高, 但强劲就业数据重新点燃加息预期 — 双向催化, 净影响取决于利率路径\n- **RKLB**: ARK 大举建仓是亮点, 但板块内部分化 (自家相对 SPCX 走弱) 削弱普涨叙事\n- **SPCX**: 9/9 SpaceX 股份解锁在即; Boring Co $20B + Anthropic $15B revolver 印证 Musk 生态融资能力, 间接支撑 SPCX NAV\n- **SKHY**: HBM 领导地位 + DRAM 紧缺预测 + 韩国获 $2B 美企投资 — 多重顺风叠加, 但 Micron 被点名为 \"impossible expectations\" 是同板块 read-across 警示\n\n## Risk watch\n\n- **CRCL**: 9 月加息概率 1 天内从 49%→60%, crypto 资产对利率最敏感, 加息兑现即回吐风险\n- **RKLB / RKLX**: 板块轮动分化已现, 若 ARK 加仓被解读为接飞刀, RKLX 2x 回撤幅度加剧\n- **SKHY**: 板块整体 expectations 已极致 (SeekingAlpha 直接点名 Micron), 任何 memory capex/订单节奏松动即杀估值\n- **SPCX / SPCH**: 9/9 股份 unlock 是已知事件, 历史上同类 unlock 前后波动率上升, SPCH 2x 双向放大",
+  "digest_markdown": "### Top 移动信号\n- **SKHY**: Nvidia Q2 FY27 业绩炸裂 + 指引 FY28 ~70% 增长，叠加 Goldman 维持 KOSPI 12,000 目标 → memory cycle 直接利好持仓，板块 β 强劲（SK Hynix 单日 +6.2%）\n- **CRCL**: Arc mainnet 9/16 公开发布，BlackRock/Visa/Mastercard/DTCC 参与 → 短期强催化剂；但 SeekingAlpha 双线警告（USDC circulation 放缓 + 2026 盈利 one-time boost）→ 30d 已 +61%，追高风险大\n- **RKLB (via RKLX 2x)**: ARK 加仓 705K 股 ($45M) + 新 SDN 军方合同 → 利好放大 2x；**CFO 同步减持 14 万股 $8.8M** → 利空同样 2x 放大，净信号中性\n- **SPCX (via SPCH 2x)**: 竞品 Isar Aerospace 二次入轨并称 €10B pipeline → 直接竞争利空，2x 放大；Nvidia 持仓叙事提供部分对冲\n- **跨市场**: Evercore 警告 OpenAI/Anthropic IPO 临近或触发 blue-chip 提前 tax-loss selling → 短期波动率上行\n\n### Per-ticker\n- **CRCL**: Chelsea 球衣赞助 (2026/27 起) - 纯营销叙事，无财务影响；与同期降级报道冲突\n- **RKLB**: Neutron 再次延期，市场焦点转向关键合并完成 - 短期缺独立催化剂\n- **SPCX**: 股价自早期 $200 高点回落，多为同业对照（ASTS/L3Harris）讨论，无直接催化剂\n- **SKHY**: Samsung +4.5% / SK Hynix +6.2% 同步，板块联动确认\n\n### 风险 watch\n- **CRCL**: SeekingAlpha 明确降级，USDC 流通量放缓 + stablecoin 份额流失\n- **RKLB**: CFO insider sale $8.8M（大额、非小额计划性交易信号）\n- **SPCX**: Isar Aerospace 商业化加速 + €10B 订单管线\n- **宏观**: 美伊冲突升温 + Apple/通胀数据本周待公布 + IPO 前 tax-loss selling 风险",
   "raw_news_counts": {
     "CRCL": 5,
     "RKLB": 5,
@@ -25,150 +25,150 @@
   "raw_news_evidence": {
     "CRCL": [
       {
-        "headline": "Crypto and Gold Miners Sell-Off as Hot Jobs Data Cement September Fed Hike",
-        "datetime": 1788517564,
-        "source": "Benzinga",
+        "headline": "Circle: Lock In Gains On This Rebound As USDC Circulation Slows (Downgrade)",
+        "datetime": 1788788064,
+        "source": "SeekingAlpha",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=09adc2564e6ed63134fafcfb07014ceb2a84c615d557d2031c02ab78d99cfabc"
+        "url": "https://finnhub.io/api/news?id=bea6adc65ce08681bc593ebdfaad0f15465e80c2e83f83eb6f5eb57f5c958805"
       },
       {
-        "headline": "Wall Street Rallies as Fed’s Waller Hints at September Rate Hold: Stock Market Today",
-        "datetime": 1788443265,
-        "source": "Benzinga",
+        "headline": "Circle: Arc's Launch Is Real, But Its 2026 Earnings Boost Is One-Time",
+        "datetime": 1788782385,
+        "source": "SeekingAlpha",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=7ff14b41e99a43f6c56eed4b47af023051c8b23fec4b033b02bd455f77de4dbb"
+        "url": "https://finnhub.io/api/news?id=4bfef248958719fef75f376b0ce6f88fe40685d16d62ca40ef268e572ce8ee05"
       },
       {
-        "headline": "This Meme Coin App Made Robinhood $6M in Fees: Is That Why HOOD Is Surging?",
-        "datetime": 1788442686,
-        "source": "Benzinga",
+        "headline": "Cathie Wood buys surging crypto stock despite latest controversy",
+        "datetime": 1788644608,
+        "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=a0493588ca60689a31c36b32207e99350f9c270baa386a8c42b89758ddaf1b60"
+        "url": "https://finnhub.io/api/news?id=2fa5c8d34a04327fec1e86b884f122d5e60ee88f28d64ca7e162606d9a87def9"
       },
       {
-        "headline": "Shares of crypto-linked stocks are trading higher as Bitcoin prices hit $80,000 amid lower yields and a weaker dollar. Fed's Waller's comments that he is inclined to support holding interest rates ste",
-        "datetime": 1788438129,
-        "source": "Benzinga",
+        "headline": "Circle Internet Group (CRCL) Lands Chelsea Shirt Deal, Is The Stock Fully Valued?",
+        "datetime": 1788635258,
+        "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=294a5afd3408b398c4f843c22711b6f75713334b08b0e604db4d134e752a2249"
+        "url": "https://finnhub.io/api/news?id=be7c0fd078771bd01030ee5a984a4a4191e8cd8b5492b3f0e5518356e28dcc8e"
       },
       {
-        "headline": "Circle Stock Surges Thursday: What's Happening?",
-        "datetime": 1788434402,
-        "source": "Benzinga",
+        "headline": "What Is Driving Circle Internet Group (CRCL) Stock As Arc Nears Launch?",
+        "datetime": 1788620797,
+        "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=7c1aeadfe2fd040b9565063e49dcb5dbf2ec9360e683a209eed4f7fc5019756f"
+        "url": "https://finnhub.io/api/news?id=f169e32c43c4a8afc9337c0c333291e16571bb6702ba4cc653f5802e04d381ca"
       }
     ],
     "RKLB": [
       {
-        "headline": "Cathie Wood Just Bought 705,102 Shares of a Rocket Company 50 Times Smaller Than SpaceX",
-        "datetime": 1788534027,
+        "headline": "Cathie Wood Just Made a $45 Million Rocket Lab Move",
+        "datetime": 1788796480,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=8f2a32b765cc06d3da35b66b51a546d74560e5fd19be885975321ab30a325e50"
+        "url": "https://finnhub.io/api/news?id=d04ed131e7f4b334e57ec85ebe9f7131ab104eef38230a437ee5323bcf4e0581"
       },
       {
-        "headline": "The Zacks Analyst Blog Highlights SpaceX, NASA, Rocket Lab, ARKX, UFO and WARP",
-        "datetime": 1788531840,
+        "headline": "Can Rocket Lab's SDN Contracts Boost Growth Opportunities?",
+        "datetime": 1788791400,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=2b638c68a59341040b0c4f4d98b3b794392572bf24917e322b1a1cc30e10f765"
+        "url": "https://finnhub.io/api/news?id=8089512c25917d1b5bf69cabde11d2b730a2da30c333c28386c8bac945b0cff6"
       },
       {
-        "headline": "Planet Labs Rallies 10% as Record Revenue Overrides Soft Q3 Guidance",
-        "datetime": 1788531390,
+        "headline": "Rocket Lab's Neutron Just Slipped Again. Here's the Only Date That Still Matters for Shareholders.",
+        "datetime": 1788773100,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=1dee3795161ece8c651e5fb0ac69f6b513d897d975e9e0a4591cd4685e011a29"
+        "url": "https://finnhub.io/api/news?id=5de71cd8bb3869b34a04d948906d09a8accc695b298ec004df42fb23daf209dd"
       },
       {
-        "headline": "Space Rally Is Narrower Than It Looks as One Mega-Cap Masks Sector Slump",
-        "datetime": 1788525572,
-        "source": "ChartMill",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=7079a5c0051904581a7cc0214d1f4a25320eb8ded5b33b9258b8a6991dcbcd07"
-      },
-      {
-        "headline": "SpaceX Stock Is Still Below Its First Closing Price. One Analyst Sees 450% Upside From Here",
-        "datetime": 1788525511,
+        "headline": "Rocket Lab CFO Dumps Over 140,000 Company Shares Worth $8.8 Million Amid a 28% One-Year Return",
+        "datetime": 1788676595,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=914036e8ca00b005262ce03b6ba70e18c650c02b57c45762fca9b57b77acd4cc"
+        "url": "https://finnhub.io/api/news?id=8576dd5557c90a72d9bded140e684022750b7be33a774be6fc845aeea5e1355f"
+      },
+      {
+        "headline": "Prediction: Here's What a $10,000 Investment in Rocket Lab Will Be Worth in 5 Years",
+        "datetime": 1788650400,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=52658f53300bc7f696746f5962a580892156309a4d124c31d17ef0197b65f2c4"
       }
     ],
     "SPCX": [
       {
-        "headline": "All Eyes Are on SpaceX's Next Share Unlock on Sept. 9. But These 3 Unstoppable Growth Stocks Are Better Buys Hiding in Plain Sight.",
-        "datetime": 1788537240,
+        "headline": "Will SpaceX Stock Get Back to $200 Before the End of 2026?",
+        "datetime": 1788794401,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=ee5f9c2d1dfa85a723596b90151f12fe7b8890322d9607375c92fdb7e3f69cb5"
+        "url": "https://finnhub.io/api/news?id=687bf3690c2e70f32c6d7f07347cd6e5f2d773e2fea105ae8048b17d24b286e0"
       },
       {
-        "headline": "Elon Musk Just Opened His Midterm War Chest",
-        "datetime": 1788535962,
+        "headline": "How Nvidia’s Investment Juggernaut Can Jump from Big to Enormous",
+        "datetime": 1788793620,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=5e8f76d5d9724b738918b51e24f3a1dd3659cf2827aa4b69ff6793749a69d45d"
+        "url": "https://finnhub.io/api/news?id=dfd32d6523dd94c55deb552b3ac63439d8b04483f0fd0b24d6db0a6273308319"
       },
       {
-        "headline": "Anthropic Follows SpaceX's Playbook With a $15 Billion Revolver",
-        "datetime": 1788535687,
+        "headline": "Better Space Stock: AST SpaceMobile vs. L3Harris Technologies",
+        "datetime": 1788792600,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=c5c397eadc435a48a13670dbde043b6239aa0fce97606a7bab7bc0a1bee274bf"
+        "url": "https://finnhub.io/api/news?id=76e00d25b51fd0f1381f575cd868e0e7088ae02c68c57521c96c7d00b66a5337"
       },
       {
-        "headline": "Boring Company valuation hits $20 billion in latest funding round - WSJ",
-        "datetime": 1788534814,
+        "headline": "Upcoming Anthropic and OpenAI IPOs could trigger early tax-loss selling",
+        "datetime": 1788792224,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=d7e1a37f0c8e2efeb0e3605e565f64c12c1b7dcadfd63c8a384b1dadf000cb1e"
+        "url": "https://finnhub.io/api/news?id=91fc0fe23cb1052962d27849ff44d9c5ae3ad1da4ad4cd823f0162c83976a7b9"
       },
       {
-        "headline": "Planet Labs lifts revenue guidance on strong military demand: AlphaSpace",
-        "datetime": 1788534755,
+        "headline": "SpaceX Rival Claims €10 Billion Pipeline After First Orbit. How Will Stock React?",
+        "datetime": 1788789658,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=6cb48ac542cb7059f4da562c4d596624d5da2b97b239cae6407c9d4d0736bcf2"
+        "url": "https://finnhub.io/api/news?id=07a726c1f12015dbc08ddd06d2bf983e2931cba3754bd162f2d82c9583768531"
       }
     ],
     "SKHY": [
       {
-        "headline": "The AI Boom Is Eating Its Own Margins",
-        "datetime": 1788509514,
+        "headline": "Tech Rally Surges in Asia as Kospi Soars",
+        "datetime": 1788787260,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=36b9618b599d8e611282dab4f88748ba3d0864cc827821b9e64a3835bf60c76e"
+      },
+      {
+        "headline": "After Nvidia's Blowout, The AI Trade's Next Leg Is One Layer Down",
+        "datetime": 1788778745,
         "source": "SeekingAlpha",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=b1f7e5b7eede59329c530114bbe353329f68a74d74cdcc0a7f9d1b0032fdc805"
+        "url": "https://finnhub.io/api/news?id=86a31b1e274c891ff38b774ba76d994779beba8957da9d46ae6fa56610c0d1c8"
       },
       {
-        "headline": "AI Memory Crunch Is About to Hit ‘10 Out of 10’ Craziness",
-        "datetime": 1788503010,
-        "source": "Benzinga",
+        "headline": "Goldman Strategist Holds 12,000 KOSPI Target: Will Memory Earnings Close a 74% Gap?",
+        "datetime": 1788760267,
+        "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=808e739acb33893626e9e998e9ad0b6c644d6a356d71124650a86b87adb6edd7"
+        "url": "https://finnhub.io/api/news?id=f04415d8a680f3f24b10f25683faf0d73b767db96e2f7840be7052879a4b01ff"
       },
       {
-        "headline": "South Korea Lands $2 Billion From 4 US Companies as Trump Turns Up Pressure on Foreign Chipmakers: GLW, APD, ACLS Among Stocks in Focus",
-        "datetime": 1788496514,
-        "source": "Benzinga",
+        "headline": "Asian shares are mixed as chipmaker shares rally in Tokyo and Seoul",
+        "datetime": 1788753295,
+        "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=c72165328925bb2ee5bf89d046ee154e96cdf125869248451a660dd58a3f6a24"
+        "url": "https://finnhub.io/api/news?id=6c6f239a0912fef814f8f492236f10f93ceab12c98fa7a19b2a278f4cc482282"
       },
       {
-        "headline": "SK hynix: The HBF And HBS Bet You Don't Want To Miss",
-        "datetime": 1788438281,
-        "source": "SeekingAlpha",
+        "headline": "Dow Jones Futures Fall With Iran, Apple, Inflation In Focus; Nvidia, Micron, Sandisk Flash Buy Signals",
+        "datetime": 1788750407,
+        "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=887796fea0fb412bbf9e14f53a892de6de1d46e74c92a87c9d2fdac2a82d8960"
-      },
-      {
-        "headline": "Micron: The Q4 Report Has Impossible Expectations",
-        "datetime": 1788437197,
-        "source": "SeekingAlpha",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=19eb02e94fa6c07886ea41aab03064d9f8338ea46d928c165a3aa75b6af41036"
+        "url": "https://finnhub.io/api/news?id=cffb60530c356ad83d70f5ba341f71adb8ce87c95dbba1f4ae5067ff4efff611"
       }
     ]
   },
