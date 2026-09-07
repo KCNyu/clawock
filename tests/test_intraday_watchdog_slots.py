@@ -175,16 +175,22 @@ SLOT = '2026-07-29T10:30:00+08:00'
 HEADING = '🇭🇰 港股盯盘 | 07/29 10:32 HKT'
 
 
-def _wire_watchdog(monkeypatch, tmp_path, *, run, now, marker, loop_score=1):
-    """Set up main() against a tmp workspace; returns (sends, heartbeats, events)."""
+def _wire_watchdog(monkeypatch, tmp_path, *, run, now, marker, loop_score=1,
+                   context=None):
+    """Set up main() against a tmp workspace; returns (sends, heartbeats, events).
+
+    `context` overrides the preflight context written to disk, so a test can hand
+    main() a blockless sentinel instead of a healthy block.
+    """
     from clawock.harness import intraday_watchdog as watchdog
 
     context_dir = tmp_path / 'memory' / '.tmp'
     context_dir.mkdir(parents=True, exist_ok=True)
-    (context_dir / 'intraday-context-hk-latest.json').write_text(json.dumps({
-        'heartbeat': {'job': '盘中盯盘', 'slot': SLOT},
-        'raw_wechat_block': f'{HEADING}\n恒指 25,713 ▲1.59%',
-    }))
+    (context_dir / 'intraday-context-hk-latest.json').write_text(json.dumps(
+        context if context is not None else {
+            'heartbeat': {'job': '盘中盯盘', 'slot': SLOT},
+            'raw_wechat_block': f'{HEADING}\n恒指 25,713 ▲1.59%',
+        }))
     if marker is not None:
         (context_dir / 'intraday-sent-hk.json').write_text(json.dumps(marker))
 
@@ -368,3 +374,75 @@ def test_a_marker_that_failed_telegram_still_gets_mirrored(
     assert HEADING in sends[0]              # the report reaches kcn, not just a banner
     assert events[-1]['action'] == 'mirror-telegram'
     assert events[-1]['reason'] == 'postflight cosend failed'
+
+
+def test_market_closed_sentinel_gets_no_deterministic_fallback(
+        tmp_path, monkeypatch):
+    """2026-09-07 US Labor Day: an empty 🧯 banner reached kcn on a closed market.
+
+    preflight gates the holiday and writes a BLOCKLESS `market_closed` sentinel,
+    but this watchdog read the missing block as "the LLM never produced the
+    report" and mirrored the deterministic fallback — header only, no body, once
+    per slot for the rest of the session.
+    """
+    now = datetime(2026, 7, 29, 10, 40, tzinfo=HKT)
+    run = _run(datetime(2026, 7, 29, 10, 30, tzinfo=HKT),
+               summary='=== MARKET CLOSED ===', delivery={})
+
+    watchdog, sends, heartbeats, events = _wire_watchdog(
+        monkeypatch, tmp_path, run=run, now=now, marker=None,
+        context={'status': 'market_closed', 'market': 'hk',
+                 'reason': '节假日休市', 'skip': True,
+                 'heartbeat': {'job': '盘中盯盘', 'slot': SLOT}})
+
+    assert watchdog.main() == 0
+    assert sends == []
+    # preflight already recorded market_closed for this slot; the watchdog must
+    # not overwrite that terminal state with a backstop verdict.
+    assert heartbeats == []
+    assert events[-1]['action'] == 'skip'
+    assert events[-1]['closed_reason'] == '节假日休市'
+
+
+def test_a_detected_loop_on_a_closed_market_still_sends_nothing(
+        tmp_path, monkeypatch):
+    """The closed gate sits above the loop gate deliberately.
+
+    A loop on a day the market never opened has an empty block to report, so the
+    fallback would be a banner claiming an LLM failure with nothing behind it.
+    """
+    now = datetime(2026, 7, 29, 10, 40, tzinfo=HKT)
+    run = _run(datetime(2026, 7, 29, 10, 30, tzinfo=HKT), summary='', delivery={})
+
+    watchdog, sends, _, events = _wire_watchdog(
+        monkeypatch, tmp_path, run=run, now=now, marker=None,
+        loop_score=watchdog_loop_threshold(),
+        context={'status': 'market_closed', 'market': 'hk',
+                 'reason': '周末休市', 'skip': True,
+                 'heartbeat': {'job': '盘中盯盘', 'slot': SLOT}})
+
+    assert watchdog.main() == 0
+    assert sends == []
+    assert events[-1]['action'] == 'skip'
+
+
+def test_blockless_context_never_sends_a_bodyless_fallback(
+        tmp_path, monkeypatch):
+    """Not the holiday sentinel, still nothing to put in the body."""
+    now = datetime(2026, 7, 29, 10, 40, tzinfo=HKT)
+    run = _run(datetime(2026, 7, 29, 10, 30, tzinfo=HKT), summary='', delivery={})
+
+    watchdog, sends, _, events = _wire_watchdog(
+        monkeypatch, tmp_path, run=run, now=now, marker=None,
+        context={'status': 'something_new',
+                 'heartbeat': {'job': '盘中盯盘', 'slot': SLOT}})
+
+    assert watchdog.main() == 0
+    assert sends == []
+    assert events[-1]['action'] == 'skip'
+    assert events[-1]['reason'].startswith('no preflight raw_wechat_block')
+
+
+def watchdog_loop_threshold():
+    from clawock.harness import intraday_watchdog as watchdog
+    return watchdog.LOOP_THRESHOLD
