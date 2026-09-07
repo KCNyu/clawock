@@ -1681,6 +1681,32 @@ def compute_today_movers(us_h, hk_h, leg_keys=('us', 'hk')):
         return []
 
 
+def payload_blocks_by_size(payload):
+    """`[(block, bytes), …]` biggest first — what the cap is actually spent on.
+
+    Lives beside the builder rather than in the test so both the CI gate and
+    `system_check` name the same blocks in the same units. A cap breach is only
+    half a report: "203,000 bytes; trim something" tells a reviewer that CI is
+    red and nothing about whether their diff did it. On 2026-07-28 (#743) that
+    ambiguity cost a session — the baseline was already over, and the PR under
+    review was blamed.
+    """
+    return sorted(
+        ((key, len(json.dumps(value, ensure_ascii=False).encode('utf-8')))
+         for key, value in (payload or {}).items()),
+        key=lambda row: -row[1],
+    )
+
+
+def describe_payload_size(payload, raw_bytes, cap, top=6):
+    """One human line plus the biggest blocks, for a gate that must be acted on."""
+    blocks = payload_blocks_by_size(payload)
+    listed = ' · '.join(f'{key} {size:,}' for key, size in blocks[:top])
+    headroom = cap - raw_bytes
+    return (f'{raw_bytes:,} bytes, {headroom:,} under the {cap:,} cap; '
+            f'biggest blocks: {listed}')
+
+
 def _latest_brief_context():
     """Return (path, dict) of the newest brief-context that actually carries data.
 

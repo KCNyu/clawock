@@ -44,6 +44,9 @@ from clawock.providers.openclaw import (  # noqa: E402
     read_jobs as openclaw_read_jobs,
     runtime_paths as openclaw_runtime_paths,
 )
+# The size report names blocks, and it must name them the way the CI gate does —
+# one helper, so the two cannot describe the same payload differently.
+from clawock.publish import dashboard as dashboard_builder  # noqa: E402
 
 _OPENCLAW_PATHS = openclaw_runtime_paths()
 
@@ -314,18 +317,44 @@ def check_dashboard_buildable(r):
         r.add('dashboard.json build', CRITICAL, 'no output file')
         return
     size = out.stat().st_size
-    # The payload only grows (snapshots, decisions, outcome rows), so the cap is
-    # reached between one publish and the next with no warning: on 2026-07-28 it
-    # crossed 200KB and every push turned red on a test, not here. Warn while
-    # there is still room to trim something.
-    cap, near = 200_000, 180_000
+    # MEASURED, and it corrected what used to be written here (2026-09-08). The
+    # old note said "the payload only grows … warn while there is still room to
+    # trim", and chose `near = 180_000` under that premise. It does not only
+    # grow: over 23 consecutive host runs it ranged 182,073–200,465 bytes and
+    # moved up to 13,474 between one run and the next. Two consequences the old
+    # threshold could not express:
+    #
+    #   * 180,000 was BELOW the observed floor, so this warning fired on 23 of
+    #     23 runs. A warning that is always on is not a warning; it is a line
+    #     kcn scrolls past in the seven-warning list.
+    #   * There is no "room to trim" window to warn inside. From an ordinary
+    #     190KB run the next one can be over the cap with nothing in between.
+    #
+    # So the threshold is now one observed swing below the cap — it says the
+    # true thing ("one ordinary day can breach from here") instead of a number
+    # that is true every day. And every branch names the biggest blocks, because
+    # a size with no composition cannot be acted on.
+    cap = 200_000
+    swing = 14_000          # ≥ the 13,474 largest observed run-to-run delta
+    near = cap - swing
+    try:
+        detail = dashboard_builder.describe_payload_size(
+            json.loads(out.read_text(encoding='utf-8')), size, cap)
+    except Exception:       # noqa: BLE001 — a composition probe must not red the gate
+        detail = f'{size:,} bytes'
     if size > cap:
-        r.add('dashboard.json size', WARNING, f'{size:,} > 200KB cap')
+        # Deliberately not CRITICAL: pre-push CRITICAL blocks the live host's
+        # data pushes (2026-08-31 froze master for 8h), and freezing the data
+        # plane over a payload that is merely too big is worse than publishing
+        # it. The wording carries the urgency instead — `validate` is already red
+        # at this point, which is the actionable fact.
+        r.add('dashboard.json size', WARNING,
+              f'OVER the {cap:,} cap — `validate` is red until this is trimmed. {detail}')
     elif size > near:
         r.add('dashboard.json size', WARNING,
-              f'{size:,} — {cap - size:,} bytes left under the 200KB cap')
+              f'within one day\'s swing ({swing:,}) of the cap. {detail}')
     else:
-        r.add('dashboard.json build', OK, f'{size:,} bytes')
+        r.add('dashboard.json build', OK, detail)
 
 
 def check_peer_map_coverage(r):
