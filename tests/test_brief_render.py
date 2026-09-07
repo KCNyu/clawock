@@ -28,7 +28,8 @@ CONTEXT = {
     },
     "risk_discipline": {"open_count": 7, "unacknowledged_count": 7, "oldest_open_days": 47},
     "risk_guardrail": {
-        "hard_stop_watch": [{"ticker": "07226", "severity": "critical",
+        "hard_stop_watch": [{"type": "leveraged_hard_stop", "ticker": "07226",
+                             "severity": "critical",
                              "detail": "07226 浮亏 -25.7% ≤ 硬止损线 -18%",
                              "breach_id": "risk-4ab"}],
         "breaches": [], "directive": "四条硬闸必须各出一个动作。",

@@ -23,8 +23,15 @@ def _context():
             {'event_id': 'evt_real', 'ticker': 'SPCH'},
         ]},
         'risk_guardrail': {
-            'breaches': [{'type': 'single_name', 'ticker': 'SPCH'}],
-            'hard_stop_watch': [{'type': 'leveraged_hard_stop', 'ticker': '07226'}],
+            'breaches': [
+                {'type': 'single_name', 'leg': 'US', 'ticker': 'SPCH'},
+                # A leg-level cap: the breach is on the book, not on a name,
+                # so the row carries no ticker (real shape, `guardrail.py`).
+                {'type': 'leveraged_exposure', 'leg': 'HK', 'ticker': None},
+            ],
+            'hard_stop_watch': [
+                {'type': 'leveraged_hard_stop', 'leg': 'HK', 'ticker': '07226'},
+            ],
         },
         'quant_signals': {'rows': {
             'SPCH': {'dist_ma200_pct': -12.4, 'rsi14': None},
@@ -81,6 +88,9 @@ def test_the_context_is_what_decides_whether_a_citation_stands():
             'news:evt_invented',                # not in the graph
             'risk:single_name:SPCH',            # a real breach, with its ticker
             'risk:leveraged_hard_stop',         # a real hard stop, unscoped
+            'risk:leveraged_hard_stop:07226',   # the same stop, scoped to its name
+            'risk:leveraged_exposure:HK',       # a leg-level cap, scoped to its leg
+            'risk:leveraged_exposure:07226',    # that cap has no ticker to borrow
             'risk:margin_call',                 # no such breach today
             'quant:SPCH:dist_ma200_pct',        # a present signal field
             'quant:SPCH:rsi14',                 # present but null → not citable
@@ -91,10 +101,12 @@ def test_the_context_is_what_decides_whether_a_citation_stands():
 
     assert pruned['decisions'][0]['debate']['evidence_ids'] == [
         'news:evt_real', 'risk:single_name:SPCH',
-        'risk:leveraged_hard_stop', 'quant:SPCH:dist_ma200_pct',
+        'risk:leveraged_hard_stop', 'risk:leveraged_hard_stop:07226',
+        'risk:leveraged_exposure:HK', 'quant:SPCH:dist_ma200_pct',
     ]
     assert dropped == [
-        'd1:news:evt_invented', 'd1:risk:margin_call', 'd1:quant:SPCH:rsi14',
+        'd1:news:evt_invented', 'd1:risk:leveraged_exposure:07226',
+        'd1:risk:margin_call', 'd1:quant:SPCH:rsi14',
     ]
 
 
@@ -150,3 +162,115 @@ def test_the_page_shows_what_a_debate_stood_on():
 
     assert 'evidence_ids' in js and 'dbt-cite' in js, (
         'a citation nobody can see is the same unverifiable claim, one layer in')
+
+
+def _guardrail_from_the_real_producer():
+    """A guardrail built by the module that builds the morning's, not by hand.
+
+    Every hand-written fixture in this file agreed with the resolver about the
+    shape of a `risk_guardrail` row. Production did not: `hard_stop_watch` rows
+    carried no `type` at all, so the resolver skipped all of them and every
+    hard-stop citation the model wrote was dropped as "unresolvable" — 14 of
+    the 28 dropped refs sampled between 09-01 and 09-07. A fixture cannot catch
+    that. Only the producer's own output can.
+    """
+    from clawock.portfolio import guardrail as guardrail_mod
+
+    def holding(ticker, value, *, leveraged=False, pnl_pct=0.0, shares=100):
+        cost_value = value / (1 + pnl_pct / 100)
+        return {
+            'ticker': ticker, 'name': ticker, 'shares': shares,
+            'cost_basis': cost_value / shares, 'current_value': value,
+            'is_leveraged_etf': leveraged,
+        }
+
+    # One 2x name deep enough under water to trip the hard stop, sized so the
+    # leg also breaches its single-name and leveraged-exposure caps; a second
+    # leg holding a name inside the review band.
+    hk = [holding('07226', 700.0, leveraged=True, pnl_pct=-27.1),
+          holding('00700', 300.0)]
+    us = [holding('SPCH', 500.0, leveraged=True, pnl_pct=-18.2),
+          holding('AAPL', 450.0), holding('MSFT', 50.0)]
+    return guardrail_mod.compute_risk_guardrail(
+        hk, us,
+        guardrail_mod.compute_concentration(hk),
+        guardrail_mod.compute_concentration(us),
+        {'us': {'beta_spx': 5.5}},
+    )
+
+
+def test_every_guardrail_row_the_producer_emits_can_be_cited():
+    from clawock.harness import brief_postflight
+
+    guardrail = _guardrail_from_the_real_producer()
+    citable = brief_postflight._citable_refs({'risk_guardrail': guardrail})
+
+    rows = [(key, row)
+            for key in ('breaches', 'hard_stop_watch', 'concentration_reviews')
+            for row in guardrail.get(key) or []]
+    assert rows, 'the fixture stopped tripping any cap — it proves nothing now'
+    assert any(key == 'hard_stop_watch' for key, _ in rows), (
+        'the family that was uncitable for a week must stay in this fixture')
+
+    for key, row in rows:
+        kind = row.get('type')
+        assert kind, f'{key} row has no type, so no citation can name it: {row}'
+        assert f'risk:{kind}' in citable
+        if row.get('ticker'):
+            assert f"risk:{kind}:{row['ticker']}" in citable
+        else:
+            # No ticker to point at: the leg is the only scope the row has,
+            # and without it the model borrows a ticker out of the prose.
+            assert f"risk:{kind}:{row['leg']}" in citable
+
+
+def test_the_skill_names_exactly_the_row_types_the_producer_can_emit():
+    """The model cites by copying `type` verbatim; an undocumented one is a guess.
+
+    Both directions matter. A type the producer emits but the skill never names
+    is a row the model can only cite by inventing a name for it (`hard_stop`,
+    `concentration` — both observed, both dropped). A type the skill names but
+    nothing emits teaches a citation that can never resolve.
+    """
+    import re
+
+    root = Path(__file__).resolve().parents[1]
+    produced = set(re.findall(
+        r"'type':\s*'([a-z_]+)'",
+        (root / 'src' / 'clawock' / 'portfolio' / 'guardrail.py').read_text(
+            encoding='utf-8')))
+    skill = (root / 'skills' / 'daily-deep-brief' / 'SKILL.md').read_text(
+        encoding='utf-8')
+    vocabulary = [line for line in skill.split('\n') if '可引的 `<type>` 全集' in line]
+    assert len(vocabulary) == 1, 'the skill must state the vocabulary exactly once'
+    documented = set(re.findall(r'`([a-z_]+)`', vocabulary[0])) - {'type'}
+
+    assert documented == produced, (
+        f'skill-only: {sorted(documented - produced)}; '
+        f'producer-only: {sorted(produced - documented)}')
+
+
+def test_one_hard_stop_has_one_name_across_every_surface_that_shows_it():
+    """Three surfaces described the same row, and none of them agreed.
+
+    The rendered brief table printed `hard_stop`, the decision packet's
+    constraint said `leveraged_hard_stop`, and the guardrail row the resolver
+    reads carried no `type` at all — so whichever name the model copied, its
+    citation was dropped. `risk:hard_stop:*` was the single most common dropped
+    form (11 of 28 sampled).
+    """
+    from clawock.decision import packet as packet_mod
+    from clawock.harness import brief_postflight, brief_render
+
+    guardrail = _guardrail_from_the_real_producer()
+    stop = (guardrail.get('hard_stop_watch') or [])[0]
+    name, ticker = stop['type'], stop['ticker']
+
+    rendered = brief_render.risk_section({'risk_guardrail': guardrail})
+    assert f'| {name} |' in rendered, rendered
+
+    risks = packet_mod._risk_map({'risk_guardrail': guardrail}, {ticker})
+    assert [r['type'] for r in risks[ticker] if r['kind'] == 'hard_stop'] == [name]
+
+    citable = brief_postflight._citable_refs({'risk_guardrail': guardrail})
+    assert f'risk:{name}:{ticker}' in citable

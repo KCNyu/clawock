@@ -218,6 +218,11 @@ def compute_risk_guardrail(hk_holdings, us_holdings, hk_conc, us_conc, risk,
             pnl = _holding_pnl_pct(h)
             if pnl is not None and pnl <= caps['lev_etf_stop_pct']:
                 hard_stops.append({
+                    # Every other guardrail row names its own kind; this one
+                    # did not, and a row without a `type` is a row a debate
+                    # cannot cite (#1141 resolves `risk:<type>[:<ticker>]`
+                    # against exactly this field).
+                    'type': 'leveraged_hard_stop',
                     'ticker': h['ticker'], 'leg': leg, 'pnl_pct': pnl,
                     'severity': 'critical',
                     'detail': f"{h['ticker']} 浮亏 {pnl}% ≤ 硬止损线 {caps['lev_etf_stop_pct']}%",

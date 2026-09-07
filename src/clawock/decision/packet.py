@@ -755,7 +755,11 @@ def _risk_map(context: dict, active: set[str]) -> dict[str, list[dict]]:
             "kind": "hard_stop",
             "scope": "ticker",
             "breach_id": row.get("breach_id"),
-            "type": "leveraged_hard_stop",
+            # The row's own name. This was the only surface that knew the type
+            # was `leveraged_hard_stop` while the row it describes carried no
+            # `type` at all — one name here, another in the rendered table, and
+            # nothing citable in between.
+            "type": row.get("type") or "leveraged_hard_stop",
             "severity": "critical",
             "detail": row.get("detail"),
             "action_text": row.get("action"),

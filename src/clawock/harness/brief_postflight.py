@@ -244,6 +244,14 @@ def _citable_refs(context) -> set[str]:
             ticker = str((row or {}).get('ticker') or '').strip()
             if ticker:
                 refs.add(f'risk:{kind}:{ticker}')
+            # A leg-level breach (`leveraged_exposure`, `beta`) carries no
+            # ticker: the cap is on the book, not on a name. Without a scoped
+            # form for those rows the only way to point at "the HK one" is to
+            # borrow a ticker out of the row's prose, which resolves to
+            # nothing — measured, 8 of 28 dropped refs did exactly that.
+            leg = str((row or {}).get('leg') or '').strip()
+            if leg:
+                refs.add(f'risk:{kind}:{leg}')
 
     rows = ((context.get('quant_signals') or {}).get('rows')) or {}
     if isinstance(rows, dict):
