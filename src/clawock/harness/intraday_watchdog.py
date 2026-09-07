@@ -36,6 +36,14 @@ but duplicates, so it's gone. Telegram is the sole backstop channel.
 Healthy runs use their generated report; stalled/looped runs fall back to the
 deterministic preflight block on Telegram. Dedupe remains per slot.
 
+CLOSED MARKETS ARE NOT FAILURES (2026-09-07): the gate order is closed → loop →
+marker → generation → mirror. preflight's holiday sentinel carries no
+`raw_wechat_block`, and every gate below reads a missing block as "the model
+never produced the report", so on US Labor Day this watchdog mailed kcn a 🧯
+deterministic-fallback banner with an empty body. A closed session has no report
+to back up; the blockless guard at the generation gate catches the same shape
+for any other blockless context.
+
 MARKER FIRST (2026-07-29): the gates are ordered loop → marker → generation →
 mirror,
 and that order is the fix, not an accident. The generation gate used to run
@@ -281,6 +289,33 @@ def main():
              'expected_job': expected_job, 'expected_slot': expected_slot,
              'run_at': run_at})
         return 0
+    # --- Closed-market gate: a closed session has no report to back up -------
+    # preflight writes a BLOCKLESS `market_closed` sentinel and exits before it
+    # fetches anything, so the slot's context carries no `raw_wechat_block` by
+    # construction. Everything below reads a missing block as "the model never
+    # produced the report" and mirrors the deterministic fallback — which on a
+    # holiday is a 🧯 banner with an empty body: a message that says the LLM
+    # failed, on a day nothing was supposed to run. That is what reached kcn on
+    # 2026-09-07 (US Labor Day, 22:03 slot), and it would have repeated once per
+    # slot until 02:33 HKT. report_watchdog never had the bug because its
+    # blockless guard sits above its generation gate; this watchdog had no such
+    # guard at all.
+    #
+    # This gate stays ABOVE the loop gate: a loop detected on a closed day is a
+    # cron that should not have engaged the model at all, and its evidence is
+    # already in the run record and the heartbeat — not something to page kcn
+    # about with a body that would be empty anyway. No heartbeat is recorded
+    # here either: preflight already recorded `market_closed` for this slot, and
+    # that is the terminal state cron_health_check expects to see.
+    if context.get('status') == 'market_closed':
+        log({'tag': tag, 'action': 'skip',
+             'reason': 'market closed this slot — preflight wrote a blockless '
+                       'sentinel, so there is no report to back up',
+             'closed_reason': context.get('reason'),
+             'expected_job': expected_job, 'expected_slot': expected_slot,
+             'run_at': run_at})
+        return 0
+
     # --- In-flight gate: never judge a slot that has not finished -----------
     if attempt_still_running(context, last):
         log({'tag': tag, 'action': 'defer',
@@ -371,6 +406,19 @@ def main():
     # canonical path can set it truthfully. A permanently-false term in an `or`
     # is not redundancy — if it ever did fire it would mark a contract-violating
     # run as delivered and mirror a truncated summary as if it were the report.
+    # A blockless context that is NOT the holiday sentinel (a future status, a
+    # truncated write) still has nothing to put in the fallback body. Sending
+    # the banner alone would report an LLM failure and then prove nothing about
+    # it, so skip and leave the trace in the log — the same call report_watchdog
+    # makes for its own blockless contexts.
+    if not raw_block_first:
+        log({'tag': tag, 'action': 'skip',
+             'reason': 'no preflight raw_wechat_block — nothing to back up',
+             'status': context.get('status'),
+             'expected_job': expected_job, 'expected_slot': expected_slot,
+             'run_at': run_at})
+        return 0
+
     block_present = bool(raw_block_first and raw_block_first in summary)
     delivered_clean = block_present
     if not delivered_clean:
