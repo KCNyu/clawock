@@ -8,6 +8,7 @@ import sys
 from pathlib import Path
 
 import pytest
+import requests
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
@@ -54,8 +55,17 @@ def test_load_api_keys_round_trips(tmp_path):
 # ---------------------------------------------------------------------------
 
 class _Resp:
-    def __init__(self, payload):
+    def __init__(self, payload, status_code=200):
         self._payload = payload
+        self.status_code = status_code
+
+    def raise_for_status(self):
+        # The fetchers check the status before reading the body (2026-09-07): an
+        # HTTP error must not be spelled the same way as a market with no
+        # sessions. A stub without this method is not a response.
+        if self.status_code >= 400:
+            raise requests.exceptions.HTTPError(
+                f"{self.status_code} Error", response=self)
 
     def json(self):
         return self._payload
