@@ -11,6 +11,8 @@ from pathlib import Path
 
 import pytest
 
+from clawock.publish.dashboard import describe_payload_size
+
 
 ROOT = Path(__file__).resolve().parents[1]
 # Bytes, not characters — the unit build_dashboard's MAX_OUT_BYTES and
@@ -40,7 +42,19 @@ def test_payload_stays_under_the_published_cap(freshly_built_dashboard):
     # this asserted came from the checkout, which a previous run may have left
     # there — so the cap was checked against a payload nobody built on purpose.
     size = len(freshly_built_dashboard.read_bytes())
-    assert size < SIZE_CAP, f"{size:,} bytes; trim or move detail to a sidecar"
+    # A BREACH HAS TO BE ATTRIBUTABLE (2026-09-08). This builder reads the real
+    # tree, and the market data in that tree lands on master all day — so this
+    # gate can go red on a PR that did not touch the payload at all. Measured
+    # over 23 consecutive host runs the payload swings between 182,073 and
+    # 200,465 bytes, up to 13,474 between one run and the next, and it has
+    # already crossed the cap once. "203,000 bytes; trim something" tells the
+    # reviewer that CI is red and nothing about whether their diff did it; on
+    # 2026-07-28 (#743) exactly that ambiguity cost a session. Name the blocks.
+    assert size < SIZE_CAP, (
+        describe_payload_size(json.loads(freshly_built_dashboard.read_text()),
+                              size, SIZE_CAP)
+        + " — trim, move detail to a sidecar, or confirm this is today's data "
+          "rather than the diff by rebuilding on master")
 
 
 def test_overview_projection_keeps_canonical_money_health_and_generation_parity(
