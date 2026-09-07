@@ -190,3 +190,26 @@ def test_unusable_lines_are_skipped_rather_than_raising(tmp_path, bad):
         bad + '\n' + json.dumps(_row('2026-08-28')) + '\n', encoding='utf-8')
     assert [r['date'] for r in dashboard.load_guardrail_history(tmp_path)] \
         == ['2026-08-28']
+
+
+def test_naming_a_hard_stop_does_not_reset_the_age_it_already_had(tmp_path):
+    """The stop is the same stop the day its row starts carrying a `type`.
+
+    `hard_stop_watch` rows had no `type` until the citation fix gave them one,
+    and the history file projects them to ticker/leg/pnl — so it will never
+    carry that name for the days already on record. If the type entered the
+    identity key, every open stop would read `age_days: 1` on the deploy day
+    and the card would quietly under-report an eight-day-old breach.
+    """
+    ws = _write(tmp_path, [
+        _row('2026-09-03', stops=[STOP_HK]),
+        _row('2026-09-04', stops=[STOP_HK]),
+        _row('2026-09-07', stops=[STOP_HK]),
+    ])
+    history = dashboard.load_guardrail_history(ws)
+    named = dict(STOP_HK, type='leveraged_hard_stop', severity='critical')
+
+    guardrail = dashboard.annotate_guardrail_history(
+        {'hard_stop_watch': [named], 'breaches': []}, history)
+
+    assert guardrail['hard_stop_watch'][0]['age_days'] == 3

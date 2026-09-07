@@ -714,7 +714,7 @@ postflight 严格 schema 校验：
         "attacked_consensus": "攻击的是「AI 板块整体还有一波」这条最强共识",
         "frames": ["technical_breakdown", "relative_strength"],
         "judge": "纪律优先：政策型减仓不等预测兑现",
-        "evidence_ids": ["risk:leveraged_exposure:07226", "quant:07226:dist_ma200_pct"]
+        "evidence_ids": ["risk:leveraged_exposure:US", "quant:ROBN:dist_ma200_pct"]
       }
     },
     {
@@ -761,8 +761,11 @@ postflight 严格 schema 校验：
   - `judge`：Judge 的合成判词一句话（不是 Bull/Bear 的复述）。
   - `evidence_ids`（≤6 条，选填）：这场辩论**站在**哪几条 context 证据上（#1141）。只认三个能被解析的命名空间，postflight 逐条对着本次 context 核，**核不上的直接丢掉并记一条 degradation**（不会让流水线变红，但会被数出来）：
     - `news:<event_id>` —— `context.news_evidence_graph.events[].event_id`
-    - `risk:<type>` 或 `risk:<type>:<ticker>` —— `context.risk_guardrail` 的 breach / hard_stop / concentration_review
-    - `quant:<ticker>:<field>` —— `context.quant_signals.rows[<ticker>]` 上一个非空字段（如 `quant:SPCH:dist_ma200_pct`）
+    - `risk:<type>`、`risk:<type>:<ticker>` 或 `risk:<type>:<leg>` —— `context.risk_guardrail` 的 breach / hard_stop_watch / concentration_review：
+      - 可引的 `<type>` 全集（**逐字照抄那一行自己的 `type` 字段**）：`single_name`、`single_name_review`、`leveraged_exposure`、`leveraged_hard_stop`、`regime_delever`、`factor_concentration`、`beta`
+      - 带票的行用 `:<ticker>`；`ticker` 为 null 的**整条腿**的闸用 `:<leg>`（`HK` / `US` / `BOOK`）或者干脆不带后缀
+      - 别自己起名（`concentration`、`hard_stop` 这种核不上），也**不要从那行的 `action` 文案里捞一个 ticker 拼上去**——那样引用的是一个不存在的行
+    - `quant:<ticker>:<field>` —— `context.quant_signals.rows[<ticker>]` 上一个非空字段（如 `quant:SPCH:dist_ma200_pct`）。**只有 `rows` 里真有的 ticker 能引**：杠杆 ETF 通常没有自己的行（07226 没有，它的底层 HSTECH 有），要引就引你真正读的那一行
     **没有可引的证据就不填**，别为了填而造 id：造出来的引用比不引更糟，它看起来像证据。portable workflow lane 早就要求每个 case 带 `evidence_ids`（`workflows/validators.py`），这里是把同一条纪律接到日报这条 lane 上。
   - **不会因为格式错误让 08:00 流水线变红**：postflight 的 normalizer 会裁剪超长文本、丢弃未知键与不在枚举内的 frame，整块为空则记为「没写」。但缺席是被数出来的——dashboard 的 `debate_coverage.bear_case_pct` 就是这条纪律的实测曲线，别用空块凑覆盖率。
 - `expected_move_pct`（number，选填，带符号，单位 %）：**这条 decision 预期这只票走多远**（#1159）。`confidence` 说的是「多有把握」，`invalidation_price` 说的是「论点在哪死」，**没有一个字段说「走多远」**——所以「方向对、幅度错了四倍」这句话这本账本目前对自己讲不出来。填了之后按 t1 对 `underlying_return_t1_pct` 打分（这只票自己的收益，不是 `benefit_t1_pct` 那个相对不动的反事实）。

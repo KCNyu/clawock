@@ -342,7 +342,12 @@ def risk_section(context):
     discipline = context.get("risk_discipline") or {}
     rows = []
     for item in (guard.get("hard_stop_watch") or []):
-        rows.append(["hard_stop", text(item.get("ticker")), text(item.get("severity")),
+        # The row's own `type`, not a label invented here: this column is where
+        # the plan author reads the name it must cite as `risk:<type>[:…]`, and
+        # printing `hard_stop` over a `leveraged_hard_stop` row taught it a name
+        # that resolves to nothing (11 of 28 dropped refs, 09-01…09-07).
+        rows.append([text(item.get("type") or "hard_stop"),
+                     text(item.get("ticker")), text(item.get("severity")),
                      text(item.get("detail")), text(item.get("breach_id"))])
     for item in (guard.get("breaches") or []):
         rows.append([text(item.get("type")), text(item.get("ticker") or item.get("leg")),

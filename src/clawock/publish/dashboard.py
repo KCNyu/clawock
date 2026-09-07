@@ -664,11 +664,19 @@ def load_guardrail_history(ws=None, limit=None):
     return rows[-limit:] if limit else rows
 
 
-def _breach_identity(row):
-    """What makes two breaches, recorded on different days, the same breach."""
+def _breach_identity(row, key='breaches'):
+    """What makes two breaches, recorded on different days, the same breach.
+
+    The list a row came from carries the type half for `hard_stop_watch`: the
+    history projection stores those rows as ticker/leg/pnl only, so a stop's own
+    `type` cannot enter the key without every stop reading as new on the day the
+    producer started naming them — an age that resets is worse than no age.
+    """
     if not isinstance(row, dict):
         return None
-    return (row.get('type') or 'hard_stop', row.get('leg'), row.get('ticker'))
+    kind = ('hard_stop' if key == 'hard_stop_watch'
+            else (row.get('type') or 'hard_stop'))
+    return (kind, row.get('leg'), row.get('ticker'))
 
 
 def _consecutive_age(identity, history, key):
@@ -681,7 +689,8 @@ def _consecutive_age(identity, history, key):
     """
     days = 0
     for row in reversed(history):
-        present = any(_breach_identity(r) == identity for r in (row.get(key) or []))
+        present = any(_breach_identity(r, key) == identity
+                      for r in (row.get(key) or []))
         if not present:
             break
         days += 1
@@ -716,7 +725,7 @@ def annotate_guardrail_history(guardrail, history):
                 if not isinstance(entry, dict):
                     continue
                 days, capped = _consecutive_age(
-                    _breach_identity(entry), history, key)
+                    _breach_identity(entry, key), history, key)
                 entry['age_days'] = days
                 if capped:
                     entry['age_capped'] = True
