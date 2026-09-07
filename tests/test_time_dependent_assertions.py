@@ -39,6 +39,66 @@ def _offenders():
     return found
 
 
+def _module_level_clock_reads():
+    """Module constants whose value is a live clock read.
+
+    A SIBLING of the rule above, and invisible to it: no date literal appears
+    anywhere, so the regex has nothing to match. The trap is the two reads. The
+    constant is evaluated ONCE at import — during collection — while the code
+    under test calls the clock again when the test body runs. In a suite that
+    takes minutes, those two reads can land on opposite sides of midnight.
+
+    Measured, not hypothesised: on 2026-09-07→08 a full-suite run straddled
+    00:00 HKT and four tests in
+    `test_system_check_delivered_but_unarchived.py` went red — its fixtures
+    wrote `brief-sent-<yesterday>.json` and the check looked for `<today>`.
+    Re-run in isolation, and re-run after midnight, all green. Nobody had
+    touched any code. CI runs in UTC, where the crossing is 16:00.
+
+    Freezing is the fix, and it is always available: a fixture date is a value
+    the test chooses, never something it has to ask the clock for.
+    """
+    found = []
+    for path in sorted(TESTS.glob("*.py")):
+        if path.name == Path(__file__).name:
+            continue
+        source = path.read_text(encoding="utf-8")
+        for node in ast.parse(source).body:      # module level only
+            if not isinstance(node, (ast.Assign, ast.AnnAssign)):
+                continue
+            value = node.value
+            if value is None:
+                continue
+            if any(call in ast.unparse(value) for call in LIVE_CLOCK):
+                targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+                names = [t.id for t in targets if isinstance(t, ast.Name)]
+                found.append(f"{path.name}::{names[0] if names else '<expr>'}")
+    return found
+
+
+def test_no_module_level_constant_is_read_from_the_clock():
+    assert _module_level_clock_reads() == [], (
+        "这些模块级常量在 import 时读了一次时钟，被测代码在 test 跑的时候还会再读一次；"
+        f"一次长跑跨过午夜，两次读数就在两天：{_module_level_clock_reads()}。"
+        "修法：冻住（写死夹具日期 + monkeypatch 被测代码的时钟）。")
+
+
+def test_the_module_level_scanner_can_actually_see_an_offender():
+    """反空转：这条闸也必须真的能抓到东西。"""
+    sample = "TODAY = date.today().strftime('%Y-%m-%d')\n"
+    node = ast.parse(sample).body[0]
+
+    assert any(call in ast.unparse(node.value) for call in LIVE_CLOCK)
+
+
+def test_the_module_level_scanner_leaves_frozen_constants_alone():
+    """写死的夹具日期正是修法本身，不能被这条闸判成违例。"""
+    sample = "TODAY = '2026-09-01'\n"
+    node = ast.parse(sample).body[0]
+
+    assert not any(call in ast.unparse(node.value) for call in LIVE_CLOCK)
+
+
 def test_no_test_compares_a_live_clock_against_a_date_literal():
     assert _offenders() == [], (
         "这些测试同时读了真实时钟并对日期字面量断言，它们会在某个午夜自己变红："
