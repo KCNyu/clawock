@@ -21,6 +21,7 @@ from __future__ import annotations
 
 import sqlite3
 import sys
+import os
 from datetime import datetime, timedelta
 from pathlib import Path
 
@@ -84,6 +85,23 @@ def box(tmp_path, sc, monkeypatch):
     return {"workspace": workspace, "db": db, "dist": dist, "log": log}
 
 
+def _predating_reindex(path: Path, text: str) -> Path:
+    """Write a file the last reindex already had its chance at.
+
+    Backlog is now defined against the reindex, not against now (2026-09-08):
+    a file written AFTER the pass is normal churn tonight will take, and calling
+    that a backlog is what made this warning fire on 36 of 44 host runs. The
+    incident these tests encode is the other one — 2026-07-27, five days of
+    dreaming notes that the reindex RAN PAST and still did not embed — so the
+    fixture has to place them where they actually were: before the pass.
+    """
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text)
+    old = (datetime.now() - timedelta(hours=6)).timestamp()
+    os.utime(path, (old, old))
+    return path
+
+
 def _run(sc):
     r = sc.Result()
     sc.check_memory_index(r)
@@ -101,7 +119,8 @@ def test_healthy_box_reports_ok(sc, box):
 
 def test_unembedded_file_is_reported(sc, box):
     """The July failure: dreaming notes written but never embedded."""
-    (box["workspace"] / "memory" / "dreaming" / "2026-07-27.md").write_text("new\n")
+    _predating_reindex(
+        box["workspace"] / "memory" / "dreaming" / "2026-07-27.md", "new\n")
     severity, message = _run(sc)
     assert severity == sc.WARNING
     assert "never embedded" in message
@@ -110,7 +129,8 @@ def test_unembedded_file_is_reported(sc, box):
 
 def test_file_changed_since_indexing_is_reported(sc, box):
     """A source indexed once and edited since is stale, and the ratio hides it."""
-    (box["workspace"] / "memory" / "2026-07-27.md").write_text("today, plus an edit\n")
+    _predating_reindex(
+        box["workspace"] / "memory" / "2026-07-27.md", "today, plus an edit\n")
     severity, message = _run(sc)
     assert severity == sc.WARNING
     assert "changed since indexing" in message
@@ -122,7 +142,7 @@ def test_gitignored_trees_count_as_index_scope(sc, box):
     472/472 index. Excluding them would under-report the backlog."""
     tmp_dir = box["workspace"] / "memory" / ".tmp"
     tmp_dir.mkdir()
-    (tmp_dir / "report-prose-hk-open.md").write_text("prose\n")
+    _predating_reindex(tmp_dir / "report-prose-hk-open.md", "prose\n")
     severity, message = _run(sc)
     assert severity == sc.WARNING
     assert "memory/.tmp/report-prose-hk-open.md" in message
@@ -207,3 +227,70 @@ def test_check_is_registered_in_main(sc):
     body = source.split("\n    checks = [", 1)[1].split("]", 1)[0]
     registered = {line.strip().rstrip(",") for line in body.splitlines() if line.strip()}
     assert "check_memory_index" in registered
+
+
+# ── churn is not backlog (2026-09-08) ────────────────────────────────────────
+# This warning had fired on 36 of 44 host runs — 82% — and on 2026-09-08 all six
+# files it was naming (`-pre-open.md` at 08:12, four `report-prose-*.md`, and
+# `intraday-prose-hk.md`, which is rewritten every 30 minutes) post-dated the
+# 05:11 reindex. Genuine backlog: zero. It was measuring the gap between two
+# nightly passes, which is not a state anyone can act on, and it was worth
+# nothing on the day it would have meant something.
+
+
+def test_a_file_written_after_the_reindex_is_not_a_backlog(sc, box):
+    """Tonight's pass will take it. That is the system working."""
+    (box["workspace"] / "memory" / ".tmp").mkdir()
+    (box["workspace"] / "memory" / ".tmp" / "intraday-prose-hk.md").write_text("now\n")
+
+    severity, message = _run(sc)
+
+    assert severity == sc.OK, message
+    assert "1 written since, due tonight" in message
+
+
+def test_the_churn_count_is_still_stated_not_hidden(sc, box):
+    """Silently dropping it would make the OK line claim more than it checked."""
+    (box["workspace"] / "memory" / "fresh-a.md").write_text("a\n")
+    (box["workspace"] / "memory" / "fresh-b.md").write_text("b\n")
+
+    _, message = _run(sc)
+
+    assert "2 written since, due tonight" in message
+
+
+def test_churn_rides_along_on_a_real_finding_too(sc, box):
+    """A genuine backlog must not hide the churn, nor churn the backlog."""
+    _predating_reindex(box["workspace"] / "memory" / "old-miss.md", "old\n")
+    (box["workspace"] / "memory" / "fresh.md").write_text("new\n")
+
+    severity, message = _run(sc)
+
+    assert severity == sc.WARNING
+    assert "1 file(s) never embedded" in message
+    assert "memory/old-miss.md" in message
+    assert "1 written since, due tonight" in message
+
+
+def test_a_reindex_that_never_completed_makes_everything_backlog(sc, box):
+    """With no pass to measure against, nothing has had its chance yet — and the
+    age problem says so separately, so the two findings agree."""
+    box["log"].write_text("reaped 0 rows\n")
+    (box["workspace"] / "memory" / "fresh.md").write_text("new\n")
+
+    severity, message = _run(sc)
+
+    assert severity == sc.WARNING
+    assert "1 file(s) never embedded" in message
+    assert "nightly reindex has never completed" in message
+    assert "written since" not in message
+
+
+def test_a_file_removed_underneath_the_check_is_not_a_backlog(sc, box):
+    """Between listing and stat, the intraday harness rewrites its scratch files."""
+    ghost = box["workspace"] / "memory" / "ghost.md"
+    ghost.write_text("x\n")
+    backlog, churn = sc._written_since_last_reindex(["memory/ghost.md", "memory/gone.md"],
+                                                    age_hours=3)
+
+    assert backlog == [] and churn == ["memory/ghost.md"]
