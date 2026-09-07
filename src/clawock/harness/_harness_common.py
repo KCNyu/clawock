@@ -13,6 +13,7 @@ import subprocess
 import sys
 import time
 
+from clawock.publish import store as publish_store
 from clawock.workspace import workspace_root
 
 WS = workspace_root()
@@ -418,7 +419,20 @@ def _publish_generation(ws):
     try:
         r = subprocess.run(
             ['bash', str(ws / 'ops' / 'publish' / 'publish_generation.sh')],
-            capture_output=True, text=True, timeout=120, cwd=str(ws),
+            capture_output=True, text=True,
+            # DERIVED, never a round number — same rule as PUSH_TIMEOUT_SECONDS
+            # below. This was a hardcoded 120s until 2026-09-07: the identical
+            # number the store gives ONE git call, for a script that makes five
+            # over the wire. An outer budget equal to a single inner step cannot
+            # cover two of them, so a publish whose first call hung was killed
+            # before the second started and the push retry ladder could never
+            # run. Six intraday slots recorded `publish_failed` that day.
+            #
+            # No outer deadline is being violated by the larger number: the cron
+            # payloads say the postflight is never wrapped in `timeout` and never
+            # killed (#765), and this runs AFTER delivery — a slow publish delays
+            # the site, never the report.
+            timeout=publish_store.PUBLISH_BUDGET_SECONDS, cwd=str(ws),
         )
     except Exception as e:                       # noqa: BLE001 - reported, not raised
         return False, f'\n  data-plane publish failed: {e}'
