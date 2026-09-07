@@ -248,3 +248,118 @@ def test_an_unreadable_schedule_does_not_invent_findings(monkeypatch):
 
     monkeypatch.setattr('clawock.providers.openclaw.cron_cli_json', boom)
     assert sc._cron_jobs_without_prompt_report({}) == []
+
+
+# ── what the evidence proves, not whether one field exists (2026-09-08) ──────
+# Of the twelve cron sessions on the host that day, ELEVEN carried a
+# `systemPromptReport` and one — `Memory Dreaming Promotion` — carried
+# `skillsSnapshot`, `systemSent` and `contextTokens` but no report. Reading only
+# the report made the gate call that job invisible, and say so on 31 of 32 runs.
+#
+# Wrong in both directions at once: noise (a warning that is always on is not a
+# warning — same pathology as #1399's 180,000 threshold), AND too weak (the
+# store holds that job's realized skill list, so a run that came out with zero
+# skills was detectable and the gate, having declared the job unseeable, did not
+# look).
+#
+# `verify_prompt_report` already models the answer one level down: a check it
+# cannot make goes in `unverified`, never counted as passed.
+
+
+def _listing(monkeypatch, jobs):
+    monkeypatch.setattr('clawock.providers.openclaw.cron_cli_json',
+                        lambda argv: {'jobs': jobs})
+    import ops.system_check as sc
+    listing, _ = sc._cron_listing()
+    return listing
+
+
+JOB = {'id': 'a', 'name': 'Dreaming', 'enabled': True, 'state': {'lastStatus': 'ok'}}
+
+
+def test_a_job_with_only_a_skills_snapshot_is_verified_on_skills(monkeypatch):
+    import ops.system_check as sc
+
+    listing = _listing(monkeypatch, [JOB])
+    blind, narrowed, skills_only = sc.cron_jobs_by_context_evidence(
+        {'agent:main:cron:a': {'skillsSnapshot': {'skills': [{'name': 'x'},
+                                                             {'name': 'y'}]}}},
+        listing)
+
+    assert blind == [] and narrowed == []
+    assert skills_only == ['Dreaming (2 skills)']
+
+
+def test_an_empty_skill_list_is_a_finding_the_old_shape_could_not_make(monkeypatch):
+    """THE point of the split. Under "no report ⇒ unseeable" this run looked
+    exactly like a healthy one; the store said the context came out empty."""
+    import ops.system_check as sc
+
+    listing = _listing(monkeypatch, [JOB])
+    blind, narrowed, skills_only = sc.cron_jobs_by_context_evidence(
+        {'agent:main:cron:a': {'skillsSnapshot': {'skills': []}}}, listing)
+
+    assert narrowed == ['Dreaming']
+    assert skills_only == [] and blind == []
+
+
+def test_a_job_with_no_evidence_at_all_is_still_blind(monkeypatch):
+    """#473 is not being softened: a job the store says nothing about stays a
+    loud warning. Only the jobs it DOES say something about move."""
+    import ops.system_check as sc
+
+    listing = _listing(monkeypatch, [JOB])
+    blind, narrowed, skills_only = sc.cron_jobs_by_context_evidence(
+        {'agent:main:cron:a': {'updatedAt': 20}}, listing)
+
+    assert blind == ['Dreaming']
+    assert narrowed == [] and skills_only == []
+
+
+def test_a_job_with_a_full_report_is_in_none_of_the_three(monkeypatch):
+    import ops.system_check as sc
+
+    listing = _listing(monkeypatch, [JOB])
+
+    assert sc.cron_jobs_by_context_evidence(
+        {'agent:main:cron:a': {'systemPromptReport': {}}}, listing) == ([], [], [])
+
+
+def test_the_split_covers_exactly_the_jobs_the_old_view_names(monkeypatch):
+    """Two views of one question must not drift apart: every job the report-only
+    view calls uncovered has to land in exactly one of the three buckets."""
+    import ops.system_check as sc
+
+    jobs = [
+        {'id': 'a', 'name': 'Full', 'enabled': True, 'state': {'lastStatus': 'ok'}},
+        {'id': 'b', 'name': 'SkillsOnly', 'enabled': True, 'state': {'lastStatus': 'ok'}},
+        {'id': 'c', 'name': 'Empty', 'enabled': True, 'state': {'lastStatus': 'ok'}},
+        {'id': 'd', 'name': 'Nothing', 'enabled': True, 'state': {'lastStatus': 'ok'}},
+    ]
+    sessions = {
+        'agent:main:cron:a': {'systemPromptReport': {}},
+        'agent:main:cron:b': {'skillsSnapshot': {'skills': [{'name': 'x'}]}},
+        'agent:main:cron:c': {'skillsSnapshot': {'skills': []}},
+        'agent:main:cron:d': {'updatedAt': 1},
+    }
+    listing = _listing(monkeypatch, jobs)
+
+    blind, narrowed, skills_only = sc.cron_jobs_by_context_evidence(sessions, listing)
+    named = set(blind) | set(narrowed) | {s.split(' (')[0] for s in skills_only}
+
+    assert named == set(sc._cron_jobs_without_prompt_report(sessions))
+    assert named == {'SkillsOnly', 'Empty', 'Nothing'}
+
+
+def test_a_failed_run_stays_out_of_every_bucket(monkeypatch):
+    """#490 unchanged: the scheduler already says the run failed; blaming
+    context assembly as well makes the warning cry wolf."""
+    import ops.system_check as sc
+
+    listing = _listing(monkeypatch, [
+        {'id': 'a', 'name': 'Timed out', 'enabled': True,
+         'state': {'lastStatus': 'error'}}])
+
+    assert sc.cron_jobs_by_context_evidence(
+        {'agent:main:cron:a': {'skillsSnapshot': {'skills': []}}},
+        listing) == ([], [], [])

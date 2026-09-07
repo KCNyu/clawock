@@ -660,17 +660,13 @@ def _cron_jobs_without_prompt_report(sessions):
     if error is not None or listing is None or listing.source != 'cli':
         return []
 
-    reported = {
-        key.split(':cron:', 1)[1].split(':')[0]
-        for key, entry in (sessions or {}).items()
-        if ':cron:' in key and isinstance(entry, dict)
-        and isinstance(entry.get('systemPromptReport'), dict)
-    }
+    evidence = _session_context_evidence(sessions)
     missing = []
     for job in listing.entries or []:
         if not job.get('enabled'):
             continue
-        if str(job.get('id')) in reported:
+        kind, _ = evidence.get(str(job.get('id')), ('none', 0))
+        if kind == 'report':
             continue
         state = job.get('state') if isinstance(job.get('state'), dict) else {}
         if job.get('status') == 'running' or state.get('runningAtMs') is not None:
@@ -683,6 +679,84 @@ def _cron_jobs_without_prompt_report(sessions):
             continue
         missing.append(str(job.get('name') or job.get('id'))[:28])
     return sorted(missing)
+
+
+def _session_context_evidence(sessions):
+    """`{job_id: (kind, skill_count)}` — how much of a run this store can prove.
+
+    Three kinds, and keeping them apart is the point:
+
+      'report'      a `systemPromptReport` — files, tools and skills all checkable
+      'skills_only' no report, but a `skillsSnapshot` the runtime did write
+      'none'        nothing at all
+
+    2026-09-08: of the twelve cron sessions on this host, ELEVEN carried a
+    report and one — `Memory Dreaming Promotion` — carried `skillsSnapshot`,
+    `systemSent` and `contextTokens` but no report. The coverage check read only
+    the report, so it called that job invisible and said so on 31 of 32 runs.
+    Two things were wrong with that, in opposite directions:
+
+      * it is noise. A warning that is always on is not a warning (the same
+        pathology as the 180,000 dashboard threshold, #1399), and it will be
+        scrolled past on the day it means something.
+      * it is ALSO too weak. The store does hold this job's realized skill list,
+        so a run that came out with zero skills is detectable today — and the
+        gate, having declared the job unseeable, does not look.
+
+    `verify_prompt_report` already models the answer one level down: a check it
+    cannot make is reported in `unverified`, never as passed. This is the same
+    idiom one level up — verify the dimension the evidence covers, and NAME the
+    ones it does not, instead of collapsing the job to "unseen".
+    """
+    out = {}
+    for key, entry in (sessions or {}).items():
+        if ':cron:' not in key or not isinstance(entry, dict):
+            continue
+        job_id = key.split(':cron:', 1)[1].split(':')[0]
+        if isinstance(entry.get('systemPromptReport'), dict):
+            out[job_id] = ('report', 0)
+            continue
+        snapshot = entry.get('skillsSnapshot')
+        skills = (snapshot or {}).get('skills') if isinstance(snapshot, dict) else None
+        if isinstance(skills, list):
+            out[job_id] = ('skills_only', len(skills))
+        else:
+            out[job_id] = ('none', 0)
+    return out
+
+
+def cron_jobs_by_context_evidence(sessions, listing):
+    """Split the enabled jobs the coverage check names into what it can prove.
+
+    Returns `(blind, narrowed, skills_only)` — jobs with no evidence at all,
+    jobs whose only evidence says the skill list came out EMPTY, and jobs whose
+    skills check out with the remaining dimensions unverified.
+    """
+    evidence = _session_context_evidence(sessions)
+    blind, narrowed, skills_only = [], [], []
+    for job in (getattr(listing, 'entries', None) or []):
+        if not job.get('enabled'):
+            continue
+        name = str(job.get('name') or job.get('id'))[:28]
+        kind, count = evidence.get(str(job.get('id')), ('none', 0))
+        if kind == 'report':
+            continue
+        state = job.get('state') if isinstance(job.get('state'), dict) else {}
+        if job.get('status') == 'running' or state.get('runningAtMs') is not None:
+            continue
+        last_status = str(
+            state.get('lastStatus') or state.get('lastRunStatus') or '').lower()
+        if last_status in {
+                'error', 'failed', 'failure', 'timeout', 'timed_out',
+                'cancelled', 'canceled', 'skipped'}:
+            continue
+        if kind == 'none':
+            blind.append(name)
+        elif count == 0:
+            narrowed.append(name)
+        else:
+            skills_only.append(f'{name} ({count} skills)')
+    return sorted(blind), sorted(narrowed), sorted(skills_only)
 
 
 def check_context_capability(r):
@@ -739,7 +813,6 @@ def check_context_capability(r):
     # otherwise average away a tenth enabled job that produces none — the gate
     # reads OK while one live job is unverifiable (#473). Names, not a count, so
     # the finding says which job to go look at.
-    unreported_jobs = _cron_jobs_without_prompt_report(sessions)
     coverage_blind = _cron_coverage_blind()
     if coverage_blind:
         # Not a finding about the jobs — a finding about this gate. A run that
@@ -749,11 +822,31 @@ def check_context_capability(r):
               f'per-job prompt-report coverage was not checked: '
               f'{coverage_blind}, so a job producing no report would not be '
               f'named by this run')
-    if unreported_jobs:
+    listing, _listing_error = _cron_listing()
+    blind, narrowed, skills_only = cron_jobs_by_context_evidence(sessions, listing)
+    # Three answers, because they call for three different actions — and because
+    # collapsing them into one is what made this line fire on 31 of 32 runs
+    # while checking nothing (2026-09-08).
+    if narrowed:
+        # The one that is a real finding about a RUN: the store holds this job's
+        # realized skill list and the list is empty. Under the old shape the job
+        # was declared unseeable and this went unnoticed.
         r.add('context capability', WARNING,
-              f'{len(unreported_jobs)} enabled cron job(s) produce no prompt '
-              f'report, so this gate cannot see them: '
-              f'{", ".join(unreported_jobs)}')
+              f'{", ".join(narrowed)}: the run recorded an EMPTY skill list — '
+              f'context came out narrowed')
+    if blind:
+        r.add('context capability', WARNING,
+              f'{len(blind)} enabled cron job(s) record nothing this gate can '
+              f'read — no prompt report and no skills snapshot: '
+              f'{", ".join(blind)}')
+    if skills_only:
+        # Named, never silent (#473: nine healthy jobs must not average away a
+        # tenth). But named with what IS proven, and OK rather than WARNING:
+        # the skills dimension checks out; files and tools are unverified, which
+        # is the same distinction `verify_prompt_report` draws with `unverified`.
+        r.add('context capability', OK,
+              f'skills verified, files/tools unverified (no prompt report): '
+              f'{", ".join(skills_only)}')
 
     silent = sorted(profiles_seen - set(newest))
     if silent:
