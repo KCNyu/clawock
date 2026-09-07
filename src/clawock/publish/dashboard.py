@@ -1682,13 +1682,26 @@ def compute_today_movers(us_h, hk_h, leg_keys=('us', 'hk')):
 
 
 def _latest_brief_context():
-    """Return (path, dict) of newest memory/.tmp/brief-context-*.json by mtime, or (None, None)."""
+    """Return (path, dict) of the newest brief-context that actually carries data.
+
+    Newest-by-mtime is the wrong pick on a day both markets are closed:
+    brief_preflight writes a blockless `market_closed` sentinel under exactly
+    this name, so the newest file is a five-key stub with no `concentration`, no
+    `opportunity`, no `add_alpha_activation`. Returning it would satisfy the
+    caller's `bool(brief_ctx)` presence test, and the merge-not-overwrite guard
+    would therefore NOT restore the last good values — publishing the risk and
+    add-side cards empty on a holiday, as if the brief had run and found
+    nothing. Skipping the sentinel returns the last real context, or (None, None)
+    when there is none, which is the state the restore path is built for.
+    """
     try:
         paths = glob.glob(str(WS_ROOT / 'memory' / '.tmp' / 'brief-context-*.json'))
-        if not paths:
-            return None, None
-        latest = max(paths, key=os.path.getmtime)
-        return latest, load_json(latest)
+        for path in sorted(paths, key=os.path.getmtime, reverse=True):
+            context = load_json(path)
+            if isinstance(context, dict) and context.get('status') == 'market_closed':
+                continue
+            return path, context
+        return None, None
     except Exception as e:
         print(f'  warn: _latest_brief_context failed: {e}', file=sys.stderr)
         return None, None

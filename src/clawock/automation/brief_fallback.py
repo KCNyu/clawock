@@ -279,7 +279,22 @@ def main():
     if not ctx_path.exists():
         print(f'FATAL: no preflight context at {ctx_path}', file=sys.stderr)
         sys.exit(1)
-    prepared = prepare_context(ctx_path.read_text())
+    # A closed-market sentinel is not an incomplete context — it is a context
+    # that says nothing was due. Falling through would hand `fail_closed_artifacts`
+    # an empty payload and write a zero-action pre-open.md + plan.json for a day
+    # neither market opens, which then reads downstream as "the brief ran and had
+    # nothing to say". Exit before writing anything. (brief_watchdog gates the
+    # same day and should never dispatch us here; this is the second layer, and
+    # a manual `gh workflow run` is exactly how the first one gets bypassed.)
+    raw_ctx = ctx_path.read_text()
+    try:
+        if json.loads(raw_ctx).get('status') == 'market_closed':
+            print(f'  skip: {ctx_path} is a market_closed sentinel — no brief was due')
+            return
+    except (ValueError, AttributeError):
+        pass  # malformed context is prepare_context's problem, not this gate's
+
+    prepared = prepare_context(raw_ctx)
     if not prepared['complete']:
         md, plan = fail_closed_artifacts(today, prepared)
         Path(f'memory/{today}-pre-open.md').write_text(md)

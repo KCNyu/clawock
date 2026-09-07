@@ -198,7 +198,16 @@ def main():
     raw_block = (ctx.get('raw_wechat_block') or '').strip()
     raw_block_first = raw_block.splitlines()[0] if raw_block else None
     if not raw_block_first:
-        log({'tag': tag, 'action': 'skip', 'reason': 'no preflight raw_wechat_block (cron likely never ran)'})
+        # Right call either way, but say WHICH state it is: a holiday sentinel
+        # and a cron that never fired are the same shape on disk, and logging
+        # both as "cron likely never ran" sends the next diagnosis after a
+        # phantom missing run. (2026-09-07 spent its first minutes there.)
+        closed = ctx.get('reason') if ctx.get('status') == 'market_closed' else None
+        log({'tag': tag, 'action': 'skip',
+             'reason': ('market closed — preflight wrote a blockless sentinel'
+                        if closed else
+                        'no preflight raw_wechat_block (cron likely never ran)'),
+             'closed_reason': closed})
         return 0
 
     # --- In-flight gate: never judge a slot that has not finished -------------

@@ -54,6 +54,8 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
+from clawock import sessions as trading_calendar
+
 from ._watchdog_common import (
     WS, HKT, log, build_brief_card, send_telegram, KCN_TELEGRAM,
     dispatch_brief_fallback, await_brief_fallback_outcome,
@@ -467,6 +469,26 @@ def main():
 
     today = datetime.now(HKT).strftime('%Y-%m-%d')
     tag = 'brief'
+
+    # --- Closed-market gate: no brief was due, so nothing is missing ----------
+    # Same rule as brief_preflight, and it has to be the same rule: the brief
+    # covers both markets, so it is skipped ONLY when HK and US are both closed
+    # (either one trading still earns a brief). On such a day preflight writes a
+    # blockless `market_closed` sentinel and never produces pre-open.md or
+    # plan.json — and `inspect_brief_artifacts` only asks whether those files
+    # exist. Without this gate the 09:05 pass reads their absence as a miss,
+    # pages kcn, and dispatches brief-fallback.yml to have a vendor LLM write a
+    # pre-market brief for a day neither market opens. Next occurrence of the
+    # shape: 2026-12-25 (聖誕 + Christmas). Sibling of the intraday_watchdog
+    # holiday bug of 2026-09-07.
+    hk_closed = trading_calendar.closed_reason('hk')
+    us_closed = trading_calendar.closed_reason('us')
+    if hk_closed and us_closed:
+        log({'tag': tag, 'action': 'skip',
+             'reason': 'both markets closed — no brief was due today',
+             'closed_reason': f'港股{hk_closed}+美股{us_closed}',
+             'check_missing': bool(args.check_missing)})
+        return 0
 
     if args.check_missing:
         issues = inspect_brief_artifacts(today)

@@ -305,3 +305,53 @@ def test_outcome_is_persisted_so_a_later_pass_can_see_what_happened(
     state = json.loads(watchdog.missing_state_path(TODAY).read_text())
     assert state["fallback_outcome"] == "failure"
     assert "https://gh/run/4" in state["fallback_outcome_detail"]
+
+
+def _wire_main(monkeypatch, tmp_path, argv, hk_closed, us_closed):
+    """Run main() against a tmp workspace with a stubbed calendar and no I/O."""
+    events, calls = [], {"dispatch": 0, "send": 0}
+    monkeypatch.setattr(watchdog, "WS", tmp_path)
+    monkeypatch.setattr(watchdog.trading_calendar, "closed_reason",
+                        lambda market, *a, **kw: {"hk": hk_closed,
+                                                  "us": us_closed}[market])
+    monkeypatch.setattr(watchdog, "log", events.append)
+    monkeypatch.setattr(watchdog, "dispatch_brief_fallback",
+                        lambda _dry: (calls.__setitem__("dispatch",
+                                                        calls["dispatch"] + 1),
+                                      (True, "ok"))[1])
+    monkeypatch.setattr(watchdog, "send_telegram",
+                        lambda _t, _m, _d: (calls.__setitem__("send",
+                                                              calls["send"] + 1),
+                                            (True, "ok"))[1])
+    _stub_outcome(monkeypatch)
+    monkeypatch.setattr(sys, "argv", ["brief_watchdog.py", *argv])
+    return events, calls
+
+
+@pytest.mark.parametrize("argv", [[], ["--check-missing"]])
+def test_both_markets_closed_is_not_a_missing_brief(tmp_path, monkeypatch, argv):
+    """2026-12-25 shape: no brief was due, so nothing is missing.
+
+    brief_preflight skips only when HK and US are BOTH closed, and then writes a
+    blockless sentinel — no pre-open.md, no plan.json. `inspect_brief_artifacts`
+    only asks whether those files exist, so without this gate the 09:05 pass
+    pages kcn and dispatches brief-fallback.yml to have a vendor LLM write a
+    pre-market brief for a day neither market opens.
+    """
+    events, calls = _wire_main(monkeypatch, tmp_path, argv,
+                               hk_closed="节假日休市", us_closed="节假日休市")
+
+    assert watchdog.main() == 0
+    assert calls == {"dispatch": 0, "send": 0}
+    assert events[-1]["action"] == "skip"
+    assert events[-1]["closed_reason"] == "港股节假日休市+美股节假日休市"
+
+
+def test_one_market_open_still_earns_a_brief(tmp_path, monkeypatch):
+    """The gate is narrow on purpose — either market trading still earns a brief."""
+    events, calls = _wire_main(monkeypatch, tmp_path, ["--check-missing"],
+                               hk_closed="节假日休市", us_closed=None)
+
+    assert watchdog.main() == 0
+    assert calls["dispatch"] == 1          # the miss detector did its job
+    assert not any(e.get("closed_reason") for e in events)
