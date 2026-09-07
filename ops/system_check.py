@@ -1119,12 +1119,30 @@ def check_publish_backlog(r):
     if not count:
         r.add('publish backlog', OK, 'nothing unpushed')
         return
+    # TWO BUGS IN ONE LINE, both making `hours` read ~0 forever (2026-09-08):
+    #
+    #   * `git log -1` returns the NEWEST commit — the log is newest-first — so
+    #     a variable named `oldest` held the most recent one. Measured on this
+    #     repo over five commits: `-1` answered 00:42:36 while the true oldest
+    #     was 23:52:35, a 50-minute error on a 50-minute backlog.
+    #   * `%ct` is the COMMITTER date, and `push_with_rebase_retry` rebases —
+    #     every retry rewrites it to now. `%at` (author date) survives a rebase,
+    #     and "how long has this been stranded" is a question about when the
+    #     work was made, not about when git last touched it.
+    #
+    # Consequence: `hours >= BACKLOG_WARN_HOURS` never fired. Every one of the
+    # eight backlog warnings in the host's history reads `oldest 0.0h`, and the
+    # check escalated on `count` alone. The incident this half exists for is the
+    # opposite shape — 2026-08-31, a SMALL number of commits stranded for EIGHT
+    # hours behind a pre-push refusal — and it would have been reported at 0.0h.
     oldest = subprocess.run(
-        ['git', 'log', '-1', '--format=%ct', 'origin/master..HEAD'],
+        ['git', 'log', '--format=%at', 'origin/master..HEAD'],
         capture_output=True, text=True, timeout=10)
     hours = None
     try:
-        hours = (time.time() - int(oldest.stdout.strip())) / 3600
+        # Last line, because the log is newest-first.
+        stamps = [int(line) for line in oldest.stdout.split() if line.strip()]
+        hours = (time.time() - min(stamps)) / 3600
     except Exception:
         pass
     age = f'{hours:.1f}h' if hours is not None else 'unknown age'
