@@ -56,13 +56,26 @@ def persist_delivered_state(workspace, ctx):
 
 
 def semantic_state(market, session_date, *, signals_detail, anomalies, setups,
-                   plans, active_information):
+                   plans, active_information, plan_triggers=None):
     """Normalize a slot to decision-relevant state, excluding quote churn."""
     breaches = []
     for row in signals_detail or []:
         ticker, level = row.get("ticker"), row.get("level")
         if ticker and level:
             breaches.append({"ticker": ticker, "kind": "signal", "level": level})
+    # A plan condition crossing its price is a decision-relevant state change,
+    # and it is NOT derivable from the rows above: the trigger can be met on a
+    # day the ticker moved 0.4% and tripped no signal. Without this the delta
+    # gate would judge such a slot "unchanged" and send a receipt with
+    # should_alert forced False — silencing the one line that mattered. It
+    # collapses to a stable identity, so a trigger that stays met across slots
+    # is one delta, not one per slot.
+    for row in plan_triggers or []:
+        if row.get("ticker") and row.get("condition"):
+            breaches.append({
+                "ticker": row["ticker"], "kind": "plan_trigger",
+                "level": row["condition"],
+            })
     for row in anomalies or []:
         move = row.get("move_pct")
         if row.get("ticker") and isinstance(move, (int, float)):

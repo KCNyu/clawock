@@ -294,3 +294,98 @@ def test_the_two_share_rules_do_not_read_as_contradictory(skill):
     assert "禁止重述持仓股数" in text
     assert "例外且仅此一个" in text, "the exception for plan sizes is not stated"
     assert "6200" in text and "1000" in text, "the concrete pair is not shown"
+
+
+# ── the condition's own price (2026-09-07) ────────────────────────────────
+# The 08:00 plan hung `00100 trim_on_rebound price_above 365`. The projection
+# carried the TYPE and the (empty) description and dropped `condition.price`,
+# so every downstream slot saw "price_above" with no price. 00100 traded to 393
+# that morning — 7.7% through the line — and all eight intraday slots could only
+# report a generic 异动. It closed at 350.8 and the trim never happened, for the
+# second session running.
+
+
+def priced(**over):
+    row = decision(
+        ticker="00100", action="trim_on_rebound",
+        condition={"type": "price_above", "description": "", "price": 365.0},
+        size={"shares": 20, "pct": 16.7},
+    )
+    for key, value in over.items():
+        row[key] = value
+    return row
+
+
+def test_the_conditions_price_reaches_the_context(ledger, call):
+    ctx = call(ledger([priced()]))
+    assert ctx["open"][0]["condition"] == "price_above"
+    assert ctx["open"][0]["condition_price"] == 365.0
+
+
+def test_a_condition_without_a_price_says_none_not_zero(ledger, call):
+    ctx = call(ledger([decision()]))
+    assert ctx["open"][0]["condition_price"] is None
+
+
+def test_a_met_condition_is_reported_with_how_far_through(ps, ledger, call):
+    ctx = call(ledger([priced()]))
+    rows = ps.triggered_conditions(ctx, {"00100": 393.0})
+    assert len(rows) == 1
+    assert rows[0]["ticker"] == "00100"
+    assert rows[0]["condition_price"] == 365.0
+    assert rows[0]["last"] == 393.0
+    assert rows[0]["through_pct"] == 7.67
+    assert rows[0]["execution_status"] == "unknown"
+
+
+def test_an_unmet_condition_is_silent(ps, ledger, call):
+    ctx = call(ledger([priced()]))
+    assert ps.triggered_conditions(ctx, {"00100": 350.8}) == []
+
+
+def test_price_below_compares_the_other_way(ps, ledger, call):
+    ctx = call(ledger([priced(
+        condition={"type": "price_below", "description": "", "price": 4.0})]))
+    assert ps.triggered_conditions(ctx, {"00100": 3.9})
+    assert ps.triggered_conditions(ctx, {"00100": 4.1}) == []
+
+
+def test_the_boundary_counts_as_met(ps, ledger, call):
+    """`price_above 365` is the price the plan named; 365.0 IS the trigger."""
+    ctx = call(ledger([priced()]))
+    assert ps.triggered_conditions(ctx, {"00100": 365.0})
+
+
+def test_a_missing_quote_is_not_the_same_as_not_met(ps, ledger, call):
+    """"I could not check" must not render as "the condition is not met" —
+    that conflation is the 2026-09-07 defect one layer down."""
+    ctx = call(ledger([priced()]))
+    assert ps.triggered_conditions(ctx, {}) == []
+    assert ps.triggered_conditions(ctx, {"00100": None}) == []
+
+
+def test_a_condition_with_no_price_is_never_triggered(ps, ledger, call):
+    ctx = call(ledger([decision()]))          # condition type "open", no price
+    assert ps.triggered_conditions(ctx, {"07226": 3.12}) == []
+
+
+def test_an_index_condition_is_left_alone(ps, ledger, call):
+    """`index_breakdown` prices an INDEX. A holding's last is not an answer to
+    it, and guessing would be worse than staying quiet."""
+    ctx = call(ledger([priced(
+        condition={"type": "index_breakdown", "description": "", "price": 4400})]))
+    assert ps.triggered_conditions(ctx, {"00100": 5000.0}) == []
+
+
+def test_a_restated_order_is_one_line_that_dates_itself(ps, ledger, call):
+    """The 08:00 brief re-hangs an unfilled order under a fresh decision_id, so
+    on 2026-09-07 the same 00100 trim at ≥365 was open twice: today's and the
+    9/4 one it had already failed to execute. One line, and it says since when."""
+    ctx = call(ledger([
+        priced(decision_id="dec-earlier", plan_date="2026-07-24"),
+        priced(decision_id="dec-today", plan_date=TODAY),
+    ]))
+    rows = ps.triggered_conditions(ctx, {"00100": 393.0})
+    assert len(rows) == 1
+    assert rows[0]["restated_count"] == 2
+    assert rows[0]["open_since"] == "2026-07-24"
