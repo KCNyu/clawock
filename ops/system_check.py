@@ -1576,6 +1576,35 @@ def _memory_index_backlog():
     return missing, stale, len(indexed)
 
 
+def _written_since_last_reindex(paths, age_hours):
+    """Split `paths` into (backlog, churn) around the last completed reindex.
+
+    A file written AFTER the reindex finished is not a backlog — it is the
+    normal state of a workspace between two nightly passes, and tonight's run
+    will take it. A file written BEFORE it and still missing or stale is the
+    2026-07-27 shape: the reindex ran and did not cover it.
+
+    Measured 2026-09-08: all six files this check was naming (`-pre-open.md`
+    written at 08:12, four `report-prose-*.md`, `intraday-prose-hk.md` rewritten
+    every 30 minutes) post-dated the 05:11 reindex. Genuine backlog: zero. The
+    warning had fired on 36 of 44 runs — 82% — which is why it was worth nothing
+    on the day it would have meant something. `nightly reindex last completed
+    {age}h ago`, already in this check, is the signal that actually catches the
+    incident: on 07-27 the index was five days behind.
+    """
+    if age_hours is None:            # never completed — everything is backlog,
+        return list(paths), []       # and the age problem says so separately.
+    cutoff = time.time() - age_hours * 3600
+    backlog, churn = [], []
+    for path in paths:
+        try:
+            written = (LIVE_WORKSPACE / path).stat().st_mtime
+        except OSError:
+            continue                 # vanished underneath us; not a backlog
+        (churn if written > cutoff else backlog).append(path)
+    return backlog, churn
+
+
 def _memory_index_patch_gaps():
     """Local dist patches openclaw upgrades wipe, both silent at the point of use."""
     if OPENCLAW_INSTALL is None:
@@ -1643,6 +1672,12 @@ def check_memory_index(r):
         r.add('memory index', WARNING, f'cannot read index: {e}')
         return
 
+    age = _memory_reindex_age_hours()
+    # Only what the last reindex ALREADY HAD ITS CHANCE AT counts as backlog.
+    missing, missing_churn = _written_since_last_reindex(missing, age)
+    stale, stale_churn = _written_since_last_reindex(stale, age)
+    churn = len(missing_churn) + len(stale_churn)
+
     problems = []
     if missing:
         problems.append(f'{len(missing)} file(s) never embedded (e.g. {missing[0]})')
@@ -1650,17 +1685,21 @@ def check_memory_index(r):
         problems.append(f'{len(stale)} file(s) changed since indexing (e.g. {stale[0]})')
     problems += _memory_index_patch_gaps()
 
-    age = _memory_reindex_age_hours()
     if age is None:
         problems.append('nightly reindex has never completed')
     elif age > MEMORY_REINDEX_MAX_AGE_HOURS:
         problems.append(f'nightly reindex last completed {age:.0f}h ago')
 
+    # Churn is reported, never as a problem: it is what a live workspace looks
+    # like between two nightly passes, and hiding it entirely would make the OK
+    # line claim more than it checked.
+    churn_note = f' · {churn} written since, due tonight' if churn else ''
     if problems:
-        r.add('memory index', WARNING, '; '.join(problems))
+        r.add('memory index', WARNING, '; '.join(problems) + churn_note)
     else:
         r.add('memory index', OK,
-              f'{indexed} files embedded · patches applied · reindex {age:.0f}h ago')
+              f'{indexed} files embedded · patches applied · '
+              f'reindex {age:.0f}h ago{churn_note}')
 
 
 def _memory_curation_gaps():
