@@ -180,6 +180,22 @@ async function theDrawerTrapsFocusAndGivesItBack(browser, base) {
   assert.deepEqual(outside, [],
     `these siblings stayed reachable behind the open drawer: ${outside.join(", ")}`);
 
+  // 12 tabs only proves the trap holds while the drawer is long enough to
+  // absorb them — that is exactly how this contract went green on a page whose
+  // header links were never inerted (a smaller payload, no code change, later
+  // made Tab reach them). Enumerate instead: nothing focusable anywhere on the
+  // page may be reachable while the drawer is open.
+  const reachable = await page.evaluate(() => {
+    const drawer = document.getElementById("dm-drawer");
+    const FOCUSABLE = "a[href], button, input, select, textarea, [tabindex]";
+    return [...document.querySelectorAll(FOCUSABLE)]
+      .filter(el => !drawer.contains(el) && !el.closest("[inert]") && !el.inert
+        && el.offsetParent !== null)
+      .map(el => el.id || `${el.tagName}.${el.className}`);
+  });
+  assert.deepEqual(reachable, [],
+    `these controls stayed in the tab order behind the open drawer: ${reachable.join(", ")}`);
+
   for (let i = 0; i < 12; i++) await page.keyboard.press("Tab");
   const stillInside = await page.evaluate(() =>
     document.getElementById("dm-drawer").contains(document.activeElement));
