@@ -75,6 +75,28 @@ jobs:
           # do NOT open an issue: per kcn's "no per-cron alerts" preference the daily review
           # covers it.
 
+      # The one brief-fallback run per week that carries information — the
+      # Wednesday rehearsal — used to reach nobody. It failed on 2026-09-02
+      # (MiniMax timed out, opencode returned `CreditsError: Insufficient
+      # balance`) and sat unnoticed for six days: one red among ~20 green
+      # no-op skips, demoted by the rollup below to a dot, with its verdict
+      # written only into that run's own step summary.
+      #
+      # Separate step, not folded into the rollup: the rollup is report-only
+      # because a `gh` hiccup must not redden a check that has its own verdict,
+      # and that tolerance is right for it. Here the distinction is made inside
+      # the script instead — `unknown` (no gh, bad JSON, renamed steps) exits 0,
+      # and only a *determined* dead backstop is allowed to redden. So this
+      # keeps the gh-hiccup tolerance without paying for it in silence.
+      - name: Off-host brief backstop — did its last rehearsal pass?
+        # `always()`, or this never runs on the days it matters most: the health
+        # check above exits non-zero on any miss (5 of its last 6 runs), which
+        # would skip every later step without it.
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 ops/ci/backstop_rehearsal.py --strict
+
       - name: Fold Actions-side failures into the daily summary
         # cron_health_check only sees host-side products; a scheduled workflow
         # that fails (or stops firing) on the Actions side was previously
