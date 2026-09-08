@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "deadline_tz": "Asia/Hong_Kong",
+  "note": "Which scheduled workflows bet on GitHub delivering them on time, and by when. Five workflow headers already asserted a punctuality budget in prose ('~2.25h before the 08:00 HKT brief', 'buffer for GH Actions' 1-2h scheduled-cron delay'); nothing ever checked those assertions against assets/data/schedule-drift.json, so when measured drift stepped from ~72min to ~271min on 2026-08-27 every one of them silently became wrong. ops/ci/schedule_punctuality.py is the consumer. Every workflow with a `schedule:` must appear here - tests/test_schedule_punctuality.py enumerates them - so a new deadline cannot be acquired silently.",
+  "enforcement": {
+    "enforced": "a sustained breach reddens the daily cron-health run",
+    "accepted": "the deadline is real and currently unmet; the reason records why that is tolerated instead of pretending otherwise"
+  },
+  "workflows": {
+    "brief-fallback.yml": {
+      "deadline_hkt": "10:00",
+      "enforcement": "accepted",
+      "why": "Its own `HOUR >= 10 HKT` gate: a pre-open brief generated after HK open is stale noise, so the deadline is real and the gate is right. #780 answered GitHub's then-measured 89-159min drift by firing three times (08:25/08:47/09:09 HKT) so the earliest in-window attempt would win. Measured over 67 scheduled days, an attempt arrived in window on 5, and on 0 of the 10 days since 2026-08-26 - the mitigation expired when the drift regime changed. Accepted, not enforced, because there is no fix on our side: the window opens at 00:25 UTC (earlier races the still-generating primary brief) and GitHub is now delivering 219-588min late, so no schedule can be made to land inside it. The real trigger is the host: brief_watchdog --check-missing dispatches this workflow at 09:05 HKT via `gh workflow run` (dispatch latency is seconds, not hours). What the scheduled legs still cover is the host-down case, and in that case they cannot arrive in time - that gap is the accepted cost."
+    },
+    "macro-scan.yml": {
+      "deadline_hkt": "08:00",
+      "enforcement": "enforced",
+      "why": "Feeds the 08:03 HKT pre-open brief. Its own header sizes the 21:45 UTC slot as '~2.25h before the brief ... GH Action scheduled crons routinely fire 1-2h LATE'. brief_preflight omits macro entirely past 36h, so a late scan does not corrupt the brief - it silently costs it a day of macro."
+    },
+    "sentiment-scan.yml": {
+      "deadline_hkt": "08:00",
+      "enforcement": "enforced",
+      "why": "Same bet as macro-scan, stated in its own header: '21:30 UTC ... ~2.5h before the 08:00 HKT brief. Scheduled this early to absorb GH Actions' typical 1-2h scheduled-cron delay.'"
+    },
+    "influencer-scan.yml": {
+      "deadline_hkt": "08:00",
+      "enforcement": "enforced",
+      "why": "Morning leg feeds the brief; its header says '~2.3h before the 08:00 HKT brief (buffer for GH Actions' 1-2h scheduled-cron delay)'. The evening leg (20:50 HKT) is measured against the NEXT morning's deadline, which is the run it actually feeds."
+    },
+    "weekly-health.yml": {
+      "deadline_hkt": "08:00",
+      "enforcement": "enforced",
+      "why": "Header: 'Sundays 23:00 UTC (Monday 07:00 HKT, before the 08:00 brief and HK open)'. A drift check that lands after the week's first brief and open has already missed what it exists to catch."
+    },
+    "news-digest.yml": {
+      "deadline_hkt": null,
+      "why": "Had a deadline and gave it up on the evidence, which is the outcome this contract is for. Its header now reads 'treat it as an around-the-open product, not a pre-open one' after measured drift put it past the 21:30 HKT US open. Nothing downstream requires it before a fixed instant."
+    },
+    "cron-health.yml": {
+      "deadline_hkt": null,
+      "why": "Explicitly drift-insensitive by its own design note: it reads the day's already-landed git products and heartbeats, so an hour later reads the same facts."
+    },
+    "eod-archive.yml": {
+      "deadline_hkt": null,
+      "why": "Appends the week's settled closing prices to a historical CSV. The prices are final before it starts; nothing reads the file on a schedule."
+    },
+    "repo-traffic.yml": {
+      "deadline_hkt": null,
+      "why": "Captures rolling-window measurements (GitHub Traffic keeps 14 days, and the schedule-drift sample this contract consumes). Twice weekly against a 14-day window - hours of lateness cost nothing."
+    },
+    "screenshot-refresh.yml": {
+      "deadline_hkt": null,
+      "why": "Keeps README visuals under a 7-day staleness bound. Hours do not move a 7-day bound."
+    },
+    "seo-visibility.yml": {
+      "deadline_hkt": null,
+      "why": "Weekly Search Console pull into the run log. No consumer waits on it."
+    },
+    "weekly-review.yml": {
+      "deadline_hkt": null,
+      "why": "Writes memory/weekly/<ISO week>.md for a week that has already ended. Late is fine; missing is not, and that is workflow_health.py's overdue check, not a punctuality question."
+    },
+    "ci.yml": {
+      "deadline_hkt": null,
+      "why": "The weekly scheduled run is a drift sweep over code that is not changing at that hour. Its PR and push triggers are the ones that gate anything."
+    }
+  }
+}
