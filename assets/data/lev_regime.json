@@ -1,30 +1,30 @@
 {
-  "generated_at": "2026-09-07T00:03:37.635185+00:00",
-  "as_of": "2026-09-04",
+  "generated_at": "2026-09-08T00:03:46.404983+00:00",
+  "as_of": "2026-09-07",
   "index": "HSTECH",
   "source": "tencent",
-  "bars": 1395,
-  "close": 4569.8,
+  "bars": 1396,
+  "close": 4527.71,
   "ma_window": 200,
-  "ma": 5086.51,
-  "dist_ma_pct": -10.2,
+  "ma": 5079.48,
+  "dist_ma_pct": -10.9,
   "vol_window": 20,
-  "vol_annualized": 0.2236,
+  "vol_annualized": 0.2167,
   "vol_cap": 0.5,
   "trend_on": false,
   "vol_ok": true,
   "tier": "amber",
   "lev_cap_mult": 0.5,
   "label": "趋势OFF：杠杆敞口上限砍半",
-  "rationale": "HSTECH 4570 低于 200日线 5087 (-10.2%)；20日波动 22% < 50% 上限。→ HK 杠杆ETF上限 ×0.5（amber）",
+  "rationale": "HSTECH 4528 低于 200日线 5079 (-10.9%)；20日波动 22% < 50% 上限。→ HK 杠杆ETF上限 ×0.5（amber）",
   "hk": {
     "tier": "amber",
     "lev_cap_mult": 0.5,
     "label": "趋势OFF：杠杆敞口上限砍半",
-    "close": 4569.8,
-    "ma": 5086.51,
-    "dist_ma_pct": -10.2,
-    "vol_annualized": 0.2236,
+    "close": 4527.71,
+    "ma": 5079.48,
+    "dist_ma_pct": -10.9,
+    "vol_annualized": 0.2167,
     "trend_on": false,
     "vol_ok": true
   },
@@ -67,12 +67,6 @@
   },
   "regime_history": {
     "hk": {
-      "2026-01-26": {
-        "trend_on": true,
-        "dist_ma_pct": 2.6,
-        "mom_pct": -2.3,
-        "regime3": "chop"
-      },
       "2026-01-27": {
         "trend_on": true,
         "dist_ma_pct": 3.0,
@@ -966,6 +960,12 @@
         "dist_ma_pct": -10.2,
         "mom_pct": -4.1,
         "regime3": "bear"
+      },
+      "2026-09-07": {
+        "trend_on": false,
+        "dist_ma_pct": -10.9,
+        "mom_pct": -1.4,
+        "regime3": "chop"
       }
     },
     "us": {
