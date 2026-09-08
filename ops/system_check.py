@@ -1214,6 +1214,65 @@ def check_fallback_chain_shape(r):
         r.add('fallback chain', OK, detail)
 
 
+def check_delivery_chain_shape(r):
+    """How many legs the DELIVERY chain has that can fail on their own.
+
+    The sibling of `check_fallback_chain_shape`, applying the same criterion one
+    system over: **stop counting hops, count the things that can fail
+    independently.** The model chain was measured that way in #1242 and turned
+    out to be one leg wearing three; nobody had asked the same question of the
+    path the reports actually leave on.
+
+    Two channels carry every slot — WeChat first, Telegram always co-sent — and
+    they look like two legs. They are two, for a failure on the channel's own
+    side: 2026-09-08 WeChat returned `ret=-2 prepare failed` for five slots in a
+    row and Telegram carried all five. They are ONE for a failure in the
+    transport under both: the same morning, the 10:34 co-send and the 10:43
+    watchdog mirror both gave up on the same local gateway, and the "backstop"
+    was a second call down the pipe that had just failed.
+
+    So the number reported here is the count of distinct transports, not of
+    channels, and the channels come from the ledger rather than a hardcoded pair
+    — the same reason `check_delivery_channel_health` reads them there.
+
+    WARNING, never CRITICAL, and it proposes nothing: re-send, keep-alive and
+    channel-switch have each been declined. This only says out loud how many
+    legs the desk actually has.
+    """
+    try:
+        sys.path.insert(0, str(_REPO_ROOT / 'src'))
+        from clawock.automation import workflow_outcomes  # noqa: PLC0415
+        ledger = json.loads(workflow_outcomes.public_path().read_text(encoding='utf-8'))
+    except Exception:  # noqa: BLE001
+        return  # no ledger on this host yet
+    channels = sorted({
+        key[:-3]
+        for rec in (ledger.get('records') or [])
+        for key, value in (((rec.get('stages') or {}).get('primary_delivery')) or {}).items()
+        if key.endswith('_ok') and isinstance(value, bool)
+    })
+    if len(channels) < 2:
+        return  # nothing to be wrong about: one channel is one leg by construction
+
+    try:
+        from clawock.providers.delivery import default_provider  # noqa: PLC0415
+        transports = {default_provider().name}
+    except Exception as e:  # noqa: BLE001
+        r.add('delivery chain', WARNING,
+              f'cannot resolve the delivery provider: {e}')
+        return
+
+    tally = (f'{len(channels)} channel(s) ({"/".join(channels)}) · '
+             f'{len(transports)} transport ({"/".join(sorted(transports))})')
+    if len(transports) < len(channels):
+        r.add('delivery chain', WARNING,
+              f'{tally} — a channel outage costs one leg, a transport outage '
+              f'costs every one at once, including the watchdog backstop that '
+              f'goes down the same pipe')
+    else:
+        r.add('delivery chain', OK, tally)
+
+
 def _provider_api_keys():
     """provider name → an opaque label for the account behind it. Live box only.
 
@@ -1974,6 +2033,7 @@ def main():
         check_fallback_chain_shape,
         check_model_chain_health,
         check_delivery_channel_health,
+        check_delivery_chain_shape,
         check_generated_cron_docs,
         check_research_artifacts,
         check_trading_calendar_horizon,
