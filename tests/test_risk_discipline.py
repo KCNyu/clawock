@@ -242,3 +242,23 @@ def test_plan_local_override_cannot_bypass_durable_open_breach(tmp_path):
     record["override"]["expires_at"] = "2000-01-01T00:00:00+00:00"
     issues = brief_postflight.validate_plan_json(plan_path, context)
     assert any("杠杆硬止损未处理" in issue for issue in issues)
+
+
+def test_a_row_is_scoped_by_the_thing_the_cap_is_about():
+    """`evidence_ref` picks ticker over leg, and leg when there is no ticker.
+
+    A cap on a name is about the name; `leveraged_exposure` and `beta` are
+    about the book's leg and have no ticker to be about. Unscoped is the last
+    resort — on a two-leg book it names two rows.
+    """
+    from clawock.decision import risk as discipline
+
+    assert discipline.evidence_ref(
+        {'type': 'single_name_review', 'ticker': '00100', 'leg': 'HK'}
+    ) == 'risk:single_name_review:00100'
+    assert discipline.evidence_ref(
+        {'type': 'beta', 'ticker': None, 'leg': 'US'}) == 'risk:beta:US'
+    assert discipline.evidence_ref({'type': 'beta'}) == 'risk:beta'
+    # A row with no type cannot be named at all — that was the `hard_stop_watch`
+    # family, uncitable for a week (#1392). Empty, never a half-formed id.
+    assert discipline.evidence_ref({'ticker': '00100'}) == ''

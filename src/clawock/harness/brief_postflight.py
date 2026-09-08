@@ -235,8 +235,14 @@ def _citable_refs(context) -> set[str]:
             refs.add(f'news:{event_id}')
 
     guardrail = context.get('risk_guardrail') or {}
-    for key in ('breaches', 'hard_stop_watch', 'concentration_reviews'):
+    for key in risk_discipline.GUARDRAIL_ROW_KEYS:
         for row in guardrail.get(key) or []:
+            # The one the row itself advertises. Reading the same field the
+            # context hands the model is what makes "copy this" true — a
+            # second spelling of the grammar here is a second thing to drift.
+            advertised = str((row or {}).get('evidence_id') or '').strip()
+            if advertised:
+                refs.add(advertised)
             kind = str((row or {}).get('type') or '').strip()
             if not kind:
                 continue
