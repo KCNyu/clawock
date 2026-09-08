@@ -48,16 +48,28 @@ def test_the_four_shapes_of_a_disagreement_are_told_apart():
         stored, {'open': 10.001, 'high': 11.0, 'low': 9.0, 'close': 10.5}
     ) == 'rounding'
 
-    # Anything else is a real disagreement about what happened that session.
+    # Anything else is a real disagreement about what happened that session —
+    # including a 12.7% high, which moves no settled leg but is not a tick.
     assert bars.classify_conflict(
         stored, {'open': 10.0, 'high': 12.4, 'low': 9.0, 'close': 10.5}
     ) == 'bar_revision'
+
+    # A wick revised by about a tick, open and close untouched. The ledger
+    # settles on `close`, so this cannot move a number anything settled
+    # against — and it is above the rounding tolerance, so it is not noise
+    # either. It gets its own name instead of borrowing one that prescribes
+    # a remedy (`bar_revision` → `--repair`) or names a corporate action
+    # (`uniform_rescale` → a split).
+    assert bars.classify_conflict(
+        stored, {'open': 10.0, 'high': 11.0, 'low': 8.99, 'close': 10.5}
+    ) == 'extreme_only'
 
     # And the vocabulary is closed: every kind the classifier can emit is
     # declared, or a consumer counting kinds silently drops one.
     for fetched in ({'open': 5.0, 'high': 5.5, 'low': 4.5, 'close': 5.25},
                     {'open': 10.0, 'high': 11.0, 'low': 9.0, 'close': 10.7},
                     {'open': 10.001, 'high': 11.0, 'low': 9.0, 'close': 10.5},
+                    {'open': 10.0, 'high': 11.0, 'low': 8.99, 'close': 10.5},
                     {'open': 10.0, 'high': 12.4, 'low': 9.0, 'close': 10.5}):
         assert bars.classify_conflict(stored, fetched) in bars.CONFLICT_KINDS
 
@@ -177,3 +189,38 @@ def test_the_report_names_them_and_still_publishes(tmp_path, monkeypatch):
     assert noisy['warn_count'] == clean['warn_count'] + 1
     assert noisy['ok'] is True, 'a refused bar must never block a publish'
     assert noisy['bar_conflicts']['by_ticker'] == {'00100': 3}
+
+
+def test_a_one_tick_wick_is_never_called_a_split():
+    """The regression, in the shape the real log has it (2026-09-08).
+
+    Every one of the 25 refusals ever recorded moves `low` alone by about a
+    tick. Fourteen of them are above the rounding tolerance, and those fourteen
+    came back as nine `uniform_rescale` and five `bar_revision`: two different
+    wrong answers for one shape.
+
+    `uniform_rescale` is the worse of the two, and it is the one the spread test
+    hands out. That test asks "are the four ratios close together?", which is
+    the right question only when all four legs moved. When three legs are
+    untouched their ratios are exactly 1.0, so "almost nothing moved" scores
+    better on it than a genuine 2-for-1 does — a one-cent low reads as a
+    corporate action. The kind now has to include a common factor that is
+    actually not 1.
+    """
+    from clawock.market_data import bars
+
+    # The real 2026-09-01 row: a HK$14.12 low revised to HK$14.11.
+    stored = {'open': 14.26, 'high': 15.04, 'low': 14.12, 'close': 14.38}
+    fetched = dict(stored, low=14.11)
+    assert bars.classify_conflict(stored, fetched) == 'extreme_only'
+
+    # A real 2-for-1 still is one, so the guard did not close the door on the
+    # kind it protects.
+    half = {leg: value / 2 for leg, value in stored.items()}
+    assert bars.classify_conflict(stored, half) == 'uniform_rescale'
+
+    # And a wick moved far enough to be a disagreement about the session, not a
+    # tick on it, stays a `bar_revision` — the tolerance is a tick, not a
+    # licence for anything that misses open and close.
+    assert bars.classify_conflict(
+        stored, dict(stored, low=12.5)) == 'bar_revision'

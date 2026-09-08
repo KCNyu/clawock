@@ -216,6 +216,7 @@ CONFLICT_KINDS = (
     "uniform_rescale",     # every leg moved by the same ratio: adjustment signature
     "close_only",          # only the close moved: a settlement-price revision
     "rounding",            # every leg moved by < 5bp: precision, not information
+    "extreme_only",        # only a wick moved, by about a tick: nothing settles on it
     "bar_revision",        # anything else: a real disagreement about the session
 )
 
@@ -224,6 +225,12 @@ CONFLICT_KINDS = (
 ROUNDING_REL_TOL = 5e-4
 #: How close the four ratios must be to each other to read as one rescale.
 RESCALE_REL_TOL = 1e-3
+#: How far a high or low may be revised and still read as a tick on a wick.
+#: One tick is ~0.1% of a HK$2 board lot and ~0.2% of a HK$0.50 one, so 1%
+#: leaves an order of magnitude of headroom; above it the provider is
+#: disagreeing about the session's range itself, which is a `bar_revision`
+#: whether or not it touches a leg the ledger settles on.
+WICK_REL_TOL = 1e-2
 
 
 def classify_conflict(old: dict, fetched: dict) -> str:
@@ -248,6 +255,28 @@ def classify_conflict(old: dict, fetched: dict) -> str:
         return "rounding"
     if moved == ["close"]:
         return "close_only"
+    # The shape the log is actually full of (2026-09-08): the provider revises an
+    # intraday extreme by about one tick and leaves open and close alone. All 25
+    # rows ever recorded here move `low` and nothing else — NOT ONE moves open or
+    # close — and the largest is 0.107%, three cents on a $27.93 low. Eleven land
+    # under the rounding tolerance already; the other fourteen are this kind.
+    #
+    # It matters which name that gets. The ledger settles on `close`
+    # (`memory/bars` is the only store the settled views read), so a bar whose
+    # open and close are unchanged cannot move a number anything was settled
+    # against — while `bar_revision` is the kind whose remedy is `--repair`.
+    # Those fourteen were being reported as nine `uniform_rescale` — which names
+    # a SPLIT — and five `bar_revision`, two different wrong answers for one
+    # shape, decided by nothing more than which side of a spread test the
+    # untouched legs' ratios of exactly 1.0 happened to fall on.
+    #
+    # Above the rounding tolerance on purpose: this is not "too small to care
+    # about", it is "real, and confined to a leg nothing settles on". And bounded
+    # by `WICK_REL_TOL` on purpose too: a provider that moves the high 12% still
+    # disagrees about the session, wick or not.
+    if moved and not ({"open", "close"} & set(moved)):
+        if relative and max(relative) < WICK_REL_TOL:
+            return "extreme_only"
     ratios = [
         fetched[k] / old[k]
         for k in legs
@@ -256,7 +285,14 @@ def classify_conflict(old: dict, fetched: dict) -> str:
     ]
     if len(ratios) == len(legs):
         spread = max(ratios) - min(ratios)
-        if spread <= RESCALE_REL_TOL * max(abs(r) for r in ratios):
+        # A rescale is every leg moving by the SAME factor. The spread test alone
+        # cannot say that: when three legs are untouched their ratios are exactly
+        # 1.0, the spread is tiny, and "almost nothing moved" passes a test meant
+        # for "everything moved together" — which is how a one-cent low became a
+        # split seven times. Require the common factor to actually be a rescale.
+        common = sum(ratios) / len(ratios)
+        rescaled = abs(common - 1.0) > RESCALE_REL_TOL
+        if rescaled and spread <= RESCALE_REL_TOL * max(abs(r) for r in ratios):
             return "uniform_rescale"
     return "bar_revision"
 
