@@ -379,3 +379,60 @@ def test_rationale_keeps_text_that_only_looks_like_a_breach_id(ws, tmp_path):
     assert dashboard._readable_rationale("(breach risk-abc123def456 30d)") is None
     assert dashboard._readable_rationale(None) is None
     assert dashboard._readable_rationale(12) is None
+
+
+def _relink(ws_path, ticker, **fields):
+    """Rewrite one ledger row in the fixture desk and rebuild."""
+    path = ws_path / "memory" / "decisions.jsonl"
+    rows = [json.loads(line) for line in path.read_text().splitlines() if line.strip()]
+    for row in rows:
+        if row.get("ticker") == ticker and row.get("plan_date"):
+            row.update(fields)
+    path.write_text("".join(json.dumps(r, ensure_ascii=False) + "\n" for r in rows),
+                    encoding="utf-8")
+
+
+def test_a_model_authored_debate_reaches_the_card_the_hand_record_used_to_own(
+        ws, tmp_path):
+    """Measured 2026-09-08: 0 of 40 published traces carried a bull or a bear.
+
+    The card's own fallback is `why = rationale || bull`, and this builder read
+    only `mind.bull.summary` — the hand-recorded decision-mind record, present
+    on 1 of the ledger's 809 rows. The 08:00 brief writes its argument to
+    `debate` instead (#1117), which 68 rows carry and every new plan adds.
+    Same card, second writer.
+    """
+    _relink(tmp_path, "SPCH", debate={"bull": "HBM 短缺到 2030 长期支撑",
+                                      "bear": "5d +9.9% 顶部属追高低质",
+                                      "judge": "hold, 1 股无操作空间"})
+
+    trace = next(t for t in dashboard.build_decision_traces()
+                 if t["ticker"] == "SPCH")
+
+    assert trace["decision"]["bull"] == "HBM 短缺到 2030 长期支撑"
+    assert trace["decision"]["bear"] == "5d +9.9% 顶部属追高低质"
+
+
+def test_a_hand_written_mind_record_still_wins(ws, tmp_path):
+    """A person typed it; the debate is the fallback, not the override."""
+    _relink(tmp_path, "SPCH",
+            mind={"bull": {"summary": "手写的多方"},
+                  "bear": {"summary": "手写的空方"}},
+            debate={"bull": "模型的多方", "bear": "模型的空方"})
+
+    trace = next(t for t in dashboard.build_decision_traces()
+                 if t["ticker"] == "SPCH")
+
+    assert trace["decision"]["bull"] == "手写的多方"
+    assert trace["decision"]["bear"] == "手写的空方"
+
+
+def test_the_two_writers_are_counted_separately(ws, tmp_path):
+    """`mindShown` says a person wrote one; reporting the debate under it would
+    claim the card got better on days nobody typed anything."""
+    _relink(tmp_path, "SPCH", debate={"bull": "模型的多方"})
+
+    scope = dashboard.build_decision_trace_scope(dashboard.build_decision_traces())
+
+    assert scope["argumentShown"] >= 1
+    assert scope["mindShown"] == 1, 'the hand-recorded row, and only it'

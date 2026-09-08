@@ -1167,6 +1167,18 @@ def build_decision_traces(limit=40, workspace=None):
                     subject = best.get('subject') or {}
                     mind = best.get('mind') or {}
                     emotion = best.get('emotion') or {}
+                    # Two writers, one card. `mind` is the hand-recorded
+                    # decision-mind record (`clawock record`) and carries prose;
+                    # `debate` is what the 08:00 brief writes on its own
+                    # decisions (#1117). This block read only the first, so the
+                    # card's own fallback — `why = rationale || bull` — and its
+                    # 「当时情绪」 line could not fire on a model-authored row:
+                    # measured 2026-09-08, 1 of the ledger's 809 rows has
+                    # `mind`, 68 have `debate`, and all 40 published traces
+                    # carried neither bull nor bear. The hand-written record
+                    # still wins where it exists — a person said it — and the
+                    # debate is the fallback rather than nothing.
+                    debate = best.get('debate') or {}
                     size = best.get('size') or {}
                     evaluation = best.get('evaluation') or {}
                     t['decision'] = {
@@ -1177,8 +1189,8 @@ def build_decision_traces(limit=40, workspace=None):
                         'rationale': _readable_rationale(best.get('rationale')),
                         'thesis': mind.get('thesis'),
                         'invalidation': mind.get('invalidation') if isinstance(mind.get('invalidation'), list) else [],
-                        'bull': (mind.get('bull') or {}).get('summary'),
-                        'bear': (mind.get('bear') or {}).get('summary'),
+                        'bull': (mind.get('bull') or {}).get('summary') or debate.get('bull'),
+                        'bear': (mind.get('bear') or {}).get('summary') or debate.get('bear'),
                         'emotion': emotion.get('pressure'),
                         'emotionNote': emotion.get('note'),
                         'execution': (best.get('execution') or {}).get('status'),
@@ -1397,6 +1409,11 @@ def build_decision_trace_scope(traces, workspace=None, limit=40):
         # visible instead of silently rendering nothing (#738).
         'emotionShown': sum(1 for t in shown if (t.get('decision') or {}).get('emotion')),
         'mindShown': sum(1 for t in shown if (t.get('decision') or {}).get('thesis')),
+        # Split from `mindShown` because they have different writers: the two
+        # above come from a hand-recorded mind record, this one from the brief's
+        # own debate block. Reporting them as one number would say the card got
+        # better on days nobody typed anything.
+        'argumentShown': sum(1 for t in shown if (t.get('decision') or {}).get('bull')),
         't1Verdicts': verdicts,
         't1Sides': sides,
         't1Shown': sum(1 for t in shown if t.get('t1')),
