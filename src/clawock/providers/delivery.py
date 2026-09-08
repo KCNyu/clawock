@@ -43,6 +43,15 @@ def delivery_disabled() -> bool:
 
 
 _MESSAGE_ID = re.compile(r'"messageId"\s*:\s*"?([^",\s}]+)', re.IGNORECASE)
+#: The runtime CLI's own way of saying it stopped waiting for its gateway. It
+#: exits non-zero with this, which is the same *event* as our subprocess timing
+#: out — not a refusal.
+_GATEWAY_TIMEOUT = re.compile(r"gateway timeout after \d+\s*ms", re.IGNORECASE)
+
+
+def _timed_out_waiting(output: str | None) -> bool:
+    """Whether a non-zero exit is the CLI giving up on its own gateway."""
+    return bool(output) and bool(_GATEWAY_TIMEOUT.search(output))
 
 
 def _names_a_message(output: str | None) -> bool:
@@ -114,12 +123,36 @@ class OpenClawDelivery:
         self.timeout = timeout
         self._runner = runner or self._run
 
+    def rpc_ceiling_ms(self) -> int:
+        """How long the CLI may wait for its gateway, in ms.
+
+        The CLI's own default is 10s and its floor is 10s
+        (`resolveGatewayCallTimeout`: a configured handshake timeout only counts
+        when it is *above* 10 000). That ceiling is below the gateway's real
+        tail latency on this host, and the CLI abandoning a call is not the
+        gateway abandoning the message: on 2026-09-08 the 10:34 intraday co-send
+        and the 10:43 watchdog mirror both gave up at 10 000 ms while the
+        gateway went on to hand Telegram messageId 1318 (after 16 499 ms) and
+        1319 (after 25 708 ms). The report was delivered twice and recorded as
+        never delivered.
+
+        So give the CLI a ceiling derived from the budget we already grant the
+        process, minus room for node's startup and teardown — one number, no
+        second knob to drift. Below the CLI's own floor this is inert, which is
+        why it never returns less than 10 000.
+        """
+        return max(10_000, int(self.timeout * 1000) - 15_000)
+
     def _run(self, cmd):
         # The runtime's own launcher needs `node` on PATH, so a job started from
         # the user crontab cannot spawn it with the PATH it inherited.
         from clawock.providers.openclaw import runtime_env
+        env = runtime_env()
+        # An operator who set this deliberately keeps it; nothing here is a
+        # better guess than a person who typed a number.
+        env.setdefault("OPENCLAW_HANDSHAKE_TIMEOUT_MS", str(self.rpc_ceiling_ms()))
         done = subprocess.run(cmd, capture_output=True, text=True,
-                              timeout=self.timeout, env=runtime_env())
+                              timeout=self.timeout, env=env)
         return done.returncode, (done.stdout + done.stderr)
 
     def send(self, channel: str, target: str, message: str, *,
@@ -161,7 +194,15 @@ class OpenClawDelivery:
             # that had already landed. When the transport's own output names a
             # message it accepted, treat the exit the way a timeout is treated:
             # `unknown`, which still mirrors, rather than `failed`.
-            status = "unknown" if _names_a_message(output) else "failed"
+            # A gateway timeout joins that rule for the same reason one step
+            # earlier: the CLI stopped waiting, which says nothing about what
+            # the gateway did next. Measured on 2026-09-08 — both of the day's
+            # "failed" sends were sitting in the gateway and went out at 16.5s
+            # and 25.7s. `failed` there wrote tg_ok=false into the marker, the
+            # watchdog read it as a miss and mirrored a report kcn already had.
+            status = ("unknown"
+                      if _names_a_message(output) or _timed_out_waiting(output)
+                      else "failed")
             return DeliveryResult(status, channel, str(target), detail=tail,
                                   idempotency_key=idempotency_key)
         status = "confirmed" if channel in CONFIRMING_CHANNELS else "unknown"
