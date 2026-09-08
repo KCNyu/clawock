@@ -72,6 +72,7 @@ import sys
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
+from clawock.bar_conflicts import classify_conflict
 from clawock.workspace import workspace_root
 
 WS = workspace_root()
@@ -301,8 +302,6 @@ def _kind_of(row) -> str:
     stored, fetched = row.get('stored'), row.get('fetched')
     if isinstance(stored, dict) and isinstance(fetched, dict):
         try:
-            from clawock.market_data.bars import classify_conflict
-
             return classify_conflict(stored, fetched)
         except Exception:
             pass
