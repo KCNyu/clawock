@@ -585,14 +585,23 @@ permalink: /decimap/
   // by identity rather than by making the whole container inert.
   let drawerReturnFocus = null;
 
+  // Every ancestor level, not just #decimap: the page grew a shared header and
+  // footer (#1211) that live outside #decimap, so inerting only the drawer's
+  // siblings left nine real links in the tab order behind the scrim. It stayed
+  // green because the test's 12 tabs happened to be fewer than the drawer's own
+  // focusables — until a smaller payload (data commit 09f0b71c, no code change)
+  // made the drawer short enough for Tab to reach them. Walking up to <body> is
+  // the version that does not depend on how much is in the drawer.
   function setBackgroundInert(on) {
-    const root = el('decimap');
     const drawer = el('dm-drawer');
     const scrim = el('dm-scrim');
-    if (!root) return;
-    for (const child of root.children) {
-      if (child === drawer || child === scrim) continue;
-      child.inert = on;
+    if (!drawer) return;
+    for (let node = drawer; node && node.parentElement && node !== document.body;
+         node = node.parentElement) {
+      for (const sibling of node.parentElement.children) {
+        if (sibling === node || sibling === scrim) continue;
+        sibling.inert = on;
+      }
     }
   }
 
