@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-07T18:00:08.406770",
+  "generated_at": "2026-09-08T16:55:06.101021",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -15,7 +15,7 @@
       "SPCH"
     ]
   },
-  "digest_markdown": "### Top 移动信号\n- **SKHY**: Nvidia Q2 FY27 业绩炸裂 + 指引 FY28 ~70% 增长，叠加 Goldman 维持 KOSPI 12,000 目标 → memory cycle 直接利好持仓，板块 β 强劲（SK Hynix 单日 +6.2%）\n- **CRCL**: Arc mainnet 9/16 公开发布，BlackRock/Visa/Mastercard/DTCC 参与 → 短期强催化剂；但 SeekingAlpha 双线警告（USDC circulation 放缓 + 2026 盈利 one-time boost）→ 30d 已 +61%，追高风险大\n- **RKLB (via RKLX 2x)**: ARK 加仓 705K 股 ($45M) + 新 SDN 军方合同 → 利好放大 2x；**CFO 同步减持 14 万股 $8.8M** → 利空同样 2x 放大，净信号中性\n- **SPCX (via SPCH 2x)**: 竞品 Isar Aerospace 二次入轨并称 €10B pipeline → 直接竞争利空，2x 放大；Nvidia 持仓叙事提供部分对冲\n- **跨市场**: Evercore 警告 OpenAI/Anthropic IPO 临近或触发 blue-chip 提前 tax-loss selling → 短期波动率上行\n\n### Per-ticker\n- **CRCL**: Chelsea 球衣赞助 (2026/27 起) - 纯营销叙事，无财务影响；与同期降级报道冲突\n- **RKLB**: Neutron 再次延期，市场焦点转向关键合并完成 - 短期缺独立催化剂\n- **SPCX**: 股价自早期 $200 高点回落，多为同业对照（ASTS/L3Harris）讨论，无直接催化剂\n- **SKHY**: Samsung +4.5% / SK Hynix +6.2% 同步，板块联动确认\n\n### 风险 watch\n- **CRCL**: SeekingAlpha 明确降级，USDC 流通量放缓 + stablecoin 份额流失\n- **RKLB**: CFO insider sale $8.8M（大额、非小额计划性交易信号）\n- **SPCX**: Isar Aerospace 商业化加速 + €10B 订单管线\n- **宏观**: 美伊冲突升温 + Apple/通胀数据本周待公布 + IPO 前 tax-loss selling 风险",
+  "digest_markdown": "## Top 移动信号\n- **SKHY**: Apple $54B iPhone业务遭AI memory挤压 + Micron九月30财报前Seoul标的已涨8.3%确认memory supercycle → HBM/DRAM供应紧张叙事持续,SKHY直接受益\n- **RKLB (持 RKLX 2x)**: Cathie Wood加仓705k股($45M) + Wall Street分析师给出翻倍target(火箭测试失败后逆势加注) → 2x杠杆放大任何反弹,backlog是核心论点\n- **RKLB/SPCX (持 RKLX/SPCH 2x)**: Trump宣布月球属美国,国防预算预期重新分配给已有record backlog的space companies → 两个2x space ETF同向受益,但目前缺具体contract award,需观察后续DoD公告\n- **CRCL**: 收购Tazapay($25B年化payment volume,60+银行/fintech partner)扩张USDC跨境支付至100+市场 → 业务面bullish,但KBW $105 PT(约持平现价)+ SeekingAlpha一篇下调(USDC circulation放缓)对冲\n- **SPCX (持 SPCH 2x)**: SpaceX IPO溢价交易11%于$135,分析师看$280,但一投资者警告$2T估值\"beyond silly\" → 高波动+情绪驱动,2x杠杆下双向风险都放大\n\n## Per-ticker 简报\n- **CRCL**: KBW中性覆盖$105 PT,与Tazapay收购利好形成对冲;USDC流通量放缓的看空论点仍存 - 短期catalyst混合,等业绩验证\n- **RKLB**: Trump月球声明 + Ark加仓 + 分析师翻倍target 三重共振,但测试失败阴影未散 - RKLX 2x将放大任何backlog进展或新发射结果\n- **SPCX**: $2T估值争议 + IPO溢价11% + AI叙事 = 高波动主题,SPCH 2x放大;Anduril进ARMY ETF是同类defense space情绪外溢\n- **SKHY**: Memory squeeze + Kospi领涨 + Apple硬件margin挤压 = 叙事最clean的holder,直接受益AI capex\n\n## 风险 watch\n- **CRCL**: USDC circulation增速放缓 → 核心业务基本面风险,SeekingAlpha已下调\n- **SPCX**: \"Beyond silly\"估值警告 + $2T市值隐含增长空间有限 → 任何miss情绪将2x放大\n- **RKLB**: 火箭测试失败余波仍在,若下次发射再失败RKLX 2x将急剧下跌",
   "raw_news_counts": {
     "CRCL": 5,
     "RKLB": 5,
@@ -25,150 +25,150 @@
   "raw_news_evidence": {
     "CRCL": [
       {
+        "headline": "Keefe, Bruyette & Woods Initiates Coverage On Circle Internet Group with Market Perform Rating, Announces Price Target of $105",
+        "datetime": 1788863138,
+        "source": "Benzinga",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=9f352e34277fa4a6b9cc3ea4c0004aaea015cb673992ab83d825dd60e4ab4549"
+      },
+      {
+        "headline": "Circle Doubles Down on Stablecoin Payments With Tazapay Acquisition",
+        "datetime": 1788859152,
+        "source": "Benzinga",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=00430a3d4b45668c614700a47057ba1ea893ecebba771e3ce7b123339b6a8d37"
+      },
+      {
+        "headline": "Circle: At The Forefront Of The Stablecoin Revolution",
+        "datetime": 1788848679,
+        "source": "SeekingAlpha",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=494e20933cc48976f6566dac7806781601ff064b9447d5d8f8a91b61b92def34"
+      },
+      {
+        "headline": "Circle Internet Group To Acquire Singapore-Based Payments Infrastructure Company Tazapay; Financial Terms Not Disclosed",
+        "datetime": 1788848363,
+        "source": "Benzinga",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=e8fbaef8a555e4a684ec1fa5e284683d46d12a5ca9c105327566ef961aee3ad3"
+      },
+      {
         "headline": "Circle: Lock In Gains On This Rebound As USDC Circulation Slows (Downgrade)",
         "datetime": 1788788064,
         "source": "SeekingAlpha",
         "origin": "finnhub",
         "url": "https://finnhub.io/api/news?id=bea6adc65ce08681bc593ebdfaad0f15465e80c2e83f83eb6f5eb57f5c958805"
-      },
-      {
-        "headline": "Circle: Arc's Launch Is Real, But Its 2026 Earnings Boost Is One-Time",
-        "datetime": 1788782385,
-        "source": "SeekingAlpha",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=4bfef248958719fef75f376b0ce6f88fe40685d16d62ca40ef268e572ce8ee05"
-      },
-      {
-        "headline": "Cathie Wood buys surging crypto stock despite latest controversy",
-        "datetime": 1788644608,
-        "source": "Yahoo",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=2fa5c8d34a04327fec1e86b884f122d5e60ee88f28d64ca7e162606d9a87def9"
-      },
-      {
-        "headline": "Circle Internet Group (CRCL) Lands Chelsea Shirt Deal, Is The Stock Fully Valued?",
-        "datetime": 1788635258,
-        "source": "Yahoo",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=be7c0fd078771bd01030ee5a984a4a4191e8cd8b5492b3f0e5518356e28dcc8e"
-      },
-      {
-        "headline": "What Is Driving Circle Internet Group (CRCL) Stock As Arc Nears Launch?",
-        "datetime": 1788620797,
-        "source": "Yahoo",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=f169e32c43c4a8afc9337c0c333291e16571bb6702ba4cc653f5802e04d381ca"
       }
     ],
     "RKLB": [
+      {
+        "headline": "Trump Declares the Moon Belongs to the U.S. Here Are 5 Space Stocks to Watch",
+        "datetime": 1788878615,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=62d12ccc9c6e2bdbb016e287656ec50bda43085cc0756f5fd2e59a147c4a0d5c"
+      },
+      {
+        "headline": "Grounded and Falling: Why One Wall Street Pro Says Rocket Lab Will More Than Double Soon",
+        "datetime": 1788874199,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=622aae052637e5b46e390ba204439a9b7f0df182e97c51e32fcc6e6aa1aac89f"
+      },
+      {
+        "headline": "Cathie Wood Is Moving Money From Palantir Into Rocket Lab and Fintech",
+        "datetime": 1788808893,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=b8bd745bb2aa30f966bf4f45624526b74dfcb4be40ed406474c8547865d5f458"
+      },
+      {
+        "headline": "The Real Satellite Race Isn’t About Rockets — It’s About Who Controls the Spectrum in Your Phone",
+        "datetime": 1788799264,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=7ab2874e38eb2891e3e9cba8e520a4f00d0705364afec320c947f4124539e7d0"
+      },
       {
         "headline": "Cathie Wood Just Made a $45 Million Rocket Lab Move",
         "datetime": 1788796480,
         "source": "Yahoo",
         "origin": "finnhub",
         "url": "https://finnhub.io/api/news?id=d04ed131e7f4b334e57ec85ebe9f7131ab104eef38230a437ee5323bcf4e0581"
-      },
-      {
-        "headline": "Can Rocket Lab's SDN Contracts Boost Growth Opportunities?",
-        "datetime": 1788791400,
-        "source": "Yahoo",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=8089512c25917d1b5bf69cabde11d2b730a2da30c333c28386c8bac945b0cff6"
-      },
-      {
-        "headline": "Rocket Lab's Neutron Just Slipped Again. Here's the Only Date That Still Matters for Shareholders.",
-        "datetime": 1788773100,
-        "source": "Yahoo",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=5de71cd8bb3869b34a04d948906d09a8accc695b298ec004df42fb23daf209dd"
-      },
-      {
-        "headline": "Rocket Lab CFO Dumps Over 140,000 Company Shares Worth $8.8 Million Amid a 28% One-Year Return",
-        "datetime": 1788676595,
-        "source": "Yahoo",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=8576dd5557c90a72d9bded140e684022750b7be33a774be6fc845aeea5e1355f"
-      },
-      {
-        "headline": "Prediction: Here's What a $10,000 Investment in Rocket Lab Will Be Worth in 5 Years",
-        "datetime": 1788650400,
-        "source": "Yahoo",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=52658f53300bc7f696746f5962a580892156309a4d124c31d17ef0197b65f2c4"
       }
     ],
     "SPCX": [
       {
-        "headline": "Will SpaceX Stock Get Back to $200 Before the End of 2026?",
-        "datetime": 1788794401,
+        "headline": "SpaceX trades 11% above its $135 IPO price as analysts target $280 — but one investor warns valuation is 'beyond silly'",
+        "datetime": 1788882900,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=687bf3690c2e70f32c6d7f07347cd6e5f2d773e2fea105ae8048b17d24b286e0"
+        "url": "https://finnhub.io/api/news?id=7df973457f0c4cd9de8157884033e7f6e2f1647349079cf007ae27c94a8d36e9"
       },
       {
-        "headline": "How Nvidia’s Investment Juggernaut Can Jump from Big to Enormous",
-        "datetime": 1788793620,
+        "headline": "Anduril Added as Top Holding in Tema International Defense ETF (ARMY)",
+        "datetime": 1788882480,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=dfd32d6523dd94c55deb552b3ac63439d8b04483f0fd0b24d6db0a6273308319"
+        "url": "https://finnhub.io/api/news?id=52b34c3eb96d51cbfda9e941746134b14586c007e1ad0e916be189fce8e883e1"
       },
       {
-        "headline": "Better Space Stock: AST SpaceMobile vs. L3Harris Technologies",
-        "datetime": 1788792600,
+        "headline": "Can Robinhood compete with banks after underwriting Oura's IPO?",
+        "datetime": 1788881090,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=76e00d25b51fd0f1381f575cd868e0e7088ae02c68c57521c96c7d00b66a5337"
+        "url": "https://finnhub.io/api/news?id=dc688c48db78c3a08cc178270307b4248c7da62812929a50d4bc511665064a62"
       },
       {
-        "headline": "Upcoming Anthropic and OpenAI IPOs could trigger early tax-loss selling",
-        "datetime": 1788792224,
+        "headline": "Trump Declares the Moon Belongs to the U.S. Here Are 5 Space Stocks to Watch",
+        "datetime": 1788878615,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=91fc0fe23cb1052962d27849ff44d9c5ae3ad1da4ad4cd823f0162c83976a7b9"
+        "url": "https://finnhub.io/api/news?id=62d12ccc9c6e2bdbb016e287656ec50bda43085cc0756f5fd2e59a147c4a0d5c"
       },
       {
-        "headline": "SpaceX Rival Claims €10 Billion Pipeline After First Orbit. How Will Stock React?",
-        "datetime": 1788789658,
+        "headline": "Bill Ackman Sees an AI Bargain in the Company That Owns the New York Stock Exchange",
+        "datetime": 1788878517,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=07a726c1f12015dbc08ddd06d2bf983e2931cba3754bd162f2d82c9583768531"
+        "url": "https://finnhub.io/api/news?id=edaa964a8264f5b74e23577fb617bff5ba074b6e7d61650604a37198e50dd605"
       }
     ],
     "SKHY": [
       {
-        "headline": "Tech Rally Surges in Asia as Kospi Soars",
-        "datetime": 1788787260,
-        "source": "Yahoo",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=36b9618b599d8e611282dab4f88748ba3d0864cc827821b9e64a3835bf60c76e"
-      },
-      {
-        "headline": "After Nvidia's Blowout, The AI Trade's Next Leg Is One Layer Down",
-        "datetime": 1788778745,
+        "headline": "TCW White Oak Emerging Markets Equity Fund Q2 2026 Contributors And Detractors",
+        "datetime": 1788864900,
         "source": "SeekingAlpha",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=86a31b1e274c891ff38b774ba76d994779beba8957da9d46ae6fa56610c0d1c8"
+        "url": "https://finnhub.io/api/news?id=1cbcc7c5eee3f107d328de0c61209fa4833ed0baad6f47a2bab7ad11a5b6174c"
       },
       {
-        "headline": "Goldman Strategist Holds 12,000 KOSPI Target: Will Memory Earnings Close a 74% Gap?",
-        "datetime": 1788760267,
-        "source": "Yahoo",
+        "headline": "What's Going On With SK Hynix Stock Tuesday?",
+        "datetime": 1788855241,
+        "source": "Benzinga",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=f04415d8a680f3f24b10f25683faf0d73b767db96e2f7840be7052879a4b01ff"
+        "url": "https://finnhub.io/api/news?id=c2c3ca5a987530d8bf27cfec984c302467cb28fe3ddbfccee93dbcff868e947b"
       },
       {
-        "headline": "Asian shares are mixed as chipmaker shares rally in Tokyo and Seoul",
-        "datetime": 1788753295,
+        "headline": "Samsung, SK Hynix Lead Kospi Higher as Wall Street Faces Tough Opening After Labor Day",
+        "datetime": 1788833219,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=6c6f239a0912fef814f8f492236f10f93ceab12c98fa7a19b2a278f4cc482282"
+        "url": "https://finnhub.io/api/news?id=65881ea53f962844a88c21ae2a989cff42a352fc1e0b7a8ec1e010a568479726"
       },
       {
-        "headline": "Dow Jones Futures Fall With Iran, Apple, Inflation In Focus; Nvidia, Micron, Sandisk Flash Buy Signals",
-        "datetime": 1788750407,
+        "headline": "Apple's $54 Billion iPhone Engine Hits an AI Memory Squeeze",
+        "datetime": 1788818172,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=cffb60530c356ad83d70f5ba341f71adb8ce87c95dbba1f4ae5067ff4efff611"
+        "url": "https://finnhub.io/api/news?id=1cc30c007c58834929bcda9920921d05fef698377528637e031ed829abbd720f"
+      },
+      {
+        "headline": "Micron's $50 Billion Guide Gets an 8.3% Signal From Seoul",
+        "datetime": 1788817898,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=efc6d941584256a59879b4304d05eee3063316c6b314f9d9bfcbbc646eb15c43"
       }
     ]
   },
