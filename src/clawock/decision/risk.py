@@ -418,6 +418,36 @@ def _standing(record: dict) -> dict:
     }
 
 
+#: The three lists a guardrail context carries, in the order the brief reads them.
+GUARDRAIL_ROW_KEYS = ("breaches", "hard_stop_watch", "concentration_reviews")
+
+
+def evidence_ref(row: dict) -> str:
+    """The debate citation that resolves to this exact row.
+
+    Composed here, once, so the model that cites it and the postflight that
+    resolves it are reading the same string rather than two descriptions of one
+    (#1141). The SKILL used to spell the grammar out — namespace, the full list
+    of legal `type` values, ticker form vs leg form, "do not invent a name" —
+    and the model still spent 2026-09-08 citing `risk:single_name:00100` at a
+    row whose own type is `single_name_review`: right row, wrong half of a name
+    that another row legitimately carries. A rule the model will not follow is
+    a wish, not a rule; the fix is to stop asking it to compose an identifier
+    and hand it one to copy.
+
+    Ticker first, then leg: a cap on a name is about the name, and a leg-level
+    breach (`leveraged_exposure`, `beta`) has no ticker to be about.
+    """
+    kind = str(row.get("type") or "").strip()
+    if not kind:
+        return ""
+    for scope in (row.get("ticker"), row.get("leg")):
+        scoped = str(scope or "").strip()
+        if scoped:
+            return f"risk:{kind}:{scoped}"
+    return f"risk:{kind}"
+
+
 def attach_breach_ids(guardrail: dict) -> dict:
     """Return a context copy whose current detector rows carry stable IDs."""
     out = copy.deepcopy(guardrail)
@@ -427,6 +457,14 @@ def attach_breach_ids(guardrail: dict) -> dict:
     for row in out.get("hard_stop_watch") or []:
         row["breach_id"] = _stable_id(
             "hard_stop", row.get("leg"), row.get("ticker"))
+    # Every row, including the concentration reviews `breach_id` skips: a review
+    # is not a breach, but it is just as citable, and it was the one the model
+    # got wrong.
+    for key in GUARDRAIL_ROW_KEYS:
+        for row in out.get(key) or []:
+            ref = evidence_ref(row)
+            if ref:
+                row["evidence_id"] = ref
     return out
 
 

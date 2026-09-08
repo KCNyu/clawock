@@ -224,30 +224,49 @@ def test_every_guardrail_row_the_producer_emits_can_be_cited():
             assert f"risk:{kind}:{row['leg']}" in citable
 
 
-def test_the_skill_names_exactly_the_row_types_the_producer_can_emit():
-    """The model cites by copying `type` verbatim; an undocumented one is a guess.
+def test_every_row_the_producer_emits_advertises_an_id_the_resolver_accepts():
+    """The model copies an id now; this is what keeps the copy resolvable.
 
-    Both directions matter. A type the producer emits but the skill never names
-    is a row the model can only cite by inventing a name for it (`hard_stop`,
-    `concentration` — both observed, both dropped). A type the skill names but
-    nothing emits teaches a citation that can never resolve.
+    The skill used to teach the grammar — namespace, the full `type`
+    vocabulary, ticker form vs leg form, "do not invent a name" — and a gate
+    here kept that vocabulary equal to the producer's. It was not enough: on
+    2026-09-08 the day's only two dropped citations were both
+    `risk:single_name:00100`, aimed at a row whose own type is
+    `single_name_review`. Right row, and a name another row legitimately
+    carries. Composing an identifier from a grammar is the step that fails, so
+    the row now carries the finished string and the skill says to copy it.
+
+    Which moves the invariant: not "the skill lists what the producer emits",
+    but "every row the producer emits advertises an id, and every advertised id
+    resolves". Built from the producer plus `attach_breach_ids`, because that
+    pair is what the morning's context actually contains.
     """
-    import re
+    from clawock.decision import risk as discipline
+    from clawock.harness import brief_postflight
 
-    root = Path(__file__).resolve().parents[1]
-    produced = set(re.findall(
-        r"'type':\s*'([a-z_]+)'",
-        (root / 'src' / 'clawock' / 'portfolio' / 'guardrail.py').read_text(
-            encoding='utf-8')))
-    skill = (root / 'skills' / 'daily-deep-brief' / 'SKILL.md').read_text(
-        encoding='utf-8')
-    vocabulary = [line for line in skill.split('\n') if '可引的 `<type>` 全集' in line]
-    assert len(vocabulary) == 1, 'the skill must state the vocabulary exactly once'
-    documented = set(re.findall(r'`([a-z_]+)`', vocabulary[0])) - {'type'}
+    guardrail = discipline.attach_breach_ids(_guardrail_from_the_real_producer())
+    citable = brief_postflight._citable_refs({'risk_guardrail': guardrail})
 
-    assert documented == produced, (
-        f'skill-only: {sorted(documented - produced)}; '
-        f'producer-only: {sorted(produced - documented)}')
+    rows = [(key, row) for key in discipline.GUARDRAIL_ROW_KEYS
+            for row in guardrail.get(key) or []]
+    assert rows, 'the fixture stopped tripping any cap — it proves nothing now'
+    assert any(key == 'concentration_reviews' for key, _ in rows), (
+        'the family the model got wrong on 09-08 must stay in this fixture')
+
+    for key, row in rows:
+        advertised = row.get('evidence_id')
+        assert advertised, f'{key} row carries no evidence_id to copy: {row}'
+        assert advertised in citable, (
+            f'{key} advertises {advertised!r}, which resolves to nothing')
+        # Scoped, always: an unscoped `risk:<type>` on a book with two legs
+        # points at whichever row the reader guesses.
+        assert advertised.count(':') == 2, advertised
+
+    skill = (Path(__file__).resolve().parents[1]
+             / 'skills' / 'daily-deep-brief' / 'SKILL.md').read_text(
+                 encoding='utf-8')
+    assert '`evidence_id`' in skill, (
+        'the skill must tell the model which field to copy')
 
 
 def test_one_hard_stop_has_one_name_across_every_surface_that_shows_it():
