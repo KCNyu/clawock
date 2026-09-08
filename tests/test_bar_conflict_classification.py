@@ -13,6 +13,7 @@ publish, because the bars were not written and nothing downstream is wrong.
 """
 
 import json
+from datetime import datetime, timezone
 from pathlib import Path
 
 
@@ -224,3 +225,48 @@ def test_a_one_tick_wick_is_never_called_a_split():
     # licence for anything that misses open and close.
     assert bars.classify_conflict(
         stored, dict(stored, low=12.5)) == 'bar_revision'
+
+
+def test_the_summary_classifies_from_the_payload_not_from_the_stale_label(tmp_path):
+    """The log is append-only; the reading of it is not frozen with it.
+
+    Every one of the desk's 25 refusals is a one-tick `low` revision, but the
+    classifier that labelled them called nine of them `uniform_rescale` — a
+    split — and five `bar_revision`, whose remedy is `--repair` (#1404). Those
+    labels sit in the file for the whole 30-day window, and the data-health card
+    reads the file. Re-classifying from the `stored`/`fetched` each row already
+    carries costs nothing and stops the card from reporting corporate actions
+    that never happened.
+    """
+    from clawock.portfolio import integrity
+
+    log = tmp_path / 'bar-conflicts.jsonl'
+    stored = {'open': 14.26, 'high': 15.04, 'low': 14.12, 'close': 14.38}
+    log.write_text(json.dumps({
+        'ticker': 'HOOD', 'date': '2026-09-01', 'kind': 'uniform_rescale',
+        'seen_at': '2026-09-03T08:00:48+08:00',
+        'stored': stored, 'fetched': dict(stored, low=14.11),
+    }) + '\n')
+
+    summary = integrity.summarize_bar_conflicts(
+        log, now=datetime(2026, 9, 8, tzinfo=timezone.utc))
+
+    assert summary['by_kind'] == {'extreme_only': 1}
+
+
+def test_a_row_without_a_payload_keeps_the_kind_it_was_written_with(tmp_path):
+    """Re-reading needs something to re-read. With no `stored`/`fetched` the
+    recorded verdict is the only evidence there is, and a summary that invented
+    one instead would be worse than a stale label, not better."""
+    from clawock.portfolio import integrity
+
+    log = tmp_path / 'bar-conflicts.jsonl'
+    log.write_text(json.dumps({
+        'ticker': 'SPCH', 'date': '2026-09-01', 'kind': 'close_only',
+        'seen_at': '2026-09-03T08:00:48+08:00',
+    }) + '\n')
+
+    summary = integrity.summarize_bar_conflicts(
+        log, now=datetime(2026, 9, 8, tzinfo=timezone.utc))
+
+    assert summary['by_kind'] == {'close_only': 1}
