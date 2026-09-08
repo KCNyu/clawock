@@ -251,6 +251,10 @@ def test_main_normalizes_before_calling_plan_validation(tmp_path, monkeypatch):
         return []
 
     monkeypatch.setattr(brief_postflight, "WS", tmp_path)
+    # The degradation ledger resolves its path at call time, so the
+    # module attribute above is not enough: without this a postflight
+    # run from a test writes into the developer's own workspace (#816).
+    monkeypatch.setenv("CLAWOCK_WORKSPACE", str(tmp_path))
     monkeypatch.setattr(
         brief_postflight.trading_calendar, "closed_reason", lambda _market: None
     )
@@ -299,6 +303,10 @@ def test_dry_run_validates_normalized_plan_without_rewriting_source(
         return observed["issues"]
 
     monkeypatch.setattr(brief_postflight, "WS", tmp_path)
+    # The degradation ledger resolves its path at call time, so the
+    # module attribute above is not enough: without this a postflight
+    # run from a test writes into the developer's own workspace (#816).
+    monkeypatch.setenv("CLAWOCK_WORKSPACE", str(tmp_path))
     monkeypatch.setattr(
         brief_postflight.trading_calendar, "closed_reason", lambda _market: None
     )

@@ -47,6 +47,10 @@ def _run_postflight(tmp_path, monkeypatch, capsys, *, projection_error=None):
     stages = []
     commits = []
     monkeypatch.setattr(postflight, 'WS', tmp_path)
+    # The degradation ledger resolves its path at call time, so the module
+    # attribute above is not enough: without this a postflight run from a
+    # test writes into the developer's own workspace (#816).
+    monkeypatch.setenv('CLAWOCK_WORKSPACE', str(tmp_path))
     monkeypatch.setattr(
         postflight.trading_calendar, 'closed_reason', lambda _market: None
     )
