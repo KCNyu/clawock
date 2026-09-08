@@ -549,6 +549,7 @@
       renderHonesty, renderBehavioralReview, renderDecisionAudit, renderCalibBadge,
       renderPlanReview, renderCalibByTrigger, renderCalibByDriver,
       renderDecisionTraces, renderReflectKpi, renderDelta, renderDebates,
+      renderDecisionMap,
     ],
   };
   let RENDER_VERSION = 0;
@@ -4352,6 +4353,41 @@
   //  - 本笔已实现 (per-fill, money) and 该持仓浮动 (position-level, percent) are
   //    different quantities and never share a label.
   // =========================================================
+  // 决策地图（原 /decimap/ 独立页）。这里只做三件事：把 sidecar 给的 payload
+  // 交给模块、第一次用到时才把模块拉下来、拉不到就把话说出来。板/时间线/抽屉
+  // 的实现整份在 assets/js/dashboard.decimap.js —— 它 500 行，和这份 detail
+  // bundle 的其它渲染器没有共用状态，塞进来只会让两边都更难读。
+  let DECIMAP_SCRIPT = null;
+  function renderDecisionMap() {
+    const host = document.getElementById("decimap");
+    if (!host) return;
+    const payload = safe(DATA, "decision_map");
+    const kpi = document.getElementById("dm-kpi");
+    if (!payload) {
+      // sidecar 的失败契约是 null。空着的板读成「没有决策」，而不是「这块没
+      // 载进来」——那两件事差得远。
+      if (kpi) kpi.innerHTML = '<span class="dm-warn">decision_map.json 没有载入。'
+        + '它由 <code>clawock decision-map</code> 生成，刷新一次或看发布日志。</span>';
+      return;
+    }
+    if (window.__decimap) { window.__decimap.boot(payload); return; }
+    if (DECIMAP_SCRIPT) { DECIMAP_SCRIPT.then(() => renderDecisionMap()).catch(() => {}); return; }
+    DECIMAP_SCRIPT = new Promise((resolve, reject) => {
+      const script = document.createElement("script");
+      script.src = "assets/js/dashboard.decimap.js";
+      script.async = true;
+      script.onload = () => window.__decimap ? resolve() : reject(new Error("decimap registration failed"));
+      script.onerror = () => reject(new Error("decimap load failed"));
+      document.head.appendChild(script);
+    });
+    DECIMAP_SCRIPT.then(() => window.__decimap.boot(payload)).catch(error => {
+      DECIMAP_SCRIPT = null;
+      console.error(error);
+      if (kpi) kpi.innerHTML = '<span class="dm-warn">决策地图的代码没载进来，'
+        + '刷新一次再试。</span>';
+    });
+  }
+
   function renderDecisionTraces() {
     const wrap = document.getElementById("trace-list");
     if (!wrap) return;

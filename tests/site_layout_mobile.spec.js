@@ -22,7 +22,13 @@ const { chromium } = require("playwright");
 
 const ROOT = path.resolve(__dirname, "..");
 const LAYOUT = path.resolve(ROOT, "site/_layouts/default.html");
-const DECIMAP = path.resolve(ROOT, "site/decimap/index.html");
+// The decision map's styles moved into the dashboard stylesheet when the board
+// moved into the Reflect tab (2026-09-09). The phone-geometry rules this file
+// measures — the pointer-coarse touch targets and the bottom-sheet drawer —
+// are the same rules; only their address changed.
+const DASHBOARD_CSS = path.resolve(ROOT, "site/assets/css/dashboard.css");
+const DM_CSS_START = "/* ── 决策地图（Reflect 卡内）";
+const DM_CSS_END = "/* Equity Curve 卡的专属规则";
 
 // The phones this has to hold: the narrowest still in use, and a current one.
 const WIDTHS = [320, 390];
@@ -45,10 +51,18 @@ function render(content, { url = "/decimap/" } = {}) {
   return html;
 }
 
-/** The decimap stylesheet plus a timeline dense enough to aim at. */
+/** The decision-map stylesheet plus a timeline dense enough to aim at. */
 function decimapFixture() {
-  const source = fs.readFileSync(DECIMAP, "utf8");
-  const style = source.slice(source.indexOf("<style>"), source.indexOf("</style>") + 8);
+  const css = fs.readFileSync(DASHBOARD_CSS, "utf8");
+  const from = css.indexOf(DM_CSS_START);
+  const to = css.indexOf(DM_CSS_END, from);
+  // Slice, don't inline the whole sheet: dashboard.css redefines :root, and a
+  // fixture that quietly stops carrying the rules it measures is a test that
+  // passes because it tests nothing.
+  assert(from > 0 && to > from,
+    "the decision-map block is no longer where this fixture slices it out of "
+    + "dashboard.css — re-point the markers, do not delete the assertion");
+  const style = `<style>${css.slice(from, to)}</style>`;
   const dots = [12, 34, 61, 88].map(left =>
     `<button class="dm-dot is-buy" style="left:${left}%"></button>`).join("");
   return `${style}
@@ -95,7 +109,10 @@ async function navStaysOnOneRowAndNothingScrollsSideways(browser, base) {
                  left: Math.round(box.left), right: Math.round(box.right),
                  height: Math.round(box.height) };
       }));
-    assert.equal(nav.length, 5, `expected five nav links, got ${nav.length}`);
+    // Four since the decision map moved into the dashboard's Reflect tab and
+    // the `Map` entry left the header (2026-09-09). The count is asserted, not
+    // derived, so that dropping a link is a decision someone makes here.
+    assert.equal(nav.length, 4, `expected four nav links, got ${nav.length}`);
 
     const rows = new Set(nav.map(link => link.top));
     assert.equal(rows.size, 1,

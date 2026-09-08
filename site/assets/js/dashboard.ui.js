@@ -222,7 +222,7 @@
   const SIDECAR_TAB = {
     macro: "market", sentiment: "market", influencer_feed: "market",
     us_news_digest: "market", em_news: "market",
-    decision_audit: "reflect", shadow_portfolio: "drill",
+    decision_audit: "reflect", decision_map: "reflect", shadow_portfolio: "drill",
     brief_projection: "drill",
   };
   const SIDECAR_STATE = new Map();
@@ -470,9 +470,13 @@
     if (box) box.remove();
   }
 
-  function _paintActivatedTab(t) {
+  // `force` is for the case where this tab already painted once at the current
+  // RENDER_VERSION with a sidecar that had not landed yet: renderTab() would
+  // treat that as "already drawn" and keep the empty card.
+  function _paintActivatedTab(t, force = false) {
     if (!DATA || currentTab() !== t) return;
-    renderTab(t);
+    if (force && typeof refreshTab === "function") refreshTab(t);
+    else renderTab(t);
     ensureTabCharts(t);
     const panel = document.querySelector(`.panel[data-panel="${t}"]`);
     if (panel) panel.removeAttribute("aria-busy");
@@ -506,6 +510,11 @@
     }
     if (!needsFetch && !needsRuntime && !needsFull) {
       applyCore();
+      // The sidecars are ready — but "ready" is not "already on DATA". A tab
+      // whose activation resolved while the pager was still settling never got
+      // them applied (the paint below is the only writer), and from then on it
+      // took this fast path forever: the card stayed empty until a full reload.
+      _applySidecars(DATA);
       _paintActivatedTab(t);
       return;
     }
@@ -516,11 +525,17 @@
         : Promise.resolve(FULL_DASHBOARD),
       _loadTabSidecars(t, triggeredByUser),
     ])
-      .then(() => {
-        if (version !== TAB_ACTIVATION_VERSION || !DATA || currentTab() !== t) return;
+      .then(([, , sidecarsChanged]) => {
+        if (version !== TAB_ACTIVATION_VERSION || !DATA) return;
+        // Apply before the "is this still the tab" check: writing fetched
+        // sidecars onto DATA is safe wherever the reader has scrolled to, and
+        // dropping them here is what left a phone's Reflect card empty for the
+        // rest of the session (mobile resolves this promise while the pager is
+        // still settling, so currentTab() is briefly the neighbouring tab).
         applyCore();
         _applySidecars(DATA);
-        _paintActivatedTab(t);
+        if (currentTab() !== t) return;
+        _paintActivatedTab(t, !!sidecarsChanged);
       })
       .catch(error => {
         console.error(error);
