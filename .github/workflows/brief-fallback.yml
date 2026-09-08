@@ -158,13 +158,28 @@ jobs:
         # narrower and is fully answered by this point: can the provider chain
         # generate today's brief inside the job's budget. Postflight is
         # exercised for real by the primary path every trading day.
-        if: steps.check.outputs.branch == 'rehearsal'
+        #
+        # `always()`: without it this step is itself `skipped` whenever the
+        # generation chain fails — i.e. in precisely the case it exists to
+        # report. On 2026-09-02 the chain died (MiniMax timeout x3, opencode
+        # `CreditsError: Insufficient balance`) and the drill's own verdict step
+        # never ran; the summary said only "Job status: failure". Same class as
+        # #1230: the branch that runs only when something is wrong is not
+        # exercised by a green run.
+        if: always() && steps.check.outputs.branch == 'rehearsal'
         run: |
           set -euo pipefail
           TODAY=$(TZ=Asia/Hong_Kong date +%Y-%m-%d)
           target="memory/${TODAY}-pre-open.md"
           if [ ! -s "$target" ]; then
             echo "::error::rehearsal produced no brief at $target — the backstop would NOT have worked today"
+            {
+              echo "### Rehearsal"
+              echo
+              echo "**The backstop would NOT have worked today.** The generation"
+              echo "chain did not produce \`$target\`. See the step log above for"
+              echo "which providers failed and why."
+            } >> "$GITHUB_STEP_SUMMARY"
             exit 1
           fi
           bytes=$(wc -c < "$target")
