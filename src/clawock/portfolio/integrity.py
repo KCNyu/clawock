@@ -72,6 +72,7 @@ import sys
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
+from clawock.bar_conflicts import classify_conflict
 from clawock.workspace import workspace_root
 
 WS = workspace_root()
@@ -280,6 +281,33 @@ def check_share_ledgers(portfolios):
 BAR_CONFLICT_WINDOW_DAYS = 30
 
 
+
+def _kind_of(row) -> str:
+    """The kind of one logged refusal, classified from the row's own payload.
+
+    A row carries `stored` and `fetched`, and `kind` is what the classifier
+    said on the day it was written — two different things, and the second can
+    go stale. It did: until 2026-09-08 a one-tick low read as `uniform_rescale`
+    (#1404), so the desk's whole 30-day window is labelled with nine "splits"
+    and five "revisions" that are all the same benign shape. The log is
+    append-only on purpose — history is not rewritten to look better — but the
+    *summary* is a reading of it, and reading it with today's classifier is
+    strictly more faithful than quoting a verdict the code no longer stands
+    behind.
+
+    The recorded kind still wins whenever the payload is not there to re-read
+    (older rows, a hand-written line), because inventing a classification from
+    nothing is the one answer worse than a stale one.
+    """
+    stored, fetched = row.get('stored'), row.get('fetched')
+    if isinstance(stored, dict) and isinstance(fetched, dict):
+        try:
+            return classify_conflict(stored, fetched)
+        except Exception:
+            pass
+    return str(row.get('kind') or 'unknown')
+
+
 def summarize_bar_conflicts(log_path=None, *, now=None,
                             window_days=BAR_CONFLICT_WINDOW_DAYS) -> dict:
     """Count the canonical store's refused provider disagreements (#1146).
@@ -324,7 +352,7 @@ def summarize_bar_conflicts(log_path=None, *, now=None,
         seen_at = str(row.get('seen_at') or '')
         if seen_at[:10] < cutoff:
             continue
-        kind = str(row.get('kind') or 'unknown')
+        kind = _kind_of(row)
         ticker = str(row.get('ticker') or 'unknown')
         summary['total'] += 1
         summary['by_kind'][kind] = summary['by_kind'].get(kind, 0) + 1
