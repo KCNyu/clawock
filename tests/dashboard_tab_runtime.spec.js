@@ -1533,6 +1533,81 @@ async function testMoversSayWhichSessionTheyAreFrom(browser, base) {
   }
 }
 
+// 窄档（≤767px）把槽位轨那张图收掉了：24 小时压进 ~217px 的轨道、11 个行名
+// 全是省略号，针脚和刻度线一样粗，在手机上读不出任何东西 —— 同一份「谁 ·
+// 几点 · 怎么了」在「逐项」里是逐行的文字。收图的前提是这块牌仍然答得出
+// 「接下来轮到谁」，否则那不是改版式，是删掉一个答案。
+// 这条闸同时钉住手机上另外三处几何：说明行不许被截断（nowrap+ellipsis 吃掉
+// 半句话是这块牌的老毛病）、逐项的状态词必须和名字同一行（它曾被自动排布挤
+// 成右对齐的孤行，每行白白高出 ~40px）、处置牌不许被顶出卡片。
+async function testDataHealthIsReadableOnAPhone(browser, base) {
+  const context = await browser.newContext({
+    viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true,
+  });
+  const page = await context.newPage();
+  await stubLiveOrigin(page, {
+    patch: (name, json) => {
+      if (name !== "overview.json" && name !== "dashboard.json") return null;
+      json.cron_schedule = {
+        date: "2026-09-03",
+        jobs: [
+          { job: "盘前深度简报", slots: [{ at: "00:01", state: "ok" }] },
+          { job: "美股盘中盯盘-overnight", slots: [{ at: "23:59", state: "upcoming" }] },
+        ],
+      };
+      return json;
+    },
+  });
+  await page.goto(base, { waitUntil: "networkidle" });
+  await waitForData(page);
+  await page.waitForSelector("#data-health:not(.is-pending)", { timeout: 5000 });
+
+  const head = await page.evaluate(() => {
+    const shown = el => getComputedStyle(el).display !== "none";
+    const card = document.getElementById("data-health");
+    const cardRight = card.getBoundingClientRect().right;
+    return {
+      railChart: shown(document.querySelector(".dh-rail-body")),
+      next: document.getElementById("dh-rail-next").textContent.trim(),
+      nextShown: shown(document.getElementById("dh-rail-next")),
+      clipped: [...card.querySelectorAll(".dh-lane-note, .dh-caption, .hero-health-meta")]
+        .filter(el => el.scrollWidth > el.clientWidth + 1)
+        .map(el => el.textContent.trim().slice(0, 40)),
+      overflow: card.scrollWidth - card.clientWidth,
+      toggleHeight: Math.round(document.getElementById("dh-toggle").getBoundingClientRect().height),
+      chipOverhang: Math.round(Math.max(...[...card.querySelectorAll(".dh-chip")]
+        .map(chip => chip.getBoundingClientRect().right - cardRight))),
+    };
+  });
+  assert.equal(head.railChart, false,
+    "the 24-hour cron chart is still drawn at 390px — it is unreadable at that width");
+  assert(head.nextShown && /^(下一槽|今天没有待跑)/.test(head.next),
+    `the phone card drops the chart without saying what runs next: ${head.next}`);
+  assert.deepEqual(head.clipped, [], "a data-health line is truncated at 390px");
+  assert(head.overflow <= 0,
+    `data-health overflows horizontally by ${head.overflow}px at 390px`);
+  assert(head.toggleHeight >= 32,
+    `逐项 is ${head.toggleHeight}px tall — too small a target for a thumb`);
+  assert(head.chipOverhang <= 0,
+    `a disposition chip sticks ${head.chipOverhang}px past the card edge`);
+
+  // 处置行（.is-todo）的末列是「下一步去哪看」，它本来就独占一行；台账行不是。
+  const orphans = await page.evaluate(async () => {
+    document.getElementById("dh-toggle").click();
+    await new Promise(resolve => setTimeout(resolve, 50));
+    return [...document.querySelectorAll("#dh-files .dh-row:not(.is-todo)")]
+      .filter(row => {
+        const name = row.querySelector(".dh-name").getBoundingClientRect();
+        const state = row.querySelector(".dh-state").getBoundingClientRect();
+        return state.top >= name.bottom - 1;
+      })
+      .map(row => row.querySelector(".dh-name").textContent.trim());
+  });
+  assert.deepEqual(orphans, [],
+    `逐项 rows put the status word on a line of its own: ${orphans.join(", ")}`);
+  await context.close();
+}
+
 async function main() {
   const server = serveWorkspace();
   await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
@@ -1553,6 +1628,7 @@ async function main() {
     await testHoldingsAndHeroNeverTruncate(browser, base);
     await testVerdictDeckFillsItsBoxAndRanksGatesBySeverity(browser, base);
     await testDataHealthNamesTheDegradedSlotAndWeChatDrops(browser, base);
+    await testDataHealthIsReadableOnAPhone(browser, base);
     await testAddSideCardExplainsWhyThereIsNoAdd(browser, base);
     await testAPanelSaysWhenItsDataDidNotLoad(browser, base);
     await testCronRailAccountsForEverySlotWithoutASecondVerdict(browser, base);

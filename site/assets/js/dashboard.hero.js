@@ -1105,6 +1105,22 @@
         + `${escapeHtml(CRON_STATES[k].cn)}</span>`).join("");
     }
 
+    // 窄屏把这张图收掉了（24 小时压进 ~217px 的轨、11 个名字全是省略号，
+    // 在手机上读不出任何东西；同一份「谁·几点·怎么了」在「逐项」里是逐行
+    // 的文字）。图不在的时候，「接下来轮到谁」必须仍然有一句话回答，否则
+    // 收图就等于删掉一个答案。CSS 只在窄档显示它。
+    const nextEl = document.getElementById("dh-rail-next");
+    if (nextEl) {
+      const hhmm = now
+        ? `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`
+        : "";
+      const next = cells.find(c => ["upcoming", "running"].includes(c.state)
+        && (!hhmm || c.at >= hhmm));
+      nextEl.textContent = next
+        ? `下一槽 ${next.at} · ${next.job}`
+        : "今天没有待跑的槽位了";
+    }
+
     // 轴刻度：每 3 小时一个数字、每小时一条细线（CSS 背景画），比原来只有
     // 00/06/12/18/24 四个地标精确得多；同一条轴下面每个 job 一行，行内的点
     // 用同一把尺子绝对定位，于是「谁、什么时候」不用悬停就读得出来。
@@ -1356,7 +1372,10 @@
       // Telegram 兜住了，它属于「已知不修」，位置就该在这条安静的行里。
       if (droppedTotal) bits.push(`微信掉投 ${droppedTotal} 档 · TG 已兜 · 已知不修`);
       if (bs.generated_at) bits.push(`构建 ${String(bs.generated_at).replace("T", " ").slice(0, 16)}`);
-      metaEl.textContent = bits.join(" · ");
+      // 每一段各自不折行：窄屏实测把「构建 2026-09-09 00:05」在「构建」后面
+      // 折开，一个时刻被读成两条信息。折行只准发生在分隔点上。
+      metaEl.innerHTML = bits.map(b => `<span class="dh-meta-bit">${escapeHtml(b)}</span>`)
+        .join(`<span class="dh-meta-sep"> · </span>`);
     }
 
     if (stripEl) {

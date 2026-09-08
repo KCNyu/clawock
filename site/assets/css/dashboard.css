@@ -2643,6 +2643,9 @@
   .hero-health-meta {
     margin-top: 6px; color: var(--text-tertiary); font: 500 var(--fs-micro)/1.45 var(--mono);
   }
+  /* 每段各自不折行，换行只发生在段与段之间的分隔点上（渲染端已把每段包成
+     一个 .dh-meta-bit）。 */
+  .hero-health-meta .dh-meta-bit { white-space: nowrap; }
   .dh-toggle {
     margin-left: auto; flex: none; padding: 6px 12px; border-radius: 8px;
     border: 1px solid var(--border-subtle); background: var(--surface-1);
@@ -2780,6 +2783,8 @@
   .dh-rail-name {
     color: var(--text-secondary); font: 500 var(--fs-micro)/1.4 var(--mono);
   }
+  /* 宽档由下面那张图回答「接下来轮到谁」，这句话是窄档的替身，默认不显示。 */
+  .dh-rail-next { display: none; }
   .dh-rail-keys { display: flex; flex-wrap: wrap; gap: 3px 9px; }
   .dh-rail-key {
     display: inline-flex; align-items: center; gap: 4px;
@@ -3462,7 +3467,7 @@
     /* 两列 × 两行 + 每格一件图形：293 = 360~600 全档数据态实测上界。 */
     .hero-rail { grid-template-columns: repeat(2, minmax(0, 1fr)); min-height: 293px; }
     /* 窄档泳道收成三带：名称+计数+处置牌一行，形状一行，说明一行。
-       五列硬塞进 360px 会把说明挤成一个省略号，那正是这次要修的病。
+       五列硬塞进 360px 会把说明挤成一个省略号，那正是 #1270 要修的病。
        外层那套 46+150+168+58+1fr 的定死列宽也要一起塌 —— 泳道 span 的是
        父栅格的轨道和，422px 的和会把处置牌顶到 390px 屏幕外面去。 */
     .dh-lanes { grid-template-columns: minmax(0, 1fr); }
@@ -3473,16 +3478,66 @@
     .dh-lane-name { grid-area: name; }
     .dh-lane-stat { grid-area: stat; }
     .dh-lane-shape, .dh-strip { grid-area: shape; }
-    .dh-lane-note { grid-area: note; white-space: normal; }
+    /* 形状那一带按内容高：体检常态是一两个 7px 的计数点，18px 的固定高在
+       窄档留出一条空带，读起来像这一行渲染坏了。 */
+    .dh-lane-shape { height: auto; min-height: 8px; }
+    /* 体检的形状是计数点，不是条 —— 它没有宽度诉求，独占一带时读成一个孤零
+       零的项目符号。挂到计数后面去，这条泳道就只剩两带。 */
+    #dh-lane-integrity {
+      grid-template-columns: auto auto minmax(0, 1fr) auto;
+      grid-template-areas: "name stat shape chip" "note note note note";
+    }
+    #dh-lane-integrity .dh-lane-shape { justify-self: start; gap: 4px; }
+    .dh-lane-note { grid-area: note; white-space: normal; line-height: 1.55; }
     .dh-chip { grid-area: chip; }
-    .dh-row.is-todo { grid-template-columns: minmax(0, 1fr) auto; }
-    .dh-row.is-todo .dh-state { grid-column: 1 / -1; text-align: left; }
+    /* 拇指要够得着：34px 是这块牌上唯一的控件，窄档给它一个正常的点按面积。 */
+    .dh-toggle { padding: 9px 14px; }
+    /* 卡底那行说明是四个处置词的唯一词典，10px 在手机上读不动。 */
+    .dh-caption { font-size: var(--fs-xs); line-height: 1.6; }
+
+    /* 24 小时压进 ~217px 的轨道 + 11 个全是省略号的行名 = 手机上读不出东西
+       的条形码（3px 的针脚和每小时一条的刻度线粗细相同）。窄档收掉图，留下
+       计数摘要 + 「下一槽」那一句；同一份「谁 · 几点 · 怎么了」在「逐项」里
+       是逐行的文字，比这张图更好读 —— 这是改版式，不是删数据。 */
+    .dh-rail-body, .dh-rail-axis, .dh-rail-keys { display: none; }
+    .dh-rail { gap: 3px; }
+    .dh-rail-next {
+      display: block; color: var(--text-tertiary);
+      font: 500 var(--fs-micro)/1.45 var(--mono);
+    }
+
+    /* 逐项：显式指派栅格位置。原来靠自动排布，而 .dh-bar / .dh-detail 都是
+       整行 span ⇒ 状态词被挤到第四行、右对齐地单独占一行（实测每行 154px，
+       11 个 job 就是 1700px 的空转）。名字和状态本来就该在同一行。 */
     .dh-row {
       grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px; row-gap: 4px;
+      grid-template-areas: "name state" "bar bar" "detail detail";
     }
+    .dh-name { grid-area: name; }
+    .dh-state { grid-area: state; }
+    .dh-bar { grid-area: bar; }
+    .dh-detail { grid-area: detail; white-space: normal; }
     .dh-file { display: none; }
-    .dh-bar { grid-column: 1 / -1; }
-    .dh-detail { grid-column: 1 / -1; white-space: normal; }
+    /* 处置行是这块牌上唯一的待办，三样东西都要留：名字、位置（文件名或槽位
+       时刻）、下一步。窄档给它自己一套三带 —— 位置和「多旧/怎么了」并排一
+       行（位置是短的，说明是长的），下一步整行。位置一律不折不省略：
+       `portfolio.json` 被断成 `portfol/io.json` 或吃掉半截，都等于把「去哪看」
+       这条线索毁掉。 */
+    .dh-row.is-todo {
+      grid-template-columns: auto minmax(0, 1fr);
+      grid-template-areas: "name name" "where detail" "state state";
+      /* 说明常折成两行，居中会把左边那格的位置吊在两行中间。 */
+      align-items: start;
+    }
+    .dh-row.is-todo .dh-file {
+      display: block; grid-area: where; text-align: left;
+      overflow: visible; white-space: nowrap;
+    }
+    .dh-row.is-todo .dh-state { text-align: left; }
+    /* 灯是「这一槽跑了没有」的唯一逐槽答案（时刻表只说几点，不说结果），
+       7px 的空心圈在手机上几乎看不见。窄档放大到 9px 并拉开间距。 */
+    .dh-row.is-cron .dh-bar.is-lamps { gap: 4px; }
+    .dh-row.is-cron .dh-bar.is-lamps .dh-pip { width: 9px; height: 9px; }
     /* 386：360~767 扫宽忙日实测上界 350.39（在 360）+ 露边 16 + gap 8
        + 指示点 10 = 384.39，+2（第八次迭代重扫）。窄档是留白重灾区，但那
        段空高现在被异动条吃掉：地板不动，正文吃满。 */
@@ -3516,7 +3571,10 @@
     .hero-rail-v { font-size: var(--fs-lg); }
     .hero-deck-lead { padding: 22px var(--card-inset) 18px; }
     .hero-rail-cell { padding: 12px 0 14px; }
-    .dh-seg { width: 11px; height: 26px; }
+    /* 段更宽（不是更高）：窄档只有 15 段，横向有的是余量，而 26px 高的
+       色块把泳道那一带撑成了整块牌里最重的东西。width 在 flex:1 1 0 +
+       max-width 面前是空写的，真正生效的是 max-width。 */
+    .dh-seg { max-width: 12px; height: 22px; }
   }
 
   /* =========================================================
