@@ -124,35 +124,24 @@ class OpenClawDelivery:
         self._runner = runner or self._run
 
     def rpc_ceiling_ms(self) -> int:
-        """How long the CLI may wait for its gateway, in ms.
+        """How long the CLI may wait for its gateway, in ms — see #1405.
 
-        The CLI's own default is 10s and its floor is 10s
-        (`resolveGatewayCallTimeout`: a configured handshake timeout only counts
-        when it is *above* 10 000). That ceiling is below the gateway's real
-        tail latency on this host, and the CLI abandoning a call is not the
-        gateway abandoning the message: on 2026-09-08 the 10:34 intraday co-send
-        and the 10:43 watchdog mirror both gave up at 10 000 ms while the
-        gateway went on to hand Telegram messageId 1318 (after 16 499 ms) and
-        1319 (after 25 708 ms). The report was delivered twice and recorded as
-        never delivered.
-
-        So give the CLI a ceiling derived from the budget we already grant the
-        process, minus room for node's startup and teardown — one number, no
-        second knob to drift. Below the CLI's own floor this is inert, which is
-        why it never returns less than 10 000.
+        The rule lives with the runtime it is about, because every call that
+        spawns that CLI needs it, not only this one.
         """
-        return max(10_000, int(self.timeout * 1000) - 15_000)
+        from clawock.providers.openclaw import rpc_ceiling_ms
+
+        return rpc_ceiling_ms(self.timeout)
 
     def _run(self, cmd):
         # The runtime's own launcher needs `node` on PATH, so a job started from
-        # the user crontab cannot spawn it with the PATH it inherited.
+        # the user crontab cannot spawn it with the PATH it inherited. And the
+        # CLI must be told to wait as long as we are waiting, or it abandons the
+        # gateway at 10s inside a 60s budget.
         from clawock.providers.openclaw import runtime_env
-        env = runtime_env()
-        # An operator who set this deliberately keeps it; nothing here is a
-        # better guess than a person who typed a number.
-        env.setdefault("OPENCLAW_HANDSHAKE_TIMEOUT_MS", str(self.rpc_ceiling_ms()))
         done = subprocess.run(cmd, capture_output=True, text=True,
-                              timeout=self.timeout, env=env)
+                              timeout=self.timeout,
+                              env=runtime_env(call_timeout=self.timeout))
         return done.returncode, (done.stdout + done.stderr)
 
     def send(self, channel: str, target: str, message: str, *,

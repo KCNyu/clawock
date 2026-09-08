@@ -155,8 +155,35 @@ def _resolve_binary(env: Mapping[str, str], name: str = "openclaw") -> str:
     return name
 
 
-def runtime_env(env: Mapping[str, str] | None = None) -> dict:
+#: The runtime CLI's own floor for a gateway call: `resolveGatewayCallTimeout`
+#: takes a configured handshake timeout only when it is ABOVE this, so asking
+#: for less is inert.
+GATEWAY_CALL_FLOOR_MS = 10_000
+#: Room left inside a subprocess budget for node to start and stop. The CLI must
+#: give up before we kill it, or a reportable error becomes an opaque one.
+SPAWN_OVERHEAD_MS = 15_000
+
+
+def rpc_ceiling_ms(timeout_s: float) -> int:
+    """How long the CLI may wait for its gateway, given our budget for it, in ms.
+
+    The CLI defaults to 10s, and 10s is below this gateway's real tail latency:
+    on 2026-09-08 two sends were abandoned at 10 000 ms while the gateway went
+    on to hand Telegram messageId 1318 (16 499 ms) and 1319 (25 708 ms) — see
+    #1405. Every subprocess we spawn already carries a budget, so derive the
+    ceiling from that one number instead of adding a knob that can drift away
+    from it.
+    """
+    return max(GATEWAY_CALL_FLOOR_MS, int(timeout_s * 1000) - SPAWN_OVERHEAD_MS)
+
+
+def runtime_env(env: Mapping[str, str] | None = None, *,
+                call_timeout: float | None = None) -> dict:
     """Environment for spawning the runtime, with a PATH it can actually run on.
+
+    `call_timeout` is the subprocess budget the caller is about to grant, in
+    seconds. Passing it makes the CLI wait that long for its gateway instead of
+    its own 10s — the difference between a slow gateway and a missing one.
 
     Resolving the launcher is not enough: the pnpm launcher is a shell script
     whose last line is `exec node …`, so a bare cron PATH turns
@@ -176,6 +203,11 @@ def runtime_env(env: Mapping[str, str] | None = None) -> dict:
                for item in base.iterdir()):
             existing.append(entry)
     resolved["PATH"] = os.pathsep.join(existing)
+    if call_timeout is not None:
+        # An operator who set this deliberately keeps it; nothing here is a
+        # better guess than a person who typed a number.
+        resolved.setdefault("OPENCLAW_HANDSHAKE_TIMEOUT_MS",
+                            str(rpc_ceiling_ms(call_timeout)))
     return resolved
 
 
@@ -199,6 +231,13 @@ def runtime_paths(environ: Mapping[str, str] | None = None) -> OpenClawPaths:
 # `cron list --json` round-trips through the gateway and has been observed at
 # ~42s on a loaded host. A tight timeout trips TimeoutExpired, which callers
 # read as "no data" and quietly fall back to a stale source.
+#
+# That budget only ever belonged to the subprocess. The CLI inside it was still
+# abandoning the gateway at its own 10s (measured idle on 2026-09-08: three
+# `cron list --json` at 7.6s, 3.3s, 3.0s — the first already two thirds of the
+# way to the ceiling), so the 42s read this number was chosen for could not
+# have completed and the fallback it was chosen to prevent happened anyway.
+# `runtime_env(call_timeout=…)` is what makes the CLI serve the same budget.
 CRON_TIMEOUT_SECONDS = 120
 
 
@@ -215,7 +254,8 @@ def cron_cli_json(cli_args, *, binary: str | None = None,
     """
     selected_binary = binary or runtime_paths().binary
     run = runner or (lambda cmd: subprocess.run(
-        cmd, capture_output=True, text=True, timeout=timeout, env=runtime_env()))
+        cmd, capture_output=True, text=True, timeout=timeout,
+        env=runtime_env(call_timeout=timeout)))
     try:
         done = run([selected_binary, "cron", *cli_args])
         # Deliberately NOT gated on returncode: the original helper parsed
@@ -248,7 +288,8 @@ def run_cron_job(job_id, *, binary: str | None = None,
     """
     selected_binary = binary or runtime_paths().binary
     run = runner or (lambda cmd: subprocess.run(
-        cmd, capture_output=True, text=True, timeout=timeout, env=runtime_env()))
+        cmd, capture_output=True, text=True, timeout=timeout,
+        env=runtime_env(call_timeout=timeout)))
     try:
         done = run([selected_binary, "cron", "run", str(job_id)])
         tail = ((done.stdout or "") + (done.stderr or ""))[-400:]

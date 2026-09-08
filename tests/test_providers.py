@@ -288,3 +288,61 @@ def test_the_cli_is_told_to_wait_as_long_as_we_are_waiting():
     assert int(seen["env"]["OPENCLAW_HANDSHAKE_TIMEOUT_MS"]) < 60 * 1000
     # And never under the runtime's own floor, where it would be inert.
     assert OpenClawDelivery(timeout=5).rpc_ceiling_ms() == 10_000
+
+
+def test_a_cron_read_gives_the_cli_the_same_budget_it_gives_the_process():
+    """`CRON_TIMEOUT_SECONDS` was 120s of subprocess and 10s of CLI (#1405).
+
+    The comment on that constant says a tight timeout makes callers "read as
+    'no data' and quietly fall back to a stale source" — which is exactly what
+    the CLI's own 10s ceiling was doing inside the 120s, unseen. `read_jobs`
+    then drops to SQLite or to the fossil JSONL it prints STALE over, and
+    `brief_cron_job` returns None and logs the brief watchdog inert for the
+    slot. Both happen precisely when the host is loaded enough to be slow.
+    """
+    from types import SimpleNamespace
+
+    import clawock.providers.openclaw as openclaw
+
+    seen = {}
+
+    def fake_run(cmd, **kwargs):
+        seen['cmd'] = cmd
+        seen.update(kwargs)
+        return SimpleNamespace(returncode=0, stdout='{"jobs": []}', stderr='')
+
+    original = openclaw.subprocess.run
+    openclaw.subprocess.run = fake_run
+    try:
+        assert openclaw.cron_cli_json(['list', '--json']) == {'jobs': []}
+    finally:
+        openclaw.subprocess.run = original
+
+    assert seen['cmd'][1:] == ['cron', 'list', '--json']
+    assert seen['timeout'] == openclaw.CRON_TIMEOUT_SECONDS == 120
+    assert seen['env']['OPENCLAW_HANDSHAKE_TIMEOUT_MS'] == '105000'
+
+
+def test_the_ceiling_is_one_rule_for_every_call_that_spawns_the_runtime():
+    from clawock.providers.delivery import OpenClawDelivery
+    from clawock.providers.openclaw import (
+        GATEWAY_CALL_FLOOR_MS, rpc_ceiling_ms, runtime_env)
+
+    # Same rule, whoever asks.
+    assert OpenClawDelivery(timeout=60).rpc_ceiling_ms() == rpc_ceiling_ms(60)
+    # Under the process budget always: a CLI still waiting when we kill it turns
+    # a reportable error into an opaque one.
+    for budget in (30, 60, 120, 600):
+        assert rpc_ceiling_ms(budget) < budget * 1000
+    # Never below the runtime's own floor, where asking would be inert.
+    assert rpc_ceiling_ms(1) == GATEWAY_CALL_FLOOR_MS
+
+    # And nothing is set when no budget was named — this env is a statement
+    # about one call, not a global.
+    assert 'OPENCLAW_HANDSHAKE_TIMEOUT_MS' not in runtime_env({'PATH': '/usr/bin'})
+    assert runtime_env({'PATH': '/usr/bin'}, call_timeout=60)[
+        'OPENCLAW_HANDSHAKE_TIMEOUT_MS'] == '45000'
+    # An operator who typed a number keeps it.
+    kept = runtime_env({'PATH': '/usr/bin', 'OPENCLAW_HANDSHAKE_TIMEOUT_MS': '7'},
+                       call_timeout=60)
+    assert kept['OPENCLAW_HANDSHAKE_TIMEOUT_MS'] == '7'
