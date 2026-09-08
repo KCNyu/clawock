@@ -247,6 +247,12 @@ def test_rendering_from_a_workspace_writes_both_artifacts(tmp_path):
         json.dumps(_judgment(), ensure_ascii=False), encoding="utf-8")
     (tmp_path / "memory" / "2026-08-31-plan.json").write_text(
         json.dumps(PLAN, ensure_ascii=False), encoding="utf-8")
+    # A complete morning includes the sector sweep; without it the render is
+    # still published and now says so (see the two tests below).
+    (tmp / "sector-scan-2026-08-31.json").write_text(json.dumps({
+        "date": "2026-08-31",
+        "sectors": [{"theme": "HK AI", "top_movers": [], "self": []}],
+    }, ensure_ascii=False), encoding="utf-8")
 
     issues, body = render.render_from_workspace(tmp_path, "2026-08-31")
 
@@ -412,3 +418,59 @@ def test_the_card_keeps_its_own_ornament_and_the_page_does_not():
     assert "▎" in card
     assert not any(line.startswith("#") and "▎" in line for line in page.splitlines())
 
+
+
+def _workspace_without_a_sweep(tmp_path, date="2026-08-31"):
+    tmp = tmp_path / "memory" / ".tmp"
+    tmp.mkdir(parents=True)
+    (tmp / f"brief-context-{date}.json").write_text(
+        json.dumps(CONTEXT, ensure_ascii=False), encoding="utf-8")
+    (tmp / f"brief-judgment-{date}.json").write_text(
+        json.dumps(_judgment(), ensure_ascii=False), encoding="utf-8")
+    (tmp_path / "memory" / f"{date}-plan.json").write_text(
+        json.dumps(PLAN, ensure_ascii=False), encoding="utf-8")
+    return tmp_path
+
+
+def test_a_missing_sector_sweep_is_reported_and_still_publishes(tmp_path):
+    """The sweep is model-written, and it stopped after 2026-08-27.
+
+    Eight sessions produced no `sector-scan-*.json`: the report's 板块全景
+    quietly degraded to the model's read with no table, and the only trace
+    anywhere was a grey 「12天前 · 待 brief 刷新」 on one dashboard card. The
+    section is optional by design — a day the search quota is spent still has to
+    publish — but optional is not the same as unremarkable.
+    """
+    issues, body = render.render_from_workspace(
+        _workspace_without_a_sweep(tmp_path), "2026-08-31")
+
+    assert render.SECTOR_SCAN_MISSING in issues
+    assert body, 'the brief still publishes without the sweep'
+    assert "板块全景" in body, 'the section stays, carrying the read alone'
+
+
+def test_the_report_is_worded_the_same_every_morning(tmp_path):
+    """It is aggregated on, so it must not carry the day in it: a message with
+    the date would open a new row daily and the count would never leave 1."""
+    first, _ = render.render_from_workspace(
+        _workspace_without_a_sweep(tmp_path / "mon"), "2026-08-31")
+    second, _ = render.render_from_workspace(
+        _workspace_without_a_sweep(tmp_path / "tue", "2026-09-01"),
+        "2026-09-01")
+
+    assert render.SECTOR_SCAN_MISSING in first
+    assert render.SECTOR_SCAN_MISSING in second
+    assert "2026" not in render.SECTOR_SCAN_MISSING
+
+
+def test_a_sweep_with_no_sectors_counts_as_missing(tmp_path):
+    """An empty `sectors` renders exactly the same section as no file at all,
+    so it must read the same way here — a written-but-empty artifact is the
+    shape that makes "we looked" and "there is none" identical."""
+    ws = _workspace_without_a_sweep(tmp_path)
+    (ws / "memory" / ".tmp" / "sector-scan-2026-08-31.json").write_text(
+        json.dumps({"date": "2026-08-31", "sectors": []}), encoding="utf-8")
+
+    issues, _ = render.render_from_workspace(ws, "2026-08-31")
+
+    assert render.SECTOR_SCAN_MISSING in issues

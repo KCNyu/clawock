@@ -868,6 +868,15 @@ def main(argv=None):
         # underlying fact.
         for issue in render_issues:
             print(f'warn: {issue}', file=sys.stderr)
+        # One of them is counted rather than only printed. The sector sweep is
+        # written by the model, and it stopped after 2026-08-27: eight sessions
+        # with no `sector-scan-*.json`, the report's 板块全景 quietly degrading
+        # to the read alone, and the only trace anywhere a grey 「12天前 · 待
+        # brief 刷新」 on one dashboard card. A cron log nobody reads twice
+        # cannot answer "since when, and how often" (#1146).
+        if brief_render.SECTOR_SCAN_MISSING in render_issues:
+            workflow_outcomes.note_degradation(
+                None, 'sector_scan_missing', brief_render.SECTOR_SCAN_MISSING)
     except Exception as exc:
         issues.append(f'简报渲染失败（保留现有 pre-open.md）: {exc}')
         print(f'warn: brief render failed: {exc}', file=sys.stderr)

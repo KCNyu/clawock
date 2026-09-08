@@ -959,6 +959,13 @@ def artifact_paths(workspace, date):
     }
 
 
+#: Worded identically every morning, because the consumer aggregates on the
+#: text: an issue carrying the date would file a new row each day and never
+#: show a count — the same rule the publisher's failure classes follow (#1409).
+SECTOR_SCAN_MISSING = (
+    "板块全景 没有落盘 sector-scan：本篇只有 sector_read 文字，没有表")
+
+
 def render_from_workspace(workspace, date, *, plan=None, page_url=None, write=True):
     """Render both artifacts for one date. Returns (issues, brief_markdown).
 
@@ -978,10 +985,15 @@ def render_from_workspace(workspace, date, *, plan=None, page_url=None, write=Tr
 
     # The sector sweep is optional: a day the search quota was spent still has
     # to publish, with the section carrying the model's read and no table.
+    # Optional is not the same as unremarkable, though — the file is written by
+    # the model, and it stopped after 2026-08-27 without anything noticing for
+    # eight sessions. Say so; the caller counts it.
     try:
         sector_scan = _load(paths["sector_scan"])
     except (OSError, ValueError):
         sector_scan = None
+    if not (sector_scan or {}).get("sectors"):
+        issues.append(SECTOR_SCAN_MISSING)
 
     body = render_brief(context, judgment, plan, date=date, sector_scan=sector_scan)
     card = render_card(context, judgment, plan, date=date, page_url=page_url)
