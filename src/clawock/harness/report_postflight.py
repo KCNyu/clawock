@@ -481,6 +481,12 @@ def main(argv=None):
     # delivery evidence and must not file a primary_delivery verdict over the
     # concurrent holder's (#1006).
     claim_declined = False
+    # Why the WeChat leg did not land. Returned by `deliver_wechat` and, until
+    # now, dropped by all three call sites — the same shape #1231 fixed for the
+    # Telegram co-send: the field a health surface counts (`wechat_ok=false`)
+    # arriving with no reason beside it, so a channel that is DOWN and one that
+    # drops the occasional slot read identically.
+    send_out = ''
     if blocked:
         print(f'idempotency: {args.market}-{args.phase} already delivered today — skip re-send',
               file=sys.stderr)
@@ -493,7 +499,7 @@ def main(argv=None):
         # in flight and skip the corrected report (caught by
         # test_a_failed_slot_can_be_superseded_once_then_locks).
         send_claim = 'upgrade'
-        wechat_sent, _ = deliver_wechat(args.market, args.phase, today, wechat_prefix, body,
+        wechat_sent, send_out = deliver_wechat(args.market, args.phase, today, wechat_prefix, body,
                                         delivery_state=delivery_state,
                                         context_id=ctx.get('context_id'),
                                         context_generated_at=ctx.get('generated_at'))
@@ -512,7 +518,8 @@ def main(argv=None):
             wechat_sent = False
             claim_declined = True
         else:
-            wechat_sent, _ = deliver_wechat(args.market, args.phase, today, wechat_prefix, body,
+            wechat_sent, send_out = deliver_wechat(
+                args.market, args.phase, today, wechat_prefix, body,
                                             delivery_state=delivery_state,
                                             context_id=ctx.get('context_id'),
                                             context_generated_at=ctx.get('generated_at'),
@@ -548,6 +555,10 @@ def main(argv=None):
             channel=workflow_outcomes.delivery_channel(wechat_ok, telegram_ok),
             wechat_ok=wechat_ok,
             telegram_ok=telegram_ok,
+            # Only on failure: a reason on a send that worked is noise in a
+            # record read by eye.
+            **({} if wechat_ok else {
+                'wechat_detail': (send_out or 'no output from the transport')[-200:]}),
             deterministic_fallback=(status == 'fail'),
         )
 
