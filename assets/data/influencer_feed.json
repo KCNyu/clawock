@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-08T16:51:59.946027+00:00",
+  "generated_at": "2026-09-08T23:37:47.458332+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -13,9 +13,9 @@
   },
   "llm_filtered": true,
   "counts": {
-    "total": 14,
+    "total": 11,
     "held_hits": 1,
-    "new_ideas": 3,
+    "new_ideas": 2,
     "sector_hits": 1
   },
   "items": [
@@ -26,7 +26,10 @@
       "published": "Tue, 08 Sep 2026 13:56:36 GMT",
       "origin": "gnews-rss",
       "source": "finance.yahoo.com",
-      "tickers": [],
+      "tickers": [
+        "SPCX",
+        "SPCH"
+      ],
       "held": [
         "SPCH",
         "SPCX"
@@ -34,12 +37,12 @@
       "new_ideas": [],
       "sectors": [
         "航天",
-        "SpaceX IPO"
+        "SpaceX"
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 80,
-      "summary_cn": "报道讨论SpaceX CEO马斯克需做什么才能将股价'送入平流层'，看好SpaceX上市表现，直接利好kcn持有的SPCX及SPCH。"
+      "relevance": 85,
+      "summary_cn": "新闻分析SpaceX上市路径——直接利好kcn持有的SPCX及SPCH(2x杠杆)。"
     },
     {
       "author": "Musk",
@@ -58,47 +61,22 @@
       "sectors": [
         "电动车",
         "稀土",
-        "中美贸易",
-        "特斯拉"
+        "特斯拉",
+        "中国贸易"
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 78,
-      "summary_cn": "特斯拉的无稀土电机可能削弱中国在稀土领域的贸易王牌，利好TSLA并对稀土/磁材板块构成压力。"
-    },
-    {
-      "author": "Trump",
-      "text": "NO MORE SELLING BOMBARDIER IN THE UNITED STATES! Their products aren’t good enough! Over 50% of their revenue comes from the United States — They live off American Buyers, American Companies, American Airports, and American Service — All while Canada blocks our GREAT American Banks, and Companies, throughout the U.S.A. They even blocked Gulfstream Aerospace from doing business in Canada — Completely unjust and unfair! That Era is OVER! If they want our Market, they must build here, and stop treating America like a “piggybank.” BUY AMERICAN. FLY ON AMERICAN AIRLINERS. ENJOY AMERICAN LIQUOR AND ",
-      "url": "https://www.trumpstruth.org/statuses/41619",
-      "published": "2026-09-07T17:39:29+00:00",
-      "origin": "truthsocial",
-      "tickers": [
-        "BBD",
-        "GLAE"
-      ],
-      "held": [],
-      "new_ideas": [
-        "BBD",
-        "GLAE"
-      ],
-      "sectors": [
-        "航空",
-        "美加贸易",
-        "关税/保护主义"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 62,
-      "summary_cn": "Trump威胁禁止庞巴迪(BBD)在美销售，指控加拿大不公平封锁美企，并提到Gulfstream；强化美国航空业保护主义与Buy American政策。"
+      "relevance": 82,
+      "summary_cn": "特斯拉无稀土电机或削弱中国贸易筹码，看多特斯拉/电动车供应链独立化。"
     },
     {
       "author": "Trump",
       "text": "Chandler Hall, representing, on Television, the foolish Center for American Lack of Progress, stated that adding the National Guard to Cities, including our now Great Again, Washington, D.C., had “NO impact on Crime.” How crazy is that. Hall was met with furious dissent. The report is just another Radical Left SCAM, as are the people who fund this gaggle of Lunatics, including George Soros, Bill and Melinda Gates, Google, Apple, Visa, Goldman Sachs, Citigroup, WellsFargo, Bank of America, Walmart, Toyota, T-Mobile, and NBC Universal. Foreign support includes the Embassy of Japan, the Korea Fou",
-      "url": "https://www.trumpstruth.org/statuses/41596",
+      "url": "https://trumpstruth.org/statuses/41596",
       "published": "2026-09-07T13:50:35+00:00",
       "origin": "truthsocial",
       "tickers": [
-        "GOOG",
+        "GOOGL",
         "AAPL",
         "V",
         "GS",
@@ -114,7 +92,7 @@
         "AAPL",
         "BAC",
         "C",
-        "GOOG",
+        "GOOGL",
         "GS",
         "TM",
         "TMUS",
@@ -123,20 +101,19 @@
         "WMT"
       ],
       "sectors": [
-        "科技",
-        "金融",
-        "零售",
-        "汽车"
+        "政治",
+        "银行",
+        "科技"
       ],
       "sector_holdings": [],
       "stance": "attack",
-      "relevance": 55,
-      "summary_cn": "Trump抨击Soros、Gates、Google、Apple、Visa、Goldman、Citi、Wells Fargo、BOA、Walmart、Toyota、T-Mobile及NBC等资助'极左'机构；带政治色彩但点名多家大型上市公司。"
+      "relevance": 52,
+      "summary_cn": "特朗普抨击Google/Apple/Visa/高盛/花旗/富国/美银/沃尔玛/丰田/T-Mobile等资助左翼智库。"
     },
     {
       "author": "Trump",
       "text": "Except for the RADICAL LEFT that wants to RAISE YOUR TAXES, and wreck our Economy, EVERYONE LOVES TAX CUTS! My Big Beautiful Bill was the BIGGEST relief in HISTORY for hardworking families – Nobody’s seen anything like it!  Now, another HUGE WIN: @SECPaulSAtkins at the SEC slashed Taxes on ETFs, helping MILLIONS of Retirement Investors keep more of their own money, build wealth, and live the American Dream without Government “rip offs.” TOTAL REVOLUTION for Savers. Great job Paul — You’re a STAR! President DONALD J. TRUMPHow millions of everyday investors are getting a tax break: https://www.w",
-      "url": "https://www.trumpstruth.org/statuses/41599",
+      "url": "https://trumpstruth.org/statuses/41599",
       "published": "2026-09-07T14:00:42+00:00",
       "origin": "truthsocial",
       "tickers": [],
@@ -144,22 +121,23 @@
       "new_ideas": [],
       "sectors": [
         "ETF",
-        "减税",
+        "税改",
         "监管"
       ],
       "sector_holdings": [
-        "RKLX",
-        "SPCH"
+        "03032",
+        "03033",
+        "07226"
       ],
       "stance": "endorse",
-      "relevance": 62,
-      "summary_cn": "Trump赞扬SEC主席Atkins削减ETF税负，称将利好百万退休投资者；总体看多ETF及资本市场。"
+      "relevance": 58,
+      "summary_cn": "特朗普赞扬SEC主席Atkins削减ETF税负，提振ETF板块(含其恒生科技ETF持仓)。"
     },
     {
       "author": "Musk",
       "text": "An Under the Radar Rare Earth Comment From Elon Musk Could Upend Another Industry",
       "url": "",
-      "published": "Tue, 08 Sep 2026 15:26:00 GMT",
+      "published": "Tue, 08 Sep 2026 20:29:00 GMT",
       "origin": "gnews-rss",
       "source": "Barron's",
       "tickers": [],
@@ -168,164 +146,130 @@
       "sectors": [
         "稀土",
         "电动车",
-        "关键矿产"
+        "供应链"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 70,
-      "summary_cn": "马斯克一句关于稀土的'不起眼'评论可能颠覆另一个行业；强化稀土供应链脱钩叙事，看空传统稀土龙头、看多替代技术。"
-    },
-    {
-      "author": "Trump",
-      "text": "Trump cheers strong jobs report, calls for lower interest rates: https://justthenews.com/politics-policy/trump-cheers-strong-jobs-report-calls-lower-interest-rates",
-      "url": "https://www.trumpstruth.org/statuses/41583",
-      "published": "2026-09-07T00:48:41+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "宏观经济",
-        "就业",
-        "利率"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 70,
-      "summary_cn": "Trump称赞强劲就业报告并公开呼吁Fed降息；利好风险资产，对利率敏感板块偏多。"
-    },
-    {
-      "author": "Trump",
-      "text": "US producer prices post largest drop in 14 months; inflation risks still tilted to the upside: https://www.reuters.com/business/us-producer-prices-unexpectedly-fall-june-2026-07-15/",
-      "url": "https://www.trumpstruth.org/statuses/41622",
-      "published": "2026-09-07T21:35:50+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "宏观经济",
-        "通胀",
-        "利率"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 60,
-      "summary_cn": "美国6月PPI创14个月最大降幅，但通胀风险仍偏上行；影响Fed利率路径预期。"
+      "relevance": 78,
+      "summary_cn": "马斯克关于稀土的罕见评论可能颠覆另一行业(电动车/磁材供应链)。"
     },
     {
       "author": "Trump",
       "text": "Oil prices will drop precipitously, like everything else is dropping (but more!), when we WIN the war with Iran. Three Dollars a gallon, but ultimately, below Two Dollars a gallon. It will all happen quickly, and Iran will never have a Nuclear Weapon. MAGA! President DJT",
-      "url": "https://www.trumpstruth.org/statuses/41630",
+      "url": "https://trumpstruth.org/statuses/41630",
       "published": "2026-09-07T23:16:45+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "石油/能源",
-        "中东地缘",
-        "伊朗"
+        "能源",
+        "石油",
+        "油价",
+        "地缘政治"
       ],
       "sector_holdings": [],
       "stance": "neutral",
+      "relevance": 68,
+      "summary_cn": "特朗普称打赢伊朗后油价将暴跌至2-3美元/加仑，对能源板块构成强预期。"
+    },
+    {
+      "author": "Trump",
+      "text": "Trump cheers strong jobs report, calls for lower interest rates: https://justthenews.com/politics-policy/trump-cheers-strong-jobs-report-calls-lower-interest-rates",
+      "url": "https://trumpstruth.org/statuses/41583",
+      "published": "2026-09-07T00:48:41+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "宏观",
+        "利率",
+        "就业",
+        "美联储"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 65,
+      "summary_cn": "特朗普称赞强劲就业数据并呼吁降息，强化宽松预期利好风险资产。"
+    },
+    {
+      "author": "Trump",
+      "text": "Everyone knows that Canada doesn’t let our Great Dairy Farmers sell into the Canadian Market, and that the only reason Canada makes Autos is because of previous disastrous Trade Agreements while other Presidents were in Office. Canada has been ripping us off for years, but what many do not realize is that the Canadian Government, including Canadian Provinces, have banned American Small Businesses and Companies from selling into their Government Procurement Markets. This is the case even though Canada gets broad access into the massive American Government Procurement Market, including those of ",
+      "url": "https://trumpstruth.org/statuses/41634",
+      "published": "2026-09-08T20:29:29+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "关税",
+        "贸易",
+        "汽车",
+        "乳制品",
+        "政府采购"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 62,
+      "summary_cn": "特朗普抨击加拿大贸易壁垒(乳制品/汽车/政府采购)，暗示对加关税升级。"
+    },
+    {
+      "author": "Trump",
+      "text": "NO MORE SELLING BOMBARDIER IN THE UNITED STATES! Their products aren’t good enough! Over 50% of their revenue comes from the United States — They live off American Buyers, American Companies, American Airports, and American Service — All while Canada blocks our GREAT American Banks, and Companies, throughout the U.S.A. They even blocked Gulfstream Aerospace from doing business in Canada — Completely unjust and unfair! That Era is OVER! If they want our Market, they must build here, and stop treating America like a “piggybank.” BUY AMERICAN. FLY ON AMERICAN AIRLINERS. ENJOY AMERICAN LIQUOR AND ",
+      "url": "https://trumpstruth.org/statuses/41619",
+      "published": "2026-09-07T17:39:29+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "关税",
+        "航空",
+        "加拿大",
+        "政府采购"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 58,
+      "summary_cn": "特朗普威胁禁止庞巴迪在美销售，并抨击加拿大封锁美国银行/企业，贸易摩擦升级信号。"
+    },
+    {
+      "author": "Trump",
+      "text": "US producer prices post largest drop in 14 months; inflation risks still tilted to the upside: https://www.reuters.com/business/us-producer-prices-unexpectedly-fall-june-2026-07-15/",
+      "url": "https://trumpstruth.org/statuses/41622",
+      "published": "2026-09-07T21:35:50+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "宏观",
+        "通胀",
+        "PPI"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
       "relevance": 55,
-      "summary_cn": "Trump称美国打赢对伊朗战争后油价将暴跌至2-3美元/加仑，暗示中东地缘紧张与能源价格将快速回落。"
+      "summary_cn": "美国6月PPI创14个月最大降幅，特朗普转发，强化降息预期。"
     },
     {
       "author": "Trump",
       "text": "No wonder they like me!!! President DJTWomen account for almost all net U.S. job gains since Trump took office: https://justthenews.com/nation/economy/women-account-almost-all-net-us-job-gains-trump-took-office-report",
-      "url": "https://www.trumpstruth.org/statuses/41587",
+      "url": "https://trumpstruth.org/statuses/41587",
       "published": "2026-09-07T00:47:22+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "宏观经济",
-        "就业",
-        "劳动力市场"
+        "宏观",
+        "就业"
       ],
       "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "报道称Trump任内几乎全部新增就业由女性贡献；强化其经济成绩叙事，对消费/人力服务板块有间接影响。"
-    },
-    {
-      "author": "Musk",
-      "text": "Alex Gibney Warns Elon Musk’s DOGE Data Could Be Used ‘for an AI to Influence the Election’",
-      "url": "",
-      "published": "Tue, 08 Sep 2026 11:32:27 GMT",
-      "origin": "gnews-rss",
-      "source": "indiewire.com",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI",
-        "数据隐私",
-        "政治/选举"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 52,
-      "summary_cn": "导演Gibney警告马斯克旗下DOGE数据可能被用于AI影响选举，涉及AI监管与数据隐私。"
-    },
-    {
-      "author": "Musk",
-      "text": "Lawmakers call on Elon Musk to explain lack of DOGE claimed DHS savings",
-      "url": "",
-      "published": "Tue, 08 Sep 2026 15:37:31 GMT",
-      "origin": "gnews-rss",
-      "source": "Federal News Network",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "政府效率(DOGE)",
-        "政治"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
+      "stance": "endorse",
       "relevance": 50,
-      "summary_cn": "国会议员要求其解释DOGE所宣称DHS节省资金的缺失，质疑政府效率改革成效。"
-    },
-    {
-      "author": "Trump",
-      "text": "I do this for our Country, not myself. I’ve made Hundreds of Billions of Dollars on Stocks, and many other type Holdings, for the U.S.A., not myself, and all I do is get criticized by the Radical Left Dumocrats. Very unfair, but what can you do! President DONALD J. TRUMP",
-      "url": "https://www.trumpstruth.org/statuses/41565",
-      "published": "2026-09-06T19:17:16+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "美股",
-        "总统资产/政治"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 48,
-      "summary_cn": "Trump声称已为美国在股票及其他投资上赚取数千亿，自我标榜经济成就。"
-    },
-    {
-      "author": "Musk",
-      "text": "Ashley St. Clair and Alex Gibney on AI and the dangers of Elon Musk - ABC News",
-      "url": "",
-      "published": "Tue, 08 Sep 2026 14:58:22 GMT",
-      "origin": "gnews-rss",
-      "source": "ABC News - Breaking News, Latest News and Videos",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI",
-        "政治"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 45,
-      "summary_cn": "Ashley St. Clair与Alex Gibney讨论AI及马斯克的风险，市场含义有限。"
+      "summary_cn": "特朗普庆祝女性占其任内几乎全部新增就业，凸显其经济叙事。"
     }
   ],
   "held_hits": [
@@ -336,7 +280,10 @@
       "published": "Tue, 08 Sep 2026 13:56:36 GMT",
       "origin": "gnews-rss",
       "source": "finance.yahoo.com",
-      "tickers": [],
+      "tickers": [
+        "SPCX",
+        "SPCH"
+      ],
       "held": [
         "SPCH",
         "SPCX"
@@ -344,12 +291,12 @@
       "new_ideas": [],
       "sectors": [
         "航天",
-        "SpaceX IPO"
+        "SpaceX"
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 80,
-      "summary_cn": "报道讨论SpaceX CEO马斯克需做什么才能将股价'送入平流层'，看好SpaceX上市表现，直接利好kcn持有的SPCX及SPCH。"
+      "relevance": 85,
+      "summary_cn": "新闻分析SpaceX上市路径——直接利好kcn持有的SPCX及SPCH(2x杠杆)。"
     }
   ],
   "new_ideas": [
@@ -370,47 +317,22 @@
       "sectors": [
         "电动车",
         "稀土",
-        "中美贸易",
-        "特斯拉"
+        "特斯拉",
+        "中国贸易"
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 78,
-      "summary_cn": "特斯拉的无稀土电机可能削弱中国在稀土领域的贸易王牌，利好TSLA并对稀土/磁材板块构成压力。"
-    },
-    {
-      "author": "Trump",
-      "text": "NO MORE SELLING BOMBARDIER IN THE UNITED STATES! Their products aren’t good enough! Over 50% of their revenue comes from the United States — They live off American Buyers, American Companies, American Airports, and American Service — All while Canada blocks our GREAT American Banks, and Companies, throughout the U.S.A. They even blocked Gulfstream Aerospace from doing business in Canada — Completely unjust and unfair! That Era is OVER! If they want our Market, they must build here, and stop treating America like a “piggybank.” BUY AMERICAN. FLY ON AMERICAN AIRLINERS. ENJOY AMERICAN LIQUOR AND ",
-      "url": "https://www.trumpstruth.org/statuses/41619",
-      "published": "2026-09-07T17:39:29+00:00",
-      "origin": "truthsocial",
-      "tickers": [
-        "BBD",
-        "GLAE"
-      ],
-      "held": [],
-      "new_ideas": [
-        "BBD",
-        "GLAE"
-      ],
-      "sectors": [
-        "航空",
-        "美加贸易",
-        "关税/保护主义"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 62,
-      "summary_cn": "Trump威胁禁止庞巴迪(BBD)在美销售，指控加拿大不公平封锁美企，并提到Gulfstream；强化美国航空业保护主义与Buy American政策。"
+      "relevance": 82,
+      "summary_cn": "特斯拉无稀土电机或削弱中国贸易筹码，看多特斯拉/电动车供应链独立化。"
     },
     {
       "author": "Trump",
       "text": "Chandler Hall, representing, on Television, the foolish Center for American Lack of Progress, stated that adding the National Guard to Cities, including our now Great Again, Washington, D.C., had “NO impact on Crime.” How crazy is that. Hall was met with furious dissent. The report is just another Radical Left SCAM, as are the people who fund this gaggle of Lunatics, including George Soros, Bill and Melinda Gates, Google, Apple, Visa, Goldman Sachs, Citigroup, WellsFargo, Bank of America, Walmart, Toyota, T-Mobile, and NBC Universal. Foreign support includes the Embassy of Japan, the Korea Fou",
-      "url": "https://www.trumpstruth.org/statuses/41596",
+      "url": "https://trumpstruth.org/statuses/41596",
       "published": "2026-09-07T13:50:35+00:00",
       "origin": "truthsocial",
       "tickers": [
-        "GOOG",
+        "GOOGL",
         "AAPL",
         "V",
         "GS",
@@ -426,7 +348,7 @@
         "AAPL",
         "BAC",
         "C",
-        "GOOG",
+        "GOOGL",
         "GS",
         "TM",
         "TMUS",
@@ -435,22 +357,21 @@
         "WMT"
       ],
       "sectors": [
-        "科技",
-        "金融",
-        "零售",
-        "汽车"
+        "政治",
+        "银行",
+        "科技"
       ],
       "sector_holdings": [],
       "stance": "attack",
-      "relevance": 55,
-      "summary_cn": "Trump抨击Soros、Gates、Google、Apple、Visa、Goldman、Citi、Wells Fargo、BOA、Walmart、Toyota、T-Mobile及NBC等资助'极左'机构；带政治色彩但点名多家大型上市公司。"
+      "relevance": 52,
+      "summary_cn": "特朗普抨击Google/Apple/Visa/高盛/花旗/富国/美银/沃尔玛/丰田/T-Mobile等资助左翼智库。"
     }
   ],
   "sector_hits": [
     {
       "author": "Trump",
       "text": "Except for the RADICAL LEFT that wants to RAISE YOUR TAXES, and wreck our Economy, EVERYONE LOVES TAX CUTS! My Big Beautiful Bill was the BIGGEST relief in HISTORY for hardworking families – Nobody’s seen anything like it!  Now, another HUGE WIN: @SECPaulSAtkins at the SEC slashed Taxes on ETFs, helping MILLIONS of Retirement Investors keep more of their own money, build wealth, and live the American Dream without Government “rip offs.” TOTAL REVOLUTION for Savers. Great job Paul — You’re a STAR! President DONALD J. TRUMPHow millions of everyday investors are getting a tax break: https://www.w",
-      "url": "https://www.trumpstruth.org/statuses/41599",
+      "url": "https://trumpstruth.org/statuses/41599",
       "published": "2026-09-07T14:00:42+00:00",
       "origin": "truthsocial",
       "tickers": [],
@@ -458,16 +379,17 @@
       "new_ideas": [],
       "sectors": [
         "ETF",
-        "减税",
+        "税改",
         "监管"
       ],
       "sector_holdings": [
-        "RKLX",
-        "SPCH"
+        "03032",
+        "03033",
+        "07226"
       ],
       "stance": "endorse",
-      "relevance": 62,
-      "summary_cn": "Trump赞扬SEC主席Atkins削减ETF税负，称将利好百万退休投资者；总体看多ETF及资本市场。"
+      "relevance": 58,
+      "summary_cn": "特朗普赞扬SEC主席Atkins削减ETF税负，提振ETF板块(含其恒生科技ETF持仓)。"
     }
   ]
 }
