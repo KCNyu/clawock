@@ -120,19 +120,19 @@ _（空）_
 2026-08-09 清空了七条 8/4 的促销摘录：它们把四天前的 `USD −7,426.69 / HKD −58,244.56`
 以「长期记忆」的身份注进主会话，正是最容易被当成当前值引用的形状。
 
-## Promoted From Short-Term Memory (2026-09-08)
+## Promoted From Short-Term Memory (2026-09-09)
 
-<!-- openclaw-memory-promotion:memory:memory/2026-09-03-pre-open.md:11:11 -->
-- 盘前深度简报｜2026-09-03 周四 08:00 HKT: **反方**：把 3 个杠杆 ETF 切了等于把最深浮亏票砍掉，反弹时少了最大增量 alpha。51 天 breach 一直没人执行，正是因为每次都在赌下一根阳线。今天坚持切，赌的是横盘或者再下一台阶的尾部，而 2x 在尾部吃的是双倍挨打。回本数学已说 5-sigma 不可达，再多等一周不会改变这个结论。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-03-pre-open.md:11-11]
-<!-- openclaw-memory-promotion:memory:memory/2026-09-03-pre-open.md:15:15 -->
-- Header — Book 双视角（HK + USD 不能直接相加）: **🧭 Regime**: neutral · 中性偏冷却，不是 regime 切换。恐慌指数下行、纳指标普同向收正，但恒指恒科双弱。制度依然是中性，主动 call 仍按常规对待，3 个 ETF 切仓由 risk_rule 授权，绕开 risk_on 的 hold 默认豁免。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-03-pre-open.md:15-15]
-<!-- openclaw-memory-promotion:memory:memory/2026-09-03-pre-open.md:17:17 -->
-- Header — Book 双视角（HK + USD 不能直接相加）: **FX**: USDHKD = **7.8425**（Frankfurter，抓取于 2026-09-03T00:00:45.061961+00:00） [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-03-pre-open.md:17-17]
-<!-- openclaw-memory-promotion:memory:memory/2026-09-03-pre-open.md:2:4 -->
-- layout: default title: 盘前深度简报｜2026-09-03 周四 08:00 HKT description: "clawock 盘前深度简报 2026-09-03：港股 + 美股真实持仓的多空辩论、量化因子、风控硬闸与决策校准。" [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-03-pre-open.md:2-4]
-<!-- openclaw-memory-promotion:memory:memory/2026-09-03-pre-open.md:20:23 -->
-- Header — Book 双视角（HK + USD 不能直接相加）: 真实总浮亏: USD$-5,852.30 ≈ HKD$-45,896.67 ├─ HK 段: HKD$-35,885.64 (-34.09%) └─ US 段: USD$-1,276.51 (-27.72%) HK 现金: 17,597 HKD | US 现金: 264.28 USD [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-03-pre-open.md:20-23]
-<!-- openclaw-memory-promotion:memory:memory/2026-09-03-pre-open.md:28:31 -->
-- 集中度（core.concentration）: | Leg | HHI | 判定 | Top2 | 腿总值 | |---|---|---|---|---| | HK | 0.436 | 🔴 危险集中 | 87.10% | 69,391 | | US | 0.667 | 🔴 危险集中 | 86.40% | 3,329 | [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-03-pre-open.md:28-31]
-<!-- openclaw-memory-promotion:memory:memory/2026-09-03-pre-open.md:9:9 -->
-- 盘前深度简报｜2026-09-03 周四 08:00 HKT: book 真实总浮亏巨大但纪律正在被一拖再拖。今天的 plan 主体不是预测，是把已经站了 51 天的三个硬止损兑现成动作，同时把核心标的留在原有区间继续观察。3 个杠杆 ETF 的 2x 到 1x 换仓是一次性解除 4 重硬闸的政策执行，不是择时；其余持仓维持现状，不在已价或者已经弱势的票上加新仓位。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-03-pre-open.md:9-9]
+<!-- openclaw-memory-promotion:memory:memory/2026-09-04-pre-open.md:11:11 -->
+- 盘前深度简报｜2026-09-04 周五 08:03 HKT: **反方**：5 重 breach 已站 10–51 天, 每日发同样提醒却 0 执行, 这条 plan 也可能再是「写而不砍」; RKLX 浮亏 -69.9% breakeven +232.6% 几无回本, 砍 RKLX 同时砍 07226 1 个 lot 已经 -7930 HKD + -149 USD, 流动性真空日 4 笔 cut 同时执行可能在 9/4 港股开 -1% gap 触发雪崩。9/11 CPI + 9/16 FOMC 前降 β 是对的, 但 swap 而非全 cut 是 KCNyu 9/3 已定的解套口径, 留敞口对风险点 (Trump 太空学院 / SpaceX 估值上修) 是真实押注。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-04-pre-open.md:11-11]
+<!-- openclaw-memory-promotion:memory:memory/2026-09-04-pre-open.md:15:15 -->
+- Header — Book 双视角（HK + USD 不能直接相加）: **🧭 Regime**: neutral · 🧭 Macro regime=neutral (VIX 14.32 极低 + SPX+1.06% NDX+1.4% 同向上行 + F&G 35.3 fear + 10Y 4.76% 升) 但 risk_guardrail 7 breach + HK lev_regime amber (cap ×0.5=25%) + US beta 5.56 → 主动 call 走 risk_off 纪律重, core hold 走 neutral。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-04-pre-open.md:15-15]
+<!-- openclaw-memory-promotion:memory:memory/2026-09-04-pre-open.md:17:17 -->
+- Header — Book 双视角（HK + USD 不能直接相加）: **FX**: USDHKD = **7.8414**（Frankfurter，抓取于 2026-09-04T00:04:03.857860+00:00） [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-04-pre-open.md:17-17]
+<!-- openclaw-memory-promotion:memory:memory/2026-09-04-pre-open.md:2:4 -->
+- layout: default title: 盘前深度简报｜2026-09-04 周五 08:03 HKT description: "clawock 盘前深度简报 2026-09-04：港股 + 美股真实持仓的多空辩论、量化因子、风控硬闸与决策校准。" [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-04-pre-open.md:2-4]
+<!-- openclaw-memory-promotion:memory:memory/2026-09-04-pre-open.md:20:23 -->
+- Header — Book 双视角（HK + USD 不能直接相加）: 真实总浮亏: USD$-5,341.05 ≈ HKD$-41,881.33 ├─ HK 段: HKD$-34,845.24 (-33.10%) └─ US 段: USD$-897.30 (-19.48%) HK 现金: 17,597 HKD | US 现金: 264.28 USD [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-04-pre-open.md:20-23]
+<!-- openclaw-memory-promotion:memory:memory/2026-09-04-pre-open.md:28:31 -->
+- 集中度（core.concentration）: | Leg | HHI | 判定 | Top2 | 腿总值 | |---|---|---|---|---| | HK | 0.444 | 🔴 危险集中 | 87.30% | 70,431 | | US | 0.680 | 🔴 危险集中 | 87.50% | 3,708 | [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-04-pre-open.md:28-31]
+<!-- openclaw-memory-promotion:memory:memory/2026-09-04-pre-open.md:9:9 -->
+- 盘前深度简报｜2026-09-04 周五 08:03 HKT: Book 5 重仓位硬闸 + 2 杠杆止损触发, 站 10–51 天 discipline 失效, 今日借 HK 反弹窗口 (5d +12.8% 00100 / +12.2% SPCH) 一次性清 discipline: cut 07226 2600 + RKLX 10 + SPCH 270 全 cash, swap 07226→03033 1800 股, trim 00100 1 lot ≥365。净效应: HK 杠杆敞口 26.8%→17.3% (≤25% cap ✓), US leg 3708→824 USD, US β 5.56→约 1.8, US 杠杆 86%→0, 00100/HK 60.48%→56%, 1 个 breach 全解 4 个, 2 个 hard_stop 全关。核心单票 thesis (00100 ARR $800M + M3 Pro 9-10 月 / 02208 风电 / 03032 03033 1x HSTECH / CRCL stablecoin / SKHY HBM / SPCX SpaceX 1x) 全部 hold 不出。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-04-pre-open.md:9-9]
