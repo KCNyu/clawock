@@ -1335,7 +1335,7 @@ async function testCronRailAccountsForEverySlotWithoutASecondVerdict(browser, ba
   const detail = await page.evaluate(async () => {
     document.getElementById("dh-toggle").click();
     await new Promise(r => setTimeout(r, 50));
-    const rows = [...document.querySelectorAll("#dh-files .dh-row.is-cron")];
+    const rows = [...document.querySelectorAll(".dh-group .dh-row.is-cron")];
     return rows.map(r => ({
       name: r.querySelector(".dh-name").textContent.trim(),
       detail: r.querySelector(".dh-detail").textContent.trim(),
@@ -1387,13 +1387,15 @@ async function testCronNeedsActionMergesIntoTheOneTodoListButWatchDoesNot(browse
   await waitForData(page);
   await page.waitForSelector("#data-health:not(.is-pending)", { timeout: 5000 });
 
-  const todo = await page.evaluate(async () => {
-    document.getElementById("dh-toggle").click();
-    await new Promise(r => setTimeout(r, 50));
-    return [...document.querySelectorAll("#dh-files .dh-row.is-todo")]
+  // 清单不再藏在「逐项」后面：它是这块牌上唯一「你该动手」的东西，所以这条
+  // 断言现在**不点任何东西**就要读得到它 —— 藏起来的待办和没有待办一样。
+  const todo = await page.evaluate(() =>
+    [...document.querySelectorAll("#dh-todo .dh-row.is-todo")]
       .map(r => ({ name: r.querySelector(".dh-name").textContent.trim(),
-                   why: r.querySelector(".dh-detail").textContent.trim() }));
-  });
+                   why: r.querySelector(".dh-detail").textContent.trim(),
+                   shown: r.getBoundingClientRect().height > 0 })));
+  assert.ok(todo.every(t => t.shown),
+    "the 需处理 list is in the DOM but collapsed — a hidden to-do is not a to-do");
 
   const needsAction = todo.find(t => t.name === "港股午后快报");
   assert.ok(needsAction, `needs_action cron slot never reached the 需处理 list: ${JSON.stringify(todo)}`);
@@ -1482,7 +1484,7 @@ async function testDataHealthNamesTheDegradedSlotAndWeChatDrops(browser, base) {
 
   await page.click("#dh-toggle");
   const rows = await page.evaluate(() =>
-    [...document.querySelectorAll("#dh-files .dh-row")].map(r => r.textContent.replace(/\s+/g, " ").trim()));
+    [...document.querySelectorAll(".dh-group .dh-row")].map(r => r.textContent.replace(/\s+/g, " ").trim()));
   const dropRows = rows.filter(t => t.includes("TG 已兜"));
   assert.equal(dropRows.length, 2,
     `expected both WeChat-dropped slots listed, got ${dropRows.length}: ${dropRows.join(" | ")}`);
@@ -1533,6 +1535,133 @@ async function testMoversSayWhichSessionTheyAreFrom(browser, base) {
   }
 }
 
+// 手机上的数据健康牌：这块牌在 390px 上曾经是「一张读不出东西的 24 小时图
+// ＋ 一坨 2600px 的逐项」。现在的形状是：判词 → 需处理清单（不点任何东西就在）
+// → 三条泳道，每条自己是一个展开器，明细摊在它自己下面。这条闸钉住那个形状：
+//  1. 槽位轨那张图在窄档不画（24 小时压进 ~217px、11 个行名全是省略号），
+//     但收图的前提是同一块牌仍然答得出「接下来轮到谁」；
+//  2. 每条泳道都是可聚焦的按钮、有 aria-expanded、收起时它那一组是 inert
+//     （折叠是 grid-rows 动画，元素还在，不 inert 就还在 Tab 顺序里）；
+//  3. 点一条泳道只展开那一条，明细必须紧跟在它下面（不是卡片底部）；
+//  4. 说明行可以收成引子，但被收起来的那条泳道必须有一组明细接住全文；
+//  5. 逐项那一行的状态词必须和名字同一行（它曾被挤成右对齐的孤行）；
+//  6. 整块牌不横向溢出，处置牌不被顶出卡片，「逐项」有拇指够得着的高度。
+async function testDataHealthIsReadableOnAPhone(browser, base) {
+  const context = await browser.newContext({
+    viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true,
+  });
+  const page = await context.newPage();
+  await stubLiveOrigin(page, {
+    patch: (name, json) => {
+      if (name !== "overview.json" && name !== "dashboard.json") return null;
+      json.cron_schedule = {
+        date: "2026-09-03",
+        jobs: [
+          { job: "盘前深度简报", slots: [{ at: "00:01", state: "ok" }] },
+          { job: "美股盘中盯盘-overnight", slots: [{ at: "23:59", state: "upcoming" }] },
+        ],
+      };
+      return json;
+    },
+  });
+  await page.goto(base, { waitUntil: "networkidle" });
+  await waitForData(page);
+  await page.waitForSelector("#data-health:not(.is-pending)", { timeout: 5000 });
+
+  const head = await page.evaluate(() => {
+    const shown = el => getComputedStyle(el).display !== "none";
+    const card = document.getElementById("data-health");
+    const cardRight = card.getBoundingClientRect().right;
+    return {
+      railChart: shown(document.querySelector(".dh-rail-body")),
+      next: document.getElementById("dh-rail-next").textContent.trim(),
+      nextShown: shown(document.getElementById("dh-rail-next")),
+      clipped: [...card.querySelectorAll(".dh-caption, .hero-health-meta")]
+        .filter(el => el.scrollWidth > el.clientWidth + 1)
+        .map(el => el.textContent.trim().slice(0, 40)),
+      overflow: card.scrollWidth - card.clientWidth,
+      toggleHeight: Math.round(document.getElementById("dh-toggle").getBoundingClientRect().height),
+      chipOverhang: Math.round(Math.max(...[...card.querySelectorAll(".dh-chip")]
+        .map(chip => chip.getBoundingClientRect().right - cardRight))),
+      lanes: [...card.querySelectorAll(".dh-lane")].map(lane => ({
+        id: lane.id,
+        tag: lane.tagName,
+        expanded: lane.getAttribute("aria-expanded"),
+        height: Math.round(lane.getBoundingClientRect().height),
+        // 收起的那一组：0 高、inert，而且里面确实有东西可看（空的展开器是个
+        // 谎话——它会把「点开看全文」许诺给一块空面板）。
+        groupRows: (document.getElementById(lane.getAttribute("aria-controls")) || document.body)
+          .querySelectorAll(".dh-row").length,
+        groupInert: (document.getElementById(lane.getAttribute("aria-controls")) || {}).inert,
+        groupHeight: Math.round((document.getElementById(lane.getAttribute("aria-controls"))
+          || document.body).getBoundingClientRect().height),
+      })),
+    };
+  });
+  assert.equal(head.railChart, false,
+    "the 24-hour cron chart is still drawn at 390px — it is unreadable at that width");
+  assert(head.nextShown && /^(下一槽|今天没有待跑)/.test(head.next),
+    `the phone card drops the chart without saying what runs next: ${head.next}`);
+  assert.deepEqual(head.clipped, [], "a data-health line is truncated at 390px");
+  assert(head.overflow <= 0,
+    `data-health overflows horizontally by ${head.overflow}px at 390px`);
+  assert(head.toggleHeight >= 32,
+    `逐项 is ${head.toggleHeight}px tall — too small a target for a thumb`);
+  assert(head.chipOverhang <= 0,
+    `a disposition chip sticks ${head.chipOverhang}px past the card edge`);
+  assert.equal(head.lanes.length, 3, "the three fixed lanes are gone");
+  head.lanes.forEach(lane => {
+    assert.equal(lane.tag, "BUTTON",
+      `${lane.id} is not a button — a row you are meant to tap has to be focusable`);
+    assert.equal(lane.expanded, "false", `${lane.id} starts expanded`);
+    assert(lane.groupRows > 0,
+      `${lane.id} promises detail but its panel is empty`);
+    assert.equal(lane.groupInert, true,
+      `${lane.id}'s collapsed panel is still in the tab order`);
+    assert.equal(lane.groupHeight, 0, `${lane.id}'s panel is not collapsed`);
+    assert(lane.height >= 44,
+      `${lane.id} is ${lane.height}px tall — below a thumb-sized row`);
+  });
+
+  // 点一条，只开那一条，而且开在它自己下面。
+  const opened = await page.evaluate(async () => {
+    document.getElementById("dh-lane-integrity").click();
+    await new Promise(resolve => setTimeout(resolve, 400));
+    const lane = document.getElementById("dh-lane-integrity");
+    const group = document.getElementById("dh-group-integrity");
+    return {
+      expanded: lane.getAttribute("aria-expanded"),
+      height: Math.round(group.getBoundingClientRect().height),
+      // 明细紧跟在这条泳道下面，不是卡片底部：它的顶边就是泳道的底边。
+      gap: Math.round(group.getBoundingClientRect().top - lane.getBoundingClientRect().bottom),
+      others: ["files", "delivery"].map(key =>
+        Math.round(document.getElementById(`dh-group-${key}`).getBoundingClientRect().height)),
+    };
+  });
+  assert.equal(opened.expanded, "true", "tapping a lane did not expand it");
+  assert(opened.height > 0, "the lane expanded but its panel stayed collapsed");
+  assert(Math.abs(opened.gap) <= 2,
+    `the panel opened ${opened.gap}px away from the lane that owns it`);
+  assert.deepEqual(opened.others, [0, 0],
+    "opening one lane expanded the others too — that is the 2600px 逐项 again");
+
+  // 处置行（.is-todo）的末列是「下一步去哪看」，它本来就独占一行；台账行不是。
+  const orphans = await page.evaluate(async () => {
+    document.getElementById("dh-toggle").click();
+    await new Promise(resolve => setTimeout(resolve, 400));
+    return [...document.querySelectorAll(".dh-group .dh-row:not(.is-todo)")]
+      .filter(row => {
+        const name = row.querySelector(".dh-name").getBoundingClientRect();
+        const state = row.querySelector(".dh-state").getBoundingClientRect();
+        return state.top >= name.bottom - 1;
+      })
+      .map(row => row.querySelector(".dh-name").textContent.trim());
+  });
+  assert.deepEqual(orphans, [],
+    `逐项 rows put the status word on a line of its own: ${orphans.join(", ")}`);
+  await context.close();
+}
+
 async function main() {
   const server = serveWorkspace();
   await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
@@ -1553,6 +1682,7 @@ async function main() {
     await testHoldingsAndHeroNeverTruncate(browser, base);
     await testVerdictDeckFillsItsBoxAndRanksGatesBySeverity(browser, base);
     await testDataHealthNamesTheDegradedSlotAndWeChatDrops(browser, base);
+    await testDataHealthIsReadableOnAPhone(browser, base);
     await testAddSideCardExplainsWhyThereIsNoAdd(browser, base);
     await testAPanelSaysWhenItsDataDidNotLoad(browser, base);
     await testCronRailAccountsForEverySlotWithoutASecondVerdict(browser, base);

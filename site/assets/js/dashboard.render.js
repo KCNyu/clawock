@@ -1224,6 +1224,22 @@
         + `${escapeHtml(CRON_STATES[k].cn)}</span>`).join("");
     }
 
+    // 窄屏把这张图收掉了（24 小时压进 ~217px 的轨、11 个名字全是省略号，
+    // 在手机上读不出任何东西；同一份「谁·几点·怎么了」在「逐项」里是逐行
+    // 的文字）。图不在的时候，「接下来轮到谁」必须仍然有一句话回答，否则
+    // 收图就等于删掉一个答案。CSS 只在窄档显示它。
+    const nextEl = document.getElementById("dh-rail-next");
+    if (nextEl) {
+      const hhmm = now
+        ? `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`
+        : "";
+      const next = cells.find(c => ["upcoming", "running"].includes(c.state)
+        && (!hhmm || c.at >= hhmm));
+      nextEl.textContent = next
+        ? `下一槽 ${next.at} · ${next.job}`
+        : "今天没有待跑的槽位了";
+    }
+
     // 轴刻度：每 3 小时一个数字、每小时一条细线（CSS 背景画），比原来只有
     // 00/06/12/18/24 四个地标精确得多；同一条轴下面每个 job 一行，行内的点
     // 用同一把尺子绝对定位，于是「谁、什么时候」不用悬停就读得出来。
@@ -1299,7 +1315,6 @@
     const verdictEl = document.getElementById("dh-verdict") || document.getElementById("dh-title");
     const metaEl = document.getElementById("dh-meta");
     const stripEl = document.getElementById("dh-strip");
-    const filesEl = document.getElementById("dh-files");
     const ig = bs.integrity || {};
     const wf = safe(DATA, "workflow_outcomes") || {};
     const wc = wf.counts || {};
@@ -1475,7 +1490,10 @@
       // Telegram 兜住了，它属于「已知不修」，位置就该在这条安静的行里。
       if (droppedTotal) bits.push(`微信掉投 ${droppedTotal} 档 · TG 已兜 · 已知不修`);
       if (bs.generated_at) bits.push(`构建 ${String(bs.generated_at).replace("T", " ").slice(0, 16)}`);
-      metaEl.textContent = bits.join(" · ");
+      // 每一段各自不折行：窄屏实测把「构建 2026-09-09 00:05」在「构建」后面
+      // 折开，一个时刻被读成两条信息。折行只准发生在分隔点上。
+      metaEl.innerHTML = bits.map(b => `<span class="dh-meta-bit">${escapeHtml(b)}</span>`)
+        .join(`<span class="dh-meta-sep"> · </span>`);
     }
 
     if (stripEl) {
@@ -1494,9 +1512,10 @@
         + "观察＝兜底已生效、成品到了，只记不动；已知不修＝已拍板不处理。";
     }
 
-    if (filesEl) {
-      // 逐项第一组是「处置清单」：只列 需处理 的那几条，每条带下一步该去
-      // 哪看。剩下两组（投递掉投 / 数据面逐项）是台账，不是待办。
+    {
+      // 「处置清单」不再藏在「逐项」后面：它是这块牌上唯一「你该动手」的
+      // 东西，藏在一次点击后面等于把答案放进抽屉。它自己一块（#dh-todo，
+      // 在判词底下），没有待办时是空的、整块不占位。
       const todo = [];
       late.forEach(f => todo.push({
         name: dataFileCn(f.name), where: f.name, why: detailOf(f),
@@ -1546,8 +1565,7 @@
             : "")
         : "";
 
-      const cronRows = cronScheduleRows(safe(DATA, "cron_schedule"));
-      filesEl.innerHTML = todoRows + cronRows + deliveryRows + `<div class="dh-sub">数据面</div>` + files
+      const fileRows = `<div class="dh-sub">数据面 · 逐项</div>` + files
         .slice()
         .sort((a, b) => usage(b) - usage(a))
         .map(f => {
@@ -1561,18 +1579,95 @@
             + `<span class="dh-state">${label}</span>`
             + `</div>`;
         }).join("");
+
+      // 体检以前在逐项里没有自己的一组：泳道只印得下最坏的那一条，WARN 的
+      // 全文没有任何地方读得到（窄屏还会被折成三行英文）。展开它就是那张单子。
+      const integrityRows = `<div class="dh-sub">体检 · 本次发现</div>`
+        + ((ig.top || []).length
+          ? (ig.top || []).map(t => {
+            const level = String(t.level || "").toUpperCase() || "INFO";
+            return `<div class="dh-row is-check is-${level === "ERROR" ? "missing" : level === "WARN" ? "late" : "ok"}">`
+              + `<span class="dh-name">${escapeHtml(level)}</span>`
+              + `<span class="dh-file">${escapeHtml(String(t.code || ""))}</span>`
+              + `<span class="dh-bar"></span>`
+              + `<span class="dh-detail">${escapeHtml(String(t.msg || ""))}</span>`
+              + `<span class="dh-state">${escapeHtml(level === "ERROR" ? "需处理" : "观察")}</span>`
+              + `</div>`;
+          }).join("")
+          : `<div class="dh-row is-check is-ok"><span class="dh-name">无异常</span>`
+            + `<span class="dh-file"></span><span class="dh-bar"></span>`
+            + `<span class="dh-detail">这一轮体检没有 ERROR 也没有 WARN</span>`
+            + `<span class="dh-state">正常</span></div>`);
+
+      const cronRows = cronScheduleRows(safe(DATA, "cron_schedule"));
+      // 一条泳道 = 一个展开器，明细就摊在它自己下面（组是泳道的兄弟节点，不是
+      // 卡片底部的一坨）。整块「逐项」在手机上是 34 行 2600px，读者要的不是
+      // 「全都展开」，是「点开我关心的那一条」。
+      const fill = (key, html) => {
+        const body = document.getElementById(`dh-group-${key}-body`);
+        if (body) body.innerHTML = html;
+      };
+      fill("files", fileRows);
+      fill("integrity", integrityRows);
+      fill("delivery", cronRows + deliveryRows);
+      const todoEl = document.getElementById("dh-todo");
+      if (todoEl) todoEl.innerHTML = todoRows;
+      // 收起的组仍在 DOM 里（折叠是 grid-rows 0fr 的动画），首帧也必须把它退出
+      // Tab 与读屏；这一步同时把展开状态原样留住 —— 刷新是每几分钟一次的事，
+      // 不能把读者刚展开的那一条合回去。
+      DH_LANES.forEach(key => {
+        const group = document.getElementById(`dh-group-${key}`);
+        setDataHealthGroup(key, !!(group && group.classList.contains("is-open")));
+      });
+      syncDataHealthToggle();
     }
 
+    DH_LANES.forEach(key => {
+      const lane = document.getElementById(`dh-lane-${key}`);
+      if (!lane || lane.dataset.wired === "1") return;
+      lane.dataset.wired = "1";
+      lane.addEventListener("click", () => {
+        setDataHealthGroup(key, lane.getAttribute("aria-expanded") !== "true");
+        syncDataHealthToggle();
+      });
+    });
     const toggle = document.getElementById("dh-toggle");
     if (toggle && toggle.dataset.wired !== "1") {
       toggle.dataset.wired = "1";
+      // 全局那颗按钮现在是「全部展开 / 全部收起」，不是唯一的入口。
       toggle.addEventListener("click", () => {
         const open = toggle.getAttribute("aria-expanded") !== "true";
-        toggle.setAttribute("aria-expanded", open ? "true" : "false");
-        toggle.textContent = open ? "收起" : "逐项";
-        if (filesEl) filesEl.hidden = !open;
+        DH_LANES.forEach(key => setDataHealthGroup(key, open));
+        syncDataHealthToggle();
       });
     }
+  }
+
+  const DH_LANES = ["files", "integrity", "delivery"];
+
+  // 展开一条泳道自己的那一组。收起时同时上 inert + aria-hidden：折叠是靠
+  // grid-template-rows 0fr 做的动画，元素还在，不设 inert 的话读屏和 Tab
+  // 仍然会走进一块看不见的清单。
+  function setDataHealthGroup(key, open) {
+    const group = document.getElementById(`dh-group-${key}`);
+    const lane = document.getElementById(`dh-lane-${key}`);
+    if (group) {
+      group.classList.toggle("is-open", !!open);
+      group.inert = !open;
+      group.setAttribute("aria-hidden", open ? "false" : "true");
+    }
+    if (lane) lane.setAttribute("aria-expanded", open ? "true" : "false");
+  }
+
+  function syncDataHealthToggle() {
+    const toggle = document.getElementById("dh-toggle");
+    if (!toggle) return;
+    const open = DH_LANES.every(key => {
+      const lane = document.getElementById(`dh-lane-${key}`);
+      return lane && lane.getAttribute("aria-expanded") === "true";
+    });
+    toggle.setAttribute("aria-expanded", open ? "true" : "false");
+    toggle.textContent = open ? "收起" : "逐项";
   }
 
   function renderDelta() {

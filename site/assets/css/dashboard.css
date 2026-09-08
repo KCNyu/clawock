@@ -2643,6 +2643,9 @@
   .hero-health-meta {
     margin-top: 6px; color: var(--text-tertiary); font: 500 var(--fs-micro)/1.45 var(--mono);
   }
+  /* 每段各自不折行，换行只发生在段与段之间的分隔点上（渲染端已把每段包成
+     一个 .dh-meta-bit）。 */
+  .hero-health-meta .dh-meta-bit { white-space: nowrap; }
   .dh-toggle {
     margin-left: auto; flex: none; padding: 6px 12px; border-radius: 8px;
     border: 1px solid var(--border-subtle); background: var(--surface-1);
@@ -2666,19 +2669,57 @@
      那行右移 37px）。用 subgrid 让三行吃 .dh-lanes 的同一套列；不支持
      subgrid 的浏览器落到同一组定死的列宽，一样对得齐。 */
   .dh-lanes {
-    display: grid; grid-template-columns: 46px 150px 168px minmax(0, 1fr) 58px;
+    display: grid; grid-template-columns: 46px 150px 168px minmax(0, 1fr) 58px 12px;
   }
+  /* 泳道是按钮（整行都是点按面积），所以要把浏览器给按钮的那套外观全部撤掉，
+     只留下它的行为：焦点、Enter/Space、aria-expanded。 */
   .dh-lane {
     display: grid; grid-column: 1 / -1; align-items: center;
-    gap: 10px 12px; padding: 9px 0;
-    grid-template-columns: 46px 150px 168px minmax(0, 1fr) 58px;
-    border-bottom: 1px solid var(--border-subtle);
+    gap: 10px 12px; padding: 9px 0; width: 100%; text-align: left;
+    grid-template-columns: 46px 150px 168px minmax(0, 1fr) 58px 12px;
+    -webkit-appearance: none; appearance: none; background: none; color: inherit;
+    border: 0; border-bottom: 1px solid var(--border-subtle); border-radius: 6px;
+    cursor: pointer;
     font: 500 var(--fs-xs)/1.35 var(--mono); font-variant-numeric: tabular-nums;
+    transition: background-color var(--duration-fast) ease;
+  }
+  .dh-lane:active { background: color-mix(in srgb, var(--text) 5%, transparent); }
+  .dh-lane:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+  @media (hover: hover) and (pointer: fine) {
+    .dh-lane:hover { background: color-mix(in srgb, var(--text) 3%, transparent); }
+    .dh-lane:hover .dh-lane-chev { border-color: var(--text-secondary); }
+  }
+  /* 「这一行还能点开」必须看得见，否则整块牌读起来是死的。 */
+  .dh-lane-chev {
+    justify-self: end; width: 6px; height: 6px; margin-right: 2px;
+    border-right: 1.5px solid var(--text-tertiary);
+    border-bottom: 1.5px solid var(--text-tertiary);
+    transform: translateY(-2px) rotate(45deg);
+    transition: transform var(--duration-standard) var(--ease-out);
+  }
+  .dh-lane[aria-expanded="true"] .dh-lane-chev { transform: translateY(1px) rotate(-135deg); }
+  /* 展开动画只动 grid-template-rows（0fr→1fr），内容不 reflow 成两份。
+     收起的那一组仍在 DOM 里，靠 inert + aria-hidden 退出 Tab 与读屏。 */
+  .dh-group {
+    display: grid; grid-column: 1 / -1; grid-template-rows: 0fr;
+    transition: grid-template-rows var(--duration-standard) var(--ease-out);
+  }
+  .dh-group.is-open { grid-template-rows: 1fr; }
+  .dh-group-inner { overflow: hidden; min-height: 0; }
+  /* 摊开的那一组是「压在这条泳道下面」的一块，不是卡片里又一段正文：淡一档
+     的底 + 收进去的圆角，让它和上面那行绑在一起。 */
+  .dh-group-body {
+    padding: 2px 10px 8px; background: var(--surface-1);
+    border-radius: 0 0 8px 8px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .dh-group, .dh-lane-chev { transition: none; }
   }
   @supports (grid-template-columns: subgrid) {
     .dh-lane { grid-template-columns: subgrid; }
   }
-  .dh-lane:last-child { border-bottom: 0; }
+  /* 最后一条泳道现在后面跟着它自己那一组（section），所以是 last-of-type。 */
+  .dh-lane:last-of-type { border-bottom: 0; }
   .dh-lane-name {
     color: var(--text-tertiary); font: 700 var(--fs-micro)/1.2 var(--mono);
     letter-spacing: .08em; white-space: nowrap;
@@ -2780,6 +2821,8 @@
   .dh-rail-name {
     color: var(--text-secondary); font: 500 var(--fs-micro)/1.4 var(--mono);
   }
+  /* 宽档由下面那张图回答「接下来轮到谁」，这句话是窄档的替身，默认不显示。 */
+  .dh-rail-next { display: none; }
   .dh-rail-keys { display: flex; flex-wrap: wrap; gap: 3px 9px; }
   .dh-rail-key {
     display: inline-flex; align-items: center; gap: 4px;
@@ -2857,7 +2900,11 @@
   }
   .dh-seg.is-late i { background: var(--warning); }
   .dh-seg.is-missing i { background: var(--red); }
-  .dh-files { margin-top: 14px; border-top: 1px solid var(--border-subtle); }
+  /* 处置清单：常显，但没有待办时整块不占位。（类名不叫 .dh-todo —— 那个
+     已经是判词后半截那个 span 的类，撞名会给判词画上一条边线。） */
+  .dh-todo-list:not(:empty) {
+    margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border-subtle);
+  }
   .dh-row {
     display: grid; align-items: center; gap: 12px; padding: 8px 0;
     /* 末列 34px 是照「在期 / 逾期 / 缺失」两个字量的，投递行写的是「TG 已兜」
@@ -2873,8 +2920,9 @@
     font: 700 var(--fs-micro)/1.2 var(--mono); letter-spacing: .08em;
   }
   .dh-sub:first-child { padding-top: 4px; }
-  /* 投递行 / 处置行没有期限用量可画：空的灰槽会被读成「一根 0% 的条」。 */
-  .dh-row.is-delivery .dh-bar, .dh-row.is-todo .dh-bar { background: none; }
+  /* 投递行 / 处置行 / 体检行没有期限用量可画：空的灰槽会被读成「一根 0% 的条」。 */
+  .dh-row.is-delivery .dh-bar, .dh-row.is-todo .dh-bar,
+  .dh-row.is-check .dh-bar { background: none; }
   /* 处置行的末列是「下一步去哪看」，不是一个状态词 —— 34px 装不下，
      单独给它一套列宽，并且左侧留一道红边把待办从台账里挑出来。 */
   .dh-row.is-todo {
@@ -3462,27 +3510,90 @@
     /* 两列 × 两行 + 每格一件图形：293 = 360~600 全档数据态实测上界。 */
     .hero-rail { grid-template-columns: repeat(2, minmax(0, 1fr)); min-height: 293px; }
     /* 窄档泳道收成三带：名称+计数+处置牌一行，形状一行，说明一行。
-       五列硬塞进 360px 会把说明挤成一个省略号，那正是这次要修的病。
+       五列硬塞进 360px 会把说明挤成一个省略号，那正是 #1270 要修的病。
        外层那套 46+150+168+58+1fr 的定死列宽也要一起塌 —— 泳道 span 的是
        父栅格的轨道和，422px 的和会把处置牌顶到 390px 屏幕外面去。 */
     .dh-lanes { grid-template-columns: minmax(0, 1fr); }
     .dh-lane {
-      grid-template-columns: auto minmax(0, 1fr) auto; gap: 6px 10px;
-      grid-template-areas: "name stat chip" "shape shape shape" "note note note";
+      grid-template-columns: auto minmax(0, 1fr) auto auto; gap: 6px 10px;
+      padding: 10px 8px 10px 0;
+      grid-template-areas: "name stat chip chev" "shape shape shape shape"
+                           "note note note note";
     }
     .dh-lane-name { grid-area: name; }
-    .dh-lane-stat { grid-area: stat; }
+    /* 计数是这条泳道的答案，10px 的等宽小字里它和标签、说明一样重 —— 手机上
+       给它自己的字号，一眼扫下来先看见三个数。 */
+    .dh-lane-stat { grid-area: stat; font-size: var(--fs-sm); }
+    .dh-lane-chev { grid-area: chev; margin-right: 0; }
     .dh-lane-shape, .dh-strip { grid-area: shape; }
-    .dh-lane-note { grid-area: note; white-space: normal; }
+    /* 形状那一带按内容高：体检常态是一两个 7px 的计数点，18px 的固定高在
+       窄档留出一条空带，读起来像这一行渲染坏了。 */
+    .dh-lane-shape { height: auto; min-height: 8px; }
+    /* 体检的形状是计数点，不是条 —— 它没有宽度诉求，独占一带时读成一个孤零
+       零的项目符号。挂到计数后面去，这条泳道就只剩两带。 */
+    #dh-lane-integrity {
+      grid-template-columns: auto auto minmax(0, 1fr) auto auto;
+      grid-template-areas: "name stat shape chip chev"
+                           "note note note note note";
+    }
+    #dh-lane-integrity .dh-lane-shape { justify-self: start; gap: 4px; }
+    /* 说明收成两行的引子：体检那条印的是体检报告的原文（英文、三行），在折叠
+       态里它是整块牌最重的一坨。全文就在这条泳道自己的那一组里（点开就有），
+       所以这里是「引子 + 展开」，不是把一句话截掉不给。 */
+    .dh-lane-note {
+      grid-area: note; white-space: normal; line-height: 1.55;
+      display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+      overflow: hidden;
+    }
     .dh-chip { grid-area: chip; }
-    .dh-row.is-todo { grid-template-columns: minmax(0, 1fr) auto; }
-    .dh-row.is-todo .dh-state { grid-column: 1 / -1; text-align: left; }
+    /* 拇指要够得着：34px 是这块牌上唯一的控件，窄档给它一个正常的点按面积。 */
+    .dh-toggle { padding: 9px 14px; }
+    /* 卡底那行说明是四个处置词的唯一词典，10px 在手机上读不动。 */
+    .dh-caption { font-size: var(--fs-xs); line-height: 1.6; }
+
+    /* 24 小时压进 ~217px 的轨道 + 11 个全是省略号的行名 = 手机上读不出东西
+       的条形码（3px 的针脚和每小时一条的刻度线粗细相同）。窄档收掉图，留下
+       计数摘要 + 「下一槽」那一句；同一份「谁 · 几点 · 怎么了」在「逐项」里
+       是逐行的文字，比这张图更好读 —— 这是改版式，不是删数据。 */
+    .dh-rail-body, .dh-rail-axis, .dh-rail-keys { display: none; }
+    .dh-rail { gap: 3px; }
+    .dh-rail-next {
+      display: block; color: var(--text-tertiary);
+      font: 500 var(--fs-micro)/1.45 var(--mono);
+    }
+
+    /* 逐项：显式指派栅格位置。原来靠自动排布，而 .dh-bar / .dh-detail 都是
+       整行 span ⇒ 状态词被挤到第四行、右对齐地单独占一行（实测每行 154px，
+       11 个 job 就是 1700px 的空转）。名字和状态本来就该在同一行。 */
     .dh-row {
       grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px; row-gap: 4px;
+      grid-template-areas: "name state" "bar bar" "detail detail";
     }
+    .dh-name { grid-area: name; }
+    .dh-state { grid-area: state; }
+    .dh-bar { grid-area: bar; }
+    .dh-detail { grid-area: detail; white-space: normal; }
     .dh-file { display: none; }
-    .dh-bar { grid-column: 1 / -1; }
-    .dh-detail { grid-column: 1 / -1; white-space: normal; }
+    /* 处置行是这块牌上唯一的待办，三样东西都要留：名字、位置（文件名或槽位
+       时刻）、下一步。窄档给它自己一套三带 —— 位置和「多旧/怎么了」并排一
+       行（位置是短的，说明是长的），下一步整行。位置一律不折不省略：
+       `portfolio.json` 被断成 `portfol/io.json` 或吃掉半截，都等于把「去哪看」
+       这条线索毁掉。 */
+    .dh-row.is-todo {
+      grid-template-columns: auto minmax(0, 1fr);
+      grid-template-areas: "name name" "where detail" "state state";
+      /* 说明常折成两行，居中会把左边那格的位置吊在两行中间。 */
+      align-items: start;
+    }
+    .dh-row.is-todo .dh-file {
+      display: block; grid-area: where; text-align: left;
+      overflow: visible; white-space: nowrap;
+    }
+    .dh-row.is-todo .dh-state { text-align: left; }
+    /* 灯是「这一槽跑了没有」的唯一逐槽答案（时刻表只说几点，不说结果），
+       7px 的空心圈在手机上几乎看不见。窄档放大到 9px 并拉开间距。 */
+    .dh-row.is-cron .dh-bar.is-lamps { gap: 4px; }
+    .dh-row.is-cron .dh-bar.is-lamps .dh-pip { width: 9px; height: 9px; }
     /* 386：360~767 扫宽忙日实测上界 350.39（在 360）+ 露边 16 + gap 8
        + 指示点 10 = 384.39，+2（第八次迭代重扫）。窄档是留白重灾区，但那
        段空高现在被异动条吃掉：地板不动，正文吃满。 */
@@ -3516,7 +3627,10 @@
     .hero-rail-v { font-size: var(--fs-lg); }
     .hero-deck-lead { padding: 22px var(--card-inset) 18px; }
     .hero-rail-cell { padding: 12px 0 14px; }
-    .dh-seg { width: 11px; height: 26px; }
+    /* 段更宽（不是更高）：窄档只有 15 段，横向有的是余量，而 26px 高的
+       色块把泳道那一带撑成了整块牌里最重的东西。width 在 flex:1 1 0 +
+       max-width 面前是空写的，真正生效的是 max-width。 */
+    .dh-seg { max-width: 12px; height: 22px; }
   }
 
   /* =========================================================
