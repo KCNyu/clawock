@@ -44,6 +44,13 @@ def workspace(tmp_path):
     # named them would have silently tested a smaller generation.
     sys.path.insert(0, str(ROOT / "ops" / "publish"))
     from publish_data_branch import DATA_PLANE_FILES
+    # The contract that names them, so the child resolves its own outputs from
+    # this workspace rather than from the developer's checkout — which is what
+    # `CLAWOCK_WORKSPACE` below makes it do for everything it writes too.
+    contract = ROOT / "config" / "dashboard-outputs.json"
+    (work / "config").mkdir(parents=True, exist_ok=True)
+    (work / "config" / contract.name).write_text(
+        contract.read_text(encoding="utf-8"), encoding="utf-8")
     for name in DATA_PLANE_FILES:
         target = work / name
         target.parent.mkdir(parents=True, exist_ok=True)
@@ -80,7 +87,11 @@ def _fake_gh(tmp_path, *, exit_code=0):
 
 
 def _publish(workspace, bin_dir, *extra):
-    env = {**os.environ, "PATH": f"{bin_dir}:{os.environ['PATH']}"}
+    # Name the workspace for the child too: the publisher now records a failed
+    # publish as a degradation, and a run that did not say where it lives would
+    # write that into the developer's own checkout.
+    env = {**os.environ, "PATH": f"{bin_dir}:{os.environ['PATH']}",
+           "CLAWOCK_WORKSPACE": str(workspace)}
     return subprocess.run(
         [sys.executable, str(ROOT / "ops/publish/publish_data_branch.py"),
          "--root", str(workspace), "--remote", "origin", *extra],
