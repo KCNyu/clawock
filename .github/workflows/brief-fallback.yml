@@ -26,9 +26,26 @@ name: Brief Fallback (off-host LLM)
 #     weekly so "can this thing work" stops being an untested assumption.
 on:
   schedule:
-    # Three attempts across the usable window rather than one. Measured drift
-    # for this slot is +89..159 minutes (#781) and it is driven by how contended
-    # the UTC hour is, not by the minute, so no single choice is reliable.
+    # Three attempts across the usable window rather than one. When this was
+    # calibrated the measured drift for the slot was +89..159 minutes (#781), so
+    # the earliest attempt to arrive in-window would win.
+    #
+    # THAT NO LONGER HOLDS, and the schedule is kept anyway. On 2026-08-27 the
+    # drift regime stepped repo-wide from a ~72min median to ~271min (the delay
+    # is in GitHub creating the run — queue wait is 0s on all 203 scheduled runs
+    # sampled — so there is nothing to tune on our side). Measured over 67
+    # scheduled days an attempt landed inside the `HOUR >= 10 HKT` window on 5,
+    # and on 0 of the 10 days since 2026-08-26. The window opens at 00:25 UTC
+    # because anything earlier races the still-generating primary brief, so no
+    # schedule can be made to fit inside it either.
+    #
+    # What actually fires this workflow is the host: `brief_watchdog
+    # --check-missing` dispatches it at 09:05 HKT (dispatch latency is seconds).
+    # These legs remain as the host-down long shot, at a cost of ~20s per run.
+    # Declared and reasoned about in `config/schedule-punctuality.json`
+    # (`enforcement: accepted`) so this stays a written decision instead of
+    # decaying into a comment nobody rechecks — `ops/ci/schedule_punctuality.py`
+    # rechecks it daily against the measurement.
     - cron: '25 0 * * 1-5'
     - cron: '47 0 * * 1-5'
     - cron: '9 1 * * 1-5'

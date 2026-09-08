@@ -97,6 +97,26 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: python3 ops/ci/backstop_rehearsal.py --strict
 
+      # `assets/data/schedule-drift.json` has measured GitHub's delivery
+      # lateness twice a week since #781 and nothing read it, while five
+      # workflow headers carried a punctuality budget in prose ("~2.25h before
+      # the 08:00 HKT brief", "buffer for GH Actions' 1-2h delay"). When the
+      # drift regime stepped from ~72min to ~271min on 2026-08-27, every one of
+      # those sentences quietly became false — brief-fallback has not landed
+      # inside its own usefulness window on any of the last 10 scheduled days.
+      #
+      # Offline and deterministic: it reads two tracked files, no `gh`, so
+      # unlike the rollup below it can carry a verdict. Red only on a SUSTAINED
+      # breach of an *enforced* deadline — one late arrival is GitHub having a
+      # bad hour, and a deadline we have decided to live with is declared
+      # `accepted` in the contract rather than reddening the run forever.
+      - name: Scheduled-workflow punctuality
+        # `always()` for the same reason as the step above: the health check
+        # exits non-zero on any miss, which would skip this on the days it
+        # matters.
+        if: always()
+        run: python3 ops/ci/schedule_punctuality.py --strict
+
       - name: Fold Actions-side failures into the daily summary
         # cron_health_check only sees host-side products; a scheduled workflow
         # that fails (or stops firing) on the Actions side was previously
