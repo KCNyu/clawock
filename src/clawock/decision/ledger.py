@@ -355,6 +355,18 @@ def legacy_action_to_decision(action: dict, plan_date: str, ordinal: int = 0) ->
         "evidence_event_id": action.get("evidence_event_id"),
         "regime": action.get("regime") if action.get("regime") in REGIMES else "unknown",
         "rationale": action.get("rationale") or "",
+        # The debate's verdict compressed to one bit, and the story that would
+        # end this position. Both are in the skill's own decision example, both
+        # have a consumer — `contested_rate` on the dashboard, the thesis kill
+        # switch `check_research_artifacts` reports unarmed — and neither had a
+        # slot here, so this builder dropped them on the way in. Measured
+        # 2026-09-08: `contested` absent from all 436 decisions of the last 40
+        # plans (`contested_coverage: 0`, `contested_rate: null`, live on the
+        # site), `thesis_invalidation` from all 809 in the ledger.
+        "contested": action.get("contested") if isinstance(
+            action.get("contested"), bool) else None,
+        "thesis_invalidation": (action.get("thesis_invalidation") or "").strip()
+        or None,
         # The Bull/Bear/devil's-advocate/Judge structure behind this row, when
         # the brief emitted it. None, not {}, when it did not: absent and empty
         # are different facts and coverage counts them differently (#1117).
