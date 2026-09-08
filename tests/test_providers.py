@@ -222,3 +222,69 @@ def test_running_a_cron_job_reports_instead_of_raising():
 
     ok, tail = run_cron_job("job-1", runner=explode)
     assert not ok and "TimeoutError" in tail
+
+
+def test_a_gateway_timeout_is_not_a_refusal():
+    """2026-09-08, measured on the desk: both of the day's "failed" sends landed.
+
+        10:34:20  co-send gives up      GatewayTransportError: gateway timeout
+                                        after 10000ms
+        10:34:30  gateway logs          [telegram] outbound send ok messageId=1318
+                  [ws] res ✓ message.action 16499ms
+        10:43:15  watchdog mirror       same 10000ms timeout
+        10:43:40  gateway logs          messageId=1319, 25708ms
+
+    The mirror at 10:43 exists only because 10:34 was written down as a
+    failure, so kcn got the 10:34 intraday card twice while `watchdog.jsonl`
+    recorded the slot as undelivered. The CLI giving up is not the gateway
+    giving up, and it is the same event as our own subprocess timeout — which
+    this file already calls `unknown` one test above.
+    """
+    out = ("GatewayTransportError: gateway timeout after 10000ms\n"
+           "Gateway target: ws://127.0.0.1:18789\nSource: local loopback")
+    sent = OpenClawDelivery(runner=lambda cmd: (1, out)).send(
+        "telegram", "123", "hello")
+
+    assert sent.status == "unknown"
+    assert sent.reached_target is False
+    # Still worth a backstop: `unknown` is not a claim that it arrived.
+    assert sent.worth_mirroring is True
+
+
+def test_the_cli_is_told_to_wait_as_long_as_we_are_waiting():
+    """The 10s ceiling is the CLI's default, and it is ours to raise.
+
+    `resolveGatewayCallTimeout` in the runtime takes the call timeout from the
+    handshake timeout whenever that is above its 10 000 floor, so one env var
+    moves it. Measured against a socket that accepts and never answers:
+    unset → gave up at 13.2s wall, `OPENCLAW_HANDSHAKE_TIMEOUT_MS=25000` →
+    28.0s. Nothing waits longer than the subprocess budget it was given, which
+    is where this number comes from.
+    """
+    import clawock.providers.delivery as delivery
+
+    seen = {}
+
+    class _Done:
+        returncode, stdout, stderr = 0, '{"messageId":"7"}', ""
+
+    def fake_run(cmd, **kwargs):
+        seen.update(kwargs)
+        return _Done()
+
+    original = delivery.subprocess.run
+    delivery.subprocess.run = fake_run
+    try:
+        provider = OpenClawDelivery(binary="/bin/true", timeout=60)
+        result = provider.send("telegram", "123", "hi")
+    finally:
+        delivery.subprocess.run = original
+
+    assert result.status == "confirmed"
+    assert seen["timeout"] == 60
+    assert seen["env"]["OPENCLAW_HANDSHAKE_TIMEOUT_MS"] == "45000"
+    # Under the process budget it is spawned with, always: a CLI still waiting
+    # when we kill it turns a reportable error into an opaque one.
+    assert int(seen["env"]["OPENCLAW_HANDSHAKE_TIMEOUT_MS"]) < 60 * 1000
+    # And never under the runtime's own floor, where it would be inert.
+    assert OpenClawDelivery(timeout=5).rpc_ceiling_ms() == 10_000

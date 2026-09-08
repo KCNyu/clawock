@@ -397,8 +397,21 @@ def send_telegram(target, message, dry_run):
     Telegram is the cold-session-proof backup channel: unlike WeChat it has no
     idle-session silent-drop (the #81096/#81316 wontfix), so when the intraday
     watchdog judges a WeChat push probably dropped it mirrors here instead."""
-    result = _delivery().send('telegram', str(target), message, dry_run=dry_run)
+    result = telegram_result(target, message, dry_run)
     return result.status != 'failed', result.detail
+
+
+def telegram_result(target, message, dry_run):
+    """The full four-state result of a Telegram send, for callers that log it.
+
+    `send_telegram` collapses this to a boolean because every existing caller
+    branches on one. But `confirmed` (the gateway named a message id) and
+    `unknown` (we stopped waiting for it, or the exit lost a race with it) are
+    both `True` there, and a log that writes them the same way cannot answer
+    "did this slot actually go out" afterwards — which is the question the
+    2026-09-08 10:34 slot could not be asked.
+    """
+    return _delivery().send('telegram', str(target), message, dry_run=dry_run)
 
 
 BRIEF_CONTRACT_MODE = 'daily-deep-brief'
@@ -748,11 +761,18 @@ def cosend_telegram(message, tag, dry_run=False):
     ALWAYS also push the same body to Telegram (the cold-proof channel, @clawock_bot).
     A duplicate when WeChat did land is far cheaper than a silent miss. Best-effort:
     never raises; logs the outcome to watchdog.jsonl. Returns (ok, tail_of_output)."""
+    status = 'failed'
     try:
-        ok, out = send_telegram(KCN_TELEGRAM, message, dry_run)
+        result = telegram_result(KCN_TELEGRAM, message, dry_run)
+        ok, out, status = result.status != 'failed', result.detail, result.status
     except Exception as e:
         ok, out = False, str(e)[:300]
     entry = {'tag': tag, 'action': 'telegram-cosend', 'sent_ok': bool(ok),
+             # `sent_ok` answers "should anything else be done about this slot".
+             # It cannot also answer "did it arrive": a co-send that timed out
+             # waiting for the gateway is `unknown` and reads as True there.
+             # Write the status down so the two are separable in the log.
+             'status': status,
              'dry_run': bool(dry_run)}
     if not ok:
         # The failure tail used to be returned to a caller that dropped it, so a
