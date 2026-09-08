@@ -389,3 +389,72 @@ def test_a_restated_order_is_one_line_that_dates_itself(ps, ledger, call):
     assert len(rows) == 1
     assert rows[0]["restated_count"] == 2
     assert rows[0]["open_since"] == "2026-07-24"
+
+
+def _plan_with_levels(tmp_path, levels):
+    memory = tmp_path / 'memory'
+    memory.mkdir(parents=True, exist_ok=True)
+    (memory / '2026-09-08-plan.json').write_text(
+        json.dumps({'date': '2026-09-08', 'decisions': [],
+                    'watch_levels': levels}, ensure_ascii=False),
+        encoding='utf-8')
+    return memory
+
+
+def test_the_levels_the_morning_set_reach_the_slots_that_watch_the_tape(tmp_path):
+    """2026-09-08: the plan named `hstech_breakdown: 4500`, HSTECH traded around
+    4460–4530 all day, and not one intraday slot could quote the number.
+
+    `watch_levels` lived in the morning card and the plan file only. This is the
+    same shape as #1337 one level down — the context that decides is full of
+    risk and state and carries none of the day's own lines.
+    """
+    from clawock.decision import plans
+
+    levels = plans.watch_levels(
+        today='2026-09-08',
+        memory_dir=_plan_with_levels(tmp_path, {
+            'hstech_breakdown': 4500,
+            'book_force_derisk_usd': -3500,
+            'cpi_2026-09-11_soft_boost': '若 CPI <= 2.8% 软数据, 加仓窗口开',
+        }))
+
+    assert levels['hstech_breakdown'] == 4500
+    # Verbatim, including the prose ones: these keys are free text the model
+    # writes each morning, so coercing them would be inventing a schema.
+    assert levels['cpi_2026-09-11_soft_boost'].startswith('若 CPI')
+
+
+def test_a_missing_or_broken_plan_is_no_levels_not_an_exception(tmp_path):
+    """Same rule as the rest of this surface: a malformed brief artifact must
+    never take down a 30-minute cron."""
+    from clawock.decision import plans
+
+    assert plans.watch_levels(today='2026-09-08', memory_dir=tmp_path) == {}
+
+    memory = tmp_path / 'broken'
+    memory.mkdir()
+    (memory / '2026-09-08-plan.json').write_text('{not json', encoding='utf-8')
+    assert plans.watch_levels(today='2026-09-08', memory_dir=memory) == {}
+
+    # A plan with no levels block, and one whose block is the wrong type.
+    for payload in ({'date': '2026-09-08'}, {'watch_levels': ['4500']}):
+        (memory / '2026-09-08-plan.json').write_text(
+            json.dumps(payload), encoding='utf-8')
+        assert plans.watch_levels(today='2026-09-08', memory_dir=memory) == {}
+
+
+def test_the_intraday_context_carries_them():
+    """The projection is the point: a reader of the context can name the line."""
+    import inspect
+    import re
+
+    from clawock.harness import intraday_preflight
+
+    source = inspect.getsource(intraday_preflight)
+    # Static, like the data-plane timeout gate next door: the context dict is
+    # assembled inline in `main()` behind a live market fetch, so the readable
+    # assertion is that the key is wired at all — the two tests above own what
+    # it resolves to. Whitespace-tolerant on purpose; alignment is not contract.
+    assert re.search(r"'watch_levels'\s*:\s*plan_surface\.watch_levels\(", source), (
+        'the intraday context must carry the levels the plan set')

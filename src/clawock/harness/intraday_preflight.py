@@ -1033,6 +1033,10 @@ def main(argv=None):
         't0_setups':        t0_setups,
         'peer_scan':        collect_peers(args.market),
         'plan_context':     plan_ctx,
+        # The lines the 08:00 plan set for the book and the indices. Carried,
+        # not evaluated — see `plan_surface.watch_levels` for why the arithmetic
+        # `plan_triggers` does on a decision's price cannot be done on these.
+        'watch_levels':     plan_surface.watch_levels(),
         'mover_thesis':     mover_thesis,
         'mover_news':       mover_news_ctx,
         'active_information_candidates': active_information_ctx,
