@@ -39,6 +39,21 @@ from clawock.publish import GitBranchStore  # noqa: E402
 from publish_data_branch import DATA_BRANCH, DATA_PLANE_FILES  # noqa: E402
 
 
+READ_FAILED = "data_plane_read_failed"
+
+
+def note_failure(reason: str) -> None:
+    """Count a failed read where a rate is readable. Never raises — same rule as
+    the writer's (`ops/publish/publish_data_branch.py`): the reason is a class,
+    not this incident's text, because the sink aggregates on it."""
+    try:
+        from clawock.automation import workflow_outcomes
+
+        workflow_outcomes.note_degradation(None, READ_FAILED, reason)
+    except Exception:
+        pass
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repo", type=Path, default=ROOT)
@@ -56,6 +71,7 @@ def main() -> int:
         # reached the caller as a traceback instead of a diagnosis (2026-09-07).
         print(f"✗ data-plane: reading {args.remote}/{args.branch} exceeded "
               f"{exc.timeout:g}s — the remote hung", file=sys.stderr)
+        note_failure("the remote hung past the git call timeout")
         return 1
     except subprocess.CalledProcessError as exc:
         detail = (exc.stderr or b"")
@@ -63,9 +79,11 @@ def main() -> int:
             detail = detail.decode("utf-8", "replace")
         print(f"✗ data-plane: cannot read {args.remote}/{args.branch}: "
               f"{detail.strip() or exc}", file=sys.stderr)
+        note_failure("git could not read the branch")
         return 1
     except FileNotFoundError as exc:
         print(f"✗ data-plane: {exc}", file=sys.stderr)
+        note_failure("the branch does not carry every file of a generation")
         return 1
     print(f"✓ data-plane: {len(written)} outputs from {args.remote}/{args.branch}")
     return 0

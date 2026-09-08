@@ -52,6 +52,37 @@ DATA_PLANE_EXTRA = (
 )
 DATA_PLANE_FILES = output_paths(ROOT) + DATA_PLANE_EXTRA
 
+# Failure classes, and the whole reason they are classes: `note_degradation`
+# aggregates on (kind, detail), so a detail carrying this incident's text —
+# a sha, a hostname, git's wording — writes a new row every time and the count
+# that makes a rate readable never rises above 1. The incident's text is already
+# on stderr, one line above.
+PUBLISH_FAILED = "data_plane_publish_failed"
+
+
+def note_failure(kind: str, reason: str) -> None:
+    """Record a publisher failure where it can be counted, and never raise.
+
+    The publisher runs every 20 minutes from host cron. Until now a failed tick
+    left exactly one undated line in `logs/publish_dashboard.log`
+    (`logs/dashboard_build_status.json` is a snapshot: the next tick overwrites
+    it, so a failure that repaired itself is gone from every structured
+    surface). That is the same state #1146 described for refused bars — "a
+    source that fails once a quarter and one that fails every week look
+    identical" — and the same answer applies: append it where it accrues a
+    count and a first/last timestamp.
+
+    Best-effort by construction. A publisher that crashed while recording that
+    it had failed would be strictly worse than one that failed quietly.
+    """
+    try:
+        from clawock.automation import workflow_outcomes
+
+        workflow_outcomes.note_degradation(None, kind, reason)
+    except Exception:
+        pass
+
+
 # Same bot identity the scheduled publisher commits under. Injected per
 # invocation by the store (`git -c`), never written to git config — a persistent
 # identity would clobber kcn's interactive one.
@@ -104,6 +135,7 @@ def main() -> int:
             # replaced wholesale, so a missing member is not "unchanged", it is
             # deleted from the data plane.
             print(f"✗ data-plane: cannot read {path}: {exc}", file=sys.stderr)
+            note_failure(PUBLISH_FAILED, "an output file could not be read")
             return 1
 
     store = GitBranchStore(
@@ -120,6 +152,7 @@ def main() -> int:
         print(f"✗ data-plane: {' '.join(map(str, exc.cmd))!r} exceeded "
               f"{exc.timeout:g}s — the remote hung, the generation was not "
               f"published", file=sys.stderr)
+        note_failure(PUBLISH_FAILED, "the remote hung past the git call timeout")
         return 1
     except subprocess.CalledProcessError as exc:
         # Hooks commonly explain a refusal on stdout while git writes only its
@@ -131,9 +164,11 @@ def main() -> int:
             part.strip() for part in (exc.stdout, exc.stderr) if part and part.strip()
         ) or str(exc)
         print(f"✗ data-plane: git failed:\n{detail}", file=sys.stderr)
+        note_failure(PUBLISH_FAILED, "git refused the publish")
         return 1
     except ValueError as exc:
         print(f"✗ data-plane: {exc}", file=sys.stderr)
+        note_failure(PUBLISH_FAILED, "the generation was rejected before publishing")
         return 1
     if not result.changed:
         # No deploy request either: the site already serves this generation, and
@@ -157,6 +192,11 @@ def main() -> int:
         detail = getattr(exc, "stderr", "") or exc
         print(f"✗ data-plane: published, but the site deploy was not requested: "
               f"{detail}", file=sys.stderr)
+        # Its own class: the branch has the generation and the site does not,
+        # which is the one failure here that does not repair itself on the next
+        # tick — the next tick finds the branch unchanged and asks for nothing.
+        note_failure("data_plane_deploy_not_requested",
+                     "published to the branch, the site deploy was refused")
         return 1
     print(f"✓ data-plane: requested {receipt}")
     return 0
