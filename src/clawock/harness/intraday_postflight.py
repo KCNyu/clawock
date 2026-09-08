@@ -465,6 +465,11 @@ def main(argv=None):
     # record the real send result to a marker so intraday_watchdog only re-sends on
     # a CONFIRMED failure (never doubles a report that went out here).
     wechat_sent = None
+    # Why the WeChat leg did not land, when it did not. `wechat_sent=false` is
+    # what a health surface counts; without the reason next to it, a channel
+    # that is DOWN and a channel that drops one now and then are the same row
+    # (#1231 made exactly this argument for the Telegram co-send).
+    send_out = ''
     tg_ok = None
     # Set when claim_send refuses this process the send right: it then has no
     # evidence about whether delivery happened and must not file a
@@ -605,6 +610,10 @@ def main(argv=None):
         heartbeat_state,
         job_name=heartbeat.get('job'), slot=heartbeat.get('slot'),
         postflight_status=product, wechat_sent=wechat_sent,
+        # Only when it failed: a reason field on a send that worked is noise in
+        # a record read by eye, and the same rule the co-send log follows.
+        wechat_detail=(send_out or 'no output from the transport')[-200:]
+        if wechat_sent is False else None,
         telegram_sent=tg_ok, dashboard_published=dashboard_published,
         data_plane_status=data_plane_status,
         insights_sidecar=insights_written, issue_count=len(issues),

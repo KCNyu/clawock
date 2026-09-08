@@ -1315,6 +1315,10 @@ def check_model_chain_health(r):
 
 DELIVERY_DEGRADED_FAILURE_RATE = 0.20
 DELIVERY_HEALTHY_SUCCESS_RATE = 0.95
+#: Consecutive failed slots that stop reading as "it drops one now and then".
+#: Intraday fires every 30 minutes, so three in a row is an hour and a half of
+#: one channel carrying alone — and it is the shape a rate cannot show.
+DELIVERY_RUN_IS_AN_OUTAGE = 3
 
 
 def check_delivery_channel_health(r):
@@ -1362,16 +1366,18 @@ def check_delivery_channel_health(r):
         channels = {k[:-3]: bool(v) for k, v in delivery.items()
                     if k.endswith('_ok') and isinstance(v, bool)}
         if channels:
-            slots.append((rec.get('slot') or '', channels))
+            reasons = {k[:-7]: str(v)[:120] for k, v in delivery.items()
+                       if k.endswith('_detail') and v}
+            slots.append((rec.get('slot') or '', channels, reasons))
     if not slots:
         return
     slots.sort(key=lambda s: s[0])
     slots = slots[-RUN_SCAN_LIMIT:]
 
-    names = sorted({name for _, ch in slots for name in ch})
+    names = sorted({name for _, ch, _ in slots for name in ch})
     totals = {n: [0, 0] for n in names}  # name -> [ok, seen]
     silent = []
-    for slot, ch in slots:
+    for slot, ch, _reasons in slots:
         for name, ok in ch.items():
             totals[name][1] += 1
             totals[name][0] += 1 if ok else 0
@@ -1381,6 +1387,31 @@ def check_delivery_channel_health(r):
     def rate(name):
         ok, seen = totals[name]
         return ok / seen if seen else 1.0
+
+    def current_run(name):
+        """Consecutive most-recent slots this channel failed, and why.
+
+        A rate cannot tell "drops one now and then" from "has been down since
+        lunch": both move it by the same amount. 2026-09-08 was the second
+        shape — WeChat carried every slot to 13:33 and then failed 14:00, 14:30
+        and 15:00 in a row on `ret=-2 prepare failed`, while the 38-slot rate
+        drifted from 79% to 71% and said nothing about when.
+        """
+        run, reason = 0, ''
+        for _slot, ch, reasons in reversed(slots):
+            if ch.get(name) is not False:
+                break
+            run += 1
+            reason = reason or reasons.get(name, '')
+        return run, reason
+
+    def run_phrase(name):
+        """"failing on the last N consecutive slot(s) (why)", or '' below the bar."""
+        run, reason = current_run(name)
+        if run < DELIVERY_RUN_IS_AN_OUTAGE:
+            return ''
+        return (f'{name} failing on the last {run} consecutive slot(s)'
+                + (f' ({reason})' if reason else ''))
 
     tally = ' · '.join(f'{n} {totals[n][0]}/{totals[n][1]}' for n in names)
     if silent:
@@ -1395,13 +1426,22 @@ def check_delivery_channel_health(r):
                if (1 - rate(n)) >= DELIVERY_DEGRADED_FAILURE_RATE and n not in healthy]
     if rotting and healthy:
         named = '; '.join(f'{n} {rate(n) * 100:.0f}%' for n in rotting)
+        runs = [phrase for phrase in (run_phrase(n) for n in rotting) if phrase]
         r.add('delivery channels', WARNING,
-              f'{named} while {"/".join(healthy)} carries every slot — nothing is '
+              (('; '.join(runs) + ' — ') if runs else '')
+              + f'{named} while {"/".join(healthy)} carries every slot — nothing is '
               f'lost today, which is why this leg can rot unnoticed '
               f'({tally} over the last {len(slots)} slots)')
     else:
-        r.add('delivery channels', OK,
-              f'{tally} over the last {len(slots)} slots')
+        runs = [phrase for phrase in (run_phrase(n) for n in names) if phrase]
+        if runs:
+            # A channel can be inside its healthy rate and down right now: the
+            # rate is the last 38 slots, the run is the last hour.
+            r.add('delivery channels', WARNING,
+                  '; '.join(runs) + f' ({tally} over the last {len(slots)} slots)')
+        else:
+            r.add('delivery channels', OK,
+                  f'{tally} over the last {len(slots)} slots')
 
 
 def check_host_cron_logs(r):

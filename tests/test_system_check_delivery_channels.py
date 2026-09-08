@@ -114,3 +114,54 @@ def test_a_ledger_that_is_not_there_is_silent(system_check, monkeypatch, tmp_pat
     r = system_check.Result()
     system_check.check_delivery_channel_health(r)
     assert not [row for row in r.checks if row[0] == "delivery channels"]
+
+
+def test_a_channel_down_right_now_is_named_as_a_run_not_only_a_rate(
+        system_check, monkeypatch, tmp_path):
+    """2026-09-08: WeChat carried every slot to 13:33, then failed 14:00, 14:30,
+    15:00 and 15:30 in a row on `ret=-2 prepare failed`.
+
+    The 38-slot rate moved from 79% to 68% — the same drift a channel that drops
+    one slot now and then produces. A rate is an average over the window; the
+    question an operator has at 15:30 is whether the leg is there *now*.
+    """
+    slots = ([{"wechat_ok": True, "telegram_ok": True}] * 30
+             + [{"wechat_ok": False, "telegram_ok": True,
+                 "wechat_detail": "OutboundDeliveryError: sendMessage ret=-2 "
+                                  "errmsg=prepare failed"}] * 4)
+    rows = _run(system_check, monkeypatch, tmp_path, slots)
+
+    assert len(rows) == 1
+    _, level, message = rows[0]
+    assert level == system_check.WARNING
+    assert "last 4 consecutive slot(s)" in message
+    # And it says why, because the record now carries the transport's reason.
+    assert "ret=-2" in message
+
+
+def test_a_run_is_reported_even_while_the_rate_still_reads_healthy(
+        system_check, monkeypatch, tmp_path):
+    """The rate is the last 38 slots; the run is the last two hours.
+
+    A channel that has been perfect for weeks and died an hour ago sits well
+    inside its healthy rate — which is exactly the moment somebody would want
+    to be told.
+    """
+    slots = ([{"wechat_ok": True, "telegram_ok": True}] * 60
+             + [{"wechat_ok": False, "telegram_ok": True}] * 3)
+    rows = _run(system_check, monkeypatch, tmp_path, slots)
+
+    assert len(rows) == 1
+    _, level, message = rows[0]
+    assert level == system_check.WARNING, 'a healthy rate must not hide a run'
+    assert "last 3 consecutive slot(s)" in message
+
+
+def test_the_same_rate_scattered_is_not_a_run(system_check, monkeypatch, tmp_path):
+    """Same failure count, spread out: that is the case the rate already covers,
+    and calling it an outage would make the run signal meaningless."""
+    slots = [{"wechat_ok": i % 4 != 0, "telegram_ok": True} for i in range(32)]
+    rows = _run(system_check, monkeypatch, tmp_path, slots)
+
+    assert len(rows) == 1
+    assert "consecutive" not in rows[0][2]
