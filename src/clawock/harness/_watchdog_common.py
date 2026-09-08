@@ -371,9 +371,13 @@ def resolve_wechat_target(market=None):
 
 def _delivery(account=None):
     """The delivery provider for this workspace. OpenClaw today, by construction
-    swappable — that is the whole point of the interface."""
-    from clawock.providers.delivery import OpenClawDelivery
-    return OpenClawDelivery(account=account)
+    swappable — that is the whole point of the interface.
+
+    Resolved in the adapter layer so the harness is not the place that decides:
+    the operator health check needs the same answer and may not import this
+    module."""
+    from clawock.providers.delivery import default_provider
+    return default_provider(account)
 
 
 def send_wechat(channel, to, account, message, dry_run):

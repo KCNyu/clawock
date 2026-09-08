@@ -199,6 +199,18 @@ class OpenClawDelivery:
                               idempotency_key=idempotency_key)
 
 
+def default_provider(account: str | None = None):
+    """The provider this workspace delivers through.
+
+    The choice of implementation belongs in the adapter layer, not in whichever
+    caller happens to need one — `providers/__init__.py` exists to be the one
+    place that knows. The harness asks here, and so does the operator health
+    check, which must not import the harness at all
+    (`test_system_check_reads_cron_state_only_through_the_core_provider`).
+    """
+    return OpenClawDelivery(account=account)
+
+
 @dataclass
 class NullDelivery:
     """Records instead of sending — foreign workspaces, dry runs, tests.
