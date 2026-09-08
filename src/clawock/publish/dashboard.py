@@ -1204,7 +1204,77 @@ def build_decision_traces(limit=40, workspace=None):
                     t['holdPnl'] = held_pnl[ticker]
                 traces.append(t)
     traces.sort(key=lambda t: (t.get('date') or ''), reverse=True)
-    return traces[:limit]
+    return [_drop_decorative_empties(trace) for trace in traces[:limit]]
+
+
+# Absent means "there was nothing to show". These are the keys where that is the
+# ONLY thing absence can mean — decoration the card renders when present and
+# skips when not. Everything else keeps its explicit `null`, because for the
+# rest of this row `null` is an ANSWER: `t1: null` says a fill has no T+1
+# verdict (checked, none), `decision: null` says a fill had no paired decision
+# at all — which is the single most interesting row on the card — and
+# `sizeShares: null` says the plan's share count would not parse. Dropping those
+# would make "we looked and there is none" identical to "nobody looked", which
+# is the exact defect this codebase spent 2026-09-07 removing from six other
+# places. Bytes are not worth re-introducing it.
+DECORATIVE_TRACE_KEYS = frozenset({
+    'thesis', 'invalidation', 'bull', 'bear', 'emotion', 'emotionNote', 'note',
+})
+
+
+def _drop_decorative_empties(value):
+    """Recursively drop only DECORATIVE_TRACE_KEYS whose value is empty.
+
+    13% of this block was keys carrying no information (4,888 bytes measured
+    2026-09-08) against 9,450 bytes of headroom under the 200KB cap. This takes
+    back the half of that which is safe to take.
+    """
+    if isinstance(value, dict):
+        cleaned = {}
+        for key, item in value.items():
+            item = _drop_decorative_empties(item)
+            if key in DECORATIVE_TRACE_KEYS and (
+                    item is None or item == '' or item == [] or item == {}):
+                continue
+            cleaned[key] = item
+        return cleaned
+    if isinstance(value, list):
+        return [_drop_decorative_empties(item) for item in value]
+    return value
+
+
+
+def _without_empty_values(value):
+    """Drop keys whose value carries nothing, recursively.
+
+    13% of this block was keys with no information: `thesis: null`,
+    `invalidation: []`, `bull`/`bear`/`emotion`/`emotionNote`/`realizedPnl`
+    null on most rows. 4,888 bytes measured on 2026-09-08, against 9,450 bytes
+    of headroom under the 200KB cap — so half the remaining room was being spent
+    saying nothing.
+
+    SAFE BECAUSE THE READERS WERE CHECKED, not because it looks harmless.
+    `dashboard.render.js` reads every one of these through truthiness
+    (`d.rationale || d.bull || ""`, `d.emotionNote ? … : ""`, `e.bear || e.news`)
+    or `??` — and `undefined` behaves exactly as `null` under both. There is no
+    `=== null` and no `in` test against a trace field; `test_traces_readers_do_
+    not_depend_on_the_key_existing` keeps it that way.
+
+    SCOPED TO THIS BLOCK ON PURPOSE. A blanket strip over the whole payload
+    would be wrong: in a chart series `null` means "gap in the data" and
+    removing it shifts every point after it. This block has no series.
+    """
+    if isinstance(value, dict):
+        cleaned = {}
+        for key, item in value.items():
+            item = _without_empty_values(item)
+            if item is None or item == '' or item == [] or item == {}:
+                continue
+            cleaned[key] = item
+        return cleaned
+    if isinstance(value, list):
+        return [_without_empty_values(item) for item in value]
+    return value
 
 
 def _as_number(value):
