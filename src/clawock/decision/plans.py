@@ -264,6 +264,36 @@ def _settle_override_backlog(dropped_rows, ledger_path):
         decision_v2.write_decisions(full, ledger_path)
 
 
+def watch_levels(*, today=None, memory_dir=None) -> dict:
+    """The book- and index-level lines this morning's plan wrote down.
+
+    Carried into the intraday context for the same reason `condition_price` is:
+    **the process that watches the tape could not see the numbers the process
+    that wrote the plan set.** On 2026-09-08 the plan named
+    `hstech_breakdown: 4500` and `book_force_derisk_usd: -3500`; HSTECH traded
+    around 4460–4530 and the book sat at −5,401 USD, and not one of the day's
+    intraday slots could quote either line, because `watch_levels` existed only
+    in the morning card and the plan file (#1337 is the same shape one level
+    down: context full of risk and state, none of the day's own levels).
+
+    Carried verbatim, and deliberately not evaluated here. `plan_surface.
+    triggered_conditions` can do arithmetic on a decision's `price_above`
+    because that field is typed and its subject is a holding the quote table
+    prices. These keys are free text the model invents each morning — the same
+    name could mean a level, a daily move or a cumulative P&L — so computing a
+    breach would be inventing a meaning nobody declared. Naming what the plan
+    said is the part that is true.
+    """
+    try:
+        memory = Path(memory_dir) if memory_dir else MEMORY
+        today = today or datetime.now().strftime("%Y-%m-%d")
+        plan = json.loads((memory / f"{today}-plan.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError, TypeError):
+        return {}
+    levels = plan.get("watch_levels")
+    return dict(levels) if isinstance(levels, dict) else {}
+
+
 def open_decisions_context(*, leg=None, today=None, ledger=None, memory_dir=None):
     """Open decisions the report/intraday prose has to reconcile against.
 
