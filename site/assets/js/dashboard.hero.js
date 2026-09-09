@@ -1151,13 +1151,31 @@
     return { cells, byDisposition };
   }
 
+  // 一组明细里「今天没事」的那些行折起来。#1418 把每条泳道做成了自己的展开
+  // 器，但展开之后仍然是一坨流水账：投递那组在 390px 上是 1200px，11 个 job
+  // 里 9 个写着「正常」——读者要滚到底才敢说今天没事。有事的排在前面、一直
+  // 摊开；没事的收进一个展开器，点开还是同一批行。收起时用 hidden，元素直接
+  // 退出 Tab 与读屏（这里不做 0fr 动画，所以不需要另外再上 inert）。
+  function foldQuiet(id, rows, label) {
+    const loud = rows.filter(r => !r.quiet).map(r => r.html).join("");
+    const quiet = rows.filter(r => r.quiet);
+    if (!quiet.length) return loud;
+    return loud
+      + `<button type="button" class="dh-fold" data-fold="${id}"`
+      + ` aria-expanded="false" aria-controls="dh-fold-${id}">`
+      + `<i></i>${escapeHtml(label(quiet.length))}</button>`
+      + `<div class="dh-foldbody" id="dh-fold-${id}" hidden>`
+      + quiet.map(r => r.html).join("")
+      + `</div>`;
+  }
+
   // 逐项里的一组：沿用这张牌已有的 .dh-row 五列语法（名/位置/条/说明/状态），
   // 灯放进 .dh-bar 那一列——说明列现在印的是那一句「为什么」，不是裸时刻表。
   function cronScheduleRows(cs) {
     const jobs = (cs && cs.jobs) || [];
     if (!jobs.length) return "";
     const RANK = { needs_action: 0, known_not_fixed: 1, watch: 2 };
-    return `<div class="dh-sub">定时任务 · 今天每槽</div>` + jobs.map(j => {
+    const rows = jobs.map(j => {
       const slots = (j.slots || []).map(s => ({ ...s, state: cronState(s.state) }));
       const noted = slots.filter(s => s.note)
         .sort((a, b) => (RANK[a.note.disposition] ?? 9) - (RANK[b.note.disposition] ?? 9));
@@ -1178,13 +1196,16 @@
       }).join("");
       const rowTone = j.unmonitored ? "idle"
         : worst ? (worst.note.disposition === "needs_action" ? "bad" : "warn") : "ok";
-      return `<div class="dh-row is-cron" data-tone="${rowTone}">`
+      // 「按时」和「待跑」都是今天没事；「账本看不到」不是——那一行留在上面。
+      return { quiet: rowTone === "ok", html: `<div class="dh-row is-cron" data-tone="${rowTone}">`
         + `<span class="dh-name">${escapeHtml(j.job)}</span>`
         + `<span class="dh-file">${escapeHtml(slots.length > 1 ? `${slots.length} 槽` : slots[0] ? slots[0].at : "")}</span>`
         + `<span class="dh-bar is-lamps">${lamps}</span>`
         + `<span class="dh-detail">${escapeHtml(why)}</span>`
-        + `<span class="dh-state">${escapeHtml(state)}</span></div>`;
-    }).join("");
+        + `<span class="dh-state">${escapeHtml(state)}</span></div>` };
+    });
+    return `<div class="dh-sub">定时任务 · 今天每槽</div>`
+      + foldQuiet("cron", rows, count => `其余 ${count} 个 job 今天按时或待跑`);
   }
   function renderDataHealth() {
     const root = document.getElementById("data-health");
@@ -1428,38 +1449,45 @@
         : "";
 
       const unnamed = Math.max(0, droppedTotal - dropped.length);
+      // 微信掉投整族是「已拍板不修」的台账（#771），一条都不需要动手 ⇒ 整族
+      // 折起来，标题那行仍然说清楚是几档、谁兜的。
+      const deliveryLedger = dropped.map(r => ({ quiet: true,
+        html: `<div class="dh-row is-delivery">`
+          + `<span class="dh-name">${escapeHtml(r.job || "未具名任务")}</span>`
+          + `<span class="dh-file">${escapeHtml(String(r.slot || "").slice(0, 16).replace("T", " "))}</span>`
+          + `<span class="dh-bar"></span>`
+          + `<span class="dh-detail">微信 sendMessage ret=-2 prepare failed</span>`
+          + `<span class="dh-state">TG 已兜</span></div>` }));
+      // 名单有上限，超出的那几档必须说出来 —— 否则「掉投 9 档」配 8 行
+      // 会读成列全了。
+      if (unnamed) {
+        deliveryLedger.push({ quiet: true,
+          html: `<div class="dh-row is-delivery"><span class="dh-name muted">另有 ${unnamed} 档</span>`
+            + `<span class="dh-file"></span><span class="dh-bar"></span>`
+            + `<span class="dh-detail">更早的槽位见 workflow-outcomes.json</span>`
+            + `<span class="dh-state"></span></div>` });
+      }
       const deliveryRows = dropped.length
         ? `<div class="dh-sub">投递 · 微信掉投（上游 ret=-2，已知不修）</div>`
-          + dropped.map(r => `<div class="dh-row is-delivery">`
-            + `<span class="dh-name">${escapeHtml(r.job || "未具名任务")}</span>`
-            + `<span class="dh-file">${escapeHtml(String(r.slot || "").slice(0, 16).replace("T", " "))}</span>`
-            + `<span class="dh-bar"></span>`
-            + `<span class="dh-detail">微信 sendMessage ret=-2 prepare failed</span>`
-            + `<span class="dh-state">TG 已兜</span></div>`).join("")
-          // 名单有上限，超出的那几档必须说出来 —— 否则「掉投 9 档」配 8 行
-          // 会读成列全了。
-          + (unnamed
-            ? `<div class="dh-row is-delivery"><span class="dh-name muted">另有 ${unnamed} 档</span>`
-              + `<span class="dh-file"></span><span class="dh-bar"></span>`
-              + `<span class="dh-detail">更早的槽位见 workflow-outcomes.json</span>`
-              + `<span class="dh-state"></span></div>`
-            : "")
+          + foldQuiet("wechat", deliveryLedger, count => `${count} 档掉投的台账`)
         : "";
 
-      const fileRows = `<div class="dh-sub">数据面 · 逐项</div>` + files
+      const fileList = files
         .slice()
         .sort((a, b) => usage(b) - usage(a))
         .map(f => {
           const st = stateOf(f);
           const label = st === "missing" ? "缺失" : st === "late" ? "逾期" : "在期";
-          return `<div class="dh-row is-${st}">`
+          return { quiet: st === "ok", html: `<div class="dh-row is-${st}">`
             + `<span class="dh-name">${escapeHtml(dataFileCn(f.name))}</span>`
             + `<span class="dh-file">${escapeHtml(f.name)}</span>`
             + `<span class="dh-bar"><i style="width:${Math.round(usage(f) * 100)}%"></i></span>`
             + `<span class="dh-detail">${escapeHtml(detailOf(f))}</span>`
             + `<span class="dh-state">${label}</span>`
-            + `</div>`;
-        }).join("");
+            + `</div>` };
+        });
+      const fileRows = `<div class="dh-sub">数据面 · 逐项</div>`
+        + foldQuiet("files", fileList, count => `在期的 ${count} 个数据面`);
 
       // 体检以前在逐项里没有自己的一组：泳道只印得下最坏的那一条，WARN 的
       // 全文没有任何地方读得到（窄屏还会被折成三行英文）。展开它就是那张单子。
@@ -1484,6 +1512,10 @@
       // 一条泳道 = 一个展开器，明细就摊在它自己下面（组是泳道的兄弟节点，不是
       // 卡片底部的一坨）。整块「逐项」在手机上是 34 行 2600px，读者要的不是
       // 「全都展开」，是「点开我关心的那一条」。
+      // 刷新是每几分钟一次的事：读者刚点开的那一折不能被合回去。
+      const openFolds = [...document.querySelectorAll("#data-health .dh-fold")]
+        .filter(button => button.getAttribute("aria-expanded") === "true")
+        .map(button => button.dataset.fold);
       const fill = (key, html) => {
         const body = document.getElementById(`dh-group-${key}-body`);
         if (body) body.innerHTML = html;
@@ -1491,6 +1523,13 @@
       fill("files", fileRows);
       fill("integrity", integrityRows);
       fill("delivery", cronRows + deliveryRows);
+      openFolds.forEach(id => {
+        const button = document.querySelector(`#data-health .dh-fold[data-fold="${id}"]`);
+        const body = document.getElementById(`dh-fold-${id}`);
+        if (!button || !body) return;
+        button.setAttribute("aria-expanded", "true");
+        body.hidden = false;
+      });
       const todoEl = document.getElementById("dh-todo");
       if (todoEl) todoEl.innerHTML = todoRows;
       // 收起的组仍在 DOM 里（折叠是 grid-rows 0fr 的动画），首帧也必须把它退出
@@ -1512,6 +1551,20 @@
         syncDataHealthToggle();
       });
     });
+    // 折叠器是每次刷新重新写进 innerHTML 的，所以监听挂在卡片上（一次），
+    // 不挂在按钮上。
+    if (root.dataset.foldWired !== "1") {
+      root.dataset.foldWired = "1";
+      root.addEventListener("click", event => {
+        const button = event.target.closest(".dh-fold");
+        if (!button) return;
+        const body = document.getElementById(`dh-fold-${button.dataset.fold}`);
+        if (!body) return;
+        const open = button.getAttribute("aria-expanded") !== "true";
+        button.setAttribute("aria-expanded", open ? "true" : "false");
+        body.hidden = !open;
+      });
+    }
     const toggle = document.getElementById("dh-toggle");
     if (toggle && toggle.dataset.wired !== "1") {
       toggle.dataset.wired = "1";
