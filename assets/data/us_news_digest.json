@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-08T16:55:06.101021",
+  "generated_at": "2026-09-09T16:57:08.304953",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -15,7 +15,7 @@
       "SPCH"
     ]
   },
-  "digest_markdown": "## Top 移动信号\n- **SKHY**: Apple $54B iPhone业务遭AI memory挤压 + Micron九月30财报前Seoul标的已涨8.3%确认memory supercycle → HBM/DRAM供应紧张叙事持续,SKHY直接受益\n- **RKLB (持 RKLX 2x)**: Cathie Wood加仓705k股($45M) + Wall Street分析师给出翻倍target(火箭测试失败后逆势加注) → 2x杠杆放大任何反弹,backlog是核心论点\n- **RKLB/SPCX (持 RKLX/SPCH 2x)**: Trump宣布月球属美国,国防预算预期重新分配给已有record backlog的space companies → 两个2x space ETF同向受益,但目前缺具体contract award,需观察后续DoD公告\n- **CRCL**: 收购Tazapay($25B年化payment volume,60+银行/fintech partner)扩张USDC跨境支付至100+市场 → 业务面bullish,但KBW $105 PT(约持平现价)+ SeekingAlpha一篇下调(USDC circulation放缓)对冲\n- **SPCX (持 SPCH 2x)**: SpaceX IPO溢价交易11%于$135,分析师看$280,但一投资者警告$2T估值\"beyond silly\" → 高波动+情绪驱动,2x杠杆下双向风险都放大\n\n## Per-ticker 简报\n- **CRCL**: KBW中性覆盖$105 PT,与Tazapay收购利好形成对冲;USDC流通量放缓的看空论点仍存 - 短期catalyst混合,等业绩验证\n- **RKLB**: Trump月球声明 + Ark加仓 + 分析师翻倍target 三重共振,但测试失败阴影未散 - RKLX 2x将放大任何backlog进展或新发射结果\n- **SPCX**: $2T估值争议 + IPO溢价11% + AI叙事 = 高波动主题,SPCH 2x放大;Anduril进ARMY ETF是同类defense space情绪外溢\n- **SKHY**: Memory squeeze + Kospi领涨 + Apple硬件margin挤压 = 叙事最clean的holder,直接受益AI capex\n\n## 风险 watch\n- **CRCL**: USDC circulation增速放缓 → 核心业务基本面风险,SeekingAlpha已下调\n- **SPCX**: \"Beyond silly\"估值警告 + $2T市值隐含增长空间有限 → 任何miss情绪将2x放大\n- **RKLB**: 火箭测试失败余波仍在,若下次发射再失败RKLX 2x将急剧下跌",
+  "digest_markdown": "## Top 3-5 移动信号 (跨 ticker)\n\n- **CRCL**: 宣布收购新加坡支付平台 Tazapay,分析师看好 deal 可能 double payments volume 并扩展 USDC 全球支付 rails → 正面 fundamental catalyst,但同日股价仍 slip,被 macro risk-off 盖过;对持仓偏中性偏多,关键看 deal close 后执行力。\n- **RKLB** (持有 RKLX 2x): 推出 IMM Apex 无锗太空太阳能电池,satellite 应用,盘前 +2.4% → 增量产品 revenue story,但股自上次财报以来已 down 17.7%,意味着 RKLX 同周期约 -35%;今日反弹会被 2x 放大,但 macro (oil/yields) 是逆风。\n- **SPCX** (持有 SPCH 2x): 底层 ASTS 6 个月 -24.4%,原因为 deployment / regulatory / capital 风险并存,同时 SpaceX-xAI 烧钱叙事受质疑 → SPCH 2x 已严重放大下跌,宏观再 risk-off 时下行弹性更大,需密切关注 ASTS 监管/capital 节点。\n- **Macro overhang**: 油价 >$100、长债收益率上行、Fed 重启加息担忧,software/semis 普跌 → 跨所有 growth 仓位的 beta 逆风,短线 noise > fundamentals。\n- **SK Hynix / Samsung 间接**: OpenAI 与 Samsung 深化 AI chip 合作、DRAM/NAND 出现 supply constraint 信号 → 利好 memory 链,但 SKHY 标签下的新闻更像是杂讯 (含 Micron、Seagate 等无关头条),需确认 SKHY 实际映射。\n\n## Per-ticker 简报\n\n- **CRCL**: Tazapay 收购 - USDC 支付 rails 扩张,分析师看 doubling volume。短期 stock price 反应冷淡,主要被 macro 拖累;中期利好底层经济。\n- **RKLB** (RKLX 2x): IMM Apex solar cell 发布 - 太空 power 业务 incremental catalyst。post-earnings 仍 -17.7% 表明 earnings reaction 弱,反弹需更强 catalyst。\n- **SPCX** (SPCH 2x): ASTS -24.4% 6m,deployment + regulatory + capital 三重风险被点名;SpaceX xAI 烧钱叙事打压情绪。2x ETF 对下行尤其敏感。\n- **SKHY**: raw news 内无明确 ticker-specific catalyst,头条多为半导体/AI 杂讯;若持仓实际为 SK 系 (Hynix/Telecom),OpenAI-Samsung chip 合作属中等利好但幅度有限。\n\n## 风险 Watch\n\n- **Macro**: oil >$100 + 长债收益率 + Fed 加息预期重燃 → growth/tech 全面 risk-off 风险,2x ETF (RKLX / SPCH) 下行弹性放大。\n- **CRCL**: acquisition 后整合 + USDC 监管不确定性 (虽 news 未直接提,属持续尾部)。\n- **ASTS (经 SPCX → SPCH)**: regulatory / capital raise risk 是 6m -24% 主因,任何 dilution 或 spectrum/许可节点会二次打击 SPCH。\n- **Smilegate 离婚案 (US$1.5B)**: 韩国游戏巨头 Kwon Hyuk-bin 被判转让 35% Smilegate 股权 + ₩65B 现金。若 kcn 通过 SKHY 持有 Smilegate/韩国游戏链敞口,大股东资产转移属重大 shareholder event;当前 raw news 无法确认 SKHY 映射,标 *待确认*。",
   "raw_news_counts": {
     "CRCL": 5,
     "RKLB": 5,
@@ -25,150 +25,150 @@
   "raw_news_evidence": {
     "CRCL": [
       {
-        "headline": "Keefe, Bruyette & Woods Initiates Coverage On Circle Internet Group with Market Perform Rating, Announces Price Target of $105",
-        "datetime": 1788863138,
+        "headline": "Circle agrees to buy Singapore-based payments platform Tazapay",
+        "datetime": 1788938162,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=97dfbcc21f56ba704cd911a348b012dd081fd8203dc45c9f99510dd4467da7e9"
+      },
+      {
+        "headline": "Circle stock slips despite new acquisition news",
+        "datetime": 1788895332,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=b66b1cfe619be308a0b56ccf9ba6b7e478d894834345029ec485ab553bf066eb"
+      },
+      {
+        "headline": "CRCL Stock Slides Despite Analysts’ Bullish Tazapay Outlook — Deal Seen Doubling Payments Volume",
+        "datetime": 1788889160,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=6e6ecfd41e1b1583406f84a9262a687592b9be960b23202a7092fe586eb3fe08"
+      },
+      {
+        "headline": "Shares of software companies are trading lower, possibly in response to escalating tensions in the Middle East and renewed inflation concerns that may shift the Fed towards a rate hike. Concerns about",
+        "datetime": 1788881059,
         "source": "Benzinga",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=9f352e34277fa4a6b9cc3ea4c0004aaea015cb673992ab83d825dd60e4ab4549"
+        "url": "https://finnhub.io/api/news?id=c69408f6b2e2de87abefeb217619a19db915930e139f14fc71586990a574b37b"
       },
       {
-        "headline": "Circle Doubles Down on Stablecoin Payments With Tazapay Acquisition",
-        "datetime": 1788859152,
-        "source": "Benzinga",
+        "headline": "Intel upgraded, Reddit initiated: Wall Street's top analyst calls",
+        "datetime": 1788874698,
+        "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=00430a3d4b45668c614700a47057ba1ea893ecebba771e3ce7b123339b6a8d37"
-      },
-      {
-        "headline": "Circle: At The Forefront Of The Stablecoin Revolution",
-        "datetime": 1788848679,
-        "source": "SeekingAlpha",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=494e20933cc48976f6566dac7806781601ff064b9447d5d8f8a91b61b92def34"
-      },
-      {
-        "headline": "Circle Internet Group To Acquire Singapore-Based Payments Infrastructure Company Tazapay; Financial Terms Not Disclosed",
-        "datetime": 1788848363,
-        "source": "Benzinga",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=e8fbaef8a555e4a684ec1fa5e284683d46d12a5ca9c105327566ef961aee3ad3"
-      },
-      {
-        "headline": "Circle: Lock In Gains On This Rebound As USDC Circulation Slows (Downgrade)",
-        "datetime": 1788788064,
-        "source": "SeekingAlpha",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=bea6adc65ce08681bc593ebdfaad0f15465e80c2e83f83eb6f5eb57f5c958805"
+        "url": "https://finnhub.io/api/news?id=953fd7c963e0c5c7fefec12d69c7c78db5d8c24be2387123c7a503f0a80f1920"
       }
     ],
     "RKLB": [
       {
-        "headline": "Trump Declares the Moon Belongs to the U.S. Here Are 5 Space Stocks to Watch",
-        "datetime": 1788878615,
+        "headline": "Rocket Lab Corporation (RKLB) Down 17.7% Since Last Earnings Report: Can It Rebound?",
+        "datetime": 1788967806,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=62d12ccc9c6e2bdbb016e287656ec50bda43085cc0756f5fd2e59a147c4a0d5c"
+        "url": "https://finnhub.io/api/news?id=91c58656a3097b7ce1dc341d806f07d965b517affb009c8bd64514e8f8d5357f"
       },
       {
-        "headline": "Grounded and Falling: Why One Wall Street Pro Says Rocket Lab Will More Than Double Soon",
-        "datetime": 1788874199,
+        "headline": "Rocket Lab shares rise after launch of germanium-free space solar cell",
+        "datetime": 1788962775,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=622aae052637e5b46e390ba204439a9b7f0df182e97c51e32fcc6e6aa1aac89f"
+        "url": "https://finnhub.io/api/news?id=09119b20d234b94f97b1a5550a1daeda44e7eb4f7d248eed75e5f0ec5f3273aa"
       },
       {
-        "headline": "Cathie Wood Is Moving Money From Palantir Into Rocket Lab and Fintech",
-        "datetime": 1788808893,
+        "headline": "Bond yields tick higher as oil tops $100: AlphaCheck",
+        "datetime": 1788962260,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=b8bd745bb2aa30f966bf4f45624526b74dfcb4be40ed406474c8547865d5f458"
+        "url": "https://finnhub.io/api/news?id=b8f3a2a0fe76b853094acb266a3c041fa13e5a035115a7245c0386696549e944"
       },
       {
-        "headline": "The Real Satellite Race Isn’t About Rockets — It’s About Who Controls the Spectrum in Your Phone",
-        "datetime": 1788799264,
+        "headline": "Hypersonic Technology Market Projected to Reach $15.73 Billion by 2030, and Flight Test Time Has Become the Bottleneck",
+        "datetime": 1788960600,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=7ab2874e38eb2891e3e9cba8e520a4f00d0705364afec320c947f4124539e7d0"
+        "url": "https://finnhub.io/api/news?id=695882a90bd3013ec79fe745ff8eb874d629f8142008ee582e2a669a5ffe3629"
       },
       {
-        "headline": "Cathie Wood Just Made a $45 Million Rocket Lab Move",
-        "datetime": 1788796480,
+        "headline": "Cathie Wood Grows Robinhood Stake; Sheds More AMD, Palantir",
+        "datetime": 1788959216,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=d04ed131e7f4b334e57ec85ebe9f7131ab104eef38230a437ee5323bcf4e0581"
+        "url": "https://finnhub.io/api/news?id=358a0ef370860a3e059cef5e4b953f3c2a0388653934baf3228a54b1948d2582"
       }
     ],
     "SPCX": [
       {
-        "headline": "SpaceX trades 11% above its $135 IPO price as analysts target $280 — but one investor warns valuation is 'beyond silly'",
-        "datetime": 1788882900,
+        "headline": "ASTS Stock Declines 24.4% in Six Months: Time to be Cautious?",
+        "datetime": 1788969120,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=7df973457f0c4cd9de8157884033e7f6e2f1647349079cf007ae27c94a8d36e9"
+        "url": "https://finnhub.io/api/news?id=191027b64fa32976fe6a0fc3bb09302931984ed5df93f6bde4b00799b79d8da0"
       },
       {
-        "headline": "Anduril Added as Top Holding in Tema International Defense ETF (ARMY)",
-        "datetime": 1788882480,
+        "headline": "Is SpaceX a Top Artificial Intelligence (AI) Stock Pick in September?",
+        "datetime": 1788967320,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=52b34c3eb96d51cbfda9e941746134b14586c007e1ad0e916be189fce8e883e1"
+        "url": "https://finnhub.io/api/news?id=90601b765a748ee4fdbe72a4e9f57c90b637ad4eb2e5c4fe0a84eb08f483ee3b"
       },
       {
-        "headline": "Can Robinhood compete with banks after underwriting Oura's IPO?",
-        "datetime": 1788881090,
+        "headline": "Cognition AI Hit $48B. The Real Story Is Who’s Already Deploying",
+        "datetime": 1788962911,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=dc688c48db78c3a08cc178270307b4248c7da62812929a50d4bc511665064a62"
+        "url": "https://finnhub.io/api/news?id=bd87a19a24f2f8bf938bf4624ad8a8e0f5363813ab545cc30b82c5338d374887"
       },
       {
-        "headline": "Trump Declares the Moon Belongs to the U.S. Here Are 5 Space Stocks to Watch",
-        "datetime": 1788878615,
+        "headline": "Cathie Wood Grows Robinhood Stake; Sheds More AMD, Palantir",
+        "datetime": 1788959216,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=62d12ccc9c6e2bdbb016e287656ec50bda43085cc0756f5fd2e59a147c4a0d5c"
+        "url": "https://finnhub.io/api/news?id=358a0ef370860a3e059cef5e4b953f3c2a0388653934baf3228a54b1948d2582"
       },
       {
-        "headline": "Bill Ackman Sees an AI Bargain in the Company That Owns the New York Stock Exchange",
-        "datetime": 1788878517,
+        "headline": "Prediction: Here's What a $5,000 Investment in SpaceX Stock Could Be Worth in 2031",
+        "datetime": 1788955500,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=edaa964a8264f5b74e23577fb617bff5ba074b6e7d61650604a37198e50dd605"
+        "url": "https://finnhub.io/api/news?id=0482ed597770cfcd99b7f1689b5c54ad0f9afb95c5673879276c818cad879018"
       }
     ],
     "SKHY": [
       {
-        "headline": "TCW White Oak Emerging Markets Equity Fund Q2 2026 Contributors And Detractors",
-        "datetime": 1788864900,
+        "headline": "Dow Jones Futures Fall As Oil Prices Push Stocks Toward Breaking Point; Apple iPhone Event Due",
+        "datetime": 1788951910,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=913b558c09278e539d862e0229fab36439c210e6c2e2d26e784cf6c11145fb76"
+      },
+      {
+        "headline": "Micron: Debunking The Bear Case Behind Yesterday's Selloff",
+        "datetime": 1788946730,
         "source": "SeekingAlpha",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=1cbcc7c5eee3f107d328de0c61209fa4833ed0baad6f47a2bab7ad11a5b6174c"
+        "url": "https://finnhub.io/api/news?id=2a2765f2f602f6b2bf2837a262210b096fdc8a1fd4e002180d1226256b6ca1de"
       },
       {
-        "headline": "What's Going On With SK Hynix Stock Tuesday?",
-        "datetime": 1788855241,
+        "headline": "OpenAI Deepens Samsung Partnership to Build Next-Gen AI Chips — ‘One of the Areas Where We’ve Made the Most Progress’",
+        "datetime": 1788944185,
         "source": "Benzinga",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=c2c3ca5a987530d8bf27cfec984c302467cb28fe3ddbfccee93dbcff868e947b"
+        "url": "https://finnhub.io/api/news?id=30bc2ad6a2d228ef1abb09ff6eda94b53181b04fa717e7afad8e5546f8bb8fd4"
       },
       {
-        "headline": "Samsung, SK Hynix Lead Kospi Higher as Wall Street Faces Tough Opening After Labor Day",
-        "datetime": 1788833219,
+        "headline": "Bull of the Day: Seagate Technology (STX)",
+        "datetime": 1788942600,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=65881ea53f962844a88c21ae2a989cff42a352fc1e0b7a8ec1e010a568479726"
+        "url": "https://finnhub.io/api/news?id=9c5d53352921f074f6acb883b18ae7fecef36639fcdb303562b742757a865ffe"
       },
       {
-        "headline": "Apple's $54 Billion iPhone Engine Hits an AI Memory Squeeze",
-        "datetime": 1788818172,
+        "headline": "South Korea video game tycoon to pay record $1.5 bn in divorce",
+        "datetime": 1788938198,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=1cc30c007c58834929bcda9920921d05fef698377528637e031ed829abbd720f"
-      },
-      {
-        "headline": "Micron's $50 Billion Guide Gets an 8.3% Signal From Seoul",
-        "datetime": 1788817898,
-        "source": "Yahoo",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=efc6d941584256a59879b4304d05eee3063316c6b314f9d9bfcbbc646eb15c43"
+        "url": "https://finnhub.io/api/news?id=f4a2389795805fa8f2298cfbc76fb2902e7f68ae533337ac12d1f51fe8b3518c"
       }
     ]
   },
