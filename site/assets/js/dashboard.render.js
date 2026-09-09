@@ -3853,7 +3853,7 @@
       cut: "砍", trim_on_rebound: "反弹减", hold_and_watch: "持有观察",
       add_only_on_trigger: "触发才加", watch: "观察",
     };
-    document.getElementById("debate-body").innerHTML = rows.map(r => {
+    const cases = rows.map((r, index) => {
       const side = (label, cls, text) => text
         ? `<div class="dbt-side ${cls}"><span class="dbt-lbl">${label}</span>`
           + `<span class="dbt-text">${escLLM(text)}</span></div>`
@@ -3872,21 +3872,59 @@
       const frames = chips.length
         ? `<div class="dbt-frames">${chips.join("")}</div>` : "";
       const conf = r.confidence == null ? "" : ` · 置信 ${Math.round(r.confidence * 100)}%`;
+      // 摘要行印 Judge 的判词——那是这场辩论的结论。没有 Judge 的（早期几条）
+      // 退到被攻击的那条共识；两个都没有就不印，宁可空着也不拿多方陈述冒充
+      // 结论。全文一个字不改，都在下面的 .dbt-body 里。
+      const gist = r.judge ? `Judge：${r.judge}`
+        : r.attacked_consensus ? `攻击：${r.attacked_consensus}` : "";
       return `<div class="dbt-case">
-        <div class="dbt-head">
-          <span class="dbt-tk">${escLLM(r.ticker)}</span>
-          <span class="muted">${escLLM(r.date)} · ${escLLM(ACTION_ZH[r.action] || r.action)}${conf}</span>
-        </div>
+        <button type="button" class="dbt-toggle" aria-expanded="false"
+          aria-controls="dbt-case-${index}">
+          <i></i>
+          <span class="dbt-head">
+            <span class="dbt-tk">${escLLM(r.ticker)}</span>
+            <span class="muted">${escLLM(r.date)} · ${escLLM(ACTION_ZH[r.action] || r.action)}${conf}</span>
+          </span>
+          <span class="dbt-gist">${escLLM(gist)}</span>
+        </button>
+        <div class="dbt-body" id="dbt-case-${index}" hidden>
         ${side("多", "dbt-bull", r.bull)}
         ${side("空", "dbt-bear", r.bear)}
         ${line("被攻击的共识", r.attacked_consensus)}
         ${line("Judge", r.judge)}
         ${frames}
+        </div>
       </div>`;
-    }).join("");
+    });
+    // 30 场辩论全文摊开是 8908px（390px 实测），一张卡里十个屏幕的墙。一场
+    // 辩论是读者心里的一个单位 ⇒ 一场一行，点开看全文；最近 6 场排在外面，
+    // 更早的收进一个展开器（收起用 hidden，元素直接退出 Tab 与读屏）。
+    const HEAD = 6;
+    const tail = cases.length - HEAD;
+    document.getElementById("debate-body").innerHTML = cases.slice(0, HEAD).join("")
+      + (tail > 0
+        ? `<button type="button" class="dbt-more" aria-expanded="false"`
+          + ` aria-controls="dbt-more-body"><i></i>更早的 ${tail} 场辩论</button>`
+          + `<div class="dbt-morebody" id="dbt-more-body" hidden>`
+          + cases.slice(HEAD).join("") + `</div>`
+        : "");
     const total = rows.length;
     document.getElementById("debate-src").textContent =
       `最近 ${total} 条带辩论记录的决策（窗口上限 ${block.limit || total}）`;
+    // 监听挂在容器上一次：每次刷新都会把这些按钮重新写进 innerHTML。
+    const body = document.getElementById("debate-body");
+    if (body.dataset.wired !== "1") {
+      body.dataset.wired = "1";
+      body.addEventListener("click", event => {
+        const button = event.target.closest(".dbt-toggle, .dbt-more");
+        if (!button) return;
+        const panel = document.getElementById(button.getAttribute("aria-controls"));
+        if (!panel) return;
+        const open = button.getAttribute("aria-expanded") !== "true";
+        button.setAttribute("aria-expanded", open ? "true" : "false");
+        panel.hidden = !open;
+      });
+    }
   }
 
   function renderBearCases() {

@@ -1622,8 +1622,52 @@
     background: var(--card-2); border-left: 3px solid color-mix(in srgb, var(--accent) 50%, transparent);
   }
   .dbt-head {
-    display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; margin-bottom: 6px;
+    display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
   }
+  /* 一场辩论 = 一行，点开看全文。30 场全文摊开在 390px 上是 8908px —— 一张
+     卡里十个屏幕的墙，没人从头读到尾。 */
+  .dbt-toggle {
+    display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; width: 100%;
+    background: none; border: 0; padding: 0; margin: 0; cursor: pointer;
+    color: inherit; font: inherit; text-align: left;
+  }
+  .dbt-toggle > i {
+    flex: 0 0 auto; width: 7px; height: 7px; border-right: 1.5px solid var(--text-dim);
+    border-bottom: 1.5px solid var(--text-dim); transform: rotate(-45deg);
+    transition: transform .16s ease; align-self: center;
+  }
+  .dbt-toggle[aria-expanded="true"] > i { transform: rotate(45deg); }
+  .dbt-toggle .dbt-head { flex: 0 1 auto; margin: 0; }
+  /* 摘要那半截只占一行：它是「这场辩论判了什么」的引子，不是判词全文
+     （全文在展开后的 Judge 那一行，一个字没删）。 */
+  .dbt-gist {
+    flex: 1 1 100%; min-width: 0; overflow: hidden; text-overflow: ellipsis;
+    white-space: nowrap; font-size: var(--fs-sm); color: var(--text-dim);
+  }
+  /* 展开之后引子就该让位：Judge 的全文就在下面两行处，留着摘要等于把同一
+     句话印两遍。 */
+  .dbt-toggle[aria-expanded="true"] .dbt-gist { display: none; }
+  .dbt-body { margin-top: 8px; }
+  .dbt-more {
+    display: flex; align-items: center; gap: 8px; width: 100%;
+    background: none; border: 0; padding: 8px 2px; margin: 0 0 8px; cursor: pointer;
+    color: var(--text-tertiary); text-align: left;
+    font: 600 var(--fs-xs)/1.35 var(--mono);
+  }
+  .dbt-more > i {
+    width: 7px; height: 7px; border-right: 1.5px solid currentColor;
+    border-bottom: 1.5px solid currentColor; transform: rotate(-45deg);
+    transition: transform .16s ease; flex: 0 0 auto; margin-left: 3px;
+  }
+  .dbt-more[aria-expanded="true"] > i { transform: rotate(45deg); }
+  .dbt-more:hover, .dbt-toggle:hover .dbt-gist { color: var(--text-secondary); }
+  .dbt-toggle:focus-visible, .dbt-more:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 3px;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .dbt-toggle > i, .dbt-more > i { transition: none; }
+  }
+  @media (pointer: coarse) { .dbt-toggle { padding: 3px 0; } .dbt-more { padding: 11px 2px; } }
   .dbt-tk { font-weight: 700; font-family: var(--mono); font-size: var(--fs-md); }
   .dbt-side { display: flex; gap: 8px; align-items: flex-start; margin-top: 4px; }
   .dbt-lbl {

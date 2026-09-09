@@ -1773,6 +1773,114 @@ async function testDataHealthIsReadableOnAPhone(browser, base) {
 // 于是抓回来的 sidecar 从来没被写进 DATA。之后每次再进这个 tab 都走「什么都
 // 不缺」的快路径（sidecar 确实 ready 了），而那条路径也不写 DATA —— 于是那张
 // 卡在这一整个会话里都是空的，只有整页刷新能救。桌面宽度不复现（没有 pager）。
+// 辩论留痕：一场辩论一行，点开看全文。
+//
+// 2026-09-09 实测线上 390px：30 场辩论的全文一次全摊开 = **8908px** 的一块，
+// 自评卡整张 12287px（十四个屏幕）。一场辩论是读者心里的一个单位，所以摘要
+// 行印「谁 · 哪天 · 判了什么 · Judge 的一句话」，全文在展开后一个字不改。
+//
+// payload 是这个用例自己造的：`decision_audit.json` 不进仓库，CI 上根本没有
+// 这份文件，靠当日数据的断言在那里等于没跑。造的是**输入的形状**（多少场、
+// 每场多长），量的仍然是浏览器真排出来的高度与可达性。
+async function testTheDebateTrailIsAListOfCasesNotAWallOfText(browser, base) {
+  const total = 12, head = 6;
+  const long = "这一段是为了让每一场辩论在展开时确实很高而写的长文：" + "论据".repeat(60);
+  const rows = [];
+  for (let i = 0; i < total; i++) {
+    rows.push({
+      ticker: `T${1000 + i}`, date: "2026-09-0" + (i % 9 + 1), action: "hold_and_watch",
+      confidence: 0.5, bull: long, bear: long, attacked_consensus: long,
+      judge: `第 ${i + 1} 场的判词：` + long, frames: ["mean_reversion"],
+    });
+  }
+  const context = await browser.newContext({
+    viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true,
+  });
+  const page = await context.newPage();
+  await stubLiveOrigin(page);
+  // stubLiveOrigin 之后注册：playwright 后注册的路由先匹配，反过来的话这份
+  // 造出来的 payload 会被真实文件盖掉（实测：断言拿到的是当日的 30 场）。
+  await page.route("**/decision_audit.json*", route => route.fulfill({
+    status: 200,
+    headers: { "content-type": "application/json; charset=utf-8",
+               "access-control-allow-origin": "*" },
+    body: JSON.stringify({ debates: { rows, limit: total } }),
+  }));
+  await page.goto(base, { waitUntil: "networkidle" });
+  await waitForData(page);
+  await page.click('.tab-btn[data-tab="reflect"]');
+  await waitForTab(page, "reflect");
+  await page.waitForFunction(() => document.querySelectorAll(".dbt-case").length > 0,
+    null, { timeout: 15000 })
+    .catch(() => { throw new Error("the debate trail never rendered") });
+
+  const shape = await page.evaluate(() => {
+    const cases = [...document.querySelectorAll(".dbt-case")];
+    const block = document.getElementById("debate-body");
+    const more = document.querySelector(".dbt-more");
+    return {
+      cases: cases.length,
+      onScreen: cases.filter(c => c.getBoundingClientRect().height > 0).length,
+      openBodies: [...document.querySelectorAll(".dbt-body")]
+        .filter(body => !body.hidden).length,
+      rowHeights: cases.slice(0, 3).map(c => Math.round(c.getBoundingClientRect().height)),
+      blockHeight: Math.round(block.getBoundingClientRect().height),
+      toggles: document.querySelectorAll(".dbt-toggle").length,
+      gists: [...document.querySelectorAll(".dbt-gist")]
+        .map(g => g.textContent.trim()).filter(Boolean).length,
+      firstGist: (document.querySelector(".dbt-gist") || {}).textContent || "",
+      more: more ? more.textContent.trim() : null,
+      moreExpanded: more ? more.getAttribute("aria-expanded") : null,
+    };
+  });
+
+  assert.equal(shape.cases, total, `the trail rendered ${shape.cases} of ${total} debates`);
+  assert.equal(shape.onScreen, head,
+    `${shape.onScreen} debates are on screen before any tap — the newest ${head} are the list`);
+  assert.equal(shape.openBodies, 0, "a debate starts with its full text open");
+  assert.equal(shape.toggles, total, "a debate case is not a button you can open");
+  assert.equal(shape.gists, total,
+    "a collapsed case does not say what the debate concluded");
+  assert(shape.firstGist.startsWith("Judge"),
+    `the summary line must carry the Judge's verdict, got "${shape.firstGist.slice(0, 30)}"`);
+  assert(shape.rowHeights.every(h => h > 0 && h <= 110),
+    `a collapsed case is ${shape.rowHeights.join("/")}px tall — that is not one row`);
+  // 不折是 3000px 起（每场 250-420px）。这条断言是这次改动的全部理由。
+  assert(shape.blockHeight <= 900,
+    `the debate trail is ${shape.blockHeight}px on a phone — it is a wall again`);
+  assert(shape.more && shape.more.includes(String(total - head)),
+    `the tail does not say how many debates it is holding: ${shape.more}`);
+  assert.equal(shape.moreExpanded, "false", "the older debates start unfolded");
+
+  // 点一场，只开那一场；再点尾巴，其余的才出来。
+  const opened = await page.evaluate(async () => {
+    document.querySelector(".dbt-toggle").click();
+    await new Promise(resolve => setTimeout(resolve, 150));
+    const first = document.querySelector(".dbt-case");
+    return {
+      open: [...document.querySelectorAll(".dbt-body")].filter(b => !b.hidden).length,
+      expanded: first.querySelector(".dbt-toggle").getAttribute("aria-expanded"),
+      height: Math.round(first.getBoundingClientRect().height),
+      hasBull: !!first.querySelector(".dbt-bull .dbt-text"),
+      judgeInFull: (first.querySelector(".dbt-body") || {}).textContent.includes("第 1 场的判词"),
+    };
+  });
+  assert.equal(opened.open, 1, `tapping one case opened ${opened.open} of them`);
+  assert.equal(opened.expanded, "true", "the case did not report itself as open");
+  assert(opened.height > 150, `the opened case is only ${opened.height}px — nothing came out`);
+  assert(opened.hasBull && opened.judgeInFull,
+    "the opened case is missing the argument it was hiding");
+
+  const tail = await page.evaluate(async () => {
+    document.querySelector(".dbt-more").click();
+    await new Promise(resolve => setTimeout(resolve, 150));
+    return [...document.querySelectorAll(".dbt-case")]
+      .filter(c => c.getBoundingClientRect().height > 0).length;
+  });
+  assert.equal(tail, total, `opening the tail showed ${tail} of ${total} debates`);
+  await context.close();
+}
+
 async function testASidecarStillReachesItsCardWhenThePagerIsStillSettling(browser, base) {
   const context = await browser.newContext({
     viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true,
@@ -1826,6 +1934,7 @@ async function main() {
     await testDataHealthIsReadableOnAPhone(browser, base);
     await testAQuietLaneFoldsItsLedgerInsteadOfScrolling(browser, base);
     await testASidecarStillReachesItsCardWhenThePagerIsStillSettling(browser, base);
+    await testTheDebateTrailIsAListOfCasesNotAWallOfText(browser, base);
     await testAddSideCardExplainsWhyThereIsNoAdd(browser, base);
     await testAPanelSaysWhenItsDataDidNotLoad(browser, base);
     await testCronRailAccountsForEverySlotWithoutASecondVerdict(browser, base);
