@@ -1782,6 +1782,110 @@ async function testDataHealthIsReadableOnAPhone(browser, base) {
 // payload 是这个用例自己造的：`decision_audit.json` 不进仓库，CI 上根本没有
 // 这份文件，靠当日数据的断言在那里等于没跑。造的是**输入的形状**（多少场、
 // 每场多长），量的仍然是浏览器真排出来的高度与可达性。
+// Plan Timeline：先扫得动，再读得下去。
+//
+// 2026-09-09 实测线上 390px：15 条决策卡把 rationale 全文一次全摊开 =
+// **4615px**（一条 209-369px），一张卡五个屏幕。理由的第一行往往就是那句话的
+// 要点，所以是**夹**（两行 + 展开）而不是藏；卡的尾巴照例折起来。
+async function testThePlanTimelineClampsItsRationales(browser, base) {
+  const total = 15, head = 6;
+  const long = "这条是为了让理由确实超过两行而写的长文：" + "因为".repeat(120);
+  const plan = [];
+  for (let i = 0; i < total; i++) {
+    plan.push({
+      date: "2026-09-0" + (i % 9 + 1), ticker: `T${1000 + i}`, action: "hold_and_watch",
+      strategy_id: "core_position", condition: { type: "manual" }, confidence: 0.5,
+      outcome: "pending", execution: "unknown",
+      // 最后一条故意是短理由：短理由不该配一个什么都不展开的按钮。
+      rationale: i === total - 1 ? "一句话就说完了。" : `第 ${i + 1} 条：${long}`,
+    });
+  }
+  const context = await browser.newContext({
+    viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true,
+  });
+  const page = await context.newPage();
+  await stubLiveOrigin(page, {
+    patch: (name, json) => {
+      if (name !== "dashboard.json") return null;
+      json.plan_timeline = plan;
+      return json;
+    },
+  });
+  await page.goto(base, { waitUntil: "networkidle" });
+  await waitForData(page);
+  await page.click('.tab-btn[data-tab="plan"]');
+  await waitForTab(page, "plan");
+  await page.waitForFunction(() => document.querySelectorAll("#plan-timeline .pt-row").length > 0,
+    null, { timeout: 15000 })
+    .catch(() => { throw new Error("the plan timeline never rendered") });
+
+  const shape = await page.evaluate(() => {
+    const wrap = document.getElementById("plan-timeline");
+    const rows = [...wrap.querySelectorAll(".pt-row")];
+    const fold = wrap.querySelector(".pt-fold");
+    const clamped = [...wrap.querySelectorAll(".pt-rationale.is-clamped")];
+    return {
+      rows: rows.length,
+      onScreen: rows.filter(row => row.getBoundingClientRect().height > 0).length,
+      cardHeight: Math.round(wrap.closest(".card").getBoundingClientRect().height),
+      rowHeights: rows.slice(0, 4).map(r => Math.round(r.getBoundingClientRect().height)),
+      clamped: clamped.length,
+      // 夹住的那一段必须真的比它显示出来的高——否则 is-clamped 只是个类名。
+      trulyClipped: clamped.filter(el => el.scrollHeight > el.clientHeight + 4).length,
+      expands: wrap.querySelectorAll(".pt-expand").length,
+      controls: [...wrap.querySelectorAll(".pt-expand")]
+        .filter(b => document.getElementById(b.getAttribute("aria-controls"))).length,
+      fold: fold ? fold.textContent.trim() : null,
+    };
+  });
+  assert.equal(shape.rows, total, `the timeline rendered ${shape.rows} of ${total} actions`);
+  assert.equal(shape.onScreen, head,
+    `${shape.onScreen} actions are on screen before any tap — the newest ${head} are the list`);
+  assert.equal(shape.clamped, total - 1,
+    `${shape.clamped} rationales are clamped; the short one must not be`);
+  assert.equal(shape.expands, total - 1,
+    "a short rationale was given an expander that opens nothing");
+  assert.equal(shape.controls, shape.expands,
+    "an expander does not point at the rationale it opens");
+  assert(shape.trulyClipped >= 3,
+    `only ${shape.trulyClipped} clamped rationales are actually cut off — `
+    + "is-clamped is decorating text that already fits");
+  assert(shape.rowHeights.every(h => h > 0 && h <= 260),
+    `a clamped row is ${shape.rowHeights.join("/")}px tall`);
+  // 不夹不折是 4600px 起。这条断言是这次改动的全部理由。
+  assert(shape.cardHeight <= 1600,
+    `the plan timeline is ${shape.cardHeight}px on a phone — five screens of one card`);
+  assert(shape.fold && shape.fold.includes(String(total - head)),
+    `the tail does not say how many actions it is holding: ${shape.fold}`);
+
+  const opened = await page.evaluate(async () => {
+    const wrap = document.getElementById("plan-timeline");
+    wrap.querySelector(".pt-expand").click();
+    await new Promise(resolve => setTimeout(resolve, 150));
+    const first = wrap.querySelector(".pt-rationale");
+    return {
+      clampedLeft: wrap.querySelectorAll(".pt-rationale.is-clamped").length,
+      label: wrap.querySelector(".pt-expand").textContent.trim(),
+      expanded: wrap.querySelector(".pt-expand").getAttribute("aria-expanded"),
+      grew: first.scrollHeight <= first.clientHeight + 4,
+    };
+  });
+  assert.equal(opened.clampedLeft, total - 2, "expanding one rationale unclamped the others");
+  assert.equal(opened.expanded, "true", "the expander did not report itself as open");
+  assert(opened.grew, "the rationale is still cut off after being expanded");
+  assert(opened.label.includes("收起"),
+    `the expander still says "${opened.label}" after opening`);
+
+  const tail = await page.evaluate(async () => {
+    document.querySelector("#plan-timeline .pt-fold").click();
+    await new Promise(resolve => setTimeout(resolve, 150));
+    return [...document.querySelectorAll("#plan-timeline .pt-row")]
+      .filter(row => row.getBoundingClientRect().height > 0).length;
+  });
+  assert.equal(tail, total, `opening the tail showed ${tail} of ${total} actions`);
+  await context.close();
+}
+
 async function testTheDebateTrailIsAListOfCasesNotAWallOfText(browser, base) {
   const total = 12, head = 6;
   const long = "这一段是为了让每一场辩论在展开时确实很高而写的长文：" + "论据".repeat(60);
@@ -1935,6 +2039,7 @@ async function main() {
     await testAQuietLaneFoldsItsLedgerInsteadOfScrolling(browser, base);
     await testASidecarStillReachesItsCardWhenThePagerIsStillSettling(browser, base);
     await testTheDebateTrailIsAListOfCasesNotAWallOfText(browser, base);
+    await testThePlanTimelineClampsItsRationales(browser, base);
     await testAddSideCardExplainsWhyThereIsNoAdd(browser, base);
     await testAPanelSaysWhenItsDataDidNotLoad(browser, base);
     await testCronRailAccountsForEverySlotWithoutASecondVerdict(browser, base);

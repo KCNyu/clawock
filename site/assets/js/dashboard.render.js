@@ -4394,13 +4394,25 @@
       const s = p >= 0 ? "+" : "";
       return `<div class="pt-pnl ${cls}" title="对下一个快照报价的方向分：正值表示这条建议的方向对了。报价时点不稳定，不等于 T+1 收益">方向分 ${s}${p.toFixed(2)}%</div>`;
     };
-    wrap.innerHTML = list.map(a => {
+    const cards = list.map((a, index) => {
       const oc = a.outcome || "pending";
       const followed = (a.execution || "unknown").toLowerCase();
       const c = a.condition || {};
       const trig = `${c.type || ""}${fmtTriggerPrice(c.price)}${fmtSize(a)}`;
       const cond = c.note ? `<div class="pt-trigger" title="${escapeHtml(c.note)}">${escapeHtml(c.note)}</div>` : "";
-      const rationale = a.rationale ? `<div class="pt-rationale">${escapeHtml(a.rationale)}</div>` : "";
+      // 理由是这张卡最长的一段（实测 390px：一条 209-369px，15 条 = 4515px）。
+      // 默认夹成两行，长到会被夹住的才给一个展开器 —— 短理由配一个什么都不
+      // 展开的按钮是噪音。阈值按字数不按版式：量版式要等面板排完，而这块牌
+      // 是 tab 激活时才排的，那之前量出来是 0。
+      const long = String(a.rationale || "").length > 120;
+      const rationale = a.rationale
+        ? `<div class="pt-rationale${long ? " is-clamped" : ""}" id="pt-why-${index}">`
+          + `${escapeHtml(a.rationale)}</div>`
+          + (long
+            ? `<button type="button" class="pt-expand" aria-expanded="false"`
+              + ` aria-controls="pt-why-${index}">展开理由</button>`
+            : "")
+        : "";
       const region = /^\d/.test(a.ticker) ? "HK" : "US";
       const followedTag = followed === "true"
         ? `<div class="pt-followed-true">✓ followed</div>`
@@ -4427,7 +4439,34 @@
             ${fmtPnl(a.benefit_t1_pct)}
           </div>
         </div>`;
-    }).join("");
+    });
+    // 15 条全文摊开在 390px 上是 4515px。最近 6 条排在外面，更早的收进一个
+    // 展开器（收起用 hidden，元素直接退出 Tab 与读屏）。
+    const HEAD = 6;
+    const tail = cards.length - HEAD;
+    wrap.innerHTML = cards.slice(0, HEAD).join("")
+      + (tail > 0
+        ? `<button type="button" class="pt-fold" aria-expanded="false"`
+          + ` aria-controls="pt-older"><i></i>更早的 ${tail} 条</button>`
+          + `<div id="pt-older" hidden>${cards.slice(HEAD).join("")}</div>`
+        : "");
+    // 监听挂在容器上一次：每次刷新都会把这些按钮重新写进 innerHTML。
+    if (wrap.dataset.wired !== "1") {
+      wrap.dataset.wired = "1";
+      wrap.addEventListener("click", event => {
+        const button = event.target.closest(".pt-expand, .pt-fold");
+        if (!button) return;
+        const target = document.getElementById(button.getAttribute("aria-controls"));
+        if (!target) return;
+        const open = button.getAttribute("aria-expanded") !== "true";
+        button.setAttribute("aria-expanded", open ? "true" : "false");
+        if (button.classList.contains("pt-fold")) target.hidden = !open;
+        else {
+          target.classList.toggle("is-clamped", !open);
+          button.textContent = open ? "收起理由" : "展开理由";
+        }
+      });
+    }
   }
 
   // =========================================================
