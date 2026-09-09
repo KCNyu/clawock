@@ -1339,11 +1339,19 @@ async function testCronRailAccountsForEverySlotWithoutASecondVerdict(browser, ba
     return rows.map(r => ({
       name: r.querySelector(".dh-name").textContent.trim(),
       detail: r.querySelector(".dh-detail").textContent.trim(),
+      folded: !!r.closest(".dh-foldbody"),
     }));
   });
-  assert.deepEqual(detail.map(r => r.name),
-    ["盘前深度简报", "盘中盯盘", "Memory Dreaming Promotion"],
+  assert.deepEqual(detail.map(r => r.name).slice().sort(),
+    ["Memory Dreaming Promotion", "盘中盯盘", "盘前深度简报"].sort(),
     `逐项 is missing the per-job timetable rows: ${detail.map(r => r.name).join(", ")}`);
+  // 顺序不再是 payload 的顺序：有事的（降级 / 账本看不到）排在前面且一直摊
+  // 开，今天按时的那些折进「其余 N 个」——展开一条泳道不该是一坨流水账。
+  assert.deepEqual(detail.filter(r => !r.folded).map(r => r.name),
+    ["盘中盯盘", "Memory Dreaming Promotion"],
+    `these rows should stay out of the fold: ${detail.filter(r => !r.folded).map(r => r.name).join(", ")}`);
+  assert.deepEqual(detail.filter(r => r.folded).map(r => r.name), ["盘前深度简报"],
+    `a job with nothing to do today should fold away: ${detail.filter(r => r.folded).map(r => r.name).join(", ")}`);
   // 逐项里印的是那句「为什么」，不是裸时刻表——读者不用去猜黄点是什么意思。
   const cronRow = detail.find(r => r.name === "盘中盯盘");
   assert.ok(cronRow && cronRow.detail.includes("仪表盘发布还在排队"),
@@ -1546,6 +1554,90 @@ async function testMoversSayWhichSessionTheyAreFrom(browser, base) {
 //  4. 说明行可以收成引子，但被收起来的那条泳道必须有一组明细接住全文；
 //  5. 逐项那一行的状态词必须和名字同一行（它曾被挤成右对齐的孤行）；
 //  6. 整块牌不横向溢出，处置牌不被顶出卡片，「逐项」有拇指够得着的高度。
+// 展开一条泳道之后，「今天没事」的那些行折起来。
+//
+// #1418 把每条泳道做成了自己的展开器，但展开之后仍然是一坨流水账：2026-09-09
+// 实测线上 390px，点开「投递」得到 1200px 的组，11 个 job 里 9 个写着「正常」，
+// 读者要滚到底才敢说今天没事。有事的那一条必须**不用再点一下**就看得见；没事
+// 的收进一个展开器，点开还是同一批行。
+async function testAQuietLaneFoldsItsLedgerInsteadOfScrolling(browser, base) {
+  const quietJobs = 11;
+  const context = await browser.newContext({
+    viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true,
+  });
+  const page = await context.newPage();
+  await stubLiveOrigin(page, {
+    patch: (name, json) => {
+      if (name !== "overview.json" && name !== "dashboard.json") return null;
+      const jobs = [{ job: "无 harness 的任务", unmonitored: true,
+                      slots: [{ at: "03:00", state: "ok" }] }];
+      for (let i = 0; i < quietJobs; i++) {
+        jobs.push({ job: `按时的任务 ${i + 1}`, slots: [{ at: "0" + (i % 10) + ":03", state: "ok" }] });
+      }
+      json.cron_schedule = { date: "2026-09-09", jobs };
+      return json;
+    },
+  });
+  await page.goto(base, { waitUntil: "networkidle" });
+  await waitForData(page);
+  await page.waitForSelector("#data-health:not(.is-pending)", { timeout: 5000 });
+
+  const folded = await page.evaluate(async () => {
+    document.getElementById("dh-lane-delivery").click();
+    await new Promise(resolve => setTimeout(resolve, 400));
+    const group = document.getElementById("dh-group-delivery");
+    const rows = [...group.querySelectorAll(".dh-row")];
+    const fold = group.querySelector('.dh-fold[data-fold="cron"]');
+    const body = document.getElementById("dh-fold-cron");
+    return {
+      height: Math.round(group.getBoundingClientRect().height),
+      shown: rows.filter(row => row.getBoundingClientRect().height > 0)
+        .map(row => row.querySelector(".dh-name").textContent.trim()),
+      foldText: fold ? fold.textContent.trim() : null,
+      foldTag: fold ? fold.tagName : null,
+      foldHeight: fold ? Math.round(fold.getBoundingClientRect().height) : 0,
+      expanded: fold ? fold.getAttribute("aria-expanded") : null,
+      controls: fold ? fold.getAttribute("aria-controls") : null,
+      hidden: body ? body.hidden : null,
+      buried: body ? body.querySelectorAll(".dh-row").length : 0,
+    };
+  });
+
+  assert(folded.foldTag === "BUTTON",
+    "the quiet rows are not behind a button — a fold you cannot tap is a fold that is not there");
+  assert.equal(folded.expanded, "false", "the quiet ledger starts open");
+  assert.equal(folded.hidden, true,
+    "the folded rows are still in the tab order and the accessibility tree");
+  assert.equal(folded.controls, "dh-fold-cron",
+    "the fold does not point at the panel it opens");
+  assert.equal(folded.buried, quietJobs,
+    `the fold hides ${folded.buried} rows, not the ${quietJobs} quiet ones`);
+  assert(folded.foldText.includes(String(quietJobs)),
+    `the fold does not say how many it is hiding: "${folded.foldText}"`);
+  assert(folded.foldHeight >= 40,
+    `the fold is ${folded.foldHeight}px tall — below a thumb-sized row`);
+  // 有事的那一条不进折叠：藏起来的待办和没有待办一样。
+  assert(folded.shown.includes("无 harness 的任务"),
+    `the job the ledger cannot see is not on screen without a second tap: ${folded.shown.join(", ")}`);
+  assert(folded.height <= 420,
+    `the expanded lane is ${folded.height}px on a 844px-tall phone — that is the ledger again`);
+
+  const opened = await page.evaluate(async () => {
+    document.querySelector('#dh-group-delivery .dh-fold[data-fold="cron"]').click();
+    await new Promise(resolve => setTimeout(resolve, 200));
+    const group = document.getElementById("dh-group-delivery");
+    return {
+      expanded: group.querySelector('.dh-fold[data-fold="cron"]').getAttribute("aria-expanded"),
+      shown: [...group.querySelectorAll(".dh-row")]
+        .filter(row => row.getBoundingClientRect().height > 0).length,
+    };
+  });
+  assert.equal(opened.expanded, "true", "tapping the fold did not open it");
+  assert(opened.shown >= quietJobs + 1,
+    `opening the fold showed ${opened.shown} rows, not the ${quietJobs + 1} the lane holds`);
+  await context.close();
+}
+
 async function testDataHealthIsReadableOnAPhone(browser, base) {
   const context = await browser.newContext({
     viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true,
@@ -1646,19 +1738,31 @@ async function testDataHealthIsReadableOnAPhone(browser, base) {
     "opening one lane expanded the others too — that is the 2600px 逐项 again");
 
   // 处置行（.is-todo）的末列是「下一步去哪看」，它本来就独占一行；台账行不是。
-  const orphans = await page.evaluate(async () => {
+  const rows = await page.evaluate(async () => {
     document.getElementById("dh-toggle").click();
     await new Promise(resolve => setTimeout(resolve, 400));
-    return [...document.querySelectorAll(".dh-group .dh-row:not(.is-todo)")]
-      .filter(row => {
-        const name = row.querySelector(".dh-name").getBoundingClientRect();
-        const state = row.querySelector(".dh-state").getBoundingClientRect();
-        return state.top >= name.bottom - 1;
-      })
-      .map(row => row.querySelector(".dh-name").textContent.trim());
+    // 这条断言问的是「一行的版式」，所以先把「今天没事」的那几折也打开——
+    // 折起来的行是 hidden，每个矩形都是 0，量它等于给自己发一张假红。数出
+    // 量了几行，免得这个过滤把断言悄悄变成一个什么都不测的测试。
+    document.querySelectorAll("#data-health .dh-fold").forEach(fold => fold.click());
+    await new Promise(resolve => setTimeout(resolve, 200));
+    const measurable = [...document.querySelectorAll(".dh-group .dh-row:not(.is-todo)")]
+      .filter(row => row.getBoundingClientRect().height > 0);
+    return {
+      measured: measurable.length,
+      orphans: measurable
+        .filter(row => {
+          const name = row.querySelector(".dh-name").getBoundingClientRect();
+          const state = row.querySelector(".dh-state").getBoundingClientRect();
+          return state.top >= name.bottom - 1;
+        })
+        .map(row => row.querySelector(".dh-name").textContent.trim()),
+    };
   });
-  assert.deepEqual(orphans, [],
-    `逐项 rows put the status word on a line of its own: ${orphans.join(", ")}`);
+  assert(rows.measured >= 3,
+    `only ${rows.measured} 逐项 row(s) were laid out — this assertion is measuring nothing`);
+  assert.deepEqual(rows.orphans, [],
+    `逐项 rows put the status word on a line of its own: ${rows.orphans.join(", ")}`);
   await context.close();
 }
 
@@ -1720,6 +1824,7 @@ async function main() {
     await testVerdictDeckFillsItsBoxAndRanksGatesBySeverity(browser, base);
     await testDataHealthNamesTheDegradedSlotAndWeChatDrops(browser, base);
     await testDataHealthIsReadableOnAPhone(browser, base);
+    await testAQuietLaneFoldsItsLedgerInsteadOfScrolling(browser, base);
     await testASidecarStillReachesItsCardWhenThePagerIsStillSettling(browser, base);
     await testAddSideCardExplainsWhyThereIsNoAdd(browser, base);
     await testAPanelSaysWhenItsDataDidNotLoad(browser, base);
