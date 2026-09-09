@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-09-08T08:03:54.663020+08:00",
+  "generated_at": "2026-09-09T08:03:51.255843+08:00",
   "lookback_window_days": 14,
-  "window_start": "2026-09-08",
-  "window_end": "2026-09-22",
+  "window_start": "2026-09-09",
+  "window_end": "2026-09-23",
   "earnings_queried": [
     "CRCL",
     "RKLB",
@@ -31,6 +31,6 @@
     "macro_count": 1,
     "scheduled_count": 0,
     "scheduled_undated": 0,
-    "highest_impact_within_7d": "CPI 2026-09-11"
+    "highest_impact_within_7d": "FOMC 2026-09-16 (rate decision)"
   }
 }

@@ -1,6 +1,6 @@
 {
-  "as_of": "2026-09-08",
-  "days_logged": 65,
+  "as_of": "2026-09-09",
+  "days_logged": 66,
   "unlock_rule": "cluster_ci_entirely_above_or_below_50pct",
   "frozen_feed_excluded": 73,
   "closed_market_rows_excluded": 37,
@@ -16,19 +16,19 @@
       "reverse_edge_significant": false,
       "sample_sufficient": false,
       "min_n": 20,
-      "non_overlap_cap": 61,
+      "non_overlap_cap": 62,
       "decision_direction": null,
       "usable": false,
       "note": "样本 < 20，方向结论不入决策（#934 与文档承诺对齐）"
     },
     "trend_off_avoid": {
-      "n_events": 378,
-      "n_dates": 57,
+      "n_events": 384,
+      "n_dates": 58,
       "n_tickers": 10,
-      "hit_rate": 0.526,
+      "hit_rate": 0.531,
       "ci95": [
-        0.407,
-        0.646
+        0.419,
+        0.647
       ],
       "ci_method": "date_ticker_two_way_cluster_bootstrap",
       "edge_significant": false,
@@ -60,10 +60,10 @@
       "note": "聚类 CI 跨 50%，方向结论不入决策"
     },
     "rsi_overbought_fade": {
-      "n_events": 5,
-      "n_dates": 5,
+      "n_events": 6,
+      "n_dates": 6,
       "n_tickers": 3,
-      "hit_rate": 0.2,
+      "hit_rate": 0.167,
       "ci95": [
         0.0,
         1.0
@@ -98,13 +98,13 @@
       "note": "样本 < 20，方向结论不入决策（#934 与文档承诺对齐）"
     },
     "stop_breach_continue": {
-      "n_events": 243,
-      "n_dates": 47,
+      "n_events": 248,
+      "n_dates": 48,
       "n_tickers": 11,
-      "hit_rate": 0.556,
+      "hit_rate": 0.565,
       "ci95": [
-        0.419,
-        0.691
+        0.427,
+        0.694
       ],
       "ci_method": "date_ticker_two_way_cluster_bootstrap",
       "edge_significant": false,
@@ -117,6 +117,6 @@
       "note": "聚类 CI 跨 50%，方向结论不入决策"
     }
   },
-  "summary": "没有因子通过聚类 CI 50% 闸（65 天留痕）——结论未解锁",
+  "summary": "没有因子通过聚类 CI 50% 闸（66 天留痕）——结论未解锁",
   "discipline": "自迭代规则：公开 n_events/n_dates/n_tickers；date×ticker 双向聚类 CI 跨 50% 不入决策；只有反向 CI 整体低于 50% 才允许反向解读。driven_by=technical 的整体战绩以 dashboard 的实时 decision_metrics.by_driver.technical 为准，不使用固定百分比。"
 }
