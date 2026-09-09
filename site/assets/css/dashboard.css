@@ -1648,26 +1648,26 @@
      句话印两遍。 */
   .dbt-toggle[aria-expanded="true"] .dbt-gist { display: none; }
   .dbt-body { margin-top: 8px; }
-  .dbt-more {
+  .dbt-more, .pt-fold {
     display: flex; align-items: center; gap: 8px; width: 100%;
     background: none; border: 0; padding: 8px 2px; margin: 0 0 8px; cursor: pointer;
     color: var(--text-tertiary); text-align: left;
     font: 600 var(--fs-xs)/1.35 var(--mono);
   }
-  .dbt-more > i {
+  .dbt-more > i, .pt-fold > i {
     width: 7px; height: 7px; border-right: 1.5px solid currentColor;
     border-bottom: 1.5px solid currentColor; transform: rotate(-45deg);
     transition: transform .16s ease; flex: 0 0 auto; margin-left: 3px;
   }
-  .dbt-more[aria-expanded="true"] > i { transform: rotate(45deg); }
-  .dbt-more:hover, .dbt-toggle:hover .dbt-gist { color: var(--text-secondary); }
-  .dbt-toggle:focus-visible, .dbt-more:focus-visible {
+  .dbt-more[aria-expanded="true"] > i, .pt-fold[aria-expanded="true"] > i { transform: rotate(45deg); }
+  .dbt-more:hover, .pt-fold:hover, .dbt-toggle:hover .dbt-gist { color: var(--text-secondary); }
+  .dbt-toggle:focus-visible, .dbt-more:focus-visible, .pt-fold:focus-visible {
     outline: 2px solid var(--accent); outline-offset: 3px;
   }
   @media (prefers-reduced-motion: reduce) {
-    .dbt-toggle > i, .dbt-more > i { transition: none; }
+    .dbt-toggle > i, .dbt-more > i, .pt-fold > i { transition: none; }
   }
-  @media (pointer: coarse) { .dbt-toggle { padding: 3px 0; } .dbt-more { padding: 11px 2px; } }
+  @media (pointer: coarse) { .dbt-toggle { padding: 3px 0; } .dbt-more, .pt-fold { padding: 11px 2px; } }
   .dbt-tk { font-weight: 700; font-family: var(--mono); font-size: var(--fs-md); }
   .dbt-side { display: flex; gap: 8px; align-items: flex-start; margin-top: 4px; }
   .dbt-lbl {
@@ -1866,6 +1866,19 @@
     line-height: 1.5;
     overflow-wrap: anywhere;
   }
+  /* 理由默认夹两行：15 条决策的理由全文摊开在 390px 上是 4515px，一张卡
+     五个屏幕。第一行往往就是那句话的要点，所以夹而不是藏。 */
+  .pt-row .pt-rationale.is-clamped {
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .pt-expand {
+    background: none; border: 0; padding: 4px 0; margin: 0; cursor: pointer;
+    color: var(--text-tertiary); font: 600 var(--fs-micro)/1.3 var(--mono);
+  }
+  .pt-expand:hover { color: var(--text-secondary); }
+  .pt-expand:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  @media (pointer: coarse) { .pt-expand { padding: 9px 0; } }
   .pt-row .pt-side { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
   .pt-row .pt-conf {
     font-size: var(--fs-xs); padding: 2px 8px; border-radius: 999px;
