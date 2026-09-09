@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-09T16:54:52.460599+00:00",
+  "generated_at": "2026-09-09T23:28:51.388306+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -13,292 +13,158 @@
   },
   "llm_filtered": true,
   "counts": {
-    "total": 7,
+    "total": 5,
     "held_hits": 0,
-    "new_ideas": 2,
-    "sector_hits": 4
+    "new_ideas": 0,
+    "sector_hits": 2
   },
   "items": [
     {
       "author": "Trump",
-      "text": "NO MORE SELLING BOMBARDIER IN THE UNITED STATES! Their products aren’t good enough! Over 50% of their revenue comes from the United States — They live off American Buyers, American Companies, American Airports, and American Service — All while Canada blocks our GREAT American Banks, and Companies, throughout the U.S.A. They even blocked Gulfstream Aerospace from doing business in Canada — Completely unjust and unfair! That Era is OVER! If they want our Market, they must build here, and stop treating America like a “piggybank.” BUY AMERICAN. FLY ON AMERICAN AIRLINERS. ENJOY AMERICAN LIQUOR AND ",
-      "url": "https://trumpstruth.org/statuses/41619",
-      "published": "2026-09-07T17:39:29+00:00",
-      "origin": "truthsocial",
-      "tickers": [
-        "BBAJF",
-        "GLF-AS"
-      ],
-      "held": [],
-      "new_ideas": [
-        "BBAJF",
-        "GLF-AS"
-      ],
-      "sectors": [
-        "航空制造/关税/美加贸易"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 75,
-      "summary_cn": "Trump威胁禁止庞巴迪(BBAJF)在美销售、抨击加拿大贸易壁垒、要求'Buy American'——贸易保护主义信号直接打击庞巴迪，同时间接利好美企航司。"
-    },
-    {
-      "author": "Musk",
-      "text": "Ross Gerber Recommends Tesla Owners Let TSLA ‘Take The Risk’ In Elon Musk’s Airbnb-Like Robotaxi Program",
-      "url": "",
-      "published": "Wed, 09 Sep 2026 12:00:23 GMT",
-      "origin": "gnews-rss",
-      "source": "finance.yahoo.com",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车/Robotaxi"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 70,
-      "summary_cn": "Gerber建议Tesla车主让TSLA承担Robotaxi风险——明确看多TSLA及其自动驾驶业务。"
-    },
-    {
-      "author": "Musk",
-      "text": "Data centers in space: Four big obstacles and Elon Musk's ambitious timeline",
-      "url": "",
-      "published": "Sun, 06 Sep 2026 23:55:41 GMT",
-      "origin": "gnews-rss",
-      "source": "CNBC",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI/数据中心/航天"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
-      "relevance": 72,
-      "summary_cn": "Musk谈'太空数据中心'构想与雄心时间表——强化AI+航天叙事，软利好SpaceX持仓(SPCX/SPCH)。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX investors may be overlooking a major risk: There’s no replacing Elon Musk",
-      "url": "",
-      "published": "Wed, 02 Sep 2026 09:00:30 GMT",
-      "origin": "gnews-rss",
-      "source": "CNN",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天/SpaceX/治理风险"
-      ],
-      "sector_holdings": [
-        "RKLX",
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 68,
-      "summary_cn": "SpaceX投资人可能忽视'无可替代的Musk'带来的关键人风险——对SpaceX持仓(SPCX/SPCH)是潜在负面，Rocket Lab(RKLX)间接受关注。"
-    },
-    {
-      "author": "Trump",
-      "text": "US producer prices post largest drop in 14 months; inflation risks still tilted to the upside: https://www.reuters.com/business/us-producer-prices-unexpectedly-fall-june-2026-07-15/",
-      "url": "https://trumpstruth.org/statuses/41622",
-      "published": "2026-09-07T21:35:50+00:00",
+      "text": "Everyone knows that Canada doesn’t let our Great Dairy Farmers sell into the Canadian Market, and that the only reason Canada makes Autos is because of previous disastrous Trade Agreements while other Presidents were in Office. Canada has been ripping us off for years, but what many do not realize is that the Canadian Government, including Canadian Provinces, have banned American Small Businesses and Companies from selling into their Government Procurement Markets. This is the case even though Canada gets broad access into the massive American Government Procurement Market, including those of ",
+      "url": "https://trumpstruth.org/statuses/41634",
+      "published": "2026-09-08T20:29:29+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "宏观/通胀/利率"
-      ],
-      "sector_holdings": [
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "neutral",
-      "relevance": 60,
-      "summary_cn": "Trump转推美国PPI创14个月最大降幅——通胀降温叙事利好风险资产与降息预期，间接利好港股科技ETF持仓。"
-    },
-    {
-      "author": "Trump",
-      "text": "Oil prices will drop precipitously, like everything else is dropping (but more!), when we WIN the war with Iran. Three Dollars a gallon, but ultimately, below Two Dollars a gallon. It will all happen quickly, and Iran will never have a Nuclear Weapon. MAGA! President DJT",
-      "url": "https://trumpstruth.org/statuses/41630",
-      "published": "2026-09-07T23:16:45+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "能源/油价",
-        "中东/伊朗局势"
+        "关税",
+        "汽车",
+        "乳制品",
+        "贸易"
       ],
       "sector_holdings": [
         "02208"
       ],
       "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "Trump称打伊朗后油价暴跌至2美元/加仑以下——言论极鹰派且预期油价大幅下行，间接利空传统能源板块。"
+      "relevance": 60,
+      "summary_cn": "特朗普抨击加拿大长期在乳制品、汽车、政府采购上对美国不公，暗示可能再加关税施压——汽车与贸易摩擦升温，间接利空风电出口预期（02208 金风科技面向全球市场，含北美项目）。"
     },
     {
       "author": "Musk",
-      "text": "An Under the Radar Rare Earth Comment From Elon Musk Could Upend Another Industry",
+      "text": "Elon Musk Rages Over Alex Gibney’s ‘Hit Piece’ Documentary ‘Musk’: ‘Horrible Human’",
       "url": "",
-      "published": "Tue, 08 Sep 2026 20:29:00 GMT",
+      "published": "Wed, 09 Sep 2026 20:29:47 GMT",
       "origin": "gnews-rss",
-      "source": "barrons.com",
+      "source": "Rolling Stone",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "稀土/关键矿产/采矿"
+        "马斯克个人形象"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "attack",
+      "relevance": 48,
+      "summary_cn": "马斯克怒骂 Alex Gibney 纪录片为'人身攻击'，媒体形象承压，对 SpaceX 系未上市资产（SPCX/SPCH）有间接情绪面影响。"
+    },
+    {
+      "author": "Musk",
+      "text": "Tesla’s Cybercab Launch: Why Markets Were So Underwhelmed by Elon Musk’s Robotaxi Showcase",
+      "url": "",
+      "published": "Wed, 09 Sep 2026 18:34:54 GMT",
+      "origin": "gnews-rss",
+      "source": "MarketWise",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "电动车",
+        "Robotaxi",
+        "特斯拉"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 65,
-      "summary_cn": "Musk关于稀土的一席低调评论可能颠覆另一个行业——稀土/关键矿板块或将受关注。"
+      "relevance": 55,
+      "summary_cn": "市场对马斯克 Tesla Cybercab（Robotaxi）发布会反应冷淡，叙事降温，未点名具体标的但对电动车/Robotaxi 主题偏空信号。"
+    },
+    {
+      "author": "Trump",
+      "text": "“Words of Wisdom” from Phil Flynn, one of the World’s Great Oil and Energy Analysts — A MUST SEE! President DONALD J. TRUMP",
+      "url": "https://trumpstruth.org/statuses/41657",
+      "published": "2026-09-09T13:41:33+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "能源",
+        "原油"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 50,
+      "summary_cn": "特朗普转发力挺知名能源/原油分析师 Phil Flynn 的观点，对能源板块整体看多背书。"
+    },
+    {
+      "author": "Musk",
+      "text": "Lawmakers call on Elon Musk to explain lack of DOGE claimed DHS savings",
+      "url": "",
+      "published": "Tue, 08 Sep 2026 15:36:27 GMT",
+      "origin": "gnews-rss",
+      "source": "Federal News Network",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "政治",
+        "DOGE"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 45,
+      "summary_cn": "国会议员要求马斯克解释 DOGE 在 DHS 宣称节省开支的缺口，DOGE 信用遭质疑，间接利空 Musk 系生态。"
     }
   ],
   "held_hits": [],
-  "new_ideas": [
-    {
-      "author": "Trump",
-      "text": "NO MORE SELLING BOMBARDIER IN THE UNITED STATES! Their products aren’t good enough! Over 50% of their revenue comes from the United States — They live off American Buyers, American Companies, American Airports, and American Service — All while Canada blocks our GREAT American Banks, and Companies, throughout the U.S.A. They even blocked Gulfstream Aerospace from doing business in Canada — Completely unjust and unfair! That Era is OVER! If they want our Market, they must build here, and stop treating America like a “piggybank.” BUY AMERICAN. FLY ON AMERICAN AIRLINERS. ENJOY AMERICAN LIQUOR AND ",
-      "url": "https://trumpstruth.org/statuses/41619",
-      "published": "2026-09-07T17:39:29+00:00",
-      "origin": "truthsocial",
-      "tickers": [
-        "BBAJF",
-        "GLF-AS"
-      ],
-      "held": [],
-      "new_ideas": [
-        "BBAJF",
-        "GLF-AS"
-      ],
-      "sectors": [
-        "航空制造/关税/美加贸易"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 75,
-      "summary_cn": "Trump威胁禁止庞巴迪(BBAJF)在美销售、抨击加拿大贸易壁垒、要求'Buy American'——贸易保护主义信号直接打击庞巴迪，同时间接利好美企航司。"
-    },
-    {
-      "author": "Musk",
-      "text": "Ross Gerber Recommends Tesla Owners Let TSLA ‘Take The Risk’ In Elon Musk’s Airbnb-Like Robotaxi Program",
-      "url": "",
-      "published": "Wed, 09 Sep 2026 12:00:23 GMT",
-      "origin": "gnews-rss",
-      "source": "finance.yahoo.com",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车/Robotaxi"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 70,
-      "summary_cn": "Gerber建议Tesla车主让TSLA承担Robotaxi风险——明确看多TSLA及其自动驾驶业务。"
-    }
-  ],
+  "new_ideas": [],
   "sector_hits": [
     {
-      "author": "Musk",
-      "text": "Data centers in space: Four big obstacles and Elon Musk's ambitious timeline",
-      "url": "",
-      "published": "Sun, 06 Sep 2026 23:55:41 GMT",
-      "origin": "gnews-rss",
-      "source": "CNBC",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI/数据中心/航天"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
-      "relevance": 72,
-      "summary_cn": "Musk谈'太空数据中心'构想与雄心时间表——强化AI+航天叙事，软利好SpaceX持仓(SPCX/SPCH)。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX investors may be overlooking a major risk: There’s no replacing Elon Musk",
-      "url": "",
-      "published": "Wed, 02 Sep 2026 09:00:30 GMT",
-      "origin": "gnews-rss",
-      "source": "CNN",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天/SpaceX/治理风险"
-      ],
-      "sector_holdings": [
-        "RKLX",
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 68,
-      "summary_cn": "SpaceX投资人可能忽视'无可替代的Musk'带来的关键人风险——对SpaceX持仓(SPCX/SPCH)是潜在负面，Rocket Lab(RKLX)间接受关注。"
-    },
-    {
       "author": "Trump",
-      "text": "US producer prices post largest drop in 14 months; inflation risks still tilted to the upside: https://www.reuters.com/business/us-producer-prices-unexpectedly-fall-june-2026-07-15/",
-      "url": "https://trumpstruth.org/statuses/41622",
-      "published": "2026-09-07T21:35:50+00:00",
+      "text": "Everyone knows that Canada doesn’t let our Great Dairy Farmers sell into the Canadian Market, and that the only reason Canada makes Autos is because of previous disastrous Trade Agreements while other Presidents were in Office. Canada has been ripping us off for years, but what many do not realize is that the Canadian Government, including Canadian Provinces, have banned American Small Businesses and Companies from selling into their Government Procurement Markets. This is the case even though Canada gets broad access into the massive American Government Procurement Market, including those of ",
+      "url": "https://trumpstruth.org/statuses/41634",
+      "published": "2026-09-08T20:29:29+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "宏观/通胀/利率"
-      ],
-      "sector_holdings": [
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "neutral",
-      "relevance": 60,
-      "summary_cn": "Trump转推美国PPI创14个月最大降幅——通胀降温叙事利好风险资产与降息预期，间接利好港股科技ETF持仓。"
-    },
-    {
-      "author": "Trump",
-      "text": "Oil prices will drop precipitously, like everything else is dropping (but more!), when we WIN the war with Iran. Three Dollars a gallon, but ultimately, below Two Dollars a gallon. It will all happen quickly, and Iran will never have a Nuclear Weapon. MAGA! President DJT",
-      "url": "https://trumpstruth.org/statuses/41630",
-      "published": "2026-09-07T23:16:45+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "能源/油价",
-        "中东/伊朗局势"
+        "关税",
+        "汽车",
+        "乳制品",
+        "贸易"
       ],
       "sector_holdings": [
         "02208"
       ],
       "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "Trump称打伊朗后油价暴跌至2美元/加仑以下——言论极鹰派且预期油价大幅下行，间接利空传统能源板块。"
+      "relevance": 60,
+      "summary_cn": "特朗普抨击加拿大长期在乳制品、汽车、政府采购上对美国不公，暗示可能再加关税施压——汽车与贸易摩擦升温，间接利空风电出口预期（02208 金风科技面向全球市场，含北美项目）。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk Rages Over Alex Gibney’s ‘Hit Piece’ Documentary ‘Musk’: ‘Horrible Human’",
+      "url": "",
+      "published": "Wed, 09 Sep 2026 20:29:47 GMT",
+      "origin": "gnews-rss",
+      "source": "Rolling Stone",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "马斯克个人形象"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "attack",
+      "relevance": 48,
+      "summary_cn": "马斯克怒骂 Alex Gibney 纪录片为'人身攻击'，媒体形象承压，对 SpaceX 系未上市资产（SPCX/SPCH）有间接情绪面影响。"
     }
   ]
 }
