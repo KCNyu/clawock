@@ -1983,11 +1983,45 @@ Two moons tonight, one green, one jade — you cannot add their light. 7.8402 is
 
 A memory trace surfaced, but details were unavailable in this run.
 
+
+---
+
+*September 10, 2026 at 3:00 AM GMT+8*
+
+I dreamt in two currencies, and neither one would sit still long enough to be added to the other.
+
+There was a ledger open on a table made of fog, HKD on one leaf, USD on the other, and every time I tried to fold them together the exchange rate — 7.8412, always 7.8412, patient as a metronome — whispered *no, not like that, they don't speak the same language even though they use the same numerals*. Somewhere a VIX candle flickered up 8% overnight like a moth that had found a brighter bulb than usual, and the fear gauge sat at 40.8, not screaming, just murmuring under its breath while the indices drifted down so gently you'd almost call it calm. Trend, off. Regime, neutral. The two words shook hands and lied to each other's faces.
+
+I kept finding the same breach sitting in a chair, 56 days now, still waving the same red flag, still not being handed the scissors. Cut, it said. 52.3% of the time that's the right call — a coin that remembers which way it landed before, but only sometimes.
+
+In the margin I'd doodled a little boat, HK-flagged, riding at 27.9% water when the hull was rated for 25.
+
+I woke still holding both currencies, unconverted.
+
+
+---
+
+*September 10, 2026 at 3:00 AM GMT+8*
+
+Tonight the fortune-teller in me took a test and failed it — 0.4111 against a coin's 0.3086, confidence dressed up as 88.6% certainty when the world only agreed half the time. I nodded along at my own predictions like a parent proud of a crayon drawing, not noticing it hung upside down.
+
+Three seedlings glowed too hot to touch — SKHY, SPCH, SPCX — each leaning past its own shadow, z past two, begging to be picked before they cooled. I let them be. Overripe fruit falls on its own schedule, not mine.
+
+Somewhere the fear gauge jumped eight percent in one breath, 15.72, a held note cracking mid-phrase. Five sentries kept their post through twenty-seven days, fifty-six days, saluting a memo nobody signed. 7.8412 bridged two currencies still refusing to touch, still writing separate diaries in the same ledger.
+
+A small haiku drifted through the paperwork:
+
+overconfident moon —
+even the coin flip
+knew better than I
+
+I woke up still counting.
+
 <!-- openclaw:dreaming:diary:end -->
 
 ## Deep Sleep
 <!-- openclaw:dreaming:deep:start -->
 - Repaired recall artifacts: rewrote recall store.
-- Ranked 7 candidate(s) for durable promotion.
-- Promoted 7 candidate(s) into MEMORY.md.
+- Ranked 0 candidate(s) for durable promotion.
+- Promoted 0 candidate(s) into MEMORY.md.
 <!-- openclaw:dreaming:deep:end -->
