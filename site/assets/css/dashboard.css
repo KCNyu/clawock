@@ -2947,6 +2947,250 @@
   .dh-row.is-late .dh-state { color: var(--warning); }
   .dh-row.is-missing .dh-state { color: var(--red); }
 
+
+  /* ── 决策地图（Reflect 卡内）────────────────────────────────────────
+     2026-09-09：原来是 /decimap/ 一张独立页 + 顶栏一个 Map。它回答的是
+     「过去的决策旁边站着哪些信号、之后怎么样了」，那正是 Reflect 这一栏的
+     问题，所以它搬进 Reflect 的一张卡；页面留成跳转壳，老链接不断。
+     样式整体照搬（`--card / --border / --text-dim` 这些别名 dashboard.css
+     顶上已经有），去掉的只有页面级的 h1/h2 规则。 */
+  /* Decision Map. One board, one timeline, one drawer.
+     Scoped under .decimap so nothing here can reach the layout's own
+     typography rules for rendered brief content. */
+  .decimap { --dm-gap: 14px; font-size: 14px; }
+  .decimap .dm-sub { margin: 0 0 12px; color: var(--text-dim); font-size: 12.5px; line-height: 1.55; }
+  .decimap .dm-warn { color: var(--red); }
+
+  /* The diverging pair for forward return. NOT the site's green/red: measured
+     with the dataviz validator, #16a34a vs #dc2626 is deltaE 5.0 under simulated
+     deuteranopia — below the deltaE 6 floor. On two or three numbers that is
+     survivable; on a board of ~200 tinted cells it means the whole encoding
+     collapses to one gray for a colourblind reader. Blue-red clears it
+     (deltaE 27.3 protan light, 19.2 protan dark) and blue is already this
+     site's accent, so the board does not read as a foreign object. Every cell
+     prints its signed number as well, so colour is never the only channel. */
+  .decimap {
+    --dm-pos: var(--accent);
+    --dm-neg: var(--red);
+  }
+
+  /* KPI strip. 卡里再套一个框 = 盒子套盒子；这一条现在是卡内的一行 meta，
+     不是一块面板。 */
+  .dm-kpi { display: flex; flex-wrap: wrap; gap: 4px 14px; padding: 0;
+    border: 0; background: none; margin: 2px 0 10px;
+    font-family: var(--mono); font-size: 12px; font-variant-numeric: tabular-nums; }
+  .dm-kpi b { font-weight: 600; color: var(--text); font-size: 13px; }
+  .dm-kpi span { color: var(--text-dim); white-space: nowrap; }
+  .dm-kpi .dm-warn { white-space: normal; }
+
+  /* controls */
+  .dm-controls { display: flex; flex-wrap: wrap; align-items: center;
+    gap: 8px 10px; margin: 0 0 8px; font-size: 12.5px; color: var(--text-dim); }
+  .dm-controls select, .dm-controls button {
+    font: inherit; color: var(--text); background: var(--card-2);
+    border: 1px solid var(--border); border-radius: var(--radius-sm);
+    padding: 5px 9px; font-size: 12px; }
+  .dm-controls button { cursor: pointer; }
+  .dm-controls button:hover { border-color: var(--accent); }
+  .dm-seg { display: inline-flex; flex: 0 0 auto; align-self: flex-start;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm); overflow: hidden; }
+  .dm-seg button { border: 0; border-radius: 0; background: var(--card-2);
+    font-family: var(--mono); padding: 6px 11px; }
+  .dm-seg button + button { border-left: 1px solid var(--border); }
+  .dm-seg button[aria-pressed="true"] { background: var(--accent); color: #fff; }
+
+  /* the board — horizontal scroll lives here and only here: the page itself
+     must never scroll sideways. */
+  .dm-board-wrap { overflow-x: auto; border: 1px solid var(--border);
+    border-radius: var(--radius); background: var(--card); }
+  .dm-board { border-collapse: separate; border-spacing: 0;
+    font-size: 12px; width: 100%; min-width: 720px;
+    font-variant-numeric: tabular-nums; }
+  .dm-board th, .dm-board td { padding: 0; }
+  /* The layout styles `article table th` as an uppercased 11px label, which is
+     right for a rendered brief's table and wrong here: the row header holds a
+     signal's actual name, and `QUANT.DIST_MA200_PCT` is not what it is called.
+     Reset before setting our own. */
+  .decimap table th { text-transform: none; letter-spacing: normal;
+    font-size: inherit; color: inherit; }
+  .dm-board thead th { position: sticky; top: 0; z-index: 3;
+    background: var(--card); color: var(--text-dim); font-weight: 500;
+    text-align: center; white-space: nowrap; padding: 8px 6px;
+    border-bottom: 1px solid var(--border); font-family: var(--mono);
+    font-size: 11px; letter-spacing: .02em; }
+  .dm-board thead th.dm-src, .dm-board thead th.dm-covh { text-align: left; }
+  /* The source column is the row's identity; it stays put while the actions
+     scroll under a thumb. */
+  .dm-board .dm-src { position: sticky; left: 0; z-index: 2;
+    background: var(--card); text-align: left; white-space: nowrap;
+    padding: 5px 10px 5px 8px; border-right: 1px solid var(--border);
+    min-width: 176px; }
+  .dm-board thead th.dm-src { z-index: 4; }
+  .dm-board tbody tr + tr td, .dm-board tbody tr + tr th { border-top: 1px solid var(--border); }
+  .dm-board tbody tr:hover .dm-src { background: var(--card-2); }
+  .dm-board tbody tr.dm-signal:hover .dm-src { background: var(--border); }
+
+  .dm-twist { display: inline-flex; align-items: center; gap: 7px;
+    background: none; border: 0; padding: 3px 2px; margin: 0; cursor: pointer;
+    color: var(--text); font: inherit; text-align: left; }
+  .dm-twist i { display: inline-block; width: 9px; font-style: normal;
+    color: var(--text-dim); transition: transform .12s ease; }
+  .dm-twist[aria-expanded="true"] i { transform: rotate(90deg); }
+  .dm-kindname { font-weight: 600; letter-spacing: .01em; }
+  .dm-count { color: var(--text-dim); font-family: var(--mono); font-size: 11px; }
+  .dm-signal td, .dm-signal th.dm-src { background: var(--card-2); }
+  .dm-signal .dm-src { padding-left: 26px; }
+  .dm-signal .dm-name { font-family: var(--mono); font-size: 11.5px;
+    color: var(--text); overflow-wrap: anywhere; }
+
+  /* Coverage as a length, not a card. The old grid gave a source that saw 12%
+     of the book exactly as much area as one that saw 42%. */
+  .dm-cov { width: 118px; padding: 4px 10px 4px 6px !important; }
+  .dm-covbar { height: 6px; border-radius: 3px; background: var(--border);
+    overflow: hidden; margin-bottom: 2px; }
+  .dm-covbar > i { display: block; height: 100%; background: var(--accent); }
+  .dm-covtext { font-family: var(--mono); font-size: 10.5px; color: var(--text-dim); }
+
+  .dm-cell { text-align: center; padding: 4px 5px !important; min-width: 62px;
+    cursor: pointer; }
+  .dm-cell:hover, .dm-cell:focus-visible { outline: 2px solid var(--accent);
+    outline-offset: -2px; }
+  .dm-cell .dm-n { display: block; font-family: var(--mono); font-size: 11.5px;
+    color: var(--text); font-weight: 600; }
+  .dm-cell .dm-m { display: block; font-family: var(--mono); font-size: 10.5px;
+    color: var(--text-dim); }
+  .dm-empty { text-align: center; color: var(--text-dim); opacity: .35; }
+
+  .dm-ic { width: 132px; padding: 4px 10px !important; }
+  .dm-icval { font-family: var(--mono); font-size: 11.5px; }
+  .dm-icval.is-clear { color: var(--accent); font-weight: 600; }
+  .dm-whisker { position: relative; height: 7px; margin-top: 4px;
+    background: var(--border); border-radius: 2px; }
+  .dm-whisker > i { position: absolute; top: 0; height: 100%;
+    background: var(--text-dim); border-radius: 2px; opacity: .55; }
+  .dm-whisker > u { position: absolute; top: -2px; width: 2px; height: 11px;
+    background: var(--text); text-decoration: none; }
+  /* The zero line. Without it a whisker sitting entirely on one side of zero
+     looks the same as one straddling it. */
+  .dm-whisker > s { position: absolute; top: -3px; width: 1px; height: 13px;
+    background: var(--text-dim); text-decoration: none; }
+
+  .dm-scalenote { display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: center;
+    margin: 8px 2px 0; font-size: 11.5px; color: var(--text-dim); line-height: 1.5; }
+  .dm-ramp { display: inline-flex; align-items: center; gap: 3px; }
+  .dm-ramp span { display: inline-block; width: 22px; height: 11px;
+    border: 1px solid var(--border); border-radius: 2px; }
+
+  /* timeline */
+  .dm-timeline { border: 1px solid var(--border); border-radius: var(--radius);
+    background: var(--card); padding: 4px 0; }
+  .dm-row { display: grid; grid-template-columns: 78px 1fr; align-items: center;
+    gap: 10px; padding: 5px 12px; }
+  .dm-row + .dm-row { border-top: 1px solid var(--border); }
+  .dm-row > b { font-size: 12px; font-weight: 600; font-family: var(--mono); }
+  .dm-track { position: relative; height: 20px; }
+  /* Shape as well as colour. The four action classes used to be four hues and
+     nothing else, which is the same colour-only encoding the board avoids.
+     The shape lives on `::before`, not on the button: `clip-path` on the button
+     clips its `::after` too, and that pseudo-element is the touch target. */
+  .dm-dot { position: absolute; top: 5px; width: 9px; height: 9px; margin-left: -4px;
+    border: 0; padding: 0; background: none; cursor: pointer; }
+  .dm-dot::before { content: ''; position: absolute; inset: 0; border-radius: 50%;
+    background: var(--text-dim); transition: transform .12s ease; }
+  .dm-dot:hover::before, .dm-dot:focus-visible::before { transform: scale(1.5); }
+  .dm-dot:focus-visible { outline: none; }
+  .dm-dot.is-buy::before { background: var(--green); border-radius: 1px;
+    clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+  .dm-dot.is-sell::before { background: var(--red); border-radius: 1px;
+    clip-path: polygon(0 0, 100% 0, 50% 100%); }
+  .dm-dot.is-hold::before { background: var(--accent); }
+  .dm-dot.is-other::before { background: var(--text-dim); border-radius: 1px;
+    clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); }
+  .dm-legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 11.5px;
+    color: var(--text-dim); margin: 8px 2px 0; align-items: center; }
+  .dm-legend i { display: inline-block; position: relative; width: 10px;
+    height: 10px; margin-right: 6px; vertical-align: -1px; top: 0; }
+
+  /* drawer */
+  .dm-drawer { position: fixed; inset: 0 0 0 auto; width: min(430px, 94vw);
+    background: var(--card); border-left: 1px solid var(--border);
+    padding: 16px 18px 40px; overflow-y: auto; z-index: 60;
+    transform: translateX(100%); transition: transform .18s ease; }
+  .dm-drawer.is-open { transform: none; }
+  .dm-drawer h3 { margin: 0 0 2px; font-size: 15px; overflow-wrap: anywhere; }
+  .dm-drawer .dm-close { position: absolute; top: 12px; right: 14px;
+    background: none; border: 0; color: var(--text-dim); font-size: 20px; cursor: pointer; }
+  .dm-kv { width: 100%; border-collapse: collapse; font-size: 12.5px; margin: 8px 0 4px; }
+  .dm-kv th { text-align: left; font-weight: 500; color: var(--text-dim); padding: 3px 0; width: 46%; }
+  .dm-kv td { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; padding: 3px 0; }
+  .dm-hits { list-style: none; margin: 8px 0 0; padding: 0; }
+  .dm-hits li { border-top: 1px solid var(--border); }
+  .dm-hits button { width: 100%; display: flex; justify-content: space-between;
+    gap: 10px; background: none; border: 0; color: var(--text); cursor: pointer;
+    font: inherit; font-size: 12.5px; padding: 8px 2px; text-align: left; }
+  .dm-hits button:hover { background: var(--card-2); }
+  .dm-hits em { font-style: normal; color: var(--text-dim);
+    font-family: var(--mono); font-size: 11.5px; }
+  .dm-scrim { position: fixed; inset: 0; background: rgba(0,0,0,.42); z-index: 55; }
+  [hidden] { display: none !important; }
+
+  @media (max-width: 640px) {
+    .dm-row { grid-template-columns: 62px 1fr; }
+    /* 176 + 118 of label columns is the whole width of a phone: the board
+       opened on two columns of names and no data at all. Narrow both until at
+       least three action columns are on screen before the first scroll. */
+    .dm-board { min-width: 640px; }
+    /* Let a long signal name wrap instead of forcing the sticky column as wide
+       as `quant.stop_distance_pct`, which alone was half a phone. */
+    .dm-board .dm-src { min-width: 104px; max-width: 118px;
+      white-space: normal; padding: 5px 7px; }
+    .dm-signal .dm-name { display: block; line-height: 1.25; }
+    .dm-signal .dm-src { padding-left: 18px; }
+
+    .dm-cov { width: 68px; padding: 4px 6px 4px 5px !important; }
+    .dm-covtext { font-size: 10px; }
+    .dm-cell { min-width: 56px; }
+    .dm-ic { width: 96px; min-width: 88px; padding: 4px 7px !important; }
+    .dm-board thead th { font-size: 10px; padding: 7px 5px;
+      white-space: normal; line-height: 1.25; }
+    /* A right-hand slide-out is a desktop shape. On a phone min(430px, 94vw)
+       covered the page anyway, minus a 6% sliver of scrim nobody can aim at, so
+       it read as a broken full-screen view rather than a panel. A bottom sheet
+       is the same drawer in the shape the surface actually has. */
+    .dm-drawer {
+      inset: auto 0 0 0; width: 100%; max-height: 86vh;
+      border-left: 0; border-top: 1px solid var(--border);
+      border-radius: 14px 14px 0 0; padding: 18px 16px 32px;
+      transform: translateY(100%);
+    }
+    .dm-drawer .dm-close { font-size: 24px; padding: 4px 8px; top: 8px; right: 8px; }
+  }
+
+  /* Touch, not hover. The timeline dot is 9px across — under a finger that is a
+     coin toss between two adjacent decisions and the scrim behind them. The dot
+     grows a little and grows a hit area that extends well past it *vertically*,
+     where there is nothing to mis-hit; horizontally it stays tight, because
+     neighbouring dots on a busy ticker are only a few pixels apart and slop
+     there would just move the mis-taps around. */
+  @media (pointer: coarse) {
+    .dm-row { padding: 7px 12px; }
+    .dm-track { height: 26px; }
+    .dm-dot { width: 12px; height: 12px; top: 7px; margin-left: -6px; }
+    .dm-dot::after { content: ''; position: absolute; inset: -11px -2px; }
+    .dm-dot:hover::before { transform: none; }
+    .dm-dot:focus-visible::before { transform: scale(1.4); }
+    .dm-legend i::after { content: none; }
+    .dm-controls select, .dm-controls button { padding: 9px 10px; }
+    .dm-seg button { padding: 9px 13px; }
+    .dm-cell { min-width: 66px; padding: 8px 5px !important; }
+    .dm-twist { padding: 8px 2px; }
+    .dm-close { min-width: 44px; min-height: 44px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .dm-drawer, .dm-dot::before, .dm-twist i { transition: none; }
+  }
+
   /* Equity Curve 卡的专属规则随卡片一起挪走了：标题用通用 .card h3，
      图高用通用 .chart-box（与相邻 Daily P&L 同高成对）。 */
   .chart-note > summary {

@@ -958,6 +958,57 @@ layout: null
       <div id="trace-list"></div>
     </div>
 
+    <!-- 决策地图：原来是 /decimap/ 一张独立页（顶栏一个 Map）。它回答的是
+         「过去的决策旁边站着哪些信号、之后怎么样了」——正是 Reflect 这一栏
+         的问题，所以它搬进这里，紧挨着决策轨迹（一笔 vs 全部的两种看法）。
+         payload 走 sidecar（decision_map → reflect），代码在 Reflect 首次
+         打开时才注入，Overview 的首帧一个字节都不多下。 -->
+    <div class="card desktop-wide" id="decision-map-card">
+      <div class="card-head">
+        <div>
+          <div class="overview-card-kicker">决策 × 当时的信号 · 只读</div>
+          <h3>决策地图</h3>
+        </div>
+        <span class="dm-seg" id="dm-horizon" role="group" aria-label="横期">
+          <button type="button" data-h="t1" aria-pressed="false">t1</button>
+          <button type="button" data-h="t5" aria-pressed="true">t5</button>
+          <button type="button" data-h="t20" aria-pressed="false">t20</button>
+        </span>
+      </div>
+      <p class="chart-hint">行是<b>信息源</b>（点开成它的信号），列是<b>当时实际采取的动作</b>，
+        格是「这个源站在那类动作旁边多少次 · 之后的中位收益」。</p>
+      <div class="decimap" id="decimap">
+        <div class="dm-kpi" id="dm-kpi">载入中…</div>
+        <div class="dm-controls">
+          <button type="button" id="dm-expand">展开全部</button>
+          <button type="button" id="dm-reset">重置</button>
+        </div>
+        <div class="dm-board-wrap"><table class="dm-board" id="dm-board"></table></div>
+        <div class="dm-scalenote" id="dm-scale"></div>
+        <details class="chart-note">
+          <summary>怎么读 · 为什么它不是因果</summary>
+          <p class="dm-sub" id="dm-caveat"></p>
+          <p class="dm-sub">这块板只读：它不写决策，不改账本契约，也不把任何相关性
+            提升成一条激活规则。<span id="dm-degradation"></span></p>
+        </details>
+        <details class="chart-note" id="dm-timeline-note">
+          <summary>时间线 · 每票一条</summary>
+          <p class="dm-sub">点一个标记，看那条决策做出时的信号快照与之后的结果。</p>
+          <div class="dm-controls">
+            <label>票 <select id="dm-ticker"><option value="">全部</option></select></label>
+          </div>
+          <div class="dm-timeline" id="dm-timeline"></div>
+          <div class="dm-legend">
+            <span><i class="dm-dot is-buy"></i>加仓</span>
+            <span><i class="dm-dot is-sell"></i>减/砍</span>
+            <span><i class="dm-dot is-hold"></i>持有/观察</span>
+            <span><i class="dm-dot is-other"></i>其他</span>
+          </div>
+          <p class="dm-sub" id="dm-undated"></p>
+        </details>
+      </div>
+    </div>
+
     <div class="sect-divider">净值表现 · portfolio</div>
 
     <div class="card desktop-wide" id="curve-card">
@@ -1078,6 +1129,15 @@ layout: null
   </div><!-- /.pager -->
 
 </main>
+
+<!-- 决策地图的抽屉与遮罩挂在面板外面：`.panel` 是 content-visibility: auto，
+     等于 paint containment，会把 position:fixed 的后代锁进面板自己的盒子里。 -->
+<div class="dm-scrim" id="dm-scrim" hidden></div>
+<aside class="dm-drawer" id="dm-drawer" role="dialog" aria-modal="true"
+       aria-hidden="true" aria-label="决策详情">
+  <button class="dm-close" type="button" id="dm-close" aria-label="关闭">&times;</button>
+  <div id="dm-drawer-body"></div>
+</aside>
 
 <footer>
   <div id="build-status" class="build-status"></div>

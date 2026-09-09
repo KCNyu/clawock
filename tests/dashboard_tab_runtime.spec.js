@@ -1662,6 +1662,43 @@ async function testDataHealthIsReadableOnAPhone(browser, base) {
   await context.close();
 }
 
+// 手机上打开一个「有 sidecar 的 tab」，那份 sidecar 必须真的落到卡上。
+//
+// 实测的坏法：mobile 的 tab 切换走 pager 滚动，activateTabData 的 promise 常
+// 常在 pager 还没停稳时兑现 ⇒ `currentTab() !== t` ⇒ 整个 .then 直接 return，
+// 于是抓回来的 sidecar 从来没被写进 DATA。之后每次再进这个 tab 都走「什么都
+// 不缺」的快路径（sidecar 确实 ready 了），而那条路径也不写 DATA —— 于是那张
+// 卡在这一整个会话里都是空的，只有整页刷新能救。桌面宽度不复现（没有 pager）。
+async function testASidecarStillReachesItsCardWhenThePagerIsStillSettling(browser, base) {
+  const context = await browser.newContext({
+    viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true,
+  });
+  const page = await context.newPage();
+  await stubLiveOrigin(page);
+  await page.goto(base, { waitUntil: "networkidle" });
+  await waitForData(page);
+  await page.click('.tab-btn[data-tab="reflect"]');
+  await waitForTab(page, "reflect");
+
+  // 决策地图整块牌就是 decision_map 这个 sidecar 的消费者：它有行，就说明
+  // sidecar 被应用了；它印着「没有载入」，就说明这条路径又断了。
+  await page.waitForFunction(
+    () => document.querySelectorAll("#dm-board tbody tr").length > 0,
+    null, { timeout: 15000 },
+  ).catch(() => { throw new Error("the decision map never got its sidecar on a phone"); });
+
+  const state = await page.evaluate(() => ({
+    rows: document.querySelectorAll("#dm-board tbody tr").length,
+    kpi: document.getElementById("dm-kpi").textContent.trim(),
+    applied: !!(DATA && DATA.decision_map),
+  }));
+  assert(state.applied, "DATA.decision_map is null although the payload was fetched");
+  assert(state.rows > 0, "the board rendered no rows");
+  assert(!state.kpi.includes("没有载入"),
+    `the card is showing its load-failure copy with the payload in hand: ${state.kpi}`);
+  await context.close();
+}
+
 async function main() {
   const server = serveWorkspace();
   await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
@@ -1683,6 +1720,7 @@ async function main() {
     await testVerdictDeckFillsItsBoxAndRanksGatesBySeverity(browser, base);
     await testDataHealthNamesTheDegradedSlotAndWeChatDrops(browser, base);
     await testDataHealthIsReadableOnAPhone(browser, base);
+    await testASidecarStillReachesItsCardWhenThePagerIsStillSettling(browser, base);
     await testAddSideCardExplainsWhyThereIsNoAdd(browser, base);
     await testAPanelSaysWhenItsDataDidNotLoad(browser, base);
     await testCronRailAccountsForEverySlotWithoutASecondVerdict(browser, base);

@@ -1,18 +1,14 @@
 #!/usr/bin/env node
 "use strict";
 
-// The decision map, loaded as the real page against the real payload.
+// The decision map, measured in the place it now lives.
 //
-// It used to be four stacked views of one join: a status bar, 33 equal-sized
-// cards, a signal x action table holding the *same* buckets the cards held, and
-// a timeline. Two of those were the same data drawn twice, and the card grid
-// gave a source that saw 12% of the book exactly as much area as one that saw
-// 42% — on the page whose first number is coverage. It is now one board.
-//
-// These assertions are the ones that would let it silently regress: that the
-// board is a tree over published roll-ups rather than sums taken in the browser,
-// that a cell's colour never becomes its only channel, and that the page itself
-// does not scroll sideways on a phone while the board does.
+// 2026-09-09: this was a standalone page at /decimap/ with its own header entry.
+// It answers "which sources stood next to which action, and what happened
+// after" — the question the dashboard's Reflect tab is for — so the board, the
+// timeline and the drawer moved into a card there, and the page became a
+// redirect. The contract did not change: it drives the same ids, now inside the
+// dashboard, reached by deep-linking `#reflect`.
 
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
@@ -22,61 +18,71 @@ const { chromium } = require("playwright");
 
 const ROOT = path.resolve(__dirname, "..");
 const SITE = path.resolve(ROOT, "site");
-const LAYOUT = path.resolve(SITE, "_layouts/default.html");
-const PAGE = path.resolve(SITE, "decimap/index.html");
 const PAYLOAD = path.resolve(ROOT, "assets/data/decision_map.json");
+// Everything after the first paint reads the data branch. Left unrouted it puts
+// a live call to raw.githubusercontent.com on CI's critical path for bytes that
+// are already sitting in assets/data (same reasoning as dashboard_tab_runtime).
+const LIVE_DATA_ORIGIN = "https://raw.githubusercontent.com/KCNyu/clawock/data-plane/";
+const MIME = {
+  ".css": "text/css; charset=utf-8",
+  ".html": "text/html; charset=utf-8",
+  ".js": "text/javascript; charset=utf-8",
+  ".json": "application/json; charset=utf-8",
+  ".svg": "image/svg+xml",
+};
 
-/** Resolve the subset of Liquid the layout and the page use, as Jekyll would. */
-function render() {
-  const body = fs.readFileSync(PAGE, "utf8").replace(/^---[\s\S]*?---\n/, "");
-  return fs.readFileSync(LAYOUT, "utf8")
-    .replace(/\{\{\s*'([^']*)'\s*\|\s*relative_url\s*\}\}/g, "$1")
-    .replace(/\{%\s*if [^%]*%\}([\s\S]*?)\{%\s*endif\s*%\}/g, "$1")
-    .replace(/\{\{\s*content\s*\}\}/g, body)
-    .replace(/\{%[\s\S]*?%\}/g, "")
-    .replace(/\{\{[\s\S]*?\}\}/g, "");
-}
-
-function serve(html, overrides) {
+function serve() {
   return http.createServer((request, response) => {
-    const name = new URL(request.url, "http://localhost").pathname;
-    if (overrides && Object.prototype.hasOwnProperty.call(overrides, name)) {
-      response.writeHead(200, {
-        "content-type": "application/json; charset=utf-8",
-        "cache-control": "no-store",
-      });
-      response.end(overrides[name]);
-      return;
-    }
-    if (name === "/decimap/" || name === "/") {
-      response.writeHead(200, { "content-type": "text/html; charset=utf-8" });
-      response.end(html);
-      return;
-    }
-    const root = name.startsWith("/assets/data/") ? ROOT : SITE;
-    const file = path.resolve(root, name.replace(/^\/+/, ""));
-    if (!file.startsWith(root + path.sep) || !fs.existsSync(file)
-        || fs.statSync(file).isDirectory()) {
+    const urlPath = decodeURIComponent(new URL(request.url, "http://localhost").pathname);
+    const relative = urlPath === "/" ? "index.html" : urlPath.replace(/^\/+/, "");
+    const sourceRoot = relative.startsWith("assets/data/") ? ROOT : SITE;
+    const filename = path.resolve(sourceRoot, relative);
+    if (!filename.startsWith(sourceRoot + path.sep) || !fs.existsSync(filename)
+        || fs.statSync(filename).isDirectory()) {
       response.writeHead(404).end("not found");
       return;
     }
     response.writeHead(200, {
-      "content-type": name.endsWith(".json")
-        ? "application/json; charset=utf-8" : "text/plain; charset=utf-8",
+      "content-type": MIME[path.extname(filename)] || "application/octet-stream",
       "cache-control": "no-store",
     });
-    fs.createReadStream(file).pipe(response);
+    fs.createReadStream(filename).pipe(response);
   });
 }
 
-async function open(browser, base, width) {
+/** Serve every payload from the tree, with `decision_map.json` optionally patched. */
+async function routeData(page, patchedMap) {
+  const answer = async route => {
+    const name = path.basename(new URL(route.request().url()).pathname);
+    if (patchedMap && name === "decision_map.json") {
+      return route.fulfill({
+        status: 200,
+        headers: { "content-type": "application/json; charset=utf-8" },
+        body: patchedMap,
+      });
+    }
+    const file = path.resolve(ROOT, "assets/data", name);
+    if (!fs.existsSync(file)) return route.fulfill({ status: 404, body: "not found" });
+    await route.fulfill({
+      status: 200,
+      headers: { "content-type": "application/json; charset=utf-8" },
+      body: fs.readFileSync(file, "utf8"),
+    });
+  };
+  await page.route(LIVE_DATA_ORIGIN + "**", answer);
+  if (patchedMap) await page.route("**/assets/data/decision_map.json*", answer);
+}
+
+async function open(browser, base, width, patchedMap) {
   const context = await browser.newContext({
     viewport: { width, height: 1000 }, hasTouch: width < 600, isMobile: width < 600 });
   const page = await context.newPage();
   const errors = [];
   page.on("pageerror", error => errors.push(String(error)));
-  await page.goto(base, { waitUntil: "networkidle" });
-  await page.waitForSelector("#dm-board tbody tr");
+  await routeData(page, patchedMap);
+  // The card lives in Reflect; the hash is the dashboard's own deep link.
+  await page.goto(base + "#reflect", { waitUntil: "networkidle" });
+  await page.waitForSelector("#dm-board tbody tr", { timeout: 20000 });
   return { context, page, errors };
 }
 
@@ -173,9 +179,13 @@ async function theDrawerTrapsFocusAndGivesItBack(browser, base) {
   });
   await page.waitForSelector(".dm-drawer.is-open");
 
+  // 抽屉与遮罩挂在 <body> 下（面板是 content-visibility: auto ⇒ paint
+  // containment，position:fixed 的后代会被锁进面板的盒子）。所以「背景」是
+  // body 的其余子节点：顶栏、tab 条、整个 pager、页脚，一个都不许留下。
   const outside = await page.evaluate(() =>
-    [...document.getElementById("decimap").children]
-      .filter(el => el.id !== "dm-drawer" && el.id !== "dm-scrim" && !el.inert)
+    [...document.body.children]
+      .filter(el => el.id !== "dm-drawer" && el.id !== "dm-scrim"
+        && el.tagName !== "SCRIPT" && !el.inert)
       .map(el => el.id || el.tagName));
   assert.deepEqual(outside, [],
     `these siblings stayed reachable behind the open drawer: ${outside.join(", ")}`);
@@ -264,7 +274,7 @@ async function theKpiStripPrintsWhatThePayloadHolds(browser, base, payload) {
 // master the first time the publisher runs after this merges, and a browser
 // assertion that only fires once the artifact catches up is an assertion that
 // has never run.
-async function theCaveatReportsWhatSurvivedItsPlacebo(browser, payload, html) {
+async function theCaveatReportsWhatSurvivedItsPlacebo(browser, base, payload) {
   const patched = JSON.parse(JSON.stringify(payload));
   patched.signal_panel = patched.signal_panel || {};
   patched.signal_panel.refutation = {
@@ -276,12 +286,8 @@ async function theCaveatReportsWhatSurvivedItsPlacebo(browser, payload, html) {
     t20: { signals: 33, collecting: 27, fails_placebo: 2, one_name_flips_it: 0,
            survives_refutation: 4, interval_clears_zero_but_placebo_does_not: [] },
   };
-  const server = serve(html, {
-    "/assets/data/decision_map.json": JSON.stringify(patched) });
-  await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
-  const base = `http://127.0.0.1:${server.address().port}/decimap/`;
-  try {
-    const { context, page } = await open(browser, base, 1280);
+  {
+    const { context, page } = await open(browser, base, 1280, JSON.stringify(patched));
     const t5 = (await page.textContent("#dm-caveat")).replace(/\s+/g, "");
     assert(t5.includes("8/33"),
       `the caveat does not report the t5 survivor count: ${t5}`);
@@ -296,11 +302,55 @@ async function theCaveatReportsWhatSurvivedItsPlacebo(browser, payload, html) {
     assert(t1.includes("factor.rank.relative_strength"),
       "a signal whose interval and whose own placebo disagree must be named");
     await context.close();
-  } finally {
-    await new Promise(resolve => server.close(resolve));
   }
 }
 
+
+// 时间线画的是真 payload，不是一份写死 left 的合成 fixture。
+//
+// 2026-09-09 实测：`codes.plan_date[0]` 是空串，第 0 条决策正好用它 ⇒ 轴的
+// 起点是 `Date.parse('')` = NaN ⇒ 每个点的 left 都是 "NaN%" ⇒ 浏览器丢掉这条
+// 声明 ⇒ 18 行里 800 多个标记全叠在 x=0。线上那张独立页也一直是这么坏着的：
+// 唯一碰过时间线的断言用的是自己造的 dots（left 写死 12/34/61/88%），所以它
+// 永远绿。这条闸改成量真数据画出来的位置。
+async function theTimelineSpreadsRealDatesAcrossItsAxis(browser, base) {
+  const { context, page } = await open(browser, base, 1280);
+  const timeline = await page.evaluate(async () => {
+    document.querySelector("#dm-timeline-note > summary").click();
+    await new Promise(resolve => setTimeout(resolve, 60));
+    const dots = [...document.querySelectorAll("#dm-timeline .dm-dot")];
+    const lefts = dots.map(dot => dot.style.left);
+    return {
+      rows: document.querySelectorAll("#dm-timeline .dm-row").length,
+      dots: dots.length,
+      unplaced: lefts.filter(left => !/^-?\d+(\.\d+)?%$/.test(left)).length,
+      distinct: new Set(lefts).size,
+      max: Math.max(...lefts.map(parseFloat).filter(n => !isNaN(n))),
+      unnamed: [...document.querySelectorAll("#dm-timeline .dm-row b")]
+        .filter(name => !name.textContent.trim()).length,
+      undated: (document.getElementById("dm-undated") || {}).textContent || "",
+    };
+  });
+  assert(timeline.rows > 1 && timeline.dots > 20,
+    `the timeline drew ${timeline.dots} markers over ${timeline.rows} rows`);
+  assert.equal(timeline.unplaced, 0,
+    `${timeline.unplaced} markers carry no usable left — they all stack on the axis origin`);
+  assert(timeline.distinct > 10,
+    `every marker landed on ${timeline.distinct} distinct position(s): the axis collapsed`);
+  assert(timeline.max > 90,
+    `the rightmost marker sits at ${timeline.max}% — the axis is not spanning its own range`);
+  assert.equal(timeline.unnamed, 0, "a timeline row has no ticker name");
+  // 放不上轴的那些不许无声消失。
+  const payload = JSON.parse(fs.readFileSync(PAYLOAD, "utf8"));
+  const undated = (payload.decisions.plan_date || [])
+    .filter(code => !(payload.codes.plan_date || [])[code]).length;
+  if (undated) {
+    assert(timeline.undated.includes(String(undated)),
+      `${undated} decisions have no plan date and the card never says so: `
+      + `"${timeline.undated}"`);
+  }
+  await context.close();
+}
 
 async function main() {
   if (!fs.existsSync(PAYLOAD)) {
@@ -308,10 +358,9 @@ async function main() {
     return;
   }
   const payload = JSON.parse(fs.readFileSync(PAYLOAD, "utf8"));
-  const html = render();
-  const server = serve(html);
+  const server = serve();
   await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
-  const base = `http://127.0.0.1:${server.address().port}/decimap/`;
+  const base = `http://127.0.0.1:${server.address().port}/`;
   const executablePath = process.env.CHROME_EXE || undefined;
   const browser = await chromium.launch(executablePath ? {
     executablePath, args: ["--no-sandbox"],
@@ -322,8 +371,9 @@ async function main() {
     await aCellOpensTheDecisionsItCounts(browser, base);
     await theDrawerTrapsFocusAndGivesItBack(browser, base);
     await thePageNeverScrollsSidewaysButTheBoardDoes(browser, base);
+    await theTimelineSpreadsRealDatesAcrossItsAxis(browser, base);
     await theKpiStripPrintsWhatThePayloadHolds(browser, base, payload);
-    await theCaveatReportsWhatSurvivedItsPlacebo(browser, payload, html);
+    await theCaveatReportsWhatSurvivedItsPlacebo(browser, base, payload);
     console.log("decimap board contract: ok");
   } finally {
     await browser.close();

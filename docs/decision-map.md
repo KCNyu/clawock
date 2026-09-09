@@ -84,6 +84,15 @@ thirty-three).
 
 ---
 
+> **2026-09-09：这块板不再是一张独立页。** 它搬进了 dashboard 的 **Reflect**
+> 一栏（卡片 `#decision-map-card`，紧挨着决策轨迹），顶栏的 `Map` 入口撤掉，
+> `/decimap/` 留成一个指向 `#reflect` 的跳转壳。实现分成三处：markup 在
+> `site/index.html` 的 Reflect 面板、样式在 `site/assets/css/dashboard.css` 的
+> 「决策地图（Reflect 卡内）」一节、逻辑在 `site/assets/js/dashboard.decimap.js`
+> （由 `dashboard.render.js` 在 Reflect 首次打开时注入，payload 走 sidecar
+> `decision_map → reflect`）。下文里提到「静态页 / 挂在 nav 上 / 打开
+> `/decimap/`」的地方，读作「Reflect 里的那张卡」。
+>
 > **本文档写于 Phase 0–4，`/decimap/` 已在 #1211 重构成一块板。**
 > 当时的形状是「状态条 + 33 张信息源卡 + 一张 33×7 矩阵 + 时间线」四段堆叠，
 > 卡片和矩阵是同一批 `by_action` 桶的两种画法。现在是

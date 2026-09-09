@@ -66,6 +66,10 @@ def test_every_browser_fetch_is_declared_public():
         "assets/js/dashboard.charts.js",
         "assets/js/dashboard.hero.js",
         "assets/js/dashboard.render.js",
+        # 决策地图搬进 Reflect 之后由 render.js 在运行时注入。它不在任何一份
+        # 静态 <script> 里，所以只有这条列表能保证部署带上它 —— 漏了它，那张
+        # 卡在线上是空的，本地一切正常。
+        "assets/js/dashboard.decimap.js",
         "assets/js/dashboard.ui.js",
         "assets/js/echarts.min.js",
     ):
