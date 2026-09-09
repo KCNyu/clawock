@@ -32,7 +32,13 @@
     quant: '量化', setup: '形态',
   };
   function kindCn(kind) { return KIND_CN[kind] || kind; }
-  var state = { data: null, horizon: 't5', ticker: '', open: {}, scale: 1 };
+  var state = { data: null, horizon: 't5', ticker: '', open: {}, scale: 1, action: '' };
+  // 窄档一次只画一类动作。八列 × 66px 是 649px 的表塞进 324px 的卡：手机上
+  // 看得见三列半，右边还有什么没有任何提示，而其中两类动作在这段窗口里一条
+  // 决策都没有。读者心里的单位是「哪类动作旁边站着谁」——那就让他一次选一类，
+  // 板不横向滚。≥641px 一字不动（那里八列本来就都在屏幕上）。
+  var NARROW = window.matchMedia('(max-width: 640px)');
+  function narrow() { return NARROW.matches; }
 
   function el(id) { return document.getElementById(id); }
   // Every string interpolated into innerHTML below goes through this. Ticker
@@ -168,18 +174,84 @@
     return '<td class="dm-ic" title="' + esc(title) + '">' + value + whisker + '</td>';
   }
 
+  // 每类动作的总条数，按信息源族的汇总取（不加信号行，那是同一批决策的重复
+  // 计数）。0 条的那几类在窄档不列成 chip —— 但要说出来是哪几类，一个安静
+  // 消失的列读起来像「这类动作没发生过」和「这类动作我们不给看」不分。
+  function actionTotals() {
+    var totals = {};
+    (state.data.actions || []).forEach(function (action) { totals[action] = 0; });
+    (state.data.source_kind_cards || []).forEach(function (card) {
+      Object.keys(card.by_action || {}).forEach(function (action) {
+        if (totals[action] === undefined) totals[action] = 0;
+        totals[action] += card.by_action[action].count || 0;
+      });
+    });
+    return totals;
+  }
+
+  function liveActions() {
+    var totals = actionTotals();
+    return (state.data.actions || []).filter(function (action) {
+      return totals[action] > 0;
+    }).sort(function (a, b) { return totals[b] - totals[a]; });
+  }
+
+  // The columns this render draws. Wide: every action the payload declares.
+  // Narrow: exactly the one the reader picked, defaulting to the busiest.
+  function visibleActions() {
+    var actions = state.data.actions || [];
+    if (!narrow()) return actions;
+    var live = liveActions();
+    if (!live.length) return actions.slice(0, 1);
+    if (live.indexOf(state.action) < 0) state.action = live[0];
+    return [state.action];
+  }
+
+  function renderActionBar() {
+    var bar = el('dm-actions'), note = el('dm-actionnote');
+    if (!bar) return;
+    if (!narrow()) { bar.hidden = true; if (note) note.hidden = true; return; }
+    var totals = actionTotals(), live = liveActions();
+    visibleActions();   // 归一化 state.action
+    bar.innerHTML = '<span class="dm-barlabel">动作</span>' + live.map(function (action) {
+      return '<button type="button" data-action="' + esc(action) + '"'
+        + ' title="' + esc(action) + '"'
+        + ' aria-pressed="' + (action === state.action ? 'true' : 'false') + '">'
+        + esc(actionCn(action)) + ' <em>' + totals[action] + '</em></button>';
+    }).join('');
+    bar.hidden = false;
+    if (note) {
+      var quiet = (state.data.actions || []).filter(function (action) {
+        return !totals[action];
+      });
+      note.textContent = '手机上一次看一类动作。'
+        + (quiet.length
+            ? quiet.map(actionCn).join('、') + ' 在这段窗口里 0 条决策，没有列出来。'
+            : '');
+      note.hidden = false;
+    }
+  }
+
   function renderBoard() {
     var d = state.data, horizon = state.horizon;
-    var actions = d.actions || [];
+    var actions = visibleActions();
     var rows = boardRows();
+    // 满色阈值仍然按**所有**动作算：切一类动作不该让同一个格换个颜色。
     state.scale = fillScale(horizon);
+    el('dm-board').classList.toggle('is-single', narrow());
+
+    // IC 按信息源族汇总没有定义 ⇒ 板刚打开时那一列整列是「·」。宽档它只是
+    // 一列留白，窄档它是 62px 的屏幕。展开任意一个族（IC 有值的那些行）它
+    // 就回来。
+    var showIc = !narrow() || rows.some(function (row) { return !row.kind; });
 
     var head = '<thead><tr><th class="dm-src">信息源</th>'
       + '<th class="dm-covh">覆盖</th>';
     actions.forEach(function (action) {
       head += '<th title="' + esc(action) + '">' + esc(actionCn(action)) + '</th>';
     });
-    head += '<th>IC ' + esc(horizon) + '</th></tr></thead><tbody>';
+    head += (showIc ? '<th>IC ' + esc(horizon) + '</th>' : '')
+      + '</tr></thead><tbody>';
 
     var body = '';
     rows.forEach(function (row) {
@@ -202,7 +274,7 @@
         + '<span class="dm-covtext">' + card.decision_coverage_pct.toFixed(1) + '% · '
         + card.decisions_joined + '</span></td>';
       actions.forEach(function (action) { body += cellHtml(row, action, horizon); });
-      body += icHtml(row, horizon) + '</tr>';
+      body += (showIc ? icHtml(row, horizon) : '') + '</tr>';
     });
 
     el('dm-board').innerHTML = head + body + '</tbody>';
@@ -483,7 +555,7 @@
     drawerReturnFocus = null;
   }
 
-  function renderAll() { renderKpi(); renderBoard(); renderTimeline(); }
+  function renderAll() { renderKpi(); renderActionBar(); renderBoard(); renderTimeline(); }
 
   // 面板每次刷新都会拿到一份新的 payload；事件只绑一次，展开/横期/选票这些
   // 读者自己的状态因此不会被一次后台刷新重置。
@@ -512,7 +584,7 @@
       renderBoard();
     });
     el('dm-reset').addEventListener('click', function () {
-      state.horizon = 't5'; state.ticker = ''; state.open = {};
+      state.horizon = 't5'; state.ticker = ''; state.open = {}; state.action = '';
       el('dm-ticker').value = '';
       el('dm-expand').textContent = '展开全部';
       [].forEach.call(el('dm-horizon').querySelectorAll('button'), function (button) {
@@ -520,6 +592,18 @@
       });
       renderAll();
     });
+    el('dm-actions').addEventListener('click', function (event) {
+      var button = event.target.closest('button[data-action]');
+      if (!button) return;
+      state.action = button.dataset.action;
+      renderActionBar();
+      renderBoard();
+    });
+    // 转屏/换窗宽会跨过 640px：板的形态是媒体查询决定的，重画一次，否则窄档
+    // 留着八列（横向滚回来了）或宽档只剩一列。
+    var onWidth = function () { if (state.data) { renderActionBar(); renderBoard(); } };
+    if (NARROW.addEventListener) NARROW.addEventListener('change', onWidth);
+    else if (NARROW.addListener) NARROW.addListener(onWidth);
     el('dm-board').addEventListener('click', function (event) {
       var twist = event.target.closest('.dm-twist');
       if (twist) {

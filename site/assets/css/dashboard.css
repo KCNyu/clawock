@@ -3000,6 +3000,12 @@
   .dm-seg button + button { border-left: 1px solid var(--border); }
   .dm-seg button[aria-pressed="true"] { background: var(--accent); color: #fff; }
 
+  /* 动作切换条：只在窄档存在（宽档八列本来就都在屏幕上）。见
+     dashboard.decimap.js 的 visibleActions()。 */
+  .dm-actionbar { display: none; }
+  .dm-actionnote { display: none; }
+  .dm-onlynarrow { display: none; }
+
   /* the board — horizontal scroll lives here and only here: the page itself
      must never scroll sideways. */
   .dm-board-wrap { overflow-x: auto; border: 1px solid var(--border);
@@ -3141,6 +3147,31 @@
        opened on two columns of names and no data at all. Narrow both until at
        least three action columns are on screen before the first scroll. */
     .dm-board { min-width: 640px; }
+    /* 窄档的板只画一类动作 ⇒ 它必须**装得下**，不是「滚得动」。 */
+    .dm-board.is-single { min-width: 0; }
+    /* 单列模式省下来的宽度，一半给信号名（`bar.corwin_schultz_spread_pct`
+       在窄档要折行），但仍然是**上限**：去掉上限它会长到 265px，把板重新
+       顶出屏幕（实测 390px 展开后横滚 118px）。 */
+    .dm-board.is-single .dm-src { max-width: 156px; }
+    .dm-board.is-single .dm-cov { width: 92px; }
+    .dm-board.is-single .dm-ic { width: 62px; min-width: 56px; }
+    .dm-board.is-single .dm-whisker { display: none; }
+
+    .dm-actionbar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+    .dm-barlabel { color: var(--text-dim); font-family: var(--mono);
+      font-size: 10.5px; letter-spacing: .04em; }
+    .dm-actionbar button { display: inline-flex; align-items: center; gap: 5px;
+      border: 1px solid var(--border); border-radius: 999px; background: var(--card);
+      color: var(--text); font: inherit; font-size: 12px; padding: 6px 10px;
+      cursor: pointer; }
+    .dm-actionbar button em { font-style: normal; font-family: var(--mono);
+      font-size: 11px; color: var(--text-dim); }
+    .dm-actionbar button[aria-pressed="true"] { background: var(--accent);
+      border-color: var(--accent); color: #fff; }
+    .dm-actionbar button[aria-pressed="true"] em { color: rgba(255,255,255,.85); }
+    .dm-actionnote { display: block; margin: 2px 0 0; }
+    .dm-onlywide { display: none; }
+    .dm-onlynarrow { display: inline; }
     /* Let a long signal name wrap instead of forcing the sticky column as wide
        as `quant.stop_distance_pct`, which alone was half a phone. */
     .dm-board .dm-src { min-width: 104px; max-width: 118px;
@@ -3165,6 +3196,15 @@
       transform: translateY(100%);
     }
     .dm-drawer .dm-close { font-size: 24px; padding: 4px 8px; top: 8px; right: 8px; }
+  }
+
+  /* 320px（SE / 折叠机外屏）：展开信号行之后 IC 那一列回来，四列刚好比屏幕
+     宽（实测 15px）。省下来的宽度全在三列固定宽度和名字的上限上。 */
+  @media (max-width: 360px) {
+    .dm-board.is-single .dm-src { max-width: 124px; }
+    .dm-board.is-single .dm-cov { width: 76px; }
+    .dm-board.is-single .dm-ic { width: 52px; min-width: 48px; }
+    .dm-board.is-single .dm-cell { min-width: 48px; }
   }
 
   /* Touch, not hover. The timeline dot is 9px across — under a finger that is a

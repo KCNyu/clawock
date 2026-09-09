@@ -975,7 +975,8 @@ layout: null
           <button type="button" data-h="t20" aria-pressed="false">t20</button>
         </span>
       </div>
-      <p class="chart-hint">行是<b>信息源</b>（点开成它的信号），列是<b>当时实际采取的动作</b>，
+      <p class="chart-hint">行是<b>信息源</b>（点开成它的信号），<span class="dm-onlywide">列是<b>当时实际采取的动作</b></span><span
+        class="dm-onlynarrow">列是你选的那类<b>动作</b></span>，
         格是「这个源站在那类动作旁边多少次 · 之后的中位收益」。</p>
       <div class="decimap" id="decimap">
         <div class="dm-kpi" id="dm-kpi">载入中…</div>
@@ -983,6 +984,8 @@ layout: null
           <button type="button" id="dm-expand">展开全部</button>
           <button type="button" id="dm-reset">重置</button>
         </div>
+        <div class="dm-actionbar" id="dm-actions" role="group" aria-label="动作" hidden></div>
+        <p class="dm-sub dm-actionnote" id="dm-actionnote" hidden></p>
         <div class="dm-board-wrap"><table class="dm-board" id="dm-board"></table></div>
         <div class="dm-scalenote" id="dm-scale"></div>
         <details class="chart-note">

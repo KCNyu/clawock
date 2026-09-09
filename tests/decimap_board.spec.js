@@ -228,28 +228,126 @@ async function theDrawerTrapsFocusAndGivesItBack(browser, base) {
 }
 
 
-async function thePageNeverScrollsSidewaysButTheBoardDoes(browser, base) {
-  for (const width of [320, 390, 1280]) {
-    const { context, page } = await open(browser, base, width);
-    const measured = await page.evaluate(() => {
+// 手机上这块板一次只画一类动作。
+//
+// 2026-09-09 实测（真 payload，8 类动作）：宽档的板是 649px，塞进 390px 手机上
+// 的一张 324px 的卡里 —— 看得见三列半，右边还有五列没有任何提示，而其中两类
+// 动作（否决 / 只做 T 之一）在这段窗口里一条决策都没有。横向滚动不是交互：
+// 读者心里的单位是「哪类动作旁边站着谁」，所以窄档给他一个动作切换条，板
+// 必须**装得下**。宽档八列本来就都在屏幕上，一字不动。
+async function theBoardFitsAPhoneOneActionAtATime(browser, base, payload) {
+  const declared = payload.actions || [];
+  const totals = {};
+  declared.forEach(action => { totals[action] = 0; });
+  (payload.source_kind_cards || []).forEach(card => {
+    Object.keys(card.by_action || {}).forEach(action => {
+      totals[action] = (totals[action] || 0) + (card.by_action[action].count || 0);
+    });
+  });
+  const busiest = declared.slice().sort((a, b) => totals[b] - totals[a])[0];
+  const quiet = declared.filter(action => !totals[action]);
+
+  for (const width of [320, 390]) {
+    const { context, page, errors } = await open(browser, base, width);
+    const shape = await page.evaluate(() => {
       const wrap = document.querySelector(".dm-board-wrap");
-      const source = document.querySelector("#dm-board .dm-src");
+      const bar = document.getElementById("dm-actions");
       return {
         page: document.documentElement.scrollWidth - document.documentElement.clientWidth,
         board: wrap.scrollWidth - wrap.clientWidth,
-        sticky: getComputedStyle(source).position,
+        sticky: getComputedStyle(document.querySelector("#dm-board .dm-src")).position,
+        barShown: !bar.hidden && bar.getBoundingClientRect().height > 0,
+        chips: [...bar.querySelectorAll("button")].map(button => button.dataset.action),
+        pressed: [...bar.querySelectorAll('button[aria-pressed="true"]')]
+          .map(button => button.dataset.action),
+        columns: [...document.querySelectorAll("#dm-board thead th")]
+          .map(th => th.getAttribute("title")).filter(Boolean),
+        note: (document.getElementById("dm-actionnote") || {}).textContent || "",
       };
     });
-    assert(measured.page <= 1,
-      `${width}px: the document scrolls sideways by ${measured.page}px`);
-    assert.equal(measured.sticky, "sticky",
-      `${width}px: the source column must stay put while the actions scroll`);
-    if (width < 600) {
-      assert(measured.board > 0,
-        `${width}px: a nine-column board that needs no scroll is suspicious`);
+    assert.deepEqual(errors, [], `${width}px: page errors: ${errors.join(" | ")}`);
+    assert(shape.page <= 1, `${width}px: the document scrolls sideways by ${shape.page}px`);
+    assert.equal(shape.board, 0,
+      `${width}px: the board still needs ${shape.board}px of sideways scroll — `
+      + "a phone cannot read a column it has no idea is there");
+    assert.equal(shape.sticky, "sticky",
+      `${width}px: the source column must stay put`);
+    assert(shape.barShown, `${width}px: the action switcher is not on screen`);
+    assert(shape.chips.length >= 2,
+      `${width}px: ${shape.chips.length} action chip(s) — nothing to switch between`);
+    assert.deepEqual(shape.pressed, [busiest],
+      `${width}px: the board opens on ${shape.pressed} instead of the busiest action `
+      + `(${busiest}, ${totals[busiest]} decisions)`);
+    assert.deepEqual(shape.columns, [busiest],
+      `${width}px: the board drew ${shape.columns.length} action columns, not one`);
+    // 0 条的动作不列成 chip —— 但要说出来是哪几类：一个安静消失的列读起来跟
+    // 「这类动作没发生过」不分。
+    for (const action of quiet) {
+      assert(!shape.chips.includes(action),
+        `${width}px: ${action} has no decisions in this window and is still a chip`);
+      assert(shape.note.length > 0,
+        `${width}px: ${action} was dropped from the switcher without a word`);
     }
+    assert.deepEqual(shape.chips.filter(action => !totals[action]), [],
+      `${width}px: a chip offers an action with no decisions behind it`);
+
+    // 换一类动作，格子里的数必须跟着换 —— 否则这个开关是个装饰。
+    const before = await page.textContent("#dm-board .dm-cell");
+    const other = shape.chips.find(action => action !== busiest);
+    await page.click(`#dm-actions button[data-action="${other}"]`);
+    await page.waitForTimeout(150);
+    const after = await page.evaluate(() => ({
+      columns: [...document.querySelectorAll("#dm-board thead th")]
+        .map(th => th.getAttribute("title")).filter(Boolean),
+      cell: document.querySelector("#dm-board .dm-cell").textContent,
+      board: (() => {
+        const wrap = document.querySelector(".dm-board-wrap");
+        return wrap.scrollWidth - wrap.clientWidth;
+      })(),
+    }));
+    assert.deepEqual(after.columns, [other],
+      `${width}px: tapping ${other} did not swap the column`);
+    assert.notEqual(after.cell, before,
+      `${width}px: the board prints the same numbers for ${busiest} and ${other}`);
+
+    // 展开信号行会把 IC 那一列带回来（族的 IC 没有定义，整列是「·」）。
+    // 那是这块板最宽的状态，也必须装得下。
+    await page.click("#dm-expand");
+    await page.waitForTimeout(200);
+    const expanded = await page.evaluate(() => {
+      const wrap = document.querySelector(".dm-board-wrap");
+      return {
+        board: wrap.scrollWidth - wrap.clientWidth,
+        rows: document.querySelectorAll("#dm-board tbody tr").length,
+        ic: document.querySelectorAll("#dm-board .dm-ic").length,
+      };
+    });
+    assert(expanded.rows > 6, `${width}px: expanding revealed no signal rows`);
+    assert(expanded.ic > 0,
+      `${width}px: the IC column never comes back for the rows that have an IC`);
+    assert.equal(expanded.board, 0,
+      `${width}px: expanded, the board needs ${expanded.board}px of sideways scroll`);
     await context.close();
   }
+
+  // ≥641px：八列全在，切换条不存在。
+  const { context, page } = await open(browser, base, 1280);
+  const wide = await page.evaluate(() => ({
+    columns: [...document.querySelectorAll("#dm-board thead th")]
+      .map(th => th.getAttribute("title")).filter(Boolean),
+    bar: (() => {
+      const bar = document.getElementById("dm-actions");
+      return !bar.hidden && bar.getBoundingClientRect().height > 0;
+    })(),
+    page: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    sticky: getComputedStyle(document.querySelector("#dm-board .dm-src")).position,
+  }));
+  assert.deepEqual(wide.columns, declared,
+    "the wide board must still carry every action the payload declares");
+  assert(!wide.bar, "the action switcher is a narrow-only shape; it is showing at 1280px");
+  assert(wide.page <= 1, `1280px: the document scrolls sideways by ${wide.page}px`);
+  assert.equal(wide.sticky, "sticky", "1280px: the source column must stay put");
+  await context.close();
 }
 
 async function theKpiStripPrintsWhatThePayloadHolds(browser, base, payload) {
@@ -370,7 +468,7 @@ async function main() {
     await noCellUsesColourAsItsOnlyChannel(browser, base);
     await aCellOpensTheDecisionsItCounts(browser, base);
     await theDrawerTrapsFocusAndGivesItBack(browser, base);
-    await thePageNeverScrollsSidewaysButTheBoardDoes(browser, base);
+    await theBoardFitsAPhoneOneActionAtATime(browser, base, payload);
     await theTimelineSpreadsRealDatesAcrossItsAxis(browser, base);
     await theKpiStripPrintsWhatThePayloadHolds(browser, base, payload);
     await theCaveatReportsWhatSurvivedItsPlacebo(browser, base, payload);
