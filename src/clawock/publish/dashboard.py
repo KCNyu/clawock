@@ -149,6 +149,23 @@ MAX_OUT_BYTES          = 200_000   # final dashboard.json hard cap (~200KB)
 MIN_SNAPSHOTS_UNDER_BUDGET = 30
 MAX_OVERVIEW_BYTES      = 80_000    # Hero-only projection hard cap
 
+#: Every marker the size-cap ladder writes INTO the payload to record that a
+#: lever was pulled. Declared once, here, because the page's "every published
+#: block has a reader" gate has to know they are metadata rather than content —
+#: and it can only learn that from a list the producer also uses.
+#:
+#: `snapshots_trimmed_for_budget` is why this exists. Two of the three markers
+#: were in that gate's allowlist and it was not, so the day the second lever
+#: fired, `validate` would have gone red on a key it had just written itself —
+#: on the one generation already in trouble. Nothing caught it because the gate
+#: builds a payload that is under the cap: a lever that only fires on a bad day
+#: is not exercised by a good one.
+BUDGET_DEGRADATION_KEYS = (
+    'recent_plans_dropped',
+    'snapshots_trimmed_for_budget',
+    'payload_over_cap',
+)
+
 
 def _fields(value, names):
     """Copy an explicit public projection surface from an optional mapping."""
@@ -3736,6 +3753,97 @@ class UnsupportedLegShape(ProjectionInputError):
     """
 
 
+def apply_size_budget(out):
+    """Spend the size-cap levers, in order, and return `(payload, size_bytes)`.
+
+    Extracted from `build_projection` so the ladder can be DRIVEN rather than
+    described. It was only ever exercised by a test that re-implemented the
+    trim loop beside it and by a `grep` for the marker's name — so on the day
+    it fired for real, nothing had run it. That is how
+    `snapshots_trimmed_for_budget` came to be the one marker of three missing
+    from the page gate's allowlist: a lever that fires only on a bad day is not
+    exercised by a good one (same shape as #1230).
+
+    Three levers, each recorded IN the payload under one of
+    `BUDGET_DEGRADATION_KEYS`, because a degradation that lives only on stderr
+    reaches no gate.
+    """
+    payload = dashboard_wire_payload(out)
+    size_bytes = len(payload.encode('utf-8'))
+
+    if size_bytes > MAX_OUT_BYTES:
+        # Last resort: drop recent_plans entirely + keep snapshot summaries only
+        print(f'⚠️  payload still {size_bytes} bytes > {MAX_OUT_BYTES} cap — dropping recent_plans', file=sys.stderr)
+        out['recent_plans'] = []
+        out['recent_plans_dropped'] = True
+        payload = dashboard_wire_payload(out)
+        size_bytes = len(payload.encode('utf-8'))
+        if size_bytes > MAX_OUT_BYTES:
+            # Second lever: shorten the embedded snapshot series from the OLD
+            # end. It is the largest single section (37KB of 195KB at 76 rows,
+            # ~489 bytes each) and the only one that grows by one row every
+            # trading day, so it — not `recent_plans` — is what actually walks
+            # this payload into the cap. Measured 2026-08-26: 195,680 bytes with
+            # 4,320 to spare and MAX_SNAPSHOTS_EMBEDDED=90 still 14 rows away,
+            # i.e. the cap arrives in ~9 trading days and then stays breached.
+            #
+            # Oldest-first, because the equity curve's recent shape is what is
+            # read; and never below MIN_SNAPSHOTS_UNDER_BUDGET, because past
+            # that point the trim stops being cosmetic.
+            kept = list(out.get('snapshots') or [])
+            dropped = 0
+            while (size_bytes > MAX_OUT_BYTES
+                   and len(kept) > MIN_SNAPSHOTS_UNDER_BUDGET):
+                kept.pop(0)
+                dropped += 1
+                out['snapshots'] = kept
+                payload = dashboard_wire_payload(out)
+                size_bytes = len(payload.encode('utf-8'))
+            if dropped:
+                # Recorded IN the payload, not only on stderr: `recent_plans`
+                # already learned this lesson (`recent_plans_dropped`), and a
+                # degradation that lives only in a build log is one no gate can
+                # read back.
+                out['snapshots_trimmed_for_budget'] = dropped
+                payload = dashboard_wire_payload(out)
+                size_bytes = len(payload.encode('utf-8'))
+                print(f'⚠️  dropped the {dropped} oldest snapshot(s) to fit the '
+                      f'{MAX_OUT_BYTES} cap — now {size_bytes} bytes', file=sys.stderr)
+        if size_bytes > MAX_OUT_BYTES:
+            # Both levers spent; publishing an oversized payload still beats not
+            # publishing, but say so — on 2026-07-28 the file shipped 3.7KB over
+            # the cap with only the line above to show for it, which reads as
+            # "handled".
+            #
+            # Recorded IN the payload as well (#1215). A stderr line reaches no
+            # gate: not the build card, not the cron log, not watchdog.jsonl. So
+            # the 2026-07-28 breach was invisible to everything that could have
+            # acted on it, and "publishing over cap" was a decision nothing
+            # downstream could see had been taken. `recent_plans_dropped` and
+            # `snapshots_trimmed_for_budget` already live here for this reason;
+            # the terminal case was the one that did not.
+            #
+            # Writing it grows the payload by ~60 bytes, which is the right
+            # trade in a branch that is already over: a breach that is 60 bytes
+            # worse and legible beats one that is silent.
+            # `bytes` is the size with both levers spent and before this marker
+            # was added, which is a fixed number; recording the post-marker size
+            # would be a value that changes itself.
+            out['payload_over_cap'] = {
+                'bytes': size_bytes,
+                'cap': MAX_OUT_BYTES,
+                'over_by': size_bytes - MAX_OUT_BYTES,
+                'levers_spent': ['recent_plans', 'snapshots'],
+                'measured': 'before this marker was written',
+            }
+            payload = dashboard_wire_payload(out)
+            size_bytes = len(payload.encode('utf-8'))
+            print(f'⚠️  payload STILL {size_bytes} bytes > {MAX_OUT_BYTES} cap after '
+                  f'dropping recent_plans and trimming snapshots — publishing over cap',
+                  file=sys.stderr)
+    return payload, size_bytes
+
+
 def build_projection(previous_source=None, shadow_previous=None):
     """Compute the four public payloads from the workspace. Writes nothing.
 
@@ -4196,79 +4304,7 @@ def build_projection(previous_source=None, shadow_previous=None):
     # dashboard.json is the canonical cross-tab browser document. Keep it compact:
     # detail activation still pays this parse, and producers should not spend
     # recovered headroom on indentation that adds no user value.
-    payload = dashboard_wire_payload(out)
-    size_bytes = len(payload.encode('utf-8'))
-
-    if size_bytes > MAX_OUT_BYTES:
-        # Last resort: drop recent_plans entirely + keep snapshot summaries only
-        print(f'⚠️  payload still {size_bytes} bytes > {MAX_OUT_BYTES} cap — dropping recent_plans', file=sys.stderr)
-        out['recent_plans'] = []
-        out['recent_plans_dropped'] = True
-        payload = dashboard_wire_payload(out)
-        size_bytes = len(payload.encode('utf-8'))
-        if size_bytes > MAX_OUT_BYTES:
-            # Second lever: shorten the embedded snapshot series from the OLD
-            # end. It is the largest single section (37KB of 195KB at 76 rows,
-            # ~489 bytes each) and the only one that grows by one row every
-            # trading day, so it — not `recent_plans` — is what actually walks
-            # this payload into the cap. Measured 2026-08-26: 195,680 bytes with
-            # 4,320 to spare and MAX_SNAPSHOTS_EMBEDDED=90 still 14 rows away,
-            # i.e. the cap arrives in ~9 trading days and then stays breached.
-            #
-            # Oldest-first, because the equity curve's recent shape is what is
-            # read; and never below MIN_SNAPSHOTS_UNDER_BUDGET, because past
-            # that point the trim stops being cosmetic.
-            kept = list(out.get('snapshots') or [])
-            dropped = 0
-            while (size_bytes > MAX_OUT_BYTES
-                   and len(kept) > MIN_SNAPSHOTS_UNDER_BUDGET):
-                kept.pop(0)
-                dropped += 1
-                out['snapshots'] = kept
-                payload = dashboard_wire_payload(out)
-                size_bytes = len(payload.encode('utf-8'))
-            if dropped:
-                # Recorded IN the payload, not only on stderr: `recent_plans`
-                # already learned this lesson (`recent_plans_dropped`), and a
-                # degradation that lives only in a build log is one no gate can
-                # read back.
-                out['snapshots_trimmed_for_budget'] = dropped
-                payload = dashboard_wire_payload(out)
-                size_bytes = len(payload.encode('utf-8'))
-                print(f'⚠️  dropped the {dropped} oldest snapshot(s) to fit the '
-                      f'{MAX_OUT_BYTES} cap — now {size_bytes} bytes', file=sys.stderr)
-        if size_bytes > MAX_OUT_BYTES:
-            # Both levers spent; publishing an oversized payload still beats not
-            # publishing, but say so — on 2026-07-28 the file shipped 3.7KB over
-            # the cap with only the line above to show for it, which reads as
-            # "handled".
-            #
-            # Recorded IN the payload as well (#1215). A stderr line reaches no
-            # gate: not the build card, not the cron log, not watchdog.jsonl. So
-            # the 2026-07-28 breach was invisible to everything that could have
-            # acted on it, and "publishing over cap" was a decision nothing
-            # downstream could see had been taken. `recent_plans_dropped` and
-            # `snapshots_trimmed_for_budget` already live here for this reason;
-            # the terminal case was the one that did not.
-            #
-            # Writing it grows the payload by ~60 bytes, which is the right
-            # trade in a branch that is already over: a breach that is 60 bytes
-            # worse and legible beats one that is silent.
-            # `bytes` is the size with both levers spent and before this marker
-            # was added, which is a fixed number; recording the post-marker size
-            # would be a value that changes itself.
-            out['payload_over_cap'] = {
-                'bytes': size_bytes,
-                'cap': MAX_OUT_BYTES,
-                'over_by': size_bytes - MAX_OUT_BYTES,
-                'levers_spent': ['recent_plans', 'snapshots'],
-                'measured': 'before this marker was written',
-            }
-            payload = dashboard_wire_payload(out)
-            size_bytes = len(payload.encode('utf-8'))
-            print(f'⚠️  payload STILL {size_bytes} bytes > {MAX_OUT_BYTES} cap after '
-                  f'dropping recent_plans and trimming snapshots — publishing over cap',
-                  file=sys.stderr)
+    payload, size_bytes = apply_size_budget(out)
 
     overview_payload = serialize_dashboard_payload(compile_overview_projection(out))
     overview_size = len(overview_payload.encode('utf-8'))
