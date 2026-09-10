@@ -170,6 +170,8 @@ def _calendar(args) -> int:
         forwarded += ["--session", args.session]
     if args.quiet:
         forwarded.append("--quiet")
+    if args.status:
+        forwarded.append("--status")
     return calendar_main(forwarded)
 
 
@@ -596,6 +598,10 @@ def main(argv=None) -> int:
     calendar.add_argument(
         "--session", choices=("full", "morning", "afternoon"), default="full")
     calendar.add_argument("--quiet", action="store_true")
+    calendar.add_argument(
+        "--status", action="store_true",
+        help="report on stdout and always exit 0, for callers that read a "
+             "non-zero exit as a failed command")
     calendar.set_defaults(func=_calendar)
 
     profile = sub.add_parser(
