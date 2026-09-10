@@ -129,6 +129,7 @@ class Result:
 BACKLOG_WARN_COMMITS = 3
 BACKLOG_WARN_HOURS = 2.0
 
+
 #: How far back to look for a hop that cannot recover. Wide enough to survive a
 #: quiet stretch, short enough that a fixed hop stops being reported the same day.
 RUN_SCAN_LIMIT = 40
@@ -1072,6 +1073,44 @@ def _last_meaningful_line(path):
         tail = fh.read().decode('utf-8', 'replace')
     lines = [line.strip() for line in tail.splitlines() if line.strip()]
     return lines[-1] if lines else None
+
+
+
+def check_master_ci_conclusion(r):
+    """Is master itself red right now? (#1425 fallout.)
+
+    The fact, the incident it exists for, and why `unknown` is not `red` all
+    live in `ops/ci/master_ci_state`, which `cron-health.yml` reads once a day
+    through its CLI. One module, two readers, so the daily gate and this hook
+    cannot drift into disagreeing about the same fact.
+
+    What is local to this reader:
+
+    * **Only on master, only outside Actions.** A task branch has its own PR to
+      read, and judging the runs from inside one is circular.
+    * **WARN, never CRITICAL** — identical reasoning to `check_publish_backlog`
+      below: this runs inside `pre-push`, and a CRITICAL would refuse the very
+      push that carries the fix.
+    * **`unknown` is silence.** A dropped connection says nothing about master,
+      and a line that cried red on one would teach its reader to skip it.
+    """
+    if os.environ.get('GITHUB_ACTIONS'):
+        return
+    try:
+        branch = subprocess.run(
+            ['git', 'rev-parse', '--abbrev-ref', 'HEAD'],
+            capture_output=True, text=True, timeout=10)
+        if branch.returncode != 0 or branch.stdout.strip() != 'master':
+            return
+        sys.path.insert(0, str(_REPO_ROOT / 'ops' / 'ci'))
+        import master_ci_state  # noqa: PLC0415 - lazily, like cron_runs below
+        state = master_ci_state.read_state()
+    except Exception:
+        return
+    if state.state == 'green':
+        r.add('master CI', OK, state.summary())
+    elif state.state == 'red':
+        r.add('master CI', WARNING, state.summary())
 
 
 def check_publish_backlog(r):
@@ -2029,6 +2068,7 @@ def main():
         check_host_crontab_targets,
         check_host_cron_logs,
         check_publish_backlog,
+        check_master_ci_conclusion,
         check_delivered_but_unarchived,
         check_fallback_chain_shape,
         check_model_chain_health,
