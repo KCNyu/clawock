@@ -123,9 +123,18 @@ def test_live_dashboard_exposure_has_no_other_and_matches_risk_leverage():
     portfolio = _portfolio()
     sectors = build_dashboard.compute_sector_exposure(portfolio)
     assert all(row["sector"] != "Other" for leg in sectors.values() for row in leg)
-    assert {"SPCX", "SPCH", "SKHY"} <= {
-        ticker for row in sectors["us"] for ticker in row["tickers"]
-    }
+    # Naming today's holdings here made the test a timebomb: SKHY was pinned by
+    # name and went red the morning after it was closed, with no code change.
+    # `compute_sector_exposure` swallows exceptions and returns the legs it got
+    # through, so the property worth pinning is that every active holding came
+    # out the other side — that still fails closed on a partial result, and it
+    # keeps holding whoever the book holds.
+    for leg, bucket in (("us", "us_stocks"), ("hk", "hk_stocks")):
+        assert {ticker for row in sectors[leg] for ticker in row["tickers"]} == {
+            h["ticker"]
+            for h in portfolio["portfolios"][bucket]["holdings"]
+            if h.get("shares", 0) > 0
+        }
 
     leveraged = build_dashboard.compute_leveraged_etf_exposure(portfolio, fx_rate=7.84)
     # us_pct is a share of live market value, so pinning today's quote (it was
