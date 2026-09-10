@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-09T23:28:51.388306+00:00",
+  "generated_at": "2026-09-10T16:42:37.300340+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -13,92 +13,156 @@
   },
   "llm_filtered": true,
   "counts": {
-    "total": 5,
+    "total": 9,
     "held_hits": 0,
-    "new_ideas": 0,
-    "sector_hits": 2
+    "new_ideas": 2,
+    "sector_hits": 1
   },
   "items": [
     {
+      "author": "Musk",
+      "text": "In A SpaceX-Tesla Merger, Elon Musk May Be The Big Winner. What It May Mean For Other Investors.",
+      "url": "",
+      "published": "Thu, 10 Sep 2026 11:37:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Investor's Business Daily",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "航天",
+        "电动车",
+        "AI"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "neutral",
+      "relevance": 75,
+      "summary_cn": "市场讨论 SpaceX 与 Tesla 合并可能性，TSLA 为直接点名的上市标的；kcn 通过 SPCX/SPCH 间接持有 SpaceX 敞口，相关性强。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk rips ABC News over fatal NYC Tesla crash report",
+      "url": "",
+      "published": "Thu, 10 Sep 2026 07:25:46 GMT",
+      "origin": "gnews-rss",
+      "source": "Teslarati",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "媒体"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 58,
+      "summary_cn": "Musk 抨击 ABC News 对纽约 Tesla 致命车祸的报道不实，间接维护 TSLA 品牌形象，但事件本身偏舆情，非直接股价催化。"
+    },
+    {
+      "author": "Musk",
+      "text": "EXCLUSIVE: UK deepens reliance on Musk's SpaceX, spending nearly $40 million on satellite services",
+      "url": "",
+      "published": "Thu, 10 Sep 2026 11:50:21 GMT",
+      "origin": "gnews-rss",
+      "source": "Reuters",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天/卫星通信",
+        "国防"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 70,
+      "summary_cn": "英国加深对 SpaceX 卫星服务依赖，签下近 4000 万美元合同，强化 SpaceX 政府/国防订单趋势，间接利好 kcn 的 SPCX/SPCH 持仓。"
+    },
+    {
       "author": "Trump",
       "text": "Everyone knows that Canada doesn’t let our Great Dairy Farmers sell into the Canadian Market, and that the only reason Canada makes Autos is because of previous disastrous Trade Agreements while other Presidents were in Office. Canada has been ripping us off for years, but what many do not realize is that the Canadian Government, including Canadian Provinces, have banned American Small Businesses and Companies from selling into their Government Procurement Markets. This is the case even though Canada gets broad access into the massive American Government Procurement Market, including those of ",
-      "url": "https://trumpstruth.org/statuses/41634",
+      "url": "https://www.trumpstruth.org/statuses/41634",
       "published": "2026-09-08T20:29:29+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "关税",
+        "关税/贸易",
         "汽车",
-        "乳制品",
-        "贸易"
-      ],
-      "sector_holdings": [
-        "02208"
-      ],
-      "stance": "neutral",
-      "relevance": 60,
-      "summary_cn": "特朗普抨击加拿大长期在乳制品、汽车、政府采购上对美国不公，暗示可能再加关税施压——汽车与贸易摩擦升温，间接利空风电出口预期（02208 金风科技面向全球市场，含北美项目）。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk Rages Over Alex Gibney’s ‘Hit Piece’ Documentary ‘Musk’: ‘Horrible Human’",
-      "url": "",
-      "published": "Wed, 09 Sep 2026 20:29:47 GMT",
-      "origin": "gnews-rss",
-      "source": "Rolling Stone",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "马斯克个人形象"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "attack",
-      "relevance": 48,
-      "summary_cn": "马斯克怒骂 Alex Gibney 纪录片为'人身攻击'，媒体形象承压，对 SpaceX 系未上市资产（SPCX/SPCH）有间接情绪面影响。"
-    },
-    {
-      "author": "Musk",
-      "text": "Tesla’s Cybercab Launch: Why Markets Were So Underwhelmed by Elon Musk’s Robotaxi Showcase",
-      "url": "",
-      "published": "Wed, 09 Sep 2026 18:34:54 GMT",
-      "origin": "gnews-rss",
-      "source": "MarketWise",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "电动车",
-        "Robotaxi",
-        "特斯拉"
+        "乳业/农产品"
       ],
       "sector_holdings": [],
-      "stance": "neutral",
+      "stance": "attack",
+      "relevance": 72,
+      "summary_cn": "特朗普公开抨击加拿大长期对美国乳业、汽车、政府采购市场设限，暗示可能采取关税/贸易反制措施，影响跨境贸易及汽车板块。"
+    },
+    {
+      "author": "Musk",
+      "text": "The Boring Company Raises $3 Billion As Demand for Musk Inc Booms",
+      "url": "",
+      "published": "Thu, 10 Sep 2026 10:19:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Business Insider",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "基建/隧道",
+        "电动车"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
       "relevance": 55,
-      "summary_cn": "市场对马斯克 Tesla Cybercab（Robotaxi）发布会反应冷淡，叙事降温，未点名具体标的但对电动车/Robotaxi 主题偏空信号。"
+      "summary_cn": "The Boring Company 融资 30 亿美元，反映 Musk 系生态需求旺盛；公司未上市，但体现 Musk 帝国整体估值上行趋势。"
     },
     {
       "author": "Trump",
       "text": "“Words of Wisdom” from Phil Flynn, one of the World’s Great Oil and Energy Analysts — A MUST SEE! President DONALD J. TRUMP",
-      "url": "https://trumpstruth.org/statuses/41657",
+      "url": "https://www.trumpstruth.org/statuses/41657",
       "published": "2026-09-09T13:41:33+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "能源",
-        "原油"
+        "石油/能源"
       ],
       "sector_holdings": [],
       "stance": "endorse",
+      "relevance": 52,
+      "summary_cn": "特朗普转发能源分析师 Phil Flynn 的油价观点，表达对能源/原油板块的看多情绪。"
+    },
+    {
+      "author": "Musk",
+      "text": "Katie Miller held large stake in Elon Musk’s xAI as she slammed ChatGPT online",
+      "url": "",
+      "published": "Thu, 10 Sep 2026 16:37:40 GMT",
+      "origin": "gnews-rss",
+      "source": "The Washington Post",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
       "relevance": 50,
-      "summary_cn": "特朗普转发力挺知名能源/原油分析师 Phil Flynn 的观点，对能源板块整体看多背书。"
+      "summary_cn": "报道 Katie Miller 持有 xAI 大额股份并公开抨击 ChatGPT，间接反映 xAI 估值与 AI 行业竞争格局（xAI 未上市，不计入 tickers）。"
     },
     {
       "author": "Musk",
@@ -111,60 +175,107 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "政治",
-        "DOGE"
+        "政府效率/DOGE",
+        "政治"
       ],
       "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 45,
-      "summary_cn": "国会议员要求马斯克解释 DOGE 在 DHS 宣称节省开支的缺口，DOGE 信用遭质疑，间接利空 Musk 系生态。"
-    }
-  ],
-  "held_hits": [],
-  "new_ideas": [],
-  "sector_hits": [
+      "stance": "attack",
+      "relevance": 48,
+      "summary_cn": "国会议员要求 Musk 就 DOGE 声称的 DHS 节省资金缺乏依据作出解释，对 Musk 旗下公司及政府合同有政治风险敞口。"
+    },
     {
       "author": "Trump",
-      "text": "Everyone knows that Canada doesn’t let our Great Dairy Farmers sell into the Canadian Market, and that the only reason Canada makes Autos is because of previous disastrous Trade Agreements while other Presidents were in Office. Canada has been ripping us off for years, but what many do not realize is that the Canadian Government, including Canadian Provinces, have banned American Small Businesses and Companies from selling into their Government Procurement Markets. This is the case even though Canada gets broad access into the massive American Government Procurement Market, including those of ",
-      "url": "https://trumpstruth.org/statuses/41634",
-      "published": "2026-09-08T20:29:29+00:00",
+      "text": "Supreme Court sides with Republicans in fight over broadcast ad rates: https://www.cbsnews.com/news/supreme-court-sides-with-republicans-cheaper-broadcast-ad-rates/",
+      "url": "https://www.trumpstruth.org/statuses/41670",
+      "published": "2026-09-10T12:10:44+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "关税",
-        "汽车",
-        "乳制品",
-        "贸易"
+        "媒体/广电"
       ],
-      "sector_holdings": [
-        "02208"
-      ],
+      "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 60,
-      "summary_cn": "特朗普抨击加拿大长期在乳制品、汽车、政府采购上对美国不公，暗示可能再加关税施压——汽车与贸易摩擦升温，间接利空风电出口预期（02208 金风科技面向全球市场，含北美项目）。"
-    },
+      "relevance": 45,
+      "summary_cn": "美国最高法院在广播广告费率案中站在共和党一边，对地方电视台及广告生态有潜在影响，但未点名具体上市标的。"
+    }
+  ],
+  "held_hits": [],
+  "new_ideas": [
     {
       "author": "Musk",
-      "text": "Elon Musk Rages Over Alex Gibney’s ‘Hit Piece’ Documentary ‘Musk’: ‘Horrible Human’",
+      "text": "In A SpaceX-Tesla Merger, Elon Musk May Be The Big Winner. What It May Mean For Other Investors.",
       "url": "",
-      "published": "Wed, 09 Sep 2026 20:29:47 GMT",
+      "published": "Thu, 10 Sep 2026 11:37:00 GMT",
       "origin": "gnews-rss",
-      "source": "Rolling Stone",
-      "tickers": [],
+      "source": "Investor's Business Daily",
+      "tickers": [
+        "TSLA"
+      ],
       "held": [],
-      "new_ideas": [],
+      "new_ideas": [
+        "TSLA"
+      ],
       "sectors": [
-        "马斯克个人形象"
+        "航天",
+        "电动车",
+        "AI"
       ],
       "sector_holdings": [
         "SPCH",
         "SPCX"
       ],
+      "stance": "neutral",
+      "relevance": 75,
+      "summary_cn": "市场讨论 SpaceX 与 Tesla 合并可能性，TSLA 为直接点名的上市标的；kcn 通过 SPCX/SPCH 间接持有 SpaceX 敞口，相关性强。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk rips ABC News over fatal NYC Tesla crash report",
+      "url": "",
+      "published": "Thu, 10 Sep 2026 07:25:46 GMT",
+      "origin": "gnews-rss",
+      "source": "Teslarati",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "媒体"
+      ],
+      "sector_holdings": [],
       "stance": "attack",
-      "relevance": 48,
-      "summary_cn": "马斯克怒骂 Alex Gibney 纪录片为'人身攻击'，媒体形象承压，对 SpaceX 系未上市资产（SPCX/SPCH）有间接情绪面影响。"
+      "relevance": 58,
+      "summary_cn": "Musk 抨击 ABC News 对纽约 Tesla 致命车祸的报道不实，间接维护 TSLA 品牌形象，但事件本身偏舆情，非直接股价催化。"
+    }
+  ],
+  "sector_hits": [
+    {
+      "author": "Musk",
+      "text": "EXCLUSIVE: UK deepens reliance on Musk's SpaceX, spending nearly $40 million on satellite services",
+      "url": "",
+      "published": "Thu, 10 Sep 2026 11:50:21 GMT",
+      "origin": "gnews-rss",
+      "source": "Reuters",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天/卫星通信",
+        "国防"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 70,
+      "summary_cn": "英国加深对 SpaceX 卫星服务依赖，签下近 4000 万美元合同，强化 SpaceX 政府/国防订单趋势，间接利好 kcn 的 SPCX/SPCH 持仓。"
     }
   ]
 }
