@@ -293,3 +293,123 @@ def test_one_hard_stop_has_one_name_across_every_surface_that_shows_it():
 
     citable = brief_postflight._citable_refs({'risk_guardrail': guardrail})
     assert f'risk:{name}:{ticker}' in citable
+
+
+def test_the_key_a_row_is_filed_under_resolves_to_that_row():
+    """`hard_stop_watch` is the list; `leveraged_hard_stop` is the row's type.
+
+    The context hands the model both names — the key wrapping the row and the
+    type inside it — and on 2026-09-10 it copied the outer one twice
+    (`risk:hard_stop_watch:RKLX`, `risk:hard_stop_watch:SPCH`), two of that
+    morning's nine dropped citations. The row those name is unambiguous, so the
+    resolver now accepts the key as an alias for it.
+    """
+    from clawock.decision import risk as discipline
+    from clawock.harness import brief_postflight
+
+    guardrail = discipline.attach_breach_ids(_guardrail_from_the_real_producer())
+    citable = brief_postflight._citable_refs({'risk_guardrail': guardrail})
+
+    stops = guardrail.get('hard_stop_watch') or []
+    assert stops, 'the fixture stopped tripping a hard stop — it proves nothing'
+    for stop in stops:
+        canonical = f"risk:{stop['type']}:{stop['ticker']}"
+        alias = f"risk:hard_stop_watch:{stop['ticker']}"
+        assert canonical in citable
+        assert alias in citable, (
+            f'{alias} is the name the model copied on 09-10 and it still '
+            f'resolves to nothing')
+
+
+def test_a_mixed_list_lends_its_name_to_nobody():
+    """The alias is only unambiguous where the list is.
+
+    `breaches` holds `single_name`, `leveraged_exposure`, `beta`,
+    `factor_concentration` — `risk:breaches:07226` names a row without saying
+    which, and a citation that vague is the thing this resolver exists to
+    refuse. Computed from the rows, not from a list of key names, so a family
+    that later becomes homogeneous (or stops being) does not need a second
+    edit here to stay right.
+    """
+    from clawock.harness import brief_postflight
+
+    guardrail = {
+        'breaches': [
+            {'type': 'single_name', 'leg': 'HK', 'ticker': '07226'},
+            {'type': 'beta', 'leg': 'US', 'ticker': None},
+        ],
+        'hard_stop_watch': [
+            {'type': 'leveraged_hard_stop', 'leg': 'US', 'ticker': 'RKLX'},
+        ],
+        'concentration_reviews': [],
+    }
+    citable = brief_postflight._citable_refs({'risk_guardrail': guardrail})
+
+    assert 'risk:breaches:07226' not in citable
+    assert 'risk:breaches' not in citable
+    assert 'risk:single_name:07226' in citable
+    assert 'risk:hard_stop_watch:RKLX' in citable
+
+    # One type in the list, spelled differently: still one row, still an alias.
+    guardrail['breaches'] = [{'type': 'single_name', 'leg': 'HK',
+                              'ticker': '07226'}]
+    citable = brief_postflight._citable_refs({'risk_guardrail': guardrail})
+    assert 'risk:breaches:07226' in citable
+
+
+def test_a_news_event_advertises_the_id_it_wants_copied():
+    """The `risk:` half learned this on 09-08; the `news:` half had not.
+
+    A real event id is `evt_3ffdc891b1dd9eb52b84` — opaque, and nothing in it
+    says which story it is. On 2026-09-10 the model cited
+    `news:00100-humain-m3-2026-09-04` and `news:02208-h1-report-2026-09-08`:
+    `<ticker>-<topic>-<date>`, the format a human would choose. Both resolved
+    to nothing. Asking for an opaque token it cannot check is asking for a
+    plausible one, so the projected event now carries the finished string.
+    """
+    from clawock.decision import risk as discipline
+    from clawock.harness import brief_postflight
+
+    events = discipline.attach_event_ids([
+        {'event_id': 'evt_3ffdc891b1dd9eb52b84', 'ticker': '00100'},
+        {'event_id': 'evt_77a4a4ba2707f628518c', 'ticker': '02208'},
+    ])
+    assert [e['evidence_id'] for e in events] == [
+        'news:evt_3ffdc891b1dd9eb52b84', 'news:evt_77a4a4ba2707f628518c']
+
+    citable = brief_postflight._citable_refs(
+        {'news_evidence_graph': {'events': events}})
+    for event in events:
+        assert event['evidence_id'] in citable
+    # The invented shape is still dropped — this is a copy aid, not an amnesty.
+    assert 'news:00100-humain-m3-2026-09-04' not in citable
+
+
+def test_the_projection_the_model_reads_is_the_one_that_advertises():
+    """An `evidence_id` on the source graph and not on the 40-row projection
+    would be a field nobody reads: the model is handed the projection."""
+    import inspect
+    from clawock.harness import brief_preflight
+
+    source = inspect.getsource(brief_preflight)
+    block = source[source.index("'events': "):]
+    block = block[:block.index('],') + 2]
+    assert 'attach_event_ids' in block, (
+        'the projection handed to the model must be the one carrying the ids')
+
+
+def test_every_namespace_the_skill_teaches_says_copy_not_compose():
+    """Three namespaces, one discipline. `quant:` is deliberately excluded: its
+    reference IS composed, from a ticker and a field the model reads off the
+    row, and both halves are legible — nothing opaque to copy wrong."""
+    skill = (Path(__file__).resolve().parents[1]
+             / 'skills' / 'daily-deep-brief' / 'SKILL.md').read_text(
+                 encoding='utf-8')
+    block = skill[skill.index('`evidence_ids`（≤6 条'):]
+    block = block[:block.index('**没有可引的证据就不填**')]
+    for namespace in ('news', 'risk'):
+        line = block[block.index(f'- `{namespace}:'):]
+        line = line[:line.index('\n')]
+        assert '`evidence_id`' in line, (
+            f'the {namespace}: namespace still teaches a grammar to compose: '
+            f'{line}')

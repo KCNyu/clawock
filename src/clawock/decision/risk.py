@@ -448,6 +448,36 @@ def evidence_ref(row: dict) -> str:
     return f"risk:{kind}"
 
 
+def news_evidence_ref(event: dict) -> str:
+    """The debate citation that resolves to this exact news event.
+
+    Same reason as `evidence_ref` above, one namespace over. A real event id is
+    `evt_3ffdc891b1dd9eb52b84` — opaque, and nothing in it says which story it
+    is. On 2026-09-10 the model cited `news:00100-humain-m3-2026-09-04` and
+    `news:02208-h1-report-2026-09-08`: `<ticker>-<topic>-<date>`, a format it
+    invented because it is the one a human would have chosen. Both resolved to
+    nothing. Asking a model to carry an opaque token it cannot check is asking
+    it to prefer a plausible one; hand it the finished string instead.
+    """
+    event_id = str((event or {}).get("event_id") or "").strip()
+    return f"news:{event_id}" if event_id else ""
+
+
+def attach_event_ids(events: list) -> list:
+    """Return a copy of the projected events, each advertising its citation."""
+    out = []
+    for event in events or []:
+        if not isinstance(event, dict):
+            out.append(event)
+            continue
+        row = dict(event)
+        ref = news_evidence_ref(row)
+        if ref:
+            row["evidence_id"] = ref
+        out.append(row)
+    return out
+
+
 def attach_breach_ids(guardrail: dict) -> dict:
     """Return a context copy whose current detector rows carry stable IDs."""
     out = copy.deepcopy(guardrail)

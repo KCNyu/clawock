@@ -1526,10 +1526,14 @@ def news_evidence_node():
             news_evidence_ctx = {
                 'as_of': graph.get('as_of'),
                 'summary': graph.get('summary'),
-                'events': [
+                # `attach_event_ids` for the same reason `attach_breach_ids`
+                # exists next to the guardrail: the model should copy an id,
+                # not compose one. Applied to the PROJECTION, not the source —
+                # what the model can cite is exactly what it was handed.
+                'events': risk_discipline.attach_event_ids([
                     {key: event.get(key) for key in decision_fields}
                     for event in current_events[:40]
-                ],
+                ]),
                 'actionable_events': graph.get('actionable_events') or [],
                 'information_overlay': graph.get('information_overlay') or {},
                 'tavily_resolution_queue': (

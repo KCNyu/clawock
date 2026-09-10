@@ -230,13 +230,35 @@ def _citable_refs(context) -> set[str]:
 
     graph = context.get('news_evidence_graph') or {}
     for event in graph.get('events') or []:
+        # The one the row advertises first, for the same reason as the
+        # guardrail rows below: it is the string the model was handed.
+        advertised = str((event or {}).get('evidence_id') or '').strip()
+        if advertised:
+            refs.add(advertised)
         event_id = str((event or {}).get('event_id') or '').strip()
         if event_id:
             refs.add(f'news:{event_id}')
 
     guardrail = context.get('risk_guardrail') or {}
     for key in risk_discipline.GUARDRAIL_ROW_KEYS:
-        for row in guardrail.get(key) or []:
+        rows = guardrail.get(key) or []
+        # A list whose rows all share one `type` has an unambiguous second
+        # name: the key it is filed under. `hard_stop_watch` holds only
+        # `leveraged_hard_stop` rows, so `risk:hard_stop_watch:RKLX` and
+        # `risk:leveraged_hard_stop:RKLX` are the same row — and the context
+        # hands the model BOTH names, the key wrapping the row and the type
+        # inside it. On 2026-09-10 it took the outer one twice.
+        #
+        # Only for a homogeneous list, and that is computed, not listed:
+        # `breaches` carries four different types, so `risk:breaches:07226`
+        # would name a row without saying which, and a citation that vague is
+        # the thing this resolver exists to refuse. Accepting the alias is not
+        # a loosening — every alias still resolves to a row that is really
+        # there, and the invented ones are dropped exactly as before.
+        kinds = {str((row or {}).get('type') or '').strip() for row in rows}
+        kinds.discard('')
+        alias = key if len(kinds) == 1 else None
+        for row in rows:
             # The one the row itself advertises. Reading the same field the
             # context hands the model is what makes "copy this" true — a
             # second spelling of the grammar here is a second thing to drift.
@@ -246,10 +268,13 @@ def _citable_refs(context) -> set[str]:
             kind = str((row or {}).get('type') or '').strip()
             if not kind:
                 continue
-            refs.add(f'risk:{kind}')
+            names = [kind] + ([alias] if alias and alias != kind else [])
+            for name in names:
+                refs.add(f'risk:{name}')
             ticker = str((row or {}).get('ticker') or '').strip()
             if ticker:
-                refs.add(f'risk:{kind}:{ticker}')
+                for name in names:
+                    refs.add(f'risk:{name}:{ticker}')
             # A leg-level breach (`leveraged_exposure`, `beta`) carries no
             # ticker: the cap is on the book, not on a name. Without a scoped
             # form for those rows the only way to point at "the HK one" is to
@@ -257,7 +282,8 @@ def _citable_refs(context) -> set[str]:
             # nothing — measured, 8 of 28 dropped refs did exactly that.
             leg = str((row or {}).get('leg') or '').strip()
             if leg:
-                refs.add(f'risk:{kind}:{leg}')
+                for name in names:
+                    refs.add(f'risk:{name}:{leg}')
 
     rows = ((context.get('quant_signals') or {}).get('rows')) or {}
     if isinstance(rows, dict):

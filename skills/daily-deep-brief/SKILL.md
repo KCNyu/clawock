@@ -760,10 +760,12 @@ postflight 严格 schema 校验：
   - `frames`：`Judge — strategy frames` 表里为这条 action 选的 1–3 个 frame，逐字照抄枚举值。
   - `judge`：Judge 的合成判词一句话（不是 Bull/Bear 的复述）。
   - `evidence_ids`（≤6 条，选填）：这场辩论**站在**哪几条 context 证据上（#1141）。只认三个能被解析的命名空间，postflight 逐条对着本次 context 核，**核不上的直接丢掉并记一条 degradation**（不会让流水线变红，但会被数出来）：
-    - `news:<event_id>` —— `context.news_evidence_graph.events[].event_id`
+    - `news:…` —— **照抄那一条事件的 `evidence_id` 字段**。`context.news_evidence_graph.events` 每一行都自带一条，形如 `news:evt_3ffdc891b1dd9eb52b84`；你不需要拼，也不要拼。
+      - 2026-09-10 这里被拼成了 `news:00100-humain-m3-2026-09-04` 和 `news:02208-h1-report-2026-09-08`——`<票>-<主题>-<日期>`，一个人会取的名字，而真 id 是一串不透明的 `evt_` 十六进制。**不透明的 token 只能抄，抄不了就别引。**跟下面 `risk:` 同一条纪律。
     - `risk:…` —— **照抄那一行的 `evidence_id` 字段**。`context.risk_guardrail` 的 breach / hard_stop_watch / concentration_review 每一行都自带一条，形如 `risk:single_name_review:00100`；你不需要拼，也不要拼。
       - 这条规则以前是一段语法（命名空间 + `<type>` 全集 + ticker 形还是 leg 形 + 「别自己起名」），2026-09-08 仍然被拼成 `risk:single_name:00100` 去指一行 `type` 是 `single_name_review` 的记录——票是对的，名字取了另一行合法拥有的那一半。所以现在只有一条：**那一行写着什么就抄什么**。
       - 想引整条腿的闸（`leveraged_exposure`、`beta` 这种 `ticker` 为 null 的行）同理，它的 `evidence_id` 已经是 `:<leg>` 形。
+      - resolver 另外接受**那一行所在 list 的键名**作为同一行的别名（`risk:hard_stop_watch:RKLX` == `risk:leveraged_hard_stop:RKLX`），**仅限该 list 里所有行 type 相同时**——`breaches` 装着四种 type，拿它当名字说不清指的是哪一行，照样被丢。这是给「抄了外层键名」兜底的，不是第二种写法：**照抄 `evidence_id` 仍然是唯一该做的事。**
     - `quant:<ticker>:<field>` —— `context.quant_signals.rows[<ticker>]` 上一个非空字段（如 `quant:SPCH:dist_ma200_pct`）。**只有 `rows` 里真有的 ticker 能引**：杠杆 ETF 通常没有自己的行（07226 没有，它的底层 HSTECH 有），要引就引你真正读的那一行
     **没有可引的证据就不填**，别为了填而造 id：造出来的引用比不引更糟，它看起来像证据。portable workflow lane 早就要求每个 case 带 `evidence_ids`（`workflows/validators.py`），这里是把同一条纪律接到日报这条 lane 上。
   - **不会因为格式错误让 08:00 流水线变红**：postflight 的 normalizer 会裁剪超长文本、丢弃未知键与不在枚举内的 frame，整块为空则记为「没写」。但缺席是被数出来的——dashboard 的 `debate_coverage.bear_case_pct` 就是这条纪律的实测曲线，别用空块凑覆盖率。
