@@ -30,7 +30,7 @@
       "required_substrings": [
         "skills/{skill}/SKILL.md",
         "并行调用 `read` 读取 `/root/.openclaw/workspace/skills/{skill}/SKILL.md` 与 Step 1 preflight",
-        "skills catalog 只有索引，不含 SKILL.md 正文",
+        "skills catalog 只有索引，不含 SKILL.md 正文", "探测「东西在不在」的命令必须整条链退出 0",
         "clawock report preflight --market {market} --phase {phase}",
         "context_id",
         "clawock report postflight --market {market} --phase {phase} --context-id",
@@ -80,7 +80,7 @@
       "required_substrings": [
         "skills/{skill}/SKILL.md",
         "并行调用 `read` 读取 `/root/.openclaw/workspace/skills/{skill}/SKILL.md` 与 Step 1 preflight",
-        "skills catalog 只有索引，不含 SKILL.md 正文",
+        "skills catalog 只有索引，不含 SKILL.md 正文", "探测「东西在不在」的命令必须整条链退出 0",
         "clawock intraday preflight --market {market}",
         "market_closed",
         "所有脚本 exec 调用都显式设置 `timeout: 300`",
@@ -143,7 +143,7 @@
         "/root/.local/bin/clawock calendar us --status",
         "skills/daily-deep-brief/SKILL.md",
         "并行调用 `read` 读取 `/root/.openclaw/workspace/skills/daily-deep-brief/SKILL.md` 与下方 Step 0 的两个休市闸命令",
-        "skills catalog 只有索引，不含 SKILL.md 正文",
+        "skills catalog 只有索引，不含 SKILL.md 正文", "探测「东西在不在」的命令必须整条链退出 0",
         "clawock brief preflight",
         "clawock brief postflight",
         "首次生成和 postflight 修复 Step 4 产物都只用 `write` 完整覆盖；禁止 `edit` 精确文本替换",
