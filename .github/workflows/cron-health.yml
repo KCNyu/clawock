@@ -117,6 +117,33 @@ jobs:
         if: always()
         run: python3 ops/ci/schedule_punctuality.py --strict
 
+      # Nothing was reading master's OWN CI conclusion. On 2026-09-09
+      # `validate` went red at 19:20Z and stayed red through five consecutive
+      # master pushes over eighteen hours — all pure data commits, no code
+      # changed (#1425). Every other watcher is structurally blind to it:
+      # `workflow_health.py` below filters to `event == "schedule"`, so
+      # `ci.yml`'s master pushes are outside it by construction; the host's
+      # `system_check` knows only the local workspace; and a PR opened against
+      # a red master goes red too, which its author reads as their own diff —
+      # PR #1418 needed a `git bisect` to disprove exactly that.
+      #
+      # `system_check` now reads the same module from the live checkout, so a
+      # red is visible within minutes there. This step is the other half: once
+      # a day, the question is asked whether or not anybody pushed.
+      #
+      # `--strict` reddens only a DETERMINED red, exactly like the backstop
+      # rehearsal above: an unreachable `gh`, a rate limit, or a newest run
+      # still in progress all exit 0. A gate that reddened on a network hiccup
+      # would be one more line its reader learns to skip.
+      - name: Is master itself red?
+        # `always()` for the same reason as the steps above: the health check
+        # exits non-zero on any miss, which would skip this on the days it
+        # matters most.
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 ops/ci/master_ci_state.py --strict
+
       - name: Fold Actions-side failures into the daily summary
         # cron_health_check only sees host-side products; a scheduled workflow
         # that fails (or stops firing) on the Actions side was previously
