@@ -36,9 +36,21 @@ CLI:
                                             -> CLOSED on HK half-days too
   clawock calendar us --date 2026-06-19
                                             -> check a specific date
+  clawock calendar us --status              -> prints OPEN/CLOSED, always exit 0
 
 Exit code: 0 = market open (trading day), 1 = closed. So bash guards read as:
   clawock calendar us || exit 0              # bail on closed
+
+--status exists because that exit code makes this command uncallable by any
+caller that reads a non-zero exit as a failed command. The pre-open brief's
+Step 0 is exactly that: `config/cron-payloads/brief.md` tells the model to read
+`OPEN`/`CLOSED` off stdout, but the agent's exec tool judges the exit code, so
+every Monday morning (US "today" is Sunday in ET at 08:00 HKT -> CLOSED -> 1)
+the run's first mandatory action came back as `Exec failed: clawock calendar
+us` and the whole cron was recorded `error` — on 2026-08-17, 2026-08-24 and
+2026-09-08 the brief itself had already been written and pushed. A closed
+market is an answer, not a failure; `--status` is the shape for callers that
+want the answer on stdout.
 """
 from __future__ import annotations
 
@@ -303,7 +315,15 @@ def main(argv: list[str]) -> int:
     p.add_argument("--session", choices=["full", "morning", "afternoon"],
                    default="full")
     p.add_argument("--quiet", action="store_true", help="suppress OPEN/CLOSED print")
+    p.add_argument("--status", action="store_true",
+                   help="report on stdout and always exit 0 (for callers that "
+                        "read a non-zero exit as a failed command)")
     a = p.parse_args(argv)
+
+    if a.status and a.quiet:
+        # --status moves the whole answer onto stdout; silencing that leaves a
+        # call that always exits 0 and prints nothing, which says nothing.
+        p.error("--status prints the answer; it cannot be combined with --quiet")
 
     d = date.fromisoformat(a.date) if a.date else _today_in_market(a.market)
     if d.year > LATEST_YEAR:
@@ -318,6 +338,8 @@ def main(argv: list[str]) -> int:
         label = "OPEN" if open_ else "CLOSED"
         sess = "" if a.session == "full" else f" {a.session}"
         print(f"{label} ({a.market.upper()}{sess} {d.isoformat()})")
+    if a.status:
+        return 0
     return 0 if open_ else 1
 
 

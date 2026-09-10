@@ -42,6 +42,45 @@ def test_calendar_implementation_and_cli_ship_in_the_product():
     assert result.stdout.strip() == "CLOSED (US 2026-06-19)"
 
 
+def test_status_reports_closed_on_stdout_without_failing_the_command():
+    """`--status` keeps the verdict on stdout and off the exit code.
+
+    The exit-code form cannot be called by anything that reads a non-zero exit
+    as a failed command. The pre-open brief's Step 0 is exactly that caller —
+    it reads OPEN/CLOSED off stdout while the agent's exec tool judges the exit
+    code — so every Monday (US "today" is Sunday in ET at 08:00 HKT) the run's
+    first mandatory action was reported as `Exec failed: clawock calendar us`
+    and the cron was recorded `error` with the brief already delivered.
+    """
+    def run(*args):
+        return subprocess.run(
+            [sys.executable, "-m", "clawock", "calendar", *args],
+            cwd=ROOT, capture_output=True, text=True, timeout=30,
+            env={**os.environ, "PYTHONPATH": str(ROOT / "src")},
+        )
+
+    closed = run("us", "--date", "2026-06-19", "--status")
+    assert closed.returncode == 0
+    assert closed.stdout.strip() == "CLOSED (US 2026-06-19)"
+
+    # An open day is unchanged, so a caller cannot tell the two apart by exit
+    # code alone — stdout is the whole answer.
+    open_ = run("us", "--date", "2026-06-18", "--status")
+    assert open_.returncode == 0
+    assert open_.stdout.strip() == "OPEN (US 2026-06-18)"
+
+    # Silencing the report would leave a call that always exits 0 and says
+    # nothing at all.
+    muted = run("us", "--date", "2026-06-19", "--status", "--quiet")
+    assert muted.returncode == 2
+    assert "cannot be combined with --quiet" in muted.stderr
+
+    # The guard shape other callers rely on (`clawock calendar us || exit 0`)
+    # is untouched.
+    guard = run("us", "--date", "2026-06-19")
+    assert guard.returncode == 1
+
+
 # --------------------------------------------------------------------------
 # 2027 — the year this suite was written to land
 # --------------------------------------------------------------------------
