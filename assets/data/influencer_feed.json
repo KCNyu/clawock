@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-10T16:42:37.300340+00:00",
+  "generated_at": "2026-09-10T23:21:48.834874+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -8,15 +8,15 @@
   },
   "source_status": {
     "trump": "success",
-    "musk": "success",
+    "musk": "failed",
     "serenity": "failed"
   },
   "llm_filtered": true,
   "counts": {
-    "total": 9,
+    "total": 7,
     "held_hits": 0,
     "new_ideas": 2,
-    "sector_hits": 1
+    "sector_hits": 3
   },
   "items": [
     {
@@ -44,7 +44,8 @@
       ],
       "stance": "neutral",
       "relevance": 75,
-      "summary_cn": "市场讨论 SpaceX 与 Tesla 合并可能性，TSLA 为直接点名的上市标的；kcn 通过 SPCX/SPCH 间接持有 SpaceX 敞口，相关性强。"
+      "summary_cn": "市场讨论 SpaceX 与 Tesla 合并可能性，TSLA 为直接点名的上市标的；kcn 通过 SPCX/SPCH 间接持有 SpaceX 敞口，相关性强。",
+      "retained_from_previous": true
     },
     {
       "author": "Musk",
@@ -67,7 +68,8 @@
       "sector_holdings": [],
       "stance": "attack",
       "relevance": 58,
-      "summary_cn": "Musk 抨击 ABC News 对纽约 Tesla 致命车祸的报道不实，间接维护 TSLA 品牌形象，但事件本身偏舆情，非直接股价催化。"
+      "summary_cn": "Musk 抨击 ABC News 对纽约 Tesla 致命车祸的报道不实，间接维护 TSLA 品牌形象，但事件本身偏舆情，非直接股价催化。",
+      "retained_from_previous": true
     },
     {
       "author": "Musk",
@@ -89,26 +91,51 @@
       ],
       "stance": "endorse",
       "relevance": 70,
-      "summary_cn": "英国加深对 SpaceX 卫星服务依赖，签下近 4000 万美元合同，强化 SpaceX 政府/国防订单趋势，间接利好 kcn 的 SPCX/SPCH 持仓。"
+      "summary_cn": "英国加深对 SpaceX 卫星服务依赖，签下近 4000 万美元合同，强化 SpaceX 政府/国防订单趋势，间接利好 kcn 的 SPCX/SPCH 持仓。",
+      "retained_from_previous": true
     },
     {
       "author": "Trump",
-      "text": "Everyone knows that Canada doesn’t let our Great Dairy Farmers sell into the Canadian Market, and that the only reason Canada makes Autos is because of previous disastrous Trade Agreements while other Presidents were in Office. Canada has been ripping us off for years, but what many do not realize is that the Canadian Government, including Canadian Provinces, have banned American Small Businesses and Companies from selling into their Government Procurement Markets. This is the case even though Canada gets broad access into the massive American Government Procurement Market, including those of ",
-      "url": "https://www.trumpstruth.org/statuses/41634",
-      "published": "2026-09-08T20:29:29+00:00",
+      "text": "“Words of Wisdom” from Phil Flynn, one of the World’s Great Oil and Energy Analysts — A MUST SEE! President DONALD J. TRUMP",
+      "url": "https://www.trumpstruth.org/statuses/41657",
+      "published": "2026-09-09T13:41:33+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "关税/贸易",
-        "汽车",
-        "乳业/农产品"
+        "能源",
+        "石油"
       ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 72,
-      "summary_cn": "特朗普公开抨击加拿大长期对美国乳业、汽车、政府采购市场设限，暗示可能采取关税/贸易反制措施，影响跨境贸易及汽车板块。"
+      "sector_holdings": [
+        "02208"
+      ],
+      "stance": "endorse",
+      "relevance": 52,
+      "summary_cn": "Trump转发力挺能源/油价分析师Phil Flynn，间接利好能源板块，与kcn持有的金风科技(02208)板块相关。"
+    },
+    {
+      "author": "Trump",
+      "text": "Wow! The Populist Party in Germany just had a really big night. They finally got tired of the absolutely horrible Immigration rules and regulations which have hurt Germany so badly. THEY ARE ON THE RISE, and not going to take it anymore! MGGA!!! President DJT",
+      "url": "https://www.trumpstruth.org/statuses/41639",
+      "published": "2026-09-08T23:37:19+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "欧洲政治",
+        "民粹主义"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "neutral",
+      "relevance": 48,
+      "summary_cn": "Trump评论德国选择党崛起、民粹回潮，对欧洲资产/全球风险偏好有间接影响，与kcn恒生科技ETF相关（情绪传导）。"
     },
     {
       "author": "Musk",
@@ -127,24 +154,8 @@
       "sector_holdings": [],
       "stance": "endorse",
       "relevance": 55,
-      "summary_cn": "The Boring Company 融资 30 亿美元，反映 Musk 系生态需求旺盛；公司未上市，但体现 Musk 帝国整体估值上行趋势。"
-    },
-    {
-      "author": "Trump",
-      "text": "“Words of Wisdom” from Phil Flynn, one of the World’s Great Oil and Energy Analysts — A MUST SEE! President DONALD J. TRUMP",
-      "url": "https://www.trumpstruth.org/statuses/41657",
-      "published": "2026-09-09T13:41:33+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "石油/能源"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 52,
-      "summary_cn": "特朗普转发能源分析师 Phil Flynn 的油价观点，表达对能源/原油板块的看多情绪。"
+      "summary_cn": "The Boring Company 融资 30 亿美元，反映 Musk 系生态需求旺盛；公司未上市，但体现 Musk 帝国整体估值上行趋势。",
+      "retained_from_previous": true
     },
     {
       "author": "Musk",
@@ -162,43 +173,8 @@
       "sector_holdings": [],
       "stance": "neutral",
       "relevance": 50,
-      "summary_cn": "报道 Katie Miller 持有 xAI 大额股份并公开抨击 ChatGPT，间接反映 xAI 估值与 AI 行业竞争格局（xAI 未上市，不计入 tickers）。"
-    },
-    {
-      "author": "Musk",
-      "text": "Lawmakers call on Elon Musk to explain lack of DOGE claimed DHS savings",
-      "url": "",
-      "published": "Tue, 08 Sep 2026 15:36:27 GMT",
-      "origin": "gnews-rss",
-      "source": "Federal News Network",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "政府效率/DOGE",
-        "政治"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 48,
-      "summary_cn": "国会议员要求 Musk 就 DOGE 声称的 DHS 节省资金缺乏依据作出解释，对 Musk 旗下公司及政府合同有政治风险敞口。"
-    },
-    {
-      "author": "Trump",
-      "text": "Supreme Court sides with Republicans in fight over broadcast ad rates: https://www.cbsnews.com/news/supreme-court-sides-with-republicans-cheaper-broadcast-ad-rates/",
-      "url": "https://www.trumpstruth.org/statuses/41670",
-      "published": "2026-09-10T12:10:44+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "媒体/广电"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 45,
-      "summary_cn": "美国最高法院在广播广告费率案中站在共和党一边，对地方电视台及广告生态有潜在影响，但未点名具体上市标的。"
+      "summary_cn": "报道 Katie Miller 持有 xAI 大额股份并公开抨击 ChatGPT，间接反映 xAI 估值与 AI 行业竞争格局（xAI 未上市，不计入 tickers）。",
+      "retained_from_previous": true
     }
   ],
   "held_hits": [],
@@ -228,7 +204,8 @@
       ],
       "stance": "neutral",
       "relevance": 75,
-      "summary_cn": "市场讨论 SpaceX 与 Tesla 合并可能性，TSLA 为直接点名的上市标的；kcn 通过 SPCX/SPCH 间接持有 SpaceX 敞口，相关性强。"
+      "summary_cn": "市场讨论 SpaceX 与 Tesla 合并可能性，TSLA 为直接点名的上市标的；kcn 通过 SPCX/SPCH 间接持有 SpaceX 敞口，相关性强。",
+      "retained_from_previous": true
     },
     {
       "author": "Musk",
@@ -251,7 +228,8 @@
       "sector_holdings": [],
       "stance": "attack",
       "relevance": 58,
-      "summary_cn": "Musk 抨击 ABC News 对纽约 Tesla 致命车祸的报道不实，间接维护 TSLA 品牌形象，但事件本身偏舆情，非直接股价催化。"
+      "summary_cn": "Musk 抨击 ABC News 对纽约 Tesla 致命车祸的报道不实，间接维护 TSLA 品牌形象，但事件本身偏舆情，非直接股价催化。",
+      "retained_from_previous": true
     }
   ],
   "sector_hits": [
@@ -275,7 +253,51 @@
       ],
       "stance": "endorse",
       "relevance": 70,
-      "summary_cn": "英国加深对 SpaceX 卫星服务依赖，签下近 4000 万美元合同，强化 SpaceX 政府/国防订单趋势，间接利好 kcn 的 SPCX/SPCH 持仓。"
+      "summary_cn": "英国加深对 SpaceX 卫星服务依赖，签下近 4000 万美元合同，强化 SpaceX 政府/国防订单趋势，间接利好 kcn 的 SPCX/SPCH 持仓。",
+      "retained_from_previous": true
+    },
+    {
+      "author": "Trump",
+      "text": "“Words of Wisdom” from Phil Flynn, one of the World’s Great Oil and Energy Analysts — A MUST SEE! President DONALD J. TRUMP",
+      "url": "https://www.trumpstruth.org/statuses/41657",
+      "published": "2026-09-09T13:41:33+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "能源",
+        "石油"
+      ],
+      "sector_holdings": [
+        "02208"
+      ],
+      "stance": "endorse",
+      "relevance": 52,
+      "summary_cn": "Trump转发力挺能源/油价分析师Phil Flynn，间接利好能源板块，与kcn持有的金风科技(02208)板块相关。"
+    },
+    {
+      "author": "Trump",
+      "text": "Wow! The Populist Party in Germany just had a really big night. They finally got tired of the absolutely horrible Immigration rules and regulations which have hurt Germany so badly. THEY ARE ON THE RISE, and not going to take it anymore! MGGA!!! President DJT",
+      "url": "https://www.trumpstruth.org/statuses/41639",
+      "published": "2026-09-08T23:37:19+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "欧洲政治",
+        "民粹主义"
+      ],
+      "sector_holdings": [
+        "00100",
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "neutral",
+      "relevance": 48,
+      "summary_cn": "Trump评论德国选择党崛起、民粹回潮，对欧洲资产/全球风险偏好有间接影响，与kcn恒生科技ETF相关（情绪传导）。"
     }
   ]
 }
