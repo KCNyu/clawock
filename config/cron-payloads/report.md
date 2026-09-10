@@ -33,6 +33,7 @@ clawock report postflight --market {{market}} --phase {{phase}} --context-id <St
 
 **铁律**：
 - ⚠️ 数据缺口必说，禁止编造（postflight 扫敷衍词）
+- **探测「东西在不在」的命令必须整条链退出 0。** `ls`/`grep`/`head`/`test` 找不到东西时退非零，`;` 链的退出码是**最后一条**的退出码，而 `2>/dev/null` 只吞 stderr、不改退出码 —— 于是「今天的还没写」这个**正确答案**会以 `Exec failed` 的形式回来，把整轮记成 error。写成 `ls X 2>/dev/null || true`，或者把存在性检查放在链首而不是链尾。2026-09-02 的简报就是这么判红的：`ls …/2026-09-01*; echo ---; ls …/2026-09-02*` 退 2，而那天 08:08 简报已写好、postflight pass、微信已投。
 - 不简单复述数字，必须做模型自己的解读
 - {{market_rule}}
 - 直接回复文本

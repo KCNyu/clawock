@@ -629,6 +629,42 @@ def test_brief_repair_uses_whole_file_write_instead_of_brittle_edit():
     assert '一次已恢复的 `edit` 工具错误仍会把整个 cron 记成 error' in message
 
 
+def test_every_agent_payload_requires_probe_chains_to_exit_zero():
+    """A probe that legitimately finds nothing must not read as a failed run.
+
+    `ls`/`grep`/`head`/`test` exit non-zero when they find nothing, a `;` chain
+    carries the exit code of its LAST stage, and `2>/dev/null` hides the message
+    without touching the code. So the model's own existence probes came back as
+    `Exec failed` and the whole cron was recorded `error` — 7 runs across all
+    three payloads between 2026-07-30 and 2026-09-02. The one session that
+    survived GC proves the shape: on 2026-09-02 the brief job ran
+
+        ls .../memory/2026-09-01* 2>/dev/null; echo "---"; ls .../2026-09-02*
+
+    got exit 2 because today's brief did not exist yet — which was the correct
+    answer to the question it asked — and the run went red although the brief
+    was written at 08:08, postflight passed and `0f341eac` is in git.
+
+    Pinned for all three agent payloads because the family hit all three:
+    brief (08-10, 08-18, 09-02), report (08-10 x2, 08-14), intraday (07-30).
+    """
+    data = contract()
+    rule = '探测「东西在不在」的命令必须整条链退出 0'
+    jobs = {job['name']: job for job in data['jobs']}
+    for profile_name, job_name in (
+        ('brief', '盘前深度简报'),
+        ('report', '港股开盘报告'),
+        ('intraday', '盘中盯盘'),
+    ):
+        profile = data['payload_profiles'][profile_name]
+        assert rule in profile['required_substrings'], profile_name
+        message = cron_contract.render_payload_message(data, jobs[job_name])
+        assert rule in message, profile_name
+        # The fix has to be the exit code, not a silenced stderr — that is the
+        # half that never worked.
+        assert '`2>/dev/null` 只吞 stderr、不改退出码' in message, profile_name
+
+
 def test_brief_uses_the_installed_calendar_command():
     """Step 0 calls the guard in the shape whose exit code is not a verdict.
 

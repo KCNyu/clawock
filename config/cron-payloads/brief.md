@@ -17,9 +17,10 @@ clawock brief preflight
 **持仓相关数字**（FX、book USD/HKD、concentration HHI、retrospective、单股 RSI/MA/PnL）只从这个 JSON 取，不要凭空造。
 **板块全景/同行涨幅榜/当日催化** context.json 没覆盖 — Step 3 用 tavily-search 拉实时。
 
-**跑命令的两条硬约束（同属「工具报错=整轮记 error」那一族）**
+**跑命令的硬约束（同属「工具报错=整轮记 error」那一族）**
 - 脚本路径**照抄 SKILL.md，不要猜**。猜错了不许全盘扫描：`find /` 会被转入后台会话，而**主动 `process kill` 掉它的 toolResult 带 isError**，整个 cron 会被记成 error —— 2026-08-21 的简报就是这样在两个渠道都投递成功之后仍然判红的。
 - 任何可能长跑的命令自己用 `timeout` 包住（如 `timeout 20 <cmd>`），让它自己结束，这样就永远不需要 kill。
+- **探测「东西在不在」的命令必须整条链退出 0。** `ls`/`grep`/`head`/`test` 找不到东西时退非零，`;` 链的退出码是**最后一条**的退出码，而 `2>/dev/null` 只吞 stderr、不改退出码 —— 于是「今天的还没写」这个**正确答案**会以 `Exec failed` 的形式回来，把整轮记成 error。写成 `ls X 2>/dev/null || true`，或者把存在性检查放在链首而不是链尾。2026-09-02 的简报就是这么判红的：`ls …/2026-09-01*; echo ---; ls …/2026-09-02*` 退 2，而那天 08:08 简报已写好、postflight pass、微信已投。
 - **`clawock brief postflight` 是这条规则的例外：绝不给它包 `timeout`，也不要 kill 它。** 它是「先投递、后提交」两段（#765 的顺序），提交那一段要跑 log_decisions + 重建 dashboard + push，几十秒到几分钟，在机器吃紧时更久。杀在中间的结果是**投递成功了但简报没入库**：`memory/{date}-pre-open.md` 与 `plan.json` 留在工作区不进 git，公开页 404，决策台账整天不动（日更简报的 commit 是那个台账唯一的搬运工）。2026-09-01 就是这样丢的：`timeout 90` 退出码 124，而 `brief-sent-*.json` 已经写好，于是看起来完全成功。
 - **看到 `memory/.tmp/brief-sent-{date}.json` 只说明「投出去了」，不说明 postflight 跑完了。** 判完成看它自己那份 JSON 里的 `commit_ok`；`commit_ok: false` 就是没入库，要把 postflight 重跑到底，不要收尾。
 
