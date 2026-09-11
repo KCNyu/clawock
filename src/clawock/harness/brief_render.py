@@ -25,6 +25,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from datetime import date as _date
 from pathlib import Path
 
@@ -596,25 +597,74 @@ def risk_voices_section(judgment):
     return "\n".join(out).rstrip()
 
 
-def judge_section(plan):
+def judge_section(plan, judgment=None):
     """The calls themselves — what the harness validated and the ledger records.
 
     Split out of the old `Tier 3 — 3 Risk Voices + Judge` because those are two
     different questions: the voices are the argument, this is the answer. Under
     the four-part layout the answer opens the report and the argument follows it.
+
+    One entry per call, confidence and verdict included. 信心与判定 used to be a
+    second section with its own entry per ticker, and the two rationales it
+    printed side by side were largely the same text: on 2026-09-11 the 07226
+    entry of both ended in the same forty characters (「cut 释放 17,707 HKD 留现
+    金；03033 1x 替代 buy 腿 blocked…」), and the two sections together were
+    12.5KB of a 44KB brief that had crossed the 40KB extreme line. The judgment's
+    rationale now prints only the clauses the call's own rationale did not
+    already say (`_unsaid`), under 判定; the falsifier stays whole.
     """
+    judgments = _judgments(judgment or {})
     rows = []
     for decision in (plan.get("decisions") or []):
+        ticker = str(decision.get("ticker"))
         debate = decision.get("debate") or {}
+        row = judgments.get(ticker) or {}
+        confidence = decision.get("confidence")
+        rationale = text(decision.get("rationale"))
+        fields = [("理由", rationale)]
+        extra = _unsaid(row.get("rationale"), decision.get("rationale"))
+        if extra:
+            fields.append(("判定", text(extra)))
+        if row.get("falsifier"):
+            fields.append(("证伪条件", text(row.get("falsifier"))))
+        title = f"**{text(ticker)}** · **{text(decision.get('action'))}**"
+        if confidence is not None:
+            title += f" · 信心 {pct(confidence * 100, digits=0, sign=False)}"
+        if row.get("verdict"):
+            title += f" · {verdict_badge(row.get('verdict'))}"
         rows.append({
-            "title": (f"**{text(decision.get('ticker'))}** · "
-                      f"**{text(decision.get('action'))}**"),
+            "title": title,
             "meta": [" + ".join(debate.get("frames") or []) or MISSING,
                      text(decision.get("strategy_id")),
                      text(decision.get("driven_by"))],
-            "fields": [("理由", text(decision.get("rationale")))],
+            "fields": fields,
         })
-    return f"### {PAGE_ACTION_HEADING}\n\n" + entries(rows)
+    return f"### {PAGE_ACTION_HEADING} · {PAGE_CONFIDENCE_HEADING}\n\n" + entries(rows)
+
+
+# A clause ends at CJK/ASCII sentence punctuation — but a period only when a
+# space or the end follows it, or "-71.8%" would be cut in two.
+_CLAUSE_END = re.compile(r"[;；。!！?？\n]+|\.(?=\s|$)")
+_CLAUSE_NOISE = re.compile(r"[\s,，、:：()（）'\"“”‘’`·]+")
+
+
+def _unsaid(extra, said):
+    """The clauses of `extra` that `said` does not already contain, in order.
+
+    Compared with spacing and punctuation folded away, so "cut 释放 17,707 HKD"
+    and "cut 释放 17,707 HKD," are one clause. Containment, not equality: the
+    call's rationale often carries a clause verbatim inside a longer sentence.
+    """
+    if not extra:
+        return ""
+    folded = _CLAUSE_NOISE.sub("", str(said or "")).lower()
+    kept = []
+    for clause in _CLAUSE_END.split(str(extra)):
+        clause = clause.strip()
+        key = _CLAUSE_NOISE.sub("", clause).lower()
+        if key and key not in folded and clause not in kept:
+            kept.append(clause)
+    return "；".join(kept)
 
 
 def sector_section(sector_scan, judgment):
@@ -748,23 +798,6 @@ def verdict_badge(value):
             f'{spec["glyph"]} {spec["label"]}</span>')
 
 
-def confidence_section(judgment, plan):
-    judgments = _judgments(judgment)
-    rows = []
-    for decision in (plan.get("decisions") or []):
-        ticker = str(decision.get("ticker"))
-        row = judgments.get(ticker) or {}
-        confidence = decision.get("confidence")
-        rows.append({
-            "title": (f"**{ticker}** · {text(decision.get('action'))} · "
-                      f"信心 {pct((confidence or 0) * 100, digits=0, sign=False)} · "
-                      f"{verdict_badge(row.get('verdict'))}"),
-            "fields": [("理由", text(row.get("rationale"))),
-                       ("证伪条件", text(row.get("falsifier")))],
-        })
-    return "### 信心与判定\n\n" + entries(rows)
-
-
 def _interval(bounds):
     """A confidence interval in the same units as the benefit beside it.
 
@@ -825,6 +858,7 @@ def data_holes_section(context, judgment):
 #: other: renaming a heading in only one of them is how they drift into looking
 #: like different reports. `test_the_card_and_the_page_agree` pins the pair.
 PAGE_ACTION_HEADING = "今日动作"
+PAGE_CONFIDENCE_HEADING = "信心与判定"
 PAGE_BOOK_PART = "这本账现在什么样"
 CARD_BOOK_HEADING = "这本账"
 
@@ -859,8 +893,7 @@ def render_brief(context, judgment, plan, *, date=None, sector_scan=None):
     # one model paragraph, and the reader never wonders where to start.
     parts = [
         ("今天做什么", [
-            judge_section(plan),
-            confidence_section(judgment, plan),
+            judge_section(plan, judgment),
             next_session_section(judgment),
         ]),
         ("我的看法", [

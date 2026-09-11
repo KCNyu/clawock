@@ -816,7 +816,7 @@ portfolio_counterargument/narrative/ticker_judgments`。
   "disposition": "candidate|wait|reject",
   "assessment": "你的评价",
   "counterargument": "最强反方",
-  "rationale": "为何在冲突信号中这样判断",
+  "rationale": "为何在冲突信号中这样判断（只写 plan rationale 里没有的：历史战绩、反方为何不成立；≤2 句）",
   "falsifier": "什么事实会推翻当前候选/等待判断",
   "next_evidence": "下一步要找的一手披露或价格确认",
   "fundamentals": "Tier 1 · 基本面格：EDGAR/财报/ETF 标的口径",
@@ -825,6 +825,12 @@ portfolio_counterargument/narrative/ticker_judgments`。
   "peer_read": "同行扫描那一行的判断：领先/落后说明什么"
 }
 ```
+
+**`rationale` 不许复述 plan。** 报告里「今日动作 · 信心与判定」是一票一块：plan 的 `rationale`
+印在「理由」，这里的 `rationale` 印在「判定」，和前者逐句相同的会被 harness 删掉（`brief_render._unsaid`）。
+换个说法把同样的事实再写一遍删不掉，只会让简报变长：2026-09-11 两处加起来 12.5KB，简报 44KB 越过
+40KB 极端线。这里写 plan 没说的——`bucket_history` 战绩、为什么反方不成立、信心为什么是这个数——
+没有就一句话。
 
 `narrative`（整篇报告的辩论层，全部必填）：
 

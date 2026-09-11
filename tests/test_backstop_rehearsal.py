@@ -182,3 +182,35 @@ def test_cron_health_runs_this_check_and_does_not_skip_it_on_a_red_verdict():
     assert "if: always()" in block, (
         "the cron health check exits non-zero on a miss; without always() this "
         "step is skipped on exactly the days somebody is reading the run")
+
+
+# --- a decided failure is a warning until a date, never forever ------------
+
+def test_an_accepted_failure_warns_until_its_date_then_reddens_again(monkeypatch, capsys):
+    monkeypatch.setattr(br, "assess", lambda: {"status": "fail", "reason": "dead"})
+    args = ["--strict", "--accepted-until", "2026-10-11", "--accepted-reason", "kcn 定的"]
+
+    real = br._accepted
+    monkeypatch.setattr(br, "_accepted", lambda until: real(
+        until, today=datetime(2026, 10, 11).date()))
+    assert br.main(args) == 0
+    out = capsys.readouterr().out
+    assert "::warning" in out and "dead" in out and "kcn 定的" in out
+
+    monkeypatch.setattr(br, "_accepted", lambda until: real(
+        until, today=datetime(2026, 10, 12).date()))
+    assert br.main(args) == 1
+
+
+def test_acceptance_needs_a_reason_and_a_readable_date(monkeypatch):
+    monkeypatch.setattr(br, "assess", lambda: {"status": "fail", "reason": "dead"})
+    with pytest.raises(SystemExit):
+        br.main(["--strict", "--accepted-until", "2026-10-11"])
+    assert br._accepted("not-a-date") is False
+    assert br._accepted(None) is False
+
+
+def test_cron_health_acceptance_is_dated():
+    cron_health = (ROOT / ".github" / "workflows" / "cron-health.yml").read_text()
+    block = cron_health.split("- name: Off-host brief backstop", 1)[1].split("- name:", 1)[0]
+    assert "--accepted-until 20" in block and "--accepted-reason" in block

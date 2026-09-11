@@ -115,7 +115,7 @@ def test_the_report_is_rendered_in_one_fixed_order():
     # used to be: the report's shape is a decision, not an accident of which
     # section function happened to be appended last.
     order = ["# 盘前深度简报",
-             "## 今天做什么", "### 今日动作", "### 信心与判定", "### 下一节点",
+             "## 今天做什么", "### 今日动作 · 信心与判定", "### 下一节点",
              "## 我的看法", "### 多空对辩", "### 风险官三票", "### 分析师四格",
              "## 这本账现在什么样", "### 双币账本", "### 集中度", "### 风控硬闸",
              "### 回本测算", "### 仓位明细", "### 大盘趋势",
@@ -183,7 +183,7 @@ def test_the_judge_table_comes_from_the_plan_not_the_prose():
     """The plan is the validated boundary; the report must not restate it in the
     model's own words, or the two can disagree about what was decided."""
     body = render.render_brief(CONTEXT, _judgment(), PLAN, date="2026-08-31")
-    judge = body[body.index("### 今日动作"):body.index("### 信心与判定")]
+    judge = body[body.index("### 今日动作"):body.index("### 下一节点")]
 
     assert "**cut**" in judge and "risk_rebalance" in judge
     assert "technical_breakdown + relative_strength" in judge
@@ -308,10 +308,39 @@ def test_an_unknown_verdict_still_prints_itself():
 
 def test_the_confidence_table_carries_the_badge():
     body = render.render_brief(CONTEXT, _judgment(), PLAN, date="2026-08-31")
-    table = body[body.index("### 信心与判定"):body.index("### 下一节点")]
+    table = body[body.index("### 今日动作 · 信心与判定"):body.index("### 下一节点")]
 
     assert '<span class="verdict verdict-bearish">🔴 看空</span>' in table
     assert "| 看空 |" not in table, "the plain-text cell is what #1272 replaced"
+
+
+def test_the_judgment_prints_only_what_the_call_did_not_already_say():
+    """2026-09-11: 今日动作 and 信心与判定 were two entries per ticker whose two
+    rationales ended in the same forty characters. One entry now; the judgment
+    keeps only its own clauses, and a judgment that adds nothing prints nothing."""
+    shared = "cut 释放 17,707 HKD 留现金；03033 1x 替代 buy 腿 blocked (无 technical setup)"
+    decision = {**PLAN["decisions"][0], "rationale": "硬止损 -34.5% ≤ -18% 线。" + shared + "。"}
+    judgment = _judgment()
+    target = render._judgments(judgment)[str(decision["ticker"])]
+    target["rationale"] = ("reflections 持×5 胜 2 (40%) 不如 cut 历史胜率. "
+                           "cut 释放 17,707 HKD 留现金; 03033 1x 替代 buy 腿 blocked (无 technical setup).")
+    plan = {**PLAN, "decisions": [decision] + PLAN["decisions"][1:]}
+    body = render.render_brief(CONTEXT, judgment, plan, date="2026-08-31")
+    section = body[body.index("### 今日动作"):body.index("### 下一节点")]
+
+    assert section.count("17,707") == 1, "the shared clause printed twice"
+    assert "reflections 持×5 胜 2 (40%) 不如 cut 历史胜率" in section
+    assert "**判定**" in section and "**证伪条件**" in section
+    assert "### 信心与判定" not in body, "a second per-ticker section came back"
+
+    target["rationale"] = shared
+    body = render.render_brief(CONTEXT, judgment, plan, date="2026-08-31")
+    first = body[body.index("### 今日动作"):].split("\n- ", 2)[1]
+    assert "**判定**" not in first, "a judgment with nothing new still got a field"
+
+
+def test_unsaid_keeps_decimals_whole():
+    assert render._unsaid("浮亏 -71.8% 仍在扩大. 另一句", "另一句") == "浮亏 -71.8% 仍在扩大"
 
 
 def test_the_stylesheet_tints_every_badge_class():
@@ -479,7 +508,7 @@ def test_a_sweep_with_no_sectors_counts_as_missing(tmp_path):
 # ── tables for numbers, entries for prose, one card per subsection ───────────
 #    (2026-09-11: "在 dashboard 里看 brief 也很丑，也没什么卡片区块感，数据排版也很杂乱")
 
-PROSE_SECTIONS = ("今日动作", "信心与判定", "分析师四格", "同行扫描", "社交舆情")
+PROSE_SECTIONS = ("今日动作", "分析师四格", "同行扫描", "社交舆情")
 
 
 def _section(body, heading):
