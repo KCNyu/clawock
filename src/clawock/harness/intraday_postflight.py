@@ -63,7 +63,7 @@ from ._harness_common import (  # noqa: E402
 )
 from ._watchdog_common import (  # noqa: E402
     resolve_wechat_target, send_wechat, cosend_telegram, already_delivered,
-    claim_send, mark_send_started, release_claim, log,
+    claim_send, mark_send_started, release_claim, log, send_per_policy,
 )
 
 from clawock.workspace import workspace_root
@@ -75,6 +75,7 @@ _CHECKOUT = WS
 TMP = WS / 'memory' / '.tmp'
 
 from clawock.automation import cron_heartbeat  # noqa: E402
+from clawock.automation import delivery_receipts  # noqa: E402
 from clawock.harness import intraday_delta  # noqa: E402
 
 # A report file older than this is assumed to be a previous slot's leftover. Kept
@@ -300,19 +301,16 @@ def delivery_marker_payload(ctx, *, ts, sent_ok, tg_ok, first_line, market, out,
     away here.
     """
     heartbeat = ctx.get('heartbeat') or {}
-    return {
-        'ts': ts,
-        'sent_ok': bool(sent_ok),
-        'tg_ok': bool(tg_ok),
-        'first_line': first_line,
-        'market': market,
-        'job': heartbeat.get('job'),
-        'slot': heartbeat.get('slot'),
-        'context_id': ctx.get('context_id'),
-        'context_generated_at': ctx.get('generated_at'),
-        'delivery_state': delivery_state,
-        'out': (out or '')[-200:],
-    }
+    return delivery_receipts.build_receipt(
+        ts=ts, sent_ok=sent_ok, tg_ok=tg_ok, out=out,
+        first_line=first_line,
+        market=market,
+        job=heartbeat.get('job'),
+        slot=heartbeat.get('slot'),
+        context_id=ctx.get('context_id'),
+        context_generated_at=ctx.get('generated_at'),
+        delivery_state=delivery_state,
+    )
 
 
 def publish_data_plane(market):
@@ -476,7 +474,7 @@ def main(argv=None):
     # evidence about whether delivery happened and must not file a
     # primary_delivery verdict over the concurrent holder's (#1006).
     send_claim_declined = False
-    marker = TMP / f'intraday-sent-{args.market}.json'
+    marker = delivery_receipts.receipt_path(TMP, 'intraday', market=args.market)
     # Idempotency: if openclaw auto-retried this run (post-turn summary-gen failure),
     # the report already went out on the prior attempt — skip the re-send. Intraday's
     # marker is per-market, so use a 20min window (< the 30min slot cadence, > the
@@ -515,7 +513,7 @@ def main(argv=None):
             # is taken before the send. Its staleness window matches the
             # already_delivered one — intraday's claim is per-market, so it must
             # expire before the next 30min slot needs it.
-            claim_path = TMP / f'intraday-send-{args.market}.claim'
+            claim_path = delivery_receipts.claim_path(TMP, 'intraday', market=args.market)
             won, claim_reason = claim_send(claim_path, stale_after_ms=20 * 60 * 1000)
             if not won:
                 print(f'concurrency: intraday {args.market} send is already claimed '
@@ -527,17 +525,14 @@ def main(argv=None):
                 send_claim_declined = True
             else:
                 mark_send_started(claim_path)
-                try:
-                    channel, to, account = resolve_wechat_target(args.market)
-                    wechat_sent, send_out = send_wechat(channel, to, account, message,
-                                                        dry_run=False)
-                except Exception as e:
-                    wechat_sent, send_out = False, str(e)[:300]
-                # Always co-send to Telegram (cold-proof) — WeChat can't confirm real
-                # delivery. Record the Telegram result: it's the sole backstop
-                # intraday_watchdog now uses (no more WeChat resend), so it needs to
-                # know if TG already got this.
-                tg_ok, _tg_out = cosend_telegram(message, f'intraday-{args.market}')
+                # WeChat, then Telegram (cold-proof — WeChat can't confirm real
+                # delivery), per the delivery policy. The Telegram result is recorded:
+                # it's the sole backstop intraday_watchdog uses (no WeChat resend), so
+                # it needs to know if TG already got this.
+                wechat_sent, send_out, tg_ok = send_per_policy(
+                    'intraday', message, tag=f'intraday-{args.market}', market=args.market,
+                    wechat=send_wechat, telegram=cosend_telegram,
+                    resolve=resolve_wechat_target)
                 delivered_this_run = bool(wechat_sent or tg_ok)
                 # Only the process that actually sent may write the marker. A
                 # declined claim writing one would tell intraday_watchdog this
