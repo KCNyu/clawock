@@ -114,6 +114,31 @@ def _overridden_risk_tickers(ledger_path=None):
     return overridden
 
 
+def _standing_risk_tickers(ledger_path=None):
+    """Tickers whose breach today's brief chose to let stand (risk.py `_adaptive`).
+
+    Same carry-over problem as an override (#552): once the morning plan holds a
+    breach the book keeps declining, every intraday slot re-reading last week's open
+    "SPCH cut" as an unfilled swap is the nagging the choice was made to stop. Unlike an
+    override these rows are NOT settled — nobody declined them explicitly, so they keep
+    their own evaluation — they are only not re-announced. Reads the choice the brief
+    postflight filed, so a day the model re-raised the breach carries it as before.
+    """
+    try:
+        ledger = risk_ledger.load_ledger(
+            Path(ledger_path) if ledger_path else risk_ledger.LEDGER)
+    except Exception:  # noqa: BLE001 — a broken breach ledger must not red a report cron
+        return set()
+    tickers = set()
+    for row in ledger.get("records") or []:
+        adaptive = row.get("adaptive") or {}
+        choices = adaptive.get("stances") or []
+        if (row.get("status") == "open" and adaptive.get("may_stand")
+                and choices and choices[-1].get("choice") == "stand"):
+            tickers |= risk_ledger._targets(row)
+    return tickers
+
+
 def _entry(row):
     size = row.get("size") or {}
     condition = row.get("condition") or {}
@@ -322,6 +347,18 @@ def open_decisions_context(*, leg=None, today=None, ledger=None, memory_dir=None
         # discipline. Other decisions on the same ticker stay untouched.
         overridden_tickers = _overridden_risk_tickers(
             ledger_path=memory / "risk_breaches.json")
+        standing_tickers = _standing_risk_tickers(
+            ledger_path=memory / "risk_breaches.json") - overridden_tickers
+        standing_hidden = sorted({
+            str(row.get("ticker")) for row in rows
+            if str(row.get("ticker") or "") in standing_tickers
+            and row.get("driven_by") == "risk_rule"
+            and row.get("action") in ("cut", "trim_on_rebound")})
+        if standing_tickers:
+            rows = [row for row in rows
+                    if not (str(row.get("ticker") or "") in standing_tickers
+                            and row.get("driven_by") == "risk_rule"
+                            and row.get("action") in ("cut", "trim_on_rebound"))]
         dropped = []
         if overridden_tickers:
             def _is_overridden_cut(row):
@@ -338,9 +375,14 @@ def open_decisions_context(*, leg=None, today=None, ledger=None, memory_dir=None
         if not rows:
             if open_add_gate_error:
                 return {"open_add_tickers": [], "open_add_gate_error": open_add_gate_error}
+            quiet = {}
             if dropped:
-                return {"open_add_tickers": [], "overridden_by_user": sorted(set(dropped))}
-            return {}
+                quiet["overridden_by_user"] = sorted(set(dropped))
+            if standing_hidden:
+                # Said, not dropped: a slot must be able to write "SPCH 的 cut 今天维持
+                # 不重提" rather than read as if there were nothing on the book.
+                quiet["standing_by_choice"] = standing_hidden
+            return {"open_add_tickers": [], **quiet} if quiet else {}
 
         # Today's plan first, then the oldest carried-over orders: a swap hanging
         # since Friday is more urgent than one written this morning, but the
@@ -364,6 +406,8 @@ def open_decisions_context(*, leg=None, today=None, ledger=None, memory_dir=None
         }
         if dropped:
             context["overridden_by_user"] = sorted(set(dropped))
+        if standing_hidden:
+            context["standing_by_choice"] = standing_hidden
         if open_add_gate_error:
             context["open_add_gate_error"] = open_add_gate_error
         if len(rows) > MAX_DECISIONS:

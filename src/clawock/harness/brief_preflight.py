@@ -1910,13 +1910,19 @@ def main(argv=None):
     except Exception as e:
         discipline = {'error': f'{type(e).__name__}: {e}', 'records': []}
         issues.append(f'risk discipline reconcile failed: {type(e).__name__}')
+    else:
+        # The packet reads each row's durable state (`standing`, `adaptive`) off
+        # these rows; without this join every one of them arrived empty.
+        guardrail = risk_discipline.attach_discipline(guardrail, discipline)
     print(f'   guardrail: {guardrail["breach_count"]} breaches/stops — {guardrail["directive"][:64]}')
     if discipline.get('error'):
         print(f'   🔴 durable risk ledger failed: {discipline["error"]}')
     else:
         print(f'   durable risk ledger: {discipline.get("open_count", 0)} open / '
               f'{discipline.get("overridden_count", 0)} overridden / '
-              f'oldest {discipline.get("oldest_open_days", 0)}d')
+              f'oldest {discipline.get("oldest_open_days", 0)}d / '
+              f'may stand {discipline.get("may_stand_count", 0)} / '
+              f'must reissue {discipline.get("must_reissue_count", 0)}')
     for b in guardrail['breaches']:
         print(f'   ⛔ {b["type"]:20s} ({b["severity"]:6s}) {b["detail"][:78]}')
     for s in guardrail['hard_stop_watch']:

@@ -279,6 +279,7 @@ def reconcile_guardrail(
                 },
                 "fingerprint": fingerprint,
                 "resolution": None,
+                "pressure": _pressure(row),
             }
         else:
             record = previous
@@ -304,6 +305,7 @@ def reconcile_guardrail(
                 record["last_changed_at"] = stamp
             record.update({
                 "status": "open",
+                "pressure": _pressure(row),
                 "severity": row.get("severity") or record.get("severity"),
                 "last_seen_at": stamp,
                 "detail": row.get("detail") or "",
@@ -338,6 +340,7 @@ def reconcile_guardrail(
         record["age_days"] = _age_days(
             record.get("current_opened_at"), current_time)
         record["standing"] = _standing(record)
+        record["adaptive"] = _adaptive(record, portfolio, current_time)
         by_id[breach_id] = record
 
     for breach_id, record in by_id.items():
@@ -388,6 +391,9 @@ def reconcile_guardrail(
             [r.get("age_days") or 0 for r in active] or [0]),
         "decision_overdue_count": sum(
             bool((r.get("standing") or {}).get("decision_overdue")) for r in active),
+        "may_stand_count": sum(may_stand(r) for r in active),
+        "must_reissue_count": sum(
+            bool((r.get("adaptive") or {}).get("must_reissue")) for r in active),
         "records": active,
     }
 
@@ -416,6 +422,225 @@ def _standing(record: dict) -> dict:
         # Named so the reader does not have to infer what would clear it.
         "closes_with": ["execute", "acknowledge", "override"],
     }
+
+
+#: Advice the book keeps declining (kcn 2026-09-12:「我们长期不听的模型建议可以考虑有一个
+#: 自适应机制」). Measured the same day: 58 of the 61 active calls not followed in 30 days
+#: were the same three risk_rule cuts (07226 / RKLX / SPCH), re-issued every morning for
+#: 29 / 58 / 57 days, while the book showed what kcn had decided — shares unchanged, trades
+#: in other names, and ten buys INTO SPCH (「无限子弹流继续摊本」) while it was told to cut.
+#:
+#: Split by who is good at what. The harness owns the evidence and the ledger: whether a
+#: breach is ELIGIBLE to stand (`_revealed_stance`), the two rails that force it back
+#: (`_worsened`, `REISSUE_CEILING_DAYS`), and the record of each day's choice
+#: (`record_stances`). The brief model owns the judgment inside that envelope: whether
+#: today is different enough to raise it again, and what to say instead. A model left to
+#: itself shouts louder when ignored (09-11: 「今日第 5 次重发…三选一关闭」), and a model
+#: that writes ledger state corrupts it (#1433) — so it gets the choice, not the pen.
+REISSUE_CEILING_DAYS = 28
+REARM_LOSS_PP = 10.0
+REARM_REDUCTION_RATIO = 1.5
+#: A trade elsewhere older than this says nothing about today: someone who has not
+#: traded for a month may simply be away, and silence is not a decision.
+RECENT_ACTIVITY_DAYS = 30
+_SEVERITY_RANK = {"critical": 0, "high": 1, "medium": 2}
+
+
+def _pressure(row: dict) -> dict | None:
+    """The one number that says how bad this breach is, in its own units."""
+    if row.get("type") in ("hard_stop", "leveraged_hard_stop") and isinstance(
+            row.get("pnl_pct"), (int, float)):
+        return {"kind": "pnl_pct", "value": float(row["pnl_pct"])}
+    reduction = row.get("required_reduction") or {}
+    value = reduction.get("minimum_value")
+    if isinstance(value, (int, float)):
+        return {"kind": "minimum_value", "value": float(value),
+                "currency": reduction.get("currency")}
+    return None
+
+
+def _targets(record: dict) -> set[str]:
+    targets = {str(t) for t in (record.get("required_reduction") or {}).get(
+        "target_tickers") or []}
+    if record.get("ticker"):
+        targets.add(str(record["ticker"]))
+    return targets
+
+
+def _trades(portfolio: dict) -> list[dict]:
+    out = []
+    for ticker, holding in _holding_map(portfolio).items():
+        for trade in holding.get("trades") or []:
+            if isinstance(trade, dict) and isinstance(trade.get("date"), str):
+                out.append({"ticker": ticker, "date": trade["date"][:10],
+                            "action": str(trade.get("action") or "").lower()})
+    return out
+
+
+def _revealed_stance(record: dict, portfolio: dict, now: datetime) -> dict:
+    """What the book shows the user did about this breach while it stood.
+
+    `acting`   — sold one of the names it targets since it opened;
+    `contrary` — bought one of them instead;
+    `declined` — traded other names recently, never these;
+    `silent`   — no recent trading at all: maybe away. Not a decision, never inferred as one.
+
+    Read from trades on the CURRENT target tickers, not from `execution.status`: that
+    field keeps whatever evidence it ever collected, and the US leverage breach carries
+    `evidence_present` from July sells of MSFU/PLTU while its targets today are RKLX/SPCH.
+    """
+    opened = (_parse_stamp(record.get("current_opened_at"))
+              or _parse_stamp(record.get("first_seen_at")))
+    since = opened.date().isoformat() if opened else ""
+    recent = (now.date() - timedelta(days=RECENT_ACTIVITY_DAYS)).isoformat()
+    targets = _targets(record)
+    today = now.date().isoformat()
+    window = [t for t in _trades(portfolio) if since <= t["date"] <= today]
+    on_target = [t for t in window if t["ticker"] in targets]
+    sells = [t for t in on_target if t["action"] == "sell"]
+    buys = [t for t in on_target if t["action"] == "buy"]
+    elsewhere = [t for t in window if t["ticker"] not in targets and t["date"] >= recent]
+    if sells:
+        stance = "acting"
+    elif buys:
+        stance = "contrary"
+    elif elsewhere:
+        stance = "declined"
+    else:
+        stance = "silent"
+    return {
+        "stance": stance,
+        "since": since,
+        "target_tickers": sorted(targets),
+        "sells_on_target": len(sells),
+        "buys_on_target": len(buys),
+        "last_buy_on_target": max((t["date"] for t in buys), default=None),
+        "trades_elsewhere_recent": len(elsewhere),
+        "last_trade_elsewhere": max((t["date"] for t in elsewhere), default=None),
+    }
+
+
+def _worsened(anchor, current, anchor_severity, severity) -> str:
+    """Why this breach is materially worse than when it was last raised, or ''."""
+    if _SEVERITY_RANK.get(severity, 3) < _SEVERITY_RANK.get(anchor_severity, 3):
+        return f"严重度 {anchor_severity} → {severity}"
+    if not anchor or not current or anchor.get("kind") != current.get("kind"):
+        return ""
+    before, now_value = float(anchor["value"]), float(current["value"])
+    if anchor["kind"] == "pnl_pct" and now_value <= before - REARM_LOSS_PP:
+        return (f"浮亏 {before:.1f}% → {now_value:.1f}%"
+                f"（比上次重提时再深 ≥{REARM_LOSS_PP:g}pp）")
+    if (anchor["kind"] == "minimum_value" and before > 0
+            and now_value >= before * REARM_REDUCTION_RATIO):
+        return (f"需减额 {before:,.0f} → {now_value:,.0f} {current.get('currency') or ''}"
+                f"（≥{REARM_REDUCTION_RATIO:g}×）").replace(" （", "（")
+    return ""
+
+
+def _rearm_at(anchor) -> str:
+    # A breach with no number of its own (the US β row carries its value only in
+    # prose) has only the severity rail and the ceiling; say so rather than print "—".
+    if not anchor:
+        return "严重度升级"
+    if anchor.get("kind") == "pnl_pct":
+        return f"浮亏 ≤ {float(anchor['value']) - REARM_LOSS_PP:.1f}%"
+    return (f"需减额 ≥ {float(anchor['value']) * REARM_REDUCTION_RATIO:,.0f} "
+            f"{anchor.get('currency') or ''}").rstrip()
+
+
+def _adaptive(record: dict, portfolio: dict, now: datetime) -> dict:
+    """May today's brief let this breach stand, or must it raise it again?"""
+    prev = record.get("adaptive") or {}
+    today = now.date()
+    stance = _revealed_stance(record, portfolio, now)
+    blockers = []
+    if record.get("status") != "open":
+        blockers.append(f"status={record.get('status')}")
+    if (record.get("execution") or {}).get("status") == "confirmed":
+        blockers.append("execution confirmed")
+    if int(record.get("age_days") or 0) < STANDING_DECISION_DAYS:
+        blockers.append(f"open {record.get('age_days') or 0}d < {STANDING_DECISION_DAYS}d")
+    if stance["stance"] not in ("declined", "contrary"):
+        blockers.append(f"stance={stance['stance']}")
+    stances = list(prev.get("stances") or [])[-10:]
+    if blockers:
+        return {"eligible": False, "may_stand": False, "must_reissue": False,
+                "not_eligible_because": blockers, "stance": stance,
+                "stances": stances}
+
+    entering = not prev.get("eligible")
+    anchor = record.get("pressure") if entering else prev.get("anchor")
+    anchor_severity = record.get("severity") if entering else prev.get("anchor_severity")
+    last = prev.get("last_reissued_on") if not entering else None
+    # Entering: until today the plan re-issued it every morning, so today is the
+    # last reissue the ceiling counts from.
+    last = last or today.isoformat()
+    try:
+        since_last = (today - datetime.fromisoformat(last).date()).days
+    except ValueError:
+        since_last, last = 0, today.isoformat()
+    worse = _worsened(anchor, record.get("pressure"), anchor_severity,
+                      record.get("severity"))
+    ceiling = since_last >= REISSUE_CEILING_DAYS
+    must = bool(worse or ceiling)
+    reason = worse or (f"距上次重提 {since_last} 天（上限 {REISSUE_CEILING_DAYS} 天）"
+                       if ceiling else "")
+    return {
+        "eligible": True,
+        "may_stand": not must,
+        "must_reissue": must,
+        "must_reason": reason,
+        "stance": stance,
+        "anchor": anchor,
+        "anchor_severity": anchor_severity,
+        "last_reissued_on": last,
+        "days_since_reissue": since_last,
+        "forced_on": (datetime.fromisoformat(last).date()
+                      + timedelta(days=REISSUE_CEILING_DAYS)).isoformat(),
+        "rearm_at": _rearm_at(anchor),
+        "stances": stances,
+    }
+
+
+def may_stand(row: dict) -> bool:
+    """True when today's plan may hold this breach instead of re-issuing its cut."""
+    return bool((row.get("adaptive") or {}).get("may_stand"))
+
+
+def record_stances(path: Path, plan_date: str, decisions: list[dict]) -> list[dict]:
+    """File what today's plan did with each eligible breach. Harness-written.
+
+    `reissue` when the plan carries a cut/trim on one of the breach's targets, which
+    also re-anchors both rails; otherwise `stand`, with the call's own rationale as the
+    reason. Keyed on `plan_date`, so a postflight re-run replaces its own entry.
+    """
+    ledger = load_ledger(path)
+    by_ticker: dict[str, list[dict]] = {}
+    for decision in decisions or []:
+        by_ticker.setdefault(str(decision.get("ticker") or ""), []).append(decision)
+    filed = []
+    for record in ledger["records"]:
+        adaptive = record.get("adaptive") or {}
+        if record.get("status") != "open" or not adaptive.get("eligible"):
+            continue
+        mine = [d for t in sorted(_targets(record)) for d in by_ticker.get(t, [])]
+        cuts = [d for d in mine if d.get("action") in ("cut", "trim_on_rebound")]
+        choice = "reissue" if cuts else "stand"
+        why = ((cuts or mine or [{}])[0].get("rationale") or "")[:240]
+        entry = {"date": plan_date, "choice": choice, "why": why}
+        stances = [row for row in adaptive.get("stances") or []
+                   if row.get("date") != plan_date]
+        adaptive["stances"] = (stances + [entry])[-10:]
+        if choice == "reissue":
+            adaptive["last_reissued_on"] = plan_date
+            adaptive["anchor"] = record.get("pressure")
+            adaptive["anchor_severity"] = record.get("severity")
+        record["adaptive"] = adaptive
+        filed.append({"breach_id": record.get("breach_id"), **entry})
+    if filed:
+        ledger["updated_at"] = _stamp()
+        _atomic_write(path, ledger)
+    return filed
 
 
 #: The three lists a guardrail context carries, in the order the brief reads them.
@@ -495,6 +720,26 @@ def attach_breach_ids(guardrail: dict) -> dict:
             ref = evidence_ref(row)
             if ref:
                 row["evidence_id"] = ref
+    return out
+
+
+def attach_discipline(guardrail: dict, discipline: dict) -> dict:
+    """Copy each breach's durable `standing` and `adaptive` onto today's detector rows.
+
+    The packet reads `risk[].standing` off these rows (#1075) — and nothing had ever
+    put it there: `reconcile_guardrail` computed it into the ledger and the context's
+    `risk_discipline`, never into `risk_guardrail`, so every packet risk row carried
+    `standing: {}` and the "stood N days undecided" verdict reached the model only if
+    it went looking in a different part of the context. Joined by `breach_id`.
+    """
+    by_id = {row.get("breach_id"): row for row in (discipline or {}).get("records") or []}
+    out = copy.deepcopy(guardrail)
+    for key in ("breaches", "hard_stop_watch"):
+        for row in out.get(key) or []:
+            record = by_id.get(row.get("breach_id"))
+            if record:
+                row["standing"] = record.get("standing") or {}
+                row["adaptive"] = record.get("adaptive") or {}
     return out
 
 
