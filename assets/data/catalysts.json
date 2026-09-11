@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-09-10T08:03:44.206150+08:00",
+  "generated_at": "2026-09-11T08:03:43.828941+08:00",
   "lookback_window_days": 14,
-  "window_start": "2026-09-10",
-  "window_end": "2026-09-24",
+  "window_start": "2026-09-11",
+  "window_end": "2026-09-25",
   "earnings_queried": [
     "CRCL",
     "RKLB",
@@ -26,13 +26,18 @@
       "date": "2026-09-24",
       "type": "GDP",
       "detail": "Q2 2026 GDP 3rd estimate"
+    },
+    {
+      "date": "2026-09-25",
+      "type": "PCE",
+      "detail": "Aug PCE price index (BEA, Fed preferred inflation gauge)"
     }
   ],
   "scheduled_events": [],
   "summary": {
     "earnings_count": 0,
     "fomc_in_window": 1,
-    "macro_count": 2,
+    "macro_count": 3,
     "scheduled_count": 0,
     "scheduled_undated": 0,
     "highest_impact_within_7d": "FOMC 2026-09-16 (rate decision)"
