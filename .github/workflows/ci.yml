@@ -573,11 +573,11 @@ jobs:
           PY
           strip="${RUNNER_TEMP:-/tmp}/strip_volatile.py"
           tmp="$(mktemp -d)"
-          for name in overview dashboard decision_audit shadow_portfolio; do
+          for name in overview dashboard decision_audit shadow_portfolio decision_trail; do
             python3 "$strip" "assets/data/$name.json" > "$tmp/$name.first"
           done
           clawock dashboard-build > /dev/null
-          for name in overview dashboard decision_audit shadow_portfolio; do
+          for name in overview dashboard decision_audit shadow_portfolio decision_trail; do
             if ! python3 "$strip" "assets/data/$name.json" | diff -u "$tmp/$name.first" -; then
               echo "::error::dashboard rebuild moved bytes beyond generation stamps ($name)"
               exit 1

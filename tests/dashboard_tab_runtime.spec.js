@@ -1910,7 +1910,8 @@ async function testThePlanTimelineClampsItsRationales(browser, base) {
   const page = await context.newPage();
   await stubLiveOrigin(page, {
     patch: (name, json) => {
-      if (name !== "dashboard.json") return null;
+      // The timeline ships in the decision-trail sidecar since 2026-09-12.
+      if (name !== "decision_trail.json") return null;
       json.plan_timeline = plan;
       return json;
     },

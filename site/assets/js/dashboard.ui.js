@@ -219,11 +219,16 @@
   // user whether a refresh actually pulled new data vs. they got the same JSON.
   let LAST_LOADED_AT = null;
   let AUTO_REFRESH_TIMER = null;
+  // A value may list several tabs. `decision_trail` (fills, their scope and the
+  // plan timeline — out of dashboard.json on 2026-09-12) is read by Holdings'
+  // per-name drawer, Plan's timeline and Reflect's trace card. Keep comments out of
+  // the object literal: tests read its keys with a regex.
   const SIDECAR_TAB = {
     macro: "market", sentiment: "market", influencer_feed: "market",
     us_news_digest: "market", em_news: "market",
     decision_audit: "reflect", decision_map: "reflect", shadow_portfolio: "drill",
     brief_projection: "drill",
+    decision_trail: ["drill", "plan", "reflect"],
   };
   const SIDECAR_STATE = new Map();
   let TAB_ACTIVATION_VERSION = 0;
@@ -248,7 +253,7 @@
   // first cross-origin request happens 60 s in, far outside the load window.
   const DATA_PLANE_ORIGIN = "https://raw.githubusercontent.com/KCNyu/clawock/data-plane/";
   const DATA_PLANE_FILES = new Set([
-    "cron-heartbeats", "dashboard", "decision_audit",
+    "cron-heartbeats", "dashboard", "decision_audit", "decision_trail",
     "overview", "shadow_portfolio", "workflow-outcomes",
   ]);
   // null until the first paint succeeds, and back to null for good if that
@@ -352,7 +357,7 @@
   }
 
   function _sidecarsForTab(t) {
-    return Object.keys(SIDECAR_TAB).filter(k => SIDECAR_TAB[k] === t);
+    return Object.keys(SIDECAR_TAB).filter(k => [].concat(SIDECAR_TAB[k]).includes(t));
   }
 
   function _sidecarState(k) {

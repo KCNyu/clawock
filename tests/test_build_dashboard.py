@@ -1403,11 +1403,12 @@ def test_an_explicit_out_dir_keeps_the_generation_together(monkeypatch, tmp_path
 
     paths = dashboard.resolve_output_paths(tmp_path / "cli")
 
-    assert set(paths) == {"overview", "dashboard", "audit", "shadow"}
+    assert set(paths) == {"overview", "dashboard", "audit", "shadow", "trail"}
     assert {p.parent for p in paths.values()} == {tmp_path / "cli"}, (
         "an inherited redirect must not split one generation across two directories")
     assert sorted(p.name for p in paths.values()) == [
-        "dashboard.json", "decision_audit.json", "overview.json", "shadow_portfolio.json",
+        "dashboard.json", "decision_audit.json", "decision_trail.json", "overview.json",
+        "shadow_portfolio.json",
     ]
 
 

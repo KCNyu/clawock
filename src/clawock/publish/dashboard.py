@@ -45,6 +45,12 @@ OUT_DIR = WS_ROOT / 'assets' / 'data'
 OUT_FILE = OUT_DIR / 'dashboard.json'
 OVERVIEW_FILE = OUT_DIR / 'overview.json'
 AUDIT_FILE = OUT_DIR / 'decision_audit.json'
+TRAIL_FILE = OUT_DIR / 'decision_trail.json'
+#: Sections only the Holdings / Plan / Reflect tabs read, shipped in their own
+#: sidecar (2026-09-12). They were 52KB of a 195KB dashboard.json sitting 5KB under
+#: its 200KB cap, where the next degradation lever drops `recent_plans`. Moving
+#: them is not a trim: every byte still ships, to the tabs that read it.
+TRAIL_KEYS = ('decision_traces', 'decision_trace_scope', 'plan_timeline')
 
 # ── Leg shape ────────────────────────────────────────────────────────────
 # The ledger declares its own legs: `portfolio.json`'s `portfolios` is a mapping
@@ -3537,7 +3543,7 @@ def parse_args(argv=None):
              'the guarantee explicitly')
     parser.add_argument(
         '--out-dir', metavar='DIR', default=None,
-        help='write the four outputs of this generation into DIR instead of the '
+        help='write the five outputs of this generation into DIR instead of the '
              'published location. Beats the BUILD_DASHBOARD_OUT / '
              'DECISION_AUDIT_OUT / SHADOW_PORTFOLIO_OUT redirects')
     parser.add_argument(
@@ -3574,6 +3580,7 @@ def resolve_output_paths(out_dir=None):
             'dashboard': directory / OUT_FILE.name,
             'audit': directory / AUDIT_FILE.name,
             'shadow': directory / 'shadow_portfolio.json',
+            'trail': directory / TRAIL_FILE.name,
         }
     out_file = Path(os.environ.get('BUILD_DASHBOARD_OUT') or OUT_FILE)
     return {
@@ -3583,6 +3590,8 @@ def resolve_output_paths(out_dir=None):
                       or (out_file.parent / AUDIT_FILE.name)),
         'shadow': Path(os.environ.get('SHADOW_PORTFOLIO_OUT')
                        or (out_file.parent / 'shadow_portfolio.json')),
+        'trail': Path(os.environ.get('DECISION_TRAIL_OUT')
+                      or (out_file.parent / TRAIL_FILE.name)),
     }
 
 
@@ -3751,6 +3760,20 @@ class UnsupportedLegShape(ProjectionInputError):
     """
 
 
+def split_decision_trail(out):
+    """Move the detail-only sections out of `out` into the trail sidecar.
+
+    Mutates `out` (the sections leave dashboard.json) and returns the sidecar
+    payload. `as_of` is the generation's own stamp, so a reader can tell a trail
+    from an older generation apart from the current one.
+    """
+    trail = {'as_of': out.get('generated_at')}
+    for key in TRAIL_KEYS:
+        if key in out:
+            trail[key] = out.pop(key)
+    return trail
+
+
 def apply_size_budget(out):
     """Spend the size-cap levers, in order, and return `(payload, size_bytes)`.
 
@@ -3843,7 +3866,7 @@ def apply_size_budget(out):
 
 
 def build_projection(previous_source=None, shadow_previous=None):
-    """Compute the four public payloads from the workspace. Writes nothing.
+    """Compute the five public payloads from the workspace. Writes nothing.
 
     Returns `{dashboard, overview, audit, shadow, preservation, summary}` — the
     complete generation, in memory. Which files those payloads end up in, and
@@ -4302,6 +4325,7 @@ def build_projection(previous_source=None, shadow_previous=None):
     # dashboard.json is the canonical cross-tab browser document. Keep it compact:
     # detail activation still pays this parse, and producers should not spend
     # recovered headroom on indentation that adds no user value.
+    _trail = split_decision_trail(out)
     payload, size_bytes = apply_size_budget(out)
 
     overview_payload = serialize_dashboard_payload(compile_overview_projection(out))
@@ -4319,6 +4343,7 @@ def build_projection(previous_source=None, shadow_previous=None):
         'overview': overview_payload,
         'audit': json.dumps(_audit, ensure_ascii=False, separators=(',', ':')),
         'shadow': json.dumps(_shadow, ensure_ascii=False, indent=2) + '\n',
+        'trail': json.dumps(_trail, ensure_ascii=False, separators=(',', ':')),
         # What the caller needs to record the slice-2 telemetry without knowing
         # how the merge works.
         'preservation': {'presence': _presence, 'preserved': _preserved,
@@ -4361,12 +4386,13 @@ def main(argv=None):
             print('dashboard-build: inputs unchanged — skipping rebuild (#846)')
             return 0
     previous_source = resolve_previous_source(args)
-    # The four outputs are one logical generation (clawock.publish.outputs owns that
+    # The five outputs are one logical generation (clawock.publish.outputs owns that
     # contract). Their paths are resolved together, here, so that the projection
     # never learns where it is going to land.
     paths = resolve_output_paths(args.out_dir)
     out_file, overview_file = paths['dashboard'], paths['overview']
     audit_file, shadow_file = paths['audit'], paths['shadow']
+    trail_file = paths['trail']
     out_file.parent.mkdir(parents=True, exist_ok=True)
 
     try:
@@ -4396,6 +4422,7 @@ def main(argv=None):
         str(out_file): projection['dashboard'],
         str(audit_file): projection['audit'],
         str(shadow_file): projection['shadow'],
+        str(trail_file): projection['trail'],
     })
 
     record_preservation(
@@ -4409,6 +4436,7 @@ def main(argv=None):
     print(f'✓ wrote {out_file} ({s["dashboard_bytes"]:,} bytes)')
     print(f'✓ wrote {audit_file} (decision audit sidecar)')
     print(f'✓ wrote {shadow_file} (shadow portfolio sidecar, 模拟·非实盘)')
+    print(f'✓ wrote {trail_file} (decision trail sidecar: traces + plan timeline)')
     print(f'  US: {s["us_holdings"]} holdings, {s["us_active"]} active, value ${s["us_value"]:.0f}')
     print(f'  HK: {s["hk_holdings"]} holdings, {s["hk_active"]} active, value HK${s["hk_value"]:.0f}')
     print(f'  Snapshots: {s["snapshots_embedded"]} embedded / {s["snapshots_total"]} on disk')

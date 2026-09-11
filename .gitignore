@@ -157,6 +157,7 @@ portfolio.json.bak
 /assets/data/dashboard.json
 /assets/data/decision_audit.json
 /assets/data/shadow_portfolio.json
+/assets/data/decision_trail.json
 # Written by the same tick as the four above and published with them (#325).
 # They were the publisher's entire commit pathspec, which is why moving only the
 # four barely changed the commit count.

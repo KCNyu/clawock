@@ -21,6 +21,14 @@
   // there a missing field used to print "undefined%" / "null @ $null" (2026-09-12,
   // found by rendering every tab with the numbers nulled out and then removed).
   const numText = (v) => (v == null || (typeof v === "number" && !isFinite(v))) ? DASH : String(v);
+  // The decision trail (fills, their scope, the plan timeline) ships in its own
+  // sidecar since 2026-09-12. A generation published before the move still has
+  // the sections on the main document, so read the sidecar first and fall back.
+  const trail = (key) => {
+    const side = DATA && DATA.decision_trail;
+    if (side && side[key] != null) return side[key];
+    return DATA ? DATA[key] : undefined;
+  };
   const fmtNum = (v, digits = 2) => {
     if (v == null || !isFinite(v)) return DASH;
     return v.toFixed(digits);
