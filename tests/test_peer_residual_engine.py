@@ -175,16 +175,60 @@ def test_registered_rule_contract_keeps_hk_automatic_discovery_disabled():
 
 
 def test_checked_in_peer_artifact_has_no_unearned_live_rule():
+    """What the name says: nothing is usable that did not EARN it.
+
+    The first version asserted that nothing was usable at all — a proxy that
+    held only while no rule had cleared its gate. On 2026-09-11 the daily brief
+    commit refreshed this artifact with `leader_continuation` crossing its 24th
+    prospective date (every check true, `blockers: []`) and master went red on
+    a data commit, with the rule having done exactly what `activate_rules` was
+    pre-registered to let it do. Same family as pinning today's holdings in an
+    assertion: a statement about the current contents is not an invariant.
+
+    The invariant is the gate itself, and it must hold with zero active rules
+    or with all of them: a usable rule has every check passed and no blocker,
+    and a usable live row names only rules that are active.
+    """
     artifact = json.loads(
         (ROOT / "assets" / "data" / "peer_residual.json").read_text()
     )
 
     assert artifact["taxonomy"]["automatic_hk_peer_discovery"] is False
-    assert all(
-        state["usable_for_decisions"] is False
-        for state in artifact["rule_activation"].values()
-    )
-    assert all(
-        row["usable_for_decisions"] is False
-        for row in artifact["live"].values()
-    )
+
+    activation = artifact["rule_activation"]
+    for rule, state in activation.items():
+        if state["usable_for_decisions"]:
+            assert state["active"] is True, rule
+            assert state["blockers"] == [], rule
+            assert all(state["checks"].values()), rule
+            assert state["checks"]["hk_automatic_discovery_disabled"] is True, rule
+        else:
+            assert state["blockers"], f"{rule} is unusable with no blocker named"
+
+    active = {rule for rule, state in activation.items() if state["active"]}
+    for ticker, row in artifact["live"].items():
+        usable = set(row.get("usable_rules") or [])
+        assert usable <= active, f"{ticker} borrows an unearned rule: {usable - active}"
+        assert usable <= set(row.get("triggered_rules") or []), ticker
+        assert row["usable_for_decisions"] is bool(usable), ticker
+
+
+def test_the_activation_gate_refuses_a_rule_one_date_short():
+    """The rule that went live on 2026-09-11 was blocked by `dates` alone the
+    day before (23 of 24). Pin that the gate says so — the checked-in artifact
+    only ever shows one side of the line."""
+    config = json.loads((ROOT / "config" / "peer-residual-rules.json").read_text())
+    need = config["activation_criteria"]["min_prospective_dates"]
+    summary = {
+        "n_dates": need - 1, "n_tickers": 10,
+        "signed_residual_ci95": [0.0047, 0.0618], "hit_rate_ci95": [0.5167, 0.8904],
+    }
+
+    short = peer.activate_rules(config, {"leader_continuation": summary})
+    enough = peer.activate_rules(
+        config, {"leader_continuation": {**summary, "n_dates": need}})
+
+    assert short["leader_continuation"]["blockers"] == ["dates"]
+    assert short["leader_continuation"]["usable_for_decisions"] is False
+    assert enough["leader_continuation"]["blockers"] == []
+    assert enough["leader_continuation"]["usable_for_decisions"] is True
