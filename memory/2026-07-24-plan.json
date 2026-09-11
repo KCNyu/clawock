@@ -80,7 +80,7 @@
     {
       "schema_version": 2,
       "decision_id": "dec-20260724-001",
-      "episode_id": "ep-20260724-spch-002",
+      "episode_id": "ep-2f9d5b83e467",
       "decision_group_id": "2026-07-24:SPCH",
       "plan_date": "2026-07-24",
       "created_at": "2026-07-24T08:00:00+08:00",
@@ -134,7 +134,7 @@
     {
       "schema_version": 2,
       "decision_id": "dec-20260724-002",
-      "episode_id": "ep-20260724-rklx-002",
+      "episode_id": "ep-1e8c4a72f356",
       "decision_group_id": "2026-07-24:RKLX",
       "plan_date": "2026-07-24",
       "created_at": "2026-07-24T08:00:00+08:00",
@@ -188,7 +188,7 @@
     {
       "schema_version": 2,
       "decision_id": "dec-20260724-003",
-      "episode_id": "ep-20260724-pltu-002",
+      "episode_id": "ep-3a0e6c94f578",
       "decision_group_id": "2026-07-24:PLTU",
       "plan_date": "2026-07-24",
       "created_at": "2026-07-24T08:00:00+08:00",
@@ -242,7 +242,7 @@
     {
       "schema_version": 2,
       "decision_id": "dec-20260724-004",
-      "episode_id": "ep-20260724-msfu-002",
+      "episode_id": "ep-f5593025f99b",
       "decision_group_id": "2026-07-24:MSFU",
       "plan_date": "2026-07-24",
       "created_at": "2026-07-24T08:00:00+08:00",
@@ -296,7 +296,7 @@
     {
       "schema_version": 2,
       "decision_id": "dec-20260724-005",
-      "episode_id": "ep-20260724-07226-002",
+      "episode_id": "ep-4b1f7d05a689",
       "decision_group_id": "2026-07-24:07226",
       "plan_date": "2026-07-24",
       "created_at": "2026-07-24T08:00:00+08:00",
@@ -350,7 +350,7 @@
     {
       "schema_version": 2,
       "decision_id": "dec-20260724-006",
-      "episode_id": "ep-20260724-00100-002",
+      "episode_id": "ep-5c2a8e16b790",
       "decision_group_id": "2026-07-24:00100",
       "plan_date": "2026-07-24",
       "created_at": "2026-07-24T08:00:00+08:00",
@@ -404,7 +404,7 @@
     {
       "schema_version": 2,
       "decision_id": "dec-20260724-007",
-      "episode_id": "ep-20260724-crcl-002",
+      "episode_id": "ep-381dbca8b2bc",
       "decision_group_id": "2026-07-24:CRCL",
       "plan_date": "2026-07-24",
       "created_at": "2026-07-24T08:00:00+08:00",
@@ -458,7 +458,7 @@
     {
       "schema_version": 2,
       "decision_id": "dec-20260724-008",
-      "episode_id": "ep-20260724-skhy-002",
+      "episode_id": "ep-c485477dce11",
       "decision_group_id": "2026-07-24:SKHY",
       "plan_date": "2026-07-24",
       "created_at": "2026-07-24T08:00:00+08:00",
@@ -512,7 +512,7 @@
     {
       "schema_version": 2,
       "decision_id": "dec-20260724-009",
-      "episode_id": "ep-20260724-02208-002",
+      "episode_id": "ep-c9ad0269088c",
       "decision_group_id": "2026-07-24:02208",
       "plan_date": "2026-07-24",
       "created_at": "2026-07-24T08:00:00+08:00",
@@ -566,7 +566,7 @@
     {
       "schema_version": 2,
       "decision_id": "dec-20260724-010",
-      "episode_id": "ep-20260724-spcx-002",
+      "episode_id": "ep-9ad9c4a53a5f",
       "decision_group_id": "2026-07-24:SPCX",
       "plan_date": "2026-07-24",
       "created_at": "2026-07-24T08:00:00+08:00",

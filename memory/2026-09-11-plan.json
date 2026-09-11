@@ -18,7 +18,7 @@
     {
       "schema_version": 2,
       "decision_id": "dec-pending-07226-20260911",
-      "episode_id": "ep-20260911-07226-cut",
+      "episode_id": "ep-4b1f7d05a689",
       "decision_group_id": "2026-09-11:07226",
       "plan_date": "2026-09-11",
       "created_at": "2026-09-11T08:00:00+08:00",
@@ -143,7 +143,7 @@
     {
       "schema_version": 2,
       "decision_id": "dec-pending-rklx-20260911",
-      "episode_id": "ep-20260911-rklx-cut",
+      "episode_id": "ep-1e8c4a72f356",
       "decision_group_id": "2026-09-11:RKLX",
       "plan_date": "2026-09-11",
       "created_at": "2026-09-11T08:00:00+08:00",
@@ -267,7 +267,7 @@
     {
       "schema_version": 2,
       "decision_id": "dec-pending-spch-20260911",
-      "episode_id": "ep-20260911-spch-cut",
+      "episode_id": "ep-2f9d5b83e467",
       "decision_group_id": "swap-spch-2026-09-11",
       "plan_date": "2026-09-11",
       "created_at": "2026-09-11T08:00:00+08:00",
@@ -396,7 +396,7 @@
     {
       "schema_version": 2,
       "decision_id": "dec-pending-spcx-20260911",
-      "episode_id": "ep-20260911-spcx-add",
+      "episode_id": "ep-fbf71b5aabea",
       "decision_group_id": "swap-spch-2026-09-11",
       "plan_date": "2026-09-11",
       "created_at": "2026-09-11T08:00:00+08:00",
@@ -519,7 +519,7 @@
     {
       "schema_version": 2,
       "decision_id": "dec-pending-00100-20260911",
-      "episode_id": "ep-20260911-00100-hold",
+      "episode_id": "ep-646f8518c034",
       "decision_group_id": "2026-09-11:00100",
       "plan_date": "2026-09-11",
       "created_at": "2026-09-11T08:00:00+08:00",
@@ -631,7 +631,7 @@
     {
       "schema_version": 2,
       "decision_id": "dec-pending-02208-20260911",
-      "episode_id": "ep-20260911-02208-hold",
+      "episode_id": "ep-f31982c6d511",
       "decision_group_id": "2026-09-11:02208",
       "plan_date": "2026-09-11",
       "created_at": "2026-09-11T08:00:00+08:00",
@@ -743,7 +743,7 @@
     {
       "schema_version": 2,
       "decision_id": "dec-pending-03032-20260911",
-      "episode_id": "ep-20260911-03032-hold",
+      "episode_id": "ep-029dfcfe9017",
       "decision_group_id": "2026-09-11:03032",
       "plan_date": "2026-09-11",
       "created_at": "2026-09-11T08:00:00+08:00",
@@ -855,7 +855,7 @@
     {
       "schema_version": 2,
       "decision_id": "dec-pending-03033-20260911",
-      "episode_id": "ep-20260911-03033-hold",
+      "episode_id": "ep-a2cb9ac8da8f",
       "decision_group_id": "2026-09-11:03033",
       "plan_date": "2026-09-11",
       "created_at": "2026-09-11T08:00:00+08:00",
@@ -967,7 +967,7 @@
     {
       "schema_version": 2,
       "decision_id": "dec-pending-crcl-20260911",
-      "episode_id": "ep-20260911-crcl-hold",
+      "episode_id": "ep-fb89c88c8dfb",
       "decision_group_id": "2026-09-11:CRCL",
       "plan_date": "2026-09-11",
       "created_at": "2026-09-11T08:00:00+08:00",

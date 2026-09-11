@@ -30,7 +30,7 @@
     {
       "schema_version": 2,
       "decision_id": "dec-2b3bb88b6293",
-      "episode_id": "ep-20260724-07226-002",
+      "episode_id": "ep-4b1f7d05a689",
       "decision_group_id": "2026-07-27:07226",
       "plan_date": "2026-07-27",
       "created_at": "2026-07-27T08:00:00+08:00",
@@ -86,7 +86,7 @@
     {
       "schema_version": 2,
       "decision_id": "dec-0d2fd615e4ba",
-      "episode_id": "ep-20260724-spch-002",
+      "episode_id": "ep-2f9d5b83e467",
       "decision_group_id": "2026-07-27:SPCH",
       "plan_date": "2026-07-27",
       "created_at": "2026-07-27T08:00:00+08:00",
@@ -142,7 +142,7 @@
     {
       "schema_version": 2,
       "decision_id": "dec-90097945624f",
-      "episode_id": "ep-20260724-rklx-002",
+      "episode_id": "ep-1e8c4a72f356",
       "decision_group_id": "2026-07-27:RKLX",
       "plan_date": "2026-07-27",
       "created_at": "2026-07-27T08:00:00+08:00",
@@ -198,7 +198,7 @@
     {
       "schema_version": 2,
       "decision_id": "dec-3c3771fa2411",
-      "episode_id": "ep-20260724-pltu-002",
+      "episode_id": "ep-3a0e6c94f578",
       "decision_group_id": "2026-07-27:PLTU",
       "plan_date": "2026-07-27",
       "created_at": "2026-07-27T08:00:00+08:00",
@@ -254,7 +254,7 @@
     {
       "schema_version": 2,
       "decision_id": "dec-c11888faaa65",
-      "episode_id": "ep-20260724-msfu-002",
+      "episode_id": "ep-f5593025f99b",
       "decision_group_id": "2026-07-27:MSFU",
       "plan_date": "2026-07-27",
       "created_at": "2026-07-27T08:00:00+08:00",
@@ -310,7 +310,7 @@
     {
       "schema_version": 2,
       "decision_id": "dec-40f07a224a12",
-      "episode_id": "ep-20260724-00100-002",
+      "episode_id": "ep-5c2a8e16b790",
       "decision_group_id": "2026-07-27:00100",
       "plan_date": "2026-07-27",
       "created_at": "2026-07-27T08:00:00+08:00",
@@ -366,7 +366,7 @@
     {
       "schema_version": 2,
       "decision_id": "dec-8bcdbcb3503e",
-      "episode_id": "ep-20260724-skhy-002",
+      "episode_id": "ep-c485477dce11",
       "decision_group_id": "2026-07-27:SKHY",
       "plan_date": "2026-07-27",
       "created_at": "2026-07-27T08:00:00+08:00",

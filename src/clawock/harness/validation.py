@@ -366,6 +366,23 @@ def product_status(status, escalating):
     return status
 
 
+def postflight_exit_code(product):
+    """The exit code of a postflight that got as far as filing its verdict.
+
+    An exec's exit code is read as the verdict on the whole cron turn: any
+    non-zero, even one the model recovered from, files the run as `error`.
+    `warn` means the product shipped with findings — the banner on the card
+    says so and the workflow ledger records the stage as `warning` — so it is
+    not a failed turn. 2026-09-11's brief ended its turn on
+    `ERR: Exec failed: clawock brief postflight` from the very run that had
+    delivered, committed and published it — exit 1 on a size warning (the
+    same family as #1429/#1430). Only `fail`
+    — nothing committed — is a failure. Callers keep their own earlier
+    `return 2` for a publication that did not land.
+    """
+    return 2 if product == 'fail' else 0
+
+
 def categorize_issues(issues, critical_substrings, warn_max=2, extra_critical=None):
     """Common pass/warn/fail decision used by all postflights.
 

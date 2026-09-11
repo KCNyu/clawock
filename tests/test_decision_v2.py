@@ -926,3 +926,30 @@ class TestSharesLookupMemoization(unittest.TestCase):
             self.assertEqual(len(calls), 2)      # log+show once, then cached
             self.assertIsNone(brief_preflight._shares_at_date("00388", "2026-08-01"))
             self.assertEqual(len(calls), 2)      # second ticker reuses the file
+
+
+def test_checked_in_ledger_has_no_typed_episode_ids():
+    # Model-typed episode ids (`ep-20260904-07226-cut`) sliced long-running
+    # theses into fresh, independently scored episodes from 2026-07-23 to
+    # 2026-09-11. Postflight no longer accepts them, so any that reappear came
+    # through some other writer.
+    rows = dv2.load_decisions(ROOT / "memory" / "decisions.jsonl")
+    assert dv2.rederive_typed_episode_ids(rows) == []
+
+
+def test_rederive_continues_the_derived_episode_it_interrupted():
+    def row(day, episode_id):
+        return {"schema_version": 2, "decision_id": f"dec-{day}",
+                "episode_id": episode_id, "plan_date": f"2026-09-{day:02d}",
+                "ticker": "07226", "strategy_id": "risk_rebalance",
+                "action": "cut"}
+    rows = [row(4, "ep-0123456789ab"), row(7, "ep-20260907-07226-cut"),
+            row(8, "ep-20260907-07226-cut"), row(20, "ep-20260920-07226-cut")]
+
+    changed = dv2.rederive_typed_episode_ids(rows)
+
+    assert [r["episode_id"] for r in rows[:3]] == ["ep-0123456789ab"] * 3
+    # A gap over four days still opens a new episode, now a derived one.
+    assert rows[3]["episode_id"] not in {"ep-0123456789ab", "ep-20260920-07226-cut"}
+    assert rows[3]["episode_id"].startswith("ep-")
+    assert [c[0] for c in changed] == ["dec-7", "dec-8", "dec-20"]
