@@ -391,8 +391,19 @@ def send_wechat(channel, to, account, message, dry_run):
     migrating the watchdogs' mirror-on-suspicion logic onto it is a separate
     change with live delivery consequences.
     """
+    from clawock.providers import wechat_allowance
+    # Every WeChat push goes through here (brief / report / intraday postflight),
+    # which makes this the one place that can count Tencent's per-inbound
+    # allowance and, on the last few that can still land, ask kcn to renew it.
+    try:
+        message, _remaining = wechat_allowance.annotate(to, message)
+    except Exception:  # noqa: BLE001 — a counting failure must never cost the send
+        pass
     result = _delivery(account).send(channel, str(to), message, dry_run=dry_run)
-    return result.status != 'failed', result.detail
+    ok = result.status != 'failed'
+    if not dry_run:
+        wechat_allowance.record(to, message, ok)
+    return ok, result.detail
 
 
 def send_telegram(target, message, dry_run):

@@ -76,6 +76,10 @@ class OpenClawPaths:
         return self.home / "gateway-supervisor-restart-handoff.json"
 
     @property
+    def weixin_accounts_dir(self) -> Path:
+        return self.home / "openclaw-weixin" / "accounts"
+
+    @property
     def workspace_memory_tmp(self) -> Path:
         return self.workspace / "memory" / ".tmp"
 
