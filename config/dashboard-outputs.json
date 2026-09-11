@@ -36,7 +36,15 @@
       "recursive_clock_fields": [],
       "top_level_clock_fields": [
         "as_of"
-      ]
+      ],
+      "split_from": {
+        "file": "assets/data/dashboard.json",
+        "keys": [
+          "decision_traces",
+          "decision_trace_scope",
+          "plan_timeline"
+        ]
+      }
     }
   }
 }
