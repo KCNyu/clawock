@@ -203,7 +203,21 @@ def load_runtime_jobs(jobs_file=None):
     jobs = openclaw.read_jobs().entries
     if not jobs:
         raise RuntimeError('OpenClaw CLI returned no cron jobs; run `openclaw doctor --fix`')
-    return jobs
+    # A host-triggered job is disabled in OpenClaw on purpose; it still runs and is
+    # still owed its slots, so it is judged on the contract's schedule and flag.
+    try:
+        from clawock.scheduling import effective_schedule, host_trigger, load_contract
+        contract = {job['name']: job for job in load_contract()['jobs']}
+    except Exception:
+        return jobs
+    resolved = []
+    for job in jobs:
+        spec = contract.get(job.get('name'))
+        if spec is not None and host_trigger(spec):
+            job = {**job, 'enabled': spec.get('enabled', True),
+                   'schedule': effective_schedule(spec)}
+        resolved.append(job)
+    return resolved
 
 
 #: A backlog this deep means the host has been committing without publishing

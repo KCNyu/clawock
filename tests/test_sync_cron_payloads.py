@@ -43,7 +43,7 @@ def live_from_contract(data):
         live.append({
             "id": f"id-{index}",
             "name": spec["name"],
-            "enabled": spec.get("enabled", True),
+            "enabled": cron_contract.runtime_enabled(spec),
             "schedule": copy.deepcopy(cron_contract.effective_schedule(spec, JULY)),
             "payload": payload,
             "delivery": {"mode": profile["delivery_mode"]},

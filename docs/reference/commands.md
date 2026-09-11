@@ -26,7 +26,7 @@ title: clawock · command reference
 
 ## Installed commands / 已安装命令
 
-**69 commands** are installed by the single `clawock` distribution: 57 CLI subcommands and 12 standalone scripts. 43 of them collect or compute information and appear under the layer they feed; the remaining 26 publish, gate, record or schedule, and are listed with the reason they are not collection.
+**70 commands** are installed by the single `clawock` distribution: 58 CLI subcommands and 12 standalone scripts. 43 of them collect or compute information and appear under the layer they feed; the remaining 27 publish, gate, record or schedule, and are listed with the reason they are not collection.
 
 本节由生成器从两份 registry 与 `config/information-layers.json` 推导，不手写；新增或删除一条命令，这张表自己会变。
 
@@ -135,6 +135,7 @@ These are installed commands too. They are listed here so the catalog is the who
 
 | Command | Module | Why it is not collection |
 |---|---|---|
+| `clawock cron-trigger` | `clawock.automation.cron_trigger` | fires a host-triggered OpenClaw cron job; it collects nothing and decides nothing |
 | `clawock dashboard-build` | `clawock.publish.dashboard` | publishes the dashboard projection from data the layers already produced |
 | `clawock decision-map` | `clawock.publish.decision_map` | joins decisions to signal histories the layers already collected and publishes the projection; it acquires nothing and decides nothing |
 | `clawock dashboard-outputs` | `clawock.publish.outputs` | publication ownership and semantic diffs for generated write sets |
