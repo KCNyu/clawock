@@ -16,6 +16,11 @@
     const s = v >= 0 ? "+" : "";
     return s + v.toFixed(digits) + "%";
   };
+  // A number printed as the producer wrote it, or DASH when it is missing. For the
+  // places that interpolate a raw field (`${r.pnl_pct}%`) instead of formatting it:
+  // there a missing field used to print "undefined%" / "null @ $null" (2026-09-12,
+  // found by rendering every tab with the numbers nulled out and then removed).
+  const numText = (v) => (v == null || (typeof v === "number" && !isFinite(v))) ? DASH : String(v);
   const fmtNum = (v, digits = 2) => {
     if (v == null || !isFinite(v)) return DASH;
     return v.toFixed(digits);

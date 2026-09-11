@@ -1248,6 +1248,71 @@ async function testALeveragedRowWithoutVolatilityPrintsNoUndefined(browser, base
   await page.close();
 }
 
+// Every numeric field of every object in the payload, nulled out ("null") or
+// removed ("absent"). Array elements are left alone — a series of nulls is a
+// different contract (the charts own it) — and so are the counters the loader
+// itself validates.
+function sparsePayload(value, mode) {
+  if (Array.isArray(value)) {
+    return value.map(item => (item && typeof item === "object") ? sparsePayload(item, mode) : item);
+  }
+  if (!value || typeof value !== "object") return value;
+  const keep = /version|^v$|count$|_n$|^n$|^known$|limit|window|size|bytes/;
+  const out = {};
+  for (const [key, item] of Object.entries(value)) {
+    if (typeof item === "number" && !keep.test(key)) {
+      if (mode === "null") out[key] = null;
+      continue;
+    }
+    out[key] = sparsePayload(item, mode);
+  }
+  return out;
+}
+
+async function testNoTabPrintsAMissingNumber(browser, base) {
+  // 2026-09-11 live: 「横盘 decay ≈undefined%/月」 on the Holdings tab, because one
+  // renderer guarded a field and its twin did not. Rendering every tab with the
+  // numbers taken away found eleven more of the same shape the next day —
+  // `浮亏 undefined% → 回本需 +undefined%`, `卖出 null 股 @ $null`, `p10 null`…
+  // — none visible on real data, all one missing field away. `numText` /
+  // `fmtNum` / `fmtPct` / `fmtMoney` print DASH for a missing number; a raw
+  // `${field}` does not.
+  for (const mode of ["null", "absent"]) {
+    const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+    const page = await context.newPage();
+    await stubLiveOrigin(page, { patch: (_name, json) => sparsePayload(json, mode) });
+    const state = observe(page);
+    await page.goto(base, { waitUntil: "networkidle" });
+    await waitForData(page);
+    const hits = [];
+    for (const tab of TABS) {
+      await page.click(`.tab-btn[data-tab="${tab}"]`);
+      await waitForTab(page, tab);
+      hits.push(...await page.evaluate(() => {
+        const out = [];
+        const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+        let node;
+        while ((node = walker.nextNode())) {
+          if (node.parentElement.closest("script, style")) continue;
+          const text = node.textContent.trim();
+          // "null" only where it stands in for a number; model prose may say it.
+          if (/\bundefined\b|\bNaN\b|\bInfinity\b|\[object Object\]/.test(text)
+              || text === "null"
+              || /\bnull\s*(%|bps|股|\/)|[@$/+≈]\s*null\b/.test(text)) {
+            const holder = node.parentElement.closest("[id]");
+            out.push(`${holder ? holder.id : "?"}: ${text.slice(0, 80)}`);
+          }
+        }
+        return out;
+      }));
+    }
+    assert.deepEqual([...new Set(hits)], [],
+      `a missing number was printed as text (mode=${mode}) — format it with numText/fmtNum`);
+    assert.deepEqual(state.errors, [], `a renderer threw on a payload with ${mode} numbers`);
+    await context.close();
+  }
+}
+
 async function testAPanelSaysWhenItsDataDidNotLoad(browser, base) {
   // A detail tab needs dashboard.json (191 KB, normally from the data branch)
   // before it can paint. When that request failed the only trace was
@@ -2081,6 +2146,7 @@ async function main() {
     await testThePlanTimelineClampsItsRationales(browser, base);
     await testAddSideCardExplainsWhyThereIsNoAdd(browser, base);
     await testALeveragedRowWithoutVolatilityPrintsNoUndefined(browser, base);
+    await testNoTabPrintsAMissingNumber(browser, base);
     await testAPanelSaysWhenItsDataDidNotLoad(browser, base);
     await testCronRailAccountsForEverySlotWithoutASecondVerdict(browser, base);
     await testCronNeedsActionMergesIntoTheOneTodoListButWatchDoesNot(browser, base);
