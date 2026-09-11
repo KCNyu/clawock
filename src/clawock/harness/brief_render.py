@@ -131,6 +131,58 @@ def table(headers, rows):
     return "\n".join(out)
 
 
+def entries(items):
+    """Rows whose content is prose, laid out as one block per row.
+
+    Tables are for numbers. Five of this report's sixteen tables used to carry a
+    prose column — a decision's rationale, a falsifier, a peer read — and on
+    2026-09-11 the longest such cell was 668 characters. On the page that made
+    every row 300–400px tall with the short columns floating in whitespace, and
+    under the phone stylesheet's `nowrap` the same cell became one line: a
+    4,880px table inside a 328px screen. The same wall is what GitHub's own
+    `.md` view and a plain-text reader got, so this is a structure fix, not a
+    stylesheet one.
+
+    Each item is `{"title": str, "meta": [str], "fields": [(label, str)]}`:
+    the title is the row's identity plus its short facts, `meta` is the
+    secondary enums (one dim line), `fields` are the labelled prose. Markdown
+    only, plus the one `entry-meta` span the stylesheet needs to set the enums
+    apart — GitHub strips the class and keeps the text, same contract as
+    `verdict_badge`. Wrapped in `markdown="1"` for the reason the appendix is:
+    kramdown does not parse markdown inside a block HTML element otherwise.
+    """
+    # Every value goes through `_cell`, table or not. GFM treats a pipe in a
+    # plain paragraph line as a table row too: the first render of this
+    # function turned three news headlines ("HK Stock Market Alert | MINIMAX…")
+    # into three one-row tables in the middle of 社交舆情. A plan rationale can
+    # carry a pipe as well — it is not judgment-gated.
+    blocks = []
+    for item in items:
+        lines = [f"- {_cell(item['title'])}"]
+        meta = [_cell(m) for m in (item.get("meta") or []) if m and m != MISSING]
+        if meta:
+            lines += ["", f'  <span class="entry-meta">{" · ".join(meta)}</span>']
+        for label, value in item.get("fields") or []:
+            lines += ["", f"  **{label}**　{_cell(value)}"]
+        blocks.append("\n".join(lines))
+    if not blocks:
+        return "无。"
+    return "\n".join(['<div class="brief-entries" markdown="1">', "",
+                      "\n\n".join(blocks), "", "</div>"])
+
+
+def card(section):
+    """One subsection as one card on the page.
+
+    A `div` the stylesheet can draw, not a new heading level: the `###`
+    inside it stays the section's name, which is what postflight's
+    `REQUIRED_MARKDOWN_SECTIONS` and every other reader key on. GitHub strips
+    the class and shows the section as it always did.
+    """
+    return "\n".join(['<div class="brief-card" markdown="1">', "", section.strip(), "",
+                      "</div>"])
+
+
 def _cell(value):
     """One table cell, escaped so its content cannot become layout.
 
@@ -141,6 +193,22 @@ def _cell(value):
     failure this module exists to end.
     """
     return str(value).replace("|", "\\|").replace("\n", " ")
+
+
+def _inline(value):
+    """Untrusted feed text on its way into an entry's prose line.
+
+    News headlines are the one input here written by an outside party: they
+    come straight out of the sentiment feed. In a table they only needed their
+    pipes escaped; as running text they can also open emphasis, a link, or —
+    with a `<` — raw HTML that kramdown passes through to the page. Escape what
+    inline markdown would act on, so a headline can only ever be words. (Pipes
+    are `entries`' job: it runs every value through `_cell`.)
+    """
+    out = str(value).replace("\n", " ")
+    for char in ("\\", "`", "*", "_", "[", "]"):
+        out = out.replace(char, "\\" + char)
+    return out.replace("<", "&lt;")
 
 
 def _holdings(context, leg):
@@ -486,10 +554,14 @@ def tier1_section(context, judgment):
             if signal.get("dist_ma200_pct") is not None else None,
             f"⚠️{signal.get('status')}" if stale else None,
         ])) or MISSING
-        rows.append([ticker, market, text(row.get("fundamentals")),
-                     text(row.get("sentiment_read")), text(row.get("cross_market"))])
-    return "### 分析师四格\n\n" + table(
-        ["票", "Market（harness 计算）", "Fundamentals", "Sentiment", "Cross-Market"], rows)
+        rows.append({
+            "title": f"**{ticker}**",
+            "meta": [market],
+            "fields": [("Fundamentals", text(row.get("fundamentals"))),
+                       ("Sentiment", text(row.get("sentiment_read"))),
+                       ("Cross-Market", text(row.get("cross_market")))],
+        })
+    return "### 分析师四格\n\n" + entries(rows)
 
 
 def tier2_section(judgment):
@@ -534,16 +606,15 @@ def judge_section(plan):
     rows = []
     for decision in (plan.get("decisions") or []):
         debate = decision.get("debate") or {}
-        rows.append([
-            text(decision.get("ticker")),
-            f"**{text(decision.get('action'))}**",
-            " + ".join(debate.get("frames") or []) or MISSING,
-            text(decision.get("strategy_id")),
-            text(decision.get("driven_by")),
-            text(decision.get("rationale")),
-        ])
-    return f"### {PAGE_ACTION_HEADING}\n\n" + table(
-        ["Ticker", "Action", "Frame", "Strategy", "driven_by", "理由"], rows)
+        rows.append({
+            "title": (f"**{text(decision.get('ticker'))}** · "
+                      f"**{text(decision.get('action'))}**"),
+            "meta": [" + ".join(debate.get("frames") or []) or MISSING,
+                     text(decision.get("strategy_id")),
+                     text(decision.get("driven_by"))],
+            "fields": [("理由", text(decision.get("rationale")))],
+        })
+    return f"### {PAGE_ACTION_HEADING}\n\n" + entries(rows)
 
 
 def sector_section(sector_scan, judgment):
@@ -587,17 +658,15 @@ def peer_section(context, judgment):
         gap = None
         if best and best.get("pct_1d") is not None and row.get("self_pct_1d") is not None:
             gap = row["self_pct_1d"] - best["pct_1d"]
-        rows.append([
-            ticker,
-            text(row.get("theme")),
-            pct(row.get("self_pct_1d")),
-            f"{text(best.get('ticker'))} {text(best.get('name'))} {pct(best.get('pct_1d'))}"
-            if best else MISSING,
-            f"{gap:+.2f}pp" if gap is not None else MISSING,
-            text((judgments.get(ticker) or {}).get("peer_read")),
-        ])
-    return "### 同行扫描\n\n" + table(
-        ["持仓", "主题", "今日 self", "最强同行", "差距", "判断"], rows)
+        strongest = (f"{text(best.get('ticker'))} {text(best.get('name'))} "
+                     f"{pct(best.get('pct_1d'))}") if best else MISSING
+        rows.append({
+            "title": (f"**{ticker}** · 今日 {pct(row.get('self_pct_1d'))} · "
+                      f"差距 {f'{gap:+.2f}pp' if gap is not None else MISSING}"),
+            "meta": [text(row.get("theme")), f"最强同行 {strongest}"],
+            "fields": [("判断", text((judgments.get(ticker) or {}).get("peer_read")))],
+        })
+    return "### 同行扫描\n\n" + entries(rows)
 
 
 def macro_section(context, judgment):
@@ -634,19 +703,19 @@ def sentiment_section(context, judgment):
             str((item.get("title") or item.get("headline") or "")
                 if isinstance(item, dict) else item)[:36]
             for item in (row.get("news_top") or [])[:3])
-        rows.append([
-            ticker,
-            (f"{row['reddit_mentions_7d']} mentions"
-             if row.get("reddit_mentions_7d") is not None else MISSING),
-            keywords or MISSING,
-            pct((row.get("recent_move") or {}).get("pct_5d"))
-            if isinstance(row.get("recent_move"), dict) else MISSING,
-            text((judgments.get(ticker) or {}).get("sentiment_read")),
-        ])
+        mentions = (f"Reddit 7d {row['reddit_mentions_7d']} mentions"
+                    if row.get("reddit_mentions_7d") is not None else MISSING)
+        move = (pct((row.get("recent_move") or {}).get("pct_5d"))
+                if isinstance(row.get("recent_move"), dict) else MISSING)
+        rows.append({
+            "title": f"**{ticker}** · 近 5 日 {move}",
+            "meta": [mentions],
+            "fields": [("新闻", _inline(keywords) if keywords else MISSING),
+                       ("信号判断", text((judgments.get(ticker) or {}).get("sentiment_read")))],
+        })
     if not rows:
         return ""
-    return "### 社交舆情\n\n" + table(
-        ["票", "Reddit 7d", "新闻关键词", "近 5 日", "信号判断"], rows)
+    return "### 社交舆情\n\n" + entries(rows)
 
 
 def influencer_section(context):
@@ -686,16 +755,14 @@ def confidence_section(judgment, plan):
         ticker = str(decision.get("ticker"))
         row = judgments.get(ticker) or {}
         confidence = decision.get("confidence")
-        rows.append([
-            ticker,
-            text(decision.get("action")),
-            pct((confidence or 0) * 100, digits=0, sign=False),
-            verdict_badge(row.get("verdict")),
-            text(row.get("rationale")),
-            text(row.get("falsifier")),
-        ])
-    return "### 信心与判定\n\n" + table(
-        ["Ticker", "Action", "Confidence", "Verdict", "理由", "证伪条件"], rows)
+        rows.append({
+            "title": (f"**{ticker}** · {text(decision.get('action'))} · "
+                      f"信心 {pct((confidence or 0) * 100, digits=0, sign=False)} · "
+                      f"{verdict_badge(row.get('verdict'))}"),
+            "fields": [("理由", text(row.get("rationale"))),
+                       ("证伪条件", text(row.get("falsifier")))],
+        })
+    return "### 信心与判定\n\n" + entries(rows)
 
 
 def _interval(bounds):
@@ -832,9 +899,13 @@ def render_brief(context, judgment, plan, *, date=None, sector_scan=None):
         "",
         f"# {title}",
         "",
+        '<div class="brief-card brief-lede" markdown="1">',
+        "",
         text(judgment.get("portfolio_assessment")),
         "",
         f"**反方**：{text(judgment.get('portfolio_counterargument'))}",
+        "",
+        "</div>",
         "",
     ]
     for heading, sections in parts:
@@ -843,7 +914,7 @@ def render_brief(context, judgment, plan, *, date=None, sector_scan=None):
             continue
         blocks += [f"## {heading}", ""]
         for section in rendered:
-            blocks += [section, ""]
+            blocks += [card(section), ""]
 
     # `<details>` rather than a fifth part: this is the material a reader consults
     # when a number above surprises them, not material they read every morning.
@@ -862,7 +933,7 @@ def render_brief(context, judgment, plan, *, date=None, sector_scan=None):
             "",
         ]
         for section in kept:
-            blocks += [section, ""]
+            blocks += [card(section), ""]
         blocks += ["</details>", ""]
 
     body = "\n".join(block for block in blocks if block is not None)

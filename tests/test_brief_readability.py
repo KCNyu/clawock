@@ -34,6 +34,7 @@ def test_modest_overage_is_separate_advisory_not_validation_warning(tmp_path):
     assert readability == {
         'status': 'advisory',
         'bytes': size,
+        'file_bytes': size,
         'target_bytes': postflight.BRIEF_READABILITY_TARGET_BYTES,
         'extreme_bytes': postflight.BRIEF_READABILITY_EXTREME_BYTES,
         'over_by_bytes': 1_234,

@@ -82,12 +82,55 @@ BRIEF_READABILITY_TARGET_BYTES = 28_000
 BRIEF_READABILITY_EXTREME_BYTES = 40_000
 
 
+_LAYOUT_TAG = re.compile(r'</?(?:div|span|details|summary)\b[^>]*>')
+_TABLE_RULE = re.compile(r'\|?[\s:|-]+\|?')
+
+
+def reader_bytes(text):
+    """Bytes of what a reader reads: the words, not the layout around them.
+
+    The thresholds below are a reading-burden budget, but they used to be
+    compared with the file size. On 2026-09-11 the report moved from prose
+    tables to one card per subsection and one block per prose row
+    (`brief_render.card` / `entries`): the same words, and 4–5KB more file per
+    brief of `<div markdown="1">` wrappers, indentation and blank lines. Three
+    of the five briefs from 09-07 to 09-11 would have jumped from `advisory` to
+    `extreme` — a warning every morning about markup nobody sees.
+
+    Counted here: front matter, layout tags, table rules and pipes, list and
+    heading markers, `**`, and runs of whitespace all removed. Measured on those
+    same five briefs, this count under the new layout gives the same status as
+    the raw file size gave under the old one, on every day — so the 28KB/40KB
+    lines keep the meaning they were calibrated with.
+    """
+    if text.startswith('---\n'):
+        _, _, text = text[4:].partition('\n---\n')
+    kept = []
+    for line in _LAYOUT_TAG.sub('', text).splitlines():
+        line = line.strip()
+        if not line or _TABLE_RULE.fullmatch(line):
+            continue
+        line = re.sub(r'^(?:[-*]|\d+\.)\s+', '', line)
+        line = re.sub(r'^#{1,6}\s+', '', line)
+        line = line.replace('|', ' ').replace('**', '')
+        kept.append(re.sub(r'\s+', ' ', line).strip())
+    return len('\n'.join(kept).encode('utf-8'))
+
+
 def assess_brief_readability(path):
-    """Return structured size health without changing the authored brief."""
+    """Return structured size health without changing the authored brief.
+
+    `bytes` is the reader-visible count that decides `status` (see
+    `reader_bytes`) — it is what the dashboard shows beside the status and what
+    the warning quotes. `file_bytes` is the raw size, kept for anyone tracking
+    the artifact itself.
+    """
     try:
-        nbytes = Path(path).stat().st_size
-    except OSError:
-        nbytes = None
+        text = Path(path).read_text(encoding='utf-8')
+        file_bytes = len(text.encode('utf-8'))
+        nbytes = reader_bytes(text)
+    except (OSError, UnicodeDecodeError):
+        nbytes = file_bytes = None
 
     if nbytes is None:
         status = 'unavailable'
@@ -105,6 +148,7 @@ def assess_brief_readability(path):
     return {
         'status': status,
         'bytes': nbytes,
+        'file_bytes': file_bytes,
         'target_bytes': BRIEF_READABILITY_TARGET_BYTES,
         'extreme_bytes': BRIEF_READABILITY_EXTREME_BYTES,
         'over_by_bytes': over_by,
@@ -117,19 +161,30 @@ def readability_issues(readability):
         return []
     return [
         'pre-open.md 极端超长 '
-        f'{readability.get("bytes")} bytes（≥40KB，完整保留但下次生成须按分段预算收敛）'
+        f'{readability.get("bytes")} bytes 正文（≥40KB，版式标记不计；完整保留但下次生成须按分段预算收敛）'
     ]
 
 
 def _section_markers(text):
-    """Return real section-marker lines, not incidental aliases in prose."""
-    return [
-        line.strip()
-        for line in text.splitlines()
+    """Return real section markers, not incidental aliases in prose.
+
+    A heading or `▎` line is a marker as a whole. A bold marker is only its bold
+    text: since 2026-09-11 every prose row in the report is laid out as
+    `  **理由**　<the reasoning>` (`brief_render.entries`), and counting that
+    whole line let the reasoning itself satisfy a required section — the
+    09-11 rationale for 07226 contains "Judge 段明确要求…", which is an alias
+    for 今日动作. The label is the name; the sentence after it is prose.
+    """
+    markers = []
+    for line in text.splitlines():
         if (re.match(r'^\s{0,3}#{1,6}\s+\S', line)
-            or re.match(r'^\s{0,3}\*\*\S', line)
-            or re.match(r'^\s{0,3}▎\s*\S', line))
-    ]
+                or re.match(r'^\s{0,3}▎\s*\S', line)):
+            markers.append(line.strip())
+            continue
+        bold = re.match(r'^\s{0,3}\*\*(\S.*?)\*\*', line)
+        if bold:
+            markers.append(bold.group(1).strip())
+    return markers
 
 
 def _marker_has_alias(marker, alias):

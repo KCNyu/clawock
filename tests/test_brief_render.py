@@ -474,3 +474,166 @@ def test_a_sweep_with_no_sectors_counts_as_missing(tmp_path):
     issues, _ = render.render_from_workspace(ws, "2026-08-31")
 
     assert render.SECTOR_SCAN_MISSING in issues
+
+
+# ── tables for numbers, entries for prose, one card per subsection ───────────
+#    (2026-09-11: "在 dashboard 里看 brief 也很丑，也没什么卡片区块感，数据排版也很杂乱")
+
+PROSE_SECTIONS = ("今日动作", "信心与判定", "分析师四格", "同行扫描", "社交舆情")
+
+
+def _section(body, heading):
+    start = body.index(f"### {heading}")
+    end = body.find("\n### ", start + 1)
+    return body[start:end if end != -1 else len(body)]
+
+
+def test_prose_is_never_laid_out_as_a_table_cell():
+    """Five sections used to put prose in a column — up to 668 characters in one
+    cell on 2026-09-11, a 4,880px table on a phone. They are entries now."""
+    long_reason = "硬止损破位且纪律债逐日加码，" * 30
+    plan = {**PLAN, "decisions": [{**PLAN["decisions"][0], "rationale": long_reason}]}
+    body = render.render_brief(CONTEXT, _judgment(), plan, date="2026-08-31")
+
+    for heading in PROSE_SECTIONS:
+        section = _section(body, heading)
+        assert '<div class="brief-entries" markdown="1">' in section, heading
+        assert not any(line.startswith("|") for line in section.splitlines()), heading
+    assert long_reason.strip() in _section(body, "今日动作")
+
+
+def test_a_pipe_inside_an_entry_is_escaped_or_it_becomes_a_table():
+    """GFM reads a pipe in a PLAIN paragraph line as a table row too. The first
+    render of the entries layout turned three news headlines into three one-row
+    tables in the middle of 社交舆情 — and the column-consistency check above
+    could not see it, because those lines do not start with a pipe."""
+    body = render.render_brief(CONTEXT, _judgment(), PLAN, date="2026-08-31")
+
+    for heading in PROSE_SECTIONS:
+        for line in _section(body, heading).splitlines():
+            unescaped = line.replace("\\|", "")
+            assert "|" not in unescaped, f"{heading}: {line}"
+    assert "Southbound buys" in body and "敞口保留" in body
+
+
+def test_a_feed_headline_cannot_open_markup_in_running_text():
+    """Headlines are the one unvalidated input: in a cell they only needed their
+    pipes escaped, as running text they could open a link or raw HTML."""
+    context = {**CONTEXT, "sentiment": {"tickers": [{"ticker": "07226", "news_top": [
+        {"title": "<b onclick=x> [x](e) *boom*"}]}]}}   # ≤36 chars: the section truncates
+    section = _section(render.render_brief(context, _judgment(), PLAN, date="2026-08-31"),
+                       "社交舆情")
+
+    assert "<b " not in section and "&lt;b " in section
+    assert "\\[x\\]" in section and "\\*boom\\*" in section
+
+
+def test_every_card_and_entries_block_says_markdown_1():
+    """Same load-bearing attribute as the appendix: without it kramdown ships the
+    whole card's contents as literal markdown."""
+    body = render.render_brief(CONTEXT, _judgment(), PLAN, date="2026-08-31")
+    lines = body.splitlines()
+
+    opened = [i for i, line in enumerate(lines)
+              if line.startswith('<div class="brief-card') or
+              line.startswith('<div class="brief-entries')]
+    assert len(opened) >= 10
+    for i in opened:
+        assert 'markdown="1"' in lines[i], lines[i]
+        assert lines[i + 1] == "", "GitHub renders markdown in an HTML block only after a blank line"
+    assert body.count("<div ") == body.count("</div>")
+
+
+def test_every_subsection_is_a_card_and_keeps_its_heading():
+    """The card is a wrapper, not a new heading level: postflight and every other
+    reader key on the `###` names, so a card must never replace one."""
+    body = render.render_brief(CONTEXT, _judgment(), PLAN, date="2026-08-31")
+    main = body.split('<details class="brief-appendix"')[0]
+
+    headings = [line for line in main.splitlines() if line.startswith("### ")]
+    cards = main.count('<div class="brief-card"')
+    assert headings and cards == len(headings), (cards, len(headings))
+    assert '<div class="brief-card brief-lede" markdown="1">' in main
+
+
+def test_postflight_still_finds_every_required_section(tmp_path):
+    from clawock.harness import brief_postflight
+
+    path = tmp_path / "2026-08-31-pre-open.md"
+    path.write_text(render.render_brief(CONTEXT, _judgment(), PLAN, date="2026-08-31"))
+
+    missing = [issue for issue in brief_postflight.validate_markdown(path, CONTEXT)
+               if "缺段标记" in issue]
+    assert missing == []
+
+
+def test_the_stylesheet_draws_the_cards_it_is_given():
+    """Classes are only worth emitting if the layout for memory/*.md defines them,
+    and the card look must stay scoped: the weekly reviews, FAQ and evidence
+    pages share this layout and were designed as a single panel."""
+    layout = (ROOT / "site" / "_layouts" / "default.html").read_text(encoding="utf-8")
+
+    for selector in (".brief-card {", ".brief-entries > ul", ".entry-meta",
+                     "article:has(.brief-card) {"):
+        assert selector in layout, selector
+    # Theme-following: the card's lit edge and shadow are tokens with a value in
+    # BOTH theme blocks, for the #1272 reason.
+    assert layout.count("--card-edge:") == 2 and layout.count("--card-shadow:") == 2
+    assert "box-shadow: inset 0 1px 0 var(--card-edge), var(--card-shadow)" in layout
+
+
+def test_the_phone_clamp_cannot_hide_text_without_a_script():
+    """The two-line clamp is keyed on `.brief-js`, which only the layout's own
+    script sets — with no script there is no clamp, so no text becomes
+    unreachable. The script measures before it offers "展开全文"."""
+    layout = (ROOT / "site" / "_layouts" / "default.html").read_text(encoding="utf-8")
+
+    clamp_rules = [line for line in layout.splitlines() if "line-clamp: 2" in line]
+    assert clamp_rules
+    block = layout[layout.index(".brief-js .brief-entries li > p"):]
+    assert block.index(".brief-js") == 0
+    assert "root.classList.add('brief-js')" in layout
+    assert "p.scrollHeight > p.clientHeight" in layout
+    assert ":not(:has(> .entry-meta))" in layout, "the enum line must never clamp"
+    # It may be tucked away — but only on a tile the script made tappable, so it
+    # is never more than one action from the reader.
+    hidden = [line for line in layout.splitlines()
+              if "p:has(> .entry-meta)" in line and "not(:has" not in line]
+    assert hidden and all("li.is-clamped:not(.is-open)" in line for line in hidden)
+
+
+def test_reasoning_that_names_a_section_cannot_stand_in_for_it(tmp_path):
+    """Entry field lines start with a bold label. The reasoning after the label
+    must not satisfy a required section: the 09-11 rationale for 07226 says
+    "Judge 段明确要求…", and 'Judge' is an alias for 今日动作."""
+    from clawock.harness import brief_postflight
+
+    plan = {**PLAN, "decisions": [{**PLAN["decisions"][0],
+                                   "rationale": "Judge 段明确要求三选一关闭。"}]}
+    body = render.render_brief(CONTEXT, _judgment(), plan, date="2026-08-31")
+    without_heading = body.replace(f"### {render.PAGE_ACTION_HEADING}", "### 别的名字")
+    path = tmp_path / "x-pre-open.md"
+    path.write_text(without_heading)
+
+    issues = brief_postflight.validate_markdown(path, CONTEXT)
+    assert 'pre-open.md 缺段标记 "今日动作"' in issues
+
+
+def test_size_health_counts_words_not_layout(tmp_path):
+    """The reading-burden budget must not move when only the markup does."""
+    from clawock.harness import brief_postflight
+
+    words = "硬止损破位且纪律债逐日加码。" * 40
+    plain = tmp_path / "plain.md"
+    plain.write_text(f"### 今日动作\n\n{words}\n")
+    carded = tmp_path / "carded.md"
+    carded.write_text(
+        '<div class="brief-card" markdown="1">\n\n### 今日动作\n\n'
+        '<div class="brief-entries" markdown="1">\n\n'
+        f'- **07226** · **cut**\n\n  <span class="entry-meta">risk_rule</span>\n\n'
+        f"  {words}\n\n</div>\n\n</div>\n")
+
+    a = brief_postflight.assess_brief_readability(plain)
+    b = brief_postflight.assess_brief_readability(carded)
+    assert b["file_bytes"] > a["file_bytes"] + 100          # the markup is real …
+    assert abs(b["bytes"] - a["bytes"]) < 60                 # … and not counted
