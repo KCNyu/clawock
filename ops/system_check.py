@@ -1626,14 +1626,16 @@ def check_delivered_but_unarchived(r):
     # 主机 TZ 是 Asia/Shanghai(+0800)，与 HKT 同偏移，所以本地日期就是场次日；
     # 不引 zoneinfo 是为了让这个文件在任何 checkout 上都零依赖地跑起来。
     today = date.today().strftime('%Y-%m-%d')
-    marker = WS / 'memory' / '.tmp' / f'brief-sent-{today}.json'
-    if not marker.is_file():
-        return  # not delivered (yet) — nothing is owed to git
     try:
-        sent = json.loads(marker.read_text())
+        sys.path.insert(0, str(_REPO_ROOT / 'src'))
+        from clawock.automation import delivery_receipts  # noqa: PLC0415
     except Exception:
         return
-    if not (sent.get('sent_ok') or sent.get('tg_ok')):
+    sent = delivery_receipts.read_receipt(delivery_receipts.receipt_path(
+        WS / 'memory' / '.tmp', 'brief', date=today))
+    if sent is None:
+        return  # not delivered (yet), or unreadable — nothing is owed to git
+    if not delivery_receipts.delivered(sent):
         return  # marker exists but nothing went out; a different failure owns it
     unarchived = []
     for rel in (f'memory/{today}-pre-open.md', f'memory/{today}-plan.json'):

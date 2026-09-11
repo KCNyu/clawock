@@ -73,6 +73,7 @@ import json
 import sys
 from datetime import datetime, timedelta
 
+from clawock.automation import delivery_receipts
 from ._watchdog_common import (
     WS, HKT, log, find_job_id, today_runs, KCN_TELEGRAM,
     transcript_loop_score, last_report_text, send_telegram,
@@ -330,13 +331,8 @@ def main():
     loop_score, _ = transcript_loop_score(session_id)
     looped = loop_score >= LOOP_THRESHOLD
 
-    marker_path = WS / 'memory' / '.tmp' / f'intraday-sent-{args.market}.json'
-    marker = None
-    if marker_path.exists():
-        try:
-            marker = json.loads(marker_path.read_text())
-        except Exception:
-            marker = None
+    marker = delivery_receipts.read_receipt(delivery_receipts.receipt_path(
+        WS / 'memory' / '.tmp', 'intraday', market=args.market))
     now_ms = int(watchdog_now.timestamp() * 1000)
     # A confirmed Telegram send for this exact slot, whichever attempt made it.
     # The evidence gate below can still decline to call the slot covered (stale

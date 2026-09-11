@@ -53,6 +53,7 @@ import os
 import sys
 from datetime import datetime
 
+from clawock.automation import delivery_receipts
 from clawock import sessions as trading_calendar
 
 from ._watchdog_common import (
@@ -505,13 +506,8 @@ def main():
         return retrigger_or_wait(today, args.dry_run)
 
     # Trust the postflight send-marker, not the poisoned run-record `delivered`.
-    marker_path = WS / 'memory' / '.tmp' / f'brief-sent-{today}.json'
-    marker = None
-    if marker_path.exists():
-        try:
-            marker = json.loads(marker_path.read_text())
-        except Exception:
-            marker = None
+    marker = delivery_receipts.read_receipt(delivery_receipts.receipt_path(
+        WS / 'memory' / '.tmp', 'brief', date=today))
     now_ms = int(datetime.now(HKT).timestamp() * 1000)
     fresh = bool(marker) and (now_ms - marker.get('ts', 0)) < MARKER_FRESH_MS
     # TG is covered iff postflight's cosend confirmably delivered today's card to

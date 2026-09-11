@@ -771,6 +771,40 @@ def _gh_run_failure_detail(run, max_len=300):
     return ' / '.join(lines[-3:])[:max_len]
 
 
+def send_per_policy(kind, message, *, tag, market=None, dry_run=False,
+                    wechat=None, telegram=None, resolve=None):
+    """Send one report to the channels the delivery policy names for its kind.
+
+    Returns `(wechat_ok, wechat_out, telegram_ok)`. The three postflights each
+    carried this sequence by hand — resolve the WeChat target, send, co-send to
+    Telegram — and the policy of which channels a kind goes to lived in all three.
+    It lives in `delivery_receipts.CHANNELS` now; this is the one place that
+    reads it.
+
+    `wechat` / `telegram` / `resolve` are the caller's own send functions, looked
+    up in the caller's module at call time. That is deliberate: the postflight
+    tests replace those names on the postflight module, and a helper that called
+    its own copies would route a test's "send" to the real WeChat.
+    """
+    from clawock.automation.delivery_receipts import CHANNELS
+    policy = CHANNELS[kind]
+    wechat = wechat or send_wechat
+    telegram = telegram or cosend_telegram
+    resolve = resolve or resolve_wechat_target
+    wechat_ok, wechat_out, telegram_ok = False, 'wechat is not in the delivery policy', False
+    if 'wechat' in policy:
+        try:
+            channel, to, account = resolve(market) if market else resolve()
+            wechat_ok, wechat_out = wechat(channel, to, account, message, dry_run=dry_run)
+        except Exception as e:  # noqa: BLE001 — a failed channel must not stop the other
+            wechat_ok, wechat_out = False, str(e)[:300]
+    if 'telegram' in policy:
+        # Same call shape the postflights always used: `dry_run` only when set.
+        telegram_ok, _ = (telegram(message, tag, dry_run=True) if dry_run
+                          else telegram(message, tag))
+    return wechat_ok, wechat_out, telegram_ok
+
+
 def cosend_telegram(message, tag, dry_run=False):
     """Unconditional Telegram co-send for high-value cron reports (brief / staged
     report / intraday). Called from each postflight RIGHT AFTER the WeChat send.

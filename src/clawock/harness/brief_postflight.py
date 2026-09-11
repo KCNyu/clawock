@@ -41,6 +41,7 @@ WS = workspace_root()
 _CHECKOUT = WS
 
 from clawock.automation import workflow_outcomes  # noqa: E402
+from clawock.automation import delivery_receipts  # noqa: E402
 
 # Required concepts and the section labels the brief model may legitimately emit.
 # The canonical keys preserve the existing missing-section issue text.  The aliases
@@ -686,7 +687,7 @@ from ._harness_common import (  # noqa: E402
 from ._watchdog_common import (  # noqa: E402
     BRIEF_URL_TMPL,
     resolve_wechat_target, send_wechat, build_brief_card, cosend_telegram, already_delivered,
-    claim_send, mark_send_started, release_claim, log,
+    claim_send, mark_send_started, release_claim, log, send_per_policy,
 )
 from clawock.harness import brief_render  # noqa: E402
 
@@ -1111,11 +1112,12 @@ def main(argv=None):
     # deterministic compact card from plan.json (build_brief_card).
     wechat_sent = None
     tg_ok = None
+    send_out = None
     # Set when claim_send refuses this process the send right: it then holds no
     # delivery evidence and must not file a primary_delivery verdict over the
     # concurrent holder's (#1006).
     claim_declined = False
-    brief_marker = WS / 'memory' / '.tmp' / f'brief-sent-{today}.json'
+    brief_marker = delivery_receipts.receipt_path(WS / 'memory' / '.tmp', 'brief', date=today)
     # Idempotency: brief marker is per-date, fires once/day. If it already shows a
     # delivery this run is an openclaw auto-retry of a turn that errored only in
     # post-turn summary-gen — the card already went out. Skip re-send. See
@@ -1135,7 +1137,7 @@ def main(argv=None):
         # is written only once both channels have returned, so two postflights
         # racing on the same day would both read "not delivered yet" and both
         # send the card. A dry run sends nothing, so it takes no claim.
-        claim_path = brief_marker.parent / f'brief-send-{today}.claim'
+        claim_path = delivery_receipts.claim_path(brief_marker.parent, 'brief', date=today)
         if args.dry_run:
             claim_won, claim_reason = True, 'dry-run'
         else:
@@ -1150,16 +1152,12 @@ def main(argv=None):
         else:
             if not args.dry_run:
                 mark_send_started(claim_path)
-            try:
-                channel, to, account = resolve_wechat_target()
-                wechat_sent, send_out = send_wechat(channel, to, account, message,
-                                                    dry_run=args.dry_run)
-            except Exception as e:
-                wechat_sent, send_out = False, str(e)[:300]
-            # Always co-send to Telegram (cold-proof) — WeChat can't confirm real delivery.
-            # Record the Telegram result: it's the sole backstop brief_watchdog now uses
-            # (no more WeChat resend), so it needs to know if TG already got this card.
-            tg_ok, _tg_out = cosend_telegram(message, 'brief', dry_run=args.dry_run)
+            # WeChat, then Telegram (cold-proof — WeChat can't confirm real delivery), per
+            # the delivery policy. The Telegram result is recorded: it's the sole backstop
+            # brief_watchdog uses (no WeChat resend), so it needs to know if TG got this card.
+            wechat_sent, send_out, tg_ok = send_per_policy(
+                'brief', message, tag='brief', dry_run=args.dry_run,
+                wechat=send_wechat, telegram=cosend_telegram, resolve=resolve_wechat_target)
             # NEVER write the marker on a dry run (2026-07-16). send_wechat/cosend_telegram
             # return ok=True for a dry run (the CLI exits 0 without sending), so this used to
             # record sent_ok/tg_ok=true for a delivery that never happened. brief_watchdog
@@ -1174,13 +1172,12 @@ def main(argv=None):
             else:
                 try:
                     brief_marker.parent.mkdir(parents=True, exist_ok=True)
-                    safe_write_text(str(brief_marker), json.dumps({
-                        'ts': int(datetime.now().timestamp() * 1000),
-                        'sent_ok': bool(wechat_sent),
-                        'tg_ok': bool(tg_ok),
-                        'first_line': first_line,
-                        'out': (send_out or '')[-200:],
-                    }, ensure_ascii=False))
+                    safe_write_text(str(brief_marker), json.dumps(
+                        delivery_receipts.build_receipt(
+                            ts=int(datetime.now().timestamp() * 1000),
+                            sent_ok=wechat_sent, tg_ok=tg_ok, out=send_out,
+                            first_line=first_line),
+                        ensure_ascii=False))
                 except Exception as e:
                     print(f'warn: brief-sent marker write failed: {e}', file=sys.stderr)
             # Completed send: the marker owns idempotency from here. A dry run
@@ -1251,16 +1248,14 @@ def main(argv=None):
     # after the holder's `success` would stand (reconciliation only fills
     # unknown stages) even though kcn got the card (#1006).
     if not claim_declined:
-        workflow_outcomes.record_stage(
+        workflow_outcomes.record_primary_delivery(
             job_name,
-            'primary_delivery',
-            ('success' if (wechat_sent or tg_ok) else
-             ('not_required' if status == 'fail' else 'failed')),
             slot=slot,
             dry_run=args.dry_run,
-            channel=workflow_outcomes.delivery_channel(bool(wechat_sent), bool(tg_ok)),
-            wechat_ok=bool(wechat_sent),
-            telegram_ok=bool(tg_ok),
+            wechat_ok=wechat_sent,
+            telegram_ok=tg_ok,
+            failed_status='not_required' if status == 'fail' else 'failed',
+            wechat_detail=send_out,
         )
     print(json.dumps(result, ensure_ascii=False, indent=2))
     if (not args.dry_run and status in ('pass', 'warn')

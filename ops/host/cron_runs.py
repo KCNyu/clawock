@@ -87,15 +87,17 @@ def fmt_dur(ms):
 # `report-sent-<market>-<phase>-<date>.json` and the brief writes
 # `brief-sent-<date>.json`; both carry `sent_ok`. The crontab passes
 # --market/--phase per job, so this is the same pairing, written down once.
+# Derived, not re-typed: the names come from `delivery_receipts`, the jobs from
+# the ledger's own (market, phase) → job table (2026-09-12, one definition).
+from clawock.automation import delivery_receipts as _receipts  # noqa: E402
+from clawock.automation.workflow_outcomes import REPORT_JOBS as _REPORT_JOBS  # noqa: E402
+from clawock.automation.workflow_outcomes import job_for as _job_for  # noqa: E402
+
 RECEIPT_BY_JOB = {
-    '港股开盘报告': 'report-sent-hk-open-{date}.json',
-    '港股午盘报告': 'report-sent-hk-mid-{date}.json',
-    '港股午后快报': 'report-sent-hk-pm-{date}.json',
-    '港股收盘报告': 'report-sent-hk-close-{date}.json',
-    '美股开盘报告': 'report-sent-us-open-{date}.json',
-    '美股收盘报告': 'report-sent-us-close-{date}.json',
-    '盘前深度简报': 'brief-sent-{date}.json',
+    job: _receipts.receipt_name('report', market=market, phase=phase, date='{date}')
+    for (market, phase), job in _REPORT_JOBS.items()
 }
+RECEIPT_BY_JOB[_job_for(brief=True)] = _receipts.receipt_name('brief', date='{date}')
 # The live desk workspace, whose memory/.tmp holds the receipts. Resolved from
 # the environment rather than from this file's location: run out of an
 # interactive worktree, `parents[2]` is the worktree and every receipt lookup

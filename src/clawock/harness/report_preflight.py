@@ -42,6 +42,7 @@ Output keys:
   needs_risk_section: bool (true if any ALERT, or STOP+TRIM >= 2)
 """
 
+from clawock.automation import delivery_receipts
 from clawock.harness import _harness_common
 from clawock.harness._harness_common import run_analyze
 import argparse
@@ -100,7 +101,8 @@ def drop_stale_contexts(market, phase, today):
     # today's are written LATER by postflight, so dropping other-date ones is safe.
     patterns = [
         (f'report-context-{market}-{phase}-*.json', context_path(market, phase, today).name),
-        (f'report-sent-{market}-{phase}-*.json',    f'report-sent-{market}-{phase}-{today}.json'),
+        (delivery_receipts.receipt_name('report', market=market, phase=phase, date='*'),
+         delivery_receipts.receipt_name('report', market=market, phase=phase, date=today)),
         (f'report-upgrade-{market}-{phase}-*.claim', f'report-upgrade-{market}-{phase}-{today}.claim'),
     ]
     dropped = []

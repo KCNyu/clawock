@@ -47,6 +47,7 @@ import sys
 import time
 from datetime import datetime
 
+from clawock.automation import delivery_receipts
 from ._watchdog_common import (
     WS, HKT, log, find_job_id, today_runs,
     transcript_loop_score, last_report_text, send_telegram, KCN_TELEGRAM,
@@ -270,13 +271,9 @@ def main():
 
     ctx_id = ctx.get('context_id')
 
-    marker_path = WS / 'memory' / '.tmp' / f'report-sent-{args.market}-{args.phase}-{today}.json'
-    marker = None
-    if marker_path.exists():
-        try:
-            marker = json.loads(marker_path.read_text())
-        except Exception:
-            marker = None
+    marker = delivery_receipts.read_receipt(delivery_receipts.receipt_path(
+        WS / 'memory' / '.tmp', 'report', market=args.market,
+        phase=args.phase, date=today))
     now_ms = int(datetime.now(HKT).timestamp() * 1000)
     delivered_this_slot, delivery_judge = slot_delivered(
         marker, ctx_id, raw_block_first, now_ms,
@@ -344,8 +341,8 @@ def main():
               else 'marker stale/mismatch')
     # #544: with no marker, a claim whose holder died mid-send is the explicit
     # "WeChat delivery unconfirmed" case — say it instead of silently mirroring.
-    claim_path = WS / 'memory' / '.tmp' / \
-        f'report-send-{args.market}-{args.phase}-{today}.claim'
+    claim_path = delivery_receipts.claim_path(
+        WS / 'memory' / '.tmp', 'report', market=args.market, phase=args.phase, date=today)
     claim = None
     try:
         if claim_path.exists():

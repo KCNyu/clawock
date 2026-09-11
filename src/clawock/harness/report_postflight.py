@@ -50,6 +50,7 @@ _CHECKOUT = WS
 TMP = WS / 'memory' / '.tmp'
 
 from clawock.automation import workflow_outcomes  # noqa: E402
+from clawock.automation import delivery_receipts  # noqa: E402
 
 # The deterministic report core moved into the installed package so `clawock
 # report` can run it without a repository checkout. Re-exported here so this
@@ -98,7 +99,7 @@ from ._harness_common import (  # noqa: E402
 )
 from ._watchdog_common import (  # noqa: E402
     resolve_wechat_target, send_wechat, cosend_telegram, already_delivered,
-    claim_send, mark_send_started, release_claim, log,
+    claim_send, mark_send_started, release_claim, log, send_per_policy,
 )
 
 
@@ -203,29 +204,28 @@ def deliver_wechat(market, phase, date, wechat_prefix, text, delivery_state='del
     # "may already have reached WeChat" by whoever claims next.
     if claim_path is not None:
         mark_send_started(claim_path)
+    # WeChat, then Telegram, per the delivery policy. Telegram is never gated on
+    # WeChat — WeChat can't confirm real delivery (cold drop returns sent_ok=true).
+    # Its result is recorded too: it's the cold-proof channel and the ONLY backstop
+    # report_watchdog uses (no WeChat resend), so the watchdog needs to know
+    # whether THIS report already reached Telegram.
+    sent_ok, out, tg_ok = send_per_policy(
+        'report', message, tag=f'{market}-{phase}', market=market,
+        wechat=send_wechat, telegram=cosend_telegram, resolve=resolve_wechat_target)
+    marker = delivery_receipts.receipt_path(TMP, 'report', market=market, phase=phase,
+                                            date=date)
     try:
-        channel, to, account = resolve_wechat_target(market)
-        sent_ok, out = send_wechat(channel, to, account, message, dry_run=False)
-    except Exception as e:
-        sent_ok, out = False, str(e)[:300]
-    # Always co-send to Telegram — WeChat can't confirm real delivery (cold drop
-    # returns sent_ok=true), so we don't gate on it. See cosend_telegram docstring.
-    # Record the Telegram result too: it's the cold-proof channel and the ONLY
-    # backstop report_watchdog now uses (it no longer re-sends WeChat), so the
-    # watchdog needs to know whether THIS report already reached Telegram.
-    tg_ok, _tg_out = cosend_telegram(message, f'{market}-{phase}')
-    marker = TMP / f'report-sent-{market}-{phase}-{date}.json'
-    try:
-        safe_write_text(str(marker), json.dumps({
-            'ts': int(datetime.now().timestamp() * 1000),
-            'sent_ok': bool(sent_ok),
-            'tg_ok': bool(tg_ok),
-            'first_line': sent_first,
-            'delivery_state': delivery_state,
+        safe_write_text(str(marker), json.dumps(delivery_receipts.build_receipt(
+            ts=int(datetime.now().timestamp() * 1000),
+            sent_ok=sent_ok,
+            tg_ok=tg_ok,
+            out=out,
+            first_line=sent_first,
+            delivery_state=delivery_state,
             # Exact slot identity for report_watchdog. In prose mode the sent body
             # starts with the title, so first_line no longer matches the context's
             # block and a string compare would mirror a duplicate to Telegram.
-            'context_id': context_id,
+            context_id=context_id,
             # When the id alone can't decide, this dates the DATA we sent, not the
             # send. `context_id` is strictly per-preflight-invocation, so an
             # openclaw auto-retry (which re-runs preflight but is blocked from
@@ -235,11 +235,10 @@ def deliver_wechat(market, phase, date, wechat_prefix, text, delivery_state='del
             # hk-pm, both double-sent a deterministic fallback). The watchdog needs
             # to tell that two-minute regeneration apart from the genuinely stale
             # body of 2026-07-24, and only the source context's own timestamp can.
-            'context_generated_at': context_generated_at,
-            'market': market,
-            'phase': phase,
-            'out': (out or '')[-200:],
-        }, ensure_ascii=False))
+            context_generated_at=context_generated_at,
+            market=market,
+            phase=phase,
+        ), ensure_ascii=False))
     except Exception as e:
         print(f'warn: report send marker write failed: {e}', file=sys.stderr)
     # This send ran to completion, so the marker now owns the idempotency question
@@ -456,7 +455,8 @@ def main(argv=None):
     # so if it already shows a delivery this is an openclaw auto-retry of a run that
     # errored only in post-turn summary-gen — the report already went out. Skip the
     # re-send (watchdog still backstops a genuine miss). See already_delivered.
-    report_marker = TMP / f'report-sent-{args.market}-{args.phase}-{today}.json'
+    report_marker = delivery_receipts.receipt_path(TMP, 'report', market=args.market,
+                                                   phase=args.phase, date=today)
     delivery_state = 'failed' if status == 'fail' else 'delivered'
     blocked = already_delivered(report_marker)
 
@@ -503,7 +503,8 @@ def main(argv=None):
         # The marker only proves a send that FINISHED. A concurrent postflight
         # that is still mid-send leaves no marker at all, so the claim is what
         # keeps the second one quiet (#508).
-        claim_path = TMP / f'report-send-{args.market}-{args.phase}-{today}.claim'
+        claim_path = delivery_receipts.claim_path(TMP, 'report', market=args.market,
+                                                  phase=args.phase, date=today)
         won, send_claim = claim_send(claim_path)
         if not won:
             print(f'concurrency: {args.market}-{args.phase} send is already claimed '
@@ -536,25 +537,15 @@ def main(argv=None):
     # verdict, and a late false `failed` would stand forever because receipt
     # reconciliation only fills unknown stages (#1006).
     if not claim_declined:
-        wechat_ok = bool(wechat_sent)
-        telegram_ok = False
-        try:
-            telegram_ok = json.loads(report_marker.read_text()).get('tg_ok') is True
-        except Exception:
-            pass
-        primary_delivery_ok = wechat_ok or telegram_ok
-        workflow_outcomes.record_stage(
+        _, telegram_ok = delivery_receipts.channels(
+            delivery_receipts.read_receipt(report_marker))
+        workflow_outcomes.record_primary_delivery(
             job_name,
-            'primary_delivery',
-            'success' if primary_delivery_ok else 'failed',
             slot=slot,
-            channel=workflow_outcomes.delivery_channel(wechat_ok, telegram_ok),
-            wechat_ok=wechat_ok,
+            wechat_ok=wechat_sent,
             telegram_ok=telegram_ok,
-            # Only on failure: a reason on a send that worked is noise in a
-            # record read by eye.
-            **({} if wechat_ok else {
-                'wechat_detail': (send_out or 'no output from the transport')[-200:]}),
+            # Kept only on failure: a reason on a send that worked is noise.
+            wechat_detail=send_out or 'no output from the transport',
             deterministic_fallback=(status == 'fail'),
         )
 

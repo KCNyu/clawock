@@ -29,6 +29,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
+from clawock.automation import delivery_receipts
 from clawock.providers import openclaw
 from clawock.publish.outcomes import summarize_records
 from clawock.workspace import workspace_root
@@ -640,38 +641,64 @@ def reconcile_raw_execution():
 
 def _receipt_delivered(payload):
     """A receipt proves delivery when either channel reports a real send."""
-    return payload.get("sent_ok") is True or payload.get("tg_ok") is True
+    return delivery_receipts.delivered(payload)
+
+
+def record_primary_delivery(job_name, *, slot, wechat_ok, telegram_ok, dry_run=False,
+                            failed_status="failed", wechat_detail=None, **details):
+    """File a slot's delivery verdict — the one writer every postflight uses.
+
+    The brief and report postflights each built this stage by hand, with the same
+    fields in a different order and only one of them keeping WeChat's failure
+    text (#771 made that text the thing worth counting). `failed_status` is the
+    word for "nothing went out": `not_required` when the product itself failed
+    closed and there was nothing to send.
+    """
+    wechat_ok, telegram_ok = bool(wechat_ok), bool(telegram_ok)
+    if not wechat_ok and wechat_detail:
+        details["wechat_detail"] = str(wechat_detail)[-200:]
+    return record_stage(
+        job_name,
+        "primary_delivery",
+        "success" if (wechat_ok or telegram_ok) else failed_status,
+        slot=slot,
+        dry_run=dry_run,
+        channel=delivery_channel(wechat_ok, telegram_ok),
+        wechat_ok=wechat_ok,
+        telegram_ok=telegram_ok,
+        **details,
+    )
 
 
 def _receipt_claims(path):
     """Yield (job, slot_date_or_none, slot_or_none, receipt) for one receipt."""
-    try:
-        payload = json.loads(path.read_text())
-    except (OSError, json.JSONDecodeError):
+    payload = delivery_receipts.read_receipt(path)
+    if payload is None:
         return None
-    if not isinstance(payload, dict):
+    parsed = delivery_receipts.parse_receipt_name(path.name)
+    if parsed is None:
         return None
-    name = path.name
+    kind, parts = parsed
     # The whole receipt travels, not a pre-computed verdict: the caller needs
     # the per-channel flags too (#968), and `_receipt_delivered` is applied at
     # the point of use.
-    if name.startswith("report-sent-"):
+    if kind == "report":
         try:
             job = job_for(payload.get("market"), payload.get("phase"))
         except ValueError:
             return None
         # report-sent-{market}-{phase}-{YYYY-MM-DD}.json
-        return job, name[: -len(".json")].rsplit("-", 3)[-3:], None, payload
-    if name.startswith("intraday-sent-"):
+        return job, parts[-3:], None, payload
+    if kind == "intraday":
         # The intraday receipt names its own job and slot, so it needs no parsing.
         job, slot = payload.get("job"), payload.get("slot")
         if not job or not slot:
             return None
         return job, None, slot, payload
-    if name.startswith("brief-sent-"):
+    if kind == "brief":
         return (
             job_for(brief=True),
-            name[len("brief-sent-"): -len(".json")].split("-"),
+            parts,
             None,
             payload,
         )
@@ -718,8 +745,7 @@ def reconcile_delivery_receipts():
                 # through instead of the old constant "wechat_or_telegram",
                 # which made every reconciled slot invisible to the
                 # wechat-dropped / telegram-covered count.
-                wechat_ok = receipt.get("sent_ok") is True
-                telegram_ok = receipt.get("tg_ok") is True
+                wechat_ok, telegram_ok = delivery_receipts.channels(receipt)
                 record["stages"]["primary_delivery"] = _stage(
                     "success" if delivered else "failed",
                     at=_now().isoformat(),
