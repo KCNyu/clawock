@@ -461,6 +461,38 @@ def heartbeat_coverage(job_name, slots, tz_name, now, ledger, day=None):
 # it is "nothing has moved in the book for three hours during a session", which
 # on a trading day means the 0,20,40 crontab entry stopped running.
 PUBLISHER_STALE_HOURS = 3
+# Resolution of the session-time count below. Five minutes against a three-hour
+# threshold is noise; it keeps a three-day lookback to under a thousand probes.
+_SESSION_PROBE = timedelta(minutes=5)
+_SESSION_LOOKBACK = timedelta(days=4)
+
+
+def _session_hours_between(start, end):
+    """Hours between `start` and `end` during which HK or US was trading.
+
+    "During a session" was the threshold's meaning all along, but the check
+    measured wall-clock age: from the last HK-close publish (~16:40 HKT) to the
+    US open (21:30 HKT) nothing moves, the publisher correctly pushes nothing,
+    and by 21:3x the generation is ~4.9h old. The workflow is scheduled for
+    17:17 HKT, when that gap is well under the threshold, but GitHub delivers it
+    ~4h late — so on 2026-09-11 it landed at 21:32, two minutes before the US
+    open publish, and called a healthy publisher dead.
+
+    Returns None when the calendar is unavailable, so the caller keeps judging
+    wall-clock age — the same fail-open rule as the trading-day check.
+    """
+    try:
+        from clawock import sessions as _tc
+    except Exception:
+        return None
+    start = max(start, end - _SESSION_LOOKBACK)
+    probes = 0
+    t = start + _SESSION_PROBE / 2
+    while t < end:
+        if _tc.in_session('hk', t) or _tc.in_session('us', t):
+            probes += 1
+        t += _SESSION_PROBE
+    return round(probes * _SESSION_PROBE.total_seconds() / 3600, 1)
 
 
 def check_scheduled_publisher(now=None, path=None):
@@ -495,28 +527,25 @@ def check_scheduled_publisher(now=None, path=None):
         return {'state': 'failed', 'detail': f'generation stamp unreadable: {e}',
                 'age_hours': None}
     age_hours = round((now - published).total_seconds() / 3600, 1)
-    local = now.astimezone(HKT)
-    # A weekend or a double holiday has no session to publish into, so silence
-    # is correct there and must not be reported as a stalled publisher.
-    # Same local, fail-open import as _market_closed_today: an unavailable
-    # calendar must not turn this into a red, so it falls through to judging.
-    try:
-        from clawock import sessions as _tc
-        trading = any(_tc.is_trading_day(m, local.date()) for m in ('hk', 'us'))
-    except Exception:
-        trading = True
-    if not trading:
-        return {'state': 'ok',
-                'detail': f'last generation {age_hours}h old · 非交易日不判',
-                'age_hours': age_hours}
-    if age_hours > PUBLISHER_STALE_HOURS:
+    # Only session time counts: a weekend, a holiday, lunch and the gap between
+    # the HK close and the US open have nothing to publish, so silence there is
+    # correct. This replaced a "非交易日不判" short-circuit keyed on today's HK
+    # date, which also hid a publisher that died on Friday — Saturday 00:00-04:00
+    # HKT is still Friday's US session.
+    session_hours = _session_hours_between(published, now)
+    judged = age_hours if session_hours is None else session_hours
+    if judged > PUBLISHER_STALE_HOURS:
+        within = '' if session_hours is None else f'，其中盘中 {session_hours}h'
         return {'state': 'stale',
-                'detail': (f'已发布的那一代已 {age_hours}h 未更新 '
+                'detail': (f'已发布的那一代已 {age_hours}h 未更新{within} '
                            f'(> {PUBLISHER_STALE_HOURS}h) — 0,20,40 的 '
                            f'publish_dashboard.sh 大概率没在跑'),
-                'age_hours': age_hours}
-    return {'state': 'ok', 'detail': f'last generation {age_hours}h old',
-            'age_hours': age_hours}
+                'age_hours': age_hours, 'session_hours': session_hours}
+    detail = f'last generation {age_hours}h old'
+    if session_hours is not None and session_hours < age_hours:
+        detail += f' · 盘中 {session_hours}h（休市/收盘后没有要发的东西）'
+    return {'state': 'ok', 'detail': detail,
+            'age_hours': age_hours, 'session_hours': session_hours}
 
 
 def check_dashboard_build():

@@ -2413,7 +2413,12 @@
     if (e.stop) risk.push(`<div class="bd-note neg">止损盯防 · ${escapeHtml(stripEmoji(e.stop.detail || e.stop.action || ""))}</div>`);
     if (e.be) {
       risk.push(kv("回本需", "+" + e.be.breakeven_need_pct + "%", "neg"));
-      if (e.be.leveraged) risk.push(kv("横盘 decay", "≈" + e.be.chop_drag_pct_per_month + "%/月"));
+      // A 2x whose underlying has no volatility yet (SPCH → SPCX, listed too
+      // recently) carries no drag figure — the Risk tab's copy of this row
+      // already skips it; printing it here read "≈undefined%/月".
+      if (e.be.leveraged && e.be.chop_drag_pct_per_month != null) {
+        risk.push(kv("横盘 decay", "≈" + e.be.chop_drag_pct_per_month + "%/月"));
+      }
     }
     if (e.conv) risk.push(kv("仓位 × 信心",
       `${e.conv.weight_pct}% · conf ${Math.round((e.conv.avg_confidence || 0) * 100)}%`,

@@ -1209,6 +1209,45 @@ async function testAddSideCardExplainsWhyThereIsNoAdd(browser, base) {
   await page.close();
 }
 
+async function testALeveragedRowWithoutVolatilityPrintsNoUndefined(browser, base) {
+  // 2026-09-11 live, Holdings tab: SPCH is a 2x whose underlying (SPCX) has no
+  // volatility yet, so `compute_breakeven_math` leaves its drag figures out —
+  // and the book card printed「横盘 decay ≈undefined%/月」. The Risk tab's copy
+  // of the same row already skipped it. Every holding gets such a row here so
+  // the case does not depend on which tickers the CI build happens to carry.
+  const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const page = await context.newPage();
+  await stubLiveOrigin(page, {
+    patch: (name, json) => {
+      if (name !== "dashboard.json") return null;
+      const holdings = [...((json.holdings || {}).us || []), ...((json.holdings || {}).hk || [])];
+      json.breakeven_math = {
+        rows: holdings.map(h => ({ ticker: h.ticker, pnl_pct: -18.8,
+                                    breakeven_need_pct: 23.2, leveraged: true })),
+        note: "",
+      };
+      return json;
+    },
+  });
+  const state = observe(page);
+  await page.goto(base, { waitUntil: "networkidle" });
+  await waitForData(page);
+  for (const tab of ["drill", "risk"]) {
+    await page.click(`.tab-btn[data-tab="${tab}"]`);
+    await waitForTab(page, tab);
+  }
+  const book = await page.locator("#book-card").textContent();
+  assert.match(book, /回本需\s*\+23\.2%/, "the breakeven row itself must still render");
+  const pageText = await page.evaluate(() =>
+    [...document.querySelectorAll(".panel")].map(panel => panel.textContent).join("\n"));
+  assert.doesNotMatch(pageText, /(?:undefined|NaN)\s*%/,
+    "a missing number was formatted as text instead of being left out");
+
+  assert.deepEqual(state.failures, []);
+  assert.deepEqual(state.errors, []);
+  await page.close();
+}
+
 async function testAPanelSaysWhenItsDataDidNotLoad(browser, base) {
   // A detail tab needs dashboard.json (191 KB, normally from the data branch)
   // before it can paint. When that request failed the only trace was
@@ -2041,6 +2080,7 @@ async function main() {
     await testTheDebateTrailIsAListOfCasesNotAWallOfText(browser, base);
     await testThePlanTimelineClampsItsRationales(browser, base);
     await testAddSideCardExplainsWhyThereIsNoAdd(browser, base);
+    await testALeveragedRowWithoutVolatilityPrintsNoUndefined(browser, base);
     await testAPanelSaysWhenItsDataDidNotLoad(browser, base);
     await testCronRailAccountsForEverySlotWithoutASecondVerdict(browser, base);
     await testCronNeedsActionMergesIntoTheOneTodoListButWatchDoesNot(browser, base);
