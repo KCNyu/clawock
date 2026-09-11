@@ -225,6 +225,53 @@ def test_no_package_cycle_beyond_the_known_ones(graph):
     )
 
 
+EDGE_LEDGER = Path(__file__).with_name("package_edges.txt")
+
+
+def _package_edges(graph) -> set[tuple[str, str]]:
+    def pkg(module: str) -> str:
+        parts = module.split(".")
+        return parts[1] if len(parts) > 1 else "(root)"
+    return {(pkg(src), pkg(target)) for src, targets in graph.items()
+            for target in targets if pkg(src) != pkg(target)}
+
+
+def _ledger_edges() -> set[tuple[str, str]]:
+    out = set()
+    for line in EDGE_LEDGER.read_text(encoding="utf-8").splitlines():
+        line = line.strip()
+        if line and not line.startswith("#"):
+            importer, imported = (part.strip() for part in line.split("->"))
+            out.add((importer, imported))
+    return out
+
+
+def test_package_edges_match_the_ledger(graph):
+    """No cycle is not the same as no new coupling (kcn 2026-09-12:「注意我们是
+    好不容易解耦的」).
+
+    The cycle test above passes any new edge that happens to point downhill, so a
+    provider could start reading the workspace layout, or `publish` reach into
+    `instruments`, and nothing would say so — both happened on 2026-09-12 and were
+    only caught by diffing the graph by hand. The edges are written down instead;
+    adding one is a visible line in `tests/package_edges.txt`, reviewed with the PR.
+    """
+    actual, ledger = _package_edges(graph), _ledger_edges()
+    added = sorted(actual - ledger)
+    gone = sorted(ledger - actual)
+    assert not added, (
+        "new dependency between subpackages: "
+        + ", ".join(f"{a} -> {b}" for a, b in added)
+        + ". If it is the right direction, add the line to tests/package_edges.txt "
+          "and say why in the PR; if a module only needs a value, pass it in instead."
+    )
+    assert not gone, (
+        "these edges no longer exist — delete them from tests/package_edges.txt so the "
+        "ledger does not claim coupling that is gone: "
+        + ", ".join(f"{a} -> {b}" for a, b in gone)
+    )
+
+
 def test_nothing_below_the_cli_imports_the_cli(graph):
     """`cli` is the entry point. Anything importing it is upside down.
 
