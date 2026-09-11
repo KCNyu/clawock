@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-10T23:21:48.834874+00:00",
+  "generated_at": "2026-09-11T16:47:00.047962+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -8,14 +8,14 @@
   },
   "source_status": {
     "trump": "success",
-    "musk": "failed",
+    "musk": "success",
     "serenity": "failed"
   },
   "llm_filtered": true,
   "counts": {
-    "total": 7,
+    "total": 4,
     "held_hits": 0,
-    "new_ideas": 2,
+    "new_ideas": 0,
     "sector_hits": 3
   },
   "items": [
@@ -23,281 +23,156 @@
       "author": "Musk",
       "text": "In A SpaceX-Tesla Merger, Elon Musk May Be The Big Winner. What It May Mean For Other Investors.",
       "url": "",
-      "published": "Thu, 10 Sep 2026 11:37:00 GMT",
+      "published": "Fri, 11 Sep 2026 11:12:00 GMT",
       "origin": "gnews-rss",
       "source": "Investor's Business Daily",
-      "tickers": [
-        "TSLA"
-      ],
+      "tickers": [],
       "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
+      "new_ideas": [],
       "sectors": [
         "航天",
-        "电动车",
-        "AI"
+        "电动车"
       ],
       "sector_holdings": [
         "SPCH",
         "SPCX"
       ],
       "stance": "neutral",
-      "relevance": 75,
-      "summary_cn": "市场讨论 SpaceX 与 Tesla 合并可能性，TSLA 为直接点名的上市标的；kcn 通过 SPCX/SPCH 间接持有 SpaceX 敞口，相关性强。",
-      "retained_from_previous": true
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk rips ABC News over fatal NYC Tesla crash report",
-      "url": "",
-      "published": "Thu, 10 Sep 2026 07:25:46 GMT",
-      "origin": "gnews-rss",
-      "source": "Teslarati",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车",
-        "媒体"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
       "relevance": 58,
-      "summary_cn": "Musk 抨击 ABC News 对纽约 Tesla 致命车祸的报道不实，间接维护 TSLA 品牌形象，但事件本身偏舆情，非直接股价催化。",
-      "retained_from_previous": true
+      "summary_cn": "Musk 旗下 SpaceX 与 Tesla 潜在合并传闻，Musk 或为最大赢家，间接利好 kcn 持有的 SpaceX 相关标的。"
     },
     {
       "author": "Musk",
-      "text": "EXCLUSIVE: UK deepens reliance on Musk's SpaceX, spending nearly $40 million on satellite services",
+      "text": "Tesla Shares Suffer Slow Summer After SpaceX IPO, Earnings Rout",
       "url": "",
-      "published": "Thu, 10 Sep 2026 11:50:21 GMT",
+      "published": "Fri, 11 Sep 2026 13:15:50 GMT",
       "origin": "gnews-rss",
-      "source": "Reuters",
+      "source": "Bloomberg.com",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天/卫星通信",
-        "国防"
+        "电动车",
+        "航天"
       ],
       "sector_holdings": [
         "SPCH",
         "SPCX"
       ],
-      "stance": "endorse",
-      "relevance": 70,
-      "summary_cn": "英国加深对 SpaceX 卫星服务依赖，签下近 4000 万美元合同，强化 SpaceX 政府/国防订单趋势，间接利好 kcn 的 SPCX/SPCH 持仓。",
-      "retained_from_previous": true
-    },
-    {
-      "author": "Trump",
-      "text": "“Words of Wisdom” from Phil Flynn, one of the World’s Great Oil and Energy Analysts — A MUST SEE! President DONALD J. TRUMP",
-      "url": "https://www.trumpstruth.org/statuses/41657",
-      "published": "2026-09-09T13:41:33+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "能源",
-        "石油"
-      ],
-      "sector_holdings": [
-        "02208"
-      ],
-      "stance": "endorse",
-      "relevance": 52,
-      "summary_cn": "Trump转发力挺能源/油价分析师Phil Flynn，间接利好能源板块，与kcn持有的金风科技(02208)板块相关。"
-    },
-    {
-      "author": "Trump",
-      "text": "Wow! The Populist Party in Germany just had a really big night. They finally got tired of the absolutely horrible Immigration rules and regulations which have hurt Germany so badly. THEY ARE ON THE RISE, and not going to take it anymore! MGGA!!! President DJT",
-      "url": "https://www.trumpstruth.org/statuses/41639",
-      "published": "2026-09-08T23:37:19+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "欧洲政治",
-        "民粹主义"
-      ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226"
-      ],
       "stance": "neutral",
-      "relevance": 48,
-      "summary_cn": "Trump评论德国选择党崛起、民粹回潮，对欧洲资产/全球风险偏好有间接影响，与kcn恒生科技ETF相关（情绪传导）。"
+      "relevance": 55,
+      "summary_cn": "SpaceX IPO 后资金分流及 Tesla 业绩不佳致股价承压，对 kcn 持有 SpaceX 系标的情绪面略有影响。"
     },
     {
       "author": "Musk",
-      "text": "The Boring Company Raises $3 Billion As Demand for Musk Inc Booms",
+      "text": "'You can't break the fundamental laws of physics': T-Mobile CFO says he's not worried about Elon Musk's cellular ambitions",
       "url": "",
-      "published": "Thu, 10 Sep 2026 10:19:00 GMT",
+      "published": "Fri, 11 Sep 2026 13:14:28 GMT",
       "origin": "gnews-rss",
       "source": "Business Insider",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "基建/隧道",
-        "电动车"
+        "电信/通信",
+        "航天"
       ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "The Boring Company 融资 30 亿美元，反映 Musk 系生态需求旺盛；公司未上市，但体现 Musk 帝国整体估值上行趋势。",
-      "retained_from_previous": true
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "neutral",
+      "relevance": 52,
+      "summary_cn": "T-Mobile CFO 表示不惧 Musk 的蜂窝通信野心，间接涉及 SpaceX/Starlink 业务竞争格局。"
     },
     {
       "author": "Musk",
-      "text": "Katie Miller held large stake in Elon Musk’s xAI as she slammed ChatGPT online",
+      "text": "Elon Musk's Boring Co. turns to Middle East for expansion in reaching $23 billion valuation",
       "url": "",
-      "published": "Thu, 10 Sep 2026 16:37:40 GMT",
+      "published": "Thu, 10 Sep 2026 18:15:59 GMT",
       "origin": "gnews-rss",
-      "source": "The Washington Post",
+      "source": "CNBC",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "AI"
+        "基建/隧道",
+        "中东投资"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "报道 Katie Miller 持有 xAI 大额股份并公开抨击 ChatGPT，间接反映 xAI 估值与 AI 行业竞争格局（xAI 未上市，不计入 tickers）。",
-      "retained_from_previous": true
+      "relevance": 45,
+      "summary_cn": "Musk 的 Boring Co. 估值达 230 亿美元并拓展中东市场，未上市标的，与 kcn 持仓无直接关联。"
     }
   ],
   "held_hits": [],
-  "new_ideas": [
+  "new_ideas": [],
+  "sector_hits": [
     {
       "author": "Musk",
       "text": "In A SpaceX-Tesla Merger, Elon Musk May Be The Big Winner. What It May Mean For Other Investors.",
       "url": "",
-      "published": "Thu, 10 Sep 2026 11:37:00 GMT",
+      "published": "Fri, 11 Sep 2026 11:12:00 GMT",
       "origin": "gnews-rss",
       "source": "Investor's Business Daily",
-      "tickers": [
-        "TSLA"
-      ],
+      "tickers": [],
       "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
+      "new_ideas": [],
       "sectors": [
         "航天",
-        "电动车",
-        "AI"
+        "电动车"
       ],
       "sector_holdings": [
         "SPCH",
         "SPCX"
       ],
       "stance": "neutral",
-      "relevance": 75,
-      "summary_cn": "市场讨论 SpaceX 与 Tesla 合并可能性，TSLA 为直接点名的上市标的；kcn 通过 SPCX/SPCH 间接持有 SpaceX 敞口，相关性强。",
-      "retained_from_previous": true
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk rips ABC News over fatal NYC Tesla crash report",
-      "url": "",
-      "published": "Thu, 10 Sep 2026 07:25:46 GMT",
-      "origin": "gnews-rss",
-      "source": "Teslarati",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车",
-        "媒体"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
       "relevance": 58,
-      "summary_cn": "Musk 抨击 ABC News 对纽约 Tesla 致命车祸的报道不实，间接维护 TSLA 品牌形象，但事件本身偏舆情，非直接股价催化。",
-      "retained_from_previous": true
-    }
-  ],
-  "sector_hits": [
+      "summary_cn": "Musk 旗下 SpaceX 与 Tesla 潜在合并传闻，Musk 或为最大赢家，间接利好 kcn 持有的 SpaceX 相关标的。"
+    },
     {
       "author": "Musk",
-      "text": "EXCLUSIVE: UK deepens reliance on Musk's SpaceX, spending nearly $40 million on satellite services",
+      "text": "Tesla Shares Suffer Slow Summer After SpaceX IPO, Earnings Rout",
       "url": "",
-      "published": "Thu, 10 Sep 2026 11:50:21 GMT",
+      "published": "Fri, 11 Sep 2026 13:15:50 GMT",
       "origin": "gnews-rss",
-      "source": "Reuters",
+      "source": "Bloomberg.com",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "航天/卫星通信",
-        "国防"
+        "电动车",
+        "航天"
       ],
       "sector_holdings": [
         "SPCH",
         "SPCX"
       ],
-      "stance": "endorse",
-      "relevance": 70,
-      "summary_cn": "英国加深对 SpaceX 卫星服务依赖，签下近 4000 万美元合同，强化 SpaceX 政府/国防订单趋势，间接利好 kcn 的 SPCX/SPCH 持仓。",
-      "retained_from_previous": true
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "SpaceX IPO 后资金分流及 Tesla 业绩不佳致股价承压，对 kcn 持有 SpaceX 系标的情绪面略有影响。"
     },
     {
-      "author": "Trump",
-      "text": "“Words of Wisdom” from Phil Flynn, one of the World’s Great Oil and Energy Analysts — A MUST SEE! President DONALD J. TRUMP",
-      "url": "https://www.trumpstruth.org/statuses/41657",
-      "published": "2026-09-09T13:41:33+00:00",
-      "origin": "truthsocial",
+      "author": "Musk",
+      "text": "'You can't break the fundamental laws of physics': T-Mobile CFO says he's not worried about Elon Musk's cellular ambitions",
+      "url": "",
+      "published": "Fri, 11 Sep 2026 13:14:28 GMT",
+      "origin": "gnews-rss",
+      "source": "Business Insider",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "能源",
-        "石油"
+        "电信/通信",
+        "航天"
       ],
       "sector_holdings": [
-        "02208"
-      ],
-      "stance": "endorse",
-      "relevance": 52,
-      "summary_cn": "Trump转发力挺能源/油价分析师Phil Flynn，间接利好能源板块，与kcn持有的金风科技(02208)板块相关。"
-    },
-    {
-      "author": "Trump",
-      "text": "Wow! The Populist Party in Germany just had a really big night. They finally got tired of the absolutely horrible Immigration rules and regulations which have hurt Germany so badly. THEY ARE ON THE RISE, and not going to take it anymore! MGGA!!! President DJT",
-      "url": "https://www.trumpstruth.org/statuses/41639",
-      "published": "2026-09-08T23:37:19+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "欧洲政治",
-        "民粹主义"
-      ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226"
+        "SPCH",
+        "SPCX"
       ],
       "stance": "neutral",
-      "relevance": 48,
-      "summary_cn": "Trump评论德国选择党崛起、民粹回潮，对欧洲资产/全球风险偏好有间接影响，与kcn恒生科技ETF相关（情绪传导）。"
+      "relevance": 52,
+      "summary_cn": "T-Mobile CFO 表示不惧 Musk 的蜂窝通信野心，间接涉及 SpaceX/Starlink 业务竞争格局。"
     }
   ]
 }
