@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-10T16:45:25.487430",
+  "generated_at": "2026-09-11T16:49:22.225367",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -14,7 +14,7 @@
       "SPCH"
     ]
   },
-  "digest_markdown": "## Top 移动信号 (跨 ticker)\n\n- **SPCX**: FCC 9/30 投票拟释放 >1,000 MHz 卫星宽带新频谱,Starlink 直接受益\n  → kcn 持有 **SPCH (2x)**,该监管催化剂将被放大;若投票通过,SPCH 弹性显著\n- **SPCX**: UK 国防订单萌芽 + 数据中心业务改造双线推进,估值叙事再加固\n  → **SPCH (2x)** 双引擎叙事,但尚未落地为合同,需跟踪订单确认\n- **RKLB**: Trump 行政当局设 SPACE Task Force,目标 2035 年 10,000 次/年商业发射,审批/发射走廊/空域整合全提速\n  → kcn 持有 **RKLX (2x)**,政策红利对发射服务需求为正向 beta,2x 杠杆放大\n- **CRCL**: 收购跨境支付平台 Tazapay,USDC 全球支付网络拼图补齐,向\"稳定币霸主\"又进一步\n  → 利好 USDC 流通与采用,但估值已反映大量溢价,kcn 直接持仓关注收购整合风险\n\n## Per-ticker 简报\n\n- **CRCL**: Tazapay 收购落地,USDC 支付基础设施从链上扩展到法币跨境清算 — 中长期采用面利好,短期估值无新增锚\n- **RKLB**: SPACE Task Force 政策面明确倾斜商业发射 + 投资者来信点名\"backlog strength & space demand\"支撑多头逻辑 — 正向 catalyst,但已被 RKLX (2x) 隐含定价\n- **SPCX**: FCC 9/30 频谱投票为近期最大 binary event + UK 国防/数据中心叙事 — 对 SPCH (2x) 双向波动放大\n\n## 风险 watch\n\n- **SPCX/SPCH**: FCC 9/30 投票为二元事件,若延期或否决,2x 杠杆下行同样放大\n- **RKLB/RKLX**: SeekingAlpha 文章指出 IRDM 合并套利\"upside 仅 ~11% 而非 15%\",根因为 RKLB 近期走弱 — 暗示 RKLB 波动已影响关联交易,需关注 RKLX (2x) 波动率扩张\n- **CRCL**: Tazapay 收购为近期动作,整合执行风险 (牌照、合规、客户迁移) 尚未披露细节",
+  "digest_markdown": "## Top 移动信号\n\n- **SPCX**: 第三次 lockup 释放 3.19 亿股, 周三股价跌 3.9%, 后续仍有数十亿股待解锁 → SPCH (2x) 短期承压, 解禁日历是已知利空\n- **SPCX**: CFO 确认 Starship 本月首产生收入 (Flight 14 搭载 Starlink), AI 算力新单 + $100B ARR 目标\"on track\", 英国公开承认使用其机密军用星链网络 (累计合同 >$6B) → SPCH (2x) 多重顺风叠加, 基本面催化密度极高\n- **RKLB**: Raymond James 启动覆盖给 Buy + $80 PT, 强调垂直整合与 backlog 增长 → RKLX (2x) 直接放大分析师上调\n- **RKLB**: 完成 2026 年第 16 次 Electron 发射 (代号 \"Happily Ever Faster\"), 距 100 次里程碑仅差 5 次 → RKLX (2x) 节奏验证\n- **CRCL**: 宣布 Noble 区块链停用 USDC 与 CCTP V1, 且不会升级至 V2, 战略性收缩非核心链 → 边缘化低流动性链, 资源向机构流量集中\n\n## Per-ticker 简报\n\n- **CRCL**: Noble/USDC 退出 - 战略性精简, 中性偏负 (释放资源但缩小覆盖); ECB 加息至 2.5% + MiCA 禁止欧元稳定币付息 - 监管环境利空持币收益类业务, 但 CRCL 以 USD 为主, 影响有限\n- **RKLB**: RJ 启动覆盖 $80 PT - 明确买入催化; 发射节奏持续 (2026 第 16 次) - 执行力背书\n- **SPCX**: lockup 解禁 - 已知稀释利空但未颠覆基本面; UK 军用合同公开 + Starship 首收入 + $100B ARR 路径 - 基本面三连击\n\n## 风险 Watch\n\n- **SPCX**: 第三次 lockup 释放仅是开端, \"billions more\" 仍在解锁日历, 短期估值压制明确 → SPCH (2x) 下行弹性加倍\n- **CRCL**: Noble 退出显示公司在主动放弃边缘生态, 若机构流量迁移慢于预期, 收缩可能压低总链上 USDC 流通量",
   "raw_news_counts": {
     "CRCL": 5,
     "RKLB": 5,
@@ -22,6 +22,27 @@
   },
   "raw_news_evidence": {
     "CRCL": [
+      {
+        "headline": "Circle Is Leaving Cosmos Behind",
+        "datetime": 1789078167,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=637b327e3fb5862acfaf47fc565988edbb779cf562b7facb2217401aab0c0289"
+      },
+      {
+        "headline": "ECB Hikes Rates to 2.5%, But Euro Stablecoins Still Pay Zero",
+        "datetime": 1789065688,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=a0d5104d0d404d9ac01ad8f60953c6bf5a11ca8289e0f267fb14cba9f3e5b6af"
+      },
+      {
+        "headline": "Dan Fishman, At Stablecon, On What It Would Look Like A Year From Now, Says The Potential Driven By AI Usage And Agents Participating In Infrastructure, We Expect To See That Evolve Quite Quickly, Fir",
+        "datetime": 1789041506,
+        "source": "Benzinga",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=9ec0d00ddadf9dde16b3a3bca21202206f63f269e825fae0473f0e4e49c77fe4"
+      },
       {
         "headline": "Cathie Wood Continues to Buy the Dip on Crypto. Here Are 3 Crypto Investments That Need to Be on Your Radar.",
         "datetime": 1789032000,
@@ -35,101 +56,80 @@
         "source": "Yahoo",
         "origin": "finnhub",
         "url": "https://finnhub.io/api/news?id=8ab43ad1221bb9211c856fb42e57fbdab5deb1ab18f1e4cdadd2d77aeb573160"
-      },
-      {
-        "headline": "Iran relaxes controls as it turns to crypto for foreign trade",
-        "datetime": 1788978600,
-        "source": "Yahoo",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=7b094c6cde3919f078809bc933a9b0cb83324dd9b8a1dbaf1ca355cd9d3ecbd2"
-      },
-      {
-        "headline": "Circle buys USDC global payment network in major crypto expansion",
-        "datetime": 1788974168,
-        "source": "Yahoo",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=993d0dceb9f42c6269a3ce186fd0150dbace2be0ba8481efc9ee3859e13b17c5"
-      },
-      {
-        "headline": "How Circle's latest acquisition brings the company one step closer to stablecoin supremacy",
-        "datetime": 1788973221,
-        "source": "Yahoo",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=db9f0d3d430125587f66d9f884f968e846959fcc014869c287fe32e30f4a42d7"
       }
     ],
     "RKLB": [
       {
-        "headline": "Where Will Rocket Lab Stock Be by This Time Next Year?",
-        "datetime": 1789055400,
+        "headline": "Rocket Lab Vs. AST SpaceMobile: Chase the Better SpaceX Disruptor",
+        "datetime": 1789134729,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=dc98edf48ea2fca2375272f19b3c6dace82affcdf04861db665cbb554f3b830b"
+        "url": "https://finnhub.io/api/news?id=ab6f7679fe87476b0cbe5c8507b1ba18282c8e58737f71c4ac33814e57f28888"
       },
       {
-        "headline": "Trump Administration Reveals SPACE Task Force To Boost Commercial Launches",
-        "datetime": 1789048813,
+        "headline": "Rocket Lab Has Something SpaceX Doesn’t. The Case to Buy the Stock.",
+        "datetime": 1789134120,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=f6f7496287df09b07a0af48464044511f93dd19fbdf2004a1a5b12f14da8f85d"
+        "url": "https://finnhub.io/api/news?id=406857a62a91eb9b2d10158eeaeedd0da135c29a8f0068e0014797fb135604f1"
       },
       {
-        "headline": "Backlog Strength and Space Demand Lift Rocket Lab (RKLB)",
-        "datetime": 1789040864,
+        "headline": "Price Prediction: Rocket Lab’s Next Leg Higher Could Be Massive, 95% Upside Ahead",
+        "datetime": 1789133442,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=bae1274595d02faaed629f4a02ab032d0a39d5c35790fbf0355612b510c4f858"
+        "url": "https://finnhub.io/api/news?id=4123e848300b9741acc719c6f9a3cdf08c407782ede2a8f44d3ecdb7ed50ce78"
       },
       {
-        "headline": "Iridium Communications: The $54 Deal Price Overstates The Upside",
-        "datetime": 1789028638,
-        "source": "SeekingAlpha",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=998248f14baae61f9ae2baef1b4cd3ecdd92237d68447f5414ece8829c96c4c6"
-      },
-      {
-        "headline": "RKLB, ASTS, SPCX, PL In Focus: New Trump Task Force Targets 10,000 Annual Space Operations By 2035",
-        "datetime": 1789018963,
+        "headline": "Rocket Lab Is Five Launches From 100 Electron Missions — Raymond James Flags Two Opportunities With ‘Significant Upsides’",
+        "datetime": 1789128476,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=43d38b0cfe6bb21f286997de5c62c5e396fb7602368440158ed89df062d44225"
+        "url": "https://finnhub.io/api/news?id=8c59c3256b92d17116b007195455e06e240157e26fa42eb84462aa796aebd7c5"
+      },
+      {
+        "headline": "Rocket Lab Completes 16th Electron Launch of 2026",
+        "datetime": 1789124560,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=203aaed770eff9769fe26402e58905c5054bcb73b7a1a97d7511cbfc147744b3"
       }
     ],
     "SPCX": [
       {
-        "headline": "SpaceX shares higher as data center overhaul, budding UK defense deal in focus",
-        "datetime": 1789056039,
+        "headline": "SpaceX Fell 3.9% on Its Third Lockup Release Since the IPO. I'd Wait to Buy the Stock.",
+        "datetime": 1789141381,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=fc89a73b977eda6344047d2b298cb3c7e6692c8eacdca5ab0ec345d5ac79fe30"
+        "url": "https://finnhub.io/api/news?id=186c9afcdf2d61c26b40f22ef4338f2eb2c92dff09799f2895025dad5a00ac00"
       },
       {
-        "headline": "The key stocks behind the high returns for college endowments",
-        "datetime": 1789054727,
+        "headline": "Britain Just Admitted It Uses SpaceX’s Secret Military Network. The Contracts Already Top $6 Billion.",
+        "datetime": 1789141320,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=175923bdf35722a031ace62f62e56d325e11e2fe499d6c5f421c480d6cc50bae"
+        "url": "https://finnhub.io/api/news?id=19d657ae651677b411e219dd67ed1c64269193f7b131a4241be667103d235bc5"
       },
       {
-        "headline": "Nvidia Will Pay Its Next Cash Dividend on Oct. 1. Here's How Many Shares of Nvidia (NVDA) Stock You'd Need for $10,000 in Yearly Dividends.",
-        "datetime": 1789054200,
+        "headline": "SpaceX signs another AI computing deal, with $100 billion in ARR 'on track,' CFO says",
+        "datetime": 1789140573,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=daa3209cb64e04e070beb2715ccc5e37aa9832d42758d496016d45d4044b0b79"
+        "url": "https://finnhub.io/api/news?id=111602eb670e032c11ee7576ccf50cfdac6344f3c0835498c0dd4c36fed4f3e6"
       },
       {
-        "headline": "Stock Market Today: Dow Slides As Oil Rocks Higher; Sandisk Slumps As SpaceX Rises (Live Coverage)",
-        "datetime": 1789053746,
+        "headline": "SpaceX Exec Says Starship Will Generate Revenue for First Time ‘Later This Month’",
+        "datetime": 1789140356,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=eff409d452d622e1e76df7c5d3517c6b065603c79eb269ecb617129c1ece7cf8"
+        "url": "https://finnhub.io/api/news?id=935bed07e4641a8075c51f289d57c081024e0699495aa25705d3c6ae773cc193"
       },
       {
-        "headline": "SpaceX’s Starlink in Focus as FCC Moves to Expand Satellite Broadband Spectrum; To Vote on Sept. 30",
-        "datetime": 1789050607,
+        "headline": "Verizon vs. SpaceX: Which Stock Has Better Growth Prospects?",
+        "datetime": 1789138320,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=c545d25b78cc074c5f6dc3cfe078e0cc8670b9bbb4bfe2aac987c916410e51b8"
+        "url": "https://finnhub.io/api/news?id=c149f8865c430bf8c0fb42dd7ac8e43f730551b33a042ffc41baee7eb3c757ba"
       }
     ]
   },
