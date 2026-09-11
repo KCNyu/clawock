@@ -28,8 +28,6 @@ import math
 import time
 from pathlib import Path
 
-from clawock.workspace import workspace_root
-
 #: Server-side, per user inbound (Tencent/openclaw-weixin#81).
 ALLOWANCE = 10
 #: The bot's chat reply to that inbound spends one.
@@ -39,10 +37,6 @@ NOTE_AT_REMAINING = 2
 #: The plugin splits text at this many characters, and every chunk is a message.
 CHUNK_CHARS = 4000
 _KEEP = 200
-
-
-def _ledger_path(workspace=None) -> Path:
-    return Path(workspace or workspace_root()) / "memory" / ".tmp" / "wechat-sends.json"
 
 
 def _accounts_dir() -> Path:
@@ -68,27 +62,27 @@ def chunks(message) -> int:
     return max(1, math.ceil(len(str(message or "")) / CHUNK_CHARS))
 
 
-def _sends(workspace=None) -> list[dict]:
+def _sends(ledger: Path) -> list[dict]:
     try:
-        rows = json.loads(_ledger_path(workspace).read_text(encoding="utf-8"))
+        rows = json.loads(Path(ledger).read_text(encoding="utf-8"))
         return rows if isinstance(rows, list) else []
     except (OSError, ValueError):
         return []
 
 
-def used_since(target, since, workspace=None) -> int:
-    return sum(int(row.get("chunks") or 1) for row in _sends(workspace)
+def used_since(target, since, ledger: Path) -> int:
+    return sum(int(row.get("chunks") or 1) for row in _sends(ledger)
                if row.get("target") == str(target) and row.get("ok")
                and float(row.get("ts") or 0) >= since)
 
 
-def remaining_after(target, message, *, workspace=None, accounts_dir=None):
+def remaining_after(target, message, *, ledger: Path, accounts_dir=None):
     """Pushes left after this one lands, or None when the count is unknown."""
     since = last_inbound(target, accounts_dir)
     if since is None:
         return None
     budget = ALLOWANCE - RESERVED_FOR_REPLY
-    return budget - used_since(target, since, workspace) - chunks(message)
+    return budget - used_since(target, since, ledger) - chunks(message)
 
 
 def note(remaining) -> str:
@@ -100,20 +94,25 @@ def note(remaining) -> str:
             "回我任意一个字就续满；不回的话，之后的推送只在 Telegram。")
 
 
-def annotate(target, message, *, workspace=None, accounts_dir=None):
+def annotate(target, message, *, ledger: Path, accounts_dir=None):
     """(message with the renewal line appended when due, remaining-or-None)."""
-    remaining = remaining_after(target, message, workspace=workspace,
+    remaining = remaining_after(target, message, ledger=ledger,
                                 accounts_dir=accounts_dir)
     line = note(remaining)
     return (f"{message.rstrip()}\n\n{line}" if line else message), remaining
 
 
-def record(target, message, ok, *, workspace=None, now=None) -> None:
-    """File one send. Best effort: losing a row only makes the note late."""
-    rows = _sends(workspace)
+def record(target, message, ok, *, ledger: Path, now=None) -> None:
+    """File one send. Best effort: losing a row only makes the note late.
+
+    The ledger path is the caller's: where a desk keeps its runtime state is the
+    harness's business, not the delivery provider's (providers import no
+    workspace layout).
+    """
+    rows = _sends(ledger)
     rows.append({"ts": now if now is not None else time.time(), "target": str(target),
                  "ok": bool(ok), "chunks": chunks(message)})
-    path = _ledger_path(workspace)
+    path = Path(ledger)
     try:
         path.parent.mkdir(parents=True, exist_ok=True)
         tmp = path.with_suffix(".tmp")

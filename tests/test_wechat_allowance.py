@@ -26,9 +26,9 @@ def _inbound(tmp_path, at=INBOUND, target=KCN):
 def _push(tmp_path, accounts, n, message="盘中盯盘"):
     out = []
     for i in range(n):
-        text, remaining = allowance.annotate(KCN, message, workspace=tmp_path,
+        text, remaining = allowance.annotate(KCN, message, ledger=tmp_path / "sends.json",
                                              accounts_dir=accounts)
-        allowance.record(KCN, text, True, workspace=tmp_path, now=INBOUND + 60 * (i + 1))
+        allowance.record(KCN, text, True, ledger=tmp_path / "sends.json", now=INBOUND + 60 * (i + 1))
         out.append((remaining, "📮" in text))
     return out
 
@@ -44,24 +44,24 @@ def test_a_new_inbound_resets_the_count(tmp_path):
     accounts = _inbound(tmp_path)
     _push(tmp_path, accounts, 9)
     accounts = _inbound(tmp_path, at=INBOUND + 3600)
-    text, remaining = allowance.annotate(KCN, "x", workspace=tmp_path, accounts_dir=accounts)
+    text, remaining = allowance.annotate(KCN, "x", ledger=tmp_path / "sends.json", accounts_dir=accounts)
     assert remaining == 8 and "📮" not in text
 
 
 def test_failed_sends_spend_nothing_and_long_messages_spend_per_chunk(tmp_path):
     accounts = _inbound(tmp_path)
-    allowance.record(KCN, "x", False, workspace=tmp_path, now=INBOUND + 10)
-    allowance.record(KCN, "长" * 8001, True, workspace=tmp_path, now=INBOUND + 20)
-    assert allowance.used_since(KCN, INBOUND, workspace=tmp_path) == 3
+    allowance.record(KCN, "x", False, ledger=tmp_path / "sends.json", now=INBOUND + 10)
+    allowance.record(KCN, "长" * 8001, True, ledger=tmp_path / "sends.json", now=INBOUND + 20)
+    assert allowance.used_since(KCN, INBOUND, ledger=tmp_path / "sends.json") == 3
 
 
 def test_an_unknown_count_is_not_guessed(tmp_path):
     empty = tmp_path / "accounts"
     empty.mkdir()
-    text, remaining = allowance.annotate(KCN, "简报", workspace=tmp_path, accounts_dir=empty)
+    text, remaining = allowance.annotate(KCN, "简报", ledger=tmp_path / "sends.json", accounts_dir=empty)
     assert remaining is None and text == "简报"
     other = _inbound(tmp_path, target="someone-else@im.wechat")
-    assert allowance.annotate(KCN, "简报", workspace=tmp_path, accounts_dir=other)[1] is None
+    assert allowance.annotate(KCN, "简报", ledger=tmp_path / "sends.json", accounts_dir=other)[1] is None
 
 
 def test_the_last_one_says_it_is_the_last_and_how_to_renew():
@@ -84,8 +84,7 @@ def test_send_wechat_annotates_and_records_but_a_dry_run_records_nothing(tmp_pat
     accounts = _inbound(tmp_path)
     monkeypatch.setattr(common, "_delivery", lambda account=None: Provider())
     monkeypatch.setattr(allowance, "_accounts_dir", lambda: accounts)
-    monkeypatch.setattr(allowance, "_ledger_path",
-                        lambda workspace=None: tmp_path / "sends.json")
+    monkeypatch.setattr(common, "wechat_sends_ledger", lambda: tmp_path / "sends.json")
     for _ in range(7):
         common.send_wechat("openclaw-weixin", KCN, None, "报告", dry_run=False)
     assert "📮" in sent[-1] and "📮" not in sent[-2]
@@ -93,6 +92,19 @@ def test_send_wechat_annotates_and_records_but_a_dry_run_records_nothing(tmp_pat
     before = (tmp_path / "sends.json").read_text()
     common.send_wechat("openclaw-weixin", KCN, None, "报告", dry_run=True)
     assert (tmp_path / "sends.json").read_text() == before
+
+
+def test_the_provider_does_not_know_the_workspace_layout():
+    """Decoupled on purpose (kcn 2026-09-12:「注意我们是好不容易解耦的」): the
+    delivery provider is handed its ledger; it imports no workspace module."""
+    import ast
+    import inspect
+    tree = ast.parse(inspect.getsource(allowance))
+    imported = {node.module for node in ast.walk(tree)
+                if isinstance(node, ast.ImportFrom) and node.module}
+    imported |= {alias.name for node in ast.walk(tree) if isinstance(node, ast.Import)
+                 for alias in node.names}
+    assert not {m for m in imported if m.startswith("clawock.workspace")}
 
 
 def test_a_counting_failure_never_costs_the_send(monkeypatch):

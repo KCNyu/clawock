@@ -395,15 +395,21 @@ def send_wechat(channel, to, account, message, dry_run):
     # Every WeChat push goes through here (brief / report / intraday postflight),
     # which makes this the one place that can count Tencent's per-inbound
     # allowance and, on the last few that can still land, ask kcn to renew it.
+    ledger = wechat_sends_ledger()
     try:
-        message, _remaining = wechat_allowance.annotate(to, message)
+        message, _remaining = wechat_allowance.annotate(to, message, ledger=ledger)
     except Exception:  # noqa: BLE001 — a counting failure must never cost the send
         pass
     result = _delivery(account).send(channel, str(to), message, dry_run=dry_run)
     ok = result.status != 'failed'
     if not dry_run:
-        wechat_allowance.record(to, message, ok)
+        wechat_allowance.record(to, message, ok, ledger=ledger)
     return ok, result.detail
+
+
+def wechat_sends_ledger():
+    """Where this desk counts its WeChat pushes (runtime state, gitignored)."""
+    return workspace_root() / 'memory' / '.tmp' / 'wechat-sends.json'
 
 
 def send_telegram(target, message, dry_run):
