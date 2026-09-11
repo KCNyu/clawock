@@ -199,7 +199,14 @@ def main(argv=None) -> int:
     ap.add_argument("--strict", action="store_true",
                     help="exit 1 on a determined failure (never on 'unknown')")
     ap.add_argument("--json", action="store_true")
+    ap.add_argument("--accepted-until", metavar="YYYY-MM-DD",
+                    help="a known, decided-on failure: through this date --strict "
+                         "reports it as a warning instead of exiting 1")
+    ap.add_argument("--accepted-reason", default="",
+                    help="who decided and why; required with --accepted-until")
     args = ap.parse_args(argv)
+    if args.accepted_until and not args.accepted_reason.strip():
+        ap.error("--accepted-until needs --accepted-reason")
 
     verdict = assess()
     if args.json:
@@ -211,8 +218,30 @@ def main(argv=None) -> int:
             print(f"      last rehearsal: {verdict['run_url']} "
                   f"({verdict.get('at')})")
     if args.strict and verdict["status"] in ("fail", "overdue"):
+        if _accepted(args.accepted_until):
+            # kcn 2026-09-11 decided not to repair the backstop. A step that is red
+            # every day for a decided reason hides every NEW red in the same
+            # workflow (the 09-11 publisher false-stale was only found by diffing
+            # run logs by hand), so a decided failure is reported as a warning —
+            # still printed, still annotated — and only until a date, after which
+            # it is red again and has to be decided again. Never open-ended.
+            print(f"::warning title=off-host brief backstop::{verdict['reason']} "
+                  f"(accepted until {args.accepted_until}: {args.accepted_reason})")
+            print(f"      accepted until {args.accepted_until} — {args.accepted_reason}")
+            return 0
         return 1
     return 0
+
+
+def _accepted(until, today=None):
+    """True while `until` (inclusive, UTC date) has not passed."""
+    if not until:
+        return False
+    try:
+        limit = datetime.strptime(until, "%Y-%m-%d").date()
+    except ValueError:
+        return False  # an unreadable date accepts nothing: fail closed, stay red
+    return (today or datetime.now(timezone.utc).date()) <= limit
 
 
 if __name__ == "__main__":
