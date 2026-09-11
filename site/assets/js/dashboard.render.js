@@ -130,9 +130,10 @@
       parts.push(`<div class="add-families">` + families.map(row => {
         const label = ADD_FAMILY_LABEL[row.name] || row.name;
         const progress = row.progress;
-        const pctDone = progress ? Math.min(100, Math.round(progress.have / progress.need * 100)) : (row.active ? 100 : 0);
+        const pctDone = progress && progress.need > 0 && progress.have != null
+          ? Math.min(100, Math.round(progress.have / progress.need * 100)) : (row.active ? 100 : 0);
         const detail = row.active ? "已激活"
-          : progress ? `${progress.counter} ${progress.have}/${progress.need}`
+          : progress ? `${progress.counter} ${numText(progress.have)}/${numText(progress.need)}`
           : (row.blockers || []).join("、") || "预热中";
         return `<div class="add-family">` +
           `<span class="add-family-name">${escapeHtml(label)}</span>` +
@@ -3396,7 +3397,7 @@
       `<div style="padding:8px 12px;border-radius:6px;background:color-mix(in srgb,var(--accent) 8%,transparent);border:1px solid color-mix(in srgb,var(--accent) 25%,transparent)">
          <span class="muted" style="font-size:var(--fs-micro);text-transform:none;letter-spacing:0">待布局弹药</span>
          <div style="font-size:var(--fs-lg);font-weight:700;margin-top:2px">${bits.join('  ·  ') || DASH}</div>
-         <div class="muted" style="font-size:var(--fs-micro);text-transform:none;letter-spacing:0;margin-top:2px">${r.triggered_count}/${r.total} 已触发 · 触发=收盘站回均线,右侧再布局</div>
+         <div class="muted" style="font-size:var(--fs-micro);text-transform:none;letter-spacing:0;margin-top:2px">${numText(r.triggered_count)}/${numText(r.total)} 已触发 · 触发=收盘站回均线,右侧再布局</div>
        </div>`;
     // 每个受监控标的一行
     const rows = r.watches.map(w => {
@@ -3822,7 +3823,7 @@
         <div class="muted">${ccy} · 严格配对 ${z.n_events || 0} 次 / ${z.n_blocks || 0} blocks</div>
         <div class="median">${z.median_bps == null ? DASH : `${z.median_bps >= 0 ? "+" : ""}${z.median_bps} bps`}</div>
         <div class="muted">paired CI ${ci ? `[${ci[0]}, ${ci[1]}] bps` : "—（blocks<3）"}</div>
-        <div class="muted">${dist ? `分布 p10 ${dist.p10} · p25 ${dist.p25} · p50 ${dist.median} · p75 ${dist.p75} · p90 ${dist.p90}` : "暂无可唯一匹配的真实成交"}</div>
+        <div class="muted">${dist ? `分布 p10 ${numText(dist.p10)} · p25 ${numText(dist.p25)} · p50 ${numText(dist.median)} · p75 ${numText(dist.p75)} · p90 ${numText(dist.p90)}` : "暂无可唯一匹配的真实成交"}</div>
       </div>`;
     }).join("");
 
@@ -3832,10 +3833,10 @@
       ? `<table><thead><tr><th>标的/日</th><th>方向·股数</th><th>AI 成交</th><th>同日收盘</th><th>好多少</th></tr></thead><tbody>`
         + timingEvents.map(e => `<tr>
           <td>${escapeHtml(e.ticker)}<div class="muted">${escapeHtml(e.session)} · ${e.currency}</div></td>
-          <td>${e.direction === "sell" ? "卖" : "买"} ${e.shares}</td>
-          <td class="num">${e.ai_execution_price}</td>
-          <td class="num">${e.same_day_close}</td>
-          <td class="num ${pnlClass(e.improvement_bps)}">${e.improvement_bps >= 0 ? "+" : ""}${e.improvement_bps} bps<div class="muted">${fmtMoney(e.improvement_amount, e.currency)}</div></td>
+          <td>${e.direction === "sell" ? "卖" : "买"} ${numText(e.shares)}</td>
+          <td class="num">${numText(e.ai_execution_price)}</td>
+          <td class="num">${numText(e.same_day_close)}</td>
+          <td class="num ${pnlClass(e.improvement_bps)}">${e.improvement_bps == null ? DASH : `${e.improvement_bps >= 0 ? "+" : ""}${e.improvement_bps} bps`}<div class="muted">${fmtMoney(e.improvement_amount, e.currency)}</div></td>
         </tr>`).join("")
         + `</tbody></table>`
       : '<div class="empty-state">暂无能按同票/同日/同方向/同股数唯一匹配的真实成交；不会拿 OHLC 假设成交冒充。</div>';
@@ -4364,7 +4365,7 @@
     if (provEl) {
       const led = prov.ledger || {}, win = prov.window || {};
       provEl.textContent = led.slice_digest
-        ? `这些数出自 ${led.path} 的 ${led.slice_rows} 行`
+        ? `这些数出自 ${led.path} 的 ${numText(led.slice_rows)} 行`
           + `（${win.first_plan_date} → ${win.last_plan_date}）`
           + ` · 代码 ${prov.code_commit || "—"}`
           + ` · 切片指纹 ${led.slice_digest}`
@@ -4566,9 +4567,9 @@
       const keys = Object.keys(tally || {});
       if (!keys.length) return "";
       const judged = keys.reduce((s, k) => s + tally[k], 0);
-      const denom = total != null && total !== judged ? `<b>${judged}</b>/${total}` : `<b>${judged}</b>`;
+      const denom = total != null && total !== judged ? `<b>${judged}</b>/${numText(total)}` : `<b>${judged}</b>`;
       return `${label} ${denom}: ` + keys.sort().map(k =>
-        `<b class="${k === "卖对" || k === "涨" ? "pos" : k === "持平" ? "na" : "neg"}">${tally[k]}</b>${k}`).join(" / ");
+        `<b class="${k === "卖对" || k === "涨" ? "pos" : k === "持平" ? "na" : "neg"}">${numText(tally[k])}</b>${k}`).join(" / ");
     };
     const statsEl = document.getElementById("trace-stats");
     if (statsEl) {
@@ -4597,7 +4598,7 @@
     // coerce, so they are escaped like any other untrusted string.
     function fillNode(t) {
       const sym = t.currency === "HKD" ? "HK$" : "$";
-      return `${esc(ACT[t.action] || t.action)} ${esc(String(t.shares))} 股 @ ${sym}${esc(String(t.price))}`;
+      return `${esc(ACT[t.action] || t.action)} ${esc(numText(t.shares))} 股 @ ${t.price == null ? DASH : sym + esc(String(t.price))}`;
     }
 
     // What actually happened to the money on this row. Two different
@@ -4709,7 +4710,7 @@
                 <span class="tr-dot ${t.decision ? "has" : ""}" title="${t.decision ? "有当日计划记录" : "无当日计划记录"}"></span>
                 <span class="tr-tk">${esc(t.ticker)}</span>
                 <span class="tr-act ${tone}">${esc(ACT[t.action] || t.action)}</span>
-                <span class="tr-qty">${esc(String(t.shares))} @${esc(String(t.price))}</span>
+                <span class="tr-qty">${esc(numText(t.shares))} @${esc(numText(t.price))}</span>
                 <span class="tr-spacer"></span>
                 ${alignTag}
                 ${t1tag}
@@ -4860,7 +4861,7 @@
       }
       return `<div class="risk-alert ${r.leveraged ? 'high' : 'medium'}">
          <span class="icon"></span>
-         <div><strong>${r.ticker}</strong> 浮亏 ${r.pnl_pct}% → 回本需 +${r.breakeven_need_pct}%${extra}</div>
+         <div><strong>${r.ticker}</strong> 浮亏 ${r.pnl_pct == null ? DASH : r.pnl_pct + "%"} → 回本需 ${r.breakeven_need_pct == null ? DASH : "+" + r.breakeven_need_pct + "%"}${extra}</div>
        </div>`;
     }).join('');
     document.getElementById('breakeven-list').innerHTML = html;
