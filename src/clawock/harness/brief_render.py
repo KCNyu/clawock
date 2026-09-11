@@ -406,7 +406,7 @@ def market_trend_section(context):
     return "\n".join(lines)
 
 
-def risk_section(context):
+def risk_section(context, plan=None):
     guard = context.get("risk_guardrail") or {}
     discipline = context.get("risk_discipline") or {}
     rows = []
@@ -440,7 +440,52 @@ def risk_section(context):
     directive = guard.get("directive")
     if directive:
         lines += ["", f"**directive**: {text(directive)}"]
+    standing = _standing_entries(guard, plan)
+    if standing:
+        lines += ["", "**长期未执行 · 自适应**（证据由账本算，今天提不提由模型判断，护栏到了必须提）",
+                  "", entries(standing)]
     return "\n".join(lines)
+
+
+_STANCE_WORDS = {
+    "declined": "同期在别的票有成交（最近 {last_trade_elsewhere}），这几只一股没减",
+    "contrary": "被要求减仓期间反向买入 {buys_on_target} 次（最近 {last_buy_on_target}）",
+}
+
+
+def _standing_entries(guard, plan):
+    """One block per breach the book keeps declining: evidence, today's call, rails."""
+    decisions = (plan or {}).get("decisions") or []
+    rows = []
+    for item in (guard.get("hard_stop_watch") or []) + (guard.get("breaches") or []):
+        adaptive = item.get("adaptive") or {}
+        if not adaptive.get("eligible"):
+            continue
+        stance = adaptive.get("stance") or {}
+        targets = set(stance.get("target_tickers") or [])
+        cuts = [d for d in decisions if str(d.get("ticker")) in targets
+                and d.get("action") in ("cut", "trim_on_rebound")]
+        if adaptive.get("must_reissue"):
+            today = f"必须重提：{text(adaptive.get('must_reason'))}"
+        elif cuts:
+            today = "模型判断今天重提"
+        else:
+            today = "模型判断今天维持，不重提"
+        words = _STANCE_WORDS.get(stance.get("stance"), "{stance}")
+        rows.append({
+            "title": (f"**{text(item.get('ticker') or item.get('leg'))}** · "
+                      f"{text(item.get('type'))} · 挂 {(item.get('standing') or {}).get('days_open', '?')} 天"),
+            "meta": [text(item.get("breach_id"))],
+            "fields": [
+                ("你的做法", words.format(**{
+                    k: text(v) if isinstance(v, str) or v is None else str(v)
+                    for k, v in stance.items()})),
+                ("今天", today),
+                ("护栏", f"{text(adaptive.get('rearm_at'))} 或到 {text(adaptive.get('forced_on'))}"
+                         " 必须重提"),
+            ],
+        })
+    return rows
 
 
 def breakeven_section(context):
@@ -904,7 +949,7 @@ def render_brief(context, judgment, plan, *, date=None, sector_scan=None):
         (PAGE_BOOK_PART, [
             header_section(context, judgment),
             concentration_section(context),
-            risk_section(context),
+            risk_section(context, plan),
             opportunity_section(context),
             breakeven_section(context),
             holdings_section(context),

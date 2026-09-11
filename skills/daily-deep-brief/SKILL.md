@@ -345,7 +345,7 @@ preflight 已算好,直接读 `context.risk_guardrail`:
 - `context.risk_discipline.records[]` — 同一 breach 的持久状态：`breach_id`、严重度、`age_days`、首次/最后变化、required reduction、acknowledgement、限时 override、execution evidence。每日重新生成的 plan 不是状态账本。
 
 硬性规则:
-- **每一条 breach 和 hard_stop 必须在 Judge 段落出一个对应的具体动作**(trim 到 ≤cap / cut),不准忽略、不准"观望"。直接采用 `action` 文案或给等价方案。
+- **每一条 breach 和 hard_stop 必须在 Judge 段落出一个对应的具体动作**(trim 到 ≤cap / cut),不准忽略、不准"观望"。直接采用 `action` 文案或给等价方案。**唯一例外**是下面「长期不执行的建议」里 `adaptive.may_stand=true` 的那几条。
 - 每条 open 记录必须引用 `breach_id + age_days + acknowledgement/execution 状态`；未确认的老 breach 要明确升级，不得每天当新提醒重写。
 - 当天 plan 内的 `override.status=active` **不能**豁免硬闸。只有 durable ledger 里带非空 reason 且未过 TTL 的 `status=overridden` 才有效；创建例外必须由用户明确决定，可用 `/root/.local/bin/clawock risk override BREACH_ID --reason '...' --ttl-hours N`。确认已看见用 `risk ack ... --note '...'`，成交证据用 `risk confirm ... --evidence '...'`；这些命令只记账，绝不下单。
 - 任何 critical/high breach 未关闭且未 durable override 时，禁止新增同一标的、杠杆或因子暴露。卖出不受阻；同一份 plan 中可证明净降 factor exposure 的 2x→1x 配对换仓不受阻。
@@ -368,6 +368,21 @@ preflight 已算好,直接读 `context.risk_guardrail`:
   要么用 `risk override --reason` 记下**为什么决定不做**。实测 2026-08-26:三条 hard_stop 站了
   42 天、同一条砍单发了 136 次、执行 0 次,而 `override` 字段一次没用过——账本读起来像"没人看",
   真相是有人每天看、每天决定不做。
+- **长期不执行的建议 —— 今天提不提，由你判断(2026-09-12 kcn)**:每条风险行带 `adaptive`。
+  harness 已经从账本和成交记录算好了证据,你不用、也不许自己推断 kcn 想不想做:
+  - `eligible=true` = 挂 ≥10 天 + kcn 明确没照做:`stance.stance=declined`(同期在别的票有成交,
+    这几只一股没减)或 `contrary`(被要求减的时候反向买入,`buys_on_target` 次)。`silent`(最近
+    没交易,可能不在)**不算**表态,照常出动作。
+  - `may_stand=true` → 今天由你选:**重提**(照常出 cut/trim)或**维持**(出 `hold_and_watch`,
+    `strategy_id=risk_rebalance`、`driven_by=risk_rule`)。默认维持;**只有今天和上次重提时比
+    有实质不同**才重提——跌穿关键位、新的一手催化、制度切换、临近事件(FOMC/财报)——
+    并在 rationale 第一句写出「今天和 `last_reissued_on` 那天比,变了什么」。写不出来就维持。
+  - 选**维持**时,rationale 不要再写第 N 遍「应该砍」。kcn 的做法已经摆在 `stance` 里
+    (例:SPCH 是「无限子弹流继续摊本」):在他选的打法里给有用的话——这个仓位最该盯的位、
+    什么情况下这套打法本身不成立。**加仓仍然冻结**,维持不等于可以加。
+  - `must_reissue=true` → 护栏到了,你关不掉:照常出 cut/trim,rationale 引 `must_reason`
+    (再深 10pp / 需减额 1.5 倍 / 严重度升级,或距上次重提满 28 天)。
+  - 选择由 postflight 记进账本(`adaptive.stances`),你不写账本、不编 id。
 - 若 `breach_count=0` → 本段写"✅ 仓位硬闸无触发",照常决策。
 - **解套/回本数字只准引用 `context.breakeven_math`**(preflight 已算好:每只浮亏持仓回本所需涨幅、2x 的横盘 decay ≈σ²/12 每月、半年窗含 drag 等效标的涨幅),禁止自己心算或编造。解读纪律见其 `note`:直线涨→2x 回本更快;横盘→2x 每月白付 decay;再跌→2x 双倍挨打——换 1x 买的是后两种情景的保护,不是回本速度,别说反。
 - **技术面判断只准引用 `context.quant_signals` 中 `status=fresh` 的行**(每只持仓的趋势/动量/RSI/zscore20/吊灯止损线/vol_target_weight,杠杆 ETF 按标的算)；`stale/missing/retired` 行只用于披露数据缺口，禁止据此形成判断，也禁止自创"看图"结论。**因子话语权由 `context.quant_signal_review` 决定**(信号每日留痕 vs T+1/T+5 前瞻收益自动对账):必须公示 `n_events/n_dates/n_tickers`;`usable=false` 或聚类 CI 跨 50% 的因子只能当背景展示不入决策；`decision_direction=reverse` 仅在反向 CI 整体低于 50% 时成立，禁止因 raw hit_rate<50% 自动反向。T+0 牌面同样只在 `sample_sufficient=true AND edge_supported=true` 时可入决策；样本够多但 Wilson CI 不支持原方向仍是 `usable=false`，不得自动反向交易。`driven_by=technical` 的整体战绩一律读取 `context.decision_metrics.by_driver.technical` 的实时计算值，禁止引用固定百分比。这是自迭代环——哪个因子可信,数据说了算,每天自动更新。

@@ -557,7 +557,9 @@ def validate_plan_json(path, context=None, decision_packet=None, *,
         }
         for b in gr.get('breaches', []):
             tk, leg = b.get('ticker'), b.get('leg')
-            if b.get('breach_id') in durable_overrides:
+            # A breach the book keeps declining may stand today — holding it is the
+            # plan writer's call, not an omission (risk.py `_adaptive`).
+            if b.get('breach_id') in durable_overrides or risk_discipline.may_stand(b):
                 continue
             if tk and tk not in trim_tickers:
                 issues.append(f'仓位硬闸未处理: {b["type"]} {tk} ({b["detail"]}) — '
@@ -569,7 +571,7 @@ def validate_plan_json(path, context=None, decision_packet=None, *,
                 issues.append(f'仓位硬闸未处理: {b["type"]}/{leg} ({b["detail"]}) — '
                               f'plan 里没有任何目标 ticker 的 trim/cut 动作')
         for s in gr.get('hard_stop_watch', []):
-            if s.get('breach_id') in durable_overrides:
+            if s.get('breach_id') in durable_overrides or risk_discipline.may_stand(s):
                 continue
             cut_tickers = {
                 d.get('ticker') for d in trims if d.get('action') == 'cut'
@@ -745,6 +747,24 @@ def write_publish_gate(status, today, *, reason=None):
     return gate
 
 
+def record_risk_stances(today, workspace=None):
+    """File what today's plan did with each breach allowed to stand (reissue/stand).
+
+    The harness writes it, from the validated plan — the model never touches the
+    breach ledger (#1433 is what a model-written ledger field looks like). A failure
+    here must not cost the day's commit: the rails then count from the last filed
+    reissue, which errs toward raising the breach again sooner, not later.
+    """
+    ws = Path(workspace) if workspace else WS
+    try:
+        plan = json.loads((ws / 'memory' / f'{today}-plan.json').read_text(encoding='utf-8'))
+        return risk_discipline.record_stances(
+            ws / 'memory' / 'risk_breaches.json', today, plan.get('decisions') or [])
+    except Exception as exc:  # noqa: BLE001 — see docstring
+        print(f'warn: risk stance filing failed: {type(exc).__name__}: {exc}', file=sys.stderr)
+        return []
+
+
 def maybe_commit(status, today, dry_run=False):
     if status == 'fail':
         return False, 'skipped (status=fail)'
@@ -757,6 +777,7 @@ def maybe_commit(status, today, dry_run=False):
         return False, 'skipped (dry-run)'
 
     log_decisions(today)   # upsert today's v2 plan (idempotent)
+    record_risk_stances(today)
     rebuild_dashboard()
 
     msg_suffix = ' (validation warnings)' if status == 'warn' else ''

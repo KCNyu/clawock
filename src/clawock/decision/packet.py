@@ -713,6 +713,26 @@ def _event_view(event: dict) -> dict:
     return view
 
 
+def _adaptive_view(adaptive: dict | None) -> dict:
+    """What the plan writer needs from the breach's adaptive state — and no more.
+
+    The ledger keeps the full history (`stances`, anchors); the model gets the verdict,
+    the evidence behind it, and the rails, so it can judge without re-deriving them.
+    """
+    adaptive = adaptive or {}
+    if not adaptive.get("eligible"):
+        return {"eligible": False,
+                "not_eligible_because": adaptive.get("not_eligible_because") or []}
+    return {
+        key: adaptive.get(key)
+        for key in ("eligible", "may_stand", "must_reissue", "must_reason", "stance",
+                    "last_reissued_on", "days_since_reissue", "forced_on", "rearm_at")
+    } | {"recent_choices": [
+        {"date": row.get("date"), "choice": row.get("choice")}
+        for row in (adaptive.get("stances") or [])[-5:]
+    ]}
+
+
 def _risk_map(context: dict, active: set[str]) -> dict[str, list[dict]]:
     guardrail = context.get("risk_guardrail") or {}
     out = {ticker: [] for ticker in active}
@@ -737,6 +757,7 @@ def _risk_map(context: dict, active: set[str]) -> dict[str, list[dict]]:
                 # writer is the one who can turn it into an execute, an
                 # acknowledge or an override (#1075).
                 "standing": row.get("standing") or {},
+                "adaptive": _adaptive_view(row.get("adaptive")),
                 "required_reduction": {
                     key: reduction.get(key)
                     for key in (
@@ -764,6 +785,7 @@ def _risk_map(context: dict, active: set[str]) -> dict[str, list[dict]]:
             "detail": row.get("detail"),
             "action_text": row.get("action"),
             "standing": row.get("standing") or {},
+            "adaptive": _adaptive_view(row.get("adaptive")),
             "required_reduction": {
                 key: reduction.get(key)
                 for key in (
@@ -876,14 +898,23 @@ def _status(technical: dict, risks: list[dict]) -> dict:
 def _constraints(shares: int, risks: list[dict], actionable_ids: list[str],
                  technical: dict, execution: dict,
                  swap_mandates: list[dict] | None = None) -> dict:
-    hard_stop = any(row.get("kind") == "hard_stop" for row in risks)
+    # A breach the book has kept declining may stand (risk.py `_adaptive`): the plan
+    # writer chooses between raising it again and holding, and only the breaches that
+    # are NOT allowed to stand still force an action.
+    loud = [row for row in risks if not (row.get("adaptive") or {}).get("may_stand")]
+    hard_stop = any(row.get("kind") == "hard_stop" for row in loud)
     direct_risk = bool(risks)
     if hard_stop:
         allowed = ["cut"]
         forced = ["cut"]
-    elif direct_risk:
+    elif loud:
         allowed = ["trim_on_rebound", "cut"]
         forced = ["trim_on_rebound", "cut"]
+    elif direct_risk:
+        # Every breach on this name may stand. Adds stay shut — `can_add` below still
+        # reads `risks` — so standing never turns into buying more of a breach.
+        allowed = ["hold_and_watch", "watch", "trim_on_rebound", "cut"]
+        forced = []
     else:
         allowed = ["hold_and_watch", "watch"]
         forced = []
