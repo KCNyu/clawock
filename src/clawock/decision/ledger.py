@@ -464,6 +464,30 @@ def assign_episode_ids(decisions: list[dict]) -> list[dict]:
     return decisions
 
 
+_DERIVED_EPISODE_ID = re.compile(r"ep-[0-9a-f]{12}")
+
+
+def rederive_typed_episode_ids(decisions: list[dict]) -> list[tuple[str, str, str]]:
+    """Replace episode ids nobody derived with the ones the episode rule gives.
+
+    `_stable_id` is the only writer of episode ids, so anything not shaped
+    like its output was typed by a model (`ep-20260904-07226-cut`) and kept
+    verbatim — see `_harness_owned_ids` for how, and what it did to the
+    scorecard. Derived ids are left alone: they already mark where the rule
+    started an episode, and re-deriving everything would also rewrite
+    pre-2026-07-23 history this bug never touched. Returns
+    (decision_id, old, new) for every row it changed.
+    """
+    before = {id(d): d.get("episode_id") for d in decisions}
+    for d in decisions:
+        if (d.get("schema_version") != 0 and d.get("plan_date")
+                and not _DERIVED_EPISODE_ID.fullmatch(str(d.get("episode_id") or ""))):
+            d.pop("episode_id", None)
+    assign_episode_ids(decisions)
+    return [(d.get("decision_id"), before[id(d)], d.get("episode_id"))
+            for d in decisions if d.get("episode_id") != before[id(d)]]
+
+
 def validate_decision(d: dict) -> list[str]:
     # Decision-mind records (docs/decision-mind-ledger.md) are a deliberate
     # second ledger row type: they carry mind/emotion instead of the
@@ -617,12 +641,44 @@ def validate_plan(plan: dict, path: str | Path | None = None) -> list[str]:
     return errors
 
 
+def _harness_owned_ids(item: dict, plan_date: str, own_ids: set) -> dict:
+    """Drop the identity fields a model may have typed into an authored decision.
+
+    `decision_id` and `episode_id` are the ledger's keys, not opinions. Between
+    2026-07-23 and 2026-09-11 the model wrote them itself on eleven briefs —
+    `ep-20260911-07226-cut`, `dec-pending-07226-20260911` — mostly because a
+    failed postflight listed "missing decision_id / episode_id" among the issues
+    to fix. Both were kept verbatim, and `assign_episode_ids` honours any
+    episode_id it is handed, so every such day opened a fresh episode for a
+    thesis that had been running for weeks: 11 real active episodes since 07-23
+    were booked as 42, and the 30-day active win rate read 63.6% on n=11 where
+    the episode rule gives 50% on n=2. That is the reaffirmation inflation the
+    episode rule exists to prevent, walked back in through the input.
+
+    A decision_id survives only when this ledger already holds it for the same
+    plan date and ticker — i.e. this postflight normalized the plan earlier and
+    is re-running over its own output, where keeping the id keeps the upsert
+    idempotent. Anything else (invented, or copied from yesterday's plan, which
+    the upsert would then overwrite) is re-derived. episode_id is always
+    re-derived: continuity is the ledger's to decide, from the rows it holds.
+    """
+    out = {k: v for k, v in item.items() if k != "episode_id"}
+    did = out.get("decision_id")
+    if did and (did, plan_date, str(out.get("ticker") or "").strip()) not in own_ids:
+        out.pop("decision_id")
+    return out
+
+
 def normalize_authored_plan(plan: dict, ledger_path: Path = LEDGER) -> dict:
     """Fill deterministic v2 ids/defaults before postflight validation."""
     plan_date = plan.get("date") or datetime.now().date().isoformat()
     source = plan.get("decisions") or []
-    normalized = [legacy_action_to_decision(item, plan_date, i) for i, item in enumerate(source)]
     existing = load_decisions(ledger_path)
+    own_ids = {(d.get("decision_id"), d.get("plan_date"), d.get("ticker")) for d in existing}
+    normalized = [
+        legacy_action_to_decision(_harness_owned_ids(item, plan_date, own_ids), plan_date, i)
+        for i, item in enumerate(source)
+    ]
     assign_episode_ids(existing + normalized)
     out = {k: v for k, v in plan.items() if k != "actions"}
     out["schema_version"] = SCHEMA_VERSION

@@ -449,7 +449,18 @@ def normalize_plan_json(path, ledger_path=None, *, decision_packet=None,
     return _normalization_result([], normalized, return_plan)
 
 
-def validate_plan_json(path, context=None, decision_packet=None):
+def validate_plan_json(path, context=None, decision_packet=None, *,
+                       normalized=True):
+    """Validate the plan on disk.
+
+    ``normalized=False`` says normalization was skipped because the authored
+    plan already had semantic errors. The file then still lacks every field
+    normalization fills, and listing those — six per decision, 48 of 62 issues
+    on 2026-09-11 — tells the model to write ids itself. It did, on eleven
+    briefs, and the ledger kept them (see `decision_v2._harness_owned_ids`).
+    The model is shown only what it owns; the semantic issues that stopped
+    normalization are already reported by `normalize_plan_json`.
+    """
     if not path.exists():
         return ['plan.json 缺失（critical）']
     try:
@@ -457,7 +468,10 @@ def validate_plan_json(path, context=None, decision_packet=None):
     except json.JSONDecodeError as e:
         return [f'plan.json 解析失败: {e}']
 
-    issues = [f'plan.json v2: {x}' for x in decision_v2.validate_plan(plan, path)]
+    issues = [
+        f'plan.json v2: {x}' for x in decision_v2.validate_plan(plan, path)
+        if normalized or not _normalization_owned_plan_error(x)
+    ]
     issues += validate_generation_references(plan, context)
     if decision_packet:
         issues += [
@@ -658,6 +672,7 @@ def categorize(issues):
 from clawock.harness.validation import (
     categorize_issues,
     check_md_table_column_consistency,
+    postflight_exit_code,
     product_status,
     split_advisory,
 )
@@ -976,7 +991,8 @@ def main(argv=None):
         else plan_path
     )
     issues += validate_plan_json(
-        validation_path, context=context, decision_packet=decision_packet
+        validation_path, context=context, decision_packet=decision_packet,
+        normalized=not normalization_issues,
     )
 
     status = categorize(issues)
@@ -1230,7 +1246,7 @@ def main(argv=None):
     if (not args.dry_run and status in ('pass', 'warn')
             and (not projection_ready or data_plane_status != 'published')):
         return 2
-    return 0 if status == 'pass' else (1 if status == 'warn' else 2)
+    return postflight_exit_code(product)
 
 
 if __name__ == '__main__':

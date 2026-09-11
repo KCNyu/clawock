@@ -49,6 +49,7 @@ from clawock.harness.validation import (
     advisory_prefix,
     categorize_issues,
     check_numeric_claims,
+    postflight_exit_code,
     product_status,
     split_advisory,
     validate_forbidden_phrases,
@@ -635,7 +636,7 @@ def main(argv=None):
     print(json.dumps(result, ensure_ascii=False, indent=2))
     if not publication_ok:
         return 2
-    return 0 if product == 'pass' else (1 if product == 'warn' else 2)
+    return postflight_exit_code(product)
 
 
 if __name__ == '__main__':

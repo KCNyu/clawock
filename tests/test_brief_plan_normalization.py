@@ -328,3 +328,91 @@ def test_dry_run_validates_normalized_plan_without_rewriting_source(
     assert observed["issues"] == []
     assert plan_path.read_text() == authored
     assert plan_path.stat().st_mtime_ns == before_mtime
+
+
+def _ledger_row(plan_date, decision_id, episode_id, ticker="AAA"):
+    return {
+        "schema_version": 2, "decision_id": decision_id,
+        "episode_id": episode_id, "plan_date": plan_date,
+        "created_at": f"{plan_date}T08:00:00+08:00", "ticker": ticker,
+        "strategy_id": "risk_rebalance", "action": "cut",
+        "condition": {"type": "manual", "price": None},
+    }
+
+
+def test_model_typed_ids_do_not_split_a_running_episode(tmp_path):
+    # 2026-09-11: after a failed first postflight listed "missing
+    # decision_id / episode_id", the model typed `ep-20260911-07226-cut` and
+    # the ledger kept it — a cut thesis running since 09-04 became a new,
+    # independently scored episode. Continuity is the ledger's call.
+    ledger = tmp_path / "decisions.jsonl"
+    ledger.write_text(json.dumps(
+        _ledger_row("2026-07-29", "dec-aaaaaaaaaaaa", "ep-bbbbbbbbbbbb")) + "\n")
+    path = _write_authored_plan(tmp_path, _authored_decision(
+        decision_id="dec-pending-aaa-20260730",
+        episode_id="ep-20260730-aaa-cut",
+    ))
+
+    assert brief_postflight.normalize_plan_json(path, ledger) == []
+
+    decision = json.loads(path.read_text())["decisions"][0]
+    assert decision["episode_id"] == "ep-bbbbbbbbbbbb"
+    assert decision["decision_id"] != "dec-pending-aaa-20260730"
+    assert decision["decision_id"].startswith("dec-")
+
+
+def test_copied_decision_id_cannot_overwrite_yesterdays_row(tmp_path):
+    # The upsert is keyed on decision_id: yesterday's id, copied forward,
+    # would rewrite yesterday's row with today's plan_date.
+    ledger = tmp_path / "decisions.jsonl"
+    ledger.write_text(json.dumps(
+        _ledger_row("2026-07-29", "dec-aaaaaaaaaaaa", "ep-bbbbbbbbbbbb")) + "\n")
+    path = _write_authored_plan(
+        tmp_path, _authored_decision(decision_id="dec-aaaaaaaaaaaa"))
+
+    assert brief_postflight.normalize_plan_json(path, ledger) == []
+
+    assert json.loads(path.read_text())["decisions"][0]["decision_id"] \
+        != "dec-aaaaaaaaaaaa"
+
+
+def test_rerun_over_own_output_keeps_its_decision_id(tmp_path):
+    # A second postflight on the same day reads the plan the first one wrote
+    # back and committed; keeping that id is what makes the upsert an update.
+    ledger = tmp_path / "decisions.jsonl"
+    path = _write_authored_plan(tmp_path, _authored_decision())
+    assert brief_postflight.normalize_plan_json(path, ledger) == []
+    first = json.loads(path.read_text())
+    brief_postflight.decision_v2.upsert_plan_decisions(first, path=ledger)
+
+    # The model edits the condition after the first run; the id stays.
+    first["decisions"][0]["condition"]["description"] = "edited"
+    path.write_text(json.dumps(first))
+    assert brief_postflight.normalize_plan_json(path, ledger) == []
+
+    again = json.loads(path.read_text())["decisions"][0]
+    assert again["decision_id"] == first["decisions"][0]["decision_id"]
+    assert again["episode_id"] == first["decisions"][0]["episode_id"]
+
+
+def test_skipped_normalization_does_not_ask_the_model_for_ids(tmp_path):
+    # With a semantic error, normalization is skipped and the file lacks every
+    # machine-owned field. Listing those (48 of 62 issues on 2026-09-11) is
+    # what sent the model off to invent ids.
+    path = _write_authored_plan(tmp_path, _authored_decision(
+        debate={"frames": ["risk_rebalance"]}))
+    ledger = tmp_path / "decisions.jsonl"
+
+    semantic = brief_postflight.normalize_plan_json(path, ledger)
+    assert semantic and all("plan.json authored" in i for i in semantic)
+
+    issues = brief_postflight.validate_plan_json(path, normalized=False)
+    assert not any(
+        field in issue
+        for issue in issues
+        for field in ("decision_id", "episode_id", "plan_date",
+                      "created_at", "schema_version must be 2")
+    ), issues
+    # Normalized plans still report them: there they would be a harness bug.
+    assert any("decision_id" in issue
+               for issue in brief_postflight.validate_plan_json(path))

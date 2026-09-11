@@ -787,7 +787,7 @@ postflight 严格 schema 校验：
 | `event` | 事件型（财报/公告） | 有结构化证据才触发，否则 not_evaluable |
 | `manual` | 完全靠人判断 | 无结构化证据则 not_evaluable |
 
-禁止输出顶层 `actions`。postflight 会生成稳定的 `decision_id` / `episode_id` 并写入 `memory/decisions.jsonl`。同股同日的不同 strategy 必须保留为不同 decision；同策略连续同 action 才可归入同一 episode。
+禁止输出顶层 `actions`。postflight 会生成稳定的 `decision_id` / `episode_id` 并写入 `memory/decisions.jsonl`。**不要自己写这两个字段**（也不要从昨天的 plan 抄）：写了也会被丢弃重算 —— 它们是台账的键，由台账按规则判定是否延续同一 episode。同股同日的不同 strategy 必须保留为不同 decision；同策略连续同 action 才可归入同一 episode。
 
 #### C. 受限判断 overlay → `memory/.tmp/brief-judgment-{YYYY-MM-DD}.json`
 
