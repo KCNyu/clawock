@@ -26,6 +26,12 @@
     --radius: 12px;
     --radius-sm: 8px;
     --mono: ui-monospace, "SF Mono", Menlo, monospace;
+    /* Brief cards (2026-09-11): the lit top edge and the drop shadow are the
+       two halves of "a card sitting on the page", and each needs its own value
+       per theme — a white edge vanishes on a white card, a soft shadow vanishes
+       on a near-black page. Tokens, not literals, for the #1272 reason. */
+    --card-edge: rgba(255, 255, 255, 0.05);
+    --card-shadow: 0 1px 2px rgba(0, 0, 0, 0.30), 0 14px 32px -18px rgba(0, 0, 0, 0.70);
   }
   @media (prefers-color-scheme: light) {
     :root {
@@ -39,6 +45,8 @@
       --accent-2: #7c5ce8;
       --green: #16a34a;
       --red: #dc2626;
+      --card-edge: rgba(255, 255, 255, 0.9);
+      --card-shadow: 0 1px 2px rgba(15, 22, 38, 0.05), 0 14px 32px -20px rgba(15, 22, 38, 0.22);
     }
   }
   * { box-sizing: border-box; }
@@ -226,6 +234,152 @@
     article table th, article table td { padding: 6px 8px; }
   }
 
+  /* ── Brief pages: one card per subsection (2026-09-11) ────────────────────
+     kcn: "在 dashboard 里看 brief 也很丑，也没什么卡片区块感，数据排版也很杂乱".
+     Measured on the 2026-09-11 brief before this change: zero containers below
+     the part bands (every `h3` subsection was a quiet label with a hairline,
+     `background: transparent`, `border: 0`), five of sixteen tables carrying a
+     prose column with cells up to 668 characters, and — under the phone rule's
+     `nowrap` — a 4,880px table inside a 328px screen.
+
+     `brief_render` now wraps each subsection in `.brief-card` and lays the five
+     prose tables out as `.brief-entries`. Everything below is scoped to
+     `article:has(.brief-card)`, so the weekly reviews, the FAQ and every other
+     page on this layout keep the single-panel look they were designed with; a
+     brief rendered before this change has no cards and also keeps it. */
+  article:has(.brief-card) {
+    background: transparent; border: 0; padding: 0;
+  }
+  article:has(.brief-card) > h1 { margin: 6px 2px 14px; font-size: 24px; }
+  /* Parts become section headers ON the page, between groups of cards — the
+     cards carry the weight now, so the band would be a card-shaped thing that
+     is not a card. */
+  article:has(.brief-card) h2 {
+    background: none; border-left: 0; border-radius: 0;
+    padding: 0 2px; margin: 34px 0 10px;
+    font-size: 18px; font-weight: 700;
+    display: flex; align-items: center; gap: 10px;
+  }
+  article:has(.brief-card) h2::before {
+    content: ""; flex: 0 0 auto; width: 4px; height: 1.05em;
+    border-radius: 2px; background: var(--accent);
+  }
+  .brief-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    margin: 12px 0;
+    box-shadow: inset 0 1px 0 var(--card-edge), var(--card-shadow);
+  }
+  .brief-card > :first-child { margin-top: 0; }
+  .brief-card > :last-child { margin-bottom: 0; }
+  article .brief-card > h3 {
+    font-size: 15px; font-weight: 650; color: var(--text);
+    letter-spacing: -0.005em; margin: 0 0 12px;
+  }
+  article .brief-card > h3::after { display: none; }
+  /* The opening call: the first thing the page says, set a size up. */
+  .brief-lede { font-size: 15.5px; line-height: 1.7; }
+  .brief-lede > p { margin: 8px 0; }
+
+  /* One block per row for the rows whose content is prose. */
+  .brief-entries > ul {
+    list-style: none; padding: 0; margin: 0;
+    display: grid; gap: 10px;
+  }
+  article .brief-entries li {
+    margin: 0; padding: 12px 14px;
+    background: var(--card-2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+  }
+  .brief-entries li > p { margin: 6px 0 0; }
+  .brief-entries li > p:first-child { margin: 0; font-size: 15px; line-height: 1.5; }
+  .brief-entries .entry-meta {
+    display: block; font-family: var(--mono); font-size: 12px;
+    line-height: 1.5; color: var(--text-dim); overflow-wrap: anywhere;
+  }
+  /* The field label (理由 / 证伪条件 / Fundamentals …) reads as a label, so the
+     prose after it is what the eye lands on. */
+  .brief-entries li > p:not(:first-child) > strong:first-child {
+    color: var(--text-dim); font-size: 12.5px; font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+  /* In 今日动作 the title is `**ticker** · **action**`: the second bold is the
+     call itself, so it reads as a chip. Only that section has a second bold in
+     its title line, which is the renderer's doing, not an accident. */
+  .brief-entries li > p:first-child > strong:nth-of-type(2) {
+    display: inline-block; padding: 0 9px; border-radius: 999px;
+    font-size: 13px; line-height: 1.7; vertical-align: 1px;
+    color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 14%, transparent);
+  }
+
+  .brief-card table { margin: 4px 0; }
+  .brief-card > table:last-child { margin-bottom: 0; }
+
+  /* The folded reference material: the toggle becomes a card of its own and
+     the sections inside it stay cards, instead of cards nested in a panel. */
+  article:has(.brief-card) details.brief-appendix {
+    background: transparent; border: 0; padding: 0; margin-top: 34px;
+  }
+  article:has(.brief-card) details.brief-appendix > summary {
+    padding: 13px 18px; background: var(--card);
+    border: 1px solid var(--border); border-radius: var(--radius);
+    box-shadow: inset 0 1px 0 var(--card-edge), var(--card-shadow);
+  }
+  article:has(.brief-card) details.brief-appendix[open] > summary {
+    border-bottom: 1px solid var(--border); margin-bottom: 4px;
+  }
+
+  @media (max-width: 600px) {
+    article:has(.brief-card) { padding: 0; }
+    article:has(.brief-card) > h1 { font-size: 20px; }
+    .brief-card { padding: 14px; margin: 10px 0; border-radius: var(--radius-sm); }
+    article .brief-entries li { padding: 10px 12px; }
+    /* Cells wrap on brief pages. `nowrap` (below, for every page) was there so
+       a wide numeric table scrolls instead of breaking the layout — the scroll
+       still happens via `display: block; overflow-x: auto`, and with prose out
+       of the tables a wrapped cell is a number and a word, not 668 characters
+       on one line. Headers keep `nowrap` so a column name never splits. */
+    article:has(.brief-card) table { white-space: normal; }
+    article:has(.brief-card) table th { white-space: nowrap; }
+
+    /* On a phone the call has to be visible before the reasoning (the 09-09
+       rule: what matters must be seen without a second action). Nine
+       decisions with ~500 characters of reasoning each made 今日动作 4,249px
+       tall at 390px, so the prose fields clamp to two lines and a tap opens the
+       entry. Keyed on `.brief-js`, which the script at the end of this file
+       sets: with no script there is no clamp and no way to lose text. The hint
+       is drawn only on entries the script measured as actually cut. */
+    /* The enum line (`.entry-meta`) is short facts, not prose — clamping it
+       cut `risk_rule` off the end of a three-enum line. Only prose clamps. */
+    .brief-js .brief-entries li > p:not(:first-child):not(:has(> .entry-meta)) {
+      display: -webkit-box; -webkit-box-orient: vertical;
+      -webkit-line-clamp: 2; line-clamp: 2; overflow: hidden;
+    }
+    .brief-js .brief-entries li.is-open > p:not(:first-child):not(:has(> .entry-meta)) {
+      display: block; -webkit-line-clamp: unset; line-clamp: none; overflow: visible;
+    }
+    .brief-js .brief-entries li.is-clamped { cursor: pointer; }
+    /* A collapsed tile on a phone is the call plus two lines of why. The enum
+       line waits for the tap — only on tiles that ARE tappable, so it is never
+       more than one action away (a tile with nothing clamped keeps it shown).
+       Four calls per screen instead of two. */
+    .brief-js .brief-entries li.is-clamped:not(.is-open) > p:has(> .entry-meta) {
+      display: none;
+    }
+    .brief-js .brief-entries li.is-clamped::after {
+      content: "展开全文"; display: block; margin-top: 6px;
+      font-size: 12px; color: var(--accent);
+    }
+    .brief-js .brief-entries li.is-clamped.is-open::after { content: "收起"; }
+    .brief-js .brief-entries li.is-clamped:focus-visible {
+      outline: 2px solid var(--accent); outline-offset: 2px;
+    }
+  }
+
   /* Brief-list (for briefs.html index) */
   .brief-list { list-style: none; padding: 0; margin: 8px 0; }
   .brief-list li {
@@ -294,6 +448,63 @@
     Not investment advice. Real positions shown. Point-in-time data. Past performance ≠ future results.
   </p>
 </footer>
+
+<script>
+  /* Phone-width brief entries: clamp the prose, tap to open (see the
+     `.brief-js` rules above). A page with no `.brief-entries` — every page on
+     this layout except a brief rendered from 2026-09-11 on — returns at once.
+     "Is this entry cut?" is measured (`scrollHeight > clientHeight` on the
+     clamped paragraphs), never inferred from its length, so a two-line reason
+     does not get a "展开全文" that opens nothing. */
+  (function () {
+    var items = document.querySelectorAll('article .brief-entries li');
+    if (!items.length) return;
+    var root = document.documentElement;
+    var narrow = window.matchMedia('(max-width: 600px)');
+    root.classList.add('brief-js');
+
+    function measure() {
+      items.forEach(function (li) {
+        if (li.classList.contains('is-open')) return;
+        var cut = narrow.matches && Array.prototype.some.call(
+          li.querySelectorAll(':scope > p:not(:first-child):not(:has(> .entry-meta))'),
+          function (p) { return p.scrollHeight > p.clientHeight + 1; });
+        li.classList.toggle('is-clamped', cut);
+        if (cut) {
+          li.setAttribute('role', 'button');
+          li.setAttribute('tabindex', '0');
+          li.setAttribute('aria-expanded', 'false');
+        } else {
+          li.removeAttribute('role');
+          li.removeAttribute('tabindex');
+          li.removeAttribute('aria-expanded');
+        }
+      });
+    }
+    function toggle(li) {
+      if (!li.classList.contains('is-clamped')) return;
+      var open = li.classList.toggle('is-open');
+      li.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+    items.forEach(function (li) {
+      li.addEventListener('click', function (event) {
+        if (event.target.closest('a') || window.getSelection().toString()) return;
+        toggle(li);
+      });
+      li.addEventListener('keydown', function (event) {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          toggle(li);
+        }
+      });
+    });
+    measure();
+    if (narrow.addEventListener) narrow.addEventListener('change', measure);
+    document.querySelectorAll('article details').forEach(function (d) {
+      d.addEventListener('toggle', measure);
+    });
+  })();
+</script>
 
 </body>
 </html>
