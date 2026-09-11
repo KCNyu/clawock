@@ -19,7 +19,6 @@ the property defended, not by function, because the refusals are what keep the
 recoveries safe.
 """
 import json
-import sys
 from pathlib import Path
 
 import pytest

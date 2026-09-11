@@ -9,7 +9,6 @@ refreshing around it. Nothing failed; that is what made it survive.
 
 Run: python3 -m pytest tests/test_bars_freshness.py -q
 """
-import inspect
 import json
 import sys
 from datetime import date

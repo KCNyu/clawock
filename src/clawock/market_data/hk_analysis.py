@@ -337,10 +337,8 @@ def news_sentiment(articles: List[Dict]) -> str:
 def signal(holding: Dict) -> str:
     dp    = holding.get('today_change_pct', 0)
     pnl_p = holding.get('pnl_percent', 0)
-    code  = holding.get('ticker', '')
     # Only 07226 (XL二南方恒科, 2x) is leveraged; 03032/03033 are plain 1x HSTECH
     # ETFs and must NOT be flagged 2x. Use the canonical LEVERAGED set.
-    is_lev = code in LEVERAGED
 
     if dp <= -8:
         return '⚠️ ALERT'
@@ -388,7 +386,6 @@ def update_hk_portfolio(dry_run: bool = False) -> Dict:
     quotes = fetch_hk_quotes(codes)
     print(f"  Fetched {len(quotes)}/{len(codes)} prices from Tencent gtimg")
 
-    today_date = now_hkt.strftime('%Y-%m-%d')
     # A prior close belongs to the PRIOR HK session, never today. Stamping
     # today_date here (the old behaviour) produced holdings whose
     # prev_close_date equalled the session date — an impossible state that also
@@ -501,7 +498,7 @@ def update_hk_portfolio(dry_run: bool = False) -> Dict:
               f"P&L: {pnl_s}HK${h['pnl_abs']:.0f} ({pnl_s}{h['pnl_percent']:.1f}%)")
 
     if range_warns:
-        print(f"\n  ⚠️  当日区间越界告警（疑似坏 tick，请核对 / 用同标的 2x 验向）：", file=sys.stderr)
+        print("\n  ⚠️  当日区间越界告警（疑似坏 tick，请核对 / 用同标的 2x 验向）：", file=sys.stderr)
         for w in range_warns:
             print(f"     - {w}", file=sys.stderr)
 
@@ -661,7 +658,7 @@ def print_report(data: Dict, news_map: Optional[Dict[str, List]] = None):
     loss_count = sum(1 for h in active if h.get('pnl_percent', 0) < 0)
 
     print(f"  {'─'*58}")
-    print(f"  风险摘要")
+    print("  风险摘要")
     print(f"  2x杠杆ETF敞口:  {lev_pct:.1f}%  (HK${lev_value:,.0f})")
     print(f"  亏损持仓:       {loss_count}/{len(active)} 只")
     print(f"{'═'*62}\n")
@@ -818,7 +815,7 @@ def main(argv=None) -> int:
                         if h.get('shares', 0) > 0]
         if finnhub_key:
             if not wechat:
-                print(f"  [新闻] Finnhub 7天新闻...")
+                print("  [新闻] Finnhub 7天新闻...")
             for code in active_codes:
                 articles = get_finnhub_news(code, finnhub_key)
                 news_map[code] = articles

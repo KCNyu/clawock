@@ -26,8 +26,7 @@ Side effects:
 import json
 import re
 import sys
-import subprocess
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
 
 from clawock.workspace import workspace_root

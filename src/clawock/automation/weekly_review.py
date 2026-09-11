@@ -12,7 +12,6 @@ import glob
 import json
 import math
 import os
-import sys
 from datetime import date, timedelta
 from pathlib import Path
 

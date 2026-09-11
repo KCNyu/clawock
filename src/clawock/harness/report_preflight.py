@@ -47,7 +47,6 @@ from clawock.harness._harness_common import run_analyze
 import argparse
 import json
 import re
-import subprocess
 import sys
 from datetime import datetime
 
@@ -56,7 +55,6 @@ from clawock import sessions as trading_calendar
 from clawock.decision import plans as plan_surface
 from clawock.evidence import research_surface
 from clawock.market_data import mover_evidence as mover_news
-from clawock.utilities import PACKAGED_UTILITIES
 from clawock.market_data import peer_scan
 
 WS = workspace_root()

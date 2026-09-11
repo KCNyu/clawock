@@ -79,7 +79,7 @@ def fetch_vwap_orb(code):
             parts = row.split()
             if len(parts) < 3:
                 continue
-            hhmm, price, cumvol = parts[0], _num(parts[1]), _num(parts[2])
+            _hhmm, price, cumvol = parts[0], _num(parts[1]), _num(parts[2])
             if price is None:
                 continue
             # cumvol 是累计量；用增量近似 VWAP 分子
@@ -126,7 +126,6 @@ def grade(m):
     ru = m.get('range_used_atr')
     rsi = m.get('rsi14')
     z = m.get('zscore20')
-    chg = m.get('today_change_pct')
 
     # 追高检测（ATR 缺失也能判——区间位本身就是牌面）：
     #   ① 极端高位（≥85%）：买在当日最高一截，无条件 🔴

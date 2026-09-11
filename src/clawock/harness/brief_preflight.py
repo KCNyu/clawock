@@ -40,7 +40,6 @@ from clawock.portfolio.guardrail import (  # noqa: F401  (re-export)
 import argparse
 import concurrent.futures
 import json
-import math
 import os
 import re
 import subprocess
@@ -73,9 +72,7 @@ SNAPSHOT_DIR = WS / 'memory' / 'snapshots'
 from clawock.automation import workflow_outcomes  # noqa: E402
 from clawock.market_data.macro import classify_regime as _classify_regime  # noqa: E402
 from clawock.instruments import get as get_instrument  # noqa: E402
-from clawock.instruments import is_leveraged_holding  # noqa: E402
 from clawock.instruments import compute_lookthrough_exposure  # noqa: E402
-from clawock.instruments import one_x_swap_map  # noqa: E402
 
 
 def _fetch_hk_results_notices(ticker):
@@ -618,7 +615,6 @@ def compute_reflections(portfolio):
 
     held = {h['ticker'] for leg in ('hk_stocks', 'us_stocks')
             for h in portfolio['portfolios'][leg]['holdings'] if h.get('shares', 0) > 0}
-    SELL = {'cut', 'trim_on_rebound'}
     out = {}
     for tk in sorted(held):
         settled = [r for r in rows if r['ticker'] == tk and (r.get('evaluation') or {}).get('outcome') in ('win', 'loss')]
@@ -951,7 +947,7 @@ def load_macro_and_sentiment(today, issues):
     macro_trim = {}
     try:
         if not macro_path.exists():
-            print(f'   ⚠ macro.json missing — sentiment-scan never ran')
+            print('   ⚠ macro.json missing — sentiment-scan never ran')
             issues.append('macro snapshot missing')
         else:
             m = json.loads(macro_path.read_text())
@@ -995,7 +991,7 @@ def load_macro_and_sentiment(today, issues):
     sentiment_trim = {}
     try:
         if not sent_path.exists():
-            print(f'   ⚠ sentiment.json missing — sentiment-scan never ran')
+            print('   ⚠ sentiment.json missing — sentiment-scan never ran')
             issues.append('sentiment snapshot missing')
         else:
             s = json.loads(sent_path.read_text())

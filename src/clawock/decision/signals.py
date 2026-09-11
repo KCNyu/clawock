@@ -26,8 +26,7 @@ LLM 引用纪律：技术面判断只准引用本表数字，不得自创（SKIL
 import json
 import math
 import sys
-from datetime import date, datetime, timedelta, timezone
-from zoneinfo import ZoneInfo
+from datetime import date, datetime, timezone
 
 import requests
 
@@ -221,7 +220,6 @@ def compute_signals(bars):
             'tranche_pct_of_position': 0.10,
             'detail': '趋势 ON 且收盘突破此前 20 日高，回落跌回 MA20/吊灯线则失效',
         })
-    rsi = sig.get('rsi14')
     # Mean-reversion add is a two-step pattern: the previous close was weak, and
     # today's bar reclaims the previous day's high. A loss or one green close by
     # itself is deliberately insufficient.
@@ -632,7 +630,7 @@ def provisional_setups(universe=None, *, region=None, fetch=None):
             # `.get` here would escape the loop and take every row already
             # collected with it.
             errors.append({'label': label,
-                           'error': f'no_bars' if not bars else f'insufficient_bars({len(bars)})'})
+                           'error': 'no_bars' if not bars else f'insufficient_bars({len(bars)})'})
             continue
         for setup in sig.get('technical_setups') or []:
             rows.append({

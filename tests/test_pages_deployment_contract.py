@@ -298,8 +298,6 @@ def _stage_publishable_site(site):
     (site / "docs/visual-regression/issue-206").mkdir(parents=True)
     (site / "docs/visual-regression/issue-206/before-1440.jpg").write_bytes(b"\xff\xd8")
     (site / "docs/architecture.md").write_text("ok")
-    source_gif_size = (ROOT / "site/assets/dashboard.gif").stat().st_size
-    source_jsonl = sorted((ROOT / "assets/data").glob("*.jsonl"))
 
 
 

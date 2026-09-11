@@ -19,7 +19,6 @@ imports and has a `main()`. It could not catch #447 because the harness did not
 go through `PACKAGED_UTILITIES` at all — it named a filesystem path. So the gap
 is not "are the commands healthy" but "does the harness use them".
 """
-import ast
 import re
 from pathlib import Path
 

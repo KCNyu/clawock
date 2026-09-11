@@ -9,7 +9,6 @@ it must say so and produce no number, because a decorated PBO on three sessions
 is worse than no PBO at all.
 """
 import random
-import statistics
 
 from clawock.evaluation import add_alpha_walkforward as wf
 

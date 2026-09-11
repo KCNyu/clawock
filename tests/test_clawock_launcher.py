@@ -14,7 +14,6 @@ behaviour with no reinstall — which is what the live box needs.
 import json
 import os
 import subprocess
-import sys
 from pathlib import Path
 
 import pytest

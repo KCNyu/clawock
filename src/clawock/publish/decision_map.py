@@ -47,8 +47,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from clawock import history_store
-from clawock.decision.ledger import leg_sessions, load_ticker_bars
-from clawock.instruments import canonical_bar_manifest
+from clawock.decision.ledger import leg_sessions
 from clawock.safe_io import safe_write_text, to_number as _number
 from clawock.workspace import workspace_root
 
@@ -292,7 +291,6 @@ def build(ledger_rows=None, data_dir: Path | None = None,
         json.loads(line) for line in LEDGER.read_text(encoding='utf-8').splitlines()
         if line.strip()]
     snapshots = load_signal_snapshots(data_dir)
-    manifest = canonical_bar_manifest()
     sessions_by_leg = {leg: leg_sessions(leg) for leg in ('us', 'hk')}
 
     lookup, timelines = {}, defaultdict(list)

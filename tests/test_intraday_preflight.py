@@ -5,7 +5,6 @@ a slot wakes kcn, `collect_provisional_setups` must never red a cron when the
 quote feed fails, and the unchanged receipt is the common-case push — its
 wording is the only thing most slots ever say.
 """
-import pytest
 
 from clawock.harness import intraday_preflight as P
 

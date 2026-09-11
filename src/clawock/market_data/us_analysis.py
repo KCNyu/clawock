@@ -16,7 +16,6 @@ Usage:
 import json, sys
 from datetime import datetime, timezone, timedelta
 from typing import Dict, List, Optional, Tuple
-import requests
 
 from clawock.market_data.us_quotes import (
     update_us_portfolio, load_api_keys,
@@ -271,7 +270,7 @@ def print_report(data: Dict, analyses: List[Dict]):
 
     w = 64
     print(f"\n{'═'*w}")
-    print(f"  US Portfolio Analysis")
+    print("  US Portfolio Analysis")
     print(f"  ET:  {now.strftime('%Y-%m-%d %H:%M %Z')}  |  HKT: {now_h.strftime('%H:%M HKT')}")
     print(f"{'═'*w}")
 
@@ -317,7 +316,7 @@ def print_report(data: Dict, analyses: List[Dict]):
     print(f"{'─'*w}")
 
     # Detailed signals
-    print(f"\n  详细信号")
+    print("\n  详细信号")
     print(f"{'─'*w}")
     for sig, ticker, reasons, h, tech, news_items in signal_rows:
         arr = SIGNAL_COLOR.get(sig, '?')
@@ -336,7 +335,7 @@ def print_report(data: Dict, analyses: List[Dict]):
 
     # Risk summary
     print(f"\n{'─'*w}")
-    print(f"  风险摘要")
+    print("  风险摘要")
     active = [h for h in us['holdings'] if h.get('shares', 0) > 0]
     lev_val   = sum(h.get('current_value', 0) for h in active
                     if _is_leveraged_holding(h))
@@ -367,7 +366,6 @@ def print_wechat_report(data: Dict, analyses: List[Dict], md_table: bool = False
     _, us = region_book(data, 'US')
     now   = datetime.now(ET_TZ)
 
-    tc   = us.get('total_cost', 0)
     tv   = us.get('total_current_value', 0)
     pnl  = us.get('total_pnl', 0)
     pnl_ = us.get('total_pnl_percent', 0)
@@ -496,7 +494,7 @@ def run_analysis(fetch: bool = True, include_news: bool = True, argv=None):
     _, us = region_book(data, 'US')
     active  = [h for h in us['holdings'] if h.get('shares', 0) > 0]
 
-    _say(f"[ 2/3 ] 拉取技术指标 (Polygon RSI-14 / MA)...")
+    _say("[ 2/3 ] 拉取技术指标 (Polygon RSI-14 / MA)...")
     tech_cache: Dict[str, Dict] = {}
     for h in active:
         ticker = h['ticker']

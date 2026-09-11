@@ -426,7 +426,7 @@ def print_summary(out):
         print(f'  {m["date"]}  {m["type"]:5s} {m["detail"][:100]}')
     print(f'Highest impact within 7d: {out["summary"]["highest_impact_within_7d"] or "(none)"}')
     if 'error' in out:
-        print(f'\nErrors:')
+        print('\nErrors:')
         for section, errs in out['error'].items():
             for k, v in errs.items():
                 print(f'  {section}/{k}: {v}')

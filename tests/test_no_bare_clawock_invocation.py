@@ -109,7 +109,7 @@ def test_no_shell_caller_invokes_a_bare_clawock():
 
     assert not offenders, (
         "these invoke `clawock` as a bare command; under the user crontab's "
-        f"PATH=/usr/bin:/bin it is not found:\n  " + "\n  ".join(offenders))
+        "PATH=/usr/bin:/bin it is not found:\n  " + "\n  ".join(offenders))
 
 
 def test_the_resolver_prefers_the_installed_command_but_does_not_need_it(monkeypatch):

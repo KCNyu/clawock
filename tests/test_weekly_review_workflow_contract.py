@@ -1,5 +1,4 @@
 """Publication contract for the off-host LLM weekly review workflow."""
-import re
 from pathlib import Path
 
 from workflow_contract_helpers import assert_validator_step, step_run, steps, staged_paths

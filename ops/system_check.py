@@ -281,7 +281,7 @@ def check_plan_json_schema(r):
     for p in plans:
         try:
             d = json.loads(open(p).read())
-        except Exception as e:
+        except Exception:
             bad.append(f'{Path(p).name}: parse fail'); continue
         errors = decision_v2.validate_plan(d, p)
         bad.extend(f'{Path(p).name}: {e}' for e in errors)

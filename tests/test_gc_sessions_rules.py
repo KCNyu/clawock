@@ -145,7 +145,6 @@ def test_negative_retention_env_is_rejected_at_import(monkeypatch, tmp_path):
     """GC_KEEP_*=-1 would make 'older than cutoff' true for files that do not
     exist yet; the module must die at load, not run."""
     import importlib.util
-    import os
 
     monkeypatch.setenv("GC_KEEP_TRAJECTORY_DAYS", "-1")
     spec = importlib.util.spec_from_file_location(

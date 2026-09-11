@@ -109,10 +109,8 @@ def test_a_failed_publish_is_countable_afterwards(monkeypatch, tmp_path):
     week. Same shape as the refused bars in #1146, same answer: append it where
     it accrues a count and a first/last timestamp.
     """
-    import json
     import subprocess as sp
 
-    from clawock.automation import workflow_outcomes
 
     _run_publisher_with(
         monkeypatch, tmp_path,
@@ -130,7 +128,6 @@ def test_two_incidents_of_one_class_are_a_count_not_two_rows(monkeypatch, tmp_pa
     would write a new row each time and leave every count at 1, which is the
     number that made the log unreadable in the first place.
     """
-    import json
     import subprocess as sp
 
     _run_publisher_with(monkeypatch, tmp_path,

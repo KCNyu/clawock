@@ -88,7 +88,6 @@ def em_get(url, params=None, headers=None, timeout=TIMEOUT,
 
 if __name__ == "__main__":
     # 冒烟：连打 3 次，确认间隔 >= MIN_INTERVAL + 抖动
-    import json as _json
     t0 = time.time()
     for i in range(3):
         r = em_get("https://push2his.eastmoney.com/api/qt/stock/fflow/daykline/get",

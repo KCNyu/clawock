@@ -15,11 +15,9 @@ This is the shell-side companion to `test_code_imports_come_from_the_checkout`:
 that one pins where Python modules resolve their imports from, this one pins
 that the scripts *spawning* Python leave it able to resolve them at all.
 """
-import os
 import re
 import shutil
 import subprocess
-import sys
 from pathlib import Path
 
 import pytest

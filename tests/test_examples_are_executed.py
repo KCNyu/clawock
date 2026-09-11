@@ -10,7 +10,6 @@ Moving it into a file only helps if the file is the one CI runs. These tests pin
 that: the workflow must invoke the script, and the script must not quietly grow
 a dependency on the checkout it exists to prove is unnecessary.
 """
-import os
 import re
 import stat
 from pathlib import Path

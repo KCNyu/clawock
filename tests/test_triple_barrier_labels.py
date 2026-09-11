@@ -12,9 +12,7 @@ path-aware column is worth trusting: the stop has to trail, an intraday touch
 has to count, and a bar that contains both barriers must not be resolved in the
 favourable direction.
 """
-import math
 
-import pytest
 
 from clawock.labeling import triple_barrier as tb
 

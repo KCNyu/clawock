@@ -87,7 +87,6 @@ def test_every_push_trigger_path_reaches_a_lane():
     green in seconds. This is now behavioural: every tracked file under every
     push-trigger glob must light up at least one lane in the real classifier.
     """
-    import fnmatch as fm
 
     tracked = _tracked()
     assert tracked, "empty checkout would make this assertion vacuous"

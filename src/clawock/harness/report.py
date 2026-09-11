@@ -11,13 +11,10 @@ twenty-odd regression tests keep exercising exactly this code.
 """
 from __future__ import annotations
 
-import re
 
 from clawock.harness.validation import (
-    ADVISORY_MARK,
     REPORT_CHAR_LIMITS as CHAR_LIMITS,
     categorize_issues,
-    check_md_table_column_consistency,
     check_numeric_claims,
     validate_forbidden_phrases,
 )

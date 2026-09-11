@@ -108,7 +108,6 @@ def _run_wrapper(tmp_path, monkeypatch):
     import os
     import shutil
     import subprocess
-    import textwrap
 
     src = ROOT / 'ops' / 'growth' / 'rick_broadcast_nostr.sh'
     script = tmp_path / 'wrapper.sh'
@@ -154,7 +153,6 @@ def _run_wrapper(tmp_path, monkeypatch):
 
 
 def test_wrapper_skips_a_byte_identical_republish_and_publishes_changes(tmp_path, monkeypatch):
-    import subprocess
     run, log, fail_flag, text_file = _run_wrapper(tmp_path, monkeypatch)
 
     first = run()
@@ -174,7 +172,6 @@ def test_wrapper_skips_a_byte_identical_republish_and_publishes_changes(tmp_path
 
 
 def test_wrapper_state_only_advances_after_a_confirmed_publish(tmp_path, monkeypatch):
-    import subprocess
     run, log, fail_flag, text_file = _run_wrapper(tmp_path, monkeypatch)
 
     assert run().returncode == 0

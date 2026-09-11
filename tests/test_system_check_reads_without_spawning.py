@@ -25,7 +25,6 @@ defect was never visible in what the checks *said*, only in what they did.
 import importlib.util
 import json
 import sqlite3
-import subprocess
 import sys
 from pathlib import Path
 

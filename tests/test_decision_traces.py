@@ -14,8 +14,6 @@ move and `test_t1_marks_against_canonical_bars_not_snapshots` goes red instead
 of the regression shipping quietly.
 """
 import json
-import os
-from pathlib import Path
 
 import pytest
 

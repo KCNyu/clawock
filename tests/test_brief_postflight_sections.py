@@ -1,6 +1,5 @@
 """Semantic section-label coverage for the daily brief postflight."""
 
-import sys
 from pathlib import Path
 
 

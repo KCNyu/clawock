@@ -7,7 +7,6 @@ indirectly through monkeypatched stand-ins. These pin the pure seams.
 import sys
 from pathlib import Path
 
-import pytest
 import requests
 
 ROOT = Path(__file__).resolve().parents[1]

@@ -10,7 +10,6 @@ Both failure modes below are silent by nature — a wrong date reads exactly lik
 a right one — which is what earns them a test.
 """
 import json
-import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]

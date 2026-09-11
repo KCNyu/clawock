@@ -35,7 +35,6 @@ CI 整体成立时才允许反向解读。T+5/T+20 窗口逐日重叠 → 披露
 时段行而不是原始行。市场归属单一出处 instruments registry；日历未覆盖的年份
 fail-open 不剔数据。
 """
-import json
 import random
 from datetime import date as real_date
 from datetime import date

@@ -6,7 +6,6 @@ skipped every context-dependent hard gate (generation pin, position/leverage
 回查, peer divergence, macro/sentiment) while the ledger recorded success.
 """
 
-import sys
 from pathlib import Path
 
 

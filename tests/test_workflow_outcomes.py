@@ -1,5 +1,4 @@
 import json
-import sys
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -841,7 +840,7 @@ def test_a_failed_reconcile_says_which_detector_it_disabled(tmp_path, monkeypatc
 
 def test_a_repeated_degradation_counts_rather_than_floods(tmp_path, monkeypatch):
     """Twenty identical rows would push the real ones out of the window."""
-    workspace = _isolate(tmp_path, monkeypatch)
+    _isolate(tmp_path, monkeypatch)
     ledger = outcomes._empty()
     for _ in range(5):
         outcomes.note_degradation(ledger, "kind_a", "same detail")

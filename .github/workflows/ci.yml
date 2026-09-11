@@ -154,6 +154,16 @@ jobs:
         if: steps.scope.outputs.workflows == 'true'
         run: /tmp/actionlint -color
 
+      # Correctness-only Python lint (pyflakes + syntax: undefined names,
+      # redefinitions, unused imports/variables). Style is deliberately not
+      # checked. Until 2026-09-12 no Python linter ran anywhere and 174 of these
+      # had accumulated; the rule set lives in pyproject `[tool.ruff.lint]` so a
+      # local `ruff check .` is this exact gate. Every event, like actionlint's
+      # required context: it takes seconds and a path filter on a required
+      # check waits forever.
+      - name: Lint Python (ruff, correctness rules)
+        run: pipx run --spec 'ruff==0.16.7' ruff check --output-format github .
+
   validate:
     outputs:
       # Job-level mirror of the detector, so sibling jobs can gate without a

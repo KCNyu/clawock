@@ -50,7 +50,6 @@ Usage:
     from clawock.automation.llm import chat
     reply = chat(system="...", user="...", max_tokens=32000)
 """
-import json
 import os
 import re
 import sys
@@ -198,7 +197,7 @@ class _RateLimited(Exception):
     """A provider answered 429: sleep the linear wait, retry same leg."""
 
     def __init__(self, wait):
-        super().__init__(f'429 rate limit')
+        super().__init__('429 rate limit')
         self.wait = wait
 
 

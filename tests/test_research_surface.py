@@ -4,7 +4,6 @@ These tests hold two lines: the surface computes the right work queue from real
 artifacts, and the three consumers (daily brief preflight, `system_check.py`,
 the `validate` workflow) actually call it.
 """
-import copy
 import json
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
@@ -514,7 +513,6 @@ def test_both_stock_skills_frame_it_as_attribution_not_a_trigger():
 
 
 def test_calendar_coverage_is_reported_per_market():
-    import sys
     from clawock import sessions as trading_calendar
 
     coverage = trading_calendar.coverage(date(2026, 7, 26))

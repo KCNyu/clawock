@@ -6,7 +6,6 @@ USD/HKD rate did not: its only durable record was the commit history of
 of any past day would stamp it with *today's* rate and produce a combined figure
 that looks entirely normal (#323).
 """
-import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]

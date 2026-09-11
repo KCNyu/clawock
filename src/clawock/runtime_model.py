@@ -143,7 +143,5 @@ class RunReceipt:
 # `workflows.improvements` had to import the harness to read a config file it
 # also owns — the other half of the harness<->workflows cycle (#814). A request
 # knowing how to load itself keeps both callers above the same definition.
-import json  # noqa: E402
-from pathlib import Path as _Path  # noqa: E402
 
 CONFIG_NAME = "clawock.json"
