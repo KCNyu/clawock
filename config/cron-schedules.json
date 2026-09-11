@@ -369,6 +369,10 @@
     {
       "name": "港股午后快报",
       "enabled": true,
+      "trigger": {
+        "by": "host",
+        "command": "/root/.local/bin/clawock cron-trigger --job-name \"港股午后快报\" >> /root/.openclaw/workspace/logs/cron-trigger.log 2>&1"
+      },
       "market": "hk",
       "phase": "pm",
       "mode": "Mode 6",

@@ -40,6 +40,7 @@ from clawock.scheduling import (  # noqa: E402
     effective_schedule,
     load_contract,
     render_payload_message,
+    runtime_enabled,
 )
 from clawock.providers.openclaw import (  # noqa: E402
     build_cron_edit_argv,
@@ -154,7 +155,9 @@ def desired_changes(contract: dict, live_jobs: list[dict],
         )
         _record(
             patch, diffs, "enabled",
-            live.get("enabled", True), spec.get("enabled", True),
+            # A host-triggered job is disabled in OpenClaw on purpose
+            # (clawock.automation.cron_trigger fires it from the host crontab).
+            live.get("enabled", True), runtime_enabled(spec),
         )
         for contract_field, live_field in (
             ("model", "model"),

@@ -284,6 +284,9 @@
     }
   ],
   "excluded": {
+    "cron-trigger": {
+      "reason": "fires a host-triggered OpenClaw cron job; it collects nothing and decides nothing"
+    },
     "dashboard-build": {
       "reason": "publishes the dashboard projection from data the layers already produced"
     },

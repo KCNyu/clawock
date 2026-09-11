@@ -262,9 +262,31 @@ def effective_schedule(item: dict, at: datetime | None = None) -> dict:
     return schedule
 
 
+#: Offsets the host crontab can express a job's schedule in: the host runs in
+#: Asia/Shanghai (+0800), which Hong Kong shares all year.
+HOST_TRIGGER_TZ = frozenset({"Asia/Shanghai", "Asia/Hong_Kong"})
+
+
+def host_trigger(job: dict) -> dict | None:
+    """The job's host-crontab trigger, or None when OpenClaw's scheduler fires it."""
+    trigger = job.get("trigger") or {}
+    return trigger if trigger.get("by") == "host" else None
+
+
+def runtime_enabled(job: dict) -> bool:
+    """Whether OpenClaw's own scheduler should fire this job.
+
+    A host-triggered job is disabled in OpenClaw on purpose — the host crontab
+    queues it with `openclaw cron run` (`clawock.automation.cron_trigger`) — so
+    the contract's `enabled` means "this job runs", and this is the flag the
+    runtime must carry.
+    """
+    return bool(job.get("enabled", True)) and host_trigger(job) is None
+
+
 def schedule_tuple(item: dict, at: datetime | None = None) -> tuple:
     schedule = effective_schedule(item, at)
-    return schedule.get("expr"), schedule.get("tz"), item.get("enabled", True)
+    return schedule.get("expr"), schedule.get("tz"), runtime_enabled(item)
 
 
 def _format_required(text: str, variables: dict) -> str:
@@ -491,6 +513,22 @@ def validate_watchdogs(contract: dict, crontab_text: str,
                 errors.append(
                     f"{job['name']} watchdog expected {expected!r}, got {row['expr']!r}"
                 )
+    for job in contract["jobs"]:
+        trigger = host_trigger(job)
+        if not trigger:
+            continue
+        schedule = effective_schedule(job, at)
+        if schedule.get("tz") not in HOST_TRIGGER_TZ:
+            errors.append(f"{job['name']} host trigger needs a host-timezone schedule, "
+                          f"got {schedule.get('tz')!r}")
+            continue
+        matches = [row for row in rows if row["command"] == trigger.get("command")]
+        row = matches[0] if len(matches) == 1 else None
+        if not row:
+            errors.append(f"{job['name']} host trigger command missing or ambiguous")
+        elif row["expr"] != schedule.get("expr"):
+            errors.append(f"{job['name']} host trigger expected {schedule.get('expr')!r}, "
+                          f"got {row['expr']!r}")
     sync = contract.get("dst_sync") or {}
     if sync:
         matches = [row for row in rows if row["command"] == sync.get("command")]

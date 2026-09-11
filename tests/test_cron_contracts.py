@@ -157,6 +157,10 @@ def _crontab_from_contract(data, at):
                 continue
             expr = cron_contract.effective_schedule(watchdog, at)['expr']
             rows.append(f"{expr} {watchdog['command']}")
+        # A host-triggered job's own trigger line (clawock.automation.cron_trigger).
+        trigger = cron_contract.host_trigger(job)
+        if trigger:
+            rows.append(f"{cron_contract.effective_schedule(job, at)['expr']} {trigger['command']}")
     sync = data['dst_sync']
     rows.append(
         f"{cron_contract.effective_schedule(sync, at)['expr']} "
@@ -176,7 +180,7 @@ def test_watchdog_contract_and_dst_change_plan_cover_both_schedulers():
     for job in data['jobs']:
         live.append({
             'id': f"id-{len(live)}", 'name': job['name'],
-            'enabled': job.get('enabled', True),
+            'enabled': cron_contract.runtime_enabled(job),
             'schedule': cron_contract.effective_schedule(job, july),
         })
     oc, watchdogs, errors = sync_us_cron_dst.desired_changes(
