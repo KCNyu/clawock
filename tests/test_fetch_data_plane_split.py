@@ -39,3 +39,15 @@ def test_other_missing_members_are_never_excused():
     store = _Store({"decision_traces": [], "decision_trace_scope": {}, "plan_timeline": []})
     assert fetch_data_plane.pre_split_members(
         store, _missing(TRAIL, "assets/data/overview.json")) == []
+
+
+def test_a_pre_split_generation_is_materialised_in_the_post_split_shape(tmp_path):
+    data = tmp_path / "assets" / "data"
+    data.mkdir(parents=True)
+    (data / "dashboard.json").write_text(json.dumps({
+        "generated_at": "2026-09-12T02:00:00Z", "decision_traces": [{"ticker": "SPCH"}],
+        "decision_trace_scope": {"total": 1}, "plan_timeline": [{"ticker": "07226"}]}))
+    assert fetch_data_plane.materialize_split_members(tmp_path, [TRAIL]) == [TRAIL]
+    trail = json.loads((tmp_path / TRAIL).read_text())
+    assert trail == {"as_of": "2026-09-12T02:00:00Z", "decision_traces": [{"ticker": "SPCH"}],
+                     "decision_trace_scope": {"total": 1}, "plan_timeline": [{"ticker": "07226"}]}

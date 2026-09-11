@@ -84,6 +84,32 @@ def pre_split_members(store, error) -> list[str]:
     return missing
 
 
+def _split_specs() -> dict:
+    outputs = json.loads((ROOT / "config" / "dashboard-outputs.json")
+                         .read_text(encoding="utf-8"))["outputs"]
+    return {name: spec["split_from"] for name, spec in outputs.items()
+            if spec.get("split_from")}
+
+
+def materialize_split_members(into: Path, names) -> list[str]:
+    """Write a pre-split generation's missing members from the parent's sections.
+
+    The page and the browser contract then see the post-split shape — the new file
+    is there, carrying exactly what the parent carried — instead of a 404 during the
+    one publisher cycle it takes the host to start writing the file itself.
+    """
+    specs, written = _split_specs(), []
+    for name in names:
+        spec = specs[name]
+        parent = json.loads((into / spec["file"]).read_text(encoding="utf-8"))
+        body = {"as_of": parent.get("generated_at"),
+                **{key: parent[key] for key in spec["keys"] if key in parent}}
+        (into / name).write_text(json.dumps(body, ensure_ascii=False, separators=(",", ":")),
+                                 encoding="utf-8")
+        written.append(name)
+    return written
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repo", type=Path, default=ROOT)
@@ -103,9 +129,11 @@ def main() -> int:
             if not excused:
                 raise
             print(f"· data-plane: the published generation predates {excused} "
-                  "(its parent still carries the sections) — fetching the rest")
+                  "(its parent still carries the sections) — fetching the rest and "
+                  "deriving them from it")
             written = store.fetch(args.into or args.repo,
                                   names=[n for n in names if n not in excused])
+            written += materialize_split_members(Path(args.into or args.repo), excused)
     except subprocess.TimeoutExpired as exc:
         # Same sibling-not-subclass trap as publish_data_branch: a hung remote
         # reached the caller as a traceback instead of a diagnosis (2026-09-07).
