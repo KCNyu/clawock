@@ -49,7 +49,7 @@ def test_a_new_inbound_resets_the_count(tmp_path):
 
 
 def test_failed_sends_spend_nothing_and_long_messages_spend_per_chunk(tmp_path):
-    accounts = _inbound(tmp_path)
+    _inbound(tmp_path)
     allowance.record(KCN, "x", False, ledger=tmp_path / "sends.json", now=INBOUND + 10)
     allowance.record(KCN, "长" * 8001, True, ledger=tmp_path / "sends.json", now=INBOUND + 20)
     assert allowance.used_since(KCN, INBOUND, ledger=tmp_path / "sends.json") == 3
