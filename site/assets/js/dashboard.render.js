@@ -2350,12 +2350,12 @@
     (safe(DATA, "weight_confidence") || []).forEach(w => put(w.ticker, "conv", w));
     const t0rows = (safe(DATA, "t0_setups") || {}).rows || {};
     Object.entries(t0rows).forEach(([k, v]) => put(k, "t0", v));
-    (safe(DATA, "plan_timeline") || []).forEach(a => {
+    (trail("plan_timeline") || []).forEach(a => {
       if (!a.ticker) return;
       const e = (ev[a.ticker] = ev[a.ticker] || {});
       (e.plans = e.plans || []).push(a);
     });
-    (safe(DATA, "decision_traces") || []).forEach(t => {
+    (trail("decision_traces") || []).forEach(t => {
       if (!t.ticker) return;
       const e = (ev[t.ticker] = ev[t.ticker] || {});
       (e.fills = e.fills || []).push(t);
@@ -4382,7 +4382,7 @@
     const wrap = document.getElementById("plan-timeline");
     if (!wrap) return;
     const card = wrap.closest('.card');
-    const list = safe(DATA, "plan_timeline") || [];
+    const list = trail("plan_timeline") || [];
     if (!list.length) { if (card) card.style.display = 'none'; return; }
     if (card) card.style.display = '';
     const fmtConf = c => (c == null ? DASH : (c * 100).toFixed(0) + "%");
@@ -4528,7 +4528,7 @@
     const wrap = document.getElementById("trace-list");
     if (!wrap) return;
     const card = wrap.closest(".card");
-    const list = safe(DATA, "decision_traces") || [];
+    const list = trail("decision_traces") || [];
     if (!list.length) { if (card) card.style.display = "none"; return; }
     if (card) card.style.display = "";
     const ACT = {buy:"买入",add:"加仓",trim:"减仓",sell:"卖出",cut:"割肉",hold:"持有",hold_and_watch:"持有",trim_on_rebound:"反弹减仓",t_only:"仅T+0",add_only_on_trigger:"触发加仓",reject:"不加",watch:"观望",abstain:"弃权"};
@@ -4547,7 +4547,7 @@
     // renders a window (the newest `limit` fills), and summing that window into
     // an unqualified 已实现 total is how it came to print $926.3 while the
     // ledger held US $2,347.68 + HK$7,259.16 (#737).
-    const sc = safe(DATA, "decision_trace_scope") || {};
+    const sc = trail("decision_trace_scope") || {};
     const shown = sc.fillsShown || list.length;
     const total = sc.fillsTotal || shown;
     const realShown = sc.realizedShown || {};

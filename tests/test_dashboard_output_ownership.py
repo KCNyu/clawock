@@ -1,4 +1,4 @@
-"""One build, four public outputs, one semantic publication contract."""
+"""One build, five public outputs, one semantic publication contract."""
 import json
 import re
 import pytest
@@ -16,6 +16,7 @@ EXPECTED = {
     "assets/data/dashboard.json",
     "assets/data/decision_audit.json",
     "assets/data/shadow_portfolio.json",
+    "assets/data/decision_trail.json",
 }
 
 
@@ -63,6 +64,10 @@ def _repo(tmp_path):
         "assets/data/shadow_portfolio.json": {
             "as_of": "old",
             "curves": {"USD": [{"date": "2026-07-17", "value": 10}]},
+        },
+        "assets/data/decision_trail.json": {
+            "as_of": "old",
+            "decision_traces": [{"ticker": "SPCH", "date": "2026-08-20", "action": "buy"}],
         },
     }
     for path, value in values.items():
@@ -322,7 +327,7 @@ def _generation(directory, *, clock, value):
         encoding="utf-8")
     (directory / "dashboard.json").write_text(
         json.dumps({"generated_at": clock, "totals": value}), encoding="utf-8")
-    for name in ("decision_audit.json", "shadow_portfolio.json"):
+    for name in ("decision_audit.json", "shadow_portfolio.json", "decision_trail.json"):
         (directory / name).write_text(
             json.dumps({"as_of": clock, "totals": value}), encoding="utf-8")
 
@@ -350,7 +355,7 @@ def test_the_diff_baseline_can_be_a_directory_instead_of_this_repository(tmp_pat
     # Exactly one output genuinely changed. Asserting the precise subset is what
     # makes this test mean anything: `tmp_path` is not a git repository, so the
     # default GitBaseline cannot read any previous version and conservatively
-    # reports ALL FOUR as changed. A test that expected "everything" would pass
+    # reports ALL FIVE as changed. A test that expected "everything" would pass
     # with the baseline argument ignored entirely.
     (worktree / "dashboard.json").write_text(
         json.dumps({"generated_at": "2026-08-05T03:00:00Z", "totals": 2}),

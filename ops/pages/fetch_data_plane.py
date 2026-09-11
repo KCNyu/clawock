@@ -24,6 +24,7 @@ Usage (see .github/workflows/pages.yml):
 from __future__ import annotations
 
 import argparse
+import json
 import subprocess
 import sys
 from pathlib import Path
@@ -54,6 +55,61 @@ def note_failure(reason: str) -> None:
         pass
 
 
+def pre_split_members(store, error) -> list[str]:
+    """Outputs the published generation may lack because it was built before them.
+
+    A new output split out of an existing one (`split_from` in
+    config/dashboard-outputs.json) cannot be on the data branch until the host
+    publisher runs the code that writes it — and that code cannot merge while this
+    step refuses every generation without it. The generation says which side of
+    the split it is on: if the parent file still carries the sections, it predates
+    the split and the missing member is expected. Anything else stays a failure.
+    """
+    missing = [name for name in DATA_PLANE_FILES if name in str(error)]
+    if not missing:
+        return []
+    try:
+        outputs = json.loads((ROOT / "config" / "dashboard-outputs.json")
+                             .read_text(encoding="utf-8"))["outputs"]
+    except (OSError, ValueError, KeyError):
+        return []
+    for name in missing:
+        split = (outputs.get(name) or {}).get("split_from") or {}
+        try:
+            parent = json.loads(store._git_blob("FETCH_HEAD", split["file"]))
+        except Exception:
+            return []
+        if not all(key in parent for key in split.get("keys") or ["\0"]):
+            return []
+    return missing
+
+
+def _split_specs() -> dict:
+    outputs = json.loads((ROOT / "config" / "dashboard-outputs.json")
+                         .read_text(encoding="utf-8"))["outputs"]
+    return {name: spec["split_from"] for name, spec in outputs.items()
+            if spec.get("split_from")}
+
+
+def materialize_split_members(into: Path, names) -> list[str]:
+    """Write a pre-split generation's missing members from the parent's sections.
+
+    The page and the browser contract then see the post-split shape — the new file
+    is there, carrying exactly what the parent carried — instead of a 404 during the
+    one publisher cycle it takes the host to start writing the file itself.
+    """
+    specs, written = _split_specs(), []
+    for name in names:
+        spec = specs[name]
+        parent = json.loads((into / spec["file"]).read_text(encoding="utf-8"))
+        body = {"as_of": parent.get("generated_at"),
+                **{key: parent[key] for key in spec["keys"] if key in parent}}
+        (into / name).write_text(json.dumps(body, ensure_ascii=False, separators=(",", ":")),
+                                 encoding="utf-8")
+        written.append(name)
+    return written
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--repo", type=Path, default=ROOT)
@@ -64,8 +120,20 @@ def main() -> int:
     args = parser.parse_args()
 
     store = GitBranchStore(args.repo, args.branch, remote=args.remote)
+    names = list(DATA_PLANE_FILES)
     try:
-        written = store.fetch(args.into or args.repo, names=DATA_PLANE_FILES)
+        try:
+            written = store.fetch(args.into or args.repo, names=names)
+        except FileNotFoundError as exc:
+            excused = pre_split_members(store, exc)
+            if not excused:
+                raise
+            print(f"· data-plane: the published generation predates {excused} "
+                  "(its parent still carries the sections) — fetching the rest and "
+                  "deriving them from it")
+            written = store.fetch(args.into or args.repo,
+                                  names=[n for n in names if n not in excused])
+            written += materialize_split_members(Path(args.into or args.repo), excused)
     except subprocess.TimeoutExpired as exc:
         # Same sibling-not-subclass trap as publish_data_branch: a hung remote
         # reached the caller as a traceback instead of a diagnosis (2026-09-07).
