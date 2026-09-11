@@ -68,14 +68,45 @@ def _generation(tmp_path, published_at):
 
 
 def test_a_frozen_generation_on_a_trading_day_is_reported():
-    # 2026-08-05 is a Wednesday and a session in both markets.
-    now = datetime(2026, 8, 5, 16, 0, tzinfo=timezone.utc)
+    # 2026-08-05 is a Wednesday and a session in both markets. 15:30 HKT, last
+    # publish 10:30 HKT: 1.5h of morning + 2.5h of afternoon session went by
+    # with nothing published — the lunch break is not counted.
+    now = datetime(2026, 8, 5, 7, 30, tzinfo=timezone.utc)
     import tempfile
     with tempfile.TemporaryDirectory() as d:
-        stale = _generation(Path(d), now - timedelta(hours=4))
+        stale = _generation(Path(d), now - timedelta(hours=5))
         result = cron_health_check.check_scheduled_publisher(now=now, path=stale)
     assert result["state"] == "stale"
-    assert result["age_hours"] == 4.0
+    assert result["age_hours"] == 5.0
+    assert result["session_hours"] == 4.0
+
+
+def test_the_gap_between_hk_close_and_us_open_is_not_a_dead_publisher():
+    # 2026-09-11 (Fri), the run that went red: the last publish was the HK
+    # close at 16:40 HKT, the US open publish lands at 21:34, and GitHub
+    # delivered this workflow (scheduled 17:17 HKT) at 21:32. Nothing traded in
+    # between, so there was nothing to publish — 4.9h old, 0.0h of it in session.
+    now = datetime(2026, 9, 11, 13, 32, 58, tzinfo=timezone.utc)
+    import tempfile
+    with tempfile.TemporaryDirectory() as d:
+        quiet = _generation(Path(d), datetime(2026, 9, 11, 8, 40, tzinfo=timezone.utc))
+        result = cron_health_check.check_scheduled_publisher(now=now, path=quiet)
+    assert result["state"] == "ok", result
+    assert result["age_hours"] == 4.9
+    assert result["session_hours"] < 0.5  # the US open was three minutes old
+
+
+def test_a_publisher_dead_since_the_close_is_caught_once_the_next_session_runs():
+    # Same 16:40 publish, but nothing after it: by 01:00 HKT the US session has
+    # been open 3.5h with the site still frozen. That is already Saturday in
+    # Hong Kong, which the old "非交易日不判" short-circuit waved through.
+    now = datetime(2026, 9, 11, 17, 0, tzinfo=timezone.utc)
+    import tempfile
+    with tempfile.TemporaryDirectory() as d:
+        stale = _generation(Path(d), datetime(2026, 9, 11, 8, 40, tzinfo=timezone.utc))
+        result = cron_health_check.check_scheduled_publisher(now=now, path=stale)
+    assert result["state"] == "stale"
+    assert result["session_hours"] == 3.5
 
 
 def test_a_quiet_tick_is_not_a_dead_publisher():
@@ -222,7 +253,8 @@ def test_a_closed_weekend_is_silence_by_design():
         stale = _generation(Path(d), now - timedelta(hours=30))
         result = cron_health_check.check_scheduled_publisher(now=now, path=stale)
     assert result["state"] == "ok"
-    assert "非交易日" in result["detail"]
+    assert result["session_hours"] == 0.0
+    assert "盘中 0.0h" in result["detail"]
 
 
 def test_commit_evidence_is_fetched_once_not_once_per_job(monkeypatch):

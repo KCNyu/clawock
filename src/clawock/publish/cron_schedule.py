@@ -103,6 +103,22 @@ def _narrate_degraded(record):
     # `escalating_count` is the exact field `_advisory_only` reads — a nonzero
     # count is the same signal that made the ledger call this slot degraded,
     # not a re-judgment of it.
+    # An extreme-length brief is promoted to one of those escalating issues on
+    # purpose (`brief_postflight.readability_issues`), but it is a length
+    # problem, not a correctness one. On 2026-09-11 it was the only one, and the
+    # card still said「报告已投递但可能有误」— a claim about the content that
+    # nothing had made. Name it, and keep the generic line for whatever is left.
+    readability = postflight.get('readability') or {}
+    if escalating and readability.get('status') == 'extreme':
+        length = (f'简报正文 {readability.get("bytes", 0) / 1000:.1f}KB，超过 '
+                  f'{readability.get("extreme_bytes", 0) / 1000:.0f}KB 极端线'
+                  '（全文已送达，下次生成须按分段预算收敛）')
+        others = escalating - 1
+        if others <= 0:
+            return _note(NEEDS_ACTION, length + '；内容校验没有别的实质问题')
+        return _note(NEEDS_ACTION,
+                    f'{length}；另有 {others} 条不是仅供参考的内容问题'
+                    '——报告已投递但可能有误，查 workflow-outcomes.json 这一槽的 stages')
     if escalating:
         return _note(NEEDS_ACTION,
                     f'内容校验有 {issues} 条问题，其中 {escalating} 条不是仅供参考的'

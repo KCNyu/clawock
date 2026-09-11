@@ -164,6 +164,29 @@ def test_degraded_with_a_real_content_issue_reads_as_needs_action():
     assert '3 条问题' in note['text'] and '1 条不是仅供参考' in note['text']
 
 
+def test_an_overlong_brief_is_named_as_length_not_as_possibly_wrong():
+    """2026-09-11 08:03: the one escalating issue was the extreme-length flag,
+    and the card said the delivered brief「可能有误」. Length is not content."""
+    readability = {'status': 'extreme', 'bytes': 45799, 'extreme_bytes': 40000}
+    alone = _record_with('degraded', postflight={
+        'issue_count': 1, 'escalating_count': 1, 'readability': readability,
+    }, primary_delivery={'wechat_ok': True, 'telegram_ok': True})
+    note = timetable(_contract('3 10 * * 1-5'), [alone],
+                     now=datetime(2026, 9, 3, 12, 0, tzinfo=HKT))['jobs'][0]['slots'][0]['note']
+    assert note['disposition'] == 'needs_action'
+    assert '45.8KB' in note['text'] and '40KB' in note['text']
+    assert '可能有误' not in note['text']
+
+    # A real content issue beside it still gets the generic warning, counted
+    # without the length flag.
+    both = _record_with('degraded', postflight={
+        'issue_count': 3, 'escalating_count': 2, 'readability': readability,
+    }, primary_delivery={'wechat_ok': True, 'telegram_ok': True})
+    note = timetable(_contract('3 10 * * 1-5'), [both],
+                     now=datetime(2026, 9, 3, 12, 0, tzinfo=HKT))['jobs'][0]['slots'][0]['note']
+    assert '另有 1 条' in note['text'] and '可能有误' in note['text']
+
+
 def test_degraded_from_a_publish_lag_alone_reads_as_watch_not_needs_action():
     """The pattern behind every degraded slot on 2026-09-03: both channels
     delivered, content check clean, only the dashboard commit hadn't published
