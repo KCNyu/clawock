@@ -549,6 +549,10 @@ def _fossil_runs(job_id, paths: OpenClawPaths | None = None):
     return None
 
 
+#: Disabled jobs included — see `read_jobs`.
+LIST_ALL_JOBS = ["list", "--all", "--json"]
+
+
 def read_jobs(source: str = "auto", *, paths: OpenClawPaths | None = None) -> CronRead:
     """Cron jobs from auto|cli|sqlite|fossil.
 
@@ -559,8 +563,12 @@ def read_jobs(source: str = "auto", *, paths: OpenClawPaths | None = None) -> Cr
     if source not in SOURCES:
         raise ValueError(f"unsupported cron source: {source}")
     if source in {"auto", "cli"}:
-        data = (cron_cli_json(["list", "--json"], binary=paths.binary)
-                if paths else cron_cli_json(["list", "--json"]))
+        # `--all`: without it the CLI omits disabled jobs, and a host-triggered job
+        # is disabled in OpenClaw on purpose (clawock.automation.cron_trigger). On
+        # 2026-09-12 that made the contract check report it as a missing live job
+        # (CRITICAL, which blocks every live push) the moment it was disabled.
+        data = (cron_cli_json(LIST_ALL_JOBS, binary=paths.binary)
+                if paths else cron_cli_json(LIST_ALL_JOBS))
         if isinstance(data, dict) and isinstance(data.get("jobs"), list):
             return CronRead(data["jobs"], "cli")
         if source == "cli":
@@ -630,7 +638,7 @@ def read_jobs_strict(*, paths: OpenClawPaths | None = None, runner=None) -> list
     to whoever calls which.
     """
     data = cron_cli_json(
-        ["list", "--json"], binary=paths.binary if paths else None, runner=runner)
+        LIST_ALL_JOBS, binary=paths.binary if paths else None, runner=runner)
     if not isinstance(data, dict):
         raise RuntimeError("openclaw cron list failed: no JSON object returned")
     jobs = data.get("jobs")
