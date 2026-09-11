@@ -10,7 +10,6 @@ Run: python3 -m pytest tests/test_brief_fallback_gate.py -q
 """
 import json
 import re
-import sys
 import textwrap
 from pathlib import Path
 

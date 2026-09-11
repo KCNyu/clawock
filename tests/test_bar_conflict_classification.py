@@ -14,7 +14,6 @@ publish, because the bars were not written and nothing downstream is wrong.
 
 import json
 from datetime import datetime, timezone
-from pathlib import Path
 
 
 def _bars_module(tmp_path, monkeypatch):

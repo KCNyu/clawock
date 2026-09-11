@@ -99,7 +99,6 @@ def _decoded(payload, field, index):
 
 def _payload(monkeypatch, decisions, snapshots, panel=None):
     monkeypatch.setattr(dm, 'load_signal_snapshots', lambda *a, **k: snapshots)
-    monkeypatch.setattr(dm, 'canonical_bar_manifest', lambda: {})
     monkeypatch.setattr(dm, 'leg_sessions', lambda leg: [])
     return dm.build(ledger_rows=decisions, panel=panel or STUB_PANEL)
 

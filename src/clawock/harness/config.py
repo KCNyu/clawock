@@ -13,7 +13,6 @@ from clawock.workflows.request import load_request  # noqa: F401
 import json
 from pathlib import Path
 
-from clawock.harness.model import AgentRunRequest
 from clawock.publish.store import write_generation
 
 

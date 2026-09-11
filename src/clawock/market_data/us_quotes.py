@@ -966,7 +966,7 @@ def update_us_portfolio(
     hkt_str = now_hkt.strftime('%Y/%m/%d %H:%M HKT')
 
     print(f"\n{'═'*62}")
-    print(f"  US Portfolio Price Refresh")
+    print("  US Portfolio Price Refresh")
     print(f"  ET:  {et_str}  |  HKT: {hkt_str}")
     print(f"  Tickers: {', '.join(tickers)}")
     print(f"{'═'*62}")
@@ -978,7 +978,7 @@ def update_us_portfolio(
     prev_closes: Dict[str, tuple] = {}
     polygon_key = keys.get('POLYGON_API_KEY', '')
     if polygon_key:
-        print(f"  [PC] Polygon prev-close (grouped)...")
+        print("  [PC] Polygon prev-close (grouped)...")
         prev_closes, rate_limited, snapshot_valid = get_prev_closes_polygon_grouped(
             tickers, polygon_key, today_et_date)
         for t, result in prev_closes.items():
@@ -1298,7 +1298,7 @@ def update_us_portfolio(
         'source_counts':          source_counts,
         'updated_at':             et_str,
         'note': (
-            f"Multi-provider fetch. Sources: "
+            "Multi-provider fetch. Sources: "
             + ', '.join(f"{v}x {k}" for k, v in source_counts.items())
         ),
     }

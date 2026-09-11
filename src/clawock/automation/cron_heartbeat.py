@@ -11,7 +11,6 @@ import argparse
 import fcntl
 import json
 import os
-import sys
 from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
 from pathlib import Path

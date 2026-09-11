@@ -7,7 +7,6 @@ cut while every other decision stays untouched.
 """
 import json
 from datetime import datetime, timedelta
-from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from clawock.decision import plans

@@ -5,7 +5,6 @@ not call fetchers or patch a transport: the exercised surface is deterministic.
 """
 
 import json
-import sys
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 

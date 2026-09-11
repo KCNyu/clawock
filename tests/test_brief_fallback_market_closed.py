@@ -8,8 +8,6 @@ this workflow, but a manual `gh workflow run brief-fallback.yml` bypasses it,
 which is the whole reason this second layer exists.
 """
 import json
-import os
-from pathlib import Path
 
 import pytest
 

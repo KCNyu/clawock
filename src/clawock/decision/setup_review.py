@@ -238,7 +238,7 @@ def main(argv=None):
     for h in HORIZONS:
         _, h_grades, h_usable = _settle(days, h)
         h_summary = ('、'.join(h_usable) if h_usable
-                     else f'没有牌面同时通过样本与正向 edge 闸——结论未解锁')
+                     else '没有牌面同时通过样本与正向 edge 闸——结论未解锁')
         multi[f'H{h}'] = {'horizon': h, 'grades': h_grades, 'summary': h_summary}
 
     out = {

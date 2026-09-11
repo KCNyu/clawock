@@ -35,7 +35,6 @@ from datetime import date, datetime, timezone
 
 GRAMS_PER_OZ = 31.1035  # 1 金衡盎司(troy oz) = 31.1035 克
 
-from clawock.safe_io import safe_write_json
 from clawock.market_data.eastmoney_http import em_get
 from clawock.workspace import workspace_root
 

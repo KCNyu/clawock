@@ -1,7 +1,6 @@
 """Regression coverage for London-gold history provenance and settlement."""
 from datetime import date, timedelta
 from pathlib import Path
-import sys
 
 
 ROOT = Path(__file__).resolve().parents[1]

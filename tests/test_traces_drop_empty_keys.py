@@ -14,7 +14,6 @@ Controlled A/B on the same minute's data: only this block moved, −5,522 bytes.
 (Measured naively across two builds it looked like −27,408 — the payload itself
 swings up to 13,474 bytes run to run, #1399. The A/B is the number.)
 """
-import json
 import re
 from pathlib import Path
 

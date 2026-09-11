@@ -27,7 +27,6 @@ def _run(monkeypatch, bars):
     monkeypatch.setattr(
         regime, "fetch_hstech",
         lambda: [(f"2026-01-{i + 1:02d}", float(bars[i])) for i in range(len(bars))])
-    buf = {}
     import io
     import contextlib
     with contextlib.redirect_stdout(io.StringIO()) as out:

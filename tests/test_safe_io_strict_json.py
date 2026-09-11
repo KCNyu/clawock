@@ -8,7 +8,6 @@ hold the write side to the same contract.
 """
 import json
 import math
-import sys
 from pathlib import Path
 
 import pytest

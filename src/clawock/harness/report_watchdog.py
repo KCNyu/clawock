@@ -46,7 +46,6 @@ import json
 import sys
 import time
 from datetime import datetime
-from pathlib import Path
 
 from ._watchdog_common import (
     WS, HKT, log, find_job_id, today_runs,

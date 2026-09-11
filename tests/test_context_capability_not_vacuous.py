@@ -111,7 +111,6 @@ def test_a_missing_store_still_skips_quietly(tmp_path, monkeypatch):
 
 def test_healthy_reports_still_pass(tmp_path, monkeypatch):
     """And the gate must not start firing on the live shape it sees every day."""
-    import ops.system_check as sc
 
     monkeypatch.setattr(
         'clawock.context.assembly.verify_prompt_report',

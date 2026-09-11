@@ -59,7 +59,7 @@ NEGATIVE_WORDS = {
     '亏损', '处罚', '违约', '调出', '剔除',
 }
 
-from clawock.safe_io import safe_write_json, safe_write_text
+from clawock.safe_io import safe_write_json
 
 
 def _load(path, default=None):

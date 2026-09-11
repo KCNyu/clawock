@@ -1,7 +1,4 @@
 """decision-mind ledger record command: validation, append, settle round-trip."""
-import json
-import sys
-from pathlib import Path
 
 import pytest
 

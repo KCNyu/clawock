@@ -296,7 +296,7 @@ def main():
         return 0
 
     print('📆 合并调度时间线（全部归一到 HKT，按当日触发时刻排序）')
-    print(f'   来源: openclaw cron(CLI/SQLite) · GH Actions(UTC→HKT) · 系统 crontab(HKT)\n')
+    print('   来源: openclaw cron(CLI/SQLite) · GH Actions(UTC→HKT) · 系统 crontab(HKT)\n')
     print(f'{"HKT 触发":<22}  {"来源":<12}  {"任务":<22}  {"星期":<12}  原始 cron')
     print('─' * 108)
 

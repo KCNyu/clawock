@@ -24,7 +24,7 @@ import argparse
 import json
 import sys
 from datetime import date, datetime, timezone
-from decimal import Decimal, InvalidOperation
+from decimal import Decimal
 from pathlib import Path
 
 from clawock import provenance as research_provenance

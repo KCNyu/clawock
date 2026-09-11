@@ -5,7 +5,7 @@ the network would be untrustworthy exactly when the endpoints misbehave, which i
 the case this code exists to survive.
 """
 import json
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from pathlib import Path
 
 import pytest

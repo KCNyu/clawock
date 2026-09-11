@@ -1,5 +1,4 @@
 """Publication contract for the generated dashboard screenshots workflow."""
-import re
 from pathlib import Path
 
 from workflow_contract_helpers import assert_validator_step, step_block, step_run, steps, staged_paths

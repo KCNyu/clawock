@@ -9,7 +9,6 @@ live path; the weakest one guarded the store that settles trigger verdicts.
 Run: python3 -m pytest tests/test_bar_checks.py -q
 """
 import ast
-import sys
 from pathlib import Path
 
 import pytest

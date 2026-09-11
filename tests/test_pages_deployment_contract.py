@@ -39,6 +39,21 @@ INDEXNOW_KEY = "4fb2df1611ed42e5b67fd6171a237acb.txt"
 GOOGLE_VERIFICATION = "google7be5b41525cebe9d.html"
 
 
+
+def _copy_repo_data(destination, **kwargs):
+    """Copy the checkout's assets/data, minus what other xdist workers write and remove.
+
+    `money_checker.sh` writes `assets/data/integrity_report.json` into the checkout
+    and `restores_untracked_artifact` deletes it again (conftest `TOLERATED_PATHS`).
+    Under `-n` a copytree here can list the file and then find it gone:
+    `shutil.Error … No such file or directory` (CI 2026-09-12, an unrelated PR).
+    Neither file is a Pages input, so skipping them tests the same artifact.
+    """
+    def transient(_directory, names):
+        return [name for name in names
+                if name == "integrity_report.json" or name.startswith(".tmp-")]
+    shutil.copytree(ROOT / "assets/data", destination, ignore=transient, **kwargs)
+
 def _sidecar_keys() -> set[str]:
     block = UI.split("const SIDECAR_TAB = {", 1)[1].split("};", 1)[0]
     return set(re.findall(r"([a-z][a-z0-9_]+)\s*:", block))
@@ -256,7 +271,7 @@ def _stage_publishable_site(site):
     they would drift apart.
     """
     shutil.copytree(ROOT / "site/assets", site / "assets")
-    shutil.copytree(ROOT / "assets/data", site / "assets/data")
+    _copy_repo_data(site / "assets/data")
     (site / "index.html").write_text("ok")
     for path in (
         "briefs.html", "evidence.html", "faq.html", "llms.txt",
@@ -298,8 +313,6 @@ def _stage_publishable_site(site):
     (site / "docs/visual-regression/issue-206").mkdir(parents=True)
     (site / "docs/visual-regression/issue-206/before-1440.jpg").write_bytes(b"\xff\xd8")
     (site / "docs/architecture.md").write_text("ok")
-    source_gif_size = (ROOT / "site/assets/dashboard.gif").stat().st_size
-    source_jsonl = sorted((ROOT / "assets/data").glob("*.jsonl"))
 
 
 
@@ -307,7 +320,7 @@ def test_builder_stages_only_public_consumers(tmp_path):
     site = tmp_path / "_site"
     output = tmp_path / "_pages"
     shutil.copytree(ROOT / "site/assets", site / "assets")
-    shutil.copytree(ROOT / "assets/data", site / "assets/data")
+    _copy_repo_data(site / "assets/data")
     (site / "index.html").write_text("ok")
     for path in (
         "briefs.html", "evidence.html", "faq.html", "llms.txt",
@@ -402,7 +415,7 @@ def test_builder_stages_only_public_consumers(tmp_path):
 def _minimal_site(site: Path) -> None:
     """The smallest `_site` the preparer accepts: everything required_pages names."""
     shutil.copytree(ROOT / "site/assets", site / "assets")
-    shutil.copytree(ROOT / "assets/data", site / "assets/data", dirs_exist_ok=True)
+    _copy_repo_data(site / "assets/data", dirs_exist_ok=True)
     for path in CONTRACT["required_pages"]:
         target = site / path
         if target.exists():

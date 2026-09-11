@@ -88,7 +88,7 @@ from clawock.portfolio.math import (
     derive_cash,
     moving_average_cost as _moving_avg_cost,
     number as _num,
-    trade_cashflow_after as _trade_cashflow_after,
+    trade_cashflow_after as _trade_cashflow_after,  # noqa: F401 — re-exported for tests
 )
 
 try:

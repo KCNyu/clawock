@@ -11,7 +11,6 @@ import json
 import math
 import os
 import re
-import struct
 import sys
 from datetime import date, datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime

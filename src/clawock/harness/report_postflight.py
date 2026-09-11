@@ -37,8 +37,6 @@ Outputs JSON to stdout:
 import argparse
 import json
 import os
-import re
-import subprocess
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -85,14 +83,11 @@ def load_context(market, phase, date):
 
 
 from clawock.harness.validation import (
-    REPORT_CHAR_LIMITS as CHAR_LIMITS,
+    REPORT_CHAR_LIMITS as CHAR_LIMITS,  # noqa: F401 — re-exported, tests read rp.CHAR_LIMITS
     advisory_prefix,
-    categorize_issues,
-    check_numeric_claims,
     postflight_exit_code,
     product_status,
     split_advisory,
-    validate_forbidden_phrases,
 )
 from ._harness_common import (  # noqa: E402
     dashboard_publication_state,

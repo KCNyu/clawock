@@ -207,7 +207,7 @@ def test_a_breach_is_recorded_in_the_payload_not_only_on_stderr(monkeypatch):
     watchdog.jsonl — so "publishing over cap" was a decision that left no trace
     a reader could act on.
     """
-    dash = pytest.importorskip("clawock.publish.dashboard")
+    pytest.importorskip("clawock.publish.dashboard")
     source = (ROOT / "src" / "clawock" / "publish" / "dashboard.py").read_text(
         encoding="utf-8")
     assert "out['payload_over_cap']" in source, (

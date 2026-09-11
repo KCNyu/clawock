@@ -1,5 +1,4 @@
 import json
-import sys
 from datetime import date as real_date
 from pathlib import Path
 

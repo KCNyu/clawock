@@ -152,3 +152,10 @@ clawock = [
     "workflows/packs/*/assets/*.json",
     "workflows/packs/*/agents/*.yaml",
 ]
+
+[tool.ruff]
+target-version = "py311"
+
+[tool.ruff.lint]
+# Correctness only — see the "Lint Python" step in .github/workflows/ci.yml.
+select = ["F", "E9"]

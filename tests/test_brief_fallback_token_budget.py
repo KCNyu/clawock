@@ -5,7 +5,6 @@ behind when MiniMax M3 became primary. Thinking takes its reserve out of the sam
 allowance, so only ~16K remained for prose against a ~33KB brief. The run ended
 `stop=max_tokens` with the trailing plan.json block never emitted.
 """
-import json
 
 from clawock.automation import brief_fallback, llm
 

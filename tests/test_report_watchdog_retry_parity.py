@@ -12,7 +12,6 @@ a fresh-looking marker and no backstop ever fired. Both invariants are pinned
 here — a fix for either one that breaks the other fails this file.
 """
 import json
-import sys
 from datetime import datetime, timedelta
 from pathlib import Path
 

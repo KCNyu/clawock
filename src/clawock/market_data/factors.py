@@ -27,7 +27,7 @@ import requests
 from clawock import seeds
 from clawock import history_store
 from clawock.market_data import bar_signals
-from clawock.safe_io import safe_write_json, safe_write_text
+from clawock.safe_io import safe_write_json
 from clawock.workspace import workspace_root
 
 WS = workspace_root()

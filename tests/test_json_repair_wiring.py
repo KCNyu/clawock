@@ -17,7 +17,6 @@ and two boundaries that must not move:
 """
 import json
 from types import SimpleNamespace
-import sys
 from pathlib import Path
 
 import pytest

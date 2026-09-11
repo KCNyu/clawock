@@ -1181,7 +1181,6 @@ def build_decision_traces(limit=40, workspace=None):
                         best = e
                         best_diff = diff
                 if best:
-                    subject = best.get('subject') or {}
                     mind = best.get('mind') or {}
                     emotion = best.get('emotion') or {}
                     # Two writers, one card. `mind` is the hand-recorded
@@ -2609,7 +2608,6 @@ def _series_extremes(series):
         return None
     peak = pts[0][1]
     peak_date = pts[0][0]
-    dd_peak_date = peak_date          # peak that precedes the worst trough
     worst = 0.0
     worst_trough_date = pts[0][0]
     worst_peak_date = pts[0][0]

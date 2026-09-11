@@ -66,7 +66,7 @@ SCENARIOS = [
         _lanes(code=True, analysable=False), True,
         id="automation price commit: full suite gates the money file, CodeQL skips"),
     pytest.param(
-        [f"memory/2026-08-24-pre-open.md", "memory/2026-08-24-plan.json"],
+        ["memory/2026-08-24-pre-open.md", "memory/2026-08-24-plan.json"],
         _lanes(code=True, analysable=False), True,
         id="daily brief commit (pre-open + plan): suite runs, CodeQL skips"),
     pytest.param(

@@ -52,7 +52,6 @@ import json
 import os
 import sys
 from datetime import datetime
-from pathlib import Path
 
 from clawock import sessions as trading_calendar
 
@@ -380,8 +379,8 @@ def alert_brief_missing(today, dry_run, issues=None):
         f'09:05 检查结果：\n{issue_text}\n\n'
         + retry_budget_note()
         + recovery_note
-        + f'\n查因：openclaw cron runs --id $(openclaw cron list | grep 盘前深度简报) '
-          f'/ sar -q 看 08:00 起的 blocked'
+        + '\n查因：openclaw cron runs --id $(openclaw cron list | grep 盘前深度简报) '
+          '/ sar -q 看 08:00 起的 blocked'
     )
 
     tg_ok, tg_out = False, ''

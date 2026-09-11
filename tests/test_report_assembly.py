@@ -397,7 +397,6 @@ def test_main_refuses_to_publish_a_stale_prose_file(run_main, sent, pf, tmp_path
     """A helper-only test does not guard main(): with read_prose_text returning an
     error but main() ignoring it, everything else still passes. Drive the whole
     entry point and assert NOTHING was sent."""
-    import os
     rc, out = run_main(PROSE, context_id='abc123def456',
                        age_minutes=pf.PROSE_MAX_AGE_MIN + 5)
 
@@ -482,11 +481,7 @@ def test_watchdog_ignores_an_undelivered_marker(wd):
 
 
 # ── watchdog must not duplicate a healthy prose run ────────────────────────
-
-@pytest.fixture
-def wd():
-    return _load('report_watchdog')
-
+# (uses the `wd` fixture defined above)
 
 def test_watchdog_identifies_the_slot_by_context_id_not_first_line(wd):
     """Prose-mode bodies start with the TITLE, so the old first-line compare

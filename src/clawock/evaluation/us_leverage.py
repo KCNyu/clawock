@@ -15,7 +15,6 @@ Run: clawock evaluate-us-leverage
 """
 from clawock.evaluation.series import mdd, rvol, sma
 import argparse
-import math
 from datetime import date
 from pathlib import Path
 
@@ -150,7 +149,6 @@ def main(argv=None):
         s = simulate(closes); s['dates'] = dates; s['last_close'] = closes[-1]; sims[etf] = s
         for key in ('bh1', 'bh2', 'reg', 'rgv', 'r1x'):
             nav = s[key]
-            pos = s['pos'] if key in ('reg', 'rgv', 'r1x') else None
             tot, cg, m = nav[-1] - 1, cagr(nav, dates), mdd(nav)
             inmkt = (sum(s['pos']) / len(s['pos']) * 100) if key in ('reg', 'rgv', 'r1x') else 100
             sw = sum(1 for a, b in zip(s['pos'], s['pos'][1:]) if a != b) if key in ('reg', 'rgv', 'r1x') else 0

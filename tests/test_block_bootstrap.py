@@ -10,7 +10,6 @@ estimator exactly when the data says it should, and it refuses the
 bias-correction on a sample too short to estimate it.
 """
 import random
-import statistics
 
 from clawock.evaluation import bootstrap
 

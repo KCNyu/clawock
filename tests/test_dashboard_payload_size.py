@@ -6,7 +6,6 @@ document, and 27KB of calibrator posterior state shipped with no consumer at all
 """
 import json
 import re
-import sys
 from pathlib import Path
 
 import pytest
@@ -326,7 +325,6 @@ def test_the_brief_still_gets_the_calibrators_the_dashboard_no_longer_ships():
 
     Break either half and sizing silently loses its evidence base.
     """
-    import sys
 
     from clawock.decision import ledger as decision_v2
 
@@ -355,7 +353,6 @@ def test_the_brief_only_ships_calibrator_rows_that_can_move_size():
     not abstain`, so edge-supported is a strict subset. If anyone ever inverts
     that relationship, sizing loses its evidence base silently.
     """
-    import sys
 
     from clawock.decision import ledger as decision_v2
     from clawock.harness import brief_preflight

@@ -13,7 +13,6 @@ Writes:
 import argparse
 import copy
 import json
-import math
 import statistics
 from datetime import date, datetime, timezone
 from pathlib import Path
@@ -26,7 +25,7 @@ from clawock.market_data.factors import (
     clustered_mean_ci,
     fetch_universe,
 )
-from clawock.safe_io import safe_write_json, safe_write_text
+from clawock.safe_io import safe_write_json
 from clawock.workspace import workspace_root
 
 WS = workspace_root()

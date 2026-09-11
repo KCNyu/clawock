@@ -10,7 +10,6 @@ Run: python3 -m pytest tests/test_run_card.py -q
 """
 import ast
 import json
-import sys
 from pathlib import Path
 
 import pytest

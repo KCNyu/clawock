@@ -14,7 +14,6 @@ merges decide how a signal would actually be used:
 to the cases where the IC and the buckets disagree — which is the entire reason
 for adding them.
 """
-import statistics
 
 from clawock.evaluation import signal_panel
 

@@ -4,7 +4,6 @@ import re
 import sys
 
 from workflow_contract_helpers import (
-    assert_validator_step,
     push_paths,
     step_block,
     step_run,

@@ -19,7 +19,6 @@ import math
 import random
 import statistics
 
-import pytest
 
 from clawock.market_data import bar_signals as bs
 

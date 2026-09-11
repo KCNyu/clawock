@@ -11,7 +11,6 @@ in exactly one place, that both report modes read that place, and that removing
 the budget did not also remove the content the reports must carry.
 """
 from pathlib import Path
-import sys
 
 ROOT = Path(__file__).resolve().parents[1]
 from clawock.harness import _harness_common as common  # noqa: F401

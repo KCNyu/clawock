@@ -14,7 +14,6 @@ of the eighteen sessions is skipped, and the module has to say so rather than
 return coefficients from an underdetermined fit.
 """
 import random
-import statistics
 
 import numpy as np
 import pytest

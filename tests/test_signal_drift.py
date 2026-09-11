@@ -12,7 +12,6 @@ rows reports `p < 1e-9` for an ordinary directional week, and an alert that fire
 every week is not an alert.
 """
 import random
-import statistics
 
 import pytest
 
