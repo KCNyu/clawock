@@ -1,89 +1,47 @@
 {
-  "generated_at": "2026-09-11T16:47:00.047962+00:00",
+  "generated_at": "2026-09-12T16:43:18.941139+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
     "musk": "google-news-rss (proxy)",
-    "serenity": "aleabitoreddit.substack.com/feed (public posts)"
+    "ark": "arkfunds.io/api/v2/etf/trades (ARK 日度调仓, 一手)",
+    "serenity": "aleabitoreddit.substack.com/feed (public posts)",
+    "duan": "google-news-rss zh-HK (段永平 报道, 二手)",
+    "honghao": "google-news-rss zh-HK (洪灏 报道, 二手)",
+    "burry": "google-news-rss en-US (Burry 报道, 二手)",
+    "pelosi": "google-news-rss en-US (Pelosi 报道, 二手)"
   },
   "source_status": {
     "trump": "success",
     "musk": "success",
-    "serenity": "failed"
+    "ark": "success",
+    "serenity": "failed",
+    "duan": "success",
+    "honghao": "success",
+    "burry": "success",
+    "pelosi": "success"
   },
-  "llm_filtered": true,
+  "llm_filtered": false,
   "counts": {
-    "total": 4,
+    "total": 28,
     "held_hits": 0,
     "new_ideas": 0,
-    "sector_hits": 3
+    "sector_hits": 0
   },
   "items": [
     {
       "author": "Musk",
-      "text": "In A SpaceX-Tesla Merger, Elon Musk May Be The Big Winner. What It May Mean For Other Investors.",
+      "text": "SpaceX investors may be overlooking a major risk: There’s no replacing Elon Musk | CNN Business",
       "url": "",
-      "published": "Fri, 11 Sep 2026 11:12:00 GMT",
+      "published": "Wed, 02 Sep 2026 07:00:00 GMT",
       "origin": "gnews-rss",
-      "source": "Investor's Business Daily",
+      "source": "CNN",
       "tickers": [],
       "held": [],
       "new_ideas": [],
-      "sectors": [
-        "航天",
-        "电动车"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
       "stance": "neutral",
-      "relevance": 58,
-      "summary_cn": "Musk 旗下 SpaceX 与 Tesla 潜在合并传闻，Musk 或为最大赢家，间接利好 kcn 持有的 SpaceX 相关标的。"
-    },
-    {
-      "author": "Musk",
-      "text": "Tesla Shares Suffer Slow Summer After SpaceX IPO, Earnings Rout",
-      "url": "",
-      "published": "Fri, 11 Sep 2026 13:15:50 GMT",
-      "origin": "gnews-rss",
-      "source": "Bloomberg.com",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "电动车",
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "SpaceX IPO 后资金分流及 Tesla 业绩不佳致股价承压，对 kcn 持有 SpaceX 系标的情绪面略有影响。"
-    },
-    {
-      "author": "Musk",
-      "text": "'You can't break the fundamental laws of physics': T-Mobile CFO says he's not worried about Elon Musk's cellular ambitions",
-      "url": "",
-      "published": "Fri, 11 Sep 2026 13:14:28 GMT",
-      "origin": "gnews-rss",
-      "source": "Business Insider",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "电信/通信",
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 52,
-      "summary_cn": "T-Mobile CFO 表示不惧 Musk 的蜂窝通信野心，间接涉及 SpaceX/Starlink 业务竞争格局。"
+      "relevance": null,
+      "summary_cn": ""
     },
     {
       "author": "Musk",
@@ -95,19 +53,66 @@
       "tickers": [],
       "held": [],
       "new_ideas": [],
-      "sectors": [
-        "基建/隧道",
-        "中东投资"
-      ],
-      "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 45,
-      "summary_cn": "Musk 的 Boring Co. 估值达 230 亿美元并拓展中东市场，未上市标的，与 kcn 持仓无直接关联。"
-    }
-  ],
-  "held_hits": [],
-  "new_ideas": [],
-  "sector_hits": [
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk's SpaceX sues Texas AG over Terafab tax-break records",
+      "url": "",
+      "published": "Thu, 10 Sep 2026 17:56:00 GMT",
+      "origin": "gnews-rss",
+      "source": "USA Today",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk Says ‘Enormous, Free Fusion Reactor in the Sky’ Will Supply 100% of Energy Needs",
+      "url": "",
+      "published": "Sat, 12 Sep 2026 14:38:57 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk slams 'Musk' documentary director as 'bitter old man'",
+      "url": "",
+      "published": "Sat, 12 Sep 2026 09:41:47 GMT",
+      "origin": "gnews-rss",
+      "source": "조선일보",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Musk",
+      "text": "Commentary: Elon Musk threatens to sue over a new doc about him. But the film festival crowd loves it",
+      "url": "",
+      "published": "Fri, 11 Sep 2026 13:00:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Los Angeles Times",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
     {
       "author": "Musk",
       "text": "In A SpaceX-Tesla Merger, Elon Musk May Be The Big Winner. What It May Mean For Other Investors.",
@@ -118,61 +123,310 @@
       "tickers": [],
       "held": [],
       "new_ideas": [],
-      "sectors": [
-        "航天",
-        "电动车"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
       "stance": "neutral",
-      "relevance": 58,
-      "summary_cn": "Musk 旗下 SpaceX 与 Tesla 潜在合并传闻，Musk 或为最大赢家，间接利好 kcn 持有的 SpaceX 相关标的。"
+      "relevance": null,
+      "summary_cn": ""
     },
     {
       "author": "Musk",
-      "text": "Tesla Shares Suffer Slow Summer After SpaceX IPO, Earnings Rout",
+      "text": "From DOGE to \"space lasers,\" Alex Gibney peels back the many layers of Elon Musk",
       "url": "",
-      "published": "Fri, 11 Sep 2026 13:15:50 GMT",
+      "published": "Fri, 11 Sep 2026 09:00:00 GMT",
       "origin": "gnews-rss",
-      "source": "Bloomberg.com",
+      "source": "NPR",
       "tickers": [],
       "held": [],
       "new_ideas": [],
-      "sectors": [
-        "电动车",
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
       "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "SpaceX IPO 后资金分流及 Tesla 业绩不佳致股价承压，对 kcn 持有 SpaceX 系标的情绪面略有影响。"
+      "relevance": null,
+      "summary_cn": ""
     },
     {
-      "author": "Musk",
-      "text": "'You can't break the fundamental laws of physics': T-Mobile CFO says he's not worried about Elon Musk's cellular ambitions",
-      "url": "",
-      "published": "Fri, 11 Sep 2026 13:14:28 GMT",
+      "author": "Pelosi",
+      "text": "Cramer Asked Who Was Buying Gigantic Bloom Energy Calls. A Pelosi Filing Named Two of the Same Stocks Weeks Earlier.",
+      "url": "https://news.google.com/rss/articles/CBMiogFBVV95cUxOcmRtd2ZncUpqbzdiSU1ZcVk0UUtVcmZmMmZTU2NPdGxFQWNWdW9QbkdjY0VjS0dGc0xwQUduTTJ2Q3h6ZndnSHpXUVljUElNcmdzNF9ZaFo2WG5mMzdjWkVHdktURWV4Uk4xRFJvaHpodEF5NFFoWFQ0Q3RJMTJ1Yjg0YXlXRmV1a0RVRnpZUEZQekRwdVF2aEFWcDhYUzhhakE?oc=5",
+      "published": "2026-09-12T14:50:41+00:00",
       "origin": "gnews-rss",
-      "source": "Business Insider",
+      "source": "Yahoo Finance",
       "tickers": [],
       "held": [],
       "new_ideas": [],
-      "sectors": [
-        "电信/通信",
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
       "stance": "neutral",
-      "relevance": 52,
-      "summary_cn": "T-Mobile CFO 表示不惧 Musk 的蜂窝通信野心，间接涉及 SpaceX/Starlink 业务竞争格局。"
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Burry",
+      "text": "‘Big Short’ Michael Burry buys fine wine to bet against AI threat and USD",
+      "url": "https://news.google.com/rss/articles/CBMitAFBVV95cUxNVFZWQVpydFZCMGtfTEx3YU5QVlBKTUttaC0waC1QQ19SUU01RTlhdVZmTTZOUVhTdmRDQjJMUHQ4Z1ByclNIT3RYRXNlSjlzVDh4ekFySFdrMXp6aWIwMDlHcTAtWWFxd2NOWkk3dllfbDNBa2R5eFY4aTRhblhKc3h3eFU3eW5TQ281V1ZBOFFfM2tfdU9idUxGZktZdGNKWDhkMVdmclNPMjdRRnNyZzJzalk?oc=5",
+      "published": "2026-09-12T14:00:00+00:00",
+      "origin": "gnews-rss",
+      "source": "thestreet.com",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "洪灏",
+      "text": "舖市「苦主」4建議自相矛盾 政府打救有理？",
+      "url": "https://news.google.com/rss/articles/CBMia0FVX3lxTFA1Y2RsSGFYSW16SEJ6NzQ4YVhHY1VWSGh5bzJOcF9sU05vM0o2WlAtVURDTXpKOWFZMmFvcm51UTR1YWFYQVZLZWlENC1SbzRzbW13U0d5UDFqeGctY1htY3A1MGNwM3kteC1N?oc=5",
+      "published": "2026-09-12T11:02:38+00:00",
+      "origin": "gnews-rss",
+      "source": "信報網站",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry calls Lululemon ‘the trickster’ in his portfolio — why it’s now his biggest position",
+      "url": "https://news.google.com/rss/articles/CBMipwFBVV95cUxPc2ExYlpWVjF2b3o5R0JzRllva190T1Nib2F6eHV5TkdCVUVwTFo0SWsxV2dEaF9iSF9ScWVHcG9QZHlUa0hnTmVVMjFqbndNUzk4NEdibkl4TjlrZFFlVmZqeERfMXNHbUlhTVJJRUlFTGtERy1SVHpOTXExeWVSSUFDOE9HM21qTkpFbF94ZkgtRnAxeEZ0Ri1aSVBDU0FBN2lTbi0yMA?oc=5",
+      "published": "2026-09-12T10:15:00+00:00",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "段永平",
+      "text": "關注泡泡瑪特跟李誕有關？段永平：無關，但王寧微信是他給我的",
+      "url": "https://news.google.com/rss/articles/CBMia0FVX3lxTE10MzdqbGVPTTZLbXNqWXVWTG9SQ2lqQ3pFZk41bEliWW5TUlRtZldsQXFjQ25BZUJvRERmTUZQSGVQeGcwdkM1SXN3OWpjQ0hscVhMM20tREdTQTFNVnRvSlVidlk5VW9tQUw0?oc=5",
+      "published": "2026-09-12T09:39:06+00:00",
+      "origin": "gnews-rss",
+      "source": "TradingView",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Burry",
+      "text": "LULU Stock Sinks 18% Overnight: Michael Burry Says Lululemon Is A ‘Trickster’ As He Vows To Buy More Under $100",
+      "url": "https://news.google.com/rss/articles/CBMi_wFBVV95cUxNdVNPaU82TEJNd1FUZnhLaHVsWWFTSFdxYU5QeV9fcFVFcGt1R3NVOFdMSlJIbnJjRkFfcjdlYnJ2bC1PN0VFNExSaVh4NWlSdnBWdXpHSmxPNVRteXlMNFZDNElRS3JUMWJUMXRaejFDdWtDckt6bTdoNnpNNEJ5RU8tczVYWjZtenl3VFYxdU1UQ0tfSTU3R3FxZ2UxQlpaUDEzTkNUMEtWVFdiUlRWRGhESldrUTU3ZXJ0RHJNYkFWWkVzcWdreVFWMTdTbmJkU3BZWjB3N2tSeTQxLWtvSHg0d2l1dThLUmtTZVJiRHRqU1pEZzFPLU1SeE5YSzg?oc=5",
+      "published": "2026-09-12T08:37:53+00:00",
+      "origin": "gnews-rss",
+      "source": "Stocktwits",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry Is Staying Short Nvidia, Palantir, and Tesla, Warning of a Possible \"1987-Type Fall\" for AI Stocks. Should Investors Take the Bet Seriously?",
+      "url": "https://news.google.com/rss/articles/CBMimAFBVV95cUxORF9XSEdlbE5wYlZQS1JzTE9xNmhBeUtiY1hXN3NseEt4SXhaY0htUGRxYjBPSGU5M0hDRTZjQmQ5b2VpbFJhV04zN0JqNzljYllzM2VKUnBIQkNZN0dXX2xYb1hHN0ZrMzJ4Mm5qdmZfNWNibjVQaTJQVG9QSkFxbk4yeF9zOWdtV1k3MXhnNVpDNVZKZ05GeQ?oc=5",
+      "published": "2026-09-12T06:30:00+00:00",
+      "origin": "gnews-rss",
+      "source": "The Motley Fool",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry Says ‘We Are Near A Major Top, And A Possible 1987-Type Fall’ — Why Record Highs Aren’t Changing His Bearish View",
+      "url": "https://news.google.com/rss/articles/CBMigwJBVV95cUxPdldiZXM2YXByZHd3WXA3ODBBZWIwQzg5WmNmSVNzODBUQmYyYlo5Wm8xQlhZd0ZaakVKSER5YTZuUDk5MERYODBVc2RTQVhDbkZ0Qlo5STRLZjRFUS1GVGdJUG9BcGdONVRGbElqdGphd1huQ0haUUxRLVIxcWU5ZE5WS0RCZnRZaXBzb0dLaUpFMUlKclVSamdzVTNzNmMwQlZ0dG1pcU9kd0lTZmdCQjF6czE3NXBxU1BGc2RvWDdwQk51a1MtRXVMbDI3ejhaVXJTaWVzbUw5V2QyeXJGQnZMX1RDR3lCNEdUanZKMjFTbDgyZUNVcE5US1B0S0xXYWpB?oc=5",
+      "published": "2026-09-12T06:19:00+00:00",
+      "origin": "gnews-rss",
+      "source": "Stocktwits",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "洪灏",
+      "text": "由屋邨天井到小店 細訴被遺忘的人情味！",
+      "url": "https://news.google.com/rss/articles/CBMiW0FVX3lxTE0wTXd0dFFOdnRpc0cxcG9DR1lhSDNvREJMdmdINGFFMUFOd2c2WTFYUG1ZZVBTREQxNnhDUG51RmxzTXlvLTFPUVNnVlA2NngtZ0NidWxSZW5sekU?oc=5",
+      "published": "2026-09-12T03:36:56+00:00",
+      "origin": "gnews-rss",
+      "source": "信報網站",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Trump",
+      "text": "RT: https://truthsocial.com/users/realDonaldTrump/statuses/117255718355537976I am calling on the Smithsonian Institution to honor the Life and Legacy of George Washington, America’s Greatest Hero, with a five-year exhibition at the National Museum of American History, beginning now, and continuing through, February 22, 2032, the 300th anniversary of Washington’s birth.I am also calling on the Smithsonian to erect a 30-foot “Colossus statue” of the Father of Our Country outside the Museum, to replace the so-called “Infinity” sculpture that stands there today. That strange modernist sculpture te",
+      "url": "https://www.trumpstruth.org/statuses/41695",
+      "published": "2026-09-12T02:31:42+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "洪灏",
+      "text": "一掃伊朗戰爭跌幅！亞股開始收復失土 台股高出2％最猛",
+      "url": "https://news.google.com/rss/articles/CBMiWEFVX3lxTE1mZ2pZWmcwRVBCaWEtTFF4QURxMkdWZ09LczZFeU5wbmdpVmhGNmg5N1IxUlRRcmcyRHVHWlNWdm5JTmFTWGZ6RFA2UndqSnpDaHZQVHBfRm8?oc=5",
+      "published": "2026-09-11T20:08:58+00:00",
+      "origin": "gnews-rss",
+      "source": "自由時報",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-11 调仓：Twist Bioscience Corporation(TWST) 卖出 ARKK 46,015 股（最大单只 ETF 占比 0.09%）",
+      "url": "https://www.ark-funds.com/funds/arkk/",
+      "published": "2026-09-11T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.092,
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-11 调仓：Bullish(BLSH) 卖出 ARKK 121,217 股（最大单只 ETF 占比 0.07%）",
+      "url": "https://www.ark-funds.com/funds/arkk/",
+      "published": "2026-09-11T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.0661,
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-11 调仓：10x Genomics, Inc.(TXG) 卖出 ARKK 60,556 股（最大单只 ETF 占比 0.07%）",
+      "url": "https://www.ark-funds.com/funds/arkk/",
+      "published": "2026-09-11T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.0653,
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-11 调仓：Tempus AI, Inc.(TEM) 卖出 ARKK 34,631 股（最大单只 ETF 占比 0.03%）",
+      "url": "https://www.ark-funds.com/funds/arkk/",
+      "published": "2026-09-11T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.032,
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-11 调仓：INTELLIA THERAPEUTICS, INC.(NTLA) 买入 ARKK 107,356 股（最大单只 ETF 占比 0.02%）",
+      "url": "https://www.ark-funds.com/funds/arkk/",
+      "published": "2026-09-11T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.0199,
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-11 调仓：GeneDx Holdings Corp.(WGS) 卖出 ARKK 7,631 股（最大单只 ETF 占比 0.01%）",
+      "url": "https://www.ark-funds.com/funds/arkk/",
+      "published": "2026-09-11T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.0103,
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Pelosi",
+      "text": "Speaker Emerita Nancy Pelosi To Be Honored With Inaugural Yale Patriot Public Service Award for Legislative Leadership",
+      "url": "https://news.google.com/rss/articles/CBMitgFBVV95cUxPSzlXSEdLbWVsbUJZVzVaQ3JYbWdHekw3ZmhQOEh4LU1hb2VOUURGRDFOY1FDeWE3Tzg2QjJSNC0wTEhNeHdCb3NCOXFpLS02M19rcHpXTndYWlo1eGZ6dVJaQ3N1N1ozcUV3VzhRT1ZXMDdBd2xKMldQWjAtMzdGN0VHamNyU1hybHA4b2ZwM0VpZ1pRem42cVNiUlZOT1BQRk5FSzRWRGR0ZmNvME0taGk2VVEwZw?oc=5",
+      "published": "2026-09-11T19:41:50+00:00",
+      "origin": "gnews-rss",
+      "source": "Yale School of Management",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Trump",
+      "text": "The $5,000 Trump Dividend, given to all Adults in the United States due to the fact that our Country is taking in Trillions of Dollars of Economic Development, Investment, and Pure SUCCESS, is being criticized by “Dumocrats” who are hoping that it never happens — But it will! As an example, the Dumocrats said THE GREAT BIG BEAUTIFUL BILL, one of the largest ever approved by Congress, or signed into Law by a President happened, despite the Dumocrats saying it would be impossible to get approved — Or the Gift of $1776 that I gave last year to our Military, was an almost guaranteed Non Starter, e",
+      "url": "https://www.trumpstruth.org/statuses/41692",
+      "published": "2026-09-11T19:08:41+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
+    },
+    {
+      "author": "Pelosi",
+      "text": "LIST: Bay Area communities hold memorial ceremonies, marking 25 years since 9/11 attacks",
+      "url": "https://news.google.com/rss/articles/CBMitgFBVV95cUxOUDRfMkNhRUtzcE9NVXRQeEFFd01KeTRRemJUdjNLZ1cxcmotbTQyNWgxc0ZacU1NRDMzaVRGcDdUdU9La21HVlBqX1RtXzlwUnpTS2otOGl1MGpJTlU2UXR3RjM2Qy1PYXhvQXl0T201VWctaXB6eWFkS1hlMi14MnJyZ2gySFl3NWtGM3lIUm9nMDZuZm1HY3BCd0QzeUN4cUdhVmhQNE1qS3RCd0JjZEpMVWl3Z9IBuwFBVV95cUxORlpSNXg5ZnBjbnpZWUt5S0dXV3U0TnI1ZlJybGZyM0pNamJid1picjJfZVdwakpISWZsQW5CMHRMM1E4bGl3M1ZLcDZfTUxUbGFqT3VCak5vSE5KbXhBbnhNeWJMWVdDcE53UFpaRDMzWVB1N3lQQ1Z3QVF6MUNUNzRJZGswXzNLMEFSUmpTdmEzWFlGYUF3cFhMQnktN05qTnBOdUFrXzVEVGJLajg0UE9oc3d2bjlKWTFz?oc=5",
+      "published": "2026-09-11T14:01:42+00:00",
+      "origin": "gnews-rss",
+      "source": "ABC7 Bay Area",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "stance": "neutral",
+      "relevance": null,
+      "summary_cn": ""
     }
-  ]
+  ],
+  "held_hits": [],
+  "new_ideas": [],
+  "sector_hits": []
 }
