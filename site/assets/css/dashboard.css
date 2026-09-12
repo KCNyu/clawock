@@ -2713,6 +2713,37 @@
 
   /* 数据健康：页脚那条 29px tooltip 提升为首屏一块。健康时只有一行判词 +
      一条期限用量带；有问题才升级视觉权重。(#876) */
+  /* 搜索可见性小卡（Overview）。它原本是数据健康卡里的一条 meta：四个事实挤成
+     一段 nowrap 文字，390px 实测 428px 宽 —— 比容器还宽（#1474 把它拆短，
+     这里更进一步：它本来就不该是一条附注）。抽成卡之后一个数字一格，
+     换行交给 grid。
+     它**不是**半宽卡：`#panel-hero` 桌面是 column-count:auto + 内部 12 列网格，
+     没有"半宽槽位"可占，硬塞进 overview-command 的一列会被 align-items:stretch
+     拉成一根高瘦的条。满宽 + 横排 = 同样小，且跟首屏其它卡同节奏。 */
+  .hero-search { padding: 14px 16px 12px; }
+  .sv-grid {
+    display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 1px; background: var(--border-subtle);
+    border-top: 1px solid var(--border-subtle);
+    margin-top: var(--space-3);
+  }
+  @media (max-width: 767px) {
+    .sv-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+  .sv-cell { background: var(--surface-1); padding: 9px 11px 10px; min-width: 0; }
+  .sv-k {
+    font-size: var(--fs-micro); color: var(--text-dim);
+    text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap;
+  }
+  .sv-v {
+    font-size: var(--fs-xl); font-weight: 700; line-height: 1.15;
+    margin: 3px 0 1px; font-variant-numeric: tabular-nums;
+  }
+  .sv-sub { font-size: var(--fs-micro); color: var(--text-tertiary); }
+  .sv-foot {
+    margin-top: var(--space-2); color: var(--text-tertiary);
+    font: 500 var(--fs-micro)/1.5 var(--mono);
+  }
   .hero-health { grid-column: 1 / -1; padding: 16px 18px 14px; }
   .hero-health-head { display: flex; align-items: flex-start; gap: 14px; }
   /* flex 子项的 min-width:auto 会让这一行按 min-content 撑开：读数行里只要有一段

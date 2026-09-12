@@ -1401,6 +1401,62 @@ async function testTheValidationLedgerRendersItsVerdictsAndFitsAPhone(browser, b
   }
 }
 
+// 搜索可见性的独立小卡（Overview）。它原本是数据健康卡里的一条 meta，那条 bit
+// 在窄屏上固定 428px 宽 —— 比容器还宽，占满一整行，把卡顶高。抽出来之后判据是
+// **一个数字一格，换行交给 grid**，所以这里量的是格数与溢出，不是某段文字。
+async function testTheSearchVisibilityCardFitsWithoutOverflowing(browser, base) {
+  for (const [label, width, expectedCols] of [["desktop", 1280, 4], ["mobile", 390, 2]]) {
+    const page = await browser.newPage({ viewport: { width, height: 900 } });
+    const state = observe(page);
+    await stubLiveOrigin(page);
+    await page.goto(base, { waitUntil: "networkidle" });
+    await waitForData(page);
+    await page.waitForSelector("#search-card", { timeout: 5000 });
+
+    const seen = await page.evaluate(() => {
+      const card = document.getElementById("search-card");
+      const cells = [...card.querySelectorAll(".sv-cell")];
+      const cols = new Set(cells.map(c => Math.round(c.getBoundingClientRect().left)));
+      const meta = document.getElementById("dh-meta");
+      const bits = [...document.querySelectorAll("#dh-meta .dh-meta-bit")];
+      return {
+        cells: cells.length,
+        columns: cols.size,
+        texts: cells.map(c => c.innerText.replace(/\s+/g, " ").trim()),
+        cellOverflow: cells.filter(c => c.scrollWidth > c.clientWidth + 1).length,
+        cardOverflow: card.scrollWidth - card.clientWidth,
+        cardHeight: Math.round(card.getBoundingClientRect().height),
+        // 数据健康卡那一行：搜索那一段必须已经不在里面了，而且剩下的段不被切。
+        metaText: meta ? meta.innerText : "",
+        metaClipped: bits.filter(b => b.scrollWidth > b.clientWidth + 1).length,
+        metaOverflow: meta ? meta.scrollWidth - meta.clientWidth : 0,
+        pageOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      };
+    });
+
+    assert.equal(seen.cells, 4, `${label}: the card lost a figure`);
+    assert.equal(seen.columns, expectedCols,
+      `${label}: expected ${expectedCols} columns, found ${seen.columns}`);
+    assert.deepEqual(seen.texts, [
+      "曝光 · 7 天 44 28 天 51",
+      "点击 · 7 天 0 没有点击",
+      "被收录的页 1 全站 107 条 URL",
+      "平均排名 6.98 5 个搜索词有曝光",
+    ], `${label}: the figures changed shape`);
+    assert.equal(seen.cellOverflow, 0, `${label}: a cell's content overflows its box`);
+    assert.equal(seen.cardOverflow, 0, `${label}: the card scrolls sideways`);
+    assert(seen.cardHeight <= 300,
+      `${label}: the card is ${seen.cardHeight}px — it was supposed to be a small card`);
+    assert(!/搜索/.test(seen.metaText),
+      `${label}: the search line is still in the data-health meta — that is the 428px box this card replaced`);
+    assert.equal(seen.metaClipped, 0, `${label}: a data-health meta bit is clipped`);
+    assert.equal(seen.metaOverflow, 0, `${label}: the data-health meta overflows`);
+    assert.equal(seen.pageOverflow, 0, `${label}: the page scrolls sideways`);
+    assert.deepEqual(state.errors, [], `${label}: a renderer threw`);
+    await page.close();
+  }
+}
+
 async function testAPanelSaysWhenItsDataDidNotLoad(browser, base) {
   // A detail tab needs dashboard.json (191 KB, normally from the data branch)
   // before it can paint. When that request failed the only trace was
@@ -2244,6 +2300,7 @@ async function main() {
     await run("testAddSideCardExplainsWhyThereIsNoAdd", () => testAddSideCardExplainsWhyThereIsNoAdd(browser, base));
     await run("testALeveragedRowWithoutVolatilityPrintsNoUndefined", () => testALeveragedRowWithoutVolatilityPrintsNoUndefined(browser, base));
     await run("testNoTabPrintsAMissingNumber", () => testNoTabPrintsAMissingNumber(browser, base));
+    await run("testTheSearchVisibilityCardFitsWithoutOverflowing", () => testTheSearchVisibilityCardFitsWithoutOverflowing(browser, base));
     await run("testTheValidationLedgerRendersItsVerdictsAndFitsAPhone", () => testTheValidationLedgerRendersItsVerdictsAndFitsAPhone(browser, base));
     await run("testAPanelSaysWhenItsDataDidNotLoad", () => testAPanelSaysWhenItsDataDidNotLoad(browser, base));
     await run("testCronRailAccountsForEverySlotWithoutASecondVerdict", () => testCronRailAccountsForEverySlotWithoutASecondVerdict(browser, base));
