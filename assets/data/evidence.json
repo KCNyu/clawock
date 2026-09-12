@@ -1,0 +1,167 @@
+{
+  "schema_version": 1,
+  "generated_at": "unknown",
+  "note": "every figure here is read from an artifact at generation time; the `reading` strings are regenerated with them, so a stale number cannot hide behind current prose.",
+  "sections": [
+    {
+      "title": "杠杆刻度盘（生产 tier 映射）",
+      "verdict": "🔴 未通过",
+      "verdict_key": "failed",
+      "tone": "bad",
+      "sample": "1370 根日线 · 2021-01-04 → 2026-07-31",
+      "source": "run card `regime_dial_validation-20260802-896b2145`",
+      "reading": "观测到的改善比随机重排同一条敞口路径的中位数还差（10.2%）。p = 0.925 是未能拒绝原假设，不是证伪——一个指数、一次崩盘，撑不起「没用」，正如它撑不起「有用」。刻度盘保留未改；不能再做的是拿另一个策略的数字当它的证据。",
+      "rows": [
+        {
+          "label": "样本内改善（对比一直 2x）",
+          "value": "-91.6% vs -95.5%，即 +3.9pp"
+        },
+        {
+          "label": "置换检验 p 值（回撤 / 收益）",
+          "value": "0.925 / 0.970"
+        },
+        {
+          "label": "随机重排的中位改善",
+          "value": "10.2%"
+        },
+        {
+          "label": "样本外 walk-forward",
+          "value": "2 / 4 折改善回撤，阈值不稳定"
+        },
+        {
+          "label": "生产阈值在网格中的排名",
+          "value": "13 / 16"
+        },
+        {
+          "label": "各档触发占比",
+          "value": "green 30.5% · amber 59.5% · red 10.0%"
+        }
+      ]
+    },
+    {
+      "title": "量化因子 edge",
+      "verdict": "⚪ 尚不可判",
+      "verdict_key": "undecided",
+      "tone": "idle",
+      "sample": "留痕 68 天",
+      "source": "`assets/data/quant_signal_review.json`",
+      "reading": "解锁规则是 `cluster_ci_entirely_above_or_below_50pct`：先过样本闸（MIN_N，#934），置信区间还必须整体落在 50% 一侧。目前 0/6 个因子达标。CI 跨 50% 是「样本还不够」，不是「因子无效」——两者的处置相同（不入决策），结论不同。",
+      "rows": [
+        {
+          "label": "`rsi_overbought_fade`",
+          "value": "命中率 16.7% · CI95 [0.0%, 100.0%] · n=6（6 日 × 3 标的）· ⚪ 样本不足 MIN_N，方向结论不入决策（#934）"
+        },
+        {
+          "label": "`rsi_oversold_bounce`",
+          "value": "命中率 63.0% · CI95 [30.8%, 100.0%] · n=27（17 日 × 8 标的）· ⚪ CI 跨 50%，锁定"
+        },
+        {
+          "label": "`stop_breach_continue`",
+          "value": "命中率 57.4% · CI95 [44.2%, 69.3%] · n=258（50 日 × 11 标的）· ⚪ CI 跨 50%，锁定"
+        },
+        {
+          "label": "`trend_off_avoid`",
+          "value": "命中率 53.5% · CI95 [42.5%, 64.5%] · n=396（60 日 × 10 标的）· ⚪ CI 跨 50%，锁定"
+        },
+        {
+          "label": "`trend_on_follow`",
+          "value": "命中率 42.9% · CI95 — · n=7（7 日 × 1 标的）· ⚪ 样本只覆盖单一簇，算不出聚类 CI —— 无法解读"
+        },
+        {
+          "label": "`zscore_extreme_revert`",
+          "value": "命中率 68.8% · CI95 [20.0%, 100.0%] · n=16（8 日 × 6 标的）· ⚪ 样本不足 MIN_N，方向结论不入决策（#934）"
+        }
+      ]
+    },
+    {
+      "title": "截面因子（预注册）",
+      "verdict": "⚪ 尚不可判",
+      "verdict_key": "undecided",
+      "tone": "idle",
+      "sample": "预注册于 2026-07-26",
+      "source": "`assets/data/cross_sectional_factor.json`",
+      "reading": "这一层只用 `registered_at` 之后记录的快照做样本外验证，回溯结果永远不能激活它。目前仍未达标，因此不参与任何决策。「还没通过」被公开写出来，是为了让它日后通过时那句话有意义。",
+      "rows": [
+        {
+          "label": "`prospective_dates`",
+          "value": "12 / 需要 24 · ⚪ 未达标"
+        },
+        {
+          "label": "`prospective_tickers`",
+          "value": "38 / 需要 12 · ✅"
+        },
+        {
+          "label": "`prospective_sectors`",
+          "value": "8 / 需要 3 · ✅"
+        },
+        {
+          "label": "`price_coverage`",
+          "value": "1.0 / 需要 0.8 · ✅"
+        },
+        {
+          "label": "`quality_coverage`",
+          "value": "0.6153846153846154 / 需要 0.6 · ✅"
+        },
+        {
+          "label": "`clustered_edge`",
+          "value": "[-0.080559, 0.002056] / 需要 CI lower > 0.0 · ⚪ 未达标"
+        },
+        {
+          "label": "`membership_history`",
+          "value": "False / 需要 True · ⚪ 未达标"
+        },
+        {
+          "label": "`corporate_actions`",
+          "value": "Tencent qfq forward-adjusted daily bars / 需要 adjusted · ✅"
+        }
+      ]
+    },
+    {
+      "title": "低频加仓交互（新 campaign）",
+      "verdict": "⚪ 尚不可判",
+      "verdict_key": "undecided",
+      "tone": "idle",
+      "sample": "factor 14 日 × information 14 日",
+      "source": "run card `add_alpha_walkforward-20260813-3a918d77`",
+      "reading": "价格相对强弱与点时信息必须共同出现；技术位只安排已经获准的 tranche。当前 run card 是 current-universe / legacy-news replay，且前瞻信息日期仍为 0，所以只用于收集与诊断，不是 validated alpha。旧账本里的 `add_only_on_trigger` 是 mixed/legacy 样本，不计作这套 campaign 的成绩。",
+      "rows": [
+        {
+          "label": "`US T1 interaction`",
+          "value": "n=4 · mean 3.11% · hit 100.0% · collecting"
+        },
+        {
+          "label": "`US T5 interaction`",
+          "value": "n=4 · mean 4.13% · hit 75.0% · collecting"
+        },
+        {
+          "label": "`US T20 interaction`",
+          "value": "collecting · n=0（不显示为 0%）"
+        },
+        {
+          "label": "`HK T1 interaction`",
+          "value": "n=2 · mean 1.77% · hit 50.0% · collecting"
+        },
+        {
+          "label": "`HK T5 interaction`",
+          "value": "n=1 · mean -1.03% · hit 0.0% · collecting"
+        },
+        {
+          "label": "`HK T20 interaction`",
+          "value": "collecting · n=0（不显示为 0%）"
+        },
+        {
+          "label": "覆盖日期",
+          "value": "factor 14 · information 14 · overlap 12"
+        },
+        {
+          "label": "前瞻信息日期",
+          "value": "1"
+        },
+        {
+          "label": "authority 分类",
+          "value": "none 217 · exploration 7 · validated 0"
+        }
+      ]
+    }
+  ]
+}
