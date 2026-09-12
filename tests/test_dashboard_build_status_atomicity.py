@@ -16,8 +16,6 @@ import json
 import threading
 from pathlib import Path
 
-import pytest
-
 from clawock.harness import _harness_common
 
 SRC = Path(__file__).resolve().parents[1] / "src"
