@@ -1507,25 +1507,28 @@
     }
 
     if (metaEl) {
-      const bits = [];
       // 微信单通道掉投：上游 ret=-2，kcn 已定不修也不告警（#771），但「这一
       // 窗口掉了几档」必须答得上来。它不改 tone，也不占泳道 —— 成品由
       // Telegram 兜住了，它属于「已知不修」，位置就该在这条安静的行里。
-      if (droppedTotal) bits.push(`微信掉投 ${droppedTotal} 档 · TG 已兜 · 已知不修`);
+      const dropBit = droppedTotal ? `微信掉投 ${droppedTotal} 档 · TG 已兜 · 已知不修` : "";
       // 搜索可见性，一行。它在这一行而不是一张牌里：数字本身很小（7 天几十次
       // 曝光、0 点击、1/107 页被收录），做成卡片是给一个不动的量配一块固定的
       // 版面。放在这里，是因为它回答的正是这张卡的问题——「页面上的数字有没
       // 有人看得见」。sitemap 从未被下载时说出来，那是整份读数里最有用的事实。
       const sv = safe(DATA, "crawl_visibility");
-      if (sv && sv.available) {
-        const fetched = sv.sitemap_fetched ? "sitemap 已抓" : "sitemap 从未被下载";
-        bits.push(`搜索 7 天 ${numText(sv.impressions)} 曝光 / ${numText(sv.clicks)} 点击`
-          + ` · 收录 ${numText(sv.pages_with_impressions)} 页 · ${fetched}`
-          + ` · 截至 ${String(sv.as_of || "").slice(0, 10)}`);
-      }
-      if (bs.generated_at) bits.push(`构建 ${String(bs.generated_at).replace("T", " ").slice(0, 16)}`);
+      const searchBit = (sv && sv.available)
+        ? `搜索 7 天 ${numText(sv.impressions)} 曝光 / ${numText(sv.clicks)} 点击`
+          + ` · 收录 ${numText(sv.pages_with_impressions)} 页`
+          + ` · ${sv.sitemap_fetched ? "sitemap 已抓" : "sitemap 从未被下载"}`
+          + ` · 截至 ${String(sv.as_of || "").slice(0, 10)}`
+        : "";
       // 每一段各自不折行：窄屏实测把「构建 2026-09-09 00:05」在「构建」后面
-      // 折开，一个时刻被读成两条信息。折行只准发生在分隔点上。
+      // 折开，一个时刻被读成两条信息。折行只准发生在分隔点上，所以复合读数
+      // 先过 metaBits() 拆短（它保证每段都比手机窄，见 dashboard.core.js）。
+      const bits = metaBits(
+        dropBit,
+        searchBit,
+        bs.generated_at ? `构建 ${String(bs.generated_at).replace("T", " ").slice(0, 16)}` : "");
       metaEl.innerHTML = bits.map(b => `<span class="dh-meta-bit">${escapeHtml(b)}</span>`)
         .join(`<span class="dh-meta-sep"> · </span>`);
     }
