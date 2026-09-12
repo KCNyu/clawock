@@ -257,9 +257,21 @@ def _record_dashboard_build(build_ok, publish_ok, output, ws=None, timings=None)
             # same fact.
             'timings_s': dict(timings or {}),
         }
+        # Atomic (#1455). This file is the ONLY evidence cron_health_check has
+        # about the data plane, and `json.loads` failing on it is graded
+        # `failed` — a red line about a dashboard that may be perfectly fine.
+        # It has five writers (three postflights plus the host publisher's
+        # `0,20,40 * * * *` tick, and the off-host brief fallback), so two of
+        # them overlapping is not exotic: a plain `write_text` truncates first
+        # and writes after, and any reader in that window gets an empty or
+        # half file. `os.replace` makes the worst case "old status or new
+        # status", never "half a status". The module already re-exports
+        # `safe_write_text` for harness scripts (below) while this write, the
+        # one a gate reads, went around it.
+        from clawock.safe_io import safe_write_json
         path = ws / DASHBOARD_BUILD_STATUS
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(json.dumps(status, ensure_ascii=False, indent=2))
+        safe_write_json(str(path), status)
         if not build_ok:
             print(f'🔴 dashboard build FAILED — recorded to {DASHBOARD_BUILD_STATUS}; '
                   f'local outputs were not refreshed. tail: {(output or "")[-500:]}',
