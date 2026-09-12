@@ -286,8 +286,8 @@ def maybe_commit(status, commit_msg):
         if rebuild_ok:
             return True, 'committed + pushed'
         return True, f'committed + pushed (dashboard={publication_state})'
-    return True, (f'committed (push failed: {push_out[-150:]}; '
-                  f'dashboard={publication_state})')
+    return False, (f'committed (push failed: {push_out[-150:]}; '
+                   f'dashboard={publication_state})')
 
 
 def classify_data_plane(commit_ok, commit_msg):

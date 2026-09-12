@@ -847,7 +847,7 @@ def maybe_commit(status, today, dry_run=False):
     push_ok, push_out = push_with_rebase_retry()
     if push_ok:
         return True, 'committed + pushed'
-    return True, f'committed (push failed: {push_out[-150:]})'
+    return False, f'committed (push failed: {push_out[-150:]})'
 
 
 def _ensure_jekyll_front_matter(md_path, date):
@@ -1199,7 +1199,9 @@ def main(argv=None):
     commit_ok, commit_msg = maybe_commit(
         publication_status, today, dry_run=args.dry_run
     )
-    if (status in ('pass', 'warn') and projection_ready
+    if not commit_ok:
+        data_plane_status = 'failed'
+    elif (status in ('pass', 'warn') and projection_ready
             and not args.dry_run):
         data_plane_status = dashboard_publication_state(WS)
     else:
