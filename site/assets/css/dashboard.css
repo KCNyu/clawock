@@ -243,6 +243,25 @@
 
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
+
+  /* 键盘焦点基线（#1453）。在这之前每个交互组件都得自己记得写
+     :focus-visible —— #1316 给排序表头补了一条、#1331 给 ECharts 补了一条，
+     都是单点修，于是 .refresh-btn / .dh-toggle / .panel-load-retry / .nav-link
+     四个真能聚焦的控件一直没有焦点环：鼠标用户看得见 hover 高亮，键盘用户
+     什么都看不见（WCAG 2.4.7）。基线按元素选择器写（特指度 0-0-1），所以任何
+     组件自己的 .foo:focus-visible 规则照旧覆盖它 —— 包括 .dm-dot 那条
+     `outline: none`（它用 ::before 放大代替焦点环）。新组件从此默认有环，
+     忘了写才是安全的那一侧。 */
+  a:focus-visible,
+  button:focus-visible,
+  summary:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  [tabindex]:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
   /* 手机（≤560px）blur 减半保 saturate（#995 同款判据）：小屏上大面积
      blur 的渲染代价与玻璃读感不成比例，半径减半、饱和保留——色度差才是
      「这是玻璃」的真凭据。 */
@@ -406,6 +425,8 @@
     transition: background var(--duration-fast) ease, color var(--duration-fast) ease, transform var(--duration-fast) var(--ease-out);
   }
   .refresh-btn:active { transform: scale(0.92); }
+  /* 圆形按钮：环贴着边走，2px 外扩会切到相邻的 asof 文本。 */
+  .refresh-btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
   @media (hover: hover) and (pointer: fine) {
     .refresh-btn:hover { background: var(--surface-2); color: var(--text); }
   }
@@ -426,6 +447,7 @@
   @media (hover: hover) and (pointer: fine) {
     .nav-link:hover { color: var(--text); background: var(--card-2); }
   }
+  .nav-link:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
   @media (max-width: 480px) {
     .nav-link { padding: var(--space-2); font-size: var(--fs-sm); }
   }
@@ -572,6 +594,7 @@
     padding: 4px 12px;
   }
   .panel-load-retry:hover { background: var(--border); }
+  .panel-load-retry:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 
   /* ── Mobile (<1024px): iOS-native paged tabs ──
      Fixed chrome (header + footer), the content area is a horizontal
@@ -2710,6 +2733,7 @@
     transition: transform var(--duration-fast) var(--ease-out), color var(--duration-fast) ease, border-color var(--duration-fast) ease;
   }
   .dh-toggle:active { transform: scale(.97); }
+  .dh-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   @media (hover: hover) and (pointer: fine) {
     .dh-toggle:hover { color: var(--text); border-color: var(--text-tertiary); }
   }

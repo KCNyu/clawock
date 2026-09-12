@@ -117,12 +117,12 @@ layout: null
     </div>
   </div>
   <nav class="tabs" role="tablist">
-    <button class="tab-btn active" data-tab="hero" role="tab" aria-selected="true">Overview</button>
-    <button class="tab-btn" data-tab="drill" role="tab">Holdings</button>
-    <button class="tab-btn" data-tab="risk" role="tab">Risk</button>
-    <button class="tab-btn" data-tab="market" role="tab">Signals</button>
-    <button class="tab-btn" data-tab="plan" role="tab">Plan</button>
-    <button class="tab-btn" data-tab="reflect" role="tab">Reflect</button>
+    <button class="tab-btn active" id="tab-hero" data-tab="hero" aria-controls="panel-hero" role="tab" aria-selected="true">Overview</button>
+    <button class="tab-btn" id="tab-drill" data-tab="drill" aria-controls="panel-drill" role="tab" aria-selected="false">Holdings</button>
+    <button class="tab-btn" id="tab-risk" data-tab="risk" aria-controls="panel-risk" role="tab" aria-selected="false">Risk</button>
+    <button class="tab-btn" id="tab-market" data-tab="market" aria-controls="panel-market" role="tab" aria-selected="false">Signals</button>
+    <button class="tab-btn" id="tab-plan" data-tab="plan" aria-controls="panel-plan" role="tab" aria-selected="false">Plan</button>
+    <button class="tab-btn" id="tab-reflect" data-tab="reflect" aria-controls="panel-reflect" role="tab" aria-selected="false">Reflect</button>
   </nav>
   <div class="swipe-hint" aria-hidden="true"></div>
 </header>
@@ -162,7 +162,7 @@ layout: null
        ============================================ -->
   <div class="pager" id="pager">
 
-  <section class="panel active" data-panel="hero">
+  <section class="panel active" id="panel-hero" data-panel="hero" role="tabpanel" aria-labelledby="tab-hero">
     <h2>Overview</h2>
 
     <div class="overview-command">
@@ -380,7 +380,7 @@ layout: null
     </div>
 
   </section>
-  <section class="panel" data-panel="drill">
+  <section class="panel" id="panel-drill" data-panel="drill" role="tabpanel" aria-labelledby="tab-drill">
     <h2>Holdings</h2>
 
     <div class="sect-divider holdings-section-heading">持仓明细</div>
@@ -541,7 +541,7 @@ layout: null
     </div>
 
   </section>
-  <section class="panel" data-panel="risk">
+  <section class="panel" id="panel-risk" data-panel="risk" role="tabpanel" aria-labelledby="tab-risk">
     <h2>Risk</h2>
 
     <div class="sect-divider">敞口 · 杠杆 · 硬闸</div>
@@ -689,7 +689,7 @@ layout: null
     </div>
 
   </section>
-  <section class="panel" data-panel="market">
+  <section class="panel" id="panel-market" data-panel="market" role="tabpanel" aria-labelledby="tab-market">
     <h2>Signals</h2>
 
     <div class="card desktop-wide" id="tape-card">
@@ -791,7 +791,7 @@ layout: null
     </div>
 
   </section>
-  <section class="panel" data-panel="plan">
+  <section class="panel" id="panel-plan" data-panel="plan" role="tabpanel" aria-labelledby="tab-plan">
     <h2>Plan</h2>
 
     <div class="card lead" id="add-side-card" style="display:none">
@@ -836,7 +836,7 @@ layout: null
     </div>
 
   </section>
-  <section class="panel" data-panel="reflect">
+  <section class="panel" id="panel-reflect" data-panel="reflect" role="tabpanel" aria-labelledby="tab-reflect">
     <h2>Reflect</h2>
 
     <div class="sect-divider">决策质量 · 自评</div>
