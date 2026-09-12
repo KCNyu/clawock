@@ -1,7 +1,9 @@
-name: Influence Radar (Trump / Musk / Serenity)
+name: Influence Radar (multi-source)
 
-# Market-moving statements from high-impact figures (Trump Truth Social原帖 +
-# Musk via news proxy), LLM-filtered for relevance + cross-matched to holdings.
+# Market-moving statements AND actions from high-impact figures, LLM-filtered for
+# relevance + cross-matched to holdings. Sources (see clawock/automation/influencer.py):
+# Trump 原帖(Truth Social) · Musk 报道(新闻代理) · ARK/Cathie Wood 日度调仓(一手 JSON)
+# · Serenity Substack 公开帖 · 段永平/洪灏(zh-HK 港媒) + Burry/Pelosi(en-US) 报道.
 # Runs twice on (HKT) weekdays:
 #   21:40 UTC Sun–Thu = 05:40 HKT Mon–Fri  → ~2.3h before the 08:00 HKT brief (buffer for
 #                                            GH Actions' 1–2h scheduled-cron delay)
@@ -27,7 +29,12 @@ concurrency:
 jobs:
   scan:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    # 10, not 8: the LLM ladder may open two chains (2 x 210s = 7min) and the
+    # fetch phase is now 13 sequential requests across 8 sources (ARK 6 funds +
+    # 5 Google News queries + Trump + Serenity). Pathological worst case is
+    # ~130s of timeouts, which did not fit in the 1 minute the 8-minute job left
+    # over. tests/test_llm_workflow_deadlines.py still checks 2 chains + 60s.
+    timeout-minutes: 10
     permissions:
       contents: write
     steps:
@@ -38,7 +45,7 @@ jobs:
       - name: Set up clawock (Python)
         uses: ./.github/actions/clawock-python
 
-      - name: Fetch Trump/Musk + LLM relevance filter
+      - name: Fetch sources + LLM relevance filter
         env:
           OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
           MINIMAX_API_KEY: ${{ secrets.MINIMAX_API_KEY }}

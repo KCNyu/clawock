@@ -33,7 +33,7 @@
 | `brief-fallback.yml` | 工作日 00:25 UTC (08:25 HKT) | brief/plan + harness 产物 | 主 brief 缺失且未晚于 10:00 HKT 才由远端 LLM 接管 |
 | `weekly-review.yml` | 周日 14:00 UTC (22:00 HKT) | `memory/weekly/{ISO-week}.md` | MiniMax 主、opencode-go DeepSeek V4 Flash 可选 fallback 的周复盘 |
 | `news-digest.yml` | 工作日 13:00 UTC (21:00 HKT) | `assets/data/us_news_digest.json` | 美股开盘前 48h 新闻提炼 |
-| `influencer-scan.yml` | 周日–四 21:40 + 工作日 12:50 UTC | `assets/data/influencer_feed.json` | 盘前 + 美股盘前两班影响力雷达 |
+| `influencer-scan.yml` | 周日–四 21:40 + 工作日 12:50 UTC | `assets/data/influencer_feed.json` | 盘前 + 美股盘前两班影响力雷达（Trump 原帖 / Musk 报道 / ARK 日度调仓 / Serenity / 段永平·洪灏·Burry·Pelosi 报道，8 源） |
 | `cron-health.yml` | 工作日 09:00 UTC (17:00 HKT) | (read-only) | 用 tracked cron contract + HKT commit date 巡检漏跑 |
 | `screenshot-refresh.yml` | 周日 22:00 UTC | `site/assets/social-card.png` + `site/assets/shadow-backtest.png` | 每周刷新社交卡里的 Hero 截图和实时战绩图；`site/assets/dashboard.gif` 只在手动 dispatch 时生成 |
 
@@ -133,7 +133,7 @@ clawock us-quotes     # 仅刷美股价格
 
 ## 现有脚本梳理（精简索引 — 完整说明见 `docs/reference/commands.md`）
 
-**数据抓取/分析**：`clawock us-quotes`(美股7路fallback,写回portfolio) · `clawock analyze-us`(刷价+RSI/MA+新闻+信号) · `clawock analyze-hk`(腾讯+东财双源对账→stooq/yf兜底) · `clawock benchmark`(SPY/HSI/HSTECH 日线) · `clawock fx`(USDHKD 3路,**book total 必先调**) · `clawock filings`(SEC EDGAR) · `clawock fundamentals`(东财中文基本面,**港股财报**)双保险 · `clawock catalysts`(14d催化→catalysts.json) · `influencer-scan.yml`(KCNyu 定时 Trump/Musk 雷达) · `clawock portfolio-risk`(β/Vol/DD/Sharpe→risk.json) · `clawock quant`(趋势/动量/RSI/z/ATR吊灯/vol-target→quant_signals.json+history.jsonl留痕,杠杆ETF按标的) · `clawock quant-review`(留痕vs前瞻收益→因子edge表,n<20不解锁,brief按edge取信)
+**数据抓取/分析**：`clawock us-quotes`(美股7路fallback,写回portfolio) · `clawock analyze-us`(刷价+RSI/MA+新闻+信号) · `clawock analyze-hk`(腾讯+东财双源对账→stooq/yf兜底) · `clawock benchmark`(SPY/HSI/HSTECH 日线) · `clawock fx`(USDHKD 3路,**book total 必先调**) · `clawock filings`(SEC EDGAR) · `clawock fundamentals`(东财中文基本面,**港股财报**)双保险 · `clawock catalysts`(14d催化→catalysts.json) · `influencer-scan.yml`(KCNyu 定时 8 源影响力雷达: Trump 原帖/ARK 调仓/港美人物报道) · `clawock portfolio-risk`(β/Vol/DD/Sharpe→risk.json) · `clawock quant`(趋势/动量/RSI/z/ATR吊灯/vol-target→quant_signals.json+history.jsonl留痕,杠杆ETF按标的) · `clawock quant-review`(留痕vs前瞻收益→因子edge表,n<20不解锁,brief按edge取信)
 
 **研究生命周期（手动/事件驱动，产物即真源）**：`clawock entry-gate`(建仓前研究闸,信息分级≠投资质量,硬否决先于计分→`memory/entry-gates/`) · `clawock earnings`(一手财报复盘+管理层承诺账本,盈利质量由代码算→`memory/earnings/`) · `clawock thesis`(canonical thesis + 只认证据的 drift→`memory/theses/`) · `clawock provenance`(数字两源+Decimal 精算,准出闸) · `clawock research`(把上面三类 artifact 汇成待办队列;brief preflight 读它,`--check` 进 system_check 与 CI) · `ops/host/cron_token_audit.py`(每 cron 最新一跑的 token 量 vs **同 provider** 滚动中位数,跨 provider 比是假的;只进 daily health不告警不改 exit code) · `clawock plan-context`(08:00 简报还没成交的决策→report/intraday preflight 的 `plan_context`;真源是 `decisions.jsonl` 不是 plan 文件,因为执行状态只写回账本;永不抛异常) · `clawock mover-evidence`(盘中异动票的一手催化探针:SEC/港交所公告分钟级,券商研报与 7×24 只作 supporting;有预算上限、失败降级、不碰 Tavily;filing 三级分流 `config/filing-triage.json`、基金看穿到标的、美股停牌 feed)
 

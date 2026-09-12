@@ -300,7 +300,7 @@ manifest 若出现 `extras`，表示新 feature 被隔离而没有偷长常驻 c
 | `technical` | 价格/MA/RSI/缺口/量价(默认值；纯图表驱动归这里) |
 | `catalyst` | 硬事件：财报/指引/SEC/EDGAR/M&A/产品发布(catalysts + 新闻里的硬催化) |
 | `sentiment` | 软情绪：Reddit 热度 / Google News 情绪 / 散户温度 |
-| `influencer` | Trump 原帖 / Musk 言论 / Serenity(AI半导体供应链选股) |
+| `influencer` | Trump 原帖 / Musk·段永平·洪灏·Burry·Pelosi 报道 / ARK 日度调仓 / Serenity |
 | `macro` | VIX/利率/DXY/指数 regime |
 | `peer` | 相对强弱 / 板块轮动(同行扫描驱动) |
 | `risk_rule` | 组合上限、杠杆、β 等政策型再平衡 |
@@ -406,7 +406,7 @@ preflight 已算好,直接读 `context.risk_guardrail`:
 - Tavily 新闻搜索只准处理 `tavily_resolution_queue` 里列出的 event ID 和 query；队列外的日常旧闻/低影响摘要不得消耗 Tavily。未解决不等于可交易，搜索结果仍需下一轮图谱门控。
 - **软情绪单独存在时,bucket 必须维持技术面/基本面给出的那个**;软情绪只允许把该 action 的 confidence 上下微调最多 ±10pp,且要在 rationale 写明"软情绪佐证/背离,confidence ±X"。
 - **只有硬催化能驱动一次 bucket 翻转**(尤其翻成 cut/trim/add)。若你想下主动 call 但手里只有软情绪 → 降级为 `hold_and_watch` + 设触发价观察,别直接动手。
-- influencer(Trump/Musk/Serenity)默认归 **软情绪**;仅当其言论对应**已落地的政策/行政令/具体合同**才升级为硬催化。Serenity 是 KOL 选股(常为微盘/光通信小票),按 [[serenity-skill]] 的证据阶梯属"弱证据线索",只动 confidence、需一手来源(财报/合同/公告)证实后才可加权。
+- influencer(Trump/Musk/段永平/洪灏/Burry/Pelosi/ARK/Serenity)默认归 **软情绪**;仅当其言论对应**已落地的政策/行政令/具体合同**才升级为硬催化。Serenity 是 KOL 选股(常为微盘/光通信小票),按 [[serenity-skill]] 的证据阶梯属"弱证据线索",只动 confidence、需一手来源(财报/合同/公告)证实后才可加权。**ARK 日度调仓**是机构一手成交数据(不是言论),但它是"别人在调仓"而非公司事件,同样只算软情绪/佐证,不得单独驱动 bucket。
 - 自检:若某 action 的 `driven_by` 是 `sentiment` 或 `influencer` 且 bucket ∈ {cut,trim_on_rebound,add_only_on_trigger} → **这违反铁律,改回 hold_and_watch 或换硬证据**。
 - **前瞻事件的日期只能引用 `context.catalysts`，禁止推测。** 财报/FOMC/宏观在 `earnings`/`fomc`/`macro_events`；公司级预定事件（港股通生效日、解禁日、mainnet 上线、指数调整生效日）在 **`scheduled_events`**（真源 `memory/scheduled_catalysts.json`，手工维护）。
   - `date_confidence=confirmed` → 可直接写该日期；`estimated` → 写日期但必须标「预计」；**`date` 为 `null`（`unconfirmed`）→ 只能写「生效日未确认」，不准用「下周一」「下个月」「9 月」这类自己推出来的说法**。
@@ -580,7 +580,7 @@ preflight 已算好,直接读 `context.risk_guardrail`:
 
 #### ▎名人异动/政策风向 (REQUIRED if `context.influencer.counts.total > 0` 且 age_hours ≤ 36)
 
-从 `context.influencer` 抓数。这是 Trump 原帖 + Musk 言论(新闻代理) + Serenity(AI/半导体供应链选股，Substack 公开帖)，LLM 已筛市场相关性并交叉匹配过持仓。三档优先级：**撞持仓 > 新机会 > 板块相关**。
+从 `context.influencer` 抓数。这是 Trump 原帖 + Musk/段永平/洪灏/Burry/Pelosi 的港美媒体报道(二手代理) + ARK(Cathie Wood) 日度调仓(一手成交) + Serenity(AI/半导体供应链选股，Substack 公开帖)，LLM 已筛市场相关性并交叉匹配过持仓。三档优先级：**撞持仓 > 新机会 > 板块相关**。
 
 格式：
 
@@ -603,7 +603,8 @@ preflight 已算好,直接读 `context.risk_guardrail`:
 - **新机会**(`new_ideas`)是 kcn 没持有但被点名/推荐的票——这是选股线索，点出 stance(看多/看空)和是否值得进 watchlist；kcn 明确说过"不一定有买，要看他们推荐什么"
 - **板块相关**(`sector_hits`)只在前两档为空或想补充主题背景时写，1-2 条即可，别灌水
 - stance=attack/sell 的"新机会"是**规避/做空**信号，不是买入信号，措辞要分清
-- Musk 条目标注是"新闻代理"(二手)，可信度低于 Trump 原帖，措辞留余地
+- Musk / 段永平 / 洪灏 / Burry / Pelosi 条目标注是"新闻代理"(二手)，可信度低于 Trump 原帖，措辞留余地；Pelosi 的成交发生在 30-45 天前、新闻点是**披露**本身，别写成"今天买入"
+- ARK(Cathie Wood) 条目是机构日度调仓的成交记录：`买入`= 她在加仓、`卖出`= 减仓，**不是**看空/抨击；周末与港股假期看到的是上一个美股交易日的动作（条目里带交易日）
 - Serenity 条目来自 Substack(一手但低频，几周才一篇)，多为微盘/小票选股 idea：当"新机会"线索看，**别当买入指令**，措辞强调需自查基本面/一手证据(见 [[serenity-skill]])
 - influencer 数据 age_hours > 36 或 counts.total=0 整段写"⚠️ 名人异动数据 stale/无信号, 跳过本段"；postflight 不 fail
 

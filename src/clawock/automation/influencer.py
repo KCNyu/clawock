@@ -7,7 +7,7 @@ the per-ticker news digest. kcn wants two things surfaced:
   1. 撞持仓告警 — a figure names a company he holds → flag it loud
   2. 选股 idea  — a figure recommends/buys something he does NOT hold → watchlist
 
-Sources:
+Sources (港股 + 美股; roster/per-source budget live in `_sources()`):
   • Trump    — trumpstruth.org/feed   (RSS 2.0, FULL post text, ~mins fresh,
                primary source = his actual words, not second-hand coverage)
   • Musk     — Google News RSS proxy  (no reliable free X RSS in 2026; Nitter dead,
@@ -17,6 +17,13 @@ Sources:
                stock picker, huge on X. Her X firehose has no free RSS — same Musk
                dead-end, and paid X-scrapers need a funded account — so we take only
                her FREE public Substack posts. Low-frequency but primary-source.)
+  • Cathie Wood / ARK — arkfunds.io/api/v2/etf/trades  (ARK 官方日度调仓的免费 JSON
+               镜像：ticker + 买入/卖出 + 股数 + 占 ETF 比重，逐日更新。这是"做了
+               什么"而不是"说了什么"，也是本雷达唯一的机构一手数据。)
+  • 人物新闻代理 — Google News RSS，名册见 PERSONA_SOURCES：段永平(中概/港股价值)、
+               洪灏(港股/中国策略)走 zh-HK 港媒；Michael Burry、Pelosi(国会披露)走
+               en-US。二手，理由同 Musk：X/雪球/国会披露 PDF 在 GHA 数据中心 IP
+               上都取不到（Substack 实测 403、xcancel 要逐 reader 白名单）。
 
 Pipeline:
   fetch → cheap keyword pre-filter (drop obvious noise) → ONE vendor LLM call
@@ -36,7 +43,7 @@ import os
 import re
 import sys
 import xml.etree.ElementTree as ET
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
 
 import requests
@@ -53,7 +60,7 @@ HEADERS = {'User-Agent': UA}
 TIMEOUT = 12
 LOOKBACK_HOURS = 48          # catch weekend posts before Mon brief
 RELEVANCE_CUTOFF = 45        # LLM score below this dropped; low so radar stays full
-MAX_CANDIDATES = 40          # cap sent to LLM (token guard)
+MAX_CANDIDATES = 48          # cap sent to LLM (token guard; per-source caps in _sources)
 
 # Cheap pre-filter: a raw post is a candidate only if it smells market/economy/
 # policy-relevant. The LLM is the smart filter downstream — this gate is just a
@@ -259,6 +266,179 @@ def fetch_serenity(cutoff):
     return out, _source_status(out)
 
 
+# ---------------------------------------------------------------------------
+# Cathie Wood / ARK Invest — 官方日度调仓（"做了什么"，不是"说了什么"）
+#
+# ark-funds.com 自己不发 RSS；arkfunds.io 把 ARK 的日度 trade notification 做成
+# 无 key 的 JSON（实测 200，GHA 数据中心 IP 可直连）。每条 = ticker + 方向 + 股数
+# + 占 ETF 比重，逐日更新 —— 正好补上其余源只有"言论"的那一档，而且是她真金白银
+# 在动的标的（kcn 的加密/航天敞口常出现在 ARKK/ARKX/ARKF 里）。
+# ---------------------------------------------------------------------------
+ARK_TRADES_API = 'https://arkfunds.io/api/v2/etf/trades'
+ARK_FUNDS = ('ARKK', 'ARKW', 'ARKQ', 'ARKX', 'ARKF', 'ARKG')
+ARK_TIMEOUT = 8          # 6 只基金 × 8s；连续 3 只失败就按接口故障提前放弃
+ARK_LOOKBACK_DAYS = 5    # 只要"最近一个交易日"；接口数据比这还旧＝我们没跟上，宁空
+ARK_MIN_PERCENT = 0.005  # 占 ETF 0.5bp 以下的碎单不进雷达（纯噪音）
+ARK_MAX_ITEMS = 8        # 一轮最多 8 个标的（按占 ETF 比重取前 N）——token 预算
+
+
+def _num(value, default=0.0):
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def fetch_ark(cutoff=None):
+    """ARK 最近一个交易日的调仓 → 每个标的一条（同日多只 ETF 的动作合并）。
+
+    返回 (items, status)：'failed' = 基金请求连续失败（接口/网络故障，main 会保留
+    上一轮条目）；'success_empty' = 最近一个交易日没有动作（休市/无调仓）。
+    published 用交易日 20:00 UTC（美股收盘）而不是抓取时刻 —— 周一早上看到的是上周
+    五的动作，这一点必须诚实（前端按天显示，不是"刚刚"）。
+    """
+    rows, failures, consecutive = [], 0, 0
+    today = datetime.now(timezone.utc).date()
+    window = {
+        'date_from': (today - timedelta(days=ARK_LOOKBACK_DAYS)).isoformat(),
+        'date_to': today.isoformat(),
+    }
+    for fund in ARK_FUNDS:
+        try:
+            r = requests.get(ARK_TRADES_API, params={**window, 'symbol': fund},
+                             headers=HEADERS, timeout=ARK_TIMEOUT)
+            if r.status_code != 200:
+                raise RuntimeError(f'HTTP {r.status_code}')
+            rows.extend(r.json().get('trades') or [])
+            consecutive = 0
+        except Exception as e:
+            failures += 1
+            consecutive += 1
+            print(f'  ⚠️ ark {fund}: {e}', file=sys.stderr)
+            if consecutive >= 3:
+                print('  ⚠️ ark: 连续 3 只基金失败 — 按接口故障处理', file=sys.stderr)
+                break
+    if not rows and failures >= 3:
+        return [], 'failed'
+
+    dates = [str(row.get('date') or '') for row in rows]
+    latest = max(dates) if dates else ''
+    if not latest:
+        return [], 'success_empty'
+    try:
+        stale = (today - date.fromisoformat(latest)).days > ARK_LOOKBACK_DAYS
+    except ValueError:
+        stale = False
+    if stale:
+        print(f'  ⚠️ ark: 接口最新交易日 {latest} 已超出 {ARK_LOOKBACK_DAYS}d 窗口',
+              file=sys.stderr)
+        return [], 'success_empty'
+
+    # 按标的合并：同一天多只 ETF 对同一标的的动作合成一条，取占比最大的一腿做排序键。
+    agg = {}
+    for row in rows:
+        if str(row.get('date') or '') != latest:
+            continue
+        ticker = str(row.get('ticker') or '').strip().upper()
+        pct = _num(row.get('etf_percent'))
+        if not ticker or pct < ARK_MIN_PERCENT:
+            continue
+        fund = str(row.get('fund') or '').strip().upper()
+        entry = agg.setdefault(ticker, {
+            'company': str(row.get('company') or '').strip(),
+            'pct': 0.0, 'fund': fund, 'buy': [], 'sell': [],
+        })
+        if pct > entry['pct']:
+            entry['pct'], entry['fund'] = pct, fund
+        try:
+            shares = int(_num(row.get('shares')))
+        except (TypeError, ValueError):
+            shares = 0
+        leg = 'buy' if str(row.get('direction') or '').lower().startswith('b') else 'sell'
+        entry[leg].append(f"{fund} {shares:,} 股")
+
+    ranked = sorted(agg.items(), key=lambda kv: kv[1]['pct'], reverse=True)
+    items = []
+    for ticker, entry in ranked[:ARK_MAX_ITEMS]:
+        legs = [f'{label} ' + ' / '.join(entry[leg])
+                for leg, label in (('buy', '买入'), ('sell', '卖出')) if entry[leg]]
+        text = (f"ARK Invest (Cathie Wood/木头姐) {latest} 调仓："
+                f"{entry['company']}({ticker}) {'；'.join(legs)}"
+                f"（最大单只 ETF 占比 {entry['pct']:.2f}%）")
+        items.append({
+            'author':    'Cathie Wood',
+            'text':      text[:400],
+            'url':       f"https://www.ark-funds.com/funds/{entry['fund'].lower()}/",
+            'published': f'{latest}T20:00:00+00:00',
+            'origin':    'ark-funds',
+            'source':    'ARK Invest 日度调仓',
+        })
+    return items, _source_status(items)
+
+
+# ---------------------------------------------------------------------------
+# 人物名册 —— 每人一条 Google News 检索式（二手报道代理）
+#
+# 为什么全是二手：X(2026 无免费 RSS)、雪球、国会披露 PDF 都没有能在 GitHub-Actions
+# 数据中心 IP 上稳定直取的一手源 —— 和 fetch_musk 顶部写的是同一堵墙（Substack 实测
+# 403、xcancel 要逐 reader 白名单）。Google News RSS 在 GHA 可用且支持中文检索，所以
+# 港美媒体对他们的报道就是当下可达的最强信号；口径按"二手"打折（brief 里同样只当
+# 软情绪，见 skills/daily-deep-brief/SKILL.md）。
+# hl/gl 用 zh-HK/HK：港媒报道港股比 zh-CN 更对口，且简繁都能命中。
+# cap = 每源候选上限（真正执行在 _sources()，这里只是名册自带预算）。
+# ---------------------------------------------------------------------------
+PERSONA_SOURCES = (
+    {
+        # 段永平：雪球一手帖取不到（要 cookie），但港媒每次都转他的持仓表态。
+        'key': 'duan', 'author': '段永平', 'hl': 'zh-HK', 'gl': 'HK', 'cap': 4,
+        'query': '段永平 when:2d',
+    },
+    {
+        # 洪灏：港股/中国策略，恒指观点被港媒反复引用（软情绪/板块级）。
+        'key': 'honghao', 'author': '洪灏', 'hl': 'zh-HK', 'gl': 'HK', 'cap': 4,
+        'query': '洪灏 when:2d',
+    },
+    {
+        # Burry：公开做空/做多的表态（NVDA/PLTR/中概），美股高关注度。
+        'key': 'burry', 'author': 'Burry', 'hl': 'en-US', 'gl': 'US', 'cap': 5,
+        'query': '"Michael Burry" when:2d',
+    },
+    {
+        # Pelosi：国会披露（成交在 30-45 天前，披露时点才是新闻）。
+        'key': 'pelosi', 'author': 'Pelosi', 'hl': 'en-US', 'gl': 'US', 'cap': 5,
+        'query': '"Nancy Pelosi" (stock OR shares OR trade OR filing) when:2d',
+    },
+)
+
+
+def fetch_persona(spec, cutoff):
+    """一个人物的媒体报道 → 候选条目（二手，48h 窗口）。"""
+    news, status = fetch_google_news(spec['query'], hl=spec['hl'], gl=spec['gl'],
+                                     limit=spec['cap'] * 4, return_status=True)
+    out = []
+    for it in news:
+        title = (it.get('title') or '').strip()
+        if not title:
+            continue
+        # Google News 的 `when:2d` 偶尔还是带回更老的条目，按 pubDate 自己再卡一道。
+        pub = _parse_published(it.get('published'))
+        if not _within_lookback(pub, cutoff):
+            continue
+        out.append({
+            'author':    spec['author'],
+            'text':      title[:400],
+            'url':       it.get('url', ''),
+            'published': pub.isoformat() if pub else '',
+            'origin':    'gnews-rss',
+            'source':    it.get('source', ''),
+        })
+        if len(out) >= spec['cap']:
+            break
+    if status == 'failed':
+        return out, 'failed'
+    return out, _source_status(out)
+
+
 def _dedup_sig(text):
     """Normalized signature for exact/near-exact dedup: drop a leading `RT @handle`,
     lowercase, keep only alnum + CJK. Trump's feed re-lists the same post (and
@@ -295,9 +475,12 @@ def load_holdings():
 
 
 LLM_SYSTEM = (
-    "你是 kcn 的市场情报分析师。给你一批 Trump / Musk / Serenity 的言论(或对其言论的新闻报道)，"
-    "以及 kcn 当前的持仓清单。其中 Serenity(@aleabitoreddit)是 AI/半导体供应链'卡点'选股博主，"
-    "她直接点名的多是小众半导体/光通信标的(常带 $cashtag)，几乎都属于'选股 idea'(new_ideas)。"
+    "你是 kcn 的市场情报分析师。给你一批高影响力人物/机构的言论与动作(含港美媒体对他们的"
+    "报道)，以及 kcn 当前的持仓清单。来源分四类："
+    "① Trump 原帖(Truth Social，一手)；② Cathie Wood 的 ARK Invest **每日调仓**(一手数据："
+    "ticker + 买入/卖出 + 股数 + 占 ETF 比重)；③ Serenity(@aleabitoreddit) Substack 公开帖"
+    "(AI/半导体供应链'卡点'选股，直接点名多为微盘小票)；④ 港美媒体对 Musk / 段永平 / 洪灏 / "
+    "Michael Burry / Pelosi(国会披露) 的报道(二手代理)。"
     "任务：挑出有市场含义的条目，提取结构化信息。\n"
     "判定要点：\n"
     "- **倾向多列、宁滥勿缺**：这是一个'雷达'，凡涉及具体公司/股票/资产，或买卖/看多看空/"
@@ -305,13 +488,19 @@ LLM_SYSTEM = (
     "用 relevance 分数反映强度(强信号 75-95，宏观/间接 50-70)，让前端按分排序。\n"
     "- **只有纯人身攻击/纯选举口水/与任何经济或市场都无关**的，才不返回(或给 <45)。\n"
     "- 同一事件被多条新闻重复报道时，只保留信息量最高的一条，别灌水。\n"
-    "- tickers 只填言论**直接点名或直接讲的**上市标的。严禁'同板块/可能利好行业/"
+    "- tickers 只填言论/动作**直接点名或直接讲的**上市标的。严禁'同板块/可能利好行业/"
     "竞争对手'这类联想式硬塞——SpaceX 的新闻不要因为 Rocket Lab 也是航天股就填 RKLB。\n"
     "- SpaceX / xAI / OpenAI 等**未上市**公司不计入 tickers(没有可交易代码)。\n"
     "- 杠杆 ETF 视作对应正股(PLTU=PLTR, ROBN=HOOD, MSFU=MSFT 等)做持仓匹配。\n"
-    "- held = 言论直接点名、且命中 kcn 持仓的 ticker；new_ideas = 直接点名但 kcn "
+    "- held = 直接点名、且命中 kcn 持仓的 ticker；new_ideas = 直接点名但 kcn "
     "**没持有**的 ticker(选股线索)。两者都基于'直接点名'，不基于板块联想。\n"
     "- stance ∈ {endorse(看多/推荐), buy, attack(抨击/看空), sell, neutral}。\n"
+    "- **ARK 条目是机构动作不是言论**：买入=机构在加仓(stance=buy)，卖出=在减仓"
+    "(stance=sell，**不要**读成'看空/抨击')；同一天多只 ETF 的同向操作只算一条。\n"
+    "- **Pelosi 条目是国会披露**：成交发生在 30-45 天前，新闻点是'披露'本身；summary_cn "
+    "要写'最新披露显示…'，绝不要写成'今天买入/刚刚买入'。\n"
+    "- Musk / 段永平 / 洪灏 / Burry 的条目都是**媒体转述**(二手)：summary_cn 用'据报道/媒体称'"
+    "的口径，标题里的党争、八卦、榜单式荐股(Motley Fool 之类)不算市场信号，别当事实写。\n"
     "- sectors = 言论涉及的板块/主题(中文，如 加密货币/AI/航天/电动车/半导体/关税)，"
     "即使没点名具体公司也填。\n"
     "- sector_holdings = kcn 持仓清单里、业务属于上述 sectors 的 ticker(你了解这些公司业务)。"
@@ -374,20 +563,59 @@ def llm_filter(candidates, held):
     return {}
 
 
+def _sources():
+    """名册：key / author / 每源候选上限 / 抓取失败时是否保留上一轮条目 / 来源描述。
+
+    per-source cap 是加源的前提：没有它，一个话多的源(Trump 一天几十条)会把
+    MAX_CANDIDATES 整批吃掉，新加的源永远进不了 LLM 那一批。
+
+    retain：只有**抓取失败**才保留上一轮（见 main 的合并注释）。Serenity 空是常态，
+    不参与保留；ARK 休市日空也是常态，但接口故障时它的上一轮调仓还有意义 → 保留。
+
+    在调用时构造（不是模块级常量），这样测试 monkeypatch 单个 fetcher 才生效。
+    """
+    return [
+        {'key': 'trump', 'author': 'Trump', 'cap': 12, 'retain': True,
+         'desc': 'trumpstruth.org/feed (primary)'},
+        {'key': 'musk', 'author': 'Musk', 'cap': 8, 'retain': True,
+         'desc': 'google-news-rss (proxy)'},
+        {'key': 'ark', 'author': 'Cathie Wood', 'cap': ARK_MAX_ITEMS, 'retain': True,
+         'desc': 'arkfunds.io/api/v2/etf/trades (ARK 日度调仓, 一手)'},
+        {'key': 'serenity', 'author': 'Serenity', 'cap': 4, 'retain': False,
+         'desc': 'aleabitoreddit.substack.com/feed (public posts)'},
+    ] + [
+        {'key': spec['key'], 'author': spec['author'], 'cap': spec['cap'],
+         'retain': True,
+         'desc': f"google-news-rss {spec['hl']} ({spec['author']} 报道, 二手)"}
+        for spec in PERSONA_SOURCES
+    ]
+
+
+def _fetchers(cutoff):
+    """key → 抓取函数；调用时绑定名字，测试才 patch 得动单个 fetcher。"""
+    return {
+        'trump': lambda: fetch_trump(cutoff),
+        'musk': lambda: fetch_musk(),
+        'ark': lambda: fetch_ark(cutoff),
+        'serenity': lambda: fetch_serenity(cutoff),
+        **{spec['key']: (lambda spec=spec: fetch_persona(spec, cutoff))
+           for spec in PERSONA_SOURCES},
+    }
+
+
 def main():
     generated = datetime.now(timezone.utc)
     cutoff = generated - timedelta(hours=LOOKBACK_HOURS)
 
-    trump, trump_status = fetch_trump(cutoff)
-    musk, musk_status = fetch_musk()
-    serenity, serenity_status = fetch_serenity(cutoff)
-    source_status = {
-        'trump': trump_status,
-        'musk': musk_status,
-        'serenity': serenity_status,
-    }
-    print(f'  raw: trump={len(trump)} musk={len(musk)} serenity={len(serenity)} '
-          f'(after keyword pre-filter)')
+    sources = _sources()
+    fetchers = _fetchers(cutoff)
+    raw, source_status = {}, {}
+    for spec in sources:
+        fetched, status = fetchers[spec['key']]()
+        raw[spec['key']] = fetched
+        source_status[spec['key']] = status
+    print('  raw: ' + ' '.join(f"{spec['key']}={len(raw[spec['key']])}"
+                               for spec in sources) + ' (after keyword pre-filter)')
 
     # Load previous run for merge-not-overwrite per source.
     prev = {}
@@ -398,7 +626,12 @@ def main():
             prev = {}
     prev_items = prev.get('items', [])
 
-    candidates = dedup_items(trump + musk + serenity)[:MAX_CANDIDATES]
+    # 每源先按自己的预算截断，再合并去重、整体封顶：新加一个源不能挤掉老源的
+    # 名额，老源（Trump）也不能把整批吃掉。
+    candidates = []
+    for spec in sources:
+        candidates.extend(raw[spec['key']][:spec['cap']])
+    candidates = dedup_items(candidates)[:MAX_CANDIDATES]
     held = load_holdings()
     held_tickers = {h['ticker'] for h in held}
     scored = llm_filter(candidates, held)
@@ -442,26 +675,26 @@ def main():
     # retain a source's prior items. A source legitimately producing zero items
     # because the LLM judged everything irrelevant is NOT an outage — don't
     # resurrect stale (possibly unfiltered) posts in that case.
-    # Serenity is deliberately NOT retained here: she posts publicly so rarely that
-    # an empty fetch is her normal state, not an outage — retaining would pin a
-    # weeks-old idea on the radar forever. She simply drops off until she posts again.
-    author_sources = {'Trump': 'trump', 'Musk': 'musk'}
-    for author, source in author_sources.items():
-        if source_status[source] == 'failed':
-            retained = []
-            for prior in prev_items:
-                if prior.get('author') != author:
-                    continue
-                published = _parse_published(prior.get('published'))
-                if published is None or published < cutoff:
-                    continue
-                item = dict(prior)
-                item['retained_from_previous'] = True
-                retained.append(item)
-            if retained:
-                print(f'  ↻ {author} fetch failed — retaining {len(retained)} prior items',
-                      file=sys.stderr)
-                items.extend(retained)
+    # Serenity is deliberately NOT retained (see `retain` in _sources): she posts
+    # publicly so rarely that an empty fetch is her normal state, not an outage —
+    # retaining would pin a weeks-old idea on the radar forever.
+    for spec in sources:
+        if not spec['retain'] or source_status[spec['key']] != 'failed':
+            continue
+        retained = []
+        for prior in prev_items:
+            if prior.get('author') != spec['author']:
+                continue
+            published = _parse_published(prior.get('published'))
+            if published is None or published < cutoff:
+                continue
+            item = dict(prior)
+            item['retained_from_previous'] = True
+            retained.append(item)
+        if retained:
+            print(f"  ↻ {spec['author']} fetch failed — retaining "
+                  f'{len(retained)} prior items', file=sys.stderr)
+            items.extend(retained)
 
     # Final guard: prior-item merge can re-introduce a post already in this run.
     items = dedup_items(items)
@@ -484,11 +717,8 @@ def main():
     out = {
         'generated_at':  generated.isoformat(),
         'lookback_hours': LOOKBACK_HOURS,
-        'sources': {
-            'trump':    'trumpstruth.org/feed (primary)',
-            'musk':     'google-news-rss (proxy)',
-            'serenity': 'aleabitoreddit.substack.com/feed (public posts)',
-        },
+        # 与 source_status 同一组 key：加源时两边一起变，前端/校验按 key 对得上。
+        'sources': {spec['key']: spec['desc'] for spec in sources},
         'source_status': source_status,
         'llm_filtered':  bool(scored),
         'counts': {
