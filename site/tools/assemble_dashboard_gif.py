@@ -28,6 +28,12 @@ FRAME_DIR = os.environ.get("FRAME_DIR", os.path.join(ROOT, ".gifframes"))
 # the copy — so nothing ever ran the real one outside the weekly cron (#754).
 OUT = os.environ.get("GIF_OUT") or os.path.join(ROOT, "site", "assets", "dashboard.gif")
 
+# How many tabs the shooter photographs, named once because the number is read
+# from three places below and the shooter has to agree with all of them. They
+# were three bare `6` literals until the seventh tab landed: the count is a
+# shared fact between two files, so it is stated rather than repeated.
+TAB_COUNT = 7
+
 OW = 640             # output width (frames scaled to this; height follows aspect)
                      # 640 ≈ 2× the README's 300px display = crisp on retina; source
                      # frames are 800px so ≤800 stays real detail (no upscaling)
@@ -82,16 +88,16 @@ def _load_tab(i):
     return out
 
 
-tabs = [_load_tab(i) for i in range(6)]
+tabs = [_load_tab(i) for i in range(TAB_COUNT)]
 VH = tabs[0][0].height   # every viewport frame is the same size
 
 frames, durations = [], []
-for i in range(6):
-    seq, nxt_top = tabs[i], tabs[(i + 1) % 6][0]   # wrap reflect → hero for a loop
+for i in range(TAB_COUNT):
+    seq, nxt_top = tabs[i], tabs[(i + 1) % TAB_COUNT][0]   # wrap the last → hero for a loop
     for j, fr in enumerate(seq):
         frames.append(fr)
         if j == 0:
-            durations.append(HOLD_TOP_REFLECT_MS if i == 5 else HOLD_TOP_MS)
+            durations.append(HOLD_TOP_REFLECT_MS if i == TAB_COUNT - 1 else HOLD_TOP_MS)
         elif j == len(seq) - 1:
             durations.append(HOLD_BOTTOM_MS)       # linger at the bottom
         else:

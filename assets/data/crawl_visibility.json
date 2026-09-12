@@ -1,0 +1,6 @@
+{
+  "generated_at": null,
+  "site": "https://kcnyu.github.io/clawock/",
+  "note": "windows are fixed-length and end on the last complete day, so consecutive snapshots do not overlap and may be compared directly. `days_with_data` below `days` means GSC had not filled the tail.",
+  "snapshots": []
+}

@@ -229,6 +229,9 @@
     decision_audit: "reflect", decision_map: "reflect", shadow_portfolio: "drill",
     brief_projection: "drill",
     decision_trail: ["drill", "plan", "reflect"],
+    // 每周一次，不是每 20 分钟一次：这块牌的数据由 SEO Visibility 工作流
+    // （周一 06:30 UTC）提交，其余时间它只是同一份读数被重新渲染。
+    crawl_visibility: "growth",
   };
   const SIDECAR_STATE = new Map();
   let TAB_ACTIVATION_VERSION = 0;
@@ -255,6 +258,13 @@
   const DATA_PLANE_FILES = new Set([
     "cron-heartbeats", "dashboard", "decision_audit", "decision_trail",
     "overview", "shadow_portfolio", "workflow-outcomes",
+    // The weekly Search Console reading. In this list for the same reason as the
+    // rest — its Pages copy only refreshes when the site is rebuilt, so the
+    // same-origin path would serve a reading up to a rebuild behind. It is also
+    // the one member the data plane may legitimately not carry yet, which the
+    // loader already survives: a miss gives the tab an empty panel, and the
+    // publisher handles absence on the write side.
+    "crawl_visibility",
   ]);
   // null until the first paint succeeds, and back to null for good if that
   // origin ever fails us — in which case the page degrades to reading Pages, as

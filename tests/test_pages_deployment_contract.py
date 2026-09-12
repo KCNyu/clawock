@@ -250,7 +250,9 @@ def test_the_browser_reads_the_same_branch_and_files_the_publisher_writes():
     import sys
 
     sys.path.insert(0, str(ROOT / "ops/publish"))
-    from publish_data_branch import DATA_BRANCH, DATA_PLANE_FILES
+    from publish_data_branch import (
+        DATA_BRANCH, DATA_PLANE_FILES, DATA_PLANE_OPTIONAL,
+    )
 
     origin = re.search(r'DATA_PLANE_ORIGIN\s*=\s*"([^"]+)"', UI).group(1)
     assert origin.endswith(f"/{DATA_BRANCH}/"), (
@@ -258,7 +260,11 @@ def test_the_browser_reads_the_same_branch_and_files_the_publisher_writes():
 
     block = UI.split("const DATA_PLANE_FILES = new Set([", 1)[1].split("]);", 1)[0]
     browser = set(re.findall(r'"([^"]+)"', block))
-    published = {Path(name).stem for name in DATA_PLANE_FILES}
+    # Optional members are published too: they are on the branch whenever they
+    # exist at all, and the point of the split is that the browser may ask for one
+    # before the first weekly run has written it. Leaving them out here would make
+    # the check pass by looking at less.
+    published = {Path(name).stem for name in DATA_PLANE_FILES + DATA_PLANE_OPTIONAL}
     assert browser == published, (
         f"browser reads {sorted(browser)}, publisher writes {sorted(published)}")
 

@@ -4390,3 +4390,42 @@
   .book-heat .bh-head .bh-v, .book-heat .bh-head .bh-s { justify-content: flex-end; }
   :root { --heat-up: #12864c; --heat-down: #c4291f; }
   @media (prefers-color-scheme: dark) { :root { --heat-up: #32d272; --heat-down: #ff5a4e; } }
+
+  /* Growth tab（搜索可见性）。这块牌的量都是「数出来的」，所以数字一律
+     等宽 + tabular-nums：一周和下一周同一位对齐，才看得出动没动。 */
+  .growth-table {
+    width: 100%; border-collapse: collapse;
+    font-size: var(--fs-sm); font-variant-numeric: tabular-nums;
+  }
+  .growth-table th {
+    text-align: left; font-weight: 600; color: var(--text-dim);
+    font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: 0.06em;
+    padding: 6px 8px 6px 0; border-bottom: 1px solid var(--border-subtle);
+    white-space: nowrap;
+  }
+  .growth-table td {
+    padding: 6px 8px 6px 0; border-bottom: 1px solid var(--border-subtle);
+    vertical-align: top;
+  }
+  .growth-table tr:last-child td { border-bottom: 0; }
+  .growth-table .num, .growth-table th.num { text-align: right; }
+  /* 中文列（Google 的判定）不折成两行：它是一句判定语，断行会把主语和
+     结论拆到两屏。长就让它长，横滚由 .growth-table 的容器承担。 */
+  .growth-table td.mono { white-space: nowrap; }
+  .growth-up { color: var(--green); }
+  .growth-down { color: var(--red); }
+
+  .growth-spark {
+    display: flex; align-items: flex-end; gap: 2px;
+    height: 32px; margin-top: var(--space-3);
+  }
+  .growth-bar { flex: 1 1 0; min-width: 3px; border-radius: 2px 2px 0 0; }
+  .growth-bar.is-shown { background: color-mix(in srgb, var(--accent) 55%, transparent); }
+  .growth-bar.is-click { background: var(--accent); }
+  /* 没有曝光的那天也占一格：抹掉它，「安静」和「没测到」在图上就一样了。 */
+  .growth-bar.is-idle { background: color-mix(in srgb, var(--text) 14%, transparent); }
+  .growth-spark-axis {
+    display: flex; justify-content: space-between; gap: var(--space-2);
+    margin-top: 4px; color: var(--text-dim); font-size: var(--fs-micro);
+    font-variant-numeric: tabular-nums;
+  }

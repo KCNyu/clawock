@@ -50,6 +50,22 @@ DATA_PLANE_EXTRA = (
     "assets/data/cron-heartbeats.json",
     "assets/data/workflow-outcomes.json",
 )
+
+# One more file the browser DOES fetch, and the only member of this generation
+# that is written on a different cadence from the rest: the weekly Search
+# Console reading, committed by `seo-visibility.yml` once a week.
+#
+# It is kept out of `DATA_PLANE_FILES` deliberately. The branch is replaced
+# wholesale, so the publisher refuses when a member cannot be read — correct for
+# the files that share a tick, fatal for this one. A file that appears weekly, and
+# that does not exist after a fresh checkout of the branch, would make every
+# 20-minute tick refuse to publish the *entire* dashboard until the next Monday.
+# Browser data that arrives on its own schedule is optional by construction: a
+# missing one means the panel is absent, not that the generation is malformed.
+DATA_PLANE_OPTIONAL = (
+    "assets/data/crawl_visibility.json",
+)
+
 DATA_PLANE_FILES = output_paths(ROOT) + DATA_PLANE_EXTRA
 
 # Failure classes, and the whole reason they are classes: `note_degradation`
@@ -134,6 +150,23 @@ def main() -> int:
             # Refuse rather than publish a partial generation: the branch is
             # replaced wholesale, so a missing member is not "unchanged", it is
             # deleted from the data plane.
+            print(f"✗ data-plane: cannot read {path}: {exc}", file=sys.stderr)
+            note_failure(PUBLISH_FAILED, "an output file could not be read")
+            return 1
+
+    # Same whole-branch rule, opposite consequence, and the difference is the
+    # cadence rather than the importance. See DATA_PLANE_OPTIONAL: refusing here
+    # would let a file nobody wrote this week block the generation everybody
+    # reads. An unreadable-but-present file is still refused, because that is a
+    # real defect rather than a schedule.
+    for path in DATA_PLANE_OPTIONAL:
+        target = root / path
+        if not target.is_file():
+            print(f"· data-plane: {path} not written yet — publishing without it")
+            continue
+        try:
+            files[path] = target.read_text(encoding="utf-8")
+        except OSError as exc:
             print(f"✗ data-plane: cannot read {path}: {exc}", file=sys.stderr)
             note_failure(PUBLISH_FAILED, "an output file could not be read")
             return 1

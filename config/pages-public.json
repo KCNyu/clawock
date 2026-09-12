@@ -12,7 +12,8 @@
     "assets/data/shadow_portfolio.json",
     "assets/data/decision_trail.json",
     "assets/data/brief_projection.json",
-    "assets/data/decision_map.json"
+    "assets/data/decision_map.json",
+    "assets/data/crawl_visibility.json"
   ],
   "required_pages": [
     "index.html",
