@@ -21,6 +21,16 @@
   // there a missing field used to print "undefined%" / "null @ $null" (2026-09-12,
   // found by rendering every tab with the numbers nulled out and then removed).
   const numText = (v) => (v == null || (typeof v === "number" && !isFinite(v))) ? DASH : String(v);
+  // 「数据健康」那条读数行把每个事实包成一个 .dh-meta-bit（nowrap），折行只允许
+  // 发生在 bit 之间。这条规则的前提是**每一段都比屏幕窄**：2026-09-12 的
+  // crawl_visibility 一行四个事实挤成一段，390px 实测把整块牌顶宽 158px，顺带
+  // 把「逐项」按钮推出卡外（浏览器契约因此变红，而它只有在 UI lane 跑时才会被
+  // 看见）。复合读数一律先在这里按分隔点拆短，让 nowrap 的前提由代码保证，
+  // 而不是靠下一个人记得。
+  const metaBits = (...lines) => lines
+    .flatMap(line => String(line == null ? "" : line).split(" · "))
+    .map(part => part.trim())
+    .filter(Boolean);
   // The decision trail (fills, their scope, the plan timeline) ships in its own
   // sidecar since 2026-09-12. A generation published before the move still has
   // the sections on the main document, so read the sidecar first and fall back.

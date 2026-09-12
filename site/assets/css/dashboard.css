@@ -2709,6 +2709,11 @@
      一条期限用量带；有问题才升级视觉权重。(#876) */
   .hero-health { grid-column: 1 / -1; padding: 16px 18px 14px; }
   .hero-health-head { display: flex; align-items: flex-start; gap: 14px; }
+  /* flex 子项的 min-width:auto 会让这一行按 min-content 撑开：读数行里只要有一段
+     比手机宽，「逐项」按钮就被推出卡外（2026-09-12 实测 390px 下溢出 158px，
+     按钮右边缘 531px vs 卡右 374px）。文本仍由 metaBits() 拆短，这里只是让
+     按钮的位置不再取决于别人写了多长的一句话。 */
+  .hero-health-head > :first-child { min-width: 0; }
   .hero-health-verdict {
     margin: 6px 0 0; color: var(--text); font-size: var(--fs-lg);
     letter-spacing: -.01em; text-transform: none;
