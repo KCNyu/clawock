@@ -75,6 +75,23 @@ VERDICT_TONE = {
     'pending': 'wait',
 }
 
+#: Presentation order, worst first. A test that failed is the finding; one that
+#: cannot be read yet is an absence; one that passed is the least surprising
+#: thing on the card. The sections used to be emitted in whatever order the
+#: builders happened to be listed in — which put the failed dial first by luck,
+#: not by rule, and would have buried it the first time anyone reordered them.
+VERDICT_ORDER = ('failed', 'pending', 'undecided', 'passed')
+
+
+def _rank(section: dict) -> int:
+    key = VERDICT_KEY.get(section.get('verdict'), '')
+    try:
+        return VERDICT_ORDER.index(key)
+    except ValueError:
+        # An unknown verdict sorts last rather than raising: a new word in the
+        # template must not take the whole artifact down, and it is visible.
+        return len(VERDICT_ORDER)
+
 
 def _load(path: Path):
     try:
@@ -402,6 +419,9 @@ def payload(sections: list[dict], generated_at: str) -> dict:
             '`reading` strings are regenerated with them, so a stale number '
             'cannot hide behind current prose.'
         ),
+        # Stable sort: sections with the same verdict keep the builder order, so
+        # the card is deterministic across runs and two `undecided` blocks cannot
+        # swap places between two regenerations of the same data.
         'sections': [
             {
                 'title': section['title'],
@@ -414,7 +434,7 @@ def payload(sections: list[dict], generated_at: str) -> dict:
                 'rows': [{'label': plain(label), 'value': plain(value)}
                          for label, value in section['rows']],
             }
-            for section in sections
+            for section in sorted(sections, key=_rank)
         ],
     }
 
