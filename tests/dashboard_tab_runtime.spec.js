@@ -1301,10 +1301,16 @@ async function testNoTabPrintsAMissingNumber(browser, base) {
         while ((node = walker.nextNode())) {
           if (node.parentElement.closest("script, style")) continue;
           const text = node.textContent.trim();
+          // 链接是正文，不是数字。`https://truthsocial.com/users/…/117255718355537976`
+          // 的 slug 落在数字之后恰好就是 `null`，而那一整条渲染出来是合法的 ——
+          // 2026-09-13 它在 master 上把这条闸判红（#1473 把影响力雷达扩到 8 个源
+          // 之后，feed 里第一次出现这种 id）。先剥 URL 再判，否则这条闸的告警会
+          // 随着被引用的内容漂移，而它本来盯的是渲染器。
+          const prose = text.replace(/https?:\/\/\S+/g, " ");
           // "null" only where it stands in for a number; model prose may say it.
-          if (/\bundefined\b|\bNaN\b|\bInfinity\b|\[object Object\]/.test(text)
-              || text === "null"
-              || /\bnull\s*(%|bps|股|\/)|[@$/+≈]\s*null\b/.test(text)) {
+          if (/\bundefined\b|\bNaN\b|\bInfinity\b|\[object Object\]/.test(prose)
+              || prose.trim() === "null"
+              || /\bnull\s*(%|bps|股|\/)|[@$/+≈]\s*null\b/.test(prose)) {
             const holder = node.parentElement.closest("[id]");
             out.push(`${holder ? holder.id : "?"}: ${text.slice(0, 80)}`);
           }
