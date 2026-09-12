@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-12T16:43:18.941139+00:00",
+  "generated_at": "2026-09-12T16:44:56.357392+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -231,7 +231,7 @@
       "url": "https://news.google.com/rss/articles/CBMimAFBVV95cUxORF9XSEdlbE5wYlZQS1JzTE9xNmhBeUtiY1hXN3NseEt4SXhaY0htUGRxYjBPSGU5M0hDRTZjQmQ5b2VpbFJhV04zN0JqNzljYllzM2VKUnBIQkNZN0dXX2xYb1hHN0ZrMzJ4Mm5qdmZfNWNibjVQaTJQVG9QSkFxbk4yeF9zOWdtV1k3MXhnNVpDNVZKZ05GeQ?oc=5",
       "published": "2026-09-12T06:30:00+00:00",
       "origin": "gnews-rss",
-      "source": "The Motley Fool",
+      "source": "fool.com",
       "tickers": [],
       "held": [],
       "new_ideas": [],
