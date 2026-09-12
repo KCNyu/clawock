@@ -21,7 +21,20 @@ Rules this generator follows
 * **Absent evidence is not failure.** "Not yet decidable" is a distinct verdict
   from "tested and failed", and conflating them would be its own dishonesty.
 
-Writes: site/evidence.md   Run: clawock evidence
+Writes: assets/data/evidence.json   Run: clawock evidence
+
+The artifact is the product. `/evidence.html` as a standalone page had zero
+readers — measured 2026-09-12: 0 impressions in 180 days against the homepage's
+118 — so the same sections are rendered by the dashboard's Reflect tab, beside
+the scorecard and calibration curves they are evidence *for*. That membership was
+always the true one: this is not a page "about evidence", it is the ledger of
+which methods survived, which is a decision question.
+
+`render()` keeps producing the markdown from the same `sections` list. It is no
+longer written to disk — a file nobody publishes and nobody commits is just a
+dirty working tree — but it stays the provenance target: `tests/test_build_
+evidence.py` scans its output for figures no artifact can account for, and that
+scan is the reason a typed number cannot creep into the JSON either.
 """
 from __future__ import annotations
 
@@ -32,7 +45,10 @@ from pathlib import Path
 from clawock.workspace import workspace_root
 
 WS = workspace_root()
-OUT = WS / 'site' / 'evidence.md'
+#: The retired page path. Nothing writes here any more; kept as a named constant
+#: so a reader who greps for the old location finds this line instead of nothing.
+RETIRED_PAGE = WS / 'site' / 'evidence.md'
+ARTIFACT = WS / 'assets' / 'data' / 'evidence.json'
 CARDS = WS / 'memory' / 'backtests'
 DATA = WS / 'assets' / 'data'
 
@@ -41,6 +57,22 @@ VERDICT = {
     'undecided': '⚪ 尚不可判',
     'passed': '🟢 通过',
     'pending': '⏳ 尚未到期',
+}
+
+#: The stable name behind each verdict word, for the consumers that style by
+#: outcome. Decided here rather than in the browser: a fourth verdict added later
+#: would otherwise render as whatever the default tone is, which is how "tested
+#: and failed" quietly becomes "fine".
+VERDICT_KEY = {label: key for key, label in VERDICT.items()}
+
+#: How each verdict paints. `bad` for a test that failed, `idle` for one that
+#: cannot be read yet, `wait` for one that has not come due — three different
+#: things that a two-state red/green would collapse into two.
+VERDICT_TONE = {
+    'failed': 'bad',
+    'undecided': 'idle',
+    'passed': 'good',
+    'pending': 'wait',
 }
 
 
@@ -342,21 +374,85 @@ def render(sections: list[dict], generated_at: str) -> str:
     return '\n'.join(lines)
 
 
+def plain(text: str) -> str:
+    """One reading, with the markdown emphasis dropped.
+
+    The prose is written once, for the markdown page, which needs the emphasis to
+    say which half of a sentence is the point. The dashboard renders text as
+    text, so `**…**` there is literal asterisks around the most important clause
+    — the one thing that must not read as noise. Backticks stay: they mark
+    identifiers, and the card has a monospace span for exactly those.
+    """
+    return text.replace('**', '')
+
+
+def payload(sections: list[dict], generated_at: str) -> dict:
+    """The same sections, shaped for the dashboard instead of for markdown.
+
+    The verdict is split into three fields because each answers a different
+    question and only one of them is allowed to be loose. `verdict` is the word a
+    reader sees, `verdict_key` is what the stylesheet keys on, and `tone` is
+    carried alongside rather than derived in the browser — see VERDICT_KEY.
+    """
+    return {
+        'schema_version': 1,
+        'generated_at': generated_at,
+        'note': (
+            'every figure here is read from an artifact at generation time; the '
+            '`reading` strings are regenerated with them, so a stale number '
+            'cannot hide behind current prose.'
+        ),
+        'sections': [
+            {
+                'title': section['title'],
+                'verdict': section['verdict'],
+                'verdict_key': VERDICT_KEY.get(section['verdict'], 'unknown'),
+                'tone': VERDICT_TONE.get(VERDICT_KEY.get(section['verdict']), 'idle'),
+                'sample': section['sample'],
+                'source': section['source'],
+                'reading': plain(section['reading']),
+                'rows': [{'label': plain(label), 'value': plain(value)}
+                         for label, value in section['rows']],
+            }
+            for section in sections
+        ],
+    }
+
+
 def build() -> str:
+    """The markdown page. Kept for the reader who wants one file, and as the
+    provenance target `tests/test_build_evidence.py` scans."""
+    generated_at = _generated_at()
+    return render(_sections(), generated_at)
+
+
+def _sections() -> list[dict]:
     builders = (dial_section, factor_section, cross_sectional_section,
                 add_alpha_section)
-    sections = [section for section in (build() for build in builders) if section]
+    return [section for section in (build() for build in builders) if section]
+
+
+def _generated_at() -> str:
     audit = _load(DATA / 'decision_audit.json') or {}
-    return render(sections, audit.get('as_of') or 'unknown')
+    return audit.get('as_of') or 'unknown'
+
+
+def write_all() -> Path:
+    """The one output. Called by the CLI and by the preflight node, so there is a
+    single place deciding what a published ledger contains."""
+    sections = _sections()
+    ARTIFACT.write_text(
+        json.dumps(payload(sections, _generated_at()), ensure_ascii=False, indent=2)
+        + '\n', encoding='utf-8')
+    return ARTIFACT
 
 
 def main(argv=None) -> int:
     argparse.ArgumentParser(
         prog='clawock evidence', description=__doc__
     ).parse_args(argv)
-    page = build()
-    OUT.write_text(page, encoding='utf-8')
-    print(f'wrote {OUT.relative_to(WS)} ({len(page.encode())} bytes)')
+    artifact = write_all()
+    print(f'wrote {artifact.relative_to(WS)} ({artifact.stat().st_size} bytes)')
     return 0
 
 

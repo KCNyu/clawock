@@ -114,7 +114,11 @@ def test_no_page_links_to_a_destination_the_build_will_not_emit():
     # broke and it stopped seeing any link at all.
     assert len(links) >= 8, f"only found {len(links)} internal links to check"
     assert any(link.endswith("briefs.html") for _, link in links)
-    assert any(link.endswith("evidence.html") for _, link in links)
+    # The second of these used to be `evidence.html`. It moved into the Reflect
+    # tab on 2026-09-12 with the topbar link pointing at the in-page anchor, so
+    # the pairing here is now "a page that still exists" rather than the retired
+    # one — this assertion is an anti-vacuity guard, not a list of pages.
+    assert any(link.endswith("faq.html") for _, link in links)
 
     dead = sorted({
         f"{page.relative_to(ROOT)} -> {link}"

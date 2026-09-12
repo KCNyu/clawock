@@ -113,7 +113,7 @@ def test_llms_txt_is_required_public_and_linked():
 
 
 def test_faq_page_is_required_public_and_has_an_entry_point():
-    # #667: faq.md builds to faq.html in _site (same as briefs.md/evidence.md);
+    # #667: faq.md builds to faq.html in _site (same as briefs.md);
     # the deployed page needs an in-site link so it is reachable and crawlable.
     assert (ROOT / "site" / "faq.md").is_file()
     assert "faq.html" in CONTRACT["required_pages"]
@@ -280,7 +280,7 @@ def _stage_publishable_site(site):
     _copy_repo_data(site / "assets/data")
     (site / "index.html").write_text("ok")
     for path in (
-        "briefs.html", "evidence.html", "faq.html", "llms.txt",
+        "briefs.html", "faq.html", "llms.txt",
         "robots.txt", "manifest.webmanifest",
         INDEXNOW_KEY, GOOGLE_VERIFICATION,
     ):
@@ -329,7 +329,7 @@ def test_builder_stages_only_public_consumers(tmp_path):
     _copy_repo_data(site / "assets/data")
     (site / "index.html").write_text("ok")
     for path in (
-        "briefs.html", "evidence.html", "faq.html", "llms.txt",
+        "briefs.html", "faq.html", "llms.txt",
         "robots.txt", "manifest.webmanifest",
         INDEXNOW_KEY, GOOGLE_VERIFICATION,
     ):

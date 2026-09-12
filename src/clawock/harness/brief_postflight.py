@@ -800,13 +800,17 @@ def maybe_commit(status, today, dry_run=False):
     # and `git add` on a gitignored path fails rather than skipping — it would
     # abort this entire commit, which carries portfolio.json, the decision
     # ledger and the whole preflight write set.
-    # `evidence.md` joined 2026-08-06 (#345) as the next instance of exactly the
-    # failure above: preflight rebuilds it every morning via build_evidence.py and
-    # nothing ever staged it, so the public evidence page sat on numbers from
-    # 08-02 (claiming "留痕 38 天" against artifacts saying 42) while live carried a
-    # permanently dirty file for other pushes to trip over. It lives at the repo
-    # root, which is why every directory-scoped `git add` above missed it — the
-    # same gap MEMORY.md/DREAMS.md needed commit_dreaming.sh for.
+    # The evidence artifact joined 2026-08-06 (#345) as the next instance of
+    # exactly the failure above: preflight rebuilds it every morning via
+    # build_evidence.py and nothing ever staged it, so the published copy sat on
+    # numbers from 08-02 (claiming "留痕 38 天" against artifacts saying 42) while
+    # live carried a permanently dirty file for other pushes to trip over. It
+    # lived at `site/evidence.md`, outside every directory-scoped `git add` above
+    # — the same gap MEMORY.md/DREAMS.md needed commit_dreaming.sh for.
+    #
+    # It moved to `assets/data/evidence.json` on 2026-09-12 when the standalone
+    # page was retired. The path changed; the reason this line exists did not, and
+    # a reader who finds this comment should not have to rediscover it.
     add_ok, add_out = _git('add', 'memory/', 'portfolio.json',
                             'memory/decisions.jsonl', 'assets/data/risk.json',
                             'assets/data/lev_regime.json', 'assets/data/benchmark.json',
@@ -833,7 +837,7 @@ def maybe_commit(status, today, dry_run=False):
                             'assets/data/t0_setup_review.json',
                             'assets/data/brief_projection.json',
                             'logs/dashboard_build_status.json',
-                            'site/evidence.md')
+                            'assets/data/evidence.json')
     if not add_ok:
         return False, f'git add failed: {add_out[-200:]}'
 

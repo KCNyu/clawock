@@ -1,9 +1,16 @@
-"""The evidence page has exactly two ways to become a lie.
+"""The validation ledger has exactly two ways to become a lie.
 
 1. A number gets typed into the template instead of read, and goes stale
    silently — the same failure the static-copy rule already names.
 2. An inconclusive result gets rendered as a passing one, which would make the
-   page worth less than nothing.
+   ledger worth less than nothing.
+
+The provenance scan below runs on `render()`'s markdown, which is no longer
+written to disk (the page was retired 2026-09-12; the artifact is what ships).
+It stays pointed at the markdown on purpose: it is the widest rendering of the
+same `sections`, so a typed figure has nowhere to hide in it, and the JSON is
+built from those same strings. The scan is also run against the JSON itself, so
+the artifact cannot drift from the thing that is checked.
 
 Three tests, one per failure, plus idempotency.
 
@@ -299,3 +306,51 @@ def test_reverse_only_factor_reads_as_reverse_not_straddling(
 
     assert "反向" in row
     assert "锁定" not in row
+
+def test_the_artifact_is_sourced_and_shaped_for_its_reader():
+    """The JSON is what ships, so it gets the provenance scan too — and the
+    fields the Reflect card reads must actually be present.
+
+    The card renders `tone`, `verdict`, `title`, `sample`, `source`, `reading`
+    and `rows[]`. A payload that loses one of them renders an empty block rather
+    than failing, which is the shape of bug this whole file exists to catch.
+    """
+    sections = ev._sections()
+    payload = ev.payload(sections, ev._generated_at())
+    assert payload["schema_version"] == 1
+    assert payload["sections"], "the ledger has no sections at all"
+
+    sources = " ".join(
+        path.read_text()
+        for path in [*sorted((ROOT / "memory" / "backtests").glob("*.json")),
+                     ROOT / "assets" / "data" / "quant_signal_review.json",
+                     ROOT / "assets" / "data" / "cross_sectional_factor.json"]
+        if path.exists())
+    typed = unsourced_figures(json.dumps(payload, ensure_ascii=False), sources)
+    assert not typed, f"figures in the artifact that no artifact contains: {typed}"
+
+    for section in payload["sections"]:
+        for field in ("title", "verdict", "verdict_key", "tone", "sample",
+                      "source", "reading", "rows"):
+            assert section.get(field) not in (None, "", []), (
+                f"{section.get('title')!r} has no {field} — the card renders an "
+                "empty block instead of failing")
+        for row in section["rows"]:
+            assert row.get("label") and row.get("value") is not None
+        # The emphasis markers belong to the markdown page; the card prints text.
+        assert "**" not in section["reading"], (
+            f"{section['title']} would show literal asterisks on the dashboard")
+
+
+def test_the_artifact_is_what_gets_written():
+    """`write_all` writes the artifact and nothing else.
+
+    `site/evidence.md` is retired. A generator that keeps writing it produces a
+    file no publisher publishes and no committer stages — a permanently dirty
+    working tree, which is exactly the failure #345 was opened for.
+    """
+    import inspect
+    source = inspect.getsource(ev.write_all)
+    assert "ARTIFACT.write_text" in source
+    assert "RETIRED_PAGE" not in source and "site/evidence.md" not in source, (
+        "write_all still writes the retired page")

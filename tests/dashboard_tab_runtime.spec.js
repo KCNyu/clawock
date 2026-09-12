@@ -11,7 +11,7 @@ const ROOT = path.resolve(__dirname, "..");
 const DETAIL_PATH = "/assets/js/dashboard.render.js";
 // Every detail tab: all of them share one lazy bundle and one full-dashboard
 // fetch, and every one of them is walked by the missing-number sweep below.
-const TABS = ["drill", "risk", "market", "plan", "reflect", "growth"];
+const TABS = ["drill", "risk", "market", "plan", "reflect"];
 // Everything after the first paint reads the data branch instead of this origin
 // (#367). Every page here stubs it: left unrouted it would put a live call to
 // raw.githubusercontent.com on CI's critical path, and the bytes it would return
@@ -1319,53 +1319,34 @@ async function testNoTabPrintsAMissingNumber(browser, base) {
   }
 }
 
-// The Growth panel is the one tab whose data arrives weekly, and its whole claim
-// is that two readings may be compared. That claim is a property of the render,
-// not of the script: the panel is where a reader sees "28, 前一周 15" and decides
-// whether anything happened. So the fixture is two weeks and the assertions are
-// about the arithmetic and about what a spike looks like.
-async function testTheGrowthPanelComparesWeeksAndFitsAPhone(browser, base) {
-  const week = (imp, clicks, pos, start, end) => ({
-    start, end, days: 7, complete: true, days_with_data: 7,
-    impressions: imp, clicks, position: pos,
-  });
+// 验证台账（Reflect）。这张卡的可读性就是它的全部价值：判定分三种、样本/来源
+// 各一行、每节 6–9 个数字行、最后一段读数。原来的独立页把这些压进一张
+// markdown 表，所以这里断言的是**结构**——判定可见、tone 正确、读数里没有
+// markdown 的星号漏出来（那正是搬到看板时最容易炸的地方）、窄屏不横滚。
+async function testTheValidationLedgerRendersItsVerdictsAndFitsAPhone(browser, base) {
   const payload = {
-    generated_at: "2026-09-08T06:30:00Z",
-    site: "https://example.test/",
-    snapshots: [
+    schema_version: 1,
+    generated_at: "2026-09-12T00:00:00Z",
+    sections: [
       {
-        as_of: "2026-09-01",
-        windows: { 7: week(15, 0, 9.0, "2026-08-26", "2026-09-01"),
-                   28: week(40, 1, 8.5, "2026-08-05", "2026-09-01") },
-        queries: { reported: 0, top: [] },
-        pages_with_impressions: 1,
-        sitemap: { lastSubmitted: "2026-08-16T00:00:00Z", lastDownloaded: null },
-        coverage: { "/": { verdict: "PASS", coverageState: "Submitted and indexed",
-                           lastCrawlTime: "2026-08-26T04:17:40Z" } },
-        daily: [{ date: "2026-09-01", impressions: 15, clicks: 0, position: 9 }],
+        title: "杠杆刻度盘（生产 tier 映射）",
+        verdict: "🔴 未通过", verdict_key: "failed", tone: "bad",
+        sample: "1370 根日线 · 2021-01-04 → 2026-07-31",
+        source: "run card `regime_dial_validation-20260802-896b2145`",
+        reading: "观测到的改善比随机重排同一条敞口路径的中位数还差（10.2%）。"
+          + "p = 0.925 是未能拒绝原假设，不是证伪。",
+        rows: [
+          { label: "样本内改善（对比一直 2x）", value: "-91.6% vs -95.5%，即 +3.9pp" },
+          { label: "置换检验 p 值（回撤 / 收益）", value: "0.925 / 0.970" },
+        ],
       },
       {
-        as_of: "2026-09-08",
-        windows: { 7: week(28, 0, 7.4, "2026-09-02", "2026-09-08"),
-                   28: week(60, 1, 7.8, "2026-08-12", "2026-09-08") },
-        queries: { reported: 5, top: [
-          { query: "tencent29209", impressions: 20, clicks: 0, position: 8.7 },
-          { query: "tencent28194", impressions: 5, clicks: 0, position: 3.6 },
-        ] },
-        pages_with_impressions: 1,
-        sitemap: { lastSubmitted: "2026-08-16T00:00:00Z", lastDownloaded: null },
-        coverage: {
-          "/": { verdict: "PASS", coverageState: "Submitted and indexed",
-                 lastCrawlTime: "2026-08-26T04:17:40Z" },
-          "briefs.html": { verdict: "NEUTRAL",
-                           coverageState: "URL is unknown to Google" },
-        },
-        // A spike that rises and falls over the last 14 complete days, so the
-        // bars have distinct heights and the quiet tail has to be drawn too.
-        daily: [1, 3, 6, 9, 6, 3, 17, 0, 0, 0, 0, 0, 0, 0].map((impressions, i) => ({
-          date: new Date(Date.UTC(2026, 7, 26 + i)).toISOString().slice(0, 10),
-          impressions, clicks: 0, position: 7,
-        })),
+        title: "截面因子（预注册）",
+        verdict: "⏳ 尚未到期", verdict_key: "pending", tone: "wait",
+        sample: "预注册于 2026-08-16",
+        source: "`assets/data/cross_sectional_factor.json`",
+        reading: "这不是一条没通过的检验，是还没到期。",
+        rows: [{ label: "`registered_at`", value: "0 / 需要 20 · ⚪ 未达标" }],
       },
     ],
   };
@@ -1375,63 +1356,47 @@ async function testTheGrowthPanelComparesWeeksAndFitsAPhone(browser, base) {
     const page = await context.newPage();
     const state = observe(page);
     await stubLiveOrigin(page, {
-      patch: (name, json) => (name === "crawl_visibility.json" ? payload : null),
+      patch: (name, json) => (name === "evidence.json" ? payload : null),
     });
     await page.goto(base, { waitUntil: "networkidle" });
     await waitForData(page);
-    await page.click('.tab-btn[data-tab="growth"]');
-    await waitForTab(page, "growth");
+    await page.click('.tab-btn[data-tab="reflect"]');
+    await waitForTab(page, "reflect");
 
     const seen = await page.evaluate(() => {
-      const panel = document.querySelector('[data-panel="growth"]');
-      const cells = [...document.querySelectorAll("#growth-kpis .kpi-cell")];
-      const rows = [...document.querySelectorAll("#growth-history tbody tr")];
-      const bars = [...document.querySelectorAll("#growth-spark .growth-bar")];
-      const top = document.querySelector("#growth-queries tbody tr");
+      const card = document.getElementById("ledger-card");
+      if (!card) return { missing: true };
+      const sections = [...card.querySelectorAll(".lg-section")];
       return {
-        kpis: cells.map(cell => cell.innerText.replace(/\s+/g, " ").trim()),
-        historyRows: rows.length,
-        // Newest first, so the first row is the reading a reader came for.
-        newest: rows[0] ? rows[0].innerText.replace(/\s+/g, " ").trim() : null,
-        bars: bars.length,
-        heights: bars.map(bar => Math.round(bar.getBoundingClientRect().height)),
-        idleBarHeight: bars.filter(bar => bar.classList.contains("is-idle"))
-          .map(bar => Math.round(bar.getBoundingClientRect().height)),
-        query: top ? top.innerText.replace(/\s+/g, " ").trim() : null,
-        coverageRows: document.querySelectorAll("#growth-coverage tbody tr").length,
-        overflow: panel.scrollWidth - panel.clientWidth,
+        sections: sections.length,
+        verdicts: sections.map(s => s.querySelector(".lg-verdict").textContent.trim()),
+        tones: sections.map(s => s.dataset.tone),
+        rows: sections.map(s => s.querySelectorAll(".lg-row").length),
+        // 读数里不许出现 markdown 的强调标记 —— 看板把文本当文本印。
+        stars: (card.innerText.match(/\*\*/g) || []).length,
+        codeSpans: card.querySelectorAll(".lg-reading code, .lg-row code").length,
+        sampleShown: !!card.querySelector(".lg-metabar"),
+        overflow: card.scrollWidth - card.clientWidth,
         pageOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
-        height: Math.round(panel.getBoundingClientRect().height),
+        height: Math.round(card.getBoundingClientRect().height),
       };
     });
 
-    assert.equal(seen.kpis.length, 4, `${label}: the panel lost a headline figure`);
-    assert.match(seen.kpis[0], /28/, `${label}: 7-day impressions missing from ${seen.kpis[0]}`);
-    assert.match(seen.kpis[0], /前一周 15/,
-      `${label}: the week is printed without the week before it — a number with no comparison`);
-    assert.match(seen.kpis[0], /\+13/,
-      `${label}: a rise of 13 was not shown as one (${seen.kpis[0]})`);
-    assert.match(seen.kpis[1], /点击/,
-      `${label}: clicks are not on the panel; impressions alone cannot tell "shown" from "read"`);
-
-    assert.equal(seen.historyRows, 2, `${label}: the history dropped a reading`);
-    assert.match(seen.newest, /^2026-09-08/,
-      `${label}: the newest reading is not first (${seen.newest})`);
-    assert.equal(seen.query, "tencent29209 20 0 8.7",
-      `${label}: the query that produced the impressions is not shown (${seen.query})`);
-    assert.equal(seen.coverageRows, 2, `${label}: coverage rows missing`);
-
-    assert.equal(seen.bars, 14, `${label}: the daily series is not 14 bars`);
-    assert(seen.heights.every(h => h >= 2),
-      `${label}: a day with no impressions was drawn as nothing — "quiet" and "not measured" then look alike`);
-    assert.equal(new Set(seen.heights).size > 1, true,
-      `${label}: every bar is the same height, so the series is not being read`);
-    assert.equal(seen.idleBarHeight.length, 7,
-      `${label}: the zero days are not marked — ${seen.idleBarHeight.length} of 14`);
-
-    assert.equal(seen.overflow, 0, `${label}: the Growth panel scrolls sideways`);
-    assert.equal(seen.pageOverflow, 0, `${label}: the Growth panel widened the page`);
-    assert.deepEqual(state.errors, [], `${label}: a Growth renderer threw`);
+    assert(!seen.missing, `${label}: the ledger card is not in the Reflect panel`);
+    assert.equal(seen.sections, 2, `${label}: the ledger dropped a section`);
+    assert.deepEqual(seen.verdicts, ["🔴 未通过", "⏳ 尚未到期"],
+      `${label}: the verdict is not stated on the section`);
+    assert.deepEqual(seen.tones, ["bad", "wait"],
+      `${label}: the verdict tone is not carried through — a failed test and a
+       not-yet-due one would paint the same`);
+    assert.deepEqual(seen.rows, [2, 1], `${label}: the numbers are missing`);
+    assert.equal(seen.stars, 0,
+      `${label}: markdown emphasis leaked into the card — the reading prints literal asterisks`);
+    assert(seen.codeSpans >= 1, `${label}: identifiers lost their monospace span`);
+    assert(seen.sampleShown, `${label}: the section printed no sample/source line`);
+    assert.equal(seen.overflow, 0, `${label}: the ledger card scrolls sideways`);
+    assert.equal(seen.pageOverflow, 0, `${label}: the ledger widened the page`);
+    assert.deepEqual(state.errors, [], `${label}: a ledger renderer threw`);
     await context.close();
   }
 }
@@ -2279,7 +2244,7 @@ async function main() {
     await run("testAddSideCardExplainsWhyThereIsNoAdd", () => testAddSideCardExplainsWhyThereIsNoAdd(browser, base));
     await run("testALeveragedRowWithoutVolatilityPrintsNoUndefined", () => testALeveragedRowWithoutVolatilityPrintsNoUndefined(browser, base));
     await run("testNoTabPrintsAMissingNumber", () => testNoTabPrintsAMissingNumber(browser, base));
-    await run("testTheGrowthPanelComparesWeeksAndFitsAPhone", () => testTheGrowthPanelComparesWeeksAndFitsAPhone(browser, base));
+    await run("testTheValidationLedgerRendersItsVerdictsAndFitsAPhone", () => testTheValidationLedgerRendersItsVerdictsAndFitsAPhone(browser, base));
     await run("testAPanelSaysWhenItsDataDidNotLoad", () => testAPanelSaysWhenItsDataDidNotLoad(browser, base));
     await run("testCronRailAccountsForEverySlotWithoutASecondVerdict", () => testCronRailAccountsForEverySlotWithoutASecondVerdict(browser, base));
     await run("testCronNeedsActionMergesIntoTheOneTodoListButWatchDoesNot", () => testCronNeedsActionMergesIntoTheOneTodoListButWatchDoesNot(browser, base));

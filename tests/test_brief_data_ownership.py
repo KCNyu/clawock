@@ -38,6 +38,12 @@ GHA_OWNED = {
     'sentiment.json': 'sentiment-scan.yml',
     'us_news_digest.json': 'news-digest.yml',
     'influencer_feed.json': 'influencer-scan.yml',
+    # Weekly rather than daily, and the only entry here that no preflight node
+    # writes. It is in this registry for the same reason as the rest: preflight
+    # syncs it from origin so the dashboard embeds the published reading instead
+    # of whatever the host happened to have.
+    'crawl_visibility_summary.json': 'seo-visibility.yml',
+    'crawl_visibility.json': 'seo-visibility.yml',
 }
 
 

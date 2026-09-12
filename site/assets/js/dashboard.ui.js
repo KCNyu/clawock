@@ -229,9 +229,10 @@
     decision_audit: "reflect", decision_map: "reflect", shadow_portfolio: "drill",
     brief_projection: "drill",
     decision_trail: ["drill", "plan", "reflect"],
-    // 每周一次，不是每 20 分钟一次：这块牌的数据由 SEO Visibility 工作流
-    // （周一 06:30 UTC）提交，其余时间它只是同一份读数被重新渲染。
-    crawl_visibility: "growth",
+    // 每日一次，由 brief preflight 的 evidence 节点重算。它挂在 Reflect 而不是
+    // 自己的页面：台账里的判定是自评/校准的**证据**，两者分开放就没人对得起来
+    // （独立页 180 天 0 曝光，首页同期 118）。
+    evidence: "reflect",
   };
   const SIDECAR_STATE = new Map();
   let TAB_ACTIVATION_VERSION = 0;
@@ -258,13 +259,14 @@
   const DATA_PLANE_FILES = new Set([
     "cron-heartbeats", "dashboard", "decision_audit", "decision_trail",
     "overview", "shadow_portfolio", "workflow-outcomes",
-    // The weekly Search Console reading. In this list for the same reason as the
-    // rest — its Pages copy only refreshes when the site is rebuilt, so the
-    // same-origin path would serve a reading up to a rebuild behind. It is also
-    // the one member the data plane may legitimately not carry yet, which the
-    // loader already survives: a miss gives the tab an empty panel, and the
-    // publisher handles absence on the write side.
-    "crawl_visibility",
+    // The validation ledger, rebuilt daily by brief preflight. In this list for
+    // the same reason as the rest — its Pages copy only refreshes when the site
+    // is rebuilt, so the same-origin path would serve a ledger up to a rebuild
+    // behind. It is also a member the data plane may legitimately not carry yet
+    // (the artifact did not exist before 2026-09-12), which the loader already
+    // survives: a miss gives the card an empty body, and the publisher handles
+    // absence on the write side.
+    "evidence",
   ]);
   // null until the first paint succeeds, and back to null for good if that
   // origin ever fails us — in which case the page degrades to reading Pages, as
