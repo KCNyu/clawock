@@ -850,6 +850,31 @@ def maybe_commit(status, today, dry_run=False):
     return False, f'committed (push failed: {push_out[-150:]})'
 
 
+def classify_commit_outcome(commit_ok, commit_msg):
+    """The data-plane state maybe_commit's outcome settles on its own.
+
+    `None` means it settles nothing — the commit landed, so the dashboard build
+    status file is the authority on whether the public data plane is current.
+
+    maybe_commit returns False for three different things, and #1457 printed all
+    three as `failed`: a push that did not reach origin (a real failure), but also
+    a dry run and a brief that was rejected before any commit was attempted —
+    neither of which touched the data plane. A `--dry-run` is the run you make
+    specifically to check the wiring, and it was reporting
+    `data_plane_status: failed` next to `commit_msg: skipped (dry-run)`: the same
+    run, two contradictory claims. `committed_local` is the vocabulary
+    report_postflight.classify_data_plane and intraday_postflight.publish_data_plane
+    already use for a commit that exists locally but lost its push.
+    """
+    if commit_msg.startswith('skipped'):
+        return 'skipped'
+    if 'push failed' in commit_msg:
+        return 'committed_local'
+    if not commit_ok:
+        return 'failed'
+    return None
+
+
 def _ensure_jekyll_front_matter(md_path, date):
     """Prepend Jekyll front matter so Pages can render the brief in-site (not via github.com blob)."""
     if not md_path.exists():
@@ -1199,8 +1224,9 @@ def main(argv=None):
     commit_ok, commit_msg = maybe_commit(
         publication_status, today, dry_run=args.dry_run
     )
-    if not commit_ok:
-        data_plane_status = 'failed'
+    settled = classify_commit_outcome(commit_ok, commit_msg)
+    if settled is not None:
+        data_plane_status = settled
     elif (status in ('pass', 'warn') and projection_ready
             and not args.dry_run):
         data_plane_status = dashboard_publication_state(WS)
