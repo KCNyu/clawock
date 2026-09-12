@@ -86,4 +86,6 @@ jobs:
         uses: ./.github/actions/clawock-commit
         with:
           paths: assets/data/crawl_visibility.json
-          message: measurement: search visibility snapshot ${{ github.run_id }}
+          # Quoted: the subject carries its own colon, and unquoted YAML reads the
+          # second one as a mapping.
+          message: "measurement: search visibility snapshot ${{ github.run_id }}"

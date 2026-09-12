@@ -182,3 +182,23 @@ def test_the_workflow_commits_what_the_script_writes():
         "a committing workflow without write permission fails on its first run")
     assert "group: data-write" in workflow, (
         "every data producer shares one writer lane; this one commits to master")
+
+
+def test_every_workflow_is_parseable_yaml():
+    """The commit message above carries a colon, and unquoted YAML reads the
+    second one as a mapping key.
+
+    Nothing in this suite parsed the workflow files, so the only thing that
+    noticed was `lint` — the CI actionlint job, several minutes into a PR. The
+    same claim is checkable here in milliseconds and without a pinned binary;
+    actionlint still owns everything semantics, this owns "it is YAML".
+    """
+    import yaml
+
+    workflows = sorted((ROOT / ".github" / "workflows").glob("*.yml"))
+    assert workflows, "no workflows found — the glob is wrong, not the workflows"
+    for path in workflows:
+        try:
+            yaml.safe_load(path.read_text(encoding="utf-8"))
+        except yaml.YAMLError as error:  # pragma: no cover - the message is the test
+            raise AssertionError(f"{path.name} is not parseable YAML: {error}") from error
