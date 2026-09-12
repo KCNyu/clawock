@@ -292,6 +292,18 @@ def maybe_commit(status, commit_msg):
 
 def classify_data_plane(commit_ok, commit_msg):
     """Return an explicit publication state independent of prose validation."""
+    # A failed push is read BEFORE `commit_ok`. #1457 made maybe_commit report it
+    # as commit_ok=False — correct, origin did not get the data — but routing it
+    # into `failed` threw away the one distinction the reader acts on: the commit
+    # exists locally and the next push carries it, versus nothing was committed at
+    # all and the data is gone until the next run rebuilds it. Both already grade
+    # the same (neither is in {'published', 'current'}, so the stage is `warning`
+    # and main() returns 2); only the label differs, and the label is the whole
+    # point of this function. intraday_postflight.publish_data_plane reports the
+    # same physical state as 'committed_local' too — one vocabulary across the
+    # three harnesses.
+    if 'push failed' in commit_msg:
+        return 'committed_local'
     if not commit_ok:
         return 'failed'
     if 'dashboard=publish_failed' in commit_msg:
