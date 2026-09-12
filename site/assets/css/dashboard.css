@@ -4391,41 +4391,57 @@
   :root { --heat-up: #12864c; --heat-down: #c4291f; }
   @media (prefers-color-scheme: dark) { :root { --heat-up: #32d272; --heat-down: #ff5a4e; } }
 
-  /* Growth tab（搜索可见性）。这块牌的量都是「数出来的」，所以数字一律
-     等宽 + tabular-nums：一周和下一周同一位对齐，才看得出动没动。 */
-  .growth-table {
-    width: 100%; border-collapse: collapse;
-    font-size: var(--fs-sm); font-variant-numeric: tabular-nums;
+  /* 验证台账（Reflect）。排版判据：**一个判定一个块，块里只放数字**。
+     原来的独立页把「判定/样本/来源/6–9 行两列表格/一段读数」压成一张
+     markdown 表，于是最该被看见的「未通过」和样本天数一样重，读数被挤在
+     表下面。这里拆成：判定条（tone 上色）→ 元信息一行 → 数字行 → 读数。 */
+  .lg-section {
+    border: 1px solid var(--border-subtle); border-radius: 10px;
+    padding: var(--space-3) var(--space-4); margin-bottom: var(--space-3);
+    background: var(--surface-1);
+    /* tone 走一条左边框：一屏里四个块，靠颜色扫一眼就知道哪个是坏的。 */
+    border-left: 3px solid var(--border);
   }
-  .growth-table th {
-    text-align: left; font-weight: 600; color: var(--text-dim);
-    font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: 0.06em;
-    padding: 6px 8px 6px 0; border-bottom: 1px solid var(--border-subtle);
-    white-space: nowrap;
-  }
-  .growth-table td {
-    padding: 6px 8px 6px 0; border-bottom: 1px solid var(--border-subtle);
-    vertical-align: top;
-  }
-  .growth-table tr:last-child td { border-bottom: 0; }
-  .growth-table .num, .growth-table th.num { text-align: right; }
-  /* 中文列（Google 的判定）不折成两行：它是一句判定语，断行会把主语和
-     结论拆到两屏。长就让它长，横滚由 .growth-table 的容器承担。 */
-  .growth-table td.mono { white-space: nowrap; }
-  .growth-up { color: var(--green); }
-  .growth-down { color: var(--red); }
-
-  .growth-spark {
-    display: flex; align-items: flex-end; gap: 2px;
-    height: 32px; margin-top: var(--space-3);
-  }
-  .growth-bar { flex: 1 1 0; min-width: 3px; border-radius: 2px 2px 0 0; }
-  .growth-bar.is-shown { background: color-mix(in srgb, var(--accent) 55%, transparent); }
-  .growth-bar.is-click { background: var(--accent); }
-  /* 没有曝光的那天也占一格：抹掉它，「安静」和「没测到」在图上就一样了。 */
-  .growth-bar.is-idle { background: color-mix(in srgb, var(--text) 14%, transparent); }
-  .growth-spark-axis {
-    display: flex; justify-content: space-between; gap: var(--space-2);
-    margin-top: 4px; color: var(--text-dim); font-size: var(--fs-micro);
+  .lg-section[data-tone="bad"] { border-left-color: var(--red); }
+  .lg-section[data-tone="good"] { border-left-color: var(--green); }
+  .lg-section[data-tone="wait"] { border-left-color: var(--warning); }
+  .lg-section[data-tone="idle"] { border-left-color: var(--text-tertiary); }
+  .lg-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-2); }
+  .lg-verdict {
+    font-size: var(--fs-sm); font-weight: 700; white-space: nowrap;
     font-variant-numeric: tabular-nums;
+  }
+  .lg-section[data-tone="bad"] .lg-verdict { color: var(--red); }
+  .lg-section[data-tone="good"] .lg-verdict { color: var(--green); }
+  .lg-section[data-tone="wait"] .lg-verdict { color: var(--warning); }
+  .lg-section[data-tone="idle"] .lg-verdict { color: var(--text-dim); }
+  .lg-title { font-weight: 600; font-size: var(--fs-md); }
+  .lg-metabar {
+    display: flex; flex-wrap: wrap; gap: var(--space-3);
+    margin-top: 4px; color: var(--text-dim); font-size: var(--fs-micro);
+  }
+  .lg-rows { margin-top: var(--space-2); }
+  /* 两列：左边是「问的是什么」，右边是「读出来多少」。右边等宽 + 右对齐，
+     同一块里几行数字才能竖着对齐比较。窄屏改成上下两行。 */
+  .lg-row {
+    display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+    gap: var(--space-3); padding: 5px 0;
+    border-top: 1px solid var(--border-subtle);
+    font-size: var(--fs-sm);
+  }
+  .lg-row:first-child { border-top: 0; }
+  .lg-label { color: var(--text-dim); }
+  .lg-value {
+    font-family: var(--mono); font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+  }
+  .lg-reading {
+    margin: var(--space-3) 0 0; padding-top: var(--space-2);
+    border-top: 1px dashed var(--border);
+    font-size: var(--fs-sm); line-height: 1.6; color: var(--text-secondary);
+  }
+  @media (max-width: 640px) {
+    /* 窄屏一列：两列在 390px 上会把右边的数字压成每行两三个字符。 */
+    .lg-row { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+    .lg-section { padding: var(--space-3); }
   }

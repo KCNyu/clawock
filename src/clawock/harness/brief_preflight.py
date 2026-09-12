@@ -1343,7 +1343,8 @@ def cross_factor_node(portfolio):
 
 
 def evidence_node():
-    # 证据页：读上面刚刷新的产物重新生成，保证「测了什么、什么没通过」不落后于事实。
+    # 验证台账：读上面刚刷新的产物重新生成，保证「测了什么、什么没通过」不落后于事实。
+    # 产物是 assets/data/evidence.json（看板 Reflect 读它），markdown 页同源保留。
     issues = []
     try:
         subprocess.run(clawock_argv('evidence'),

@@ -51,9 +51,9 @@ DATA_PLANE_EXTRA = (
     "assets/data/workflow-outcomes.json",
 )
 
-# One more file the browser DOES fetch, and the only member of this generation
-# that is written on a different cadence from the rest: the weekly Search
-# Console reading, committed by `seo-visibility.yml` once a week.
+# Files the browser DOES fetch, and the only members of this generation written
+# on a different cadence from the rest: the validation ledger (rebuilt daily by
+# brief preflight) and nothing else.
 #
 # It is kept out of `DATA_PLANE_FILES` deliberately. The branch is replaced
 # wholesale, so the publisher refuses when a member cannot be read — correct for
@@ -63,7 +63,7 @@ DATA_PLANE_EXTRA = (
 # Browser data that arrives on its own schedule is optional by construction: a
 # missing one means the panel is absent, not that the generation is malformed.
 DATA_PLANE_OPTIONAL = (
-    "assets/data/crawl_visibility.json",
+    "assets/data/evidence.json",
 )
 
 DATA_PLANE_FILES = output_paths(ROOT) + DATA_PLANE_EXTRA

@@ -157,7 +157,14 @@ def snapshot_date_for_now():
 # it wasn't committed either, origin only moved when an unrelated commit happened
 # to sweep it up — a loop that kept it stale from both ends.
 GHA_DATA_FILES = ['sentiment.json', 'macro.json', 'us_news_digest.json',
-                  'influencer_feed.json']
+                  'influencer_feed.json',
+                  # Weekly, not daily, and that is the point of putting it here:
+                  # the publisher embeds the summary into dashboard.json every 20
+                  # minutes, so without this sync the panel would re-embed
+                  # whatever the host last happened to have while origin already
+                  # carried the new reading. Same stale-embed failure as the
+                  # 2026-05-22 sentiment bug above, at 1/7 the frequency.
+                  'crawl_visibility_summary.json', 'crawl_visibility.json']
 
 
 def sync_gha_data_files(ws=None):

@@ -121,7 +121,7 @@ UTILITY_HELP = {
     "evaluate-combined-regime": "backtest the combined configured regime dial",
     "evaluate-hstech-regime": "backtest the HSTECH leverage regime",
     "evaluate-us-leverage": "backtest US single-stock leverage regimes",
-    "evidence": "rebuild the artifact-backed public evidence page",
+    "evidence": "rebuild the artifact-backed validation ledger (evidence.json)",
     "fetch-peers": "price peer tickers from a JSON request on stdin",
     "filings": "fetch SEC filings and point-in-time XBRL fundamentals",
     "fundamentals": "fetch East Money HK/US statements and indicators",

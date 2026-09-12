@@ -109,7 +109,7 @@ layout: null
     </div>
     <div class="topbar-actions">
       <a class="nav-link" href="briefs.html">Briefs</a>
-      <a class="nav-link" href="evidence.html">Evidence</a>
+      <a class="nav-link" href="#ledger">验证台账</a>
       <a class="nav-link" href="https://github.com/KCNyu/clawock" target="_blank" rel="noopener">GitHub</a>
       <button class="refresh-btn" id="refresh-btn" type="button" aria-label="Refresh data" title="立即刷新">
         <span class="ic" aria-hidden="true">&#x21bb;</span>
@@ -123,7 +123,6 @@ layout: null
     <button class="tab-btn" id="tab-market" data-tab="market" aria-controls="panel-market" role="tab" aria-selected="false">Signals</button>
     <button class="tab-btn" id="tab-plan" data-tab="plan" aria-controls="panel-plan" role="tab" aria-selected="false">Plan</button>
     <button class="tab-btn" id="tab-reflect" data-tab="reflect" aria-controls="panel-reflect" role="tab" aria-selected="false">Reflect</button>
-    <button class="tab-btn" id="tab-growth" data-tab="growth" aria-controls="panel-growth" role="tab" aria-selected="false">Growth</button>
   </nav>
   <div class="swipe-hint" aria-hidden="true"></div>
 </header>
@@ -1128,45 +1127,16 @@ layout: null
       <div id="chart-daily-pnl" class="chart-box"></div>
     </div>
 
-  </section>
-  <section class="panel" id="panel-growth" data-panel="growth" role="tabpanel" aria-labelledby="tab-growth">
-    <h2>Growth</h2>
-
-    <div class="sect-divider">被看见的程度 · 每周 Search Console</div>
-
-    <div class="card desktop-wide" id="growth-card">
-      <div class="card-head"><div>
-        <div class="overview-card-kicker">SEO · 每周一 UTC 06:30 量一次，Python 取数，模型不参与</div>
-        <h3>搜索可见性</h3>
-      </div></div>
-
-      <div class="kpi-grid" id="growth-kpis"></div>
-
-      <div class="sub-block">
-        <div class="sub-block-head">每周读数 <span class="muted" id="growth-history-note"></span></div>
-        <div id="growth-history"></div>
-        <p class="chart-hint">窗口是定长的、各自算各自的：7 天和 28 天的窗口都截止在最后一个完整日，所以相邻两周不会互相重复计入。</p>
-      </div>
-
-      <div class="sub-block">
-        <div class="sub-block-head">这 14 天逐日 <span class="muted">GSC 完整到最后一个完整日为止</span></div>
-        <div id="growth-spark"></div>
-      </div>
-
-      <div class="sub-block">
-        <div class="sub-block-head">搜索词 <span class="muted" id="growth-queries-note"></span></div>
-        <div id="growth-queries"></div>
-        <p class="chart-hint">曝光来自哪些词，决定了这些曝光值不值得高兴。跟项目无关的词带来的曝光是噪音，不是可见性。</p>
-      </div>
-
-      <div class="sub-block">
-        <div class="sub-block-head">收录与抓取 <span class="muted">Google 认不认这些页</span></div>
-        <div id="growth-coverage"></div>
-      </div>
-    </div>
-
+  <section class="card desktop-wide" id="ledger-card">
+    <div class="card-head"><div>
+      <div class="overview-card-kicker">验证台账 · 每个数字读自产物，`clawock evidence` 每日重算</div>
+      <h3 id="ledger">我们测过什么、什么没活下来</h3>
+    </div></div>
+    <p class="chart-hint">面板展示结果，这里展示方法。判定分三种且不许混：<strong>未通过</strong>（测了没活下来）、<strong>尚不可判</strong>（样本不够）、<strong>尚未到期</strong>（还没到能算的日子）。把前两者说成一回事，本身就是不诚实。</p>
+    <div id="ledger-body"></div>
   </section>
 
+  </section>
   </div><!-- /.pager -->
 
 </main>
@@ -1185,7 +1155,7 @@ layout: null
   <p>
     <a href="https://github.com/KCNyu/clawock">clawock</a>
     · <a href="briefs.html">briefs</a>
-    · <a href="evidence.html">evidence</a>
+    · <a href="#ledger">验证台账</a>
     · <a href="faq.html">faq</a>
     · <a href="assets/data/dashboard.json"><code>dashboard.json</code></a>
   </p>

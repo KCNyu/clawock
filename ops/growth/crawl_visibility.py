@@ -65,7 +65,13 @@ API = "https://searchconsole.googleapis.com"
 # Probed individually because the API exposes no whole-site coverage report.
 # One page per discovery path: the entry point, a page reachable only through
 # an internal link, and one reachable only through the sitemap.
-PROBES = ("", "briefs.html", "evidence.html")
+# Probed individually because the API exposes no whole-site coverage report: the
+# entry point, a page reachable only through an internal link, and one reachable
+# only through the sitemap. `evidence.html` was the second of those until
+# 2026-09-12, when the standalone page was retired into the Reflect tab; asking
+# Google about a URL we no longer publish would report a 404 as a coverage
+# finding forever.
+PROBES = ("", "briefs.html", "faq.html")
 
 # Fixed history windows, in days. See the module docstring: these are not
 # preferences, they are what makes two snapshots comparable.
@@ -73,6 +79,45 @@ SNAPSHOT_WINDOWS = (7, 28)
 # Two years of weekly snapshots. The cap exists because the file is committed on
 # every run forever; it is not a claim that a longer series is uninteresting.
 SNAPSHOT_CAP = 104
+
+#: The one-line version, for the dashboard's data-health row.
+#:
+#: It exists because the history and the reader want different objects: the file
+#: above is an archive that only grows, and the dashboard needs today's answer in
+#: a payload that is rebuilt every 20 minutes. `build_dashboard` embeds this one,
+#: so the panel never fetches it — the same reason `cron-heartbeats.json` is
+#: published without a browser reader.
+SUMMARY_NAME = "crawl_visibility_summary.json"
+
+
+def summary(payload: dict) -> dict:
+    """Latest reading only, in the shape a single line needs."""
+    snapshots = payload.get("snapshots") or []
+    latest = snapshots[-1] if snapshots else None
+    if not latest:
+        return {"available": False}
+    week = (latest.get("windows") or {}).get(str(SNAPSHOT_WINDOWS[0])) or {}
+    month = (latest.get("windows") or {}).get(str(SNAPSHOT_WINDOWS[-1])) or {}
+    queries = latest.get("queries") or {}
+    sitemap = latest.get("sitemap") or {}
+    return {
+        "available": True,
+        "as_of": latest.get("as_of"),
+        "window_days": SNAPSHOT_WINDOWS[0],
+        "impressions": week.get("impressions"),
+        "clicks": week.get("clicks"),
+        "impressions_28d": month.get("impressions"),
+        "position": week.get("position"),
+        "pages_with_impressions": latest.get("pages_with_impressions"),
+        "queries_reported": queries.get("reported"),
+        "top_query": ((queries.get("top") or [{}])[0].get("query")),
+        # Absent means Google has never fetched the sitemap. Carried into the
+        # summary because it is the single most useful fact in the whole file.
+        "sitemap_fetched": sitemap.get("lastDownloaded"),
+        # How many readings are on file, so a reader can tell "flat" from
+        # "measured once".
+        "readings": len(snapshots),
+    }
 TOP_QUERIES = 15
 
 
@@ -398,8 +443,19 @@ def main(argv=None) -> int:
         args.snapshot.write_text(
             json.dumps(payload, ensure_ascii=False, indent=2, sort_keys=False) + "\n",
             encoding="utf-8")
+        # The summary is written beside the history and is derived from it, so it
+        # cannot disagree with the file a reader would check it against. A
+        # failure here must not cost the history we just took, which is why it
+        # cannot re-fetch and cannot raise.
+        summary_path = args.snapshot.with_name(SUMMARY_NAME)
+        try:
+            summary_path.write_text(
+                json.dumps(summary(payload), ensure_ascii=False, indent=2) + "\n",
+                encoding="utf-8")
+        except OSError as error:
+            print(f"WARN: could not write {summary_path}: {error}", file=sys.stderr)
         print(f"snapshot: {stats['days']} week(s) on file · as_of {stats['as_of']}"
-              f" · wrote {args.snapshot}", file=sys.stderr)
+              f" · wrote {args.snapshot} + {summary_path.name}", file=sys.stderr)
     elif args.snapshot is not None:
         payload, stats = snapshot(report, {})
         print(f"::notice::--print: would write as_of {stats['as_of']}", file=sys.stderr)

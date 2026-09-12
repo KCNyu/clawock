@@ -259,6 +259,12 @@ def compile_overview_projection(dashboard):
             'today_movers', 'anomalies', 'catalysts', 'debate_metrics',
             'build_status', 'delta', 'gold_dca', 'status_banner',
             'status_banner_meta', 'benchmark',
+            # The data-health card renders on the Overview tab, and the Overview
+            # tab renders from THIS projection — not from dashboard.json. A key
+            # present only in the full payload is a row that never appears on the
+            # one tab that shows the card, which is how a health line can be
+            # correct, tested, and invisible.
+            'crawl_visibility',
         )),
         'watch_holdings': watch_holdings,
         'recent_plans': [
@@ -4013,6 +4019,16 @@ def build_projection(previous_source=None, shadow_previous=None):
     # have to agree about a new file, and none of that buys the reader anything.
     out['cron_schedule'] = compute_cron_schedule()
     _presence['cron_schedule'] = bool((out.get('cron_schedule') or {}).get('jobs'))
+
+    # Search visibility, one line in the data-health card. Embedded rather than
+    # published as its own sidecar for the reason `cron_schedule` above gives,
+    # plus one of its own: the reader is a row in a card that is already inside
+    # this payload, so a separate file would add a fetch and an empty-state to a
+    # panel whose whole job is to say whether the numbers on this page can be
+    # trusted. `crawl_visibility.py --snapshot` writes the summary weekly; a
+    # missing one leaves the row out rather than reporting zero visibility.
+    out['crawl_visibility'] = load_json(OUT_DIR / 'crawl_visibility_summary.json') or {}
+    _presence['crawl_visibility'] = bool(out['crawl_visibility'].get('available'))
 
     # ── LLM narrative sidecars (agent-written in Step 3; text-only, no keys) ──
     # Each sidecar is validated (validate_insights / validate_intraday_insights)
