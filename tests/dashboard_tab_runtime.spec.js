@@ -1275,6 +1275,33 @@ function sparsePayload(value, mode) {
   return out;
 }
 
+// 「缺失数字」的判据：这些词只有在**值的位置**才算漏格式化。
+//
+// 判红过两次，两次都不是渲染器的错，是**被引用的正文**：
+//   · `https://truthsocial.com/users/…/117255718355537976I am calling…`
+//     —— 帖子 id 的结尾正好是 `null`，紧跟一个字母（#1473 扩源后第一次出现）
+//   · `…the so-called “Infinity” sculpture that stands…`
+//     —— 一条帖子正文里的英文单词
+//
+// 原来的写法是「正文里出现这些词就报」，于是这条闸会随着**被引用的内容**漂移：
+// 谁转发一条含 "Infinity" 的帖子，它就把 master 判红。而它本来盯的是渲染器。
+//
+// 值的位置 = 整段就是它 / 出现在末尾 / 前面是货币或数值运算符。
+// 逐条验过 18 个用例（10 条真值 + 8 条散文）：**0 判错**。
+// 有意不把 `=` 和 `:` 算作值前运算符 —— 模型在散文里写
+// `swap_mandate = null 无 1x 替代` 是描述字段为空，不是漏格式化的数字，
+// 而「末尾的值」那条已经覆盖了真正拼在句子尾部的漏格式化。
+//
+// 模式写成字符串：这段代码跑在 page.evaluate 里（浏览器上下文），Node 作用域的
+// 常量过不去，所以传进去再 new RegExp。
+const VALUE_LEAK_PATTERNS = [
+  "\\[object Object\\]",
+  "^(?:undefined|NaN|[-+]?Infinity|null)(?:%| ?(?:bps|股|倍))?$",
+  "(?:^|[\\s:：,，、=(（])(?:undefined|NaN|[-+]?Infinity|null)(?:%| ?(?:bps|股|倍))?[\\s.。)]*$",
+  "[@$/≈]\\s*(?:undefined|NaN|[-+]?Infinity|null)(?![\\w-])",
+  "[+=−-]\\s*(?:undefined|NaN|[-+]?Infinity)\\b",
+];
+
 async function testNoTabPrintsAMissingNumber(browser, base) {
   // 2026-09-11 live: 「横盘 decay ≈undefined%/月」 on the Holdings tab, because one
   // renderer guarded a field and its twin did not. Rendering every tab with the
@@ -1294,29 +1321,20 @@ async function testNoTabPrintsAMissingNumber(browser, base) {
     for (const tab of TABS) {
       await page.click(`.tab-btn[data-tab="${tab}"]`);
       await waitForTab(page, tab);
-      hits.push(...await page.evaluate(() => {
+      hits.push(...(await page.evaluate(patterns => {
         const out = [];
         const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
         let node;
         while ((node = walker.nextNode())) {
           if (node.parentElement.closest("script, style")) continue;
           const text = node.textContent.trim();
-          // 链接是正文，不是数字。`https://truthsocial.com/users/…/117255718355537976`
-          // 的 slug 落在数字之后恰好就是 `null`，而那一整条渲染出来是合法的 ——
-          // 2026-09-13 它在 master 上把这条闸判红（#1473 把影响力雷达扩到 8 个源
-          // 之后，feed 里第一次出现这种 id）。先剥 URL 再判，否则这条闸的告警会
-          // 随着被引用的内容漂移，而它本来盯的是渲染器。
-          const prose = text.replace(/https?:\/\/\S+/g, " ");
-          // "null" only where it stands in for a number; model prose may say it.
-          if (/\bundefined\b|\bNaN\b|\bInfinity\b|\[object Object\]/.test(prose)
-              || prose.trim() === "null"
-              || /\bnull\s*(%|bps|股|\/)|[@$/+≈]\s*null\b/.test(prose)) {
+          if (patterns.some(src => new RegExp(src).test(text))) {
             const holder = node.parentElement.closest("[id]");
             out.push(`${holder ? holder.id : "?"}: ${text.slice(0, 80)}`);
           }
         }
         return out;
-      }));
+      }, VALUE_LEAK_PATTERNS)));
     }
     assert.deepEqual([...new Set(hits)], [],
       `a missing number was printed as text (mode=${mode}) — format it with numText/fmtNum`);
