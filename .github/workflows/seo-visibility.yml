@@ -17,8 +17,17 @@ on:
     - cron: '30 6 * * 1'
   workflow_dispatch:
 
+# This job now commits its reading to `assets/data/crawl_visibility.json`.
+# Before that it wrote nothing, and the numbers lived only in the run log —
+# which GitHub keeps for 90 days, so the series a trend needs was being deleted a
+# quarter at a time. Same writer lane as every other data producer: it commits to
+# master and must queue behind them rather than race them.
+concurrency:
+  group: data-write
+  cancel-in-progress: false
+
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   measure:
@@ -50,8 +59,13 @@ jobs:
           printf '%s' "$GSC_CREDENTIALS" > /tmp/gsc.json
           # CLAWOCK_GSC_CREDENTIALS short-circuits the host-path default, so the
           # script never needs the installed package just to find a file.
+          #
+          # `--snapshot` merges this reading into the committed history and the
+          # history table it prints is the reason to keep it: one run log says
+          # what today is, five of them side by side say whether anything moved.
           CLAWOCK_GSC_CREDENTIALS=/tmp/gsc.json \
-            python3 ops/growth/crawl_visibility.py | tee /tmp/report.txt
+            python3 ops/growth/crawl_visibility.py \
+              --snapshot assets/data/crawl_visibility.json | tee /tmp/report.txt
           {
             echo '### Search Console'
             echo '```'
@@ -59,3 +73,17 @@ jobs:
             echo '```'
           } >> "$GITHUB_STEP_SUMMARY"
           rm -f /tmp/gsc.json
+
+      # The reading is committed even when the run is red for another reason: the
+      # snapshot was already merged into the file on disk by the step above, and
+      # a week of visibility that ages out of the GSC window behind a failed push
+      # is a week nobody can re-measure. When the query itself failed there is
+      # nothing staged and the composite exits on its own "nothing to commit".
+      - name: Commit the weekly snapshot
+        if: always()
+        env:
+          CLAWOCK_PUBLISH_SSH_KEY: ${{ secrets.CLAWOCK_PUBLISH_SSH_KEY }}
+        uses: ./.github/actions/clawock-commit
+        with:
+          paths: assets/data/crawl_visibility.json
+          message: measurement: search visibility snapshot ${{ github.run_id }}

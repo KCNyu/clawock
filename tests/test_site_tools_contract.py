@@ -37,11 +37,13 @@ def _tabs_in_shoot():
 
 
 def _tab_count_in_assembler():
-    counts = {int(n) for n in re.findall(r"range\((\d+)\)", ASSEMBLER_SRC)}
-    assert len(counts) == 1, (
-        f"the assembler now iterates several different tab counts {counts}; "
-        "one of them is wrong")
-    return counts.pop()
+    # The count used to be three bare `range(6)` literals and this helper read
+    # one of them. The seventh tab turned the literal into a fact the shooter and
+    # the assembler share, so the declared constant is what is checked now.
+    match = re.search(r"^TAB_COUNT\s*=\s*(\d+)", ASSEMBLER_SRC, re.MULTILINE)
+    assert match, ("assemble_dashboard_gif.py no longer declares TAB_COUNT — the "
+                   "tab count has to be stated once rather than repeated per loop")
+    return int(match.group(1))
 
 
 def test_the_two_halves_agree_on_how_many_tabs_there_are():
@@ -49,12 +51,15 @@ def test_the_two_halves_agree_on_how_many_tabs_there_are():
 
     `_load_tab` calls `sys.exit(1)` when a tab has no frames, so adding a tab to
     `TABS` alone fails the GIF build — and adding one to the assembler alone
-    silently drops the last tab from the animation.
+    silently drops the last tab from the animation. The dashboard's own count is
+    checked against the markup in `test_dashboard_tabs_a11y`, which counts the
+    real buttons rather than a literal, so this pair only has to agree with each
+    other.
     """
     assert len(_tabs_in_shoot()) == _tab_count_in_assembler(), (
         f"shoot_dashboard.js shoots {_tabs_in_shoot()} "
         f"({len(_tabs_in_shoot())} tabs) but the assembler iterates "
-        f"range({_tab_count_in_assembler()})")
+        f"{_tab_count_in_assembler()}")
 
 
 def test_the_frame_names_one_half_writes_are_the_names_the_other_half_reads():

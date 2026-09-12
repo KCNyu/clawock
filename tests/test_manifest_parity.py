@@ -120,8 +120,13 @@ def _js_data_plane_names():
 def _publisher_names():
     sys.path.insert(0, str(ROOT / "ops/publish"))
     import publish_data_branch  # noqa: E402
+    # Optional members count as published: the branch carries one whenever it
+    # exists, and the browser may route it before the first weekly run has written
+    # it. Narrowing this to the required set would let the routing table and the
+    # publisher disagree about a file that is genuinely on the branch.
     return {p.rsplit("/", 1)[-1].removesuffix(".json")
-            for p in publish_data_branch.DATA_PLANE_FILES}
+            for p in publish_data_branch.DATA_PLANE_FILES
+            + publish_data_branch.DATA_PLANE_OPTIONAL}
 
 
 def test_the_browser_routes_exactly_the_files_the_publisher_puts_on_the_branch():

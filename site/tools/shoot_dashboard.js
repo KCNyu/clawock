@@ -50,7 +50,10 @@ const FRAME_DIR = process.env.FRAME_DIR || path.join(ROOT, '.gifframes');
 const TMP_DIR = process.env.TMP_DIR || path.join(ROOT, '.gifframes');
 const CHROME_EXE = process.env.CHROME_EXE || undefined;
 const CAPTURE_GIF = process.env.CAPTURE_GIF !== '0';
-const TABS = ['hero', 'drill', 'risk', 'market', 'plan', 'reflect'];
+// Must match `TAB_COUNT` in assemble_dashboard_gif.py: the assembler names each
+// frame `f{i}_*` by index, so a tab in one list and not the other is either a
+// missing animation frame or a build that exits on a tab with no frames.
+const TABS = ['hero', 'drill', 'risk', 'market', 'plan', 'reflect', 'growth'];
 
 async function settle(page) {
   // 1) Hero panel populated (don't key off <canvas>: Hero has no chart → would hang).

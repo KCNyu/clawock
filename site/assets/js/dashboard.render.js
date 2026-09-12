@@ -552,6 +552,7 @@
       renderDecisionTraces, renderReflectKpi, renderDelta, renderDebates,
       renderDecisionMap,
     ],
+    growth: [renderGrowth],
   };
   let RENDER_VERSION = 0;
   const _tabRenderVersion = new Map();
@@ -4524,6 +4525,160 @@
     });
   }
 
+  // 搜索可见性（Growth tab）。这份读数和别的牌不同：它的输入不是我们的策略，
+  // 而是别人愿不愿意把我们排进结果页，所以这里只陈述，不评价。
+  //
+  // 一条判据贯穿整块：**数字必须带着它的窗口一起读**。曝光 26 配「上周 2」和
+  // 配「上周 19」是两件事；点击 0 配「有 5 个搜索词」和配「零个搜索词」也是。
+  // 所以每格都印对比，表头写清窗口长度。
+  const GROWTH_MISSING = '<span class="muted">crawl_visibility.json 没有载入 —— '
+    + '每周一 06:30 UTC 由 SEO Visibility 工作流每周量一次并提交；'
+    + '首次运行前这块是空的。</span>';
+
+  function growthNum(value, digits) {
+    if (value == null || !isFinite(value)) return DASH;
+    return Number(value).toLocaleString("en-US", { maximumFractionDigits: digits });
+  }
+
+  function growthDelta(current, previous, inverted) {
+    if (previous == null || current == null || !isFinite(current) || !isFinite(previous)) return "";
+    const diff = current - previous;
+    const good = inverted ? diff < 0 : diff > 0;
+    const tone = diff === 0 ? "muted" : (good ? "growth-up" : "growth-down");
+    const sign = diff > 0 ? "+" : diff < 0 ? "−" : "±";
+    return ` <span class="${tone}">${sign}${growthNum(Math.abs(diff), 1)}</span>`;
+  }
+
+  function growthKpi(label, value, sub) {
+    return `<div class="kpi-cell"><div class="lbl">${label}</div>`
+      + `<div class="val">${value}</div><div class="sub">${sub || ""}</div></div>`;
+  }
+
+  function renderGrowth() {
+    const kpis = document.getElementById("growth-kpis");
+    if (!kpis) return;
+    const payload = safe(DATA, "crawl_visibility");
+    const snapshots = (payload && payload.snapshots) || [];
+    const latest = snapshots[snapshots.length - 1];
+    if (!latest) {
+      kpis.innerHTML = GROWTH_MISSING;
+      ["growth-history", "growth-spark", "growth-queries", "growth-coverage"]
+        .forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = ""; });
+      return;
+    }
+    const prior = snapshots[snapshots.length - 2] || null;
+    const week = (latest.windows || {})["7"] || {};
+    const month = (latest.windows || {})["28"] || {};
+    const priorWeek = (prior && (prior.windows || {})["7"]) || {};
+    const queries = latest.queries || {};
+    const top = queries.top || [];
+
+    // 曝光和点击分开是有意的：26 次曝光配 0 点击说明的是「被排进去了但没人点」，
+    // 而 0 曝光说明的是「根本没被排进去」。合成一个「流量」数字会把这两件事
+    // 藏进同一个 0。
+    kpis.innerHTML = [
+      growthKpi("曝光 · 7 天", growthNum(week.impressions, 0),
+        `前一周 ${growthNum(priorWeek.impressions, 0)}${growthDelta(week.impressions, priorWeek.impressions)}`),
+      growthKpi("点击 · 7 天", growthNum(week.clicks, 0),
+        `前一周 ${growthNum(priorWeek.clicks, 0)}${growthDelta(week.clicks, priorWeek.clicks)}`),
+      growthKpi("有曝光的页", growthNum(latest.pages_with_impressions, 0),
+        "全站 107 条 URL · 收录了才是分母"),
+      growthKpi("平均排名 · 7 天", week.position == null ? DASH : growthNum(week.position, 1),
+        `28 天 ${month.position == null ? DASH : growthNum(month.position, 1)}`),
+    ].join("");
+
+    const note = document.getElementById("growth-history-note");
+    if (note) {
+      note.textContent = `${snapshots.length} 期 · 截止 ${latest.as_of || DASH}`;
+    }
+    const history = document.getElementById("growth-history");
+    if (history) {
+      const rows = snapshots.slice(-8).reverse().map(entry => {
+        const w = (entry.windows || {})["7"] || {};
+        const m = (entry.windows || {})["28"] || {};
+        const q = entry.queries || {};
+        return `<tr><td>${entry.as_of || DASH}</td>`
+          + `<td class="num">${growthNum(w.impressions, 0)}</td>`
+          + `<td class="num">${growthNum(w.clicks, 0)}</td>`
+          + `<td class="num">${growthNum(m.impressions, 0)}</td>`
+          + `<td class="num">${growthNum(entry.pages_with_impressions, 0)}</td>`
+          + `<td class="num">${growthNum(q.reported, 0)}</td></tr>`;
+      }).join("");
+      history.innerHTML = `<table class="growth-table"><thead><tr>`
+        + `<th>截止</th><th class="num">7 天曝光</th><th class="num">7 天点击</th>`
+        + `<th class="num">28 天曝光</th><th class="num">有曝光页</th><th class="num">搜索词</th>`
+        + `</tr></thead><tbody>${rows}</tbody></table>`;
+    }
+    // 逐日柱子归它自己那块。第一版把它拼在「每周读数」的 innerHTML 后面，
+    // 于是它长在周表的下面，而标题问的是另一件事。
+    const sparkHost = document.getElementById("growth-spark");
+    if (sparkHost) sparkHost.innerHTML = renderGrowthSpark(latest.daily || []);
+
+    const queriesHost = document.getElementById("growth-queries");
+    const queriesNote = document.getElementById("growth-queries-note");
+    if (queriesNote) {
+      // 「0 个词」有两种成因：真的没人搜到我们，和全部低于 GSC 的匿名化阈值。
+      // 表里印出来的行数是能看见的那部分，不是全部。
+      queriesNote.textContent = `GSC 报出 ${queries.reported || 0} 个词`
+        + (top.length < (queries.reported || 0) ? ` · 列前 ${top.length}` : "");
+    }
+    if (queriesHost) {
+      queriesHost.innerHTML = top.length
+        ? `<table class="growth-table"><thead><tr><th>搜索词</th>`
+          + `<th class="num">曝光</th><th class="num">点击</th><th class="num">排名</th>`
+          + `</tr></thead><tbody>`
+          + top.map(row => `<tr><td class="mono">${escapeHtml(row.query || "")}</td>`
+            + `<td class="num">${growthNum(row.impressions, 0)}</td>`
+            + `<td class="num">${growthNum(row.clicks, 0)}</td>`
+            + `<td class="num">${row.position == null ? DASH : growthNum(row.position, 1)}</td></tr>`)
+            .join("")
+          + `</tbody></table>`
+        : '<p class="muted">这一期 GSC 一个词都没报出来。低于匿名化阈值时它就是这样，'
+          + '和「没人搜到我们」在这个接口上长得一样。</p>';
+    }
+
+    const coverageHost = document.getElementById("growth-coverage");
+    if (coverageHost) {
+      const coverage = latest.coverage || {};
+      const pages = Object.keys(coverage);
+      const sitemap = latest.sitemap || {};
+      const fetched = sitemap.lastDownloaded || "从未被下载";
+      coverageHost.innerHTML = pages.length
+        ? `<table class="growth-table"><thead><tr><th>页面</th><th>Google 的判定</th>`
+          + `<th>最后抓取</th></tr></thead><tbody>`
+          + pages.map(page => {
+            const status = coverage[page] || {};
+            const state = status.coverageState || status.error || DASH;
+            const bad = status.verdict === "FAIL" || status.error;
+            return `<tr><td class="mono">${escapeHtml(page)}</td>`
+              + `<td class="${bad ? "growth-down" : ""}">${escapeHtml(state)}</td>`
+              + `<td class="mono">${escapeHtml(String(status.lastCrawlTime || "—").slice(0, 10))}</td></tr>`;
+          }).join("")
+          + `</tbody></table>`
+          + `<p class="chart-hint">sitemap 提交于 ${escapeHtml(String(sitemap.lastSubmitted || DASH).slice(0, 10))}`
+          + ` · ${escapeHtml(fetched)}。站点地图本身没问题，是它没被取。</p>`
+        : '<p class="muted">这一期没有收录探测结果。</p>';
+    }
+  }
+
+  // 逐日柱子。没有点击的日子也画——把 0 去掉会让「安静的一周」看起来和
+  // 「没有数据」一样，而这正是这块牌要分开的两件事。
+  function renderGrowthSpark(daily) {
+    if (!daily.length) return "";
+    const max = Math.max(1, ...daily.map(d => d.impressions || 0));
+    const bars = daily.map(day => {
+      const value = day.impressions || 0;
+      const height = Math.max(2, Math.round((value / max) * 30));
+      const tone = day.clicks ? "is-click" : (value ? "is-shown" : "is-idle");
+      const label = `${day.date} · 曝光 ${value} · 点击 ${day.clicks || 0}`;
+      return `<span class="growth-bar ${tone}" style="height:${height}px" title="${escapeHtml(label)}"></span>`;
+    }).join("");
+    const first = daily[0].date, last = daily[daily.length - 1].date;
+    return `<div class="growth-spark" role="img" aria-label="逐日曝光，${first} 至 ${last}">`
+      + `${bars}</div><div class="growth-spark-axis"><span>${first}</span>`
+      + `<span>峰值 ${max} 次曝光</span><span>${last}</span></div>`;
+  }
+
   function renderDecisionTraces() {
     const wrap = document.getElementById("trace-list");
     if (!wrap) return;
@@ -4992,11 +5147,15 @@
   // =========================================================
   // 8d Return Heatmap (Drill)
   // =========================================================
+  // The list is the registration, not `TAB_RENDERERS` itself: a tab declared in
+  // the map above but left out here is one the runtime loader can never see, and
+  // the failure is a panel that renders nothing while every file looks correct.
   window.registerDetailRenderers({
     drill: TAB_RENDERERS.drill,
     risk: TAB_RENDERERS.risk,
     market: TAB_RENDERERS.market,
     plan: TAB_RENDERERS.plan,
     reflect: TAB_RENDERERS.reflect,
+    growth: TAB_RENDERERS.growth,
   });
 }());

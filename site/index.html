@@ -123,6 +123,7 @@ layout: null
     <button class="tab-btn" id="tab-market" data-tab="market" aria-controls="panel-market" role="tab" aria-selected="false">Signals</button>
     <button class="tab-btn" id="tab-plan" data-tab="plan" aria-controls="panel-plan" role="tab" aria-selected="false">Plan</button>
     <button class="tab-btn" id="tab-reflect" data-tab="reflect" aria-controls="panel-reflect" role="tab" aria-selected="false">Reflect</button>
+    <button class="tab-btn" id="tab-growth" data-tab="growth" aria-controls="panel-growth" role="tab" aria-selected="false">Growth</button>
   </nav>
   <div class="swipe-hint" aria-hidden="true"></div>
 </header>
@@ -1125,6 +1126,43 @@ layout: null
       </div>
       <p class="chart-hint">每日净盈亏柱状（绿涨红跌）+ 累计盈亏曲线。柱在零下方 = 当日亏损；曲线走势看长期方向。<b>跟随上方 Equity Curve 的市场切换</b>：总览=USD-eq，美股=$，港股=HK$。</p>
       <div id="chart-daily-pnl" class="chart-box"></div>
+    </div>
+
+  </section>
+  <section class="panel" id="panel-growth" data-panel="growth" role="tabpanel" aria-labelledby="tab-growth">
+    <h2>Growth</h2>
+
+    <div class="sect-divider">被看见的程度 · 每周 Search Console</div>
+
+    <div class="card desktop-wide" id="growth-card">
+      <div class="card-head"><div>
+        <div class="overview-card-kicker">SEO · 每周一 UTC 06:30 量一次，Python 取数，模型不参与</div>
+        <h3>搜索可见性</h3>
+      </div></div>
+
+      <div class="kpi-grid" id="growth-kpis"></div>
+
+      <div class="sub-block">
+        <div class="sub-block-head">每周读数 <span class="muted" id="growth-history-note"></span></div>
+        <div id="growth-history"></div>
+        <p class="chart-hint">窗口是定长的、各自算各自的：7 天和 28 天的窗口都截止在最后一个完整日，所以相邻两周不会互相重复计入。</p>
+      </div>
+
+      <div class="sub-block">
+        <div class="sub-block-head">这 14 天逐日 <span class="muted">GSC 完整到最后一个完整日为止</span></div>
+        <div id="growth-spark"></div>
+      </div>
+
+      <div class="sub-block">
+        <div class="sub-block-head">搜索词 <span class="muted" id="growth-queries-note"></span></div>
+        <div id="growth-queries"></div>
+        <p class="chart-hint">曝光来自哪些词，决定了这些曝光值不值得高兴。跟项目无关的词带来的曝光是噪音，不是可见性。</p>
+      </div>
+
+      <div class="sub-block">
+        <div class="sub-block-head">收录与抓取 <span class="muted">Google 认不认这些页</span></div>
+        <div id="growth-coverage"></div>
+      </div>
     </div>
 
   </section>

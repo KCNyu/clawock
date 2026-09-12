@@ -1,8 +1,10 @@
 """One build, five public outputs, one semantic publication contract."""
 import json
+import os
 import re
-import pytest
 import subprocess
+import sys
+import pytest
 from pathlib import Path
 
 
@@ -403,3 +405,52 @@ def test_the_two_sidecars_are_published_with_the_generation():
     assert set(dashboard_outputs.output_paths(ROOT)) < set(DATA_PLANE_FILES)
     assert "assets/data/cron-heartbeats.json" in DATA_PLANE_FILES
     assert "assets/data/workflow-outcomes.json" in DATA_PLANE_FILES
+
+
+def test_a_file_written_weekly_does_not_gate_the_whole_generation(tmp_path):
+    """The optional member is absent, and the publish still proceeds.
+
+    This is the difference that makes the split worth having. The branch is
+    replaced wholesale, so a member that cannot be read takes the generation down
+    with it — correct for files that share a tick, fatal for one a weekly workflow
+    writes. `crawl_visibility.json` does not exist at all after a data-plane
+    reset, and a publisher that refused then would stop refreshing the entire
+    public dashboard until the following Monday.
+
+    Run as a subprocess against a fake root so the assertion lands on the real
+    code path. The publish itself fails on the throwaway repository, which is the
+    point: it got far enough to try.
+    """
+    from publish_data_branch import DATA_PLANE_FILES, DATA_PLANE_OPTIONAL
+
+    assert DATA_PLANE_OPTIONAL, "the split exists; keep it populated or delete it"
+    assert not set(DATA_PLANE_OPTIONAL) & set(DATA_PLANE_FILES), (
+        "a path in both lists is required, which is the thing being avoided")
+
+    root = tmp_path / "workspace"
+    for name in DATA_PLANE_FILES:
+        target = root / name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text("{}", encoding="utf-8")
+    # The output contract is workspace configuration, so a fake workspace has to
+    # carry one: `output_paths` reads it before any output file is opened.
+    (root / "config").mkdir(parents=True, exist_ok=True)
+    (root / "config" / "dashboard-outputs.json").write_bytes(
+        (ROOT / "config" / "dashboard-outputs.json").read_bytes())
+
+    done = subprocess.run(
+        [sys.executable, str(ROOT / "ops/publish/publish_data_branch.py"),
+         "--root", str(root), "--repo", str(root)],
+        capture_output=True, text=True, cwd=ROOT, timeout=120,
+        # `--root` moves what the publisher reads; the failure ledger still
+        # resolves the live workspace on its own, and a test that lets it do that
+        # writes into the checkout (#816).
+        env={**os.environ, "CLAWOCK_WORKSPACE": str(root)},
+    )
+    output = done.stdout + done.stderr
+    assert "cannot read" not in output, (
+        "an absent optional member was treated as a missing generation:\n" + output)
+    for name in DATA_PLANE_OPTIONAL:
+        assert f"{name} not written yet" in output, (
+            f"the publisher did not report the absent optional member {name}:\n"
+            + output)

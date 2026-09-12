@@ -9,7 +9,9 @@ const { chromium } = require("playwright");
 
 const ROOT = path.resolve(__dirname, "..");
 const DETAIL_PATH = "/assets/js/dashboard.render.js";
-const TABS = ["drill", "risk", "market", "plan", "reflect"];
+// Every detail tab: all of them share one lazy bundle and one full-dashboard
+// fetch, and every one of them is walked by the missing-number sweep below.
+const TABS = ["drill", "risk", "market", "plan", "reflect", "growth"];
 // Everything after the first paint reads the data branch instead of this origin
 // (#367). Every page here stubs it: left unrouted it would put a live call to
 // raw.githubusercontent.com on CI's critical path, and the bytes it would return
@@ -200,7 +202,11 @@ async function testRuntime(browser, base) {
   await waitForData(rapid);
   await rapid.evaluate(tabs => tabs.forEach(tab =>
     document.querySelector(`.tab-btn[data-tab="${tab}"]`).click()), TABS);
-  await waitForTab(rapid, "reflect");
+  // The click order above makes the LAST tab in `TABS` the active one, and this
+  // used to be spelled "reflect" — the tab that happened to be last. Adding a tab
+  // then waited on a panel the test had already navigated away from, which reads
+  // as a timeout in the runtime, not as the stale assumption it is.
+  await waitForTab(rapid, TABS[TABS.length - 1]);
   assert.equal(rapidState.detailRequests, 1, "rapid activation duplicated the bundle request");
   assert.equal(rapidState.fullRequests, 1, "rapid activation duplicated the full dashboard request");
   assert.deepEqual(rapidState.failures, []);
@@ -1313,6 +1319,123 @@ async function testNoTabPrintsAMissingNumber(browser, base) {
   }
 }
 
+// The Growth panel is the one tab whose data arrives weekly, and its whole claim
+// is that two readings may be compared. That claim is a property of the render,
+// not of the script: the panel is where a reader sees "28, 前一周 15" and decides
+// whether anything happened. So the fixture is two weeks and the assertions are
+// about the arithmetic and about what a spike looks like.
+async function testTheGrowthPanelComparesWeeksAndFitsAPhone(browser, base) {
+  const week = (imp, clicks, pos, start, end) => ({
+    start, end, days: 7, complete: true, days_with_data: 7,
+    impressions: imp, clicks, position: pos,
+  });
+  const payload = {
+    generated_at: "2026-09-08T06:30:00Z",
+    site: "https://example.test/",
+    snapshots: [
+      {
+        as_of: "2026-09-01",
+        windows: { 7: week(15, 0, 9.0, "2026-08-26", "2026-09-01"),
+                   28: week(40, 1, 8.5, "2026-08-05", "2026-09-01") },
+        queries: { reported: 0, top: [] },
+        pages_with_impressions: 1,
+        sitemap: { lastSubmitted: "2026-08-16T00:00:00Z", lastDownloaded: null },
+        coverage: { "/": { verdict: "PASS", coverageState: "Submitted and indexed",
+                           lastCrawlTime: "2026-08-26T04:17:40Z" } },
+        daily: [{ date: "2026-09-01", impressions: 15, clicks: 0, position: 9 }],
+      },
+      {
+        as_of: "2026-09-08",
+        windows: { 7: week(28, 0, 7.4, "2026-09-02", "2026-09-08"),
+                   28: week(60, 1, 7.8, "2026-08-12", "2026-09-08") },
+        queries: { reported: 5, top: [
+          { query: "tencent29209", impressions: 20, clicks: 0, position: 8.7 },
+          { query: "tencent28194", impressions: 5, clicks: 0, position: 3.6 },
+        ] },
+        pages_with_impressions: 1,
+        sitemap: { lastSubmitted: "2026-08-16T00:00:00Z", lastDownloaded: null },
+        coverage: {
+          "/": { verdict: "PASS", coverageState: "Submitted and indexed",
+                 lastCrawlTime: "2026-08-26T04:17:40Z" },
+          "briefs.html": { verdict: "NEUTRAL",
+                           coverageState: "URL is unknown to Google" },
+        },
+        // A spike that rises and falls over the last 14 complete days, so the
+        // bars have distinct heights and the quiet tail has to be drawn too.
+        daily: [1, 3, 6, 9, 6, 3, 17, 0, 0, 0, 0, 0, 0, 0].map((impressions, i) => ({
+          date: new Date(Date.UTC(2026, 7, 26 + i)).toISOString().slice(0, 10),
+          impressions, clicks: 0, position: 7,
+        })),
+      },
+    ],
+  };
+
+  for (const [label, width] of [["desktop", 1280], ["mobile", 390]]) {
+    const context = await browser.newContext({ viewport: { width, height: 844 } });
+    const page = await context.newPage();
+    const state = observe(page);
+    await stubLiveOrigin(page, {
+      patch: (name, json) => (name === "crawl_visibility.json" ? payload : null),
+    });
+    await page.goto(base, { waitUntil: "networkidle" });
+    await waitForData(page);
+    await page.click('.tab-btn[data-tab="growth"]');
+    await waitForTab(page, "growth");
+
+    const seen = await page.evaluate(() => {
+      const panel = document.querySelector('[data-panel="growth"]');
+      const cells = [...document.querySelectorAll("#growth-kpis .kpi-cell")];
+      const rows = [...document.querySelectorAll("#growth-history tbody tr")];
+      const bars = [...document.querySelectorAll("#growth-spark .growth-bar")];
+      const top = document.querySelector("#growth-queries tbody tr");
+      return {
+        kpis: cells.map(cell => cell.innerText.replace(/\s+/g, " ").trim()),
+        historyRows: rows.length,
+        // Newest first, so the first row is the reading a reader came for.
+        newest: rows[0] ? rows[0].innerText.replace(/\s+/g, " ").trim() : null,
+        bars: bars.length,
+        heights: bars.map(bar => Math.round(bar.getBoundingClientRect().height)),
+        idleBarHeight: bars.filter(bar => bar.classList.contains("is-idle"))
+          .map(bar => Math.round(bar.getBoundingClientRect().height)),
+        query: top ? top.innerText.replace(/\s+/g, " ").trim() : null,
+        coverageRows: document.querySelectorAll("#growth-coverage tbody tr").length,
+        overflow: panel.scrollWidth - panel.clientWidth,
+        pageOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+        height: Math.round(panel.getBoundingClientRect().height),
+      };
+    });
+
+    assert.equal(seen.kpis.length, 4, `${label}: the panel lost a headline figure`);
+    assert.match(seen.kpis[0], /28/, `${label}: 7-day impressions missing from ${seen.kpis[0]}`);
+    assert.match(seen.kpis[0], /前一周 15/,
+      `${label}: the week is printed without the week before it — a number with no comparison`);
+    assert.match(seen.kpis[0], /\+13/,
+      `${label}: a rise of 13 was not shown as one (${seen.kpis[0]})`);
+    assert.match(seen.kpis[1], /点击/,
+      `${label}: clicks are not on the panel; impressions alone cannot tell "shown" from "read"`);
+
+    assert.equal(seen.historyRows, 2, `${label}: the history dropped a reading`);
+    assert.match(seen.newest, /^2026-09-08/,
+      `${label}: the newest reading is not first (${seen.newest})`);
+    assert.equal(seen.query, "tencent29209 20 0 8.7",
+      `${label}: the query that produced the impressions is not shown (${seen.query})`);
+    assert.equal(seen.coverageRows, 2, `${label}: coverage rows missing`);
+
+    assert.equal(seen.bars, 14, `${label}: the daily series is not 14 bars`);
+    assert(seen.heights.every(h => h >= 2),
+      `${label}: a day with no impressions was drawn as nothing — "quiet" and "not measured" then look alike`);
+    assert.equal(new Set(seen.heights).size > 1, true,
+      `${label}: every bar is the same height, so the series is not being read`);
+    assert.equal(seen.idleBarHeight.length, 7,
+      `${label}: the zero days are not marked — ${seen.idleBarHeight.length} of 14`);
+
+    assert.equal(seen.overflow, 0, `${label}: the Growth panel scrolls sideways`);
+    assert.equal(seen.pageOverflow, 0, `${label}: the Growth panel widened the page`);
+    assert.deepEqual(state.errors, [], `${label}: a Growth renderer threw`);
+    await context.close();
+  }
+}
+
 async function testAPanelSaysWhenItsDataDidNotLoad(browser, base) {
   // A detail tab needs dashboard.json (191 KB, normally from the data branch)
   // before it can paint. When that request failed the only trace was
@@ -2128,30 +2251,39 @@ async function main() {
   const browser = await chromium.launch(executablePath ? {
     executablePath, args: ["--no-sandbox"],
   } : {});
+  // `SPEC_ONLY=name,name` runs a subset. A browser contract measured before the
+  // layout settles is load-sensitive (see the verdict-deck case), and re-running
+  // one case used to mean editing this list and remembering to put it back.
+  const only = (process.env.SPEC_ONLY || "").split(",").map(s => s.trim()).filter(Boolean);
+  const run = async (name, fn) => {
+    if (only.length && !only.includes(name)) return;
+    await fn();
+  };
   try {
-    await testRuntime(browser, base);
-    await testCurrentHoldingsOwnDecisionMatrixMembership(browser, base);
-    await testLiveDataOrigin(browser, base);
-    await testEquityTouch(browser, base);
-    await testTabGuardWithoutForcedLayout(browser, base);
-    await testTopbarFitsWhenRefreshLabelSwaps(browser, base);
-    await testHeaderSharesTheContentColumn(browser, base);
-    await testTraceRowsFitPhoneWidths(browser, base);
-    await testHoldingsAndHeroNeverTruncate(browser, base);
-    await testVerdictDeckFillsItsBoxAndRanksGatesBySeverity(browser, base);
-    await testDataHealthNamesTheDegradedSlotAndWeChatDrops(browser, base);
-    await testDataHealthIsReadableOnAPhone(browser, base);
-    await testAQuietLaneFoldsItsLedgerInsteadOfScrolling(browser, base);
-    await testASidecarStillReachesItsCardWhenThePagerIsStillSettling(browser, base);
-    await testTheDebateTrailIsAListOfCasesNotAWallOfText(browser, base);
-    await testThePlanTimelineClampsItsRationales(browser, base);
-    await testAddSideCardExplainsWhyThereIsNoAdd(browser, base);
-    await testALeveragedRowWithoutVolatilityPrintsNoUndefined(browser, base);
-    await testNoTabPrintsAMissingNumber(browser, base);
-    await testAPanelSaysWhenItsDataDidNotLoad(browser, base);
-    await testCronRailAccountsForEverySlotWithoutASecondVerdict(browser, base);
-    await testCronNeedsActionMergesIntoTheOneTodoListButWatchDoesNot(browser, base);
-    await testMoversSayWhichSessionTheyAreFrom(browser, base);
+    await run("runtime", () => testRuntime(browser, base));
+    await run("testCurrentHoldingsOwnDecisionMatrixMembership", () => testCurrentHoldingsOwnDecisionMatrixMembership(browser, base));
+    await run("testLiveDataOrigin", () => testLiveDataOrigin(browser, base));
+    await run("testEquityTouch", () => testEquityTouch(browser, base));
+    await run("testTabGuardWithoutForcedLayout", () => testTabGuardWithoutForcedLayout(browser, base));
+    await run("testTopbarFitsWhenRefreshLabelSwaps", () => testTopbarFitsWhenRefreshLabelSwaps(browser, base));
+    await run("testHeaderSharesTheContentColumn", () => testHeaderSharesTheContentColumn(browser, base));
+    await run("testTraceRowsFitPhoneWidths", () => testTraceRowsFitPhoneWidths(browser, base));
+    await run("testHoldingsAndHeroNeverTruncate", () => testHoldingsAndHeroNeverTruncate(browser, base));
+    await run("testVerdictDeckFillsItsBoxAndRanksGatesBySeverity", () => testVerdictDeckFillsItsBoxAndRanksGatesBySeverity(browser, base));
+    await run("testDataHealthNamesTheDegradedSlotAndWeChatDrops", () => testDataHealthNamesTheDegradedSlotAndWeChatDrops(browser, base));
+    await run("testDataHealthIsReadableOnAPhone", () => testDataHealthIsReadableOnAPhone(browser, base));
+    await run("testAQuietLaneFoldsItsLedgerInsteadOfScrolling", () => testAQuietLaneFoldsItsLedgerInsteadOfScrolling(browser, base));
+    await run("testASidecarStillReachesItsCardWhenThePagerIsStillSettling", () => testASidecarStillReachesItsCardWhenThePagerIsStillSettling(browser, base));
+    await run("testTheDebateTrailIsAListOfCasesNotAWallOfText", () => testTheDebateTrailIsAListOfCasesNotAWallOfText(browser, base));
+    await run("testThePlanTimelineClampsItsRationales", () => testThePlanTimelineClampsItsRationales(browser, base));
+    await run("testAddSideCardExplainsWhyThereIsNoAdd", () => testAddSideCardExplainsWhyThereIsNoAdd(browser, base));
+    await run("testALeveragedRowWithoutVolatilityPrintsNoUndefined", () => testALeveragedRowWithoutVolatilityPrintsNoUndefined(browser, base));
+    await run("testNoTabPrintsAMissingNumber", () => testNoTabPrintsAMissingNumber(browser, base));
+    await run("testTheGrowthPanelComparesWeeksAndFitsAPhone", () => testTheGrowthPanelComparesWeeksAndFitsAPhone(browser, base));
+    await run("testAPanelSaysWhenItsDataDidNotLoad", () => testAPanelSaysWhenItsDataDidNotLoad(browser, base));
+    await run("testCronRailAccountsForEverySlotWithoutASecondVerdict", () => testCronRailAccountsForEverySlotWithoutASecondVerdict(browser, base));
+    await run("testCronNeedsActionMergesIntoTheOneTodoListButWatchDoesNot", () => testCronNeedsActionMergesIntoTheOneTodoListButWatchDoesNot(browser, base));
+    await run("testMoversSayWhichSessionTheyAreFrom", () => testMoversSayWhichSessionTheyAreFrom(browser, base));
   } finally {
     await browser.close();
     await new Promise(resolve => server.close(resolve));

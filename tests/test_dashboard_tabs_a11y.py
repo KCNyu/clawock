@@ -40,8 +40,14 @@ def _attr(tag, name):
 
 
 def test_tab_buttons_and_panels_point_at_each_other():
-    assert len(TAB_BUTTONS) == 6, f"expected 6 tab buttons, found {len(TAB_BUTTONS)}"
-    assert len(PANELS) == 6, f"expected 6 panels, found {len(PANELS)}"
+    # The count is not asserted against a literal any more. Adding a tab is a
+    # real change that touches the animation contract too, and a bare `== 6` here
+    # only meant the number was written down in two test files; the pairing below
+    # is the part that can actually be wrong.
+    assert TAB_BUTTONS, "the dashboard declares no tabs at all"
+    assert len(TAB_BUTTONS) == len(PANELS), (
+        f"{len(TAB_BUTTONS)} tab buttons and {len(PANELS)} panels — every tab "
+        "needs a panel and every panel needs a tab")
 
     panels = {_attr(p, "data-panel"): p for p in PANELS}
     assert None not in panels, "a .panel has no data-panel — the pager keys on it"
