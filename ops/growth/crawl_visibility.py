@@ -49,7 +49,6 @@ import urllib.error
 import urllib.parse
 import urllib.request
 from pathlib import Path
-from pathlib import Path
 
 # Bootstrap before importing the package, the way every other ops entry point
 # does. Without it the import resolves only when the caller happens to supply
