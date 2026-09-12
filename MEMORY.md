@@ -136,3 +136,8 @@ _（空）_
 - 集中度（core.concentration）: | Leg | HHI | 判定 | Top2 | 腿总值 | |---|---|---|---|---| | HK | 0.444 | 🔴 危险集中 | 87.30% | 70,431 | | US | 0.680 | 🔴 危险集中 | 87.50% | 3,708 | [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-04-pre-open.md:28-31]
 <!-- openclaw-memory-promotion:memory:memory/2026-09-04-pre-open.md:9:9 -->
 - 盘前深度简报｜2026-09-04 周五 08:03 HKT: Book 5 重仓位硬闸 + 2 杠杆止损触发, 站 10–51 天 discipline 失效, 今日借 HK 反弹窗口 (5d +12.8% 00100 / +12.2% SPCH) 一次性清 discipline: cut 07226 2600 + RKLX 10 + SPCH 270 全 cash, swap 07226→03033 1800 股, trim 00100 1 lot ≥365。净效应: HK 杠杆敞口 26.8%→17.3% (≤25% cap ✓), US leg 3708→824 USD, US β 5.56→约 1.8, US 杠杆 86%→0, 00100/HK 60.48%→56%, 1 个 breach 全解 4 个, 2 个 hard_stop 全关。核心单票 thesis (00100 ARR $800M + M3 Pro 9-10 月 / 02208 风电 / 03032 03033 1x HSTECH / CRCL stablecoin / SKHY HBM / SPCX SpaceX 1x) 全部 hold 不出。 [score=0.803 recalls=0 avg=0.620 source=memory/2026-09-04-pre-open.md:9-9]
+
+## Promoted From Short-Term Memory (2026-09-13)
+
+<!-- openclaw-memory-promotion:memory:memory/2026-09-09-pre-open.md:11:11 -->
+- 盘前深度简报｜2026-09-09 周三 08:03 HKT: Book 双 leg 都高 HHI 危险集中 (HK 0.43 / US 0.68), 9/9 preflight 仍 4 breach + 2 hard stop, 主动 call 必须由 risk_rule 驱动; 1d 港股普跌 (-5.6% 00100) + 美股 SPX/NDX -0.58/-0.32% 同步, 5d SPCH +12.6% 反弹给了纪律性 cut 的好窗口. [score=0.813 recalls=0 avg=0.620 source=memory/2026-09-09-pre-open.md:11-11]
