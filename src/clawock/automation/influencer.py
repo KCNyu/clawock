@@ -278,8 +278,15 @@ ARK_TRADES_API = 'https://arkfunds.io/api/v2/etf/trades'
 ARK_FUNDS = ('ARKK', 'ARKW', 'ARKQ', 'ARKX', 'ARKF', 'ARKG')
 ARK_TIMEOUT = 8          # 6 只基金 × 8s；连续 3 只失败就按接口故障提前放弃
 ARK_LOOKBACK_DAYS = 5    # 只要"最近一个交易日"；接口数据比这还旧＝我们没跟上，宁空
-ARK_MIN_PERCENT = 0.005  # 占 ETF 0.5bp 以下的碎单不进雷达（纯噪音）
-ARK_MAX_ITEMS = 8        # 一轮最多 8 个标的（按占 ETF 比重取前 N）——token 预算
+ARK_MIN_PERCENT = 0.01   # 占 ETF 1bp 以下的碎单不进雷达；ARK 每天都有十几笔小额再平衡
+ARK_MAX_ITEMS = 6        # 一轮最多 6 个标的（按占 ETF 比重取前 N）——token 预算
+# 真 GHA 实测（34704653236）：只报"占 ETF 比重"，模型会给 ARK 每笔小额再平衡打
+# 78-82 分（它看见的是"ARK 在卖"这个名字），于是 8 条碎单把当日所有人物条目压在
+# 下面。0.1% 是"日常再平衡"和"值得看一眼的调仓"之间的分界：低于它、又没撞持仓/
+# 板块的，代码把 relevance 封到 65，排序回到"新闻 > 日常调仓"。分数上限由代码定，
+# 因为模型看不到"ARK 的正常一天长什么样"。
+ARK_ROUTINE_PERCENT = 0.1
+ARK_ROUTINE_RELEVANCE_CAP = 65
 
 
 def _num(value, default=0.0):
@@ -372,6 +379,8 @@ def fetch_ark(cutoff=None):
             'published': f'{latest}T20:00:00+00:00',
             'origin':    'ark-funds',
             'source':    'ARK Invest 日度调仓',
+            # 供 main() 的"日常小额调仓"封顶判断；文本里也有，这里给代码用。
+            'etf_percent': round(entry['pct'], 4),
         })
     return items, _source_status(items)
 
@@ -496,7 +505,9 @@ LLM_SYSTEM = (
     "**没持有**的 ticker(选股线索)。两者都基于'直接点名'，不基于板块联想。\n"
     "- stance ∈ {endorse(看多/推荐), buy, attack(抨击/看空), sell, neutral}。\n"
     "- **ARK 条目是机构动作不是言论**：买入=机构在加仓(stance=buy)，卖出=在减仓"
-    "(stance=sell，**不要**读成'看空/抨击')；同一天多只 ETF 的同向操作只算一条。\n"
+    "(stance=sell，**不要**读成'看空/抨击')；同一天多只 ETF 的同向操作只算一条。"
+    "**打分按规模**：占 ETF <0.1% 的是它每天都有的常规再平衡(45-60 分，别因为'是 ARK'"
+    "就给高分)；≥0.1% 的加减仓 65-80；命中 kcn 持仓的直接 85+。\n"
     "- **Pelosi 条目是国会披露**：成交发生在 30-45 天前，新闻点是'披露'本身；summary_cn "
     "要写'最新披露显示…'，绝不要写成'今天买入/刚刚买入'。\n"
     "- Musk / 段永平 / 洪灏 / Burry 的条目都是**媒体转述**(二手)：summary_cn 用'据报道/媒体称'"
@@ -659,6 +670,15 @@ def main():
         # minus any already counted as a direct held hit (don't double-flag).
         sector_holdings = sorted({t.strip().upper() for t in s.get('sector_holdings', [])
                                   if t.strip().upper() in held_tickers} - set(held_hit))
+        relevance = s.get('relevance')
+        # ARK 的日常小额再平衡由代码封顶（见 ARK_ROUTINE_PERCENT）：真 GHA 实测里
+        # 模型会给每笔 0.01-0.09% 的调仓打 78-82 分，8 条碎单把当日所有人物的新闻
+        # 压在下面。撞持仓/板块相关的除外——那些本来就该置顶。
+        if (c.get('origin') == 'ark-funds'
+                and _num(c.get('etf_percent')) < ARK_ROUTINE_PERCENT
+                and not held_hit and not sector_holdings
+                and relevance is not None):
+            relevance = min(relevance, ARK_ROUTINE_RELEVANCE_CAP)
         c.update({
             'tickers':    tickers,
             'held':       held_hit,
@@ -666,7 +686,7 @@ def main():
             'sectors':    [str(x).strip() for x in s.get('sectors', []) if x],
             'sector_holdings': sector_holdings,
             'stance':     s.get('stance', 'neutral'),
-            'relevance':  s.get('relevance'),
+            'relevance':  relevance,
             'summary_cn': s.get('summary_cn', ''),
         })
         items.append(c)

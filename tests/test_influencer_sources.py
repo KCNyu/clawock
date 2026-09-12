@@ -150,6 +150,37 @@ def test_chatty_source_cannot_crowd_the_others_out(tmp_path, monkeypatch):
     assert set(payload['source_status']) == {s['key'] for s in inf._sources()}
 
 
+def test_routine_ark_rebalancing_is_capped_below_the_news(tmp_path, monkeypatch):
+    """Measured on GHA run 34704653236: the model scored every 0.01-0.09% ARK
+    rebalance 78-82, so eight dust trades sat on top of the whole card. The cap
+    is code's job — the model has no way to know what an ordinary ARK day looks
+    like — but a holding hit must never be capped."""
+    monkeypatch.setattr(inf, 'OUT_FILE', str(tmp_path / 'influencer.json'))
+    monkeypatch.setattr(inf, 'load_holdings', lambda: [
+        {'ticker': 'CRCL', 'name': 'Circle', 'region': 'US'}])
+    routine = dict(_item('Cathie Wood', 'ARK 调仓：卖出 Twist(TWST)'),
+                   origin='ark-funds', etf_percent=0.03)
+    big = dict(_item('Cathie Wood', 'ARK 调仓：买入 Circle(CRCL)'),
+               origin='ark-funds', etf_percent=0.4)
+    monkeypatch.setattr(inf, 'fetch_trump', lambda _cutoff: ([], 'success_empty'))
+    monkeypatch.setattr(inf, 'fetch_musk', lambda: ([], 'success_empty'))
+    monkeypatch.setattr(inf, 'fetch_ark', lambda _cutoff=None: ([routine, big], 'success'))
+    monkeypatch.setattr(inf, 'fetch_serenity', lambda _cutoff: ([], 'success_empty'))
+    monkeypatch.setattr(inf, 'fetch_persona', lambda spec, _cutoff: ([], 'success_empty'))
+    monkeypatch.setattr(inf, 'llm_filter', lambda candidates, _held: {
+        i: {'tickers': ['TWST'] if 'TWST' in c['text'] else ['CRCL'],
+            'held': [], 'new_ideas': [], 'sectors': [], 'sector_holdings': [],
+            'stance': 'sell', 'relevance': 82, 'summary_cn': 'x'}
+        for i, c in enumerate(candidates)})
+
+    inf.main()
+    payload = json.loads((tmp_path / 'influencer.json').read_text(encoding='utf-8'))
+    by_ticker = {tuple(it['tickers']): it['relevance'] for it in payload['items']}
+
+    assert by_ticker[('TWST',)] == inf.ARK_ROUTINE_RELEVANCE_CAP
+    assert by_ticker[('CRCL',)] == 82          # 撞持仓：不封顶
+
+
 def test_ark_origin_gets_its_own_non_primary_source_tier():
     """ARK daily trades are a genuine primary record, but promoting them into
     the evidence graph's PRIMARY_SOURCE_TYPES would let them satisfy the
