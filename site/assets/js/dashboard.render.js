@@ -1957,10 +1957,25 @@
     }
   }
 
+  // 影响力雷达：作者 → 徽章样式 / 来源 → 出处标签。
+  // 名册来自数据(items[].author)，不再写死在 HTML 里 —— 2026-09 加源时发现
+  // 写死的 "Trump · Musk · Serenity" 在加了 ARK/段永平/洪灏/Burry/Pelosi 之后
+  // 就成了假话，而前端没有任何东西会因为漏改它而报错。未登记的作者落到 other。
+  const INFL_WHO_CLASS = {
+    'Trump': 'trump', 'Musk': 'musk', 'Serenity': 'serenity',
+    'Cathie Wood': 'ark', '段永平': 'duan', '洪灏': 'honghao',
+    'Burry': 'burry', 'Pelosi': 'pelosi',
+  };
+  const INFL_ORIGIN_LABEL = {
+    truthsocial: '原帖', 'gnews-rss': '新闻代理', substack: 'Substack',
+    'ark-funds': 'ARK 官方日度调仓',
+  };
+
   function renderInfluencer() {
     const wrap = document.getElementById('infl-feed');
     const sumEl = document.getElementById('infl-summary');
     const asOf = document.getElementById('infl-asof');
+    const roster = document.getElementById('infl-roster');
     if (!wrap) return;
     const d = safe(DATA, 'influencer_feed') || {};
     const items = d.items || [];
@@ -1977,9 +1992,11 @@
       if (c.sector_hits) chips.push(`<span class="infl-chip sect">板块相关 ${c.sector_hits}</span>`);
       sumEl.innerHTML = chips.join('');
     }
+    const authors = [...new Set(items.map(it => it.author).filter(Boolean))];
+    if (roster && authors.length) roster.textContent = authors.join(' · ');
     if (asOf && d.generated_at) {
       const ago = Math.round((Date.now() - new Date(d.generated_at).getTime()) / 3.6e6);
-      asOf.textContent = `Trump · Musk · Serenity · ${ago}h前${d.llm_filtered ? ' · LLM筛' : ''}`;
+      asOf.textContent = `${(authors.length ? authors : ['多源']).join(' · ')} · ${ago}h前${d.llm_filtered ? ' · LLM筛' : ''}`;
     }
     const stanceCls = (s) => ({endorse:'up', buy:'up', attack:'down', sell:'down'}[s] || 'flat');
     const stanceTxt = (s) => ({endorse:'看多', buy:'买入', attack:'看空', sell:'卖出', neutral:'中性'}[s] || s || '');
@@ -1993,11 +2010,12 @@
         ...(it.sectors || []).map(s => `<span class="infl-tag sect">${escapeHtml(s)}</span>`),
       ].join('');
       const rel = (it.relevance != null) ? `rel ${it.relevance}` : '';
-      const src = it.author === 'Musk' ? '新闻代理' : (it.author === 'Serenity' ? 'Substack' : '原帖');
+      const src = INFL_ORIGIN_LABEL[it.origin] || (it.author === 'Musk' ? '新闻代理' : '原帖');
+      const whoCls = INFL_WHO_CLASS[it.author] || 'other';
       const link = it.url ? `<a href="${escapeHtml(it.url)}" target="_blank" rel="noopener" style="color:var(--text-dim)">↗</a>` : '';
       return `<div class="infl-row ${rowCls}">
         <div class="infl-hdr">
-          <span class="infl-who ${it.author.toLowerCase()}">${escapeHtml(it.author)}</span>
+          <span class="infl-who ${whoCls}">${escapeHtml(it.author)}</span>
           <span class="infl-stance ${stanceCls(it.stance)}">${escapeHtml(stanceTxt(it.stance))}</span>
           <span class="infl-rel">${rel}</span>
         </div>

@@ -169,13 +169,22 @@ The catalyst probe is the narrow, time-sensitive one: it fires **only for names 
 
 ### Influencer radar
 
-The system scans **Trump (Truth Social, first-party) and Musk (news
-aggregation)** twice every trading day over a rolling 48-hour lookback window,
-then an LLM
+The system scans **eight sources across US and HK** twice every trading day over
+a rolling 48-hour lookback window: **Trump** (Truth Social, first-party), **Musk**
+(news aggregation), **Cathie Wood / ARK Invest** (their published daily trades —
+ticker, direction, share count, ETF weight), **Serenity** (public Substack posts),
+and four media-proxied figures with no fetchable first-party feed — **段永平**,
+**洪灏** (HK media), **Michael Burry** and **Pelosi** (congressional disclosures).
+An LLM then
 filters the noise and links what's left to actual holdings and sectors: stance
 (endorse / oppose), relevance, and a plain-language summary. Who said what,
 and whether it touches your book, is already sitting in the pre-open brief —
 nobody has to go scroll social media for it.
+
+Each source carries its own candidate budget, so no single loud feed (Trump can
+post dozens of times a day) can crowd the others out of the LLM batch. What each
+source is and how fresh it is (a first-party post, a news proxy, a disclosed
+trade from 30–45 days ago) is kept per item and shown in the dashboard card.
 
 A concrete example: in the scan of 2026-08-17 21:54 UTC, five Musk/SpaceX
 posts all matched real holdings (held_hits=5, the SPCH/SPCX cluster), and the

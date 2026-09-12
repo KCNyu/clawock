@@ -19,7 +19,7 @@ def _step_run(name):
 
 def test_influencer_feed_requires_structural_coverage_before_exact_publish():
     names = [name for _, name in _steps()]
-    fetch = 'Fetch Trump/Musk + LLM relevance filter'
+    fetch = 'Fetch sources + LLM relevance filter'
     validate = 'Validate influencer coverage'
     assert names.index(fetch) < names.index(validate) < names.index('Commit + push')
 

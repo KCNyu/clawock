@@ -71,6 +71,18 @@ def test_sentiment_producer_marks_total_http_outage_failed(
             output, _portfolio(tmp_path / 'portfolio.json'))
 
 
+def _quiet_statuses(**overrides):
+    """Every known source quiet, then the caller's overrides.
+
+    Built from the producer roster so adding a source does not silently turn a
+    "one source is down" test into a network call to the new fetcher.
+    """
+    statuses = {spec['key']: 'success_empty'
+                for spec in fetch_influencer_feed._sources()}
+    statuses.update(overrides)
+    return statuses
+
+
 def _run_influencer(tmp_path, monkeypatch, statuses, previous=None):
     output = tmp_path / 'influencer.json'
     if previous is not None:
@@ -83,8 +95,14 @@ def _run_influencer(tmp_path, monkeypatch, statuses, previous=None):
         fetch_influencer_feed, 'fetch_musk',
         lambda: ([], statuses['musk']))
     monkeypatch.setattr(
+        fetch_influencer_feed, 'fetch_ark',
+        lambda _cutoff=None: ([], statuses['ark']))
+    monkeypatch.setattr(
         fetch_influencer_feed, 'fetch_serenity',
         lambda _cutoff: ([], statuses['serenity']))
+    monkeypatch.setattr(
+        fetch_influencer_feed, 'fetch_persona',
+        lambda spec, _cutoff: ([], statuses[spec['key']]))
     monkeypatch.setattr(fetch_influencer_feed, 'load_holdings', lambda: [])
     monkeypatch.setattr(
         fetch_influencer_feed, 'llm_filter',
@@ -94,22 +112,16 @@ def _run_influencer(tmp_path, monkeypatch, statuses, previous=None):
 
 
 def test_influencer_producer_quiet_success_empty_passes(tmp_path, monkeypatch):
-    output, payload = _run_influencer(tmp_path, monkeypatch, {
-        'trump': 'success_empty',
-        'musk': 'success_empty',
-        'serenity': 'failed',
-    })
+    output, payload = _run_influencer(
+        tmp_path, monkeypatch, _quiet_statuses(serenity='failed'))
 
     assert payload['items'] == []
     validate_sidecars.validate_influencer(output)
 
 
 def test_influencer_producer_total_outage_is_rejected(tmp_path, monkeypatch):
-    output, payload = _run_influencer(tmp_path, monkeypatch, {
-        'trump': 'failed',
-        'musk': 'failed',
-        'serenity': 'failed',
-    })
+    statuses = {key: 'failed' for key in _quiet_statuses()}
+    output, payload = _run_influencer(tmp_path, monkeypatch, statuses)
 
     assert payload['items'] == []
     with pytest.raises(AssertionError, match='influencer: all sources failed'):
@@ -128,7 +140,7 @@ def test_influencer_retains_only_fresh_items_with_original_timestamp(
     }
     output, payload = _run_influencer(
         tmp_path, monkeypatch,
-        {'trump': 'failed', 'musk': 'failed', 'serenity': 'failed'},
+        _quiet_statuses(trump='failed', musk='failed'),
         previous=previous)
 
     assert [(item['text'], item['published']) for item in payload['items']] == [

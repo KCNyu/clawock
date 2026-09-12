@@ -1017,7 +1017,7 @@
   .sd-body li { margin: 1px 0; color: var(--text); }
   .sd-body .sd-empty { color: var(--text-dim); font-style: italic; font-size: var(--fs-xs); }
 
-  /* Influence radar (Trump / Musk / Serenity feed) */
+  /* Influence radar (multi-source feed — roster lives in dashboard.render.js) */
   .infl-feed { display: flex; flex-direction: column; gap: var(--space-2); max-height: 420px; overflow-y: auto; }
   .infl-summary { display: flex; gap: var(--space-2); flex-wrap: wrap; margin-bottom: 4px; font-size: var(--fs-xs); }
   .infl-chip { padding: 2px 8px; border-radius: 999px; font-weight: 700; }
@@ -1034,6 +1034,12 @@
   .infl-who { font-weight: 700; padding: 2px 8px; border-radius: 4px; font-size: var(--fs-xs); }
   .infl-who.trump { background: color-mix(in srgb, var(--negative) 16%, transparent); color: var(--negative); }
   .infl-who.musk  { background: rgba(59,130,246,0.16); color: #3b82f6; }
+  .infl-who.serenity { background: color-mix(in srgb, var(--positive) 16%, transparent); color: var(--positive); }
+  .infl-who.ark   { background: color-mix(in srgb, var(--warning) 16%, transparent); color: var(--warning); }
+  .infl-who.duan, .infl-who.honghao { background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent); }
+  .infl-who.burry, .infl-who.pelosi { background: var(--card); color: var(--text-dim); }
+  /* 未登记的作者（加源时忘了在这里登记）也要有可读的徽章，不能因为没样式而隐形 */
+  .infl-who.other { background: var(--card); color: var(--text-dim); }
   .infl-stance { font-size: var(--fs-micro); text-transform: uppercase; letter-spacing: 0.04em;
     padding: 2px 8px; border-radius: 3px; font-weight: 700; }
   .infl-stance.up   { background: color-mix(in srgb, var(--positive) 16%, transparent); color: var(--positive); }

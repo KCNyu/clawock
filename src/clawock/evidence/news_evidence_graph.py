@@ -254,6 +254,11 @@ def source_type(origin='', source='', url='', title=''):
         return 'market_fast_news'
     if origin == 'gnews-rss':
         return 'google_news_rss'
+    if origin == 'ark-funds':
+        # ARK 的日度调仓是真实成交记录，但它**不进** PRIMARY_SOURCE_TYPES：
+        # 那是文件和交易所公告的档位，进了就等于让 ETF 调仓去满足
+        # entries/early-trend 的主源闸 —— 加数据源不该顺手改交易逻辑。
+        return 'ark_daily_trade'
     return 'llm_digest_legacy'
 
 
