@@ -19,11 +19,13 @@
   },
   "AGENTS.md": {
    "owner": "runtime compatibility",
-   "consumer": "OpenClaw and coding agents"
+   "consumer": "OpenClaw and coding agents",
+   "baseline": true
   },
   "BOOTSTRAP.md": {
    "owner": "runtime compatibility",
-   "consumer": "OpenClaw bootstrap"
+   "consumer": "OpenClaw bootstrap",
+   "baseline": true
   },
   "CHANGELOG.md": {
    "owner": "public package release notes",
@@ -31,7 +33,8 @@
   },
   "CLAUDE.md": {
    "owner": "runtime compatibility",
-   "consumer": "Claude Code entry context"
+   "consumer": "Claude Code entry context",
+   "baseline": true
   },
   "DREAMS.md": {
    "owner": "runtime compatibility",
@@ -43,7 +46,8 @@
   },
   "IDENTITY.md": {
    "owner": "runtime compatibility",
-   "consumer": "OpenClaw identity context"
+   "consumer": "OpenClaw identity context",
+   "baseline": true
   },
   "INVESTMENT_SOP.md": {
    "owner": "runtime compatibility",
@@ -55,7 +59,8 @@
   },
   "MEMORY.md": {
    "owner": "runtime compatibility",
-   "consumer": "OpenClaw main-session memory; named as the authority by eight tracked instruction files"
+   "consumer": "OpenClaw main-session memory; named as the authority by eight tracked instruction files",
+   "baseline": true
   },
   "NOTICE": {
    "owner": "legal",
@@ -71,7 +76,8 @@
   },
   "SOUL.md": {
    "owner": "runtime compatibility",
-   "consumer": "OpenClaw persona context"
+   "consumer": "OpenClaw persona context",
+   "baseline": true
   },
   "THIRD_PARTY_LICENSES": {
    "owner": "legal",
@@ -79,11 +85,13 @@
   },
   "TOOLS.md": {
    "owner": "runtime compatibility",
-   "consumer": "OpenClaw tool routing"
+   "consumer": "OpenClaw tool routing",
+   "baseline": true
   },
   "USER.md": {
    "owner": "runtime compatibility",
-   "consumer": "OpenClaw user context"
+   "consumer": "OpenClaw user context",
+   "baseline": true
   },
   "assets": {
    "owner": "generated instance state",
@@ -115,7 +123,8 @@
   },
   "portfolio.json": {
    "owner": "KCNyu instance ledger",
-   "consumer": "installed workflows and dashboard"
+   "consumer": "installed workflows and dashboard",
+   "baseline": true
   },
   "pyproject.toml": {
    "owner": "public package metadata",

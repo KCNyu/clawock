@@ -573,11 +573,17 @@ jobs:
           PY
           strip="${RUNNER_TEMP:-/tmp}/strip_volatile.py"
           tmp="$(mktemp -d)"
-          for name in overview dashboard decision_audit shadow_portfolio decision_trail; do
+          # The write set comes from the contract, not from a copy of it (#1449).
+          # Spelling the five names here meant a sixth output would be built,
+          # published and never checked for determinism — the check would stay
+          # green about a file it had never read.
+          names="$(python3 -c "import json;print(' '.join(p.rsplit('/',1)[-1][:-5] for p in json.load(open('config/dashboard-outputs.json'))['outputs']))")"
+          echo "determinism check covers: $names"
+          for name in $names; do
             python3 "$strip" "assets/data/$name.json" > "$tmp/$name.first"
           done
           clawock dashboard-build > /dev/null
-          for name in overview dashboard decision_audit shadow_portfolio decision_trail; do
+          for name in $names; do
             if ! python3 "$strip" "assets/data/$name.json" | diff -u "$tmp/$name.first" -; then
               echo "::error::dashboard rebuild moved bytes beyond generation stamps ($name)"
               exit 1
