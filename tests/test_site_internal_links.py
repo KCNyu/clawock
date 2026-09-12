@@ -138,3 +138,42 @@ def test_the_shared_nav_does_not_advertise_a_page_the_site_does_not_have():
         if not match:
             continue
         assert resolves(match.group(1)), f"shared nav links to missing {match.group(1)}"
+
+
+def test_no_page_repeats_an_id_and_every_anchor_resolves():
+    """A duplicate id is not a warning: it silently retargets every link to it.
+
+    Measured 2026-09-12 while moving the validation ledger into the Reflect tab —
+    the new Overview card was pasted in carrying `id="ledger"`, so the header and
+    footer links to `#ledger` jumped to a card about search visibility while the
+    ledger they name stayed below the fold. Both ids existed, both looked right
+    in isolation, and nothing else in the suite reads ids at all.
+    """
+    import re
+    html = (ROOT / "site/index.html").read_text(encoding="utf-8")
+    ids = re.findall(r'id="([^"]+)"', html)
+    duplicates = sorted({name for name in ids if ids.count(name) > 1})
+    assert duplicates == [], f"index.html repeats these ids: {duplicates}"
+
+    anchors = set(re.findall(r'href="#([^"]+)"', html))
+    missing = sorted(anchors - set(ids))
+    assert missing == [], f"in-page links with no target: {missing}"
+
+
+def test_the_retired_evidence_page_leaves_no_shortcut_behind():
+    """Nothing links to the evidence page, and nothing needs a shortcut to the
+    card that replaced it.
+
+    It was a topbar entry in the shared layout, a topbar entry on the dashboard,
+    and a footer line. All three pointed at a page with 0 impressions in 180 days
+    (measured 2026-09-12). The content now lives in the Reflect tab, which the tab
+    strip already reaches — a "quick jump" to a tab somebody can simply click is
+    navigation that costs a line and saves nothing.
+    """
+    for relative in ("site/index.html", "site/_layouts/default.html"):
+        text = (ROOT / relative).read_text(encoding="utf-8")
+        assert "evidence.html" not in text, f"{relative} still links the retired page"
+    dashboard = (ROOT / "site/index.html").read_text(encoding="utf-8")
+    assert 'href="#ledger' not in dashboard, (
+        "the dashboard still carries an in-page shortcut to the ledger; the tab "
+        "strip is the way there")

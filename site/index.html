@@ -109,7 +109,6 @@ layout: null
     </div>
     <div class="topbar-actions">
       <a class="nav-link" href="briefs.html">Briefs</a>
-      <a class="nav-link" href="#ledger">验证台账</a>
       <a class="nav-link" href="https://github.com/KCNyu/clawock" target="_blank" rel="noopener">GitHub</a>
       <button class="refresh-btn" id="refresh-btn" type="button" aria-label="Refresh data" title="立即刷新">
         <span class="ic" aria-hidden="true">&#x21bb;</span>
@@ -378,6 +377,14 @@ layout: null
         <div class="muted asof-faded" id="gold-asof" style="font-size:var(--fs-micro);margin-top:var(--space-2)"></div>
       </div>
     </div>
+
+    <section class="card hero-search" id="search-card">
+      <div class="card-head"><div>
+        <div class="overview-card-kicker">SEO · 每周一量一次，Python 取数</div>
+        <h3>搜索可见性</h3>
+      </div></div>
+      <div id="search-body"></div>
+    </section>
 
   </section>
   <section class="panel" id="panel-drill" data-panel="drill" role="tabpanel" aria-labelledby="tab-drill">
@@ -1130,7 +1137,7 @@ layout: null
   <section class="card desktop-wide" id="ledger-card">
     <div class="card-head"><div>
       <div class="overview-card-kicker">验证台账 · 每个数字读自产物，`clawock evidence` 每日重算</div>
-      <h3 id="ledger">我们测过什么、什么没活下来</h3>
+      <h3 id="ledger-title">我们测过什么、什么没活下来</h3>
     </div></div>
     <p class="chart-hint">面板展示结果，这里展示方法。判定分三种且不许混：<strong>未通过</strong>（测了没活下来）、<strong>尚不可判</strong>（样本不够）、<strong>尚未到期</strong>（还没到能算的日子）。把前两者说成一回事，本身就是不诚实。</p>
     <div id="ledger-body"></div>
@@ -1155,7 +1162,6 @@ layout: null
   <p>
     <a href="https://github.com/KCNyu/clawock">clawock</a>
     · <a href="briefs.html">briefs</a>
-    · <a href="#ledger">验证台账</a>
     · <a href="faq.html">faq</a>
     · <a href="assets/data/dashboard.json"><code>dashboard.json</code></a>
   </p>

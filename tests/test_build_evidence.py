@@ -354,3 +354,44 @@ def test_the_artifact_is_what_gets_written():
     assert "ARTIFACT.write_text" in source
     assert "RETIRED_PAGE" not in source and "site/evidence.md" not in source, (
         "write_all still writes the retired page")
+
+
+def test_sections_are_ordered_worst_first():
+    """The failed test is the finding; it must not depend on builder order.
+
+    Before this, the card's first block was the failed leverage dial because the
+    builders happened to be listed with `dial_section` first. That is a
+    coincidence, not a rule, and it would have buried the one result this ledger
+    exists to publish the first time anyone reordered them.
+    """
+    def section(title, verdict):
+        return {"title": title, "verdict": verdict, "sample": "s", "source": "x",
+                "reading": "r", "rows": [("l", "v")]}
+
+    scrambled = [
+        section("passed-first", ev.VERDICT["passed"]),
+        section("undecided", ev.VERDICT["undecided"]),
+        section("not-due-yet", ev.VERDICT["pending"]),
+        section("the-failure", ev.VERDICT["failed"]),
+    ]
+    ordered = [s["verdict_key"] for s in ev.payload(scrambled, "x")["sections"]]
+    assert ordered == ["failed", "pending", "undecided", "passed"], ordered
+
+    # Stable: two sections with the same verdict keep their input order, so the
+    # card cannot shuffle between two regenerations of the same data.
+    same = [section("u1", ev.VERDICT["undecided"]), section("u2", ev.VERDICT["undecided"])]
+    assert [s["title"] for s in ev.payload(same, "x")["sections"]] == ["u1", "u2"]
+
+
+def test_an_unknown_verdict_sorts_last_instead_of_raising():
+    """A new verdict word in a builder must not take the artifact down.
+
+    It is a template someone is editing; the failure mode of raising here is
+    losing the whole ledger to a typo, and the failure mode of sorting it last is
+    a new block at the bottom — visible, recoverable, and not silent.
+    """
+    section = {"title": "new", "verdict": "🟣 新判定", "sample": "s", "source": "x",
+               "reading": "r", "rows": [("l", "v")]}
+    payload = ev.payload([section], "x")
+    assert payload["sections"][0]["verdict_key"] == "unknown"
+    assert payload["sections"][0]["tone"] == "idle"

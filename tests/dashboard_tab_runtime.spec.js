@@ -1275,6 +1275,33 @@ function sparsePayload(value, mode) {
   return out;
 }
 
+// 「缺失数字」的判据：这些词只有在**值的位置**才算漏格式化。
+//
+// 判红过两次，两次都不是渲染器的错，是**被引用的正文**：
+//   · `https://truthsocial.com/users/…/117255718355537976I am calling…`
+//     —— 帖子 id 的结尾正好是 `null`，紧跟一个字母（#1473 扩源后第一次出现）
+//   · `…the so-called “Infinity” sculpture that stands…`
+//     —— 一条帖子正文里的英文单词
+//
+// 原来的写法是「正文里出现这些词就报」，于是这条闸会随着**被引用的内容**漂移：
+// 谁转发一条含 "Infinity" 的帖子，它就把 master 判红。而它本来盯的是渲染器。
+//
+// 值的位置 = 整段就是它 / 出现在末尾 / 前面是货币或数值运算符。
+// 逐条验过 18 个用例（10 条真值 + 8 条散文）：**0 判错**。
+// 有意不把 `=` 和 `:` 算作值前运算符 —— 模型在散文里写
+// `swap_mandate = null 无 1x 替代` 是描述字段为空，不是漏格式化的数字，
+// 而「末尾的值」那条已经覆盖了真正拼在句子尾部的漏格式化。
+//
+// 模式写成字符串：这段代码跑在 page.evaluate 里（浏览器上下文），Node 作用域的
+// 常量过不去，所以传进去再 new RegExp。
+const VALUE_LEAK_PATTERNS = [
+  "\\[object Object\\]",
+  "^(?:undefined|NaN|[-+]?Infinity|null)(?:%| ?(?:bps|股|倍))?$",
+  "(?:^|[\\s:：,，、=(（])(?:undefined|NaN|[-+]?Infinity|null)(?:%| ?(?:bps|股|倍))?[\\s.。)]*$",
+  "[@$/≈]\\s*(?:undefined|NaN|[-+]?Infinity|null)(?![\\w-])",
+  "[+=−-]\\s*(?:undefined|NaN|[-+]?Infinity)\\b",
+];
+
 async function testNoTabPrintsAMissingNumber(browser, base) {
   // 2026-09-11 live: 「横盘 decay ≈undefined%/月」 on the Holdings tab, because one
   // renderer guarded a field and its twin did not. Rendering every tab with the
@@ -1294,23 +1321,20 @@ async function testNoTabPrintsAMissingNumber(browser, base) {
     for (const tab of TABS) {
       await page.click(`.tab-btn[data-tab="${tab}"]`);
       await waitForTab(page, tab);
-      hits.push(...await page.evaluate(() => {
+      hits.push(...(await page.evaluate(patterns => {
         const out = [];
         const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
         let node;
         while ((node = walker.nextNode())) {
           if (node.parentElement.closest("script, style")) continue;
           const text = node.textContent.trim();
-          // "null" only where it stands in for a number; model prose may say it.
-          if (/\bundefined\b|\bNaN\b|\bInfinity\b|\[object Object\]/.test(text)
-              || text === "null"
-              || /\bnull\s*(%|bps|股|\/)|[@$/+≈]\s*null\b/.test(text)) {
+          if (patterns.some(src => new RegExp(src).test(text))) {
             const holder = node.parentElement.closest("[id]");
             out.push(`${holder ? holder.id : "?"}: ${text.slice(0, 80)}`);
           }
         }
         return out;
-      }));
+      }, VALUE_LEAK_PATTERNS)));
     }
     assert.deepEqual([...new Set(hits)], [],
       `a missing number was printed as text (mode=${mode}) — format it with numText/fmtNum`);
@@ -1398,6 +1422,62 @@ async function testTheValidationLedgerRendersItsVerdictsAndFitsAPhone(browser, b
     assert.equal(seen.pageOverflow, 0, `${label}: the ledger widened the page`);
     assert.deepEqual(state.errors, [], `${label}: a ledger renderer threw`);
     await context.close();
+  }
+}
+
+// 搜索可见性的独立小卡（Overview）。它原本是数据健康卡里的一条 meta，那条 bit
+// 在窄屏上固定 428px 宽 —— 比容器还宽，占满一整行，把卡顶高。抽出来之后判据是
+// **一个数字一格，换行交给 grid**，所以这里量的是格数与溢出，不是某段文字。
+async function testTheSearchVisibilityCardFitsWithoutOverflowing(browser, base) {
+  for (const [label, width, expectedCols] of [["desktop", 1280, 4], ["mobile", 390, 2]]) {
+    const page = await browser.newPage({ viewport: { width, height: 900 } });
+    const state = observe(page);
+    await stubLiveOrigin(page);
+    await page.goto(base, { waitUntil: "networkidle" });
+    await waitForData(page);
+    await page.waitForSelector("#search-card", { timeout: 5000 });
+
+    const seen = await page.evaluate(() => {
+      const card = document.getElementById("search-card");
+      const cells = [...card.querySelectorAll(".sv-cell")];
+      const cols = new Set(cells.map(c => Math.round(c.getBoundingClientRect().left)));
+      const meta = document.getElementById("dh-meta");
+      const bits = [...document.querySelectorAll("#dh-meta .dh-meta-bit")];
+      return {
+        cells: cells.length,
+        columns: cols.size,
+        texts: cells.map(c => c.innerText.replace(/\s+/g, " ").trim()),
+        cellOverflow: cells.filter(c => c.scrollWidth > c.clientWidth + 1).length,
+        cardOverflow: card.scrollWidth - card.clientWidth,
+        cardHeight: Math.round(card.getBoundingClientRect().height),
+        // 数据健康卡那一行：搜索那一段必须已经不在里面了，而且剩下的段不被切。
+        metaText: meta ? meta.innerText : "",
+        metaClipped: bits.filter(b => b.scrollWidth > b.clientWidth + 1).length,
+        metaOverflow: meta ? meta.scrollWidth - meta.clientWidth : 0,
+        pageOverflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      };
+    });
+
+    assert.equal(seen.cells, 4, `${label}: the card lost a figure`);
+    assert.equal(seen.columns, expectedCols,
+      `${label}: expected ${expectedCols} columns, found ${seen.columns}`);
+    assert.deepEqual(seen.texts, [
+      "曝光 · 7 天 44 28 天 51",
+      "点击 · 7 天 0 没有点击",
+      "被收录的页 1 全站 107 条 URL",
+      "平均排名 6.98 5 个搜索词有曝光",
+    ], `${label}: the figures changed shape`);
+    assert.equal(seen.cellOverflow, 0, `${label}: a cell's content overflows its box`);
+    assert.equal(seen.cardOverflow, 0, `${label}: the card scrolls sideways`);
+    assert(seen.cardHeight <= 300,
+      `${label}: the card is ${seen.cardHeight}px — it was supposed to be a small card`);
+    assert(!/搜索/.test(seen.metaText),
+      `${label}: the search line is still in the data-health meta — that is the 428px box this card replaced`);
+    assert.equal(seen.metaClipped, 0, `${label}: a data-health meta bit is clipped`);
+    assert.equal(seen.metaOverflow, 0, `${label}: the data-health meta overflows`);
+    assert.equal(seen.pageOverflow, 0, `${label}: the page scrolls sideways`);
+    assert.deepEqual(state.errors, [], `${label}: a renderer threw`);
+    await page.close();
   }
 }
 
@@ -2244,6 +2324,7 @@ async function main() {
     await run("testAddSideCardExplainsWhyThereIsNoAdd", () => testAddSideCardExplainsWhyThereIsNoAdd(browser, base));
     await run("testALeveragedRowWithoutVolatilityPrintsNoUndefined", () => testALeveragedRowWithoutVolatilityPrintsNoUndefined(browser, base));
     await run("testNoTabPrintsAMissingNumber", () => testNoTabPrintsAMissingNumber(browser, base));
+    await run("testTheSearchVisibilityCardFitsWithoutOverflowing", () => testTheSearchVisibilityCardFitsWithoutOverflowing(browser, base));
     await run("testTheValidationLedgerRendersItsVerdictsAndFitsAPhone", () => testTheValidationLedgerRendersItsVerdictsAndFitsAPhone(browser, base));
     await run("testAPanelSaysWhenItsDataDidNotLoad", () => testAPanelSaysWhenItsDataDidNotLoad(browser, base));
     await run("testCronRailAccountsForEverySlotWithoutASecondVerdict", () => testCronRailAccountsForEverySlotWithoutASecondVerdict(browser, base));

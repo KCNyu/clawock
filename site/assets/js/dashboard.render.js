@@ -527,8 +527,8 @@
   const TAB_RENDERERS = {
     hero: [
       renderTodayHighlights, renderHonesty, renderMarketSnapshot, renderCommandDeck,
-      renderDataHealth, renderRiskGuardrail, renderOverviewSummaries, renderGoldDca,
-      setupVerdictDeck,
+      renderDataHealth, renderSearchVisibility, renderRiskGuardrail,
+      renderOverviewSummaries, renderGoldDca, setupVerdictDeck,
     ],
     drill: [
       renderBook, renderAddCampaign, renderMovers,
@@ -1328,6 +1328,37 @@
     return `<div class="dh-sub">定时任务 · 今天每槽</div>`
       + foldQuiet("cron", rows, count => `其余 ${count} 个 job 今天按时或待跑`);
   }
+  function renderSearchVisibility() {
+    const host = document.getElementById("search-body");
+    if (!host) return;
+    const sv = safe(DATA, "crawl_visibility");
+    if (!sv || !sv.available) {
+      // 没到第一次读数之前，这张卡不存在比印一排破折号诚实。
+      host.innerHTML = '<p class="muted">还没有读数。每周一 UTC 06:30 量一次，'
+        + '第一次跑完这里就有数字。</p>';
+      return;
+    }
+    const cells = [
+      ["曝光 · 7 天", numText(sv.impressions), `28 天 ${numText(sv.impressions_28d)}`],
+      ["点击 · 7 天", numText(sv.clicks), sv.clicks ? "有人点进来" : "没有点击"],
+      ["被收录的页", numText(sv.pages_with_impressions), "全站 107 条 URL"],
+      ["平均排名", sv.position == null ? DASH : numText(sv.position),
+        `${numText(sv.queries_reported)} 个搜索词有曝光`],
+    ];
+    // sitemap 那一句留着：它是整份读数里最有用的事实——站点地图提交了一个月
+    // 一次都没被取过，比上面四个数字更能解释「为什么没人来」。
+    const sitemap = sv.sitemap_fetched
+      ? "sitemap 已被抓取"
+      : "sitemap 提交后从未被 Google 下载";
+    host.innerHTML = `<div class="sv-grid">`
+      + cells.map(([k, v, sub]) =>
+        `<div class="sv-cell"><div class="sv-k">${escapeHtml(k)}</div>`
+        + `<div class="sv-v">${escapeHtml(v)}</div>`
+        + `<div class="sv-sub">${escapeHtml(sub)}</div></div>`).join("")
+      + `</div><div class="sv-foot">${escapeHtml(sitemap)}`
+      + ` · 截止 ${escapeHtml(String(sv.as_of || "").slice(0, 10))}</div>`;
+  }
+
   function renderDataHealth() {
     const root = document.getElementById("data-health");
     if (!root) return;
@@ -1511,23 +1542,15 @@
       // 窗口掉了几档」必须答得上来。它不改 tone，也不占泳道 —— 成品由
       // Telegram 兜住了，它属于「已知不修」，位置就该在这条安静的行里。
       const dropBit = droppedTotal ? `微信掉投 ${droppedTotal} 档 · TG 已兜 · 已知不修` : "";
-      // 搜索可见性，一行。它在这一行而不是一张牌里：数字本身很小（7 天几十次
-      // 曝光、0 点击、1/107 页被收录），做成卡片是给一个不动的量配一块固定的
-      // 版面。放在这里，是因为它回答的正是这张卡的问题——「页面上的数字有没
-      // 有人看得见」。sitemap 从未被下载时说出来，那是整份读数里最有用的事实。
-      const sv = safe(DATA, "crawl_visibility");
-      const searchBit = (sv && sv.available)
-        ? `搜索 7 天 ${numText(sv.impressions)} 曝光 / ${numText(sv.clicks)} 点击`
-          + ` · 收录 ${numText(sv.pages_with_impressions)} 页`
-          + ` · ${sv.sitemap_fetched ? "sitemap 已抓" : "sitemap 从未被下载"}`
-          + ` · 截至 ${String(sv.as_of || "").slice(0, 10)}`
-        : "";
+      // 搜索可见性不再在这条读数行里：它有自己的卡（#search-card，见
+      // renderSearchVisibility）。抽出去的理由不是脏，是形状——四个事实挤成
+      // 一段 nowrap 文字，390px 上实测 428px 宽，比容器还宽（#1474 的处理是
+      // 按分隔点拆短，这里更进一步：它本来就不该是一条附注）。
       // 每一段各自不折行：窄屏实测把「构建 2026-09-09 00:05」在「构建」后面
       // 折开，一个时刻被读成两条信息。折行只准发生在分隔点上，所以复合读数
       // 先过 metaBits() 拆短（它保证每段都比手机窄，见 dashboard.core.js）。
       const bits = metaBits(
         dropBit,
-        searchBit,
         bs.generated_at ? `构建 ${String(bs.generated_at).replace("T", " ").slice(0, 16)}` : "");
       metaEl.innerHTML = bits.map(b => `<span class="dh-meta-bit">${escapeHtml(b)}</span>`)
         .join(`<span class="dh-meta-sep"> · </span>`);
