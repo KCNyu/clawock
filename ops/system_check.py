@@ -134,8 +134,34 @@ BACKLOG_WARN_HOURS = 2.0
 #: quiet stretch, short enough that a fixed hop stops being reported the same day.
 RUN_SCAN_LIMIT = 40
 
-BASELINE_TRACKED = ['SOUL.md', 'IDENTITY.md', 'USER.md', 'MEMORY.md', 'TOOLS.md',
-                    'AGENTS.md', 'CLAUDE.md', 'BOOTSTRAP.md', 'portfolio.json']
+def _baseline_tracked():
+    """The bootstrap set, read from the registry that already owns the root.
+
+    This used to be a literal list living a few lines away from
+    `check_root_allowlist`, which reads `config/root-allowlist.json` — two
+    hand-kept lists of top-level files, nothing tying them together (#1448).
+    Adding a tracked root file had to be done twice, and the two halves fail in
+    opposite directions: forget the allowlist and `root ownership` goes CRITICAL
+    and blocks the push (loud); forget this list and the file simply stops being
+    required in every checkout (silent — the failure mode nobody sees).
+
+    So the registry is the single source and `baseline: true` is the flag. The
+    allowlist is already forced to stay complete by `git ls-files`, which is the
+    property this list never had.
+    """
+    try:
+        entries = json.loads(
+            (WS / 'config' / 'root-allowlist.json').read_text())['entries']
+    except Exception:
+        # check_baseline_files turns the empty set into a CRITICAL with a
+        # readable cause; an import-time traceback out of the pre-push hook is
+        # not a better message.
+        return []
+    return [name for name, meta in entries.items()
+            if isinstance(meta, dict) and meta.get('baseline')]
+
+
+BASELINE_TRACKED = _baseline_tracked()
 
 
 def check_baseline_files(r):
@@ -145,6 +171,11 @@ def check_baseline_files(r):
     every checkout — live workspace, agent worktree, CI runner — must have it.
     """
     required = list(BASELINE_TRACKED)
+    if not required:
+        r.add('baseline files', CRITICAL,
+              'baseline set unreadable: config/root-allowlist.json has no '
+              'entry flagged "baseline"')
+        return
     missing = [f for f in required if not (WS / f).exists()]
     if missing:
         r.add('baseline files', CRITICAL, f'missing: {missing}')
