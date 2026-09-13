@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import json
 import sys
-from datetime import datetime
+from datetime import date
 from pathlib import Path
 
 
@@ -227,7 +227,10 @@ def _filled_judgment(generation_id="generation-fixture", tickers=()):
 
 
 def test_main_normalizes_before_calling_plan_validation(tmp_path, monkeypatch):
-    today = datetime.now().strftime("%Y-%m-%d")
+    # Freeze the HKT consumer and its fixture together, independent of host TZ.
+    today = "2026-09-14"
+    monkeypatch.setattr(brief_postflight.trading_calendar, "hkt_today",
+                        lambda: date.fromisoformat(today))
     plan_path = tmp_path / "memory" / f"{today}-plan.json"
     plan_path.parent.mkdir(parents=True)
     plan_path.write_text(json.dumps({
@@ -277,7 +280,10 @@ def test_main_normalizes_before_calling_plan_validation(tmp_path, monkeypatch):
 def test_dry_run_validates_normalized_plan_without_rewriting_source(
     tmp_path, monkeypatch
 ):
-    today = datetime.now().strftime("%Y-%m-%d")
+    # Freeze the HKT consumer and its fixture together, independent of host TZ.
+    today = "2026-09-14"
+    monkeypatch.setattr(brief_postflight.trading_calendar, "hkt_today",
+                        lambda: date.fromisoformat(today))
     plan_path = tmp_path / "memory" / f"{today}-plan.json"
     plan_path.parent.mkdir(parents=True)
     authored = json.dumps({
