@@ -35,9 +35,9 @@ OUT = os.environ.get("GIF_OUT") or os.path.join(ROOT, "site", "assets", "dashboa
 # so tests/test_dashboard_gif_tabs.py now checks it against the page itself.
 TAB_COUNT = 6
 
-OW = 640             # output width (frames scaled to this; height follows aspect)
-                     # 640 ≈ 2× the README's 300px display = crisp on retina; source
-                     # frames are 800px so ≤800 stays real detail (no upscaling)
+OW = 960             # output width (frames scaled to this; height follows aspect)
+                     # desktop 1280x800 frames → 960x600, shown at 820px in the README
+                     # beside the 820px social card; ≤1280 stays real detail (no upscaling)
 COLORS = 256         # GIF max — a single global palette (built from all frames below)
                      # keeps the UI's real colors instead of washing them out to grey
 TWEENS = 6           # horizontal slide frames per transition
