@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-13T23:31:09.198288+00:00",
+  "generated_at": "2026-09-13T23:40:37.652126+00:00",
   "vix": {
     "symbol": "^VIX",
     "price": 15.84,
@@ -19,10 +19,10 @@
   },
   "dxy": {
     "symbol": "DX-Y.NYB",
-    "price": 99.165,
+    "price": 99.146,
     "prev": 99.122,
-    "change_pct": 0.04,
-    "as_of": 1789341667,
+    "change_pct": 0.02,
+    "as_of": 1789342234,
     "source": "yahoo"
   },
   "fear_greed": {
