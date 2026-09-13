@@ -14,7 +14,6 @@ import os
 from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from zoneinfo import ZoneInfo
 
 from clawock.workspace import workspace_root
 from clawock.automation import workflow_outcomes
@@ -22,7 +21,7 @@ from clawock.automation import workflow_outcomes
 WS = workspace_root()
 LOCAL_PATH = WS / "memory" / ".tmp" / "cron-heartbeats.json"
 PUBLIC_PATH = WS / "assets" / "data" / "cron-heartbeats.json"
-HKT = ZoneInfo("Asia/Hong_Kong")
+HKT = workflow_outcomes.HKT
 SCHEMA_VERSION = 1
 KEEP_HOURS = 72
 

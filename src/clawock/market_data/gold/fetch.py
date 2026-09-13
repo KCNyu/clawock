@@ -31,11 +31,12 @@ import subprocess
 import sys
 import os
 import bisect
-from datetime import date, datetime, timezone
+from datetime import datetime, timezone
 
 GRAMS_PER_OZ = 31.1035  # 1 金衡盎司(troy oz) = 31.1035 克
 
 from clawock.market_data.eastmoney_http import em_get
+from clawock.sessions import hkt_today
 from clawock.workspace import workspace_root
 
 WS_ROOT = str(workspace_root())
@@ -223,7 +224,7 @@ def fetch_london_spot():
 
 def fetch_usdcny(start):
     """frankfurter USD→CNY：当前值 + start..今天 历史。返回 (cur, {date: rate}) 或 (None, {})。"""
-    today = date.today().isoformat()
+    today = hkt_today().isoformat()
     cur, hist = None, {}
     raw = _curl('https://api.frankfurter.app/latest?from=USD&to=CNY',
                 'https://www.frankfurter.app/')

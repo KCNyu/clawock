@@ -15,7 +15,7 @@ Env: MINIMAX_API_KEY required; OPENCODE_API_KEY and FINNHUB_API_KEY optional.
 """
 import json
 import os
-from datetime import date, datetime, timedelta
+from datetime import datetime, timedelta
 
 import requests
 
@@ -23,6 +23,7 @@ from clawock import instruments as instrument_registry
 from clawock.automation.llm import chat
 from clawock.automation.output_validate import validate_sections
 from clawock.market_data.sentiment import fetch_google_news
+from clawock.sessions import hkt_today
 
 # Sections build_user_prompt demands, checked on the way out (#1264).
 # `移动信号`, not `Top`: a bare case-insensitive `top` also matches
@@ -130,7 +131,7 @@ def _fetch_gnews(ticker):
 
 def fetch_news(tickers, since_days=2):
     finnhub_key = os.environ.get('FINNHUB_API_KEY')
-    today = date.today()
+    today = hkt_today()
     since = (today - timedelta(days=since_days)).isoformat()
     until = today.isoformat()
     out = {}

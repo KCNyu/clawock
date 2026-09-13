@@ -35,6 +35,7 @@ from clawock.portfolio.fx import get_usdhkd
 from clawock.instruments import get as get_instrument
 from clawock.instruments import leverage_map, require as require_instrument
 from clawock.safe_io import safe_write_json
+from clawock.sessions import hkt_today
 from clawock.workspace import workspace_root
 
 WS_ROOT = workspace_root()
@@ -185,8 +186,8 @@ def _fetch_polygon_history(ticker: str, days: int = 60):
     key = API_KEYS.get('POLYGON_API_KEY', '')
     if not key:
         return None
-    from datetime import date, timedelta
-    today = date.today()
+    from datetime import timedelta
+    today = hkt_today()
     start = (today - timedelta(days=days + 5)).isoformat()
     end = today.isoformat()
     try:

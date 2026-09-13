@@ -13,14 +13,13 @@ import time
 import urllib.error
 import urllib.parse
 import urllib.request
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from pathlib import Path
-from zoneinfo import ZoneInfo
 
 from clawock.safe_io import safe_write_json
+from clawock.sessions import ET, HKT
 
 
-HKT = timezone(timedelta(hours=8))
 PER_REQUEST_TIMEOUT_S = 5
 SEC_SUBMISSIONS = "https://data.sec.gov/submissions/CIK{cik}.json"
 TENCENT_NEWS = "https://web.ifzq.gtimg.cn/appstock/news/info/search"
@@ -32,7 +31,7 @@ FINNHUB_FILINGS = "https://finnhub.io/api/v1/stock/filings"
 # `2026-08-13T11:10:48Z` at SEC and `2026-08-13 07:10:48` at Finnhub — exactly
 # EDT. Reading it as UTC would misplace every event by 4-5 hours, which for a
 # 30-minute intraday window is the difference between "in this window" and not.
-FINNHUB_TZ = ZoneInfo("America/New_York")
+FINNHUB_TZ = ET
 # One US session plus the pre/after-hours filing tails around it.
 SESSION_LOOKBACK_MINUTES = 24 * 60
 UA = "Mozilla/5.0 (clawock primary disclosure provider)"
@@ -211,7 +210,7 @@ def fetch_nasdaq_filings(issuer, *, now, window_minutes, http=None):
         + "?limit=10"
     )
     rows = ((payload or {}).get("data") or {}).get("rows") or []
-    session_date = now.astimezone(ZoneInfo("America/New_York")).date()
+    session_date = now.astimezone(ET).date()
     items = []
     for row in rows:
         try:

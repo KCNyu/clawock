@@ -943,7 +943,7 @@ def main(argv=None):
                          'and writes the publish-gate status')
     args = ap.parse_args(argv)
 
-    today = datetime.now().strftime('%Y-%m-%d')
+    today = trading_calendar.hkt_today().isoformat()
     job_name = '盘前深度简报'
     slot = workflow_outcomes.slot_for_job(job_name)
 

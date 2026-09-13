@@ -14,7 +14,6 @@ import hashlib
 import json
 from datetime import datetime, timezone
 from pathlib import Path
-from zoneinfo import ZoneInfo
 
 from clawock.workspace import workspace_root
 from clawock import sessions as trading_calendar
@@ -23,8 +22,8 @@ from clawock.automation import cron_heartbeat
 from clawock.safe_io import load_json_cached, safe_write_json
 
 WS = workspace_root()
-HKT = ZoneInfo("Asia/Hong_Kong")
-ET = ZoneInfo("America/New_York")
+HKT = trading_calendar.HKT
+ET = trading_calendar.ET
 PORTFOLIO = WS / "portfolio.json"
 
 

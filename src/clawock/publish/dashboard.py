@@ -24,6 +24,7 @@ from zoneinfo import ZoneInfo
 
 from clawock.workspace import workspace_root
 from clawock import history_store
+from clawock.sessions import hkt_today
 from clawock import instruments as instrument_registry
 from clawock import json_repair
 from clawock.decision import ledger as decision_v2
@@ -2521,7 +2522,7 @@ def compute_weight_confidence(portfolio, window_days=30):
     """
     try:
         rows = decision_v2.episode_representatives(decision_v2.load_decisions(), 't1')
-        today = datetime.now(timezone.utc).date()
+        today = hkt_today()
         # Aggregate avg confidence per ticker over window
         conf_acc = {}  # ticker -> [sum, count]
         for r in rows:

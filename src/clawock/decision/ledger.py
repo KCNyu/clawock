@@ -24,7 +24,7 @@ import re
 import statistics
 import tempfile
 from collections import Counter, defaultdict
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 from clawock import seeds
@@ -54,7 +54,7 @@ SCHEMA_VERSION = 2
 EVAL_SCHEMA_VERSION = 5
 # Snapshots and plan_dates are both named on the HK calendar day; comparing them
 # against a UTC "today" slips a day for the eight hours after HK midnight.
-HKT = timezone(timedelta(hours=8))
+HKT = _cal.HKT
 ACTIONS = {
     "cut", "trim_on_rebound", "hold_and_watch", "t_only",
     "add_only_on_trigger", "add_on_breakout", "watch",

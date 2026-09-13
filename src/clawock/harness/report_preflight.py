@@ -267,7 +267,7 @@ def main(argv=None):
         print(f'❌ invalid market+phase combo: {args.market}/{args.phase}', file=sys.stderr)
         return 2
 
-    today = datetime.now().strftime('%Y-%m-%d')
+    today = trading_calendar.hkt_today().isoformat()
     job_name = workflow_outcomes.job_for(args.market, args.phase)
     slot = workflow_outcomes.slot_for_job(job_name)
     workflow_outcomes.record_stage(job_name, 'preflight', 'pending', slot=slot)

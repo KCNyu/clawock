@@ -51,6 +51,7 @@ from zoneinfo import ZoneInfo
 from clawock.workspace import workspace_root
 from clawock import sessions as trading_calendar
 from clawock import history_store
+from clawock.safe_io import safe_write_text
 from clawock.context import brief as brief_context
 from clawock.decision import ledger as decision_v2
 from clawock.decision import packet as brief_decision_packet
@@ -359,7 +360,8 @@ def _append_guardrail_history(today, guardrail, hk_conc, us_conc, risk):
             existing = [l for l in GUARDRAIL_HISTORY.read_text().splitlines()
                         if l.strip() and json.loads(l).get('date') != today]
         GUARDRAIL_HISTORY.parent.mkdir(parents=True, exist_ok=True)
-        GUARDRAIL_HISTORY.write_text(
+        safe_write_text(
+            str(GUARDRAIL_HISTORY),
             ''.join(l + '\n' for l in existing)
             + json.dumps(row, ensure_ascii=False, sort_keys=True) + '\n')
         print(f'  guardrail_history: {today} ({row["breach_count"]} breaches)')
@@ -1642,7 +1644,7 @@ def main(argv=None):
     # the date the fallback script reads. Naive now() = runner UTC, which mismatched
     # HKT in the 16:00–23:59 UTC window and broke off-schedule fallback runs.
     today = (os.environ.get('TODAY')
-             or datetime.now(timezone(timedelta(hours=8))).strftime('%Y-%m-%d'))
+             or trading_calendar.hkt_today().isoformat())
     TMP_DIR.mkdir(parents=True, exist_ok=True)
     SNAPSHOT_DIR.mkdir(parents=True, exist_ok=True)
     issues = []
@@ -1989,7 +1991,7 @@ def main(argv=None):
           + (f" — {opportunity['why_no_candidate']}" if opportunity['why_no_candidate'] else ''))
 
     context = {
-        'generated_at':  datetime.now(timezone(timedelta(hours=8))).isoformat(),
+        'generated_at':  datetime.now(trading_calendar.HKT).isoformat(),
         'date':          today,
         'fx':            fx,
         'portfolio_path': str(portfolio_path),

@@ -11,11 +11,11 @@ it (the direction the wheel may never depend in).
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
-from zoneinfo import ZoneInfo
+from clawock.sessions import HKT
 
 # Slots are recorded in the desk's local wall clock and some are written without
 # an offset; assuming HKT for those is the ledger's own long-standing rule.
-LEDGER_TZ = ZoneInfo("Asia/Hong_Kong")
+LEDGER_TZ = HKT
 
 # A raw error whose final product still shipped is a false red, not a failure.
 USABLE_PRODUCT_STATES = {"success", "recovered", "degraded", "artifact_only"}

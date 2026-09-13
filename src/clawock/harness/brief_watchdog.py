@@ -467,7 +467,7 @@ def main():
                     help='09:05 miss-detector mode (see module docstring)')
     args = ap.parse_args()
 
-    today = datetime.now(HKT).strftime('%Y-%m-%d')
+    today = trading_calendar.hkt_today().isoformat()
     tag = 'brief'
 
     # --- Closed-market gate: no brief was due, so nothing is missing ----------

@@ -28,8 +28,7 @@ from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 from clawock.scheduling import effective_schedule, parse_cron_slots
-
-HKT = ZoneInfo('Asia/Hong_Kong')
+from clawock.sessions import HKT
 
 #: How long after a slot fires before "no record" stops meaning "still running".
 #: The runs take 4-6 minutes and the watchdog re-dispatch lands by +10, so a slot

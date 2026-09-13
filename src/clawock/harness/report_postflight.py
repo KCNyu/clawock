@@ -368,7 +368,7 @@ def main(argv=None):
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 2
 
-    today = datetime.now().strftime('%Y-%m-%d')
+    today = trading_calendar.hkt_today().isoformat()
     ctx, ctx_err = load_context(args.market, args.phase, today)
 
     # A missing OR unusable context both mean "preflight did not produce data to

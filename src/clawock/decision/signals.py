@@ -64,7 +64,7 @@ def _parse_bars(rows):
 
 def fetch_bars(code, cnt=400):
     """日 K（qfq 优先）。HK 走 kline 带日期窗，US 走 fqkline。"""
-    today = date.today().isoformat()
+    today = trading_calendar.hkt_today().isoformat()
     if code.startswith('hk'):
         url = f'{TENCENT}?param={code},day,2024-01-01,{today},{cnt}'
     else:
@@ -487,7 +487,7 @@ def _carry_setup_campaigns(sig, previous, row_as_of):
 def refresh_rows(previous, universe, *, run_date=None, previous_as_of=None,
                  expected_sessions=None, fetcher=fetch_bars):
     """Refresh current rows, make failures visible, and age out retired rows."""
-    run_date = run_date or date.today()
+    run_date = run_date or trading_calendar.hkt_today()
     expected_sessions = expected_sessions or {
         region: _latest_completed_session(region)
         for region in ('US', 'HK')
@@ -610,6 +610,7 @@ def provisional_setups(universe=None, *, region=None, fetch=None):
     """
     rows, errors = [], []
     fetcher = fetch or fetch_bars
+    run_date = trading_calendar.hkt_today()
     for detail in (universe if universe is not None else universe_details()):
         if region and detail.get('region') != region:
             continue
@@ -617,7 +618,7 @@ def provisional_setups(universe=None, *, region=None, fetch=None):
         try:
             bars = fetcher(detail['code'], 400)
             sig = compute_signals(bars)
-            if sig is None and is_short_history_candidate(detail, date.today()):
+            if sig is None and is_short_history_candidate(detail, run_date):
                 sig = compute_short_history_signals(bars)
         except Exception as exc:  # noqa: BLE001 — one bad symbol must not blank the rest
             errors.append({'label': label, 'error': f'{type(exc).__name__}: {exc}'[:200]})
@@ -676,7 +677,7 @@ def main(argv=None):
                   file=sys.stderr)
 
     out = {
-        'as_of': date.today().isoformat(),
+        'as_of': trading_calendar.hkt_today().isoformat(),
         'generated_at': datetime.now(timezone.utc).isoformat(),
         'sigma_target': SIGMA_TARGET,
         'max_stale_days': MAX_STALE_DAYS,

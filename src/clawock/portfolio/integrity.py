@@ -74,6 +74,7 @@ from pathlib import Path
 
 from clawock.bar_conflicts import classify_conflict
 from clawock.workspace import workspace_root
+from clawock.sessions import hkt_today
 
 WS = workspace_root()
 PORTFOLIO = WS / 'portfolio.json'
@@ -182,7 +183,7 @@ def _prev_snapshot_cash(region, field):
     deposits/withdrawals logged *after* that snapshot so a confirmed cash move isn't
     misread as a typo."""
     snaps = sorted((WS / 'memory' / 'snapshots').glob('*.json'))
-    today = date.today().isoformat()
+    today = hkt_today().isoformat()
     for f in reversed(snaps):
         if f.stem >= today:          # skip a snapshot already written for today
             continue

@@ -584,6 +584,11 @@
     el.title = gen || "";
   }
 
+  function _announceDataRefresh(message) {
+    const status = document.getElementById("data-refresh-status");
+    if (status) status.textContent = message;
+  }
+
   async function loadData(triggeredByUser = false) {
     const btn = document.getElementById("refresh-btn");
     if (btn) btn.classList.add("is-loading");
@@ -670,6 +675,11 @@
         }
       }
       LAST_LOADED_AT = newAt;
+      if (!firstLoad && hasNew) {
+        _announceDataRefresh(`数据已更新，生成时间 ${newAt}`);
+      } else if (!firstLoad && triggeredByUser) {
+        _announceDataRefresh("刷新完成，当前已是最新数据");
+      }
       // The shell is painted and the LCP path is done. Everything from here on
       // reads the data branch directly, which is ~14 minutes ahead of this
       // origin during a trading session (#367).
@@ -690,8 +700,12 @@
       // is the accurate signal. The first load has nothing to preserve.
       if (DATA == null) {
         document.getElementById("last-updated").textContent = "load failed";
+        _announceDataRefresh("数据载入失败");
       } else {
         _updateAgeLabel();
+        if (triggeredByUser) {
+          _announceDataRefresh("刷新失败，继续显示上一次数据");
+        }
       }
       if (btn) {
         btn.classList.remove("is-loading");

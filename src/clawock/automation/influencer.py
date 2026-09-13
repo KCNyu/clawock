@@ -49,6 +49,7 @@ from email.utils import parsedate_to_datetime
 import requests
 
 from clawock.safe_io import safe_write_json
+from clawock.sessions import hkt_today
 from clawock.market_data.sentiment import fetch_google_news
 from clawock.workspace import workspace_root
 
@@ -305,7 +306,7 @@ def fetch_ark(cutoff=None):
     五的动作，这一点必须诚实（前端按天显示，不是"刚刚"）。
     """
     rows, failures, consecutive = [], 0, 0
-    today = datetime.now(timezone.utc).date()
+    today = hkt_today()
     window = {
         'date_from': (today - timedelta(days=ARK_LOOKBACK_DAYS)).isoformat(),
         'date_to': today.isoformat(),

@@ -35,7 +35,6 @@ import subprocess
 import sys
 from datetime import datetime, timedelta
 from pathlib import Path
-from zoneinfo import ZoneInfo
 
 from clawock.workspace import workspace_root
 from clawock import sessions as trading_calendar
@@ -255,7 +254,7 @@ def collect_early_trend_candidates(market):
     except Exception:  # noqa: BLE001
         policy = {}
     rows = []
-    run_date = datetime.now(ZoneInfo('Asia/Hong_Kong')).date()
+    run_date = datetime.now(trading_calendar.HKT).date()
     for detail in universe:
         label = detail.get('label')
         try:
@@ -392,7 +391,7 @@ def collect_opportunity_radar(market):
     # still has a level, and an add-side `wait` needs it to say what would settle
     # the question. Computed in this same pass — no extra fetch, no new threshold.
     levels = {}
-    run_date = datetime.now(ZoneInfo('Asia/Hong_Kong')).date()
+    run_date = datetime.now(trading_calendar.HKT).date()
     # #621: thresholds come from add-alpha-policy.json like every other lane
     # (early_no_chase_zscore / opportunity_near_pct), so radar and early-trend
     # cannot drift apart when the config changes.
@@ -587,7 +586,7 @@ def append_active_information_section(block, active, *, event_ids=None):
 def _quote_fetched_at(data_source, market, now):
     """Parse the per-holding provenance stamp written by this analysis run."""
     text = str(data_source or '')
-    zone = ZoneInfo('America/New_York') if market == 'us' else ZoneInfo('Asia/Hong_Kong')
+    zone = trading_calendar.market_tz(market)
     patterns = (
         (r'([A-Z][a-z]{2} \d{1,2}, \d{4} \d{2}:\d{2}) ET\b', '%b %d, %Y %H:%M'),
         (r'([A-Z][a-z]{2} \d{1,2} \d{2}:\d{2}) HKT\b', '%b %d %H:%M'),
@@ -618,12 +617,12 @@ def quote_coverage(_block, market, portfolio_path=None, *, now=None,
     stamps that holding's ``data_source``, so compare those stamps with the
     timezone-aware preflight time instead.
     """
-    now = now or datetime.now(ZoneInfo('Asia/Hong_Kong'))
-    now = now if now.tzinfo else now.replace(tzinfo=ZoneInfo('Asia/Hong_Kong'))
+    now = now or datetime.now(trading_calendar.HKT)
+    now = now if now.tzinfo else now.replace(tzinfo=trading_calendar.HKT)
     started_at = started_at or (now - timedelta(minutes=fresh_minutes))
     started_at = (
         started_at if started_at.tzinfo
-        else started_at.replace(tzinfo=ZoneInfo('Asia/Hong_Kong'))
+        else started_at.replace(tzinfo=trading_calendar.HKT)
     )
     active = []
     try:
@@ -799,7 +798,7 @@ def main(argv=None):
     parser.add_argument('--market', choices=['hk', 'us'], required=True)
     args = parser.parse_args(argv)
 
-    now = datetime.now(ZoneInfo('Asia/Hong_Kong'))
+    now = datetime.now(trading_calendar.HKT)
     stamp = now.strftime('%Y-%m-%d_%H%M')
     heartbeat = cron_heartbeat.record(args.market, 'started')
 
@@ -954,7 +953,7 @@ def main(argv=None):
     # are later than the preflight start time, especially on a slow US run.
     coverage = quote_coverage(
         stdout, args.market,
-        now=datetime.now(ZoneInfo('Asia/Hong_Kong')),
+        now=datetime.now(trading_calendar.HKT),
         started_at=now,
     )
     semantic_state = intraday_delta.semantic_state(

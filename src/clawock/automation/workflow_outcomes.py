@@ -76,7 +76,7 @@ def tmp_dir() -> Path:
     return _ws() / "memory" / ".tmp"
 SCHEMA_VERSION = 1
 KEEP_HOURS = 96
-HKT = ZoneInfo("Asia/Hong_Kong")
+HKT = schedule.HKT
 
 STAGES = (
     "preflight",

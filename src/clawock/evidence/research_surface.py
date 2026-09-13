@@ -22,13 +22,13 @@ import json
 import sys
 from datetime import date, datetime, time, timedelta, timezone
 from pathlib import Path
-from zoneinfo import ZoneInfo
 
 from clawock.decision import earnings as earnings_review
 from clawock.decision import entry as entry_gate
 from clawock.decision import theses as thesis_registry
 from clawock import instruments as instrument_registry
 from clawock.workspace import workspace_root
+from clawock.sessions import ET
 
 WS = workspace_root()
 THESIS_DIR = WS / "memory" / "theses"
@@ -90,7 +90,7 @@ STALE_LEDGER_FACTOR = float(POLICY["stale_ledger_factor"])
 # `fetch_catalysts` currently sources the earnings calendar for US-listed
 # issuers. Calendar dates and BMO/AMC labels therefore belong to New York time,
 # even though the recurring jobs and `today` run in HKT.
-US_EARNINGS_TZ = ZoneInfo("America/New_York")
+US_EARNINGS_TZ = ET
 US_MARKET_OPEN = time(9, 30)
 # An AMC label promises only "after close", not a precise release minute.
 # Waiting 15 minutes avoids creating work at the closing bell itself.
