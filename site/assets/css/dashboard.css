@@ -111,7 +111,13 @@
     --blur-thin: blur(14px) saturate(166%);
     --radius: 10px;
     --radius-sm: 6px;
-    --gap: 12px;
+    /* 卡片节奏：全站「卡与卡之间」只有三档，都落在下面这条 4px 阶上 ——
+       卡内相邻块 --space-3 · 同组卡片 --space-3(窄屏)/--space-4(桌面) ·
+       分节线上方 --space-5。三档仍然不同（卡内 < 卡间 < 分节），收掉的是
+       「同一件事的两个值」：收敛前的渲染实测（1440×900 六 tab 全量）里，
+       Overview 用 .overview-command 的 16、其余五个 tab 用 masonry 的 22；
+       分隔线下方 18(Risk)/14(Holdings)/4(手机)；卡内分块是 18+16(sub-block)
+       与 16+16(trig-block) 两份配方。同一档里没人选过的差就是噪声。 */
     --space-1: 4px;
     --space-2: 8px;
     --space-3: 12px;
@@ -637,7 +643,9 @@
       min-width: 0;                            /* clamp page to viewport, not content width */
       overflow-x: hidden; overflow-y: auto; overscroll-behavior-y: contain;
       scroll-snap-align: start; scroll-snap-stop: always;
-      padding: var(--space-4);
+      /* 上边距那一档由每张卡自带（见 .panel > .card），这里减掉同样的量，页首
+         留白和桌面档一样只由页边距决定。 */
+      padding: calc(var(--space-4) - var(--space-3)) var(--space-4) var(--space-4);
       /* Keep every panel box in the horizontal pager so native swipe/snap geometry
          stays intact, but let Chromium skip inner work for off-screen panels. Keep
          a viewport-height intrinsic block so revealing a skipped subtree cannot
@@ -691,23 +699,32 @@
     .panel.active {
       display: block;
       column-count: 2;
-      column-gap: 22px;
+      column-gap: var(--space-4);
     }
     .panel.active > * { break-inside: avoid; }
-    .panel.active > .card { margin: 0 0 22px; }
+    /* 卡片节奏（桌面档）：每一块自带上边距。旧值 22 和 Overview 的 16 是
+       「同一件事两个值」，切个 tab 卡片节奏就换一次；现在六个 tab 同档。
+       面板整体上提同一档，抵掉首块那个上边距 —— 页首留白不变，也就不需要去
+       认「哪一张才是第一张」（Plan 开头有两张按数据显隐的卡）。 */
+    .panel.active { margin-top: calc(-1 * var(--space-4)); }
+    .panel.active > .card,
+    .panel.active > .overview-command { margin-top: var(--space-4); }
     .panel.active > .card.lead,
     .panel.active > .card.desktop-wide,
     .panel.active > .sect-divider,
     .panel.active > .today-highlights,
     .panel.active > h2 { column-span: all; }
-    .panel.active > .sect-divider { margin: 6px 0 18px; }
+    /* 分节：线上方 --space-5 明显大于卡间距 --space-4，线下方就是下一张卡自
+       己的那一档 —— 分隔线属于它下面那组。旧值 6/18 和 6/14 都把线放在两节中
+       间，标题归谁要靠猜。 */
+    .panel.active > .sect-divider { margin: var(--space-5) 0 0; }
     /* Holdings needs one continuous masonry flow. Full-width dividers used to
        partition it into rigid mini-flows, leaving a 659px blank band beside the
        tall tables. Keep the labels in flow so later cards can fill that space. */
     .panel.active[data-panel="drill"] > .sect-divider {
       column-span: none;
       break-after: avoid;
-      margin: 6px 2px 14px;
+      margin: var(--space-5) 2px 0;
     }
     .panel.active[data-panel="drill"] > .holdings-section-heading {
       column-span: all;
@@ -781,7 +798,11 @@
     border-radius: 16px;
     box-shadow: inset 0 1px 0 var(--spec-1), var(--edge-bottom), var(--shadow-card);
     padding: var(--space-4);
-    margin-bottom: var(--gap);
+    /* 卡片节奏（全站说明在 --space-* 上方）：块与块之间的留白一律由「后面那
+       一块自己的上边距」给，卡片本身不带下边距。下边距在多列布局的分栏结束处
+       会被丢掉 —— 桌面档只能用上边距，窄屏档跟着用同一种机制，两档就不是两
+       套规则。 */
+    margin: 0;
     transition: transform var(--duration-fast) var(--ease-out),
                 box-shadow var(--duration-fast) var(--ease-out);
   }
@@ -1921,7 +1942,7 @@
   .pt-row .pt-pnl.neg { color: var(--red); }
 
   /* Trigger-type breakdown bars (extends Plan Review card) */
-  .trig-block { margin-top: 16px; padding-top: 16px; border-top: 1px dashed var(--border); }
+  .trig-block { margin-top: var(--space-3); padding-top: var(--space-3); border-top: 1px dashed var(--border); }
   .trig-block .trig-title {
     font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: 0.06em;
     color: var(--text-dim); margin-bottom: var(--space-3); font-weight: 600;
@@ -2209,7 +2230,11 @@
   .sect-divider {
     display: flex; align-items: center; gap: var(--space-3);
     font: 700 var(--fs-sm) var(--mono); letter-spacing: 0.04em;
-    color: var(--text-dim); margin: 2px 2px 4px; padding-top: 4px;
+    /* 窄屏档（桌面档见 .panel.active > .sect-divider）：单列时卡间距是
+       --space-3，分节就该比它大一档，所以线上方走 --space-4；线下方是下一张
+       卡自己的那一档。旧值 2/4 让手机上的分节标题几乎贴住下面那张卡，比卡片
+       之间的间距还小。 */
+    color: var(--text-dim); margin: var(--space-4) 2px 0; padding-top: 4px;
   }
   .sect-divider::after { content: ""; flex: 1; height: 1px; background: var(--border); }
   .audit-list { display: flex; flex-direction: column; gap: var(--space-2); margin-top: var(--space-3); }
@@ -2362,7 +2387,9 @@
   }
   .overview-command {
     display: grid; grid-template-columns: repeat(12, minmax(0, 1fr));
-    gap: 16px; align-items: stretch;
+    /* 桌面档，和其它五个 tab 的 masonry 同值同 token —— 收敛前这里写死 16，
+       别的 tab 是 22，Overview 因此比哪一页都松一档。 */
+    gap: var(--space-4); align-items: stretch;
   }
   .overview-command > * { min-width: 0; margin: 0; }
   .overview-card-kicker {
@@ -3895,6 +3922,11 @@
   .hl-chip.hl-alert { color: var(--red); font-weight: 600; }
 
   @media (min-width: 768px) and (max-width: 1023px) {
+    /* 卡片节奏的窄档：这一档 Overview 还是 12 列网格（≤767 才转 flex 列），
+       而其它 tab 的卡片已经按 .card 的窄屏档排 —— 不同步这一处，同一个宽度
+       下指挥台卡片 16、其他页 12。必须写在 .overview-command 基础规则之后：
+       同一个选择器、同一档优先级，先写的那条会被后面的基础规则盖掉。 */
+    .overview-command { gap: var(--space-3); }
     .hero-rail { grid-template-columns: repeat(4, minmax(0, 1fr)); min-height: 152px; }
     /* 296：768~1023 扫宽忙日实测上界 260.39（在 780）+ 露边 16 + gap 8
        + 指示点 10 = 294.39，+2（第八次迭代重扫：异动条多一行小标题）。 */
@@ -3923,7 +3955,7 @@
   }
   @media (max-width: 767px) {
     :root { --card-inset: 20px; }
-    .overview-command { display: flex; flex-direction: column; gap: 12px; }
+    .overview-command { display: flex; flex-direction: column; gap: var(--space-3); }
     .hero-deck, .hero-health,
     .verdict-deck, .overview-strip,
     .overview-command > .hero-honesty-card,
@@ -4365,8 +4397,18 @@
     color: var(--text-tertiary); font-size: var(--fs-micro);
   }
 
+  /* 卡片节奏（窄屏档）：和桌面档同一个机制 —— 每一块自带上边距，卡片不带下边
+     距。面板的 padding-top 相应减去一档（见 .panel 的 padding），所以页首那圈
+     留白没变，而开头按数据显隐的卡片（Plan 的 add-side / watch-levels）也不会
+     把真正露出来的第一张按普通卡片推下去一档。 */
+  .panel > .card,
+  .panel > .overview-command { margin-top: var(--space-3); }
+
   /* 合并卡内部的分节（组合结构 / 今日异动）*/
-  .sub-block + .sub-block { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border-subtle); }
+  /* 卡内分块 = 12 + 发丝线 + 12 = 25px，比卡与卡的 16px 松 —— 和旧值
+     （18+16=35 对卡间 22）同一个方向，只是跟着卡片一起收了一档。
+     .trig-block 原来写的是 16/16，同一件事的第二份配方；两处现在同一条。 */
+  .sub-block + .sub-block { margin-top: var(--space-3); padding-top: var(--space-3); border-top: 1px solid var(--border-subtle); }
   .sub-block-head {
     color: var(--text); font: 700 var(--fs-sm)/1.4 var(--font, inherit); margin-bottom: 10px;
   }
@@ -4375,7 +4417,7 @@
   .action-split .sub-block + .sub-block { margin-top: 0; padding-top: 0; border-top: 0; }
   @media (max-width: 900px) {
     .action-split { grid-template-columns: minmax(0, 1fr); }
-    .action-split .sub-block + .sub-block { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--border-subtle); }
+    .action-split .sub-block + .sub-block { margin-top: var(--space-3); padding-top: var(--space-3); border-top: 1px solid var(--border-subtle); }
     .book-table th.col-p2, .book-table td.col-p2 { display: none; }
   }
   @media (max-width: 560px) {

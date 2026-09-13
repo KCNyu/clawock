@@ -2288,6 +2288,187 @@ async function testASidecarStillReachesItsCardWhenThePagerIsStillSettling(browse
   await context.close();
 }
 
+// 卡片节奏：同一个宽度下，六个 tab 的「卡与卡之间」必须是同一档，分节间距
+// 必须明显大于卡间距。kcn：「我所有卡片之间的间距…现在间距都不统一，可以适当
+// 的收紧，但不要完全统一」。
+//
+// 收敛前 1440×900 的渲染实测：Overview 走 .overview-command 的 16，其余五个
+// tab 走 masonry 的 22 —— 同一个宽度、同一种关系，换个 tab 就换一个值；分隔线
+// 下方的留白三个值（Risk 18 / Holdings 14 / 手机 4）；指挥台网格与紧随其后的
+// 那张卡是 0px（网格的 gap 管不到自己的外沿）；卡内分块两份配方
+// （sub-block 18+16，trig-block 16+16）。
+//
+// 这条闸量几何，不读 CSS 文本：换 token、改选择器、重排规则全都照样过，只有
+// 渲染出来的间距真的变了才红。分节间距用「分隔线到它前后最远 / 最近一块的
+// 距离」—— 分隔线在桌面上是 column-span:all，两列收尾高度不同，逐列配对量到
+// 的是较短的那列，会得到一个比真实值大的数。
+const RHYTHM_SAMPLE = ({ tabs }) => {
+  const round = n => Math.round(n * 10) / 10;
+  const out = {};
+  for (const tab of tabs) {
+    const panel = document.querySelector(`.panel[data-panel="${tab}"]`);
+    if (!panel || getComputedStyle(panel).display === "none") continue;
+    // Hero 的指挥台卡片在 .overview-command 里；摊平之后六个 tab 的「顶层块」
+    // 才是同一种东西。
+    const blocks = [];
+    for (const el of panel.children) {
+      const group = el.classList.contains("overview-command") ? [...el.children] : [el];
+      for (const item of group) {
+        const r = item.getBoundingClientRect();
+        const cs = getComputedStyle(item);
+        if (cs.display === "none" || cs.visibility === "hidden") continue;
+        if (r.height < 2 || r.width < 2) continue; // 视觉隐藏的 <h2> 不参与
+        blocks.push({
+          cls: typeof item.className === "string" ? item.className : "",
+          left: round(r.left), width: round(r.width),
+          top: round(r.top + window.scrollY), bottom: round(r.bottom + window.scrollY),
+        });
+      }
+    }
+    const cards = blocks.filter(b => !b.cls.includes("sect-divider"));
+    const dividers = blocks.filter(b => b.cls.includes("sect-divider"));
+    // 同列配对：先按列分组（桌面 masonry 的 DOM 顺序不等于视觉顺序），再在
+    // 同一列里按 y 排。列内相邻两张卡之间的空白就是读者看到的「卡与卡之间」。
+    const gaps = [];
+    const columns = new Map();
+    for (const b of cards) {
+      if (!columns.has(b.left)) columns.set(b.left, []);
+      columns.get(b.left).push(b);
+    }
+    for (const column of columns.values()) {
+      column.sort((a, b) => a.top - b.top);
+      for (let i = 1; i < column.length; i += 1) {
+        const gap = round(column[i].top - column[i - 1].bottom);
+        if (gap < 0 || gap >= 200) continue;
+        // 中间隔着分节线的两张卡量到的是「分节」，不是卡片节奏：分开算，
+        // 它只需要比卡片节奏松。
+        const straddles = dividers.some(d => d.top >= column[i - 1].bottom - 1 && d.top <= column[i].top + 1);
+        gaps.push({ gap, straddles, from: column[i - 1].cls, to: column[i].cls });
+      }
+    }
+    const above = [];
+    const below = [];
+    for (const d of dividers) {
+      const before = blocks.filter(b => b !== d && b.top < d.top);
+      const after = blocks.filter(b => b !== d && b.top > d.bottom);
+      if (before.length) above.push(round(d.top - Math.max(...before.map(b => b.bottom))));
+      if (after.length) below.push(round(Math.min(...after.map(b => b.top)) - d.bottom));
+    }
+    // 每个 tab 的第一块：面板开头可能有按数据显隐的卡（Plan 的 add-side /
+    // watch-levels），它们不占位置但会把「第一块」的位置占掉 —— 真正露出来的
+    // 那一张如果按普通卡片推一档，这个 tab 的首块就会比别的 tab 低一格。
+    const first = blocks.slice().sort((a, b) => a.top - b.top)[0] || null;
+    out[tab] = {
+      cards: cards.length,
+      gaps: gaps.map(g => g.gap),
+      gapDetail: gaps,
+      above, below,
+      panelTop: round(panel.getBoundingClientRect().top + window.scrollY),
+      firstTop: first ? first.top : null,
+      firstKind: first ? (first.cls.includes("sect-divider") ? "divider" : "block") : null,
+    };
+  }
+  return out;
+};
+
+async function rhythmOf(browser, base, { width, height, isMobile, tabs, settle = 350 }) {
+  const context = await browser.newContext({
+    viewport: { width, height }, isMobile: !!isMobile, hasTouch: !!isMobile,
+  });
+  const page = await context.newPage();
+  await stubLiveOrigin(page);
+  await page.goto(base, { waitUntil: "networkidle" });
+  await waitForData(page);
+  const seen = {};
+  for (const tab of tabs) {
+    if (tab !== "hero") {
+      await page.click(`#tab-${tab}`);
+      await waitForTab(page, tab);
+      await page.waitForTimeout(settle);
+    }
+    Object.assign(seen, await page.evaluate(RHYTHM_SAMPLE, { tabs: [tab] }));
+  }
+  await context.close();
+  return seen;
+}
+
+async function testCardRhythmIsOneScalePerTier(browser, base) {
+  const tabs = ["hero", "drill", "risk", "market", "plan", "reflect"];
+  // 桌面档：卡间距 16（--space-4）、分节线上方 24（--space-5）、线下方 16
+  const desktop = await rhythmOf(browser, base, { width: 1440, height: 900, tabs });
+  for (const tab of tabs) {
+    const sample = desktop[tab];
+    assert(sample, `${tab}: the panel never rendered`);
+    const within = sample.gapDetail.filter(row => !row.straddles);
+    assert(within.length > 0,
+      `${tab}: no two cards share a column — the rhythm check went vacuous`);
+    for (const row of within) {
+      assert.equal(row.gap, 16,
+        `${tab}: ${row.from} → ${row.to} is ${row.gap}px apart; the desktop card rhythm is 16px. ` +
+        `Whole tab: ${JSON.stringify(sample.gapDetail.map(r => r.gap))}`);
+    }
+    for (const row of sample.gapDetail.filter(r => r.straddles)) {
+      assert(row.gap > 16,
+        `${tab}: a section break measures ${row.gap}px, no looser than the 16px card gap — ` +
+        `the grouping it draws would disappear`);
+    }
+    for (const gap of sample.above) {
+      assert.equal(gap, 24,
+        `${tab}: the section divider sits ${gap}px below the previous card, expected 24px (--space-5)`);
+    }
+    for (const gap of sample.below) {
+      assert.equal(gap, 16,
+        `${tab}: the first card of a section sits ${gap}px below the divider, expected 16px (--space-4)`);
+    }
+  }
+  // 首块的位置：同类首块在六个 tab 里必须落在同一条线上。Hero 的上面挂着
+  // 桌面摘要条（只在 Overview 显示），所以它不参与这条比较。
+  const byKind = { block: [], divider: [] };
+  for (const tab of tabs) {
+    if (tab === "hero") continue;
+    const sample = desktop[tab];
+    if (!sample.firstTop) continue;
+    byKind[sample.firstKind].push({ tab, top: sample.firstTop });
+  }
+  for (const [kind, rows] of Object.entries(byKind)) {
+    assert(rows.length > 0, `no tab starts with a ${kind} — the first-block check went vacuous`);
+    const tops = rows.map(r => r.top);
+    assert(Math.max(...tops) - Math.min(...tops) <= 2,
+      `the first ${kind} does not line up across tabs: ${rows.map(r => `${r.tab}@${r.top}`).join(", ")} — ` +
+      `a block that is hidden by data still occupies the "first block" position, so the first visible one must not be pushed down an extra tier`);
+  }
+
+  // 「不要完全统一」：分节必须比卡间距松，否则分组就没了。至少有一个 tab 真的
+  // 画了分节线，这条断言才不是空转。
+  const withDivider = tabs.map(t => desktop[t]).filter(t => t.above.length);
+  assert(withDivider.length > 0,
+    "no tab rendered a section divider — the hierarchy half of this check went vacuous");
+  for (const sample of withDivider) {
+    assert(sample.above[0] > 16,
+      `a section divider is only ${sample.above[0]}px below the previous card; it has to read looser than the 16px card gap`);
+  }
+
+  // 窄屏档：同一套节奏的密档 —— 卡间距 12、分节线上方 16、线下方 12。
+  const phone = await rhythmOf(browser, base, {
+    width: 390, height: 844, isMobile: true, tabs: ["hero", "drill"],
+  });
+  for (const tab of ["hero", "drill"]) {
+    const sample = phone[tab];
+    const within = sample ? sample.gapDetail.filter(row => !row.straddles) : [];
+    assert(within.length > 0, `${tab} (phone): no stacked cards to measure`);
+    for (const row of within) {
+      assert.equal(row.gap, 12, `${tab} (phone): ${row.from} → ${row.to} is ${row.gap}px apart, expected 12px`);
+    }
+  }
+  for (const gap of phone.drill.above) {
+    assert.equal(gap, 16, `drill (phone): the divider sits ${gap}px below the previous card, expected 16px`);
+  }
+  for (const gap of phone.drill.below) {
+    assert.equal(gap, 12, `drill (phone): the section opens ${gap}px below the divider, expected 12px`);
+  }
+}
+
+
 async function main() {
   const server = serveWorkspace();
   await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
@@ -2330,6 +2511,7 @@ async function main() {
     await run("testCronRailAccountsForEverySlotWithoutASecondVerdict", () => testCronRailAccountsForEverySlotWithoutASecondVerdict(browser, base));
     await run("testCronNeedsActionMergesIntoTheOneTodoListButWatchDoesNot", () => testCronNeedsActionMergesIntoTheOneTodoListButWatchDoesNot(browser, base));
     await run("testMoversSayWhichSessionTheyAreFrom", () => testMoversSayWhichSessionTheyAreFrom(browser, base));
+    await run("testCardRhythmIsOneScalePerTier", () => testCardRhythmIsOneScalePerTier(browser, base));
   } finally {
     await browser.close();
     await new Promise(resolve => server.close(resolve));
