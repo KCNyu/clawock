@@ -561,7 +561,17 @@ export function _balanceNote(result: BalanceResult | null): string | null {
   }
   if (result.low) {
     // threshold 是「剩余水位」(lowPct),已使用方向 = 100 − threshold。
-    if (result.snapshot.unit === 'pct') return '窗口已使用达 ' + (100 - result.threshold) + '%'
+    if (result.snapshot.unit === 'pct') {
+      // Name the window that actually crossed the line. The headline is the
+      // first window, so a red「1%」with a bare「窗口已使用达 80%」left the reader
+      // guessing which window — it was the weekly one at 83%.
+      const over = (result.snapshot.windows ?? [])
+        .filter((w) => w.percent !== null && w.percent >= 100 - result.threshold)
+        .sort((a, b) => (b.percent as number) - (a.percent as number))[0]
+      return over !== undefined
+        ? over.label + ' 已用 ' + Math.round(over.percent as number) + '%'
+        : '窗口已使用达 ' + (100 - result.threshold) + '%'
+    }
     const symbol = result.snapshot.currency === 'USD' ? '$' : result.snapshot.currency === 'CNY' ? '¥' : ''
     return '余额偏低,低于阈值 ' + symbol + result.threshold
   }
