@@ -228,7 +228,11 @@ const CL_ROW_OK = {
   provider: "claude", label: "Claude",
   result: { configured: true, snapshot: { isAvailable: true, unit: "pct", currency: "", totalBalance: "36", grantedBalance: "", toppedUpBalance: "", asOf: AS_OF, note: "会话窗口已使用 36% · 本周已使用 69%", windows: [{ label: "会话", percent: 36, resetAt: "10:00" }, { label: "本周", percent: 69, resetAt: "周四 10:00" }] }, status: "fresh", low: false, message: null, threshold: 20, refreshMs: 60000 },
 };
-const BALANCES_OK = { providers: [DS_ROW_OK, MM_ROW_OK, CL_ROW_OK], refreshMs: 60000 };
+const CX_ROW_OK = {
+  provider: "codex", label: "Codex",
+  result: { configured: true, snapshot: { isAvailable: true, unit: "pct", currency: "", totalBalance: "18", grantedBalance: "", toppedUpBalance: "", asOf: AS_OF, note: "5h 窗口已使用 18% · 周窗口已使用 41%", windows: [{ label: "5h", percent: 18, resetAt: "15:00" }, { label: "周", percent: 41, resetAt: "周四 10:00" }] }, status: "fresh", low: false, message: null, threshold: 20, refreshMs: 300000 },
+};
+const BALANCES_OK = { providers: [DS_ROW_OK, MM_ROW_OK, CL_ROW_OK, CX_ROW_OK], refreshMs: 60000 };
 const QUIET_BALANCES = { providers: [], refreshMs: 60000 };
 /** The balances channel stub for renders that don't exercise the chip. */
 function balanceProps() {
@@ -373,8 +377,8 @@ test("client: registers the Decision Mind tab and mounts the remote face", async
   assert.equal(typeof balInjected.cachedBalances, "function");
   assert.equal(balInjected.cachedBalances(), null, "a fresh registration has no balances answer yet");
   const bal = await balInjected.fetchBalances(false);
-  assert.deepEqual(bal.providers.map((r) => r.provider), ["deepseek", "minimax", "claude"],
-    "stable display order across the three providers");
+  assert.deepEqual(bal.providers.map((r) => r.provider), ["deepseek", "minimax", "claude", "codex"],
+    "stable display order across the four providers");
   assert.equal(bal.providers[0].result.snapshot.totalBalance, "110.00");
   assert.ok(balInjected.cachedBalances(), "the fetched answer is cached in the apply closure");
   // The chip's pinned-provider choice is registration-store state.
@@ -1379,6 +1383,94 @@ test("balance: claude subscription windows via the OAuth usage endpoint", async 
   assert.throws(() => parseClaudeUsage({}, AS_OF), /用量窗口/);
 });
 
+test("balance: codex subscription windows via the official app-server", async () => {
+  const balance = await import(pathToFileURL(path.join(PLUGIN, "lib", "balance.js")).href);
+  const { createCodexService, parseCodexRateLimits, readCodexRateLimits } = balance;
+  const osMod = await import("node:os");
+  const fsMod = await import("node:fs");
+  const pathMod = await import("node:path");
+
+  const parsed = parseCodexRateLimits({
+    ordinaryUsageAllowed: true,
+    rateLimits: {
+      primary: { usedPercent: 18.4, windowDurationMins: 300, resetsAt: 1785196800 },
+      secondary: { usedPercent: 81.2, windowDurationMins: 10080, resetsAt: 1785801600 },
+    },
+  }, AS_OF);
+  assert.equal(parsed.isAvailable, true);
+  assert.equal(parsed.totalBalance, "18");
+  assert.deepEqual(parsed.windows.map((w) => [w.label, w.percent]), [["5h", 18], ["周", 81]]);
+  assert.match(parsed.windows[0].resetAt, /^\d{2}:\d{2}$/);
+  assert.throws(() => parseCodexRateLimits({ ordinaryUsageAllowed: true }, AS_OF), /额度数据/);
+
+  const tmp = fsMod.mkdtempSync(pathMod.join(osMod.tmpdir(), "codex-app-server-"));
+  const fake = pathMod.join(tmp, "codex");
+  fsMod.writeFileSync(fake, `#!/usr/bin/env node
+const readline = require("node:readline");
+const rl = readline.createInterface({ input: process.stdin });
+rl.on("line", (line) => {
+  const msg = JSON.parse(line);
+  if (msg.id === 0) process.stdout.write(JSON.stringify({ id: 0, result: { userAgent: "fake" } }) + "\\n");
+  if (msg.id === 1) process.stdout.write(JSON.stringify({ id: 1, result: {
+    ordinaryUsageAllowed: true,
+    rateLimitsByLimitId: { codex: {
+      primary: { usedPercent: 22, windowDurationMins: 300 },
+      secondary: { usedPercent: 44, windowDurationMins: 10080 }
+    } }
+  } }) + "\\n");
+});
+`);
+  fsMod.chmodSync(fake, 0o755);
+  try {
+    const raw = await readCodexRateLimits(fake, 2000);
+    assert.equal(raw.rateLimitsByLimitId.codex.primary.usedPercent, 22, "initialize then quota RPC completes");
+
+    const service = createCodexService(
+      { credentials: { resolve: async () => undefined } },
+      { command: fake, lowPct: 20, refreshMs: 300000 },
+    );
+    const fresh = await service.get(false);
+    assert.equal(fresh.status, "fresh");
+    assert.equal(fresh.snapshot.totalBalance, "22");
+    assert.equal(fresh.low, false);
+    assert.equal(fresh.refreshMs, 300000);
+    const cached = await service.get(false);
+    assert.equal(cached.status, "cached", "Codex keeps its longer app-server TTL");
+
+    const weeklyLow = parseCodexRateLimits({
+      ordinaryUsageAllowed: true,
+      rateLimits: {
+        primary: { usedPercent: 10, windowDurationMins: 300 },
+        secondary: { usedPercent: 84, windowDurationMins: 10080 },
+      },
+    }, AS_OF);
+    const weeklyLowFake = pathMod.join(tmp, "codex-weekly-low");
+    fsMod.writeFileSync(weeklyLowFake, fsMod.readFileSync(fake, "utf8").replace(
+      "primary: { usedPercent: 22,",
+      "primary: { usedPercent: 10,",
+    ).replace(
+      "secondary: { usedPercent: 44,",
+      "secondary: { usedPercent: 84,",
+    ));
+    fsMod.chmodSync(weeklyLowFake, 0o755);
+    assert.equal(weeklyLow.windows[1].percent, 84);
+    const weeklyLowResult = await createCodexService(
+      { credentials: { resolve: async () => undefined } },
+      { command: weeklyLowFake, lowPct: 20 },
+    ).get(true);
+    assert.equal(weeklyLowResult.low, true, "either Codex window crossing the watermark lights the row");
+
+    const missing = await createCodexService(
+      { credentials: { resolve: async () => undefined } },
+      { command: pathMod.join(tmp, "missing-codex") },
+    ).get(false);
+    assert.equal(missing.status, "no-key");
+    assert.match(missing.message, /未找到 Codex CLI/);
+  } finally {
+    fsMod.rmSync(tmp, { recursive: true, force: true });
+  }
+});
+
 test("typert: the frozen artifacts carry the balance wire on both faces", () => {
   // The clawock checkout cannot regenerate the Typert face (see build.mjs):
   // these committed files ARE the wire. A method missing here is a method
@@ -1405,7 +1497,7 @@ test("client: the header chip headlines one provider and the panel pins the rest
 
   // DeepSeek low + MiniMax healthy: the pill headlines the FIRST row until a
   // panel click pins another one.
-  const envelope = { providers: [DS_ROW_OK, MM_ROW_OK, CL_ROW_OK], refreshMs: 60000 };
+  const envelope = { providers: [DS_ROW_OK, MM_ROW_OK, CL_ROW_OK, CX_ROW_OK], refreshMs: 60000 };
   const remoteFace = { balance: async () => ({ ok: true, value: envelope }) };
   const ctx = {
     effect() {},
@@ -1460,7 +1552,7 @@ test("client: the header chip headlines one provider and the panel pins the rest
   assert.equal(chipValueDefault["data-used-level"], undefined, "money headlines carry no usage tier");
   // Panel: mounted closed, every provider listed with its own tone.
   assert.equal(f.openAttr, "false", "the panel renders closed but mounted");
-  assert.deepEqual(f.panel.map((n) => n.props["data-pb-provider"]), ["deepseek", "minimax", "claude"]);
+  assert.deepEqual(f.panel.map((n) => n.props["data-pb-provider"]), ["deepseek", "minimax", "claude", "codex"]);
   assert.ok(f.refresh, "the manual refresh lives in the panel header");
 
   // Open → click the minimax row → the pill re-headlines minimax (persisted).
@@ -1815,6 +1907,4 @@ test("client: an exhausted quota row shows its 100% bars and resets instead of a
   assert.ok(texts.some((t) => t.includes("周 100% ↻周四 21:00")), "the pill's weekly suffix carries its own reset");
   disposeReactEffects();
 });
-
-
 

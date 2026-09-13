@@ -14,7 +14,13 @@ import type { Context } from '@deepseek-ai/cordis'
 import type {
   BalancesResult, LedgerResult, ListRunsResult, PlansResult, PortfolioResult, RunDetailResult, TracesResult,
 } from './types.ts'
-import { createBalanceService, createClaudeService, createMinimaxService, type BalanceCredentials } from './balance.ts'
+import {
+  createBalanceService,
+  createClaudeService,
+  createCodexService,
+  createMinimaxService,
+  type BalanceCredentials,
+} from './balance.ts'
 import { getRun, listRuns } from './scan.ts'
 import { readLedger, readPlans, readPortfolio, readTraces } from './ledger.ts'
 import { createTraceCache, workspaceKeyOf, workspaceSignature } from './freshness.ts'
@@ -52,6 +58,12 @@ export interface ClawockStudioConfig {
    * (default 20 = ≥80% used); displayed number is used percent.
    */
   claudeLowPct?: number
+  /** Codex CLI executable used for the official app-server quota RPC. */
+  codexCommand?: string
+  /** Red dot watermark in REMAINING terms (default 20 = >=80% used). */
+  codexLowPct?: number
+  /** Codex app-server polling/cache cadence in ms (default 5 minutes). */
+  codexRefreshMs?: number
 }
 
 /**
@@ -90,6 +102,7 @@ export class ClawockStudioGateway extends TypertRemoteService {
     deepseek: { get(force: boolean): Promise<import('./types.ts').BalanceResult> }
     minimax: { get(force: boolean): Promise<import('./types.ts').BalanceResult> }
     claude: { get(force: boolean): Promise<import('./types.ts').BalanceResult> }
+    codex: { get(force: boolean): Promise<import('./types.ts').BalanceResult> }
   } | null = null
 
   constructor(ctx: Context, config: ClawockStudioConfig = {}) {
@@ -187,18 +200,28 @@ export class ClawockStudioGateway extends TypertRemoteService {
             lowPct: pendingConfig.claudeLowPct,
           },
         ),
+        codex: createCodexService(
+          { credentials: credentialsOf(this.ctx) },
+          {
+            command: pendingConfig.codexCommand,
+            lowPct: pendingConfig.codexLowPct,
+            refreshMs: pendingConfig.codexRefreshMs,
+          },
+        ),
       }
     }
-    const [deepseek, minimax, claude] = await Promise.all([
+    const [deepseek, minimax, claude, codex] = await Promise.all([
       this.balanceServices.deepseek.get(force),
       this.balanceServices.minimax.get(force),
       this.balanceServices.claude.get(force),
+      this.balanceServices.codex.get(force),
     ])
     return { providers: [
       { provider: 'deepseek', label: 'DeepSeek', result: deepseek },
       { provider: 'minimax', label: 'MiniMax', result: minimax },
       { provider: 'claude', label: 'Claude', result: claude },
-    ], refreshMs: Math.min(deepseek.refreshMs, minimax.refreshMs, claude.refreshMs) }
+      { provider: 'codex', label: 'Codex', result: codex },
+    ], refreshMs: Math.min(deepseek.refreshMs, minimax.refreshMs, claude.refreshMs, codex.refreshMs) }
   }
 }
 

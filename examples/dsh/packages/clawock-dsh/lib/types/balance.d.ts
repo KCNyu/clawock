@@ -7,6 +7,8 @@
  *   - minimax:  `GET {base}/v1/token_plan/remains` (Token Plan quota windows;
  *     `base_resp.status_code` is the business verdict — 0 ok, 1004 auth —
  *     and a HTTP-200 body can still be an auth failure)
+ *   - codex:    official `codex app-server` JSON-RPC
+ *     `account/rateLimits/read` (ChatGPT subscription quota windows)
  *
  * One cache per provider, one source of truth: the gateway instance owns
  * them, so a stale read, a failed refresh and a rotated key all resolve
@@ -29,6 +31,9 @@ export declare const DEFAULT_OPENCLAW_CONFIG_PATH = "/root/.openclaw/openclaw.js
 export declare const DEFAULT_CLAUDE_CREDENTIALS_PATH = "/root/.claude/.credentials.json";
 export declare const DEFAULT_CLAUDE_USAGE_URL = "https://api.anthropic.com/api/oauth/usage";
 export declare const DEFAULT_CLAUDE_LOW_PCT = 20;
+export declare const DEFAULT_CODEX_COMMAND = "/root/.local/bin/codex";
+export declare const DEFAULT_CODEX_LOW_PCT = 20;
+export declare const DEFAULT_CODEX_REFRESH_MS = 300000;
 /** The credentials capability, narrowed to what these services use. */
 export interface BalanceCredentials {
     resolve(ref: string): Promise<{
@@ -72,6 +77,14 @@ export interface ClaudeConfig {
      * displayed number is used percent; the config meaning is unchanged.
      */
     lowPct?: number;
+}
+export interface CodexConfig {
+    /** Codex CLI executable that owns ChatGPT auth and the app-server protocol. */
+    command?: string;
+    /** Red dot watermark in remaining terms (default 20 = ≥80% used). */
+    lowPct?: number;
+    /** Codex app-server polling cadence; slower than HTTP-only providers by default. */
+    refreshMs?: number;
 }
 /**
  * The credentials seam reference the official DeepSeek adapter resolves.
@@ -158,6 +171,26 @@ export declare function createBalanceService(deps: {
 export declare function createMinimaxService(deps: {
     credentials: BalanceCredentials;
 }, config?: MinimaxConfig): {
+    get(force: boolean): Promise<BalanceResult>;
+};
+/** One Codex app-server quota window (`account/rateLimits/read`). */
+export interface CodexRateLimitWindow {
+    usedPercent?: number;
+    windowDurationMins?: number | null;
+    resetsAt?: number | null;
+}
+/** Official app-server response → the chip's used-percent snapshot. */
+export declare function parseCodexRateLimits(body: unknown, asOf: string): BalanceSnapshot;
+/**
+ * Ask Codex itself for ChatGPT limits. The CLI owns auth and refresh; this
+ * plugin never reads or forwards tokens. One short-lived JSONL app-server is
+ * cheaper and safer than duplicating Codex's private HTTP/auth behavior.
+ */
+export declare function readCodexRateLimits(command: string, timeoutMs?: number): Promise<unknown>;
+/** Codex row: ChatGPT subscription quota through the official app-server. */
+export declare function createCodexService(deps: {
+    credentials: BalanceCredentials;
+}, config?: CodexConfig): {
     get(force: boolean): Promise<BalanceResult>;
 };
 /** Claude Code's stored OAuth identity — token plus the plan it belongs to. */

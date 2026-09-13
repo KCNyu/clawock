@@ -42,6 +42,12 @@ export interface ClawockStudioConfig {
      * (default 20 = ≥80% used); displayed number is used percent.
      */
     claudeLowPct?: number;
+    /** Codex CLI executable used for the official app-server quota RPC. */
+    codexCommand?: string;
+    /** Red dot watermark in REMAINING terms (default 20 = >=80% used). */
+    codexLowPct?: number;
+    /** Codex app-server polling/cache cadence in ms (default 5 minutes). */
+    codexRefreshMs?: number;
 }
 export declare class ClawockStudioGateway extends TypertRemoteService {
     static inject: readonly ['credentials'];

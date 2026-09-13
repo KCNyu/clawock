@@ -199,9 +199,9 @@ export interface BalanceSnapshot {
 
 /** One provider's row in the balance panel: identity plus the same in-band answer. */
 export interface ProviderBalance {
-  /** Stable id: 'deepseek' | 'minimax'. */
+  /** Stable id: 'deepseek' | 'minimax' | 'claude' | 'codex'. */
   provider: string
-  /** Human label rendered verbatim ('DeepSeek', 'MiniMax'). */
+  /** Human label rendered verbatim ('DeepSeek', 'MiniMax', 'Claude', 'Codex'). */
   label: string
   result: BalanceResult
 }
@@ -213,7 +213,7 @@ export interface ProviderBalance {
  * good snapshot so a transient 429 cannot erase a real number.
  */
 export interface BalancesResult {
-  /** Rows in stable display order (deepseek first). */
+  /** Rows in stable display order: DeepSeek, MiniMax, Claude, Codex. */
   providers: ProviderBalance[]
   /** Suggested client poll interval in ms. */
   refreshMs: number

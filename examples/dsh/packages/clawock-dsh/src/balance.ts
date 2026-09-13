@@ -7,6 +7,8 @@
  *   - minimax:  `GET {base}/v1/token_plan/remains` (Token Plan quota windows;
  *     `base_resp.status_code` is the business verdict — 0 ok, 1004 auth —
  *     and a HTTP-200 body can still be an auth failure)
+ *   - codex:    official `codex app-server` JSON-RPC
+ *     `account/rateLimits/read` (ChatGPT subscription quota windows)
  *
  * One cache per provider, one source of truth: the gateway instance owns
  * them, so a stale read, a failed refresh and a rotated key all resolve
@@ -20,9 +22,9 @@
  * verbatim.
  */
 
-import { homedir } from 'node:os'
-import { join } from 'node:path'
-import { readFileSync } from 'node:fs'
+import { delimiter, join } from 'node:path'
+import { existsSync, readFileSync } from 'node:fs'
+import { spawn } from 'node:child_process'
 import type { BalanceResult, BalanceSnapshot, BalanceWindow } from './types.ts'
 
 export const DEFAULT_BALANCE_BASE_URL = 'https://api.deepseek.com'
@@ -34,6 +36,9 @@ export const DEFAULT_OPENCLAW_CONFIG_PATH = '/root/.openclaw/openclaw.json'
 export const DEFAULT_CLAUDE_CREDENTIALS_PATH = '/root/.claude/.credentials.json'
 export const DEFAULT_CLAUDE_USAGE_URL = 'https://api.anthropic.com/api/oauth/usage'
 export const DEFAULT_CLAUDE_LOW_PCT = 20
+export const DEFAULT_CODEX_COMMAND = '/root/.local/bin/codex'
+export const DEFAULT_CODEX_LOW_PCT = 20
+export const DEFAULT_CODEX_REFRESH_MS = 300000
 const TTL_MS = 60000
 const TIMEOUT_MS = 15000
 
@@ -81,6 +86,15 @@ export interface ClaudeConfig {
    * displayed number is used percent; the config meaning is unchanged.
    */
   lowPct?: number
+}
+
+export interface CodexConfig {
+  /** Codex CLI executable that owns ChatGPT auth and the app-server protocol. */
+  command?: string
+  /** Red dot watermark in remaining terms (default 20 = ≥80% used). */
+  lowPct?: number
+  /** Codex app-server polling cadence; slower than HTTP-only providers by default. */
+  refreshMs?: number
 }
 
 /**
@@ -269,6 +283,8 @@ interface QuotaServiceSpec {
   noKeyMessage: string
   threshold: number
   refreshMs: number
+  /** Host-side cache lifetime; defaults to the historical one-minute cadence. */
+  ttlMs?: number
   fetchFresh(apiKey: string): Promise<BalanceSnapshot>
   /** The low reading in the snapshot's own unit (money amount / percent). */
   isLow(snapshot: BalanceSnapshot): boolean
@@ -362,7 +378,7 @@ function createQuotaService(
         refreshMs: spec.refreshMs,
       }
     }
-    if (!force && snapshot !== null && Date.now() - fetchedAt < TTL_MS) {
+    if (!force && snapshot !== null && Date.now() - fetchedAt < (spec.ttlMs ?? TTL_MS)) {
       return {
         configured: true,
         snapshot,
@@ -514,6 +530,199 @@ export function createMinimaxService(
     isLow: (snapshot) => {
       const used = usedPercentOf(snapshot)
       return used !== null && used >= 100 - lowPct
+    },
+  })
+}
+
+/** One Codex app-server quota window (`account/rateLimits/read`). */
+export interface CodexRateLimitWindow {
+  usedPercent?: number
+  windowDurationMins?: number | null
+  resetsAt?: number | null
+}
+
+interface CodexRateLimitBucket {
+  primary?: CodexRateLimitWindow | null
+  secondary?: CodexRateLimitWindow | null
+  rateLimitReachedType?: string | null
+}
+
+interface RawCodexRateLimits {
+  ordinaryUsageAllowed?: boolean | null
+  rateLimits?: CodexRateLimitBucket
+  rateLimitsByLimitId?: Record<string, CodexRateLimitBucket> | null
+}
+
+const codexWindowLabel = (duration: number | null, fallback: string): string => {
+  if (duration === null || duration <= 0) return fallback
+  if (duration === 10080) return '周'
+  if (duration % 1440 === 0) return `${duration / 1440}天`
+  if (duration % 60 === 0) return `${duration / 60}h`
+  return `${duration}m`
+}
+
+/** Official app-server response → the chip's used-percent snapshot. */
+export function parseCodexRateLimits(body: unknown, asOf: string): BalanceSnapshot {
+  const raw = (typeof body === 'object' && body !== null ? body : {}) as RawCodexRateLimits
+  const buckets = raw.rateLimitsByLimitId
+  const bucket = buckets !== null && typeof buckets === 'object' && buckets.codex !== undefined
+    ? buckets.codex
+    : raw.rateLimits
+  if (bucket === undefined || bucket === null) throw new Error('Codex 响应里没有额度数据')
+
+  const windows: BalanceWindow[] = []
+  const append = (window: CodexRateLimitWindow | null | undefined, fallback: string): void => {
+    const usedRaw = finiteNumber(window?.usedPercent)
+    if (usedRaw === null) return
+    const used = Math.round(Math.min(100, Math.max(0, usedRaw)))
+    const duration = finiteNumber(window?.windowDurationMins)
+    windows.push({
+      label: codexWindowLabel(duration, fallback),
+      percent: used,
+      resetAt: formatReset(window?.resetsAt),
+    })
+  }
+  append(bucket.primary, '主窗')
+  append(bucket.secondary, '次窗')
+  if (windows.length === 0) throw new Error('Codex 响应里没有可用的额度窗口')
+
+  const notes = windows.map((window) => `${window.label}${window.label === '周' ? '' : ' '}窗口已使用 ${window.percent}%`)
+  if (raw.ordinaryUsageAllowed === false || typeof bucket.rateLimitReachedType === 'string') {
+    notes.push('当前额度受限')
+  }
+  const headline = windows[0]?.percent
+  return {
+    // The backend-owned permission is authoritative. An absent value means
+    // unavailable, never an inferred recovery from reset clocks/percentages.
+    isAvailable: raw.ordinaryUsageAllowed === true,
+    unit: 'pct',
+    currency: '',
+    totalBalance: headline === null || headline === undefined ? '' : String(headline),
+    grantedBalance: '',
+    toppedUpBalance: '',
+    asOf,
+    note: notes.join(' · '),
+    windows,
+  }
+}
+
+const resolveExecutable = (command: string): string | undefined => {
+  if (command.includes('/')) return existsSync(command) ? command : undefined
+  for (const dir of (process.env.PATH ?? '').split(delimiter)) {
+    if (dir === '') continue
+    const candidate = join(dir, command)
+    if (existsSync(candidate)) return candidate
+  }
+  return undefined
+}
+
+/**
+ * Ask Codex itself for ChatGPT limits. The CLI owns auth and refresh; this
+ * plugin never reads or forwards tokens. One short-lived JSONL app-server is
+ * cheaper and safer than duplicating Codex's private HTTP/auth behavior.
+ */
+export function readCodexRateLimits(
+  command: string,
+  timeoutMs: number = TIMEOUT_MS,
+): Promise<unknown> {
+  return new Promise((resolve, reject) => {
+    const child = spawn(command, ['app-server'], { stdio: ['pipe', 'pipe', 'pipe'] })
+    let settled = false
+    let stdout = ''
+    let stderr = ''
+    const timer = setTimeout(() => finish(new Error(`Codex app-server ${timeoutMs}ms 内未返回`)), timeoutMs)
+
+    const finish = (error?: Error, result?: unknown): void => {
+      if (settled) return
+      settled = true
+      clearTimeout(timer)
+      child.stdin.end()
+      if (!child.killed) child.kill()
+      if (error !== undefined) reject(error)
+      else resolve(result)
+    }
+    const send = (message: unknown): void => {
+      if (!settled) child.stdin.write(`${JSON.stringify(message)}\n`)
+    }
+    const handleLine = (line: string): void => {
+      if (line.trim() === '' || settled) return
+      let message: { id?: number; result?: unknown; error?: { message?: string } }
+      try {
+        message = JSON.parse(line) as typeof message
+      } catch {
+        return
+      }
+      if (message.id === 0) {
+        if (message.error !== undefined) {
+          finish(new Error(`Codex app-server 初始化失败:${message.error.message ?? '未知错误'}`))
+          return
+        }
+        send({ method: 'initialized', params: {} })
+        send({ method: 'account/rateLimits/read', id: 1, params: { excludeResetCreditDetails: true } })
+      } else if (message.id === 1) {
+        if (message.error !== undefined) {
+          finish(new Error(`Codex 额度读取失败:${message.error.message ?? '未知错误'}`))
+          return
+        }
+        finish(undefined, message.result)
+      }
+    }
+
+    child.on('spawn', () => send({
+      method: 'initialize',
+      id: 0,
+      params: { clientInfo: { name: 'clawock_dsh', title: 'Clawock DSH', version: '0.1.0' } },
+    }))
+    child.on('error', (cause) => finish(new Error(`Codex CLI 启动失败:${cause.message}`)))
+    child.on('exit', (code, signal) => {
+      if (settled) return
+      const detail = stderr.trim() !== '' ? `:${stderr.trim()}` : ''
+      finish(new Error(`Codex app-server 提前退出(${signal ?? code ?? '未知'})${detail}`))
+    })
+    child.stdin.on('error', (cause) => finish(new Error(`Codex app-server 写入失败:${cause.message}`)))
+    child.stderr.on('data', (chunk: Buffer) => {
+      if (stderr.length < 4096) stderr += chunk.toString('utf8').slice(0, 4096 - stderr.length)
+    })
+    child.stdout.on('data', (chunk: Buffer) => {
+      stdout += chunk.toString('utf8')
+      if (stdout.length > 1024 * 1024) {
+        finish(new Error('Codex app-server 输出超过 1MiB'))
+        return
+      }
+      const lines = stdout.split('\n')
+      stdout = lines.pop() ?? ''
+      for (const line of lines) handleLine(line)
+    })
+  })
+}
+
+/** Codex row: ChatGPT subscription quota through the official app-server. */
+export function createCodexService(
+  deps: { credentials: BalanceCredentials },
+  config: CodexConfig = {},
+): { get(force: boolean): Promise<BalanceResult> } {
+  const command = config.command ?? DEFAULT_CODEX_COMMAND
+  const lowPct = typeof config.lowPct === 'number' && isFinite(config.lowPct)
+    ? config.lowPct
+    : DEFAULT_CODEX_LOW_PCT
+  const refreshMs = typeof config.refreshMs === 'number' && isFinite(config.refreshMs)
+    ? config.refreshMs
+    : DEFAULT_CODEX_REFRESH_MS
+  void deps
+  return createQuotaService(deps, {
+    resolveApiKey: async () => resolveExecutable(command),
+    noKeyMessage: `未找到 Codex CLI(${command})`,
+    threshold: lowPct,
+    refreshMs,
+    ttlMs: refreshMs,
+    async fetchFresh(executable) {
+      return parseCodexRateLimits(await readCodexRateLimits(executable), new Date().toISOString())
+    },
+    isLow: (snapshot) => {
+      const used = snapshot.windows
+        .map((window) => window.percent)
+        .filter((percent): percent is number => percent !== null)
+      return !snapshot.isAvailable || used.some((percent) => percent >= 100 - lowPct)
     },
   })
 }
