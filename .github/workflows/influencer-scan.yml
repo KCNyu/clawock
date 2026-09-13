@@ -47,7 +47,6 @@ jobs:
 
       - name: Fetch sources + LLM relevance filter
         env:
-          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
           MINIMAX_API_KEY: ${{ secrets.MINIMAX_API_KEY }}
           # Chain deadline (brief-fallback 2026-08-17 defect class): a hung
           # primary must not eat the whole job before the fallback answers.

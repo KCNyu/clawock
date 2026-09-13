@@ -151,24 +151,26 @@ def test_every_chat_call_site_belongs_to_a_declared_job():
 
 
 @pytest.mark.parametrize("workflow_name,job_id,chains", LLM_JOBS)
-def test_one_attempt_can_use_the_primarys_whole_share(workflow_name, job_id, chains):
-    """A per-attempt timeout below the primary's budget share is unspendable.
+def test_one_attempt_can_use_a_meaningful_part_of_the_budget(workflow_name, job_id, chains):
+    """A per-attempt timeout far below the budget is unspendable.
 
     `_attempt_timeout` clamps each attempt to min(timeout, budget left), so a
-    timeout smaller than the share cuts that share into slices -- and a
-    generation that needs more than one slice cannot be finished by adding
-    attempts, however many seconds remain. The weekly review ran with the 180s
-    default against a 360s share and lost 2026-W33 (run 31952091127) and
-    2026-W35 (run 33326401496) to three identical `timeout after 180s` lines,
-    with the whole budget spent and the answer never once given room to land.
+    timeout much smaller than the budget cuts it into slices -- and a generation
+    that needs more than one slice cannot be finished by adding attempts,
+    however many seconds remain. The weekly review ran with the 180s default
+    against a 360s share and lost 2026-W33 (run 31952091127) and 2026-W35 (run
+    33326401496) to three identical `timeout after 180s` lines.
+
+    The bar was "the primary's 60% share" while an OpenCode fallback leg owned
+    the rest. That leg is gone (2026-09-13), but the call sites were calibrated
+    against the 60% bar and the lesson is about slices, so the bar stays there.
     """
     job = _workflow(workflow_name)["jobs"][job_id]
-    share = _deadline_seconds(job) * llm.PRIMARY_BUDGET_SHARE
+    bar = _deadline_seconds(job) * 0.6
     timeout = _call_site_timeout(CALL_SITES[(workflow_name, job_id)])
 
-    assert timeout >= share, (
-        f"{workflow_name}: chat(timeout={timeout:.0f}) is smaller than the "
-        f"primary's own share of the deadline ({share:.0f}s), so the ladder "
-        f"spends that share on {llm.MAX_RETRIES} attempts that are each too "
-        f"short to finish the generation"
+    assert timeout >= bar, (
+        f"{workflow_name}: chat(timeout={timeout:.0f}) is below 60% of the "
+        f"deadline ({bar:.0f}s), so the ladder spends the budget on "
+        f"{llm.MAX_RETRIES} attempts that are each too short to finish the generation"
     )

@@ -150,6 +150,61 @@ def test_chatty_source_cannot_crowd_the_others_out(tmp_path, monkeypatch):
     assert set(payload['source_status']) == {s['key'] for s in inf._sources()}
 
 
+def _quiet_sources(monkeypatch, persona_items):
+    monkeypatch.setattr(inf, 'fetch_trump', lambda _cutoff: ([], 'success_empty'))
+    monkeypatch.setattr(inf, 'fetch_musk', lambda: ([], 'success_empty'))
+    monkeypatch.setattr(inf, 'fetch_ark', lambda _cutoff=None: ([], 'success_empty'))
+    monkeypatch.setattr(inf, 'fetch_serenity', lambda _cutoff: ([], 'success_empty'))
+    monkeypatch.setattr(inf, 'fetch_persona', lambda spec, _cutoff: (
+        [dict(_item(spec['author'], f"{spec['key']} {t}"), published=datetime.now(timezone.utc).isoformat())
+         for t in persona_items], 'success'))
+
+
+def test_a_failed_filter_never_publishes_unscored_items(tmp_path, monkeypatch):
+    """Measured 2026-09-01..12: 5 of 19 feeds went out raw (relevance null, no
+    holding match) whenever MiniMax 429'd. A failed filter keeps the previous
+    run's scored items inside the window and publishes nothing unscored."""
+    out = tmp_path / 'influencer.json'
+    monkeypatch.setattr(inf, 'OUT_FILE', str(out))
+    monkeypatch.setattr(inf, 'load_holdings', lambda: [])
+    now = datetime.now(timezone.utc)
+    fresh = dict(_item('Burry', 'scored and recent'), relevance=70,
+                 published=now.isoformat(), tickers=['NVDA'], held=[], new_ideas=['NVDA'])
+    stale = dict(_item('Pelosi', 'scored but too old'), relevance=90,
+                 published=(now - timedelta(hours=inf.LOOKBACK_HOURS + 5)).isoformat())
+    unscored = dict(_item('Musk', 'raw from an earlier failure'), relevance=None,
+                    published=now.isoformat())
+    out.write_text(json.dumps({'items': [fresh, stale, unscored]}), encoding='utf-8')
+    _quiet_sources(monkeypatch, ['headline one', 'headline two'])
+    monkeypatch.setattr(inf, 'llm_filter', lambda candidates, _held: {})
+
+    inf.main()
+    payload = json.loads(out.read_text(encoding='utf-8'))
+
+    assert payload['llm_filtered'] is False
+    assert payload['llm_filter_status'] == 'failed_kept_previous'
+    assert [it['text'] for it in payload['items']] == ['scored and recent']
+    assert payload['items'][0]['retained_from_previous'] is True
+    assert all(it.get('relevance') is not None for it in payload['items'])
+
+
+def test_a_working_filter_reports_ok(tmp_path, monkeypatch):
+    out = tmp_path / 'influencer.json'
+    monkeypatch.setattr(inf, 'OUT_FILE', str(out))
+    monkeypatch.setattr(inf, 'load_holdings', lambda: [])
+    _quiet_sources(monkeypatch, ['headline'])
+    monkeypatch.setattr(inf, 'llm_filter', lambda candidates, _held: {
+        i: {'tickers': [], 'held': [], 'new_ideas': [], 'sectors': [],
+            'sector_holdings': [], 'stance': 'neutral', 'relevance': 60, 'summary_cn': 'x'}
+        for i, _c in enumerate(candidates)})
+
+    inf.main()
+    payload = json.loads(out.read_text(encoding='utf-8'))
+    assert payload['llm_filter_status'] == 'ok'
+    assert payload['items'] and all(it['relevance'] == 60 for it in payload['items'])
+    assert not any(it.get('retained_from_previous') for it in payload['items'])
+
+
 def test_routine_ark_rebalancing_is_capped_below_the_news(tmp_path, monkeypatch):
     """Measured on GHA run 34704653236: the model scored every 0.01-0.09% ARK
     rebalance 78-82, so eight dust trades sat on top of the whole card. The cap

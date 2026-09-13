@@ -45,28 +45,30 @@ def _capture_provider_calls(monkeypatch):
 
     def fake_call(label, base_url, api_key, model, messages, max_tokens, *args, **kw):
         seen.append({"label": label, "max_tokens": max_tokens})
-        raise RuntimeError("forced fallback")
+        raise RuntimeError("forced failure")
 
     monkeypatch.setattr(llm, "_call_provider", fake_call)
-    monkeypatch.setattr(llm, "_call_provider_openai_compatible", fake_call)
     return seen
 
 
-def test_each_provider_is_clamped_to_its_own_cap(monkeypatch):
-    """Raising the caller's budget must not hand a provider a value it cannot serve."""
+def test_the_provider_is_clamped_to_its_own_cap(monkeypatch):
+    """Raising the caller's budget must not hand the provider a value it cannot serve."""
     seen = _capture_provider_calls(monkeypatch)
     monkeypatch.setenv("MINIMAX_API_KEY", "mm")
-    monkeypatch.setenv("OPENCODE_API_KEY", "oc")
 
+    try:
+        llm.chat(user="hi", max_tokens=llm.MINIMAX_MAX_TOKENS * 2)
+    except RuntimeError:
+        pass
     try:
         llm.chat(user="hi", max_tokens=brief_fallback.BRIEF_MAX_TOKENS)
     except RuntimeError:
         pass
 
-    by_label = {c["label"]: c["max_tokens"] for c in seen}
-    assert by_label["minimax"] == brief_fallback.BRIEF_MAX_TOKENS
-    assert by_label["opencode"] == llm.OPENCODE_MAX_TOKENS
-    assert llm.OPENCODE_MAX_TOKENS < brief_fallback.BRIEF_MAX_TOKENS
+    assert [c["label"] for c in seen] == ["minimax", "minimax"], (
+        "a second provider leg is being called again")
+    assert seen[0]["max_tokens"] == llm.MINIMAX_MAX_TOKENS
+    assert seen[1]["max_tokens"] == brief_fallback.BRIEF_MAX_TOKENS
 
 
 def test_brief_fallback_asks_for_the_module_budget_not_a_literal(monkeypatch):

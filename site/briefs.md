@@ -26,7 +26,7 @@ description: 全部历史每日深度简报 + 周复盘
 
 ## Weekly Reviews · 周复盘
 
-由 `.github/workflows/weekly-review.yml` 每周日 22:00 HKT 自动跑（MiniMax-M3 · thinking enabled · max 32K，失败时回退 OpenCode Zen 的 deepseek-v4-flash）。
+由 `.github/workflows/weekly-review.yml` 每周日 22:00 HKT 自动跑（MiniMax-M3 · thinking enabled · max 32K，无回退模型——失败就留下缺口）。
 
 列的是**每一个应该有复盘的 ISO 周**，不是每一个存在的文件——2026-W33 与 2026-W35 的排程跑挂了（provider 三次超时 + 回退腿 401），没有任何东西会补跑，所以缺口留在这里给人看见，而不是让周号自己跳过去。
 

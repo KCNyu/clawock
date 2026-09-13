@@ -4,7 +4,7 @@ name: Brief Fallback (off-host LLM)
 # 窗口从 5min 拉宽到 25min (2026-05-30): 主 cron 08:00 启动但 LLM 生成常要几分钟,
 # 5min 太窄会在主 brief 落地前误判"没出"→重复生成→push 撞主 cron commit 的 rebase 冲突
 # 如果今天的 pre-open.md 已存在（git log 只作兜底）→ skip
-# 否则用远端 MiniMax（可选 opencode-go DeepSeek V4 Flash fallback）直跑 brief
+# 否则用远端 MiniMax（唯一 provider，2026-09-13 起不再有 opencode 回退）直跑 brief
 #
 # #780: this backstop had never once produced a brief. Every one of the 34
 # scheduled runs between 2026-07-07 and 2026-08-21 finished in 11-21 seconds on
@@ -83,12 +83,11 @@ jobs:
       # cannot say that: timeout=900 x MAX_RETRIES=3 is a 45-minute budget for
       # MiniMax alone. On 2026-08-17 (run 31985473431) MiniMax hit
       # RemoteDisconnected, started retrying, and the runner killed the job at 15
-      # minutes — opencode-go was never asked. Not once, in any of the five
-      # manual dispatches this workflow has ever had.
+      # minutes before anything was written.
       #
-      # 660s of a 20-minute job: MiniMax gets 60% of it and the remainder belongs
-      # to opencode-go, leaving ~9 minutes for postflight, the dashboard rebuild
-      # and the push.
+      # 660s of a 20-minute job, all of it MiniMax's since the OpenCode fallback
+      # leg was removed (2026-09-13), leaving ~9 minutes for postflight, the
+      # dashboard rebuild and the push.
       CLAWOCK_LLM_DEADLINE_SECONDS: '660'
       REHEARSE: ${{ inputs.rehearse == true || inputs.rehearse == 'true' || github.event.schedule == '23 4 * * 3' }}
     permissions:
@@ -163,7 +162,6 @@ jobs:
       - name: Call off-host LLM to generate brief
         if: steps.check.outputs.skip != 'true'
         env:
-          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
           MINIMAX_API_KEY: ${{ secrets.MINIMAX_API_KEY }}
         run: clawock-brief-fallback
 

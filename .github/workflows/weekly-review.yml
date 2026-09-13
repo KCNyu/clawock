@@ -29,7 +29,6 @@ jobs:
 
       - name: Run weekly review
         env:
-          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
           MINIMAX_API_KEY: ${{ secrets.MINIMAX_API_KEY }}
           # Chain deadline (brief-fallback 2026-08-17 defect class): without it
           # a hung primary burns timeout x MAX_RETRIES per provider inside the
