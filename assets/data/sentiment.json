@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-13T23:21:10.143307+00:00",
+  "generated_at": "2026-09-13T23:41:08.942784+00:00",
   "sources": [
     "reddit-search-rss",
     "google-news-rss"
@@ -180,12 +180,6 @@
           "url": "https://news.google.com/rss/articles/CBMisgFBVV95cUxQWVE1V3BfaVZObThfREpsTlhnNGplMVQwVmdYNWF3Wi1mcllDTFpVVGRqQTMyTzRzVHVNZmpRb0YxWnVhTFpidTVIOG82VDFQSkVBNUF5QkNuU2s3a3hIQUJzWDVnQU9VcUtLUWw5MDdRQWlHZXVmck5KU3Y1YjBUa0RWN21ZNUdHVXhCZXlrRUFCczlEeE55bEpOdDBGdG5vSm1mVVh0d2ZFMVhLTGlzdkRn?oc=5"
         },
         {
-          "title": "Dear SpaceX Stock Fans, Mark Your Calendars for September 21",
-          "source": "Barchart.com",
-          "published": "Sun, 13 Sep 2026 17:08:26 GMT",
-          "url": "https://news.google.com/rss/articles/CBMipgFBVV95cUxQOG1xcE1QMEp4d2x5a1lfX2xmeW5RemxfdjBiU2ktMm9POWhmNUQ0Tnl5U2lnbmxCYnpublFZdGdLY0M1dVZzamVVa0hWNDJnTWNxSGdoSm5LcnBCekNoYWtjZkJzR1pSUDROTHFUNjNPOGo0NWlOMW5SYXZaSmEwN2FpQTdna2dxeFJpRUFpTmljWnRwUHhkUnRXekgzNl83Um5PMmh3?oc=5"
-        },
-        {
           "title": "SpaceX To Get Weighting Boost In Nasdaq 100 After Rebalance",
           "source": "Yahoo Finance",
           "published": "Sat, 12 Sep 2026 17:58:51 GMT",
@@ -208,6 +202,12 @@
           "source": "The Motley Fool",
           "published": "Sat, 12 Sep 2026 21:47:00 GMT",
           "url": "https://news.google.com/rss/articles/CBMimAFBVV95cUxNSVo4ak1Pek9FNGx4TUdPUWVlRlF1a2xmNE9zT3VJaTFKblgtVzUyanM5ZlZtS3pGQXVHTVpQRWZVRFZyTFRRR1N2WVhmS09sSUd6R2tac0RSMjlud1VtLW5jMXlnS0NQSEtFVllncVd1LW5raUc1MzVhMGpyTDJwV3RlSDJjVnY2OUdBY0ZvOXZmbE5xR3FCSg?oc=5"
+        },
+        {
+          "title": "SpaceX IPO: SPCX stock rises 19% in its first day of trading, cementing Musk as the first-ever trillionaire",
+          "source": "Business Insider",
+          "published": "Fri, 12 Jun 2026 07:00:00 GMT",
+          "url": "https://news.google.com/rss/articles/CBMiiAFBVV95cUxOZHZTTzdMY2lndi1yUllHc2lDWlBsd2xhakRHVEo0WTVoWGtQTk0wTzl0VnF0dUVjelY0Y3Fua1JBa0h1MjRoOHVfR1lIeVB4by1QRFo5TF9qWkN3ZW9MUnVjWll3S1puWmNmREtFZV9XUm1xX2VtYVNSVEhOeTZSemwxRVF2Yl9L?oc=5"
         }
       ],
       "google_news_zh": []
@@ -240,7 +240,7 @@
         },
         {
           "title": "SPCH ETF Price and Chart — CBOE:SPCH",
-          "source": "tradingview.com",
+          "source": "TradingView",
           "published": "Tue, 16 Jun 2026 12:19:19 GMT",
           "url": "https://news.google.com/rss/articles/CBMiWkFVX3lxTE9LY1FkX2hvMTE2bDlNUGd4TllLSE41eU9qckpTczQ2TjlhNUl1UXlWTXNFbFNFSWxaNFhnaFhSV2x1T0NmMkUzMnhDRDZqT0ZxSjZLZXl0OG13UQ?oc=5"
         },
@@ -317,7 +317,7 @@
         },
         {
           "title": "Jefferies: Initiates Alibaba-W, Tencent, and MINIMAX-W with a \"Buy\" rating",
-          "source": "富途牛牛",
+          "source": "news.futunn.com",
           "published": "Sun, 13 Sep 2026 06:53:53 GMT",
           "url": "https://news.google.com/rss/articles/CBMioAFBVV95cUxOTHo2aHBtSVU2cEdndnhYQUtscjUxYXlBMHNTSVBnVXRoenNNSzhVbVprS1k3M2dEMW9UbFNKclN0RGdJRy1YQkFfYzlUd09jR0t2VkhIQUYyMUNVUUU2M2paaTQ3eGVGS3VORGZLdnE4YUxaRzdqc0xNUW4tbmhLTXdWeHhlUTI2YkpEWVRsOWlrTXhBdGh4TjBOOWdURnNw?oc=5"
         },
@@ -387,7 +387,7 @@
       "google_news_zh": [
         {
           "title": "金風科技風機價量齊升可留意",
-          "source": "巴士的報",
+          "source": "bastillepost.com",
           "published": "Fri, 21 Aug 2026 07:00:00 GMT",
           "url": "https://news.google.com/rss/articles/CBMi9gFBVV95cUxNZ3JHWkY0aWRaMTEwNU9qeDJtenpmSGpSWUpBUjNHeU1MUHFidm9QTW5kcTJ0dWYxS0R2YlRwNjVHU1ByTWJkeHVMQkRDeHJIQmpVZ2ljdVlVc2hHQUFZYllfQ3RzUXMxTGYwR2R2Sm51Tjc5UG5WQ3c3a0JsWGFFNi1aeFNfOVJPNWpmcUxWeVZ0bWNKRVFndFNWbE5SYmQ3X3NPeXBwcE5uUmlWRkhqUXVkMHdPcjNQLUNaTllqcFZKT3ljY2dCNnhoamtTeFJQS1RrdXpBZk1Lc2dhNkl1STZJM2dMM3FxbVYxcHBvSThkQjV0ekE?oc=5"
         },
@@ -470,7 +470,7 @@
         },
         {
           "title": "美團萬億參數大模型LongCat-2.0亮相服貿會，恒生科技ETF天弘(520920)標的指數昨日收跌逾2%，淨流入超5900萬元",
-          "source": "財華網",
+          "source": "finet.hk",
           "published": "Fri, 11 Sep 2026 01:08:00 GMT",
           "url": "https://news.google.com/rss/articles/CBMid0FVX3lxTE80TzVrUUJ4R0pobkRRX2txcU9jeTc0R2p5aXAxdEx4NUZTb1hZUTZhcGJWNms3REtoM2g0Zjh2cnZWV2tIOVowb0dMaGoxZUEyZUt0c2FvX0hYX2EzSXNvcU1paE8tMVhiU0ZMT2x6UU44UnNjRlpz?oc=5"
         },
@@ -488,7 +488,7 @@
         },
         {
           "title": "告別「外賣指數」？恒生科技或迎史上最大改革，AI與硬件股將成新主角？",
-          "source": "富途牛牛",
+          "source": "q.futunn.com",
           "published": "Mon, 10 Aug 2026 07:00:00 GMT",
           "url": "https://news.google.com/rss/articles/CBMiV0FVX3lxTE11c0RHZ0ptTzludmhSLWl2V0RpcWhSZ3lkTUNiTk1XbjM0RjVvSklDYUNxbmt3b0ZFQjNKQ3V3N2w4RkVuVS1ic0tPbEV2ZkVKVm12N1B2WQ?oc=5"
         }
@@ -535,7 +535,7 @@
       "google_news_zh": [
         {
           "title": "07552 ＸＩ二南方恒科",
-          "source": "etnet 經濟通",
+          "source": "etnet.com.hk",
           "published": "Thu, 10 Sep 2026 07:00:00 GMT",
           "url": "https://news.google.com/rss/articles/CBMicEFVX3lxTE5Va0E2YlJoNW5JSHpVU295ejhxZERKd0tXMlg1RnI4cE5ZNW1JX3BRazBKc2M5MzlwemtoXzdNa253T0M0NXdnX0xyQnViMHZvc3hNR0V6cmZ5U2lCMDFEMEswcHR2WGhyMEtsWlkxR2g?oc=5"
         },
@@ -564,10 +564,10 @@
           "url": "https://news.google.com/rss/articles/CBMi7AFBVV95cUxQVDVFMnplMWdCa0ZTdFJmRmczM01xYk8zcjgxVXlOa3BPRkhTdk5yc1dxNEZWQUNnTmlVdUJWdy1MVFJSeW9ZNklrMjF0bU5UNDVfTEFCZlVUd3FjRFpzVVlRSlEtZWRqWkdVeGJKbFNvOUZrSWdnaTg4NEp5eWo5SDl1T1I1ZE1ZeVlBOG9hWVI4WVFfLWhCRnlXV3UzNXllLWZ5SU1iOXNqWmpUUFpSZFhZOGY1R2ZkWUJRMU5zU19rbDdYQ0dGMW8ycjVvN2xCbkRxXy1ka1BpbGpjTldaRUlnSnFDVS01bDhyZw?oc=5"
         },
         {
-          "title": "盤中速報 - 恆生科技指數上漲145.95點至4652.99點，漲幅3.24%",
+          "title": "盤中速報 - 恆生科技指數上漲158.92點至4665.96點，漲幅3.53%",
           "source": "Yahoo 財經",
           "published": "Tue, 07 Jul 2026 07:00:00 GMT",
-          "url": "https://news.google.com/rss/articles/CBMivwJBVV95cUxQM19nYmhhbXVUalFDZi1RaFh6alRDMlNJMU1MMWNJOE0xS2tyNjMwZC1FN29SSllCMjNRNF9nWGlkcHo2YTYwbGY4STBVV0JtcXhib3E3ZkstZnp2ZVg3WXBwZVlfeFFSNnA4TXA3bFI3T0RJdmE3WU1hZDJaY1BWekx3a2gzY1Y3NG5BZnpJTWdWbUJiVS0xRm5LRi11S1B0SzViaEE0d3dKZ1dJWHQyNHJmblhDUU1nWEhJbFFMWmtBNkd5ZndhTUM0ZnNKZ1ZLYU13TExONU4xMDlKUDREeUFELXFHODlrTDVjZHI5Vmhrd3dzX1kxdFlHWDZqMVZLRXFYUmtORHAtWDBlOEhOaHMxSENsalFCQ3pnTEoyUDQ5TDhvTHZ5cWZQVkV0dHRrT19xbHMtR1NPcWNkRnVn?oc=5"
+          "url": "https://news.google.com/rss/articles/CBMivwJBVV95cUxOSGtIM3pFRmJMbVdfU0RObXlRcFZpZlBsNEtNQ2V1RUVLbkJWeFdzZ19yT3F1cDlEWDY1dEc5cW1MbjA5aThOLUdoVU1Fc19MMklnOUs3STdzU2ZURDQ1dUVrUnE0aERIVkZhazBtSG5HRDRvZ2x1Y3ZleWxMNVp0cmMzcUNTa2pTR1k4Ync2RVF4WkxkWWxpVzlwWnpOWGlyaDZLZmkwRVlnR2QySF9YX0xxYWY1TXVudVczWGZSZEgzcEs4cmNDSEhWREFMWXRIQ3JpZU8wb2sxMUlHT3dIOHBHbXVWZS12R0hJNGVtUHBjMnFxNUlCM292d2F3UURmNlpJSE40ZnVQX1JuUG9oeEYxVG9SaXFaN3EteVh3YkhuczV1X0RqREw3RDNDcmpNZHM5aWEwVEFsajNTYmw4?oc=5"
         }
       ]
     },
@@ -611,16 +611,16 @@
       ],
       "google_news_zh": [
         {
-          "title": "南方恒生科技(03033) 財務報表/環境、社會及管治資料 - [中期/半年度報告]",
+          "title": "南方恒生科技(03033) 月報表",
           "source": "信報網站",
-          "published": "Mon, 31 Aug 2026 07:00:00 GMT",
-          "url": "https://news.google.com/rss/articles/CBMivwVBVV95cUxNVXZlbTd4YjFSaTR4a2h6YTcxa0xEaklJanVLYWtQc21VbmVIX0xkcnlqWDFwM2NuWWk5UzVlbmlDMEhCZjV2UXA3M2tWTjBRY2ktNmZUeV9TZjlPcWJCSE8ydk1pMEVzd0hzTHpFVlhDQ2hUa2xOVzNSU09LUFM4QjQ1bWN1cl9YekZwSkc0UzRTSnBaS3FHWGU0WFZaRkVnYkh5YXc0RjdwU2k0QXdpNnZtZ1F1R1lzQzhVbnRiT280bmR1SE5uVWcxOVlSUDd1ZDlLc2U4bHVkRkx6TFlaNElnQjVNZ3duSjdBSTZWemRGclYxMHY4V0RVS3RBQnBYb1ZOQ3BwbVg2Rnc0NkdUeU5SZFNrOTNwcW11aFdKWFYtZ3hER0Q3Nm9OdFMyS05QZHpXRnJoTGNpSTE1bmJZZ1NfTGxaRnhHTEZsQlVDcmdORy0wTTV4VjJaQWVMVUZFZlh3TnlCemJjVVNFRHE4ZjFiWjllUzc5d1hyOEgwbDR5OHNXTldLRldDTXVsUTJjSW1VY043a0RsUVFCVldNdEt6cmpUYmp5aXZldUY5T2N2RHpoNVRRdjRFVEh2Sml6d1VPYkU3Ylk1ZXpoQ2JXOWtHbFZqTWw0ajFhMmNRNjg3cGNYa3JJWGFOMmNSSlVIMXhxRE9TaEltTHNxSVpGN3pUSmVrMnNxdUk4aHVQM2UtMEhSWUVhYU50eC1sRWJ1c3BvNW5pTFNOVmxmTTV5WjZyb2FDcklObzRra1pOMFRDbUM1Znd0ODQ4XzRsR09SaUJmby1YOUxmV0ZMMmVYeFRKdkF6a2kyVDc0ZGo4aWJIdEpuNEhmNVR1V2ppczE0ZENnaS1fNXBtQk45amRLR1lOeUpaMjRpRlRtRENfdXV0U2wzU2pSUDg0V1hqT2hFSl9TQmdxYnhRcDFtT3Vz?oc=5"
+          "published": "Fri, 04 Sep 2026 10:50:45 GMT",
+          "url": "https://news.google.com/rss/articles/CBMirgJBVV95cUxPY2VMdDFldFNTLXVIdW5laVg4akhCbW0xMm9WckpJMmlxRm12TVBud1Y0X254QjduZ1RPb0thUy16RlFJbXNYY3NrSkVkdTNpbEdiajdKYXE1NXYzbVhNcDZDSE1BbWZUTHNDaHA1Z1FPSW5SRGtJUkh3OTJWbzdWcVZBblJDYk96VmR1anZFWWF3NDEtb3pnMDlsSXYyRFN2ZFZsM09GMzhrOXdXUE5zTXVyb19uLUcwRVRsT0lHN2EyZjNwLXMzZ0QzSEdxSnFaTVYyT3dLUmlvQTBYTU51WDh0X0gwajlnYzdmaEI2bnlTTzh5STFIWFZTRWxqZHNtRWVuOXVRUDN1dkRSN1JQTTJZQ3ZiNWN4UksxeG12TzV0bDlONzU1cVRWREJ4QQ?oc=5"
         },
         {
-          "title": "全日沽空金額減11% 南方恒生科技減6% (16:33) - 20260903 - 即時財經新聞",
+          "title": "半日沽空金額減10% 南方恒生科技增62% (12:28) - 20260903 - 即時財經新聞",
           "source": "明報財經網",
-          "published": "Thu, 03 Sep 2026 08:39:37 GMT",
-          "url": "https://news.google.com/rss/articles/CBMinwJBVV95cUxQYV96NDhmejN0UXZEMkVjSjJpWHF2N01WdEt3Y1NoS2NSdHlsdmJEQkNxaDFfb1h2NUhaRldPTmpjOUY2cXRkREVjVTQyZkR3WWVOVHlaZi1DdkRLMVdZRU1VZXZJb2ZSbk1uenp1TE9Md1VFM1RTQVV3Q0EzTGh0MXd5ZDdpVjJMTy1kWmcwZzZkQU1WQXRZSk9SSlNqMjR4a3N6c0EtVEZ5WFZMcmVCb0YwaHUzLUdfZHUzb0JsVHZ5WTVZM0RYSkIyOThnRERhTDlZb2tQMFoySDJpSUNSWHVKQ00ydE5nRHRrWlc2ZFhsRGcyVzVpeWFFbmp3TGI0TWpxak9DZGZVaEd4YlNyUDZwR18zN2U0V3RadWpzTQ?oc=5"
+          "published": "Thu, 03 Sep 2026 04:33:14 GMT",
+          "url": "https://news.google.com/rss/articles/CBMioAJBVV95cUxPNUtxMUxQR0RiUEZXQm1BZkVVWXExS2kzQ3NJR3h2SHJDOFphRDhEeGJmM0VfQWZYYjEwZ1dWVW1JYXBCc2tlcHJHWHNQbzZieU5HMjIzQ3JPdURDZ21SMUlKczFFVkk3OTU3dG0wVGNhYXQ2Y0NEU1I3QkhVMFlIdkNtY2xlN1BadGFiM0lnRmNYUnVTZUczQW1sOTk0S0dvYnk5Zk1kS1cwVkZIQzB0Z3VxdjdlcGlNYzRnWi1qcWY3QmtIOFJPNkY0alFDRHNYU2RxOTVFX01yMGlNZHdHeDZNRVVHeHpfTVd4N1ZMNkhfTGo0cXlfZHd0RVJmazlESlIxVDQ1ZFdxbVBVeHRtREV1Wnhod21SZC00NjdhYjc?oc=5"
         },
         {
           "title": "拋空追蹤｜半日拋空192億元佔成交18%，盈富基金佔9%|香港經濟日報",
@@ -635,10 +635,10 @@
           "url": "https://news.google.com/rss/articles/CBMidEFVX3lxTE9zVXJjdzdNSFljX29zdlVRMWFGTDQxT253LURCbUZJMW5OOUtPdnItVGNqUzlJQXRCREtXYkxfcEtIaGszSkYtSTVnUHV1N0xUT211OTJKTVZyQTRSZXFscHNjbzhyV2laLTdBRk9EbVJPQThW?oc=5"
         },
         {
-          "title": "南方恒生科技(03033) 月報表",
+          "title": "南方恒生科技(03033) 財務報表/環境、社會及管治資料 - [中期/半年度報告]",
           "source": "信報網站",
-          "published": "Fri, 04 Sep 2026 10:50:45 GMT",
-          "url": "https://news.google.com/rss/articles/CBMirgJBVV95cUxPY2VMdDFldFNTLXVIdW5laVg4akhCbW0xMm9WckpJMmlxRm12TVBud1Y0X254QjduZ1RPb0thUy16RlFJbXNYY3NrSkVkdTNpbEdiajdKYXE1NXYzbVhNcDZDSE1BbWZUTHNDaHA1Z1FPSW5SRGtJUkh3OTJWbzdWcVZBblJDYk96VmR1anZFWWF3NDEtb3pnMDlsSXYyRFN2ZFZsM09GMzhrOXdXUE5zTXVyb19uLUcwRVRsT0lHN2EyZjNwLXMzZ0QzSEdxSnFaTVYyT3dLUmlvQTBYTU51WDh0X0gwajlnYzdmaEI2bnlTTzh5STFIWFZTRWxqZHNtRWVuOXVRUDN1dkRSN1JQTTJZQ3ZiNWN4UksxeG12TzV0bDlONzU1cVRWREJ4QQ?oc=5"
+          "published": "Mon, 31 Aug 2026 07:00:00 GMT",
+          "url": "https://news.google.com/rss/articles/CBMivwVBVV95cUxNVXZlbTd4YjFSaTR4a2h6YTcxa0xEaklJanVLYWtQc21VbmVIX0xkcnlqWDFwM2NuWWk5UzVlbmlDMEhCZjV2UXA3M2tWTjBRY2ktNmZUeV9TZjlPcWJCSE8ydk1pMEVzd0hzTHpFVlhDQ2hUa2xOVzNSU09LUFM4QjQ1bWN1cl9YekZwSkc0UzRTSnBaS3FHWGU0WFZaRkVnYkh5YXc0RjdwU2k0QXdpNnZtZ1F1R1lzQzhVbnRiT280bmR1SE5uVWcxOVlSUDd1ZDlLc2U4bHVkRkx6TFlaNElnQjVNZ3duSjdBSTZWemRGclYxMHY4V0RVS3RBQnBYb1ZOQ3BwbVg2Rnc0NkdUeU5SZFNrOTNwcW11aFdKWFYtZ3hER0Q3Nm9OdFMyS05QZHpXRnJoTGNpSTE1bmJZZ1NfTGxaRnhHTEZsQlVDcmdORy0wTTV4VjJaQWVMVUZFZlh3TnlCemJjVVNFRHE4ZjFiWjllUzc5d1hyOEgwbDR5OHNXTldLRldDTXVsUTJjSW1VY043a0RsUVFCVldNdEt6cmpUYmp5aXZldUY5T2N2RHpoNVRRdjRFVEh2Sml6d1VPYkU3Ylk1ZXpoQ2JXOWtHbFZqTWw0ajFhMmNRNjg3cGNYa3JJWGFOMmNSSlVIMXhxRE9TaEltTHNxSVpGN3pUSmVrMnNxdUk4aHVQM2UtMEhSWUVhYU50eC1sRWJ1c3BvNW5pTFNOVmxmTTV5WjZyb2FDcklObzRra1pOMFRDbUM1Znd0ODQ4XzRsR09SaUJmby1YOUxmV0ZMMmVYeFRKdkF6a2kyVDc0ZGo4aWJIdEpuNEhmNVR1V2ppczE0ZENnaS1fNXBtQk45amRLR1lOeUpaMjRpRlRtRENfdXV0U2wzU2pSUDg0V1hqT2hFSl9TQmdxYnhRcDFtT3Vz?oc=5"
         },
         {
           "title": "交易所買賣基金的交易資料",
