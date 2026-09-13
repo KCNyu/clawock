@@ -141,3 +141,8 @@ _（空）_
 
 <!-- openclaw-memory-promotion:memory:memory/2026-09-09-pre-open.md:11:11 -->
 - 盘前深度简报｜2026-09-09 周三 08:03 HKT: Book 双 leg 都高 HHI 危险集中 (HK 0.43 / US 0.68), 9/9 preflight 仍 4 breach + 2 hard stop, 主动 call 必须由 risk_rule 驱动; 1d 港股普跌 (-5.6% 00100) + 美股 SPX/NDX -0.58/-0.32% 同步, 5d SPCH +12.6% 反弹给了纪律性 cut 的好窗口. [score=0.813 recalls=0 avg=0.620 source=memory/2026-09-09-pre-open.md:11-11]
+
+## Promoted From Short-Term Memory (2026-09-14)
+
+<!-- openclaw-memory-promotion:memory:memory/2026-09-10-pre-open.md:11:11 -->
+- 盘前深度简报｜2026-09-10 周四 08:03 HKT: HK 0.428 / US 0.746 双 leg 危险集中, 5 仓位硬闸 + 3 杠杆止损并发 — 第 5 轮 cut 计划 (07226 第 5 次, RKLX/SPCH 第 4 次), 9/16 FOMC 是制度切换硬催化. book 真实浮亏 USD-base -6,039 / HKD-base -47,362 (USDHKD 7.8423). [score=0.807 recalls=0 avg=0.620 source=memory/2026-09-10-pre-open.md:11-11]
