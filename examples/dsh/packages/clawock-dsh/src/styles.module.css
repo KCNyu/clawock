@@ -1171,8 +1171,32 @@ body[data-ds-dark-theme] .dmt {
   --warn:#8F571B;
   --shadow-lg:0 16px 40px rgba(16,24,40,.16), 0 2px 10px rgba(16,24,40,.08);
   --tint-border:rgba(0,0,0,.05);
-  --pop-surface:rgba(255,255,255,.72);
   --edge-light:rgba(255,255,255,.55);
+  /* Glass that brings its own light (kcn 2026-09-13:「透明质感,玻璃效果」).
+     The chip sits on the host header, which is solid #FFF (dark: #151517):
+     a translucent white fill + blur over a flat white page has nothing to show
+     and reads as a plain pill — the same finding as Decision Mind's #995
+     (面底差 0). So the material carries its own depth instead of borrowing it:
+     a faint brand-blue / violet light inside, a top-to-bottom fill falloff, a
+     sheen on the top edge, a specular rim above and a darker thickness edge
+     below, and a brand-tinted contact shadow. Where content does pass behind
+     (the panel over the conversation) the backdrop blur still does its part. */
+  /* Light values are stronger than the dark ones on purpose: measured on the
+     live header, a .10 tint over #FFF moved the panel face only 5.5 grey levels
+     (below the ≥10 a reader can see, #995), while the same recipe on the dark
+     page already moved it ~50. */
+  --glass-top:rgba(255,255,255,.70);
+  --glass-bottom:rgba(255,255,255,.36);
+  --glass-top-hover:rgba(255,255,255,.90);
+  --glass-tint:rgba(65,118,230,.18);
+  --glass-tint-2:rgba(124,92,255,.15);
+  --glass-sheen:rgba(255,255,255,.75);
+  --glass-rim:rgba(255,255,255,.95);
+  --glass-rim-low:rgba(15,23,42,.08);
+  --glass-ring:rgba(15,23,42,.11);
+  --glass-glow:rgba(65,118,230,.26);
+  --pop-top:rgba(250,251,255,.72);
+  --pop-bottom:rgba(244,246,252,.56);
   --font:var(--dsw-font-family, -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif);
   position:relative;
   display:inline-flex
@@ -1183,8 +1207,19 @@ body[data-ds-dark-theme] .pbc {
   --warn:#E0A752;
   --shadow-lg:0 16px 40px rgba(0,0,0,.52), 0 2px 10px rgba(0,0,0,.36);
   --tint-border:rgba(255,255,255,.08);
-  --pop-surface:rgba(28,30,34,.78);
-  --edge-light:rgba(255,255,255,.12)
+  --edge-light:rgba(255,255,255,.12);
+  --glass-top:rgba(62,66,78,.62);
+  --glass-bottom:rgba(30,32,38,.46);
+  --glass-top-hover:rgba(78,83,97,.72);
+  --glass-tint:rgba(96,140,255,.18);
+  --glass-tint-2:rgba(150,110,255,.13);
+  --glass-sheen:rgba(255,255,255,.10);
+  --glass-rim:rgba(255,255,255,.18);
+  --glass-rim-low:rgba(0,0,0,.40);
+  --glass-ring:rgba(255,255,255,.10);
+  --glass-glow:rgba(80,120,255,.26);
+  --pop-top:rgba(46,49,58,.78);
+  --pop-bottom:rgba(24,26,31,.70)
 }
 .pbc .bchip {
   position:relative;
@@ -1194,12 +1229,17 @@ body[data-ds-dark-theme] .pbc {
   height:26px;
   padding:0 11px;
   border-radius:13px;
-  border:1px solid var(--tint-border);
+  border:1px solid var(--glass-ring);
   background:var(--surface);
-  background:color-mix(in srgb, var(--surface) 58%, transparent);
-  -webkit-backdrop-filter:blur(12px) saturate(1.75);
-  backdrop-filter:blur(12px) saturate(1.75);
-  box-shadow:var(--dsw-shadow-lv1, 0 1px 2px rgba(16,24,40,.04)), inset 0 1px 0 var(--edge-light);
+  background:
+    linear-gradient(180deg, var(--glass-sheen) 0, transparent 55%),
+    radial-gradient(120% 160% at 0% 0%, var(--glass-tint) 0%, transparent 62%),
+    radial-gradient(120% 160% at 100% 100%, var(--glass-tint-2) 0%, transparent 62%),
+    linear-gradient(180deg, var(--glass-top), var(--glass-bottom));
+  -webkit-backdrop-filter:blur(16px) saturate(1.8);
+  backdrop-filter:blur(16px) saturate(1.8);
+  box-shadow:0 1px 2px rgba(16,24,40,.06), 0 8px 20px -10px var(--glass-glow),
+    inset 0 1px 0 var(--glass-rim), inset 0 -1px 0 var(--glass-rim-low);
   font:500 var(--fs-sm)/1 var(--font);
   color:var(--text3);
   cursor:pointer;
@@ -1216,7 +1256,9 @@ body[data-ds-dark-theme] .pbc {
 }
 @media (hover: hover) and (pointer: fine) {
   .pbc .bchip:hover {
-    background:color-mix(in srgb, var(--surface) 80%, transparent)
+    --glass-top:var(--glass-top-hover);
+    box-shadow:0 1px 2px rgba(16,24,40,.06), 0 10px 24px -10px var(--glass-glow),
+      inset 0 1px 0 var(--glass-rim), inset 0 -1px 0 var(--glass-rim-low)
   }
 }
 .pbc .bchip:focus-visible {
@@ -1288,13 +1330,19 @@ body[data-ds-dark-theme] .pbc {
   max-width:min(300px, calc(100vw - 24px));
   min-width:min(220px, calc(100vw - 24px));
   padding:10px 12px 8px;
-  border-radius:12px;
-  border:1px solid var(--tint-border);
+  border-radius:14px;
+  border:1px solid var(--glass-ring);
   background:var(--surface);
-  background:color-mix(in srgb, var(--pop-surface) 100%, transparent);
-  -webkit-backdrop-filter:blur(30px) saturate(1.9);
-  backdrop-filter:blur(30px) saturate(1.9);
-  box-shadow:var(--shadow-lg), inset 0 1px 0 var(--edge-light);
+  background:
+    linear-gradient(180deg, var(--glass-sheen) 0, transparent 46px),
+    radial-gradient(90% 55% at 100% 0%, var(--glass-tint) 0%, transparent 72%),
+    radial-gradient(85% 50% at 0% 100%, var(--glass-tint-2) 0%, transparent 74%),
+    linear-gradient(180deg, var(--pop-top), var(--pop-bottom));
+  -webkit-backdrop-filter:blur(28px) saturate(1.9);
+  backdrop-filter:blur(28px) saturate(1.9);
+  box-shadow:0 1px 2px rgba(16,24,40,.06), 0 24px 48px -18px rgba(16,24,40,.30),
+    0 12px 28px -18px var(--glass-glow),
+    inset 0 1px 0 var(--glass-rim), inset 0 -1px 0 var(--glass-rim-low);
   transform-origin:top right;
   transition:transform .16s cubic-bezier(.23,1,.32,1),opacity .16s cubic-bezier(.23,1,.32,1)
 }
@@ -1542,12 +1590,19 @@ body[data-ds-dark-theme] .pbc {
    keep the saturate lift so the material still reads as glass. */
 @media (max-width: 520px) {
   .pbc .bchip {
-    -webkit-backdrop-filter:blur(7px) saturate(1.4);
-    backdrop-filter:blur(7px) saturate(1.4)
+    -webkit-backdrop-filter:blur(10px) saturate(1.6);
+    backdrop-filter:blur(10px) saturate(1.6)
   }
+  /* The panel covers conversation text on a phone; at blur 16 that text still
+     ghosted through the rows, so the phone panel keeps a heavier blur and a
+     slightly more opaque floor than the desktop one. */
   .pbc .bp {
-    -webkit-backdrop-filter:blur(14px) saturate(1.5);
-    backdrop-filter:blur(14px) saturate(1.5)
+    --pop-bottom:rgba(244,246,252,.68);
+    -webkit-backdrop-filter:blur(24px) saturate(1.7);
+    backdrop-filter:blur(24px) saturate(1.7)
+  }
+  body[data-ds-dark-theme] .pbc .bp {
+    --pop-bottom:rgba(24,26,31,.80)
   }
 }
 /* Reduced transparency: frost over — solid surfaces, no blur cost. */
