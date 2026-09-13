@@ -82,8 +82,8 @@ def test_drift_plan_and_command_patch_only_declared_fields():
     command = sync_cron_payloads.build_edit_command(change)
     assert command[0] == runtime_paths().binary
     assert command[1:4] == ["cron", "edit", job["id"]]
-    assert command[command.index("--thinking") + 1] == "adaptive"
     profile = data["payload_profiles"]["intraday"]
+    assert command[command.index("--thinking") + 1] == profile["thinking"]
     assert command[command.index("--fallbacks") + 1] == ",".join(
         profile["fallbacks"]
     )

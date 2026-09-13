@@ -484,7 +484,7 @@ def test_intraday_payload_contract_bans_heredoc_and_requires_text_file():
         for line in profile['required_substrings']
     )
     assert profile['tools_allow'] is None
-    assert profile['thinking'] == 'adaptive'
+    assert profile['thinking'] == 'max'
     # 300s is a per-exec bound. A 300s whole-turn timeout would kill normal
     # 4–6 minute check-ins before postflight can deliver them.
     assert 'timeout_seconds' not in profile
@@ -505,21 +505,27 @@ def test_intraday_payload_contract_bans_heredoc_and_requires_text_file():
     assert cron_contract.payload_errors(data, expected, live) != []
 
 
-def test_strategy_crons_pin_minimax_m3_adaptive_reasoning():
-    """M3 exposes only off/adaptive; high is a budgeted M2.x level.
+def test_strategy_crons_request_max_reasoning_clamped_per_candidate():
+    """The payload asks for `max`; OpenClaw clamps it per fallback candidate.
 
-    Adaptive is M3's reasoning-enabled mode, not a context or output reduction.
-    Keeping the supported value explicit prevents every live run from silently
-    rewriting the tracked contract while emitting an unsupported-level warning.
+    MiniMax-M3 exposes only off/adaptive, and Codex models reject `adaptive`
+    outright ("Thinking level adaptive is not supported for openai/gpt-5.6-sol",
+    2026-09-13 15:44). OpenClaw's cron executor re-resolves the level for each
+    candidate (`resolveCandidateThinkingLevel`) using ranks adaptive=30, max=70,
+    so `max` becomes `adaptive` on both MiniMax hops — exactly today's behaviour —
+    and stays `max` on the Codex `gpt-5.6-luna` hop. Pinning `adaptive` would
+    clamp Luna down to `medium`. The clamp is logged per run but never written
+    back into the live job (the dreaming job logged it five times since 09-10
+    with its payload unchanged), so it cannot make the contract drift.
     """
     profiles = contract()['payload_profiles']
     assert {
         name: profiles[name].get('thinking')
         for name in ('report', 'intraday', 'brief')
     } == {
-        'report': 'adaptive',
-        'intraday': 'adaptive',
-        'brief': 'adaptive',
+        'report': 'max',
+        'intraday': 'max',
+        'brief': 'max',
     }
 
 
@@ -529,13 +535,18 @@ def test_strategy_cron_provider_order_is_fixed_policy():
     # This concrete order is policy. Reordering it requires a deliberate human
     # decision; do not make this expectation follow the contract dynamically.
     #
-    # #1242: `zen/deepseek-v4-flash` left the executed rotation on 2026-09-01.
-    # Its account answers `401 Insufficient balance` — measured again that
-    # morning on both the zen and the go endpoint — so every slot spent a round
-    # trip on a hop that could only fail, and the chain reported three hops long
-    # while two of them were one MiniMax account. It stays in
-    # `model_candidates`, which is the allowed set rather than the rotation:
-    # topping the balance up is the only thing needed to put it back.
+    # #1242: `zen/deepseek-v4-flash` left the executed rotation on 2026-09-01
+    # (`401 Insufficient balance`), and on 2026-09-13 kcn removed OpenCode and
+    # every pay-as-you-go leg entirely, so it is gone from the allowed set too.
+    #
+    # 2026-09-13 (kcn「用 codex 里面的 luna max 来兜底」): the two MiniMax hops are
+    # one account and fail together (both 529「整点高峰」on 09-04), so the third
+    # hop is `openai/gpt-5.6-luna` through the local Codex login — a separate
+    # credential on the ChatGPT subscription, not metered billing. Smoke-tested
+    # through OpenClaw with thinking=max: plain answer in 27s, and a turn that
+    # read a SKILL.md and ran `clawock calendar us --status` in 89s. It shares
+    # the Codex Plus quota with interactive Codex use; it only runs after both
+    # MiniMax hops have failed.
     assert {
         name: {
             'model': profiles[name].get('model'),
@@ -546,33 +557,33 @@ def test_strategy_cron_provider_order_is_fixed_policy():
     } == {
         'report': {
             'model': 'minimax/MiniMax-M3',
-            'fallbacks': ['minimax-2/MiniMax-M3'],
+            'fallbacks': ['minimax-2/MiniMax-M3', 'openai/gpt-5.6-luna'],
             'model_candidates': [
                 'minimax/MiniMax-M3',
                 'minimax-2/MiniMax-M3',
-                'zen/deepseek-v4-flash',
+                'openai/gpt-5.6-luna',
                 'openai/gpt-5.6-sol',
                 'anthropic/claude-sonnet-4-6',
             ],
         },
         'intraday': {
             'model': 'minimax/MiniMax-M3',
-            'fallbacks': ['minimax-2/MiniMax-M3'],
+            'fallbacks': ['minimax-2/MiniMax-M3', 'openai/gpt-5.6-luna'],
             'model_candidates': [
                 'minimax/MiniMax-M3',
                 'minimax-2/MiniMax-M3',
-                'zen/deepseek-v4-flash',
+                'openai/gpt-5.6-luna',
                 'openai/gpt-5.6-sol',
                 'anthropic/claude-sonnet-4-6',
             ],
         },
         'brief': {
             'model': 'minimax/MiniMax-M3',
-            'fallbacks': ['minimax-2/MiniMax-M3'],
+            'fallbacks': ['minimax-2/MiniMax-M3', 'openai/gpt-5.6-luna'],
             'model_candidates': [
                 'minimax/MiniMax-M3',
                 'minimax-2/MiniMax-M3',
-                'zen/deepseek-v4-flash',
+                'openai/gpt-5.6-luna',
                 'openai/gpt-5.6-sol',
                 'anthropic/claude-sonnet-4-6',
             ],
