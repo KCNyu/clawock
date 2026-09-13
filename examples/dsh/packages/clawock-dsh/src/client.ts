@@ -562,14 +562,13 @@ export function _balanceNote(result: BalanceResult | null): string | null {
   if (result.low) {
     // threshold 是「剩余水位」(lowPct),已使用方向 = 100 − threshold。
     if (result.snapshot.unit === 'pct') {
-      // Name the window that actually crossed the line. The headline is the
-      // first window, so a red「1%」with a bare「窗口已使用达 80%」left the reader
-      // guessing which window — it was the weekly one at 83%.
-      const over = (result.snapshot.windows ?? [])
-        .filter((w) => w.percent !== null && w.percent >= 100 - result.threshold)
-        .sort((a, b) => (b.percent as number) - (a.percent as number))[0]
-      return over !== undefined
-        ? over.label + ' 已用 ' + Math.round(over.percent as number) + '%'
+      // With per-window lines the panel already shows which window crossed
+      // the line — its label, percent and a red bar (kcn:「5h已用 周已用这些
+      // 没必要重复显示,进度条都看得到」). The row's red dot and value carry
+      // the warning; a caption would only repeat a line printed right below.
+      // A snapshot without windows has nothing below it, so it keeps the line.
+      return (result.snapshot.windows ?? []).length > 0
+        ? null
         : '窗口已使用达 ' + (100 - result.threshold) + '%'
     }
     const symbol = result.snapshot.currency === 'USD' ? '$' : result.snapshot.currency === 'CNY' ? '¥' : ''
