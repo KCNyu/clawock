@@ -7,8 +7,17 @@
  *   - minimax:  `GET {base}/v1/token_plan/remains` (Token Plan quota windows;
  *     `base_resp.status_code` is the business verdict — 0 ok, 1004 auth —
  *     and a HTTP-200 body can still be an auth failure)
+ *   - claude:   `GET /api/oauth/usage` (subscription windows)
  *   - codex:    official `codex app-server` JSON-RPC
  *     `account/rateLimits/read` (ChatGPT subscription quota windows)
+ *
+ * Every quota provider is reduced to the same shape before it leaves this
+ * file: a list of windows built by `quotaWindow` (label derived from the
+ * window's length, one reset-stamp format) and a snapshot built by
+ * `quotaSnapshot` (one note wording, one availability rule, one low rule).
+ * The parsers below only translate each vendor's field names — they used to
+ * each spell labels, notes and reset clocks their own way, which is how the
+ * same 5-hour window read '5h' on one row and '会话' on the next.
  *
  * One cache per provider, one source of truth: the gateway instance owns
  * them, so a stale read, a failed refresh and a rotated key all resolve
@@ -21,7 +30,7 @@
  * 'no-key' / 'failed' / 'stale' carry a Chinese `message` the view renders
  * verbatim.
  */
-import type { BalanceResult, BalanceSnapshot } from './types.ts';
+import type { BalanceResult, BalanceSnapshot, BalanceWindow } from './types.ts';
 export declare const DEFAULT_BALANCE_BASE_URL = "https://api.deepseek.com";
 export declare const DEFAULT_BALANCE_THRESHOLD = 20;
 export declare const DEFAULT_BALANCE_REFRESH_MS = 60000;
@@ -71,11 +80,7 @@ export interface ClaudeConfig {
     credentialsPath?: string;
     /** The undocumented /api/oauth/usage endpoint; overridable for tests. */
     usageUrl?: string;
-    /**
-     * Red dot watermark in REMAINING terms for the session window: warn when
-     * remaining has fallen to/below this (default 20, i.e. ≥80% used). The
-     * displayed number is used percent; the config meaning is unchanged.
-     */
+    /** Red dot watermark in REMAINING terms (default 20, i.e. ≥80% used). */
     lowPct?: number;
 }
 export interface CodexConfig {
@@ -96,20 +101,9 @@ export interface CodexConfig {
  * and fails the "publishes Remote artifacts" gate. The seam itself resolves
  * by name, so the reference needs no import to work.
  */
-/**
- * The credentials seam reference the official DeepSeek adapter resolves.
- * A plain string on purpose, not credentialRef(): the branding helper is a
- * no-op at runtime, and importing @deepseek-ai/dsh-credentials would drag its
- * cordis Events augmentation into the typert analysis — which registers this
- * package in the host face with zero discoverable services (the protocol
- * lives in node_modules, where the generator's symbol checks cannot see it)
- * and fails the "publishes Remote artifacts" gate. The seam itself resolves
- * by name, so the reference needs no import to work.
- */
 export declare const DEEPSEEK_KEY_REF = "DEEPSEEK_API_KEY";
 /** Same seam discipline for MiniMax: the harness's MiniMax adapter's ref. */
 export declare const MINIMAX_KEY_REF = "MINIMAX_API_KEY";
-/** The credentials capability, narrowed to what this service uses. */
 /** One balance_infos entry, as far as this service reads it. */
 export interface BalanceInfoEntry {
     currency?: string;
@@ -128,51 +122,82 @@ export declare function pickCnyBalanceInfo(infos: readonly BalanceInfoEntry[] | 
  * so a shape drift upstream reads as an empty box, never as a crashed tab.
  */
 export declare function parseBalancePayload(body: unknown, asOf: string): BalanceSnapshot;
+/** Epoch seconds, epoch milliseconds or an RFC3339 string → epoch ms; null when unreadable. */
+export declare function toEpochMs(value: number | string | null | undefined): number | null;
+/**
+ * The single reset-stamp format, same for every provider and every window:
+ * '今天 21:00' / '明天 09:00' when it lands within the next calendar day,
+ * otherwise the full date '9/20 周日 20:00'. A weekly reset used to read just
+ * '周日 20:00' — with no date, a week-long window's reset could be this
+ * Sunday or the next, and it said nothing about which.
+ */
+export declare function formatReset(value: number | string | null | undefined, now?: number): string;
+/** A window's label from its length: 300 → '5h', 10080 → '周', 1440 → '1天'. */
+export declare function windowLabel(durationMins: number | null, fallback: string): string;
+/** What a provider parser knows about one window, in its own units. */
+export interface QuotaWindowInput {
+    /** Used percent (0-100); null when the plan does not report it this cycle. */
+    usedPercent: number | null;
+    /** Window length in minutes, when the vendor says (or it can be derived). */
+    durationMins: number | null;
+    /** When the window frees up: epoch s/ms or RFC3339. */
+    resetsAt: number | string | null | undefined;
+    /** Label to use when the length is unknown ('5h' / '周'). */
+    fallbackLabel: string;
+}
+/** One vendor window → the wire window, or null when it carries no reading. */
+export declare function quotaWindow(input: QuotaWindowInput, now?: number): BalanceWindow | null;
+/**
+ * Readable windows → the quota snapshot. The headline is the first window;
+ * the note reads every window the same way ('5h 已用 12%,今天 21:00 重置');
+ * a quota account is available only while no window is exhausted, unless the
+ * vendor states availability itself (`isAvailable`).
+ */
+export declare function quotaSnapshot(windows: readonly (BalanceWindow | null)[], asOf: string, options?: {
+    isAvailable?: boolean;
+    extraNotes?: readonly string[];
+}): BalanceSnapshot;
+/**
+ * The shared low rule for quota rows. `lowPct` keeps its original 「剩余水位」
+ * meaning (warn when remaining ≤ lowPct), which in the used direction is any
+ * window at ≥ 100 − lowPct — the weekly window counts as much as the short
+ * one, because an exhausted week blocks work just as surely.
+ */
+export declare function quotaIsLow(snapshot: BalanceSnapshot, lowPct: number): boolean;
 /** One model_remains bucket, as far as this service reads it. */
 export interface MinimaxRemainsEntry {
+    /** Bucket name. The live API calls it `model_name`; older payloads `model`. */
+    model_name?: string;
     model?: string;
+    start_time?: number;
+    end_time?: number;
     current_interval_remaining_percent?: number;
     current_interval_total_count?: number;
     current_interval_usage_count?: number;
+    weekly_start_time?: number;
+    weekly_end_time?: number;
     current_weekly_remaining_percent?: number;
-    end_time?: number;
+    current_weekly_total_count?: number;
+    current_weekly_usage_count?: number;
     [key: string]: unknown;
 }
-/**
- * Used percent of one quota window — the chip's display direction (kcn:
- * 「已使用」比「剩余」直观). The explicit percent field reports REMAINING and
- * is complemented here; raw counts are already consumption and divide as-is
- * (MiniMax ships both shapes across plan generations). null = unreadable,
- * never guessed.
- */
+/** The interval window's used percent (kept exported: the tests pin both shapes). */
 export declare function windowUsedPercent(entry: MinimaxRemainsEntry): number | null;
 /**
- * Reset stamps the panel can lay out: within 48h a bare local clock,
- * farther out the weekday comes along ('周四 21:00'). Accepts epoch seconds,
- * epoch milliseconds and RFC3339 strings — MiniMax sends epochs while
- * Claude sends ISO.
- */
-export declare function formatReset(epochOrIso: number | string | null | undefined): string;
-/**
  * The successful Token Plan payload → snapshot. Percent-based by design:
- * plans report either percent fields or raw counts, and tokens are not money
- * — the chip reads "窗口额度用了多少"(已使用方向), never a fabricated ¥ figure.
+ * tokens are not money — the chip reads "窗口额度用了多少", never a ¥ figure.
  */
-export declare function parseMinimaxRemains(body: unknown, asOf: string): BalanceSnapshot;
-/** Tolerant JSON file read: missing/unreadable/invalid all yield undefined. */
-export declare function readJsonFile(path: string): Record<string, unknown> | undefined;
-/** DeepSeek row: official money balance, CNY entry preferred. */
-export declare function createBalanceService(deps: {
-    credentials: BalanceCredentials;
-}, config?: BalanceConfig): {
-    get(force: boolean): Promise<BalanceResult>;
-};
-/** MiniMax row: official Token Plan quota windows, percent-based. */
-export declare function createMinimaxService(deps: {
-    credentials: BalanceCredentials;
-}, config?: MinimaxConfig): {
-    get(force: boolean): Promise<BalanceResult>;
-};
+export declare function parseMinimaxRemains(body: unknown, asOf: string, now?: number): BalanceSnapshot;
+/** One usage window: utilization is the % already consumed (0-100). */
+export interface ClaudeUsageWindow {
+    utilization?: number;
+    resets_at?: string | null;
+}
+/**
+ * Successful usage payload → snapshot. utilization already IS consumption,
+ * so it passes through untouched; any bucket may be absent/null by plan.
+ */
+export declare function parseClaudeUsage(body: unknown, asOf: string, now?: number): BalanceSnapshot;
 /** One Codex app-server quota window (`account/rateLimits/read`). */
 export interface CodexRateLimitWindow {
     usedPercent?: number;
@@ -180,7 +205,20 @@ export interface CodexRateLimitWindow {
     resetsAt?: number | null;
 }
 /** Official app-server response → the chip's used-percent snapshot. */
-export declare function parseCodexRateLimits(body: unknown, asOf: string): BalanceSnapshot;
+export declare function parseCodexRateLimits(body: unknown, asOf: string, now?: number): BalanceSnapshot;
+export type BalanceService = {
+    get(force: boolean): Promise<BalanceResult>;
+};
+/** Tolerant JSON file read: missing/unreadable/invalid all yield undefined. */
+export declare function readJsonFile(path: string): Record<string, unknown> | undefined;
+/** DeepSeek row: official money balance, CNY entry preferred. */
+export declare function createBalanceService(deps: {
+    credentials: BalanceCredentials;
+}, config?: BalanceConfig): BalanceService;
+/** MiniMax row: official Token Plan quota windows, percent-based. */
+export declare function createMinimaxService(deps: {
+    credentials: BalanceCredentials;
+}, config?: MinimaxConfig): BalanceService;
 /**
  * Ask Codex itself for ChatGPT limits. The CLI owns auth and refresh; this
  * plugin never reads or forwards tokens. One short-lived JSONL app-server is
@@ -190,9 +228,7 @@ export declare function readCodexRateLimits(command: string, timeoutMs?: number)
 /** Codex row: ChatGPT subscription quota through the official app-server. */
 export declare function createCodexService(deps: {
     credentials: BalanceCredentials;
-}, config?: CodexConfig): {
-    get(force: boolean): Promise<BalanceResult>;
-};
+}, config?: CodexConfig): BalanceService;
 /** Claude Code's stored OAuth identity — token plus the plan it belongs to. */
 interface ClaudeCredentials {
     accessToken?: string;
@@ -200,11 +236,6 @@ interface ClaudeCredentials {
     expiresAt?: number;
     subscriptionType?: string;
     rateLimitTier?: string;
-}
-/** One usage window: utilization is the % already consumed (0-100). */
-export interface ClaudeUsageWindow {
-    utilization?: number;
-    resets_at?: string;
 }
 /**
  * Read Claude Code's OAuth credentials. The file belongs to Claude Code —
@@ -214,17 +245,8 @@ export interface ClaudeUsageWindow {
 export declare function readClaudeCredentials(path: string): {
     creds: ClaudeCredentials;
 } | undefined;
-/**
- * Successful usage payload → snapshot, in USED percent — utilization already
- * IS consumption, so it renders verbatim with no complementing (kcn:
- * 「已使用」比「剩余」直观). five_hour gates active sessions so it is the
- * headline; any bucket may be absent/null depending on plan.
- */
-export declare function parseClaudeUsage(body: unknown, asOf: string): BalanceSnapshot;
 /** Claude row: subscription rate-limit windows via the OAuth usage endpoint. */
 export declare function createClaudeService(deps: {
     credentials: BalanceCredentials;
-}, config?: ClaudeConfig): {
-    get(force: boolean): Promise<BalanceResult>;
-};
+}, config?: ClaudeConfig): BalanceService;
 export {};
