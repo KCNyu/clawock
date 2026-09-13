@@ -63,6 +63,51 @@ const workspaceOf = () => process.env.CLAWOCK_WORKSPACE || process.cwd();
 * config past its lifetime.
 */
 let pendingConfig = {};
+/**
+* The providers the balance chip lists, in display order. Adding one is one
+* row here plus its service in balance.ts — the gateway method below iterates
+* this table instead of naming each provider in four places (#1480 had to
+* touch the service map, the Promise.all, the row list and the refresh min).
+*/
+const BALANCE_PROVIDERS = [
+	{
+		id: "deepseek",
+		label: "DeepSeek",
+		create: (deps, config) => createBalanceService(deps, {
+			baseUrl: config.balanceBaseUrl,
+			threshold: config.balanceThreshold,
+			refreshMs: config.balanceRefreshMs
+		})
+	},
+	{
+		id: "minimax",
+		label: "MiniMax",
+		create: (deps, config) => createMinimaxService(deps, {
+			baseUrl: config.minimaxBaseUrl,
+			keyRef: config.minimaxKeyRef,
+			lowPct: config.minimaxLowPct,
+			openclawConfigPath: config.minimaxOpenclawConfigPath
+		})
+	},
+	{
+		id: "claude",
+		label: "Claude",
+		create: (deps, config) => createClaudeService(deps, {
+			credentialsPath: config.claudeCredentialsPath,
+			usageUrl: config.claudeUsageUrl,
+			lowPct: config.claudeLowPct
+		})
+	},
+	{
+		id: "codex",
+		label: "Codex",
+		create: (deps, config) => createCodexService(deps, {
+			command: config.codexCommand,
+			lowPct: config.codexLowPct,
+			refreshMs: config.codexRefreshMs
+		})
+	}
+];
 let ClawockStudioGateway = (() => {
 	let _classSuper = TypertRemoteService;
 	let _instanceExtraInitializers = [];
@@ -244,59 +289,19 @@ let ClawockStudioGateway = (() => {
 		* @param force - bypass the TTL caches (the manual refresh button).
 		*/
 		async balance(force) {
-			if (this.balanceServices === null) this.balanceServices = {
-				deepseek: createBalanceService({ credentials: credentialsOf(this.ctx) }, {
-					baseUrl: pendingConfig.balanceBaseUrl,
-					threshold: pendingConfig.balanceThreshold,
-					refreshMs: pendingConfig.balanceRefreshMs
-				}),
-				minimax: createMinimaxService({ credentials: credentialsOf(this.ctx) }, {
-					baseUrl: pendingConfig.minimaxBaseUrl,
-					keyRef: pendingConfig.minimaxKeyRef,
-					lowPct: pendingConfig.minimaxLowPct,
-					openclawConfigPath: pendingConfig.minimaxOpenclawConfigPath
-				}),
-				claude: createClaudeService({ credentials: credentialsOf(this.ctx) }, {
-					credentialsPath: pendingConfig.claudeCredentialsPath,
-					usageUrl: pendingConfig.claudeUsageUrl,
-					lowPct: pendingConfig.claudeLowPct
-				}),
-				codex: createCodexService({ credentials: credentialsOf(this.ctx) }, {
-					command: pendingConfig.codexCommand,
-					lowPct: pendingConfig.codexLowPct,
-					refreshMs: pendingConfig.codexRefreshMs
-				})
-			};
-			const [deepseek, minimax, claude, codex] = await Promise.all([
-				this.balanceServices.deepseek.get(force),
-				this.balanceServices.minimax.get(force),
-				this.balanceServices.claude.get(force),
-				this.balanceServices.codex.get(force)
-			]);
+			if (this.balanceServices === null) {
+				const deps = { credentials: credentialsOf(this.ctx) };
+				this.balanceServices = BALANCE_PROVIDERS.map((provider) => provider.create(deps, pendingConfig));
+			}
+			const services = this.balanceServices;
+			const results = await Promise.all(services.map((service) => service.get(force)));
 			return {
-				providers: [
-					{
-						provider: "deepseek",
-						label: "DeepSeek",
-						result: deepseek
-					},
-					{
-						provider: "minimax",
-						label: "MiniMax",
-						result: minimax
-					},
-					{
-						provider: "claude",
-						label: "Claude",
-						result: claude
-					},
-					{
-						provider: "codex",
-						label: "Codex",
-						result: codex
-					}
-				],
-				refreshMs: Math.min(deepseek.refreshMs, minimax.refreshMs, claude.refreshMs, codex.refreshMs)
+				providers: BALANCE_PROVIDERS.map((provider, i) => ({
+					provider: provider.id,
+					label: provider.label,
+					result: results[i]
+				})),
+				refreshMs: Math.min(...results.map((result) => result.refreshMs))
 			};
 		}
 	};

@@ -159,11 +159,11 @@ export interface TracesResult {
 
 /** One quota window worth its own line in the panel's per-window grid. */
 export interface BalanceWindow {
-  /** Short label rendered verbatim: '5h' | '周' | '会话' | '本周'. */
+  /** Label derived from the window's length, same for every provider: '5h' | '4h' | '周'. */
   label: string
   /** Used percent of this window (0-100); null when the plan doesn't report it. */
   percent: number | null
-  /** Preformatted LOCAL reset stamp ('15:00' / '周四 21:00'); '' when unknown. */
+  /** LOCAL reset stamp in the one shared format ('今天 21:00' / '明天 09:00' / '9/20 周日 20:00'); '' when unknown. */
   resetAt: string
 }
 

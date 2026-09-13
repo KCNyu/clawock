@@ -216,6 +216,8 @@ function makeReactStub() {
 
 /** Balance fixtures: per-provider rows and the whole-chip envelope. */
 const AS_OF = "2026-08-23T10:00:00.000Z";
+/** The one reset-stamp format every provider shares (balance.ts formatReset). */
+const RESET_STAMP = /^(今天|明天|\d{1,2}\/\d{1,2} 周[日一二三四五六]) \d{2}:\d{2}$/;
 const DS_ROW_OK = {
   provider: "deepseek", label: "DeepSeek",
   result: { configured: true, snapshot: { isAvailable: true, unit: "money", currency: "CNY", totalBalance: "110.00", grantedBalance: "10.00", toppedUpBalance: "100.00", asOf: AS_OF, note: "", windows: [] }, status: "fresh", low: false, message: null, threshold: 20, refreshMs: 60000 },
@@ -1226,14 +1228,36 @@ test("balance: CNY picking, tolerant parsing and the service's polite-cadence st
   assert.equal(mmParsed.unit, "pct");
   assert.equal(mmParsed.totalBalance, "24", "remaining 76.4 → used 23.6, rounded for display only");
   assert.deepEqual(mmParsed.windows.map((w) => [w.label, w.percent]), [["5h", 24], ["周", 10]]);
-  assert.match(mmParsed.windows[0].resetAt, /^\d{2}:\d{2}$/);
+  assert.match(mmParsed.windows[0].resetAt, RESET_STAMP);
   assert.throws(() => parseMinimaxRemains({ base_resp: { status_code: 0 } }, AS_OF), /model_remains/);
   // Epoch seconds AND milliseconds both read; garbage does not crash.
   const withReset = parseMinimaxRemains({
     base_resp: { status_code: 0 },
     model_remains: [{ model: "general", current_interval_remaining_percent: 50, end_time: 1785196800000 }],
   }, AS_OF);
-  assert.match(withReset.windows[0].resetAt, /^\d{2}:\d{2}$/);
+  assert.match(withReset.windows[0].resetAt, RESET_STAMP);
+
+  // The live payload (2026-09-13) names the bucket `model_name`, not `model`,
+  // and puts the video bucket first: matching on `model` alone silently read
+  // the video plan. The interval window's length comes from start/end (4h
+  // here), and the weekly window carries its own reset.
+  const now = new Date(2026, 8, 13, 20, 0).getTime();
+  const live = parseMinimaxRemains({
+    base_resp: { status_code: 0, status_msg: "success" },
+    model_remains: [
+      { model_name: "video", current_interval_remaining_percent: 5 },
+      {
+        model_name: "general",
+        start_time: new Date(2026, 8, 13, 16, 0).getTime(), end_time: new Date(2026, 8, 13, 20, 0).getTime() + 4 * 3600_000,
+        current_interval_remaining_percent: 100,
+        weekly_start_time: new Date(2026, 8, 7, 0, 0).getTime(), weekly_end_time: new Date(2026, 8, 14, 0, 0).getTime(),
+        current_weekly_remaining_percent: 17,
+      },
+    ],
+  }, AS_OF, now);
+  assert.deepEqual(live.windows.map((w) => [w.label, w.percent, w.resetAt]),
+    [["8h", 0, "明天 00:00"], ["周", 83, "明天 00:00"]]);
+  assert.equal(live.note, "8h 已用 0%,明天 00:00 重置 · 周 已用 83%,明天 00:00 重置");
 
   let minimaxCalls = 0;
   globalThis.fetch = async (url, init) => {
@@ -1350,10 +1374,11 @@ test("balance: claude subscription windows via the OAuth usage endpoint", async 
     assert.equal(fresh.status, "fresh");
     assert.equal(fresh.snapshot.unit, "pct");
     assert.equal(fresh.snapshot.totalBalance, "36", "utilization reads through untouched");
-    assert.deepEqual(fresh.snapshot.windows.map((w) => [w.label, w.percent]), [["会话", 36], ["本周", 69]]);
-    assert.match(fresh.snapshot.windows[0].resetAt, /^\d{2}:\d{2}$/);
-    assert.match(fresh.snapshot.note, /会话窗口已使用 36%/);
-    assert.match(fresh.snapshot.note, /本周已使用 69%/, "note mirrors the weekly window");
+    // Same labels as every other provider: the window's length names it.
+    assert.deepEqual(fresh.snapshot.windows.map((w) => [w.label, w.percent]), [["5h", 36], ["周", 69]]);
+    assert.match(fresh.snapshot.windows[0].resetAt, RESET_STAMP);
+    assert.match(fresh.snapshot.note, /5h 已用 36%/);
+    assert.match(fresh.snapshot.note, /周 已用 69%/, "note mirrors the weekly window");
     assert.equal(sawHeaders["anthropic-beta"], "oauth-2025-04-20", "the beta header is required");
     assert.equal(sawHeaders.authorization, "Bearer sk-ant-oat01-test");
 
@@ -1400,7 +1425,7 @@ test("balance: codex subscription windows via the official app-server", async ()
   assert.equal(parsed.isAvailable, true);
   assert.equal(parsed.totalBalance, "18");
   assert.deepEqual(parsed.windows.map((w) => [w.label, w.percent]), [["5h", 18], ["周", 81]]);
-  assert.match(parsed.windows[0].resetAt, /^\d{2}:\d{2}$/);
+  assert.match(parsed.windows[0].resetAt, RESET_STAMP);
   assert.throws(() => parseCodexRateLimits({ ordinaryUsageAllowed: true }, AS_OF), /额度数据/);
 
   const tmp = fsMod.mkdtempSync(pathMod.join(osMod.tmpdir(), "codex-app-server-"));

@@ -7,8 +7,17 @@
  *   - minimax:  `GET {base}/v1/token_plan/remains` (Token Plan quota windows;
  *     `base_resp.status_code` is the business verdict — 0 ok, 1004 auth —
  *     and a HTTP-200 body can still be an auth failure)
+ *   - claude:   `GET /api/oauth/usage` (subscription windows)
  *   - codex:    official `codex app-server` JSON-RPC
  *     `account/rateLimits/read` (ChatGPT subscription quota windows)
+ *
+ * Every quota provider is reduced to the same shape before it leaves this
+ * file: a list of windows built by `quotaWindow` (label derived from the
+ * window's length, one reset-stamp format) and a snapshot built by
+ * `quotaSnapshot` (one note wording, one availability rule, one low rule).
+ * The parsers below only translate each vendor's field names — they used to
+ * each spell labels, notes and reset clocks their own way, which is how the
+ * same 5-hour window read '5h' on one row and '会话' on the next.
  *
  * One cache per provider, one source of truth: the gateway instance owns
  * them, so a stale read, a failed refresh and a rotated key all resolve
@@ -41,6 +50,7 @@ export const DEFAULT_CODEX_LOW_PCT = 20
 export const DEFAULT_CODEX_REFRESH_MS = 300000
 const TTL_MS = 60000
 const TIMEOUT_MS = 15000
+const WEEK_MINS = 7 * 24 * 60
 
 /** The credentials capability, narrowed to what these services use. */
 export interface BalanceCredentials {
@@ -80,11 +90,7 @@ export interface ClaudeConfig {
   credentialsPath?: string
   /** The undocumented /api/oauth/usage endpoint; overridable for tests. */
   usageUrl?: string
-  /**
-   * Red dot watermark in REMAINING terms for the session window: warn when
-   * remaining has fallen to/below this (default 20, i.e. ≥80% used). The
-   * displayed number is used percent; the config meaning is unchanged.
-   */
+  /** Red dot watermark in REMAINING terms (default 20, i.e. ≥80% used). */
   lowPct?: number
 }
 
@@ -107,22 +113,11 @@ export interface CodexConfig {
  * and fails the "publishes Remote artifacts" gate. The seam itself resolves
  * by name, so the reference needs no import to work.
  */
-/**
- * The credentials seam reference the official DeepSeek adapter resolves.
- * A plain string on purpose, not credentialRef(): the branding helper is a
- * no-op at runtime, and importing @deepseek-ai/dsh-credentials would drag its
- * cordis Events augmentation into the typert analysis — which registers this
- * package in the host face with zero discoverable services (the protocol
- * lives in node_modules, where the generator's symbol checks cannot see it)
- * and fails the "publishes Remote artifacts" gate. The seam itself resolves
- * by name, so the reference needs no import to work.
- */
 export const DEEPSEEK_KEY_REF = 'DEEPSEEK_API_KEY'
 
 /** Same seam discipline for MiniMax: the harness's MiniMax adapter's ref. */
 export const MINIMAX_KEY_REF = 'MINIMAX_API_KEY'
 
-/** The credentials capability, narrowed to what this service uses. */
 /** One balance_infos entry, as far as this service reads it. */
 export interface BalanceInfoEntry {
   currency?: string
@@ -169,14 +164,142 @@ export function parseBalancePayload(body: unknown, asOf: string): BalanceSnapsho
   }
 }
 
+const finiteNumber = (value: unknown): number | null =>
+  typeof value === 'number' && isFinite(value) ? value : null
+
+const clampPercent = (value: number): number => Math.round(Math.min(100, Math.max(0, value)))
+
+// ---------------------------------------------------------------------------
+// The one quota-window vocabulary every provider below is translated into.
+// ---------------------------------------------------------------------------
+
+/** Epoch seconds, epoch milliseconds or an RFC3339 string → epoch ms; null when unreadable. */
+export function toEpochMs(value: number | string | null | undefined): number | null {
+  if (typeof value === 'number' && isFinite(value) && value > 0) {
+    return value > 1e12 ? value : value * 1000
+  }
+  if (typeof value === 'string' && value !== '') {
+    const at = new Date(value).getTime()
+    return isNaN(at) ? null : at
+  }
+  return null
+}
+
+const WEEKDAYS = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
+
+const dayIndex = (at: Date): number => Math.floor(
+  Date.UTC(at.getFullYear(), at.getMonth(), at.getDate()) / 86_400_000,
+)
+
+/**
+ * The single reset-stamp format, same for every provider and every window:
+ * '今天 21:00' / '明天 09:00' when it lands within the next calendar day,
+ * otherwise the full date '9/20 周日 20:00'. A weekly reset used to read just
+ * '周日 20:00' — with no date, a week-long window's reset could be this
+ * Sunday or the next, and it said nothing about which.
+ */
+export function formatReset(value: number | string | null | undefined, now: number = Date.now()): string {
+  const ms = toEpochMs(value)
+  if (ms === null) return ''
+  const at = new Date(ms)
+  const hhmm = String(at.getHours()).padStart(2, '0') + ':' + String(at.getMinutes()).padStart(2, '0')
+  const days = dayIndex(at) - dayIndex(new Date(now))
+  if (days === 0) return '今天 ' + hhmm
+  if (days === 1) return '明天 ' + hhmm
+  return `${at.getMonth() + 1}/${at.getDate()} ${WEEKDAYS[at.getDay()]} ${hhmm}`
+}
+
+/** A window's label from its length: 300 → '5h', 10080 → '周', 1440 → '1天'. */
+export function windowLabel(durationMins: number | null, fallback: string): string {
+  if (durationMins === null || durationMins <= 0) return fallback
+  if (durationMins === WEEK_MINS) return '周'
+  if (durationMins % 1440 === 0) return `${durationMins / 1440}天`
+  if (durationMins % 60 === 0) return `${durationMins / 60}h`
+  return `${Math.round(durationMins)}m`
+}
+
+/** What a provider parser knows about one window, in its own units. */
+export interface QuotaWindowInput {
+  /** Used percent (0-100); null when the plan does not report it this cycle. */
+  usedPercent: number | null
+  /** Window length in minutes, when the vendor says (or it can be derived). */
+  durationMins: number | null
+  /** When the window frees up: epoch s/ms or RFC3339. */
+  resetsAt: number | string | null | undefined
+  /** Label to use when the length is unknown ('5h' / '周'). */
+  fallbackLabel: string
+}
+
+/** One vendor window → the wire window, or null when it carries no reading. */
+export function quotaWindow(input: QuotaWindowInput, now: number = Date.now()): BalanceWindow | null {
+  if (input.usedPercent === null) return null
+  return {
+    label: windowLabel(input.durationMins, input.fallbackLabel),
+    percent: clampPercent(input.usedPercent),
+    resetAt: formatReset(input.resetsAt, now),
+  }
+}
+
+/**
+ * Readable windows → the quota snapshot. The headline is the first window;
+ * the note reads every window the same way ('5h 已用 12%,今天 21:00 重置');
+ * a quota account is available only while no window is exhausted, unless the
+ * vendor states availability itself (`isAvailable`).
+ */
+export function quotaSnapshot(
+  windows: readonly (BalanceWindow | null)[],
+  asOf: string,
+  options: { isAvailable?: boolean; extraNotes?: readonly string[] } = {},
+): BalanceSnapshot {
+  const readable = windows.filter((window): window is BalanceWindow => window !== null)
+  const notes = readable.map((window) => `${window.label} 已用 ${window.percent}%`
+    + (window.resetAt !== '' ? `,${window.resetAt} 重置` : ''))
+  notes.push(...(options.extraNotes ?? []))
+  const headline = readable[0]?.percent
+  return {
+    isAvailable: options.isAvailable ?? (readable.length > 0 && readable.every((window) => (window.percent ?? 0) < 100)),
+    unit: 'pct',
+    currency: '',
+    totalBalance: headline === null || headline === undefined ? '' : String(headline),
+    grantedBalance: '',
+    toppedUpBalance: '',
+    asOf,
+    note: notes.join(' · '),
+    windows: readable,
+  }
+}
+
+/**
+ * The shared low rule for quota rows. `lowPct` keeps its original 「剩余水位」
+ * meaning (warn when remaining ≤ lowPct), which in the used direction is any
+ * window at ≥ 100 − lowPct — the weekly window counts as much as the short
+ * one, because an exhausted week blocks work just as surely.
+ */
+export function quotaIsLow(snapshot: BalanceSnapshot, lowPct: number): boolean {
+  if (snapshot.unit !== 'pct') return false
+  if (!snapshot.isAvailable) return true
+  return snapshot.windows.some((window) => window.percent !== null && window.percent >= 100 - lowPct)
+}
+
+// ---------------------------------------------------------------------------
+// MiniMax
+// ---------------------------------------------------------------------------
+
 /** One model_remains bucket, as far as this service reads it. */
 export interface MinimaxRemainsEntry {
+  /** Bucket name. The live API calls it `model_name`; older payloads `model`. */
+  model_name?: string
   model?: string
+  start_time?: number
+  end_time?: number
   current_interval_remaining_percent?: number
   current_interval_total_count?: number
   current_interval_usage_count?: number
+  weekly_start_time?: number
+  weekly_end_time?: number
   current_weekly_remaining_percent?: number
-  end_time?: number
+  current_weekly_total_count?: number
+  current_weekly_usage_count?: number
   [key: string]: unknown
 }
 
@@ -185,94 +308,148 @@ interface RawRemainsBody {
   model_remains?: MinimaxRemainsEntry[]
 }
 
-const finiteNumber = (value: unknown): number | null =>
-  typeof value === 'number' && isFinite(value) ? value : null
-
 /**
- * Used percent of one quota window — the chip's display direction (kcn:
- * 「已使用」比「剩余」直观). The explicit percent field reports REMAINING and
- * is complemented here; raw counts are already consumption and divide as-is
- * (MiniMax ships both shapes across plan generations). null = unreadable,
- * never guessed.
+ * Used percent from MiniMax's two shapes: an explicit REMAINING percent
+ * (complemented here) or raw counts (already consumption). null =
+ * unreadable, never guessed.
  */
-export function windowUsedPercent(entry: MinimaxRemainsEntry): number | null {
-  const direct = finiteNumber(entry.current_interval_remaining_percent)
+function minimaxUsed(remaining: unknown, total: unknown, usage: unknown): number | null {
+  const direct = finiteNumber(remaining)
   if (direct !== null) return Math.min(100, Math.max(0, 100 - direct))
-  const total = finiteNumber(entry.current_interval_total_count)
-  const used = finiteNumber(entry.current_interval_usage_count)
-  if (total !== null && total > 0 && used !== null && used >= 0) {
-    return Math.min(100, Math.max(0, (used / total) * 100))
-  }
+  const t = finiteNumber(total)
+  const u = finiteNumber(usage)
+  if (t !== null && t > 0 && u !== null && u >= 0) return Math.min(100, Math.max(0, (u / t) * 100))
   return null
 }
 
-/**
- * Reset stamps the panel can lay out: within 48h a bare local clock,
- * farther out the weekday comes along ('周四 21:00'). Accepts epoch seconds,
- * epoch milliseconds and RFC3339 strings — MiniMax sends epochs while
- * Claude sends ISO.
- */
-export function formatReset(epochOrIso: number | string | null | undefined): string {
-  let ms: number | null = null
-  if (typeof epochOrIso === 'number' && isFinite(epochOrIso) && epochOrIso > 0) {
-    ms = epochOrIso > 1e12 ? epochOrIso : epochOrIso * 1000
-  } else if (typeof epochOrIso === 'string' && epochOrIso !== '') {
-    const at = new Date(epochOrIso)
-    if (!isNaN(at.getTime())) ms = at.getTime()
-  }
-  if (ms === null) return ''
-  const at = new Date(ms)
-  const hhmm = String(at.getHours()).padStart(2, '0') + ':' + String(at.getMinutes()).padStart(2, '0')
-  if (at.getTime() - Date.now() < 48 * 3600_000) return hhmm
-  const week = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
-  return week[at.getDay()] + ' ' + hhmm
+/** The interval window's used percent (kept exported: the tests pin both shapes). */
+export function windowUsedPercent(entry: MinimaxRemainsEntry): number | null {
+  return minimaxUsed(entry.current_interval_remaining_percent,
+    entry.current_interval_total_count, entry.current_interval_usage_count)
 }
 
-/** Epoch ms/sec heuristic → local reset stamp (legacy note helper). */
-function resetClock(epoch: unknown): string | null {
-  const raw = finiteNumber(epoch)
-  if (raw === null || raw <= 0) return null
-  return formatReset(raw)
+const spanMins = (start: unknown, end: unknown): number | null => {
+  const a = toEpochMs(finiteNumber(start))
+  const b = toEpochMs(finiteNumber(end))
+  return a !== null && b !== null && b > a ? Math.round((b - a) / 60000) : null
 }
 
 /**
  * The successful Token Plan payload → snapshot. Percent-based by design:
- * plans report either percent fields or raw counts, and tokens are not money
- * — the chip reads "窗口额度用了多少"(已使用方向), never a fabricated ¥ figure.
+ * tokens are not money — the chip reads "窗口额度用了多少", never a ¥ figure.
  */
-export function parseMinimaxRemains(body: unknown, asOf: string): BalanceSnapshot {
+export function parseMinimaxRemains(body: unknown, asOf: string, now: number = Date.now()): BalanceSnapshot {
   const raw = (typeof body === 'object' && body !== null ? body : {}) as RawRemainsBody
   const buckets = Array.isArray(raw.model_remains) ? raw.model_remains : []
   // `general` is the text/coding bucket every plan carries; video et al are add-ons.
-  const entry = buckets.find((b) => b.model === 'general') ?? buckets[0]
+  const entry = buckets.find((b) => (b.model_name ?? b.model) === 'general') ?? buckets[0]
   if (entry === undefined) throw new Error('MiniMax 响应里没有 model_remains 数据')
-  const used = windowUsedPercent(entry)
-  const weeklyRemaining = finiteNumber(entry.current_weekly_remaining_percent)
-  const weeklyUsed = weeklyRemaining === null ? null : Math.min(100, Math.max(0, 100 - weeklyRemaining))
-  const windows: BalanceWindow[] = []
-  if (used !== null) windows.push({ label: '5h', percent: Math.round(used), resetAt: formatReset(entry.end_time as number | undefined) })
-  if (weeklyUsed !== null) windows.push({ label: '周', percent: Math.round(weeklyUsed), resetAt: formatReset(entry.weekly_end_time as number | undefined) })
-  const notes: string[] = []
-  if (used !== null) notes.push('5h 窗口已使用 ' + Math.round(used) + '%')
-  if (weeklyUsed !== null) notes.push('周窗口已使用 ' + Math.round(weeklyUsed) + '%')
-  return {
-    isAvailable: used !== null && used < 100,
-    unit: 'pct',
-    currency: '',
-    totalBalance: used === null ? '' : String(Math.round(used)),
-    grantedBalance: '',
-    toppedUpBalance: '',
-    asOf,
-    note: notes.join(' · '),
-    windows,
-  }
+  return quotaSnapshot([
+    quotaWindow({
+      usedPercent: windowUsedPercent(entry),
+      durationMins: spanMins(entry.start_time, entry.end_time),
+      resetsAt: entry.end_time,
+      fallbackLabel: '5h',
+    }, now),
+    quotaWindow({
+      usedPercent: minimaxUsed(entry.current_weekly_remaining_percent,
+        entry.current_weekly_total_count, entry.current_weekly_usage_count),
+      durationMins: spanMins(entry.weekly_start_time, entry.weekly_end_time) ?? WEEK_MINS,
+      resetsAt: entry.weekly_end_time,
+      fallbackLabel: '周',
+    }, now),
+  ], asOf)
+}
+
+// ---------------------------------------------------------------------------
+// Claude
+// ---------------------------------------------------------------------------
+
+/** One usage window: utilization is the % already consumed (0-100). */
+export interface ClaudeUsageWindow {
+  utilization?: number
+  resets_at?: string | null
+}
+
+interface RawClaudeUsage {
+  five_hour?: ClaudeUsageWindow | null
+  seven_day?: ClaudeUsageWindow | null
+  extra_usage?: { is_enabled?: boolean; utilization?: number | null } | null
+  [key: string]: unknown
 }
 
 /**
- * The shared cadence shell — TTL cache, in-flight join, stale-on-failure —
- * parameterized by provider. Both services below differ only in key
- * resolution, endpoint, parse and low-reading; everything temporal is here
- * once.
+ * Successful usage payload → snapshot. utilization already IS consumption,
+ * so it passes through untouched; any bucket may be absent/null by plan.
+ */
+export function parseClaudeUsage(body: unknown, asOf: string, now: number = Date.now()): BalanceSnapshot {
+  const raw = (typeof body === 'object' && body !== null ? body : {}) as RawClaudeUsage
+  const u5 = finiteNumber(raw.five_hour?.utilization)
+  const u7 = finiteNumber(raw.seven_day?.utilization)
+  if (u5 === null && u7 === null) throw new Error('Claude 响应里没有可用的用量窗口')
+  const extraUtil = raw.extra_usage?.is_enabled === true ? finiteNumber(raw.extra_usage?.utilization ?? undefined) : null
+  return quotaSnapshot([
+    quotaWindow({ usedPercent: u5, durationMins: 300, resetsAt: raw.five_hour?.resets_at, fallbackLabel: '5h' }, now),
+    quotaWindow({ usedPercent: u7, durationMins: WEEK_MINS, resetsAt: raw.seven_day?.resets_at, fallbackLabel: '周' }, now),
+  ], asOf, { extraNotes: extraUtil === null ? [] : ['附加额度已用 ' + Math.round(extraUtil) + '%'] })
+}
+
+// ---------------------------------------------------------------------------
+// Codex
+// ---------------------------------------------------------------------------
+
+/** One Codex app-server quota window (`account/rateLimits/read`). */
+export interface CodexRateLimitWindow {
+  usedPercent?: number
+  windowDurationMins?: number | null
+  resetsAt?: number | null
+}
+
+interface CodexRateLimitBucket {
+  primary?: CodexRateLimitWindow | null
+  secondary?: CodexRateLimitWindow | null
+  rateLimitReachedType?: string | null
+}
+
+interface RawCodexRateLimits {
+  ordinaryUsageAllowed?: boolean | null
+  rateLimits?: CodexRateLimitBucket
+  rateLimitsByLimitId?: Record<string, CodexRateLimitBucket> | null
+}
+
+/** Official app-server response → the chip's used-percent snapshot. */
+export function parseCodexRateLimits(body: unknown, asOf: string, now: number = Date.now()): BalanceSnapshot {
+  const raw = (typeof body === 'object' && body !== null ? body : {}) as RawCodexRateLimits
+  const buckets = raw.rateLimitsByLimitId
+  const bucket = buckets !== null && typeof buckets === 'object' && buckets.codex !== undefined
+    ? buckets.codex
+    : raw.rateLimits
+  if (bucket === undefined || bucket === null) throw new Error('Codex 响应里没有额度数据')
+  const toInput = (window: CodexRateLimitWindow | null | undefined, fallbackLabel: string): QuotaWindowInput => ({
+    usedPercent: finiteNumber(window?.usedPercent),
+    durationMins: finiteNumber(window?.windowDurationMins),
+    resetsAt: window?.resetsAt,
+    fallbackLabel,
+  })
+  const windows = [quotaWindow(toInput(bucket.primary, '5h'), now), quotaWindow(toInput(bucket.secondary, '周'), now)]
+  if (windows.every((window) => window === null)) throw new Error('Codex 响应里没有可用的额度窗口')
+  const limited = raw.ordinaryUsageAllowed === false || typeof bucket.rateLimitReachedType === 'string'
+  // The backend-owned permission is authoritative. An absent value means
+  // unavailable, never an inferred recovery from reset clocks/percentages.
+  return quotaSnapshot(windows, asOf, {
+    isAvailable: raw.ordinaryUsageAllowed === true,
+    extraNotes: limited ? ['当前额度受限'] : [],
+  })
+}
+
+// ---------------------------------------------------------------------------
+// The shared cadence shell and the four services.
+// ---------------------------------------------------------------------------
+
+/**
+ * TTL cache, in-flight join, stale-on-failure — parameterized by provider.
+ * The services below differ only in key resolution, endpoint, parse and
+ * low-reading; everything temporal is here once.
  */
 interface QuotaServiceSpec {
   /**
@@ -289,6 +466,8 @@ interface QuotaServiceSpec {
   /** The low reading in the snapshot's own unit (money amount / percent). */
   isLow(snapshot: BalanceSnapshot): boolean
 }
+
+export type BalanceService = { get(force: boolean): Promise<BalanceResult> }
 
 /** Seam reference first, then the ambient environment variable of the same name. */
 function resolveSeamThenEnv(
@@ -325,48 +504,63 @@ function readOpenclawProviderKey(configPath: string, provider: string): string |
   return typeof key === 'string' && key !== '' ? key : undefined
 }
 
+const numberOr = (value: number | undefined, fallback: number): number =>
+  typeof value === 'number' && isFinite(value) ? value : fallback
+
+/** GET a JSON endpoint with the shared timeout and the shared Chinese error wording. */
+async function fetchJson(
+  url: string,
+  headers: Record<string, string>,
+  vendor: string,
+  statusMessages: Partial<Record<number, string>> = {},
+): Promise<unknown> {
+  let response: Response
+  try {
+    response = await fetch(url, { headers: { accept: 'application/json', ...headers }, signal: AbortSignal.timeout(TIMEOUT_MS) })
+  } catch (cause) {
+    throw new Error(`网络请求失败:${cause instanceof Error ? cause.message : String(cause)}`)
+  }
+  const known = statusMessages[response.status]
+  if (known !== undefined) throw new Error(known)
+  if (!response.ok) throw new Error(`${vendor} 接口返回 HTTP ${response.status}`)
+  try {
+    return await response.json()
+  } catch {
+    throw new Error(`解析 ${vendor} 数据失败`)
+  }
+}
+
 function createQuotaService(
   deps: { credentials: BalanceCredentials },
   spec: QuotaServiceSpec,
-): { get(force: boolean): Promise<BalanceResult> } {
+): BalanceService {
   let snapshot: BalanceSnapshot | null = null
   let fetchedAt = 0
   let inFlight: Promise<BalanceResult> | null = null
 
-  const resolveKey = async (): Promise<string | undefined> => spec.resolveApiKey(deps)
+  const answer = (status: BalanceResult['status'], message: string | null): BalanceResult => ({
+    configured: true,
+    snapshot,
+    status,
+    low: snapshot === null ? false : spec.isLow(snapshot),
+    message,
+    threshold: spec.threshold,
+    refreshMs: spec.refreshMs,
+  })
 
   const run = async (apiKey: string): Promise<BalanceResult> => {
     try {
       snapshot = await spec.fetchFresh(apiKey)
       fetchedAt = Date.now()
-      return {
-        configured: true,
-        snapshot,
-        status: 'fresh',
-        low: spec.isLow(snapshot),
-        message: null,
-        threshold: spec.threshold,
-        refreshMs: spec.refreshMs,
-      }
+      return answer('fresh', null)
     } catch (cause) {
       const message = cause instanceof Error ? cause.message : String(cause)
-      if (snapshot !== null) {
-        return {
-          configured: true,
-          snapshot,
-          status: 'stale',
-          low: spec.isLow(snapshot),
-          message,
-          threshold: spec.threshold,
-          refreshMs: spec.refreshMs,
-        }
-      }
-      return { configured: true, snapshot: null, status: 'failed', low: false, message, threshold: spec.threshold, refreshMs: spec.refreshMs }
+      return answer(snapshot !== null ? 'stale' : 'failed', message)
     }
   }
 
   const exec = async (force: boolean): Promise<BalanceResult> => {
-    const apiKey = await resolveKey()
+    const apiKey = await spec.resolveApiKey(deps)
     if (apiKey === undefined) {
       return {
         configured: false,
@@ -379,15 +573,7 @@ function createQuotaService(
       }
     }
     if (!force && snapshot !== null && Date.now() - fetchedAt < (spec.ttlMs ?? TTL_MS)) {
-      return {
-        configured: true,
-        snapshot,
-        status: 'cached',
-        low: spec.isLow(snapshot),
-        message: null,
-        threshold: spec.threshold,
-        refreshMs: spec.refreshMs,
-      }
+      return answer('cached', null)
     }
     return run(apiKey)
   }
@@ -402,7 +588,7 @@ function createQuotaService(
       if (inFlight !== null) return inFlight
       // The guard is claimed synchronously, BEFORE exec's first await: a
       // caller that checks inFlight while the first one is suspended at
-      // resolveKey() must still join instead of starting a second fetch.
+      // resolveApiKey() must still join instead of starting a second fetch.
       const pending = exec(force)
       inFlight = pending
       try {
@@ -419,54 +605,23 @@ const numOrInfinity = (value: string): number => {
   return isFinite(parsed) ? parsed : Number.POSITIVE_INFINITY
 }
 
-/**
- * The snapshot's used-percent reading, or null when it isn't a percent unit
- * or carries no parseable number. The null guard is the point: under the old
- * REMAINING direction an unreadable value read as +∞ and safely missed the
- * watermark; under USED that same +∞ would read as "everything consumed" and
- * light every red dot. An absent reading must stay silent.
- */
-function usedPercentOf(snapshot: BalanceSnapshot): number | null {
-  if (snapshot.unit !== 'pct') return null
-  const parsed = Number.parseFloat(snapshot.totalBalance)
-  return isFinite(parsed) ? parsed : null
-}
-
 /** DeepSeek row: official money balance, CNY entry preferred. */
 export function createBalanceService(
   deps: { credentials: BalanceCredentials },
   config: BalanceConfig = {},
-): { get(force: boolean): Promise<BalanceResult> } {
+): BalanceService {
   const baseUrl = config.baseUrl ?? DEFAULT_BALANCE_BASE_URL
-  const threshold = typeof config.threshold === 'number' && isFinite(config.threshold)
-    ? config.threshold
-    : DEFAULT_BALANCE_THRESHOLD
+  const threshold = numberOr(config.threshold, DEFAULT_BALANCE_THRESHOLD)
   return createQuotaService(deps, {
     resolveApiKey: resolveSeamThenEnv(deps, DEEPSEEK_KEY_REF),
     noKeyMessage: '未配置 DeepSeek API Key(设置 → 模型 → DeepSeek)',
     threshold,
-    refreshMs: typeof config.refreshMs === 'number' && isFinite(config.refreshMs)
-      ? config.refreshMs
-      : DEFAULT_BALANCE_REFRESH_MS,
+    refreshMs: numberOr(config.refreshMs, DEFAULT_BALANCE_REFRESH_MS),
     async fetchFresh(apiKey) {
-      let response: Response
-      try {
-        response = await fetch(`${baseUrl}/user/balance`, {
-          headers: { authorization: `Bearer ${apiKey}`, accept: 'application/json' },
-          signal: AbortSignal.timeout(TIMEOUT_MS),
-        })
-      } catch (cause) {
-        throw new Error(`网络请求失败:${cause instanceof Error ? cause.message : String(cause)}`)
-      }
-      if (response.status === 401) throw new Error('API Key 无效或已过期')
-      if (response.status === 429) throw new Error('请求过于频繁,请稍后再试')
-      if (!response.ok) throw new Error(`余额接口返回 HTTP ${response.status}`)
-      let body: unknown
-      try {
-        body = await response.json()
-      } catch {
-        throw new Error('解析余额数据失败')
-      }
+      const body = await fetchJson(`${baseUrl}/user/balance`, { authorization: `Bearer ${apiKey}` }, '余额', {
+        401: 'API Key 无效或已过期',
+        429: '请求过于频繁,请稍后再试',
+      })
       return parseBalancePayload(body, new Date().toISOString())
     },
     // DeepSeek is money, not quota — its snapshots are always unit 'money'
@@ -481,11 +636,9 @@ export function createBalanceService(
 export function createMinimaxService(
   deps: { credentials: BalanceCredentials },
   config: MinimaxConfig = {},
-): { get(force: boolean): Promise<BalanceResult> } {
+): BalanceService {
   const baseUrl = config.baseUrl ?? DEFAULT_MINIMAX_BASE_URL
-  const lowPct = typeof config.lowPct === 'number' && isFinite(config.lowPct)
-    ? config.lowPct
-    : DEFAULT_MINIMAX_LOW_PCT
+  const lowPct = numberOr(config.lowPct, DEFAULT_MINIMAX_LOW_PCT)
   const seamEnv = resolveSeamThenEnv(deps, config.keyRef ?? MINIMAX_KEY_REF)
   const openclawPath = config.openclawConfigPath ?? DEFAULT_OPENCLAW_CONFIG_PATH
   return createQuotaService(deps, {
@@ -496,22 +649,7 @@ export function createMinimaxService(
     threshold: lowPct,
     refreshMs: DEFAULT_BALANCE_REFRESH_MS,
     async fetchFresh(apiKey) {
-      let response: Response
-      try {
-        response = await fetch(`${baseUrl}/v1/token_plan/remains`, {
-          headers: { authorization: `Bearer ${apiKey}`, accept: 'application/json' },
-          signal: AbortSignal.timeout(TIMEOUT_MS),
-        })
-      } catch (cause) {
-        throw new Error(`网络请求失败:${cause instanceof Error ? cause.message : String(cause)}`)
-      }
-      if (!response.ok) throw new Error(`MiniMax 接口返回 HTTP ${response.status}`)
-      let body: unknown
-      try {
-        body = await response.json()
-      } catch {
-        throw new Error('解析 MiniMax 数据失败')
-      }
+      const body = await fetchJson(`${baseUrl}/v1/token_plan/remains`, { authorization: `Bearer ${apiKey}` }, 'MiniMax')
       // A HTTP-200 body can still be a business failure (auth=1004); the
       // envelope's status_code is the verdict, status_msg the reason.
       const raw = (typeof body === 'object' && body !== null ? body : {}) as RawRemainsBody
@@ -524,86 +662,8 @@ export function createMinimaxService(
       }
       return parseMinimaxRemains(body, new Date().toISOString())
     },
-    // lowPct keeps its 「剩余水位」meaning (warn when remaining ≤ lowPct) so
-    // existing configs survive the display flip verbatim; in the used
-    // direction that is used ≥ 100 − lowPct.
-    isLow: (snapshot) => {
-      const used = usedPercentOf(snapshot)
-      return used !== null && used >= 100 - lowPct
-    },
+    isLow: (snapshot) => quotaIsLow(snapshot, lowPct),
   })
-}
-
-/** One Codex app-server quota window (`account/rateLimits/read`). */
-export interface CodexRateLimitWindow {
-  usedPercent?: number
-  windowDurationMins?: number | null
-  resetsAt?: number | null
-}
-
-interface CodexRateLimitBucket {
-  primary?: CodexRateLimitWindow | null
-  secondary?: CodexRateLimitWindow | null
-  rateLimitReachedType?: string | null
-}
-
-interface RawCodexRateLimits {
-  ordinaryUsageAllowed?: boolean | null
-  rateLimits?: CodexRateLimitBucket
-  rateLimitsByLimitId?: Record<string, CodexRateLimitBucket> | null
-}
-
-const codexWindowLabel = (duration: number | null, fallback: string): string => {
-  if (duration === null || duration <= 0) return fallback
-  if (duration === 10080) return '周'
-  if (duration % 1440 === 0) return `${duration / 1440}天`
-  if (duration % 60 === 0) return `${duration / 60}h`
-  return `${duration}m`
-}
-
-/** Official app-server response → the chip's used-percent snapshot. */
-export function parseCodexRateLimits(body: unknown, asOf: string): BalanceSnapshot {
-  const raw = (typeof body === 'object' && body !== null ? body : {}) as RawCodexRateLimits
-  const buckets = raw.rateLimitsByLimitId
-  const bucket = buckets !== null && typeof buckets === 'object' && buckets.codex !== undefined
-    ? buckets.codex
-    : raw.rateLimits
-  if (bucket === undefined || bucket === null) throw new Error('Codex 响应里没有额度数据')
-
-  const windows: BalanceWindow[] = []
-  const append = (window: CodexRateLimitWindow | null | undefined, fallback: string): void => {
-    const usedRaw = finiteNumber(window?.usedPercent)
-    if (usedRaw === null) return
-    const used = Math.round(Math.min(100, Math.max(0, usedRaw)))
-    const duration = finiteNumber(window?.windowDurationMins)
-    windows.push({
-      label: codexWindowLabel(duration, fallback),
-      percent: used,
-      resetAt: formatReset(window?.resetsAt),
-    })
-  }
-  append(bucket.primary, '主窗')
-  append(bucket.secondary, '次窗')
-  if (windows.length === 0) throw new Error('Codex 响应里没有可用的额度窗口')
-
-  const notes = windows.map((window) => `${window.label}${window.label === '周' ? '' : ' '}窗口已使用 ${window.percent}%`)
-  if (raw.ordinaryUsageAllowed === false || typeof bucket.rateLimitReachedType === 'string') {
-    notes.push('当前额度受限')
-  }
-  const headline = windows[0]?.percent
-  return {
-    // The backend-owned permission is authoritative. An absent value means
-    // unavailable, never an inferred recovery from reset clocks/percentages.
-    isAvailable: raw.ordinaryUsageAllowed === true,
-    unit: 'pct',
-    currency: '',
-    totalBalance: headline === null || headline === undefined ? '' : String(headline),
-    grantedBalance: '',
-    toppedUpBalance: '',
-    asOf,
-    note: notes.join(' · '),
-    windows,
-  }
 }
 
 const resolveExecutable = (command: string): string | undefined => {
@@ -700,15 +760,10 @@ export function readCodexRateLimits(
 export function createCodexService(
   deps: { credentials: BalanceCredentials },
   config: CodexConfig = {},
-): { get(force: boolean): Promise<BalanceResult> } {
+): BalanceService {
   const command = config.command ?? DEFAULT_CODEX_COMMAND
-  const lowPct = typeof config.lowPct === 'number' && isFinite(config.lowPct)
-    ? config.lowPct
-    : DEFAULT_CODEX_LOW_PCT
-  const refreshMs = typeof config.refreshMs === 'number' && isFinite(config.refreshMs)
-    ? config.refreshMs
-    : DEFAULT_CODEX_REFRESH_MS
-  void deps
+  const lowPct = numberOr(config.lowPct, DEFAULT_CODEX_LOW_PCT)
+  const refreshMs = numberOr(config.refreshMs, DEFAULT_CODEX_REFRESH_MS)
   return createQuotaService(deps, {
     resolveApiKey: async () => resolveExecutable(command),
     noKeyMessage: `未找到 Codex CLI(${command})`,
@@ -718,12 +773,7 @@ export function createCodexService(
     async fetchFresh(executable) {
       return parseCodexRateLimits(await readCodexRateLimits(executable), new Date().toISOString())
     },
-    isLow: (snapshot) => {
-      const used = snapshot.windows
-        .map((window) => window.percent)
-        .filter((percent): percent is number => percent !== null)
-      return !snapshot.isAvailable || used.some((percent) => percent >= 100 - lowPct)
-    },
+    isLow: (snapshot) => quotaIsLow(snapshot, lowPct),
   })
 }
 
@@ -734,19 +784,6 @@ interface ClaudeCredentials {
   expiresAt?: number
   subscriptionType?: string
   rateLimitTier?: string
-}
-
-/** One usage window: utilization is the % already consumed (0-100). */
-export interface ClaudeUsageWindow {
-  utilization?: number
-  resets_at?: string
-}
-
-interface RawClaudeUsage {
-  five_hour?: ClaudeUsageWindow | null
-  seven_day?: ClaudeUsageWindow | null
-  extra_usage?: { is_enabled?: boolean; utilization?: number | null } | null
-  [key: string]: unknown
 }
 
 /**
@@ -761,57 +798,15 @@ export function readClaudeCredentials(path: string): { creds: ClaudeCredentials 
   return { creds }
 }
 
-const localClock = (iso: string): string | null => {
-  const at = new Date(iso)
-  if (isNaN(at.getTime())) return null
-  return String(at.getHours()).padStart(2, '0') + ':' + String(at.getMinutes()).padStart(2, '0')
-}
-
-/**
- * Successful usage payload → snapshot, in USED percent — utilization already
- * IS consumption, so it renders verbatim with no complementing (kcn:
- * 「已使用」比「剩余」直观). five_hour gates active sessions so it is the
- * headline; any bucket may be absent/null depending on plan.
- */
-export function parseClaudeUsage(body: unknown, asOf: string): BalanceSnapshot {
-  const raw = (typeof body === 'object' && body !== null ? body : {}) as RawClaudeUsage
-  const u5 = finiteNumber(raw.five_hour?.utilization)
-  const u7 = finiteNumber(raw.seven_day?.utilization)
-  if (u5 === null && u7 === null) throw new Error('Claude 响应里没有可用的用量窗口')
-  const used = u5 === null ? null : Math.round(Math.min(100, Math.max(0, u5)))
-  const windows: BalanceWindow[] = []
-  if (u5 !== null) windows.push({ label: '会话', percent: used, resetAt: formatReset(raw.five_hour?.resets_at ?? null) })
-  if (u7 !== null) windows.push({ label: '本周', percent: Math.round(Math.min(100, Math.max(0, u7))), resetAt: formatReset(raw.seven_day?.resets_at ?? null) })
-  const notes: string[] = []
-  if (u5 !== null) notes.push('会话窗口已使用 ' + used + '%')
-  if (u7 !== null) notes.push('本周已使用 ' + Math.round(u7) + '%')
-  const extraUtil = raw.extra_usage?.is_enabled === true ? finiteNumber(raw.extra_usage?.utilization ?? undefined) : null
-  if (extraUtil !== null) notes.push('附加额度已用 ' + Math.round(extraUtil) + '%')
-  return {
-    isAvailable: used === null ? false : used < 100,
-    unit: 'pct',
-    currency: '',
-    totalBalance: used === null ? '' : String(used),
-    grantedBalance: '',
-    toppedUpBalance: '',
-    asOf,
-    note: notes.join(' · '),
-    windows,
-  }
-}
-
 /** Claude row: subscription rate-limit windows via the OAuth usage endpoint. */
 export function createClaudeService(
   deps: { credentials: BalanceCredentials },
   config: ClaudeConfig = {},
-): { get(force: boolean): Promise<BalanceResult> } {
+): BalanceService {
   const credentialsPath = config.credentialsPath ?? DEFAULT_CLAUDE_CREDENTIALS_PATH
   const usageUrl = config.usageUrl ?? DEFAULT_CLAUDE_USAGE_URL
-  const lowPct = typeof config.lowPct === 'number' && isFinite(config.lowPct)
-    ? config.lowPct
-    : DEFAULT_CLAUDE_LOW_PCT
+  const lowPct = numberOr(config.lowPct, DEFAULT_CLAUDE_LOW_PCT)
   // The seam plays no role here — the secret is Claude Code's own login file.
-  void deps
   return createQuotaService(deps, {
     resolveApiKey: async () => readClaudeCredentials(credentialsPath)?.creds.accessToken,
     noKeyMessage: '未找到 Claude 登录(~/.claude/.credentials.json)',
@@ -827,35 +822,16 @@ export function createClaudeService(
       if (typeof creds.expiresAt === 'number' && Date.now() > creds.expiresAt) {
         throw new Error('Claude 登录已过期,请在终端跑一次 claude 刷新登录')
       }
-      let response: Response
-      try {
-        response = await fetch(usageUrl, {
-          headers: {
-            authorization: `Bearer ${creds.accessToken}`,
-            accept: 'application/json',
-            'anthropic-beta': 'oauth-2025-04-20',
-          },
-          signal: AbortSignal.timeout(TIMEOUT_MS),
-        })
-      } catch (cause) {
-        throw new Error(`网络请求失败:${cause instanceof Error ? cause.message : String(cause)}`)
-      }
-      if (response.status === 401 || response.status === 403) throw new Error('Claude 登录无效或已过期')
-      if (response.status === 429) throw new Error('请求过于频繁,请稍后再试')
-      if (!response.ok) throw new Error(`Claude 用量接口返回 HTTP ${response.status}`)
-      let body: unknown
-      try {
-        body = await response.json()
-      } catch {
-        throw new Error('解析 Claude 数据失败')
-      }
+      const body = await fetchJson(usageUrl, {
+        authorization: `Bearer ${creds.accessToken}`,
+        'anthropic-beta': 'oauth-2025-04-20',
+      }, 'Claude 用量', {
+        401: 'Claude 登录无效或已过期',
+        403: 'Claude 登录无效或已过期',
+        429: '请求过于频繁,请稍后再试',
+      })
       return parseClaudeUsage(body, new Date().toISOString())
     },
-    // Same 「剩余水位」 contract as MiniMax: lowPct means remaining ≤ lowPct,
-    // which in the used direction is used ≥ 100 − lowPct.
-    isLow: (snapshot) => {
-      const used = usedPercentOf(snapshot)
-      return used !== null && used >= 100 - lowPct
-    },
+    isLow: (snapshot) => quotaIsLow(snapshot, lowPct),
   })
 }
