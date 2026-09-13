@@ -1181,8 +1181,14 @@ body[data-ds-dark-theme] .dmt {
      wears their exact recipe (.5px border-l4, 28px, transparent, hover tint). */
   --border-l4:var(--dsw-alias-border-l4, rgba(0,0,0,.12));
   --label-2:var(--dsw-alias-label-secondary, #545860);
-  --mat-fill:rgba(250,250,252,.72);
-  --mat-rim:rgba(255,255,255,.75);
+  /* Round 2 (kcn:「弹出的窗口没有玻璃质感」): .72 over a white page read as a
+     plain card, so the fill is thin enough for the blurred conversation to
+     show, and the glass gets iOS-26 style neutral light — a bright top rim, a
+     soft inner edge and a clear diagonal sheen. No colour of its own. */
+  --mat-fill:rgba(255,255,255,.5);
+  --mat-rim:rgba(255,255,255,.9);
+  --mat-rim-low:rgba(255,255,255,.35);
+  --mat-sheen:rgba(255,255,255,.42);
   --mat-edge:rgba(0,0,0,.07);
   --mat-sep:rgba(60,60,67,.14);
   --mat-shadow:0 12px 40px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.05);
@@ -1197,8 +1203,10 @@ body[data-ds-dark-theme] .pbc {
   --shadow-lg:0 16px 40px rgba(0,0,0,.52), 0 2px 10px rgba(0,0,0,.36);
   --border-l4:var(--dsw-alias-border-l4, rgba(255,255,255,.14));
   --label-2:var(--dsw-alias-label-secondary, #A9ADB4);
-  --mat-fill:rgba(36,36,40,.7);
-  --mat-rim:rgba(255,255,255,.14);
+  --mat-fill:rgba(34,34,38,.52);
+  --mat-rim:rgba(255,255,255,.22);
+  --mat-rim-low:rgba(255,255,255,.06);
+  --mat-sheen:rgba(255,255,255,.08);
   --mat-edge:rgba(0,0,0,.5);
   --mat-sep:rgba(235,235,245,.12);
   --mat-shadow:0 16px 44px rgba(0,0,0,.5), 0 2px 8px rgba(0,0,0,.3)
@@ -1308,10 +1316,11 @@ body[data-ds-dark-theme] .pbc {
   border-radius:18px;
   border:.5px solid var(--mat-edge);
   background:var(--surface);
-  background:var(--mat-fill);
-  -webkit-backdrop-filter:blur(40px) saturate(1.8);
-  backdrop-filter:blur(40px) saturate(1.8);
-  box-shadow:var(--mat-shadow), inset 0 0 0 .5px var(--mat-rim);
+  background:linear-gradient(155deg, var(--mat-sheen) 0%, transparent 42%), var(--mat-fill);
+  -webkit-backdrop-filter:blur(32px) saturate(1.9);
+  backdrop-filter:blur(32px) saturate(1.9);
+  box-shadow:var(--mat-shadow), inset 0 1px 0 var(--mat-rim),
+    inset 0 0 0 .5px var(--mat-rim-low);
   transform-origin:top right;
   transition:transform .16s cubic-bezier(.23,1,.32,1),opacity .16s cubic-bezier(.23,1,.32,1)
 }
@@ -1556,14 +1565,14 @@ body[data-ds-dark-theme] .pbc {
   }
 }
 /* Mobile: the panel covers dense conversation text on a phone, so it keeps a
-   slightly thicker fill (iOS "thick material") — text behind becomes soft
-   colour instead of ghosting through the rows. */
+   slightly thicker fill than desktop — still glass (.82 read as a solid card on
+   kcn's phone), just enough that text behind stays soft colour. */
 @media (max-width: 520px) {
   .pbc .bp {
-    --mat-fill:rgba(250,250,252,.82)
+    --mat-fill:rgba(255,255,255,.6)
   }
   body[data-ds-dark-theme] .pbc .bp {
-    --mat-fill:rgba(36,36,40,.82)
+    --mat-fill:rgba(34,34,38,.64)
   }
 }
 /* Reduced transparency: frost over — solid surfaces, no blur cost. */
