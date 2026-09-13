@@ -1777,10 +1777,10 @@ test("client: the panel says each provider's story once, abnormal rows loudest",
   assert.ok(redTexts.includes("88%") && redTexts.includes("95%"), "window percentages stay rendered");
   assert.ok(redTexts.includes("↻ 21:00") && redTexts.includes("↻ 周四 21:00"), "reset stamps stay rendered");
   assert.ok(
-    // The caption names the window that crossed the line (the worst one), not a
-    // bare threshold — the headline is the first window and can read far lower.
-    redTexts.some((t) => t.startsWith("__NOTE__") && t.includes("周 已用 95%")),
-    "the watermark caption rides along instead of replacing the detail",
+    // The window lines above already name the window that crossed the line
+    // (label, percent, red bar), so a「周 已用 95%」caption would only repeat them.
+    !redTexts.some((t) => t.startsWith("__NOTE__")),
+    "no watermark caption repeats the per-window lines",
   );
   const redChip = (function findChip4(node) {
     if (node == null || Array.isArray(node)) return null;
