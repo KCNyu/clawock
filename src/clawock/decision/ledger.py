@@ -15,6 +15,7 @@ Plan contract: ``schema_version=2`` + top-level ``decisions``.
 from __future__ import annotations
 
 import copy
+import contextlib
 import hashlib
 import json
 import math
@@ -42,12 +43,50 @@ from clawock.decision.actions import (
     STRATEGY_FRAMES,
 )
 from clawock import scorecard_provenance
+from clawock.safe_io import file_lock
 from clawock.workspace import workspace_root
 
 # Installed package code resolves user state from the caller's workspace, never
 # from site-packages or a source checkout path.
 WS = workspace_root()
 LEDGER = WS / "memory" / "decisions.jsonl"
+
+# Lock depth per resolved ledger path, so a writer that already holds the lock can
+# call a helper that takes it again. flock is per open file description: a second
+# open + LOCK_EX in the same process would wait on itself forever.
+_LEDGER_LOCK_DEPTH: dict[str, int] = {}
+
+
+@contextlib.contextmanager
+def ledger_lock(path: Path = LEDGER):
+    """Serialize every load -> mutate -> write of the ledger across processes (#1482).
+
+    `write_decisions` is atomic, which stops a half-written file but not a lost
+    update: two writers that each load the whole ledger, change different rows
+    and write it back leave only the second writer's view. The brief postflight
+    settles rows, the brief preflight marks execution, and `mark-followed` runs
+    whenever kcn types it — hold this across the whole span, not just the write.
+    """
+    key = str(Path(path).resolve())
+    if _LEDGER_LOCK_DEPTH.get(key):
+        _LEDGER_LOCK_DEPTH[key] += 1
+        try:
+            yield
+        finally:
+            _LEDGER_LOCK_DEPTH[key] -= 1
+        return
+    # The lock file lives outside the workspace: `memory/` is published state,
+    # and a stray `decisions.jsonl.lock` beside the ledger would be one more file
+    # for `git add memory/` and the #816 write guard to trip over. Every writer
+    # runs on the same host, so a temp-dir path keyed by the ledger serializes them.
+    lock_dir = Path(tempfile.gettempdir()) / "clawock-ledger-locks"
+    lock_dir.mkdir(parents=True, exist_ok=True)
+    with file_lock(str(lock_dir / hashlib.sha1(key.encode()).hexdigest()[:16])):
+        _LEDGER_LOCK_DEPTH[key] = 1
+        try:
+            yield
+        finally:
+            _LEDGER_LOCK_DEPTH.pop(key, None)
 
 SCHEMA_VERSION = 2
 # Bumped when the meaning of an evaluation changes, so a stale row is identifiable.
@@ -725,6 +764,9 @@ def upsert_plan_decisions(
     their already-loaded ``ledger`` and ``write=False``, then settle and write
     once; standalone callers keep the old load-mutate-write behavior.
     """
+    if ledger is None and write:
+        with ledger_lock(path):
+            return upsert_plan_decisions(plan, path, load_decisions(path), write=True)
     existing = ledger if ledger is not None else load_decisions(path)
     by_id = {d.get("decision_id"): d for d in existing}
     inserted = updated = 0

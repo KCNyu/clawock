@@ -273,20 +273,21 @@ def _settle_override_backlog(dropped_rows, ledger_path):
                    if row.get("decision_id")}
     if not settled_ids:
         return
-    full = decision_v2.load_decisions(ledger_path)
-    changed = 0
-    for row in full:
-        if row.get("decision_id") not in settled_ids:
-            continue
-        execution = dict(row.get("execution") or {})
-        if execution.get("status") != OPEN_EXECUTION:
-            continue
-        execution["status"] = "overridden_by_user"
-        execution["source"] = "risk_override"
-        row["execution"] = execution
-        changed += 1
-    if changed:
-        decision_v2.write_decisions(full, ledger_path)
+    with decision_v2.ledger_lock(ledger_path):
+        full = decision_v2.load_decisions(ledger_path)
+        changed = 0
+        for row in full:
+            if row.get("decision_id") not in settled_ids:
+                continue
+            execution = dict(row.get("execution") or {})
+            if execution.get("status") != OPEN_EXECUTION:
+                continue
+            execution["status"] = "overridden_by_user"
+            execution["source"] = "risk_override"
+            row["execution"] = execution
+            changed += 1
+        if changed:
+            decision_v2.write_decisions(full, ledger_path)
 
 
 def watch_levels(*, today=None, memory_dir=None) -> dict:

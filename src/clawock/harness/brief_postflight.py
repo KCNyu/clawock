@@ -718,14 +718,17 @@ def log_decisions(today):
     # One load, mutate in memory, write once only if something changed (#916):
     # the old sequence was upsert(load+write) then load+settle+write — two full
     # rewrites per brief even on the common no-new-decisions day.
-    ledger = decision_v2.load_decisions()
-    before = json.dumps(ledger, ensure_ascii=False, sort_keys=True)
-    inserted, updated = decision_v2.upsert_plan_decisions(
-        plan, ledger=ledger, write=False)
-    settled = decision_v2.settle_decisions(ledger)
-    after = json.dumps(ledger, ensure_ascii=False, sort_keys=True)
-    if after != before:
-        decision_v2.write_decisions(ledger)
+    # The lock spans load..write so `mark-followed` cannot land in between and be
+    # overwritten by this run's older copy (#1482).
+    with decision_v2.ledger_lock():
+        ledger = decision_v2.load_decisions()
+        before = json.dumps(ledger, ensure_ascii=False, sort_keys=True)
+        inserted, updated = decision_v2.upsert_plan_decisions(
+            plan, ledger=ledger, write=False)
+        settled = decision_v2.settle_decisions(ledger)
+        after = json.dumps(ledger, ensure_ascii=False, sort_keys=True)
+        if after != before:
+            decision_v2.write_decisions(ledger)
     print(f'  decisions.jsonl: +{inserted}, updated {updated}, settled {settled} ({len(ledger)} total)')
 
 

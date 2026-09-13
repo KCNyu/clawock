@@ -116,9 +116,10 @@ def main(argv=None) -> int:
             print(f"record rejected: {issue}", file=sys.stderr)
         return 1
 
-    rows = decision_v2.load_decisions(args.ledger)
-    rows.append(record)
-    decision_v2.write_decisions(rows, args.ledger)
+    with decision_v2.ledger_lock(args.ledger):
+        rows = decision_v2.load_decisions(args.ledger)
+        rows.append(record)
+        decision_v2.write_decisions(rows, args.ledger)
     print(json.dumps(record, ensure_ascii=False, indent=2))
     print(f"appended {record['decision_id']} ({len(rows)} total)")
     return 0

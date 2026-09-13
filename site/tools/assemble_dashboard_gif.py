@@ -29,10 +29,11 @@ FRAME_DIR = os.environ.get("FRAME_DIR", os.path.join(ROOT, ".gifframes"))
 OUT = os.environ.get("GIF_OUT") or os.path.join(ROOT, "site", "assets", "dashboard.gif")
 
 # How many tabs the shooter photographs, named once because the number is read
-# from three places below and the shooter has to agree with all of them. They
-# were three bare `6` literals until the seventh tab landed: the count is a
-# shared fact between two files, so it is stated rather than repeated.
-TAB_COUNT = 7
+# from three places below and the shooter has to agree with all of them. It went
+# 6 → 7 with the Growth tab (#1465) and back to 6 when that tab was removed
+# (#1472), which forgot this file: the count is a shared fact between two files,
+# so tests/test_dashboard_gif_tabs.py now checks it against the page itself.
+TAB_COUNT = 6
 
 OW = 640             # output width (frames scaled to this; height follows aspect)
                      # 640 ≈ 2× the README's 300px display = crisp on retina; source
