@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-12T16:44:56.357392+00:00",
+  "generated_at": "2026-09-13T23:26:30.779021+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -21,97 +21,39 @@
     "burry": "success",
     "pelosi": "success"
   },
-  "llm_filtered": false,
+  "llm_filtered": true,
+  "llm_filter_status": "ok",
   "counts": {
-    "total": 28,
-    "held_hits": 0,
-    "new_ideas": 0,
-    "sector_hits": 0
+    "total": 22,
+    "held_hits": 2,
+    "new_ideas": 6,
+    "sector_hits": 7
   },
   "items": [
     {
       "author": "Musk",
-      "text": "SpaceX investors may be overlooking a major risk: There’s no replacing Elon Musk | CNN Business",
+      "text": "Elon Musk’s secretive backer builds $40bn SpaceX stake",
       "url": "",
-      "published": "Wed, 02 Sep 2026 07:00:00 GMT",
+      "published": "Sun, 13 Sep 2026 08:26:18 GMT",
       "origin": "gnews-rss",
-      "source": "CNN",
-      "tickers": [],
-      "held": [],
+      "source": "Financial Times",
+      "tickers": [
+        "SPCX",
+        "SPCH"
+      ],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
       "new_ideas": [],
+      "sectors": [
+        "航天",
+        "私募估值"
+      ],
+      "sector_holdings": [],
       "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk's Boring Co. turns to Middle East for expansion in reaching $23 billion valuation",
-      "url": "",
-      "published": "Thu, 10 Sep 2026 18:15:59 GMT",
-      "origin": "gnews-rss",
-      "source": "CNBC",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk's SpaceX sues Texas AG over Terafab tax-break records",
-      "url": "",
-      "published": "Thu, 10 Sep 2026 17:56:00 GMT",
-      "origin": "gnews-rss",
-      "source": "USA Today",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk Says ‘Enormous, Free Fusion Reactor in the Sky’ Will Supply 100% of Energy Needs",
-      "url": "",
-      "published": "Sat, 12 Sep 2026 14:38:57 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk slams 'Musk' documentary director as 'bitter old man'",
-      "url": "",
-      "published": "Sat, 12 Sep 2026 09:41:47 GMT",
-      "origin": "gnews-rss",
-      "source": "조선일보",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Musk",
-      "text": "Commentary: Elon Musk threatens to sue over a new doc about him. But the film festival crowd loves it",
-      "url": "",
-      "published": "Fri, 11 Sep 2026 13:00:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Los Angeles Times",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "relevance": 78,
+      "summary_cn": "据报道，SpaceX 一位隐秘投资人建仓 SpaceX 股份，估值达400亿美元，规模显著。"
     },
     {
       "author": "Musk",
@@ -120,26 +62,403 @@
       "published": "Fri, 11 Sep 2026 11:12:00 GMT",
       "origin": "gnews-rss",
       "source": "Investor's Business Daily",
+      "tickers": [
+        "SPCX",
+        "SPCH"
+      ],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "电动车",
+        "企业并购"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 72,
+      "summary_cn": "据报道，市场讨论 SpaceX 与 Tesla 合并的可能性，对其他投资者含义待估。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-11 调仓：Bullish(BLSH) 卖出 ARKK 121,217 股（最大单只 ETF 占比 0.07%）",
+      "url": "https://www.ark-funds.com/funds/arkk/",
+      "published": "2026-09-11T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.0661,
+      "tickers": [
+        "BLSH"
+      ],
+      "held": [],
+      "new_ideas": [
+        "BLSH"
+      ],
+      "sectors": [
+        "加密货币",
+        "加密交易所"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "sell",
+      "relevance": 58,
+      "summary_cn": "ARK 2026-09-11 调仓：卖出 Bullish(BLSH) 121,217 股，最大单只 ETF 占比 0.07%（加密交易所板块）。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-11 调仓：Twist Bioscience Corporation(TWST) 卖出 ARKK 46,015 股（最大单只 ETF 占比 0.09%）",
+      "url": "https://www.ark-funds.com/funds/arkk/",
+      "published": "2026-09-11T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.092,
+      "tickers": [
+        "TWST"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TWST"
+      ],
+      "sectors": [
+        "生物科技",
+        "基因测序"
+      ],
+      "sector_holdings": [],
+      "stance": "sell",
+      "relevance": 52,
+      "summary_cn": "ARK 2026-09-11 调仓：卖出 Twist Bioscience(TWST) 46,015 股，最大单只 ETF 占比 0.09%（常规再平衡规模）。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-11 调仓：10x Genomics, Inc.(TXG) 卖出 ARKK 60,556 股（最大单只 ETF 占比 0.07%）",
+      "url": "https://www.ark-funds.com/funds/arkk/",
+      "published": "2026-09-11T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.0653,
+      "tickers": [
+        "TXG"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TXG"
+      ],
+      "sectors": [
+        "生物科技",
+        "基因测序"
+      ],
+      "sector_holdings": [],
+      "stance": "sell",
+      "relevance": 50,
+      "summary_cn": "ARK 2026-09-11 调仓：卖出 10x Genomics(TXG) 60,556 股，最大单只 ETF 占比 0.07%（常规再平衡规模）。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-11 调仓：Tempus AI, Inc.(TEM) 卖出 ARKK 34,631 股（最大单只 ETF 占比 0.03%）",
+      "url": "https://www.ark-funds.com/funds/arkk/",
+      "published": "2026-09-11T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.032,
+      "tickers": [
+        "TEM"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TEM"
+      ],
+      "sectors": [
+        "AI医疗",
+        "诊断"
+      ],
+      "sector_holdings": [],
+      "stance": "sell",
+      "relevance": 50,
+      "summary_cn": "ARK 2026-09-11 调仓：卖出 Tempus AI(TEM) 34,631 股，最大单只 ETF 占比 0.03%（常规再平衡规模）。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-11 调仓：INTELLIA THERAPEUTICS, INC.(NTLA) 买入 ARKK 107,356 股（最大单只 ETF 占比 0.02%）",
+      "url": "https://www.ark-funds.com/funds/arkk/",
+      "published": "2026-09-11T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.0199,
+      "tickers": [
+        "NTLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "NTLA"
+      ],
+      "sectors": [
+        "生物科技",
+        "基因编辑"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 48,
+      "summary_cn": "ARK 2026-09-11 调仓：买入 Intellia Therapeutics(NTLA) 107,356 股，最大单只 ETF 占比 0.02%（规模极小）。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-11 调仓：GeneDx Holdings Corp.(WGS) 卖出 ARKK 7,631 股（最大单只 ETF 占比 0.01%）",
+      "url": "https://www.ark-funds.com/funds/arkk/",
+      "published": "2026-09-11T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.0103,
+      "tickers": [
+        "WGS"
+      ],
+      "held": [],
+      "new_ideas": [
+        "WGS"
+      ],
+      "sectors": [
+        "基因诊断"
+      ],
+      "sector_holdings": [],
+      "stance": "sell",
+      "relevance": 45,
+      "summary_cn": "ARK 2026-09-11 调仓：卖出 GeneDx(WGS) 7,631 股，最大单只 ETF 占比 0.01%（极小规模）。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry Is Staying Short Nvidia, Palantir, and Tesla, Warning of a Possible \"1987-Type Fall\" for AI Stocks. Should Investors Take the Bet Seriously?",
+      "url": "https://news.google.com/rss/articles/CBMimAFBVV95cUxORF9XSEdlbE5wYlZQS1JzTE9xNmhBeUtiY1hXN3NseEt4SXhaY0htUGRxYjBPSGU5M0hDRTZjQmQ5b2VpbFJhV04zN0JqNzljYllzM2VKUnBIQkNZN0dXX2xYb1hHN0ZrMzJ4Mm5qdmZfNWNibjVQaTJQVG9QSkFxbk4yeF9zOWdtV1k3MXhnNVpDNVZKZ05GeQ?oc=5",
+      "published": "2026-09-12T06:30:00+00:00",
+      "origin": "gnews-rss",
+      "source": "The Motley Fool",
       "tickers": [],
       "held": [],
       "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "sectors": [
+        "AI",
+        "半导体",
+        "电动车"
+      ],
+      "sector_holdings": [
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "attack",
+      "relevance": 88,
+      "summary_cn": "据报道，Burry 维持做空 Nvidia、Palantir、Tesla，警告 AI 股票可能出现1987年式暴跌。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry Says ‘We Are Near A Major Top, And A Possible 1987-Type Fall’ — Why Record Highs Aren’t Changing His Bearish View",
+      "url": "https://news.google.com/rss/articles/CBMigwJBVV95cUxPdldiZXM2YXByZHd3WXA3ODBBZWIwQzg5WmNmSVNzODBUQmYyYlo5Wm8xQlhZd0ZaakVKSER5YTZuUDk5MERYODBVc2RTQVhDbkZ0Qlo5STRLZjRFUS1GVGdJUG9BcGdONVRGbElqdGphd1huQ0haUUxRLVIxcWU5ZE5WS0RCZnRZaXBzb0dLaUpFMUlKclVSamdzVTNzNmMwQlZ0dG1pcU9kd0lTZmdCQjF6czE3NXBxU1BGc2RvWDdwQk51a1MtRXVMbDI3ejhaVXJTaWVzbUw5V2QyeXJGQnZMX1RDR3lCNEdUanZKMjFTbDgyZUNVcE5US1B0S0xXYWpB?oc=5",
+      "published": "2026-09-12T18:59:35+00:00",
+      "origin": "gnews-rss",
+      "source": "Stocktwits",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "美股宏观",
+        "风险资产"
+      ],
+      "sector_holdings": [
+        "03032",
+        "03033",
+        "07226",
+        "RKLX"
+      ],
+      "stance": "attack",
+      "relevance": 82,
+      "summary_cn": "据报道，Burry 警告：我们接近一个重大顶部，可能出现1987年式暴跌，对风险资产全面看空。"
     },
     {
       "author": "Musk",
-      "text": "From DOGE to \"space lasers,\" Alex Gibney peels back the many layers of Elon Musk",
+      "text": "Nvidia vs. AMD: Elon Musk Picked a Side on the SpaceX Earnings Call",
       "url": "",
-      "published": "Fri, 11 Sep 2026 09:00:00 GMT",
+      "published": "Sat, 12 Sep 2026 21:20:00 GMT",
       "origin": "gnews-rss",
-      "source": "NPR",
+      "source": "Yahoo Finance",
       "tickers": [],
       "held": [],
       "new_ideas": [],
+      "sectors": [
+        "AI",
+        "半导体"
+      ],
+      "sector_holdings": [
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "endorse",
+      "relevance": 70,
+      "summary_cn": "据报道，Musk 在 SpaceX 业绩电话会上在 Nvidia 与 AMD 之间明确选边站，对 AI 芯片格局具指向意义。"
+    },
+    {
+      "author": "洪灏",
+      "text": "高盛：美國不加息更危险",
+      "url": "https://news.google.com/rss/articles/CBMi2wFBVV95cUxQUzZHc0FINm0tcDBhOXVLUXNCYlVxWGt1WjA1WVpCMlZyTXNaclU5NU45ZWpNQ1BQNnRoMHBteHN5UmZPYUtwUzhDVDVRc0JXM0VzalEzSEl5SmV4Zm1CRzhlRjRDSXdtUWxBVWJaeTNDQ2tKdGNNRUNVNWtFcm56Y2RvTzVyb1lYQVVmMUNZQmE2dFViNjN2dWhhbWNvSUFyeWZRX1gzWm5kbFVwd2xqXzJLcE5FblRfU3JiQjFsMDdraHZQbjROcHYxS3FqakYtaGY3ZG11cG00RlU?oc=5",
+      "published": "2026-09-13T17:00:00+00:00",
+      "origin": "gnews-rss",
+      "source": "香港經濟日報HKET",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "美联储",
+        "利率",
+        "宏观"
+      ],
+      "sector_holdings": [
+        "03032",
+        "03033",
+        "07226",
+        "RKLX"
+      ],
+      "stance": "attack",
+      "relevance": 70,
+      "summary_cn": "据报道，高盛观点：美国不加息反而更危险，暗示降息预期过度、风险资产承压。"
+    },
+    {
+      "author": "Musk",
+      "text": "OpenAI boss and Elon Musk back calls to put brakes on ‘reckless’ AI development",
+      "url": "",
+      "published": "Sun, 13 Sep 2026 22:50:00 GMT",
+      "origin": "gnews-rss",
+      "source": "The Guardian",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI",
+        "AI监管"
+      ],
+      "sector_holdings": [
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "attack",
+      "relevance": 62,
+      "summary_cn": "据报道，Musk 与 OpenAI 负责人联署呼吁对'鲁莽'的 AI 发展踩刹车，AI 监管议题升温。"
+    },
+    {
+      "author": "段永平",
+      "text": "清倉神華 段永平怎麼想？|香港經濟日報",
+      "url": "https://news.google.com/rss/articles/CBMi2gFBVV95cUxPV3dxSFFKSXhHbm1RLVZXazFYQTFEY3BiWkROcTlXSFFEX1BLMThiNFp5ZFQzRkJzaTVHalJtaWVEdWZVVG5rMTRWUWZ4ek5mLVRranBacll6SGpaNzFHNFhGek5zdmFkSktWWUU5NlpNTE1wSDBUWUYzelhvNzFwTWZOSjc3NTJSUmJiRl9XMFdncjl0cy1BY0YxUF9pYzVZdXV5bWlrTWcycUczbkpXZU41UXpqNXBBOGFJOU5pWUtLbnlta19FbWdhbWhzRlVvTFF4MXhHSUlzdw?oc=5",
+      "published": "2026-09-13T16:00:00+00:00",
+      "origin": "gnews-rss",
+      "source": "香港經濟日報HKET",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "煤炭/能源"
+      ],
+      "sector_holdings": [
+        "02208"
+      ],
+      "stance": "sell",
+      "relevance": 60,
+      "summary_cn": "据报道，段永平清仓中国神华，释放对传统能源的看空信号。"
+    },
+    {
+      "author": "Pelosi",
+      "text": "$INTC stock rose 7% this week. Here's what we see in our data.",
+      "url": "https://news.google.com/rss/articles/CBMiowFBVV95cUxPRVpSVEJxSjhIMkhkNDZ4SnN1amtEYm9zQ0NlMTV1cTc1Y1QyeXhlR1pSbURoZXdoVGplS0tDc1ZwYk14eWlHLUc1c1VYRUE1d0dnT3Vkc094MGJtVVRUUGNiRHB6UlpDUGtpODR6Nm5uWnB0VjNfZllxdlpHN0lkdURlM01WTXV6YmxpZXI3VnphTzk0VUZpY0lET2hGbW0zNlh3?oc=5",
+      "published": "2026-09-12T16:37:00+00:00",
+      "origin": "gnews-rss",
+      "source": "Quiver Quantitative",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "半导体"
+      ],
+      "sector_holdings": [
+        "03032",
+        "03033",
+        "07226"
+      ],
       "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "relevance": 55,
+      "summary_cn": "据报道，INTC 本周股价上涨7%，数据面观察资金流入迹象。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk's Boring Co. turns to Middle East for expansion in reaching $23 billion valuation",
+      "url": "",
+      "published": "Thu, 10 Sep 2026 18:15:59 GMT",
+      "origin": "gnews-rss",
+      "source": "cnbc.com",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "基建",
+        "中东"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "据报道，Musk 的 Boring Co. 转向中东扩张，估值达230亿美元。"
+    },
+    {
+      "author": "段永平",
+      "text": "段永平「入坑」泡泡瑪特 澄清與諧星無關",
+      "url": "https://news.google.com/rss/articles/CBMivwJBVV95cUxQYmFWY3c5ckNjcDFfcUdmUTZrZEduQnBnNHdrQlZEb3Z1RjFzOHhNb09jbVQtZGlwSjdBbWpxdktkdkZHZjd6eDZlVjd2ZWxKOXg4RWhXaVNXOTNfYndzUjZQSFY5YzVZU2RCekloX0ZycDloTWJGcWozX09DN0VudTRINzcyQXV6alE2eGJ5ZnNaR1hQXzlxaUI5bnhJT3lqWTl6b09kTzVpZHB6TUZBcjF2OG41X3hFY1h6Umh3enpYOVpCTTByNnJ2cXN2aXVBSUVZcGxPQk9WaHdzUzgzN2xXZHRCaUNJc1ZZNzlTX1Z6VV9BZUwwQ3dpdkpTU3FSV0ZrNWotMWJIQ01DMGFST2dpbkd2TzVnUDFxSEFxZzNRazJScEFCWjAxcTFNbHd4ZkstbTBzM0FsdmNZTmtV?oc=5",
+      "published": "2026-09-13T18:48:20+00:00",
+      "origin": "gnews-rss",
+      "source": "信報網站",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "潮玩/消费"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 55,
+      "summary_cn": "据报道，段永平买入泡泡玛特，与谐星传闻无关，澄清买入逻辑。"
+    },
+    {
+      "author": "Burry",
+      "text": "3 Stocks to Bet Against If You Want to Invest Like Michael Burry",
+      "url": "https://news.google.com/rss/articles/CBMirAFBVV95cUxQWUhRandFOHJmRm1fTXhOX3o4X3RPZlJmWFJpd2w0TmVtVG1BZ3NINDBHcUZ0bDUzSEhtYUsxWjByNEF2WFpFTW9lV2tEa3NfMzNuYVNMOFpmQXNmZkFTTEZyNmVaU3RQdEF5NkluajlyY052Q3Y3X0Zqd0RIUy03dFV0Y2twTFhCSXNiOFkyY1dGWXhYWm45NzV0aUlrNkF2aDlhdHBObHoyUjNj?oc=5",
+      "published": "2026-09-13T11:20:59+00:00",
+      "origin": "gnews-rss",
+      "source": "Barchart.com",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "美股做空"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 55,
+      "summary_cn": "据报道，盘点 Burry 公开做空的标的清单，提供跟随做空的线索。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry Calls CAR Rally 'Dumb Luck' — Avis Stock Tracks Best Month Ever As Short Squeeze Deepens Wall Street Chaos",
+      "url": "https://news.google.com/rss/articles/CBMijAJBVV95cUxQOGs2NnQwRHRmenFiMU9fWnkwMmdDU01iQlBZRGFBNmFrT2NKMk02RG52ZDZkUkNaMnJENVB5bHZkYUp5NkRLSEIxV2J6Y2JVTzRCRFd6d1pIak80Z3ZFSmlITnBlZlJ1cEhiMHhaSXA4WjZHUkZwVGtDWDk3S0N3MDdUUm85YXFCbU42OGFjWlZaS1BQRlZ5TUE4U3ZLbk9CREd2RUR5WWtrN3RPUmIya1A4SHBrcTFrWVhUb2hDSGVwTkZuUmpIYkUxX1VxNlBZRmxaaEt3Z2JLU1Jsc3lZOW5ab2d5VEFGSFNNV0VUNkVuTTMtRzRoVEg4LVhoNTc2NnZfTHhCSldHQng1?oc=5",
+      "published": "2026-09-13T08:29:25+00:00",
+      "origin": "gnews-rss",
+      "source": "Stocktwits",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "租车/出行"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 55,
+      "summary_cn": "据报道，Burry 称 Avis(CAR) 反弹为'dumb luck'（傻运），坚持做空立场但遭轧空。"
     },
     {
       "author": "Pelosi",
@@ -151,23 +470,14 @@
       "tickers": [],
       "held": [],
       "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Burry",
-      "text": "‘Big Short’ Michael Burry buys fine wine to bet against AI threat and USD",
-      "url": "https://news.google.com/rss/articles/CBMitAFBVV95cUxNVFZWQVpydFZCMGtfTEx3YU5QVlBKTUttaC0waC1QQ19SUU01RTlhdVZmTTZOUVhTdmRDQjJMUHQ4Z1ByclNIT3RYRXNlSjlzVDh4ekFySFdrMXp6aWIwMDlHcTAtWWFxd2NOWkk3dllfbDNBa2R5eFY4aTRhblhKc3h3eFU3eW5TQ281V1ZBOFFfM2tfdU9idUxGZktZdGNKWDhkMVdmclNPMjdRRnNyZzJzalk?oc=5",
-      "published": "2026-09-12T14:00:00+00:00",
-      "origin": "gnews-rss",
-      "source": "thestreet.com",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "sectors": [
+        "清洁能源/燃料电池",
+        "国会披露"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 55,
+      "summary_cn": "据报道，Pelosi 披露文件显示其数周前买入了大量 Bloom Energy 看涨期权，与 Cramer 提到的资金流向吻合。"
     },
     {
       "author": "洪灏",
@@ -179,9 +489,14 @@
       "tickers": [],
       "held": [],
       "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "sectors": [
+        "香港零售物业",
+        "港股"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 50,
+      "summary_cn": "据报道，观点质疑香港商铺救市政策，建议自相矛盾，对港零售物业板块偏空。"
     },
     {
       "author": "Burry",
@@ -193,106 +508,94 @@
       "tickers": [],
       "held": [],
       "new_ideas": [],
+      "sectors": [
+        "消费/运动服饰"
+      ],
+      "sector_holdings": [],
       "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
+      "relevance": 50,
+      "summary_cn": "据报道，Burry 称 Lululemon 为组合中的'trickster'，并为其目前最大持仓，态度耐人寻味。"
+    }
+  ],
+  "held_hits": [
     {
-      "author": "段永平",
-      "text": "關注泡泡瑪特跟李誕有關？段永平：無關，但王寧微信是他給我的",
-      "url": "https://news.google.com/rss/articles/CBMia0FVX3lxTE10MzdqbGVPTTZLbXNqWXVWTG9SQ2lqQ3pFZk41bEliWW5TUlRtZldsQXFjQ25BZUJvRERmTUZQSGVQeGcwdkM1SXN3OWpjQ0hscVhMM20tREdTQTFNVnRvSlVidlk5VW9tQUw0?oc=5",
-      "published": "2026-09-12T09:39:06+00:00",
+      "author": "Musk",
+      "text": "Elon Musk’s secretive backer builds $40bn SpaceX stake",
+      "url": "",
+      "published": "Sun, 13 Sep 2026 08:26:18 GMT",
       "origin": "gnews-rss",
-      "source": "TradingView",
-      "tickers": [],
-      "held": [],
+      "source": "Financial Times",
+      "tickers": [
+        "SPCX",
+        "SPCH"
+      ],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
       "new_ideas": [],
+      "sectors": [
+        "航天",
+        "私募估值"
+      ],
+      "sector_holdings": [],
       "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "relevance": 78,
+      "summary_cn": "据报道，SpaceX 一位隐秘投资人建仓 SpaceX 股份，估值达400亿美元，规模显著。"
     },
     {
-      "author": "Burry",
-      "text": "LULU Stock Sinks 18% Overnight: Michael Burry Says Lululemon Is A ‘Trickster’ As He Vows To Buy More Under $100",
-      "url": "https://news.google.com/rss/articles/CBMi_wFBVV95cUxNdVNPaU82TEJNd1FUZnhLaHVsWWFTSFdxYU5QeV9fcFVFcGt1R3NVOFdMSlJIbnJjRkFfcjdlYnJ2bC1PN0VFNExSaVh4NWlSdnBWdXpHSmxPNVRteXlMNFZDNElRS3JUMWJUMXRaejFDdWtDckt6bTdoNnpNNEJ5RU8tczVYWjZtenl3VFYxdU1UQ0tfSTU3R3FxZ2UxQlpaUDEzTkNUMEtWVFdiUlRWRGhESldrUTU3ZXJ0RHJNYkFWWkVzcWdreVFWMTdTbmJkU3BZWjB3N2tSeTQxLWtvSHg0d2l1dThLUmtTZVJiRHRqU1pEZzFPLU1SeE5YSzg?oc=5",
-      "published": "2026-09-12T08:37:53+00:00",
+      "author": "Musk",
+      "text": "In A SpaceX-Tesla Merger, Elon Musk May Be The Big Winner. What It May Mean For Other Investors.",
+      "url": "",
+      "published": "Fri, 11 Sep 2026 11:12:00 GMT",
       "origin": "gnews-rss",
-      "source": "Stocktwits",
-      "tickers": [],
-      "held": [],
+      "source": "Investor's Business Daily",
+      "tickers": [
+        "SPCX",
+        "SPCH"
+      ],
+      "held": [
+        "SPCH",
+        "SPCX"
+      ],
       "new_ideas": [],
+      "sectors": [
+        "航天",
+        "电动车",
+        "企业并购"
+      ],
+      "sector_holdings": [],
       "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
+      "relevance": 72,
+      "summary_cn": "据报道，市场讨论 SpaceX 与 Tesla 合并的可能性，对其他投资者含义待估。"
+    }
+  ],
+  "new_ideas": [
     {
-      "author": "Burry",
-      "text": "Michael Burry Is Staying Short Nvidia, Palantir, and Tesla, Warning of a Possible \"1987-Type Fall\" for AI Stocks. Should Investors Take the Bet Seriously?",
-      "url": "https://news.google.com/rss/articles/CBMimAFBVV95cUxORF9XSEdlbE5wYlZQS1JzTE9xNmhBeUtiY1hXN3NseEt4SXhaY0htUGRxYjBPSGU5M0hDRTZjQmQ5b2VpbFJhV04zN0JqNzljYllzM2VKUnBIQkNZN0dXX2xYb1hHN0ZrMzJ4Mm5qdmZfNWNibjVQaTJQVG9QSkFxbk4yeF9zOWdtV1k3MXhnNVpDNVZKZ05GeQ?oc=5",
-      "published": "2026-09-12T06:30:00+00:00",
-      "origin": "gnews-rss",
-      "source": "fool.com",
-      "tickers": [],
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-11 调仓：Bullish(BLSH) 卖出 ARKK 121,217 股（最大单只 ETF 占比 0.07%）",
+      "url": "https://www.ark-funds.com/funds/arkk/",
+      "published": "2026-09-11T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.0661,
+      "tickers": [
+        "BLSH"
+      ],
       "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Burry",
-      "text": "Michael Burry Says ‘We Are Near A Major Top, And A Possible 1987-Type Fall’ — Why Record Highs Aren’t Changing His Bearish View",
-      "url": "https://news.google.com/rss/articles/CBMigwJBVV95cUxPdldiZXM2YXByZHd3WXA3ODBBZWIwQzg5WmNmSVNzODBUQmYyYlo5Wm8xQlhZd0ZaakVKSER5YTZuUDk5MERYODBVc2RTQVhDbkZ0Qlo5STRLZjRFUS1GVGdJUG9BcGdONVRGbElqdGphd1huQ0haUUxRLVIxcWU5ZE5WS0RCZnRZaXBzb0dLaUpFMUlKclVSamdzVTNzNmMwQlZ0dG1pcU9kd0lTZmdCQjF6czE3NXBxU1BGc2RvWDdwQk51a1MtRXVMbDI3ejhaVXJTaWVzbUw5V2QyeXJGQnZMX1RDR3lCNEdUanZKMjFTbDgyZUNVcE5US1B0S0xXYWpB?oc=5",
-      "published": "2026-09-12T06:19:00+00:00",
-      "origin": "gnews-rss",
-      "source": "Stocktwits",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "洪灏",
-      "text": "由屋邨天井到小店 細訴被遺忘的人情味！",
-      "url": "https://news.google.com/rss/articles/CBMiW0FVX3lxTE0wTXd0dFFOdnRpc0cxcG9DR1lhSDNvREJMdmdINGFFMUFOd2c2WTFYUG1ZZVBTREQxNnhDUG51RmxzTXlvLTFPUVNnVlA2NngtZ0NidWxSZW5sekU?oc=5",
-      "published": "2026-09-12T03:36:56+00:00",
-      "origin": "gnews-rss",
-      "source": "信報網站",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "RT: https://truthsocial.com/users/realDonaldTrump/statuses/117255718355537976I am calling on the Smithsonian Institution to honor the Life and Legacy of George Washington, America’s Greatest Hero, with a five-year exhibition at the National Museum of American History, beginning now, and continuing through, February 22, 2032, the 300th anniversary of Washington’s birth.I am also calling on the Smithsonian to erect a 30-foot “Colossus statue” of the Father of Our Country outside the Museum, to replace the so-called “Infinity” sculpture that stands there today. That strange modernist sculpture te",
-      "url": "https://www.trumpstruth.org/statuses/41695",
-      "published": "2026-09-12T02:31:42+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "洪灏",
-      "text": "一掃伊朗戰爭跌幅！亞股開始收復失土 台股高出2％最猛",
-      "url": "https://news.google.com/rss/articles/CBMiWEFVX3lxTE1mZ2pZWmcwRVBCaWEtTFF4QURxMkdWZ09LczZFeU5wbmdpVmhGNmg5N1IxUlRRcmcyRHVHWlNWdm5JTmFTWGZ6RFA2UndqSnpDaHZQVHBfRm8?oc=5",
-      "published": "2026-09-11T20:08:58+00:00",
-      "origin": "gnews-rss",
-      "source": "自由時報",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "new_ideas": [
+        "BLSH"
+      ],
+      "sectors": [
+        "加密货币",
+        "加密交易所"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "sell",
+      "relevance": 58,
+      "summary_cn": "ARK 2026-09-11 调仓：卖出 Bullish(BLSH) 121,217 股，最大单只 ETF 占比 0.07%（加密交易所板块）。"
     },
     {
       "author": "Cathie Wood",
@@ -302,27 +605,21 @@
       "origin": "ark-funds",
       "source": "ARK Invest 日度调仓",
       "etf_percent": 0.092,
-      "tickers": [],
+      "tickers": [
+        "TWST"
+      ],
       "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-11 调仓：Bullish(BLSH) 卖出 ARKK 121,217 股（最大单只 ETF 占比 0.07%）",
-      "url": "https://www.ark-funds.com/funds/arkk/",
-      "published": "2026-09-11T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.0661,
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "new_ideas": [
+        "TWST"
+      ],
+      "sectors": [
+        "生物科技",
+        "基因测序"
+      ],
+      "sector_holdings": [],
+      "stance": "sell",
+      "relevance": 52,
+      "summary_cn": "ARK 2026-09-11 调仓：卖出 Twist Bioscience(TWST) 46,015 股，最大单只 ETF 占比 0.09%（常规再平衡规模）。"
     },
     {
       "author": "Cathie Wood",
@@ -332,12 +629,21 @@
       "origin": "ark-funds",
       "source": "ARK Invest 日度调仓",
       "etf_percent": 0.0653,
-      "tickers": [],
+      "tickers": [
+        "TXG"
+      ],
       "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "new_ideas": [
+        "TXG"
+      ],
+      "sectors": [
+        "生物科技",
+        "基因测序"
+      ],
+      "sector_holdings": [],
+      "stance": "sell",
+      "relevance": 50,
+      "summary_cn": "ARK 2026-09-11 调仓：卖出 10x Genomics(TXG) 60,556 股，最大单只 ETF 占比 0.07%（常规再平衡规模）。"
     },
     {
       "author": "Cathie Wood",
@@ -347,12 +653,21 @@
       "origin": "ark-funds",
       "source": "ARK Invest 日度调仓",
       "etf_percent": 0.032,
-      "tickers": [],
+      "tickers": [
+        "TEM"
+      ],
       "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "new_ideas": [
+        "TEM"
+      ],
+      "sectors": [
+        "AI医疗",
+        "诊断"
+      ],
+      "sector_holdings": [],
+      "stance": "sell",
+      "relevance": 50,
+      "summary_cn": "ARK 2026-09-11 调仓：卖出 Tempus AI(TEM) 34,631 股，最大单只 ETF 占比 0.03%（常规再平衡规模）。"
     },
     {
       "author": "Cathie Wood",
@@ -362,12 +677,21 @@
       "origin": "ark-funds",
       "source": "ARK Invest 日度调仓",
       "etf_percent": 0.0199,
-      "tickers": [],
+      "tickers": [
+        "NTLA"
+      ],
       "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "new_ideas": [
+        "NTLA"
+      ],
+      "sectors": [
+        "生物科技",
+        "基因编辑"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 48,
+      "summary_cn": "ARK 2026-09-11 调仓：买入 Intellia Therapeutics(NTLA) 107,356 股，最大单只 ETF 占比 0.02%（规模极小）。"
     },
     {
       "author": "Cathie Wood",
@@ -377,56 +701,183 @@
       "origin": "ark-funds",
       "source": "ARK Invest 日度调仓",
       "etf_percent": 0.0103,
-      "tickers": [],
+      "tickers": [
+        "WGS"
+      ],
       "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Pelosi",
-      "text": "Speaker Emerita Nancy Pelosi To Be Honored With Inaugural Yale Patriot Public Service Award for Legislative Leadership",
-      "url": "https://news.google.com/rss/articles/CBMitgFBVV95cUxPSzlXSEdLbWVsbUJZVzVaQ3JYbWdHekw3ZmhQOEh4LU1hb2VOUURGRDFOY1FDeWE3Tzg2QjJSNC0wTEhNeHdCb3NCOXFpLS02M19rcHpXTndYWlo1eGZ6dVJaQ3N1N1ozcUV3VzhRT1ZXMDdBd2xKMldQWjAtMzdGN0VHamNyU1hybHA4b2ZwM0VpZ1pRem42cVNiUlZOT1BQRk5FSzRWRGR0ZmNvME0taGk2VVEwZw?oc=5",
-      "published": "2026-09-11T19:41:50+00:00",
-      "origin": "gnews-rss",
-      "source": "Yale School of Management",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Trump",
-      "text": "The $5,000 Trump Dividend, given to all Adults in the United States due to the fact that our Country is taking in Trillions of Dollars of Economic Development, Investment, and Pure SUCCESS, is being criticized by “Dumocrats” who are hoping that it never happens — But it will! As an example, the Dumocrats said THE GREAT BIG BEAUTIFUL BILL, one of the largest ever approved by Congress, or signed into Law by a President happened, despite the Dumocrats saying it would be impossible to get approved — Or the Gift of $1776 that I gave last year to our Military, was an almost guaranteed Non Starter, e",
-      "url": "https://www.trumpstruth.org/statuses/41692",
-      "published": "2026-09-11T19:08:41+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
-    },
-    {
-      "author": "Pelosi",
-      "text": "LIST: Bay Area communities hold memorial ceremonies, marking 25 years since 9/11 attacks",
-      "url": "https://news.google.com/rss/articles/CBMitgFBVV95cUxOUDRfMkNhRUtzcE9NVXRQeEFFd01KeTRRemJUdjNLZ1cxcmotbTQyNWgxc0ZacU1NRDMzaVRGcDdUdU9La21HVlBqX1RtXzlwUnpTS2otOGl1MGpJTlU2UXR3RjM2Qy1PYXhvQXl0T201VWctaXB6eWFkS1hlMi14MnJyZ2gySFl3NWtGM3lIUm9nMDZuZm1HY3BCd0QzeUN4cUdhVmhQNE1qS3RCd0JjZEpMVWl3Z9IBuwFBVV95cUxORlpSNXg5ZnBjbnpZWUt5S0dXV3U0TnI1ZlJybGZyM0pNamJid1picjJfZVdwakpISWZsQW5CMHRMM1E4bGl3M1ZLcDZfTUxUbGFqT3VCak5vSE5KbXhBbnhNeWJMWVdDcE53UFpaRDMzWVB1N3lQQ1Z3QVF6MUNUNzRJZGswXzNLMEFSUmpTdmEzWFlGYUF3cFhMQnktN05qTnBOdUFrXzVEVGJLajg0UE9oc3d2bjlKWTFz?oc=5",
-      "published": "2026-09-11T14:01:42+00:00",
-      "origin": "gnews-rss",
-      "source": "ABC7 Bay Area",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "stance": "neutral",
-      "relevance": null,
-      "summary_cn": ""
+      "new_ideas": [
+        "WGS"
+      ],
+      "sectors": [
+        "基因诊断"
+      ],
+      "sector_holdings": [],
+      "stance": "sell",
+      "relevance": 45,
+      "summary_cn": "ARK 2026-09-11 调仓：卖出 GeneDx(WGS) 7,631 股，最大单只 ETF 占比 0.01%（极小规模）。"
     }
   ],
-  "held_hits": [],
-  "new_ideas": [],
-  "sector_hits": []
+  "sector_hits": [
+    {
+      "author": "Burry",
+      "text": "Michael Burry Is Staying Short Nvidia, Palantir, and Tesla, Warning of a Possible \"1987-Type Fall\" for AI Stocks. Should Investors Take the Bet Seriously?",
+      "url": "https://news.google.com/rss/articles/CBMimAFBVV95cUxORF9XSEdlbE5wYlZQS1JzTE9xNmhBeUtiY1hXN3NseEt4SXhaY0htUGRxYjBPSGU5M0hDRTZjQmQ5b2VpbFJhV04zN0JqNzljYllzM2VKUnBIQkNZN0dXX2xYb1hHN0ZrMzJ4Mm5qdmZfNWNibjVQaTJQVG9QSkFxbk4yeF9zOWdtV1k3MXhnNVpDNVZKZ05GeQ?oc=5",
+      "published": "2026-09-12T06:30:00+00:00",
+      "origin": "gnews-rss",
+      "source": "The Motley Fool",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI",
+        "半导体",
+        "电动车"
+      ],
+      "sector_holdings": [
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "attack",
+      "relevance": 88,
+      "summary_cn": "据报道，Burry 维持做空 Nvidia、Palantir、Tesla，警告 AI 股票可能出现1987年式暴跌。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry Says ‘We Are Near A Major Top, And A Possible 1987-Type Fall’ — Why Record Highs Aren’t Changing His Bearish View",
+      "url": "https://news.google.com/rss/articles/CBMigwJBVV95cUxPdldiZXM2YXByZHd3WXA3ODBBZWIwQzg5WmNmSVNzODBUQmYyYlo5Wm8xQlhZd0ZaakVKSER5YTZuUDk5MERYODBVc2RTQVhDbkZ0Qlo5STRLZjRFUS1GVGdJUG9BcGdONVRGbElqdGphd1huQ0haUUxRLVIxcWU5ZE5WS0RCZnRZaXBzb0dLaUpFMUlKclVSamdzVTNzNmMwQlZ0dG1pcU9kd0lTZmdCQjF6czE3NXBxU1BGc2RvWDdwQk51a1MtRXVMbDI3ejhaVXJTaWVzbUw5V2QyeXJGQnZMX1RDR3lCNEdUanZKMjFTbDgyZUNVcE5US1B0S0xXYWpB?oc=5",
+      "published": "2026-09-12T18:59:35+00:00",
+      "origin": "gnews-rss",
+      "source": "Stocktwits",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "美股宏观",
+        "风险资产"
+      ],
+      "sector_holdings": [
+        "03032",
+        "03033",
+        "07226",
+        "RKLX"
+      ],
+      "stance": "attack",
+      "relevance": 82,
+      "summary_cn": "据报道，Burry 警告：我们接近一个重大顶部，可能出现1987年式暴跌，对风险资产全面看空。"
+    },
+    {
+      "author": "Musk",
+      "text": "Nvidia vs. AMD: Elon Musk Picked a Side on the SpaceX Earnings Call",
+      "url": "",
+      "published": "Sat, 12 Sep 2026 21:20:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI",
+        "半导体"
+      ],
+      "sector_holdings": [
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "endorse",
+      "relevance": 70,
+      "summary_cn": "据报道，Musk 在 SpaceX 业绩电话会上在 Nvidia 与 AMD 之间明确选边站，对 AI 芯片格局具指向意义。"
+    },
+    {
+      "author": "洪灏",
+      "text": "高盛：美國不加息更危险",
+      "url": "https://news.google.com/rss/articles/CBMi2wFBVV95cUxQUzZHc0FINm0tcDBhOXVLUXNCYlVxWGt1WjA1WVpCMlZyTXNaclU5NU45ZWpNQ1BQNnRoMHBteHN5UmZPYUtwUzhDVDVRc0JXM0VzalEzSEl5SmV4Zm1CRzhlRjRDSXdtUWxBVWJaeTNDQ2tKdGNNRUNVNWtFcm56Y2RvTzVyb1lYQVVmMUNZQmE2dFViNjN2dWhhbWNvSUFyeWZRX1gzWm5kbFVwd2xqXzJLcE5FblRfU3JiQjFsMDdraHZQbjROcHYxS3FqakYtaGY3ZG11cG00RlU?oc=5",
+      "published": "2026-09-13T17:00:00+00:00",
+      "origin": "gnews-rss",
+      "source": "香港經濟日報HKET",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "美联储",
+        "利率",
+        "宏观"
+      ],
+      "sector_holdings": [
+        "03032",
+        "03033",
+        "07226",
+        "RKLX"
+      ],
+      "stance": "attack",
+      "relevance": 70,
+      "summary_cn": "据报道，高盛观点：美国不加息反而更危险，暗示降息预期过度、风险资产承压。"
+    },
+    {
+      "author": "Musk",
+      "text": "OpenAI boss and Elon Musk back calls to put brakes on ‘reckless’ AI development",
+      "url": "",
+      "published": "Sun, 13 Sep 2026 22:50:00 GMT",
+      "origin": "gnews-rss",
+      "source": "The Guardian",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI",
+        "AI监管"
+      ],
+      "sector_holdings": [
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "attack",
+      "relevance": 62,
+      "summary_cn": "据报道，Musk 与 OpenAI 负责人联署呼吁对'鲁莽'的 AI 发展踩刹车，AI 监管议题升温。"
+    },
+    {
+      "author": "段永平",
+      "text": "清倉神華 段永平怎麼想？|香港經濟日報",
+      "url": "https://news.google.com/rss/articles/CBMi2gFBVV95cUxPV3dxSFFKSXhHbm1RLVZXazFYQTFEY3BiWkROcTlXSFFEX1BLMThiNFp5ZFQzRkJzaTVHalJtaWVEdWZVVG5rMTRWUWZ4ek5mLVRranBacll6SGpaNzFHNFhGek5zdmFkSktWWUU5NlpNTE1wSDBUWUYzelhvNzFwTWZOSjc3NTJSUmJiRl9XMFdncjl0cy1BY0YxUF9pYzVZdXV5bWlrTWcycUczbkpXZU41UXpqNXBBOGFJOU5pWUtLbnlta19FbWdhbWhzRlVvTFF4MXhHSUlzdw?oc=5",
+      "published": "2026-09-13T16:00:00+00:00",
+      "origin": "gnews-rss",
+      "source": "香港經濟日報HKET",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "煤炭/能源"
+      ],
+      "sector_holdings": [
+        "02208"
+      ],
+      "stance": "sell",
+      "relevance": 60,
+      "summary_cn": "据报道，段永平清仓中国神华，释放对传统能源的看空信号。"
+    },
+    {
+      "author": "Pelosi",
+      "text": "$INTC stock rose 7% this week. Here's what we see in our data.",
+      "url": "https://news.google.com/rss/articles/CBMiowFBVV95cUxPRVpSVEJxSjhIMkhkNDZ4SnN1amtEYm9zQ0NlMTV1cTc1Y1QyeXhlR1pSbURoZXdoVGplS0tDc1ZwYk14eWlHLUc1c1VYRUE1d0dnT3Vkc094MGJtVVRUUGNiRHB6UlpDUGtpODR6Nm5uWnB0VjNfZllxdlpHN0lkdURlM01WTXV6YmxpZXI3VnphTzk0VUZpY0lET2hGbW0zNlh3?oc=5",
+      "published": "2026-09-12T16:37:00+00:00",
+      "origin": "gnews-rss",
+      "source": "Quiver Quantitative",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "半导体"
+      ],
+      "sector_holdings": [
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "据报道，INTC 本周股价上涨7%，数据面观察资金流入迹象。"
+    }
+  ]
 }
