@@ -707,25 +707,28 @@ def trim_abstaining_calibrators(metrics):
 
 def compute_decision_metrics():
     """Settle the v2 ledger and return episode-level decision metrics."""
-    decisions = decision_v2.load_decisions()
-    # Preserve execution ground truth while migrating; prospective detection is
-    # applied only to triggered decisions whose execution is still unknown.
-    for d in decisions:
-        if (d.get('execution') or {}).get('status') != 'unknown':
-            continue
-        if (d.get('evaluation') or {}).get('triggered') is not True:
-            continue
-        legacy_view = {
-            'plan_date': d.get('plan_date'), 'ticker': d.get('ticker'),
-            'bucket': d.get('action'), 'leg': d.get('leg'),
-            'condition': d.get('condition') or {},
-        }
-        verdict = _detect_followed(legacy_view)
-        if verdict in ('true', 'false'):
-            d['execution'] = {'status': 'followed' if verdict == 'true' else 'not_followed',
-                              'detected_at': datetime.now().isoformat(), 'source': 'git_shares_diff'}
-    decision_v2.settle_decisions(decisions)
-    decision_v2.write_decisions(decisions)
+    # Held across load..write (#1482): a manual mark-followed between the two
+    # would otherwise be erased by this run's stale copy.
+    with decision_v2.ledger_lock():
+        decisions = decision_v2.load_decisions()
+        # Preserve execution ground truth while migrating; prospective detection is
+        # applied only to triggered decisions whose execution is still unknown.
+        for d in decisions:
+            if (d.get('execution') or {}).get('status') != 'unknown':
+                continue
+            if (d.get('evaluation') or {}).get('triggered') is not True:
+                continue
+            legacy_view = {
+                'plan_date': d.get('plan_date'), 'ticker': d.get('ticker'),
+                'bucket': d.get('action'), 'leg': d.get('leg'),
+                'condition': d.get('condition') or {},
+            }
+            verdict = _detect_followed(legacy_view)
+            if verdict in ('true', 'false'):
+                d['execution'] = {'status': 'followed' if verdict == 'true' else 'not_followed',
+                                  'detected_at': datetime.now().isoformat(), 'source': 'git_shares_diff'}
+        decision_v2.settle_decisions(decisions)
+        decision_v2.write_decisions(decisions)
     return trim_abstaining_calibrators(decision_v2.compute_metrics(decisions))
 
 

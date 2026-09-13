@@ -15,6 +15,7 @@ and it never writes the ledger.
 from __future__ import annotations
 
 import argparse
+import contextlib
 import copy
 import sys
 from collections import Counter, defaultdict
@@ -30,7 +31,13 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--write", action="store_true", help="persist the re-settled ledger")
     args = ap.parse_args(argv)
+    # `--write` rewrites the ledger from the copy loaded below, so the lock has to
+    # cover the whole report, not just the final write (#1482).
+    with (dv2.ledger_lock() if args.write else contextlib.nullcontext()):
+        return _resettle(args)
 
+
+def _resettle(args) -> int:
     decisions = dv2.load_decisions()
     before = snap(decisions)
     before_eps = {d["decision_id"]: d.get("episode_id") for d in decisions}
