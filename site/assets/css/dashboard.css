@@ -2197,6 +2197,19 @@
   @media (max-width: 600px) {
     .shadow-fill-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
+  /* 政策模拟（桌面档）：它是 Holdings 的最后一块，作为普通卡只占 masonry 的
+     一栏——收起时左半行一张小卡、右半行空着；展开后两张各自独立轴的净值图
+     竖着叠成 1100px 的塔，`canonical_close_fallback` 在四格里被折成两行。
+     整行给它（index.html 上是 desktop-wide），展开区改成两栏：USD / HKD 图
+     并排，其余块横跨。`#shadow-portfolio-content` 的显隐由 JS 写 inline
+     `display`（"" / "none"），所以这里写 grid 不会被隐藏态顶掉。 */
+  @media (min-width: 1024px) {
+    #shadow-portfolio-content {
+      display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: var(--space-3);
+    }
+    #shadow-portfolio-content > :not(.shadow-chart-unit) { grid-column: 1 / -1; }
+  }
 
   /* =========================================================
      Reflect: charts

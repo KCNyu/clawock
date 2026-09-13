@@ -55,6 +55,17 @@ def test_holdings_dividers_do_not_partition_the_masonry_flow():
     assert HTML.count('class="desktop-section-kicker"') <= 2
 
 
+def test_policy_replay_owns_the_desktop_row_and_puts_its_charts_side_by_side():
+    # As a one-column masonry card it was the last block of Holdings with the
+    # right half of the row empty, and expanded it stacked both charts into a
+    # 1100px tower.
+    assert 'class="card desktop-wide" id="shadow-portfolio-card"' in HTML
+    start = CSS.index("#shadow-portfolio-content {")
+    block = enclosing_desktop_block(start)
+    assert "grid-template-columns: repeat(2, minmax(0, 1fr))" in block
+    assert "#shadow-portfolio-content > :not(.shadow-chart-unit) { grid-column: 1 / -1; }" in block
+
+
 def test_webkit_reflect_uses_desktop_only_ordinary_flow_fallback():
     ui = (ROOT / "site" / "assets" / "js" / "dashboard.ui.js").read_text()
     assert "/AppleWebKit/i.test" in ui

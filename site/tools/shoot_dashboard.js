@@ -16,7 +16,7 @@
  *   site/assets/social-card.png       1280x640 pearl editorial card + fresh Hero dashboard
  *   site/assets/dashboard.gif         manual dispatch only; built from FRAME_DIR
  *   TMP_DIR/dashboard-preview.png  focused light Hero crop embedded into the social card
- *   .gifframes/f{0..5}.png       per-tab mobile frames → assemble_dashboard_gif.py
+ *   .gifframes/f{0..5}.png       per-tab desktop 1280x800 frames → assemble_dashboard_gif.py
  *
  * site/assets/ is the one place shipped images live: README, Pages and the OG card all
  * point there, and site/_config.yml includes it. docs/ used to hold four PNGs of which
@@ -315,14 +315,17 @@ function socialCardHTML(shotDataUri) {
     await cp.screenshot({ path: `${OUT_DIR}/social-card.png` });
     await cardCtx.close();
 
-    // 3) Per-tab mobile frames for the animated GIF (manual refresh only).
-    //    The panels scroll inside an internal container (body is fixed, so fullPage ==
-    //    viewport). So we locate that container and screenshot the viewport at several
-    //    scroll positions top→bottom → real vertical-scroll frames, then move to the
-    //    next tab (the assembler adds the horizontal swipe between tabs).
+    // 3) Per-tab desktop frames for the animated GIF (manual refresh only).
+    //    Desktop, not mobile (kcn 2026-09-13): the README shows the GIF right under
+    //    the 1280x640 social card, and a 400x860 portrait strip beside a landscape
+    //    card read as two different products. 1280x800 is the same landscape
+    //    family as the card and the other README screenshots.
+    //    We locate the most-scrollable element around the panel and screenshot the
+    //    viewport at several scroll positions top→bottom → real vertical-scroll
+    //    frames, then move to the next tab (the assembler adds the horizontal swipe).
     if (CAPTURE_GIF) {
       const VSCROLL = 5;   // scroll frames per tab (skipped when the tab barely scrolls)
-      const gifCtx = await browser.newContext({ viewport: { width: 400, height: 860 }, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+      const gifCtx = await browser.newContext({ viewport: { width: 1280, height: 800 }, deviceScaleFactor: 1 });
       const gp = await gifCtx.newPage();
       await gp.goto(URL, { waitUntil: 'networkidle', timeout: 45000 });
       await gp.waitForFunction(() => { const h = document.querySelector('[data-panel=hero]'); return h && h.textContent.trim().length > 200; }, { timeout: 45000 }).catch(() => {});

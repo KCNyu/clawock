@@ -101,9 +101,9 @@ def test_the_assembler_really_builds_a_gif_from_real_frames(tmp_path):
     tabs = len(_tabs_in_shoot())
     for tab in range(tabs):
         for index in range(2):
-            # 800px wide like the real capture, so the 640 downscale is exercised.
+            # 1280x800 like the real desktop capture, so the 960 downscale is exercised.
             colour = (10 + tab * 30, 40 + index * 60, 90)
-            Image.new("RGB", (800, 400), colour).save(frames / f"f{tab}_{index}.png")
+            Image.new("RGB", (1280, 800), colour).save(frames / f"f{tab}_{index}.png")
 
     out = tmp_path / "dashboard.gif"
     done = subprocess.run(
@@ -115,8 +115,8 @@ def test_the_assembler_really_builds_a_gif_from_real_frames(tmp_path):
     assert out.is_file(), done.stdout + done.stderr
 
     built = Image.open(out)
-    assert built.width == 640, (
-        f"OW is the README's retina budget; the GIF came out {built.width}px wide")
+    assert built.width == 960, (
+        f"OW is the README's desktop budget; the GIF came out {built.width}px wide")
     # Six tabs × (hold + one scroll frame) plus the horizontal tweens between
     # them: the exact count is the assembler's business, but it must be an
     # animation, not a single frame, and every tab must be represented.
