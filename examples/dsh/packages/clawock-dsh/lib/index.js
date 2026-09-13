@@ -1,4 +1,4 @@
-import { createBalanceService, createClaudeService, createMinimaxService } from "./balance.js";
+import { createBalanceService, createClaudeService, createCodexService, createMinimaxService } from "./balance.js";
 import { getRun, listRuns } from "./scan.js";
 import { readLedger, readPlans, readPortfolio, readTraces } from "./ledger.js";
 import { createTraceCache, workspaceKeyOf, workspaceSignature } from "./freshness.js";
@@ -260,12 +260,18 @@ let ClawockStudioGateway = (() => {
 					credentialsPath: pendingConfig.claudeCredentialsPath,
 					usageUrl: pendingConfig.claudeUsageUrl,
 					lowPct: pendingConfig.claudeLowPct
+				}),
+				codex: createCodexService({ credentials: credentialsOf(this.ctx) }, {
+					command: pendingConfig.codexCommand,
+					lowPct: pendingConfig.codexLowPct,
+					refreshMs: pendingConfig.codexRefreshMs
 				})
 			};
-			const [deepseek, minimax, claude] = await Promise.all([
+			const [deepseek, minimax, claude, codex] = await Promise.all([
 				this.balanceServices.deepseek.get(force),
 				this.balanceServices.minimax.get(force),
-				this.balanceServices.claude.get(force)
+				this.balanceServices.claude.get(force),
+				this.balanceServices.codex.get(force)
 			]);
 			return {
 				providers: [
@@ -283,9 +289,14 @@ let ClawockStudioGateway = (() => {
 						provider: "claude",
 						label: "Claude",
 						result: claude
+					},
+					{
+						provider: "codex",
+						label: "Codex",
+						result: codex
 					}
 				],
-				refreshMs: Math.min(deepseek.refreshMs, minimax.refreshMs, claude.refreshMs)
+				refreshMs: Math.min(deepseek.refreshMs, minimax.refreshMs, claude.refreshMs, codex.refreshMs)
 			};
 		}
 	};

@@ -1,5 +1,30 @@
-import { readFileSync } from "node:fs";
+import { delimiter, join } from "node:path";
+import { existsSync, readFileSync } from "node:fs";
+import { spawn } from "node:child_process";
 //#region src/balance.ts
+/**
+* Provider account balances for the session header chip — official endpoints
+* answered with the SAME keys the harness's adapters use (credentials seam
+* references, falling back to ambient environment variables):
+*
+*   - deepseek: `GET https://api.deepseek.com/user/balance` (money, CNY row)
+*   - minimax:  `GET {base}/v1/token_plan/remains` (Token Plan quota windows;
+*     `base_resp.status_code` is the business verdict — 0 ok, 1004 auth —
+*     and a HTTP-200 body can still be an auth failure)
+*   - codex:    official `codex app-server` JSON-RPC
+*     `account/rateLimits/read` (ChatGPT subscription quota windows)
+*
+* One cache per provider, one source of truth: the gateway instance owns
+* them, so a stale read, a failed refresh and a rotated key all resolve
+* against the same object. Upstream is hit at most once per TTL window
+* unless the client forces a refresh; a failed refresh keeps the last good
+* snapshot and reports 'stale' instead of dropping a real number for a
+* transient 429. Keys are never logged, shipped, or stored anywhere here.
+*
+* All error reporting is in-band: `get()` never throws — statuses
+* 'no-key' / 'failed' / 'stale' carry a Chinese `message` the view renders
+* verbatim.
+*/
 const DEFAULT_BALANCE_BASE_URL = "https://api.deepseek.com";
 const DEFAULT_BALANCE_THRESHOLD = 20;
 const DEFAULT_BALANCE_REFRESH_MS = 6e4;
@@ -9,6 +34,9 @@ const DEFAULT_OPENCLAW_CONFIG_PATH = "/root/.openclaw/openclaw.json";
 const DEFAULT_CLAUDE_CREDENTIALS_PATH = "/root/.claude/.credentials.json";
 const DEFAULT_CLAUDE_USAGE_URL = "https://api.anthropic.com/api/oauth/usage";
 const DEFAULT_CLAUDE_LOW_PCT = 20;
+const DEFAULT_CODEX_COMMAND = "/root/.local/bin/codex";
+const DEFAULT_CODEX_LOW_PCT = 20;
+const DEFAULT_CODEX_REFRESH_MS = 3e5;
 const TTL_MS = 6e4;
 const TIMEOUT_MS = 15e3;
 /**
@@ -218,7 +246,7 @@ function createQuotaService(deps, spec) {
 			threshold: spec.threshold,
 			refreshMs: spec.refreshMs
 		};
-		if (!force && snapshot !== null && Date.now() - fetchedAt < TTL_MS) return {
+		if (!force && snapshot !== null && Date.now() - fetchedAt < (spec.ttlMs ?? TTL_MS)) return {
 			configured: true,
 			snapshot,
 			status: "cached",
@@ -343,6 +371,166 @@ function createMinimaxService(deps, config = {}) {
 		}
 	});
 }
+const codexWindowLabel = (duration, fallback) => {
+	if (duration === null || duration <= 0) return fallback;
+	if (duration === 10080) return "周";
+	if (duration % 1440 === 0) return `${duration / 1440}天`;
+	if (duration % 60 === 0) return `${duration / 60}h`;
+	return `${duration}m`;
+};
+/** Official app-server response → the chip's used-percent snapshot. */
+function parseCodexRateLimits(body, asOf) {
+	const raw = typeof body === "object" && body !== null ? body : {};
+	const buckets = raw.rateLimitsByLimitId;
+	const bucket = buckets !== null && typeof buckets === "object" && buckets.codex !== void 0 ? buckets.codex : raw.rateLimits;
+	if (bucket === void 0 || bucket === null) throw new Error("Codex 响应里没有额度数据");
+	const windows = [];
+	const append = (window, fallback) => {
+		const usedRaw = finiteNumber(window?.usedPercent);
+		if (usedRaw === null) return;
+		const used = Math.round(Math.min(100, Math.max(0, usedRaw)));
+		const duration = finiteNumber(window?.windowDurationMins);
+		windows.push({
+			label: codexWindowLabel(duration, fallback),
+			percent: used,
+			resetAt: formatReset(window?.resetsAt)
+		});
+	};
+	append(bucket.primary, "主窗");
+	append(bucket.secondary, "次窗");
+	if (windows.length === 0) throw new Error("Codex 响应里没有可用的额度窗口");
+	const notes = windows.map((window) => `${window.label}${window.label === "周" ? "" : " "}窗口已使用 ${window.percent}%`);
+	if (raw.ordinaryUsageAllowed === false || typeof bucket.rateLimitReachedType === "string") notes.push("当前额度受限");
+	const headline = windows[0]?.percent;
+	return {
+		isAvailable: raw.ordinaryUsageAllowed === true,
+		unit: "pct",
+		currency: "",
+		totalBalance: headline === null || headline === void 0 ? "" : String(headline),
+		grantedBalance: "",
+		toppedUpBalance: "",
+		asOf,
+		note: notes.join(" · "),
+		windows
+	};
+}
+const resolveExecutable = (command) => {
+	if (command.includes("/")) return existsSync(command) ? command : void 0;
+	for (const dir of (process.env.PATH ?? "").split(delimiter)) {
+		if (dir === "") continue;
+		const candidate = join(dir, command);
+		if (existsSync(candidate)) return candidate;
+	}
+};
+/**
+* Ask Codex itself for ChatGPT limits. The CLI owns auth and refresh; this
+* plugin never reads or forwards tokens. One short-lived JSONL app-server is
+* cheaper and safer than duplicating Codex's private HTTP/auth behavior.
+*/
+function readCodexRateLimits(command, timeoutMs = TIMEOUT_MS) {
+	return new Promise((resolve, reject) => {
+		const child = spawn(command, ["app-server"], { stdio: [
+			"pipe",
+			"pipe",
+			"pipe"
+		] });
+		let settled = false;
+		let stdout = "";
+		let stderr = "";
+		const timer = setTimeout(() => finish(/* @__PURE__ */ new Error(`Codex app-server ${timeoutMs}ms 内未返回`)), timeoutMs);
+		const finish = (error, result) => {
+			if (settled) return;
+			settled = true;
+			clearTimeout(timer);
+			child.stdin.end();
+			if (!child.killed) child.kill();
+			if (error !== void 0) reject(error);
+			else resolve(result);
+		};
+		const send = (message) => {
+			if (!settled) child.stdin.write(`${JSON.stringify(message)}\n`);
+		};
+		const handleLine = (line) => {
+			if (line.trim() === "" || settled) return;
+			let message;
+			try {
+				message = JSON.parse(line);
+			} catch {
+				return;
+			}
+			if (message.id === 0) {
+				if (message.error !== void 0) {
+					finish(/* @__PURE__ */ new Error(`Codex app-server 初始化失败:${message.error.message ?? "未知错误"}`));
+					return;
+				}
+				send({
+					method: "initialized",
+					params: {}
+				});
+				send({
+					method: "account/rateLimits/read",
+					id: 1,
+					params: { excludeResetCreditDetails: true }
+				});
+			} else if (message.id === 1) {
+				if (message.error !== void 0) {
+					finish(/* @__PURE__ */ new Error(`Codex 额度读取失败:${message.error.message ?? "未知错误"}`));
+					return;
+				}
+				finish(void 0, message.result);
+			}
+		};
+		child.on("spawn", () => send({
+			method: "initialize",
+			id: 0,
+			params: { clientInfo: {
+				name: "clawock_dsh",
+				title: "Clawock DSH",
+				version: "0.1.0"
+			} }
+		}));
+		child.on("error", (cause) => finish(/* @__PURE__ */ new Error(`Codex CLI 启动失败:${cause.message}`)));
+		child.on("exit", (code, signal) => {
+			if (settled) return;
+			const detail = stderr.trim() !== "" ? `:${stderr.trim()}` : "";
+			finish(/* @__PURE__ */ new Error(`Codex app-server 提前退出(${signal ?? code ?? "未知"})${detail}`));
+		});
+		child.stdin.on("error", (cause) => finish(/* @__PURE__ */ new Error(`Codex app-server 写入失败:${cause.message}`)));
+		child.stderr.on("data", (chunk) => {
+			if (stderr.length < 4096) stderr += chunk.toString("utf8").slice(0, 4096 - stderr.length);
+		});
+		child.stdout.on("data", (chunk) => {
+			stdout += chunk.toString("utf8");
+			if (stdout.length > 1048576) {
+				finish(/* @__PURE__ */ new Error("Codex app-server 输出超过 1MiB"));
+				return;
+			}
+			const lines = stdout.split("\n");
+			stdout = lines.pop() ?? "";
+			for (const line of lines) handleLine(line);
+		});
+	});
+}
+/** Codex row: ChatGPT subscription quota through the official app-server. */
+function createCodexService(deps, config = {}) {
+	const command = config.command ?? "/root/.local/bin/codex";
+	const lowPct = typeof config.lowPct === "number" && isFinite(config.lowPct) ? config.lowPct : 20;
+	const refreshMs = typeof config.refreshMs === "number" && isFinite(config.refreshMs) ? config.refreshMs : DEFAULT_CODEX_REFRESH_MS;
+	return createQuotaService(deps, {
+		resolveApiKey: async () => resolveExecutable(command),
+		noKeyMessage: `未找到 Codex CLI(${command})`,
+		threshold: lowPct,
+		refreshMs,
+		ttlMs: refreshMs,
+		async fetchFresh(executable) {
+			return parseCodexRateLimits(await readCodexRateLimits(executable), (/* @__PURE__ */ new Date()).toISOString());
+		},
+		isLow: (snapshot) => {
+			const used = snapshot.windows.map((window) => window.percent).filter((percent) => percent !== null);
+			return !snapshot.isAvailable || used.some((percent) => percent >= 100 - lowPct);
+		}
+	});
+}
 /**
 * Read Claude Code's OAuth credentials. The file belongs to Claude Code —
 * this service only READS it; rotating/refreshing stays their job, so an
@@ -440,4 +628,4 @@ function createClaudeService(deps, config = {}) {
 	});
 }
 //#endregion
-export { DEEPSEEK_KEY_REF, DEFAULT_BALANCE_BASE_URL, DEFAULT_BALANCE_REFRESH_MS, DEFAULT_BALANCE_THRESHOLD, DEFAULT_CLAUDE_CREDENTIALS_PATH, DEFAULT_CLAUDE_LOW_PCT, DEFAULT_CLAUDE_USAGE_URL, DEFAULT_MINIMAX_BASE_URL, DEFAULT_MINIMAX_LOW_PCT, DEFAULT_OPENCLAW_CONFIG_PATH, MINIMAX_KEY_REF, createBalanceService, createClaudeService, createMinimaxService, formatReset, parseBalancePayload, parseClaudeUsage, parseMinimaxRemains, pickCnyBalanceInfo, readClaudeCredentials, readJsonFile, windowUsedPercent };
+export { DEEPSEEK_KEY_REF, DEFAULT_BALANCE_BASE_URL, DEFAULT_BALANCE_REFRESH_MS, DEFAULT_BALANCE_THRESHOLD, DEFAULT_CLAUDE_CREDENTIALS_PATH, DEFAULT_CLAUDE_LOW_PCT, DEFAULT_CLAUDE_USAGE_URL, DEFAULT_CODEX_COMMAND, DEFAULT_CODEX_LOW_PCT, DEFAULT_CODEX_REFRESH_MS, DEFAULT_MINIMAX_BASE_URL, DEFAULT_MINIMAX_LOW_PCT, DEFAULT_OPENCLAW_CONFIG_PATH, MINIMAX_KEY_REF, createBalanceService, createClaudeService, createCodexService, createMinimaxService, formatReset, parseBalancePayload, parseClaudeUsage, parseCodexRateLimits, parseMinimaxRemains, pickCnyBalanceInfo, readClaudeCredentials, readCodexRateLimits, readJsonFile, windowUsedPercent };
