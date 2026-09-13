@@ -18,6 +18,7 @@ from __future__ import annotations
 import importlib
 import sys
 import json
+from datetime import date
 from pathlib import Path
 
 import pytest
@@ -293,12 +294,13 @@ def run_main(pf, sent, monkeypatch, tmp_path):
     """Drive the real main(). Helper-only tests would not have caught the
     2026-07-24 bug — the defect was in how main() sequenced send vs commit."""
     monkeypatch.setattr(pf.trading_calendar, 'phase_session', lambda m, p: 'x')
+    monkeypatch.setattr(pf.trading_calendar, 'hkt_today', lambda: date(2026, 7, 24))
     monkeypatch.setattr(pf.trading_calendar, 'closed_reason', lambda m, session=None: None)
     monkeypatch.setattr(pf, 'maybe_commit',
                         lambda status, msg: (True, f'commit({status})'))
 
     def run(prose, *, context_id, ctx=None, age_minutes=0):
-        (tmp_path / f'report-context-us-close-{pf.datetime.now():%Y-%m-%d}.json'
+        (tmp_path / f'report-context-us-close-{pf.trading_calendar.hkt_today()}.json'
          ).write_text(json.dumps(ctx or _ctx(), ensure_ascii=False))
         body = tmp_path / 'body.md'
         body.write_text(prose)

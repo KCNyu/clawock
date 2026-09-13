@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import json
 import sys
-from datetime import datetime
+from datetime import date
 
 from clawock.harness import brief_postflight as postflight
 
@@ -37,7 +37,9 @@ def _filled_judgment(generation_id="generation-fixture", tickers=()):
 
 
 def _run_postflight(tmp_path, monkeypatch, capsys, *, projection_error=None):
-    today = datetime.now().strftime('%Y-%m-%d')
+    today = '2026-09-14'
+    monkeypatch.setattr(postflight.trading_calendar, 'hkt_today',
+                        lambda: date.fromisoformat(today))
     context_path = tmp_path / 'memory' / '.tmp' / f'brief-context-{today}.json'
     context_path.parent.mkdir(parents=True)
     context_path.write_text(json.dumps({'generation_id': 'generation-fixture'}))
