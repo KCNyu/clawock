@@ -39,6 +39,32 @@ def _attr(tag, name):
     return m.group(1) if m else None
 
 
+def _tag_with_id(element_id):
+    match = re.search(rf'<[^>]+id="{re.escape(element_id)}"[^>]*>', HTML)
+    assert match, f"#{element_id} is missing from site/index.html"
+    return match.group(0)
+
+
+def test_dynamic_status_updates_are_announced_without_repainting_a_whole_card():
+    for element_id in (
+        "data-refresh-status",
+        "status-banner",
+        "overview-status-banner",
+    ):
+        tag = _tag_with_id(element_id)
+        assert _attr(tag, "role") == "status", element_id
+        assert _attr(tag, "aria-live") == "polite", element_id
+        assert _attr(tag, "aria-atomic") == "true", element_id
+
+    assert 'id="data-health" aria-live=' not in HTML, (
+        "the whole data-health card must not be a live region; announce the "
+        "short refresh outcome instead"
+    )
+    assert 'getElementById("data-refresh-status")' in JS
+    assert "status.textContent = message" in JS
+    assert ".sr-only" in CSS
+
+
 def test_tab_buttons_and_panels_point_at_each_other():
     # The count is not asserted against a literal any more. Adding a tab is a
     # real change that touches the animation contract too, and a bare `== 6` here

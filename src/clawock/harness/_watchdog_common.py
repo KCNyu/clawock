@@ -23,10 +23,10 @@ import subprocess
 import sys
 import time
 from collections import Counter
-from datetime import datetime, timezone, timedelta
+from datetime import datetime
 from pathlib import Path
 
-from clawock.scheduling import BRIEF_SLOT_HKT
+from clawock.scheduling import BRIEF_SLOT_HKT, HKT
 from clawock.workspace import workspace_root
 
 WS = workspace_root()
@@ -42,7 +42,6 @@ def log_path() -> Path:
     path is what it always was.
     """
     return workspace_root() / 'logs' / 'watchdog.jsonl'
-HKT = timezone(timedelta(hours=8))
 # The binary path, the cron CLI call and the cron-state fallback chain moved
 # into src/clawock/providers/openclaw.py so this module stops being the largest
 # consumer that knows which runtime it is on — and so the chain is reachable

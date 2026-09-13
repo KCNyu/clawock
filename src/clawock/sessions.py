@@ -142,12 +142,42 @@ HK_HALF_DAYS = {
 }
 
 MARKET_TZ = {"hk": "Asia/Hong_Kong", "us": "America/New_York"}
+
+# Wall-clock objects are projections of MARKET_TZ, not parallel literals.  A
+# caller that needs a desk timestamp imports these; a caller that needs a
+# market clock uses market_tz().
+HKT = ZoneInfo(MARKET_TZ["hk"])
+ET = ZoneInfo(MARKET_TZ["us"])
 HOLIDAYS = {"hk": HK_HOLIDAYS, "us": US_HOLIDAYS}
 LATEST_YEAR = 2027  # bump when tables are extended; guards warn past this
 
 
+def market_tz(market: str) -> ZoneInfo:
+    """Return a registered market's timezone and fail closed on unknown keys."""
+    try:
+        return ZoneInfo(MARKET_TZ[market.lower()])
+    except (AttributeError, KeyError):
+        raise ValueError(
+            f"unknown market {market!r} (known: {', '.join(sorted(MARKET_TZ))})"
+        ) from None
+
+
+def hkt_today(at: datetime | None = None) -> date:
+    """The desk date in HKT, independent of the host's local timezone.
+
+    ``at`` is an injectable aware instant for boundary tests.  A naive value is
+    rejected because silently treating it as either UTC or HKT recreates the
+    ambiguity this helper removes.
+    """
+    if at is None:
+        return datetime.now(HKT).date()
+    if at.tzinfo is None:
+        raise ValueError("hkt_today requires a timezone-aware instant")
+    return at.astimezone(HKT).date()
+
+
 def _today_in_market(market: str) -> date:
-    return datetime.now(ZoneInfo(MARKET_TZ[market])).date()
+    return datetime.now(market_tz(market)).date()
 
 
 def covered_years(market: str) -> set[int]:

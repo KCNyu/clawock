@@ -245,6 +245,19 @@
     .muted.asof-faded { color: #263848; }
   }
 
+  /* Visually hidden status copy remains in the accessibility tree. */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
   .asof-faded { opacity: .7; }
 
   * { box-sizing: border-box; }

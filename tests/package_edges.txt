@@ -12,6 +12,7 @@ automation -> providers
 automation -> publish
 automation -> safe_io
 automation -> scheduling
+automation -> sessions
 automation -> workspace
 cli -> config
 cli -> context
@@ -100,6 +101,7 @@ publish -> scheduling
 publish -> sessions
 publish -> workspace
 scheduling -> config
+scheduling -> sessions
 scheduling -> workspace
 scorecard_provenance -> workspace
 tools -> context

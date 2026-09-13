@@ -48,6 +48,7 @@ import time
 from datetime import datetime
 
 from clawock.automation import delivery_receipts
+from clawock.sessions import hkt_today
 from ._watchdog_common import (
     WS, HKT, log, find_job_id, today_runs,
     transcript_loop_score, last_report_text, send_telegram, KCN_TELEGRAM,
@@ -165,7 +166,7 @@ def main():
     inflight_wait_s = (args.inflight_wait_s if args.inflight_wait_s is not None
                        else (0 if args.dry_run else INFLIGHT_WAIT_S))
 
-    today = datetime.now(HKT).strftime('%Y-%m-%d')
+    today = hkt_today().isoformat()
     tag = f'{args.market}-{args.phase}'
 
     job_id = find_job_id(args.job_name)

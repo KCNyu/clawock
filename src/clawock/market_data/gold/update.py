@@ -26,9 +26,9 @@ import os
 import subprocess
 import sys
 from datetime import datetime
-from zoneinfo import ZoneInfo
 
 from clawock.safe_io import safe_write_json
+from clawock import sessions as trading_calendar
 from clawock.workspace import workspace_root
 
 WS_ROOT = str(workspace_root())
@@ -81,7 +81,7 @@ def main():
         print(f'FATAL: 本金/份额必须为正（principal={principal}, units={units}）', file=sys.stderr)
         return 1
 
-    rdate = a.date or datetime.now(ZoneInfo('Asia/Hong_Kong')).strftime('%Y-%m-%d')
+    rdate = a.date or datetime.now(trading_calendar.HKT).strftime('%Y-%m-%d')
     avg = principal / units
 
     # ── 改基线（仅这三个字段；其余 fetch_gold_dca 重算）──

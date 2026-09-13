@@ -128,6 +128,9 @@ layout: null
 
 <main>
 
+  <div id="data-refresh-status" class="sr-only" role="status"
+       aria-live="polite" aria-atomic="true"></div>
+
   <!-- Detail-tab desk rail. Hero promotes these values into the command center,
        so the rail disappears there. On detail tabs it is a one-line, persisted
        disclosure; expanding reveals the canonical narrative + KPI summary. -->
@@ -139,7 +142,8 @@ layout: null
       <span class="dr-chevron" aria-hidden="true"></span>
     </button>
     <div class="desk-rail-expanded" id="desk-rail-expanded" hidden>
-      <div class="status-banner dr-narrative is-pending" id="status-banner">
+      <div class="status-banner dr-narrative is-pending" id="status-banner"
+           role="status" aria-live="polite" aria-atomic="true">
         <span class="sb-pulse" aria-hidden="true"></span>
         <span class="sb-text" id="sb-text"></span>
         <span class="sb-time" id="sb-time"></span>
@@ -219,7 +223,8 @@ layout: null
               </div>
               <button class="overview-jump" type="button" data-jump-tab="risk">去风险页</button>
             </div>
-            <div class="status-banner overview-status is-pending" id="overview-status-banner">
+            <div class="status-banner overview-status is-pending" id="overview-status-banner"
+                 role="status" aria-live="polite" aria-atomic="true">
               <span class="sb-pulse" aria-hidden="true"></span>
               <span class="sb-text" id="overview-sb-text"></span>
               <span class="sb-time" id="overview-sb-time"></span>

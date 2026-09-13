@@ -36,15 +36,15 @@ import re
 import time
 import urllib.parse
 import urllib.request
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from pathlib import Path
 
 from clawock.workspace import workspace_root  # noqa: E402
 from clawock.market_data import primary_disclosures
+from clawock.sessions import ET, HKT
 
 WS = workspace_root()
 
-HKT = timezone(timedelta(hours=8))
 MAX_MOVERS = 4
 # Room is allocated by class, not evenly: an interrupt is what actually gets
 # written into the report, so it gets the slots and the characters. A context item
@@ -271,9 +271,7 @@ def _parse_halt_time(halt_date, halt_time):
     except (TypeError, ValueError, AttributeError):
         return None
     try:
-        from zoneinfo import ZoneInfo  # noqa: PLC0415
-
-        return naive.replace(tzinfo=ZoneInfo("America/New_York")).astimezone(timezone.utc)
+        return naive.replace(tzinfo=ET).astimezone(timezone.utc)
     except Exception:  # noqa: BLE001 — tz database missing; UTC beats dropping the halt
         return naive.replace(tzinfo=timezone.utc)
 

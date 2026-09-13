@@ -9,6 +9,7 @@ same assertions can mutation-test a scratch copy without editing product code.
 
 import importlib
 import importlib.util
+import json
 import os
 import sys
 from pathlib import Path
@@ -94,6 +95,37 @@ def test_guardrail_cap_definitions_are_locked(preflight):
         "us_beta_max": 3.0,
         "lev_etf_stop_pct": -18,
     }
+
+
+def test_guardrail_history_is_committed_through_atomic_writer(
+    preflight, tmp_path, monkeypatch
+):
+    history = tmp_path / "guardrail_history.jsonl"
+    writes = []
+
+    def atomic_writer(path, text):
+        writes.append((path, text))
+        Path(path).write_text(text)
+
+    monkeypatch.setattr(preflight, "GUARDRAIL_HISTORY", history)
+    monkeypatch.setattr(preflight, "safe_write_text", atomic_writer)
+    guardrail = {
+        "breach_count": 0,
+        "breaches": [],
+        "hard_stop_watch": [],
+        "eff_lev_caps": {},
+        "lev_regime": {"tier": "normal"},
+    }
+
+    preflight._append_guardrail_history(
+        "2026-09-13", guardrail, {"top2_pct": 20}, {"top2_pct": 30}, {}
+    )
+
+    assert len(writes) == 1
+    assert writes[0][0] == str(history)
+    row = json.loads(history.read_text())
+    assert row["date"] == "2026-09-13"
+    assert row["breach_count"] == 0
 
 
 def test_technical_setup_usage_counts_only_broker_followed_tranches(preflight, monkeypatch):

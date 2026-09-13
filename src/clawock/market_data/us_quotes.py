@@ -25,7 +25,6 @@ import sys
 from datetime import date, datetime, timezone, timedelta
 from pathlib import Path
 from typing import Dict, List, Optional
-from zoneinfo import ZoneInfo
 import requests
 
 from clawock.credentials import load_api_keys as _load_api_keys
@@ -146,8 +145,8 @@ def _us_quote_session_date(at: Optional[datetime] = None) -> str:
     completed session. Treating midnight Tuesday as Tuesday's session stamps a
     Monday close against Monday itself and rejects Friday's valid prior close.
     """
-    et = at.astimezone(ZoneInfo('America/New_York')) if at else \
-        datetime.now(ZoneInfo('America/New_York'))
+    et = at.astimezone(trading_calendar.ET) if at else \
+        datetime.now(trading_calendar.ET)
     current = et.date()
     regular_open = (et.hour, et.minute) >= (9, 30)
     if regular_open and trading_calendar.is_trading_day('us', current):
@@ -173,7 +172,7 @@ def _debug_dump(stage: str, ticker: str, payload) -> None:
         # America/New_York, not a fixed UTC-4: a fixed offset labels standard
         # time (EST, Nov–Mar) as if it were EDT — timestamps and the day-based
         # debug filename drift by one hour for half the year (#844).
-        now = datetime.now(ZoneInfo('America/New_York'))
+        now = datetime.now(trading_calendar.ET)
         rec = {'ts': now.isoformat(), 'stage': stage, 'ticker': ticker, 'payload': payload}
         path = os.path.join(tmp, f"us_fetch_debug_{now.strftime('%Y-%m-%d')}.jsonl")
         with open(path, 'a') as f:
@@ -519,7 +518,7 @@ def get_polygon_quote(ticker: str, api_key: str) -> Optional[Dict]:
         bar_ms = res.get('t')
         if bar_ms:
             quote['asof_date'] = datetime.fromtimestamp(
-                bar_ms / 1000, ZoneInfo('America/New_York')).date().isoformat()
+                bar_ms / 1000, trading_calendar.ET).date().isoformat()
         return quote
     except Exception:
         return None
@@ -571,7 +570,7 @@ def fetch_us_indices() -> Dict[str, Dict]:
         ('usDJI', '^DJI',  'DIA', 'DJI', 'Dow Jones'),
     ]
     out = {}
-    now_et = datetime.now(ZoneInfo('America/New_York')).strftime('%Y-%m-%d %H:%M ET')
+    now_et = datetime.now(trading_calendar.ET).strftime('%Y-%m-%d %H:%M ET')
     for tx_sym, yh_sym, etf, short, name in symbols:
         # 1. Tencent real index points (preferred)
         q = get_tencent_us_index(tx_sym)
@@ -627,7 +626,7 @@ def get_prev_close_polygon(ticker: str, api_key: str) -> Optional[tuple]:
         if ts_ms:
             date_str = datetime.fromtimestamp(ts_ms / 1000, tz=timezone.utc).strftime('%Y-%m-%d')
         else:
-            date_str = (datetime.now(ZoneInfo('America/New_York')) - timedelta(days=1)).strftime('%Y-%m-%d')
+            date_str = (datetime.now(trading_calendar.ET) - timedelta(days=1)).strftime('%Y-%m-%d')
         return (close, date_str)
     except Exception as e:
         print(f"  ⚠ Polygon prev-close {ticker} failed: {type(e).__name__}: {e}",
@@ -951,8 +950,8 @@ def update_us_portfolio(
                     h[k] = 0
 
     # Timezone helpers
-    et_tz  = ZoneInfo('America/New_York')
-    hkt_tz = ZoneInfo('Asia/Hong_Kong')
+    et_tz = trading_calendar.ET
+    hkt_tz = trading_calendar.HKT
     now_et  = datetime.now(et_tz)
     now_hkt = datetime.now(hkt_tz)
 

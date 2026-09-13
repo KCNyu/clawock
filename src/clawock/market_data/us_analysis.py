@@ -14,7 +14,7 @@ Usage:
 """
 
 import json, sys
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Tuple
 
 from clawock.market_data.us_quotes import (
@@ -23,9 +23,10 @@ from clawock.market_data.us_quotes import (
 )
 from clawock.instruments import get as get_instrument
 from clawock.portfolio.books import region_book
+from clawock.sessions import ET, HKT, hkt_today
 
-ET_TZ  = timezone(timedelta(hours=-4))
-HKT_TZ = timezone(timedelta(hours=8))
+ET_TZ = ET
+HKT_TZ = HKT
 
 # Leveraged-ETF name keywords — must match brief_preflight._LEVERAGED_KEYWORDS.
 # The old ('2X','3X','Bull','Target') list was English-only and missed the
@@ -56,8 +57,7 @@ def get_daily_closes_polygon(ticker: str, api_key: str, days: int = 90) -> List[
     """Polygon.io daily closes — free tier, historical, no rate-limit surprise."""
     if not api_key:
         return []
-    from datetime import date
-    today = date.today()
+    today = hkt_today()
     start = (today - timedelta(days=days)).isoformat()
     end   = today.isoformat()
     try:

@@ -9,6 +9,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
+from clawock.sessions import ET, HKT as HKT
 from clawock.config.profiles import ENV_VAR as PROFILE_ENV_VAR
 from clawock.config.profiles import load_profile
 from clawock.workspace import workspace_root
@@ -27,8 +28,6 @@ from clawock.workspace import workspace_root
 BRIEF_JOB_NAME = '盘前深度简报'
 BRIEF_SLOT_HKT = '08:03'
 
-HKT = ZoneInfo("Asia/Hong_Kong")
-ET = ZoneInfo("America/New_York")
 TEMPLATE_TOKEN = re.compile(r"\{\{([a-z][a-z0-9_]*)\}\}")
 
 

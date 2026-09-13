@@ -22,12 +22,13 @@ Modes:
 import argparse
 import json
 import sys
-from datetime import datetime, timezone, timedelta, date
+from datetime import datetime, timedelta, date
 
 import requests
 
 from clawock import instruments as instrument_registry
 from clawock.safe_io import safe_write_json
+from clawock.sessions import HKT, hkt_today
 from clawock.workspace import workspace_root
 
 WS_ROOT = workspace_root()
@@ -361,7 +362,7 @@ def scheduled_in_window(window_start, window_end, path=SCHEDULED_FILE):
 
 
 def build_catalysts(days):
-    today = datetime.now(timezone(timedelta(hours=8))).strftime('%Y-%m-%d')
+    today = hkt_today().isoformat()
     today_dt = datetime.strptime(today, '%Y-%m-%d').date()
     end_iso = (today_dt + timedelta(days=days)).isoformat()
 
@@ -385,7 +386,7 @@ def build_catalysts(days):
     highest = _highest_impact(catalysts, today)
 
     out = {
-        'generated_at':       datetime.now(timezone(timedelta(hours=8))).isoformat(),
+        'generated_at':       datetime.now(HKT).isoformat(),
         'lookback_window_days': days,
         'window_start':       today,
         'window_end':         end_iso,
@@ -444,7 +445,7 @@ def main(argv=None):
     except Exception as e:
         # last-resort: don't crash preflight
         out = {
-            'generated_at': datetime.now(timezone(timedelta(hours=8))).isoformat(),
+            'generated_at': datetime.now(HKT).isoformat(),
             'lookback_window_days': args.days,
             'earnings': [], 'fomc': [], 'macro_events': [],
             'summary': {

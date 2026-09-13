@@ -51,17 +51,15 @@ import json
 import sys
 from datetime import date, datetime, timedelta
 from pathlib import Path
-from zoneinfo import ZoneInfo
 
 from clawock.market_data import integrity as bar_checks
 from clawock.market_data.eastmoney_http import em_get
 from clawock.instruments import canonical_bar_manifest
+from clawock.sessions import ET, HKT
 from clawock.workspace import workspace_root
 
 WS = workspace_root()
 BARS_DIR = WS / "memory" / "bars"
-HKT = ZoneInfo("Asia/Hong_Kong")
-ET = ZoneInfo("America/New_York")
 # Decisions start 2026-05-17, so settlement alone would only need a margin before
 # that. The floor is earlier because the Decision Mind trace view settles *fills*,
 # and the fill log in portfolio.json goes back to 2025-12-23 — with the old

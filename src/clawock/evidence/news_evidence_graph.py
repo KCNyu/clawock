@@ -22,6 +22,7 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 from clawock import history_store
+from clawock import sessions as trading_calendar
 from clawock.workspace import workspace_root
 
 WS = workspace_root()
@@ -270,7 +271,7 @@ def make_event(policy, *, ticker, title, published_at, origin,
     # and decay. Other current producers either include an offset/RFC zone or
     # use UTC; keep their existing interpretation.
     source_timezone = (
-        timezone(timedelta(hours=8))
+        trading_calendar.HKT
         if str(origin or '').startswith('eastmoney') else timezone.utc
     )
     published = normalize_timestamp(

@@ -361,7 +361,7 @@ def update_hk_portfolio(dry_run: bool = False) -> Dict:
     with open(PORTFOLIO_PATH, encoding='utf-8') as f:
         data = json.load(f)
 
-    hkt_tz  = timezone(timedelta(hours=8))
+    hkt_tz = trading_calendar.HKT
     now_hkt = datetime.now(hkt_tz)
     hkt_str = now_hkt.strftime('%Y/%m/%d %H:%M HKT')
 
@@ -566,7 +566,7 @@ def update_hk_portfolio(dry_run: bool = False) -> Dict:
 # ── analysis report ───────────────────────────────────────────────────────────
 
 def print_report(data: Dict, news_map: Optional[Dict[str, List]] = None):
-    hkt_tz  = timezone(timedelta(hours=8))
+    hkt_tz = trading_calendar.HKT
     now_hkt = datetime.now(hkt_tz)
 
     _, us = region_book(data, 'HK')
@@ -672,7 +672,7 @@ def print_wechat_report(data: Dict, news_map: Optional[Dict[str, List]] = None, 
     md_table=True: holdings rendered as markdown table (intraday cron via
     `--md-table`); briefings keep ASCII single-column form.
     """
-    hkt_tz  = timezone(timedelta(hours=8))
+    hkt_tz = trading_calendar.HKT
     now_hkt = datetime.now(hkt_tz)
 
     _, us = region_book(data, 'HK')
