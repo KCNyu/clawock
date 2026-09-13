@@ -34,8 +34,10 @@ Merge-not-overwrite: if a source returns empty (rate-limit / outage) we keep the
 previous run's items for that source so one bad fetch can't blank the card
 (see memory/openclaw-fetcher-merge-not-overwrite.md).
 
-Env: MINIMAX_API_KEY primary; OPENCODE_API_KEY optional fallback. Without either,
-falls back to keyword-only items with relevance=null (still renders, just noisier).
+Env: MINIMAX_API_KEY. When the relevance filter fails (no key, 429, timeout, bad
+JSON) nothing unscored is published: the previous run's scored items that are
+still inside the lookback window stay up, marked `retained_from_previous`, and
+`llm_filter_status` says `failed_kept_previous`.
 """
 import html
 import json
@@ -528,8 +530,8 @@ def llm_filter(candidates, held):
     """Returns dict {idx: {tickers, held, new_ideas, stance, relevance, summary_cn}}."""
     if not candidates:
         return {}
-    if not (os.environ.get('MINIMAX_API_KEY') or os.environ.get('OPENCODE_API_KEY')):
-        print('  ⚠️ no LLM provider key — skipping relevance filter (keyword-only)', file=sys.stderr)
+    if not os.environ.get('MINIMAX_API_KEY'):
+        print('  ⚠️ no MINIMAX_API_KEY — relevance filter unavailable', file=sys.stderr)
         return {}
     from clawock.automation.llm import chat
     from clawock.automation.output_validate import coerce_scored_items
@@ -648,17 +650,33 @@ def main():
     held_tickers = {h['ticker'] for h in held}
     scored = llm_filter(candidates, held)
 
+    # Filter failed (MiniMax 429 / timeout / bad JSON) with candidates in hand.
+    # This used to publish every candidate unscored — relevance null, no holding
+    # match — and the brief read that as the radar. Measured 2026-09-01..12: 5 of
+    # 19 published feeds were raw. Now the last feed's SCORED items that are still
+    # inside the lookback window stay up, marked as retained, and nothing unscored
+    # is ever published; when there is nothing scored to keep, the feed is empty
+    # and says why (kcn 2026-09-13).
+    filter_failed = bool(candidates) and not scored
     items = []
-    for i, c in enumerate(candidates):
+    if filter_failed:
+        for prior in prev_items:
+            if prior.get('relevance') is None:
+                continue
+            published = _parse_published(prior.get('published'))
+            if published is None or published < cutoff:
+                continue
+            item = dict(prior)
+            item['retained_from_previous'] = True
+            items.append(item)
+        print(f'  ⚠️ relevance filter failed for {len(candidates)} candidates — '
+              f'publishing no unscored items; kept {len(items)} scored items '
+              f'from the previous run', file=sys.stderr)
+
+    for i, c in enumerate(candidates if scored else []):
         s = scored.get(i)
         if s is None:
-            # No LLM verdict: keep only if LLM was unavailable entirely (keyword mode).
-            if scored:
-                continue  # LLM ran but judged this not relevant → drop
-            c.update({'tickers': [], 'held': [], 'new_ideas': [],
-                      'stance': 'neutral', 'relevance': None, 'summary_cn': ''})
-            items.append(c)
-            continue
+            continue  # LLM ran but judged this not relevant → drop
         if (s.get('relevance') or 0) < RELEVANCE_CUTOFF:
             continue
         # Trust code, not LLM, for the held/new split (LLM proposes tickers, we verify).
@@ -700,6 +718,8 @@ def main():
     # publicly so rarely that an empty fetch is her normal state, not an outage —
     # retaining would pin a weeks-old idea on the radar forever.
     for spec in sources:
+        if filter_failed:
+            break  # the scored prior feed is already carried over above
         if not spec['retain'] or source_status[spec['key']] != 'failed':
             continue
         retained = []
@@ -742,6 +762,9 @@ def main():
         'sources': {spec['key']: spec['desc'] for spec in sources},
         'source_status': source_status,
         'llm_filtered':  bool(scored),
+        # 'ok' | 'failed_kept_previous' (no unscored item published) | 'no_candidates'
+        'llm_filter_status': ('failed_kept_previous' if filter_failed
+                              else 'ok' if scored else 'no_candidates'),
         'counts': {
             'total':       len(items),
             'held_hits':   len(held_hits),

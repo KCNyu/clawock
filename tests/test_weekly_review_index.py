@@ -115,15 +115,16 @@ def test_the_page_reads_the_index_rather_than_the_file_listing():
 def test_the_page_names_the_provider_the_code_actually_calls():
     """It advertised `Xiaomi MiMo v2.5-pro` for months after that key died.
 
-    The primary moved to MiniMax M3 and the fallback to OpenCode Zen (#695,
-    #697). A public page describing a provider the repository no longer has
-    credentials for is a wrong fact in front of every reader, and nothing was
-    comparing the sentence to the constant it describes.
+    The primary moved to MiniMax M3 and, until 2026-09-13, the fallback was
+    OpenCode Zen (#695, #697) — removed when its wallet had been empty for
+    weeks. A public page describing a provider the code no longer calls is a
+    wrong fact in front of every reader, and nothing was comparing the sentence
+    to the constant it describes.
     """
     page = (ROOT / "site" / "briefs.md").read_text(encoding="utf-8")
     weekly = page.split("## Weekly Reviews")[1].split("##")[0]
-    for model in (llm.MINIMAX_MODEL, llm.OPENCODE_MODEL):
-        assert model in weekly, (
-            f"the weekly section does not name {model}: {weekly[:300]}")
-    assert "Xiaomi" not in weekly and "MiMo" not in weekly, (
-        "the weekly section still advertises the dead Xiaomi route")
+    assert llm.MINIMAX_MODEL in weekly, (
+        f"the weekly section does not name {llm.MINIMAX_MODEL}: {weekly[:300]}")
+    for dead in ("Xiaomi", "MiMo", "OpenCode", "deepseek"):
+        assert dead not in weekly, (
+            f"the weekly section still advertises the removed {dead} route")

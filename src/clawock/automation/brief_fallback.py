@@ -2,11 +2,11 @@
 """
 KCNyu off-host brief fallback, called by the repository workflow.
 
-Single-turn vendor call (MiniMax M3 primary, optional opencode-go fallback) to generate
-today's brief if openclaw cron failed to produce one by the 08:25 HKT check. Reads
+Single-turn vendor call (MiniMax M3, no second provider) to generate today's brief
+if openclaw cron failed to produce one by the 08:25 HKT check. Reads
 brief-context-{date}.json from preflight, writes pre-open.md + plan.json.
 
-Env: MINIMAX_API_KEY required; OPENCODE_API_KEY optional fallback
+Env: MINIMAX_API_KEY required
 """
 import json
 import os

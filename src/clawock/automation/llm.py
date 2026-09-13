@@ -2,48 +2,33 @@
 """
 Minimal LLM client for KCNyu GitHub Actions workflows.
 
-Primary: MiniMax M3 (Anthropic Messages protocol). Fallback: OpenCode Zen's
-DeepSeek V4 Flash (OpenAI-compatible protocol — https://opencode.ai/docs/zen).
-The two providers do NOT share a wire protocol, so this module carries two
-request/response shapes: `_call_provider` speaks Anthropic `/v1/messages` for
-MiniMax; `_call_provider_openai_compatible` speaks `/chat/completions` for
-OpenCode Zen. Used by brief-fallback / weekly-review / news-digest /
-influencer-scan — none of which can reach the local openclaw gateway, so they
-call the vendor API directly.
-
-Why a fallback (2026-05-30, kcn 要求): one vendor can hit empty-turn,
-sensitive-content or rate-limit failures that blank a scheduled job. MiniMax is
-primary; OpenCode Zen / DeepSeek V4 Flash is the fallback.
+Provider: MiniMax M3 over the Anthropic Messages protocol. Used by
+brief-fallback / weekly-review / news-digest / influencer-scan — none of which
+can reach the local openclaw gateway, so they call the vendor API directly.
 
 History:
-- 2026-06-01 (kcn "都改吧变成稳妥的anthropic的"): switched both providers onto
-  the Anthropic Messages transport (see memory/openclaw-xiaomi-fallback.md) —
-  at the time both legs were Xiaomi/MiniMax and both spoke that protocol.
-- 2026-08-16 (kcn "xiaomi的早没了 你换成我opencode go的ds flash吧", issue
-  #695/#697): Xiaomi's token-plan key had already died (HTTP 401) — its
-  retirement, predicted in this docstring since 2026-06, finally landed.
-  Fallback swapped to opencode-go's DeepSeek V4 Flash, which is OpenAI-
-  compatible rather than Anthropic — bringing a `/chat/completions` shape back
-  for the fallback leg only.
+- 2026-06-01 (kcn "都改吧变成稳妥的anthropic的"): both providers onto the
+  Anthropic Messages transport (at the time Xiaomi + MiniMax).
+- 2026-08-16 (#695/#697): Xiaomi's key died; the fallback became opencode-go's
+  DeepSeek V4 Flash over an OpenAI-compatible `/chat/completions` shape.
+- 2026-09-13 (kcn「opencode 可以都移除」): the OpenCode wallet had been empty
+  since at least 2026-09-02 — every time MiniMax failed, the fallback answered
+  `HTTP 401 CreditsError`, so it was never a second chance, only a second
+  error line. It is gone, with its wire shape. MiniMax is the only provider;
+  there is no paid pay-as-you-go leg anywhere in this client by decision.
 
 Env:
-- MINIMAX_API_KEY   — primary
-- OPENCODE_API_KEY  — fallback (optional; if unset, the fallback is skipped)
+- MINIMAX_API_KEY   — required
 
 Notes:
 - MiniMax (Anthropic Messages): system is a TOP-LEVEL param, not a message
   role — `_split_system` lifts it out. thinking is a first-class block.
-- opencode-go (OpenAI-compatible): system stays inline as a message role;
-  reasoning (if any) rides along as `reasoning_content` on the assistant
-  message rather than a separate typed block — we don't read it, only
-  `content`.
-- thinking: enabled by default for MiniMax (better prose quality). For
-  structured JSON extraction pass thinking_disabled=True — reasoning budget
-  competing with the output cap truncates JSON, and a deterministic extraction
-  wants thinking off. opencode-go has no equivalent knob wired through here.
-- json_response: neither vendor has a response_format param we lean on, so we
-  just instruct JSON in the prompt and pull the first balanced {…}/[…] out of
-  the reply via _extract_json (fence- and stray-prose-tolerant).
+- thinking: enabled by default (better prose quality). For structured JSON
+  extraction pass thinking_disabled=True — reasoning budget competing with the
+  output cap truncates JSON, and a deterministic extraction wants thinking off.
+- json_response: no response_format param is leaned on; we instruct JSON in the
+  prompt and pull the first balanced {…}/[…] out of the reply via _extract_json
+  (fence- and stray-prose-tolerant).
 - ANTHROPIC_VERSION header pinned to 2023-06-01 (what MiniMax accepts).
 
 Usage:
@@ -57,45 +42,30 @@ import time
 
 import requests
 
-# Module-level session: provider legs reuse one connection pool instead of a
-# fresh TCP+TLS handshake per attempt (C-F2). Retry chains are exactly where
-# this pays — the fallback leg often fires seconds after the primary died.
+# Module-level session: retries reuse one connection pool instead of a fresh
+# TCP+TLS handshake per attempt (C-F2).
 _SESSION = requests.Session()
 
 MINIMAX_BASE = 'https://api.minimaxi.com/anthropic'
 MINIMAX_MODEL = 'MiniMax-M3'
 MINIMAX_MAX_TOKENS = 131072  # M3 maxOutput
-# OpenAI-compatible endpoint (base, no trailing /chat/completions — added per call).
-OPENCODE_BASE = 'https://opencode.ai/zen/v1'
-OPENCODE_MODEL = 'deepseek-v4-flash'
-# Vendor cap is 384000 (see /root/.cache/opencode/models.json), but this is a
-# last-resort fallback, not a primary route — keep it in the same conservative
-# range the old Xiaomi fallback used rather than trusting the full vendor cap.
-OPENCODE_MAX_TOKENS = 32000
 ANTHROPIC_VERSION = '2023-06-01'
 TIMEOUT = 180  # 3 min per call
 MAX_RETRIES = 3
 
-# A total wall-clock budget shared by the whole provider chain, in seconds.
+# A total wall-clock budget for the whole call, in seconds.
 #
-# Without one the retry ladder can be longer than the job that contains it, and
-# then the second provider is not a fallback — it is unreachable code. Measured
-# on 2026-08-17 (release run 31985473431): brief_fallback calls chat() with
-# timeout=900 and MAX_RETRIES is 3, so MiniMax alone may spend 45 minutes inside
-# a job whose `timeout-minutes` is 15. MiniMax hit RemoteDisconnected, started
-# retrying, and the runner killed the job before opencode-go was ever asked.
-# Every manual dispatch of that workflow failed the same way, which is why a
-# backstop nobody had ever seen produce output looked merely untested rather
-# than broken.
+# Without one the retry ladder can be longer than the job that contains it.
+# Measured on 2026-08-17 (release run 31985473431): brief_fallback calls chat()
+# with timeout=900 and MAX_RETRIES is 3, so MiniMax alone may spend 45 minutes
+# inside a job whose `timeout-minutes` is 15 — the runner killed the job
+# mid-retry and nothing was written, not even the error.
 #
 # Set it from the workflow that knows its own job budget, via
 # CLAWOCK_LLM_DEADLINE_SECONDS, or pass deadline_seconds= explicitly. Unset
-# keeps the historical behaviour exactly.
+# keeps the historical behaviour exactly. With a single provider the whole
+# budget is the provider's; there is no longer a share reserved for a fallback.
 DEADLINE_ENV = 'CLAWOCK_LLM_DEADLINE_SECONDS'
-# The share of the budget the primary may consume before the chain moves on.
-# The remainder is reserved for the fallback, so a slow primary can cost the
-# run quality but never the fallback's chance to answer.
-PRIMARY_BUDGET_SHARE = 0.6
 
 
 def _clean(s: str) -> str:
@@ -114,7 +84,7 @@ def _clean(s: str) -> str:
 
 def _extract_json(t):
     """Return the first balanced {…} / […] value in t, ignoring braces inside
-    strings. mimo sometimes wraps JSON in a ```json fence or adds a stray prose
+    strings. Models sometimes wrap JSON in a ```json fence or add a stray prose
     line; this pulls out the parseable value. Returns t unchanged if none found."""
     starts = [i for i in (t.find('{'), t.find('[')) if i != -1]
     if not starts:
@@ -157,7 +127,7 @@ def _split_system(messages):
 
 
 def _remaining(deadline):
-    """Seconds left before the chain must give up on this provider, or None."""
+    """Seconds left before the call must give up, or None."""
     if deadline is None:
         return None
     return deadline - time.monotonic()
@@ -166,26 +136,20 @@ def _remaining(deadline):
 def _attempt_timeout(timeout, deadline, label):
     """Per-attempt timeout clamped to the budget, or None when out of time.
 
-    Returning None rather than sleeping-then-failing matters: the point of the
-    budget is to hand the remaining seconds to the next provider while there
-    are still seconds to hand over.
+    Returning None rather than sleeping-then-failing matters: an attempt that
+    cannot finish inside the job only turns a clean error into a killed runner.
     """
     left = _remaining(deadline)
     if left is None:
         return timeout
     if left <= 1:
-        print(f'  {label}: budget exhausted — yielding to the next provider',
-              file=sys.stderr)
+        print(f'  {label}: budget exhausted — giving up', file=sys.stderr)
         return None
     return max(1, min(timeout, int(left)))
 
 
 def _backoff(seconds, deadline, label):
-    """Sleep between attempts without spending the next provider's seconds.
-
-    An un-clamped backoff is the same bug as an un-clamped timeout, only more
-    embarrassing: the budget gets burned doing nothing at all.
-    """
+    """Sleep between attempts without sleeping past the budget."""
     left = _remaining(deadline)
     if left is not None:
         seconds = min(seconds, max(0.0, left))
@@ -194,7 +158,7 @@ def _backoff(seconds, deadline, label):
 
 
 class _RateLimited(Exception):
-    """A provider answered 429: sleep the linear wait, retry same leg."""
+    """The provider answered 429: sleep the linear wait, retry."""
 
     def __init__(self, wait):
         super().__init__('429 rate limit')
@@ -206,17 +170,14 @@ class _HTTPErr(Exception):
 
 
 def _run_with_retries(label, timeout, deadline, once, attempts_sink=None):
-    """Shared retry skeleton for both provider legs (C-F5).
+    """Retry skeleton (C-F5).
 
     once(attempt, per_attempt) returns the assistant content string on a 200,
     raises _RateLimited on 429 (linear wait, no extra generic backoff), and
     may raise anything else — that becomes this attempt's recorded error.
-    Budget exhaustion breaks the loop with the same message both legs have
-    always produced. Kept as one copy so the two wire protocols cannot drift
-    apart in retry semantics again.
 
     attempts_sink: optional list; receives the number of attempts actually
-    run when the leg settles either way (C-F3a leg stats).
+    run when the call settles either way (C-F3a stats).
     """
     last_err = None
     attempts_run = 0
@@ -277,8 +238,8 @@ def _call_provider(label, base_url, api_key, model, messages, max_tokens,
         }
     else:
         body['temperature'] = temperature
-        # mimo's Anthropic endpoint defaults thinking ON when the field is
-        # omitted (burns the output budget on reasoning), so disable explicitly.
+        # Some Anthropic-compatible endpoints default thinking ON when the field
+        # is omitted (burns the output budget on reasoning), so disable explicitly.
         body['thinking'] = {'type': 'disabled'}
 
     headers = {
@@ -312,85 +273,26 @@ def _call_provider(label, base_url, api_key, model, messages, max_tokens,
                              attempts_sink=attempts_sink)
 
 
-def _call_provider_openai_compatible(label, base_url, api_key, model, messages,
-                                     max_tokens, temperature, json_response,
-                                     timeout=None, deadline=None,
-                                     attempts_sink=None):
-    """One provider over the OpenAI-compatible /chat/completions shape, with
-    retries. Returns content str or raises RuntimeError. Unlike Anthropic
-    Messages: system stays inline as a message role (no lift-out needed), and
-    there is no first-class thinking block — reasoning (if any) rides along as
-    `reasoning_content` on the assistant message, which we don't read. The
-    Anthropic leg's `thinking` knob has no equivalent here; it was previously
-    accepted and silently ignored (C-F4)."""
-    timeout = timeout or TIMEOUT
-    body = {
-        'model': model,
-        'max_tokens': max_tokens,
-        'temperature': temperature,
-        'messages': messages,
-    }
-    headers = {
-        'Authorization': f'Bearer {api_key}',
-        'Content-Type': 'application/json',
-    }
-
-    def once(attempt, per_attempt):
-        r = _SESSION.post(f'{base_url}/chat/completions',
-                          json=body, headers=headers, timeout=per_attempt)
-        if r.status_code == 429:
-            raise _RateLimited(5 * attempt)
-        if r.status_code != 200:
-            raise _HTTPErr(f'HTTP {r.status_code}: {r.text[:300]}')
-        data = r.json()
-        choices = data.get('choices', []) or []
-        msg = choices[0].get('message', {}) if choices else {}
-        text = msg.get('content', '') or ''
-        usage = data.get('usage', {}) or {}
-        print(f'  {label}: {usage.get("prompt_tokens","?")} in / '
-              f'{usage.get("completion_tokens","?")} out '
-              f'(finish={choices[0].get("finish_reason","?") if choices else "?"})',
-              file=sys.stderr)
-        cleaned = _clean(text)
-        return _extract_json(cleaned) if json_response else cleaned
-
-    return _run_with_retries(label, timeout, deadline, once,
-                             attempts_sink=attempts_sink)
-
-
 def chat(system: str = '', user: str = '', messages: list = None,
          max_tokens: int = 32000, temperature: float = 0.7,
-         fallback_model: str = OPENCODE_MODEL,
-         fallback_base_url: str = OPENCODE_BASE,
-         fallback_api_key: str = None, thinking_disabled: bool = False,
-         json_response: bool = False, fallback: bool = True,
+         thinking_disabled: bool = False, json_response: bool = False,
          timeout: int = None, deadline_seconds: float = None,
          stats_out: dict = None) -> str:
-    """Call MiniMax M3; on total failure fall back to opencode-go's DeepSeek V4
-    Flash. The two are NOT the same wire protocol (Anthropic Messages vs
-    OpenAI-compatible) — see module docstring. Returns assistant content
-    string, or raises if BOTH providers fail. Set fallback=False to use
-    MiniMax only (no opencode-go fallback).
-
-    Naming is load-bearing (C-F4): `fallback_model/base_url/api_key` apply ONLY
-    to the opencode-go fallback leg. The primary provider and its endpoint are
-    MINIMAX_* module constants by decree — the old generic names (`model=`,
-    `base_url=`) read as if they retargeted the primary and silently did not;
-    the four call sites passed none of them.
+    """Call MiniMax M3. Returns the assistant content string, or raises
+    RuntimeError('all LLM providers failed: …') when it fails — the prefix is
+    what callers (influencer.llm_filter) match to stop retrying a dead chain.
 
     timeout: per-attempt seconds, default TIMEOUT (180). Big jobs need more: the
     daily brief prefills ~100KB of context and generates ~20K tokens with thinking
-    on, which blew straight through 180s x3 on 2026-07-16 (callers see the retries
-    as "timeout after Ns (attempt N)"). Raise it rather than shrink the prompt —
-    trimming the brief's context is what made it blind to half the book.
+    on, which blew straight through 180s x3 on 2026-07-16. Raise it rather than
+    shrink the prompt — trimming the brief's context made it blind to half the book.
 
-    deadline_seconds: total wall clock for the WHOLE chain, defaulting to
-    CLAWOCK_LLM_DEADLINE_SECONDS. `timeout` alone cannot keep the chain inside
-    the job that contains it — timeout x MAX_RETRIES is the primary's budget,
-    and on 2026-08-17 that was 45 minutes inside a 15-minute job, so opencode-go
-    was never reached even once. With a budget set, the primary is capped at
-    PRIMARY_BUDGET_SHARE of it and the remainder belongs to the fallback: a slow
-    primary can cost quality, never the fallback's chance to answer.
+    deadline_seconds: total wall clock for the call, defaulting to
+    CLAWOCK_LLM_DEADLINE_SECONDS. `timeout` alone cannot keep the retries inside
+    the job that contains them — timeout x MAX_RETRIES is the real budget.
+
+    stats_out: when given, receives {'legs': [{provider, ok, attempts, wall_s,
+    error?}]} so a job log can say what the call actually cost (C-F3a).
     """
     if messages is None:
         messages = []
@@ -400,7 +302,6 @@ def chat(system: str = '', user: str = '', messages: list = None,
             messages.append({'role': 'user', 'content': user})
 
     thinking = {'type': 'disabled'} if thinking_disabled else {'type': 'enabled'}
-    errors = []
 
     if deadline_seconds is None:
         raw = os.environ.get(DEADLINE_ENV)
@@ -410,66 +311,41 @@ def chat(system: str = '', user: str = '', messages: list = None,
             except ValueError:
                 print(f'  ⚠️ {DEADLINE_ENV}={raw!r} is not a number — ignoring',
                       file=sys.stderr)
-    started = time.monotonic()
-    chain_deadline = None if not deadline_seconds else started + float(deadline_seconds)
-    primary_deadline = (None if chain_deadline is None
-                        else started + float(deadline_seconds) * PRIMARY_BUDGET_SHARE)
-
-    # ── Primary: MiniMax M3 (Anthropic Messages) ──
-    # C-F3a: per-leg wall time + attempts land in stats_out when the caller
-    # wants them — the job log otherwise shows only per-attempt token lines
-    # and nothing about which leg won or what the chain actually cost.
-    def _leg(provider, fn):
-        if stats_out is None:
-            return fn()          # zero-overhead path: no kwarg reaches fakes
-        t0 = time.monotonic()
-        attempts = []
-        try:
-            out = fn(attempts_sink=attempts)
-            stats_out.setdefault('legs', []).append(
-                {'provider': provider, 'ok': True, 'attempts': len(attempts),
-                 'wall_s': round(time.monotonic() - t0, 2)})
-            return out
-        except Exception as e:
-            stats_out.setdefault('legs', []).append(
-                {'provider': provider, 'ok': False, 'attempts': len(attempts),
-                 'wall_s': round(time.monotonic() - t0, 2), 'error': str(e)[:160]})
-            raise
+    deadline = None if not deadline_seconds else time.monotonic() + float(deadline_seconds)
 
     mm_key = os.environ.get('MINIMAX_API_KEY')
-    if mm_key:
-        try:
-            return _leg('minimax', lambda **kw: _call_provider(
-                'minimax', MINIMAX_BASE, mm_key, MINIMAX_MODEL,
-                messages, min(max_tokens, MINIMAX_MAX_TOKENS),
-                temperature, json_response, thinking, timeout,
-                deadline=primary_deadline, **kw))
-        except Exception as e:
-            errors.append(f'minimax[{e}]')
-            print('  ⚠️ minimax exhausted — falling back to OpenCode Zen DeepSeek V4 Flash',
-                  file=sys.stderr)
-    else:
-        errors.append('minimax[no MINIMAX_API_KEY]')
+    if not mm_key:
+        raise RuntimeError('all LLM providers failed: minimax[no MINIMAX_API_KEY]')
 
-    # ── Fallback: OpenCode Zen / DeepSeek V4 Flash (OpenAI-compatible) ──
-    # 2026-08-16, kcn: Xiaomi's token-plan key had already died (HTTP 401,
-    # issue #695) — swapped the fallback to opencode-go's DeepSeek V4 Flash
-    # (issue #697). If unset, the fallback is auto-skipped (no OPENCODE_API_KEY).
-    opencode_key = (fallback_api_key
-                    or os.environ.get('OPENCODE_API_KEY'))
-    if fallback and opencode_key:
-        try:
-            return _leg('opencode', lambda **kw: _call_provider_openai_compatible(
-                'opencode', fallback_base_url, opencode_key, fallback_model,
-                messages, min(max_tokens, OPENCODE_MAX_TOKENS),
-                temperature, json_response, timeout,
-                deadline=chain_deadline, **kw))
-        except Exception as e:
-            errors.append(f'opencode[{e}]')
-    elif fallback and not opencode_key:
-        errors.append('opencode[no OPENCODE_API_KEY]')
+    def call(**kw):
+        return _call_provider(
+            'minimax', MINIMAX_BASE, mm_key, MINIMAX_MODEL,
+            messages, min(max_tokens, MINIMAX_MAX_TOKENS),
+            temperature, json_response, thinking, timeout,
+            deadline=deadline, **kw)
 
-    raise RuntimeError('all LLM providers failed: ' + ' | '.join(errors))
+    t0 = time.monotonic()
+    # _run_with_retries appends ONE value to the sink when it settles: the
+    # attempt that succeeded, or how many attempts ran before it gave up. The
+    # count is that value, not the list's length (which is always 1).
+    attempts = []
+    try:
+        # Zero-overhead path when nobody asked for stats: no extra kwarg
+        # reaches a test double of _call_provider.
+        out = call() if stats_out is None else call(attempts_sink=attempts)
+    except Exception as e:
+        if stats_out is not None:
+            stats_out.setdefault('legs', []).append(
+                {'provider': 'minimax', 'ok': False,
+                 'attempts': attempts[-1] if attempts else 0,
+                 'wall_s': round(time.monotonic() - t0, 2), 'error': str(e)[:160]})
+        raise RuntimeError(f'all LLM providers failed: minimax[{e}]') from e
+    if stats_out is not None:
+        stats_out.setdefault('legs', []).append(
+            {'provider': 'minimax', 'ok': True,
+             'attempts': attempts[-1] if attempts else 0,
+             'wall_s': round(time.monotonic() - t0, 2)})
+    return out
 
 
 if __name__ == '__main__':

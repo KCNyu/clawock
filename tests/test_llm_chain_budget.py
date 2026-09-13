@@ -1,14 +1,14 @@
-"""The fallback provider has to be reachable inside the job that calls it.
+"""The LLM call has to finish inside the job that makes it.
 
 2026-08-17, release run 31985473431: brief_fallback calls chat() with
 timeout=900 and MAX_RETRIES is 3, so MiniMax alone may spend 45 minutes — inside
 a job whose `timeout-minutes` is 15. MiniMax hit RemoteDisconnected, began
-retrying, and the runner killed the job. opencode-go was never asked. Every
-manual dispatch of brief-fallback failed exactly this way, which is why a
-backstop that had never once produced output looked untested rather than broken.
+retrying, and the runner killed the job before anything was written.
 
-A per-attempt timeout cannot express "the chain must finish in time". Only a
-budget can, and only if the primary is forbidden from spending all of it.
+A per-attempt timeout cannot express "the call must finish in time". Only a
+budget can. Since 2026-09-13 there is one provider (the OpenCode fallback leg
+was removed — its wallet had been empty for weeks), so the whole budget is the
+provider's.
 """
 from __future__ import annotations
 
@@ -19,90 +19,95 @@ import pytest
 from clawock.automation import llm
 
 
-class _Boom(Exception):
-    pass
-
-
 @pytest.fixture
 def keys(monkeypatch):
     monkeypatch.setenv("MINIMAX_API_KEY", "x")
-    monkeypatch.setenv("OPENCODE_API_KEY", "y")
     monkeypatch.delenv(llm.DEADLINE_ENV, raising=False)
 
 
-def _record(monkeypatch, primary_delay: float):
-    """Primary burns `primary_delay` per attempt and always fails; fallback answers."""
-    seen: dict = {"primary_attempts": 0, "fallback_called": False,
-                  "primary_timeouts": [], "fallback_timeout": None}
+def _record(monkeypatch, delay: float):
+    """The provider burns `delay` per attempt and always fails."""
+    seen: dict = {"attempts": 0, "timeouts": []}
 
-    def fake_primary(label, base_url, api_key, model, messages, max_tokens,
-                     temperature, json_response, thinking, timeout=None, deadline=None):
+    def fake_provider(label, base_url, api_key, model, messages, max_tokens,
+                      temperature, json_response, thinking, timeout=None, deadline=None):
         while True:
             per = llm._attempt_timeout(timeout, deadline, label)
             if per is None:
                 break
-            seen["primary_attempts"] += 1
-            seen["primary_timeouts"].append(per)
+            seen["attempts"] += 1
+            seen["timeouts"].append(per)
             # A real attempt cannot outlive the timeout it was given; requests
-            # enforces that. The fake has to model it or it is testing a
-            # provider that ignores its own deadline.
-            time.sleep(min(primary_delay, per))
-            if seen["primary_attempts"] >= llm.MAX_RETRIES:
+            # enforces that, so the fake models it too.
+            time.sleep(min(delay, per))
+            if seen["attempts"] >= llm.MAX_RETRIES:
                 break
-        raise RuntimeError("primary exhausted")
+        raise RuntimeError("provider exhausted")
 
-    # Mirrors _call_provider_openai_compatible AFTER C-F4 dropped its dead
-    # `thinking` parameter — keep in sync when the leg signature moves.
-    def fake_fallback(label, base_url, api_key, model, messages, max_tokens,
-                      temperature, json_response, timeout=None, deadline=None):
-        seen["fallback_called"] = True
-        seen["fallback_timeout"] = llm._attempt_timeout(timeout, deadline, label)
-        return "fallback answered"
-
-    monkeypatch.setattr(llm, "_call_provider", fake_primary)
-    monkeypatch.setattr(llm, "_call_provider_openai_compatible", fake_fallback)
+    monkeypatch.setattr(llm, "_call_provider", fake_provider)
     return seen
 
 
-def test_a_slow_primary_cannot_spend_the_whole_budget(keys, monkeypatch):
-    """The regression itself: without a budget the primary's retry ladder
-    outlives the job and the fallback is unreachable code."""
-    seen = _record(monkeypatch, primary_delay=30.0)  # a primary that would hang forever
-    assert llm.chat(user="hi", timeout=900, deadline_seconds=6.0) == "fallback answered"
-    assert seen["fallback_called"], "the fallback must still get its turn"
-    assert seen["fallback_timeout"] is not None and seen["fallback_timeout"] >= 1
+def test_a_slow_provider_gives_up_inside_the_budget(keys, monkeypatch):
+    """The regression itself: without a budget the retry ladder outlives the job."""
+    _record(monkeypatch, delay=30.0)
+    started = time.monotonic()
+    with pytest.raises(RuntimeError, match="all LLM providers failed"):
+        llm.chat(user="hi", timeout=900, deadline_seconds=4.0)
+    assert time.monotonic() - started < 4.0 + 3, "the call outlived its own budget"
 
 
-def test_the_primary_is_capped_at_its_declared_share(keys, monkeypatch):
-    seen = _record(monkeypatch, primary_delay=0)
-    llm.chat(user="hi", timeout=900, deadline_seconds=10.0)
-    # Each attempt is clamped to what is left of the primary's slice, never to
-    # the caller's optimistic 900s.
-    assert seen["primary_timeouts"], "the primary must have been tried"
-    assert max(seen["primary_timeouts"]) <= 10.0 * llm.PRIMARY_BUDGET_SHARE + 1
+def test_each_attempt_is_clamped_to_the_whole_budget(keys, monkeypatch):
+    seen = _record(monkeypatch, delay=0)
+    with pytest.raises(RuntimeError):
+        llm.chat(user="hi", timeout=900, deadline_seconds=10.0)
+    # Clamped to what is left of the budget, never to the caller's optimistic 900s
+    # — and no longer to a 60% slice reserved for a fallback that does not exist.
+    assert seen["timeouts"], "the provider must have been tried"
+    assert max(seen["timeouts"]) <= 10.0 + 1
+    assert max(seen["timeouts"]) > 10.0 * 0.6, "a share reserved for a removed leg is back"
 
 
 def test_the_budget_can_come_from_the_environment(keys, monkeypatch):
     """The workflow is the thing that knows its own job budget, and it can only
     speak to the script through the environment."""
     monkeypatch.setenv(llm.DEADLINE_ENV, "10")
-    seen = _record(monkeypatch, primary_delay=0)
-    llm.chat(user="hi", timeout=900)
-    assert max(seen["primary_timeouts"]) <= 10.0 * llm.PRIMARY_BUDGET_SHARE + 1
+    seen = _record(monkeypatch, delay=0)
+    with pytest.raises(RuntimeError):
+        llm.chat(user="hi", timeout=900)
+    assert max(seen["timeouts"]) <= 10.0 + 1
 
 
 def test_a_junk_budget_is_ignored_loudly_and_never_shortens_a_call(keys, monkeypatch, capsys):
     monkeypatch.setenv(llm.DEADLINE_ENV, "soon")
-    seen = _record(monkeypatch, primary_delay=0)
-    llm.chat(user="hi", timeout=900)
+    seen = _record(monkeypatch, delay=0)
+    with pytest.raises(RuntimeError):
+        llm.chat(user="hi", timeout=900)
     assert "not a number" in capsys.readouterr().err
-    assert seen["primary_timeouts"] == [900] * llm.MAX_RETRIES
+    assert seen["timeouts"] == [900] * llm.MAX_RETRIES
 
 
 def test_no_budget_keeps_the_historical_behaviour_exactly(keys, monkeypatch):
-    seen = _record(monkeypatch, primary_delay=0)
-    llm.chat(user="hi", timeout=900)
-    assert seen["primary_timeouts"] == [900] * llm.MAX_RETRIES
+    seen = _record(monkeypatch, delay=0)
+    with pytest.raises(RuntimeError):
+        llm.chat(user="hi", timeout=900)
+    assert seen["timeouts"] == [900] * llm.MAX_RETRIES
+
+
+def test_a_missing_key_fails_with_the_prefix_callers_match(monkeypatch):
+    """influencer.llm_filter stops retrying on this exact prefix."""
+    monkeypatch.delenv("MINIMAX_API_KEY", raising=False)
+    with pytest.raises(RuntimeError, match=r"^all LLM providers failed: minimax\[no MINIMAX_API_KEY\]"):
+        llm.chat(user="hi")
+
+
+def test_no_paid_fallback_leg_remains():
+    """kcn 2026-09-13: no OpenCode / DeepSeek pay-as-you-go leg in this client."""
+    source = open(llm.__file__, encoding="utf-8").read()
+    code = source.split('"""', 2)[2]          # past the module docstring's history
+    for dead in ("opencode", "OPENCODE", "deepseek", "_call_provider_openai_compatible",
+                 "PRIMARY_BUDGET_SHARE"):
+        assert dead not in code, f"{dead!r} is back in llm.py"
 
 
 def test_an_exhausted_budget_yields_instead_of_burning_the_last_seconds():
@@ -112,9 +117,8 @@ def test_an_exhausted_budget_yields_instead_of_burning_the_last_seconds():
     assert 25 <= clamped <= 30
 
 
-def test_both_provider_legs_reuse_one_session(monkeypatch):
-    """C-F2: retry chains used to open a fresh TCP+TLS handshake per attempt;
-    both legs must go through the module-level Session pool instead."""
+def test_the_provider_reuses_one_session(monkeypatch):
+    """C-F2: retry chains used to open a fresh TCP+TLS handshake per attempt."""
     calls = []
 
     class _FakeResponse:
@@ -122,7 +126,7 @@ def test_both_provider_legs_reuse_one_session(monkeypatch):
 
         def json(self):
             return {"content": [{"type": "text", "text": "ok"}],
-                    "usage": {"prompt_tokens": 1, "completion_tokens": 1}}
+                    "usage": {"input_tokens": 1, "output_tokens": 1}}
 
     class _FakeSession:
         def post(self, url, **kwargs):
@@ -181,15 +185,14 @@ def test_rate_limit_429_sleeps_then_succeeds(monkeypatch):
 
 
 def test_budget_exhausted_before_any_attempt_names_the_cause(monkeypatch):
-    """When the chain budget dies before attempt #1 can run, the error says
-    so instead of pretending MAX_RETRIES attempts happened."""
+    """When the budget dies before attempt #1 can run, the error says so
+    instead of pretending MAX_RETRIES attempts happened."""
     session, calls = _fake_session([200])
     monkeypatch.setattr(llm, "_SESSION", session)
     monkeypatch.setattr(llm.time, "sleep", lambda s: None)
     monkeypatch.setattr(llm, "_attempt_timeout",
                         lambda timeout, deadline, label: None)
 
-    import pytest
     with pytest.raises(RuntimeError, match="budget exhausted"):
         llm._call_provider(
             label="primary", base_url="https://p.example", api_key="k",
@@ -199,58 +202,35 @@ def test_budget_exhausted_before_any_attempt_names_the_cause(monkeypatch):
     assert calls == []   # no request was ever fired
 
 
-def test_stats_out_records_leg_outcomes_and_attempts(keys, monkeypatch):
-    """C-F3a: the job log used to show only per-attempt token lines — nothing
-    about which leg won or what each cost. stats_out now carries per-leg
-    {provider, ok, attempts, wall_s} for whoever prints or ships it."""
-    seen = {"primary_attempts": 0}
-
-    def fake_primary(label, base_url, api_key, model, messages, max_tokens,
-                     temperature, json_response, thinking, timeout=None,
-                     deadline=None, attempts_sink=None):
-        for attempt in range(1, llm.MAX_RETRIES + 1):
-            per = llm._attempt_timeout(timeout, deadline, label)
-            if per is None:
-                break
-            seen["primary_attempts"] += 1
-            time.sleep(0.01)
-            if attempts_sink is not None:
-                attempts_sink.append(attempt)   # model the real leg's reporting
-        raise RuntimeError("primary exhausted")
-
-    def fake_fallback(label, base_url, api_key, model, messages, max_tokens,
-                      temperature, json_response, timeout=None, deadline=None,
-                      attempts_sink=None):
+def test_stats_out_records_a_failed_call(keys, monkeypatch):
+    """C-F3a: stats_out carries {provider, ok, attempts, wall_s, error} for
+    whoever prints or ships it — including when the call fails."""
+    def fake_provider(label, base_url, api_key, model, messages, max_tokens,
+                      temperature, json_response, thinking, timeout=None,
+                      deadline=None, attempts_sink=None):
         if attempts_sink is not None:
-            attempts_sink.append(1)
-        return "fallback answered"
+            attempts_sink.append(llm.MAX_RETRIES)
+        raise RuntimeError("provider exhausted")
 
-    monkeypatch.setattr(llm, "_call_provider", fake_primary)
-    monkeypatch.setattr(llm, "_call_provider_openai_compatible", fake_fallback)
-
+    monkeypatch.setattr(llm, "_call_provider", fake_provider)
     stats = {}
-    out = llm.chat(user="hi", timeout=30, deadline_seconds=20.0,
-                   stats_out=stats)
+    with pytest.raises(RuntimeError):
+        llm.chat(user="hi", timeout=30, deadline_seconds=20.0, stats_out=stats)
 
-    assert out == "fallback answered"
-    legs = {leg["provider"]: leg for leg in stats["legs"]}
-    assert legs["minimax"]["ok"] is False and legs["minimax"]["attempts"] == 3
-    assert legs["opencode"]["ok"] is True and legs["opencode"]["attempts"] == 1
-    assert legs["minimax"]["wall_s"] >= 0 and "error" in legs["minimax"]
+    (leg,) = stats["legs"]
+    assert leg["provider"] == "minimax" and leg["ok"] is False
+    assert leg["attempts"] == llm.MAX_RETRIES and "error" in leg
 
 
 def test_stats_out_over_the_real_provider_signature(keys, monkeypatch):
     """J-P0-1 regression: the stats plumbing once called the real provider
-    functions with attempts_sink while neither accepted it — TypeError before
-    any request, killing exactly the fallback path that runs when things are
-    already broken. The earlier test's fake had quietly grown the parameter;
-    this one fakes only the wire."""
+    function with attempts_sink while it did not accept it — TypeError before
+    any request. This fakes only the wire."""
     class R:
         status_code = 200
 
         def json(self):
-            return {"choices": [{"message": {"content": "ok"},
-                                 "finish_reason": "stop"}], "usage": {}}
+            return {"content": [{"type": "text", "text": "ok"}], "usage": {}}
 
     class S:
         def post(self, url, **kw):
@@ -260,8 +240,7 @@ def test_stats_out_over_the_real_provider_signature(keys, monkeypatch):
     monkeypatch.setattr(llm, "_SESSION", S())
 
     stats = {}
-    llm.chat(user="hi", timeout=10, temperature=0.5, fallback=False,
-             stats_out=stats)
+    assert llm.chat(user="hi", timeout=10, temperature=0.5, stats_out=stats) == "ok"
 
     leg = stats["legs"][0]
     assert leg == {"provider": "minimax", "ok": True, "attempts": 1,
