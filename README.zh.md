@@ -4,9 +4,9 @@
 
 ### AI 争辩。代码结算。连亏损都摆在明面上。
 
-它跑了 **<!-- CW_M:days -->120<!-- /CW_M:days --> 天**,实盘收益 **<!-- CW_M:return_pct -->−23.41%<!-- /CW_M:return_pct -->**——每一笔亏损都摊开在页面上([原始决策记录](https://github.com/KCNyu/clawock/blob/master/memory/decisions.jsonl)),账目都能从命令复算(`clawock audit-resettle` 结算决策账、`clawock reconcile` 复算组合派生、`clawock scorecard-provenance --check` 核对公开记分出自账本的哪几行)。**模型不能给自己打分**——在我们已知范围内,第一个把 AI 战绩交给代码结算的投研台。AI 建议满天飞,谁为结果负责?代码负责。
+装进你正在用的 Agent 的投资决策工作流:Claude Code、Codex、OpenClaw、DeepSeek Harness,或者你自己写的都行。Agent 给出判断,还必须写出反方;clawock 核对证据和资金、汇率算术,站不住的决策直接拒收,之后用真实行情给结果打分。不跟单、不代下单。
 
-8 层 41 模块信息流 · 多 Agent 辩论 · Python 确定性结算,打包成 `pip install clawock`,装进任何 Agent(Claude Code / Codex / OpenClaw / DeepSeek Harness)。不跟单、不代下单。
+同一套流程每个交易日都在一个真实港美股账户上跑:已经 **<!-- CW_M:days -->120<!-- /CW_M:days --> 天**,实盘收益 **<!-- CW_M:return_pct -->−23.41%<!-- /CW_M:return_pct -->**,亏损和盈利一样公开([原始决策记录](https://github.com/KCNyu/clawock/blob/master/memory/decisions.jsonl))。
 
 [![PyPI](https://img.shields.io/pypi/v/clawock?label=PYPI&style=flat-square&logo=pypi&logoColor=white&labelColor=252b35&color=4b91c8)](https://pypi.org/project/clawock/)
 [![npm](https://img.shields.io/npm/v/clawock-dsh?label=NPM&style=flat-square&logo=npm&logoColor=white&labelColor=252b35&color=4b91c8)](https://www.npmjs.com/package/clawock-dsh)
@@ -17,7 +17,34 @@
 
 [**实时仪表盘**](https://kcnyu.github.io/clawock/) &nbsp;·&nbsp; [**每日简报**](https://kcnyu.github.io/clawock/briefs.html) &nbsp;·&nbsp; [**证据与反证**](https://kcnyu.github.io/clawock/evidence.html) &nbsp;·&nbsp; [**English**](README.md)
 
-<br>
+</div>
+
+```bash
+pip install clawock
+clawock workflow install investment-decision --workspace ./my-book
+clawock init ./my-book --workflow investment-decision
+cd my-book && mkdir -p .clawock/work
+clawock run prepare > .clawock/work/request.json
+# 你的 Agent 读取请求,写出 decision.json
+clawock run publish --request .clawock/work/request.json --artifact decision.json=decision.json
+```
+
+把决策里的反方证据删掉再发布,会被拒收(退出码 1):
+
+```json
+{
+  "status": "rejected",
+  "validation_issues": [
+    {"code": "insufficient_opposing_evidence", "message": "requires at least 1 opposing evidence item(s)"},
+    {"code": "unsupported_bear_case", "message": "bear_case must cite opposing evidence"},
+    ...
+  ]
+}
+```
+
+逐步说明和每个文件的作用见[在你自己的账本上跑](#在你自己的账本上跑)。
+
+<div align="center">
 
 <a href="https://kcnyu.github.io/clawock/">
   <img src="site/assets/social-card.png" alt="clawock —— 装进任意外部 Agent 的可迁移投资决策工作流,并由真实港美股投研台持续验证" width="820">
@@ -35,9 +62,11 @@
 
 ## 这是什么
 
-clawock 是一套真实港美股账户上运行的 AI 投研系统,解决一个问题:**AI 建议满天飞,谁为结果负责?** 它让模型提议、Python 结算、战绩全公开——模型永远不能给自己打分。卖点不是「赚得更多」,而是「骗不了人」。打包成 `pip install clawock`,装进任何 Agent(Claude Code、Codex、OpenClaw、DeepSeek Harness 都行)。
+clawock 起步是一个账户,不是一个包。多 Agent 投研台在一个分港股、美股两本账的真实券商账户上辩论证据、提出交易,下单仍由账户主人自己来。留下来的是记录:真实持仓、不断增长的决策历史,以及模型无权插手的公开记分。它不是暴富机器人,也不是跟单服务。
 
-每天 08:00 它读完 8 层 41 模块的信息流,组织一场多 Agent 辩论(四视角分析师 + 多空对立 + 裁判归因)给出决策;Python 独立结算,战绩连亏损都公开。不跟单、不代下单。
+clawock 是从这个投研台里拆出来、可以复用的那部分。模型调用、对话、记忆、工具、权限和凭证都留在你的运行时里;clawock 在上面加一份决策契约:带指纹的证据、必填的反方、核对过的资金与汇率算术,以及把结果连回当初那条决策。它就是文件加 CLI,换 harness 契约不变。[`examples/`](examples/README.md) 用纯 CLI、OpenClaw skill、Claude Code、Codex 和 DeepSeek Harness 各跑了一遍同一条决策。
+
+真实投研台每个交易日盘前读取 8 层信息流,组织一场多 Agent 辩论(四视角分析师 + 多空对立 + 裁判归因)给出决策,Python 独立结算。账目都能从命令复算:`clawock audit-resettle` 结算决策账、`clawock reconcile` 复算组合派生、`clawock scorecard-provenance --check` 核对公开记分出自账本的哪几行。
 
 复合因子、行情状态、打折夏普、CSCV、吊灯止损、运行卡……这些术语的中英文标准翻译,见 [术语表](docs/glossary.md)。
 
