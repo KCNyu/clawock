@@ -49,6 +49,7 @@ from clawock.harness.validation import (
     advisory_prefix,
     categorize_issues,
     check_numeric_claims,
+    check_pipeline_self_reference,
     postflight_exit_code,
     product_status,
     split_advisory,
@@ -270,6 +271,9 @@ def validate(text, ctx, model_text):
 
     # 数字必须来自 context —— 一条聚合 warn，见 check_numeric_claims
     issues.extend(check_numeric_claims(checked, ctx))
+
+    # 管线术语 —— advisory，见 check_pipeline_self_reference
+    issues.extend(check_pipeline_self_reference(checked))
 
     return issues
 

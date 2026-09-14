@@ -674,6 +674,7 @@ def categorize(issues):
 from clawock.harness.validation import (
     categorize_issues,
     check_md_table_column_consistency,
+    check_pipeline_self_reference,
     postflight_exit_code,
     product_status,
     split_advisory,
@@ -936,6 +937,24 @@ def _judgment_gap_issues(judgment_path, decision_packet):
             'Pages projection 会丢掉整个判断层']
 
 
+def _card_self_reference_issues(judgment_path):
+    """Pipeline vocabulary in the one model-written line of the WeChat card.
+
+    The card's 核心结论 is `judgment.portfolio_assessment` verbatim; every other
+    card line is rendered by brief_render (its `driven_by=` / `hold_and_watch`
+    are harness-owned and deliberate), so only this field is checked. The page's
+    debate sections quote the decision packet on purpose and are left alone.
+    """
+    try:
+        overlay = json.loads(Path(judgment_path).read_text(encoding='utf-8'))
+    except (OSError, ValueError):
+        return []  # _judgment_gap_issues already reports it
+    assessment = overlay.get('portfolio_assessment') if isinstance(overlay, dict) else None
+    if not isinstance(assessment, str):
+        return []
+    return check_pipeline_self_reference(assessment, label='微信卡核心结论')
+
+
 def main(argv=None):
     import argparse
     ap = argparse.ArgumentParser()
@@ -999,6 +1018,8 @@ def main(argv=None):
     # notice the brief went out with empty sections.
     issues += _judgment_gap_issues(
         WS / 'memory' / '.tmp' / f'brief-judgment-{today}.json', decision_packet)
+    issues += _card_self_reference_issues(
+        WS / 'memory' / '.tmp' / f'brief-judgment-{today}.json')
 
     # The report is rendered here, from the judgment and the normalized plan —
     # the model no longer writes markdown at all (see clawock.harness.
