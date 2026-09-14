@@ -165,13 +165,19 @@ def exploration_setup(technical: dict, candidate: dict, policy: dict,
         return None
     close = _number(technical.get("close"))
     prior_high = _number(technical.get("prior_20d_high"))
-    invalidation = max(
+    invalidation_candidates = [
         value for value in (
             _number(technical.get("ma20")),
             _number(technical.get("chandelier_stop")),
             _number(technical.get("prior_5d_low")),
         ) if value is not None and value > 0
-    )
+    ]
+    if not invalidation_candidates:
+        # A newly listed name (or a partial/drifted quant row) can have all
+        # three invalidation sources missing; that means the lane cannot
+        # define a safe stop, not that it should crash the whole packet.
+        return None
+    invalidation = max(invalidation_candidates)
     entry = max(close or 0, prior_high or 0)
     if not entry or invalidation >= entry:
         return None
