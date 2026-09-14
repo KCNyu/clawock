@@ -108,7 +108,11 @@ def check_pipeline_self_reference(text, label='散文'):
 # own numbers (plan_context, issue #119), not by a regex.
 _MAGNITUDE = {'万': 10_000, '亿': 100_000_000, 'w': 10_000}
 _CURRENCY = r'(?:HK\$|US\$|RMB|\$|¥|港元|美元|港币)'
-_NUM = r'-?\d[\d,]*(?:\.\d+)?'
+# A thousands separator groups exactly three digits. `\d[\d,]*` also swallowed a
+# list comma — 2026-09-08 hk-pm "跌得接近 00100,12pp 背离" was reported as the
+# unverifiable number "00100,12pp".
+_DIGITS = r'(?:\d{1,3}(?:,\d{3})+(?!\d)|\d+)'
+_NUM = rf'-?{_DIGITS}(?:\.\d+)?'
 _SHARE_CLAIM = re.compile(rf'({_NUM})\s*(万|亿)?\s*(?:股|shares?\b)')
 _CURRENCY_CLAIM = re.compile(
     rf'{_CURRENCY}\s*({_NUM})\s*(万|亿)?|({_NUM})\s*(万|亿)?\s*{_CURRENCY}'
@@ -119,11 +123,14 @@ _CURRENCY_CLAIM = re.compile(
 # Checked against 23 real sent reports: that one character was every false
 # positive. `~` is what the observed defect ("+0.3~-0.4%") actually used.
 _RANGE = re.compile(rf'({_NUM})\s*(?:~|～|—|–|到|至)\s*({_NUM})\s*%')
-_UNIT_NUM = r'[+-]?\d[\d,]*(?:\.\d+)?'
+_UNIT_NUM = rf'[+-]?{_DIGITS}(?:\.\d+)?'
 _UNIT_CLAIMS = {
     'percent': re.compile(rf'({_UNIT_NUM})\s*[%％]'),
     'pp': re.compile(rf'({_UNIT_NUM})\s*(?:pp\b|个百分点|百分点)', re.IGNORECASE),
-    'multiple': re.compile(rf'({_UNIT_NUM})\s*(?:[xX×](?![A-Za-z])|倍)'),
+    # `×` followed by another number is a multiplication the prose wrote out,
+    # not a multiple it claims: "300×$9.79 ≈ $2,940" was reported as "300x".
+    'multiple': re.compile(
+        rf'({_UNIT_NUM})\s*(?:[xX×](?![A-Za-z])(?!\s*(?:HK\$|US\$|\$|¥)?\s*\d)|倍)'),
     'sigma': re.compile(rf'({_UNIT_NUM})\s*(?:σ|sigma\b)', re.IGNORECASE),
 }
 _UNIT_LABELS = {'percent': '%', 'pp': 'pp', 'multiple': 'x', 'sigma': 'σ'}
@@ -140,6 +147,21 @@ _UNIT_KEY_HINTS = {
 # long-standing low-noise boundary: "若再跌 2%" may be scenario prose, while an
 # asserted "今日 -2%" must quote the context.
 _HYPOTHETICAL = re.compile(r'(?:若|如果|假如|一旦|假设|情景|scenario|\bif\b)', re.IGNORECASE)
+
+# A narrow exception for arithmetic whose complete multiplication is visible.
+# This deliberately requires the operator and an equality marker; merely putting
+# two numbers in the same sentence must not authorize a third one.  It covers
+# the two recurring forms the live corpus exposed:
+#   -1.92% × 2 ≈ -3.84%       300 × $9.79 ≈ $2,940
+_PRODUCT = re.compile(
+    rf'(?<![A-Za-z0-9_./])'
+    rf'(?P<a_cur>{_CURRENCY})?\s*(?P<a>{_UNIT_NUM})\s*(?P<a_pct>[%％])?\s*'
+    rf'[×*]\s*'
+    rf'(?P<b_cur>{_CURRENCY})?\s*(?P<b>{_UNIT_NUM})\s*(?P<b_pct>[%％])?\s*'
+    rf'(?P<eq>≈|=)\s*'
+    rf'(?P<result_cur>{_CURRENCY})?\s*(?P<result>{_UNIT_NUM})'
+    rf'\s*(?P<result_pct>[%％])?'
+)
 MAX_NUMERIC_SAMPLES = 4
 # Only book-scale currency figures are checked. US price talk is conventionally
 # written with the symbol — "跌破 $65，下一支撑 $60" is a level, not a claim about
@@ -269,6 +291,127 @@ def _is_hypothetical_percent(text, start):
     return bool(_HYPOTHETICAL.search(text[max(clause_start, start - 16):start]))
 
 
+def _shown_product_results(text, known):
+    """Positions of correct, explicitly written product results, by unit.
+
+    ``≈`` gets a small relative allowance for presentation rounding (2937 ->
+    2,940); ``=`` only gets the precision the result itself states.  Unit shape
+    is part of the check, so a percent cannot validate a currency result or vice
+    versa.
+    """
+    results = {'percent': set(), 'currency': set()}
+    for match in _PRODUCT.finditer(text):
+        a = _as_number(match.group('a'))
+        b = _as_number(match.group('b'))
+        result = _as_number(match.group('result'))
+        if a is None or b is None or result is None:
+            continue
+        currencies = bool(match.group('a_cur')) + bool(match.group('b_cur'))
+        percents = bool(match.group('a_pct')) + bool(match.group('b_pct'))
+        if match.group('result_pct') and percents == 1 and currencies == 0:
+            unit = 'percent'
+        elif match.group('result_cur') and currencies == 1 and percents == 0:
+            unit = 'currency'
+            # Neither a sub-$1,000 price nor a bare share multiplier is checked
+            # elsewhere.  Require both operands to come from context before
+            # their product can authorize an otherwise absent book amount.
+            if not all(_states(known, value, _rounding_tolerance(raw))
+                       for value, raw in ((a, match.group('a')),
+                                          (b, match.group('b')))):
+                continue
+        else:
+            continue
+        expected = a * b
+        tolerance = _rounding_tolerance(match.group('result'))
+        if match.group('eq') == '≈':
+            tolerance = max(tolerance, abs(expected) * 0.002)
+        if abs(result - expected) <= tolerance:
+            results[unit].add(match.start('result'))
+    return results
+
+
+# Shown work is not invented. Replaying every report and intraday slot sent
+# 2026-08-31..09-14, most figures this gate called "not in the context" were
+# computed correctly from two numbers the same sentence had just quoted —
+# "07226 -3.7% / 恒科 -1.92% 倍数 1.93x", "现价 359.20 高出 MA20 (324.9) 10.6%",
+# "07226 -1.91% vs 恒科 -1.03% 杠杆差 0.88pp". 31 of 56 reports carried a
+# notice, mostly for figures like these, and a notice that is usually wrong
+# stops being read — including on the day it is right ("+6.3% alpha" for what
+# was 5.25pp).
+#
+# So a derived figure passes when it is the difference (pp), ratio (x) or
+# relative distance (%) of two numbers written EARLIER IN ITS OWN SENTENCE,
+# within the rounding all three were written with. Arithmetic without its
+# operands on the page ("杠杆放大比 ≈1.8x") still reports, and so does wrong
+# arithmetic with them. Only the nearest few numbers qualify, so a long
+# sentence of figures cannot vouch for an arbitrary one.
+_OPERAND = re.compile(
+    rf'(?<![A-Za-z0-9_./])({_UNIT_NUM})(?![\d/])\s*([%％]|pp\b|个百分点|百分点)?',
+    re.IGNORECASE)
+# A letter touching the number makes it a label ("5d", "M3"); a unit after a
+# space still counts ("6200 股", "20 日线"), but a word does not ("HK$533 vs").
+_NOT_A_QUANTITY_AFTER = re.compile(r'[A-Za-z]|\s*[σ×股万亿日天月年号条只手次]')
+DERIVED_OPERANDS = 4
+_DERIVED_FROM = {'pp': ('pct',), 'multiple': ('pct',), 'percent': ('plain',)}
+
+
+def _sentence_operands(text, start, kinds):
+    """The nearest DERIVED_OPERANDS numbers of `kinds` before `start`, same sentence."""
+    begin = max(text.rfind(mark, 0, start) for mark in '\n。！？；;') + 1
+    operands = []
+    for match in _OPERAND.finditer(text, begin, start):
+        raw, unit = match.group(1), match.group(2)
+        if re.match(r'[+-]?0\d', raw):  # a numeric ticker, not a quantity
+            continue
+        if not unit and _NOT_A_QUANTITY_AFTER.match(text, match.end(1), start):
+            continue
+        kind = 'plain' if not unit else 'pct' if unit in '%％' else 'pp'
+        if kind in kinds:
+            operands.append((_as_number(raw), _rounding_tolerance(raw)))
+    return operands[-DERIVED_OPERANDS:]
+
+
+def _derived_range(unit, a, ta, b, tb):
+    """|f(a, b)| over every rounding of both operands, as (low, high)."""
+    if unit != 'pp' and b - tb <= 0 <= b + tb:
+        return None
+    op = {'pp': lambda x, y: x - y,
+          'multiple': lambda x, y: x / y,
+          'percent': lambda x, y: (x / y - 1) * 100}[unit]
+    values = [op(x, y) for x in (a - ta, a + ta) for y in (b - tb, b + tb)]
+    low, high = min(values), max(values)
+    if low <= 0 <= high:
+        return 0.0, max(-low, high)
+    return min(abs(low), abs(high)), max(abs(low), abs(high))
+
+
+def _derived_in_sentence(text, at, unit, raw):
+    kinds = _DERIVED_FROM.get(unit)
+    claim = _as_number(raw)
+    if not kinds or claim is None:
+        return False
+    target, tolerance = abs(claim), _rounding_tolerance(raw)
+    operands = _sentence_operands(text, at, kinds)
+    for i, (a, ta) in enumerate(operands):
+        for j, (b, tb) in enumerate(operands):
+            span = None if i == j else _derived_range(unit, a, ta, b, tb)
+            if span and span[0] <= target + tolerance and span[1] >= target - tolerance:
+                return True
+    return False
+
+
+def _runs_backwards(lo, hi):
+    """A range that describes nothing — not one ordered by size of a fall.
+
+    "-1~-2%" / "0~-3.69%" is how a fall is said (跌 1 到 2 个点): 7 runs sent
+    2026-08-31..09-14 were told such a range was "区间自相矛盾", every one of
+    them an ordinary read. Only a range starting above zero and
+    ending below its start — the shipped "+0.3~-0.4%", or "5~1%" — is
+    backwards.
+    """
+    return lo is not None and hi is not None and lo > 0 and lo > hi
+
+
 def check_numeric_claims(text, ctx):
     """Flag unit-bearing magnitudes the context never states, and impossible
     percentage ranges.
@@ -281,9 +424,12 @@ def check_numeric_claims(text, ctx):
     """
     known = _context_numbers(ctx)
     known_by_unit = _context_unit_numbers(ctx)
+    shown_products = _shown_product_results(text, known)
     unverified = []
 
-    def check(value, label, tolerance):
+    def check(value, label, tolerance, at=None):
+        if at in shown_products['currency']:
+            return
         if _states(known, value, tolerance):
             return
         if label not in unverified:
@@ -292,20 +438,31 @@ def check_numeric_claims(text, ctx):
     for raw, magnitude in _SHARE_CLAIM.findall(text):
         check(_as_number(raw, magnitude), f'{raw}{magnitude or ""}股',
               _rounding_tolerance(raw, magnitude))
-    for cur_num, cur_mag, num_cur, mag_cur in _CURRENCY_CLAIM.findall(text):
-        raw, magnitude = (cur_num, cur_mag) if cur_num else (num_cur, mag_cur)
+    for match in _CURRENCY_CLAIM.finditer(text):
+        if match.group(1):
+            raw, magnitude, at = match.group(1), match.group(2), match.start(1)
+        else:
+            raw, magnitude, at = match.group(3), match.group(4), match.start(3)
         amount = _as_number(raw, magnitude)
         if amount is not None and abs(amount) >= MIN_CHECKED_AMOUNT:
             check(amount, f'{raw}{magnitude or ""}',
-                  _rounding_tolerance(raw, magnitude))
+                  _rounding_tolerance(raw, magnitude), at)
 
     def check_unit(unit, raw, at):
         if unit == 'percent' and _is_hypothetical_percent(text, at):
+            return
+        if unit == 'percent' and at in shown_products['percent']:
             return
         # The unit set stays exact-per-unit on purpose: a rounding is a rounding
         # of the SAME quantity, so widening tolerance must not also let a percent
         # authorize a multiple. Only the width changes here.
         if _states(known_by_unit[unit], _as_number(raw), _rounding_tolerance(raw)):
+            return
+        # An operand of a written-out product ("0.38% × 6200 × 现价") is not a
+        # claimed multiple; the formula is what the SKILL asks prose to show.
+        if unit == 'multiple' and re.search(r'[×*]\s*$', text[max(0, at - 4):at]):
+            return
+        if _derived_in_sentence(text, at, unit, raw):
             return
         label = f'{raw}{_UNIT_LABELS[unit]}'
         if label not in unverified:
@@ -320,14 +477,15 @@ def check_numeric_claims(text, ctx):
     # checked against anything. That blind spot was invisible while the upper
     # bound alone kept these findings alive — the shipped "+0.3~-0.4%" defect
     # this gate exists for is a fabricated LOWER bound as much as an upper one.
-    for lo, hi in _RANGE.findall(text):
-        for raw in (lo, hi):
-            check_unit('percent', raw, text.find(raw))
+    for match in _RANGE.finditer(text):
+        # The bound's own position: `text.find(raw)` located "0" of "0~-0.1%"
+        # at the first zero anywhere in the report.
+        check_unit('percent', match.group(1), match.start(1))
+        check_unit('percent', match.group(2), match.start(2))
 
     impossible = [
         f'{lo}~{hi}%' for lo, hi in _RANGE.findall(text)
-        if (_as_number(lo) is not None and _as_number(hi) is not None
-            and (_as_number(lo) > _as_number(hi)))
+        if _runs_backwards(_as_number(lo), _as_number(hi))
     ]
 
     parts = []

@@ -956,6 +956,28 @@ def _card_self_reference_issues(judgment_path):
     return check_pipeline_self_reference(assessment, label='微信卡核心结论')
 
 
+# The plan fields `decision.plans._entry` projects into `plan_context` — which
+# every later report and intraday context carries, and whose prose repeats them
+# to kcn. Replaying 2026-08-31..09-14: all 13 delivered leaks had the term in
+# their plan_context, 166 of 189 slot contexts carried "packet", and every
+# plan.json since 08-26 wrote it into a rationale. The report-side rule and
+# check (#1512) only see the copy; this is where it enters.
+PLAN_DOWNSTREAM_TEXT = (('rationale',), ('condition', 'description'))
+
+
+def _plan_self_reference_issues(plan):
+    rows = plan.get('decisions') if isinstance(plan, dict) else None
+    texts = []
+    for row in rows or []:
+        for path in PLAN_DOWNSTREAM_TEXT:
+            node = row
+            for key in path:
+                node = node.get(key) if isinstance(node, dict) else None
+            if isinstance(node, str):
+                texts.append(node)
+    return check_pipeline_self_reference('\n'.join(texts), label='plan 理由/触发条件')
+
+
 def main(argv=None):
     import argparse
     ap = argparse.ArgumentParser()
@@ -1021,6 +1043,7 @@ def main(argv=None):
         WS / 'memory' / '.tmp' / f'brief-judgment-{today}.json', decision_packet)
     issues += _card_self_reference_issues(
         WS / 'memory' / '.tmp' / f'brief-judgment-{today}.json')
+    issues += _plan_self_reference_issues(normalized_plan)
 
     # The report is rendered here, from the judgment and the normalized plan —
     # the model no longer writes markdown at all (see clawock.harness.

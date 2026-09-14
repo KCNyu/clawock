@@ -77,13 +77,44 @@ def test_brief_card_assessment_is_checked(tmp_path):
     assert pf._card_self_reference_issues(tmp_path / 'missing.json') == []
 
 
-def test_brief_card_leak_reaches_delivered_message_as_information(tmp_path, monkeypatch):
+PLAN_LEAK = {'decisions': [{
+    'ticker': '00100', 'action': 'hold_and_watch', 'rationale': '三个 STOP 同时亮',
+    # 2026-09-14 plan.json, carried verbatim into that day's report contexts.
+    'condition': {'type': 'manual',
+                  'description': 'packet 锁定 [hold_and_watch, watch], 不允许 trim'},
+}]}
+
+
+def test_brief_plan_text_that_later_reports_carry_is_checked():
+    pf = importlib.import_module('clawock.harness.brief_postflight')
+    issues = pf._plan_self_reference_issues(PLAN_LEAK)
+    assert len(issues) == 1 and 'packet' in issues[0] and val.is_advisory(issues[0])
+    # Page-only debate text is not carried downstream and stays unchecked.
+    assert pf._plan_self_reference_issues({'decisions': [
+        {'rationale': '风控只允许持有观察', 'debate': {'judge': 'packet 边界内'}}]}) == []
+    assert pf._plan_self_reference_issues(None) == []
+
+
+def test_checked_plan_fields_are_the_ones_plan_context_carries():
+    from clawock.decision import plans
+    pf = importlib.import_module('clawock.harness.brief_postflight')
+    entry = plans._entry({'rationale': 'packet R', 'condition': {'description': 'packet D'}})
+    assert {entry['rationale'], entry['condition_detail']} == {'packet R', 'packet D'}
+    assert {tuple(p) for p in pf.PLAN_DOWNSTREAM_TEXT} == {('rationale',), ('condition', 'description')}
+
+
+@pytest.mark.parametrize('assessment, plan, term', [
+    (CARD_LEAK, {}, 'preflight'),
+    ('今天仍有 4 条风控超限。', PLAN_LEAK, 'packet'),
+])
+def test_brief_card_leak_reaches_delivered_message_as_information(
+        tmp_path, monkeypatch, assessment, plan, term):
     """Exercise brief main through the message handed to the delivery policy."""
     pf = importlib.import_module('clawock.harness.brief_postflight')
     today = '2026-09-14'
     judgment = tmp_path / 'memory' / '.tmp' / f'brief-judgment-{today}.json'
     judgment.parent.mkdir(parents=True)
-    judgment.write_text(json.dumps({'portfolio_assessment': CARD_LEAK}), encoding='utf-8')
+    judgment.write_text(json.dumps({'portfolio_assessment': assessment}), encoding='utf-8')
     sent = []
 
     monkeypatch.setattr(pf, 'WS', tmp_path)
@@ -96,7 +127,7 @@ def test_brief_card_leak_reaches_delivered_message_as_information(tmp_path, monk
                         lambda *_a, **_k: None)
     monkeypatch.setattr(pf, 'load_preflight_context', lambda _path: ({}, None))
     monkeypatch.setattr(pf, 'normalize_plan_json',
-                        lambda *_a, **_k: ([], {}))
+                        lambda *_a, **_k: ([], plan))
     monkeypatch.setattr(pf, '_judgment_gap_issues', lambda *_a, **_k: [])
     monkeypatch.setattr(pf.brief_render, 'render_from_workspace',
                         lambda *_a, **_k: ([], None))
@@ -119,7 +150,7 @@ def test_brief_card_leak_reaches_delivered_message_as_information(tmp_path, monk
     assert pf.main(['--dry-run']) == 0
     assert len(sent) == 1
     assert sent[0].startswith('ℹ️ 校验提示（不影响投递）')
-    assert 'preflight' in sent[0]
+    assert term in sent[0]
     assert '⚠️' not in sent[0]
     assert val.ADVISORY_MARK not in sent[0]
 

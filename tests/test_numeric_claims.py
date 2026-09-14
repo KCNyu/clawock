@@ -293,6 +293,95 @@ def test_both_bounds_of_a_range_are_unit_checked(hc):
     assert issue and "0.2%" in issue[0], issue
 
 
+# ── Shown work is not invention ───────────────────────────────────────────────
+# Replayed against every report/intraday slot sent 2026-08-31..09-14 (189 runs,
+# prose and context recovered from the cron sessions): 31 of 56 reports carried
+# a numeric notice, and most labels were correct arithmetic on numbers the same
+# sentence quoted, backwards-looking-but-ordinary ranges, or parser artefacts.
+
+@pytest.mark.parametrize("prose, block", [
+    # 2026-09-10 hk-open
+    ("07226 -3.7% / 恒科 -1.92% 倍数 1.93x 落在杠杆 ETF 正常放大区间。", "07226 -3.7% 恒科 -1.92%"),
+    # 2026-08-31 hk-mid
+    ("07226 -1.91% vs 恒科 -1.03% 杠杆差 0.88pp 正常放大。", "07226 -1.91% 恒科 -1.03%"),
+    # 2026-09-03 hk-mid: a relative distance between two quoted levels
+    ("00100 现价 359.20 高出 MA20 (324.9) 10.6%，短线动量偏强。", ""),
+    # 2026-09-10 hk-pm
+    ("00100 浮 -46.3% 已破 -45% 警戒线, 离 -60% mandatory cap 还差 13.7pp。",
+     "浮 -46.3% 警戒 -45% cap -60%"),
+])
+def test_arithmetic_on_operands_its_sentence_quotes_passes(hc, prose, block):
+    assert hc.check_numeric_claims(prose, {"raw_wechat_block": block}) == []
+
+
+def test_wrong_arithmetic_with_its_operands_still_reports(hc):
+    # 2026-09-03 14:00 HK intraday: 4.5 against -0.75 is 5.25, not 6.3.
+    ctx = {"raw_wechat_block": "00100 +4.5% 恒科 -0.75%"}
+    issue = hc.check_numeric_claims("00100 +4.5% 跑赢恒科 -0.75% 共 6.3pp。", ctx)
+    assert issue and "6.3pp" in issue[0]
+
+
+def test_operands_must_be_in_the_same_sentence(hc):
+    ctx = {"raw_wechat_block": "07226 -3.7% 恒科 -1.92%"}
+    issue = hc.check_numeric_claims("07226 -3.7%，恒科 -1.92%。杠杆倍数 1.93x。", ctx)
+    assert issue and "1.93x" in issue[0]
+
+
+@pytest.mark.parametrize("prose", [
+    "同行 5d 全 -10~-21%。",                  # 2026-09-11 hk-open
+    "三只 HSTECH 衍生品同步贴地 0~-0.1%。",   # 2026-09-14 hk-pm
+    "HSTECH 权重股集体 -1.6~-3.1%。",          # 2026-09-01 15:00 HK intraday
+])
+def test_a_fall_ordered_by_size_is_not_a_contradiction(hc, prose):
+    ctx = {"raw_wechat_block": "-10% -21% 0% -0.1% -1.6% -3.1%"}
+    assert hc.check_numeric_claims(prose, ctx) == []
+
+
+def test_a_written_out_product_is_not_a_claimed_multiple(hc):
+    # 2026-09-14 hk-pm "0.38% × 6200 × 现价" and 2026-09-10 us-close
+    # "300×$9.79" were reported as "6200x" / "300x".
+    ctx = {"raw_wechat_block": "drag 0.38%"}
+    assert hc.check_numeric_claims("chop drag（0.38% × 6200 × 现价）。SPCH 300×$9.79 释放现金。", ctx) == []
+
+
+@pytest.mark.parametrize("prose, block", [
+    # 2026-09-10 hk-open: the result, not only the scalar operand, was noisy.
+    ("07226 -3.7% 与恒科 -1.92% × 2 ≈ -3.84% 杠杆放大逻辑一致。",
+     "07226 -3.7% 恒科 -1.92%"),
+    # 2026-09-10 us-close: 300 * 9.79 = 2937, explicitly rounded to 2,940.
+    ("SPCH cut 按收价释放 300×$9.79 ≈ $2,940。", "SPCH 300股 $9.79"),
+])
+def test_correct_explicit_products_pass(hc, prose, block):
+    assert hc.check_numeric_claims(prose, {"raw_wechat_block": block}) == []
+
+
+@pytest.mark.parametrize("prose, bad_result", [
+    ("07226 -1.92% × 2 ≈ -3.50%。", "-3.50%"),
+    ("SPCH 300×$9.79 ≈ $2,900。", "2,900"),
+])
+def test_wrong_explicit_products_still_report(hc, prose, bad_result):
+    issue = hc.check_numeric_claims(prose, {"raw_wechat_block": "-1.92% 300股 $9.79"})
+    assert issue and bad_result in issue[0]
+
+
+def test_product_result_must_keep_the_computed_unit(hc):
+    issue = hc.check_numeric_claims("SPCH 300×$9.79 ≈ 2,940%。", {"raw_wechat_block": "$9.79"})
+    assert issue and "2,940%" in issue[0]
+
+
+def test_currency_product_operands_must_come_from_context(hc):
+    issue = hc.check_numeric_claims("SPCH 999×$9.79 ≈ $9,780。",
+                                    {"raw_wechat_block": "SPCH 300股 $9.79"})
+    assert issue and "9,780" in issue[0]
+
+
+def test_a_list_comma_is_not_a_thousands_separator(hc):
+    # 2026-09-08 hk-pm reported "00100,12pp" as one number.
+    issue = hc.check_numeric_claims("迅策 -5.4% 跌得接近 00100,12pp 背离。",
+                                    {"raw_wechat_block": "迅策 -5.4%"})
+    assert issue and "12pp" in issue[0] and "00100" not in issue[0]
+
+
 # ── An advisory-only run produced a clean report (#1076) ──────────────────────
 
 def test_product_status_reads_what_shipped_not_what_the_checker_noticed(hc):
