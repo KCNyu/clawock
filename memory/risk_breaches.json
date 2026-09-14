@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "updated_at": "2026-09-11T00:04:30+00:00",
+  "updated_at": "2026-09-14T00:12:48+00:00",
   "records": [
     {
       "breach_id": "risk-0a0af7ae3b3a",
@@ -11,16 +11,16 @@
       "severity": "critical",
       "first_seen_at": "2026-07-15T00:00:00+00:00",
       "current_opened_at": "2026-07-15T00:00:00+00:00",
-      "last_seen_at": "2026-09-11T00:04:30+00:00",
-      "last_changed_at": "2026-09-11T00:04:30+00:00",
-      "age_days": 58,
+      "last_seen_at": "2026-09-14T00:04:38+00:00",
+      "last_changed_at": "2026-09-14T00:04:38+00:00",
+      "age_days": 61,
       "recurrence_count": 1,
-      "detail": "RKLX 浮亏 -71.8% ≤ 硬止损线 -18%",
+      "detail": "RKLX 浮亏 -71.0% ≤ 硬止损线 -18%",
       "required_action": "RKLX 触发杠杆 ETF 硬止损 → 换仓 1x 同因子 RKLB（敞口保留、停 decay，规则非择时）；🧭转 green 再换回 2x",
       "required_reduction": {
         "kind": "full_leveraged_position",
         "minimum_shares": 10,
-        "minimum_value": 139.9,
+        "minimum_value": 143.9,
         "currency": "USD",
         "target_tickers": [
           "RKLX"
@@ -43,10 +43,10 @@
         "confirmed_at": null,
         "evidence": []
       },
-      "fingerprint": "fb9d631197e72541",
+      "fingerprint": "42cfd3902e214303",
       "resolution": null,
       "standing": {
-        "days_open": 58,
+        "days_open": 61,
         "threshold_days": 10,
         "undecided": true,
         "decision_overdue": true,
@@ -54,6 +54,44 @@
           "execute",
           "acknowledge",
           "override"
+        ]
+      },
+      "pressure": {
+        "kind": "pnl_pct",
+        "value": -71.0
+      },
+      "adaptive": {
+        "eligible": true,
+        "may_stand": true,
+        "must_reissue": false,
+        "must_reason": "",
+        "stance": {
+          "stance": "declined",
+          "since": "2026-07-15",
+          "target_tickers": [
+            "RKLX"
+          ],
+          "sells_on_target": 0,
+          "buys_on_target": 0,
+          "last_buy_on_target": null,
+          "trades_elsewhere_recent": 6,
+          "last_trade_elsewhere": "2026-09-10"
+        },
+        "anchor": {
+          "kind": "pnl_pct",
+          "value": -71.0
+        },
+        "anchor_severity": "critical",
+        "last_reissued_on": "2026-09-14",
+        "days_since_reissue": 0,
+        "forced_on": "2026-10-12",
+        "rearm_at": "浮亏 ≤ -81.0%",
+        "stances": [
+          {
+            "date": "2026-09-14",
+            "choice": "reissue",
+            "why": "硬止损 -71.0% ≤ -18% 线 critical 站 58d decision_overdue, 是 ledger 中最老的 breach; breakeven 需 +245.3% (5-sigma 不可达, σ=41% annual); chop drag 1.4%/月每天烧钱; RKLB 6/13 已清仓 swap_mandate = null 无 1x 替代, 纯 cut 释放 143.9 USD 现金。今日第 4 次重发, 站 58d 远超 10d 阈值 — "
+          }
         ]
       }
     },
@@ -66,16 +104,16 @@
       "severity": "critical",
       "first_seen_at": "2026-07-15T00:00:00+00:00",
       "current_opened_at": "2026-08-13T00:02:17+00:00",
-      "last_seen_at": "2026-09-11T00:04:30+00:00",
-      "last_changed_at": "2026-09-11T00:04:30+00:00",
-      "age_days": 29,
+      "last_seen_at": "2026-09-14T00:04:38+00:00",
+      "last_changed_at": "2026-09-14T00:04:38+00:00",
+      "age_days": 32,
       "recurrence_count": 3,
-      "detail": "07226 浮亏 -34.5% ≤ 硬止损线 -18%",
+      "detail": "07226 浮亏 -34.8% ≤ 硬止损线 -18%",
       "required_action": "07226 触发杠杆 ETF 硬止损 → 换仓 1x 同因子 03033（敞口保留、停 decay，规则非择时）；🧭转 green 再换回 2x",
       "required_reduction": {
         "kind": "full_leveraged_position",
         "minimum_shares": 6200,
-        "minimum_value": 17707.2,
+        "minimum_value": 17632.8,
         "currency": "HKD",
         "target_tickers": [
           "07226"
@@ -98,10 +136,10 @@
         "confirmed_at": null,
         "evidence": []
       },
-      "fingerprint": "271fe86a5b6a73d8",
+      "fingerprint": "84457ca716c298ac",
       "resolution": null,
       "standing": {
-        "days_open": 29,
+        "days_open": 32,
         "threshold_days": 10,
         "undecided": true,
         "decision_overdue": true,
@@ -110,60 +148,43 @@
           "acknowledge",
           "override"
         ]
-      }
-    },
-    {
-      "breach_id": "risk-95ac7f6cd591",
-      "type": "hard_stop",
-      "leg": "US",
-      "ticker": "SPCH",
-      "status": "open",
-      "severity": "critical",
-      "first_seen_at": "2026-07-15T00:00:00+00:00",
-      "current_opened_at": "2026-09-10T00:04:31+00:00",
-      "last_seen_at": "2026-09-11T00:04:30+00:00",
-      "last_changed_at": "2026-09-11T00:04:30+00:00",
-      "age_days": 1,
-      "recurrence_count": 3,
-      "detail": "SPCH 浮亏 -18.2% ≤ 硬止损线 -18%",
-      "required_action": "SPCH 触发杠杆 ETF 硬止损 → 换仓 1x 同因子 SPCX（敞口保留、停 decay，规则非择时）；🧭转 green 再换回 2x",
-      "required_reduction": {
-        "kind": "full_leveraged_position",
-        "minimum_shares": 300,
-        "minimum_value": 2961.0,
-        "currency": "USD",
-        "target_tickers": [
-          "SPCH"
-        ],
-        "swap_to": "SPCX"
       },
-      "acknowledgement": {
-        "status": "unacknowledged",
-        "acknowledged_at": null,
-        "note": ""
+      "pressure": {
+        "kind": "pnl_pct",
+        "value": -34.8
       },
-      "override": {
-        "status": "none",
-        "reason": "",
-        "created_at": null,
-        "expires_at": null
-      },
-      "execution": {
-        "status": "pending",
-        "confirmed_at": null,
-        "evidence": []
-      },
-      "fingerprint": "1d0fe0b4711a93ed",
-      "resolution": null,
-      "standing": {
-        "days_open": 1,
-        "threshold_days": 10,
-        "undecided": true,
-        "decision_overdue": false,
-        "closes_with": [
-          "execute",
-          "acknowledge",
-          "override"
+      "adaptive": {
+        "eligible": true,
+        "may_stand": true,
+        "must_reissue": false,
+        "must_reason": "",
+        "stance": {
+          "stance": "declined",
+          "since": "2026-08-13",
+          "target_tickers": [
+            "07226"
+          ],
+          "sells_on_target": 0,
+          "buys_on_target": 0,
+          "last_buy_on_target": null,
+          "trades_elsewhere_recent": 6,
+          "last_trade_elsewhere": "2026-09-10"
+        },
+        "anchor": {
+          "kind": "pnl_pct",
+          "value": -34.8
+        },
+        "anchor_severity": "critical",
+        "last_reissued_on": "2026-09-14",
+        "days_since_reissue": 0,
+        "forced_on": "2026-10-12",
+        "rearm_at": "浮亏 ≤ -44.8%",
+        "stances": [
+          {
+            "date": "2026-09-14",
+            "choice": "reissue",
+            "why": "硬止损 -34.8% ≤ -18% 线 critical 站 29d decision_overdue + HK 杠杆 ETF 30.0% > 25% amber cap 双闸并发。breakeven 需 +53.4% (2x) 或 +25.3% (1x 6m 含 drag) — 标的仍需涨 +25% 才能在 2x 路径上回本，6m 窗口内 2x 多付 chop drag ≈ +5pp 净成本。1x 替代 03033 buy 腿 blocked (no_approved_se"
+          }
         ]
       }
     },
@@ -176,15 +197,15 @@
       "severity": "high",
       "first_seen_at": "2026-07-15T00:00:00+00:00",
       "current_opened_at": "2026-07-15T00:00:00+00:00",
-      "last_seen_at": "2026-09-11T00:04:30+00:00",
-      "last_changed_at": "2026-09-11T00:04:30+00:00",
-      "age_days": 58,
+      "last_seen_at": "2026-09-14T00:04:38+00:00",
+      "last_changed_at": "2026-09-14T00:04:38+00:00",
+      "age_days": 61,
       "recurrence_count": 1,
-      "detail": "SPCH = 86.33% of US (mandatory cap 35%; 2x/3x)",
-      "required_action": "纪律性 trim SPCH → ≤35% (减约 2708.61 USD，借反弹分批、勿在新低日一次砍)",
+      "detail": "SPCH = 86.6% of US (mandatory cap 35%; 2x/3x)",
+      "required_action": "纪律性 trim SPCH → ≤35% (减约 2821.53 USD，借反弹分批、勿在新低日一次砍)",
       "required_reduction": {
         "kind": "market_value",
-        "minimum_value": 2708.61,
+        "minimum_value": 2821.53,
         "currency": "USD",
         "target_pct": 35,
         "target_tickers": [
@@ -207,10 +228,10 @@
         "confirmed_at": null,
         "evidence": []
       },
-      "fingerprint": "0a49ae28ded2ccb9",
+      "fingerprint": "741d97f8e96e654a",
       "resolution": null,
       "standing": {
-        "days_open": 58,
+        "days_open": 61,
         "threshold_days": 10,
         "undecided": true,
         "decision_overdue": true,
@@ -218,6 +239,46 @@
           "execute",
           "acknowledge",
           "override"
+        ]
+      },
+      "pressure": {
+        "kind": "minimum_value",
+        "value": 2821.53,
+        "currency": "USD"
+      },
+      "adaptive": {
+        "eligible": true,
+        "may_stand": true,
+        "must_reissue": false,
+        "must_reason": "",
+        "stance": {
+          "stance": "contrary",
+          "since": "2026-07-15",
+          "target_tickers": [
+            "SPCH"
+          ],
+          "sells_on_target": 0,
+          "buys_on_target": 13,
+          "last_buy_on_target": "2026-08-20",
+          "trades_elsewhere_recent": 1,
+          "last_trade_elsewhere": "2026-09-10"
+        },
+        "anchor": {
+          "kind": "minimum_value",
+          "value": 2821.53,
+          "currency": "USD"
+        },
+        "anchor_severity": "high",
+        "last_reissued_on": "2026-09-14",
+        "days_since_reissue": 0,
+        "forced_on": "2026-10-12",
+        "rearm_at": "需减额 ≥ 4,232 USD",
+        "stances": [
+          {
+            "date": "2026-09-14",
+            "choice": "reissue",
+            "why": "硬止损 -18.2% ≤ -18% 线 critical + 单名 86.6% > 35% mandatory + US 杠杆 ETF 90.6% > 50% + US β 6.34 > 3.0 四闸并发; breach 站 57d 远超 10d 阈值。今日第 4 次重发。cut 释放 3,078 USD 现金暂存 — SPCX buy 腿 blocked (SPCX.allowed_actions=[hold_and_watch, watch], add 不在权限), 释放"
+          }
         ]
       }
     },
@@ -230,15 +291,15 @@
       "severity": "high",
       "first_seen_at": "2026-07-15T00:00:00+00:00",
       "current_opened_at": "2026-07-15T00:00:00+00:00",
-      "last_seen_at": "2026-09-11T00:04:30+00:00",
-      "last_changed_at": "2026-09-11T00:04:30+00:00",
-      "age_days": 58,
+      "last_seen_at": "2026-09-14T00:04:38+00:00",
+      "last_changed_at": "2026-09-14T00:04:38+00:00",
+      "age_days": 61,
       "recurrence_count": 1,
-      "detail": "US 杠杆 ETF = 90.4% (cap 50%) — 2x 日内重置，下杀崩/震荡衰减",
-      "required_action": "降杠杆=换仓非清仓：把约 1386.04 USD 的 2x 换成 1x 同因子(RKLX→RKLB、SPCH→SPCX)，敞口不变、停 decay；🧭转 green 后可换回 2x",
+      "detail": "US 杠杆 ETF = 90.6% (cap 50%) — 2x 日内重置，下杀崩/震荡衰减",
+      "required_action": "降杠杆=换仓非清仓：把约 1444.75 USD 的 2x 换成 1x 同因子(RKLX→RKLB、SPCH→SPCX)，敞口不变、停 decay；🧭转 green 后可换回 2x",
       "required_reduction": {
         "kind": "leveraged_market_value",
-        "minimum_value": 1386.04,
+        "minimum_value": 1444.75,
         "currency": "USD",
         "target_pct": 50,
         "target_tickers": [
@@ -303,10 +364,10 @@
           }
         ]
       },
-      "fingerprint": "f7a89a3d4c159769",
+      "fingerprint": "7fe70215a9b6d0d2",
       "resolution": null,
       "standing": {
-        "days_open": 58,
+        "days_open": 61,
         "threshold_days": 10,
         "undecided": true,
         "decision_overdue": true,
@@ -314,6 +375,47 @@
           "execute",
           "acknowledge",
           "override"
+        ]
+      },
+      "pressure": {
+        "kind": "minimum_value",
+        "value": 1444.75,
+        "currency": "USD"
+      },
+      "adaptive": {
+        "eligible": true,
+        "may_stand": true,
+        "must_reissue": false,
+        "must_reason": "",
+        "stance": {
+          "stance": "contrary",
+          "since": "2026-07-15",
+          "target_tickers": [
+            "RKLX",
+            "SPCH"
+          ],
+          "sells_on_target": 0,
+          "buys_on_target": 13,
+          "last_buy_on_target": "2026-08-20",
+          "trades_elsewhere_recent": 1,
+          "last_trade_elsewhere": "2026-09-10"
+        },
+        "anchor": {
+          "kind": "minimum_value",
+          "value": 1444.75,
+          "currency": "USD"
+        },
+        "anchor_severity": "high",
+        "last_reissued_on": "2026-09-14",
+        "days_since_reissue": 0,
+        "forced_on": "2026-10-12",
+        "rearm_at": "需减额 ≥ 2,167 USD",
+        "stances": [
+          {
+            "date": "2026-09-14",
+            "choice": "reissue",
+            "why": "硬止损 -71.0% ≤ -18% 线 critical 站 58d decision_overdue, 是 ledger 中最老的 breach; breakeven 需 +245.3% (5-sigma 不可达, σ=41% annual); chop drag 1.4%/月每天烧钱; RKLB 6/13 已清仓 swap_mandate = null 无 1x 替代, 纯 cut 释放 143.9 USD 现金。今日第 4 次重发, 站 58d 远超 10d 阈值 — "
+          }
         ]
       }
     },
@@ -326,15 +428,15 @@
       "severity": "high",
       "first_seen_at": "2026-07-15T00:00:00+00:00",
       "current_opened_at": "2026-07-15T00:00:00+00:00",
-      "last_seen_at": "2026-09-11T00:04:30+00:00",
-      "last_changed_at": "2026-09-11T00:04:30+00:00",
-      "age_days": 58,
+      "last_seen_at": "2026-09-14T00:04:38+00:00",
+      "last_changed_at": "2026-09-14T00:04:38+00:00",
+      "age_days": 61,
       "recurrence_count": 1,
-      "detail": "HK 杠杆 ETF = 28.8% (cap 25%) — 2x 日内重置，下杀崩/震荡衰减（🧭HK制度 amber：基准 50% ×0.5 → 25%，趋势OFF：杠杆敞口上限砍半）",
-      "required_action": "降杠杆=换仓非清仓：把约 2325.4 HKD 的 2x 换成 1x 同因子(07226→03033)，敞口不变、停 decay；🧭转 green 后可换回 2x",
+      "detail": "HK 杠杆 ETF = 30.0% (cap 25%) — 2x 日内重置，下杀崩/震荡衰减（🧭HK制度 amber：基准 50% ×0.5 → 25%，趋势OFF：杠杆敞口上限砍半）",
+      "required_action": "降杠杆=换仓非清仓：把约 2935.0 HKD 的 2x 换成 1x 同因子(07226→03033)，敞口不变、停 decay；🧭转 green 后可换回 2x",
       "required_reduction": {
         "kind": "leveraged_market_value",
-        "minimum_value": 2325.4,
+        "minimum_value": 2935.0,
         "currency": "HKD",
         "target_pct": 25,
         "target_tickers": [
@@ -357,10 +459,10 @@
         "confirmed_at": null,
         "evidence": []
       },
-      "fingerprint": "f80403694024438d",
+      "fingerprint": "beac06fd821dbeba",
       "resolution": null,
       "standing": {
-        "days_open": 58,
+        "days_open": 61,
         "threshold_days": 10,
         "undecided": true,
         "decision_overdue": true,
@@ -368,6 +470,46 @@
           "execute",
           "acknowledge",
           "override"
+        ]
+      },
+      "pressure": {
+        "kind": "minimum_value",
+        "value": 2935.0,
+        "currency": "HKD"
+      },
+      "adaptive": {
+        "eligible": true,
+        "may_stand": true,
+        "must_reissue": false,
+        "must_reason": "",
+        "stance": {
+          "stance": "declined",
+          "since": "2026-07-15",
+          "target_tickers": [
+            "07226"
+          ],
+          "sells_on_target": 0,
+          "buys_on_target": 0,
+          "last_buy_on_target": null,
+          "trades_elsewhere_recent": 6,
+          "last_trade_elsewhere": "2026-09-10"
+        },
+        "anchor": {
+          "kind": "minimum_value",
+          "value": 2935.0,
+          "currency": "HKD"
+        },
+        "anchor_severity": "high",
+        "last_reissued_on": "2026-09-14",
+        "days_since_reissue": 0,
+        "forced_on": "2026-10-12",
+        "rearm_at": "需减额 ≥ 4,402 HKD",
+        "stances": [
+          {
+            "date": "2026-09-14",
+            "choice": "reissue",
+            "why": "硬止损 -34.8% ≤ -18% 线 critical 站 29d decision_overdue + HK 杠杆 ETF 30.0% > 25% amber cap 双闸并发。breakeven 需 +53.4% (2x) 或 +25.3% (1x 6m 含 drag) — 标的仍需涨 +25% 才能在 2x 路径上回本，6m 窗口内 2x 多付 chop drag ≈ +5pp 净成本。1x 替代 03033 buy 腿 blocked (no_approved_se"
+          }
         ]
       }
     },
@@ -380,11 +522,11 @@
       "severity": "high",
       "first_seen_at": "2026-07-15T00:00:00+00:00",
       "current_opened_at": "2026-09-04T00:06:12+00:00",
-      "last_seen_at": "2026-09-11T00:04:30+00:00",
-      "last_changed_at": "2026-09-11T00:04:30+00:00",
-      "age_days": 7,
+      "last_seen_at": "2026-09-14T00:04:38+00:00",
+      "last_changed_at": "2026-09-14T00:04:38+00:00",
+      "age_days": 10,
       "recurrence_count": 3,
-      "detail": "US β vs S&P = 5.4484 (cap 3.0) — 大盘 −1% 本子约 −5.4%",
+      "detail": "US β vs S&P = 6.3425 (cap 3.0) — 大盘 −1% 本子约 −6.3%",
       "required_action": "降 US β：优先削杠杆 ETF(β 主要来源)，不是砍单票 thesis",
       "required_reduction": {
         "kind": "beta",
@@ -410,69 +552,50 @@
         "confirmed_at": null,
         "evidence": []
       },
-      "fingerprint": "8e6ae9c6615b56b8",
+      "fingerprint": "c2c36e80ab003e22",
       "resolution": null,
       "standing": {
-        "days_open": 7,
+        "days_open": 10,
         "threshold_days": 10,
         "undecided": true,
-        "decision_overdue": false,
+        "decision_overdue": true,
         "closes_with": [
           "execute",
           "acknowledge",
           "override"
         ]
-      }
-    },
-    {
-      "breach_id": "risk-50dc9e7335c5",
-      "type": "regime_delever",
-      "leg": "US",
-      "ticker": "SPCH",
-      "status": "open",
-      "severity": "high",
-      "first_seen_at": "2026-07-15T00:00:00+00:00",
-      "current_opened_at": "2026-09-10T00:04:31+00:00",
-      "last_seen_at": "2026-09-11T00:04:30+00:00",
-      "last_changed_at": "2026-09-11T00:04:30+00:00",
-      "age_days": 1,
-      "recurrence_count": 6,
-      "detail": "🧭 SPCH=2xSPCX 完整波动率不可用；5日均线偏离 -0.8%，按 short_ma_5 右侧确认制度为 cut",
-      "required_action": "SPCH 2x→SPCX 现货换仓(driven_by=risk_rule,规则非择时)：完整波动率不可用，当前仅按 short_ma_5：标的仍在短均线下，2x 暂换现货；短均线重新确认后再评估",
-      "required_reduction": {
-        "kind": "full_leveraged_position",
-        "target_tickers": [
-          "SPCH"
-        ],
-        "swap_to": "SPCX"
       },
-      "acknowledgement": {
-        "status": "unacknowledged",
-        "acknowledged_at": null,
-        "note": ""
-      },
-      "override": {
-        "status": "none",
-        "reason": "",
-        "created_at": null,
-        "expires_at": null
-      },
-      "execution": {
-        "status": "pending",
-        "confirmed_at": null,
-        "evidence": []
-      },
-      "fingerprint": "cee0f207ebf06d2c",
-      "resolution": null,
-      "standing": {
-        "days_open": 1,
-        "threshold_days": 10,
-        "undecided": true,
-        "decision_overdue": false,
-        "closes_with": [
-          "execute",
-          "acknowledge",
-          "override"
+      "pressure": null,
+      "adaptive": {
+        "eligible": true,
+        "may_stand": true,
+        "must_reissue": false,
+        "must_reason": "",
+        "stance": {
+          "stance": "declined",
+          "since": "2026-09-04",
+          "target_tickers": [
+            "RKLX",
+            "SPCH"
+          ],
+          "sells_on_target": 0,
+          "buys_on_target": 0,
+          "last_buy_on_target": null,
+          "trades_elsewhere_recent": 1,
+          "last_trade_elsewhere": "2026-09-10"
+        },
+        "anchor": null,
+        "anchor_severity": "high",
+        "last_reissued_on": "2026-09-14",
+        "days_since_reissue": 0,
+        "forced_on": "2026-10-12",
+        "rearm_at": "严重度升级",
+        "stances": [
+          {
+            "date": "2026-09-14",
+            "choice": "reissue",
+            "why": "硬止损 -71.0% ≤ -18% 线 critical 站 58d decision_overdue, 是 ledger 中最老的 breach; breakeven 需 +245.3% (5-sigma 不可达, σ=41% annual); chop drag 1.4%/月每天烧钱; RKLB 6/13 已清仓 swap_mandate = null 无 1x 替代, 纯 cut 释放 143.9 USD 现金。今日第 4 次重发, 站 58d 远超 10d 阈值 — "
+          }
         ]
       }
     },
@@ -568,6 +691,64 @@
       "resolution": {
         "resolved_at": "2026-07-29T00:01:36+00:00",
         "reason": "state_compliant"
+      }
+    },
+    {
+      "breach_id": "risk-95ac7f6cd591",
+      "type": "hard_stop",
+      "leg": "US",
+      "ticker": "SPCH",
+      "status": "resolved",
+      "severity": "critical",
+      "first_seen_at": "2026-07-15T00:00:00+00:00",
+      "current_opened_at": "2026-09-10T00:04:31+00:00",
+      "last_seen_at": "2026-09-11T00:04:30+00:00",
+      "last_changed_at": "2026-09-14T00:04:38+00:00",
+      "age_days": 1,
+      "recurrence_count": 3,
+      "detail": "SPCH 浮亏 -18.2% ≤ 硬止损线 -18%",
+      "required_action": "SPCH 触发杠杆 ETF 硬止损 → 换仓 1x 同因子 SPCX（敞口保留、停 decay，规则非择时）；🧭转 green 再换回 2x",
+      "required_reduction": {
+        "kind": "full_leveraged_position",
+        "minimum_shares": 300,
+        "minimum_value": 2961.0,
+        "currency": "USD",
+        "target_tickers": [
+          "SPCH"
+        ],
+        "swap_to": "SPCX"
+      },
+      "acknowledgement": {
+        "status": "unacknowledged",
+        "acknowledged_at": null,
+        "note": ""
+      },
+      "override": {
+        "status": "none",
+        "reason": "",
+        "created_at": null,
+        "expires_at": null
+      },
+      "execution": {
+        "status": "pending",
+        "confirmed_at": null,
+        "evidence": []
+      },
+      "fingerprint": "1d0fe0b4711a93ed",
+      "resolution": {
+        "resolved_at": "2026-09-14T00:04:38+00:00",
+        "reason": "state_compliant"
+      },
+      "standing": {
+        "days_open": 1,
+        "threshold_days": 10,
+        "undecided": true,
+        "decision_overdue": false,
+        "closes_with": [
+          "execute",
+          "acknowledge",
+          "override"
+        ]
       }
     },
     {
@@ -719,6 +900,61 @@
       },
       "standing": {
         "days_open": 3,
+        "threshold_days": 10,
+        "undecided": true,
+        "decision_overdue": false,
+        "closes_with": [
+          "execute",
+          "acknowledge",
+          "override"
+        ]
+      }
+    },
+    {
+      "breach_id": "risk-50dc9e7335c5",
+      "type": "regime_delever",
+      "leg": "US",
+      "ticker": "SPCH",
+      "status": "resolved",
+      "severity": "high",
+      "first_seen_at": "2026-07-15T00:00:00+00:00",
+      "current_opened_at": "2026-09-10T00:04:31+00:00",
+      "last_seen_at": "2026-09-11T00:04:30+00:00",
+      "last_changed_at": "2026-09-14T00:04:38+00:00",
+      "age_days": 1,
+      "recurrence_count": 6,
+      "detail": "🧭 SPCH=2xSPCX 完整波动率不可用；5日均线偏离 -0.8%，按 short_ma_5 右侧确认制度为 cut",
+      "required_action": "SPCH 2x→SPCX 现货换仓(driven_by=risk_rule,规则非择时)：完整波动率不可用，当前仅按 short_ma_5：标的仍在短均线下，2x 暂换现货；短均线重新确认后再评估",
+      "required_reduction": {
+        "kind": "full_leveraged_position",
+        "target_tickers": [
+          "SPCH"
+        ],
+        "swap_to": "SPCX"
+      },
+      "acknowledgement": {
+        "status": "unacknowledged",
+        "acknowledged_at": null,
+        "note": ""
+      },
+      "override": {
+        "status": "none",
+        "reason": "",
+        "created_at": null,
+        "expires_at": null
+      },
+      "execution": {
+        "status": "pending",
+        "confirmed_at": null,
+        "evidence": []
+      },
+      "fingerprint": "cee0f207ebf06d2c",
+      "resolution": {
+        "resolved_at": "2026-09-14T00:04:38+00:00",
+        "reason": "state_compliant"
+      },
+      "standing": {
+        "days_open": 1,
         "threshold_days": 10,
         "undecided": true,
         "decision_overdue": false,
