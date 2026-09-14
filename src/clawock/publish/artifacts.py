@@ -499,6 +499,23 @@ def _quote_date(data_source, ref):
         return None
 
 
+def weekly_review_week_id(env=None, today: date | None = None) -> str:
+    """The ISO week whose review the weekly-review check reads.
+
+    The scheduled run reviews the current week. A backfill (workflow_dispatch with
+    as_of) sets WEEKLY_REVIEW_WEEK, so the check reads the file the review wrote
+    rather than this week's, which does not exist yet.
+    """
+    env = os.environ if env is None else env
+    week = (env.get('WEEKLY_REVIEW_WEEK') or '').strip()
+    if week:
+        assert re.fullmatch(r'\d{4}-W\d{2}', week), (
+            f'WEEKLY_REVIEW_WEEK is not an ISO week: {week!r}')
+        return week
+    iso_year, iso_week, _ = (today or date.today()).isocalendar()
+    return f'{iso_year}-W{iso_week:02d}'
+
+
 def validate_weekly_review(
         md_path: Path | str, *, week_id: str | None = None) -> None:
     path = Path(md_path)
@@ -1043,8 +1060,7 @@ def _dispatch(name: str) -> None:
     elif name == 'eod-archive':
         validate_eod_archive('memory/archive/eod-history.csv', 'portfolio.json')
     elif name == 'weekly-review':
-        iso_year, iso_week, _ = date.today().isocalendar()
-        week_id = f'{iso_year}-W{iso_week:02d}'
+        week_id = weekly_review_week_id()
         validate_weekly_review(f'memory/weekly/{week_id}.md', week_id=week_id)
     elif name == 'screenshots':
         validate_screenshots(tuple(

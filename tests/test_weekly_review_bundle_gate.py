@@ -184,13 +184,13 @@ def test_weekly_malformed_snapshot_names_missing_nav_before_llm(
     malformed.write_text('{', encoding='utf-8')
     _write_json(tmp_path / 'assets/data/risk.json', {'combined': {'beta': 1.2}})
     bundle = weekly.aggregate_week(today=date(2026, 7, 26))
-    monkeypatch.setattr(weekly, 'aggregate_week', lambda: bundle)
+    monkeypatch.setattr(weekly, 'aggregate_week', lambda as_of=None: bundle)
     monkeypatch.setattr(
         weekly, 'chat',
         lambda **kwargs: pytest.fail('thin bundle must not call the LLM'))
 
     with pytest.raises(RuntimeError) as exc_info:
-        weekly.main()
+        weekly.main([])
 
     message = str(exc_info.value)
     assert 'start/end NAV from two dated snapshots' in message

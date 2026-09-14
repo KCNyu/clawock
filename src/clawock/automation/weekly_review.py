@@ -8,6 +8,7 @@ memory/weekly/{ISO-week}.md.
 
 Env: MINIMAX_API_KEY required
 """
+import argparse
 import glob
 import json
 import math
@@ -552,8 +553,29 @@ def generate_review(system, user, *, clock=time.monotonic):
             raise
 
 
-def main():
-    bundle = aggregate_week()
+def backfill_note(as_of, week_id, today=None):
+    """The line a backfilled review opens with; empty for the scheduled run.
+
+    Plans, decisions and snapshots are selected by date, so a backfill reads the
+    week it names. risk.json has no history: a backfill carries the risk numbers
+    of the day it ran, and the reader has to be told (2026-W37, run 2026-09-15).
+    """
+    today = today or date.today()
+    if as_of is None or as_of >= today:
+        return ''
+    return (f'> 补跑于 {today.isoformat()}：{week_id} 的排程运行没有产出。'
+            f'计划、决策和快照取的是截至 {as_of.isoformat()} 的那一周，'
+            '风险数字是补跑当天的 risk.json。\n\n')
+
+
+def main(argv=None):
+    parser = argparse.ArgumentParser(description='KCNyu weekly portfolio review')
+    parser.add_argument(
+        '--as-of', type=date.fromisoformat, default=None, metavar='YYYY-MM-DD',
+        help="write the review of the ISO week ending on this date, to backfill a "
+             "scheduled run that produced nothing; risk.json is still today's")
+    args = parser.parse_args(argv)
+    bundle = aggregate_week(args.as_of)
     validate_bundle(bundle)
     week_id = bundle['week']
 
@@ -567,7 +589,7 @@ def main():
     os.makedirs('memory/weekly', exist_ok=True)
     path = Path(f'memory/weekly/{week_id}.md')
     fm = f"---\nlayout: default\ntitle: 周复盘 · {week_id}\n---\n\n"
-    path.write_text(fm + out.strip())
+    path.write_text(fm + backfill_note(args.as_of, week_id) + out.strip())
     print(f'  wrote {path}  ({len(out)} chars)')
 
 
