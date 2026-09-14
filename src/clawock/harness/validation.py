@@ -147,6 +147,21 @@ _UNIT_KEY_HINTS = {
 # long-standing low-noise boundary: "若再跌 2%" may be scenario prose, while an
 # asserted "今日 -2%" must quote the context.
 _HYPOTHETICAL = re.compile(r'(?:若|如果|假如|一旦|假设|情景|scenario|\bif\b)', re.IGNORECASE)
+
+# A narrow exception for arithmetic whose complete multiplication is visible.
+# This deliberately requires the operator and an equality marker; merely putting
+# two numbers in the same sentence must not authorize a third one.  It covers
+# the two recurring forms the live corpus exposed:
+#   -1.92% × 2 ≈ -3.84%       300 × $9.79 ≈ $2,940
+_PRODUCT = re.compile(
+    rf'(?<![A-Za-z0-9_./])'
+    rf'(?P<a_cur>{_CURRENCY})?\s*(?P<a>{_UNIT_NUM})\s*(?P<a_pct>[%％])?\s*'
+    rf'[×*]\s*'
+    rf'(?P<b_cur>{_CURRENCY})?\s*(?P<b>{_UNIT_NUM})\s*(?P<b_pct>[%％])?\s*'
+    rf'(?P<eq>≈|=)\s*'
+    rf'(?P<result_cur>{_CURRENCY})?\s*(?P<result>{_UNIT_NUM})'
+    rf'\s*(?P<result_pct>[%％])?'
+)
 MAX_NUMERIC_SAMPLES = 4
 # Only book-scale currency figures are checked. US price talk is conventionally
 # written with the symbol — "跌破 $65，下一支撑 $60" is a level, not a claim about
@@ -276,6 +291,45 @@ def _is_hypothetical_percent(text, start):
     return bool(_HYPOTHETICAL.search(text[max(clause_start, start - 16):start]))
 
 
+def _shown_product_results(text, known):
+    """Positions of correct, explicitly written product results, by unit.
+
+    ``≈`` gets a small relative allowance for presentation rounding (2937 ->
+    2,940); ``=`` only gets the precision the result itself states.  Unit shape
+    is part of the check, so a percent cannot validate a currency result or vice
+    versa.
+    """
+    results = {'percent': set(), 'currency': set()}
+    for match in _PRODUCT.finditer(text):
+        a = _as_number(match.group('a'))
+        b = _as_number(match.group('b'))
+        result = _as_number(match.group('result'))
+        if a is None or b is None or result is None:
+            continue
+        currencies = bool(match.group('a_cur')) + bool(match.group('b_cur'))
+        percents = bool(match.group('a_pct')) + bool(match.group('b_pct'))
+        if match.group('result_pct') and percents == 1 and currencies == 0:
+            unit = 'percent'
+        elif match.group('result_cur') and currencies == 1 and percents == 0:
+            unit = 'currency'
+            # Neither a sub-$1,000 price nor a bare share multiplier is checked
+            # elsewhere.  Require both operands to come from context before
+            # their product can authorize an otherwise absent book amount.
+            if not all(_states(known, value, _rounding_tolerance(raw))
+                       for value, raw in ((a, match.group('a')),
+                                          (b, match.group('b')))):
+                continue
+        else:
+            continue
+        expected = a * b
+        tolerance = _rounding_tolerance(match.group('result'))
+        if match.group('eq') == '≈':
+            tolerance = max(tolerance, abs(expected) * 0.002)
+        if abs(result - expected) <= tolerance:
+            results[unit].add(match.start('result'))
+    return results
+
+
 # Shown work is not invented. Replaying every report and intraday slot sent
 # 2026-08-31..09-14, most figures this gate called "not in the context" were
 # computed correctly from two numbers the same sentence had just quoted —
@@ -370,9 +424,12 @@ def check_numeric_claims(text, ctx):
     """
     known = _context_numbers(ctx)
     known_by_unit = _context_unit_numbers(ctx)
+    shown_products = _shown_product_results(text, known)
     unverified = []
 
-    def check(value, label, tolerance):
+    def check(value, label, tolerance, at=None):
+        if at in shown_products['currency']:
+            return
         if _states(known, value, tolerance):
             return
         if label not in unverified:
@@ -381,15 +438,20 @@ def check_numeric_claims(text, ctx):
     for raw, magnitude in _SHARE_CLAIM.findall(text):
         check(_as_number(raw, magnitude), f'{raw}{magnitude or ""}股',
               _rounding_tolerance(raw, magnitude))
-    for cur_num, cur_mag, num_cur, mag_cur in _CURRENCY_CLAIM.findall(text):
-        raw, magnitude = (cur_num, cur_mag) if cur_num else (num_cur, mag_cur)
+    for match in _CURRENCY_CLAIM.finditer(text):
+        if match.group(1):
+            raw, magnitude, at = match.group(1), match.group(2), match.start(1)
+        else:
+            raw, magnitude, at = match.group(3), match.group(4), match.start(3)
         amount = _as_number(raw, magnitude)
         if amount is not None and abs(amount) >= MIN_CHECKED_AMOUNT:
             check(amount, f'{raw}{magnitude or ""}',
-                  _rounding_tolerance(raw, magnitude))
+                  _rounding_tolerance(raw, magnitude), at)
 
     def check_unit(unit, raw, at):
         if unit == 'percent' and _is_hypothetical_percent(text, at):
+            return
+        if unit == 'percent' and at in shown_products['percent']:
             return
         # The unit set stays exact-per-unit on purpose: a rounding is a rounding
         # of the SAME quantity, so widening tolerance must not also let a percent

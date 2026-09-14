@@ -344,6 +344,37 @@ def test_a_written_out_product_is_not_a_claimed_multiple(hc):
     assert hc.check_numeric_claims("chop drag（0.38% × 6200 × 现价）。SPCH 300×$9.79 释放现金。", ctx) == []
 
 
+@pytest.mark.parametrize("prose, block", [
+    # 2026-09-10 hk-open: the result, not only the scalar operand, was noisy.
+    ("07226 -3.7% 与恒科 -1.92% × 2 ≈ -3.84% 杠杆放大逻辑一致。",
+     "07226 -3.7% 恒科 -1.92%"),
+    # 2026-09-10 us-close: 300 * 9.79 = 2937, explicitly rounded to 2,940.
+    ("SPCH cut 按收价释放 300×$9.79 ≈ $2,940。", "SPCH 300股 $9.79"),
+])
+def test_correct_explicit_products_pass(hc, prose, block):
+    assert hc.check_numeric_claims(prose, {"raw_wechat_block": block}) == []
+
+
+@pytest.mark.parametrize("prose, bad_result", [
+    ("07226 -1.92% × 2 ≈ -3.50%。", "-3.50%"),
+    ("SPCH 300×$9.79 ≈ $2,900。", "2,900"),
+])
+def test_wrong_explicit_products_still_report(hc, prose, bad_result):
+    issue = hc.check_numeric_claims(prose, {"raw_wechat_block": "-1.92% 300股 $9.79"})
+    assert issue and bad_result in issue[0]
+
+
+def test_product_result_must_keep_the_computed_unit(hc):
+    issue = hc.check_numeric_claims("SPCH 300×$9.79 ≈ 2,940%。", {"raw_wechat_block": "$9.79"})
+    assert issue and "2,940%" in issue[0]
+
+
+def test_currency_product_operands_must_come_from_context(hc):
+    issue = hc.check_numeric_claims("SPCH 999×$9.79 ≈ $9,780。",
+                                    {"raw_wechat_block": "SPCH 300股 $9.79"})
+    assert issue and "9,780" in issue[0]
+
+
 def test_a_list_comma_is_not_a_thousands_separator(hc):
     # 2026-09-08 hk-pm reported "00100,12pp" as one number.
     issue = hc.check_numeric_claims("迅策 -5.4% 跌得接近 00100,12pp 背离。",
