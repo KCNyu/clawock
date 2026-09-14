@@ -19,6 +19,7 @@ from pathlib import Path
 from clawock.automation.llm import chat
 from clawock.automation.output_validate import validate_sections
 from clawock.decision import ledger as decision_v2
+from clawock.safe_io import safe_write_json, safe_write_text
 
 # Output budget for the single-turn brief. Thinking is enabled, and _call_provider
 # takes its reasoning budget out of this same allowance, so the usable prose budget is
@@ -297,9 +298,8 @@ def main():
     prepared = prepare_context(raw_ctx)
     if not prepared['complete']:
         md, plan = fail_closed_artifacts(today, prepared)
-        Path(f'memory/{today}-pre-open.md').write_text(md)
-        Path(f'memory/{today}-plan.json').write_text(
-            json.dumps(plan, ensure_ascii=False, indent=2))
+        safe_write_text(f'memory/{today}-pre-open.md', md)
+        safe_write_json(f'memory/{today}-plan.json', plan)
         print('  fail-closed: required context incomplete; wrote zero-action artifacts')
         return
     context = prepared['serialized']
@@ -382,8 +382,10 @@ def main():
     # the floor is ~1/10th of the real artifact (2026-07-16 ran 26KB).
     validate_sections(md_part, label='brief markdown',
                       required=BRIEF_REQUIRED_SECTIONS, min_chars=2000)
-    Path(f'memory/{today}-pre-open.md').write_text(md_with_fm)
-    Path(f'memory/{today}-plan.json').write_text(json.dumps(plan, ensure_ascii=False, indent=2))
+    # Atomic (#1493): a truncated pre-open.md still trips the workflow's skip gate,
+    # and a half-written plan.json would be committed by the publish sweep.
+    safe_write_text(f'memory/{today}-pre-open.md', md_with_fm)
+    safe_write_json(f'memory/{today}-plan.json', plan)
     print(f'  wrote pre-open.md + plan.json ({len(plan.get("decisions", []))} decisions)')
 
 
