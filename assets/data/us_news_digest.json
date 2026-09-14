@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-11T16:49:22.225367",
+  "generated_at": "2026-09-14T18:16:00.191380",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -14,122 +14,87 @@
       "SPCH"
     ]
   },
-  "digest_markdown": "## Top 移动信号\n\n- **SPCX**: 第三次 lockup 释放 3.19 亿股, 周三股价跌 3.9%, 后续仍有数十亿股待解锁 → SPCH (2x) 短期承压, 解禁日历是已知利空\n- **SPCX**: CFO 确认 Starship 本月首产生收入 (Flight 14 搭载 Starlink), AI 算力新单 + $100B ARR 目标\"on track\", 英国公开承认使用其机密军用星链网络 (累计合同 >$6B) → SPCH (2x) 多重顺风叠加, 基本面催化密度极高\n- **RKLB**: Raymond James 启动覆盖给 Buy + $80 PT, 强调垂直整合与 backlog 增长 → RKLX (2x) 直接放大分析师上调\n- **RKLB**: 完成 2026 年第 16 次 Electron 发射 (代号 \"Happily Ever Faster\"), 距 100 次里程碑仅差 5 次 → RKLX (2x) 节奏验证\n- **CRCL**: 宣布 Noble 区块链停用 USDC 与 CCTP V1, 且不会升级至 V2, 战略性收缩非核心链 → 边缘化低流动性链, 资源向机构流量集中\n\n## Per-ticker 简报\n\n- **CRCL**: Noble/USDC 退出 - 战略性精简, 中性偏负 (释放资源但缩小覆盖); ECB 加息至 2.5% + MiCA 禁止欧元稳定币付息 - 监管环境利空持币收益类业务, 但 CRCL 以 USD 为主, 影响有限\n- **RKLB**: RJ 启动覆盖 $80 PT - 明确买入催化; 发射节奏持续 (2026 第 16 次) - 执行力背书\n- **SPCX**: lockup 解禁 - 已知稀释利空但未颠覆基本面; UK 军用合同公开 + Starship 首收入 + $100B ARR 路径 - 基本面三连击\n\n## 风险 Watch\n\n- **SPCX**: 第三次 lockup 释放仅是开端, \"billions more\" 仍在解锁日历, 短期估值压制明确 → SPCH (2x) 下行弹性加倍\n- **CRCL**: Noble 退出显示公司在主动放弃边缘生态, 若机构流量迁移慢于预期, 收缩可能压低总链上 USDC 流通量",
+  "digest_markdown": "## Top 3-5 移动信号 (按 catalyst 强度排序)\n\n- **CRCL**: Senate 周内表决 CLARITY Act + Fed 同步权衡加息, 双事件隔日落地, 直接冲击占近 100% 营收的储备金收益 → 直接持仓, 双向波动事件, 立法通过偏正、加息偏负, 当前未表态仓位\n- **RKLB**: 公司正式抗议 Blue Origin 价值 $700M 的 NASA Mars Sample Return 中标, 措辞\"惩罚性\"暗示法律挑战升级 → RKLX (2x) 持仓将双倍放大: 若抗议成功夺回合同为高弹性正催化, 若被驳回则 $700M 收入预期破灭\n- **SPCX**: 披露 $13B 年化托管合约, 算力租赁模型成为增长主线, 年底前扩产超 2 GW → SPCH (2x) 持仓放大效应显著; 商业化里程碑首次具备可量化营收锚点\n- **SPCX**: Starship 首次转入\"营收火箭\"阶段, Starlink vs 月球 R&D 的运力分配成为下一道战略选择题 → SPCH 持仓长期估值锚切换中, 短期中性\n- **RKLB**: 新挪威航天竞争者入场, 对 RKLB 威胁大于 SpaceX, 但体量有限, 噪音为主 → RKLX 持仓情绪面微负, 非主要驱动\n\n## Per-ticker 简报\n\n- **CRCL**: CLARITY Act 参议院表决 + Fed 加息讨论双催化窗口 - 储备金收益敏感度极高, 48h 内定向波动\n- **RKLB**: NASA Mars 合同抗议升级, 股价测试 $57.50 支撑 - 持仓 RKLX (2x) 双向放大该结果\n- **SPCX**: $13B 年化算力租赁 + 2 GW 扩产 + Starship 商业化 - 商业模型可量化节点增加, 持仓 SPCH (2x) 杠杆放大\n\n## 风险 watch\n\n- **CRCL**: 加息情景直接挤压 USDC 储备金利息收入, 政策面双刃\n- **RKLB**: NASA 合同法律挑战失败 → $700M 收入预期蒸发, RKLX 2x 下行加剧\n- **SPCX**: 算力租赁高度依赖单一超大客户结构 ($13B), 集中度风险未披露分散度",
   "raw_news_counts": {
-    "CRCL": 5,
-    "RKLB": 5,
+    "CRCL": 2,
+    "RKLB": 3,
     "SPCX": 5
   },
   "raw_news_evidence": {
     "CRCL": [
       {
-        "headline": "Circle Is Leaving Cosmos Behind",
-        "datetime": 1789078167,
+        "headline": "The regulation that helped the US get behind crypto, stablecoins",
+        "datetime": 1789344000,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=637b327e3fb5862acfaf47fc565988edbb779cf562b7facb2217401aab0c0289"
+        "url": "https://finnhub.io/api/news?id=6cde666db4b5fbaba1bc8272c4cb11fdebaeff8a117b4c7158b51c304103432c"
       },
       {
-        "headline": "ECB Hikes Rates to 2.5%, But Euro Stablecoins Still Pay Zero",
-        "datetime": 1789065688,
+        "headline": "Circle Faces Back-To-Back Catalysts As Senate Votes On CLARITY Act, And Fed Weighs Rate Hike",
+        "datetime": 1789307955,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=a0d5104d0d404d9ac01ad8f60953c6bf5a11ca8289e0f267fb14cba9f3e5b6af"
-      },
-      {
-        "headline": "Dan Fishman, At Stablecon, On What It Would Look Like A Year From Now, Says The Potential Driven By AI Usage And Agents Participating In Infrastructure, We Expect To See That Evolve Quite Quickly, Fir",
-        "datetime": 1789041506,
-        "source": "Benzinga",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=9ec0d00ddadf9dde16b3a3bca21202206f63f269e825fae0473f0e4e49c77fe4"
-      },
-      {
-        "headline": "Cathie Wood Continues to Buy the Dip on Crypto. Here Are 3 Crypto Investments That Need to Be on Your Radar.",
-        "datetime": 1789032000,
-        "source": "Yahoo",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=f792049d6c43da8492b44fd0de7bdbef86997338bee3b8dde8231f1226267b35"
-      },
-      {
-        "headline": "Sintana Energy advances deal to acquire KON-16 in Angola",
-        "datetime": 1789022580,
-        "source": "Yahoo",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=8ab43ad1221bb9211c856fb42e57fbdab5deb1ab18f1e4cdadd2d77aeb573160"
+        "url": "https://finnhub.io/api/news?id=a8f44011fa6edabddfbe01f523b37126ad9aa3ec49cc41e3781dea00f993eb3e"
       }
     ],
     "RKLB": [
       {
-        "headline": "Rocket Lab Vs. AST SpaceMobile: Chase the Better SpaceX Disruptor",
-        "datetime": 1789134729,
-        "source": "Yahoo",
+        "headline": "Stock of the Day: Where Is the Bottom for Rocket Lab?",
+        "datetime": 1789378055,
+        "source": "Benzinga",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=ab6f7679fe87476b0cbe5c8507b1ba18282c8e58737f71c4ac33814e57f28888"
+        "url": "https://finnhub.io/api/news?id=6595a0a08edf194d60f2b43243d196338371285251f92beddb7fbf889ebaaec6"
       },
       {
-        "headline": "Rocket Lab Has Something SpaceX Doesn’t. The Case to Buy the Stock.",
-        "datetime": 1789134120,
+        "headline": "RKLB Stock Slips Overnight: Rocket Lab Protests Blue Origin’s $700M NASA Mars Deal, Calls Review ‘Punitive’",
+        "datetime": 1789353253,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=406857a62a91eb9b2d10158eeaeedd0da135c29a8f0068e0014797fb135604f1"
+        "url": "https://finnhub.io/api/news?id=830071519d2c632440e9b6a8e8a890cc54f04e2bb5b7000f2b8e0c8fa32dab84"
       },
       {
-        "headline": "Price Prediction: Rocket Lab’s Next Leg Higher Could Be Massive, 95% Upside Ahead",
-        "datetime": 1789133442,
+        "headline": "SpaceX and Rocket Lab Have a New Space Rival -- in Norway",
+        "datetime": 1789298820,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=4123e848300b9741acc719c6f9a3cdf08c407782ede2a8f44d3ecdb7ed50ce78"
-      },
-      {
-        "headline": "Rocket Lab Is Five Launches From 100 Electron Missions — Raymond James Flags Two Opportunities With ‘Significant Upsides’",
-        "datetime": 1789128476,
-        "source": "Yahoo",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=8c59c3256b92d17116b007195455e06e240157e26fa42eb84462aa796aebd7c5"
-      },
-      {
-        "headline": "Rocket Lab Completes 16th Electron Launch of 2026",
-        "datetime": 1789124560,
-        "source": "Yahoo",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=203aaed770eff9769fe26402e58905c5054bcb73b7a1a97d7511cbfc147744b3"
+        "url": "https://finnhub.io/api/news?id=86a0ea500e13d1e8385a640323236885ca1b0f5c675cb4263c58f0761c751647"
       }
     ],
     "SPCX": [
       {
-        "headline": "SpaceX Fell 3.9% on Its Third Lockup Release Since the IPO. I'd Wait to Buy the Stock.",
-        "datetime": 1789141381,
+        "headline": "Can AST SpaceMobile's Expanding MNO Base Boost Its Revenue Prospects?",
+        "datetime": 1789393920,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=186c9afcdf2d61c26b40f22ef4338f2eb2c92dff09799f2895025dad5a00ac00"
+        "url": "https://finnhub.io/api/news?id=01c47c7dfefa842dcff9a27a18cdb0174100bc14ed915c8b47525ce0c81d38b6"
       },
       {
-        "headline": "Britain Just Admitted It Uses SpaceX’s Secret Military Network. The Contracts Already Top $6 Billion.",
-        "datetime": 1789141320,
+        "headline": "Elon Musk Plans New Tesla Roadster Unveiling In October; The Stock Slips",
+        "datetime": 1789392999,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=19d657ae651677b411e219dd67ed1c64269193f7b131a4241be667103d235bc5"
+        "url": "https://finnhub.io/api/news?id=cdd324a6316e9c20472ebf8e544ee1bf3f322e30a65cad514e3cb072c131c936"
       },
       {
-        "headline": "SpaceX signs another AI computing deal, with $100 billion in ARR 'on track,' CFO says",
-        "datetime": 1789140573,
+        "headline": "SpaceX Focuses on Compute-Renting Model: Can It Make a Comeback?",
+        "datetime": 1789392900,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=111602eb670e032c11ee7576ccf50cfdac6344f3c0835498c0dd4c36fed4f3e6"
+        "url": "https://finnhub.io/api/news?id=77951e7507df7a8b0bc7d835ca4c021442650d72985c1a6d46a8ae0988083df0"
       },
       {
-        "headline": "SpaceX Exec Says Starship Will Generate Revenue for First Time ‘Later This Month’",
-        "datetime": 1789140356,
+        "headline": "SpaceX Faces Starship Dilemma: Starlink Revenue or Moonshot R&D?",
+        "datetime": 1789392497,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=935bed07e4641a8075c51f289d57c081024e0699495aa25705d3c6ae773cc193"
+        "url": "https://finnhub.io/api/news?id=3f3d1e8b9a151e20571f27c44c3ea83ee54bfc6cb890d1c9042581b20337691d"
       },
       {
-        "headline": "Verizon vs. SpaceX: Which Stock Has Better Growth Prospects?",
-        "datetime": 1789138320,
+        "headline": "Correction: Update: US Equity Futures Lower Pre-Bell as Traders Assess Call for AI Advancement Slowdown, Upcoming Fed Decision",
+        "datetime": 1789391141,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=c149f8865c430bf8c0fb42dd7ac8e43f730551b33a042ffc41baee7eb3c757ba"
+        "url": "https://finnhub.io/api/news?id=0c3844e27efab820a73b20c9cd55b2cd59180a32aa0bf2690238e81e920682a0"
       }
     ]
   },
