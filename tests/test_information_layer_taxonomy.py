@@ -233,6 +233,35 @@ def test_the_headline_totals_come_from_the_config():
             f"{name}: headline claims {stated['l']} layers, the config has {len(layers)}")
 
 
+def test_the_first_screen_stat_row_uses_the_config_totals():
+    """The stat row under the social card repeats the module and layer totals.
+
+    It is a second copy of the headline, one screen higher, so it has to move
+    with the config the same way — otherwise the most-read number on the page
+    is the one nothing checks.
+    """
+    layers = CONFIG["layers"]
+    modules = sum(len(layer["modules"]) for layer in layers)
+
+    for markdown, name, label in (
+        (EN, "README.md", r"data modules across (\d+) layers"),
+        (ZH, "README.zh.md", r"(\d+) 层抓取与计算模块"),
+    ):
+        lines = markdown.splitlines()
+        at = next((i for i, ln in enumerate(lines)
+                   if ln.startswith("|") and re.search(label, ln)), None)
+        assert at is not None and at >= 2, f"{name}: the stat row changed shape"
+        values = [cell.strip() for cell in lines[at - 2].split("|")[1:-1]]
+        labels = [cell.strip() for cell in lines[at].split("|")[1:-1]]
+        assert len(values) == len(labels), f"{name}: stat row columns disagree"
+        col = next(i for i, cell in enumerate(labels) if re.search(label, cell))
+        assert values[col] == f"**{modules}**", (
+            f"{name}: stat row claims {values[col]} modules, the config has {modules}")
+        stated_layers = int(re.search(label, labels[col]).group(1))
+        assert stated_layers == len(layers), (
+            f"{name}: stat row claims {stated_layers} layers, the config has {len(layers)}")
+
+
 def test_the_exclusions_carry_a_reason_rather_than_a_bare_name():
     """An exclusion list without reasons is a way to make any number come out
     right. The reason is what a reader can disagree with."""
