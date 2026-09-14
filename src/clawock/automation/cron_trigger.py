@@ -55,7 +55,16 @@ def trigger(job_name, *, contract=None, live_jobs=None, run=None, workspace=None
     if not spec.get("enabled", True):
         print(f"· {job_name}: disabled in the contract — nothing to fire")
         return 0
-    live_jobs = live_jobs if live_jobs is not None else openclaw.read_jobs().entries
+    if live_jobs is None:
+        read = openclaw.read_jobs()
+        if read.source not in {"cli", "sqlite"}:
+            print(f"✗ {job_name}: current OpenClaw job state unavailable "
+                  f"(source={read.source}); cannot verify its scheduler is disabled",
+                  file=sys.stderr)
+            _log({"job": job_name, "ok": False, "source": read.source,
+                  "reason": "current runtime state unavailable"}, workspace)
+            return EXIT_REFUSED
+        live_jobs = read.entries
     live = next((job for job in live_jobs or [] if job.get("name") == job_name), None)
     if live is None or not live.get("id"):
         print(f"✗ {job_name}: OpenClaw has no such job", file=sys.stderr)

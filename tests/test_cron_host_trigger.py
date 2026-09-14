@@ -7,8 +7,11 @@ that a job disabled in OpenClaw still runs in full this way). Only the scheduler
 moves, because OpenClaw's swallows cron-expression ticks from 2026.9.1 (#139215).
 """
 import importlib.util
+import json
 import sys
 from pathlib import Path
+
+import pytest
 
 from clawock import scheduling
 from clawock.automation import cron_trigger
@@ -81,6 +84,36 @@ def test_check_mode_fires_nothing(tmp_path):
                                 run=lambda job_id: ran.append(job_id), workspace=tmp_path,
                                 check=True) == 0
     assert ran == []
+
+
+@pytest.mark.parametrize("source", ["fossil", "empty"])
+@pytest.mark.parametrize("check", [False, True])
+def test_trigger_requires_current_runtime_state(tmp_path, monkeypatch, source, check):
+    # A migrated job can say disabled even after the live scheduler was enabled.
+    # Exercise the production read, not the live_jobs injection used above.
+    live = [{"name": "港股午后快报", "id": "job-1", "enabled": False}]
+    monkeypatch.setattr(cron_trigger.openclaw, "read_jobs", lambda:
+                        cron_trigger.openclaw.CronRead(live if source == "fossil" else [], source))
+    ran = []
+    code = cron_trigger.trigger(
+        "港股午后快报", contract={"jobs": [_job()]}, workspace=tmp_path,
+        run=lambda job_id: (ran.append(job_id) or (True, "queued")), check=check)
+    assert code == cron_trigger.EXIT_REFUSED
+    assert ran == []
+    entry = json.loads((tmp_path / "logs" / "cron-trigger.jsonl").read_text())
+    assert entry["ok"] is False and entry["source"] == source
+
+
+@pytest.mark.parametrize("source", ["cli", "sqlite"])
+def test_trigger_accepts_authoritative_runtime_sources(tmp_path, monkeypatch, source):
+    live = [{"name": "港股午后快报", "id": "job-1", "enabled": False}]
+    monkeypatch.setattr(cron_trigger.openclaw, "read_jobs", lambda:
+                        cron_trigger.openclaw.CronRead(live, source))
+    ran = []
+    assert cron_trigger.trigger(
+        "港股午后快报", contract={"jobs": [_job()]}, workspace=tmp_path,
+        run=lambda job_id: (ran.append(job_id) or (True, "queued"))) == 0
+    assert ran == ["job-1"]
 
 
 def test_the_health_check_still_owes_a_host_triggered_job_its_slots(monkeypatch):
