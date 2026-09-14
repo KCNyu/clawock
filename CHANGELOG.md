@@ -13,6 +13,53 @@ versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 The newest heading here has to match the version in `pyproject.toml` — CI fails
 otherwise, so a release cannot ship an entry that was never written.
 
+## [0.2.0] — 2026-09-14
+
+A minor bump rather than 0.1.10: `numpy` and `scipy` became required
+dependencies and the `compute` extra is gone. The DSH plugin ships on the same
+version.
+
+### Changed
+
+- **`numpy` and `scipy` are required ([#1202]).** `portfolio/risk.py`, the
+  module behind the packaged `portfolio-risk` command, imported numpy at the top
+  level while numpy sat in an optional extra, so on a clean install that command
+  failed on its first line. scipy joins it for the covariance, allocation and
+  stress work that landed in the same change.
+- **The empty `compute` extra is removed; `clawock[market]` installs the
+  `yfinance` quote fallback ([#1321], [#1325]).** yfinance is the last hop of
+  both the HK and US quote chains and was declared nowhere, so an install that
+  followed the metadata silently lost that hop.
+- **The pre-open brief is rendered by the harness, not written by the model
+  ([#1232], [#1234]).** The model supplies the judgment (schema v3) and
+  `clawock.harness.brief_render` produces the report and the WeChat card;
+  `clawock brief render` runs that step on its own, with `--dry-run` and
+  `--date`.
+- **Report and intraday postflights accept only the prose form ([#1279]).** The
+  legacy input, where the model handed back a whole report including its own
+  copy of the data block, is removed together with
+  `validation.check_raw_tables_verbatim`.
+
+### Added
+
+- **`clawock calendar <market> --status` ([#1429])** prints `OPEN` / `CLOSED`
+  and always exits 0, for callers that read the output rather than the exit
+  code. The bare command still exits 1 on a closed session.
+- **Covariance, allocation and stress modules for portfolio risk ([#1162],
+  [#1165], [#1186]).**
+- **`clawock-dsh` shows Codex quota ([#1480]).** Codex is a fourth balance
+  provider, read through the official `codex app-server` rate-limit call, with
+  the 5-hour and weekly windows. Codex OAuth tokens are never read or
+  forwarded. A quota warning now names the window that crossed the line
+  ([#1486]).
+
+### Fixed
+
+- **`clawock-dsh` loads on DeepSeek Harness 0.1.2 ([#1310]).** 0.1.2 retired
+  `@deepseek-ai/dsh-client-runtime`, which the plugin still required, and that
+  one stale module id took the whole dsh UI down with "Failed to load plugins".
+  The plugin now imports `defineStore` from `@deepseek-ai/dsh-client-store`.
+
 ## [0.1.9] — 2026-08-27
 
 Refresh release: same version train for the Python package and the DSH
@@ -390,3 +437,16 @@ environment — and completes one full run. ([#436], [#379])
 [#730]: https://github.com/KCNyu/clawock/issues/730
 [#731]: https://github.com/KCNyu/clawock/issues/731
 [#732]: https://github.com/KCNyu/clawock/issues/732
+[#1162]: https://github.com/KCNyu/clawock/issues/1162
+[#1165]: https://github.com/KCNyu/clawock/issues/1165
+[#1186]: https://github.com/KCNyu/clawock/issues/1186
+[#1202]: https://github.com/KCNyu/clawock/pull/1202
+[#1232]: https://github.com/KCNyu/clawock/pull/1232
+[#1234]: https://github.com/KCNyu/clawock/pull/1234
+[#1279]: https://github.com/KCNyu/clawock/issues/1279
+[#1310]: https://github.com/KCNyu/clawock/pull/1310
+[#1321]: https://github.com/KCNyu/clawock/issues/1321
+[#1325]: https://github.com/KCNyu/clawock/issues/1325
+[#1429]: https://github.com/KCNyu/clawock/pull/1429
+[#1480]: https://github.com/KCNyu/clawock/pull/1480
+[#1486]: https://github.com/KCNyu/clawock/pull/1486
