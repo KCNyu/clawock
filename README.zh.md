@@ -19,11 +19,11 @@
 
 <sub><i>“市场不在乎模型有多自信。”</i></sub>
 
+<a href="https://kcnyu.github.io/clawock/"><img src="site/assets/dashboard.gif" alt="clawock 仪表盘循环切换各标签页" width="820"></a>
+
 | **<!-- CW_M:days -->120<!-- /CW_M:days -->** | **<!-- CW_M:rows -->837<!-- /CW_M:rows -->** | **<!-- CW_M:settled -->142<!-- /CW_M:settled -->** | **43** | **5** | **0** |
 |:---:|:---:|:---:|:---:|:---:|:---:|
 | 天,真实港美股账户实盘 | 条决策,账本全部公开 | 个案例由代码结算 | 8 层抓取与计算模块 | 种 Agent harness,同一份契约 | 条分数由模型给自己打 |
-
-<a href="https://kcnyu.github.io/clawock/"><img src="site/assets/dashboard.gif" alt="clawock 仪表盘循环切换各标签页" width="820"></a>
 
 <sub>真实持仓、真实盈亏——实盘收益 <!-- CW_M:return_pct -->−23.41%<!-- /CW_M:return_pct -->,亏损照样摆出来([原始决策记录](https://github.com/KCNyu/clawock/blob/master/memory/decisions.jsonl))——公开打分。数字与预览图每周刷新;实时仪表盘随交易日更新。</sub>
 
@@ -31,7 +31,7 @@
 
 装进你正在用的 Agent 的投资决策工作流:Claude Code、Codex、OpenClaw、DeepSeek Harness,或者你自己写的都行。Agent 给出判断,还必须写出反方;clawock 核对证据和资金、汇率算术,站不住的决策直接拒收,之后用真实行情给结果打分——不看模型有多自信。不跟单、不代下单。
 
-**不写反方,决策就发不出去。** 把反方证据删掉再发布:
+**不写反方,决策就发不出去。** 把反方证据删掉再发布,会被直接拒收(退出码 1):
 
 ```json
 {
@@ -44,7 +44,7 @@
 }
 ```
 
-退出码 1,什么都不发布。安装和完整的 prepare → publish 闭环见[在你自己的账本上跑](#在你自己的账本上跑)。
+想自己跑一遍 → [安装与完整流程](#在你自己的账本上跑)
 
 ---
 
