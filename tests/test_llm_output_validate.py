@@ -113,7 +113,9 @@ def test_real_committed_artifacts_pass_their_own_anchors():
 SOURCE_ROOTS = ('src/clawock', 'ops')
 GATED_CALL_SITES = {
     ('src/clawock/automation/brief_fallback.py', 'main'): 'validate_sections',
-    ('src/clawock/automation/weekly_review.py', 'main'): 'validate_sections',
+    # generate_review, not main: it returns only text that passed the gate (one
+    # repair turn included), and main writes nothing else.
+    ('src/clawock/automation/weekly_review.py', 'generate_review'): 'validate_sections',
     ('src/clawock/automation/news_digest.py', 'main'): 'validate_sections',
     ('src/clawock/automation/influencer.py', 'llm_filter'): 'coerce_scored_items',
 }

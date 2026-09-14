@@ -12,15 +12,32 @@ import glob
 import json
 import math
 import os
+import re
+import sys
+import time
 from datetime import date, timedelta
 from pathlib import Path
 
+from clawock.automation import llm
 from clawock.automation.llm import chat
-from clawock.automation.output_validate import validate_sections
+from clawock.automation.output_validate import LLMOutputError, validate_sections
 from clawock.decision import ledger as decision_v2
 
 # The four questions build_user_prompt asks for, checked on the way out (#1263).
 WEEKLY_REQUIRED_SECTIONS = ('本周净值', '决策兑现', '风险演变', '下周关注')
+
+# The heading lines the prompt demands, verbatim. The prompt used to ask for four
+# bold labels and leave the headings to the model; W30-W36 happened to write
+# `## 4. 下周关注 …`, but on 2026-09-13 (run 34770674373) a full-length reply came
+# back without that section, the gate refused it, and 2026-W37 was lost. Asking
+# for the exact line the gates look for leaves the model nothing to paraphrase.
+WEEKLY_SECTION_HEADINGS = tuple(
+    f'## {i}. {name}' for i, name in enumerate(WEEKLY_REQUIRED_SECTIONS, 1))
+
+# Seconds of the chain deadline a repair turn needs to be worth starting. The
+# repair re-emits the whole review; the 2026-09-13 reply took 44s, and a turn
+# that cannot finish only turns a clear rejection into a timeout.
+REPAIR_MIN_SECONDS = 120
 
 # Prompt budget for the single-turn weekly review, measured in serialized-JSON
 # characters. A sanity bound, not a writing target: the old prompt embedded
@@ -461,11 +478,78 @@ def build_user_prompt(payload):
         "2. **决策兑现**: 按 strategy episode 汇总触发、执行和 win/loss；不要把每日重复 call 当独立样本\n"
         "3. **风险演变**: 当前 risk.json 数值, β/Vol/Max DD/Sharpe 怎么走?\n"
         "4. **下周关注 3 条**: actionable (ticker + 触发条件 + 仓位影响)\n\n"
+        "四个小节的二级标题必须逐字使用下面四行（行尾可以加括号说明，不要改写标题本身）：\n"
+        + '\n'.join(WEEKLY_SECTION_HEADINGS) + "\n\n"
         f"数据 bundle (JSON):\n```json\n{_compact(payload)}\n```\n\n"
         "若上面 JSON 含 `_omitted`，对应 section 因 prompt 预算被整体省略——"
         "相关小节必须如实写数据缺口，禁止编造。\n\n"
         "直接出 markdown, 不要客套."
     )
+
+
+def _log_rejection(out, exc):
+    """The rejected reply is never written anywhere, so its headings are the
+    only evidence a later reader of the job log gets of what the model did."""
+    headings = [ln.strip() for ln in (out or '').splitlines()
+                if re.match(r'^\s{0,3}(#{1,6} |\*\*)\S', ln)]
+    print(f'  ⚠️ {exc}; headings in the reply: {headings[:12]}', file=sys.stderr)
+
+
+def _chain_deadline():
+    try:
+        return float(os.environ.get(llm.DEADLINE_ENV) or 0) or None
+    except ValueError:
+        return None
+
+
+def generate_review(system, user, *, clock=time.monotonic):
+    """The review text, after at most one repair turn. Raises LLMOutputError.
+
+    A rejected reply used to end the job, and nothing re-runs a scheduled
+    workflow, so one paraphrased heading cost a whole ISO week (2026-W37). The
+    repair turn shows the model its own reply and the gate's complaint. Both
+    turns share the ONE chain deadline the workflow declares — the repair gets
+    only what the first turn left — so the job still fits its timeout and
+    test_llm_workflow_deadlines' one-chain accounting stays true.
+    """
+    started = clock()
+    messages = [{'role': 'system', 'content': system},
+                {'role': 'user', 'content': user}]
+    # Weekly review benefits most from thinking + depth (complex synthesis).
+    out = chat(messages=messages, max_tokens=32000, temperature=0.6,
+               timeout=WEEKLY_LLM_TIMEOUT_SECONDS)
+    # Refuse before writing (#1263): a blank or off-prompt reply used to be
+    # published as that week's review, and nothing downstream re-reads it.
+    # Anchors are the four questions build_user_prompt asks for; the floor is
+    # ~1/10th of a real review (2026-W34 is 11KB).
+    try:
+        return validate_sections(out, label='weekly review',
+                                 required=WEEKLY_REQUIRED_SECTIONS, min_chars=1000)
+    except LLMOutputError as rejection:
+        _log_rejection(out, rejection)
+        budget = _chain_deadline()
+        left = None if budget is None else budget - (clock() - started)
+        if left is not None and left < REPAIR_MIN_SECONDS:
+            raise
+        repair = list(messages)
+        if (out or '').strip():
+            repair.append({'role': 'assistant', 'content': out})
+        repair.append({'role': 'user', 'content': (
+            f"上面的回复没有通过校验：{rejection}。请输出完整的周复盘全文（不是只补缺的部分），"
+            "四个小节的二级标题逐字使用：\n" + '\n'.join(WEEKLY_SECTION_HEADINGS)
+            + "\n\n直接出 markdown, 不要解释。")})
+        try:
+            repaired = chat(messages=repair, max_tokens=32000, temperature=0.6,
+                            timeout=WEEKLY_LLM_TIMEOUT_SECONDS, deadline_seconds=left)
+        except RuntimeError as exc:
+            print(f'  ⚠️ repair turn failed: {exc}', file=sys.stderr)
+            raise rejection from exc
+        try:
+            return validate_sections(repaired, label='weekly review',
+                                     required=WEEKLY_REQUIRED_SECTIONS, min_chars=1000)
+        except LLMOutputError as exc:
+            _log_rejection(repaired, exc)
+            raise
 
 
 def main():
@@ -478,15 +562,7 @@ def main():
     payload = build_prompt_payload(bundle)
     user = build_user_prompt(payload)
 
-    # Weekly review benefits most from thinking + depth (1 turn, complex synthesis)
-    out = chat(system=system, user=user, max_tokens=32000, temperature=0.6,
-               timeout=WEEKLY_LLM_TIMEOUT_SECONDS)
-    # Refuse before writing (#1263): a blank or off-prompt reply used to be
-    # published as that week's review, and nothing downstream re-reads it.
-    # Anchors are the four questions build_user_prompt asks for; the floor is
-    # ~1/10th of a real review (2026-W34 is 11KB).
-    validate_sections(out, label='weekly review',
-                      required=WEEKLY_REQUIRED_SECTIONS, min_chars=1000)
+    out = generate_review(system, user)
 
     os.makedirs('memory/weekly', exist_ok=True)
     path = Path(f'memory/weekly/{week_id}.md')
