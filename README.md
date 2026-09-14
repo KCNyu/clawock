@@ -4,13 +4,6 @@
 
 ### AI argues. Code settles. The losses stay on the page.
 
-A decision workflow you install into the agent you already use: Claude Code,
-Codex, OpenClaw, DeepSeek Harness, or your own. The agent makes the call and
-has to write the case against it. clawock checks the evidence and the money and
-FX arithmetic, refuses a decision that doesn't hold up, and later grades the
-outcome from real prices. The same workflow runs every trading day on a real
-Hong Kong + US brokerage account, and every result is published.
-
 [![PyPI](https://img.shields.io/pypi/v/clawock?label=PYPI&style=flat-square&logo=pypi&logoColor=white&labelColor=252b35&color=4b91c8)](https://pypi.org/project/clawock/)
 [![npm](https://img.shields.io/npm/v/clawock-dsh?label=NPM&style=flat-square&logo=npm&logoColor=white&labelColor=252b35&color=4b91c8)](https://www.npmjs.com/package/clawock-dsh)
 [![Tests](https://img.shields.io/github/actions/workflow/status/KCNyu/clawock/ci.yml?label=TESTS&style=flat-square&logo=githubactions&logoColor=white&labelColor=252b35&color=738391)](https://github.com/KCNyu/clawock/actions/workflows/ci.yml)
@@ -20,19 +13,30 @@ Hong Kong + US brokerage account, and every result is published.
 
 [**Live dashboard**](https://kcnyu.github.io/clawock/) &nbsp;·&nbsp; [**Daily briefs**](https://kcnyu.github.io/clawock/briefs.html) &nbsp;·&nbsp; [**Evidence**](https://kcnyu.github.io/clawock/evidence.html) &nbsp;·&nbsp; [**简体中文**](https://github.com/KCNyu/clawock/blob/master/README.zh.md)
 
+<a href="https://kcnyu.github.io/clawock/">
+  <img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/social-card.png" alt="clawock — portable investment decision workflows for any external AI agent, proven on a live HK and US desk" width="820">
+</a>
+
+<sub><i>“The market doesn't care how confident the model was.”</i></sub>
+
+| **<!-- CW_M:days -->120<!-- /CW_M:days -->** | **<!-- CW_M:rows -->837<!-- /CW_M:rows -->** | **<!-- CW_M:settled -->142<!-- /CW_M:settled -->** | **43** | **5** | **0** |
+|:---:|:---:|:---:|:---:|:---:|:---:|
+| days live on a real HK + US account | decisions on the public ledger | episodes settled by code | data modules across 8 layers | agent harnesses, one contract | scores the model wrote for itself |
+
+<a href="https://kcnyu.github.io/clawock/"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dashboard.gif" alt="clawock dashboard cycling through its tabs" width="820"></a>
+
+<sub>Real positions, real P&amp;L — <!-- CW_M:return_pct -->−23.41%<!-- /CW_M:return_pct --> since day one, published exactly as it is — graded in the open. Numbers and previews refresh weekly; the live dashboard updates through the trading day.</sub>
+
 </div>
 
-```bash
-pip install clawock
-clawock workflow install investment-decision --workspace ./my-book
-clawock init ./my-book --workflow investment-decision
-cd my-book && mkdir -p .clawock/work
-clawock run prepare > .clawock/work/request.json
-# your agent reads the request and writes decision.json
-clawock run publish --request .clawock/work/request.json --artifact decision.json=decision.json
-```
+A decision workflow you plug into the agent you already use: Claude Code,
+Codex, OpenClaw, DeepSeek Harness, or your own. The agent makes the call and
+has to write the case against it. clawock checks the evidence and the money and
+FX arithmetic, refuses a decision that doesn't hold up, and later grades the
+outcome from real prices — not from the model's confidence.
 
-Delete the opposing evidence from a decision and publish it again, and it is refused (exit code 1):
+**Skip the bear case and the decision never ships.** Delete the opposing
+evidence and publish again:
 
 ```json
 {
@@ -45,21 +49,7 @@ Delete the opposing evidence from a decision and publish it again, and it is ref
 }
 ```
 
-Step by step, and what each file is for: [Run it on your own book](#run-it-on-your-own-book).
-
-<div align="center">
-
-<a href="https://kcnyu.github.io/clawock/">
-  <img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/social-card.png" alt="clawock — portable investment decision workflows for any external AI agent, proven on a live HK and US desk" width="820">
-</a>
-
-<sub><i>“The market doesn't care how confident the model was.”</i></sub>
-
-<a href="https://kcnyu.github.io/clawock/"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dashboard.gif" alt="clawock dashboard cycling through its tabs" width="820"></a>
-
-<sub>Real positions, real P&amp;L, graded in the open. Previews refresh weekly; the live dashboard updates through the trading day.</sub>
-
-</div>
+Exit code 1, nothing published. Install and the full prepare → publish loop: [Run it on your own book](#run-it-on-your-own-book).
 
 ---
 
@@ -365,6 +355,18 @@ removed is still *refused* in a directory that has never seen this repository.
 [`examples/`](https://github.com/KCNyu/clawock/blob/master/examples/README.md) shows the
 same run driven from a pure CLI, an OpenClaw skill, a Claude Code instruction, a Codex AGENTS.md,
 and a DeepSeek Harness agent — the harness never touches the contract.
+
+The whole loop, from an empty directory to a published decision:
+
+```bash
+pip install clawock
+clawock workflow install investment-decision --workspace ./my-book
+clawock init ./my-book --workflow investment-decision
+cd my-book && mkdir -p .clawock/work
+clawock run prepare > .clawock/work/request.json
+# your agent reads the request and writes decision.json
+clawock run publish --request .clawock/work/request.json --artifact decision.json=decision.json
+```
 
 ### Same contract, whatever the harness looks like
 

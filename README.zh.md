@@ -4,10 +4,6 @@
 
 ### AI 争辩。代码结算。连亏损都摆在明面上。
 
-装进你正在用的 Agent 的投资决策工作流:Claude Code、Codex、OpenClaw、DeepSeek Harness,或者你自己写的都行。Agent 给出判断,还必须写出反方;clawock 核对证据和资金、汇率算术,站不住的决策直接拒收,之后用真实行情给结果打分。不跟单、不代下单。
-
-同一套流程每个交易日都在一个真实港美股账户上跑:已经 **<!-- CW_M:days -->120<!-- /CW_M:days --> 天**,实盘收益 **<!-- CW_M:return_pct -->−23.41%<!-- /CW_M:return_pct -->**,亏损和盈利一样公开([原始决策记录](https://github.com/KCNyu/clawock/blob/master/memory/decisions.jsonl))。
-
 [![PyPI](https://img.shields.io/pypi/v/clawock?label=PYPI&style=flat-square&logo=pypi&logoColor=white&labelColor=252b35&color=4b91c8)](https://pypi.org/project/clawock/)
 [![npm](https://img.shields.io/npm/v/clawock-dsh?label=NPM&style=flat-square&logo=npm&logoColor=white&labelColor=252b35&color=4b91c8)](https://www.npmjs.com/package/clawock-dsh)
 [![Tests](https://img.shields.io/github/actions/workflow/status/KCNyu/clawock/ci.yml?label=TESTS&style=flat-square&logo=githubactions&logoColor=white&labelColor=252b35&color=738391)](https://github.com/KCNyu/clawock/actions/workflows/ci.yml)
@@ -17,19 +13,25 @@
 
 [**实时仪表盘**](https://kcnyu.github.io/clawock/) &nbsp;·&nbsp; [**每日简报**](https://kcnyu.github.io/clawock/briefs.html) &nbsp;·&nbsp; [**证据与反证**](https://kcnyu.github.io/clawock/evidence.html) &nbsp;·&nbsp; [**English**](README.md)
 
+<a href="https://kcnyu.github.io/clawock/">
+  <img src="site/assets/social-card.png" alt="clawock —— 装进任意外部 Agent 的可迁移投资决策工作流,并由真实港美股投研台持续验证" width="820">
+</a>
+
+<sub><i>“市场不在乎模型有多自信。”</i></sub>
+
+| **<!-- CW_M:days -->120<!-- /CW_M:days -->** | **<!-- CW_M:rows -->837<!-- /CW_M:rows -->** | **<!-- CW_M:settled -->142<!-- /CW_M:settled -->** | **43** | **5** | **0** |
+|:---:|:---:|:---:|:---:|:---:|:---:|
+| 天,真实港美股账户实盘 | 条决策,账本全部公开 | 个案例由代码结算 | 8 层抓取与计算模块 | 种 Agent harness,同一份契约 | 条分数由模型给自己打 |
+
+<a href="https://kcnyu.github.io/clawock/"><img src="site/assets/dashboard.gif" alt="clawock 仪表盘循环切换各标签页" width="820"></a>
+
+<sub>真实持仓、真实盈亏——实盘收益 <!-- CW_M:return_pct -->−23.41%<!-- /CW_M:return_pct -->,亏损照样摆出来([原始决策记录](https://github.com/KCNyu/clawock/blob/master/memory/decisions.jsonl))——公开打分。数字与预览图每周刷新;实时仪表盘随交易日更新。</sub>
+
 </div>
 
-```bash
-pip install clawock
-clawock workflow install investment-decision --workspace ./my-book
-clawock init ./my-book --workflow investment-decision
-cd my-book && mkdir -p .clawock/work
-clawock run prepare > .clawock/work/request.json
-# 你的 Agent 读取请求,写出 decision.json
-clawock run publish --request .clawock/work/request.json --artifact decision.json=decision.json
-```
+装进你正在用的 Agent 的投资决策工作流:Claude Code、Codex、OpenClaw、DeepSeek Harness,或者你自己写的都行。Agent 给出判断,还必须写出反方;clawock 核对证据和资金、汇率算术,站不住的决策直接拒收,之后用真实行情给结果打分——不看模型有多自信。不跟单、不代下单。
 
-把决策里的反方证据删掉再发布,会被拒收(退出码 1):
+**不写反方,决策就发不出去。** 把反方证据删掉再发布:
 
 ```json
 {
@@ -42,21 +44,7 @@ clawock run publish --request .clawock/work/request.json --artifact decision.jso
 }
 ```
 
-逐步说明和每个文件的作用见[在你自己的账本上跑](#在你自己的账本上跑)。
-
-<div align="center">
-
-<a href="https://kcnyu.github.io/clawock/">
-  <img src="site/assets/social-card.png" alt="clawock —— 装进任意外部 Agent 的可迁移投资决策工作流,并由真实港美股投研台持续验证" width="820">
-</a>
-
-<sub><i>“市场不在乎模型有多自信。”</i></sub>
-
-<a href="https://kcnyu.github.io/clawock/"><img src="site/assets/dashboard.gif" alt="clawock 仪表盘循环切换各标签页" width="820"></a>
-
-<sub>真实持仓、真实盈亏、公开打分。预览图每周刷新;实时仪表盘随交易日更新。</sub>
-
-</div>
+退出码 1,什么都不发布。安装和完整的 prepare → publish 闭环见[在你自己的账本上跑](#在你自己的账本上跑)。
 
 ---
 
@@ -76,7 +64,7 @@ clawock 是从这个投研台里拆出来、可以复用的那部分。模型调
 
 正经版:LLM 从不自己抓数据,也不自己结算。它只做一件事:**读一份 Python 组装好的上下文文件,写一份带证据、带反方的分析**。剩下全是代码的事。
 
-![clawock 信息流 —— 8 层 41 个模块经 Python preflight 按需组装成带指纹的 context.json;LLM 只读文件写分析;postflight 校验结算后发布](site/assets/information-flow.svg)
+![clawock 信息流 —— 8 层 43 个模块经 Python preflight 按需组装成带指纹的 context.json;LLM 只读文件写分析;postflight 校验结算后发布](site/assets/information-flow.svg)
 
 ```
 数据源
@@ -109,7 +97,7 @@ clawock 是从这个投研台里拆出来、可以复用的那部分。模型调
 
 覆盖是双语的,但不对称,而且不对称的地方在研究广度不在基础面。行情、基本面、消息面、资金守恒都有真实的港股分支;两项研究广度能力没有:同业发现在美股侧自动抓取、在港股侧读人工策展的 peer-map([`peer_discovery.py`](src/clawock/market_data/peer_discovery.py) —— 机制已实测可用,闸仍关着,等 peer-residual 规则对着更宽的同业域重新登记之后再开),停牌在美股侧是结构化 feed、在港股侧只是一条要人工判读的公告([`mover_evidence.py`](src/clawock/market_data/mover_evidence.py))。即:港股基础覆盖对齐,港股研究广度落后美股。
 
-抓取层优雅降级:东财统一走节流网关,报价/汇率多源兜底,抓空保留旧值。41 个模块的命令清单(`analyze-hk` `us-quotes` `filings` `fundflow` `em-news` `macro` `quant` `fx` `shadow` `evaluate-*` 等)由[命令参考](docs/reference/commands.md)按 registry 生成——上面的表格与清单由 CI 对着 [`config/information-layers.json`](config/information-layers.json) 核对,模块搬了家,数字不会留在原地。
+抓取层优雅降级:东财统一走节流网关,报价/汇率多源兜底,抓空保留旧值。43 个模块的命令清单(`analyze-hk` `us-quotes` `filings` `fundflow` `em-news` `macro` `quant` `fx` `shadow` `evaluate-*` 等)由[命令参考](docs/reference/commands.md)按 registry 生成——上面的表格与清单由 CI 对着 [`config/information-layers.json`](config/information-layers.json) 核对,模块搬了家,数字不会留在原地。
 
 </details>
 
@@ -275,6 +263,18 @@ clawock run prepare --workspace ./my-decision
 ```
 
 `run prepare` 产出一份带指纹的请求文件,你的 Agent 写出 `decision.json`,`run publish` 校验(证据、反方、资金与汇率对账)并给出生成回执。
+
+从空目录到一条已发布决策的完整闭环:
+
+```bash
+pip install clawock
+clawock workflow install investment-decision --workspace ./my-book
+clawock init ./my-book --workflow investment-decision
+cd my-book && mkdir -p .clawock/work
+clawock run prepare > .clawock/work/request.json
+# 你的 Agent 读取请求,写出 decision.json
+clawock run publish --request .clawock/work/request.json --artifact decision.json=decision.json
+```
 
 **一条命令看完整闭环**(无模型、无需任何 API 密钥,跑完你会看到):
 
