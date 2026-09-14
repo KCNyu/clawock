@@ -66,7 +66,7 @@ clawock 起步是一个账户,不是一个包。多 Agent 投研台在一个分�
 
 clawock 是从这个投研台里拆出来、可以复用的那部分。模型调用、对话、记忆、工具、权限和凭证都留在你的运行时里;clawock 在上面加一份决策契约:带指纹的证据、必填的反方、核对过的资金与汇率算术,以及把结果连回当初那条决策。它就是文件加 CLI,换 harness 契约不变。[`examples/`](examples/README.md) 用纯 CLI、OpenClaw skill、Claude Code、Codex 和 DeepSeek Harness 各跑了一遍同一条决策。
 
-真实投研台每天 08:00 读完 8 层信息流,组织一场多 Agent 辩论(四视角分析师 + 多空对立 + 裁判归因)给出决策,Python 独立结算。账目都能从命令复算:`clawock audit-resettle` 结算决策账、`clawock reconcile` 复算组合派生、`clawock scorecard-provenance --check` 核对公开记分出自账本的哪几行。
+真实投研台每个交易日盘前读取 8 层信息流,组织一场多 Agent 辩论(四视角分析师 + 多空对立 + 裁判归因)给出决策,Python 独立结算。账目都能从命令复算:`clawock audit-resettle` 结算决策账、`clawock reconcile` 复算组合派生、`clawock scorecard-provenance --check` 核对公开记分出自账本的哪几行。
 
 复合因子、行情状态、打折夏普、CSCV、吊灯止损、运行卡……这些术语的中英文标准翻译,见 [术语表](docs/glossary.md)。
 
