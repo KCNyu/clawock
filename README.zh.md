@@ -29,22 +29,15 @@
 
 </div>
 
-装进你正在用的 Agent 的投资决策工作流:Claude Code、Codex、OpenClaw、DeepSeek Harness,或者你自己写的都行。Agent 给出判断,还必须写出反方;clawock 核对证据和资金、汇率算术,站不住的决策直接拒收,之后用真实行情给结果打分——不看模型有多自信。不跟单、不代下单。
+每个交易日,clawock 把市场里的原始信息一路加工成可以打分的决策:
 
-**不写反方,决策就发不出去。** 把反方证据删掉再发布,会被直接拒收(退出码 1):
+- **收集**:8 层、43 个抓取与计算模块——行情、SEC 与港交所公告、资金流、中英文新闻、Reddit 与影响者动态,多源兜底。Python 负责抓,模型只读组装好的上下文。
+- **算因子**:量化因子、横截面排名、同业残差、趋势 × 波动率的杠杆刻度盘,全部由 Python 确定性计算。
+- **回测**:因子的聚类 bootstrap 区间要避开 50% 才准影响决策;横截面层预先登记;杠杆刻度盘样本外打分。没通过的也公开在[证据与反证](https://kcnyu.github.io/clawock/evidence.html)页。
+- **决策**:四位分析师、多空两位研究员、三位风险官和一位裁判读同一份上下文,辩论出 `plan.json`。
+- **结算**:Python 用真实行情逐条结算,模型碰不到自己的分数,结果全部进公开战绩。
 
-```json
-{
-  "status": "rejected",
-  "validation_issues": [
-    {"code": "insufficient_opposing_evidence", "message": "requires at least 1 opposing evidence item(s)"},
-    {"code": "unsupported_bear_case", "message": "bear_case must cite opposing evidence"},
-    ...
-  ]
-}
-```
-
-想自己跑一遍 → [安装与完整流程](#在你自己的账本上跑)
+整条流水线可以装进你正在用的 Agent:Claude Code、Codex、OpenClaw、DeepSeek Harness,或者你自己写的 → [安装与完整流程](#在你自己的账本上跑)
 
 ---
 
@@ -274,6 +267,19 @@ cd my-book && mkdir -p .clawock/work
 clawock run prepare > .clawock/work/request.json
 # 你的 Agent 读取请求,写出 decision.json
 clawock run publish --request .clawock/work/request.json --artifact decision.json=decision.json
+```
+
+把 `decision.json` 里的反方证据删掉,`publish` 会直接拒收(退出码 1):
+
+```json
+{
+  "status": "rejected",
+  "validation_issues": [
+    {"code": "insufficient_opposing_evidence", "message": "requires at least 1 opposing evidence item(s)"},
+    {"code": "unsupported_bear_case", "message": "bear_case must cite opposing evidence"},
+    ...
+  ]
+}
 ```
 
 **一条命令看完整闭环**(无模型、无需任何 API 密钥,跑完你会看到):
