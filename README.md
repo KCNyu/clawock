@@ -29,27 +29,15 @@
 
 </div>
 
-A decision workflow you plug into the agent you already use: Claude Code,
-Codex, OpenClaw, DeepSeek Harness, or your own. The agent makes the call and
-has to write the case against it. clawock checks the evidence and the money and
-FX arithmetic, refuses a decision that doesn't hold up, and later grades the
-outcome from real prices — not from the model's confidence.
+Every trading day, clawock turns raw market information into decisions that get graded:
 
-**Skip the bear case and the decision never ships.** Delete the opposing
-evidence, publish again, and clawock refuses it with exit code 1:
+- **Collect.** 43 fetch and compute modules across 8 layers: quotes, SEC and HKEX filings, capital flow, bilingual news, Reddit and influencer feeds, with multi-source fallback. Python fetches; the model only reads the assembled context.
+- **Compute factors.** Quant factors, cross-sectional ranks, peer residuals and a trend × volatility leverage dial, all computed deterministically in Python.
+- **Backtest.** A factor's clustered bootstrap interval has to clear 50% before it may influence a decision; the cross-sectional layer is pre-registered; the leverage dial is scored out of sample. What fails is published on the [evidence page](https://kcnyu.github.io/clawock/evidence.html).
+- **Decide.** Four analyst lenses, a bull and a bear, three risk voices and a judge argue over the same context and write `plan.json`.
+- **Settle.** Python settles every decision against real prices. The model never touches its own score, and every result lands on the public scorecard.
 
-```json
-{
-  "status": "rejected",
-  "validation_issues": [
-    {"code": "insufficient_opposing_evidence", "message": "requires at least 1 opposing evidence item(s)"},
-    {"code": "unsupported_bear_case", "message": "bear_case must cite opposing evidence"},
-    ...
-  ]
-}
-```
-
-Try it yourself → [install and the full loop](#run-it-on-your-own-book)
+The whole pipeline plugs into the agent you already use: Claude Code, Codex, OpenClaw, DeepSeek Harness, or your own → [install and the full loop](#run-it-on-your-own-book)
 
 ---
 
@@ -366,6 +354,19 @@ cd my-book && mkdir -p .clawock/work
 clawock run prepare > .clawock/work/request.json
 # your agent reads the request and writes decision.json
 clawock run publish --request .clawock/work/request.json --artifact decision.json=decision.json
+```
+
+Drop the opposing evidence from `decision.json` and `publish` refuses it (exit code 1):
+
+```json
+{
+  "status": "rejected",
+  "validation_issues": [
+    {"code": "insufficient_opposing_evidence", "message": "requires at least 1 opposing evidence item(s)"},
+    {"code": "unsupported_bear_case", "message": "bear_case must cite opposing evidence"},
+    ...
+  ]
+}
 ```
 
 ### Same contract, whatever the harness looks like
