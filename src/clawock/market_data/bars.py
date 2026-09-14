@@ -55,6 +55,7 @@ from pathlib import Path
 from clawock.market_data import integrity as bar_checks
 from clawock.market_data.eastmoney_http import em_get
 from clawock.instruments import canonical_bar_manifest
+from clawock.safe_io import safe_write_text
 from clawock.sessions import ET, HKT
 from clawock.workspace import workspace_root
 
@@ -94,7 +95,8 @@ def load_bars(ticker: str) -> dict:
 def write_bars(ticker: str, doc: dict) -> None:
     BARS_DIR.mkdir(parents=True, exist_ok=True)
     doc["bars"] = dict(sorted(doc["bars"].items()))
-    bars_path(ticker).write_text(json.dumps(doc, indent=1, ensure_ascii=False) + "\n")
+    # The entire settlement history must survive an interrupted update.
+    safe_write_text(str(bars_path(ticker)), json.dumps(doc, indent=1, ensure_ascii=False) + "\n")
 
 
 def _sync_manifest_flags(ticker: str) -> None:
