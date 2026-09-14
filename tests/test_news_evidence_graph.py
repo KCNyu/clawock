@@ -1,4 +1,7 @@
+import ast
+import inspect
 import json
+import textwrap
 from copy import deepcopy
 from datetime import datetime, timedelta, timezone
 
@@ -236,6 +239,33 @@ def test_source_type_rejects_sec_domain_substring_spoofing():
         source='SEC mirror',
         url='https://www.sec.gov/Archives/abc.htm',
     ) == 'sec_filing'
+
+
+def test_every_source_type_has_a_reliability_in_the_policy():
+    """make_event indexes policy['source_reliability'] by source_type(), so a
+    type the config does not rate is a KeyError that aborts the whole graph.
+    #1473 added `ark_daily_trade` without a rating, and from 2026-09-14 every
+    brief ran without its news evidence graph."""
+    tree = ast.parse(textwrap.dedent(inspect.getsource(graph.source_type)))
+    returned = {
+        node.value.value for node in ast.walk(tree)
+        if isinstance(node, ast.Return) and isinstance(node.value, ast.Constant)
+    }
+    assert 'ark_daily_trade' in returned, 'source_type changed shape; update this test'
+    missing = returned - set(POLICY['source_reliability'])
+    assert not missing, (
+        f'source types without a rating in news-evidence-policy.json: {sorted(missing)}')
+
+
+def test_ark_daily_trade_is_rated_below_the_actionable_floor():
+    """The rating exists so the graph builds, not to let ETF rebalancing clear
+    the actionable reliability gate — the same conservative choice that keeps
+    ark_daily_trade out of PRIMARY_SOURCE_TYPES."""
+    event = graph.make_event(
+        POLICY, ticker='TWST', title='ARK sold TWST', published_at=NOW.isoformat(),
+        origin='ark-funds', source='ARK Invest 日度调仓')
+    assert event['source_type'] == 'ark_daily_trade'
+    assert event['source_reliability'] < POLICY['minimum_actionable_reliability']
 
 
 def test_deduplicate_prefers_primary_source_and_keeps_corroboration():

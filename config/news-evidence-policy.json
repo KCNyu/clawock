@@ -53,6 +53,7 @@
     "issuer_announcement": 0.95,
     "official_macro_schedule": 0.95,
     "reuters_bloomberg_wire": 0.88,
+    "ark_daily_trade": 0.75,
     "finnhub_syndication": 0.7,
     "eastmoney_company": 0.62,
     "google_news_rss": 0.5,
