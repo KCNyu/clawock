@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import importlib
 import json
+from datetime import date
 
 import pytest
 
@@ -74,6 +75,53 @@ def test_brief_card_assessment_is_checked(tmp_path):
     path.write_text(json.dumps({'portfolio_assessment': '今天仍有 4 条风控超限。'}), encoding='utf-8')
     assert pf._card_self_reference_issues(path) == []
     assert pf._card_self_reference_issues(tmp_path / 'missing.json') == []
+
+
+def test_brief_card_leak_reaches_delivered_message_as_information(tmp_path, monkeypatch):
+    """Exercise brief main through the message handed to the delivery policy."""
+    pf = importlib.import_module('clawock.harness.brief_postflight')
+    today = '2026-09-14'
+    judgment = tmp_path / 'memory' / '.tmp' / f'brief-judgment-{today}.json'
+    judgment.parent.mkdir(parents=True)
+    judgment.write_text(json.dumps({'portfolio_assessment': CARD_LEAK}), encoding='utf-8')
+    sent = []
+
+    monkeypatch.setattr(pf, 'WS', tmp_path)
+    monkeypatch.setattr(pf.trading_calendar, 'hkt_today',
+                        lambda: date.fromisoformat(today))
+    monkeypatch.setattr(pf.trading_calendar, 'closed_reason', lambda _market: None)
+    monkeypatch.setattr(pf.workflow_outcomes, 'slot_for_job', lambda _job: 'slot')
+    monkeypatch.setattr(pf.workflow_outcomes, 'record_stage', lambda *_a, **_k: None)
+    monkeypatch.setattr(pf.workflow_outcomes, 'record_primary_delivery',
+                        lambda *_a, **_k: None)
+    monkeypatch.setattr(pf, 'load_preflight_context', lambda _path: ({}, None))
+    monkeypatch.setattr(pf, 'normalize_plan_json',
+                        lambda *_a, **_k: ([], {}))
+    monkeypatch.setattr(pf, '_judgment_gap_issues', lambda *_a, **_k: [])
+    monkeypatch.setattr(pf.brief_render, 'render_from_workspace',
+                        lambda *_a, **_k: ([], None))
+    monkeypatch.setattr(pf, '_ensure_jekyll_front_matter', lambda *_a, **_k: None)
+    monkeypatch.setattr(pf, 'assess_brief_readability', lambda *_a, **_k: {})
+    monkeypatch.setattr(pf, 'readability_issues', lambda *_a, **_k: [])
+    monkeypatch.setattr(pf, 'validate_markdown', lambda *_a, **_k: [])
+    monkeypatch.setattr(pf, 'validate_plan_json', lambda *_a, **_k: [])
+    monkeypatch.setattr(pf, 'write_publish_gate', lambda *_a, **_k: None)
+    monkeypatch.setattr(pf, 'already_delivered', lambda *_a, **_k: False)
+    monkeypatch.setattr(pf, 'build_brief_card', lambda *_a, **_k: '📊 test card')
+
+    def capture_send(_kind, message, **_kwargs):
+        sent.append(message)
+        return True, 'ok', True
+
+    monkeypatch.setattr(pf, 'send_per_policy', capture_send)
+    monkeypatch.setattr(pf, 'maybe_commit', lambda *_a, **_k: (True, 'dry-run'))
+
+    assert pf.main(['--dry-run']) == 0
+    assert len(sent) == 1
+    assert sent[0].startswith('ℹ️ 校验提示（不影响投递）')
+    assert 'preflight' in sent[0]
+    assert '⚠️' not in sent[0]
+    assert val.ADVISORY_MARK not in sent[0]
 
 
 @pytest.mark.parametrize('text', [

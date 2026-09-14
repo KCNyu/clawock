@@ -672,6 +672,7 @@ def categorize(issues):
 
 
 from clawock.harness.validation import (
+    advisory_prefix,
     categorize_issues,
     check_md_table_column_consistency,
     check_pipeline_self_reference,
@@ -1140,18 +1141,19 @@ def main(argv=None):
         reason=None if projection_ready else 'pages_projection_failed',
     )
 
-    if status == 'pass':
-        wechat_prefix = ''
+    if status == 'pass' or not escalating:
+        banner = ''
     elif status == 'warn':
-        wechat_prefix = (f'⚠️ Validation warnings ({len(issues)}): '
-                         + '; '.join(issues[:3])
-                         + ('; ...' if len(issues) > 3 else '')
-                         + '\n\n')
+        banner = (f'⚠️ Validation warnings ({len(escalating)}): '
+                  + '; '.join(escalating[:3])
+                  + ('; ...' if len(escalating) > 3 else '')
+                  + '\n\n')
     else:
-        wechat_prefix = (f'🔴 Validation FAILED ({len(issues)} issues), brief 仍发布但未 commit:\n'
-                         + '\n'.join('- ' + i for i in issues[:5])
-                         + ('\n- ...' if len(issues) > 5 else '')
-                         + '\n\n')
+        banner = (f'🔴 Validation FAILED ({len(escalating)} issues), brief 仍发布但未 commit:\n'
+                  + '\n'.join('- ' + i for i in escalating[:5])
+                  + ('\n- ...' if len(escalating) > 5 else '')
+                  + '\n\n')
+    wechat_prefix = banner + advisory_prefix(advisories)
 
     # ── WeChat delivery (decoupled from the cron's announce) ──────────────────
     # The cron now runs delivery=none. The announce used to fire at the END of a
