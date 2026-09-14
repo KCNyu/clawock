@@ -307,6 +307,9 @@ _US_PROXY_LABEL = None
 
 
 def compute(closes):
+    closes = [c for c in closes if c is not None and c > 0]
+    if not closes:
+        return None, None
     n = len(closes)
     ma = sum(closes[-MA_WINDOW:]) / MA_WINDOW if n >= MA_WINDOW else None
     rets = [closes[i] / closes[i - 1] - 1 for i in range(max(1, n - VOL_WINDOW), n)]

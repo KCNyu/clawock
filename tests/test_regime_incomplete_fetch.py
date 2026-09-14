@@ -58,3 +58,23 @@ def test_mid_history_has_vol_but_no_ma(offline_dial, monkeypatch):
     payload = _run(monkeypatch, closes)
     assert payload["missing_inputs"] == ["ma"]
     assert payload["vol_annualized"] is not None
+
+
+def test_compute_survives_zero_close(monkeypatch):
+    """#1492: one 0.0 close (bad tick / halted-session gap) used to divide by
+    closes[i-1] == 0 inside the vol return calc and blow up ZeroDivisionError,
+    which neither main() nor compute_us() caught — one bad print crashed the
+    whole regime run instead of degrading gracefully like the missing-inputs
+    path above."""
+    clean = [100.0 + i for i in range(regime.MA_WINDOW + 25)]
+    closes = clean[:-5] + [0.0] + clean[-5:]  # zero tick near the end
+    ma, vol = regime.compute(closes)  # must not raise
+    # The bad print is dropped, not averaged in as a 0 or a -100% return.
+    assert (ma, vol) == regime.compute(clean)
+    assert ma is not None and vol is not None
+
+
+def test_compute_all_non_positive_closes_returns_none(monkeypatch):
+    """Degenerate case: nothing survives the non-positive filter."""
+    ma, vol = regime.compute([0.0, -1.0, 0.0])
+    assert (ma, vol) == (None, None)
