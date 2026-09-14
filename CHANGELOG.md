@@ -13,6 +13,110 @@ versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 The newest heading here has to match the version in `pyproject.toml` — CI fails
 otherwise, so a release cannot ship an entry that was never written.
 
+## [0.2.0] — 2026-09-14
+
+A minor bump rather than 0.1.10: `numpy` and `scipy` became required
+dependencies and the `compute` extra is gone. The DSH plugin ships on the same
+version.
+
+### Changed
+
+- **`numpy` and `scipy` are required ([#1202]).** `portfolio/risk.py`, the
+  module behind the packaged `portfolio-risk` command, imported numpy at the top
+  level while numpy sat in an optional extra, so on a clean install that command
+  failed on its first line. scipy joins it for the covariance, allocation and
+  stress work that landed in the same change.
+- **The empty `compute` extra is removed; `clawock[market]` installs the
+  `yfinance` quote fallback ([#1321], [#1325]).** yfinance is the last hop of
+  the HK quote chain and the fifth of seven US providers. It was declared
+  nowhere, so an install that followed the metadata silently lost that hop.
+- **The pre-open brief is rendered by the harness, not written by the model
+  ([#1232], [#1234]).** The model supplies the judgment (schema v3) and
+  `clawock.harness.brief_render` produces the report and the WeChat card;
+  `clawock brief render` runs that step on its own, with `--dry-run` and
+  `--date`.
+- **Report and intraday postflights accept only the prose form ([#1279]).** The
+  legacy input, where the model handed back a whole report including its own
+  copy of the data block, is removed together with
+  `validation.check_raw_tables_verbatim`.
+- **Run cards use schema 2 ([#1203]).** Reproduction keys now cover registered
+  seeds, library versions and configuration contents; old keys no longer match
+  reruns. `clawock run-card --diff` and `--verify` explain changes and check the
+  recorded environment, with a separate digest for the resulting metrics.
+- **Module workspace defaults no longer follow the process's current directory
+  ([#1254]).** They resolve from the package tree; `CLAWOCK_WORKSPACE` still
+  overrides that default for an external book.
+- **The packaged automation LLM client uses MiniMax only ([#1488]).** The
+  OpenCode fallback and its `fallback_*` arguments are removed. Influence-feed
+  filtering failures retain only fresh, previously scored entries instead of
+  publishing unscored candidates.
+- **Automation validates model output before publishing ([#1267]).** Empty,
+  stub-length or incomplete reports are refused; structured influence-feed
+  scores are checked before use.
+- **Delivered postflights with advisory warnings exit 0; failed products exit
+  2 ([#1433]).** Report, intraday and brief now share this exit-code contract.
+
+### Added
+
+- **`clawock calendar <market> --status` ([#1429])** prints `OPEN` / `CLOSED`
+  and always exits 0, for callers that read the output rather than the exit
+  code. The bare command still exits 1 on a closed session.
+- **Covariance, allocation and stress modules for portfolio risk ([#1162],
+  [#1165], [#1186]).**
+- **`clawock signal-panel` evaluates registered signals on the cross-section
+  ([#1131], [#1199], [#1201], [#1236]).** It reports rank IC, quantile returns,
+  turnover and persistence, fixed-horizon and triple-barrier outcomes, placebo
+  tests and leave-one-ticker-out checks.
+- **Evaluation modules for selection uncertainty, drift and attribution
+  ([#1128], [#1197], [#1204], [#1205]).** These add purged CSCV/PBO, block
+  bootstrap intervals, deflated Sharpe, distribution-drift diagnostics, factor
+  attribution and a combined evaluation grade.
+- **`clawock validate-regime-hmm` and `clawock evaluate-add-shapes`
+  ([#1208], [#1341])** compare probabilistic regimes and entry shapes against
+  baselines. They measure alternatives without changing live decision rules.
+- **Daily-bar liquidity and volatility estimators ([#1200])** include spread
+  and illiquidity estimates, EWMA and GARCH volatility, with explicit missing
+  values when the data cannot support an estimate.
+- **Scorecard provenance and net shadow returns ([#1127], [#1218]).**
+  `clawock scorecard-provenance --check --recompute` traces metrics to ledger
+  rows. Shadow results retain the gross curve and add a net curve under stated
+  commission and spread assumptions.
+- **Optional decision debate and magnitude forecasts ([#1129], [#1239]).**
+  Decisions can retain their supporting/opposing cases and `expected_move_pct`;
+  coverage and forecast-magnitude errors are reported separately.
+- **Decision-packet section queries accept `thesis`, `execution`, `history`,
+  `information` and `status` ([#1374])** as well as the original seven sections.
+- **`clawock decision-map` ([#1206])** joins decisions to the signal snapshots
+  available when they were made, with explicit payload-size degradation.
+- **`clawock cron-trigger --job-name ...` ([#1443], [#1498])** queues an
+  OpenClaw job from a host scheduler after checking ownership and current job
+  state; `--check` validates without triggering a run.
+- **`clawock-dsh` shows Codex quota ([#1480]).** Codex is a fourth balance
+  provider, read through the official `codex app-server` rate-limit call, with
+  the 5-hour and weekly windows. Codex OAuth tokens are never read or
+  forwarded. A quota warning now names the window that crossed the line
+  ([#1486]).
+
+### Fixed
+
+- **`clawock-dsh` loads on DeepSeek Harness 0.1.2 ([#1310]).** 0.1.2 retired
+  `@deepseek-ai/dsh-client-runtime`, which the plugin still required, and that
+  one stale module id took the whole dsh UI down with "Failed to load plugins".
+  The plugin now imports `defineStore` from `@deepseek-ai/dsh-client-store`.
+- **The published profile schema matches the loader ([#1308]).** It no longer
+  requires the retired `templates` field or accepts `workflows.*.template`.
+- **Decision IDs and ledger writes preserve episode identity and concurrent
+  updates ([#1433], [#1483]).** Harness-owned IDs are normalized rather than
+  trusting model-supplied episode IDs, and read/modify/write operations hold a
+  cross-process ledger lock.
+- **Artifact reads and interrupted writes preserve complete data
+  ([#1499], [#1500], [#1506]).** Git artifact reads stay on one fetched commit;
+  canonical bars and fallback brief files use atomic writes.
+- **Market-data failures remain distinguishable from valid data
+  ([#1124], [#1130], [#1397], [#1505]).** Degraded quotes retain quality labels,
+  HK peer discovery uses the working industry endpoint, benchmark fetch errors
+  are reported, and non-positive closes no longer crash regime calculations.
+
 ## [0.1.9] — 2026-08-27
 
 Refresh release: same version train for the Python package and the DSH
@@ -390,3 +494,49 @@ environment — and completes one full run. ([#436], [#379])
 [#730]: https://github.com/KCNyu/clawock/issues/730
 [#731]: https://github.com/KCNyu/clawock/issues/731
 [#732]: https://github.com/KCNyu/clawock/issues/732
+[#1162]: https://github.com/KCNyu/clawock/issues/1162
+[#1165]: https://github.com/KCNyu/clawock/issues/1165
+[#1186]: https://github.com/KCNyu/clawock/issues/1186
+[#1202]: https://github.com/KCNyu/clawock/pull/1202
+[#1232]: https://github.com/KCNyu/clawock/pull/1232
+[#1234]: https://github.com/KCNyu/clawock/pull/1234
+[#1279]: https://github.com/KCNyu/clawock/issues/1279
+[#1310]: https://github.com/KCNyu/clawock/pull/1310
+[#1321]: https://github.com/KCNyu/clawock/issues/1321
+[#1325]: https://github.com/KCNyu/clawock/issues/1325
+[#1429]: https://github.com/KCNyu/clawock/pull/1429
+[#1480]: https://github.com/KCNyu/clawock/pull/1480
+[#1486]: https://github.com/KCNyu/clawock/pull/1486
+[#1124]: https://github.com/KCNyu/clawock/pull/1124
+[#1127]: https://github.com/KCNyu/clawock/pull/1127
+[#1128]: https://github.com/KCNyu/clawock/pull/1128
+[#1129]: https://github.com/KCNyu/clawock/pull/1129
+[#1130]: https://github.com/KCNyu/clawock/pull/1130
+[#1131]: https://github.com/KCNyu/clawock/pull/1131
+[#1197]: https://github.com/KCNyu/clawock/pull/1197
+[#1199]: https://github.com/KCNyu/clawock/pull/1199
+[#1200]: https://github.com/KCNyu/clawock/pull/1200
+[#1201]: https://github.com/KCNyu/clawock/pull/1201
+[#1203]: https://github.com/KCNyu/clawock/pull/1203
+[#1204]: https://github.com/KCNyu/clawock/pull/1204
+[#1205]: https://github.com/KCNyu/clawock/pull/1205
+[#1208]: https://github.com/KCNyu/clawock/pull/1208
+[#1218]: https://github.com/KCNyu/clawock/pull/1218
+[#1236]: https://github.com/KCNyu/clawock/pull/1236
+[#1239]: https://github.com/KCNyu/clawock/pull/1239
+[#1254]: https://github.com/KCNyu/clawock/pull/1254
+[#1308]: https://github.com/KCNyu/clawock/pull/1308
+[#1341]: https://github.com/KCNyu/clawock/pull/1341
+[#1374]: https://github.com/KCNyu/clawock/pull/1374
+[#1397]: https://github.com/KCNyu/clawock/pull/1397
+[#1433]: https://github.com/KCNyu/clawock/pull/1433
+[#1483]: https://github.com/KCNyu/clawock/pull/1483
+[#1488]: https://github.com/KCNyu/clawock/pull/1488
+[#1499]: https://github.com/KCNyu/clawock/pull/1499
+[#1500]: https://github.com/KCNyu/clawock/pull/1500
+[#1505]: https://github.com/KCNyu/clawock/pull/1505
+[#1506]: https://github.com/KCNyu/clawock/pull/1506
+[#1206]: https://github.com/KCNyu/clawock/pull/1206
+[#1267]: https://github.com/KCNyu/clawock/pull/1267
+[#1443]: https://github.com/KCNyu/clawock/pull/1443
+[#1498]: https://github.com/KCNyu/clawock/pull/1498
