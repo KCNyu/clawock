@@ -19,11 +19,11 @@
 
 <sub><i>“The market doesn't care how confident the model was.”</i></sub>
 
+<a href="https://kcnyu.github.io/clawock/"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dashboard.gif" alt="clawock dashboard cycling through its tabs" width="820"></a>
+
 | **<!-- CW_M:days -->120<!-- /CW_M:days -->** | **<!-- CW_M:rows -->837<!-- /CW_M:rows -->** | **<!-- CW_M:settled -->142<!-- /CW_M:settled -->** | **43** | **5** | **0** |
 |:---:|:---:|:---:|:---:|:---:|:---:|
 | days live on a real HK + US account | decisions on the public ledger | episodes settled by code | data modules across 8 layers | agent harnesses, one contract | scores the model wrote for itself |
-
-<a href="https://kcnyu.github.io/clawock/"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dashboard.gif" alt="clawock dashboard cycling through its tabs" width="820"></a>
 
 <sub>Real positions, real P&amp;L — <!-- CW_M:return_pct -->−23.41%<!-- /CW_M:return_pct --> since day one, published exactly as it is — graded in the open. Numbers and previews refresh weekly; the live dashboard updates through the trading day.</sub>
 
@@ -36,7 +36,7 @@ FX arithmetic, refuses a decision that doesn't hold up, and later grades the
 outcome from real prices — not from the model's confidence.
 
 **Skip the bear case and the decision never ships.** Delete the opposing
-evidence and publish again:
+evidence, publish again, and clawock refuses it with exit code 1:
 
 ```json
 {
@@ -49,7 +49,7 @@ evidence and publish again:
 }
 ```
 
-Exit code 1, nothing published. Install and the full prepare → publish loop: [Run it on your own book](#run-it-on-your-own-book).
+Try it yourself → [install and the full loop](#run-it-on-your-own-book)
 
 ---
 
