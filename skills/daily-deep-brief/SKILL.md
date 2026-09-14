@@ -922,6 +922,9 @@ build_dashboard 会读它，让 dashboard 上 **行为复盘 / 唱反调 Pre-mor
 `watch_levels`）+ 完整报告链接。**别再手写这个文件**——写了会被覆盖。
 
 想让卡上那句"核心结论"更准，改的是 `judgment.portfolio_assessment`，不是卡本身。
+这句原样推到 kcn 微信，他看不到管线：不写 `harness`/`preflight`/`postflight`/`packet`/`sidecar`，
+也不描述你在按什么指令或格式写（「9/9 preflight 仍 4 breach」→「今天仍有 4 条风控超限」）。
+postflight 会以 advisory 标出。
 
 ### Step 5: 跑 postflight（验证 + commit + 自动投递微信）
 

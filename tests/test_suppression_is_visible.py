@@ -48,7 +48,7 @@ def test_advisory_only_report_is_not_dressed_as_a_warning():
     """It stays `warn` (delivered either way) but reads as information."""
     escalating, advisories = val.split_advisory([ADVISORY])
     assert escalating == []
-    assert val.advisory_prefix(advisories).startswith("ℹ️ 数字校验（不影响投递）")
+    assert val.advisory_prefix(advisories).startswith("ℹ️ 校验提示（不影响投递）")
     assert "⚠️" not in val.advisory_prefix(advisories)
 
 

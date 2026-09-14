@@ -672,8 +672,10 @@ def categorize(issues):
 
 
 from clawock.harness.validation import (
+    advisory_prefix,
     categorize_issues,
     check_md_table_column_consistency,
+    check_pipeline_self_reference,
     postflight_exit_code,
     product_status,
     split_advisory,
@@ -936,6 +938,24 @@ def _judgment_gap_issues(judgment_path, decision_packet):
             'Pages projection 会丢掉整个判断层']
 
 
+def _card_self_reference_issues(judgment_path):
+    """Pipeline vocabulary in the one model-written line of the WeChat card.
+
+    The card's 核心结论 is `judgment.portfolio_assessment` verbatim; every other
+    card line is rendered by brief_render (its `driven_by=` / `hold_and_watch`
+    are harness-owned and deliberate), so only this field is checked. The page's
+    debate sections quote the decision packet on purpose and are left alone.
+    """
+    try:
+        overlay = json.loads(Path(judgment_path).read_text(encoding='utf-8'))
+    except (OSError, ValueError):
+        return []  # _judgment_gap_issues already reports it
+    assessment = overlay.get('portfolio_assessment') if isinstance(overlay, dict) else None
+    if not isinstance(assessment, str):
+        return []
+    return check_pipeline_self_reference(assessment, label='微信卡核心结论')
+
+
 def main(argv=None):
     import argparse
     ap = argparse.ArgumentParser()
@@ -999,6 +1019,8 @@ def main(argv=None):
     # notice the brief went out with empty sections.
     issues += _judgment_gap_issues(
         WS / 'memory' / '.tmp' / f'brief-judgment-{today}.json', decision_packet)
+    issues += _card_self_reference_issues(
+        WS / 'memory' / '.tmp' / f'brief-judgment-{today}.json')
 
     # The report is rendered here, from the judgment and the normalized plan —
     # the model no longer writes markdown at all (see clawock.harness.
@@ -1119,18 +1141,19 @@ def main(argv=None):
         reason=None if projection_ready else 'pages_projection_failed',
     )
 
-    if status == 'pass':
-        wechat_prefix = ''
+    if status == 'pass' or not escalating:
+        banner = ''
     elif status == 'warn':
-        wechat_prefix = (f'⚠️ Validation warnings ({len(issues)}): '
-                         + '; '.join(issues[:3])
-                         + ('; ...' if len(issues) > 3 else '')
-                         + '\n\n')
+        banner = (f'⚠️ Validation warnings ({len(escalating)}): '
+                  + '; '.join(escalating[:3])
+                  + ('; ...' if len(escalating) > 3 else '')
+                  + '\n\n')
     else:
-        wechat_prefix = (f'🔴 Validation FAILED ({len(issues)} issues), brief 仍发布但未 commit:\n'
-                         + '\n'.join('- ' + i for i in issues[:5])
-                         + ('\n- ...' if len(issues) > 5 else '')
-                         + '\n\n')
+        banner = (f'🔴 Validation FAILED ({len(escalating)} issues), brief 仍发布但未 commit:\n'
+                  + '\n'.join('- ' + i for i in escalating[:5])
+                  + ('\n- ...' if len(escalating) > 5 else '')
+                  + '\n\n')
+    wechat_prefix = banner + advisory_prefix(advisories)
 
     # ── WeChat delivery (decoupled from the cron's announce) ──────────────────
     # The cron now runs delivery=none. The announce used to fire at the END of a

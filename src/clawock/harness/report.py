@@ -16,6 +16,7 @@ from clawock.harness.validation import (
     REPORT_CHAR_LIMITS as CHAR_LIMITS,
     categorize_issues,
     check_numeric_claims,
+    check_pipeline_self_reference,
     validate_forbidden_phrases,
 )
 
@@ -102,6 +103,9 @@ def validate(body, ctx, model_text):
 
     # 6. 数字必须来自 context（模型文本）—— 一条聚合 warn，见 check_numeric_claims
     issues.extend(check_numeric_claims(checked, ctx))
+
+    # 7. 管线术语（模型文本）—— advisory，见 check_pipeline_self_reference
+    issues.extend(check_pipeline_self_reference(checked))
 
     return issues
 

@@ -107,6 +107,7 @@ clawock intraday preflight --market us
   你抄一遍只会引入排版误差：2026-07-28 00:30 就因为一格多打了一个空格，整段分析被丢掉只发了数据块。
   数据块里的市值/持仓表/亏损持仓行**已经在消息里了**，你的输出从 `▎我的看法` 开始。
 - 你交付的就是这一段：**至少 60 字（postflight 软下限），目标 2-3 行**
+  - 🗣 **读者只看得到这条微信，看不到管线**：正文里不写 `harness`/`preflight`/`postflight`/`packet`/`sidecar`/`context_id` 这些词，也不描述你在按什么指令、格式或步骤写。把约束翻成交易语言：「packet 锁 hold_and_watch 不许 trim」→「风控规则只允许持有观察，今天不减」；「已被 harness 标 🔴」→「接近区间顶部、追高质量差」。postflight 会以 advisory 标出。
   - 若 `anomalies` 非空，**必须**提其中至少一个票；主动一级信息本身也会令 `should_alert=true`，此时不能虚构一个价格异动。
   - `active_information_candidates.candidates` 非空时，至少写最相关一条：Bull 只陈述一手细节及预期传导，Bear 检查是否已 price-in/方向是否仍未知，Judge 照抄 harness 的 `candidate|wait|reject`、falsifier 与 next evidence；只能降级，不能自行补方向、价格、股数或授权。`degraded_issuers` 必须说“一级源降级”，不能说“没有消息”。
   - 📈 **加仓侧读数(`add_side_reads.rows` 非空时必写 1 行)**:harness 已经把异动、机会雷达
@@ -211,6 +212,8 @@ clawock report preflight --market us --phase {open|close}
 - `mover_thesis` 里该票有 `triggered`/`watch` 红线 → 追一句「触及红线：{required_action}」——**这是归因语境，不是操作许可**，能不能动手仍由 catalyst-gate 与风控契约决定。
 - 没有 interrupt：`no_recent_filing` 先查 `known_catalysts[票]`；有则写「窗口内无新公告；沿用今早已知催化：…」，没有才写「窗口内无新公告，且无已知催化，暂无法归因」；`index_fund_no_issuer` 写「指数基金无发行人公告，看成分/板块」；`degraded` 写「催化源未取到」（**不等于「没有消息」**）。一律不许编理由。
 - 空间不够时**先砍板块全景的细节，不砍归因**——一次异动没解释，比少列两个同业更贵。
+
+🗣 **读者只看得到这条微信，看不到管线**：三段里不写 `harness`/`preflight`/`postflight`/`packet`/`sidecar`/`context_id`，也不描述你在按什么指令、格式或步骤写；约束翻成交易语言（「packet 锁定的破位审议线」→「计划里的破位复核线」）。postflight 会以 advisory 标出。
 
 写这几段，**存成 `memory/.tmp/report-prose-us-{phase}.md`**：
 ```

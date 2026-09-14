@@ -59,6 +59,47 @@ def _cell_separators(line):
 def validate_forbidden_phrases(text, phrases, label='报告'):
     """Return one issue per forbidden phrase found in text."""
     return [f'{label}含敷衍词 "{p}"' for p in phrases if p in text]
+
+
+# Words that only exist on the writer's side of the prompt. kcn reads the pushed
+# message; he never sees a preflight, a decision packet or a context file, so a
+# sentence built on them is the prompt showing through rather than analysis.
+# Every entry was observed in delivered prose, not guessed: 2026-09-14 HK mid
+# "00100 / 02208 / 03032 / 03033 全部 hold_and_watch packet 锁定"; 2026-09-01
+# "按 harness 严令只能停在 `add_side_reads: wait`"; 2026-09-09 card "9/9
+# preflight 仍 4 breach". 15 of 244 prose bodies sent 2026-08-31..09-14 carried
+# one. The first-person kind ("我将为您…" / "根据以上指令") was searched for and
+# never found, so it is not listed.
+#
+# ASCII boundaries are explicit lookarounds: `\b` does not fire between
+# "packet" and a following 锁, because CJK characters count as word characters.
+PIPELINE_TERMS = (
+    'harness', 'preflight', 'postflight', 'packet', 'sidecar',
+    'context_id', 'raw_wechat_block', 'wechat_prefix', 'SKILL.md',
+)
+_PIPELINE_TERM = re.compile(
+    r'(?<![A-Za-z0-9_])(' + '|'.join(re.escape(t) for t in PIPELINE_TERMS)
+    + r')(?![A-Za-z0-9_])', re.IGNORECASE)
+
+
+def check_pipeline_self_reference(text, label='散文'):
+    """One advisory issue when model-written text names pipeline internals.
+
+    Advisory on purpose, like check_numeric_claims: the sentence around the word
+    is usually a correct read ("风控只允许持有观察") phrased in the wrong
+    vocabulary, and turning 6% of otherwise good slots into data-block-only sends
+    would cost kcn the analysis to spare him one word. The prompt rule in the
+    SKILLs is the fix; this is what makes a relapse visible.
+    """
+    found = []
+    for match in _PIPELINE_TERM.finditer(text or ''):
+        term = match.group(1).lower()
+        if term not in found:
+            found.append(term)
+    if not found:
+        return []
+    return [f'{label}出现内部管线术语（{", ".join(found)}）—— 读者看不到管线，'
+            f'改写成交易语言 {ADVISORY_MARK}']
 # SCOPE, stated plainly: this catches magnitudes that appear NOWHERE in the
 # context. It cannot catch a real number attached to the wrong thing — the same
 # report's "07226 + 03033 各 1000 股" quotes a share count that genuinely exists
@@ -339,7 +380,7 @@ def advisory_prefix(advisories, shown=2):
         return ''
     body = '; '.join(a.replace(ADVISORY_MARK, '').strip() for a in advisories[:shown])
     more = f'；另 {len(advisories) - shown} 条' if len(advisories) > shown else ''
-    return f'ℹ️ 数字校验（不影响投递）：{body}{more}\n\n'
+    return f'ℹ️ 校验提示（不影响投递）：{body}{more}\n\n'
 
 
 def product_status(status, escalating):
