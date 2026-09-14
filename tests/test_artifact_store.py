@@ -127,6 +127,64 @@ def test_a_published_generation_reads_back_byte_for_byte(repo, tmp_path):
         assert (into / name).read_text(encoding="utf-8") == text
 
 
+def test_fetch_pins_one_generation_across_an_unrelated_fetch(repo, tmp_path, monkeypatch):
+    store = GitBranchStore(repo, "data-plane")
+    store.publish(GENERATION)
+    other = {name: "unrelated generation" for name in GENERATION}
+    GitBranchStore(repo, "other-data").publish(other)
+    real_blob = store._git_blob
+    reads = []
+
+    def interleaved(ref, name):
+        value = real_blob(ref, name)
+        reads.append(name)
+        if len(reads) == 1:
+            _git(repo, "fetch", "origin", "other-data")
+        return value
+
+    monkeypatch.setattr(store, "_git_blob", interleaved)
+    into = tmp_path / "materialised"
+    store.fetch(into, names=list(GENERATION))
+    assert {name: (into / name).read_text() for name in GENERATION} == GENERATION
+
+
+def test_store_reads_leave_the_callers_fetch_head_untouched(repo, tmp_path):
+    store = GitBranchStore(repo, "data-plane")
+    first = store.publish(GENERATION)
+    _git(repo, "fetch", "origin", "master")
+    before = _git(repo, "rev-parse", "FETCH_HEAD")
+    store.fetch(tmp_path / "materialised")
+    again = store.publish(GENERATION)
+    assert not again.changed and again.receipt == first.receipt
+    assert _git(repo, "rev-parse", "FETCH_HEAD") == before
+    assert not _git(repo, "for-each-ref", "refs/clawock/fetch/")
+
+
+@pytest.mark.parametrize("operation", ["fetch", "publish"])
+def test_other_fetch_cannot_replace_the_snapshot_before_it_is_pinned(
+        repo, tmp_path, monkeypatch, operation):
+    store = GitBranchStore(repo, "data-plane")
+    first = store.publish(GENERATION)
+    GitBranchStore(repo, "other-data").publish({name: "other" for name in GENERATION})
+    real_git = store._git
+
+    def interleaved(*args, **kwargs):
+        result = real_git(*args, **kwargs)
+        if args[0] == "fetch":
+            _git(repo, "fetch", "origin", "other-data")
+        return result
+
+    monkeypatch.setattr(store, "_git", interleaved)
+    if operation == "fetch":
+        into = tmp_path / "materialised"
+        store.fetch(into)
+        assert {name: (into / name).read_text() for name in GENERATION} == GENERATION
+    else:
+        again = store.publish(GENERATION)
+        assert not again.changed and again.receipt == first.receipt
+    assert not _git(repo, "for-each-ref", "refs/clawock/fetch/")
+
+
 def test_a_materialised_generation_is_readable_by_whoever_serves_it(repo, tmp_path):
     """`mkstemp` creates 0600 and `os.replace` swaps the inode, so a published
     file inherits the staging permissions rather than its own.
@@ -160,6 +218,8 @@ def test_a_generation_the_branch_does_not_carry_is_refused(repo, tmp_path):
             names=[*GENERATION, "assets/data/decision_audit.json"])
     assert not (tmp_path / "checkout").exists(), (
         "nothing is materialised when the generation is incomplete")
+    assert not _git(repo, "for-each-ref", "refs/clawock/fetch/"), (
+        "a failed materialisation must release the temporary generation ref")
 
 
 @pytest.mark.parametrize("branch", ["master", "main", "HEAD"])

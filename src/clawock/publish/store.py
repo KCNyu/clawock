@@ -21,9 +21,11 @@ import os
 import subprocess
 import tempfile
 import time
+from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Mapping, Protocol
+from uuid import uuid4
 
 
 # Published artifacts are read by a web server, a Jekyll container and anyone
@@ -318,22 +320,27 @@ class GitBranchStore:
                 f"refusing to force-update {self.branch!r}: this store replaces "
                 f"the branch's entire history on every publish")
 
-    def _stored_tree(self) -> str | None:
-        """The tree the branch holds right now, or None if it holds nothing.
+    @contextmanager
+    def _fetched_commit(self):
+        """Pin one remote generation without touching the caller's FETCH_HEAD.
 
-        Fetched at full depth, which for a parentless branch is one commit — the
-        same cost `--depth=1` would have. `--depth=1` is not merely redundant
-        here, it is harmful: it writes a shallow boundary into the CALLER's
-        repository, and a shallow repository has its pushes rejected ("shallow
-        update not allowed"). The caller is the live workspace checkout, and the
-        push it would break is the one that publishes `master`.
+        A fetch by another process can change FETCH_HEAD between any two git
+        calls. A private ref also keeps this parentless commit reachable until
+        every blob has been read. Full depth avoids making the caller shallow.
         """
+        ref = f"refs/clawock/fetch/{uuid4().hex}"
         try:
-            self._git("fetch", self.remote, self.branch)
-        except subprocess.CalledProcessError:
-            return None                      # branch does not exist yet
+            self._git("fetch", "--no-write-fetch-head", self.remote,
+                      f"+refs/heads/{self.branch}:{ref}")
+            yield self._git("rev-parse", f"{ref}^{{commit}}")
+        finally:
+            self._git("update-ref", "-d", ref)
+
+    def _stored_generation(self) -> tuple[str, str] | None:
+        """(commit, tree) for one fetched generation, or None on a missing read."""
         try:
-            return self._git("rev-parse", "FETCH_HEAD^{tree}")
+            with self._fetched_commit() as commit:
+                return commit, self._git("rev-parse", f"{commit}^{{tree}}")
         except subprocess.CalledProcessError:
             return None
 
@@ -361,8 +368,9 @@ class GitBranchStore:
         # that last tick's generation never arrived, and the branch would sit
         # stale until the next genuine change — indefinitely, on a quiet day.
         # It also covers the first publish, where there is no branch at all.
-        if self._stored_tree() == tree:
-            return PublishResult(self._git("rev-parse", "FETCH_HEAD"), changed=False)
+        stored = self._stored_generation()
+        if stored is not None and stored[1] == tree:
+            return PublishResult(stored[0], changed=False)
 
         # No `-p`: parentless, so the branch is a snapshot and not a log.
         commit = self._git("commit-tree", tree, "-m", label or "generation")
@@ -406,20 +414,16 @@ class GitBranchStore:
         three of four files is how a page ends up serving one payload from this
         generation and another from whatever was on disk.
         """
-        # Full depth for the same reason `_stored_tree` uses it: `--depth=1`
-        # writes a shallow boundary into the repository doing the fetch, and a
-        # shallow repository has its pushes rejected. A parentless branch is one
-        # commit either way.
-        self._git("fetch", self.remote, self.branch)
-        listed = self._git("ls-tree", "-r", "--name-only", "FETCH_HEAD").split("\n")
-        listed = [name for name in listed if name]
-        wanted = list(names) if names is not None else listed
-        missing = [name for name in wanted if name not in listed]
-        if missing:
-            raise FileNotFoundError(
-                f"{self.remote}/{self.branch} does not carry {missing}")
-        into = Path(into)
-        write_generation({
-            str(into / name): self._git_blob("FETCH_HEAD", name) for name in wanted
-        })
+        with self._fetched_commit() as commit:
+            listed = self._git("ls-tree", "-r", "--name-only", commit).split("\n")
+            listed = [name for name in listed if name]
+            wanted = list(names) if names is not None else listed
+            missing = [name for name in wanted if name not in listed]
+            if missing:
+                raise FileNotFoundError(
+                    f"{self.remote}/{self.branch} does not carry {missing}")
+            into = Path(into)
+            write_generation({
+                str(into / name): self._git_blob(commit, name) for name in wanted
+            })
         return wanted
