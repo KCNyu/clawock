@@ -4,11 +4,12 @@
 
 ### AI argues. Code settles. The losses stay on the page.
 
-A real Hong Kong + US brokerage account, run day after day by agents that
-debate every call before it happens, then settled by code the model never
-touches. Every result gets published, wins and losses both. Install the same
-decision workflow into your own agent, in any harness: OpenClaw, Claude Code,
-Codex, DeepSeek Harness, or one you write yourself.
+A decision workflow you install into the agent you already use: Claude Code,
+Codex, OpenClaw, DeepSeek Harness, or your own. The agent makes the call and
+has to write the case against it. clawock checks the evidence and the money and
+FX arithmetic, refuses a decision that doesn't hold up, and later grades the
+outcome from real prices. The same workflow runs every trading day on a real
+Hong Kong + US brokerage account, and every result is published.
 
 [![PyPI](https://img.shields.io/pypi/v/clawock?label=PYPI&style=flat-square&logo=pypi&logoColor=white&labelColor=252b35&color=4b91c8)](https://pypi.org/project/clawock/)
 [![npm](https://img.shields.io/npm/v/clawock-dsh?label=NPM&style=flat-square&logo=npm&logoColor=white&labelColor=252b35&color=4b91c8)](https://www.npmjs.com/package/clawock-dsh)
@@ -19,7 +20,34 @@ Codex, DeepSeek Harness, or one you write yourself.
 
 [**Live dashboard**](https://kcnyu.github.io/clawock/) &nbsp;·&nbsp; [**Daily briefs**](https://kcnyu.github.io/clawock/briefs.html) &nbsp;·&nbsp; [**Evidence**](https://kcnyu.github.io/clawock/evidence.html) &nbsp;·&nbsp; [**简体中文**](https://github.com/KCNyu/clawock/blob/master/README.zh.md)
 
-<br>
+</div>
+
+```bash
+pip install clawock
+clawock workflow install investment-decision --workspace ./my-book
+clawock init ./my-book --workflow investment-decision
+cd my-book && mkdir -p .clawock/work
+clawock run prepare > .clawock/work/request.json
+# your agent reads the request and writes decision.json
+clawock run publish --request .clawock/work/request.json --artifact decision.json=decision.json
+```
+
+Delete the opposing evidence from a decision and publish it again, and it is refused (exit code 1):
+
+```json
+{
+  "status": "rejected",
+  "validation_issues": [
+    {"code": "insufficient_opposing_evidence", "message": "requires at least 1 opposing evidence item(s)"},
+    {"code": "unsupported_bear_case", "message": "bear_case must cite opposing evidence"},
+    ...
+  ]
+}
+```
+
+Step by step, and what each file is for: [Run it on your own book](#run-it-on-your-own-book).
+
+<div align="center">
 
 <a href="https://kcnyu.github.io/clawock/">
   <img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/social-card.png" alt="clawock — portable investment decision workflows for any external AI agent, proven on a live HK and US desk" width="820">
@@ -44,33 +72,25 @@ that is the record: real positions, a growing decision history, and a public
 scorecard the model has no say in — not a get-rich bot, and not a
 copy-trading service.
 
-**clawock is the part of that desk we pulled out and made reusable: an
-agent-native, harness-agnostic investment decision-workflow plugin with a
-verifiable harness.** OpenClaw, Claude Code, Codex, DeepSeek Harness, or
-another external runtime keeps the model call, the conversation, memory,
-planning, tools, permissions and credentials. clawock installs the workflow on
-top of that: it certifies evidence, forces an opposing case, checks the money
-and FX arithmetic, links outcomes back to the decision that caused them, and
-keeps every improvement proposal reviewable and reversible. Swap harnesses and
-the decision contract stays put — it's just files and a CLI. See
-[`examples/`](https://github.com/KCNyu/clawock/blob/master/examples/README.md) for the
-same run done from a pure CLI, an OpenClaw skill, a Claude Code instruction, a Codex AGENTS.md,
-and a DeepSeek Harness agent.
+clawock is the part of that desk pulled out to be reusable. Your runtime keeps
+the model call, the conversation, memory, tools, permissions and credentials.
+clawock adds the decision contract on top: certified evidence, a required
+opposing case, checked money and FX arithmetic, and outcomes linked back to the
+decision that caused them. It is files and a CLI, so switching harness leaves
+the contract unchanged.
+[`examples/`](https://github.com/KCNyu/clawock/blob/master/examples/README.md) runs the
+same decision from a pure CLI, an OpenClaw skill, a Claude Code instruction, a
+Codex AGENTS.md, and a DeepSeek Harness agent.
 
-Install it with `pip install clawock`, or
-[run it on your own book](#run-it-on-your-own-book) without this repository at
-all. The model proposes; Python owns the prices, the risk limits, the ledger,
-the settlement, and the grading.
-
-To watch it settle one decision before installing anything, open a Codespace and
-run `examples/cli/minimal-run/run.sh` — a clean virtualenv, no credentials, no
-broker, and the same script CI executes against every published wheel:
+To try it without installing anything locally, open a Codespace and run
+`examples/cli/minimal-run/run.sh`: a clean virtualenv, no credentials, no
+broker, and the same script CI runs against every published wheel.
 
 [![Open in GitHub Codespaces](https://github.com/codespaces/badge.svg)](https://codespaces.new/KCNyu/clawock)
 
 ### What makes it different
 
-- **A workflow plugin, not another agent — and not another harness.** The external runtime keeps its model, chat, memory, skills engine, tool loop, and permissions; clawock makes the investment-decision contract portable across runtimes and across harnesses. The harness debate (OpenClaw vs Codex vs DeepSeek Harness) is a debate clawock does not participate in.
+- **A workflow plugin, not another agent or harness.** The runtime keeps its model, chat, memory, skills engine, tool loop and permissions; clawock owns only the decision contract, so it moves between runtimes unchanged.
 - **The loop continues after the answer.** Evidence, the opposing case, thesis,
   decision, execution, and observed outcome share one lineage. Measured results
   can propose bounded parameter changes, but never silently rewrite strategy.
