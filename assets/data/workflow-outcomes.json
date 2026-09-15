@@ -1,0 +1,4114 @@
+{
+  "schema_version": 1,
+  "monitoring_started_at": "2026-07-26T08:00:00+08:00",
+  "updated_at": "2026-09-15T20:23:07.456738+00:00",
+  "records": [
+    {
+      "job": "盘前深度简报",
+      "slot": "2026-09-14T08:03:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-09-14T00:14:46.346117+00:00",
+          "context_present": true
+        },
+        "llm": {
+          "status": "success",
+          "at": "2026-09-14T00:14:46.351544+00:00",
+          "issue_count": 0,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "readability": {
+            "status": "advisory",
+            "bytes": 31874,
+            "file_bytes": 37879,
+            "target_bytes": 28000,
+            "extreme_bytes": 40000,
+            "over_by_bytes": 3874
+          }
+        },
+        "postflight": {
+          "status": "success",
+          "at": "2026-09-14T00:15:15.036503+00:00",
+          "issue_count": 0,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "commit_ok": true,
+          "readability": {
+            "status": "advisory",
+            "bytes": 31874,
+            "file_bytes": 37879,
+            "target_bytes": 28000,
+            "extreme_bytes": 40000,
+            "over_by_bytes": 3874
+          }
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-09-14T00:15:15.042860+00:00",
+          "channel": "wechat+telegram",
+          "wechat_ok": true,
+          "telegram_ok": true
+        },
+        "watchdog_delivery": {
+          "status": "not_required",
+          "at": "2026-09-14T01:05:01.803428+00:00",
+          "action": "ok",
+          "reason": "09:05 brief and non-empty valid plan both present"
+        }
+      },
+      "raw_execution": {
+        "status": "ok",
+        "run_at_ms": 1789344180025,
+        "finished_at_ms": 1789344932174,
+        "run_id": null,
+        "error_present": false
+      },
+      "updated_at": "2026-09-14T01:05:01.803428+00:00",
+      "final_product": {
+        "status": "success",
+        "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "港股开盘报告",
+      "slot": "2026-09-14T09:33:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-09-14T01:33:30.745294+00:00",
+          "context_id": "14d86daf735d"
+        },
+        "llm": {
+          "status": "success",
+          "at": "2026-09-14T01:34:01.922543+00:00",
+          "context_id": "14d86daf735d",
+          "issue_count": 1,
+          "escalating_count": 0,
+          "advisory_count": 1
+        },
+        "postflight": {
+          "status": "success",
+          "at": "2026-09-14T01:35:11.828555+00:00",
+          "delivered": "full report",
+          "data_plane_status": "published",
+          "issue_count": 1,
+          "escalating_count": 0,
+          "advisory_count": 1
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-09-14T01:34:35.512415+00:00",
+          "channel": "wechat+telegram",
+          "wechat_ok": true,
+          "telegram_ok": true,
+          "deterministic_fallback": false
+        },
+        "watchdog_delivery": {
+          "status": "not_required",
+          "at": "2026-09-14T01:48:08.131368+00:00",
+          "action": "ok",
+          "reason": "postflight cosend already delivered Telegram this slot — no backstop"
+        }
+      },
+      "raw_execution": {
+        "status": "ok",
+        "run_at_ms": 1789349580029,
+        "finished_at_ms": 1789349716518,
+        "run_id": null,
+        "error_present": false
+      },
+      "updated_at": "2026-09-14T01:48:08.131368+00:00",
+      "final_product": {
+        "status": "success",
+        "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "盘中盯盘",
+      "slot": "2026-09-14T10:00:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-09-14T02:05:32.103853+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-14T02:05:32.102825+00:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0
+        },
+        "llm": {
+          "status": "success",
+          "at": "2026-09-14T02:13:07.489047+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-14T10:13:01.667396+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok"
+        },
+        "postflight": {
+          "status": "success",
+          "at": "2026-09-14T02:13:07.494993+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-14T10:13:01.667396+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok"
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-09-14T02:13:07.500441+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-14T10:13:01.667396+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok",
+          "channel": "wechat+telegram",
+          "wechat_ok": true,
+          "telegram_ok": true
+        },
+        "watchdog_delivery": {
+          "status": "unknown"
+        }
+      },
+      "raw_execution": {
+        "status": "ok",
+        "run_at_ms": 1789351380044,
+        "finished_at_ms": 1789351604696,
+        "run_id": null,
+        "error_present": false
+      },
+      "updated_at": "2026-09-14T02:13:07.500441+00:00",
+      "final_product": {
+        "status": "success",
+        "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "盘中盯盘",
+      "slot": "2026-09-14T10:30:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-09-14T02:33:16.982974+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-14T02:33:16.981968+00:00",
+          "should_alert": true,
+          "anomaly_count": 1
+        },
+        "llm": {
+          "status": "success",
+          "at": "2026-09-14T02:43:07.035087+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-14T10:43:01.287767+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok"
+        },
+        "postflight": {
+          "status": "success",
+          "at": "2026-09-14T02:43:07.041282+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-14T10:43:01.287767+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok"
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-09-14T02:43:07.046742+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-14T10:43:01.287767+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok",
+          "channel": "wechat+telegram",
+          "wechat_ok": true,
+          "telegram_ok": true
+        },
+        "watchdog_delivery": {
+          "status": "unknown"
+        }
+      },
+      "raw_execution": {
+        "status": "ok",
+        "run_at_ms": 1789353180025,
+        "finished_at_ms": 1789353269502,
+        "run_id": null,
+        "error_present": false
+      },
+      "updated_at": "2026-09-14T02:43:07.046742+00:00",
+      "final_product": {
+        "status": "success",
+        "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "盘中盯盘",
+      "slot": "2026-09-14T11:00:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-09-14T03:03:19.140852+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-14T03:03:19.139846+00:00",
+          "should_alert": true,
+          "anomaly_count": 1
+        },
+        "llm": {
+          "status": "success",
+          "at": "2026-09-14T03:13:07.667458+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-14T11:13:01.564668+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok"
+        },
+        "postflight": {
+          "status": "success",
+          "at": "2026-09-14T03:13:07.673548+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-14T11:13:01.564668+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok"
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-09-14T03:13:07.679063+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-14T11:13:01.564668+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok",
+          "channel": "wechat+telegram",
+          "wechat_ok": true,
+          "telegram_ok": true
+        },
+        "watchdog_delivery": {
+          "status": "unknown"
+        }
+      },
+      "raw_execution": {
+        "status": "ok",
+        "run_at_ms": 1789354980024,
+        "finished_at_ms": 1789355167073,
+        "run_id": null,
+        "error_present": false
+      },
+      "updated_at": "2026-09-14T03:13:07.679063+00:00",
+      "final_product": {
+        "status": "success",
+        "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "盘中盯盘",
+      "slot": "2026-09-14T11:30:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-09-14T03:33:23.183962+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-14T03:33:23.182926+00:00",
+          "should_alert": true,
+          "anomaly_count": 1
+        },
+        "llm": {
+          "status": "success",
+          "at": "2026-09-14T03:43:07.606366+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-14T11:43:01.825915+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok"
+        },
+        "postflight": {
+          "status": "success",
+          "at": "2026-09-14T03:43:07.612532+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-14T11:43:01.825915+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok"
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-09-14T03:43:07.617969+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-14T11:43:01.825915+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok",
+          "channel": "wechat+telegram",
+          "wechat_ok": true,
+          "telegram_ok": true
+        },
+        "watchdog_delivery": {
+          "status": "unknown"
+        }
+      },
+      "raw_execution": {
+        "status": "ok",
+        "run_at_ms": 1789356780026,
+        "finished_at_ms": 1789356888855,
+        "run_id": null,
+        "error_present": false
+      },
+      "updated_at": "2026-09-14T03:43:07.617969+00:00",
+      "final_product": {
+        "status": "success",
+        "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "港股午盘报告",
+      "slot": "2026-09-14T12:03:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-09-14T04:03:18.500970+00:00",
+          "context_id": "53f8b8f57cde"
+        },
+        "llm": {
+          "status": "success",
+          "at": "2026-09-14T04:03:58.394107+00:00",
+          "context_id": "53f8b8f57cde",
+          "issue_count": 1,
+          "escalating_count": 0,
+          "advisory_count": 1
+        },
+        "postflight": {
+          "status": "success",
+          "at": "2026-09-14T04:04:48.525493+00:00",
+          "delivered": "full report",
+          "data_plane_status": "published",
+          "issue_count": 1,
+          "escalating_count": 0,
+          "advisory_count": 1
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-09-14T04:04:18.751360+00:00",
+          "channel": "wechat+telegram",
+          "wechat_ok": true,
+          "telegram_ok": true,
+          "deterministic_fallback": false
+        },
+        "watchdog_delivery": {
+          "status": "not_required",
+          "at": "2026-09-14T04:15:07.264134+00:00",
+          "action": "ok",
+          "reason": "postflight cosend already delivered Telegram this slot — no backstop"
+        }
+      },
+      "raw_execution": {
+        "status": "ok",
+        "run_at_ms": 1789358580024,
+        "finished_at_ms": 1789358691457,
+        "run_id": null,
+        "error_present": false
+      },
+      "updated_at": "2026-09-14T04:15:07.264134+00:00",
+      "final_product": {
+        "status": "success",
+        "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "港股午后快报",
+      "slot": "2026-09-14T13:33:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-09-14T05:33:34.067274+00:00",
+          "context_id": "0b1d609c5823"
+        },
+        "llm": {
+          "status": "success",
+          "at": "2026-09-14T05:33:55.609204+00:00",
+          "context_id": "0b1d609c5823",
+          "issue_count": 1,
+          "escalating_count": 0,
+          "advisory_count": 1
+        },
+        "postflight": {
+          "status": "success",
+          "at": "2026-09-14T05:34:53.314022+00:00",
+          "delivered": "full report",
+          "data_plane_status": "published",
+          "issue_count": 1,
+          "escalating_count": 0,
+          "advisory_count": 1
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-09-14T05:34:21.660250+00:00",
+          "channel": "wechat+telegram",
+          "wechat_ok": true,
+          "telegram_ok": true,
+          "deterministic_fallback": false
+        },
+        "watchdog_delivery": {
+          "status": "not_required",
+          "at": "2026-09-14T05:45:08.110813+00:00",
+          "action": "ok",
+          "reason": "postflight cosend already delivered Telegram this slot — no backstop"
+        }
+      },
+      "raw_execution": {
+        "status": "ok",
+        "run_at_ms": 1789363990572,
+        "finished_at_ms": 1789364095701,
+        "run_id": "manual:e9332e0d-bd01-498f-af0c-6b40ce0df61d:1789363990561:1",
+        "error_present": false
+      },
+      "updated_at": "2026-09-14T05:45:08.110813+00:00",
+      "final_product": {
+        "status": "success",
+        "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "盘中盯盘",
+      "slot": "2026-09-14T14:00:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-09-14T06:03:24.026860+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-14T06:03:24.025539+00:00",
+          "should_alert": true,
+          "anomaly_count": 1
+        },
+        "llm": {
+          "status": "success",
+          "at": "2026-09-14T06:13:07.467305+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-14T14:13:01.784402+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok"
+        },
+        "postflight": {
+          "status": "success",
+          "at": "2026-09-14T06:13:07.473589+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-14T14:13:01.784402+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok"
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-09-14T06:13:07.479076+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-14T14:13:01.784402+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok",
+          "channel": "wechat+telegram",
+          "wechat_ok": true,
+          "telegram_ok": true
+        },
+        "watchdog_delivery": {
+          "status": "unknown"
+        }
+      },
+      "raw_execution": {
+        "status": "ok",
+        "run_at_ms": 1789365780036,
+        "finished_at_ms": 1789365898498,
+        "run_id": null,
+        "error_present": false
+      },
+      "updated_at": "2026-09-14T06:13:07.479076+00:00",
+      "final_product": {
+        "status": "success",
+        "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "盘中盯盘",
+      "slot": "2026-09-14T14:30:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-09-14T06:33:20.965498+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-14T06:33:20.964288+00:00",
+          "should_alert": true,
+          "anomaly_count": 1
+        },
+        "llm": {
+          "status": "success",
+          "at": "2026-09-14T06:43:10.694067+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-14T14:43:01.651322+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok"
+        },
+        "postflight": {
+          "status": "success",
+          "at": "2026-09-14T06:43:10.700893+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-14T14:43:01.651322+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok"
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-09-14T06:43:10.706313+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-14T14:43:01.651322+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok",
+          "channel": "wechat+telegram",
+          "wechat_ok": true,
+          "telegram_ok": true
+        },
+        "watchdog_delivery": {
+          "status": "unknown"
+        }
+      },
+      "raw_execution": {
+        "status": "ok",
+        "run_at_ms": 1789367580034,
+        "finished_at_ms": 1789367684185,
+        "run_id": null,
+        "error_present": false
+      },
+      "updated_at": "2026-09-14T06:43:10.706313+00:00",
+      "final_product": {
+        "status": "success",
+        "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "盘中盯盘",
+      "slot": "2026-09-14T15:00:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-09-14T07:03:22.595007+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-14T07:03:22.593923+00:00",
+          "should_alert": true,
+          "anomaly_count": 1
+        },
+        "llm": {
+          "status": "success",
+          "at": "2026-09-14T07:13:07.557022+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-14T15:13:01.723228+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 1,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 1,
+          "watchdog_state": "ok"
+        },
+        "postflight": {
+          "status": "success",
+          "at": "2026-09-14T07:13:07.563195+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-14T15:13:01.723228+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 1,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 1,
+          "watchdog_state": "ok"
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-09-14T07:13:07.568581+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-14T15:13:01.723228+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 1,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 1,
+          "watchdog_state": "ok",
+          "channel": "wechat+telegram",
+          "wechat_ok": true,
+          "telegram_ok": true
+        },
+        "watchdog_delivery": {
+          "status": "unknown"
+        }
+      },
+      "raw_execution": {
+        "status": "ok",
+        "run_at_ms": 1789369380020,
+        "finished_at_ms": 1789369506165,
+        "run_id": null,
+        "error_present": false
+      },
+      "updated_at": "2026-09-14T07:13:07.568581+00:00",
+      "final_product": {
+        "status": "success",
+        "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "盘中盯盘",
+      "slot": "2026-09-14T15:30:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-09-14T07:33:23.163912+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-14T07:33:23.162843+00:00",
+          "should_alert": true,
+          "anomaly_count": 1
+        },
+        "llm": {
+          "status": "success",
+          "at": "2026-09-14T07:43:07.085666+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-14T15:43:01.237784+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok"
+        },
+        "postflight": {
+          "status": "success",
+          "at": "2026-09-14T07:43:07.092020+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-14T15:43:01.237784+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok"
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-09-14T07:43:07.097405+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-14T15:43:01.237784+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok",
+          "channel": "wechat+telegram",
+          "wechat_ok": true,
+          "telegram_ok": true
+        },
+        "watchdog_delivery": {
+          "status": "unknown"
+        }
+      },
+      "raw_execution": {
+        "status": "ok",
+        "run_at_ms": 1789371180015,
+        "finished_at_ms": 1789371292369,
+        "run_id": null,
+        "error_present": false
+      },
+      "updated_at": "2026-09-14T07:43:07.097405+00:00",
+      "final_product": {
+        "status": "success",
+        "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "港股收盘报告",
+      "slot": "2026-09-14T16:10:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-09-14T08:10:17.535667+00:00",
+          "context_id": "491e895f2fe3"
+        },
+        "llm": {
+          "status": "success",
+          "at": "2026-09-14T08:10:58.002027+00:00",
+          "context_id": "491e895f2fe3",
+          "issue_count": 2,
+          "escalating_count": 0,
+          "advisory_count": 2
+        },
+        "postflight": {
+          "status": "success",
+          "at": "2026-09-14T08:11:47.882638+00:00",
+          "delivered": "full report",
+          "data_plane_status": "published",
+          "issue_count": 2,
+          "escalating_count": 0,
+          "advisory_count": 2
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-09-14T08:11:18.327825+00:00",
+          "channel": "wechat+telegram",
+          "wechat_ok": true,
+          "telegram_ok": true,
+          "deterministic_fallback": false
+        },
+        "watchdog_delivery": {
+          "status": "not_required",
+          "at": "2026-09-14T08:20:09.291565+00:00",
+          "action": "ok",
+          "reason": "postflight cosend already delivered Telegram this slot — no backstop"
+        }
+      },
+      "raw_execution": {
+        "status": "ok",
+        "run_at_ms": 1789373400022,
+        "finished_at_ms": 1789373512408,
+        "run_id": null,
+        "error_present": false
+      },
+      "updated_at": "2026-09-14T08:20:09.291565+00:00",
+      "final_product": {
+        "status": "success",
+        "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "美股开盘报告",
+      "slot": "2026-09-14T21:33:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-09-14T13:33:37.233925+00:00",
+          "context_id": "060b9ecefcff"
+        },
+        "llm": {
+          "status": "success",
+          "at": "2026-09-14T13:34:18.758409+00:00",
+          "context_id": "060b9ecefcff",
+          "issue_count": 0,
+          "escalating_count": 0,
+          "advisory_count": 0
+        },
+        "postflight": {
+          "status": "success",
+          "at": "2026-09-14T13:35:23.557836+00:00",
+          "delivered": "full report",
+          "data_plane_status": "published",
+          "issue_count": 0,
+          "escalating_count": 0,
+          "advisory_count": 0
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-09-14T13:34:46.560140+00:00",
+          "channel": "wechat+telegram",
+          "wechat_ok": true,
+          "telegram_ok": true,
+          "deterministic_fallback": false
+        },
+        "watchdog_delivery": {
+          "status": "not_required",
+          "at": "2026-09-14T13:48:07.484187+00:00",
+          "action": "ok",
+          "reason": "postflight cosend already delivered Telegram this slot — no backstop"
+        }
+      },
+      "raw_execution": {
+        "status": "ok",
+        "run_at_ms": 1789392780023,
+        "finished_at_ms": 1789392925813,
+        "run_id": null,
+        "error_present": false
+      },
+      "updated_at": "2026-09-14T13:48:07.484187+00:00",
+      "final_product": {
+        "status": "success",
+        "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "美股盘中盯盘",
+      "slot": "2026-09-14T22:00:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-09-14T14:03:47.027784+00:00",
+          "market": "us",
+          "updated_at": "2026-09-14T14:03:47.026718+00:00",
+          "should_alert": true,
+          "anomaly_count": 2
+        },
+        "llm": {
+          "status": "success",
+          "at": "2026-09-14T14:13:07.917755+00:00",
+          "market": "us",
+          "updated_at": "2026-09-14T22:13:02.058862+08:00",
+          "should_alert": true,
+          "anomaly_count": 2,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok"
+        },
+        "postflight": {
+          "status": "success",
+          "at": "2026-09-14T14:13:07.923902+00:00",
+          "market": "us",
+          "updated_at": "2026-09-14T22:13:02.058862+08:00",
+          "should_alert": true,
+          "anomaly_count": 2,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok"
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-09-14T14:13:07.929346+00:00",
+          "market": "us",
+          "updated_at": "2026-09-14T22:13:02.058862+08:00",
+          "should_alert": true,
+          "anomaly_count": 2,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok",
+          "channel": "wechat+telegram",
+          "wechat_ok": true,
+          "telegram_ok": true
+        },
+        "watchdog_delivery": {
+          "status": "unknown"
+        }
+      },
+      "raw_execution": {
+        "status": "ok",
+        "run_at_ms": 1789394580015,
+        "finished_at_ms": 1789394701398,
+        "run_id": null,
+        "error_present": false
+      },
+      "updated_at": "2026-09-14T14:13:07.929346+00:00",
+      "final_product": {
+        "status": "success",
+        "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "美股盘中盯盘",
+      "slot": "2026-09-14T22:30:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-09-14T14:33:45.382196+00:00",
+          "market": "us",
+          "updated_at": "2026-09-14T14:33:45.381058+00:00",
+          "should_alert": true,
+          "anomaly_count": 1
+        },
+        "llm": {
+          "status": "success",
+          "at": "2026-09-14T14:43:13.226581+00:00",
+          "market": "us",
+          "updated_at": "2026-09-14T22:43:01.210465+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok"
+        },
+        "postflight": {
+          "status": "success",
+          "at": "2026-09-14T14:43:13.236078+00:00",
+          "market": "us",
+          "updated_at": "2026-09-14T22:43:01.210465+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok"
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-09-14T14:43:13.241488+00:00",
+          "market": "us",
+          "updated_at": "2026-09-14T22:43:01.210465+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok",
+          "channel": "wechat+telegram",
+          "wechat_ok": true,
+          "telegram_ok": true
+        },
+        "watchdog_delivery": {
+          "status": "unknown"
+        }
+      },
+      "raw_execution": {
+        "status": "ok",
+        "run_at_ms": 1789396380034,
+        "finished_at_ms": 1789396534822,
+        "run_id": null,
+        "error_present": false
+      },
+      "updated_at": "2026-09-14T14:43:13.241488+00:00",
+      "final_product": {
+        "status": "success",
+        "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "美股盘中盯盘",
+      "slot": "2026-09-14T23:00:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-09-14T15:03:54.925197+00:00",
+          "market": "us",
+          "updated_at": "2026-09-14T15:03:54.924192+00:00",
+          "should_alert": true,
+          "anomaly_count": 1
+        },
+        "llm": {
+          "status": "success",
+          "at": "2026-09-14T15:13:11.448775+00:00",
+          "market": "us",
+          "updated_at": "2026-09-14T23:13:01.317256+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok"
+        },
+        "postflight": {
+          "status": "success",
+          "at": "2026-09-14T15:13:11.456886+00:00",
+          "market": "us",
+          "updated_at": "2026-09-14T23:13:01.317256+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok"
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-09-14T15:13:11.462600+00:00",
+          "market": "us",
+          "updated_at": "2026-09-14T23:13:01.317256+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok",
+          "channel": "wechat+telegram",
+          "wechat_ok": true,
+          "telegram_ok": true
+        },
+        "watchdog_delivery": {
+          "status": "unknown"
+        }
+      },
+      "raw_execution": {
+        "status": "ok",
+        "run_at_ms": 1789398180069,
+        "finished_at_ms": 1789398336523,
+        "run_id": null,
+        "error_present": false
+      },
+      "updated_at": "2026-09-14T15:13:11.462600+00:00",
+      "final_product": {
+        "status": "success",
+        "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "美股盘中盯盘",
+      "slot": "2026-09-14T23:30:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-09-14T15:33:46.269035+00:00",
+          "market": "us",
+          "updated_at": "2026-09-14T15:33:46.267050+00:00",
+          "should_alert": true,
+          "anomaly_count": 1
+        },
+        "llm": {
+          "status": "success",
+          "at": "2026-09-14T15:43:12.467130+00:00",
+          "market": "us",
+          "updated_at": "2026-09-14T23:43:01.330729+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok"
+        },
+        "postflight": {
+          "status": "success",
+          "at": "2026-09-14T15:43:12.474611+00:00",
+          "market": "us",
+          "updated_at": "2026-09-14T23:43:01.330729+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok"
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-09-14T15:43:12.479880+00:00",
+          "market": "us",
+          "updated_at": "2026-09-14T23:43:01.330729+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok",
+          "channel": "wechat+telegram",
+          "wechat_ok": true,
+          "telegram_ok": true
+        },
+        "watchdog_delivery": {
+          "status": "unknown"
+        }
+      },
+      "raw_execution": {
+        "status": "ok",
+        "run_at_ms": 1789399980060,
+        "finished_at_ms": 1789400188590,
+        "run_id": null,
+        "error_present": false
+      },
+      "updated_at": "2026-09-14T15:43:12.479880+00:00",
+      "final_product": {
+        "status": "success",
+        "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "美股盘中盯盘-overnight",
+      "slot": "2026-09-15T00:00:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-09-14T16:03:47.320041+00:00",
+          "market": "us",
+          "updated_at": "2026-09-14T16:03:47.319011+00:00",
+          "should_alert": true,
+          "anomaly_count": 1
+        },
+        "llm": {
+          "status": "success",
+          "at": "2026-09-14T16:13:08.203278+00:00",
+          "market": "us",
+          "updated_at": "2026-09-15T00:13:01.990153+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok"
+        },
+        "postflight": {
+          "status": "success",
+          "at": "2026-09-14T16:13:08.209745+00:00",
+          "market": "us",
+          "updated_at": "2026-09-15T00:13:01.990153+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok"
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-09-14T16:13:08.215234+00:00",
+          "market": "us",
+          "updated_at": "2026-09-15T00:13:01.990153+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok",
+          "channel": "wechat+telegram",
+          "wechat_ok": true,
+          "telegram_ok": true
+        },
+        "watchdog_delivery": {
+          "status": "unknown"
+        }
+      },
+      "raw_execution": {
+        "status": "ok",
+        "run_at_ms": 1789401780029,
+        "finished_at_ms": 1789401932742,
+        "run_id": null,
+        "error_present": false
+      },
+      "updated_at": "2026-09-14T16:13:08.215234+00:00",
+      "final_product": {
+        "status": "success",
+        "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "美股盘中盯盘-overnight",
+      "slot": "2026-09-15T00:30:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-09-14T16:33:38.948230+00:00",
+          "market": "us",
+          "updated_at": "2026-09-14T16:33:38.947195+00:00",
+          "should_alert": true,
+          "anomaly_count": 1
+        },
+        "llm": {
+          "status": "success",
+          "at": "2026-09-14T16:43:11.001709+00:00",
+          "market": "us",
+          "updated_at": "2026-09-15T00:43:01.305507+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok"
+        },
+        "postflight": {
+          "status": "success",
+          "at": "2026-09-14T16:43:11.009754+00:00",
+          "market": "us",
+          "updated_at": "2026-09-15T00:43:01.305507+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok"
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-09-14T16:43:11.015176+00:00",
+          "market": "us",
+          "updated_at": "2026-09-15T00:43:01.305507+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok",
+          "channel": "wechat+telegram",
+          "wechat_ok": true,
+          "telegram_ok": true
+        },
+        "watchdog_delivery": {
+          "status": "unknown"
+        }
+      },
+      "raw_execution": {
+        "status": "ok",
+        "run_at_ms": 1789403580042,
+        "finished_at_ms": 1789403730153,
+        "run_id": null,
+        "error_present": false
+      },
+      "updated_at": "2026-09-14T16:43:11.015176+00:00",
+      "final_product": {
+        "status": "success",
+        "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "美股盘中盯盘-overnight",
+      "slot": "2026-09-15T01:00:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-09-14T17:03:40.442837+00:00",
+          "market": "us",
+          "updated_at": "2026-09-14T17:03:40.441611+00:00",
+          "should_alert": true,
+          "anomaly_count": 1
+        },
+        "llm": {
+          "status": "success",
+          "at": "2026-09-14T17:13:13.735029+00:00",
+          "market": "us",
+          "updated_at": "2026-09-15T01:13:02.073424+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 1,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 1,
+          "watchdog_state": "ok"
+        },
+        "postflight": {
+          "status": "success",
+          "at": "2026-09-14T17:13:13.745249+00:00",
+          "market": "us",
+          "updated_at": "2026-09-15T01:13:02.073424+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 1,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 1,
+          "watchdog_state": "ok"
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-09-14T17:13:13.750754+00:00",
+          "market": "us",
+          "updated_at": "2026-09-15T01:13:02.073424+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 1,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 1,
+          "watchdog_state": "ok",
+          "channel": "wechat+telegram",
+          "wechat_ok": true,
+          "telegram_ok": true
+        },
+        "watchdog_delivery": {
+          "status": "unknown"
+        }
+      },
+      "raw_execution": {
+        "status": "ok",
+        "run_at_ms": 1789405380040,
+        "finished_at_ms": 1789405530897,
+        "run_id": null,
+        "error_present": false
+      },
+      "updated_at": "2026-09-14T17:13:13.750754+00:00",
+      "final_product": {
+        "status": "success",
+        "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "美股盘中盯盘-overnight",
+      "slot": "2026-09-15T01:30:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-09-14T17:33:36.496069+00:00",
+          "market": "us",
+          "updated_at": "2026-09-14T17:33:36.494968+00:00",
+          "should_alert": true,
+          "anomaly_count": 1
+        },
+        "llm": {
+          "status": "success",
+          "at": "2026-09-14T17:43:08.270323+00:00",
+          "market": "us",
+          "updated_at": "2026-09-15T01:43:01.360136+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": false,
+          "wechat_detail": "OutboundDeliveryError: sendMessage ret=-2 errmsg=prepare failed",
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok"
+        },
+        "postflight": {
+          "status": "success",
+          "at": "2026-09-14T17:43:08.278988+00:00",
+          "market": "us",
+          "updated_at": "2026-09-15T01:43:01.360136+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": false,
+          "wechat_detail": "OutboundDeliveryError: sendMessage ret=-2 errmsg=prepare failed",
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok"
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-09-14T17:43:08.285745+00:00",
+          "market": "us",
+          "updated_at": "2026-09-15T01:43:01.360136+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": false,
+          "wechat_detail": "OutboundDeliveryError: sendMessage ret=-2 errmsg=prepare failed",
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok",
+          "channel": "telegram",
+          "wechat_ok": false,
+          "telegram_ok": true
+        },
+        "watchdog_delivery": {
+          "status": "unknown"
+        }
+      },
+      "raw_execution": {
+        "status": "ok",
+        "run_at_ms": 1789407180057,
+        "finished_at_ms": 1789407313427,
+        "run_id": null,
+        "error_present": false
+      },
+      "updated_at": "2026-09-14T17:43:08.285745+00:00",
+      "final_product": {
+        "status": "success",
+        "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "美股盘中盯盘-overnight",
+      "slot": "2026-09-15T02:00:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-09-14T18:03:36.539706+00:00",
+          "market": "us",
+          "updated_at": "2026-09-14T18:03:36.538654+00:00",
+          "should_alert": true,
+          "anomaly_count": 1
+        },
+        "llm": {
+          "status": "success",
+          "at": "2026-09-14T18:13:07.672661+00:00",
+          "market": "us",
+          "updated_at": "2026-09-15T02:13:01.785135+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": false,
+          "wechat_detail": "OutboundDeliveryError: sendMessage ret=-2 errmsg=prepare failed",
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 1,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 1,
+          "watchdog_state": "ok"
+        },
+        "postflight": {
+          "status": "success",
+          "at": "2026-09-14T18:13:07.678850+00:00",
+          "market": "us",
+          "updated_at": "2026-09-15T02:13:01.785135+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": false,
+          "wechat_detail": "OutboundDeliveryError: sendMessage ret=-2 errmsg=prepare failed",
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 1,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 1,
+          "watchdog_state": "ok"
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-09-14T18:13:07.684244+00:00",
+          "market": "us",
+          "updated_at": "2026-09-15T02:13:01.785135+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": false,
+          "wechat_detail": "OutboundDeliveryError: sendMessage ret=-2 errmsg=prepare failed",
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 1,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 1,
+          "watchdog_state": "ok",
+          "channel": "telegram",
+          "wechat_ok": false,
+          "telegram_ok": true
+        },
+        "watchdog_delivery": {
+          "status": "unknown"
+        }
+      },
+      "raw_execution": {
+        "status": "ok",
+        "run_at_ms": 1789408980031,
+        "finished_at_ms": 1789409122835,
+        "run_id": null,
+        "error_present": false
+      },
+      "updated_at": "2026-09-14T18:13:07.684244+00:00",
+      "final_product": {
+        "status": "success",
+        "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "美股盘中盯盘-overnight",
+      "slot": "2026-09-15T02:30:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-09-14T18:33:43.068856+00:00",
+          "market": "us",
+          "updated_at": "2026-09-14T18:33:43.067806+00:00",
+          "should_alert": true,
+          "anomaly_count": 2
+        },
+        "llm": {
+          "status": "success",
+          "at": "2026-09-14T18:43:07.294314+00:00",
+          "market": "us",
+          "updated_at": "2026-09-15T02:43:01.488627+08:00",
+          "should_alert": true,
+          "anomaly_count": 2,
+          "postflight_status": "pass",
+          "wechat_sent": false,
+          "wechat_detail": "OutboundDeliveryError: sendMessage ret=-2 errmsg=prepare failed",
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok"
+        },
+        "postflight": {
+          "status": "success",
+          "at": "2026-09-14T18:43:07.300705+00:00",
+          "market": "us",
+          "updated_at": "2026-09-15T02:43:01.488627+08:00",
+          "should_alert": true,
+          "anomaly_count": 2,
+          "postflight_status": "pass",
+          "wechat_sent": false,
+          "wechat_detail": "OutboundDeliveryError: sendMessage ret=-2 errmsg=prepare failed",
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok"
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-09-14T18:43:07.306275+00:00",
+          "market": "us",
+          "updated_at": "2026-09-15T02:43:01.488627+08:00",
+          "should_alert": true,
+          "anomaly_count": 2,
+          "postflight_status": "pass",
+          "wechat_sent": false,
+          "wechat_detail": "OutboundDeliveryError: sendMessage ret=-2 errmsg=prepare failed",
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok",
+          "channel": "telegram",
+          "wechat_ok": false,
+          "telegram_ok": true
+        },
+        "watchdog_delivery": {
+          "status": "unknown"
+        }
+      },
+      "raw_execution": {
+        "status": "ok",
+        "run_at_ms": 1789410780014,
+        "finished_at_ms": 1789410908137,
+        "run_id": null,
+        "error_present": false
+      },
+      "updated_at": "2026-09-14T18:43:07.306275+00:00",
+      "final_product": {
+        "status": "success",
+        "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "美股收盘报告",
+      "slot": "2026-09-15T04:03:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-09-14T20:03:27.651399+00:00",
+          "context_id": "e83384bfd5ab"
+        },
+        "llm": {
+          "status": "success",
+          "at": "2026-09-14T20:04:14.392221+00:00",
+          "context_id": "e83384bfd5ab",
+          "issue_count": 1,
+          "escalating_count": 0,
+          "advisory_count": 1
+        },
+        "postflight": {
+          "status": "success",
+          "at": "2026-09-14T20:05:09.358671+00:00",
+          "delivered": "full report",
+          "data_plane_status": "published",
+          "issue_count": 1,
+          "escalating_count": 0,
+          "advisory_count": 1
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-09-14T20:04:38.298039+00:00",
+          "channel": "telegram",
+          "wechat_ok": false,
+          "telegram_ok": true,
+          "deterministic_fallback": false,
+          "wechat_detail": "OutboundDeliveryError: sendMessage ret=-2 errmsg=prepare failed"
+        },
+        "watchdog_delivery": {
+          "status": "not_required",
+          "at": "2026-09-14T20:23:07.032074+00:00",
+          "action": "ok",
+          "reason": "postflight cosend already delivered Telegram this slot — no backstop"
+        }
+      },
+      "raw_execution": {
+        "status": "ok",
+        "run_at_ms": 1789416180017,
+        "finished_at_ms": 1789416312751,
+        "run_id": null,
+        "error_present": false
+      },
+      "updated_at": "2026-09-14T20:23:07.032074+00:00",
+      "final_product": {
+        "status": "success",
+        "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "盘前深度简报",
+      "slot": "2026-09-15T08:03:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-09-15T00:08:30.444110+00:00",
+          "context_present": true
+        },
+        "llm": {
+          "status": "success",
+          "at": "2026-09-15T00:08:30.449572+00:00",
+          "issue_count": 0,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "readability": {
+            "status": "advisory",
+            "bytes": 34880,
+            "file_bytes": 40764,
+            "target_bytes": 28000,
+            "extreme_bytes": 40000,
+            "over_by_bytes": 6880
+          }
+        },
+        "postflight": {
+          "status": "success",
+          "at": "2026-09-15T00:09:57.245061+00:00",
+          "issue_count": 0,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "commit_ok": true,
+          "readability": {
+            "status": "advisory",
+            "bytes": 34880,
+            "file_bytes": 40764,
+            "target_bytes": 28000,
+            "extreme_bytes": 40000,
+            "over_by_bytes": 6880
+          }
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-09-15T00:09:57.251566+00:00",
+          "channel": "telegram",
+          "wechat_ok": false,
+          "telegram_ok": true,
+          "wechat_detail": "OutboundDeliveryError: sendMessage ret=-2 errmsg=prepare failed"
+        },
+        "watchdog_delivery": {
+          "status": "not_required",
+          "at": "2026-09-15T01:05:01.578385+00:00",
+          "action": "ok",
+          "reason": "09:05 brief and non-empty valid plan both present"
+        }
+      },
+      "raw_execution": {
+        "status": "ok",
+        "run_at_ms": 1789430580041,
+        "finished_at_ms": 1789431005413,
+        "run_id": null,
+        "error_present": false
+      },
+      "updated_at": "2026-09-15T01:05:01.578385+00:00",
+      "final_product": {
+        "status": "success",
+        "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "港股开盘报告",
+      "slot": "2026-09-15T09:33:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-09-15T01:33:13.960728+00:00",
+          "context_id": "ce0fb0ddb5a0"
+        },
+        "llm": {
+          "status": "success",
+          "at": "2026-09-15T01:33:30.644916+00:00",
+          "context_id": "ce0fb0ddb5a0",
+          "issue_count": 2,
+          "escalating_count": 0,
+          "advisory_count": 2
+        },
+        "postflight": {
+          "status": "success",
+          "at": "2026-09-15T01:34:28.090417+00:00",
+          "delivered": "full report",
+          "data_plane_status": "published",
+          "issue_count": 2,
+          "escalating_count": 0,
+          "advisory_count": 2
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-09-15T01:33:57.502487+00:00",
+          "channel": "wechat+telegram",
+          "wechat_ok": true,
+          "telegram_ok": true,
+          "deterministic_fallback": false
+        },
+        "watchdog_delivery": {
+          "status": "not_required",
+          "at": "2026-09-15T01:48:07.612516+00:00",
+          "action": "ok",
+          "reason": "postflight cosend already delivered Telegram this slot — no backstop"
+        }
+      },
+      "raw_execution": {
+        "status": "ok",
+        "run_at_ms": 1789435980016,
+        "finished_at_ms": 1789436071705,
+        "run_id": null,
+        "error_present": false
+      },
+      "updated_at": "2026-09-15T01:48:07.612516+00:00",
+      "final_product": {
+        "status": "success",
+        "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "盘中盯盘",
+      "slot": "2026-09-15T10:00:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-09-15T02:03:15.650349+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-15T02:03:15.649230+00:00",
+          "should_alert": true,
+          "anomaly_count": 0
+        },
+        "llm": {
+          "status": "success",
+          "at": "2026-09-15T02:13:07.045761+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-15T10:13:01.131367+08:00",
+          "should_alert": true,
+          "anomaly_count": 0,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok"
+        },
+        "postflight": {
+          "status": "success",
+          "at": "2026-09-15T02:13:07.057147+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-15T10:13:01.131367+08:00",
+          "should_alert": true,
+          "anomaly_count": 0,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok"
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-09-15T02:13:07.067201+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-15T10:13:01.131367+08:00",
+          "should_alert": true,
+          "anomaly_count": 0,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok",
+          "channel": "wechat+telegram",
+          "wechat_ok": true,
+          "telegram_ok": true
+        },
+        "watchdog_delivery": {
+          "status": "unknown"
+        }
+      },
+      "raw_execution": {
+        "status": "ok",
+        "run_at_ms": 1789437780015,
+        "finished_at_ms": 1789437887162,
+        "run_id": null,
+        "error_present": false
+      },
+      "updated_at": "2026-09-15T02:13:07.067201+00:00",
+      "final_product": {
+        "status": "success",
+        "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "盘中盯盘",
+      "slot": "2026-09-15T10:30:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-09-15T02:33:19.654024+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-15T02:33:19.652915+00:00",
+          "should_alert": true,
+          "anomaly_count": 0
+        },
+        "llm": {
+          "status": "success",
+          "at": "2026-09-15T02:43:07.777908+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-15T10:43:01.996144+08:00",
+          "should_alert": true,
+          "anomaly_count": 0,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok"
+        },
+        "postflight": {
+          "status": "success",
+          "at": "2026-09-15T02:43:07.784143+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-15T10:43:01.996144+08:00",
+          "should_alert": true,
+          "anomaly_count": 0,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok"
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-09-15T02:43:07.789629+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-15T10:43:01.996144+08:00",
+          "should_alert": true,
+          "anomaly_count": 0,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok",
+          "channel": "wechat+telegram",
+          "wechat_ok": true,
+          "telegram_ok": true
+        },
+        "watchdog_delivery": {
+          "status": "unknown"
+        }
+      },
+      "raw_execution": {
+        "status": "ok",
+        "run_at_ms": 1789439580013,
+        "finished_at_ms": 1789439704282,
+        "run_id": null,
+        "error_present": false
+      },
+      "updated_at": "2026-09-15T02:43:07.789629+00:00",
+      "final_product": {
+        "status": "success",
+        "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "盘中盯盘",
+      "slot": "2026-09-15T11:00:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-09-15T03:03:18.149348+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-15T03:03:18.148238+00:00",
+          "should_alert": true,
+          "anomaly_count": 1
+        },
+        "llm": {
+          "status": "success",
+          "at": "2026-09-15T03:13:07.930473+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-15T11:13:02.149148+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok"
+        },
+        "postflight": {
+          "status": "success",
+          "at": "2026-09-15T03:13:07.936621+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-15T11:13:02.149148+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok"
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-09-15T03:13:07.941989+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-15T11:13:02.149148+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok",
+          "channel": "wechat+telegram",
+          "wechat_ok": true,
+          "telegram_ok": true
+        },
+        "watchdog_delivery": {
+          "status": "unknown"
+        }
+      },
+      "raw_execution": {
+        "status": "ok",
+        "run_at_ms": 1789441380012,
+        "finished_at_ms": 1789441492782,
+        "run_id": null,
+        "error_present": false
+      },
+      "updated_at": "2026-09-15T03:13:07.941989+00:00",
+      "final_product": {
+        "status": "success",
+        "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "盘中盯盘",
+      "slot": "2026-09-15T11:30:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-09-15T03:33:19.110810+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-15T03:33:19.109598+00:00",
+          "should_alert": true,
+          "anomaly_count": 1
+        },
+        "llm": {
+          "status": "success",
+          "at": "2026-09-15T03:43:07.953849+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-15T11:43:02.074005+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok"
+        },
+        "postflight": {
+          "status": "success",
+          "at": "2026-09-15T03:43:07.960066+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-15T11:43:02.074005+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok"
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-09-15T03:43:07.965427+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-15T11:43:02.074005+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok",
+          "channel": "wechat+telegram",
+          "wechat_ok": true,
+          "telegram_ok": true
+        },
+        "watchdog_delivery": {
+          "status": "unknown"
+        }
+      },
+      "raw_execution": {
+        "status": "ok",
+        "run_at_ms": 1789443180016,
+        "finished_at_ms": 1789443302591,
+        "run_id": null,
+        "error_present": false
+      },
+      "updated_at": "2026-09-15T03:43:07.965427+00:00",
+      "final_product": {
+        "status": "success",
+        "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "港股午盘报告",
+      "slot": "2026-09-15T12:03:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-09-15T04:03:18.391044+00:00",
+          "context_id": "1489ec72cdfa"
+        },
+        "llm": {
+          "status": "success",
+          "at": "2026-09-15T04:03:55.223062+00:00",
+          "context_id": "1489ec72cdfa",
+          "issue_count": 1,
+          "escalating_count": 0,
+          "advisory_count": 1
+        },
+        "postflight": {
+          "status": "success",
+          "at": "2026-09-15T04:04:44.698234+00:00",
+          "delivered": "full report",
+          "data_plane_status": "published",
+          "issue_count": 1,
+          "escalating_count": 0,
+          "advisory_count": 1
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-09-15T04:04:15.674261+00:00",
+          "channel": "wechat+telegram",
+          "wechat_ok": true,
+          "telegram_ok": true,
+          "deterministic_fallback": false
+        },
+        "watchdog_delivery": {
+          "status": "not_required",
+          "at": "2026-09-15T04:15:07.629880+00:00",
+          "action": "ok",
+          "reason": "postflight cosend already delivered Telegram this slot — no backstop"
+        }
+      },
+      "raw_execution": {
+        "status": "ok",
+        "run_at_ms": 1789444980014,
+        "finished_at_ms": 1789445087243,
+        "run_id": null,
+        "error_present": false
+      },
+      "updated_at": "2026-09-15T04:15:07.629880+00:00",
+      "final_product": {
+        "status": "success",
+        "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "港股午后快报",
+      "slot": "2026-09-15T13:33:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-09-15T05:33:27.351605+00:00",
+          "context_id": "282f241186a1"
+        },
+        "llm": {
+          "status": "success",
+          "at": "2026-09-15T05:34:01.409695+00:00",
+          "context_id": "282f241186a1",
+          "issue_count": 1,
+          "escalating_count": 0,
+          "advisory_count": 1
+        },
+        "postflight": {
+          "status": "success",
+          "at": "2026-09-15T05:34:51.830446+00:00",
+          "delivered": "full report",
+          "data_plane_status": "published",
+          "issue_count": 1,
+          "escalating_count": 0,
+          "advisory_count": 1
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-09-15T05:34:22.287443+00:00",
+          "channel": "wechat+telegram",
+          "wechat_ok": true,
+          "telegram_ok": true,
+          "deterministic_fallback": false
+        },
+        "watchdog_delivery": {
+          "status": "not_required",
+          "at": "2026-09-15T05:45:07.375390+00:00",
+          "action": "ok",
+          "reason": "postflight cosend already delivered Telegram this slot — no backstop"
+        }
+      },
+      "raw_execution": {
+        "status": "ok",
+        "run_at_ms": 1789450386973,
+        "finished_at_ms": 1789450494466,
+        "run_id": "manual:e9332e0d-bd01-498f-af0c-6b40ce0df61d:1789450386964:2",
+        "error_present": false
+      },
+      "updated_at": "2026-09-15T05:45:07.375390+00:00",
+      "final_product": {
+        "status": "success",
+        "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "盘中盯盘",
+      "slot": "2026-09-15T14:00:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-09-15T06:03:21.732610+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-15T06:03:21.731454+00:00",
+          "should_alert": true,
+          "anomaly_count": 1
+        },
+        "llm": {
+          "status": "success",
+          "at": "2026-09-15T06:13:07.187590+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-15T14:13:01.226850+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok"
+        },
+        "postflight": {
+          "status": "success",
+          "at": "2026-09-15T06:13:07.193909+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-15T14:13:01.226850+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok"
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-09-15T06:13:07.199278+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-15T14:13:01.226850+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok",
+          "channel": "wechat+telegram",
+          "wechat_ok": true,
+          "telegram_ok": true
+        },
+        "watchdog_delivery": {
+          "status": "unknown"
+        }
+      },
+      "raw_execution": {
+        "status": "ok",
+        "run_at_ms": 1789452180013,
+        "finished_at_ms": 1789452271734,
+        "run_id": null,
+        "error_present": false
+      },
+      "updated_at": "2026-09-15T06:13:07.199278+00:00",
+      "final_product": {
+        "status": "success",
+        "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "盘中盯盘",
+      "slot": "2026-09-15T14:30:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-09-15T06:33:19.617465+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-15T06:33:19.616311+00:00",
+          "should_alert": true,
+          "anomaly_count": 1
+        },
+        "llm": {
+          "status": "success",
+          "at": "2026-09-15T06:43:07.245078+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-15T14:43:01.251457+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok"
+        },
+        "postflight": {
+          "status": "success",
+          "at": "2026-09-15T06:43:07.251368+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-15T14:43:01.251457+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok"
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-09-15T06:43:07.256770+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-15T14:43:01.251457+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok",
+          "channel": "wechat+telegram",
+          "wechat_ok": true,
+          "telegram_ok": true
+        },
+        "watchdog_delivery": {
+          "status": "unknown"
+        }
+      },
+      "raw_execution": {
+        "status": "ok",
+        "run_at_ms": 1789453980037,
+        "finished_at_ms": 1789454101799,
+        "run_id": null,
+        "error_present": false
+      },
+      "updated_at": "2026-09-15T06:43:07.256770+00:00",
+      "final_product": {
+        "status": "success",
+        "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "盘中盯盘",
+      "slot": "2026-09-15T15:00:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-09-15T07:03:29.445685+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-15T07:03:29.444464+00:00",
+          "should_alert": true,
+          "anomaly_count": 1
+        },
+        "llm": {
+          "status": "success",
+          "at": "2026-09-15T07:13:07.427534+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-15T15:13:01.517726+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 1,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 1,
+          "watchdog_state": "ok"
+        },
+        "postflight": {
+          "status": "success",
+          "at": "2026-09-15T07:13:07.433840+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-15T15:13:01.517726+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 1,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 1,
+          "watchdog_state": "ok"
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-09-15T07:13:07.439266+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-15T15:13:01.517726+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 1,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 1,
+          "watchdog_state": "ok",
+          "channel": "wechat+telegram",
+          "wechat_ok": true,
+          "telegram_ok": true
+        },
+        "watchdog_delivery": {
+          "status": "unknown"
+        }
+      },
+      "raw_execution": {
+        "status": "ok",
+        "run_at_ms": 1789455780015,
+        "finished_at_ms": 1789455894497,
+        "run_id": null,
+        "error_present": false
+      },
+      "updated_at": "2026-09-15T07:13:07.439266+00:00",
+      "final_product": {
+        "status": "success",
+        "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "盘中盯盘",
+      "slot": "2026-09-15T15:30:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-09-15T07:33:18.536147+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-15T07:33:18.534901+00:00",
+          "should_alert": true,
+          "anomaly_count": 1
+        },
+        "llm": {
+          "status": "success",
+          "at": "2026-09-15T07:43:07.511413+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-15T15:43:01.681053+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 1,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 1,
+          "watchdog_state": "ok"
+        },
+        "postflight": {
+          "status": "success",
+          "at": "2026-09-15T07:43:07.517762+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-15T15:43:01.681053+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 1,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 1,
+          "watchdog_state": "ok"
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-09-15T07:43:07.523356+00:00",
+          "market": "hk",
+          "updated_at": "2026-09-15T15:43:01.681053+08:00",
+          "should_alert": true,
+          "anomaly_count": 1,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 1,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 1,
+          "watchdog_state": "ok",
+          "channel": "wechat+telegram",
+          "wechat_ok": true,
+          "telegram_ok": true
+        },
+        "watchdog_delivery": {
+          "status": "unknown"
+        }
+      },
+      "raw_execution": {
+        "status": "ok",
+        "run_at_ms": 1789457580017,
+        "finished_at_ms": 1789457693833,
+        "run_id": null,
+        "error_present": false
+      },
+      "updated_at": "2026-09-15T07:43:07.523356+00:00",
+      "final_product": {
+        "status": "success",
+        "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "港股收盘报告",
+      "slot": "2026-09-15T16:10:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-09-15T08:10:17.692130+00:00",
+          "context_id": "712967b53bc3"
+        },
+        "llm": {
+          "status": "success",
+          "at": "2026-09-15T08:10:49.433152+00:00",
+          "context_id": "712967b53bc3",
+          "issue_count": 1,
+          "escalating_count": 0,
+          "advisory_count": 1
+        },
+        "postflight": {
+          "status": "success",
+          "at": "2026-09-15T08:11:41.370169+00:00",
+          "delivered": "full report",
+          "data_plane_status": "published",
+          "issue_count": 1,
+          "escalating_count": 0,
+          "advisory_count": 1
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-09-15T08:11:11.676588+00:00",
+          "channel": "wechat+telegram",
+          "wechat_ok": true,
+          "telegram_ok": true,
+          "deterministic_fallback": false
+        },
+        "watchdog_delivery": {
+          "status": "not_required",
+          "at": "2026-09-15T08:20:09.190901+00:00",
+          "action": "ok",
+          "reason": "postflight cosend already delivered Telegram this slot — no backstop"
+        }
+      },
+      "raw_execution": {
+        "status": "ok",
+        "run_at_ms": 1789459800014,
+        "finished_at_ms": 1789459903802,
+        "run_id": null,
+        "error_present": false
+      },
+      "updated_at": "2026-09-15T08:20:09.190901+00:00",
+      "final_product": {
+        "status": "success",
+        "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "美股开盘报告",
+      "slot": "2026-09-15T21:33:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-09-15T13:33:40.419642+00:00",
+          "context_id": "5c6150e1ef7b"
+        },
+        "llm": {
+          "status": "success",
+          "at": "2026-09-15T13:34:19.805790+00:00",
+          "context_id": "5c6150e1ef7b",
+          "issue_count": 0,
+          "escalating_count": 0,
+          "advisory_count": 0
+        },
+        "postflight": {
+          "status": "success",
+          "at": "2026-09-15T13:35:24.767288+00:00",
+          "delivered": "full report",
+          "data_plane_status": "published",
+          "issue_count": 0,
+          "escalating_count": 0,
+          "advisory_count": 0
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-09-15T13:34:52.425513+00:00",
+          "channel": "wechat+telegram",
+          "wechat_ok": true,
+          "telegram_ok": true,
+          "deterministic_fallback": false
+        },
+        "watchdog_delivery": {
+          "status": "not_required",
+          "at": "2026-09-15T13:48:08.038273+00:00",
+          "action": "ok",
+          "reason": "postflight cosend already delivered Telegram this slot — no backstop"
+        }
+      },
+      "raw_execution": {
+        "status": "ok",
+        "run_at_ms": 1789479180028,
+        "finished_at_ms": 1789479326842,
+        "run_id": null,
+        "error_present": false
+      },
+      "updated_at": "2026-09-15T13:48:08.038273+00:00",
+      "final_product": {
+        "status": "success",
+        "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "美股盘中盯盘",
+      "slot": "2026-09-15T22:00:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-09-15T14:04:00.731432+00:00",
+          "market": "us",
+          "updated_at": "2026-09-15T14:04:00.729409+00:00",
+          "should_alert": true,
+          "anomaly_count": 2
+        },
+        "llm": {
+          "status": "success",
+          "at": "2026-09-15T14:13:07.186357+00:00",
+          "market": "us",
+          "updated_at": "2026-09-15T22:13:01.425665+08:00",
+          "should_alert": true,
+          "anomaly_count": 2,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok"
+        },
+        "postflight": {
+          "status": "success",
+          "at": "2026-09-15T14:13:07.192889+00:00",
+          "market": "us",
+          "updated_at": "2026-09-15T22:13:01.425665+08:00",
+          "should_alert": true,
+          "anomaly_count": 2,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok"
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-09-15T14:13:07.198810+00:00",
+          "market": "us",
+          "updated_at": "2026-09-15T22:13:01.425665+08:00",
+          "should_alert": true,
+          "anomaly_count": 2,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok",
+          "channel": "wechat+telegram",
+          "wechat_ok": true,
+          "telegram_ok": true
+        },
+        "watchdog_delivery": {
+          "status": "unknown"
+        }
+      },
+      "raw_execution": {
+        "status": "ok",
+        "run_at_ms": 1789480980014,
+        "finished_at_ms": 1789481166158,
+        "run_id": null,
+        "error_present": false
+      },
+      "updated_at": "2026-09-15T14:13:07.198810+00:00",
+      "final_product": {
+        "status": "success",
+        "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "美股盘中盯盘",
+      "slot": "2026-09-15T22:30:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-09-15T14:33:46.714364+00:00",
+          "market": "us",
+          "updated_at": "2026-09-15T14:33:46.713040+00:00",
+          "should_alert": true,
+          "anomaly_count": 2
+        },
+        "llm": {
+          "status": "success",
+          "at": "2026-09-15T14:43:07.585270+00:00",
+          "market": "us",
+          "updated_at": "2026-09-15T22:43:01.877529+08:00",
+          "should_alert": true,
+          "anomaly_count": 2,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok"
+        },
+        "postflight": {
+          "status": "success",
+          "at": "2026-09-15T14:43:07.591682+00:00",
+          "market": "us",
+          "updated_at": "2026-09-15T22:43:01.877529+08:00",
+          "should_alert": true,
+          "anomaly_count": 2,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok"
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-09-15T14:43:07.597586+00:00",
+          "market": "us",
+          "updated_at": "2026-09-15T22:43:01.877529+08:00",
+          "should_alert": true,
+          "anomaly_count": 2,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok",
+          "channel": "wechat+telegram",
+          "wechat_ok": true,
+          "telegram_ok": true
+        },
+        "watchdog_delivery": {
+          "status": "unknown"
+        }
+      },
+      "raw_execution": {
+        "status": "ok",
+        "run_at_ms": 1789482780016,
+        "finished_at_ms": 1789482939117,
+        "run_id": null,
+        "error_present": false
+      },
+      "updated_at": "2026-09-15T14:43:07.597586+00:00",
+      "final_product": {
+        "status": "success",
+        "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "美股盘中盯盘",
+      "slot": "2026-09-15T23:00:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-09-15T15:03:44.404206+00:00",
+          "market": "us",
+          "updated_at": "2026-09-15T15:03:44.402858+00:00",
+          "should_alert": true,
+          "anomaly_count": 2
+        },
+        "llm": {
+          "status": "success",
+          "at": "2026-09-15T15:13:07.460560+00:00",
+          "market": "us",
+          "updated_at": "2026-09-15T23:13:01.590318+08:00",
+          "should_alert": true,
+          "anomaly_count": 2,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok"
+        },
+        "postflight": {
+          "status": "success",
+          "at": "2026-09-15T15:13:07.467130+00:00",
+          "market": "us",
+          "updated_at": "2026-09-15T23:13:01.590318+08:00",
+          "should_alert": true,
+          "anomaly_count": 2,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok"
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-09-15T15:13:07.473385+00:00",
+          "market": "us",
+          "updated_at": "2026-09-15T23:13:01.590318+08:00",
+          "should_alert": true,
+          "anomaly_count": 2,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok",
+          "channel": "wechat+telegram",
+          "wechat_ok": true,
+          "telegram_ok": true
+        },
+        "watchdog_delivery": {
+          "status": "unknown"
+        }
+      },
+      "raw_execution": {
+        "status": "ok",
+        "run_at_ms": 1789484580013,
+        "finished_at_ms": 1789484716235,
+        "run_id": null,
+        "error_present": false
+      },
+      "updated_at": "2026-09-15T15:13:07.473385+00:00",
+      "final_product": {
+        "status": "success",
+        "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "美股盘中盯盘",
+      "slot": "2026-09-15T23:30:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-09-15T15:33:48.363889+00:00",
+          "market": "us",
+          "updated_at": "2026-09-15T15:33:48.362497+00:00",
+          "should_alert": true,
+          "anomaly_count": 2
+        },
+        "llm": {
+          "status": "success",
+          "at": "2026-09-15T15:43:07.671828+00:00",
+          "market": "us",
+          "updated_at": "2026-09-15T23:43:01.875923+08:00",
+          "should_alert": true,
+          "anomaly_count": 2,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok"
+        },
+        "postflight": {
+          "status": "success",
+          "at": "2026-09-15T15:43:07.678251+00:00",
+          "market": "us",
+          "updated_at": "2026-09-15T23:43:01.875923+08:00",
+          "should_alert": true,
+          "anomaly_count": 2,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok"
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-09-15T15:43:07.684126+00:00",
+          "market": "us",
+          "updated_at": "2026-09-15T23:43:01.875923+08:00",
+          "should_alert": true,
+          "anomaly_count": 2,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok",
+          "channel": "wechat+telegram",
+          "wechat_ok": true,
+          "telegram_ok": true
+        },
+        "watchdog_delivery": {
+          "status": "unknown"
+        }
+      },
+      "raw_execution": {
+        "status": "ok",
+        "run_at_ms": 1789486380018,
+        "finished_at_ms": 1789486541822,
+        "run_id": null,
+        "error_present": false
+      },
+      "updated_at": "2026-09-15T15:43:07.684126+00:00",
+      "final_product": {
+        "status": "success",
+        "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "美股盘中盯盘-overnight",
+      "slot": "2026-09-16T00:00:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-09-15T16:03:42.372427+00:00",
+          "market": "us",
+          "updated_at": "2026-09-15T16:03:42.371042+00:00",
+          "should_alert": true,
+          "anomaly_count": 2
+        },
+        "llm": {
+          "status": "success",
+          "at": "2026-09-15T16:13:07.863909+00:00",
+          "market": "us",
+          "updated_at": "2026-09-16T00:13:02.034013+08:00",
+          "should_alert": true,
+          "anomaly_count": 2,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok"
+        },
+        "postflight": {
+          "status": "success",
+          "at": "2026-09-15T16:13:07.870262+00:00",
+          "market": "us",
+          "updated_at": "2026-09-16T00:13:02.034013+08:00",
+          "should_alert": true,
+          "anomaly_count": 2,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok"
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-09-15T16:13:07.875864+00:00",
+          "market": "us",
+          "updated_at": "2026-09-16T00:13:02.034013+08:00",
+          "should_alert": true,
+          "anomaly_count": 2,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok",
+          "channel": "wechat+telegram",
+          "wechat_ok": true,
+          "telegram_ok": true
+        },
+        "watchdog_delivery": {
+          "status": "unknown"
+        }
+      },
+      "raw_execution": {
+        "status": "ok",
+        "run_at_ms": 1789488180019,
+        "finished_at_ms": 1789488311660,
+        "run_id": null,
+        "error_present": false
+      },
+      "updated_at": "2026-09-15T16:13:07.875864+00:00",
+      "final_product": {
+        "status": "success",
+        "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "美股盘中盯盘-overnight",
+      "slot": "2026-09-16T00:30:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-09-15T16:33:48.131193+00:00",
+          "market": "us",
+          "updated_at": "2026-09-15T16:33:48.128902+00:00",
+          "should_alert": true,
+          "anomaly_count": 3
+        },
+        "llm": {
+          "status": "success",
+          "at": "2026-09-15T16:43:08.437904+00:00",
+          "market": "us",
+          "updated_at": "2026-09-16T00:43:01.740138+08:00",
+          "should_alert": true,
+          "anomaly_count": 3,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 1,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 1,
+          "watchdog_state": "ok"
+        },
+        "postflight": {
+          "status": "success",
+          "at": "2026-09-15T16:43:08.446179+00:00",
+          "market": "us",
+          "updated_at": "2026-09-16T00:43:01.740138+08:00",
+          "should_alert": true,
+          "anomaly_count": 3,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 1,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 1,
+          "watchdog_state": "ok"
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-09-15T16:43:08.451906+00:00",
+          "market": "us",
+          "updated_at": "2026-09-16T00:43:01.740138+08:00",
+          "should_alert": true,
+          "anomaly_count": 3,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 1,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 1,
+          "watchdog_state": "ok",
+          "channel": "wechat+telegram",
+          "wechat_ok": true,
+          "telegram_ok": true
+        },
+        "watchdog_delivery": {
+          "status": "unknown"
+        }
+      },
+      "raw_execution": {
+        "status": "ok",
+        "run_at_ms": 1789489980061,
+        "finished_at_ms": 1789490303352,
+        "run_id": null,
+        "error_present": false
+      },
+      "updated_at": "2026-09-15T16:43:08.451906+00:00",
+      "final_product": {
+        "status": "success",
+        "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "美股盘中盯盘-overnight",
+      "slot": "2026-09-16T01:00:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-09-15T17:03:49.042023+00:00",
+          "market": "us",
+          "updated_at": "2026-09-15T17:03:49.040621+00:00",
+          "should_alert": true,
+          "anomaly_count": 3
+        },
+        "llm": {
+          "status": "success",
+          "at": "2026-09-15T17:13:08.058276+00:00",
+          "market": "us",
+          "updated_at": "2026-09-16T01:13:02.129626+08:00",
+          "should_alert": true,
+          "anomaly_count": 3,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok"
+        },
+        "postflight": {
+          "status": "success",
+          "at": "2026-09-15T17:13:08.064671+00:00",
+          "market": "us",
+          "updated_at": "2026-09-16T01:13:02.129626+08:00",
+          "should_alert": true,
+          "anomaly_count": 3,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok"
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-09-15T17:13:08.071009+00:00",
+          "market": "us",
+          "updated_at": "2026-09-16T01:13:02.129626+08:00",
+          "should_alert": true,
+          "anomaly_count": 3,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok",
+          "channel": "wechat+telegram",
+          "wechat_ok": true,
+          "telegram_ok": true
+        },
+        "watchdog_delivery": {
+          "status": "unknown"
+        }
+      },
+      "raw_execution": {
+        "status": "ok",
+        "run_at_ms": 1789491780017,
+        "finished_at_ms": 1789491941667,
+        "run_id": null,
+        "error_present": false
+      },
+      "updated_at": "2026-09-15T17:13:08.071009+00:00",
+      "final_product": {
+        "status": "success",
+        "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "美股盘中盯盘-overnight",
+      "slot": "2026-09-16T01:30:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-09-15T17:33:40.296071+00:00",
+          "market": "us",
+          "updated_at": "2026-09-15T17:33:40.294576+00:00",
+          "should_alert": true,
+          "anomaly_count": 3
+        },
+        "llm": {
+          "status": "success",
+          "at": "2026-09-15T17:43:07.252629+00:00",
+          "market": "us",
+          "updated_at": "2026-09-16T01:43:01.424502+08:00",
+          "should_alert": true,
+          "anomaly_count": 3,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 1,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 1,
+          "watchdog_state": "ok"
+        },
+        "postflight": {
+          "status": "success",
+          "at": "2026-09-15T17:43:07.262475+00:00",
+          "market": "us",
+          "updated_at": "2026-09-16T01:43:01.424502+08:00",
+          "should_alert": true,
+          "anomaly_count": 3,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 1,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 1,
+          "watchdog_state": "ok"
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-09-15T17:43:07.274486+00:00",
+          "market": "us",
+          "updated_at": "2026-09-16T01:43:01.424502+08:00",
+          "should_alert": true,
+          "anomaly_count": 3,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 1,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 1,
+          "watchdog_state": "ok",
+          "channel": "wechat+telegram",
+          "wechat_ok": true,
+          "telegram_ok": true
+        },
+        "watchdog_delivery": {
+          "status": "unknown"
+        }
+      },
+      "raw_execution": {
+        "status": "ok",
+        "run_at_ms": 1789493580015,
+        "finished_at_ms": 1789493750520,
+        "run_id": null,
+        "error_present": false
+      },
+      "updated_at": "2026-09-15T17:43:07.274486+00:00",
+      "final_product": {
+        "status": "success",
+        "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "美股盘中盯盘-overnight",
+      "slot": "2026-09-16T02:00:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-09-15T18:03:49.291191+00:00",
+          "market": "us",
+          "updated_at": "2026-09-15T18:03:49.289712+00:00",
+          "should_alert": true,
+          "anomaly_count": 4
+        },
+        "llm": {
+          "status": "success",
+          "at": "2026-09-15T18:13:07.894704+00:00",
+          "market": "us",
+          "updated_at": "2026-09-16T02:13:02.063317+08:00",
+          "should_alert": true,
+          "anomaly_count": 4,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok"
+        },
+        "postflight": {
+          "status": "success",
+          "at": "2026-09-15T18:13:07.901240+00:00",
+          "market": "us",
+          "updated_at": "2026-09-16T02:13:02.063317+08:00",
+          "should_alert": true,
+          "anomaly_count": 4,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok"
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-09-15T18:13:07.907038+00:00",
+          "market": "us",
+          "updated_at": "2026-09-16T02:13:02.063317+08:00",
+          "should_alert": true,
+          "anomaly_count": 4,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok",
+          "channel": "wechat+telegram",
+          "wechat_ok": true,
+          "telegram_ok": true
+        },
+        "watchdog_delivery": {
+          "status": "unknown"
+        }
+      },
+      "raw_execution": {
+        "status": "ok",
+        "run_at_ms": 1789495380016,
+        "finished_at_ms": 1789495530344,
+        "run_id": null,
+        "error_present": false
+      },
+      "updated_at": "2026-09-15T18:13:07.907038+00:00",
+      "final_product": {
+        "status": "success",
+        "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "美股盘中盯盘-overnight",
+      "slot": "2026-09-16T02:30:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-09-15T18:33:38.428143+00:00",
+          "market": "us",
+          "updated_at": "2026-09-15T18:33:38.426655+00:00",
+          "should_alert": true,
+          "anomaly_count": 3
+        },
+        "llm": {
+          "status": "success",
+          "at": "2026-09-15T18:43:07.399376+00:00",
+          "market": "us",
+          "updated_at": "2026-09-16T02:43:01.560037+08:00",
+          "should_alert": true,
+          "anomaly_count": 3,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok"
+        },
+        "postflight": {
+          "status": "success",
+          "at": "2026-09-15T18:43:07.405785+00:00",
+          "market": "us",
+          "updated_at": "2026-09-16T02:43:01.560037+08:00",
+          "should_alert": true,
+          "anomaly_count": 3,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok"
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-09-15T18:43:07.411516+00:00",
+          "market": "us",
+          "updated_at": "2026-09-16T02:43:01.560037+08:00",
+          "should_alert": true,
+          "anomaly_count": 3,
+          "postflight_status": "pass",
+          "wechat_sent": true,
+          "telegram_sent": true,
+          "dashboard_published": true,
+          "data_plane_status": "published",
+          "insights_sidecar": true,
+          "issue_count": 0,
+          "unpushed_commits": 1,
+          "escalating_count": 0,
+          "advisory_count": 0,
+          "watchdog_state": "ok",
+          "channel": "wechat+telegram",
+          "wechat_ok": true,
+          "telegram_ok": true
+        },
+        "watchdog_delivery": {
+          "status": "unknown"
+        }
+      },
+      "raw_execution": {
+        "status": "ok",
+        "run_at_ms": 1789497180036,
+        "finished_at_ms": 1789497317280,
+        "run_id": null,
+        "error_present": false
+      },
+      "updated_at": "2026-09-15T18:43:07.411516+00:00",
+      "final_product": {
+        "status": "success",
+        "reason": "primary delivery succeeded"
+      }
+    },
+    {
+      "job": "美股收盘报告",
+      "slot": "2026-09-16T04:03:00+08:00",
+      "stages": {
+        "preflight": {
+          "status": "success",
+          "at": "2026-09-15T20:03:29.790062+00:00",
+          "context_id": "ad5a2ced8c85"
+        },
+        "llm": {
+          "status": "success",
+          "at": "2026-09-15T20:04:08.060516+00:00",
+          "context_id": "ad5a2ced8c85",
+          "issue_count": 1,
+          "escalating_count": 0,
+          "advisory_count": 1
+        },
+        "postflight": {
+          "status": "success",
+          "at": "2026-09-15T20:05:08.982393+00:00",
+          "delivered": "full report",
+          "data_plane_status": "published",
+          "issue_count": 1,
+          "escalating_count": 0,
+          "advisory_count": 1
+        },
+        "primary_delivery": {
+          "status": "success",
+          "at": "2026-09-15T20:04:37.336346+00:00",
+          "channel": "wechat+telegram",
+          "wechat_ok": true,
+          "telegram_ok": true,
+          "deterministic_fallback": false
+        },
+        "watchdog_delivery": {
+          "status": "not_required",
+          "at": "2026-09-15T20:23:07.456738+00:00",
+          "action": "ok",
+          "reason": "postflight cosend already delivered Telegram this slot — no backstop"
+        }
+      },
+      "raw_execution": {
+        "status": "ok",
+        "run_at_ms": 1789502580020,
+        "finished_at_ms": 1789502712215,
+        "run_id": null,
+        "error_present": false
+      },
+      "updated_at": "2026-09-15T20:23:07.456738+00:00",
+      "final_product": {
+        "status": "success",
+        "reason": "primary delivery succeeded"
+      }
+    }
+  ],
+  "degradations": [
+    {
+      "kind": "debate_citation_unresolved",
+      "detail": "16 debate evidence ref(s) matched nothing in this generation's context: dec-20260901-07226-cut:risk:hard_stop:07226, dec-20260901-07226-cut:risk:concentration:hk:07226, dec-20260901-07226-cut:quant:07226:dist_ma200_pct, dec-20260901-rklx-cut:risk:hard_stop:RKLX, dec-20260901-rklx-cut:risk:concentration:us:RKLX",
+      "count": 1,
+      "first_at": "2026-09-01T00:21:48.621277+00:00",
+      "last_at": "2026-09-01T00:21:48.621277+00:00"
+    },
+    {
+      "kind": "debate_citation_unresolved",
+      "detail": "16 debate evidence ref(s) matched nothing in this generation's context: dec-637d8fe32375:risk:hard_stop:07226, dec-637d8fe32375:risk:leveraged_exposure:hk, dec-637d8fe32375:risk:single_name:07226, dec-21bfb1891a5f:risk:hard_stop:07226, dec-21bfb1891a5f:risk:leveraged_exposure:hk",
+      "count": 1,
+      "first_at": "2026-09-02T00:07:13.827351+00:00",
+      "last_at": "2026-09-02T00:07:13.827351+00:00"
+    },
+    {
+      "kind": "debate_citation_unresolved",
+      "detail": "12 debate evidence ref(s) matched nothing in this generation's context: dec-637d8fe32375:risk:hard_stop:07226, dec-637d8fe32375:risk:leveraged_exposure:hk, dec-637d8fe32375:risk:single_name:07226, dec-89888f489b29:risk:hard_stop:rklx, dec-89888f489b29:risk:leveraged_exposure:us",
+      "count": 1,
+      "first_at": "2026-09-02T00:08:49.361312+00:00",
+      "last_at": "2026-09-02T00:08:49.361312+00:00"
+    },
+    {
+      "kind": "debate_citation_unresolved",
+      "detail": "8 debate evidence ref(s) matched nothing in this generation's context: dec-20260903-07226-cut:risk:hard_stop:07226, dec-20260903-07226-cut:risk:leveraged_exposure:hk, dec-20260903-rklx-cut:risk:hard_stop:RKLX, dec-20260903-rklx-cut:risk:leveraged_exposure:us, dec-20260903-spch-cut:risk:hard_stop:SPCH",
+      "count": 1,
+      "first_at": "2026-09-03T00:16:23.238916+00:00",
+      "last_at": "2026-09-03T00:16:23.238916+00:00"
+    },
+    {
+      "kind": "debate_citation_unresolved",
+      "detail": "3 debate evidence ref(s) matched nothing in this generation's context: dec-20260904-07226-cut:risk:leveraged_exposure:07226, dec-20260904-07226-cut:risk:hard_stop:07226, dec-20260904-rklx-cut:risk:hard_stop:RKLX",
+      "count": 1,
+      "first_at": "2026-09-04T00:12:23.016802+00:00",
+      "last_at": "2026-09-04T00:12:23.016802+00:00"
+    },
+    {
+      "kind": "debate_citation_unresolved",
+      "detail": "11 debate evidence ref(s) matched nothing in this generation's context: dec-649563eb104b:risk:leveraged_hard_stop:07226, dec-649563eb104b:risk:leveraged_exposure:risk-da9861ae6562, dec-649563eb104b:quant:07226:dist_ma200_pct, dec-73f304d2a270:risk:leveraged_hard_stop:07226, dec-721c7663321c:risk:leveraged_hard_stop:SPCH",
+      "count": 1,
+      "first_at": "2026-09-07T00:09:31.197270+00:00",
+      "last_at": "2026-09-07T00:09:31.197270+00:00"
+    },
+    {
+      "kind": "debate_citation_unresolved",
+      "detail": "1 debate evidence ref(s) matched nothing in this generation's context: dec-e9a46ba589be:risk:single_name:00100",
+      "count": 1,
+      "first_at": "2026-09-08T00:11:39.046770+00:00",
+      "last_at": "2026-09-08T00:11:39.046770+00:00"
+    },
+    {
+      "kind": "debate_citation_unresolved",
+      "detail": "1 debate evidence ref(s) matched nothing in this generation's context: dec-1ff7e6957dbc:risk:single_name:00100",
+      "count": 1,
+      "first_at": "2026-09-08T00:12:57.134790+00:00",
+      "last_at": "2026-09-08T00:12:57.134790+00:00"
+    },
+    {
+      "kind": "debate_citation_unresolved",
+      "detail": "1 debate evidence ref(s) matched nothing in this generation's context: dec-5a5b3e4353b2:risk:leveraged_hard_stop:SPCH",
+      "count": 1,
+      "first_at": "2026-09-09T00:11:39.045255+00:00",
+      "last_at": "2026-09-09T00:11:39.045255+00:00"
+    },
+    {
+      "kind": "sector_scan_missing",
+      "detail": "板块全景 没有落盘 sector-scan：本篇只有 sector_read 文字，没有表",
+      "count": 6,
+      "first_at": "2026-09-09T00:11:39.071911+00:00",
+      "last_at": "2026-09-15T00:08:30.429007+00:00"
+    },
+    {
+      "kind": "debate_citation_unresolved",
+      "detail": "9 debate evidence ref(s) matched nothing in this generation's context: dec-987c59f7300e:risk:single_name_review:07226, dec-4e114cecea8e:risk:hard_stop_watch:RKLX, dec-e5ef1694ece9:risk:hard_stop_watch:SPCH, dec-846e1fbf00ed:news:00100-humain-m3-2026-09-04, dec-f3adecbc0470:news:02208-h1-report-2026-09-08",
+      "count": 1,
+      "first_at": "2026-09-10T00:07:36.877906+00:00",
+      "last_at": "2026-09-10T00:07:36.877906+00:00"
+    },
+    {
+      "kind": "data_plane_publish_failed",
+      "detail": "git refused the publish",
+      "count": 2,
+      "first_at": "2026-09-12T10:19:03.619939+00:00",
+      "last_at": "2026-09-12T10:19:06.369907+00:00"
+    },
+    {
+      "kind": "debate_citation_unresolved",
+      "detail": "4 debate evidence ref(s) matched nothing in this generation's context: dec-6b7d33b74bab:quant:07226:dist_ma200_pct, dec-6b7d33b74bab:quant:07226:zscore20, dec-e198242ce731:quant:RKLX:dist_ma200_pct, dec-28add5f29cd0:quant:SPCH:zscore20",
+      "count": 1,
+      "first_at": "2026-09-14T00:12:22.785375+00:00",
+      "last_at": "2026-09-14T00:12:22.785375+00:00"
+    },
+    {
+      "kind": "debate_citation_unresolved",
+      "detail": "1 debate evidence ref(s) matched nothing in this generation's context: dec-ce135e9580aa:risk:single_name_review:SPCH",
+      "count": 1,
+      "first_at": "2026-09-15T00:08:30.406418+00:00",
+      "last_at": "2026-09-15T00:08:30.406418+00:00"
+    }
+  ]
+}
