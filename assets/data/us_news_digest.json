@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-14T18:16:00.191380",
+  "generated_at": "2026-09-15T17:24:09.834136",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -14,87 +14,122 @@
       "SPCH"
     ]
   },
-  "digest_markdown": "## Top 3-5 移动信号 (按 catalyst 强度排序)\n\n- **CRCL**: Senate 周内表决 CLARITY Act + Fed 同步权衡加息, 双事件隔日落地, 直接冲击占近 100% 营收的储备金收益 → 直接持仓, 双向波动事件, 立法通过偏正、加息偏负, 当前未表态仓位\n- **RKLB**: 公司正式抗议 Blue Origin 价值 $700M 的 NASA Mars Sample Return 中标, 措辞\"惩罚性\"暗示法律挑战升级 → RKLX (2x) 持仓将双倍放大: 若抗议成功夺回合同为高弹性正催化, 若被驳回则 $700M 收入预期破灭\n- **SPCX**: 披露 $13B 年化托管合约, 算力租赁模型成为增长主线, 年底前扩产超 2 GW → SPCH (2x) 持仓放大效应显著; 商业化里程碑首次具备可量化营收锚点\n- **SPCX**: Starship 首次转入\"营收火箭\"阶段, Starlink vs 月球 R&D 的运力分配成为下一道战略选择题 → SPCH 持仓长期估值锚切换中, 短期中性\n- **RKLB**: 新挪威航天竞争者入场, 对 RKLB 威胁大于 SpaceX, 但体量有限, 噪音为主 → RKLX 持仓情绪面微负, 非主要驱动\n\n## Per-ticker 简报\n\n- **CRCL**: CLARITY Act 参议院表决 + Fed 加息讨论双催化窗口 - 储备金收益敏感度极高, 48h 内定向波动\n- **RKLB**: NASA Mars 合同抗议升级, 股价测试 $57.50 支撑 - 持仓 RKLX (2x) 双向放大该结果\n- **SPCX**: $13B 年化算力租赁 + 2 GW 扩产 + Starship 商业化 - 商业模型可量化节点增加, 持仓 SPCH (2x) 杠杆放大\n\n## 风险 watch\n\n- **CRCL**: 加息情景直接挤压 USDC 储备金利息收入, 政策面双刃\n- **RKLB**: NASA 合同法律挑战失败 → $700M 收入预期蒸发, RKLX 2x 下行加剧\n- **SPCX**: 算力租赁高度依赖单一超大客户结构 ($13B), 集中度风险未披露分散度",
+  "digest_markdown": "## Top 移动信号 (跨 ticker 排序)\n\n- **CRCL**: Senate CLARITY Act cloture vote 今天 2:15 PM ET — binary catalyst, ARK 同日狂甩 $60M+ (CRCL/COIN/BMNR/BITB), CRCL premarket 跌 5.56%. **kcn 含义**: 直持非杠杆, 但若 vote 失败 + 获利了结叠加, 短期或再下台阶; 反之通过 = 反向 squeeze.\n- **RKLB (via RKLX 2x)**: $1.944B ATM 完成 → Iridium 收购全额融资到位 (close mid-2027), CFO 自承 deal 会短期稀释 ~100% organic growth. **kcn 含义**: 2x 杠杆下, \"转型 M&A\"叙事 与 \"成长稀释现实\" 都会被双倍放大, 多空拉锯.\n- **RKLB (via RKLX 2x)**: GAO 正式抗议 NASA 把 Mars Telecom Network 合同判给 Blue Origin — 引发抛压, $57.50 技术支撑成关键. **kcn 含义**: 守住 = 反弹弹性翻倍; 失守 = 跌幅翻倍, RKLX 2x 会同时反映航天板块情绪.\n- **SPCX (via SPCH 2x)**: Musk \"最强暗示\" Tesla-SpaceX merger. **kcn 含义**: 纯 speculative, 无官方确认; SPCH 2x 会在 rumor spike 与失望回吐之间剧烈双向.\n- **SPCX (via SPCH 2x)**: 高排名投资人公开称 SpaceX 股价或需 \"major reset\" 才值得建仓, 目前接近 IPO 价. **kcn 含义**: 估值怀疑论封顶上行空间, 利好兑现也难单边爆发.\n\n## Per-ticker 简报\n\n- **CRCL**:\n  - 7% 涨后获利了结 + 民主党准备 counterproposal = vote 通过率打折 — 短期波动主导.\n  - ARK 横跨 crypto 板块系统性减仓 = smart money 在 binary event 前主动降风险, 非孤立信号.\n- **RKLB**:\n  - Iridium 端 $1.775B credit facility 重新修订, 债务结构成本可控 — 融资面正面对冲 ATM 稀释.\n  - \"Overnight double size\" 叙事 vs ~100% growth 稀释 — 多头需用 forward multiple 而非 trailing growth 估值.\n  - ViaSat 同期选择独立不整合, 暗示 sat-com M&A 不是必选路径, RKLB 整合执行力是 alpha 关键.\n- **SPCX**:\n  - \"Back near IPO price\" 重新成为定价锚 — 投资者用 IPO 而非二级溢价重估.\n  - Anthropic pre-IPO \"doom\" 言论 + AI token 价格崩盘 = 通用 AI bubble 噪音, 不属 SPCX-specific catalyst, 忽略.\n\n## 风险 watch\n\n- **CRCL**: CLARITY Act vote today 2:15 PM ET — counterproposal 可能导致 vote 失败, 直接打掉 7% 反弹逻辑; ARK 减仓节奏若延续 = 进一步 price pressure.\n- **RKLB (RKLX 2x)**: ATM 关闭 = dilution 已 price in, 但 Iridium 整合期 growth 稀释将压制近 2-3 季估值; GAO 抗议通常 100 天出结果, 中期存在 upside surprise 但非短线 catalyst.\n- **SPCX (SPCH 2x)**: Tesla-SpaceX merger 为纯 speculation, 任何官方否认即回吐; AI bubble 叙事回潮 + 估值 reset 论同步 = 上行阻力加大, 2x 下任何下跌被双倍.",
   "raw_news_counts": {
-    "CRCL": 2,
-    "RKLB": 3,
+    "CRCL": 5,
+    "RKLB": 5,
     "SPCX": 5
   },
   "raw_news_evidence": {
     "CRCL": [
       {
-        "headline": "The regulation that helped the US get behind crypto, stablecoins",
-        "datetime": 1789344000,
+        "headline": "Cathie Wood Dumps $60 Million In Crypto Stock Ahead Of Clarity Act Vote",
+        "datetime": 1789476408,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=6cde666db4b5fbaba1bc8272c4cb11fdebaeff8a117b4c7158b51c304103432c"
+        "url": "https://finnhub.io/api/news?id=666c6cf6a2f18fbc0b033dbdd99e67793ba5857f3e628939aead808be7b0701f"
       },
       {
-        "headline": "Circle Faces Back-To-Back Catalysts As Senate Votes On CLARITY Act, And Fed Weighs Rate Hike",
-        "datetime": 1789307955,
+        "headline": "Cathie Wood's ARK Invest Sells Over 1.5M Shares Of Its Own Bitcoin ETF: Also Cuts COIN, CRCL, BMNR Exposure Ahead Of CLARITY Act Vote",
+        "datetime": 1789476048,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=a8f44011fa6edabddfbe01f523b37126ad9aa3ec49cc41e3781dea00f993eb3e"
+        "url": "https://finnhub.io/api/news?id=471ffccb7c22a4d09378e0645ea6d5d7166f81babb093e769e1c91c83dc165ac"
+      },
+      {
+        "headline": "Why Is Circle Stock Falling on Tuesday?",
+        "datetime": 1789469932,
+        "source": "Benzinga",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=d0f4ec3cc14b92542a826e4a69924ea8608af4aaa4856c351096b653b28f748a"
+      },
+      {
+        "headline": "Crypto Stocks MSTR, COIN, CRCL, HOOD Tumble 3-5% Ahead of CLARITY Act Senate Vote",
+        "datetime": 1789469180,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=95d161e56946f41b90e0f4f1ab867720cd6977f963b3af417bc7ec5a8b7dfa85"
+      },
+      {
+        "headline": "CRCL, COIN Stocks Slip Premarket: Crypto Industry Makes Final Push For CLARITY Act Ahead Of Senate Vote Today",
+        "datetime": 1789465252,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=6f42609b9139f95d04c4d3c638341106a7a7395c544365e681dab304097ec679"
       }
     ],
     "RKLB": [
+      {
+        "headline": "Rocket Lab Fully Funds Iridium Acquisition, Including Completion of $1.94 Billion ATM",
+        "datetime": 1789466400,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=bd9e49b1f8872ea655d4de1ae732c4618df9358f6fd5e777d0439dd21e750c73"
+      },
+      {
+        "headline": "Rocket Lab Expects Iridium Deal To Double Its Size ‘Overnight’ — CFO Says More Space Deals May Follow",
+        "datetime": 1789449920,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=bd98f499fde001e78a47b56a2ba2bb9fce36f6f6f21472580fad666a4d1edbfc"
+      },
+      {
+        "headline": "ViaSat Stock Soared on Hopes of a Big Deal. The Company Has Other Ideas.",
+        "datetime": 1789401720,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=032af3fe10d308c8afce100b8706c7d7c6badff5f9f7606abc9d2716a6321851"
+      },
+      {
+        "headline": "How Investors Are Reacting To Rocket Lab (RKLB) Challenging NASA’s Mars Network Contract Award",
+        "datetime": 1789387829,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=84bb8c44f80790c2cd4834d566afeb0e21ab7cb3f57d08517ae5c7f16f8177ad"
+      },
       {
         "headline": "Stock of the Day: Where Is the Bottom for Rocket Lab?",
         "datetime": 1789378055,
         "source": "Benzinga",
         "origin": "finnhub",
         "url": "https://finnhub.io/api/news?id=6595a0a08edf194d60f2b43243d196338371285251f92beddb7fbf889ebaaec6"
-      },
-      {
-        "headline": "RKLB Stock Slips Overnight: Rocket Lab Protests Blue Origin’s $700M NASA Mars Deal, Calls Review ‘Punitive’",
-        "datetime": 1789353253,
-        "source": "Yahoo",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=830071519d2c632440e9b6a8e8a890cc54f04e2bb5b7000f2b8e0c8fa32dab84"
-      },
-      {
-        "headline": "SpaceX and Rocket Lab Have a New Space Rival -- in Norway",
-        "datetime": 1789298820,
-        "source": "Yahoo",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=86a0ea500e13d1e8385a640323236885ca1b0f5c675cb4263c58f0761c751647"
       }
     ],
     "SPCX": [
       {
-        "headline": "Can AST SpaceMobile's Expanding MNO Base Boost Its Revenue Prospects?",
-        "datetime": 1789393920,
+        "headline": "Elon Musk Makes Strongest Hint Yet About A Tesla-SpaceX Merger",
+        "datetime": 1789475693,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=01c47c7dfefa842dcff9a27a18cdb0174100bc14ed915c8b47525ce0c81d38b6"
+        "url": "https://finnhub.io/api/news?id=da2f2145f193ffeba098896500ae24d126d835026e25c9be73d7c677e54fc4b3"
       },
       {
-        "headline": "Elon Musk Plans New Tesla Roadster Unveiling In October; The Stock Slips",
-        "datetime": 1789392999,
+        "headline": "How Deep Does the AI Doom and Gloom Run? ‘We Don’t Know’ Is the Only Sure Answer.",
+        "datetime": 1789475520,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=cdd324a6316e9c20472ebf8e544ee1bf3f322e30a65cad514e3cb072c131c936"
+        "url": "https://finnhub.io/api/news?id=c844b87f27d414f1492190d889ec5b83177c0605d6954a3dfbbf151384c99746"
       },
       {
-        "headline": "SpaceX Focuses on Compute-Renting Model: Can It Make a Comeback?",
-        "datetime": 1789392900,
+        "headline": "SpaceX stock may need a major reset before this investor buys",
+        "datetime": 1789475056,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=77951e7507df7a8b0bc7d835ca4c021442650d72985c1a6d46a8ae0988083df0"
+        "url": "https://finnhub.io/api/news?id=0e2da645bd5f1c09d2bcadad714191c208c6c11c1438f41b7308cd4d540eb55b"
       },
       {
-        "headline": "SpaceX Faces Starship Dilemma: Starlink Revenue or Moonshot R&D?",
-        "datetime": 1789392497,
+        "headline": "Is SpaceX a Millionaire-Maker Stock?",
+        "datetime": 1789473000,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=3f3d1e8b9a151e20571f27c44c3ea83ee54bfc6cb890d1c9042581b20337691d"
+        "url": "https://finnhub.io/api/news?id=ce2062ccac2d1ab5602b1c19696039ec0c3ef63b1a3000882ae4f135fdca345e"
       },
       {
-        "headline": "Correction: Update: US Equity Futures Lower Pre-Bell as Traders Assess Call for AI Advancement Slowdown, Upcoming Fed Decision",
-        "datetime": 1789391141,
-        "source": "Yahoo",
+        "headline": "AI Is Harmful To Investors, Not Humanity; Anthropic Is Hyping IPO",
+        "datetime": 1789472704,
+        "source": "SeekingAlpha",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=0c3844e27efab820a73b20c9cd55b2cd59180a32aa0bf2690238e81e920682a0"
+        "url": "https://finnhub.io/api/news?id=39b0ba96c6383c6c63a2999ec75d14fd14668711ad72e99e225d93a52667048e"
       }
     ]
   },
