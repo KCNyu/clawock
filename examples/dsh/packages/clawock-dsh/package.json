@@ -74,6 +74,8 @@
     "lib/typert.remote-client.d.ts",
     "lib/types",
     "cordis.patch.yml",
+    "LICENSE",
+    "SECURITY.md",
     "package.json"
   ],
   "scripts": {
