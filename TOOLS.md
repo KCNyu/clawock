@@ -23,19 +23,21 @@
 
 | Workflow | 触发 | 写文件 | 备注 |
 |---|---|---|---|
-| `harness-regression.yml` | 代码/配置 push to master + 每个 PR | (read-only) | 完整 schema/import/pytest 校验；自动生成的 dashboard-only push 走下方轻量门禁 |
-| `dashboard-artifact-gate.yml` | dashboard.json push to master | (read-only) | GitHub runner 上零依赖校验已提交首屏 payload，不占 VPS |
-| `actionlint.yml` | workflow 变更的 push/PR | (read-only) | pinned actionlint 校验 GHA expression/YAML/shell |
+| `ci.yml` | push to master + 每个 PR + 周六 03:41 UTC | (read-only) | 合并后的 lint/actionlint、schema/import/pytest、CodeQL；按 `ops/ci/push_scope.py` 分类决定跑哪些 job |
+| `dashboard-artifact-gate.yml` | `repository_dispatch: data-plane-published` | (read-only) | 与 `pages.yml` 同一事件，GitHub runner 上零依赖校验发布到 data 分支的首屏 payload |
+| `pages.yml` | 站点/数据 push + `data-plane-published` | (Pages) | 部署 GitHub Pages；并发组 `pages` 排队不取消 |
 | `weekly-health.yml` | 周日 23:00 UTC | (read-only) | 综合健康检查（含公网数据源活体） |
 | `eod-archive.yml` | 周五 22:00 UTC | `memory/archive/eod-history.csv` | 每周持仓快照 audit trail |
-| `sentiment-scan.yml` | 周日–四 21:30 UTC | `assets/data/sentiment.json` | 05:30 HKT 盘前 Reddit + Google News 扫描 |
-| `macro-scan.yml` | 周日–四 21:45 UTC | `assets/data/macro.json` | 05:45 HKT 盘前宏观扫描 |
-| `brief-fallback.yml` | 工作日 00:25 UTC (08:25 HKT) | brief/plan + harness 产物 | 主 brief 缺失且未晚于 10:00 HKT 才由远端 LLM 接管 |
+| `sentiment-scan.yml` | 周日–四 21:30 + 21:55 UTC | `assets/data/sentiment.json` + `factor-snapshots/sentiment/` | 05:30 HKT 盘前 Reddit + Google News 扫描；21:55 为抗漂移第二档 |
+| `macro-scan.yml` | 周日–四 21:45 + 21:55 UTC | `assets/data/macro.json` + `factor-snapshots/macro/` | 05:45 HKT 盘前宏观扫描；21:55 为抗漂移第二档 |
+| `brief-fallback.yml` | 工作日 00:25/00:47/01:09 UTC + 周三 04:23 彩排；host watchdog 09:05 HKT dispatch | brief/plan + harness 产物 | 主 brief 缺失且未晚于 10:00 HKT 才由远端 LLM 接管 |
 | `weekly-review.yml` | 周日 14:00 UTC (22:00 HKT) | `memory/weekly/{ISO-week}.md` | MiniMax M3 周复盘（无回退模型） |
 | `news-digest.yml` | 工作日 13:00 UTC (21:00 HKT) | `assets/data/us_news_digest.json` | 美股开盘前 48h 新闻提炼 |
 | `influencer-scan.yml` | 周日–四 21:40 + 工作日 12:50 UTC | `assets/data/influencer_feed.json` | 盘前 + 美股盘前两班影响力雷达（Trump 原帖 / Musk 报道 / ARK 日度调仓 / Serenity / 段永平·洪灏·Burry·Pelosi 报道，8 源） |
-| `cron-health.yml` | 工作日 09:00 UTC (17:00 HKT) | (read-only) | 用 tracked cron contract + HKT commit date 巡检漏跑 |
+| `cron-health.yml` | 周一–六 09:17 UTC (17:17 HKT) | (read-only) | 用 tracked cron contract + HKT commit date 巡检漏跑 |
 | `screenshot-refresh.yml` | 周日 22:00 UTC | `site/assets/social-card.png` + `site/assets/shadow-backtest.png` | 每周刷新社交卡里的 Hero 截图和实时战绩图；`site/assets/dashboard.gif` 只在手动 dispatch 时生成 |
+| `repo-traffic.yml` | 周二/六 03:38 UTC | `assets/data/repo-traffic.json` + `schedule-drift.json` | Measurement Capture；漂移按 `config/schedule-punctuality.json` 由 cron-health 判 |
+| `seo-visibility.yml` | 周一 06:30 UTC | `assets/data/crawl_visibility*.json` | 每周爬虫/搜索可见度采样 |
 
 **远端 LLM 路径**: 本地市场 cron 与远端 `clawock.automation.llm` 都以 MiniMax M3 为主；远端**只有 MiniMax 一个 provider**——2026-09-13 起移除了 opencode-go DeepSeek V4 Flash 回退（钱包早已清零，回退腿只会再报一次 401），链上不挂任何按量付费模型。4 个 LLM workflow（news-digest / weekly-review / brief-fallback / influencer-scan）均只从 repo secrets 读 `MINIMAX_API_KEY`，仓库不落 key。
 

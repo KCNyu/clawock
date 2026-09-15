@@ -18,7 +18,7 @@
  * to the real sources.
  *
  * Generated `lib/` artifacts are committed — CI and DSH consume them without a
- * build step — and `harness-regression.yml` rebuilds them on every plugin PR
+ * build step — and `ci.yml` rebuilds them on every plugin PR
  * and fails on any diff, so "does lib/ match src/?" is a machine-checked
  * question.
  */
