@@ -1756,12 +1756,20 @@
   },
   "2026-09-10": {
    "open": 39.21,
-   "high": 39.39,
+   "high": 39.4,
    "low": 38.67,
    "close": 38.7,
    "source": "tencent",
    "adjustment": "raw",
-   "fetched_at": "2026-09-11T08:03:35+08:00"
+   "fetched_at": "2026-09-15T01:51:26+08:00",
+   "revised_from": {
+    "open": 39.21,
+    "high": 39.39,
+    "low": 38.67,
+    "close": 38.7
+   },
+   "revised_at": "2026-09-15T01:51:26+08:00",
+   "revision_reason": "explicit --repair"
   },
   "2026-09-11": {
    "open": 39.01,
@@ -1771,6 +1779,15 @@
    "source": "tencent",
    "adjustment": "raw",
    "fetched_at": "2026-09-14T08:03:43+08:00"
+  },
+  "2026-09-14": {
+   "open": 39.71,
+   "high": 39.85,
+   "low": 39.02,
+   "close": 39.08,
+   "source": "tencent",
+   "adjustment": "raw",
+   "fetched_at": "2026-09-15T08:03:36+08:00"
   }
  }
 }
