@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-15T23:42:35.721379+00:00",
+  "generated_at": "2026-09-15T23:46:11.826956+00:00",
   "vix": {
     "symbol": "^VIX",
     "price": 17.2,
@@ -30,7 +30,7 @@
     "rating": "fear",
     "prev_close": 31.1,
     "prev_1_week": 39.1,
-    "as_of": "2026-09-15T23:23:22+00:00"
+    "as_of": "2026-09-15T23:28:19+00:00"
   },
   "hsi": {
     "symbol": "^HSI",
@@ -61,5 +61,16 @@
     "change_pct": -0.78,
     "source": "tencent"
   },
-  "fed_press": null
+  "fed_press": [
+    {
+      "date": "2026-09-11",
+      "title": "Agencies seek comment on proposed third-party risk management guidance and issue statement on community bank engagement with core service providers",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/bcreg20260911a.htm"
+    },
+    {
+      "date": "2026-09-10",
+      "title": "Agencies reduce regulatory burden for community banks, increase eligibility for 18-month exam cycle",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/bcreg20260910a.htm"
+    }
+  ]
 }
