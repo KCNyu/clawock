@@ -1,76 +1,65 @@
 {
-  "generated_at": "2026-09-15T00:01:25.776738+00:00",
+  "generated_at": "2026-09-15T23:42:35.721379+00:00",
   "vix": {
     "symbol": "^VIX",
-    "price": 17.1,
-    "prev": 15.84,
-    "change_pct": 7.95,
-    "as_of": 1789416901,
+    "price": 17.2,
+    "prev": 17.1,
+    "change_pct": 0.58,
+    "as_of": 1789503301,
     "source": "yahoo"
   },
   "treasury_10y": {
     "symbol": "^TNX",
-    "price": 4.961,
-    "prev": 4.975,
-    "change_pct": -0.28,
-    "as_of": 1789412392,
+    "price": 4.996,
+    "prev": 4.961,
+    "change_pct": 0.71,
+    "as_of": 1789498793,
     "source": "yahoo",
-    "yield_pct": 4.961
+    "yield_pct": 4.996
   },
   "dxy": {
     "symbol": "DX-Y.NYB",
-    "price": 99.483,
-    "prev": 99.391,
-    "change_pct": 0.09,
-    "as_of": 1789429882,
+    "price": 99.612,
+    "prev": 99.615,
+    "change_pct": -0.0,
+    "as_of": 1789509899,
     "source": "yahoo"
   },
   "fear_greed": {
-    "score": 31.1,
+    "score": 28.7,
     "rating": "fear",
-    "prev_close": 33.3,
-    "prev_1_week": 45.2,
-    "as_of": "2026-09-14T23:41:03+00:00"
+    "prev_close": 31.1,
+    "prev_1_week": 39.1,
+    "as_of": "2026-09-15T23:23:22+00:00"
   },
   "hsi": {
     "symbol": "^HSI",
-    "price": 24917.6,
-    "prev": 24805.63,
-    "change_pct": 0.45,
+    "price": 24667.24,
+    "prev": 24917.6,
+    "change_pct": -1.0,
     "source": "tencent"
   },
   "hstech": {
     "symbol": "^HSTECH",
-    "price": 4317.94,
-    "prev": 4320.57,
-    "change_pct": -0.06,
+    "price": 4291.34,
+    "prev": 4317.94,
+    "change_pct": -0.62,
     "source": "tencent"
   },
   "spx": {
     "symbol": "^GSPC",
-    "price": 7619.98,
-    "prev": 7656.98,
-    "change_pct": -0.48,
-    "as_of": 1789418088,
+    "price": 7585.73,
+    "prev": 7619.98,
+    "change_pct": -0.45,
+    "as_of": 1789505608,
     "source": "yahoo"
   },
   "nasdaq": {
     "symbol": "^IXIC",
-    "price": 26186.41,
-    "prev": 26333.04,
-    "change_pct": -0.56,
+    "price": 25981.57,
+    "prev": 26186.41,
+    "change_pct": -0.78,
     "source": "tencent"
   },
-  "fed_press": [
-    {
-      "date": "2026-09-11",
-      "title": "Agencies seek comment on proposed third-party risk management guidance and issue statement on community bank engagement with core service providers",
-      "url": "https://www.federalreserve.gov/newsevents/pressreleases/bcreg20260911a.htm"
-    },
-    {
-      "date": "2026-09-10",
-      "title": "Agencies reduce regulatory burden for community banks, increase eligibility for 18-month exam cycle",
-      "url": "https://www.federalreserve.gov/newsevents/pressreleases/bcreg20260910a.htm"
-    }
-  ]
+  "fed_press": null
 }
