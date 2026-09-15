@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-14T23:58:24.233409+00:00",
+  "generated_at": "2026-09-15T17:19:23.028986+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -24,312 +24,105 @@
   "llm_filtered": true,
   "llm_filter_status": "ok",
   "counts": {
-    "total": 30,
+    "total": 28,
     "held_hits": 0,
-    "new_ideas": 10,
-    "sector_hits": 4
+    "new_ideas": 13,
+    "sector_hits": 14
   },
   "items": [
     {
-      "author": "Musk",
-      "text": "Elon Musk sends strong signal for SpaceX, Nvidia stocks",
-      "url": "",
-      "published": "Mon, 14 Sep 2026 18:03:00 GMT",
-      "origin": "gnews-rss",
-      "source": "thestreet.com",
-      "tickers": [
-        "NVDA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "NVDA"
-      ],
-      "sectors": [
-        "AI",
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
-      "relevance": 75,
-      "summary_cn": "据报道，Musk对SpaceX和英伟达(NVDA)股票发出强烈看多信号，与kcn持有的SpaceX敞口间接相关。"
-    },
-    {
       "author": "Burry",
-      "text": "Michael Burry Is Pushing Back on AI-Slowdown Calls. CoreWeave and Nebius Are the Stress Test",
-      "url": "https://news.google.com/rss/articles/CBMimAFBVV95cUxOWEFQajBVX0QtUGN3UUdLQ0llVWZTUFlRRzVuei1QdHpIeTEyek9PZERoTFptcW96d3A2MWlKYWR3VlVGWGkwRzBTaXV1ZDZFdkkzcm9RSmY3VTFRbHFuS1RrbWN1UF9LR0t6RUpXeW5TQzdXZ0JsQVMyM3ZOLUlKRUVnMzZzWlN0dEx4TlVtQldJYzlZT3JQOA?oc=5",
-      "published": "2026-09-14T18:52:34+00:00",
+      "text": "Michael Burry Sells NVDA, PLTR December 2026 Puts Amid Portfolio-Wide Cuts – Says He’s ‘Pulling Back’ On Risk",
+      "url": "https://news.google.com/rss/articles/CBMiuwFBVV95cUxNUV9xc3dFUnpsV0VBVURBYnkzM1ZRQWR5dUQwenkxejB0U0xscTUwTGJBeHVXejhjTWRCOV8wb1RUY01ZV1VXcGJlTmN1NXNqWGdwajZ6Ulo5T1A4dDRYam1zT3hkeFhVTFRreVJTN3FmVmozenh6LWU1aWF2MUZpbWNDWXZoaGwyNXVPbnVOU0xxLWJSNDhEYmdpeVlpbFBhU1Q0ZDljdWVzNkpLd3VEd3ZHR2g2WGtyTlFN?oc=5",
+      "published": "2026-09-15T06:02:20+00:00",
       "origin": "gnews-rss",
-      "source": "Yahoo Finance",
+      "source": "Stocktwits",
       "tickers": [
-        "CRWV",
-        "NBIS"
+        "NVDA",
+        "PLTR"
       ],
       "held": [],
       "new_ideas": [
-        "CRWV",
-        "NBIS"
+        "NVDA",
+        "PLTR"
       ],
       "sectors": [
         "AI",
-        "AI基础设施"
+        "半导体"
       ],
       "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 72,
-      "summary_cn": "据报道，Michael Burry对AI放缓论调予以反驳，并将CoreWeave(CRWV)和Nebius(NBIS)列为压力测试标的，AI基建主题选股线索。"
+      "stance": "sell",
+      "relevance": 78,
+      "summary_cn": "据报道，Burry清仓NVDA、PLTR 2026年12月看跌期权，全组合降仓，自称'正在退潮'。"
     },
     {
       "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-11 调仓：Bullish(BLSH) 卖出 ARKK 121,217 股（最大单只 ETF 占比 0.07%）",
-      "url": "https://www.ark-funds.com/funds/arkk/",
-      "published": "2026-09-11T20:00:00+00:00",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-14 调仓：Meta Platforms, Inc.(META) 买入 ARKW 10,997 股（最大单只 ETF 占比 0.40%）",
+      "url": "https://www.ark-funds.com/funds/arkw/",
+      "published": "2026-09-14T20:00:00+00:00",
       "origin": "ark-funds",
       "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.0661,
+      "etf_percent": 0.3992,
       "tickers": [
-        "BLSH"
+        "META"
       ],
       "held": [],
       "new_ideas": [
-        "BLSH"
+        "META"
       ],
       "sectors": [
-        "加密货币"
+        "AI",
+        "社交媒体"
       ],
-      "sector_holdings": [
-        "CRCL"
-      ],
-      "stance": "sell",
-      "relevance": 62,
-      "summary_cn": "ARK 2026-09-11减仓Bullish(BLSH) 121,217股(占ARKK 0.07%)，涉及加密货币交易所，板块上与kcn持有的CRCL(USDC稳定币)相关。"
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 70,
+      "summary_cn": "ARK 9/14调仓：买入Meta(META)，ARKW占比0.40%。"
     },
     {
       "author": "段永平",
       "text": "段永平「入坑」泡泡瑪特 澄清與諧星無關",
-      "url": "https://news.google.com/rss/articles/CBMivwJBVV95cUxQYmFWY3c5ckNjcDFfcUdmUTZrZEduQnBnNHdrQlZEb3Z1RjFzOHhNb09jbVQtZGlwSjdBbWpxdktkdkZHZjd6eDZlVjd2ZWxKOXg4RWhXaVNXOTNfYndzUjZQSFY5YzVZU2RCekloX0ZycDloTWJGcWozX09DN0VudTRINzcyQXV6alE2eGJ5ZnNaR1hQXzlxaUI5bnhJT3lqWTl6b09kTzVpZHB6TUZBcjF2OG41X3hFY1h6Umh3enpYOVpCTTByNnJ2cXN2aXVBSUVZcGxPQk9WaHdzUzgzN2xXZHRCaUNJc1ZZNzlTX1Z6VV9BZUwwQ3dpdkpTU3FSV0ZrNWotMWJIQ01DMGFST2dpbkd2TzVnUDFxSEFxZzNRazJScEFCWjAxcTFNbHd4ZkstbTBzM0FsdmNZTmtV?oc=5",
+      "url": "https://news.google.com/rss/articles/CBMiqgNBVV95cUxPMHowNDZjSkpTQ0VOcjJTNmgxdDREWFFtY2YtVzJLNVh3c3FQakhDZ0ZOZ2s2NTlLQm1La0NKamI5Z2ZkMmh0eWZUT0hSQl95T1ZHeDd1WDU5dGlPa2ppUEZPYjZFZXkyVUFjN0o4dlNDY3FaSUZnT2xxXzdNTjJ2Q3VVSUtqTU41cGlkQm9HeldiNlVydWg2d0E3ZzFSM3FRSGUybFlOU1A1cUdWNF9DcGVaWU82NWJrSW5ERnE5Y29GSEZWUU9VN3dteDIwd2tRb2RfcWFxcC1fRGx5d1dONFoxZk1LMHVGZW5qejdaTnhPZnZnOGZwNXVLZXBQZXA4NFR6MTFCM01DVi1OUHhKN2JwOVBtekRmNVZYbW0wdEZBYkdWa3FQXzZsdkJmbk0tcTctTXdUZElfVXl4YjJEcEVNazdvWkJuNk90N1FJWWdEaGh6T3l5a3NkdUllWmlCT3BacFJwdFh4RUNBZlhKOUNpN3M0eWh5RFdjNjZmbnpiVE9zZnpFUDJZQkY5WG9sam9fM2NzdEZtY1hmUDhwNDFiRkxxemFsUnc?oc=5",
       "published": "2026-09-13T18:48:20+00:00",
       "origin": "gnews-rss",
       "source": "信報網站",
       "tickers": [
-        "9992"
+        "09992"
       ],
       "held": [],
       "new_ideas": [
-        "9992"
+        "09992"
       ],
       "sectors": [
-        "消费/IP/潮玩"
+        "港股消费"
       ],
       "sector_holdings": [],
       "stance": "buy",
-      "relevance": 52,
-      "summary_cn": "据港媒报道，段永平'入坑'泡泡玛特(9992.HK)，对新消费/IP板块表达兴趣。"
-    },
-    {
-      "author": "Musk",
-      "text": "Tesla Stock Drops as Musk Adds to the Chorus of AI Concern",
-      "url": "",
-      "published": "Mon, 14 Sep 2026 11:31:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Barron's",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车",
-        "AI"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "据报道，特斯拉(TSLA)股价下跌，因Musk加入AI担忧的舆论声浪。"
-    },
-    {
-      "author": "Pelosi",
-      "text": "Congresswoman Bets on Elon Musk, Warren Buffett: Here’s the Latest Stock Transactions",
-      "url": "https://news.google.com/rss/articles/CBMiogFBVV95cUxNbW01Uk9PX1R5ejEwb0djdi0yNFgyajJKLUh6d1JfS19ReTNTRW9BOUJ5VnhSTDRPTkhjRzJTNW1zSkxRcG5PV1pFZ3N5dXgydXh3UmdjejZJakdOeExRVWxWaU4tYVdfRmZmeU1PZmtUSk5jWnpQdFlFQlJUSTdKc2pKSTJKclJmV3VIQUxpM0s2bUZEVlVsRTdyRFh1dVo5M3c?oc=5",
-      "published": "2026-09-14T15:30:15+00:00",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [
-        "TSLA",
-        "BRK.B"
-      ],
-      "held": [],
-      "new_ideas": [
-        "BRK.B",
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车",
-        "价值投资"
-      ],
-      "sector_holdings": [],
-      "stance": "buy",
-      "relevance": 50,
-      "summary_cn": "据报道，最新披露显示，Pelosi家族交易涉及Elon Musk相关(Tesla/TSLA)及Warren Buffett相关(Berkshire Hathaway/BRK.B)持仓。"
+      "relevance": 70,
+      "summary_cn": "据报道，段永平买入泡泡玛特(09992)，澄清与谐星无关。"
     },
     {
       "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-11 调仓：Twist Bioscience Corporation(TWST) 卖出 ARKK 46,015 股（最大单只 ETF 占比 0.09%）",
-      "url": "https://www.ark-funds.com/funds/arkk/",
-      "published": "2026-09-11T20:00:00+00:00",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-14 调仓：Ionis Pharmaceuticals, Inc.(IONS) 买入 ARKG 166,585 股（最大单只 ETF 占比 0.49%）",
+      "url": "https://www.ark-funds.com/funds/arkg/",
+      "published": "2026-09-14T20:00:00+00:00",
       "origin": "ark-funds",
       "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.092,
+      "etf_percent": 0.4857,
       "tickers": [
-        "TWST"
+        "IONS"
       ],
       "held": [],
       "new_ideas": [
-        "TWST"
+        "IONS"
       ],
       "sectors": [
         "生物科技"
       ],
       "sector_holdings": [],
-      "stance": "sell",
-      "relevance": 50,
-      "summary_cn": "ARK 2026-09-11卖出Twist Bioscience(TWST) 46,015股(占ARKK 0.09%)，属常规再平衡规模。"
-    },
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-11 调仓：INTELLIA THERAPEUTICS, INC.(NTLA) 买入 ARKK 107,356 股（最大单只 ETF 占比 0.02%）",
-      "url": "https://www.ark-funds.com/funds/arkk/",
-      "published": "2026-09-11T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.0199,
-      "tickers": [
-        "NTLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "NTLA"
-      ],
-      "sectors": [
-        "生物科技",
-        "基因编辑"
-      ],
-      "sector_holdings": [],
       "stance": "buy",
-      "relevance": 50,
-      "summary_cn": "ARK 2026-09-11买入Intellia Therapeutics(NTLA) 107,356股(占ARKK 0.02%)，属小额加仓。"
-    },
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-11 调仓：10x Genomics, Inc.(TXG) 卖出 ARKK 60,556 股（最大单只 ETF 占比 0.07%）",
-      "url": "https://www.ark-funds.com/funds/arkk/",
-      "published": "2026-09-11T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.0653,
-      "tickers": [
-        "TXG"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TXG"
-      ],
-      "sectors": [
-        "生物科技"
-      ],
-      "sector_holdings": [],
-      "stance": "sell",
-      "relevance": 48,
-      "summary_cn": "ARK 2026-09-11卖出10x Genomics(TXG) 60,556股(占ARKK 0.07%)，常规再平衡规模。"
-    },
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-11 调仓：Tempus AI, Inc.(TEM) 卖出 ARKK 34,631 股（最大单只 ETF 占比 0.03%）",
-      "url": "https://www.ark-funds.com/funds/arkk/",
-      "published": "2026-09-11T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.032,
-      "tickers": [
-        "TEM"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TEM"
-      ],
-      "sectors": [
-        "AI医疗"
-      ],
-      "sector_holdings": [],
-      "stance": "sell",
-      "relevance": 48,
-      "summary_cn": "ARK 2026-09-11卖出Tempus AI(TEM) 34,631股(占ARKK 0.03%)，常规再平衡规模。"
-    },
-    {
-      "author": "Trump",
-      "text": "Ukraine has agreed not to hit Russian Energy targets. Russia has agreed to do, likewise! The World’s Diesel price rise is mostly caused by the Russia/Ukraine War, not Iran. President DJT",
-      "url": "https://www.trumpstruth.org/statuses/41713",
-      "published": "2026-09-14T15:05:39+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "能源/石油",
-        "俄乌冲突",
-        "柴油"
-      ],
-      "sector_holdings": [
-        "02208"
-      ],
-      "stance": "neutral",
-      "relevance": 62,
-      "summary_cn": "特朗普称乌俄已同意互不攻击对方能源目标，并指世界柴油价格上涨主要由俄乌战争而非伊朗冲突造成。"
-    },
-    {
-      "author": "Trump",
-      "text": "I hope everyone realizes that price increases throughout America were caused by Sleepy Joe Biden and the Biden Administration, not by “TRUMP.” Even Oil was higher under Biden than it is right now, and we prevented Iran from having a Nuclear Weapon! With the temporary exception of Oil, prices are coming down sharply, and Oil will drop like a rock as soon as the Military Conflict with Iran is over, and that will not be long. Thank you for your attention to this matter! President DONALD J. TRUMP",
-      "url": "https://www.trumpstruth.org/statuses/41718",
-      "published": "2026-09-14T16:31:39+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "能源/石油",
-        "中东局势",
-        "通胀"
-      ],
-      "sector_holdings": [
-        "02208"
-      ],
-      "stance": "neutral",
-      "relevance": 60,
-      "summary_cn": "特朗普称物价上涨怪拜登而非自己，并预期与伊朗军事冲突结束后油价将'像石头一样下跌'，暗示油价短期承压。"
-    },
-    {
-      "author": "Trump",
-      "text": "Oil is flowing through the Hormuz Strait. The Countries of the World, which have been no help to us whatsoever, should, and will, reimburse the United States of America when this SCAM Confligration is all over. We are doing it much more for others, than we are for ourselves, and we have been for Generations! President DONALD J. TRUMP",
-      "url": "https://www.trumpstruth.org/statuses/41717",
-      "published": "2026-09-14T16:25:46+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "能源/石油",
-        "中东局势"
-      ],
-      "sector_holdings": [
-        "02208"
-      ],
-      "stance": "neutral",
-      "relevance": 58,
-      "summary_cn": "特朗普称石油正在通过霍尔木兹海峡，要求各国'报销'美国军事行动费用，暗示中东局势仍主导油价。"
+      "relevance": 65,
+      "summary_cn": "ARK 9/14调仓：买入Ionis Pharmaceuticals(IONS)，ARKG占比0.49%。"
     },
     {
       "author": "段永平",
@@ -338,90 +131,214 @@
       "published": "2026-09-14T03:33:26+00:00",
       "origin": "gnews-rss",
       "source": "香港經濟日報HKET",
-      "tickers": [],
+      "tickers": [
+        "01088"
+      ],
       "held": [],
-      "new_ideas": [],
+      "new_ideas": [
+        "01088"
+      ],
       "sectors": [
-        "煤炭/能源"
+        "煤炭",
+        "能源"
+      ],
+      "sector_holdings": [],
+      "stance": "sell",
+      "relevance": 65,
+      "summary_cn": "据报道，段永平清仓中国神华(01088)。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk's $1 Trillion Pay Package Needs Tesla to Hit an $8.5 Trillion Market Cap. Here's What That Means for Shareholders.",
+      "url": "",
+      "published": "Tue, 15 Sep 2026 14:30:00 GMT",
+      "origin": "gnews-rss",
+      "source": "The Motley Fool",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 62,
+      "summary_cn": "据报道，Musk万亿美元薪酬包要求Tesla市值达8.5万亿美元。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-14 调仓：Guardant Health, Inc.(GH) 买入 ARKG 39,558 股（最大单只 ETF 占比 0.35%）",
+      "url": "https://www.ark-funds.com/funds/arkg/",
+      "published": "2026-09-14T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.3535,
+      "tickers": [
+        "GH"
+      ],
+      "held": [],
+      "new_ideas": [
+        "GH"
+      ],
+      "sectors": [
+        "医疗"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 62,
+      "summary_cn": "ARK 9/14调仓：买入Guardant Health(GH)，ARKG占比0.35%。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-14 调仓：Iridium Communications Inc.(IRDM) 卖出 ARKX 54,500 股（最大单只 ETF 占比 0.34%）",
+      "url": "https://www.ark-funds.com/funds/arkx/",
+      "published": "2026-09-14T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.3356,
+      "tickers": [
+        "IRDM"
+      ],
+      "held": [],
+      "new_ideas": [
+        "IRDM"
+      ],
+      "sectors": [
+        "卫星通讯"
+      ],
+      "sector_holdings": [],
+      "stance": "sell",
+      "relevance": 62,
+      "summary_cn": "ARK 9/14调仓：减持Iridium(IRDM)，ARKX占比0.34%。"
+    },
+    {
+      "author": "Musk",
+      "text": "Musk's X Corp and SpaceXAI resolve antitrust lawsuit against Apple",
+      "url": "",
+      "published": "Mon, 14 Sep 2026 21:11:09 GMT",
+      "origin": "gnews-rss",
+      "source": "Reuters",
+      "tickers": [
+        "AAPL"
+      ],
+      "held": [],
+      "new_ideas": [
+        "AAPL"
+      ],
+      "sectors": [
+        "AI",
+        "航天",
+        "科技"
       ],
       "sector_holdings": [
-        "02208"
+        "CRCL",
+        "SPCH",
+        "SPCX"
       ],
-      "stance": "sell",
-      "relevance": 55,
-      "summary_cn": "据港媒报道，段永平清仓中国神华(港股01088)，对传统能源/煤炭板块态度转空，与kcn持有的金风科技(02208)同属能源板块但为新能源对立面。"
+      "stance": "neutral",
+      "relevance": 60,
+      "summary_cn": "据报道，Musk旗下X Corp与xAI对Apple的反垄断诉讼已和解。"
     },
     {
-      "author": "Trump",
-      "text": "The only reason the AI/Data Center outburst is happening is because the United States is leading, by a lot, every other country. Don’t kill the Golden Goose! President DONALD J. TRUMP",
-      "url": "https://www.trumpstruth.org/statuses/41714",
-      "published": "2026-09-14T15:23:02+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI",
-        "数据中心"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 70,
-      "summary_cn": "特朗普为AI/数据中心扩张辩护，称反对是因为美国'大幅领先其他国家'，警告'别杀金鹅'，明确反对限制AI/数据中心政策。"
-    },
-    {
-      "author": "Trump",
-      "text": "I’ve just received a Report that the United States is producing more Exquisite and Elite Weapons than at any time in our History. They are being delivered on a daily basis to our Forces in the Middle East, and beyond. Our Defense Company Factories are moving 24/7, while at the same time building, on average, 4 to 5 largescale brand new Plants, each! A primary focus of this production has been Patriots, THAAD Systems, Tomahawks, and other Standard Missile Systems, of which we already have large numbers in stock. President DONALD J. TRUMP",
-      "url": "https://www.trumpstruth.org/statuses/41716",
-      "published": "2026-09-14T16:22:57+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "国防军工",
-        "Patriot/THAAD/Tomahawk"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 68,
-      "summary_cn": "特朗普称美国国防工厂24/7运转、每家新建4-5座大型工厂，重点生产Patriot、THAAD、Tomahawk导弹系统，利好国防军工板块。"
-    },
-    {
-      "author": "Trump",
-      "text": "Concerning AI, when, in the History of Business, did anyone see the Leaders of an Industry call for Regulation that, if strongly implemented, will drive them into oblivion and bankruptcy? AI taking over the World, destroying Humanity, and all other things bad, is a HOAX, no different from RUSSIA, RUSSIA, RUSSIA — UKRAINE, UKRAINE, UKRAINE — IMPEACHMENT HOAX #1 — IMPEACHMENT HOAX #2 — and all of the other HOAXES and SCAMS that America was forced to endure through the Destructionists’ and Deviants’ foul play and illegal conduct. President Xi, of China, just announced that China will be doing abs",
-      "url": "https://www.trumpstruth.org/statuses/41720",
-      "published": "2026-09-14T17:33:39+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI",
-        "监管"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 62,
-      "summary_cn": "特朗普明确反对AI行业自我监管，称严格监管将'驱使行业走向毁灭'，与习近平监管表态形成对照。"
-    },
-    {
-      "author": "Burry",
-      "text": "'Big Short' Michael Burry says AI leaders' calls for slowdown are 'self-serving' and he's not worried",
-      "url": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxQa2RKdkRKMUEwUEwtVlJHLWJEUEx5YTFxOVVXUnlINW51OVVHcVloODhGOEFXS05zeTkxNTI4WUo4b1I1czJUVlgzbHlieUlZZU9NOS1BUGROTHpPNEpyQkowUVdkajUxZHk4eEl3SHpFbFpPYVJtVjZxbWoyc3UzOFgwb3c5SGZTVFRQQzNqOUswYTgtVTRtckdJQWNTWVgzckljNnVMNTFZSWM?oc=5",
-      "published": "2026-09-14T13:27:49+00:00",
+      "author": "Pelosi",
+      "text": "Bloom Energy Stock (BE) Opinions on S&P 500 Inclusion and AI Power Demand",
+      "url": "https://news.google.com/rss/articles/CBMisgFBVV95cUxQUU5wcEdWQU41NFpxcW9qTEJkX1ljYUpIWnBjQi1yWUgtOUpQaUhmOTY2UHhLSjBNVFZiSUJ0cUhyNXE0QkxzT1dyOW43TnZTTnpIeDBZMU9hV1dqb3FlVjRvRkg0cXlKMmpla2FXckNrRlM1ZXN1X3N0NS1NWm1MRkwxU1ZLbk9xRjNlRjBKTWNtZ0Mxdi1OWjZyOXNzdFJXazBZb2Nvc0pMbENBRkdiUkN3?oc=5",
+      "published": "2026-09-15T14:05:00+00:00",
       "origin": "gnews-rss",
-      "source": "businessinsider.com",
-      "tickers": [],
+      "source": "Quiver Quantitative",
+      "tickers": [
+        "BE"
+      ],
       "held": [],
-      "new_ideas": [],
+      "new_ideas": [
+        "BE"
+      ],
       "sectors": [
-        "AI"
+        "AI",
+        "能源",
+        "燃料电池"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "neutral",
+      "relevance": 60,
+      "summary_cn": "据报道，市场讨论Bloom Energy(BE)纳入标普500预期及AI电力需求。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-14 调仓：10x Genomics, Inc.(TXG) 卖出 ARKK 51,475 股 / ARKG 271,248 股（最大单只 ETF 占比 1.00%）",
+      "url": "https://www.ark-funds.com/funds/arkg/",
+      "published": "2026-09-14T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 1.0036,
+      "tickers": [
+        "TXG"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TXG"
+      ],
+      "sectors": [
+        "生物科技"
       ],
       "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 62,
-      "summary_cn": "据报道，Michael Burry称AI领军企业呼吁放慢AI发展是'自私的'，他本人对此并不担忧，立场偏看多AI。"
+      "stance": "sell",
+      "relevance": 60,
+      "summary_cn": "ARK 9/14调仓：减持10x Genomics(TXG)，ARKK+ARKG合计占比1.00%。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk Says the New Tesla Roadster Will Be Revealed Very Soon. Can We Believe Him?",
+      "url": "",
+      "published": "Mon, 14 Sep 2026 16:41:15 GMT",
+      "origin": "gnews-rss",
+      "source": "Car and Driver",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "据报道，Musk称新Tesla Roadster将很快亮相。"
+    },
+    {
+      "author": "Musk",
+      "text": "Why Are Tesla and SpaceX Separate? Musk Says ‘Great Question’",
+      "url": "",
+      "published": "Tue, 15 Sep 2026 13:24:14 GMT",
+      "origin": "gnews-rss",
+      "source": "Bloomberg.com",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "neutral",
+      "relevance": 52,
+      "summary_cn": "据报道，Musk解释为何Tesla和SpaceX仍分开运营。"
     },
     {
       "author": "Burry",
@@ -436,16 +353,18 @@
       "sectors": [
         "AI"
       ],
-      "sector_holdings": [],
+      "sector_holdings": [
+        "CRCL"
+      ],
       "stance": "attack",
-      "relevance": 60,
-      "summary_cn": "据报道，Michael Burry抨击OpenAI、Anthropic呼吁放慢AI发展是'自私的'，加入反对AI放缓的舆论阵营。"
+      "relevance": 70,
+      "summary_cn": "据报道，Burry抨击OpenAI、Anthropic要求放缓AI的呼吁是'自私'的。"
     },
     {
-      "author": "Musk",
-      "text": "Elon Musk: I've been 'sounding the alarm' on AI for a while",
-      "url": "",
-      "published": "Mon, 14 Sep 2026 14:18:18 GMT",
+      "author": "Burry",
+      "text": "Michael Burry Spots Troubling Signal for AI Stocks",
+      "url": "https://news.google.com/rss/articles/CBMiogFBVV95cUxPcEs0QTh5Q3Rla1dnUDV4Z09pbTJvVXVBMllnZ1FpUEh6NEZGbFRSYnVOTUdXaVFzaFhNT09sRC1oeWlIUXItWFBIYm9ockxhRDZuWXBEN0Etenc3NVVWRlYtMTVvaEF0MDYwQUtPcUxiYUVnYk5qdFNUSHpjLTRQdHhYTHRCVzRHZTRtazdMSXBXbGw1ckxxMHhQQzFzRTNuUkE?oc=5",
+      "published": "2026-09-14T19:12:42+00:00",
       "origin": "gnews-rss",
       "source": "Yahoo Finance",
       "tickers": [],
@@ -454,10 +373,198 @@
       "sectors": [
         "AI"
       ],
-      "sector_holdings": [],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "attack",
+      "relevance": 68,
+      "summary_cn": "据报道，Burry发现AI股令人担忧的信号。"
+    },
+    {
+      "author": "Trump",
+      "text": "Concerning AI, when, in the History of Business, did anyone see the Leaders of an Industry call for Regulation that, if strongly implemented, will drive them into oblivion and bankruptcy? AI taking over the World, destroying Humanity, and all other things bad, is a HOAX, no different from RUSSIA, RUSSIA, RUSSIA — UKRAINE, UKRAINE, UKRAINE — IMPEACHMENT HOAX #1 — IMPEACHMENT HOAX #2 — and all of the other HOAXES and SCAMS that America was forced to endure through the Destructionists’ and Deviants’ foul play and illegal conduct. President Xi, of China, just announced that China will be doing abs",
+      "url": "https://www.trumpstruth.org/statuses/41720",
+      "published": "2026-09-14T17:33:39+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI",
+        "监管"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "attack",
+      "relevance": 68,
+      "summary_cn": "特朗普抨击AI行业领袖自请监管是骗局，暗示反对强监管，提到中国AI发展。"
+    },
+    {
+      "author": "Burry",
+      "text": "'Big Short' Michael Burry says AI leaders' calls for slowdown are 'self-serving' and he's not worried",
+      "url": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxQa2RKdkRKMUEwUEwtVlJHLWJEUEx5YTFxOVVXUnlINW51OVVHcVloODhGOEFXS05zeTkxNTI4WUo4b1I1czJUVlgzbHlieUlZZU9NOS1BUGROTHpPNEpyQkowUVdkajUxZHk4eEl3SHpFbFpPYVJtVjZxbWoyc3UzOFgwb3c5SGZTVFRQQzNqOUswYTgtVTRtckdJQWNTWVgzckljNnVMNTFZSWM?oc=5",
+      "published": "2026-09-14T13:27:00+00:00",
+      "origin": "gnews-rss",
+      "source": "businessinsider.com",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "attack",
+      "relevance": 68,
+      "summary_cn": "据报道，Burry称AI领袖的放缓呼吁'自私'，本人并不担忧。"
+    },
+    {
+      "author": "Musk",
+      "text": "Musk urges top AI labs, Chinese companies to test each other's models amid calls for slowdown",
+      "url": "",
+      "published": "Tue, 15 Sep 2026 15:02:58 GMT",
+      "origin": "gnews-rss",
+      "source": "cnbc.com",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "neutral",
+      "relevance": 65,
+      "summary_cn": "据报道，Musk呼吁顶级AI实验室与中国公司互测模型，与放缓AI的呼声形成对立。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-14 调仓：ARK 21Shares Bitcoin ETF(ARKB) 卖出 ARKW 1,062,820 股 / ARKF 466,133 股（最大单只 ETF 占比 1.54%）",
+      "url": "https://www.ark-funds.com/funds/arkf/",
+      "published": "2026-09-14T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 1.5352,
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "比特币",
+        "加密货币"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "sell",
+      "relevance": 65,
+      "summary_cn": "ARK 9/14调仓：ARKB在ARKW、ARKF中合计减持超150万股（最大占比1.54%），机构减仓比特币现货ETF。"
+    },
+    {
+      "author": "Trump",
+      "text": "The AI Hoax being perpetrated by the Radical Left Dumocrats is reminiscent of their Global Warming Scam of not so long ago, where everyone was going to die from extreme heat. What happened? MAKE AMERICA GREAT AGAIN!!! President DJT",
+      "url": "https://www.trumpstruth.org/statuses/41727",
+      "published": "2026-09-14T23:55:09+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI",
+        "数据中心"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "attack",
+      "relevance": 62,
+      "summary_cn": "特朗普称AI威胁论是骗局，类比全球变暖骗局，与民主党AI监管呼声对立。"
+    },
+    {
+      "author": "洪灏",
+      "text": "AI | 洪灝：達里奧重拳砸盤；AI發展的全新階段",
+      "url": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxQLWpNTEx1ZC04UGVqTWpaUC1QTDFTMEcweG5lM25RQm45ZWdEczJ6YUN4ZHBSQVpuZEpwWEJJcXp0Y0RnU2NlVGxob214ZU05RHk4VVplQkQyMk5pNGhFVHBaU0xTcEs1eUN0STlqN1lMUy1Ebkt6SkxjMllncUtjR0pSMzA0QldVN3BHZDYwYlJzOXNTWG4tam5fM2hOaVVTY1YzZVVpalk?oc=5",
+      "published": "2026-09-14T06:03:00+00:00",
+      "origin": "gnews-rss",
+      "source": "etnet 經濟通",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI",
+        "宏观"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "neutral",
+      "relevance": 62,
+      "summary_cn": "据洪灏转述，Dalio重拳砸盘，谈AI发展全新阶段。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk's Latest Updates On Tesla-SpaceX Merger, Terafab Factory",
+      "url": "",
+      "published": "Tue, 15 Sep 2026 12:34:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Investor's Business Daily",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "电动车",
+        "航天",
+        "AI"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "neutral",
+      "relevance": 60,
+      "summary_cn": "据报道，Musk谈Tesla-SpaceX合并进展及Terafab工厂项目。"
+    },
+    {
+      "author": "Trump",
+      "text": "The claim that “AI is going to take over the World” is a Hoax, just like Global “Warming,” where everyone was going to be dead by now, RUSSIA, RUSSIA, RUSSIA, UKRAINE, UKRAINE, UKRAINE, or Impeachment Hoax #1, or Impeachment Hoax #2. These are all Radical Left Dumocrats, who never give up, but seldom win. Hopefully, the Voters have seen the light! President DONALD J. TRUMP",
+      "url": "https://www.trumpstruth.org/statuses/41724",
+      "published": "2026-09-14T20:53:11+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI",
+        "数据中心"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "attack",
+      "relevance": 60,
+      "summary_cn": "特朗普再批'AI接管世界'论调为骗局，与监管推动方对立。"
+    },
+    {
+      "author": "Musk",
+      "text": "FBI agent wanted criminal probe of Elon Musk over DOGE activities",
+      "url": "",
+      "published": "Tue, 15 Sep 2026 13:44:20 GMT",
+      "origin": "gnews-rss",
+      "source": "Washington Times",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "加密货币"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
       "stance": "attack",
       "relevance": 58,
-      "summary_cn": "据报道，Musk称自己'一直在就AI发出警告'，延续其AI风险叙事（与特朗普的反AI恐慌立场相左）。"
+      "summary_cn": "据报道，FBI曾有探员推动对Musk就DOGE活动进行刑事调查。"
     },
     {
       "author": "Trump",
@@ -472,10 +579,52 @@
         "AI",
         "数据中心"
       ],
-      "sector_holdings": [],
+      "sector_holdings": [
+        "CRCL"
+      ],
       "stance": "attack",
       "relevance": 58,
-      "summary_cn": "特朗普抨击警告AI/数据中心危害的人是'为邪恶事业服务的革命者'，反对限制AI发展。"
+      "summary_cn": "特朗普称反对AI扩张和数据中心的人是'坏人革命派'，与气候议题捆绑。"
+    },
+    {
+      "author": "Trump",
+      "text": "I am the Hoax Buster, and I’m right now breaking another Hoax — That AI is going to take over, consume, and destroy the World, and that Robots will be marching into our Cities, and getting rid of us all! This is even wilder than the RUSSIA, RUSSIA, RUSSIA HOAX, or the Global Warming Scam. Thank you for your attention to this matter! President DONALD J. TRUMP",
+      "url": "https://www.trumpstruth.org/statuses/41722",
+      "published": "2026-09-14T20:34:53+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI",
+        "机器人"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "attack",
+      "relevance": 55,
+      "summary_cn": "特朗普自称'骗局终结者'，否定AI威胁论和机器人接管城市论。"
+    },
+    {
+      "author": "段永平",
+      "text": "AI股投資人必讀！留言抽段永平《大道至簡》→",
+      "url": "https://news.google.com/rss/articles/CBMiekFVX3lxTE9LcDE4VnRXeG5pSGNrTWV5YTJac0VZT0tmMzJqRl9wZllRUjZrOTFrbjF2dWQ4OFN2b2F3S0h6RmZ6WTYxR2JqNXRxVmE2Z0VLSHFBMmVzUmRYcnBxSG9Wal9Kd01UUmQyWjQwSGhUdk54dFVacjhGNk5n?oc=5",
+      "published": "2026-09-15T02:39:45+00:00",
+      "origin": "gnews-rss",
+      "source": "CMoney",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "neutral",
+      "relevance": 50,
+      "summary_cn": "据报道，段永平发布AI股投资相关内容。"
     },
     {
       "author": "洪灏",
@@ -492,61 +641,394 @@
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 58,
-      "summary_cn": "据报道，洪灝转述花旗看金价重返5000美元(潜在升幅15%)、高盛建议4000美元收集迎新牛市，大行集体看多黄金。"
+      "relevance": 55,
+      "summary_cn": "据报道，花旗看金价重返5000美元(升15%)，高盛建议4000美元收集，迎接新牛市。"
+    }
+  ],
+  "held_hits": [],
+  "new_ideas": [
+    {
+      "author": "Burry",
+      "text": "Michael Burry Sells NVDA, PLTR December 2026 Puts Amid Portfolio-Wide Cuts – Says He’s ‘Pulling Back’ On Risk",
+      "url": "https://news.google.com/rss/articles/CBMiuwFBVV95cUxNUV9xc3dFUnpsV0VBVURBYnkzM1ZRQWR5dUQwenkxejB0U0xscTUwTGJBeHVXejhjTWRCOV8wb1RUY01ZV1VXcGJlTmN1NXNqWGdwajZ6Ulo5T1A4dDRYam1zT3hkeFhVTFRreVJTN3FmVmozenh6LWU1aWF2MUZpbWNDWXZoaGwyNXVPbnVOU0xxLWJSNDhEYmdpeVlpbFBhU1Q0ZDljdWVzNkpLd3VEd3ZHR2g2WGtyTlFN?oc=5",
+      "published": "2026-09-15T06:02:20+00:00",
+      "origin": "gnews-rss",
+      "source": "Stocktwits",
+      "tickers": [
+        "NVDA",
+        "PLTR"
+      ],
+      "held": [],
+      "new_ideas": [
+        "NVDA",
+        "PLTR"
+      ],
+      "sectors": [
+        "AI",
+        "半导体"
+      ],
+      "sector_holdings": [],
+      "stance": "sell",
+      "relevance": 78,
+      "summary_cn": "据报道，Burry清仓NVDA、PLTR 2026年12月看跌期权，全组合降仓，自称'正在退潮'。"
     },
     {
-      "author": "Trump",
-      "text": "The claim that “AI is going to take over the World” is a Hoax, just like Global “Warming,” where everyone was going to be dead by now, RUSSIA, RUSSIA, RUSSIA, UKRAINE, UKRAINE, UKRAINE, or Impeachment Hoax #1, or Impeachment Hoax #2. These are all Radical Left Dumocrats, who never give up, but seldom win. Hopefully, the Voters have seen the light! President DONALD J. TRUMP",
-      "url": "https://www.trumpstruth.org/statuses/41724",
-      "published": "2026-09-14T20:53:11+00:00",
-      "origin": "truthsocial",
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-14 调仓：Meta Platforms, Inc.(META) 买入 ARKW 10,997 股（最大单只 ETF 占比 0.40%）",
+      "url": "https://www.ark-funds.com/funds/arkw/",
+      "published": "2026-09-14T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.3992,
+      "tickers": [
+        "META"
+      ],
+      "held": [],
+      "new_ideas": [
+        "META"
+      ],
+      "sectors": [
+        "AI",
+        "社交媒体"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 70,
+      "summary_cn": "ARK 9/14调仓：买入Meta(META)，ARKW占比0.40%。"
+    },
+    {
+      "author": "段永平",
+      "text": "段永平「入坑」泡泡瑪特 澄清與諧星無關",
+      "url": "https://news.google.com/rss/articles/CBMiqgNBVV95cUxPMHowNDZjSkpTQ0VOcjJTNmgxdDREWFFtY2YtVzJLNVh3c3FQakhDZ0ZOZ2s2NTlLQm1La0NKamI5Z2ZkMmh0eWZUT0hSQl95T1ZHeDd1WDU5dGlPa2ppUEZPYjZFZXkyVUFjN0o4dlNDY3FaSUZnT2xxXzdNTjJ2Q3VVSUtqTU41cGlkQm9HeldiNlVydWg2d0E3ZzFSM3FRSGUybFlOU1A1cUdWNF9DcGVaWU82NWJrSW5ERnE5Y29GSEZWUU9VN3dteDIwd2tRb2RfcWFxcC1fRGx5d1dONFoxZk1LMHVGZW5qejdaTnhPZnZnOGZwNXVLZXBQZXA4NFR6MTFCM01DVi1OUHhKN2JwOVBtekRmNVZYbW0wdEZBYkdWa3FQXzZsdkJmbk0tcTctTXdUZElfVXl4YjJEcEVNazdvWkJuNk90N1FJWWdEaGh6T3l5a3NkdUllWmlCT3BacFJwdFh4RUNBZlhKOUNpN3M0eWh5RFdjNjZmbnpiVE9zZnpFUDJZQkY5WG9sam9fM2NzdEZtY1hmUDhwNDFiRkxxemFsUnc?oc=5",
+      "published": "2026-09-13T18:48:20+00:00",
+      "origin": "gnews-rss",
+      "source": "信報網站",
+      "tickers": [
+        "09992"
+      ],
+      "held": [],
+      "new_ideas": [
+        "09992"
+      ],
+      "sectors": [
+        "港股消费"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 70,
+      "summary_cn": "据报道，段永平买入泡泡玛特(09992)，澄清与谐星无关。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-14 调仓：Ionis Pharmaceuticals, Inc.(IONS) 买入 ARKG 166,585 股（最大单只 ETF 占比 0.49%）",
+      "url": "https://www.ark-funds.com/funds/arkg/",
+      "published": "2026-09-14T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.4857,
+      "tickers": [
+        "IONS"
+      ],
+      "held": [],
+      "new_ideas": [
+        "IONS"
+      ],
+      "sectors": [
+        "生物科技"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 65,
+      "summary_cn": "ARK 9/14调仓：买入Ionis Pharmaceuticals(IONS)，ARKG占比0.49%。"
+    },
+    {
+      "author": "段永平",
+      "text": "清倉神華 段永平怎麼想？|香港經濟日報",
+      "url": "https://news.google.com/rss/articles/CBMi2gFBVV95cUxPV3dxSFFKSXhHbm1RLVZXazFYQTFEY3BiWkROcTlXSFFEX1BLMThiNFp5ZFQzRkJzaTVHalJtaWVEdWZVVG5rMTRWUWZ4ek5mLVRranBacll6SGpaNzFHNFhGek5zdmFkSktWWUU5NlpNTE1wSDBUWUYzelhvNzFwTWZOSjc3NTJSUmJiRl9XMFdncjl0cy1BY0YxUF9pYzVZdXV5bWlrTWcycUczbkpXZU41UXpqNXBBOGFJOU5pWUtLbnlta19FbWdhbWhzRlVvTFF4MXhHSUlzdw?oc=5",
+      "published": "2026-09-14T03:33:26+00:00",
+      "origin": "gnews-rss",
+      "source": "香港經濟日報HKET",
+      "tickers": [
+        "01088"
+      ],
+      "held": [],
+      "new_ideas": [
+        "01088"
+      ],
+      "sectors": [
+        "煤炭",
+        "能源"
+      ],
+      "sector_holdings": [],
+      "stance": "sell",
+      "relevance": 65,
+      "summary_cn": "据报道，段永平清仓中国神华(01088)。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk's $1 Trillion Pay Package Needs Tesla to Hit an $8.5 Trillion Market Cap. Here's What That Means for Shareholders.",
+      "url": "",
+      "published": "Tue, 15 Sep 2026 14:30:00 GMT",
+      "origin": "gnews-rss",
+      "source": "The Motley Fool",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 62,
+      "summary_cn": "据报道，Musk万亿美元薪酬包要求Tesla市值达8.5万亿美元。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-14 调仓：Guardant Health, Inc.(GH) 买入 ARKG 39,558 股（最大单只 ETF 占比 0.35%）",
+      "url": "https://www.ark-funds.com/funds/arkg/",
+      "published": "2026-09-14T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.3535,
+      "tickers": [
+        "GH"
+      ],
+      "held": [],
+      "new_ideas": [
+        "GH"
+      ],
+      "sectors": [
+        "医疗"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 62,
+      "summary_cn": "ARK 9/14调仓：买入Guardant Health(GH)，ARKG占比0.35%。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-14 调仓：Iridium Communications Inc.(IRDM) 卖出 ARKX 54,500 股（最大单只 ETF 占比 0.34%）",
+      "url": "https://www.ark-funds.com/funds/arkx/",
+      "published": "2026-09-14T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.3356,
+      "tickers": [
+        "IRDM"
+      ],
+      "held": [],
+      "new_ideas": [
+        "IRDM"
+      ],
+      "sectors": [
+        "卫星通讯"
+      ],
+      "sector_holdings": [],
+      "stance": "sell",
+      "relevance": 62,
+      "summary_cn": "ARK 9/14调仓：减持Iridium(IRDM)，ARKX占比0.34%。"
+    },
+    {
+      "author": "Musk",
+      "text": "Musk's X Corp and SpaceXAI resolve antitrust lawsuit against Apple",
+      "url": "",
+      "published": "Mon, 14 Sep 2026 21:11:09 GMT",
+      "origin": "gnews-rss",
+      "source": "Reuters",
+      "tickers": [
+        "AAPL"
+      ],
+      "held": [],
+      "new_ideas": [
+        "AAPL"
+      ],
+      "sectors": [
+        "AI",
+        "航天",
+        "科技"
+      ],
+      "sector_holdings": [
+        "CRCL",
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "neutral",
+      "relevance": 60,
+      "summary_cn": "据报道，Musk旗下X Corp与xAI对Apple的反垄断诉讼已和解。"
+    },
+    {
+      "author": "Pelosi",
+      "text": "Bloom Energy Stock (BE) Opinions on S&P 500 Inclusion and AI Power Demand",
+      "url": "https://news.google.com/rss/articles/CBMisgFBVV95cUxQUU5wcEdWQU41NFpxcW9qTEJkX1ljYUpIWnBjQi1yWUgtOUpQaUhmOTY2UHhLSjBNVFZiSUJ0cUhyNXE0QkxzT1dyOW43TnZTTnpIeDBZMU9hV1dqb3FlVjRvRkg0cXlKMmpla2FXckNrRlM1ZXN1X3N0NS1NWm1MRkwxU1ZLbk9xRjNlRjBKTWNtZ0Mxdi1OWjZyOXNzdFJXazBZb2Nvc0pMbENBRkdiUkN3?oc=5",
+      "published": "2026-09-15T14:05:00+00:00",
+      "origin": "gnews-rss",
+      "source": "Quiver Quantitative",
+      "tickers": [
+        "BE"
+      ],
+      "held": [],
+      "new_ideas": [
+        "BE"
+      ],
+      "sectors": [
+        "AI",
+        "能源",
+        "燃料电池"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "neutral",
+      "relevance": 60,
+      "summary_cn": "据报道，市场讨论Bloom Energy(BE)纳入标普500预期及AI电力需求。"
+    }
+  ],
+  "sector_hits": [
+    {
+      "author": "Burry",
+      "text": "‘Big Short’ trader Michael Burry slams OpenAI, Anthropic for ‘self-serving’ calls to slow AI – joining backlash",
+      "url": "https://news.google.com/rss/articles/CBMixgFBVV95cUxOY0RHXzFPT1NQMUlZajhiVTFVekpyUWVvaDZfTlpFRHEzRFBINXJ3S3J2WXFrR2ZSWEh0bklPQUU4V2hLLTBJZXluY3lFZDlKTFBFcFRnc19QYWZEdDFKdXBVdDg1OVd4M1dsam0ydXBheW9SdEdzSEZlZ3RBcm9jUmF0WUFLRmd3YnlqMjZDbWNkci1KeFRrTXRFQ1MxbzVlX044aHFpclh5R3FmWFlFeHluZi1WUkxXdTVjVmVhWmF2NXlRM2c?oc=5",
+      "published": "2026-09-14T19:21:00+00:00",
+      "origin": "gnews-rss",
+      "source": "nypost.com",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
         "AI"
       ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 55,
-      "summary_cn": "特朗普称'AI将接管世界'是骗局，与'全球变暖骗局'相提并论，对AI恐慌叙事进行抨击。"
-    },
-    {
-      "author": "Trump",
-      "text": "The failing Nation of Iran wants to make a deal, quickly and badly. I will determine whether or not the U.S.A. will choose to engage - The concept of which we are open to. Thank you for your attention to this matter! President DONALD J. TRUMP",
-      "url": "https://www.trumpstruth.org/statuses/41715",
-      "published": "2026-09-14T15:32:27+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "中东局势",
-        "伊朗"
+      "sector_holdings": [
+        "CRCL"
       ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "特朗普称'失败的伊朗想快速达成协议'，美国对是否接触持开放态度，伊朗局势或迎来缓和窗口。"
+      "stance": "attack",
+      "relevance": 70,
+      "summary_cn": "据报道，Burry抨击OpenAI、Anthropic要求放缓AI的呼吁是'自私'的。"
     },
     {
       "author": "Burry",
-      "text": "Michael Burry calls AI leaders’ slowdown push ‘self-serving’ (OPENAI:Private)",
-      "url": "https://news.google.com/rss/articles/CBMimwFBVV95cUxNcDJsek9OanJxQlN2VDB4SnNOSm42bFM0em15ZGNfMFVmeUZaclptb2hMZzJjRFhMV21SWndrVlFrVFVBVlJyMlJiR0sxaVpBdGJkdHhpZHQyN3lvYTducmhKb1dEQ0tVN0FoTmJoLWNCQk1TbmppM0FGNWRTWl84cTRPb2lnQUQ3TDdWUjcxMTN3NVJHR0Nzc3NCOA?oc=5",
-      "published": "2026-09-14T08:26:36+00:00",
+      "text": "Michael Burry Spots Troubling Signal for AI Stocks",
+      "url": "https://news.google.com/rss/articles/CBMiogFBVV95cUxPcEs0QTh5Q3Rla1dnUDV4Z09pbTJvVXVBMllnZ1FpUEh6NEZGbFRSYnVOTUdXaVFzaFhNT09sRC1oeWlIUXItWFBIYm9ockxhRDZuWXBEN0Etenc3NVVWRlYtMTVvaEF0MDYwQUtPcUxiYUVnYk5qdFNUSHpjLTRQdHhYTHRCVzRHZTRtazdMSXBXbGw1ckxxMHhQQzFzRTNuUkE?oc=5",
+      "published": "2026-09-14T19:12:42+00:00",
       "origin": "gnews-rss",
-      "source": "Seeking Alpha",
+      "source": "Yahoo Finance",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
         "AI"
       ],
-      "sector_holdings": [],
+      "sector_holdings": [
+        "CRCL"
+      ],
       "stance": "attack",
-      "relevance": 55,
-      "summary_cn": "据报道，Michael Burry抨击AI企业放缓AI的呼吁是'自私的'(针对未上市的OpenAI)。"
+      "relevance": 68,
+      "summary_cn": "据报道，Burry发现AI股令人担忧的信号。"
+    },
+    {
+      "author": "Trump",
+      "text": "Concerning AI, when, in the History of Business, did anyone see the Leaders of an Industry call for Regulation that, if strongly implemented, will drive them into oblivion and bankruptcy? AI taking over the World, destroying Humanity, and all other things bad, is a HOAX, no different from RUSSIA, RUSSIA, RUSSIA — UKRAINE, UKRAINE, UKRAINE — IMPEACHMENT HOAX #1 — IMPEACHMENT HOAX #2 — and all of the other HOAXES and SCAMS that America was forced to endure through the Destructionists’ and Deviants’ foul play and illegal conduct. President Xi, of China, just announced that China will be doing abs",
+      "url": "https://www.trumpstruth.org/statuses/41720",
+      "published": "2026-09-14T17:33:39+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI",
+        "监管"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "attack",
+      "relevance": 68,
+      "summary_cn": "特朗普抨击AI行业领袖自请监管是骗局，暗示反对强监管，提到中国AI发展。"
+    },
+    {
+      "author": "Burry",
+      "text": "'Big Short' Michael Burry says AI leaders' calls for slowdown are 'self-serving' and he's not worried",
+      "url": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxQa2RKdkRKMUEwUEwtVlJHLWJEUEx5YTFxOVVXUnlINW51OVVHcVloODhGOEFXS05zeTkxNTI4WUo4b1I1czJUVlgzbHlieUlZZU9NOS1BUGROTHpPNEpyQkowUVdkajUxZHk4eEl3SHpFbFpPYVJtVjZxbWoyc3UzOFgwb3c5SGZTVFRQQzNqOUswYTgtVTRtckdJQWNTWVgzckljNnVMNTFZSWM?oc=5",
+      "published": "2026-09-14T13:27:00+00:00",
+      "origin": "gnews-rss",
+      "source": "businessinsider.com",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "attack",
+      "relevance": 68,
+      "summary_cn": "据报道，Burry称AI领袖的放缓呼吁'自私'，本人并不担忧。"
+    },
+    {
+      "author": "Musk",
+      "text": "Musk urges top AI labs, Chinese companies to test each other's models amid calls for slowdown",
+      "url": "",
+      "published": "Tue, 15 Sep 2026 15:02:58 GMT",
+      "origin": "gnews-rss",
+      "source": "cnbc.com",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "neutral",
+      "relevance": 65,
+      "summary_cn": "据报道，Musk呼吁顶级AI实验室与中国公司互测模型，与放缓AI的呼声形成对立。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-14 调仓：ARK 21Shares Bitcoin ETF(ARKB) 卖出 ARKW 1,062,820 股 / ARKF 466,133 股（最大单只 ETF 占比 1.54%）",
+      "url": "https://www.ark-funds.com/funds/arkf/",
+      "published": "2026-09-14T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 1.5352,
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "比特币",
+        "加密货币"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "sell",
+      "relevance": 65,
+      "summary_cn": "ARK 9/14调仓：ARKB在ARKW、ARKF中合计减持超150万股（最大占比1.54%），机构减仓比特币现货ETF。"
+    },
+    {
+      "author": "Trump",
+      "text": "The AI Hoax being perpetrated by the Radical Left Dumocrats is reminiscent of their Global Warming Scam of not so long ago, where everyone was going to die from extreme heat. What happened? MAKE AMERICA GREAT AGAIN!!! President DJT",
+      "url": "https://www.trumpstruth.org/statuses/41727",
+      "published": "2026-09-14T23:55:09+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI",
+        "数据中心"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "attack",
+      "relevance": 62,
+      "summary_cn": "特朗普称AI威胁论是骗局，类比全球变暖骗局，与民主党AI监管呼声对立。"
     },
     {
       "author": "洪灏",
@@ -560,412 +1042,57 @@
       "new_ideas": [],
       "sectors": [
         "AI",
-        "宏观对冲"
+        "宏观"
       ],
-      "sector_holdings": [],
+      "sector_holdings": [
+        "CRCL"
+      ],
       "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "据报道，洪灝评论达里奥'重拳砸盘'及AI发展进入新阶段，宏观AI双线讨论。"
-    },
-    {
-      "author": "Trump",
-      "text": "I am the Hoax Buster, and I’m right now breaking another Hoax — That AI is going to take over, consume, and destroy the World, and that Robots will be marching into our Cities, and getting rid of us all! This is even wilder than the RUSSIA, RUSSIA, RUSSIA HOAX, or the Global Warming Scam. Thank you for your attention to this matter! President DONALD J. TRUMP",
-      "url": "https://www.trumpstruth.org/statuses/41722",
-      "published": "2026-09-14T20:34:53+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI",
-        "机器人"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 52,
-      "summary_cn": "特朗普自称'Hoax Buster'，抨击AI接管世界、机器人威胁人类的论调是骗局。"
+      "relevance": 62,
+      "summary_cn": "据洪灏转述，Dalio重拳砸盘，谈AI发展全新阶段。"
     },
     {
       "author": "Musk",
-      "text": "The New Tesla Roadster Is Finally Actually Probably Maybe Coming on October 1, Elon Musk Says",
+      "text": "Elon Musk's Latest Updates On Tesla-SpaceX Merger, Terafab Factory",
       "url": "",
-      "published": "Mon, 14 Sep 2026 18:13:54 GMT",
+      "published": "Tue, 15 Sep 2026 12:34:00 GMT",
       "origin": "gnews-rss",
-      "source": "Edmunds",
+      "source": "Investor's Business Daily",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
         "电动车",
-        "Tesla"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 48,
-      "summary_cn": "据报道，Musk称新款Tesla Roadster将于10月1日亮相，媒体态度存疑。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk Says the New Tesla Roadster Will Be Revealed Very Soon. Can We Believe Him?",
-      "url": "",
-      "published": "Mon, 14 Sep 2026 16:41:15 GMT",
-      "origin": "gnews-rss",
-      "source": "Car and Driver",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "电动车",
-        "Tesla"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 45,
-      "summary_cn": "据报道，Musk称新Tesla Roadster将'很快'发布，媒体质疑可信度。"
-    },
-    {
-      "author": "Burry",
-      "text": "Michael Burry’s portfolio: Revolution or rebalance?",
-      "url": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxOS1RzTEFXeE80bkNDc19lekJMNDIyelROa1FISVduUENXTFJnX2JaUTh2by1aV2hzOEFJRmtwcXA1MEZpMzJEQlFBQ1FHMlZwdXFuT1U2Yi1RMmFvbmtqbkg4cTFIem5HdFRtSGxLZ3htNWNhT3VmS1dvd0RvcW9nSXhfc3dTYVFJMGlXUngtelhsc0Rkb1c4OXNrU0hoZWRERU5FQnM3enVPdlE?oc=5",
-      "published": "2026-09-14T20:39:18+00:00",
-      "origin": "gnews-rss",
-      "source": "XTB.com",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
+        "航天",
         "AI"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 45,
-      "summary_cn": "据报道，媒体讨论Michael Burry最新13F持仓组合是'革命还是再平衡'。"
-    }
-  ],
-  "held_hits": [],
-  "new_ideas": [
-    {
-      "author": "Musk",
-      "text": "Elon Musk sends strong signal for SpaceX, Nvidia stocks",
-      "url": "",
-      "published": "Mon, 14 Sep 2026 18:03:00 GMT",
-      "origin": "gnews-rss",
-      "source": "thestreet.com",
-      "tickers": [
-        "NVDA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "NVDA"
-      ],
-      "sectors": [
-        "AI",
-        "航天"
       ],
       "sector_holdings": [
         "SPCH",
         "SPCX"
       ],
-      "stance": "endorse",
-      "relevance": 75,
-      "summary_cn": "据报道，Musk对SpaceX和英伟达(NVDA)股票发出强烈看多信号，与kcn持有的SpaceX敞口间接相关。"
+      "stance": "neutral",
+      "relevance": 60,
+      "summary_cn": "据报道，Musk谈Tesla-SpaceX合并进展及Terafab工厂项目。"
     },
     {
-      "author": "Burry",
-      "text": "Michael Burry Is Pushing Back on AI-Slowdown Calls. CoreWeave and Nebius Are the Stress Test",
-      "url": "https://news.google.com/rss/articles/CBMimAFBVV95cUxOWEFQajBVX0QtUGN3UUdLQ0llVWZTUFlRRzVuei1QdHpIeTEyek9PZERoTFptcW96d3A2MWlKYWR3VlVGWGkwRzBTaXV1ZDZFdkkzcm9RSmY3VTFRbHFuS1RrbWN1UF9LR0t6RUpXeW5TQzdXZ0JsQVMyM3ZOLUlKRUVnMzZzWlN0dEx4TlVtQldJYzlZT3JQOA?oc=5",
-      "published": "2026-09-14T18:52:34+00:00",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [
-        "CRWV",
-        "NBIS"
-      ],
+      "author": "Trump",
+      "text": "The claim that “AI is going to take over the World” is a Hoax, just like Global “Warming,” where everyone was going to be dead by now, RUSSIA, RUSSIA, RUSSIA, UKRAINE, UKRAINE, UKRAINE, or Impeachment Hoax #1, or Impeachment Hoax #2. These are all Radical Left Dumocrats, who never give up, but seldom win. Hopefully, the Voters have seen the light! President DONALD J. TRUMP",
+      "url": "https://www.trumpstruth.org/statuses/41724",
+      "published": "2026-09-14T20:53:11+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
       "held": [],
-      "new_ideas": [
-        "CRWV",
-        "NBIS"
-      ],
+      "new_ideas": [],
       "sectors": [
         "AI",
-        "AI基础设施"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 72,
-      "summary_cn": "据报道，Michael Burry对AI放缓论调予以反驳，并将CoreWeave(CRWV)和Nebius(NBIS)列为压力测试标的，AI基建主题选股线索。"
-    },
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-11 调仓：Bullish(BLSH) 卖出 ARKK 121,217 股（最大单只 ETF 占比 0.07%）",
-      "url": "https://www.ark-funds.com/funds/arkk/",
-      "published": "2026-09-11T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.0661,
-      "tickers": [
-        "BLSH"
-      ],
-      "held": [],
-      "new_ideas": [
-        "BLSH"
-      ],
-      "sectors": [
-        "加密货币"
+        "数据中心"
       ],
       "sector_holdings": [
         "CRCL"
       ],
-      "stance": "sell",
-      "relevance": 62,
-      "summary_cn": "ARK 2026-09-11减仓Bullish(BLSH) 121,217股(占ARKK 0.07%)，涉及加密货币交易所，板块上与kcn持有的CRCL(USDC稳定币)相关。"
-    },
-    {
-      "author": "段永平",
-      "text": "段永平「入坑」泡泡瑪特 澄清與諧星無關",
-      "url": "https://news.google.com/rss/articles/CBMivwJBVV95cUxQYmFWY3c5ckNjcDFfcUdmUTZrZEduQnBnNHdrQlZEb3Z1RjFzOHhNb09jbVQtZGlwSjdBbWpxdktkdkZHZjd6eDZlVjd2ZWxKOXg4RWhXaVNXOTNfYndzUjZQSFY5YzVZU2RCekloX0ZycDloTWJGcWozX09DN0VudTRINzcyQXV6alE2eGJ5ZnNaR1hQXzlxaUI5bnhJT3lqWTl6b09kTzVpZHB6TUZBcjF2OG41X3hFY1h6Umh3enpYOVpCTTByNnJ2cXN2aXVBSUVZcGxPQk9WaHdzUzgzN2xXZHRCaUNJc1ZZNzlTX1Z6VV9BZUwwQ3dpdkpTU3FSV0ZrNWotMWJIQ01DMGFST2dpbkd2TzVnUDFxSEFxZzNRazJScEFCWjAxcTFNbHd4ZkstbTBzM0FsdmNZTmtV?oc=5",
-      "published": "2026-09-13T18:48:20+00:00",
-      "origin": "gnews-rss",
-      "source": "信報網站",
-      "tickers": [
-        "9992"
-      ],
-      "held": [],
-      "new_ideas": [
-        "9992"
-      ],
-      "sectors": [
-        "消费/IP/潮玩"
-      ],
-      "sector_holdings": [],
-      "stance": "buy",
-      "relevance": 52,
-      "summary_cn": "据港媒报道，段永平'入坑'泡泡玛特(9992.HK)，对新消费/IP板块表达兴趣。"
-    },
-    {
-      "author": "Musk",
-      "text": "Tesla Stock Drops as Musk Adds to the Chorus of AI Concern",
-      "url": "",
-      "published": "Mon, 14 Sep 2026 11:31:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Barron's",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车",
-        "AI"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "据报道，特斯拉(TSLA)股价下跌，因Musk加入AI担忧的舆论声浪。"
-    },
-    {
-      "author": "Pelosi",
-      "text": "Congresswoman Bets on Elon Musk, Warren Buffett: Here’s the Latest Stock Transactions",
-      "url": "https://news.google.com/rss/articles/CBMiogFBVV95cUxNbW01Uk9PX1R5ejEwb0djdi0yNFgyajJKLUh6d1JfS19ReTNTRW9BOUJ5VnhSTDRPTkhjRzJTNW1zSkxRcG5PV1pFZ3N5dXgydXh3UmdjejZJakdOeExRVWxWaU4tYVdfRmZmeU1PZmtUSk5jWnpQdFlFQlJUSTdKc2pKSTJKclJmV3VIQUxpM0s2bUZEVlVsRTdyRFh1dVo5M3c?oc=5",
-      "published": "2026-09-14T15:30:15+00:00",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [
-        "TSLA",
-        "BRK.B"
-      ],
-      "held": [],
-      "new_ideas": [
-        "BRK.B",
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车",
-        "价值投资"
-      ],
-      "sector_holdings": [],
-      "stance": "buy",
-      "relevance": 50,
-      "summary_cn": "据报道，最新披露显示，Pelosi家族交易涉及Elon Musk相关(Tesla/TSLA)及Warren Buffett相关(Berkshire Hathaway/BRK.B)持仓。"
-    },
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-11 调仓：Twist Bioscience Corporation(TWST) 卖出 ARKK 46,015 股（最大单只 ETF 占比 0.09%）",
-      "url": "https://www.ark-funds.com/funds/arkk/",
-      "published": "2026-09-11T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.092,
-      "tickers": [
-        "TWST"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TWST"
-      ],
-      "sectors": [
-        "生物科技"
-      ],
-      "sector_holdings": [],
-      "stance": "sell",
-      "relevance": 50,
-      "summary_cn": "ARK 2026-09-11卖出Twist Bioscience(TWST) 46,015股(占ARKK 0.09%)，属常规再平衡规模。"
-    },
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-11 调仓：INTELLIA THERAPEUTICS, INC.(NTLA) 买入 ARKK 107,356 股（最大单只 ETF 占比 0.02%）",
-      "url": "https://www.ark-funds.com/funds/arkk/",
-      "published": "2026-09-11T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.0199,
-      "tickers": [
-        "NTLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "NTLA"
-      ],
-      "sectors": [
-        "生物科技",
-        "基因编辑"
-      ],
-      "sector_holdings": [],
-      "stance": "buy",
-      "relevance": 50,
-      "summary_cn": "ARK 2026-09-11买入Intellia Therapeutics(NTLA) 107,356股(占ARKK 0.02%)，属小额加仓。"
-    },
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-11 调仓：10x Genomics, Inc.(TXG) 卖出 ARKK 60,556 股（最大单只 ETF 占比 0.07%）",
-      "url": "https://www.ark-funds.com/funds/arkk/",
-      "published": "2026-09-11T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.0653,
-      "tickers": [
-        "TXG"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TXG"
-      ],
-      "sectors": [
-        "生物科技"
-      ],
-      "sector_holdings": [],
-      "stance": "sell",
-      "relevance": 48,
-      "summary_cn": "ARK 2026-09-11卖出10x Genomics(TXG) 60,556股(占ARKK 0.07%)，常规再平衡规模。"
-    },
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-11 调仓：Tempus AI, Inc.(TEM) 卖出 ARKK 34,631 股（最大单只 ETF 占比 0.03%）",
-      "url": "https://www.ark-funds.com/funds/arkk/",
-      "published": "2026-09-11T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.032,
-      "tickers": [
-        "TEM"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TEM"
-      ],
-      "sectors": [
-        "AI医疗"
-      ],
-      "sector_holdings": [],
-      "stance": "sell",
-      "relevance": 48,
-      "summary_cn": "ARK 2026-09-11卖出Tempus AI(TEM) 34,631股(占ARKK 0.03%)，常规再平衡规模。"
-    }
-  ],
-  "sector_hits": [
-    {
-      "author": "Trump",
-      "text": "Ukraine has agreed not to hit Russian Energy targets. Russia has agreed to do, likewise! The World’s Diesel price rise is mostly caused by the Russia/Ukraine War, not Iran. President DJT",
-      "url": "https://www.trumpstruth.org/statuses/41713",
-      "published": "2026-09-14T15:05:39+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "能源/石油",
-        "俄乌冲突",
-        "柴油"
-      ],
-      "sector_holdings": [
-        "02208"
-      ],
-      "stance": "neutral",
-      "relevance": 62,
-      "summary_cn": "特朗普称乌俄已同意互不攻击对方能源目标，并指世界柴油价格上涨主要由俄乌战争而非伊朗冲突造成。"
-    },
-    {
-      "author": "Trump",
-      "text": "I hope everyone realizes that price increases throughout America were caused by Sleepy Joe Biden and the Biden Administration, not by “TRUMP.” Even Oil was higher under Biden than it is right now, and we prevented Iran from having a Nuclear Weapon! With the temporary exception of Oil, prices are coming down sharply, and Oil will drop like a rock as soon as the Military Conflict with Iran is over, and that will not be long. Thank you for your attention to this matter! President DONALD J. TRUMP",
-      "url": "https://www.trumpstruth.org/statuses/41718",
-      "published": "2026-09-14T16:31:39+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "能源/石油",
-        "中东局势",
-        "通胀"
-      ],
-      "sector_holdings": [
-        "02208"
-      ],
-      "stance": "neutral",
+      "stance": "attack",
       "relevance": 60,
-      "summary_cn": "特朗普称物价上涨怪拜登而非自己，并预期与伊朗军事冲突结束后油价将'像石头一样下跌'，暗示油价短期承压。"
-    },
-    {
-      "author": "Trump",
-      "text": "Oil is flowing through the Hormuz Strait. The Countries of the World, which have been no help to us whatsoever, should, and will, reimburse the United States of America when this SCAM Confligration is all over. We are doing it much more for others, than we are for ourselves, and we have been for Generations! President DONALD J. TRUMP",
-      "url": "https://www.trumpstruth.org/statuses/41717",
-      "published": "2026-09-14T16:25:46+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "能源/石油",
-        "中东局势"
-      ],
-      "sector_holdings": [
-        "02208"
-      ],
-      "stance": "neutral",
-      "relevance": 58,
-      "summary_cn": "特朗普称石油正在通过霍尔木兹海峡，要求各国'报销'美国军事行动费用，暗示中东局势仍主导油价。"
-    },
-    {
-      "author": "段永平",
-      "text": "清倉神華 段永平怎麼想？|香港經濟日報",
-      "url": "https://news.google.com/rss/articles/CBMi2gFBVV95cUxPV3dxSFFKSXhHbm1RLVZXazFYQTFEY3BiWkROcTlXSFFEX1BLMThiNFp5ZFQzRkJzaTVHalJtaWVEdWZVVG5rMTRWUWZ4ek5mLVRranBacll6SGpaNzFHNFhGek5zdmFkSktWWUU5NlpNTE1wSDBUWUYzelhvNzFwTWZOSjc3NTJSUmJiRl9XMFdncjl0cy1BY0YxUF9pYzVZdXV5bWlrTWcycUczbkpXZU41UXpqNXBBOGFJOU5pWUtLbnlta19FbWdhbWhzRlVvTFF4MXhHSUlzdw?oc=5",
-      "published": "2026-09-14T03:33:26+00:00",
-      "origin": "gnews-rss",
-      "source": "香港經濟日報HKET",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "煤炭/能源"
-      ],
-      "sector_holdings": [
-        "02208"
-      ],
-      "stance": "sell",
-      "relevance": 55,
-      "summary_cn": "据港媒报道，段永平清仓中国神华(港股01088)，对传统能源/煤炭板块态度转空，与kcn持有的金风科技(02208)同属能源板块但为新能源对立面。"
+      "summary_cn": "特朗普再批'AI接管世界'论调为骗局，与监管推动方对立。"
     }
   ]
 }
