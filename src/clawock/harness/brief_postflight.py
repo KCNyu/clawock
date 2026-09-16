@@ -697,6 +697,11 @@ from clawock.harness import brief_render  # noqa: E402
 def log_decisions(today):
     """Upsert today's validated, normalized plan into the v2 decision ledger.
 
+    Return ``False`` only when a non-empty v2 plan cannot be booked safely.
+    ``maybe_commit`` treats that as a publication failure after delivery, so the
+    run is visible and retryable instead of committing a day whose decisions
+    silently never reached the ledger.
+
     `simulated_entry_price` is never backfilled here (#1003): it used to be
     filled from portfolio.json `current_price`, whose docstring justified the
     write with `brief_preflight._resolve_pending_outcomes` — a function the v2
@@ -710,13 +715,13 @@ def log_decisions(today):
     plan_path = WS / 'memory' / f'{today}-plan.json'
 
     if not plan_path.exists():
-        return
+        return True
     try:
         plan = json.loads(plan_path.read_text())
     except Exception:
-        return
+        return True
     if plan.get('schema_version') != 2 or not plan.get('decisions'):
-        return
+        return True
     # `normalize_plan_json` skips normalization when the plan carries an authored
     # semantic error, on purpose (it must not launder a bad action into a valid
     # default). This function re-reads the same file from disk, so on such a run
@@ -725,15 +730,16 @@ def log_decisions(today):
     # decision_id, so the whole plan collapses onto one unaddressable row that
     # then fails the ledger check in `.githooks/pre-push` and blocks every push
     # from the host (2026-09-16, one `debate.frames` error on decision[7]).
-    # Skip the booking, keep the day's commit: the ids arrive the moment the
-    # model fixes the plan and postflight re-runs, and that re-run books all of
-    # them properly. Settlement is skipped with it — it is the same lock and the
-    # same write, and a re-run is ≤ one brief away.
+    # Skip the booking and refuse the day's commit. Delivery happens before
+    # maybe_commit, so the reader still gets the brief; the non-zero postflight
+    # result then forces this plan to be fixed and re-run. The delivery marker
+    # makes that retry idempotent, and the corrected run books every decision.
+    # Settlement is skipped with booking — they share one locked write.
     unkeyed = [d for d in plan['decisions'] if not d.get('decision_id')]
     if unkeyed:
         print(f'warn: plan.json not normalized ({len(unkeyed)} decision(s) without '
               'decision_id) — decisions not booked this run', file=sys.stderr)
-        return
+        return False
     # One load, mutate in memory, write once only if something changed (#916):
     # the old sequence was upsert(load+write) then load+settle+write — two full
     # rewrites per brief even on the common no-new-decisions day.
@@ -749,6 +755,7 @@ def log_decisions(today):
         if after != before:
             decision_v2.write_decisions(ledger)
     print(f'  decisions.jsonl: +{inserted}, updated {updated}, settled {settled} ({len(ledger)} total)')
+    return True
 
 
 def write_publish_gate(status, today, *, reason=None):
@@ -798,7 +805,13 @@ def maybe_commit(status, today, dry_run=False):
     if dry_run:
         return False, 'skipped (dry-run)'
 
-    log_decisions(today)   # upsert today's v2 plan (idempotent)
+    # Delivery precedes maybe_commit. Refuse to publish if today's non-empty v2
+    # plan cannot be addressed in the ledger: returning success here would make
+    # those decisions permanently disappear because no later job backfills old
+    # plan files. A retry after the model fixes the authored semantic error skips
+    # duplicate delivery via its marker, normalizes the plan, and books it.
+    if not log_decisions(today):
+        return False, 'ledger booking blocked: plan.json decisions have no decision_id'
     record_risk_stances(today)
     rebuild_dashboard()
 

@@ -458,7 +458,29 @@ def test_an_unnormalized_plan_is_not_booked_into_the_ledger(tmp_path, capsys,
     assert all("decision_id" not in d
                for d in json.loads(plan_path.read_text())["decisions"])
 
-    brief_postflight.log_decisions("2026-07-30")
+    assert brief_postflight.log_decisions("2026-07-30") is False
 
     assert not ledger.exists(), "an un-normalized plan must not reach the ledger"
     assert "not normalized" in capsys.readouterr().err
+
+
+def test_an_unnormalized_plan_blocks_the_commit_path(monkeypatch):
+    """Delivery has already happened when maybe_commit runs. An unsafe ledger
+    skip must therefore fail publication loudly, without rebuilding or creating
+    a successful commit that leaves the day's decisions permanently unbooked."""
+    monkeypatch.setattr(brief_postflight, "log_decisions", lambda _today: False)
+
+    def must_not_continue(*_args, **_kwargs):
+        raise AssertionError("an unbooked plan must stop before commit work")
+
+    monkeypatch.setattr(brief_postflight, "record_risk_stances", must_not_continue)
+    monkeypatch.setattr(brief_postflight, "rebuild_dashboard", must_not_continue)
+    monkeypatch.setattr(brief_postflight, "_git", must_not_continue)
+
+    committed, message = brief_postflight.maybe_commit(
+        "warn", "2026-07-30"
+    )
+
+    assert committed is False
+    assert message.startswith("ledger booking blocked:")
+    assert brief_postflight.classify_commit_outcome(committed, message) == "failed"
