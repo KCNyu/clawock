@@ -405,8 +405,7 @@ def test_skipped_normalization_does_not_ask_the_model_for_ids(tmp_path):
     # With a semantic error, normalization is skipped and the file lacks every
     # machine-owned field. Listing those (48 of 62 issues on 2026-09-11) is
     # what sent the model off to invent ids.
-    path = _write_authored_plan(tmp_path, _authored_decision(
-        debate={"frames": ["risk_rebalance"]}))
+    path = _write_authored_plan(tmp_path, _authored_decision(action="bogus"))
     ledger = tmp_path / "decisions.jsonl"
 
     semantic = brief_postflight.normalize_plan_json(path, ledger)
@@ -426,11 +425,16 @@ def test_skipped_normalization_does_not_ask_the_model_for_ids(tmp_path):
 
 def test_an_unnormalized_plan_is_not_booked_into_the_ledger(tmp_path, capsys,
                                                             monkeypatch):
-    """The 2026-09-16 postflight: one authored `debate.frames` error skipped
+    """The 2026-09-16 postflight: one authored semantic error skipped
     normalization, and `log_decisions` then booked the raw plan anyway. Nine
     id-less decisions collapsed onto a single ledger row, which failed the
     pre-push ledger check and stranded every commit on the host — the brief's
-    own and the next job's — with origin four hours stale."""
+    own and the next job's — with origin four hours stale.
+
+    That day's trigger was `debate.frames`, which no longer skips normalization
+    (see `_normalization_owned_plan_error`). This backstop is not about which
+    error it was, so it uses one that still does: the collapse is what must stay
+    impossible for *any* plan that reaches here un-normalized."""
     ledger = tmp_path / "memory" / "decisions.jsonl"
     ledger.parent.mkdir(parents=True)
     # LEDGER reaches load/upsert/write as a definition-time default argument.
@@ -448,8 +452,7 @@ def test_an_unnormalized_plan_is_not_booked_into_the_ledger(tmp_path, capsys,
         "date": "2026-07-30",
         "decisions": [
             _authored_decision(ticker="AAA"),
-            _authored_decision(ticker="BBB",
-                               debate={"frames": ["risk_rebalance"]}),
+            _authored_decision(ticker="BBB", action="bogus"),
         ],
     }))
 
@@ -484,3 +487,125 @@ def test_an_unnormalized_plan_blocks_the_commit_path(monkeypatch):
     assert committed is False
     assert message.startswith("ledger booking blocked:")
     assert brief_postflight.classify_commit_outcome(committed, message) == "failed"
+
+
+def test_off_menu_debate_frames_do_not_block_the_whole_plan(tmp_path, monkeypatch):
+    """2026-09-16, decision[7]: one out-of-menu `debate.frames` value on one
+    decision left all nine that day without machine-owned ids.
+
+    `normalize_debate` discards unknown frames by design and SKILL.md promises
+    the model exactly that, but the whole-plan gate in `normalize_plan_json` ran
+    first and bailed, so the per-field leniency never executed. The frame must be
+    dropped and every other decision normalized.
+    """
+    monkeypatch.setenv("CLAWOCK_WORKSPACE", str(tmp_path))
+    path = tmp_path / "2026-07-30-plan.json"
+    path.write_text(json.dumps({
+        "schema_version": 2,
+        "date": "2026-07-30",
+        "decisions": [
+            _authored_decision(ticker="AAA"),
+            _authored_decision(ticker="BBB", debate={
+                "bull": "still cheap",
+                "bear": "lost the 200MA",
+                # `regime_shift` is invented; `risk_rule` is a `driven_by` value.
+                "frames": ["technical_breakdown", "regime_shift", "risk_rule"],
+            }),
+        ],
+    }))
+
+    assert brief_postflight.normalize_plan_json(
+        path, tmp_path / "decisions.jsonl") == []
+
+    decisions = json.loads(path.read_text())["decisions"]
+    assert all(d["decision_id"].startswith("dec-") for d in decisions)
+    assert all(d["episode_id"].startswith("ep-") for d in decisions)
+    # The menu value survives; the two off-menu ones are gone, not defaulted.
+    assert decisions[1]["debate"]["frames"] == ["technical_breakdown"]
+    assert decisions[1]["debate"]["bear"] == "lost the 200MA"
+    assert brief_postflight.validate_plan_json(path) == []
+
+
+def test_discarded_frames_are_counted_rather_than_silenced(tmp_path, monkeypatch):
+    """Leniency must not become invisibility: the model drifted off this menu on
+    four separate days in two weeks, and a dropped value that nothing counts is
+    how that goes unnoticed."""
+    monkeypatch.setenv("CLAWOCK_WORKSPACE", str(tmp_path))
+    noted = []
+    monkeypatch.setattr(brief_postflight.workflow_outcomes, "note_degradation",
+                        lambda ledger, kind, detail, **kw: noted.append((kind, detail)))
+    path = _write_authored_plan(tmp_path, _authored_decision(
+        debate={"bear": "lost the 200MA", "frames": ["risk_rule"]}))
+
+    assert brief_postflight.normalize_plan_json(
+        path, tmp_path / "decisions.jsonl") == []
+
+    assert [k for k, _ in noted] == ["debate_frames_off_menu"]
+    assert "risk_rule" in noted[0][1]
+
+
+def test_action_and_condition_errors_still_refuse_normalization(tmp_path):
+    """The refusal exists so a bad *tradeable* field is never laundered into a
+    valid default. Narrowing it for `debate` must not reach these: unlike a
+    discarded frame, every one of these has a default that would substitute a
+    meaning the model never wrote.
+    """
+    ledger = tmp_path / "decisions.jsonl"
+    for label, updates in (
+            ("action", {"action": "yolo"}),
+            ("condition.type", {"condition": {"type": "vibes"}}),
+            ("condition.price", {"condition": {"type": "price_above",
+                                               "price": None}}),
+            ("strategy_id", {"strategy_id": "nope"}),
+    ):
+        path = _write_authored_plan(tmp_path, _authored_decision(**updates))
+        issues = brief_postflight.normalize_plan_json(path, ledger)
+        assert issues, f"{label} must still block normalization"
+        assert all("plan.json authored" in i for i in issues), issues
+        assert "decision_id" not in json.loads(path.read_text())["decisions"][0]
+
+
+def test_unresolvable_debate_evidence_ids_do_not_block_the_plan(tmp_path,
+                                                                monkeypatch):
+    """Same discard-only contract as `frames`: `normalize_debate_evidence` drops
+    refs in no resolvable namespace, so the error is normalization's to fix.
+    SKILL.md makes the model the same promise here ("核不上的直接丢掉")."""
+    monkeypatch.setenv("CLAWOCK_WORKSPACE", str(tmp_path))
+    noted = []
+    monkeypatch.setattr(brief_postflight.workflow_outcomes, "note_degradation",
+                        lambda ledger, kind, detail, **kw: noted.append((kind, detail)))
+    path = _write_authored_plan(tmp_path, _authored_decision(debate={
+        "bear": "lost the 200MA",
+        "evidence_ids": ["risk:hard_stop:AAA", "made-up-ref",
+                         "risk:hard_stop:AAA"],
+    }))
+
+    assert brief_postflight.normalize_plan_json(
+        path, tmp_path / "decisions.jsonl") == []
+
+    decision = json.loads(path.read_text())["decisions"][0]
+    assert decision["decision_id"].startswith("dec-")
+    assert decision["debate"]["evidence_ids"] == ["risk:hard_stop:AAA"]
+    assert [kind for kind, _ in noted] == ["debate_citation_unresolved"]
+    assert "2 debate evidence ref(s)" in noted[0][1]
+    assert "made-up-ref" in noted[0][1]
+
+
+def test_evidence_cap_discards_are_counted(tmp_path, monkeypatch):
+    monkeypatch.setenv("CLAWOCK_WORKSPACE", str(tmp_path))
+    noted = []
+    monkeypatch.setattr(brief_postflight.workflow_outcomes, "note_degradation",
+                        lambda ledger, kind, detail, **kw: noted.append((kind, detail)))
+    refs = [f"news:evt_{i}" for i in range(8)]
+    path = _write_authored_plan(tmp_path, _authored_decision(debate={
+        "bear": "crowded", "evidence_ids": refs,
+    }))
+
+    assert brief_postflight.normalize_plan_json(
+        path, tmp_path / "decisions.jsonl") == []
+
+    decision = json.loads(path.read_text())["decisions"][0]
+    assert decision["debate"]["evidence_ids"] == refs[:6]
+    assert [kind for kind, _ in noted] == ["debate_citation_unresolved"]
+    assert "2 debate evidence ref(s)" in noted[0][1]
+    assert "above the 6-ref cap" in noted[0][1]

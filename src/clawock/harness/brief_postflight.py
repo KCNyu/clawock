@@ -239,15 +239,92 @@ _NORMALIZATION_OWNED_PLAN_ERRORS = (
         r'(decision_id|episode_id|plan_date|created_at)$'
     ),
     re.compile(r'^decision\[\d+\] schema_version must be 2$'),
+    # `debate` sub-fields whose normalizer never substitutes a plausible value.
+    # `normalize_debate` drops frames outside `STRATEGY_FRAMES` (and accepts a
+    # scalar spelling of one frame); `normalize_debate_evidence` drops refs in
+    # no resolvable namespace, dedupes, caps at `DEBATE_EVIDENCE_MAX`, and wraps
+    # a scalar ref as a list. Both validators fire exactly when normalization
+    # would make one of those deterministic, annotation-only changes.
+    re.compile(
+        r'^decision\[\d+\] debate\.frames must be strategy frames from the menu$'
+    ),
+    re.compile(
+        r'^decision\[\d+\] debate\.evidence_ids must be unique refs in '
+        r'\[.*\], at most \d+$'
+    ),
 )
 
 
 def _normalization_owned_plan_error(issue):
-    """Whether deterministic v2 normalization, rather than the model, owns it."""
+    """Whether deterministic v2 normalization, rather than the model, owns it.
+
+    The distinction that matters is what normalization *does* with a bad value,
+    not how bad the value is. For `action`, `condition` or `strategy_id` it has
+    a default, so normalizing an authored error there would substitute a valid,
+    tradeable meaning the model never wrote — laundering, and the reason
+    `normalize_plan_json` refuses. For the `debate` sub-fields above it deletes
+    the value and records nothing in its place, which is the honest outcome and
+    the one `skills/daily-deep-brief/SKILL.md` promises the model ("丢弃不在枚举
+    内的 frame", "核不上的直接丢掉并记一条 degradation").
+
+    Keeping them out of this set inverted that promise. Because the gate in
+    `normalize_plan_json` is whole-plan, one out-of-menu frame on one decision
+    left *every* decision that day without its machine-owned ids — the trigger
+    for both the fabricated-id inflation `decision_v2._harness_owned_ids`
+    describes and the 2026-09-16 unkeyed-plan collapse. Across 2026-09-02..09-16
+    host sessions, `debate.frames` was the single most common authored error to
+    trip this valve (four separate days); `bad action` and `bad condition.type`
+    — what the refusal was written to stop — never tripped it once.
+    """
     if issue in ('duplicate decision_id None', 'duplicate decision_id '):
         return True
     return any(pattern.fullmatch(issue)
                for pattern in _NORMALIZATION_OWNED_PLAN_ERRORS)
+
+
+def _dropped_debate_frames(authored):
+    """Frames the authored plan wrote that `normalize_debate` will delete."""
+    dropped = []
+    for decision in authored.get('decisions') or []:
+        if not isinstance(decision, dict):
+            continue
+        debate = decision.get('debate')
+        frames = debate.get('frames') if isinstance(debate, dict) else None
+        if isinstance(frames, str):
+            frames = [frames]
+        if not isinstance(frames, list):
+            continue
+        dropped += [
+            str(frame) for frame in frames
+            if str(frame or '').strip() not in decision_v2.STRATEGY_FRAMES
+        ]
+    return dropped
+
+
+def _dropped_debate_evidence(authored):
+    """Evidence values `normalize_debate_evidence` removes from the plan.
+
+    Context resolution happens later, after normalization.  Capture the shape
+    losses here or an unknown namespace, duplicate, or over-cap reference has
+    already disappeared before `prune_debate_citations` can count it.
+    """
+    dropped = []
+    for decision in authored.get('decisions') or []:
+        if not isinstance(decision, dict):
+            continue
+        debate = decision.get('debate')
+        if not isinstance(debate, dict) or 'evidence_ids' not in debate:
+            continue
+        raw = debate.get('evidence_ids')
+        items = raw if isinstance(raw, list) else [raw]
+        survivors = list(decision_v2.normalize_debate_evidence(raw))
+        for item in items:
+            ref = str(item or '').strip()
+            if ref in survivors:
+                survivors.remove(ref)
+            else:
+                dropped.append(ref or repr(item))
+    return dropped
 
 
 def _normalization_result(issues, normalized, return_plan):
@@ -391,10 +468,20 @@ def normalize_plan_json(path, ledger_path=None, *, decision_packet=None,
     """Fill only machine-owned v2 fields before validation.
 
     ``normalize_authored_plan`` also canonicalizes legacy/default values.  Never
-    run it over an authored semantic error: doing so could turn a bad action or
-    condition into a valid default and let a retry pass without the model
-    actually fixing its plan.  Raw v2 validation therefore runs first and only
-    missing deterministic ids/linkage/timestamps are exempted.
+    run it over an authored semantic error in a field it can *default*: doing so
+    could turn a bad action or condition into a valid default and let a retry
+    pass without the model actually fixing its plan.  Raw v2 validation therefore
+    runs first, and only what ``_normalization_owned_plan_error`` accepts is
+    exempted — missing deterministic ids/linkage/timestamps, plus the `debate`
+    sub-fields normalization canonicalizes or deletes rather than defaults,
+    which invent no claim and whose leniency SKILL.md already promises the
+    model.
+
+    The gate is whole-plan on purpose — a plan is normalized or it is not — so
+    anything left in it blocks every decision's ids, not just the offending
+    one's.  That blast radius is why the exemption list has to be exactly the
+    errors normalization genuinely owns: 2026-09-16 lost all nine decisions'
+    ids to one out-of-menu frame on decision[7].
 
     JSON parse/missing-file diagnostics remain owned by ``validate_plan_json``
     so callers do not receive duplicate issues. With ``write=False`` the
@@ -430,6 +517,28 @@ def normalize_plan_json(path, ledger_path=None, *, decision_packet=None,
             normalized = brief_decision_packet.bind_plan_provenance(
                 normalized, decision_packet
             )
+        dropped_frames = _dropped_debate_frames(authored)
+        if dropped_frames:
+            # Counted, not silenced. Normalization deletes these (that is the
+            # promise SKILL.md makes), so without a series here the model could
+            # drift off the menu every morning and nothing would say so. Same
+            # contract as the unresolved-citation note below: never red, always
+            # counted.
+            workflow_outcomes.note_degradation(
+                None, 'debate_frames_off_menu',
+                f"{len(dropped_frames)} debate frame(s) outside STRATEGY_FRAMES "
+                f"were discarded: " + ', '.join(sorted(set(dropped_frames))[:5]))
+        dropped_evidence = _dropped_debate_evidence(authored)
+        if dropped_evidence:
+            # These values are gone before context resolution, so the prune
+            # below cannot observe them. Keep the same public degradation kind:
+            # both are citations the published debate cannot substantiate.
+            workflow_outcomes.note_degradation(
+                None, 'debate_citation_unresolved',
+                f"{len(dropped_evidence)} debate evidence ref(s) were invalid, "
+                f"duplicate, or above the {decision_v2.DEBATE_EVIDENCE_MAX}-ref "
+                f"cap and were discarded: "
+                + ', '.join(dropped_evidence[:5]))
         normalized, dropped_citations = prune_debate_citations(normalized, context)
         if dropped_citations:
             workflow_outcomes.note_degradation(
