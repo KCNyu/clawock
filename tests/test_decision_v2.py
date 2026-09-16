@@ -953,3 +953,37 @@ def test_rederive_continues_the_derived_episode_it_interrupted():
     assert rows[3]["episode_id"] not in {"ep-0123456789ab", "ep-20260920-07226-cut"}
     assert rows[3]["episode_id"].startswith("ep-")
     assert [c[0] for c in changed] == ["dec-7", "dec-8", "dec-20"]
+
+
+def test_unkeyed_plan_decisions_cannot_collapse_into_one_ledger_row(tmp_path):
+    """An un-normalized plan must be refused, not merged (2026-09-16).
+
+    The upsert is keyed on `decision_id`. Nine decisions that all still lack
+    one key on `None`: the first is inserted and the other eight `update` onto
+    it, so the plan lands as a single row carrying the last decision's ticker
+    and the union of all nine field sets. That row satisfies no schema, and
+    `ops/system_check.py` reads the ledger from `.githooks/pre-push` — so it
+    blocked every push from the host, not just the brief's own.
+    """
+    ledger = tmp_path / "decisions.jsonl"
+    plan = {"schema_version": 2, "date": "2026-09-16", "decisions": [
+        {"ticker": "SPCH", "action": "cut", "size": {"shares": 300}},
+        {"ticker": "RKLX", "action": "hold_and_watch"},
+        {"ticker": "SPCX", "action": "hold_and_watch", "evidence_ids": ["x"]},
+    ]}
+
+    try:
+        dv2.upsert_plan_decisions(copy.deepcopy(plan), path=ledger)
+    except ValueError as exc:
+        assert "decision_id" in str(exc)
+    else:
+        raise AssertionError("an un-normalized plan must not be booked")
+
+    assert not ledger.exists() or dv2.load_decisions(ledger) == []
+
+
+def test_checked_in_ledger_has_no_unkeyed_rows():
+    # Every row is addressable by decision_id, or the pre-push ledger check
+    # goes CRITICAL and nothing on this host can publish.
+    rows = dv2.load_decisions(ROOT / "memory" / "decisions.jsonl")
+    assert [i for i, r in enumerate(rows) if not r.get("decision_id")] == []

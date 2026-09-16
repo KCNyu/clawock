@@ -422,3 +422,65 @@ def test_skipped_normalization_does_not_ask_the_model_for_ids(tmp_path):
     # Normalized plans still report them: there they would be a harness bug.
     assert any("decision_id" in issue
                for issue in brief_postflight.validate_plan_json(path))
+
+
+def test_an_unnormalized_plan_is_not_booked_into_the_ledger(tmp_path, capsys,
+                                                            monkeypatch):
+    """The 2026-09-16 postflight: one authored `debate.frames` error skipped
+    normalization, and `log_decisions` then booked the raw plan anyway. Nine
+    id-less decisions collapsed onto a single ledger row, which failed the
+    pre-push ledger check and stranded every commit on the host — the brief's
+    own and the next job's — with origin four hours stale."""
+    ledger = tmp_path / "memory" / "decisions.jsonl"
+    ledger.parent.mkdir(parents=True)
+    # LEDGER reaches load/upsert/write as a definition-time default argument.
+    monkeypatch.setattr(brief_postflight, "WS", tmp_path)
+    for fn, defaults in (
+            (brief_postflight.decision_v2.load_decisions, (ledger,)),
+            (brief_postflight.decision_v2.write_decisions, (ledger,)),
+            (brief_postflight.decision_v2.upsert_plan_decisions,
+             (ledger, None, True))):
+        monkeypatch.setattr(fn, "__defaults__", defaults)
+
+    plan_path = tmp_path / "memory" / "2026-07-30-plan.json"
+    plan_path.write_text(json.dumps({
+        "schema_version": 2,
+        "date": "2026-07-30",
+        "decisions": [
+            _authored_decision(ticker="AAA"),
+            _authored_decision(ticker="BBB",
+                               debate={"frames": ["risk_rebalance"]}),
+        ],
+    }))
+
+    # Normalization declines: the second decision carries a semantic error.
+    assert brief_postflight.normalize_plan_json(plan_path, ledger)
+    assert all("decision_id" not in d
+               for d in json.loads(plan_path.read_text())["decisions"])
+
+    assert brief_postflight.log_decisions("2026-07-30") is False
+
+    assert not ledger.exists(), "an un-normalized plan must not reach the ledger"
+    assert "not normalized" in capsys.readouterr().err
+
+
+def test_an_unnormalized_plan_blocks_the_commit_path(monkeypatch):
+    """Delivery has already happened when maybe_commit runs. An unsafe ledger
+    skip must therefore fail publication loudly, without rebuilding or creating
+    a successful commit that leaves the day's decisions permanently unbooked."""
+    monkeypatch.setattr(brief_postflight, "log_decisions", lambda _today: False)
+
+    def must_not_continue(*_args, **_kwargs):
+        raise AssertionError("an unbooked plan must stop before commit work")
+
+    monkeypatch.setattr(brief_postflight, "record_risk_stances", must_not_continue)
+    monkeypatch.setattr(brief_postflight, "rebuild_dashboard", must_not_continue)
+    monkeypatch.setattr(brief_postflight, "_git", must_not_continue)
+
+    committed, message = brief_postflight.maybe_commit(
+        "warn", "2026-07-30"
+    )
+
+    assert committed is False
+    assert message.startswith("ledger booking blocked:")
+    assert brief_postflight.classify_commit_outcome(committed, message) == "failed"
