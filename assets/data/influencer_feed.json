@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-15T23:39:31.111382+00:00",
+  "generated_at": "2026-09-16T17:19:43.037982+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -21,12 +21,12 @@
     "burry": "success",
     "pelosi": "success"
   },
-  "llm_filtered": true,
-  "llm_filter_status": "ok",
+  "llm_filtered": false,
+  "llm_filter_status": "failed_kept_previous",
   "counts": {
-    "total": 24,
+    "total": 20,
     "held_hits": 0,
-    "new_ideas": 11,
+    "new_ideas": 10,
     "sector_hits": 5
   },
   "items": [
@@ -55,7 +55,8 @@
       ],
       "stance": "sell",
       "relevance": 82,
-      "summary_cn": "据报道，Burry披露已卖出NVDA与PLTR的2026年12月put，并称自己'正在全面降低风险'，知名空头明确减仓信号。"
+      "summary_cn": "据报道，Burry披露已卖出NVDA与PLTR的2026年12月put，并称自己'正在全面降低风险'，知名空头明确减仓信号。",
+      "retained_from_previous": true
     },
     {
       "author": "Cathie Wood",
@@ -81,7 +82,8 @@
       ],
       "stance": "sell",
       "relevance": 72,
-      "summary_cn": "ARK 2026-09-14大幅卖出ARKB现货比特币ETF（最大单ETF占比1.54%），机构层面减仓信号明显，间接利空加密板块（含kcn的CRCL）。"
+      "summary_cn": "ARK 2026-09-14大幅卖出ARKB现货比特币ETF（最大单ETF占比1.54%），机构层面减仓信号明显，间接利空加密板块（含kcn的CRCL）。",
+      "retained_from_previous": true
     },
     {
       "author": "Cathie Wood",
@@ -108,7 +110,8 @@
       ],
       "stance": "sell",
       "relevance": 72,
-      "summary_cn": "ARK 2026-09-14卖出Iridium Communications(IRDM)，占ARKX 0.34%，卫星通讯板块机构减仓信号。"
+      "summary_cn": "ARK 2026-09-14卖出Iridium Communications(IRDM)，占ARKX 0.34%，卫星通讯板块机构减仓信号。",
+      "retained_from_previous": true
     },
     {
       "author": "Cathie Wood",
@@ -131,7 +134,8 @@
       "sector_holdings": [],
       "stance": "sell",
       "relevance": 68,
-      "summary_cn": "ARK 2026-09-14卖出10x Genomics(TXG)，跨ARKG/ARKK两只ETF（最大占比1.00%），明显减仓。"
+      "summary_cn": "ARK 2026-09-14卖出10x Genomics(TXG)，跨ARKG/ARKK两只ETF（最大占比1.00%），明显减仓。",
+      "retained_from_previous": true
     },
     {
       "author": "Cathie Wood",
@@ -156,7 +160,8 @@
       "sector_holdings": [],
       "stance": "buy",
       "relevance": 68,
-      "summary_cn": "ARK 2026-09-14买入Meta Platforms(META)，占ARKW 0.40%，机构加仓信号。"
+      "summary_cn": "ARK 2026-09-14买入Meta Platforms(META)，占ARKW 0.40%，机构加仓信号。",
+      "retained_from_previous": true
     },
     {
       "author": "Cathie Wood",
@@ -179,7 +184,8 @@
       "sector_holdings": [],
       "stance": "buy",
       "relevance": 66,
-      "summary_cn": "ARK 2026-09-14买入Ionis Pharmaceuticals(IONS)，占ARKG 0.49%，常规规模加仓。"
+      "summary_cn": "ARK 2026-09-14买入Ionis Pharmaceuticals(IONS)，占ARKG 0.49%，常规规模加仓。",
+      "retained_from_previous": true
     },
     {
       "author": "Cathie Wood",
@@ -202,32 +208,8 @@
       "sector_holdings": [],
       "stance": "buy",
       "relevance": 65,
-      "summary_cn": "ARK 2026-09-14买入Guardant Health(GH)，占ARKG 0.35%，常规规模加仓。"
-    },
-    {
-      "author": "段永平",
-      "text": "清倉神華 段永平怎麼想？|香港經濟日報",
-      "url": "https://news.google.com/rss/articles/CBMi2gFBVV95cUxPV3dxSFFKSXhHbm1RLVZXazFYQTFEY3BiWkROcTlXSFFEX1BLMThiNFp5ZFQzRkJzaTVHalJtaWVEdWZVVG5rMTRWUWZ4ek5mLVRranBacll6SGpaNzFHNFhGek5zdmFkSktWWUU5NlpNTE1wSDBUWUYzelhvNzFwTWZOSjc3NTJSUmJiRl9XMFdncjl0cy1BY0YxUF9pYzVZdXV5bWlrTWcycUczbkpXZU41UXpqNXBBOGFJOU5pWUtLbnlta19FbWdhbWhzRlVvTFF4MXhHSUlzdw?oc=5",
-      "published": "2026-09-14T03:33:26+00:00",
-      "origin": "gnews-rss",
-      "source": "香港經濟日報HKET",
-      "tickers": [
-        "01088"
-      ],
-      "held": [],
-      "new_ideas": [
-        "01088"
-      ],
-      "sectors": [
-        "煤炭",
-        "能源"
-      ],
-      "sector_holdings": [
-        "02208"
-      ],
-      "stance": "sell",
-      "relevance": 62,
-      "summary_cn": "据港媒报道，段永平清仓中国神华(01088)，知名价值投资者离场信号，对传统能源/煤炭板块偏空。"
+      "summary_cn": "ARK 2026-09-14买入Guardant Health(GH)，占ARKG 0.35%，常规规模加仓。",
+      "retained_from_previous": true
     },
     {
       "author": "段永平",
@@ -250,7 +232,8 @@
       "sector_holdings": [],
       "stance": "neutral",
       "relevance": 60,
-      "summary_cn": "据报道，段永平在台媒平台发文提及台积电(2330/TSM)与AI股投资，知名投资人公开谈AI/半导体情绪参考。"
+      "summary_cn": "据报道，段永平在台媒平台发文提及台积电(2330/TSM)与AI股投资，知名投资人公开谈AI/半导体情绪参考。",
+      "retained_from_previous": true
     },
     {
       "author": "Musk",
@@ -273,7 +256,8 @@
       "sector_holdings": [],
       "stance": "neutral",
       "relevance": 52,
-      "summary_cn": "据报道，Musk旗下xAI与Apple就AI竞争诉讼达成和解，移除苹果AI垄断不确定性风险。"
+      "summary_cn": "据报道，Musk旗下xAI与Apple就AI竞争诉讼达成和解，移除苹果AI垄断不确定性风险。",
+      "retained_from_previous": true
     },
     {
       "author": "Musk",
@@ -296,7 +280,8 @@
       "sector_holdings": [],
       "stance": "neutral",
       "relevance": 52,
-      "summary_cn": "据报道，Musk的X Corp与xAI针对Apple的反垄断诉讼已解决，消除了Apple一项诉讼尾部风险。"
+      "summary_cn": "据报道，Musk的X Corp与xAI针对Apple的反垄断诉讼已解决，消除了Apple一项诉讼尾部风险。",
+      "retained_from_previous": true
     },
     {
       "author": "Burry",
@@ -320,7 +305,8 @@
       ],
       "stance": "attack",
       "relevance": 65,
-      "summary_cn": "据报道，Burry发现AI股'令人担忧的信号'，知名空头公开警示AI泡沫。"
+      "summary_cn": "据报道，Burry发现AI股'令人担忧的信号'，知名空头公开警示AI泡沫。",
+      "retained_from_previous": true
     },
     {
       "author": "Musk",
@@ -344,7 +330,8 @@
       ],
       "stance": "neutral",
       "relevance": 58,
-      "summary_cn": "据报道，Musk呼吁顶级AI实验室与中国公司互相测试模型，AI监管/竞争格局变动或利好中国大模型相关港股。"
+      "summary_cn": "据报道，Musk呼吁顶级AI实验室与中国公司互相测试模型，AI监管/竞争格局变动或利好中国大模型相关港股。",
+      "retained_from_previous": true
     },
     {
       "author": "Musk",
@@ -366,7 +353,8 @@
       ],
       "stance": "neutral",
       "relevance": 50,
-      "summary_cn": "据报道，媒体讨论投资者应买Tesla还是SpaceX，反映两者关系与估值预期，间接关联kcn的SPCX/SPCH持仓。"
+      "summary_cn": "据报道，媒体讨论投资者应买Tesla还是SpaceX，反映两者关系与估值预期，间接关联kcn的SPCX/SPCH持仓。",
+      "retained_from_previous": true
     },
     {
       "author": "Musk",
@@ -388,7 +376,8 @@
       ],
       "stance": "neutral",
       "relevance": 50,
-      "summary_cn": "据报道，Musk住Airstream房车亲督xAI最大规模扩建，暗示xAI算力/数据中心扩张提速，间接利好SpaceX等算力链。"
+      "summary_cn": "据报道，Musk住Airstream房车亲督xAI最大规模扩建，暗示xAI算力/数据中心扩张提速，间接利好SpaceX等算力链。",
+      "retained_from_previous": true
     },
     {
       "author": "Musk",
@@ -411,7 +400,8 @@
       ],
       "stance": "neutral",
       "relevance": 50,
-      "summary_cn": "据报道，Musk谈及Tesla-SpaceX合并及Terafab工厂进展，传闻级信息但未上市公司不计入tickers。"
+      "summary_cn": "据报道，Musk谈及Tesla-SpaceX合并及Terafab工厂进展，传闻级信息但未上市公司不计入tickers。",
+      "retained_from_previous": true
     },
     {
       "author": "Burry",
@@ -429,45 +419,8 @@
       "sector_holdings": [],
       "stance": "attack",
       "relevance": 62,
-      "summary_cn": "据报道，Burry公开抨击OpenAI/Anthropic呼吁'放缓AI'是'自私'之举，加入反AI监管阵营。"
-    },
-    {
-      "author": "洪灏",
-      "text": "【金價走勢】花旗料金價重返5000美元潛在升幅15% 高盛籲4000美元收集迎新牛市",
-      "url": "https://news.google.com/rss/articles/CBMi2ANBVV95cUxPS0FHMjYyMGZGbTc1VG42end0QzlTSE9JSVNLTjhNRmxueDBERE9wMklwdzRSVG85ZG5aQ1FrTzM1TWRCX0J5SmdYOEdLNExCMWNfeFJlNmFxOUEzUjJOV2R6QUNvWUNhemZiTlJQVjhWLXd6UnM4N2djUlkzZGp3X2pWb3pTbUtBX01sU3BLUGpwS2EwaUd6Rzh5N2hPT1BPbEo2LUd6d3FVNEE3MHlGa0lxMGFfaUdTWmFNMTlSS0w0OVZXclc0d3BQRktnbGI5TFJfUUhxc3J5VXRXOV9zWWVaMlZiY0NyNlN4QVg4ODB2Y0FMX3hWT21DMzhYTUxIZ1pkVTdVODhjUGxwZnFHb2FsaU04NUc0Rl8yM0daeU1PbzYyZVVqZjRoT0YwY0p6ekxhSHo3anE2VHF3TVd2WlcwVE5SM1dxTkhmdXc0NFQ4UUJSZFNxMDNhYXktUUgwVzhxNDFScU1hcUFIQmd2VFQ4aXRtUExES1VNQ0l5ck4tZkx0ZUdCYW1Rc3hpVXRlRW1nbEZ0S1dJZWMxYjE1Q1JMdTllbDBLaFRmYl9yVm40RlFGLUNYUTNKUDdXV2w0b0RTVEwwRHVsVnphT2g1TG1tS2VUR1Fz?oc=5",
-      "published": "2026-09-14T08:09:30+00:00",
-      "origin": "gnews-rss",
-      "source": "香港經濟日報HKET",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "黄金",
-        "贵金属"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 60,
-      "summary_cn": "据报道，花旗/高盛看多金价重返4000-5000美元，大行集中唱多黄金，贵金属板块情绪偏多。"
-    },
-    {
-      "author": "洪灏",
-      "text": "AI | 洪灝：達里奧重拳砸盤；AI發展的全新階段",
-      "url": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxQLWpNTEx1ZC04UGVqTWpaUC1QTDFTMEcweG5lM25RQm45ZWdEczJ6YUN4ZHBSQVpuZEpwWEJJcXp0Y0RnU2NlVGxob214ZU05RHk4VVplQkQyMk5pNGhFVHBaU0xTcEs1eUN0STlqN1lMUy1Ebkt6SkxjMllncUtjR0pSMzA0QldVN3BHZDYwYlJzOXNTWG4tam5fM2hOaVVTY1YzZVVpalk?oc=5",
-      "published": "2026-09-14T06:03:00+00:00",
-      "origin": "gnews-rss",
-      "source": "etnet 經濟通",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI",
-        "宏观"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 58,
-      "summary_cn": "据报道，洪灝发文称达里奥重拳砸盘，并讨论AI发展进入新阶段，宏观/AI情绪信号。"
+      "summary_cn": "据报道，Burry公开抨击OpenAI/Anthropic呼吁'放缓AI'是'自私'之举，加入反AI监管阵营。",
+      "retained_from_previous": true
     },
     {
       "author": "Trump",
@@ -485,7 +438,8 @@
       "sector_holdings": [],
       "stance": "attack",
       "relevance": 55,
-      "summary_cn": "Trump发帖称AI是'骗局'，将AI类比此前全球变暖骗局，是其反AI叙事的延续，可能影响AI板块情绪。"
+      "summary_cn": "Trump发帖称AI是'骗局'，将AI类比此前全球变暖骗局，是其反AI叙事的延续，可能影响AI板块情绪。",
+      "retained_from_previous": true
     },
     {
       "author": "Trump",
@@ -503,7 +457,8 @@
       "sector_holdings": [],
       "stance": "attack",
       "relevance": 55,
-      "summary_cn": "Trump再次称'AI将接管世界'是骗局，叠加其一贯反AI立场，对AI板块情绪偏负面。"
+      "summary_cn": "Trump再次称'AI将接管世界'是骗局，叠加其一贯反AI立场，对AI板块情绪偏负面。",
+      "retained_from_previous": true
     },
     {
       "author": "Trump",
@@ -521,25 +476,8 @@
       "sector_holdings": [],
       "stance": "attack",
       "relevance": 55,
-      "summary_cn": "Trump称自己是'骗局终结者'，抨击AI接管世界与机器人威胁论，持续唱空AI叙事。"
-    },
-    {
-      "author": "Burry",
-      "text": "'Big Short' Michael Burry says AI leaders' calls for slowdown are 'self-serving' and he's not worried",
-      "url": "https://news.google.com/rss/articles/CBMiqwFBVV95cUxQa2RKdkRKMUEwUEwtVlJHLWJEUEx5YTFxOVVXUnlINW51OVVHcVloODhGOEFXS05zeTkxNTI4WUo4b1I1czJUVlgzbHlieUlZZU9NOS1BUGROTHpPNEpyQkowUVdkajUxZHk4eEl3SHpFbFpPYVJtVjZxbWoyc3UzOFgwb3c5SGZTVFRQQzNqOUswYTgtVTRtckdJQWNTWVgzckljNnVMNTFZSWM?oc=5",
-      "published": "2026-09-14T13:27:00+00:00",
-      "origin": "gnews-rss",
-      "source": "Business Insider",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "据报道，Burry反驳AI领袖'暂停AI'的呼吁，称其'自私'且'并不担心'，对AI监管降温立场。"
+      "summary_cn": "Trump称自己是'骗局终结者'，抨击AI接管世界与机器人威胁论，持续唱空AI叙事。",
+      "retained_from_previous": true
     },
     {
       "author": "Pelosi",
@@ -557,7 +495,8 @@
       "sector_holdings": [],
       "stance": "neutral",
       "relevance": 48,
-      "summary_cn": "据报道，媒体对比Trump个人交易频次与全体国会议员，间接提示其持仓/交易公开记录的政治影响力。"
+      "summary_cn": "据报道，媒体对比Trump个人交易频次与全体国会议员，间接提示其持仓/交易公开记录的政治影响力。",
+      "retained_from_previous": true
     }
   ],
   "held_hits": [],
@@ -587,7 +526,8 @@
       ],
       "stance": "sell",
       "relevance": 82,
-      "summary_cn": "据报道，Burry披露已卖出NVDA与PLTR的2026年12月put，并称自己'正在全面降低风险'，知名空头明确减仓信号。"
+      "summary_cn": "据报道，Burry披露已卖出NVDA与PLTR的2026年12月put，并称自己'正在全面降低风险'，知名空头明确减仓信号。",
+      "retained_from_previous": true
     },
     {
       "author": "Cathie Wood",
@@ -613,7 +553,8 @@
       ],
       "stance": "sell",
       "relevance": 72,
-      "summary_cn": "ARK 2026-09-14大幅卖出ARKB现货比特币ETF（最大单ETF占比1.54%），机构层面减仓信号明显，间接利空加密板块（含kcn的CRCL）。"
+      "summary_cn": "ARK 2026-09-14大幅卖出ARKB现货比特币ETF（最大单ETF占比1.54%），机构层面减仓信号明显，间接利空加密板块（含kcn的CRCL）。",
+      "retained_from_previous": true
     },
     {
       "author": "Cathie Wood",
@@ -640,7 +581,8 @@
       ],
       "stance": "sell",
       "relevance": 72,
-      "summary_cn": "ARK 2026-09-14卖出Iridium Communications(IRDM)，占ARKX 0.34%，卫星通讯板块机构减仓信号。"
+      "summary_cn": "ARK 2026-09-14卖出Iridium Communications(IRDM)，占ARKX 0.34%，卫星通讯板块机构减仓信号。",
+      "retained_from_previous": true
     },
     {
       "author": "Cathie Wood",
@@ -663,7 +605,8 @@
       "sector_holdings": [],
       "stance": "sell",
       "relevance": 68,
-      "summary_cn": "ARK 2026-09-14卖出10x Genomics(TXG)，跨ARKG/ARKK两只ETF（最大占比1.00%），明显减仓。"
+      "summary_cn": "ARK 2026-09-14卖出10x Genomics(TXG)，跨ARKG/ARKK两只ETF（最大占比1.00%），明显减仓。",
+      "retained_from_previous": true
     },
     {
       "author": "Cathie Wood",
@@ -688,7 +631,8 @@
       "sector_holdings": [],
       "stance": "buy",
       "relevance": 68,
-      "summary_cn": "ARK 2026-09-14买入Meta Platforms(META)，占ARKW 0.40%，机构加仓信号。"
+      "summary_cn": "ARK 2026-09-14买入Meta Platforms(META)，占ARKW 0.40%，机构加仓信号。",
+      "retained_from_previous": true
     },
     {
       "author": "Cathie Wood",
@@ -711,7 +655,8 @@
       "sector_holdings": [],
       "stance": "buy",
       "relevance": 66,
-      "summary_cn": "ARK 2026-09-14买入Ionis Pharmaceuticals(IONS)，占ARKG 0.49%，常规规模加仓。"
+      "summary_cn": "ARK 2026-09-14买入Ionis Pharmaceuticals(IONS)，占ARKG 0.49%，常规规模加仓。",
+      "retained_from_previous": true
     },
     {
       "author": "Cathie Wood",
@@ -734,32 +679,8 @@
       "sector_holdings": [],
       "stance": "buy",
       "relevance": 65,
-      "summary_cn": "ARK 2026-09-14买入Guardant Health(GH)，占ARKG 0.35%，常规规模加仓。"
-    },
-    {
-      "author": "段永平",
-      "text": "清倉神華 段永平怎麼想？|香港經濟日報",
-      "url": "https://news.google.com/rss/articles/CBMi2gFBVV95cUxPV3dxSFFKSXhHbm1RLVZXazFYQTFEY3BiWkROcTlXSFFEX1BLMThiNFp5ZFQzRkJzaTVHalJtaWVEdWZVVG5rMTRWUWZ4ek5mLVRranBacll6SGpaNzFHNFhGek5zdmFkSktWWUU5NlpNTE1wSDBUWUYzelhvNzFwTWZOSjc3NTJSUmJiRl9XMFdncjl0cy1BY0YxUF9pYzVZdXV5bWlrTWcycUczbkpXZU41UXpqNXBBOGFJOU5pWUtLbnlta19FbWdhbWhzRlVvTFF4MXhHSUlzdw?oc=5",
-      "published": "2026-09-14T03:33:26+00:00",
-      "origin": "gnews-rss",
-      "source": "香港經濟日報HKET",
-      "tickers": [
-        "01088"
-      ],
-      "held": [],
-      "new_ideas": [
-        "01088"
-      ],
-      "sectors": [
-        "煤炭",
-        "能源"
-      ],
-      "sector_holdings": [
-        "02208"
-      ],
-      "stance": "sell",
-      "relevance": 62,
-      "summary_cn": "据港媒报道，段永平清仓中国神华(01088)，知名价值投资者离场信号，对传统能源/煤炭板块偏空。"
+      "summary_cn": "ARK 2026-09-14买入Guardant Health(GH)，占ARKG 0.35%，常规规模加仓。",
+      "retained_from_previous": true
     },
     {
       "author": "段永平",
@@ -782,7 +703,8 @@
       "sector_holdings": [],
       "stance": "neutral",
       "relevance": 60,
-      "summary_cn": "据报道，段永平在台媒平台发文提及台积电(2330/TSM)与AI股投资，知名投资人公开谈AI/半导体情绪参考。"
+      "summary_cn": "据报道，段永平在台媒平台发文提及台积电(2330/TSM)与AI股投资，知名投资人公开谈AI/半导体情绪参考。",
+      "retained_from_previous": true
     },
     {
       "author": "Musk",
@@ -805,7 +727,32 @@
       "sector_holdings": [],
       "stance": "neutral",
       "relevance": 52,
-      "summary_cn": "据报道，Musk旗下xAI与Apple就AI竞争诉讼达成和解，移除苹果AI垄断不确定性风险。"
+      "summary_cn": "据报道，Musk旗下xAI与Apple就AI竞争诉讼达成和解，移除苹果AI垄断不确定性风险。",
+      "retained_from_previous": true
+    },
+    {
+      "author": "Musk",
+      "text": "Musk's X Corp and SpaceXAI resolve antitrust lawsuit against Apple",
+      "url": "",
+      "published": "Mon, 14 Sep 2026 21:11:09 GMT",
+      "origin": "gnews-rss",
+      "source": "Reuters",
+      "tickers": [
+        "AAPL"
+      ],
+      "held": [],
+      "new_ideas": [
+        "AAPL"
+      ],
+      "sectors": [
+        "AI",
+        "科技"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 52,
+      "summary_cn": "据报道，Musk的X Corp与xAI针对Apple的反垄断诉讼已解决，消除了Apple一项诉讼尾部风险。",
+      "retained_from_previous": true
     }
   ],
   "sector_hits": [
@@ -831,7 +778,8 @@
       ],
       "stance": "attack",
       "relevance": 65,
-      "summary_cn": "据报道，Burry发现AI股'令人担忧的信号'，知名空头公开警示AI泡沫。"
+      "summary_cn": "据报道，Burry发现AI股'令人担忧的信号'，知名空头公开警示AI泡沫。",
+      "retained_from_previous": true
     },
     {
       "author": "Musk",
@@ -855,7 +803,8 @@
       ],
       "stance": "neutral",
       "relevance": 58,
-      "summary_cn": "据报道，Musk呼吁顶级AI实验室与中国公司互相测试模型，AI监管/竞争格局变动或利好中国大模型相关港股。"
+      "summary_cn": "据报道，Musk呼吁顶级AI实验室与中国公司互相测试模型，AI监管/竞争格局变动或利好中国大模型相关港股。",
+      "retained_from_previous": true
     },
     {
       "author": "Musk",
@@ -877,7 +826,8 @@
       ],
       "stance": "neutral",
       "relevance": 50,
-      "summary_cn": "据报道，媒体讨论投资者应买Tesla还是SpaceX，反映两者关系与估值预期，间接关联kcn的SPCX/SPCH持仓。"
+      "summary_cn": "据报道，媒体讨论投资者应买Tesla还是SpaceX，反映两者关系与估值预期，间接关联kcn的SPCX/SPCH持仓。",
+      "retained_from_previous": true
     },
     {
       "author": "Musk",
@@ -899,7 +849,8 @@
       ],
       "stance": "neutral",
       "relevance": 50,
-      "summary_cn": "据报道，Musk住Airstream房车亲督xAI最大规模扩建，暗示xAI算力/数据中心扩张提速，间接利好SpaceX等算力链。"
+      "summary_cn": "据报道，Musk住Airstream房车亲督xAI最大规模扩建，暗示xAI算力/数据中心扩张提速，间接利好SpaceX等算力链。",
+      "retained_from_previous": true
     },
     {
       "author": "Musk",
@@ -922,7 +873,8 @@
       ],
       "stance": "neutral",
       "relevance": 50,
-      "summary_cn": "据报道，Musk谈及Tesla-SpaceX合并及Terafab工厂进展，传闻级信息但未上市公司不计入tickers。"
+      "summary_cn": "据报道，Musk谈及Tesla-SpaceX合并及Terafab工厂进展，传闻级信息但未上市公司不计入tickers。",
+      "retained_from_previous": true
     }
   ]
 }
