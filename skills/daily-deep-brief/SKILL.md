@@ -456,6 +456,10 @@ preflight 已算好,直接读 `context.risk_guardrail`:
 
 **禁止**：模糊"综合判断"/"基本面看好"。每个 action 必须落到具体 frame + 数值。
 
+⚠️ **只有上表这 8 个值是 frame，别从邻近 enum 里借词**。这张表描述的是「价格/市场结构上什么在驱动这个 action」，不是「这个 action 归谁管」。`risk_rule`、`macro`、`peer` 是 `driven_by` 的值；`risk_rebalance`、`core_position`、`tactical_entry` 是 `strategy_id` 的值 —— 它们写进 `frames` 一律非法，`regime_shift` 这类自造词同理。
+
+纪律型减仓（`strategy_id=risk_rebalance` + `driven_by=risk_rule`）是最容易踩的一个：它**按定义**不由上面任何技术 frame 驱动，所以不要为了凑数再补一个 `risk_rule` 上去。这种情况填**当下价格结构真实所处的那个 frame**（跌破 200MA 就是 `technical_breakdown`，RSI 超买就是 `mean_reversion`），「为什么现在动手」已经由 `driven_by=risk_rule` 和 `rationale` 说清楚了，不需要 frame 再说一遍。一个都不贴切就**把 `frames` 整个省掉** —— `debate` 是选填的，少一个 frame 只影响覆盖率曲线，编一个不在菜单里的值会被直接丢弃。
+
 #### Confidence calls
 
 每个主要 action 给 0-100% 信心 + 1 行简单理由：
@@ -774,7 +778,7 @@ postflight 严格 schema 校验：
 - `debate`（object，主动 call 应填，`hold_and_watch`/`watch` 选填）：**把已经发生的辩论落成可核对的结构**（#1117）。Bull/Bear/devil's advocate/Judge frame 这四件事你本来就在 markdown 里写，但读者只能看到结论，无法核对反方是否真的存在——「我们辩过」在没有记录之前只是一句自述。字段：
   - `bull` / `bear`：这条 decision 上双方最强的一句话（各 ≤600 字符，超出截断）。`bear` 是这块的重点：赢的那面本来就在 `rationale` 里。
   - `attacked_consensus`：本轮 devil's advocate（见 § Tier 2 铁律）点名攻击的那条最强共识。与该票无关时可省略，别为了填而编。
-  - `frames`：`Judge — strategy frames` 表里为这条 action 选的 1–3 个 frame，逐字照抄枚举值。
+  - `frames`：`Judge — strategy frames` 表里为这条 action 选的 1–3 个 frame，逐字照抄枚举值。只认这 8 个：`momentum`、`mean_reversion`、`breakout`、`relative_strength`、`earnings_setup`、`sentiment_shift`、`technical_breakdown`、`sector_rotation`。**`driven_by` 和 `strategy_id` 的值（`risk_rule`、`risk_rebalance` 等）不是 frame**，纪律型减仓也不例外（见 § Strategy frame menu 末尾）；贴不上就整个省掉，别自造。
   - `judge`：Judge 的合成判词一句话（不是 Bull/Bear 的复述）。
   - `evidence_ids`（≤6 条，选填）：这场辩论**站在**哪几条 context 证据上（#1141）。只认三个能被解析的命名空间，postflight 逐条对着本次 context 核，**核不上的直接丢掉并记一条 degradation**（不会让流水线变红，但会被数出来）：
     - `news:…` —— **照抄那一条事件的 `evidence_id` 字段**。`context.news_evidence_graph.events` 每一行都自带一条，形如 `news:evt_3ffdc891b1dd9eb52b84`；你不需要拼，也不要拼。
@@ -785,7 +789,7 @@ postflight 严格 schema 校验：
       - resolver 另外接受**那一行所在 list 的键名**作为同一行的别名（`risk:hard_stop_watch:RKLX` == `risk:leveraged_hard_stop:RKLX`），**仅限该 list 里所有行 type 相同时**——`breaches` 装着四种 type，拿它当名字说不清指的是哪一行，照样被丢。这是给「抄了外层键名」兜底的，不是第二种写法：**照抄 `evidence_id` 仍然是唯一该做的事。**
     - `quant:<ticker>:<field>` —— `context.quant_signals.rows[<ticker>]` 上一个非空字段（如 `quant:SPCH:dist_ma200_pct`）。**只有 `rows` 里真有的 ticker 能引**：杠杆 ETF 通常没有自己的行（07226 没有，它的底层 HSTECH 有），要引就引你真正读的那一行
     **没有可引的证据就不填**，别为了填而造 id：造出来的引用比不引更糟，它看起来像证据。portable workflow lane 早就要求每个 case 带 `evidence_ids`（`workflows/validators.py`），这里是把同一条纪律接到日报这条 lane 上。
-  - **不会因为格式错误让 08:00 流水线变红**：postflight 的 normalizer 会裁剪超长文本、丢弃未知键与不在枚举内的 frame，整块为空则记为「没写」。但缺席是被数出来的——dashboard 的 `debate_coverage.bear_case_pct` 就是这条纪律的实测曲线，别用空块凑覆盖率。
+  - **不会因为格式错误让 08:00 流水线变红**：postflight 的 normalizer 会裁剪超长文本、丢弃未知键与不在枚举内的 frame，整块为空则记为「没写」。但缺席是被数出来的——dashboard 的 `debate_coverage.bear_case_pct` 就是这条纪律的实测曲线，别用空块凑覆盖率；丢掉的 frame 与引用另计一条 degradation（`debate_frames_off_menu` / `debate_citation_unresolved`），同样不变红但会被数。**这条豁免只覆盖 `debate` 内部**：`action`、`condition`、`strategy_id` 这些会被塞进默认值的字段写错仍然整份 plan 打回重写。
 - `expected_move_pct`（number，选填，带符号，单位 %）：**这条 decision 预期这只票走多远**（#1159）。`confidence` 说的是「多有把握」，`invalidation_price` 说的是「论点在哪死」，**没有一个字段说「走多远」**——所以「方向对、幅度错了四倍」这句话这本账本目前对自己讲不出来。填了之后按 t1 对 `underlying_return_t1_pct` 打分（这只票自己的收益，不是 `benefit_t1_pct` 那个相对不动的反事实）。
   - 是**预测**不是目标价，也不是止损距离：写 `-8` 表示「我预期它跌 8%」。`0` 是合法且可打分的预测（「预期它不动」），和不填不是一回事。
   - |值| > 100 会被丢弃（打字过滤，不是风控），丢弃不会让流水线变红。
