@@ -571,6 +571,9 @@ def test_unresolvable_debate_evidence_ids_do_not_block_the_plan(tmp_path,
     refs in no resolvable namespace, so the error is normalization's to fix.
     SKILL.md makes the model the same promise here ("核不上的直接丢掉")."""
     monkeypatch.setenv("CLAWOCK_WORKSPACE", str(tmp_path))
+    noted = []
+    monkeypatch.setattr(brief_postflight.workflow_outcomes, "note_degradation",
+                        lambda ledger, kind, detail, **kw: noted.append((kind, detail)))
     path = _write_authored_plan(tmp_path, _authored_decision(debate={
         "bear": "lost the 200MA",
         "evidence_ids": ["risk:hard_stop:AAA", "made-up-ref",
@@ -583,3 +586,26 @@ def test_unresolvable_debate_evidence_ids_do_not_block_the_plan(tmp_path,
     decision = json.loads(path.read_text())["decisions"][0]
     assert decision["decision_id"].startswith("dec-")
     assert decision["debate"]["evidence_ids"] == ["risk:hard_stop:AAA"]
+    assert [kind for kind, _ in noted] == ["debate_citation_unresolved"]
+    assert "2 debate evidence ref(s)" in noted[0][1]
+    assert "made-up-ref" in noted[0][1]
+
+
+def test_evidence_cap_discards_are_counted(tmp_path, monkeypatch):
+    monkeypatch.setenv("CLAWOCK_WORKSPACE", str(tmp_path))
+    noted = []
+    monkeypatch.setattr(brief_postflight.workflow_outcomes, "note_degradation",
+                        lambda ledger, kind, detail, **kw: noted.append((kind, detail)))
+    refs = [f"news:evt_{i}" for i in range(8)]
+    path = _write_authored_plan(tmp_path, _authored_decision(debate={
+        "bear": "crowded", "evidence_ids": refs,
+    }))
+
+    assert brief_postflight.normalize_plan_json(
+        path, tmp_path / "decisions.jsonl") == []
+
+    decision = json.loads(path.read_text())["decisions"][0]
+    assert decision["debate"]["evidence_ids"] == refs[:6]
+    assert [kind for kind, _ in noted] == ["debate_citation_unresolved"]
+    assert "2 debate evidence ref(s)" in noted[0][1]
+    assert "above the 6-ref cap" in noted[0][1]

@@ -239,12 +239,12 @@ _NORMALIZATION_OWNED_PLAN_ERRORS = (
         r'(decision_id|episode_id|plan_date|created_at)$'
     ),
     re.compile(r'^decision\[\d+\] schema_version must be 2$'),
-    # `debate` sub-fields whose normalizer *discards* the offending value rather
-    # than substituting a plausible one. `normalize_debate` drops frames outside
-    # `STRATEGY_FRAMES`; `normalize_debate_evidence` drops refs in no resolvable
-    # namespace, dedupes and caps at `DEBATE_EVIDENCE_MAX`. Both validators fire
-    # exactly when normalization would change the value, which makes the error
-    # normalization-owned by construction.
+    # `debate` sub-fields whose normalizer never substitutes a plausible value.
+    # `normalize_debate` drops frames outside `STRATEGY_FRAMES` (and accepts a
+    # scalar spelling of one frame); `normalize_debate_evidence` drops refs in
+    # no resolvable namespace, dedupes, caps at `DEBATE_EVIDENCE_MAX`, and wraps
+    # a scalar ref as a list. Both validators fire exactly when normalization
+    # would make one of those deterministic, annotation-only changes.
     re.compile(
         r'^decision\[\d+\] debate\.frames must be strategy frames from the menu$'
     ),
@@ -298,6 +298,32 @@ def _dropped_debate_frames(authored):
             str(frame) for frame in frames
             if str(frame or '').strip() not in decision_v2.STRATEGY_FRAMES
         ]
+    return dropped
+
+
+def _dropped_debate_evidence(authored):
+    """Evidence values `normalize_debate_evidence` removes from the plan.
+
+    Context resolution happens later, after normalization.  Capture the shape
+    losses here or an unknown namespace, duplicate, or over-cap reference has
+    already disappeared before `prune_debate_citations` can count it.
+    """
+    dropped = []
+    for decision in authored.get('decisions') or []:
+        if not isinstance(decision, dict):
+            continue
+        debate = decision.get('debate')
+        if not isinstance(debate, dict) or 'evidence_ids' not in debate:
+            continue
+        raw = debate.get('evidence_ids')
+        items = raw if isinstance(raw, list) else [raw]
+        survivors = list(decision_v2.normalize_debate_evidence(raw))
+        for item in items:
+            ref = str(item or '').strip()
+            if ref in survivors:
+                survivors.remove(ref)
+            else:
+                dropped.append(ref or repr(item))
     return dropped
 
 
@@ -447,8 +473,9 @@ def normalize_plan_json(path, ledger_path=None, *, decision_packet=None,
     pass without the model actually fixing its plan.  Raw v2 validation therefore
     runs first, and only what ``_normalization_owned_plan_error`` accepts is
     exempted — missing deterministic ids/linkage/timestamps, plus the `debate`
-    sub-fields normalization *deletes* rather than defaults, which launder
-    nothing and whose leniency SKILL.md already promises the model.
+    sub-fields normalization canonicalizes or deletes rather than defaults,
+    which invent no claim and whose leniency SKILL.md already promises the
+    model.
 
     The gate is whole-plan on purpose — a plan is normalized or it is not — so
     anything left in it blocks every decision's ids, not just the offending
@@ -501,6 +528,17 @@ def normalize_plan_json(path, ledger_path=None, *, decision_packet=None,
                 None, 'debate_frames_off_menu',
                 f"{len(dropped_frames)} debate frame(s) outside STRATEGY_FRAMES "
                 f"were discarded: " + ', '.join(sorted(set(dropped_frames))[:5]))
+        dropped_evidence = _dropped_debate_evidence(authored)
+        if dropped_evidence:
+            # These values are gone before context resolution, so the prune
+            # below cannot observe them. Keep the same public degradation kind:
+            # both are citations the published debate cannot substantiate.
+            workflow_outcomes.note_degradation(
+                None, 'debate_citation_unresolved',
+                f"{len(dropped_evidence)} debate evidence ref(s) were invalid, "
+                f"duplicate, or above the {decision_v2.DEBATE_EVIDENCE_MAX}-ref "
+                f"cap and were discarded: "
+                + ', '.join(dropped_evidence[:5]))
         normalized, dropped_citations = prune_debate_citations(normalized, context)
         if dropped_citations:
             workflow_outcomes.note_degradation(
