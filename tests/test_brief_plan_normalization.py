@@ -422,3 +422,43 @@ def test_skipped_normalization_does_not_ask_the_model_for_ids(tmp_path):
     # Normalized plans still report them: there they would be a harness bug.
     assert any("decision_id" in issue
                for issue in brief_postflight.validate_plan_json(path))
+
+
+def test_an_unnormalized_plan_is_not_booked_into_the_ledger(tmp_path, capsys,
+                                                            monkeypatch):
+    """The 2026-09-16 postflight: one authored `debate.frames` error skipped
+    normalization, and `log_decisions` then booked the raw plan anyway. Nine
+    id-less decisions collapsed onto a single ledger row, which failed the
+    pre-push ledger check and stranded every commit on the host — the brief's
+    own and the next job's — with origin four hours stale."""
+    ledger = tmp_path / "memory" / "decisions.jsonl"
+    ledger.parent.mkdir(parents=True)
+    # LEDGER reaches load/upsert/write as a definition-time default argument.
+    monkeypatch.setattr(brief_postflight, "WS", tmp_path)
+    for fn, defaults in (
+            (brief_postflight.decision_v2.load_decisions, (ledger,)),
+            (brief_postflight.decision_v2.write_decisions, (ledger,)),
+            (brief_postflight.decision_v2.upsert_plan_decisions,
+             (ledger, None, True))):
+        monkeypatch.setattr(fn, "__defaults__", defaults)
+
+    plan_path = tmp_path / "memory" / "2026-07-30-plan.json"
+    plan_path.write_text(json.dumps({
+        "schema_version": 2,
+        "date": "2026-07-30",
+        "decisions": [
+            _authored_decision(ticker="AAA"),
+            _authored_decision(ticker="BBB",
+                               debate={"frames": ["risk_rebalance"]}),
+        ],
+    }))
+
+    # Normalization declines: the second decision carries a semantic error.
+    assert brief_postflight.normalize_plan_json(plan_path, ledger)
+    assert all("decision_id" not in d
+               for d in json.loads(plan_path.read_text())["decisions"])
+
+    brief_postflight.log_decisions("2026-07-30")
+
+    assert not ledger.exists(), "an un-normalized plan must not reach the ledger"
+    assert "not normalized" in capsys.readouterr().err

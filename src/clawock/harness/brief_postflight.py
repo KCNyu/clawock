@@ -717,6 +717,23 @@ def log_decisions(today):
         return
     if plan.get('schema_version') != 2 or not plan.get('decisions'):
         return
+    # `normalize_plan_json` skips normalization when the plan carries an authored
+    # semantic error, on purpose (it must not launder a bad action into a valid
+    # default). This function re-reads the same file from disk, so on such a run
+    # it sees the raw plan — every decision still without its machine-owned ids.
+    # Booking that is worse than not booking it: the upsert is keyed on
+    # decision_id, so the whole plan collapses onto one unaddressable row that
+    # then fails the ledger check in `.githooks/pre-push` and blocks every push
+    # from the host (2026-09-16, one `debate.frames` error on decision[7]).
+    # Skip the booking, keep the day's commit: the ids arrive the moment the
+    # model fixes the plan and postflight re-runs, and that re-run books all of
+    # them properly. Settlement is skipped with it — it is the same lock and the
+    # same write, and a re-run is ≤ one brief away.
+    unkeyed = [d for d in plan['decisions'] if not d.get('decision_id')]
+    if unkeyed:
+        print(f'warn: plan.json not normalized ({len(unkeyed)} decision(s) without '
+              'decision_id) — decisions not booked this run', file=sys.stderr)
+        return
     # One load, mutate in memory, write once only if something changed (#916):
     # the old sequence was upsert(load+write) then load+settle+write — two full
     # rewrites per brief even on the common no-new-decisions day.

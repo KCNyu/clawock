@@ -763,10 +763,35 @@ def upsert_plan_decisions(
     Callers orchestrating several ledger steps in one invocation (#916) pass
     their already-loaded ``ledger`` and ``write=False``, then settle and write
     once; standalone callers keep the old load-mutate-write behavior.
+
+    Only a normalized plan may be booked. `decision_id` is the upsert key, so a
+    plan whose decisions still lack one is not a plan with some fields missing —
+    every decision keys on ``None``: the first is inserted and each later one is
+    `update`d onto it, and the day lands as a single row carrying the last
+    decision's ticker and the *union* of all their field sets. That row then
+    fails `validate_decision` forever, and because `ops/system_check.py` reads
+    the ledger from `.githooks/pre-push`, one of them blocks every push from the
+    host until a human deletes it — not just the brief's own commit. On
+    2026-09-16 the 08:03 brief booked nine decisions as one such row; it and the
+    09:34 portfolio commit both sat unpushed with origin four hours stale.
+
+    `normalize_authored_plan` is what fills the ids, and it deliberately
+    declines to run over an authored semantic error — so the un-normalized plan
+    is a state postflight can actually reach, not a programming error it can
+    only hit through a typo. Raising is still right here: the ledger cannot
+    name these rows, so it must not hold them, and the caller is the layer that
+    knows whether that is a warn or a crash.
     """
     if ledger is None and write:
         with ledger_lock(path):
             return upsert_plan_decisions(plan, path, load_decisions(path), write=True)
+    unkeyed = [i for i, d in enumerate(plan.get("decisions") or [])
+               if not d.get("decision_id")]
+    if unkeyed:
+        raise ValueError(
+            "refusing to book an un-normalized plan: decision(s) "
+            f"{unkeyed} have no decision_id; run normalize_authored_plan first"
+        )
     existing = ledger if ledger is not None else load_decisions(path)
     by_id = {d.get("decision_id"): d for d in existing}
     inserted = updated = 0
