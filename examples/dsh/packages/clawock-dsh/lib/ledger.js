@@ -118,10 +118,9 @@ function readPortfolio(workspace) {
 			pnlPct: num(h["pnl_percent"]),
 			pnlAbs: num(h["pnl_abs"])
 		}));
-		if (holdings.length === 0) continue;
 		const market = /^hk/i.test(name) ? "HK" : /us/i.test(name) ? "US" : name;
 		const currency = typeof bookObj["currency"] === "string" ? bookObj["currency"] : market === "HK" ? "HKD" : "USD";
-		books.push({
+		if (holdings.length > 0) books.push({
 			name,
 			currency,
 			truePrincipal: num(bookObj["true_principal"]),

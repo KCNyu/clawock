@@ -145,6 +145,24 @@ test("ledger: portfolio summarizes holdings per book", async () => {
   }
 });
 
+test("ledger: a book sold down to zero keeps its trades (#1530)", async () => {
+  const ledger = await import(pathToFileURL(path.join(PLUGIN, "lib", "ledger.js")).href);
+  const root = makeDesk();
+  try {
+    const file = path.join(root, "portfolio.json");
+    const doc = JSON.parse(fs.readFileSync(file, "utf8"));
+    for (const h of doc.portfolios.us_stocks.holdings) h.shares = 0;
+    fs.writeFileSync(file, JSON.stringify(doc));
+    const { books, trades } = ledger.readPortfolio(root);
+    assert.deepEqual(books.map((b) => b.name), ["hk_stocks"], "the emptied book is still not shown");
+    assert.equal(trades.length, 4, "the emptied book's fills must stay on the trade log");
+    const usRealized = trades.filter((t) => t.currency === "USD").reduce((s, t) => s + t.realizedPnl, 0);
+    assert.equal(usRealized.toFixed(2), "85.42");
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test("ledger: plans list newest first with decision counts", async () => {
   const ledger = await import(pathToFileURL(path.join(PLUGIN, "lib", "ledger.js")).href);
   const root = makeDesk();
