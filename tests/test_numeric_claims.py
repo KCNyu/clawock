@@ -369,6 +369,16 @@ def test_product_result_must_keep_the_computed_unit(hc):
     assert issue and "2,940%" in issue[0]
 
 
+@pytest.mark.parametrize("prose, bad_result", [
+    ("SPCH 300×$9.79 ≈ $2,940万。", "2,940万"),
+    ("SPCH 300×$9.79 ≈ $2,940亿。", "2,940亿"),
+])
+def test_product_result_must_keep_the_computed_magnitude(hc, prose, bad_result):
+    # #1534: 万/亿 scales the result 10^4/10^8 away from the product.
+    issue = hc.check_numeric_claims(prose, {"raw_wechat_block": "SPCH 300股 $9.79"})
+    assert issue and bad_result in issue[0]
+
+
 def test_currency_product_operands_must_come_from_context(hc):
     issue = hc.check_numeric_claims("SPCH 999×$9.79 ≈ $9,780。",
                                     {"raw_wechat_block": "SPCH 300股 $9.79"})
