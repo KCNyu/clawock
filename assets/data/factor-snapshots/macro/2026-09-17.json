@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-17T23:41:08.142848+00:00",
+  "generated_at": "2026-09-17T23:45:32.177955+00:00",
   "vix": {
     "symbol": "^VIX",
     "price": 15.44,
@@ -61,21 +61,5 @@
     "change_pct": 1.69,
     "source": "tencent"
   },
-  "fed_press": [
-    {
-      "date": "2026-09-16",
-      "title": "Federal Reserve issues FOMC statement",
-      "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20260916a.htm"
-    },
-    {
-      "date": "2026-09-16",
-      "title": "Federal Reserve Board and Federal Open Market Committee release economic projections from the September 15-16 FOMC meeting",
-      "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20260916b.htm"
-    },
-    {
-      "date": "2026-09-11",
-      "title": "Agencies seek comment on proposed third-party risk management guidance and issue statement on community bank engagement with core service providers",
-      "url": "https://www.federalreserve.gov/newsevents/pressreleases/bcreg20260911a.htm"
-    }
-  ]
+  "fed_press": null
 }
