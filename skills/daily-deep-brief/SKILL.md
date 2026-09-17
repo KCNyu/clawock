@@ -957,9 +957,24 @@ clawock brief postflight
 **status 不是逐条 issue 判的，别自己猜哪条是硬闸。** `fail` 只由 critical 关键词
 （`缺失` / `解析失败` / `表格 #`）或 issues > 4 条触发；其余都是 warn，照样 commit + 投递。
 
-**改完任何一条 issue，立刻重跑一次 postflight 拿新 status，再决定还要不要继续改。**
-不要在一次 `fail` 之后一路埋头修到自己认为"干净"为止 —— 修掉 critical 那条以后往往
-已经是 warn，剩下的 issue 不阻塞交付。
+**`fail` 才需要修：有 critical 就修点名的 critical；若只是 issues > 4，就只修到 ≤4 条。**
+每次改完立刻重跑一次 postflight 拿新 status，到 warn/pass 就停。不要在一次 `fail` 之后
+一路埋头修到自己认为"干净"为止 —— 解除 fail 后剩下的 issue 不阻塞交付。
+
+**`warn` 和 `pass` 一样是终态（`commit_ok: true` 时）：已 commit、已尝试投递，不要为了变成 pass 再跑 postflight。**
+重跑不会再投递（当天已有投递记录就跳过），只会多一次 commit + push + dashboard 重建，
+报告正文也不会因此更好。具体到 warn 里的各条：
+
+- 带 `(advisory)` 的提示（管线术语等）和正文超长：**不改文件、不重跑**，下次生成时注意。
+- `wechat_sent: false`：同样**不重跑**、不手动发——重跑只会被投递幂等检查跳过。
+- 唯一例外是 `projection_status: invalid`（issue 以 `judgment 未通过校验` 开头）：Pages 会丢掉整个
+  判断层（见 C 节），值得修**一次**。先 `read` 当前 judgment，按 `projection_issues` 一次改完所有
+  点名字段，其余字段原样保留（整份 `write` 时最容易把没点名的字段弄丢），再重跑一次 postflight。
+  这一次之后不论结果如何都结束本轮。
+
+> **2026-09-17 教训**：首轮 warn 已 commit；模型先按 judgment 超长重写整份 judgment，重跑后
+> 发现重写时丢了一个 `peer_read`，又顺手改 plan 里的 advisory 术语再跑一次，三次 postflight
+> 产生三个 commit。旧版「改完任何一条 issue 就重跑」没限定只对 `fail`，读起来像 warn 也要修到干净。
 
 > **2026-07-27 教训**：旧规则把 35.8KB 和表格 critical 混在同一个 issues 列表里，模型误把
 > 体量当硬闸，事后一路裁到 23.7KB，既浪费时间/tokens 又引入编辑错误。新规则把体量单独记录：
@@ -977,7 +992,7 @@ clawock brief postflight
 >
 > **为什么这样改（2026-06-08）**：旧的 `delivery=announce` 在长 turn 末尾用 turn 起点抓的 token 投递，brief turn 恒 >160s（173–975s）→ token 必过期 → 静默丢、`delivered=true` 是假信号（见 memory: openclaw-wechat-longturn-token-expiry）。短命 message send 每次抓新 token，且独立于 turn 时长，kcn 实测可靠（同 intraday 架构）。
 >
-> **你的职责到 Step 5 跑完 postflight 为止**：产出 B/C/D 三个文件（plan / judgment / insights）+ 跑 postflight，报告与微信卡由 postflight 内的 `brief_render` 生成。看到 `wechat_sent: true` 即大功告成，**立即结束本轮，不要再追加任何思考或内容**。
+> **你的职责到 Step 5 跑完 postflight 为止**：产出 B/C/D 三个文件（plan / judgment / insights）+ 跑 postflight，报告与微信卡由 postflight 内的 `brief_render` 生成。看到 status 为 `pass`/`warn` 且 `commit_ok: true` 即大功告成（`wechat_sent` 为 false 也一样，不要手动补发），**立即结束本轮，不要再追加任何思考或内容**。
 >
 > **🔒 送达确认铁律（2026-08-15 起，#558）**：
 > postflight **之后禁止**用 exec / list / show 去读 `memory/.tmp/` 下的 marker、claim、sent 文件"眼见为实"确认送达。
