@@ -21,6 +21,13 @@ WeChat send from a silently-dropped one (#81096/#81316 wontfix). Since brief_pos
 now ALWAYS co-sends the card to Telegram (cold-proof), the WeChat retry bought
 nothing but duplicates, so it's gone. Telegram is the sole backstop channel.
 
+ONE EXCEPTION — A CONFIRMED WECHAT FAILURE (2026-09-17): the 08:03 brief that day
+recorded `sent_ok=false` (`ret=-2 prepare failed`) with `tg_ok=true`, and this
+watchdog saw only the Telegram half — "no backstop", no retry, no alert. A marker
+that says WeChat *failed* is not the ambiguous stale marker the rule above is
+about, so it gets one WeChat retry, and a Telegram alert if that fails too
+(`_watchdog_common.wechat_backstop`). The Telegram backstop below is unchanged.
+
 Card content comes from _watchdog_common.build_brief_card (LLM card file → plan.json
 fallback), the same builder postflight uses. Dedupe flag prevents double-sends.
 
@@ -58,6 +65,7 @@ from clawock import sessions as trading_calendar
 
 from ._watchdog_common import (
     WS, HKT, log, build_brief_card, send_telegram, KCN_TELEGRAM,
+    send_wechat, resolve_wechat_target, wechat_backstop,
     dispatch_brief_fallback, await_brief_fallback_outcome,
     brief_cron_job, brief_cron_job_state, cron_run_ended_in_failure,
     rerun_cron_job, cron_retry_budget,
@@ -506,10 +514,19 @@ def main():
         return retrigger_or_wait(today, args.dry_run)
 
     # Trust the postflight send-marker, not the poisoned run-record `delivered`.
-    marker = delivery_receipts.read_receipt(delivery_receipts.receipt_path(
-        WS / 'memory' / '.tmp', 'brief', date=today))
+    marker_path = delivery_receipts.receipt_path(WS / 'memory' / '.tmp', 'brief', date=today)
+    marker = delivery_receipts.read_receipt(marker_path)
     now_ms = int(datetime.now(HKT).timestamp() * 1000)
     fresh = bool(marker) and (now_ms - marker.get('ts', 0)) < MARKER_FRESH_MS
+
+    # WeChat is judged on its own (2026-09-17): Telegram having the card says
+    # nothing about WeChat. Only today's fresh marker is evidence about this card,
+    # and only its explicit `sent_ok=false` triggers the one retry.
+    if marker and fresh:
+        wechat_backstop('brief', tag, build_brief_card(today), marker, marker_path,
+                        WS / 'memory' / '.tmp' / f'watchdog-brief-wechat-{today}.done',
+                        args.dry_run, wechat=send_wechat, telegram=send_telegram,
+                        resolve=resolve_wechat_target)
     # TG is covered iff postflight's cosend confirmably delivered today's card to
     # Telegram (fresh marker, tg_ok=true). No WeChat resend — Telegram is the backstop.
     if marker and marker.get('tg_ok') and fresh:

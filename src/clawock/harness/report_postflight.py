@@ -99,6 +99,7 @@ from ._harness_common import (  # noqa: E402
 )
 from ._watchdog_common import (  # noqa: E402
     resolve_wechat_target, send_wechat, cosend_telegram, already_delivered,
+    delivered_channels,
     claim_send, mark_send_started, release_claim, log, send_per_policy,
 )
 
@@ -172,7 +173,8 @@ def claim_upgrade(market, phase, date):
 
 
 def deliver_wechat(market, phase, date, wechat_prefix, text, delivery_state='delivered',
-                   context_id=None, context_generated_at=None, claim_path=None):
+                   context_id=None, context_generated_at=None, claim_path=None,
+                   telegram_done=False):
     """Primary WeChat send for staged reports — fresh-token `openclaw message send`,
     decoupled from the cron's announce.
 
@@ -195,6 +197,9 @@ def deliver_wechat(market, phase, date, wechat_prefix, text, delivery_state='del
     comparison tautological, so a body built from a stale context still looked
     delivered (2026-07-24 美股收盘报告: WeChat got 07/22 numbers and no backstop
     ever fired). Deriving it from `text` makes the mismatch detectable.
+
+    `telegram_done`: an earlier run of this slot already landed Telegram and only
+    WeChat failed, so this call re-sends WeChat alone (see `send_per_policy`).
     """
     message = (wechat_prefix + text).strip()
     body_lines = text.strip().splitlines()
@@ -211,7 +216,8 @@ def deliver_wechat(market, phase, date, wechat_prefix, text, delivery_state='del
     # whether THIS report already reached Telegram.
     sent_ok, out, tg_ok = send_per_policy(
         'report', message, tag=f'{market}-{phase}', market=market,
-        wechat=send_wechat, telegram=cosend_telegram, resolve=resolve_wechat_target)
+        wechat=send_wechat, telegram=cosend_telegram, resolve=resolve_wechat_target,
+        telegram_done=telegram_done)
     marker = delivery_receipts.receipt_path(TMP, 'report', market=market, phase=phase,
                                             date=date)
     try:
@@ -470,14 +476,20 @@ def main(argv=None):
     report_marker = delivery_receipts.receipt_path(TMP, 'report', market=args.market,
                                                    phase=args.phase, date=today)
     delivery_state = 'failed' if status == 'fail' else 'delivered'
+    # WeChat and Telegram are judged separately (2026-09-17): a prior run that
+    # landed only Telegram has not delivered this slot to WeChat, so it does not
+    # block — this run re-sends WeChat alone and leaves Telegram's copy be.
     blocked = already_delivered(report_marker)
+    _, telegram_done = delivered_channels(report_marker)
 
     # One exception to the idempotency lock: the slot's only delivery so far was a
     # fail-closed data block, and this run has a report that actually validates.
     # claim_upgrade() makes it exactly one. Everything else — a second failure, a
-    # retry of an already-good send — stays blocked.
+    # retry of an already-good send — stays blocked. "Delivered so far" is either
+    # channel here: the validated report supersedes the data block on both.
     upgrading = False
-    if blocked and delivery_state == 'delivered' and _marker_state(report_marker) == 'failed':
+    if ((blocked or telegram_done) and delivery_state == 'delivered'
+            and _marker_state(report_marker) == 'failed'):
         if claim_upgrade(args.market, args.phase, today):
             print(f'upgrade: {args.market}-{args.phase} superseding the fail-closed '
                   f'data block with the validated report', file=sys.stderr)
@@ -532,7 +544,8 @@ def main(argv=None):
                                             delivery_state=delivery_state,
                                             context_id=ctx.get('context_id'),
                                             context_generated_at=ctx.get('generated_at'),
-                                            claim_path=claim_path)
+                                            claim_path=claim_path,
+                                            telegram_done=telegram_done)
 
     # Record delivery here, not at the end of main(). Everything below — commit,
     # dashboard, data-plane publish — can take minutes, and on 2026-08-19 a 60s
