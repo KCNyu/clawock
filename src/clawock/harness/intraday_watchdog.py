@@ -71,6 +71,7 @@ Exit 0 always (non-fatal cron); actions logged to logs/watchdog.jsonl.
 import argparse
 import json
 import sys
+import time
 from datetime import datetime, timedelta
 
 from clawock.automation import delivery_receipts
@@ -96,6 +97,14 @@ WATCHDOG_DELAY_MINUTES = 10
 # 10:32:57), so 10 gives room without reaching the neighbouring slot.
 REGEN_WINDOW_S = 10 * 60
 REGEN_BACKWARD_S = 60      # tolerance for a context timestamped just before the marker's
+# How long an in-flight attempt may hold this watchdog before it judges anyway
+# (#1532, the #988 wait). The next pass does NOT look again: it runs 30 minutes
+# later and owns the NEXT slot, so returning on an in-flight attempt was this
+# slot's only verdict. The budget must end before the next slot's preflight
+# rewrites the latest context — watchdog at +10 min, next cron at +30 — so 600s
+# (report_watchdog's measured budget) still ends ten minutes clear of it.
+INFLIGHT_WAIT_S = 600
+INFLIGHT_POLL_S = 30
 
 
 def deterministic_fallback(raw_block, tag, reason):
@@ -240,7 +249,12 @@ def main():
     ap.add_argument('--job-name', required=True, help='intraday cron job name')
     ap.add_argument('--market', choices=['hk', 'us'], required=True)
     ap.add_argument('--dry-run', action='store_true')
+    ap.add_argument('--inflight-wait-s', type=int, default=None,
+                    help='seconds to wait out an in-flight attempt before judging '
+                         f'anyway (default {INFLIGHT_WAIT_S}; 0 in --dry-run)')
     args = ap.parse_args()
+    inflight_wait_s = (args.inflight_wait_s if args.inflight_wait_s is not None
+                       else (0 if args.dry_run else INFLIGHT_WAIT_S))
 
     tag = f'intraday-{args.market}'
     watchdog_now, expected_job, expected_slot = watchdog_target(args.market)
@@ -317,14 +331,50 @@ def main():
         return 0
 
     # --- In-flight gate: never judge a slot that has not finished -----------
-    if attempt_still_running(context, last):
-        log({'tag': tag, 'action': 'defer',
+    # WAIT, DON'T DEFER (#1532). Returning here used to be "the next pass looks
+    # again", but the next pass owns the next slot (watchdog_target is wall
+    # clock), so a retry chain that then died left this slot with no report, no
+    # backstop and one `defer` line. Hold the slot open as report_watchdog does
+    # (#988): poll until the attempt finishes, or judge anyway when the budget
+    # runs out. The marker gate below still runs first, so an attempt that lands
+    # during the wait is recognised as delivered, not doubled.
+    waited = 0
+    while attempt_still_running(context, last) and waited < inflight_wait_s:
+        log({'tag': tag, 'action': 'wait-inflight',
              'reason': 'a newer attempt is still running — preflight context '
                        'postdates the newest finished run',
              'expected_job': expected_job, 'expected_slot': expected_slot,
              'context_generated_at': context.get('generated_at'),
-             'last_finished_ms': last.get('ts')})
-        return 0
+             'last_finished_ms': last.get('ts'),
+             'waited_s': waited, 'budget_s': inflight_wait_s})
+        time.sleep(min(INFLIGHT_POLL_S, inflight_wait_s - waited))
+        waited += INFLIGHT_POLL_S
+        last = run_for_slot(today_runs(job_id) or [], args.market,
+                            expected_job, expected_slot) or last
+        # A context that no longer names this slot is not evidence about it;
+        # keep the one this slot wrote and judge on that.
+        context = context_for_slot(ctx_path, expected_job, expected_slot) or context
+    if waited:
+        # The slot's facts moved: re-derive every field taken from `last` before
+        # judging on them. The dedupe flag is per slot, so it is only re-read.
+        run_at = last.get('runAtMs')
+        session_id = last.get('sessionId')
+        summary = last.get('summary', '')
+        if flag.exists():
+            log({'tag': tag, 'action': 'skip',
+                 'reason': 'already handled this slot (dedupe flag, after wait)'})
+            return 0
+        still_running = attempt_still_running(context, last)
+        log({'tag': tag,
+             # Never `defer` again: this line always precedes a real verdict.
+             'action': 'proceed-after-wait' if still_running else 'attempt-finished',
+             'reason': ('in-flight budget exhausted — judging on the evidence '
+                        'that exists' if still_running else
+                        'the in-flight attempt finished; judging on its run'),
+             'expected_job': expected_job, 'expected_slot': expected_slot,
+             'waited_s': waited, 'budget_s': inflight_wait_s,
+             'context_generated_at': context.get('generated_at'),
+             'last_finished_ms': last.get('ts'), 'run_at': run_at})
 
     raw_block = (context.get('raw_wechat_block') or '').strip()
     raw_block_first = raw_block.splitlines()[0] if raw_block else None

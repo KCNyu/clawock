@@ -59,8 +59,8 @@ LOOP_THRESHOLD = 5                 # transcript loop_score ≥ this ⇒ mimo rep
 # How long an in-flight attempt may hold this watchdog before it judges anyway.
 # 600s covers the measured single-attempt distribution with room to spare
 # (median 196s, p90 354s, max 576s across the six report jobs, last 50 runs each)
-# — see #988. Unlike intraday_watchdog, this one runs ONCE per slot, so the wait
-# is what replaces "the next pass will look again".
+# — see #988. intraday_watchdog waits the same way (#1532): its next pass owns
+# the next slot, so neither watchdog gets a second look at a deferred one.
 INFLIGHT_WAIT_S = 600
 INFLIGHT_POLL_S = 30
 MARKER_FRESH_MS = 120 * 60 * 1000  # postflight send-marker older than this ⇒ treat as not-this-slot
@@ -219,11 +219,10 @@ def main():
     # generated — kcn gets both, one minute apart. A context written after the
     # newest finished run ended is the on-disk proof another attempt is live.
     #
-    # WAIT, DON'T DEFER (#988). intraday_watchdog can simply return: it runs at
-    # :10 and :40 all session, so deferring means "the next pass looks again".
-    # This watchdog is a single crontab line per slot — returning here IS the
-    # verdict, and a retry chain that never delivers would leave kcn with no
-    # report and no backstop, with one `defer` line as the only trace. So hold
+    # WAIT, DON'T DEFER (#988). This watchdog is a single crontab line per slot
+    # — returning here IS the verdict, and a retry chain that never delivers
+    # would leave kcn with no report and no backstop, with one `defer` line as
+    # the only trace. So hold
     # the slot open instead: poll until the attempt finishes (then judge on ITS
     # run record and context), or until the budget runs out (then judge anyway
     # and say so). The marker gate below still runs first either way, so an
