@@ -130,19 +130,22 @@ export function readPortfolio(workspace: string): PortfolioResult {
           pnlPct: num(h['pnl_percent']),
           pnlAbs: num(h['pnl_abs']),
         }))
-      if (holdings.length === 0) continue // a book with no positions is not shown
       // Known books map by name; an unknown one keeps its own name instead of
       // being silently filed under US (#839).
       const market = /^hk/i.test(name) ? 'HK' : (/us/i.test(name) ? 'US' : name)
       const currency = typeof bookObj['currency'] === 'string'
         ? bookObj['currency']
         : (market === 'HK' ? 'HKD' : 'USD')
-      books.push({
-        name,
-        currency,
-        truePrincipal: num(bookObj['true_principal']),
-        holdings,
-      })
+      // A book with no positions is not shown — but its fills still happened,
+      // so a book sold down to zero keeps its trades below (#1530).
+      if (holdings.length > 0) {
+        books.push({
+          name,
+          currency,
+          truePrincipal: num(bookObj['true_principal']),
+          holdings,
+        })
+      }
       // Actual operations: every recorded trade across all holdings, newest
       // first. This is the "what did I actually do" surface — real fills with
       // notes and realized P&L, not plan simulations.
