@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-16T17:23:14.631273",
+  "generated_at": "2026-09-17T17:22:20.718914",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -14,7 +14,7 @@
       "SPCH"
     ]
   },
-  "digest_markdown": "## Top 移动信号\n\n- **SPCX → SPCH**: SpaceX +5% on firm Starship orbital launch date; Tesla-SpaceX merger speculation resurfaces. SPCH (2x) amplifies both legs — Starship execution = clean catalyst, merger chatter = speculative upside.\n- **RKLB → RKLX**: SpaceX Starship momentum + RKLB's Iridium deal fully financed + component portfolio expansion (avionics/radios/batteries). RKLX (2x) magnifies the read-through from SpaceX strength; RKLB also 58% off 52w high, room to run.\n- **CRCL**: CLARITY Act cloture vote failed — regulatory vacuum persists. Circle pivots by launching Arc L1 blockchain (Sept 16) to fill gap via private-sector consensus; USDC $74B circulation anchors stack.\n- **Macro**: 10Y yield touched 5.01% (highest since 2007), easing to 4.96%. Borrowing-cost headwind for high-multiple growth; both RKLX and SPCH sensitive to rate regime.\n- **AI/crypto sentiment**: OpenAI exploring $1.2T valuation pre-IPO + inverse ETF promotion piece = market hedging AI/crypto risk. No direct SPCX/CRCL catalyst but tone confirms froth.\n\n## Per-ticker 简报\n\n- **CRCL**: CLARITY Act stalls in Senate — short-term regulatory overhang on USDC oversight. **Mitigant**: Arc L1 launches with native USDC integration + founding validator cohort, positioning Circle as infrastructure regardless of legislative timing. Net: neutral-to-slightly-negative headline, product execution intact.\n- **RKLB → RKLX**: Triple-positive week — Electron launch, analyst initiation, Iridium financing closed. Component biz expansion diversifies beyond launch services. Implication: RKLX (2x) setup is unusually clean — operational wins stack on top of SpaceX read-through.\n- **SPCX → SPCH**: SpaceX Starship orbital date = binary catalyst ahead. TSLA-SPCX merger narrative returns (Musk \"door open\" comment). SPCH (2x) leveraged to both SpaceX re-rating and Tesla-merger optionality. Inverse-ETF piece in news flow = market is hedging; SPCH benefits if risk-on returns.\n\n## 风险 Watch\n\n- **CRCL**: CLARITY Act failure → regulatory uncertainty extends; USDC issuer oversight path unclear.\n- **Macro**: 10Y at 5%+ since 2007 — compresses growth multiples, biggest threat to 2x ETFs (RKLX, SPCH) on duration.\n- **SPCX**: Starship orbital attempt is unproven milestone — failure = sharp 2x drawdown via SPCH.\n- **Merger speculation**: TSLA-SPCX chatter is commentary-driven, not announced — priced as optionality, not base case.",
+  "digest_markdown": "## Top 移动信号 (跨 ticker)\n\n- **SPCX (via SPCH 2x):** SpaceX CFO flags new compute deal putting $100B ARR goal in sight; Q2 revenue +92% to $7.81B. Starship first orbital launch date set, stock +5% on news. SPCH 2x 会放大双向波动 (~4.5%/day underlying vol 已高于大盘)。\n- **RKLB (via RKLX 2x):** Iridium $8.1B 收购首个 FCC 障碍清除, 股东投票 9/24, 预计 2027 年中交割. 5 周连跌或终结. RKLX 2x 会放大 deal-progress beta.\n- **CRCL:** Arc mainnet 上线, BlackRock / Mastercard / Visa 入驻创始验证人; 同期 SEC 批准 5 年豁免允许链上代币化美股交易 (symbol + volume 限制). 双重结构性利好但股价反向下挫 — 利好未 price in 或 sell-the-news.\n- **CRCL:** TD Cowen 维持 Buy, PT $87→$92; Q2 2026 财报电话会 transcript 已发布 (摘要未披露 EPS/rev 具体数).\n- **风险反差:** SPCX 看涨叙事 (ARR / Starship) 与 SeekingAlpha \"valuation 跟不上 execution\" 论调并存 — 多空都有弹药.\n\n## Per-ticker\n\n- **CRCL:** Arc 首日 DEX 成交量 $410.8M, 但 meme coin launchpad 攫取 82% — 链上质量信号弱, 与机构 validator 叙事形成反差. 影响: 短期看 USDC 结算量, 中期看 institutional payment 落地而非链上投机热度.\n- **CRCL:** 监管层 tokenized stocks 豁免 = 长期 USDC 流通场景扩张; 但当前 catalysts 已堆积 (Arc + 监管 + PT 上调), 股价仍未跟进 → 警惕 \"利好兑现\" 陷阱.\n- **RKLB:** Iridium FCC 首关 = 去监管风险明确化的一步; 但仍需股东投票 (9/24) + 多国监管. 5 周连跌若反转, RKLX 2x 杠杆会快速兑现.\n- **SPCX:** 多篇 SeekingAlpha / Yahoo 同向看多 ($3.2T inflection thesis, \"hold for long haul\"), 共识拥挤度上升; CFO ARR 言论是最新可引用催化剂.\n\n## 风险 Watch\n\n- **CRCL — 价格行为风险:** BlackRock/Mastercard/Visa validator 公告日股价下挫, 与\"强利好\"叙事背离 → 警惕机构借利好出货或流通盘预期差.\n- **CRCL — 链上质量:** Arc 生态 82% 交易量来自 meme launchpad, 不构成支付/结算护城河证据.\n- **RKLB — 交易事件风险:** Iridium 收购仍需 9/24 股东投票 + 多国监管, 任何延期/否决会反向冲击 RKLX (2x 杠杆放大下行).\n- **SPCX — 估值/波动:** ~$2T 估值 + ~4.5% 日波幅 + SPCH 2x = 单日 -10% 级别的回撤并非黑天鹅. 任何 Starship 试飞失败或 compute deal 细节不及预期会双重打击.\n- **SPCX — 共识拥挤:** 多家分析师同周同向看多, 若 Q3 数据或 Starship 节点出现意外, 杀共识速度会很快 (SPCH 杠杆下尤甚).",
   "raw_news_counts": {
     "CRCL": 5,
     "RKLB": 5,
@@ -23,113 +23,113 @@
   "raw_news_evidence": {
     "CRCL": [
       {
-        "headline": "Bitcoin, COIN, CRCL Under Pressure After CLARITY Act Vote Stalls: Here’s What Crypto Traders Are Watching",
-        "datetime": 1789550945,
-        "source": "Yahoo",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=97152924d7326bc7547d71b7b01a441e32e91d64d1045e4aae130cfe7208cd91"
-      },
-      {
-        "headline": "Circle Arc’s Validator Set Tells You Who Will Control the Next Settlement Layer",
-        "datetime": 1789550179,
-        "source": "Yahoo",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=7836b1fb2bb8998d2b2ec08d166d13d092aff17b9d4829e0c13e327527287432"
-      },
-      {
-        "headline": "Why Are Nasdaq Futures Rising Premarket? INTC, SKHY, ORCL, SPCX, ASTS, CRCL, COIN Stocks In Focus",
-        "datetime": 1789547564,
-        "source": "Yahoo",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=b04351b6a1f3e365dc88e64a6e7379760ffbc892797f0c86bbbae4f505ac12e2"
-      },
-      {
-        "headline": "US Stock Market Today: S&P 500 Futures Edge Higher As Bond Yield Jitters Linger",
-        "datetime": 1789546339,
-        "source": "Yahoo",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=68ecacda2a7267e641e70e2feca9b9df5b4c1da567b2bef24e1d5d5344066a74"
-      },
-      {
-        "headline": "Circle Internet Group Launches Arc, Its Open Layer 1 Blockchain For Financial Markets And Real-Time Currency Transactions",
-        "datetime": 1789540547,
+        "headline": "TD Cowen Maintains Buy on Circle Internet Group, Raises Price Target to $92",
+        "datetime": 1789640105,
         "source": "Benzinga",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=3be5c57dc52f2000b528d876186f77da163ffbe03fa8954108d7859ce5d28ad4"
+        "url": "https://finnhub.io/api/news?id=33df863b34b59af158c167f9d4749672e8b936ebc13b2d2ca0d7e0f46ffe1c86"
+      },
+      {
+        "headline": "SEC Approves Five-Year Exemption Letting Crypto Venues Trade Tokenized U.S. Stocks Onchain, Subject To Symbol And Volume Limits; Seeks Public Comment",
+        "datetime": 1789635883,
+        "source": "Benzinga",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=3452ec446aa0683c7b12b285b43901671a4a18bb0c8d38c037d72ce39f193eca"
+      },
+      {
+        "headline": "Full Transcript: Circle Internet Group Q2 2026 Earnings Call",
+        "datetime": 1789635786,
+        "source": "Benzinga",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=c8c473f0d93339ca6c8e8d4977f7b8478e02a766964870487ee20c3dff0956d4"
+      },
+      {
+        "headline": "Meme Coin Launchpads Captured 82% of Arc's First Day Trading Volume",
+        "datetime": 1789630133,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=03c3321054c654b2b002c0ed1ce72c6630c5c58207b23a50f3b6836b91d03ae9"
+      },
+      {
+        "headline": "Circle stock slips despite BlackRock, Mastercard, Visa announcement",
+        "datetime": 1789596603,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=f1f193b24d59c77db51d4b659c51b9c673ad0d87703ecec64f2bdf612ff74886"
       }
     ],
     "RKLB": [
       {
+        "headline": "Satellites Built Today Must Outlive the Encryption Protecting Them",
+        "datetime": 1789650900,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=17b13a800f94f7d4e7ae3f5a880f86d8e7238cc88f13e7bc685968056d53af09"
+      },
+      {
+        "headline": "SpaceX Is Worth $2 Trillion. Why Does Its Stock Swing Like a Small-Cap?",
+        "datetime": 1789639211,
+        "source": "Benzinga",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=c199e2b30aa58bc7ada83ad306812fac546f8f9535dc1cbc79d70f3c0a0dc088"
+      },
+      {
+        "headline": "RKLB Stock Eyes Ending 5-Week Slide: Iridium Deal Clears First FCC Hurdle, VC Backer Hails Solar Breakthrough",
+        "datetime": 1789616368,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=5d2ee20a7d39d4743cce01ccdb4b1e34146037713a2efb22928601af0ecc9585"
+      },
+      {
+        "headline": "SpaceX Is Scaling Faster Than Valuation Can Breathe",
+        "datetime": 1789570035,
+        "source": "SeekingAlpha",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=7130c425098bdcf42b58b2de58333973a4455ae312b76a8c859cf9908b6c4171"
+      },
+      {
         "headline": "SpaceX Rises 5% as Starship’s First Orbital Attempt Gets Launch Date; Rocket Lab and AST SpaceMobile Hold Steady",
         "datetime": 1789569378,
         "source": "Yahoo",
         "origin": "finnhub",
         "url": "https://finnhub.io/api/news?id=bd7a6e5dfd921bcd325a9634cf2f89e5ddba9b2494802ab430bf34d52500b675"
-      },
-      {
-        "headline": "Can Rocket Lab's Component Portfolio Support Space Market Growth?",
-        "datetime": 1789568160,
-        "source": "Yahoo",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=2e3376389b92304a6a15e8cb8816052695251b3e528d07db3db51181fcf0afc0"
-      },
-      {
-        "headline": "What Are You Actually Buying In RKLB Stock?",
-        "datetime": 1789561120,
-        "source": "Yahoo",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=76d86cc7fcb4fe9d69c85c20530179cb8919885fe11fce7c39447318461915f5"
-      },
-      {
-        "headline": "Intuitive Machines: If You Wanted To Buy Space Stock, Do It Now",
-        "datetime": 1789552234,
-        "source": "SeekingAlpha",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=a6206b59882b0203834faf839e31e8433b98347fe0f70c67a7a6b8c24c631995"
-      },
-      {
-        "headline": "Rocket Lab Fully Finances Its Iridium Deal — Here's What Else Happened This Week",
-        "datetime": 1789546817,
-        "source": "Benzinga",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=71541f36c9ecf8744a8dcff2d8e0ea3c0cb650fade1a6477e4bd9d7c0a836ee8"
       }
     ],
     "SPCX": [
       {
-        "headline": "Tesla-SpaceX Merger: Not If, But When Musk Makes It Official",
-        "datetime": 1789570680,
+        "headline": "Stock Market Today: Dow Rises In Fed Aftermath; Generac, Nebius, Bloom, SpaceX Are Early Movers (Live Coverage)",
+        "datetime": 1789647466,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=5ae07c2d562f34d033489e472f03ae22e8c08ce6f14da743afa87e29a8736352"
+        "url": "https://finnhub.io/api/news?id=49d60463dfc18365c2ea7869c2b6ad825c2821bac2c6dfa5a649333d40193d1c"
       },
       {
-        "headline": "OpenAI Weighs Funding Round at $1.2 Trillion Valuation",
-        "datetime": 1789570217,
-        "source": "Yahoo",
+        "headline": "SpaceX: A $3.2 Trillion Inflection Is Closer Than It Looks",
+        "datetime": 1789647213,
+        "source": "SeekingAlpha",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=e4dce15b998a90d582f03e62aced53d2396043079bbf3767f19d7f0b546cb083"
+        "url": "https://finnhub.io/api/news?id=e59c4b8f9801ea000af134d61b1ba62c935cc0acdc7e49c4dc0d021740d99a09"
       },
       {
-        "headline": "Inverse Equity ETFs to Consider Amid Rising Market Risks",
-        "datetime": 1789569960,
-        "source": "Yahoo",
+        "headline": "SpaceX: Volatility Is Here, But Hold On For The Long Haul",
+        "datetime": 1789645560,
+        "source": "SeekingAlpha",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=6f766fbb970489396013894608857b215499e25961201496d5f0256e3157151d"
+        "url": "https://finnhub.io/api/news?id=f2a1d6e648e81d38f67342b189ce5e261ebec7e8d361449fa73e94f9ab6513d3"
       },
       {
-        "headline": "SpaceX Rises 5% as Starship’s First Orbital Attempt Gets Launch Date; Rocket Lab and AST SpaceMobile Hold Steady",
-        "datetime": 1789569378,
-        "source": "Yahoo",
+        "headline": "SpaceX Is Worth $2 Trillion. Why Does Its Stock Swing Like a Small-Cap?",
+        "datetime": 1789639211,
+        "source": "Benzinga",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=bd7a6e5dfd921bcd325a9634cf2f89e5ddba9b2494802ab430bf34d52500b675"
+        "url": "https://finnhub.io/api/news?id=c199e2b30aa58bc7ada83ad306812fac546f8f9535dc1cbc79d70f3c0a0dc088"
       },
       {
-        "headline": "How long can OpenAI stay private?",
-        "datetime": 1789568011,
+        "headline": "SpaceX CFO: New Compute Deal Puts Company Closer to $100B ARR Goal",
+        "datetime": 1789636921,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=48963081fc94981a369bd9e7073fe84122f577eec485b431d5eddc2f06b4d0a4"
+        "url": "https://finnhub.io/api/news?id=74bbab340fc98ccb2f842112980dd25763a4acd371a2d207d4eee8f51dc9a95b"
       }
     ]
   },
