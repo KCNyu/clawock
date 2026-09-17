@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-17T17:18:06.020041+00:00",
+  "generated_at": "2026-09-17T23:38:32.727347+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -24,17 +24,17 @@
   "llm_filtered": true,
   "llm_filter_status": "ok",
   "counts": {
-    "total": 19,
+    "total": 18,
     "held_hits": 0,
-    "new_ideas": 9,
-    "sector_hits": 3
+    "new_ideas": 12,
+    "sector_hits": 0
   },
   "items": [
     {
       "author": "Burry",
       "text": "Michael Burry Disclosed Put Options Worth an Estimated $1.1 Billion Against Nvidia and Palantir Before Closing His Hedge Fund. Was That Bearish Bet Ahead of Its Time?",
       "url": "https://news.google.com/rss/articles/CBMimAFBVV95cUxNaTRURG9uY3FGT1Uzb2ctanp5V2Yza0hSek1HdVg2dTI4Y0xKQzNZRnNIN3kxWVZZelZfMTB4RjJ3U1dEOWtDY19qVHFoMUVucEtJa0pKYTNKNUt5cUZTeGtHM1JMM0l2QjJvcVAyVUY5NFdTc1B0SmltNEM2QjhWdmdrTHpuek5udnVxMVZ2VHowX2VIYWh3Vw?oc=5",
-      "published": "2026-09-17T15:24:35+00:00",
+      "published": "2026-09-17T15:50:00+00:00",
       "origin": "gnews-rss",
       "source": "The Motley Fool",
       "tickers": [
@@ -48,36 +48,112 @@
       ],
       "sectors": [
         "AI",
-        "半导体"
+        "半导体",
+        "大数据/国防"
       ],
       "sector_holdings": [],
       "stance": "attack",
-      "relevance": 82,
-      "summary_cn": "据报道Burry在关闭对冲基金前披露了约11亿美元的英伟达和Palantir看跌期权，曾大额做空AI龙头。"
+      "relevance": 72,
+      "summary_cn": "据报道，Michael Burry在关闭对冲基金前披露了约11亿美元的NVDA和PLTR看跌期权仓位，曾大额看空AI龙头。"
     },
     {
-      "author": "Burry",
-      "text": "Michael Burry's $1.1 Billion Put Options Against Nvidia and Palantir Raise Questions About Timing",
-      "url": "https://news.google.com/rss/articles/CBMidkFVX3lxTE51Qm9zN2xFSmtTTG9lRHAxTHVJb2s5MFFaT2hfTmFEa3VZczExWE53cUtndEdmWE44UkljcThjZXNYYzQ2TFlfWlpWLXl5aGdaWW9VbWlkd2Y0M3BlS3RidTFSYnIwNXkwc3FYandDWmxaamM1aUE?oc=5",
-      "published": "2026-09-17T15:35:00+00:00",
-      "origin": "gnews-rss",
-      "source": "finance.biggo.com",
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-15 调仓：AeroVironment, Inc.(AVAV) 买入 ARKX 9,037 股（最大单只 ETF 占比 0.18%）",
+      "url": "https://www.ark-funds.com/funds/arkx/",
+      "published": "2026-09-15T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.1803,
       "tickers": [
-        "NVDA",
-        "PLTR"
+        "AVAV"
       ],
       "held": [],
       "new_ideas": [
-        "NVDA",
-        "PLTR"
+        "AVAV"
       ],
       "sectors": [
-        "AI"
+        "航天/无人机",
+        "国防"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "buy",
+      "relevance": 70,
+      "summary_cn": "ARK Invest于2026-09-15买入AeroVironment(AVAV)9,037股，占ARKX比重0.18%，属显著加仓，航天/国防主题与SpaceX持仓板块相关。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-15 调仓：Iridium Communications Inc.(IRDM) 卖出 ARKX 25,964 股（最大单只 ETF 占比 0.16%）",
+      "url": "https://www.ark-funds.com/funds/arkx/",
+      "published": "2026-09-15T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.1615,
+      "tickers": [
+        "IRDM"
+      ],
+      "held": [],
+      "new_ideas": [
+        "IRDM"
+      ],
+      "sectors": [
+        "卫星通信",
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "sell",
+      "relevance": 68,
+      "summary_cn": "ARK Invest于2026-09-15卖出Iridium Communications(IRDM)25,964股，占ARKX比重0.16%，属显著减仓，卫星通信板块。"
+    },
+    {
+      "author": "Pelosi",
+      "text": "Pelosi’s Bloom Energy Options Gain an Estimated $1.5 Million",
+      "url": "https://news.google.com/rss/articles/CBMipgFBVV95cUxNZTM1Z1M1MnE0N29KbFRKT2JVUHVUeHdyY3lCYURjQmtMaG9QUmNjX0R4S2xybzZ6NUZremRXN1N6d1NmdHJaNHY1N0ZFVXF0Z2ZmSHROT0h3LXRVSXpnVzNKZHNVUUtpdE1TLXBieEZSaFBHcWRrV2lCN3FPWG9zUW04eW4yZzVYYXVYY2hLamRya0xTQUd6XzZESlF2cVQwTGdNVjhR?oc=5",
+      "published": "2026-09-17T17:19:00+00:00",
+      "origin": "gnews-rss",
+      "source": "Quiver Quantitative",
+      "tickers": [
+        "BE"
+      ],
+      "held": [],
+      "new_ideas": [
+        "BE"
+      ],
+      "sectors": [
+        "清洁能源/燃料电池"
       ],
       "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 78,
-      "summary_cn": "据报道Burry 11亿美元NVDA和PLTR看跌期权引发对其交易时机的市场讨论。"
+      "stance": "buy",
+      "relevance": 65,
+      "summary_cn": "据报道，Pelosi的Bloom Energy(BE)期权浮盈约150万美元，间接印证其持仓方向。"
+    },
+    {
+      "author": "Pelosi",
+      "text": "If You Missed the Nancy Pelosi Rally, Here’s the Case for Buying Bloom Energy Stock Now",
+      "url": "https://news.google.com/rss/articles/CBMiyAFBVV95cUxOV1otTzBNdlNHaDlaLTd4RTcxbnRRc0h2TnJZWTNiTG5mSFo3MC05UmNOcmRKX0xmR1I5SEphQ21NTElIVTZJVjRGUzl1UzBha0c4YjV3Yi1HY0NUdzlwSDBOT2o5aWxLNm83cE5qRlZ0ejFtd3lzcTcyTTlrLVhOV3d5blNqdWNfcG1iN1p0WmtwY011aWtYNnZITWZ6SVMwaUtwWDlCQ2tCNmNBdGpkZFRwaHcybk9rcVhIY0l2NDV4MGo1Y2t4aA?oc=5",
+      "published": "2026-09-16T14:38:58+00:00",
+      "origin": "gnews-rss",
+      "source": "Barchart.com",
+      "tickers": [
+        "BE"
+      ],
+      "held": [],
+      "new_ideas": [
+        "BE"
+      ],
+      "sectors": [
+        "清洁能源/燃料电池",
+        "AI数据中心电力"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 62,
+      "summary_cn": "据报道，媒体分析称若错过Pelosi行情，Bloom Energy(BE)仍值得买入，AI电力主题间接背书。"
     },
     {
       "author": "Burry",
@@ -96,83 +172,90 @@
         "FNMA"
       ],
       "sectors": [
-        "房地产",
+        "房地产/房贷",
         "金融"
       ],
       "sector_holdings": [],
       "stance": "buy",
-      "relevance": 70,
-      "summary_cn": "据报道Burry尽管看空房地产图表，仍继续持有房利美(FNMA)和房地美(FMCC)头寸。"
+      "relevance": 58,
+      "summary_cn": "据报道，尽管图表和楼市不佳，Burry仍持有FNMA/FMCC（房利美/房地美），暗示看好美国住房市场改革受益方。"
     },
     {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-15 调仓：AeroVironment, Inc.(AVAV) 买入 ARKX 9,037 股（最大单只 ETF 占比 0.18%）",
-      "url": "https://www.ark-funds.com/funds/arkx/",
-      "published": "2026-09-15T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.1803,
+      "author": "Musk",
+      "text": "Tesla and SpaceX are fighting an Illinois company over 'Terafab'",
+      "url": "",
+      "published": "Thu, 17 Sep 2026 21:13:56 GMT",
+      "origin": "gnews-rss",
+      "source": "Austin American-Statesman",
       "tickers": [
-        "AVAV"
+        "TSLA"
       ],
       "held": [],
       "new_ideas": [
-        "AVAV"
+        "TSLA"
       ],
       "sectors": [
         "航天",
-        "国防"
+        "电动车",
+        "AI基础设施"
       ],
-      "sector_holdings": [],
-      "stance": "buy",
-      "relevance": 68,
-      "summary_cn": "ARK 2026-09-15买入AeroVironment(AVAV) 9,037股，最大单ETF占比0.18%，属中等规模加仓。"
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "据报道，Tesla和SpaceX正与一家伊利诺伊公司就'Terafab'项目发生纠纷，间接涉及Tesla及SpaceX相关产业链。"
     },
     {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-15 调仓：Iridium Communications Inc.(IRDM) 卖出 ARKX 25,964 股（最大单只 ETF 占比 0.16%）",
-      "url": "https://www.ark-funds.com/funds/arkx/",
-      "published": "2026-09-15T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.1615,
-      "tickers": [
-        "IRDM"
-      ],
-      "held": [],
-      "new_ideas": [
-        "IRDM"
-      ],
-      "sectors": [
-        "卫星通信"
-      ],
-      "sector_holdings": [],
-      "stance": "sell",
-      "relevance": 67,
-      "summary_cn": "ARK 2026-09-15卖出Iridium(IRDM) 25,964股，最大单ETF占比0.16%，属中等规模减仓。"
-    },
-    {
-      "author": "Pelosi",
-      "text": "If You Missed the Nancy Pelosi Rally, Here’s the Case for Buying Bloom Energy Stock Now",
-      "url": "https://news.google.com/rss/articles/CBMiyAFBVV95cUxOV1otTzBNdlNHaDlaLTd4RTcxbnRRc0h2TnJZWTNiTG5mSFo3MC05UmNOcmRKX0xmR1I5SEphQ21NTElIVTZJVjRGUzl1UzBha0c4YjV3Yi1HY0NUdzlwSDBOT2o5aWxLNm83cE5qRlZ0ejFtd3lzcTcyTTlrLVhOV3d5blNqdWNfcG1iN1p0WmtwY011aWtYNnZITWZ6SVMwaUtwWDlCQ2tCNmNBdGpkZFRwaHcybk9rcVhIY0l2NDV4MGo1Y2t4aA?oc=5",
-      "published": "2026-09-16T14:38:58+00:00",
+      "author": "Musk",
+      "text": "Could SpaceX Buy Tesla? Ron Baron Says He Gave Elon Musk Reasons For And Against A Blockbuster Deal",
+      "url": "",
+      "published": "Thu, 17 Sep 2026 05:18:22 GMT",
       "origin": "gnews-rss",
-      "source": "Barchart.com",
+      "source": "Yahoo Finance",
       "tickers": [
-        "BE"
+        "TSLA"
       ],
       "held": [],
       "new_ideas": [
-        "BE"
+        "TSLA"
       ],
       "sectors": [
-        "能源",
-        "氢能"
+        "电动车",
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "据报道，Ron Baron透露他曾向Musk阐述SpaceX收购Tesla的利弊，暗示潜在的史诗级交易可能性。"
+    },
+    {
+      "author": "Musk",
+      "text": "Tesla Posted Negative $1.1 Billion in Free Cash Flow Last Quarter as Elon Musk Ramps Up Spending on Robotaxis and Optimus. Here's Why the Company's $43.5 Billion Cash Cushion Still Matters.",
+      "url": "",
+      "published": "Thu, 17 Sep 2026 22:47:06 GMT",
+      "origin": "gnews-rss",
+      "source": "The Motley Fool",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "AI/Robotaxi",
+        "人形机器人"
       ],
       "sector_holdings": [],
-      "stance": "buy",
-      "relevance": 60,
-      "summary_cn": "媒体讨论Pelosi概念股Bloom Energy(BE)，为榜单式荐股，非国会最新披露动作。"
+      "stance": "neutral",
+      "relevance": 52,
+      "summary_cn": "据报道，Tesla上季度自由现金流为负11亿美元，因Musk加大对Robotaxi和Optimus的投入，但435亿美元现金储备仍充裕。"
     },
     {
       "author": "Cathie Wood",
@@ -190,36 +273,38 @@
         "GH"
       ],
       "sectors": [
-        "医疗",
-        "基因"
+        "基因医疗"
       ],
       "sector_holdings": [],
       "stance": "buy",
-      "relevance": 58,
-      "summary_cn": "ARK 2026-09-15买入Guardant Health(GH) 9,070股，最大单ETF占比0.08%，属常规再平衡区间。"
+      "relevance": 52,
+      "summary_cn": "ARK Invest于2026-09-15买入Guardant Health(GH)9,070股，占ARKG比重0.08%，属常规再平衡级别。"
     },
     {
       "author": "Musk",
-      "text": "Musk's X Corp and SpaceXAI resolve antitrust lawsuit against Apple",
+      "text": "Elon Musk sends strong message to SpaceX and Tesla investors",
       "url": "",
-      "published": "Mon, 14 Sep 2026 21:11:09 GMT",
+      "published": "Thu, 17 Sep 2026 14:17:00 GMT",
       "origin": "gnews-rss",
-      "source": "Reuters",
+      "source": "thestreet.com",
       "tickers": [
-        "AAPL"
+        "TSLA"
       ],
       "held": [],
       "new_ideas": [
-        "AAPL"
+        "TSLA"
       ],
       "sectors": [
-        "AI",
-        "科技"
+        "电动车",
+        "航天"
       ],
-      "sector_holdings": [],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
       "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "据报道马斯克旗下X Corp与xAI就反垄断诉讼与苹果达成和解，涉及苹果，但非直接持仓利好。"
+      "relevance": 50,
+      "summary_cn": "据报道，Musk向SpaceX和Tesla投资者发出强势信息，具体内容不详，对持仓相关主题有间接影响。"
     },
     {
       "author": "Cathie Wood",
@@ -237,80 +322,12 @@
         "TDY"
       ],
       "sectors": [
-        "工业",
-        "国防"
+        "工业/国防"
       ],
       "sector_holdings": [],
       "stance": "sell",
-      "relevance": 48,
-      "summary_cn": "ARK 2026-09-15卖出Teledyne(TDY) 313股，最大单ETF占比仅0.01%，属日常再平衡噪声。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk's Latest Updates On Tesla-SpaceX Merger, Terafab Factory",
-      "url": "",
-      "published": "Tue, 15 Sep 2026 18:15:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Investor's Business Daily",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "电动车",
-        "AI"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 62,
-      "summary_cn": "据报道马斯克就Tesla-SpaceX合并及'Terafab'工厂释放新进展，SpaceX/特斯拉均为未上市或关联标的。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk sends strong message to SpaceX and Tesla investors",
-      "url": "",
-      "published": "Thu, 17 Sep 2026 14:17:00 GMT",
-      "origin": "gnews-rss",
-      "source": "thestreet.com",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "电动车"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 60,
-      "summary_cn": "媒体称马斯克向SpaceX和Tesla投资者发出'强烈信号'，内容未点名具体持仓动作，属间接信号。"
-    },
-    {
-      "author": "Musk",
-      "text": "Could SpaceX Buy Tesla? Ron Baron Says He Gave Elon Musk Reasons For And Against A Blockbuster Deal",
-      "url": "",
-      "published": "Thu, 17 Sep 2026 05:18:22 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "电动车"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 58,
-      "summary_cn": "据报道基金经理Ron Baron曾向马斯克阐述SpaceX收购特斯拉的利弊，仍处传闻阶段。"
+      "relevance": 45,
+      "summary_cn": "ARK Invest于2026-09-15卖出Teledyne Technologies(TDY)313股，占ARKQ比重仅0.01%，属日常再平衡，无信号意义。"
     },
     {
       "author": "Trump",
@@ -322,15 +339,14 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "利率",
+        "宏观利率",
         "美联储",
-        "贸易",
-        "关税"
+        "关税/贸易"
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 78,
-      "summary_cn": "特朗普发推施压美联储将利率降至1%或以下，抱怨美国与多数国家的贸易逆差，威胁停贸可年省1.5万亿美元。"
+      "relevance": 75,
+      "summary_cn": "Trump喊话美联储应将利率降至1%或更低，并以停止与逆差国贸易每年可赚1.5万亿为由施压降息，宏观利率与贸易政策双重信号。"
     },
     {
       "author": "洪灏",
@@ -343,33 +359,31 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "利率",
-        "债券",
-        "宏观"
+        "宏观利率",
+        "美债"
       ],
       "sector_holdings": [],
       "stance": "attack",
-      "relevance": 72,
-      "summary_cn": "洪灏警告美债收益率突破5%是危险信号，宏观看空情绪升温，影响风险资产定价。"
+      "relevance": 70,
+      "summary_cn": "据报道，洪灏警示美债收益率突破5%是危险信号，宏观风险预警。"
     },
     {
-      "author": "Musk",
-      "text": "Musk urges top AI labs, Chinese companies to test each other's models amid calls for slowdown",
-      "url": "",
-      "published": "Tue, 15 Sep 2026 15:02:58 GMT",
+      "author": "Burry",
+      "text": "Michael Burry Calls AI Apocalypse Warnings a ‘Self-Serving’ IPO Strategy",
+      "url": "https://news.google.com/rss/articles/CBMirAFBVV95cUxPRFlDazlBZjh4bUhldTRVYnpRZUlSSlJKZDFUWFVSeXg2SjAxaFNISFBfQ1h6WWZWRmJYeVFVQnlyajFmdm9NM2d3cVVKd042S0RaQ3ROc1pzWjJCRThVOWZpUGdjcGlqM1RETHAtMVNBVnRHdy1JRnZzd2laV1QyLTVTeFdnVXNHdEFhMldfZnkwNUR4NGZLZ1RzS2RNVGhnczdrekNDZnpYdTZy?oc=5",
+      "published": "2026-09-16T18:14:15+00:00",
       "origin": "gnews-rss",
-      "source": "cnbc.com",
+      "source": "inc.com",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "AI",
-        "中国"
+        "AI"
       ],
       "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 68,
-      "summary_cn": "据报道马斯克呼吁顶级AI实验室与中国公司互相测试模型，呼吁放缓AI竞赛，涉及中美AI竞争主题。"
+      "stance": "attack",
+      "relevance": 60,
+      "summary_cn": "据报道，Burry批评AI末世论是'自私'的IPO策略，对AI炒作持质疑态度。"
     },
     {
       "author": "Burry",
@@ -382,67 +396,49 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "AI",
-        "奢侈品/另类资产"
+        "葡萄酒/另类资产",
+        "AI"
       ],
       "sector_holdings": [],
       "stance": "attack",
-      "relevance": 55,
-      "summary_cn": "据报道Burry以葡萄酒作为对冲'AI末日情景'的另类资产，对AI泡沫持防御态度。"
+      "relevance": 58,
+      "summary_cn": "据报道，Burry以葡萄酒作为对冲AI'hellscape'风险的资产，暗示对AI前景的担忧。"
     },
     {
-      "author": "Trump",
-      "text": "It was my Honor to write the Foreword for Brian Pannebecker’s incredible new Book, “Blue Collar Conservative: From Reagan to Trump.” As the head of Autoworkers for Trump, Brian has been with us from the very beginning, and understands, like few others, the Wisdom, Courage, and TARIFFS required to, MAKE AMERICA GREAT AGAIN. It is Great Patriots like Brian who helped us secure Historic Victories in three Presidential Campaigns, and are working tirelessly to save American Industry, and champion MADE IN THE U.S.A. “Forgotten” America is forgotten no longer — Get your copy today: https://www.amazon",
-      "url": "https://www.trumpstruth.org/statuses/41746",
-      "published": "2026-09-15T19:11:50+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "汽车",
-        "关税"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "特朗普为蓝领保守派书籍作序，再次强调关税和重振美国制造业的重要性。"
-    },
-    {
-      "author": "Burry",
-      "text": "Michael Burry Says AI Doom Warnings Are Just IPO Hype",
-      "url": "https://news.google.com/rss/articles/CBMigAFBVV95cUxOUGlRUUlockstWGtsSF9fdjZ6QnJhNjZvQ2Zyb3hiZHZkTkl4cEhQeU0xeHlCM3YyLVhfQTR5OS1Bcm5vX1JfYk1nRDVwQjRuLXkyaG1nMXgweXAwSnVCVEV1MG1UaTVEdzZ0Q2N2czRhU3p5NGlRWElabkpKemJIbw?oc=5",
-      "published": "2026-09-17T10:53:42+00:00",
+      "author": "Pelosi",
+      "text": "Morning Joe hosts in disbelief that Trump has traded more stocks than all of Congress combined",
+      "url": "https://news.google.com/rss/articles/CBMiuAFBVV95cUxOSmlCTHBPS1hjNzNSWlNsNDlBWEp5bk14RjNoZ2EwNWlDLUEwWU5RQnl3czQtc2pRVmFuTGZvcmdrc2M4YUllcHJ0UVdxOEs1ZHVyNHFWV2VYTHdXV2Q3SktKVEF3a2dQYkxaanJOcnV5a2hKcl9fTEM2MHV3SFdkazJ4bjhzRHVNQjExRzJDamhNWEZBd21vYkYtRG8weVNfUWxqdXJvUlBCeVByZDNtMW1RTUNKQ0R1?oc=5",
+      "published": "2026-09-16T15:30:00+00:00",
       "origin": "gnews-rss",
-      "source": "Memeburn",
+      "source": "the-independent.com",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "AI"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 52,
-      "summary_cn": "据报道Burry认为AI末日论调多为IPO造势噱头，整体偏看空AI炒作但不点名具体标的。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk, the world’s richest man, says he’s living in an Airstream trailer to oversee xAI’s biggest expansion yet",
-      "url": "",
-      "published": "Tue, 15 Sep 2026 19:08:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Fortune",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI"
+        "国会交易/政治"
       ],
       "sector_holdings": [],
       "stance": "neutral",
       "relevance": 48,
-      "summary_cn": "据报道马斯克为监督xAI最大规模扩张暂住Airstream房车，xAI未上市，仅为运营信号。"
+      "summary_cn": "据报道，Morning Joe节目主持人惊叹Trump个人股票交易量超过整个国会议员总和，揭示政治人物交易活跃度话题。"
+    },
+    {
+      "author": "Pelosi",
+      "text": "Trump Made More Stock Trades Than Congress Combined While Pushing a Trading Ban",
+      "url": "https://news.google.com/rss/articles/CBMiZkFVX3lxTE5qMzgtVF9TZy12bTJjOUhrZXoteGlIZWZ1ZjU1SDNteVg5T09oTEZmMGZmWklra3hpbXl1TGxWY3pYZkhCNV9wdDlpOUhSX216ZUctUXJQN2IyZlp4WU1mZzVqd19GUQ?oc=5",
+      "published": "2026-09-16T01:32:28+00:00",
+      "origin": "gnews-rss",
+      "source": "BeInCrypto",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "国会交易/政治"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 48,
+      "summary_cn": "据报道，Trump在推动交易禁令的同时个人股票交易量超过整个国会总和，政策与个人行为形成反差的话题性新闻。"
     }
   ],
   "held_hits": [],
@@ -451,7 +447,7 @@
       "author": "Burry",
       "text": "Michael Burry Disclosed Put Options Worth an Estimated $1.1 Billion Against Nvidia and Palantir Before Closing His Hedge Fund. Was That Bearish Bet Ahead of Its Time?",
       "url": "https://news.google.com/rss/articles/CBMimAFBVV95cUxNaTRURG9uY3FGT1Uzb2ctanp5V2Yza0hSek1HdVg2dTI4Y0xKQzNZRnNIN3kxWVZZelZfMTB4RjJ3U1dEOWtDY19qVHFoMUVucEtJa0pKYTNKNUt5cUZTeGtHM1JMM0l2QjJvcVAyVUY5NFdTc1B0SmltNEM2QjhWdmdrTHpuek5udnVxMVZ2VHowX2VIYWh3Vw?oc=5",
-      "published": "2026-09-17T15:24:35+00:00",
+      "published": "2026-09-17T15:50:00+00:00",
       "origin": "gnews-rss",
       "source": "The Motley Fool",
       "tickers": [
@@ -465,36 +461,112 @@
       ],
       "sectors": [
         "AI",
-        "半导体"
+        "半导体",
+        "大数据/国防"
       ],
       "sector_holdings": [],
       "stance": "attack",
-      "relevance": 82,
-      "summary_cn": "据报道Burry在关闭对冲基金前披露了约11亿美元的英伟达和Palantir看跌期权，曾大额做空AI龙头。"
+      "relevance": 72,
+      "summary_cn": "据报道，Michael Burry在关闭对冲基金前披露了约11亿美元的NVDA和PLTR看跌期权仓位，曾大额看空AI龙头。"
     },
     {
-      "author": "Burry",
-      "text": "Michael Burry's $1.1 Billion Put Options Against Nvidia and Palantir Raise Questions About Timing",
-      "url": "https://news.google.com/rss/articles/CBMidkFVX3lxTE51Qm9zN2xFSmtTTG9lRHAxTHVJb2s5MFFaT2hfTmFEa3VZczExWE53cUtndEdmWE44UkljcThjZXNYYzQ2TFlfWlpWLXl5aGdaWW9VbWlkd2Y0M3BlS3RidTFSYnIwNXkwc3FYandDWmxaamM1aUE?oc=5",
-      "published": "2026-09-17T15:35:00+00:00",
-      "origin": "gnews-rss",
-      "source": "finance.biggo.com",
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-15 调仓：AeroVironment, Inc.(AVAV) 买入 ARKX 9,037 股（最大单只 ETF 占比 0.18%）",
+      "url": "https://www.ark-funds.com/funds/arkx/",
+      "published": "2026-09-15T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.1803,
       "tickers": [
-        "NVDA",
-        "PLTR"
+        "AVAV"
       ],
       "held": [],
       "new_ideas": [
-        "NVDA",
-        "PLTR"
+        "AVAV"
       ],
       "sectors": [
-        "AI"
+        "航天/无人机",
+        "国防"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "buy",
+      "relevance": 70,
+      "summary_cn": "ARK Invest于2026-09-15买入AeroVironment(AVAV)9,037股，占ARKX比重0.18%，属显著加仓，航天/国防主题与SpaceX持仓板块相关。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-15 调仓：Iridium Communications Inc.(IRDM) 卖出 ARKX 25,964 股（最大单只 ETF 占比 0.16%）",
+      "url": "https://www.ark-funds.com/funds/arkx/",
+      "published": "2026-09-15T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.1615,
+      "tickers": [
+        "IRDM"
+      ],
+      "held": [],
+      "new_ideas": [
+        "IRDM"
+      ],
+      "sectors": [
+        "卫星通信",
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "sell",
+      "relevance": 68,
+      "summary_cn": "ARK Invest于2026-09-15卖出Iridium Communications(IRDM)25,964股，占ARKX比重0.16%，属显著减仓，卫星通信板块。"
+    },
+    {
+      "author": "Pelosi",
+      "text": "Pelosi’s Bloom Energy Options Gain an Estimated $1.5 Million",
+      "url": "https://news.google.com/rss/articles/CBMipgFBVV95cUxNZTM1Z1M1MnE0N29KbFRKT2JVUHVUeHdyY3lCYURjQmtMaG9QUmNjX0R4S2xybzZ6NUZremRXN1N6d1NmdHJaNHY1N0ZFVXF0Z2ZmSHROT0h3LXRVSXpnVzNKZHNVUUtpdE1TLXBieEZSaFBHcWRrV2lCN3FPWG9zUW04eW4yZzVYYXVYY2hLamRya0xTQUd6XzZESlF2cVQwTGdNVjhR?oc=5",
+      "published": "2026-09-17T17:19:00+00:00",
+      "origin": "gnews-rss",
+      "source": "Quiver Quantitative",
+      "tickers": [
+        "BE"
+      ],
+      "held": [],
+      "new_ideas": [
+        "BE"
+      ],
+      "sectors": [
+        "清洁能源/燃料电池"
       ],
       "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 78,
-      "summary_cn": "据报道Burry 11亿美元NVDA和PLTR看跌期权引发对其交易时机的市场讨论。"
+      "stance": "buy",
+      "relevance": 65,
+      "summary_cn": "据报道，Pelosi的Bloom Energy(BE)期权浮盈约150万美元，间接印证其持仓方向。"
+    },
+    {
+      "author": "Pelosi",
+      "text": "If You Missed the Nancy Pelosi Rally, Here’s the Case for Buying Bloom Energy Stock Now",
+      "url": "https://news.google.com/rss/articles/CBMiyAFBVV95cUxOV1otTzBNdlNHaDlaLTd4RTcxbnRRc0h2TnJZWTNiTG5mSFo3MC05UmNOcmRKX0xmR1I5SEphQ21NTElIVTZJVjRGUzl1UzBha0c4YjV3Yi1HY0NUdzlwSDBOT2o5aWxLNm83cE5qRlZ0ejFtd3lzcTcyTTlrLVhOV3d5blNqdWNfcG1iN1p0WmtwY011aWtYNnZITWZ6SVMwaUtwWDlCQ2tCNmNBdGpkZFRwaHcybk9rcVhIY0l2NDV4MGo1Y2t4aA?oc=5",
+      "published": "2026-09-16T14:38:58+00:00",
+      "origin": "gnews-rss",
+      "source": "Barchart.com",
+      "tickers": [
+        "BE"
+      ],
+      "held": [],
+      "new_ideas": [
+        "BE"
+      ],
+      "sectors": [
+        "清洁能源/燃料电池",
+        "AI数据中心电力"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 62,
+      "summary_cn": "据报道，媒体分析称若错过Pelosi行情，Bloom Energy(BE)仍值得买入，AI电力主题间接背书。"
     },
     {
       "author": "Burry",
@@ -513,83 +585,90 @@
         "FNMA"
       ],
       "sectors": [
-        "房地产",
+        "房地产/房贷",
         "金融"
       ],
       "sector_holdings": [],
       "stance": "buy",
-      "relevance": 70,
-      "summary_cn": "据报道Burry尽管看空房地产图表，仍继续持有房利美(FNMA)和房地美(FMCC)头寸。"
+      "relevance": 58,
+      "summary_cn": "据报道，尽管图表和楼市不佳，Burry仍持有FNMA/FMCC（房利美/房地美），暗示看好美国住房市场改革受益方。"
     },
     {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-15 调仓：AeroVironment, Inc.(AVAV) 买入 ARKX 9,037 股（最大单只 ETF 占比 0.18%）",
-      "url": "https://www.ark-funds.com/funds/arkx/",
-      "published": "2026-09-15T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.1803,
+      "author": "Musk",
+      "text": "Tesla and SpaceX are fighting an Illinois company over 'Terafab'",
+      "url": "",
+      "published": "Thu, 17 Sep 2026 21:13:56 GMT",
+      "origin": "gnews-rss",
+      "source": "Austin American-Statesman",
       "tickers": [
-        "AVAV"
+        "TSLA"
       ],
       "held": [],
       "new_ideas": [
-        "AVAV"
+        "TSLA"
       ],
       "sectors": [
         "航天",
-        "国防"
+        "电动车",
+        "AI基础设施"
       ],
-      "sector_holdings": [],
-      "stance": "buy",
-      "relevance": 68,
-      "summary_cn": "ARK 2026-09-15买入AeroVironment(AVAV) 9,037股，最大单ETF占比0.18%，属中等规模加仓。"
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "据报道，Tesla和SpaceX正与一家伊利诺伊公司就'Terafab'项目发生纠纷，间接涉及Tesla及SpaceX相关产业链。"
     },
     {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-15 调仓：Iridium Communications Inc.(IRDM) 卖出 ARKX 25,964 股（最大单只 ETF 占比 0.16%）",
-      "url": "https://www.ark-funds.com/funds/arkx/",
-      "published": "2026-09-15T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.1615,
-      "tickers": [
-        "IRDM"
-      ],
-      "held": [],
-      "new_ideas": [
-        "IRDM"
-      ],
-      "sectors": [
-        "卫星通信"
-      ],
-      "sector_holdings": [],
-      "stance": "sell",
-      "relevance": 67,
-      "summary_cn": "ARK 2026-09-15卖出Iridium(IRDM) 25,964股，最大单ETF占比0.16%，属中等规模减仓。"
-    },
-    {
-      "author": "Pelosi",
-      "text": "If You Missed the Nancy Pelosi Rally, Here’s the Case for Buying Bloom Energy Stock Now",
-      "url": "https://news.google.com/rss/articles/CBMiyAFBVV95cUxOV1otTzBNdlNHaDlaLTd4RTcxbnRRc0h2TnJZWTNiTG5mSFo3MC05UmNOcmRKX0xmR1I5SEphQ21NTElIVTZJVjRGUzl1UzBha0c4YjV3Yi1HY0NUdzlwSDBOT2o5aWxLNm83cE5qRlZ0ejFtd3lzcTcyTTlrLVhOV3d5blNqdWNfcG1iN1p0WmtwY011aWtYNnZITWZ6SVMwaUtwWDlCQ2tCNmNBdGpkZFRwaHcybk9rcVhIY0l2NDV4MGo1Y2t4aA?oc=5",
-      "published": "2026-09-16T14:38:58+00:00",
+      "author": "Musk",
+      "text": "Could SpaceX Buy Tesla? Ron Baron Says He Gave Elon Musk Reasons For And Against A Blockbuster Deal",
+      "url": "",
+      "published": "Thu, 17 Sep 2026 05:18:22 GMT",
       "origin": "gnews-rss",
-      "source": "Barchart.com",
+      "source": "Yahoo Finance",
       "tickers": [
-        "BE"
+        "TSLA"
       ],
       "held": [],
       "new_ideas": [
-        "BE"
+        "TSLA"
       ],
       "sectors": [
-        "能源",
-        "氢能"
+        "电动车",
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "据报道，Ron Baron透露他曾向Musk阐述SpaceX收购Tesla的利弊，暗示潜在的史诗级交易可能性。"
+    },
+    {
+      "author": "Musk",
+      "text": "Tesla Posted Negative $1.1 Billion in Free Cash Flow Last Quarter as Elon Musk Ramps Up Spending on Robotaxis and Optimus. Here's Why the Company's $43.5 Billion Cash Cushion Still Matters.",
+      "url": "",
+      "published": "Thu, 17 Sep 2026 22:47:06 GMT",
+      "origin": "gnews-rss",
+      "source": "The Motley Fool",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "AI/Robotaxi",
+        "人形机器人"
       ],
       "sector_holdings": [],
-      "stance": "buy",
-      "relevance": 60,
-      "summary_cn": "媒体讨论Pelosi概念股Bloom Energy(BE)，为榜单式荐股，非国会最新披露动作。"
+      "stance": "neutral",
+      "relevance": 52,
+      "summary_cn": "据报道，Tesla上季度自由现金流为负11亿美元，因Musk加大对Robotaxi和Optimus的投入，但435亿美元现金储备仍充裕。"
     },
     {
       "author": "Cathie Wood",
@@ -607,129 +686,13 @@
         "GH"
       ],
       "sectors": [
-        "医疗",
-        "基因"
+        "基因医疗"
       ],
       "sector_holdings": [],
       "stance": "buy",
-      "relevance": 58,
-      "summary_cn": "ARK 2026-09-15买入Guardant Health(GH) 9,070股，最大单ETF占比0.08%，属常规再平衡区间。"
-    },
-    {
-      "author": "Musk",
-      "text": "Musk's X Corp and SpaceXAI resolve antitrust lawsuit against Apple",
-      "url": "",
-      "published": "Mon, 14 Sep 2026 21:11:09 GMT",
-      "origin": "gnews-rss",
-      "source": "Reuters",
-      "tickers": [
-        "AAPL"
-      ],
-      "held": [],
-      "new_ideas": [
-        "AAPL"
-      ],
-      "sectors": [
-        "AI",
-        "科技"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "据报道马斯克旗下X Corp与xAI就反垄断诉讼与苹果达成和解，涉及苹果，但非直接持仓利好。"
-    },
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-15 调仓：Teledyne Technologies Inc(TDY) 卖出 ARKQ 313 股（最大单只 ETF 占比 0.01%）",
-      "url": "https://www.ark-funds.com/funds/arkq/",
-      "published": "2026-09-15T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.01,
-      "tickers": [
-        "TDY"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TDY"
-      ],
-      "sectors": [
-        "工业",
-        "国防"
-      ],
-      "sector_holdings": [],
-      "stance": "sell",
-      "relevance": 48,
-      "summary_cn": "ARK 2026-09-15卖出Teledyne(TDY) 313股，最大单ETF占比仅0.01%，属日常再平衡噪声。"
+      "relevance": 52,
+      "summary_cn": "ARK Invest于2026-09-15买入Guardant Health(GH)9,070股，占ARKG比重0.08%，属常规再平衡级别。"
     }
   ],
-  "sector_hits": [
-    {
-      "author": "Musk",
-      "text": "Elon Musk's Latest Updates On Tesla-SpaceX Merger, Terafab Factory",
-      "url": "",
-      "published": "Tue, 15 Sep 2026 18:15:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Investor's Business Daily",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "电动车",
-        "AI"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 62,
-      "summary_cn": "据报道马斯克就Tesla-SpaceX合并及'Terafab'工厂释放新进展，SpaceX/特斯拉均为未上市或关联标的。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk sends strong message to SpaceX and Tesla investors",
-      "url": "",
-      "published": "Thu, 17 Sep 2026 14:17:00 GMT",
-      "origin": "gnews-rss",
-      "source": "thestreet.com",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "电动车"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 60,
-      "summary_cn": "媒体称马斯克向SpaceX和Tesla投资者发出'强烈信号'，内容未点名具体持仓动作，属间接信号。"
-    },
-    {
-      "author": "Musk",
-      "text": "Could SpaceX Buy Tesla? Ron Baron Says He Gave Elon Musk Reasons For And Against A Blockbuster Deal",
-      "url": "",
-      "published": "Thu, 17 Sep 2026 05:18:22 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "电动车"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 58,
-      "summary_cn": "据报道基金经理Ron Baron曾向马斯克阐述SpaceX收购特斯拉的利弊，仍处传闻阶段。"
-    }
-  ]
+  "sector_hits": []
 }
