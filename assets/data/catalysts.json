@@ -1,21 +1,15 @@
 {
-  "generated_at": "2026-09-16T08:03:44.039750+08:00",
+  "generated_at": "2026-09-17T08:03:45.555228+08:00",
   "lookback_window_days": 14,
-  "window_start": "2026-09-16",
-  "window_end": "2026-09-30",
+  "window_start": "2026-09-17",
+  "window_end": "2026-10-01",
   "earnings_queried": [
     "CRCL",
     "RKLB",
     "SPCX"
   ],
   "earnings": [],
-  "fomc": [
-    {
-      "date": "2026-09-16",
-      "type": "rate_decision",
-      "detail": "FOMC 2026-09-15 to 2026-09-16 meeting; rate decision + Powell presser on 2026-09-16"
-    }
-  ],
+  "fomc": [],
   "macro_events": [
     {
       "date": "2026-09-24",
@@ -31,10 +25,10 @@
   "scheduled_events": [],
   "summary": {
     "earnings_count": 0,
-    "fomc_in_window": 1,
+    "fomc_in_window": 0,
     "macro_count": 2,
     "scheduled_count": 0,
     "scheduled_undated": 0,
-    "highest_impact_within_7d": "FOMC 2026-09-16 (rate decision)"
+    "highest_impact_within_7d": "GDP 2026-09-24"
   }
 }
