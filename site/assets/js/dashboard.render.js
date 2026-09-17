@@ -2170,7 +2170,9 @@
     // [A] Market indices — newly added so dashboard aligns with brief ▎大盘速读
     const idxFmt = (v) => v == null ? DASH : (v >= 1000 ? Math.round(v).toLocaleString() : fmt(v));
     if (m.spx?.price != null)    cells.push({lbl: 'SPX',    val: idxFmt(m.spx.price),    sub: fmtPct(m.spx.change_pct),    cls: trend(m.spx.change_pct)});
-    if (m.nasdaq?.price != null) cells.push({lbl: 'NDX',    val: idxFmt(m.nasdaq.price), sub: fmtPct(m.nasdaq.change_pct), cls: trend(m.nasdaq.change_pct)});
+    // macro.nasdaq is the Nasdaq Composite (^IXIC), not the Nasdaq-100 — the
+    // real NDX lives in DATA.indices and the Market Snapshot card (#1548).
+    if (m.nasdaq?.price != null) cells.push({lbl: 'IXIC',   val: idxFmt(m.nasdaq.price), sub: fmtPct(m.nasdaq.change_pct), cls: trend(m.nasdaq.change_pct)});
     if (m.hsi?.price != null)    cells.push({lbl: 'HSI',    val: idxFmt(m.hsi.price),    sub: fmtPct(m.hsi.change_pct),    cls: trend(m.hsi.change_pct)});
     if (m.hstech?.price != null) cells.push({lbl: 'HSTECH', val: idxFmt(m.hstech.price), sub: fmtPct(m.hstech.change_pct), cls: trend(m.hstech.change_pct)});
 
