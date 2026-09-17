@@ -899,6 +899,23 @@ def test_both_postflights_require_the_context_id():
             'is the legacy whole-report input coming back')
 
 
+def test_the_command_reference_does_not_offer_the_retired_legacy_shape():
+    """#1547: #1279 made `--context-id` required in code, and the hand-written
+    Mode 6/7 half of docs/reference/commands.md kept promising that omitting it
+    falls back to the legacy whole-report mode — an invocation argparse now
+    rejects with exit 2. The generator does not own that half, so pin it here.
+    """
+    doc = (ROOT / 'docs' / 'reference' / 'commands.md').read_text(encoding='utf-8')
+    for command in ('report', 'intraday'):
+        entries = [line for line in doc.splitlines()
+                   if line.startswith(f'- **`clawock {command} postflight ')]
+        assert len(entries) == 1, f'expected one `clawock {command} postflight` entry'
+        usage = entries[0].split('`**', 1)[0]
+        assert '--context-id' in usage, f'{command} postflight usage lost --context-id'
+    assert '回落到 legacy' not in doc
+    assert 'verbatim 拷贝 + postflight 首行验证' not in doc
+
+
 def test_the_printed_brief_time_follows_the_cron_contract():
     """A printed time is a claim about when the work happened.
 
