@@ -160,6 +160,7 @@ _PRODUCT = re.compile(
     rf'(?P<b_cur>{_CURRENCY})?\s*(?P<b>{_UNIT_NUM})\s*(?P<b_pct>[%％])?\s*'
     rf'(?P<eq>≈|=)\s*'
     rf'(?P<result_cur>{_CURRENCY})?\s*(?P<result>{_UNIT_NUM})'
+    rf'\s*(?P<result_mag>万|亿)?'
     rf'\s*(?P<result_pct>[%％])?'
 )
 MAX_NUMERIC_SAMPLES = 4
@@ -305,6 +306,9 @@ def _shown_product_results(text, known):
         b = _as_number(match.group('b'))
         result = _as_number(match.group('result'))
         if a is None or b is None or result is None:
+            continue
+        # "$2,940万" is 29,400,000, not the 2,937 the operands multiply to.
+        if match.group('result_mag'):
             continue
         currencies = bool(match.group('a_cur')) + bool(match.group('b_cur'))
         percents = bool(match.group('a_pct')) + bool(match.group('b_pct'))
