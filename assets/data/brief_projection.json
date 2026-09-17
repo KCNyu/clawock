@@ -5,8 +5,7 @@
   "context_generation_id": "e1bde0e647fdd99f",
   "judgment_status": "invalid",
   "judgment_issues": [
-    "judgment narrative bear exceeds 700 chars",
-    "judgment ticker_judgments[8] sentiment_read exceeds 300 chars"
+    "judgment ticker_judgments[8] peer_read must be non-empty text"
   ],
   "portfolio_judgment": null,
   "tickers": [
