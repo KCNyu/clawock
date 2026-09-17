@@ -536,6 +536,11 @@ function createQuotaService(
 ): BalanceService {
   let snapshot: BalanceSnapshot | null = null
   let fetchedAt = 0
+  // The last refresh's failure, cleared only by a successful one. `fetchedAt`
+  // dates the last SUCCESS, so without this a non-forced read inside the TTL
+  // after a failed forced refresh answered 'cached' and repainted the stale
+  // snapshot as healthy (#1546).
+  let lastError: string | null = null
   let inFlight: Promise<BalanceResult> | null = null
 
   const answer = (status: BalanceResult['status'], message: string | null): BalanceResult => ({
@@ -552,9 +557,11 @@ function createQuotaService(
     try {
       snapshot = await spec.fetchFresh(apiKey)
       fetchedAt = Date.now()
+      lastError = null
       return answer('fresh', null)
     } catch (cause) {
       const message = cause instanceof Error ? cause.message : String(cause)
+      if (snapshot !== null) lastError = message
       return answer(snapshot !== null ? 'stale' : 'failed', message)
     }
   }
@@ -573,7 +580,7 @@ function createQuotaService(
       }
     }
     if (!force && snapshot !== null && Date.now() - fetchedAt < (spec.ttlMs ?? TTL_MS)) {
-      return answer('cached', null)
+      return lastError !== null ? answer('stale', lastError) : answer('cached', null)
     }
     return run(apiKey)
   }
