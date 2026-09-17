@@ -64,6 +64,7 @@ from ._harness_common import (  # noqa: E402
 )
 from ._watchdog_common import (  # noqa: E402
     resolve_wechat_target, send_wechat, cosend_telegram, already_delivered,
+    delivered_channels,
     claim_send, mark_send_started, release_claim, log, send_per_policy,
 )
 
@@ -483,15 +484,14 @@ def main(argv=None):
     # the report already went out on the prior attempt — skip the re-send. Intraday's
     # marker is per-market, so use a 20min window (< the 30min slot cadence, > the
     # few-min retry gap) to tell a retry from the next legit slot. See already_delivered.
+    # WeChat and Telegram are judged separately (2026-09-17): a retry after a slot
+    # that landed only Telegram re-sends WeChat alone.
     delivered_this_run = False
+    _, telegram_done = delivered_channels(marker, within_ms=20 * 60 * 1000)
     if already_delivered(marker, within_ms=20 * 60 * 1000):
         print('idempotency: intraday already delivered this slot — skip re-send', file=sys.stderr)
-        try:
-            prior = json.loads(marker.read_text())
-            wechat_sent = prior.get('sent_ok')
-            tg_ok = prior.get('tg_ok')
-        except Exception:
-            pass
+        wechat_sent = True
+        tg_ok = telegram_done
     else:
         # Fail-closed, not silent (#135). A rejected report used to send nothing
         # at all, leaving a market slot indistinguishable from a dead cron until
@@ -536,7 +536,7 @@ def main(argv=None):
                 wechat_sent, send_out, tg_ok = send_per_policy(
                     'intraday', message, tag=f'intraday-{args.market}', market=args.market,
                     wechat=send_wechat, telegram=cosend_telegram,
-                    resolve=resolve_wechat_target)
+                    resolve=resolve_wechat_target, telegram_done=telegram_done)
                 delivered_this_run = bool(wechat_sent or tg_ok)
                 # Only the process that actually sent may write the marker. A
                 # declined claim writing one would tell intraday_watchdog this

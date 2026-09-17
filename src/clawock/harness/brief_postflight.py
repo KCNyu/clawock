@@ -798,6 +798,7 @@ from ._harness_common import (  # noqa: E402
 from ._watchdog_common import (  # noqa: E402
     BRIEF_URL_TMPL,
     resolve_wechat_target, send_wechat, build_brief_card, cosend_telegram, already_delivered,
+    delivered_channels,
     claim_send, mark_send_started, release_claim, log, send_per_policy,
 )
 from clawock.harness import brief_render  # noqa: E402
@@ -1336,9 +1337,11 @@ def main(argv=None):
     claim_declined = False
     brief_marker = delivery_receipts.receipt_path(WS / 'memory' / '.tmp', 'brief', date=today)
     # Idempotency: brief marker is per-date, fires once/day. If it already shows a
-    # delivery this run is an openclaw auto-retry of a turn that errored only in
-    # post-turn summary-gen — the card already went out. Skip re-send. See
-    # already_delivered (2026-07-11 retry-storm dup fix).
+    # WeChat delivery this run is an openclaw auto-retry of a turn that errored only
+    # in post-turn summary-gen — the card already went out. Skip re-send. See
+    # already_delivered (2026-07-11 retry-storm dup fix). A prior run that landed
+    # only Telegram is NOT a delivery (2026-09-17): this run re-sends WeChat alone.
+    _, telegram_done = delivered_channels(brief_marker)
     if status in ('pass', 'warn') and already_delivered(brief_marker):
         print('idempotency: brief already delivered today — skip re-send', file=sys.stderr)
         wechat_sent = True
@@ -1374,7 +1377,8 @@ def main(argv=None):
             # brief_watchdog uses (no WeChat resend), so it needs to know if TG got this card.
             wechat_sent, send_out, tg_ok = send_per_policy(
                 'brief', message, tag='brief', dry_run=args.dry_run,
-                wechat=send_wechat, telegram=cosend_telegram, resolve=resolve_wechat_target)
+                wechat=send_wechat, telegram=cosend_telegram, resolve=resolve_wechat_target,
+                telegram_done=telegram_done)
             # NEVER write the marker on a dry run (2026-07-16). send_wechat/cosend_telegram
             # return ok=True for a dry run (the CLI exits 0 without sending), so this used to
             # record sent_ok/tg_ok=true for a delivery that never happened. brief_watchdog

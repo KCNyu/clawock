@@ -33,6 +33,12 @@ still returns sent_ok=true). Since intraday_postflight now ALWAYS co-sends the s
 body to Telegram (cold-proof, no contextToken drop), the WeChat retry bought nothing
 but duplicates, so it's gone. Telegram is the sole backstop channel.
 
+ONE EXCEPTION — A CONFIRMED WECHAT FAILURE (2026-09-17): a marker for THIS slot
+with `sent_ok=false` is not the ambiguous stale/mismatched case above — the
+provider said the WeChat send failed, and a Telegram-confirmed marker used to end
+the check there. It now gets one WeChat retry, and a Telegram alert if that fails
+too (`_watchdog_common.wechat_backstop`, first seen on that day's brief).
+
 Healthy runs use their generated report; stalled/looped runs fall back to the
 deterministic preflight block on Telegram. Dedupe remains per slot.
 
@@ -83,6 +89,7 @@ from ._watchdog_common import (
     # re-export below keeps `intraday_watchdog.attempt_still_running` importable
     # for the tests and callers that learned the rule here first.
     attempt_still_running,
+    send_wechat, resolve_wechat_target, wechat_backstop,
 )
 
 from clawock.automation import cron_heartbeat  # noqa: E402
@@ -215,6 +222,19 @@ def marker_covers_slot(marker, job_name, slot, raw_block_first, now_ms,
     kcn as "undelivered".
     """
     if not isinstance(marker, dict) or not marker.get('tg_ok'):
+        return False
+    return marker_matches_slot(marker, job_name, slot, raw_block_first, now_ms,
+                               ctx_id=ctx_id, ctx_generated_at=ctx_generated_at)
+
+
+def marker_matches_slot(marker, job_name, slot, raw_block_first, now_ms,
+                        ctx_id=None, ctx_generated_at=None):
+    """Is `marker` evidence about THIS slot's report, whatever channel it landed on?
+
+    The slot-identity half of `marker_covers_slot`, without its Telegram
+    requirement, so the WeChat backstop asks exactly the same identity question.
+    """
+    if not isinstance(marker, dict):
         return False
     if (marker.get('job'), marker.get('slot')) != (job_name, slot):
         return False
@@ -409,6 +429,25 @@ def main():
             extra={'loop_score': loop_score, 'delivered_clean': None},
             telegram_already_delivered=telegram_already_delivered)
         return 0
+
+    # --- WeChat backstop: its own target, judged on its own (2026-09-17) -------
+    # Before the Telegram verdict below, which returns as soon as Telegram has the
+    # report. Only a marker for THIS slot recording a failed WeChat send qualifies
+    # (below the loop gate, so a looped body is never re-sent to WeChat).
+    if (raw_block and isinstance(marker, dict) and marker.get('sent_ok') is False
+            and marker_matches_slot(
+                marker, expected_job, expected_slot, raw_block_first, now_ms,
+                ctx_id=context.get('context_id'),
+                ctx_generated_at=context.get('generated_at'))):
+        wechat_body = (last_report_text(session_id, raw_block_first)
+                       or deterministic_fallback(raw_block, tag, '报告文本不在会话里'))
+        wechat_backstop(
+            'intraday', tag, wechat_body.strip(), marker,
+            delivery_receipts.receipt_path(WS / 'memory' / '.tmp', 'intraday',
+                                           market=args.market),
+            WS / 'memory' / '.tmp' / f'watchdog-{tag}-{slot_key}-wechat.done',
+            args.dry_run, market=args.market, wechat=send_wechat,
+            telegram=send_telegram, resolve=resolve_wechat_target)
 
     # --- Delivery evidence gate: the postflight marker decides -----------------
     # ORDER MATTERS (2026-07-29): this used to sit BELOW the generation gate, so a

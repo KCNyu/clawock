@@ -771,7 +771,7 @@ def _gh_run_failure_detail(run, max_len=300):
 
 
 def send_per_policy(kind, message, *, tag, market=None, dry_run=False,
-                    wechat=None, telegram=None, resolve=None):
+                    wechat=None, telegram=None, resolve=None, telegram_done=False):
     """Send one report to the channels the delivery policy names for its kind.
 
     Returns `(wechat_ok, wechat_out, telegram_ok)`. The three postflights each
@@ -784,6 +784,11 @@ def send_per_policy(kind, message, *, tag, market=None, dry_run=False,
     up in the caller's module at call time. That is deliberate: the postflight
     tests replace those names on the postflight module, and a helper that called
     its own copies would route a test's "send" to the real WeChat.
+
+    `telegram_done`: an earlier run of this same slot already landed Telegram and
+    only WeChat failed (see `delivered_channels`). The re-run owes WeChat alone;
+    co-sending again would put a second copy in Telegram, so the Telegram leg
+    reports the recorded success instead of sending.
     """
     from clawock.automation.delivery_receipts import CHANNELS
     policy = CHANNELS[kind]
@@ -797,7 +802,9 @@ def send_per_policy(kind, message, *, tag, market=None, dry_run=False,
             wechat_ok, wechat_out = wechat(channel, to, account, message, dry_run=dry_run)
         except Exception as e:  # noqa: BLE001 — a failed channel must not stop the other
             wechat_ok, wechat_out = False, str(e)[:300]
-    if 'telegram' in policy:
+    if 'telegram' in policy and telegram_done:
+        telegram_ok = True
+    elif 'telegram' in policy:
         # Same call shape the postflights always used: `dry_run` only when set.
         telegram_ok, _ = (telegram(message, tag, dry_run=True) if dry_run
                           else telegram(message, tag))
@@ -840,10 +847,43 @@ def cosend_telegram(message, tag, dry_run=False):
     return ok, out
 
 
+def delivered_channels(marker_path, within_ms=None):
+    """(wechat_ok, telegram_ok) a prior run of this slot recorded in its send marker.
+
+    The two channels are independent delivery targets and are judged separately.
+    WeChat counts as delivered when the postflight's own send succeeded
+    (`sent_ok`) or a watchdog WeChat backstop later landed it
+    (`wechat_backstop.ok`, see `wechat_backstop`); Telegram when `tg_ok`.
+
+    marker_path : the per-slot send marker written by the postflight
+      (report-sent-{market}-{phase}-{date}.json, brief-sent-{date}.json,
+       intraday-sent-{market}.json).
+    within_ms   : None → any-age marker counts (report/brief markers are keyed per
+      phase+date and legitimately fire once/day). Set a window for intraday, whose
+      marker is per-market (not per-slot): a retry lands within minutes while the
+      legit next slot is ~30min later, so only a *recent* marker means "retry".
+    An unreadable, torn or out-of-window marker proves nothing: (False, False).
+    """
+    try:
+        m = json.loads(Path(marker_path).read_text())
+    except Exception:
+        return False, False
+    if not isinstance(m, dict):
+        return False, False
+    if within_ms is not None:
+        age = int(datetime.now().timestamp() * 1000) - (m.get('ts') or 0)
+        if age >= within_ms:
+            return False, False
+    backstop = m.get('wechat_backstop')
+    wechat_ok = (m.get('sent_ok') is True
+                 or (isinstance(backstop, dict) and backstop.get('ok') is True))
+    return wechat_ok, m.get('tg_ok') is True
+
+
 def already_delivered(marker_path, within_ms=None):
-    """Idempotency guard for a postflight's PRIMARY send — returns True if a prior
-    run of this same slot already delivered (WeChat OR Telegram), so the send must
-    be skipped.
+    """Idempotency guard for a postflight's PRIMARY (WeChat) send — returns True if
+    a prior run of this same slot already delivered it to WeChat, so the WeChat
+    send must be skipped.
 
     WHY (2026-07-11): openclaw marks a cron run `error` and AUTO-RETRIES the whole
     agent turn when the *post-turn summary generation* fails — its model fallback
@@ -852,28 +892,117 @@ def already_delivered(marker_path, within_ms=None):
     report already went out inside that turn, so each retry re-runs the harness and
     re-sends → kcn got the same slot 2–4×. The delivery layer is per-run single-send;
     the dup is at the RUN layer. This guard makes the postflight send idempotent per
-    slot regardless of how many times openclaw retries. Genuine misses (marker shows
-    neither channel succeeded) are NOT blocked, and the watchdog remains the backstop.
+    slot regardless of how many times openclaw retries.
 
-    marker_path : the per-slot send marker written by the postflight
-      (report-sent-{market}-{phase}-{date}.json, brief-sent-{date}.json,
-       intraday-sent-{market}.json).
-    within_ms   : None → any-age marker blocks (report/brief markers are keyed per
-      phase+date and legitimately fire once/day). Set a window for intraday, whose
-      marker is per-market (not per-slot): a retry lands within minutes while the
-      legit next slot is ~30min later, so only a *recent* marker means "retry".
+    WECHAT ONLY (2026-09-17). This used to answer "WeChat OR Telegram", so a slot
+    whose WeChat send failed but whose Telegram co-send landed read as delivered:
+    the 08:03 brief that day recorded `sent_ok=false` (`ret=-2 prepare failed`),
+    `tg_ok=true`, every later postflight run skipped the send and reported
+    `wechat_sent: true`, and nothing ever retried WeChat. A Telegram success is
+    not a WeChat delivery. Callers that must not double Telegram on the WeChat
+    re-send read `delivered_channels` and pass `telegram_done` to
+    `send_per_policy`.
     """
+    return delivered_channels(marker_path, within_ms)[0]
+
+
+def wechat_backstop(kind, tag, message, marker, marker_path, flag_path, dry_run,
+                    market=None, wechat=None, telegram=None, resolve=None):
+    """Retry WeChat ONCE for a slot whose postflight WeChat send confirmably failed.
+
+    The watchdogs stopped re-sending WeChat on 2026-07-09 (kcn's call) because a
+    marker that merely looked stale or mismatched could not tell a landed WeChat
+    send from a dropped one, and the resend duplicated reports. This backstop does
+    not reopen that: it acts only on `sent_ok is False` in a marker the caller has
+    already matched to this slot — the delivery provider returned `failed`
+    (e.g. `ret=-2 prepare failed`), not `unknown`, so nothing reached WeChat.
+    A missing, stale or mismatched marker never reaches here.
+
+    WHY (2026-09-17): that day's 08:03 brief failed WeChat and landed Telegram;
+    brief_watchdog saw `tg_ok` and logged "no backstop", so the WeChat miss was
+    neither retried nor reported anywhere kcn reads.
+
+    At most once per slot: `flag_path` is created with O_EXCL BEFORE the send, so a
+    crash mid-send or a second watchdog pass cannot double it. On success the
+    marker gains `wechat_backstop.ok=true` (its `sent_ok` stays the postflight's
+    own result, which is what the delivery health counts); a postflight re-run
+    then reads WeChat as delivered. On failure kcn gets a Telegram alert naming
+    the WeChat miss — never a silent log line.
+
+    `kind` is the delivery-policy kind; a kind without WeChat is never retried.
+    `wechat` / `telegram` / `resolve` default to this module's senders, and are
+    injectable for the same reason as in `send_per_policy`.
+
+    Returns None when no retry was due, else whether the WeChat retry landed.
+    """
+    from clawock.automation.delivery_receipts import CHANNELS
+    if 'wechat' not in CHANNELS.get(kind, ()):
+        return None
+    if not isinstance(marker, dict) or marker.get('sent_ok') is not False:
+        return None
+    backstop = marker.get('wechat_backstop')
+    if isinstance(backstop, dict) and backstop.get('ok') is True:
+        return None
+    if not (message or '').strip():
+        log({'tag': tag, 'action': 'wechat-backstop-skip',
+             'reason': 'WeChat failed but there is no body to re-send'})
+        return None
+    wechat = wechat or send_wechat
+    telegram = telegram or send_telegram
+    resolve = resolve or resolve_wechat_target
+    flag_path = Path(flag_path)
+    if not dry_run:
+        try:
+            flag_path.parent.mkdir(parents=True, exist_ok=True)
+            fd = os.open(flag_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY)
+            os.write(fd, datetime.now(HKT).isoformat().encode())
+            os.close(fd)
+        except FileExistsError:
+            log({'tag': tag, 'action': 'skip',
+                 'reason': 'WeChat backstop already attempted this slot (dedupe flag)'})
+            return None
+        except OSError as e:
+            # Without the flag the attempt cannot be kept to one; do not send.
+            log({'tag': tag, 'action': 'wechat-backstop-skip',
+                 'reason': f'dedupe flag unwritable: {e}'})
+            return None
     try:
-        m = json.loads(Path(marker_path).read_text())
-    except Exception:
-        return False
-    if not (m.get('sent_ok') or m.get('tg_ok')):
-        return False
-    if within_ms is not None:
-        age = int(datetime.now().timestamp() * 1000) - (m.get('ts') or 0)
-        if age >= within_ms:
-            return False
-    return True
+        channel, to, account = resolve(market) if market else resolve()
+        ok, out = wechat(channel, to, account, message, dry_run=dry_run)
+    except Exception as e:  # noqa: BLE001 — the alert below must still go out
+        ok, out = False, str(e)[:300]
+    first_failure = (marker.get('out') or '')[-200:]
+    entry = {'tag': tag, 'action': 'wechat-backstop', 'dry_run': bool(dry_run),
+             'sent_ok': bool(ok), 'postflight_wechat_detail': first_failure}
+    if not ok:
+        entry['detail'] = (out or 'no output from the transport')[-300:]
+    log(entry)
+    if not dry_run:
+        try:
+            current = json.loads(Path(marker_path).read_text())
+            if isinstance(current, dict):
+                current['wechat_backstop'] = {
+                    'ok': bool(ok), 'at': datetime.now(HKT).isoformat(),
+                    **({} if ok else {'detail': (out or '')[-200:]}),
+                }
+                from clawock.safe_io import safe_write_text
+                safe_write_text(str(marker_path), json.dumps(current, ensure_ascii=False))
+        except Exception as e:  # noqa: BLE001 — the send result is already logged
+            log({'tag': tag, 'action': 'wechat-backstop-marker-write-failed',
+                 'detail': str(e)[:300]})
+    if not ok:
+        alert = (f'⚠️ 微信未送达：{tag}\n\n'
+                 f'postflight 微信发送失败（{first_failure or "无输出"}），'
+                 f'watchdog 补发一次也失败（{(out or "无输出")[-200:]}）。\n'
+                 f'这一条请以 Telegram 为准；微信不会再自动重试。')
+        try:
+            alert_ok, alert_out = telegram(KCN_TELEGRAM, alert, dry_run)
+        except Exception as e:  # noqa: BLE001
+            alert_ok, alert_out = False, str(e)[:300]
+        log({'tag': tag, 'action': 'wechat-miss-alert', 'dry_run': bool(dry_run),
+             'sent_ok': bool(alert_ok), 'target': KCN_TELEGRAM,
+             **({} if alert_ok else {'detail': (alert_out or '')[-300:]})})
+    return bool(ok)
 
 
 # A claim older than this is not a concurrent sender: report slots are hours

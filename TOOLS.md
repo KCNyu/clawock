@@ -149,7 +149,7 @@ clawock us-quotes     # 仅刷美股价格
 **Dashboard/发布**：KCNyu 三类 postflight 自动刷新完整 generation；host 补发入口 `ops/publish/publish_dashboard.sh` · `clawock dashboard-outputs`(统一 ownership + 语义 diff，忽略纯构建时间并给出精确 staging pathspec) · `ops/publish/safe_push.sh`(唯一 push 路径,rebase.autoStash 容脏树)
 
 **LLM-free Telegram 兜底哨兵（系统 crontab，非 openclaw cron）**
-- report / brief / intraday postflight 主发 WeChat 并同步 Telegram；watchdog 读真实 delivery marker，只在 Telegram marker 缺失或失败时补投，不再猜 run summary、也不重发 WeChat。
+- report / brief / intraday postflight 主发 WeChat 并同步 Telegram；watchdog 读真实 delivery marker，两路分开判：Telegram marker 缺失或失败时补投 Telegram；本 slot marker 明确记录微信失败（`sent_ok=false`）时补发微信一次，再失败就 Telegram 告警。marker 缺失/过期/对不上 slot 时不重发 WeChat，也不猜 run summary。
 - `.tmp/*-sent-*.json` + slot key 做幂等，避免长 turn / cron retry 双发。
 
 **其它正式入口**：`clawock mark-followed`(标 `decisions.jsonl` 的 execution.status) · `clawock audit-resettle`(默认只审计结算变化，`--write` 才落账) · `clawock integrity`(资金/行情完整性闸) · `clawock validate-sidecar`(发布产物结构闸) · `clawock evidence`(由实测产物重建证据与反证页) · `clawock news-evidence`(公告/新闻/日历去重、到期与确认图) · `clawock reconcile`(手工记录 `holdings[].trades[]` 与 broker 真值叶子后，统一重算 aggregates/cash/realized 并过完整性闸)。远端 LLM 自动化装成 `clawock-news-digest` / `-weekly-review` / `-influencer-scan` / `-brief-fallback`，只由 GitHub Actions workflow 调用，不是 OpenClaw 工具。**完整命令与内部 job 索引 → `docs/reference/commands.md`**。
