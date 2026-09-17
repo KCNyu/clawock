@@ -34,6 +34,13 @@
         // 不是价格 → 拿对应区域的账面回报率% 比较（旧代码误用绝对 HKD 金额→显示 -22042%）。
         const usTot = safe(DATA, "totals", "us") || {};
         const isUs = k.includes("us");
+        const toks = k.split(/[_\-]/);
+        // book_force_derisk_{usd,hkd} 是账面浮亏金额阈值（-300 = -$300，不是 -300%）
+        // → 拿对应区域的 pnl_{usd,hkd} 比较，按金额渲染（#1531）。带 pct 的仍按百分比。
+        if (!toks.includes("pct") && (toks.includes("usd") || toks.includes("hkd"))) {
+          return { cur: isUs ? usTot.pnl_usd : hkTot.pnl_hkd, ccy: isUs ? "USD" : "HKD",
+                   who: isUs ? "账面 US" : "账面 HK", strip:["book","hk","us"] };
+        }
         const cur = isUs ? usTot.pnl_pct : hkTot.pnl_pct;
         // keep force/derisk tokens so labelOf → "强制减仓"; strip only who/unit tokens.
         return { cur, ccy:"%", who: isUs ? "账面 US" : "账面 HK",
