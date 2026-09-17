@@ -1595,3 +1595,91 @@ body[data-ds-dark-theme] .pbc .bp {
     backdrop-filter:none
   }
 }
+/* Sidebar-foot home of the chip (hosts with global panels). The foot seat is
+   block-level beside Settings, so the pill becomes a full-width row with the
+   geometry of the host's own foot badge (ui-cordis: 42px row, 12px radius;
+   36px circle on the 56px rail). Every tone/tier selector above still
+   applies — only the box changes. The provider name leads the reading
+   because nothing around the foot says whose balance it is. */
+.pbc.pbf {
+  display:flex;
+  align-items:center;
+  width:100%;
+  height:42px;
+  margin:8px 0 0
+}
+.pbc.pbf .bchip {
+  width:calc(100% + 4px);
+  height:42px;
+  margin:0 -2px;
+  padding:0 10px 0 8px;
+  justify-content:flex-start;
+  border:0;
+  border-radius:12px;
+  overflow:hidden
+}
+.pbc.pbf .bchip::after {
+  content:none
+}
+.pbc.pbf .bchip[data-active] {
+  background:var(--dsw-alias-interactive-bg-active, rgba(17,24,39,.08))
+}
+.pbc.pbf .bchip-item {
+  gap:6px;
+  min-width:0;
+  overflow:hidden
+}
+/* The weekly sub-reading is the first thing the 260px row runs out of room
+   for; it ends in an ellipsis instead of a cut glyph (the title attribute and
+   the panel carry it in full). */
+.pbc.pbf .bchip-sub {
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis
+}
+.pbc .bchip-name {
+  font:500 var(--fs-sm)/1 var(--font);
+  color:var(--text);
+  white-space:nowrap
+}
+.pbc.pbf.rail {
+  width:36px;
+  height:36px;
+  margin:0
+}
+.pbc.pbf.rail .bchip {
+  justify-content:center;
+  width:36px;
+  height:36px;
+  margin:0;
+  padding:0;
+  border-radius:50%
+}
+.pbc.pbf.rail .bchip-dot {
+  width:8px;
+  height:8px
+}
+.pbc.pbf.rail .bchip-item[data-balance-state="ok"] .bchip-dot { background:var(--ok) }
+.pbc.pbf.rail .bchip-item[data-balance-state="low"] .bchip-dot { background:var(--bad) }
+.pbc.pbf.rail .bchip-item[data-balance-state="stale"] .bchip-dot { background:var(--warn) }
+/* Global panel (keyed `main` occupant): the popover's content as a standing
+   card. The center column clips, so the panel scrolls itself; the card keeps
+   the popover material but no longer floats, anchors or animates in. */
+.pbc.pbm {
+  box-sizing:border-box;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  flex:1 1 auto;
+  min-height:0;
+  overflow-y:auto;
+  padding:48px 16px
+}
+.pbc.pbm .bp {
+  position:static;
+  width:min(420px, 100%);
+  max-width:none;
+  min-width:0;
+  transform:none;
+  transition:none
+}

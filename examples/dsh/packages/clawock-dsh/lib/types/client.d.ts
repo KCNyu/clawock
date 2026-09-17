@@ -164,6 +164,8 @@ export interface BalancesInjected {
     cachedBalances: () => BalancesResult | null;
     /** Fetch all providers; `force` bypasses the host TTLs (the manual refresh). */
     fetchBalances: (force: boolean) => Promise<BalancesResult>;
+    /** Hear answers fetched by a sibling surface; returns the unsubscribe. */
+    subscribeBalances?: (listener: (result: BalancesResult) => void) => () => void;
 }
 /**
  * Which provider the pill headlines. null = auto (first configured row);
@@ -183,6 +185,31 @@ export type BalanceChipProps = BalancesInjected & PropsStore<BalanceStore> & {
     sessionId: string;
 };
 export declare function ProviderBalanceChip(props: BalanceChipProps): React.ReactElement;
+/**
+ * Main-panel key and foot-action id of the balance surface on hosts with
+ * global panels: the sidebar button and its `main` occupant share it.
+ */
+export declare const BALANCE_PANEL = "clawock-provider-balance";
+/** The foot button's owner share, host standard prop and inject face. */
+export type BalanceSidebarActionProps = BalancesInjected & PropsStore<BalanceStore> & {
+    /** Sidebar column state: false is the 56px rail (dot only). */
+    wide: boolean;
+    /** Host global standard prop: selector over the selected main panel. */
+    usePanelInfo?: <T>(selector: (info: {
+        activePanelId: string | null;
+    }) => T) => T;
+    /** Open the balance panel, or return to the conversation when it is open. */
+    togglePanel: (active: boolean) => void;
+};
+/**
+ * The sidebar-foot home of the balance chip: always mounted, independent of
+ * any session. It headlines the same one provider (pinned or first row) with
+ * the same dot/tier/stale colours and polls on the same cadence; the provider
+ * list, pinning and the manual refresh live in the global panel it opens.
+ */
+export declare function ProviderBalanceSidebarAction(props: BalanceSidebarActionProps): React.ReactElement;
+/** The global panel: the chip's popover content as a standing card. */
+export declare function ProviderBalancePanel(props: BalancesInjected & PropsStore<BalanceStore>): React.ReactElement;
 export declare function DecisionMind(props: DecisionMindProps): React.ReactElement;
 /** Services required by the registration and the mounted Remote face. */
 export declare const inject: string[];
@@ -193,6 +220,10 @@ interface ClientContributionContext {
         register: (definition: Record<string, unknown>, component: unknown) => unknown;
     };
     remote: TypertClientRemote;
+    /** Host layout face; `selectPanel` exists only where `main` is keyed (DSH >= 0.1.5-rc.1). */
+    layout?: {
+        selectPanel?: (panelId: string | null) => void;
+    };
     get: (name: string) => Record<string, (...args: unknown[]) => Promise<unknown>>;
 }
 /** Register the Decision Mind tab into the conversation view ring. */

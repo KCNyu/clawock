@@ -304,7 +304,7 @@ test("client: registers the Decision Mind tab and mounts the remote face", async
     if (s === "react") return makeReactStub();
     throw new Error(`unexpected require: ${s}`);
   });
-  assert.deepEqual(api.inject, ["slots", "remote"]);
+  assert.deepEqual(api.inject, ["slots", "remote", "layout"]);
 
   const remoteFace = {
     ledger: async () => ({ ok: true, value: { entries: [] } }),
@@ -1611,6 +1611,127 @@ test("client: the header chip headlines one provider and the panel pins the rest
   f.refresh.props.onClick();
   await tick(); await tick();
   assert.ok(true, "manual refresh resolves without throwing");
+  disposeReactEffects();
+});
+
+test("client: on a host with global panels the balance chip moves to the sidebar foot + a session-free panel", async () => {
+  const loaded = await loadClient();
+  const reactStub = makeReactStub();
+  const runtime = makeRuntimeStub();
+  const api = loaded.factory((s) => {
+    if (s === "@deepseek-ai/dsh-client-store") return runtime;
+    if (s === "react") return reactStub;
+    throw new Error(`unexpected require: ${s}`);
+  });
+  const LOW_DS = JSON.parse(JSON.stringify(DS_ROW_OK));
+  LOW_DS.result.low = true;
+  let calls = 0;
+  const remoteFace = {
+    balance: async (force) => {
+      calls += 1;
+      return { ok: true, value: { providers: [force ? LOW_DS : DS_ROW_OK, MM_ROW_OK], refreshMs: 60000 } };
+    },
+  };
+  const selected = [];
+  const ctx = {
+    effect() {},
+    get() { return remoteFace; },
+    // DSH >= 0.1.5-rc.1: `main` is keyed and the layout face selects panels.
+    layout: { selectPanel(id) { selected.push(id); } },
+    slots: {
+      inject(name, fn) { (this._seats ??= []).push(name); (this._fns ??= []).push(fn); },
+      register(definition, Component) { (this._regs ??= []).push({ definition, Component }); },
+    },
+    remote: { $mount: async () => {} },
+  };
+  await api.apply(ctx);
+  for (const fn of ctx.slots._fns) fn();
+  assert.deepEqual(ctx.slots._seats, ["conversation.view", "main", "sidebar.footer.action"],
+    "Decision Mind stays a conversation tab; the chip leaves the session header for the sidebar foot + main panel");
+  const panel = ctx.slots._regs.find((r) => r.definition.name === "main");
+  const action = ctx.slots._regs.find((r) => r.definition.name === "sidebar.footer.action");
+  assert.equal(panel.definition.key, api.BALANCE_PANEL);
+  assert.equal(action.definition.id, "provider-balance");
+  assert.equal(ctx.slots._regs.some((r) => r.definition.name === "conversation.session.header.utilities"), false,
+    "no header chip once the sidebar hosts it");
+  // One store instance behind both registrations: a pin in the panel re-headlines the button.
+  assert.equal(panel.definition.store.create(), action.definition.store.create(), "the foot and the panel share one pin store");
+
+  const tick = () => new Promise((resolve) => setImmediate(resolve));
+  const store = makeBalanceStoreStub();
+  const actionFace = action.definition.inject();
+  const panelFace = panel.definition.inject();
+  let activePanelId = null;
+  const renderAction = (wide = true) => {
+    reactStub._resetCursor();
+    return action.Component({ wide, usePanelInfo: (sel) => sel({ activePanelId }), useStore: store.useStore, actions: store.actions, ...actionFace });
+  };
+  const find = (tree, pred) => {
+    const out = [];
+    (function walk(node) {
+      if (node == null) return;
+      if (Array.isArray(node)) { node.forEach(walk); return; }
+      if (typeof node !== "object") return;
+      if (pred(node.props || {})) out.push(node);
+      (node.children || []).forEach(walk);
+    })(tree);
+    return out;
+  };
+  const texts = (tree) => {
+    const out = [];
+    (function walk(node) {
+      if (node == null) return;
+      if (Array.isArray(node)) { node.forEach(walk); return; }
+      if (typeof node === "string") { out.push(node); return; }
+      (node.children || []).forEach(walk);
+    })(tree);
+    return out.join(" ");
+  };
+
+  // The foot button headlines the first provider with its tone, and names it.
+  renderAction();
+  await tick(); await tick(); await tick();
+  let foot = renderAction();
+  const button = find(foot, (p) => p["data-clawock-action"] === api.BALANCE_PANEL)[0];
+  assert.ok(button, "foot button rendered");
+  assert.equal(button.props["data-balance-state"], "ok");
+  assert.match(texts(foot), /DeepSeek/);
+  assert.match(texts(foot), /¥110/);
+  assert.equal(find(foot, (p) => p["data-pb-role"] === "panel").length, 0, "the foot carries the headline only");
+  const railButton = find(renderAction(false), (p) => p["data-clawock-action"] === api.BALANCE_PANEL)[0];
+  assert.equal(railButton.props.title.startsWith("DeepSeek"), true, "the rail keeps the reading in its title");
+
+  // Clicking opens the panel; clicking while active returns to the conversation.
+  button.props.onClick();
+  activePanelId = api.BALANCE_PANEL;
+  foot = renderAction();
+  assert.equal(find(foot, (p) => p["data-clawock-action"])[0].props["aria-current"], "page");
+  find(foot, (p) => p["data-clawock-action"])[0].props.onClick();
+  assert.deepEqual(selected, [api.BALANCE_PANEL, null]);
+
+  // The panel renders every provider row with pinning and the manual refresh, no session involved.
+  const renderPanel = () => { reactStub._resetCursor(); return panel.Component({ useStore: store.useStore, actions: store.actions, ...panelFace }); };
+  renderPanel();
+  await tick(); await tick(); await tick();
+  let board = renderPanel();
+  assert.equal(board.props["data-clawock-panel"], api.BALANCE_PANEL);
+  const rows = find(board, (p) => p["data-pb-role"] === "panel");
+  assert.deepEqual(rows.map((r) => r.props["data-pb-provider"]), ["deepseek", "minimax"]);
+  rows[1].props.onClick();
+  assert.equal(store._get().selected, "minimax", "a panel click pins the headline provider");
+  foot = renderAction();
+  assert.equal(find(foot, (p) => p["data-clawock-action"])[0].props["data-pb-provider"], "minimax",
+    "the foot button follows the pin");
+
+  // A forced refresh from the panel reaches the foot button without waiting for its poll.
+  store.actions.select("deepseek");
+  const before = calls;
+  find(board, (p) => p["data-refresh"] === "true")[0].props.onClick();
+  await tick(); await tick(); await tick();
+  assert.equal(calls, before + 1, "one forced fetch");
+  foot = renderAction();
+  assert.equal(find(foot, (p) => p["data-clawock-action"])[0].props["data-balance-state"], "low",
+    "the low red dot shows on the foot button right after the panel's refresh");
   disposeReactEffects();
 });
 

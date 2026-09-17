@@ -583,6 +583,8 @@ export interface BalancesInjected {
   cachedBalances: () => BalancesResult | null
   /** Fetch all providers; `force` bypasses the host TTLs (the manual refresh). */
   fetchBalances: (force: boolean) => Promise<BalancesResult>
+  /** Hear answers fetched by a sibling surface; returns the unsubscribe. */
+  subscribeBalances?: (listener: (result: BalancesResult) => void) => () => void
 }
 
 /**
@@ -665,17 +667,31 @@ function renderRowDetail(row: {
   return h('div', { className: cx('bp-sub') }, body)
 }
 
-export function ProviderBalanceChip(props: BalanceChipProps): React.ReactElement {
+/** One provider row as the chip, the foot button and the panel render it. */
+type BalanceRow = BalancesResult['providers'][number] & {
+  view: ReturnType<typeof _rowDisplay>
+  note: string | null
+}
+
+/**
+ * The balance channel every surface shares: cached-first state, the mount
+ * fetch, the refreshMs poll, the #870 refresh flash and the pinned headline.
+ * Lifted out of the header chip verbatim so the sidebar button and the
+ * global panel keep exactly its behaviour. `pollKey` re-arms the fetch the
+ * way the chip's `sessionId` dependency did; root-scoped surfaces pass a
+ * constant. A registration that supplies `subscribeBalances` also hears
+ * answers fetched by its sibling surface (the panel's manual refresh updates
+ * the foot button at once).
+ */
+function useProviderBalances(props: BalancesInjected & PropsStore<BalanceStore>, pollKey: string) {
   const mountedRef = useRef(true)
   const [data, setData] = useState<{ result: BalancesResult | null; loading: boolean }>(
     () => ({ result: props.cachedBalances(), loading: false }),
   )
   const selected = props.useStore((state) => state.selected)
   const select = (provider: string): void => { props.actions.select(provider) }
-  const [open, setOpen] = useState(false)
   const [flash, setFlash] = useState<'ok' | 'same' | null>(null)
   const flashTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const rootRef = useRef<HTMLSpanElement | null>(null)
 
   const runBalances = (force: boolean): void => {
     props.fetchBalances(force).then((result) => {
@@ -695,17 +711,114 @@ export function ProviderBalanceChip(props: BalanceChipProps): React.ReactElement
   useEffect(() => {
     mountedRef.current = true
     runBalances(false)
+    const unsubscribe = props.subscribeBalances === undefined
+      ? null
+      : props.subscribeBalances((result) => {
+        if (mountedRef.current) setData((current) => ({ ...current, result }))
+      })
     return () => {
       mountedRef.current = false
+      if (unsubscribe !== null) unsubscribe()
       if (flashTimerRef.current !== null) clearTimeout(flashTimerRef.current)
     }
-  }, [props.sessionId])
+  }, [pollKey])
 
   useEffect(() => {
     const intervalMs = Math.max(60000, data.result?.refreshMs ?? 60000)
     const timer = setInterval(() => { runBalances(false) }, intervalMs)
     return () => clearInterval(timer)
-  }, [data.result?.refreshMs, props.sessionId])
+  }, [data.result?.refreshMs, pollKey])
+
+  const rows: BalanceRow[] = (data.result?.providers ?? []).map((provider) => ({
+    ...provider,
+    view: _rowDisplay(provider.result),
+    note: _balanceNote(provider.result),
+  }))
+  // 胶囊只讲一个 provider:选中的优先,否则第一行(稳定的 deepseek-first 序)。
+  const primary = rows.find((row) => row.provider === selected) ?? rows[0]
+  const refresh = (): void => {
+    setData((current) => ({ ...current, loading: true }))
+    runBalances(true)
+  }
+  return { data, rows, primary, select, flash, refresh }
+}
+
+/** The headline reading: dot · value · reset · weekly sub-reading. */
+function renderBalanceHeadline(primary: BalanceRow | undefined, withLabel: boolean): React.ReactElement {
+  return primary === undefined
+    ? h('span', { className: cx('bchip-item') }, h('span', { className: cx('bchip-dot') }), '—')
+    : h('span', { className: cx('bchip-item'), 'data-pb-provider': primary.provider, 'data-pb-role': 'chip', 'data-balance-state': primary.view.tone },
+      h('span', { className: cx('bchip-dot') }),
+      withLabel ? h('span', { className: cx('bchip-name') }, primary.label) : null,
+      h('span', {
+        className: cx('bchip-v'),
+        'data-balance-state': primary.view.tone,
+        // 用量档位染色(kcn 配色口径,恢复):配额行 ok 绿/mid 黄/low 红;
+        // 金额行 level=null 不带属性,保持墨色、low 红走 tone。
+        'data-used-level': primary.view.level === null ? undefined : primary.view.level,
+      }, primary.view.value),
+      // 头条窗口的重置时刻(kcn 反馈:额度用尽要知道什么时候恢复),
+      // 面板每窗一行里有完整版,这里是小字同款。
+      primary.view.reset === null
+        ? null
+        : h('span', { className: cx('bchip-reset') }, '↻ ' + primary.view.reset),
+      // 周限额副读数(含它自己的重置时刻):装饰性重复(面板/悬浮里有
+      // 完整版),对读屏静音。
+      primary.view.sub === null
+        ? null
+        : h('span', { className: cx('bchip-sub'), 'aria-hidden': 'true' }, primary.view.sub))
+}
+
+/** The panel body: title + refresh, then every provider row (click = pin). */
+function renderBalancePanelBody(state: ReturnType<typeof useProviderBalances>): React.ReactElement[] {
+  const { data, rows, primary, select, flash, refresh } = state
+  return [
+    h('div', { className: cx('bp-head'), key: 'head' },
+      h('span', { className: cx('bp-title') }, 'API 余额'),
+      h('button', {
+        type: 'button',
+        className: cx('bal-rf', data.loading && 'spin', flash === 'ok' && 'flash-ok', flash === 'same' && 'flash-same'),
+        'data-refresh': 'true',
+        'aria-label': '刷新全部余额',
+        title: '立即刷新',
+        onClick: refresh,
+      }, flash === 'ok' ? '✓' : '↻')),
+    rows.length === 0
+      ? h('div', { className: cx('bp-empty'), key: 'empty' }, '正在读取各服务余额…')
+      : h('div', { key: 'rows' }, rows.map((row) => h('button', {
+        type: 'button',
+        key: row.provider,
+        className: cx('bp-row'),
+        'data-pb-provider': row.provider,
+        'data-pb-role': 'panel',
+        // 点行=把该 provider 钉成胶囊头条;当前头条行带 aria-pressed。
+        'aria-pressed': row.provider === (primary !== undefined ? primary.provider : ''),
+        onClick: () => { select(row.provider) },
+      },
+        h('span', { className: cx('bp-dot'), 'data-balance-state': row.view.tone }),
+        h('span', { className: cx('bp-label') },
+          row.label,
+          row.provider === (primary !== undefined ? primary.provider : '')
+            ? h('span', { className: cx('bp-pin') })
+            : null),
+        h('span', { className: cx('bp-v', row.view.tone === 'low' ? 'bad' : ''), 'data-balance-state': row.view.tone }, row.view.value),
+        // note 与明细并存,不再二选一(#908 根因:互斥三元让水位/stale
+        // 警示句把每窗读数、进度条、重置时间整个顶掉)。无窗的异常行由
+        // renderRowDetail 自己返回 null,仍是「只讲一句」。
+        [
+          row.note !== null
+            ? h('div', { className: cx('bp-note', row.view.tone === 'stale' ? 'warn' : 'bad'), key: 'note' }, row.note)
+            : null,
+          renderRowDetail(row),
+        ]))),
+  ]
+}
+
+export function ProviderBalanceChip(props: BalanceChipProps): React.ReactElement {
+  const state = useProviderBalances(props, props.sessionId)
+  const { rows, primary } = state
+  const [open, setOpen] = useState(false)
+  const rootRef = useRef<HTMLSpanElement | null>(null)
 
   // 打开时:Escape 关闭,点外面关闭(document 存在才挂——测试环境无 DOM)。
   useEffect(() => {
@@ -723,18 +836,6 @@ export function ProviderBalanceChip(props: BalanceChipProps): React.ReactElement
     }
   }, [open])
 
-  const rows = (data.result?.providers ?? []).map((provider) => ({
-    ...provider,
-    view: _rowDisplay(provider.result),
-    note: _balanceNote(provider.result),
-  }))
-  // 胶囊只讲一个 provider:选中的优先,否则第一行(稳定的 deepseek-first 序)。
-  const primary = rows.find((row) => row.provider === selected) ?? rows[0]
-  const refresh = (): void => {
-    setData((current) => ({ ...current, loading: true }))
-    runBalances(true)
-  }
-
   return h('span', { className: cx('pbc'), ref: rootRef },
     h('button', {
       type: 'button',
@@ -748,67 +849,66 @@ export function ProviderBalanceChip(props: BalanceChipProps): React.ReactElement
         ? primary.label + ' · ' + primary.view.title + (rows.length > 1 ? '(点击查看其他服务)' : '')
         : '余额加载中',
       onClick: () => { setOpen(!open) },
-    },
-      primary === undefined
-        ? h('span', { className: cx('bchip-item') }, h('span', { className: cx('bchip-dot') }), '—')
-        : h('span', { className: cx('bchip-item'), 'data-pb-provider': primary.provider, 'data-pb-role': 'chip', 'data-balance-state': primary.view.tone },
-          h('span', { className: cx('bchip-dot') }),
-          h('span', {
-            className: cx('bchip-v'),
-            'data-balance-state': primary.view.tone,
-            // 用量档位染色(kcn 配色口径,恢复):配额行 ok 绿/mid 黄/low 红;
-            // 金额行 level=null 不带属性,保持墨色、low 红走 tone。
-            'data-used-level': primary.view.level === null ? undefined : primary.view.level,
-          }, primary.view.value),
-          // 头条窗口的重置时刻(kcn 反馈:额度用尽要知道什么时候恢复),
-          // 面板每窗一行里有完整版,这里是小字同款。
-          primary.view.reset === null
-            ? null
-            : h('span', { className: cx('bchip-reset') }, '↻ ' + primary.view.reset),
-          // 周限额副读数(含它自己的重置时刻):装饰性重复(面板/悬浮里有
-          // 完整版),对读屏静音。
-          primary.view.sub === null
-            ? null
-            : h('span', { className: cx('bchip-sub'), 'aria-hidden': 'true' }, primary.view.sub))),
+    }, renderBalanceHeadline(primary, false)),
     h('div', { className: cx('bp'), 'data-open': open ? 'true' : 'false', role: open ? 'dialog' : 'none', 'aria-label': '各模型服务余额' },
-      h('div', { className: cx('bp-head') },
-        h('span', { className: cx('bp-title') }, 'API 余额'),
-        h('button', {
-          type: 'button',
-          className: cx('bal-rf', data.loading && 'spin', flash === 'ok' && 'flash-ok', flash === 'same' && 'flash-same'),
-          'data-refresh': 'true',
-          'aria-label': '刷新全部余额',
-          title: '立即刷新',
-          onClick: refresh,
-        }, flash === 'ok' ? '✓' : '↻')),
-      rows.length === 0
-        ? h('div', { className: cx('bp-empty') }, '正在读取各服务余额…')
-        : rows.map((row) => h('button', {
-          type: 'button',
-          key: row.provider,
-          className: cx('bp-row'),
-          'data-pb-provider': row.provider,
-          'data-pb-role': 'panel',
-          // 点行=把该 provider 钉成胶囊头条;当前头条行带 aria-pressed。
-          'aria-pressed': row.provider === (primary !== undefined ? primary.provider : ''),
-          onClick: () => { select(row.provider) },
-        },
-          h('span', { className: cx('bp-dot'), 'data-balance-state': row.view.tone }),
-          h('span', { className: cx('bp-label') },
-            row.label,
-            row.provider === (primary !== undefined ? primary.provider : '')
-              ? h('span', { className: cx('bp-pin') })
-              : null),
-          h('span', { className: cx('bp-v', row.view.tone === 'low' ? 'bad' : ''), 'data-balance-state': row.view.tone }, row.view.value),
-          // note 与明细并存,不再二选一(#908 根因:互斥三元让水位/stale
-          // 警示句把每窗读数、进度条、重置时间整个顶掉)。无窗的异常行由
-          // renderRowDetail 自己返回 null,仍是「只讲一句」。
-          [
-            row.note !== null
-              ? h('div', { className: cx('bp-note', row.view.tone === 'stale' ? 'warn' : 'bad'), key: 'note' }, row.note)
-              : null,
-            renderRowDetail(row),
-          ]))))
+      renderBalancePanelBody(state)))
+}
+
+/**
+ * Main-panel key and foot-action id of the balance surface on hosts with
+ * global panels: the sidebar button and its `main` occupant share it.
+ */
+export const BALANCE_PANEL = 'clawock-provider-balance'
+
+/** The foot button's owner share, host standard prop and inject face. */
+export type BalanceSidebarActionProps = BalancesInjected & PropsStore<BalanceStore> & {
+  /** Sidebar column state: false is the 56px rail (dot only). */
+  wide: boolean
+  /** Host global standard prop: selector over the selected main panel. */
+  usePanelInfo?: <T>(selector: (info: { activePanelId: string | null }) => T) => T
+  /** Open the balance panel, or return to the conversation when it is open. */
+  togglePanel: (active: boolean) => void
+}
+
+/**
+ * The sidebar-foot home of the balance chip: always mounted, independent of
+ * any session. It headlines the same one provider (pinned or first row) with
+ * the same dot/tier/stale colours and polls on the same cadence; the provider
+ * list, pinning and the manual refresh live in the global panel it opens.
+ */
+export function ProviderBalanceSidebarAction(props: BalanceSidebarActionProps): React.ReactElement {
+  const state = useProviderBalances(props, BALANCE_PANEL)
+  const { rows, primary } = state
+  const active = props.usePanelInfo === undefined
+    ? false
+    : props.usePanelInfo((info) => info.activePanelId === BALANCE_PANEL)
+  const summary = primary !== undefined
+    ? primary.label + ' · ' + primary.view.title + (rows.length > 1 ? '(点击查看其他服务)' : '')
+    : '余额加载中'
+  return h('div', { className: cx('pbc', 'pbf', !props.wide && 'rail') },
+    h('button', {
+      type: 'button',
+      className: cx('bchip'),
+      'data-balance-state': primary !== undefined ? primary.view.tone : 'none',
+      'data-pb-provider': primary !== undefined ? primary.provider : '',
+      'data-clawock-action': BALANCE_PANEL,
+      'data-active': active ? '' : undefined,
+      'aria-current': active ? 'page' : undefined,
+      'aria-label': '各模型服务余额',
+      title: summary,
+      onClick: () => { props.togglePanel(active) },
+    }, props.wide
+      ? renderBalanceHeadline(primary, true)
+      : h('span', { className: cx('bchip-item'), 'data-balance-state': primary !== undefined ? primary.view.tone : 'none' },
+        h('span', { className: cx('bchip-dot') }))))
+}
+
+/** The global panel: the chip's popover content as a standing card. */
+export function ProviderBalancePanel(props: BalancesInjected & PropsStore<BalanceStore>): React.ReactElement {
+  const state = useProviderBalances(props, BALANCE_PANEL)
+  return h('div', { className: cx('pbc', 'pbm'), 'data-clawock-panel': BALANCE_PANEL },
+    h('div', { className: cx('bp'), 'data-open': 'true', role: 'region', 'aria-label': '各模型服务余额' },
+      renderBalancePanelBody(state)))
 }
 
 export function DecisionMind(props: DecisionMindProps): React.ReactElement {
@@ -1024,7 +1124,7 @@ export function DecisionMind(props: DecisionMindProps): React.ReactElement {
 }
 
 /** Services required by the registration and the mounted Remote face. */
-export const inject = ['slots', 'remote']
+export const inject = ['slots', 'remote', 'layout']
 
 /** Client contribution context: the face the slot renderer hands us. */
 interface ClientContributionContext {
@@ -1033,6 +1133,8 @@ interface ClientContributionContext {
     register: (definition: Record<string, unknown>, component: unknown) => unknown
   }
   remote: TypertClientRemote
+  /** Host layout face; `selectPanel` exists only where `main` is keyed (DSH >= 0.1.5-rc.1). */
+  layout?: { selectPanel?: (panelId: string | null) => void }
   get: (name: string) => Record<string, (...args: unknown[]) => Promise<unknown>>
 }
 
@@ -1074,15 +1176,23 @@ export async function apply(ctx: Context & ClientContributionContext): Promise<v
       return { snapshot, changed }
     },
   })
-  // The chip is app-level account chrome, not decision data — it lives in the
-  // session header's utilities seat with its own inject face and cache, so
-  // the Decision Mind view carries trading semantics only.
+  // The chip is app-level account chrome, not decision data, and belongs to
+  // no session. Where the layout hosts global panels (`ctx.layout.selectPanel`,
+  // keyed `main`, DSH >= 0.1.5-rc.1) it lives at the sidebar foot beside
+  // Settings (`sidebar.footer.action`) and opens a session-free `main` panel;
+  // older hosts keep it in the session header's utilities seat.
+  const balanceListeners = new Set<(result: BalancesResult) => void>()
   const balancesInjected = (): BalancesInjected => ({
     cachedBalances: () => cachedBalances,
     fetchBalances: async (force) => {
       const result = await call<BalancesResult>('balance', [force])
       cachedBalances = result
+      for (const listener of balanceListeners) listener(result)
       return result
+    },
+    subscribeBalances: (listener) => {
+      balanceListeners.add(listener)
+      return () => { balanceListeners.delete(listener) }
     },
   })
   const store = createDecisionMindStore()
@@ -1095,11 +1205,36 @@ export async function apply(ctx: Context & ClientContributionContext): Promise<v
     inject: injected,
   }, DecisionMind))
   const balancesStore = createBalanceStore()
-  ctx.slots.inject('conversation.session.header.utilities', () => ctx.slots.register({
-    name: 'conversation.session.header.utilities',
-    id: 'provider-balance',
-    order: 90,
-    store: balancesStore,
-    inject: balancesInjected,
-  }, ProviderBalanceChip))
+  const layout = ctx.layout
+  const selectPanel = layout?.selectPanel
+  if (layout !== undefined && typeof selectPanel === 'function') {
+    // The foot button and the panel are two registrations of one surface: they
+    // share one store instance so a pin made in the panel re-headlines the
+    // button (the host's own layout shares an instance the same way).
+    const balancesInstance = balancesStore.create()
+    const sharedBalancesStore = { ...balancesStore, create: () => balancesInstance }
+    ctx.slots.inject('main', () => ctx.slots.register({
+      name: 'main',
+      key: BALANCE_PANEL,
+      store: sharedBalancesStore,
+      inject: balancesInjected,
+    }, ProviderBalancePanel))
+    ctx.slots.inject('sidebar.footer.action', () => ctx.slots.register({
+      name: 'sidebar.footer.action',
+      id: 'provider-balance',
+      store: sharedBalancesStore,
+      inject: () => ({
+        ...balancesInjected(),
+        togglePanel: (active: boolean) => { selectPanel.call(layout, active ? null : BALANCE_PANEL) },
+      }),
+    }, ProviderBalanceSidebarAction))
+  } else {
+    ctx.slots.inject('conversation.session.header.utilities', () => ctx.slots.register({
+      name: 'conversation.session.header.utilities',
+      id: 'provider-balance',
+      order: 90,
+      store: balancesStore,
+      inject: balancesInjected,
+    }, ProviderBalanceChip))
+  }
 }
