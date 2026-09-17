@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-17T23:37:01.859976+00:00",
+  "generated_at": "2026-09-17T23:45:54.450583+00:00",
   "sources": [
     "reddit-search-rss",
     "google-news-rss"
@@ -161,16 +161,10 @@
       ],
       "google_news_en": [
         {
-          "title": "SpaceX Stock Faces a Risk That Keeps Coming Back in Waves",
-          "source": "Benzinga",
-          "published": "Tue, 15 Sep 2026 14:25:59 GMT",
-          "url": "https://news.google.com/rss/articles/CBMirwFBVV95cUxNU1BEdU81ZmpvMWxmSFVUR3lpZldGa2d3VGk5N2NuQVdYTUxEMm5WWUpLYUtrRGFSMnd4X28zRkhxY2VBNTNBSzR6aF9CSjRWMnZSVFUtajhzSHJGaW94a2dtUUVYemhxVXdsODBZd05hY2E3Um9BYUZzMVd0X2ZlakVLZGhXOU5icVcyQ3JXVzdVMEJfZmdjdV9xYnVhRThPTlN6UWtGN2lVaXo2TXNj?oc=5"
-        },
-        {
-          "title": "SpaceX stock pops ahead of Starship launch",
+          "title": "Could SpaceX Buy Tesla? Ron Baron Says He Gave Elon Musk Reasons For And Against A Blockbuster Deal",
           "source": "Yahoo Finance",
-          "published": "Wed, 16 Sep 2026 18:04:35 GMT",
-          "url": "https://news.google.com/rss/articles/CBMiqgFBVV95cUxPYzJrVVJOY0hPWndMemxESHp0UEdWREFCU0h0empEZjFqMVg4N1hnMHZ0WmxPaDJWR29DTGo5WHVHU1JsR25DYWZ6MXNONUNSUFF4RVBSYVlzSkIwYjJ5VWVkMXJ1UVd2OHFFLXJSSVZsQjJBdjlwN3BLVHBWSnYzOGF0WFB5U0VoSWlDazN4M2w4MGlubTN4bm1wWnlXckdlZEY4NHdSN0pZUQ?oc=5"
+          "published": "Thu, 17 Sep 2026 05:18:22 GMT",
+          "url": "https://news.google.com/rss/articles/CBMilgFBVV95cUxNUGQ4c2ZvSGY0Mk1nS25tMy1jWWwwZmRhQ0FyUDQ0bF90dU42a0JDdFJvbHlCMmNhLTFrLVp1S0dLczVnWC1aSVZ0M19sQ1o0Yk9ZRkM0dk9FanAtdGZsNExjNkg1Rmd2ck15bC1TN3lxRkZaR256Y1B0Qm5SOFVPdWtyZFc0UC1VZjdOZ0xhb3paYkl4M1E?oc=5"
         },
         {
           "title": "Stocks making the biggest moves midday: SpaceX, Lumentum, Diamondback Energy, J.B. Hunt & more",
@@ -185,16 +179,22 @@
           "url": "https://news.google.com/rss/articles/CBMimAFBVV95cUxNZG9fckpjQmNmTnpUa0J0YTgwTWg2U2VhNlVsejlvclJhLU5JM2NiNXhLRFdLNkQzTmtRdnpzRC1JLUpQSHFFVDZhejFLaW5MZFdKQlh6SmhnLWxsT3R0Z19iYlBrRjdxeFJsRllocWZzRXBZTEowQTR5SzlSd1p5ZldUTUhEQXY5U0lYSGlSdkVObllUSS1EcA?oc=5"
         },
         {
-          "title": "Prediction: This Will Be SpaceX’s Stock Price by June 2027 (Hint: It Implies a Big Move)",
-          "source": "The Motley Fool",
-          "published": "Wed, 16 Sep 2026 09:12:00 GMT",
-          "url": "https://news.google.com/rss/articles/CBMimAFBVV95cUxQRkYwTlNNZ1NiM3dheUFhSU53UDIybnNkMjlyREkxUC1TcXhCQkV2THVKN2ZTWXpzWjd1ODRLNGdUMHdSNENpc0ZETUowZm5VbnVuWEZyU1ZRSFFIM3ZnOGY3bDdKZVA2UEM2TVNpV05fSTY5UFZYbC1TX25iZ204LUhmaWJnemdqUVJiNFZCN2ZMV3ZMcUdnag?oc=5"
-        },
-        {
           "title": "SpaceX: Great Business At A Dangerous Price (NASDAQ:SPCX)",
           "source": "Seeking Alpha",
           "published": "Thu, 17 Sep 2026 13:00:00 GMT",
           "url": "https://news.google.com/rss/articles/CBMiiwFBVV95cUxPUVYwZVM5Tm55c2VwMVZGdjJMRVQwd3BqLUo2NVp4NEhLT1ltbVcxMVBKeWJNYXZkS3o0Z3FyVDQ5b3doYXFLek1oNFRQc0ZOLWxFM3VZczA5bXJJSWVUR0VZLWdzTnlUTUZ2Ty1TNGpwV2hqOTQxMWV0Rk8tY3kyT1ZydnRfNlRlNVN3?oc=5"
+        },
+        {
+          "title": "SpaceX Stock Surges: What's Going On?",
+          "source": "Benzinga",
+          "published": "Wed, 16 Sep 2026 15:48:10 GMT",
+          "url": "https://news.google.com/rss/articles/CBMimwFBVV95cUxOdkx4Z09fNmFRYzgtcmZlNlBSNGJxeWVnSDg0U19NWUhxWV9QSVZqYVZiQVlhZW1odEgtSFpLWFQ2ZTN0S0h2WWkxVVYyNUl5T2VYekJpdUtaVm94eWFKVV9lYUsyTGZ1aHBVckpjRDhHMEJEMVVieVJESWk0b1ZwU2ZDUVRFdmYwaU1nd1VvSFBENVQ2M0d2eWhaTQ?oc=5"
+        },
+        {
+          "title": "SpaceX (SPCX) Hands Investors $8.5 Billion In Shares Through In Kind Distribution",
+          "source": "Yahoo Finance",
+          "published": "Thu, 17 Sep 2026 06:11:00 GMT",
+          "url": "https://news.google.com/rss/articles/CBMimgFBVV95cUxPbU9nVFZEZmxmN3F5SDRxbEtKdlFEbEx2Sk5rZXlLcDZXTl85X1NuTU1yOEk2T3VXQjF4Um1SWWVmN1JZVG1xd2dUSmNtRlh4VllSbDFtZDhHWFdabFFXblk0VFQwWUQzbmpJWWplX2RRZ3lLRGpMZjF0R2dySS1adjNnb1dQNE5WVnRvM2txTkRSb3VHeE9rdlBR?oc=5"
         }
       ],
       "google_news_zh": []
@@ -366,7 +366,7 @@
         },
         {
           "title": "Jinfeng Technology's Hong Kong-listed shares rose in the afternoon session, while SpaceX is advancing its IPO plans, which are expected to provide a significant valuation benchmark for the industry.",
-          "source": "news.futunn.com",
+          "source": "富途牛牛",
           "published": "Tue, 10 Mar 2026 07:00:00 GMT",
           "url": "https://news.google.com/rss/articles/CBMingFBVV95cUxNNVRzb0psX2ltVDVwOXZCdHpEY0QybU00cWVnOVRxQktDOExFTHFCX2VpS3dBYnlCcmZRZklOdUQ5VGRrMG9SVElRTTdYaVh3NFRHdGZrc1FMYjhXNkVSWXRhZ2VIMWZhcENuc2k1RDMyZW9ESHJ3VjV1UXNLdlkyWVBzVGhWNnlaNG5sa0JaUk9nNlpoRUczV3VqWFpJdw?oc=5"
         },
@@ -380,7 +380,7 @@
       "google_news_zh": [
         {
           "title": "金風科技風機價量齊升可留意",
-          "source": "巴士的報",
+          "source": "bastillepost.com",
           "published": "Fri, 21 Aug 2026 07:00:00 GMT",
           "url": "https://news.google.com/rss/articles/CBMi9gFBVV95cUxNZ3JHWkY0aWRaMTEwNU9qeDJtenpmSGpSWUpBUjNHeU1MUHFidm9QTW5kcTJ0dWYxS0R2YlRwNjVHU1ByTWJkeHVMQkRDeHJIQmpVZ2ljdVlVc2hHQUFZYllfQ3RzUXMxTGYwR2R2Sm51Tjc5UG5WQ3c3a0JsWGFFNi1aeFNfOVJPNWpmcUxWeVZ0bWNKRVFndFNWbE5SYmQ3X3NPeXBwcE5uUmlWRkhqUXVkMHdPcjNQLUNaTllqcFZKT3ljY2dCNnhoamtTeFJQS1RrdXpBZk1Lc2dhNkl1STZJM2dMM3FxbVYxcHBvSThkQjV0ekE?oc=5"
         },
@@ -603,7 +603,7 @@
         },
         {
           "title": "Zhitong Stock Connect Active Trading | August 24",
-          "source": "news.futunn.com",
+          "source": "富途牛牛",
           "published": "Mon, 24 Aug 2026 12:03:31 GMT",
           "url": "https://news.google.com/rss/articles/CBMikAFBVV95cUxNY3ZLMGdyb0lJemhDMHJFc3AtWjdDS190LVRhYmItQmtJMEZaT1d5anZpZFlyREM2MzRLUUhZaTdsUFFKSk0wZ1otUlRnaTlDdUFMV0V6Y1k0Zi1HNjBPT1ZXUUFONlFQaTRtVFpvaU9yVWxZMzliNzBiTjQtbUIwNnI3ZmVCMWRXU0JWSTRSaHI?oc=5"
         }
