@@ -4191,7 +4191,7 @@
   gap: 0 10px;
   border: 1px solid var(--border);
   border-radius: 10px;
-  background: var(--surface);
+  background: var(--card);
   overflow: hidden;
 }
 .tr-row {
@@ -4263,7 +4263,7 @@
 .trace-line { position: relative; padding-left: 20px; margin: 8px 0 4px; }
 .trace-line::before { content: ''; position: absolute; left: 5px; top: 8px; bottom: 8px; width: 2px; background: var(--border); }
 .tr-node { position: relative; padding: 3px 0 10px; }
-.tr-node::before { content: ''; position: absolute; left: -20px; top: 7px; width: 9px; height: 9px; border-radius: 50%; background: var(--surface); border: 2px solid var(--text-dim); }
+.tr-node::before { content: ''; position: absolute; left: -20px; top: 7px; width: 9px; height: 9px; border-radius: 50%; background: var(--card); border: 2px solid var(--text-dim); }
 .tr-node.dec::before { border-color: var(--accent); }
 .tr-node.ok::before { border-color: var(--pos); }
 .tr-node.skip::before { border-color: var(--warning); }
