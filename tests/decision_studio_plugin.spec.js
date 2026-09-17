@@ -1214,6 +1214,24 @@ test("balance: CNY picking, tolerant parsing and the service's polite-cadence st
     assert.equal(stale.status, "stale");
     assert.equal(stale.snapshot.totalBalance, "9.00");
     assert.match(stale.message, /down/);
+
+    // The failure outlives the call that saw it (#1546): a non-forced read
+    // inside the TTL still says stale, from cache, until a refresh succeeds.
+    const staleCached = await service.get(false);
+    assert.equal(staleCached.status, "stale", "a failed refresh must not read as cached");
+    assert.equal(staleCached.snapshot.totalBalance, "9.00");
+    assert.match(staleCached.message, /down/);
+    assert.equal(upstreamCalls, 3, "the stale answer is served without hitting upstream");
+    globalThis.fetch = async () => {
+      upstreamCalls += 1;
+      return new Response(JSON.stringify({
+        is_available: true,
+        balance_infos: [{ currency: "CNY", total_balance: "8.00" }],
+      }), { status: 200, headers: { "content-type": "application/json" } });
+    };
+    const recovered = await service.get(true);
+    assert.equal(recovered.status, "fresh");
+    assert.equal((await service.get(false)).status, "cached", "a successful refresh clears the stale mark");
   } finally {
     globalThis.fetch = originalFetch;
   }

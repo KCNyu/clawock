@@ -314,6 +314,7 @@ async function fetchJson(url, headers, vendor, statusMessages = {}) {
 function createQuotaService(deps, spec) {
 	let snapshot = null;
 	let fetchedAt = 0;
+	let lastError = null;
 	let inFlight = null;
 	const answer = (status, message) => ({
 		configured: true,
@@ -328,9 +329,11 @@ function createQuotaService(deps, spec) {
 		try {
 			snapshot = await spec.fetchFresh(apiKey);
 			fetchedAt = Date.now();
+			lastError = null;
 			return answer("fresh", null);
 		} catch (cause) {
 			const message = cause instanceof Error ? cause.message : String(cause);
+			if (snapshot !== null) lastError = message;
 			return answer(snapshot !== null ? "stale" : "failed", message);
 		}
 	};
@@ -345,7 +348,7 @@ function createQuotaService(deps, spec) {
 			threshold: spec.threshold,
 			refreshMs: spec.refreshMs
 		};
-		if (!force && snapshot !== null && Date.now() - fetchedAt < (spec.ttlMs ?? TTL_MS)) return answer("cached", null);
+		if (!force && snapshot !== null && Date.now() - fetchedAt < (spec.ttlMs ?? TTL_MS)) return lastError !== null ? answer("stale", lastError) : answer("cached", null);
 		return run(apiKey);
 	};
 	return { 
