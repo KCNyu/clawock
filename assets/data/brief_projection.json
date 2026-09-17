@@ -3,11 +3,12 @@
   "generated_at": "2026-09-17T08:04:34.869558+08:00",
   "as_of": "2026-09-17",
   "context_generation_id": "e1bde0e647fdd99f",
-  "judgment_status": "invalid",
-  "judgment_issues": [
-    "judgment ticker_judgments[8] peer_read must be non-empty text"
-  ],
-  "portfolio_judgment": null,
+  "judgment_status": "valid",
+  "judgment_issues": [],
+  "portfolio_judgment": {
+    "assessment": "今天 9/17 是 FOMC 靴子落地后第一个工作日, HK 9:30 开盘 AI 板块 +5 到 +6 区间反弹是 6/15 以来最显著, 但本子 6 breach 全 维持 stance 不重提, 6 仓 core hold 加 1 仓 SPCH 9/16 rearm cut 仍 settlement pending. 00100 借反弹 +5.80% 收 248.20 距 trim 评估位 250 仅差 1.8 个百分点, 策略约束 trim 不到是策略层硬约束不是选择. 9/17 反弹 ≠ 趋势反转: HSTECH 5d 仍 -1.0 偏弱, FOMC 加息 25bp 10Y 5.006 高息环境, 9/24 GDP 3rd estimate 9/25 PCE 三周内事件密集, 反弹窗口短. 双视角书总浮亏 USD -7362 约 HKD -57756, HK leg -50464 HKD 占大头, US leg -929 USD 受 SPCH 9/16 反弹 9.96% 单日回血约 276 USD.",
+    "counterargument": "6 breach 站 64d 仍默认 维持 stance 是 2026-09-12 kcn 政策共识, 但 stance=declined 显式记录 kcn 同期 0 笔对 RKLX 07226 操作, 站 64d 不动手是 主动沉默 与 被动拖延 的数学等价. 9/17 反弹日是 trim 窗口但策略约束 hold_and_watch/watch, 错过窗口是策略约束不是 kcn 限制; 00100 trim 评估位 250 差 1.8 个百分点 = 9/18-9/19 突破 250 区间内是观察焦点. SPCH 9/16 cut 若执行, swap_mandate SPCX buy 腿 9/16 close 150.88 已超 144.89 invalidation 但仍被策略约束, cut 释放现金暂存单纯是降账面集中度不降 β 敞口, 是 breach 复利的政策合规不是经济优化."
+  },
   "tickers": [
     {
       "ticker": "RKLX",
@@ -58,7 +59,21 @@
         "rank": 0,
         "state": "critical"
       },
-      "judgment": null,
+      "judgment": {
+        "ticker": "RKLX",
+        "verdict": "neutral",
+        "confidence": 0.5,
+        "disposition": "wait",
+        "assessment": "adaptive 政策站 64d 升 1d, 9/16 与 9/17 之间无实质不同: 浮亏 -70.4 维持 (硬止损线 -18 critical, rearm 阈值 ≤ -81.5 未触发). 1x RKLB 6/13 已清, swap_mandate=null 无 1x 替代授权. 9/16 收 14.7 较前日 +0.48 持平, peer RKLB +0.24 略弱.",
+        "counterargument": "硬止损 -70.4 ≤ -18 站 64d 是 ledger 中最老 breach, breakeven 需 +238 (5-sigma 不可达 σ=39.4), chop drag 1.29 每月, 永不回本概率 >99.",
+        "rationale": "chop drag 1.29 每月, 永不回本概率 >99. 维持 stance per 2026-09-12 kcn 政策. 维持期间盯 RKLB 现 63.55 距 200MA 80.12 -20.7, 跌穿 50 → 此立场失效. 加仓仍冻结.",
+        "falsifier": "若 RKLB 跌穿 50 → 主动 cover cut 缺口. 若浮亏 ≤ -81.5 → 必须重提.",
+        "next_evidence": "RKLB 9/17 价格 vs 63.55; RKLB 9/18 是否跌穿 50 (立场失效位); Iridium 收购 8B 整合进度",
+        "fundamentals": "标的 RKLB 9/11 Raymond James Buy + 80 TP (+30 upside), Iridium 收购 8B 整合 2027 中完成",
+        "cross_market": "US 商业航天 9/16 mixed (RKLB +0.24 / ASTS +0.85 / BKSY +0.65 / IRDM +0.40)",
+        "sentiment_read": "硬催化: 9/14 Rocket Lab Challenging NASA Mars Network Contract Award 是硬事件已价; 软催化: stance=declined 显式记录 kcn 同期 0 笔对 RKLX 操作",
+        "peer_read": "RKLB +0.24 vs self +0.48 略强 (杠杆 2x 路径), ASTS +0.85 vs self +0.48 跑赢 0.37 百分点"
+      },
       "candidate_disposition": {
         "deterministic_candidate": false,
         "effective": "wait",
@@ -113,7 +128,21 @@
         "rank": 0,
         "state": "critical"
       },
-      "judgment": null,
+      "judgment": {
+        "ticker": "07226",
+        "verdict": "neutral",
+        "confidence": 0.55,
+        "disposition": "wait",
+        "assessment": "adaptive 政策站 35d 升 1d, 9/16 与 9/17 之间无实质不同: 同样 hard_stop @ -34.6 ≤ -18 + HK 杠杆 ETF 29.7 > 25 amber cap. 维持 stance per 2026-09-12 kcn 政策. 9/17 9:30 HKT 开盘 +1.78 (杠杆放大 HSTECH +0.79 反弹), 反弹 ≠ 重新评估 stance.",
+        "counterargument": "9/16 与 9/17 之间无实质变化, 反弹 ≠ 重新评估. adaptive 政策默认维持, 距 forced_on 2026-10-13 还有 26d 窗口. 反弹 < 6 段容易 fade.",
+        "rationale": "chop drag 0.35 每月, 现价 2.852 距 6m 需涨 +25 才能在 2x 路径上回本. swap_mandate 1x 替代 03033 buy 腿策略约束. reflections 10 场胜率 70 减×2 胜 2 100, 但当前 stance=declined 显式记录 kcn 同期 0 笔对 07226 操作, 政策不重提.",
+        "falsifier": "若 HSTECH 跌破 4,000 整数位 → 主动 cover cut 缺口. 若浮亏 ≤ -44.9 → 必须重提.",
+        "next_evidence": "HSTECH 9/17 收盘 (现 4,291 距 4,000 整数位 -6.8 缓冲); 9/18-9/19 是否突破 4,200 或跌破 4,000",
+        "fundamentals": "杠杆 ETF, 标的是 HSTECH, 浮亏 -34.6 ≤ 硬止损线 -18, chop drag 0.35 每月. 9/15 holdings_news CSOP 2x 涨 6 是 supporting 已价.",
+        "cross_market": "杠杆 2x 放大 underlying 弱势, 9/17 1d 反弹 1.78 是 HSTECH 0.79 杠杆放大, 同行 09999 网易 -0.16 略跑输",
+        "sentiment_read": "硬催化 1 个: 9/16 中芯连续 11 日沽 41.85 亿 (peer 南向资金) 是 disconfirming 软利空, 但 9/11 南向 03033 接货 9.37 亿逆向是 supporting",
+        "peer_read": "09999 网易 -0.16 vs self +1.78 略跑输, 杠杆放大 HSTECH 0.79 倍, 同行 00700 腾讯 -1.23 / 09988 阿里 -0.93 全部跑输"
+      },
       "candidate_disposition": {
         "deterministic_candidate": false,
         "effective": "wait",
@@ -169,7 +198,21 @@
         "rank": 1,
         "state": "elevated"
       },
-      "judgment": null,
+      "judgment": {
+        "ticker": "SPCH",
+        "verdict": "neutral",
+        "confidence": 0.5,
+        "disposition": "wait",
+        "assessment": "9/16 监控 rearm 触发 cut 计划 (2 个新 1d breach: regime_delever + hard_stop), 9/16 借 +9.96 反弹段 cut 300 股 @market (现 10.16 较前日 9.24) 比新低日 cut 价好. 9/16 settlement 仍 pending. 9/16 close 10.16 浮亏 -15.8 (硬止损线 -18 仍 2.2 个百分点缓冲).",
+        "counterargument": "9/16 反弹 9.96 仅是 5d 反弹 3.8 的 1d 段, 不构成 1x→2x 转 green. 配对 swap_mandate SPCX buy 腿现 150.88 > alpha_confirmation invalidation 144.89 仍策略约束.",
+        "rationale": "维持 stance: 若 9/16 cut 已成交, 现金 3048 USD 释放, SPCX buy 腿 1x 替代授权但 SPCX 现 150.88 > 144.89 invalidation 策略约束. 若 9/16 cut 未成交, 9/17 重提. reflections 5 场胜率 60.",
+        "falsifier": "若 9/16 cut 已成交且 SPCX 收盘 < 144.89 → buy 腿 active. 若 9/16 cut 未成交 → 9/17 重提.",
+        "next_evidence": "9/16 SPCH cut settlement 状态; SPCX 9/16 收盘 150.88 vs alpha_confirmation 144.89 invalidation",
+        "fundamentals": "SPCH = 2x SPCX 杠杆 ETF, 9/15 SPCX -3.15; 9/15 5d SPCH -12.8 跑输 SPCX -6.5 6.3 个百分点. 9/15 SPCX 10-Q filed 2026-08-04 Q2 营收 12.5B; MS 300 TP 9/15 维持 Buy",
+        "cross_market": "US 商业航天 9/16 mixed (SPCX +5.15 / RKLB +0.24 / ASTS +0.85 / BKSY +0.65 / IRDM +0.40); SPCH 9/16 +9.96 大反弹 peer ASTS +0.85 大幅跑赢 (杠杆放大 11.7 倍)",
+        "sentiment_read": "硬催化: 9/16 监控 2 个新 1d breach (regime_delever + hard_stop) 是 rearm 触发条件. 软催化: 9/15 holdings_news SPCH ETF Profile / Liquidity Mapping 全部是中性已价.",
+        "peer_read": "SPCX +5.15 vs self +9.96 跑输 4.81 个百分点 (杠杆 2x 路径有效, 反弹段放大 1.93 倍), ASTS +0.85 vs self +9.96 跑输 9.11 百分点"
+      },
       "candidate_disposition": {
         "deterministic_candidate": false,
         "effective": "wait",
@@ -218,7 +261,21 @@
         "rank": 3,
         "state": "neutral"
       },
-      "judgment": null,
+      "judgment": {
+        "ticker": "00100",
+        "verdict": "neutral",
+        "confidence": 0.5,
+        "disposition": "wait",
+        "assessment": "9/17 9:30 HKT 开盘反弹 +5.80 收 248.20 距 trim 评估位 250 差 1.8 个百分点, 策略约束 trim 不到, 维持 hold. 智谱 MINIMAX 双双反弹 +6.25 到 +5.80 智谱略领涨, peer divergence 02513 +5.88 vs self +5.80 gap -0.08 几乎对齐.",
+        "counterargument": "FOMC 加息 25bp + 10Y 5.006 双重压力, 5d -25.8 仍负, 反弹 < 6 段是 dead cat bounce 高概率, MA20 311 仍远上方.",
+        "rationale": "1 股 234.6 已加仓 7 笔均价 508.47, 现 33,320 HKD 占 HK 55.88 first single_name 集中度, 策略约束仅允许 hold_and_watch/watch. reflections 16 场胜率 44 持×9 胜 2 逊于减×6 胜 4, 但策略约束不允许 trim.",
+        "falsifier": "若 9/18-9/19 反弹 < 240 → AI 板块 rotating 离场. 若 z reverts 到 -1.0 以内 + 残差转正 → 重新评估加仓.",
+        "next_evidence": "9/18 HKT 开盘 + 收盘 vs 9/17 反弹 248.20; 智谱 vs 00100 价差",
+        "fundamentals": "9/8 半年报 H1 营收 +18.2 YoY + 净利 +24.7 YoY + 风机毛利率 +4pp + 海上装机 +48 是硬支撑. 9/11 贝莱德 + 9/13 摩根大通加仓 supporting 已价.",
+        "cross_market": "US 9/16 NDX -0.01 同步, FOMC 靴子落地 US 反应 -0.45 SPX -1.21 DJI 同步.",
+        "sentiment_read": "硬催化 (CLARITY 失败距 60 票差 11 票结构性 + ARK 9/14 卖 60M USD CRCL + insider 卖 11,670 股) 是 disconfirming 持续信号, 软情绪 bucket 维持 hold.",
+        "peer_read": "智谱 +5.88 vs self +5.80 gap -0.08 几乎对齐, 板块 9/17 反弹 +5 到 +6 是 6/15 以来最显著, 但 5d -25.8 仍负."
+      },
       "candidate_disposition": {
         "deterministic_candidate": false,
         "effective": "wait",
@@ -267,7 +324,21 @@
         "rank": 3,
         "state": "neutral"
       },
-      "judgment": null,
+      "judgment": {
+        "ticker": "02208",
+        "verdict": "neutral",
+        "confidence": 0.5,
+        "disposition": "wait",
+        "assessment": "9/16 收 8.80 (前日 9.175, -4.09) 是当日风电板块最弱, peer divergence 01798 +2.43 vs self -4.09 gap 6.5 个百分点严重跑输. z=-1.71 仍处极端位, MA20 9.37 站不上意味着趋势不修复.",
+        "counterargument": "9/16 -4.09 跑输同行 6.5 个百分点是当日风电板块最弱, 龙源 00916 / 新天绿色能源均跑赢. 8.8 距 8.96 5d 低仅 1.8 个百分点缓冲.",
+        "rationale": "reflections 12 场胜率 25 偏低, 主动 call 谨慎. 9/8 半年报 H1 营收 +18.2 YoY + 净利 +24.7 YoY 是硬支撑. 美银 9/10 减仓软利空已价.",
+        "falsifier": "若跌破 8.96 → 减仓 30. 若反弹 > 9.50 但策略约束, 9/18-9/19 重新评估.",
+        "next_evidence": "9/18 HKT 开盘 + 收盘 vs 9/16 收 8.80; 龙源电力 00916 / 东方电气 01072 同行表现",
+        "fundamentals": "9/8 半年报 H1 营收 337.39 亿 +18.2 YoY + 净利 18.55 亿 +24.7 YoY + 风机毛利率 +4pp + 海上装机 +48",
+        "cross_market": "风电板块 9/16 mixed, 02208 -4.09 中位偏弱, 跑输 00956 6.07 跑赢 01798 0.98",
+        "sentiment_read": "9/16 holdings_news 3 条: 美银减仓 (软利空) + 摩根大通加仓 (软利好) + 绿色甲醇发运 (硬事件已价); 全部已价 5d 几乎平盘",
+        "peer_read": "01798 大唐新能源 +2.43 vs self -4.09 gap 6.5 个百分点严重跑输, 龙源走强 = 02208 仍在落后"
+      },
       "candidate_disposition": {
         "deterministic_candidate": false,
         "effective": "wait",
@@ -316,7 +387,21 @@
         "rank": 3,
         "state": "neutral"
       },
-      "judgment": null,
+      "judgment": {
+        "ticker": "03032",
+        "verdict": "neutral",
+        "confidence": 0.55,
+        "disposition": "wait",
+        "assessment": "1x ETF 持仓不在 breach 范围, 策略约束 hold_and_watch/watch. 9/16 收 4.322 较前日 +0.51 跟板块. z=-1.40 偏极端位, RSI 32.7 超卖. 仓位 864.4 HKD 占 HK 1.45 极小.",
+        "counterargument": "HSTECH 5d 仍 -1.0 偏弱, FOMC 加息 25bp 10Y 5.006, 9/24 GDP 9/25 PCE 风险窗口前资金不进场.",
+        "rationale": "软情绪 + ETF 本身无基本面, 持有跟随 HSTECH. 9/11 南向净流入 9.37 亿逆向接货是 supporting 已价.",
+        "falsifier": "HSTECH 跌破 4,200 → 减仓 30. 反弹 > 4,500 但策略约束, 仅作观察.",
+        "next_evidence": "9/18 HKT 开盘 + 收盘 vs 9/16 收 4.322; HSTECH 9/17 9:30 反弹延续 (1d +0.79)",
+        "fundamentals": "1x ETF 跟随 HSTECH 标的, 9/16 holdings_news: 议息靴子落定 / 反内卷 AI 资金再平衡 / 估值低位",
+        "cross_market": "US 9/16 -0.45 同步, 1x ETF 跟随板块",
+        "sentiment_read": "9/16 holdings_news 3 条全部已价, 软情绪不影响 1x ETF 持有",
+        "peer_read": "03067 安硕恒生科技 +0.99 vs self +0.51 略领涨, peer_dispersion_5d 0.0003 极小, 1x 票之间无 alpha 差异"
+      },
       "candidate_disposition": {
         "deterministic_candidate": false,
         "effective": "wait",
@@ -365,7 +450,21 @@
         "rank": 3,
         "state": "neutral"
       },
-      "judgment": null,
+      "judgment": {
+        "ticker": "03033",
+        "verdict": "neutral",
+        "confidence": 0.55,
+        "disposition": "wait",
+        "assessment": "1x ETF, 同一 1x 逻辑跟随 HSTECH. 9/16 收 4.242 较前日 +0.71. z=-1.38 偏极端位, RSI 33.3 超卖. 仓位 4,242 HKD 占 HK 7.11.",
+        "counterargument": "swap_mandate to 03033 from 07226 仍 standby (07226 维持 stance, 维持期间不重提). FOMC 不确定性收敛前不动作.",
+        "rationale": "策略约束允许 add_only_on_trigger 是 HK 票中唯一 add 权限票, 但 swap_mandate 仍 standby, 不触发 add 路径. 9/11 南向净流入 9.37 亿逆向接货是 supporting 已价. 维持 hold.",
+        "falsifier": "HSTECH 跌破 4,200 → 减仓 30. 07226 stance 失效 (HSTECH < 4,000) → 重新评估 swap_mandate 触发.",
+        "next_evidence": "9/18 HKT 开盘 + 收盘 vs 9/16 收 4.242; 07226 9/17 stance 是否触发",
+        "fundamentals": "1x ETF 跟随 HSTECH 标的",
+        "cross_market": "同一 HSTECH 链路, 1x ETF 跟随",
+        "sentiment_read": "9/11 南向净流入 9.37 亿 03033 智谱 MINIMAX 砸盘逆向接货是 supporting 已价, 软情绪",
+        "peer_read": "03032 恒生科技 ETF +0.51 vs self +0.71 几乎对齐, 1x 票之间无 alpha 差异"
+      },
       "candidate_disposition": {
         "deterministic_candidate": false,
         "effective": "wait",
@@ -414,7 +513,21 @@
         "rank": 3,
         "state": "neutral"
       },
-      "judgment": null,
+      "judgment": {
+        "ticker": "CRCL",
+        "verdict": "neutral",
+        "confidence": 0.4,
+        "disposition": "wait",
+        "assessment": "9/16 收 80.45 较前日 86.30 -6.78 是当日稳币板块最弱. peer divergence PYPL -2.04 / HOOD -5.46 / COIN -4.42 全部跑赢. ARK 9/14 卖 60M USD + CLARITY 9/15 49-50 失败 + insider director 卖 11,670 股 是叠加利空. 5d -13.5 是持仓最大回撤.",
+        "counterargument": "9/16 -6.78 跑输同行是当日稳币板块最弱, ARK 减仓 + CLARITY 失败 + insider 卖股 叠加是 disconfirming 硬催化. 1 个 CLARITY 距 60 票差 11 票结构性短期难翻盘.",
+        "rationale": "软情绪单独存在时 bucket 维持 hold 但 confidence 软催化 -10pp 至 0.40. F&G 26.5 fear 极端位是统计反弹温床, 但 9/16 板块反应过度. 1 股 80.45 仓位 160.9 USD 占 US 4.59, 不构成 breaches 触发.",
+        "falsifier": "若 9/16 收盘 < 78 → 重新评估 trim 30. 若 CLARITY 法案 9/24-9/30 重启投票 → 重新评估 catalyst 升级.",
+        "next_evidence": "9/16 9/17 美股盘前 CRCL 价格 vs 80.45; ARK 9/16 9/17 调仓; CLARITY 法案 9/24-9/30 重启投票窗口",
+        "fundamentals": "Circle L1 Arc 9/16 主网, BlackRock / Visa 11 家验证人; insider director 卖 11,670 股是软利空; operating margin 1.055 优质; ROA 0.001341 偏弱",
+        "cross_market": "US 稳币板块 9/16 普跌 (CRCL -6.78 / COIN -4.42 / HOOD -5.46 / PYPL -2.04 / BKKT -7.00)",
+        "sentiment_read": "硬催化: ARK 9/14 卖 60M USD CRCL + CLARITY 9/15 49-50 失败 + insider director 卖 11,670 股 是叠加利空. 软催化: F&G 26.5 fear 极端位是统计反弹温床, 软情绪单独存在时 bucket 维持 hold 但 confidence -10pp.",
+        "peer_read": "PYPL -2.04 vs self -6.78 gap 4.74 跑输, HOOD -5.46 vs self -6.78 gap 1.32 略跑输, CRCL 9/16 是稳币板块最弱"
+      },
       "candidate_disposition": {
         "deterministic_candidate": false,
         "effective": "wait",
@@ -463,7 +576,21 @@
         "rank": 3,
         "state": "neutral"
       },
-      "judgment": null,
+      "judgment": {
+        "ticker": "SPCX",
+        "verdict": "neutral",
+        "confidence": 0.5,
+        "disposition": "wait",
+        "assessment": "9/16 收 150.88 较前日 143.49 +5.15 是 US 持仓最佳反弹 (5d +2.3 微正). peer_residual 5d 0.0355 微正, peer_dispersion_5d 0.0276 小幅发散, 商业航天板块中表现相对好. SPCX 现浮盈 +2.3. 1 股 150.88 = 150.88 USD 占 US 4.3, 仓位极小. alpha_confirmation setup entry 155.0 距现 -2.7, 仍受 short-history 因子影响 (66 bars < 200).",
+        "counterargument": "SPCX 5d 0.16 残差是 attention 1.756 极端位易均值回归, 估值与成交脱钩. 1x→2x swap 配对 buy 腿 SPCX 因 alpha_confirmation 144.89 invalidation 不成交 (9/16 close 150.88 已超但策略约束), cut 释放现金仍无处放.",
+        "rationale": "维持 hold: 仓位极小 (1 股 150.88) + 反弹已部分兑现 + z=+1.3 仍偏极端位易均值回归, 加仓不急. 若 9/18-9/19 反弹 > 155 触发 setup 是补建 swap_mandate buy 腿还是已太晚, 9/16 close 已超 144.89 invalidation 但策略约束.",
+        "falsifier": "若 9/16 收盘 < 140 → 重新评估 trim 30. 若 9/18-9/19 反弹 > 155 → 重新评估 SPCX 1x 替代授权. 若 9/18 跌破 143 → 反弹段已结束.",
+        "next_evidence": "SPCX 9/17 9/18 价格 vs 9/16 收 150.88 (alpha_confirmation 155.0 距 -2.7 仍受 short-history 因子影响); Morgan Stanley 300 TP 状态; Starship Flight 14 + Tesla-SpaceX merger 进度",
+        "fundamentals": "SPCX = SpaceX 私募, 9/15 10-Q filed 2026-08-04, Q2 营收 12.5B / R&D 7.06B / 净亏 4.82B / 资产 192.77B / 现金 93.52B; Starship 14 试飞 9 月底; MS 300 TP 9/15 维持 Buy",
+        "cross_market": "US 商业航天 9/16 mixed, SPCX +5.15 跑赢 peer ASTS +0.85 4.3 百分点 (商业航天板块中表现相对好)",
+        "sentiment_read": "硬催化: 9/15 SPCX 10-Q filed, 1.756 attention_score 是 US 持仓中最高. 软催化: MS 300 TP 是 supporting 已价, 9/16 Starship Flight 14 + Tesla-SpaceX merger 暗示 supporting 已价",
+        "peer_read": "SPCX +5.15 跑赢 peer ASTS +0.85 4.3 百分点 (商业航天板块中表现相对好), peer_residual 5d 0.0355 微正, peer_dispersion_5d 0.0276 小幅发散; 1 股 150.88 = 150.88 USD 占 US 4.3 仓位极小"
+      },
       "candidate_disposition": {
         "deterministic_candidate": false,
         "effective": "wait",

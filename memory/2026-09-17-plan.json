@@ -31,7 +31,7 @@
       "condition": {
         "type": "manual",
         "price": null,
-        "description": "反弹 250+ 评估 trim, 但 packet 限制 allowed_actions=[hold_and_watch, watch] 无 trim 权限; FOMC 鸽/鹰分化后看 9/24 GDP + 9/25 PCE",
+        "description": "反弹 250+ 评估 trim, 但 策略约束 allowed_actions=[hold_and_watch, watch] 无 trim 权限; FOMC 鸽/鹰分化后看 9/24 GDP + 9/25 PCE",
         "valid_for_sessions": 1
       },
       "size": {
@@ -43,13 +43,13 @@
       "driven_by": "technical",
       "evidence_event_id": null,
       "regime": "neutral",
-      "rationale": "9/17 9:30 HKT 开盘 248.20 较 9/16 收 234.60 +5.80%, 距 trim 评估位 250 差 1.8%; 9/16 智谱/MINIMAX 双双反弹 +6.25%/+5.80% 智谱略领涨, peer divergence 02513 +5.88% vs self +5.80% gap -0.08pp 几乎对齐 (alpha 仍弱但 5d 落后已部分回补); z=-1.96 仍处极值 (peer_dispersion_5d 0.0535, 残差 -10.28%); FOMC 9/16 加息 25bp 已落地, 10Y 5.006% 持续高息, 高估值/烧钱型股估值压力未消; 1 股 234.6 已加仓 7 笔均价 508.47, 现 33,320 HKD 占 HK 55.88% 仍 first single_name 集中度, packet 限制仅允许 hold_and_watch/watch, 反弹 ≠ 加仓信号 (alpha 仍弱 + 加仓即增单名集中); reflections 16 场胜率 44%, 持×9 胜 2 (22%) 逊于减×6 胜 4 (67%), 但 packet 不允许 trim",
+      "rationale": "9/17 9:30 HKT 开盘 248.20 较 9/16 收 234.60 +5.80%, 距 trim 评估位 250 差 1.8%; 9/16 智谱/MINIMAX 双双反弹 +6.25%/+5.80% 智谱略领涨, peer divergence 02513 +5.88% vs self +5.80% gap -0.08pp 几乎对齐 (alpha 仍弱但 5d 落后已部分回补); z=-1.96 仍处极值 (peer_dispersion_5d 0.0535, 残差 -10.28%); FOMC 9/16 加息 25bp 已落地, 10Y 5.006% 持续高息, 高估值/烧钱型股估值压力未消; 1 股 234.6 已加仓 7 笔均价 508.47, 现 33,320 HKD 占 HK 55.88% 仍 first single_name 集中度, 策略约束仅允许 hold_and_watch/watch, 反弹 ≠ 加仓信号 (alpha 仍弱 + 加仓即增单名集中); reflections 16 场胜率 44%, 持×9 胜 2 (22%) 逊于减×6 胜 4 (67%), 但 策略约束不允许 trim",
       "contested": false,
       "thesis_invalidation": "若 9/18-9/19 反弹 < 240 (跌破 9/16 收) → AI 板块 rotating 离场, 主动调出核心位; 若 z reverts 到中性 (-1.0 以内) + 残差转正 + 板块同涨 → 重新评估加仓可能",
       "debate": {
-        "bull": "9/17 HK 9:30 反弹 +5.80% 是 6/15 以来最显著; FOMC 靴子落地 (25bp 加息已部分价入), 9/24 GDP + 9/25 PCE 之前无重大事件 → 短窗口风险偏好修复; 反弹 > 250 是 trim 窗口但 packet 限制; 5d -25.8% 反弹已回补部分 alpha",
+        "bull": "9/17 HK 9:30 反弹 +5.80% 是 6/15 以来最显著; FOMC 靴子落地 (25bp 加息已部分价入), 9/24 GDP + 9/25 PCE 之前无重大事件 → 短窗口风险偏好修复; 反弹 > 250 是 trim 窗口但 策略约束; 5d -25.8% 反弹已回补部分 alpha",
         "bear": "FOMC 加息 25bp + 10Y 5.006% 双重压力, 高估值/长债/烧钱型股 (CHINA_AI 板块) 估值压制持续; 5d -25.8% 仍负, 反弹 < 6% 可能是 dead cat bounce; 反弹 ≠ 趋势反转, MA20 311 仍远上方, z=-1.96 极值易均值回归",
-        "judge": "packet 限制 hold, 反弹窗口 trim 不到; 9/17 反弹已确认 z 极值触发 mean_reversion 路径, 但 alpha 残差仍 -10.28% 板块整体掉, 维持 hold"
+        "judge": "策略约束 hold, 反弹窗口 trim 不到; 9/17 反弹已确认 z 极值触发 mean_reversion 路径, 但 alpha 残差仍 -10.28% 板块整体掉, 维持 hold"
       },
       "technical_setup_id": null,
       "technical_campaign_id": null,
@@ -145,7 +145,7 @@
       "condition": {
         "type": "price_above",
         "price": 9.5,
-        "description": "反弹 9.50+ 评估 trim 30% (packet 限制 trim 不到, 仅作观察)",
+        "description": "反弹 9.50+ 评估 trim 30% (策略约束 trim 不到, 仅作观察)",
         "valid_for_sessions": 1
       },
       "size": {
@@ -157,9 +157,9 @@
       "driven_by": "technical",
       "evidence_event_id": null,
       "regime": "neutral",
-      "rationale": "9/16 收 8.80 (前日 9.175, -4.09%) 是当日风电板块最弱; peer divergence 01798 +2.43% vs self -4.09% gap 6.5pp 严重跑输, 同行龙源电力 (00916) 走强 = 02208 仍在落后; z=-1.71 仍处极端位 (RSI 35.9 weak, 破吊灯止损 -16.3%); 9/8 半年报 H1 营收 337.39 亿 +18.2% YoY + 净利 18.55 亿 +24.7% YoY + 风机毛利率 +4pp + 海上装机 +48% 是硬基本面支撑; 9/11 贝莱德加仓 11.01% + 9/13 摩根大通加仓 9.88% 是 supporting 已价; 美银 9/10 减仓 6.15%→4.21% 是软利空已价; reflections 12 场胜率 25% 偏低, 持×10 胜 2 (20%), 主动 call 谨慎; MA20 9.37 站不上意味着趋势不修复; packet 限制 hold_and_watch/watch, 反弹 9.5+ 评估 trim 30% 但无法成交",
+      "rationale": "9/16 收 8.80 (前日 9.175, -4.09%) 是当日风电板块最弱; peer divergence 01798 +2.43% vs self -4.09% gap 6.5pp 严重跑输, 同行龙源电力 (00916) 走强 = 02208 仍在落后; z=-1.71 仍处极端位 (RSI 35.9 weak, 破吊灯止损 -16.3%); 9/8 半年报 H1 营收 337.39 亿 +18.2% YoY + 净利 18.55 亿 +24.7% YoY + 风机毛利率 +4pp + 海上装机 +48% 是硬基本面支撑; 9/11 贝莱德加仓 11.01% + 9/13 摩根大通加仓 9.88% 是 supporting 已价; 美银 9/10 减仓 6.15%→4.21% 是软利空已价; reflections 12 场胜率 25% 偏低, 持×10 胜 2 (20%), 主动 call 谨慎; MA20 9.37 站不上意味着趋势不修复; 策略约束 hold_and_watch/watch, 反弹 9.5+ 评估 trim 30% 但无法成交",
       "contested": true,
-      "thesis_invalidation": "若跌破 8.96 (5d 低) → 减仓 30%; 若反弹 > 9.50 但 packet 仍限制, 9/18-9/19 重新评估 packet 是否升级 trim 权限",
+      "thesis_invalidation": "若跌破 8.96 (5d 低) → 减仓 30%; 若反弹 > 9.50 但 策略约束仍限制, 9/18-9/19 重新评估 策略约束 是否升级 trim 权限",
       "debate": {
         "bull": "风电板块 9/16 龙源 (00916) 走强 +1.5x ATR, 中信证券看多特高压 (2026 国网招标第三次); 02208 半年报 H1 营收 +18.2% 是硬支撑, 估值低位 (0.0 距 52w 低); 5d -5.1% 反弹窗口可期",
         "bear": "9/16 -4.09% 跑输同行 6.5pp 是当日风电板块最弱, 龙源/新天绿色能源均跑赢; 8.8 距 8.96 5d 低仅 1.8% 缓冲; 趋势 OFF 已破吊灯止损 16.3% 仍未修复; 9/24 GDP + 9/25 PCE 风险窗口前资金不进场",
@@ -260,7 +260,7 @@
       "condition": {
         "type": "manual",
         "price": null,
-        "description": "HSTECH 跌破 4,200 → 减仓 30%; 反弹 > 4,500 → 评估 trim 窗口 (packet 限制)",
+        "description": "HSTECH 跌破 4,200 → 减仓 30%; 反弹 > 4,500 → 评估 trim 窗口 (策略约束)",
         "valid_for_sessions": 1
       },
       "size": {
@@ -272,9 +272,9 @@
       "driven_by": "technical",
       "evidence_event_id": null,
       "regime": "neutral",
-      "rationale": "1x ETF 持仓不在 breach 范围, packet 限制 hold_and_watch/watch; 9/16 收 4.322 较前日 4.30 +0.51% 跟板块; z=-1.40 偏极端位, RSI 32.7 超卖, 破吊灯止损 -4.4%; 仓位 200 股 × 4.322 = 864.4 HKD 占 HK 1.45% 极小; 9/17 HK 9:30 开盘 HSTECH +0.79% 反弹, 9/17 + 9/18 关注是否突破 4,500 (现距 +4.1%); 软情绪 + ETF 本身无基本面, 持有跟随 HSTECH",
+      "rationale": "1x ETF 持仓不在 breach 范围, 策略约束 hold_and_watch/watch; 9/16 收 4.322 较前日 4.30 +0.51% 跟板块; z=-1.40 偏极端位, RSI 32.7 超卖, 破吊灯止损 -4.4%; 仓位 200 股 × 4.322 = 864.4 HKD 占 HK 1.45% 极小; 9/17 HK 9:30 开盘 HSTECH +0.79% 反弹, 9/17 + 9/18 关注是否突破 4,500 (现距 +4.1%); 软情绪 + ETF 本身无基本面, 持有跟随 HSTECH",
       "contested": false,
-      "thesis_invalidation": "HSTECH 跌破 4,200 → 减仓 30%; 反弹 > 4,500 但 packet 限制 trim 不到, 仅作观察",
+      "thesis_invalidation": "HSTECH 跌破 4,200 → 减仓 30%; 反弹 > 4,500 但 策略约束 trim 不到, 仅作观察",
       "debate": null,
       "technical_setup_id": null,
       "technical_campaign_id": null,
@@ -382,7 +382,7 @@
       "driven_by": "technical",
       "evidence_event_id": null,
       "regime": "neutral",
-      "rationale": "1x ETF, 同一 1x 逻辑跟随 HSTECH; 9/16 收 4.242 较前日 4.212 +0.71%; 9/11 南向净流入 9.37 亿 03033 智谱/MINIMAX 砸盘逆向接货是 supporting 已价; z=-1.38 偏极端位, RSI 33.3 超卖, 破吊灯止损 -4.5%; 仓位 1,000 股 × 4.242 = 4,242 HKD 占 HK 7.11%; packet allowed_actions=[hold_and_watch, watch, add_only_on_trigger] 是所有 HK 票中唯一 add 权限票, 但 swap_mandate 仍 standby (07226 stance 维持), 不触发 add 路径; 维持 hold",
+      "rationale": "1x ETF, 同一 1x 逻辑跟随 HSTECH; 9/16 收 4.242 较前日 4.212 +0.71%; 9/11 南向净流入 9.37 亿 03033 智谱/MINIMAX 砸盘逆向接货是 supporting 已价; z=-1.38 偏极端位, RSI 33.3 超卖, 破吊灯止损 -4.5%; 仓位 1,000 股 × 4.242 = 4,242 HKD 占 HK 7.11%; 策略约束 allowed_actions=[hold_and_watch, watch, add_only_on_trigger] 是所有 HK 票中唯一 add 权限票, 但 swap_mandate 仍 standby (07226 stance 维持), 不触发 add 路径; 维持 hold",
       "contested": false,
       "thesis_invalidation": "HSTECH 跌破 4,200 → 减仓 30%; 07226 stance 失效 (HSTECH < 4,000) → 重新评估 swap_mandate 触发",
       "debate": null,
@@ -492,7 +492,7 @@
       "driven_by": "risk_rule",
       "evidence_event_id": null,
       "regime": "neutral",
-      "rationale": "adaptive.may_stand=true (站 35d 升 1d, 9/15 cut 仍 standing), 9/16 与 9/17 之间无实质不同: 同样 hard_stop @ -34.6% ≤ -18% (breach_id risk-4ab7eff27f15) + HK 杠杆 ETF 29.7% > 25% amber cap (breach_id risk-da9861ae6562); 维持 stance per 2026-09-12 kcn 政策 (默认维持, 只在实质变化时重提); 加仓仍冻结; 9/17 9:30 HKT 开盘 +1.78% (杠杆放大 HSTECH +0.79% 反弹), 但 反弹 ≠ 重新评估 stance; chop drag 0.35%/月 (σ²/12 = 20.4²/12/100 ≈ 0.35%/月, 现价 2.852 距 6m 需涨 +25% 才能在 2x 路径上回本, 1x 6m 含 drag 需 +25% — 两条路径基本相同意味着 2x 现价买盘不提供 'back to 1x' 保护但有反弹双倍甜头); swap_mandate 1x 替代 03033 buy 腿 blocked by packet (no_approved_setup + open_add_order); kcn 选的打法里要盯的位: HSTECH 4,000 整数位 (现 4,291 距 -6.8% 缓冲), 跌破 → 这套 '继续摊本' 打法本身不成立, 主动 cover cut 缺口 (ack 或 override, 不再沉默); reflections 10 场胜率 70% (减×2 胜2 100%, 清×3 胜3 100%), 但当前 stance=declined (kcn 同期 0 笔对 07226 操作, 最近 2026-09-10 别的票有成交), adaptive 不重提",
+      "rationale": "adaptive.may_stand=true (站 35d 升 1d, 9/15 cut 仍 standing), 9/16 与 9/17 之间无实质不同: 同样 hard_stop @ -34.6% ≤ -18% (breach_id risk-4ab7eff27f15) + HK 杠杆 ETF 29.7% > 25% amber cap (breach_id risk-da9861ae6562); 维持 stance per 2026-09-12 kcn 政策 (默认维持, 只在实质变化时重提); 加仓仍冻结; 9/17 9:30 HKT 开盘 +1.78% (杠杆放大 HSTECH +0.79% 反弹), 但 反弹 ≠ 重新评估 stance; chop drag 0.35%/月 (σ²/12 = 20.4²/12/100 ≈ 0.35%/月, 现价 2.852 距 6m 需涨 +25% 才能在 2x 路径上回本, 1x 6m 含 drag 需 +25% — 两条路径基本相同意味着 2x 现价买盘不提供 'back to 1x' 保护但有反弹双倍甜头); swap_mandate 1x 替代 03033 buy 腿 blocked by 策略约束 (no_approved_setup + open_add_order); kcn 选的打法里要盯的位: HSTECH 4,000 整数位 (现 4,291 距 -6.8% 缓冲), 跌破 → 这套 '继续摊本' 打法本身不成立, 主动 cover cut 缺口 (ack 或 override, 不再沉默); reflections 10 场胜率 70% (减×2 胜2 100%, 清×3 胜3 100%), 但当前 stance=declined (kcn 同期 0 笔对 07226 操作, 最近 2026-09-10 别的票有成交), adaptive 不重提",
       "contested": true,
       "thesis_invalidation": "若 HSTECH 跌破 4,000 整数位 → 9/15 cut 仍未执行则手动 ack 或 override, 不再沉默; 若浮亏 ≤ -44.9% (rearm 阈值) → 必须重提; 若 9/18-9/19 反弹 > 3.20 (+12% 段) 但 stance 仍 维持, 反弹 ≠ 重新评估",
       "debate": {
@@ -595,7 +595,7 @@
       "condition": {
         "type": "price_above",
         "price": 100.8,
-        "description": "反弹 > 100.8 评估 trim, 重新评估 (packet 限制 hold_and_watch/watch)",
+        "description": "反弹 > 100.8 评估 trim, 重新评估 (策略约束 hold_and_watch/watch)",
         "valid_for_sessions": 1
       },
       "size": {
@@ -609,7 +609,7 @@
       "regime": "neutral",
       "rationale": "9/16 收 80.45 较前日 86.30 -6.78% 是当日稳币板块最弱; peer divergence PYPL -2.04% / HOOD -5.46% / COIN -4.42% 全部跑赢, BKKT -7.00% 跑输 0.22pp 几乎对齐; ARK 9/14 卖 $60M CRCL (一手成交硬催化) + CLARITY 9/15 参议院 49-50 失败 (距 60 票差 11 票结构性) + insider director 卖 11,670 股 是叠加利空; 9/16 -6.78% 仍负, 5d -13.5% 是持仓最大回撤; 软情绪 (CLARITY/ARK 卖/insider 卖) 单独存在时 bucket 维持 hold 但 confidence 软催化 -10pp 至 0.40; F&G 26.5 fear 极端位是统计反弹温床, 但 9/16 板块反应过度; 1 股 86.30 现 80.45 = -$5.85, position 2 股 160.9 USD 占 US 4.59%, 不构成 breaches 触发",
       "contested": true,
-      "thesis_invalidation": "若 9/16 收盘 < 78 → 重新评估 trim 30% (packet 限制 trim 不到); 若 CLARITY 法案 9/24-9/30 重启投票 → 重新评估 catalyst 升级",
+      "thesis_invalidation": "若 9/16 收盘 < 78 → 重新评估 trim 30% (策略约束 trim 不到); 若 CLARITY 法案 9/24-9/30 重启投票 → 重新评估 catalyst 升级",
       "debate": {
         "bull": "F&G 26.5 fear 极端位 + 5d -13.5% 是统计反弹温床 (1.85% avg benefit in active 2 episodes); Circle L1 Arc 9/16 主网 (BlackRock/Visa 11 家验证人, Aave/Uniswap/Aerodrome 首日上线) 是 supporting 硬事件已价; 软情绪 单独存在时 bucket 维持 hold, 反弹 < 10% 段不轻易动",
         "bear": "9/16 -6.78% 跑输同行是当日稳币板块最弱, insider 卖股 11,670 股 + ARK 减仓 9/14 一手成交 + CLARITY 失败 49-50 叠加是 disconfirming 硬催化 (一手数据 + 政策失败); 1 个 CLARITY 9/15 失败距 60 票差 11 票是结构性, 短期难翻盘",
@@ -825,7 +825,7 @@
       "condition": {
         "type": "manual",
         "price": null,
-        "description": "9/16 监控 rearm 触发 cut 计划 (settlement pending), 9/17 关注是否已成交: 若 9/16 cut 已成交 → SPCX buy 腿 active, 但 SPCX 现 150.88 > alpha_confirmation invalidation 144.89 仍被 harness block; 若 9/16 cut 未成交 → 9/17 重提 (rearm 仍 active)",
+        "description": "9/16 监控 rearm 触发 cut 计划 (settlement pending), 9/17 关注是否已成交: 若 9/16 cut 已成交 → SPCX buy 腿 active, 但 SPCX 现 150.88 > alpha_confirmation invalidation 144.89 仍被 策略约束; 若 9/16 cut 未成交 → 9/17 重提 (rearm 仍 active)",
         "valid_for_sessions": 1
       },
       "size": {
@@ -837,12 +837,12 @@
       "driven_by": "risk_rule",
       "evidence_event_id": null,
       "regime": "neutral",
-      "rationale": "9/16 监控 rearm 触发 cut 计划 (2 个新 1d breach: regime_delever + hard_stop, breach_id risk-66a236e9b7e1 single_name 86.92% of US, adaptive.eligible=false 不属 may_stand), 9/16 借 +9.96% 反弹段 cut 300 股 @market (现 10.16 较前日 9.24, 5d +3.8%) 比新低日 cut 价好; 9/16 settlement 仍 pending; 9/16 close 10.16 浮亏 -15.8% (硬止损线 -18% 仍 2.2pp 缓冲, breach_id risk-95ac7f6cd591 critical rearm 阈值 ≤ -18% 未新触发); 9/16 rearm 已是第 6 次重发, 第 7 次触发 adaptive.forced_on=2026-10-14 '必须 reissue' 期限 (站 27d 距今); 维持 stance: 若 9/16 cut 已成交, 现金 $3,048 释放, SPCX buy 腿 1x 替代授权但 SPCX 现 150.88 > alpha_confirmation invalidation 144.89 仍被 harness block (cut 释放现金暂存); 若 9/16 cut 未成交, 9/17 重提; reflections 5 场胜率 60% (cut×3 胜 2 / trim 1 战 1 胜 100%), 主动 call 偏强",
+      "rationale": "9/16 监控 rearm 触发 cut 计划 (2 个新 1d breach: regime_delever + hard_stop, breach_id risk-66a236e9b7e1 single_name 86.92% of US, adaptive.eligible=false 不属 may_stand), 9/16 借 +9.96% 反弹段 cut 300 股 @market (现 10.16 较前日 9.24, 5d +3.8%) 比新低日 cut 价好; 9/16 settlement 仍 pending; 9/16 close 10.16 浮亏 -15.8% (硬止损线 -18% 仍 2.2pp 缓冲, breach_id risk-95ac7f6cd591 critical rearm 阈值 ≤ -18% 未新触发); 9/16 rearm 已是第 6 次重发, 第 7 次触发 adaptive.forced_on=2026-10-14 '必须 reissue' 期限 (站 27d 距今); 维持 stance: 若 9/16 cut 已成交, 现金 $3,048 释放, SPCX buy 腿 1x 替代授权但 SPCX 现 150.88 > alpha_confirmation invalidation 144.89 仍被 策略约束 (cut 释放现金暂存); 若 9/16 cut 未成交, 9/17 重提; reflections 5 场胜率 60% (cut×3 胜 2 / trim 1 战 1 胜 100%), 主动 call 偏强",
       "contested": true,
       "thesis_invalidation": "若 9/16 cut 已成交且 SPCX 收盘 < 144.89 (alpha_confirmation invalidation) → buy 腿 active, swap_mandate 1x→1x 路径打通; 若 9/16 cut 未成交 → 9/17 重提, 借反弹段 cut 仍 9.39 触发价 (但 9/16 反弹 9.96% 已远超触发价); 若浮亏 ≤ -18% (rearm 阈值) → 必须重提",
       "debate": {
         "bull": "9/16 +9.96% 反弹是 5d 反弹延续 (5d +3.8%), 借反弹段 cut 价 9.39 释放 $3,048 现金 (降 US 集中度 86.92%→~50%) 比新低日 cut 价好; 1x SPCX 替代授权 (swap_mandate) 路径是 2x→1x 同因子换仓, 敞口保留停 decay; reflections cut×3 胜 2 (67%) 历史上偏强",
-        "bear": "9/16 反弹 9.96% 仅是 5d 反弹 3.8% 的 1d 段, 不构成 1x→2x 转 green (🧭 转 green 需 SPCX 收复 200 日线); 配对 swap_mandate SPCX buy 腿现 150.88 > alpha_confirmation invalidation 144.89 仍被 harness block, cut 释放现金暂存 (无 1x 部署 = 单纯降 US 集中度但不降 β 敞口)",
+        "bear": "9/16 反弹 9.96% 仅是 5d 反弹 3.8% 的 1d 段, 不构成 1x→2x 转 green (🧭 转 green 需 SPCX 收复 200 日线); 配对 swap_mandate SPCX buy 腿现 150.88 > alpha_confirmation invalidation 144.89 仍被 策略约束, cut 释放现金暂存 (无 1x 部署 = 单纯降 US 集中度但不降 β 敞口)",
         "attacked_consensus": "'借反弹段 cut 释放现金降集中度' 是最强 cut 论, 攻击: cut 释放现金 SPCX 路径 blocked 单纯是 降集中度账面游戏, β 敞口不变 (2x SPCX proxy 仍在), 是 breach 复利的政策合规不是经济优化",
         "judge": "维持 stance, 9/16 settlement 决定下一步: 若已成交 → SPCX buy 腿 active 但仍 blocked, 等 alpha_confirmation 重设或 9/18 SPCX 跌破 144.89; 若未成交 → 9/17 重提 cut @market 借反弹段"
       },
@@ -952,9 +952,9 @@
       "driven_by": "technical",
       "evidence_event_id": null,
       "regime": "neutral",
-      "rationale": "9/16 收 150.88 较前日 143.49 +5.15% 是 US 持仓最佳反弹 (5d +2.3% 是 5d 微正); peer_residual 5d 0.0355 微正, peer_dispersion_5d 0.0276 小幅发散, peer_residual_blend 1d 0.046 大正, 商业航天板块中表现相对好; SPCX 现浮盈 +2.3% (1 股 147.50 成本 × 150.88 现价 = +3.38 USD); Morgan Stanley $300 目标价是 supporting 已价; 9/16 Starship Flight 14 + Tesla-SpaceX merger 暗示是 supporting 软利好; 1 股 150.88 = 150.88 USD 占 US 4.3%, 仓位极小; alpha_confirmation setup entry 155.0 距现 -2.7%, 仍受 short-history 因子影响 (66 bars < 200); 维持 hold: 仓位极小 + 反弹已部分兑现 + z=+1.3 仍偏极端位易均值回归, 加仓不急; 若 9/18-9/19 反弹 > 155 触发 setup 是补建 swap_mandate buy 腿 (1x SPCX 替代 SPCH) 还是已太晚, 9/16 close 已超 144.89 invalidation 但 harness 仍 block (需 alpha_confirmation 重设)",
+      "rationale": "9/16 收 150.88 较前日 143.49 +5.15% 是 US 持仓最佳反弹 (5d +2.3% 是 5d 微正); peer_residual 5d 0.0355 微正, peer_dispersion_5d 0.0276 小幅发散, peer_residual_blend 1d 0.046 大正, 商业航天板块中表现相对好; SPCX 现浮盈 +2.3% (1 股 147.50 成本 × 150.88 现价 = +3.38 USD); Morgan Stanley $300 目标价是 supporting 已价; 9/16 Starship Flight 14 + Tesla-SpaceX merger 暗示是 supporting 软利好; 1 股 150.88 = 150.88 USD 占 US 4.3%, 仓位极小; alpha_confirmation setup entry 155.0 距现 -2.7%, 仍受 short-history 因子影响 (66 bars < 200); 维持 hold: 仓位极小 + 反弹已部分兑现 + z=+1.3 仍偏极端位易均值回归, 加仓不急; 若 9/18-9/19 反弹 > 155 触发 setup 是补建 swap_mandate buy 腿 (1x SPCX 替代 SPCH) 还是已太晚, 9/16 close 已超 144.89 invalidation 但 策略约束 (需 alpha_confirmation 重设)",
       "contested": false,
-      "thesis_invalidation": "若 9/16 收盘 < 140 → 重新评估 trim 30% (packet 限制); 若 9/18-9/19 反弹 > 155 → 重新评估 SPCX 1x 替代授权 (swap_mandate buy 腿 active) vs 已太晚; 若 9/18 跌破 143 → 反弹段已结束",
+      "thesis_invalidation": "若 9/16 收盘 < 140 → 重新评估 trim 30% (策略约束); 若 9/18-9/19 反弹 > 155 → 重新评估 SPCX 1x 替代授权 (swap_mandate buy 腿 active) vs 已太晚; 若 9/18 跌破 143 → 反弹段已结束",
       "debate": null,
       "technical_setup_id": null,
       "technical_campaign_id": null,
