@@ -56,10 +56,10 @@ def classify_regime(macro_snapshot):
     ):
         if spx_change > 0 and nasdaq_change > 0:
             score += 1
-            reasons.append('SPX+NDX 同向上行')
+            reasons.append('SPX+IXIC 同向上行')
         elif spx_change < 0 and nasdaq_change < 0:
             score -= 1
-            reasons.append('SPX+NDX 同向下行')
+            reasons.append('SPX+IXIC 同向下行')
     if not reasons:
         return None
     label = 'risk_on' if score >= 2 else ('risk_off' if score <= -2 else 'neutral')
@@ -71,9 +71,12 @@ def yahoo_quote(symbol):
 
     GH Action IPs are throttled by Yahoo so Stooq + Tencent are primary.
     """
-    # 1) Stooq (free, no key, works for SPX/NDX/HSI)
+    # 1) Stooq (free, no key, works for SPX/HSI)
+    # No '^IXIC' entry (#1548): it used to map to Stooq's '^ndx', the Nasdaq-100,
+    # so `nasdaq` read NDX from Stooq but the Composite from Tencent/Yahoo — two
+    # indices ~11% apart behind one field and one label.
     stooq_map = {
-        '^GSPC': '^spx', '^IXIC': '^ndx', '^HSI': '^hsi',
+        '^GSPC': '^spx', '^HSI': '^hsi',
         '^DJI':  '^dji', '^HSTECH': '^hstech',
     }
     stq_sym = stooq_map.get(symbol)
