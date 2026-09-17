@@ -185,31 +185,31 @@ export type BalanceChipProps = BalancesInjected & PropsStore<BalanceStore> & {
     sessionId: string;
 };
 export declare function ProviderBalanceChip(props: BalanceChipProps): React.ReactElement;
-/**
- * Main-panel key and foot-action id of the balance surface on hosts with
- * global panels: the sidebar button and its `main` occupant share it.
- */
+/** Foot-action id of the balance surface (a stable DOM contract for probes). */
 export declare const BALANCE_PANEL = "clawock-provider-balance";
-/** The foot button's owner share, host standard prop and inject face. */
+/** The foot button's owner share plus its inject face. */
 export type BalanceSidebarActionProps = BalancesInjected & PropsStore<BalanceStore> & {
     /** Sidebar column state: false is the 56px rail (dot only). */
     wide: boolean;
-    /** Host global standard prop: selector over the selected main panel. */
-    usePanelInfo?: <T>(selector: (info: {
-        activePanelId: string | null;
-    }) => T) => T;
-    /** Open the balance panel, or return to the conversation when it is open. */
-    togglePanel: (active: boolean) => void;
 };
 /**
  * The sidebar-foot home of the balance chip: always mounted, independent of
  * any session. It headlines the same one provider (pinned or first row) with
- * the same dot/tier/stale colours and polls on the same cadence; the provider
- * list, pinning and the manual refresh live in the global panel it opens.
+ * the same dot/tier/stale colours and polls on the same cadence.
+ *
+ * The provider list opens as a trigger-owned popover, the interaction the
+ * host's own foot occupant uses (ui-cordis `CordisPanel`): the row toggles it,
+ * it is `position:fixed` above the row so the clipped sidebar column cannot
+ * cut it, and only a pointerdown outside the row+popover root or Escape
+ * dismisses it (ui-primitives `useDismissOnOutsidePointer`, heard in the
+ * capture phase — see the effect). It used to select
+ * a keyed `main` panel instead, which swapped the whole conversation column
+ * for a mostly empty page — one click and the chat you were reading was gone
+ * (and on a phone the panel opened squeezed beside the still-open drawer).
+ * Pinning a row and the manual refresh happen inside the root, so they can
+ * never close it.
  */
 export declare function ProviderBalanceSidebarAction(props: BalanceSidebarActionProps): React.ReactElement;
-/** The global panel: the chip's popover content as a standing card. */
-export declare function ProviderBalancePanel(props: BalancesInjected & PropsStore<BalanceStore>): React.ReactElement;
 export declare function DecisionMind(props: DecisionMindProps): React.ReactElement;
 /** Services required by the registration and the mounted Remote face. */
 export declare const inject: string[];

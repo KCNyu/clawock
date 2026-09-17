@@ -40,9 +40,14 @@ client UI packages:
   when a session is opened. Keyed `main` and `selectPanel` first ship in
   0.1.5-rc.1.
 
-So on hosts with `ctx.layout.selectPanel` the balance reading is a
-`sidebar.footer.action` button that toggles a keyed `main` panel
-(`clawock-provider-balance`); both registrations share one pin store and one
-answer cache. Without it (DSH < 0.1.5-rc.1) the plugin keeps the
+On hosts with `ctx.layout.selectPanel` the balance reading is a
+`sidebar.footer.action` row that toggles a trigger-owned popover, copying the
+host's own occupant of that seat (ui-cordis `CordisPanel`: `position:fixed`
+anchored above the row, dismissed by an outside pointerdown or Escape). The
+first version selected a keyed `main` panel instead; that replaced the whole
+conversation column with a near-empty page on every click, which read as being
+navigated away, so `main` is not used for a surface this small (community
+plugins that do use it, such as `@syncended/dsh-automations`, host a full
+editor workspace there). Without `selectPanel` (DSH < 0.1.5-rc.1) the plugin keeps the
 `conversation.session.header.utilities` chip. Decision Mind is unaffected and
 stays a `conversation.view` tab.

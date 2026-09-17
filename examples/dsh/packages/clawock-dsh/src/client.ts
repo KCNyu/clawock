@@ -854,61 +854,103 @@ export function ProviderBalanceChip(props: BalanceChipProps): React.ReactElement
       renderBalancePanelBody(state)))
 }
 
-/**
- * Main-panel key and foot-action id of the balance surface on hosts with
- * global panels: the sidebar button and its `main` occupant share it.
- */
+/** Foot-action id of the balance surface (a stable DOM contract for probes). */
 export const BALANCE_PANEL = 'clawock-provider-balance'
 
-/** The foot button's owner share, host standard prop and inject face. */
+/** The foot button's owner share plus its inject face. */
 export type BalanceSidebarActionProps = BalancesInjected & PropsStore<BalanceStore> & {
   /** Sidebar column state: false is the 56px rail (dot only). */
   wide: boolean
-  /** Host global standard prop: selector over the selected main panel. */
-  usePanelInfo?: <T>(selector: (info: { activePanelId: string | null }) => T) => T
-  /** Open the balance panel, or return to the conversation when it is open. */
-  togglePanel: (active: boolean) => void
 }
+
+/** Fixed-position anchor for the popover: left edge of the row, just above it. */
+type PopoverAnchor = { left: number; bottom: number }
 
 /**
  * The sidebar-foot home of the balance chip: always mounted, independent of
  * any session. It headlines the same one provider (pinned or first row) with
- * the same dot/tier/stale colours and polls on the same cadence; the provider
- * list, pinning and the manual refresh live in the global panel it opens.
+ * the same dot/tier/stale colours and polls on the same cadence.
+ *
+ * The provider list opens as a trigger-owned popover, the interaction the
+ * host's own foot occupant uses (ui-cordis `CordisPanel`): the row toggles it,
+ * it is `position:fixed` above the row so the clipped sidebar column cannot
+ * cut it, and only a pointerdown outside the row+popover root or Escape
+ * dismisses it (ui-primitives `useDismissOnOutsidePointer`, heard in the
+ * capture phase — see the effect). It used to select
+ * a keyed `main` panel instead, which swapped the whole conversation column
+ * for a mostly empty page — one click and the chat you were reading was gone
+ * (and on a phone the panel opened squeezed beside the still-open drawer).
+ * Pinning a row and the manual refresh happen inside the root, so they can
+ * never close it.
  */
 export function ProviderBalanceSidebarAction(props: BalanceSidebarActionProps): React.ReactElement {
   const state = useProviderBalances(props, BALANCE_PANEL)
   const { rows, primary } = state
-  const active = props.usePanelInfo === undefined
-    ? false
-    : props.usePanelInfo((info) => info.activePanelId === BALANCE_PANEL)
+  const [open, setOpen] = useState(false)
+  const [anchor, setAnchor] = useState<PopoverAnchor | null>(null)
+  const rootRef = useRef<HTMLDivElement | null>(null)
+
+  const place = (): void => {
+    const root = rootRef.current
+    if (root === null || typeof window === 'undefined') return
+    const rect = root.getBoundingClientRect()
+    setAnchor({ left: rect.left, bottom: window.innerHeight - rect.top + 8 })
+  }
+
+  // While open: re-anchor on resize, Escape closes, a pointerdown outside the
+  // root closes (document/window exist only in the browser — tests have no DOM).
+  useEffect(() => {
+    if (!open || typeof document === 'undefined') return undefined
+    const onKey = (event: KeyboardEvent): void => { if (event.key === 'Escape') setOpen(false) }
+    const onDown = (event: PointerEvent): void => {
+      const root = rootRef.current
+      if (root !== null && event.target instanceof Node && !root.contains(event.target)) setOpen(false)
+    }
+    document.addEventListener('keydown', onKey)
+    // Capture phase, unlike the host hook: the composer stops pointerdown from
+    // bubbling, so a bubble listener never hears a tap on the input box.
+    document.addEventListener('pointerdown', onDown, true)
+    window.addEventListener('resize', place)
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      document.removeEventListener('pointerdown', onDown, true)
+      window.removeEventListener('resize', place)
+    }
+  }, [open])
+
   const summary = primary !== undefined
     ? primary.label + ' · ' + primary.view.title + (rows.length > 1 ? '(点击查看其他服务)' : '')
     : '余额加载中'
-  return h('div', { className: cx('pbc', 'pbf', !props.wide && 'rail') },
+  return h('div', { className: cx('pbc', 'pbf', !props.wide && 'rail'), ref: rootRef },
     h('button', {
       type: 'button',
       className: cx('bchip'),
       'data-balance-state': primary !== undefined ? primary.view.tone : 'none',
       'data-pb-provider': primary !== undefined ? primary.provider : '',
       'data-clawock-action': BALANCE_PANEL,
-      'data-active': active ? '' : undefined,
-      'aria-current': active ? 'page' : undefined,
+      'data-active': open ? '' : undefined,
+      'aria-expanded': open,
+      'aria-haspopup': 'dialog',
       'aria-label': '各模型服务余额',
       title: summary,
-      onClick: () => { props.togglePanel(active) },
+      onClick: () => {
+        // Anchor from the row's live rect at the moment it opens (the rail and
+        // the wide column put it in different places).
+        if (!open) place()
+        setOpen(!open)
+      },
     }, props.wide
       ? renderBalanceHeadline(primary, true)
       : h('span', { className: cx('bchip-item'), 'data-balance-state': primary !== undefined ? primary.view.tone : 'none' },
-        h('span', { className: cx('bchip-dot') }))))
-}
-
-/** The global panel: the chip's popover content as a standing card. */
-export function ProviderBalancePanel(props: BalancesInjected & PropsStore<BalanceStore>): React.ReactElement {
-  const state = useProviderBalances(props, BALANCE_PANEL)
-  return h('div', { className: cx('pbc', 'pbm'), 'data-clawock-panel': BALANCE_PANEL },
-    h('div', { className: cx('bp'), 'data-open': 'true', role: 'region', 'aria-label': '各模型服务余额' },
-      renderBalancePanelBody(state)))
+        h('span', { className: cx('bchip-dot') }))),
+    h('div', {
+      className: cx('bp'),
+      'data-open': open ? 'true' : 'false',
+      'data-clawock-popover': BALANCE_PANEL,
+      role: open ? 'dialog' : 'none',
+      'aria-label': '各模型服务余额',
+      style: anchor === null ? undefined : { left: anchor.left + 'px', bottom: anchor.bottom + 'px' },
+    }, renderBalancePanelBody(state)))
 }
 
 export function DecisionMind(props: DecisionMindProps): React.ReactElement {
@@ -1177,10 +1219,10 @@ export async function apply(ctx: Context & ClientContributionContext): Promise<v
     },
   })
   // The chip is app-level account chrome, not decision data, and belongs to
-  // no session. Where the layout hosts global panels (`ctx.layout.selectPanel`,
-  // keyed `main`, DSH >= 0.1.5-rc.1) it lives at the sidebar foot beside
-  // Settings (`sidebar.footer.action`) and opens a session-free `main` panel;
-  // older hosts keep it in the session header's utilities seat.
+  // no session. On hosts with global panels (`ctx.layout.selectPanel`,
+  // DSH >= 0.1.5-rc.1) it lives at the sidebar foot beside Settings
+  // (`sidebar.footer.action`) with a trigger-owned popover; older hosts keep
+  // it in the session header's utilities seat.
   const balanceListeners = new Set<(result: BalancesResult) => void>()
   const balancesInjected = (): BalancesInjected => ({
     cachedBalances: () => cachedBalances,
@@ -1205,28 +1247,12 @@ export async function apply(ctx: Context & ClientContributionContext): Promise<v
     inject: injected,
   }, DecisionMind))
   const balancesStore = createBalanceStore()
-  const layout = ctx.layout
-  const selectPanel = layout?.selectPanel
-  if (layout !== undefined && typeof selectPanel === 'function') {
-    // The foot button and the panel are two registrations of one surface: they
-    // share one store instance so a pin made in the panel re-headlines the
-    // button (the host's own layout shares an instance the same way).
-    const balancesInstance = balancesStore.create()
-    const sharedBalancesStore = { ...balancesStore, create: () => balancesInstance }
-    ctx.slots.inject('main', () => ctx.slots.register({
-      name: 'main',
-      key: BALANCE_PANEL,
-      store: sharedBalancesStore,
-      inject: balancesInjected,
-    }, ProviderBalancePanel))
+  if (typeof ctx.layout?.selectPanel === 'function') {
     ctx.slots.inject('sidebar.footer.action', () => ctx.slots.register({
       name: 'sidebar.footer.action',
       id: 'provider-balance',
-      store: sharedBalancesStore,
-      inject: () => ({
-        ...balancesInjected(),
-        togglePanel: (active: boolean) => { selectPanel.call(layout, active ? null : BALANCE_PANEL) },
-      }),
+      store: balancesStore,
+      inject: balancesInjected,
     }, ProviderBalanceSidebarAction))
   } else {
     ctx.slots.inject('conversation.session.header.utilities', () => ctx.slots.register({
