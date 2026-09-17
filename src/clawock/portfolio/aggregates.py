@@ -9,6 +9,8 @@ pure function of those and must never be edited by hand:
     current_value = shares × current_price
     pnl_abs       = shares × (current_price − cost_basis)
     today_change  = shares × (current_price − prev_close)      [only if prev_close]
+                    (− cost_basis instead when the whole position was bought
+                     in its `day_session_date` session, as the US fetcher does)
 
   per region (Σ over active holdings):
     total_current_value = Σ current_value
@@ -91,7 +93,19 @@ def recompute(data, dry_run=False, percent_rounding=None):
                 h['current_value'] = cv
             pc = number(h.get('prev_close'))
             if pc is not None:
-                tc = _r(sh * (cp - pc))
+                # Same fresh-lot basis the US fetcher writes (us_quotes `tc_ref`):
+                # a position bought entirely this session was not held at
+                # prev_close, so its day P&L runs from cost. Rebuilding it from
+                # prev_close turned a fetched +50 into -150 on reconcile (#1527).
+                session = h.get('day_session_date')
+                bought_this_session = sum(
+                    number(t.get('shares')) or 0
+                    for t in (h.get('trades') or [])
+                    if isinstance(t, dict) and t.get('action') == 'buy'
+                    and session and t.get('date') == session)
+                ref = (cb if cb is not None and bought_this_session > 0
+                       and bought_this_session >= sh else pc)
+                tc = _r(sh * (cp - ref))
                 sum_tc += tc
                 if not dry_run:
                     h['today_change'] = tc
