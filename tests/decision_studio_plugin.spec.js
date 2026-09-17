@@ -852,6 +852,9 @@ test("client: stylesheet is loader-owned and keeps the dark-theme and tone contr
   assert.match(css, hashed("bp"), "provider panel block required");
   assert.match(css, hashed("bp-row"), "panel per-provider row required");
   assert.match(css, hashed("bal-rf"), "ghost refresh button required");
+  assert.match(css, hashed("bal-lead"), "sidebar balance glyph wrapper required");
+  assert.match(css, hashed("bal-glyph"), "sidebar balance gauge required");
+  assert.match(css, hashed("bal-badge"), "sidebar balance status badge required");
   assert.match(css, hashed("bp-win-bar"), "per-window progress bar required");
   // Colour tiers are part of the contract (kcn 确认保留): the pill number and
   // the bar fill both key off the usage direction (ok green / mid yellow /
@@ -1709,7 +1712,18 @@ test("client: the sidebar-foot balance opens a popover that stays open while you
   assert.match(texts(trigger(foot)), /DeepSeek/);
   assert.match(texts(trigger(foot)), /¥110/);
   assert.equal(popover(foot).props["data-open"], "false");
-  assert.equal(trigger(render(false)).props.title.startsWith("DeepSeek"), true, "the rail keeps the reading in its title");
+  const railTrigger = trigger(render(false));
+  assert.equal(railTrigger.props.title.startsWith("DeepSeek"), true, "the rail keeps the reading in its title");
+  const railClasses = find(railTrigger, (p) => typeof p.className === "string")
+    .flatMap((node) => node.props.className.split(" "));
+  assert.ok(railClasses.some((token) => token.endsWith("_bal-lead")), "the rail renders the glyph wrapper class");
+  assert.ok(railClasses.some((token) => token.endsWith("_bal-glyph")), "the rail renders the gauge class");
+  assert.ok(railClasses.some((token) => token.endsWith("_bal-badge")), "the rail renders the status badge class");
+  assert.deepEqual(
+    railClasses.filter((token) => token !== "" && !/^[A-Za-z0-9_-]+_[a-z0-9-]+$/.test(token)),
+    [],
+    "every rendered rail class must resolve through the stylesheet",
+  );
 
   // Open: the popover is part of the foot's own tree, next to its trigger.
   trigger(render()).props.onClick();
@@ -2062,4 +2076,3 @@ test("client: an exhausted quota row shows its 100% bars and resets instead of a
   assert.ok(texts.some((t) => t.includes("周 100% ↻周四 21:00")), "the pill's weekly suffix carries its own reset");
   disposeReactEffects();
 });
-
