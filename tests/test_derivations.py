@@ -292,6 +292,29 @@ class TestRecomputeAggregates:
         assert d["portfolios"]["us_stocks"]["total_current_value"] == 180.0
         assert "us_stocks" in changes                      # and report it changed
 
+    def test_position_bought_this_session_keeps_the_cost_basis_day_change(self):
+        # #1527: the US fetcher writes today_change from cost for a lot bought
+        # entirely this session (10@100, now 105 → +50); reconcile must not
+        # rebuild it from a prev_close (120) the book never held at.
+        d = {"portfolios": {"us_stocks": {"holdings": [
+            {"ticker": "NEW", "shares": 10, "cost_basis": 100.0,
+             "current_price": 105.0, "prev_close": 120.0,
+             "day_session_date": "2026-09-16", "today_change": 50.0,
+             "trades": [{"date": "2026-09-16", "action": "buy", "shares": 10, "price": 100}]},
+            # re-entry: an earlier sold-out lot doesn't make today's lot old,
+            # but a lot still partly held from before does.
+            {"ticker": "PART", "shares": 10, "cost_basis": 100.0,
+             "current_price": 105.0, "prev_close": 120.0,
+             "day_session_date": "2026-09-16",
+             "trades": [{"date": "2026-09-01", "action": "buy", "shares": 5, "price": 100},
+                        {"date": "2026-09-16", "action": "buy", "shares": 5, "price": 100}]},
+        ]}}}
+        ra.recompute(d, dry_run=False)
+        new, part = d["portfolios"]["us_stocks"]["holdings"]
+        assert new["today_change"] == 50.0
+        assert part["today_change"] == -150.0
+        assert d["portfolios"]["us_stocks"]["today_total_change"] == -100.0
+
     def test_dry_run_writes_nothing(self):
         d = self._book()
         d["portfolios"]["us_stocks"]["total_current_value"] = 777
