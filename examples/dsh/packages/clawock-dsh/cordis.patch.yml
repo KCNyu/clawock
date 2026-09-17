@@ -5,7 +5,7 @@
 - insert:
     - id: clawock-studio
       name: clawock-dsh
-      # The gateway's balance chip resolves each provider's key through the
+      # The gateway's balance reading (sidebar foot) resolves each provider's key through the
       # credentials seam; the row must declare the service so the profile
       # mixes it into the plugin context (ctx.credentials).
       inject: [credentials]
