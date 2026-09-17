@@ -304,7 +304,7 @@ test("client: registers the Decision Mind tab and mounts the remote face", async
     if (s === "react") return makeReactStub();
     throw new Error(`unexpected require: ${s}`);
   });
-  assert.deepEqual(api.inject, ["slots", "remote"]);
+  assert.deepEqual(api.inject, ["slots", "remote", "layout"]);
 
   const remoteFace = {
     ledger: async () => ({ ok: true, value: { entries: [] } }),
@@ -385,6 +385,66 @@ test("client: registers the Decision Mind tab and mounts the remote face", async
   assert.ok(balInjected.cachedBalances(), "the fetched answer is cached in the apply closure");
   // The chip's pinned-provider choice is registration-store state.
   assert.deepEqual(chipReg.definition.store.spec.init(), { selected: null });
+});
+
+test("client: on a host with global panels Decision Mind is a sidebar-foot panel, not a session tab", async () => {
+  const loaded = await loadClient();
+  const api = loaded.factory((s) => {
+    if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
+    if (s === "react") return makeReactStub();
+    throw new Error(`unexpected require: ${s}`);
+  });
+  const selected = [];
+  const ctx = {
+    effect() {},
+    get() {
+      return { traces: async () => ({ ok: true, value: { workspaceKey: "ws1", signature: "sig1", trades: [], rate: null } }) };
+    },
+    // DSH >= 0.1.5-rc.1: `main` is keyed and the layout face selects panels.
+    layout: { selectPanel(id) { selected.push(id); } },
+    slots: {
+      inject(name, fn) { (this._seats ??= []).push(name); (this._fns ??= []).push(fn); },
+      register(definition, Component) { (this._regs ??= []).push({ definition, Component }); },
+    },
+    remote: { $mount: async () => {} },
+  };
+  await api.apply(ctx);
+  for (const fn of ctx.slots._fns) fn();
+  assert.deepEqual(ctx.slots._seats, ["main", "sidebar.footer.action", "conversation.session.header.utilities"],
+    "global panel + sidebar-foot entry; no conversation.view tab when the host can host it globally");
+  const panel = ctx.slots._regs.find((r) => r.definition.name === "main");
+  const action = ctx.slots._regs.find((r) => r.definition.name === "sidebar.footer.action");
+  assert.equal(panel.definition.key, api.DECISION_MIND_PANEL, "the main key is the panel identity");
+  assert.equal(action.definition.id, api.DECISION_MIND_PANEL, "the foot entry shares that identity");
+  assert.ok(panel.definition.store, "the panel keeps its UI state in a registration store");
+
+  // The panel's data channel takes no session argument and reads the same workspace.
+  const injected = panel.definition.inject();
+  const fetched = await injected.fetchTraces();
+  assert.equal(fetched.snapshot.workspaceKey, "ws1");
+
+  // The panel renders the view inside its own scroller, with no sessionId at all.
+  const store = makeStoreStub();
+  const tree = panel.Component({ cachedTraces: injected.cachedTraces, fetchTraces: injected.fetchTraces, useStore: store.useStore, actions: store.actions });
+  disposeReactEffects();
+  assert.equal(tree.props["data-clawock-panel"], api.DECISION_MIND_PANEL);
+  assert.match(tree.props.className, /^[A-Za-z0-9_-]+_dmp$/, "panel scroller class must exist in the stylesheet");
+
+  // Foot entry: opens the panel when inactive, returns to the conversation when active.
+  const face = action.definition.inject();
+  const render = (activePanelId, wide) => action.Component({
+    wide, togglePanel: face.togglePanel, usePanelInfo: (sel) => sel({ activePanelId }),
+  });
+  const closed = render(null, true);
+  const button = closed.children[0];
+  assert.equal(button.props["aria-label"], "Decision Mind");
+  assert.equal(button.props["aria-current"], undefined);
+  button.props.onClick();
+  const open = render(api.DECISION_MIND_PANEL, false);
+  assert.equal(open.children[0].props["aria-current"], "page");
+  assert.equal(open.children[0].children[1], null, "the rail renders the glyph only");
+  open.children[0].props.onClick();
+  assert.deepEqual(selected, [api.DECISION_MIND_PANEL, null]);
 });
 
 test("client: _displayEntry projects a trace with its decision and T+1", async () => {

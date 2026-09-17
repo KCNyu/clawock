@@ -304,13 +304,13 @@ Claude Code 是终端里的一个循环——prepare、读、写、publish:
 
 <p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/claude-code-terminal.png" alt="Claude Code 跑通 investment-decision 全流程:clawock init、clawock run prepare、Claude 写 decision.json、clawock run publish 返回 status: published" width="820"></p>
 
-DeepSeek Harness 则是原生面板:一条命令装插件(skill + 会话面板,已发布 npm):
+DeepSeek Harness 则是原生面板:一条命令装插件(skill + 侧栏全局面板,已发布 npm):
 
 ```bash
 dsh plugin --profile web add clawock-dsh
 ```
 
-**Decision Mind** tab 只有一个视图:主轴是真实成交(`portfolio.json` trades),
+**Decision Mind** 是挂在左侧栏底部、不绑定会话的全局面板,只有一个视图:主轴是真实成交(`portfolio.json` trades),
 每行挂接软配对的决策(±3 天,来自 `decisions.jsonl`)作为「当时为什么」,
 卖出单用 T+1 快照收盘价判定卖飞/卖对。点开一条成交,展开成
 **计划 → 执行 → T+1 → 盈亏** 的纵向时间线,为什么(rationale)和备注用语义色

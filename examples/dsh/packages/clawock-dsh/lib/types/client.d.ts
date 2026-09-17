@@ -1,5 +1,13 @@
 /**
- * clawock-dsh browser bundle: the Decision Mind conversation-view tab.
+ * clawock-dsh browser bundle: the Decision Mind global panel.
+ *
+ * Decision Mind reads workspace-wide data (fills, the shared ledger, bar
+ * closes) — nothing in it belongs to a session. So on hosts whose layout
+ * exposes global panels (`ctx.layout.selectPanel`, DSH >= 0.1.5-rc.1) it is
+ * a sidebar-foot action (`sidebar.footer.action`, the seat beside Settings)
+ * that opens a keyed `main` panel, which the layout contract renders with no
+ * Session binding. Older hosts have no keyed `main` slot, so there it falls
+ * back to the conversation-view tab it used to be.
  *
  * One organic view — the decision trace: real fills as the spine, the shared
  * decision ledger (memory/decisions.jsonl) soft-paired (±3 days) as the "why"
@@ -77,10 +85,11 @@ export interface DecisionMindInjected {
  * (`PropsStore`); `sessionId` is the session-scope runtime seat, hand-declared
  * because deriving it would need `SlotMap['conversation.view']` from the
  * conversation package — a cross-plugin value/type import the client rules
- * forbid.
+ * forbid. The global panel is root-scoped and has no session, so it is absent
+ * there.
  */
 export type DecisionMindProps = PropsStore<DecisionMindStore> & DecisionMindInjected & {
-    sessionId: string;
+    sessionId?: string;
 };
 /**
  * The T+1 tone is decided host-side (`t1ToneOf` in ledger.ts) and shipped on
@@ -184,6 +193,33 @@ export type BalanceChipProps = BalancesInjected & PropsStore<BalanceStore> & {
 };
 export declare function ProviderBalanceChip(props: BalanceChipProps): React.ReactElement;
 export declare function DecisionMind(props: DecisionMindProps): React.ReactElement;
+/**
+ * Main-panel key and footer-action id: the sidebar row and its `main`
+ * occupant share one identity, like the host's own panel list does.
+ */
+export declare const DECISION_MIND_PANEL = "clawock-decision-mind";
+/**
+ * The keyed `main` occupant. The center column is a flex column with
+ * `overflow:hidden` — it does not scroll for its occupant the way the
+ * conversation body scrolls a tab — so the panel brings its own scroller.
+ */
+export declare function DecisionMindPanel(props: DecisionMindProps): React.ReactElement;
+/** The footer action's owner share plus its inject face. */
+export interface DecisionMindActionProps {
+    /** Sidebar column state: false is the 56px rail (icon only). */
+    wide: boolean;
+    /** Host global standard prop: selector over the selected main panel. */
+    usePanelInfo?: <T>(selector: (info: {
+        activePanelId: string | null;
+    }) => T) => T;
+    /** Open the panel, or return to the conversation when it is already open. */
+    togglePanel: (active: boolean) => void;
+}
+/**
+ * The sidebar-foot entry. It holds no data and makes no Remote call: it only
+ * selects the global panel, so rendering it on every page costs nothing.
+ */
+export declare function DecisionMindSidebarAction(props: DecisionMindActionProps): React.ReactElement;
 /** Services required by the registration and the mounted Remote face. */
 export declare const inject: string[];
 /** Client contribution context: the face the slot renderer hands us. */
@@ -193,8 +229,15 @@ interface ClientContributionContext {
         register: (definition: Record<string, unknown>, component: unknown) => unknown;
     };
     remote: TypertClientRemote;
+    /** Host layout face; `selectPanel` exists only where `main` is keyed. */
+    layout?: {
+        selectPanel?: (panelId: string | null) => void;
+    };
     get: (name: string) => Record<string, (...args: unknown[]) => Promise<unknown>>;
 }
-/** Register the Decision Mind tab into the conversation view ring. */
+/**
+ * Register Decision Mind as a global sidebar panel (or, on hosts without
+ * global panels, as a conversation-view tab) plus the header balance chip.
+ */
 export declare function apply(ctx: Context & ClientContributionContext): Promise<void>;
 export {};

@@ -377,13 +377,13 @@ each side. Claude Code stays a terminal loop — prepare, read, write, publish:
 <p align="center"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/claude-code-terminal.png" alt="Claude Code running the investment-decision workflow end to end: clawock init, clawock run prepare, Claude writing decision.json, clawock run publish returning status: published" width="820"></p>
 
 DeepSeek Harness gets a native panel instead — one command installs the skill
-plus a conversation-view tab:
+plus a Decision Mind panel pinned to the sidebar foot:
 
 ```bash
 dsh plugin --profile web add clawock-dsh
 ```
 
-The **Decision Mind** tab is one view, not three tabs: the spine is your real
+The **Decision Mind** panel is global, not tied to any session, and it is one view, not three tabs: the spine is your real
 fills (`portfolio.json` trades), each row carries the soft-paired decision
 (±3 days from `decisions.jsonl`) as the "why", and the T+1 verdict comes from
 the canonical `memory/bars/` close inside the T+1 window (never a snapshot

@@ -108,8 +108,10 @@
 
 ## 面板:DSH Decision Mind(只读,三视图)
 
-注册为 DSH 对话视图环里的 "Decision Mind" 标签页(`conversation.view`
-slot,id=`decision-studio`,client.js)。三个分段视图:
+注册为 DSH 左侧栏底部的全局入口(`sidebar.footer.action`)+ 不绑定会话的
+中间主栏面板(keyed `main`,key=`clawock-decision-mind`,client.js);宿主
+低于 0.1.5-rc.1(没有 `ctx.layout.selectPanel`)时退回对话视图环里的
+"Decision Mind" 标签页(`conversation.view` slot,id=`decision-studio`)。三个分段视图:
 
 - **操作**:`portfolio.json` 里每笔真实成交(`trades`)——买入/加仓/卖出/
   清仓/减仓标签、股数@价格、金额、已实现盈亏、备注。这是「实际做了什么」

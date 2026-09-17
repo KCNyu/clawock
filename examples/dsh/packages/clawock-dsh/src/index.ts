@@ -1,6 +1,6 @@
 /**
  * Read-only Typert Remote gateway over a clawock workspace, powering the
- * Decision Mind conversation-view tab in the DSH web GUI.
+ * Decision Mind global sidebar panel in the DSH web GUI.
  *
  * Official Cordis service plugin: `apply` registers the service through
  * `ctx.plugin` (the profile patch layer inserts the plugin row), `@Remote`

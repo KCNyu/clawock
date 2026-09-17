@@ -1595,3 +1595,81 @@ body[data-ds-dark-theme] .pbc .bp {
     backdrop-filter:none
   }
 }
+/* Global panel (keyed `main` occupant). The center column is a flex column
+   that clips, so the panel is its own scroller. It sits outside
+   ConversationRoot, where no composer floats: `--dsh-composer-height` is
+   undefined here and the list's fallback would reserve 152px of empty foot,
+   so the panel states the real height, zero. `--dsh-chat-content-width` is
+   likewise undefined and `--col` keeps its 748px fallback. */
+.dmp {
+  --dsh-composer-height:0px;
+  box-sizing:border-box;
+  flex:1 1 auto;
+  min-height:0;
+  overflow-y:auto
+}
+/* Sidebar-foot action, beside Settings. Geometry follows the host's own foot
+   badge (ui-cordis): a 42px full-width row when wide, a 36px circle on the
+   rail; colours come from the same `--dsw-*` tokens so it flips with theme. */
+.dma {
+  flex:none;
+  display:flex;
+  align-items:center;
+  width:100%;
+  height:42px;
+  margin:8px 0 0
+}
+.dma.rail {
+  width:36px;
+  height:36px;
+  margin:0
+}
+.dma-btn {
+  box-sizing:border-box;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  width:calc(100% + 4px);
+  height:42px;
+  margin:0 -2px;
+  padding:0 10px 0 8px;
+  border:none;
+  border-radius:12px;
+  background:transparent;
+  color:var(--dsw-alias-label-primary, #15171B);
+  font:inherit;
+  cursor:pointer;
+  overflow:hidden
+}
+.dma-btn:hover {
+  background:var(--dsw-alias-interactive-bg-hover, rgba(17,24,39,.05))
+}
+.dma-btn[data-active] {
+  background:var(--dsw-alias-interactive-bg-active, rgba(17,24,39,.08));
+  font-weight:500
+}
+.dma-btn:focus-visible {
+  outline:2px solid var(--dsw-alias-label-primary, #15171B);
+  outline-offset:-2px
+}
+.dma.rail .dma-btn {
+  justify-content:center;
+  gap:0;
+  width:36px;
+  height:36px;
+  margin:0;
+  padding:0;
+  border-radius:50%
+}
+.dma-glyph {
+  flex:none;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center
+}
+.dma-label {
+  min-width:0;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis
+}

@@ -1,5 +1,13 @@
 /**
- * clawock-dsh browser bundle: the Decision Mind conversation-view tab.
+ * clawock-dsh browser bundle: the Decision Mind global panel.
+ *
+ * Decision Mind reads workspace-wide data (fills, the shared ledger, bar
+ * closes) — nothing in it belongs to a session. So on hosts whose layout
+ * exposes global panels (`ctx.layout.selectPanel`, DSH >= 0.1.5-rc.1) it is
+ * a sidebar-foot action (`sidebar.footer.action`, the seat beside Settings)
+ * that opens a keyed `main` panel, which the layout contract renders with no
+ * Session binding. Older hosts have no keyed `main` slot, so there it falls
+ * back to the conversation-view tab it used to be.
  *
  * One organic view — the decision trace: real fills as the spine, the shared
  * decision ledger (memory/decisions.jsonl) soft-paired (±3 days) as the "why"
@@ -129,10 +137,11 @@ export interface DecisionMindInjected {
  * (`PropsStore`); `sessionId` is the session-scope runtime seat, hand-declared
  * because deriving it would need `SlotMap['conversation.view']` from the
  * conversation package — a cross-plugin value/type import the client rules
- * forbid.
+ * forbid. The global panel is root-scoped and has no session, so it is absent
+ * there.
  */
 export type DecisionMindProps = PropsStore<DecisionMindStore> & DecisionMindInjected & {
-  sessionId: string
+  sessionId?: string
 }
 
 const ACT: Record<string, string> = {
@@ -1023,8 +1032,67 @@ export function DecisionMind(props: DecisionMindProps): React.ReactElement {
     h('div', { className: cx('list') }, body))
 }
 
+/**
+ * Main-panel key and footer-action id: the sidebar row and its `main`
+ * occupant share one identity, like the host's own panel list does.
+ */
+export const DECISION_MIND_PANEL = 'clawock-decision-mind'
+
+/**
+ * The keyed `main` occupant. The center column is a flex column with
+ * `overflow:hidden` — it does not scroll for its occupant the way the
+ * conversation body scrolls a tab — so the panel brings its own scroller.
+ */
+export function DecisionMindPanel(props: DecisionMindProps): React.ReactElement {
+  return h('div', { className: cx('dmp'), 'data-clawock-panel': DECISION_MIND_PANEL }, h(DecisionMind, { ...props }))
+}
+
+/** The footer action's owner share plus its inject face. */
+export interface DecisionMindActionProps {
+  /** Sidebar column state: false is the 56px rail (icon only). */
+  wide: boolean
+  /** Host global standard prop: selector over the selected main panel. */
+  usePanelInfo?: <T>(selector: (info: { activePanelId: string | null }) => T) => T
+  /** Open the panel, or return to the conversation when it is already open. */
+  togglePanel: (active: boolean) => void
+}
+
+/** A trace-line glyph drawn in currentColor, so it follows the row's tone. */
+function DecisionMindGlyph(): React.ReactElement {
+  return h('svg', { width: 16, height: 16, viewBox: '0 0 16 16', fill: 'none', 'aria-hidden': 'true' },
+    h('path', {
+      d: 'M2 12.5 6 8l2.5 2.5L14 4.5', stroke: 'currentColor', strokeWidth: 1.4,
+      strokeLinecap: 'round', strokeLinejoin: 'round',
+    }),
+    h('circle', { cx: 6, cy: 8, r: 1.3, fill: 'currentColor' }),
+    h('circle', { cx: 8.5, cy: 10.5, r: 1.3, fill: 'currentColor' }))
+}
+
+/**
+ * The sidebar-foot entry. It holds no data and makes no Remote call: it only
+ * selects the global panel, so rendering it on every page costs nothing.
+ */
+export function DecisionMindSidebarAction(props: DecisionMindActionProps): React.ReactElement {
+  const active = props.usePanelInfo === undefined
+    ? false
+    : props.usePanelInfo((info) => info.activePanelId === DECISION_MIND_PANEL)
+  return h('div', { className: cx('dma', !props.wide && 'rail') },
+    h('button', {
+      type: 'button',
+      className: cx('dma-btn'),
+      'data-clawock-action': DECISION_MIND_PANEL,
+      'data-active': active ? '' : undefined,
+      'aria-label': 'Decision Mind',
+      'aria-current': active ? 'page' : undefined,
+      title: props.wide ? undefined : 'Decision Mind',
+      onClick: () => { props.togglePanel(active) },
+    },
+      h('span', { className: cx('dma-glyph') }, h(DecisionMindGlyph)),
+      props.wide ? h('span', { className: cx('dma-label') }, 'Decision Mind') : null))
+}
+
 /** Services required by the registration and the mounted Remote face. */
-export const inject = ['slots', 'remote']
+export const inject = ['slots', 'remote', 'layout']
 
 /** Client contribution context: the face the slot renderer hands us. */
 interface ClientContributionContext {
@@ -1033,13 +1101,18 @@ interface ClientContributionContext {
     register: (definition: Record<string, unknown>, component: unknown) => unknown
   }
   remote: TypertClientRemote
+  /** Host layout face; `selectPanel` exists only where `main` is keyed. */
+  layout?: { selectPanel?: (panelId: string | null) => void }
   get: (name: string) => Record<string, (...args: unknown[]) => Promise<unknown>>
 }
 
 /** Remote answer shape: the gateway's ok/error envelope. */
 type RemoteResult<T> = { ok: true; value: T } | { ok: false; error: { code: string; message: string } }
 
-/** Register the Decision Mind tab into the conversation view ring. */
+/**
+ * Register Decision Mind as a global sidebar panel (or, on hosts without
+ * global panels, as a conversation-view tab) plus the header balance chip.
+ */
 export async function apply(ctx: Context & ClientContributionContext): Promise<void> {
   await ctx.remote.$mount(TYPERT_REMOTE as TypertRemoteContribution)
   const studioRemote = ctx.get('remote.clawockStudio')
@@ -1086,14 +1159,32 @@ export async function apply(ctx: Context & ClientContributionContext): Promise<v
     },
   })
   const store = createDecisionMindStore()
-  ctx.slots.inject('conversation.view', () => ctx.slots.register({
-    name: 'conversation.view',
-    id: 'decision-studio',
-    order: 30,
-    label: () => 'Decision Mind',
-    store,
-    inject: injected,
-  }, DecisionMind))
+  const layout = ctx.layout
+  const selectPanel = layout?.selectPanel
+  if (layout !== undefined && typeof selectPanel === 'function') {
+    ctx.slots.inject('main', () => ctx.slots.register({
+      name: 'main',
+      key: DECISION_MIND_PANEL,
+      store,
+      inject: injected,
+    }, DecisionMindPanel))
+    ctx.slots.inject('sidebar.footer.action', () => ctx.slots.register({
+      name: 'sidebar.footer.action',
+      id: DECISION_MIND_PANEL,
+      inject: () => ({
+        togglePanel: (active: boolean) => { selectPanel.call(layout, active ? null : DECISION_MIND_PANEL) },
+      }),
+    }, DecisionMindSidebarAction))
+  } else {
+    ctx.slots.inject('conversation.view', () => ctx.slots.register({
+      name: 'conversation.view',
+      id: 'decision-studio',
+      order: 30,
+      label: () => 'Decision Mind',
+      store,
+      inject: injected,
+    }, DecisionMind))
+  }
   const balancesStore = createBalanceStore()
   ctx.slots.inject('conversation.session.header.utilities', () => ctx.slots.register({
     name: 'conversation.session.header.utilities',

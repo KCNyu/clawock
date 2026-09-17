@@ -9,7 +9,7 @@
 The [clawock](https://github.com/KCNyu/clawock) investment-decision workflow,
 as a DeepSeek Harness plugin. A skill package that makes the agent walk four
 steps — read the request, research and argue both sides, write the decision,
-then let Python validate and settle it — plus a Decision Mind tab that renders
+then let Python validate and settle it — plus a Decision Mind sidebar panel that renders
 every real fill as an expandable decision trace inside the DSH web GUI.
 
 The fourth step is the one that matters: the model never touches settlement.
@@ -35,7 +35,7 @@ in the installation section below. The rest of this README is in Chinese.
 
 DeepSeek Harness 的投资决策工作流插件:agent 走完
 「读请求 → 研究 + 正反辩论 → 写决策 → Python 校验结算」四步,
-web GUI 多一个 Decision Mind tab 把每笔成交的决策轨迹钉在页面上。
+web GUI 左侧栏底部多一个 Decision Mind 全局面板,把每笔成交的决策轨迹钉在页面上。
 
 第四步是核心:**模型永远不能给自己打分**——价格、风控、账本、战绩全部由
 Python 独立结算,agent 写不到那段代码,下错单显示为一笔公开页上的亏损,
@@ -90,9 +90,11 @@ action / run_id,判定和结算是 Python 算的,不是模型说的:
 - 有界行动:动作、数量、触发条件写进 `decision.json`,由 Python 校验;
 - 情绪状态自认,non-calm 才会出现在面板里。
 
-### 一个只读的 Decision Mind tab
+### 一个只读的 Decision Mind 全局面板
 
-装完后 web GUI 的会话视图多一个 **Decision Mind** tab。它只做一件事:
+装完后 web GUI **左侧栏底部、Settings 上方**多一个 **Decision Mind** 入口。
+点开后它占据中间主栏,和当前开着哪个会话无关(没开任何会话也能看);再点一次、
+或点任意会话,回到对话。它只做一件事:
 **每一笔真实成交,都是一条可以点开的决策轨迹**。
 
 - **账本式分组**:一天一组,行内 = 日期 · 标的 · 动作 · 数量@价 ·
@@ -104,6 +106,11 @@ action / run_id,判定和结算是 Python 算的,不是模型说的:
 - 没有当日计划的成交显式标注——不假装有判断。
 
 面板是只读 Remote,不改任何文件;结算仍归 clawock 自己的机制。
+
+挂载位置用的是 DSH 公开的 slot:`sidebar.footer.action`(侧栏底部 Settings
+旁的动作座位)+ keyed `main`(按 id 选中的中间全局面板,宿主契约写明「不绑定
+Session」),靠 `ctx.layout.selectPanel` 切换。这两样从 DSH `0.1.5-rc.1` 起才有;
+更早的宿主上 `ctx.layout` 没有 `selectPanel`,插件自动退回原来的会话视图 tab。
 
 ### 会话头部的多 Provider 余额芯片
 
@@ -162,7 +169,7 @@ node_modules——回到安装那一节检查 `cp` 那一步。
 
 **Decision Mind 是空白的?**
 面板读的是 clawock workspace(`CLAWOCK_WORKSPACE`)里的真实成交与决策
-记录;workspace 还没有数据时 tab 是空的,不是装坏了。
+记录;workspace 还没有数据时面板是空的,不是装坏了。
 
 **面板和公开 dashboard 是什么关系?**
 同一个「决策轨迹」数据契约,两套渲染:插件是运行期读 workspace 的
