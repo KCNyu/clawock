@@ -743,12 +743,49 @@ function useProviderBalances(props: BalancesInjected & PropsStore<BalanceStore>,
   return { data, rows, primary, select, flash, refresh }
 }
 
-/** The headline reading: dot · value · reset · weekly sub-reading. */
-function renderBalanceHeadline(primary: BalanceRow | undefined, withLabel: boolean): React.ReactElement {
+/**
+ * The sidebar-foot glyph: a quota gauge drawn with the geometry and stroke of
+ * the host's own `IconGaugeOutline16` (ui-primitives, MIT; redrawn inline
+ * because client bundles may not import another plugin's modules), so it sits
+ * in the same icon language as Settings and the Cordis badge beside it.
+ * Status rides a small badge notched out of the bottom-right corner instead
+ * of the whole icon being a coloured disc: solid = ok/low (green/red), a
+ * hollow ring = stale (the number is not trustworthy), no badge while there is
+ * nothing to judge. The notch is an SVG mask, not a painted ring, so it stays
+ * clean over the hover and open backgrounds.
+ */
+function renderBalanceGlyph(tone: BalanceTone, size: number): React.ReactElement {
+  const badge = tone === 'ok' || tone === 'low' || tone === 'stale'
+  const notch = 'clawock-balance-notch'
+  return h('svg', {
+    className: cx('bal-glyph'), width: size, height: size, viewBox: '0 0 16 16', fill: 'none', 'aria-hidden': 'true',
+  },
+    badge
+      ? h('defs', null,
+        h('mask', { id: notch, maskUnits: 'userSpaceOnUse', x: 0, y: 0, width: 16, height: 16 },
+          h('rect', { x: 0, y: 0, width: 16, height: 16, fill: 'white' }),
+          h('circle', { cx: 12.75, cy: 12.75, r: 3.9, fill: 'black' })))
+      : null,
+    h('g', { mask: badge ? 'url(#' + notch + ')' : undefined },
+      h('path', { d: 'M3.49 13.26A6.375 6.375 0 1 1 12.51 13.26', stroke: 'currentColor', strokeWidth: 1.25, strokeLinecap: 'round' }),
+      h('path', { d: 'M8 8.75L11.4 5.35', stroke: 'currentColor', strokeWidth: 1.25, strokeLinecap: 'round' }),
+      h('circle', { cx: 8, cy: 8.75, r: 1.55, fill: 'currentColor' })),
+    badge
+      ? h('circle', {
+        className: cx('bal-badge'), 'data-balance-state': tone, cx: 12.75, cy: 12.75, r: tone === 'stale' ? 2.05 : 2.6,
+      })
+      : null)
+}
+
+/** The headline reading: dot (or the foot glyph) · value · reset · weekly sub-reading. */
+function renderBalanceHeadline(primary: BalanceRow | undefined, withLabel: boolean, glyph = false): React.ReactElement {
+  const lead = (tone: BalanceTone): React.ReactElement => glyph
+    ? h('span', { className: cx('bal-lead') }, renderBalanceGlyph(tone, 16))
+    : h('span', { className: cx('bchip-dot') })
   return primary === undefined
-    ? h('span', { className: cx('bchip-item') }, h('span', { className: cx('bchip-dot') }), '—')
+    ? h('span', { className: cx('bchip-item') }, lead('none'), '—')
     : h('span', { className: cx('bchip-item'), 'data-pb-provider': primary.provider, 'data-pb-role': 'chip', 'data-balance-state': primary.view.tone },
-      h('span', { className: cx('bchip-dot') }),
+      lead(primary.view.tone),
       withLabel ? h('span', { className: cx('bchip-name') }, primary.label) : null,
       h('span', {
         className: cx('bchip-v'),
@@ -940,9 +977,9 @@ export function ProviderBalanceSidebarAction(props: BalanceSidebarActionProps): 
         setOpen(!open)
       },
     }, props.wide
-      ? renderBalanceHeadline(primary, true)
-      : h('span', { className: cx('bchip-item'), 'data-balance-state': primary !== undefined ? primary.view.tone : 'none' },
-        h('span', { className: cx('bchip-dot') }))),
+      ? renderBalanceHeadline(primary, true, true)
+      : h('span', { className: cx('bal-lead'), 'data-balance-state': primary !== undefined ? primary.view.tone : 'none' },
+        renderBalanceGlyph(primary !== undefined ? primary.view.tone : 'none', 18))),
     h('div', {
       className: cx('bp'),
       'data-open': open ? 'true' : 'false',
