@@ -204,12 +204,12 @@ These are installed commands too. They are listed here so the catalog is the who
 
 **Mode 7 intraday**（HK + US 盘中盯盘 — 3 个 cron job 共享同一套脚本；季节化 slot 数和精确时间只看生成调度表，隔夜始终最晚 02:30 HKT）
 - **`clawock intraday preflight --market {hk|us}`**：跑 analyze_*.py + 异动检测 + `should_alert` 决策；输出 `memory/.tmp/intraday-context-{market}-latest.json`
-- **`clawock intraday postflight --market {hk|us} --context-id {preflight 的 context_id} --text-file memory/.tmp/intraday-prose-{hk|us}.md`**（**先写文件再调用，禁 heredoc/`<<<`**；空输入/超 20 分钟的旧文件判 `status: input_error` 并拒投）：模型只写 `▎我的看法` 散文，`assemble_message()` 在发送时把 `raw_wechat_block` 拼在前面 —— 数据块不再经模型往返，也就不会被重排版打坏。`--context-id` 不匹配 = 散文与数据不同代，拒绝拼装只发数据块。校验 ▎我的看法 / should_alert 异动票提及只针对模型写的那段（长度算拼装后的整条）；不提交 `portfolio.json`，dashboard 仅在语义变化时 commit + push；无论有无 dashboard diff 都更新本地 slot heartbeat，交 single publisher 发布。省略 `--context-id` 回落到 legacy 整报告模式（保留 verbatim 校验），供未迁移的 payload 过渡。
+- **`clawock intraday postflight --market {hk|us} --context-id {preflight 的 context_id} --text-file memory/.tmp/intraday-prose-{hk|us}.md`**（**先写文件再调用，禁 heredoc/`<<<`**；空输入/超 20 分钟的旧文件判 `status: input_error` 并拒投）：模型只写 `▎我的看法` 散文，`assemble_message()` 在发送时把 `raw_wechat_block` 拼在前面 —— 数据块不再经模型往返，也就不会被重排版打坏。`--context-id` 不匹配 = 散文与数据不同代，拒绝拼装只发数据块。校验 ▎我的看法 / should_alert 异动票提及只针对模型写的那段（长度算拼装后的整条）；不提交 `portfolio.json`，dashboard 仅在语义变化时 commit + push；无论有无 dashboard diff 都更新本地 slot heartbeat，交 single publisher 发布。`--context-id` 必填：legacy 整报告输入形态（模型交整篇、事后 verbatim 校验数据块）已在 #1279 删除，省略即 argparse 报错退出 2。
 
 **共通设计点**：
-- `raw_wechat_block`：**Mode 6 报告**（report_postflight）由 harness 自己拼进消息，LLM 只写散文、不碰数据块；**intraday** 仍是 LLM verbatim 拷贝 + postflight 首行验证
+- `raw_wechat_block`：**Mode 6 报告**（report_postflight）由 harness 自己拼进消息，LLM 只写散文、不碰数据块；**intraday**（intraday_postflight）同样由 harness 拼装，LLM 只写散文（模型 verbatim 拷贝数据块的 legacy 形态已在 #1279 删除）
 - preflight 输出 `anomalies` 字段，LLM 必须在报告里至少提一个 anomaly 票（report 按**模型散文**校验，数据块里的票代码不算数）
-- `wechat_prefix`（pass=空串，warn=黄 banner，fail=红 banner）：report_postflight 自己发，不再回给 LLM 拼；intraday 仍回给 LLM
+- `wechat_prefix`（pass=空串，warn=黄 banner，fail=红 banner）：report_postflight 与 intraday_postflight 都自己拼进消息发出，不再回给 LLM 拼
 - 所有 context.json 都放 `memory/.tmp/`（gitignore 排除）
 
 ### 辅助
