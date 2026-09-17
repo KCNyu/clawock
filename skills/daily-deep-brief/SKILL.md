@@ -957,9 +957,9 @@ clawock brief postflight
 **status 不是逐条 issue 判的，别自己猜哪条是硬闸。** `fail` 只由 critical 关键词
 （`缺失` / `解析失败` / `表格 #`）或 issues > 4 条触发；其余都是 warn，照样 commit + 投递。
 
-**`fail` 才需要修：改完 critical 那条，立刻重跑一次 postflight 拿新 status，到 warn/pass 就停。**
-不要在一次 `fail` 之后一路埋头修到自己认为"干净"为止 —— 修掉 critical 那条以后往往
-已经是 warn，剩下的 issue 不阻塞交付。
+**`fail` 才需要修：有 critical 就修点名的 critical；若只是 issues > 4，就只修到 ≤4 条。**
+每次改完立刻重跑一次 postflight 拿新 status，到 warn/pass 就停。不要在一次 `fail` 之后
+一路埋头修到自己认为"干净"为止 —— 解除 fail 后剩下的 issue 不阻塞交付。
 
 **`warn` 和 `pass` 一样是终态（`commit_ok: true` 时）：已 commit、已尝试投递，不要为了变成 pass 再跑 postflight。**
 重跑不会再投递（当天已有投递记录就跳过），只会多一次 commit + push + dashboard 重建，
