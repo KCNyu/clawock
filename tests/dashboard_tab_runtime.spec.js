@@ -1432,7 +1432,20 @@ async function testTheSearchVisibilityCardFitsWithoutOverflowing(browser, base) 
   for (const [label, width, expectedCols] of [["desktop", 1280, 4], ["mobile", 390, 2]]) {
     const page = await browser.newPage({ viewport: { width, height: 900 } });
     const state = observe(page);
-    await stubLiveOrigin(page);
+    // The figures are pinned in the payload, not read from the published
+    // generation: the weekly reading moves (28 天 51 → 53 on 2026-09-17) and a
+    // layout check must not go red because Google counted two more impressions.
+    await stubLiveOrigin(page, {
+      patch: (name, json) => {
+        if (name !== "overview.json" && name !== "dashboard.json") return null;
+        json.crawl_visibility = {
+          available: true, as_of: "2026-09-11", window_days: 7,
+          impressions: 44, clicks: 0, impressions_28d: 51, position: 6.98,
+          pages_with_impressions: 1, queries_reported: 5, sitemap_fetched: null,
+        };
+        return json;
+      },
+    });
     await page.goto(base, { waitUntil: "networkidle" });
     await waitForData(page);
     await page.waitForSelector("#search-card", { timeout: 5000 });
