@@ -1614,21 +1614,20 @@ test("client: the header chip headlines one provider and the panel pins the rest
   disposeReactEffects();
 });
 
-test("client: on a host with global panels the balance chip moves to the sidebar foot + a session-free panel", async () => {
+test("client: the sidebar-foot balance opens a popover that stays open while you pin and refresh", async () => {
   const loaded = await loadClient();
   const reactStub = makeReactStub();
-  const runtime = makeRuntimeStub();
   const api = loaded.factory((s) => {
-    if (s === "@deepseek-ai/dsh-client-store") return runtime;
+    if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
     if (s === "react") return reactStub;
     throw new Error(`unexpected require: ${s}`);
   });
   const LOW_DS = JSON.parse(JSON.stringify(DS_ROW_OK));
   LOW_DS.result.low = true;
-  let calls = 0;
+  let forced = 0;
   const remoteFace = {
     balance: async (force) => {
-      calls += 1;
+      if (force) forced += 1;
       return { ok: true, value: { providers: [force ? LOW_DS : DS_ROW_OK, MM_ROW_OK], refreshMs: 60000 } };
     },
   };
@@ -1636,7 +1635,8 @@ test("client: on a host with global panels the balance chip moves to the sidebar
   const ctx = {
     effect() {},
     get() { return remoteFace; },
-    // DSH >= 0.1.5-rc.1: `main` is keyed and the layout face selects panels.
+    // DSH >= 0.1.5-rc.1. The foot must never drive panel navigation: selecting
+    // a `main` panel swapped the whole conversation out from under the user.
     layout: { selectPanel(id) { selected.push(id); } },
     slots: {
       inject(name, fn) { (this._seats ??= []).push(name); (this._fns ??= []).push(fn); },
@@ -1646,25 +1646,17 @@ test("client: on a host with global panels the balance chip moves to the sidebar
   };
   await api.apply(ctx);
   for (const fn of ctx.slots._fns) fn();
-  assert.deepEqual(ctx.slots._seats, ["conversation.view", "main", "sidebar.footer.action"],
-    "Decision Mind stays a conversation tab; the chip leaves the session header for the sidebar foot + main panel");
-  const panel = ctx.slots._regs.find((r) => r.definition.name === "main");
+  assert.deepEqual(ctx.slots._seats, ["conversation.view", "sidebar.footer.action"],
+    "Decision Mind stays a conversation tab; the balance is one foot action — no `main` panel, no header chip");
   const action = ctx.slots._regs.find((r) => r.definition.name === "sidebar.footer.action");
-  assert.equal(panel.definition.key, api.BALANCE_PANEL);
   assert.equal(action.definition.id, "provider-balance");
-  assert.equal(ctx.slots._regs.some((r) => r.definition.name === "conversation.session.header.utilities"), false,
-    "no header chip once the sidebar hosts it");
-  // One store instance behind both registrations: a pin in the panel re-headlines the button.
-  assert.equal(panel.definition.store.create(), action.definition.store.create(), "the foot and the panel share one pin store");
 
   const tick = () => new Promise((resolve) => setImmediate(resolve));
   const store = makeBalanceStoreStub();
-  const actionFace = action.definition.inject();
-  const panelFace = panel.definition.inject();
-  let activePanelId = null;
-  const renderAction = (wide = true) => {
+  const face = action.definition.inject();
+  const render = (wide = true) => {
     reactStub._resetCursor();
-    return action.Component({ wide, usePanelInfo: (sel) => sel({ activePanelId }), useStore: store.useStore, actions: store.actions, ...actionFace });
+    return action.Component({ wide, useStore: store.useStore, actions: store.actions, ...face });
   };
   const find = (tree, pred) => {
     const out = [];
@@ -1687,51 +1679,48 @@ test("client: on a host with global panels the balance chip moves to the sidebar
     })(tree);
     return out.join(" ");
   };
+  const trigger = (tree) => find(tree, (p) => p["data-clawock-action"] === api.BALANCE_PANEL)[0];
+  const popover = (tree) => find(tree, (p) => p["data-clawock-popover"] === api.BALANCE_PANEL)[0];
 
-  // The foot button headlines the first provider with its tone, and names it.
-  renderAction();
+  // Closed: the foot headlines the first provider with its tone and names it.
+  render();
   await tick(); await tick(); await tick();
-  let foot = renderAction();
-  const button = find(foot, (p) => p["data-clawock-action"] === api.BALANCE_PANEL)[0];
-  assert.ok(button, "foot button rendered");
-  assert.equal(button.props["data-balance-state"], "ok");
-  assert.match(texts(foot), /DeepSeek/);
-  assert.match(texts(foot), /¥110/);
-  assert.equal(find(foot, (p) => p["data-pb-role"] === "panel").length, 0, "the foot carries the headline only");
-  const railButton = find(renderAction(false), (p) => p["data-clawock-action"] === api.BALANCE_PANEL)[0];
-  assert.equal(railButton.props.title.startsWith("DeepSeek"), true, "the rail keeps the reading in its title");
+  let foot = render();
+  assert.equal(trigger(foot).props["data-balance-state"], "ok");
+  assert.equal(trigger(foot).props["aria-expanded"], false);
+  assert.match(texts(trigger(foot)), /DeepSeek/);
+  assert.match(texts(trigger(foot)), /¥110/);
+  assert.equal(popover(foot).props["data-open"], "false");
+  assert.equal(trigger(render(false)).props.title.startsWith("DeepSeek"), true, "the rail keeps the reading in its title");
 
-  // Clicking opens the panel; clicking while active returns to the conversation.
-  button.props.onClick();
-  activePanelId = api.BALANCE_PANEL;
-  foot = renderAction();
-  assert.equal(find(foot, (p) => p["data-clawock-action"])[0].props["aria-current"], "page");
-  find(foot, (p) => p["data-clawock-action"])[0].props.onClick();
-  assert.deepEqual(selected, [api.BALANCE_PANEL, null]);
-
-  // The panel renders every provider row with pinning and the manual refresh, no session involved.
-  const renderPanel = () => { reactStub._resetCursor(); return panel.Component({ useStore: store.useStore, actions: store.actions, ...panelFace }); };
-  renderPanel();
-  await tick(); await tick(); await tick();
-  let board = renderPanel();
-  assert.equal(board.props["data-clawock-panel"], api.BALANCE_PANEL);
-  const rows = find(board, (p) => p["data-pb-role"] === "panel");
+  // Open: the popover is part of the foot's own tree, next to its trigger.
+  trigger(render()).props.onClick();
+  foot = render();
+  assert.equal(trigger(foot).props["aria-expanded"], true);
+  assert.equal(popover(foot).props["data-open"], "true");
+  const rows = find(popover(foot), (p) => p["data-pb-role"] === "panel");
   assert.deepEqual(rows.map((r) => r.props["data-pb-provider"]), ["deepseek", "minimax"]);
-  rows[1].props.onClick();
-  assert.equal(store._get().selected, "minimax", "a panel click pins the headline provider");
-  foot = renderAction();
-  assert.equal(find(foot, (p) => p["data-clawock-action"])[0].props["data-pb-provider"], "minimax",
-    "the foot button follows the pin");
 
-  // A forced refresh from the panel reaches the foot button without waiting for its poll.
+  // Pinning a row re-headlines the trigger and leaves the popover open.
+  rows[1].props.onClick();
+  foot = render();
+  assert.equal(store._get().selected, "minimax", "a row click pins the headline provider");
+  assert.equal(trigger(foot).props["data-pb-provider"], "minimax", "the foot row follows the pin");
+  assert.equal(popover(foot).props["data-open"], "true", "pinning must not close the popover");
+
+  // A forced refresh keeps it open and paints the low dot at once.
   store.actions.select("deepseek");
-  const before = calls;
-  find(board, (p) => p["data-refresh"] === "true")[0].props.onClick();
+  find(popover(render()), (p) => p["data-refresh"] === "true")[0].props.onClick();
   await tick(); await tick(); await tick();
-  assert.equal(calls, before + 1, "one forced fetch");
-  foot = renderAction();
-  assert.equal(find(foot, (p) => p["data-clawock-action"])[0].props["data-balance-state"], "low",
-    "the low red dot shows on the foot button right after the panel's refresh");
+  foot = render();
+  assert.equal(forced, 1, "one forced fetch");
+  assert.equal(trigger(foot).props["data-balance-state"], "low", "the low red dot shows right after the refresh");
+  assert.equal(popover(foot).props["data-open"], "true", "refreshing must not close the popover");
+
+  // Only the trigger (or an outside pointer / Escape, browser-only) closes it.
+  trigger(foot).props.onClick();
+  assert.equal(popover(render()).props["data-open"], "false");
+  assert.deepEqual(selected, [], "the foot never navigates the main column");
   disposeReactEffects();
 });
 
