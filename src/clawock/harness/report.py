@@ -17,6 +17,7 @@ from clawock.harness.validation import (
     categorize_issues,
     check_numeric_claims,
     check_pipeline_self_reference,
+    mentions_ticker,
     validate_forbidden_phrases,
 )
 
@@ -93,7 +94,7 @@ def validate(body, ctx, model_text):
     # 4. 异动票必须被提到（模型文本 —— 数据块里本就有票代码，不能拿它顶）
     anomalies = ctx.get('anomalies', [])
     if anomalies:
-        mentioned = [a['ticker'] for a in anomalies if a['ticker'] in checked]
+        mentioned = [a['ticker'] for a in anomalies if mentions_ticker(checked, a['ticker'])]
         if not mentioned:
             tickers = ', '.join(a['ticker'] for a in anomalies)
             issues.append(f'preflight 标了 {len(anomalies)} 个 ≥3% 异动票 ({tickers}) 但报告全部未提及')

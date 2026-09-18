@@ -56,6 +56,28 @@ def _cell_separators(line):
     return len(re.findall(r'(?<!\\)\|', line))
 
 
+def mentions_ticker(text, ticker):
+    """True when `ticker` stands in `text` as its own code, not inside another.
+
+    A bare substring test let one code vouch for another: QQQ is inside TQQQ
+    and SPCX inside "SPCH 2xSPCX" in real pre-open prose, and an HK code can
+    sit inside a longer digit run (00100 in 1500100). Only a neighbour of the
+    same kind breaks a mention — the prose glues codes to numbers and CJK
+    ("SPCH44.71%单名", "SPCH2x在趋势OFF"), and those are mentions (#1557).
+    """
+    ticker = str(ticker or '')
+    if not ticker:
+        return False
+    if ticker.isdigit():
+        kind = r'0-9'
+    elif ticker.isalpha():
+        kind = r'A-Za-z'
+    else:
+        kind = r'A-Za-z0-9'
+    pattern = rf'(?<![{kind}]){re.escape(ticker)}(?![{kind}])'
+    return re.search(pattern, text or '') is not None
+
+
 def validate_forbidden_phrases(text, phrases, label='报告'):
     """Return one issue per forbidden phrase found in text."""
     return [f'{label}含敷衍词 "{p}"' for p in phrases if p in text]
