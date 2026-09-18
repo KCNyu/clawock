@@ -8,6 +8,7 @@ pure function of those and must never be edited by hand:
   per holding (active, shares>0):
     current_value = shares × current_price
     pnl_abs       = shares × (current_price − cost_basis)
+    pnl_percent   = (current_price − cost_basis) / cost_basis × 100
     today_change  = shares × (current_price − prev_close)      [only if prev_close]
                     (− cost_basis instead when the whole position was bought
                      in its `day_session_date` session, as the US fetcher does)
@@ -69,6 +70,10 @@ def recompute(data, dry_run=False, percent_rounding=None):
         if not isinstance(pf, dict):
             continue
         diffs = {}
+        # The book's percent precision is the fetcher's (us_quotes rounds to
+        # 4 places, hk_analysis to 2), so a reconcile that leaves the prices
+        # alone lands on exactly the value the next fetch writes.
+        pct_nd = precision.get(region, 2)
 
         # ── per-holding derived leaves (active only, mirrors the gate's _active) ──
         sum_cv = sum_cost = sum_tc = 0.0
@@ -87,6 +92,15 @@ def recompute(data, dry_run=False, percent_rounding=None):
                     diffs.setdefault('holdings.pnl_abs', []).append((h.get('ticker'), h.get('pnl_abs'), pnl))
                 if not dry_run:
                     h['pnl_abs'] = pnl
+                # Same leaves, same row: a cost correction that moved pnl_abs
+                # and left the fetcher's old percentage beside it showed
+                # +30 USD next to -20% until the next price fetch (#1552).
+                # Zero cost falls back to 0, as hk_analysis does.
+                pct = round((cp - cb) / cb * 100, pct_nd) if cb else 0
+                if number(h.get('pnl_percent')) != pct:
+                    diffs.setdefault('holdings.pnl_percent', []).append((h.get('ticker'), h.get('pnl_percent'), pct))
+                if not dry_run:
+                    h['pnl_percent'] = pct
             if number(h.get('current_value')) != cv:
                 diffs.setdefault('holdings.current_value', []).append((h.get('ticker'), h.get('current_value'), cv))
             if not dry_run:
@@ -111,7 +125,6 @@ def recompute(data, dry_run=False, percent_rounding=None):
                     h['today_change'] = tc
 
         # ── region aggregates ──
-        pct_nd = precision.get(region, 2)
         want = {
             'total_current_value': _r(sum_cv),
             'total_cost': _r(sum_cost),

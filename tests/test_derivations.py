@@ -292,6 +292,32 @@ class TestRecomputeAggregates:
         assert d["portfolios"]["us_stocks"]["total_current_value"] == 180.0
         assert "us_stocks" in changes                      # and report it changed
 
+    def test_cost_correction_rebuilds_pnl_percent_beside_pnl_abs(self):
+        # #1552: reconcile after a cost fix (10 → 5, price 8) rebuilt pnl_abs
+        # to +30 but kept the fetcher's -20%, and a second pass called that
+        # consistent. Both come from the same leaves, at the book's precision.
+        d = {"portfolios": {
+            "us_stocks": {"holdings": [
+                {"ticker": "FIX", "shares": 10, "cost_basis": 5.0,
+                 "current_price": 8.0, "pnl_abs": -20.0, "pnl_percent": -20.0},
+                {"ticker": "ODD", "shares": 3, "cost_basis": 3.0,
+                 "current_price": 2.0, "pnl_abs": -3.0, "pnl_percent": -33.3333},
+            ]},
+            "hk_stocks": {"holdings": [
+                {"ticker": "00100", "shares": 100, "cost_basis": 3.0,
+                 "current_price": 2.0, "pnl_abs": -100.0, "pnl_percent": -33.33},
+            ]},
+        }}
+        precision = {"us_stocks": 4, "hk_stocks": 2}
+        dry = ra.recompute(json.loads(json.dumps(d)), dry_run=True, percent_rounding=precision)
+        assert dry["us_stocks"]["holdings.pnl_percent"] == [("FIX", -20.0, 60.0)]
+        ra.recompute(d, dry_run=False, percent_rounding=precision)
+        fix, odd = d["portfolios"]["us_stocks"]["holdings"]
+        assert fix["pnl_abs"] == 30.0 and fix["pnl_percent"] == 60.0
+        assert odd["pnl_percent"] == -33.3333                # untouched: already right
+        assert d["portfolios"]["hk_stocks"]["holdings"][0]["pnl_percent"] == -33.33
+        assert ra.recompute(d, dry_run=False, percent_rounding=precision) == {}
+
     def test_position_bought_this_session_keeps_the_cost_basis_day_change(self):
         # #1527: the US fetcher writes today_change from cost for a lot bought
         # entirely this session (10@100, now 105 → +50); reconcile must not
