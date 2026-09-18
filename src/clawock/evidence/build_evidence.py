@@ -42,6 +42,7 @@ import argparse
 import json
 from pathlib import Path
 
+from clawock.safe_io import safe_write_json
 from clawock.workspace import workspace_root
 
 WS = workspace_root()
@@ -459,11 +460,11 @@ def _generated_at() -> str:
 
 def write_all() -> Path:
     """The one output. Called by the CLI and by the preflight node, so there is a
-    single place deciding what a published ledger contains."""
+    single place deciding what a published ledger contains. Written atomically:
+    a crash mid-write must leave the last complete ledger, not a torn one the
+    dashboard cannot parse (#1579)."""
     sections = _sections()
-    ARTIFACT.write_text(
-        json.dumps(payload(sections, _generated_at()), ensure_ascii=False, indent=2)
-        + '\n', encoding='utf-8')
+    safe_write_json(str(ARTIFACT), payload(sections, _generated_at()))
     return ARTIFACT
 
 

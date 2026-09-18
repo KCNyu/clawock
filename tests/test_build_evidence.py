@@ -351,7 +351,7 @@ def test_the_artifact_is_what_gets_written():
     """
     import inspect
     source = inspect.getsource(ev.write_all)
-    assert "ARTIFACT.write_text" in source
+    assert "safe_write_json(str(ARTIFACT)" in source
     assert "RETIRED_PAGE" not in source and "site/evidence.md" not in source, (
         "write_all still writes the retired page")
 
