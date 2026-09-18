@@ -1207,6 +1207,14 @@ test("balance: CNY picking, tolerant parsing and the service's polite-cadence st
     assert.equal(b.snapshot.totalBalance, "9.00");
     assert.equal(upstreamCalls, 3, "a racing poll joins the in-flight run");
 
+    // A manual refresh racing a poll inside the TTL must not join the poll's
+    // cached answer (#1567): it waits for the poll, then fetches itself.
+    const [poll, manual, late] = await Promise.all([service.get(false), service.get(true), service.get(false)]);
+    assert.equal(poll.status, "cached");
+    assert.equal(manual.status, "fresh", "a forced refresh never reads as cached");
+    assert.equal(late.status, "fresh", "a poll after the manual click joins the forced run");
+    assert.equal(upstreamCalls, 4, "the forced run is one upstream request");
+
     // A failed refresh keeps the last good snapshot and reports stale —
     // a transient 429 cannot erase a real number.
     globalThis.fetch = async () => { throw new Error("down"); };
@@ -1221,7 +1229,7 @@ test("balance: CNY picking, tolerant parsing and the service's polite-cadence st
     assert.equal(staleCached.status, "stale", "a failed refresh must not read as cached");
     assert.equal(staleCached.snapshot.totalBalance, "9.00");
     assert.match(staleCached.message, /down/);
-    assert.equal(upstreamCalls, 3, "the stale answer is served without hitting upstream");
+    assert.equal(upstreamCalls, 4, "the stale answer is served without hitting upstream");
     globalThis.fetch = async () => {
       upstreamCalls += 1;
       return new Response(JSON.stringify({
