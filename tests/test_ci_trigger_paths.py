@@ -103,6 +103,30 @@ def test_every_push_trigger_path_reaches_a_lane():
         f"to them runs no test: {uncovered}")
 
 
+def test_every_tracked_file_in_a_lane_starts_a_push_run():
+    """The reverse half: a file the classifier says needs tests must be in the trigger.
+
+    #1209 added `site/_layouts/` and `site/decimap/` to the ui lane but not to
+    the push paths, so a master push touching only them never started the
+    workflow whose lanes would have run the browser contract (#1568).
+    Automation-written data stays out on purpose (#782): pure-data pushes must
+    not start CI.
+    """
+    tracked = _tracked()
+    assert tracked, "empty checkout would make this assertion vacuous"
+
+    globs = [path.replace("**", "*") for path in push_paths(WORKFLOW_PATH)]
+    untriggered = [
+        name for name in tracked
+        if any(push_scope.classify([name])[lane] for lane in ("code", "ui", "dsplugin"))
+        and not any(fnmatch(name, pattern) for pattern in push_scope.DATA_GLOBS)
+        and not any(fnmatch(name, glob) for glob in globs)
+    ]
+    assert untriggered == [], (
+        "these files light a CI lane but no push-trigger path, so a master push "
+        f"confined to them runs nothing: {untriggered}")
+
+
 def test_all_three_gates_read_the_one_classifier():
     """Three inline copies of diff-classification bash are how #750 happened.
 

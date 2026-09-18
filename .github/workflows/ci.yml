@@ -35,6 +35,11 @@ on:
       - 'site/assets/css/**'
       - 'site/assets/js/**'
       - 'site/index.html'
+      # The shared page layout and the decision-map page. #1209 put both in
+      # the classifier's ui lane but not here, so a master push touching only
+      # them started no run at all (#1568).
+      - 'site/_layouts/**'
+      - 'site/decimap/**'
       # The screenshot/GIF tooling. Until #754 it was in no trigger, in no
       # detector lane and in no syntax check: the only thing that ever ran it
       # was the weekly screenshot-refresh cron, which commits its output.
