@@ -484,11 +484,16 @@ def main(argv=None):
     # the report already went out on the prior attempt — skip the re-send. Intraday's
     # marker is per-market, so use a 20min window (< the 30min slot cadence, > the
     # few-min retry gap) to tell a retry from the next legit slot. See already_delivered.
+    # The window is not enough on its own — a slot that landed late leaves a
+    # marker still inside it when the next slot's postflight runs — so the
+    # marker's slot must also be this context's slot (#1555).
     # WeChat and Telegram are judged separately (2026-09-17): a retry after a slot
     # that landed only Telegram re-sends WeChat alone.
     delivered_this_run = False
-    _, telegram_done = delivered_channels(marker, within_ms=20 * 60 * 1000)
-    if already_delivered(marker, within_ms=20 * 60 * 1000):
+    this_slot = (ctx.get('heartbeat') or {}).get('slot')
+    _, telegram_done = delivered_channels(
+        marker, within_ms=20 * 60 * 1000, slot=this_slot)
+    if already_delivered(marker, within_ms=20 * 60 * 1000, slot=this_slot):
         print('idempotency: intraday already delivered this slot — skip re-send', file=sys.stderr)
         wechat_sent = True
         tg_ok = telegram_done

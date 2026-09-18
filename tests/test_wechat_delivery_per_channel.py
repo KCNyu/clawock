@@ -92,6 +92,63 @@ def test_intraday_window_still_bounds_both_channels(tmp_path):
     assert common.delivered_channels(marker, within_ms=20 * 60 * 1000) == (False, False)
 
 
+SLOT_1000 = '2026-09-18T10:00:00+08:00'
+SLOT_1030 = '2026-09-18T10:30:00+08:00'
+
+
+def test_intraday_marker_from_the_previous_slot_is_not_this_slot(tmp_path):
+    """#1555: the 10:00 slot landed late (10:18); the 10:30 slot's postflight
+    at 10:35 finds its marker 17min old — inside the window, but not a retry."""
+    marker = _write(tmp_path / 'intraday-sent-hk.json',
+                    {'ts': _now_ms(minutes_ago=17), 'sent_ok': True, 'tg_ok': True,
+                     'slot': SLOT_1000})
+    window = 20 * 60 * 1000
+    assert common.delivered_channels(marker, within_ms=window, slot=SLOT_1030) == (False, False)
+    assert common.already_delivered(marker, within_ms=window, slot=SLOT_1030) is False
+    # A real retry of the same slot is still suppressed …
+    assert common.already_delivered(marker, within_ms=window, slot=SLOT_1000) is True
+    # … and a marker or caller without a slot keeps the window-only rule.
+    assert common.already_delivered(marker, within_ms=window) is True
+    legacy = _write(tmp_path / 'legacy.json',
+                    {'ts': _now_ms(minutes_ago=17), 'sent_ok': True, 'tg_ok': True})
+    assert common.already_delivered(legacy, within_ms=window, slot=SLOT_1030) is True
+
+
+def test_intraday_postflight_sends_the_next_slot_after_a_late_one(tmp_path, monkeypatch):
+    """intraday_postflight.main end-to-end at the send, external I/O stubbed."""
+    from clawock.harness import intraday_postflight as postflight
+
+    ctx = {'status': 'ok', 'date': '2026-09-18', 'context_id': 'c1030',
+           'raw_wechat_block': '📈 港股盘中 10:30\nblock',
+           'heartbeat': {'job': '盘中盯盘', 'slot': SLOT_1030}}
+    monkeypatch.setattr(postflight, 'TMP', tmp_path)
+    marker = postflight.delivery_receipts.receipt_path(tmp_path, 'intraday', market='hk')
+    _write(marker, {'ts': _now_ms(minutes_ago=17), 'sent_ok': True, 'tg_ok': True,
+                    'job': '盘中盯盘', 'slot': SLOT_1000, 'context_id': 'c1000'})
+    sends = []
+    stubs = {
+        'load_context': lambda market: (ctx, None),
+        'read_report_text': lambda market, text_file: ('prose', None),
+        'assemble_message': lambda c, text: 'body',
+        'validate': lambda *a, **kw: [],
+        'normalize_intraday_insights': lambda path: True,
+        'publish_data_plane': lambda market: ('current', False),
+        'send_per_policy': lambda *a, **kw: (sends.append(a[1]), (True, 'ok', True))[1],
+    }
+    for name, value in stubs.items():
+        monkeypatch.setattr(postflight, name, value)
+    monkeypatch.setattr(postflight.trading_calendar, 'closed_reason', lambda market: None)
+    monkeypatch.setattr(postflight.cron_heartbeat, 'record', lambda *a, **kw: None)
+    monkeypatch.setattr(postflight.cron_heartbeat, 'unpushed_commits', lambda: 0)
+    monkeypatch.setattr(postflight.intraday_delta, 'persist_delivered_state',
+                        lambda *a, **kw: None)
+
+    postflight.main(['--market', 'hk', '--context-id', 'c1030', '--text-file', 'unused'])
+
+    assert sends == ['body'], 'the 10:30 slot was swallowed by the 10:00 receipt'
+    assert json.loads(marker.read_text())['slot'] == SLOT_1030
+
+
 # ── B. the re-send owes WeChat alone ─────────────────────────────────────────
 
 def test_send_per_policy_skips_telegram_already_delivered():

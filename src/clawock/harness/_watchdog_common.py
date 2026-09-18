@@ -847,7 +847,7 @@ def cosend_telegram(message, tag, dry_run=False):
     return ok, out
 
 
-def delivered_channels(marker_path, within_ms=None):
+def delivered_channels(marker_path, within_ms=None, slot=None):
     """(wechat_ok, telegram_ok) a prior run of this slot recorded in its send marker.
 
     The two channels are independent delivery targets and are judged separately.
@@ -862,7 +862,14 @@ def delivered_channels(marker_path, within_ms=None):
       phase+date and legitimately fire once/day). Set a window for intraday, whose
       marker is per-market (not per-slot): a retry lands within minutes while the
       legit next slot is ~30min later, so only a *recent* marker means "retry".
-    An unreadable, torn or out-of-window marker proves nothing: (False, False).
+    slot        : the slot this run belongs to (its context's `heartbeat.slot`).
+      A marker that names a DIFFERENT slot is the previous slot's receipt, not a
+      prior attempt of this one, however recent: a 10:00 slot that landed at
+      10:18 is 17min old when the 10:30 slot's postflight runs at 10:35, and the
+      window alone read that as "already delivered" and sent nothing (#1555).
+      A marker or caller without a slot falls back to the window alone.
+    An unreadable, torn, out-of-window or other-slot marker proves nothing:
+    (False, False).
     """
     try:
         m = json.loads(Path(marker_path).read_text())
@@ -874,13 +881,15 @@ def delivered_channels(marker_path, within_ms=None):
         age = int(datetime.now().timestamp() * 1000) - (m.get('ts') or 0)
         if age >= within_ms:
             return False, False
+    if slot and m.get('slot') and m.get('slot') != slot:
+        return False, False
     backstop = m.get('wechat_backstop')
     wechat_ok = (m.get('sent_ok') is True
                  or (isinstance(backstop, dict) and backstop.get('ok') is True))
     return wechat_ok, m.get('tg_ok') is True
 
 
-def already_delivered(marker_path, within_ms=None):
+def already_delivered(marker_path, within_ms=None, slot=None):
     """Idempotency guard for a postflight's PRIMARY (WeChat) send — returns True if
     a prior run of this same slot already delivered it to WeChat, so the WeChat
     send must be skipped.
@@ -903,7 +912,7 @@ def already_delivered(marker_path, within_ms=None):
     re-send read `delivered_channels` and pass `telegram_done` to
     `send_per_policy`.
     """
-    return delivered_channels(marker_path, within_ms)[0]
+    return delivered_channels(marker_path, within_ms, slot)[0]
 
 
 def wechat_backstop(kind, tag, message, marker, marker_path, flag_path, dry_run,
