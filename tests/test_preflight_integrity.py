@@ -378,6 +378,22 @@ def test_pnl_percent_exact_half_point_passes_and_just_over_warns(run_check):
     _assert_only(run_check(over), "PNL_PCT", "WARN", "total_pnl/total_cost")
 
 
+def test_pnl_percent_is_still_checked_when_total_cost_is_zero(run_check):
+    # #1572: the zero-cost guard used to skip PNL_PCT entirely, so a leftover
+    # 50% on a book with no cost passed clean. Writers leave 0 or nothing there.
+    empty = _portfolio_data(holdings=[])
+    assert _port(empty)["total_cost"] == 0
+    _assert_clean(run_check(empty))
+
+    missing = copy.deepcopy(empty)
+    _port(missing)["total_pnl_percent"] = None
+    _assert_clean(run_check(missing))
+
+    leftover = copy.deepcopy(empty)
+    _port(leftover)["total_pnl_percent"] = 50.0
+    _assert_only(run_check(leftover), "PNL_PCT", "WARN", "total_cost=0")
+
+
 def test_today_total_exact_tolerance_passes_and_just_over_warns(run_check):
     exact = _portfolio_data()
     _port(exact)["today_total_change"] += 1.0

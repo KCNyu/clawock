@@ -418,7 +418,13 @@ def check(portfolio_path=PORTFOLIO):
 
         # PNL_PCT：total_pnl_percent == total_pnl/total_cost×100（口径=未实现/当前成本）
         tpct = _num(port.get('total_pnl_percent'))
-        if tpct is not None and tpnl is not None and tcost:
+        if tpct is not None and tcost == 0:
+            # 分母为 0 时百分比无定义，各写入方都落 0（us_quotes/hk_analysis）或缺失
+            # （aggregates）。「不除」不等于「不校验」：否则遗留的任意百分比直接过闸（#1572）。
+            if abs(tpct) > 0.5:
+                add('PNL_PCT', 'WARN',
+                    f'total_pnl_percent={tpct:.2f} 但 total_cost=0：百分比无定义，应为 0 或缺失', region)
+        elif tpct is not None and tpnl is not None and tcost:
             want_pct = tpnl / tcost * 100
             if abs(tpct - want_pct) > 0.5:
                 add('PNL_PCT', 'WARN',
