@@ -6447,7 +6447,8 @@ function useProviderBalances(props, pollKey) {
 	const mountedRef = useRef(true);
 	const [data, setData] = useState(() => ({
 		result: props.cachedBalances(),
-		loading: false
+		loading: false,
+		error: null
 	}));
 	const selected = props.useStore((state) => state.selected);
 	const select = (provider) => {
@@ -6460,7 +6461,8 @@ function useProviderBalances(props, pollKey) {
 			if (!mountedRef.current) return;
 			setData({
 				result,
-				loading: false
+				loading: false,
+				error: null
 			});
 			if (force) {
 				setFlash(result.providers.some((p) => p.result.status === "fresh") ? "ok" : "same");
@@ -6469,10 +6471,13 @@ function useProviderBalances(props, pollKey) {
 					setFlash(null);
 				}, 1200);
 			}
-		}, () => {
-			if (mountedRef.current) setData((current) => ({
+		}, (err) => {
+			if (!mountedRef.current) return;
+			const error = (err instanceof Error ? err.message : String(err)) || "未知错误";
+			setData((current) => ({
 				...current,
-				loading: false
+				loading: false,
+				error
 			}));
 		});
 	};
@@ -6482,7 +6487,8 @@ function useProviderBalances(props, pollKey) {
 		const unsubscribe = props.subscribeBalances === void 0 ? null : props.subscribeBalances((result) => {
 			if (mountedRef.current) setData((current) => ({
 				...current,
-				result
+				result,
+				error: null
 			}));
 		});
 		return () => {
@@ -6517,7 +6523,14 @@ function useProviderBalances(props, pollKey) {
 		primary,
 		select,
 		flash,
-		refresh
+		refresh,
+		empty: rows.length === 0 && data.error !== null && !data.loading ? {
+			tone: "stale",
+			title: "余额读取失败:" + data.error
+		} : {
+			tone: "none",
+			title: "余额加载中"
+		}
 	};
 }
 /**
@@ -6583,9 +6596,9 @@ function renderBalanceGlyph(tone, size) {
 	}) : null);
 }
 /** The headline reading: dot (or the foot glyph) · value · reset · weekly sub-reading. */
-function renderBalanceHeadline(primary, withLabel, glyph = false) {
+function renderBalanceHeadline(primary, withLabel, glyph = false, emptyTone = "none") {
 	const lead = (tone) => glyph ? h("span", { className: cx("bal-lead") }, renderBalanceGlyph(tone, 16)) : h("span", { className: cx("bchip-dot") });
-	return primary === void 0 ? h("span", { className: cx("bchip-item") }, lead("none"), "—") : h("span", {
+	return primary === void 0 ? h("span", { className: cx("bchip-item") }, lead(emptyTone), "—") : h("span", {
 		className: cx("bchip-item"),
 		"data-pb-provider": primary.provider,
 		"data-pb-role": "chip",
@@ -6602,39 +6615,48 @@ function renderBalanceHeadline(primary, withLabel, glyph = false) {
 /** The panel body: title + refresh, then every provider row (click = pin). */
 function renderBalancePanelBody(state) {
 	const { data, rows, primary, select, flash, refresh } = state;
-	return [h("div", {
-		className: cx("bp-head"),
-		key: "head"
-	}, h("span", { className: cx("bp-title") }, "API 余额"), h("button", {
-		type: "button",
-		className: cx("bal-rf", data.loading && "spin", flash === "ok" && "flash-ok", flash === "same" && "flash-same"),
-		"data-refresh": "true",
-		"aria-label": "刷新全部余额",
-		title: "立即刷新",
-		onClick: refresh
-	}, flash === "ok" ? "✓" : "↻")), rows.length === 0 ? h("div", {
-		className: cx("bp-empty"),
-		key: "empty"
-	}, "正在读取各服务余额…") : h("div", { key: "rows" }, rows.map((row) => h("button", {
-		type: "button",
-		key: row.provider,
-		className: cx("bp-row"),
-		"data-pb-provider": row.provider,
-		"data-pb-role": "panel",
-		"aria-pressed": row.provider === (primary !== void 0 ? primary.provider : ""),
-		onClick: () => {
-			select(row.provider);
-		}
-	}, h("span", {
-		className: cx("bp-dot"),
-		"data-balance-state": row.view.tone
-	}), h("span", { className: cx("bp-label") }, row.label, row.provider === (primary !== void 0 ? primary.provider : "") ? h("span", { className: cx("bp-pin") }) : null), h("span", {
-		className: cx("bp-v", row.view.tone === "low" ? "bad" : ""),
-		"data-balance-state": row.view.tone
-	}, row.view.value), [row.note !== null ? h("div", {
-		className: cx("bp-note", row.view.tone === "stale" ? "warn" : "bad"),
-		key: "note"
-	}, row.note) : null, renderRowDetail(row)])))];
+	return [
+		h("div", {
+			className: cx("bp-head"),
+			key: "head"
+		}, h("span", { className: cx("bp-title") }, "API 余额"), h("button", {
+			type: "button",
+			className: cx("bal-rf", data.loading && "spin", flash === "ok" && "flash-ok", flash === "same" && "flash-same"),
+			"data-refresh": "true",
+			"aria-label": "刷新全部余额",
+			title: "立即刷新",
+			onClick: refresh
+		}, flash === "ok" ? "✓" : "↻")),
+		rows.length > 0 && data.error !== null && !data.loading ? h("div", {
+			className: cx("bp-note", "warn"),
+			key: "error",
+			role: "status"
+		}, "刷新失败,显示最近一次:" + data.error) : null,
+		rows.length === 0 ? h("div", {
+			className: cx("bp-empty"),
+			key: "empty",
+			role: "status"
+		}, data.error !== null && !data.loading ? "余额读取失败:" + data.error : "正在读取各服务余额…") : h("div", { key: "rows" }, rows.map((row) => h("button", {
+			type: "button",
+			key: row.provider,
+			className: cx("bp-row"),
+			"data-pb-provider": row.provider,
+			"data-pb-role": "panel",
+			"aria-pressed": row.provider === (primary !== void 0 ? primary.provider : ""),
+			onClick: () => {
+				select(row.provider);
+			}
+		}, h("span", {
+			className: cx("bp-dot"),
+			"data-balance-state": row.view.tone
+		}), h("span", { className: cx("bp-label") }, row.label, row.provider === (primary !== void 0 ? primary.provider : "") ? h("span", { className: cx("bp-pin") }) : null), h("span", {
+			className: cx("bp-v", row.view.tone === "low" ? "bad" : ""),
+			"data-balance-state": row.view.tone
+		}, row.view.value), [row.note !== null ? h("div", {
+			className: cx("bp-note", row.view.tone === "stale" ? "warn" : "bad"),
+			key: "note"
+		}, row.note) : null, renderRowDetail(row)])))
+	];
 }
 function ProviderBalanceChip(props) {
 	const state = useProviderBalances(props, props.sessionId);
@@ -6663,16 +6685,16 @@ function ProviderBalanceChip(props) {
 	}, h("button", {
 		type: "button",
 		className: cx("bchip"),
-		"data-balance-state": primary !== void 0 ? primary.view.tone : "none",
+		"data-balance-state": primary !== void 0 ? primary.view.tone : state.empty.tone,
 		"data-pb-provider": primary !== void 0 ? primary.provider : "",
 		"aria-expanded": open,
 		"aria-haspopup": "dialog",
 		"aria-label": "各模型服务余额",
-		title: primary !== void 0 ? primary.label + " · " + primary.view.title + (rows.length > 1 ? "(点击查看其他服务)" : "") : "余额加载中",
+		title: primary !== void 0 ? primary.label + " · " + primary.view.title + (rows.length > 1 ? "(点击查看其他服务)" : "") : state.empty.title,
 		onClick: () => {
 			setOpen(!open);
 		}
-	}, renderBalanceHeadline(primary, false)), h("div", {
+	}, renderBalanceHeadline(primary, false, false, state.empty.tone)), h("div", {
 		className: cx("bp"),
 		"data-open": open ? "true" : "false",
 		role: open ? "dialog" : "none",
@@ -6731,14 +6753,14 @@ function ProviderBalanceSidebarAction(props) {
 			window.removeEventListener("resize", place);
 		};
 	}, [open]);
-	const summary = primary !== void 0 ? primary.label + " · " + primary.view.title + (rows.length > 1 ? "(点击查看其他服务)" : "") : "余额加载中";
+	const summary = primary !== void 0 ? primary.label + " · " + primary.view.title + (rows.length > 1 ? "(点击查看其他服务)" : "") : state.empty.title;
 	return h("div", {
 		className: cx("pbc", "pbf", !props.wide && "rail"),
 		ref: rootRef
 	}, h("button", {
 		type: "button",
 		className: cx("bchip"),
-		"data-balance-state": primary !== void 0 ? primary.view.tone : "none",
+		"data-balance-state": primary !== void 0 ? primary.view.tone : state.empty.tone,
 		"data-pb-provider": primary !== void 0 ? primary.provider : "",
 		"data-clawock-action": BALANCE_PANEL,
 		"data-active": open ? "" : void 0,
@@ -6750,10 +6772,10 @@ function ProviderBalanceSidebarAction(props) {
 			if (!open) place();
 			setOpen(!open);
 		}
-	}, props.wide ? renderBalanceHeadline(primary, true, true) : h("span", {
+	}, props.wide ? renderBalanceHeadline(primary, true, true, state.empty.tone) : h("span", {
 		className: cx("bal-lead"),
-		"data-balance-state": primary !== void 0 ? primary.view.tone : "none"
-	}, renderBalanceGlyph(primary !== void 0 ? primary.view.tone : "none", 18))), h("div", {
+		"data-balance-state": primary !== void 0 ? primary.view.tone : state.empty.tone
+	}, renderBalanceGlyph(primary !== void 0 ? primary.view.tone : state.empty.tone, 18))), h("div", {
 		className: cx("bp"),
 		"data-open": open ? "true" : "false",
 		"data-clawock-popover": BALANCE_PANEL,

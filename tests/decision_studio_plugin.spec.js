@@ -1774,6 +1774,103 @@ test("client: the sidebar-foot balance opens a popover that stays open while you
   disposeReactEffects();
 });
 
+test("client: a balance fetch that fails says so instead of loading forever (#1553)", async () => {
+  // The RPC itself failing (transport down, remote error envelope) used to
+  // clear the spinner and nothing else: a cold panel read 正在读取各服务余额…
+  // for good, a warm one kept its old numbers with no word that they were old.
+  const loaded = await loadClient();
+  const reactStub = makeReactStub();
+  const api = loaded.factory((s) => {
+    if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
+    if (s === "react") return reactStub;
+    throw new Error(`unexpected require: ${s}`);
+  });
+  let answer = "down";
+  const remoteFace = {
+    balance: async () => {
+      if (answer === "down") throw new Error("transport disconnected");
+      if (answer === "error") return { ok: false, error: { code: "INTERNAL", message: "boom" } };
+      return { ok: true, value: { providers: [DS_ROW_OK], refreshMs: 60000 } };
+    },
+  };
+  const ctx = {
+    effect() {},
+    get() { return remoteFace; },
+    layout: { selectPanel() {} },
+    slots: {
+      inject(name, fn) { (this._fns ??= []).push(fn); },
+      register(definition, Component) { (this._regs ??= []).push({ definition, Component }); },
+    },
+    remote: { $mount: async () => {} },
+  };
+  await api.apply(ctx);
+  for (const fn of ctx.slots._fns) fn();
+  const action = ctx.slots._regs.find((r) => r.definition.name === "sidebar.footer.action");
+  const tick = () => new Promise((resolve) => setImmediate(resolve));
+  const store = makeBalanceStoreStub();
+  const face = action.definition.inject();
+  const render = () => {
+    reactStub._resetCursor();
+    return action.Component({ wide: true, useStore: store.useStore, actions: store.actions, ...face });
+  };
+  const find = (tree, pred) => {
+    const out = [];
+    (function walk(node) {
+      if (node == null) return;
+      if (Array.isArray(node)) { node.forEach(walk); return; }
+      if (typeof node !== "object") return;
+      if (pred(node.props || {})) out.push(node);
+      (node.children || []).forEach(walk);
+    })(tree);
+    return out;
+  };
+  const texts = (tree) => {
+    const out = [];
+    (function walk(node) {
+      if (node == null) return;
+      if (Array.isArray(node)) { node.forEach(walk); return; }
+      if (typeof node === "string") { out.push(node); return; }
+      (node.children || []).forEach(walk);
+    })(tree);
+    return out.join(" ");
+  };
+  const trigger = (tree) => find(tree, (p) => p["data-clawock-action"] === api.BALANCE_PANEL)[0];
+  const popover = (tree) => find(tree, (p) => p["data-clawock-popover"] === api.BALANCE_PANEL)[0];
+  const refresh = async () => {
+    find(popover(render()), (p) => p["data-refresh"] === "true")[0].props.onClick();
+    await tick(); await tick(); await tick();
+    return render();
+  };
+
+  // Cold, and the mount fetch fails: the panel names the failure, the foot
+  // shows the hollow stale badge rather than "nothing to judge".
+  render();
+  await tick(); await tick(); await tick();
+  let foot = render();
+  assert.match(texts(popover(foot)), /余额读取失败:transport disconnected/);
+  assert.doesNotMatch(texts(popover(foot)), /正在读取/);
+  assert.equal(trigger(foot).props["data-balance-state"], "stale");
+  assert.match(trigger(foot).props.title, /余额读取失败/);
+
+  // A remote error envelope is a failure too.
+  answer = "error";
+  foot = await refresh();
+  assert.match(texts(popover(foot)), /余额读取失败:clawockStudio\.balance failed: INTERNAL: boom/);
+
+  // Recovered: rows back, the failure line gone.
+  answer = "ok";
+  foot = await refresh();
+  assert.equal(trigger(foot).props["data-balance-state"], "ok");
+  assert.doesNotMatch(texts(popover(foot)), /失败/);
+
+  // Warm, then a refresh fails: the last numbers stay, labelled as the last ones.
+  answer = "down";
+  foot = await refresh();
+  assert.match(texts(popover(foot)), /¥110/);
+  assert.match(texts(popover(foot)), /刷新失败,显示最近一次:transport disconnected/);
+  disposeReactEffects();
+});
+
 test("client: the panel says each provider's story once, abnormal rows loudest", async () => {
   const loaded = await loadClient();
   const reactStub = makeReactStub();
