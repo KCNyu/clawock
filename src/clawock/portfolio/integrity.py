@@ -340,8 +340,11 @@ def summarize_bar_conflicts(log_path=None, *, now=None,
     }
     if not path.exists():
         return summary
-    now = now or datetime.now().astimezone()
-    cutoff = (now - timedelta(days=window_days)).date().isoformat()
+    # `seen_at` is stamped in HKT (bars.record_conflicts) and compared by its
+    # date prefix, so the window is cut on the HKT calendar too. The host's
+    # own zone put the edge a day early whenever UTC and HKT dates differ —
+    # e.g. weekly-health's dashboard-build at 23:00 UTC counted 31 days (#1560).
+    cutoff = (hkt_today(now) - timedelta(days=window_days)).isoformat()
     for line in path.read_text(encoding='utf-8').splitlines():
         line = line.strip()
         if not line:

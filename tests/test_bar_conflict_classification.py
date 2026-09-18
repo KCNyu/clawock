@@ -136,6 +136,27 @@ def test_the_health_report_counts_them_by_kind_without_blocking(tmp_path):
     assert summary['last_seen_at'] == recent
 
 
+def test_the_window_is_cut_on_the_hkt_calendar_the_log_is_stamped_in(tmp_path):
+    """#1560: `seen_at` is HKT. Sunday 23:00 UTC (weekly-health's
+    dashboard-build) is already Monday 07:00 HKT, so the 30-day window starts
+    on HKT 08-22 — cutting it on the UTC date let HKT 08-21 in as a 31st day."""
+    from datetime import datetime, timezone
+
+    from clawock.portfolio import integrity
+
+    log = tmp_path / 'bar-conflicts.jsonl'
+    log.write_text('\n'.join(json.dumps(row) for row in [
+        {'ticker': '00100', 'kind': 'close_only', 'seen_at': '2026-08-21T20:00:00+08:00'},
+        {'ticker': '00100', 'kind': 'close_only', 'seen_at': '2026-08-22T09:00:00+08:00'},
+    ]) + '\n')
+
+    summary = integrity.summarize_bar_conflicts(
+        log, now=datetime(2026, 9, 20, 23, 0, tzinfo=timezone.utc))
+
+    assert summary['total'] == 1
+    assert summary['last_seen_at'] == '2026-08-22T09:00:00+08:00'
+
+
 def test_a_missing_or_corrupt_log_is_zero_not_an_exception(tmp_path):
     from clawock.portfolio import integrity
 
