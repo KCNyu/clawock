@@ -1251,7 +1251,9 @@ def update_us_portfolio(
         holding['day_session_date'] = today_et_date
         holding['current_value']    = round(c * shrs, 2)
         holding['pnl_abs']          = round((c - cost) * shrs, 2)
-        holding['pnl_percent']      = round((c - cost) / cost * 100, 4)
+        # Zero cost falls back to 0 like hk_analysis and the reconciler (#1570):
+        # one zero-cost lot must not abort the whole region's refresh.
+        holding['pnl_percent']      = _pct(c, cost)
         holding['today_change']     = round((c - tc_ref) * shrs, 2)
         if q.get('volume'):
             holding['volume'] = q['volume']
