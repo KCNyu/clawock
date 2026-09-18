@@ -1069,7 +1069,9 @@
   .infl-hdr { display: flex; align-items: center; gap: var(--space-2); margin-bottom: 4px; font-size: var(--fs-xs); flex-wrap: wrap; }
   .infl-who { font-weight: 700; padding: 2px 8px; border-radius: 4px; font-size: var(--fs-xs); }
   .infl-who.trump { background: color-mix(in srgb, var(--negative) 16%, transparent); color: var(--negative); }
-  .infl-who.musk  { background: rgba(59,130,246,0.16); color: #3b82f6; }
+  /* 字色不用 --accent：它在这块蓝底 + card-2 行上浅色只有 3.91，不到 AA；
+     --text-secondary 两主题都过线，蓝底保留来源色（#1583，tests/test_dashboard_contrast.py 钉住）。 */
+  .infl-who.musk  { background: rgba(59,130,246,0.16); color: var(--text-secondary); }
   .infl-who.serenity { background: color-mix(in srgb, var(--positive) 16%, transparent); color: var(--positive); }
   .infl-who.ark   { background: color-mix(in srgb, var(--warning) 16%, transparent); color: var(--warning); }
   .infl-who.duan, .infl-who.honghao { background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent); }
@@ -1635,7 +1637,8 @@
   .drv-chip.drv-sentiment  { background: color-mix(in srgb, var(--warning) 15%, transparent); color: var(--warning); }
   .drv-chip.drv-influencer { background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--accent); }
   .drv-chip.drv-macro      { background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent); }
-  .drv-chip.drv-peer       { background: rgba(45,212,191,.15); color: #2dd4bf; }
+  /* 字色同 .infl-who.musk（#1583）：--accent / --positive 在浅色 card-2 行上都不到 AA，青色留在底上。 */
+  .drv-chip.drv-peer       { background: rgba(45,212,191,.15); color: var(--text-secondary); }
   @media (max-width: 600px) {
     .drv-chip { font-size: var(--fs-micro); padding: 1px 5px; margin-left: 4px; }
   }

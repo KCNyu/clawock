@@ -124,10 +124,21 @@ def _theme_tokens(css):
     def tokens(block):
         return dict(re.findall(r"(--[\w-]+)\s*:\s*(#[0-9A-Fa-f]{3,6})\b", block))
 
-    dark = tokens(re.search(r":root\s*\{([^{}]*)\}", css).group(1))
+    def resolve(theme):
+        # Aliases like `--card-2: var(--surface-2)` follow whichever theme the
+        # target token resolves in, so they are resolved after the merge.
+        for name, target in aliases.items():
+            if target in theme:
+                theme.setdefault(name, theme[target])
+        return theme
+
+    root = re.search(r":root\s*\{([^{}]*)\}", css).group(1)
+    aliases = dict(re.findall(r"(--[\w-]+)\s*:\s*var\((--[\w-]+)\)\s*;", root))
+    dark = tokens(root)
     light_block = re.search(
         r"@media \(prefers-color-scheme: light\)\s*\{\s*:root\s*\{([^{}]*)\}", css)
-    return {"dark": dark, "light": {**dark, **tokens(light_block.group(1))}}
+    return {"dark": resolve(dict(dark)),
+            "light": resolve({**dark, **tokens(light_block.group(1))})}
 
 
 def _rule_value(css, selector, prop):
@@ -170,3 +181,28 @@ def test_neutral_regime_badge_label_meets_aa_in_both_themes(theme):
     assert ratio >= AA_NORMAL_TEXT, (
         f"{theme} NEUTRAL regime label {label} renders at {ratio:.2f}:1 on its "
         f"badge; AA needs {AA_NORMAL_TEXT}:1")
+
+
+@pytest.mark.parametrize("theme", ["light", "dark"])
+@pytest.mark.parametrize("chip, row", [
+    (".infl-who.musk", ".infl-row"),
+    (".drv-chip.drv-peer", ".plan-action"),
+])
+def test_hardcoded_source_chips_meet_aa_in_both_themes(chip, row, theme):
+    """#1583: the Musk author badge (`#3b82f6`) and the 同行 driver chip
+    (`#2dd4bf`) had fixed text colours. On their own tint over the `--card-2`
+    row they sit in, that was 2.83:1 / 1.55:1 in light and 3.72:1 for Musk in
+    dark. The hued tokens their siblings use don't clear AA on that row in
+    light either (`--accent` 3.91, `--positive` 4.28), so the text follows
+    #1580 onto `--text-secondary` and the tint keeps the hue."""
+    css = CSS.read_text(encoding="utf-8")
+    tokens = _theme_tokens(css)[theme]
+    row_bg = _paint(_rule_value(css, row, "background"), tokens, None)
+    badge = _paint(_rule_value(css, chip, "background"), tokens, row_bg)
+    label = _rule_value(css, chip, "color")
+
+    ratio = _contrast(_paint(label, tokens, badge), badge)
+
+    assert ratio >= AA_NORMAL_TEXT, (
+        f"{theme} {chip} text {label} renders at {ratio:.2f}:1 on its tint over "
+        f"{row}; AA needs {AA_NORMAL_TEXT}:1")
