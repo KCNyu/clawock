@@ -358,13 +358,18 @@ function createQuotaService(deps, spec) {
 	* one request per window, however many faces ask.
 	*/
 async get(force) {
-		if (inFlight !== null) return inFlight;
-		const pending = exec(force);
-		inFlight = pending;
+		if (inFlight !== null && (inFlight.force || !force)) return inFlight.pending;
+		const prior = inFlight?.pending;
+		const pending = prior === void 0 ? exec(force) : prior.then(() => exec(true), () => exec(true));
+		const claim = {
+			pending,
+			force
+		};
+		inFlight = claim;
 		try {
 			return await pending;
 		} finally {
-			inFlight = null;
+			if (inFlight === claim) inFlight = null;
 		}
 	} };
 }

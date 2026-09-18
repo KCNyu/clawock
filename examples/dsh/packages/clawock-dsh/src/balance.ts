@@ -541,7 +541,9 @@ function createQuotaService(
   // after a failed forced refresh answered 'cached' and repainted the stale
   // snapshot as healthy (#1546).
   let lastError: string | null = null
-  let inFlight: Promise<BalanceResult> | null = null
+  // The run a concurrent caller joins, and whether it was forced: only a forced
+  // run is guaranteed to reach upstream (#1567).
+  let inFlight: { pending: Promise<BalanceResult>; force: boolean } | null = null
 
   const answer = (status: BalanceResult['status'], message: string | null): BalanceResult => ({
     configured: true,
@@ -592,16 +594,25 @@ function createQuotaService(
      * one request per window, however many faces ask.
      */
     async get(force: boolean): Promise<BalanceResult> {
-      if (inFlight !== null) return inFlight
+      if (inFlight !== null && (inFlight.force || !force)) return inFlight.pending
+      // A forced read never joins a non-forced run: that one may answer from
+      // the TTL cache, which would turn a manual refresh into 'cached' (#1567).
+      // It waits for the running one to settle, then fetches itself — still
+      // one upstream request at a time.
+      const prior = inFlight?.pending
       // The guard is claimed synchronously, BEFORE exec's first await: a
       // caller that checks inFlight while the first one is suspended at
       // resolveApiKey() must still join instead of starting a second fetch.
-      const pending = exec(force)
-      inFlight = pending
+      const pending = prior === undefined
+        ? exec(force)
+        : prior.then(() => exec(true), () => exec(true))
+      const claim = { pending, force }
+      inFlight = claim
       try {
         return await pending
       } finally {
-        inFlight = null
+        // A forced run may have replaced this claim while it was pending.
+        if (inFlight === claim) inFlight = null
       }
     },
   }
