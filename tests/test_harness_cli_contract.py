@@ -2,6 +2,7 @@
 import ast
 import json
 import os
+import re
 from pathlib import Path
 
 import pytest
@@ -251,3 +252,35 @@ def test_every_packaged_utility_answers_help_without_running_anything():
         if "usage" not in out.getvalue().lower():
             bad.append(f"{command}: --help printed no usage line")
     assert not bad, "utilities that mishandle --help:\n" + "\n".join(bad)
+
+
+def test_docstring_help_lists_every_flag_the_module_reads():
+    """A hand-scanned flag has no argparse entry, so its help is the docstring.
+
+    `--13f`, `--wechat`/`--md-table` and `--intraday` all worked and were all
+    missing from `--help` (#1571): nothing ties a new `'--x' in argv` check to
+    the docstring written next to it. Every flag literal the module tests
+    against argv must appear in what `clawock <command> --help` prints.
+    """
+    import importlib
+    import inspect
+    import io
+    from contextlib import redirect_stdout, redirect_stderr
+
+    from clawock import cli
+    from clawock.utilities import DOCSTRING_HELP_UTILITIES
+
+    missing = {}
+    for command in sorted(DOCSTRING_HELP_UTILITIES):
+        source = inspect.getsource(importlib.import_module(cli.PACKAGED_UTILITIES[command]))
+        flags = set(re.findall(r"""['"](--[a-z0-9][a-z0-9-]*)['"]\s+in\s+argv""", source))
+        out = io.StringIO()
+        try:
+            with redirect_stdout(out), redirect_stderr(out):
+                cli.main([command, "--help"])
+        except SystemExit:
+            pass
+        undocumented = sorted(flag for flag in flags - {"--help"} if flag not in out.getvalue())
+        if undocumented:
+            missing[command] = undocumented
+    assert missing == {}, f"flags read from argv but absent from --help: {missing}"

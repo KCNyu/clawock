@@ -11,6 +11,8 @@ Usage:
   clawock analyze-us             # full analysis
   clawock analyze-us --no-fetch  # skip price refresh (use cached)
   clawock analyze-us --no-news   # skip Finnhub news
+  clawock analyze-us --wechat    # compact WeChat report, quiet progress
+  clawock analyze-us --wechat --md-table  # holdings as a markdown table (intraday cron)
 """
 
 import json, sys

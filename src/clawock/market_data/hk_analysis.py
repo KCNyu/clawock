@@ -11,6 +11,8 @@ Usage:
   clawock analyze-hk --no-fetch # use cached prices, just report
   clawock analyze-hk --no-news  # skip news (faster)
   clawock analyze-hk --dry-run  # print prices, don't write file
+  clawock analyze-hk --wechat   # compact WeChat report, quiet progress (still writes file)
+  clawock analyze-hk --wechat --md-table  # holdings as a markdown table (intraday cron)
 """
 
 import json
