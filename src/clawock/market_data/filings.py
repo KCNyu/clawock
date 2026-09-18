@@ -23,6 +23,7 @@ Usage:
   clawock filings RKLB --filings 10-K,10-Q   # only specific forms
   clawock filings RKLB --form4               # insider Form 4 transactions
   clawock filings RKLB --financials          # key XBRL concepts
+  clawock filings RKLB --13f                 # 13F-HR institutional holdings filings
   clawock filings RKLB --json                # machine-readable JSON to stdout
 """
 

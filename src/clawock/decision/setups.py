@@ -18,6 +18,10 @@ VWAP/ORB 需要分钟数据，默认**不抓**（kcn 担心限速）。仅当 T0
 每只最多一次 minute/query，抓不到就降级 vwap=None（由 A2 健康卡显示）。
 
 输出 assets/data/t0_setups.json。消费方：dashboard「🎯 T+0 牌面」卡。
+
+Usage:
+  clawock t0              # 评级，不抓分钟数据
+  clawock t0 --intraday   # 同 T0_INTRADAY=1：开盘时补 VWAP/ORB
 """
 import json
 import os
