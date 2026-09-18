@@ -1006,7 +1006,9 @@
   .regime-badge.risk_on  { background: color-mix(in srgb, var(--positive) 10%, transparent); border-color: color-mix(in srgb, var(--positive) 35%, transparent); }
   .regime-badge.risk_on  .rg-dot { background:var(--positive); } .regime-badge.risk_on  .rg-label { color:var(--positive); }
   .regime-badge.neutral  { background: rgba(148,163,184,0.10); border-color: rgba(148,163,184,0.35); }
-  .regime-badge.neutral  .rg-dot { background:#94a3b8; } .regime-badge.neutral  .rg-label { color:#94a3b8; }
+  /* 字色不用 --neutral：它在这块灰底上浅色 4.18、深色 4.23，都不到 AA；
+     --text-secondary 两主题都过线（#1580，tests/test_dashboard_contrast.py 钉住）。 */
+  .regime-badge.neutral  .rg-dot { background:var(--neutral); } .regime-badge.neutral  .rg-label { color:var(--text-secondary); }
   .regime-badge.risk_off { background: color-mix(in srgb, var(--negative) 10%, transparent); border-color: color-mix(in srgb, var(--negative) 35%, transparent); }
   .regime-badge.risk_off .rg-dot { background:var(--negative); } .regime-badge.risk_off .rg-label { color:var(--negative); }
   .regime-badge.green { background: color-mix(in srgb, var(--positive) 10%, transparent); border-color: color-mix(in srgb, var(--positive) 35%, transparent); }
