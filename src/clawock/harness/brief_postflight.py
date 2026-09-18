@@ -741,7 +741,7 @@ def validate_markdown(path, context=None):
     if context and context.get('peer_scan'):
         divergence_tickers = [t for t, p in context['peer_scan'].items()
                               if p.get('divergence_signal')]
-        unaddressed = [t for t in divergence_tickers if t not in text]
+        unaddressed = [t for t in divergence_tickers if not mentions_ticker(text, t)]
         if unaddressed:
             issues.append(f'pre-open.md 漏写 divergence 信号 ticker: {unaddressed} '
                           f'(preflight 标了 {len(divergence_tickers)} 个，markdown 漏 {len(unaddressed)} 个)')
@@ -785,6 +785,7 @@ from clawock.harness.validation import (
     categorize_issues,
     check_md_table_column_consistency,
     check_pipeline_self_reference,
+    mentions_ticker,
     postflight_exit_code,
     product_status,
     split_advisory,

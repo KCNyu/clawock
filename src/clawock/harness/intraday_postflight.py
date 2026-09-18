@@ -50,6 +50,7 @@ from clawock.harness.validation import (
     categorize_issues,
     check_numeric_claims,
     check_pipeline_self_reference,
+    mentions_ticker,
     postflight_exit_code,
     product_status,
     split_advisory,
@@ -243,7 +244,7 @@ def validate(text, ctx, model_text):
 
     if ctx.get('should_alert'):
         anomaly_tickers = [a['ticker'] for a in ctx.get('anomalies', [])]
-        mentioned = [t for t in anomaly_tickers if t in checked]
+        mentioned = [t for t in anomaly_tickers if mentions_ticker(checked, t)]
         if anomaly_tickers and not mentioned:
             issues.append(f'should_alert=true 但报告未提任何异动票 ({", ".join(anomaly_tickers)})')
 
@@ -256,14 +257,14 @@ def validate(text, ctx, model_text):
     # 与加仓侧同档:advisory —— 只提醒漏写,不许把一份已经可发的报告变成不发
     # (feedback-detect-but-never-silence)。
     trigger_rows = ctx.get('plan_triggers') or []
-    if trigger_rows and not any(row.get('ticker') in checked for row in trigger_rows):
+    if trigger_rows and not any(mentions_ticker(checked, row.get('ticker')) for row in trigger_rows):
         named = '/'.join(
             f"{row['ticker']} {row['condition_price']:g}" for row in trigger_rows[:3])
         issues.append(
             f'计划触发线已破但报告一个都没写 ({named}) {ADVISORY_MARK}')
 
     add_rows = (ctx.get('add_side_reads') or {}).get('rows') or []
-    if add_rows and not any(row.get('ticker') in checked for row in add_rows):
+    if add_rows and not any(mentions_ticker(checked, row.get('ticker')) for row in add_rows):
         verdicts = '/'.join(f"{row['ticker']} {row['verdict']}" for row in add_rows[:3])
         issues.append(
             f'加仓侧读数非空但报告一个都没写 ({verdicts}) {ADVISORY_MARK}')
