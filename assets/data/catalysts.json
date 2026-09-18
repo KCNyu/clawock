@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-09-17T08:03:45.555228+08:00",
+  "generated_at": "2026-09-18T08:03:47.430372+08:00",
   "lookback_window_days": 14,
-  "window_start": "2026-09-17",
-  "window_end": "2026-10-01",
+  "window_start": "2026-09-18",
+  "window_end": "2026-10-02",
   "earnings_queried": [
     "CRCL",
     "RKLB",
@@ -20,13 +20,18 @@
       "date": "2026-09-25",
       "type": "PCE",
       "detail": "Aug PCE price index (BEA, Fed preferred inflation gauge)"
+    },
+    {
+      "date": "2026-10-02",
+      "type": "NFP",
+      "detail": "Sep jobs report (Non-Farm Payrolls); BLS 8:30 ET"
     }
   ],
   "scheduled_events": [],
   "summary": {
     "earnings_count": 0,
     "fomc_in_window": 0,
-    "macro_count": 2,
+    "macro_count": 3,
     "scheduled_count": 0,
     "scheduled_undated": 0,
     "highest_impact_within_7d": "GDP 2026-09-24"
