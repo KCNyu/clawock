@@ -3190,10 +3190,15 @@
   .dm-seg { display: inline-flex; flex: 0 0 auto; align-self: flex-start;
     border: 1px solid var(--border);
     border-radius: var(--radius-sm); overflow: hidden; }
+  /* The switch sits in the card head, outside .dm-controls, so it names its
+     own ink: without it the buttons fell back to the UA's black (1.25:1 on
+     card-2 in the dark theme). Pressed ink is the page surface, not #fff:
+     white on the dark theme's bright accent is 2.68:1, surface-0 is ≥5:1 on
+     the accent in both themes (#1556). */
   .dm-seg button { border: 0; border-radius: 0; background: var(--card-2);
-    font-family: var(--mono); padding: 6px 11px; }
+    color: var(--text); font-family: var(--mono); padding: 6px 11px; }
   .dm-seg button + button { border-left: 1px solid var(--border); }
-  .dm-seg button[aria-pressed="true"] { background: var(--accent); color: #fff; }
+  .dm-seg button[aria-pressed="true"] { background: var(--accent); color: var(--surface-0); }
 
   /* 动作切换条：只在窄档存在（宽档八列本来就都在屏幕上）。见
      dashboard.decimap.js 的 visibleActions()。 */
@@ -3362,8 +3367,8 @@
     .dm-actionbar button em { font-style: normal; font-family: var(--mono);
       font-size: 11px; color: var(--text-dim); }
     .dm-actionbar button[aria-pressed="true"] { background: var(--accent);
-      border-color: var(--accent); color: #fff; }
-    .dm-actionbar button[aria-pressed="true"] em { color: rgba(255,255,255,.85); }
+      border-color: var(--accent); color: var(--surface-0); }
+    .dm-actionbar button[aria-pressed="true"] em { color: inherit; }
     .dm-actionnote { display: block; margin: 2px 0 0; }
     .dm-onlywide { display: none; }
     .dm-onlynarrow { display: inline; }

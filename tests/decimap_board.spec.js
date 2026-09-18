@@ -450,6 +450,56 @@ async function theTimelineSpreadsRealDatesAcrossItsAxis(browser, base) {
   await context.close();
 }
 
+// #1556: the horizon switch sits in the card head, outside `.dm-controls`, so
+// nothing gave its buttons a text colour — Chromium's default black on the dark
+// card-2 surface (≈1.3:1) — and the pressed state hard-coded #fff on
+// --accent (#36A3FF, 2.68:1). Measured as rendered, per theme, text over the
+// button's own background; the narrow action bar's chips share the rule.
+async function theSwitchersReadInBothThemes(browser, base) {
+  for (const colorScheme of ["dark", "light"]) {
+    const context = await browser.newContext({
+      viewport: { width: 390, height: 1000 }, hasTouch: true, isMobile: true, colorScheme });
+    const page = await context.newPage();
+    await routeData(page);
+    await page.goto(base + "#reflect", { waitUntil: "networkidle" });
+    await page.waitForSelector("#dm-board tbody tr", { timeout: 20000 });
+    const readings = await page.evaluate(() => {
+      const rgb = value => (value.match(/[\d.]+/g) || []).slice(0, 3).map(Number);
+      const lum = ([r, g, b]) => {
+        const c = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; };
+        return 0.2126 * c(r) + 0.7152 * c(g) + 0.0722 * c(b);
+      };
+      const ratio = (a, b) => {
+        const [hi, lo] = [lum(a), lum(b)].sort((x, y) => y - x);
+        return (hi + 0.05) / (lo + 0.05);
+      };
+      const read = (label, button, text = button) => {
+        const bg = getComputedStyle(button).backgroundColor;
+        const fg = getComputedStyle(text).color;
+        return { label, fg, bg, ratio: Math.round(ratio(rgb(fg), rgb(bg)) * 100) / 100 };
+      };
+      const out = [];
+      const horizon = [...document.querySelectorAll("#dm-horizon button")];
+      const pressed = horizon.find(b => b.getAttribute("aria-pressed") === "true");
+      const idle = horizon.find(b => b.getAttribute("aria-pressed") !== "true");
+      if (pressed) out.push(read("horizon pressed", pressed));
+      if (idle) out.push(read("horizon idle", idle));
+      const chip = document.querySelector('#dm-actions button[aria-pressed="true"]');
+      if (chip) {
+        out.push(read("action chip pressed", chip));
+        const count = chip.querySelector("em");
+        if (count) out.push(read("action chip count", chip, count));
+      }
+      return out;
+    });
+    assert(readings.length >= 3, `${colorScheme}: the switchers were not found: ${JSON.stringify(readings)}`);
+    const unreadable = readings.filter(r => r.ratio < 4.5)
+      .map(r => `${r.label} text ${r.fg} on ${r.bg} is ${r.ratio}:1`);
+    assert.deepEqual(unreadable, [], `${colorScheme}: below WCAG AA 4.5:1 — ${unreadable.join("; ")}`);
+    await context.close();
+  }
+}
+
 async function main() {
   if (!fs.existsSync(PAYLOAD)) {
     console.log("decimap board contract: skipped, no assets/data/decision_map.json");
@@ -472,6 +522,7 @@ async function main() {
     await theTimelineSpreadsRealDatesAcrossItsAxis(browser, base);
     await theKpiStripPrintsWhatThePayloadHolds(browser, base, payload);
     await theCaveatReportsWhatSurvivedItsPlacebo(browser, base, payload);
+    await theSwitchersReadInBothThemes(browser, base);
     console.log("decimap board contract: ok");
   } finally {
     await browser.close();
