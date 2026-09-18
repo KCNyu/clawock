@@ -517,6 +517,25 @@ class TestStaleLastGuard:
         assert h["prev_close_date"] < h["day_session_date"]
 
 
+def test_zero_cost_lot_does_not_abort_the_refresh(monkeypatch, tmp_path, no_indices):
+    # #1570: a held lot with cost_basis 0 raised ZeroDivisionError on
+    # pnl_percent and took the whole US refresh down. Zero cost reads 0%, the
+    # same fallback hk_analysis and aggregates.reconcile use.
+    monkeypatch.setattr(F, "fetch_us_quotes", lambda t, k: {"PLTU": {
+        "c": 29.25, "pc": 27.35, "h": 29.81, "l": 28.41, "o": 28.515,
+        "dp": 6.95, "source": "Finnhub"}})
+    monkeypatch.setattr(F, "load_api_keys", lambda: {})
+    monkeypatch.setattr(F, "_us_quote_session_date", lambda at=None: "2026-07-27")
+    path = _portfolio(tmp_path, {"ticker": "PLTU", "shares": 10, "cost_basis": 0})
+    data = F.update_us_portfolio(portfolio_path=path, dry_run=True)
+    us = data["portfolios"]["us_stocks"]
+    h = us["holdings"][0]
+    assert h["current_price"] == 29.25
+    assert h["pnl_abs"] == 292.5
+    assert h["pnl_percent"] == 0
+    assert us["total_pnl_percent"] == 0
+
+
 # ── 2026-08-06 (#332): the guard above, pointed at a daily-bar provider ──────
 # The 07-27 net above assumed the provider's %change and our prev_close share a
 # baseline. Alpha Vantage's GLOBAL_QUOTE is a daily endpoint: mid-session it can
