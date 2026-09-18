@@ -685,8 +685,12 @@ type BalanceRow = BalancesResult['providers'][number] & {
  */
 function useProviderBalances(props: BalancesInjected & PropsStore<BalanceStore>, pollKey: string) {
   const mountedRef = useRef(true)
-  const [data, setData] = useState<{ result: BalancesResult | null; loading: boolean }>(
-    () => ({ result: props.cachedBalances(), loading: false }),
+  // `error` is why the last fetch never answered (transport/RPC failure — a
+  // provider's own failure arrives inside `result` as a stale/failed row).
+  // Without it a cold panel whose fetch failed kept saying 正在读取 forever,
+  // and a warm one silently kept its old numbers (#1553).
+  const [data, setData] = useState<{ result: BalancesResult | null; loading: boolean; error: string | null }>(
+    () => ({ result: props.cachedBalances(), loading: false, error: null }),
   )
   const selected = props.useStore((state) => state.selected)
   const select = (provider: string): void => { props.actions.select(provider) }
@@ -696,15 +700,17 @@ function useProviderBalances(props: BalancesInjected & PropsStore<BalanceStore>,
   const runBalances = (force: boolean): void => {
     props.fetchBalances(force).then((result) => {
       if (!mountedRef.current) return
-      setData({ result, loading: false })
+      setData({ result, loading: false, error: null })
       if (force) {
         // #870 语义:拉到新数据 → ✓(品牌色),命中缓存 → ↻ 变绿,1.2s 回落。
         setFlash(result.providers.some((p) => p.result.status === 'fresh') ? 'ok' : 'same')
         if (flashTimerRef.current !== null) clearTimeout(flashTimerRef.current)
         flashTimerRef.current = setTimeout(() => { setFlash(null) }, 1200)
       }
-    }, () => {
-      if (mountedRef.current) setData((current) => ({ ...current, loading: false }))
+    }, (err: unknown) => {
+      if (!mountedRef.current) return
+      const error = (err instanceof Error ? err.message : String(err)) || '未知错误'
+      setData((current) => ({ ...current, loading: false, error }))
     })
   }
 
@@ -714,7 +720,7 @@ function useProviderBalances(props: BalancesInjected & PropsStore<BalanceStore>,
     const unsubscribe = props.subscribeBalances === undefined
       ? null
       : props.subscribeBalances((result) => {
-        if (mountedRef.current) setData((current) => ({ ...current, result }))
+        if (mountedRef.current) setData((current) => ({ ...current, result, error: null }))
       })
     return () => {
       mountedRef.current = false
@@ -740,7 +746,13 @@ function useProviderBalances(props: BalancesInjected & PropsStore<BalanceStore>,
     setData((current) => ({ ...current, loading: true }))
     runBalances(true)
   }
-  return { data, rows, primary, select, flash, refresh }
+  // What the trigger says before any provider row exists: loading, or the
+  // fetch failed (the hollow stale badge, not the blank "nothing to judge").
+  const failed = rows.length === 0 && data.error !== null && !data.loading
+  const empty = failed
+    ? { tone: 'stale' as BalanceTone, title: '余额读取失败:' + data.error }
+    : { tone: 'none' as BalanceTone, title: '余额加载中' }
+  return { data, rows, primary, select, flash, refresh, empty }
 }
 
 /**
@@ -778,12 +790,12 @@ function renderBalanceGlyph(tone: BalanceTone, size: number): React.ReactElement
 }
 
 /** The headline reading: dot (or the foot glyph) · value · reset · weekly sub-reading. */
-function renderBalanceHeadline(primary: BalanceRow | undefined, withLabel: boolean, glyph = false): React.ReactElement {
+function renderBalanceHeadline(primary: BalanceRow | undefined, withLabel: boolean, glyph = false, emptyTone: BalanceTone = 'none'): React.ReactElement {
   const lead = (tone: BalanceTone): React.ReactElement => glyph
     ? h('span', { className: cx('bal-lead') }, renderBalanceGlyph(tone, 16))
     : h('span', { className: cx('bchip-dot') })
   return primary === undefined
-    ? h('span', { className: cx('bchip-item') }, lead('none'), '—')
+    ? h('span', { className: cx('bchip-item') }, lead(emptyTone), '—')
     : h('span', { className: cx('bchip-item'), 'data-pb-provider': primary.provider, 'data-pb-role': 'chip', 'data-balance-state': primary.view.tone },
       lead(primary.view.tone),
       withLabel ? h('span', { className: cx('bchip-name') }, primary.label) : null,
@@ -807,7 +819,7 @@ function renderBalanceHeadline(primary: BalanceRow | undefined, withLabel: boole
 }
 
 /** The panel body: title + refresh, then every provider row (click = pin). */
-function renderBalancePanelBody(state: ReturnType<typeof useProviderBalances>): React.ReactElement[] {
+function renderBalancePanelBody(state: ReturnType<typeof useProviderBalances>): Array<React.ReactElement | null> {
   const { data, rows, primary, select, flash, refresh } = state
   return [
     h('div', { className: cx('bp-head'), key: 'head' },
@@ -820,8 +832,12 @@ function renderBalancePanelBody(state: ReturnType<typeof useProviderBalances>): 
         title: '立即刷新',
         onClick: refresh,
       }, flash === 'ok' ? '✓' : '↻')),
+    rows.length > 0 && data.error !== null && !data.loading
+      ? h('div', { className: cx('bp-note', 'warn'), key: 'error', role: 'status' }, '刷新失败,显示最近一次:' + data.error)
+      : null,
     rows.length === 0
-      ? h('div', { className: cx('bp-empty'), key: 'empty' }, '正在读取各服务余额…')
+      ? h('div', { className: cx('bp-empty'), key: 'empty', role: 'status' },
+        data.error !== null && !data.loading ? '余额读取失败:' + data.error : '正在读取各服务余额…')
       : h('div', { key: 'rows' }, rows.map((row) => h('button', {
         type: 'button',
         key: row.provider,
@@ -877,16 +893,16 @@ export function ProviderBalanceChip(props: BalanceChipProps): React.ReactElement
     h('button', {
       type: 'button',
       className: cx('bchip'),
-      'data-balance-state': primary !== undefined ? primary.view.tone : 'none',
+      'data-balance-state': primary !== undefined ? primary.view.tone : state.empty.tone,
       'data-pb-provider': primary !== undefined ? primary.provider : '',
       'aria-expanded': open,
       'aria-haspopup': 'dialog',
       'aria-label': '各模型服务余额',
       title: primary !== undefined
         ? primary.label + ' · ' + primary.view.title + (rows.length > 1 ? '(点击查看其他服务)' : '')
-        : '余额加载中',
+        : state.empty.title,
       onClick: () => { setOpen(!open) },
-    }, renderBalanceHeadline(primary, false)),
+    }, renderBalanceHeadline(primary, false, false, state.empty.tone)),
     h('div', { className: cx('bp'), 'data-open': open ? 'true' : 'false', role: open ? 'dialog' : 'none', 'aria-label': '各模型服务余额' },
       renderBalancePanelBody(state)))
 }
@@ -957,12 +973,12 @@ export function ProviderBalanceSidebarAction(props: BalanceSidebarActionProps): 
 
   const summary = primary !== undefined
     ? primary.label + ' · ' + primary.view.title + (rows.length > 1 ? '(点击查看其他服务)' : '')
-    : '余额加载中'
+    : state.empty.title
   return h('div', { className: cx('pbc', 'pbf', !props.wide && 'rail'), ref: rootRef },
     h('button', {
       type: 'button',
       className: cx('bchip'),
-      'data-balance-state': primary !== undefined ? primary.view.tone : 'none',
+      'data-balance-state': primary !== undefined ? primary.view.tone : state.empty.tone,
       'data-pb-provider': primary !== undefined ? primary.provider : '',
       'data-clawock-action': BALANCE_PANEL,
       'data-active': open ? '' : undefined,
@@ -977,9 +993,9 @@ export function ProviderBalanceSidebarAction(props: BalanceSidebarActionProps): 
         setOpen(!open)
       },
     }, props.wide
-      ? renderBalanceHeadline(primary, true, true)
-      : h('span', { className: cx('bal-lead'), 'data-balance-state': primary !== undefined ? primary.view.tone : 'none' },
-        renderBalanceGlyph(primary !== undefined ? primary.view.tone : 'none', 18))),
+      ? renderBalanceHeadline(primary, true, true, state.empty.tone)
+      : h('span', { className: cx('bal-lead'), 'data-balance-state': primary !== undefined ? primary.view.tone : state.empty.tone },
+        renderBalanceGlyph(primary !== undefined ? primary.view.tone : state.empty.tone, 18))),
     h('div', {
       className: cx('bp'),
       'data-open': open ? 'true' : 'false',
