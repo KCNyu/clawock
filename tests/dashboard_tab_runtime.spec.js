@@ -818,6 +818,16 @@ async function testHoldingsAndHeroNeverTruncate(browser, base) {
       return row?.dataset.open === "1" && row.getAttribute("aria-expanded") === "true"
         && row.nextElementSibling?.dataset.open === "1";
     }, openedTicker, { timeout: 3000 });
+    // A re-render must not drop keyboard focus off the row it rebuilds (#1624).
+    // `click()` from script re-sorts without moving focus to the header button.
+    const refocused = await page.evaluate((ticker) => {
+      const row = document.querySelector(`table.book-table tbody tr.book-row[data-ticker="${ticker}"]`);
+      row.focus();
+      document.querySelector("table.book-table thead button").click();
+      return document.activeElement?.matches?.(`tr.book-row[data-ticker="${ticker}"]`)
+        && document.activeElement.isConnected;
+    }, openedTicker);
+    assert.ok(refocused, "re-rendering the book must keep focus on the same row");
     await page.evaluate(() => {
       const wrap = document.querySelector("table.book-table").closest(".table-wrap");
       wrap.scrollLeft = wrap.scrollWidth;
