@@ -30,7 +30,7 @@ keeps an exclusive window; standard time therefore has two fewer US intraday slo
 | 美股盘中盯盘-overnight | `3,33 0-2 * * 2-6` · Asia/Shanghai | Mode 7 | `intraday --us` | `13,43 0-2 * * 2-6` · Asia/Hong_Kong |
 | Memory Dreaming Promotion | `0 3 * * *` · host HKT | memory-core | `—` | — |
 | 美股收盘报告 | EDT `3 4 * * 2-6`<br>EST `3 5 * * 2-6` | Mode 6 | `report --us close` | EDT `23 4 * * 2-6`<br>EST `23 5 * * 2-6` |
-| 盘前深度简报 | `3 8 * * 1-5` · Asia/Shanghai | daily-deep-brief | `brief_*` | `33 8 * * 1-5` · Asia/Hong_Kong<br>`5 9 * * 1-5` · Asia/Hong_Kong · miss-detector: brief never written (08:33 is inside the landing window) |
+| 盘前深度简报 | `3 8 * * 1-5` · Asia/Shanghai | daily-deep-brief | `brief_*` | `36 8 * * 1-5` · Asia/Hong_Kong<br>`5 9 * * 1-5` · Asia/Hong_Kong · miss-detector: brief never written (08:36 is inside the landing window) |
 | 港股开盘报告 | `33 9 * * 1-5` · Asia/Shanghai | Mode 6 | `report --hk open` | `48 9 * * 1-5` · Asia/Hong_Kong |
 | 盘中盯盘 | `3,33 10-11,14-15 * * 1-5` · Asia/Shanghai | Mode 7 | `intraday --hk` | `13,43 10-11,14-15 * * 1-5` · Asia/Hong_Kong |
 | 港股午盘报告 | `3 12 * * 1-5` · Asia/Shanghai | Mode 6 | `report --hk mid` | `15 12 * * 1-5` · Asia/Hong_Kong |
