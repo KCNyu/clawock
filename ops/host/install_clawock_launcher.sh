@@ -31,19 +31,20 @@ exec env CLAWOCK_PROFILE="\${CLAWOCK_PROFILE:-kcnyu}" \\
 LAUNCHER
 chmod +x "$TARGET"
 
-for COMMAND in \
-  clawock-brief-watchdog \
-  clawock-report-watchdog \
-  clawock-intraday-watchdog \
-  clawock-cron-heartbeat \
-  clawock-workflow-outcomes \
-  clawock-intraday-delta \
-  clawock-gold-fetch \
-  clawock-gold-update \
-  clawock-influencer-scan \
-  clawock-brief-fallback \
-  clawock-news-digest \
-  clawock-weekly-review
+# Every other console script pip installed, straight from the registry pip
+# read. A hand-kept list here once let a new entry point land in the venv and
+# never reach this PATH, with every check green (#1589).
+COMMANDS="$("$VENV/bin/python" - "$CHECKOUT/pyproject.toml" <<'PY'
+import sys, tomllib
+with open(sys.argv[1], "rb") as handle:
+    scripts = tomllib.load(handle)["project"]["scripts"]
+print("\n".join(name for name in scripts if name != "clawock"))
+PY
+)"
+[ -n "$COMMANDS" ] || { echo "no console scripts in $CHECKOUT/pyproject.toml" >&2; exit 1; }
+
+COUNT=0
+for COMMAND in $COMMANDS
 do
   [ -x "$VENV/bin/$COMMAND" ] || { echo "missing installed command: $VENV/bin/$COMMAND" >&2; exit 1; }
   COMMAND_TARGET="$TARGET_DIR/$COMMAND"
@@ -55,6 +56,7 @@ exec env CLAWOCK_PROFILE="\${CLAWOCK_PROFILE:-kcnyu}" \
      "$VENV/bin/$COMMAND" "\$@"
 LAUNCHER
   chmod +x "$COMMAND_TARGET"
+  COUNT=$((COUNT + 1))
 done
 
-echo "installed: clawock + 12 runtime commands in $TARGET_DIR (workspace $CHECKOUT)"
+echo "installed: clawock + $COUNT runtime commands in $TARGET_DIR (workspace $CHECKOUT)"
