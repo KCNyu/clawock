@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-15T08:57:17Z",
+  "generated_at": "2026-09-19T08:16:26Z",
   "repo": "KCNyu/clawock",
   "note": "drift_minutes = run.created_at - the reconstructed cron instant. GitHub does not report the scheduled instant, so a run delayed past its own next occurrence is attributed to that later one: every figure here is a lower bound.",
   "workflows": [
@@ -12,10 +12,80 @@
         "23 4 * * 3"
       ],
       "samples": 20,
-      "drift_min": 31.9,
-      "drift_median": 249.8,
-      "drift_max": 297.4,
+      "drift_min": 36.7,
+      "drift_median": 251.8,
+      "drift_max": 298.7,
       "runs": [
+        {
+          "run_id": 35312302728,
+          "cron": "9 1 * * 1-5",
+          "scheduled_at": "2026-09-18T01:09:00Z",
+          "started_at": "2026-09-18T05:49:06Z",
+          "drift_minutes": 280.1
+        },
+        {
+          "run_id": 35310028295,
+          "cron": "9 1 * * 1-5",
+          "scheduled_at": "2026-09-18T01:09:00Z",
+          "started_at": "2026-09-18T05:14:29Z",
+          "drift_minutes": 245.5
+        },
+        {
+          "run_id": 35308781268,
+          "cron": "9 1 * * 1-5",
+          "scheduled_at": "2026-09-18T01:09:00Z",
+          "started_at": "2026-09-18T04:54:58Z",
+          "drift_minutes": 226.0
+        },
+        {
+          "run_id": 35188114983,
+          "cron": "9 1 * * 1-5",
+          "scheduled_at": "2026-09-17T01:09:00Z",
+          "started_at": "2026-09-17T06:02:19Z",
+          "drift_minutes": 293.3
+        },
+        {
+          "run_id": 35185790040,
+          "cron": "9 1 * * 1-5",
+          "scheduled_at": "2026-09-17T01:09:00Z",
+          "started_at": "2026-09-17T05:27:10Z",
+          "drift_minutes": 258.2
+        },
+        {
+          "run_id": 35184147108,
+          "cron": "9 1 * * 1-5",
+          "scheduled_at": "2026-09-17T01:09:00Z",
+          "started_at": "2026-09-17T05:01:57Z",
+          "drift_minutes": 232.9
+        },
+        {
+          "run_id": 35078967740,
+          "cron": "23 4 * * 3",
+          "scheduled_at": "2026-09-16T04:23:00Z",
+          "started_at": "2026-09-16T09:21:41Z",
+          "drift_minutes": 298.7
+        },
+        {
+          "run_id": 35061436278,
+          "cron": "23 4 * * 3",
+          "scheduled_at": "2026-09-16T04:23:00Z",
+          "started_at": "2026-09-16T05:54:56Z",
+          "drift_minutes": 91.9
+        },
+        {
+          "run_id": 35059005967,
+          "cron": "23 4 * * 3",
+          "scheduled_at": "2026-09-16T04:23:00Z",
+          "started_at": "2026-09-16T05:18:43Z",
+          "drift_minutes": 55.7
+        },
+        {
+          "run_id": 35057746726,
+          "cron": "23 4 * * 3",
+          "scheduled_at": "2026-09-16T04:23:00Z",
+          "started_at": "2026-09-16T04:59:43Z",
+          "drift_minutes": 36.7
+        },
         {
           "run_id": 34935396962,
           "cron": "9 1 * * 1-5",
@@ -85,76 +155,6 @@
           "scheduled_at": "2026-09-10T01:09:00Z",
           "started_at": "2026-09-10T05:51:47Z",
           "drift_minutes": 282.8
-        },
-        {
-          "run_id": 34440635763,
-          "cron": "9 1 * * 1-5",
-          "scheduled_at": "2026-09-10T01:09:00Z",
-          "started_at": "2026-09-10T05:19:55Z",
-          "drift_minutes": 250.9
-        },
-        {
-          "run_id": 34439125023,
-          "cron": "9 1 * * 1-5",
-          "scheduled_at": "2026-09-10T01:09:00Z",
-          "started_at": "2026-09-10T04:56:42Z",
-          "drift_minutes": 227.7
-        },
-        {
-          "run_id": 34332328690,
-          "cron": "23 4 * * 3",
-          "scheduled_at": "2026-09-09T04:23:00Z",
-          "started_at": "2026-09-09T09:01:09Z",
-          "drift_minutes": 278.1
-        },
-        {
-          "run_id": 34316755658,
-          "cron": "23 4 * * 3",
-          "scheduled_at": "2026-09-09T04:23:00Z",
-          "started_at": "2026-09-09T05:54:07Z",
-          "drift_minutes": 91.1
-        },
-        {
-          "run_id": 34314374077,
-          "cron": "23 4 * * 3",
-          "scheduled_at": "2026-09-09T04:23:00Z",
-          "started_at": "2026-09-09T05:18:48Z",
-          "drift_minutes": 55.8
-        },
-        {
-          "run_id": 34312813468,
-          "cron": "23 4 * * 3",
-          "scheduled_at": "2026-09-09T04:23:00Z",
-          "started_at": "2026-09-09T04:54:57Z",
-          "drift_minutes": 31.9
-        },
-        {
-          "run_id": 34192280381,
-          "cron": "9 1 * * 1-5",
-          "scheduled_at": "2026-09-08T01:09:00Z",
-          "started_at": "2026-09-08T05:52:02Z",
-          "drift_minutes": 283.0
-        },
-        {
-          "run_id": 34190069005,
-          "cron": "9 1 * * 1-5",
-          "scheduled_at": "2026-09-08T01:09:00Z",
-          "started_at": "2026-09-08T05:17:33Z",
-          "drift_minutes": 248.6
-        },
-        {
-          "run_id": 34188590970,
-          "cron": "9 1 * * 1-5",
-          "scheduled_at": "2026-09-08T01:09:00Z",
-          "started_at": "2026-09-08T04:53:25Z",
-          "drift_minutes": 224.4
-        },
-        {
-          "run_id": 34088805124,
-          "cron": "9 1 * * 1-5",
-          "scheduled_at": "2026-09-07T01:09:00Z",
-          "started_at": "2026-09-07T05:57:58Z",
-          "drift_minutes": 289.0
         }
       ]
     },
@@ -198,10 +198,38 @@
         "17 9 * * 6"
       ],
       "samples": 20,
-      "drift_min": 33.0,
-      "drift_median": 258.2,
+      "drift_min": 206.9,
+      "drift_median": 277.6,
       "drift_max": 692.6,
       "runs": [
+        {
+          "run_id": 35351032324,
+          "cron": "17 9 * * 1-5",
+          "scheduled_at": "2026-09-18T09:17:00Z",
+          "started_at": "2026-09-18T13:34:44Z",
+          "drift_minutes": 257.7
+        },
+        {
+          "run_id": 35232492241,
+          "cron": "17 9 * * 1-5",
+          "scheduled_at": "2026-09-17T09:17:00Z",
+          "started_at": "2026-09-17T14:16:41Z",
+          "drift_minutes": 299.7
+        },
+        {
+          "run_id": 35106790787,
+          "cron": "17 9 * * 1-5",
+          "scheduled_at": "2026-09-16T09:17:00Z",
+          "started_at": "2026-09-16T14:11:09Z",
+          "drift_minutes": 294.1
+        },
+        {
+          "run_id": 34980814402,
+          "cron": "17 9 * * 1-5",
+          "scheduled_at": "2026-09-15T09:17:00Z",
+          "started_at": "2026-09-15T14:19:12Z",
+          "drift_minutes": 302.2
+        },
         {
           "run_id": 34865014687,
           "cron": "17 9 * * 1-5",
@@ -313,34 +341,6 @@
           "scheduled_at": "2026-08-27T09:17:00Z",
           "started_at": "2026-08-27T19:49:29Z",
           "drift_minutes": 632.5
-        },
-        {
-          "run_id": 32955583330,
-          "cron": "17 9 * * 1-5",
-          "scheduled_at": "2026-08-26T09:17:00Z",
-          "started_at": "2026-08-26T09:55:40Z",
-          "drift_minutes": 38.7
-        },
-        {
-          "run_id": 32834047905,
-          "cron": "17 9 * * 1-5",
-          "scheduled_at": "2026-08-25T09:17:00Z",
-          "started_at": "2026-08-25T09:49:59Z",
-          "drift_minutes": 33.0
-        },
-        {
-          "run_id": 32714680827,
-          "cron": "17 9 * * 1-5",
-          "scheduled_at": "2026-08-24T09:17:00Z",
-          "started_at": "2026-08-24T10:02:03Z",
-          "drift_minutes": 45.0
-        },
-        {
-          "run_id": 32469833091,
-          "cron": "17 9 * * 1-5",
-          "scheduled_at": "2026-08-21T09:17:00Z",
-          "started_at": "2026-08-21T09:50:54Z",
-          "drift_minutes": 33.9
         }
       ]
     },
@@ -349,11 +349,18 @@
       "crons": [
         "0 22 * * 5"
       ],
-      "samples": 17,
+      "samples": 18,
       "drift_min": 14.1,
-      "drift_median": 54.8,
+      "drift_median": 55.2,
       "drift_max": 325.8,
       "runs": [
+        {
+          "run_id": 35406990184,
+          "cron": "0 22 * * 5",
+          "scheduled_at": "2026-09-18T22:00:00Z",
+          "started_at": "2026-09-18T23:46:43Z",
+          "drift_minutes": 106.7
+        },
         {
           "run_id": 34659160849,
           "cron": "0 22 * * 5",
@@ -483,9 +490,58 @@
       ],
       "samples": 20,
       "drift_min": 84.5,
-      "drift_median": 182.5,
+      "drift_median": 185.2,
       "drift_max": 322.9,
       "runs": [
+        {
+          "run_id": 35370295917,
+          "cron": "50 12 * * 1-5",
+          "scheduled_at": "2026-09-18T12:50:00Z",
+          "started_at": "2026-09-18T16:44:56Z",
+          "drift_minutes": 234.9
+        },
+        {
+          "run_id": 35287720054,
+          "cron": "40 21 * * 0-4",
+          "scheduled_at": "2026-09-17T21:40:00Z",
+          "started_at": "2026-09-17T23:38:12Z",
+          "drift_minutes": 118.2
+        },
+        {
+          "run_id": 35251858018,
+          "cron": "50 12 * * 1-5",
+          "scheduled_at": "2026-09-17T12:50:00Z",
+          "started_at": "2026-09-17T17:17:50Z",
+          "drift_minutes": 267.8
+        },
+        {
+          "run_id": 35163789645,
+          "cron": "40 21 * * 0-4",
+          "scheduled_at": "2026-09-16T21:40:00Z",
+          "started_at": "2026-09-16T23:46:59Z",
+          "drift_minutes": 127.0
+        },
+        {
+          "run_id": 35127344607,
+          "cron": "50 12 * * 1-5",
+          "scheduled_at": "2026-09-16T12:50:00Z",
+          "started_at": "2026-09-16T17:18:17Z",
+          "drift_minutes": 268.3
+        },
+        {
+          "run_id": 35036618237,
+          "cron": "40 21 * * 0-4",
+          "scheduled_at": "2026-09-15T21:40:00Z",
+          "started_at": "2026-09-15T23:39:10Z",
+          "drift_minutes": 119.2
+        },
+        {
+          "run_id": 35000501973,
+          "cron": "50 12 * * 1-5",
+          "scheduled_at": "2026-09-15T12:50:00Z",
+          "started_at": "2026-09-15T17:19:07Z",
+          "drift_minutes": 269.1
+        },
         {
           "run_id": 34911170440,
           "cron": "40 21 * * 0-4",
@@ -576,55 +632,6 @@
           "scheduled_at": "2026-09-06T21:40:00Z",
           "started_at": "2026-09-06T23:04:29Z",
           "drift_minutes": 84.5
-        },
-        {
-          "run_id": 33896131608,
-          "cron": "50 12 * * 1-5",
-          "scheduled_at": "2026-09-04T12:50:00Z",
-          "started_at": "2026-09-04T16:36:57Z",
-          "drift_minutes": 226.9
-        },
-        {
-          "run_id": 33817826090,
-          "cron": "40 21 * * 0-4",
-          "scheduled_at": "2026-09-03T21:40:00Z",
-          "started_at": "2026-09-03T23:29:45Z",
-          "drift_minutes": 109.8
-        },
-        {
-          "run_id": 33780212288,
-          "cron": "50 12 * * 1-5",
-          "scheduled_at": "2026-09-03T12:50:00Z",
-          "started_at": "2026-09-03T16:42:18Z",
-          "drift_minutes": 232.3
-        },
-        {
-          "run_id": 33695463747,
-          "cron": "40 21 * * 0-4",
-          "scheduled_at": "2026-09-02T21:40:00Z",
-          "started_at": "2026-09-02T23:31:25Z",
-          "drift_minutes": 111.4
-        },
-        {
-          "run_id": 33657635809,
-          "cron": "50 12 * * 1-5",
-          "scheduled_at": "2026-09-02T12:50:00Z",
-          "started_at": "2026-09-02T16:52:58Z",
-          "drift_minutes": 243.0
-        },
-        {
-          "run_id": 33571424668,
-          "cron": "40 21 * * 0-4",
-          "scheduled_at": "2026-09-01T21:40:00Z",
-          "started_at": "2026-09-01T23:31:47Z",
-          "drift_minutes": 111.8
-        },
-        {
-          "run_id": 33535022702,
-          "cron": "50 12 * * 1-5",
-          "scheduled_at": "2026-09-01T12:50:00Z",
-          "started_at": "2026-09-01T16:58:39Z",
-          "drift_minutes": 248.7
         }
       ]
     },
@@ -636,9 +643,51 @@
       ],
       "samples": 20,
       "drift_min": 74.8,
-      "drift_median": 98.8,
+      "drift_median": 106.5,
       "drift_max": 126.1,
       "runs": [
+        {
+          "run_id": 35288230827,
+          "cron": "55 21 * * 0-4",
+          "scheduled_at": "2026-09-17T21:55:00Z",
+          "started_at": "2026-09-17T23:45:16Z",
+          "drift_minutes": 110.3
+        },
+        {
+          "run_id": 35287905786,
+          "cron": "55 21 * * 0-4",
+          "scheduled_at": "2026-09-17T21:55:00Z",
+          "started_at": "2026-09-17T23:40:45Z",
+          "drift_minutes": 105.8
+        },
+        {
+          "run_id": 35164328544,
+          "cron": "55 21 * * 0-4",
+          "scheduled_at": "2026-09-16T21:55:00Z",
+          "started_at": "2026-09-16T23:54:49Z",
+          "drift_minutes": 119.8
+        },
+        {
+          "run_id": 35164039168,
+          "cron": "55 21 * * 0-4",
+          "scheduled_at": "2026-09-16T21:55:00Z",
+          "started_at": "2026-09-16T23:50:31Z",
+          "drift_minutes": 115.5
+        },
+        {
+          "run_id": 35037109929,
+          "cron": "55 21 * * 0-4",
+          "scheduled_at": "2026-09-15T21:55:00Z",
+          "started_at": "2026-09-15T23:45:54Z",
+          "drift_minutes": 110.9
+        },
+        {
+          "run_id": 35036848539,
+          "cron": "55 21 * * 0-4",
+          "scheduled_at": "2026-09-15T21:55:00Z",
+          "started_at": "2026-09-15T23:42:19Z",
+          "drift_minutes": 107.3
+        },
         {
           "run_id": 34911390980,
           "cron": "55 21 * * 0-4",
@@ -736,48 +785,6 @@
           "scheduled_at": "2026-09-06T21:55:00Z",
           "started_at": "2026-09-06T23:09:46Z",
           "drift_minutes": 74.8
-        },
-        {
-          "run_id": 33818142245,
-          "cron": "55 21 * * 0-4",
-          "scheduled_at": "2026-09-03T21:55:00Z",
-          "started_at": "2026-09-03T23:33:53Z",
-          "drift_minutes": 98.9
-        },
-        {
-          "run_id": 33817943350,
-          "cron": "55 21 * * 0-4",
-          "scheduled_at": "2026-09-03T21:55:00Z",
-          "started_at": "2026-09-03T23:31:14Z",
-          "drift_minutes": 96.2
-        },
-        {
-          "run_id": 33695864069,
-          "cron": "55 21 * * 0-4",
-          "scheduled_at": "2026-09-02T21:55:00Z",
-          "started_at": "2026-09-02T23:36:35Z",
-          "drift_minutes": 101.6
-        },
-        {
-          "run_id": 33695578785,
-          "cron": "55 21 * * 0-4",
-          "scheduled_at": "2026-09-02T21:55:00Z",
-          "started_at": "2026-09-02T23:32:56Z",
-          "drift_minutes": 97.9
-        },
-        {
-          "run_id": 33571700422,
-          "cron": "55 21 * * 0-4",
-          "scheduled_at": "2026-09-01T21:55:00Z",
-          "started_at": "2026-09-01T23:35:30Z",
-          "drift_minutes": 100.5
-        },
-        {
-          "run_id": 33571564862,
-          "cron": "55 21 * * 0-4",
-          "scheduled_at": "2026-09-01T21:55:00Z",
-          "started_at": "2026-09-01T23:33:40Z",
-          "drift_minutes": 98.7
         }
       ]
     },
@@ -787,10 +794,38 @@
         "0 13 * * 1-5"
       ],
       "samples": 20,
-      "drift_min": 34.7,
-      "drift_median": 226.8,
+      "drift_min": 40.2,
+      "drift_median": 235.5,
       "drift_max": 588.0,
       "runs": [
+        {
+          "run_id": 35370629344,
+          "cron": "0 13 * * 1-5",
+          "scheduled_at": "2026-09-18T13:00:00Z",
+          "started_at": "2026-09-18T16:48:20Z",
+          "drift_minutes": 228.3
+        },
+        {
+          "run_id": 35252267453,
+          "cron": "0 13 * * 1-5",
+          "scheduled_at": "2026-09-17T13:00:00Z",
+          "started_at": "2026-09-17T17:21:46Z",
+          "drift_minutes": 261.8
+        },
+        {
+          "run_id": 35127796524,
+          "cron": "0 13 * * 1-5",
+          "scheduled_at": "2026-09-16T13:00:00Z",
+          "started_at": "2026-09-16T17:22:40Z",
+          "drift_minutes": 262.7
+        },
+        {
+          "run_id": 35000984434,
+          "cron": "0 13 * * 1-5",
+          "scheduled_at": "2026-09-15T13:00:00Z",
+          "started_at": "2026-09-15T17:23:41Z",
+          "drift_minutes": 263.7
+        },
         {
           "run_id": 34879701843,
           "cron": "0 13 * * 1-5",
@@ -902,34 +937,6 @@
           "scheduled_at": "2026-08-24T13:00:00Z",
           "started_at": "2026-08-24T13:41:38Z",
           "drift_minutes": 41.6
-        },
-        {
-          "run_id": 32487766514,
-          "cron": "0 13 * * 1-5",
-          "scheduled_at": "2026-08-21T13:00:00Z",
-          "started_at": "2026-08-21T13:36:54Z",
-          "drift_minutes": 36.9
-        },
-        {
-          "run_id": 32375354662,
-          "cron": "0 13 * * 1-5",
-          "scheduled_at": "2026-08-20T13:00:00Z",
-          "started_at": "2026-08-20T13:37:46Z",
-          "drift_minutes": 37.8
-        },
-        {
-          "run_id": 32259023168,
-          "cron": "0 13 * * 1-5",
-          "scheduled_at": "2026-08-19T13:00:00Z",
-          "started_at": "2026-08-19T13:36:08Z",
-          "drift_minutes": 36.1
-        },
-        {
-          "run_id": 32143167046,
-          "cron": "0 13 * * 1-5",
-          "scheduled_at": "2026-08-18T13:00:00Z",
-          "started_at": "2026-08-18T13:34:40Z",
-          "drift_minutes": 34.7
         }
       ]
     },
@@ -939,11 +946,18 @@
         "38 3 * * 2",
         "38 3 * * 6"
       ],
-      "samples": 8,
+      "samples": 9,
       "drift_min": 31.3,
-      "drift_median": 274.6,
+      "drift_median": 278.0,
       "drift_max": 406.0,
       "runs": [
+        {
+          "run_id": 35431537236,
+          "cron": "38 3 * * 6",
+          "scheduled_at": "2026-09-19T03:38:00Z",
+          "started_at": "2026-09-19T08:16:02Z",
+          "drift_minutes": 278.0
+        },
         {
           "run_id": 34949767794,
           "cron": "38 3 * * 2",
@@ -1148,9 +1162,51 @@
       ],
       "samples": 20,
       "drift_min": 64.1,
-      "drift_median": 98.2,
+      "drift_median": 102.9,
       "drift_max": 126.6,
       "runs": [
+        {
+          "run_id": 35288254685,
+          "cron": "55 21 * * 0-4",
+          "scheduled_at": "2026-09-17T21:55:00Z",
+          "started_at": "2026-09-17T23:45:34Z",
+          "drift_minutes": 110.6
+        },
+        {
+          "run_id": 35287611088,
+          "cron": "55 21 * * 0-4",
+          "scheduled_at": "2026-09-17T21:55:00Z",
+          "started_at": "2026-09-17T23:36:43Z",
+          "drift_minutes": 101.7
+        },
+        {
+          "run_id": 35164331265,
+          "cron": "55 21 * * 0-4",
+          "scheduled_at": "2026-09-16T21:55:00Z",
+          "started_at": "2026-09-16T23:54:51Z",
+          "drift_minutes": 119.8
+        },
+        {
+          "run_id": 35163581356,
+          "cron": "55 21 * * 0-4",
+          "scheduled_at": "2026-09-16T21:55:00Z",
+          "started_at": "2026-09-16T23:44:05Z",
+          "drift_minutes": 109.1
+        },
+        {
+          "run_id": 35037120766,
+          "cron": "55 21 * * 0-4",
+          "scheduled_at": "2026-09-15T21:55:00Z",
+          "started_at": "2026-09-15T23:46:04Z",
+          "drift_minutes": 111.1
+        },
+        {
+          "run_id": 35036337079,
+          "cron": "55 21 * * 0-4",
+          "scheduled_at": "2026-09-15T21:55:00Z",
+          "started_at": "2026-09-15T23:35:21Z",
+          "drift_minutes": 100.3
+        },
         {
           "run_id": 34911427762,
           "cron": "55 21 * * 0-4",
@@ -1248,48 +1304,6 @@
           "scheduled_at": "2026-09-06T21:55:00Z",
           "started_at": "2026-09-06T22:59:04Z",
           "drift_minutes": 64.1
-        },
-        {
-          "run_id": 33818168910,
-          "cron": "55 21 * * 0-4",
-          "scheduled_at": "2026-09-03T21:55:00Z",
-          "started_at": "2026-09-03T23:34:16Z",
-          "drift_minutes": 99.3
-        },
-        {
-          "run_id": 33817592912,
-          "cron": "55 21 * * 0-4",
-          "scheduled_at": "2026-09-03T21:55:00Z",
-          "started_at": "2026-09-03T23:26:09Z",
-          "drift_minutes": 91.2
-        },
-        {
-          "run_id": 33695858604,
-          "cron": "55 21 * * 0-4",
-          "scheduled_at": "2026-09-02T21:55:00Z",
-          "started_at": "2026-09-02T23:36:30Z",
-          "drift_minutes": 101.5
-        },
-        {
-          "run_id": 33695306873,
-          "cron": "55 21 * * 0-4",
-          "scheduled_at": "2026-09-02T21:55:00Z",
-          "started_at": "2026-09-02T23:29:27Z",
-          "drift_minutes": 94.5
-        },
-        {
-          "run_id": 33571727575,
-          "cron": "55 21 * * 0-4",
-          "scheduled_at": "2026-09-01T21:55:00Z",
-          "started_at": "2026-09-01T23:35:51Z",
-          "drift_minutes": 100.8
-        },
-        {
-          "run_id": 33571140235,
-          "cron": "55 21 * * 0-4",
-          "scheduled_at": "2026-09-01T21:55:00Z",
-          "started_at": "2026-09-01T23:27:57Z",
-          "drift_minutes": 93.0
         }
       ]
     },
