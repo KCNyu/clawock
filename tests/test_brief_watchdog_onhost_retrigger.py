@@ -43,7 +43,7 @@ def _job(**state):
 def _watch(monkeypatch, tmp_path, job, spy):
     monkeypatch.setattr(watchdog, "WS", tmp_path)
     monkeypatch.setattr(watchdog, "log", lambda event: spy.setdefault("logs", []).append(event))
-    monkeypatch.setattr(watchdog, "brief_cron_job", lambda: job)
+    monkeypatch.setattr(watchdog, "brief_cron_job_state", lambda: job)
     monkeypatch.setattr(
         watchdog, "rerun_cron_job",
         lambda job_id, dry_run=False: (spy.setdefault("reruns", []).append(job_id), (True, "queued"))[1])
@@ -103,7 +103,7 @@ def test_dry_run_queues_nothing_and_writes_no_flag(tmp_path, monkeypatch):
     spy = {}
     monkeypatch.setattr(watchdog, "WS", tmp_path)
     monkeypatch.setattr(watchdog, "log", lambda event: spy.setdefault("logs", []).append(event))
-    monkeypatch.setattr(watchdog, "brief_cron_job",
+    monkeypatch.setattr(watchdog, "brief_cron_job_state",
                         lambda: _job(lastStatus="error", lastRunAtMs=_at("08:01")))
 
     assert watchdog.retrigger_or_wait(TODAY, dry_run=True) == 0

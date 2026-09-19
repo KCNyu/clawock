@@ -125,7 +125,7 @@ def _mark_rerun(today):
     path.write_text(str(_rerun_count(today) + 1))
 
 
-def _rerun_once(today, dry_run, attempt):
+def _rerun_once(today, dry_run, attempt, job=None):
     """Queue one on-host re-run, deduped to MAX_ONHOST_RERUNS per day (#550).
 
     The 08:30 pass fires attempt 1; if its re-run itself failed (2026-08-12),
@@ -135,7 +135,7 @@ def _rerun_once(today, dry_run, attempt):
     """
     if _rerun_count(today) >= MAX_ONHOST_RERUNS:
         return False
-    job = brief_cron_job()
+    job = job if isinstance(job, dict) else brief_cron_job()
     if not isinstance(job, dict) or not job.get('id'):
         # The 09:05 alert is the core invariant; an unreadable schedule must
         # never block it — fall back to the off-host path without a re-run.
@@ -166,6 +166,15 @@ def _rerun_once(today, dry_run, attempt):
     return ok
 
 
+def _safe_brief_cron_job_state():
+    """Read authoritative local cron state without letting recovery crash."""
+    try:
+        return brief_cron_job_state()
+    except Exception as exc:
+        log({'tag': 'brief', 'action': 'cron-state-unreadable', 'error': str(exc)})
+        return None
+
+
 def retrigger_or_wait(today, dry_run):
     """08:30 with no brief on disk: wait, or run the on-host job once more.
 
@@ -190,7 +199,7 @@ def retrigger_or_wait(today, dry_run):
     evidence that the attempt is over.
     """
     tag = 'brief'
-    job = brief_cron_job()
+    job = _safe_brief_cron_job_state()
     failed = cron_run_ended_in_failure(job, today)
     if not failed:
         log({'tag': tag, 'action': 'skip',
@@ -205,7 +214,7 @@ def retrigger_or_wait(today, dry_run):
              'reason': 'on-host re-run already fired today (dedupe flag present)'})
         return 0
 
-    _rerun_once(today, dry_run, attempt=1)
+    _rerun_once(today, dry_run, attempt=1, job=job)
     return 0
 
 
@@ -279,7 +288,7 @@ def retry_budget_note():
     gateway cannot push that past brief-fallback.yml's 10:00 HKT cutoff.
     """
     try:
-        job = brief_cron_job_state()
+        job = _safe_brief_cron_job_state()
         if not isinstance(job, dict):
             return ''
         budget = cron_retry_budget(job)
@@ -339,9 +348,10 @@ def alert_brief_missing(today, dry_run, issues=None):
         # (three-way rule as the 08:30 pass); a healthy run or an unreadable
         # schedule must not stack another queue entry. The counter only caps
         # the number of chances.
-        failed = cron_run_ended_in_failure(brief_cron_job(), today)
+        job = _safe_brief_cron_job_state()
+        failed = cron_run_ended_in_failure(job, today)
         if failed and _rerun_count(today) < MAX_ONHOST_RERUNS:
-            rerun_queued = _rerun_once(today, dry_run, attempt=2)
+            rerun_queued = _rerun_once(today, dry_run, attempt=2, job=job)
         if rerun_queued:
             # #606: the queued local re-run writes the same brief artifacts the
             # GHA fallback would; dispatching both made two LLMs race on the

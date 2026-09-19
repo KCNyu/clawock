@@ -24,8 +24,9 @@ def _watch(monkeypatch, tmp_path, job=None):
     spy = {}
     monkeypatch.setattr(watchdog, "WS", tmp_path)
     monkeypatch.setattr(watchdog, "log", lambda event: spy.setdefault("logs", []).append(event))
+    monkeypatch.setattr(watchdog, "brief_cron_job_state",
+                        lambda: job if job is not None else {})
     if job is not None:
-        monkeypatch.setattr(watchdog, "brief_cron_job", lambda: job)
         monkeypatch.setattr(
             watchdog, "rerun_cron_job",
             lambda job_id, dry_run=False: (spy.setdefault("reruns", []).append(job_id), (True, "queued"))[1])
@@ -34,7 +35,6 @@ def _watch(monkeypatch, tmp_path, job=None):
         lambda dry_run=False: (spy.setdefault("fallbacks", []).append(1), (True, "dispatched"))[1])
     monkeypatch.setattr(watchdog, "send_telegram", lambda *a, **k: (True, "sent"))
     monkeypatch.setattr(watchdog, "write_missing_state", lambda *a, **k: None)
-    monkeypatch.setattr(watchdog, "brief_cron_job_state", lambda: {})
     monkeypatch.setattr(watchdog, "await_brief_fallback_outcome", lambda *a, **k: (True, "ok"))
     return spy
 
