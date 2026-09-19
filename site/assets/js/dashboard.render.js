@@ -2624,12 +2624,16 @@
 
     const shares = n => n == null || isNaN(n) ? DASH : Number(n).toLocaleString("en-US", { maximumFractionDigits: 0 });
     const price = (n, ccy) => n == null || isNaN(n) || n === 0 ? DASH : fmtMoney(n, ccy);
+    const openTickers = new Set([...tbody.querySelectorAll('tr.book-row[data-open="1"]')]
+      .map(row => row.dataset.ticker));
     tbody.innerHTML = rows.map(({ h, e, q, v }) => {
       const ccy = h.region === "hk" ? "HKD" : "USD";
+      const isOpen = openTickers.has(String(h.ticker || ""));
+      const open = isOpen ? "1" : "0";
       const proxyMark = (e.proxy || (q && q.is_proxy))
         ? `<sup class="muted" title="杠杆ETF · 量化列取底层 ${escapeHtml(e.proxy || q.source_ticker || "")}">▵</sup>` : "";
       return `
-        <tr class="book-row" tabindex="0" role="button" aria-expanded="false" data-open="0" data-ticker="${escapeHtml(h.ticker || "")}">
+        <tr class="book-row" tabindex="0" role="button" aria-expanded="${isOpen ? "true" : "false"}" data-open="${open}" data-ticker="${escapeHtml(h.ticker || "")}">
           <td><span class="ticker region-${h.region}">${escapeHtml(h.ticker || DASH)}</span>${proxyMark}<span class="book-caret" aria-hidden="true">›</span></td>
           <td class="name-cell col-p2" title="${escapeHtml(h.name || "")}">${escapeHtml(h.name || "")}</td>
           <td style="font-size:var(--fs-xs)"><span class="matrix-status ${v.state}">${escapeHtml(v.label)}</span></td>
@@ -2647,7 +2651,7 @@
             <div class="cell-sub ${pnlClass(h.pnl_percent)}">${fmtPct(h.pnl_percent)}</div>
           </td>
         </tr>
-        <tr class="book-detail" data-open="0"><td colspan="10"><div class="bd-wrap"><div class="bd-inner">${bookDetail(h, e)}</div></div></td></tr>`;
+        <tr class="book-detail" data-open="${open}"><td colspan="10"><div class="bd-wrap"><div class="bd-inner">${bookDetail(h, e)}</div></div></td></tr>`;
     }).join("");
 
     renderBookHeat(rows);
