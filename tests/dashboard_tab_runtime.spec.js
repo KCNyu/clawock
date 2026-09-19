@@ -810,6 +810,14 @@ async function testHoldingsAndHeroNeverTruncate(browser, base) {
         && detail && detail.classList.contains("book-detail")
         && detail.offsetHeight > 10;
     }, null, { timeout: 5000 });
+    const openedTicker = await page.locator("table.book-table tbody tr.book-row[data-open='1']")
+      .getAttribute("data-ticker");
+    await page.click("table.book-table thead button");
+    await page.waitForFunction((ticker) => {
+      const row = document.querySelector(`table.book-table tbody tr.book-row[data-ticker="${ticker}"]`);
+      return row?.dataset.open === "1" && row.getAttribute("aria-expanded") === "true"
+        && row.nextElementSibling?.dataset.open === "1";
+    }, openedTicker, { timeout: 3000 });
     await page.evaluate(() => {
       const wrap = document.querySelector("table.book-table").closest(".table-wrap");
       wrap.scrollLeft = wrap.scrollWidth;
