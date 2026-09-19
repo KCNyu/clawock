@@ -542,13 +542,9 @@ def _installed_version() -> str:
     return installed.version + _editable_drift(installed)
 
 
-def main(argv=None) -> int:
-    raw_argv = list(sys.argv[1:] if argv is None else argv)
-    if raw_argv and raw_argv[0] in PACKAGED_UTILITIES:
-        return _packaged_utility(argparse.Namespace(
-            command=raw_argv[0], utility_args=raw_argv[1:]
-        ))
-
+def build_parser() -> argparse.ArgumentParser:
+    """The whole `clawock` command line — also what the command inventory in
+    docs/reference/commands.md is generated from (#1627)."""
     parser = argparse.ArgumentParser(prog="clawock", description=__doc__)
     # The first command anyone runs after `pip install`, and until now the one
     # command that failed: argparse rejected `--version` as an unknown argument
@@ -766,7 +762,17 @@ def main(argv=None) -> int:
     workflow_rollback.add_argument("--workspace", type=Path, default=Path.cwd())
     workflow_rollback.add_argument("--change-id", required=True)
     workflow_rollback.set_defaults(func=_workflow)
+    return parser
 
+
+def main(argv=None) -> int:
+    raw_argv = list(sys.argv[1:] if argv is None else argv)
+    if raw_argv and raw_argv[0] in PACKAGED_UTILITIES:
+        return _packaged_utility(argparse.Namespace(
+            command=raw_argv[0], utility_args=raw_argv[1:]
+        ))
+
+    parser = build_parser()
     args = parser.parse_args(raw_argv)
     if args.command == "report" and not args.harness_phase and not args.context:
         parser.error("clawock report requires --context, or preflight/postflight")

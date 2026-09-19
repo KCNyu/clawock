@@ -26,9 +26,27 @@ title: clawock · command reference
 
 ## Installed commands / 已安装命令
 
-**70 commands** are registered by the single `clawock` distribution: 58 packaged `clawock <utility>` subcommands and 12 standalone scripts. 43 of them collect or compute information and appear under the layer they feed; the remaining 27 publish, gate, record or schedule, and are listed with the reason they are not collection. The lifecycle subcommands `clawock` builds itself in `src/clawock/cli.py` are not registry entries and are not counted here; `clawock --help` lists every subcommand.
+**81 commands** are installed by the single `clawock` distribution: 11 lifecycle subcommands built in `src/clawock/cli.py`, 58 packaged `clawock <utility>` subcommands and 12 standalone scripts. `clawock --help` offers the first two groups (69 subcommands). 43 of the registry commands collect or compute information and appear under the layer they feed; the remaining 27 publish, gate, record or schedule, and are listed with the reason they are not collection.
 
-本节由生成器从两份 registry 与 `config/information-layers.json` 推导，不手写；新增或删除一条命令，这张表自己会变。
+本节由生成器从 `clawock.cli.build_parser()`、两份 registry 与 `config/information-layers.json` 推导，不手写；新增或删除一条命令，这张表自己会变。
+
+### Lifecycle subcommands / 生命周期子命令
+
+Workspace, run and harness lifecycle commands; details are in the hand-written sections below.
+
+| Command | What it does |
+|---|---|
+| `clawock init` | create a standalone clawock workspace |
+| `clawock run` | certify and publish one external decision-workflow run |
+| `clawock doctor` | audit portfolio and registry prerequisites |
+| `clawock calendar` | check whether an HK or US market session is open |
+| `clawock profile` | validate and describe a declarative runtime profile |
+| `clawock report` | assemble and validate a market report from a context file |
+| `clawock brief` | run brief harness in-process |
+| `clawock intraday` | run intraday harness in-process |
+| `clawock tool` | call a context tool through the registry |
+| `clawock context` | audit or assemble the agent context contract |
+| `clawock workflow` | discover or install portable decision-workflow skills |
 
 ### Layer 1 · Market / 行情
 
