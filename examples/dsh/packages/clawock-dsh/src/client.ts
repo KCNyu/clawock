@@ -205,6 +205,12 @@ function fmtMoney(value: number | null): string {
   return (value > 0 ? '+' : '') + value.toLocaleString(undefined, { maximumFractionDigits: 0 })
 }
 
+/** A fill price as written, or '—' when the ledger carried none (#1590). */
+function fmtPrice(value: number | null, sym = ''): string {
+  if (value === null || !isFinite(value)) return '—'
+  return sym + value
+}
+
 function fmtPct(value: number | null, digits = 1): string {
   if (value === null || !isFinite(value)) return '—'
   return (value > 0 ? '+' : '') + value.toFixed(digits) + '%'
@@ -270,7 +276,7 @@ function TraceDetail(props: { trace: DisplayEntry }): React.ReactElement {
   const decision = trace.decision
   const sym = trace.currency === 'HKD' ? 'HK$' : '$'
   // The fill itself, in words — the one node on this row that is never inferred.
-  const fillText = (ACT[trace.action] ?? trace.action) + ' ' + trace.shares + ' 股 @ ' + sym + trace.price
+  const fillText = (ACT[trace.action] ?? trace.action) + ' ' + trace.shares + ' 股 @ ' + fmtPrice(trace.price, sym)
   if (decision === null) {
     const t1miss = trace.t1 === null ? null : h('div', { className: cx('tnode', t1NodeClass(trace.t1.tone)) },
       h('div', { className: cx('tw') }, trace.t1.date),
@@ -414,7 +420,7 @@ function TraceCell(props: TraceCellProps): React.ReactElement {
       h('span', { className: cx('tk') }, trace.ticker,
         h('span', { className: cx('mkt', trace.market === 'HK' && 'hk') }, trace.market === 'HK' ? '港' : '美')),
       h(Chip, null, ACT[trace.action] ?? trace.action),
-      h('span', { className: cx('qty') }, trace.shares + ' @' + trace.price),
+      h('span', { className: cx('qty') }, trace.shares + ' @' + fmtPrice(trace.price)),
       h('span', { className: cx('sp') }),
       pnl),
     h('div', { className: cx('sub') },

@@ -436,6 +436,65 @@ test("client: _displayEntry projects a trace with its decision and T+1", async (
   assert.equal(bare.realizedPnl, null);
 });
 
+test("client: a fill with no price renders a dash, not the word null (#1590)", async () => {
+  // ledger.ts `num()` turns a missing, empty or non-numeric trade price into
+  // null, and the row and its detail concatenated it raw: "10 @null",
+  // "买入 10 股 @ $null".
+  const loaded = await loadClient();
+  const api = loaded.factory((s) => {
+    if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
+    if (s === "react") return makeReactStub();
+    throw new Error(`unexpected require: ${s}`);
+  });
+  const remoteFace = {
+    traces: async () => ({ ok: true, value: { workspaceKey: "ws1", signature: "sig-null-price", trades: [
+      { ticker: "SPCH", market: "US", currency: "USD", date: "2026-08-15", action: "buy",
+        shares: 10, price: null, realizedPnl: null, note: null, t1: null, holdPnl: null,
+        side: "add", decision: null },
+    ], rate: 7.8473 } }),
+    ledger: async () => ({ ok: true, value: { entries: [] } }),
+    portfolio: async () => ({ ok: true, value: { books: [] } }),
+    plans: async () => ({ ok: true, value: { plans: [] } }),
+  };
+  const ctx = {
+    effect() {},
+    get() { return remoteFace; },
+    slots: {
+      inject(name, fn) { (this._fns ??= []).push(fn); },
+      register(definition, Component) { this._regs ??= []; this._regs.push({ definition, Component }); },
+    },
+    remote: { $mount: async () => {} },
+  };
+  await api.apply(ctx);
+  for (const fn of ctx.slots._fns) fn();
+  const reg = ctx.slots._regs.find((r) => r.definition.id === "decision-studio");
+  const injected = reg.definition.inject("s1");
+  const store = makeStoreStub();
+  const render = () => reg.Component({ sessionId: "s1", cachedTraces: injected.cachedTraces,
+    fetchTraces: injected.fetchTraces, useStore: store.useStore, actions: store.actions });
+  const tick = () => new Promise((resolve) => setImmediate(resolve));
+  const text = (tree) => {
+    const out = [];
+    (function walk(node) {
+      if (node == null) return;
+      if (Array.isArray(node)) { node.forEach(walk); return; }
+      if (typeof node === "string") { out.push(node); return; }
+      (node.children || []).forEach(walk);
+    })(tree);
+    return out.join(" ");
+  };
+
+  render();
+  await tick(); await tick(); await tick();
+  const folded = text(render());
+  assert.match(folded, /10 @—/, `the folded row must show a dash for the missing price: ${folded}`);
+  // Expand the row (key = ticker + date + shares + ':' + index) for the detail.
+  store.actions.toggleOpen("SPCH2026-08-1510:0");
+  const expanded = text(render());
+  assert.match(expanded, /买入 10 股 @ —/, `the detail must show a dash for the missing price: ${expanded}`);
+  assert.doesNotMatch(expanded, /null/, `no rendered text may say null: ${expanded}`);
+});
+
 test("client: renders the single decision-trace view from the mounted remote", async () => {
   const loaded = await loadClient();
   const api = loaded.factory((s) => {
