@@ -40,6 +40,10 @@ import tomllib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
+# `lifecycle_commands` imports `clawock.cli` from this checkout, never from
+# whatever happens to be installed (same bootstrap as ops/system_check.py).
+sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(ROOT / "src"))
 OUTPUT = ROOT / "docs" / "reference" / "commands.md"
 CONFIG = ROOT / "config" / "information-layers.json"
 PUBLIC = "clawock"
@@ -83,9 +87,6 @@ def lifecycle_commands(root: Path = ROOT) -> dict:
     that knows what `clawock --help` offers. The packaged utilities are left
     out here because the registry tables already list them.
     """
-    source = str(root / "src")
-    if source not in sys.path:
-        sys.path.insert(0, source)
     from clawock.cli import build_parser
 
     utilities = packaged_utilities(root)
