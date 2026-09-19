@@ -120,6 +120,33 @@ def test_anomaly_rule_reads_the_prose_not_the_prepended_block(pf):
     assert [i for i in issues if 'should_alert' in i], issues
 
 
+def test_signal_alert_rule_reads_the_prose_when_there_are_no_anomalies(pf):
+    """A pure WATCH/STOP alert must name a signal ticker in model prose."""
+    silent = '▎我的看法\n' + '大盘窄幅震荡，持仓按既定纪律执行，今天没有需要改的动作。' * 2
+    ctx = _ctx(
+        anomalies=[],
+        signals_detail=[
+            {'level': 'WATCH', 'ticker': 'SKHY'},
+            {'level': 'WATCH', 'ticker': 'RKLX'},
+        ],
+    )
+
+    issues = pf.validate(pf.assemble_message(ctx, silent), ctx, silent)
+
+    assert [i for i in issues if 'should_alert=true(纯信号)' in i], issues
+
+
+def test_signal_alert_rule_accepts_a_named_signal_ticker(pf):
+    ctx = _ctx(
+        anomalies=[],
+        signals_detail=[{'level': 'STOP', 'ticker': 'RKLX'}],
+    )
+
+    issues = pf.validate(pf.assemble_message(ctx, PROSE), ctx, PROSE)
+
+    assert not [i for i in issues if 'should_alert=true(纯信号)' in i], issues
+
+
 def test_length_limit_measures_the_delivered_body(pf):
     """Length is a property of what WeChat receives, so it — unlike the content
     rules — is measured on the assembled message."""

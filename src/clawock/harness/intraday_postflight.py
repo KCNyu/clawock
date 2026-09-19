@@ -247,6 +247,17 @@ def validate(text, ctx, model_text):
         mentioned = [t for t in anomaly_tickers if mentions_ticker(checked, t)]
         if anomaly_tickers and not mentioned:
             issues.append(f'should_alert=true 但报告未提任何异动票 ({", ".join(anomaly_tickers)})')
+        elif not anomaly_tickers:
+            signal_tickers = [
+                row.get('ticker') for row in (ctx.get('signals_detail') or [])
+                if row.get('ticker') and str(row.get('level', '')).upper()
+                in {'WATCH', 'STOP', 'ALERT', 'TRIM'}
+            ]
+            if signal_tickers and not any(
+                    mentions_ticker(checked, ticker) for ticker in signal_tickers):
+                issues.append(
+                    'should_alert=true(纯信号)但报告未提任何信号票 '
+                    f'({", ".join(signal_tickers[:3])})')
 
     # 加仓侧的读数 (#755)。它的三条输入(异动/机会雷达/早期趋势)以前全都算好了却从没
     # 进过正文,所以模板加了要求之后必须配一条闸——否则就是又一个「写了没人写」。
