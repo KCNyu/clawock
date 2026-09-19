@@ -130,10 +130,11 @@ web GUI **左侧栏底部、Settings 正上方**常驻一行余额读数,不跟�
 | DeepSeek | 官方 `GET /user/balance`(凭据缝 → 环境变量) | 余额 ¥(CNY 行优先,金额口径不变),面板见赠金/充值拆分 |
 | MiniMax | 官方 `GET /v1/token_plan/remains`(Token Plan 配额窗口) | 窗口已使用 %(上游报剩余则取补;`general` 桶);key 解析链=凭据缝 → env → **openclaw 网关配置**(`~/.openclaw/openclaw.json` 的 `models.providers.minimax.apiKey`) |
 | Claude | 订阅制额度:OAuth `GET /api/oauth/usage`(`anthropic-beta: oauth-2025-04-20`),token 读自 `~/.claude/.credentials.json` | 会话窗口已使用 %(utilization 本来就是用量,**直读不再取补**)+ 本周已使用;面板附各窗口重置时间 |
+| Codex | ChatGPT 订阅额度:本机 Codex CLI 的官方 `codex app-server`(JSON-RPC `account/rateLimits/read`),鉴权归 CLI 自己 | 5h 窗口已使用 % + 本周已使用;后端报额度受限时附「当前额度受限」 |
 
 - OpenCode Zen **无公开余额接口**(上游 issue 还开着),不做假装有数的行;
 - 某家未配置 = 面板里诚实的一行「未配置」,不隐藏也不报错;
-- 低额红点:DeepSeek ≤¥20、MiniMax/Claude **已使用 ≥80%**(即剩余 ≤20%);
+- 低额红点:DeepSeek ≤¥20、MiniMax/Claude/Codex **已使用 ≥80%**(即剩余 ≤20%);
   `*LowPct` 配置字段保持「剩余水位」原义不动,已有配置值无需改,只是展示
   方向翻转了;进度条与头条数字按同一档位变色(60% 黄 / 80% 红),圆点仍是
   provider 状态灯(绿正常/黄过期/红异常),两者正交;**档位只染色不减信息**
@@ -142,12 +143,16 @@ web GUI **左侧栏底部、Settings 正上方**常驻一行余额读数,不跟�
 - 刷新失败保留最近一次快照并标注 stale(黄点);瞬时 429 不抹掉真数字;
 - Claude 的 OAuth token 归 Claude Code 所有,本插件**只读不刷新**——过期时
   面板显示「请在终端跑一次 claude 刷新登录」;
-- 宿主侧每 provider 60s TTL 缓存、并发合并;客户端静默轮询 ≥60s。
+- 宿主侧每 provider TTL 缓存、并发合并:DeepSeek/MiniMax/Claude 60s,Codex 跟
+  `codexRefreshMs`(默认 5 分钟——每次读额度要拉起一个 app-server 进程);
+  客户端静默轮询 ≥60s;手动 ↻ 强制拉新,不走缓存。
 
 可选配置(profile 的 `cordis.patch.yml` 行内,改后重启 dsh 生效):
 `balanceBaseUrl` / `balanceThreshold` / `balanceRefreshMs` /
 `minimaxBaseUrl` / `minimaxKeyRef` / `minimaxLowPct` / `minimaxOpenclawConfigPath` /
-`claudeCredentialsPath` / `claudeUsageUrl` / `claudeLowPct`。
+`claudeCredentialsPath` / `claudeUsageUrl` / `claudeLowPct` /
+`codexCommand`(Codex CLI 路径,默认 `/root/.local/bin/codex`)/ `codexLowPct` /
+`codexRefreshMs`(Codex 轮询与缓存周期,默认 300000)。
 
 ## 它不做什么
 
