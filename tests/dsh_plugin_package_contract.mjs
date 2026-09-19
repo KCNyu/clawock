@@ -149,3 +149,20 @@ test('the npm page keeps its links back to the repository and the live proof', (
       `README image ${m[1]} must be an absolute raw.githubusercontent.com (or shields.io badge) URL`)
   }
 })
+
+/**
+ * #1586: #1480 added the Codex row with three config keys and never touched
+ * the README, so its "可选配置" list quietly stopped being the list of what a
+ * profile can set. The interface is the list; the README has to name each key.
+ */
+test('the README names every optional ClawockStudioConfig key', () => {
+  const src = readFileSync(join(PLUGIN, 'src', 'index.ts'), 'utf8')
+  const body = src.match(/export interface ClawockStudioConfig \{([\s\S]*?)\n\}/)?.[1]
+  assert.ok(body, 'ClawockStudioConfig not found in src/index.ts')
+  const keys = [...body.matchAll(/^\s*(\w+)\?:/gm)].map((m) => m[1])
+  assert.ok(keys.length >= 10, `only ${keys.length} keys parsed from ClawockStudioConfig`)
+
+  const readme = readFileSync(join(PLUGIN, 'README.md'), 'utf8')
+  const missing = keys.filter((key) => !readme.includes('`' + key + '`'))
+  assert.deepEqual(missing, [], `README.md 可选配置 is missing ${missing.join(', ')}`)
+})
