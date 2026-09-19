@@ -168,3 +168,30 @@ def test_both_readmes_link_the_catalog_they_call_full():
         assert "docs/reference/commands.md" in text, f"{readme} lost the catalog link"
         assert "docs/reference/scripts.md" not in text, (
             f"{readme} still links the page named after the deleted scripts/ directory")
+
+
+def test_a_count_of_cli_subcommands_matches_what_clawock_help_offers():
+    """#1592: the inventory said "58 CLI subcommands" while `clawock --help`
+    offers 69. The registries hold the packaged utilities; the lifecycle
+    commands (`init`, `run`, `workflow`, ...) are built in cli.py and are in
+    neither. Whatever the page counts, it must not call a registry's size the
+    size of the CLI."""
+    import io
+    from contextlib import redirect_stdout
+
+    from clawock import cli
+
+    out = io.StringIO()
+    with redirect_stdout(out), pytest.raises(SystemExit):
+        cli.main(["--help"])
+    choices = re.search(r"\{([a-z0-9,-]+)\}", out.getvalue().replace("\n", "").replace(" ", ""))
+    assert choices, "clawock --help no longer prints its subcommand choices"
+    offered = choices.group(1).split(",")
+
+    document = (ROOT / "docs" / "reference" / "commands.md").read_text()
+    claimed = [int(n) for n in re.findall(r"(\d+) CLI subcommands", document)]
+    assert all(n == len(offered) for n in claimed), (
+        f"commands.md claims {claimed} CLI subcommands; `clawock --help` offers "
+        f"{len(offered)}")
+    packaged = re.search(r"(\d+) packaged `clawock <utility>` subcommands", document)
+    assert packaged and int(packaged.group(1)) == len(set(offered) & set(cli.PACKAGED_UTILITIES))
