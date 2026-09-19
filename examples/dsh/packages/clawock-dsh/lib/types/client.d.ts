@@ -119,6 +119,9 @@ export interface DisplayEntry {
 }
 /** Display projection of one trace (test seam). */
 export declare function _displayEntry(trace: EnrichedTrade): DisplayEntry;
+/** Stable row identities are derived before filtering, so switching filters
+ * cannot remount the same trade and discard its expanded state (#1603). */
+export declare function _traceKeys(traces: DisplayEntry[]): Map<DisplayEntry, string>;
 /** The four visual states one provider's reading can take. */
 export type BalanceTone = 'ok' | 'low' | 'stale' | 'none';
 /** Usage-direction colour tier of a used-percent reading. */

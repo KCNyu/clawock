@@ -432,6 +432,20 @@ function TraceCell(props: TraceCellProps): React.ReactElement {
       h('div', { className: cx('dinner') }, props.open ? h(TraceDetail, { trace }) : null)))
 }
 
+/** Stable row identities are derived before filtering, so switching filters
+ * cannot remount the same trade and discard its expanded state (#1603). */
+export function _traceKeys(traces: DisplayEntry[]): Map<DisplayEntry, string> {
+  const occurrences = new Map<string, number>()
+  const keys = new Map<DisplayEntry, string>()
+  for (const trace of traces) {
+    const base = trace.ticker + trace.date + trace.shares + ':' + trace.action
+    const occurrence = occurrences.get(base) ?? 0
+    occurrences.set(base, occurrence + 1)
+    keys.set(trace, base + ':' + occurrence)
+  }
+  return keys
+}
+
 /** Skeleton row for the cold-start loading state (no cache yet). */
 function SkeletonRow(): React.ReactElement {
   return h('div', { className: cx('skel') },
@@ -1111,6 +1125,7 @@ export function DecisionMind(props: DecisionMindProps): React.ReactElement {
   const reversed = traces.filter((trace) => trace.decision?.alignment === 'opposite').length
 
   const groups: Record<string, DisplayEntry[]> = {}
+  const traceKeys = _traceKeys(traces)
   for (const trace of filtered) {
     const day = (trace.date ?? '').slice(0, 10)
     ;(groups[day] ??= []).push(trace)
@@ -1148,9 +1163,8 @@ export function DecisionMind(props: DecisionMindProps): React.ReactElement {
         relativeDay(date, today),
         h('span', null, date),
         h('span', { className: cx('n') }, rows.length)),
-      folded ? null : h('div', { className: cx('group') }, rows.map((trace, index) => {
-        // 下标兜底:ticker+date+shares 在同股同日同量时会撞 key。
-        const key = trace.ticker + trace.date + trace.shares + ':' + index
+      folded ? null : h('div', { className: cx('group') }, rows.map((trace) => {
+        const key = traceKeys.get(trace) as string
         return h(TraceCell, {
           key,
           trace,
