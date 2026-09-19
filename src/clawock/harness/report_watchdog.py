@@ -58,7 +58,7 @@ from clawock.automation import delivery_receipts
 from clawock.sessions import hkt_today
 from ._watchdog_common import (
     WS, HKT, log, find_job_id, today_runs,
-    transcript_loop_score, last_report_text, send_telegram, KCN_TELEGRAM,
+    transcript_loop_score, last_report_text, send_telegram, telegram_target,
     same_generation_window, attempt_still_running,
     send_wechat, resolve_wechat_target, wechat_backstop,
 )
@@ -345,10 +345,11 @@ def main():
     if not block_present or looped:
         reason = '循环' if looped else '未完成'
         body = deterministic_fallback(raw_block, tag, reason)
-        tg_ok, tg_out = send_telegram(KCN_TELEGRAM, body, args.dry_run)
+        target = telegram_target()
+        tg_ok, tg_out = send_telegram(target, body, args.dry_run)
         log({'tag': tag, 'action': 'deterministic-fallback', 'sent_ok': tg_ok,
              'block_present': block_present, 'loop_score': loop_score, 'run_at': run_at,
-             'target': KCN_TELEGRAM, 'out': tg_out})
+             'target': target, 'out': tg_out})
         if tg_ok and not args.dry_run:
             flag.write_text(datetime.now(HKT).isoformat())
         print(json.dumps({'tag': tag, 'deterministic_fallback': tg_ok,
@@ -395,10 +396,11 @@ def main():
         tg_banner = gap[1]
     else:
         tg_banner = f'📨 自动补发（{reason}，Telegram 兜底一份）\n\n'
-    tg_ok, tg_out = send_telegram(KCN_TELEGRAM, tg_banner + report.strip(), args.dry_run)
+    target = telegram_target()
+    tg_ok, tg_out = send_telegram(target, tg_banner + report.strip(), args.dry_run)
     log({'tag': tag, 'action': 'mirror-telegram', 'dry_run': args.dry_run, 'sent_ok': tg_ok,
          'job_id': job_id, 'reason': reason, 'loop_score': loop_score,
-         'run_at': run_at, 'target': KCN_TELEGRAM, 'out': tg_out})
+         'run_at': run_at, 'target': target, 'out': tg_out})
 
     # Slot handled once Telegram landed — don't keep retrying a report kcn has.
     if tg_ok and not args.dry_run:

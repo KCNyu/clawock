@@ -27,7 +27,7 @@ _TOP_LEVEL = frozenset({
 _MARKET_FIELDS = frozenset({"timezone", "label", "analysis_command", "skill"})
 _WORKFLOW_FIELDS = frozenset({"enabled", "markets", "policy"})
 _DELIVERY_FIELDS = frozenset({"provider", "targets"})
-_TARGET_FIELDS = frozenset({"source", "key"})
+_TARGET_FIELDS = frozenset({"source", "key", "value"})
 
 
 @dataclass(frozen=True)
@@ -49,8 +49,15 @@ class WorkflowProfile:
 
 @dataclass(frozen=True)
 class DeliveryTarget:
+    """Where a delivery target comes from.
+
+    ``runtime_job``: the runtime's own cron delivery config; ``environment``:
+    the variable named by ``key``; ``static``: ``value`` itself, declared by the
+    profile; ``disabled``: nowhere.
+    """
     source: str
     key: str | None = None
+    value: str | None = None
 
 
 @dataclass(frozen=True)
@@ -220,20 +227,31 @@ def load_profile(workspace: Path | str, profile: Path | str | None = None) -> Pr
         target = _object(raw, f"delivery.targets.{key}")
         _known_fields(target, _TARGET_FIELDS, f"delivery.targets.{key}")
         source = _text(target.get("source"), f"delivery.targets.{key}.source")
-        if source not in {"runtime_job", "environment", "disabled"}:
+        if source not in {"runtime_job", "environment", "static", "disabled"}:
             raise ValueError(
                 f"profile delivery.targets.{key}.source is unsupported: {source}"
             )
         target_key = _optional_text(target.get("key"), f"delivery.targets.{key}.key")
+        target_value = _optional_text(
+            target.get("value"), f"delivery.targets.{key}.value")
         if source == "environment" and target_key is None:
             raise ValueError(
                 f"profile delivery.targets.{key}.key is required for environment"
             )
-        if source == "disabled" and target_key is not None:
+        if source == "static" and target_value is None:
             raise ValueError(
-                f"profile delivery.targets.{key}.key is invalid when disabled"
+                f"profile delivery.targets.{key}.value is required for static"
             )
-        targets[key] = DeliveryTarget(source=source, key=target_key)
+        if source != "environment" and target_key is not None:
+            raise ValueError(
+                f"profile delivery.targets.{key}.key is only valid for environment"
+            )
+        if source != "static" and target_value is not None:
+            raise ValueError(
+                f"profile delivery.targets.{key}.value is only valid for static"
+            )
+        targets[key] = DeliveryTarget(
+            source=source, key=target_key, value=target_value)
 
     return Profile(
         profile_id=profile_id, locale=locale, timezone=timezone,
@@ -274,7 +292,8 @@ def describe_profile(profile: Profile) -> dict:
         "delivery": {
             "provider": profile.delivery_provider,
             "targets": {
-                key: {"source": value.source, "key": value.key}
+                key: {"source": value.source, "key": value.key,
+                      "value": value.value}
                 for key, value in profile.delivery_targets.items()
             },
         },

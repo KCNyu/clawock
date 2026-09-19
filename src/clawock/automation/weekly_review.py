@@ -23,6 +23,7 @@ from clawock.automation import llm
 from clawock.automation.llm import chat
 from clawock.automation.output_validate import LLMOutputError, validate_sections
 from clawock.decision import ledger as decision_v2
+from clawock.safe_io import safe_write_text
 
 # The four questions build_user_prompt asks for, checked on the way out (#1263).
 WEEKLY_REQUIRED_SECTIONS = ('本周净值', '决策兑现', '风险演变', '下周关注')
@@ -589,7 +590,7 @@ def main(argv=None):
     os.makedirs('memory/weekly', exist_ok=True)
     path = Path(f'memory/weekly/{week_id}.md')
     fm = f"---\nlayout: default\ntitle: 周复盘 · {week_id}\n---\n\n"
-    path.write_text(fm + backfill_note(args.as_of, week_id) + out.strip())
+    safe_write_text(str(path), fm + backfill_note(args.as_of, week_id) + out.strip())
     print(f'  wrote {path}  ({len(out)} chars)')
 
 

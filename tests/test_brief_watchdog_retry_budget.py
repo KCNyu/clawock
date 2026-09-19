@@ -274,7 +274,7 @@ def test_the_0830_rerun_records_the_budget_it_is_running_against(
     logged = []
     job = _job(lastStatus="error", lastRunAtMs=None, consecutiveErrors=12)
     monkeypatch.setattr(watchdog, "WS", tmp_path)
-    monkeypatch.setattr(watchdog, "brief_cron_job", lambda: job)
+    monkeypatch.setattr(watchdog, "brief_cron_job_state", lambda: job)
     monkeypatch.setattr(watchdog, "cron_run_ended_in_failure", lambda _job, _today: True)
     monkeypatch.setattr(watchdog, "cron_retry_budget",
                         lambda _job: provider.CronRetryBudget(12, 5, True))
@@ -304,7 +304,7 @@ def test_the_0830_rerun_does_not_claim_a_verdict_it_did_not_read(
         ws = tmp_path / f"ws-{expected}"
         ws.mkdir()
         monkeypatch.setattr(watchdog, "WS", ws)
-        monkeypatch.setattr(watchdog, "brief_cron_job", lambda: _job())
+        monkeypatch.setattr(watchdog, "brief_cron_job_state", lambda: _job())
         monkeypatch.setattr(watchdog, "cron_run_ended_in_failure", lambda _job, _today: True)
         monkeypatch.setattr(watchdog, "cron_retry_budget", lambda _job: budget)
         monkeypatch.setattr(watchdog, "rerun_cron_job", lambda _id, _dry: (True, "queued"))

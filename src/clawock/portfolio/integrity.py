@@ -92,11 +92,7 @@ from clawock.portfolio.math import (
     trade_cashflow_after as _trade_cashflow_after,  # noqa: F401 — re-exported for tests
 )
 
-try:
-    from clawock.safe_io import safe_write_json
-except Exception:  # pragma: no cover
-    def safe_write_json(path, data, indent=2):
-        Path(path).write_text(json.dumps(data, ensure_ascii=False, indent=indent))
+from clawock.safe_io import safe_write_json
 
 try:
     from clawock import sessions as tc

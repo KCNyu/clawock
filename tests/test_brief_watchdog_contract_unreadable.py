@@ -2,7 +2,7 @@
 
 `_brief_job_names` is the only place in the running system that touches the
 schedule contract on a watchdog's behalf, and it sat behind a bare
-`except Exception: return set()`. Empty means `brief_cron_job()` returns None,
+`except Exception: return set()`. Empty means `brief_cron_job_state()` returns None,
 which switches off the re-run and retry-budget limbs entirely — the exact
 "discovery gate that quietly discovers nothing" this repository keeps having to
 re-learn. It still degrades rather than crashing a cron slot; it just has to say

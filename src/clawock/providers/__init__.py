@@ -5,7 +5,7 @@ step everyone reaches for first:
 
 * **delivery** — `_watchdog_common.send_wechat/send_telegram` shell out to
   `openclaw message send`, and all three postflights deliver through them;
-* **run history** — `_cron_cli_json` reads `openclaw cron …`, and the watchdogs,
+* **run history** — `openclaw.read_jobs/read_runs` read `openclaw cron …`, and the watchdogs,
   `cron_health_check`, `cron_timeline` and `system_check` all depend on it.
 
 Remove OpenClaw and reports stop being delivered and every watchdog goes blind,

@@ -69,7 +69,7 @@
     "provider": "openclaw",
     "targets": {
       "wechat": {"source": "runtime_job"},
-      "telegram": {"source": "environment", "key": "CLAWOCK_TELEGRAM_TARGET"}
+      "telegram": {"source": "static", "value": "2033937852"}
     }
   }
 }
