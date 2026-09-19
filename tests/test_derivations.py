@@ -280,7 +280,24 @@ class TestRecomputeAggregates:
         assert us["total_pnl"] == 50.0                     # 180 - 130
         assert us["total_pnl_percent"] == pytest.approx(38.4615, abs=1e-3)
         assert us["today_total_change"] == 14.0            # 10 + 4
-        assert C["current_value"] == 123                   # closed holding untouched
+        assert C["current_value"] == 0                     # closed holding sanitized
+
+    def test_closed_holding_clears_all_stale_mark_to_market_fields(self):
+        d = self._book()
+        closed = d["portfolios"]["us_stocks"]["holdings"][-1]
+        closed.update({
+            "pnl_abs": -12.0,
+            "pnl_percent": -20.0,
+            "today_change": 3.0,
+            "today_change_pct": 4.0,
+        })
+
+        changes = ra.recompute(d, dry_run=False)
+
+        for field in ("current_value", "pnl_abs", "pnl_percent",
+                      "today_change", "today_change_pct"):
+            assert closed[field] == 0
+            assert f"holdings.{field}" in changes["us_stocks"]
 
     def test_fixes_phantom_peak_drift(self):
         # the real bug (3a68822): a manual T+0 sell left total_current_value inflated.

@@ -75,6 +75,21 @@ def recompute(data, dry_run=False, percent_rounding=None):
         # alone lands on exactly the value the next fetch writes.
         pct_nd = precision.get(region, 2)
 
+        # Closed rows are retained for history, but their mark-to-market leaves
+        # must not keep describing the position that used to be open (#1601).
+        for h in pf.get('holdings', []):
+            if number(h.get('shares')) != 0:
+                continue
+            for field in ('current_value', 'pnl_abs', 'pnl_percent',
+                          'today_change', 'today_change_pct'):
+                if field not in h:
+                    continue
+                if number(h.get(field)) != 0:
+                    diffs.setdefault(f'holdings.{field}', []).append(
+                        (h.get('ticker'), h.get(field), 0))
+                if not dry_run:
+                    h[field] = 0
+
         # ── per-holding derived leaves (active only, mirrors the gate's _active) ──
         sum_cv = sum_cost = sum_tc = 0.0
         for h in active_holdings(pf.get('holdings', [])):
