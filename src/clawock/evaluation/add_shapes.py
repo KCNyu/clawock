@@ -207,7 +207,7 @@ def render(summary: dict) -> str:
 
 
 def main(argv=None) -> int:
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser = argparse.ArgumentParser(prog='clawock evaluate-add-shapes', description=__doc__.splitlines()[0])
     parser.add_argument("--json", action="store_true", help="emit the summary as JSON")
     parser.add_argument("--no-card", action="store_true", help="skip the run card")
     args = parser.parse_args(argv)

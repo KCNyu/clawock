@@ -223,7 +223,7 @@ def validate_manifest(payload: dict) -> dict:
 
 
 def main(argv=None) -> int:
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(prog="clawock provenance")
     sub = parser.add_subparsers(dest="command", required=True)
     calc = sub.add_parser("calc")
     calc.add_argument("--expr", required=True)

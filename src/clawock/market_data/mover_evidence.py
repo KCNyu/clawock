@@ -440,7 +440,7 @@ def probe(movers, *, market, now=None, window_minutes=WINDOW_MINUTES,
 
 
 def main(argv=None) -> int:
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser = argparse.ArgumentParser(prog='clawock mover-evidence', description=__doc__.splitlines()[0])
     parser.add_argument("--market", choices=("us", "hk"), required=True)
     parser.add_argument("--tickers", required=True, help="comma-separated movers")
     parser.add_argument("--window-minutes", type=int, default=WINDOW_MINUTES)

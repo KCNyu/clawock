@@ -28,7 +28,7 @@ def snap(decisions: list[dict]) -> dict:
 
 
 def main(argv=None) -> int:
-    ap = argparse.ArgumentParser()
+    ap = argparse.ArgumentParser(prog="clawock audit-resettle")
     ap.add_argument("--write", action="store_true", help="persist the re-settled ledger")
     args = ap.parse_args(argv)
     # `--write` rewrites the ledger from the copy loaded below, so the lock has to

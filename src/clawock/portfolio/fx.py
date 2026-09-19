@@ -236,7 +236,7 @@ def convert(amount: float, from_ccy: str, to_ccy: str) -> Dict:
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(prog='clawock fx')
     parser.add_argument('--json', action='store_true')
     parser.add_argument('--force-refresh', action='store_true')
     parser.add_argument('--convert', nargs=3, metavar=('AMOUNT', 'FROM', 'TO'))

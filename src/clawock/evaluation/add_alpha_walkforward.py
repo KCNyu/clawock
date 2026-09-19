@@ -746,7 +746,7 @@ def evaluate(config, policy, news_policy, fetched, factor_history, peer_history,
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(prog='clawock evaluate-add-alpha', description=__doc__)
     parser.add_argument("--no-card", action="store_true")
     args = parser.parse_args(argv)
     started_at = time.monotonic()

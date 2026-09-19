@@ -145,7 +145,7 @@ def recompute(data, dry_run=False, percent_rounding=None):
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(prog='clawock aggregates')
     parser.add_argument('--dry-run', action='store_true')
     parser.add_argument('--path', type=Path, default=PORTFOLIO)
     parser.add_argument('--config', type=Path, default=POLICY)

@@ -940,6 +940,7 @@ def confirm_execution(path: Path, breach_id: str, evidence: str) -> dict:
 
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(
+        prog="clawock risk",
         description="Maintain the durable risk-breach governance ledger")
     parser.add_argument("--ledger", type=Path, default=LEDGER)
     sub = parser.add_subparsers(dest="command", required=True)

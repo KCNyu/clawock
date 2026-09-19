@@ -250,7 +250,7 @@ def _freshness(series: Dict[str, List[Dict]]) -> Dict[str, Dict]:
 
 
 def main(argv=None) -> int:
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(prog='clawock benchmark')
     parser.add_argument('--days', type=int, default=DEFAULT_DAYS,
                         help='Calendar-day lookback window (default: 60)')
     parser.add_argument('--dry-run', action='store_true', help='Print, do not write file')

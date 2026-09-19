@@ -553,7 +553,7 @@ def check(*, now=None, **kwargs) -> dict:
 
 
 def main(argv=None) -> int:
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser = argparse.ArgumentParser(prog='clawock research', description=__doc__.splitlines()[0])
     parser.add_argument("--check", action="store_true",
                         help="integrity only: exit 1 when an artifact is invalid")
     args = parser.parse_args(argv)

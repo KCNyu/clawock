@@ -326,7 +326,7 @@ def incremental_beg(ticker: str) -> str:
 
 
 def main(argv=None) -> int:
-    ap = argparse.ArgumentParser()
+    ap = argparse.ArgumentParser(prog="clawock daily-bars")
     ap.add_argument("--backfill", action="store_true", help=f"fetch from {START_DATE}")
     ap.add_argument("--ticker", help="single ticker")
     ap.add_argument("--repair", action="store_true", help="allow overwriting a stored bar")

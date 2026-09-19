@@ -497,7 +497,7 @@ def artifact_path(ticker: str, assessed_on: str) -> Path:
 
 
 def main(argv=None) -> int:
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser = argparse.ArgumentParser(prog='clawock entry-gate', description=__doc__.splitlines()[0])
     sub = parser.add_subparsers(dest="command", required=True)
     for name in ("validate", "assess"):
         cmd = sub.add_parser(name)

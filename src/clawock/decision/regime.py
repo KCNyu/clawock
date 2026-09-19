@@ -335,7 +335,7 @@ def classify(close, ma, vol):
 
 
 def main(argv=None):
-    ap = argparse.ArgumentParser()
+    ap = argparse.ArgumentParser(prog='clawock regime')
     ap.add_argument('--dry-run', action='store_true')
     args = ap.parse_args(argv)
 

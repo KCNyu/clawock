@@ -540,7 +540,7 @@ def activate_rules(rule_config, prospective):
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(prog='clawock peer-residual', description=__doc__)
     parser.add_argument('--rules', default=str(RULE_CONFIG))
     args = parser.parse_args(argv)
     rule_config = load_rule_config(args.rules)

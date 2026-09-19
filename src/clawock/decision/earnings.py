@@ -739,7 +739,7 @@ def load_artifact(path: Path) -> tuple[dict | None, list[str]]:
 
 
 def main(argv=None) -> int:
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser = argparse.ArgumentParser(prog='clawock earnings', description=__doc__.splitlines()[0])
     sub = parser.add_subparsers(dest="command", required=True)
     for name in ("validate", "review", "thesis-evidence"):
         cmd = sub.add_parser(name)

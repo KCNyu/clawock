@@ -434,7 +434,7 @@ def print_summary(out):
 
 
 def main(argv=None):
-    ap = argparse.ArgumentParser(description='Fetch upcoming catalysts (14d default)')
+    ap = argparse.ArgumentParser(prog='clawock catalysts', description='Fetch upcoming catalysts (14d default)')
     ap.add_argument('--days', type=int, default=14, help='lookback window in days')
     ap.add_argument('--json', action='store_true',
                     help='print final JSON to stdout, do not write file')

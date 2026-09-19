@@ -202,6 +202,7 @@ def semantic_changed_paths(root: Path | str = ROOT, *, restore_clock_only=True,
 
 def main(argv=None):
     parser = argparse.ArgumentParser(
+        prog="clawock dashboard-outputs",
         description="Print semantically changed build_dashboard output paths.")
     parser.add_argument("--root", type=Path, default=ROOT)
     parser.add_argument("--keep-clock-only", action="store_true",

@@ -1273,7 +1273,7 @@ def _revive_stale_block(out_block, holdings, prev_block, value_key, value,
 
 def main(argv=None):
     workspace = workspace_root()
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(prog='clawock portfolio-risk')
     parser.add_argument('--path', type=Path, default=workspace / 'portfolio.json')
     parser.add_argument(
         '--config', type=Path,

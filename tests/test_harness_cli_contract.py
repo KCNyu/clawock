@@ -251,6 +251,14 @@ def test_every_packaged_utility_answers_help_without_running_anything():
                 bad.append(f"{command}: --help returned {returned}")
         if "usage" not in out.getvalue().lower():
             bad.append(f"{command}: --help printed no usage line")
+            continue
+        # argparse names the program after argv[0] unless told otherwise:
+        # `__main__.py` under `python -m clawock`, a bare `clawock` from the
+        # launcher — a usage line for an invocation that doesn't exist (#1591).
+        usage = next(line for line in out.getvalue().splitlines()
+                     if line.lower().startswith("usage"))
+        if not usage.startswith(f"usage: clawock {command}"):
+            bad.append(f"{command}: usage line names the wrong program: {usage[:60]!r}")
     assert not bad, "utilities that mishandle --help:\n" + "\n".join(bad)
 
 
