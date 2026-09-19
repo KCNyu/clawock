@@ -1265,14 +1265,20 @@ export function DecisionMind(props: DecisionMindProps): React.ReactElement {
 }
 
 /**
- * Hard dependencies only. `layout` is deliberately NOT here: it is read with
- * `ctx.get` below, because the client uses it as a capability probe (does this
- * host have global panels?) rather than a service it needs. Declaring a probe
- * as a hard dependency inverts the rule — a host without `layout` would leave
- * the whole client half waiting on it, so the Decision Mind tab would never
- * mount either, even though that tab never touches layout.
+ * `layout` is listed even though the plugin only *probes* it, and that is not
+ * an oversight — it is the one thing `ctx.get` cannot do here. The probe runs
+ * inside `apply`, and `ctx.get` does not wait: it returns `undefined` when the
+ * providing fiber has not activated yet, so the chip silently fell back to the
+ * session-header seat (verified live, 2026-09-19 — `[data-clawock-action]`
+ * count 0 while the header chip rendered). `inject` is the mechanism that
+ * holds the plugin until the service exists.
+ *
+ * The cost is real and accepted: on a host with no `layout` at all, the whole
+ * client half waits and the Decision Mind tab does not mount either. Every
+ * shipped host provides it, and the alternative trades a hypothetical
+ * older-host degradation for a measured one on the host we run.
  */
-export const inject = ['slots', 'remote']
+export const inject = ['slots', 'remote', 'layout']
 
 /** Client contribution context: the face the slot renderer hands us. */
 interface ClientContributionContext {
@@ -1281,6 +1287,8 @@ interface ClientContributionContext {
     register: (definition: Record<string, unknown>, component: unknown) => unknown
   }
   remote: TypertClientRemote
+  /** Injected host layout face; `selectPanel` exists only where `main` is keyed (DSH >= 0.1.5-rc.1). */
+  layout?: LayoutProbe
   /** Service lookup; each call site narrows the face it asked for. */
   get: (name: string) => unknown
 }
@@ -1298,8 +1306,8 @@ type RemoteResult<T> = { ok: true; value: T } | { ok: false; error: { code: stri
 export async function apply(ctx: Context & ClientContributionContext): Promise<void> {
   await ctx.remote.$mount(TYPERT_REMOTE as TypertRemoteContribution)
   const studioRemote = ctx.get('remote.clawockStudio') as StudioRemoteFace
-  // Optional capability probe, never a declared dependency (see `inject`).
-  const layout = ctx.get('layout') as LayoutProbe | undefined
+  // The capability probe reads the INJECTED face, not a `ctx.get`: see `inject`.
+  const layout = ctx.layout
   // Live data channel + its cache both live in the apply closure: business
   // data belongs to this plugin instance, never to a module-level singleton
   // (which would leak across plugin reloads) and never to the UI store.

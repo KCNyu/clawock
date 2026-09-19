@@ -215,12 +215,18 @@ export type BalanceSidebarActionProps = BalancesInjected & PropsStore<BalanceSto
 export declare function ProviderBalanceSidebarAction(props: BalanceSidebarActionProps): React.ReactElement;
 export declare function DecisionMind(props: DecisionMindProps): React.ReactElement;
 /**
- * Hard dependencies only. `layout` is deliberately NOT here: it is read with
- * `ctx.get` below, because the client uses it as a capability probe (does this
- * host have global panels?) rather than a service it needs. Declaring a probe
- * as a hard dependency inverts the rule — a host without `layout` would leave
- * the whole client half waiting on it, so the Decision Mind tab would never
- * mount either, even though that tab never touches layout.
+ * `layout` is listed even though the plugin only *probes* it, and that is not
+ * an oversight — it is the one thing `ctx.get` cannot do here. The probe runs
+ * inside `apply`, and `ctx.get` does not wait: it returns `undefined` when the
+ * providing fiber has not activated yet, so the chip silently fell back to the
+ * session-header seat (verified live, 2026-09-19 — `[data-clawock-action]`
+ * count 0 while the header chip rendered). `inject` is the mechanism that
+ * holds the plugin until the service exists.
+ *
+ * The cost is real and accepted: on a host with no `layout` at all, the whole
+ * client half waits and the Decision Mind tab does not mount either. Every
+ * shipped host provides it, and the alternative trades a hypothetical
+ * older-host degradation for a measured one on the host we run.
  */
 export declare const inject: string[];
 /** Client contribution context: the face the slot renderer hands us. */
@@ -230,9 +236,15 @@ interface ClientContributionContext {
         register: (definition: Record<string, unknown>, component: unknown) => unknown;
     };
     remote: TypertClientRemote;
+    /** Injected host layout face; `selectPanel` exists only where `main` is keyed (DSH >= 0.1.5-rc.1). */
+    layout?: LayoutProbe;
     /** Service lookup; each call site narrows the face it asked for. */
     get: (name: string) => unknown;
 }
+/** `selectPanel` exists only where `main` is keyed (DSH >= 0.1.5-rc.1). */
+type LayoutProbe = {
+    selectPanel?: (panelId: string | null) => void;
+};
 /** Register the Decision Mind tab into the conversation view ring. */
 export declare function apply(ctx: Context & ClientContributionContext): Promise<void>;
 export {};

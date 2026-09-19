@@ -6996,19 +6996,29 @@ function DecisionMind(props) {
 	}, h("div", { className: cx("top") }, h("div", { className: cx("tin") }, h("div", { className: cx("tt") }, "决策轨迹", h("span", { className: cx("ts") }, "一笔真实成交 + 当时写下的计划 + 官方收盘给的结果" + (data.stale ? " · 更新失败,显示此前快照" : "")), h("span", { className: cx("rate") }, traces.length + " 笔成交" + (rate === null ? "" : " · @" + rate))), stats)), h("div", { className: cx("bar") }, h("div", { className: cx("bin") }, filters)), h("div", { className: cx("list") }, body));
 }
 /**
-* Hard dependencies only. `layout` is deliberately NOT here: it is read with
-* `ctx.get` below, because the client uses it as a capability probe (does this
-* host have global panels?) rather than a service it needs. Declaring a probe
-* as a hard dependency inverts the rule — a host without `layout` would leave
-* the whole client half waiting on it, so the Decision Mind tab would never
-* mount either, even though that tab never touches layout.
+* `layout` is listed even though the plugin only *probes* it, and that is not
+* an oversight — it is the one thing `ctx.get` cannot do here. The probe runs
+* inside `apply`, and `ctx.get` does not wait: it returns `undefined` when the
+* providing fiber has not activated yet, so the chip silently fell back to the
+* session-header seat (verified live, 2026-09-19 — `[data-clawock-action]`
+* count 0 while the header chip rendered). `inject` is the mechanism that
+* holds the plugin until the service exists.
+*
+* The cost is real and accepted: on a host with no `layout` at all, the whole
+* client half waits and the Decision Mind tab does not mount either. Every
+* shipped host provides it, and the alternative trades a hypothetical
+* older-host degradation for a measured one on the host we run.
 */
-const inject = ["slots", "remote"];
+const inject = [
+	"slots",
+	"remote",
+	"layout"
+];
 /** Register the Decision Mind tab into the conversation view ring. */
 async function apply(ctx) {
 	await ctx.remote.$mount(TYPERT_REMOTE);
 	const studioRemote = ctx.get("remote.clawockStudio");
-	const layout = ctx.get("layout");
+	const layout = ctx.layout;
 	let cached = null;
 	let cachedBalances = null;
 	const call = async (method, args = []) => {
