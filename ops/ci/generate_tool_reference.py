@@ -152,12 +152,17 @@ def render(config: dict, available: dict) -> str:
         "",
         "## Installed commands / 已安装命令",
         "",
-        f"**{total} commands** are installed by the single `{PUBLIC}` distribution: "
-        f"{len(available[PUBLIC])} CLI subcommands and "
+        f"**{total} commands** are registered by the single `{PUBLIC}` distribution: "
+        f"{len(available[PUBLIC])} packaged `clawock <utility>` subcommands and "
         f"{len(available[SCRIPTS])} standalone scripts. "
         f"{counted} of them collect or compute information and appear under the "
         f"layer they feed; the remaining {len(excluded)} publish, gate, record "
-        "or schedule, and are listed with the reason they are not collection.",
+        "or schedule, and are listed with the reason they are not collection. "
+        # #1592: the lifecycle commands live in cli.py's own parser, not in
+        # either registry, so this page does not count them.
+        "The lifecycle subcommands `clawock` builds itself in `src/clawock/cli.py` "
+        "are not registry entries and are not counted here; `clawock --help` "
+        "lists every subcommand.",
         "",
         "本节由生成器从两份 registry 与 `config/information-layers.json` 推导，"
         "不手写；新增或删除一条命令，这张表自己会变。",
