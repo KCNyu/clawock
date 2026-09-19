@@ -22,3 +22,10 @@ def test_every_fallbackless_var_is_defined():
     missing = sorted({name for name, fallback in re.findall(r"var\(\s*(--[\w-]+)\s*(,)?", css)
                       if not fallback and name not in defined})
     assert missing == [], f"dashboard.css reads undefined custom properties: {missing}"
+
+
+def test_heatmap_direction_colors_follow_theme_tokens():
+    css = re.sub(r"/\*.*?\*/", "", CSS.read_text(encoding="utf-8"), flags=re.DOTALL)
+    assert re.search(r"--heat-up\s*:\s*var\(--positive\)", css)
+    assert re.search(r"--heat-down\s*:\s*var\(--negative\)", css)
+    assert not re.search(r"--heat-(?:up|down)\s*:\s*#[0-9a-fA-F]+", css)

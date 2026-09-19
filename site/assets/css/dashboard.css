@@ -4522,8 +4522,7 @@
   .book-heat .bh-head > * { height: 20px; color: var(--text-tertiary); font-size: var(--fs-micro); }
   .book-heat .bh-head .bh-c { justify-content: center; }
   .book-heat .bh-head .bh-v, .book-heat .bh-head .bh-s { justify-content: flex-end; }
-  :root { --heat-up: #12864c; --heat-down: #c4291f; }
-  @media (prefers-color-scheme: dark) { :root { --heat-up: #32d272; --heat-down: #ff5a4e; } }
+  :root { --heat-up: var(--positive); --heat-down: var(--negative); }
 
   /* 验证台账（Reflect）。排版判据：**一个判定一个块，块里只放数字**。
      原来的独立页把「判定/样本/来源/6–9 行两列表格/一段读数」压成一张
