@@ -28,7 +28,7 @@ data block at send time, so the block never makes a round trip through the model
 Validates:
   1. ▎我的看法 段必须存在 + 段内容 ≥ 60 字（防敷衍 1 句话）
   2. 总长度闸与 Mode 6 共用 clawock.harness.validation.REPORT_CHAR_LIMITS（防复读死循环，不是写作目标）
-  3. 若 preflight should_alert=true：报告必须提到至少一个异动票或 alert_reason
+  3. 若 preflight should_alert=true：正文须提到至少一个异动票，且（有 ALERT/WATCH/STOP/TRIM 信号时）至少一个信号票
   4. 无敷衍 phrases
 
 Note: Mode 7 does NOT commit portfolio.json. For every usable preflight context,
@@ -60,6 +60,7 @@ from ._harness_common import (  # noqa: E402
     dashboard_publication_state,
     git_cmd,
     push_with_rebase_retry,
+    SIGNAL_LEVELS,
     rebuild_dashboard,
     snapshot_date_for_now,
 )
@@ -211,6 +212,19 @@ def validate(text, ctx, model_text):
     so checking the body would let prose that names none of the movers pass because
     the table does. Only the length limit is a property of the assembled body.
     (Same split as report_postflight.validate — see its docstring.)
+
+    Three tiers, and which one a rule sits in is deliberate:
+
+    - critical (`CRITICAL_KEYWORDS`, hard length): the report fails outright;
+    - escalating: counted against `warn_max` — the alert-slot rules (anomaly and
+      signal tickers must be named in prose) live here, because naming what
+      fired is what an alert slot is for;
+    - advisory (`ADVISORY_MARK`): shown, never counted — secondary reads such as
+      plan triggers and add-side verdicts, numeric provenance, pipeline jargon.
+
+    `fail` is never silence: it delivers the fail-closed data block with a
+    banner (#135). Moving a rule to a looser tier is a policy change, not a
+    consistency fix (#1635).
     """
     issues = []
     checked = model_text
@@ -242,22 +256,25 @@ def validate(text, ctx, model_text):
     elif n > soft:
         issues.append(f'报告长度 {n} 字 > {soft} 软上限 (warn)')
 
+    # Two independent requirements, not a fallback chain. An alert slot can
+    # carry anomalies AND signals; the signal check used to live in an `elif`
+    # under "no anomalies", so naming one mover let every STOP/ALERT line go
+    # unmentioned (#1630). Levels come from the one list decide_alert counts.
     if ctx.get('should_alert'):
         anomaly_tickers = [a['ticker'] for a in ctx.get('anomalies', [])]
         mentioned = [t for t in anomaly_tickers if mentions_ticker(checked, t)]
         if anomaly_tickers and not mentioned:
             issues.append(f'should_alert=true 但报告未提任何异动票 ({", ".join(anomaly_tickers)})')
-        elif not anomaly_tickers:
-            signal_tickers = [
-                row.get('ticker') for row in (ctx.get('signals_detail') or [])
-                if row.get('ticker') and str(row.get('level', '')).upper()
-                in {'WATCH', 'STOP', 'ALERT', 'TRIM'}
-            ]
-            if signal_tickers and not any(
-                    mentions_ticker(checked, ticker) for ticker in signal_tickers):
-                issues.append(
-                    'should_alert=true(纯信号)但报告未提任何信号票 '
-                    f'({", ".join(signal_tickers[:3])})')
+        signal_tickers = [
+            row.get('ticker') for row in (ctx.get('signals_detail') or [])
+            if row.get('ticker') and str(row.get('level', '')).upper()
+            in SIGNAL_LEVELS
+        ]
+        if signal_tickers and not any(
+                mentions_ticker(checked, ticker) for ticker in signal_tickers):
+            issues.append(
+                'should_alert=true 但报告未提任何信号票 '
+                f'({", ".join(signal_tickers[:3])})')
 
     # 加仓侧的读数 (#755)。它的三条输入(异动/机会雷达/早期趋势)以前全都算好了却从没
     # 进过正文,所以模板加了要求之后必须配一条闸——否则就是又一个「写了没人写」。
