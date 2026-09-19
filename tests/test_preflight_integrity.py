@@ -180,6 +180,15 @@ def test_num_and_active_define_numeric_and_positive_share_inputs(pi):
     assert [h["ticker"] for h in pi._active(holdings)] == ["POS"]
 
 
+def test_closed_holding_rejects_stale_mark_to_market_fields(run_check):
+    closed = _holding(ticker="CLOSED", shares=0)
+    closed.update(current_value=5000.0, pnl_abs=1000.0, pnl_percent=25.0,
+                  today_change=50.0, today_change_pct=1.0)
+    report = run_check(_portfolio_data(holdings=[closed]))
+
+    _assert_only(report, "CLOSED_DERIVED", "WARN", "shares=0")
+
+
 def test_moving_average_cost_is_stable_by_date_and_sells_at_running_average(pi):
     trades = [
         {"date": "2026-07-02", "action": "buy", "shares": 10, "price": 20},

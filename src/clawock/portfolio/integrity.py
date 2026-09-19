@@ -451,6 +451,25 @@ def check(portfolio_path=PORTFOLIO):
                     f'realized_pnl={rp:.2f} ≠ trades 汇总={tally:.2f}（差 {rp - tally:+.2f}）；'
                     f'禁止手写 realized_pnl，应跑 clawock realized', region)
 
+        # Closed rows remain as trade history.  Their mark-to-market leaves
+        # must be zero/missing so direct consumers cannot render a phantom
+        # position even while book totals correctly exclude it (#1601).
+        for h in holdings:
+            if _num(h.get('shares')) != 0:
+                continue
+            stale = {
+                field: _num(h.get(field))
+                for field in ('current_value', 'pnl_abs', 'pnl_percent',
+                              'today_change', 'today_change_pct')
+                if _num(h.get(field)) not in (None, 0)
+            }
+            if stale:
+                t = h.get('ticker')
+                detail = ', '.join(f'{field}={value:g}' for field, value in stale.items())
+                add('CLOSED_DERIVED', 'WARN',
+                    f'{t} shares=0 但仍有非零派生字段：{detail}；应跑 clawock aggregates 清零',
+                    region, t)
+
         # 逐只 -----------------------------------------------------------
         sib_dirs = {}
         asofs = set()
