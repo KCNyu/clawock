@@ -6722,8 +6722,13 @@ const BALANCE_PANEL = "clawock-provider-balance";
 * `inert` is what actually removes it from interaction: opacity alone leaves
 * every row button and the refresh control in the tab order, so a keyboard
 * user tabbing through the sidebar used to land on five invisible controls.
-* `inert` is the host's own tool for this (ui-primitives uses it), and it
-* suppresses focus and the accessibility tree in one attribute.
+*
+* `inert` is written as `''`, never `true`. The host ships React 18
+* (@types/react ~18.3, react ^18.2), where `inert` is not yet a known boolean
+* attribute: `inert={true}` is dropped without a warning in the production
+* build, which is how the first version of this fix rendered an attribute-less
+* panel and changed nothing. React 19 added the boolean form; the empty-string
+* form works on both, and is the idiom already used for `data-active` below.
 */
 function panelAttrs(open, label, extra) {
 	return {
@@ -6731,7 +6736,7 @@ function panelAttrs(open, label, extra) {
 		"data-open": open ? "true" : "false",
 		role: open ? "dialog" : "none",
 		"aria-label": label,
-		inert: open ? void 0 : true,
+		inert: open ? void 0 : "",
 		...extra
 	};
 }

@@ -1809,7 +1809,7 @@ test("client: the header chip headlines one provider and the panel pins the rest
   assert.equal(chipValueDefault["data-used-level"], undefined, "money headlines carry no usage tier");
   // Panel: mounted closed, every provider listed with its own tone.
   assert.equal(f.openAttr, "false", "the panel renders closed but mounted");
-  assert.equal(f.inertAttr, true, "the closed panel is inert so its rows stay out of the tab order");
+  assert.equal(f.inertAttr, "", "the closed panel is inert so its rows stay out of the tab order");
   assert.deepEqual(f.panel.map((n) => n.props["data-pb-provider"]), ["deepseek", "minimax", "claude", "codex"]);
   assert.ok(f.refresh, "the manual refresh lives in the panel header");
 
@@ -1930,7 +1930,10 @@ test("client: the sidebar-foot balance opens a popover that stays open while you
   // `pointer-events:none` still leaves every row button and the refresh control
   // in the tab order, so `inert` is what keeps keyboard users off the five
   // invisible controls a closed panel would otherwise contribute.
-  assert.equal(popover(foot).props.inert, true, "a closed popover must be inert, not just transparent");
+  // `''`, not `true`: the host ships React 18, where a boolean `inert` is
+  // dropped silently — the first version of this fix therefore rendered
+  // nothing and changed nothing (measured live 2026-09-19).
+  assert.equal(popover(foot).props.inert, "", "a closed popover must be inert, not just transparent");
   const railTrigger = trigger(render(false));
   assert.equal(railTrigger.props.title.startsWith("DeepSeek"), true, "the rail keeps the reading in its title");
   const railClasses = find(railTrigger, (p) => typeof p.className === "string")
