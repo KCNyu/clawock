@@ -6169,6 +6169,11 @@ function fmtMoney(value) {
 	if (value === null || !isFinite(value)) return "—";
 	return (value > 0 ? "+" : "") + value.toLocaleString(void 0, { maximumFractionDigits: 0 });
 }
+/** A fill price as written, or '—' when the ledger carried none (#1590). */
+function fmtPrice(value, sym = "") {
+	if (value === null || !isFinite(value)) return "—";
+	return sym + value;
+}
 function fmtPct(value, digits = 1) {
 	if (value === null || !isFinite(value)) return "—";
 	return (value > 0 ? "+" : "") + value.toFixed(digits) + "%";
@@ -6198,7 +6203,7 @@ function TraceDetail(props) {
 	const trace = props.trace;
 	const decision = trace.decision;
 	const sym = trace.currency === "HKD" ? "HK$" : "$";
-	const fillText = (ACT[trace.action] ?? trace.action) + " " + trace.shares + " 股 @ " + sym + trace.price;
+	const fillText = (ACT[trace.action] ?? trace.action) + " " + trace.shares + " 股 @ " + fmtPrice(trace.price, sym);
 	if (decision === null) {
 		const t1miss = trace.t1 === null ? null : h("div", { className: cx("tnode", t1NodeClass(trace.t1.tone)) }, h("div", { className: cx("tw") }, trace.t1.date), h("div", { className: cx("n") }, "T+1 收盘"), h("div", { className: cx("v") }, (trace.t1.delta >= 0 ? "+" : "") + trace.t1.delta + "% · " + trace.t1.verdict));
 		return h("div", { className: cx("dbody") }, h("div", { className: cx("trhead") }, "决策轨迹 · 无当日计划"), h("div", { className: cx("trace") }, h("div", { className: cx("tnode", "dec") }, h("div", { className: cx("n") }, "当时的计划"), h("div", {
@@ -6270,7 +6275,7 @@ function TraceCell(props) {
 		"aria-expanded": props.open,
 		onClick: props.onToggle,
 		onKeyDown: props.onKeyDown
-	}, h("div", { className: cx("main") }, h("span", { className: cx("dotm") }), h("span", { className: cx("tk") }, trace.ticker, h("span", { className: cx("mkt", trace.market === "HK" && "hk") }, trace.market === "HK" ? "港" : "美")), h(Chip, null, ACT[trace.action] ?? trace.action), h("span", { className: cx("qty") }, trace.shares + " @" + trace.price), h("span", { className: cx("sp") }), pnl), h("div", { className: cx("sub") }, t1tag, alignTag, h("span", { className: cx("date") }, (trace.date ?? "").slice(5)), h("span", { className: cx("chev") }, "▾")), h("div", { className: cx("detail") }, h("div", { className: cx("dinner") }, props.open ? h(TraceDetail, { trace }) : null)));
+	}, h("div", { className: cx("main") }, h("span", { className: cx("dotm") }), h("span", { className: cx("tk") }, trace.ticker, h("span", { className: cx("mkt", trace.market === "HK" && "hk") }, trace.market === "HK" ? "港" : "美")), h(Chip, null, ACT[trace.action] ?? trace.action), h("span", { className: cx("qty") }, trace.shares + " @" + fmtPrice(trace.price)), h("span", { className: cx("sp") }), pnl), h("div", { className: cx("sub") }, t1tag, alignTag, h("span", { className: cx("date") }, (trace.date ?? "").slice(5)), h("span", { className: cx("chev") }, "▾")), h("div", { className: cx("detail") }, h("div", { className: cx("dinner") }, props.open ? h(TraceDetail, { trace }) : null)));
 }
 /** Skeleton row for the cold-start loading state (no cache yet). */
 function SkeletonRow() {
