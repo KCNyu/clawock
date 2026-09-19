@@ -56,18 +56,18 @@ Usage: brief_watchdog.py [--check-missing] [--dry-run]
 """
 import argparse
 import json
-import os
 import sys
 from datetime import datetime
 
 from clawock.automation import delivery_receipts
 from clawock import sessions as trading_calendar
+from clawock.safe_io import safe_write_text
 
 from ._watchdog_common import (
-    WS, HKT, log, build_brief_card, send_telegram, KCN_TELEGRAM,
+    WS, HKT, log, build_brief_card, send_telegram, telegram_target,
     send_wechat, resolve_wechat_target, wechat_backstop,
     dispatch_brief_fallback, await_brief_fallback_outcome,
-    brief_cron_job, brief_cron_job_state, cron_run_ended_in_failure,
+    brief_cron_job_state, cron_run_ended_in_failure,
     rerun_cron_job, cron_retry_budget,
     CRON_MAX_ALLOWED_ATTEMPTS,
 )
@@ -120,9 +120,9 @@ def _rerun_count(today):
 
 
 def _mark_rerun(today):
-    path = rerun_flag_path(today)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(str(_rerun_count(today) + 1))
+    # Atomic: a watchdog killed mid-write must not leave an empty counter that
+    # reads back as "no re-run yet today" (#1633).
+    safe_write_text(str(rerun_flag_path(today)), str(_rerun_count(today) + 1))
 
 
 def _rerun_once(today, dry_run, attempt, job=None):
@@ -135,10 +135,12 @@ def _rerun_once(today, dry_run, attempt, job=None):
     """
     if _rerun_count(today) >= MAX_ONHOST_RERUNS:
         return False
-    job = job if isinstance(job, dict) else brief_cron_job()
     if not isinstance(job, dict) or not job.get('id'):
         # The 09:05 alert is the core invariant; an unreadable schedule must
         # never block it — fall back to the off-host path without a re-run.
+        # No second lookup through the CLI here: the caller already read the
+        # local state DB, and a gateway round trip is exactly what this path
+        # must not wait on (#1641).
         return False
     ok, out = rerun_cron_job(job.get('id'), dry_run)
     if ok and not dry_run:
@@ -259,10 +261,7 @@ def load_missing_state(today):
 def write_missing_state(today, state):
     """Atomically persist recovery state before notification is attempted."""
     path = missing_state_path(today)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = path.with_name(f'.{path.name}.{os.getpid()}.tmp')
-    tmp.write_text(json.dumps(state, ensure_ascii=False, indent=2) + '\n')
-    tmp.replace(path)
+    safe_write_text(str(path), json.dumps(state, ensure_ascii=False, indent=2) + '\n')
 
 
 def retry_budget_note():
@@ -403,9 +402,10 @@ def alert_brief_missing(today, dry_run, issues=None):
     )
 
     tg_ok, tg_out = False, ''
+    target = telegram_target()
     for _ in range(NOTIFICATION_ATTEMPTS_PER_RUN):
         try:
-            tg_ok, tg_out = send_telegram(KCN_TELEGRAM, alert, dry_run)
+            tg_ok, tg_out = send_telegram(target, alert, dry_run)
         except Exception as e:
             tg_ok, tg_out = False, f'{type(e).__name__}: {e}'[:300]
         state['notification_attempts'] = int(state.get('notification_attempts') or 0) + 1
@@ -421,11 +421,10 @@ def alert_brief_missing(today, dry_run, issues=None):
          'issues': issues,
          'rerun_queued': rerun_queued,
          'dispatched_fallback': dispatched, 'dispatch_out': out,
-         'sent_ok': tg_ok, 'target': KCN_TELEGRAM, 'out': tg_out,
+         'sent_ok': tg_ok, 'target': target, 'out': tg_out,
          'recovery_state': state})
     if tg_ok and not dry_run:
-        flag.parent.mkdir(parents=True, exist_ok=True)
-        flag.write_text(datetime.now(HKT).isoformat())
+        safe_write_text(str(flag), datetime.now(HKT).isoformat())
 
     # The miss alert above is deliberately sent before the run finishes, so kcn learns
     # at 09:05 that 08:00 missed. Only now do we find out whether the recovery actually
@@ -442,12 +441,12 @@ def alert_brief_missing(today, dry_run, issues=None):
             write_missing_state(today, state)
         follow_up = _fallback_outcome_message(today, outcome, outcome_detail)
         try:
-            follow_ok, follow_out = send_telegram(KCN_TELEGRAM, follow_up, dry_run)
+            follow_ok, follow_out = send_telegram(target, follow_up, dry_run)
         except Exception as e:
             follow_ok, follow_out = False, f'{type(e).__name__}: {e}'[:300]
         log({'tag': 'brief', 'action': 'fallback-outcome', 'dry_run': dry_run,
              'outcome': outcome, 'detail': outcome_detail,
-             'sent_ok': follow_ok, 'target': KCN_TELEGRAM, 'out': follow_out})
+             'sent_ok': follow_ok, 'target': target, 'out': follow_out})
 
     print(json.dumps({'tag': 'brief', 'reason': 'brief artifacts incomplete',
                       'issues': issues,
@@ -556,12 +555,12 @@ def main():
 
     message = build_brief_card(today)
     tg_banner = f'📨 自动补发（{reason}，Telegram 兜底一份）\n\n'
-    tg_ok, out = send_telegram(KCN_TELEGRAM, tg_banner + message, args.dry_run)
+    target = telegram_target()
+    tg_ok, out = send_telegram(target, tg_banner + message, args.dry_run)
     log({'tag': tag, 'action': 'mirror-telegram', 'dry_run': args.dry_run, 'sent_ok': tg_ok,
-         'fail_reason': reason, 'marker': marker, 'target': KCN_TELEGRAM, 'out': out})
+         'fail_reason': reason, 'marker': marker, 'target': target, 'out': out})
     if tg_ok and not args.dry_run:
-        flag.parent.mkdir(parents=True, exist_ok=True)
-        flag.write_text(datetime.now(HKT).isoformat())
+        safe_write_text(str(flag), datetime.now(HKT).isoformat())
 
     print(json.dumps({'tag': tag, 'reason': reason, 'mirrored_telegram': tg_ok,
                       'dry_run': args.dry_run}, ensure_ascii=False))

@@ -82,7 +82,7 @@ from datetime import datetime, timedelta
 
 from clawock.automation import delivery_receipts
 from ._watchdog_common import (
-    WS, HKT, log, find_job_id, today_runs, KCN_TELEGRAM,
+    WS, HKT, log, find_job_id, today_runs, telegram_target,
     transcript_loop_score, last_report_text, send_telegram,
     same_generation_window,
     # The in-flight gate lives beside the other shared run-record helpers; the
@@ -139,9 +139,10 @@ def deliver_fallback(raw_block, tag, reason, args, watchdog_now, flag,
     from contradicting a confirmed delivery.
     """
     body = deterministic_fallback(raw_block, tag, reason)
-    tg_ok, tg_out = send_telegram(KCN_TELEGRAM, body, args.dry_run)
+    target = telegram_target()
+    tg_ok, tg_out = send_telegram(target, body, args.dry_run)
     log({'tag': tag, 'action': 'deterministic-fallback', 'sent_ok': tg_ok,
-         'fail_kind': reason, 'run_at': run_at, 'target': KCN_TELEGRAM,
+         'fail_kind': reason, 'run_at': run_at, 'target': target,
          'out': tg_out, **(extra or {})})
     if not args.dry_run:
         if tg_ok:
@@ -533,10 +534,11 @@ def main():
               else 'postflight cosend failed' if not marker.get('tg_ok')
               else 'marker slot stale/mismatch')
     tg_banner = f'📲 补投（{reason}，Telegram 兜底一份）\n\n'
-    tg_ok, tg_out = send_telegram(KCN_TELEGRAM, tg_banner + report.strip(), args.dry_run)
+    target = telegram_target()
+    tg_ok, tg_out = send_telegram(target, tg_banner + report.strip(), args.dry_run)
     log({'tag': tag, 'action': 'mirror-telegram', 'dry_run': args.dry_run, 'sent_ok': tg_ok,
          'job_id': job_id, 'reason': reason, 'loop_score': loop_score,
-         'run_at': run_at, 'target': KCN_TELEGRAM, 'out': tg_out})
+         'run_at': run_at, 'target': target, 'out': tg_out})
 
     # Slot handled once Telegram landed — don't keep retrying a report kcn has.
     if tg_ok and not args.dry_run:

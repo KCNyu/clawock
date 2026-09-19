@@ -16,13 +16,12 @@ TODAY = "2026-07-17"
 def _no_live_scheduler(monkeypatch):
     """The 09:05 alert asks the scheduler for the job's retry budget (#506).
 
-    Unstubbed that is a real `openclaw cron list --json` round trip — 3s per
-    test against whatever the live gateway happens to hold, or a timeout on a
-    host where the binary exists and the gateway does not. The budget line has
+    Unstubbed that is a real read of whatever this host's runtime state DB
+    happens to hold. The budget line has
     its own suite; here the scheduler is simply absent, which is the case that
     must leave every assertion below unchanged.
     """
-    monkeypatch.setattr(watchdog, "brief_cron_job", lambda: None)
+    monkeypatch.setattr(watchdog, "brief_cron_job_state", lambda: None)
 
 
 def _stub_outcome(monkeypatch, outcome="success", detail="https://example/run/1"):

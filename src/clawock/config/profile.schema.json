@@ -65,8 +65,9 @@
             "additionalProperties": false,
             "required": ["source"],
             "properties": {
-              "source": {"enum": ["runtime_job", "environment", "disabled"]},
-              "key": {"type": "string", "minLength": 1}
+              "source": {"enum": ["runtime_job", "environment", "static", "disabled"]},
+              "key": {"type": "string", "minLength": 1},
+              "value": {"type": "string", "minLength": 1}
             }
           }
         }

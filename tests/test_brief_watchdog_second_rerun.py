@@ -101,7 +101,7 @@ def test_miss_detector_stops_after_two_reruns(monkeypatch, tmp_path):
 
 def test_miss_detector_without_schedule_still_alerts(monkeypatch, tmp_path):
     """Unreadable schedule must not block the alert: fallback + notification only."""
-    spy = _watch(monkeypatch, tmp_path, job=None)  # brief_cron_job returns None
+    spy = _watch(monkeypatch, tmp_path, job=None)  # brief_cron_job_state returns None
 
     assert watchdog.alert_brief_missing(TODAY, False, ["brief_missing"]) == 0
 

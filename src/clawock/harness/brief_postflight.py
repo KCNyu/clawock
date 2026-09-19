@@ -797,7 +797,7 @@ from ._harness_common import (  # noqa: E402
     rebuild_dashboard,
 )
 from ._watchdog_common import (  # noqa: E402
-    BRIEF_URL_TMPL,
+    brief_url,
     resolve_wechat_target, send_wechat, build_brief_card, cosend_telegram, already_delivered,
     delivered_channels,
     claim_send, mark_send_started, release_claim, log, send_per_policy,
@@ -1195,7 +1195,7 @@ def main(argv=None):
     try:
         render_issues, _ = brief_render.render_from_workspace(
             WS, today, plan=normalized_plan,
-            page_url=BRIEF_URL_TMPL.format(date=today),
+            page_url=brief_url(today),
             write=not args.dry_run)
         # Unreadable inputs are reported, not escalated here: the consequence —
         # no report, or yesterday's — is what `validate_markdown` below is for,

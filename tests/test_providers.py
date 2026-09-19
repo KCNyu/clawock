@@ -297,7 +297,7 @@ def test_a_cron_read_gives_the_cli_the_same_budget_it_gives_the_process():
     'no data' and quietly fall back to a stale source" — which is exactly what
     the CLI's own 10s ceiling was doing inside the 120s, unseen. `read_jobs`
     then drops to SQLite or to the fossil JSONL it prints STALE over, and
-    `brief_cron_job` returns None and logs the brief watchdog inert for the
+    `brief_cron_job_state` returns None and logs the brief watchdog inert for the
     slot. Both happen precisely when the host is loaded enough to be slow.
     """
     from types import SimpleNamespace

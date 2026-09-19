@@ -37,6 +37,7 @@ from datetime import datetime, timedelta
 from pathlib import Path
 
 from clawock.workspace import workspace_root
+from clawock.safe_io import safe_write_text
 from clawock import sessions as trading_calendar
 from clawock.decision import plans as plan_surface
 from clawock.decision import signals as quant_signals
@@ -819,10 +820,10 @@ def main(argv=None):
                   'heartbeat': {'job': heartbeat['job'], 'slot': heartbeat['slot']}}
         TMP.mkdir(parents=True, exist_ok=True)
         payload = json.dumps(result, ensure_ascii=False, indent=2)
-        (TMP / f'intraday-context-{args.market}-{stamp}.json').write_text(payload)
+        safe_write_text(str(TMP / f'intraday-context-{args.market}-{stamp}.json'), payload)
         # Also refresh -latest.json (the watchdog reads it) so it sees a clean
         # market_closed instead of yesterday's stale block.
-        (TMP / f'intraday-context-{args.market}-latest.json').write_text(payload)
+        safe_write_text(str(TMP / f'intraday-context-{args.market}-latest.json'), payload)
         market_cn = '港股' if args.market == 'hk' else '美股'
         print(f'=== MARKET CLOSED — {market_cn}今日{reason} ===')
         print('SKIP：不要生成报告、不要调用任何 send/postflight、本回合到此结束。')
@@ -843,8 +844,8 @@ def main(argv=None):
             'heartbeat': {'job': heartbeat['job'], 'slot': heartbeat['slot']},
         }
         TMP.mkdir(parents=True, exist_ok=True)
-        (TMP / f'intraday-context-{args.market}-{stamp}.json').write_text(
-            json.dumps(result, ensure_ascii=False, indent=2))
+        safe_write_text(str(TMP / f'intraday-context-{args.market}-{stamp}.json'),
+                        json.dumps(result, ensure_ascii=False, indent=2))
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 1
 
@@ -1055,11 +1056,11 @@ def main(argv=None):
 
     TMP.mkdir(parents=True, exist_ok=True)
     out_path = TMP / f'intraday-context-{args.market}-{stamp}.json'
-    out_path.write_text(json.dumps(result, ensure_ascii=False, indent=2))
+    safe_write_text(str(out_path), json.dumps(result, ensure_ascii=False, indent=2))
 
     # Also write latest pointer for postflight to pick up easily
-    (TMP / f'intraday-context-{args.market}-latest.json').write_text(
-        json.dumps(result, ensure_ascii=False, indent=2))
+    safe_write_text(str(TMP / f'intraday-context-{args.market}-latest.json'),
+                    json.dumps(result, ensure_ascii=False, indent=2))
 
     print(json.dumps(result, ensure_ascii=False, indent=2))
     return 0

@@ -1178,11 +1178,11 @@ def main(argv=None):
 
     workspace = Path(args.workspace) if args.workspace else workspace_root()
     date = args.date or _date.today().isoformat()
-    from clawock.harness._watchdog_common import BRIEF_URL_TMPL
+    from clawock.harness._watchdog_common import brief_url
 
     issues, body = render_from_workspace(
         workspace, date,
-        page_url=args.page_url or BRIEF_URL_TMPL.format(date=date),
+        page_url=args.page_url or brief_url(date),
         write=not args.dry_run)
     for issue in issues:
         print(issue)

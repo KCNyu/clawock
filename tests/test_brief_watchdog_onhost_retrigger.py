@@ -18,12 +18,16 @@ the reason #490 spelled out — a report that is missing is not a report that
 failed.
 """
 import json
+import sqlite3
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
+
+import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 from clawock.harness import brief_watchdog as watchdog  # noqa: E402
 from clawock.harness import _watchdog_common as common  # noqa: E402
+from clawock.providers.openclaw import CronRead  # noqa: E402
 
 HKT = timezone(timedelta(hours=8))
 TODAY = "2026-08-11"
@@ -131,15 +135,54 @@ def test_the_brief_job_is_found_through_the_contract_not_a_typed_name(monkeypatc
              if job.get("mode") == common.BRIEF_CONTRACT_MODE]
     assert len(brief) == 1, "the contract no longer names exactly one brief job"
 
-    monkeypatch.setattr(common, "_cron_cli_json", lambda _argv: {
-        "jobs": [{"id": "other", "name": "港股收盘报告"},
-                 {"id": JOB_ID, "name": brief[0]["name"]}]})
+    monkeypatch.setattr(common._openclaw, "read_jobs", lambda source: CronRead(
+        [{"id": "other", "name": "港股收盘报告"},
+         {"id": JOB_ID, "name": brief[0]["name"]}], source))
 
-    assert common.brief_cron_job()["id"] == JOB_ID
+    assert common.brief_cron_job_state()["id"] == JOB_ID
 
 
 def test_no_live_job_matches_the_contract_name(monkeypatch):
-    monkeypatch.setattr(common, "_cron_cli_json", lambda _argv: {"jobs": [
-        {"id": "other", "name": "港股收盘报告"}]})
+    monkeypatch.setattr(common._openclaw, "read_jobs", lambda source: CronRead(
+        [{"id": "other", "name": "港股收盘报告"}], source))
 
-    assert common.brief_cron_job() is None
+    assert common.brief_cron_job_state() is None
+
+
+def test_an_unreadable_state_never_falls_back_to_the_gateway(tmp_path, monkeypatch):
+    """`None` from the state DB is "no evidence", not "ask the CLI instead" (#1641).
+
+    The CLI round-trips through the gateway with a 120s timeout — the component
+    a bad morning may have hung, and the reason the state read moved to SQLite.
+    """
+    spy = {}
+    _watch(monkeypatch, tmp_path, None, spy)
+    monkeypatch.setattr(common._openclaw, "cron_cli_json",
+                        lambda *_a, **_kw: pytest.fail("reached the gateway CLI"))
+
+    assert watchdog._rerun_once(TODAY, False, attempt=1, job=None) is False
+    assert spy.get("reruns") is None
+
+
+def test_a_state_read_that_raises_still_dispatches_the_off_host_fallback(
+        tmp_path, monkeypatch):
+    """#1626: an unreadable schedule is logged, and 09:05 still self-heals off-host."""
+    spy = {}
+    _watch(monkeypatch, tmp_path, None, spy)
+
+    def unreadable():
+        raise sqlite3.OperationalError("database is locked")
+
+    monkeypatch.setattr(watchdog, "brief_cron_job_state", unreadable)
+    monkeypatch.setattr(watchdog, "dispatch_brief_fallback",
+                        lambda dry_run: (spy.setdefault("dispatched", []).append(1),
+                                         (True, "dispatched"))[1])
+    monkeypatch.setattr(watchdog, "await_brief_fallback_outcome",
+                        lambda *_a, **_kw: ("success", ""))
+    monkeypatch.setattr(watchdog, "send_telegram", lambda *_a: (True, "sent"))
+
+    assert watchdog.alert_brief_missing(TODAY, False, ["brief_missing"]) == 0
+
+    assert spy.get("reruns") is None
+    assert spy.get("dispatched") == [1]
+    assert "cron-state-unreadable" in _actions(spy)

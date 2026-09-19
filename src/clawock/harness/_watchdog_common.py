@@ -52,7 +52,7 @@ def log_path() -> Path:
 #
 from clawock.providers import openclaw as _openclaw
 from clawock.providers.openclaw import (
-    cron_cli_json as _adapter_cron_json, runtime_paths as _openclaw_paths,
+    runtime_paths as _openclaw_paths,
 )
 
 # Where the runtime keeps its session transcripts. The location is the runtime's,
@@ -114,14 +114,6 @@ def _record_watchdog_outcome(event):
     )
 
 
-def _cron_cli_json(cli_args):
-    """Run `openclaw cron <args>` and parse the JSON object it prints (after any
-    leading 'Config warnings:' noise). Returns the dict, or None on any failure.
-    This is the storage-agnostic path — 6.1 migrated cron from jobs.json/runs/*.jsonl
-    into state/openclaw.sqlite, so direct file reads silently return nothing."""
-    return _adapter_cron_json(cli_args)
-
-
 # Set by load_jobs() to record which source served the last call:
 #   'cli'    — live gateway (authoritative for payload/model/delivery)
 #   'sqlite' — live read-only state DB (authoritative, independent of gateway/temp dir)
@@ -130,7 +122,6 @@ def _cron_cli_json(cli_args):
 # Callers that assert on live payload state (e.g. the cron-contract check) MUST
 # consult this and refuse to report failures off a fossil.
 LAST_LOAD_SOURCE = None
-LAST_RUNS_SOURCE = None
 
 
 def load_jobs(source='auto'):
@@ -157,13 +148,11 @@ def find_job_id(job_name):
 def read_runs(job_id, source='auto'):
     """Finished-run records for a job, OLDEST→NEWEST (so callers' [-1] = newest).
 
-    Same shape as load_jobs: the CLI → SQLite → fossil chain lives in the
-    provider, this keeps LAST_RUNS_SOURCE for the callers that branch on it.
+    The CLI → SQLite → fossil chain lives in the provider; a caller that needs
+    to know which source answered should call `_openclaw.read_runs` and read the
+    returned `CronRead.source` instead of a module global.
     """
-    global LAST_RUNS_SOURCE
-    read = _openclaw.read_runs(job_id, source)
-    LAST_RUNS_SOURCE = read.source
-    return read.entries
+    return _openclaw.read_runs(job_id, source).entries
 
 
 def is_today_hkt(ts_ms):
@@ -176,15 +165,55 @@ def today_runs(job_id):
     return [r for r in read_runs(job_id) if is_today_hkt(r.get('ts'))]
 
 
-# kcn's WeChat conversation — last-resort fallback if cron config can't be read.
-KCN_WECHAT = ('openclaw-weixin', 'o9cq80-hGTruM-OSs8kNmDOtLVZI@im.wechat', '61bf112daf0d-im-bot')
+def _profile_delivery_target(name):
+    """The selected profile's `delivery.targets.<name>`, or None.
 
-# kcn's Telegram chat id — the cold-session-proof mirror target (bot @clawock_bot,
-# revived 2026-07-03). Only messaged when the watchdog judges a WeChat push dropped.
-KCN_TELEGRAM = '2033937852'
+    Delivery targets belong to the profile, not to this reusable module: a
+    workspace that selects no readable profile has no targets, and every sender
+    below reports that as a failure rather than falling back to someone else's
+    chat (#1632).
+    """
+    from clawock.config.profiles import load_profile
+    try:
+        profile = load_profile(workspace_root())
+    except ValueError:
+        return None
+    return profile.delivery_targets.get(name)
 
-# Public full-brief link (rendered from memory/{date}-pre-open.md by GH Pages).
-BRIEF_URL_TMPL = 'https://kcnyu.github.io/clawock/memory/{date}-pre-open.html'
+
+def telegram_target():
+    """The Telegram chat the profile routes backstops and alerts to, or None.
+
+    `static` names the chat in the profile itself; `environment` reads the
+    variable the profile names. Anything else — no profile, no telegram
+    target, `disabled`, an unset variable — is None, which `telegram_result`
+    turns into a failed send with the reason, never a silent skip.
+    """
+    target = _profile_delivery_target('telegram')
+    if target is None:
+        return None
+    if target.source == 'static':
+        return target.value
+    if target.source == 'environment':
+        return os.environ.get(target.key, '').strip() or None
+    return None
+
+
+def brief_url(date):
+    """The public full-brief link for `date` (memory/{date}-pre-open.md on Pages).
+
+    The site root is the workspace's Pages contract (`config/pages-public.json`
+    `site_url`), the same value the Pages artifact is published under. Without
+    one the link stays workspace-relative instead of pointing at another desk.
+    """
+    page = f'memory/{date}-pre-open.html'
+    try:
+        contract = json.loads((workspace_root() / 'config' / 'pages-public.json').read_text())
+        site = str(contract.get('site_url') or '').strip().rstrip('/')
+    except (OSError, ValueError, AttributeError):
+        site = ''
+    return f'{site}/{page}' if site else page
+
 
 _EARLY_SECTION_HEADER = '▎提前布局候选'
 _EARLY_BLOCKER_LABELS = {
@@ -320,7 +349,7 @@ def build_brief_card(today, decision_packet=None):
     In both paths the harness inserts/replaces the deterministic early-candidate
     section from the generation-bound packet. Model omission cannot hide it.
     """
-    url = BRIEF_URL_TMPL.format(date=today)
+    url = brief_url(today)
     decision_packet = decision_packet or _brief_decision_packet(today)
     card_file = WS / 'memory' / '.tmp' / f'brief-card-{today}.txt'
     try:
@@ -354,18 +383,31 @@ def build_brief_card(today, decision_packet=None):
 
 
 def resolve_wechat_target(market=None):
-    """(channel, to, accountId) for kcn's WeChat conversation, read from cron
-    config (`cron list --json`, storage-agnostic, doesn't rot if the bot is
-    re-paired). All cron jobs target the same conversation, so any job's WeChat
-    delivery target works; `market` is accepted for API symmetry. Falls back to
-    the known constant. Used by intraday_postflight (primary sender) + watchdog."""
-    d = _cron_cli_json(['list', '--json'])
-    if isinstance(d, dict):
-        for j in d.get('jobs', []):
-            dl = j.get('delivery') or {}
+    """(channel, to, accountId) of the desk's WeChat conversation.
+
+    The profile's `delivery.targets.wechat` decides where it comes from; the one
+    supported source is `runtime_job`: the delivery target the runtime's own
+    cron jobs carry (it does not rot if the bot is re-paired). All cron jobs
+    target the same conversation, so any job's WeChat delivery works; `market`
+    is accepted for API symmetry. The local state DB is read first — it answers
+    without the gateway — then the CLI chain.
+
+    Raises when no target can be resolved: every caller already treats an
+    exception as a failed WeChat leg and reports it (#1632 removed the
+    hard-coded fallback conversation that used to hide this).
+    """
+    target = _profile_delivery_target('wechat')
+    source = target.source if target is not None else 'runtime_job'
+    if source != 'runtime_job':
+        raise RuntimeError(
+            f'WeChat delivery target source {source!r} cannot be resolved '
+            '(profile delivery.targets.wechat)')
+    for read_source in ('sqlite', 'auto'):
+        for j in _openclaw.read_jobs(read_source).entries:
+            dl = (j.get('delivery') or {}) if isinstance(j, dict) else {}
             if dl.get('channel') == 'openclaw-weixin' and dl.get('to'):
                 return dl.get('channel'), dl.get('to'), dl.get('accountId')
-    return KCN_WECHAT
+    raise RuntimeError('no WeChat delivery target in the runtime cron jobs')
 
 
 def _delivery(account=None):
@@ -431,6 +473,11 @@ def telegram_result(target, message, dry_run):
     "did this slot actually go out" afterwards — which is the question the
     2026-09-08 10:34 slot could not be asked.
     """
+    if not target:
+        from clawock.providers.delivery import DeliveryResult
+        return DeliveryResult(
+            'failed', 'telegram', '',
+            detail='no Telegram target configured (profile delivery.targets.telegram)')
     return _delivery().send('telegram', str(target), message, dry_run=dry_run)
 
 
@@ -466,20 +513,6 @@ def _brief_job_names():
              'effect': 'brief watchdog cannot identify its cron job — '
                        're-run and retry-budget limbs are inert this slot'})
         return set()
-
-
-def brief_cron_job():
-    """The live cron job for the daily deep brief, or None if it cannot be read."""
-    names = _brief_job_names()
-    if not names:
-        return None
-    listing = _cron_cli_json(['list', '--json'])
-    if not isinstance(listing, dict):
-        return None
-    for job in listing.get('jobs') or []:
-        if job.get('name') in names:
-            return job
-    return None
 
 
 def brief_cron_job_state():
@@ -567,7 +600,17 @@ def attempt_still_running(context, last_run):
 
 
 def rerun_cron_job(job_id, dry_run=False):
-    """Queue one more run of an on-host cron job. Returns (ok, tail)."""
+    """Queue one more run of an on-host cron job. Returns (ok, tail).
+
+    `openclaw cron run` only enqueues (`{"enqueued": true, "runId": …}`, logged
+    within seconds of the watchdog starting on every re-run so far); the 120s is
+    a bound on a hung gateway, not a wait for the agent turn. It stays a waited
+    call rather than fire-and-forget on purpose: `queued_ok` is what lets the
+    09:05 pass skip the off-host fallback without racing it on the same brief
+    files (#606), and a detached process would leave that unknown. A hung
+    gateway costs at most that bound before the fallback is dispatched, well
+    inside brief-fallback.yml's 10:00 HKT cutoff (#1637).
+    """
     if dry_run:
         return True, f'(dry-run) openclaw cron run {job_id}'
     return _openclaw.run_cron_job(job_id)
@@ -824,7 +867,7 @@ def cosend_telegram(message, tag, dry_run=False):
     never raises; logs the outcome to watchdog.jsonl. Returns (ok, tail_of_output)."""
     status = 'failed'
     try:
-        result = telegram_result(KCN_TELEGRAM, message, dry_run)
+        result = telegram_result(telegram_target(), message, dry_run)
         ok, out, status = result.status != 'failed', result.detail, result.status
     except Exception as e:
         ok, out = False, str(e)[:300]
@@ -1005,11 +1048,12 @@ def wechat_backstop(kind, tag, message, marker, marker_path, flag_path, dry_run,
                  f'watchdog 补发一次也失败（{(out or "无输出")[-200:]}）。\n'
                  f'这一条请以 Telegram 为准；微信不会再自动重试。')
         try:
-            alert_ok, alert_out = telegram(KCN_TELEGRAM, alert, dry_run)
+            alert_target = telegram_target()
+            alert_ok, alert_out = telegram(alert_target, alert, dry_run)
         except Exception as e:  # noqa: BLE001
-            alert_ok, alert_out = False, str(e)[:300]
+            alert_target, alert_ok, alert_out = None, False, str(e)[:300]
         log({'tag': tag, 'action': 'wechat-miss-alert', 'dry_run': bool(dry_run),
-             'sent_ok': bool(alert_ok), 'target': KCN_TELEGRAM,
+             'sent_ok': bool(alert_ok), 'target': alert_target,
              **({} if alert_ok else {'detail': (alert_out or '')[-300:]})})
     return bool(ok)
 

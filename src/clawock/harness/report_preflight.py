@@ -43,6 +43,7 @@ Output keys:
 """
 
 from clawock.automation import delivery_receipts
+from clawock.safe_io import safe_write_text
 from clawock.harness import _harness_common
 from clawock.harness._harness_common import run_analyze
 import argparse
@@ -286,7 +287,7 @@ def main(argv=None):
         TMP.mkdir(parents=True, exist_ok=True)
         drop_stale_contexts(args.market, args.phase, today)
         out_path = context_path(args.market, args.phase, today)
-        out_path.write_text(json.dumps(result, ensure_ascii=False, indent=2))
+        safe_write_text(str(out_path), json.dumps(result, ensure_ascii=False, indent=2))
         market_cn = '港股' if args.market == 'hk' else '美股'
         print(f'=== MARKET CLOSED — {market_cn}今日{reason} ({today}) ===')
         print('SKIP：不要生成报告、不要调用任何 send/postflight、本回合到此结束。')
@@ -310,7 +311,7 @@ def main(argv=None):
         TMP.mkdir(parents=True, exist_ok=True)
         drop_stale_contexts(args.market, args.phase, today)
         out_path = context_path(args.market, args.phase, today)
-        out_path.write_text(json.dumps(result, ensure_ascii=False, indent=2))
+        safe_write_text(str(out_path), json.dumps(result, ensure_ascii=False, indent=2))
         print(json.dumps(result, ensure_ascii=False, indent=2))
         announce_context_path(out_path)
         return 1
@@ -386,7 +387,7 @@ def main(argv=None):
     TMP.mkdir(parents=True, exist_ok=True)
     drop_stale_contexts(args.market, args.phase, today)
     out_path = context_path(args.market, args.phase, today)
-    out_path.write_text(json.dumps(result, ensure_ascii=False, indent=2))
+    safe_write_text(str(out_path), json.dumps(result, ensure_ascii=False, indent=2))
     workflow_outcomes.record_stage(
         job_name, 'preflight', 'success', slot=slot,
         context_id=result['context_id'],
