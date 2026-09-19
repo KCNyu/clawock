@@ -1,11 +1,14 @@
 import ast
 import importlib.util
 import json
+import shutil
 import subprocess
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from zoneinfo import ZoneInfo
+
+import pytest
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -819,16 +822,37 @@ def test_brief_timeout_lands_before_the_next_cron_window():
     assert start_min + timeout / 60 <= next_min
 
 
-def test_brief_watchdog_runs_after_the_brief_timeout_boundary():
+def test_every_brief_watchdog_runs_after_the_brief_timeout_boundary():
+    """The 09:05 miss detector is bound by the timeout as much as 08:36 (#1638)."""
     data = contract()
     timeout = data['payload_profiles']['brief']['timeout_seconds']
     brief = next(j for j in data['jobs'] if j['name'] == '盘前深度简报')
     start = brief['schedule']['expr'].split()
-    watchdog = brief['watchdog']['schedule']['expr'].split()
     start_min = int(start[1]) * 60 + int(start[0])
-    watchdog_min = int(watchdog[1]) * 60 + int(watchdog[0])
+    watchdogs = [brief['watchdog'], *brief.get('extra_watchdogs', [])]
+    assert len(watchdogs) == 2
 
-    assert watchdog_min > start_min + timeout / 60
+    for watchdog in watchdogs:
+        expr = watchdog['schedule']['expr'].split()
+        assert int(expr[1]) * 60 + int(expr[0]) > start_min + timeout / 60, expr
+
+
+@pytest.mark.parametrize('timeout_minutes', [34, 62, 90])
+def test_raising_the_brief_timeout_past_a_watchdog_fails_the_contract(
+        tmp_path, timeout_minutes):
+    """Timeout and watchdog times are checked together at load (#1625).
+
+    34 min passes 08:36, 62 min reaches the 09:05 miss detector, 90 min both.
+    """
+    data = json.loads((ROOT / 'config' / 'cron-schedules.json').read_text())
+    data['payload_profiles']['brief']['timeout_seconds'] = timeout_minutes * 60
+    path = tmp_path / 'config' / 'cron-schedules.json'
+    path.parent.mkdir()
+    path.write_text(json.dumps(data))
+    shutil.copytree(ROOT / 'config' / 'cron-payloads', tmp_path / 'config' / 'cron-payloads')
+
+    with pytest.raises(ValueError, match='timeout boundary'):
+        cron_contract.load_contract(path, workspace=tmp_path)
 
 
 def test_only_the_brief_profile_pins_a_timeout_for_now():
