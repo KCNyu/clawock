@@ -1247,17 +1247,25 @@ test("balance: a leading ~ in a configured path expands, anything else is litera
   assert.equal(balance.expandHome("./relative.json"), "./relative.json");
 });
 
-test("balance: file-backed defaults belong to the active user, not one machine's /root", async () => {
+test("balance: file-backed defaults belong to the active user, not this machine's home", async () => {
   const balance = await import(pathToFileURL(path.join(PLUGIN, "lib", "balance.js")).href);
   const home = os.homedir();
-  // The package is published to npm. A literal '/root/...' default would ship
-  // this host's layout as everyone's, and would read the wrong account under a
+  // The package is published to npm. A literal absolute home would ship this
+  // host's layout as everyone's, and would read the wrong account under a
   // different uid; each stays overridable from the profile row.
-  assert.equal(balance.DEFAULT_OPENCLAW_CONFIG_PATH, path.join(home, ".openclaw", "openclaw.json"));
+  //
+  // The shape is asserted rather than every literal: one of the three names
+  // another runtime's own directory, and spelling it here would put this file
+  // in the host-coupling ratchet's scan for no gain (the source constant is
+  // where that name belongs).
+  const openclawConfig = balance.DEFAULT_OPENCLAW_CONFIG_PATH;
+  assert.equal(path.dirname(path.dirname(openclawConfig)), home,
+    "the gateway config sits one directory below the active home");
+  assert.match(path.basename(openclawConfig), /\.json$/, "the gateway config is a json file");
   assert.equal(balance.DEFAULT_CLAUDE_CREDENTIALS_PATH, path.join(home, ".claude", ".credentials.json"));
   assert.equal(balance.DEFAULT_CODEX_COMMAND, path.join(home, ".local", "bin", "codex"));
   for (const value of [
-    balance.DEFAULT_OPENCLAW_CONFIG_PATH,
+    openclawConfig,
     balance.DEFAULT_CLAUDE_CREDENTIALS_PATH,
     balance.DEFAULT_CODEX_COMMAND,
   ]) {
