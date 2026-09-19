@@ -195,6 +195,8 @@ function disposeReactEffects() {
 }
 
 function makeReactStub() {
+  let reactIdCounter = 0;
+
   // Cursor-based slots: useState(n) binds to slot n for EVERY render, so a
   // setter write survives re-renders the way React state does. Callers that
   // render the same component twice and want fresh state call _resetCursor()
@@ -228,6 +230,11 @@ function makeReactStub() {
       // the scroll/outside-click effects must simply do nothing, and the rest
       // are plain { current } holders.
       return { current: initial === undefined ? null : initial };
+    },
+    useId() {
+      // React 18 has it; the balance glyph keys its SVG mask on it so two
+      // mounted glyphs cannot share one document-global id.
+      return "t" + (reactIdCounter += 1);
     },
   };
 }
@@ -306,6 +313,16 @@ function makeStoreStub() {
   return { useStore: (sel) => sel(s), actions };
 }
 
+/**
+ * The `t` seat the host synthesizes from `locale: LOCALE_NS`, built from the
+ * bundle's own zh dictionary. Tests render the zh surface by default (the
+ * assertions are written against it); the en dictionary gets its own test.
+ */
+function translatorFor(api, locale = "zh") {
+  return api.createTranslator(api.dictionaries[locale]);
+}
+
+
 async function loadClient() {
   let loaded = null;
   globalThis.window = { __ModuleLoader__: { load(entry) { loaded = entry; } } };
@@ -326,7 +343,9 @@ test("client: registers the Decision Mind tab and mounts the remote face", async
   // replace it here: the probe runs inside apply, and ctx.get does not wait —
   // it returned undefined and dropped the chip into the header seat (measured
   // live 2026-09-19). The seat assertions further down are what pin the probe.
-  assert.deepEqual(api.inject, ["slots", "remote", "layout"]);
+  // `locale` is a hard dependency too: without the registry there is no `t`
+  // seat, and every registration in this bundle declares the namespace.
+  assert.deepEqual(api.inject, ["slots", "remote", "layout", "locale"]);
 
   const remoteFace = {
     ledger: async () => ({ ok: true, value: { entries: [] } }),
@@ -338,6 +357,15 @@ test("client: registers the Decision Mind tab and mounts the remote face", async
   };
   const ctx = {
     effect() {},
+    // This bundle owns one dictionary namespace; `apply` must register it on
+    // the caller's fiber (the effect's disposer) rather than module state.
+    locale: {
+      register(ns, dicts) {
+        assert.equal(ns, api.LOCALE_NS, "apply must register this bundle's namespace");
+        assert.deepEqual(Object.keys(dicts).sort(), ["en", "zh"], "both shipped locales");
+        return () => {};
+      },
+    },
     // The injected face is absent here, which is exactly the pre-0.1.5 host
     // the header chip exists for.
     get() { return remoteFace; },
@@ -379,6 +407,10 @@ test("client: registers the Decision Mind tab and mounts the remote face", async
   assert.equal(chipReg.definition.name, "conversation.session.header.utilities",
     "the chip must ride the utilities seat, never the tab ring");
   assert.equal(chipReg.definition.order, 90);
+  for (const reg of ctx.slots._regs) {
+    assert.equal(reg.definition.locale, api.LOCALE_NS,
+      reg.definition.id + " must declare the dictionary namespace or its copy cannot translate");
+  }
   // Official registration store: UI state survives the ring's unmount/remount.
   assert.ok(registered.store, "registration must declare a per-session store");
   assert.deepEqual(registered.store.spec.init(), { filter: "all", open: null, visibleDateCount: 3, foldedDates: [], scrollTop: 0 });
@@ -485,6 +517,7 @@ test("client: a fill with no price renders a dash, not the word null (#1590)", a
   };
   const ctx = {
     effect() {},
+    locale: { register() { return () => {}; } },
     get() { return remoteFace; },
     slots: {
       inject(name, fn) { (this._fns ??= []).push(fn); },
@@ -497,7 +530,7 @@ test("client: a fill with no price renders a dash, not the word null (#1590)", a
   const reg = ctx.slots._regs.find((r) => r.definition.id === "decision-studio");
   const injected = reg.definition.inject("s1");
   const store = makeStoreStub();
-  const render = () => reg.Component({ sessionId: "s1", cachedTraces: injected.cachedTraces,
+  const render = () => reg.Component({ sessionId: "s1", t: translatorFor(api), cachedTraces: injected.cachedTraces,
     fetchTraces: injected.fetchTraces, useStore: store.useStore, actions: store.actions });
   const tick = () => new Promise((resolve) => setImmediate(resolve));
   const text = (tree) => {
@@ -558,6 +591,7 @@ test("client: renders the single decision-trace view from the mounted remote", a
   };
   const ctx = {
     effect() {},
+    locale: { register() { return () => {}; } },
     get() { return remoteFace; },
     slots: {
       inject(name, fn) { (this._fns ??= []).push(fn); },
@@ -573,9 +607,9 @@ test("client: renders the single decision-trace view from the mounted remote", a
 
   const store = makeStoreStub();
   const tick = () => new Promise((resolve) => setImmediate(resolve));
-  let tree = component({ sessionId: "s1", cachedTraces: injected.cachedTraces, fetchTraces: injected.fetchTraces, useStore: store.useStore, actions: store.actions });
+  let tree = component({ sessionId: "s1", t: translatorFor(api), cachedTraces: injected.cachedTraces, fetchTraces: injected.fetchTraces, useStore: store.useStore, actions: store.actions });
   await tick(); await tick(); await tick();
-  tree = component({ sessionId: "s1", cachedTraces: injected.cachedTraces, fetchTraces: injected.fetchTraces, useStore: store.useStore, actions: store.actions });
+  tree = component({ sessionId: "s1", t: translatorFor(api), cachedTraces: injected.cachedTraces, fetchTraces: injected.fetchTraces, useStore: store.useStore, actions: store.actions });
 
   const collectText = () => {
     const text = [];
@@ -652,7 +686,7 @@ test("client: renders the single decision-trace view from the mounted remote", a
   };
   findButton("无当日计划").props.onClick();
   await tick();
-  tree = component({ sessionId: "s1", cachedTraces: injected.cachedTraces, fetchTraces: injected.fetchTraces, useStore: store.useStore, actions: store.actions });
+  tree = component({ sessionId: "s1", t: translatorFor(api), cachedTraces: injected.cachedTraces, fetchTraces: injected.fetchTraces, useStore: store.useStore, actions: store.actions });
   const joinedMiss = collectText();
   assert.match(joinedMiss, /SPCH/);
   assert.doesNotMatch(joinedMiss, /PLTU/); // PLTU has a decision → filtered out
@@ -660,7 +694,7 @@ test("client: renders the single decision-trace view from the mounted remote", a
   // Expand a row: the trace detail shows plan → execution → P&L.
   findButton("全部").props.onClick();
   await tick();
-  tree = component({ sessionId: "s1", cachedTraces: injected.cachedTraces, fetchTraces: injected.fetchTraces, useStore: store.useStore, actions: store.actions });
+  tree = component({ sessionId: "s1", t: translatorFor(api), cachedTraces: injected.cachedTraces, fetchTraces: injected.fetchTraces, useStore: store.useStore, actions: store.actions });
   const cell = [];
   (function collect(node) {
     if (node == null) return;
@@ -671,7 +705,7 @@ test("client: renders the single decision-trace view from the mounted remote", a
   assert.ok(cell.length >= 2, "trace rows present");
   cell[0].props.onClick();
   await tick();
-  tree = component({ sessionId: "s1", cachedTraces: injected.cachedTraces, fetchTraces: injected.fetchTraces, useStore: store.useStore, actions: store.actions });
+  tree = component({ sessionId: "s1", t: translatorFor(api), cachedTraces: injected.cachedTraces, fetchTraces: injected.fetchTraces, useStore: store.useStore, actions: store.actions });
   const joined2 = collectText();
   assert.match(joined2, /决策轨迹 · /);       // expand header
   assert.match(joined2, /割肉/);               // plan action
@@ -776,6 +810,7 @@ test("client: trace list batches older days behind 'show earlier' and folds by d
   };
   const ctx = {
     effect() {},
+    locale: { register() { return () => {}; } },
     get() { return remoteFace; },
     slots: { inject(n, fn) { (this._fns ??= []).push(fn); }, register(definition, Component) { (this._regs ??= []).push({ definition, Component }); } },
     remote: { $mount: async () => {} },
@@ -788,7 +823,7 @@ test("client: trace list batches older days behind 'show earlier' and folds by d
 
   const store = makeStoreStub();
   const tick = () => new Promise((resolve) => setImmediate(resolve));
-  const render = () => component({ sessionId: "s1", cachedTraces: injected.cachedTraces, fetchTraces: injected.fetchTraces, useStore: store.useStore, actions: store.actions });
+  const render = () => component({ sessionId: "s1", t: translatorFor(api), cachedTraces: injected.cachedTraces, fetchTraces: injected.fetchTraces, useStore: store.useStore, actions: store.actions });
   let tree = render();
   await tick(); await tick(); await tick();
   tree = render();
@@ -1327,6 +1362,111 @@ test("balance: the gateway owns its row config instead of a module-level handoff
   }
 });
 
+test("locale: both dictionaries carry the same keys, and no copy is hardcoded", async () => {
+  const loaded = await loadClient();
+  const api = loaded.factory((s) => {
+    if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
+    if (s === "react") return makeReactStub();
+    throw new Error(`unexpected require: ${s}`);
+  });
+  const zh = Object.keys(api.dictionaries.zh).sort();
+  const en = Object.keys(api.dictionaries.en).sort();
+  // A key in one language and not the other renders as the raw key in that
+  // locale — the failure mode a translation change ships by accident.
+  assert.deepEqual(en, zh, "zh and en must cover exactly the same keys");
+  assert.ok(zh.length > 90, `expected the whole surface, found ${zh.length} keys`);
+  assert.deepEqual(Object.keys(api.dictionaries).sort(), ["en", "zh"],
+    "the browser client ships exactly these two locales (dsh-client-locale LOCALE_IDS)");
+  for (const [locale, dict] of Object.entries(api.dictionaries)) {
+    for (const [key, value] of Object.entries(dict)) {
+      assert.equal(typeof value, "string", `${locale}.${key} must be a string`);
+      assert.notEqual(value.trim(), "", `${locale}.${key} must not be empty`);
+      // Every {name} in a template must be one the call site passes; a stray
+      // brace is how a param silently renders literally.
+      for (const [, name] of value.matchAll(/\{(\w+)\}/g)) {
+        assert.match(name, /^[a-zA-Z]+$/, `${locale}.${key}: suspicious param {${name}}`);
+      }
+    }
+  }
+  // Missing key → the key itself, never a blank or a crash.
+  assert.equal(api.createTranslator(api.dictionaries.en)("nope.missing"), "nope.missing");
+  // Params interpolate; an unknown param keeps its placeholder rather than
+  // printing "undefined" into the UI.
+  const t = api.createTranslator({ "x.y": "{a}/{b}" });
+  assert.equal(t("x.y", { a: 1, b: 2 }), "1/2");
+  assert.equal(t("x.y", { a: 1 }), "1/{b}");
+});
+
+test("locale: the same number renders in the active language", async () => {
+  const loaded = await loadClient();
+  const api = loaded.factory((s) => {
+    if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
+    if (s === "react") return makeReactStub();
+    throw new Error(`unexpected require: ${s}`);
+  });
+  const answer = () => ({
+    configured: true, status: "fresh", low: true, message: null, threshold: 20,
+    snapshot: {
+      isAvailable: true, unit: "pct", currency: "", totalBalance: "82", grantedBalance: "",
+      toppedUpBalance: "", asOf: "2026-09-19T00:00:00.000Z",
+      note: "5h 已用 82%,今天 19:09 重置",
+      // Structured: the client renders the label and the reset itself, so the
+      // host's own formatting never reaches the screen.
+      windows: [{ label: "5h", percent: 82, resetAt: "今天 19:09", durationMins: 300, resetAtMs: Date.now() + 3600_000 }],
+    },
+  });
+  const zhRow = api._rowDisplay(answer(), api.createTranslator(api.dictionaries.zh));
+  const enRow = api._rowDisplay(answer(), api.createTranslator(api.dictionaries.en));
+  assert.match(zhRow.title, /5h 已用 82%/, "zh names the window from durationMins");
+  assert.match(zhRow.title, /今天 \d{2}:\d{2} 重置/, "zh stamps the reset from resetAtMs");
+  assert.doesNotMatch(zhRow.title, /"今天 19:09"/, "the fixture's host string is not what rendered");
+  assert.match(enRow.title, /5h 82% used/, "en names the same window in English");
+  assert.match(enRow.title, /resets today \d{2}:\d{2}/, "en stamps the same reset in English");
+  assert.notEqual(zhRow.title, enRow.title, "the locale must actually change the rendering");
+  // The low sentence is localized too, and keeps the host's own vendor detail
+  // verbatim — a provider's error text is not ours to translate.
+  const stale = { ...answer(), status: "stale", message: "429 too many requests" };
+  assert.match(api._balanceNote(stale, api.createTranslator(api.dictionaries.en)),
+    /Refresh failed, showing the last reading: 429 too many requests/);
+});
+
+test("locale: a previous-version host omits the structured fields and still renders", async () => {
+  const loaded = await loadClient();
+  const api = loaded.factory((s) => {
+    if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
+    if (s === "react") return makeReactStub();
+    throw new Error(`unexpected require: ${s}`);
+  });
+  // The two halves deploy independently: a client bundle swap lands on the next
+  // page load, a host change needs a dsh restart. So the client WILL meet a
+  // host that sends only `label` / `resetAt` / `verdict` — the keys are absent,
+  // not null — and must render exactly what that host formatted.
+  const legacy = {
+    configured: true, status: "fresh", low: false, message: null, threshold: 20,
+    snapshot: {
+      isAvailable: true, unit: "pct", currency: "", totalBalance: "76", grantedBalance: "",
+      toppedUpBalance: "", asOf: "2026-09-19T00:00:00.000Z",
+      note: "周 已用 76%,9/21 周一 00:00 重置",
+      windows: [{ label: "周", percent: 76, resetAt: "9/21 周一 00:00" }],
+    },
+  };
+  const t = api.createTranslator(api.dictionaries.en);
+  const row = api._rowDisplay(legacy, t);
+  assert.match(row.title, /周 76% used/, "the host's label is passed through, not turned into NaN");
+  assert.match(row.title, /resets 9\/21 周一 00:00/, "the host's stamp is passed through");
+  assert.doesNotMatch(row.title, /NaN|undefined/);
+  assert.equal(row.sub, null, "one window means no second reading");
+  const dual = { ...legacy, snapshot: { ...legacy.snapshot, windows: [
+    { label: "周", percent: 76, resetAt: "9/21 周一 00:00" },
+    { label: "5h", percent: 12, resetAt: "" },
+  ] } };
+  assert.match(api._rowDisplay(dual, t).sub, /· 5h 12%/);
+  // Same rule for the T+1 verdict: `verdictKind` absent → the host's text.
+  assert.equal(api.verdictOf(t, { verdict: "卖飞" }), "卖飞");
+  assert.equal(api.verdictOf(t, { verdictKind: "soldEarly", verdict: "卖飞" }), "sold too early");
+  assert.equal(api.verdictOf(api.createTranslator(api.dictionaries.zh), { verdictKind: "soldEarly", verdict: "卖飞" }), "卖飞");
+});
+
 test("balance: CNY picking, tolerant parsing and the service's polite-cadence states", async () => {
   const balance = await import(pathToFileURL(path.join(PLUGIN, "lib", "balance.js")).href);
   const { createBalanceService, parseBalancePayload, pickCnyBalanceInfo } = balance;
@@ -1757,6 +1897,7 @@ test("client: the header chip headlines one provider and the panel pins the rest
   const remoteFace = { balance: async () => ({ ok: true, value: envelope }) };
   const ctx = {
     effect() {},
+    locale: { register() { return () => {}; } },
     get() { return remoteFace; },
     slots: { inject(n, fn) { (this._fns ??= []).push(fn); }, register(definition, Component) { (this._regs ??= []).push({ definition, Component }); } },
     remote: { $mount: async () => {} },
@@ -1769,7 +1910,7 @@ test("client: the header chip headlines one provider and the panel pins the rest
   const store = makeBalanceStoreStub();
 
   const tick = () => new Promise((resolve) => setImmediate(resolve));
-  const render = () => { reactStub._resetCursor(); return Chip({ sessionId: "s1", useStore: store.useStore, actions: store.actions, ...injected }); };
+  const render = () => { reactStub._resetCursor(); return Chip({ sessionId: "s1", t: translatorFor(api), useStore: store.useStore, actions: store.actions, ...injected }); };
 
   // Collect chip item / panel rows separately via data-pb-role.
   const collect = (tree) => {
@@ -1868,6 +2009,7 @@ test("client: the sidebar-foot balance opens a popover that stays open while you
   const selected = [];
   const ctx = {
     effect() {},
+    locale: { register() { return () => {}; } },
     get() { return remoteFace; },
     // DSH >= 0.1.5-rc.1. The foot must never drive panel navigation: selecting
     // a `main` panel swapped the whole conversation out from under the user.
@@ -1891,7 +2033,7 @@ test("client: the sidebar-foot balance opens a popover that stays open while you
   const face = action.definition.inject();
   const render = (wide = true) => {
     reactStub._resetCursor();
-    return action.Component({ wide, useStore: store.useStore, actions: store.actions, ...face });
+    return action.Component({ wide, t: translatorFor(api), useStore: store.useStore, actions: store.actions, ...face });
   };
   const find = (tree, pred) => {
     const out = [];
@@ -2000,6 +2142,7 @@ test("client: a balance fetch that fails says so instead of loading forever (#15
   };
   const ctx = {
     effect() {},
+    locale: { register() { return () => {}; } },
     get() { return remoteFace; },
     layout: { selectPanel() {} },
     slots: {
@@ -2016,7 +2159,7 @@ test("client: a balance fetch that fails says so instead of loading forever (#15
   const face = action.definition.inject();
   const render = () => {
     reactStub._resetCursor();
-    return action.Component({ wide: true, useStore: store.useStore, actions: store.actions, ...face });
+    return action.Component({ wide: true, t: translatorFor(api), useStore: store.useStore, actions: store.actions, ...face });
   };
   const find = (tree, pred) => {
     const out = [];
@@ -2072,7 +2215,9 @@ test("client: a balance fetch that fails says so instead of loading forever (#15
   answer = "down";
   foot = await refresh();
   assert.match(texts(popover(foot)), /¥110/);
-  assert.match(texts(popover(foot)), /刷新失败,显示最近一次:transport disconnected/);
+  // The two render sites used to spell this differently (`:` vs `: `); they
+  // share one dictionary key now, so the tight form is gone on purpose.
+  assert.match(texts(popover(foot)), /刷新失败,显示最近一次: transport disconnected/);
   disposeReactEffects();
 });
 
@@ -2105,7 +2250,7 @@ test("client: the panel says each provider's story once, abnormal rows loudest",
   const injected = __pb.definition.inject("s1");
   const store = makeBalanceStoreStub();
   const tick = () => new Promise((resolve) => setImmediate(resolve));
-  const render = () => { reactStub._resetCursor(); return Chip({ sessionId: "s1", useStore: store.useStore, actions: store.actions, ...injected }); };
+  const render = () => { reactStub._resetCursor(); return Chip({ sessionId: "s1", t: translatorFor(api), useStore: store.useStore, actions: store.actions, ...injected }); };
 
   let tree = render();
   await tick(); await tick(); await tick();
@@ -2165,7 +2310,7 @@ test("client: the panel says each provider's story once, abnormal rows loudest",
   for (const fn of ctx2.slots._fns) fn();
   const __pb2 = ctx2.slots._regs.find((r) => r.definition.id === "provider-balance");
   const store2 = makeBalanceStoreStub();
-  const render2 = () => { reactStub._resetCursor(); return __pb2.Component({ sessionId: "s2", useStore: store2.useStore, actions: store2.actions, ...__pb2.definition.inject("s2") }); };
+  const render2 = () => { reactStub._resetCursor(); return __pb2.Component({ sessionId: "s2", t: translatorFor(api), useStore: store2.useStore, actions: store2.actions, ...__pb2.definition.inject("s2") }); };
   let tree2 = render2();
   await tick(); await tick(); await tick();
   tree2 = render2();
@@ -2207,7 +2352,7 @@ test("client: the panel says each provider's story once, abnormal rows loudest",
   for (const fn of ctx3.slots._fns) fn();
   const __pb3 = ctx3.slots._regs.find((r) => r.definition.id === "provider-balance");
   const store3 = makeBalanceStoreStub();
-  const render3 = () => { reactStub._resetCursor(); return __pb3.Component({ sessionId: "s3", useStore: store3.useStore, actions: store3.actions, ...__pb3.definition.inject("s3") }); };
+  const render3 = () => { reactStub._resetCursor(); return __pb3.Component({ sessionId: "s3", t: translatorFor(api), useStore: store3.useStore, actions: store3.actions, ...__pb3.definition.inject("s3") }); };
   let tree3 = render3();
   await tick(); await tick(); await tick();
   // Open the panel so its rows mount into the tree.
@@ -2272,14 +2417,14 @@ test("client: _rowDisplay and _balanceNote project one provider's answer", async
   // surface the second window (周限额) as a muted pill suffix. Colour tiers
   // (level) follow the usage direction: green low, yellow near, red inside —
   // colour only, never at the cost of a field (#908).
-  assert.deepEqual(api._rowDisplay(null), { tone: "none", value: "—", sub: null, reset: null, level: null, title: "余额加载中" });
-  const okRow = api._rowDisplay(answer());
+  assert.deepEqual(api._rowDisplay(null, translatorFor(api)), { tone: "none", value: "—", sub: null, reset: null, level: null, title: "余额加载中" });
+  const okRow = api._rowDisplay(answer(), translatorFor(api));
   assert.equal(okRow.tone, "ok");
   assert.equal(okRow.level, null, "money rows have no usage tier — colour stays tonal");
   assert.equal(okRow.sub, null, "money rows carry no window suffix");
   assert.ok(!okRow.title.includes("更新于"), "the fetch timestamp must not repeat in the row");
-  assert.match(api._rowDisplay(answer({ snapshot: snap("7.50", { currency: "USD" }) })).value, /^\$7\.5/);
-  const pct = api._rowDisplay(answer({ snapshot: snap("76", { unit: "pct", currency: "" }) }));
+  assert.match(api._rowDisplay(answer({ snapshot: snap("7.50", { currency: "USD" }) }), translatorFor(api)).value, /^\$7\.5/);
+  const pct = api._rowDisplay(answer({ snapshot: snap("76", { unit: "pct", currency: "" }) }), translatorFor(api));
   assert.equal(pct.value, "76%", "quota reads as percent, never money");
   assert.equal(pct.level, "mid", "76% used sits in the warning band (60–79 at the default watermark)");
   assert.equal(pct.sub, null, "a single-window plan has no suffix");
@@ -2288,14 +2433,14 @@ test("client: _rowDisplay and _balanceNote project one provider's answer", async
       unit: "pct", currency: "",
       windows: [{ label: "5h", percent: 76, resetAt: "21:00" }, { label: "周", percent: 90, resetAt: "" }],
     }),
-  }));
+  }), translatorFor(api));
   assert.equal(dual.sub, "· 周 90%", "the weekly limit is the pill's second reading");
   const dualReset = api._rowDisplay(answer({
     snapshot: snap("76", {
       unit: "pct", currency: "",
       windows: [{ label: "5h", percent: 76, resetAt: "21:00" }, { label: "周", percent: 90, resetAt: "周四 21:00" }],
     }),
-  }));
+  }), translatorFor(api));
   assert.equal(dualReset.reset, "21:00", "the headline window's reset rides along for the chip");
   assert.equal(dualReset.sub, "· 周 90% ↻周四 21:00", "the weekly suffix carries its own reset");
   assert.deepEqual(
@@ -2309,10 +2454,10 @@ test("client: _rowDisplay and _balanceNote project one provider's answer", async
       unit: "pct", currency: "", isAvailable: true,
       windows: [{ label: "会话", percent: null, resetAt: "" }, { label: "本周", percent: 31, resetAt: "" }],
     }),
-  }));
+  }), translatorFor(api));
   assert.equal(primaryGone.value, "31%", "when the headline window is absent the readable one steps up");
   assert.equal(primaryGone.level, "ok", "the stepped-up reading is tiered by its own number");
-  assert.equal(api._rowDisplay(answer({ snapshot: snap("9.00", { isAvailable: false }) })).tone, "low");
+  assert.equal(api._rowDisplay(answer({ snapshot: snap("9.00", { isAvailable: false }) }), translatorFor(api)).tone, "low");
   // Exhausted quota (kcn 反馈): no caption anywhere — the 100% reading and
   // the reset stamp are the message; money rows keep their sentence.
   const usedUp = api._rowDisplay(answer({
@@ -2321,25 +2466,25 @@ test("client: _rowDisplay and _balanceNote project one provider's answer", async
       windows: [{ label: "5h", percent: 100, resetAt: "21:00" }, { label: "周", percent: 100, resetAt: "周四 21:00" }],
     }),
     low: true,
-  }));
+  }), translatorFor(api));
   assert.equal(usedUp.value, "100%", "an exhausted window reads as a plain 100% used");
   assert.ok(!usedUp.title.includes("已用尽"), "the exhausted caption is gone from the title");
   assert.equal(usedUp.reset, "21:00", "the reset stamp survives so the user knows when it frees up");
   assert.equal(usedUp.level, "low", "100% used tints red like any other inside-watermark reading");
   assert.equal(api._balanceNote(
     answer({ snapshot: snap("100", { unit: "pct", currency: "", isAvailable: false }), low: true }),
-  ), null, "an exhausted quota row is silent — its bar and reset speak");
-  assert.match(api._rowDisplay(answer({ snapshot: snap("9.00", { isAvailable: false }) })).title, /余额不足/, "money rows keep the official-insufficient sentence");
+    translatorFor(api)), null, "an exhausted quota row is silent — its bar and reset speak");
+  assert.match(api._rowDisplay(answer({ snapshot: snap("9.00", { isAvailable: false }) }), translatorFor(api)).title, /余额不足/, "money rows keep the official-insufficient sentence");
   // Healthy = silence. Every abnormal reading gets exactly one sentence.
-  assert.equal(api._balanceNote(null), null);
-  assert.equal(api._balanceNote(answer()), null);
-  assert.match(api._balanceNote(answer({ snapshot: snap("5.00"), low: true })), /低于阈值 ¥20/);
-  assert.match(api._balanceNote(answer({ status: "stale", message: "请求过于频繁" })), /刷新失败.*请求过于频繁/);
-  assert.match(api._balanceNote({ configured: false, snapshot: null, status: "no-key", low: false, message: "未配置 DeepSeek API Key", threshold: 20, refreshMs: 60000 }), /未配置/);
-  assert.match(api._balanceNote(answer({ snapshot: null, status: "failed", message: "网络请求失败" })), /网络请求失败/);
-  assert.match(api._balanceNote(answer({ snapshot: snap("9.00", { isAvailable: false }) })), /余额不足/);
+  assert.equal(api._balanceNote(null, translatorFor(api)), null);
+  assert.equal(api._balanceNote(answer(), translatorFor(api)), null);
+  assert.match(api._balanceNote(answer({ snapshot: snap("5.00"), low: true }), translatorFor(api)), /低于阈值 ¥20/);
+  assert.match(api._balanceNote(answer({ status: "stale", message: "请求过于频繁" }), translatorFor(api)), /刷新失败.*请求过于频繁/);
+  assert.match(api._balanceNote({ configured: false, snapshot: null, status: "no-key", low: false, message: "未配置 DeepSeek API Key", threshold: 20, refreshMs: 60000 }, translatorFor(api)), /未配置/);
+  assert.match(api._balanceNote(answer({ snapshot: null, status: "failed", message: "网络请求失败" }), translatorFor(api)), /网络请求失败/);
+  assert.match(api._balanceNote(answer({ snapshot: snap("9.00", { isAvailable: false }) }), translatorFor(api)), /余额不足/);
   assert.match(
-    api._balanceNote(answer({ snapshot: snap("88", { unit: "pct", currency: "", isAvailable: true }), low: true })),
+    api._balanceNote(answer({ snapshot: snap("88", { unit: "pct", currency: "", isAvailable: true }), low: true }), translatorFor(api)),
     /窗口已使用达 80%/,
     "quota lows speak in used percent (remaining watermark 20 flipped)",
   );
@@ -2371,7 +2516,7 @@ test("client: an exhausted quota row shows its 100% bars and resets instead of a
   const __pb = ctx.slots._regs.find((r) => r.definition.id === "provider-balance");
   const store = makeBalanceStoreStub();
   const tick = () => new Promise((resolve) => setImmediate(resolve));
-  const render = () => { reactStub._resetCursor(); return __pb.Component({ sessionId: "s1", useStore: store.useStore, actions: store.actions, ...__pb.definition.inject("s1") }); };
+  const render = () => { reactStub._resetCursor(); return __pb.Component({ sessionId: "s1", t: translatorFor(api), useStore: store.useStore, actions: store.actions, ...__pb.definition.inject("s1") }); };
 
   let tree = render();
   await tick(); await tick(); await tick();

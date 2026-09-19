@@ -255,10 +255,17 @@ export interface QuotaWindowInput {
 /** One vendor window → the wire window, or null when it carries no reading. */
 export function quotaWindow(input: QuotaWindowInput, now: number = Date.now()): BalanceWindow | null {
   if (input.usedPercent === null) return null
+  const durationMins = input.durationMins === null || input.durationMins <= 0 ? null : input.durationMins
+  const resetAt = formatReset(input.resetsAt, now)
   return {
     label: windowLabel(input.durationMins, input.fallbackLabel),
     percent: clampPercent(input.usedPercent),
-    resetAt: formatReset(input.resetsAt, now),
+    resetAt,
+    // The two structured fields behind `label` / `resetAt` (see BalanceWindow):
+    // the client re-renders both in the active locale from these and only falls
+    // back to the strings above when they are null.
+    durationMins,
+    resetAtMs: resetAt === '' ? null : toEpochMs(input.resetsAt),
   }
 }
 

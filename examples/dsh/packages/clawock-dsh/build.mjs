@@ -92,6 +92,7 @@ await exec(node, [tsc, '-p', 'tsconfig.declarations.json', '--pretty', 'false'],
 await wrapWebClient(join(pkg, 'lib/client.js'))
 await patchTypertAlignment()
 await patchTypertBalance()
+await patchTypertVerdictKind()
 
 /**
  * Same discipline as the alignment patch: the clawock checkout cannot
@@ -126,6 +127,8 @@ const clawock_dsh_clawockStudio_balance_result$schema = z.object({
   'label': z.string(),
   'percent': z.union([z.number(), z.literal(null)]),
   'resetAt': z.string(),
+  'durationMins': z.union([z.number(), z.literal(null)]),
+  'resetAtMs': z.union([z.number(), z.literal(null)]),
 })),
 })]),
   'status': z.union([z.literal("fresh"), z.literal("cached"), z.literal("stale"), z.literal("failed"), z.literal("no-key")]),
@@ -178,6 +181,34 @@ const clawock_dsh_clawockStudio_balance_result$schema = z.object({
   }
 }
 
+
+/**
+ * The T+1 verdict code, same hand-carried wire field as the balance schema
+ * above. Without it zod strips `verdictKind` from every trace, the client
+ * silently falls back to the host's rendered `verdict` text, and a non-Chinese
+ * reader gets Chinese verdicts with nothing failing — the reason this is a
+ * build step rather than a one-off edit.
+ */
+async function patchTypertVerdictKind() {
+  const files = ['lib/typert.host.js', 'lib/typert.remote-client.js']
+  const marker = `'verdictKind': z.union([z.literal("up")`
+  const anchor = `  'verdict': z.string(),
+  'tone': z.union([z.literal("win"), z.literal("loss"), z.literal("flat")]),`
+  const patched = `  'verdictKind': z.union([z.literal("up"), z.literal("down"), z.literal("soldEarly"), z.literal("soldRight"), z.literal("flat")]),
+  'verdict': z.string(),
+  'tone': z.union([z.literal("win"), z.literal("loss"), z.literal("flat")]),`
+  for (const rel of files) {
+    const file = join(pkg, rel)
+    let source = await readFile(file, 'utf8')
+    if (source.includes(marker)) continue
+    if (!source.includes(anchor)) {
+      throw new Error(`patchTypertVerdictKind: anchor missing in ${rel} — generator output changed?`)
+    }
+    source = source.replace(anchor, patched)
+    await writeFile(file, source)
+    console.log(`patched ${rel}: +t1.verdictKind`)
+  }
+}
 
 console.log('built clawock-dsh/lib')
 

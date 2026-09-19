@@ -89,11 +89,21 @@ export interface PlansResult {
   plans: PlanRow[]
 }
 
+/** Stable T+1 verdict identity; the renderer owns the words. */
+export type T1VerdictKind = 'up' | 'down' | 'soldEarly' | 'soldRight' | 'flat'
+
 export interface TraceT1 {
   date: string
   price: number
   delta: number
-  /** '涨' | '跌' | '卖飞' | '卖对' | '持平' — same dead zone as `tone`. */
+  /**
+   * The verdict as a stable code, so a renderer can name it in the active
+   * locale AND count on it without matching display text. The client used to
+   * count with `verdict === '卖飞'`, which made a Chinese string load-bearing
+   * logic: translating the host's copy would have silently zeroed the tally.
+   */
+  verdictKind: T1VerdictKind
+  /** Host-rendered verdict text ('涨' | '跌' | '卖飞' | '卖对' | '持平'); the fallback for a client without `verdictKind`. */
   verdict: string
   /**
    * Good/bad/flat reading, decided host-side so the chip and the trace node
@@ -157,7 +167,18 @@ export interface TracesResult {
   lastUpdated: string | null
 }
 
-/** One quota window worth its own line in the panel's per-window grid. */
+/**
+ * One quota window worth its own line in the panel's per-window grid.
+ *
+ * `label` and `resetAt` are HOST-formatted strings and so carry the host's
+ * language. They stay on the wire as the fallback, and everything that can be
+ * rendered in the reader's own locale is sent structurally as well:
+ * `durationMins` lets the client name the window, `resetAtMs` lets it stamp
+ * the reset. That tolerance is not decoration — the two halves deploy
+ * independently (a client bundle swap takes effect on the next page load,
+ * while a host change needs a dsh restart), so each side has to render
+ * correctly against the other's previous version.
+ */
 export interface BalanceWindow {
   /** Label derived from the window's length, same for every provider: '5h' | '4h' | '周'. */
   label: string
@@ -165,6 +186,10 @@ export interface BalanceWindow {
   percent: number | null
   /** LOCAL reset stamp in the one shared format ('今天 21:00' / '明天 09:00' / '9/20 周日 20:00'); '' when unknown. */
   resetAt: string
+  /** Window length in minutes, so the client can name it in the active locale; null when the vendor doesn't say. */
+  durationMins: number | null
+  /** The reset instant as epoch ms, so the client can stamp it in the active locale; null when unknown. */
+  resetAtMs: number | null
 }
 
 /**

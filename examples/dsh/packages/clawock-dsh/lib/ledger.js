@@ -274,7 +274,18 @@ function t1ToneOf(action, delta) {
 	const up = delta > 0;
 	return isSellAction(action) ? up ? "loss" : "win" : up ? "win" : "loss";
 }
-/** Chinese verdict text for a T+1 move, on the same dead zone as `t1ToneOf`. */
+/**
+* Stable verdict identity for a T+1 move, on the same dead zone as
+* `t1ToneOf`. This is what renderers switch on; `t1VerdictOf` only spells it
+* out in the host's language.
+*/
+function t1VerdictKindOf(action, delta) {
+	if (Math.abs(delta) < 1) return "flat";
+	const up = delta > 0;
+	if (isSellAction(action)) return up ? "soldEarly" : "soldRight";
+	return up ? "up" : "down";
+}
+/** Host-rendered verdict text for a T+1 move, on the same dead zone as `t1ToneOf`. */
 function t1VerdictOf(action, delta) {
 	if (Math.abs(delta) < 1) return "持平";
 	const up = delta > 0;
@@ -364,6 +375,7 @@ function enrichTrade(trade, byTicker, decByTicker, books) {
 			date: t1.date,
 			price: Math.round(t1.price * 100) / 100,
 			delta,
+			verdictKind: t1VerdictKindOf(trade.action, delta),
 			verdict: t1VerdictOf(trade.action, delta),
 			tone: t1ToneOf(trade.action, delta)
 		};
@@ -458,4 +470,4 @@ function readTraces(workspace) {
 	};
 }
 //#endregion
-export { T1_FLAT_BAND_PCT, T1_MAX_GAP_DAYS, dayGap, isSellAction, planFillAlignment, readBarCloses, readFxRate, readLedger, readPlans, readPortfolio, readTraces, readableRationale, t1ToneOf, t1VerdictOf };
+export { T1_FLAT_BAND_PCT, T1_MAX_GAP_DAYS, dayGap, isSellAction, planFillAlignment, readBarCloses, readFxRate, readLedger, readPlans, readPortfolio, readTraces, readableRationale, t1ToneOf, t1VerdictKindOf, t1VerdictOf };

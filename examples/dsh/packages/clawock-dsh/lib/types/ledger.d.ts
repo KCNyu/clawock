@@ -6,7 +6,7 @@
  * These are the files the OpenClaw runtime produces every day, so whatever
  * OpenClaw writes, this DSH plugin can show.
  */
-import type { LedgerResult, PlansResult, PortfolioResult, TracesResult } from './types.ts';
+import type { LedgerResult, PlansResult, PortfolioResult, T1VerdictKind, TracesResult } from './types.ts';
 /**
  * Parse the decision ledger (memory/decisions.jsonl) — one JSON object per
  * line. Malformed lines are skipped, never fatal: the desk's own writer
@@ -79,7 +79,13 @@ export declare function planFillAlignment(planAction: string | null | undefined,
 export declare function readableRationale(text: string | null | undefined): string | null;
 /** Good/bad/flat reading of a T+1 move, action-aware and dead-zoned. */
 export declare function t1ToneOf(action: string, delta: number): 'win' | 'loss' | 'flat';
-/** Chinese verdict text for a T+1 move, on the same dead zone as `t1ToneOf`. */
+/**
+ * Stable verdict identity for a T+1 move, on the same dead zone as
+ * `t1ToneOf`. This is what renderers switch on; `t1VerdictOf` only spells it
+ * out in the host's language.
+ */
+export declare function t1VerdictKindOf(action: string, delta: number): T1VerdictKind;
+/** Host-rendered verdict text for a T+1 move, on the same dead zone as `t1ToneOf`. */
 export declare function t1VerdictOf(action: string, delta: number): string;
 /**
  * Session close per ticker from the canonical bar store: { ticker: { date: close } }.

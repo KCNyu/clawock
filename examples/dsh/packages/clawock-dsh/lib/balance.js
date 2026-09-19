@@ -160,10 +160,14 @@ function windowLabel(durationMins, fallback) {
 /** One vendor window → the wire window, or null when it carries no reading. */
 function quotaWindow(input, now = Date.now()) {
 	if (input.usedPercent === null) return null;
+	const durationMins = input.durationMins === null || input.durationMins <= 0 ? null : input.durationMins;
+	const resetAt = formatReset(input.resetsAt, now);
 	return {
 		label: windowLabel(input.durationMins, input.fallbackLabel),
 		percent: clampPercent(input.usedPercent),
-		resetAt: formatReset(input.resetsAt, now)
+		resetAt,
+		durationMins,
+		resetAtMs: resetAt === "" ? null : toEpochMs(input.resetsAt)
 	};
 }
 /**
