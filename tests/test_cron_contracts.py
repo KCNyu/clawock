@@ -819,6 +819,18 @@ def test_brief_timeout_lands_before_the_next_cron_window():
     assert start_min + timeout / 60 <= next_min
 
 
+def test_brief_watchdog_runs_after_the_brief_timeout_boundary():
+    data = contract()
+    timeout = data['payload_profiles']['brief']['timeout_seconds']
+    brief = next(j for j in data['jobs'] if j['name'] == '盘前深度简报')
+    start = brief['schedule']['expr'].split()
+    watchdog = brief['watchdog']['schedule']['expr'].split()
+    start_min = int(start[1]) * 60 + int(start[0])
+    watchdog_min = int(watchdog[1]) * 60 + int(watchdog[0])
+
+    assert watchdog_min > start_min + timeout / 60
+
+
 def test_only_the_brief_profile_pins_a_timeout_for_now():
     # The reporting profiles have a 558s p100 and no evidence of harm; pinning them
     # here would assert a bound the live jobs do not have and red the gate.

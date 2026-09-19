@@ -266,14 +266,14 @@
       "watchdog": {
         "schedule": {
           "kind": "cron",
-          "expr": "33 8 * * 1-5",
+        "expr": "36 8 * * 1-5",
           "tz": "Asia/Hong_Kong"
         },
         "command": "/root/.local/bin/clawock-brief-watchdog >> /root/.openclaw/workspace/logs/watchdog.cron.log 2>&1"
       },
       "extra_watchdogs": [
         {
-          "purpose": "miss-detector: brief never written (08:33 is inside the landing window)",
+        "purpose": "miss-detector: brief never written (08:36 is inside the landing window)",
           "schedule": {
             "kind": "cron",
             "expr": "5 9 * * 1-5",
