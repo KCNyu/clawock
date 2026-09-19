@@ -156,7 +156,7 @@ def collect() -> dict:
 
 def main(argv=None) -> int:
     import argparse
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(prog='clawock watch-list', description=__doc__)
     parser.parse_args(argv)
     print(json.dumps(collect(), ensure_ascii=False, indent=2))
     return 0

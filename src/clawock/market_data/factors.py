@@ -1001,7 +1001,7 @@ def update_history(as_of, rows, registered_at):
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(prog='clawock cross-factor', description=__doc__)
     parser.add_argument('--no-fundamentals', action='store_true',
                         help='use a valid cache only; do not refresh SEC facts')
     parser.add_argument('--config', default=str(CONFIG))

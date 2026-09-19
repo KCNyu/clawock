@@ -76,7 +76,7 @@ def recompute(dry_run=False, *, portfolio_path=PORTFOLIO, cash_fields=None):
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(prog='clawock cash')
     parser.add_argument('--dry-run', action='store_true')
     parser.add_argument('--path', type=Path, default=PORTFOLIO)
     parser.add_argument('--config', type=Path, default=POLICY)

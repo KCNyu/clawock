@@ -86,7 +86,7 @@ def trigger(job_name, *, contract=None, live_jobs=None, run=None, workspace=None
 
 
 def main(argv=None) -> int:
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser = argparse.ArgumentParser(prog='clawock cron-trigger', description=__doc__.splitlines()[0])
     parser.add_argument("--job-name", required=True)
     parser.add_argument("--check", action="store_true",
                         help="validate the contract and the runtime, fire nothing")

@@ -3535,6 +3535,7 @@ def compute_cron_schedule():
 
 def parse_args(argv=None):
     parser = argparse.ArgumentParser(
+        prog='clawock dashboard-build',
         description='Build the public dashboard payloads from the workspace.')
     source = parser.add_mutually_exclusive_group()
     source.add_argument(

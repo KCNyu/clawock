@@ -168,7 +168,7 @@ def check(root: Path | None = None, cards_dir: Path | None = None,
 
 
 def main(argv=None) -> int:
-    ap = argparse.ArgumentParser(description=__doc__)
+    ap = argparse.ArgumentParser(prog='clawock claim-provenance', description=__doc__)
     ap.add_argument('--check', action='store_true', help='exit non-zero on problems')
     args = ap.parse_args(argv)
 

@@ -591,7 +591,7 @@ def degrade(payload: dict, max_bytes: int = MAX_BYTES) -> dict:
 
 
 def main(argv=None) -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(prog='clawock decision-map', description=__doc__)
     parser.add_argument('--out', default=str(OUT))
     parser.add_argument('--stdout', action='store_true')
     args = parser.parse_args(argv)

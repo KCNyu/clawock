@@ -514,7 +514,7 @@ def registry_summary(path: Path, active_tickers: list[str]) -> dict:
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(prog="clawock thesis")
     sub = parser.add_subparsers(dest="command", required=True)
     validate = sub.add_parser("validate")
     validate.add_argument("path", type=Path)

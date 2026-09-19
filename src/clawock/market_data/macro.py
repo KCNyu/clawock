@@ -238,7 +238,7 @@ def fed_press_releases(days=7):
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser = argparse.ArgumentParser(prog='clawock macro', description=__doc__.splitlines()[0])
     parser.add_argument("--workspace", type=Path, default=Path.cwd())
     parser.add_argument("--output", type=Path)
     args = parser.parse_args(argv)

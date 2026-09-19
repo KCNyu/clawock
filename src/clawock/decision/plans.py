@@ -432,7 +432,7 @@ def open_decisions_context(*, leg=None, today=None, ledger=None, memory_dir=None
 def main(argv=None):
     import argparse
 
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(prog='clawock plan-context', description=__doc__)
     parser.add_argument("--leg", choices=["HK", "US"])
     parser.add_argument("--date")
     args = parser.parse_args(argv)

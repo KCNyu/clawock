@@ -11,7 +11,7 @@ from clawock.decision import ledger as decision_v2
 
 
 def main(argv=None):
-    ap = argparse.ArgumentParser()
+    ap = argparse.ArgumentParser(prog="clawock mark-followed")
     ap.add_argument("decision_id", nargs="?")
     ap.add_argument("--no", action="store_true", help="mark not_followed")
     ap.add_argument("--list", action="store_true", help="list unknown triggered decisions")

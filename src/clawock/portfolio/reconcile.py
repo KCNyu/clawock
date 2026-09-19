@@ -13,7 +13,7 @@ from clawock.workspace import workspace_root
 
 
 def main(argv=None) -> int:
-    parser = argparse.ArgumentParser(description=__doc__)
+    parser = argparse.ArgumentParser(prog='clawock reconcile', description=__doc__)
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument("--path", type=Path)
     args = parser.parse_args(argv)

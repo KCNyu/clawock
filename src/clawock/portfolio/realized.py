@@ -76,7 +76,7 @@ def recompute(data: Dict) -> Dict[str, Dict]:
 
 
 def main(argv=None):
-    ap = argparse.ArgumentParser()
+    ap = argparse.ArgumentParser(prog='clawock realized')
     ap.add_argument('--dry-run', action='store_true', help='print summary, do not write')
     ap.add_argument('--path', type=Path, default=PORTFOLIO_PATH)
     args = ap.parse_args(argv)

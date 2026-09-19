@@ -324,7 +324,7 @@ def load_cards(cards_dir: Path | None = None) -> list[dict]:
 
 
 def main(argv=None) -> int:
-    ap = argparse.ArgumentParser(description=__doc__)
+    ap = argparse.ArgumentParser(prog='clawock run-card', description=__doc__)
     ap.add_argument('--list', action='store_true', help='list stored run cards')
     ap.add_argument('--run-id', help='print one card')
     ap.add_argument('--diff', nargs=2, metavar=('RUN_ID', 'RUN_ID'),
