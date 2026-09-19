@@ -1,5 +1,6 @@
 import { delimiter, join } from "node:path";
 import { existsSync, readFileSync } from "node:fs";
+import { homedir } from "node:os";
 import { spawn } from "node:child_process";
 //#region src/balance.ts
 /**
@@ -39,16 +40,36 @@ const DEFAULT_BALANCE_THRESHOLD = 20;
 const DEFAULT_BALANCE_REFRESH_MS = 6e4;
 const DEFAULT_MINIMAX_BASE_URL = "https://api.minimaxi.com";
 const DEFAULT_MINIMAX_LOW_PCT = 20;
-const DEFAULT_OPENCLAW_CONFIG_PATH = "/root/.openclaw/openclaw.json";
-const DEFAULT_CLAUDE_CREDENTIALS_PATH = "/root/.claude/.credentials.json";
+/**
+* The three file-backed defaults hang off the ACTIVE user's home, never a
+* literal `/root/...`. This package is published to npm, so an absolute home
+* directory would ship one machine's layout as everyone's default (and would
+* read the wrong account under another uid). Each path stays overridable from
+* the profile row (see cordis.patch.yml); on this root-owned host they resolve
+* to exactly the previous literals.
+*/
+const DEFAULT_OPENCLAW_CONFIG_PATH = join(homedir(), ".openclaw", "openclaw.json");
+const DEFAULT_CLAUDE_CREDENTIALS_PATH = join(homedir(), ".claude", ".credentials.json");
 const DEFAULT_CLAUDE_USAGE_URL = "https://api.anthropic.com/api/oauth/usage";
 const DEFAULT_CLAUDE_LOW_PCT = 20;
-const DEFAULT_CODEX_COMMAND = "/root/.local/bin/codex";
+const DEFAULT_CODEX_COMMAND = join(homedir(), ".local", "bin", "codex");
 const DEFAULT_CODEX_LOW_PCT = 20;
 const DEFAULT_CODEX_REFRESH_MS = 3e5;
 const TTL_MS = 6e4;
 const TIMEOUT_MS = 15e3;
 const WEEK_MINS = 10080;
+/**
+* Expand one leading `~` in a configured path. The defaults above are already
+* home-relative, and the profile row is hand-written YAML, so `~/.claude/...`
+* is the form a user naturally writes for an override — without this it would
+* be taken literally and read as a file named `~`. Only a leading `~` followed
+* by `/` or the end of the string expands; a `~` inside a path is a real name
+* and is left alone. Exported because the behaviour is worth pinning in tests.
+*/
+function expandHome(value) {
+	if (value !== "~" && !value.startsWith("~/")) return value;
+	return value === "~" ? homedir() : join(homedir(), value.slice(2));
+}
 /**
 * The credentials seam reference the official DeepSeek adapter resolves.
 * A plain string on purpose, not credentialRef(): the branding helper is a
@@ -400,7 +421,7 @@ function createMinimaxService(deps, config = {}) {
 	const baseUrl = config.baseUrl ?? "https://api.minimaxi.com";
 	const lowPct = numberOr(config.lowPct, 20);
 	const seamEnv = resolveSeamThenEnv(deps, config.keyRef ?? "MINIMAX_API_KEY");
-	const openclawPath = config.openclawConfigPath ?? "/root/.openclaw/openclaw.json";
+	const openclawPath = expandHome(config.openclawConfigPath ?? DEFAULT_OPENCLAW_CONFIG_PATH);
 	return createQuotaService(deps, {
 		resolveApiKey: async () => await seamEnv() ?? readOpenclawProviderKey(openclawPath, "minimax"),
 		noKeyMessage: "未配置 MiniMax API Key(凭据缝 / 环境变量 / openclaw 配置均无)",
@@ -518,7 +539,7 @@ function readCodexRateLimits(command, timeoutMs = TIMEOUT_MS) {
 }
 /** Codex row: ChatGPT subscription quota through the official app-server. */
 function createCodexService(deps, config = {}) {
-	const command = config.command ?? "/root/.local/bin/codex";
+	const command = expandHome(config.command ?? DEFAULT_CODEX_COMMAND);
 	const lowPct = numberOr(config.lowPct, 20);
 	const refreshMs = numberOr(config.refreshMs, DEFAULT_CODEX_REFRESH_MS);
 	return createQuotaService(deps, {
@@ -545,7 +566,7 @@ function readClaudeCredentials(path) {
 }
 /** Claude row: subscription rate-limit windows via the OAuth usage endpoint. */
 function createClaudeService(deps, config = {}) {
-	const credentialsPath = config.credentialsPath ?? "/root/.claude/.credentials.json";
+	const credentialsPath = expandHome(config.credentialsPath ?? DEFAULT_CLAUDE_CREDENTIALS_PATH);
 	const usageUrl = config.usageUrl ?? "https://api.anthropic.com/api/oauth/usage";
 	const lowPct = numberOr(config.lowPct, 20);
 	return createQuotaService(deps, {
@@ -572,4 +593,4 @@ function createClaudeService(deps, config = {}) {
 	});
 }
 //#endregion
-export { DEEPSEEK_KEY_REF, DEFAULT_BALANCE_BASE_URL, DEFAULT_BALANCE_REFRESH_MS, DEFAULT_BALANCE_THRESHOLD, DEFAULT_CLAUDE_CREDENTIALS_PATH, DEFAULT_CLAUDE_LOW_PCT, DEFAULT_CLAUDE_USAGE_URL, DEFAULT_CODEX_COMMAND, DEFAULT_CODEX_LOW_PCT, DEFAULT_CODEX_REFRESH_MS, DEFAULT_MINIMAX_BASE_URL, DEFAULT_MINIMAX_LOW_PCT, DEFAULT_OPENCLAW_CONFIG_PATH, MINIMAX_KEY_REF, createBalanceService, createClaudeService, createCodexService, createMinimaxService, formatReset, parseBalancePayload, parseClaudeUsage, parseCodexRateLimits, parseMinimaxRemains, pickCnyBalanceInfo, quotaIsLow, quotaSnapshot, quotaWindow, readClaudeCredentials, readCodexRateLimits, readJsonFile, toEpochMs, windowLabel, windowUsedPercent };
+export { DEEPSEEK_KEY_REF, DEFAULT_BALANCE_BASE_URL, DEFAULT_BALANCE_REFRESH_MS, DEFAULT_BALANCE_THRESHOLD, DEFAULT_CLAUDE_CREDENTIALS_PATH, DEFAULT_CLAUDE_LOW_PCT, DEFAULT_CLAUDE_USAGE_URL, DEFAULT_CODEX_COMMAND, DEFAULT_CODEX_LOW_PCT, DEFAULT_CODEX_REFRESH_MS, DEFAULT_MINIMAX_BASE_URL, DEFAULT_MINIMAX_LOW_PCT, DEFAULT_OPENCLAW_CONFIG_PATH, MINIMAX_KEY_REF, createBalanceService, createClaudeService, createCodexService, createMinimaxService, expandHome, formatReset, parseBalancePayload, parseClaudeUsage, parseCodexRateLimits, parseMinimaxRemains, pickCnyBalanceInfo, quotaIsLow, quotaSnapshot, quotaWindow, readClaudeCredentials, readCodexRateLimits, readJsonFile, toEpochMs, windowLabel, windowUsedPercent };

@@ -151,8 +151,13 @@ web GUI **左侧栏底部、Settings 正上方**常驻一行余额读数,不跟�
 `balanceBaseUrl` / `balanceThreshold` / `balanceRefreshMs` /
 `minimaxBaseUrl` / `minimaxKeyRef` / `minimaxLowPct` / `minimaxOpenclawConfigPath` /
 `claudeCredentialsPath` / `claudeUsageUrl` / `claudeLowPct` /
-`codexCommand`(Codex CLI 路径,默认 `/root/.local/bin/codex`)/ `codexLowPct` /
+`codexCommand`(Codex CLI 路径,默认 `~/.local/bin/codex`)/ `codexLowPct` /
 `codexRefreshMs`(Codex 轮询与缓存周期,默认 300000)。
+
+三个文件类默认值(`minimaxOpenclawConfigPath` / `claudeCredentialsPath` /
+`codexCommand`)都挂在**当前用户的家目录**下(`homedir()`),不是写死的
+`/root/...`——本包发布在 npm 上,绝对家目录会把一台机器的布局当成所有人的
+默认值;换 uid 跑也会读错账号。profile 行里可以逐个覆盖。
 
 ## 它不做什么
 

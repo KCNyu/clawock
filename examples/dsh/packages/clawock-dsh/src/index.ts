@@ -68,15 +68,6 @@ export interface ClawockStudioConfig {
 }
 
 /**
- * The row config apply() hands to the next gateway instance. Module-level
- * on purpose and safe: apply() assigns it synchronously before ctx.plugin
- * constructs the service, and the balance method reads it lazily on first
- * use — a plugin reload therefore gets its own value and nothing serves
- * config past its lifetime.
- */
-let pendingConfig: ClawockStudioConfig = {}
-
-/**
  * The providers the balance chip lists, in display order. Adding one is one
  * row here plus its service in balance.ts — the gateway method below iterates
  * this table instead of naming each provider in four places (#1480 had to
@@ -145,9 +136,17 @@ export class ClawockStudioGateway extends TypertRemoteService {
    */
   private balanceServices: BalanceService[] | null = null
 
+  /**
+   * The row config, owned by the instance. cordis constructs a class plugin as
+   * `new Plugin(ctx, config)` (Fiber's runner), so the constructor already
+   * receives it — no module-level handoff is involved, and two rows or a
+   * plugin reload can never read each other's config.
+   */
+  private readonly config: ClawockStudioConfig
+
   constructor(ctx: Context, config: ClawockStudioConfig = {}) {
     super(ctx, 'clawockStudio')
-    void config
+    this.config = config
   }
 
   /** @returns Prepared runs (newest first), with decision/receipt presence flags. */
@@ -219,7 +218,7 @@ export class ClawockStudioGateway extends TypertRemoteService {
   async balance(force: boolean): Promise<BalancesResult> {
     if (this.balanceServices === null) {
       const deps = { credentials: credentialsOf(this.ctx) }
-      this.balanceServices = BALANCE_PROVIDERS.map((provider) => provider.create(deps, pendingConfig))
+      this.balanceServices = BALANCE_PROVIDERS.map((provider) => provider.create(deps, this.config))
     }
     const services = this.balanceServices
     const results = await Promise.all(services.map((service) => service.get(force)))
@@ -250,6 +249,5 @@ function credentialsOf(ctx: Context): BalanceCredentials {
 export const name = 'clawock-dsh'
 
 export function apply(ctx: Context, config: ClawockStudioConfig = {}): void {
-  pendingConfig = config
   ctx.plugin(ClawockStudioGateway, config)
 }

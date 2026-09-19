@@ -36,13 +36,30 @@ export declare const DEFAULT_BALANCE_THRESHOLD = 20;
 export declare const DEFAULT_BALANCE_REFRESH_MS = 60000;
 export declare const DEFAULT_MINIMAX_BASE_URL = "https://api.minimaxi.com";
 export declare const DEFAULT_MINIMAX_LOW_PCT = 20;
-export declare const DEFAULT_OPENCLAW_CONFIG_PATH = "/root/.openclaw/openclaw.json";
-export declare const DEFAULT_CLAUDE_CREDENTIALS_PATH = "/root/.claude/.credentials.json";
+/**
+ * The three file-backed defaults hang off the ACTIVE user's home, never a
+ * literal `/root/...`. This package is published to npm, so an absolute home
+ * directory would ship one machine's layout as everyone's default (and would
+ * read the wrong account under another uid). Each path stays overridable from
+ * the profile row (see cordis.patch.yml); on this root-owned host they resolve
+ * to exactly the previous literals.
+ */
+export declare const DEFAULT_OPENCLAW_CONFIG_PATH: string;
+export declare const DEFAULT_CLAUDE_CREDENTIALS_PATH: string;
 export declare const DEFAULT_CLAUDE_USAGE_URL = "https://api.anthropic.com/api/oauth/usage";
 export declare const DEFAULT_CLAUDE_LOW_PCT = 20;
-export declare const DEFAULT_CODEX_COMMAND = "/root/.local/bin/codex";
+export declare const DEFAULT_CODEX_COMMAND: string;
 export declare const DEFAULT_CODEX_LOW_PCT = 20;
 export declare const DEFAULT_CODEX_REFRESH_MS = 300000;
+/**
+ * Expand one leading `~` in a configured path. The defaults above are already
+ * home-relative, and the profile row is hand-written YAML, so `~/.claude/...`
+ * is the form a user naturally writes for an override — without this it would
+ * be taken literally and read as a file named `~`. Only a leading `~` followed
+ * by `/` or the end of the string expands; a `~` inside a path is a real name
+ * and is left alone. Exported because the behaviour is worth pinning in tests.
+ */
+export declare function expandHome(value: string): string;
 /** The credentials capability, narrowed to what these services use. */
 export interface BalanceCredentials {
     resolve(ref: string): Promise<{

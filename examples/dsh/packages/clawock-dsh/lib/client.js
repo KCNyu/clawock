@@ -6712,15 +6712,29 @@ function ProviderBalanceChip(props) {
 		onClick: () => {
 			setOpen(!open);
 		}
-	}, renderBalanceHeadline(primary, false, false, state.empty.tone)), h("div", {
-		className: cx("bp"),
-		"data-open": open ? "true" : "false",
-		role: open ? "dialog" : "none",
-		"aria-label": "各模型服务余额"
-	}, renderBalancePanelBody(state)));
+	}, renderBalanceHeadline(primary, false, false, state.empty.tone)), h("div", panelAttrs(open, "各模型服务余额"), renderBalancePanelBody(state)));
 }
 /** Foot-action id of the balance surface (a stable DOM contract for probes). */
 const BALANCE_PANEL = "clawock-provider-balance";
+/**
+* The shared popover attributes. The closed panel is hidden with opacity +
+* `pointer-events:none` (so the open/close transition keeps working), and
+* `inert` is what actually removes it from interaction: opacity alone leaves
+* every row button and the refresh control in the tab order, so a keyboard
+* user tabbing through the sidebar used to land on five invisible controls.
+* `inert` is the host's own tool for this (ui-primitives uses it), and it
+* suppresses focus and the accessibility tree in one attribute.
+*/
+function panelAttrs(open, label, extra) {
+	return {
+		className: cx("bp"),
+		"data-open": open ? "true" : "false",
+		role: open ? "dialog" : "none",
+		"aria-label": label,
+		inert: open ? void 0 : true,
+		...extra
+	};
+}
 /**
 * The sidebar-foot home of the balance chip: always mounted, independent of
 * any session. It headlines the same one provider (pinned or first row) with
@@ -6793,17 +6807,13 @@ function ProviderBalanceSidebarAction(props) {
 	}, props.wide ? renderBalanceHeadline(primary, true, true, state.empty.tone) : h("span", {
 		className: cx("bal-lead"),
 		"data-balance-state": primary !== void 0 ? primary.view.tone : state.empty.tone
-	}, renderBalanceGlyph(primary !== void 0 ? primary.view.tone : state.empty.tone, 18))), h("div", {
-		className: cx("bp"),
-		"data-open": open ? "true" : "false",
+	}, renderBalanceGlyph(primary !== void 0 ? primary.view.tone : state.empty.tone, 18))), h("div", panelAttrs(open, "各模型服务余额", {
 		"data-clawock-popover": BALANCE_PANEL,
-		role: open ? "dialog" : "none",
-		"aria-label": "各模型服务余额",
-		style: anchor === null ? void 0 : {
+		...anchor === null ? {} : { style: {
 			left: anchor.left + "px",
 			bottom: anchor.bottom + "px"
-		}
-	}, renderBalancePanelBody(state)));
+		} }
+	}), renderBalancePanelBody(state)));
 }
 function DecisionMind(props) {
 	const filter = props.useStore((state) => state.filter);
@@ -6985,16 +6995,20 @@ function DecisionMind(props) {
 		ref: rootRef
 	}, h("div", { className: cx("top") }, h("div", { className: cx("tin") }, h("div", { className: cx("tt") }, "决策轨迹", h("span", { className: cx("ts") }, "一笔真实成交 + 当时写下的计划 + 官方收盘给的结果" + (data.stale ? " · 更新失败,显示此前快照" : "")), h("span", { className: cx("rate") }, traces.length + " 笔成交" + (rate === null ? "" : " · @" + rate))), stats)), h("div", { className: cx("bar") }, h("div", { className: cx("bin") }, filters)), h("div", { className: cx("list") }, body));
 }
-/** Services required by the registration and the mounted Remote face. */
-const inject = [
-	"slots",
-	"remote",
-	"layout"
-];
+/**
+* Hard dependencies only. `layout` is deliberately NOT here: it is read with
+* `ctx.get` below, because the client uses it as a capability probe (does this
+* host have global panels?) rather than a service it needs. Declaring a probe
+* as a hard dependency inverts the rule — a host without `layout` would leave
+* the whole client half waiting on it, so the Decision Mind tab would never
+* mount either, even though that tab never touches layout.
+*/
+const inject = ["slots", "remote"];
 /** Register the Decision Mind tab into the conversation view ring. */
 async function apply(ctx) {
 	await ctx.remote.$mount(TYPERT_REMOTE);
 	const studioRemote = ctx.get("remote.clawockStudio");
+	const layout = ctx.get("layout");
 	let cached = null;
 	let cachedBalances = null;
 	const call = async (method, args = []) => {
@@ -7046,7 +7060,7 @@ async function apply(ctx) {
 		inject: injected
 	}, DecisionMind));
 	const balancesStore = createBalanceStore();
-	if (typeof ctx.layout?.selectPanel === "function") ctx.slots.inject("sidebar.footer.action", () => ctx.slots.register({
+	if (typeof layout?.selectPanel === "function") ctx.slots.inject("sidebar.footer.action", () => ctx.slots.register({
 		name: "sidebar.footer.action",
 		id: "provider-balance",
 		store: balancesStore,

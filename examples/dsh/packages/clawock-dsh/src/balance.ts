@@ -33,6 +33,7 @@
 
 import { delimiter, join } from 'node:path'
 import { existsSync, readFileSync } from 'node:fs'
+import { homedir } from 'node:os'
 import { spawn } from 'node:child_process'
 import type { BalanceResult, BalanceSnapshot, BalanceWindow } from './types.ts'
 
@@ -41,16 +42,37 @@ export const DEFAULT_BALANCE_THRESHOLD = 20
 export const DEFAULT_BALANCE_REFRESH_MS = 60000
 export const DEFAULT_MINIMAX_BASE_URL = 'https://api.minimaxi.com'
 export const DEFAULT_MINIMAX_LOW_PCT = 20
-export const DEFAULT_OPENCLAW_CONFIG_PATH = '/root/.openclaw/openclaw.json'
-export const DEFAULT_CLAUDE_CREDENTIALS_PATH = '/root/.claude/.credentials.json'
+/**
+ * The three file-backed defaults hang off the ACTIVE user's home, never a
+ * literal `/root/...`. This package is published to npm, so an absolute home
+ * directory would ship one machine's layout as everyone's default (and would
+ * read the wrong account under another uid). Each path stays overridable from
+ * the profile row (see cordis.patch.yml); on this root-owned host they resolve
+ * to exactly the previous literals.
+ */
+export const DEFAULT_OPENCLAW_CONFIG_PATH = join(homedir(), '.openclaw', 'openclaw.json')
+export const DEFAULT_CLAUDE_CREDENTIALS_PATH = join(homedir(), '.claude', '.credentials.json')
 export const DEFAULT_CLAUDE_USAGE_URL = 'https://api.anthropic.com/api/oauth/usage'
 export const DEFAULT_CLAUDE_LOW_PCT = 20
-export const DEFAULT_CODEX_COMMAND = '/root/.local/bin/codex'
+export const DEFAULT_CODEX_COMMAND = join(homedir(), '.local', 'bin', 'codex')
 export const DEFAULT_CODEX_LOW_PCT = 20
 export const DEFAULT_CODEX_REFRESH_MS = 300000
 const TTL_MS = 60000
 const TIMEOUT_MS = 15000
 const WEEK_MINS = 7 * 24 * 60
+
+/**
+ * Expand one leading `~` in a configured path. The defaults above are already
+ * home-relative, and the profile row is hand-written YAML, so `~/.claude/...`
+ * is the form a user naturally writes for an override — without this it would
+ * be taken literally and read as a file named `~`. Only a leading `~` followed
+ * by `/` or the end of the string expands; a `~` inside a path is a real name
+ * and is left alone. Exported because the behaviour is worth pinning in tests.
+ */
+export function expandHome(value: string): string {
+  if (value !== '~' && !value.startsWith('~/')) return value
+  return value === '~' ? homedir() : join(homedir(), value.slice(2))
+}
 
 /** The credentials capability, narrowed to what these services use. */
 export interface BalanceCredentials {
@@ -658,7 +680,7 @@ export function createMinimaxService(
   const baseUrl = config.baseUrl ?? DEFAULT_MINIMAX_BASE_URL
   const lowPct = numberOr(config.lowPct, DEFAULT_MINIMAX_LOW_PCT)
   const seamEnv = resolveSeamThenEnv(deps, config.keyRef ?? MINIMAX_KEY_REF)
-  const openclawPath = config.openclawConfigPath ?? DEFAULT_OPENCLAW_CONFIG_PATH
+  const openclawPath = expandHome(config.openclawConfigPath ?? DEFAULT_OPENCLAW_CONFIG_PATH)
   return createQuotaService(deps, {
     // kcn keeps the real key in the openclaw gateway's own config — that file
     // is the working fallback when the dsh seam and env are both unset.
@@ -779,7 +801,7 @@ export function createCodexService(
   deps: { credentials: BalanceCredentials },
   config: CodexConfig = {},
 ): BalanceService {
-  const command = config.command ?? DEFAULT_CODEX_COMMAND
+  const command = expandHome(config.command ?? DEFAULT_CODEX_COMMAND)
   const lowPct = numberOr(config.lowPct, DEFAULT_CODEX_LOW_PCT)
   const refreshMs = numberOr(config.refreshMs, DEFAULT_CODEX_REFRESH_MS)
   return createQuotaService(deps, {
@@ -821,7 +843,7 @@ export function createClaudeService(
   deps: { credentials: BalanceCredentials },
   config: ClaudeConfig = {},
 ): BalanceService {
-  const credentialsPath = config.credentialsPath ?? DEFAULT_CLAUDE_CREDENTIALS_PATH
+  const credentialsPath = expandHome(config.credentialsPath ?? DEFAULT_CLAUDE_CREDENTIALS_PATH)
   const usageUrl = config.usageUrl ?? DEFAULT_CLAUDE_USAGE_URL
   const lowPct = numberOr(config.lowPct, DEFAULT_CLAUDE_LOW_PCT)
   // The seam plays no role here — the secret is Claude Code's own login file.

@@ -56,14 +56,6 @@ var __esDecorate = function(ctor, descriptorIn, decorators, contextIn, initializ
 };
 const workspaceOf = () => process.env.CLAWOCK_WORKSPACE || process.cwd();
 /**
-* The row config apply() hands to the next gateway instance. Module-level
-* on purpose and safe: apply() assigns it synchronously before ctx.plugin
-* constructs the service, and the balance method reads it lazily on first
-* use — a plugin reload therefore gets its own value and nothing serves
-* config past its lifetime.
-*/
-let pendingConfig = {};
-/**
 * The providers the balance chip lists, in display order. Adding one is one
 * row here plus its service in balance.ts — the gateway method below iterates
 * this table instead of naming each provider in four places (#1480 had to
@@ -232,8 +224,16 @@ let ClawockStudioGateway = (() => {
 		* the gateway constructor keeps the exact super(ctx, serviceKey) shape.
 		*/
 		balanceServices = null;
+		/**
+		* The row config, owned by the instance. cordis constructs a class plugin as
+		* `new Plugin(ctx, config)` (Fiber's runner), so the constructor already
+		* receives it — no module-level handoff is involved, and two rows or a
+		* plugin reload can never read each other's config.
+		*/
+		config;
 		constructor(ctx, config = {}) {
 			super(ctx, "clawockStudio");
+			this.config = config;
 		}
 		/** @returns Prepared runs (newest first), with decision/receipt presence flags. */
 		list() {
@@ -291,7 +291,7 @@ let ClawockStudioGateway = (() => {
 		async balance(force) {
 			if (this.balanceServices === null) {
 				const deps = { credentials: credentialsOf(this.ctx) };
-				this.balanceServices = BALANCE_PROVIDERS.map((provider) => provider.create(deps, pendingConfig));
+				this.balanceServices = BALANCE_PROVIDERS.map((provider) => provider.create(deps, this.config));
 			}
 			const services = this.balanceServices;
 			const results = await Promise.all(services.map((service) => service.get(force)));
@@ -323,7 +323,6 @@ function credentialsOf(ctx) {
 }
 const name = "clawock-dsh";
 function apply(ctx, config = {}) {
-	pendingConfig = config;
 	ctx.plugin(ClawockStudioGateway, config);
 }
 //#endregion
