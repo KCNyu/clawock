@@ -70,6 +70,13 @@ export declare class ClawockStudioGateway extends TypertRemoteService {
      * the gateway constructor keeps the exact super(ctx, serviceKey) shape.
      */
     private balanceServices;
+    /**
+     * The row config, owned by the instance. cordis constructs a class plugin as
+     * `new Plugin(ctx, config)` (Fiber's runner), so the constructor already
+     * receives it — no module-level handoff is involved, and two rows or a
+     * plugin reload can never read each other's config.
+     */
+    private readonly config;
     constructor(ctx: Context, config?: ClawockStudioConfig);
     /** @returns Prepared runs (newest first), with decision/receipt presence flags. */
     list(): ListRunsResult;

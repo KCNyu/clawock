@@ -923,8 +923,7 @@ export function ProviderBalanceChip(props: BalanceChipProps): React.ReactElement
         : state.empty.title,
       onClick: () => { setOpen(!open) },
     }, renderBalanceHeadline(primary, false, false, state.empty.tone)),
-    h('div', { className: cx('bp'), 'data-open': open ? 'true' : 'false', role: open ? 'dialog' : 'none', 'aria-label': '各模型服务余额' },
-      renderBalancePanelBody(state)))
+    h('div', panelAttrs(open, '各模型服务余额'), renderBalancePanelBody(state)))
 }
 
 /** Foot-action id of the balance surface (a stable DOM contract for probes). */
@@ -934,6 +933,37 @@ export const BALANCE_PANEL = 'clawock-provider-balance'
 export type BalanceSidebarActionProps = BalancesInjected & PropsStore<BalanceStore> & {
   /** Sidebar column state: false is the 56px rail (dot only). */
   wide: boolean
+}
+
+/** The prop contract both balance surfaces' popover panel renders (see `panelAttrs`). */
+type PanelAttrs = {
+  className: string
+  'data-open': string
+  role: 'dialog' | 'none'
+  'aria-label': string
+  inert: true | undefined
+  style?: Record<string, string>
+  'data-clawock-popover'?: string
+}
+
+/**
+ * The shared popover attributes. The closed panel is hidden with opacity +
+ * `pointer-events:none` (so the open/close transition keeps working), and
+ * `inert` is what actually removes it from interaction: opacity alone leaves
+ * every row button and the refresh control in the tab order, so a keyboard
+ * user tabbing through the sidebar used to land on five invisible controls.
+ * `inert` is the host's own tool for this (ui-primitives uses it), and it
+ * suppresses focus and the accessibility tree in one attribute.
+ */
+function panelAttrs(open: boolean, label: string, extra?: Partial<PanelAttrs>): PanelAttrs {
+  return {
+    className: cx('bp'),
+    'data-open': open ? 'true' : 'false',
+    role: open ? 'dialog' : 'none',
+    'aria-label': label,
+    inert: open ? undefined : true,
+    ...extra,
+  }
 }
 
 /** Fixed-position anchor for the popover: left edge of the row, just above it. */
@@ -1016,14 +1046,10 @@ export function ProviderBalanceSidebarAction(props: BalanceSidebarActionProps): 
       ? renderBalanceHeadline(primary, true, true, state.empty.tone)
       : h('span', { className: cx('bal-lead'), 'data-balance-state': primary !== undefined ? primary.view.tone : state.empty.tone },
         renderBalanceGlyph(primary !== undefined ? primary.view.tone : state.empty.tone, 18))),
-    h('div', {
-      className: cx('bp'),
-      'data-open': open ? 'true' : 'false',
+    h('div', panelAttrs(open, '各模型服务余额', {
       'data-clawock-popover': BALANCE_PANEL,
-      role: open ? 'dialog' : 'none',
-      'aria-label': '各模型服务余额',
-      style: anchor === null ? undefined : { left: anchor.left + 'px', bottom: anchor.bottom + 'px' },
-    }, renderBalancePanelBody(state)))
+      ...(anchor === null ? {} : { style: { left: anchor.left + 'px', bottom: anchor.bottom + 'px' } }),
+    }), renderBalancePanelBody(state)))
 }
 
 export function DecisionMind(props: DecisionMindProps): React.ReactElement {
@@ -1238,8 +1264,15 @@ export function DecisionMind(props: DecisionMindProps): React.ReactElement {
     h('div', { className: cx('list') }, body))
 }
 
-/** Services required by the registration and the mounted Remote face. */
-export const inject = ['slots', 'remote', 'layout']
+/**
+ * Hard dependencies only. `layout` is deliberately NOT here: it is read with
+ * `ctx.get` below, because the client uses it as a capability probe (does this
+ * host have global panels?) rather than a service it needs. Declaring a probe
+ * as a hard dependency inverts the rule — a host without `layout` would leave
+ * the whole client half waiting on it, so the Decision Mind tab would never
+ * mount either, even though that tab never touches layout.
+ */
+export const inject = ['slots', 'remote']
 
 /** Client contribution context: the face the slot renderer hands us. */
 interface ClientContributionContext {
@@ -1248,10 +1281,15 @@ interface ClientContributionContext {
     register: (definition: Record<string, unknown>, component: unknown) => unknown
   }
   remote: TypertClientRemote
-  /** Host layout face; `selectPanel` exists only where `main` is keyed (DSH >= 0.1.5-rc.1). */
-  layout?: { selectPanel?: (panelId: string | null) => void }
-  get: (name: string) => Record<string, (...args: unknown[]) => Promise<unknown>>
+  /** Service lookup; each call site narrows the face it asked for. */
+  get: (name: string) => unknown
 }
+
+/** Remote face of the gateway: one async method per `@Remote`, ok/error wrapped. */
+type StudioRemoteFace = Record<string, (...args: unknown[]) => Promise<unknown>>
+
+/** `selectPanel` exists only where `main` is keyed (DSH >= 0.1.5-rc.1). */
+type LayoutProbe = { selectPanel?: (panelId: string | null) => void }
 
 /** Remote answer shape: the gateway's ok/error envelope. */
 type RemoteResult<T> = { ok: true; value: T } | { ok: false; error: { code: string; message: string } }
@@ -1259,7 +1297,9 @@ type RemoteResult<T> = { ok: true; value: T } | { ok: false; error: { code: stri
 /** Register the Decision Mind tab into the conversation view ring. */
 export async function apply(ctx: Context & ClientContributionContext): Promise<void> {
   await ctx.remote.$mount(TYPERT_REMOTE as TypertRemoteContribution)
-  const studioRemote = ctx.get('remote.clawockStudio')
+  const studioRemote = ctx.get('remote.clawockStudio') as StudioRemoteFace
+  // Optional capability probe, never a declared dependency (see `inject`).
+  const layout = ctx.get('layout') as LayoutProbe | undefined
   // Live data channel + its cache both live in the apply closure: business
   // data belongs to this plugin instance, never to a module-level singleton
   // (which would leak across plugin reloads) and never to the UI store.
@@ -1320,7 +1360,7 @@ export async function apply(ctx: Context & ClientContributionContext): Promise<v
     inject: injected,
   }, DecisionMind))
   const balancesStore = createBalanceStore()
-  if (typeof ctx.layout?.selectPanel === 'function') {
+  if (typeof layout?.selectPanel === 'function') {
     ctx.slots.inject('sidebar.footer.action', () => ctx.slots.register({
       name: 'sidebar.footer.action',
       id: 'provider-balance',

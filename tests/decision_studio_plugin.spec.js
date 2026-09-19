@@ -322,7 +322,12 @@ test("client: registers the Decision Mind tab and mounts the remote face", async
     if (s === "react") return makeReactStub();
     throw new Error(`unexpected require: ${s}`);
   });
-  assert.deepEqual(api.inject, ["slots", "remote", "layout"]);
+  // Hard dependencies only. `layout` used to be listed here while the code
+  // treated it as optional (`ctx.layout?.selectPanel`); a probe declared as a
+  // hard dependency leaves the whole client half waiting on a host that lacks
+  // it, so Decision Mind would vanish along with the chip. It is `ctx.get`
+  // now — see the two seat tests below.
+  assert.deepEqual(api.inject, ["slots", "remote"]);
 
   const remoteFace = {
     ledger: async () => ({ ok: true, value: { entries: [] } }),
@@ -334,7 +339,9 @@ test("client: registers the Decision Mind tab and mounts the remote face", async
   };
   const ctx = {
     effect() {},
-    get(name) { assert.equal(name, "remote.clawockStudio"); return remoteFace; },
+    // `layout` is probed through ctx.get, never injected; absent here, which is
+    // exactly the pre-0.1.5 host the header chip exists for.
+    get(name) { return name === "layout" ? undefined : remoteFace; },
     slots: {
       inject(name, fn) { (this._seats ??= []).push(name); (this._fns ??= []).push(fn); },
       register(definition, Component) { (this._regs ??= []).push({ definition, Component }); },
@@ -1223,6 +1230,96 @@ test("freshness: trace cache is signature-keyed and µs-hit", async () => {
   assert.notEqual(key, freshness.workspaceKeyOf("/tmp/ws-b"));
 });
 
+test("balance: a leading ~ in a configured path expands, anything else is literal", async () => {
+  const balance = await import(pathToFileURL(path.join(PLUGIN, "lib", "balance.js")).href);
+  const home = os.homedir();
+  // The defaults are home-relative and the profile row is hand-written YAML,
+  // so `~/.claude/...` is the natural override; taken literally it would read a
+  // file actually named `~`.
+  assert.equal(balance.expandHome("~"), home);
+  assert.equal(balance.expandHome("~/.claude/.credentials.json"), path.join(home, ".claude", ".credentials.json"));
+  assert.equal(balance.expandHome("~/.local/bin/codex"), path.join(home, ".local", "bin", "codex"));
+  // Not a home reference: a bare path, a `~` inside a path, another user's
+  // `~name` form (unsupported on purpose — it needs a passwd lookup).
+  assert.equal(balance.expandHome("/usr/local/bin/codex"), "/usr/local/bin/codex");
+  assert.equal(balance.expandHome("/opt/~backup/x.json"), "/opt/~backup/x.json");
+  assert.equal(balance.expandHome("~root/.claude/.credentials.json"), "~root/.claude/.credentials.json");
+  assert.equal(balance.expandHome("./relative.json"), "./relative.json");
+});
+
+test("balance: file-backed defaults belong to the active user, not one machine's /root", async () => {
+  const balance = await import(pathToFileURL(path.join(PLUGIN, "lib", "balance.js")).href);
+  const home = os.homedir();
+  // The package is published to npm. A literal '/root/...' default would ship
+  // this host's layout as everyone's, and would read the wrong account under a
+  // different uid; each stays overridable from the profile row.
+  assert.equal(balance.DEFAULT_OPENCLAW_CONFIG_PATH, path.join(home, ".openclaw", "openclaw.json"));
+  assert.equal(balance.DEFAULT_CLAUDE_CREDENTIALS_PATH, path.join(home, ".claude", ".credentials.json"));
+  assert.equal(balance.DEFAULT_CODEX_COMMAND, path.join(home, ".local", "bin", "codex"));
+  for (const value of [
+    balance.DEFAULT_OPENCLAW_CONFIG_PATH,
+    balance.DEFAULT_CLAUDE_CREDENTIALS_PATH,
+    balance.DEFAULT_CODEX_COMMAND,
+  ]) {
+    assert.equal(path.isAbsolute(value), true, "a default path must still be absolute");
+    assert.equal(value.startsWith(home + path.sep), true, "every default hangs off the active home");
+  }
+});
+
+test("balance: the gateway owns its row config instead of a module-level handoff", async () => {
+  // #1480-style regression guard. The config used to travel through a
+  // module-level `pendingConfig` that apply() assigned just before ctx.plugin
+  // built the service, and the balance method read it lazily on first call —
+  // so a second apply() (or a second row) could overwrite the config of a
+  // gateway whose balance() had not run yet. cordis constructs a class plugin
+  // as `new Plugin(ctx, config)`, so the instance can just keep it.
+  const mod = await import(pathToFileURL(path.join(PLUGIN, "lib", "index.js")).href);
+  const upstream = [];
+  const realFetch = globalThis.fetch;
+  globalThis.fetch = async (url) => {
+    upstream.push(String(url));
+    return {
+      ok: true,
+      status: 200,
+      json: async () => ({ is_available: true, balance_infos: [{ currency: "CNY", total_balance: "9.00" }] }),
+    };
+  };
+  try {
+    const built = [];
+    const ctxFor = (config) => ({
+      credentials: { resolve: async () => undefined },
+      plugin: (Plugin, received) => { built.push({ Plugin, received, config }); },
+    });
+    const first = { balanceThreshold: 7 };
+    const second = { balanceThreshold: 99 };
+    mod.apply(ctxFor(first), first);
+    mod.apply(ctxFor(second), second);
+    assert.equal(built.length, 2);
+    assert.equal(built[0].received, first, "apply must forward its own config to ctx.plugin");
+    assert.equal(built[1].received, second, "a second apply must not rewrite the first one's config");
+    // Build BOTH gateways the way cordis does (`new Plugin(ctx, config)`)
+    // before either reads its balances, then read them. That ordering is the
+    // whole point: the balance services are built lazily on the first
+    // balance() call, so a module-level handoff only misbehaves once a later
+    // apply/construct has run in between. `reflect.provide` is what the cordis
+    // Service base calls to register the key on the owning context.
+    const gateways = built.map(({ Plugin, config }) => ({
+      config,
+      gateway: new Plugin({
+        credentials: { resolve: async () => undefined },
+        reflect: { provide() {} },
+      }, config),
+    }));
+    for (const { config, gateway } of gateways) {
+      const answer = await gateway.balance(false);
+      assert.equal(answer.providers[0].result.threshold, config.balanceThreshold,
+        "the gateway must read the threshold it was constructed with");
+    }
+  } finally {
+    if (realFetch === undefined) delete globalThis.fetch; else globalThis.fetch = realFetch;
+  }
+});
+
 test("balance: CNY picking, tolerant parsing and the service's polite-cadence states", async () => {
   const balance = await import(pathToFileURL(path.join(PLUGIN, "lib", "balance.js")).href);
   const { createBalanceService, parseBalancePayload, pickCnyBalanceInfo } = balance;
@@ -1669,7 +1766,7 @@ test("client: the header chip headlines one provider and the panel pins the rest
 
   // Collect chip item / panel rows separately via data-pb-role.
   const collect = (tree) => {
-    const found = { chip: [], panel: [], openAttr: null, trigger: null, refresh: null, texts: [] };
+    const found = { chip: [], panel: [], openAttr: null, inertAttr: null, trigger: null, refresh: null, texts: [] };
     (function walk(node) {
       if (node == null) return;
       if (Array.isArray(node)) { node.forEach(walk); return; }
@@ -1678,6 +1775,7 @@ test("client: the header chip headlines one provider and the panel pins the rest
       if (p["data-pb-role"] === "chip") found.chip.push(p);
       if (p["data-pb-role"] === "panel") found.panel.push(node);
       if (p["data-open"] !== undefined) found.openAttr = p["data-open"];
+      if (p["data-open"] !== undefined) found.inertAttr = p.inert;
       if (p["aria-haspopup"] === "dialog") found.trigger = node;
       if (p["data-refresh"] === "true") found.refresh = node;
       (node.children || []).forEach(walk);
@@ -1704,6 +1802,7 @@ test("client: the header chip headlines one provider and the panel pins the rest
   assert.equal(chipValueDefault["data-used-level"], undefined, "money headlines carry no usage tier");
   // Panel: mounted closed, every provider listed with its own tone.
   assert.equal(f.openAttr, "false", "the panel renders closed but mounted");
+  assert.equal(f.inertAttr, true, "the closed panel is inert so its rows stay out of the tab order");
   assert.deepEqual(f.panel.map((n) => n.props["data-pb-provider"]), ["deepseek", "minimax", "claude", "codex"]);
   assert.ok(f.refresh, "the manual refresh lives in the panel header");
 
@@ -1712,6 +1811,7 @@ test("client: the header chip headlines one provider and the panel pins the rest
   tree = render();
   f = collect(tree);
   assert.equal(f.openAttr, "true", "the panel opens from the trigger");
+  assert.equal(f.inertAttr, undefined, "an open panel is interactive again");
   const mmRow = f.panel.find((n) => n.props["data-pb-provider"] === "minimax");
   assert.ok(mmRow, "panel rows are buttons");
   mmRow.props.onClick();
@@ -1759,12 +1859,14 @@ test("client: the sidebar-foot balance opens a popover that stays open while you
     },
   };
   const selected = [];
+  // DSH >= 0.1.5-rc.1. The foot must never drive panel navigation: selecting
+  // a `main` panel swapped the whole conversation out from under the user.
+  const layout = { selectPanel(id) { selected.push(id); } };
   const ctx = {
     effect() {},
-    get() { return remoteFace; },
-    // DSH >= 0.1.5-rc.1. The foot must never drive panel navigation: selecting
-    // a `main` panel swapped the whole conversation out from under the user.
-    layout: { selectPanel(id) { selected.push(id); } },
+    // The capability probe is a `ctx.get`, matching the runtime: `selectPanel`
+    // present is what routes the balance to the sidebar foot.
+    get(name) { return name === "layout" ? layout : remoteFace; },
     slots: {
       inject(name, fn) { (this._seats ??= []).push(name); (this._fns ??= []).push(fn); },
       register(definition, Component) { (this._regs ??= []).push({ definition, Component }); },
@@ -1818,6 +1920,11 @@ test("client: the sidebar-foot balance opens a popover that stays open while you
   assert.match(texts(trigger(foot)), /DeepSeek/);
   assert.match(texts(trigger(foot)), /¥110/);
   assert.equal(popover(foot).props["data-open"], "false");
+  // Closed means out of interaction, not merely transparent: `opacity:0` +
+  // `pointer-events:none` still leaves every row button and the refresh control
+  // in the tab order, so `inert` is what keeps keyboard users off the five
+  // invisible controls a closed panel would otherwise contribute.
+  assert.equal(popover(foot).props.inert, true, "a closed popover must be inert, not just transparent");
   const railTrigger = trigger(render(false));
   assert.equal(railTrigger.props.title.startsWith("DeepSeek"), true, "the rail keeps the reading in its title");
   const railClasses = find(railTrigger, (p) => typeof p.className === "string")
@@ -1836,6 +1943,7 @@ test("client: the sidebar-foot balance opens a popover that stays open while you
   foot = render();
   assert.equal(trigger(foot).props["aria-expanded"], true);
   assert.equal(popover(foot).props["data-open"], "true");
+  assert.equal(popover(foot).props.inert, undefined, "an open popover must be interactive");
   const rows = find(popover(foot), (p) => p["data-pb-role"] === "panel");
   assert.deepEqual(rows.map((r) => r.props["data-pb-provider"]), ["deepseek", "minimax"]);
 
@@ -1883,8 +1991,7 @@ test("client: a balance fetch that fails says so instead of loading forever (#15
   };
   const ctx = {
     effect() {},
-    get() { return remoteFace; },
-    layout: { selectPanel() {} },
+    get(name) { return name === "layout" ? { selectPanel() {} } : remoteFace; },
     slots: {
       inject(name, fn) { (this._fns ??= []).push(fn); },
       register(definition, Component) { (this._regs ??= []).push({ definition, Component }); },

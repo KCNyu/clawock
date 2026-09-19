@@ -18,10 +18,10 @@
       #   minimaxBaseUrl: 'https://api.minimaxi.com'   # MiniMax upstream root
       #   minimaxKeyRef: 'MINIMAX_API_KEY'             # credentials seam ref (env fallback same name)
       #   minimaxLowPct: 20                            # red dot when quota windows <= this remaining %
-      #   minimaxOpenclawConfigPath: '/root/.openclaw/openclaw.json'  # key fallback: models.providers.minimax.apiKey
-      #   claudeCredentialsPath: '/root/.claude/.credentials.json'    # Claude Code OAuth file (read-only)
+      #   minimaxOpenclawConfigPath: '~/.openclaw/openclaw.json'      # key fallback: models.providers.minimax.apiKey
+      #   claudeCredentialsPath: '~/.claude/.credentials.json'        # Claude Code OAuth file (read-only)
       #   claudeUsageUrl: 'https://api.anthropic.com/api/oauth/usage' # subscription quota endpoint
       #   claudeLowPct: 20                             # red dot when the session window <= this remaining %
-      #   codexCommand: '/root/.local/bin/codex'        # official Codex CLI app-server executable
+      #   codexCommand: '~/.local/bin/codex'           # official Codex CLI app-server executable
       #   codexLowPct: 20                              # red dot when a quota window <= this remaining %
       #   codexRefreshMs: 300000                       # app-server poll/cache cadence (default 5 min)

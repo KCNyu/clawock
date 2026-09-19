@@ -214,7 +214,14 @@ export type BalanceSidebarActionProps = BalancesInjected & PropsStore<BalanceSto
  */
 export declare function ProviderBalanceSidebarAction(props: BalanceSidebarActionProps): React.ReactElement;
 export declare function DecisionMind(props: DecisionMindProps): React.ReactElement;
-/** Services required by the registration and the mounted Remote face. */
+/**
+ * Hard dependencies only. `layout` is deliberately NOT here: it is read with
+ * `ctx.get` below, because the client uses it as a capability probe (does this
+ * host have global panels?) rather than a service it needs. Declaring a probe
+ * as a hard dependency inverts the rule — a host without `layout` would leave
+ * the whole client half waiting on it, so the Decision Mind tab would never
+ * mount either, even though that tab never touches layout.
+ */
 export declare const inject: string[];
 /** Client contribution context: the face the slot renderer hands us. */
 interface ClientContributionContext {
@@ -223,11 +230,8 @@ interface ClientContributionContext {
         register: (definition: Record<string, unknown>, component: unknown) => unknown;
     };
     remote: TypertClientRemote;
-    /** Host layout face; `selectPanel` exists only where `main` is keyed (DSH >= 0.1.5-rc.1). */
-    layout?: {
-        selectPanel?: (panelId: string | null) => void;
-    };
-    get: (name: string) => Record<string, (...args: unknown[]) => Promise<unknown>>;
+    /** Service lookup; each call site narrows the face it asked for. */
+    get: (name: string) => unknown;
 }
 /** Register the Decision Mind tab into the conversation view ring. */
 export declare function apply(ctx: Context & ClientContributionContext): Promise<void>;
