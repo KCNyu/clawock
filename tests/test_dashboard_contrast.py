@@ -162,6 +162,9 @@ def _paint(value, tokens, surface):
     mix = re.fullmatch(r"color-mix\(in srgb, (#[0-9A-Fa-f]{3,6}) ([\d.]+)%, transparent\)", value)
     if mix:
         return _blend(_hex(mix.group(1)), surface, float(mix.group(2)) / 100)
+    mix = re.fullmatch(r"color-mix\(in srgb, (#[0-9A-Fa-f]{3,6}) ([\d.]+)%, (#[0-9A-Fa-f]{3,6})\)", value)
+    if mix:
+        return _blend(_hex(mix.group(1)), _hex(mix.group(3)), float(mix.group(2)) / 100)
     pytest.fail(f"unhandled colour {value!r}")
 
 
@@ -206,3 +209,60 @@ def test_hardcoded_source_chips_meet_aa_in_both_themes(chip, row, theme):
     assert ratio >= AA_NORMAL_TEXT, (
         f"{theme} {chip} text {label} renders at {ratio:.2f}:1 on its tint over "
         f"{row}; AA needs {AA_NORMAL_TEXT}:1")
+
+
+# A tint is what makes a chip a chip: the badge's own hue at low alpha, laid
+# over whatever surface the row happens to be. Opaque fills don't depend on the
+# surface and aren't this pattern.
+_TINT = re.compile(
+    r"color-mix\(in srgb, [^,]+ [\d.]+%, transparent\)"
+    r"|rgba\(\s*\d+,\s*\d+,\s*\d+,\s*0?\.\d+\s*\)")
+# Every opaque surface a chip can land on, in either theme. --surface-3 is the
+# hover row and the lightest/darkest of them, so it bounds the glass panels too.
+_SURFACES = ("--bg", "--surface-0", "--surface-1", "--surface-2", "--surface-3")
+
+
+def _tinted_chips(css):
+    css = re.sub(r"/\*.*?\*/", " ", css, flags=re.S)
+    for match in re.finditer(r"([^{}]+)\{([^{}]*)\}", css):
+        body = match.group(2)
+        background = re.search(r"(?:^|;)\s*background(?:-color)?\s*:\s*([^;]+)", body)
+        color = re.search(r"(?:^|;)\s*color\s*:\s*([^;]+)", body)
+        if background and color and _TINT.fullmatch(background.group(1).strip()):
+            yield (re.sub(r"\s+", " ", match.group(1).strip()),
+                   background.group(1).strip(), color.group(1).strip())
+
+
+def test_every_tinted_chip_meets_aa_on_every_surface_in_both_themes():
+    """#1585: #1580 and #1583 each pinned the selectors their issue named, so
+    the next sibling on the same pattern went unchecked — and there were 34 of
+    them. The cause was never one chip: a hued token clears AA on a bare
+    surface (light `--negative` is 4.55 on card-2) and a 10–18% tint of itself
+    costs 0.4–0.9, so every "same-hue tint + same-hue text" chip fell under,
+    Trump in dark too. Chip text now uses the `--*-ink` step of its hue.
+
+    So this doesn't list chips. It finds every rule that paints a translucent
+    tint behind its own text colour and checks it on every surface, in both
+    themes; a new chip is covered the day it's written."""
+    css = CSS.read_text(encoding="utf-8")
+    themes = _theme_tokens(css)
+    chips = list(_tinted_chips(css))
+    selectors = {selector for selector, _, _ in chips}
+    # The parser finding nothing would pass vacuously; the chips #1585 was
+    # opened for must be among what it found.
+    assert {".infl-who.trump", ".drv-chip.drv-catalyst", ".drv-chip.drv-macro",
+            ".infl-who.duan, .infl-who.honghao"} <= selectors, sorted(selectors)
+    assert len(chips) >= 40, f"only {len(chips)} tinted chips found; the parser broke"
+
+    failures = []
+    for selector, background, color in chips:
+        for theme, tokens in themes.items():
+            for surface in _SURFACES:
+                badge = _paint(background, tokens, _hex(tokens[surface]))
+                ratio = _contrast(_paint(color, tokens, badge), badge)
+                if ratio < AA_NORMAL_TEXT:
+                    failures.append(f"{theme} {selector} {color} on {surface}: {ratio:.2f}")
+
+    assert not failures, (
+        f"tinted chip text below AA {AA_NORMAL_TEXT}:1 — use the hue's --*-ink "
+        "token (or --text-secondary) for the text:\n" + "\n".join(failures))

@@ -41,6 +41,16 @@
     --negative-display: #D2707A;
     --warning: #E3A640;
     --neutral: #7E8DA1;
+    /* 徽标字色档（#1585）。徽标是「同色 10–18% 底 + 同色字」，底把对比度
+       吃掉 0.4–0.9：上面的色相 token 只在裸面上过 AA（浅色 --negative 压 card-2
+       只有 4.55），一上自己的底就掉线。所以字另走一档同色相：浅色往近黑、
+       深色往正文墨各兑一点，在 ≤18% 同色底叠任一实面（--bg、--surface-0..3）
+       上都 ≥4.6。底仍用原 token。tests/test_dashboard_contrast.py 扫全部
+       「半透明底 + 字色」规则钉住，新徽标不用登记。 */
+    --negative-ink: #F07C86;
+    --positive-ink: #28C08D;
+    --accent-ink: #49ABFF;
+    --warning-ink: #E3A640;
     --focus: #8ED0FF;
 
     /* Compatibility aliases: keep legacy selectors stable while removing the
@@ -211,6 +221,10 @@
       --negative-display: #9E323C;
       --warning: #805400;
       --neutral: #66788D;
+      --negative-ink: #9E3441;
+      --positive-ink: #096749;
+      --accent-ink: #035D9A;
+      --warning-ink: #7A5102;
       --focus: #0078C9;
       /* Light inverts the recipe: the sheen becomes a barely-there warm
          wash and the specular edge becomes near-white, while the shadow
@@ -1057,8 +1071,8 @@
   .infl-feed { display: flex; flex-direction: column; gap: var(--space-2); max-height: 420px; overflow-y: auto; }
   .infl-summary { display: flex; gap: var(--space-2); flex-wrap: wrap; margin-bottom: 4px; font-size: var(--fs-xs); }
   .infl-chip { padding: 2px 8px; border-radius: 999px; font-weight: 700; }
-  .infl-chip.held { background: color-mix(in srgb, var(--negative) 14%, transparent); color: var(--negative); }
-  .infl-chip.idea { background: color-mix(in srgb, var(--warning) 16%, transparent); color: var(--warning); }
+  .infl-chip.held { background: color-mix(in srgb, var(--negative) 14%, transparent); color: var(--negative-ink); }
+  .infl-chip.idea { background: color-mix(in srgb, var(--warning) 16%, transparent); color: var(--warning-ink); }
   .infl-chip.sect { background: var(--card-2); color: var(--text-dim); }
   .infl-row {
     background: var(--card-2); border-radius: var(--radius-sm);
@@ -1068,27 +1082,27 @@
   .infl-row.is-idea { border-left-color: var(--warning); }
   .infl-hdr { display: flex; align-items: center; gap: var(--space-2); margin-bottom: 4px; font-size: var(--fs-xs); flex-wrap: wrap; }
   .infl-who { font-weight: 700; padding: 2px 8px; border-radius: 4px; font-size: var(--fs-xs); }
-  .infl-who.trump { background: color-mix(in srgb, var(--negative) 16%, transparent); color: var(--negative); }
+  .infl-who.trump { background: color-mix(in srgb, var(--negative) 16%, transparent); color: var(--negative-ink); }
   /* 字色不用 --accent：它在这块蓝底 + card-2 行上浅色只有 3.91，不到 AA；
      --text-secondary 两主题都过线，蓝底保留来源色（#1583，tests/test_dashboard_contrast.py 钉住）。 */
   .infl-who.musk  { background: rgba(59,130,246,0.16); color: var(--text-secondary); }
-  .infl-who.serenity { background: color-mix(in srgb, var(--positive) 16%, transparent); color: var(--positive); }
-  .infl-who.ark   { background: color-mix(in srgb, var(--warning) 16%, transparent); color: var(--warning); }
-  .infl-who.duan, .infl-who.honghao { background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent); }
+  .infl-who.serenity { background: color-mix(in srgb, var(--positive) 16%, transparent); color: var(--positive-ink); }
+  .infl-who.ark   { background: color-mix(in srgb, var(--warning) 16%, transparent); color: var(--warning-ink); }
+  .infl-who.duan, .infl-who.honghao { background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent-ink); }
   .infl-who.burry, .infl-who.pelosi { background: var(--card); color: var(--text-dim); }
   /* 未登记的作者（加源时忘了在这里登记）也要有可读的徽章，不能因为没样式而隐形 */
   .infl-who.other { background: var(--card); color: var(--text-dim); }
   .infl-stance { font-size: var(--fs-micro); text-transform: uppercase; letter-spacing: 0.04em;
     padding: 2px 8px; border-radius: 3px; font-weight: 700; }
-  .infl-stance.up   { background: color-mix(in srgb, var(--positive) 16%, transparent); color: var(--positive); }
-  .infl-stance.down { background: color-mix(in srgb, var(--negative) 16%, transparent); color: var(--negative); }
+  .infl-stance.up   { background: color-mix(in srgb, var(--positive) 16%, transparent); color: var(--positive-ink); }
+  .infl-stance.down { background: color-mix(in srgb, var(--negative) 16%, transparent); color: var(--negative-ink); }
   .infl-stance.flat { background: var(--card); color: var(--text-dim); }
   .infl-rel { margin-left: auto; color: var(--text-dim); font-size: var(--fs-micro); font-variant-numeric: tabular-nums; }
   .infl-sum { font-size: var(--fs-sm); line-height: 1.45; color: var(--text); }
   .infl-tags { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 5px; font-size: var(--fs-micro); }
   .infl-tag { padding: 2px 8px; border-radius: 4px; font-weight: 700; }
-  .infl-tag.held { background: color-mix(in srgb, var(--negative) 14%, transparent); color: var(--negative); }
-  .infl-tag.idea { background: color-mix(in srgb, var(--warning) 16%, transparent); color: var(--warning); }
+  .infl-tag.held { background: color-mix(in srgb, var(--negative) 14%, transparent); color: var(--negative-ink); }
+  .infl-tag.idea { background: color-mix(in srgb, var(--warning) 16%, transparent); color: var(--warning-ink); }
   .infl-tag.sect { background: var(--card); color: var(--text-dim); font-weight: 500; }
   .infl-meta { color: var(--text-dim); font-size: var(--fs-micro); margin-top: 4px; }
 
@@ -1104,8 +1118,8 @@
   .pd-tk { font-weight: 700; color: var(--text); }
   .pd-self { font-weight: 700; }
   .pd-gap { margin-left: auto; font-size: var(--fs-xs); font-weight: 700; padding: 2px 8px; border-radius: 4px; }
-  .pd-gap.lag  { background: color-mix(in srgb, var(--negative) 14%, transparent); color: var(--negative); }
-  .pd-gap.lead { background: color-mix(in srgb, var(--positive) 16%, transparent); color: var(--positive); }
+  .pd-gap.lag  { background: color-mix(in srgb, var(--negative) 14%, transparent); color: var(--negative-ink); }
+  .pd-gap.lead { background: color-mix(in srgb, var(--positive) 16%, transparent); color: var(--positive-ink); }
   .pd-vs { font-size: var(--fs-xs); color: var(--text-dim); margin-top: 3px; }
   .pd-vs b { color: var(--text); font-weight: 600; }
   .pd-caveat { color: var(--text-dim); font-size: var(--fs-micro); margin-top: 8px; font-style: italic; }
@@ -1376,10 +1390,10 @@
     font-size: var(--fs-xs); font-weight: 600; padding: 3px 8px; border-radius: 999px;
     background: var(--card); color: var(--text);
   }
-  .tier.excellent { background: color-mix(in srgb, var(--positive) 15%, transparent); color: var(--positive); }
-  .tier.good { background: rgba(91,141,239,.15); color: var(--accent); }
-  .tier.fair { background: color-mix(in srgb, var(--warning) 15%, transparent); color: var(--warning); }
-  .tier.poor { background: color-mix(in srgb, var(--negative) 15%, transparent); color: var(--negative); }
+  .tier.excellent { background: color-mix(in srgb, var(--positive) 15%, transparent); color: var(--positive-ink); }
+  .tier.good { background: rgba(91,141,239,.15); color: var(--accent-ink); }
+  .tier.fair { background: color-mix(in srgb, var(--warning) 15%, transparent); color: var(--warning-ink); }
+  .tier.poor { background: color-mix(in srgb, var(--negative) 15%, transparent); color: var(--negative-ink); }
 
   /* =========================================================
      Drill: holdings table
@@ -1562,10 +1576,10 @@
   .plan-action .outcome {
     font-size: var(--fs-xs); padding: 3px 8px; border-radius: 999px; font-weight: 600;
   }
-  .outcome.win { background: color-mix(in srgb, var(--positive) 15%, transparent); color: var(--positive); }
-  .outcome.loss { background: color-mix(in srgb, var(--negative) 15%, transparent); color: var(--negative); }
-  .outcome.pending { background: rgba(107,118,145,.15); color: var(--gray); }
-  .outcome.flat { background: color-mix(in srgb, var(--warning) 15%, transparent); color: var(--warning); }
+  .outcome.win { background: color-mix(in srgb, var(--positive) 15%, transparent); color: var(--positive-ink); }
+  .outcome.loss { background: color-mix(in srgb, var(--negative) 15%, transparent); color: var(--negative-ink); }
+  .outcome.pending { background: rgba(107,118,145,.15); color: var(--text-secondary); }
+  .outcome.flat { background: color-mix(in srgb, var(--warning) 15%, transparent); color: var(--warning-ink); }
   /* Add campaign — one deterministic public projection, split by market. */
   .campaign-summary, .campaign-coverage {
     color: var(--text-dim); font: var(--fs-xs)/1.55 var(--mono);
@@ -1591,9 +1605,9 @@
     display: inline-flex; padding: 2px 6px; border-radius: 999px;
     font: 600 var(--fs-micro) var(--mono); background: rgba(107,118,145,.14); color: var(--text-dim);
   }
-  .campaign-state.state-eligible { color: var(--positive); background: color-mix(in srgb, var(--positive) 14%, transparent); }
-  .campaign-state.state-risk_blocked, .campaign-state.state-constraint_blocked { color: var(--negative); background: color-mix(in srgb, var(--negative) 12%, transparent); }
-  .campaign-state.state-waiting_timing { color: var(--warning); background: color-mix(in srgb, var(--warning) 12%, transparent); }
+  .campaign-state.state-eligible { color: var(--positive-ink); background: color-mix(in srgb, var(--positive) 14%, transparent); }
+  .campaign-state.state-risk_blocked, .campaign-state.state-constraint_blocked { color: var(--negative-ink); background: color-mix(in srgb, var(--negative) 12%, transparent); }
+  .campaign-state.state-waiting_timing { color: var(--warning-ink); background: color-mix(in srgb, var(--warning) 12%, transparent); }
   .campaign-families, .campaign-detail { color: var(--text-dim); font-size: var(--fs-xs); line-height: 1.5; }
   .campaign-detail { margin-top: 5px; font-family: var(--mono); }
   .campaign-blockers { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
@@ -1621,9 +1635,9 @@
     font-weight: 600; vertical-align: middle; white-space: nowrap;
   }
   .bucket-wr .wr-n { font-weight: 400; opacity: .55; font-size: var(--fs-micro); margin-left: 2px; }
-  .bucket-wr.wr-bad { background: color-mix(in srgb, var(--negative) 15%, transparent); color: var(--negative); }
-  .bucket-wr.wr-mid { background: color-mix(in srgb, var(--warning) 15%, transparent); color: var(--warning); }
-  .bucket-wr.wr-ok  { background: color-mix(in srgb, var(--positive) 15%, transparent); color: var(--positive); }
+  .bucket-wr.wr-bad { background: color-mix(in srgb, var(--negative) 15%, transparent); color: var(--negative-ink); }
+  .bucket-wr.wr-mid { background: color-mix(in srgb, var(--warning) 15%, transparent); color: var(--warning-ink); }
+  .bucket-wr.wr-ok  { background: color-mix(in srgb, var(--positive) 15%, transparent); color: var(--positive-ink); }
   .bucket-wr.wr-lown { opacity: .6; }
 
   /* driven_by chip — which data source drove the call (color encodes edge) */
@@ -1632,11 +1646,11 @@
     border-radius: 6px; font-size: var(--fs-micro); font-weight: 600;
     vertical-align: middle; white-space: nowrap;
   }
-  .drv-chip.drv-catalyst   { background: color-mix(in srgb, var(--positive) 15%, transparent); color: var(--positive); }
+  .drv-chip.drv-catalyst   { background: color-mix(in srgb, var(--positive) 15%, transparent); color: var(--positive-ink); }
   .drv-chip.drv-technical  { background: rgba(148,163,184,.18); color: var(--muted); }
-  .drv-chip.drv-sentiment  { background: color-mix(in srgb, var(--warning) 15%, transparent); color: var(--warning); }
-  .drv-chip.drv-influencer { background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--accent); }
-  .drv-chip.drv-macro      { background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent); }
+  .drv-chip.drv-sentiment  { background: color-mix(in srgb, var(--warning) 15%, transparent); color: var(--warning-ink); }
+  .drv-chip.drv-influencer { background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--accent-ink); }
+  .drv-chip.drv-macro      { background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent-ink); }
   /* 字色同 .infl-who.musk（#1583）：--accent / --positive 在浅色 card-2 行上都不到 AA，青色留在底上。 */
   .drv-chip.drv-peer       { background: rgba(45,212,191,.15); color: var(--text-secondary); }
   @media (max-width: 600px) {
@@ -1682,8 +1696,8 @@
     display: inline-block; font-size: var(--fs-micro); font-weight: 700; padding: 2px 8px;
     border-radius: 5px; margin-right: 8px; vertical-align: middle;
   }
-  .bear-lbl.bl-fal   { background: color-mix(in srgb, var(--positive) 15%, transparent); color: var(--positive); }
-  .bear-lbl.bl-watch { background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent); }
+  .bear-lbl.bl-fal   { background: color-mix(in srgb, var(--positive) 15%, transparent); color: var(--positive-ink); }
+  .bear-lbl.bl-watch { background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent-ink); }
   /* debate trail (#1117) — the argument, not just its count */
   .dbt-case {
     padding: var(--space-3); margin-bottom: 8px; border-radius: var(--radius-sm);
@@ -1742,14 +1756,14 @@
     flex: 0 0 auto; font-size: var(--fs-micro); font-weight: 700; padding: 2px 8px;
     border-radius: 5px; margin-top: 2px;
   }
-  .dbt-bull .dbt-lbl { background: color-mix(in srgb, var(--positive) 15%, transparent); color: var(--positive); }
-  .dbt-bear .dbt-lbl { background: color-mix(in srgb, var(--negative) 15%, transparent); color: var(--negative); }
+  .dbt-bull .dbt-lbl { background: color-mix(in srgb, var(--positive) 15%, transparent); color: var(--positive-ink); }
+  .dbt-bear .dbt-lbl { background: color-mix(in srgb, var(--negative) 15%, transparent); color: var(--negative-ink); }
   .dbt-text { font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
   .dbt-line { font-size: var(--fs-sm); line-height: 1.45; color: var(--text-dim); margin-top: 6px; }
   .dbt-key { font-weight: 600; color: var(--text); margin-right: 6px; }
   .dbt-frames { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
   .dbt-frame.dbt-cite {
-    color: var(--accent);
+    color: var(--accent-ink);
     border-color: color-mix(in srgb, var(--accent) 35%, transparent);
     background: color-mix(in srgb, var(--accent) 10%, transparent);
   }
@@ -1950,7 +1964,7 @@
   .pt-row .pt-side { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
   .pt-row .pt-conf {
     font-size: var(--fs-xs); padding: 2px 8px; border-radius: 999px;
-    background: rgba(91,141,239,.12); color: var(--accent); font-weight: 600;
+    background: rgba(91,141,239,.12); color: var(--accent-ink); font-weight: 600;
     font-family: var(--mono);
   }
   .pt-row .pt-followed-true { color: var(--green); font-size: var(--fs-micro); font-weight: 600; }
@@ -2048,8 +2062,8 @@
   }
   .ext-region .ext-name { font-size: var(--fs-md); font-weight: 700; letter-spacing: .04em; }
   .ext-region .ext-flag { font-size: var(--fs-micro); font-weight: 700; padding: 2px 8px; border-radius: 999px; }
-  .ext-region .ext-flag.low { background: rgba(229,72,77,.16); color: var(--red); }
-  .ext-region .ext-flag.ok  { background: rgba(48,164,108,.16); color: var(--green); }
+  .ext-region .ext-flag.low { background: rgba(229,72,77,.16); color: var(--negative-ink); }
+  .ext-region .ext-flag.ok  { background: rgba(48,164,108,.16); color: var(--positive-ink); }
   .ext-row { display: flex; justify-content: space-between; align-items: baseline; padding: 4px 0; }
   .ext-row .k { font-size: var(--fs-xs); color: var(--text-faint); }
   .ext-row .v { font-size: var(--fs-lg); font-weight: 700; font-family: var(--mono); }
@@ -2149,7 +2163,7 @@
     display: inline-flex; align-items: center; gap: var(--space-2);
     margin: 0 0 var(--space-3); padding: 4px 12px;
     border: 1px solid rgba(229,72,77,.55); border-radius: 999px;
-    background: rgba(229,72,77,.14); color: var(--red);
+    background: rgba(229,72,77,.14); color: var(--negative-ink);
     font-size: var(--fs-sm); font-weight: 700; letter-spacing: .08em;
   }
   .shadow-estimand {
@@ -2917,14 +2931,14 @@
   .dh-chip {
     justify-self: end; padding: 3px 7px; border-radius: 6px; white-space: nowrap;
     font: 700 var(--fs-micro)/1.2 var(--mono); letter-spacing: .04em;
-    color: var(--text-tertiary);
+    color: var(--text-secondary);
     background: color-mix(in srgb, var(--text) 7%, transparent);
   }
   .dh-chip[data-act="需处理"] {
-    color: var(--red); background: color-mix(in srgb, var(--red) 14%, transparent);
+    color: var(--negative-ink); background: color-mix(in srgb, var(--red) 14%, transparent);
   }
   .dh-chip[data-act="观察"] {
-    color: var(--warning); background: color-mix(in srgb, var(--warning) 15%, transparent);
+    color: var(--warning-ink); background: color-mix(in srgb, var(--warning) 15%, transparent);
   }
   .dh-chip[data-act="正常"] {
     color: color-mix(in srgb, var(--accent) 88%, var(--text));
@@ -4241,14 +4255,14 @@
 .tr-dot.has { background: var(--accent); }
 .tr-tk { font-weight: 700; font-size: var(--fs-md); }
 .tr-act { font-size: var(--fs-xs); font-weight: 600; padding: 2px 8px; border-radius: 999px; }
-.tr-act.pos { color: var(--pos); background: color-mix(in srgb, var(--pos) 12%, transparent); }
-.tr-act.neg { color: var(--neg); background: color-mix(in srgb, var(--neg) 12%, transparent); }
+.tr-act.pos { color: var(--positive-ink); background: color-mix(in srgb, var(--pos) 12%, transparent); }
+.tr-act.neg { color: var(--negative-ink); background: color-mix(in srgb, var(--neg) 12%, transparent); }
 .tr-act.muted { color: var(--text-dim); background: var(--bg-soft, rgba(0,0,0,0.04)); }
 .tr-qty { color: var(--text-dim); font-size: var(--fs-sm); font-variant-numeric: tabular-nums; }
 .tr-spacer { flex: 1; }
 .tr-t1 { font-size: var(--fs-xs); font-weight: 700; padding: 2px 7px; border-radius: 5px; white-space: nowrap; }
-.tr-t1.pos { color: var(--pos); background: color-mix(in srgb, var(--pos) 10%, transparent); }
-.tr-t1.neg { color: var(--neg); background: color-mix(in srgb, var(--neg) 10%, transparent); }
+.tr-t1.pos { color: var(--positive-ink); background: color-mix(in srgb, var(--pos) 10%, transparent); }
+.tr-t1.neg { color: var(--negative-ink); background: color-mix(in srgb, var(--neg) 10%, transparent); }
 .tr-pnl { font-weight: 700; font-size: var(--fs-lg); font-variant-numeric: tabular-nums; min-width: 88px; text-align: right; }
 .tr-pnl.pos { color: var(--pos); } .tr-pnl.neg { color: var(--neg); }
 /* The details content box is the animatable wrapper (Chrome 131+, Safari
@@ -4296,8 +4310,8 @@
 /* 与计划反向 is a deviation, not an accent: amber here and in the plugin
    (styles.module.css `--warn`), so the two implementations of this card read
    the same signal the same way. */
-.tr-align.skip { color: var(--warning); background: color-mix(in srgb, var(--warning) 12%, transparent); border: 1px solid color-mix(in srgb, var(--warning) 30%, transparent); }
-.tr-align.ok { color: var(--pos); background: color-mix(in srgb, var(--pos) 12%, transparent); }
+.tr-align.skip { color: var(--warning-ink); background: color-mix(in srgb, var(--warning) 12%, transparent); border: 1px solid color-mix(in srgb, var(--warning) 30%, transparent); }
+.tr-align.ok { color: var(--positive-ink); background: color-mix(in srgb, var(--pos) 12%, transparent); }
 .tr-align.na { color: var(--text-dim); background: var(--bg-soft, rgba(0,0,0,0.04)); }
 #trace-stats { display: flex; flex-wrap: wrap; gap: 4px 20px; margin: 8px 0 10px; font-size: var(--fs-sm); line-height: 1.5; }
 
