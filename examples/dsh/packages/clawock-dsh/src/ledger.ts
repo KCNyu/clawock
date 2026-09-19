@@ -11,7 +11,7 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import type {
   Book, DecisionRow, EnrichedTrade, Holding, JsonValue, LedgerResult, PlanRow, PlansResult,
-  PortfolioResult, TraceDecision, TraceT1, TracesResult, Trade,
+  PortfolioResult, T1VerdictKind, TraceDecision, TraceT1, TracesResult, Trade,
 } from './types.ts'
 
 const PLAN_PATTERN = /^(\d{4}-\d{2}-\d{2})-plan\.json$/
@@ -325,7 +325,19 @@ export function t1ToneOf(action: string, delta: number): 'win' | 'loss' | 'flat'
   return isSellAction(action) ? (up ? 'loss' : 'win') : (up ? 'win' : 'loss')
 }
 
-/** Chinese verdict text for a T+1 move, on the same dead zone as `t1ToneOf`. */
+/**
+ * Stable verdict identity for a T+1 move, on the same dead zone as
+ * `t1ToneOf`. This is what renderers switch on; `t1VerdictOf` only spells it
+ * out in the host's language.
+ */
+export function t1VerdictKindOf(action: string, delta: number): T1VerdictKind {
+  if (Math.abs(delta) < T1_FLAT_BAND_PCT) return 'flat'
+  const up = delta > 0
+  if (isSellAction(action)) return up ? 'soldEarly' : 'soldRight'
+  return up ? 'up' : 'down'
+}
+
+/** Host-rendered verdict text for a T+1 move, on the same dead zone as `t1ToneOf`. */
 export function t1VerdictOf(action: string, delta: number): string {
   if (Math.abs(delta) < T1_FLAT_BAND_PCT) return '持平'
   const up = delta > 0
@@ -433,6 +445,7 @@ function enrichTrade(
       date: t1.date,
       price: Math.round(t1.price * 100) / 100,
       delta,
+      verdictKind: t1VerdictKindOf(trade.action, delta),
       verdict: t1VerdictOf(trade.action, delta),
       tone: t1ToneOf(trade.action, delta),
     } satisfies TraceT1

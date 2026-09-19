@@ -31,9 +31,9 @@ import { defineStore } from '@deepseek-ai/dsh-client-store'
 // @types/react devDependency.
 import * as React from 'react'
 import styles from './styles.module.css'
-import type { BalanceResult, BalancesResult, EnrichedTrade, TraceDecision, TraceT1, TracesResult } from './types.ts'
+import type { BalanceResult, BalancesResult, EnrichedTrade, T1VerdictKind, TraceDecision, TraceT1, TracesResult } from './types.ts'
 
-const { createElement, useEffect, useRef, useState } = React
+const { createElement, useEffect, useId, useRef, useState } = React
 
 /**
  * The one React boundary in this file. `createElement` is variadic over
@@ -54,6 +54,217 @@ function cx(...tokens: (string | false | null | undefined)[]): string {
     out.push(styles[token] ?? token)
   }
   return out.join(' ')
+}
+
+// ---------------------------------------------------------------------------
+// Copy. Every string this plugin renders comes from one dictionary namespace so
+// the host's locale service can pick the language; the module owns no display
+// text of its own beyond the vendor detail it reports verbatim.
+// ---------------------------------------------------------------------------
+
+/** Dictionary namespace declared by every registration in this bundle. */
+export const LOCALE_NS = 'clawock'
+
+/**
+ * Translate one dictionary key with optional `{name}` params. Hand-declared
+ * rather than derived from the host's `TranslateNS<NS>`: that type needs the
+ * `LocaleNamespaceMap` merge the locale plugin owns, and this file's rule is to
+ * hand-declare what cannot be derived without a cross-plugin type import (the
+ * same reason `sessionId` is declared, not derived).
+ */
+export type Translate = (key: string, params?: Record<string, unknown>) => string
+
+/**
+ * This plugin's copy, in the locales the browser client ships (`zh`, `en` —
+ * `dsh-client-locale`'s LOCALE_IDS). Keys are grouped by surface; the two
+ * dictionaries must carry the same key set, which `tests/decision_studio_plugin.spec.js`
+ * enforces so a missing translation cannot ship.
+ */
+export const dictionaries: Record<string, Record<string, string>> = {
+  zh: {
+    'action.buy': '买入', 'action.add': '加仓', 'action.trim': '减仓', 'action.sell': '卖出',
+    'action.cut': '割肉', 'action.hold': '持有', 'action.trim_on_rebound': '反弹减仓',
+    'action.t_only': '仅T+0', 'action.add_only_on_trigger': '触发加仓', 'action.reject': '不加',
+    'action.watch': '观望', 'action.abstain': '弃权',
+    'driver.technical': '技术面', 'driver.fundamental': '基本面', 'driver.sentiment': '情绪面',
+    'driver.mixed': '混合', 'driver.risk_rule': '风控规则',
+    'exe.followed': '遵守了计划', 'exe.not_followed': '没按计划', 'exe.unknown': '未标注',
+    'align.same': '与计划同向', 'align.opposite': '与计划反向', 'align.other': '计划未指向买卖',
+    'emo.fomo': '追高冲动', 'emo.revenge': '报复性', 'emo.averaging_down': '摊薄冲动',
+    'emo.fear': '恐慌', 'emo.euphoria': '亢奋', 'emo.calm': '平静', 'emo.mixed': '混合',
+    'filter.all': '全部', 'filter.miss': '无当日计划', 'filter.sold': '卖出复盘', 'filter.dec': '有当日计划',
+    't1.up': '涨', 't1.down': '跌', 't1.soldEarly': '卖飞', 't1.soldRight': '卖对', 't1.flat': '持平',
+    'time.today': '今天', 'time.yesterday': '昨天', 'time.daysAgo': '{days}天前',
+    'time.date': '{month}月{day}日',
+    'time.weekday.0': '周日', 'time.weekday.1': '周一', 'time.weekday.2': '周二', 'time.weekday.3': '周三',
+    'time.weekday.4': '周四', 'time.weekday.5': '周五', 'time.weekday.6': '周六',
+    'trace.title': '决策轨迹', 'trace.subtitle': '一笔真实成交 + 当时写下的计划 + 官方收盘给的结果',
+    'trace.staleSuffix': ' · 更新失败,显示此前快照',
+    'trace.titleWithPlan': '决策轨迹 · {date}', 'trace.titleNoPlan': '决策轨迹 · 无当日计划',
+    'trace.planThen': '当时的计划', 'trace.noPlanRecord': '这一天没有该标的的计划记录',
+    'trace.realFill': '真实成交', 'trace.t1Close': 'T+1 收盘', 'trace.t1Pending': 'T+1 未判',
+    'trace.unpaired': '这笔成交在决策账本里找不到前后 3 天的同标的计划:成交是真的,当时的判断没有留下记录。',
+    'trace.sharesAt': ' 股 @ ', 'trace.shares': ' 股', 'trace.confidence': ' · 信心 ',
+    'trace.trigger': '触发条件: ', 'trace.selfGrade': '账本自评: ',
+    'trace.realized': '本笔已实现', 'trace.pnl': '本笔盈亏', 'trace.openPosition': '— 未平仓',
+    'trace.floating': '该持仓当前浮动 ({ticker} 全仓,非本笔)',
+    'trace.why': '为什么 ', 'trace.emotion': '情绪 ', 'trace.note': '备注 ',
+    'trace.holding': '持仓', 'trace.opposite': '反向', 'trace.market.hk': '港', 'trace.market.us': '美',
+    'trace.realizedUsd': '已实现 (USD 等值)', 'trace.realizedUsdNoRate': '已实现 (USD 等值 · HKD 未折算)',
+    'trace.t1Tally': 'T+1 卖飞/卖对 · 判出 {rated}/{sells} 笔卖出',
+    'trace.t1Sideless': ' · {sideless} 笔无侧向',
+    'trace.matched': '有当日计划', 'trace.reversed': ' · 反向 {reversed}',
+    'trace.more': '显示更早的 {fills} 笔成交', 'trace.less': '收起,只显示最近 {groups} 组',
+    'trace.empty': '没有符合条件的成交', 'trace.fillCount': '{count} 笔成交',
+    'balance.loading': '余额加载中', 'balance.unconfigured': '未配置',
+    'balance.unconfiguredKey': '未配置 API Key', 'balance.fetchFailed': '余额获取失败',
+    'balance.windowsUsed': '配额窗口已使用', 'balance.apiBalance': 'API 余额',
+    'balance.granted': '赠金 ', 'balance.toppedUp': '充值 ',
+    'balance.insufficient': '官方接口判定余额不足',
+    'balance.staleWith': '刷新失败,显示最近一次: {message}',
+    'balance.stale': '刷新失败,显示最近一次',
+    'balance.windowAt': '窗口已使用达 {percent}%',
+    'balance.lowMoney': '余额偏低,低于阈值 {amount}',
+    'balance.panelTitle': '各模型服务余额', 'balance.panelHeading': 'API 余额',
+    'balance.refreshAll': '刷新全部余额', 'balance.refreshNow': '立即刷新',
+    'balance.readFailed': '余额读取失败:{message}', 'balance.reading': '正在读取各服务余额…',
+    'balance.otherProviders': '(点击查看其他服务)',
+    'balance.unknownError': '未知错误',
+    'balance.windowNote': '{label} 已用 {percent}%',
+    'balance.windowNoteReset': '{label} 已用 {percent}%,{reset} 重置',
+    'balance.window.week': '周', 'balance.window.days': '{n}天', 'balance.window.hours': '{n}h',
+    'balance.window.minutes': '{n}m',
+    'balance.reset.today': '今天 {time}', 'balance.reset.tomorrow': '明天 {time}',
+    'balance.reset.dated': '{date} {weekday} {time}',
+  },
+  en: {
+    'action.buy': 'Buy', 'action.add': 'Add', 'action.trim': 'Trim', 'action.sell': 'Sell',
+    'action.cut': 'Cut', 'action.hold': 'Hold', 'action.trim_on_rebound': 'Trim on rebound',
+    'action.t_only': 'T+0 only', 'action.add_only_on_trigger': 'Add on trigger', 'action.reject': 'No add',
+    'action.watch': 'Watch', 'action.abstain': 'Abstain',
+    'driver.technical': 'Technical', 'driver.fundamental': 'Fundamental', 'driver.sentiment': 'Sentiment',
+    'driver.mixed': 'Mixed', 'driver.risk_rule': 'Risk rule',
+    'exe.followed': 'Followed the plan', 'exe.not_followed': 'Did not follow', 'exe.unknown': 'Unmarked',
+    'align.same': 'Same side as plan', 'align.opposite': 'Against the plan', 'align.other': 'Plan was not a trade',
+    'emo.fomo': 'FOMO', 'emo.revenge': 'Revenge', 'emo.averaging_down': 'Averaging down',
+    'emo.fear': 'Fear', 'emo.euphoria': 'Euphoria', 'emo.calm': 'Calm', 'emo.mixed': 'Mixed',
+    'filter.all': 'All', 'filter.miss': 'No plan that day', 'filter.sold': 'Sell reviews', 'filter.dec': 'Had a plan',
+    't1.up': 'up', 't1.down': 'down', 't1.soldEarly': 'sold too early', 't1.soldRight': 'sold well', 't1.flat': 'flat',
+    'time.today': 'today', 'time.yesterday': 'yesterday', 'time.daysAgo': '{days}d ago',
+    'time.date': '{month}/{day}',
+    'time.weekday.0': 'Sun', 'time.weekday.1': 'Mon', 'time.weekday.2': 'Tue', 'time.weekday.3': 'Wed',
+    'time.weekday.4': 'Thu', 'time.weekday.5': 'Fri', 'time.weekday.6': 'Sat',
+    'trace.title': 'Decision trace', 'trace.subtitle': 'A real fill + the plan written at the time + the official close',
+    'trace.staleSuffix': ' · refresh failed, showing the previous snapshot',
+    'trace.titleWithPlan': 'Decision trace · {date}', 'trace.titleNoPlan': 'Decision trace · no plan that day',
+    'trace.planThen': 'The plan at the time', 'trace.noPlanRecord': 'No plan recorded for this ticker that day',
+    'trace.realFill': 'Real fill', 'trace.t1Close': 'T+1 close', 'trace.t1Pending': 'T+1 unjudged',
+    'trace.unpaired': 'No plan for this ticker within ±3 days in the decision ledger: the fill is real, the thinking left no record.',
+    'trace.sharesAt': ' shares @ ', 'trace.shares': ' shares', 'trace.confidence': ' · confidence ',
+    'trace.trigger': 'Trigger: ', 'trace.selfGrade': 'Ledger self-grade: ',
+    'trace.realized': 'Realized on this fill', 'trace.pnl': 'P&L on this fill', 'trace.openPosition': '— still open',
+    'trace.floating': 'This position is floating ({ticker} whole book, not this fill)',
+    'trace.why': 'Why ', 'trace.emotion': 'Emotion ', 'trace.note': 'Note ',
+    'trace.holding': 'Position', 'trace.opposite': 'Against plan', 'trace.market.hk': 'HK', 'trace.market.us': 'US',
+    'trace.realizedUsd': 'Realized (USD equivalent)', 'trace.realizedUsdNoRate': 'Realized (USD equivalent · HKD unconverted)',
+    'trace.t1Tally': 'T+1 sold-early/sold-well · {rated}/{sells} sells judged',
+    'trace.t1Sideless': ' · {sideless} with no side',
+    'trace.matched': 'Had a plan that day', 'trace.reversed': ' · {reversed} against plan',
+    'trace.more': 'Show {fills} earlier fills', 'trace.less': 'Collapse to the latest {groups} groups',
+    'trace.empty': 'No fill matches this filter', 'trace.fillCount': '{count} fills',
+    'balance.loading': 'Loading balance', 'balance.unconfigured': 'Not set',
+    'balance.unconfiguredKey': 'No API key configured', 'balance.fetchFailed': 'Balance unavailable',
+    'balance.windowsUsed': 'Quota windows in use', 'balance.apiBalance': 'API balance',
+    'balance.granted': 'Granted ', 'balance.toppedUp': 'Topped up ',
+    'balance.insufficient': 'The provider reports insufficient balance',
+    'balance.staleWith': 'Refresh failed, showing the last reading: {message}',
+    'balance.stale': 'Refresh failed, showing the last reading',
+    'balance.windowAt': 'A window is at {percent}% used',
+    'balance.lowMoney': 'Balance low, below the {amount} threshold',
+    'balance.panelTitle': 'Model service balances', 'balance.panelHeading': 'API balance',
+    'balance.refreshAll': 'Refresh all balances', 'balance.refreshNow': 'Refresh now',
+    'balance.readFailed': 'Balance read failed: {message}', 'balance.reading': 'Reading balances…',
+    'balance.otherProviders': '(click for other services)',
+    'balance.unknownError': 'unknown error',
+    'balance.windowNote': '{label} {percent}% used',
+    'balance.windowNoteReset': '{label} {percent}% used, resets {reset}',
+    'balance.window.week': 'week', 'balance.window.days': '{n}d', 'balance.window.hours': '{n}h',
+    'balance.window.minutes': '{n}m',
+    'balance.reset.today': 'today {time}', 'balance.reset.tomorrow': 'tomorrow {time}',
+    'balance.reset.dated': '{date} {weekday} {time}',
+  },
+}
+
+/**
+ * Bind a dictionary to a lookup shaped exactly like the host's `t` seat, with
+ * `{name}` interpolation. The host supplies the real one through the slot
+ * registration (`locale: LOCALE_NS`); this factory exists so a render can be
+ * exercised without a locale service — the same seam the tests use.
+ */
+export function createTranslator(dict: Record<string, string>): Translate {
+  return (key, params) => {
+    const template = dict[key]
+    if (template === undefined) return key
+    if (params === undefined) return template
+    return template.replace(/\{(\w+)\}/g, (whole, name: string) =>
+      (Object.prototype.hasOwnProperty.call(params, name) ? String(params[name]) : whole))
+  }
+}
+
+/**
+ * Window length in minutes → the label in the active locale, host string as
+ * fallback. The structured fields are typed `| null` but read `== null`: a
+ * host that predates them omits the key entirely, so the value that actually
+ * arrives is `undefined`. Checking only for null rendered `NaN m` against a
+ * previous-version host — the exact half-deployed case this fallback exists
+ * for, caught by the projection test rather than in the browser.
+ */
+export function windowLabelOf(t: Translate, window: { label: string; durationMins?: number | null }): string {
+  const mins = window.durationMins
+  if (mins == null || mins <= 0) return window.label
+  if (mins === 7 * 24 * 60) return t('balance.window.week')
+  if (mins % 1440 === 0) return t('balance.window.days', { n: mins / 1440 })
+  if (mins % 60 === 0) return t('balance.window.hours', { n: mins / 60 })
+  return t('balance.window.minutes', { n: Math.round(mins) })
+}
+
+/** The reset instant → the stamp in the active locale, host string as fallback. */
+export function resetStampOf(t: Translate, window: { resetAt: string; resetAtMs?: number | null }, now: number): string {
+  const ms = window.resetAtMs
+  if (ms == null) return window.resetAt
+  const at = new Date(ms)
+  const time = String(at.getHours()).padStart(2, '0') + ':' + String(at.getMinutes()).padStart(2, '0')
+  // Calendar days apart, local midnight to local midnight — the same rule the
+  // host's `formatReset` used, so the client and the fallback agree.
+  const startOfDay = (d: Date): number => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()
+  const days = Math.round((startOfDay(at) - startOfDay(new Date(now))) / 86400000)
+  if (days === 0) return t('balance.reset.today', { time })
+  if (days === 1) return t('balance.reset.tomorrow', { time })
+  return t('balance.reset.dated', {
+    date: (at.getMonth() + 1) + '/' + at.getDate(),
+    weekday: t('time.weekday.' + at.getDay()),
+    time,
+  })
+}
+
+/**
+ * The T+1 verdict in the active locale. `verdictKind` is the stable code; a
+ * host that predates it sends only the rendered text, which is passed through
+ * rather than dropped — the same fallback rule as the balance windows.
+ */
+export function verdictOf(t: Translate, t1: { verdictKind?: T1VerdictKind | null; verdict: string }): string {
+  const kind = t1.verdictKind
+  if (kind == null) return t1.verdict
+  return t('t1.' + kind)
+}
+
+/** Every window of a snapshot, named and stamped for the active locale. */
+export function windowsOf(t: Translate, result: BalanceResult, now: number): { label: string; percent: number | null; reset: string }[] {
+  return (result.snapshot?.windows ?? []).map((w) => ({
+    label: windowLabelOf(t, w),
+    percent: w.percent,
+    reset: resetStampOf(t, w, now),
+  }))
 }
 
 /** The four trace filters offered above the list. */
@@ -133,15 +344,21 @@ export interface DecisionMindInjected {
  */
 export type DecisionMindProps = PropsStore<DecisionMindStore> & DecisionMindInjected & {
   sessionId: string
+  /** Dictionary seat from declaring `locale: LOCALE_NS` on the registration. */
+  t: Translate
 }
 
+/** Action code → dictionary key. The words live in the dictionary, not here. */
 const ACT: Record<string, string> = {
-  buy: '买入', add: '加仓', trim: '减仓', sell: '卖出', cut: '割肉', hold: '持有',
-  hold_and_watch: '持有', trim_on_rebound: '反弹减仓', t_only: '仅T+0',
-  add_only_on_trigger: '触发加仓', reject: '不加', watch: '观望', abstain: '弃权',
+  buy: 'action.buy', add: 'action.add', trim: 'action.trim', sell: 'action.sell',
+  cut: 'action.cut', hold: 'action.hold', hold_and_watch: 'action.hold',
+  trim_on_rebound: 'action.trim_on_rebound', t_only: 'action.t_only',
+  add_only_on_trigger: 'action.add_only_on_trigger', reject: 'action.reject',
+  watch: 'action.watch', abstain: 'action.abstain',
 }
 const DRV: Record<string, string> = {
-  technical: '技术面', fundamental: '基本面', sentiment: '情绪面', mixed: '混合', risk_rule: '风控规则',
+  technical: 'driver.technical', fundamental: 'driver.fundamental', sentiment: 'driver.sentiment',
+  mixed: 'driver.mixed', risk_rule: 'driver.risk_rule',
 }
 /**
  * The ledger's `execution.status`, in words.
@@ -154,20 +371,20 @@ const DRV: Record<string, string> = {
  * plan-vs-fill relation is `decision.alignment` below.
  */
 const EXE: Record<string, string> = {
-  followed: '遵守了计划', not_followed: '没按计划', unknown: '未标注',
+  followed: 'exe.followed', not_followed: 'exe.not_followed', unknown: 'exe.unknown',
 }
 /** The plan-vs-fill relation, stated instead of left to be inferred. */
-const ALIGN: Record<string, [label: string, tone: string]> = {
-  same: ['与计划同向', 'follow'],
-  opposite: ['与计划反向', 'skip'],
-  other: ['计划未指向买卖', ''],
+const ALIGN: Record<string, [key: string, tone: string]> = {
+  same: ['align.same', 'follow'],
+  opposite: ['align.opposite', 'skip'],
+  other: ['align.other', ''],
 }
 const EMO: Record<string, string> = {
-  fomo: '追高冲动', revenge: '报复性', averaging_down: '摊薄冲动', fear: '恐慌',
-  euphoria: '亢奋', calm: '平静', mixed: '混合',
+  fomo: 'emo.fomo', revenge: 'emo.revenge', averaging_down: 'emo.averaging_down', fear: 'emo.fear',
+  euphoria: 'emo.euphoria', calm: 'emo.calm', mixed: 'emo.mixed',
 }
 const FILTER_LABEL: Record<TraceFilter, string> = {
-  all: '全部', miss: '无当日计划', sold: '卖出复盘', dec: '有当日计划',
+  all: 'filter.all', miss: 'filter.miss', sold: 'filter.sold', dec: 'filter.dec',
 }
 
 /**
@@ -271,53 +488,56 @@ function Chip(props: { children?: React.ReactNode }): React.ReactElement {
   return h('span', { className: cx('tag') }, props.children)
 }
 
-function TraceDetail(props: { trace: DisplayEntry }): React.ReactElement {
+function TraceDetail(props: { trace: DisplayEntry; t: Translate }): React.ReactElement {
+  const t = props.t
   const trace = props.trace
   const decision = trace.decision
   const sym = trace.currency === 'HKD' ? 'HK$' : '$'
+  /** Action code → the word, falling back to the raw code the host sent. */
+  const act = (code: string | null): string => (code === null ? '' : (ACT[code] === undefined ? code : t(ACT[code] as string)))
   // The fill itself, in words — the one node on this row that is never inferred.
-  const fillText = (ACT[trace.action] ?? trace.action) + ' ' + trace.shares + ' 股 @ ' + fmtPrice(trace.price, sym)
+  const fillText = act(trace.action) + ' ' + trace.shares + t('trace.sharesAt') + fmtPrice(trace.price, sym)
   if (decision === null) {
     const t1miss = trace.t1 === null ? null : h('div', { className: cx('tnode', t1NodeClass(trace.t1.tone)) },
       h('div', { className: cx('tw') }, trace.t1.date),
-      h('div', { className: cx('n') }, 'T+1 收盘'),
-      h('div', { className: cx('v') }, (trace.t1.delta >= 0 ? '+' : '') + trace.t1.delta + '% · ' + trace.t1.verdict))
+      h('div', { className: cx('n') }, t('trace.t1Close')),
+      h('div', { className: cx('v') }, (trace.t1.delta >= 0 ? '+' : '') + trace.t1.delta + '% · ' + verdictOf(t, trace.t1)))
     return h('div', { className: cx('dbody') },
-      h('div', { className: cx('trhead') }, '决策轨迹 · 无当日计划'),
+      h('div', { className: cx('trhead') }, t('trace.titleNoPlan')),
       h('div', { className: cx('trace') },
         h('div', { className: cx('tnode', 'dec') },
-          h('div', { className: cx('n') }, '当时的计划'),
-          h('div', { className: cx('v'), style: { color: 'var(--cap)' } }, '这一天没有该标的的计划记录')),
+          h('div', { className: cx('n') }, t('trace.planThen')),
+          h('div', { className: cx('v'), style: { color: 'var(--cap)' } }, t('trace.noPlanRecord'))),
         h('div', { className: cx('tnode', 'follow') },
           h('div', { className: cx('tw') }, trace.date ?? ''),
-          h('div', { className: cx('n') }, '真实成交'),
+          h('div', { className: cx('n') }, t('trace.realFill')),
           h('div', { className: cx('v') }, fillText)),
         t1miss),
       trace.note === null ? null : h('div', { className: cx('tnote') }, esc(trace.note)),
-      h('div', { className: cx('tmiss') },
-        '这笔成交在决策账本里找不到前后 3 天的同标的计划:成交是真的,当时的判断没有留下记录。'))
+      h('div', { className: cx('tmiss') }, t('trace.unpaired')))
   }
-  const [alignLabel, alignTone] = ALIGN[decision.alignment ?? ''] ?? ['', '']
-  const planned = (ACT[decision.action ?? ''] ?? decision.action ?? '')
-    + (decision.sizeShares === null ? '' : ' ' + decision.sizeShares + ' 股')
+  const [alignKey, alignTone] = ALIGN[decision.alignment ?? ''] ?? ['', '']
+  const alignLabel = alignKey === '' ? '' : t(alignKey)
+  const planned = act(decision.action)
+    + (decision.sizeShares === null ? '' : ' ' + decision.sizeShares + t('trace.shares'))
     + (decision.plannedPrice === null ? '' : ' @ ' + decision.plannedPrice)
-    + (decision.confidence === null ? '' : ' · 信心 ' + Math.round(decision.confidence * 100) + '%')
-    + (decision.drivenBy === null ? '' : ' · ' + (DRV[decision.drivenBy] ?? decision.drivenBy))
+    + (decision.confidence === null ? '' : t('trace.confidence') + Math.round(decision.confidence * 100) + '%')
+    + (decision.drivenBy === null ? '' : ' · ' + (DRV[decision.drivenBy] === undefined ? decision.drivenBy : t(DRV[decision.drivenBy] as string)))
   const why = decision.rationale ?? decision.bull ?? ''
   const emotion = decision.emotion !== null && decision.emotion !== 'calm'
-    ? (EMO[decision.emotion] ?? decision.emotion)
+    ? (EMO[decision.emotion] === undefined ? decision.emotion : t(EMO[decision.emotion] as string))
     : null
   const chips: React.ReactElement[] = []
-  if (decision.condition !== null) chips.push(h('span', { className: cx('pc'), key: 'c' }, '触发条件: ' + decision.condition))
+  if (decision.condition !== null) chips.push(h('span', { className: cx('pc'), key: 'c' }, t('trace.trigger') + decision.condition))
   if (decision.execution !== null) {
     chips.push(h('span', { className: cx('pc'), key: 'e' },
-      '账本自评: ' + (EXE[decision.execution] ?? decision.execution)))
+      t('trace.selfGrade') + (EXE[decision.execution] === undefined ? decision.execution : t(EXE[decision.execution] as string))))
   }
   const t1node = trace.t1 === null ? null : h('div', { className: cx('tnode', t1NodeClass(trace.t1.tone)) },
     h('div', { className: cx('tw') }, trace.t1.date),
-    h('div', { className: cx('n') }, 'T+1 收盘'),
+    h('div', { className: cx('n') }, t('trace.t1Close')),
     h('div', { className: cx('v') },
-      (trace.t1.delta >= 0 ? '+' : '') + trace.t1.delta + '% · ' + trace.t1.verdict))
+      (trace.t1.delta >= 0 ? '+' : '') + trace.t1.delta + '% · ' + verdictOf(t, trace.t1)))
   // 本笔已实现 and 该持仓浮动 are different quantities — one belongs to this
   // fill, the other to the whole position — so they never share a label.
   let pnlText: string
@@ -326,26 +546,26 @@ function TraceDetail(props: { trace: DisplayEntry }): React.ReactElement {
   if (trace.realizedPnl !== null) {
     pnlText = (trace.realizedPnl >= 0 ? '+' : '') + trace.realizedPnl.toFixed(2) + ' ' + sym
     pnlTone = trace.realizedPnl >= 0 ? 'win' : 'loss'
-    pnlLabel = '本笔已实现'
+    pnlLabel = t('trace.realized')
   } else if (trace.holdPnl !== null) {
     pnlText = fmtPct(trace.holdPnl)
     pnlTone = trace.holdPnl >= 0 ? 'win' : 'loss'
-    pnlLabel = '该持仓当前浮动 (' + trace.ticker + ' 全仓,非本笔)'
+    pnlLabel = t('trace.floating', { ticker: trace.ticker })
   } else {
-    pnlText = '— 未平仓'
+    pnlText = t('trace.openPosition')
     pnlTone = ''
-    pnlLabel = '本笔盈亏'
+    pnlLabel = t('trace.pnl')
   }
   return h('div', { className: cx('dbody') },
-    h('div', { className: cx('trhead') }, '决策轨迹 · ' + (decision.planDate ?? '')),
+    h('div', { className: cx('trhead') }, t('trace.titleWithPlan', { date: decision.planDate ?? '' })),
     h('div', { className: cx('trace') },
       h('div', { className: cx('tnode', 'dec') },
         h('div', { className: cx('tw') }, decision.planDate ?? ''),
-        h('div', { className: cx('n') }, '当时的计划'),
+        h('div', { className: cx('n') }, t('trace.planThen')),
         h('div', { className: cx('v') }, planned)),
       h('div', { className: cx('tnode', alignTone) },
         h('div', { className: cx('tw') }, trace.date ?? ''),
-        h('div', { className: cx('n') }, '真实成交'),
+        h('div', { className: cx('n') }, t('trace.realFill')),
         h('div', { className: cx('v') }, fillText,
           alignLabel === '' ? null : h('span', { className: cx('pc', alignTone) }, alignLabel))),
       t1node,
@@ -353,9 +573,9 @@ function TraceDetail(props: { trace: DisplayEntry }): React.ReactElement {
         h('div', { className: cx('n') }, pnlLabel),
         h('div', { className: cx('v') }, pnlText))),
     chips.length === 0 ? null : h('div', { className: cx('pchips') }, chips),
-    why === '' ? null : h('div', { className: cx('tnote', 'why') }, h('span', { className: cx('k') }, '为什么 '), esc(why)),
-    emotion === null ? null : h('div', { className: cx('tnote', 'emo') }, h('span', { className: cx('k') }, '情绪 '), '⚡ ' + emotion),
-    trace.note === null ? null : h('div', { className: cx('tnote') }, h('span', { className: cx('k') }, '备注 '), esc(trace.note)))
+    why === '' ? null : h('div', { className: cx('tnote', 'why') }, h('span', { className: cx('k') }, t('trace.why')), esc(why)),
+    emotion === null ? null : h('div', { className: cx('tnote', 'emo') }, h('span', { className: cx('k') }, t('trace.emotion')), '⚡ ' + emotion),
+    trace.note === null ? null : h('div', { className: cx('tnote') }, h('span', { className: cx('k') }, t('trace.note')), esc(trace.note)))
 }
 
 interface TraceCellProps {
@@ -363,9 +583,11 @@ interface TraceCellProps {
   open: boolean
   onToggle: () => void
   onKeyDown: (event: React.KeyboardEvent) => void
+  t: Translate
 }
 
 function TraceCell(props: TraceCellProps): React.ReactElement {
+  const t = props.t
   const trace = props.trace
   const sym = trace.currency === 'HKD' ? 'HK$' : '$'
   let pnl: React.ReactElement
@@ -376,7 +598,7 @@ function TraceCell(props: TraceCellProps): React.ReactElement {
     // A floating percent belongs to the whole position, not to this fill. The
     // 持仓 prefix is what stops it reading as "this trade lost 28%".
     pnl = h('span', { className: cx('pnl', trace.holdPnl >= 0 ? 'up' : 'down') },
-      h('span', { className: cx('pnlk') }, '持仓'), fmtPct(trace.holdPnl))
+      h('span', { className: cx('pnlk') }, t('trace.holding')), fmtPct(trace.holdPnl))
   } else {
     pnl = h('span', { className: cx('pnl', 'na') }, '—')
   }
@@ -388,7 +610,7 @@ function TraceCell(props: TraceCellProps): React.ReactElement {
     // `action === 'sell'` used to drop it for cut/trim/trim_on_rebound and
     // forced the client to keep its own copy of the action set — the kind of
     // duplicate that drifted apart in #739.
-    const label = 'T+1 ' + (trace.t1.delta >= 0 ? '+' : '') + trace.t1.delta + '% ' + trace.t1.verdict
+    const label = 'T+1 ' + (trace.t1.delta >= 0 ? '+' : '') + trace.t1.delta + '% ' + verdictOf(t, trace.t1)
     // data-tone carries the host's reading into the DOM: it is what the
     // regression spec reads, so hashed class names cannot hide a chip that
     // stopped following `t1.tone` (#713).
@@ -397,14 +619,14 @@ function TraceCell(props: TraceCellProps): React.ReactElement {
     // Said out loud for every unjudged fill, not just sells: no canonical close
     // inside the T+1 window means there is no verdict, and silence there reads
     // like the fill was fine.
-    t1tag = h('span', { className: cx('t1', 'flat'), 'data-tone': 'flat' }, 'T+1 未判')
+    t1tag = h('span', { className: cx('t1', 'flat'), 'data-tone': 'flat' }, t('trace.t1Pending'))
   }
   // A fill that ran against its own plan is the single most load-bearing
   // signal on this board (SPCH: 37 planned cuts, 22 actual buys) — it must be
   // visible in the folded row, not only after expanding the timeline.
   let alignTag: React.ReactElement | null = null
   if (trace.decision?.alignment === 'opposite') {
-    alignTag = h('span', { className: cx('al', 'opp'), 'data-align': 'opposite' }, '反向')
+    alignTag = h('span', { className: cx('al', 'opp'), 'data-align': 'opposite' }, t('trace.opposite'))
   }
   return h('div', {
     className: cx('cell', trace.decision !== null && 'hasdec', props.open && 'open'),
@@ -418,8 +640,8 @@ function TraceCell(props: TraceCellProps): React.ReactElement {
     h('div', { className: cx('main') },
       h('span', { className: cx('dotm') }),
       h('span', { className: cx('tk') }, trace.ticker,
-        h('span', { className: cx('mkt', trace.market === 'HK' && 'hk') }, trace.market === 'HK' ? '港' : '美')),
-      h(Chip, null, ACT[trace.action] ?? trace.action),
+        h('span', { className: cx('mkt', trace.market === 'HK' && 'hk') }, trace.market === 'HK' ? t('trace.market.hk') : t('trace.market.us'))),
+      h(Chip, null, ACT[trace.action] === undefined ? trace.action : t(ACT[trace.action] as string)),
       h('span', { className: cx('qty') }, trace.shares + ' @' + fmtPrice(trace.price)),
       h('span', { className: cx('sp') }),
       pnl),
@@ -429,7 +651,7 @@ function TraceCell(props: TraceCellProps): React.ReactElement {
       h('span', { className: cx('date') }, (trace.date ?? '').slice(5)),
       h('span', { className: cx('chev') }, '▾')),
     h('div', { className: cx('detail') },
-      h('div', { className: cx('dinner') }, props.open ? h(TraceDetail, { trace }) : null)))
+      h('div', { className: cx('dinner') }, props.open ? h(TraceDetail, { trace, t }) : null)))
 }
 
 /** Stable row identities are derived before filtering, so switching filters
@@ -473,13 +695,13 @@ function todayIso(): string {
     + '-' + String(now.getDate()).padStart(2, '0')
 }
 
-function relativeDay(iso: string, today: string): string {
-  if (iso === today) return '今天'
+function relativeDay(iso: string, today: string, t: Translate): string {
+  if (iso === today) return t('time.today')
   const at = (date: string): number => new Date(date + 'T00:00:00').getTime()
   const days = Math.round((at(today) - at(iso)) / 86400000)
-  if (days === 1) return '昨天'
-  if (days >= 2 && days <= 7) return days + '天前'
-  return parseInt(iso.slice(5, 7)) + '月' + parseInt(iso.slice(8, 10)) + '日'
+  if (days === 1) return t('time.yesterday')
+  if (days >= 2 && days <= 7) return t('time.daysAgo', { days })
+  return t('time.date', { month: parseInt(iso.slice(5, 7)), day: parseInt(iso.slice(8, 10)) })
 }
 
 /** The four visual states one provider's reading can take. */
@@ -513,10 +735,10 @@ export function _usedLevel(percent: number | null, threshold: number): UsedLevel
  * panel. An exhausted window gets no caption at all (kcn 反馈: 文案只会重复):
  * the reading itself says 100% and `reset` carries when it frees up.
  */
-export function _rowDisplay(result: BalanceResult | null): { tone: BalanceTone; value: string; sub: string | null; reset: string | null; level: UsedLevel | null; title: string } {
-  if (result === null) return { tone: 'none', value: '—', sub: null, reset: null, level: null, title: '余额加载中' }
-  if (!result.configured) return { tone: 'none', value: '未配置', sub: null, reset: null, level: null, title: result.message ?? '未配置 API Key' }
-  if (result.snapshot === null) return { tone: 'none', value: '—', sub: null, reset: null, level: null, title: result.message ?? '余额获取失败' }
+export function _rowDisplay(result: BalanceResult | null, t: Translate, now: number = Date.now()): { tone: BalanceTone; value: string; sub: string | null; reset: string | null; level: UsedLevel | null; title: string } {
+  if (result === null) return { tone: 'none', value: '—', sub: null, reset: null, level: null, title: t('balance.loading') }
+  if (!result.configured) return { tone: 'none', value: t('balance.unconfigured'), sub: null, reset: null, level: null, title: result.message ?? t('balance.unconfiguredKey') }
+  if (result.snapshot === null) return { tone: 'none', value: '—', sub: null, reset: null, level: null, title: result.message ?? t('balance.fetchFailed') }
   const snapshot = result.snapshot
   const isPct = snapshot.unit === 'pct'
   const symbol = isPct ? '' : snapshot.currency === 'USD' ? '$' : snapshot.currency === 'CNY' ? '¥' : ''
@@ -536,24 +758,37 @@ export function _rowDisplay(result: BalanceResult | null): { tone: BalanceTone; 
   // 头条窗口自己的重置时刻(↻ 前缀,面板每窗一行同款):额度用尽时用户要能
   // 看到「什么时候恢复」而不是一句「已用尽」。跟头条数字同一个窗——头条
   // 缺窗时步进到第一个可读窗,重置也跟着那一个走。
-  const reset = pctWins.length > 0 && pctWins[0].resetAt !== '' ? pctWins[0].resetAt : null
-  const sub = second !== null
-    ? '· ' + second.label + ' ' + Math.round(second.percent as number) + '%' + (second.resetAt !== '' ? ' ↻' + second.resetAt : '')
+  const wins = windowsOf(t, result, now)
+  const firstReset = wins.length > 0 ? wins[0]!.reset : ''
+  const reset = pctWins.length > 0 && firstReset !== '' ? firstReset : null
+  const secondWin = wins.length > 1 ? wins[1]! : null
+  const sub = secondWin !== null && second !== null
+    ? '· ' + secondWin.label + ' ' + Math.round(second.percent as number) + '%' + (secondWin.reset !== '' ? ' ↻' + secondWin.reset : '')
     : null
   const tone: BalanceTone = result.status === 'stale'
     ? 'stale'
     : (result.low || !snapshot.isAvailable ? 'low' : 'ok')
   // 更新时间不重复展示:轮询是静默的,手动刷新有 ✓ 反馈——时间戳只增加噪音。
+  // The quota line is composed from the structured windows, not from the
+  // host's `note`: that string is built in the host's language, and it is the
+  // one place the panel would otherwise stay monolingual. A snapshot without
+  // windows carries only vendor detail, so its note passes through verbatim.
+  const quotaLine = wins.length === 0
+    ? (snapshot.note !== '' ? snapshot.note : t('balance.windowsUsed'))
+    : wins
+      .filter((w) => w.percent !== null)
+      .map((w) => (w.reset === ''
+        ? t('balance.windowNote', { label: w.label, percent: Math.round(w.percent as number) })
+        : t('balance.windowNoteReset', { label: w.label, percent: Math.round(w.percent as number), reset: w.reset })))
+      .join(' · ')
   const parts = [
-    snapshot.unit === 'pct'
-      ? (snapshot.note !== '' ? snapshot.note : '配额窗口已使用')
-      : 'API 余额',
-    !isPct && snapshot.grantedBalance !== '' ? '赠金 ' + symbol + snapshot.grantedBalance : null,
-    !isPct && snapshot.toppedUpBalance !== '' ? '充值 ' + symbol + snapshot.toppedUpBalance : null,
+    snapshot.unit === 'pct' ? quotaLine : t('balance.apiBalance'),
+    !isPct && snapshot.grantedBalance !== '' ? t('balance.granted') + symbol + snapshot.grantedBalance : null,
+    !isPct && snapshot.toppedUpBalance !== '' ? t('balance.toppedUp') + symbol + snapshot.toppedUpBalance : null,
     // 用尽不再说话(kcn 反馈):配额行的进度条(100%)+重置时间自己会讲,
     // 一句「已用尽」只会把那两样顶掉。金额行没有条可讲,保留原句。
-    snapshot.isAvailable || isPct ? null : '官方接口判定余额不足',
-    result.status === 'stale' && result.message !== null ? '刷新失败,显示最近一次: ' + result.message : null,
+    snapshot.isAvailable || isPct ? null : t('balance.insufficient'),
+    result.status === 'stale' && result.message !== null ? t('balance.staleWith', { message: result.message }) : null,
   ].filter((part): part is string => part !== null)
   // 头条数字的用量档位(染色用):配额行按实际显示的那个数取档;金额行
   // 没有用量语义,level 为 null,颜色仍走 tone(money low = 红)。
@@ -569,15 +804,17 @@ export function _rowDisplay(result: BalanceResult | null): { tone: BalanceTone; 
  * is silence too (kcn 反馈): its 100% bar and reset stamp in the per-window
  * rows are the message; a caption would only replace them.
  */
-export function _balanceNote(result: BalanceResult | null): string | null {
+export function _balanceNote(result: BalanceResult | null, t: Translate): string | null {
   if (result === null) return null
-  if (!result.configured) return result.message ?? '未配置 API Key'
-  if (result.snapshot === null) return result.message ?? '余额获取失败'
+  if (!result.configured) return result.message ?? t('balance.unconfiguredKey')
+  if (result.snapshot === null) return result.message ?? t('balance.fetchFailed')
   if (result.status === 'stale') {
-    return '刷新失败,显示最近一次' + (result.message !== null ? ':' + result.message : '')
+    return result.message !== null
+      ? t('balance.staleWith', { message: result.message })
+      : t('balance.stale')
   }
   if (!result.snapshot.isAvailable) {
-    return result.snapshot.unit === 'pct' ? null : '官方接口判定余额不足'
+    return result.snapshot.unit === 'pct' ? null : t('balance.insufficient')
   }
   if (result.low) {
     // threshold 是「剩余水位」(lowPct),已使用方向 = 100 − threshold。
@@ -589,10 +826,10 @@ export function _balanceNote(result: BalanceResult | null): string | null {
       // A snapshot without windows has nothing below it, so it keeps the line.
       return (result.snapshot.windows ?? []).length > 0
         ? null
-        : '窗口已使用达 ' + (100 - result.threshold) + '%'
+        : t('balance.windowAt', { percent: 100 - result.threshold })
     }
     const symbol = result.snapshot.currency === 'USD' ? '$' : result.snapshot.currency === 'CNY' ? '¥' : ''
-    return '余额偏低,低于阈值 ' + symbol + result.threshold
+    return t('balance.lowMoney', { amount: symbol + result.threshold })
   }
   return null
 }
@@ -629,7 +866,11 @@ export function createBalanceStore() {
 /** The chip's registration store handle type (derived, like DecisionMind's). */
 export type BalanceStore = ReturnType<typeof createBalanceStore>
 
-export type BalanceChipProps = BalancesInjected & PropsStore<BalanceStore> & { sessionId: string }
+export type BalanceChipProps = BalancesInjected & PropsStore<BalanceStore> & {
+  sessionId: string
+  /** Dictionary seat from declaring `locale: LOCALE_NS` on the registration. */
+  t: Translate
+}
 
 /**
  * The session-header chip (#871's final home): account status is app chrome,
@@ -654,8 +895,8 @@ function renderRowDetail(row: {
   result: BalanceResult
   view: { tone: BalanceTone; value: string; title: string }
   note: string | null
-}): React.ReactElement | null {
-  const wins = row.result.snapshot?.windows ?? []
+}, t: Translate, now: number): React.ReactElement | null {
+  const wins = row.result.snapshot === null ? [] : windowsOf(t, row.result, now)
   if (wins.length > 0) {
     // 每窗一行:文字读数 + 发丝进度条。percent 是已使用方向(kcn 定的口径),
     // 填充按用量档位走(kcn 配色,恢复):低=绿、≥60% 黄、≥80% 红,stale 黄
@@ -669,7 +910,7 @@ function renderRowDetail(row: {
           h('div', { className: cx('bp-win-line') },
             h('span', { className: cx('bp-win-label') }, w.label),
             h('span', { className: cx('bp-win-pct') }, w.percent === null ? '—' : Math.round(w.percent) + '%'),
-            h('span', { className: cx('bp-win-reset') }, w.resetAt === '' ? '' : '↻ ' + w.resetAt)),
+            h('span', { className: cx('bp-win-reset') }, w.reset === '' ? '' : '↻ ' + w.reset)),
           h('div', { className: cx('bp-win-bar') },
             h('div', {
               className: cx('bp-win-fill'),
@@ -683,7 +924,8 @@ function renderRowDetail(row: {
   const title = row.view.title
   if (title === '') return null
   // Money rows: drop the leading 'API 余额' label — the row already says who.
-  const body = title.startsWith('API 余额 · ') ? title.slice('API 余额 · '.length) : title
+  const prefix = t('balance.apiBalance') + ' · '
+  const body = title.startsWith(prefix) ? title.slice(prefix.length) : title
   return h('div', { className: cx('bp-sub') }, body)
 }
 
@@ -703,7 +945,7 @@ type BalanceRow = BalancesResult['providers'][number] & {
  * answers fetched by its sibling surface (the panel's manual refresh updates
  * the foot button at once).
  */
-function useProviderBalances(props: BalancesInjected & PropsStore<BalanceStore>, pollKey: string) {
+function useProviderBalances(props: BalancesInjected & PropsStore<BalanceStore> & { t: Translate }, pollKey: string) {
   const mountedRef = useRef(true)
   // `error` is why the last fetch never answered (transport/RPC failure — a
   // provider's own failure arrives inside `result` as a stale/failed row).
@@ -729,7 +971,7 @@ function useProviderBalances(props: BalancesInjected & PropsStore<BalanceStore>,
       }
     }, (err: unknown) => {
       if (!mountedRef.current) return
-      const error = (err instanceof Error ? err.message : String(err)) || '未知错误'
+      const error = (err instanceof Error ? err.message : String(err)) || props.t('balance.unknownError')
       setData((current) => ({ ...current, loading: false, error }))
     })
   }
@@ -755,10 +997,11 @@ function useProviderBalances(props: BalancesInjected & PropsStore<BalanceStore>,
     return () => clearInterval(timer)
   }, [data.result?.refreshMs, pollKey])
 
+  const now = Date.now()
   const rows: BalanceRow[] = (data.result?.providers ?? []).map((provider) => ({
     ...provider,
-    view: _rowDisplay(provider.result),
-    note: _balanceNote(provider.result),
+    view: _rowDisplay(provider.result, props.t, now),
+    note: _balanceNote(provider.result, props.t),
   }))
   // 胶囊只讲一个 provider:选中的优先,否则第一行(稳定的 deepseek-first 序)。
   const primary = rows.find((row) => row.provider === selected) ?? rows[0]
@@ -770,8 +1013,8 @@ function useProviderBalances(props: BalancesInjected & PropsStore<BalanceStore>,
   // fetch failed (the hollow stale badge, not the blank "nothing to judge").
   const failed = rows.length === 0 && data.error !== null && !data.loading
   const empty = failed
-    ? { tone: 'stale' as BalanceTone, title: '余额读取失败:' + data.error }
-    : { tone: 'none' as BalanceTone, title: '余额加载中' }
+    ? { tone: 'stale' as BalanceTone, title: props.t('balance.readFailed', { message: data.error }) }
+    : { tone: 'none' as BalanceTone, title: props.t('balance.loading') }
   return { data, rows, primary, select, flash, refresh, empty }
 }
 
@@ -786,9 +1029,14 @@ function useProviderBalances(props: BalancesInjected & PropsStore<BalanceStore>,
  * nothing to judge. The notch is an SVG mask, not a painted ring, so it stays
  * clean over the hover and open backgrounds.
  */
-function renderBalanceGlyph(tone: BalanceTone, size: number): React.ReactElement {
+function renderBalanceGlyph(tone: BalanceTone, size: number, instanceId: string): React.ReactElement {
   const badge = tone === 'ok' || tone === 'low' || tone === 'stale'
-  const notch = 'clawock-balance-notch'
+  // Per-instance, not a fixed string: an SVG `mask` is referenced by a document
+  // -global id, so two mounted glyphs sharing one id would have the second
+  // reuse the first's mask node (and `url(#...)` would resolve to whichever
+  // came first). Only one surface mounts today, which is exactly why a fixed id
+  // would go unnoticed until a second one existed.
+  const notch = 'clawock-balance-notch-' + instanceId
   return h('svg', {
     className: cx('bal-glyph'), width: size, height: size, viewBox: '0 0 16 16', fill: 'none', 'aria-hidden': 'true',
   },
@@ -810,9 +1058,9 @@ function renderBalanceGlyph(tone: BalanceTone, size: number): React.ReactElement
 }
 
 /** The headline reading: dot (or the foot glyph) · value · reset · weekly sub-reading. */
-function renderBalanceHeadline(primary: BalanceRow | undefined, withLabel: boolean, glyph = false, emptyTone: BalanceTone = 'none'): React.ReactElement {
+function renderBalanceHeadline(primary: BalanceRow | undefined, withLabel: boolean, glyph = false, emptyTone: BalanceTone = 'none', instanceId = ''): React.ReactElement {
   const lead = (tone: BalanceTone): React.ReactElement => glyph
-    ? h('span', { className: cx('bal-lead') }, renderBalanceGlyph(tone, 16))
+    ? h('span', { className: cx('bal-lead') }, renderBalanceGlyph(tone, 16, instanceId))
     : h('span', { className: cx('bchip-dot') })
   return primary === undefined
     ? h('span', { className: cx('bchip-item') }, lead(emptyTone), '—')
@@ -839,25 +1087,25 @@ function renderBalanceHeadline(primary: BalanceRow | undefined, withLabel: boole
 }
 
 /** The panel body: title + refresh, then every provider row (click = pin). */
-function renderBalancePanelBody(state: ReturnType<typeof useProviderBalances>): Array<React.ReactElement | null> {
+function renderBalancePanelBody(state: ReturnType<typeof useProviderBalances>, t: Translate): Array<React.ReactElement | null> {
   const { data, rows, primary, select, flash, refresh } = state
   return [
     h('div', { className: cx('bp-head'), key: 'head' },
-      h('span', { className: cx('bp-title') }, 'API 余额'),
+      h('span', { className: cx('bp-title') }, t('balance.panelHeading')),
       h('button', {
         type: 'button',
         className: cx('bal-rf', data.loading && 'spin', flash === 'ok' && 'flash-ok', flash === 'same' && 'flash-same'),
         'data-refresh': 'true',
-        'aria-label': '刷新全部余额',
-        title: '立即刷新',
+        'aria-label': t('balance.refreshAll'),
+        title: t('balance.refreshNow'),
         onClick: refresh,
       }, flash === 'ok' ? '✓' : '↻')),
     rows.length > 0 && data.error !== null && !data.loading
-      ? h('div', { className: cx('bp-note', 'warn'), key: 'error', role: 'status' }, '刷新失败,显示最近一次:' + data.error)
+      ? h('div', { className: cx('bp-note', 'warn'), key: 'error', role: 'status' }, t('balance.staleWith', { message: data.error }))
       : null,
     rows.length === 0
       ? h('div', { className: cx('bp-empty'), key: 'empty', role: 'status' },
-        data.error !== null && !data.loading ? '余额读取失败:' + data.error : '正在读取各服务余额…')
+        data.error !== null && !data.loading ? t('balance.readFailed', { message: data.error }) : t('balance.reading'))
       : h('div', { key: 'rows' }, rows.map((row) => h('button', {
         type: 'button',
         key: row.provider,
@@ -882,15 +1130,19 @@ function renderBalancePanelBody(state: ReturnType<typeof useProviderBalances>): 
           row.note !== null
             ? h('div', { className: cx('bp-note', row.view.tone === 'stale' ? 'warn' : 'bad'), key: 'note' }, row.note)
             : null,
-          renderRowDetail(row),
+          renderRowDetail(row, t, Date.now()),
         ]))),
   ]
 }
 
 export function ProviderBalanceChip(props: BalanceChipProps): React.ReactElement {
+  const t = props.t
   const state = useProviderBalances(props, props.sessionId)
   const { rows, primary } = state
   const [open, setOpen] = useState(false)
+  // Stable per mount; React 18's useId is what keeps two glyphs' SVG masks
+  // apart without threading a counter through the render helpers.
+  const instanceId = useId()
   const rootRef = useRef<HTMLSpanElement | null>(null)
 
   // 打开时:Escape 关闭,点外面关闭(document 存在才挂——测试环境无 DOM)。
@@ -917,13 +1169,13 @@ export function ProviderBalanceChip(props: BalanceChipProps): React.ReactElement
       'data-pb-provider': primary !== undefined ? primary.provider : '',
       'aria-expanded': open,
       'aria-haspopup': 'dialog',
-      'aria-label': '各模型服务余额',
+      'aria-label': t('balance.panelTitle'),
       title: primary !== undefined
-        ? primary.label + ' · ' + primary.view.title + (rows.length > 1 ? '(点击查看其他服务)' : '')
+        ? primary.label + ' · ' + primary.view.title + (rows.length > 1 ? t('balance.otherProviders') : '')
         : state.empty.title,
       onClick: () => { setOpen(!open) },
-    }, renderBalanceHeadline(primary, false, false, state.empty.tone)),
-    h('div', panelAttrs(open, '各模型服务余额'), renderBalancePanelBody(state)))
+    }, renderBalanceHeadline(primary, false, false, state.empty.tone, instanceId)),
+    h('div', panelAttrs(open, t('balance.panelTitle')), renderBalancePanelBody(state, t)))
 }
 
 /** Foot-action id of the balance surface (a stable DOM contract for probes). */
@@ -933,6 +1185,8 @@ export const BALANCE_PANEL = 'clawock-provider-balance'
 export type BalanceSidebarActionProps = BalancesInjected & PropsStore<BalanceStore> & {
   /** Sidebar column state: false is the 56px rail (dot only). */
   wide: boolean
+  /** Dictionary seat from declaring `locale: LOCALE_NS` on the registration. */
+  t: Translate
 }
 
 /** The prop contract both balance surfaces' popover panel renders (see `panelAttrs`). */
@@ -993,10 +1247,12 @@ type PopoverAnchor = { left: number; bottom: number }
  * never close it.
  */
 export function ProviderBalanceSidebarAction(props: BalanceSidebarActionProps): React.ReactElement {
+  const t = props.t
   const state = useProviderBalances(props, BALANCE_PANEL)
   const { rows, primary } = state
   const [open, setOpen] = useState(false)
   const [anchor, setAnchor] = useState<PopoverAnchor | null>(null)
+  const instanceId = useId()
   const rootRef = useRef<HTMLDivElement | null>(null)
 
   const place = (): void => {
@@ -1028,7 +1284,7 @@ export function ProviderBalanceSidebarAction(props: BalanceSidebarActionProps): 
   }, [open])
 
   const summary = primary !== undefined
-    ? primary.label + ' · ' + primary.view.title + (rows.length > 1 ? '(点击查看其他服务)' : '')
+    ? primary.label + ' · ' + primary.view.title + (rows.length > 1 ? t('balance.otherProviders') : '')
     : state.empty.title
   return h('div', { className: cx('pbc', 'pbf', !props.wide && 'rail'), ref: rootRef },
     h('button', {
@@ -1040,7 +1296,7 @@ export function ProviderBalanceSidebarAction(props: BalanceSidebarActionProps): 
       'data-active': open ? '' : undefined,
       'aria-expanded': open,
       'aria-haspopup': 'dialog',
-      'aria-label': '各模型服务余额',
+      'aria-label': t('balance.panelTitle'),
       title: summary,
       onClick: () => {
         // Anchor from the row's live rect at the moment it opens (the rail and
@@ -1049,16 +1305,17 @@ export function ProviderBalanceSidebarAction(props: BalanceSidebarActionProps): 
         setOpen(!open)
       },
     }, props.wide
-      ? renderBalanceHeadline(primary, true, true, state.empty.tone)
+      ? renderBalanceHeadline(primary, true, true, state.empty.tone, instanceId)
       : h('span', { className: cx('bal-lead'), 'data-balance-state': primary !== undefined ? primary.view.tone : state.empty.tone },
-        renderBalanceGlyph(primary !== undefined ? primary.view.tone : state.empty.tone, 18))),
-    h('div', panelAttrs(open, '各模型服务余额', {
+        renderBalanceGlyph(primary !== undefined ? primary.view.tone : state.empty.tone, 18, instanceId))),
+    h('div', panelAttrs(open, t('balance.panelTitle'), {
       'data-clawock-popover': BALANCE_PANEL,
       ...(anchor === null ? {} : { style: { left: anchor.left + 'px', bottom: anchor.bottom + 'px' } }),
-    }), renderBalancePanelBody(state)))
+    }), renderBalancePanelBody(state, t)))
 }
 
 export function DecisionMind(props: DecisionMindProps): React.ReactElement {
+  const t = props.t
   const filter = props.useStore((state) => state.filter)
   const open = props.useStore((state) => state.open)
   const visibleDateCount = props.useStore((state) => state.visibleDateCount)
@@ -1113,8 +1370,8 @@ export function DecisionMind(props: DecisionMindProps): React.ReactElement {
     return h('div', { className: cx('dmt'), ref: rootRef },
       h('div', { className: cx('top') },
         h('div', { className: cx('tin') },
-          h('div', { className: cx('tt') }, '决策轨迹',
-            h('span', { className: cx('ts') }, '一笔真实成交 + 当时写下的计划 + 官方收盘给的结果')))),
+          h('div', { className: cx('tt') }, t('trace.title'),
+            h('span', { className: cx('ts') }, t('trace.subtitle'))))),
       h('div', { className: cx('list') },
         h(SkeletonRow, { key: 'sk1' }),
         h(SkeletonRow, { key: 'sk2' }),
@@ -1139,8 +1396,8 @@ export function DecisionMind(props: DecisionMindProps): React.ReactElement {
   // No rate means the HKD side cannot be converted; the label says so instead
   // of silently presenting the USD half as the whole (#835).
   const totalLabel = rate === null && hkdRealized !== 0
-    ? '已实现 (USD 等值 · HKD 未折算)'
-    : '已实现 (USD 等值)'
+    ? t('trace.realizedUsdNoRate')
+    : t('trace.realizedUsd')
   // Only fills whose T+1 close actually landed inside the T+1 window carry a
   // `t1` at all (the host drops the rest rather than labelling a months-later
   // close "T+1"). The denominator is rendered so the ratio can be read for
@@ -1151,8 +1408,15 @@ export function DecisionMind(props: DecisionMindProps): React.ReactElement {
   const sells = traces.filter((trace) => trace.side === 'reduce')
   const sideless = traces.filter((trace) => trace.side === null).length
   const sellsRated = sells.filter((trace) => trace.t1 !== null).length
-  const soldEarly = sells.filter((trace) => trace.t1?.verdict === '卖飞').length
-  const soldRight = sells.filter((trace) => trace.t1?.verdict === '卖对').length
+  // Counted on the STABLE kind, never on the rendered verdict. Matching the
+  // host's Chinese text here made display copy load-bearing logic: translating
+  // it would have quietly zeroed both tallies. `verdict` stays read as the
+  // fallback for a host that predates `verdictKind`.
+  const verdictIs = (trace: DisplayEntry, kind: string, text: string): boolean =>
+    trace.t1 === null ? false
+      : trace.t1.verdictKind == null ? trace.t1.verdict === text : trace.t1.verdictKind === kind
+  const soldEarly = sells.filter((trace) => verdictIs(trace, 'soldEarly', '卖飞')).length
+  const soldRight = sells.filter((trace) => verdictIs(trace, 'soldRight', '卖对')).length
   const matched = traces.filter((trace) => trace.decision !== null).length
   const reversed = traces.filter((trace) => trace.decision?.alignment === 'opposite').length
 
@@ -1192,7 +1456,7 @@ export function DecisionMind(props: DecisionMindProps): React.ReactElement {
         },
       },
         h('span', { className: cx('chev') }, folded ? '▸' : '▾'),
-        relativeDay(date, today),
+        relativeDay(date, today, t),
         h('span', null, date),
         h('span', { className: cx('n') }, rows.length)),
       folded ? null : h('div', { className: cx('group') }, rows.map((trace) => {
@@ -1200,6 +1464,7 @@ export function DecisionMind(props: DecisionMindProps): React.ReactElement {
         return h(TraceCell, {
           key,
           trace,
+          t,
           open: open === key,
           onToggle: () => { actions.toggleOpen(key) },
           onKeyDown: (event: React.KeyboardEvent) => {
@@ -1213,16 +1478,16 @@ export function DecisionMind(props: DecisionMindProps): React.ReactElement {
   if (visibleDates.length < dates.length) {
     moreButton = h('button', {
       key: 'more', className: cx('trace-more'), onClick: () => { actions.showMoreDates(BATCH_GROUPS) },
-    }, '显示更早的 ' + moreFills + ' 笔成交')
+    }, t('trace.more', { fills: moreFills }))
   } else if (visibleDateCount > DEFAULT_VISIBLE_DATES) {
     moreButton = h('button', {
       key: 'more', className: cx('trace-more'), onClick: () => { actions.resetDates() },
-    }, '收起,只显示最近 ' + DEFAULT_VISIBLE_DATES + ' 组')
+    }, t('trace.less', { groups: DEFAULT_VISIBLE_DATES }))
   }
 
   let body: React.ReactElement
   if (filtered.length === 0) {
-    body = h('div', { className: cx('empty') }, '没有符合条件的成交')
+    body = h('div', { className: cx('empty') }, t('trace.empty'))
   } else {
     const kids: React.ReactElement[] = visibleDates.map(renderDate)
     if (moreButton !== null) kids.push(moreButton)
@@ -1234,12 +1499,12 @@ export function DecisionMind(props: DecisionMindProps): React.ReactElement {
       h('span', { className: cx('sl') }, totalLabel),
       h('span', { className: cx('sv', 'focus', totalUsd >= 0 ? 'up' : 'down') }, fmtMoney(totalUsd))),
     h('div', { className: cx('sg') },
-      h('span', { className: cx('sl') }, 'T+1 卖飞/卖对 · 判出 ' + sellsRated + '/' + sells.length
-        + ' 笔卖出' + (sideless === 0 ? '' : ' · ' + sideless + ' 笔无侧向')),
+      h('span', { className: cx('sl') }, t('trace.t1Tally', { rated: sellsRated, sells: sells.length })
+        + (sideless === 0 ? '' : t('trace.t1Sideless', { sideless }))),
       h('span', { className: cx('sv') },
         h('span', { className: cx('down') }, soldEarly), ' / ', h('span', { className: cx('up') }, soldRight))),
     h('div', { className: cx('sg') },
-      h('span', { className: cx('sl') }, '有当日计划' + (reversed === 0 ? '' : ' · 反向 ' + reversed)),
+      h('span', { className: cx('sl') }, t('trace.matched') + (reversed === 0 ? '' : t('trace.reversed', { reversed }))),
       h('span', { className: cx('sv') }, matched + '/' + traces.length)))
 
   // The filter row is the only part of the header that stays on screen while
@@ -1252,7 +1517,7 @@ export function DecisionMind(props: DecisionMindProps): React.ReactElement {
       // machine-readable "which one is on" (#834).
       'aria-pressed': filter === value,
       onClick: () => { actions.setFilter(value) },
-    }, FILTER_LABEL[value])))
+    }, t(FILTER_LABEL[value] as string))))
 
   // The header rides the host's content column (`--dsh-chat-content-width`),
   // so the sticky bar lines up with the rows instead of running full-bleed
@@ -1260,10 +1525,10 @@ export function DecisionMind(props: DecisionMindProps): React.ReactElement {
   return h('div', { className: cx('dmt'), ref: rootRef },
     h('div', { className: cx('top') },
       h('div', { className: cx('tin') },
-        h('div', { className: cx('tt') }, '决策轨迹',
-          h('span', { className: cx('ts') }, '一笔真实成交 + 当时写下的计划 + 官方收盘给的结果' + (data.stale ? ' · 更新失败,显示此前快照' : '')),
+        h('div', { className: cx('tt') }, t('trace.title'),
+          h('span', { className: cx('ts') }, t('trace.subtitle') + (data.stale ? t('trace.staleSuffix') : '')),
           h('span', { className: cx('rate') },
-            traces.length + ' 笔成交' + (rate === null ? '' : ' · @' + rate))),
+            t('trace.fillCount', { count: traces.length }) + (rate === null ? '' : ' · @' + rate))),
         stats)),
     h('div', { className: cx('bar') },
       h('div', { className: cx('bin') }, filters)),
@@ -1284,7 +1549,7 @@ export function DecisionMind(props: DecisionMindProps): React.ReactElement {
  * shipped host provides it, and the alternative trades a hypothetical
  * older-host degradation for a measured one on the host we run.
  */
-export const inject = ['slots', 'remote', 'layout']
+export const inject = ['slots', 'remote', 'layout', 'locale']
 
 /** Client contribution context: the face the slot renderer hands us. */
 interface ClientContributionContext {
@@ -1293,6 +1558,10 @@ interface ClientContributionContext {
     register: (definition: Record<string, unknown>, component: unknown) => unknown
   }
   remote: TypertClientRemote
+  /** Locale registry: this bundle owns one dictionary namespace (see LOCALE_NS). */
+  locale: {
+    register: (ns: string, dicts: Record<string, Record<string, string>>) => () => void
+  }
   /** Injected host layout face; `selectPanel` exists only where `main` is keyed (DSH >= 0.1.5-rc.1). */
   layout?: LayoutProbe
   /** Service lookup; each call site narrows the face it asked for. */
@@ -1310,6 +1579,11 @@ type RemoteResult<T> = { ok: true; value: T } | { ok: false; error: { code: stri
 
 /** Register the Decision Mind tab into the conversation view ring. */
 export async function apply(ctx: Context & ClientContributionContext): Promise<void> {
+  // One dictionary registration for the whole bundle, owned by this fiber:
+  // `ctx.effect` is what removes it when the plugin unloads. Declaring
+  // `locale: LOCALE_NS` on a registration is what puts the `t` seat on that
+  // component's props.
+  ctx.effect(() => ctx.locale.register(LOCALE_NS, dictionaries), 'clawock-dsh: dictionaries')
   await ctx.remote.$mount(TYPERT_REMOTE as TypertRemoteContribution)
   const studioRemote = ctx.get('remote.clawockStudio') as StudioRemoteFace
   // The capability probe reads the INJECTED face, not a `ctx.get`: see `inject`.
@@ -1371,6 +1645,7 @@ export async function apply(ctx: Context & ClientContributionContext): Promise<v
     order: 30,
     label: () => 'Decision Mind',
     store,
+    locale: LOCALE_NS,
     inject: injected,
   }, DecisionMind))
   const balancesStore = createBalanceStore()
@@ -1379,6 +1654,7 @@ export async function apply(ctx: Context & ClientContributionContext): Promise<v
       name: 'sidebar.footer.action',
       id: 'provider-balance',
       store: balancesStore,
+      locale: LOCALE_NS,
       inject: balancesInjected,
     }, ProviderBalanceSidebarAction))
   } else {
@@ -1387,6 +1663,7 @@ export async function apply(ctx: Context & ClientContributionContext): Promise<v
       id: 'provider-balance',
       order: 90,
       store: balancesStore,
+      locale: LOCALE_NS,
       inject: balancesInjected,
     }, ProviderBalanceChip))
   }

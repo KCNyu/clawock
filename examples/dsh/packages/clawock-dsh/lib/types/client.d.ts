@@ -25,7 +25,63 @@ import type { Context } from '@deepseek-ai/cordis';
 import type { TypertClientRemote } from '@deepseek-ai/dsh-typert-protocol';
 import type { PropsStore } from '@deepseek-ai/dsh-client-ui-slots';
 import * as React from 'react';
-import type { BalanceResult, BalancesResult, EnrichedTrade, TraceDecision, TraceT1 } from './types.ts';
+import type { BalanceResult, BalancesResult, EnrichedTrade, T1VerdictKind, TraceDecision, TraceT1 } from './types.ts';
+/** Dictionary namespace declared by every registration in this bundle. */
+export declare const LOCALE_NS = "clawock";
+/**
+ * Translate one dictionary key with optional `{name}` params. Hand-declared
+ * rather than derived from the host's `TranslateNS<NS>`: that type needs the
+ * `LocaleNamespaceMap` merge the locale plugin owns, and this file's rule is to
+ * hand-declare what cannot be derived without a cross-plugin type import (the
+ * same reason `sessionId` is declared, not derived).
+ */
+export type Translate = (key: string, params?: Record<string, unknown>) => string;
+/**
+ * This plugin's copy, in the locales the browser client ships (`zh`, `en` —
+ * `dsh-client-locale`'s LOCALE_IDS). Keys are grouped by surface; the two
+ * dictionaries must carry the same key set, which `tests/decision_studio_plugin.spec.js`
+ * enforces so a missing translation cannot ship.
+ */
+export declare const dictionaries: Record<string, Record<string, string>>;
+/**
+ * Bind a dictionary to a lookup shaped exactly like the host's `t` seat, with
+ * `{name}` interpolation. The host supplies the real one through the slot
+ * registration (`locale: LOCALE_NS`); this factory exists so a render can be
+ * exercised without a locale service — the same seam the tests use.
+ */
+export declare function createTranslator(dict: Record<string, string>): Translate;
+/**
+ * Window length in minutes → the label in the active locale, host string as
+ * fallback. The structured fields are typed `| null` but read `== null`: a
+ * host that predates them omits the key entirely, so the value that actually
+ * arrives is `undefined`. Checking only for null rendered `NaN m` against a
+ * previous-version host — the exact half-deployed case this fallback exists
+ * for, caught by the projection test rather than in the browser.
+ */
+export declare function windowLabelOf(t: Translate, window: {
+    label: string;
+    durationMins?: number | null;
+}): string;
+/** The reset instant → the stamp in the active locale, host string as fallback. */
+export declare function resetStampOf(t: Translate, window: {
+    resetAt: string;
+    resetAtMs?: number | null;
+}, now: number): string;
+/**
+ * The T+1 verdict in the active locale. `verdictKind` is the stable code; a
+ * host that predates it sends only the rendered text, which is passed through
+ * rather than dropped — the same fallback rule as the balance windows.
+ */
+export declare function verdictOf(t: Translate, t1: {
+    verdictKind?: T1VerdictKind | null;
+    verdict: string;
+}): string;
+/** Every window of a snapshot, named and stamped for the active locale. */
+export declare function windowsOf(t: Translate, result: BalanceResult, now: number): {
+    label: string;
+    percent: number | null;
+    reset: string;
+}[];
 /** The four trace filters offered above the list. */
 export type TraceFilter = 'all' | 'miss' | 'sold' | 'dec';
 /**
@@ -81,6 +137,8 @@ export interface DecisionMindInjected {
  */
 export type DecisionMindProps = PropsStore<DecisionMindStore> & DecisionMindInjected & {
     sessionId: string;
+    /** Dictionary seat from declaring `locale: LOCALE_NS` on the registration. */
+    t: Translate;
 };
 /**
  * The T+1 tone is decided host-side (`t1ToneOf` in ledger.ts) and shipped on
@@ -145,7 +203,7 @@ export declare function _usedLevel(percent: number | null, threshold: number): U
  * panel. An exhausted window gets no caption at all (kcn 反馈: 文案只会重复):
  * the reading itself says 100% and `reset` carries when it frees up.
  */
-export declare function _rowDisplay(result: BalanceResult | null): {
+export declare function _rowDisplay(result: BalanceResult | null, t: Translate, now?: number): {
     tone: BalanceTone;
     value: string;
     sub: string | null;
@@ -160,7 +218,7 @@ export declare function _rowDisplay(result: BalanceResult | null): {
  * is silence too (kcn 反馈): its 100% bar and reset stamp in the per-window
  * rows are the message; a caption would only replace them.
  */
-export declare function _balanceNote(result: BalanceResult | null): string | null;
+export declare function _balanceNote(result: BalanceResult | null, t: Translate): string | null;
 /** What the header chip's `inject` factory hands the component. */
 export interface BalancesInjected {
     /** The last multi-provider answer this registration fetched, or null cold. */
@@ -186,6 +244,8 @@ export declare function createBalanceStore(): import("@deepseek-ai/dsh-client-st
 export type BalanceStore = ReturnType<typeof createBalanceStore>;
 export type BalanceChipProps = BalancesInjected & PropsStore<BalanceStore> & {
     sessionId: string;
+    /** Dictionary seat from declaring `locale: LOCALE_NS` on the registration. */
+    t: Translate;
 };
 export declare function ProviderBalanceChip(props: BalanceChipProps): React.ReactElement;
 /** Foot-action id of the balance surface (a stable DOM contract for probes). */
@@ -194,6 +254,8 @@ export declare const BALANCE_PANEL = "clawock-provider-balance";
 export type BalanceSidebarActionProps = BalancesInjected & PropsStore<BalanceStore> & {
     /** Sidebar column state: false is the 56px rail (dot only). */
     wide: boolean;
+    /** Dictionary seat from declaring `locale: LOCALE_NS` on the registration. */
+    t: Translate;
 };
 /**
  * The sidebar-foot home of the balance chip: always mounted, independent of
@@ -236,6 +298,10 @@ interface ClientContributionContext {
         register: (definition: Record<string, unknown>, component: unknown) => unknown;
     };
     remote: TypertClientRemote;
+    /** Locale registry: this bundle owns one dictionary namespace (see LOCALE_NS). */
+    locale: {
+        register: (ns: string, dicts: Record<string, Record<string, string>>) => () => void;
+    };
     /** Injected host layout face; `selectPanel` exists only where `main` is keyed (DSH >= 0.1.5-rc.1). */
     layout?: LayoutProbe;
     /** Service lookup; each call site narrows the face it asked for. */

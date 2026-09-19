@@ -5559,7 +5559,9 @@ const clawock_dsh_clawockStudio_balance_result$schema = object({
 				"windows": array(object({
 					"label": string(),
 					"percent": union([number(), literal(null)]),
-					"resetAt": string()
+					"resetAt": string(),
+					"durationMins": union([number(), literal(null)]),
+					"resetAtMs": union([number(), literal(null)])
 				}))
 			})]),
 			"status": union([
@@ -5691,6 +5693,13 @@ const clawock_dsh_clawockStudio_traces_result$schema = object({
 			"date": string(),
 			"price": number(),
 			"delta": number(),
+			"verdictKind": union([
+				literal("up"),
+				literal("down"),
+				literal("soldEarly"),
+				literal("soldRight"),
+				literal("flat")
+			]),
 			"verdict": string(),
 			"tone": union([
 				literal("win"),
@@ -6034,7 +6043,7 @@ var styles_module_css_default = {
 *     cache lives in the apply closure and is read through `inject`;
 *   - components take named props and the wire types from `./types.ts`.
 */
-const { createElement, useEffect, useRef, useState } = React;
+const { createElement, useEffect, useId, useRef, useState } = React;
 const h = createElement;
 /** Class tokens declared in styles.module.css, mapped to their hashed names. */
 function cx(...tokens) {
@@ -6044,6 +6053,318 @@ function cx(...tokens) {
 		out.push(styles_module_css_default[token] ?? token);
 	}
 	return out.join(" ");
+}
+/** Dictionary namespace declared by every registration in this bundle. */
+const LOCALE_NS = "clawock";
+/**
+* This plugin's copy, in the locales the browser client ships (`zh`, `en` —
+* `dsh-client-locale`'s LOCALE_IDS). Keys are grouped by surface; the two
+* dictionaries must carry the same key set, which `tests/decision_studio_plugin.spec.js`
+* enforces so a missing translation cannot ship.
+*/
+const dictionaries = {
+	zh: {
+		"action.buy": "买入",
+		"action.add": "加仓",
+		"action.trim": "减仓",
+		"action.sell": "卖出",
+		"action.cut": "割肉",
+		"action.hold": "持有",
+		"action.trim_on_rebound": "反弹减仓",
+		"action.t_only": "仅T+0",
+		"action.add_only_on_trigger": "触发加仓",
+		"action.reject": "不加",
+		"action.watch": "观望",
+		"action.abstain": "弃权",
+		"driver.technical": "技术面",
+		"driver.fundamental": "基本面",
+		"driver.sentiment": "情绪面",
+		"driver.mixed": "混合",
+		"driver.risk_rule": "风控规则",
+		"exe.followed": "遵守了计划",
+		"exe.not_followed": "没按计划",
+		"exe.unknown": "未标注",
+		"align.same": "与计划同向",
+		"align.opposite": "与计划反向",
+		"align.other": "计划未指向买卖",
+		"emo.fomo": "追高冲动",
+		"emo.revenge": "报复性",
+		"emo.averaging_down": "摊薄冲动",
+		"emo.fear": "恐慌",
+		"emo.euphoria": "亢奋",
+		"emo.calm": "平静",
+		"emo.mixed": "混合",
+		"filter.all": "全部",
+		"filter.miss": "无当日计划",
+		"filter.sold": "卖出复盘",
+		"filter.dec": "有当日计划",
+		"t1.up": "涨",
+		"t1.down": "跌",
+		"t1.soldEarly": "卖飞",
+		"t1.soldRight": "卖对",
+		"t1.flat": "持平",
+		"time.today": "今天",
+		"time.yesterday": "昨天",
+		"time.daysAgo": "{days}天前",
+		"time.date": "{month}月{day}日",
+		"time.weekday.0": "周日",
+		"time.weekday.1": "周一",
+		"time.weekday.2": "周二",
+		"time.weekday.3": "周三",
+		"time.weekday.4": "周四",
+		"time.weekday.5": "周五",
+		"time.weekday.6": "周六",
+		"trace.title": "决策轨迹",
+		"trace.subtitle": "一笔真实成交 + 当时写下的计划 + 官方收盘给的结果",
+		"trace.staleSuffix": " · 更新失败,显示此前快照",
+		"trace.titleWithPlan": "决策轨迹 · {date}",
+		"trace.titleNoPlan": "决策轨迹 · 无当日计划",
+		"trace.planThen": "当时的计划",
+		"trace.noPlanRecord": "这一天没有该标的的计划记录",
+		"trace.realFill": "真实成交",
+		"trace.t1Close": "T+1 收盘",
+		"trace.t1Pending": "T+1 未判",
+		"trace.unpaired": "这笔成交在决策账本里找不到前后 3 天的同标的计划:成交是真的,当时的判断没有留下记录。",
+		"trace.sharesAt": " 股 @ ",
+		"trace.shares": " 股",
+		"trace.confidence": " · 信心 ",
+		"trace.trigger": "触发条件: ",
+		"trace.selfGrade": "账本自评: ",
+		"trace.realized": "本笔已实现",
+		"trace.pnl": "本笔盈亏",
+		"trace.openPosition": "— 未平仓",
+		"trace.floating": "该持仓当前浮动 ({ticker} 全仓,非本笔)",
+		"trace.why": "为什么 ",
+		"trace.emotion": "情绪 ",
+		"trace.note": "备注 ",
+		"trace.holding": "持仓",
+		"trace.opposite": "反向",
+		"trace.market.hk": "港",
+		"trace.market.us": "美",
+		"trace.realizedUsd": "已实现 (USD 等值)",
+		"trace.realizedUsdNoRate": "已实现 (USD 等值 · HKD 未折算)",
+		"trace.t1Tally": "T+1 卖飞/卖对 · 判出 {rated}/{sells} 笔卖出",
+		"trace.t1Sideless": " · {sideless} 笔无侧向",
+		"trace.matched": "有当日计划",
+		"trace.reversed": " · 反向 {reversed}",
+		"trace.more": "显示更早的 {fills} 笔成交",
+		"trace.less": "收起,只显示最近 {groups} 组",
+		"trace.empty": "没有符合条件的成交",
+		"trace.fillCount": "{count} 笔成交",
+		"balance.loading": "余额加载中",
+		"balance.unconfigured": "未配置",
+		"balance.unconfiguredKey": "未配置 API Key",
+		"balance.fetchFailed": "余额获取失败",
+		"balance.windowsUsed": "配额窗口已使用",
+		"balance.apiBalance": "API 余额",
+		"balance.granted": "赠金 ",
+		"balance.toppedUp": "充值 ",
+		"balance.insufficient": "官方接口判定余额不足",
+		"balance.staleWith": "刷新失败,显示最近一次: {message}",
+		"balance.stale": "刷新失败,显示最近一次",
+		"balance.windowAt": "窗口已使用达 {percent}%",
+		"balance.lowMoney": "余额偏低,低于阈值 {amount}",
+		"balance.panelTitle": "各模型服务余额",
+		"balance.panelHeading": "API 余额",
+		"balance.refreshAll": "刷新全部余额",
+		"balance.refreshNow": "立即刷新",
+		"balance.readFailed": "余额读取失败:{message}",
+		"balance.reading": "正在读取各服务余额…",
+		"balance.otherProviders": "(点击查看其他服务)",
+		"balance.unknownError": "未知错误",
+		"balance.windowNote": "{label} 已用 {percent}%",
+		"balance.windowNoteReset": "{label} 已用 {percent}%,{reset} 重置",
+		"balance.window.week": "周",
+		"balance.window.days": "{n}天",
+		"balance.window.hours": "{n}h",
+		"balance.window.minutes": "{n}m",
+		"balance.reset.today": "今天 {time}",
+		"balance.reset.tomorrow": "明天 {time}",
+		"balance.reset.dated": "{date} {weekday} {time}"
+	},
+	en: {
+		"action.buy": "Buy",
+		"action.add": "Add",
+		"action.trim": "Trim",
+		"action.sell": "Sell",
+		"action.cut": "Cut",
+		"action.hold": "Hold",
+		"action.trim_on_rebound": "Trim on rebound",
+		"action.t_only": "T+0 only",
+		"action.add_only_on_trigger": "Add on trigger",
+		"action.reject": "No add",
+		"action.watch": "Watch",
+		"action.abstain": "Abstain",
+		"driver.technical": "Technical",
+		"driver.fundamental": "Fundamental",
+		"driver.sentiment": "Sentiment",
+		"driver.mixed": "Mixed",
+		"driver.risk_rule": "Risk rule",
+		"exe.followed": "Followed the plan",
+		"exe.not_followed": "Did not follow",
+		"exe.unknown": "Unmarked",
+		"align.same": "Same side as plan",
+		"align.opposite": "Against the plan",
+		"align.other": "Plan was not a trade",
+		"emo.fomo": "FOMO",
+		"emo.revenge": "Revenge",
+		"emo.averaging_down": "Averaging down",
+		"emo.fear": "Fear",
+		"emo.euphoria": "Euphoria",
+		"emo.calm": "Calm",
+		"emo.mixed": "Mixed",
+		"filter.all": "All",
+		"filter.miss": "No plan that day",
+		"filter.sold": "Sell reviews",
+		"filter.dec": "Had a plan",
+		"t1.up": "up",
+		"t1.down": "down",
+		"t1.soldEarly": "sold too early",
+		"t1.soldRight": "sold well",
+		"t1.flat": "flat",
+		"time.today": "today",
+		"time.yesterday": "yesterday",
+		"time.daysAgo": "{days}d ago",
+		"time.date": "{month}/{day}",
+		"time.weekday.0": "Sun",
+		"time.weekday.1": "Mon",
+		"time.weekday.2": "Tue",
+		"time.weekday.3": "Wed",
+		"time.weekday.4": "Thu",
+		"time.weekday.5": "Fri",
+		"time.weekday.6": "Sat",
+		"trace.title": "Decision trace",
+		"trace.subtitle": "A real fill + the plan written at the time + the official close",
+		"trace.staleSuffix": " · refresh failed, showing the previous snapshot",
+		"trace.titleWithPlan": "Decision trace · {date}",
+		"trace.titleNoPlan": "Decision trace · no plan that day",
+		"trace.planThen": "The plan at the time",
+		"trace.noPlanRecord": "No plan recorded for this ticker that day",
+		"trace.realFill": "Real fill",
+		"trace.t1Close": "T+1 close",
+		"trace.t1Pending": "T+1 unjudged",
+		"trace.unpaired": "No plan for this ticker within ±3 days in the decision ledger: the fill is real, the thinking left no record.",
+		"trace.sharesAt": " shares @ ",
+		"trace.shares": " shares",
+		"trace.confidence": " · confidence ",
+		"trace.trigger": "Trigger: ",
+		"trace.selfGrade": "Ledger self-grade: ",
+		"trace.realized": "Realized on this fill",
+		"trace.pnl": "P&L on this fill",
+		"trace.openPosition": "— still open",
+		"trace.floating": "This position is floating ({ticker} whole book, not this fill)",
+		"trace.why": "Why ",
+		"trace.emotion": "Emotion ",
+		"trace.note": "Note ",
+		"trace.holding": "Position",
+		"trace.opposite": "Against plan",
+		"trace.market.hk": "HK",
+		"trace.market.us": "US",
+		"trace.realizedUsd": "Realized (USD equivalent)",
+		"trace.realizedUsdNoRate": "Realized (USD equivalent · HKD unconverted)",
+		"trace.t1Tally": "T+1 sold-early/sold-well · {rated}/{sells} sells judged",
+		"trace.t1Sideless": " · {sideless} with no side",
+		"trace.matched": "Had a plan that day",
+		"trace.reversed": " · {reversed} against plan",
+		"trace.more": "Show {fills} earlier fills",
+		"trace.less": "Collapse to the latest {groups} groups",
+		"trace.empty": "No fill matches this filter",
+		"trace.fillCount": "{count} fills",
+		"balance.loading": "Loading balance",
+		"balance.unconfigured": "Not set",
+		"balance.unconfiguredKey": "No API key configured",
+		"balance.fetchFailed": "Balance unavailable",
+		"balance.windowsUsed": "Quota windows in use",
+		"balance.apiBalance": "API balance",
+		"balance.granted": "Granted ",
+		"balance.toppedUp": "Topped up ",
+		"balance.insufficient": "The provider reports insufficient balance",
+		"balance.staleWith": "Refresh failed, showing the last reading: {message}",
+		"balance.stale": "Refresh failed, showing the last reading",
+		"balance.windowAt": "A window is at {percent}% used",
+		"balance.lowMoney": "Balance low, below the {amount} threshold",
+		"balance.panelTitle": "Model service balances",
+		"balance.panelHeading": "API balance",
+		"balance.refreshAll": "Refresh all balances",
+		"balance.refreshNow": "Refresh now",
+		"balance.readFailed": "Balance read failed: {message}",
+		"balance.reading": "Reading balances…",
+		"balance.otherProviders": "(click for other services)",
+		"balance.unknownError": "unknown error",
+		"balance.windowNote": "{label} {percent}% used",
+		"balance.windowNoteReset": "{label} {percent}% used, resets {reset}",
+		"balance.window.week": "week",
+		"balance.window.days": "{n}d",
+		"balance.window.hours": "{n}h",
+		"balance.window.minutes": "{n}m",
+		"balance.reset.today": "today {time}",
+		"balance.reset.tomorrow": "tomorrow {time}",
+		"balance.reset.dated": "{date} {weekday} {time}"
+	}
+};
+/**
+* Bind a dictionary to a lookup shaped exactly like the host's `t` seat, with
+* `{name}` interpolation. The host supplies the real one through the slot
+* registration (`locale: LOCALE_NS`); this factory exists so a render can be
+* exercised without a locale service — the same seam the tests use.
+*/
+function createTranslator(dict) {
+	return (key, params) => {
+		const template = dict[key];
+		if (template === void 0) return key;
+		if (params === void 0) return template;
+		return template.replace(/\{(\w+)\}/g, (whole, name) => Object.prototype.hasOwnProperty.call(params, name) ? String(params[name]) : whole);
+	};
+}
+/**
+* Window length in minutes → the label in the active locale, host string as
+* fallback. The structured fields are typed `| null` but read `== null`: a
+* host that predates them omits the key entirely, so the value that actually
+* arrives is `undefined`. Checking only for null rendered `NaN m` against a
+* previous-version host — the exact half-deployed case this fallback exists
+* for, caught by the projection test rather than in the browser.
+*/
+function windowLabelOf(t, window) {
+	const mins = window.durationMins;
+	if (mins == null || mins <= 0) return window.label;
+	if (mins === 10080) return t("balance.window.week");
+	if (mins % 1440 === 0) return t("balance.window.days", { n: mins / 1440 });
+	if (mins % 60 === 0) return t("balance.window.hours", { n: mins / 60 });
+	return t("balance.window.minutes", { n: Math.round(mins) });
+}
+/** The reset instant → the stamp in the active locale, host string as fallback. */
+function resetStampOf(t, window, now) {
+	const ms = window.resetAtMs;
+	if (ms == null) return window.resetAt;
+	const at = new Date(ms);
+	const time = String(at.getHours()).padStart(2, "0") + ":" + String(at.getMinutes()).padStart(2, "0");
+	const startOfDay = (d) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+	const days = Math.round((startOfDay(at) - startOfDay(new Date(now))) / 864e5);
+	if (days === 0) return t("balance.reset.today", { time });
+	if (days === 1) return t("balance.reset.tomorrow", { time });
+	return t("balance.reset.dated", {
+		date: at.getMonth() + 1 + "/" + at.getDate(),
+		weekday: t("time.weekday." + at.getDay()),
+		time
+	});
+}
+/**
+* The T+1 verdict in the active locale. `verdictKind` is the stable code; a
+* host that predates it sends only the rendered text, which is passed through
+* rather than dropped — the same fallback rule as the balance windows.
+*/
+function verdictOf(t, t1) {
+	const kind = t1.verdictKind;
+	if (kind == null) return t1.verdict;
+	return t("t1." + kind);
+}
+/** Every window of a snapshot, named and stamped for the active locale. */
+function windowsOf(t, result, now) {
+	return (result.snapshot?.windows ?? []).map((w) => ({
+		label: windowLabelOf(t, w),
+		percent: w.percent,
+		reset: resetStampOf(t, w, now)
+	}));
 }
 /** Newest date groups rendered expanded; older days arrive in batches. */
 const DEFAULT_VISIBLE_DATES = 3;
@@ -6083,27 +6404,28 @@ function createDecisionMindStore() {
 		}
 	});
 }
+/** Action code → dictionary key. The words live in the dictionary, not here. */
 const ACT = {
-	buy: "买入",
-	add: "加仓",
-	trim: "减仓",
-	sell: "卖出",
-	cut: "割肉",
-	hold: "持有",
-	hold_and_watch: "持有",
-	trim_on_rebound: "反弹减仓",
-	t_only: "仅T+0",
-	add_only_on_trigger: "触发加仓",
-	reject: "不加",
-	watch: "观望",
-	abstain: "弃权"
+	buy: "action.buy",
+	add: "action.add",
+	trim: "action.trim",
+	sell: "action.sell",
+	cut: "action.cut",
+	hold: "action.hold",
+	hold_and_watch: "action.hold",
+	trim_on_rebound: "action.trim_on_rebound",
+	t_only: "action.t_only",
+	add_only_on_trigger: "action.add_only_on_trigger",
+	reject: "action.reject",
+	watch: "action.watch",
+	abstain: "action.abstain"
 };
 const DRV = {
-	technical: "技术面",
-	fundamental: "基本面",
-	sentiment: "情绪面",
-	mixed: "混合",
-	risk_rule: "风控规则"
+	technical: "driver.technical",
+	fundamental: "driver.fundamental",
+	sentiment: "driver.sentiment",
+	mixed: "driver.mixed",
+	risk_rule: "driver.risk_rule"
 };
 /**
 * The ledger's `execution.status`, in words.
@@ -6116,30 +6438,30 @@ const DRV = {
 * plan-vs-fill relation is `decision.alignment` below.
 */
 const EXE = {
-	followed: "遵守了计划",
-	not_followed: "没按计划",
-	unknown: "未标注"
+	followed: "exe.followed",
+	not_followed: "exe.not_followed",
+	unknown: "exe.unknown"
 };
 /** The plan-vs-fill relation, stated instead of left to be inferred. */
 const ALIGN = {
-	same: ["与计划同向", "follow"],
-	opposite: ["与计划反向", "skip"],
-	other: ["计划未指向买卖", ""]
+	same: ["align.same", "follow"],
+	opposite: ["align.opposite", "skip"],
+	other: ["align.other", ""]
 };
 const EMO = {
-	fomo: "追高冲动",
-	revenge: "报复性",
-	averaging_down: "摊薄冲动",
-	fear: "恐慌",
-	euphoria: "亢奋",
-	calm: "平静",
-	mixed: "混合"
+	fomo: "emo.fomo",
+	revenge: "emo.revenge",
+	averaging_down: "emo.averaging_down",
+	fear: "emo.fear",
+	euphoria: "emo.euphoria",
+	calm: "emo.calm",
+	mixed: "emo.mixed"
 };
 const FILTER_LABEL = {
-	all: "全部",
-	miss: "无当日计划",
-	sold: "卖出复盘",
-	dec: "有当日计划"
+	all: "filter.all",
+	miss: "filter.miss",
+	sold: "filter.sold",
+	dec: "filter.dec"
 };
 /**
 * React escapes string children itself; the old extra `<` → `&lt;` pass here
@@ -6200,60 +6522,65 @@ function Chip(props) {
 	return h("span", { className: cx("tag") }, props.children);
 }
 function TraceDetail(props) {
+	const t = props.t;
 	const trace = props.trace;
 	const decision = trace.decision;
 	const sym = trace.currency === "HKD" ? "HK$" : "$";
-	const fillText = (ACT[trace.action] ?? trace.action) + " " + trace.shares + " 股 @ " + fmtPrice(trace.price, sym);
+	/** Action code → the word, falling back to the raw code the host sent. */
+	const act = (code) => code === null ? "" : ACT[code] === void 0 ? code : t(ACT[code]);
+	const fillText = act(trace.action) + " " + trace.shares + t("trace.sharesAt") + fmtPrice(trace.price, sym);
 	if (decision === null) {
-		const t1miss = trace.t1 === null ? null : h("div", { className: cx("tnode", t1NodeClass(trace.t1.tone)) }, h("div", { className: cx("tw") }, trace.t1.date), h("div", { className: cx("n") }, "T+1 收盘"), h("div", { className: cx("v") }, (trace.t1.delta >= 0 ? "+" : "") + trace.t1.delta + "% · " + trace.t1.verdict));
-		return h("div", { className: cx("dbody") }, h("div", { className: cx("trhead") }, "决策轨迹 · 无当日计划"), h("div", { className: cx("trace") }, h("div", { className: cx("tnode", "dec") }, h("div", { className: cx("n") }, "当时的计划"), h("div", {
+		const t1miss = trace.t1 === null ? null : h("div", { className: cx("tnode", t1NodeClass(trace.t1.tone)) }, h("div", { className: cx("tw") }, trace.t1.date), h("div", { className: cx("n") }, t("trace.t1Close")), h("div", { className: cx("v") }, (trace.t1.delta >= 0 ? "+" : "") + trace.t1.delta + "% · " + verdictOf(t, trace.t1)));
+		return h("div", { className: cx("dbody") }, h("div", { className: cx("trhead") }, t("trace.titleNoPlan")), h("div", { className: cx("trace") }, h("div", { className: cx("tnode", "dec") }, h("div", { className: cx("n") }, t("trace.planThen")), h("div", {
 			className: cx("v"),
 			style: { color: "var(--cap)" }
-		}, "这一天没有该标的的计划记录")), h("div", { className: cx("tnode", "follow") }, h("div", { className: cx("tw") }, trace.date ?? ""), h("div", { className: cx("n") }, "真实成交"), h("div", { className: cx("v") }, fillText)), t1miss), trace.note === null ? null : h("div", { className: cx("tnote") }, esc(trace.note)), h("div", { className: cx("tmiss") }, "这笔成交在决策账本里找不到前后 3 天的同标的计划:成交是真的,当时的判断没有留下记录。"));
+		}, t("trace.noPlanRecord"))), h("div", { className: cx("tnode", "follow") }, h("div", { className: cx("tw") }, trace.date ?? ""), h("div", { className: cx("n") }, t("trace.realFill")), h("div", { className: cx("v") }, fillText)), t1miss), trace.note === null ? null : h("div", { className: cx("tnote") }, esc(trace.note)), h("div", { className: cx("tmiss") }, t("trace.unpaired")));
 	}
-	const [alignLabel, alignTone] = ALIGN[decision.alignment ?? ""] ?? ["", ""];
-	const planned = (ACT[decision.action ?? ""] ?? decision.action ?? "") + (decision.sizeShares === null ? "" : " " + decision.sizeShares + " 股") + (decision.plannedPrice === null ? "" : " @ " + decision.plannedPrice) + (decision.confidence === null ? "" : " · 信心 " + Math.round(decision.confidence * 100) + "%") + (decision.drivenBy === null ? "" : " · " + (DRV[decision.drivenBy] ?? decision.drivenBy));
+	const [alignKey, alignTone] = ALIGN[decision.alignment ?? ""] ?? ["", ""];
+	const alignLabel = alignKey === "" ? "" : t(alignKey);
+	const planned = act(decision.action) + (decision.sizeShares === null ? "" : " " + decision.sizeShares + t("trace.shares")) + (decision.plannedPrice === null ? "" : " @ " + decision.plannedPrice) + (decision.confidence === null ? "" : t("trace.confidence") + Math.round(decision.confidence * 100) + "%") + (decision.drivenBy === null ? "" : " · " + (DRV[decision.drivenBy] === void 0 ? decision.drivenBy : t(DRV[decision.drivenBy])));
 	const why = decision.rationale ?? decision.bull ?? "";
-	const emotion = decision.emotion !== null && decision.emotion !== "calm" ? EMO[decision.emotion] ?? decision.emotion : null;
+	const emotion = decision.emotion !== null && decision.emotion !== "calm" ? EMO[decision.emotion] === void 0 ? decision.emotion : t(EMO[decision.emotion]) : null;
 	const chips = [];
 	if (decision.condition !== null) chips.push(h("span", {
 		className: cx("pc"),
 		key: "c"
-	}, "触发条件: " + decision.condition));
+	}, t("trace.trigger") + decision.condition));
 	if (decision.execution !== null) chips.push(h("span", {
 		className: cx("pc"),
 		key: "e"
-	}, "账本自评: " + (EXE[decision.execution] ?? decision.execution)));
-	const t1node = trace.t1 === null ? null : h("div", { className: cx("tnode", t1NodeClass(trace.t1.tone)) }, h("div", { className: cx("tw") }, trace.t1.date), h("div", { className: cx("n") }, "T+1 收盘"), h("div", { className: cx("v") }, (trace.t1.delta >= 0 ? "+" : "") + trace.t1.delta + "% · " + trace.t1.verdict));
+	}, t("trace.selfGrade") + (EXE[decision.execution] === void 0 ? decision.execution : t(EXE[decision.execution]))));
+	const t1node = trace.t1 === null ? null : h("div", { className: cx("tnode", t1NodeClass(trace.t1.tone)) }, h("div", { className: cx("tw") }, trace.t1.date), h("div", { className: cx("n") }, t("trace.t1Close")), h("div", { className: cx("v") }, (trace.t1.delta >= 0 ? "+" : "") + trace.t1.delta + "% · " + verdictOf(t, trace.t1)));
 	let pnlText;
 	let pnlTone;
 	let pnlLabel;
 	if (trace.realizedPnl !== null) {
 		pnlText = (trace.realizedPnl >= 0 ? "+" : "") + trace.realizedPnl.toFixed(2) + " " + sym;
 		pnlTone = trace.realizedPnl >= 0 ? "win" : "loss";
-		pnlLabel = "本笔已实现";
+		pnlLabel = t("trace.realized");
 	} else if (trace.holdPnl !== null) {
 		pnlText = fmtPct(trace.holdPnl);
 		pnlTone = trace.holdPnl >= 0 ? "win" : "loss";
-		pnlLabel = "该持仓当前浮动 (" + trace.ticker + " 全仓,非本笔)";
+		pnlLabel = t("trace.floating", { ticker: trace.ticker });
 	} else {
-		pnlText = "— 未平仓";
+		pnlText = t("trace.openPosition");
 		pnlTone = "";
-		pnlLabel = "本笔盈亏";
+		pnlLabel = t("trace.pnl");
 	}
-	return h("div", { className: cx("dbody") }, h("div", { className: cx("trhead") }, "决策轨迹 · " + (decision.planDate ?? "")), h("div", { className: cx("trace") }, h("div", { className: cx("tnode", "dec") }, h("div", { className: cx("tw") }, decision.planDate ?? ""), h("div", { className: cx("n") }, "当时的计划"), h("div", { className: cx("v") }, planned)), h("div", { className: cx("tnode", alignTone) }, h("div", { className: cx("tw") }, trace.date ?? ""), h("div", { className: cx("n") }, "真实成交"), h("div", { className: cx("v") }, fillText, alignLabel === "" ? null : h("span", { className: cx("pc", alignTone) }, alignLabel))), t1node, h("div", { className: cx("tnode", pnlTone) }, h("div", { className: cx("n") }, pnlLabel), h("div", { className: cx("v") }, pnlText))), chips.length === 0 ? null : h("div", { className: cx("pchips") }, chips), why === "" ? null : h("div", { className: cx("tnote", "why") }, h("span", { className: cx("k") }, "为什么 "), esc(why)), emotion === null ? null : h("div", { className: cx("tnote", "emo") }, h("span", { className: cx("k") }, "情绪 "), "⚡ " + emotion), trace.note === null ? null : h("div", { className: cx("tnote") }, h("span", { className: cx("k") }, "备注 "), esc(trace.note)));
+	return h("div", { className: cx("dbody") }, h("div", { className: cx("trhead") }, t("trace.titleWithPlan", { date: decision.planDate ?? "" })), h("div", { className: cx("trace") }, h("div", { className: cx("tnode", "dec") }, h("div", { className: cx("tw") }, decision.planDate ?? ""), h("div", { className: cx("n") }, t("trace.planThen")), h("div", { className: cx("v") }, planned)), h("div", { className: cx("tnode", alignTone) }, h("div", { className: cx("tw") }, trace.date ?? ""), h("div", { className: cx("n") }, t("trace.realFill")), h("div", { className: cx("v") }, fillText, alignLabel === "" ? null : h("span", { className: cx("pc", alignTone) }, alignLabel))), t1node, h("div", { className: cx("tnode", pnlTone) }, h("div", { className: cx("n") }, pnlLabel), h("div", { className: cx("v") }, pnlText))), chips.length === 0 ? null : h("div", { className: cx("pchips") }, chips), why === "" ? null : h("div", { className: cx("tnote", "why") }, h("span", { className: cx("k") }, t("trace.why")), esc(why)), emotion === null ? null : h("div", { className: cx("tnote", "emo") }, h("span", { className: cx("k") }, t("trace.emotion")), "⚡ " + emotion), trace.note === null ? null : h("div", { className: cx("tnote") }, h("span", { className: cx("k") }, t("trace.note")), esc(trace.note)));
 }
 function TraceCell(props) {
+	const t = props.t;
 	const trace = props.trace;
 	const sym = trace.currency === "HKD" ? "HK$" : "$";
 	let pnl;
 	if (trace.realizedPnl !== null) pnl = h("span", { className: cx("pnl", trace.realizedPnl >= 0 ? "up" : "down") }, (trace.realizedPnl >= 0 ? "+" : "") + trace.realizedPnl.toFixed(2) + " " + sym);
-	else if (trace.holdPnl !== null) pnl = h("span", { className: cx("pnl", trace.holdPnl >= 0 ? "up" : "down") }, h("span", { className: cx("pnlk") }, "持仓"), fmtPct(trace.holdPnl));
+	else if (trace.holdPnl !== null) pnl = h("span", { className: cx("pnl", trace.holdPnl >= 0 ? "up" : "down") }, h("span", { className: cx("pnlk") }, t("trace.holding")), fmtPct(trace.holdPnl));
 	else pnl = h("span", { className: cx("pnl", "na") }, "—");
 	let t1tag;
 	if (trace.t1 !== null) {
 		const tone = t1ChipClass(trace.t1.tone);
-		const label = "T+1 " + (trace.t1.delta >= 0 ? "+" : "") + trace.t1.delta + "% " + trace.t1.verdict;
+		const label = "T+1 " + (trace.t1.delta >= 0 ? "+" : "") + trace.t1.delta + "% " + verdictOf(t, trace.t1);
 		t1tag = h("span", {
 			className: cx("t1", tone),
 			"data-tone": tone
@@ -6261,12 +6588,12 @@ function TraceCell(props) {
 	} else t1tag = h("span", {
 		className: cx("t1", "flat"),
 		"data-tone": "flat"
-	}, "T+1 未判");
+	}, t("trace.t1Pending"));
 	let alignTag = null;
 	if (trace.decision?.alignment === "opposite") alignTag = h("span", {
 		className: cx("al", "opp"),
 		"data-align": "opposite"
-	}, "反向");
+	}, t("trace.opposite"));
 	return h("div", {
 		className: cx("cell", trace.decision !== null && "hasdec", props.open && "open"),
 		"data-cell": "trace",
@@ -6275,7 +6602,10 @@ function TraceCell(props) {
 		"aria-expanded": props.open,
 		onClick: props.onToggle,
 		onKeyDown: props.onKeyDown
-	}, h("div", { className: cx("main") }, h("span", { className: cx("dotm") }), h("span", { className: cx("tk") }, trace.ticker, h("span", { className: cx("mkt", trace.market === "HK" && "hk") }, trace.market === "HK" ? "港" : "美")), h(Chip, null, ACT[trace.action] ?? trace.action), h("span", { className: cx("qty") }, trace.shares + " @" + fmtPrice(trace.price)), h("span", { className: cx("sp") }), pnl), h("div", { className: cx("sub") }, t1tag, alignTag, h("span", { className: cx("date") }, (trace.date ?? "").slice(5)), h("span", { className: cx("chev") }, "▾")), h("div", { className: cx("detail") }, h("div", { className: cx("dinner") }, props.open ? h(TraceDetail, { trace }) : null)));
+	}, h("div", { className: cx("main") }, h("span", { className: cx("dotm") }), h("span", { className: cx("tk") }, trace.ticker, h("span", { className: cx("mkt", trace.market === "HK" && "hk") }, trace.market === "HK" ? t("trace.market.hk") : t("trace.market.us"))), h(Chip, null, ACT[trace.action] === void 0 ? trace.action : t(ACT[trace.action])), h("span", { className: cx("qty") }, trace.shares + " @" + fmtPrice(trace.price)), h("span", { className: cx("sp") }), pnl), h("div", { className: cx("sub") }, t1tag, alignTag, h("span", { className: cx("date") }, (trace.date ?? "").slice(5)), h("span", { className: cx("chev") }, "▾")), h("div", { className: cx("detail") }, h("div", { className: cx("dinner") }, props.open ? h(TraceDetail, {
+		trace,
+		t
+	}) : null)));
 }
 /** Stable row identities are derived before filtering, so switching filters
 * cannot remount the same trade and discard its expanded state (#1603). */
@@ -6301,13 +6631,16 @@ function todayIso() {
 	const now = /* @__PURE__ */ new Date();
 	return now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0") + "-" + String(now.getDate()).padStart(2, "0");
 }
-function relativeDay(iso, today) {
-	if (iso === today) return "今天";
+function relativeDay(iso, today, t) {
+	if (iso === today) return t("time.today");
 	const at = (date) => (/* @__PURE__ */ new Date(date + "T00:00:00")).getTime();
 	const days = Math.round((at(today) - at(iso)) / 864e5);
-	if (days === 1) return "昨天";
-	if (days >= 2 && days <= 7) return days + "天前";
-	return parseInt(iso.slice(5, 7)) + "月" + parseInt(iso.slice(8, 10)) + "日";
+	if (days === 1) return t("time.yesterday");
+	if (days >= 2 && days <= 7) return t("time.daysAgo", { days });
+	return t("time.date", {
+		month: parseInt(iso.slice(5, 7)),
+		day: parseInt(iso.slice(8, 10))
+	});
 }
 /**
 * Colour tier for one used-percent reading against the REMAINING-watermark
@@ -6333,22 +6666,22 @@ function _usedLevel(percent, threshold) {
 * panel. An exhausted window gets no caption at all (kcn 反馈: 文案只会重复):
 * the reading itself says 100% and `reset` carries when it frees up.
 */
-function _rowDisplay(result) {
+function _rowDisplay(result, t, now = Date.now()) {
 	if (result === null) return {
 		tone: "none",
 		value: "—",
 		sub: null,
 		reset: null,
 		level: null,
-		title: "余额加载中"
+		title: t("balance.loading")
 	};
 	if (!result.configured) return {
 		tone: "none",
-		value: "未配置",
+		value: t("balance.unconfigured"),
 		sub: null,
 		reset: null,
 		level: null,
-		title: result.message ?? "未配置 API Key"
+		title: result.message ?? t("balance.unconfiguredKey")
 	};
 	if (result.snapshot === null) return {
 		tone: "none",
@@ -6356,7 +6689,7 @@ function _rowDisplay(result) {
 		sub: null,
 		reset: null,
 		level: null,
-		title: result.message ?? "余额获取失败"
+		title: result.message ?? t("balance.fetchFailed")
 	};
 	const snapshot = result.snapshot;
 	const isPct = snapshot.unit === "pct";
@@ -6365,15 +6698,26 @@ function _rowDisplay(result) {
 	const parsed = Number.parseFloat(snapshot.totalBalance);
 	const value = isFinite(parsed) ? isPct ? String(Math.round(parsed)) + "%" : symbol + parsed.toLocaleString(void 0, { maximumFractionDigits: 2 }) : pctWins.length > 0 ? String(Math.round(pctWins[0].percent)) + "%" : snapshot.totalBalance === "" ? "—" : symbol + snapshot.totalBalance;
 	const second = pctWins.length > 1 ? pctWins[1] : null;
-	const reset = pctWins.length > 0 && pctWins[0].resetAt !== "" ? pctWins[0].resetAt : null;
-	const sub = second !== null ? "· " + second.label + " " + Math.round(second.percent) + "%" + (second.resetAt !== "" ? " ↻" + second.resetAt : "") : null;
+	const wins = windowsOf(t, result, now);
+	const firstReset = wins.length > 0 ? wins[0].reset : "";
+	const reset = pctWins.length > 0 && firstReset !== "" ? firstReset : null;
+	const secondWin = wins.length > 1 ? wins[1] : null;
+	const sub = secondWin !== null && second !== null ? "· " + secondWin.label + " " + Math.round(second.percent) + "%" + (secondWin.reset !== "" ? " ↻" + secondWin.reset : "") : null;
 	const tone = result.status === "stale" ? "stale" : result.low || !snapshot.isAvailable ? "low" : "ok";
+	const quotaLine = wins.length === 0 ? snapshot.note !== "" ? snapshot.note : t("balance.windowsUsed") : wins.filter((w) => w.percent !== null).map((w) => w.reset === "" ? t("balance.windowNote", {
+		label: w.label,
+		percent: Math.round(w.percent)
+	}) : t("balance.windowNoteReset", {
+		label: w.label,
+		percent: Math.round(w.percent),
+		reset: w.reset
+	})).join(" · ");
 	const parts = [
-		snapshot.unit === "pct" ? snapshot.note !== "" ? snapshot.note : "配额窗口已使用" : "API 余额",
-		!isPct && snapshot.grantedBalance !== "" ? "赠金 " + symbol + snapshot.grantedBalance : null,
-		!isPct && snapshot.toppedUpBalance !== "" ? "充值 " + symbol + snapshot.toppedUpBalance : null,
-		snapshot.isAvailable || isPct ? null : "官方接口判定余额不足",
-		result.status === "stale" && result.message !== null ? "刷新失败,显示最近一次: " + result.message : null
+		snapshot.unit === "pct" ? quotaLine : t("balance.apiBalance"),
+		!isPct && snapshot.grantedBalance !== "" ? t("balance.granted") + symbol + snapshot.grantedBalance : null,
+		!isPct && snapshot.toppedUpBalance !== "" ? t("balance.toppedUp") + symbol + snapshot.toppedUpBalance : null,
+		snapshot.isAvailable || isPct ? null : t("balance.insufficient"),
+		result.status === "stale" && result.message !== null ? t("balance.staleWith", { message: result.message }) : null
 	].filter((part) => part !== null);
 	const shownPct = isPct ? isFinite(parsed) ? parsed : pctWins.length > 0 ? pctWins[0].percent : null : null;
 	return {
@@ -6392,15 +6736,15 @@ function _rowDisplay(result) {
 * is silence too (kcn 反馈): its 100% bar and reset stamp in the per-window
 * rows are the message; a caption would only replace them.
 */
-function _balanceNote(result) {
+function _balanceNote(result, t) {
 	if (result === null) return null;
-	if (!result.configured) return result.message ?? "未配置 API Key";
-	if (result.snapshot === null) return result.message ?? "余额获取失败";
-	if (result.status === "stale") return "刷新失败,显示最近一次" + (result.message !== null ? ":" + result.message : "");
-	if (!result.snapshot.isAvailable) return result.snapshot.unit === "pct" ? null : "官方接口判定余额不足";
+	if (!result.configured) return result.message ?? t("balance.unconfiguredKey");
+	if (result.snapshot === null) return result.message ?? t("balance.fetchFailed");
+	if (result.status === "stale") return result.message !== null ? t("balance.staleWith", { message: result.message }) : t("balance.stale");
+	if (!result.snapshot.isAvailable) return result.snapshot.unit === "pct" ? null : t("balance.insufficient");
 	if (result.low) {
-		if (result.snapshot.unit === "pct") return (result.snapshot.windows ?? []).length > 0 ? null : "窗口已使用达 " + (100 - result.threshold) + "%";
-		return "余额偏低,低于阈值 " + (result.snapshot.currency === "USD" ? "$" : result.snapshot.currency === "CNY" ? "¥" : "") + result.threshold;
+		if (result.snapshot.unit === "pct") return (result.snapshot.windows ?? []).length > 0 ? null : t("balance.windowAt", { percent: 100 - result.threshold });
+		return t("balance.lowMoney", { amount: (result.snapshot.currency === "USD" ? "$" : result.snapshot.currency === "CNY" ? "¥" : "") + result.threshold });
 	}
 	return null;
 }
@@ -6431,15 +6775,15 @@ function createBalanceStore() {
 * the watermark/stale caption rides along; only data-less abnormal rows
 * (unconfigured / fetch-failed) speak through the note alone.
 */
-function renderRowDetail(row) {
-	const wins = row.result.snapshot?.windows ?? [];
+function renderRowDetail(row, t, now) {
+	const wins = row.result.snapshot === null ? [] : windowsOf(t, row.result, now);
 	if (wins.length > 0) return h("div", { className: cx("bp-wins") }, wins.map((w) => {
 		const pct = w.percent === null ? null : Math.max(0, Math.min(100, Math.round(w.percent)));
 		const state = row.view.tone === "stale" ? "stale" : _usedLevel(pct, row.result.threshold);
 		return h("div", {
 			className: cx("bp-win"),
 			key: w.label
-		}, h("div", { className: cx("bp-win-line") }, h("span", { className: cx("bp-win-label") }, w.label), h("span", { className: cx("bp-win-pct") }, w.percent === null ? "—" : Math.round(w.percent) + "%"), h("span", { className: cx("bp-win-reset") }, w.resetAt === "" ? "" : "↻ " + w.resetAt)), h("div", { className: cx("bp-win-bar") }, h("div", {
+		}, h("div", { className: cx("bp-win-line") }, h("span", { className: cx("bp-win-label") }, w.label), h("span", { className: cx("bp-win-pct") }, w.percent === null ? "—" : Math.round(w.percent) + "%"), h("span", { className: cx("bp-win-reset") }, w.reset === "" ? "" : "↻ " + w.reset)), h("div", { className: cx("bp-win-bar") }, h("div", {
 			className: cx("bp-win-fill"),
 			style: pct === null ? { width: "0%" } : { width: pct + "%" },
 			"data-balance-state": state
@@ -6448,7 +6792,8 @@ function renderRowDetail(row) {
 	if (row.note !== null) return null;
 	const title = row.view.title;
 	if (title === "") return null;
-	const body = title.startsWith("API 余额 · ") ? title.slice(9) : title;
+	const prefix = t("balance.apiBalance") + " · ";
+	const body = title.startsWith(prefix) ? title.slice(prefix.length) : title;
 	return h("div", { className: cx("bp-sub") }, body);
 }
 /**
@@ -6491,7 +6836,7 @@ function useProviderBalances(props, pollKey) {
 			}
 		}, (err) => {
 			if (!mountedRef.current) return;
-			const error = (err instanceof Error ? err.message : String(err)) || "未知错误";
+			const error = (err instanceof Error ? err.message : String(err)) || props.t("balance.unknownError");
 			setData((current) => ({
 				...current,
 				loading: false,
@@ -6522,10 +6867,11 @@ function useProviderBalances(props, pollKey) {
 		}, intervalMs);
 		return () => clearInterval(timer);
 	}, [data.result?.refreshMs, pollKey]);
+	const now = Date.now();
 	const rows = (data.result?.providers ?? []).map((provider) => ({
 		...provider,
-		view: _rowDisplay(provider.result),
-		note: _balanceNote(provider.result)
+		view: _rowDisplay(provider.result, props.t, now),
+		note: _balanceNote(provider.result, props.t)
 	}));
 	const primary = rows.find((row) => row.provider === selected) ?? rows[0];
 	const refresh = () => {
@@ -6544,10 +6890,10 @@ function useProviderBalances(props, pollKey) {
 		refresh,
 		empty: rows.length === 0 && data.error !== null && !data.loading ? {
 			tone: "stale",
-			title: "余额读取失败:" + data.error
+			title: props.t("balance.readFailed", { message: data.error })
 		} : {
 			tone: "none",
-			title: "余额加载中"
+			title: props.t("balance.loading")
 		}
 	};
 }
@@ -6562,9 +6908,9 @@ function useProviderBalances(props, pollKey) {
 * nothing to judge. The notch is an SVG mask, not a painted ring, so it stays
 * clean over the hover and open backgrounds.
 */
-function renderBalanceGlyph(tone, size) {
+function renderBalanceGlyph(tone, size, instanceId) {
 	const badge = tone === "ok" || tone === "low" || tone === "stale";
-	const notch = "clawock-balance-notch";
+	const notch = "clawock-balance-notch-" + instanceId;
 	return h("svg", {
 		className: cx("bal-glyph"),
 		width: size,
@@ -6614,8 +6960,8 @@ function renderBalanceGlyph(tone, size) {
 	}) : null);
 }
 /** The headline reading: dot (or the foot glyph) · value · reset · weekly sub-reading. */
-function renderBalanceHeadline(primary, withLabel, glyph = false, emptyTone = "none") {
-	const lead = (tone) => glyph ? h("span", { className: cx("bal-lead") }, renderBalanceGlyph(tone, 16)) : h("span", { className: cx("bchip-dot") });
+function renderBalanceHeadline(primary, withLabel, glyph = false, emptyTone = "none", instanceId = "") {
+	const lead = (tone) => glyph ? h("span", { className: cx("bal-lead") }, renderBalanceGlyph(tone, 16, instanceId)) : h("span", { className: cx("bchip-dot") });
 	return primary === void 0 ? h("span", { className: cx("bchip-item") }, lead(emptyTone), "—") : h("span", {
 		className: cx("bchip-item"),
 		"data-pb-provider": primary.provider,
@@ -6631,30 +6977,30 @@ function renderBalanceHeadline(primary, withLabel, glyph = false, emptyTone = "n
 	}, primary.view.sub));
 }
 /** The panel body: title + refresh, then every provider row (click = pin). */
-function renderBalancePanelBody(state) {
+function renderBalancePanelBody(state, t) {
 	const { data, rows, primary, select, flash, refresh } = state;
 	return [
 		h("div", {
 			className: cx("bp-head"),
 			key: "head"
-		}, h("span", { className: cx("bp-title") }, "API 余额"), h("button", {
+		}, h("span", { className: cx("bp-title") }, t("balance.panelHeading")), h("button", {
 			type: "button",
 			className: cx("bal-rf", data.loading && "spin", flash === "ok" && "flash-ok", flash === "same" && "flash-same"),
 			"data-refresh": "true",
-			"aria-label": "刷新全部余额",
-			title: "立即刷新",
+			"aria-label": t("balance.refreshAll"),
+			title: t("balance.refreshNow"),
 			onClick: refresh
 		}, flash === "ok" ? "✓" : "↻")),
 		rows.length > 0 && data.error !== null && !data.loading ? h("div", {
 			className: cx("bp-note", "warn"),
 			key: "error",
 			role: "status"
-		}, "刷新失败,显示最近一次:" + data.error) : null,
+		}, t("balance.staleWith", { message: data.error })) : null,
 		rows.length === 0 ? h("div", {
 			className: cx("bp-empty"),
 			key: "empty",
 			role: "status"
-		}, data.error !== null && !data.loading ? "余额读取失败:" + data.error : "正在读取各服务余额…") : h("div", { key: "rows" }, rows.map((row) => h("button", {
+		}, data.error !== null && !data.loading ? t("balance.readFailed", { message: data.error }) : t("balance.reading")) : h("div", { key: "rows" }, rows.map((row) => h("button", {
 			type: "button",
 			key: row.provider,
 			className: cx("bp-row"),
@@ -6673,13 +7019,15 @@ function renderBalancePanelBody(state) {
 		}, row.view.value), [row.note !== null ? h("div", {
 			className: cx("bp-note", row.view.tone === "stale" ? "warn" : "bad"),
 			key: "note"
-		}, row.note) : null, renderRowDetail(row)])))
+		}, row.note) : null, renderRowDetail(row, t, Date.now())])))
 	];
 }
 function ProviderBalanceChip(props) {
+	const t = props.t;
 	const state = useProviderBalances(props, props.sessionId);
 	const { rows, primary } = state;
 	const [open, setOpen] = useState(false);
+	const instanceId = useId();
 	const rootRef = useRef(null);
 	useEffect(() => {
 		if (!open || typeof document === "undefined") return void 0;
@@ -6707,12 +7055,12 @@ function ProviderBalanceChip(props) {
 		"data-pb-provider": primary !== void 0 ? primary.provider : "",
 		"aria-expanded": open,
 		"aria-haspopup": "dialog",
-		"aria-label": "各模型服务余额",
-		title: primary !== void 0 ? primary.label + " · " + primary.view.title + (rows.length > 1 ? "(点击查看其他服务)" : "") : state.empty.title,
+		"aria-label": t("balance.panelTitle"),
+		title: primary !== void 0 ? primary.label + " · " + primary.view.title + (rows.length > 1 ? t("balance.otherProviders") : "") : state.empty.title,
 		onClick: () => {
 			setOpen(!open);
 		}
-	}, renderBalanceHeadline(primary, false, false, state.empty.tone)), h("div", panelAttrs(open, "各模型服务余额"), renderBalancePanelBody(state)));
+	}, renderBalanceHeadline(primary, false, false, state.empty.tone, instanceId)), h("div", panelAttrs(open, t("balance.panelTitle")), renderBalancePanelBody(state, t)));
 }
 /** Foot-action id of the balance surface (a stable DOM contract for probes). */
 const BALANCE_PANEL = "clawock-provider-balance";
@@ -6758,10 +7106,12 @@ function panelAttrs(open, label, extra) {
 * never close it.
 */
 function ProviderBalanceSidebarAction(props) {
+	const t = props.t;
 	const state = useProviderBalances(props, BALANCE_PANEL);
 	const { rows, primary } = state;
 	const [open, setOpen] = useState(false);
 	const [anchor, setAnchor] = useState(null);
+	const instanceId = useId();
 	const rootRef = useRef(null);
 	const place = () => {
 		const root = rootRef.current;
@@ -6790,7 +7140,7 @@ function ProviderBalanceSidebarAction(props) {
 			window.removeEventListener("resize", place);
 		};
 	}, [open]);
-	const summary = primary !== void 0 ? primary.label + " · " + primary.view.title + (rows.length > 1 ? "(点击查看其他服务)" : "") : state.empty.title;
+	const summary = primary !== void 0 ? primary.label + " · " + primary.view.title + (rows.length > 1 ? t("balance.otherProviders") : "") : state.empty.title;
 	return h("div", {
 		className: cx("pbc", "pbf", !props.wide && "rail"),
 		ref: rootRef
@@ -6803,24 +7153,25 @@ function ProviderBalanceSidebarAction(props) {
 		"data-active": open ? "" : void 0,
 		"aria-expanded": open,
 		"aria-haspopup": "dialog",
-		"aria-label": "各模型服务余额",
+		"aria-label": t("balance.panelTitle"),
 		title: summary,
 		onClick: () => {
 			if (!open) place();
 			setOpen(!open);
 		}
-	}, props.wide ? renderBalanceHeadline(primary, true, true, state.empty.tone) : h("span", {
+	}, props.wide ? renderBalanceHeadline(primary, true, true, state.empty.tone, instanceId) : h("span", {
 		className: cx("bal-lead"),
 		"data-balance-state": primary !== void 0 ? primary.view.tone : state.empty.tone
-	}, renderBalanceGlyph(primary !== void 0 ? primary.view.tone : state.empty.tone, 18))), h("div", panelAttrs(open, "各模型服务余额", {
+	}, renderBalanceGlyph(primary !== void 0 ? primary.view.tone : state.empty.tone, 18, instanceId))), h("div", panelAttrs(open, t("balance.panelTitle"), {
 		"data-clawock-popover": BALANCE_PANEL,
 		...anchor === null ? {} : { style: {
 			left: anchor.left + "px",
 			bottom: anchor.bottom + "px"
 		} }
-	}), renderBalancePanelBody(state)));
+	}), renderBalancePanelBody(state, t)));
 }
 function DecisionMind(props) {
+	const t = props.t;
 	const filter = props.useStore((state) => state.filter);
 	const open = props.useStore((state) => state.open);
 	const visibleDateCount = props.useStore((state) => state.visibleDateCount);
@@ -6895,7 +7246,7 @@ function DecisionMind(props) {
 	if (data.loading) return h("div", {
 		className: cx("dmt"),
 		ref: rootRef
-	}, h("div", { className: cx("top") }, h("div", { className: cx("tin") }, h("div", { className: cx("tt") }, "决策轨迹", h("span", { className: cx("ts") }, "一笔真实成交 + 当时写下的计划 + 官方收盘给的结果")))), h("div", { className: cx("list") }, h(SkeletonRow, { key: "sk1" }), h(SkeletonRow, { key: "sk2" }), h(SkeletonRow, { key: "sk3" })));
+	}, h("div", { className: cx("top") }, h("div", { className: cx("tin") }, h("div", { className: cx("tt") }, t("trace.title"), h("span", { className: cx("ts") }, t("trace.subtitle"))))), h("div", { className: cx("list") }, h(SkeletonRow, { key: "sk1" }), h(SkeletonRow, { key: "sk2" }), h(SkeletonRow, { key: "sk3" })));
 	const traces = data.trades.map(_displayEntry);
 	let filtered = traces;
 	if (filter === "miss") filtered = traces.filter((trace) => trace.decision === null);
@@ -6905,12 +7256,13 @@ function DecisionMind(props) {
 	const rate = data.rate;
 	const hkdRealized = sumRealized("HKD");
 	const totalUsd = sumRealized("USD") + (rate === null ? 0 : hkdRealized / rate);
-	const totalLabel = rate === null && hkdRealized !== 0 ? "已实现 (USD 等值 · HKD 未折算)" : "已实现 (USD 等值)";
+	const totalLabel = rate === null && hkdRealized !== 0 ? t("trace.realizedUsdNoRate") : t("trace.realizedUsd");
 	const sells = traces.filter((trace) => trace.side === "reduce");
 	const sideless = traces.filter((trace) => trace.side === null).length;
 	const sellsRated = sells.filter((trace) => trace.t1 !== null).length;
-	const soldEarly = sells.filter((trace) => trace.t1?.verdict === "卖飞").length;
-	const soldRight = sells.filter((trace) => trace.t1?.verdict === "卖对").length;
+	const verdictIs = (trace, kind, text) => trace.t1 === null ? false : trace.t1.verdictKind == null ? trace.t1.verdict === text : trace.t1.verdictKind === kind;
+	const soldEarly = sells.filter((trace) => verdictIs(trace, "soldEarly", "卖飞")).length;
+	const soldRight = sells.filter((trace) => verdictIs(trace, "soldRight", "卖对")).length;
 	const matched = traces.filter((trace) => trace.decision !== null).length;
 	const reversed = traces.filter((trace) => trace.decision?.alignment === "opposite").length;
 	const groups = {};
@@ -6941,11 +7293,12 @@ function DecisionMind(props) {
 					actions.toggleDate(date);
 				}
 			}
-		}, h("span", { className: cx("chev") }, folded ? "▸" : "▾"), relativeDay(date, today), h("span", null, date), h("span", { className: cx("n") }, rows.length)), folded ? null : h("div", { className: cx("group") }, rows.map((trace) => {
+		}, h("span", { className: cx("chev") }, folded ? "▸" : "▾"), relativeDay(date, today, t), h("span", null, date), h("span", { className: cx("n") }, rows.length)), folded ? null : h("div", { className: cx("group") }, rows.map((trace) => {
 			const key = traceKeys.get(trace);
 			return h(TraceCell, {
 				key,
 				trace,
+				t,
 				open: open === key,
 				onToggle: () => {
 					actions.toggleOpen(key);
@@ -6966,22 +7319,25 @@ function DecisionMind(props) {
 		onClick: () => {
 			actions.showMoreDates(BATCH_GROUPS);
 		}
-	}, "显示更早的 " + moreFills + " 笔成交");
+	}, t("trace.more", { fills: moreFills }));
 	else if (visibleDateCount > DEFAULT_VISIBLE_DATES) moreButton = h("button", {
 		key: "more",
 		className: cx("trace-more"),
 		onClick: () => {
 			actions.resetDates();
 		}
-	}, "收起,只显示最近 3 组");
+	}, t("trace.less", { groups: DEFAULT_VISIBLE_DATES }));
 	let body;
-	if (filtered.length === 0) body = h("div", { className: cx("empty") }, "没有符合条件的成交");
+	if (filtered.length === 0) body = h("div", { className: cx("empty") }, t("trace.empty"));
 	else {
 		const kids = visibleDates.map(renderDate);
 		if (moreButton !== null) kids.push(moreButton);
 		body = h("div", null, kids);
 	}
-	const stats = h("div", { className: cx("stats") }, h("div", { className: cx("sg") }, h("span", { className: cx("sl") }, totalLabel), h("span", { className: cx("sv", "focus", totalUsd >= 0 ? "up" : "down") }, fmtMoney(totalUsd))), h("div", { className: cx("sg") }, h("span", { className: cx("sl") }, "T+1 卖飞/卖对 · 判出 " + sellsRated + "/" + sells.length + " 笔卖出" + (sideless === 0 ? "" : " · " + sideless + " 笔无侧向")), h("span", { className: cx("sv") }, h("span", { className: cx("down") }, soldEarly), " / ", h("span", { className: cx("up") }, soldRight))), h("div", { className: cx("sg") }, h("span", { className: cx("sl") }, "有当日计划" + (reversed === 0 ? "" : " · 反向 " + reversed)), h("span", { className: cx("sv") }, matched + "/" + traces.length)));
+	const stats = h("div", { className: cx("stats") }, h("div", { className: cx("sg") }, h("span", { className: cx("sl") }, totalLabel), h("span", { className: cx("sv", "focus", totalUsd >= 0 ? "up" : "down") }, fmtMoney(totalUsd))), h("div", { className: cx("sg") }, h("span", { className: cx("sl") }, t("trace.t1Tally", {
+		rated: sellsRated,
+		sells: sells.length
+	}) + (sideless === 0 ? "" : t("trace.t1Sideless", { sideless }))), h("span", { className: cx("sv") }, h("span", { className: cx("down") }, soldEarly), " / ", h("span", { className: cx("up") }, soldRight))), h("div", { className: cx("sg") }, h("span", { className: cx("sl") }, t("trace.matched") + (reversed === 0 ? "" : t("trace.reversed", { reversed }))), h("span", { className: cx("sv") }, matched + "/" + traces.length)));
 	const filters = h("div", { className: cx("filters") }, [
 		"all",
 		"miss",
@@ -6994,11 +7350,11 @@ function DecisionMind(props) {
 		onClick: () => {
 			actions.setFilter(value);
 		}
-	}, FILTER_LABEL[value])));
+	}, t(FILTER_LABEL[value]))));
 	return h("div", {
 		className: cx("dmt"),
 		ref: rootRef
-	}, h("div", { className: cx("top") }, h("div", { className: cx("tin") }, h("div", { className: cx("tt") }, "决策轨迹", h("span", { className: cx("ts") }, "一笔真实成交 + 当时写下的计划 + 官方收盘给的结果" + (data.stale ? " · 更新失败,显示此前快照" : "")), h("span", { className: cx("rate") }, traces.length + " 笔成交" + (rate === null ? "" : " · @" + rate))), stats)), h("div", { className: cx("bar") }, h("div", { className: cx("bin") }, filters)), h("div", { className: cx("list") }, body));
+	}, h("div", { className: cx("top") }, h("div", { className: cx("tin") }, h("div", { className: cx("tt") }, t("trace.title"), h("span", { className: cx("ts") }, t("trace.subtitle") + (data.stale ? t("trace.staleSuffix") : "")), h("span", { className: cx("rate") }, t("trace.fillCount", { count: traces.length }) + (rate === null ? "" : " · @" + rate))), stats)), h("div", { className: cx("bar") }, h("div", { className: cx("bin") }, filters)), h("div", { className: cx("list") }, body));
 }
 /**
 * `layout` is listed even though the plugin only *probes* it, and that is not
@@ -7017,10 +7373,12 @@ function DecisionMind(props) {
 const inject = [
 	"slots",
 	"remote",
-	"layout"
+	"layout",
+	"locale"
 ];
 /** Register the Decision Mind tab into the conversation view ring. */
 async function apply(ctx) {
+	ctx.effect(() => ctx.locale.register(LOCALE_NS, dictionaries), "clawock-dsh: dictionaries");
 	await ctx.remote.$mount(TYPERT_REMOTE);
 	const studioRemote = ctx.get("remote.clawockStudio");
 	const layout = ctx.layout;
@@ -7072,6 +7430,7 @@ async function apply(ctx) {
 		order: 30,
 		label: () => "Decision Mind",
 		store,
+		locale: LOCALE_NS,
 		inject: injected
 	}, DecisionMind));
 	const balancesStore = createBalanceStore();
@@ -7079,6 +7438,7 @@ async function apply(ctx) {
 		name: "sidebar.footer.action",
 		id: "provider-balance",
 		store: balancesStore,
+		locale: LOCALE_NS,
 		inject: balancesInjected
 	}, ProviderBalanceSidebarAction));
 	else ctx.slots.inject("conversation.session.header.utilities", () => ctx.slots.register({
@@ -7086,12 +7446,13 @@ async function apply(ctx) {
 		id: "provider-balance",
 		order: 90,
 		store: balancesStore,
+		locale: LOCALE_NS,
 		inject: balancesInjected
 	}, ProviderBalanceChip));
 }
 //#endregion
 
-    Object.assign(exports, { BALANCE_PANEL, DecisionMind, ProviderBalanceChip, ProviderBalanceSidebarAction, _balanceNote, _displayEntry, _rowDisplay, _traceKeys, _usedLevel, apply, createBalanceStore, createDecisionMindStore, inject, t1ChipClass, t1NodeClass });
+    Object.assign(exports, { BALANCE_PANEL, DecisionMind, LOCALE_NS, ProviderBalanceChip, ProviderBalanceSidebarAction, _balanceNote, _displayEntry, _rowDisplay, _traceKeys, _usedLevel, apply, createBalanceStore, createDecisionMindStore, createTranslator, dictionaries, inject, resetStampOf, t1ChipClass, t1NodeClass, verdictOf, windowLabelOf, windowsOf });
     return module.exports;
   }
 });
