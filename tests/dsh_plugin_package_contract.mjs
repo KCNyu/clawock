@@ -166,3 +166,34 @@ test('the README names every optional ClawockStudioConfig key', () => {
   const missing = keys.filter((key) => !readme.includes('`' + key + '`'))
   assert.deepEqual(missing, [], `README.md 可选配置 is missing ${missing.join(', ')}`)
 })
+
+/**
+ * #1587: the shipped skill's decision-contract.md says "See
+ * `assets/decision.example.json`" and "Copy `assets/outcome.example.json`" —
+ * the start of the evaluate flow — but the plugin's skill only carried
+ * order.example.json, so an agent following the doc hit a missing file. The
+ * pack under src/clawock/workflows/packs/ had them; nothing checked the copy.
+ * Every skill-relative path a shipped skill document cites must be shipped,
+ * and a file that mirrors the pack must still match it.
+ */
+test('every assets/ and references/ path the shipped skill cites exists', () => {
+  const skill = join(PLUGIN, 'skills', 'investment-decision')
+  const pack = resolve(HERE, '..', 'src', 'clawock', 'workflows', 'packs', 'investment-decision')
+  const docs = ['SKILL.md', ...readdirSync(join(skill, 'references')).map((f) => join('references', f))]
+    .filter((f) => f.endsWith('.md'))
+  const cited = new Set()
+  for (const doc of docs) {
+    for (const m of readFileSync(join(skill, doc), 'utf8').matchAll(/`((?:assets|references)\/[\w.-]+)`/g)) {
+      cited.add(m[1])
+    }
+  }
+  assert.ok(cited.has('assets/outcome.example.json'), `citation scan found only ${[...cited]}`)
+  const missing = [...cited].filter((path) => !existsSync(join(skill, path)))
+  assert.deepEqual(missing, [], `shipped skill cites files it does not ship: ${missing.join(', ')}`)
+
+  for (const path of cited) {
+    if (!existsSync(join(pack, path))) continue
+    assert.equal(readFileSync(join(skill, path), 'utf8'), readFileSync(join(pack, path), 'utf8'),
+      `${path} in the plugin skill has drifted from the workflow pack's copy`)
+  }
+})
