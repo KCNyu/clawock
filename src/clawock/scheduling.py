@@ -161,10 +161,47 @@ def load_contract(path: str | Path | None = None, *, workspace: str | Path | Non
                 raise ValueError(f"{job['name']}: watchdog needs exactly one schedule source")
             if not isinstance(watchdog.get("command"), str) or not watchdog["command"]:
                 raise ValueError(f"{job['name']}: watchdog command missing")
+        timeout = profiles[job["payload_profile"]].get("timeout_seconds")
+        if timeout is not None:
+            _check_watchdogs_clear_timeout(
+                job, [w for w in watchdogs if w], timeout)
     sync = data.get("dst_sync") or {}
     if not sync.get("schedule") or not isinstance(sync.get("command"), str):
         raise ValueError("dst_sync schedule and command are required")
     return data
+
+
+def _fixed_daily_utc_minute(schedule: dict, label: str) -> int:
+    """Minutes after UTC midnight of a `M H * * <dow>` schedule's one daily fire."""
+    parts = str(schedule.get("expr") or "").split()
+    if len(parts) != 5 or not (parts[0].isdigit() and parts[1].isdigit()):
+        raise ValueError(
+            f"{label}: a job whose payload profile pins timeout_seconds needs "
+            f"single-time daily schedules, got {schedule.get('expr')!r}")
+    offset = datetime.now(ZoneInfo(schedule.get("tz") or "UTC")).utcoffset()
+    return int(parts[1]) * 60 + int(parts[0]) - int(offset.total_seconds() // 60)
+
+
+def _check_watchdogs_clear_timeout(job: dict, watchdogs: list, timeout) -> None:
+    """Every watchdog of a timed job fires after the run's timeout boundary.
+
+    `timeout_seconds` and the watchdog times are two values in this file; this
+    is what keeps them from drifting apart. A watchdog that fires while the run
+    can still be legitimately in flight judges a slow run as a missing one
+    (#1605) — and the 09:05 miss detector, which dispatches the off-host
+    fallback, is as bound by it as the primary pass (#1638). Raising the
+    timeout past a watchdog therefore fails the contract load until the
+    schedule is moved too (#1625).
+    """
+    start = _fixed_daily_utc_minute(effective_schedule(job), job["name"])
+    boundary = start + int(timeout) / 60
+    for watchdog in watchdogs:
+        fires = _fixed_daily_utc_minute(
+            effective_schedule(watchdog), f"{job['name']} watchdog")
+        if fires <= boundary:
+            raise ValueError(
+                f"{job['name']}: watchdog {watchdog.get('command', '')[:60]!r} "
+                f"fires at or before the run's {int(timeout)}s timeout boundary")
 
 
 # Expanding a cron expression into the slots it fires on a given day has exactly
