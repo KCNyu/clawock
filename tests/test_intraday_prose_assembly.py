@@ -133,7 +133,7 @@ def test_signal_alert_rule_reads_the_prose_when_there_are_no_anomalies(pf):
 
     issues = pf.validate(pf.assemble_message(ctx, silent), ctx, silent)
 
-    assert [i for i in issues if 'should_alert=true(纯信号)' in i], issues
+    assert [i for i in issues if '未提任何信号票' in i], issues
 
 
 def test_signal_alert_rule_accepts_a_named_signal_ticker(pf):
@@ -144,7 +144,25 @@ def test_signal_alert_rule_accepts_a_named_signal_ticker(pf):
 
     issues = pf.validate(pf.assemble_message(ctx, PROSE), ctx, PROSE)
 
-    assert not [i for i in issues if 'should_alert=true(纯信号)' in i], issues
+    assert not [i for i in issues if '未提任何信号票' in i], issues
+
+
+def test_naming_an_anomaly_does_not_excuse_the_signals(pf):
+    """#1630: with both present, each must be named — the signal check used to
+    sit in an `elif` that the anomaly mention short-circuited."""
+    only_anomaly = ('▎我的看法\n' + 'SKHY 存储链 risk-off 未止，杠杆放大伤口，按计划处理。' * 3)
+    ctx = _ctx(signals_detail=[
+        {'level': 'STOP', 'ticker': 'RKLX'},
+        {'level': 'TRIM', 'ticker': 'CRCL'},
+        {'level': 'INFO', 'ticker': 'SKHY'},
+    ])
+
+    issues = pf.validate(pf.assemble_message(ctx, only_anomaly), ctx, only_anomaly)
+
+    assert not [i for i in issues if '未提任何异动票' in i], issues
+    missed = [i for i in issues if '未提任何信号票' in i]
+    assert len(missed) == 1 and 'RKLX' in missed[0] and 'CRCL' in missed[0], issues
+    assert pf.ADVISORY_MARK not in missed[0]
 
 
 def test_length_limit_measures_the_delivered_body(pf):
