@@ -322,12 +322,11 @@ test("client: registers the Decision Mind tab and mounts the remote face", async
     if (s === "react") return makeReactStub();
     throw new Error(`unexpected require: ${s}`);
   });
-  // Hard dependencies only. `layout` used to be listed here while the code
-  // treated it as optional (`ctx.layout?.selectPanel`); a probe declared as a
-  // hard dependency leaves the whole client half waiting on a host that lacks
-  // it, so Decision Mind would vanish along with the chip. It is `ctx.get`
-  // now — see the two seat tests below.
-  assert.deepEqual(api.inject, ["slots", "remote"]);
+  // `layout` stays listed although the plugin only probes it. `ctx.get` cannot
+  // replace it here: the probe runs inside apply, and ctx.get does not wait —
+  // it returned undefined and dropped the chip into the header seat (measured
+  // live 2026-09-19). The seat assertions further down are what pin the probe.
+  assert.deepEqual(api.inject, ["slots", "remote", "layout"]);
 
   const remoteFace = {
     ledger: async () => ({ ok: true, value: { entries: [] } }),
@@ -339,9 +338,9 @@ test("client: registers the Decision Mind tab and mounts the remote face", async
   };
   const ctx = {
     effect() {},
-    // `layout` is probed through ctx.get, never injected; absent here, which is
-    // exactly the pre-0.1.5 host the header chip exists for.
-    get(name) { return name === "layout" ? undefined : remoteFace; },
+    // The injected face is absent here, which is exactly the pre-0.1.5 host
+    // the header chip exists for.
+    get() { return remoteFace; },
     slots: {
       inject(name, fn) { (this._seats ??= []).push(name); (this._fns ??= []).push(fn); },
       register(definition, Component) { (this._regs ??= []).push({ definition, Component }); },
@@ -1867,14 +1866,13 @@ test("client: the sidebar-foot balance opens a popover that stays open while you
     },
   };
   const selected = [];
-  // DSH >= 0.1.5-rc.1. The foot must never drive panel navigation: selecting
-  // a `main` panel swapped the whole conversation out from under the user.
-  const layout = { selectPanel(id) { selected.push(id); } };
   const ctx = {
     effect() {},
-    // The capability probe is a `ctx.get`, matching the runtime: `selectPanel`
-    // present is what routes the balance to the sidebar foot.
-    get(name) { return name === "layout" ? layout : remoteFace; },
+    get() { return remoteFace; },
+    // DSH >= 0.1.5-rc.1. The foot must never drive panel navigation: selecting
+    // a `main` panel swapped the whole conversation out from under the user.
+    // `selectPanel` present is what routes the balance to the sidebar foot.
+    layout: { selectPanel(id) { selected.push(id); } },
     slots: {
       inject(name, fn) { (this._seats ??= []).push(name); (this._fns ??= []).push(fn); },
       register(definition, Component) { (this._regs ??= []).push({ definition, Component }); },
@@ -1999,7 +1997,8 @@ test("client: a balance fetch that fails says so instead of loading forever (#15
   };
   const ctx = {
     effect() {},
-    get(name) { return name === "layout" ? { selectPanel() {} } : remoteFace; },
+    get() { return remoteFace; },
+    layout: { selectPanel() {} },
     slots: {
       inject(name, fn) { (this._fns ??= []).push(fn); },
       register(definition, Component) { (this._regs ??= []).push({ definition, Component }); },
