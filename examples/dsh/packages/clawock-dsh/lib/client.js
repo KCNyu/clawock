@@ -6277,6 +6277,19 @@ function TraceCell(props) {
 		onKeyDown: props.onKeyDown
 	}, h("div", { className: cx("main") }, h("span", { className: cx("dotm") }), h("span", { className: cx("tk") }, trace.ticker, h("span", { className: cx("mkt", trace.market === "HK" && "hk") }, trace.market === "HK" ? "港" : "美")), h(Chip, null, ACT[trace.action] ?? trace.action), h("span", { className: cx("qty") }, trace.shares + " @" + fmtPrice(trace.price)), h("span", { className: cx("sp") }), pnl), h("div", { className: cx("sub") }, t1tag, alignTag, h("span", { className: cx("date") }, (trace.date ?? "").slice(5)), h("span", { className: cx("chev") }, "▾")), h("div", { className: cx("detail") }, h("div", { className: cx("dinner") }, props.open ? h(TraceDetail, { trace }) : null)));
 }
+/** Stable row identities are derived before filtering, so switching filters
+* cannot remount the same trade and discard its expanded state (#1603). */
+function _traceKeys(traces) {
+	const occurrences = /* @__PURE__ */ new Map();
+	const keys = /* @__PURE__ */ new Map();
+	for (const trace of traces) {
+		const base = trace.ticker + trace.date + trace.shares + ":" + trace.action;
+		const occurrence = occurrences.get(base) ?? 0;
+		occurrences.set(base, occurrence + 1);
+		keys.set(trace, base + ":" + occurrence);
+	}
+	return keys;
+}
 /** Skeleton row for the cold-start loading state (no cache yet). */
 function SkeletonRow() {
 	return h("div", { className: cx("skel") }, h("div", { className: cx("skel-dot") }), h("div", { className: cx("skel-bar", "w40") }), h("div", { className: cx("skel-bar", "w20") }));
@@ -6886,6 +6899,7 @@ function DecisionMind(props) {
 	const matched = traces.filter((trace) => trace.decision !== null).length;
 	const reversed = traces.filter((trace) => trace.decision?.alignment === "opposite").length;
 	const groups = {};
+	const traceKeys = _traceKeys(traces);
 	for (const trace of filtered) {
 		const day = (trace.date ?? "").slice(0, 10);
 		(groups[day] ??= []).push(trace);
@@ -6912,8 +6926,8 @@ function DecisionMind(props) {
 					actions.toggleDate(date);
 				}
 			}
-		}, h("span", { className: cx("chev") }, folded ? "▸" : "▾"), relativeDay(date, today), h("span", null, date), h("span", { className: cx("n") }, rows.length)), folded ? null : h("div", { className: cx("group") }, rows.map((trace, index) => {
-			const key = trace.ticker + trace.date + trace.shares + ":" + index;
+		}, h("span", { className: cx("chev") }, folded ? "▸" : "▾"), relativeDay(date, today), h("span", null, date), h("span", { className: cx("n") }, rows.length)), folded ? null : h("div", { className: cx("group") }, rows.map((trace) => {
+			const key = traceKeys.get(trace);
 			return h(TraceCell, {
 				key,
 				trace,
@@ -7048,7 +7062,7 @@ async function apply(ctx) {
 }
 //#endregion
 
-    Object.assign(exports, { BALANCE_PANEL, DecisionMind, ProviderBalanceChip, ProviderBalanceSidebarAction, _balanceNote, _displayEntry, _rowDisplay, _usedLevel, apply, createBalanceStore, createDecisionMindStore, inject, t1ChipClass, t1NodeClass });
+    Object.assign(exports, { BALANCE_PANEL, DecisionMind, ProviderBalanceChip, ProviderBalanceSidebarAction, _balanceNote, _displayEntry, _rowDisplay, _traceKeys, _usedLevel, apply, createBalanceStore, createDecisionMindStore, inject, t1ChipClass, t1NodeClass });
     return module.exports;
   }
 });

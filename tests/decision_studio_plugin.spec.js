@@ -436,6 +436,27 @@ test("client: _displayEntry projects a trace with its decision and T+1", async (
   assert.equal(bare.realizedPnl, null);
 });
 
+test("client: trace keys stay stable when a filter removes earlier same-day rows", async () => {
+  const loaded = await loadClient();
+  const api = loaded.factory((s) => {
+    if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
+    if (s === "react") return makeReactStub();
+    throw new Error(`unexpected require: ${s}`);
+  });
+  const traces = [
+    { ticker: "SPCH", date: "2026-09-19", shares: 10, action: "buy" },
+    { ticker: "SPCH", date: "2026-09-19", shares: 10, action: "sell" },
+    { ticker: "SPCH", date: "2026-09-19", shares: 10, action: "buy" },
+  ];
+
+  const keys = api._traceKeys(traces);
+  const sold = traces.filter((trace) => trace.action === "sell");
+
+  assert.equal(keys.get(sold[0]), keys.get(traces[1]));
+  assert.notEqual(keys.get(traces[0]), keys.get(traces[2]),
+    "duplicate same-day fills still need distinct stable keys");
+});
+
 test("client: a fill with no price renders a dash, not the word null (#1590)", async () => {
   // ledger.ts `num()` turns a missing, empty or non-numeric trade price into
   // null, and the row and its detail concatenated it raw: "10 @null",
@@ -488,8 +509,8 @@ test("client: a fill with no price renders a dash, not the word null (#1590)", a
   await tick(); await tick(); await tick();
   const folded = text(render());
   assert.match(folded, /10 @—/, `the folded row must show a dash for the missing price: ${folded}`);
-  // Expand the row (key = ticker + date + shares + ':' + index) for the detail.
-  store.actions.toggleOpen("SPCH2026-08-1510:0");
+  // Expand the row using its stable business key.
+  store.actions.toggleOpen("SPCH2026-08-1510:buy:0");
   const expanded = text(render());
   assert.match(expanded, /买入 10 股 @ —/, `the detail must show a dash for the missing price: ${expanded}`);
   assert.doesNotMatch(expanded, /null/, `no rendered text may say null: ${expanded}`);
