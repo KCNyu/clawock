@@ -53,7 +53,7 @@ def test_no_such_job_says_nothing(monkeypatch):
 
 
 def test_a_gateway_that_will_not_answer_says_nothing_and_does_not_raise(
-        monkeypatch):
+        monkeypatch, isolated_watchdog_log):
     """The alert is the last notification that reaches a human that morning.
 
     Reading the budget is a `cron list` round trip through the gateway — the
