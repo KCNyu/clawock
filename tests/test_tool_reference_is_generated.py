@@ -189,9 +189,8 @@ def test_a_count_of_cli_subcommands_matches_what_clawock_help_offers():
     offered = choices.group(1).split(",")
 
     document = (ROOT / "docs" / "reference" / "commands.md").read_text()
-    claimed = [int(n) for n in re.findall(r"(\d+) CLI subcommands", document)]
-    assert all(n == len(offered) for n in claimed), (
-        f"commands.md claims {claimed} CLI subcommands; `clawock --help` offers "
-        f"{len(offered)}")
+    assert "CLI subcommands" not in document, (
+        "commands.md must not describe the packaged utility registry as the "
+        "complete CLI")
     packaged = re.search(r"(\d+) packaged `clawock <utility>` subcommands", document)
     assert packaged and int(packaged.group(1)) == len(set(offered) & set(cli.PACKAGED_UTILITIES))
