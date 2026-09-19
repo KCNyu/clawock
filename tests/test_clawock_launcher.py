@@ -14,6 +14,7 @@ behaviour with no reinstall — which is what the live box needs.
 import json
 import os
 import subprocess
+import tomllib
 from pathlib import Path
 
 import pytest
@@ -64,6 +65,24 @@ def test_the_installer_exposes_all_watchdogs_on_the_same_path(installed_launcher
         assert launcher.exists() and os.access(launcher, os.X_OK)
         body = launcher.read_text()
         assert str(venv / "bin" / name) in body
+
+
+def test_every_console_script_gets_a_host_launcher(installed_launcher):
+    """#1589: the installer wrote launchers from a hand-kept list of 12 while
+    `[project.scripts]` is what pip installs. release.md says re-running the
+    installer is what makes a new console script usable; with the list, that
+    left the new command in the venv and off the host PATH its cron calls,
+    and only three watchdogs were checked here. The registry is the list."""
+    target, venv, _tmp_path = installed_launcher
+    scripts = tomllib.loads((ROOT / "pyproject.toml").read_text())["project"]["scripts"]
+    assert "clawock" in scripts and len(scripts) > 1
+    missing = []
+    for name in scripts:
+        launcher = target.parent / name
+        if not (launcher.exists() and os.access(launcher, os.X_OK)
+                and str(venv / "bin" / name) in launcher.read_text()):
+            missing.append(name)
+    assert not missing, f"[project.scripts] entries with no host launcher: {missing}"
 
 
 def test_the_installer_refuses_a_directory_that_is_not_a_checkout(tmp_path):
