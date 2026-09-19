@@ -2626,6 +2626,11 @@
     const price = (n, ccy) => n == null || isNaN(n) || n === 0 ? DASH : fmtMoney(n, ccy);
     const openTickers = new Set([...tbody.querySelectorAll('tr.book-row[data-open="1"]')]
       .map(row => row.dataset.ticker));
+    // The rows are rebuilt on every refresh of the visible tab, and a focused
+    // row that is replaced drops keyboard focus to <body> mid-read (#1624).
+    const focusedRow = tbody.contains(document.activeElement)
+      ? document.activeElement.closest("tr.book-row") : null;
+    const focusedTicker = focusedRow ? focusedRow.dataset.ticker : null;
     tbody.innerHTML = rows.map(({ h, e, q, v }) => {
       const ccy = h.region === "hk" ? "HKD" : "USD";
       const isOpen = openTickers.has(String(h.ticker || ""));
@@ -2653,6 +2658,11 @@
         </tr>
         <tr class="book-detail" data-open="${open}"><td colspan="10"><div class="bd-wrap"><div class="bd-inner">${bookDetail(h, e)}</div></div></td></tr>`;
     }).join("");
+    if (focusedTicker != null) {
+      const row = [...tbody.querySelectorAll("tr.book-row")]
+        .find(r => r.dataset.ticker === focusedTicker);
+      if (row) row.focus({ preventScroll: true });
+    }
 
     renderBookHeat(rows);
 
