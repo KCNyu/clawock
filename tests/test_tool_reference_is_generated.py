@@ -39,6 +39,7 @@ from generate_tool_reference import (  # noqa: E402
     SCRIPTS,
     PUBLIC,
     build,
+    lifecycle_commands,
     registries,
     render,
 )
@@ -90,10 +91,28 @@ def test_every_installed_command_is_named_exactly_once():
     installed = {(registry_name, command)
                  for registry_name, commands in available.items()
                  for command in commands}
+    installed |= {(PUBLIC, command) for command in lifecycle_commands()}
     assert set(named) == installed, (
         "the catalog and the installation disagree: "
         f"missing {sorted(installed - set(named))}, "
         f"invented {sorted(set(named) - installed)}")
+
+
+def test_the_inventory_names_every_subcommand_clawock_help_offers():
+    """#1627: the lifecycle commands cli.py builds itself (`init`, `run`,
+    `brief`, ...) are in neither registry, so a catalog read off the registries
+    alone left eleven of them out. The parser is the source now."""
+    from clawock.cli import build_parser
+
+    subparsers = next(action for action in build_parser()._actions
+                      if hasattr(action, "_choices_actions"))
+    offered = {choice.dest for choice in subparsers._choices_actions}
+    named = {invocation.split(" ", 1)[1]
+             for invocation in _commands_in(DOCUMENT.read_text())
+             if invocation.startswith("clawock ")}
+
+    assert offered == named, (
+        f"missing {sorted(offered - named)}, invented {sorted(named - offered)}")
 
 
 def test_the_document_names_the_module_behind_each_command():

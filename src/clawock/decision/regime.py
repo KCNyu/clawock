@@ -331,6 +331,14 @@ def classify(close, ma, vol):
     else:
         tier, mult, label = 'amber', 0.5, ('趋势OFF：杠杆敞口上限砍半'
                                            if not trend_on else '波动过热：杠杆敞口上限砍半')
+    # An unmeasured input is treated as failing — the dial stays conservative
+    # on a short series (#943) — but the label must not report a trend or a
+    # volatility reading nobody took (#1642).
+    missing = [name for name, value in (('200日线', ma), ('20日波动', vol))
+               if value is None]
+    if missing:
+        label = (f'{"、".join(missing)}数据不足，按保守档处理：'
+                 f'杠杆敞口上限 ×{mult:g}')
     return trend_on, vol_ok, tier, mult, label
 
 

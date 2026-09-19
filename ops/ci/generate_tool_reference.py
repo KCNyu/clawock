@@ -21,6 +21,11 @@ list makes this generator fail rather than emit a catalog that silently omits
 it, and a taxonomy entry naming a command neither registry exposes fails
 the same way.
 
+The lifecycle subcommands `clawock` builds itself (`init`, `run`, `brief`, …)
+are in neither registry. They are read from `clawock.cli.build_parser()`, the
+parser `clawock --help` prints, so the inventory covers every subcommand the
+CLI offers instead of counting a registry and calling it the CLI (#1592, #1627).
+
 Only the block between the two markers is generated. Everything else in the
 document is hand-written, because flag tables, SEC's rate limit and which key a
 provider needs are not things a registry holds.
@@ -68,6 +73,27 @@ def installed_scripts(root: Path = ROOT) -> dict:
 
 def registries(root: Path = ROOT) -> dict:
     return {PUBLIC: packaged_utilities(root), SCRIPTS: installed_scripts(root)}
+
+
+def lifecycle_commands(root: Path = ROOT) -> dict:
+    """`clawock` subcommands the CLI builds itself: name → its `--help` line.
+
+    Imported rather than parsed: the parser is built by code (loops over
+    workflows and the utility registry), and `build_parser()` is the one thing
+    that knows what `clawock --help` offers. The packaged utilities are left
+    out here because the registry tables already list them.
+    """
+    source = str(root / "src")
+    if source not in sys.path:
+        sys.path.insert(0, source)
+    from clawock.cli import build_parser
+
+    utilities = packaged_utilities(root)
+    subparsers = next(action for action in build_parser()._actions
+                      if isinstance(action, argparse._SubParsersAction))
+    return {choice.dest: choice.help or ""
+            for choice in subparsers._choices_actions
+            if choice.dest not in utilities}
 
 
 def _invocation(registry: str, command: str) -> str:
@@ -139,10 +165,11 @@ def _table(rows, available, note_header: str) -> list[str]:
     return lines
 
 
-def render(config: dict, available: dict) -> str:
+def render(config: dict, available: dict, lifecycle: dict | None = None) -> str:
     layers, excluded = _classify(config, available)
+    lifecycle = lifecycle_commands() if lifecycle is None else lifecycle
     counted = sum(len(rows) for _, rows in layers)
-    total = sum(len(registry) for registry in available.values())
+    total = sum(len(registry) for registry in available.values()) + len(lifecycle)
 
     lines = [
         BEGIN,
@@ -152,20 +179,30 @@ def render(config: dict, available: dict) -> str:
         "",
         "## Installed commands / 已安装命令",
         "",
-        f"**{total} commands** are registered by the single `{PUBLIC}` distribution: "
+        f"**{total} commands** are installed by the single `{PUBLIC}` distribution: "
+        f"{len(lifecycle)} lifecycle subcommands built in `src/clawock/cli.py`, "
         f"{len(available[PUBLIC])} packaged `clawock <utility>` subcommands and "
         f"{len(available[SCRIPTS])} standalone scripts. "
-        f"{counted} of them collect or compute information and appear under the "
-        f"layer they feed; the remaining {len(excluded)} publish, gate, record "
-        "or schedule, and are listed with the reason they are not collection. "
-        # #1592: the lifecycle commands live in cli.py's own parser, not in
-        # either registry, so this page does not count them.
-        "The lifecycle subcommands `clawock` builds itself in `src/clawock/cli.py` "
-        "are not registry entries and are not counted here; `clawock --help` "
-        "lists every subcommand.",
+        f"`clawock --help` offers the first two groups "
+        f"({len(lifecycle) + len(available[PUBLIC])} subcommands). "
+        f"{counted} of the registry commands collect or compute information and "
+        f"appear under the layer they feed; the remaining {len(excluded)} publish, "
+        "gate, record or schedule, and are listed with the reason they are not "
+        "collection.",
         "",
-        "本节由生成器从两份 registry 与 `config/information-layers.json` 推导，"
-        "不手写；新增或删除一条命令，这张表自己会变。",
+        "本节由生成器从 `clawock.cli.build_parser()`、两份 registry 与 "
+        "`config/information-layers.json` 推导，不手写；新增或删除一条命令，"
+        "这张表自己会变。",
+        "",
+        "### Lifecycle subcommands / 生命周期子命令",
+        "",
+        "Workspace, run and harness lifecycle commands; details are in the "
+        "hand-written sections below.",
+        "",
+        "| Command | What it does |",
+        "|---|---|",
+        *(f"| `{PUBLIC} {name}` | {_cell(help_text)} |"
+          for name, help_text in lifecycle.items()),
         "",
     ]
 
@@ -203,9 +240,10 @@ def _split(document: str) -> tuple[str, str]:
     return head, tail
 
 
-def build(document: str, config: dict, available: dict) -> str:
+def build(document: str, config: dict, available: dict,
+          lifecycle: dict | None = None) -> str:
     head, tail = _split(document)
-    return head + render(config, available) + tail
+    return head + render(config, available, lifecycle) + tail
 
 
 def main() -> int:

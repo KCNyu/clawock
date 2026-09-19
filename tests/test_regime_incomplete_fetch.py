@@ -42,6 +42,9 @@ def test_short_fetch_missing_ma_and_vol_stays_conservative(offline_dial, monkeyp
     assert payload["lev_cap_mult"] == pytest.approx((0.5, 0.0)[payload["tier"] == "red"])
     assert "不可用" in payload["rationale"]
     assert "×" in payload["rationale"]
+    # #1642: nothing was measured, so the label may not claim a reading.
+    assert "趋势OFF" not in payload["label"] and "波动过热" not in payload["label"]
+    assert "数据不足" in payload["label"] and payload["hk"]["label"] == payload["label"]
 
 
 def test_full_history_path_is_unchanged(offline_dial, monkeypatch):
@@ -58,6 +61,7 @@ def test_mid_history_has_vol_but_no_ma(offline_dial, monkeypatch):
     payload = _run(monkeypatch, closes)
     assert payload["missing_inputs"] == ["ma"]
     assert payload["vol_annualized"] is not None
+    assert payload["label"].startswith("200日线数据不足")
 
 
 def test_compute_survives_zero_close(monkeypatch):
