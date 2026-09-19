@@ -564,3 +564,40 @@ def test_site_staging_joins_owned_source_and_runtime_inputs(tmp_path):
             "the data plane is materialised in this checkout but staging dropped it")
     assert (output / "docs/architecture/harness.md").is_file()
     assert not (output / "portfolio.json").exists()
+
+
+def _github_path_filter(pattern):
+    """GitHub `paths:` glob → regex: `**` crosses `/`, `*` and `?` don't."""
+    out = ""
+    for token in re.split(r"(\*\*|\*|\?)", pattern):
+        out += {"**": ".*", "*": "[^/]*", "?": "[^/]"}.get(token, re.escape(token))
+    return re.compile(out + r"\Z")
+
+
+def test_every_tracked_file_staging_publishes_triggers_a_pages_build(tmp_path, monkeypatch):
+    """#1588: `stage()` copies LICENSE, NOTICE and THIRD_PARTY_LICENSES/ into the
+    site, but neither `paths:` block matched them, so a change to only those
+    started no run and the live copies stayed stale behind a green board. The
+    list in the test above is hand-kept too, so it could not see that. This
+    records what `stage()` actually copies and requires every tracked file
+    under it to start a build, for push and pull_request alike."""
+    import yaml
+    import stage_site
+
+    copied = [ROOT / "site"]  # shutil.copytree'd directly, not through _copy
+    # Record only: copying the live assets/data races other xdist workers
+    # (see _copy_repo_data), and the sources are all this needs.
+    monkeypatch.setattr(stage_site, "_copy", lambda source, _dest: copied.append(Path(source)))
+    stage_site.stage(tmp_path / "site-source", source_root=ROOT)
+    sources = sorted({str(path.resolve().relative_to(ROOT)) for path in copied})
+    assert {"LICENSE", "NOTICE", "THIRD_PARTY_LICENSES", "docs", "site"} <= set(sources), sources
+
+    tracked = subprocess.run(["git", "ls-files", "--", *sources], cwd=ROOT,
+                             capture_output=True, text=True, check=True).stdout.split()
+    assert tracked, "no tracked file under the staged sources"
+    triggers = yaml.safe_load(WORKFLOW)
+    triggers = triggers.get("on", triggers.get(True))  # YAML 1.1 reads `on` as true
+    for event in ("push", "pull_request"):
+        filters = [_github_path_filter(p) for p in triggers[event]["paths"]]
+        silent = [path for path in tracked if not any(f.match(path) for f in filters)]
+        assert not silent, f"pages.yml {event} paths never fire for staged {silent}"

@@ -9,6 +9,10 @@ on:
       - 'README.md'
       - 'README.zh.md'
       - 'docs/**'
+      # stage_site.py publishes the legal files next to the docs.
+      - 'LICENSE'
+      - 'NOTICE'
+      - 'THIRD_PARTY_LICENSES/**'
       - 'assets/data/**'
       - 'memory/*-pre-open.md'
       - 'memory/weekly/**'
@@ -21,6 +25,10 @@ on:
       - 'README.md'
       - 'README.zh.md'
       - 'docs/**'
+      # stage_site.py publishes the legal files next to the docs.
+      - 'LICENSE'
+      - 'NOTICE'
+      - 'THIRD_PARTY_LICENSES/**'
       - 'assets/data/**'
       - 'memory/*-pre-open.md'
       - 'memory/weekly/**'
