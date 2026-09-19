@@ -19,6 +19,10 @@ cost_basis/prev_close/trades[])复原，且都有一道闸守着。计算链：
   COST_TOTAL     total_cost == Σ(活跃持仓 shares×cost_basis)             ERROR
   PNL_TOTAL      total_pnl == total_current_value − total_cost           ERROR
   PNL_PCT        total_pnl_percent == total_pnl/total_cost×100           WARN
+  COST_ZERO      活跃持仓 cost_basis≠0（收益率无定义，0% 是伪精度）      ERROR
+  COST_MISSING   活跃持仓 cost_basis 有数值（漏填会让成本/盈亏静默缺项）  ERROR
+  SHARES_MISSING 每行 shares 有数值（缺失既不算活跃也不算清仓，逐只与
+                 总额闸全部跳过它）                                      ERROR
   PNL_LEG        每只 pnl_abs == shares×(current − cost)                 WARN
   TODAY_LEG      每只 today_change == shares×(current − prev_close)      WARN
   TODAY_TOTAL    today_total_change == Σ(活跃持仓 today_change)          WARN
@@ -466,6 +470,16 @@ def check(portfolio_path=PORTFOLIO):
                     f'{t} shares=0 但仍有非零派生字段：{detail}；应跑 clawock aggregates 清零',
                     region, t)
 
+        # A row without a numeric share count is neither active (> 0) nor
+        # closed (== 0), so every check above and below skips it and the book
+        # totals silently leave it out. Missing is not zero (#1636).
+        for h in holdings:
+            if _num(h.get('shares')) is None:
+                t = h.get('ticker')
+                add('SHARES_MISSING', 'ERROR',
+                    f'{t} shares 缺失或非数字（{h.get("shares")!r}）：既不算活跃也不算清仓，'
+                    f'逐只与总额闸都跳过了它；请补回股数', region, t)
+
         # 逐只 -----------------------------------------------------------
         sib_dirs = {}
         asofs = set()
@@ -481,9 +495,17 @@ def check(portfolio_path=PORTFOLIO):
             pnl_pct = _num(h.get('pnl_percent'))
             chg = _num(h.get('today_change_pct'))
 
-            if sh and cost == 0:
+            # An active row's cost basis is an input, not a derived leaf: no
+            # writer can recompute it, so a missing or zero one stays wrong
+            # until someone enters it. Splits and bonus issues re-spread the
+            # existing cost over more shares; they never make it zero (#1622).
+            if cost is None:
+                add('COST_MISSING', 'ERROR',
+                    f'{t} shares={sh:g} 但 cost_basis 缺失：成本、盈亏与总成本都缺了这一只；'
+                    f'请补回成本基数', region, t)
+            elif cost == 0:
                 rendered = '缺失' if pnl_pct is None else f'{pnl_pct:.2f}'
-                add('PNL_PCT', 'WARN',
+                add('COST_ZERO', 'ERROR',
                     f'{t} cost_basis=0 但 shares={sh:g}：收益率无定义，'
                     f'pnl_percent={rendered}；请修正成本基数', region, t)
 

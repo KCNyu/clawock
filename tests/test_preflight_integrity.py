@@ -294,6 +294,8 @@ def test_empty_and_all_cash_portfolios_do_not_crash_or_false_positive(run_check,
 
 
 def test_missing_optional_holding_fields_are_skipped_without_false_positive(run_check):
+    # Prices and derived leaves are optional; the cost basis is an input no
+    # writer can rebuild, so an active row must carry it (#1622).
     data = {
         "portfolios": {
             "us_stocks": {
@@ -302,6 +304,7 @@ def test_missing_optional_holding_fields_are_skipped_without_false_positive(run_
                     {
                         "ticker": "SPARSE",
                         "shares": 1,
+                        "cost_basis": 10.0,
                         "data_source": "synthetic 2026-07-17",
                     }
                 ],
@@ -403,17 +406,47 @@ def test_pnl_percent_is_still_checked_when_total_cost_is_zero(run_check):
     _assert_only(run_check(leftover), "PNL_PCT", "WARN", "total_cost=0")
 
 
-def test_zero_cost_active_holding_warns_that_return_is_undefined(run_check):
+def test_zero_cost_active_holding_is_an_error(run_check):
+    """#1622: a zero cost basis on a live position is a data error, not a 0% return."""
     holding = _holding(cost=0.0)
     holding["pnl_percent"] = 0.0
     data = _portfolio_data(holdings=[holding])
 
     report = run_check(data)
 
-    findings = [f for f in report["findings"] if f["code"] == "PNL_PCT"]
+    findings = [f for f in report["findings"] if f["code"] == "COST_ZERO"]
     assert len(findings) == 1
+    assert findings[0]["level"] == "ERROR"
     assert findings[0]["ticker"] == "ACME"
     assert "cost_basis=0" in findings[0]["msg"]
+    assert report["ok"] is False
+
+
+def test_active_holding_without_a_cost_basis_is_an_error(run_check):
+    holding = _holding()
+    del holding["cost_basis"]
+    report = run_check(_portfolio_data(holdings=[holding]))
+
+    findings = [f for f in report["findings"] if f["code"] == "COST_MISSING"]
+    assert [f["level"] for f in findings] == ["ERROR"]
+    assert report["ok"] is False
+
+
+@pytest.mark.parametrize("shares", [None, "?"])
+def test_a_row_without_a_share_count_is_named_not_skipped(run_check, shares):
+    """#1636: missing shares is neither active nor closed; every other gate skips it."""
+    orphan = _holding(ticker="ORPHAN", cost=0.0)
+    if shares is None:
+        del orphan["shares"]
+    else:
+        orphan["shares"] = shares
+    data = _portfolio_data()
+    _port(data)["holdings"].append(orphan)
+
+    report = run_check(data)
+
+    findings = [f for f in report["findings"] if f["code"] == "SHARES_MISSING"]
+    assert [(f["level"], f["ticker"]) for f in findings] == [("ERROR", "ORPHAN")]
 
 
 def test_today_total_exact_tolerance_passes_and_just_over_warns(run_check):
