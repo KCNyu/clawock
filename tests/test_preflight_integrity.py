@@ -394,6 +394,19 @@ def test_pnl_percent_is_still_checked_when_total_cost_is_zero(run_check):
     _assert_only(run_check(leftover), "PNL_PCT", "WARN", "total_cost=0")
 
 
+def test_zero_cost_active_holding_warns_that_return_is_undefined(run_check):
+    holding = _holding(cost=0.0)
+    holding["pnl_percent"] = 0.0
+    data = _portfolio_data(holdings=[holding])
+
+    report = run_check(data)
+
+    findings = [f for f in report["findings"] if f["code"] == "PNL_PCT"]
+    assert len(findings) == 1
+    assert findings[0]["ticker"] == "ACME"
+    assert "cost_basis=0" in findings[0]["msg"]
+
+
 def test_today_total_exact_tolerance_passes_and_just_over_warns(run_check):
     exact = _portfolio_data()
     _port(exact)["today_total_change"] += 1.0

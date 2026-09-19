@@ -463,7 +463,14 @@ def check(portfolio_path=PORTFOLIO):
             sh = _num(h.get('shares'))
             cost = _num(h.get('cost_basis'))
             pnl = _num(h.get('pnl_abs'))
+            pnl_pct = _num(h.get('pnl_percent'))
             chg = _num(h.get('today_change_pct'))
+
+            if sh and cost == 0:
+                rendered = '缺失' if pnl_pct is None else f'{pnl_pct:.2f}'
+                add('PNL_PCT', 'WARN',
+                    f'{t} cost_basis=0 但 shares={sh:g}：收益率无定义，'
+                    f'pnl_percent={rendered}；请修正成本基数', region, t)
 
             # PRICE_RANGE
             if cur and lo and hi and lo > 0 and hi > 0:
