@@ -439,7 +439,7 @@ function enrichTrade(
   // `t1ToneOf`/`t1VerdictOf`, so the chip, the trace node and the text can
   // never disagree about the same fill.
   const t1 = futureClose(byTicker, trade.ticker, trade.date, 1)
-  if (t1 !== null && trade.price != null) {
+  if (t1 !== null && trade.price != null && trade.price > 0) {
     const delta = Math.round(((t1.price - trade.price) / trade.price) * 100 * 100) / 100
     out.t1 = {
       date: t1.date,

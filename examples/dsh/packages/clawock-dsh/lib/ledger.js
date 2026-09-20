@@ -369,7 +369,7 @@ function enrichTrade(trade, byTicker, decByTicker, books) {
 		side: isSellAction(trade.action) ? "reduce" : ADD_ACTIONS.has(trade.action) ? "add" : null
 	};
 	const t1 = futureClose(byTicker, trade.ticker, trade.date, 1);
-	if (t1 !== null && trade.price != null) {
+	if (t1 !== null && trade.price != null && trade.price > 0) {
 		const delta = Math.round((t1.price - trade.price) / trade.price * 100 * 100) / 100;
 		out.t1 = {
 			date: t1.date,

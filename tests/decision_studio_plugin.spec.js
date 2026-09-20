@@ -1065,10 +1065,10 @@ test("readTraces: a close outside the T+1 window is not a T+1 verdict (#710)", a
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "clawock-t1-"));
   const bars = path.join(root, "memory", "bars");
   fs.mkdirSync(bars, { recursive: true });
-  const desk = (tradeDate) => fs.writeFileSync(path.join(root, "portfolio.json"), JSON.stringify({
+  const desk = (tradeDate, tradePrice = 100) => fs.writeFileSync(path.join(root, "portfolio.json"), JSON.stringify({
     portfolios: { hk_stocks: { currency: "HKD", holdings: [
       { ticker: "00700", shares: 10, current_price: 100,
-        trades: [{ date: tradeDate, action: "buy", shares: 10, price: 100 }] },
+        trades: [{ date: tradeDate, action: "buy", shares: 10, price: tradePrice }] },
     ] } },
   }));
   // Closes come from the canonical bar store, not from portfolio snapshots
@@ -1089,6 +1089,8 @@ test("readTraces: a close outside the T+1 window is not a T+1 verdict (#710)", a
     close("2026-08-11", 110);
     assert.ok(t1Of(), "an adjacent close is a T+1 verdict");
     assert.equal(t1Of().delta, 10);
+    desk("2026-08-10", 0);
+    assert.equal(t1Of(), null, "a zero-price fill is unjudgeable, not an infinite win");
 
     // Friday fill settling against Monday: 3 days, still T+1.
     dropClose("2026-08-11");
