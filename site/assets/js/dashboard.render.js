@@ -2132,7 +2132,9 @@
       wrap.innerHTML = '<div class="empty-state">No digest yet.</div>';
       return;
     }
-    const meta = d.generated_at ? new Date(d.generated_at).toLocaleString('zh-CN', {hour12: false}) : '—';
+    const meta = d.generated_at ? new Date(d.generated_at).toLocaleString('zh-CN', {
+      hour12: false, timeZone: 'Asia/Hong_Kong',
+    }) : '—';
     wrap.innerHTML = `<div class="digest-meta">generated: ${meta}</div>${md}${emHtml}`;
   }
 
