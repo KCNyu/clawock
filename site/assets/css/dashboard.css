@@ -1337,7 +1337,9 @@
     flex: none; margin-left: auto; align-self: flex-start;
     padding: 1px 6px; white-space: nowrap; letter-spacing: 0;
     font-size: var(--fs-micro); font-variant-numeric: tabular-nums;
-    color: var(--text-dim); background: var(--surface-1);
+    /* 这一片长在 .risk-alert 里，而 .risk-alert 自己就是 --fill-inset —— 片
+       和它的底同色就不是片。块里的块走下一档。 */
+    color: var(--text-dim); background: var(--fill-inset-2);
     border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);
   }
   .risk-age.is-new { color: var(--warning); border-color: var(--warning); }
@@ -2058,8 +2060,8 @@
       gap: 6px; margin-top: 0; border: 0; background: transparent;
     }
     .dr-kpi {
-      border: 1px solid var(--border); border-radius: var(--radius-sm);
-      background: var(--surface-1); padding: 7px 9px;
+      border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);
+      background: var(--fill-inset); padding: 7px 9px;
     }
   }
   @media (max-width: 600px) {
@@ -3003,7 +3005,7 @@
   .hero-health-meta .dh-meta-bit { white-space: nowrap; }
   .dh-toggle {
     margin-left: auto; flex: none; padding: 6px 12px; border-radius: var(--radius-sm);
-    border: 1px solid var(--border-subtle); background: var(--surface-1);
+    border: 1px solid var(--border-subtle); background: var(--fill-inset);
     color: var(--text-secondary); font: 600 var(--fs-xs)/1 var(--mono); cursor: pointer;
     transition: transform var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out);
   }
@@ -3065,8 +3067,8 @@
   /* 摊开的那一组是「压在这条泳道下面」的一块，不是卡片里又一段正文：淡一档
      的底 + 收进去的圆角，让它和上面那行绑在一起。 */
   .dh-group-body {
-    padding: 2px 10px 8px; background: var(--surface-1);
-    border-radius: 0 0 8px 8px;
+    padding: 2px 10px 8px; background: var(--fill-inset);
+    border-radius: 0 0 var(--radius-sm) var(--radius-sm);
   }
   @media (prefers-reduced-motion: reduce) {
     .dh-group, .dh-lane-chev { transition: none; }
@@ -3193,7 +3195,7 @@
   .dh-rail-body { position: relative; }
   .dh-rail-rows {
     display: grid; gap: 3px; padding: 6px 0;
-    border-radius: 4px; background: var(--surface-1); border: 1px solid var(--border-subtle);
+    border-radius: 4px; background: var(--fill-inset); border: 1px solid var(--border-subtle);
   }
   .dh-rail-row {
     display: grid; grid-template-columns: var(--dh-rail-label-w) 1fr;
@@ -4504,7 +4506,7 @@
 .tr-v { font-size: var(--fs-sm); font-weight: 600; margin-top: 2px; }
 .tr-v.pos { color: var(--positive); } .tr-v.neg { color: var(--negative); } .tr-v.ok { color: var(--positive); } .tr-v.skip { color: var(--warning); }
 .tr-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 8px; }
-.tr-chip { font-size: var(--fs-xs); padding: 2px 8px; border-radius: var(--radius-sm); background: var(--fill-inset); border: 1px solid var(--border); color: var(--text-dim); }
+.tr-chip { font-size: var(--fs-xs); padding: 2px 8px; border-radius: var(--radius-sm); background: var(--fill-inset-2); border: 1px solid var(--border-subtle); color: var(--text-dim); }
 .tr-note { margin: 6px 0; padding: 3px 0 3px 10px; border-left: 3px solid var(--border); font-size: var(--fs-sm); color: var(--text-secondary); line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
 .tr-note.why { border-left-color: var(--accent); }
 .tr-note.emo { border-left-color: var(--warning); }
@@ -4519,7 +4521,7 @@
    the same signal the same way. */
 .tr-align.skip { color: var(--warning-ink); background: color-mix(in srgb, var(--warning) var(--tint-soft), transparent); border: 1px solid color-mix(in srgb, var(--warning) var(--tint-strong), transparent); }
 .tr-align.ok { color: var(--positive-ink); background: color-mix(in srgb, var(--positive) var(--tint-soft), transparent); }
-.tr-align.na { color: var(--text-dim); background: var(--fill-inset); }
+.tr-align.na { color: var(--text-dim); background: var(--fill-inset-2); }
 #trace-stats { display: flex; flex-wrap: wrap; gap: 4px 20px; margin: 8px 0 10px; font-size: var(--fs-sm); line-height: 1.5; }
 
 /* The summary row is a nowrap flex line whose min-content is ~367px — wider
@@ -4738,7 +4740,7 @@
   .lg-section {
     border: 1px solid var(--border-subtle); border-radius: var(--radius);
     padding: var(--space-3) var(--space-4); margin-bottom: var(--space-3);
-    background: var(--surface-1);
+    background: var(--fill-inset);
     /* tone 走一条左边框：一屏里四个块，靠颜色扫一眼就知道哪个是坏的。 */
     border-left: 3px solid var(--border);
   }

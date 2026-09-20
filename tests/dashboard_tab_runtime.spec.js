@@ -2795,6 +2795,76 @@ async function testEveryPhoneControlIsAFingerTarget(browser, base) {
 }
 
 
+/** No rounded block on the page is painted the colour of what it sits on.
+
+    The static check in `tests/test_dashboard_component_language.py` catches a
+    rule that fills with the card's own colour. It cannot catch the other half
+    of the same mistake — a block filled with `--fill-inset` *inside* another
+    block that is already `--fill-inset`, which is how `.risk-age`, `.tr-chip`
+    and `.tr-align.na` came out invisible the moment their containers stopped
+    being card-coloured. Nesting is a DOM fact, so this measures the DOM.
+
+    Skipped, with reasons: translucent fills (a tint resolves against whatever
+    it lands on and is checked for contrast elsewhere), gradient surfaces (the
+    card material's sheen), pills (`border-radius >= height/2`, which read as
+    chips without a fill step), and anything under 12×8px. */
+async function testNoBlockIsPaintedTheColourOfWhatItSitsOn(browser, base) {
+  const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const page = await context.newPage();
+  await page.goto(base, { waitUntil: "networkidle" });
+  await waitForData(page);
+
+  const scan = () => {
+    const rgb = value => (value.match(/[\d.]+/g) || []).slice(0, 3).map(Number);
+    const alpha = value => Number((value.match(/[\d.]+/g) || [])[3] ?? 1);
+    const luminance = channels => {
+      const f = v => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; };
+      return 0.2126 * f(channels[0]) + 0.7152 * f(channels[1]) + 0.0722 * f(channels[2]);
+    };
+    const ratio = (a, b) => {
+      const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+      return Math.round(((hi + 0.05) / (lo + 0.05)) * 1000) / 1000;
+    };
+    const found = [];
+    for (const el of document.querySelectorAll(".panel.active *, .desk-rail *, .topbar *")) {
+      const style = getComputedStyle(el), box = el.getBoundingClientRect();
+      if (box.width < 12 || box.height < 8) continue;
+      if (alpha(style.backgroundColor) < 1) continue;
+      if (style.backgroundImage !== "none") continue;
+      const radius = parseFloat(style.borderTopLeftRadius) || 0;
+      if (radius < 4 || radius >= box.height / 2) continue;
+      let node = el.parentElement, behind = null;
+      while (node && !behind) {
+        const parent = getComputedStyle(node);
+        if (parent.backgroundColor && alpha(parent.backgroundColor) === 1
+            && parent.backgroundColor !== "transparent") behind = rgb(parent.backgroundColor);
+        node = node.parentElement;
+      }
+      if (!behind) continue;
+      const separation = ratio(rgb(style.backgroundColor), behind);
+      if (separation < 1.02) {
+        found.push(`${(el.className || "").toString().split(" ").slice(0, 2).join(".")}: ${separation}`);
+      }
+    }
+    return [...new Set(found)];
+  };
+
+  const invisible = new Set();
+  for (const tab of ["hero", "drill", "risk", "market", "plan", "reflect"]) {
+    await page.evaluate(name => document.getElementById(`tab-${name}`)?.click(), tab);
+    await page.waitForTimeout(700);
+    // Open the data-health lanes; their bodies only exist once expanded.
+    await page.evaluate(() => document.querySelectorAll(".dh-lane").forEach(el => el.click()));
+    await page.waitForTimeout(300);
+    for (const row of await page.evaluate(scan)) invisible.add(`${tab} ${row}`);
+  }
+  assert.deepEqual([...invisible], [],
+    "these rounded blocks are the colour of the surface under them — step to "
+    + "var(--fill-inset) or var(--fill-inset-2): " + [...invisible].join(", "));
+  await context.close();
+}
+
+
 async function main() {
   const server = serveWorkspace();
   await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
@@ -2842,6 +2912,7 @@ async function main() {
     await run("testMoversSayWhichSessionTheyAreFrom", () => testMoversSayWhichSessionTheyAreFrom(browser, base));
     await run("testCardRhythmIsOneScalePerTier", () => testCardRhythmIsOneScalePerTier(browser, base));
     await run("testEveryPhoneControlIsAFingerTarget", () => testEveryPhoneControlIsAFingerTarget(browser, base));
+    await run("testNoBlockIsPaintedTheColourOfWhatItSitsOn", () => testNoBlockIsPaintedTheColourOfWhatItSitsOn(browser, base));
   } finally {
     await browser.close();
     await new Promise(resolve => server.close(resolve));
