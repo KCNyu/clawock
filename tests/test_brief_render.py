@@ -261,6 +261,13 @@ def test_rendering_from_a_workspace_writes_both_artifacts(tmp_path):
     assert (tmp / "brief-card-2026-08-31.txt").exists()
 
 
+def test_published_brief_routes_through_the_atomic_writer():
+    source = (ROOT / "src/clawock/harness/brief_render.py").read_text(encoding="utf-8")
+    body = source[source.index("def render_from_workspace"):source.index("\n\n# --- CLI")]
+    assert 'safe_write_text(str(paths["brief"]), body)' in body
+    assert 'paths["brief"].write_text' not in body
+
+
 def test_unreadable_inputs_report_instead_of_overwriting_the_report(tmp_path):
     """A renderer that cannot run must leave what is published alone."""
     (tmp_path / "memory").mkdir()
