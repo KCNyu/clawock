@@ -2448,6 +2448,23 @@ test("client: _rowDisplay and _balanceNote project one provider's answer", async
   }), translatorFor(api));
   assert.equal(dualReset.reset, "21:00", "the headline window's reset rides along for the chip");
   assert.equal(dualReset.sub, "· 周 90% ↻周四 21:00", "the weekly suffix carries its own reset");
+  const limited = api._rowDisplay(answer({ snapshot: snap("87", {
+    unit: "pct", currency: "",
+    note: "5h 已用 87%,今天 21:00 重置 · 当前额度受限",
+    windows: [{ label: "5h", percent: 87, resetAt: "今天 21:00" }],
+  }) }), translatorFor(api));
+  assert.match(limited.title, /当前额度受限/, "Codex's limited state survives window localization");
+  assert.match(api._rowDisplay(answer({ snapshot: snap("87", {
+    unit: "pct", currency: "", note: "5h 已用 87% · 当前额度受限",
+    windows: [{ label: "5h", percent: 87, resetAt: "" }],
+  }) }), api.createTranslator(api.dictionaries.en)).title, /当前额度受限/,
+  "an English client still receives the host's status instead of losing it");
+  const extraUsage = api._rowDisplay(answer({ snapshot: snap("36", {
+    unit: "pct", currency: "",
+    note: "5h 已用 36% · 周 已用 69% · 附加额度已用 12%",
+    windows: [{ label: "5h", percent: 36, resetAt: "" }, { label: "周", percent: 69, resetAt: "" }],
+  }) }), translatorFor(api));
+  assert.match(extraUsage.title, /附加额度已用 12%/, "Claude's extra-usage state survives window localization");
   assert.deepEqual(
     api._usedLevel(null, 20), "ok",
     "an unreadable reading never lights a warning colour",
