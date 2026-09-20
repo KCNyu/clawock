@@ -2758,11 +2758,20 @@ async function testEveryPhoneControlIsAFingerTarget(browser, base) {
   // The pager dots: a 5px dot with the reach of a 5px dot is a dot nobody hits.
   await page.evaluate(name => document.getElementById(`tab-${name}`)?.click(), "hero");
   await page.waitForTimeout(400);
+  // Scroll first and settle, then measure: `elementFromPoint` answers about the
+  // *viewport*, so a dot below the fold reports no reach at all — which is how
+  // this assertion failed on CI while passing locally, on identical CSS.
+  await page.evaluate(() => document.querySelector(".deck-dot")
+    ?.scrollIntoView({ block: "center", behavior: "instant" }));
+  await page.waitForTimeout(300);
   const dot = await page.evaluate(() => {
     const el = document.querySelector(".deck-dot");
     if (!el) return null;
-    el.scrollIntoView({ block: "center" });
     const box = el.getBoundingClientRect();
+    const onscreen = box.top >= 0 && box.bottom <= innerHeight
+      && box.left >= 0 && box.right <= innerWidth;
+    const size = [Math.round(box.width), Math.round(box.height)];
+    if (!onscreen) return { size, onscreen };
     const x = box.left + box.width / 2, y = box.top + box.height / 2;
     const owns = (dx, dy) => {
       const hit = document.elementFromPoint(x + dx, y + dy);
@@ -2782,14 +2791,24 @@ async function testEveryPhoneControlIsAFingerTarget(browser, base) {
       bleeds = (hit === dots[0] || dots[0].contains(hit))
         && (hit === dots[1] || dots[1].contains(hit));
     }
-    return { reachV: up + down + 1, reachH: left + right + 1, bleeds };
+    return { size, onscreen, reachV: up + down + 1, reachH: left + right + 1, bleeds };
   });
   if (dot) {
-    assert(dot.reachV >= 20,
-      `a finger has ${dot.reachV}px of vertical reach on a deck dot`);
-    assert(dot.reachH >= 10,
-      `a finger has ${dot.reachH}px of horizontal reach on a deck dot`);
-    assert(!dot.bleeds, "a deck dot's hit area reaches its neighbour");
+    // The box is what the stylesheet decides, so it is asserted either way: a
+    // 5×5 button is the defect this exists for. The reach is what the browser
+    // decides, and `elementFromPoint` answers about the viewport — so it is
+    // only asserted when the dot really is in it. (Measuring a dot below the
+    // fold is how this assertion failed on CI while passing locally, on
+    // identical CSS.)
+    assert(dot.size[0] >= 10 && dot.size[1] >= 24,
+      `the deck dot's touch box is ${dot.size.join("×")}px; a 5px dot is a 5px target`);
+    if (dot.onscreen) {
+      assert(dot.reachV >= 20,
+        `a finger has ${dot.reachV}px of vertical reach on a deck dot`);
+      assert(dot.reachH >= 10,
+        `a finger has ${dot.reachH}px of horizontal reach on a deck dot`);
+      assert(!dot.bleeds, "a deck dot's hit area reaches its neighbour");
+    }
   }
   await context.close();
 }
