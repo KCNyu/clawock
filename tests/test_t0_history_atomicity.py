@@ -10,7 +10,6 @@ from pathlib import Path
 import pytest
 
 from clawock.decision import setups
-from clawock.safe_io import file_lock
 
 
 def _snapshot(ticker: str) -> dict:
@@ -62,13 +61,25 @@ def test_interrupted_history_write_retains_previous_bytes(tmp_path, monkeypatch)
     assert history.read_bytes() == before
 
 
+def test_history_lock_leaves_no_file_beside_the_published_artifact(tmp_path, monkeypatch):
+    """`assets/data/` is committed and served — a lock file there would be one
+    more untracked artifact for a broad `git add` to publish."""
+    history = tmp_path / "t0_setups_history.jsonl"
+    monkeypatch.setattr(setups, "HIST", history)
+    setups.persist_history(_snapshot("HK00700"))
+
+    assert sorted(p.name for p in tmp_path.iterdir()) == ["t0_setups_history.jsonl"]
+
+
 def test_history_append_waits_for_the_cross_process_lock(tmp_path):
     history = tmp_path / "t0_setups_history.jsonl"
     history.write_text(json.dumps({"old": True}) + "\n", encoding="utf-8")
     ctx = multiprocessing.get_context("spawn")
     started, done = ctx.Event(), ctx.Event()
 
-    with file_lock(str(history)):
+    # The lock lives in a temp dir, not beside the published artifact, so the
+    # test has to take the same derived lock the writer takes.
+    with setups._history_lock(history):
         child = ctx.Process(target=_append, args=(str(history), started, done))
         child.start()
         assert started.wait(5), "child did not reach persist_history"
