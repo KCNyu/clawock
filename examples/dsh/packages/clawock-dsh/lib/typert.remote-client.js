@@ -102,6 +102,7 @@ const clawock_dsh_clawockStudio_traces_result$schema = z.object({
   'workspaceKey': z.string(),
   'signature': z.string(),
   'trades': z.array(z.object({
+  'side': z.union([z.literal("add"), z.literal("reduce"), z.literal(null)]),
   'holdPnl': z.union([z.literal(null), z.number()]),
   't1': z.union([z.literal(null), z.object({
   'date': z.string(),

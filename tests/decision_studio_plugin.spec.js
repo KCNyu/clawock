@@ -1867,7 +1867,7 @@ rl.on("line", (line) => {
   }
 });
 
-test("typert: the frozen artifacts carry the balance wire on both faces", () => {
+test("typert: the frozen artifacts carry hand-maintained wire fields on both faces", () => {
   // The clawock checkout cannot regenerate the Typert face (see build.mjs):
   // these committed files ARE the wire. A method missing here is a method
   // the client cannot call — the same class of failure as #738's alignment.
@@ -1879,7 +1879,12 @@ test("typert: the frozen artifacts carry the balance wire on both faces", () => 
     assert.match(src, /'providers': z\.array\(z\.object\(/, rel + " per-provider rows on the wire");
     assert.match(src, /'unit': z\.string\(\)/, rel + " snapshot unit discriminator");
     assert.match(src, /'refreshMs': z\.number\(\)/, rel + " result schema field");
+    assert.match(src, /'side': z\.union\(\[z\.literal\("add"\), z\.literal\("reduce"\), z\.literal\(null\)\]\)/,
+      rel + " host-computed trade side");
   }
+  const client = fs.readFileSync(path.join(PLUGIN, "lib/client.js"), "utf8");
+  assert.match(client, /"side": union\(\[\s*literal\("add"\),\s*literal\("reduce"\),\s*literal\(null\)/,
+    "the browser bundle embeds the same trade-side decoder");
 });
 
 test("client: the header chip headlines one provider and the panel pins the rest", async () => {
