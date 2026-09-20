@@ -281,6 +281,37 @@ async function testMissingFxDoesNotFabricateCombinedValues(browser, base) {
   await context.close();
 }
 
+async function testNewsDigestGeneratedTimeUsesHkt(browser, base) {
+  const context = await browser.newContext({
+    viewport: { width: 1280, height: 900 },
+    timezoneId: "America/Los_Angeles",
+  });
+  const page = await context.newPage();
+  await stubLiveOrigin(page, {
+    patch: (name, payload) => {
+      if (name !== "us_news_digest.json") return null;
+      return {
+        ...payload,
+        generated_at: "2026-09-20T03:37:35.717Z",
+        digest_markdown: "### Test\n- material update",
+      };
+    },
+  });
+  await page.goto(base, { waitUntil: "networkidle" });
+  await waitForData(page);
+  await page.click('.tab-btn[data-tab="market"]');
+  await waitForTab(page, "market");
+  await page.waitForFunction(() =>
+    document.querySelector("#news-digest .digest-meta")?.textContent.includes("generated:"));
+
+  const meta = (await page.locator("#news-digest .digest-meta").textContent()).trim();
+  assert(meta.includes("2026/9/20 11:37:35"),
+    `news digest generated time did not render in HKT: ${meta}`);
+  assert(!meta.includes("2026/9/19"),
+    `news digest generated time leaked the viewer's local date: ${meta}`);
+  await context.close();
+}
+
 async function testCurrentHoldingsOwnDecisionMatrixMembership(browser, base) {
   const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
   const state = observe(page);
@@ -2564,6 +2595,7 @@ async function main() {
   try {
     await run("runtime", () => testRuntime(browser, base));
     await run("testMissingFxDoesNotFabricateCombinedValues", () => testMissingFxDoesNotFabricateCombinedValues(browser, base));
+    await run("testNewsDigestGeneratedTimeUsesHkt", () => testNewsDigestGeneratedTimeUsesHkt(browser, base));
     await run("testCurrentHoldingsOwnDecisionMatrixMembership", () => testCurrentHoldingsOwnDecisionMatrixMembership(browser, base));
     await run("testLiveDataOrigin", () => testLiveDataOrigin(browser, base));
     await run("testEquityTouch", () => testEquityTouch(browser, base));
