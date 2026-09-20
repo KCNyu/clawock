@@ -47,6 +47,22 @@ def test_oversize_context_keeps_required_sections_whole():
     assert prepared["manifest"]["news"]["status"] in {"trimmed", "omitted"}
 
 
+def test_oversize_context_keeps_generation_metadata():
+    context = _context()
+    context["generation_id"] = "brief-20260717-082500"
+    context["optional_blob"] = {"text": "X" * 20_000}
+
+    prepared = fallback.prepare_context(context, cap=2_500)
+    parsed = json.loads(prepared["serialized"])
+
+    assert prepared["complete"] is True
+    assert parsed["date"] == context["date"]
+    assert parsed["generation_id"] == context["generation_id"]
+    assert prepared["manifest"]["date"]["status"] == "included"
+    assert prepared["manifest"]["generation_id"]["status"] == "included"
+    assert prepared["manifest"]["optional_blob"]["status"] == "omitted"
+
+
 def test_missing_required_section_produces_zero_actions_and_explicit_brief():
     context = _context()
     del context["portfolio"]["portfolios"]["us_stocks"]
