@@ -78,6 +78,18 @@ NOTIFICATION_ATTEMPTS_PER_RUN = 2
 MAX_ONHOST_RERUNS = 2  # 08:30 first re-run; 09:05 second chance before off-host fallback (#550)
 
 
+def postflight_validation_banner(today):
+    """Label a mirror when today's postflight explicitly rejected the brief."""
+    path = WS / 'logs' / 'brief_postflight_status.json'
+    try:
+        gate = json.loads(path.read_text(encoding='utf-8'))
+    except (OSError, ValueError, TypeError):
+        return ''
+    if gate.get('today') != today or gate.get('status') != 'fail':
+        return ''
+    return '🔴 Validation FAILED — postflight 拒绝发布这份简报\n\n'
+
+
 def inspect_brief_artifacts(today):
     """Return concrete 09:05 artifact failures; an empty list means usable.
 
@@ -556,7 +568,8 @@ def main():
     message = build_brief_card(today)
     tg_banner = f'📨 自动补发（{reason}，Telegram 兜底一份）\n\n'
     target = telegram_target()
-    tg_ok, out = send_telegram(target, tg_banner + message, args.dry_run)
+    tg_ok, out = send_telegram(
+        target, tg_banner + postflight_validation_banner(today) + message, args.dry_run)
     log({'tag': tag, 'action': 'mirror-telegram', 'dry_run': args.dry_run, 'sent_ok': tg_ok,
          'fail_reason': reason, 'marker': marker, 'target': target, 'out': out})
     if tg_ok and not args.dry_run:

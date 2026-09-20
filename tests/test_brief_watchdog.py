@@ -1,4 +1,5 @@
 import json
+from datetime import date
 from pathlib import Path
 import subprocess
 import sys
@@ -44,6 +45,32 @@ def _write_plan(ws, decisions):
     path = ws / "memory" / f"{TODAY}-plan.json"
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps({"schema_version": 2, "decisions": decisions}))
+
+
+def test_validation_failed_mirror_is_labelled(tmp_path, monkeypatch):
+    monkeypatch.setattr(watchdog, "WS", tmp_path)
+    _write_brief(tmp_path)
+    gate = tmp_path / "logs" / "brief_postflight_status.json"
+    gate.parent.mkdir(parents=True)
+    gate.write_text(json.dumps({"today": TODAY, "status": "fail", "publish_ok": False}))
+    messages = []
+    monkeypatch.setattr(watchdog.trading_calendar, "hkt_today",
+                        lambda: date.fromisoformat(TODAY))
+    monkeypatch.setattr(watchdog.trading_calendar, "closed_reason", lambda _market: None)
+    monkeypatch.setattr(watchdog, "build_brief_card", lambda _today: "UNREVIEWED CARD")
+    monkeypatch.setattr(watchdog, "telegram_target", lambda: "target")
+    monkeypatch.setattr(
+        watchdog, "send_telegram",
+        lambda _target, message, _dry: (messages.append(message), (True, "ok"))[1],
+    )
+    monkeypatch.setattr(watchdog, "log", lambda _event: None)
+    monkeypatch.setattr(sys, "argv", ["brief_watchdog.py", "--dry-run"])
+
+    assert watchdog.main() == 0
+    assert len(messages) == 1
+    assert "自动补发" in messages[0]
+    assert "🔴 Validation FAILED" in messages[0]
+    assert messages[0].endswith("UNREVIEWED CARD")
 
 
 def test_0905_detects_brief_present_plan_missing(tmp_path, monkeypatch):
