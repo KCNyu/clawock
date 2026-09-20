@@ -108,6 +108,35 @@ def test_a_block_inside_a_card_names_its_role_not_a_grey():
         encoding="utf-8"), "an inline style in the renderer still reads --card-2"
 
 
+def test_nothing_rounded_is_painted_the_colour_of_the_card_it_sits_on():
+    """A rounded box filled with its own parent's colour is a box nobody sees.
+
+    This is the shape #1707 fixed forty times over. It kept coming back because
+    `--card`, `--fill-card` and `--surface-1` are the same colour under three
+    names, and a rule that says `background: var(--surface-1)` looks like it
+    decided something. A block that means to be a block says `--fill-inset`.
+
+    Rules with a `border-radius: 0` (grid cells that tile a card's interior and
+    are divided by hairlines) and pills/circles are not this pattern, and a
+    `background: opaque; background: glass;` pair is a fallback, not a fill.
+    """
+    card_colours = ("var(--surface-1)", "var(--fill-card)", "var(--card)")
+    offenders = []
+    for selector, body in RULES:
+        if re.search(r":(hover|active|focus|checked|disabled)", selector):
+            continue
+        backgrounds = re.findall(r"(?:^|;)\s*background(?:-color)?\s*:\s*([^;]+)", body)
+        radius = re.search(r"border-radius\s*:\s*([^;]+)", body)
+        if not backgrounds or not radius or len(backgrounds) > 1:
+            continue
+        if (backgrounds[0].strip() in card_colours
+                and radius.group(1).strip() not in ("0", "50%", "999px", "inherit")):
+            offenders.append(f"{selector} -> {backgrounds[0].strip()}")
+    assert offenders == [], (
+        "these rounded blocks are filled with the colour of the surface they "
+        "sit on; use var(--fill-inset):\n  " + "\n  ".join(offenders))
+
+
 def test_status_colours_have_one_name_each():
     """`--amber` and `--warning` are the same colour; using both is how "the
     same warning is orange here and red there" happens. The aliases stay
