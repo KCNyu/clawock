@@ -89,6 +89,7 @@ def _extract_last_json(text):
 # cap only needs to be a sanity bound, not a budget.
 CONTEXT_CAP = 400_000
 REQUIRED_SECTIONS = ('portfolio', 'hk_stocks', 'us_stocks')
+PROTECTED_FIELDS = ('date', 'generation_id')
 # Least decision-critical first.  These sections may contain long prose copied
 # from feeds; deterministic portfolio state is never placed in this list.
 TRIMMABLE_SECTIONS = (
@@ -201,7 +202,7 @@ def prepare_context(raw_context, cap=CONTEXT_CAP):
         optional = [
             (len(_compact(value)), name)
             for name, value in payload.items()
-            if name not in REQUIRED_SECTIONS and name != 'portfolio'
+            if name not in REQUIRED_SECTIONS and name not in PROTECTED_FIELDS
         ]
         for before, name in sorted(optional, reverse=True):
             payload.pop(name, None)
@@ -222,6 +223,10 @@ def prepare_context(raw_context, cap=CONTEXT_CAP):
         if before != after:
             manifest[name]['status'] = 'trimmed'
             errors.append(f'必需 section 被改写: {name}')
+    for name in PROTECTED_FIELDS:
+        if name in original and original.get(name) != candidate.get(name):
+            manifest[name]['status'] = 'trimmed'
+            errors.append(f'受保护字段被改写: {name}')
 
     return {
         'payload': candidate,
