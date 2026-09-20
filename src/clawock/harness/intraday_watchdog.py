@@ -536,7 +536,11 @@ def main():
               else 'marker slot stale/mismatch')
     claim = delivery_receipts.read_receipt(delivery_receipts.claim_path(
         WS / 'memory' / '.tmp', 'intraday', market=args.market)) if not marker else None
-    gap = wechat_gap_reason(claim)
+    # The intraday claim is named per market only — no date, no slot — so it has
+    # to be judged by age like the marker is: a claim an earlier slot left behind
+    # would otherwise report THIS slot's missing postflight as a death mid-send.
+    gap = wechat_gap_reason(claim, fresh_ms=MARKER_FRESH_MS,
+                            now_ms=int(watchdog_now.timestamp() * 1000))
     if gap:
         reason, tg_banner = gap
     else:
