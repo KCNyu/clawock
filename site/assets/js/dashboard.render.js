@@ -4151,7 +4151,10 @@
     // Best / worst day
     let best = null, worst = null;
     dailyPnl.forEach(d => {
-      if (d.pnl === 0) return;
+      // `null` is "not computable" (no FX, #1684), not a candidate: `null > null`
+      // is false, so an unguarded scan pins best/worst to the first row and the
+      // tile prints `—` under a real date, which reads as a day we judged.
+      if (d.pnl == null || d.pnl === 0) return;
       if (best == null || d.pnl > best.pnl) best = d;
       if (worst == null || d.pnl < worst.pnl) worst = d;
     });
