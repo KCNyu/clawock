@@ -55,24 +55,6 @@ const CAPTURE_GIF = process.env.CAPTURE_GIF !== '0';
 // missing animation frame or a build that exits on a tab with no frames.
 const TABS = ['hero', 'drill', 'risk', 'market', 'plan', 'reflect'];
 
-// Activate a view the way the page now asks for it.
-//
-// The six-tab strip became a picker (#1702 follow-up): the choices live in a
-// menu that is `hidden` until the trigger is pressed, so `click('[data-tab=x]')`
-// silently no-ops through this file's `.catch(() => {})` and every frame after
-// the first would photograph the same panel. Open the trigger, then choose.
-// Hero is the landing view and its item is the checked one, so the caller may
-// skip the round-trip when it is already showing.
-async function activateTab(page, tab) {
-  const already = await page.evaluate(
-    (t) => document.querySelector(`.view-picker-item[data-tab="${t}"]`)?.classList.contains('is-active'),
-    tab,
-  ).catch(() => false);
-  if (already) return;
-  await page.click('#view-picker-btn').catch(() => {});
-  await page.click(`.view-picker-item[data-tab="${tab}"]`).catch(() => {});
-}
-
 async function settle(page) {
   // 1) Hero panel populated (don't key off <canvas>: Hero has no chart → would hang).
   await page.waitForFunction(
@@ -297,7 +279,7 @@ function socialCardHTML(shotDataUri) {
     // the card is mostly the note explaining its absence — a paragraph of prose
     // is not a README preview. The directional hit rate is the live claim.
     // It lives on the Reflect tab, which desktop renders lazily now → open it first.
-    await activateTab(dp, 'reflect');
+    await dp.click('[data-tab=reflect]').catch(() => {});
     await dp.waitForFunction(() => {
       const c = document.querySelector('#chart-ai-winrate canvas');
       return c && c.width > 50;
@@ -350,7 +332,7 @@ function socialCardHTML(shotDataUri) {
       await gp.waitForTimeout(1500);
       const counts = [];
       for (let i = 0; i < TABS.length; i++) {
-      await activateTab(gp, TABS[i]);
+      await gp.click(`[data-tab=${TABS[i]}]`).catch(() => {});
       await gp.waitForTimeout(400);
       await gp.waitForFunction((tab) => {
         const panel = document.querySelector(`[data-panel=${tab}]`);
