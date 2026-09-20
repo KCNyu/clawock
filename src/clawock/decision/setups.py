@@ -30,7 +30,7 @@ from datetime import datetime
 
 from clawock import sessions as tc
 from clawock.instruments import INSTRUMENTS
-from clawock.safe_io import safe_write_json
+from clawock.safe_io import file_lock, safe_write_json, safe_write_text
 from clawock.workspace import workspace_root
 
 WS = workspace_root()
@@ -256,15 +256,16 @@ def persist_history(data):
         return
     line = json.dumps({'as_of': _date.today().isoformat(),
                        'ts': data.get('as_of'), 'rows': rows}, ensure_ascii=False)
-    try:
-        existing = HIST.read_text().splitlines() if HIST.exists() else []
-    except Exception:
-        existing = []
-    existing.append(line)
-    if len(existing) > HIST_MAX_LINES:
-        existing = existing[-HIST_MAX_LINES:]
     HIST.parent.mkdir(parents=True, exist_ok=True)
-    HIST.write_text('\n'.join(existing) + '\n')
+    with file_lock(str(HIST)):
+        try:
+            existing = HIST.read_text().splitlines() if HIST.exists() else []
+        except Exception:
+            existing = []
+        existing.append(line)
+        if len(existing) > HIST_MAX_LINES:
+            existing = existing[-HIST_MAX_LINES:]
+        safe_write_text(str(HIST), '\n'.join(existing) + '\n')
 
 
 def main(argv):
