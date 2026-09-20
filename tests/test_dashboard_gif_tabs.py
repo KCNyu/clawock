@@ -1,12 +1,9 @@
-"""The README GIF photographs exactly the views the dashboard has.
+"""The README GIF photographs exactly the tabs the dashboard has.
 
 #1465 added a Growth tab and bumped the shooter to seven tabs; #1472 removed the
 tab from the page and left both GIF tools at seven, so the weekly screenshot job
 would click a tab that no longer exists. The count lives in two files and the
 page, so all three are compared here.
-
-The six-tab strip is a picker now (a trigger that opens a menu), so the page
-side of the comparison reads `.view-picker-item` rather than `.tab-btn`.
 """
 from __future__ import annotations
 
@@ -21,7 +18,7 @@ def _page_tabs() -> list[str]:
     buttons = re.findall(r'<button\b[^>]*>', html)
     return [re.search(r'data-tab="([a-z]+)"', tag).group(1)
             for tag in buttons
-            if re.search(r'class="view-picker-item\b', tag) and 'data-tab="' in tag]
+            if re.search(r'class="tab-btn\b', tag) and 'data-tab="' in tag]
 
 
 def test_shooter_tabs_match_the_page():

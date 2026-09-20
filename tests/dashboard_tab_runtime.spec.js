@@ -45,24 +45,9 @@ function serveWorkspace() {
   });
 }
 
-// Activate one dashboard view through the real UI.
-//
-// The six-tab strip became a picker (a trigger that opens a menu), so the
-// choices do not exist on screen until the menu is open — `page.click()` on a
-// closed item waits for visibility and times out. This does what a user does:
-// open the trigger, then choose. `page.click` (not a synthetic .click()) on
-// both steps, so the tests keep exercising the real event path.
+// Activate one dashboard view the way a reader does: click its tab.
 async function clickTab(page, tab) {
-  await page.click("#view-picker-btn");
-  await page.click(`.view-picker-item[data-tab="${tab}"]`);
-  // Park the pointer somewhere inert. The menu hangs BELOW the topbar, so the
-  // synthetic mouse ends up over whatever panel content moved up under it once
-  // the menu closes — and `.panel.active > .card:hover` lifts a card by 2px,
-  // which is enough to make the card-rhythm measurement read 14/18 instead of
-  // 16/16. Clicking the old tab strip left the pointer in the topbar, so this
-  // hazard arrived with the picker; parking it removes the dependency on where
-  // the click happened to land rather than papering over one position.
-  await page.mouse.move(0, 0);
+  await page.click(`.tab-btn[data-tab="${tab}"]`);
 }
 
 // Records which data files were served from the live branch, so a test can
@@ -162,8 +147,8 @@ async function waitForTab(page, tab) {
       ariaBusy: panel ? panel.hasAttribute("aria-busy") : null,
       pendingCard: panel ? !!panel.querySelector(".card.is-pending") : null,
       loadError: panel ? !!panel.querySelector(".panel-load-retry") : null,
-      pickerLabel: (document.getElementById("view-picker-label") || {}).textContent || null,
-      pickerExpanded: (document.getElementById("view-picker-btn") || {}).getAttribute?.("aria-expanded") ?? null,
+      siteMenuOpen: !!document.getElementById("site-menu")?.open,
+      activeTab: document.querySelector(".tab-btn.active")?.dataset.tab || null,
     };
   }, tab).catch(e => ({ probeFailed: e.message }));
 
@@ -266,7 +251,7 @@ async function testRuntime(browser, base) {
   await rapid.goto(base, { waitUntil: "networkidle" });
   await waitForData(rapid);
   await rapid.evaluate(tabs => tabs.forEach(tab =>
-    document.querySelector(`.view-picker-item[data-tab="${tab}"]`).click()), TABS);
+    document.querySelector(`.tab-btn[data-tab="${tab}"]`).click()), TABS);
   // The click order above makes the LAST tab in `TABS` the active one, and this
   // used to be spelled "reflect" — the tab that happened to be last. Adding a tab
   // then waited on a panel the test had already navigated away from, which reads
@@ -598,7 +583,7 @@ async function testEquityTouch(browser, base) {
     await page.waitForTimeout(20);
   }
   await dispatchTouch(session, "touchEnd", []);
-  await page.waitForFunction(() => document.querySelector(".view-picker-item.is-active")?.dataset.tab === "plan");
+  await page.waitForFunction(() => document.querySelector(".tab-btn.active")?.dataset.tab === "plan");
   assert.equal(await page.locator(".native-equity-tooltip").isVisible(), false,
     "pager swipe left a stale chart tooltip");
   assert.deepEqual(state.failures, []);
@@ -722,11 +707,11 @@ async function testTopbarFitsWhenRefreshLabelSwaps(browser, base) {
       const rect = el => el.getBoundingClientRect();
       const btn = document.getElementById("refresh-btn");
       const h1 = document.querySelector(".brand h1");
-      // The destinations moved out of `.topbar-actions` when the header split
-      // into controls (picker + refresh) and nav (#1702): the nav is its own
-      // `<nav class="primary-nav">` now, and on a phone it takes the second row.
-      const links = [...document.querySelectorAll(".primary-nav .nav-link")];
-      const nav = document.querySelector(".primary-nav");
+      // The four destinations are one disclosure in the top-right now. Its
+      // panel is measured (it is where the four live), and the trigger is what
+      // must not collide with the wordmark when the row is squeezed to 320px.
+      const links = [...document.querySelectorAll(".site-menu-item")];
+      const nav = document.querySelector(".site-menu-btn");
       const h1Box = rect(h1);
       const overlapsBrand = links.some(item => {
         const box = rect(item);
@@ -739,8 +724,9 @@ async function testTopbarFitsWhenRefreshLabelSwaps(browser, base) {
         width: rect(btn).width,
         nav: links.map(item => item.textContent.trim()),
         linkHeights: links.map(item => rect(item).height),
-        navRows: new Set(links.map(item => Math.round(rect(item).top))).size,
-        navOverflow: nav.scrollWidth - nav.clientWidth,
+        trigger: { left: Math.round(rect(nav).left), right: Math.round(rect(nav).right),
+                   height: Math.round(rect(nav).height) },
+        pageName: (nav.querySelector(".site-menu-label") || nav).textContent.trim(),
         overlapsBrand,
         clipped: h1.scrollWidth > h1.clientWidth + 0.5,
         overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
@@ -750,15 +736,16 @@ async function testTopbarFitsWhenRefreshLabelSwaps(browser, base) {
     assert(box.height <= idle.height + 1 && box.width <= idle.width + 1,
       `refresh button grew to ${box.width}x${box.height} at ${width}px (idle ${idle.width}x${idle.height})`);
     assert.deepEqual(box.nav, ["Dashboard", "Briefs", "FAQ", "GitHub"],
-      `dashboard navigation differs at ${width}px`);
-    assert(box.linkHeights.every(height => height >= 44),
-      `dashboard navigation has a sub-44px touch target at ${width}px: ${box.linkHeights.join(", ")}`);
+      `the site menu's destinations differ at ${width}px`);
+    assert(box.trigger.height >= 44,
+      `the site menu trigger is ${box.trigger.height}px tall at ${width}px`);
     assert(box.height >= 44 && box.width >= 44,
       `refresh touch target is ${box.width}x${box.height} at ${width}px`);
-    assert.equal(box.navRows, 1, `dashboard nav wrapped at ${width}px`);
-    assert(!box.overlapsBrand, `brand overlaps the nav links at ${width}px`);
-    if (width >= 390) assert(box.navOverflow <= 1,
-      `dashboard nav needs ${box.navOverflow}px of scroll at ${width}px`);
+    assert.equal(box.pageName, "Dashboard",
+      `the trigger names "${box.pageName}" at ${width}px — it has to answer "where am I"`);
+    assert(!box.overlapsBrand, `brand overlaps the site menu at ${width}px`);
+    assert(box.trigger.right <= idle.x + idle.width + 1,
+      `the site menu runs past the refresh button at ${width}px`);
     assert(mayTruncate || !box.clipped, `brand wordmark is truncated at ${width}px`);
     assert(box.overflow <= 1, `page overflows by ${box.overflow}px at ${width}px`);
     await context.close();
@@ -825,12 +812,9 @@ async function testTopbarFitsWhenRefreshLabelSwaps(browser, base) {
 // width the wordmark and whatever sat at the right kept walking outward while
 // the content stood still (172px of drift at 1920, 492px at 2560).
 //
-// The picker replaced the six-tab strip, which used to be the left-anchored
-// element this measured. Two rounds of layout later: the wordmark and the
-// picker hold the left, and the right edge belongs to Refresh, with the site
-// nav sitting just inside it. So the right edge is checked against Refresh and
-// the nav is bounded by the column instead of pinned to it. The strip's own
-// "two rules 1px apart" assertion went with the strip.
+// The left anchor is the wordmark; the right edge is Refresh, with the site
+// menu just inside it. The tab strip is back and spans the same column, which
+// is what the old `tabLeft` assertion was for.
 async function testHeaderSharesTheContentColumn(browser, base) {
   for (const width of [1280, 1920, 2560]) {
     const page = await browser.newPage({ viewport: { width, height: 900 } });
@@ -845,9 +829,12 @@ async function testHeaderSharesTheContentColumn(browser, base) {
         columnLeft: box(main).left + parseFloat(style.paddingLeft),
         columnRight: box(main).right - parseFloat(style.paddingRight),
         brandLeft: box(document.querySelector(".brand-mark")).left,
-        pickerLeft: box(document.querySelector(".view-picker-btn")).left,
-        navLeft: box(document.querySelector(".primary-nav")).left,
-        navRight: box(document.querySelector(".primary-nav")).right,
+        // The strip is full-bleed like the header, and its own inline padding
+        // is what puts its first button on the column — measuring the <nav>
+        // box would compare 0..viewport against the column and always fail.
+        tabsLeft: box(document.querySelector(".tab-btn")).left,
+        tabsPadding: parseFloat(getComputedStyle(document.querySelector(".tabs")).paddingLeft),
+        menuRight: box(document.querySelector(".site-menu-btn")).right,
         refreshRight: box(document.getElementById("refresh-btn")).right,
       };
     });
@@ -856,12 +843,12 @@ async function testHeaderSharesTheContentColumn(browser, base) {
       `wordmark is ${off(m.brandLeft, m.columnLeft)}px off the content column at ${width}px`);
     assert(off(m.refreshRight, m.columnRight) <= 1,
       `refresh is ${off(m.refreshRight, m.columnRight)}px off the column's right edge at ${width}px`);
-    assert(m.pickerLeft > m.brandLeft && m.pickerLeft < m.columnRight,
-      `the view picker sits outside the content column at ${width}px`);
-    assert(m.navRight <= m.columnRight + 1,
-      `the site nav is ${m.navRight - m.columnRight}px past the column at ${width}px`);
-    assert(m.navLeft > m.pickerLeft,
-      `the site nav is not to the right of the picker at ${width}px`);
+    assert(off(m.tabsLeft, m.columnLeft) <= 1,
+      `the tab strip starts ${off(m.tabsLeft, m.columnLeft)}px off the content column at ${width}px`);
+    assert(m.tabsPadding >= 28,
+      `the strip's inline padding is ${m.tabsPadding}px at ${width}px — below the column inset`);
+    assert(m.menuRight <= m.columnRight + 1,
+      `the site menu is ${m.menuRight - m.columnRight}px past the column at ${width}px`);
     await page.close();
   }
 }

@@ -181,8 +181,7 @@ async function theDrawerTrapsFocusAndGivesItBack(browser, base) {
 
   // 抽屉与遮罩挂在 <body> 下（面板是 content-visibility: auto ⇒ paint
   // containment，position:fixed 的后代会被锁进面板的盒子）。所以「背景」是
-  // body 的其余子节点：顶栏、整个 pager、页脚，一个都不许留下。
-  // （顶栏原本还有一条独立 tab 条，已并入顶栏内的 view-picker。）
+  // body 的其余子节点：顶栏、tab 条、整个 pager、页脚，一个都不许留下。
   const outside = await page.evaluate(() =>
     [...document.body.children]
       .filter(el => el.id !== "dm-drawer" && el.id !== "dm-scrim"

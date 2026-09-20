@@ -102,8 +102,15 @@ async function navStaysOnOneRowAndNothingScrollsSideways(browser, base) {
     const page = await context.newPage();
     await page.goto(base, { waitUntil: "load" });
 
+    // The four destinations live in a <details> panel, which the UA hides
+    // until it is open — so open it before measuring, exactly as a reader
+    // would. Measuring a closed panel yields four zero-height boxes and the
+    // touch-target assertion below would pass on nothing.
+    await page.click(".site-menu-btn");
+    await page.waitForTimeout(120);
+
     const nav = await page.evaluate(() =>
-      [...document.querySelectorAll(".primary-nav .nav-link")].map(link => {
+      [...document.querySelectorAll(".site-menu-item")].map(link => {
         const box = link.getBoundingClientRect();
         return { text: link.textContent.trim(), top: Math.round(box.top),
                  left: Math.round(box.left), right: Math.round(box.right),
@@ -115,18 +122,17 @@ async function navStaysOnOneRowAndNothingScrollsSideways(browser, base) {
     // The validation ledger stopped being its own page (2026-09-12, #1472):
     // `证据台账` is an in-page anchor now, and a same-page link is not a nav
     // destination.
-    assert.equal(nav.length, 4, `expected four nav links, got ${nav.length}`);
-    // The ledger is an in-page anchor in the dashboard's own header, not a
-    // destination on this shared layout — so it must NOT be here, and the four
-    // that remain are named so a silent drop still fails.
+    assert.equal(nav.length, 4, `expected four destinations, got ${nav.length}`);
     assert.deepEqual(nav.map(link => link.text).sort(),
       ["Briefs", "Dashboard", "FAQ", "GitHub"],
       "the shared header's destinations changed without this assertion");
 
-    const rows = new Set(nav.map(link => link.top));
-    assert.equal(rows.size, 1,
-      `${width}px: nav wrapped onto ${rows.size} rows — ` +
-      nav.map(l => `${l.text}@${l.top}`).join(" "));
+    // A disclosure lists its items vertically; what must not happen is a
+    // second column or a wrapped label, which is what "rows" is checking now.
+    const lefts = new Set(nav.map(link => link.left));
+    assert.equal(lefts.size, 1,
+      `${width}px: the menu laid its items out in ${lefts.size} columns — ` +
+      nav.map(l => `${l.text}@${l.left}`).join(" "));
 
     for (const link of nav) {
       assert(link.height >= 34,
@@ -136,15 +142,13 @@ async function navStaysOnOneRowAndNothingScrollsSideways(browser, base) {
     // The row is allowed to scroll on the narrowest phone, but the page is not.
     const overflow = await page.evaluate(() => ({
       page: document.documentElement.scrollWidth - document.documentElement.clientWidth,
-      navScroll: document.querySelector(".primary-nav").scrollWidth
-        - document.querySelector(".primary-nav").clientWidth,
+      menuRight: Math.round(document.querySelector(".site-menu-panel").getBoundingClientRect().right),
+      viewport: document.documentElement.clientWidth,
     }));
     assert(overflow.page <= 1,
       `${width}px: the document scrolls sideways by ${overflow.page}px`);
-    if (width === 390) {
-      assert(overflow.navScroll <= 1,
-        `390px: the nav needs ${overflow.navScroll}px of scroll — it should fit outright`);
-    }
+    assert(overflow.menuRight <= overflow.viewport + 1,
+      `${width}px: the open menu runs ${overflow.menuRight - overflow.viewport}px past the viewport`);
 
     // A wrapped nav used to land underneath the brand; on one row it must not.
     const brand = await page.evaluate(() =>
