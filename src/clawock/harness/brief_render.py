@@ -29,6 +29,7 @@ import re
 from datetime import date as _date
 from pathlib import Path
 
+from clawock.safe_io import safe_write_text
 from clawock.scheduling import BRIEF_SLOT_HKT
 
 WEEKDAYS = ("周一", "周二", "周三", "周四", "周五", "周六", "周日")
@@ -1148,7 +1149,7 @@ def render_from_workspace(workspace, date, *, plan=None, page_url=None, write=Tr
     card = render_card(context, judgment, plan, date=date, page_url=page_url)
     if write:
         paths["brief"].parent.mkdir(parents=True, exist_ok=True)
-        paths["brief"].write_text(body, encoding="utf-8")
+        safe_write_text(str(paths["brief"]), body)
         paths["card"].parent.mkdir(parents=True, exist_ok=True)
         paths["card"].write_text(card, encoding="utf-8")
     return issues, body
