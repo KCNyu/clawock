@@ -150,6 +150,10 @@ export type DecisionMindProps = PropsStore<DecisionMindStore> & DecisionMindInje
  */
 export declare function t1NodeClass(tone: TraceT1['tone']): string;
 export declare function t1ChipClass(tone: TraceT1['tone']): 'up' | 'down' | 'flat';
+/** Dashboard-parity money formatter (test seam). */
+export declare function _fmtMoney(value: number | null, currency?: string): string;
+/** Dashboard-parity percentage formatter (test seam). */
+export declare function _fmtPct(value: number | null, digits?: number): string;
 /** One row of the list: the wire trade projected onto what the view renders. */
 export interface DisplayEntry {
     ticker: string;

@@ -474,6 +474,23 @@ test("client: _displayEntry projects a trace with its decision and T+1", async (
   assert.equal(bare.realizedPnl, null);
 });
 
+test("client: P&L formatting matches the dashboard", async () => {
+  const loaded = await loadClient();
+  const api = loaded.factory((s) => {
+    if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
+    if (s === "react") return makeReactStub();
+    throw new Error(`unexpected require: ${s}`);
+  });
+
+  assert.equal(api._fmtMoney(99.99, "USD"), "$99.99");
+  assert.equal(api._fmtMoney(1234.56, "USD"), "$1,235");
+  assert.equal(api._fmtMoney(-99.99, "HKD"), "HK$-99.99");
+  assert.equal(api._fmtMoney(null, "USD"), "—");
+  assert.equal(api._fmtPct(12.345), "+12.35%");
+  assert.equal(api._fmtPct(0.5), "+0.50%");
+  assert.equal(api._fmtPct(null), "—");
+});
+
 test("client: trace keys stay stable when a filter removes earlier same-day rows", async () => {
   const loaded = await loadClient();
   const api = loaded.factory((s) => {
@@ -666,7 +683,7 @@ test("client: renders the single decision-trace view from the mounted remote", a
   assert.match(joined, /10 @8.77/);
   assert.match(joined, /PLTU/);
   assert.match(joined, /卖出/);
-  assert.match(joined, /\+45.21/);       // realized P&L on the real sell
+  assert.match(joined, /\$45.21/);        // realized P&L matches dashboard money formatting
   assert.match(joined, /卖对/);           // T+1 verdict chip
   assert.doesNotMatch(joined, /\+\+/);   // header stat must not double-prepend the sign
 

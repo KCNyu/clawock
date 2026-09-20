@@ -6492,18 +6492,20 @@ function t1ChipClass(tone) {
 	if (tone === "loss") return "down";
 	return "flat";
 }
-function fmtMoney(value) {
+/** Dashboard-parity money formatter (test seam). */
+function _fmtMoney(value, currency = "") {
 	if (value === null || !isFinite(value)) return "—";
-	return (value > 0 ? "+" : "") + value.toLocaleString(void 0, { maximumFractionDigits: 0 });
+	return (currency === "USD" ? "$" : currency === "HKD" ? "HK$" : "") + (Math.abs(value) >= 1e3 ? value.toLocaleString("en-US", { maximumFractionDigits: 0 }) : value.toLocaleString("en-US", { maximumFractionDigits: 2 }));
 }
 /** A fill price as written, or '—' when the ledger carried none (#1590). */
 function fmtPrice(value, sym = "") {
 	if (value === null || !isFinite(value)) return "—";
 	return sym + value;
 }
-function fmtPct(value, digits = 1) {
+/** Dashboard-parity percentage formatter (test seam). */
+function _fmtPct(value, digits = 2) {
 	if (value === null || !isFinite(value)) return "—";
-	return (value > 0 ? "+" : "") + value.toFixed(digits) + "%";
+	return (value >= 0 ? "+" : "") + value.toFixed(digits) + "%";
 }
 /** Display projection of one trace (test seam). */
 function _displayEntry(trace) {
@@ -6560,11 +6562,11 @@ function TraceDetail(props) {
 	let pnlTone;
 	let pnlLabel;
 	if (trace.realizedPnl !== null) {
-		pnlText = (trace.realizedPnl >= 0 ? "+" : "") + trace.realizedPnl.toFixed(2) + " " + sym;
+		pnlText = _fmtMoney(trace.realizedPnl, trace.currency);
 		pnlTone = trace.realizedPnl >= 0 ? "win" : "loss";
 		pnlLabel = t("trace.realized");
 	} else if (trace.holdPnl !== null) {
-		pnlText = fmtPct(trace.holdPnl);
+		pnlText = _fmtPct(trace.holdPnl);
 		pnlTone = trace.holdPnl >= 0 ? "win" : "loss";
 		pnlLabel = t("trace.floating", { ticker: trace.ticker });
 	} else {
@@ -6577,10 +6579,9 @@ function TraceDetail(props) {
 function TraceCell(props) {
 	const t = props.t;
 	const trace = props.trace;
-	const sym = trace.currency === "HKD" ? "HK$" : "$";
 	let pnl;
-	if (trace.realizedPnl !== null) pnl = h("span", { className: cx("pnl", trace.realizedPnl >= 0 ? "up" : "down") }, (trace.realizedPnl >= 0 ? "+" : "") + trace.realizedPnl.toFixed(2) + " " + sym);
-	else if (trace.holdPnl !== null) pnl = h("span", { className: cx("pnl", trace.holdPnl >= 0 ? "up" : "down") }, h("span", { className: cx("pnlk") }, t("trace.holding")), fmtPct(trace.holdPnl));
+	if (trace.realizedPnl !== null) pnl = h("span", { className: cx("pnl", trace.realizedPnl >= 0 ? "up" : "down") }, _fmtMoney(trace.realizedPnl, trace.currency));
+	else if (trace.holdPnl !== null) pnl = h("span", { className: cx("pnl", trace.holdPnl >= 0 ? "up" : "down") }, h("span", { className: cx("pnlk") }, t("trace.holding")), _fmtPct(trace.holdPnl));
 	else pnl = h("span", { className: cx("pnl", "na") }, "—");
 	let t1tag;
 	if (trace.t1 !== null) {
@@ -7340,7 +7341,7 @@ function DecisionMind(props) {
 		if (moreButton !== null) kids.push(moreButton);
 		body = h("div", null, kids);
 	}
-	const stats = h("div", { className: cx("stats") }, h("div", { className: cx("sg") }, h("span", { className: cx("sl") }, totalLabel), h("span", { className: cx("sv", "focus", totalUsd >= 0 ? "up" : "down") }, fmtMoney(totalUsd))), h("div", { className: cx("sg") }, h("span", { className: cx("sl") }, t("trace.t1Tally", {
+	const stats = h("div", { className: cx("stats") }, h("div", { className: cx("sg") }, h("span", { className: cx("sl") }, totalLabel), h("span", { className: cx("sv", "focus", totalUsd >= 0 ? "up" : "down") }, _fmtMoney(totalUsd, "USD"))), h("div", { className: cx("sg") }, h("span", { className: cx("sl") }, t("trace.t1Tally", {
 		rated: sellsRated,
 		sells: sells.length
 	}) + (sideless === 0 ? "" : t("trace.t1Sideless", { sideless }))), h("span", { className: cx("sv") }, h("span", { className: cx("down") }, soldEarly), " / ", h("span", { className: cx("up") }, soldRight))), h("div", { className: cx("sg") }, h("span", { className: cx("sl") }, t("trace.matched") + (reversed === 0 ? "" : t("trace.reversed", { reversed }))), h("span", { className: cx("sv") }, matched + "/" + traces.length)));
@@ -7458,7 +7459,7 @@ async function apply(ctx) {
 }
 //#endregion
 
-    Object.assign(exports, { BALANCE_PANEL, DecisionMind, LOCALE_NS, ProviderBalanceChip, ProviderBalanceSidebarAction, _balanceNote, _displayEntry, _rowDisplay, _traceKeys, _usedLevel, apply, createBalanceStore, createDecisionMindStore, createTranslator, dictionaries, inject, resetStampOf, t1ChipClass, t1NodeClass, verdictOf, windowLabelOf, windowsOf });
+    Object.assign(exports, { BALANCE_PANEL, DecisionMind, LOCALE_NS, ProviderBalanceChip, ProviderBalanceSidebarAction, _balanceNote, _displayEntry, _fmtMoney, _fmtPct, _rowDisplay, _traceKeys, _usedLevel, apply, createBalanceStore, createDecisionMindStore, createTranslator, dictionaries, inject, resetStampOf, t1ChipClass, t1NodeClass, verdictOf, windowLabelOf, windowsOf });
     return module.exports;
   }
 });

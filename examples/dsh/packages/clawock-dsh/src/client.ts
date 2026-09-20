@@ -417,9 +417,14 @@ export function t1ChipClass(tone: TraceT1['tone']): 'up' | 'down' | 'flat' {
   return 'flat'
 }
 
-function fmtMoney(value: number | null): string {
+/** Dashboard-parity money formatter (test seam). */
+export function _fmtMoney(value: number | null, currency = ''): string {
   if (value === null || !isFinite(value)) return '—'
-  return (value > 0 ? '+' : '') + value.toLocaleString(undefined, { maximumFractionDigits: 0 })
+  const symbol = currency === 'USD' ? '$' : currency === 'HKD' ? 'HK$' : ''
+  const formatted = Math.abs(value) >= 1000
+    ? value.toLocaleString('en-US', { maximumFractionDigits: 0 })
+    : value.toLocaleString('en-US', { maximumFractionDigits: 2 })
+  return symbol + formatted
 }
 
 /** A fill price as written, or '—' when the ledger carried none (#1590). */
@@ -428,9 +433,10 @@ function fmtPrice(value: number | null, sym = ''): string {
   return sym + value
 }
 
-function fmtPct(value: number | null, digits = 1): string {
+/** Dashboard-parity percentage formatter (test seam). */
+export function _fmtPct(value: number | null, digits = 2): string {
   if (value === null || !isFinite(value)) return '—'
-  return (value > 0 ? '+' : '') + value.toFixed(digits) + '%'
+  return (value >= 0 ? '+' : '') + value.toFixed(digits) + '%'
 }
 
 /** One row of the list: the wire trade projected onto what the view renders. */
@@ -544,11 +550,11 @@ function TraceDetail(props: { trace: DisplayEntry; t: Translate }): React.ReactE
   let pnlTone: string
   let pnlLabel: string
   if (trace.realizedPnl !== null) {
-    pnlText = (trace.realizedPnl >= 0 ? '+' : '') + trace.realizedPnl.toFixed(2) + ' ' + sym
+    pnlText = _fmtMoney(trace.realizedPnl, trace.currency)
     pnlTone = trace.realizedPnl >= 0 ? 'win' : 'loss'
     pnlLabel = t('trace.realized')
   } else if (trace.holdPnl !== null) {
-    pnlText = fmtPct(trace.holdPnl)
+    pnlText = _fmtPct(trace.holdPnl)
     pnlTone = trace.holdPnl >= 0 ? 'win' : 'loss'
     pnlLabel = t('trace.floating', { ticker: trace.ticker })
   } else {
@@ -589,16 +595,15 @@ interface TraceCellProps {
 function TraceCell(props: TraceCellProps): React.ReactElement {
   const t = props.t
   const trace = props.trace
-  const sym = trace.currency === 'HKD' ? 'HK$' : '$'
   let pnl: React.ReactElement
   if (trace.realizedPnl !== null) {
     pnl = h('span', { className: cx('pnl', trace.realizedPnl >= 0 ? 'up' : 'down') },
-      (trace.realizedPnl >= 0 ? '+' : '') + trace.realizedPnl.toFixed(2) + ' ' + sym)
+      _fmtMoney(trace.realizedPnl, trace.currency))
   } else if (trace.holdPnl !== null) {
     // A floating percent belongs to the whole position, not to this fill. The
     // 持仓 prefix is what stops it reading as "this trade lost 28%".
     pnl = h('span', { className: cx('pnl', trace.holdPnl >= 0 ? 'up' : 'down') },
-      h('span', { className: cx('pnlk') }, t('trace.holding')), fmtPct(trace.holdPnl))
+      h('span', { className: cx('pnlk') }, t('trace.holding')), _fmtPct(trace.holdPnl))
   } else {
     pnl = h('span', { className: cx('pnl', 'na') }, '—')
   }
@@ -1504,7 +1509,7 @@ export function DecisionMind(props: DecisionMindProps): React.ReactElement {
   const stats = h('div', { className: cx('stats') },
     h('div', { className: cx('sg') },
       h('span', { className: cx('sl') }, totalLabel),
-      h('span', { className: cx('sv', 'focus', totalUsd >= 0 ? 'up' : 'down') }, fmtMoney(totalUsd))),
+      h('span', { className: cx('sv', 'focus', totalUsd >= 0 ? 'up' : 'down') }, _fmtMoney(totalUsd, 'USD'))),
     h('div', { className: cx('sg') },
       h('span', { className: cx('sl') }, t('trace.t1Tally', { rated: sellsRated, sells: sells.length })
         + (sideless === 0 ? '' : t('trace.t1Sideless', { sideless }))),
