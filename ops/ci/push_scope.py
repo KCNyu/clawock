@@ -41,6 +41,8 @@ CODE_GLOBS = [
     "src/*",
     "ops/*",
     "tests/*",
+    ".githooks/*",
+    ".devcontainer/*",
     "pyproject.toml",
     "pytest.ini",
     "portfolio.json",
