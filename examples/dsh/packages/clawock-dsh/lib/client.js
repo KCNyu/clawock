@@ -6709,14 +6709,15 @@ function _rowDisplay(result, t, now = Date.now()) {
 	const secondWin = wins.length > 1 ? wins[1] : null;
 	const sub = secondWin !== null && second !== null ? "· " + secondWin.label + " " + Math.round(second.percent) + "%" + (secondWin.reset !== "" ? " ↻" + secondWin.reset : "") : null;
 	const tone = result.status === "stale" ? "stale" : result.low || !snapshot.isAvailable ? "low" : "ok";
-	const quotaLine = wins.length === 0 ? snapshot.note !== "" ? snapshot.note : t("balance.windowsUsed") : wins.filter((w) => w.percent !== null).map((w) => w.reset === "" ? t("balance.windowNote", {
+	const quotaTail = wins.length === 0 ? [] : snapshot.note.split(" · ").slice(snapshot.windows.length).filter((note) => note !== "");
+	const quotaLine = wins.length === 0 ? snapshot.note !== "" ? snapshot.note : t("balance.windowsUsed") : [...wins.filter((w) => w.percent !== null).map((w) => w.reset === "" ? t("balance.windowNote", {
 		label: w.label,
 		percent: Math.round(w.percent)
 	}) : t("balance.windowNoteReset", {
 		label: w.label,
 		percent: Math.round(w.percent),
 		reset: w.reset
-	})).join(" · ");
+	})), ...quotaTail].join(" · ");
 	const parts = [
 		snapshot.unit === "pct" ? quotaLine : t("balance.apiBalance"),
 		!isPct && snapshot.grantedBalance !== "" ? t("balance.granted") + symbol + snapshot.grantedBalance : null,

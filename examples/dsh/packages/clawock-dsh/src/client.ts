@@ -773,13 +773,20 @@ export function _rowDisplay(result: BalanceResult | null, t: Translate, now: num
   // host's `note`: that string is built in the host's language, and it is the
   // one place the panel would otherwise stay monolingual. A snapshot without
   // windows carries only vendor detail, so its note passes through verbatim.
+  // quotaSnapshot appends provider status after one ` · ` segment per window.
+  // Re-render the windows in the active locale, but keep that non-window tail:
+  // it carries Codex's limited state and Claude's extra-usage reading.
+  const quotaTail = wins.length === 0
+    ? []
+    : snapshot.note.split(' · ').slice(snapshot.windows.length).filter((note) => note !== '')
   const quotaLine = wins.length === 0
     ? (snapshot.note !== '' ? snapshot.note : t('balance.windowsUsed'))
-    : wins
+    : [...wins
       .filter((w) => w.percent !== null)
       .map((w) => (w.reset === ''
         ? t('balance.windowNote', { label: w.label, percent: Math.round(w.percent as number) })
-        : t('balance.windowNoteReset', { label: w.label, percent: Math.round(w.percent as number), reset: w.reset })))
+        : t('balance.windowNoteReset', { label: w.label, percent: Math.round(w.percent as number), reset: w.reset }))),
+      ...quotaTail]
       .join(' · ')
   const parts = [
     snapshot.unit === 'pct' ? quotaLine : t('balance.apiBalance'),
