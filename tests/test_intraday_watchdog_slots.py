@@ -376,6 +376,13 @@ def test_a_marker_that_failed_telegram_still_gets_mirrored(
     assert events[-1]['reason'] == 'postflight cosend failed'
 
 
+def _mid_send_claim(watchdog, tmp_path, started_at):
+    claim = watchdog.delivery_receipts.claim_path(
+        tmp_path / 'memory' / '.tmp', 'intraday', market='hk')
+    claim.write_text(json.dumps({'pid': 123, 'send_started_at': started_at}))
+    return claim
+
+
 def test_holder_died_mid_send_names_unconfirmed_wechat(
         tmp_path, monkeypatch):
     now = datetime(2026, 7, 29, 10, 40, tzinfo=HKT)
@@ -384,13 +391,32 @@ def test_holder_died_mid_send_names_unconfirmed_wechat(
                delivery={'messageToolSentTo': None})
     watchdog, sends, _, events = _wire_watchdog(
         monkeypatch, tmp_path, run=run, now=now, marker=None)
-    claim = watchdog.delivery_receipts.claim_path(
-        tmp_path / 'memory' / '.tmp', 'intraday', market='hk')
-    claim.write_text(json.dumps({'pid': 123, 'send_started_at': 1786685531697}))
+    # This slot's own sender: it stamped the claim three minutes ago.
+    _mid_send_claim(watchdog, tmp_path, int(now.timestamp() * 1000) - 3 * 60 * 1000)
 
     assert watchdog.main() == 0
     assert 'WeChat 送达未被确认' in sends[0]
     assert events[-1]['reason'] == 'holder-died-mid-send'
+
+
+def test_a_claim_left_by_an_earlier_slot_is_not_this_slot_gap(
+        tmp_path, monkeypatch):
+    """intraday 的 claim 只按 market 命名，没有日期/槽位。一个更早槽位死在发送
+    途中留下的 claim 会一直躺在那里；把它当成「这个槽位也死在发送途中」就是把
+    「postflight 根本没跑」说成了「微信可能已收到」。"""
+    now = datetime(2026, 7, 29, 10, 40, tzinfo=HKT)
+    run = _run(datetime(2026, 7, 29, 10, 30, tzinfo=HKT),
+               summary=f'{HEADING}\n恒指 25,713 ▲1.59%',
+               delivery={'messageToolSentTo': None})
+    watchdog, sends, _, events = _wire_watchdog(
+        monkeypatch, tmp_path, run=run, now=now, marker=None)
+    # Yesterday's last slot, still holding the per-market claim.
+    _mid_send_claim(watchdog, tmp_path,
+                    int(now.timestamp() * 1000) - 26 * 60 * 60 * 1000)
+
+    assert watchdog.main() == 0
+    assert 'WeChat 送达未被确认' not in sends[0]
+    assert events[-1]['reason'] == 'postflight marker missing'
 
 
 def test_market_closed_sentinel_gets_no_deterministic_fallback(

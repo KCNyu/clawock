@@ -33,20 +33,39 @@ WS = workspace_root()
 _CHECKOUT = WS
 
 
-def wechat_gap_reason(claim):
+# A claim stamped in the seconds AFTER the watchdog read its own clock is
+# fresher evidence, not staler — same asymmetry the marker freshness check uses.
+CLAIM_FUTURE_SKEW_MS = 5 * 60 * 1000
+
+
+def wechat_gap_reason(claim, *, fresh_ms=None, now_ms=None):
     """Name a holder-died-mid-send WeChat gap explicitly.
 
     A sender killed after marking a send started but before writing its
     completion receipt leaves WeChat delivery unknowable.  Every watchdog that
     mirrors the slot to Telegram must surface that fact instead of presenting a
     routine missing-marker reason.
+
+    `fresh_ms` bounds how old that in-flight mark may be and defaults to off.
+    The report and brief claims carry the date (and phase) in their filename, so
+    a leftover one cannot be read as this slot's. The intraday claim is named per
+    market alone — a claim from an earlier slot outlives it, and without this
+    bound every later slot whose postflight simply never ran would be announced
+    as a death mid-send.
     """
-    if isinstance(claim, dict) and claim.get('send_started_at'):
-        return ('holder-died-mid-send',
-                '⚠️ 该槽位 WeChat 送达未被确认：postflight 发送进程在发送中途死亡'
-                '（claim 带 send_started_at、无完成 marker）。'
-                '仅 Telegram 兜底一份，请留意微信是否已收到。\n\n')
-    return None
+    if not (isinstance(claim, dict) and claim.get('send_started_at')):
+        return None
+    if fresh_ms is not None:
+        started = claim.get('send_started_at')
+        if not isinstance(started, (int, float)):
+            return None
+        now = int(datetime.now().timestamp() * 1000) if now_ms is None else now_ms
+        if not -CLAIM_FUTURE_SKEW_MS <= now - started < fresh_ms:
+            return None
+    return ('holder-died-mid-send',
+            '⚠️ 该槽位 WeChat 送达未被确认：postflight 发送进程在发送中途死亡'
+            '（claim 带 send_started_at、无完成 marker）。'
+            '仅 Telegram 兜底一份，请留意微信是否已收到。\n\n')
 
 
 def log_path() -> Path:
