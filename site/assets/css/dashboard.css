@@ -474,30 +474,32 @@
   .refresh-btn.fresh-flash .ic::after { content: "✓"; font-size: var(--fs-md); }
   .refresh-btn[disabled] { opacity: 0.6; cursor: not-allowed; }
   @keyframes spin { to { transform: rotate(360deg); } }
-  /* Primary navigation is one quiet instrument, not four unrelated buttons.
-     The solid inner rail sits on the translucent topbar without stacking a
-     second blur layer; its edge and inset highlight make the grouping legible
-     in both themes. The refresh control stays outside the rail because it acts
-     on the dashboard data, not on site navigation. */
-  .topbar-actions { display: inline-flex; align-items: center; gap: var(--space-2); }
+  /* Primary navigation is plain text, not a grouped control. Users 80%+ of
+     the time stay on the dashboard; the previous bordered rail (border +
+     solid surface-1 fill + inset highlight + drop shadow) made that
+     infrequent site nav read as a primary control and stacked a second
+     opaque surface on the already-frosted topbar. Three signals remain for
+     the active page: text colour, weight (550→650), and an 18×2px pill that
+     grows from scaleX(.55) — enough to read against a glass background
+     without leaning on a rail. The refresh control stays as a circular icon
+     because its outcome is its own (an animation that says whether anything
+     new landed); it belongs with the data, not with site nav. */
+  .topbar-actions { display: inline-flex; align-items: center; gap: var(--space-3); }
   .primary-nav {
     display: inline-flex; align-items: center; gap: 2px;
-    padding: 3px; border: 1px solid var(--border-subtle); border-radius: 10px;
-    background: var(--surface-1);
-    box-shadow: inset 0 1px 0 var(--spec-1), 0 1px 3px rgba(0,0,0,.12);
   }
   .nav-link {
     position: relative; display: inline-flex; align-items: center; justify-content: center;
-    min-height: 30px; padding: 0 11px; border-radius: 7px;
+    min-height: 32px; padding: 0 10px; border-radius: var(--radius-sm);
     color: var(--text-dim); text-decoration: none;
     font-size: var(--fs-sm); font-weight: 550; letter-spacing: .012em;
     white-space: nowrap; touch-action: manipulation;
-    transition: background var(--duration-fast) ease, color var(--duration-fast) ease,
+    transition: color var(--duration-fast) ease,
       transform var(--duration-fast) var(--ease-out);
   }
   .nav-link::after {
     content: ""; position: absolute; left: 50%; bottom: 2px;
-    width: 14px; height: 2px; border-radius: 999px;
+    width: 18px; height: 2px; border-radius: 999px;
     background: var(--accent); opacity: 0; transform: translateX(-50%) scaleX(.55);
     transition: opacity var(--duration-fast) ease, transform var(--duration-fast) var(--ease-out);
   }
@@ -505,7 +507,7 @@
   .nav-link.active::after { opacity: 1; transform: translateX(-50%) scaleX(1); }
   .nav-link:active { transform: scale(.97); }
   @media (hover: hover) and (pointer: fine) {
-    .nav-link:hover { color: var(--text); background: var(--surface-2); }
+    .nav-link:hover { color: var(--text); }
   }
   .nav-link:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
   @media (max-width: 600px) {
@@ -515,9 +517,12 @@
     .topbar-actions {
       flex: 1 0 100%; flex-wrap: nowrap; justify-content: flex-start;
       overflow-x: auto; scrollbar-width: none;
-      margin: 0; padding: 0; gap: var(--space-2);
+      margin: 0; padding: 0; gap: var(--space-3);
     }
     .topbar-actions::-webkit-scrollbar { display: none; }
+    /* The four links still share the row equally — equal-width rhythm reads
+       as one bar (the rail's old role), but each cell is its own quiet
+       label rather than a button inside a card. */
     .primary-nav {
       flex: 1 1 auto; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
       min-width: 0;
@@ -526,9 +531,9 @@
     .refresh-btn { width: 44px; height: 44px; min-width: 44px; min-height: 44px; }
   }
   @media (max-width: 400px) {
-    /* The rail may scroll on legacy 320px phones, but its targets stay intact;
+    /* The nav may scroll on legacy 320px phones, but its targets stay intact;
        shrinking hit areas to make the row fit would trade polish for misses. */
-    .topbar-actions { gap: var(--space-1); }
+    .topbar-actions { gap: var(--space-2); }
     .brand h1 { font-size: var(--fs-xl); }
   }
   @media (max-width: 359px) {
