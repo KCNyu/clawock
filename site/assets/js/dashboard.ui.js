@@ -728,6 +728,31 @@
     setInterval(_updateAgeLabel, 15000);
   }
 
+  async function loadLatestBriefCard() {
+    const date = document.getElementById("latest-brief-date");
+    const summary = document.getElementById("latest-brief-summary");
+    const link = document.getElementById("latest-brief-link");
+    if (!date || !summary || !link) return;
+    try {
+      const response = await fetch(_dataUrl("brief_projection"), { cache: "no-cache" });
+      if (!response.ok) return;
+      const brief = await response.json();
+      const asOf = typeof brief.as_of === "string" && /^\d{4}-\d{2}-\d{2}$/.test(brief.as_of)
+        ? brief.as_of : "";
+      const assessment = brief?.portfolio_judgment?.assessment;
+      if (typeof assessment === "string" && assessment.trim()) {
+        summary.textContent = assessment.trim();
+      }
+      if (asOf) {
+        date.textContent = `${asOf} · 08:03 HKT`;
+        link.href = `memory/${asOf}-pre-open.html`;
+        link.textContent = `阅读 ${asOf} 简报 →`;
+      }
+    } catch (_error) {
+      // The card's archive link and fallback copy remain complete without data.
+    }
+  }
+
   // Fold/unfold on header tap; remember per-card choice across visits.
   document.querySelectorAll(".card.fold-m").forEach(card => {
     const id = "fold:" + (card.dataset.foldId || "");
@@ -787,7 +812,7 @@
     const t0 = tabFromHash();
     if (t0) goToTab(t0, false);
     else setActiveButton(TAB_ORDER[0]);
-    loadData();
+    loadData().then(loadLatestBriefCard);
     _scheduleAutoRefresh();
   }
   if (document.readyState === "loading") {

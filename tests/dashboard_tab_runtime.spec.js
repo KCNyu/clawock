@@ -150,6 +150,21 @@ async function testRuntime(browser, base) {
   await stubLiveOrigin(page);
   await page.goto(base, { waitUntil: "networkidle" });
   await waitForData(page);
+  await page.waitForFunction(() =>
+    document.getElementById("latest-brief-link")?.getAttribute("href")?.startsWith("memory/"));
+  const latestBrief = await page.evaluate(() => ({
+    date: document.getElementById("latest-brief-date").textContent.trim(),
+    summary: document.getElementById("latest-brief-summary").textContent.trim(),
+    href: document.getElementById("latest-brief-link").getAttribute("href"),
+  }));
+  const projection = JSON.parse(fs.readFileSync(
+    path.resolve(ROOT, "assets/data/brief_projection.json"), "utf8"));
+  assert(latestBrief.date.startsWith(projection.as_of),
+    `latest brief card shows ${latestBrief.date}, expected ${projection.as_of}`);
+  assert.equal(latestBrief.summary, projection.portfolio_judgment.assessment,
+    "latest brief card does not expose the brief's current assessment");
+  assert.equal(latestBrief.href, `memory/${projection.as_of}-pre-open.html`,
+    "latest brief card does not link straight to the dated brief");
   assert.equal(state.detailRequests, 0, "Overview downloaded the detail renderer");
   assert.equal(state.fullRequests, 0, "Overview downloaded the full dashboard document");
   // The head boot fetch and the loadData() fetch must dedupe into one request:
@@ -657,24 +672,37 @@ async function testTopbarFitsWhenRefreshLabelSwaps(browser, base) {
       const rect = el => el.getBoundingClientRect();
       const btn = document.getElementById("refresh-btn");
       const h1 = document.querySelector(".brand h1");
-      const link = document.querySelector(".topbar-actions .nav-link");
-      const row = document.querySelector(".topbar-row");
+      const links = [...document.querySelectorAll(".topbar-actions .nav-link")];
+      const nav = document.querySelector(".topbar-actions");
+      const h1Box = rect(h1);
+      const overlapsBrand = links.some(item => {
+        const box = rect(item);
+        return box.left < h1Box.right && box.right > h1Box.left &&
+          box.top < h1Box.bottom && box.bottom > h1Box.top;
+      });
       return {
         hasLabel: !!btn.querySelector(".lbl"),
         height: rect(btn).height,
         width: rect(btn).width,
-        gap: rect(link).left - rect(h1).right,
+        nav: links.map(item => item.textContent.trim()),
+        navRows: new Set(links.map(item => Math.round(rect(item).top))).size,
+        navOverflow: nav.scrollWidth - nav.clientWidth,
+        overlapsBrand,
         clipped: h1.scrollWidth > h1.clientWidth + 0.5,
-        overflow: row.scrollWidth - row.clientWidth,
+        overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
       };
     });
     assert(box.hasLabel === false, `refresh button must be icon-only at ${width}px`);
     assert(box.height <= idle.height + 1 && box.width <= idle.width + 1,
       `refresh button grew to ${box.width}x${box.height} at ${width}px (idle ${idle.width}x${idle.height})`);
-    assert(box.gap >= 0,
-      `brand overlaps the nav links by ${-box.gap}px at ${width}px`);
+    assert.deepEqual(box.nav, ["Dashboard", "Briefs", "FAQ", "GitHub"],
+      `dashboard navigation differs at ${width}px`);
+    assert.equal(box.navRows, 1, `dashboard nav wrapped at ${width}px`);
+    assert(!box.overlapsBrand, `brand overlaps the nav links at ${width}px`);
+    if (width >= 390) assert(box.navOverflow <= 1,
+      `dashboard nav needs ${box.navOverflow}px of scroll at ${width}px`);
     assert(mayTruncate || !box.clipped, `brand wordmark is truncated at ${width}px`);
-    assert(box.overflow <= 0, `topbar row overflows by ${box.overflow}px at ${width}px`);
+    assert(box.overflow <= 1, `page overflows by ${box.overflow}px at ${width}px`);
     await context.close();
   }
 

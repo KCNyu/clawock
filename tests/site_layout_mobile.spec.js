@@ -109,17 +109,18 @@ async function navStaysOnOneRowAndNothingScrollsSideways(browser, base) {
                  left: Math.round(box.left), right: Math.round(box.right),
                  height: Math.round(box.height) };
       }));
-    // Three since the validation ledger stopped being its own page (2026-09-12,
-    // #1472): `证据台账` is an in-page anchor now, and a same-page link is not a
-    // nav destination. Before that it was four (the decision map left the header
-    // on 2026-09-09). The count stays asserted rather than derived, so that
+    // Four since FAQ became a first-class destination instead of a dashboard-
+    // footer-only link. The count stays asserted rather than derived, so that
     // dropping a link is a decision someone makes here.
-    assert.equal(nav.length, 3, `expected three nav links, got ${nav.length}`);
+    // The validation ledger stopped being its own page (2026-09-12, #1472):
+    // `证据台账` is an in-page anchor now, and a same-page link is not a nav
+    // destination.
+    assert.equal(nav.length, 4, `expected four nav links, got ${nav.length}`);
     // The ledger is an in-page anchor in the dashboard's own header, not a
-    // destination on this shared layout — so it must NOT be here, and the three
+    // destination on this shared layout — so it must NOT be here, and the four
     // that remain are named so a silent drop still fails.
     assert.deepEqual(nav.map(link => link.text).sort(),
-      ["Briefs", "Dashboard", "GitHub"],
+      ["Briefs", "Dashboard", "FAQ", "GitHub"],
       "the shared header's destinations changed without this assertion");
 
     const rows = new Set(nav.map(link => link.top));

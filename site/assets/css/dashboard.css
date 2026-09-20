@@ -477,12 +477,21 @@
     color: var(--text-dim); text-decoration: none; font-size: var(--fs-md);
     padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm); transition: background 0.15s, color 0.15s;
   }
+  .nav-link.active { color: var(--accent); background: var(--card-2); }
   @media (hover: hover) and (pointer: fine) {
     .nav-link:hover { color: var(--text); background: var(--card-2); }
   }
   .nav-link:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
-  @media (max-width: 480px) {
-    .nav-link { padding: var(--space-2); font-size: var(--fs-sm); }
+  @media (max-width: 600px) {
+    .topbar-row { flex-wrap: wrap; row-gap: 4px; }
+    .brand { flex: 1 1 auto; }
+    .topbar-actions {
+      flex: 1 0 100%; flex-wrap: nowrap; justify-content: space-between;
+      overflow-x: auto; scrollbar-width: none;
+      margin: 0 calc(-1 * var(--space-4)); padding: 0 var(--space-4); gap: 2px;
+    }
+    .topbar-actions::-webkit-scrollbar { display: none; }
+    .nav-link { flex: 0 0 auto; padding: var(--space-2); font-size: var(--fs-sm); }
   }
   @media (max-width: 400px) {
     /* Last few pixels at 360–390: tighten the row rather than let the brand
@@ -3918,6 +3927,25 @@
     line-height: 1.35; overflow-wrap: anywhere;
   }
   .overview-command > .hero-honesty-card { grid-column: span 5; min-height: 220px; }
+
+  /* Latest brief: one compact bridge, not a second copy of the brief page. */
+  .latest-brief-card { grid-column: 1 / -1; padding: 16px 18px; }
+  .latest-brief-head {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: var(--space-3);
+  }
+  .latest-brief-head h3 { margin: 3px 0 0; }
+  .latest-brief-date {
+    flex: 0 0 auto; color: var(--text-tertiary);
+    font: 500 var(--fs-xs)/1.4 var(--mono);
+  }
+  .latest-brief-summary {
+    max-width: 104ch; margin: var(--space-3) 0;
+    color: var(--text-secondary); line-height: 1.65;
+  }
+  .latest-brief-links { display: flex; align-items: center; gap: var(--space-4); flex-wrap: wrap; }
+  .latest-brief-links a { font-size: var(--fs-sm); }
+  .latest-brief-primary { font-weight: 650; }
   .overview-command > .hero-gold-card { grid-column: span 7; min-height: 760px; }
 
   @media (min-width: 1024px) {
@@ -4006,7 +4034,7 @@
   @media (max-width: 767px) {
     :root { --card-inset: 20px; }
     .overview-command { display: flex; flex-direction: column; gap: var(--space-3); }
-    .hero-deck, .hero-health,
+    .hero-deck, .hero-health, .latest-brief-card,
     .verdict-deck, .overview-strip,
     .overview-command > .hero-honesty-card,
     .overview-command > .hero-gold-card { width: 100%; min-width: 0; }
