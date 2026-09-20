@@ -30,6 +30,8 @@ on:
       # suite enforces just like pyproject.toml can.
       - 'pytest.ini'
       - 'tests/**'
+      - '.githooks/**'
+      - '.devcontainer/**'
       # The dashboard moved under site/ in #399; these globs kept the
       # pre-move paths and stopped matching anything.
       - 'site/assets/css/**'
