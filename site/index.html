@@ -107,44 +107,42 @@ layout: null
       <h1>clawock</h1>
       <span class="updated" id="last-updated">—</span>
     </div>
-    <!-- This page's own controls, grouped: the view picker (which of the six
-         dashboard views is showing) and Refresh (pull the data again). They
-         belong together because both act on the page you are already on.
-         The site-wide destinations sit past them, at the far edge, because
-         leaving the page is the rarer intent. DOM order matches visual order
-         at both breakpoints, so no `order` overrides are needed. -->
-    <div class="topbar-controls">
-      <div class="view-picker" id="view-picker">
-        <button class="view-picker-btn" id="view-picker-btn" type="button"
-                aria-haspopup="menu" aria-expanded="false" aria-controls="view-picker-menu">
-          <span class="view-picker-label" id="view-picker-label">Overview</span>
-          <span class="view-picker-chevron" aria-hidden="true">▾</span>
-        </button>
-        <div class="view-picker-menu" id="view-picker-menu" role="menu"
-             aria-labelledby="view-picker-btn" hidden>
-          <button id="tab-hero"    class="view-picker-item is-active" data-tab="hero"    role="menuitemradio" aria-checked="true"  type="button" tabindex="-1">Overview</button>
-          <button id="tab-drill"   class="view-picker-item"           data-tab="drill"   role="menuitemradio" aria-checked="false" type="button" tabindex="-1">Holdings</button>
-          <button id="tab-risk"    class="view-picker-item"           data-tab="risk"    role="menuitemradio" aria-checked="false" type="button" tabindex="-1">Risk</button>
-          <button id="tab-market"  class="view-picker-item"           data-tab="market"  role="menuitemradio" aria-checked="false" type="button" tabindex="-1">Signals</button>
-          <button id="tab-plan"    class="view-picker-item"           data-tab="plan"    role="menuitemradio" aria-checked="false" type="button" tabindex="-1">Plan</button>
-          <button id="tab-reflect" class="view-picker-item"           data-tab="reflect" role="menuitemradio" aria-checked="false" type="button" tabindex="-1">Reflect</button>
-        </div>
+    <!-- The view picker sits beside the wordmark: both answer "what am I
+         looking at" (this app, this view), so they belong in the same corner.
+         The site nav (Dashboard / Briefs / FAQ / GitHub) is the switcher that
+         leaves this page, and it takes the top-right, with Refresh past it. -->
+    <div class="view-picker" id="view-picker">
+      <button class="view-picker-btn" id="view-picker-btn" type="button"
+              aria-haspopup="menu" aria-expanded="false" aria-controls="view-picker-menu">
+        <span class="view-picker-label" id="view-picker-label">Overview</span>
+        <span class="view-picker-chevron" aria-hidden="true">▾</span>
+      </button>
+      <div class="view-picker-menu" id="view-picker-menu" role="menu"
+           aria-labelledby="view-picker-btn" hidden>
+        <button id="tab-hero"    class="view-picker-item is-active" data-tab="hero"    role="menuitemradio" aria-checked="true"  type="button" tabindex="-1">Overview</button>
+        <button id="tab-drill"   class="view-picker-item"           data-tab="drill"   role="menuitemradio" aria-checked="false" type="button" tabindex="-1">Holdings</button>
+        <button id="tab-risk"    class="view-picker-item"           data-tab="risk"    role="menuitemradio" aria-checked="false" type="button" tabindex="-1">Risk</button>
+        <button id="tab-market"  class="view-picker-item"           data-tab="market"  role="menuitemradio" aria-checked="false" type="button" tabindex="-1">Signals</button>
+        <button id="tab-plan"    class="view-picker-item"           data-tab="plan"    role="menuitemradio" aria-checked="false" type="button" tabindex="-1">Plan</button>
+        <button id="tab-reflect" class="view-picker-item"           data-tab="reflect" role="menuitemradio" aria-checked="false" type="button" tabindex="-1">Reflect</button>
       </div>
+    </div>
+    <!-- Site-level primary nav, in the top-right. Plain text, no rail: the
+         bordered container #1700 wrapped these in made a low-frequency list
+         read as a primary control and stacked a second opaque surface on the
+         already-frosted topbar. Three signals carry the active page: colour,
+         weight (550→650), and an 18×2px pill that grows from scaleX(.55). -->
+    <div class="topbar-actions">
+      <nav class="primary-nav" aria-label="Primary navigation">
+        <a class="nav-link active" href="./" aria-current="page">Dashboard</a>
+        <a class="nav-link" href="briefs.html">Briefs</a>
+        <a class="nav-link" href="faq.html">FAQ</a>
+        <a class="nav-link" href="https://github.com/KCNyu/clawock" target="_blank" rel="noopener">GitHub</a>
+      </nav>
       <button class="refresh-btn" id="refresh-btn" type="button" aria-label="Refresh data" title="立即刷新">
         <span class="ic" aria-hidden="true">&#x21bb;</span>
       </button>
     </div>
-    <!-- Site-level primary nav. A link out of this page is the rarer intent
-         than a view switch, so it takes the far edge and the quietest
-         treatment: plain text, no rail. Three signals carry the active page:
-         colour, weight (550→650), and an 18×2px pill that grows from
-         scaleX(.55). -->
-    <nav class="primary-nav" aria-label="Primary navigation">
-      <a class="nav-link active" href="./" aria-current="page">Dashboard</a>
-      <a class="nav-link" href="briefs.html">Briefs</a>
-      <a class="nav-link" href="faq.html">FAQ</a>
-      <a class="nav-link" href="https://github.com/KCNyu/clawock" target="_blank" rel="noopener">GitHub</a>
-    </nav>
   </div>
   <div class="swipe-hint" aria-hidden="true"></div>
 </header>

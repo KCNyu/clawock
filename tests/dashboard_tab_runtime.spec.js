@@ -826,9 +826,11 @@ async function testTopbarFitsWhenRefreshLabelSwaps(browser, base) {
 // the content stood still (172px of drift at 1920, 492px at 2560).
 //
 // The picker replaced the six-tab strip, which used to be the left-anchored
-// element this measured. The right-anchored element is now the site nav — the
-// picker and Refresh sit before it — so the right edge is checked against that.
-// The strip's own "two rules 1px apart" assertion went with the strip.
+// element this measured. Two rounds of layout later: the wordmark and the
+// picker hold the left, and the right edge belongs to Refresh, with the site
+// nav sitting just inside it. So the right edge is checked against Refresh and
+// the nav is bounded by the column instead of pinned to it. The strip's own
+// "two rules 1px apart" assertion went with the strip.
 async function testHeaderSharesTheContentColumn(browser, base) {
   for (const width of [1280, 1920, 2560]) {
     const page = await browser.newPage({ viewport: { width, height: 900 } });
@@ -843,7 +845,8 @@ async function testHeaderSharesTheContentColumn(browser, base) {
         columnLeft: box(main).left + parseFloat(style.paddingLeft),
         columnRight: box(main).right - parseFloat(style.paddingRight),
         brandLeft: box(document.querySelector(".brand-mark")).left,
-        controlsLeft: box(document.querySelector(".view-picker-btn")).left,
+        pickerLeft: box(document.querySelector(".view-picker-btn")).left,
+        navLeft: box(document.querySelector(".primary-nav")).left,
         navRight: box(document.querySelector(".primary-nav")).right,
         refreshRight: box(document.getElementById("refresh-btn")).right,
       };
@@ -851,12 +854,14 @@ async function testHeaderSharesTheContentColumn(browser, base) {
     const off = (a, b) => Math.abs(a - b);
     assert(off(m.brandLeft, m.columnLeft) <= 1,
       `wordmark is ${off(m.brandLeft, m.columnLeft)}px off the content column at ${width}px`);
-    assert(off(m.navRight, m.columnRight) <= 1,
-      `the site nav is ${off(m.navRight, m.columnRight)}px off the column's right edge at ${width}px`);
-    assert(m.controlsLeft > m.brandLeft && m.controlsLeft < m.columnRight,
+    assert(off(m.refreshRight, m.columnRight) <= 1,
+      `refresh is ${off(m.refreshRight, m.columnRight)}px off the column's right edge at ${width}px`);
+    assert(m.pickerLeft > m.brandLeft && m.pickerLeft < m.columnRight,
       `the view picker sits outside the content column at ${width}px`);
-    assert(m.refreshRight <= m.columnRight + 1,
-      `refresh is ${m.refreshRight - m.columnRight}px past the column at ${width}px`);
+    assert(m.navRight <= m.columnRight + 1,
+      `the site nav is ${m.navRight - m.columnRight}px past the column at ${width}px`);
+    assert(m.navLeft > m.pickerLeft,
+      `the site nav is not to the right of the picker at ${width}px`);
     await page.close();
   }
 }

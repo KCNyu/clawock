@@ -427,21 +427,15 @@
     display: flex; align-items: center;
     gap: var(--space-3);
   }
-  /* The brand owns the left, everything else is pushed to the right. A single
-     `margin-right: auto` on the brand does that at BOTH breakpoints, so the
-     mobile layout needs no `order` overrides and DOM order stays the reading
-     order: brand → this page's controls → the destinations that leave it. */
+  /* Left corner: identity + the current view. Right corner: where you can go,
+     then Refresh. `margin-right: auto` on the picker is the whole mechanism —
+     it holds the wordmark and the picker together on the left and pushes this
+     cluster to the right edge, so DOM order stays the reading order and no
+     `order` override is needed. On a phone the cluster takes its own row. */
+  .topbar-actions { display: inline-flex; align-items: center; gap: var(--space-3); flex: 0 0 auto; }
   .brand {
     display: flex; align-items: center; gap: 8px;
-    min-width: 0; margin-right: auto;
-  }
-  /* This page's own controls: which view is showing, and Refresh. Grouped
-     because both act on the page you are already on — and kept out of the
-     brand's slot so the wordmark and the view switcher do not read as one
-     control. */
-  .topbar-controls {
-    display: inline-flex; align-items: center; gap: var(--space-3);
-    flex: 0 0 auto;
+    min-width: 0;
   }
   /* The header is full-bleed — its background, shadow and scroll edge span the
      viewport — but what it holds belongs to the same column as the cards.
@@ -511,7 +505,7 @@
      default and the menu only appears on intent. The label is updated by
      JS in lock-step with `setActiveButton()`, so deep-links and swipe
      between panels both land on the right label. */
-  .view-picker { position: relative; flex: 0 0 auto; }
+  .view-picker { position: relative; flex: 0 0 auto; margin-right: auto; }
   .view-picker-btn {
     appearance: none; background: transparent; color: var(--text);
     border: 1px solid transparent; border-radius: var(--radius);
@@ -630,18 +624,22 @@
   @media (max-width: 600px) {
     .topbar { padding: 10px var(--space-3) 0; padding-top: max(10px, env(safe-area-inset-top)); }
     .topbar-row { flex-wrap: wrap; row-gap: var(--space-2); }
-    /* Row 1: the brand on the left, this page's controls on the right. The
-       picker stays a compact cluster member — a full-width button for a
-       control this rarely used reads as a second header, which is exactly
-       what the six-tab strip it replaced was. `flex: 0 1 auto` on the brand
-       lets the wordmark truncate before the controls are pushed off. */
+    /* Row 1: the wordmark on the left, the current view beside it. The picker
+       stays a compact 44px target rather than a full-width bar — a full-width
+       row for a control this rarely used reads as a second header, which is
+       exactly what the six-tab strip it replaced was. `flex: 0 1 auto` on the
+       brand lets the wordmark truncate first. */
     .brand { flex: 0 1 auto; }
-    .topbar-controls { flex: 0 0 auto; }
     .view-picker-btn { min-height: 44px; }
-    /* Row 2: the four destinations share the width equally, so the row reads
-       as one bar without a rail. */
+    /* Row 2: the four destinations share the width equally (so the row reads
+       as one bar without a rail), and Refresh rides at its right end. The
+       cluster takes the whole row rather than letting flexbox place the nav
+       and Refresh separately: line breaking uses each item's hypothetical
+       size, and nav(max-content) + Refresh does not fit beside the brand at
+       360–390px — so without this the phone got a third row. */
+    .topbar-actions { flex: 1 0 100%; }
     .primary-nav {
-      flex: 1 0 100%;
+      flex: 1 1 auto;
       display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
       min-width: 0;
     }
@@ -649,18 +647,16 @@
     .refresh-btn { width: 44px; height: 44px; min-width: 44px; min-height: 44px; }
   }
   @media (max-width: 400px) {
-    .topbar-controls { gap: var(--space-2); }
     .brand h1 { font-size: var(--fs-xl); }
-    /* At 320px the picker's label plus a 44px refresh and the wordmark stop
-       fitting; the wordmark is the compressible part (it has an ellipsis),
-       and the picker's own label is the second. Neither target shrinks. */
+    /* At 320px the wordmark plus the picker's label stop fitting; the wordmark
+       is the compressible part (it has an ellipsis), the targets do not. */
     .brand h1 { max-width: 84px; }
   }
   @media (max-width: 359px) {
     /* Below the promised 360px floor, preserve labels and let only this row
        scroll. The document itself stays clamped to the viewport. */
     .primary-nav {
-      flex: 1 0 100%; min-width: 0;
+      flex: 1 1 auto; min-width: 0;
       overflow-x: auto; scrollbar-width: none;
       grid-template-columns: repeat(4, max-content);
     }
