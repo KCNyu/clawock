@@ -131,8 +131,12 @@ def test_the_shared_nav_does_not_advertise_a_page_the_site_does_not_have():
     # The nav is on every page, so one dead entry there is one dead link per
     # page — the shape that made this cost three days of crawls unnoticed.
     layout = (SITE / "_layouts" / "default.html").read_text(encoding="utf-8")
-    nav = layout[layout.index('<nav class="topbar-actions">'):]
-    nav = nav[:nav.index("</nav>")]
+    # The destinations moved one level in when the layout grew the same
+    # `.primary-nav` wrapper the dashboard uses (#1702): the header is now
+    # `<div class="topbar-actions"><nav class="primary-nav">…`, so the slice
+    # starts at the <nav>, not at the wrapper div.
+    start = layout.index('<nav class="primary-nav"')
+    nav = layout[start:layout.index("</nav>", start)]
     for raw in HREF.findall(nav):
         match = RELATIVE_URL.match(raw.strip())
         if not match:

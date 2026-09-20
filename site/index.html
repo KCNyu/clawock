@@ -107,26 +107,45 @@ layout: null
       <h1>clawock</h1>
       <span class="updated" id="last-updated">—</span>
     </div>
-    <div class="topbar-actions">
-      <nav class="primary-nav" aria-label="Primary navigation">
-        <a class="nav-link active" href="./" aria-current="page">Dashboard</a>
-        <a class="nav-link" href="briefs.html">Briefs</a>
-        <a class="nav-link" href="faq.html">FAQ</a>
-        <a class="nav-link" href="https://github.com/KCNyu/clawock" target="_blank" rel="noopener">GitHub</a>
-      </nav>
+    <!-- This page's own controls, grouped: the view picker (which of the six
+         dashboard views is showing) and Refresh (pull the data again). They
+         belong together because both act on the page you are already on.
+         The site-wide destinations sit past them, at the far edge, because
+         leaving the page is the rarer intent. DOM order matches visual order
+         at both breakpoints, so no `order` overrides are needed. -->
+    <div class="topbar-controls">
+      <div class="view-picker" id="view-picker">
+        <button class="view-picker-btn" id="view-picker-btn" type="button"
+                aria-haspopup="menu" aria-expanded="false" aria-controls="view-picker-menu">
+          <span class="view-picker-label" id="view-picker-label">Overview</span>
+          <span class="view-picker-chevron" aria-hidden="true">▾</span>
+        </button>
+        <div class="view-picker-menu" id="view-picker-menu" role="menu"
+             aria-labelledby="view-picker-btn" hidden>
+          <button id="tab-hero"    class="view-picker-item is-active" data-tab="hero"    role="menuitemradio" aria-checked="true"  type="button" tabindex="-1">Overview</button>
+          <button id="tab-drill"   class="view-picker-item"           data-tab="drill"   role="menuitemradio" aria-checked="false" type="button" tabindex="-1">Holdings</button>
+          <button id="tab-risk"    class="view-picker-item"           data-tab="risk"    role="menuitemradio" aria-checked="false" type="button" tabindex="-1">Risk</button>
+          <button id="tab-market"  class="view-picker-item"           data-tab="market"  role="menuitemradio" aria-checked="false" type="button" tabindex="-1">Signals</button>
+          <button id="tab-plan"    class="view-picker-item"           data-tab="plan"    role="menuitemradio" aria-checked="false" type="button" tabindex="-1">Plan</button>
+          <button id="tab-reflect" class="view-picker-item"           data-tab="reflect" role="menuitemradio" aria-checked="false" type="button" tabindex="-1">Reflect</button>
+        </div>
+      </div>
       <button class="refresh-btn" id="refresh-btn" type="button" aria-label="Refresh data" title="立即刷新">
         <span class="ic" aria-hidden="true">&#x21bb;</span>
       </button>
     </div>
+    <!-- Site-level primary nav. A link out of this page is the rarer intent
+         than a view switch, so it takes the far edge and the quietest
+         treatment: plain text, no rail. Three signals carry the active page:
+         colour, weight (550→650), and an 18×2px pill that grows from
+         scaleX(.55). -->
+    <nav class="primary-nav" aria-label="Primary navigation">
+      <a class="nav-link active" href="./" aria-current="page">Dashboard</a>
+      <a class="nav-link" href="briefs.html">Briefs</a>
+      <a class="nav-link" href="faq.html">FAQ</a>
+      <a class="nav-link" href="https://github.com/KCNyu/clawock" target="_blank" rel="noopener">GitHub</a>
+    </nav>
   </div>
-  <nav class="tabs" role="tablist">
-    <button class="tab-btn active" id="tab-hero" data-tab="hero" aria-controls="panel-hero" role="tab" aria-selected="true">Overview</button>
-    <button class="tab-btn" id="tab-drill" data-tab="drill" aria-controls="panel-drill" role="tab" aria-selected="false">Holdings</button>
-    <button class="tab-btn" id="tab-risk" data-tab="risk" aria-controls="panel-risk" role="tab" aria-selected="false">Risk</button>
-    <button class="tab-btn" id="tab-market" data-tab="market" aria-controls="panel-market" role="tab" aria-selected="false">Signals</button>
-    <button class="tab-btn" id="tab-plan" data-tab="plan" aria-controls="panel-plan" role="tab" aria-selected="false">Plan</button>
-    <button class="tab-btn" id="tab-reflect" data-tab="reflect" aria-controls="panel-reflect" role="tab" aria-selected="false">Reflect</button>
-  </nav>
   <div class="swipe-hint" aria-hidden="true"></div>
 </header>
 
@@ -163,13 +182,14 @@ layout: null
   </div>
 
   <!-- ============================================
-       6 tabs, 按「每个 tab 回答一个问题」归类 (2026-06-22 重构):
+       6 个面板，按「每个面板回答一个问题」归类 (2026-06-22 重构):
        总览=我现在怎样 · 持仓=每只仓位 · 风控=敞口/杠杆/回撤
        信号=量化+消息输入 · 计划=触发与动作 · 诚实=AI/战绩自评
+       切换器在顶栏的 view-picker 里，不再是这一页顶部的一行 tab。
        ============================================ -->
   <div class="pager" id="pager">
 
-  <section class="panel active" id="panel-hero" data-panel="hero" role="tabpanel" aria-labelledby="tab-hero">
+  <section class="panel active" id="panel-hero" data-panel="hero">
     <h2>Overview</h2>
 
     <div class="overview-command">
@@ -418,7 +438,7 @@ layout: null
     </section>
 
   </section>
-  <section class="panel" id="panel-drill" data-panel="drill" role="tabpanel" aria-labelledby="tab-drill">
+  <section class="panel" id="panel-drill" data-panel="drill">
     <h2>Holdings</h2>
 
     <div class="sect-divider holdings-section-heading">持仓明细</div>
@@ -579,7 +599,7 @@ layout: null
     </div>
 
   </section>
-  <section class="panel" id="panel-risk" data-panel="risk" role="tabpanel" aria-labelledby="tab-risk">
+  <section class="panel" id="panel-risk" data-panel="risk">
     <h2>Risk</h2>
 
     <div class="sect-divider">敞口 · 杠杆 · 硬闸</div>
@@ -727,7 +747,7 @@ layout: null
     </div>
 
   </section>
-  <section class="panel" id="panel-market" data-panel="market" role="tabpanel" aria-labelledby="tab-market">
+  <section class="panel" id="panel-market" data-panel="market">
     <h2>Signals</h2>
 
     <div class="card desktop-wide" id="tape-card">
@@ -829,7 +849,7 @@ layout: null
     </div>
 
   </section>
-  <section class="panel" id="panel-plan" data-panel="plan" role="tabpanel" aria-labelledby="tab-plan">
+  <section class="panel" id="panel-plan" data-panel="plan">
     <h2>Plan</h2>
 
     <div class="card lead" id="add-side-card" style="display:none">
@@ -874,7 +894,7 @@ layout: null
     </div>
 
   </section>
-  <section class="panel" id="panel-reflect" data-panel="reflect" role="tabpanel" aria-labelledby="tab-reflect">
+  <section class="panel" id="panel-reflect" data-panel="reflect">
     <h2>Reflect</h2>
 
     <div class="sect-divider">决策质量 · 自评</div>

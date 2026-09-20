@@ -76,21 +76,45 @@
   .brand-mark { width: 24px; height: 24px; flex: 0 0 auto; display: block; }
   .brand h1 { margin: 0; font-size: 18px; font-weight: 700; color: var(--text); letter-spacing: -0.01em; }
   .brand .tag { font-size: 11px; color: var(--text-dim); }
+  /* Primary navigation — the same instrument as the dashboard's, so a reader
+     moving between the two never sees the chrome change (#1702). Plain text,
+     no rail and no hover fill: three signals carry the active page (colour,
+     weight 550→650, an 18×2px accent pill that grows from scaleX(.55)). This
+     file is self-contained — the dashboard loads dashboard.css, the Jekyll
+     pages do not — so these rules are duplicated here on purpose; keeping
+     them in one place would mean either page losing its stylesheet. */
   .topbar-actions { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .primary-nav { display: inline-flex; align-items: center; gap: 2px; }
   .nav-link {
-    color: var(--text-dim); text-decoration: none; font-size: 13px;
-    padding: 6px 10px; border-radius: 6px; transition: background 0.15s, color 0.15s;
+    position: relative; display: inline-flex; align-items: center; justify-content: center;
+    min-height: 32px; padding: 0 10px; border-radius: var(--radius-sm);
+    color: var(--text-dim); text-decoration: none;
+    font-size: 13px; font-weight: 550; letter-spacing: .012em;
+    white-space: nowrap; touch-action: manipulation;
+    transition: color 0.15s ease, transform 0.15s cubic-bezier(.23, 1, .32, 1);
   }
-  .nav-link:hover { color: var(--text); background: var(--card-2); }
-  .nav-link.active { color: var(--accent); background: var(--card-2); }
-  /* Below this width the brand and five links stop fitting on one line. At
+  .nav-link::after {
+    content: ""; position: absolute; left: 50%; bottom: 2px;
+    width: 18px; height: 2px; border-radius: 999px;
+    background: var(--accent); opacity: 0; transform: translateX(-50%) scaleX(.55);
+    transition: opacity 0.15s ease, transform 0.15s cubic-bezier(.23, 1, .32, 1);
+  }
+  .nav-link.active { color: var(--text); font-weight: 650; }
+  .nav-link.active::after { opacity: 1; transform: translateX(-50%) scaleX(1); }
+  .nav-link:active { transform: scale(.97); }
+  @media (hover: hover) and (pointer: fine) {
+    .nav-link:hover { color: var(--text); }
+  }
+  .nav-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  /* Below this width the brand and four links stop fitting on one line. At
      375px they come to roughly 382px, so `flex-wrap` broke the nav onto a
      second line and `justify-content: space-between` then shoved that line
      against the right edge — a ragged two-row header on every phone. Giving the
      nav its own full-width row is the same information in a shape a phone can
-     hold. `nowrap` + `overflow-x: auto` is the safety valve: on a 320px screen,
-     or the day a sixth link is added, the failure mode is a scroll rather than
-     another ragged wrap. */
+     hold. The dashboard settles the same width with an equal-width grid; the
+     Jekyll pages match it so both headers read as one bar. `min-width: 0` on
+     the grid keeps a long label from widening its column past 1fr and pushing
+     the row into overflow. */
   @media (max-width: 600px) {
     header.topbar { padding: 8px 12px; }
     .topbar-row { flex-wrap: wrap; row-gap: 4px; }
@@ -98,17 +122,20 @@
     .topbar-actions {
       flex: 1 0 100%;
       flex-wrap: nowrap;
-      justify-content: space-between;
       overflow-x: auto;
       scrollbar-width: none;
       /* Bleed to the header's own padding so the first and last link sit flush
          with the content below them instead of inside a phantom inset. */
-      margin: 0 -12px; padding: 0 12px; gap: 2px;
+      margin: 0 -12px; padding: 0 12px; gap: 8px;
     }
     .topbar-actions::-webkit-scrollbar { display: none; }
-    /* A touch target, not a mouse target: 12.5px text with 8px of vertical
-       padding is ~37px tall, against the ~30px this row used to be. */
-    .nav-link { flex: 0 0 auto; padding: 8px 9px; font-size: 12.5px; }
+    .primary-nav {
+      flex: 1 1 auto; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+      min-width: 0;
+    }
+    /* A touch target, not a mouse target: 44px is the floor the dashboard's
+       own nav holds on a phone, and these two headers are the same control. */
+    .nav-link { min-height: 44px; padding: 0 8px; }
   }
   @media (max-width: 480px) {
     .brand-mark { width: 22px; height: 22px; }
@@ -423,12 +450,14 @@
       <h1>clawock</h1>
       <span class="tag">harness · HK + US portfolio</span>
     </a>
-    <nav class="topbar-actions">
-      <a class="nav-link {% if page.url == '/' or page.url == '/index.html' %}active{% endif %}" {% if page.url == '/' or page.url == '/index.html' %}aria-current="page"{% endif %} href="{{ '/' | relative_url }}">Dashboard</a>
-      <a class="nav-link {% if page.url contains 'briefs' or page.url contains '/memory/' %}active{% endif %}" {% if page.url contains 'briefs' or page.url contains '/memory/' %}aria-current="page"{% endif %} href="{{ '/briefs.html' | relative_url }}">Briefs</a>
-      <a class="nav-link {% if page.url contains 'faq' %}active{% endif %}" {% if page.url contains 'faq' %}aria-current="page"{% endif %} href="{{ '/faq.html' | relative_url }}">FAQ</a>
-      <a class="nav-link" href="https://github.com/KCNyu/clawock" target="_blank" rel="noopener">GitHub</a>
-    </nav>
+    <div class="topbar-actions">
+      <nav class="primary-nav" aria-label="Primary navigation">
+        <a class="nav-link {% if page.url == '/' or page.url == '/index.html' %}active{% endif %}" {% if page.url == '/' or page.url == '/index.html' %}aria-current="page"{% endif %} href="{{ '/' | relative_url }}">Dashboard</a>
+        <a class="nav-link {% if page.url contains 'briefs' or page.url contains '/memory/' %}active{% endif %}" {% if page.url contains 'briefs' or page.url contains '/memory/' %}aria-current="page"{% endif %} href="{{ '/briefs.html' | relative_url }}">Briefs</a>
+        <a class="nav-link {% if page.url contains 'faq' %}active{% endif %}" {% if page.url contains 'faq' %}aria-current="page"{% endif %} href="{{ '/faq.html' | relative_url }}">FAQ</a>
+        <a class="nav-link" href="https://github.com/KCNyu/clawock" target="_blank" rel="noopener">GitHub</a>
+      </nav>
+    </div>
   </div>
 </header>
 

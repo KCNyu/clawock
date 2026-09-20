@@ -1,8 +1,12 @@
   // =========================================================
-  // Tab switching
+  // Tab switching (driven by the view-picker items in the topbar)
   // =========================================================
-  // Tab order follows the button order in the tablist.
-  const TAB_ORDER = Array.from(document.querySelectorAll(".tab-btn")).map(b => b.dataset.tab);
+  // The old six-tab strip is gone. The same six views are now picker items
+  // in a topbar dropdown; data-tab is the only contract they share with the
+  // pager. Read the order from the picker so the URL hash, the desk-rail
+  // class, and the pager index all stay in lock-step.
+  const TAB_ORDER = Array.from(document.querySelectorAll(".view-picker-item[data-tab]"))
+    .map(b => b.dataset.tab);
 
   const pager = document.getElementById("pager");
   const DESKTOP_MQ = window.matchMedia("(min-width: 1024px)");
@@ -49,15 +53,20 @@
       setDeskRailExpanded(deskRailToggle.getAttribute("aria-expanded") !== "true", true));
   }
 
-  // Reflect the active tab in the button bar + a11y + desktop CSS. Does NOT move
+  // Reflect the active tab in the picker + a11y + desktop CSS. Does NOT move
   // the pager (the scroll position is the source of truth on mobile).
   function setActiveButton(t) {
     if (!TAB_ORDER.includes(t)) return;
     setDeskRailTab(t);
-    document.querySelectorAll(".tab-btn").forEach(b => {
+    // Picker items: only one is the current view; the rest are quiet labels.
+    const label = document.getElementById("view-picker-label");
+    document.querySelectorAll(".view-picker-item[data-tab]").forEach(b => {
       const on = b.dataset.tab === t;
-      b.classList.toggle("active", on);
-      b.setAttribute("aria-selected", on);
+      b.classList.toggle("is-active", on);
+      b.setAttribute("aria-checked", on);
+      if (on && label && label.textContent !== b.textContent) {
+        label.textContent = b.textContent;
+      }
     });
     const activeIndex = TAB_ORDER.indexOf(t);
     document.querySelectorAll(".panel").forEach(p => {
@@ -71,8 +80,6 @@
       // visible tab wins, so no hidden panel receives runtime DOM.
       activateTabData(t);
     }
-    const btn = document.querySelector(`.tab-btn[data-tab="${t}"]`);
-    if (btn) btn.scrollIntoView({ block: "nearest", inline: "center", behavior: SCROLL_BEHAVIOR });
     // Deep-link: keep the URL hash in sync (replaceState → no history spam while
     // swiping). Refresh / bookmark / shared link then lands on the same tab
     // instead of always resetting to Hero. Hero itself keeps a clean URL.
@@ -91,7 +98,8 @@
   // across two call sites, `renderLandingTab`'s step() and ensureVisibleCharts.
   //
   // The scroll handler below already computes this index every animation frame
-  // in order to move `.tab-btn.active`, so the value is maintained regardless.
+  // in order to move the picker's checked item, so the value is maintained
+  // regardless.
   // Caching it there means the geometry is read once per frame by the code whose
   // job that is, instead of once per renderer by code that only needs to know
   // whether the user has navigated away. Worst-case staleness is one frame, and
@@ -103,7 +111,7 @@
     if (pagerLive()) {
       return TAB_ORDER[Math.max(0, Math.min(TAB_ORDER.length - 1, pagerIndex))];
     }
-    const active = document.querySelector(".tab-btn.active");
+    const active = document.querySelector(".view-picker-item.is-active");
     return active ? active.dataset.tab : TAB_ORDER[0];
   }
 
@@ -126,9 +134,115 @@
     return goToTab(TAB_ORDER[next]);
   }
 
-  document.querySelectorAll(".tab-btn").forEach(btn => {
-    btn.addEventListener("click", () => goToTab(btn.dataset.tab));
+  // Picker items: clicking one switches the tab and closes the menu. The
+  // keyboard loop below also drives these (Arrow up/down, Enter, Escape).
+  document.querySelectorAll(".view-picker-item[data-tab]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      goToTab(btn.dataset.tab);
+      closeViewPicker();
+    });
   });
+
+  // =========================================================
+  // View-picker menu open/close
+  // =========================================================
+  // The picker is a button + a glass menu. Open/close with a click; close
+  // on outside click, Escape, or selecting an item. Roving tabindex inside
+  // the menu so only one item is in the page tab order at a time — the
+  // rest get tabindex=-1 until the user arrows to them. The button keeps
+  // its own focus when the menu closes (returning focus there is the
+  // standard "menu dismissed" expectation for ARIA menu patterns).
+  const viewPicker = document.getElementById("view-picker");
+  const viewPickerBtn = document.getElementById("view-picker-btn");
+  const viewPickerMenu = document.getElementById("view-picker-menu");
+  const viewPickerItems = viewPickerMenu
+    ? Array.from(viewPickerMenu.querySelectorAll(".view-picker-item[data-tab]"))
+    : [];
+
+  function isViewPickerOpen() {
+    return !!(viewPickerBtn && viewPickerBtn.getAttribute("aria-expanded") === "true");
+  }
+  function openViewPicker() {
+    if (!viewPickerBtn || !viewPickerMenu) return;
+    viewPickerBtn.setAttribute("aria-expanded", "true");
+    viewPickerMenu.hidden = false;
+    // Land focus on the active item — same item the user just clicked to
+    // arrive here, so the up/down arrow keys start from the current view.
+    const active = viewPickerItems.find(item => item.classList.contains("is-active"))
+      || viewPickerItems[0];
+    if (active) {
+      viewPickerItems.forEach(i => { i.tabIndex = -1; });
+      active.tabIndex = 0;
+      // Defer focus so the in-animation doesn't fight the focus ring.
+      requestAnimationFrame(() => active.focus());
+    }
+  }
+  function closeViewPicker(returnFocus = true) {
+    if (!viewPickerBtn || !viewPickerMenu) return;
+    if (!isViewPickerOpen()) return;
+    viewPickerBtn.setAttribute("aria-expanded", "false");
+    viewPickerMenu.hidden = true;
+    viewPickerItems.forEach(i => { i.tabIndex = -1; });
+    if (returnFocus) viewPickerBtn.focus();
+  }
+  function toggleViewPicker() {
+    if (isViewPickerOpen()) closeViewPicker();
+    else openViewPicker();
+  }
+
+  if (viewPickerBtn && viewPickerMenu) {
+    viewPickerBtn.addEventListener("click", e => {
+      e.stopPropagation();
+      toggleViewPicker();
+    });
+    // Click outside the picker closes the menu (but does not move focus —
+    // a focus shift on outside click is the kind of jump users notice).
+    document.addEventListener("click", e => {
+      if (!isViewPickerOpen()) return;
+      if (viewPicker && !viewPicker.contains(e.target)) closeViewPicker(false);
+    });
+    // Escape closes and returns focus to the trigger.
+    viewPickerMenu.addEventListener("keydown", e => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        closeViewPicker();
+      } else if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+        e.preventDefault();
+        const dir = e.key === "ArrowDown" ? 1 : -1;
+        const cur = document.activeElement;
+        const idx = viewPickerItems.indexOf(cur);
+        const next = viewPickerItems[(idx + dir + viewPickerItems.length) % viewPickerItems.length];
+        if (next) {
+          viewPickerItems.forEach(i => { i.tabIndex = -1; });
+          next.tabIndex = 0;
+          next.focus();
+        }
+      } else if (e.key === "Home" || e.key === "PageUp") {
+        e.preventDefault();
+        const first = viewPickerItems[0];
+        if (first) {
+          viewPickerItems.forEach(i => { i.tabIndex = -1; });
+          first.tabIndex = 0;
+          first.focus();
+        }
+      } else if (e.key === "End" || e.key === "PageDown") {
+        e.preventDefault();
+        const last = viewPickerItems[viewPickerItems.length - 1];
+        if (last) {
+          viewPickerItems.forEach(i => { i.tabIndex = -1; });
+          last.tabIndex = 0;
+          last.focus();
+        }
+      } else if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        const cur = document.activeElement;
+        if (cur && cur.classList && cur.classList.contains("view-picker-item")) {
+          goToTab(cur.dataset.tab);
+          closeViewPicker();
+        }
+      }
+    });
+  }
 
   // Sync the active-tab indicator to the live scroll position (rAF-throttled).
   // On settle, nudge ECharts in the now-visible page to resize.
@@ -162,9 +276,13 @@
     });
   }
 
-  // Keyboard arrows mirror the swipe.
+  // Keyboard arrows mirror the swipe — but only when the picker is closed;
+  // when it's open, the picker's own keydown handler owns the arrows. The
+  // global handler still picks up arrows when focus is on the body or on a
+  // link so the user can keep swiping without first dismissing the menu.
   document.addEventListener("keydown", e => {
     if (e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName)) return;
+    if (isViewPickerOpen()) return;
     if (e.key === "ArrowLeft") shiftTab(-1);
     else if (e.key === "ArrowRight") shiftTab(1);
   });

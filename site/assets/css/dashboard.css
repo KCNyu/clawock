@@ -328,7 +328,11 @@
     body .status-banner,
     body .hero-deck,
     body .card.verdict-deck .deck-card,
-    body .overview-strip {
+    body .overview-strip,
+    /* The picker menu is a glass surface too, and it is the one that sits ON
+       TOP of other content: with the blur left on it would be a translucent
+       sheet over the cards with nothing to justify the see-through. */
+    body .view-picker-menu {
       -webkit-backdrop-filter: none;
       backdrop-filter: none;
     }
@@ -348,6 +352,7 @@
        文字会从卡里透出来叠字。 */
     body .card.verdict-deck .deck-card { background: var(--surface-1); }
     body .overview-strip { background: var(--surface-1); }
+    body .view-picker-menu { background: var(--surface-1); }
     /* 判定牌自画光池（2026-08-25 第五次迭代起）同属「光穿过材质」，实色
        表面上一并关掉 —— 本块注释自己的判据，v1 漏了这条。 */
     body .verdict-deck .deck-card::before { display: none; }
@@ -391,7 +396,7 @@
   code { font-family: var(--mono); font-size: var(--fs-xs); }
 
   /* =========================================================
-     Sticky header + tab bar
+     Sticky header — single row, picker for sub-views
      ========================================================= */
   .topbar {
     position: sticky; top: 0; z-index: 30;
@@ -419,20 +424,44 @@
     pointer-events: none;
   }
   .topbar-row {
-    display: flex; align-items: center; justify-content: space-between;
-    gap: var(--space-4);
+    display: flex; align-items: center;
+    gap: var(--space-3);
   }
+  /* The brand owns the left, everything else is pushed to the right. A single
+     `margin-right: auto` on the brand does that at BOTH breakpoints, so the
+     mobile layout needs no `order` overrides and DOM order stays the reading
+     order: brand → this page's controls → the destinations that leave it. */
   .brand {
     display: flex; align-items: center; gap: 8px;
-    min-width: 0;
+    min-width: 0; margin-right: auto;
+  }
+  /* This page's own controls: which view is showing, and Refresh. Grouped
+     because both act on the page you are already on — and kept out of the
+     brand's slot so the wordmark and the view switcher do not read as one
+     control. */
+  .topbar-controls {
+    display: inline-flex; align-items: center; gap: var(--space-3);
+    flex: 0 0 auto;
+  }
+  /* The header is full-bleed — its background, shadow and scroll edge span the
+     viewport — but what it holds belongs to the same column as the cards.
+     `main` is `max-width: 1600px` centred with 28px of padding, so past 1600px
+     the header kept walking outward while the content stopped: at 1920px the
+     wordmark sat 172px left of the first card and Refresh 144px past its right
+     edge. Move the inline padding off the full-bleed element and onto the row,
+     so it resolves to main's own content box. Re-measured after the picker
+     landed: 1920px brand at x=188, nav right edge at 1732 — both on the column.
+     (This lived inside the old desktop tab-bar block and was dropped with it;
+     the picker needs no bar of its own, but the alignment it carried does.) */
+  @media (min-width: 1024px) {
+    .topbar { padding-inline: 0; }
+    .topbar-row { max-width: 1600px; margin-inline: auto; padding-inline: 28px; }
   }
   .brand-mark {
     width: 26px; height: 26px; flex: 0 0 auto; display: block;
   }
   .brand h1 {
     margin: 0; font-size: var(--fs-xl); font-weight: 700; letter-spacing: -0.01em;
-    /* `.brand` may shrink (min-width: 0), and an un-clipped h1 then paints on
-       top of the nav links instead of getting narrower. Truncate instead. */
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   .brand .updated {
@@ -474,30 +503,112 @@
   .refresh-btn.fresh-flash .ic::after { content: "✓"; font-size: var(--fs-md); }
   .refresh-btn[disabled] { opacity: 0.6; cursor: not-allowed; }
   @keyframes spin { to { transform: rotate(360deg); } }
-  /* Primary navigation is one quiet instrument, not four unrelated buttons.
-     The solid inner rail sits on the translucent topbar without stacking a
-     second blur layer; its edge and inset highlight make the grouping legible
-     in both themes. The refresh control stays outside the rail because it acts
-     on the dashboard data, not on site navigation. */
-  .topbar-actions { display: inline-flex; align-items: center; gap: var(--space-2); }
+
+  /* View picker — the dashboard sub-nav. Replaces the old six-tab strip.
+     The button shows the current view (Overview / Holdings / …) and a
+     chevron; clicking it opens a glass menu of the six options. The user
+     80%+ of the time stays on the first view, so the row is quiet by
+     default and the menu only appears on intent. The label is updated by
+     JS in lock-step with `setActiveButton()`, so deep-links and swipe
+     between panels both land on the right label. */
+  .view-picker { position: relative; flex: 0 0 auto; }
+  .view-picker-btn {
+    appearance: none; background: transparent; color: var(--text);
+    border: 1px solid transparent; border-radius: var(--radius);
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 4px 10px 4px 12px; min-height: 36px;
+    font-size: var(--fs-lg); font-weight: 650; letter-spacing: -0.012em;
+    cursor: pointer; white-space: nowrap;
+    transition: background var(--duration-fast) ease, border-color var(--duration-fast) ease,
+      transform var(--duration-fast) var(--ease-out);
+  }
+  .view-picker-btn:hover { background: var(--surface-1); }
+  .view-picker-btn[aria-expanded="true"] {
+    background: var(--surface-2); border-color: var(--border-subtle);
+  }
+  .view-picker-btn:active { transform: scale(.98); }
+  .view-picker-btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .view-picker-chevron {
+    font-size: 11px; line-height: 1; opacity: .6;
+    transition: transform var(--duration-fast) var(--ease-out);
+  }
+  .view-picker-btn[aria-expanded="true"] .view-picker-chevron {
+    transform: rotate(180deg);
+  }
+  .view-picker-menu {
+    /* Glass menu — same recipe as the topbar so blur-on-blur doesn't stack.
+       Positioned just under the button; the small offset keeps a touch
+       target between the two so the user can drag the pointer down to the
+       first item without closing the menu. */
+    position: absolute; top: calc(100% + 6px); right: 0;
+    min-width: 100%;
+    padding: 6px;
+    display: flex; flex-direction: column; gap: 2px;
+    background: var(--glass-card);
+    -webkit-backdrop-filter: var(--blur-card);
+    backdrop-filter: var(--blur-card);
+    border: 1px solid var(--border-subtle); border-radius: 12px;
+    box-shadow: var(--shadow-card);
+    z-index: 40;
+    /* Origin-aware: scale from the top edge so the menu reads as
+       materialising from under the button, not appearing in the middle
+       of the page. */
+    transform-origin: top right;
+    animation: view-picker-in 150ms cubic-bezier(.23, 1, .32, 1);
+  }
+  .view-picker-menu[hidden] { display: none; }
+  @keyframes view-picker-in {
+    from { opacity: 0; transform: translateY(-4px) scale(.98); }
+  }
+  .view-picker-item {
+    appearance: none; background: transparent; color: var(--text);
+    border: none; text-align: left;
+    display: flex; align-items: center; gap: 10px;
+    padding: 8px 12px; min-height: 36px;
+    font-size: var(--fs-md); font-weight: 500;
+    border-radius: var(--radius-sm); cursor: pointer; white-space: nowrap;
+    transition: background var(--duration-fast) ease, color var(--duration-fast) ease,
+      transform var(--duration-fast) var(--ease-out);
+  }
+  .view-picker-item:hover { background: var(--surface-2); }
+  .view-picker-item:active { transform: scale(.98); }
+  .view-picker-item:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
+  /* Active item: an accent dot in the gutter + accent-coloured text. The
+     dot is structural (it's where the eye lands on first read), and the
+     colour is the second signal — both are needed because the menu is
+     also a list of "places I can go", and a single dot stops the active
+     one from being confusable with the others on hover. */
+  .view-picker-item.is-active { color: var(--accent); font-weight: 600; }
+  .view-picker-item.is-active::before {
+    content: ""; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent); flex: 0 0 auto;
+  }
+  .view-picker-item:not(.is-active)::before {
+    content: ""; width: 6px; height: 6px; flex: 0 0 auto;
+  }
+
+  /* Primary navigation is plain text, not a grouped control. The previous
+     bordered rail (#1700) gave a low-frequency nav the visual weight of a
+     primary control and stacked a second opaque surface on the
+     already-frosted topbar. Three signals carry the active page: text
+     colour, weight (550→650), and an 18×2px pill that grows from
+     scaleX(.55). The refresh control stays as a circular icon because
+     its outcome is its own. */
   .primary-nav {
     display: inline-flex; align-items: center; gap: 2px;
-    padding: 3px; border: 1px solid var(--border-subtle); border-radius: 10px;
-    background: var(--surface-1);
-    box-shadow: inset 0 1px 0 var(--spec-1), 0 1px 3px rgba(0,0,0,.12);
   }
   .nav-link {
     position: relative; display: inline-flex; align-items: center; justify-content: center;
-    min-height: 30px; padding: 0 11px; border-radius: 7px;
+    min-height: 32px; padding: 0 10px; border-radius: var(--radius-sm);
     color: var(--text-dim); text-decoration: none;
     font-size: var(--fs-sm); font-weight: 550; letter-spacing: .012em;
     white-space: nowrap; touch-action: manipulation;
-    transition: background var(--duration-fast) ease, color var(--duration-fast) ease,
+    transition: color var(--duration-fast) ease,
       transform var(--duration-fast) var(--ease-out);
   }
   .nav-link::after {
     content: ""; position: absolute; left: 50%; bottom: 2px;
-    width: 14px; height: 2px; border-radius: 999px;
+    width: 18px; height: 2px; border-radius: 999px;
     background: var(--accent); opacity: 0; transform: translateX(-50%) scaleX(.55);
     transition: opacity var(--duration-fast) ease, transform var(--duration-fast) var(--ease-out);
   }
@@ -505,105 +616,55 @@
   .nav-link.active::after { opacity: 1; transform: translateX(-50%) scaleX(1); }
   .nav-link:active { transform: scale(.97); }
   @media (hover: hover) and (pointer: fine) {
-    .nav-link:hover { color: var(--text); background: var(--surface-2); }
+    .nav-link:hover { color: var(--text); }
   }
   .nav-link:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+
+  /* Phones (≤600px): two compact rows — brand + picker on top, the nav
+     cluster below. The picker keeps its 36px button so it stays a real
+     touch target; the nav switches to a 4-column equal-width grid so
+     Briefs/FAQ/GitHub share the row with the refresh. The old design
+     used a 6-tab strip with a full-width underline; the picker is
+     compact, the grid is shorter, and the whole header goes from
+     ~155px to ~110px. */
   @media (max-width: 600px) {
     .topbar { padding: 10px var(--space-3) 0; padding-top: max(10px, env(safe-area-inset-top)); }
     .topbar-row { flex-wrap: wrap; row-gap: var(--space-2); }
-    .brand { flex: 1 1 auto; }
-    .topbar-actions {
-      flex: 1 0 100%; flex-wrap: nowrap; justify-content: flex-start;
-      overflow-x: auto; scrollbar-width: none;
-      margin: 0; padding: 0; gap: var(--space-2);
-    }
-    .topbar-actions::-webkit-scrollbar { display: none; }
+    /* Row 1: the brand on the left, this page's controls on the right. The
+       picker stays a compact cluster member — a full-width button for a
+       control this rarely used reads as a second header, which is exactly
+       what the six-tab strip it replaced was. `flex: 0 1 auto` on the brand
+       lets the wordmark truncate before the controls are pushed off. */
+    .brand { flex: 0 1 auto; }
+    .topbar-controls { flex: 0 0 auto; }
+    .view-picker-btn { min-height: 44px; }
+    /* Row 2: the four destinations share the width equally, so the row reads
+       as one bar without a rail. */
     .primary-nav {
-      flex: 1 1 auto; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+      flex: 1 0 100%;
+      display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
       min-width: 0;
     }
     .nav-link { min-height: 44px; padding: 0 var(--space-2); font-size: var(--fs-sm); }
     .refresh-btn { width: 44px; height: 44px; min-width: 44px; min-height: 44px; }
   }
   @media (max-width: 400px) {
-    /* The rail may scroll on legacy 320px phones, but its targets stay intact;
-       shrinking hit areas to make the row fit would trade polish for misses. */
-    .topbar-actions { gap: var(--space-1); }
+    .topbar-controls { gap: var(--space-2); }
     .brand h1 { font-size: var(--fs-xl); }
+    /* At 320px the picker's label plus a 44px refresh and the wordmark stop
+       fitting; the wordmark is the compressible part (it has an ellipsis),
+       and the picker's own label is the second. Neither target shrinks. */
+    .brand h1 { max-width: 84px; }
   }
   @media (max-width: 359px) {
     /* Below the promised 360px floor, preserve labels and let only this row
        scroll. The document itself stays clamped to the viewport. */
     .primary-nav {
-      flex: 0 0 auto; min-width: max-content;
+      flex: 1 0 100%; min-width: 0;
+      overflow-x: auto; scrollbar-width: none;
       grid-template-columns: repeat(4, max-content);
     }
-  }
-
-  .tabs {
-    display: flex; gap: var(--space-1); margin-top: var(--space-3);
-    overflow-x: auto; scrollbar-width: none;
-    -webkit-mask-image: linear-gradient(to right, transparent, #000 24px, #000 calc(100% - 24px), transparent);
-    mask-image: linear-gradient(to right, transparent, #000 24px, #000 calc(100% - 24px), transparent);
-  }
-  .tabs::-webkit-scrollbar { display: none; }
-  .tab-btn {
-    appearance: none; background: transparent; color: var(--text-dim);
-    border: none; position: relative;
-    padding: var(--space-3) var(--space-4); min-height: 44px;
-    font-size: var(--fs-md); font-weight: 500; cursor: pointer;
-    white-space: nowrap;
-    transition: color var(--duration-fast) ease, background var(--duration-fast) ease, transform var(--duration-fast) var(--ease-out);
-  }
-  .tab-btn:active { transform: scale(0.97); }
-  .tab-btn.active { color: var(--text); }
-  .tab-btn.active::after {
-    content: ""; position: absolute; width: 22px; height: 2px;
-    left: 50%; bottom: 3px; transform: translateX(-50%);
-    border-radius: 999px; background: var(--accent);
-    /* Grows in place instead of teleporting: scaleX is transform-only and
-       150ms is near-imperceptible even at tab-switch frequency. */
-    transform-origin: center;
-    animation: tab-indicator-in 150ms cubic-bezier(0.23, 1, 0.32, 1);
-  }
-  @keyframes tab-indicator-in {
-    from { transform: translateX(-50%) scaleX(0); }
-  }
-  .tab-btn:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
-
-  /* Desktop tab bar — a real underline nav, not the mobile edge-fade scroller. */
-  @media (min-width: 1024px) {
-    /* The header is full-bleed — its background, shadow and rule span the
-       viewport — but what it holds belongs to the same column as the cards.
-       `main` is `max-width: 1600px` centred with 28px of padding, so past
-       1600px the header kept walking outward while the content stopped: at
-       1920px the wordmark sat 172px left of the first card and Refresh 144px
-       past its right edge. Move the inline padding off the full-bleed element
-       and onto the two rows, so they resolve to main's own content box. */
-    .topbar { padding-inline: 0; }
-    .topbar-row, .tabs {
-      max-width: 1600px; margin-inline: auto; padding-inline: 28px;
-    }
-    .tabs {
-      gap: 2px; margin-top: 14px; overflow: visible;
-      -webkit-mask-image: none; mask-image: none;
-      /* No rule of its own: it sat 1px above the header's own full-bleed
-         border, which was invisible while both spanned the viewport. Once the
-         strip is column-width, the doubled pixel shows as a step at the column
-         edge. The header's border is the rule; the active indicator lands on
-         it either way. */
-    }
-    .tab-btn {
-      padding: 10px 18px; min-height: 40px; font-size: var(--fs-md); font-weight: 500;
-      border-radius: 8px 8px 0 0; transition: color .15s, background .15s;
-    }
-    @media (hover: hover) and (pointer: fine) {
-      .tab-btn:hover { color: var(--text); background: var(--surface-1); }
-    }
-    .tab-btn.active { color: var(--accent); }
-    .tab-btn.active::after {
-      width: 100%; height: 2px; left: 0; bottom: -1px; transform: none; border-radius: 0;
-    }
+    .primary-nav::-webkit-scrollbar { display: none; }
   }
 
   /* Per-market segmented control (broker-app style) for Equity / Daily P&L */
