@@ -420,7 +420,7 @@
   }
   .topbar-row {
     display: flex; align-items: center; justify-content: space-between;
-    gap: 12px;
+    gap: var(--space-4);
   }
   .brand {
     display: flex; align-items: center; gap: 8px;
@@ -449,19 +449,21 @@
      hover, spins while loading, and morphs to ✓ when a new generation landed
      (shape carries the outcome; colour alone never does). */
   .refresh-btn {
-    appearance: none; background: transparent; color: var(--text-dim);
-    border: 0; border-radius: 50%;
-    width: 34px; height: 34px; min-width: 34px; min-height: 34px;
+    appearance: none; background: var(--surface-1); color: var(--text-dim);
+    border: 1px solid var(--border-subtle); border-radius: 50%;
+    width: 36px; height: 36px; min-width: 36px; min-height: 36px;
     padding: 0; font-size: var(--fs-lg); cursor: pointer;
     display: inline-flex; align-items: center; justify-content: center;
     flex: 0 0 auto;
-    transition: background var(--duration-fast) ease, color var(--duration-fast) ease, transform var(--duration-fast) var(--ease-out);
+    box-shadow: inset 0 1px 0 var(--spec-1), 0 1px 3px rgba(0,0,0,.12);
+    transition: background var(--duration-fast) ease, border-color var(--duration-fast) ease,
+      color var(--duration-fast) ease, transform var(--duration-fast) var(--ease-out);
   }
   .refresh-btn:active { transform: scale(0.92); }
   /* 圆形按钮：环贴着边走，2px 外扩会切到相邻的 asof 文本。 */
   .refresh-btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
   @media (hover: hover) and (pointer: fine) {
-    .refresh-btn:hover { background: var(--surface-2); color: var(--text); }
+    .refresh-btn:hover { background: var(--surface-2); border-color: var(--border-strong); color: var(--text); }
   }
   .refresh-btn.is-loading .ic { animation: spin 0.8s linear infinite; }
   /* Nothing new: the ↻ stays and takes a green tint. New generation: the icon
@@ -472,32 +474,70 @@
   .refresh-btn.fresh-flash .ic::after { content: "✓"; font-size: var(--fs-md); }
   .refresh-btn[disabled] { opacity: 0.6; cursor: not-allowed; }
   @keyframes spin { to { transform: rotate(360deg); } }
-  .topbar-actions { display: inline-flex; align-items: center; gap: 4px; }
+  /* Primary navigation is one quiet instrument, not four unrelated buttons.
+     The solid inner rail sits on the translucent topbar without stacking a
+     second blur layer; its edge and inset highlight make the grouping legible
+     in both themes. The refresh control stays outside the rail because it acts
+     on the dashboard data, not on site navigation. */
+  .topbar-actions { display: inline-flex; align-items: center; gap: var(--space-2); }
+  .primary-nav {
+    display: inline-flex; align-items: center; gap: 2px;
+    padding: 3px; border: 1px solid var(--border-subtle); border-radius: 10px;
+    background: var(--surface-1);
+    box-shadow: inset 0 1px 0 var(--spec-1), 0 1px 3px rgba(0,0,0,.12);
+  }
   .nav-link {
-    color: var(--text-dim); text-decoration: none; font-size: var(--fs-md);
-    padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm); transition: background 0.15s, color 0.15s;
+    position: relative; display: inline-flex; align-items: center; justify-content: center;
+    min-height: 30px; padding: 0 11px; border-radius: 7px;
+    color: var(--text-dim); text-decoration: none;
+    font-size: var(--fs-sm); font-weight: 550; letter-spacing: .012em;
+    white-space: nowrap; touch-action: manipulation;
+    transition: background var(--duration-fast) ease, color var(--duration-fast) ease,
+      transform var(--duration-fast) var(--ease-out);
   }
-  .nav-link.active { color: var(--accent); background: var(--card-2); }
+  .nav-link::after {
+    content: ""; position: absolute; left: 50%; bottom: 2px;
+    width: 14px; height: 2px; border-radius: 999px;
+    background: var(--accent); opacity: 0; transform: translateX(-50%) scaleX(.55);
+    transition: opacity var(--duration-fast) ease, transform var(--duration-fast) var(--ease-out);
+  }
+  .nav-link.active { color: var(--text); font-weight: 650; }
+  .nav-link.active::after { opacity: 1; transform: translateX(-50%) scaleX(1); }
+  .nav-link:active { transform: scale(.97); }
   @media (hover: hover) and (pointer: fine) {
-    .nav-link:hover { color: var(--text); background: var(--card-2); }
+    .nav-link:hover { color: var(--text); background: var(--surface-2); }
   }
-  .nav-link:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
+  .nav-link:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
   @media (max-width: 600px) {
-    .topbar-row { flex-wrap: wrap; row-gap: 4px; }
+    .topbar { padding: 10px var(--space-3) 0; padding-top: max(10px, env(safe-area-inset-top)); }
+    .topbar-row { flex-wrap: wrap; row-gap: var(--space-2); }
     .brand { flex: 1 1 auto; }
     .topbar-actions {
-      flex: 1 0 100%; flex-wrap: nowrap; justify-content: space-between;
+      flex: 1 0 100%; flex-wrap: nowrap; justify-content: flex-start;
       overflow-x: auto; scrollbar-width: none;
-      margin: 0 calc(-1 * var(--space-4)); padding: 0 var(--space-4); gap: 2px;
+      margin: 0; padding: 0; gap: var(--space-2);
     }
     .topbar-actions::-webkit-scrollbar { display: none; }
-    .nav-link { flex: 0 0 auto; padding: var(--space-2); font-size: var(--fs-sm); }
+    .primary-nav {
+      flex: 1 1 auto; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+      min-width: 0;
+    }
+    .nav-link { min-height: 44px; padding: 0 var(--space-2); font-size: var(--fs-sm); }
+    .refresh-btn { width: 44px; height: 44px; min-width: 44px; min-height: 44px; }
   }
   @media (max-width: 400px) {
-    /* Last few pixels at 360–390: tighten the row rather than let the brand
-       hit its ellipsis. Nav-link padding stays put — it is the tap target. */
-    .topbar-actions { gap: 4px; }
+    /* The rail may scroll on legacy 320px phones, but its targets stay intact;
+       shrinking hit areas to make the row fit would trade polish for misses. */
+    .topbar-actions { gap: var(--space-1); }
     .brand h1 { font-size: var(--fs-xl); }
+  }
+  @media (max-width: 359px) {
+    /* Below the promised 360px floor, preserve labels and let only this row
+       scroll. The document itself stays clamped to the viewport. */
+    .primary-nav {
+      flex: 0 0 auto; min-width: max-content;
+      grid-template-columns: repeat(4, max-content);
+    }
   }
 
   .tabs {
