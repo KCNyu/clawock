@@ -2714,6 +2714,87 @@ async function testCardRhythmIsOneScalePerTier(browser, base) {
 }
 
 
+/** Every control a finger has to hit, measured on a phone.
+
+    The widget audit (2026-09-20) found the header holding 44px while the
+    controls inside the cards ran 30–38px: `.mkt-seg-btn` 30, `.dh-toggle` 32,
+    `.dm-actionbar button` 32, `.dm-controls select` 36, `.desk-rail-toggle` 38.
+    Each was individually plausible and collectively a page where the hit area
+    depends on which card you are in. A stylesheet rule cannot be asserted by
+    reading it, so this opens the real page at 390px with touch and measures.
+
+    `.deck-dot` is the exception and stays one: six pager dots sit on a 12px
+    pitch, so a 44px box would swallow its neighbours — the same trade the
+    timeline dots already make. It is checked on reach, not on box height. */
+async function testEveryPhoneControlIsAFingerTarget(browser, base) {
+  const context = await browser.newContext({
+    viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+  const page = await context.newPage();
+  await page.goto(base, { waitUntil: "networkidle" });
+  await waitForData(page);
+
+  const FLOOR = 44;
+  const CONTROLS = [".tab-btn", ".refresh-btn", ".site-menu-btn", ".dh-toggle",
+    ".mkt-seg-btn", ".dm-controls button", ".dm-controls select",
+    ".dm-actionbar button", ".desk-rail-toggle", ".panel-load-retry",
+    ".shadow-toggle"];
+  const short = [];
+  for (const tab of ["hero", "drill", "risk", "market", "plan", "reflect"]) {
+    await page.evaluate(name => document.getElementById(`tab-${name}`)?.click(), tab);
+    await page.waitForTimeout(400);
+    const rows = await page.evaluate(selectors => selectors.flatMap(selector =>
+      [...document.querySelectorAll(selector)]
+        .filter(el => el.getBoundingClientRect().width > 0)
+        .slice(0, 1)
+        .map(el => ({ selector, height: Math.round(el.getBoundingClientRect().height * 10) / 10 }))),
+      CONTROLS);
+    for (const row of rows) {
+      if (row.height < FLOOR) short.push(`${tab} ${row.selector}: ${row.height}px`);
+    }
+  }
+  assert.deepEqual(short, [],
+    `these controls are mouse-sized on a phone (the floor is ${FLOOR}px): ` + short.join(", "));
+
+  // The pager dots: a 5px dot with the reach of a 5px dot is a dot nobody hits.
+  await page.evaluate(name => document.getElementById(`tab-${name}`)?.click(), "hero");
+  await page.waitForTimeout(400);
+  const dot = await page.evaluate(() => {
+    const el = document.querySelector(".deck-dot");
+    if (!el) return null;
+    el.scrollIntoView({ block: "center" });
+    const box = el.getBoundingClientRect();
+    const x = box.left + box.width / 2, y = box.top + box.height / 2;
+    const owns = (dx, dy) => {
+      const hit = document.elementFromPoint(x + dx, y + dy);
+      return hit === el || el.contains(hit);
+    };
+    let up = 0, down = 0, left = 0, right = 0;
+    while (up < 40 && owns(0, -up - 1)) up += 1;
+    while (down < 40 && owns(0, down + 1)) down += 1;
+    while (left < 20 && owns(-left - 1, 0)) left += 1;
+    while (right < 20 && owns(right + 1, 0)) right += 1;
+    const dots = [...document.querySelectorAll(".deck-dot")];
+    let bleeds = false;
+    if (dots.length > 1) {
+      const a = dots[0].getBoundingClientRect(), b = dots[1].getBoundingClientRect();
+      const midpoint = (a.right + b.left) / 2;
+      const hit = document.elementFromPoint(midpoint, a.top + a.height / 2);
+      bleeds = (hit === dots[0] || dots[0].contains(hit))
+        && (hit === dots[1] || dots[1].contains(hit));
+    }
+    return { reachV: up + down + 1, reachH: left + right + 1, bleeds };
+  });
+  if (dot) {
+    assert(dot.reachV >= 20,
+      `a finger has ${dot.reachV}px of vertical reach on a deck dot`);
+    assert(dot.reachH >= 10,
+      `a finger has ${dot.reachH}px of horizontal reach on a deck dot`);
+    assert(!dot.bleeds, "a deck dot's hit area reaches its neighbour");
+  }
+  await context.close();
+}
+
+
 async function main() {
   const server = serveWorkspace();
   await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
@@ -2760,6 +2841,7 @@ async function main() {
     await run("testCronNeedsActionMergesIntoTheOneTodoListButWatchDoesNot", () => testCronNeedsActionMergesIntoTheOneTodoListButWatchDoesNot(browser, base));
     await run("testMoversSayWhichSessionTheyAreFrom", () => testMoversSayWhichSessionTheyAreFrom(browser, base));
     await run("testCardRhythmIsOneScalePerTier", () => testCardRhythmIsOneScalePerTier(browser, base));
+    await run("testEveryPhoneControlIsAFingerTarget", () => testEveryPhoneControlIsAFingerTarget(browser, base));
   } finally {
     await browser.close();
     await new Promise(resolve => server.close(resolve));

@@ -23,7 +23,13 @@
     --bg-glow-3: rgba(84,168,255,.08);
     --surface-0: #0A0F17;
     --surface-1: #131E2C;
-    --surface-2: #141E2A;
+    /* 2026-09-20：原值 #141E2A 与 --surface-1 #131E2C 实测对比度 1.001
+       —— 调色板里的一档死档。它撑着 --tab-active-bg、菜单 hover 和持仓
+       表的 sticky 表头：表头和它盖住的行是同一个颜色，行从它底下滚过去
+       没有任何视觉证据。放到 surface-1 与 surface-3 正中间（对两边都是
+       1.047），hover 才读得出来，表头才盖得住。亮色档 #F2F5F8 对白卡已
+       有 1.094 的台阶，不动。 */
+    --surface-2: #172230;
     --surface-3: #1A2634;
     --overlay: #202E3E;
     --border-subtle: #1D2937;
@@ -126,6 +132,41 @@
     --blur-thin: blur(14px) saturate(166%);
     --radius: 10px;
     --radius-sm: 6px;
+    --radius-lg: 16px;   /* a card's corner — was written as a literal 16px */
+    --radius-float: 12px; /* a layer that floats over the page: menu, tooltip */
+
+    /* ── 面的角色（2026-09-20）─────────────────────────────────────
+       同一个「卡里的一块」此前有四种写法：--card-2(28 处)、--card/
+       --surface-1(约 10 处)、--surface-3(3 处)，而 --card/--card-2 只是
+       --surface-1/--surface-2 的别名——同一层被随机写成四个名字。
+       更糟的是它读不出来：暗色档 --surface-1 #131E2C 与 --surface-2
+       #141E2A 的对比度实测 1.001，即「一模一样」。所以卡里那 28 块底
+       在暗色下根本不是一块底。--surface-3 在两个主题都有真实台阶
+       （暗 1.097 / 亮 1.167）。
+
+       角色而不是色号：一条规则要问的是「我是哪一层」，不是「我该填
+       哪个灰」。三层就够——卡、卡里的块、块里的块。 */
+    --fill-card: var(--surface-1);
+    --fill-inset: var(--surface-3);
+    --fill-inset-2: var(--overlay);
+
+    /* ── 状态色的浓度档 ───────────────────────────────────────────
+       同一句「这是个警告」此前实测有 7%/12%/15%/16%/30%/40% 六个浓度，
+       涨跌同理（10/12/14/15/16/32/35%）。10–16% 那一簇是同一个决定的六
+       个值：收成 soft 一档。strong 留给「整块被状态填满」的徽标/条段。 */
+    --tint-wash: 7%;     /* 一层几乎看不见的底色，只用来「点一下」整行 */
+    --tint-soft: 15%;    /* 徽标/片的底 */
+    --tint-strong: 35%;  /* 整块被状态填满：条段、实心徽标 */
+    --tint-edge: 40%;    /* 同色相的描边，比底浓一档才描得出来 */
+
+    /* ── 按下的手感 ───────────────────────────────────────────────
+       实测 .refresh-btn .92 / .tab-btn .97 / .site-menu-btn .98 /
+       .mkt-seg-btn .97 / .dh-toggle .97：同一个「按下去」四个值。
+       (emil-design-eng《Buttons must feel responsive》：按压反馈要一致
+       且立刻，不一致读成「有的按钮更软」。) */
+    --press-scale: .97;
+    /* 抬起的手感同理：卡片 -2px，dead 的 .ret-cell -1px。一个值。 */
+    --hover-lift: -2px;
     /* 卡片节奏：全站「卡与卡之间」只有三档，都落在下面这条 4px 阶上 ——
        卡内相邻块 --space-3 · 同组卡片 --space-3(窄屏)/--space-4(桌面) ·
        分节线上方 --space-5。三档仍然不同（卡内 < 卡间 < 分节），收掉的是
@@ -147,6 +188,10 @@
   --ease-in-out: cubic-bezier(.77, 0, .175, 1);
   --duration-fast: 150ms;
   --duration-standard: 240ms;
+  /* 一个焦点环，写一次。实测此前 var(--focus) 10 条 / var(--accent) 9 条，
+     offset 有 1/2/3/5/-2px 五种：同一个键盘可见性两套视觉语言。
+     外描边一律 2px offset，画在元素内侧时 -2px。 */
+  --focus-ring: 2px solid var(--focus);
 
   /* 字阶（#880）：全站只有这 8 档，禁裸 px 字号。
      mono 只用于数字与代码，sans 用于所有文字。 */
@@ -297,7 +342,7 @@
   select:focus-visible,
   textarea:focus-visible,
   [tabindex]:focus-visible {
-    outline: 2px solid var(--focus);
+    outline: var(--focus-ring);
     outline-offset: 2px;
   }
   /* 手机（≤560px）blur 减半保 saturate（#995 同款判据）：小屏上大面积
@@ -450,7 +495,7 @@
   /* On the shared layout the wordmark is the link home, so it is a tab stop —
      and a tab stop with no ring is a tab stop nobody can follow. */
   .brand:focus-visible {
-    outline: 2px solid var(--focus); outline-offset: 3px;
+    outline: var(--focus-ring); outline-offset: 2px;
     border-radius: var(--radius-sm);
   }
   .site-menu { margin-left: auto; }
@@ -496,19 +541,19 @@
     display: inline-flex; align-items: center; justify-content: center;
     flex: 0 0 auto;
     box-shadow: inset 0 1px 0 var(--spec-1), 0 1px 3px rgba(0,0,0,.12);
-    transition: background var(--duration-fast) ease, border-color var(--duration-fast) ease,
-      color var(--duration-fast) ease, transform var(--duration-fast) var(--ease-out);
+    transition: background var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out),
+      color var(--duration-fast) var(--ease-out), transform var(--duration-fast) var(--ease-out);
   }
-  .refresh-btn:active { transform: scale(0.92); }
+  .refresh-btn:active { transform: scale(var(--press-scale)); }
   /* 圆形按钮：环贴着边走，2px 外扩会切到相邻的 asof 文本。 */
-  .refresh-btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 1px; }
+  .refresh-btn:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
   @media (hover: hover) and (pointer: fine) {
     .refresh-btn:hover { background: var(--surface-2); border-color: var(--border-strong); color: var(--text); }
   }
   .refresh-btn.is-loading .ic { animation: spin 0.8s linear infinite; }
   /* Nothing new: the ↻ stays and takes a green tint. New generation: the icon
      morphs to ✓ in accent — two outcomes differ by shape, not colour alone. */
-  .refresh-btn.ok-flash { color: var(--green); }
+  .refresh-btn.ok-flash { color: var(--positive); }
   .refresh-btn.fresh-flash { color: var(--accent); }
   .refresh-btn.fresh-flash .ic { font-size: 0; }
   .refresh-btn.fresh-flash .ic::after { content: "✓"; font-size: var(--fs-md); }
@@ -528,9 +573,9 @@
     padding: var(--space-3) var(--space-4); min-height: 44px;
     font-size: var(--fs-md); font-weight: 500; cursor: pointer;
     white-space: nowrap;
-    transition: color var(--duration-fast) ease, background var(--duration-fast) ease, transform var(--duration-fast) var(--ease-out);
+    transition: color var(--duration-fast) var(--ease-out), background var(--duration-fast) var(--ease-out), transform var(--duration-fast) var(--ease-out);
   }
-  .tab-btn:active { transform: scale(0.97); }
+  .tab-btn:active { transform: scale(var(--press-scale)); }
   .tab-btn.active { color: var(--text); }
   .tab-btn.active::after {
     content: ""; position: absolute; width: 22px; height: 2px;
@@ -539,12 +584,12 @@
     /* Grows in place instead of teleporting: scaleX is transform-only and
        150ms is near-imperceptible even at tab-switch frequency. */
     transform-origin: center;
-    animation: tab-indicator-in 150ms cubic-bezier(0.23, 1, 0.32, 1);
+    animation: tab-indicator-in var(--duration-fast) var(--ease-out);
   }
   @keyframes tab-indicator-in {
     from { transform: translateX(-50%) scaleX(0); }
   }
-  .tab-btn:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
+  .tab-btn:focus-visible { outline: var(--focus-ring); outline-offset: -2px; }
 
   /* Desktop tab bar — a real underline nav, not the mobile edge-fade scroller. */
   @media (min-width: 1024px) {
@@ -570,7 +615,9 @@
     }
     .tab-btn {
       padding: 10px 18px; min-height: 40px; font-size: var(--fs-md); font-weight: 500;
-      border-radius: 8px 8px 0 0; transition: color .15s, background .15s;
+      border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+      transition: color var(--duration-fast) var(--ease-out),
+                  background var(--duration-fast) var(--ease-out);
     }
     @media (hover: hover) and (pointer: fine) {
       .tab-btn:hover { color: var(--text); background: var(--surface-1); }
@@ -593,12 +640,12 @@
     color: var(--text); font-size: var(--fs-sm); font-weight: 600;
     letter-spacing: .012em; white-space: nowrap; cursor: pointer;
     list-style: none;                      /* kill the native disclosure arrow */
-    transition: background var(--duration-fast) ease, color var(--duration-fast) ease;
+    transition: background var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out);
   }
   .site-menu-btn::-webkit-details-marker { display: none; }
   .site-menu-btn:hover { background: var(--surface-1); }
-  .site-menu-btn:active { transform: scale(.98); }
-  .site-menu-btn:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .site-menu-btn:active { transform: scale(var(--press-scale)); }
+  .site-menu-btn:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
   .site-menu-chevron {
     font-size: 10px; line-height: 1; opacity: .55;
     transition: transform var(--duration-fast) var(--ease-out);
@@ -612,10 +659,10 @@
     background: var(--glass-card);
     -webkit-backdrop-filter: var(--blur-card);
     backdrop-filter: var(--blur-card);
-    border: 1px solid var(--border-subtle); border-radius: 12px;
+    border: 1px solid var(--border-subtle); border-radius: var(--radius-float);
     box-shadow: var(--shadow-card); z-index: 40;
     transform-origin: top right;
-    animation: site-menu-in 150ms cubic-bezier(.23, 1, .32, 1);
+    animation: site-menu-in var(--duration-fast) var(--ease-out);
   }
   @keyframes site-menu-in { from { opacity: 0; transform: translateY(-4px) scale(.98); } }
   .site-menu-item {
@@ -623,10 +670,10 @@
     padding: 8px 12px; min-height: 34px; border-radius: var(--radius-sm);
     color: var(--text); text-decoration: none;
     font-size: var(--fs-md); font-weight: 500; white-space: nowrap;
-    transition: background var(--duration-fast) ease, color var(--duration-fast) ease;
+    transition: background var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out);
   }
   .site-menu-item:hover { background: var(--surface-2); text-decoration: none; }
-  .site-menu-item:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
+  .site-menu-item:focus-visible { outline: var(--focus-ring); outline-offset: -2px; }
   /* Where you are: an accent dot in the gutter plus the accent colour. The dot
      is structural (it is what the eye lands on first); colour is the second
      signal, so the current page does not read as merely hovered. */
@@ -676,8 +723,8 @@
     gap: 5px; appearance: none; background: transparent; color: var(--text-dim);
     border: none; border-radius: var(--radius-sm); padding: 5px 11px; min-height: 30px;
     font-size: var(--fs-sm); font-weight: 600; line-height: 1; cursor: pointer;
-    white-space: nowrap; transition: background var(--duration-fast) ease, color var(--duration-fast) ease, transform var(--duration-fast) var(--ease-out); }
-  .mkt-seg-btn:active { transform: scale(0.97); }
+    white-space: nowrap; transition: background var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out), transform var(--duration-fast) var(--ease-out); }
+  .mkt-seg-btn:active { transform: scale(var(--press-scale)); }
   /* iOS-style raised pill for the active segment → colored dots stay visible */
   .mkt-seg-btn.active { background: var(--card); color: var(--text); }
   @media (hover: hover) and (pointer: fine) {
@@ -729,7 +776,7 @@
     flex-wrap: wrap;
     margin: 0 0 var(--space-4);
     padding: var(--space-3) var(--space-4);
-    background: var(--card-2);
+    background: var(--fill-inset);
     border: 1px dashed var(--border-strong);
     border-radius: var(--radius-sm);
     color: var(--text-dim); font-size: var(--fs-sm);
@@ -741,7 +788,7 @@
     padding: 4px 12px;
   }
   .panel-load-retry:hover { background: var(--border); }
-  .panel-load-retry:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .panel-load-retry:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
 
   /* ── Mobile (<1024px): iOS-native paged tabs ──
      Fixed chrome (header + footer), the content area is a horizontal
@@ -934,9 +981,9 @@
      work, a fill-coloured border no longer has to hide the box, and one
      defined edge per card is what keeps a dense page readable. */
   .card {
-    background: var(--sheen-1), var(--card);
+    background: var(--sheen-1), var(--fill-card);
     border: 1px solid var(--border-subtle);
-    border-radius: 16px;
+    border-radius: var(--radius-lg);
     box-shadow: inset 0 1px 0 var(--spec-1), var(--edge-bottom), var(--shadow-card);
     padding: var(--space-4);
     /* 卡片节奏（全站说明在 --space-* 上方）：块与块之间的留白一律由「后面那
@@ -949,7 +996,7 @@
   }
   @media (hover: hover) and (pointer: fine) {
     .panel.active > .card:hover {
-      transform: translateY(-2px);
+      transform: translateY(var(--hover-lift));
       box-shadow: inset 0 1px 0 var(--spec-2), var(--shadow-card-hover);
     }
   }
@@ -982,7 +1029,7 @@
     }
     .card.fold-m > h3::after {
       content: "›"; position: absolute; right: 2px; top: 50%;
-      transform: translateY(-50%) rotate(90deg); transition: transform .15s;
+      transform: translateY(-50%) rotate(90deg); transition: transform var(--duration-fast);
       color: var(--text-faint); font-size: var(--fs-lg); font-weight: 400;
     }
     .card.fold-m.open > h3 { margin-bottom: var(--space-3); }
@@ -1046,8 +1093,8 @@
     .market-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   }
   .rs-row { line-height: 1.4; min-height: 16px; }
-  .rs-row b.pos { color: var(--green); }
-  .rs-row b.neg { color: var(--red); }
+  .rs-row b.pos { color: var(--positive); }
+  .rs-row b.neg { color: var(--negative); }
 
   /* =========================================================
      Hero: 总资产卡
@@ -1088,14 +1135,14 @@
   }
   .total-combined .fx { font-size: var(--fs-xs); color: var(--text-faint); }
 
-  .pos { color: var(--green); }
-  .neg { color: var(--red); }
+  .pos { color: var(--positive); }
+  .neg { color: var(--negative); }
   .neutral { color: var(--text-dim); }
 
   /* Catalysts list */
   .catalysts-list { display: flex; flex-direction: column; gap: var(--space-2); max-height: 240px; overflow-y: auto; }
   .catalyst-row {
-    padding: var(--space-2) var(--space-3); background: var(--card-2); border-radius: var(--radius-sm);
+    padding: var(--space-2) var(--space-3); background: var(--fill-inset); border-radius: var(--radius-sm);
     font-size: var(--fs-sm); display: grid; grid-template-columns: 70px 80px 1fr; gap: var(--space-2);
   }
   .catalyst-row .date { font-family: var(--mono); color: var(--text-dim); }
@@ -1116,7 +1163,7 @@
   /* Macro row */
   .macro-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
   .macro-cell {
-    background: var(--card-2); border-radius: var(--radius-sm);
+    background: var(--fill-inset); border-radius: var(--radius-sm);
     padding: var(--space-3) var(--space-2); text-align: center; font-variant-numeric: tabular-nums;
   }
   .macro-cell .lbl { font-size: var(--fs-micro); color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.05em; }
@@ -1131,37 +1178,37 @@
   .regime-badge .rg-dot { width:9px; height:9px; border-radius:50%; flex:0 0 auto; }
   .regime-badge .rg-label { font-weight:700; text-transform:uppercase; letter-spacing:0.04em; }
   .regime-badge .rg-reasons { color: var(--text-dim); font-size: var(--fs-xs); }
-  .regime-badge.risk_on  { background: color-mix(in srgb, var(--positive) 10%, transparent); border-color: color-mix(in srgb, var(--positive) 35%, transparent); }
+  .regime-badge.risk_on  { background: color-mix(in srgb, var(--positive) var(--tint-soft), transparent); border-color: color-mix(in srgb, var(--positive) var(--tint-strong), transparent); }
   .regime-badge.risk_on  .rg-dot { background:var(--positive); } .regime-badge.risk_on  .rg-label { color:var(--positive); }
-  .regime-badge.neutral  { background: color-mix(in srgb, var(--neutral) 10%, transparent); border-color: color-mix(in srgb, var(--neutral) 35%, transparent); }
+  .regime-badge.neutral  { background: color-mix(in srgb, var(--neutral) var(--tint-soft), transparent); border-color: color-mix(in srgb, var(--neutral) var(--tint-strong), transparent); }
   /* 字色不用 --neutral：它在这块灰底上浅色 4.18、深色 4.23，都不到 AA；
      --text-secondary 两主题都过线（#1580，tests/test_dashboard_contrast.py 钉住）。 */
   .regime-badge.neutral  .rg-dot { background:var(--neutral); } .regime-badge.neutral  .rg-label { color:var(--text-secondary); }
-  .regime-badge.risk_off { background: color-mix(in srgb, var(--negative) 10%, transparent); border-color: color-mix(in srgb, var(--negative) 35%, transparent); }
+  .regime-badge.risk_off { background: color-mix(in srgb, var(--negative) var(--tint-soft), transparent); border-color: color-mix(in srgb, var(--negative) var(--tint-strong), transparent); }
   .regime-badge.risk_off .rg-dot { background:var(--negative); } .regime-badge.risk_off .rg-label { color:var(--negative); }
-  .regime-badge.green { background: color-mix(in srgb, var(--positive) 10%, transparent); border-color: color-mix(in srgb, var(--positive) 35%, transparent); }
+  .regime-badge.green { background: color-mix(in srgb, var(--positive) var(--tint-soft), transparent); border-color: color-mix(in srgb, var(--positive) var(--tint-strong), transparent); }
   .regime-badge.green .rg-dot { background:var(--positive); } .regime-badge.green .rg-label { color:var(--positive); }
-  .regime-badge.amber { background: color-mix(in srgb, var(--warning) 12%, transparent); border-color: color-mix(in srgb, var(--warning) 40%, transparent); }
+  .regime-badge.amber { background: color-mix(in srgb, var(--warning) var(--tint-soft), transparent); border-color: color-mix(in srgb, var(--warning) var(--tint-edge), transparent); }
   .regime-badge.amber .rg-dot { background:var(--warning); } .regime-badge.amber .rg-label { color:var(--warning); }
-  .regime-badge.red   { background: color-mix(in srgb, var(--negative) 10%, transparent); border-color: color-mix(in srgb, var(--negative) 35%, transparent); }
+  .regime-badge.red   { background: color-mix(in srgb, var(--negative) var(--tint-soft), transparent); border-color: color-mix(in srgb, var(--negative) var(--tint-strong), transparent); }
   .regime-badge.red   .rg-dot { background:var(--negative); } .regime-badge.red   .rg-label { color:var(--negative); }
 
   /* Risk keyword banner (top of macro card; hidden when no hits) */
   .risk-banner {
     margin-bottom: var(--space-3); padding: var(--space-2) var(--space-3);
-    background: color-mix(in srgb, var(--negative) 10%, transparent); border-left: 3px solid var(--negative);
+    background: color-mix(in srgb, var(--negative) var(--tint-soft), transparent); border-left: 3px solid var(--negative);
     border-radius: var(--radius-sm); font-size: var(--fs-sm); line-height: 1.5;
   }
   .risk-banner .rb-hdr { color: var(--negative); font-weight: 700; font-size: var(--fs-xs);
     text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
   .risk-banner .rb-row { color: var(--text); margin: 2px 0; }
   .risk-banner .rb-tk  { font-weight: 700; color: var(--negative); margin-right: 8px; }
-  .risk-banner .rb-kw  { background: color-mix(in srgb, var(--negative) 15%, transparent); padding: 1px 5px;
+  .risk-banner .rb-kw  { background: color-mix(in srgb, var(--negative) var(--tint-soft), transparent); padding: 1px 5px;
     border-radius: 3px; font-size: var(--fs-xs); margin: 0 3px; }
 
   /* Per-ticker sentiment drill (collapsible) */
   .sentiment-drill { margin-top: var(--space-3); display: flex; flex-direction: column; gap: 4px; }
-  .sd-row { background: var(--card-2); border-radius: var(--radius-sm); overflow: hidden; }
+  .sd-row { background: var(--fill-inset); border-radius: var(--radius-sm); overflow: hidden; }
   .sd-row summary {
     list-style: none; cursor: pointer; padding: var(--space-2) var(--space-3);
     display: grid; grid-template-columns: 56px 28px 1fr auto; gap: 8px; align-items: center;
@@ -1185,45 +1232,45 @@
   .infl-feed { display: flex; flex-direction: column; gap: var(--space-2); max-height: 420px; overflow-y: auto; }
   .infl-summary { display: flex; gap: var(--space-2); flex-wrap: wrap; margin-bottom: 4px; font-size: var(--fs-xs); }
   .infl-chip { padding: 2px 8px; border-radius: 999px; font-weight: 700; }
-  .infl-chip.held { background: color-mix(in srgb, var(--negative) 14%, transparent); color: var(--negative-ink); }
-  .infl-chip.idea { background: color-mix(in srgb, var(--warning) 16%, transparent); color: var(--warning-ink); }
-  .infl-chip.sect { background: var(--card-2); color: var(--text-dim); }
+  .infl-chip.held { background: color-mix(in srgb, var(--negative) var(--tint-soft), transparent); color: var(--negative-ink); }
+  .infl-chip.idea { background: color-mix(in srgb, var(--warning) var(--tint-soft), transparent); color: var(--warning-ink); }
+  .infl-chip.sect { background: var(--fill-inset); color: var(--text-dim); }
   .infl-row {
-    background: var(--card-2); border-radius: var(--radius-sm);
+    background: var(--fill-inset); border-radius: var(--radius-sm);
     padding: var(--space-2) var(--space-3); border-left: 3px solid var(--text-dim);
   }
   .infl-row.is-held { border-left-color: var(--negative); }
   .infl-row.is-idea { border-left-color: var(--warning); }
   .infl-hdr { display: flex; align-items: center; gap: var(--space-2); margin-bottom: 4px; font-size: var(--fs-xs); flex-wrap: wrap; }
   .infl-who { font-weight: 700; padding: 2px 8px; border-radius: 4px; font-size: var(--fs-xs); }
-  .infl-who.trump { background: color-mix(in srgb, var(--negative) 16%, transparent); color: var(--negative-ink); }
+  .infl-who.trump { background: color-mix(in srgb, var(--negative) var(--tint-soft), transparent); color: var(--negative-ink); }
   /* 字色不用 --accent：它在这块蓝底 + card-2 行上浅色只有 3.91，不到 AA；
      --text-secondary 两主题都过线，蓝底保留来源色（#1583，tests/test_dashboard_contrast.py 钉住）。 */
   .infl-who.musk  { background: rgba(59,130,246,0.16); color: var(--text-secondary); }
-  .infl-who.serenity { background: color-mix(in srgb, var(--positive) 16%, transparent); color: var(--positive-ink); }
-  .infl-who.ark   { background: color-mix(in srgb, var(--warning) 16%, transparent); color: var(--warning-ink); }
-  .infl-who.duan, .infl-who.honghao { background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--accent-ink); }
+  .infl-who.serenity { background: color-mix(in srgb, var(--positive) var(--tint-soft), transparent); color: var(--positive-ink); }
+  .infl-who.ark   { background: color-mix(in srgb, var(--warning) var(--tint-soft), transparent); color: var(--warning-ink); }
+  .infl-who.duan, .infl-who.honghao { background: color-mix(in srgb, var(--accent) var(--tint-soft), transparent); color: var(--accent-ink); }
   .infl-who.burry, .infl-who.pelosi { background: var(--card); color: var(--text-dim); }
   /* 未登记的作者（加源时忘了在这里登记）也要有可读的徽章，不能因为没样式而隐形 */
   .infl-who.other { background: var(--card); color: var(--text-dim); }
   .infl-stance { font-size: var(--fs-micro); text-transform: uppercase; letter-spacing: 0.04em;
     padding: 2px 8px; border-radius: 3px; font-weight: 700; }
-  .infl-stance.up   { background: color-mix(in srgb, var(--positive) 16%, transparent); color: var(--positive-ink); }
-  .infl-stance.down { background: color-mix(in srgb, var(--negative) 16%, transparent); color: var(--negative-ink); }
+  .infl-stance.up   { background: color-mix(in srgb, var(--positive) var(--tint-soft), transparent); color: var(--positive-ink); }
+  .infl-stance.down { background: color-mix(in srgb, var(--negative) var(--tint-soft), transparent); color: var(--negative-ink); }
   .infl-stance.flat { background: var(--card); color: var(--text-dim); }
   .infl-rel { margin-left: auto; color: var(--text-dim); font-size: var(--fs-micro); font-variant-numeric: tabular-nums; }
   .infl-sum { font-size: var(--fs-sm); line-height: 1.45; color: var(--text); }
   .infl-tags { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 5px; font-size: var(--fs-micro); }
   .infl-tag { padding: 2px 8px; border-radius: 4px; font-weight: 700; }
-  .infl-tag.held { background: color-mix(in srgb, var(--negative) 14%, transparent); color: var(--negative-ink); }
-  .infl-tag.idea { background: color-mix(in srgb, var(--warning) 16%, transparent); color: var(--warning-ink); }
+  .infl-tag.held { background: color-mix(in srgb, var(--negative) var(--tint-soft), transparent); color: var(--negative-ink); }
+  .infl-tag.idea { background: color-mix(in srgb, var(--warning) var(--tint-soft), transparent); color: var(--warning-ink); }
   .infl-tag.sect { background: var(--card); color: var(--text-dim); font-weight: 500; }
   .infl-meta { color: var(--text-dim); font-size: var(--fs-micro); margin-top: 4px; }
 
   /* Peer divergence (your holding vs its sector peers, 1d) */
   .peer-div-list { display: flex; flex-direction: column; gap: var(--space-2); }
   .peer-div-row {
-    background: var(--card-2); border-radius: var(--radius-sm); padding: var(--space-2) var(--space-3);
+    background: var(--fill-inset); border-radius: var(--radius-sm); padding: var(--space-2) var(--space-3);
     border-left: 3px solid var(--text-dim); font-variant-numeric: tabular-nums;
   }
   .peer-div-row.lag  { border-left-color: var(--negative); }   /* you trail peers */
@@ -1232,8 +1279,8 @@
   .pd-tk { font-weight: 700; color: var(--text); }
   .pd-self { font-weight: 700; }
   .pd-gap { margin-left: auto; font-size: var(--fs-xs); font-weight: 700; padding: 2px 8px; border-radius: 4px; }
-  .pd-gap.lag  { background: color-mix(in srgb, var(--negative) 14%, transparent); color: var(--negative-ink); }
-  .pd-gap.lead { background: color-mix(in srgb, var(--positive) 16%, transparent); color: var(--positive-ink); }
+  .pd-gap.lag  { background: color-mix(in srgb, var(--negative) var(--tint-soft), transparent); color: var(--negative-ink); }
+  .pd-gap.lead { background: color-mix(in srgb, var(--positive) var(--tint-soft), transparent); color: var(--positive-ink); }
   .pd-vs { font-size: var(--fs-xs); color: var(--text-dim); margin-top: 3px; }
   .pd-vs b { color: var(--text); font-weight: 600; }
   .pd-caveat { color: var(--text-dim); font-size: var(--fs-micro); margin-top: 8px; font-style: italic; }
@@ -1249,14 +1296,14 @@
   .risk-cell .val { font-size: var(--fs-xl); font-weight: 700; margin-top: var(--space-1); }
   .risk-alerts { margin-top: var(--space-3); display: flex; flex-direction: column; gap: var(--space-2); }
   .risk-alert {
-    padding: var(--space-2) var(--space-3); background: var(--card-2); border-radius: var(--radius-sm);
+    padding: var(--space-2) var(--space-3); background: var(--fill-inset); border-radius: var(--radius-sm);
     font-size: var(--fs-sm); display: flex; align-items: center; gap: var(--space-2);
-    border-left: 3px solid var(--red);
+    border-left: 3px solid var(--negative);
   }
   .risk-alert.medium { border-left-color: var(--warning); }
   .risk-alert .icon {
     width: 7px; height: 7px; border-radius: 50%;
-    background: var(--red); flex: none; margin-top: 4px;
+    background: var(--negative); flex: none; margin-top: 4px;
   }
   .risk-alert.medium .icon { background: var(--warning); }
 
@@ -1275,8 +1322,8 @@
   .gt-spark { flex: none; }
   /* 极性是反的：闸触发得少是好事，所以「收敛」是绿的。这也是这支
      sparkline 不复用 sparklineSVG 的原因 —— 那支按末值高于首值上色。 */
-  .gt-spark.gt-easing { color: var(--green); }
-  .gt-spark.gt-tightening { color: var(--red); }
+  .gt-spark.gt-easing { color: var(--positive); }
+  .gt-spark.gt-tightening { color: var(--negative); }
   .gt-spark.gt-flat { color: var(--text-faint); }
   .gt-trend-val { color: var(--text-secondary); font-weight: 600; }
   .gt-trend-span { margin-left: auto; color: var(--text-faint); }
@@ -1321,8 +1368,8 @@
   .lev-tickers { margin-top: 8px; font-size: var(--fs-xs); }
 
   /* Today's range bars */
-        .range-bar { height: 8px; background: var(--card-2); border-radius: 4px; position: relative; overflow: hidden; }
-  .range-bar > .fill { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(90deg, var(--green), var(--red)); opacity: 0.5; }
+        .range-bar { height: 8px; background: var(--fill-inset); border-radius: 4px; position: relative; overflow: hidden; }
+  .range-bar > .fill { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(90deg, var(--positive), var(--negative)); opacity: 0.5; }
   .range-bar > .dot { position: absolute; top: -2px; width: 4px; height: 12px; background: var(--text); border-radius: 2px; }
   
   /* Extremes (winners/losers) */
@@ -1366,7 +1413,7 @@
   .mkt-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   @media (max-width: 560px) { .mkt-cards { grid-template-columns: 1fr; } }
   .mkt-card {
-    background: var(--card-2); border: 1px solid var(--border);
+    background: var(--fill-inset); border: 1px solid var(--border);
     border-top: 2px solid var(--accent); border-radius: var(--radius-sm);
     padding: var(--space-3) var(--space-4);
   }
@@ -1386,13 +1433,13 @@
   .mkt-comp-row { display: grid; grid-template-columns: 44px 1fr 62px; align-items: center; gap: 8px; font-size: var(--fs-sm); }
   .mkt-comp-row .lbl { color: var(--text-dim); }
   .mkt-comp-row .v { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
-  .mkt-bar { height: 7px; background: var(--card); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
+  .mkt-bar { height: 7px; background: var(--fill-inset); border: 1px solid var(--border-subtle); border-radius: 4px; overflow: hidden; }
   .mkt-bar-fill { height: 100%; width: 100%; border-radius: 3px; transform: scaleX(var(--fill, 0)); transform-origin: left; transition: transform var(--duration-standard) var(--ease-out); }
-  .mkt-bar-fill.pos { background: var(--green); }
-  .mkt-bar-fill.neg { background: var(--red); }
+  .mkt-bar-fill.pos { background: var(--positive); }
+  .mkt-bar-fill.neg { background: var(--negative); }
   .mkt-chips { margin-top: 12px; display: flex; gap: 8px; flex-wrap: wrap; }
-  .mkt-chip { font-size: var(--fs-xs); color: var(--text-dim); background: var(--card);
-    border: 1px solid var(--border); border-radius: 999px; padding: 4px 12px; }
+  .mkt-chip { font-size: var(--fs-xs); color: var(--text-dim); background: var(--fill-inset);
+    border: 1px solid var(--border-subtle); border-radius: 999px; padding: 4px 12px; }
   .mkt-chip b { font-weight: 600; font-variant-numeric: tabular-nums; margin-left: 2px; }
   .mkt-card-skel { color: var(--text-faint); padding: 20px; text-align: center; }
 
@@ -1438,19 +1485,19 @@
   .anomaly-list { display: flex; flex-direction: column; gap: 8px; }
   .anomaly {
     display: flex; align-items: flex-start; gap: var(--space-3);
-    padding: var(--space-3); background: var(--card-2); border-radius: var(--radius-sm);
-    border-left: 3px solid var(--amber);
+    padding: var(--space-3); background: var(--fill-inset); border-radius: var(--radius-sm);
+    border-left: 3px solid var(--warning);
   }
-  .anomaly.high { border-left-color: var(--red); }
-  .anomaly.medium { border-left-color: var(--amber); }
-  .anomaly.low { border-left-color: var(--gray); }
+  .anomaly.high { border-left-color: var(--negative); }
+  .anomaly.medium { border-left-color: var(--warning); }
+  .anomaly.low { border-left-color: var(--neutral); }
   .anomaly .icon {
     width: 7px; height: 7px; border-radius: 50%;
     background: currentColor; flex: none; margin-top: 5px;
   }
-  .anomaly.high .icon { background: var(--red); }
-  .anomaly.medium .icon { background: var(--amber); }
-  .anomaly.low .icon { background: var(--gray); }
+  .anomaly.high .icon { background: var(--negative); }
+  .anomaly.medium .icon { background: var(--warning); }
+  .anomaly.low .icon { background: var(--neutral); }
   .anomaly .body { min-width: 0; flex: 1; }
   .anomaly .ticker { font-weight: 600; font-family: var(--mono); }
   .anomaly .detail { font-size: var(--fs-sm); color: var(--text-dim); margin-top: 2px; }
@@ -1464,13 +1511,13 @@
   }
   .mover-card {
     flex: 0 0 130px;
-    background: var(--card-2);
+    background: var(--fill-inset);
     border-radius: var(--radius-sm);
     padding: var(--space-3);
-    border-top: 3px solid var(--gray);
+    border-top: 3px solid var(--neutral);
   }
-  .mover-card.up { border-top-color: var(--green); }
-  .mover-card.down { border-top-color: var(--red); }
+  .mover-card.up { border-top-color: var(--positive); }
+  .mover-card.down { border-top-color: var(--negative); }
   .mover-card .tk { font-family: var(--mono); font-weight: 700; font-size: var(--fs-md); }
   .mover-card .nm { font-size: var(--fs-xs); color: var(--text-dim); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .mover-card .pct { font-size: var(--fs-xl); font-weight: 700; margin-top: 4px; font-variant-numeric: tabular-nums; }
@@ -1478,7 +1525,7 @@
 
   /* Sector Context — vertical sector blocks with top-movers + self position */
   .sector-context { display: flex; flex-direction: column; gap: var(--space-3); }
-  .sector-block { background: var(--card-2); border-radius: var(--radius-sm); padding: var(--space-3); }
+  .sector-block { background: var(--fill-inset); border-radius: var(--radius-sm); padding: var(--space-3); }
   .sector-block .theme { font-weight: 700; font-size: var(--fs-md); margin-bottom: var(--space-2); display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
   .sector-block .theme .in-book { font-size: var(--fs-micro); font-weight: 500; color: var(--text-dim); font-family: var(--mono); }
   .sector-block .movers { display: flex; flex-wrap: wrap; gap: var(--space-2) 12px; font-size: var(--fs-xs); }
@@ -1487,14 +1534,14 @@
   .sector-block .mover-inline .cat { color: var(--text-faint); font-family: var(--font); font-size: var(--fs-micro); margin-left: 4px; }
   .sector-block .self { margin-top: var(--space-2); font-size: var(--fs-xs); padding-top: var(--space-2); border-top: 1px dashed var(--card); color: var(--text-dim); }
   .sector-block .self .tk { font-family: var(--mono); color: var(--text); font-weight: 600; }
-  .sector-block .self .rank.lead { color: var(--green); }
-  .sector-block .self .rank.lag { color: var(--red); }
+  .sector-block .self .rank.lead { color: var(--positive); }
+  .sector-block .self .rank.lag { color: var(--negative); }
   .sector-block .self .attr { font-style: italic; }
 
   /* Calibration badge */
   .calib-badge {
     display: flex; align-items: center; gap: 12px;
-    padding: var(--space-3); background: var(--card-2); border-radius: var(--radius-sm);
+    padding: var(--space-3); background: var(--fill-inset); border-radius: var(--radius-sm);
   }
   .calib-badge .brier-val {
     font-size: var(--fs-xxl); font-weight: 700; font-variant-numeric: tabular-nums;
@@ -1502,12 +1549,12 @@
   .calib-badge .meta { font-size: var(--fs-sm); color: var(--text-dim); }
   .calib-badge .tier {
     font-size: var(--fs-xs); font-weight: 600; padding: 3px 8px; border-radius: 999px;
-    background: var(--card); color: var(--text);
+    background: var(--fill-inset-2); color: var(--text);
   }
-  .tier.excellent { background: color-mix(in srgb, var(--positive) 15%, transparent); color: var(--positive-ink); }
+  .tier.excellent { background: color-mix(in srgb, var(--positive) var(--tint-soft), transparent); color: var(--positive-ink); }
   .tier.good { background: rgba(91,141,239,.15); color: var(--accent-ink); }
-  .tier.fair { background: color-mix(in srgb, var(--warning) 15%, transparent); color: var(--warning-ink); }
-  .tier.poor { background: color-mix(in srgb, var(--negative) 15%, transparent); color: var(--negative-ink); }
+  .tier.fair { background: color-mix(in srgb, var(--warning) var(--tint-soft), transparent); color: var(--warning-ink); }
+  .tier.poor { background: color-mix(in srgb, var(--negative) var(--tint-soft), transparent); color: var(--negative-ink); }
 
   /* =========================================================
      Drill: holdings table
@@ -1565,8 +1612,8 @@
   }
   .holdings-table .spark-cell { padding: 4px 8px; line-height: 0; vertical-align: middle; min-width: 60px; }
   .holdings-table .spark { display: inline-block; vertical-align: middle; }
-  .holdings-table .spark.spark-up   { color: var(--green); }
-  .holdings-table .spark.spark-down { color: var(--red); }
+  .holdings-table .spark.spark-up   { color: var(--positive); }
+  .holdings-table .spark.spark-down { color: var(--negative); }
   .holdings-table .spark.spark-flat { color: var(--text-faint); }
   .holdings-table .spark.muted-spark { color: var(--text-faint); }
 
@@ -1581,8 +1628,8 @@
   .wl-target { color: var(--text); text-align: right; }
   .wl-cur { color: var(--text-dim); font-size: var(--fs-xs); text-align: right; }
   .wl-dist { text-align: right; font-weight: 700; white-space: nowrap; }
-  .wl-dist.near { color: var(--red); }
-  .wl-dist.mid  { color: var(--amber); }
+  .wl-dist.near { color: var(--negative); }
+  .wl-dist.mid  { color: var(--warning); }
   .wl-dist.far  { color: var(--text-faint); }
   .wl-cond { grid-template-columns: 50px 1fr; }
   .wl-cond-txt { color: var(--text-dim); font-size: var(--fs-xs); }
@@ -1613,7 +1660,7 @@
     text-align: inherit; width: 100%;
   }
   .holdings-table thead th .sort-btn:focus-visible {
-    outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px;
+    outline: var(--focus-ring); outline-offset: 2px; border-radius: 2px;
   }
   .holdings-table thead th .arr { color: var(--accent); margin-left: 2px; }
   @media (hover: hover) and (pointer: fine) {
@@ -1679,7 +1726,7 @@
   /* Plan actions */
   .plan-actions { display: flex; flex-direction: column; gap: 8px; }
   .plan-action {
-    padding: var(--space-3); background: var(--card-2); border-radius: var(--radius-sm);
+    padding: var(--space-3); background: var(--fill-inset); border-radius: var(--radius-sm);
     display: grid; grid-template-columns: auto 1fr auto; gap: 8px 12px;
     align-items: center;
     font-size: var(--fs-md);
@@ -1690,10 +1737,10 @@
   .plan-action .outcome {
     font-size: var(--fs-xs); padding: 3px 8px; border-radius: 999px; font-weight: 600;
   }
-  .outcome.win { background: color-mix(in srgb, var(--positive) 15%, transparent); color: var(--positive-ink); }
-  .outcome.loss { background: color-mix(in srgb, var(--negative) 15%, transparent); color: var(--negative-ink); }
+  .outcome.win { background: color-mix(in srgb, var(--positive) var(--tint-soft), transparent); color: var(--positive-ink); }
+  .outcome.loss { background: color-mix(in srgb, var(--negative) var(--tint-soft), transparent); color: var(--negative-ink); }
   .outcome.pending { background: rgba(107,118,145,.15); color: var(--text-secondary); }
-  .outcome.flat { background: color-mix(in srgb, var(--warning) 15%, transparent); color: var(--warning-ink); }
+  .outcome.flat { background: color-mix(in srgb, var(--warning) var(--tint-soft), transparent); color: var(--warning-ink); }
   /* Add campaign — one deterministic public projection, split by market. */
   .campaign-summary, .campaign-coverage {
     color: var(--text-dim); font: var(--fs-xs)/1.55 var(--mono);
@@ -1705,7 +1752,7 @@
   }
   .add-campaign-leg, .campaign-market {
     min-width: 0; border: 1px solid var(--border); border-radius: var(--radius-sm);
-    background: var(--card-2); overflow: hidden;
+    background: var(--fill-inset); overflow: hidden;
   }
   .add-campaign-leg h4, .campaign-market h4 {
     margin: 0; padding: 9px 11px; border-bottom: 1px solid var(--border);
@@ -1719,9 +1766,9 @@
     display: inline-flex; padding: 2px 6px; border-radius: 999px;
     font: 600 var(--fs-micro) var(--mono); background: rgba(107,118,145,.14); color: var(--text-dim);
   }
-  .campaign-state.state-eligible { color: var(--positive-ink); background: color-mix(in srgb, var(--positive) 14%, transparent); }
-  .campaign-state.state-risk_blocked, .campaign-state.state-constraint_blocked { color: var(--negative-ink); background: color-mix(in srgb, var(--negative) 12%, transparent); }
-  .campaign-state.state-waiting_timing { color: var(--warning-ink); background: color-mix(in srgb, var(--warning) 12%, transparent); }
+  .campaign-state.state-eligible { color: var(--positive-ink); background: color-mix(in srgb, var(--positive) var(--tint-soft), transparent); }
+  .campaign-state.state-risk_blocked, .campaign-state.state-constraint_blocked { color: var(--negative-ink); background: color-mix(in srgb, var(--negative) var(--tint-soft), transparent); }
+  .campaign-state.state-waiting_timing { color: var(--warning-ink); background: color-mix(in srgb, var(--warning) var(--tint-soft), transparent); }
   .campaign-families, .campaign-detail { color: var(--text-dim); font-size: var(--fs-xs); line-height: 1.5; }
   .campaign-detail { margin-top: 5px; font-family: var(--mono); }
   .campaign-blockers { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
@@ -1745,26 +1792,26 @@
   /* Bucket historical win-rate badge (from calibration.per_bucket) */
   .bucket-wr {
     display: inline-block; margin-left: 8px; padding: 2px 8px;
-    border-radius: 6px; font-size: var(--fs-micro); font-family: var(--mono);
+    border-radius: var(--radius-sm); font-size: var(--fs-micro); font-family: var(--mono);
     font-weight: 600; vertical-align: middle; white-space: nowrap;
   }
   .bucket-wr .wr-n { font-weight: 400; opacity: .55; font-size: var(--fs-micro); margin-left: 2px; }
-  .bucket-wr.wr-bad { background: color-mix(in srgb, var(--negative) 15%, transparent); color: var(--negative-ink); }
-  .bucket-wr.wr-mid { background: color-mix(in srgb, var(--warning) 15%, transparent); color: var(--warning-ink); }
-  .bucket-wr.wr-ok  { background: color-mix(in srgb, var(--positive) 15%, transparent); color: var(--positive-ink); }
+  .bucket-wr.wr-bad { background: color-mix(in srgb, var(--negative) var(--tint-soft), transparent); color: var(--negative-ink); }
+  .bucket-wr.wr-mid { background: color-mix(in srgb, var(--warning) var(--tint-soft), transparent); color: var(--warning-ink); }
+  .bucket-wr.wr-ok  { background: color-mix(in srgb, var(--positive) var(--tint-soft), transparent); color: var(--positive-ink); }
   .bucket-wr.wr-lown { opacity: .6; }
 
   /* driven_by chip — which data source drove the call (color encodes edge) */
   .drv-chip {
     display: inline-block; margin-left: 8px; padding: 2px 8px;
-    border-radius: 6px; font-size: var(--fs-micro); font-weight: 600;
+    border-radius: var(--radius-sm); font-size: var(--fs-micro); font-weight: 600;
     vertical-align: middle; white-space: nowrap;
   }
-  .drv-chip.drv-catalyst   { background: color-mix(in srgb, var(--positive) 15%, transparent); color: var(--positive-ink); }
-  .drv-chip.drv-technical  { background: rgba(148,163,184,.18); color: var(--muted); }
-  .drv-chip.drv-sentiment  { background: color-mix(in srgb, var(--warning) 15%, transparent); color: var(--warning-ink); }
-  .drv-chip.drv-influencer { background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--accent-ink); }
-  .drv-chip.drv-macro      { background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent-ink); }
+  .drv-chip.drv-catalyst   { background: color-mix(in srgb, var(--positive) var(--tint-soft), transparent); color: var(--positive-ink); }
+  .drv-chip.drv-technical  { background: rgba(148,163,184,.18); color: var(--text-secondary); }
+  .drv-chip.drv-sentiment  { background: color-mix(in srgb, var(--warning) var(--tint-soft), transparent); color: var(--warning-ink); }
+  .drv-chip.drv-influencer { background: color-mix(in srgb, var(--accent) var(--tint-soft), transparent); color: var(--accent-ink); }
+  .drv-chip.drv-macro      { background: color-mix(in srgb, var(--accent) var(--tint-soft), transparent); color: var(--accent-ink); }
   /* 字色同 .infl-who.musk（#1583）：--accent / --positive 在浅色 card-2 行上都不到 AA，青色留在底上。 */
   .drv-chip.drv-peer       { background: rgba(45,212,191,.15); color: var(--text-secondary); }
   @media (max-width: 600px) {
@@ -1785,37 +1832,37 @@
   }
   .br-point {
     display: flex; gap: 8px; align-items: flex-start; padding: var(--space-2) var(--space-3);
-    margin-bottom: var(--space-2); border-radius: var(--radius-sm); background: var(--card-2);
+    margin-bottom: var(--space-2); border-radius: var(--radius-sm); background: var(--fill-inset);
     font-size: var(--fs-md); line-height: 1.5;
   }
   .br-point .br-icon {
     flex: 0 0 auto; width: 7px; height: 7px; border-radius: 50%;
     background: currentColor; margin-top: 5px;
   }
-  .br-point.br-edge { color: var(--green); }
+  .br-point.br-edge { color: var(--positive); }
   .br-point.br-bias { color: var(--warning); }
-  .br-point.br-warn { color: var(--red); }
-  .br-point.br-edge { border-left: 3px solid var(--green); }
-  .br-point.br-bias { border-left: 3px solid var(--amber); }
-  .br-point.br-warn { border-left: 3px solid var(--red); }
+  .br-point.br-warn { color: var(--negative); }
+  .br-point.br-edge { border-left: 3px solid var(--positive); }
+  .br-point.br-bias { border-left: 3px solid var(--warning); }
+  .br-point.br-warn { border-left: 3px solid var(--negative); }
   /* bear cases (pre-mortem) */
   .bear-case {
     padding: var(--space-3); margin-bottom: 8px; border-radius: var(--radius-sm);
-    background: var(--card-2); border-left: 3px solid color-mix(in srgb, var(--negative) 50%, transparent);
+    background: var(--fill-inset); border-left: 3px solid color-mix(in srgb, var(--negative) 50%, transparent);
   }
   .bear-tk { font-weight: 700; font-family: var(--mono); font-size: var(--fs-md); margin-bottom: 4px; }
   .bear-thesis { font-size: var(--fs-md); line-height: 1.5; margin-bottom: 8px; color: var(--text); }
   .bear-meta { font-size: var(--fs-sm); line-height: 1.45; color: var(--text-dim); margin-top: 4px; }
   .bear-lbl {
     display: inline-block; font-size: var(--fs-micro); font-weight: 700; padding: 2px 8px;
-    border-radius: 5px; margin-right: 8px; vertical-align: middle;
+    border-radius: var(--radius-sm); margin-right: 8px; vertical-align: middle;
   }
-  .bear-lbl.bl-fal   { background: color-mix(in srgb, var(--positive) 15%, transparent); color: var(--positive-ink); }
-  .bear-lbl.bl-watch { background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent-ink); }
+  .bear-lbl.bl-fal   { background: color-mix(in srgb, var(--positive) var(--tint-soft), transparent); color: var(--positive-ink); }
+  .bear-lbl.bl-watch { background: color-mix(in srgb, var(--accent) var(--tint-soft), transparent); color: var(--accent-ink); }
   /* debate trail (#1117) — the argument, not just its count */
   .dbt-case {
     padding: var(--space-3); margin-bottom: 8px; border-radius: var(--radius-sm);
-    background: var(--card-2); border-left: 3px solid color-mix(in srgb, var(--accent) 50%, transparent);
+    background: var(--fill-inset); border-left: 3px solid color-mix(in srgb, var(--accent) 50%, transparent);
   }
   .dbt-head {
     display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap;
@@ -1830,7 +1877,7 @@
   .dbt-toggle > i {
     flex: 0 0 auto; width: 7px; height: 7px; border-right: 1.5px solid var(--text-dim);
     border-bottom: 1.5px solid var(--text-dim); transform: rotate(-45deg);
-    transition: transform .16s ease; align-self: center;
+    transition: transform var(--duration-fast) var(--ease-out); align-self: center;
   }
   .dbt-toggle[aria-expanded="true"] > i { transform: rotate(45deg); }
   .dbt-toggle .dbt-head { flex: 0 1 auto; margin: 0; }
@@ -1853,12 +1900,12 @@
   .dbt-more > i, .pt-fold > i {
     width: 7px; height: 7px; border-right: 1.5px solid currentColor;
     border-bottom: 1.5px solid currentColor; transform: rotate(-45deg);
-    transition: transform .16s ease; flex: 0 0 auto; margin-left: 3px;
+    transition: transform var(--duration-fast) var(--ease-out); flex: 0 0 auto; margin-left: 3px;
   }
   .dbt-more[aria-expanded="true"] > i, .pt-fold[aria-expanded="true"] > i { transform: rotate(45deg); }
   .dbt-more:hover, .pt-fold:hover, .dbt-toggle:hover .dbt-gist { color: var(--text-secondary); }
   .dbt-toggle:focus-visible, .dbt-more:focus-visible, .pt-fold:focus-visible {
-    outline: 2px solid var(--accent); outline-offset: 3px;
+    outline: var(--focus-ring); outline-offset: 2px;
   }
   @media (prefers-reduced-motion: reduce) {
     .dbt-toggle > i, .dbt-more > i, .pt-fold > i { transition: none; }
@@ -1868,29 +1915,29 @@
   .dbt-side { display: flex; gap: 8px; align-items: flex-start; margin-top: 4px; }
   .dbt-lbl {
     flex: 0 0 auto; font-size: var(--fs-micro); font-weight: 700; padding: 2px 8px;
-    border-radius: 5px; margin-top: 2px;
+    border-radius: var(--radius-sm); margin-top: 2px;
   }
-  .dbt-bull .dbt-lbl { background: color-mix(in srgb, var(--positive) 15%, transparent); color: var(--positive-ink); }
-  .dbt-bear .dbt-lbl { background: color-mix(in srgb, var(--negative) 15%, transparent); color: var(--negative-ink); }
+  .dbt-bull .dbt-lbl { background: color-mix(in srgb, var(--positive) var(--tint-soft), transparent); color: var(--positive-ink); }
+  .dbt-bear .dbt-lbl { background: color-mix(in srgb, var(--negative) var(--tint-soft), transparent); color: var(--negative-ink); }
   .dbt-text { font-size: var(--fs-sm); line-height: 1.5; color: var(--text); }
   .dbt-line { font-size: var(--fs-sm); line-height: 1.45; color: var(--text-dim); margin-top: 6px; }
   .dbt-key { font-weight: 600; color: var(--text); margin-right: 6px; }
   .dbt-frames { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
   .dbt-frame.dbt-cite {
     color: var(--accent-ink);
-    border-color: color-mix(in srgb, var(--accent) 35%, transparent);
-    background: color-mix(in srgb, var(--accent) 10%, transparent);
+    border-color: color-mix(in srgb, var(--accent) var(--tint-strong), transparent);
+    background: color-mix(in srgb, var(--accent) var(--tint-soft), transparent);
   }
   .dbt-frame {
     font-size: var(--fs-micro); font-family: var(--mono); padding: 2px 8px;
-    border-radius: 5px; background: var(--card); color: var(--text-dim);
-    border: 1px solid var(--border);
+    border-radius: var(--radius-sm); background: var(--fill-inset-2); color: var(--text-dim);
+    border: 1px solid var(--border-subtle);
   }
   /* hidden concentration */
   .hc-headline { font-size: var(--fs-md); font-weight: 600; line-height: 1.45; margin-bottom: 12px; }
   .hc-bar-row { display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-3); }
   .hc-factor { flex: 0 0 auto; font-size: var(--fs-sm); font-weight: 600; color: var(--accent); max-width: 40%; }
-  .hc-bar { flex: 1 1 auto; height: 10px; background: var(--card-2); border-radius: 5px; overflow: hidden; }
+  .hc-bar { flex: 1 1 auto; height: 10px; background: var(--fill-inset); border-radius: 5px; overflow: hidden; }
   .hc-bar-fill {
     height: 100%; border-radius: 5px;
     background: linear-gradient(90deg, rgba(124,140,242,.7), color-mix(in srgb, var(--negative) 80%, transparent));
@@ -1908,7 +1955,7 @@
     display: flex; align-items: center; gap: var(--space-3);
     margin: 0 0 var(--space-4); padding: var(--space-3) var(--space-4);
     background: color-mix(in srgb, var(--accent-soft) 82%, transparent);
-    border: 1px solid color-mix(in srgb, var(--accent) 28%, transparent); border-radius: var(--radius-sm);
+    border: 1px solid color-mix(in srgb, var(--accent) var(--tint-edge), transparent); border-radius: var(--radius-sm);
     -webkit-backdrop-filter: blur(12px) saturate(150%);
     backdrop-filter: blur(12px) saturate(150%);
     font-size: var(--fs-md); line-height: 1.45;
@@ -1947,7 +1994,7 @@
     font: inherit; text-align: left; cursor: pointer;
   }
   .desk-rail-toggle:focus-visible {
-    outline: 2px solid var(--focus); outline-offset: -2px;
+    outline: var(--focus-ring); outline-offset: -2px;
   }
   .dr-toggle-label {
     color: var(--text-tertiary); font: 700 var(--fs-micro)/1 var(--mono);
@@ -1961,7 +2008,7 @@
   .dr-chevron {
     width: 7px; height: 7px; border-right: 1.5px solid var(--text-tertiary);
     border-bottom: 1.5px solid var(--text-tertiary);
-    transform: translateY(-2px) rotate(45deg); transition: transform .15s ease;
+    transform: translateY(-2px) rotate(45deg); transition: transform var(--duration-fast) var(--ease-out);
   }
   .desk-rail-toggle[aria-expanded="true"] .dr-chevron {
     transform: translateY(2px) rotate(225deg);
@@ -1972,7 +2019,7 @@
     /* Toggling the rail is an occasional action, so the content may bridge
        its arrival — 240ms, transform+opacity only. Closing snaps (the global
        reduced-motion rule also zeroes this). */
-    animation: desk-rail-in 240ms cubic-bezier(.22,1,.36,1);
+    animation: desk-rail-in var(--duration-standard) var(--ease-out);
   }
   .desk-rail-expanded[hidden] { display: none; }
   @keyframes desk-rail-in {
@@ -2035,14 +2082,14 @@
   /* Plan timeline (Reflect) — fuller decision cards: plan + rationale + outcome */
   .plan-timeline { display: flex; flex-direction: column; gap: var(--space-3); }
   .pt-row {
-    padding: 12px; background: var(--card-2); border-radius: var(--radius-sm);
+    padding: 12px; background: var(--fill-inset); border-radius: var(--radius-sm);
     border-left: 3px solid var(--border);
     display: grid; grid-template-columns: auto 1fr auto; gap: var(--space-2) 12px;
     align-items: start; font-size: var(--fs-md);
   }
-  .pt-row.outcome-win { border-left-color: var(--green); }
-  .pt-row.outcome-loss { border-left-color: var(--red); }
-  .pt-row.outcome-pending { border-left-color: var(--gray); }
+  .pt-row.outcome-win { border-left-color: var(--positive); }
+  .pt-row.outcome-loss { border-left-color: var(--negative); }
+  .pt-row.outcome-pending { border-left-color: var(--neutral); }
   .pt-row .pt-head {
     display: flex; flex-direction: column; gap: 2px; min-width: 78px;
   }
@@ -2073,7 +2120,7 @@
     color: var(--text-tertiary); font: 600 var(--fs-micro)/1.3 var(--mono);
   }
   .pt-expand:hover { color: var(--text-secondary); }
-  .pt-expand:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .pt-expand:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
   @media (pointer: coarse) { .pt-expand { padding: 9px 0; } }
   .pt-row .pt-side { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
   .pt-row .pt-conf {
@@ -2081,11 +2128,11 @@
     background: rgba(91,141,239,.12); color: var(--accent-ink); font-weight: 600;
     font-family: var(--mono);
   }
-  .pt-row .pt-followed-true { color: var(--green); font-size: var(--fs-micro); font-weight: 600; }
+  .pt-row .pt-followed-true { color: var(--positive); font-size: var(--fs-micro); font-weight: 600; }
   .pt-row .pt-followed-false { color: var(--text-faint); font-size: var(--fs-micro); }
   .pt-row .pt-pnl { font-size: var(--fs-xs); font-family: var(--mono); font-weight: 600; }
-  .pt-row .pt-pnl.pos { color: var(--green); }
-  .pt-row .pt-pnl.neg { color: var(--red); }
+  .pt-row .pt-pnl.pos { color: var(--positive); }
+  .pt-row .pt-pnl.neg { color: var(--negative); }
 
   /* Trigger-type breakdown bars (extends Plan Review card) */
   .trig-block { margin-top: var(--space-3); padding-top: var(--space-3); border-top: 1px dashed var(--border); }
@@ -2107,17 +2154,17 @@
     overflow-wrap: anywhere; }
   .trig-row .trig-bar {
     grid-area: bar;
-    height: 12px; background: var(--card-2); border-radius: 4px; overflow: hidden;
+    height: 12px; background: var(--fill-inset); border-radius: 4px; overflow: hidden;
     display: flex;
   }
-  .trig-row .trig-bar .seg-win { background: var(--green); }
-  .trig-row .trig-bar .seg-loss { background: var(--red); }
-  .trig-row .trig-bar .seg-pending { background: var(--gray); opacity: 0.5; }
+  .trig-row .trig-bar .seg-win { background: var(--positive); }
+  .trig-row .trig-bar .seg-loss { background: var(--negative); }
+  .trig-row .trig-bar .seg-pending { background: var(--neutral); opacity: 0.5; }
   .trig-row .trig-stat {
     grid-area: stat; font-family: var(--mono); font-size: var(--fs-xs);
     text-align: right; color: var(--text-dim);
   }
-  .trig-row .trig-stat.alert { color: var(--red); font-weight: 700; }
+  .trig-row .trig-stat.alert { color: var(--negative); font-weight: 700; }
   @media (min-width: 640px) {
     .trig-row {
       grid-template-columns: 110px 1fr 130px;
@@ -2136,12 +2183,12 @@
     .dd-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
   }
   .dd-region {
-    padding: var(--space-4); background: var(--card-2); border-radius: var(--radius-sm);
+    padding: var(--space-4); background: var(--fill-inset); border-radius: var(--radius-sm);
     border-left: 3px solid var(--border);
   }
-  .dd-region.recovery-poor { border-left-color: var(--red); }
-  .dd-region.recovery-mid  { border-left-color: var(--amber); }
-  .dd-region.recovery-good { border-left-color: var(--green); }
+  .dd-region.recovery-poor { border-left-color: var(--negative); }
+  .dd-region.recovery-mid  { border-left-color: var(--warning); }
+  .dd-region.recovery-good { border-left-color: var(--positive); }
   .dd-region .dd-region-name {
     font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: 0.08em;
     color: var(--text-dim); font-weight: 600; margin-bottom: 8px;
@@ -2149,16 +2196,16 @@
   .dd-region .dd-stats { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: var(--space-3); }
   .dd-region .dd-cell .lbl { font-size: var(--fs-micro); color: var(--text-faint); }
   .dd-region .dd-cell .val { font-size: var(--fs-xl); font-weight: 700; font-family: var(--mono); margin-top: 2px; }
-  .dd-region .dd-cell .val.neg { color: var(--red); }
-  .dd-region .dd-cell .val.pos { color: var(--green); }
+  .dd-region .dd-cell .val.neg { color: var(--negative); }
+  .dd-region .dd-cell .val.pos { color: var(--positive); }
   .dd-region .dd-bar {
-    height: 8px; background: var(--card); border-radius: 4px; overflow: hidden;
-    border: 1px solid var(--border);
+    height: 8px; background: var(--fill-inset-2); border-radius: 4px; overflow: hidden;
+    border: 1px solid var(--border-subtle);
   }
   .dd-region .dd-bar-fill { height: 100%; width: 100%; transform: scaleX(var(--fill, 0)); transform-origin: left; transition: transform var(--duration-standard) var(--ease-out); }
-  .dd-region .dd-bar-fill.poor { background: var(--red); }
-  .dd-region .dd-bar-fill.mid  { background: var(--amber); }
-  .dd-region .dd-bar-fill.good { background: var(--green); }
+  .dd-region .dd-bar-fill.poor { background: var(--negative); }
+  .dd-region .dd-bar-fill.mid  { background: var(--warning); }
+  .dd-region .dd-bar-fill.good { background: var(--positive); }
   .dd-region .dd-status {
     margin-top: var(--space-2); font-size: var(--fs-xs); color: var(--text-dim);
   }
@@ -2167,10 +2214,10 @@
   .ext-grid { display: grid; grid-template-columns: minmax(0,1fr); gap: 16px; }
   @media (min-width: 720px) { .ext-grid { grid-template-columns: repeat(3, minmax(0,1fr)); } }
   .ext-region {
-    background: var(--card-2, var(--card)); border: 1px solid var(--border);
+    background: var(--fill-inset); border: 1px solid var(--border);
     border-left: 3px solid var(--border); border-radius: var(--radius-sm); padding: var(--space-3) var(--space-4);
   }
-  .ext-region.is-low { border-left-color: var(--red); }
+  .ext-region.is-low { border-left-color: var(--negative); }
   .ext-region .ext-head {
     display: flex; align-items: baseline; justify-content: space-between; margin-bottom: var(--space-3);
   }
@@ -2181,25 +2228,25 @@
   .ext-row { display: flex; justify-content: space-between; align-items: baseline; padding: 4px 0; }
   .ext-row .k { font-size: var(--fs-xs); color: var(--text-faint); }
   .ext-row .v { font-size: var(--fs-lg); font-weight: 700; font-family: var(--mono); }
-  .ext-row .v.neg { color: var(--red); }
+  .ext-row .v.neg { color: var(--negative); }
   .ext-row .v small { font-size: var(--fs-micro); color: var(--text-faint); font-weight: 500; margin-left: 5px; font-family: inherit; }
   .ext-region .ext-dd {
     margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border);
   }
-  .ext-region .ext-dd .v { font-size: var(--fs-xl); color: var(--red); }
+  .ext-region .ext-dd .v { font-size: var(--fs-xl); color: var(--negative); }
   .ext-region .ext-dd .span { font-size: var(--fs-micro); color: var(--text-dim); margin-top: 3px; }
   /* 回撤恢复条 (并入历史利润极值卡) */
   .ext-region .ext-dd .dd-bar {
-    height: 8px; background: var(--card); border-radius: 4px; overflow: hidden;
-    border: 1px solid var(--border); margin-top: var(--space-2);
+    height: 8px; background: var(--fill-inset-2); border-radius: 4px; overflow: hidden;
+    border: 1px solid var(--border-subtle); margin-top: var(--space-2);
   }
   .ext-region .ext-dd .dd-bar-fill { height: 100%; width: 100%; transform: scaleX(var(--fill, 0)); transform-origin: left; transition: transform var(--duration-standard) var(--ease-out); }
-  .ext-region .ext-dd .dd-bar-fill.poor { background: var(--red); }
-  .ext-region .ext-dd .dd-bar-fill.mid  { background: var(--amber); }
-  .ext-region .ext-dd .dd-bar-fill.good { background: var(--green); }
-  .ext-region .ext-dd .v .rec-good { color: var(--green); }
-  .ext-region .ext-dd .v .rec-mid  { color: var(--amber); }
-  .ext-region .ext-dd .v .rec-poor { color: var(--red); }
+  .ext-region .ext-dd .dd-bar-fill.poor { background: var(--negative); }
+  .ext-region .ext-dd .dd-bar-fill.mid  { background: var(--warning); }
+  .ext-region .ext-dd .dd-bar-fill.good { background: var(--positive); }
+  .ext-region .ext-dd .v .rec-good { color: var(--positive); }
+  .ext-region .ext-dd .v .rec-mid  { color: var(--warning); }
+  .ext-region .ext-dd .v .rec-poor { color: var(--negative); }
 
   /* 8d Return Heatmap (Drill) */
   .ret-heatmap {
@@ -2212,7 +2259,7 @@
     min-height: 64px; justify-content: center; align-items: center;
     text-align: center;
     border: 1px solid var(--border);
-    transition: transform 0.15s;
+    transition: transform var(--duration-fast);
   }
   .ret-cell .rc-spark { line-height: 0; width: 100%; margin: 1px 0 2px; }
   .ret-cell .rc-spark svg { width: 100%; height: 22px; display: block; opacity: 0.92; }
@@ -2256,7 +2303,7 @@
     font: inherit; -webkit-tap-highlight-color: transparent;
   }
   .shadow-toggle:focus-visible {
-    outline: 2px solid var(--accent); outline-offset: 5px; border-radius: 4px;
+    outline: var(--focus-ring); outline-offset: 2px; border-radius: var(--radius-sm);
   }
   .shadow-toggle-title {
     color: var(--text-dim); font-size: var(--fs-sm); font-weight: 600;
@@ -2265,7 +2312,7 @@
   .shadow-toggle::after {
     content: "›"; grid-column: 2; grid-row: 1 / span 2;
     color: var(--text-faint); font-size: var(--fs-xl);
-    transform: rotate(90deg); transition: transform .15s;
+    transform: rotate(90deg); transition: transform var(--duration-fast);
   }
   .shadow-toggle[aria-expanded="true"]::after { transform: rotate(-90deg); }
   .shadow-summary {
@@ -2282,8 +2329,8 @@
   }
   .shadow-estimand {
     margin: 0 0 12px; padding: var(--space-3);
-    border-left: 3px solid var(--amber); border-radius: 0 7px 7px 0;
-    background: color-mix(in srgb, var(--warning) 7%, transparent); color: var(--text-dim);
+    border-left: 3px solid var(--warning); border-radius: 0 7px 7px 0;
+    background: color-mix(in srgb, var(--warning) var(--tint-wash), transparent); color: var(--text-dim);
     font-size: var(--fs-sm); line-height: 1.55;
   }
   .shadow-diff-grid, .shadow-fill-grid {
@@ -2293,7 +2340,7 @@
   .shadow-fill-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .shadow-stat {
     min-width: 0; padding: var(--space-3); border: 1px solid var(--border);
-    border-radius: var(--radius-sm); background: var(--card-2);
+    border-radius: var(--radius-sm); background: var(--fill-inset);
   }
   .shadow-stat .lbl {
     color: var(--text-faint); font-size: var(--fs-micro); line-height: 1.3;
@@ -2302,8 +2349,8 @@
   .shadow-stat .val {
     margin-top: 4px; color: var(--text); font: 700 var(--fs-xl) var(--mono);
   }
-  .shadow-stat .val.pos { color: var(--green); }
-  .shadow-stat .val.neg { color: var(--red); }
+  .shadow-stat .val.pos { color: var(--positive); }
+  .shadow-stat .val.neg { color: var(--negative); }
   .shadow-stat.skipped {
     border-color: rgba(229,72,77,.42); background: rgba(229,72,77,.08);
   }
@@ -2316,11 +2363,11 @@
   }
   .shadow-chart-box { width: 100%; height: 235px; min-height: 235px; }
   .shadow-constraint-note {
-    margin: 8px 0; color: var(--red); font-size: var(--fs-xs);
+    margin: 8px 0; color: var(--negative); font-size: var(--fs-xs);
     font-weight: 600; line-height: 1.45;
   }
   .shadow-coverage-note {
-    margin: 8px 0; color: var(--amber); font-size: var(--fs-xs);
+    margin: 8px 0; color: var(--warning); font-size: var(--fs-xs);
     font-weight: 700; line-height: 1.45;
   }
   .shadow-limitations {
@@ -2380,7 +2427,7 @@
     gap: 8px; margin: var(--space-3) 0;
   }
   .audit-stat, .timing-zone {
-    background: var(--card-2); border: 1px solid var(--border);
+    background: var(--fill-inset); border: 1px solid var(--border);
     border-radius: var(--radius-sm); padding: var(--space-3); min-width: 0;
   }
   .audit-stat .n, .timing-zone .median {
@@ -2399,7 +2446,7 @@
   .audit-list { display: flex; flex-direction: column; gap: var(--space-2); margin-top: var(--space-3); }
   .audit-row {
     border: 1px solid var(--border); border-radius: var(--radius-sm);
-    background: var(--card-2); overflow: hidden;
+    background: var(--fill-inset); overflow: hidden;
   }
   .audit-row summary {
     cursor: pointer; list-style: none; display: grid;
@@ -2418,8 +2465,8 @@
     gap: 8px; margin-top: 9px;
   }
   .audit-detail-grid > div {
-    min-width: 0; padding: 8px; background: var(--card);
-    border-radius: 6px; overflow-wrap: anywhere;
+    min-width: 0; padding: 8px; background: var(--fill-inset-2);
+    border-radius: var(--radius-sm); overflow-wrap: anywhere;
   }
   .audit-path { width: 100%; height: 54px; margin-top: var(--space-2); display: block; }
   .timing-events { overflow-x: auto; -webkit-overflow-scrolling: touch; margin-top: 8px; }
@@ -2472,7 +2519,7 @@
   .bucket-row:last-child { border-bottom: none; }
   .bucket-row .name { font-weight: 600; color: var(--text); font-family: var(--mono); }
   .bucket-row .bar-wrap {
-    background: var(--card-2);
+    background: var(--fill-inset);
     border-radius: 999px;
     height: 14px;
     position: relative;
@@ -2484,12 +2531,12 @@
     transform: scaleX(var(--fill, 0)); transform-origin: left;
     transition: transform var(--duration-standard) var(--ease-out);
   }
-  .bucket-row .bar-fill.win { background: var(--green); }
+  .bucket-row .bar-fill.win { background: var(--positive); }
   .bucket-row .bar-fill.followed { background: var(--accent); }
   /* Win-rate fill — same 45/60 threshold color language as the action badges */
-  .bucket-row .bar-fill.wr-bad { background: var(--red); }
-  .bucket-row .bar-fill.wr-mid { background: var(--amber); }
-  .bucket-row .bar-fill.wr-ok  { background: var(--green); }
+  .bucket-row .bar-fill.wr-bad { background: var(--negative); }
+  .bucket-row .bar-fill.wr-mid { background: var(--warning); }
+  .bucket-row .bar-fill.wr-ok  { background: var(--positive); }
   .bucket-row .bar-fill.lown   { opacity: .5; }
   .bucket-row .stat .muted { color: var(--text-faint); font-weight: 400; }
   .bucket-row .stat {
@@ -2861,7 +2908,7 @@
   /* 每日盈亏柱：零轴居中，正上负下。柱子小、面积小，所以用满彩度的涨跌色
      ——「小面积要彩度才看得见，大面积要收彩度才不吵」是同一条规矩的两端。 */
   .rc-bars {
-    position: relative; margin-top: 9px; height: 30px; border-radius: 6px;
+    position: relative; margin-top: 9px; height: 30px; border-radius: var(--radius-sm);
     margin-bottom: 9px;
     background: color-mix(in srgb, var(--text-primary) 4%, transparent);
     box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--border-subtle) 45%, transparent);
@@ -2944,10 +2991,10 @@
   /* 判词分两截着色：「页面数字可用」印成红的是自相矛盾的 —— 可信度归
      可信度那半句，告警归待办那半句。 */
   .hero-health-verdict .dh-trust { color: var(--text); }
-  .hero-health-verdict .dh-trust[data-trust="broken"] { color: var(--red); }
+  .hero-health-verdict .dh-trust[data-trust="broken"] { color: var(--negative); }
   .hero-health-verdict .dh-todo { color: var(--text-tertiary); }
   .hero-health-verdict .dh-todo[data-sev="warn"] { color: var(--warning); }
-  .hero-health-verdict .dh-todo[data-sev="bad"] { color: var(--red); }
+  .hero-health-verdict .dh-todo[data-sev="bad"] { color: var(--negative); }
   .hero-health-meta {
     margin-top: 6px; color: var(--text-tertiary); font: 500 var(--fs-micro)/1.45 var(--mono);
   }
@@ -2955,13 +3002,13 @@
      一个 .dh-meta-bit）。 */
   .hero-health-meta .dh-meta-bit { white-space: nowrap; }
   .dh-toggle {
-    margin-left: auto; flex: none; padding: 6px 12px; border-radius: 8px;
+    margin-left: auto; flex: none; padding: 6px 12px; border-radius: var(--radius-sm);
     border: 1px solid var(--border-subtle); background: var(--surface-1);
     color: var(--text-secondary); font: 600 var(--fs-xs)/1 var(--mono); cursor: pointer;
-    transition: transform var(--duration-fast) var(--ease-out), color var(--duration-fast) ease, border-color var(--duration-fast) ease;
+    transition: transform var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out);
   }
-  .dh-toggle:active { transform: scale(.97); }
-  .dh-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .dh-toggle:active { transform: scale(var(--press-scale)); }
+  .dh-toggle:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
   @media (hover: hover) and (pointer: fine) {
     .dh-toggle:hover { color: var(--text); border-color: var(--text-tertiary); }
   }
@@ -2987,13 +3034,13 @@
     gap: 10px 12px; padding: 9px 0; width: 100%; text-align: left;
     grid-template-columns: 46px 150px 168px minmax(0, 1fr) 58px 12px;
     -webkit-appearance: none; appearance: none; background: none; color: inherit;
-    border: 0; border-bottom: 1px solid var(--border-subtle); border-radius: 6px;
+    border: 0; border-bottom: 1px solid var(--border-subtle); border-radius: var(--radius-sm);
     cursor: pointer;
     font: 500 var(--fs-xs)/1.35 var(--mono); font-variant-numeric: tabular-nums;
-    transition: background-color var(--duration-fast) ease;
+    transition: background-color var(--duration-fast) var(--ease-out);
   }
   .dh-lane:active { background: color-mix(in srgb, var(--text) 5%, transparent); }
-  .dh-lane:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+  .dh-lane:focus-visible { outline: var(--focus-ring); outline-offset: -2px; }
   @media (hover: hover) and (pointer: fine) {
     .dh-lane:hover { background: color-mix(in srgb, var(--text) 3%, transparent); }
     .dh-lane:hover .dh-lane-chev { border-color: var(--text-secondary); }
@@ -3035,7 +3082,7 @@
   }
   .dh-lane-stat { color: var(--text); font-weight: 700; white-space: nowrap; }
   .dh-lane[data-tone="warn"] .dh-lane-stat { color: var(--warning); }
-  .dh-lane[data-tone="bad"] .dh-lane-stat { color: var(--red); }
+  .dh-lane[data-tone="bad"] .dh-lane-stat { color: var(--negative); }
   .dh-lane-note {
     color: var(--text-tertiary); min-width: 0;
     overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
@@ -3043,20 +3090,23 @@
   /* 处置牌：四种字面量各一色，含义写在卡片底部的说明行里。牌是文字不是
      纯色点 —— 只靠颜色区分「要动手 / 只记不动」是拿色觉当说明书。 */
   .dh-chip {
-    justify-self: end; padding: 3px 7px; border-radius: 6px; white-space: nowrap;
+    justify-self: end; padding: 3px 7px; border-radius: var(--radius-sm); white-space: nowrap;
     font: 700 var(--fs-micro)/1.2 var(--mono); letter-spacing: .04em;
     color: var(--text-secondary);
     background: color-mix(in srgb, var(--text) 7%, transparent);
   }
   .dh-chip[data-act="需处理"] {
-    color: var(--negative-ink); background: color-mix(in srgb, var(--red) 14%, transparent);
+    color: var(--negative-ink); background: color-mix(in srgb, var(--negative) var(--tint-soft), transparent);
   }
   .dh-chip[data-act="观察"] {
-    color: var(--warning-ink); background: color-mix(in srgb, var(--warning) 15%, transparent);
+    color: var(--warning-ink); background: color-mix(in srgb, var(--warning) var(--tint-soft), transparent);
   }
+  /* 三个状态片同一套配方：色相的 ink 档写字，同色相 soft 档铺底。这一条
+     原来自己调了一份 `accent 88% + text` 的字色 —— 同一族里唯一的例外，
+     而浓度收到 soft 档之后它在亮色 --surface-3 上实测 4.36，掉出 AA。 */
   .dh-chip[data-act="正常"] {
-    color: color-mix(in srgb, var(--accent) 88%, var(--text));
-    background: color-mix(in srgb, var(--accent) 12%, transparent);
+    color: var(--accent-ink);
+    background: color-mix(in srgb, var(--accent) var(--tint-soft), transparent);
   }
   /* 构成条：段宽按档数成比例，只画有数的段。 */
   .dh-lane-shape { display: flex; align-items: center; gap: 3px; height: 18px; min-width: 0; }
@@ -3065,14 +3115,14 @@
     background: color-mix(in srgb, var(--accent) 82%, transparent);
   }
   .dh-part.is-warn { background: var(--warning); }
-  .dh-part.is-bad { background: var(--red); }
+  .dh-part.is-bad { background: var(--negative); }
   .dh-part.is-idle { background: color-mix(in srgb, var(--text) 16%, transparent); }
   .dh-pip {
     flex: 0 0 auto; width: 7px; height: 7px; border-radius: 2px;
     background: color-mix(in srgb, var(--accent) 82%, transparent);
   }
   .dh-pip.is-warn { background: var(--warning); }
-  .dh-pip.is-bad { background: var(--red); }
+  .dh-pip.is-bad { background: var(--negative); }
   /* 数据面那条带子搬进泳道，所以从 32px 高的独立块收成一列的高度。 */
   .dh-strip {
     display: flex; align-items: flex-end; gap: 3px; flex-wrap: nowrap;
@@ -3098,7 +3148,7 @@
   }
   .bs-dot[data-tone="ok"] { background: var(--accent); }
   .bs-dot[data-tone="warn"] { background: var(--warning); }
-  .bs-dot[data-tone="bad"] { background: var(--negative, var(--red)); }
+  .bs-dot[data-tone="bad"] { background: var(--negative, var(--negative)); }
   /* ── 今天的槽位轨（数据健康牌内）──
      色彩预算不变：绿=落地、黄=降级、红=没落地、蓝=进行中、灰=还没到，没有第四
      种装饰色。「兜底补上」用**空心**这个形状差别表示 —— 它也落地了，只是烧掉了
@@ -3109,7 +3159,7 @@
   }
   .dh-pip[data-tone="ok"]   { background: var(--positive); }
   .dh-pip[data-tone="warn"] { background: var(--warning); }
-  .dh-pip[data-tone="bad"]  { background: var(--negative, var(--red)); }
+  .dh-pip[data-tone="bad"]  { background: var(--negative, var(--negative)); }
   .dh-pip[data-tone="live"] { background: var(--accent); }
   .dh-pip[data-tone="idle"] { background: transparent; box-shadow: inset 0 0 0 1px var(--border-strong); }
   /* 轨道上的针只有 3px 宽，描边在这个尺寸上等于不可见。「排了但还没到」必须
@@ -3200,7 +3250,7 @@
     overflow-x: auto; scrollbar-width: none; background: none;
   }
   .dh-row.is-cron .dh-bar.is-lamps::-webkit-scrollbar { display: none; }
-  .dh-row.is-cron[data-tone="bad"] .dh-state { color: var(--negative, var(--red)); }
+  .dh-row.is-cron[data-tone="bad"] .dh-state { color: var(--negative, var(--negative)); }
   .dh-row.is-cron[data-tone="warn"] .dh-state { color: var(--warning); }
   .dh-row.is-cron[data-tone="idle"] { opacity: .6; }
   .dh-caption {
@@ -3208,7 +3258,7 @@
     font: 500 var(--fs-micro)/1.5 var(--mono);
   }
   .dh-seg.is-late i { background: var(--warning); }
-  .dh-seg.is-missing i { background: var(--red); }
+  .dh-seg.is-missing i { background: var(--negative); }
   /* 处置清单：常显，但没有待办时整块不占位。（类名不叫 .dh-todo —— 那个
      已经是判词后半截那个 span 的类，撞名会给判词画上一条边线。） */
   .dh-todo-list:not(:empty) {
@@ -3235,11 +3285,11 @@
   .dh-fold i {
     width: 9px; height: 9px; border-right: 1.5px solid currentColor;
     border-bottom: 1.5px solid currentColor; transform: rotate(-45deg);
-    transition: transform .16s ease; flex: 0 0 auto; margin: -3px 2px 0 3px;
+    transition: transform var(--duration-fast) var(--ease-out); flex: 0 0 auto; margin: -3px 2px 0 3px;
   }
   .dh-fold[aria-expanded="true"] i { transform: rotate(45deg); margin-top: -6px; }
   .dh-fold:hover { color: var(--text-secondary); }
-  .dh-fold:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .dh-fold:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
   @media (prefers-reduced-motion: reduce) { .dh-fold i { transition: none; } }
   @media (pointer: coarse) { .dh-fold { padding: 13px 0; } }
   /* 逐项里的分组标题（投递 / 数据面）：两组读的是两件事，中间要有个界。 */
@@ -3255,9 +3305,9 @@
      单独给它一套列宽，并且左侧留一道红边把待办从台账里挑出来。 */
   .dh-row.is-todo {
     grid-template-columns: minmax(76px, auto) minmax(0, 1fr) 0 minmax(0, 1.1fr) minmax(0, 1.2fr);
-    padding-left: 8px; border-left: 2px solid var(--red);
+    padding-left: 8px; border-left: 2px solid var(--negative);
   }
-  .dh-row.is-todo .dh-name { color: var(--red); }
+  .dh-row.is-todo .dh-name { color: var(--negative); }
   .dh-row.is-todo .dh-state { color: var(--text-secondary); text-align: right; white-space: normal; }
   .dh-name { color: var(--text); font-weight: 700; white-space: nowrap; }
   .dh-file, .dh-detail {
@@ -3270,10 +3320,10 @@
   }
   .dh-bar i { display: block; height: 100%; background: color-mix(in srgb, var(--accent) 75%, transparent); }
   .dh-row.is-late .dh-bar i, .dh-row.is-missing .dh-bar i { background: var(--warning); opacity: 1; }
-  .dh-row.is-missing .dh-bar i { background: var(--red); }
+  .dh-row.is-missing .dh-bar i { background: var(--negative); }
   .dh-state { color: var(--text-tertiary); text-align: right; white-space: nowrap; }
   .dh-row.is-late .dh-state { color: var(--warning); }
-  .dh-row.is-missing .dh-state { color: var(--red); }
+  .dh-row.is-missing .dh-state { color: var(--negative); }
 
 
   /* ── 决策地图（Reflect 卡内）────────────────────────────────────────
@@ -3287,7 +3337,7 @@
      typography rules for rendered brief content. */
   .decimap { --dm-gap: 14px; font-size: 14px; }
   .decimap .dm-sub { margin: 0 0 12px; color: var(--text-dim); font-size: 12.5px; line-height: 1.55; }
-  .decimap .dm-warn { color: var(--red); }
+  .decimap .dm-warn { color: var(--negative); }
 
   /* The diverging pair for forward return. NOT the site's green/red: measured
      with the dataviz validator, #16a34a vs #dc2626 is deltaE 5.0 under simulated
@@ -3299,7 +3349,7 @@
      prints its signed number as well, so colour is never the only channel. */
   .decimap {
     --dm-pos: var(--accent);
-    --dm-neg: var(--red);
+    --dm-neg: var(--negative);
   }
 
   /* KPI strip. 卡里再套一个框 = 盒子套盒子；这一条现在是卡内的一行 meta，
@@ -3315,7 +3365,7 @@
   .dm-controls { display: flex; flex-wrap: wrap; align-items: center;
     gap: 8px 10px; margin: 0 0 8px; font-size: 12.5px; color: var(--text-dim); }
   .dm-controls select, .dm-controls button {
-    font: inherit; color: var(--text); background: var(--card-2);
+    font: inherit; color: var(--text); background: var(--fill-inset);
     border: 1px solid var(--border); border-radius: var(--radius-sm);
     padding: 5px 9px; font-size: 12px; }
   .dm-controls button { cursor: pointer; }
@@ -3328,7 +3378,7 @@
      card-2 in the dark theme). Pressed ink is the page surface, not #fff:
      white on the dark theme's bright accent is 2.68:1, surface-0 is ≥5:1 on
      the accent in both themes (#1556). */
-  .dm-seg button { border: 0; border-radius: 0; background: var(--card-2);
+  .dm-seg button { border: 0; border-radius: 0; background: var(--fill-inset);
     color: var(--text); font-family: var(--mono); padding: 6px 11px; }
   .dm-seg button + button { border-left: 1px solid var(--border); }
   .dm-seg button[aria-pressed="true"] { background: var(--accent); color: var(--surface-0); }
@@ -3341,8 +3391,11 @@
 
   /* the board — horizontal scroll lives here and only here: the page itself
      must never scroll sideways. */
-  .dm-board-wrap { overflow-x: auto; border: 1px solid var(--border);
-    border-radius: var(--radius); background: var(--card); }
+  /* 板和时间线都活在 Reflect 那张卡里：它们是「卡里的一块」，不是第二张
+     卡。原来用卡的底色 + 卡的边 + 卡的圆角，实测和卡的对比度 1.00 —— 一块
+     看不见的板。 */
+  .dm-board-wrap { overflow-x: auto; border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm); background: var(--fill-inset); }
   .dm-board { border-collapse: separate; border-spacing: 0;
     font-size: 12px; width: 100%; min-width: 720px;
     font-variant-numeric: tabular-nums; }
@@ -3354,7 +3407,7 @@
   .decimap table th { text-transform: none; letter-spacing: normal;
     font-size: inherit; color: inherit; }
   .dm-board thead th { position: sticky; top: 0; z-index: 3;
-    background: var(--card); color: var(--text-dim); font-weight: 500;
+    background: var(--fill-inset); color: var(--text-dim); font-weight: 500;
     text-align: center; white-space: nowrap; padding: 8px 6px;
     border-bottom: 1px solid var(--border); font-family: var(--mono);
     font-size: 11px; letter-spacing: .02em; }
@@ -3362,23 +3415,23 @@
   /* The source column is the row's identity; it stays put while the actions
      scroll under a thumb. */
   .dm-board .dm-src { position: sticky; left: 0; z-index: 2;
-    background: var(--card); text-align: left; white-space: nowrap;
+    background: var(--fill-inset); text-align: left; white-space: nowrap;
     padding: 5px 10px 5px 8px; border-right: 1px solid var(--border);
     min-width: 176px; }
   .dm-board thead th.dm-src { z-index: 4; }
   .dm-board tbody tr + tr td, .dm-board tbody tr + tr th { border-top: 1px solid var(--border); }
-  .dm-board tbody tr:hover .dm-src { background: var(--card-2); }
+  .dm-board tbody tr:hover .dm-src { background: var(--fill-inset); }
   .dm-board tbody tr.dm-signal:hover .dm-src { background: var(--border); }
 
   .dm-twist { display: inline-flex; align-items: center; gap: 7px;
     background: none; border: 0; padding: 3px 2px; margin: 0; cursor: pointer;
     color: var(--text); font: inherit; text-align: left; }
   .dm-twist i { display: inline-block; width: 9px; font-style: normal;
-    color: var(--text-dim); transition: transform .12s ease; }
+    color: var(--text-dim); transition: transform var(--duration-fast) var(--ease-out); }
   .dm-twist[aria-expanded="true"] i { transform: rotate(90deg); }
   .dm-kindname { font-weight: 600; letter-spacing: .01em; }
   .dm-count { color: var(--text-dim); font-family: var(--mono); font-size: 11px; }
-  .dm-signal td, .dm-signal th.dm-src { background: var(--card-2); }
+  .dm-signal td, .dm-signal th.dm-src { background: var(--fill-inset); }
   .dm-signal .dm-src { padding-left: 26px; }
   .dm-signal .dm-name { font-family: var(--mono); font-size: 11.5px;
     color: var(--text); overflow-wrap: anywhere; }
@@ -3393,7 +3446,7 @@
 
   .dm-cell { text-align: center; padding: 4px 5px !important; min-width: 62px;
     cursor: pointer; }
-  .dm-cell:hover, .dm-cell:focus-visible { outline: 2px solid var(--accent);
+  .dm-cell:hover, .dm-cell:focus-visible { outline: var(--focus-ring);
     outline-offset: -2px; }
   .dm-cell .dm-n { display: block; font-family: var(--mono); font-size: 11.5px;
     color: var(--text); font-weight: 600; }
@@ -3422,8 +3475,8 @@
     border: 1px solid var(--border); border-radius: 2px; }
 
   /* timeline */
-  .dm-timeline { border: 1px solid var(--border); border-radius: var(--radius);
-    background: var(--card); padding: 4px 0; }
+  .dm-timeline { border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);
+    background: var(--fill-inset); padding: 4px 0; }
   .dm-row { display: grid; grid-template-columns: 78px 1fr; align-items: center;
     gap: 10px; padding: 5px 12px; }
   .dm-row + .dm-row { border-top: 1px solid var(--border); }
@@ -3436,12 +3489,12 @@
   .dm-dot { position: absolute; top: 5px; width: 9px; height: 9px; margin-left: -4px;
     border: 0; padding: 0; background: none; cursor: pointer; }
   .dm-dot::before { content: ''; position: absolute; inset: 0; border-radius: 50%;
-    background: var(--text-dim); transition: transform .12s ease; }
+    background: var(--text-dim); transition: transform var(--duration-fast) var(--ease-out); }
   .dm-dot:hover::before, .dm-dot:focus-visible::before { transform: scale(1.5); }
   .dm-dot:focus-visible { outline: none; }
-  .dm-dot.is-buy::before { background: var(--green); border-radius: 1px;
+  .dm-dot.is-buy::before { background: var(--positive); border-radius: 1px;
     clip-path: polygon(50% 0, 100% 100%, 0 100%); }
-  .dm-dot.is-sell::before { background: var(--red); border-radius: 1px;
+  .dm-dot.is-sell::before { background: var(--negative); border-radius: 1px;
     clip-path: polygon(0 0, 100% 0, 50% 100%); }
   .dm-dot.is-hold::before { background: var(--accent); }
   .dm-dot.is-other::before { background: var(--text-dim); border-radius: 1px;
@@ -3452,10 +3505,16 @@
     height: 10px; margin-right: 6px; vertical-align: -1px; top: 0; }
 
   /* drawer */
+  /* 抽屉浮在页面上，不在卡里：和顶栏、站点菜单同一族材质（玻璃 + blur），
+     而不是「一张贴在右边的卡」。(apple-design §12：浮层是半透明材质层。) */
   .dm-drawer { position: fixed; inset: 0 0 0 auto; width: min(430px, 94vw);
-    background: var(--card); border-left: 1px solid var(--border);
+    background: var(--glass-card);
+    -webkit-backdrop-filter: var(--blur-card); backdrop-filter: var(--blur-card);
+    border-left: 1px solid var(--border-subtle);
+    box-shadow: var(--shadow-card);
     padding: 16px 18px 40px; overflow-y: auto; z-index: 60;
-    transform: translateX(100%); transition: transform .18s ease; }
+    transform: translateX(100%);
+    transition: transform var(--duration-standard) var(--ease-out); }
   .dm-drawer.is-open { transform: none; }
   .dm-drawer h3 { margin: 0 0 2px; font-size: 15px; overflow-wrap: anywhere; }
   .dm-drawer .dm-close { position: absolute; top: 12px; right: 14px;
@@ -3468,7 +3527,7 @@
   .dm-hits button { width: 100%; display: flex; justify-content: space-between;
     gap: 10px; background: none; border: 0; color: var(--text); cursor: pointer;
     font: inherit; font-size: 12.5px; padding: 8px 2px; text-align: left; }
-  .dm-hits button:hover { background: var(--card-2); }
+  .dm-hits button:hover { background: var(--fill-inset); }
   .dm-hits em { font-style: normal; color: var(--text-dim);
     font-family: var(--mono); font-size: 11.5px; }
   .dm-scrim { position: fixed; inset: 0; background: rgba(0,0,0,.42); z-index: 55; }
@@ -3494,7 +3553,7 @@
     .dm-barlabel { color: var(--text-dim); font-family: var(--mono);
       font-size: 10.5px; letter-spacing: .04em; }
     .dm-actionbar button { display: inline-flex; align-items: center; gap: 5px;
-      border: 1px solid var(--border); border-radius: 999px; background: var(--card);
+      border: 1px solid var(--border-subtle); border-radius: 999px; background: var(--fill-inset);
       color: var(--text); font: inherit; font-size: 12px; padding: 6px 10px;
       cursor: pointer; }
     .dm-actionbar button em { font-style: normal; font-family: var(--mono);
@@ -3582,10 +3641,14 @@
      resolve both axes so a horizontal drag still changes tabs; pointercancel
      below clears chart hover state once scrolling takes ownership. */
   .native-equity-canvas { display: block; touch-action: auto; }
+  /* Tooltip = 浮层，和站点菜单面板同一配方。原来是「卡的底色 + 卡的边 +
+     一个写死的黑色阴影」——写死的阴影在亮色主题下是一团脏影。 */
   .native-equity-tooltip {
     position: absolute; z-index: 3; pointer-events: none; max-width: 240px;
-    padding: 8px 10px; border: 1px solid var(--border); border-radius: 8px;
-    background: var(--card); color: var(--text); box-shadow: 0 12px 32px rgba(0,0,0,.28);
+    padding: 8px 10px; border: 1px solid var(--border-subtle); border-radius: var(--radius-float);
+    background: var(--glass-card);
+    -webkit-backdrop-filter: var(--blur-card); backdrop-filter: var(--blur-card);
+    color: var(--text); box-shadow: var(--shadow-card);
     font: var(--fs-xs)/1.55 var(--mono);
   }
   .native-equity-window {
@@ -3702,12 +3765,23 @@
                 transform var(--duration-fast) var(--ease-out);
   }
   .deck-dot[aria-current="true"] { background: var(--text-secondary); opacity: 1; }
-  .deck-dot:active { transform: scale(.8); }
-  .deck-dot:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; }
+  .deck-dot:active { transform: scale(var(--press-scale)); }
+  .deck-dot:focus-visible { outline: var(--focus-ring); outline-offset: 3px; }
+  /* 5px 的点在手指下就是 5px。垂直方向的余量不花成本（上下没有别的可点
+     的东西），水平方向只放到相邻点的一半——dm-dot 那条判据同样适用：溢出
+     的热区碰到邻居，只是把误触换个地方发生。 */
+  @media (pointer: coarse) {
+    .deck-dots { height: auto; }
+    .deck-dot {
+      box-sizing: content-box; padding: 14px 3px; margin: -14px -3px;
+      background-clip: content-box;   /* 看得见的还是那 5px */
+    }
+  }
   @media (prefers-reduced-motion: reduce) { .deck-dot { transition: none; } }
   /* 牌内元素入场 stagger（30~80ms）：临时类压住初态，去类后 transition
      生效；delay 挂 nth-child，400ms 后由 JS 摘除 delay 类。 */
-  .deck-card > * { transition: opacity .24s var(--ease-out), transform .24s var(--ease-out); }
+  .deck-card > * { transition: opacity var(--duration-standard) var(--ease-out),
+                transform var(--duration-standard) var(--ease-out); }
   .deck-card.deck-preenter > * { transition: none; opacity: 0; transform: translateY(6px); }
   .deck-card.deck-enter > *:nth-child(1) { transition-delay: 30ms; }
   .deck-card.deck-enter > *:nth-child(2) { transition-delay: 55ms; }
@@ -3716,7 +3790,7 @@
      交叉淡化 + 指示点切换。 */
   @media (prefers-reduced-motion: reduce) {
     .deck-card,
-    .deck-card > * { transition-duration: .16s !important; transition-delay: 0s !important; }
+    .deck-card > * { transition-duration: var(--duration-fast) !important; transition-delay: 0s !important; }
     .deck-preenter > * { opacity: 0; transform: none; }
   }
   /* 牌内硬闸区：原「段间发丝线」是通栏卡的分段语言；独立成牌后它就是
@@ -3770,7 +3844,7 @@
   .overview-jump { padding: 6px 0 6px 8px; white-space: nowrap; }
   .overview-jump:focus-visible,
   .overview-strip-link:focus-visible {
-    outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 3px;
+    outline: var(--focus-ring); outline-offset: 2px; border-radius: 3px;
   }
   /* 判词行：2026-08-24 从大字报降到 --fs-xl；第四次迭代再降一档 ——
      券商终端里没有成段 prose，判词句退成一行 caption（--fs-sm / 次级色 /
@@ -3828,8 +3902,8 @@
   .deck-card .hl-chip {
     display: inline-flex; align-items: center; gap: 7px;
     min-width: 0; max-width: 100%; height: 24px; padding: 0 9px;
-    background: var(--card-2); border: 1px solid var(--border-subtle);
-    border-radius: 7px; font-size: var(--fs-micro); line-height: 1;
+    background: var(--fill-inset); border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-sm); font-size: var(--fs-micro); line-height: 1;
   }
   .deck-card .hl-chip .hl-k {
     flex: 0 0 auto; color: var(--text-tertiary);
@@ -3847,7 +3921,7 @@
      浓度取「读得出档位」的最低混色。 */
   .deck-card .hl-chip.tone-ok { border-color: color-mix(in srgb, var(--positive) 32%, var(--border-subtle)); }
   .deck-card .hl-chip.tone-ok .hl-v { color: var(--positive); }
-  .deck-card .hl-chip.tone-warn { border-color: color-mix(in srgb, var(--warning) 40%, var(--border-subtle)); }
+  .deck-card .hl-chip.tone-warn { border-color: color-mix(in srgb, var(--warning) var(--tint-edge), var(--border-subtle)); }
   .deck-card .hl-chip.tone-warn .hl-v { color: var(--warning); }
   .deck-card .hl-chip.tone-bad { border-color: color-mix(in srgb, var(--negative) 45%, var(--border-subtle)); }
   .deck-card .hl-chip.tone-bad .hl-v { color: var(--negative); }
@@ -3891,7 +3965,7 @@
      4% —— 条永远待在轨内，构图随盒子变，不随数据变。 */
   .deck-card .hl-mv-bar {
     position: relative; flex: 1 1 auto; min-width: 0; height: 8px;
-    border-radius: 2px; background: var(--card-2);
+    border-radius: 2px; background: var(--fill-inset);
   }
   .deck-card .hl-mv-bar::before {
     content: ""; position: absolute; top: -3px; bottom: -3px; left: 50%;
@@ -3931,7 +4005,7 @@
     font-size: var(--fs-micro); line-height: 1.35;
     background: none; border: 0; border-radius: 0;
     border-top: 1px solid var(--border-subtle);
-    border-left: 2px solid var(--red);
+    border-left: 2px solid var(--negative);
   }
   .overview-gates .risk-alert.medium { border-left-color: var(--warning); }
   .overview-gates .risk-alert .icon { display: none; }
@@ -3983,7 +4057,7 @@
        是同一份 today_movers，留更全的那份。市场快照仍拿 2fr —— 它是五枚指数
        格，另一格只有一个计数 + 一行注脚。 */
     display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, .9fr);
-    border: 1px solid var(--border-subtle); border-radius: 16px;
+    border: 1px solid var(--border-subtle); border-radius: var(--radius-lg);
     /* 与 .card 同族的三件套（sheen/specular/负 spread 阴影）+ 同一 16px
        圆角 —— 它原来是裸 div，首屏三块表面里唯一的例外。
        2026-08-25：升为最薄的玻璃档。before 实测它是首屏唯一「读得出来」的
@@ -4102,7 +4176,7 @@
      文字承载，不再由任何圆点承载；渲染端（hero.js/render.js 双份）已不再
      输出 .hl-ic。 */
   /* 真告警整行红字（全站唯一的非涨跌红） */
-  .hl-chip.hl-alert { color: var(--red); font-weight: 600; }
+  .hl-chip.hl-alert { color: var(--negative); font-weight: 600; }
 
   @media (min-width: 768px) and (max-width: 1023px) {
     /* 卡片节奏的窄档：这一档 Overview 还是 12 列网格（≤767 才转 flex 列），
@@ -4346,9 +4420,9 @@
   display: grid;
   grid-template-columns: 2px 8px minmax(52px, auto) auto minmax(0, 1fr) auto auto 92px 12px 2px;
   gap: 0 10px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  background: var(--card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius);
+  background: var(--fill-inset);
   overflow: hidden;
 }
 .tr-row {
@@ -4372,10 +4446,10 @@
 @media (hover: hover) and (pointer: fine) {
   .tr-row summary:hover { background: var(--hover-bg, rgba(0,0,0,0.03)); }
 }
-.tr-row summary:active { background: color-mix(in srgb, var(--accent) 12%, transparent); }
-.tr-row[open] summary { background: color-mix(in srgb, var(--accent) 7%, transparent); box-shadow: inset 3px 0 0 var(--accent); }
+.tr-row summary:active { background: color-mix(in srgb, var(--accent) var(--tint-soft), transparent); }
+.tr-row[open] summary { background: color-mix(in srgb, var(--accent) var(--tint-wash), transparent); box-shadow: inset 3px 0 0 var(--accent); }
 .tr-row[open] summary::after { transform: rotate(180deg); }
-.tr-row summary::after { content: '▾'; grid-area: 1 / 9; justify-self: end; color: var(--text-dim); font-size: var(--fs-micro); transition: transform 0.15s; }
+.tr-row summary::after { content: '▾'; grid-area: 1 / 9; justify-self: end; color: var(--text-dim); font-size: var(--fs-micro); transition: transform var(--duration-fast); }
 .tr-row summary > .tr-dot { grid-area: 1 / 2; }
 .tr-row summary > .tr-tk { grid-area: 1 / 3; }
 .tr-row summary > .tr-act { grid-area: 1 / 4; justify-self: start; }
@@ -4388,16 +4462,16 @@
 .tr-dot.has { background: var(--accent); }
 .tr-tk { font-weight: 700; font-size: var(--fs-md); }
 .tr-act { font-size: var(--fs-xs); font-weight: 600; padding: 2px 8px; border-radius: 999px; }
-.tr-act.pos { color: var(--positive-ink); background: color-mix(in srgb, var(--pos) 12%, transparent); }
-.tr-act.neg { color: var(--negative-ink); background: color-mix(in srgb, var(--neg) 12%, transparent); }
-.tr-act.muted { color: var(--text-dim); background: var(--bg-soft, rgba(0,0,0,0.04)); }
+.tr-act.pos { color: var(--positive-ink); background: color-mix(in srgb, var(--positive) var(--tint-soft), transparent); }
+.tr-act.neg { color: var(--negative-ink); background: color-mix(in srgb, var(--negative) var(--tint-soft), transparent); }
+.tr-act.muted { color: var(--text-dim); background: var(--fill-inset); }
 .tr-qty { color: var(--text-dim); font-size: var(--fs-sm); font-variant-numeric: tabular-nums; }
 .tr-spacer { flex: 1; }
-.tr-t1 { font-size: var(--fs-xs); font-weight: 700; padding: 2px 7px; border-radius: 5px; white-space: nowrap; }
-.tr-t1.pos { color: var(--positive-ink); background: color-mix(in srgb, var(--pos) 10%, transparent); }
-.tr-t1.neg { color: var(--negative-ink); background: color-mix(in srgb, var(--neg) 10%, transparent); }
+.tr-t1 { font-size: var(--fs-xs); font-weight: 700; padding: 2px 7px; border-radius: var(--radius-sm); white-space: nowrap; }
+.tr-t1.pos { color: var(--positive-ink); background: color-mix(in srgb, var(--positive) var(--tint-soft), transparent); }
+.tr-t1.neg { color: var(--negative-ink); background: color-mix(in srgb, var(--negative) var(--tint-soft), transparent); }
 .tr-pnl { font-weight: 700; font-size: var(--fs-lg); font-variant-numeric: tabular-nums; min-width: 88px; text-align: right; }
-.tr-pnl.pos { color: var(--pos); } .tr-pnl.neg { color: var(--neg); }
+.tr-pnl.pos { color: var(--positive); } .tr-pnl.neg { color: var(--negative); }
 /* The details content box is the animatable wrapper (Chrome 131+, Safari
    18.4+, Firefox 132+): grid-template-rows 0fr -> 1fr is the same motion the
    DSH plugin uses on its row detail. Engines without ::details-content fall
@@ -4407,7 +4481,7 @@
   display: grid;
   grid-template-rows: 0fr;
   opacity: 0;
-  transition: grid-template-rows var(--duration-standard) var(--ease-out), opacity .15s ease;
+  transition: grid-template-rows var(--duration-standard) var(--ease-out), opacity var(--duration-fast) var(--ease-out);
 }
 .tr-row[open]::details-content {
   grid-template-rows: 1fr;
@@ -4422,30 +4496,30 @@
 .tr-node { position: relative; padding: 3px 0 10px; }
 .tr-node::before { content: ''; position: absolute; left: -20px; top: 7px; width: 9px; height: 9px; border-radius: 50%; background: var(--card); border: 2px solid var(--text-dim); }
 .tr-node.dec::before { border-color: var(--accent); }
-.tr-node.ok::before { border-color: var(--pos); }
+.tr-node.ok::before { border-color: var(--positive); }
 .tr-node.skip::before { border-color: var(--warning); }
-.tr-node.pos::before { border-color: var(--pos); }
-.tr-node.neg::before { border-color: var(--neg); }
+.tr-node.pos::before { border-color: var(--positive); }
+.tr-node.neg::before { border-color: var(--negative); }
 .tr-n { font-size: var(--fs-micro); font-weight: 700; letter-spacing: 0.05em; color: var(--text-dim); text-transform: uppercase; }
 .tr-v { font-size: var(--fs-sm); font-weight: 600; margin-top: 2px; }
-.tr-v.pos { color: var(--pos); } .tr-v.neg { color: var(--neg); } .tr-v.ok { color: var(--pos); } .tr-v.skip { color: var(--warning); }
+.tr-v.pos { color: var(--positive); } .tr-v.neg { color: var(--negative); } .tr-v.ok { color: var(--positive); } .tr-v.skip { color: var(--warning); }
 .tr-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 8px; }
-.tr-chip { font-size: var(--fs-xs); padding: 2px 8px; border-radius: 6px; background: var(--bg-soft, rgba(0,0,0,0.04)); border: 1px solid var(--border); color: var(--text-dim); }
+.tr-chip { font-size: var(--fs-xs); padding: 2px 8px; border-radius: var(--radius-sm); background: var(--fill-inset); border: 1px solid var(--border); color: var(--text-dim); }
 .tr-note { margin: 6px 0; padding: 3px 0 3px 10px; border-left: 3px solid var(--border); font-size: var(--fs-sm); color: var(--text-secondary); line-height: 1.6; white-space: pre-wrap; overflow-wrap: anywhere; }
 .tr-note.why { border-left-color: var(--accent); }
 .tr-note.emo { border-left-color: var(--warning); }
-.tr-miss { margin: 8px 0; padding: 7px 10px; border: 1px dashed var(--border); border-radius: 6px; font-size: var(--fs-xs); color: var(--text-dim); }
+.tr-miss { margin: 8px 0; padding: 7px 10px; border: 1px dashed var(--border); border-radius: var(--radius-sm); font-size: var(--fs-xs); color: var(--text-dim); }
 .trace-day { margin-bottom: 12px; }
 .trace-day-h { font-size: var(--fs-xs); font-weight: 700; color: var(--text-dim); letter-spacing: 0.05em; margin: 10px 0 6px; display: flex; align-items: center; gap: 6px; }
 .trace-day-h::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 .tr-pnl-k { font-size: var(--fs-micro); font-weight: 600; color: var(--text-dim); margin-right: 3px; }
-.tr-align { font-size: var(--fs-xs); font-weight: 700; padding: 1px 6px; border-radius: 5px; white-space: nowrap; }
+.tr-align { font-size: var(--fs-xs); font-weight: 700; padding: 1px 6px; border-radius: var(--radius-sm); white-space: nowrap; }
 /* 与计划反向 is a deviation, not an accent: amber here and in the plugin
    (styles.module.css `--warn`), so the two implementations of this card read
    the same signal the same way. */
-.tr-align.skip { color: var(--warning-ink); background: color-mix(in srgb, var(--warning) 12%, transparent); border: 1px solid color-mix(in srgb, var(--warning) 30%, transparent); }
-.tr-align.ok { color: var(--positive-ink); background: color-mix(in srgb, var(--pos) 12%, transparent); }
-.tr-align.na { color: var(--text-dim); background: var(--bg-soft, rgba(0,0,0,0.04)); }
+.tr-align.skip { color: var(--warning-ink); background: color-mix(in srgb, var(--warning) var(--tint-soft), transparent); border: 1px solid color-mix(in srgb, var(--warning) var(--tint-strong), transparent); }
+.tr-align.ok { color: var(--positive-ink); background: color-mix(in srgb, var(--positive) var(--tint-soft), transparent); }
+.tr-align.na { color: var(--text-dim); background: var(--fill-inset); }
 #trace-stats { display: flex; flex-wrap: wrap; gap: 4px 20px; margin: 8px 0 10px; font-size: var(--fs-sm); line-height: 1.5; }
 
 /* The summary row is a nowrap flex line whose min-content is ~367px — wider
@@ -4488,7 +4562,7 @@
 }
 
   /* ── 持仓主表：行展开 = 这只票的全部证据（#875）────────────── */
-  .book-table tbody tr.book-row { cursor: pointer; transition: background var(--duration-fast) ease; }
+  .book-table tbody tr.book-row { cursor: pointer; transition: background var(--duration-fast) var(--ease-out); }
   /* tint 走 background-image，别覆盖冻结列的不透明底色（见 .holdings-table
      th/td:first-child 那段）。用 linear-gradient 把纯色当图层画。 */
   .book-table tbody tr.book-row:active > td {
@@ -4499,10 +4573,10 @@
       background-image: linear-gradient(color-mix(in srgb, var(--text) 4%, transparent) 0 100%);
     }
   }
-  .book-table tbody tr.book-row:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+  .book-table tbody tr.book-row:focus-visible { outline: var(--focus-ring); outline-offset: -2px; }
   .book-caret {
     display: inline-block; margin-left: 5px; color: var(--text-tertiary); font-size: var(--fs-md);
-    opacity: .4; transition: transform var(--duration-standard) var(--ease-out), opacity var(--duration-fast) ease;
+    opacity: .4; transition: transform var(--duration-standard) var(--ease-out), opacity var(--duration-fast) var(--ease-out);
   }
   .book-row[data-open="1"] .book-caret { transform: rotate(90deg); opacity: 1; }
   /* 展开行整段都在一个 <td> 里，会继承 .holdings-table td 的 white-space:nowrap，
@@ -4649,8 +4723,8 @@
   .book-heat .bh-v { justify-content: flex-end; padding-left: 10px; }
   .book-heat .bh-s { justify-content: flex-end; padding-left: 10px; }
   /* 走势线的方向色只挂在 .holdings-table 下，热力行不在那棵树里 */
-  .book-heat .spark.spark-up { color: var(--green); }
-  .book-heat .spark.spark-down { color: var(--red); }
+  .book-heat .spark.spark-up { color: var(--positive); }
+  .book-heat .spark.spark-down { color: var(--negative); }
   .book-heat .spark.spark-flat { color: var(--text-tertiary); }
   .book-heat .bh-head > * { height: 20px; color: var(--text-tertiary); font-size: var(--fs-micro); }
   .book-heat .bh-head .bh-c { justify-content: center; }
@@ -4662,14 +4736,14 @@
      markdown 表，于是最该被看见的「未通过」和样本天数一样重，读数被挤在
      表下面。这里拆成：判定条（tone 上色）→ 元信息一行 → 数字行 → 读数。 */
   .lg-section {
-    border: 1px solid var(--border-subtle); border-radius: 10px;
+    border: 1px solid var(--border-subtle); border-radius: var(--radius);
     padding: var(--space-3) var(--space-4); margin-bottom: var(--space-3);
     background: var(--surface-1);
     /* tone 走一条左边框：一屏里四个块，靠颜色扫一眼就知道哪个是坏的。 */
     border-left: 3px solid var(--border);
   }
-  .lg-section[data-tone="bad"] { border-left-color: var(--red); }
-  .lg-section[data-tone="good"] { border-left-color: var(--green); }
+  .lg-section[data-tone="bad"] { border-left-color: var(--negative); }
+  .lg-section[data-tone="good"] { border-left-color: var(--positive); }
   .lg-section[data-tone="wait"] { border-left-color: var(--warning); }
   .lg-section[data-tone="idle"] { border-left-color: var(--text-tertiary); }
   .lg-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--space-2); }
@@ -4677,8 +4751,8 @@
     font-size: var(--fs-sm); font-weight: 700; white-space: nowrap;
     font-variant-numeric: tabular-nums;
   }
-  .lg-section[data-tone="bad"] .lg-verdict { color: var(--red); }
-  .lg-section[data-tone="good"] .lg-verdict { color: var(--green); }
+  .lg-section[data-tone="bad"] .lg-verdict { color: var(--negative); }
+  .lg-section[data-tone="good"] .lg-verdict { color: var(--positive); }
   .lg-section[data-tone="wait"] .lg-verdict { color: var(--warning); }
   .lg-section[data-tone="idle"] .lg-verdict { color: var(--text-dim); }
   .lg-title { font-weight: 600; font-size: var(--fs-md); }
@@ -4710,4 +4784,16 @@
     /* 窄屏一列：两列在 390px 上会把右边的数字压成每行两三个字符。 */
     .lg-row { grid-template-columns: minmax(0, 1fr); gap: 2px; }
     .lg-section { padding: var(--space-3); }
+  }
+
+  /* ── 手指档的控件下限（放在最后：同特异度时后来者赢，这条闸必须赢）──
+     实测 390px：.mkt-seg-btn 30px、.dh-toggle 32px、.dm-actionbar button
+     32px、.dm-controls select 36px、.desk-rail-toggle 38px —— 同一张页面
+     上，顶栏的按钮守着 44px，卡里的控件各自 30~38px。热区是一条线，不是
+     每个组件自己的品味。 */
+  @media (pointer: coarse) {
+    .mkt-seg-btn, .dh-toggle, .dm-controls button, .dm-controls select,
+    .dm-actionbar button, .panel-load-retry, .desk-rail-toggle {
+      min-height: 44px;
+    }
   }
