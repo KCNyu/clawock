@@ -691,6 +691,15 @@
     };
   }
 
+  // #1684 拿掉了 `|| 7.83` 的静默兜底：fx.usdhkd 缺失时，需要 HKD→USD 的口径一律
+  // 不出数。一张空图不会自己说清缺的是行情还是汇率，所以每个受影响的面上留一条
+  // 与「基准数据延迟」同款的被动标注（展示，不推送）。
+  const FX_MISSING_NOTE = "⚠ 汇率缺失（fx.usdhkd 无值），合计口径不出数";
+  const fxMissingGraphic = (text, pos = { left: "center", top: "middle" }) => [{
+    type: "text", ...pos,
+    style: { text, fill: getCSS("--warning") || "#E3A640", fontSize: 12, opacity: 0.9 },
+  }];
+
   function renderEquityChart() {
     const el = document.getElementById("chart-equity");
     if (!el) return;
@@ -705,10 +714,14 @@
     const bmStale = safe(DATA, "benchmark", "staleness");
     const bmEl = document.getElementById("benchmark-stale");
     if (bmEl) {
+      const notes = [];
       if (bmStale && bmStale.is_stale) {
-        bmEl.textContent = `⚠ 基准数据延迟（SPY/恒科等值止于 ${bmStale.last_date}，落后 ${bmStale.days_behind} 天）`;
-        bmEl.style.display = "";
-      } else { bmEl.style.display = "none"; }
+        notes.push(`⚠ 基准数据延迟（SPY/恒科等值止于 ${bmStale.last_date}，落后 ${bmStale.days_behind} 天）`);
+      }
+      // 合计口径才折 HKD；美股/港股单市场视图不需要汇率，也就不标。
+      if (view === "combined" && fx == null) notes.push(FX_MISSING_NOTE);
+      bmEl.textContent = notes.join("　");
+      bmEl.style.display = notes.length ? "" : "none";
     }
     const snaps = (safe(DATA, "overview_equity") || safe(DATA, "snapshots") || [])
       .filter(s => s.us_total_value != null || s.hk_total_value != null);
@@ -979,6 +992,8 @@
         type: "text", left: "center", top: "middle",
         style: { text: "暂无每日 P&L 历史", fill: chartTextColor(), fontSize: 13, opacity: 0.5 },
       }];
+    } else if (view === "combined" && fx == null) {
+      opt.graphic = fxMissingGraphic(FX_MISSING_NOTE);
     }
     charts.dailyPnl.setOption(opt, true);
   }
@@ -1110,6 +1125,12 @@
             formatter: (p) => p.value != null ? "$" + Math.round(p.value).toLocaleString() : "" } },
       ],
     };
+    // 这张图的 HK 腿永远要折成 USD，所以无论市场切换在哪都标。
+    // US 腿照常画，所以标注贴底，不盖在柱子上。
+    if (fx == null) {
+      opt.graphic = fxMissingGraphic("⚠ 汇率缺失（fx.usdhkd 无值），HK 腿与合计不出数",
+        { left: "center", bottom: 2 });
+    }
     charts.realized.setOption(opt, true);
   }
 
