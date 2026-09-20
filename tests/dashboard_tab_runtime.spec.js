@@ -637,7 +637,7 @@ async function testTabGuardWithoutForcedLayout(browser, base) {
 // The refresh button is a ghost icon now: no label to swap, so the old CJK
 // line-break failure mode is structurally gone. What must still hold is the
 // geometry contract the old test guarded: clicking never changes the button's
-// footprint (34x34 circle), the brand never overlaps the nav links, and the
+// footprint (36px desktop / 44px touch circle), the brand never overlaps the nav links, and the
 // flash classes (ok-flash / fresh-flash) still toggle as shape feedback.
 // Measure geometry, don't grep stylesheet properties.
 async function testTopbarFitsWhenRefreshLabelSwaps(browser, base) {
@@ -685,6 +685,7 @@ async function testTopbarFitsWhenRefreshLabelSwaps(browser, base) {
         height: rect(btn).height,
         width: rect(btn).width,
         nav: links.map(item => item.textContent.trim()),
+        linkHeights: links.map(item => rect(item).height),
         navRows: new Set(links.map(item => Math.round(rect(item).top))).size,
         navOverflow: nav.scrollWidth - nav.clientWidth,
         overlapsBrand,
@@ -697,6 +698,10 @@ async function testTopbarFitsWhenRefreshLabelSwaps(browser, base) {
       `refresh button grew to ${box.width}x${box.height} at ${width}px (idle ${idle.width}x${idle.height})`);
     assert.deepEqual(box.nav, ["Dashboard", "Briefs", "FAQ", "GitHub"],
       `dashboard navigation differs at ${width}px`);
+    assert(box.linkHeights.every(height => height >= 44),
+      `dashboard navigation has a sub-44px touch target at ${width}px: ${box.linkHeights.join(", ")}`);
+    assert(box.height >= 44 && box.width >= 44,
+      `refresh touch target is ${box.width}x${box.height} at ${width}px`);
     assert.equal(box.navRows, 1, `dashboard nav wrapped at ${width}px`);
     assert(!box.overlapsBrand, `brand overlaps the nav links at ${width}px`);
     if (width >= 390) assert(box.navOverflow <= 1,
