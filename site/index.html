@@ -108,7 +108,9 @@ layout: null
       <span class="updated" id="last-updated">—</span>
     </div>
     <div class="topbar-actions">
+      <a class="nav-link active" href="./" aria-current="page">Dashboard</a>
       <a class="nav-link" href="briefs.html">Briefs</a>
+      <a class="nav-link" href="faq.html">FAQ</a>
       <a class="nav-link" href="https://github.com/KCNyu/clawock" target="_blank" rel="noopener">GitHub</a>
       <button class="refresh-btn" id="refresh-btn" type="button" aria-label="Refresh data" title="立即刷新">
         <span class="ic" aria-hidden="true">&#x21bb;</span>
@@ -275,6 +277,28 @@ layout: null
           <div class="overview-anomaly-summary" id="overview-anomaly-summary">—</div>
         </section>
       </div>
+
+      <!-- The archive used to be reachable only through two bare "Briefs"
+           links. This compact card exposes the newest brief's actual call on
+           the dashboard without turning Overview into a second brief page.
+           The archive link and fallback copy are useful before/without JS;
+           dashboard.ui.js progressively fills the current dated permalink. -->
+      <section class="card latest-brief-card" aria-labelledby="latest-brief-title">
+        <div class="latest-brief-head">
+          <div>
+            <div class="overview-card-kicker">08:03 HKT · Daily Brief</div>
+            <h3 id="latest-brief-title">最新盘前简报</h3>
+          </div>
+          <span class="latest-brief-date" id="latest-brief-date">最近一个工作日</span>
+        </div>
+        <p class="latest-brief-summary" id="latest-brief-summary">
+          查看最新的多空辩论、风控硬闸与今日动作；完整历史会明确标出未生成的日期。
+        </p>
+        <div class="latest-brief-links">
+          <a class="latest-brief-primary" id="latest-brief-link" href="briefs.html">阅读最新简报 →</a>
+          <a href="briefs.html">全部简报</a>
+        </div>
+      </section>
 
       <section class="card hero-health is-pending" id="data-health" aria-labelledby="dh-title">
         <div class="hero-health-head">

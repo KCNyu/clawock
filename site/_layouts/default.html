@@ -424,8 +424,9 @@
       <span class="tag">harness · HK + US portfolio</span>
     </a>
     <nav class="topbar-actions">
-      <a class="nav-link {% if page.url == '/' or page.url == '/index.html' %}active{% endif %}" href="{{ '/' | relative_url }}">Dashboard</a>
-      <a class="nav-link {% if page.url contains 'briefs' %}active{% endif %}" href="{{ '/briefs.html' | relative_url }}">Briefs</a>
+      <a class="nav-link {% if page.url == '/' or page.url == '/index.html' %}active{% endif %}" {% if page.url == '/' or page.url == '/index.html' %}aria-current="page"{% endif %} href="{{ '/' | relative_url }}">Dashboard</a>
+      <a class="nav-link {% if page.url contains 'briefs' or page.url contains '/memory/' %}active{% endif %}" {% if page.url contains 'briefs' or page.url contains '/memory/' %}aria-current="page"{% endif %} href="{{ '/briefs.html' | relative_url }}">Briefs</a>
+      <a class="nav-link {% if page.url contains 'faq' %}active{% endif %}" {% if page.url contains 'faq' %}aria-current="page"{% endif %} href="{{ '/faq.html' | relative_url }}">FAQ</a>
       <a class="nav-link" href="https://github.com/KCNyu/clawock" target="_blank" rel="noopener">GitHub</a>
     </nav>
   </div>
@@ -441,7 +442,8 @@
   <p>
     <a href="https://github.com/KCNyu/clawock">clawock</a> ·
     <a href="{{ '/' | relative_url }}">Dashboard</a> ·
-    <a href="{{ '/briefs.html' | relative_url }}">Briefs</a>
+    <a href="{{ '/briefs.html' | relative_url }}">Briefs</a> ·
+    <a href="{{ '/faq.html' | relative_url }}">FAQ</a>
   </p>
   <p class="disclaimer">
     Not investment advice. Real positions shown. Point-in-time data. Past performance ≠ future results.
