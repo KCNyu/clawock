@@ -91,6 +91,7 @@ await run(['--config', 'tsdown.client.config.mjs'])
 await exec(node, [tsc, '-p', 'tsconfig.declarations.json', '--pretty', 'false'], { cwd: pkg })
 await wrapWebClient(join(pkg, 'lib/client.js'))
 await patchTypertAlignment()
+await patchTypertSide()
 await patchTypertBalance()
 await patchTypertVerdictKind()
 
@@ -247,5 +248,27 @@ async function patchTypertAlignment() {
     source = source.replace(`${head}${tail}`, `${head}${marker}\n${tail}`)
     await writeFile(file, source)
     console.log(`patched ${rel}: +TraceDecision.alignment`)
+  }
+}
+
+/**
+ * Preserve the host-computed trade direction across the strict Typert codec.
+ * The client uses this field for the sell filter and its T+1 denominator; if
+ * it is absent, zod strips it and every fill becomes sideless in the browser.
+ */
+async function patchTypertSide() {
+  const files = ['lib/typert.host.js', 'lib/typert.remote-client.js']
+  const marker = `  'side': z.union([z.literal("add"), z.literal("reduce"), z.literal(null)]),`
+  const anchor = `  'holdPnl': z.union([z.literal(null), z.number()]),`
+  for (const rel of files) {
+    const file = join(pkg, rel)
+    let source = await readFile(file, 'utf8')
+    if (source.includes(marker)) continue
+    if (!source.includes(anchor)) {
+      throw new Error(`patchTypertSide: trade-object anchor missing in ${rel} — generator output changed?`)
+    }
+    source = source.replace(anchor, `${marker}\n${anchor}`)
+    await writeFile(file, source)
+    console.log(`patched ${rel}: +EnrichedTrade.side`)
   }
 }

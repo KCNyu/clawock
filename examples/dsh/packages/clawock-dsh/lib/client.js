@@ -5688,6 +5688,11 @@ const clawock_dsh_clawockStudio_traces_result$schema = object({
 	"workspaceKey": string(),
 	"signature": string(),
 	"trades": array(object({
+		"side": union([
+			literal("add"),
+			literal("reduce"),
+			literal(null)
+		]),
 		"holdPnl": union([literal(null), number()]),
 		"t1": union([literal(null), object({
 			"date": string(),
