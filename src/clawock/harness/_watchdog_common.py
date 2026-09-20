@@ -33,6 +33,22 @@ WS = workspace_root()
 _CHECKOUT = WS
 
 
+def wechat_gap_reason(claim):
+    """Name a holder-died-mid-send WeChat gap explicitly.
+
+    A sender killed after marking a send started but before writing its
+    completion receipt leaves WeChat delivery unknowable.  Every watchdog that
+    mirrors the slot to Telegram must surface that fact instead of presenting a
+    routine missing-marker reason.
+    """
+    if isinstance(claim, dict) and claim.get('send_started_at'):
+        return ('holder-died-mid-send',
+                '⚠️ 该槽位 WeChat 送达未被确认：postflight 发送进程在发送中途死亡'
+                '（claim 带 send_started_at、无完成 marker）。'
+                '仅 Telegram 兜底一份，请留意微信是否已收到。\n\n')
+    return None
+
+
 def log_path() -> Path:
     """`logs/watchdog.jsonl` in the CURRENT workspace.
 

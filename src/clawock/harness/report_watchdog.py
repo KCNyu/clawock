@@ -61,6 +61,7 @@ from ._watchdog_common import (
     transcript_loop_score, last_report_text, send_telegram, telegram_target,
     same_generation_window, attempt_still_running,
     send_wechat, resolve_wechat_target, wechat_backstop,
+    wechat_gap_reason,
 )
 
 LOOP_THRESHOLD = 5                 # transcript loop_score ≥ this ⇒ mimo repeat-loop ⇒ garbage
@@ -146,23 +147,6 @@ def marker_matches_slot(marker, ctx_id, raw_block_first, now_ms, ctx_generated_a
         return False, 'marker-stale'
     same_line = (marker.get('first_line') or '').strip() == (raw_block_first or '').strip()
     return same_line, 'legacy-first-line'
-
-
-def wechat_gap_reason(claim):
-    """#544: name a holder-died-mid-send WeChat gap explicitly.
-
-    A sender killed between the WeChat send and the Telegram cosend leaves a
-    claim with `send_started_at` set and no completion marker — the one case
-    where "WeChat delivery unconfirmed" is a fact, not a guess. The Telegram
-    backstop must say that out loud instead of reading like a normal mirror.
-    Returns (reason, banner) or None when the claim does not show the gap.
-    """
-    if isinstance(claim, dict) and claim.get('send_started_at'):
-        return ('holder-died-mid-send',
-                '⚠️ 该槽位 WeChat 送达未被确认：postflight 发送进程在发送中途死亡'
-                '（claim 带 send_started_at、无完成 marker）。'
-                '仅 Telegram 兜底一份，请留意微信是否已收到。\n\n')
-    return None
 
 
 def _read_json(path):

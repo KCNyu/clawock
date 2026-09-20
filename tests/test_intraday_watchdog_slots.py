@@ -376,6 +376,23 @@ def test_a_marker_that_failed_telegram_still_gets_mirrored(
     assert events[-1]['reason'] == 'postflight cosend failed'
 
 
+def test_holder_died_mid_send_names_unconfirmed_wechat(
+        tmp_path, monkeypatch):
+    now = datetime(2026, 7, 29, 10, 40, tzinfo=HKT)
+    run = _run(datetime(2026, 7, 29, 10, 30, tzinfo=HKT),
+               summary=f'{HEADING}\n恒指 25,713 ▲1.59%',
+               delivery={'messageToolSentTo': None})
+    watchdog, sends, _, events = _wire_watchdog(
+        monkeypatch, tmp_path, run=run, now=now, marker=None)
+    claim = watchdog.delivery_receipts.claim_path(
+        tmp_path / 'memory' / '.tmp', 'intraday', market='hk')
+    claim.write_text(json.dumps({'pid': 123, 'send_started_at': 1786685531697}))
+
+    assert watchdog.main() == 0
+    assert 'WeChat 送达未被确认' in sends[0]
+    assert events[-1]['reason'] == 'holder-died-mid-send'
+
+
 def test_market_closed_sentinel_gets_no_deterministic_fallback(
         tmp_path, monkeypatch):
     """2026-09-07 US Labor Day: an empty 🧯 banner reached kcn on a closed market.

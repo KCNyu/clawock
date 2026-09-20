@@ -90,6 +90,7 @@ from ._watchdog_common import (
     # for the tests and callers that learned the rule here first.
     attempt_still_running,
     send_wechat, resolve_wechat_target, wechat_backstop,
+    wechat_gap_reason,
 )
 
 from clawock.automation import cron_heartbeat  # noqa: E402
@@ -533,7 +534,13 @@ def main():
     reason = ('postflight marker missing' if not marker
               else 'postflight cosend failed' if not marker.get('tg_ok')
               else 'marker slot stale/mismatch')
-    tg_banner = f'📲 补投（{reason}，Telegram 兜底一份）\n\n'
+    claim = delivery_receipts.read_receipt(delivery_receipts.claim_path(
+        WS / 'memory' / '.tmp', 'intraday', market=args.market)) if not marker else None
+    gap = wechat_gap_reason(claim)
+    if gap:
+        reason, tg_banner = gap
+    else:
+        tg_banner = f'📲 补投（{reason}，Telegram 兜底一份）\n\n'
     target = telegram_target()
     tg_ok, tg_out = send_telegram(target, tg_banner + report.strip(), args.dry_run)
     log({'tag': tag, 'action': 'mirror-telegram', 'dry_run': args.dry_run, 'sent_ok': tg_ok,

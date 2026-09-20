@@ -70,6 +70,7 @@ from ._watchdog_common import (
     brief_cron_job_state, cron_run_ended_in_failure,
     rerun_cron_job, cron_retry_budget,
     CRON_MAX_ALLOWED_ATTEMPTS,
+    wechat_gap_reason,
 )
 
 MARKER_FRESH_MS = 30 * 60 * 1000  # postflight send-marker older than this ⇒ not this slot
@@ -566,7 +567,13 @@ def main():
               else 'postflight cosend failed (tg_ok=false)')
 
     message = build_brief_card(today)
-    tg_banner = f'📨 自动补发（{reason}，Telegram 兜底一份）\n\n'
+    claim = delivery_receipts.read_receipt(delivery_receipts.claim_path(
+        WS / 'memory' / '.tmp', 'brief', date=today)) if not marker else None
+    gap = wechat_gap_reason(claim)
+    if gap:
+        reason, tg_banner = gap
+    else:
+        tg_banner = f'📨 自动补发（{reason}，Telegram 兜底一份）\n\n'
     target = telegram_target()
     tg_ok, out = send_telegram(
         target, tg_banner + postflight_validation_banner(today) + message, args.dry_run)

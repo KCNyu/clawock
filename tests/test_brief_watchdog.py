@@ -73,6 +73,31 @@ def test_validation_failed_mirror_is_labelled(tmp_path, monkeypatch):
     assert messages[0].endswith("UNREVIEWED CARD")
 
 
+def test_holder_died_mid_send_names_unconfirmed_wechat(tmp_path, monkeypatch):
+    monkeypatch.setattr(watchdog, "WS", tmp_path)
+    _write_brief(tmp_path)
+    claim = watchdog.delivery_receipts.claim_path(
+        tmp_path / "memory" / ".tmp", "brief", date=TODAY)
+    claim.parent.mkdir(parents=True, exist_ok=True)
+    claim.write_text(json.dumps({"pid": 123, "send_started_at": 1786685531697}))
+    messages, events = [], []
+    monkeypatch.setattr(watchdog.trading_calendar, "hkt_today",
+                        lambda: date.fromisoformat(TODAY))
+    monkeypatch.setattr(watchdog.trading_calendar, "closed_reason", lambda _market: None)
+    monkeypatch.setattr(watchdog, "build_brief_card", lambda _today: "CARD")
+    monkeypatch.setattr(watchdog, "telegram_target", lambda: "target")
+    monkeypatch.setattr(
+        watchdog, "send_telegram",
+        lambda _target, message, _dry: (messages.append(message), (True, "ok"))[1],
+    )
+    monkeypatch.setattr(watchdog, "log", events.append)
+    monkeypatch.setattr(sys, "argv", ["brief_watchdog.py", "--dry-run"])
+
+    assert watchdog.main() == 0
+    assert "WeChat 送达未被确认" in messages[0]
+    assert events[-1]["fail_reason"] == "holder-died-mid-send"
+
+
 def test_0905_detects_brief_present_plan_missing(tmp_path, monkeypatch):
     monkeypatch.setattr(watchdog, "WS", tmp_path)
     _write_brief(tmp_path)
