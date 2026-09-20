@@ -4102,7 +4102,9 @@
   }
 
   function renderReflectKpi() {
-    const fx = safe(DATA, "fx", "usdhkd") || 7.83;
+    const rawFx = safe(DATA, "fx", "usdhkd");
+    const fx = rawFx != null && Number.isFinite(Number(rawFx)) && Number(rawFx) > 0
+      ? Number(rawFx) : null;
     const rv = safe(DATA, "realized_vs_unrealized") || {};
     const cap = safe(DATA, "capital_deployed") || {};
 
@@ -4118,18 +4120,20 @@
 
     const dailyPnl = series.map(s => ({
       date: s.date,
-      pnl: ((s.us_today_change ?? 0) + ((s.hk_today_change ?? 0) / fx)),
+      pnl: fx == null ? null : ((s.us_today_change ?? 0) + ((s.hk_today_change ?? 0) / fx)),
     }));
     // equity basis (持仓市值 + 已实现现金) so sells don't punch a fake cliff into the curve
-    const bookUsd = series.map(s => (s.us_equity ?? 0) + ((s.hk_equity ?? 0) / fx));
+    const bookUsd = series.map(s => fx == null
+      ? null : (s.us_equity ?? 0) + ((s.hk_equity ?? 0) / fx));
     // Current holdings cost (USD-eq) for 浮动率 — from totals API (more authoritative
     // than digging through snapshots which may lag).
     const usCostNow = safe(DATA, "totals", "us", "cost_usd") ?? 0;
     const hkCostNowHkd = safe(DATA, "totals", "hk", "cost_hkd") ?? 0;
-    const currentCostUsd = usCostNow + (hkCostNowHkd / fx);
+    const currentCostUsd = fx == null ? null : usCostNow + (hkCostNowHkd / fx);
 
     // 当前浮动率：仅看现持仓账面盈亏 / 现持仓成本
-    const floatPct = currentCostUsd > 0 ? (unrealizedUsd / currentCostUsd) * 100 : null;
+    const floatPct = currentCostUsd > 0 && unrealizedUsd != null
+      ? (unrealizedUsd / currentCostUsd) * 100 : null;
 
     // 总回报率 (option C 2026-05-22): (浮+已实现) / (当前持仓成本 + 累计已实现)
     // 不再用 Σbuys（会被 rotation churn 重复计算）
@@ -4138,7 +4142,7 @@
     const totalRetPct = capUsd && capUsd > 0 ? (totalPnl / capUsd) * 100 : null;
 
     // Win days
-    const realDays = dailyPnl.filter(d => d.pnl !== 0);
+    const realDays = dailyPnl.filter(d => d.pnl != null && d.pnl !== 0);
     const winDays = realDays.filter(d => d.pnl > 0).length;
     const winPct = realDays.length ? Math.round((winDays / realDays.length) * 100) : null;
 
@@ -4219,7 +4223,8 @@
     setVal("kpi-worstday-date", worst ? worst.date : "no data");
     setClass("kpi-worstday", pnlClass(worst ? worst.pnl : null));
 
-    setVal("kpi-maxdd", maxDd < 0 ? fmtPct(maxDd, 1) : (bookUsd.length ? "0.0%" : DASH));
+    const hasBookUsd = bookUsd.some(v => v != null);
+    setVal("kpi-maxdd", maxDd < 0 ? fmtPct(maxDd, 1) : (hasBookUsd ? "0.0%" : DASH));
     setClass("kpi-maxdd", maxDd < 0 ? "neg" : "neutral");
     // sub: concrete $ — peak→trough drop + all-time peak equity
     if (maxDd < 0 && maxDdAbsUsd != null) {
@@ -5099,8 +5104,10 @@
       } else { // combined: US(市值+现金)折美元 + HK(市值+现金)折美元
         const um = safe(tot, "us", "value_usd"), uc = safe(tot, "us", "cash_usd");
         const hm = safe(tot, "hk", "value_hkd"), hc = safe(tot, "hk", "cash_hkd");
-        const fxc = safe(DATA, "fx", "usdhkd") || 7.83;
-        if (um != null && hm != null) {
+        const rawFxc = safe(DATA, "fx", "usdhkd");
+        const fxc = rawFxc != null && Number.isFinite(Number(rawFxc)) && Number(rawFxc) > 0
+          ? Number(rawFxc) : null;
+        if (fxc != null && um != null && hm != null) {
           const usTot = um + (uc || 0), hkTotUsd = (hm + (hc || 0)) / fxc;
           const partial = (uc == null || hc == null);
           taLine = `

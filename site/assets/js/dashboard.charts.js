@@ -697,7 +697,9 @@
     if (!charts.equity) charts.equity = createNativeEquityChart(el);
 
     const view = MARKET_VIEW;                       // 'combined' | 'us' | 'hk'
-    const fx = safe(DATA, "fx", "usdhkd") || 7.83;
+    const rawFx = safe(DATA, "fx", "usdhkd");
+    const fx = rawFx != null && Number.isFinite(Number(rawFx)) && Number(rawFx) > 0
+      ? Number(rawFx) : null;
     // 基准新鲜度被动提示 — benchmark.json 停更(抓取限流)时 SPY/恒科等值线会退化成平线，
     // 给个小字标注省得误读为"持平"。被动展示，不推送(feedback_no_individual_cron_alerts)。
     const bmStale = safe(DATA, "benchmark", "staleness");
@@ -747,7 +749,7 @@
     const ta = series.map(s => {
       if (view === "us") return (s.us_cash != null && s.us_total_value != null) ? r2(s.us_total_value + s.us_cash) : null;
       if (view === "hk") return (s.hk_cash != null && s.hk_total_value != null) ? r2(s.hk_total_value + s.hk_cash) : null;
-      if (s.us_cash == null || s.hk_cash == null || s.us_total_value == null || s.hk_total_value == null) return null;
+      if (fx == null || s.us_cash == null || s.hk_cash == null || s.us_total_value == null || s.hk_total_value == null) return null;
       return r2((s.us_total_value + s.us_cash) + ((s.hk_total_value + s.hk_cash) / fx));
     });
     // 净值(市值+已实现) — 不再画出(对现金视而不见、被加仓虚抬，对用户没用)，仅保留作
@@ -755,13 +757,14 @@
     const eq = series.map(s => {
       if (view === "us") return s.us_equity != null ? r2(s.us_equity) : null;
       if (view === "hk") return s.hk_equity != null ? r2(s.hk_equity) : null;
+      if (fx == null) return null;
       return r2((s.us_equity ?? 0) + ((s.hk_equity ?? 0) / fx));
     });
     const cost = series.map(s => {
       let t;
       if (view === "us") t = s.us_total_cost;
       else if (view === "hk") t = s.hk_total_cost;
-      else t = (s.us_total_cost ?? 0) + ((s.hk_total_cost ?? 0) / fx);
+      else t = fx == null ? null : (s.us_total_cost ?? 0) + ((s.hk_total_cost ?? 0) / fx);
       return (t != null && t > 0) ? r2(t) : null;
     });
     // 总利润 = 浮盈 + 已实现 ( = 净值 − 成本基础 ). Nets out deployed capital, so its
@@ -771,7 +774,7 @@
     const profit = series.map(s => {
       if (view === "us") return s.us_profit != null ? r2(s.us_profit) : null;
       if (view === "hk") return s.hk_profit != null ? r2(s.hk_profit) : null;
-      if (s.us_profit == null || s.hk_profit == null) return null;
+      if (fx == null || s.us_profit == null || s.hk_profit == null) return null;
       return r2(s.us_profit + (s.hk_profit / fx));
     });
 
@@ -865,12 +868,15 @@
     if (!charts.dailyPnl) charts.dailyPnl = echarts.init(el, null, { renderer: "canvas" });
 
     const view = MARKET_VIEW;                       // 'combined' | 'us' | 'hk'
-    const fx = safe(DATA, "fx", "usdhkd") || 7.83;
+    const rawFx = safe(DATA, "fx", "usdhkd");
+    const fx = rawFx != null && Number.isFinite(Number(rawFx)) && Number(rawFx) > 0
+      ? Number(rawFx) : null;
     const cur = view === "hk" ? "HK$" : "$";
     // Per-market daily change: US/combined in USD, HK in native HKD.
     const pnlOf = s => {
       if (view === "us") return s.us_today_change != null ? s.us_today_change : 0;
       if (view === "hk") return s.hk_today_change != null ? s.hk_today_change : 0;
+      if (fx == null) return null;
       return (s.us_today_change ?? 0) + ((s.hk_today_change ?? 0) / fx);
     };
     const snaps = (safe(DATA, "snapshots") || [])
@@ -900,11 +906,15 @@
     // Per-market views label the x-axis by the true session date (≠ filename date).
     const dates = series.map(s =>
       view === "us" ? (s.us_asof || s.date) : view === "hk" ? (s.hk_asof || s.date) : s.date);
-    const dailyPnl = series.map(s => Math.round(pnlOf(s) * 100) / 100);
+    const dailyPnl = series.map(s => {
+      const pnl = pnlOf(s);
+      return pnl == null ? null : Math.round(pnl * 100) / 100;
+    });
     // Cumulative running sum
     let running = 0;
     const cumulative = dailyPnl.map(v => {
-      running += (v || 0);
+      if (v == null) return null;
+      running += v;
       return Math.round(running * 100) / 100;
     });
 
@@ -1044,19 +1054,21 @@
     if (!charts.realized) charts.realized = echarts.init(el, null, { renderer: "canvas" });
 
     const r = safe(DATA, "realized_vs_unrealized") || {};
-    const fx = safe(DATA, "fx", "usdhkd") || 7.83;
+    const rawFx = safe(DATA, "fx", "usdhkd");
+    const fx = rawFx != null && Number.isFinite(Number(rawFx)) && Number(rawFx) > 0
+      ? Number(rawFx) : null;
     const us = r.us || {}; const hk = r.hk || {}; const cb = r.combined_usd || {};
 
     // Single USD-eq view, horizontal bars per region
     const cats = ["US", "HK", "合计"];
     const realized = [
       us.realized,
-      hk.realized != null ? hk.realized / fx : null,
+      hk.realized != null && fx != null ? hk.realized / fx : null,
       cb.realized,
     ];
     const unrealized = [
       us.unrealized,
-      hk.unrealized != null ? hk.unrealized / fx : null,
+      hk.unrealized != null && fx != null ? hk.unrealized / fx : null,
       cb.unrealized,
     ];
 

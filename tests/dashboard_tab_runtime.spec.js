@@ -236,6 +236,51 @@ async function testRuntime(browser, base) {
   assert.deepEqual(mismatchState.errors, []);
 }
 
+async function testMissingFxDoesNotFabricateCombinedValues(browser, base) {
+  const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const page = await context.newPage();
+  const state = observe(page);
+  await stubLiveOrigin(page, {
+    patch: (_name, payload) => ({
+      ...payload,
+      fx: { ...(payload.fx || {}), usdhkd: null },
+    }),
+  });
+  await page.goto(base, { waitUntil: "networkidle" });
+  await waitForData(page);
+  assert.equal(await page.locator("#fx-rate-usd").textContent(), "FX unavailable");
+
+  await page.click('.tab-btn[data-tab="reflect"]');
+  await waitForTab(page, "reflect");
+  await page.waitForFunction(() => window.echarts &&
+    window.echarts.getInstanceByDom(document.getElementById("chart-daily-pnl")) &&
+    window.echarts.getInstanceByDom(document.getElementById("chart-realized")));
+
+  const values = await page.evaluate(() => {
+    const option = id => window.echarts.getInstanceByDom(document.getElementById(id)).getOption();
+    const daily = option("chart-daily-pnl").series;
+    const realized = option("chart-realized").series;
+    return {
+      floatPct: document.getElementById("kpi-floatpct").textContent.trim(),
+      maxDrawdown: document.getElementById("kpi-maxdd").textContent.trim(),
+      combinedAssets: document.getElementById("ext-region-combined").textContent,
+      daily: daily.flatMap(s => s.data.map(v => v && typeof v === "object" ? v.value : v)),
+      realizedHk: realized.map(s => s.data[1]),
+    };
+  });
+
+  assert.equal(values.floatPct, "—", "Reflect fabricated a combined floating return without FX");
+  assert.equal(values.maxDrawdown, "—", "Reflect fabricated a combined drawdown without FX");
+  assert(!values.combinedAssets.includes("真实总资产"),
+    "the combined asset card silently converted HKD without FX");
+  assert(values.daily.length > 0 && values.daily.every(v => v == null),
+    "the combined daily P&L chart silently converted HKD without FX");
+  assert(values.realizedHk.length > 0 && values.realizedHk.every(v => v == null),
+    "the realized chart silently converted its HK leg without FX");
+  assert.deepEqual(state.errors, [], `missing FX raised page errors: ${state.errors.join(" | ")}`);
+  await context.close();
+}
+
 async function testCurrentHoldingsOwnDecisionMatrixMembership(browser, base) {
   const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
   const state = observe(page);
@@ -2518,6 +2563,7 @@ async function main() {
   };
   try {
     await run("runtime", () => testRuntime(browser, base));
+    await run("testMissingFxDoesNotFabricateCombinedValues", () => testMissingFxDoesNotFabricateCombinedValues(browser, base));
     await run("testCurrentHoldingsOwnDecisionMatrixMembership", () => testCurrentHoldingsOwnDecisionMatrixMembership(browser, base));
     await run("testLiveDataOrigin", () => testLiveDataOrigin(browser, base));
     await run("testEquityTouch", () => testEquityTouch(browser, base));
