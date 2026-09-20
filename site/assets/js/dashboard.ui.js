@@ -424,8 +424,10 @@
       }
     };
     state.inFlight = load()
-      .catch(() => null)
       .then(value => {
+        // A transient 404/network failure must not replace a sidecar that was
+        // already rendered. Keep it stale so the next activation can retry.
+        if (value === null) return false;
         // Sidecars publish independently from dashboard.json. Revalidate them,
         // but do not replay a tab's DOM when its serialized value is identical
         // to the value it already rendered.
@@ -437,6 +439,7 @@
         state.stale = false;
         return changed;
       })
+      .catch(() => false)
       .finally(() => { state.inFlight = null; });
     return state.inFlight;
   }

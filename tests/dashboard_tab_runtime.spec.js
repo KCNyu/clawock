@@ -2421,6 +2421,42 @@ async function testASidecarStillReachesItsCardWhenThePagerIsStillSettling(browse
   await context.close();
 }
 
+async function testFailedSidecarRefreshKeepsTheLastGoodValue(browser, base) {
+  const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  const page = await context.newPage();
+  await stubLiveOrigin(page);
+  let requests = 0;
+  await page.route("**/decision_audit.json*", route => {
+    requests += 1;
+    if (requests === 1) {
+      return route.fulfill({
+        status: 200,
+        headers: { "content-type": "application/json; charset=utf-8",
+                   "access-control-allow-origin": "*" },
+        body: JSON.stringify({ sentinel: "last-good-sidecar" }),
+      });
+    }
+    return route.abort("failed");
+  });
+
+  await page.goto(base, { waitUntil: "networkidle" });
+  await waitForData(page);
+  await page.click('.tab-btn[data-tab="reflect"]');
+  await waitForTab(page, "reflect");
+  await page.waitForFunction(() => DATA?.decision_audit?.sentinel === "last-good-sidecar");
+
+  // Refresh marks loaded sidecars stale. The live request and its same-origin
+  // fallback both fail, reproducing the deployment-window/network-error path.
+  await page.click("#refresh-btn");
+  for (let i = 0; i < 50 && requests < 3; i += 1) await page.waitForTimeout(50);
+  assert(requests >= 3, "the failed sidecar revalidation did not exercise both origins");
+  await page.waitForTimeout(100);
+  const retained = await page.evaluate(() => DATA?.decision_audit?.sentinel || null);
+  assert.equal(retained, "last-good-sidecar",
+    "a failed sidecar refresh replaced the last good value with null");
+  await context.close();
+}
+
 // 卡片节奏：同一个宽度下，六个 tab 的「卡与卡之间」必须是同一档，分节间距
 // 必须明显大于卡间距。kcn：「我所有卡片之间的间距…现在间距都不统一，可以适当
 // 的收紧，但不要完全统一」。
@@ -2635,6 +2671,7 @@ async function main() {
     await run("testDataHealthIsReadableOnAPhone", () => testDataHealthIsReadableOnAPhone(browser, base));
     await run("testAQuietLaneFoldsItsLedgerInsteadOfScrolling", () => testAQuietLaneFoldsItsLedgerInsteadOfScrolling(browser, base));
     await run("testASidecarStillReachesItsCardWhenThePagerIsStillSettling", () => testASidecarStillReachesItsCardWhenThePagerIsStillSettling(browser, base));
+    await run("testFailedSidecarRefreshKeepsTheLastGoodValue", () => testFailedSidecarRefreshKeepsTheLastGoodValue(browser, base));
     await run("testTheDebateTrailIsAListOfCasesNotAWallOfText", () => testTheDebateTrailIsAListOfCasesNotAWallOfText(browser, base));
     await run("testThePlanTimelineClampsItsRationales", () => testThePlanTimelineClampsItsRationales(browser, base));
     await run("testAddSideCardExplainsWhyThereIsNoAdd", () => testAddSideCardExplainsWhyThereIsNoAdd(browser, base));
