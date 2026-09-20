@@ -16,6 +16,8 @@ from pathlib import Path
 import pytest
 import yaml
 
+from clawock.automation import brief_fallback
+
 ROOT = Path(__file__).resolve().parents[1]
 WORKFLOW = ROOT / ".github" / "workflows" / "brief-fallback.yml"
 
@@ -58,6 +60,10 @@ def test_the_provider_chain_is_given_less_time_than_the_job(job):
     assert job_seconds - budget >= 300, (
         "postflight, the dashboard rebuild and the push still have to fit in "
         "what is left"
+    )
+    assert budget >= brief_fallback.BRIEF_LLM_TIMEOUT_SECONDS, (
+        "the chain deadline must not silently shorten the fallback's one "
+        "long-context generation attempt"
     )
 
 

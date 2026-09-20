@@ -27,6 +27,7 @@ from clawock.safe_io import safe_write_json, safe_write_text
 # (~20K tokens) plus the trailing plan.json block, so this leaves roughly 4x headroom
 # and stays well under MiniMax M3's 131072 cap. See the call site for why 32000 failed.
 BRIEF_MAX_TOKENS = 96000
+BRIEF_LLM_TIMEOUT_SECONDS = 900
 
 # Structural anchors every SKILL.md brief carries, matched as substrings so the
 # model's own heading decoration does not fail a good brief.
@@ -331,7 +332,7 @@ def main():
     # ~20K tokens; the 180s default timed out 3x on 2026-07-16 and killed the run.
     stats = {}
     out = chat(system=system, user=user, max_tokens=BRIEF_MAX_TOKENS,
-               temperature=0.6, timeout=900, stats_out=stats)
+               temperature=0.6, timeout=BRIEF_LLM_TIMEOUT_SECONDS, stats_out=stats)
     # C-F3a: one grep-able line saying which leg won and what each cost —
     # before this, the job log had per-attempt token lines but nothing that
     # answered "did the fallback write today's brief, and how slow was it?".
