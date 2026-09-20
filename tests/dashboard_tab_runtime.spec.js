@@ -263,6 +263,8 @@ async function testMissingFxDoesNotFabricateCombinedValues(browser, base) {
     return {
       floatPct: document.getElementById("kpi-floatpct").textContent.trim(),
       maxDrawdown: document.getElementById("kpi-maxdd").textContent.trim(),
+      bestDayDate: document.getElementById("kpi-bestday-date").textContent.trim(),
+      worstDayDate: document.getElementById("kpi-worstday-date").textContent.trim(),
       combinedAssets: document.getElementById("ext-region-combined").textContent,
       daily: daily.flatMap(s => s.data.map(v => v && typeof v === "object" ? v.value : v)),
       realizedHk: realized.map(s => s.data[1]),
@@ -271,6 +273,8 @@ async function testMissingFxDoesNotFabricateCombinedValues(browser, base) {
 
   assert.equal(values.floatPct, "—", "Reflect fabricated a combined floating return without FX");
   assert.equal(values.maxDrawdown, "—", "Reflect fabricated a combined drawdown without FX");
+  assert.equal(values.bestDayDate, "no data", "the best-day tile dated a day it could not judge");
+  assert.equal(values.worstDayDate, "no data", "the worst-day tile dated a day it could not judge");
   assert(!values.combinedAssets.includes("真实总资产"),
     "the combined asset card silently converted HKD without FX");
   assert(values.daily.length > 0 && values.daily.every(v => v == null),
