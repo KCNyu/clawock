@@ -23,10 +23,13 @@ Usage:
   clawock t0              # 评级，不抓分钟数据
   clawock t0 --intraday   # 同 T0_INTRADAY=1：开盘时补 VWAP/ORB
 """
+import hashlib
 import json
 import os
 import sys
+import tempfile
 from datetime import datetime
+from pathlib import Path
 
 from clawock import sessions as tc
 from clawock.instruments import INSTRUMENTS
@@ -243,6 +246,23 @@ def compute(intraday=False):
     }
 
 
+def _history_lock(path):
+    """Serialize the history read-modify-write without leaving a lock file in
+    `assets/data/`.
+
+    That directory is committed and published, so a stray
+    `t0_setups_history.jsonl.lock` beside the artifact is one more untracked
+    file for a broad `git add` to sweep into the public repo — the same reason
+    `clawock.decision.ledger` keeps its lock out of `memory/`. Every writer runs
+    on this host, so a temp-dir path keyed by the history file serializes them
+    just as well.
+    """
+    lock_dir = Path(tempfile.gettempdir()) / 'clawock-t0-locks'
+    lock_dir.mkdir(parents=True, exist_ok=True)
+    key = hashlib.sha1(os.path.abspath(str(path)).encode()).hexdigest()[:16]
+    return file_lock(str(lock_dir / key))
+
+
 def persist_history(data):
     """每次运行追加一行留痕，供 t0_setup_review.py 对账（零网络）。
     只记结算需要的精简字段：grade_label + range_pos + close（= 记录时现价）。"""
@@ -257,7 +277,7 @@ def persist_history(data):
     line = json.dumps({'as_of': _date.today().isoformat(),
                        'ts': data.get('as_of'), 'rows': rows}, ensure_ascii=False)
     HIST.parent.mkdir(parents=True, exist_ok=True)
-    with file_lock(str(HIST)):
+    with _history_lock(HIST):
         try:
             existing = HIST.read_text().splitlines() if HIST.exists() else []
         except Exception:
