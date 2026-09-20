@@ -122,7 +122,12 @@ def _theme_tokens(css):
     css = re.sub(r"/\*.*?\*/", " ", css, flags=re.S)
 
     def tokens(block):
-        return dict(re.findall(r"(--[\w-]+)\s*:\s*(#[0-9A-Fa-f]{3,6})\b", block))
+        # Percentages too: the tint strengths are tokens now (`--tint-soft:
+        # 15%`), so a chip's background reads `var(--positive) var(--tint-soft)`.
+        # Without them `_paint` would leave the `var()` in place and every chip
+        # would drop out of the scan — which is a pass on nothing.
+        return dict(re.findall(
+            r"(--[\w-]+)\s*:\s*(#[0-9A-Fa-f]{3,6}\b|\d+(?:\.\d+)?%)", block))
 
     def resolve(theme):
         # Aliases like `--card-2: var(--surface-2)` follow whichever theme the
@@ -215,7 +220,7 @@ def test_hardcoded_source_chips_meet_aa_in_both_themes(chip, row, theme):
 # over whatever surface the row happens to be. Opaque fills don't depend on the
 # surface and aren't this pattern.
 _TINT = re.compile(
-    r"color-mix\(in srgb, [^,]+ [\d.]+%, transparent\)"
+    r"color-mix\(in srgb, [^,]+ (?:[\d.]+%|var\(--tint-[\w-]+\)), transparent\)"
     r"|rgba\(\s*\d+,\s*\d+,\s*\d+,\s*0?\.\d+\s*\)")
 # Every opaque surface a chip can land on, in either theme. --surface-3 is the
 # hover row and the lightest/darkest of them, so it bounds the glass panels too.
