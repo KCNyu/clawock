@@ -88,6 +88,14 @@ def test_fed_press_external_text_is_escaped_and_https_only():
     assert '${p.date}' not in macro
 
 
+def test_influencer_external_links_are_https_only():
+    """Influencer URLs come from third-party RSS and reach an innerHTML href."""
+    influencer = _function_body("renderInfluencer")
+    assert "/^https:\\/\\//i.test(it.url || '')" in influencer
+    assert 'href="${safeUrl}"' in influencer
+    assert 'href="${escapeHtml(it.url)}"' not in influencer
+
+
 def test_mover_provider_fields_never_reach_innerhtml_raw():
     """movers ticker/name come from provider-sourced holdings (trim_holding);
     hero.js escapes the same ticker, so render.js must not diverge (#986)."""

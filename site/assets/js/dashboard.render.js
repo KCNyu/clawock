@@ -2042,7 +2042,10 @@
       const rel = (it.relevance != null) ? `rel ${it.relevance}` : '';
       const src = INFL_ORIGIN_LABEL[it.origin] || (it.author === 'Musk' ? '新闻代理' : '原帖');
       const whoCls = INFL_WHO_CLASS[it.author] || 'other';
-      const link = it.url ? `<a href="${escapeHtml(it.url)}" target="_blank" rel="noopener" style="color:var(--text-dim)">↗</a>` : '';
+      // RSS links are external input: escaping protects the attribute boundary,
+      // while an https-only allowlist prevents executable URL schemes.
+      const safeUrl = /^https:\/\//i.test(it.url || '') ? escapeHtml(it.url) : null;
+      const link = safeUrl ? `<a href="${safeUrl}" target="_blank" rel="noopener" style="color:var(--text-dim)">↗</a>` : '';
       return `<div class="infl-row ${rowCls}">
         <div class="infl-hdr">
           <span class="infl-who ${whoCls}">${escapeHtml(it.author)}</span>
