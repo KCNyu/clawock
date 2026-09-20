@@ -85,10 +85,11 @@ jobs:
       # RemoteDisconnected, started retrying, and the runner killed the job at 15
       # minutes before anything was written.
       #
-      # 660s of a 20-minute job, all of it MiniMax's since the OpenCode fallback
-      # leg was removed (2026-09-13), leaving ~9 minutes for postflight, the
-      # dashboard rebuild and the push.
-      CLAWOCK_LLM_DEADLINE_SECONDS: '660'
+      # 900s of a 20-minute job, all of it MiniMax's since the OpenCode fallback
+      # leg was removed (2026-09-13). This must be at least the call site's
+      # per-attempt timeout or the deadline silently shortens the long-context
+      # generation; the remaining 5 minutes cover validation, rebuild and push.
+      CLAWOCK_LLM_DEADLINE_SECONDS: '900'
       REHEARSE: ${{ inputs.rehearse == true || inputs.rehearse == 'true' || github.event.schedule == '23 4 * * 3' }}
     permissions:
       contents: write
