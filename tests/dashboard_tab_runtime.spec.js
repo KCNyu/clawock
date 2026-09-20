@@ -277,6 +277,24 @@ async function testMissingFxDoesNotFabricateCombinedValues(browser, base) {
     "the combined daily P&L chart silently converted HKD without FX");
   assert(values.realizedHk.length > 0 && values.realizedHk.every(v => v == null),
     "the realized chart silently converted its HK leg without FX");
+
+  // Not fabricating is half the rule; the other half is saying why the numbers
+  // are gone. An unexplained empty chart reads as "no data", not "no FX".
+  const notes = await page.evaluate(() => {
+    const option = id => window.echarts.getInstanceByDom(document.getElementById(id)).getOption();
+    const bm = document.getElementById("benchmark-stale");
+    return {
+      equityLine: bm.style.display === "none" ? "" : bm.textContent,
+      daily: JSON.stringify(option("chart-daily-pnl").graphic || []),
+      realized: JSON.stringify(option("chart-realized").graphic || []),
+    };
+  });
+  assert(notes.equityLine.includes("汇率缺失"),
+    `the equity card did not say why the combined curve is empty: ${JSON.stringify(notes.equityLine)}`);
+  assert(notes.daily.includes("汇率缺失"),
+    "the combined daily P&L chart went blank without naming the missing FX rate");
+  assert(notes.realized.includes("汇率缺失"),
+    "the realized chart dropped its HK leg without naming the missing FX rate");
   assert.deepEqual(state.errors, [], `missing FX raised page errors: ${state.errors.join(" | ")}`);
   await context.close();
 }
