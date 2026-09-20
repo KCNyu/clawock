@@ -88,7 +88,7 @@ def build_record(args) -> dict:
 
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(prog="clawock record")
-    ap.add_argument("--ledger", type=Path, default=None,
+    ap.add_argument("--ledger", type=Path, default=decision_v2.LEDGER,
                     help="decisions.jsonl path (default: the workspace ledger)")
     ap.add_argument("--source", default="conversation", choices=sorted(SOURCES),
                     help="which harness produced this verdict (conversation=DSH)")

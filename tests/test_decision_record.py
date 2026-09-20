@@ -90,6 +90,25 @@ def test_main_appends_and_survives_settle_round_trip(tmp_path):
     assert all(d["decision_id"] for d in after)
 
 
+def test_main_uses_workspace_ledger_by_default(tmp_path, monkeypatch):
+    ledger = tmp_path / "memory" / "decisions.jsonl"
+    monkeypatch.setattr(decision_v2, "LEDGER", ledger)
+    argv = [
+        "--source", "codex",
+        "--subject", "00100", "--market", "HK", "--currency", "HKD",
+        "--action", "reject", "--confidence", "0.65", "--driven-by", "fundamental",
+        "--bull", "支持理由", "--bear", "反方理由",
+        "--invalidation", "跌破支撑",
+    ]
+
+    assert main(argv) == 0
+
+    rows = decision_v2.load_decisions(ledger)
+    assert len(rows) == 1
+    assert rows[0]["schema_version"] == 0
+    assert rows[0]["source"] == "codex"
+
+
 def test_validate_decision_accepts_mind_records_and_rejects_weak_ones():
     from clawock.decision.ledger import validate_decision
     # A well-formed conversation record passes the desk's row validator.
