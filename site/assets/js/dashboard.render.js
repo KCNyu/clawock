@@ -2132,9 +2132,12 @@
       wrap.innerHTML = '<div class="empty-state">No digest yet.</div>';
       return;
     }
+    // 时区换对了还不够：同页其余三处 HKT 时间（:654 / :1440 / :4094）都写出
+    // " HKT"。没有这个标记，美西用户读到的 "2026/9/20 11:37:35" 仍然会被当成
+    // 本地时间——日期照样错一天，只是错法变了。
     const meta = d.generated_at ? new Date(d.generated_at).toLocaleString('zh-CN', {
       hour12: false, timeZone: 'Asia/Hong_Kong',
-    }) : '—';
+    }) + ' HKT' : '—';
     wrap.innerHTML = `<div class="digest-meta">generated: ${meta}</div>${md}${emHtml}`;
   }
 

@@ -331,6 +331,10 @@ async function testNewsDigestGeneratedTimeUsesHkt(browser, base) {
     `news digest generated time did not render in HKT: ${meta}`);
   assert(!meta.includes("2026/9/19"),
     `news digest generated time leaked the viewer's local date: ${meta}`);
+  // An unlabelled timestamp still reads as local time to a viewer outside HKT —
+  // the same " HKT" suffix every other timestamp on this page carries.
+  assert(meta.endsWith("HKT"),
+    `news digest generated time did not name its zone: ${meta}`);
   await context.close();
 }
 
