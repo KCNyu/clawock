@@ -1,12 +1,15 @@
-"""Tab semantics and keyboard focus on the dashboard shell.
+"""View-switcher semantics and keyboard focus on the dashboard shell.
 
-Two findings from the same root: the markup carries `role="tab"` without the
-attributes that make a tab a tab, and the stylesheet grew `:hover` affordances
-without the `:focus-visible` twin, one component at a time (#1446, #1453).
+Two findings from the same root: the markup carries a role without the
+attributes that make the role mean anything, and the stylesheet grew `:hover`
+affordances without the `:focus-visible` twin, one component at a time
+(#1446, #1453).
 
-* A `role="tab"` with no `aria-controls`, on a panel with no `role="tabpanel"`,
-  reads to a screen reader as a plain button: switching panels announces
-  nothing, so a keyboard user has no way to tell the content changed.
+* Originally the switcher was a `role="tablist"` of six buttons. #1700's
+  six-tab strip was replaced by a picker (a button that opens a menu), so the
+  tab roles no longer describe the control and the assertions moved with it:
+  the contract is now a single-select menu (`menuitemradio` + `aria-checked`)
+  over six panels, plus the panel's own heading as its accessible name.
 * A control with a `:hover` style and no `:focus-visible` style is invisible to
   the keyboard exactly where it is obvious to the mouse (WCAG 2.4.7). #1316 and
   #1331 each fixed one such control; nothing stopped the next one from landing
@@ -21,8 +24,14 @@ HTML = (ROOT / "site/index.html").read_text()
 CSS = (ROOT / "site/assets/css/dashboard.css").read_text()
 JS = "\n".join(p.read_text() for p in sorted((ROOT / "site/assets/js").glob("*.js")))
 
-TAB_BUTTONS = re.findall(r'<button class="tab-btn[^"]*"[^>]*role="tab"[^>]*>', HTML)
+#: The picker's choices. `menuitemradio` — not plain `menuitem` — because the
+#: control is single-select and `aria-checked` is only valid there.
+PICKER_ITEMS = re.findall(
+    r'<button\s[^>]*class="view-picker-item[^"]*"[^>]*role="menuitemradio"[^>]*>', HTML)
 PANELS = re.findall(r'<section class="panel[^"]*"[^>]*>', HTML)
+#: The trigger. One button, and the only element that opens the menu.
+PICKER_BUTTONS = re.findall(
+    r'<button\s[^>]*class="view-picker-btn"[^>]*>', HTML)
 
 #: Classes that carry a `:hover` rule and deliberately have no `:focus-visible`
 #: twin, because nothing focusable ever wears them. `test_non_focusable_hover_
@@ -65,45 +74,78 @@ def test_dynamic_status_updates_are_announced_without_repainting_a_whole_card():
     assert ".sr-only" in CSS
 
 
-def test_tab_buttons_and_panels_point_at_each_other():
-    # The count is not asserted against a literal any more. Adding a tab is a
-    # real change that touches the animation contract too, and a bare `== 6` here
-    # only meant the number was written down in two test files; the pairing below
-    # is the part that can actually be wrong.
-    assert TAB_BUTTONS, "the dashboard declares no tabs at all"
-    assert len(TAB_BUTTONS) == len(PANELS), (
-        f"{len(TAB_BUTTONS)} tab buttons and {len(PANELS)} panels — every tab "
-        "needs a panel and every panel needs a tab")
+def test_every_picker_choice_has_a_panel_and_every_panel_a_choice():
+    # The count is not asserted against a literal. Adding a view is a real change
+    # that touches the animation contract too, and a bare `== 6` here only meant
+    # the number was written down in two test files; the pairing below is the
+    # part that can actually be wrong.
+    assert PICKER_ITEMS, "the dashboard declares no view choices at all"
+    assert len(PICKER_ITEMS) == len(PANELS), (
+        f"{len(PICKER_ITEMS)} picker items and {len(PANELS)} panels — every view "
+        "needs a panel and every panel needs a view")
 
     panels = {_attr(p, "data-panel"): p for p in PANELS}
     assert None not in panels, "a .panel has no data-panel — the pager keys on it"
 
-    for btn in TAB_BUTTONS:
-        name = _attr(btn, "data-tab")
-        assert _attr(btn, "id") == f"tab-{name}", f"tab {name}: id"
-        assert _attr(btn, "aria-controls") == f"panel-{name}", f"tab {name}: aria-controls"
-        assert _attr(btn, "aria-selected") in {"true", "false"}, (
-            f"tab {name}: no aria-selected in the static markup — a reader that "
-            f"arrives before dashboard.ui.js runs sees a tablist with no state"
+    for item in PICKER_ITEMS:
+        name = _attr(item, "data-tab")
+        assert _attr(item, "id") == f"tab-{name}", f"view {name}: id"
+        assert _attr(item, "aria-checked") in {"true", "false"}, (
+            f"view {name}: no aria-checked in the static markup — a reader that "
+            f"arrives before dashboard.ui.js runs sees a menu with no state"
         )
         panel = panels[name]
         assert _attr(panel, "id") == f"panel-{name}", f"panel {name}: id"
-        assert _attr(panel, "role") == "tabpanel", f"panel {name}: role"
-        assert _attr(panel, "aria-labelledby") == f"tab-{name}", (
-            f"panel {name}: aria-labelledby"
-        )
 
 
-def test_exactly_one_tab_starts_selected():
-    selected = [b for b in TAB_BUTTONS if _attr(b, "aria-selected") == "true"]
-    assert len(selected) == 1, f"{len(selected)} tabs start selected"
-    assert _attr(selected[0], "data-tab") == "hero", "the landing tab is Overview"
+def test_exactly_one_view_starts_checked():
+    checked = [i for i in PICKER_ITEMS if _attr(i, "aria-checked") == "true"]
+    assert len(checked) == 1, f"{len(checked)} views start checked"
+    assert _attr(checked[0], "data-tab") == "hero", "the landing view is Overview"
 
 
-def test_the_js_keeps_aria_selected_in_sync():
+def test_the_trigger_announces_that_it_opens_a_menu():
+    assert len(PICKER_BUTTONS) == 1, (
+        f"{len(PICKER_BUTTONS)} picker triggers — the view switcher is one control")
+    btn = PICKER_BUTTONS[0]
+    assert _attr(btn, "aria-haspopup") == "menu", "the trigger does not announce a menu"
+    assert _attr(btn, "aria-expanded") in {"true", "false"}, (
+        "aria-expanded is absent from the static markup — a reader arriving "
+        "before dashboard.ui.js runs cannot tell the menu is closed")
+    assert _attr(btn, "aria-controls") == "view-picker-menu", (
+        "the trigger does not point at the menu it opens")
+
+
+def test_panels_keep_their_own_heading_as_the_accessible_name():
+    """The old pairing was `role="tabpanel"` + `aria-labelledby="tab-*"`.
+
+    Those roles are gone with the tab strip, and a tabpanel labelled by a
+    menuitemradio would be an invalid reference. The panel's own <h2> is what
+    names it now — so it has to stay a real heading and stay in the a11y tree
+    even though CSS hides it visually.
+    """
+    for panel in PANELS:
+        name = _attr(panel, "data-panel")
+        assert _attr(panel, "role") != "tabpanel", (
+            f"panel {name}: role=tabpanel is orphaned — nothing has role=tab now")
+        assert "aria-labelledby" not in panel, (
+            f"panel {name}: aria-labelledby points into the menu, which is not a "
+            "valid label source for this section")
+    headings = re.findall(r'<section class="panel[^"]*"[^>]*>\s*<h2>', HTML)
+    assert len(headings) == len(PANELS), (
+        f"{len(PANELS)} panels but only {len(headings)} open with an <h2> — the "
+        "section would lose its accessible name")
+    # The heading is clipped, never display:none: a display:none heading drops
+    # out of the a11y tree and takes the section's name with it.
+    assert re.search(r'\.panel(?:\.active)? > h2 \{[^}]*clip-path', CSS), (
+        "the panel <h2> is no longer clipped-but-present — display:none here "
+        "would remove the section's accessible name")
+
+
+def test_the_js_keeps_aria_checked_in_sync():
     """The static markup is only the starting state; setActiveButton owns the rest."""
-    assert 'setAttribute("aria-selected"' in JS, (
-        "nothing updates aria-selected when the pager moves"
+    assert 'setAttribute("aria-checked"' in JS, (
+        "nothing updates aria-checked when the view changes"
     )
 
 

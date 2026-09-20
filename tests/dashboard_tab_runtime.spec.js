@@ -45,6 +45,26 @@ function serveWorkspace() {
   });
 }
 
+// Activate one dashboard view through the real UI.
+//
+// The six-tab strip became a picker (a trigger that opens a menu), so the
+// choices do not exist on screen until the menu is open — `page.click()` on a
+// closed item waits for visibility and times out. This does what a user does:
+// open the trigger, then choose. `page.click` (not a synthetic .click()) on
+// both steps, so the tests keep exercising the real event path.
+async function clickTab(page, tab) {
+  await page.click("#view-picker-btn");
+  await page.click(`.view-picker-item[data-tab="${tab}"]`);
+  // Park the pointer somewhere inert. The menu hangs BELOW the topbar, so the
+  // synthetic mouse ends up over whatever panel content moved up under it once
+  // the menu closes — and `.panel.active > .card:hover` lifts a card by 2px,
+  // which is enough to make the card-rhythm measurement read 14/18 instead of
+  // 16/16. Clicking the old tab strip left the pointer in the topbar, so this
+  // hazard arrived with the picker; parking it removes the dependency on where
+  // the click happened to land rather than papering over one position.
+  await page.mouse.move(0, 0);
+}
+
 // Records which data files were served from the live branch, so a test can
 // assert both that the first paint never went there and that a poll always does.
 async function stubLiveOrigin(page, options = {}) {
@@ -122,22 +142,52 @@ async function waitForData(page) {
 }
 
 async function waitForTab(page, tab) {
-  await page.waitForFunction(tab => {
-    const panel = document.querySelector(`.panel[data-panel="${tab}"]`);
-    // Rows, not merely an array (#1215): the equity series ships column-packed
-    // and `Array.isArray` is true of both shapes, so the old check would have
-    // gone on passing with the loader's unpack removed and every chart blank.
-    const snaps = DATA?.snapshots;
-    const coreReady = tab === "hero"
-      ? DATA?.projection === "overview"
-      : Array.isArray(snaps) && snaps.length > 0 &&
-        snaps.every(row => row && typeof row === "object" &&
-                    !Array.isArray(row) && typeof row.date === "string");
-    return panel?.classList.contains("active") &&
-      coreReady &&
-      !panel.hasAttribute("aria-busy") &&
-      !panel.querySelector(".card.is-pending");
-  }, tab);
+  // A bare `waitForFunction` timeout says only "30s elapsed", and the four
+  // conditions it waits on (panel active / core data / aria-busy / a pending
+  // card) fail for completely different reasons. Report which one held. This
+  // was added while moving the switcher into the picker, where a mis-aimed
+  // synthetic click produced exactly this timeout three times.
+  const readState = () => page.evaluate((t) => {
+    const d = (typeof DATA === "undefined") ? null : DATA;
+    const panel = document.querySelector(`.panel[data-panel="${t}"]`);
+    const snaps = d && d.snapshots;
+    return {
+      dataLoaded: !!d,
+      projection: (d && d.projection) || null,
+      snapshots: Array.isArray(snaps) ? `${snaps.length} rows` : typeof snaps,
+      rowsHaveDate: Array.isArray(snaps) && snaps.length
+        ? snaps.slice(0, 3).every(r => r && !Array.isArray(r) && typeof r.date === "string")
+        : null,
+      panelActive: panel ? panel.classList.contains("active") : null,
+      ariaBusy: panel ? panel.hasAttribute("aria-busy") : null,
+      pendingCard: panel ? !!panel.querySelector(".card.is-pending") : null,
+      loadError: panel ? !!panel.querySelector(".panel-load-retry") : null,
+      pickerLabel: (document.getElementById("view-picker-label") || {}).textContent || null,
+      pickerExpanded: (document.getElementById("view-picker-btn") || {}).getAttribute?.("aria-expanded") ?? null,
+    };
+  }, tab).catch(e => ({ probeFailed: e.message }));
+
+  try {
+    await page.waitForFunction(tab => {
+      const panel = document.querySelector(`.panel[data-panel="${tab}"]`);
+      // Rows, not merely an array (#1215): the equity series ships column-packed
+      // and `Array.isArray` is true of both shapes, so the old check would have
+      // gone on passing with the loader's unpack removed and every chart blank.
+      const snaps = DATA?.snapshots;
+      const coreReady = tab === "hero"
+        ? DATA?.projection === "overview"
+        : Array.isArray(snaps) && snaps.length > 0 &&
+          snaps.every(row => row && typeof row === "object" &&
+                      !Array.isArray(row) && typeof row.date === "string");
+      return panel?.classList.contains("active") &&
+        coreReady &&
+        !panel.hasAttribute("aria-busy") &&
+        !panel.querySelector(".card.is-pending");
+    }, tab);
+  } catch (error) {
+    throw new Error(
+      `waitForTab(${tab}) timed out: ${JSON.stringify(await readState())} — ${error.message}`);
+  }
 }
 
 async function dispatchTouch(session, type, points) {
@@ -188,7 +238,7 @@ async function testRuntime(browser, base) {
     "the poll did not issue its own Overview request (boot handle leaked?)");
 
   for (const tab of TABS) {
-    await page.click(`.tab-btn[data-tab="${tab}"]`);
+    await clickTab(page, tab);
     await waitForTab(page, tab);
   }
   assert.equal(state.detailRequests, 1, "detail tabs did not share one bundle request");
@@ -216,7 +266,7 @@ async function testRuntime(browser, base) {
   await rapid.goto(base, { waitUntil: "networkidle" });
   await waitForData(rapid);
   await rapid.evaluate(tabs => tabs.forEach(tab =>
-    document.querySelector(`.tab-btn[data-tab="${tab}"]`).click()), TABS);
+    document.querySelector(`.view-picker-item[data-tab="${tab}"]`).click()), TABS);
   // The click order above makes the LAST tab in `TABS` the active one, and this
   // used to be spelled "reflect" — the tab that happened to be last. Adding a tab
   // then waited on a panel the test had already navigated away from, which reads
@@ -265,7 +315,7 @@ async function testMissingFxDoesNotFabricateCombinedValues(browser, base) {
   await waitForData(page);
   assert.equal(await page.locator("#fx-rate-usd").textContent(), "FX unavailable");
 
-  await page.click('.tab-btn[data-tab="reflect"]');
+  await clickTab(page, "reflect");
   await waitForTab(page, "reflect");
   await page.waitForFunction(() => window.echarts &&
     window.echarts.getInstanceByDom(document.getElementById("chart-daily-pnl")) &&
@@ -336,7 +386,7 @@ async function testNewsDigestGeneratedTimeUsesHkt(browser, base) {
   });
   await page.goto(base, { waitUntil: "networkidle" });
   await waitForData(page);
-  await page.click('.tab-btn[data-tab="market"]');
+  await clickTab(page, "market");
   await waitForTab(page, "market");
   await page.waitForFunction(() =>
     document.querySelector("#news-digest .digest-meta")?.textContent.includes("generated:"));
@@ -436,7 +486,7 @@ async function testCurrentHoldingsOwnDecisionMatrixMembership(browser, base) {
   assert.match(await page.locator("#add-campaign-card").innerText(), /early ideas 1/,
     "underlying-deduplicated early idea count was not rendered");
 
-  await page.click('.tab-btn[data-tab="reflect"]');
+  await clickTab(page, "reflect");
   await waitForTab(page, "reflect");
   const legacy = page.locator("#plan-bucket-bars .name", {
     hasText: "add_only_on_trigger",
@@ -467,7 +517,7 @@ async function testLiveDataOrigin(browser, base) {
 
   // The full document has to follow overview.json across, or the two halves of
   // one generation come from origins ~14 minutes apart and never line up.
-  await page.click('.tab-btn[data-tab="risk"]');
+  await clickTab(page, "risk");
   await waitForTab(page, "risk");
   assert.ok(served.includes("dashboard.json"),
     "the full document was not read from the data branch");
@@ -514,7 +564,7 @@ async function testEquityTouch(browser, base) {
   await page.goto(base, { waitUntil: "networkidle" });
   await waitForData(page);
   // Equity Curve 已从 Overview 挪进 Reflect（首屏曲线减负），触屏契约跟着卡片走。
-  await page.locator('.tab-btn[data-tab="reflect"]').click();
+  await clickTab(page, "reflect");
   await waitForTab(page, "reflect");
   await page.locator(".native-equity-canvas").scrollIntoViewIfNeeded();
   const box = await page.locator(".native-equity-canvas").boundingBox();
@@ -548,7 +598,7 @@ async function testEquityTouch(browser, base) {
     await page.waitForTimeout(20);
   }
   await dispatchTouch(session, "touchEnd", []);
-  await page.waitForFunction(() => document.querySelector(".tab-btn.active")?.dataset.tab === "plan");
+  await page.waitForFunction(() => document.querySelector(".view-picker-item.is-active")?.dataset.tab === "plan");
   assert.equal(await page.locator(".native-equity-tooltip").isVisible(), false,
     "pager swipe left a stale chart tooltip");
   assert.deepEqual(state.failures, []);
@@ -672,8 +722,11 @@ async function testTopbarFitsWhenRefreshLabelSwaps(browser, base) {
       const rect = el => el.getBoundingClientRect();
       const btn = document.getElementById("refresh-btn");
       const h1 = document.querySelector(".brand h1");
-      const links = [...document.querySelectorAll(".topbar-actions .nav-link")];
-      const nav = document.querySelector(".topbar-actions");
+      // The destinations moved out of `.topbar-actions` when the header split
+      // into controls (picker + refresh) and nav (#1702): the nav is its own
+      // `<nav class="primary-nav">` now, and on a phone it takes the second row.
+      const links = [...document.querySelectorAll(".primary-nav .nav-link")];
+      const nav = document.querySelector(".primary-nav");
       const h1Box = rect(h1);
       const overlapsBrand = links.some(item => {
         const box = rect(item);
@@ -769,8 +822,13 @@ async function testTopbarFitsWhenRefreshLabelSwaps(browser, base) {
 // The header is full-bleed by design — background, shadow and rule cross the
 // whole viewport — but everything it holds belongs to the same column as the
 // cards. `main` stops at 1600px; the header's padding did not, so past that
-// width the wordmark and the tab strip kept walking outward while the content
-// stood still (172px of drift at 1920, 492px at 2560).
+// width the wordmark and whatever sat at the right kept walking outward while
+// the content stood still (172px of drift at 1920, 492px at 2560).
+//
+// The picker replaced the six-tab strip, which used to be the left-anchored
+// element this measured. The right-anchored element is now the site nav — the
+// picker and Refresh sit before it — so the right edge is checked against that.
+// The strip's own "two rules 1px apart" assertion went with the strip.
 async function testHeaderSharesTheContentColumn(browser, base) {
   for (const width of [1280, 1920, 2560]) {
     const page = await browser.newPage({ viewport: { width, height: 900 } });
@@ -781,31 +839,24 @@ async function testHeaderSharesTheContentColumn(browser, base) {
       const box = el => el.getBoundingClientRect();
       const main = document.querySelector("main");
       const style = getComputedStyle(main);
-      const tabs = document.querySelector(".tabs");
-      const topbar = document.querySelector(".topbar");
-      const tabsRule = parseFloat(getComputedStyle(tabs).borderBottomWidth) || 0;
       return {
         columnLeft: box(main).left + parseFloat(style.paddingLeft),
         columnRight: box(main).right - parseFloat(style.paddingRight),
         brandLeft: box(document.querySelector(".brand-mark")).left,
-        tabLeft: box(document.querySelector(".tab-btn")).left,
+        controlsLeft: box(document.querySelector(".view-picker-btn")).left,
+        navRight: box(document.querySelector(".primary-nav")).right,
         refreshRight: box(document.getElementById("refresh-btn")).right,
-        // A rule that stops at the column edge, one pixel above the header's
-        // own full-bleed rule, draws a visible step where they part company.
-        doubledRule: tabsRule > 0 &&
-          box(topbar).bottom - box(tabs).bottom <= 2 &&
-          box(tabs).width < box(topbar).width,
       };
     });
     const off = (a, b) => Math.abs(a - b);
     assert(off(m.brandLeft, m.columnLeft) <= 1,
       `wordmark is ${off(m.brandLeft, m.columnLeft)}px off the content column at ${width}px`);
-    assert(off(m.tabLeft, m.columnLeft) <= 1,
-      `tab strip is ${off(m.tabLeft, m.columnLeft)}px off the content column at ${width}px`);
-    assert(off(m.refreshRight, m.columnRight) <= 1,
-      `refresh button is ${off(m.refreshRight, m.columnRight)}px off the column's right edge at ${width}px`);
-    assert(!m.doubledRule,
-      `a column-width rule sits on the header's full-bleed rule at ${width}px`);
+    assert(off(m.navRight, m.columnRight) <= 1,
+      `the site nav is ${off(m.navRight, m.columnRight)}px off the column's right edge at ${width}px`);
+    assert(m.controlsLeft > m.brandLeft && m.controlsLeft < m.columnRight,
+      `the view picker sits outside the content column at ${width}px`);
+    assert(m.refreshRight <= m.columnRight + 1,
+      `refresh is ${m.refreshRight - m.columnRight}px past the column at ${width}px`);
     await page.close();
   }
 }
@@ -932,7 +983,7 @@ async function testHoldingsAndHeroNeverTruncate(browser, base) {
     await stubLiveOrigin(page);
     await page.goto(base, { waitUntil: "networkidle" });
     await waitForData(page);
-    await page.click('.tab-btn[data-tab="drill"]');
+    await clickTab(page, "drill");
     await waitForTab(page, "drill");
     await page.waitForSelector("table.book-table tbody tr.book-row");
     await page.click("table.book-table tbody tr.book-row");
@@ -1218,7 +1269,7 @@ async function testHoldingsAndHeroNeverTruncate(browser, base) {
     await stubLiveOrigin(page);
     await page.goto(base, { waitUntil: "networkidle" });
     await waitForData(page);
-    await page.click('.tab-btn[data-tab="drill"]');
+    await clickTab(page, "drill");
     await waitForTab(page, "drill");
     await page.waitForSelector("table.book-table .name-cell");
     const lost = await page.evaluate(() =>
@@ -1344,7 +1395,7 @@ async function testAddSideCardExplainsWhyThereIsNoAdd(browser, base) {
   const state = observe(page);
   await page.goto(base, { waitUntil: "networkidle" });
   await waitForData(page);
-  await page.click('.tab-btn[data-tab="plan"]');
+  await clickTab(page, "plan");
   await waitForTab(page, "plan");
 
   const card = page.locator("#add-side-card");
@@ -1392,7 +1443,7 @@ async function testALeveragedRowWithoutVolatilityPrintsNoUndefined(browser, base
   await page.goto(base, { waitUntil: "networkidle" });
   await waitForData(page);
   for (const tab of ["drill", "risk"]) {
-    await page.click(`.tab-btn[data-tab="${tab}"]`);
+    await clickTab(page, tab);
     await waitForTab(page, tab);
   }
   const book = await page.locator("#book-card").textContent();
@@ -1472,7 +1523,7 @@ async function testNoTabPrintsAMissingNumber(browser, base) {
     await waitForData(page);
     const hits = [];
     for (const tab of TABS) {
-      await page.click(`.tab-btn[data-tab="${tab}"]`);
+      await clickTab(page, tab);
       await waitForTab(page, tab);
       hits.push(...(await page.evaluate(patterns => {
         const out = [];
@@ -1537,7 +1588,7 @@ async function testTheValidationLedgerRendersItsVerdictsAndFitsAPhone(browser, b
     });
     await page.goto(base, { waitUntil: "networkidle" });
     await waitForData(page);
-    await page.click('.tab-btn[data-tab="reflect"]');
+    await clickTab(page, "reflect");
     await waitForTab(page, "reflect");
 
     const seen = await page.evaluate(() => {
@@ -1672,7 +1723,7 @@ async function testAPanelSaysWhenItsDataDidNotLoad(browser, base) {
   await page.goto(base, { waitUntil: "domcontentloaded" });
   await waitForData(page);
 
-  await page.click('.tab-btn[data-tab="drill"]');
+  await clickTab(page, "drill");
   const panel = page.locator('.panel[data-panel="drill"]');
   const box = panel.locator(".panel-load-error");
   await box.waitFor({ state: "visible", timeout: 15000 });
@@ -2252,7 +2303,7 @@ async function testThePlanTimelineClampsItsRationales(browser, base) {
   });
   await page.goto(base, { waitUntil: "networkidle" });
   await waitForData(page);
-  await page.click('.tab-btn[data-tab="plan"]');
+  await clickTab(page, "plan");
   await waitForTab(page, "plan");
   await page.waitForFunction(() => document.querySelectorAll("#plan-timeline .pt-row").length > 0,
     null, { timeout: 15000 })
@@ -2351,7 +2402,7 @@ async function testTheDebateTrailIsAListOfCasesNotAWallOfText(browser, base) {
   }));
   await page.goto(base, { waitUntil: "networkidle" });
   await waitForData(page);
-  await page.click('.tab-btn[data-tab="reflect"]');
+  await clickTab(page, "reflect");
   await waitForTab(page, "reflect");
   await page.waitForFunction(() => document.querySelectorAll(".dbt-case").length > 0,
     null, { timeout: 15000 })
@@ -2432,7 +2483,7 @@ async function testASidecarStillReachesItsCardWhenThePagerIsStillSettling(browse
   await stubLiveOrigin(page);
   await page.goto(base, { waitUntil: "networkidle" });
   await waitForData(page);
-  await page.click('.tab-btn[data-tab="reflect"]');
+  await clickTab(page, "reflect");
   await waitForTab(page, "reflect");
 
   // 决策地图整块牌就是 decision_map 这个 sidecar 的消费者：它有行，就说明
@@ -2474,7 +2525,7 @@ async function testFailedSidecarRefreshKeepsTheLastGoodValue(browser, base) {
 
   await page.goto(base, { waitUntil: "networkidle" });
   await waitForData(page);
-  await page.click('.tab-btn[data-tab="reflect"]');
+  await clickTab(page, "reflect");
   await waitForTab(page, "reflect");
   await page.waitForFunction(() => DATA?.decision_audit?.sentinel === "last-good-sidecar");
 
@@ -2584,7 +2635,7 @@ async function rhythmOf(browser, base, { width, height, isMobile, tabs, settle =
   const seen = {};
   for (const tab of tabs) {
     if (tab !== "hero") {
-      await page.click(`#tab-${tab}`);
+      await clickTab(page, tab);
       await waitForTab(page, tab);
       await page.waitForTimeout(settle);
     }

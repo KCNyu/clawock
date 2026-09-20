@@ -103,7 +103,7 @@ async function navStaysOnOneRowAndNothingScrollsSideways(browser, base) {
     await page.goto(base, { waitUntil: "load" });
 
     const nav = await page.evaluate(() =>
-      [...document.querySelectorAll(".topbar-actions .nav-link")].map(link => {
+      [...document.querySelectorAll(".primary-nav .nav-link")].map(link => {
         const box = link.getBoundingClientRect();
         return { text: link.textContent.trim(), top: Math.round(box.top),
                  left: Math.round(box.left), right: Math.round(box.right),
@@ -136,8 +136,8 @@ async function navStaysOnOneRowAndNothingScrollsSideways(browser, base) {
     // The row is allowed to scroll on the narrowest phone, but the page is not.
     const overflow = await page.evaluate(() => ({
       page: document.documentElement.scrollWidth - document.documentElement.clientWidth,
-      navScroll: document.querySelector(".topbar-actions").scrollWidth
-        - document.querySelector(".topbar-actions").clientWidth,
+      navScroll: document.querySelector(".primary-nav").scrollWidth
+        - document.querySelector(".primary-nav").clientWidth,
     }));
     assert(overflow.page <= 1,
       `${width}px: the document scrolls sideways by ${overflow.page}px`);
