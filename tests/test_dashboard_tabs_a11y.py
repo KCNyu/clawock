@@ -18,6 +18,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 HTML = (ROOT / "site/index.html").read_text()
+LAYOUT = (ROOT / "site/_layouts/default.html").read_text()
 CSS = (ROOT / "site/assets/css/dashboard.css").read_text()
 JS = "\n".join(p.read_text() for p in sorted((ROOT / "site/assets/js").glob("*.js")))
 
@@ -126,6 +127,58 @@ def test_the_site_menu_replaces_the_link_row_without_losing_a_destination():
     # <details> supplies open/close and the keyboard natively; the script is
     # only allowed to add the two behaviours it does not have.
     assert 'getElementById("site-menu")' in JS, (
+        "nothing closes the site menu on an outside click or Escape")
+
+
+def test_both_headers_are_drawn_by_one_stylesheet():
+    """#1702's actual cause, checked instead of patrolled.
+
+    The dashboard is styled by `assets/css/dashboard.css`; the Jekyll layout
+    used to carry a hand-copied excerpt of it inline. Nothing connected the two,
+    so redesigning the dashboard's navigation (#1700) left the other half of the
+    site on the previous one and the inconsistency was found days later by a
+    patrol. A copy cannot be kept in sync by care; it can only be removed.
+    """
+    assert "assets/css/dashboard.css" in LAYOUT, (
+        "the shared layout no longer links the stylesheet the dashboard uses — "
+        "whatever replaced it is a second copy of one design")
+    # The shell's vocabulary has exactly one definition site. A `--token: value`
+    # here is a second one, which is how the two halves drift apart again.
+    shell_tokens = ("--bg:", "--card:", "--border:", "--text:", "--accent:",
+                    "--radius:", "--mono:", "--surface-1:", "--focus:")
+    redefined = [t for t in shell_tokens if t in LAYOUT]
+    assert redefined == [], (
+        f"the shared layout re-declares shell tokens {redefined} instead of "
+        "inheriting them from the stylesheet it links")
+    # Same for the chrome: the header, the menu and the footer are drawn once.
+    for selector in (".site-menu-btn {", ".site-menu-panel {", ".topbar {",
+                     "header.topbar {", ".brand-mark {"):
+        assert selector not in LAYOUT, (
+            f"the shared layout styles `{selector.strip(' {')}` itself; that rule "
+            "belongs in the stylesheet both documents load")
+
+
+def test_the_shared_layout_carries_the_same_site_menu_as_the_dashboard():
+    """Both headers promise the same four places, in the same control.
+
+    `test_the_site_menu_replaces_the_link_row_without_losing_a_destination`
+    checks the dashboard's copy of this markup. It passed all through #1702,
+    because it never looked at the other document.
+    """
+    menu = re.search(r'<details class="site-menu".*?</details>', LAYOUT, re.S)
+    assert menu, "the site menu is missing from site/_layouts/default.html"
+    block = menu.group(0)
+    assert 'aria-label="Switch site section"' in block, (
+        "the trigger has no accessible name beyond its label text")
+    items = re.findall(r'<a class="site-menu-item[^"]*"', block)
+    assert len(items) == 4, (
+        f"{len(items)} destinations in the shared layout's site menu — "
+        "Dashboard / Briefs / FAQ / GitHub is the set both headers promise")
+    assert 'aria-current="page"' in block, (
+        "the current destination needs aria-current, not just a class")
+    # These pages load no bundle, so the outside-click/Escape behaviour the
+    # dashboard's JS adds has to come from the layout's own script.
+    assert 'getElementById("site-menu")' in LAYOUT, (
         "nothing closes the site menu on an outside click or Escape")
 
 

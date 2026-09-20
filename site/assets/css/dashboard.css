@@ -2,6 +2,11 @@
      CSS Variables — dark first, light overrides via @media
      ========================================================= */
   :root {
+    /* Both themes are real here, so say so: without it the UA paints
+       scrollbars, spinners and form controls from the light scheme on a
+       near-black page. `_layouts/default.html` declared this and the dashboard
+       did not — one of the differences that came out of keeping two copies. */
+    color-scheme: dark light;
     /* 2026-08-25 材质批：canvas 与 surface 先拉开 headroom。「透亮」是面与
        背后的对比，不是更低的 alpha —— before 实测（1440×1400）玻璃面比旁边
        裸底还暗 8~11 级：面是「压在光上的暗板」，不是「透光的材质」。页底压
@@ -416,6 +421,10 @@
     padding-top: max(var(--space-3), env(safe-area-inset-top));
     box-shadow: var(--shadow-topbar);
   }
+  /* The dashboard's bar has a tab strip on its second row, which is why the
+     bottom padding is 0. `_layouts/default.html` loads this same sheet and has
+     no second row, so the bar has to close itself there. */
+  .topbar:not(:has(.tabs)) { padding-bottom: var(--space-3); }
   .topbar::after {
     content: ""; position: absolute; left: 0; right: 0; top: 100%; height: 14px;
     background:
@@ -433,6 +442,16 @@
   .brand {
     display: flex; align-items: center; gap: 8px;
     min-width: 0;
+    /* The shared layout's wordmark is an <a> (home); the bare `a:hover`
+       underline would run under the logo and the whole name. */
+    color: inherit; text-decoration: none;
+  }
+  .brand:hover { text-decoration: none; }
+  /* On the shared layout the wordmark is the link home, so it is a tab stop —
+     and a tab stop with no ring is a tab stop nobody can follow. */
+  .brand:focus-visible {
+    outline: 2px solid var(--focus); outline-offset: 3px;
+    border-radius: var(--radius-sm);
   }
   .site-menu { margin-left: auto; }
   /* The header is full-bleed — its background, shadow and scroll edge span the
@@ -456,13 +475,13 @@
     margin: 0; font-size: var(--fs-xl); font-weight: 700; letter-spacing: -0.01em;
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
-  .brand .updated {
+  .brand .updated, .brand .tag {
     font-size: var(--fs-xs); color: var(--text-dim);
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   @media (max-width: 480px) {
     .brand-mark { width: 24px; height: 24px; }
-    .brand .updated { display: none; }
+    .brand .updated, .brand .tag { display: none; }
   }
   /* Ghost icon-only refresh: the 60s auto-poll is the real refresh; this
      button only exists to pull immediately and to show whether the last pull
@@ -637,6 +656,10 @@
        page name can set and the wordmark truncates first. */
     .brand { flex: 0 1 auto; }
     .site-menu-btn { min-height: 44px; padding: 0 var(--space-2); }
+    /* The items are the target, not just the trigger. They were 35.5px — a
+       mouse target wearing a menu's clothes — so the one control that answers
+       "where can I go" was the hardest thing on the phone to hit. */
+    .site-menu-item { min-height: 44px; }
     .refresh-btn { width: 44px; height: 44px; min-width: 44px; min-height: 44px; }
   }
   @media (max-width: 400px) {
@@ -677,8 +700,13 @@
 
   /* =========================================================
      Layout — mobile single column, desktop 3-column
-     ========================================================= */
-  main { padding: var(--space-4); max-width: 1600px; margin: 0 auto; }
+     =========================================================
+     Everything in this section is the *app shell* — the paged tab machine and
+     the box it lives in. `_layouts/default.html` loads this same stylesheet for
+     the tokens and the chrome (one source of truth, #1702), so these rules are
+     scoped to `.app` (set on the dashboard's own <html>/<body>) rather than to
+     bare `main`/`body`: an article page must keep scrolling. */
+  .app main { padding: var(--space-4); max-width: 1600px; margin: 0 auto; }
   .pager { display: contents; }   /* desktop: transparent — panels join the grid */
   .panel { display: block; }
 
@@ -720,22 +748,22 @@
      scroll-snap pager. Each tab is its own page that scrolls vertically.
      Native scrolling = buttery preview / momentum / snap, zero JS gesture code. */
   @media (max-width: 1023px) {
-    html, body { height: 100%; }
-    body {
+    html.app, body.app { height: 100%; }
+    body.app {
       display: flex; flex-direction: column;
       height: 100dvh; min-height: 100dvh; overflow: hidden;
     }
     .topbar { flex: 0 0 auto; }
     /* No pinned footer on mobile — it stole ~127px from every tab. Its links live
        in the header (Briefs/GitHub); the disclaimer rides each page's scroll end. */
-    footer { display: none; }
+    .app footer { display: none; }
     .panel::after {
       content: "Not investment advice · point-in-time · past performance ≠ future results";
       display: block; margin-top: 16px; padding: 12px 0 4px;
       border-top: 1px solid var(--border);
       font-size: var(--fs-micro); color: var(--text-faint); text-align: center; line-height: 1.5;
     }
-    main {
+    .app main {
       flex: 1 1 auto; min-height: 0; min-width: 0; max-width: 100%;
       padding: 0;
       display: flex; flex-direction: column;   /* banner (auto) + pager (flex) */
@@ -797,7 +825,7 @@
      laid out, so this override must never leak below 1024px. */
   @media (min-width: 1024px) {
     .swipe-hint { display: none; }
-    main {
+    .app main {
       display: block;
       max-width: 1600px; margin: 0 auto;
       padding: 24px 28px 40px;

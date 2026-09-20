@@ -612,9 +612,18 @@ def test_the_stylesheet_draws_the_cards_it_is_given():
                      "article:has(.brief-card) {"):
         assert selector in layout, selector
     # Theme-following: the card's lit edge and shadow are tokens with a value in
-    # BOTH theme blocks, for the #1272 reason.
-    assert layout.count("--card-edge:") == 2 and layout.count("--card-shadow:") == 2
-    assert "box-shadow: inset 0 1px 0 var(--card-edge), var(--card-shadow)" in layout
+    # BOTH theme blocks, for the #1272 reason. They used to be `--card-edge` /
+    # `--card-shadow`, declared twice in this file — a second private copy of a
+    # pair the dashboard already had. The layout links the shared stylesheet
+    # now, so the brief card is drawn with the same `--spec-1` / `--shadow-card`
+    # every other card on the site uses; the per-theme requirement is unchanged,
+    # it is just checked where the values live.
+    assert "box-shadow: inset 0 1px 0 var(--spec-1), var(--shadow-card)" in layout
+    shared = (ROOT / "site" / "assets" / "css" / "dashboard.css").read_text(
+        encoding="utf-8")
+    assert shared.count("--spec-1:") == 2 and shared.count("--shadow-card:") == 2, (
+        "the lit edge and the card shadow need a value in both theme blocks of "
+        "the shared stylesheet — a white edge vanishes on a white card")
 
 
 def test_the_phone_clamp_cannot_hide_text_without_a_script():

@@ -13,6 +13,10 @@
 //
 // A CSS rule cannot be asserted by reading it, so this renders the real layout
 // (Liquid resolved the way Jekyll would for a static link) and measures boxes.
+//
+// The layout links `assets/css/dashboard.css` rather than inlining a copy of it
+// (#1702), and the server below serves `site/` — so what this measures is the
+// page's real stylesheet, not a fixture's idea of it.
 
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
@@ -22,28 +26,37 @@ const { chromium } = require("playwright");
 
 const ROOT = path.resolve(__dirname, "..");
 const LAYOUT = path.resolve(ROOT, "site/_layouts/default.html");
-// The decision map's styles moved into the dashboard stylesheet when the board
-// moved into the Reflect tab (2026-09-09). The phone-geometry rules this file
-// measures — the pointer-coarse touch targets and the bottom-sheet drawer —
-// are the same rules; only their address changed.
-const DASHBOARD_CSS = path.resolve(ROOT, "site/assets/css/dashboard.css");
-const DM_CSS_START = "/* ── 决策地图（Reflect 卡内）";
-const DM_CSS_END = "/* Equity Curve 卡的专属规则";
 
 // The phones this has to hold: the narrowest still in use, and a current one.
 const WIDTHS = [320, 390];
 
 /** Resolve the subset of Liquid the layout uses, as Jekyll would for a page. */
-function render(content, { url = "/decimap/" } = {}) {
+function render(content, { url = "/briefs.html" } = {}) {
   let html = fs.readFileSync(LAYOUT, "utf8");
+  // if / elsif / else, because the menu's own label is written that way: a
+  // resolver that only understands `if` renders the trigger with no text, and
+  // then every width measured below is the width of a button with nothing in
+  // it — the one thing on this bar that a page name can make wider.
+  const truthy = condition =>
+    [...condition.matchAll(/contains '([^']+)'/g)].some(m => url.includes(m[1]))
+    || [...condition.matchAll(/page\.url == '([^']+)'/g)].some(m => url === m[1]);
   html = html
     // {{ '/briefs.html' | relative_url }} -> /briefs.html
     .replace(/\{\{\s*'([^']*)'\s*\|\s*relative_url\s*\}\}/g, "$1")
-    // {% if page.url contains 'decimap' %}active{% endif %}
     .replace(/\{%\s*if ([^%]*?)\s*%\}([\s\S]*?)\{%\s*endif\s*%\}/g,
       (_, condition, body) => {
-        const match = /contains '([^']+)'/.exec(condition);
-        return match && url.includes(match[1]) ? body : "";
+        const branches = [{ condition, body: "" }];
+        let cursor = branches[0], last = 0, match;
+        const clause = /\{%\s*(?:elsif ([^%]*?)|else)\s*%\}/g;
+        while ((match = clause.exec(body))) {
+          cursor.body = body.slice(last, match.index);
+          cursor = { condition: match[1] || null, body: "" };
+          branches.push(cursor);
+          last = match.index + match[0].length;
+        }
+        cursor.body = body.slice(last);
+        const hit = branches.find(b => b.condition === null || truthy(b.condition));
+        return hit ? hit.body : "";
       })
     .replace(/\{\{\s*content\s*\}\}/g, content)
     .replace(/\{%[\s\S]*?%\}/g, "")
@@ -51,21 +64,11 @@ function render(content, { url = "/decimap/" } = {}) {
   return html;
 }
 
-/** The decision-map stylesheet plus a timeline dense enough to aim at. */
+/** A timeline dense enough to aim at, drawn by the page's own stylesheet. */
 function decimapFixture() {
-  const css = fs.readFileSync(DASHBOARD_CSS, "utf8");
-  const from = css.indexOf(DM_CSS_START);
-  const to = css.indexOf(DM_CSS_END, from);
-  // Slice, don't inline the whole sheet: dashboard.css redefines :root, and a
-  // fixture that quietly stops carrying the rules it measures is a test that
-  // passes because it tests nothing.
-  assert(from > 0 && to > from,
-    "the decision-map block is no longer where this fixture slices it out of "
-    + "dashboard.css — re-point the markers, do not delete the assertion");
-  const style = `<style>${css.slice(from, to)}</style>`;
   const dots = [12, 34, 61, 88].map(left =>
     `<button class="dm-dot is-buy" style="left:${left}%"></button>`).join("");
-  return `${style}
+  return `
     <div class="decimap">
       <h1>Decision Map</h1>
       <div class="dm-timeline">
@@ -79,7 +82,7 @@ function decimapFixture() {
 function serve(html) {
   return http.createServer((request, response) => {
     const name = new URL(request.url, "http://localhost").pathname;
-    if (name === "/" || name === "/decimap/") {
+    if (name === "/" || name === "/decimap/" || name === "/briefs.html") {
       response.writeHead(200, { "content-type": "text/html; charset=utf-8" });
       response.end(html);
       return;
@@ -90,7 +93,13 @@ function serve(html) {
       response.writeHead(404).end("not found");
       return;
     }
-    response.writeHead(200, { "content-type": "application/octet-stream" });
+    // A stylesheet served as octet-stream is a stylesheet the browser refuses
+    // to apply — which would make every measurement below the geometry of an
+    // unstyled page, and every assertion pass or fail for the wrong reason.
+    const TYPES = { ".css": "text/css", ".js": "text/javascript",
+                    ".json": "application/json", ".svg": "image/svg+xml" };
+    response.writeHead(200, {
+      "content-type": TYPES[path.extname(file)] || "application/octet-stream" });
     fs.createReadStream(file).pipe(response);
   });
 }
@@ -134,10 +143,16 @@ async function navStaysOnOneRowAndNothingScrollsSideways(browser, base) {
       `${width}px: the menu laid its items out in ${lefts.size} columns — ` +
       nav.map(l => `${l.text}@${l.left}`).join(" "));
 
+    // 44px, the floor the trigger already held: on a phone the items are the
+    // target, and a 35px row in a menu opened by a 44px button is the one place
+    // on the page where "where can I go" is the hardest thing to hit.
     for (const link of nav) {
-      assert(link.height >= 34,
+      assert(link.height >= 44,
         `${width}px: "${link.text}" is ${link.height}px tall; a touch target is not a mouse target`);
     }
+    const trigger = await page.evaluate(() =>
+      Math.round(document.querySelector(".site-menu-btn").getBoundingClientRect().height));
+    assert(trigger >= 44, `${width}px: the menu trigger is ${trigger}px tall`);
 
     // The row is allowed to scroll on the narrowest phone, but the page is not.
     const overflow = await page.evaluate(() => ({
@@ -223,7 +238,7 @@ async function main() {
   const html = render(decimapFixture());
   const server = serve(html);
   await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
-  const base = `http://127.0.0.1:${server.address().port}/decimap/`;
+  const base = `http://127.0.0.1:${server.address().port}/briefs.html`;
   const executablePath = process.env.CHROME_EXE || undefined;
   const browser = await chromium.launch(executablePath ? {
     executablePath, args: ["--no-sandbox"],
