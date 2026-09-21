@@ -481,6 +481,16 @@
     display: flex; align-items: center;
     gap: var(--space-3);
   }
+  /* Every page keeps the same first-row anchors. The dashboard paints Refresh
+     in this final 20px slot; reading pages do not have data to refresh, so an
+     invisible pseudo-element reserves the slot instead. Without it the site
+     menu jumped 32px right (20px + the 12px flex gap) on every cross-page
+     navigation. This is layout only: the placeholder is not focusable and
+     paints nothing, while the real Refresh remains a 20px glyph with its 44px
+     invisible hit target. */
+  .topbar-row:not(:has(.refresh-btn))::after {
+    content: ""; width: 20px; height: 20px; flex: 0 0 auto;
+  }
   /* Left corner: identity. Right corner: where you can go, then Refresh.
      `margin-left: auto` on the site menu is the whole mechanism, so DOM order
      stays the reading order and no `order` override is needed. */
@@ -507,6 +517,8 @@
      edge. Move the inline padding off the full-bleed element and onto the row,
      so it resolves to main's own content box. Re-measured after the picker
      landed: 1920px brand at x=188, nav right edge at 1732 — both on the column.
+     Reading pages keep their prose at 1024px but retain this app-shell anchor:
+     changing content measure must not move global navigation between pages.
      Both rows resolve to it: the wordmark, the menu and Refresh on the first,
      and the tab strip — which spans the column edge to edge — on the second. */
   @media (min-width: 1024px) {

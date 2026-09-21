@@ -30,15 +30,6 @@
      the site move together. -->
 <link rel="stylesheet" href="{{ '/assets/css/dashboard.css' | relative_url }}">
 <style>
-  /* ── The shell, adjusted for a reading page ─────────────────────────────
-     Two deltas, both about column width rather than about looks: this layout's
-     content column is 1024px (prose, not a three-column dashboard), and the
-     header row has to resolve to that same column, the way the dashboard's row
-     resolves to its own 1600px one. */
-  @media (min-width: 1024px) {
-    .topbar-row { max-width: 1024px; margin-inline: auto; padding-inline: 16px; }
-  }
-
   /* Article */
   main {
     max-width: 1024px; margin: 0 auto; padding: 24px 16px;

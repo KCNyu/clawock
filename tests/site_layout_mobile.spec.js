@@ -82,9 +82,18 @@ function decimapFixture() {
 function serve(html) {
   return http.createServer((request, response) => {
     const name = new URL(request.url, "http://localhost").pathname;
-    if (name === "/" || name === "/decimap/" || name === "/briefs.html") {
+    if (name === "/dashboard") {
+      const dashboard = fs.readFileSync(path.resolve(ROOT, "site/index.html"), "utf8")
+        .replace(/^---\n[\s\S]*?\n---\n/, "");
       response.writeHead(200, { "content-type": "text/html; charset=utf-8" });
-      response.end(html);
+      response.end(dashboard);
+      return;
+    }
+    if (name === "/" || name === "/decimap/" || name === "/briefs.html" || name === "/faq.html") {
+      response.writeHead(200, { "content-type": "text/html; charset=utf-8" });
+      response.end(name === "/faq.html"
+        ? render(decimapFixture(), { url: "/faq.html" })
+        : html);
       return;
     }
     const file = path.resolve(ROOT, "site", name.replace(/^\/+/, ""));
@@ -102,6 +111,36 @@ function serve(html) {
       "content-type": TYPES[path.extname(file)] || "application/octet-stream" });
     fs.createReadStream(file).pipe(response);
   });
+}
+
+async function globalHeaderAnchorsDoNotJumpBetweenPages(browser, origin) {
+  for (const width of [1440, 390, 320]) {
+    const measured = [];
+    for (const route of ["/dashboard", "/briefs.html", "/faq.html"]) {
+      const context = await browser.newContext({
+        viewport: { width, height: 720 }, hasTouch: width <= 390, isMobile: width <= 390,
+      });
+      const page = await context.newPage();
+      await page.goto(origin + route, { waitUntil: "domcontentloaded" });
+      measured.push(await page.evaluate(() => {
+        const box = selector => document.querySelector(selector).getBoundingClientRect();
+        const brand = box(".brand-mark");
+        const menu = box(".site-menu-btn");
+        return { brandLeft: brand.left, brandTop: brand.top,
+                 menuRight: menu.right, menuTop: menu.top };
+      }));
+      await context.close();
+    }
+    const dashboard = measured[0];
+    for (const [index, pageName] of ["Briefs", "FAQ"].entries()) {
+      const readingPage = measured[index + 1];
+      for (const key of ["brandLeft", "brandTop", "menuRight", "menuTop"]) {
+        const drift = Math.abs(readingPage[key] - dashboard[key]);
+        assert(drift <= 1,
+          `${width}px ${pageName}: ${key} jumps ${drift}px from the dashboard`);
+      }
+    }
+  }
 }
 
 async function navStaysOnOneRowAndNothingScrollsSideways(browser, base) {
@@ -244,6 +283,8 @@ async function main() {
     executablePath, args: ["--no-sandbox"],
   } : {});
   try {
+    await globalHeaderAnchorsDoNotJumpBetweenPages(browser,
+      `http://127.0.0.1:${server.address().port}`);
     await navStaysOnOneRowAndNothingScrollsSideways(browser, base);
     await timelineDotsAreAimableWithAFinger(browser, base);
     await theDrawerBecomesASheetInsteadOfCoveringThePage(browser, base);
