@@ -198,7 +198,7 @@ These are installed commands too. They are listed here so the catalog is the who
 | 机器可读 | 任一模式加 `--json` |
 
   注意：速率限制 10 req/sec（脚本默认 8/sec）超量 403；`SEC_USER_AGENT` 可放 `.api_keys`；ticker→CIK 本地缓存 7 天；非美股票返回 "CIK not found"
-- **`clawock fx`**：公开包内的 USDHKD 汇率 provider（Frankfurter → exchangerate.host → Yahoo HKD=X 三路 fallback）；4h 工作区缓存；`--convert AMT FROM TO` 直接换算。**HK + US 算 book total 必须先调它**
+- **`clawock fx`**：公开包内的 USDHKD 汇率 provider（Frankfurter → exchangerate.host → Yahoo HKD=X 三路 fallback）；4h 工作区缓存；`--convert AMOUNT FROM TO` 直接换算。**HK + US 算 book total 必须先调它**
 - **`clawock analyze-hk`**：港股完整分析 = Tencent + Eastmoney HK 双源对账 → stooq → yfinance 兜底 + 恒指/恒科 + Finnhub 新闻 + 信号；c/pc 偏差 > 1% 写入 `_divergence`
 - `clawock analyze-hk` + `clawock analyze-us`：刷新并查看两本持仓；不再保留根级 wrapper
 

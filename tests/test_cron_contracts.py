@@ -1,6 +1,7 @@
 import ast
 import importlib.util
 import json
+import re
 import shutil
 import subprocess
 import sys
@@ -993,3 +994,34 @@ def test_every_artifact_that_prints_the_brief_time_reads_the_constant():
             'import')
         assert '盘前深度简报｜{date} 08:' not in source.replace(' ', ''), (
             f'{relative}: a hard-coded brief time is back')
+
+
+def test_the_readmes_print_the_brief_slot_the_cron_actually_fires():
+    """The two READMEs are where a reader looks up when the brief runs.
+
+    #1278 moved the slot and 7a6057bd5 chased the three delivered artifacts —
+    markdown title, WeChat/Telegram card, watchdog fallback — plus the site and
+    `docs/reference/commands.md`. Both READMEs kept saying 08:00, so the entry
+    point most readers hit was the one place left three minutes wrong (#1727).
+    The gates above tie the artifacts to the constant; markdown cannot import
+    it, so this ties the prose to it instead.
+
+    Other clock times in these files (HK 09:30, the US open and close) are
+    exchange facts and do not move when our cron does — only the 08:xx hour is
+    ours, so only it is asserted here.
+    """
+    from clawock import scheduling
+
+    for name in ('README.md', 'README.zh.md'):
+        text = (ROOT / name).read_text(encoding='utf-8')
+        assert scheduling.BRIEF_SLOT_HKT in text, (
+            f'{name} no longer states the brief slot '
+            f'{scheduling.BRIEF_SLOT_HKT}')
+        stale = {
+            printed for printed in re.findall(r'\b08:\d{2}\b', text)
+            if printed != scheduling.BRIEF_SLOT_HKT
+        }
+        assert not stale, (
+            f'{name} prints {sorted(stale)} for the morning slot while the cron '
+            f'fires at {scheduling.BRIEF_SLOT_HKT}; update the prose or the '
+            'constant')
