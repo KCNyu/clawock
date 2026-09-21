@@ -1790,7 +1790,7 @@ def _exec_rate(rows: list[dict], today: date | None = None) -> dict:
     Emitting both is the whole fix. The rate is unchanged and no verdict moves;
     what changes is that the censoring is now a number a reader can see.
     """
-    today = today or date.today()
+    today = today or _cal.hkt_today()
     c = Counter((r.get("execution") or {}).get("status", "unknown") for r in rows)
     known = c["followed"] + c["not_followed"]
     pending = 0

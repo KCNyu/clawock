@@ -900,6 +900,23 @@ class ExecutionCoverageTests(unittest.TestCase):
         for leg in by_kind.values():
             self.assertEqual(leg["unknown"], leg["pending"] + leg["stranded"])
 
+    def test_exec_rate_defaults_to_the_hk_desk_date(self):
+        """The pending window follows the ledger's desk day on every host.
+
+        The fixed desk day predates the test runner, so the old host-calendar
+        default would close this two-day window and misclassify it as stranded.
+        """
+        row = decision("2026-07-01", action="add_on_breakout")
+        row["execution"] = {"status": "unknown"}
+        with (
+            mock.patch.object(dv2._cal, "hkt_today", return_value=date(2026, 7, 2)),
+            mock.patch.object(dv2, "verification_window_days", return_value=2),
+        ):
+            rate = dv2._exec_rate([row])
+
+        self.assertEqual(rate["pending"], 1)
+        self.assertEqual(rate["stranded"], 0)
+
     def test_an_unusable_plan_date_cannot_hide_in_pending(self):
         """`pending` means "wait and it resolves". A row with no readable date
         never will, so it must not sit in the bucket that promises it might.
