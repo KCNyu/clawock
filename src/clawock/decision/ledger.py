@@ -90,7 +90,7 @@ def ledger_lock(path: Path = LEDGER):
 
 SCHEMA_VERSION = 2
 # Bumped when the meaning of an evaluation changes, so a stale row is identifiable.
-EVAL_SCHEMA_VERSION = 5
+EVAL_SCHEMA_VERSION = 6
 # Snapshots and plan_dates are both named on the HK calendar day; comparing them
 # against a UTC "today" slips a day for the eight hours after HK midnight.
 HKT = _cal.HKT
@@ -981,6 +981,8 @@ def condition_execution(decision: dict, day_bar: dict | None) -> tuple[bool | No
     action = decision.get("action")
     if day_bar is None:
         return None, None, "no_bar"
+    if day_bar.get("degenerate"):
+        return None, None, "degenerate_bar"
 
     o, h, l = day_bar["open"], day_bar["high"], day_bar["low"]
 
@@ -1085,6 +1087,7 @@ def settle_decisions(decisions: list[dict], now_date: str | None = None) -> int:
         trigger_session = None
         pending_session = None
         missing_session = None
+        degenerate_session = None
         invalidated_session = None
         invalidation = _float(d.get("invalidation_price"))
         for candidate in candidate_sessions:
@@ -1095,6 +1098,13 @@ def settle_decisions(decisions: list[dict], now_date: str | None = None) -> int:
                     break
                 missing_session = candidate
                 break
+            # A zero-width bar is retained by the canonical store so downstream
+            # readers can distinguish a halted/untraded session from missing
+            # data. It is not evidence that either a trigger or an invalidation
+            # traded, so do not feed it to either test.
+            if day_bar.get("degenerate"):
+                degenerate_session = candidate
+                continue
             evaluated.append(candidate)
             # An authorised add is cancelled as soon as its risk line trades.
             # We intentionally treat an ambiguous same-day low-below/high-above
@@ -1140,6 +1150,23 @@ def settle_decisions(decisions: list[dict], now_date: str | None = None) -> int:
                 ev.update({"triggered": None, "status": "not_evaluable", "outcome": "unknown",
                            "not_evaluable_reason": "instrument_inactive" if inactive else "bar_missing",
                            "trigger_session": pending_session})
+            if json.dumps(ev, sort_keys=True) != before:
+                changed += 1
+            continue
+
+        if (
+            degenerate_session is not None
+            and (not evaluated or fired is False)
+            and invalidated_session is None
+        ):
+            ev.update({
+                "triggered": None,
+                "status": "not_evaluable",
+                "outcome": "unknown",
+                "not_evaluable_reason": "degenerate_bar",
+                "trigger_session": degenerate_session,
+                "evaluation_schema_version": EVAL_SCHEMA_VERSION,
+            })
             if json.dumps(ev, sort_keys=True) != before:
                 changed += 1
             continue

@@ -515,6 +515,65 @@ class DecisionV2Test(unittest.TestCase):
         self.assertEqual(dv2.condition_execution(manual, _bar(10.0)),
                          (None, None, "needs_human_evidence"))
 
+    def test_degenerate_bar_is_not_trigger_evidence(self):
+        active = dv2.legacy_action_to_decision({
+            "ticker": "AAA", "strategy_id": "tactical_entry",
+            "action": "add_only_on_trigger",
+            "condition": {"type": "price_above", "price": 10},
+            "confidence": .6, "driven_by": "technical",
+        }, "2026-07-01")
+        halted = {**_bar(12.0), "degenerate": True}
+
+        self.assertEqual(
+            dv2.condition_execution(active, halted),
+            (None, None, "degenerate_bar"),
+        )
+
+    def test_settlement_does_not_invalidate_an_add_on_a_degenerate_bar(self):
+        halted = {**_bar(9.0), "degenerate": True}
+        row = dv2.legacy_action_to_decision({
+            "ticker": "AAA", "strategy_id": "tactical_entry",
+            "action": "add_only_on_trigger",
+            "condition": {"type": "price_above", "price": 12},
+            "invalidation_price": 10,
+            "confidence": .6, "driven_by": "technical",
+        }, "2026-07-01")
+        patches = _with_bars({"2026-07-01": halted})
+        for patch in patches:
+            patch.start()
+        try:
+            dv2.settle_decisions([row], now_date="2026-07-02")
+        finally:
+            for patch in patches:
+                patch.stop()
+
+        self.assertEqual(row["evaluation"]["status"], "not_evaluable")
+        self.assertEqual(
+            row["evaluation"]["not_evaluable_reason"], "degenerate_bar")
+        self.assertEqual(row["evaluation"]["evaluation_schema_version"], 6)
+        self.assertNotEqual(
+            row["evaluation"].get("not_evaluable_reason"), "campaign_invalidated")
+
+    def test_settlement_can_trigger_on_a_later_real_bar_in_the_window(self):
+        halted = {**_bar(12.0), "degenerate": True}
+        bars = {
+            "2026-07-01": halted,
+            "2026-07-02": _bar(10.0, h=12.5, l=9.5, c=12.0),
+            "2026-07-03": _bar(11.0),
+        }
+        ev = _settle_against(
+            "2026-07-04", 11.0,
+            condition={
+                "type": "price_above", "price": 12,
+                "valid_for_sessions": 2,
+            },
+            bars=bars,
+        )
+
+        self.assertTrue(ev["triggered"])
+        self.assertEqual(ev["trigger_session"], "2026-07-02")
+        self.assertEqual(ev["execution_price"], 12.0)
+
     def test_backtest_is_capital_weighted_and_compounded(self):
         rows = [decision("2026-07-01", action="cut", benefit=10, capital=900),
                 decision("2026-07-01", ticker="BBB", action="cut", benefit=-10, capital=100),
