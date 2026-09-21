@@ -42,7 +42,7 @@
   article {
     background: var(--sheen-1), var(--card);
     border: 1px solid var(--border-subtle);
-    border-radius: 16px;
+    border-radius: var(--radius-lg);
     box-shadow: inset 0 1px 0 var(--spec-1), var(--edge-bottom), var(--shadow-card);
     padding: 24px;
     font-size: var(--fs-lg); line-height: 1.65;
@@ -101,9 +101,11 @@
     transition: transform var(--duration-fast) var(--ease-out);
   }
   article details.brief-appendix[open] > summary::before { transform: rotate(90deg); }
-  article details.brief-appendix > summary:hover { color: var(--text); }
+  @media (hover: hover) and (pointer: fine) {
+    article details.brief-appendix > summary:hover { color: var(--text); }
+  }
   article details.brief-appendix > summary:focus-visible {
-    outline: 2px solid var(--focus); outline-offset: 2px; border-radius: 4px;
+    outline: var(--focus-ring); outline-offset: 2px; border-radius: var(--radius-sm);
   }
   article details.brief-appendix[open] > summary { border-bottom: 1px solid var(--border); }
   article details.brief-appendix > *:last-child { margin-bottom: 14px; }
@@ -186,7 +188,7 @@
   .brief-card {
     background: var(--sheen-1), var(--card);
     border: 1px solid var(--border-subtle);
-    border-radius: 16px;
+    border-radius: var(--radius-lg);
     padding: 18px 20px;
     margin: 12px 0;
     box-shadow: inset 0 1px 0 var(--spec-1), var(--shadow-card);
@@ -245,7 +247,7 @@
   }
   article:has(.brief-card) details.brief-appendix > summary {
     padding: 13px 18px; background: var(--card);
-    border: 1px solid var(--border-subtle); border-radius: 16px;
+    border: 1px solid var(--border-subtle); border-radius: var(--radius-lg);
     box-shadow: inset 0 1px 0 var(--spec-1), var(--shadow-card);
   }
   article:has(.brief-card) details.brief-appendix[open] > summary {
@@ -295,7 +297,7 @@
     }
     .brief-js .brief-entries li.is-clamped.is-open::after { content: "收起"; }
     .brief-js .brief-entries li.is-clamped:focus-visible {
-      outline: 2px solid var(--focus); outline-offset: 2px;
+      outline: var(--focus-ring); outline-offset: 2px;
     }
   }
 
@@ -305,7 +307,9 @@
     padding: 10px 14px; background: var(--surface-3); border-radius: var(--radius-sm);
     margin: 6px 0; transition: background var(--duration-fast) ease;
   }
-  .brief-list li:hover { background: var(--border); }
+  @media (hover: hover) and (pointer: fine) {
+    .brief-list li:hover { background: var(--border); }
+  }
   .brief-list a {
     color: var(--text); text-decoration: none;
     font-family: var(--mono); font-size: var(--fs-lg); display: block;
@@ -318,7 +322,9 @@
     display: block;
   }
   .brief-list li:has(.brief-missing) { background: transparent; border: 1px dashed var(--border); }
-  .brief-list li:has(.brief-missing):hover { background: transparent; }
+  @media (hover: hover) and (pointer: fine) {
+    .brief-list li:has(.brief-missing):hover { background: transparent; }
+  }
 
   /* The footer itself is the shared sheet's. What a reading page adds is the
      column it sits in and the rule that closes the article above it. */
@@ -327,7 +333,9 @@
     border-top: 1px solid var(--border);
   }
   footer a { margin: 0 6px; }
-  footer a:hover { color: var(--text); }
+  @media (hover: hover) and (pointer: fine) {
+    footer a:hover { color: var(--text); }
+  }
   footer .disclaimer { margin-top: 8px; font-size: var(--fs-micro); opacity: 0.7; }
 </style>
 <!-- Cloudflare Web Analytics — same site token as the dashboard (index.html) so

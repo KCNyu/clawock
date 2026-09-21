@@ -2837,6 +2837,103 @@ async function testCardRhythmIsOneScalePerTier(browser, base) {
     `.deck-dot` is the exception and stays one: six pager dots sit on a 12px
     pitch, so a 44px box would swallow its neighbours — the same trade the
     timeline dots already make. It is checked on reach, not on box height. */
+// Every control answers a press, and answers it the same way.
+//
+// `--press-scale` exists so a press feels identical everywhere; its own comment
+// says an inconsistent one reads as "some buttons are softer". Seven components
+// wrote it. The sort headers, every fold and toggle, the Overview jump links,
+// the retry, the decision-map controls and the drawer's buttons did not move at
+// all — and the static gate above could not see it, because it only checks that
+// a press which *exists* uses the token.
+//
+// Read out of the CSSOM rather than by synthesising a press: WebKit does not
+// reliably put `:active` on an element under an automated mouse-down, so a
+// press-and-measure gate would report engine noise as a design defect. This
+// asks the question the stylesheet can answer exactly — does a rule that is
+// live at this viewport give this element a press?
+async function testEveryControlAnswersAPress(browser, base) {
+  const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const page = await context.newPage();
+  await page.goto(base, { waitUntil: "networkidle" });
+  await waitForData(page);
+
+  // A press that is deliberately not a scale. `.dm-cell` is a `<td>`: scaling
+  // one drags its column's width with it, so its press is the outline it
+  // already draws. Anything new here has to earn its line.
+  const NOT_SCALED = new Set(["td.dm-cell"]);
+
+  const scan = () => page.evaluate(() => {
+    const pressRules = [];
+    const optOut = [];
+    const collect = (rules, live) => {
+      for (const rule of rules) {
+        if (rule.media) { collect(rule.cssRules, live && matchMedia(rule.conditionText).matches); continue; }
+        if (rule.cssRules && !rule.selectorText) { collect(rule.cssRules, live); continue; }
+        if (!live || !rule.selectorText || !rule.selectorText.includes(":active")) continue;
+        const transform = rule.style && rule.style.transform;
+        if (!transform) continue;
+        for (const part of rule.selectorText.split(",")) {
+          if (!part.includes(":active")) continue;
+          const base = part.replace(/:active/g, "").trim();
+          (transform === "none" ? optOut : pressRules).push(base);
+        }
+      }
+    };
+    for (const sheet of document.styleSheets) {
+      let rules; try { rules = sheet.cssRules; } catch { continue; }
+      collect(rules, true);
+    }
+    const scope = [
+      ".topbar button", ".topbar summary", ".tabs button",
+      ".panel.active button", ".panel.active summary",
+      ".panel.active [role='button']",
+      ".site-menu[open] .site-menu-item", ".dm-drawer.is-open button",
+    ].join(",");
+    const out = [];
+    for (const el of new Set(document.querySelectorAll(scope))) {
+      const box = el.getBoundingClientRect();
+      const style = getComputedStyle(el);
+      if (!box.width || !box.height || style.visibility === "hidden"
+          || style.display === "none" || el.closest("[inert]")) continue;
+      const matches = list => list.some(selector => { try { return el.matches(selector); } catch { return false; } });
+      const cls = typeof el.className === "string"
+        ? el.className.trim().split(/\s+/)[0] : "";
+      out.push({
+        name: el.tagName.toLowerCase() + (cls ? "." + cls : ""),
+        pressed: matches(pressRules),
+        excused: matches(optOut),
+      });
+    }
+    return out;
+  });
+
+  const missing = new Set(), excused = new Set();
+  for (const tab of ["hero", "drill", "risk", "market", "plan", "reflect"]) {
+    await page.evaluate(name => document.getElementById(`tab-${name}`)?.click(), tab);
+    await page.waitForTimeout(400);
+    for (const row of await scan()) {
+      if (row.excused) excused.add(row.name);
+      else if (!row.pressed) missing.add(`${tab} ${row.name}`);
+    }
+  }
+  await page.locator(".site-menu-btn").click();
+  await page.waitForTimeout(300);
+  for (const row of await scan()) {
+    if (!row.pressed && !row.excused) missing.add(`site-menu-open ${row.name}`);
+  }
+  await page.keyboard.press("Escape");
+
+  assert.deepEqual([...missing], [],
+    "these controls do not move when pressed; the baseline is "
+    + "`button/summary/[role=button]:active { transform: scale(var(--press-scale)) }`: "
+    + [...missing].join(", "));
+  assert.deepEqual([...excused].filter(name => !NOT_SCALED.has(name)), [],
+    "a control that opts out of the press scale has to be named in NOT_SCALED "
+    + "with the reason: " + [...excused].join(", "));
+
+  await context.close();
+}
+
 async function testEveryPhoneControlIsAFingerTarget(browser, base) {
   const context = await browser.newContext({
     viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
@@ -3200,6 +3297,7 @@ async function main() {
     await run("testMoversSayWhichSessionTheyAreFrom", () => testMoversSayWhichSessionTheyAreFrom(browser, base));
     await run("testCardRhythmIsOneScalePerTier", () => testCardRhythmIsOneScalePerTier(browser, base));
     await run("testEveryPhoneControlIsAFingerTarget", () => testEveryPhoneControlIsAFingerTarget(browser, base));
+    await run("testEveryControlAnswersAPress", () => testEveryControlAnswersAPress(browser, base));
     await run("testRelativeAgeLabelsKeepTheirGlyphsApart", () => testRelativeAgeLabelsKeepTheirGlyphsApart(browser, base));
     await run("testNoBlockIsPaintedTheColourOfWhatItSitsOn", () => testNoBlockIsPaintedTheColourOfWhatItSitsOn(browser, base));
   } finally {
