@@ -70,3 +70,30 @@ def test_harness_action_boundary_is_fail_closed():
     assert brief_postflight.categorize([
         "plan.json harness: decision[0] ABC action outside harness allowed_actions"
     ]) == "fail"
+
+
+def test_placeholder_prose_in_the_shipped_brief_fails_like_the_other_harnesses(tmp_path):
+    # `brief_render` puts judgment.portfolio_assessment verbatim into pre-open.md
+    # and into the WeChat card's ▎核心结论, so a placeholder left in the model's
+    # judgment ships unless this file is checked — the report and intraday
+    # harnesses have policed the same phrases since #541.
+    path = tmp_path / 'pre-open.md'
+    path.write_text(
+        CHINESE_LOCALIZED_BRIEF.replace('最终动作。', '最终动作 TODO,数据待获取。'),
+        encoding='utf-8',
+    )
+
+    issues = brief_postflight.validate_markdown(path)
+
+    assert [i for i in issues if '敷衍词' in i] == [
+        'pre-open.md含敷衍词 "数据待获取"',
+        'pre-open.md含敷衍词 "TODO"',
+    ]
+    assert brief_postflight.categorize(issues) == 'fail'
+
+
+def test_clean_brief_keeps_passing_the_placeholder_gate(tmp_path):
+    path = tmp_path / 'pre-open.md'
+    path.write_text(CHINESE_LOCALIZED_BRIEF, encoding='utf-8')
+
+    assert [i for i in brief_postflight.validate_markdown(path) if '敷衍词' in i] == []

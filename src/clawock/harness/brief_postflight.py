@@ -767,13 +767,19 @@ def validate_markdown(path, context=None):
             issues.append(f'pre-open.md 缺「社交舆情」段（context.sentiment '
                           f'{len(tickers)} 个 ticker 有信号 age={age}h 但 LLM 没写）')
 
+    # 敷衍词 —— 与 report/intraday 同一张表、同一档（critical）。简报的模型文本
+    # 自 2026-08-31 起是 judgment JSON + plan，`brief_render` 原样渲染进这份
+    # markdown 与微信卡 ▎核心结论，所以占位符只有在成品文件上才拦得住。
+    issues.extend(validate_forbidden_phrases(text, FORBIDDEN_PHRASES,
+                                             label='pre-open.md'))
+
     return issues
 
 
 CRITICAL_KEYWORDS = [
-    '缺失', '解析失败', '表格 #', 'generation_id',
+    '缺失', '解析失败', '表格 #', 'generation_id', '敷衍词',
     'plan.json harness', 'plan.json 标准化失败', 'decision packet 不可用',
-]  # table mismatch and cross-generation output are critical
+]  # table mismatch, cross-generation output and placeholder prose are critical
 
 
 def categorize(issues):
@@ -789,7 +795,9 @@ from clawock.harness.validation import (
     postflight_exit_code,
     product_status,
     split_advisory,
+    validate_forbidden_phrases,
 )
+from clawock.harness.report import FORBIDDEN_PHRASES  # noqa: E402  one shared table
 from ._harness_common import (  # noqa: E402
     dashboard_publication_state,
     git_cmd as _git,
