@@ -273,3 +273,101 @@ def test_every_delivery_marker_write_is_atomic(module):
         'delivery markers must be written with clawock.safe_io.safe_write_text '
         '(tmp + fsync + os.replace), not Path.write_text, which truncates the '
         'previous marker before it writes the new one:\n  ' + '\n  '.join(offenders))
+
+
+# ── C. the handover: the claim may only be dropped once the marker holds ────
+#
+# 2026-09-21 (#1743). The claim is the lock held across the send; the marker is
+# the receipt that makes the send un-repeatable afterwards. All three
+# postflights wrote the marker inside a `try`, warned on failure, and released
+# the claim outside it — so a send that reached WeChat but could not file its
+# receipt (disk full, read-only filesystem, permissions) left neither, and
+# openclaw's retry found nothing to stop it. That is #508 again, through a door
+# the #508 fix left open.
+
+def test_a_send_with_no_marker_keeps_its_claim(tmp_path):
+    c = _common()
+    claim = tmp_path / 'hk-open.claim'
+    claim.write_text(json.dumps({'pid': 1, 'ts': NOW_MS, 'send_started_at': NOW_MS}))
+
+    c.release_claim(claim, marker_written=False)
+
+    assert claim.exists(), 'without a receipt the lock is all that stops a resend'
+
+
+def test_a_send_that_filed_its_marker_drops_its_claim(tmp_path):
+    """The direction that must not break: a completed send has to let go.
+
+    A claim that outlives a healthy send refuses a LATER one — an intraday slot
+    whose own send failed writes a marker that correctly does not block the
+    next slot, and a surviving claim would.
+    """
+    c = _common()
+    claim = tmp_path / 'hk-open.claim'
+    claim.write_text(json.dumps({'pid': 1, 'ts': NOW_MS, 'send_started_at': NOW_MS}))
+
+    c.release_claim(claim, marker_written=True)
+
+    assert not claim.exists()
+
+
+def test_the_kept_claim_is_what_turns_a_retry_away(tmp_path):
+    """End to end, the bug and its fix in one sequence.
+
+    Sender reaches WeChat, fails to write its marker, keeps the claim; the
+    openclaw retry arrives as a fresh process and must decline.
+    """
+    c = _common()
+    claim = tmp_path / 'hk-open.claim'
+    claim.write_text(json.dumps({
+        'pid': _dead_pid(), 'ts': NOW_MS, 'send_started_at': NOW_MS + 31_000,
+    }))
+
+    c.release_claim(claim, marker_written=False)
+    won, reason = c.claim_send(claim, now_ms=NOW_MS + 64_000)
+
+    assert won is False and reason == 'holder-died-mid-send'
+
+
+def test_a_kept_claim_still_goes_stale_so_it_can_never_block_forever(tmp_path):
+    """Keeping the claim delays a send; it must not be able to prevent one.
+
+    `feedback-detect-but-never-silence`: the failure this whole harness exists
+    to stop is a report that never goes out, so the lock has to expire.
+    """
+    c = _common()
+    claim = tmp_path / 'hk-open.claim'
+    claim.write_text(json.dumps({
+        'pid': _dead_pid(), 'ts': NOW_MS, 'send_started_at': NOW_MS,
+    }))
+
+    c.release_claim(claim, marker_written=False)
+    won, reason = c.claim_send(claim, now_ms=NOW_MS + c.SEND_CLAIM_STALE_MS + 1)
+
+    assert won is True and reason == 'took-over-stale-claim'
+
+
+def test_releasing_requires_saying_whether_the_marker_landed():
+    """A default would let the next call site inherit the bug by saying nothing."""
+    import inspect
+
+    sig = inspect.signature(_common().release_claim)
+    marker = sig.parameters['marker_written']
+    assert marker.kind is inspect.Parameter.KEYWORD_ONLY
+    assert marker.default is inspect.Parameter.empty
+
+
+def test_every_postflight_ties_its_release_to_its_marker_write():
+    """Three call sites, one rule — and the rule is only worth having while all
+    three follow it. Counting them is what keeps this from passing by
+    discovering nothing (#453)."""
+    import re
+
+    postflights = ['brief_postflight.py', 'intraday_postflight.py', 'report_postflight.py']
+    for name in postflights:
+        source = (ROOT / 'src' / 'clawock' / 'harness' / name).read_text(encoding='utf-8')
+        calls = re.findall(r'release_claim\(([^)]*)\)', source)
+        assert calls, f'{name}: no release_claim call found'
+        for call in calls:
+            assert 'marker_written=marker_written' in call, (
+                f'{name}: release_claim({call}) does not follow its marker write')

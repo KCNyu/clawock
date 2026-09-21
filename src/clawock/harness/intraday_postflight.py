@@ -582,6 +582,7 @@ def main(argv=None):
                 # Only the process that actually sent may write the marker. A
                 # declined claim writing one would tell intraday_watchdog this
                 # slot was handled while nothing went out (#508).
+                marker_written = False
                 try:
                     safe_write_text(str(marker), json.dumps(delivery_marker_payload(
                         ctx,
@@ -593,12 +594,15 @@ def main(argv=None):
                         out=send_out,
                         delivery_state='failed' if status == 'fail' else 'delivered',
                     ), ensure_ascii=False))
+                    marker_written = True
                 except Exception as e:
                     print(f'warn: marker write failed: {e}', file=sys.stderr)
-                # Completed send: the marker owns idempotency from here, and a
-                # claim left behind would refuse the NEXT slot (whose marker
-                # correctly does not block it when this one failed to send).
-                release_claim(claim_path)
+                # The marker owns idempotency from here — but only if it exists.
+                # Released without one, openclaw's retry would send this slot a
+                # second time (#1743). Keeping it costs nothing a later slot
+                # needs: since #1742 the claim carries this slot, so it refuses
+                # a re-send of THIS slot and no other.
+                release_claim(claim_path, marker_written=marker_written)
                 if not wechat_sent:
                     print(f'warn: WeChat send failed (watchdog will retry): {send_out[:200]}',
                           file=sys.stderr)

@@ -220,6 +220,7 @@ def deliver_wechat(market, phase, date, wechat_prefix, text, delivery_state='del
         telegram_done=telegram_done)
     marker = delivery_receipts.receipt_path(TMP, 'report', market=market, phase=phase,
                                             date=date)
+    marker_written = False
     try:
         safe_write_text(str(marker), json.dumps(delivery_receipts.build_receipt(
             ts=int(datetime.now().timestamp() * 1000),
@@ -245,13 +246,16 @@ def deliver_wechat(market, phase, date, wechat_prefix, text, delivery_state='del
             market=market,
             phase=phase,
         ), ensure_ascii=False))
+        marker_written = True
     except Exception as e:
         print(f'warn: report send marker write failed: {e}', file=sys.stderr)
-    # This send ran to completion, so the marker now owns the idempotency question
-    # and the claim has nothing left to arbitrate. Releasing it keeps "a claim
-    # exists" meaning "a sender died holding it".
+    # The marker now owns the idempotency question, so the claim has nothing
+    # left to arbitrate — provided the marker is actually there. Released
+    # without one, a retry of this phase would send it again (#1743). Releasing
+    # on success keeps "a claim exists" meaning "a sender died holding it, or
+    # could not file its receipt".
     if claim_path is not None:
-        release_claim(claim_path)
+        release_claim(claim_path, marker_written=marker_written)
     if not sent_ok:
         print(f'warn: WeChat send failed (watchdog will retry): {(out or "")[:200]}', file=sys.stderr)
     return sent_ok, out

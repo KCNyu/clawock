@@ -1178,19 +1178,46 @@ def claim_send(claim_path, *, stale_after_ms=SEND_CLAIM_STALE_MS, now_ms=None):
     return True, 'took-over-claim-of-holder-that-never-sent'
 
 
-def release_claim(claim_path):
-    """Drop the claim once this slot's send has run to completion (marker written).
+def release_claim(claim_path, *, marker_written):
+    """Drop the claim once this slot's send has run to completion — but only if
+    the marker that takes over its job actually got written.
 
-    Without this the claim outlives the process that finished normally, and a
-    LATER slot can be refused by it. Concretely: an intraday send that failed
-    leaves a marker with sent_ok=false/tg_ok=false, so `already_delivered`
-    correctly does not block the next slot — but a surviving claim carrying
-    `send_started_at` would, and the next slot would go out as nothing at all.
+    Without releasing at all the claim outlives the process that finished
+    normally, and a LATER slot can be refused by it. Concretely: an intraday
+    send that failed leaves a marker with sent_ok=false/tg_ok=false, so
+    `already_delivered` correctly does not block the next slot — but a
+    surviving claim carrying `send_started_at` would, and the next slot would
+    go out as nothing at all.
 
-    After release, "a claim exists" means exactly "a sender died holding it",
-    which is the only case the claim is meant to arbitrate. The marker, not the
-    claim, is what keeps a completed send from being repeated.
+    Releasing unconditionally is the other half of the same mistake (#1743).
+    The handover is claim → marker: the claim is the lock held across the send,
+    the marker is the receipt that makes the send un-repeatable afterwards. All
+    three postflights wrote the marker in a `try`, warned on failure, and
+    released the claim outside it — so a send that reached WeChat but could not
+    write its receipt (disk full, read-only filesystem, permissions) left
+    neither. openclaw's retry then found nothing to stop it and kcn got the
+    report twice, which is exactly the #508 incident the claim was introduced
+    to end.
+
+    So the caller says whether the marker landed. With no marker the claim is
+    kept: it still carries `send_started_at`, so a retry reads
+    `holder-died-mid-send` and declines, and the watchdog's marker-based
+    backstop owns the slot and says so out loud rather than silently
+    re-delivering. It goes stale on its own after `SEND_CLAIM_STALE_MS`, so
+    this can delay a send but never permanently block one.
+
+    `marker_written` is a required keyword on purpose: a default would let the
+    next call site inherit the bug by saying nothing.
+
+    After a release, "a claim exists" means exactly "a sender died holding it,
+    or could not file its receipt" — the only cases the claim is meant to
+    arbitrate.
     """
+    if not marker_written:
+        print('warn: send marker missing — keeping the send claim so a retry '
+              'cannot deliver this a second time; the watchdog owns this slot',
+              file=sys.stderr)
+        return
     try:
         Path(claim_path).unlink()
     except FileNotFoundError:

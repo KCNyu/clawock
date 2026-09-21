@@ -1397,6 +1397,7 @@ def main(argv=None):
             # a --dry-run postflight at 10:14 today wrote a marker claiming delivery while
             # kcn got nothing. A declined claim is the same shape: it sent nothing, so it
             # must not leave a marker either.
+            marker_written = False
             if args.dry_run:
                 print('dry-run: skipping brief-sent marker write', file=sys.stderr)
             else:
@@ -1408,12 +1409,14 @@ def main(argv=None):
                             sent_ok=wechat_sent, tg_ok=tg_ok, out=send_out,
                             first_line=first_line),
                         ensure_ascii=False))
+                    marker_written = True
                 except Exception as e:
                     print(f'warn: brief-sent marker write failed: {e}', file=sys.stderr)
-            # Completed send: the marker owns idempotency from here. A dry run
-            # took no claim, so there is nothing to release.
+            # The marker owns idempotency from here — but only if it exists.
+            # Released without one, a retry would send this brief again (#1743).
+            # A dry run took no claim, so there is nothing to release.
             if not args.dry_run:
-                release_claim(claim_path)
+                release_claim(claim_path, marker_written=marker_written)
             if not wechat_sent:
                 print(f'warn: WeChat send failed (watchdog will retry): {str(send_out)[:200]}',
                       file=sys.stderr)
