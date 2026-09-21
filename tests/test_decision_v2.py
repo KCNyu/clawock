@@ -619,6 +619,14 @@ class DecisionV2Test(unittest.TestCase):
         b = dv2.normalize_authored_plan(copy.deepcopy(authored), Path("/nonexistent-ledger"))
         self.assertEqual(a["decisions"][0]["decision_id"], b["decisions"][0]["decision_id"])
 
+    def test_normalization_defaults_to_the_hk_desk_date(self):
+        authored = {"schema_version": 2, "decisions": [decision("2026-07-01")]}
+        with mock.patch.object(dv2._cal, "hkt_today", return_value=date(2026, 7, 2)):
+            normalized = dv2.normalize_authored_plan(
+                authored, Path("/nonexistent-ledger"))
+
+        self.assertEqual(normalized["decisions"][0]["plan_date"], "2026-07-02")
+
     def test_watchdog_fallback_preserves_preflight_block(self):
         raw = "第一行\n价格 12.34\n风险提示"
         for formatter in (intraday_fallback, report_fallback):

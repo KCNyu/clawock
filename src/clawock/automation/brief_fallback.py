@@ -13,9 +13,9 @@ import os
 import re
 import sys
 from copy import deepcopy
-from datetime import date
 from pathlib import Path
 
+from clawock import sessions
 from clawock.automation.llm import chat
 from clawock.automation.output_validate import validate_sections
 from clawock.decision import ledger as decision_v2
@@ -281,7 +281,7 @@ def build_system_prompt(soul: str, bootstrap: str) -> str:
 
 
 def main():
-    today = (os.environ.get('TODAY') or date.today().isoformat()).strip()
+    today = (os.environ.get('TODAY') or sessions.hkt_today().isoformat()).strip()
     ctx_path = Path(f'memory/.tmp/brief-context-{today}.json')
     if not ctx_path.exists():
         print(f'FATAL: no preflight context at {ctx_path}', file=sys.stderr)
