@@ -1358,6 +1358,99 @@ async function testVerdictDeckFillsItsBoxAndRanksGatesBySeverity(browser, base) 
   }
 }
 
+// The pager number, the exposed card and the picture must name one card while
+// the deck is moving — not only after its spring happens to settle. This also
+// pins the DOM-order labels and the compact add-side decision input added to the
+// first card; detail-only add-side tables do not belong in the first-paint deck.
+async function testVerdictDeckPagerTracksTheVisualCard(browser, base) {
+  const context = await browser.newContext({
+    viewport: { width: 1200, height: 900 }, reducedMotion: "no-preference",
+  });
+  const page = await context.newPage();
+  await stubLiveOrigin(page, {
+    patch: (name, json) => {
+      if (name !== "overview.json" && name !== "dashboard.json") return null;
+      json.add_side = {
+        pending: false, cold_start: true,
+        counts: { candidate: 0, wait: 7, reject: 0 },
+        why_no_candidate: "全部持仓未站上前 20 日高，最接近 QQQ -0.4%",
+        closest: { ticker: "QQQ", verdict: "wait", pct_from_high: -0.37,
+                   needs: "站上 724.13" },
+        rows: [{ ticker: "QQQ", verdict: "wait", pct_from_high: -0.37,
+                 needs: "站上 724.13" }],
+      };
+      return json;
+    },
+  });
+  await page.goto(base, { waitUntil: "networkidle" });
+  await waitForData(page);
+
+  const read = () => page.evaluate(() => ({
+    cards: [...document.querySelectorAll("#verdict-deck .deck-card")].map(el => ({
+      theme: el.dataset.theme, hidden: el.getAttribute("aria-hidden"), inert: el.inert,
+    })),
+    dots: [...document.querySelectorAll("#verdict-deck-dots .deck-dot")].map(el => ({
+      label: el.getAttribute("aria-label"), current: el.getAttribute("aria-current"),
+    })),
+  }));
+  const assertActive = async expected => {
+    const state = await read();
+    assert.equal(state.cards.length, state.dots.length,
+      "the pager count diverged from the card count");
+    assert.deepEqual(state.dots.map(dot => dot.label),
+      state.cards.map((card, i) => `第 ${i + 1} 张：${card.theme}`),
+      "pager numbers no longer follow the cards' visual/DOM order");
+    assert.deepEqual(state.dots.map(dot => dot.current),
+      state.cards.map((_, i) => i === expected ? "true" : "false"),
+      "aria-current names a different card from the visual top card");
+    assert.deepEqual(state.cards.map(card => card.hidden),
+      state.cards.map((_, i) => i === expected ? "false" : "true"),
+      "there must be exactly one exposed card during a transition");
+    assert.deepEqual(state.cards.map(card => card.inert),
+      state.cards.map((_, i) => i !== expected),
+      "the interactive card and the numbered current card disagree");
+  };
+
+  const addChip = page.locator("#today-highlights .hl-chip", { hasText: "加仓面" });
+  assert.equal(await addChip.count(), 1, "the first-paint verdict lost its add-side input");
+  assert.match(await addChip.innerText(), /等 7.*QQQ.*-0\.4%/s,
+    "the compact add-side verdict lost its count or nearest actionable name");
+  assert.match(await addChip.getAttribute("title"), /全部持仓未站上前 20 日高/,
+    "the ellipsized add-side reason is not recoverable");
+
+  await assertActive(0);
+  const stage = page.locator("#verdict-deck-stage");
+  await page.locator(".deck-dot").nth(1).click();
+  await page.waitForFunction(() => {
+    const stage = document.getElementById("verdict-deck-stage");
+    const card = stage.querySelector(".deck-card");
+    return new DOMMatrix(card.style.transform).m41 < -stage.clientWidth * .55;
+  });
+  await assertActive(1); // while the spring is still moving
+  await page.waitForTimeout(900);
+  await assertActive(1);
+
+  // ArrowLeft bubbles from a control in the active card to the stage handler.
+  await page.locator("#verdict-deck .deck-card").nth(1).locator("button").focus();
+  await page.keyboard.press("ArrowLeft");
+  await page.waitForFunction(() =>
+    document.querySelector(".deck-dot")?.getAttribute("aria-current") === "true");
+  await assertActive(0);
+  await page.waitForTimeout(900);
+
+  // Hold a swipe beyond halfway without releasing: the pager and ARIA state
+  // must already follow the visually dominant second card.
+  const box = await stage.boundingBox();
+  await page.mouse.move(box.x + box.width * .8, box.y + box.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(box.x + box.width * .2, box.y + box.height / 2, { steps: 8 });
+  await assertActive(1);
+  await page.mouse.up();
+  await page.waitForTimeout(900);
+  await assertActive(1);
+  await context.close();
+}
+
 // 数据健康卡：降级/恢复必须点名是哪一档（kcn 2026-08-25：「如果有降级的应该
 // 标注出来是哪个」），微信单通道掉投必须可数、可点名（#771 让它在 summarizer
 // 里可数，但那个计数从没进过任何读者能看到的地方）。
@@ -3021,6 +3114,7 @@ async function main() {
     await run("testTraceRowsFitPhoneWidths", () => testTraceRowsFitPhoneWidths(browser, base));
     await run("testHoldingsAndHeroNeverTruncate", () => testHoldingsAndHeroNeverTruncate(browser, base));
     await run("testVerdictDeckFillsItsBoxAndRanksGatesBySeverity", () => testVerdictDeckFillsItsBoxAndRanksGatesBySeverity(browser, base));
+    await run("testVerdictDeckPagerTracksTheVisualCard", () => testVerdictDeckPagerTracksTheVisualCard(browser, base));
     await run("testDataHealthNamesTheDegradedSlotAndWeChatDrops", () => testDataHealthNamesTheDegradedSlotAndWeChatDrops(browser, base));
     await run("testDataHealthIsReadableOnAPhone", () => testDataHealthIsReadableOnAPhone(browser, base));
     await run("testAQuietLaneFoldsItsLedgerInsteadOfScrolling", () => testAQuietLaneFoldsItsLedgerInsteadOfScrolling(browser, base));

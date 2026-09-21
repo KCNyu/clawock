@@ -193,6 +193,7 @@ def compile_overview_projection(dashboard):
     workflow = dashboard.get('workflow_outcomes') or {}
     guardrail = dashboard.get('risk_guardrail') or {}
     lev_regime = dashboard.get('lev_regime') or {}
+    add_side = dashboard.get('add_side') or {}
     recent_plans = sorted(
         dashboard.get('recent_plans') or [],
         key=lambda row: str(row.get('date', '')),
@@ -292,6 +293,19 @@ def compile_overview_projection(dashboard):
             'execution_by_kind': {'active': execution},
             'calibration': {'active': active_calibration},
         },
+        # The verdict deck is a first-paint consumer. Keep only the daily
+        # add/no-add answer and its nearest name here; the evidence-family and
+        # historical-shape tables remain detail-only in dashboard.json.
+        'add_side': {
+            **_fields(add_side, (
+                'pending', 'cold_start', 'counts', 'why_no_candidate',
+            )),
+            'closest': _fields(
+                next((row for row in add_side.get('rows') or []
+                      if isinstance(row, dict)), {}),
+                ('ticker', 'verdict', 'pct_from_high', 'needs'),
+            ),
+        } if add_side else None,
         'workflow_outcomes': {
             **_fields(workflow, (
                 'counts',
