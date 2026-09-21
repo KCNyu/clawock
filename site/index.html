@@ -281,9 +281,12 @@ layout: null
       <div class="overview-strip" aria-label="Secondary overview">
         <section class="overview-strip-cell overview-market">
           <button class="overview-strip-link" type="button" data-jump-tab="market">
-            <span>市场快照</span><span aria-hidden="true">盘面 →</span>
+            <span class="overview-strip-heading">
+              <span>市场快照</span>
+              <span class="muted overview-asof" id="market-asof">—</span>
+            </span>
+            <span aria-hidden="true">盘面 →</span>
           </button>
-          <span class="muted overview-asof" id="market-asof">—</span>
           <div class="market-grid" id="market-grid">
             <div class="empty-state">No index data.</div>
           </div>

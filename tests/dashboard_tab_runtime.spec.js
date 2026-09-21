@@ -3002,13 +3002,13 @@ async function testEveryPhoneControlIsAFingerTarget(browser, base) {
   await context.close();
 }
 
-// Both user-visible age labels contain CJK prose. The market label used the
-// monospace stack even though only its digits benefit from tabular metrics;
-// some SF Mono/CJK fallback combinations advance full-width glyphs as half a
-// cell, making 「刚刚」 overlap. Exercise the short and longer states across
-// the widths where these labels are visible and assert each glyph advances.
+// Both user-visible age labels contain CJK prose. Exercise the short and longer
+// states at actual iPhone widths, assert each glyph advances, and — separately
+// — assert the market age never occupies the title's rectangle. The latter is
+// the iOS Safari regression: both strings fit, but a fixed top offset placed
+// them on top of each other.
 async function testRelativeAgeLabelsKeepTheirGlyphsApart(browser, base) {
-  for (const width of [1200, 560, 481]) {
+  for (const width of [1200, 430, 393, 390, 320]) {
     const context = await browser.newContext({ viewport: { width, height: 844 } });
     const page = await context.newPage();
     await page.goto(base, { waitUntil: "networkidle" });
@@ -3039,6 +3039,13 @@ async function testRelativeAgeLabelsKeepTheirGlyphsApart(browser, base) {
           }
           if (getComputedStyle(el).display !== "none" && el.scrollWidth > el.clientWidth + 1)
             bad.push(`${id} ${value}: ${el.scrollWidth}px text is squeezed into ${el.clientWidth}px`);
+          if (id === "market-asof") {
+            const title = el.closest(".overview-strip-link")
+              ?.querySelector(".overview-strip-heading > span:first-child");
+            const a = el.getBoundingClientRect(), b = title?.getBoundingClientRect();
+            if (b && !(a.right <= b.left || b.right <= a.left || a.bottom <= b.top || b.bottom <= a.top))
+              bad.push(`${id} ${value}: age overlaps the market title`);
+          }
         }
       }
       return bad;
