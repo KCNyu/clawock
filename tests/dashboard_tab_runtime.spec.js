@@ -730,6 +730,23 @@ async function testTopbarFitsWhenRefreshLabelSwaps(browser, base) {
         overlapsBrand,
         clipped: h1.scrollWidth > h1.clientWidth + 0.5,
         overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+        // What a finger gets, which is not what the eye gets: the refresh
+        // control is a bare glyph with an invisible pseudo-element for a
+        // target, so its painted box is deliberately smaller than 44px.
+        reach: (() => {
+          const box = rect(btn);
+          const x = box.left + box.width / 2, y = box.top + box.height / 2;
+          const owns = (dx, dy) => {
+            const hit = document.elementFromPoint(x + dx, y + dy);
+            return hit === btn || btn.contains(hit);
+          };
+          let up = 0, down = 0, left = 0, right = 0;
+          while (up < 60 && owns(0, -up - 1)) up += 1;
+          while (down < 60 && owns(0, down + 1)) down += 1;
+          while (left < 60 && owns(-left - 1, 0)) left += 1;
+          while (right < 60 && owns(right + 1, 0)) right += 1;
+          return [left + right + 1, up + down + 1];
+        })(),
       };
     });
     assert(box.hasLabel === false, `refresh button must be icon-only at ${width}px`);
@@ -739,8 +756,9 @@ async function testTopbarFitsWhenRefreshLabelSwaps(browser, base) {
       `the site menu's destinations differ at ${width}px`);
     assert(box.trigger.height >= 44,
       `the site menu trigger is ${box.trigger.height}px tall at ${width}px`);
-    assert(box.height >= 44 && box.width >= 44,
-      `refresh touch target is ${box.width}x${box.height} at ${width}px`);
+    assert(box.reach[0] >= 44 && box.reach[1] >= 44,
+      `refresh touch target reaches ${box.reach.join("x")} at ${width}px `
+      + `(painted box ${box.width}x${box.height})`);
     assert.equal(box.pageName, "Dashboard",
       `the trigger names "${box.pageName}" at ${width}px — it has to answer "where am I"`);
     assert(!box.overlapsBrand, `brand overlaps the site menu at ${width}px`);
@@ -2743,28 +2761,53 @@ async function testEveryPhoneControlIsAFingerTarget(browser, base) {
       ".panel.active [role='button']", ".panel.active [tabindex='0']",
       ".site-menu[open] .site-menu-item", ".dm-drawer.is-open button",
     ].join(",");
-    return [...new Set(document.querySelectorAll(selector))]
+    window.__targets = [...new Set(document.querySelectorAll(selector))]
       .filter(el => {
         const box = el.getBoundingClientRect(), style = getComputedStyle(el);
         return box.width > 0 && box.height > 0 && style.visibility !== "hidden"
           && style.display !== "none" && !el.closest("[inert]");
-      })
-      .map(el => {
-        const box = el.getBoundingClientRect();
-        const name = (el.getAttribute("aria-label") || el.textContent || "")
-          .trim().replace(/\s+/g, " ").slice(0, 36);
-        const cls = typeof el.className === "string"
-          ? el.className.trim().split(/\s+/).slice(0, 2).join(".") : "";
-        return { element: `${el.tagName.toLowerCase()}${el.id ? `#${el.id}` : ""}`
-          + `${cls ? `.${cls}` : ""}[${name}]`,
-          width: Math.round(box.width), height: Math.round(box.height) };
       });
+    return window.__targets.map((el, index) => {
+      const box = el.getBoundingClientRect();
+      const name = (el.getAttribute("aria-label") || el.textContent || "")
+        .trim().replace(/\s+/g, " ").slice(0, 36);
+      const cls = typeof el.className === "string"
+        ? el.className.trim().split(/\s+/).slice(0, 2).join(".") : "";
+      return { index, element: `${el.tagName.toLowerCase()}${el.id ? `#${el.id}` : ""}`
+        + `${cls ? `.${cls}` : ""}[${name}]`,
+        width: Math.round(box.width), height: Math.round(box.height) };
+    });
   });
+  // A control may paint smaller than it is touchable — the refresh glyph has an
+  // invisible pseudo-element for a target, which is the right shape for an
+  // icon-only control (draw the mark, not a picture of the hit area). So a box
+  // under the floor is re-measured through `elementFromPoint` before it counts
+  // as a defect; only a control a finger really cannot reach is reported.
+  const reachOf = selectorIndex => page.evaluate(index => {
+    const el = window.__targets[index];
+    el.scrollIntoView({ block: "center", behavior: "instant" });
+    const box = el.getBoundingClientRect();
+    if (box.top < 0 || box.bottom > innerHeight) return null;
+    const x = box.left + box.width / 2, y = box.top + box.height / 2;
+    const owns = (dx, dy) => {
+      const hit = document.elementFromPoint(x + dx, y + dy);
+      return hit === el || el.contains(hit);
+    };
+    let up = 0, down = 0, left = 0, right = 0;
+    while (up < 60 && owns(0, -up - 1)) up += 1;
+    while (down < 60 && owns(0, down + 1)) down += 1;
+    while (left < 60 && owns(-left - 1, 0)) left += 1;
+    while (right < 60 && owns(right + 1, 0)) right += 1;
+    return [left + right + 1, up + down + 1];
+  }, selectorIndex);
   const collect = async label => {
-    for (const row of await scan()) {
-      if (row.width < FLOOR || row.height < FLOOR) {
-        short.push(`${label} ${row.element}: ${row.width}×${row.height}px`);
-      }
+    const rows = await scan();
+    for (const row of rows) {
+      if (row.width >= FLOOR && row.height >= FLOOR) continue;
+      const reach = await reachOf(row.index);
+      if (reach && reach[0] >= FLOOR && reach[1] >= FLOOR) continue;
+      short.push(`${label} ${row.element}: ${row.width}×${row.height}px`
+        + (reach ? ` (reach ${reach.join("×")})` : ""));
     }
   };
   for (const tab of ["hero", "drill", "risk", "market", "plan", "reflect"]) {

@@ -375,7 +375,6 @@
      body 前缀（0,1,1）是结构性修法，别再依赖源码顺序。 */
   @media (prefers-reduced-transparency: reduce) {
     body .topbar,
-    body .refresh-btn,
     body .desk-rail,
     body .status-banner,
     body .hero-deck,
@@ -396,7 +395,6 @@
     /* The scroll-edge fade is a translucency effect too — with transparency
        off it would be a grey smear over opaque content. Back to a hairline. */
     body .topbar::after { display: none; }
-    body .refresh-btn { background: var(--card); }
     body .desk-rail { background: var(--surface-1); }
     body .status-banner { background: var(--accent-soft); }
     body .hero-deck { background: var(--surface-1); }
@@ -530,27 +528,44 @@
     .brand-mark { width: 24px; height: 24px; }
     .brand .updated, .brand .tag { display: none; }
   }
-  /* Ghost icon-only refresh: the 60s auto-poll is the real refresh; this
-     button only exists to pull immediately and to show whether the last pull
-     found anything new. So it is quiet — a bare circular icon that tints on
-     hover, spins while loading, and morphs to ✓ when a new generation landed
-     (shape carries the outcome; colour alone never does). */
+  /* Icon-only refresh: the 60s auto-poll is the real refresh; this control
+     only exists to pull immediately and to show whether the last pull found
+     anything new. So it is the mark and nothing else — no disc, no ring, no
+     drop shadow. The rule above this one used to say "quiet" while painting a
+     36px filled circle with a border and a shadow, which is the "一大坨" kcn
+     kept seeing: it was the RESTING state, not a focus ring, so moving the
+     focus `outline-offset` (#1713) could never have touched it.
+
+     The box is the glyph; the touch target is a pseudo-element that is bigger
+     than the glyph and paints nothing (apple-design §16.6: every element earns
+     its place — a target is a hit area, not a picture of one). */
   .refresh-btn {
-    appearance: none; background: var(--surface-1); color: var(--text-dim);
-    border: 1px solid var(--border-subtle); border-radius: 50%;
-    width: 36px; height: 36px; min-width: 36px; min-height: 36px;
-    padding: 0; font-size: var(--fs-lg); cursor: pointer;
+    appearance: none; background: none; border: 0; box-shadow: none;
+    color: var(--text-dim);
+    position: relative;
+    width: 20px; height: 20px; padding: 0;
+    /* only ever seen by the focus ring */
+    border-radius: var(--radius-sm);
+    font-size: var(--fs-lg); cursor: pointer;
     display: inline-flex; align-items: center; justify-content: center;
     flex: 0 0 auto;
-    box-shadow: inset 0 1px 0 var(--spec-1), 0 1px 3px rgba(0,0,0,.12);
-    transition: background var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out),
-      color var(--duration-fast) var(--ease-out), transform var(--duration-fast) var(--ease-out);
+    transition: color var(--duration-fast) var(--ease-out),
+                transform var(--duration-fast) var(--ease-out);
+  }
+  /* 44px of finger, 0px of paint. Centred on the glyph, and narrower than the
+     12px gap to the site menu on each side, so it cannot steal that control's
+     edge. */
+  .refresh-btn::before {
+    content: ""; position: absolute; left: 50%; top: 50%;
+    width: 44px; height: 44px; transform: translate(-50%, -50%);
   }
   .refresh-btn:active { transform: scale(var(--press-scale)); }
-  /* 圆形按钮：环贴着边走，2px 外扩会切到相邻的 asof 文本。 */
+  /* 环贴着字形走：按钮的盒子就是字形，所以 1px 外扩已经是「绕着图标一圈」，
+     不再是绕着一个 36px 的圆盘。 */
   .refresh-btn:focus-visible { outline: var(--focus-ring); outline-offset: 1px; }
   @media (hover: hover) and (pointer: fine) {
-    .refresh-btn:hover { background: var(--surface-2); border-color: var(--border-strong); color: var(--text); }
+    /* Hover is a tint on the mark, not a disc appearing under it. */
+    .refresh-btn:hover { color: var(--text); }
   }
   .refresh-btn.is-loading .ic { animation: spin 0.8s linear infinite; }
   /* Nothing new: the ↻ stays and takes a green tint. New generation: the icon
@@ -709,7 +724,6 @@
        mouse target wearing a menu's clothes — so the one control that answers
        "where can I go" was the hardest thing on the phone to hit. */
     .site-menu-item { min-height: 44px; }
-    .refresh-btn { width: 44px; height: 44px; min-width: 44px; min-height: 44px; }
   }
   @media (max-width: 400px) {
     .brand h1 { font-size: var(--fs-xl); max-width: 84px; }

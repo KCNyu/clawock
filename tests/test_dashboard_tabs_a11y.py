@@ -206,8 +206,50 @@ def test_focus_visible_baseline_covers_every_focusable_element():
     )
 
 
-def test_refresh_focus_ring_stays_close_to_the_round_button():
-    """The refresh ring remains visible without reading as a second halo."""
+def test_refresh_is_a_mark_not_a_button_shaped_object():
+    """kcn, twice: the Refresh control is "一大坨" / "一个很大的外圈".
+
+    Both times it was the RESTING state — `background: var(--surface-1)`, a
+    1px border, `border-radius: 50%` and a drop shadow, i.e. a 36px filled disc
+    around a 15px glyph — while the comment above the rule claimed the control
+    was "quiet ... a bare circular icon". Because it was the resting state and
+    not a focus ring, #1713's `outline-offset: 2px → 1px` could not have
+    changed anything a reader sees without pressing Tab.
+
+    So: nothing paints at rest. The icon is the control.
+    """
+    m = re.search(r'\n  \.refresh-btn \{([^}]*)\}', CSS)
+    assert m, "the refresh button lost its base rule"
+    rule = m.group(1)
+    for banned, why in (
+        ("background: var(", "a fill is a disc behind the mark"),
+        ("border: 1px", "a border is the ring kcn keeps seeing"),
+        ("border-radius: 50%", "only a disc needs to be a circle"),
+        ("box-shadow: inset", "a lit edge is a disc's lit edge"),
+    ):
+        assert banned not in rule, f"{banned!r} is back on .refresh-btn — {why}"
+    assert "background: none" in rule and "border: 0" in rule \
+        and "box-shadow: none" in rule, (
+        "the resting state has to say it paints nothing, not merely omit it: "
+        "the properties are inherited from the UA button stylesheet otherwise")
+
+
+def test_refresh_keeps_a_finger_target_it_does_not_draw():
+    """Taking the disc away must not take the 44px hit area with it."""
+    m = re.search(r'\.refresh-btn::before \{([^}]*)\}', CSS)
+    assert m, (
+        "the refresh button has no invisible hit area; with a ~20px painted box "
+        "that leaves a finger target well under 44px")
+    rule = m.group(1)
+    assert "width: 44px" in rule and "height: 44px" in rule, rule
+    assert "background" not in rule, "the hit area must paint nothing"
+    # `tests/dashboard_tab_runtime.spec.js` measures the reach in a browser;
+    # this only pins that the mechanism is still declared.
+
+
+def test_refresh_focus_ring_stays_close_to_the_mark():
+    """The keyboard ring is the one thing that may appear, and it hugs the
+    glyph rather than a 36px disc — the box it outlines is the glyph's."""
     m = re.search(r'\.refresh-btn:focus-visible\s*\{([^}]*)\}', CSS)
     assert m, "refresh button lost its component-specific focus treatment"
     rule = m.group(1)
