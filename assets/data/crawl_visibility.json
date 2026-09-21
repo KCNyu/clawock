@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-14T13:15:14Z",
+  "generated_at": "2026-09-21T13:13:56Z",
   "site": "https://kcnyu.github.io/clawock/",
   "note": "windows are fixed-length and end on the last complete day, so consecutive snapshots do not overlap and may be compared directly. `days_with_data` below `days` means GSC had not filled the tail.",
   "snapshots": [
@@ -338,6 +338,178 @@
           "impressions": 1,
           "clicks": 0,
           "position": 9
+        }
+      ]
+    },
+    {
+      "as_of": "2026-09-18",
+      "captured_at": "2026-09-21T13:13:56Z",
+      "windows": {
+        "7": {
+          "start": "2026-09-12",
+          "end": "2026-09-18",
+          "days": 7,
+          "complete": true,
+          "days_with_data": 7,
+          "impressions": 37,
+          "clicks": 0,
+          "position": 8.05
+        },
+        "28": {
+          "start": "2026-08-22",
+          "end": "2026-09-18",
+          "days": 28,
+          "complete": true,
+          "days_with_data": 28,
+          "impressions": 87,
+          "clicks": 0,
+          "position": 7.59
+        }
+      },
+      "queries": {
+        "reported": 5,
+        "top": [
+          {
+            "query": "tencent29209",
+            "impressions": 30,
+            "clicks": 0,
+            "position": 8.47
+          },
+          {
+            "query": "tencent28420",
+            "impressions": 29,
+            "clicks": 0,
+            "position": 8.14
+          },
+          {
+            "query": "tencent67551",
+            "impressions": 16,
+            "clicks": 0,
+            "position": 6.81
+          },
+          {
+            "query": "tencent28194",
+            "impressions": 8,
+            "clicks": 0,
+            "position": 3.88
+          },
+          {
+            "query": "tencent28099",
+            "impressions": 1,
+            "clicks": 0,
+            "position": 9
+          }
+        ]
+      },
+      "pages_with_impressions": 1,
+      "sitemap": {
+        "path": "https://kcnyu.github.io/clawock/sitemap.xml",
+        "lastSubmitted": "2026-08-16T13:59:14.645Z",
+        "lastDownloaded": null,
+        "isPending": true,
+        "errors": "0"
+      },
+      "coverage": {
+        "/": {
+          "verdict": "PASS",
+          "coverageState": "Submitted and indexed",
+          "lastCrawlTime": "2026-08-26T04:17:40Z"
+        },
+        "briefs.html": {
+          "verdict": "NEUTRAL",
+          "coverageState": "URL is unknown to Google",
+          "lastCrawlTime": null
+        },
+        "faq.html": {
+          "verdict": "NEUTRAL",
+          "coverageState": "URL is unknown to Google",
+          "lastCrawlTime": null
+        }
+      },
+      "daily": [
+        {
+          "date": "2026-09-05",
+          "impressions": 6,
+          "clicks": 0,
+          "position": 9.333333333333334
+        },
+        {
+          "date": "2026-09-06",
+          "impressions": 9,
+          "clicks": 0,
+          "position": 7.111111111111111
+        },
+        {
+          "date": "2026-09-07",
+          "impressions": 6,
+          "clicks": 0,
+          "position": 7
+        },
+        {
+          "date": "2026-09-08",
+          "impressions": 3,
+          "clicks": 0,
+          "position": 4.333333333333334
+        },
+        {
+          "date": "2026-09-09",
+          "impressions": 17,
+          "clicks": 0,
+          "position": 6.411764705882353
+        },
+        {
+          "date": "2026-09-10",
+          "impressions": 2,
+          "clicks": 0,
+          "position": 10
+        },
+        {
+          "date": "2026-09-11",
+          "impressions": 1,
+          "clicks": 0,
+          "position": 9
+        },
+        {
+          "date": "2026-09-12",
+          "impressions": 4,
+          "clicks": 0,
+          "position": 7
+        },
+        {
+          "date": "2026-09-13",
+          "impressions": 5,
+          "clicks": 0,
+          "position": 9
+        },
+        {
+          "date": "2026-09-14",
+          "impressions": 1,
+          "clicks": 0,
+          "position": 8
+        },
+        {
+          "date": "2026-09-15",
+          "impressions": 9,
+          "clicks": 0,
+          "position": 8.222222222222221
+        },
+        {
+          "date": "2026-09-16",
+          "impressions": 9,
+          "clicks": 0,
+          "position": 8
+        },
+        {
+          "date": "2026-09-17",
+          "impressions": 5,
+          "clicks": 0,
+          "position": 8
+        },
+        {
+          "date": "2026-09-18",
+          "impressions": 4,
+          "clicks": 0,
+          "position": 7.75
         }
       ]
     }
