@@ -17,6 +17,7 @@ no investment data, provider catalog, cron map or repository investigation is ne
 - Scheduled jobs use `clawock brief|report|intraday` preflight/postflight. Follow the selected job/skill; do not manually trigger the daily brief for an unrelated question.
 - Tool parameters: [commands](docs/reference/commands.md). Data sources, fallbacks, publishing, cron and sentiment recipes:
   [tool operations](docs/reference/tool-operations.md), read only the needed section.
+- Published dashboard data gate: `dashboard-artifact-gate.yml` ([workflow](.github/workflows/dashboard-artifact-gate.yml)); validates the published generation.
 - Research cadence: [research-cadence](docs/operations/research-cadence.md). Cron contract: `config/cron-schedules.json`;
   generated schedule: `docs/operations/cron-schedules.md`.
 - Skill installation follows [skills-store-policy](docs/operations/skills-store-policy.md): `skillhub` first, `clawhub` fallback;
