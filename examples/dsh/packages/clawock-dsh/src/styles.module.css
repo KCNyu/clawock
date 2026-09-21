@@ -1192,6 +1192,7 @@ body[data-ds-dark-theme] .dmt {
   --mat-sep:rgba(60,60,67,.14);
   --mat-shadow:0 16px 44px rgba(0,0,0,.18), 0 3px 10px rgba(0,0,0,.08);
   --font:var(--dsw-font-family, -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif);
+  --mono:var(--ds-font-family-code, ui-monospace,SFMono-Regular,Menlo,Consolas,monospace);
   position:relative;
   display:inline-flex
 }
