@@ -204,6 +204,31 @@ def context_for_slot(path, job_name, slot):
 
 
 
+def this_slots_claim(tmp_dir, market, slot):
+    """The send claim belonging to THIS slot, or None.
+
+    Only this slot's own claim can say anything about this slot's send. The
+    intraday claim used to be named per market alone, so a claim an earlier
+    slot's crashed sender left behind was the same file as this slot's — and
+    any leftover inside `wechat_gap_reason`'s age window was announced to kcn
+    as this slot's sender dying mid-send, for a send that had never started
+    (#1742). It carries the slot now (#1555's identity, the one the marker is
+    matched on), so a previous slot's is a different file and is not found.
+
+    The market-only name is still read as a fallback: a postflight that could
+    not resolve its slot writes that one, and missing a genuine mid-send death
+    is the failure this reason exists to prevent — it stays bounded by age,
+    which is all it had before.
+    """
+    for path in (delivery_receipts.claim_path(tmp_dir, 'intraday',
+                                              market=market, slot=slot),
+                 delivery_receipts.claim_path(tmp_dir, 'intraday', market=market)):
+        claim = delivery_receipts.read_receipt(path)
+        if claim:
+            return claim
+    return None
+
+
 def marker_covers_slot(marker, job_name, slot, raw_block_first, now_ms,
                        ctx_id=None, ctx_generated_at=None):
     """Whether postflight confirmed Telegram delivery for this exact slot.
@@ -534,11 +559,11 @@ def main():
     reason = ('postflight marker missing' if not marker
               else 'postflight cosend failed' if not marker.get('tg_ok')
               else 'marker slot stale/mismatch')
-    claim = delivery_receipts.read_receipt(delivery_receipts.claim_path(
-        WS / 'memory' / '.tmp', 'intraday', market=args.market)) if not marker else None
-    # The intraday claim is named per market only — no date, no slot — so it has
-    # to be judged by age like the marker is: a claim an earlier slot left behind
-    # would otherwise report THIS slot's missing postflight as a death mid-send.
+    claim = this_slots_claim(WS / 'memory' / '.tmp', args.market,
+                             expected_slot) if not marker else None
+    # The age bound stays (#1685): the fallback name is still slot-less, and a
+    # claim older than one marker window proves nothing about the send in front
+    # of us either way.
     gap = wechat_gap_reason(claim, fresh_ms=MARKER_FRESH_MS,
                             now_ms=int(watchdog_now.timestamp() * 1000))
     if gap:
