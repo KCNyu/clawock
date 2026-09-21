@@ -7,6 +7,7 @@ from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "ops" / "growth"))
+from clawock import sessions as _cal
 from clawock.decision import ledger as dv2
 from clawock.harness.intraday_watchdog import deterministic_fallback as intraday_fallback
 from clawock.harness.report_watchdog import deterministic_fallback as report_fallback
@@ -883,7 +884,15 @@ class ExecutionCoverageTests(unittest.TestCase):
     """An unknown that will never resolve is censoring, not a pending gap."""
 
     def _unknown(self, days_ago, action):
-        row = decision((date.today() - timedelta(days=days_ago)).isoformat(), action=action)
+        # The desk date, not the host's. `_exec_rate` measures the window from
+        # `_cal.hkt_today()` — deliberately, so the answer is the same on every
+        # host (the test below pins exactly that) — and a row dated from the
+        # runner's own calendar is a different number of days old on a UTC host
+        # for the eight hours a day the two dates disagree. CI runs in UTC: a
+        # `cut` placed "1 day ago" was 2 desk-days old, its T+2 window had
+        # closed, and it was stranded rather than pending.
+        row = decision((_cal.hkt_today() - timedelta(days=days_ago)).isoformat(),
+                       action=action)
         row["execution"] = {"status": "unknown", "detected_at": None, "source": None}
         return row
 
@@ -937,7 +946,7 @@ class ExecutionCoverageTests(unittest.TestCase):
         """
         from clawock.harness import brief_preflight
 
-        row = {"plan_date": (date.today() - timedelta(days=10)).isoformat(),
+        row = {"plan_date": (_cal.hkt_today() - timedelta(days=10)).isoformat(),
                "ticker": "AAA", "bucket": "cut"}
         with mock.patch.object(brief_preflight, "_shares_at_date", return_value=5):
             self.assertEqual(brief_preflight._detect_followed(row), "false")
