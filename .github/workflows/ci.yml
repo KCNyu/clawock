@@ -50,6 +50,9 @@ on:
       # missing here, so a plugin-only master push started nothing on master;
       # the contracts only ever ran on PRs. Closing that hole (#884).
       - 'examples/dsh/**'
+      # The portable-workflow job executes these shell entrypoints. A change
+      # to one must test the same script on master, not wait for a release tag.
+      - 'examples/cli/**'
       - 'portfolio.json'
       - 'memory/**-plan.json'
       # The decision ledger: three validate-job gates read it and nothing else

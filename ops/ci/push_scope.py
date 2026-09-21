@@ -66,6 +66,7 @@ CODE_GLOBS = [
     ".github/actions/*",
     "skills/tavily-search/*",
     "site/tools/*",
+    "examples/cli/*",
 ]
 
 # Automation-written runtime data: no analysable code, so the CodeQL matrix
