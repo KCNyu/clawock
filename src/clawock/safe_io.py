@@ -106,6 +106,36 @@ def json_safe(data, _path: str = '$', _found=None):
     return out, found
 
 
+def jsonl_line(record, *, label: str, strict: bool = False) -> str:
+    """One JSONL line, sanitized the way `safe_write_json` sanitizes a document.
+
+    The two JSONL logs in this repository — the decision ledger and the bar
+    conflict log — were the only writers that went straight to `json.dumps`.
+    Python emits bare `NaN`/`Infinity` tokens for non-finite floats, which the
+    rest of the world's parsers reject: `JSON.parse` in the browser, Go's
+    `encoding/json`, and our own `json.loads(..., allow_nan=False)` all refuse
+    the file, so one degenerate evaluation takes the whole ledger with it
+    (#1733).
+
+    Same trade as `safe_write_json`: a hole is written as `null` and reported,
+    because refusing to write would turn one bad field into a lost record.
+    `strict=True` raises instead. `allow_nan=False` stays on afterwards so a
+    hole in the sanitizer fails loudly rather than reaching the file.
+    """
+    record, non_finite = json_safe(record)
+    if non_finite:
+        detail = ', '.join(non_finite[:5])
+        if len(non_finite) > 5:
+            detail += f' … (+{len(non_finite) - 5} more)'
+        msg = (f'{label}: {len(non_finite)} non-finite float(s) written as '
+               f'null: {detail}')
+        if strict:
+            raise ValueError(msg)
+        print(f'⚠ {msg}', file=sys.stderr)
+    return json.dumps(record, ensure_ascii=False, sort_keys=True,
+                      allow_nan=False) + '\n'
+
+
 def safe_write_json(path: str, data, indent: int = 2, strict: bool = False) -> None:
     """Atomically write `data` as pretty JSON to `path`.
 

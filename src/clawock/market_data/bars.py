@@ -55,7 +55,7 @@ from pathlib import Path
 from clawock.market_data import integrity as bar_checks
 from clawock.market_data.eastmoney_http import em_get
 from clawock.instruments import canonical_bar_manifest
-from clawock.safe_io import safe_write_text
+from clawock.safe_io import jsonl_line, safe_write_text
 from clawock.sessions import ET, HKT
 from clawock.workspace import workspace_root
 
@@ -237,7 +237,11 @@ def record_conflicts(ticker: str, conflicts: list[dict], path: Path | None = Non
             row = dict(conflict)
             row["ticker"] = ticker
             row["seen_at"] = seen_at
-            fh.write(json.dumps(row, ensure_ascii=False, sort_keys=True) + "\n")
+            # Same rule as the decision ledger (#1733): a conflict row holds
+            # the two sources' numbers and the ratio between them, and a bare
+            # NaN token here makes the whole log unreadable to the summariser
+            # that is the only reason it is written.
+            fh.write(jsonl_line(row, label=f"{target.name}:{ticker}"))
     return len(conflicts)
 
 
