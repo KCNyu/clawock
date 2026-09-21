@@ -169,6 +169,11 @@ def test_status_tints_come_off_the_tint_scale():
 #: `:active` scales that are deliberately off the shared value, with the reason.
 PRESS_EXCEPTIONS: dict[str, str] = {}
 
+# A 1px offset keeps the 2px ring visible around the small circular refresh
+# control without making it read as a second, detached halo beside the as-of
+# text. The component-specific browser contract pins the same exception.
+FOCUS_OFFSET_EXCEPTIONS = {".refresh-btn:focus-visible": "1px"}
+
 
 def test_pressing_anything_feels_the_same():
     strays = []
@@ -196,11 +201,13 @@ def test_one_focus_ring():
         if outline and outline.group(1).strip() not in ("var(--focus-ring)", "none"):
             wrong.append(f"{sel} -> outline: {outline.group(1).strip()}")
         offset = re.search(r"outline-offset\s*:\s*([^;]+)", body)
-        if offset and offset.group(1).strip() not in ("2px", "-2px", "3px"):
+        allowed_offsets = ("2px", "-2px", "3px", FOCUS_OFFSET_EXCEPTIONS.get(sel))
+        if offset and offset.group(1).strip() not in allowed_offsets:
             wrong.append(f"{sel} -> outline-offset: {offset.group(1).strip()}")
     assert wrong == [], (
         "the ring is `var(--focus-ring)` at 2px (outside) or -2px (drawn inside "
-        "a clipping box); 3px only clears a dot:\n  " + "\n  ".join(wrong))
+        "a clipping box); 3px only clears a dot; documented component exceptions "
+        "stay in FOCUS_OFFSET_EXCEPTIONS:\n  " + "\n  ".join(wrong))
 
 
 def test_no_transition_or_entrance_invents_its_own_timing():

@@ -165,7 +165,7 @@
        (emil-design-eng《Buttons must feel responsive》：按压反馈要一致
        且立刻，不一致读成「有的按钮更软」。) */
     --press-scale: .97;
-    /* 抬起的手感同理：卡片 -2px，dead 的 .ret-cell -1px。一个值。 */
+    /* 抬起的手感同理：所有会抬起的卡片共用一个值。 */
     --hover-lift: -2px;
     /* 卡片节奏：全站「卡与卡之间」只有三档，都落在下面这条 4px 阶上 ——
        卡内相邻块 --space-3 · 同组卡片 --space-3(窄屏)/--space-4(桌面) ·
@@ -265,7 +265,9 @@
       --accent-strong: #0567B1;
       --accent-soft: #DCEEFF;
       --positive: #08734F;
-      --negative: #C83D4A;
+      /* #C83D4A 在浅色 inset 上实测只有 4.26:1；负向数字不是装饰色，
+         所以正文档再压暗一阶，确保小字也过 AA。 */
+      --negative: #B32636;
       /* 亮色主题往近黑里兑：更深、更沉的同色相（见 :root 的说明）。 */
       --positive-display: #0A5C42;
       --negative-display: #9E323C;
@@ -546,7 +548,7 @@
   }
   .refresh-btn:active { transform: scale(var(--press-scale)); }
   /* 圆形按钮：环贴着边走，2px 外扩会切到相邻的 asof 文本。 */
-  .refresh-btn:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
+  .refresh-btn:focus-visible { outline: var(--focus-ring); outline-offset: 1px; }
   @media (hover: hover) and (pointer: fine) {
     .refresh-btn:hover { background: var(--surface-2); border-color: var(--border-strong); color: var(--text); }
   }
@@ -1797,11 +1799,13 @@
     border-radius: var(--radius-sm); font-size: var(--fs-micro); font-family: var(--mono);
     font-weight: 600; vertical-align: middle; white-space: nowrap;
   }
-  .bucket-wr .wr-n { font-weight: 400; opacity: .55; font-size: var(--fs-micro); margin-left: 2px; }
+  .bucket-wr .wr-n { font-weight: 400; font-size: var(--fs-micro); margin-left: 2px; }
   .bucket-wr.wr-bad { background: color-mix(in srgb, var(--negative) var(--tint-soft), transparent); color: var(--negative-ink); }
   .bucket-wr.wr-mid { background: color-mix(in srgb, var(--warning) var(--tint-soft), transparent); color: var(--warning-ink); }
   .bucket-wr.wr-ok  { background: color-mix(in srgb, var(--positive) var(--tint-soft), transparent); color: var(--positive-ink); }
-  .bucket-wr.wr-lown { opacity: .6; }
+  /* 低样本是信息，不是 disabled。整块降到 .6 会把暗色 badge 压到
+     1.62–2.94:1；用字重表达次序，保留可读对比度。 */
+  .bucket-wr.wr-lown { font-weight: 500; }
 
   /* driven_by chip — which data source drove the call (color encodes edge) */
   .drv-chip {
@@ -2228,15 +2232,16 @@
   .ext-region .ext-flag.low { background: rgba(229,72,77,.16); color: var(--negative-ink); }
   .ext-region .ext-flag.ok  { background: rgba(48,164,108,.16); color: var(--positive-ink); }
   .ext-row { display: flex; justify-content: space-between; align-items: baseline; padding: 4px 0; }
-  .ext-row .k { font-size: var(--fs-xs); color: var(--text-faint); }
+  .ext-row .k { font-size: var(--fs-xs); color: var(--text-dim); }
   .ext-row .v { font-size: var(--fs-lg); font-weight: 700; font-family: var(--mono); }
   .ext-row .v.neg { color: var(--negative); }
   .ext-row .v small { font-size: var(--fs-micro); color: var(--text-faint); font-weight: 500; margin-left: 5px; font-family: inherit; }
   .ext-region .ext-dd {
     margin-top: 8px; padding-top: 8px; border-top: 1px dashed var(--border);
   }
+  .ext-region .ext-dd .k { color: var(--text); }
   .ext-region .ext-dd .v { font-size: var(--fs-xl); color: var(--negative); }
-  .ext-region .ext-dd .span { font-size: var(--fs-micro); color: var(--text-dim); margin-top: 3px; }
+  .ext-region .ext-dd .span { font-size: var(--fs-micro); color: var(--text); margin-top: 3px; }
   /* 回撤恢复条 (并入历史利润极值卡) */
   .ext-region .ext-dd .dd-bar {
     height: 8px; background: var(--fill-inset-2); border-radius: 4px; overflow: hidden;
@@ -2249,33 +2254,6 @@
   .ext-region .ext-dd .v .rec-good { color: var(--positive); }
   .ext-region .ext-dd .v .rec-mid  { color: var(--warning); }
   .ext-region .ext-dd .v .rec-poor { color: var(--negative); }
-
-  /* 8d Return Heatmap (Drill) */
-  .ret-heatmap {
-    display: grid; gap: var(--space-2);
-    grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
-  }
-  .ret-cell {
-    padding: 9px 8px; border-radius: var(--radius-sm);
-    display: flex; flex-direction: column; gap: 2px;
-    min-height: 64px; justify-content: center; align-items: center;
-    text-align: center;
-    border: 1px solid var(--border);
-    transition: transform var(--duration-fast);
-  }
-  .ret-cell .rc-spark { line-height: 0; width: 100%; margin: 1px 0 2px; }
-  .ret-cell .rc-spark svg { width: 100%; height: 22px; display: block; opacity: 0.92; }
-  @media (hover: hover) and (pointer: fine) {
-    .ret-cell:hover { transform: translateY(-1px); }
-  }
-  .ret-cell .rc-ticker {
-    font-family: var(--mono); font-weight: 700; font-size: var(--fs-md);
-    color: var(--text);
-  }
-  .ret-cell .rc-ret {
-    font-family: var(--mono); font-weight: 600; font-size: var(--fs-sm);
-  }
-  .ret-cell .rc-meta { font-size: var(--fs-micro); color: var(--text-faint); }
 
   /* Weight × Confidence scatter (Drill) */
   .wc-chart-box { width: 100%; min-height: 300px; height: 300px; }
@@ -3254,7 +3232,9 @@
   .dh-row.is-cron .dh-bar.is-lamps::-webkit-scrollbar { display: none; }
   .dh-row.is-cron[data-tone="bad"] .dh-state { color: var(--negative, var(--negative)); }
   .dh-row.is-cron[data-tone="warn"] .dh-state { color: var(--warning); }
-  .dh-row.is-cron[data-tone="idle"] { opacity: .6; }
+  /* idle 仍是一次真实的巡检结果。父级 opacity 会把所有小字一起压到
+     2.54:1；层级改由 tertiary 文本表达，不牺牲可读性。 */
+  .dh-row.is-cron[data-tone="idle"] { color: var(--text-tertiary); }
   .dh-caption {
     margin-top: 10px; color: var(--text-faint, var(--text-tertiary));
     font: 500 var(--fs-micro)/1.5 var(--mono);
@@ -3453,7 +3433,7 @@
   .dm-cell .dm-n { display: block; font-family: var(--mono); font-size: 11.5px;
     color: var(--text); font-weight: 600; }
   .dm-cell .dm-m { display: block; font-family: var(--mono); font-size: 10.5px;
-    color: var(--text-dim); }
+    color: var(--text); }
   .dm-empty { text-align: center; color: var(--text-dim); opacity: .35; }
 
   .dm-ic { width: 132px; padding: 4px 10px !important; }
@@ -4798,4 +4778,22 @@
     .dm-actionbar button, .panel-load-retry, .desk-rail-toggle {
       min-height: 44px;
     }
+    /* The old gate named a handful of known controls and sampled only the
+       first match. New controls therefore defaulted back to mouse-sized.
+       On a coarse pointer the contract belongs to the interaction role, not
+       to a component allowlist. Dense timeline/deck dots keep their separate
+       reach-and-spacing contract above. */
+    .panel.active button:not(.deck-dot):not(.dm-dot),
+    .panel.active summary,
+    .panel.active select,
+    .panel.active input,
+    .panel.active [role="button"],
+    .dm-drawer button,
+    article button,
+    article summary,
+    article [role="button"] {
+      min-width: 44px;
+      min-height: 44px;
+    }
+    .panel.active .dm-cell { height: 44px; }
   }

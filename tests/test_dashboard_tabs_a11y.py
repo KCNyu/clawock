@@ -31,7 +31,6 @@ PANELS = re.findall(r'<section class="panel[^"]*"[^>]*>', HTML)
 NON_FOCUSABLE_HOVER = {
     "card": "面板里的容器 div，没有 tabindex；里面的按钮各自有焦点环",
     "dm-signal": "决策地图的 <tr>；可聚焦的是单元格 .dm-cell（tabindex=0，已有 :focus-visible）",
-    "ret-cell": "只存在于 CSS，全仓没有任何生产者渲染它",
 }
 
 
@@ -205,6 +204,15 @@ def test_focus_visible_baseline_covers_every_focusable_element():
     assert "outline" in m.group(2) and "none" not in m.group(2), (
         f"the baseline draws no outline: {m.group(2).strip()}"
     )
+
+
+def test_refresh_focus_ring_stays_close_to_the_round_button():
+    """The refresh ring remains visible without reading as a second halo."""
+    m = re.search(r'\.refresh-btn:focus-visible\s*\{([^}]*)\}', CSS)
+    assert m, "refresh button lost its component-specific focus treatment"
+    rule = m.group(1)
+    assert "outline: var(--focus-ring)" in rule
+    assert "outline-offset: 1px" in rule
 
 
 def test_every_hover_affordance_has_a_focus_twin_or_a_reason():
