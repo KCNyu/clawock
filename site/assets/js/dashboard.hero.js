@@ -141,8 +141,8 @@
     const mvEl = document.getElementById("today-movers");
     if (!el) return;
     const chips = [];
-    const chip = (tone, k, v, d, meterPct) =>
-      `<span class="hl-chip tone-${tone}"><span class="hl-k">${k}</span>`
+    const chip = (tone, k, v, d, meterPct, title) =>
+      `<span class="hl-chip tone-${tone}"${title ? ` title="${escapeHtml(title)}"` : ""}><span class="hl-k">${k}</span>`
       + (v ? `<span class="hl-v">${v}</span>` : "")
       + (d ? `<span class="hl-d">${d}</span>` : "")
       + (meterPct == null ? ""
@@ -171,15 +171,28 @@
         "决策变化·新/改/触", `${newN}/${changedN}/${triggeredN}`));
     }
 
-    // 30d 自评里只放一枚 Brier：它是「今日判定」这张牌自己的成绩单（判得准
-    // 不准 vs 留一法基线），首屏别处没有。执行率/样本不放 —— 正上方 hero-rail
-    // 第四格已经是「遵守率 30D 8.5% · 主动 call n=82」，同一个数说两遍。
-    // （第七次迭代把执行纪律牌删掉时，唯一独有的就是这一枚，并进来。）
-    const dm = safe(DATA, "decision_metrics") || {};
-    if (dm.brier != null) {
-      chips.push(chip(dm.brier_beats_baseline ? "ok" : "warn", "Brier·30d",
-        Number(dm.brier).toFixed(3),
-        dm.brier_baseline_loo == null ? "" : `基线 ${Number(dm.brier_baseline_loo).toFixed(3)}`));
+    // The add-side answer is a direct input to today's verdict, not another
+    // scorecard. Keep the one nearest name on the deck; the full evidence-family
+    // and entry-shape tables stay on Plan. The reason remains in title/full DOM
+    // text when the narrow chip ellipsizes it.
+    const add = safe(DATA, "add_side");
+    if (add) {
+      const counts = add.counts || {};
+      const closest = add.closest || (add.rows || [])[0] || {};
+      if (add.pending) {
+        chips.push(chip("flat", "加仓面", "待生成", "盘前简报后更新"));
+      } else {
+        const candidateN = counts.candidate || 0;
+        const waitN = counts.wait || 0;
+        const rejectN = counts.reject || 0;
+        const pct = closest.pct_from_high;
+        const nearText = closest.ticker && pct != null
+          ? `${escapeHtml(closest.ticker)} 距 20 日高 ${fmtPct(Number(pct), 1)}`
+          : (add.why_no_candidate ? escapeHtml(add.why_no_candidate) : "");
+        const value = candidateN ? `候选 ${candidateN}` : rejectN ? `挡住 ${rejectN}` : `等 ${waitN}`;
+        chips.push(chip(candidateN ? "ok" : rejectN ? "bad" : "warn", "加仓面",
+          value, nearText, null, add.why_no_candidate || closest.needs || ""));
+      }
     }
 
     // 1. Nearest-to-firing trigger (from the shared watch-level resolver)。
@@ -219,6 +232,16 @@
       const head = todays[0].split(" ")[0] || "";
       const rest = todays[0].slice(head.length).trim();
       chips.push(chip("flat", "今日事件", escapeHtml(head), escapeHtml(rest)));
+    }
+
+    // 30d Brier is the card's scorecard rather than a cause of today's call,
+    // so it yields the fifth (last) slot when all five live decision inputs are
+    // present. On ordinary days it remains visible exactly as before.
+    const dm = safe(DATA, "decision_metrics") || {};
+    if (dm.brier != null) {
+      chips.push(chip(dm.brier_beats_baseline ? "ok" : "warn", "Brier·30d",
+        Number(dm.brier).toFixed(3),
+        dm.brier_baseline_loo == null ? "" : `基线 ${Number(dm.brier_baseline_loo).toFixed(3)}`));
     }
 
     if (!chips.length && !movers.length) {
@@ -1720,7 +1743,10 @@
     // The width is a property of the stage, not of the card: measure once in
     // `paint` and hand it down. Same order the equity tooltip had to learn in
     // #1334 — measure once, then place.
-    function pose(i, w) {
+    function visualIndex() {
+      return Math.max(0, Math.min(n - 1, Math.round(cur)));
+    }
+    function pose(i, w, active) {
       const el = cards[i];
       const d = i - cur;
       let tx = 0, ty = 0, sx = 1, op = 1, vis = true;
@@ -1739,13 +1765,21 @@
       el.style.opacity = op === 1 ? "" : op.toFixed(3);
       el.style.transform =
         `translate3d(${tx.toFixed(2)}px, ${ty.toFixed(2)}px, 0) scaleX(${sx.toFixed(5)})`;
-      const top = i === idx && d === 0;
+      // `cur` owns the picture while a card is dragged or springing; `idx`
+      // remains the snap anchor until the spring settles. Accessibility and the
+      // pager must follow the picture at the same halfway boundary rather than
+      // leaving both cards hidden and the old number selected mid-transition.
+      const top = i === active;
       if (el.inert !== !top) el.inert = !top;
       el.setAttribute("aria-hidden", top ? "false" : "true");
     }
-    function paint() { const w = W(); for (let i = 0; i < n; i++) pose(i, w); }
-    function paintDots() {
-      dots.forEach((d, i) => d.setAttribute("aria-current", i === idx ? "true" : "false"));
+    function paint() {
+      const w = W(), active = visualIndex();
+      for (let i = 0; i < n; i++) pose(i, w, active);
+      paintDots(active);
+    }
+    function paintDots(active = visualIndex()) {
+      dots.forEach((d, i) => d.setAttribute("aria-current", i === active ? "true" : "false"));
     }
     function spring(target) {
       cancelAnimationFrame(raf);

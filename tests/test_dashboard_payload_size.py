@@ -34,6 +34,38 @@ def _size(obj):
     return len(json.dumps(obj, ensure_ascii=False))
 
 
+def test_overview_projection_carries_the_compact_add_side_verdict():
+    from clawock.publish.dashboard import compile_overview_projection
+
+    projected = compile_overview_projection({
+        "generated_at": "2026-09-21T08:03:00+08:00",
+        "add_side": {
+            "pending": False,
+            "cold_start": True,
+            "counts": {"candidate": 0, "wait": 7, "reject": 0},
+            "why_no_candidate": "全部持仓未站上前 20 日高",
+            "rows": [
+                {"ticker": "QQQ", "verdict": "wait", "pct_from_high": -0.37,
+                 "needs": "站上 724.13", "why": "detail-only"},
+                {"ticker": "SOXX", "verdict": "wait", "pct_from_high": -0.45},
+            ],
+            "families": [{"name": "detail-only"}],
+            "shapes": {"detail": "detail-only"},
+        },
+    })
+
+    assert projected["add_side"] == {
+        "pending": False,
+        "cold_start": True,
+        "counts": {"candidate": 0, "wait": 7, "reject": 0},
+        "why_no_candidate": "全部持仓未站上前 20 日高",
+        "closest": {
+            "ticker": "QQQ", "verdict": "wait", "pct_from_high": -0.37,
+            "needs": "站上 724.13",
+        },
+    }
+
+
 def test_payload_stays_under_the_published_cap(freshly_built_dashboard):
     # Measured on what this run built, not on whatever `assets/data/` happens to
     # hold. Those were the same file until the rebuild moved to its own output

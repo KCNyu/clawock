@@ -190,6 +190,5 @@ def test_the_deck_measures_once_per_paint_not_once_per_card():
             f"{path.name}: `pose` reads layout while writing card styles; "
             "measure in `paint` and pass the value in")
         paint = _function_body(source, "paint")
-        assert "W()" in paint and "pose(i, w)" in paint, (
+        assert "W()" in paint and "pose(i, w, active)" in paint, (
             f"{path.name}: `paint` must take the one measurement the cards share")
-
