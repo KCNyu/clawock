@@ -2967,7 +2967,8 @@ async function testEveryPhoneControlIsAFingerTarget(browser, base) {
       bleeds = (hit === dots[0] || dots[0].contains(hit))
         && (hit === dots[1] || dots[1].contains(hit));
     }
-    return { size, onscreen, reachV: up + down + 1, reachH: left + right + 1, bleeds };
+    return { size, onscreen, reachV: up + down + 1, reachH: left + right + 1, bleeds,
+      clips: dots.map(d => getComputedStyle(d).backgroundClip) };
   });
   if (dot) {
     // The box is what the stylesheet decides, so it is asserted either way: a
@@ -2978,6 +2979,8 @@ async function testEveryPhoneControlIsAFingerTarget(browser, base) {
     // identical CSS.)
     assert(dot.size[0] >= 10 && dot.size[1] >= 24,
       `the deck dot's touch box is ${dot.size.join("×")}px; a 5px dot is a 5px target`);
+    assert(dot.clips.every(clip => clip === "content-box"),
+      `a deck dot paints its tall touch box (${dot.clips.join("/")}) instead of its 5px content box`);
     if (dot.onscreen) {
       assert(dot.reachV >= 20,
         `a finger has ${dot.reachV}px of vertical reach on a deck dot`);
@@ -2985,8 +2988,65 @@ async function testEveryPhoneControlIsAFingerTarget(browser, base) {
         `a finger has ${dot.reachH}px of horizontal reach on a deck dot`);
       assert(!dot.bleeds, "a deck dot's hit area reaches its neighbour");
     }
+    // The regression follows aria-current: before the fix the newly current
+    // dot's `background` shorthand reset background-clip to border-box, so the
+    // 11×33px invisible touch target became a visible vertical ellipse.
+    await page.locator(".deck-dot").nth(1).click();
+    await page.waitForFunction(() =>
+      document.querySelectorAll(".deck-dot")[1]?.getAttribute("aria-current") === "true");
+    const switchedClips = await page.locator(".deck-dot").evaluateAll(dots =>
+      dots.map(dot => getComputedStyle(dot).backgroundClip));
+    assert(switchedClips.every(clip => clip === "content-box"),
+      `switching cards paints the dot's tall touch box: ${switchedClips.join("/")}`);
   }
   await context.close();
+}
+
+// Both user-visible age labels contain CJK prose. The market label used the
+// monospace stack even though only its digits benefit from tabular metrics;
+// some SF Mono/CJK fallback combinations advance full-width glyphs as half a
+// cell, making 「刚刚」 overlap. Exercise the short and longer states across
+// the widths where these labels are visible and assert each glyph advances.
+async function testRelativeAgeLabelsKeepTheirGlyphsApart(browser, base) {
+  for (const width of [1200, 560, 481]) {
+    const context = await browser.newContext({ viewport: { width, height: 844 } });
+    const page = await context.newPage();
+    await page.goto(base, { waitUntil: "networkidle" });
+    await waitForData(page);
+    const collisions = await page.evaluate(() => {
+      const samples = {
+        "market-asof": ["(刚刚)", "(3 分钟前)", "(2 小时前)", "(1 天前)"],
+        "last-updated": [
+          "· 生成于 刚刚 · 06:44 UTC",
+          "· 生成于 3 分钟前 · 06:41 UTC",
+          "· 生成于 2 小时前 · 04:44 UTC",
+        ],
+      };
+      const bad = [];
+      for (const [id, values] of Object.entries(samples)) {
+        const el = document.getElementById(id);
+        for (const value of values) {
+          el.textContent = value;
+          const node = el.firstChild, boxes = [];
+          for (let i = 0; i < value.length; i++) {
+            const range = document.createRange();
+            range.setStart(node, i); range.setEnd(node, i + 1);
+            boxes.push(range.getBoundingClientRect());
+          }
+          for (let i = 1; i < boxes.length; i++) {
+            if (boxes[i].left < boxes[i - 1].right - .25)
+              bad.push(`${id} ${value}: glyph ${i} starts before glyph ${i - 1} ends`);
+          }
+          if (getComputedStyle(el).display !== "none" && el.scrollWidth > el.clientWidth + 1)
+            bad.push(`${id} ${value}: ${el.scrollWidth}px text is squeezed into ${el.clientWidth}px`);
+        }
+      }
+      return bad;
+    });
+    assert.deepEqual(collisions, [],
+      `relative-time glyphs overlap at ${width}px: ${collisions.join("; ")}`);
+    await context.close();
+  }
 }
 
 
@@ -3133,6 +3193,7 @@ async function main() {
     await run("testMoversSayWhichSessionTheyAreFrom", () => testMoversSayWhichSessionTheyAreFrom(browser, base));
     await run("testCardRhythmIsOneScalePerTier", () => testCardRhythmIsOneScalePerTier(browser, base));
     await run("testEveryPhoneControlIsAFingerTarget", () => testEveryPhoneControlIsAFingerTarget(browser, base));
+    await run("testRelativeAgeLabelsKeepTheirGlyphsApart", () => testRelativeAgeLabelsKeepTheirGlyphsApart(browser, base));
     await run("testNoBlockIsPaintedTheColourOfWhatItSitsOn", () => testNoBlockIsPaintedTheColourOfWhatItSitsOn(browser, base));
   } finally {
     await browser.close();
