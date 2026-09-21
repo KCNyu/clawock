@@ -94,6 +94,10 @@ SCENARIOS = [
         _lanes(dsplugin=True, analysable=True), True,
         id="plugin-only master push: contracts run (the pre-#884 hole)"),
     pytest.param(
+        ["examples/cli/minimal-run/run.sh"],
+        _lanes(code=True, analysable=True), True,
+        id="portable-workflow shell script: suite and analysis run"),
+    pytest.param(
         ["site/assets/css/main.css"],
         _lanes(code=True, ui=True, analysable=True), True,
         id="stylesheet change: browser contract + suite"),
