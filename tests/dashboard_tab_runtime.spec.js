@@ -2734,23 +2734,63 @@ async function testEveryPhoneControlIsAFingerTarget(browser, base) {
   await waitForData(page);
 
   const FLOOR = 44;
-  const CONTROLS = [".tab-btn", ".refresh-btn", ".site-menu-btn", ".dh-toggle",
-    ".mkt-seg-btn", ".dm-controls button", ".dm-controls select",
-    ".dm-actionbar button", ".desk-rail-toggle", ".panel-load-retry",
-    ".shadow-toggle"];
   const short = [];
+  const scan = () => page.evaluate(() => {
+    const selector = [
+      ".topbar button", ".topbar summary", ".tabs button",
+      ".panel.active button:not(.deck-dot):not(.dm-dot)",
+      ".panel.active summary", ".panel.active select", ".panel.active input",
+      ".panel.active [role='button']", ".panel.active [tabindex='0']",
+      ".site-menu[open] .site-menu-item", ".dm-drawer.is-open button",
+    ].join(",");
+    return [...new Set(document.querySelectorAll(selector))]
+      .filter(el => {
+        const box = el.getBoundingClientRect(), style = getComputedStyle(el);
+        return box.width > 0 && box.height > 0 && style.visibility !== "hidden"
+          && style.display !== "none" && !el.closest("[inert]");
+      })
+      .map(el => {
+        const box = el.getBoundingClientRect();
+        const name = (el.getAttribute("aria-label") || el.textContent || "")
+          .trim().replace(/\s+/g, " ").slice(0, 36);
+        const cls = typeof el.className === "string"
+          ? el.className.trim().split(/\s+/).slice(0, 2).join(".") : "";
+        return { element: `${el.tagName.toLowerCase()}${el.id ? `#${el.id}` : ""}`
+          + `${cls ? `.${cls}` : ""}[${name}]`,
+          width: Math.round(box.width), height: Math.round(box.height) };
+      });
+  });
+  const collect = async label => {
+    for (const row of await scan()) {
+      if (row.width < FLOOR || row.height < FLOOR) {
+        short.push(`${label} ${row.element}: ${row.width}×${row.height}px`);
+      }
+    }
+  };
   for (const tab of ["hero", "drill", "risk", "market", "plan", "reflect"]) {
     await page.evaluate(name => document.getElementById(`tab-${name}`)?.click(), tab);
     await page.waitForTimeout(400);
-    const rows = await page.evaluate(selectors => selectors.flatMap(selector =>
-      [...document.querySelectorAll(selector)]
-        .filter(el => el.getBoundingClientRect().width > 0)
-        .slice(0, 1)
-        .map(el => ({ selector, height: Math.round(el.getBoundingClientRect().height * 10) / 10 }))),
-      CONTROLS);
-    for (const row of rows) {
-      if (row.height < FLOOR) short.push(`${tab} ${row.selector}: ${row.height}px`);
+    if (tab === "hero") {
+      await page.evaluate(() => document.querySelectorAll(".dh-lane").forEach(el => el.click()));
+      await page.waitForTimeout(200);
     }
+    await collect(tab);
+  }
+
+  // The menu and drawer do not exist in the painted interaction tree until a
+  // reader opens them. Scan those states too; the old whitelist never did.
+  await page.locator(".site-menu-btn").click();
+  await page.waitForTimeout(300);
+  await collect("site-menu-open");
+  await page.keyboard.press("Escape");
+  await page.evaluate(() => document.getElementById("tab-reflect")?.click());
+  await page.waitForTimeout(500);
+  const bucket = page.locator(".dm-cell[tabindex='0']").first();
+  if (await bucket.count()) {
+    await bucket.click();
+    await page.waitForTimeout(300);
+    await collect("drawer-open");
+    await page.keyboard.press("Escape");
   }
   assert.deepEqual(short, [],
     `these controls are mouse-sized on a phone (the floor is ${FLOOR}px): ` + short.join(", "));
@@ -2845,7 +2885,13 @@ async function testNoBlockIsPaintedTheColourOfWhatItSitsOn(browser, base) {
       return Math.round(((hi + 0.05) / (lo + 0.05)) * 1000) / 1000;
     };
     const found = [];
-    for (const el of document.querySelectorAll(".panel.active *, .desk-rail *, .topbar *")) {
+    for (const el of document.querySelectorAll(
+      ".panel.active *, .desk-rail *, .topbar *, .site-menu[open] *, "
+      + ".dm-drawer.is-open, .dm-drawer.is-open *, .native-equity-tooltip:not([hidden])")) {
+      // The open disclosure is signalled by its rotated chevron and the
+      // adjacent visible panel. Its quiet fill is a pressed/open state, not a
+      // nested block that needs a separate surface rung.
+      if (el.matches(".site-menu-btn")) continue;
       const style = getComputedStyle(el), box = el.getBoundingClientRect();
       if (box.width < 12 || box.height < 8) continue;
       if (alpha(style.backgroundColor) < 1) continue;
@@ -2876,6 +2922,25 @@ async function testNoBlockIsPaintedTheColourOfWhatItSitsOn(browser, base) {
     await page.evaluate(() => document.querySelectorAll(".dh-lane").forEach(el => el.click()));
     await page.waitForTimeout(300);
     for (const row of await page.evaluate(scan)) invisible.add(`${tab} ${row}`);
+  }
+  await page.locator(".site-menu-btn").click();
+  await page.waitForTimeout(300);
+  for (const row of await page.evaluate(scan)) invisible.add(`site-menu-open ${row}`);
+  await page.keyboard.press("Escape");
+  const bucket = page.locator(".dm-cell[tabindex='0']").first();
+  if (await bucket.count()) {
+    await bucket.click();
+    await page.waitForTimeout(300);
+    for (const row of await page.evaluate(scan)) invisible.add(`drawer-open ${row}`);
+    await page.keyboard.press("Escape");
+  }
+  const canvas = page.locator(".native-equity-canvas").first();
+  if (await canvas.count()) {
+    await canvas.hover({ position: { x: 120, y: 80 } });
+    await page.waitForTimeout(300);
+    assert(await page.locator(".native-equity-tooltip").isVisible(),
+      "the interaction scan never opened the equity tooltip");
+    for (const row of await page.evaluate(scan)) invisible.add(`tooltip-open ${row}`);
   }
   assert.deepEqual([...invisible], [],
     "these rounded blocks are the colour of the surface under them — step to "

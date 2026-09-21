@@ -271,3 +271,43 @@ def test_every_tinted_chip_meets_aa_on_every_surface_in_both_themes():
     assert not failures, (
         f"tinted chip text below AA {AA_NORMAL_TEXT}:1 — use the hue's --*-ink "
         "token (or --text-secondary) for the text:\n" + "\n".join(failures))
+
+
+def test_plain_negative_text_meets_aa_on_the_light_inset_layers():
+    """A semantic token can pass on white and still fail where it is used.
+
+    The widget audit checked tinted chips, but ordinary ``.neg`` text is also
+    printed on ``--surface-3``.  The former light ``--negative`` was 4.26:1
+    there even though the chip-only guard stayed green.
+    """
+    tokens = _theme_tokens(CSS.read_text(encoding="utf-8"))["light"]
+    foreground = _hex(tokens["--negative"])
+    failures = []
+    for surface in ("--surface-1", "--surface-2", "--surface-3", "--overlay"):
+        ratio = _contrast(foreground, _hex(tokens[surface]))
+        if ratio < AA_NORMAL_TEXT:
+            failures.append(f"{surface}: {ratio:.2f}")
+    assert not failures, "light --negative is below AA on " + ", ".join(failures)
+
+
+def test_informational_rows_and_badges_are_not_dimmed_below_aa():
+    """Low sample/idle are states, not disabled controls.
+
+    Parent opacity compounds every otherwise-valid child colour.  It reduced
+    the low-sample badge to 1.62:1 and the idle cron row to 2.54:1 in the real
+    DOM, outside the tint scanner's model.
+    """
+    css = re.sub(r"/\*.*?\*/", " ", CSS.read_text(encoding="utf-8"), flags=re.S)
+    for selector in (".bucket-wr.wr-lown", '.dh-row.is-cron[data-tone="idle"]'):
+        match = next((m for m in re.finditer(r"([^{}]+)\{([^{}]*)\}", css)
+                      if re.sub(r"\s+", " ", m.group(1).strip()) == selector), None)
+        assert match, f"missing {selector}"
+        assert not re.search(r"(?:^|;)\s*opacity\s*:", match.group(2)), (
+            f"{selector} dims readable information with parent opacity")
+
+
+def test_heatmap_and_drawdown_small_text_use_readable_text_steps():
+    css = CSS.read_text(encoding="utf-8")
+    assert _rule_value(css, ".dm-cell .dm-m", "color") == "var(--text)"
+    assert _rule_value(css, ".ext-region .ext-dd .k", "color") == "var(--text)"
+    assert _rule_value(css, ".ext-region .ext-dd .span", "color") == "var(--text)"

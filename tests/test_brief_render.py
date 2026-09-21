@@ -626,6 +626,17 @@ def test_the_stylesheet_draws_the_cards_it_is_given():
         "the shared stylesheet — a white edge vanishes on a white card")
 
 
+def test_the_action_chip_uses_the_contrast_step_of_the_accent():
+    """The hue token colours the tint; its darker ink step colours small text."""
+    layout = (ROOT / "site" / "_layouts" / "default.html").read_text(
+        encoding="utf-8")
+    start = layout.index(
+        ".brief-entries li > p:first-child > strong:nth-of-type(2) {")
+    rule = layout[start:layout.index("}", start)]
+    assert "color: var(--accent-ink)" in rule
+    assert "background: color-mix(in srgb, var(--accent) 14%, transparent)" in rule
+
+
 def test_the_phone_clamp_cannot_hide_text_without_a_script():
     """The two-line clamp is keyed on `.brief-js`, which only the layout's own
     script sets — with no script there is no clamp, so no text becomes

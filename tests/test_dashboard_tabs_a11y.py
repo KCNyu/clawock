@@ -31,7 +31,6 @@ PANELS = re.findall(r'<section class="panel[^"]*"[^>]*>', HTML)
 NON_FOCUSABLE_HOVER = {
     "card": "面板里的容器 div，没有 tabindex；里面的按钮各自有焦点环",
     "dm-signal": "决策地图的 <tr>；可聚焦的是单元格 .dm-cell（tabindex=0，已有 :focus-visible）",
-    "ret-cell": "只存在于 CSS，全仓没有任何生产者渲染它",
 }
 
 
