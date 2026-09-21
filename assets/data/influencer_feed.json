@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-20T23:27:40.562292+00:00",
+  "generated_at": "2026-09-21T18:20:12.163167+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -16,7 +16,7 @@
     "musk": "success",
     "ark": "success",
     "serenity": "failed",
-    "duan": "success",
+    "duan": "success_empty",
     "honghao": "success",
     "burry": "success",
     "pelosi": "success"
@@ -24,12 +24,62 @@
   "llm_filtered": true,
   "llm_filter_status": "ok",
   "counts": {
-    "total": 13,
+    "total": 18,
     "held_hits": 0,
-    "new_ideas": 4,
-    "sector_hits": 6
+    "new_ideas": 6,
+    "sector_hits": 0
   },
   "items": [
+    {
+      "author": "Burry",
+      "text": "Michael Burry Doubles Down On Palantir Bear Case: ‘A Lot Of’ Money Still To Be Made Shorting PLTR",
+      "url": "https://news.google.com/rss/articles/CBMiogFBVV95cUxOa01PVzVKa3Joa3E2MXpqWHhoWHY0LVFnWGk4WFQyNU0xbHVZaFNJc1FvZm5YMUFnbE44aGUyRWc3U181R2Z4QlpSSGZCcnlNVk9nX1dobUJCTGNJZVZDZFl5LUhKeHpFb0dYUU5rYmNsVk5VSTFmeFZNQ1ltVVlRTHNMX1llR1AzQzZ2bEgwekRoRnhZTXd1Qjh1UWJPZW9kenc?oc=5",
+      "published": "2026-09-21T08:32:54+00:00",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [
+        "PLTR"
+      ],
+      "held": [],
+      "new_ideas": [
+        "PLTR"
+      ],
+      "sectors": [
+        "AI"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 88,
+      "summary_cn": "据报道Burry加倍做空Palantir，称仍有大量做空PLTR的钱可赚，强空头信号。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry Buys Long-Dated Microsoft Calls, Adds To JD And Adobe — Trims Palantir Short",
+      "url": "https://news.google.com/rss/articles/CBMi3AFBVV95cUxPRlcybV9XejhnQlBGOC1Yak5iQnJmT2hkSXNORXptYTZ2TUFrM3g3aXo1ZkJOLXh6c3pxZFNPMGdETXR4UTBXcmRtQkpqZlRFNVBrVTktR2g4WUk1cDNwMkJBSG92ZGRadW93RXdCX2VMUy1oYmNhN19VdjFyQUJ5aWNnakh0cUZsZ1NYN0l3aHNEcHB6dTByUkxVbmN4VTFWN2ZfYWlqbkZSd09sU0lFMVdRTk5EQ3YyS2Jfa3JjUmRkSnd5SUhHX2YtYUxPS0VMdW0tRE1aNm1ILTR2?oc=5",
+      "published": "2026-09-21T03:49:58+00:00",
+      "origin": "gnews-rss",
+      "source": "Stocktwits",
+      "tickers": [
+        "MSFT",
+        "JD",
+        "ADBE",
+        "PLTR"
+      ],
+      "held": [],
+      "new_ideas": [
+        "ADBE",
+        "JD",
+        "MSFT",
+        "PLTR"
+      ],
+      "sectors": [
+        "AI/电商/软件"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 82,
+      "summary_cn": "据报道Burry买入微软长期Call、加仓京东与Adobe，并减仓Palantir空头，混合信号。"
+    },
     {
       "author": "Burry",
       "text": "Nebius’s Price Hike Suggests Michael Burry Made a Mistake and Is Shorting the Best Neocloud Stock",
@@ -45,21 +95,20 @@
         "NBIS"
       ],
       "sectors": [
-        "AI",
-        "云计算"
+        "AI/云计算"
       ],
       "sector_holdings": [],
-      "stance": "sell",
-      "relevance": 72,
-      "summary_cn": "据报道，Nebius涨价暗示Michael Burry做空新云龙头可能失误，但空头头寸本身仍受关注。"
+      "stance": "attack",
+      "relevance": 78,
+      "summary_cn": "据报道Nebius涨价暗示Burry此前做空判断失误，间接看空NBIS（'新云'龙头）立场被反驳。"
     },
     {
       "author": "Musk",
-      "text": "SpaceX or Tesla: Which Elon Musk Stock Should Investors Buy?",
+      "text": "Morgan Stanley Maps Tesla-SpaceX Ties in ‘Physical AI’ After Musk Hint",
       "url": "",
-      "published": "Tue, 15 Sep 2026 21:42:00 GMT",
+      "published": "Mon, 21 Sep 2026 14:59:25 GMT",
       "origin": "gnews-rss",
-      "source": "The Motley Fool",
+      "source": "eletric-vehicles.com",
       "tickers": [
         "TSLA"
       ],
@@ -68,8 +117,7 @@
         "TSLA"
       ],
       "sectors": [
-        "电动车",
-        "航天"
+        "航天/电动车/AI"
       ],
       "sector_holdings": [
         "SPCH",
@@ -77,31 +125,32 @@
       ],
       "stance": "neutral",
       "relevance": 60,
-      "summary_cn": "据报道，媒体讨论投资者该选SpaceX还是Tesla，Musk旗下两大资产估值对比引发关注。"
+      "summary_cn": "据报道摩根士丹利就马斯克暗示梳理特斯拉-SpaceX在'物理AI'中的关联，间接利好SpaceX相关持仓。"
     },
     {
       "author": "Musk",
-      "text": "After $329 million in DOGE cuts to USAID, Nepal is growing its economy with a Gen Z tech revolution",
+      "text": "Did Elon Musk Just Drop a Big Hint About a Possible SpaceX-Tesla Merger?",
       "url": "",
-      "published": "Sun, 20 Sep 2026 07:44:00 GMT",
+      "published": "Mon, 21 Sep 2026 14:36:51 GMT",
       "origin": "gnews-rss",
-      "source": "Fortune",
+      "source": "Yahoo Finance",
       "tickers": [
-        "DOGE"
+        "TSLA"
       ],
       "held": [],
       "new_ideas": [
-        "DOGE"
+        "TSLA"
       ],
       "sectors": [
-        "加密货币"
+        "航天/电动车"
       ],
       "sector_holdings": [
-        "CRCL"
+        "SPCH",
+        "SPCX"
       ],
-      "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "据报道，Musk转发DOGE削减USAID资金后尼泊尔经济成长的案例，间接为其政府效率议程背书。"
+      "stance": "neutral",
+      "relevance": 58,
+      "summary_cn": "据报道马斯克暗示SpaceX与特斯拉可能合并，对持有SpaceX相关标的具间接意义。"
     },
     {
       "author": "Cathie Wood",
@@ -122,192 +171,272 @@
       "sector_holdings": [],
       "stance": "sell",
       "relevance": 50,
-      "summary_cn": "ARK Invest 2026-09-18减持Brera Holdings(SLMT)，ARKW卖出74,332股、ARKF卖出47,046股，单只ETF占比0.02%，属常规再平衡级别。"
+      "summary_cn": "ARK 2026-09-18减持Brera Holdings(SLMT)，涉及ARKW与ARKF，最大单ETF占比仅0.02%，属常规再平衡。"
     },
     {
       "author": "Burry",
-      "text": "Michael Burry Says ‘We Are Near A Major Top, And A Possible 1987-Type Fall’ — Why Record Highs Aren’t Changing His Bearish View",
-      "url": "https://news.google.com/rss/articles/CBMigwJBVV95cUxPdldiZXM2YXByZHd3WXA3ODBBZWIwQzg5WmNmSVNzODBUQmYyYlo5Wm8xQlhZd0ZaakVKSER5YTZuUDk5MERYODBVc2RTQVhDbkZ0Qlo5STRLZjRFUS1GVGdJUG9BcGdONVRGbElqdGphd1huQ0haUUxRLVIxcWU5ZE5WS0RCZnRZaXBzb0dLaUpFMUlKclVSamdzVTNzNmMwQlZ0dG1pcU9kd0lTZmdCQjF6czE3NXBxU1BGc2RvWDdwQk51a1MtRXVMbDI3ejhaVXJTaWVzbUw5V2QyeXJGQnZMX1RDR3lCNEdUanZKMjFTbDgyZUNVcE5US1B0S0xXYWpB?oc=5",
-      "published": "2026-09-20T00:35:49+00:00",
+      "text": "Michael Burry Warns Hyperscalers Are Hiding $3 Trillion In AI Liabilities — And Wall Street Isn’t Looking: ‘When The Music’s Over…’",
+      "url": "https://news.google.com/rss/articles/CBMipgFBVV95cUxQZDh3SmRGc0sxOV94SThWZTJzRlhvb2xVZGk2MW5yTW9DUHNSMzRfZmt6Ukg0eDh5WS1nYkhFYVI0a0ptME1nVHg1YkJhVnpnVWlQRUlYWTJvMkR0RjVjWFp3NlhSd1FHNi1lR0MxRGFnRWU3T0xlbkdia0VQSHpUN2ZMVnVqMUJEZDFLYjdHMzNaVUN3bUFOWEp6YTFhTXctMEU0YXZ3?oc=5",
+      "published": "2026-09-21T02:46:00+00:00",
       "origin": "gnews-rss",
-      "source": "Stocktwits",
+      "source": "Yahoo Finance",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "宏观"
+        "AI/超大规模云计算"
       ],
-      "sector_holdings": [
-        "03032",
-        "03033",
-        "07226"
-      ],
+      "sector_holdings": [],
       "stance": "attack",
-      "relevance": 78,
-      "summary_cn": "据报道，Michael Burry警告美股已接近重大顶部，可能出现1987年式崩盘，维持看空立场。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX investors may be overlooking a major risk: There’s no replacing Elon Musk",
-      "url": "",
-      "published": "Wed, 02 Sep 2026 07:00:00 GMT",
-      "origin": "gnews-rss",
-      "source": "CNN",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
       "relevance": 72,
-      "summary_cn": "据报道，分析师警告SpaceX投资者可能忽视'Musk不可替代'这一关键风险，与kcn持有的SpaceX相关标的相关。"
+      "summary_cn": "据报道Burry警告超大规模云厂商隐藏3万亿美元AI负债，警示AI泡沫风险，对AI板块偏空。"
     },
     {
-      "author": "Musk",
-      "text": "Elon Musk Predicts Starlink Satellites Could Rewrite the Rules of Global Connectivity",
-      "url": "",
-      "published": "Sun, 20 Sep 2026 15:59:00 GMT",
-      "origin": "gnews-rss",
-      "source": "24/7 Wall St.",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "通信"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
-      "relevance": 70,
-      "summary_cn": "据报道，Musk预测Starlink卫星将改写全球连接规则，间接利好其持有SpaceX相关标的。"
-    },
-    {
-      "author": "Burry",
-      "text": "Michael Burry warns that the AI investments of tech giants conceal significant risks.",
-      "url": "https://news.google.com/rss/articles/CBMivgFBVV95cUxNa0NHamdVc01xVXIxeWdhMmprMUlVZXFkRGR5dHdtcHkyVER5WTR5TWxHZGJWSHVIWnVPT01XQmhHN1hBR0IycjFLNzh5UENMSTJ4MFYwWEt1NGU5N2hURFVBRi1tY1VvWmZmMkl3dUlsckxPMHo0dk9pS1M3VEdXX0o5WXdDYy1xaldld0JSZ1NjU1lIVmVxdjV4N2NiX2hENktMOUFfc2treW8wbGI0Vm9obE1TUF95T0ZSY1BR?oc=5",
-      "published": "2026-09-20T16:15:29+00:00",
-      "origin": "gnews-rss",
-      "source": "Moomoo",
+      "author": "Trump",
+      "text": "The same people that said, “We’ll all be dead in twelve years because of Global Warming,” a name since “reborn” to Climate Change, because the Planet was cooling, not warming, and nobody was dead, are the people that are now saying that AI is going to kill us, that robots are going to attack us, and everything is a DISASTER. This is more of a Hoax than even that of RUSSIA, RUSSIA, RUSSIA, UKRAINE, UKRAINE, UKRAINE, UKRAINE, and Climate Change! Whoever wins AI, WINS! We are leading now over China, and everyone else, and I’m going to keep it that way! I’m not going to stifle Growth, of something",
+      "url": "https://www.trumpstruth.org/statuses/41830",
+      "published": "2026-09-21T15:48:29+00:00",
+      "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
         "AI"
       ],
-      "sector_holdings": [
-        "00100"
-      ],
-      "stance": "attack",
-      "relevance": 68,
-      "summary_cn": "据报道，Michael Burry警告科技巨头AI投资隐藏重大风险，与Trump力挺AI形成鲜明对比。"
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 62,
+      "summary_cn": "特朗普抨击'AI威胁论'为骗局，表态美国要在AI领域击败中国、不会遏制增长，对AI板块整体利好。"
     },
     {
       "author": "Trump",
-      "text": "Unfortunately, the United States Supreme Court has lacked the Courage to MAKE AMERICA GREAT AGAIN. Over the last 6 months, with their faulty, political, and ridiculous decisions on TARIFFS and Birthright Citizenship, they have cost the United States of America Trillions of Dollars, and forever damaged the way people become Citizens of our great Country. It has been a sad chapter in the life and times of America, but we will prevail! President DONALD J. TRUMP",
-      "url": "https://www.trumpstruth.org/statuses/41807",
-      "published": "2026-09-19T16:52:40+00:00",
+      "text": "Russia has unfortunately lost control of its Diesel Oil Industry due to its War with Ukraine. A large number of their Diesel refineries have been blown up and are, at least temporarily, out of commission. This ridiculous and never ending War with Ukraine must be ended. The whole World suffers as 25,000 people, mostly soldiers, are being killed each month. What a shame! President DJT",
+      "url": "https://www.trumpstruth.org/statuses/41827",
+      "published": "2026-09-21T12:03:41+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "关税"
+        "能源/俄乌"
       ],
-      "sector_holdings": [
-        "02208"
-      ],
-      "stance": "attack",
-      "relevance": 58,
-      "summary_cn": "Trump抨击最高法院在关税与出生公民权裁决上的'怯懦'，称已令美国损失数万亿美元，关税政策不确定性延续。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk talks up AI safety while fighting regulation in wild week of strange alliances",
-      "url": "",
-      "published": "Fri, 18 Sep 2026 19:15:24 GMT",
-      "origin": "gnews-rss",
-      "source": "CNBC",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI",
-        "监管"
-      ],
-      "sector_holdings": [
-        "00100"
-      ],
+      "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "据报道，Musk一方面大谈AI安全，另一方面反对AI监管，立场矛盾引发市场关注。"
+      "relevance": 58,
+      "summary_cn": "特朗普称俄罗斯炼油厂被炸致柴油失控，呼吁尽快结束俄乌战争，关乎全球能源价格。"
     },
     {
       "author": "洪灏",
       "text": "Acer董事長：存儲缺貨已消失",
-      "url": "https://news.google.com/rss/articles/CBMi7gFBVV95cUxOZDhiVS1nbmV3SUxzS3lwTHdZRlBhTzVaYUR1czVQVl9mZTJNV1NVSWRLaVlwWDhDZE5pV1RsUkd6aVBJMld3S0VUVDM4bmYtT0xLUTAxdjlfX2JFWFFuRWs3cWlpcVphdjdfRUNXVkltbmpIc0JHeU9FU3FVVVdmcWtIWWRUUjd4SXcxTHRWT3BBNGZTUUtJTjh0MDNxVlFOc3RrZmNwN2U1WFpFMFkwNm9nSThYb1g5ODJ5NHdqbDVDZ0NnLTdBRjI1S1VPWllWX1JKVFZYM1hIdF8yWDFoNWVGdWJYdXhlbGlaS2tn?oc=5",
-      "published": "2026-09-20T17:22:12+00:00",
+      "url": "https://news.google.com/rss/articles/CBMi4AFBVV95cUxOYWI1Mmh0SE1Ub1ZpdlFKZEFGZDBNLVVLODdyaEd4TzREaDllUXdlSHJ1WEtJSEQ1TllQUVNLQ041Wm5HMERUOEx5ZzktNE5kaHdTNTdUN3hPWWlOQmRmQnlkcWVfSTB3cFkyYVFMSHhqY0JqZ3NvY3g3enRaNTg2aXZGQ0NNTG42c2hURkNmQ1lxQ3JORzNFZUJnMkNGU2hPcGx5V0dSYTFubVZ1TUp5NDl1QXZsNkNramhmNVAtUFNiLS1lbFZxdlllb1dlYWRnX0hac0lwMTlxWWJFWGRmcQ?oc=5",
+      "published": "2026-09-21T01:23:06+00:00",
       "origin": "gnews-rss",
       "source": "香港經濟日報HKET",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "半导体",
-        "存储"
+        "半导体/存储"
       ],
       "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 62,
-      "summary_cn": "据洪灝转述，Acer董事长表示存储芯片缺货潮已消失，存储周期见顶信号显现。"
+      "stance": "neutral",
+      "relevance": 58,
+      "summary_cn": "据报道宏碁董事长称存储缺货已消失，对存储芯片板块偏空信号。"
     },
     {
       "author": "Trump",
-      "text": "Over the years, there have been many Hoaxes, all generated by the Radical Left Dumocrats, for purposes of destroying our Country. RUSSIA, RUSSIA, RUSSIA, UKRAINE, UKRAINE, UKRAINE, Global Warming, Impeachment Hoax #1, Impeachment Hoax #2, Men in Women’s Sports, Transgender for Everyone, and now, the decimation, or destruction, of AI, commonly known as Artificial Intelligence — And I, as President of the United States, will not stand by and let this happen. It all began with an attack on our Data Centers, until people realized how wealthy and prestigious they were for the Communities in which t",
-      "url": "https://www.trumpstruth.org/statuses/41808",
-      "published": "2026-09-19T17:12:55+00:00",
+      "text": "A great job by very smart Matthew Continetti on Mark Levin. The interview concerned the AI Disaster Hoax. Let it roll!!! President DJT",
+      "url": "https://www.trumpstruth.org/statuses/41810",
+      "published": "2026-09-20T05:14:43+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "AI",
-        "数据中心",
-        "关税"
+        "AI"
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 62,
-      "summary_cn": "Trump公开抨击'AI灾难论'为民主党骗局，力挺AI与数据中心产业，并批评最高法院关税裁决损害美国利益。"
+      "relevance": 55,
+      "summary_cn": "特朗普转发评论称'AI灾难'是骗局，延续其反AI监管、力挺AI发展立场。"
     },
     {
-      "author": "Pelosi",
-      "text": "Trump's 28,700 Trades in 17 Months Dwarf All of Congress Combined, Ethics Lawyers Sound Alarm",
-      "url": "https://news.google.com/rss/articles/CBMidkFVX3lxTE03WmozQW5sb1hyUXZGMXhjajNtOFZqVHhMVTRmUXZyVExlWW1xbFZlRnFQZEkzeFRiWDdzSjFkX2QydERrUEFNYUplZjBvYWk4VUN3ODdSenZQMmVMRnRmZzExUk15dEJxTGZPMlJsQnJVZ0wybHc?oc=5",
-      "published": "2026-09-19T13:35:00+00:00",
+      "author": "Musk",
+      "text": "Elon Musk talks up AI safety while fighting regulation in wild week of strange alliances",
+      "url": "",
+      "published": "Fri, 18 Sep 2026 19:15:24 GMT",
       "origin": "gnews-rss",
-      "source": "finance.biggo.com",
+      "source": "CNBC",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "监管"
+        "AI/监管"
       ],
       "sector_holdings": [],
       "stance": "neutral",
+      "relevance": 52,
+      "summary_cn": "据报道马斯克一边谈AI安全一边反对AI监管，反映其AI政策立场反复。"
+    },
+    {
+      "author": "Trump",
+      "text": "The United States is working on a massive Deal with respect to the purchase of Potash from Belarus. The pricing would be for substantially less than we are currently paying to Canada, very good news for our Farmers and Ranchers. Thank you for your attention to this matter! President DONALD J. TRUMP",
+      "url": "https://www.trumpstruth.org/statuses/41828",
+      "published": "2026-09-21T14:47:18+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "农产品/化肥"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 52,
+      "summary_cn": "特朗普称美国正与白俄罗斯洽谈大额钾肥采购，定价低于加拿大供应，涉农资板块。"
+    },
+    {
+      "author": "Pelosi",
+      "text": "Trump traded more securities than all Congress; backs stock-buying ban for all Congress lawmakers, but no",
+      "url": "https://news.google.com/rss/articles/CBMisgJBVV95cUxPTTlWeVBkbkZZX0k0TnBORWJMdFl6NGUxUFN5NWhITkVCSXM4Sm9WYWRNMXBBbWhkQ0tFMzRiMGlXWDMwR1JvZXAxQ2JYZ2hkVXpnV1JsVDA5YkxFZms5eEtGbHF1Z3VjSWlkU2RwN1YtRmR3dVV5R2VqLUNhS3ZKN2tZWEZfTURzelQ4M2J5SkJFa0RRZDVxeEpBcm1LdnB3MHA5RzNZdHdXMXNadzJMNFhrV1lWZ1dnX0RiQjhQNGJHUHhKcEg1SUpzZmtaSjhBNmxMNFNuVHQ1TVBTUmFrWTUxLTRERHlXWDdjS2RhYjdoQ0Y3M19YaG1TNkZqem51VUZMQ1M3aTZuazRjSmxhbUp1bVNrUG1IRnZGOTVaMGlhLXIyTHp3Z2tQM3lUa0kzTGfSAbcCQVVfeXFMTTdjTE5oMXdab2RWV1drMHdQUGpwWFhLV3FxNF82aGNHcXpoanV0WUstQk5TRGZOR0VHSm1fVWlrQXBKZGJybnNBeWo4c01XZnlqVE53c05VTWtDcHhNeExlcHhzRDEzR3ctYVdCaVUwNk1LNHNNaVRzM1FGWGlJdURDcXpvLTFOZ0labFpqS2hIQmgtUmNzMVVsZkFpZTJ2NzFLY1RzZ3J2QU9xSEpELVl2blJuT293NjdQQWNmd3d6Q3dvTEd6UWdoODREU3pkaTN3cVdwV1l1dThldm56NGtOYTZBbW1aeUl2T0VzVXo5X3RYSU9YTHY4dTFLV0tUcmZPRnIyWlRrVVVTWG56S2duMDIySEJSaXpNMk1MbU92eWxmSklpTjhBb1dHdXdDTWNkTkV2d3M?oc=5",
+      "published": "2026-09-21T14:55:00+00:00",
+      "origin": "gnews-rss",
+      "source": "timesofindia.indiatimes.com",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "监管/政治"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 50,
+      "summary_cn": "据报道特朗普证券交易量超整个国会议员总和，但反对一刀切禁止国会议员炒股，涉监管议题。"
+    },
+    {
+      "author": "Musk",
+      "text": "Memphis mayor defends city’s deals with data centers, says he doesn’t trust Musk",
+      "url": "",
+      "published": "Mon, 21 Sep 2026 10:09:43 GMT",
+      "origin": "gnews-rss",
+      "source": "WREG.com",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "数据中心/AI"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
       "relevance": 48,
-      "summary_cn": "据报道，Trump 17个月内交易28,700次股票远超国会议员总和，伦理律师警告利益冲突风险。"
+      "summary_cn": "据报道孟菲斯市长为本地数据中心交易辩护，公开表示不信任马斯克，与xAI数据中心争议相关。"
+    },
+    {
+      "author": "Trump",
+      "text": "Gas prices were much higher under Biden than under “TRUMP.” So were almost all other prices. President DJT",
+      "url": "https://www.trumpstruth.org/statuses/41820",
+      "published": "2026-09-21T02:02:54+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "能源/通胀"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 48,
+      "summary_cn": "特朗普称其任内油价及各项物价低于拜登时期，为执政成绩背书。"
+    },
+    {
+      "author": "Musk",
+      "text": "Musk pitches hyperloop tunnel to cut Austin-San Antonio travel time",
+      "url": "",
+      "published": "Mon, 21 Sep 2026 13:29:16 GMT",
+      "origin": "gnews-rss",
+      "source": "statesman.com",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "基建/隧道"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 45,
+      "summary_cn": "据报道马斯克推销在奥斯汀-圣安东尼奥间建超级高铁隧道，涉及旗下Boring Company概念。"
+    },
+    {
+      "author": "Pelosi",
+      "text": "Scott Wiener and Connie Chan both want to rein in AI. They disagree on how to do that.",
+      "url": "https://news.google.com/rss/articles/CBMif0FVX3lxTE5PdTdBUzljOXBRbXZrWGVTVVd1eWNnajhDVk1CRWpDbzQ5blJlWlFFUFdhc3JmZlZYNDRTWlB1b3NpdGRvQ0gxc3RSMHFmVUJfcmZxOUVXNWtHWnk3QjA0Q1VmNjRNamhNdFN6dWwtbGc2d1NUanRfVkx0R1MxREE?oc=5",
+      "published": "2026-09-21T13:00:00+00:00",
+      "origin": "gnews-rss",
+      "source": "Mission Local",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI/监管"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 45,
+      "summary_cn": "据报道加州议员推动AI立法但路径分歧，涉AI监管政策走向。"
     }
   ],
   "held_hits": [],
   "new_ideas": [
+    {
+      "author": "Burry",
+      "text": "Michael Burry Doubles Down On Palantir Bear Case: ‘A Lot Of’ Money Still To Be Made Shorting PLTR",
+      "url": "https://news.google.com/rss/articles/CBMiogFBVV95cUxOa01PVzVKa3Joa3E2MXpqWHhoWHY0LVFnWGk4WFQyNU0xbHVZaFNJc1FvZm5YMUFnbE44aGUyRWc3U181R2Z4QlpSSGZCcnlNVk9nX1dobUJCTGNJZVZDZFl5LUhKeHpFb0dYUU5rYmNsVk5VSTFmeFZNQ1ltVVlRTHNMX1llR1AzQzZ2bEgwekRoRnhZTXd1Qjh1UWJPZW9kenc?oc=5",
+      "published": "2026-09-21T08:32:54+00:00",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [
+        "PLTR"
+      ],
+      "held": [],
+      "new_ideas": [
+        "PLTR"
+      ],
+      "sectors": [
+        "AI"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 88,
+      "summary_cn": "据报道Burry加倍做空Palantir，称仍有大量做空PLTR的钱可赚，强空头信号。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry Buys Long-Dated Microsoft Calls, Adds To JD And Adobe — Trims Palantir Short",
+      "url": "https://news.google.com/rss/articles/CBMi3AFBVV95cUxPRlcybV9XejhnQlBGOC1Yak5iQnJmT2hkSXNORXptYTZ2TUFrM3g3aXo1ZkJOLXh6c3pxZFNPMGdETXR4UTBXcmRtQkpqZlRFNVBrVTktR2g4WUk1cDNwMkJBSG92ZGRadW93RXdCX2VMUy1oYmNhN19VdjFyQUJ5aWNnakh0cUZsZ1NYN0l3aHNEcHB6dTByUkxVbmN4VTFWN2ZfYWlqbkZSd09sU0lFMVdRTk5EQ3YyS2Jfa3JjUmRkSnd5SUhHX2YtYUxPS0VMdW0tRE1aNm1ILTR2?oc=5",
+      "published": "2026-09-21T03:49:58+00:00",
+      "origin": "gnews-rss",
+      "source": "Stocktwits",
+      "tickers": [
+        "MSFT",
+        "JD",
+        "ADBE",
+        "PLTR"
+      ],
+      "held": [],
+      "new_ideas": [
+        "ADBE",
+        "JD",
+        "MSFT",
+        "PLTR"
+      ],
+      "sectors": [
+        "AI/电商/软件"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 82,
+      "summary_cn": "据报道Burry买入微软长期Call、加仓京东与Adobe，并减仓Palantir空头，混合信号。"
+    },
     {
       "author": "Burry",
       "text": "Nebius’s Price Hike Suggests Michael Burry Made a Mistake and Is Shorting the Best Neocloud Stock",
@@ -323,21 +452,20 @@
         "NBIS"
       ],
       "sectors": [
-        "AI",
-        "云计算"
+        "AI/云计算"
       ],
       "sector_holdings": [],
-      "stance": "sell",
-      "relevance": 72,
-      "summary_cn": "据报道，Nebius涨价暗示Michael Burry做空新云龙头可能失误，但空头头寸本身仍受关注。"
+      "stance": "attack",
+      "relevance": 78,
+      "summary_cn": "据报道Nebius涨价暗示Burry此前做空判断失误，间接看空NBIS（'新云'龙头）立场被反驳。"
     },
     {
       "author": "Musk",
-      "text": "SpaceX or Tesla: Which Elon Musk Stock Should Investors Buy?",
+      "text": "Morgan Stanley Maps Tesla-SpaceX Ties in ‘Physical AI’ After Musk Hint",
       "url": "",
-      "published": "Tue, 15 Sep 2026 21:42:00 GMT",
+      "published": "Mon, 21 Sep 2026 14:59:25 GMT",
       "origin": "gnews-rss",
-      "source": "The Motley Fool",
+      "source": "eletric-vehicles.com",
       "tickers": [
         "TSLA"
       ],
@@ -346,8 +474,7 @@
         "TSLA"
       ],
       "sectors": [
-        "电动车",
-        "航天"
+        "航天/电动车/AI"
       ],
       "sector_holdings": [
         "SPCH",
@@ -355,31 +482,32 @@
       ],
       "stance": "neutral",
       "relevance": 60,
-      "summary_cn": "据报道，媒体讨论投资者该选SpaceX还是Tesla，Musk旗下两大资产估值对比引发关注。"
+      "summary_cn": "据报道摩根士丹利就马斯克暗示梳理特斯拉-SpaceX在'物理AI'中的关联，间接利好SpaceX相关持仓。"
     },
     {
       "author": "Musk",
-      "text": "After $329 million in DOGE cuts to USAID, Nepal is growing its economy with a Gen Z tech revolution",
+      "text": "Did Elon Musk Just Drop a Big Hint About a Possible SpaceX-Tesla Merger?",
       "url": "",
-      "published": "Sun, 20 Sep 2026 07:44:00 GMT",
+      "published": "Mon, 21 Sep 2026 14:36:51 GMT",
       "origin": "gnews-rss",
-      "source": "Fortune",
+      "source": "Yahoo Finance",
       "tickers": [
-        "DOGE"
+        "TSLA"
       ],
       "held": [],
       "new_ideas": [
-        "DOGE"
+        "TSLA"
       ],
       "sectors": [
-        "加密货币"
+        "航天/电动车"
       ],
       "sector_holdings": [
-        "CRCL"
+        "SPCH",
+        "SPCX"
       ],
-      "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "据报道，Musk转发DOGE削减USAID资金后尼泊尔经济成长的案例，间接为其政府效率议程背书。"
+      "stance": "neutral",
+      "relevance": 58,
+      "summary_cn": "据报道马斯克暗示SpaceX与特斯拉可能合并，对持有SpaceX相关标的具间接意义。"
     },
     {
       "author": "Cathie Wood",
@@ -400,134 +528,8 @@
       "sector_holdings": [],
       "stance": "sell",
       "relevance": 50,
-      "summary_cn": "ARK Invest 2026-09-18减持Brera Holdings(SLMT)，ARKW卖出74,332股、ARKF卖出47,046股，单只ETF占比0.02%，属常规再平衡级别。"
+      "summary_cn": "ARK 2026-09-18减持Brera Holdings(SLMT)，涉及ARKW与ARKF，最大单ETF占比仅0.02%，属常规再平衡。"
     }
   ],
-  "sector_hits": [
-    {
-      "author": "Burry",
-      "text": "Michael Burry Says ‘We Are Near A Major Top, And A Possible 1987-Type Fall’ — Why Record Highs Aren’t Changing His Bearish View",
-      "url": "https://news.google.com/rss/articles/CBMigwJBVV95cUxPdldiZXM2YXByZHd3WXA3ODBBZWIwQzg5WmNmSVNzODBUQmYyYlo5Wm8xQlhZd0ZaakVKSER5YTZuUDk5MERYODBVc2RTQVhDbkZ0Qlo5STRLZjRFUS1GVGdJUG9BcGdONVRGbElqdGphd1huQ0haUUxRLVIxcWU5ZE5WS0RCZnRZaXBzb0dLaUpFMUlKclVSamdzVTNzNmMwQlZ0dG1pcU9kd0lTZmdCQjF6czE3NXBxU1BGc2RvWDdwQk51a1MtRXVMbDI3ejhaVXJTaWVzbUw5V2QyeXJGQnZMX1RDR3lCNEdUanZKMjFTbDgyZUNVcE5US1B0S0xXYWpB?oc=5",
-      "published": "2026-09-20T00:35:49+00:00",
-      "origin": "gnews-rss",
-      "source": "Stocktwits",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "宏观"
-      ],
-      "sector_holdings": [
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "attack",
-      "relevance": 78,
-      "summary_cn": "据报道，Michael Burry警告美股已接近重大顶部，可能出现1987年式崩盘，维持看空立场。"
-    },
-    {
-      "author": "Musk",
-      "text": "SpaceX investors may be overlooking a major risk: There’s no replacing Elon Musk",
-      "url": "",
-      "published": "Wed, 02 Sep 2026 07:00:00 GMT",
-      "origin": "gnews-rss",
-      "source": "CNN",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 72,
-      "summary_cn": "据报道，分析师警告SpaceX投资者可能忽视'Musk不可替代'这一关键风险，与kcn持有的SpaceX相关标的相关。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk Predicts Starlink Satellites Could Rewrite the Rules of Global Connectivity",
-      "url": "",
-      "published": "Sun, 20 Sep 2026 15:59:00 GMT",
-      "origin": "gnews-rss",
-      "source": "24/7 Wall St.",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "通信"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "endorse",
-      "relevance": 70,
-      "summary_cn": "据报道，Musk预测Starlink卫星将改写全球连接规则，间接利好其持有SpaceX相关标的。"
-    },
-    {
-      "author": "Burry",
-      "text": "Michael Burry warns that the AI investments of tech giants conceal significant risks.",
-      "url": "https://news.google.com/rss/articles/CBMivgFBVV95cUxNa0NHamdVc01xVXIxeWdhMmprMUlVZXFkRGR5dHdtcHkyVER5WTR5TWxHZGJWSHVIWnVPT01XQmhHN1hBR0IycjFLNzh5UENMSTJ4MFYwWEt1NGU5N2hURFVBRi1tY1VvWmZmMkl3dUlsckxPMHo0dk9pS1M3VEdXX0o5WXdDYy1xaldld0JSZ1NjU1lIVmVxdjV4N2NiX2hENktMOUFfc2treW8wbGI0Vm9obE1TUF95T0ZSY1BR?oc=5",
-      "published": "2026-09-20T16:15:29+00:00",
-      "origin": "gnews-rss",
-      "source": "Moomoo",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI"
-      ],
-      "sector_holdings": [
-        "00100"
-      ],
-      "stance": "attack",
-      "relevance": 68,
-      "summary_cn": "据报道，Michael Burry警告科技巨头AI投资隐藏重大风险，与Trump力挺AI形成鲜明对比。"
-    },
-    {
-      "author": "Trump",
-      "text": "Unfortunately, the United States Supreme Court has lacked the Courage to MAKE AMERICA GREAT AGAIN. Over the last 6 months, with their faulty, political, and ridiculous decisions on TARIFFS and Birthright Citizenship, they have cost the United States of America Trillions of Dollars, and forever damaged the way people become Citizens of our great Country. It has been a sad chapter in the life and times of America, but we will prevail! President DONALD J. TRUMP",
-      "url": "https://www.trumpstruth.org/statuses/41807",
-      "published": "2026-09-19T16:52:40+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "关税"
-      ],
-      "sector_holdings": [
-        "02208"
-      ],
-      "stance": "attack",
-      "relevance": 58,
-      "summary_cn": "Trump抨击最高法院在关税与出生公民权裁决上的'怯懦'，称已令美国损失数万亿美元，关税政策不确定性延续。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk talks up AI safety while fighting regulation in wild week of strange alliances",
-      "url": "",
-      "published": "Fri, 18 Sep 2026 19:15:24 GMT",
-      "origin": "gnews-rss",
-      "source": "CNBC",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI",
-        "监管"
-      ],
-      "sector_holdings": [
-        "00100"
-      ],
-      "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "据报道，Musk一方面大谈AI安全，另一方面反对AI监管，立场矛盾引发市场关注。"
-    }
-  ]
+  "sector_hits": []
 }
