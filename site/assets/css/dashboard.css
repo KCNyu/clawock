@@ -1815,15 +1815,23 @@
     display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--space-3);
   }
+  /* The inset panel every Add Campaign row sits in. Its horizontal inset was
+     written once per row type and never the same twice — the header 11px, the
+     run-card horizon rows 10px, and the collapsed fold (far below, with the
+     rest of the fold) 0 — so on Holdings the one-line 「全部 N 只同态」 summary
+     sat flush against the panel's border while the header directly above it
+     was indented. One value, off the spacing scale, named here so a new row
+     type inherits it instead of guessing. */
   .add-campaign-leg, .campaign-market {
+    --leg-inset: var(--space-3);
     min-width: 0; border: 1px solid var(--border); border-radius: var(--radius-sm);
     background: var(--fill-inset); overflow: hidden;
   }
   .add-campaign-leg h4, .campaign-market h4 {
-    margin: 0; padding: 9px 11px; border-bottom: 1px solid var(--border);
+    margin: 0; padding: 9px var(--leg-inset); border-bottom: 1px solid var(--border);
     color: var(--text-dim); font: 700 var(--fs-xs) var(--mono); letter-spacing: .04em;
   }
-  .add-campaign-row { padding: 10px 11px; border-bottom: 1px dashed var(--border); }
+  .add-campaign-row { padding: 10px var(--leg-inset); border-bottom: 1px dashed var(--border); }
   .add-campaign-row:last-child { border-bottom: 0; }
   .add-campaign-row > div:first-child,
   .add-campaign-row > div:nth-child(2) { display: flex; gap: 7px; align-items: center; flex-wrap: wrap; }
@@ -1846,7 +1854,7 @@
   .campaign-evidence-head b { color: var(--text); }
   .campaign-horizon {
     display: flex; justify-content: space-between; gap: 8px;
-    padding: 8px 10px; border-bottom: 1px dashed var(--border); font-size: var(--fs-xs);
+    padding: 8px var(--leg-inset); border-bottom: 1px dashed var(--border); font-size: var(--fs-xs);
   }
   .campaign-horizon:last-child { border-bottom: 0; }
   .campaign-horizon b { font-family: var(--mono); color: var(--text); }
@@ -4759,8 +4767,13 @@
   }
 
   /* Add Campaign：全员同态时折成一行（#875）*/
+  /* The fold is a row of `.add-campaign-leg` like any other, so it takes the
+     panel's inset. The fallback is what it means when this is ever folded into
+     something that is not that panel — not zero, which is what an undefined
+     custom property in a shorthand resolves to. */
   .campaign-fold > summary {
-    cursor: pointer; list-style: none; padding: 8px 0;
+    cursor: pointer; list-style: none;
+    padding: 8px var(--leg-inset, var(--space-3));
     color: var(--text-secondary); font: 600 var(--fs-sm)/1.4 var(--mono);
     display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
   }
