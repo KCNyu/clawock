@@ -550,7 +550,7 @@ class DecisionV2Test(unittest.TestCase):
         self.assertEqual(row["evaluation"]["status"], "not_evaluable")
         self.assertEqual(
             row["evaluation"]["not_evaluable_reason"], "degenerate_bar")
-        self.assertEqual(row["evaluation"]["evaluation_schema_version"], 6)
+        self.assertEqual(row["evaluation"]["evaluation_schema_version"], 7)
         self.assertNotEqual(
             row["evaluation"].get("not_evaluable_reason"), "campaign_invalidated")
 
@@ -573,6 +573,59 @@ class DecisionV2Test(unittest.TestCase):
         self.assertTrue(ev["triggered"])
         self.assertEqual(ev["trigger_session"], "2026-07-02")
         self.assertEqual(ev["execution_price"], 12.0)
+
+    def test_a_real_bar_that_misses_still_settles_next_to_a_halted_one(self):
+        """The mirror of the case above: a real bar is evidence either way.
+
+        Letting the halted session rewrite a measured miss into
+        `not_evaluable` turns "did not trigger" into "no evidence" — the two
+        are mutually exclusive everywhere downstream (the calibration stats in
+        `brief_preflight` count `not_triggered` and skip `unknown`; the
+        scorecard counts `not_evaluable` as uncovered) — and it points
+        `trigger_session` at a day that never traded.
+        """
+        halted = {**_bar(12.0), "degenerate": True}
+        bars = {"2026-07-01": halted, "2026-07-02": _bar(10.0)}
+        ev = _settle_against(
+            "2026-07-03", 10.0,
+            action="add_only_on_trigger",
+            condition={"type": "price_above", "price": 12,
+                       "valid_for_sessions": 2},
+            bars=bars,
+        )
+
+        self.assertIs(ev["triggered"], False)
+        self.assertEqual(ev["status"], "not_triggered")
+        self.assertEqual(ev["outcome"], "not_triggered")
+        self.assertEqual(ev["fill_reason"], "high_below_trigger")
+        self.assertIsNone(ev["trigger_session"])
+        self.assertNotIn("not_evaluable_reason", ev)
+
+    def test_a_halted_session_does_not_close_an_open_confirmation_window(self):
+        """Same narrowing, the other neighbour: with the window still open a
+        real miss is pending, not an unknown the halted bar forced."""
+        halted = {**_bar(12.0), "degenerate": True}
+        row = dv2.legacy_action_to_decision({
+            "ticker": "AAA", "strategy_id": "tactical_entry",
+            "action": "add_only_on_trigger",
+            "condition": {"type": "price_above", "price": 12,
+                          "valid_for_sessions": 3},
+            "confidence": .6, "driven_by": "technical",
+        }, "2026-07-01")
+        patches = _with_bars(
+            {"2026-07-01": halted, "2026-07-02": _bar(10.0)},
+            sessions=["2026-07-01", "2026-07-02", "2026-07-03"])
+        for patch in patches:
+            patch.start()
+        try:
+            dv2.settle_decisions([row], now_date="2026-07-03")
+        finally:
+            for patch in patches:
+                patch.stop()
+
+        self.assertEqual(row["evaluation"]["status"], "pending")
+        self.assertEqual(row["evaluation"]["pending_reason"],
+                         "confirmation_window_open")
 
     def test_backtest_is_capital_weighted_and_compounded(self):
         rows = [decision("2026-07-01", action="cut", benefit=10, capital=900),

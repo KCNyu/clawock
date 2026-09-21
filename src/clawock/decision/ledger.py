@@ -90,7 +90,7 @@ def ledger_lock(path: Path = LEDGER):
 
 SCHEMA_VERSION = 2
 # Bumped when the meaning of an evaluation changes, so a stale row is identifiable.
-EVAL_SCHEMA_VERSION = 6
+EVAL_SCHEMA_VERSION = 7
 # Snapshots and plan_dates are both named on the HK calendar day; comparing them
 # against a UTC "today" slips a day for the eight hours after HK midnight.
 HKT = _cal.HKT
@@ -1154,9 +1154,14 @@ def settle_decisions(decisions: list[dict], now_date: str | None = None) -> int:
                 changed += 1
             continue
 
+        # Only when the window held no real bar at all is there nothing to
+        # settle on. A real bar that says False is evidence — the same evidence
+        # a real bar that says True is allowed to be one branch up — so it must
+        # still settle as `not_triggered`, not be rewritten into unknown by the
+        # halted session next to it (#1719).
         if (
             degenerate_session is not None
-            and (not evaluated or fired is False)
+            and not evaluated
             and invalidated_session is None
         ):
             ev.update({
