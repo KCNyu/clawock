@@ -21,9 +21,9 @@ report is written from prices, exactly as it was before this module.
 from __future__ import annotations
 
 import json
-from datetime import datetime
 from pathlib import Path
 
+from clawock import sessions as _cal
 from clawock.decision import ledger as decision_v2
 from clawock.decision import risk as risk_ledger
 from clawock.workspace import workspace_root
@@ -312,7 +312,7 @@ def watch_levels(*, today=None, memory_dir=None) -> dict:
     """
     try:
         memory = Path(memory_dir) if memory_dir else MEMORY
-        today = today or datetime.now().strftime("%Y-%m-%d")
+        today = today or _cal.hkt_today().isoformat()
         plan = json.loads((memory / f"{today}-plan.json").read_text(encoding="utf-8"))
     except (OSError, ValueError, TypeError):
         return {}
@@ -330,7 +330,7 @@ def open_decisions_context(*, leg=None, today=None, ledger=None, memory_dir=None
     try:
         ledger_path = Path(ledger) if ledger else LEDGER
         memory = Path(memory_dir) if memory_dir else MEMORY
-        today = today or datetime.now().strftime("%Y-%m-%d")
+        today = today or _cal.hkt_today().isoformat()
 
         try:
             open_add_tickers = _open_add_tickers(ledger_path)

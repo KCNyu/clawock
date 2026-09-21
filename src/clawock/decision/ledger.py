@@ -710,7 +710,7 @@ def _harness_owned_ids(item: dict, plan_date: str, own_ids: set) -> dict:
 
 def normalize_authored_plan(plan: dict, ledger_path: Path = LEDGER) -> dict:
     """Fill deterministic v2 ids/defaults before postflight validation."""
-    plan_date = plan.get("date") or datetime.now().date().isoformat()
+    plan_date = plan.get("date") or _cal.hkt_today().isoformat()
     source = plan.get("decisions") or []
     existing = load_decisions(ledger_path)
     own_ids = {(d.get("decision_id"), d.get("plan_date"), d.get("ticker")) for d in existing}

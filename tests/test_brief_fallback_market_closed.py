@@ -8,6 +8,7 @@ this workflow, but a manual `gh workflow run brief-fallback.yml` bypasses it,
 which is the whole reason this second layer exists.
 """
 import json
+from datetime import date
 
 import pytest
 
@@ -37,6 +38,20 @@ def test_a_market_closed_sentinel_writes_no_artifacts(workspace, monkeypatch):
 
     assert not (workspace / 'memory' / f'{TODAY}-pre-open.md').exists()
     assert not (workspace / 'memory' / f'{TODAY}-plan.json').exists()
+
+
+def test_manual_fallback_defaults_to_the_hk_desk_date(tmp_path, monkeypatch):
+    (tmp_path / 'memory' / '.tmp').mkdir(parents=True)
+    (tmp_path / 'memory' / '.tmp' / f'brief-context-{TODAY}.json').write_text(
+        json.dumps(SENTINEL, ensure_ascii=False))
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.delenv('TODAY', raising=False)
+    monkeypatch.setattr(brief_fallback.sessions, 'hkt_today',
+                        lambda: date.fromisoformat(TODAY))
+
+    brief_fallback.main()
+
+    assert not (tmp_path / 'memory' / f'{TODAY}-plan.json').exists()
 
 
 def test_an_ordinary_incomplete_context_still_fails_closed(workspace, monkeypatch):

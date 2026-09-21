@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import json
 import sys
+from datetime import date
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -423,6 +424,23 @@ def test_the_levels_the_morning_set_reach_the_slots_that_watch_the_tape(tmp_path
     # Verbatim, including the prose ones: these keys are free text the model
     # writes each morning, so coercing them would be inventing a schema.
     assert levels['cpi_2026-09-11_soft_boost'].startswith('若 CPI')
+
+
+def test_default_plan_context_date_is_the_hk_desk_date(
+        ps, ledger, tmp_path, monkeypatch):
+    desk_date = '2026-09-09'
+    monkeypatch.setattr(ps._cal, 'hkt_today', lambda: date.fromisoformat(desk_date))
+    memory = tmp_path / 'memory'
+    memory.mkdir()
+    (memory / f'{desk_date}-plan.json').write_text(
+        json.dumps({'date': desk_date, 'watch_levels': {'hstech_breakdown': 4500}}),
+        encoding='utf-8')
+    row = decision(plan_date=desk_date)
+
+    assert ps.watch_levels(memory_dir=memory) == {'hstech_breakdown': 4500}
+    context = ps.open_decisions_context(ledger=ledger([row]), memory_dir=memory)
+    assert context['plan_date'] == desk_date
+    assert context['carried_over'] == 0
 
 
 def test_a_missing_or_broken_plan_is_no_levels_not_an_exception(tmp_path):
