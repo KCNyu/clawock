@@ -4,14 +4,18 @@ This folder is home.
 
 ## Every Session
 
-Before doing anything else:
+Use the workspace files already supplied in the current context. OpenClaw injects the
+bootstrap files according to the session profile; loading a file and reading it again
+are not separate requirements.
 
-1. Read `SOUL.md` — who you are
-2. Read `USER.md` — who you're helping
-3. **If in MAIN SESSION** (direct chat with kcn): Also read `MEMORY.md` + `TOOLS.md`
-4. **If the question is investment-related**: also read `INVESTMENT_SOP.md` and route per the skill table below
-
-Don't ask permission. Just do it.
+- `SOUL.md` / `USER.md`: use the supplied identity and preferences; read missing files only when relevant.
+- Direct chat: use injected `MEMORY.md` and `TOOLS.md`; read a missing one when its rules or routes are needed.
+  Keep main-session memory out of group/shared contexts.
+- Investment questions: read `INVESTMENT_SOP.md` and the selected skill, then load relevant data.
+- Ordinary chat and explicit task delegation: answer or forward the request with known context.
+  Investigate only missing routing facts; let the delegated worker inspect code, issues and CI.
+  Requests to investigate or optimize together stay in the current conversation unless delegation is requested.
+- Isolated cron/subagent runs: follow their explicit context profile and job instructions, not the direct-chat startup path.
 
 ## kcn 偏好
 
