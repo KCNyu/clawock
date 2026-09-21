@@ -43,7 +43,7 @@ from clawock.decision.actions import (
     STRATEGY_FRAMES,
 )
 from clawock import scorecard_provenance
-from clawock.safe_io import file_lock
+from clawock.safe_io import file_lock, jsonl_line
 from clawock.workspace import workspace_root
 
 # Installed package code resolves user state from the caller's workspace, never
@@ -740,8 +740,20 @@ def load_decisions(path: Path = LEDGER) -> list[dict]:
 
 
 def write_decisions(decisions: list[dict], path: Path = LEDGER) -> None:
+    """Replace the ledger with `decisions`, atomically and as valid JSON.
+
+    `load_decisions` above parses every line back and raises on the first one
+    it cannot read, so a ledger this wrote with a bare `NaN` in it is a ledger
+    nothing can load again — and `evaluation` carries computed ratios, which
+    is exactly where a division by a halted session's zero range lands
+    (#1733). `jsonl_line` is the same sanitize-report-then-`allow_nan=False`
+    path every other writer here goes through.
+    """
     path.parent.mkdir(parents=True, exist_ok=True)
-    body = "".join(json.dumps(d, ensure_ascii=False, sort_keys=True) + "\n" for d in decisions)
+    body = "".join(
+        jsonl_line(d, label=f"{path.name}:{d.get('decision_id', '?')}")
+        for d in decisions
+    )
     fd, tmp = tempfile.mkstemp(prefix=path.name + ".", dir=path.parent)
     try:
         with os.fdopen(fd, "w", encoding="utf-8") as f:
