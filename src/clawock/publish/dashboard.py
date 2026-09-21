@@ -1034,24 +1034,42 @@ T1_FLAT_BAND_PCT = 1
 T1_SELL_ACTIONS = ('sell', 'cut', 'trim', 'trim_on_rebound')
 
 
-def _t1_tone(action, delta):
-    """'win' | 'loss' | 'flat' reading of a T+1 move, action-aware, dead-zoned."""
+#: Every T+1 reading, keyed by the stable code the wire carries: (words, tone).
+#: One table rather than three parallel `if` ladders — the words, the colour
+#: and the code a renderer switches on now cannot disagree about the same fill,
+#: which is the failure #739 shipped one pair at a time.
+T1_VERDICTS = {
+    'flat': ('持平', 'flat'),
+    'soldEarly': ('卖飞', 'loss'),
+    'soldRight': ('卖对', 'win'),
+    'up': ('涨', 'win'),
+    'down': ('跌', 'loss'),
+}
+
+
+def _t1_verdict_kind(action, delta):
+    """Stable code for a T+1 move — mirrors `t1VerdictKindOf` in the plugin.
+
+    This is the identity; the words below are one rendering of it. The client
+    used to count 卖飞 by matching the Chinese text, so translating the host's
+    copy would have silently zeroed both T+1 tallies (#1652).
+    """
     if abs(delta) < T1_FLAT_BAND_PCT:
         return 'flat'
     up = delta > 0
     if action in T1_SELL_ACTIONS:
-        return 'loss' if up else 'win'
-    return 'win' if up else 'loss'
+        return 'soldEarly' if up else 'soldRight'
+    return 'up' if up else 'down'
+
+
+def _t1_tone(action, delta):
+    """'win' | 'loss' | 'flat' reading of a T+1 move, action-aware, dead-zoned."""
+    return T1_VERDICTS[_t1_verdict_kind(action, delta)][1]
 
 
 def _t1_verdict(action, delta):
     """Verdict text for a T+1 move, on the same dead zone as `_t1_tone`."""
-    if abs(delta) < T1_FLAT_BAND_PCT:
-        return '持平'
-    up = delta > 0
-    if action in T1_SELL_ACTIONS:
-        return '卖飞' if up else '卖对'
-    return '涨' if up else '跌'
+    return T1_VERDICTS[_t1_verdict_kind(action, delta)][0]
 
 
 def _future_close(prices_by_ticker, ticker, date_iso, n=1, max_gap_days=T1_MAX_GAP_DAYS):
@@ -1166,16 +1184,23 @@ def build_decision_traces(limit=40, workspace=None):
             for tr in (h.get('trades') or []):
                 if not isinstance(tr, dict) or not isinstance(tr.get('date'), str):
                     continue
+                action = tr.get('action') or 'buy'
                 t = {
                     'ticker': ticker,
                     'market': leg.key,
                     'currency': leg.currency,
                     'date': tr.get('date'),
-                    'action': tr.get('action') or 'buy',
+                    'action': action,
                     'shares': tr.get('shares') or 0,
                     'price': tr.get('price'),
                     'realizedPnl': tr.get('realized_pnl'),
                     'note': tr.get('note') if isinstance(tr.get('note'), str) else None,
+                    # What this fill did to the position, decided here so the
+                    # browser half never keeps a second copy of the action set
+                    # — the drift #739 came from. `None` means neither bucket:
+                    # the fill is kept out of both rather than guessed into one
+                    # (#1737).
+                    'side': _trade_side(action),
                     't1': None,
                     'decision': None,
                     'holdPnl': None,
@@ -1185,12 +1210,17 @@ def build_decision_traces(limit=40, workspace=None):
                 fc = _future_close(prices, ticker, t['date'], 1)
                 if fc and t.get('price'):
                     delta = round((fc[1] - t['price']) / t['price'] * 100, 2)
+                    kind = _t1_verdict_kind(t['action'], delta)
                     t['t1'] = {
                         'date': fc[0],
                         'price': round(fc[1], 2),
                         'delta': delta,
-                        'verdict': _t1_verdict(t['action'], delta),
-                        'tone': _t1_tone(t['action'], delta),
+                        # The code first: the plugin localises off `verdictKind`
+                        # and falls back to `verdict` only for a host too old to
+                        # send one (#1736).
+                        'verdictKind': kind,
+                        'verdict': T1_VERDICTS[kind][0],
+                        'tone': T1_VERDICTS[kind][1],
                     }
                 # Soft-pair the decision ledger (±3 calendar days).
                 base = _day_num(t['date'])
@@ -1370,6 +1400,17 @@ _ADD_SIDE = ('buy', 'add')
 _REDUCE_SIDE = ('sell', 'cut', 'trim', 'trim_on_rebound')
 
 
+def _trade_side(action):
+    """'add' | 'reduce' | None — what a fill did to the position.
+
+    Mirrors the plugin's `side` expression: reduce wins the tie, and an action
+    in neither bucket stays `None` instead of being filed under buys.
+    """
+    if action in _REDUCE_SIDE:
+        return 'reduce'
+    return 'add' if action in _ADD_SIDE else None
+
+
 def _plan_fill_alignment(plan_action, fill_action):
     """'same' | 'opposite' | 'other' — the plan's direction vs the fill's.
 
@@ -1429,7 +1470,11 @@ def build_decision_trace_scope(traces, workspace=None, limit=40):
     verdicts = {}
     sides = {}
     for t in shown:
-        side = 'reduce' if t.get('action') in _REDUCE_SIDE else 'add'
+        # Unlike the wire field, this keeps its 'add' fallback: these counts
+        # are the published denominators for the T+1 tallies, and re-bucketing
+        # an unclassified action here would move numbers the card already
+        # shows. Same mapping, one place.
+        side = _trade_side(t.get('action')) or 'add'
         sides[side] = sides.get(side, 0) + 1
         v = (t.get('t1') or {}).get('verdict')
         if v:

@@ -434,3 +434,55 @@ def test_the_two_writers_are_counted_separately(ws, tmp_path):
 
     assert scope["argumentShown"] >= 1
     assert scope["mindShown"] == 1, 'the hand-recorded row, and only it'
+
+
+def test_every_field_the_plugin_declares_required_is_on_the_wire(ws):
+    """Read off the built payload, not off the builder's source.
+
+    `side` and `t1.verdictKind` are both declared non-optional in the plugin's
+    `types.ts` and were both simply absent here for as long as they had
+    existed: the plugin read `undefined`, normalised it to `null`, and filed
+    every fill as sideless — the 卖出复盘 filter matched nothing and the T+1
+    tally divided by zero sells (#1736, #1737). Nothing noticed because the
+    tests asserted the display text and the parity gate compared functions
+    neither side was calling from here.
+    """
+    traces = dashboard.build_decision_traces()
+
+    by_key = {(t["ticker"], t["date"]): t for t in traces}
+    sell = by_key[("PLTU", "2026-08-13")]
+    assert sell["side"] == "reduce"
+    assert by_key[("PLTU", "2026-08-08")]["side"] == "add"
+
+    # 50.00 -> 49.24 on the next canonical close: a sell that beat the tape.
+    assert sell["t1"]["verdictKind"] == "soldRight"
+    assert sell["t1"]["verdict"] == "卖对" and sell["t1"]["tone"] == "win"
+
+    # Flat is a kind too, not a missing one: 230.0 -> 230.0 inside the band.
+    flat = by_key[("00100", "2026-08-04")]
+    assert flat["t1"]["verdictKind"] == "flat" and flat["t1"]["verdict"] == "持平"
+
+    for trace in traces:
+        assert "side" in trace, trace["ticker"]
+        if trace["t1"]:
+            assert trace["t1"]["verdictKind"] in dashboard.T1_VERDICTS
+
+
+def test_a_fill_in_neither_bucket_is_kept_out_of_both(tmp_path, monkeypatch):
+    """`None`, never 'add'. The plugin treats a null side as "could not place
+    this fill" and keeps it out of the sell scorecard and the add bucket alike;
+    defaulting it to 'add' would file every unclassified action under buys."""
+    (tmp_path / "memory").mkdir(parents=True)
+    (tmp_path / "portfolio.json").write_text(json.dumps({
+        "portfolios": {"us_stocks": {"currency": "USD", "holdings": [
+            {"ticker": "TEST", "shares": 0, "trades": [
+                {"date": "2026-08-14", "action": "hold_and_watch",
+                 "shares": 0, "price": 50.0},
+            ]}]}},
+    }), encoding="utf-8")
+    (tmp_path / "memory" / "decisions.jsonl").write_text("", encoding="utf-8")
+    monkeypatch.setattr(dashboard, "WS_ROOT", tmp_path)
+
+    traces = dashboard.build_decision_traces()
+
+    assert [t["side"] for t in traces] == [None]

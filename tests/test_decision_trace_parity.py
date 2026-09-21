@@ -176,3 +176,62 @@ def test_breach_hash_strip_pattern_matches(plugin_source):
         f"the two sides strip different breach markers:\n"
         f"  plugin:    {js_pattern}\n"
         f"  dashboard: {ours[1]}")
+
+
+def test_verdict_kind_vocabulary_and_conditions_match(plugin_source):
+    """The wire's stable T+1 code, pinned on both sides.
+
+    `verdictKind` is what the client localises and counts on; matching the
+    Chinese display text is what #1652 removed. The dashboard shipped the words
+    and the tone but never the code, so every English-locale reader saw 卖对 and
+    both T+1 tallies read from a field that was not there (#1736).
+    """
+    m = re.search(r"export function t1VerdictKindOf\(.*?\n\}", plugin_source, re.S)
+    assert m, "t1VerdictKindOf not found in the plugin ledger"
+    plugin_kinds = set(re.findall(r"'([^']+)'", m[0]))
+    assert plugin_kinds == set(dashboard.T1_VERDICTS), (
+        "the two sides disagree about the T+1 verdict codes")
+
+    def plugin_kind(action, delta):
+        # Literal re-read of src/ledger.ts::t1VerdictKindOf.
+        if abs(delta) < dashboard.T1_FLAT_BAND_PCT:
+            return "flat"
+        up = delta > 0
+        if action in dashboard.T1_SELL_ACTIONS:
+            return "soldEarly" if up else "soldRight"
+        return "up" if up else "down"
+
+    for action in ("buy", "add", "sell", "cut", "trim", "trim_on_rebound", "hold"):
+        for delta in (-9, -1.0001, -1, -0.999, 0, 0.999, 1, 1.0001, 9):
+            assert plugin_kind(action, delta) == dashboard._t1_verdict_kind(action, delta), (
+                action, delta)
+
+
+def test_the_code_the_words_and_the_tone_are_one_decision():
+    """Three renderings of one reading. A fourth `if` ladder is how they drift."""
+    for action in ("buy", "add", "sell", "cut", "trim", "trim_on_rebound", "hold"):
+        for delta in (-9, -1.0001, -1, -0.999, 0, 0.999, 1, 1.0001, 9):
+            kind = dashboard._t1_verdict_kind(action, delta)
+            words, tone = dashboard.T1_VERDICTS[kind]
+            assert dashboard._t1_verdict(action, delta) == words
+            assert dashboard._t1_tone(action, delta) == tone
+
+
+def test_trade_side_matches_the_plugins_bucketing(plugin_source):
+    """`side` is the host's answer to "what did this fill do to the position".
+
+    The plugin deleted its own copy of the action set in #741 and reads this
+    field instead; the dashboard never sent it, so every trace arrived with
+    `side: undefined`, the 卖出复盘 filter matched nothing and the T+1 tally's
+    denominator was zero (#1737).
+    """
+    plugin_add, plugin_reduce = _action_sets(plugin_source)
+
+    def plugin_side(action):
+        # Literal re-read of src/ledger.ts::enrich — reduce wins the tie, and
+        # an action in neither bucket stays null.
+        return ("reduce" if action in plugin_reduce
+                else "add" if action in plugin_add else None)
+
+    for action in sorted(plugin_add | plugin_reduce | {"hold", "hold_and_watch", ""}):
+        assert plugin_side(action) == dashboard._trade_side(action), action
