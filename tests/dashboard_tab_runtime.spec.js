@@ -1735,6 +1735,79 @@ async function testTheValidationLedgerRendersItsVerdictsAndFitsAPhone(browser, b
 // 搜索可见性的独立小卡（Overview）。它原本是数据健康卡里的一条 meta，那条 bit
 // 在窄屏上固定 428px 宽 —— 比容器还宽，占满一整行，把卡顶高。抽出来之后判据是
 // **一个数字一格，换行交给 grid**，所以这里量的是格数与溢出，不是某段文字。
+// Every row inside an Add Campaign panel starts on the same line.
+//
+// `.add-campaign-leg` (Holdings) and `.campaign-market` (its run-card evidence)
+// are the same inset panel, and each row type wrote its own horizontal padding:
+// the header 11px, the run-card horizon rows 10px, and the collapsed fold — a
+// `<summary>` styled 600 lines away with the rest of the fold — 0. So the
+// one-line 「全部 N 只同态」 summary sat flush against the panel's border while
+// the header directly above it was indented, which is the left edge kcn saw on
+// the Holdings 量化 × 信息 card.
+//
+// Measured rather than read off the sheet: the offending declaration was valid
+// CSS in a rule that never mentions the panel, so only the rendered result
+// says whether a row is on the line. Both fold states, because the rows under
+// the summary only exist when it is open.
+async function testEveryAddCampaignRowStartsOnTheSameLine(browser, base) {
+  const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+  const page = await context.newPage();
+  await stubLiveOrigin(page);
+  await page.goto(base, { waitUntil: "networkidle" });
+  await waitForData(page);
+  await clickTab(page, "drill");
+  await page.waitForSelector(".add-campaign-leg", { timeout: 10000 });
+
+  const measure = () => page.evaluate(() => {
+    const inset = (el, origin) => {
+      const cs = getComputedStyle(el), r = el.getBoundingClientRect();
+      return +(r.left + (parseFloat(cs.borderLeftWidth) || 0)
+        + (parseFloat(cs.paddingLeft) || 0) - origin).toFixed(1);
+    };
+    // Every element that paints a row's text directly in the panel. Listed by
+    // role, not by class, so a row type added later is measured too.
+    const ROWS = ":scope > h4, :scope > .add-campaign-row, :scope > .campaign-horizon,"
+      + " :scope > .empty-state, :scope > .campaign-fold > summary,"
+      + " :scope > .campaign-fold > .add-campaign-row";
+    return [...document.querySelectorAll(".add-campaign-leg, .campaign-market")].map(panel => {
+      const ps = getComputedStyle(panel), pr = panel.getBoundingClientRect();
+      const origin = pr.left + (parseFloat(ps.borderLeftWidth) || 0)
+        + (parseFloat(ps.paddingLeft) || 0);
+      const rows = [...panel.querySelectorAll(ROWS)]
+        .filter(el => getComputedStyle(el).display !== "none"
+          && el.getBoundingClientRect().width > 10)
+        .map(el => ({
+          what: el.tagName.toLowerCase()
+            + (el.className ? "." + String(el.className).split(/\s+/)[0] : ""),
+          inset: inset(el, origin),
+        }));
+      return { panel: String(panel.className).split(/\s+/)[0], rows };
+    }).filter(p => p.rows.length > 1);
+  });
+
+  const check = async label => {
+    const panels = await measure();
+    assert.ok(panels.length, `${label}: no Add Campaign panel had rows to measure`);
+    for (const panel of panels) {
+      const insets = [...new Set(panel.rows.map(row => row.inset))];
+      assert.equal(insets.length, 1,
+        `${label}: rows in .${panel.panel} start at different left edges — `
+        + panel.rows.map(row => `${row.what}=${row.inset}`).join(", "));
+      assert.ok(insets[0] > 0,
+        `${label}: rows in .${panel.panel} sit flush against the panel border `
+        + `(inset ${insets[0]})`);
+    }
+  };
+
+  await check("fold closed");
+  await page.evaluate(() => document.querySelectorAll(".campaign-fold")
+    .forEach(fold => { fold.open = true; }));
+  await page.waitForTimeout(300);
+  await check("fold open");
+
+  await context.close();
+}
+
 async function testTheSearchVisibilityCardFitsWithoutOverflowing(browser, base) {
   for (const [label, width, expectedCols] of [["desktop", 1280, 4], ["mobile", 390, 2]]) {
     const page = await browser.newPage({ viewport: { width, height: 900 } });
@@ -3290,6 +3363,7 @@ async function main() {
     await run("testALeveragedRowWithoutVolatilityPrintsNoUndefined", () => testALeveragedRowWithoutVolatilityPrintsNoUndefined(browser, base));
     await run("testNoTabPrintsAMissingNumber", () => testNoTabPrintsAMissingNumber(browser, base));
     await run("testTheSearchVisibilityCardFitsWithoutOverflowing", () => testTheSearchVisibilityCardFitsWithoutOverflowing(browser, base));
+    await run("testEveryAddCampaignRowStartsOnTheSameLine", () => testEveryAddCampaignRowStartsOnTheSameLine(browser, base));
     await run("testTheValidationLedgerRendersItsVerdictsAndFitsAPhone", () => testTheValidationLedgerRendersItsVerdictsAndFitsAPhone(browser, base));
     await run("testAPanelSaysWhenItsDataDidNotLoad", () => testAPanelSaysWhenItsDataDidNotLoad(browser, base));
     await run("testCronRailAccountsForEverySlotWithoutASecondVerdict", () => testCronRailAccountsForEverySlotWithoutASecondVerdict(browser, base));
