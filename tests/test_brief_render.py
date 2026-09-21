@@ -700,9 +700,9 @@ def test_the_manual_render_defaults_to_the_hk_desk_date(tmp_path, monkeypatch):
     this default is the one place a UTC checkout could render (and overwrite)
     yesterday's published brief between 00:00 and 08:00 HKT.
 
-    The stub returns a fixed day that is never the host's own `date.today()`, so
-    the assertion proves the default is routed through the HK calendar rather
-    than passing on a machine whose local date happens to agree with HKT.
+    The stub returns a day in the past, which no host's local calendar can be
+    sitting on, so the assertion proves the default is routed through the HK
+    calendar rather than passing on a machine whose local day agrees with HKT.
     """
     from datetime import date as _d
 
