@@ -548,7 +548,7 @@
   }
   .refresh-btn:active { transform: scale(var(--press-scale)); }
   /* 圆形按钮：环贴着边走，2px 外扩会切到相邻的 asof 文本。 */
-  .refresh-btn:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
+  .refresh-btn:focus-visible { outline: var(--focus-ring); outline-offset: 1px; }
   @media (hover: hover) and (pointer: fine) {
     .refresh-btn:hover { background: var(--surface-2); border-color: var(--border-strong); color: var(--text); }
   }

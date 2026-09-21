@@ -206,6 +206,15 @@ def test_focus_visible_baseline_covers_every_focusable_element():
     )
 
 
+def test_refresh_focus_ring_stays_close_to_the_round_button():
+    """The refresh ring remains visible without reading as a second halo."""
+    m = re.search(r'\.refresh-btn:focus-visible\s*\{([^}]*)\}', CSS)
+    assert m, "refresh button lost its component-specific focus treatment"
+    rule = m.group(1)
+    assert "outline: var(--focus-ring)" in rule
+    assert "outline-offset: 1px" in rule
+
+
 def test_every_hover_affordance_has_a_focus_twin_or_a_reason():
     hover = {c for c in re.findall(r'\.([\w-]+):hover', CSS) if not c.isdigit()}
     focus = set(re.findall(r'\.([\w-]+):focus-visible', CSS))
