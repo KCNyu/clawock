@@ -245,16 +245,21 @@ def test_container_corners_come_off_the_corner_scale():
     assert strays == [], "\n  ".join(strays)
 
 
-def test_market_age_uses_the_cjk_ui_font_not_the_monospace_stack():
-    """Relative time is Chinese prose; only its digits need tabular metrics.
-
-    SF Mono plus a CJK fallback can assign full-width Chinese glyphs a
-    half-width advance, which is how the two characters in ``刚刚`` overlap on
-    the deployed client even though Chromium's Linux fallback looks fine.
-    """
+def test_market_age_stays_in_the_market_heading_flow():
+    """The age is heading metadata, not a fixed overlay on its title."""
     match = re.search(r"\.overview-asof\s*\{([^}]*)\}", RAW)
     assert match, "the market snapshot age label lost its rule"
     rule = match.group(1)
     assert "var(--font)" in rule and "var(--mono)" not in rule, rule
     assert "font-variant-numeric: tabular-nums" in rule, rule
     assert "white-space: nowrap" in rule, rule
+    assert "position: absolute" not in rule, rule
+
+    heading = re.search(
+        r'<span class="overview-strip-heading">(.*?)</span>\s*'
+        r'<span aria-hidden="true">盘面 →</span>',
+        (ROOT / "site" / "index.html").read_text(),
+        re.DOTALL,
+    )
+    assert heading, "market title and age must share the button heading group"
+    assert 'id="market-asof"' in heading.group(1)
