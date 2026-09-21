@@ -213,3 +213,32 @@ def test_a_count_of_cli_subcommands_matches_what_clawock_help_offers():
         "complete CLI")
     packaged = re.search(r"(\d+) packaged `clawock <utility>` subcommands", document)
     assert packaged and int(packaged.group(1)) == len(set(offered) & set(cli.PACKAGED_UTILITIES))
+
+
+def test_the_hand_written_flag_prose_spells_flags_the_way_the_cli_does():
+    """The prose after the generated block is hand-written, which is the point
+    — and also how it drifts. `clawock fx` has printed `--convert AMOUNT FROM
+    TO` since #424, while this document offered `--convert AMT FROM TO`: a
+    reader copying the documented placeholder types something no usage line
+    ever showed them (#1729).
+
+    Read out of `--help`, because that is the spelling the reader is compared
+    against — not out of the `metavar=` tuple the renderer happens to hold.
+    """
+    import io
+    from contextlib import redirect_stdout
+
+    from clawock.portfolio import fx
+
+    out = io.StringIO()
+    with redirect_stdout(out), pytest.raises(SystemExit):
+        fx.main(["--help"])
+    printed = re.search(r"--convert ([A-Z]+ [A-Z]+ [A-Z]+)", out.getvalue())
+    assert printed, "clawock fx --help no longer prints --convert with placeholders"
+
+    documented = re.findall(r"`--convert ([A-Z]+ [A-Z]+ [A-Z]+)`", DOCUMENT.read_text())
+    assert documented, "commands.md no longer spells out `clawock fx --convert`"
+    for placeholders in documented:
+        assert placeholders == printed.group(1), (
+            f"commands.md documents `--convert {placeholders}` but the CLI "
+            f"prints `--convert {printed.group(1)}`")
