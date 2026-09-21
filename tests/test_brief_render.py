@@ -692,3 +692,31 @@ def test_size_health_counts_words_not_layout(tmp_path):
     b = brief_postflight.assess_brief_readability(carded)
     assert b["file_bytes"] > a["file_bytes"] + 100          # the markup is real …
     assert abs(b["bytes"] - a["bytes"]) < 60                 # … and not counted
+
+
+def test_the_manual_render_defaults_to_the_hk_desk_date(tmp_path, monkeypatch):
+    """`clawock brief render` with no `--date` must name the same day the rest of
+    the pipeline does. The automated chain always passes the date explicitly, so
+    this default is the one place a UTC checkout could render (and overwrite)
+    yesterday's published brief between 00:00 and 08:00 HKT.
+
+    The stub returns a day in the past, which no host's local calendar can be
+    sitting on, so the assertion proves the default is routed through the HK
+    calendar rather than passing on a machine whose local day agrees with HKT.
+    """
+    from datetime import date as _d
+
+    from clawock import sessions
+
+    monkeypatch.setattr(sessions, "hkt_today", lambda at=None: _d(2026, 7, 1))
+    seen = {}
+
+    def _capture(workspace, date, **kwargs):
+        seen["date"] = date
+        return ([], None)
+
+    monkeypatch.setattr(render, "render_from_workspace", _capture)
+
+    render.main(["--dry-run", "--workspace", str(tmp_path)])
+
+    assert seen["date"] == "2026-07-01"

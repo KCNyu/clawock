@@ -29,6 +29,7 @@ import re
 from datetime import date as _date
 from pathlib import Path
 
+from clawock import sessions as _cal
 from clawock.safe_io import safe_write_text
 from clawock.scheduling import BRIEF_SLOT_HKT
 
@@ -1168,7 +1169,7 @@ def main(argv=None):
         description="Render the daily deep brief from context + judgment + plan. "
                     "The model writes the judgment; every heading, table and "
                     "number below is produced here.")
-    parser.add_argument("--date", help="brief date (default: today)")
+    parser.add_argument("--date", help="brief date (default: today in HKT)")
     parser.add_argument("--workspace", help="workspace root (default: resolved)")
     parser.add_argument("--page-url",
                         help="URL printed at the foot of the card "
@@ -1178,7 +1179,10 @@ def main(argv=None):
     args, _unknown = parser.parse_known_args(argv)
 
     workspace = Path(args.workspace) if args.workspace else workspace_root()
-    date = args.date or _date.today().isoformat()
+    # The desk date, not the host's — on a UTC runner a manual render between
+    # 00:00 and 08:00 HKT would otherwise overwrite yesterday's published brief
+    # (#1709: ledger, plans and postflight all anchor to the HK calendar day).
+    date = args.date or _cal.hkt_today().isoformat()
     from clawock.harness._watchdog_common import brief_url
 
     issues, body = render_from_workspace(
