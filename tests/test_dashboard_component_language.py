@@ -34,6 +34,20 @@ CSS = re.sub(r"/\*.*?\*/", " ", RAW, flags=re.DOTALL)
 RULES = [(re.sub(r"\s+", " ", m.group(1).strip()), m.group(2))
          for m in re.finditer(r"([^{}]+)\{([^{}]*)\}", CSS)]
 
+# The reading pages' own layer. #1706 moved the shell into the shared sheet and
+# left `<style>` in the layout holding what only a long-form page has — so the
+# rules that are about the whole site's language (the ring, the corner scale,
+# a hover that must not stick on a touch screen) have to be checked here too,
+# or half the site is unchecked by construction.
+LAYOUT_CSS = re.sub(
+    r"/\*.*?\*/", " ",
+    re.search(r"<style>(.*?)</style>",
+              (ROOT / "site" / "_layouts" / "default.html").read_text(encoding="utf-8"),
+              re.DOTALL).group(1),
+    flags=re.DOTALL)
+LAYOUT_RULES = [(re.sub(r"\s+", " ", m.group(1).strip()), m.group(2))
+                for m in re.finditer(r"([^{}]+)\{([^{}]*)\}", LAYOUT_CSS)]
+
 
 def _hex(value: str) -> tuple[int, int, int]:
     value = value.lstrip("#")
@@ -189,12 +203,96 @@ def test_pressing_anything_feels_the_same():
         "PRESS_EXCEPTIONS with the reason:\n  " + "\n  ".join(strays))
 
 
+def test_the_rings_own_corner_comes_off_the_corner_scale():
+    """A focus ring drawn round a transparent control needs its own radius, and
+    those were written as literals nowhere else on the scale: 2px on the
+    holdings sort headers, 3px on the Overview jump links. Three near-identical
+    corners on three rings is the same drift as three press scales."""
+    named = {"6px": "--radius-sm", "10px": "--radius",
+             "12px": "--radius-float", "16px": "--radius-lg"}
+    strays = []
+    for sel, body in RULES + LAYOUT_RULES:
+        if ":focus-visible" not in sel:
+            continue
+        radius = re.search(r"border-radius\s*:\s*([^;]+)", body)
+        if not radius:
+            continue
+        value = radius.group(1).strip()
+        if value.startswith("var(--radius") or value in ("50%", "999px", "inherit"):
+            continue
+        hint = f" (use var({named[value]}))" if value in named else ""
+        strays.append(f"{sel} -> border-radius: {value}{hint}")
+    assert strays == [], (
+        "the ring's corner is a corner: use the scale, a pill or a circle:\n  "
+        + "\n  ".join(strays))
+
+
+def test_every_control_a_finger_can_reach_can_also_be_pressed():
+    """The press baseline, checked the way #1453's focus baseline is.
+
+    `--press-scale`'s own comment says a press has to feel the same everywhere
+    or some buttons read as softer than others. Seven components wrote it;
+    everything else — the sort headers, every fold and toggle, the jump links,
+    the retry, the decision-map controls — did not move at all. Naming them one
+    by one is what let new ones keep skipping it, so the rule is written on the
+    element and this asserts the element form, not a list of classes.
+    """
+    baseline = [body for sel, body in RULES
+                if sel == 'button:active, summary:active, [role="button"]:active']
+    assert baseline, (
+        "the press baseline is gone: every pressable element form has to carry "
+        "`transform: scale(var(--press-scale))` on :active, or each new control "
+        "is back to remembering it on its own")
+    assert "scale(var(--press-scale))" in baseline[0]
+
+    transition = [body for sel, body in RULES
+                  if sel == 'button, summary, [role="button"]']
+    assert transition and "transform" in transition[0], (
+        "without the matching transition the press snaps in and out; the seven "
+        "components that pressed before this baseline all eased")
+
+
+def test_hover_is_never_left_stuck_on_a_touch_screen():
+    """`:hover` sticks after a tap on a touch screen, so every hover state is
+    supposed to sit inside `(hover: hover) and (pointer: fine)` — which #1707
+    did for the three controls it touched and for nothing else. The site menu,
+    the retry, the sort headers, every fold toggle and the whole decision map
+    stayed outside it, which is why the decision map also carried a coarse-
+    pointer rule whose only job was to undo its own hover."""
+    def walk(text, guarded):
+        stray, i, n = [], 0, len(text)
+        while i < n:
+            open_at = text.find("{", i)
+            if open_at < 0:
+                break
+            head = text[i:open_at].strip()
+            depth, cursor = 1, open_at + 1
+            while cursor < n and depth:
+                depth += (text[cursor] == "{") - (text[cursor] == "}")
+                cursor += 1
+            body = text[open_at + 1:cursor - 1]
+            if head.startswith("@"):
+                stray += walk(body, guarded or "hover: hover" in head)
+            else:
+                selector = re.sub(r"\s+", " ", head)
+                if ":hover" in selector and not guarded:
+                    stray.append(selector)
+                stray += walk(body, guarded)
+            i = cursor
+        return stray
+
+    stray = walk(CSS, False) + walk(LAYOUT_CSS, False)
+    assert stray == [], (
+        "wrap these in @media (hover: hover) and (pointer: fine):\n  "
+        + "\n  ".join(stray))
+
+
 def test_one_focus_ring():
     """#1706 gave the shell one ring; the widgets kept two colours and five
     offsets. `outline: none` is allowed only where the rule replaces the ring
     with something else and says so."""
     wrong = []
-    for sel, body in RULES:
+    for sel, body in RULES + LAYOUT_RULES:
         if ":focus-visible" not in sel:
             continue
         outline = re.search(r"(?:^|;)\s*outline\s*:\s*([^;]+)", body)

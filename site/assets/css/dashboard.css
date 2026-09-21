@@ -347,6 +347,24 @@
     outline: var(--focus-ring);
     outline-offset: 2px;
   }
+  /* 按压反馈基线，和上面那条焦点基线同形。--press-scale 的注释早就写着
+     「按压反馈要一致且立刻，不一致读成『有的按钮更软』」，但实际只有七个
+     组件写了它：.refresh-btn / .tab-btn / .site-menu-btn / .mkt-seg-btn /
+     .dh-toggle / .dh-lane / .deck-dot。同一张页面上，顶栏按下去会沉，表头
+     排序、展开/收起、跳转、重试、分段器、抽屉里的按钮按下去纹丝不动——
+     和 #1453 之前的焦点环是同一种「每个组件自己记得写」。
+
+     按元素选择器写（0-0-1），组件自己的 .foo:active 照旧覆盖。transition
+     也在基线里：没有它，按下与松开都是瞬跳；组件自带 transition 简写的
+     十三条里，真正是控件的那几条本来就含 transform。 */
+  button, summary, [role="button"] {
+    transition: transform var(--duration-fast) var(--ease-out);
+  }
+  button:active,
+  summary:active,
+  [role="button"]:active {
+    transform: scale(var(--press-scale));
+  }
   /* 手机（≤560px）blur 减半保 saturate（#995 同款判据）：小屏上大面积
      blur 的渲染代价与玻璃读感不成比例，半径减半、饱和保留——色度差才是
      「这是玻璃」的真凭据。 */
@@ -442,7 +460,11 @@
     padding-bottom: env(safe-area-inset-bottom);
   }
   a { color: var(--accent); text-decoration: none; }
-  a:hover { text-decoration: underline; }
+  /* 触屏上 :hover 会在点完之后粘住，所以全站的 hover 都关在这条查询里
+     （#1707 起 .tab-btn / .mkt-seg-btn / .refresh-btn 已经是这样写的）。 */
+  @media (hover: hover) and (pointer: fine) {
+    a:hover { text-decoration: underline; }
+  }
   code { font-family: var(--mono); font-size: var(--fs-xs); }
 
   /* =========================================================
@@ -501,7 +523,9 @@
        underline would run under the logo and the whole name. */
     color: inherit; text-decoration: none;
   }
-  .brand:hover { text-decoration: none; }
+  @media (hover: hover) and (pointer: fine) {
+    .brand:hover { text-decoration: none; }
+  }
   /* On the shared layout the wordmark is the link home, so it is a tab stop —
      and a tab stop with no ring is a tab stop nobody can follow. */
   .brand:focus-visible {
@@ -672,7 +696,9 @@
     transition: background var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out);
   }
   .site-menu-btn::-webkit-details-marker { display: none; }
-  .site-menu-btn:hover { background: var(--surface-1); }
+  @media (hover: hover) and (pointer: fine) {
+    .site-menu-btn:hover { background: var(--surface-1); }
+  }
   .site-menu-btn:active { transform: scale(var(--press-scale)); }
   .site-menu-btn:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
   .site-menu-chevron {
@@ -699,9 +725,18 @@
     padding: 8px 12px; min-height: 34px; border-radius: var(--radius-sm);
     color: var(--text); text-decoration: none;
     font-size: var(--fs-md); font-weight: 500; white-space: nowrap;
-    transition: background var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out);
+    transition: background var(--duration-fast) var(--ease-out),
+                color var(--duration-fast) var(--ease-out),
+                transform var(--duration-fast) var(--ease-out);
   }
-  .site-menu-item:hover { background: var(--surface-2); text-decoration: none; }
+  /* The one menu row that is an `<a>`, so the element-level press baseline
+     cannot reach it — and its own trigger right above sinks under a finger.
+     Written here rather than by widening the baseline to `a:active`, which
+     would make every link inside a sentence flinch. */
+  .site-menu-item:active { transform: scale(var(--press-scale)); }
+  @media (hover: hover) and (pointer: fine) {
+    .site-menu-item:hover { background: var(--surface-2); text-decoration: none; }
+  }
   .site-menu-item:focus-visible { outline: var(--focus-ring); outline-offset: -2px; }
   /* Where you are: an accent dot in the gutter plus the accent colour. The dot
      is structural (it is what the eye lands on first); colour is the second
@@ -731,11 +766,7 @@
        line — and 320px still fits, because the menu's label is the only text a
        page name can set and the wordmark truncates first. */
     .brand { flex: 0 1 auto; }
-    .site-menu-btn { min-height: 44px; padding: 0 var(--space-2); }
-    /* The items are the target, not just the trigger. They were 35.5px — a
-       mouse target wearing a menu's clothes — so the one control that answers
-       "where can I go" was the hardest thing on the phone to hit. */
-    .site-menu-item { min-height: 44px; }
+    .site-menu-btn { padding: 0 var(--space-2); }
   }
   @media (max-width: 400px) {
     .brand h1 { font-size: var(--fs-xl); max-width: 84px; }
@@ -815,7 +846,9 @@
     border: 1px solid var(--border-strong); border-radius: var(--radius-sm);
     padding: 4px 12px;
   }
-  .panel-load-retry:hover { background: var(--border); }
+  @media (hover: hover) and (pointer: fine) {
+    .panel-load-retry:hover { background: var(--border); }
+  }
   .panel-load-retry:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
 
   /* ── Mobile (<1024px): iOS-native paged tabs ──
@@ -1679,7 +1712,9 @@
     letter-spacing: 0.05em; cursor: pointer;
     user-select: none; height: 44px;
   }
-  .holdings-table thead th:hover { color: var(--text); }
+  @media (hover: hover) and (pointer: fine) {
+    .holdings-table thead th:hover { color: var(--text); }
+  }
   /* The sort control is a <button> for the keyboard's sake (#1316); it has to
      look like the header text it replaced, so it inherits everything and keeps
      the cell's own alignment. `inherit` on font/color rather than a restatement:
@@ -1690,7 +1725,7 @@
     text-align: inherit; width: 100%;
   }
   .holdings-table thead th .sort-btn:focus-visible {
-    outline: var(--focus-ring); outline-offset: 2px; border-radius: 2px;
+    outline: var(--focus-ring); outline-offset: 2px; border-radius: var(--radius-sm);
   }
   .holdings-table thead th .arr { color: var(--accent); margin-left: 2px; }
   @media (hover: hover) and (pointer: fine) {
@@ -1935,7 +1970,9 @@
     transition: transform var(--duration-fast) var(--ease-out); flex: 0 0 auto; margin-left: 3px;
   }
   .dbt-more[aria-expanded="true"] > i, .pt-fold[aria-expanded="true"] > i { transform: rotate(45deg); }
-  .dbt-more:hover, .pt-fold:hover, .dbt-toggle:hover .dbt-gist { color: var(--text-secondary); }
+  @media (hover: hover) and (pointer: fine) {
+    .dbt-more:hover, .pt-fold:hover, .dbt-toggle:hover .dbt-gist { color: var(--text-secondary); }
+  }
   .dbt-toggle:focus-visible, .dbt-more:focus-visible, .pt-fold:focus-visible {
     outline: var(--focus-ring); outline-offset: 2px;
   }
@@ -2151,7 +2188,9 @@
     background: none; border: 0; padding: 4px 0; margin: 0; cursor: pointer;
     color: var(--text-tertiary); font: 600 var(--fs-micro)/1.3 var(--mono);
   }
-  .pt-expand:hover { color: var(--text-secondary); }
+  @media (hover: hover) and (pointer: fine) {
+    .pt-expand:hover { color: var(--text-secondary); }
+  }
   .pt-expand:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
   @media (pointer: coarse) { .pt-expand { padding: 9px 0; } }
   .pt-row .pt-side { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
@@ -3296,7 +3335,9 @@
     transition: transform var(--duration-fast) var(--ease-out); flex: 0 0 auto; margin: -3px 2px 0 3px;
   }
   .dh-fold[aria-expanded="true"] i { transform: rotate(45deg); margin-top: -6px; }
-  .dh-fold:hover { color: var(--text-secondary); }
+  @media (hover: hover) and (pointer: fine) {
+    .dh-fold:hover { color: var(--text-secondary); }
+  }
   .dh-fold:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
   @media (prefers-reduced-motion: reduce) { .dh-fold i { transition: none; } }
   @media (pointer: coarse) { .dh-fold { padding: 13px 0; } }
@@ -3377,7 +3418,9 @@
     border: 1px solid var(--border); border-radius: var(--radius-sm);
     padding: 5px 9px; font-size: 12px; }
   .dm-controls button { cursor: pointer; }
-  .dm-controls button:hover { border-color: var(--accent); }
+  @media (hover: hover) and (pointer: fine) {
+    .dm-controls button:hover { border-color: var(--accent); }
+  }
   .dm-seg { display: inline-flex; flex: 0 0 auto; align-self: flex-start;
     border: 1px solid var(--border);
     border-radius: var(--radius-sm); overflow: hidden; }
@@ -3428,8 +3471,10 @@
     min-width: 176px; }
   .dm-board thead th.dm-src { z-index: 4; }
   .dm-board tbody tr + tr td, .dm-board tbody tr + tr th { border-top: 1px solid var(--border); }
-  .dm-board tbody tr:hover .dm-src { background: var(--fill-inset); }
-  .dm-board tbody tr.dm-signal:hover .dm-src { background: var(--border); }
+  @media (hover: hover) and (pointer: fine) {
+    .dm-board tbody tr:hover .dm-src { background: var(--fill-inset); }
+    .dm-board tbody tr.dm-signal:hover .dm-src { background: var(--border); }
+  }
 
   .dm-twist { display: inline-flex; align-items: center; gap: 7px;
     background: none; border: 0; padding: 3px 2px; margin: 0; cursor: pointer;
@@ -3454,8 +3499,13 @@
 
   .dm-cell { text-align: center; padding: 4px 5px !important; min-width: 62px;
     cursor: pointer; }
-  .dm-cell:hover, .dm-cell:focus-visible { outline: var(--focus-ring);
-    outline-offset: -2px; }
+  .dm-cell:focus-visible { outline: var(--focus-ring); outline-offset: -2px; }
+  @media (hover: hover) and (pointer: fine) {
+    .dm-cell:hover { outline: var(--focus-ring); outline-offset: -2px; }
+  }
+  /* 单元格是 <td role="button">：缩放一个表格单元会把整行的列宽拖着走，
+     所以这里的「按下去」是它本来就有的描边，不是基线的 scale。 */
+  .dm-cell:active { transform: none; }
   .dm-cell .dm-n { display: block; font-family: var(--mono); font-size: 11.5px;
     color: var(--text); font-weight: 600; }
   .dm-cell .dm-m { display: block; font-family: var(--mono); font-size: 10.5px;
@@ -3498,7 +3548,10 @@
     border: 0; padding: 0; background: none; cursor: pointer; }
   .dm-dot::before { content: ''; position: absolute; inset: 0; border-radius: 50%;
     background: var(--text-dim); transition: transform var(--duration-fast) var(--ease-out); }
-  .dm-dot:hover::before, .dm-dot:focus-visible::before { transform: scale(1.5); }
+  .dm-dot:focus-visible::before { transform: scale(1.5); }
+  @media (hover: hover) and (pointer: fine) {
+    .dm-dot:hover::before { transform: scale(1.5); }
+  }
   .dm-dot:focus-visible { outline: none; }
   .dm-dot.is-buy::before { background: var(--positive); border-radius: 1px;
     clip-path: polygon(50% 0, 100% 100%, 0 100%); }
@@ -3535,7 +3588,9 @@
   .dm-hits button { width: 100%; display: flex; justify-content: space-between;
     gap: 10px; background: none; border: 0; color: var(--text); cursor: pointer;
     font: inherit; font-size: 12.5px; padding: 8px 2px; text-align: left; }
-  .dm-hits button:hover { background: var(--fill-inset); }
+  @media (hover: hover) and (pointer: fine) {
+    .dm-hits button:hover { background: var(--fill-inset); }
+  }
   .dm-hits em { font-style: normal; color: var(--text-dim);
     font-family: var(--mono); font-size: 11.5px; }
   .dm-scrim { position: fixed; inset: 0; background: rgba(0,0,0,.42); z-index: 55; }
@@ -3618,7 +3673,7 @@
     .dm-track { height: 26px; }
     .dm-dot { width: 12px; height: 12px; top: 7px; margin-left: -6px; }
     .dm-dot::after { content: ''; position: absolute; inset: -11px -2px; }
-    .dm-dot:hover::before { transform: none; }
+    /* 悬停放大本身已经关在 (hover: hover) 里，这里只剩焦点那一档。 */
     .dm-dot:focus-visible::before { transform: scale(1.4); }
     .dm-legend i::after { content: none; }
     .dm-controls select, .dm-controls button { padding: 9px 10px; }
@@ -3856,7 +3911,7 @@
   .overview-jump { padding: 6px 0 6px 8px; white-space: nowrap; }
   .overview-jump:focus-visible,
   .overview-strip-link:focus-visible {
-    outline: var(--focus-ring); outline-offset: 2px; border-radius: 3px;
+    outline: var(--focus-ring); outline-offset: 2px; border-radius: var(--radius-sm);
   }
   /* 判词行：2026-08-24 从大字报降到 --fs-xl；第四次迭代再降一档 ——
      券商终端里没有成段 prose，判词句退成一行 caption（--fs-sm / 次级色 /
@@ -4815,6 +4870,12 @@
     .dm-actionbar button, .panel-load-retry, .desk-rail-toggle {
       min-height: 44px;
     }
+    /* 顶栏的三个控件以前是按视口宽度给的 44px（`max-width: 600px`），不是按
+       指针。WebKit 实测 iPad 768px 与 1024px：.site-menu-btn 32px、
+       .site-menu-item 35.5px，1024px 上 .tab-btn 还从 44px 降到桌面的 40px
+       —— 同一块触摸屏，顶栏比卡里的控件还难点。热区跟着指针走，和下面那条
+       面板闸同一条线。 */
+    .site-menu-btn, .site-menu-item, .tab-btn { min-height: 44px; }
     /* The old gate named a handful of known controls and sampled only the
        first match. New controls therefore defaulted back to mouse-sized.
        On a coarse pointer the contract belongs to the interaction role, not
@@ -4832,5 +4893,21 @@
       min-width: 44px;
       min-height: 44px;
     }
+    /* An `<a>` laid out as a control is a control. Named rather than swept up
+       by `.panel.active a`, because a 44px floor on a link inside a sentence
+       stretches the line box it sits in — the ones below are their card's
+       action, on their own line, and measured 18px tall on a phone.
+
+       The brief index is the other shape of the same defect: its rows were
+       already 44px, but the row is a padded `<li>` and only the text inside it
+       was the link. The anchor takes the row's height instead of adding to it,
+       so the target is the whole row and the list does not grow. */
+    .latest-brief-links a,
+    article .brief-list a {
+      display: flex; align-items: center; min-height: 44px;
+    }
+    /* Only the rows that are links: a week with no brief is a `<span>`,
+       and it has to keep the rhythm of the rows around it. */
+    article .brief-list li:has(a) { padding-block: 0; }
     .panel.active .dm-cell { height: 44px; }
   }
