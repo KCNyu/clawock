@@ -102,3 +102,57 @@ def test_no_module_spells_a_receipt_name_of_its_own():
             if pattern.search(code):
                 offenders.append(f"{path.relative_to(ROOT)}:{number}: {line.strip()[:90]}")
     assert not offenders, "use delivery_receipts.receipt_name / claim_name:\n" + "\n".join(offenders)
+
+
+def test_only_the_intraday_claim_takes_the_slot_and_the_receipt_never_does():
+    """The two files answer different questions, so only one of them moves.
+
+    `intraday-sent-{market}.json` answers "when did this market last receive an
+    intraday report" — every reader and every file already on disk depends on
+    that name. The claim answers "is THIS slot's send in flight", and naming it
+    per-market made the two indistinguishable (#1742).
+    """
+    slot = "2026-09-21T10:03:00+08:00"
+
+    assert (receipts.claim_name("intraday", market="hk", slot=slot)
+            == "intraday-send-hk-20260921-1003.claim")
+    # The receipt is untouched by a slot it is not given and would not use.
+    assert receipts.receipt_name("intraday", market="hk") == "intraday-sent-hk.json"
+    # Neither are the kinds whose names already carry phase and date.
+    assert (receipts.claim_name("report", market="us", phase="close", date="2026-09-11")
+            == "report-send-us-close-2026-09-11.claim")
+    assert receipts.claim_name("brief", date="2026-09-11") == "brief-send-2026-09-11.claim"
+
+
+def test_two_intraday_slots_never_share_one_claim_file():
+    """The defect in one line: 10:03's leftover must not be 10:33's lock."""
+    names = {receipts.claim_name("intraday", market="hk", slot=slot)
+             for slot in ("2026-09-21T10:03:00+08:00", "2026-09-21T10:33:00+08:00")}
+    assert len(names) == 2, names
+    # …and a different market is still a different claim, as it always was.
+    assert (receipts.claim_name("intraday", market="us", slot="2026-09-21T10:03:00+08:00")
+            != receipts.claim_name("intraday", market="hk", slot="2026-09-21T10:03:00+08:00"))
+
+
+@pytest.mark.parametrize("slot", [None, "", "not-a-timestamp", 20261003, {}])
+def test_a_slot_that_cannot_be_resolved_keeps_the_name_it_always_had(slot):
+    """Additive, never load-bearing: a caller that cannot name its slot still
+    takes a lock, and the age bound in `wechat_gap_reason` (#1685) stays its
+    backstop. Falling back to no claim at all would trade a false alert for a
+    duplicate send, which is the failure #508 exists to stop."""
+    assert receipts.slot_key(slot) is None
+    assert (receipts.claim_name("intraday", market="hk", slot=slot)
+            == "intraday-send-hk.claim")
+
+
+def test_the_slot_key_is_the_one_the_watchdog_already_dedupes_on():
+    """Both sides have to land on the same file name, so there is one spelling.
+
+    `intraday_watchdog` has derived `%Y%m%d-%H%M` from `expected_slot` for its
+    dedupe flag since before this; the postflight holds the same string as
+    `heartbeat['slot']` (#1555 matches the marker on it).
+    """
+    from datetime import datetime
+
+    slot = "2026-09-21T10:03:00+08:00"
+    assert receipts.slot_key(slot) == datetime.fromisoformat(slot).strftime("%Y%m%d-%H%M")

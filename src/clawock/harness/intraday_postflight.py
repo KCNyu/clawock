@@ -548,10 +548,17 @@ def main(argv=None):
             # Same race as #508 on the report path: the marker is written only
             # after both sends return, so a second postflight started inside
             # that window sees "not delivered" and doubles the slot. The claim
-            # is taken before the send. Its staleness window matches the
-            # already_delivered one — intraday's claim is per-market, so it must
-            # expire before the next 30min slot needs it.
-            claim_path = delivery_receipts.claim_path(TMP, 'intraday', market=args.market)
+            # is taken before the send.
+            #
+            # Named with this slot (#1742), the same one the marker is matched
+            # on (#1555): per-market alone, a claim this slot's crashed sender
+            # left behind was indistinguishable from the previous slot's, and
+            # the next watchdog announced a WeChat delivery it could not confirm
+            # for a send that had never started. The staleness window stays at
+            # 20min — shorter than the 30min slot, so a same-slot retry after a
+            # dead holder is still arbitrated rather than waiting a full slot.
+            claim_path = delivery_receipts.claim_path(
+                TMP, 'intraday', market=args.market, slot=this_slot)
             won, claim_reason = claim_send(claim_path, stale_after_ms=20 * 60 * 1000)
             if not won:
                 print(f'concurrency: intraday {args.market} send is already claimed '

@@ -20,6 +20,7 @@ postflights.
 from __future__ import annotations
 
 import json
+from datetime import datetime
 from pathlib import Path
 
 KINDS = ("brief", "report", "intraday")
@@ -60,9 +61,48 @@ def parse_receipt_name(name) -> tuple[str, list[str]] | None:
     return None
 
 
-def claim_name(kind, *, market=None, phase=None, date=None) -> str:
-    """The send-right lock taken before a send (#508), same naming as the receipt."""
-    return f"{kind}-send-{_slug(kind, market, phase, date)}.claim"
+def slot_key(slot) -> str | None:
+    """A schedule slot as a file-name part: `2026-09-21T10:03:00+08:00` → `20260921-1003`.
+
+    The one spelling, because both sides of the intraday claim have to land on
+    the same file name: the postflight holds the slot as `heartbeat['slot']` and
+    the watchdog as its `expected_slot`, and #1555 already established that
+    those two are the same string (the marker is matched on it). None for a slot
+    that is absent or unparseable — the caller then falls back to the name it
+    used before there was a slot in it.
+    """
+    if not isinstance(slot, str) or not slot:
+        return None
+    try:
+        return datetime.fromisoformat(slot).strftime("%Y%m%d-%H%M")
+    except ValueError:
+        return None
+
+
+def claim_name(kind, *, market=None, phase=None, date=None, slot=None) -> str:
+    """The send-right lock taken before a send (#508), same naming as the receipt —
+    except that intraday's carries the slot.
+
+    The receipt is deliberately per-market (`intraday-sent-{market}.json`): it
+    answers "when did this market last receive an intraday report", and every
+    reader of it, plus every file already on disk, depends on that name. The
+    claim answers a different question — "is THIS slot's send in flight" — and
+    naming it per-market made the two indistinguishable: a claim an earlier slot
+    left behind carrying `send_started_at` was read by the next slot's watchdog
+    as its own sender dying mid-send, and announced as an unconfirmed WeChat
+    delivery that never happened (#1742). `report` and `brief` claims never had
+    this because their names already carry phase and date.
+
+    `slot` is optional and additive: without one the name is exactly what it has
+    always been, so a caller that cannot resolve its slot keeps working and the
+    age bound in `wechat_gap_reason` (#1685) stays its backstop.
+    """
+    slug = _slug(kind, market, phase, date)
+    if kind == "intraday":
+        key = slot_key(slot)
+        if key:
+            slug = f"{slug}-{key}"
+    return f"{kind}-send-{slug}.claim"
 
 
 def receipt_path(tmp, kind, **slot) -> Path:
