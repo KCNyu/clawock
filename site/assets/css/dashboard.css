@@ -3772,7 +3772,11 @@
     transition: opacity var(--duration-fast) var(--ease-out),
                 transform var(--duration-fast) var(--ease-out);
   }
-  .deck-dot[aria-current="true"] { background: var(--text-secondary); opacity: 1; }
+  /* Colour only: `background` would also reset background-clip to border-box.
+     On coarse pointers the button owns an invisible 11×33px hit box while only
+     its 5×5px content box may paint; resetting the clip turns the current dot
+     into a vertical ellipse exactly when the pager changes current card. */
+  .deck-dot[aria-current="true"] { background-color: var(--text-secondary); opacity: 1; }
   .deck-dot:active { transform: scale(var(--press-scale)); }
   .deck-dot:focus-visible { outline: var(--focus-ring); outline-offset: 3px; }
   /* 5px 的点在手指下就是 5px。垂直方向的余量不花成本（上下没有别的可点
@@ -4092,7 +4096,13 @@
   }
   .overview-strip-link span:last-child { color: var(--accent); letter-spacing: 0; text-transform: none; }
   .overview-asof {
-    position: absolute; top: 31px; left: 14px; font: 500 var(--fs-micro)/1.2 var(--mono);
+    position: absolute; top: 31px; left: 14px;
+    /* This is Chinese prose with an occasional number, not tabular code. SF
+       Mono/CJK fallback metrics can give the two full-width glyphs in 「刚刚」
+       half-width advances (the deployed overlap); keep CJK on the UI font and
+       make only the digits tabular. The other relative states share this node. */
+    font: 500 var(--fs-micro)/1.2 var(--font);
+    font-variant-numeric: tabular-nums; white-space: nowrap; letter-spacing: 0;
   }
   .overview-market .market-grid {
     grid-template-columns: repeat(5, minmax(0, 1fr)); min-height: 58px; margin-top: 9px;
