@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-22T23:43:09.737145+00:00",
+  "generated_at": "2026-09-22T23:52:54.754621+00:00",
   "sources": [
     "reddit-search-rss",
     "google-news-rss"
@@ -120,7 +120,7 @@
         },
         {
           "title": "Defiance Daily Target 2X Long RKLB ETF offers 2...",
-          "source": "pluang.com",
+          "source": "Pluang",
           "published": "Mon, 24 Aug 2026 07:00:00 GMT",
           "url": "https://news.google.com/rss/articles/CBMiiAFBVV95cUxPVkJZYnVmOUhXRm1jM2pfY0hocnVuZDVzQUplM0xtZHlrT25penZwZlBGaXNodDZPMzFfN2NFRmZCdzhyWG1QdDF6a2JhT1JQTUVXMlJTUEU0UmVPTkdnR2VfdU42bkFZY29NYlZQMVpTUy10MENZOWZBeU5KSDZKaU90T3dIVkV2?oc=5"
         }
@@ -213,16 +213,16 @@
           "url": "https://news.google.com/rss/articles/CBMiX0FVX3lxTE1BeVZoOFhBeU9fYnFfeF8wQkVnSDk4TktyVlJUaFhkelJjenlNSTRadmJfZXY5c0J4M3Bzb1RwZ1VQeE5zeDdZb2pHRF9vc0dIWXEwblNJYlQyYW1BcFFj?oc=5"
         },
         {
-          "title": "(SPCH) Movement as an Input in Quant Signal Sets",
-          "source": "Stock Traders Daily",
-          "published": "Fri, 18 Sep 2026 04:34:02 GMT",
-          "url": "https://news.google.com/rss/articles/CBMixgFBVV95cUxOWVE2TzNmWkV1cGpmNldaZHhpYVB3dy0xZ2FQd25HNVFXd0hwS25EX1N6aUpBQ3dEMUFiZVBGcTNhQ05vWXNCV01uZVppbVBJb05kRlBNbVFZYXFTMW1Ra1pVLXE4bzhhekFVSzhZZUQzVGhHTk92eTVmOV9QNDFIUkdwbWZrWklKdHJOMm1IVVZYcjdHdEtyd3NoVUVrQUxTeExURHdGS3VFU1ZNcHViODZILVZ6WlZfdjNKekYzS2JjOXlCU1E?oc=5"
-        },
-        {
           "title": "SPCH ETF Price and Chart — CBOE:SPCH",
           "source": "TradingView",
           "published": "Tue, 16 Jun 2026 12:19:19 GMT",
           "url": "https://news.google.com/rss/articles/CBMiWkFVX3lxTE9LY1FkX2hvMTE2bDlNUGd4TllLSE41eU9qckpTczQ2TjlhNUl1UXlWTXNFbFNFSWxaNFhnaFhSV2x1T0NmMkUzMnhDRDZqT0ZxSjZLZXl0OG13UQ?oc=5"
+        },
+        {
+          "title": "(SPCH) Movement as an Input in Quant Signal Sets",
+          "source": "Stock Traders Daily",
+          "published": "Fri, 18 Sep 2026 04:34:02 GMT",
+          "url": "https://news.google.com/rss/articles/CBMixgFBVV95cUxOWVE2TzNmWkV1cGpmNldaZHhpYVB3dy0xZ2FQd25HNVFXd0hwS25EX1N6aUpBQ3dEMUFiZVBGcTNhQ05vWXNCV01uZVppbVBJb05kRlBNbVFZYXFTMW1Ra1pVLXE4bzhhekFVSzhZZUQzVGhHTk92eTVmOV9QNDFIUkdwbWZrWklKdHJOMm1IVVZYcjdHdEtyd3NoVUVrQUxTeExURHdGS3VFU1ZNcHViODZILVZ6WlZfdjNKekYzS2JjOXlCU1E?oc=5"
         },
         {
           "title": "SPCH - Leverage Shares 2X Long SPCX Daily ETF Stock Price and Quote",
@@ -231,16 +231,16 @@
           "url": "https://news.google.com/rss/articles/CBMiRkFVX3lxTE5pSVdOSjZQQ1k0SHdnd1lZeHVDTnB6djN6djRGVllXLXBTelZBd0JkS0NyOFlUSWNpUXhjZTFsbmFRVGs1Ync?oc=5"
         },
         {
+          "title": "Ten SpaceX ETFs Launch as SPCX Hits Market",
+          "source": "ETF Database",
+          "published": "Mon, 15 Jun 2026 07:00:00 GMT",
+          "url": "https://news.google.com/rss/articles/CBMieEFVX3lxTE0wY0trcC1GRkIzV3R5bnZNUzFSMDNGN1VuamxtR1k1YmJpeDRkcnNtS0JkWURSeWtsU1BNYTQwRk5yLXZra1JkcUNFNlQtaEFmdXE0RjRJdm1WX0RHamtiMTlRM0hNUE1EcWhuS2Zyd1NUak9HOTBOSw?oc=5"
+        },
+        {
           "title": "Leveraged ETFs look to ride SpaceX IPO wave",
           "source": "InvestmentNews",
           "published": "Fri, 12 Jun 2026 07:00:00 GMT",
           "url": "https://news.google.com/rss/articles/CBMiowFBVV95cUxQWnFTYllOb1kxNDlUMXJZbnI3djR1VGJNNFFkdWZFOW51TXVTMjVtaGtPNlQxUW1KVm1lNVpHbWhobXFYWTAwNnJGLUgtczlwcnBYa3hMQXRvVEo0SW1WcGFHX2FLUzRvblRUVmdva1BjaXlxUlBXTnZFbEcyT1JFVzVmMml3MVh1NFZ6Znd2V2ZzOW11bWVpWXdQeExxZUhpZ1BV?oc=5"
-        },
-        {
-          "title": "Winner Emerges In SpaceX ETF Race",
-          "source": "ETF.com",
-          "published": "Mon, 29 Jun 2026 07:00:00 GMT",
-          "url": "https://news.google.com/rss/articles/CBMickFVX3lxTE9hUlJzVHhXbndLRk5TMF9TUXFORnphV3R5Y2h3ckxCS2RyRm9hYkJGemhLMG5oNDNwLTBqbFdiQmxGYTdkakNRZXlhYW5lM0lvdnVlRGw3ZEY4SGxBQUlBWHBzWjA5RmVMNWFnU0owVEJpZw?oc=5"
         }
       ],
       "google_news_zh": []
@@ -302,16 +302,16 @@
           "url": "https://news.google.com/rss/articles/CBMicEFVX3lxTE1TVUZkTzYzckctYW5xSF9xdHVJSkNZbmZObG9yYWZHbWFIXzZLekQwTjJrZkJURzhuSnFjdXZWSmhRQ3pVMWJneDlXUnc4ZmR5elpnZmIwTjdEVGQ0R2NObTdVWVRQUmFpQmJNUGhHdGo?oc=5"
         },
         {
-          "title": "$MINIMAX-W (00100.HK)$",
-          "source": "Moomoo",
-          "published": "Fri, 18 Sep 2026 05:56:26 GMT",
-          "url": "https://news.google.com/rss/articles/CBMigwFBVV95cUxOc0dRN1JlT3FRM1R1Z0FaVjlHMGxya1lGM3BKYWpOd09HUk1qWWNFU044T005Zk53WnBidkxDOE92ODRQeXdCTW8wcGFudUNOOVlwVE53ZnRpaFlNVkpwdnJJbURxT3FiSFlOaUpzdXNIbXM0OV8zakhFRHgxQjR3QUxLcw?oc=5"
-        },
-        {
           "title": "MINIMAX-W(00100) 股東特別大會的結果",
           "source": "信報網站",
           "published": "Tue, 15 Sep 2026 19:07:11 GMT",
           "url": "https://news.google.com/rss/articles/CBMi7AFBVV95cUxQT3lTbWNCT1NnRGticUNEZmsxY1B3TVJPRHhBREk4MUtqa0dIeUVlOVRROEdfN085d1EzNnc4MXgtMHBnWGFsVHNuTkhnRG1nc29Mc0tvTWlpa0RjQXNzWV9BYjB2Z2hBRDI0MXBJU2syVW5FNVRhOHEwRl9CTEV5TG5XNmxSMU84anluVmo2OVY1QjFKZXhCcmpWVHRHLWpsZWVNLU1kanJwbGw5TjRLSUdWdGlZWHAwMG8tYWdNNUhDdW1ZYmhFUTk4c2hERHdPS2xYYnkwOTF6ZmhMM0xxLWRpVnNEdkNJRl9aLQ?oc=5"
+        },
+        {
+          "title": "$MINIMAX-W (00100.HK)$",
+          "source": "Moomoo",
+          "published": "Fri, 18 Sep 2026 05:56:26 GMT",
+          "url": "https://news.google.com/rss/articles/CBMigwFBVV95cUxOc0dRN1JlT3FRM1R1Z0FaVjlHMGxya1lGM3BKYWpOd09HUk1qWWNFU044T005Zk53WnBidkxDOE92ODRQeXdCTW8wcGFudUNOOVlwVE53ZnRpaFlNVkpwdnJJbURxT3FiSFlOaUpzdXNIbXM0OV8zakhFRHgxQjR3QUxLcw?oc=5"
         },
         {
           "title": "國泰海通維持MINIMAX增持評級 目標價449港元",
@@ -604,7 +604,7 @@
         },
         {
           "title": "全日沽空金額減11% 南方恒生科技減6% (16:33) - 20260903 - 即時財經新聞",
-          "source": "明報財經網",
+          "source": "finance.mingpao.com",
           "published": "Thu, 03 Sep 2026 07:00:00 GMT",
           "url": "https://news.google.com/rss/articles/CBMinwJBVV95cUxQYV96NDhmejN0UXZEMkVjSjJpWHF2N01WdEt3Y1NoS2NSdHlsdmJEQkNxaDFfb1h2NUhaRldPTmpjOUY2cXRkREVjVTQyZkR3WWVOVHlaZi1DdkRLMVdZRU1VZXZJb2ZSbk1uenp1TE9Md1VFM1RTQVV3Q0EzTGh0MXd5ZDdpVjJMTy1kWmcwZzZkQU1WQXRZSk9SSlNqMjR4a3N6c0EtVEZ5WFZMcmVCb0YwaHUzLUdfZHUzb0JsVHZ5WTVZM0RYSkIyOThnRERhTDlZb2tQMFoySDJpSUNSWHVKQ00ydE5nRHRrWlc2ZFhsRGcyVzVpeWFFbmp3TGI0TWpxak9DZGZVaEd4YlNyUDZwR18zN2U0V3RadWpzTQ?oc=5"
         },
