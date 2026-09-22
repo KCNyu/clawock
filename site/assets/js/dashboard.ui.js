@@ -72,7 +72,23 @@
       activateTabData(t);
     }
     const btn = document.querySelector(`.tab-btn[data-tab="${t}"]`);
-    if (btn) btn.scrollIntoView({ block: "nearest", inline: "center", behavior: SCROLL_BEHAVIOR });
+    // Keep the chosen tab inside the strip — but `scrollIntoView` is a layout
+    // read, and calling it HERE means calling it one statement after the panel
+    // classes and the whole activated tab's DOM were written. That is the
+    // classic layout thrash: the browser has to lay the new panel out
+    // synchronously, inside the click/scroll handler, before it can answer
+    // where the button is. On desktop that synchronous layout is the balanced
+    // multi-column panel — the single most expensive layout on the page (~100ms
+    // on a throttled profile), and it was paid on every tab switch even though
+    // the desktop strip is a full-width nav that never scrolls at all.
+    //
+    // Ask on the next frame instead, when the layout the browser was going to
+    // do anyway is already done, and only when the strip really overflows.
+    if (btn) requestAnimationFrame(() => {
+      const strip = btn.parentElement;
+      if (!strip || strip.scrollWidth <= strip.clientWidth + 1) return;
+      btn.scrollIntoView({ block: "nearest", inline: "center", behavior: SCROLL_BEHAVIOR });
+    });
     // Deep-link: keep the URL hash in sync (replaceState → no history spam while
     // swiping). Refresh / bookmark / shared link then lands on the same tab
     // instead of always resetting to Hero. Hero itself keeps a clean URL.
@@ -171,7 +187,12 @@
           setActiveButton(t);
         }
         clearTimeout(settleTimer);
-        settleTimer = setTimeout(() => window.dispatchEvent(new Event("resize")), 120);
+        // Nudge the charts on the page the swipe landed on — NOT a synthetic
+        // window `resize`. That dispatch also woke the realign timer below,
+        // which 150ms after every settle wrote `pager.scrollLeft` back; a
+        // reader who had already started the next swipe got yanked back to the
+        // page they were leaving. See syncChartSizes() for the cost side.
+        settleTimer = setTimeout(syncChartSizes, 120);
       });
     }, { passive: true });
 
@@ -531,7 +552,7 @@
     // Desktop shows one panel at a time. Let its layout settle before resizing
     // an existing chart; mobile's scroll-settle listener owns the same nudge.
     if (!pagerLive()) requestAnimationFrame(() =>
-      requestAnimationFrame(() => window.dispatchEvent(new Event("resize"))));
+      requestAnimationFrame(syncChartSizes));
   }
 
   // `triggeredByUser` is what the retry button passes: both loaders below take
@@ -794,9 +815,18 @@
   // =========================================================
   // Wire up resize (theme changes are handled by the cache/dispose listener above)
   // =========================================================
+  // A real viewport change is still a reason to re-measure — but iOS fires one
+  // every time the URL bar collapses or expands during a scroll, and a burst of
+  // them arrives during an orientation flip. Coalesce to one frame and let
+  // syncChartSizes() decide which instances actually moved.
+  let chartResizeFrame = 0;
   window.addEventListener("resize", () => {
-    Object.values(charts).forEach(c => c && c.resize());
-  });
+    if (chartResizeFrame) return;
+    chartResizeFrame = requestAnimationFrame(() => {
+      chartResizeFrame = 0;
+      syncChartSizes();
+    });
+  }, { passive: true });
   document.getElementById("refresh-btn").addEventListener("click", () => loadData(true));
 
   // =========================================================
