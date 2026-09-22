@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-22T00:16:01.091033+00:00",
+  "generated_at": "2026-09-22T17:21:09.017512+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -24,37 +24,12 @@
   "llm_filtered": true,
   "llm_filter_status": "ok",
   "counts": {
-    "total": 20,
+    "total": 24,
     "held_hits": 0,
-    "new_ideas": 9,
-    "sector_hits": 0
+    "new_ideas": 12,
+    "sector_hits": 6
   },
   "items": [
-    {
-      "author": "Burry",
-      "text": "NVDA, AVGO’s AI Backstops Have One Analyst Worried — Michael Burry Says There’s A Reason Nvidia’s 5Y CDS Are Going ‘Parabolic’",
-      "url": "https://news.google.com/rss/articles/CBMizAFBVV95cUxOclg5ZHFlSkw1TlpYTFdyeHAzTjJ5TUMwV3dkQXhfUmlWRURLQWlyTk5lMlN6MFhMc0I5TURKOFJtYjFfazVIeGpraWZsakFwaTdZNDNQd1paSE9KRUtteGR2REJrM1F3VDg2b1dYMWt2RkFVQXFGaG9jOUNhLTQ2MV94N1BValR4R01oTXZfdEJKT3VvdV9sV2tzNm5sZktzMzZZa0dvWnBGQzRXWW5pR1JETDYtUXBKSW5pV3V5NHZ2MEhmZUt5Ukh4VU8?oc=5",
-      "published": "2026-09-21T12:14:26+00:00",
-      "origin": "gnews-rss",
-      "source": "Stocktwits",
-      "tickers": [
-        "NVDA",
-        "AVGO"
-      ],
-      "held": [],
-      "new_ideas": [
-        "AVGO",
-        "NVDA"
-      ],
-      "sectors": [
-        "AI",
-        "半导体"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 80,
-      "summary_cn": "据报道，Burry指出Nvidia(NVDA)5年期CDS呈'抛物线'走势，暗示AI泡沫风险，并点名AVGO为同类风险标的。"
-    },
     {
       "author": "Burry",
       "text": "Michael Burry Doubles Down On Palantir Bear Case: ‘A Lot Of’ Money Still To Be Made Shorting PLTR",
@@ -71,131 +46,40 @@
       ],
       "sectors": [
         "AI",
-        "大数据"
+        "数据软件"
       ],
       "sector_holdings": [],
       "stance": "attack",
       "relevance": 78,
-      "summary_cn": "据报道，Michael Burry加倍下注看空Palantir(PLTR)，称仍有大量做空空间。"
+      "summary_cn": "据报道Burry加倍看空Palantir(PLTR)，称做空仍有大量获利空间。"
     },
     {
-      "author": "Musk",
-      "text": "Elon Musk, Jensen Huang and Tim Cook are set to dine with Xi this week. Here’s what their companies want from China.",
-      "url": "",
-      "published": "Mon, 21 Sep 2026 19:46:00 GMT",
-      "origin": "gnews-rss",
-      "source": "marketwatch.com",
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-21 调仓：Meta Platforms, Inc.(META) 买入 ARKK 32,394 股 / ARKW 13,340 股 / ARKF 5,743 股（最大单只 ETF 占比 0.50%）",
+      "url": "https://www.ark-funds.com/funds/arkw/",
+      "published": "2026-09-21T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.5016,
       "tickers": [
-        "TSLA",
-        "NVDA"
+        "META"
       ],
       "held": [],
       "new_ideas": [
-        "NVDA",
-        "TSLA"
+        "META"
       ],
       "sectors": [
-        "中国",
         "AI",
-        "电动车",
-        "半导体"
+        "社交媒体"
       ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 75,
-      "summary_cn": "据报道，Musk与黄仁勋(NVDA)、库克本周将赴华与习近平会晤，议题涉Tesla、芯片、AI在华业务，宏观利好中美科技/AI板块。"
-    },
-    {
-      "author": "Burry",
-      "text": "QXO jumps after ‘Big Short’ investor Michael Burry reveals stake (QXO:NYSE)",
-      "url": "https://news.google.com/rss/articles/CBMiogFBVV95cUxOdzRTdmRIQmxoQnAwdzk3ejZOVUF1UkFXV1d1VWx2bkRRbEtSbUVIenNVR0NsZEdLeHNOMVpib3R5eVF3MjV5SW1odlRKR05sUE1VZXBHZEQ0Vk9jc09EYjlkcXhDaWtUUnZoUVh6ekRsVEhjdVF3ZDktQzZsVmNrZkZQcjlvaGlMMGZXMktxal9wbV9LVllOVDlEZTI4d1lfRlE?oc=5",
-      "published": "2026-09-21T18:45:16+00:00",
-      "origin": "gnews-rss",
-      "source": "Seeking Alpha",
-      "tickers": [
-        "QXO"
+      "sector_holdings": [
+        "03032",
+        "03033",
+        "07226"
       ],
-      "held": [],
-      "new_ideas": [
-        "QXO"
-      ],
-      "sectors": [
-        "建材",
-        "分销"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
+      "stance": "buy",
       "relevance": 72,
-      "summary_cn": "据报道，Burry披露建仓QXO，消息公布后QXO股价跳涨。"
-    },
-    {
-      "author": "Musk",
-      "text": "Did Elon Musk Just Drop a Big Hint About a Possible SpaceX-Tesla Merger?",
-      "url": "",
-      "published": "Mon, 21 Sep 2026 14:36:51 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "航天",
-        "电动车"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 70,
-      "summary_cn": "据报道，Musk暗示SpaceX与Tesla(TSLA)可能合并的传闻，SpaceX为未上市公司故不计ticker。"
-    },
-    {
-      "author": "Musk",
-      "text": "Morgan Stanley Maps Tesla-SpaceX Ties in ‘Physical AI’ After Musk Hint",
-      "url": "",
-      "published": "Mon, 21 Sep 2026 14:59:25 GMT",
-      "origin": "gnews-rss",
-      "source": "eletric-vehicles.com",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "AI",
-        "航天",
-        "电动车"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 68,
-      "summary_cn": "据报道，摩根士丹利在Musk暗示后发布报告，梳理Tesla(TSLA)与SpaceX在'物理AI'领域的协同效应。"
-    },
-    {
-      "author": "Musk",
-      "text": "Tesla reopens Roadster reservations – but you'll need $50K",
-      "url": "",
-      "published": "Mon, 21 Sep 2026 19:20:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Fox Business",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 62,
-      "summary_cn": "据报道，Tesla(TSLA)重新开放Roadster预订，需先付5万美元订金，反映高端车型需求信号。"
+      "summary_cn": "ARK 2026-09-21加仓META，ARKK最大占比0.50%，为当日最大单笔买入。"
     },
     {
       "author": "Trump",
@@ -212,54 +96,221 @@
       ],
       "sectors": [
         "国防",
-        "军工"
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 68,
+      "summary_cn": "Trump点名感谢Lockheed Martin CEO Jim Taiclet为白宫新建直升机停机坪做贡献，暗含对LMT的背书。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry Bets on Copper Miner Amid AI Boom: Here's Why - Ero Copper (NYSE:ERO)",
+      "url": "https://news.google.com/rss/articles/CBMi6gFBVV95cUxNOS1HbXUxU3dpVEJ3Z2s3YjBFd3VaQzFUV2dQdnd4OWhwYmVmbzZMRHc5WkJCYmh3cmJQSjdXRUg2R09tSE1fWC00Z0hCS1ppMkpwVUh1ejZWOWkzdEt0MzQ5UzFNYVZiUmwyR3lsSThvZVdRMWFWMkxXeXk5aWJ0Q0stZzZuRVNXR3BRQlF3Wk1TdU5GS0NGZzNzWGcwY0RrMF9fX0otck43RFNnYWhzQnJDMGxOZm5LTk1SLWdXb1U1ams5ZmVhSzRyZHVNckxOWDZZd3VCbzdrelFmSGNwUHdVdHFtYUdVTmc?oc=5",
+      "published": "2026-09-22T08:59:21+00:00",
+      "origin": "gnews-rss",
+      "source": "Benzinga",
+      "tickers": [
+        "ERO"
+      ],
+      "held": [],
+      "new_ideas": [
+        "ERO"
+      ],
+      "sectors": [
+        "铜矿",
+        "AI基建"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 65,
+      "summary_cn": "据报道Burry押注铜矿股Ero Copper(ERO)，逻辑为AI热潮推升铜需求。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-21 调仓：Airbnb, Inc.(ABNB) 买入 ARKW 29,587 股（最大单只 ETF 占比 0.26%）",
+      "url": "https://www.ark-funds.com/funds/arkw/",
+      "published": "2026-09-21T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.26,
+      "tickers": [
+        "ABNB"
+      ],
+      "held": [],
+      "new_ideas": [
+        "ABNB"
+      ],
+      "sectors": [
+        "消费",
+        "民宿平台"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 65,
+      "summary_cn": "ARK 2026-09-21加仓Airbnb(ABNB)，ARKW占比0.26%。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-21 调仓：CrowdStrike Holdings, Inc.(CRWD) 卖出 ARKW 19,872 股 / ARKF 8,531 股（最大单只 ETF 占比 0.26%）",
+      "url": "https://www.ark-funds.com/funds/arkw/",
+      "published": "2026-09-21T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.2584,
+      "tickers": [
+        "CRWD"
+      ],
+      "held": [],
+      "new_ideas": [
+        "CRWD"
+      ],
+      "sectors": [
+        "网络安全"
+      ],
+      "sector_holdings": [],
+      "stance": "sell",
+      "relevance": 65,
+      "summary_cn": "ARK 2026-09-21减持CrowdStrike(CRWD)，ARKW占比0.26%。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-21 调仓：Ionis Pharmaceuticals, Inc.(IONS) 买入 ARKG 100,241 股（最大单只 ETF 占比 0.20%）",
+      "url": "https://www.ark-funds.com/funds/arkg/",
+      "published": "2026-09-21T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.2029,
+      "tickers": [
+        "IONS"
+      ],
+      "held": [],
+      "new_ideas": [
+        "IONS"
+      ],
+      "sectors": [
+        "生物医药"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 62,
+      "summary_cn": "ARK 2026-09-21加仓Ionis Pharmaceuticals(IONS)，ARKG占比0.20%。"
+    },
+    {
+      "author": "Burry",
+      "text": "QXO jumps after ‘Big Short’ investor Michael Burry reveals stake (QXO:NYSE)",
+      "url": "https://news.google.com/rss/articles/CBMiogFBVV95cUxOdzRTdmRIQmxoQnAwdzk3ejZOVUF1UkFXV1d1VWx2bkRRbEtSbUVIenNVR0NsZEdLeHNOMVpib3R5eVF3MjV5SW1odlRKR05sUE1VZXBHZEQ0Vk9jc09EYjlkcXhDaWtUUnZoUVh6ekRsVEhjdVF3ZDktQzZsVmNrZkZQcjlvaGlMMGZXMktxal9wbV9LVllOVDlEZTI4d1lfRlE?oc=5",
+      "published": "2026-09-21T18:45:16+00:00",
+      "origin": "gnews-rss",
+      "source": "Seeking Alpha",
+      "tickers": [
+        "QXO"
+      ],
+      "held": [],
+      "new_ideas": [
+        "QXO"
+      ],
+      "sectors": [
+        "建材分销"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 62,
+      "summary_cn": "据报道Burry披露持仓建材分销商QXO，消息公布后股价跳涨。"
+    },
+    {
+      "author": "Musk",
+      "text": "Tesla Stock Is Up. Elon Musk’s EV Maker Is Investment Grade.",
+      "url": "",
+      "published": "Tue, 22 Sep 2026 11:36:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Barron's",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车"
       ],
       "sector_holdings": [],
       "stance": "endorse",
       "relevance": 58,
-      "summary_cn": "特朗普感谢洛克希德·马丁(LMT)CEO Jim Taiclet为白宫新建直升机停机坪所做的贡献，含隐性背书。"
+      "summary_cn": "据报道Tesla股价上涨，且已被评级机构认定为投资级别，利好Musk相关电动车板块。"
     },
     {
       "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-18 调仓：Brera Holdings PLC(SLMT) 卖出 ARKW 74,332 股 / ARKF 47,046 股（最大单只 ETF 占比 0.02%）",
-      "url": "https://www.ark-funds.com/funds/arkf/",
-      "published": "2026-09-18T20:00:00+00:00",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-21 调仓：Everpure Inc(P) 卖出 ARKW 59,265 股（最大单只 ETF 占比 0.35%）",
+      "url": "https://www.ark-funds.com/funds/arkw/",
+      "published": "2026-09-21T20:00:00+00:00",
       "origin": "ark-funds",
       "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.0191,
+      "etf_percent": 0.3487,
       "tickers": [
-        "SLMT"
+        "P"
       ],
       "held": [],
       "new_ideas": [
-        "SLMT"
+        "P"
       ],
       "sectors": [
-        "小盘股"
+        "公用事业"
       ],
       "sector_holdings": [],
       "stance": "sell",
-      "relevance": 48,
-      "summary_cn": "ARK 2026-09-18调仓：卖出Brera Holdings(SLMT)，ARKW 7.4万股、ARKF 4.7万股，单ETF最大占比仅0.02%，属常规再平衡。"
+      "relevance": 58,
+      "summary_cn": "ARK 2026-09-21减持Everpure(P)，ARKW占比0.35%，为当日最大单笔卖出。"
     },
     {
-      "author": "Burry",
-      "text": "Michael Burry Warns Hyperscalers Are Hiding $3 Trillion In AI Liabilities — And Wall Street Isn’t Looking: ‘When The Music’s Over…’",
-      "url": "https://news.google.com/rss/articles/CBMipgFBVV95cUxQZDh3SmRGc0sxOV94SThWZTJzRlhvb2xVZGk2MW5yTW9DUHNSMzRfZmt6Ukg0eDh5WS1nYkhFYVI0a0ptME1nVHg1YkJhVnpnVWlQRUlYWTJvMkR0RjVjWFp3NlhSd1FHNi1lR0MxRGFnRWU3T0xlbkdia0VQSHpUN2ZMVnVqMUJEZDFLYjdHMzNaVUN3bUFOWEp6YTFhTXctMEU0YXZ3?oc=5",
-      "published": "2026-09-21T02:46:00+00:00",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [],
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-21 调仓：Veracyte, Inc.(VCYT) 买入 ARKG 74,878 股（最大单只 ETF 占比 0.14%）",
+      "url": "https://www.ark-funds.com/funds/arkg/",
+      "published": "2026-09-21T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.1392,
+      "tickers": [
+        "VCYT"
+      ],
       "held": [],
-      "new_ideas": [],
+      "new_ideas": [
+        "VCYT"
+      ],
       "sectors": [
-        "AI",
-        "云服务"
+        "生物医药"
       ],
       "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 82,
-      "summary_cn": "据报道，Burry警告超大规模云厂商隐藏高达3万亿美元的AI负债，'音乐停下时'将引发系统性风险。"
+      "stance": "buy",
+      "relevance": 58,
+      "summary_cn": "ARK 2026-09-21加仓Veracyte(VCYT)，ARKG占比0.14%。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk Says Tesla Has Offered FSD to Legacy Automakers, but ‘None’ Have Accepted So Far",
+      "url": "",
+      "published": "Tue, 22 Sep 2026 08:43:30 GMT",
+      "origin": "gnews-rss",
+      "source": "Benzinga",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "自动驾驶"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 50,
+      "summary_cn": "据报道Musk称Tesla已向传统车企提供FSD授权，但目前尚无一家接受。"
     },
     {
       "author": "Trump",
@@ -272,12 +323,125 @@
       "new_ideas": [],
       "sectors": [
         "AI",
+        "科技政策",
         "中国"
       ],
-      "sector_holdings": [],
+      "sector_holdings": [
+        "03032",
+        "03033",
+        "07226"
+      ],
       "stance": "endorse",
-      "relevance": 65,
-      "summary_cn": "特朗普表示美国在AI领域领先中国，将保持增长不设限，反对以'AI威胁论'为由扼杀发展，利好整体AI板块。"
+      "relevance": 72,
+      "summary_cn": "Trump表态'AI赢家通吃'，声称美国目前领先中国，将继续推动AI增长而非扼杀，利好AI/科技板块。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk's X brings bitcoin (BTC) and stock trading closer to the timeline",
+      "url": "",
+      "published": "Tue, 22 Sep 2026 13:33:56 GMT",
+      "origin": "gnews-rss",
+      "source": "CoinDesk",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "加密货币",
+        "金融科技"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "neutral",
+      "relevance": 62,
+      "summary_cn": "据报道Musk旗下X平台推进BTC及股票交易功能，加密交易整合落地临近。"
+    },
+    {
+      "author": "Trump",
+      "text": "Keep the lights on, sideline Big Brother: Trump EPA rollback could save ratepayers $310 billion: https://justthenews.com/government/federal-agencies/trumps-epa-gets-action-roots-out-30-billion-waste-fraud-and-abuse",
+      "url": "https://www.trumpstruth.org/statuses/41838",
+      "published": "2026-09-22T03:19:27+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "能源",
+        "公用事业",
+        "监管"
+      ],
+      "sector_holdings": [
+        "02208"
+      ],
+      "stance": "endorse",
+      "relevance": 58,
+      "summary_cn": "Trump推动EPA监管回滚，据报道可为电力用户节省3100亿美元，利好传统能源板块。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk’s X Offers Crypto Trading To Users",
+      "url": "",
+      "published": "Tue, 22 Sep 2026 13:49:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "加密货币"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "据报道X平台已开始向用户提供加密货币交易服务。"
+    },
+    {
+      "author": "Pelosi",
+      "text": "Taiwan’s Status Is Ambiguous. U.S. Policy Shouldn’t Be.",
+      "url": "https://news.google.com/rss/articles/CBMibEFVX3lxTE5jQzduNU5aNHFBQy15ZTE2dlBtcXdOQzRGeGFPWnZUS3NQcjJvaGhLbXVWcEEydmlFRG4yX3RzS3E1b0h5OVg5UlB1Y2xIZWJ1ZEw0UnVWVFB2REZFR1Q3YS1xenk2bUJYNlFvYg?oc=5",
+      "published": "2026-09-21T11:53:18+00:00",
+      "origin": "gnews-rss",
+      "source": "Foreign Policy",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "地缘政治",
+        "半导体"
+      ],
+      "sector_holdings": [
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "据报道讨论台湾地位模糊性的文章，涉美国对台政策走向，间接关联半导体供应链风险。"
+    },
+    {
+      "author": "Pelosi",
+      "text": "Scott Wiener and Connie Chan both want to rein in AI. They disagree on how to do that.",
+      "url": "https://news.google.com/rss/articles/CBMif0FVX3lxTE5PdTdBUzljOXBRbXZrWGVTVVd1eWNnajhDVk1CRWpDbzQ5blJlWlFFUFdhc3JmZlZYNDRTWlB1b3NpdGRvQ0gxc3RSMHFmVUJfcmZxOUVXNWtHWnk3QjA0Q1VmNjRNamhNdFN6dWwtbGc2d1NUanRfVkx0R1MxREE?oc=5",
+      "published": "2026-09-21T13:00:00+00:00",
+      "origin": "gnews-rss",
+      "source": "Mission Local",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI监管",
+        "科技政策"
+      ],
+      "sector_holdings": [
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "neutral",
+      "relevance": 52,
+      "summary_cn": "据报道加州议员推动AI监管立法，路径存在分歧，或影响AI板块政策环境。"
     },
     {
       "author": "洪灏",
@@ -296,46 +460,27 @@
       "sector_holdings": [],
       "stance": "neutral",
       "relevance": 62,
-      "summary_cn": "据报道，洪灏转述Acer董事长称存储缺货已消失，利空存储/DRAM板块。"
+      "summary_cn": "据报道Acer董事长表示存储芯片缺货现象已消失，存储周期供需转向宽松。"
     },
     {
-      "author": "Trump",
-      "text": "Russia has unfortunately lost control of its Diesel Oil Industry due to its War with Ukraine. A large number of their Diesel refineries have been blown up and are, at least temporarily, out of commission. This ridiculous and never ending War with Ukraine must be ended. The whole World suffers as 25,000 people, mostly soldiers, are being killed each month. What a shame! President DJT",
-      "url": "https://www.trumpstruth.org/statuses/41827",
-      "published": "2026-09-21T12:03:41+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "能源",
-        "原油",
-        "俄乌"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 60,
-      "summary_cn": "特朗普称俄罗斯柴油炼厂遭打击产能受损，呼吁结束俄乌战争，能源供给面信息或影响油价。"
-    },
-    {
-      "author": "Pelosi",
-      "text": "Taiwan’s Status Is Ambiguous. U.S. Policy Shouldn’t Be.",
-      "url": "https://news.google.com/rss/articles/CBMibEFVX3lxTE5jQzduNU5aNHFBQy15ZTE2dlBtcXdOQzRGeGFPWnZUS3NQcjJvaGhLbXVWcEEydmlFRG4yX3RzS3E1b0h5OVg5UlB1Y2xIZWJ1ZEw0UnVWVFB2REZFR1Q3YS1xenk2bUJYNlFvYg?oc=5",
-      "published": "2026-09-21T11:53:18+00:00",
+      "author": "Burry",
+      "text": "Michael Burry’s Memory Stocks Thesis Gets Fresh Support From Acer CEO’s Supply Warning",
+      "url": "https://news.google.com/rss/articles/CBMi3wFBVV95cUxPVmFkdk5ndnJUOVNYRktDMHJyanNNY2hnbWZJZEg0Nl92OUVSS3dNZ25nVnVxNVdoaGNhbHNmMmU0LW5MQjNSa3NPal9iUDF2Y0VKRUtFaDZIY25fU1gxUDRRUkRtZFFCWnpmSlAxdWpnbHNmMmp4MzJKdk5IOFA5WHVEeDVWUDFScUx2cnVJMWh4UkNZMzZuOVMwMHJDYVNtb3lUc1d0WVdtNDVpZGEzSGM0cnJtR2NOajlpT2ZFMERiNk5MbEpvZXgtZ0x6aE16cGNYaGlkNDRxaTBraXow?oc=5",
+      "published": "2026-09-22T16:54:00+00:00",
       "origin": "gnews-rss",
-      "source": "Foreign Policy",
+      "source": "Stocktwits",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "中国",
-        "台湾",
-        "地缘政治"
+        "半导体",
+        "存储",
+        "AI硬件"
       ],
       "sector_holdings": [],
       "stance": "neutral",
       "relevance": 58,
-      "summary_cn": "据报道，Pelosi发表评论称台湾地位模糊，美国政策不应模糊化，涉台海地缘风险。"
+      "summary_cn": "据报道Acer CEO的供应警告为Burry的存储股投资逻辑提供新支撑。"
     },
     {
       "author": "Trump",
@@ -347,33 +492,30 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "化肥",
         "农业",
-        "贸易"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "特朗普称美国正与白俄罗斯洽谈大规模钾肥(Potash)采购，价格低于从加拿大进口，利好美国农户。"
-    },
-    {
-      "author": "Musk",
-      "text": "US judge declines to block transfer of wildlife refuge land to Musk’s SpaceX",
-      "url": "",
-      "published": "Mon, 21 Sep 2026 23:54:00 GMT",
-      "origin": "gnews-rss",
-      "source": "The Guardian",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "监管"
+        "大宗商品"
       ],
       "sector_holdings": [],
       "stance": "neutral",
       "relevance": 52,
-      "summary_cn": "据报道，美国法院驳回阻止将野生动物保护区土地转让给Musk旗下SpaceX的诉求。"
+      "summary_cn": "Trump宣布美国正与白俄罗斯商谈大规模钾肥采购协议，价格低于加拿大，对加拿大钾肥出口构成压力。"
+    },
+    {
+      "author": "Trump",
+      "text": "RT @Schoenlawhttps://www.wsj.com/opinion/americans-household-income-2025-census-bureau-2e2a9e36?st=9jyvTw.  The writer tries to make excuses to explain this great news but the facts are the facts:  Americans are doing better financially and the poverty level is dramatically down!  Let’s give credit where it is due and celebrate good news for our country and fellow Americans!!! @realDonaldTrump",
+      "url": "https://www.trumpstruth.org/statuses/41839",
+      "published": "2026-09-22T03:26:49+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "宏观经济"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 50,
+      "summary_cn": "Trump转发WSJ评论，宣称美国家庭收入上升、贫困率显著下降，暗示其经济政策见效。"
     },
     {
       "author": "Pelosi",
@@ -381,36 +523,18 @@
       "url": "https://news.google.com/rss/articles/CBMisgJBVV95cUxPTTlWeVBkbkZZX0k0TnBORWJMdFl6NGUxUFN5NWhITkVCSXM4Sm9WYWRNMXBBbWhkQ0tFMzRiMGlXWDMwR1JvZXAxQ2JYZ2hkVXpnV1JsVDA5YkxFZms5eEtGbHF1Z3VjSWlkU2RwN1YtRmR3dVV5R2VqLUNhS3ZKN2tZWEZfTURzelQ4M2J5SkJFa0RRZDVxeEpBcm1LdnB3MHA5RzNZdHdXMXNadzJMNFhrV1lWZ1dnX0RiQjhQNGJHUHhKcEg1SUpzZmtaSjhBNmxMNFNuVHQ1TVBTUmFrWTUxLTRERHlXWDdjS2RhYjdoQ0Y3M19YaG1TNkZqem51VUZMQ1M3aTZuazRjSmxhbUp1bVNrUG1IRnZGOTVaMGlhLXIyTHp3Z2tQM3lUa0kzTGfSAbcCQVVfeXFMTTdjTE5oMXdab2RWV1drMHdQUGpwWFhLV3FxNF82aGNHcXpoanV0WUstQk5TRGZOR0VHSm1fVWlrQXBKZGJybnNBeWo4c01XZnlqVE53c05VTWtDcHhNeExlcHhzRDEzR3ctYVdCaVUwNk1LNHNNaVRzM1FGWGlJdURDcXpvLTFOZ0labFpqS2hIQmgtUmNzMVVsZkFpZTJ2NzFLY1RzZ3J2QU9xSEpELVl2blJuT293NjdQQWNmd3d6Q3dvTEd6UWdoODREU3pkaTN3cVdwV1l1dThldm56NGtOYTZBbW1aeUl2T0VzVXo5X3RYSU9YTHY4dTFLV0tUcmZPRnIyWlRrVVVTWG56S2duMDIySEJSaXpNMk1MbU92eWxmSklpTjhBb1dHdXdDTWNkTkV2d3M?oc=5",
       "published": "2026-09-21T14:55:00+00:00",
       "origin": "gnews-rss",
-      "source": "timesofindia.indiatimes.com",
+      "source": "The Times of India",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
         "政治",
-        "监管"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 52,
-      "summary_cn": "据报道，Pelosi最新披露显示其证券交易活跃度高于其他国会议员，并支持全面禁止国会议员炒股。"
-    },
-    {
-      "author": "Trump",
-      "text": "Gas prices were much higher under Biden than under “TRUMP.” So were almost all other prices. President DJT",
-      "url": "https://www.trumpstruth.org/statuses/41820",
-      "published": "2026-09-21T02:02:54+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "能源",
-        "油价"
+        "国会披露"
       ],
       "sector_holdings": [],
       "stance": "neutral",
       "relevance": 50,
-      "summary_cn": "特朗普重申其任内油价低于拜登时期，为常规政治表态。"
+      "summary_cn": "据报道Trump本人交易证券数量超过所有国会议员，但反对国会议员股票买卖禁令。"
     },
     {
       "author": "Musk",
@@ -423,61 +547,16 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "基建",
-        "交通"
+        "交通基建"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 48,
-      "summary_cn": "据报道，Musk推介在德州奥斯汀-圣安东尼奥之间修建Hyperloop隧道概念。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk Wants to Dig a Massive Tunnel in Texas to Connect These 2 Key Cities",
-      "url": "",
-      "published": "Mon, 21 Sep 2026 17:23:46 GMT",
-      "origin": "gnews-rss",
-      "source": "inc.com",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "基建",
-        "交通"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 48,
-      "summary_cn": "据报道，Musk想在德州挖一条连接两大城市的大型隧道。"
+      "relevance": 45,
+      "summary_cn": "据报道Musk提议建设超级高铁隧道以缩短奥斯汀-圣安东尼奥通勤时间。"
     }
   ],
   "held_hits": [],
   "new_ideas": [
-    {
-      "author": "Burry",
-      "text": "NVDA, AVGO’s AI Backstops Have One Analyst Worried — Michael Burry Says There’s A Reason Nvidia’s 5Y CDS Are Going ‘Parabolic’",
-      "url": "https://news.google.com/rss/articles/CBMizAFBVV95cUxOclg5ZHFlSkw1TlpYTFdyeHAzTjJ5TUMwV3dkQXhfUmlWRURLQWlyTk5lMlN6MFhMc0I5TURKOFJtYjFfazVIeGpraWZsakFwaTdZNDNQd1paSE9KRUtteGR2REJrM1F3VDg2b1dYMWt2RkFVQXFGaG9jOUNhLTQ2MV94N1BValR4R01oTXZfdEJKT3VvdV9sV2tzNm5sZktzMzZZa0dvWnBGQzRXWW5pR1JETDYtUXBKSW5pV3V5NHZ2MEhmZUt5Ukh4VU8?oc=5",
-      "published": "2026-09-21T12:14:26+00:00",
-      "origin": "gnews-rss",
-      "source": "Stocktwits",
-      "tickers": [
-        "NVDA",
-        "AVGO"
-      ],
-      "held": [],
-      "new_ideas": [
-        "AVGO",
-        "NVDA"
-      ],
-      "sectors": [
-        "AI",
-        "半导体"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 80,
-      "summary_cn": "据报道，Burry指出Nvidia(NVDA)5年期CDS呈'抛物线'走势，暗示AI泡沫风险，并点名AVGO为同类风险标的。"
-    },
     {
       "author": "Burry",
       "text": "Michael Burry Doubles Down On Palantir Bear Case: ‘A Lot Of’ Money Still To Be Made Shorting PLTR",
@@ -494,131 +573,40 @@
       ],
       "sectors": [
         "AI",
-        "大数据"
+        "数据软件"
       ],
       "sector_holdings": [],
       "stance": "attack",
       "relevance": 78,
-      "summary_cn": "据报道，Michael Burry加倍下注看空Palantir(PLTR)，称仍有大量做空空间。"
+      "summary_cn": "据报道Burry加倍看空Palantir(PLTR)，称做空仍有大量获利空间。"
     },
     {
-      "author": "Musk",
-      "text": "Elon Musk, Jensen Huang and Tim Cook are set to dine with Xi this week. Here’s what their companies want from China.",
-      "url": "",
-      "published": "Mon, 21 Sep 2026 19:46:00 GMT",
-      "origin": "gnews-rss",
-      "source": "marketwatch.com",
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-21 调仓：Meta Platforms, Inc.(META) 买入 ARKK 32,394 股 / ARKW 13,340 股 / ARKF 5,743 股（最大单只 ETF 占比 0.50%）",
+      "url": "https://www.ark-funds.com/funds/arkw/",
+      "published": "2026-09-21T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.5016,
       "tickers": [
-        "TSLA",
-        "NVDA"
+        "META"
       ],
       "held": [],
       "new_ideas": [
-        "NVDA",
-        "TSLA"
+        "META"
       ],
       "sectors": [
-        "中国",
         "AI",
-        "电动车",
-        "半导体"
+        "社交媒体"
       ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 75,
-      "summary_cn": "据报道，Musk与黄仁勋(NVDA)、库克本周将赴华与习近平会晤，议题涉Tesla、芯片、AI在华业务，宏观利好中美科技/AI板块。"
-    },
-    {
-      "author": "Burry",
-      "text": "QXO jumps after ‘Big Short’ investor Michael Burry reveals stake (QXO:NYSE)",
-      "url": "https://news.google.com/rss/articles/CBMiogFBVV95cUxOdzRTdmRIQmxoQnAwdzk3ejZOVUF1UkFXV1d1VWx2bkRRbEtSbUVIenNVR0NsZEdLeHNOMVpib3R5eVF3MjV5SW1odlRKR05sUE1VZXBHZEQ0Vk9jc09EYjlkcXhDaWtUUnZoUVh6ekRsVEhjdVF3ZDktQzZsVmNrZkZQcjlvaGlMMGZXMktxal9wbV9LVllOVDlEZTI4d1lfRlE?oc=5",
-      "published": "2026-09-21T18:45:16+00:00",
-      "origin": "gnews-rss",
-      "source": "Seeking Alpha",
-      "tickers": [
-        "QXO"
+      "sector_holdings": [
+        "03032",
+        "03033",
+        "07226"
       ],
-      "held": [],
-      "new_ideas": [
-        "QXO"
-      ],
-      "sectors": [
-        "建材",
-        "分销"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
+      "stance": "buy",
       "relevance": 72,
-      "summary_cn": "据报道，Burry披露建仓QXO，消息公布后QXO股价跳涨。"
-    },
-    {
-      "author": "Musk",
-      "text": "Did Elon Musk Just Drop a Big Hint About a Possible SpaceX-Tesla Merger?",
-      "url": "",
-      "published": "Mon, 21 Sep 2026 14:36:51 GMT",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "航天",
-        "电动车"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 70,
-      "summary_cn": "据报道，Musk暗示SpaceX与Tesla(TSLA)可能合并的传闻，SpaceX为未上市公司故不计ticker。"
-    },
-    {
-      "author": "Musk",
-      "text": "Morgan Stanley Maps Tesla-SpaceX Ties in ‘Physical AI’ After Musk Hint",
-      "url": "",
-      "published": "Mon, 21 Sep 2026 14:59:25 GMT",
-      "origin": "gnews-rss",
-      "source": "eletric-vehicles.com",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "AI",
-        "航天",
-        "电动车"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 68,
-      "summary_cn": "据报道，摩根士丹利在Musk暗示后发布报告，梳理Tesla(TSLA)与SpaceX在'物理AI'领域的协同效应。"
-    },
-    {
-      "author": "Musk",
-      "text": "Tesla reopens Roadster reservations – but you'll need $50K",
-      "url": "",
-      "published": "Mon, 21 Sep 2026 19:20:00 GMT",
-      "origin": "gnews-rss",
-      "source": "Fox Business",
-      "tickers": [
-        "TSLA"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TSLA"
-      ],
-      "sectors": [
-        "电动车"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 62,
-      "summary_cn": "据报道，Tesla(TSLA)重新开放Roadster预订，需先付5万美元订金，反映高端车型需求信号。"
+      "summary_cn": "ARK 2026-09-21加仓META，ARKK最大占比0.50%，为当日最大单笔买入。"
     },
     {
       "author": "Trump",
@@ -635,36 +623,308 @@
       ],
       "sectors": [
         "国防",
-        "军工"
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 68,
+      "summary_cn": "Trump点名感谢Lockheed Martin CEO Jim Taiclet为白宫新建直升机停机坪做贡献，暗含对LMT的背书。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry Bets on Copper Miner Amid AI Boom: Here's Why - Ero Copper (NYSE:ERO)",
+      "url": "https://news.google.com/rss/articles/CBMi6gFBVV95cUxNOS1HbXUxU3dpVEJ3Z2s3YjBFd3VaQzFUV2dQdnd4OWhwYmVmbzZMRHc5WkJCYmh3cmJQSjdXRUg2R09tSE1fWC00Z0hCS1ppMkpwVUh1ejZWOWkzdEt0MzQ5UzFNYVZiUmwyR3lsSThvZVdRMWFWMkxXeXk5aWJ0Q0stZzZuRVNXR3BRQlF3Wk1TdU5GS0NGZzNzWGcwY0RrMF9fX0otck43RFNnYWhzQnJDMGxOZm5LTk1SLWdXb1U1ams5ZmVhSzRyZHVNckxOWDZZd3VCbzdrelFmSGNwUHdVdHFtYUdVTmc?oc=5",
+      "published": "2026-09-22T08:59:21+00:00",
+      "origin": "gnews-rss",
+      "source": "Benzinga",
+      "tickers": [
+        "ERO"
+      ],
+      "held": [],
+      "new_ideas": [
+        "ERO"
+      ],
+      "sectors": [
+        "铜矿",
+        "AI基建"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 65,
+      "summary_cn": "据报道Burry押注铜矿股Ero Copper(ERO)，逻辑为AI热潮推升铜需求。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-21 调仓：Airbnb, Inc.(ABNB) 买入 ARKW 29,587 股（最大单只 ETF 占比 0.26%）",
+      "url": "https://www.ark-funds.com/funds/arkw/",
+      "published": "2026-09-21T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.26,
+      "tickers": [
+        "ABNB"
+      ],
+      "held": [],
+      "new_ideas": [
+        "ABNB"
+      ],
+      "sectors": [
+        "消费",
+        "民宿平台"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 65,
+      "summary_cn": "ARK 2026-09-21加仓Airbnb(ABNB)，ARKW占比0.26%。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-21 调仓：CrowdStrike Holdings, Inc.(CRWD) 卖出 ARKW 19,872 股 / ARKF 8,531 股（最大单只 ETF 占比 0.26%）",
+      "url": "https://www.ark-funds.com/funds/arkw/",
+      "published": "2026-09-21T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.2584,
+      "tickers": [
+        "CRWD"
+      ],
+      "held": [],
+      "new_ideas": [
+        "CRWD"
+      ],
+      "sectors": [
+        "网络安全"
+      ],
+      "sector_holdings": [],
+      "stance": "sell",
+      "relevance": 65,
+      "summary_cn": "ARK 2026-09-21减持CrowdStrike(CRWD)，ARKW占比0.26%。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-21 调仓：Ionis Pharmaceuticals, Inc.(IONS) 买入 ARKG 100,241 股（最大单只 ETF 占比 0.20%）",
+      "url": "https://www.ark-funds.com/funds/arkg/",
+      "published": "2026-09-21T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.2029,
+      "tickers": [
+        "IONS"
+      ],
+      "held": [],
+      "new_ideas": [
+        "IONS"
+      ],
+      "sectors": [
+        "生物医药"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 62,
+      "summary_cn": "ARK 2026-09-21加仓Ionis Pharmaceuticals(IONS)，ARKG占比0.20%。"
+    },
+    {
+      "author": "Burry",
+      "text": "QXO jumps after ‘Big Short’ investor Michael Burry reveals stake (QXO:NYSE)",
+      "url": "https://news.google.com/rss/articles/CBMiogFBVV95cUxOdzRTdmRIQmxoQnAwdzk3ejZOVUF1UkFXV1d1VWx2bkRRbEtSbUVIenNVR0NsZEdLeHNOMVpib3R5eVF3MjV5SW1odlRKR05sUE1VZXBHZEQ0Vk9jc09EYjlkcXhDaWtUUnZoUVh6ekRsVEhjdVF3ZDktQzZsVmNrZkZQcjlvaGlMMGZXMktxal9wbV9LVllOVDlEZTI4d1lfRlE?oc=5",
+      "published": "2026-09-21T18:45:16+00:00",
+      "origin": "gnews-rss",
+      "source": "Seeking Alpha",
+      "tickers": [
+        "QXO"
+      ],
+      "held": [],
+      "new_ideas": [
+        "QXO"
+      ],
+      "sectors": [
+        "建材分销"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 62,
+      "summary_cn": "据报道Burry披露持仓建材分销商QXO，消息公布后股价跳涨。"
+    },
+    {
+      "author": "Musk",
+      "text": "Tesla Stock Is Up. Elon Musk’s EV Maker Is Investment Grade.",
+      "url": "",
+      "published": "Tue, 22 Sep 2026 11:36:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Barron's",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车"
       ],
       "sector_holdings": [],
       "stance": "endorse",
       "relevance": 58,
-      "summary_cn": "特朗普感谢洛克希德·马丁(LMT)CEO Jim Taiclet为白宫新建直升机停机坪所做的贡献，含隐性背书。"
+      "summary_cn": "据报道Tesla股价上涨，且已被评级机构认定为投资级别，利好Musk相关电动车板块。"
     },
     {
       "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-18 调仓：Brera Holdings PLC(SLMT) 卖出 ARKW 74,332 股 / ARKF 47,046 股（最大单只 ETF 占比 0.02%）",
-      "url": "https://www.ark-funds.com/funds/arkf/",
-      "published": "2026-09-18T20:00:00+00:00",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-21 调仓：Everpure Inc(P) 卖出 ARKW 59,265 股（最大单只 ETF 占比 0.35%）",
+      "url": "https://www.ark-funds.com/funds/arkw/",
+      "published": "2026-09-21T20:00:00+00:00",
       "origin": "ark-funds",
       "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.0191,
+      "etf_percent": 0.3487,
       "tickers": [
-        "SLMT"
+        "P"
       ],
       "held": [],
       "new_ideas": [
-        "SLMT"
+        "P"
       ],
       "sectors": [
-        "小盘股"
+        "公用事业"
       ],
       "sector_holdings": [],
       "stance": "sell",
-      "relevance": 48,
-      "summary_cn": "ARK 2026-09-18调仓：卖出Brera Holdings(SLMT)，ARKW 7.4万股、ARKF 4.7万股，单ETF最大占比仅0.02%，属常规再平衡。"
+      "relevance": 58,
+      "summary_cn": "ARK 2026-09-21减持Everpure(P)，ARKW占比0.35%，为当日最大单笔卖出。"
     }
   ],
-  "sector_hits": []
+  "sector_hits": [
+    {
+      "author": "Trump",
+      "text": "The same people that said, “We’ll all be dead in twelve years because of Global Warming,” a name since “reborn” to Climate Change, because the Planet was cooling, not warming, and nobody was dead, are the people that are now saying that AI is going to kill us, that robots are going to attack us, and everything is a DISASTER. This is more of a Hoax than even that of RUSSIA, RUSSIA, RUSSIA, UKRAINE, UKRAINE, UKRAINE, UKRAINE, and Climate Change! Whoever wins AI, WINS! We are leading now over China, and everyone else, and I’m going to keep it that way! I’m not going to stifle Growth, of something",
+      "url": "https://www.trumpstruth.org/statuses/41830",
+      "published": "2026-09-21T15:48:29+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI",
+        "科技政策",
+        "中国"
+      ],
+      "sector_holdings": [
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "endorse",
+      "relevance": 72,
+      "summary_cn": "Trump表态'AI赢家通吃'，声称美国目前领先中国，将继续推动AI增长而非扼杀，利好AI/科技板块。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk's X brings bitcoin (BTC) and stock trading closer to the timeline",
+      "url": "",
+      "published": "Tue, 22 Sep 2026 13:33:56 GMT",
+      "origin": "gnews-rss",
+      "source": "CoinDesk",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "加密货币",
+        "金融科技"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "neutral",
+      "relevance": 62,
+      "summary_cn": "据报道Musk旗下X平台推进BTC及股票交易功能，加密交易整合落地临近。"
+    },
+    {
+      "author": "Trump",
+      "text": "Keep the lights on, sideline Big Brother: Trump EPA rollback could save ratepayers $310 billion: https://justthenews.com/government/federal-agencies/trumps-epa-gets-action-roots-out-30-billion-waste-fraud-and-abuse",
+      "url": "https://www.trumpstruth.org/statuses/41838",
+      "published": "2026-09-22T03:19:27+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "能源",
+        "公用事业",
+        "监管"
+      ],
+      "sector_holdings": [
+        "02208"
+      ],
+      "stance": "endorse",
+      "relevance": 58,
+      "summary_cn": "Trump推动EPA监管回滚，据报道可为电力用户节省3100亿美元，利好传统能源板块。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk’s X Offers Crypto Trading To Users",
+      "url": "",
+      "published": "Tue, 22 Sep 2026 13:49:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "加密货币"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "据报道X平台已开始向用户提供加密货币交易服务。"
+    },
+    {
+      "author": "Pelosi",
+      "text": "Taiwan’s Status Is Ambiguous. U.S. Policy Shouldn’t Be.",
+      "url": "https://news.google.com/rss/articles/CBMibEFVX3lxTE5jQzduNU5aNHFBQy15ZTE2dlBtcXdOQzRGeGFPWnZUS3NQcjJvaGhLbXVWcEEydmlFRG4yX3RzS3E1b0h5OVg5UlB1Y2xIZWJ1ZEw0UnVWVFB2REZFR1Q3YS1xenk2bUJYNlFvYg?oc=5",
+      "published": "2026-09-21T11:53:18+00:00",
+      "origin": "gnews-rss",
+      "source": "Foreign Policy",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "地缘政治",
+        "半导体"
+      ],
+      "sector_holdings": [
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "据报道讨论台湾地位模糊性的文章，涉美国对台政策走向，间接关联半导体供应链风险。"
+    },
+    {
+      "author": "Pelosi",
+      "text": "Scott Wiener and Connie Chan both want to rein in AI. They disagree on how to do that.",
+      "url": "https://news.google.com/rss/articles/CBMif0FVX3lxTE5PdTdBUzljOXBRbXZrWGVTVVd1eWNnajhDVk1CRWpDbzQ5blJlWlFFUFdhc3JmZlZYNDRTWlB1b3NpdGRvQ0gxc3RSMHFmVUJfcmZxOUVXNWtHWnk3QjA0Q1VmNjRNamhNdFN6dWwtbGc2d1NUanRfVkx0R1MxREE?oc=5",
+      "published": "2026-09-21T13:00:00+00:00",
+      "origin": "gnews-rss",
+      "source": "Mission Local",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI监管",
+        "科技政策"
+      ],
+      "sector_holdings": [
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "neutral",
+      "relevance": 52,
+      "summary_cn": "据报道加州议员推动AI监管立法，路径存在分歧，或影响AI板块政策环境。"
+    }
+  ]
 }
