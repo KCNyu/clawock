@@ -261,3 +261,80 @@ export interface BalanceResult {
   /** Suggested client poll interval in ms. */
   refreshMs: number
 }
+
+/**
+ * One agent-dispatch task as the task-queue chip shows it (see taskqueue.ts).
+ * Strings are the runner's own result.env/meta.env values, '' when unset.
+ */
+export interface DispatchTask {
+  /** Task id, `<name>-<yyyymmdd>-<hhmmss>`. */
+  id: string
+  name: string
+  /** 'claude' | 'codex' | 'opencode'. */
+  agent: string
+  /** The model the latest attempt used, else the requested one. */
+  model: string
+  /** 'queued' | 'running' | 'ok' | 'partial' | 'blocked' | 'timeout' | 'quota' | 'cancelled' | … */
+  state: string
+  /** What a live task waits for: 'lock' | 'slot' | 'quota' | 'retry' | 'memory' | ''. Always '' once ended. */
+  waiting: string
+  /** Run slot the live attempt holds, '' when none. */
+  slot: string
+  attempts: number
+  /** The agent's own STATUS line: 'DONE' | 'PARTIAL' | 'BLOCKED' | ''. */
+  outcome: string
+  startedAtMs: number | null
+  updatedAtMs: number | null
+  /** When a quota/retry wait resumes (live tasks only). */
+  wakeAtMs: number | null
+  /** A clawock-patrol round (the dispatcher reserves the `patrol-` prefix). */
+  patrol: boolean
+}
+
+/** One finished patrol round, from rounds.tsv. */
+export interface PatrolRound {
+  endedAt: string
+  /** 'R140'. */
+  round: string
+  axis: string
+  /** 'ok/DONE', 'preempted:cancelled', … verbatim. */
+  result: string
+  seconds: number | null
+}
+
+/** What the clawock-patrol supervisor is doing now. */
+export interface PatrolStatus {
+  /** `systemctl is-active` verbatim ('active' | 'inactive' | 'failed' | 'unknown'). */
+  service: string
+  /** running a round / giving way to user tasks / waiting for its next round / stopped. */
+  phase: 'running' | 'yielding' | 'waiting' | 'stopped' | 'unknown'
+  /** The current round's task id, '' between rounds. */
+  round: string
+  /** The supervisor's last log line without its timestamp. */
+  detail: string
+  /** When the next round is due (phase 'waiting'). */
+  untilMs: number | null
+  /** Newest first, at most three. */
+  rounds: PatrolRound[]
+}
+
+/** The task-queue chip's answer. In-band like BalancesResult: taskQueue() never throws. */
+export interface TaskQueueResult {
+  /** False on a host without the dispatcher: the chip renders nothing. */
+  available: boolean
+  /** 'fresh' | 'cached' | 'stale' | 'failed' — decided host-side. */
+  status: 'fresh' | 'cached' | 'stale' | 'failed'
+  message: string | null
+  asOf: string
+  /** Suggested client poll interval in ms. */
+  refreshMs: number
+  /** limits.env MAX_RUNNING (0 when unreadable). */
+  maxRunning: number
+  /** Live tasks that report holding a run slot. */
+  running: number
+  /** Live tasks, oldest first. */
+  active: DispatchTask[]
+  /** Most recently ended non-patrol tasks, newest first. */
+  recent: DispatchTask[]
+  patrol: PatrolStatus
+}

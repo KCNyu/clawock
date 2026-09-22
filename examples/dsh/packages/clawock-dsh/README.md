@@ -141,6 +141,9 @@ web GUI **左侧栏底部、Settings 正上方**常驻一行余额读数,不跟�
   (kcn 反馈 #908):进红档后面板行的每窗读数、进度条、重置时间与头条的
   副读数、↻ 全部保留,水位警示句只是并排多讲一句,不顶掉任何字段;
 - 刷新失败保留最近一次快照并标注 stale(黄点);瞬时 429 不抹掉真数字;
+  Claude 行的「请求过于频繁,请稍后再试」就是 `/api/oauth/usage` 被问得太勤的
+  429(本机的派发通知 `quota.mjs` 也读这个端点),**额度读不到不代表任务异常**,
+  不要据此判断派发任务卡死;
 - Claude 的 OAuth token 归 Claude Code 所有,本插件**只读不刷新**——过期时
   面板显示「请在终端跑一次 claude 刷新登录」;
 - 宿主侧每 provider TTL 缓存、并发合并:DeepSeek/MiniMax/Claude 60s,Codex 跟
@@ -158,6 +161,27 @@ web GUI **左侧栏底部、Settings 正上方**常驻一行余额读数,不跟�
 `codexCommand`)都挂在**当前用户的家目录**下(`homedir()`),不是写死的
 `/root/...`——本包发布在 npm 上,绝对家目录会把一台机器的布局当成所有人的
 默认值;换 uid 跑也会读错账号。profile 行里可以逐个覆盖。
+
+### 余额上方的派发任务队列
+
+装了 agent-dispatch 的主机上(`~/logs/agent-dispatch` 存在),余额那一行**正上方**
+多一行「任务」:头条是运行槽占用 `槽 n/MAX_RUNNING`(数字读自
+`~/tools/agent-dispatch/limits.env`,不写死)+ 排队数、等额度数和巡检状态
+(运行中 / 让路中 / 某时开下一轮 / 已停)。点开是同款毛玻璃面板,手动 ↻ 强制重读:
+
+- 每个活着的任务(`agent-dispatch-<id>.service` active):名字、状态短语
+  (运行中·槽 N / 等 claude 锁 / 等运行槽 / 等内存 / 等额度·某时续跑)、
+  agent·模型·已跑时长·第几次尝试;
+- 巡检:`clawock-patrol` 在跑的轮次、它 journal 里最后一句话,和
+  `rounds.tsv` 最近三轮的结果与耗时(`preempted:cancelled` 是给人工任务让路,
+  不是故障);
+- 最近结束的 5 个非巡检任务:状态 / 模型自报 STATUS 与结束于多久前。
+
+全是本机文件加 `systemctl`/`journalctl`,不走网络;宿主侧 5s 缓存、客户端
+15s 轮询。没有派发目录的主机上这一行不出现。可选配置 `dispatchLogDir` /
+`dispatchLimitsPath` / `patrolStateDir` / `taskQueueRefreshMs` / `taskQueueRecent`。
+宿主把侧栏底部动作排成一行,本行靠样式表的 `:has()` 把那一格改成竖排才叠在
+余额上方;不支持 `:has()` 的浏览器上两行并排,功能不变。
 
 ## 语言
 

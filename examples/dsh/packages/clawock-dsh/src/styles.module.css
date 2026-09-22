@@ -1707,3 +1707,47 @@ body[data-ds-dark-theme] .pbc .bp {
     transform:none
   }
 }
+/* Dispatch task queue: the foot row directly above the balance, in the same
+   chip language — .pbc tokens, .bchip row, glyph badge, glass popover. The
+   host lays its foot actions out in a flex ROW, which would put the two rows
+   side by side; the container holding this row stacks them instead (rail:
+   centred, like the host's own collapsed foot). Without :has() support the
+   rows sit side by side, still usable. */
+:has(> .pbc.tqf) {
+  flex-direction:column
+}
+:has(> .pbc.tqf.rail) {
+  align-items:center
+}
+.pbc.tqf .bchip-v {
+  white-space:nowrap
+}
+/* Task rows report, they do not act: no press, no hover, no pointer. */
+.pbc .tq-row {
+  cursor:default
+}
+.pbc .tq-row:active {
+  transform:none;
+  background:transparent
+}
+@media (hover: hover) and (pointer: fine) {
+  .pbc .tq-row:hover {
+    background:transparent
+  }
+}
+.pbc .tq-v {
+  justify-self:end;
+  font:550 var(--fs-xs)/1.3 var(--font);
+  white-space:nowrap;
+  color:var(--text)
+}
+.pbc .tq-v[data-balance-state="stale"] { color:var(--warn) }
+.pbc .tq-v[data-balance-state="low"] { color:var(--bad) }
+.pbc .tq-v[data-balance-state="none"] { color:var(--text3) }
+.pbc .tq-sec {
+  display:block;
+  margin:10px 0 2px
+}
+.pbc .tq-line {
+  display:block
+}

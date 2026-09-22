@@ -12,7 +12,7 @@
 import { Remote, TypertRemoteService } from '@deepseek-ai/dsh-typert-protocol'
 import type { Context } from '@deepseek-ai/cordis'
 import type {
-  BalancesResult, LedgerResult, ListRunsResult, PlansResult, PortfolioResult, RunDetailResult, TracesResult,
+  BalancesResult, LedgerResult, ListRunsResult, PlansResult, PortfolioResult, RunDetailResult, TaskQueueResult, TracesResult,
 } from './types.ts'
 import {
   createBalanceService,
@@ -23,6 +23,7 @@ import {
   type BalanceService,
 } from './balance.ts'
 import { getRun, listRuns } from './scan.ts'
+import { createTaskQueueService, type TaskQueueService } from './taskqueue.ts'
 import { readLedger, readPlans, readPortfolio, readTraces } from './ledger.ts'
 import { createTraceCache, workspaceKeyOf, workspaceSignature } from './freshness.ts'
 
@@ -65,6 +66,19 @@ export interface ClawockStudioConfig {
   codexLowPct?: number
   /** Codex app-server polling/cache cadence in ms (default 5 minutes). */
   codexRefreshMs?: number
+  /**
+   * agent-dispatch task directories (default ~/logs/agent-dispatch). The task
+   * chip exists only where this directory does.
+   */
+  dispatchLogDir?: string
+  /** The dispatcher's shared slot policy (default ~/tools/agent-dispatch/limits.env). */
+  dispatchLimitsPath?: string
+  /** clawock-patrol state: current-round, rounds.tsv (default ~/logs/clawock-patrol). */
+  patrolStateDir?: string
+  /** Suggested client poll interval for the task chip in ms (default 15s). */
+  taskQueueRefreshMs?: number
+  /** How many recently ended tasks the chip lists (default 5). */
+  taskQueueRecent?: number
 }
 
 /**
@@ -135,6 +149,9 @@ export class ClawockStudioGateway extends TypertRemoteService {
    * the gateway constructor keeps the exact super(ctx, serviceKey) shape.
    */
   private balanceServices: BalanceService[] | null = null
+
+  /** The task chip's reader, lazily built and instance-scoped like the balance services. */
+  private taskQueueService: TaskQueueService | null = null
 
   /**
    * The row config, owned by the instance. cordis constructs a class plugin as
@@ -226,6 +243,26 @@ export class ClawockStudioGateway extends TypertRemoteService {
       providers: BALANCE_PROVIDERS.map((provider, i) => ({ provider: provider.id, label: provider.label, result: results[i] })),
       refreshMs: Math.min(...results.map((result) => result.refreshMs)),
     }
+  }
+
+  /**
+   * The sidebar-foot task chip: live agent-dispatch tasks and what each waits
+   * for, the recently ended ones, and the clawock-patrol supervisor's phase.
+   * Local files and systemctl only; in-band like balance(), never throws.
+   * @param force - bypass the short host cache (the manual refresh button).
+   */
+  @Remote
+  async taskQueue(force: boolean): Promise<TaskQueueResult> {
+    if (this.taskQueueService === null) {
+      this.taskQueueService = createTaskQueueService({
+        logDir: this.config.dispatchLogDir,
+        limitsPath: this.config.dispatchLimitsPath,
+        patrolDir: this.config.patrolStateDir,
+        refreshMs: this.config.taskQueueRefreshMs,
+        recent: this.config.taskQueueRecent,
+      })
+    }
+    return this.taskQueueService.get(force)
   }
 }
 
