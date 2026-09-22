@@ -1,16 +1,16 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-09-21T00:04:35.417953+00:00",
-  "as_of": "2026-09-21",
+  "generated_at": "2026-09-22T00:04:52.443476+00:00",
+  "as_of": "2026-09-22",
   "events": [
     {
-      "event_id": "evt_756e35ef23d814fa1933",
+      "event_id": "evt_b547d1e845b58f8e92e8",
       "ticker": "MARKET",
       "reported_ticker": "MARKET",
       "event_type": "macro_schedule",
       "title": "Q2 2026 GDP 3rd estimate",
       "publication_time": {
-        "iso": "2026-09-21T00:03:47.275206+00:00",
+        "iso": "2026-09-22T00:03:45.509801+00:00",
         "precision": "minute"
       },
       "event_time": {
@@ -31,8 +31,8 @@
       ],
       "corroborating_source_count": 1,
       "duplicate_novelty_clusters": [],
-      "novelty_score": 0.25,
-      "novelty_reason": "same_cluster_within_7d",
+      "novelty_score": 0.1,
+      "novelty_reason": "same_cluster_within_2d",
       "expires_at": "2026-09-25T00:00:00+00:00",
       "status": "upcoming",
       "expiry_days": 1,
@@ -59,13 +59,13 @@
       "decision_permission": "display_or_watch_only"
     },
     {
-      "event_id": "evt_a1d291f653c48eae70e2",
+      "event_id": "evt_2fafa7db5d7746321639",
       "ticker": "MARKET",
       "reported_ticker": "MARKET",
       "event_type": "macro_schedule",
       "title": "Aug PCE price index (BEA, Fed preferred inflation gauge)",
       "publication_time": {
-        "iso": "2026-09-21T00:03:47.275206+00:00",
+        "iso": "2026-09-22T00:03:45.509801+00:00",
         "precision": "minute"
       },
       "event_time": {
@@ -86,8 +86,8 @@
       ],
       "corroborating_source_count": 1,
       "duplicate_novelty_clusters": [],
-      "novelty_score": 0.25,
-      "novelty_reason": "same_cluster_within_7d",
+      "novelty_score": 0.1,
+      "novelty_reason": "same_cluster_within_2d",
       "expires_at": "2026-09-26T00:00:00+00:00",
       "status": "upcoming",
       "expiry_days": 1,
@@ -114,13 +114,13 @@
       "decision_permission": "display_or_watch_only"
     },
     {
-      "event_id": "evt_dd0700466349ceec6bf2",
+      "event_id": "evt_9db0274f19c889a9ecff",
       "ticker": "MARKET",
       "reported_ticker": "MARKET",
       "event_type": "macro_schedule",
       "title": "Sep jobs report (Non-Farm Payrolls); BLS 8:30 ET",
       "publication_time": {
-        "iso": "2026-09-21T00:03:47.275206+00:00",
+        "iso": "2026-09-22T00:03:45.509801+00:00",
         "precision": "minute"
       },
       "event_time": {
@@ -141,8 +141,8 @@
       ],
       "corroborating_source_count": 1,
       "duplicate_novelty_clusters": [],
-      "novelty_score": 0.25,
-      "novelty_reason": "same_cluster_within_7d",
+      "novelty_score": 0.1,
+      "novelty_reason": "same_cluster_within_2d",
       "expires_at": "2026-10-03T00:00:00+00:00",
       "status": "upcoming",
       "expiry_days": 1,
@@ -169,24 +169,79 @@
       "decision_permission": "display_or_watch_only"
     },
     {
-      "event_id": "evt_e4dcb76f849eebaad0e2",
+      "event_id": "evt_ef77d1a6bcdb816fc71b",
       "ticker": "MARKET",
       "reported_ticker": "MARKET",
       "event_type": "sector_flow",
-      "title": "韩国KOSPI指数开盘上涨0.64% 日本股市今日休市",
+      "title": "“富二代”标签过时了？300万民企交班大考催生“继创者”",
       "publication_time": {
-        "iso": "2026-09-21T00:01:00+00:00",
+        "iso": "2026-09-22T00:02:00+00:00",
         "precision": "minute"
       },
       "event_time": {
-        "iso": "2026-09-21T00:01:00+00:00",
+        "iso": "2026-09-22T00:02:00+00:00",
+        "precision": "minute"
+      },
+      "primary_source": "biz.eastmoney.com",
+      "source_type": "market_fast_news",
+      "source_reliability": 0.45,
+      "source_url": "http://biz.eastmoney.com/a/202609213879963054.html",
+      "novelty_cluster": "3582e70646e06b0e8478",
+      "impact_direction": "unknown",
+      "metadata": {},
+      "body_persisted": false,
+      "duplicate_event_ids": [],
+      "evidence_sources": [
+        "biz.eastmoney.com"
+      ],
+      "corroborating_source_count": 1,
+      "duplicate_novelty_clusters": [],
+      "novelty_score": 1.0,
+      "novelty_reason": "new_cluster",
+      "expires_at": "2026-09-23T00:02:00+00:00",
+      "status": "active",
+      "expiry_days": 1,
+      "confirmation": {
+        "price_change_pct": null,
+        "price_aligned": false,
+        "volume_ratio_vs_20d_median": null,
+        "volume_aligned": false,
+        "peer_residual_1d": null,
+        "peer_dispersion_1d": null,
+        "peer_residual_observed": false,
+        "peer_usable_rules": [],
+        "peer_confirmation_usable": false,
+        "confirmed": false
+      },
+      "high_impact": false,
+      "actionable_escalation": false,
+      "actionable_blockers": [
+        "hard_company_event",
+        "reliable_primary_or_wire",
+        "price_volume_or_validated_peer_confirmation",
+        "disconfirming_negative"
+      ],
+      "decision_permission": "display_or_watch_only"
+    },
+    {
+      "event_id": "evt_0e3aff4365924cffd5cd",
+      "ticker": "MARKET",
+      "reported_ticker": "MARKET",
+      "event_type": "sector_flow",
+      "title": "韩国KOSPI指数开盘涨2.2% 日本股市今日休市",
+      "publication_time": {
+        "iso": "2026-09-22T00:00:00+00:00",
+        "precision": "minute"
+      },
+      "event_time": {
+        "iso": "2026-09-22T00:00:00+00:00",
         "precision": "minute"
       },
       "primary_source": "finance.eastmoney.com",
       "source_type": "market_fast_news",
       "source_reliability": 0.45,
-      "source_url": "http://finance.eastmoney.com/a/202609213879524384.html",
-      "novelty_cluster": "e474cb97e7583c6be8aa",
+      "source_url": "http://finance.eastmoney.com/a/202609223880602936.html",
+      "novelty_cluster": "ec91fc7f2d3cbd4d8fa4",
       "impact_direction": "unknown",
       "metadata": {},
       "body_persisted": false,
@@ -196,9 +251,9 @@
       ],
       "corroborating_source_count": 1,
       "duplicate_novelty_clusters": [],
-      "novelty_score": 0.5,
-      "novelty_reason": "same_cluster_within_30d",
-      "expires_at": "2026-09-22T00:01:00+00:00",
+      "novelty_score": 0.1,
+      "novelty_reason": "same_cluster_within_2d",
+      "expires_at": "2026-09-23T00:00:00+00:00",
       "status": "active",
       "expiry_days": 1,
       "confirmation": {
@@ -225,24 +280,24 @@
       "decision_permission": "display_or_watch_only"
     },
     {
-      "event_id": "evt_fe4c78dd0a8feeeb92c3",
+      "event_id": "evt_556014f9baaf7144ba5a",
       "ticker": "MARKET",
       "reported_ticker": "MARKET",
       "event_type": "sector_flow",
-      "title": "从几十万元到千万级 何小鹏谈中国汽车未来定价逻辑",
+      "title": "青岛：发放5000万元“乐购青岛”线上消费券",
       "publication_time": {
-        "iso": "2026-09-21T00:00:00+00:00",
+        "iso": "2026-09-21T23:58:00+00:00",
         "precision": "minute"
       },
       "event_time": {
-        "iso": "2026-09-21T00:00:00+00:00",
+        "iso": "2026-09-21T23:58:00+00:00",
         "precision": "minute"
       },
       "primary_source": "finance.eastmoney.com",
       "source_type": "market_fast_news",
       "source_reliability": 0.45,
-      "source_url": "http://finance.eastmoney.com/a/202609203879427364.html",
-      "novelty_cluster": "22608ac8ab13023c5a5d",
+      "source_url": "http://finance.eastmoney.com/a/202609223880597028.html",
+      "novelty_cluster": "7755164a446eab2f835c",
       "impact_direction": "unknown",
       "metadata": {},
       "body_persisted": false,
@@ -254,7 +309,7 @@
       "duplicate_novelty_clusters": [],
       "novelty_score": 1.0,
       "novelty_reason": "new_cluster",
-      "expires_at": "2026-09-22T00:00:00+00:00",
+      "expires_at": "2026-09-22T23:58:00+00:00",
       "status": "active",
       "expiry_days": 1,
       "confirmation": {
@@ -280,24 +335,24 @@
       "decision_permission": "display_or_watch_only"
     },
     {
-      "event_id": "evt_460d427bbd3c1888f257",
+      "event_id": "evt_6adb25ecb594977317ba",
       "ticker": "MARKET",
       "reported_ticker": "MARKET",
       "event_type": "sector_flow",
-      "title": "重庆近6万亿国资改革提档：八个“新突破”锚定深层次攻坚",
+      "title": "美日欧央行加息盘算各异",
       "publication_time": {
-        "iso": "2026-09-20T23:59:00+00:00",
+        "iso": "2026-09-21T23:57:00+00:00",
         "precision": "minute"
       },
       "event_time": {
-        "iso": "2026-09-20T23:59:00+00:00",
+        "iso": "2026-09-21T23:57:00+00:00",
         "precision": "minute"
       },
       "primary_source": "finance.eastmoney.com",
       "source_type": "market_fast_news",
       "source_reliability": 0.45,
-      "source_url": "http://finance.eastmoney.com/a/202609203879466520.html",
-      "novelty_cluster": "a98a8521b6d342937564",
+      "source_url": "http://finance.eastmoney.com/a/202609223880407982.html",
+      "novelty_cluster": "fa53cbaaf887ee38a9dc",
       "impact_direction": "unknown",
       "metadata": {},
       "body_persisted": false,
@@ -309,7 +364,7 @@
       "duplicate_novelty_clusters": [],
       "novelty_score": 1.0,
       "novelty_reason": "new_cluster",
-      "expires_at": "2026-09-21T23:59:00+00:00",
+      "expires_at": "2026-09-22T23:57:00+00:00",
       "status": "active",
       "expiry_days": 1,
       "confirmation": {
@@ -335,24 +390,24 @@
       "decision_permission": "display_or_watch_only"
     },
     {
-      "event_id": "evt_3a100aedae8a77204c51",
+      "event_id": "evt_6cf9d8a35339e01f31de",
       "ticker": "MARKET",
       "reported_ticker": "MARKET",
       "event_type": "sector_flow",
-      "title": "彩讯股份：签订不低于18.12亿元算力技术服务合同",
+      "title": "经济日报金观平：冲刺汽车强国还需打几场硬仗",
       "publication_time": {
-        "iso": "2026-09-20T23:58:00+00:00",
+        "iso": "2026-09-21T23:55:00+00:00",
         "precision": "minute"
       },
       "event_time": {
-        "iso": "2026-09-20T23:58:00+00:00",
+        "iso": "2026-09-21T23:55:00+00:00",
         "precision": "minute"
       },
       "primary_source": "finance.eastmoney.com",
       "source_type": "market_fast_news",
       "source_reliability": 0.45,
-      "source_url": "http://finance.eastmoney.com/a/202609213879524112.html",
-      "novelty_cluster": "99a9f0d9340673b59470",
+      "source_url": "http://finance.eastmoney.com/a/202609223880408375.html",
+      "novelty_cluster": "2c4bccab209bf379c2b9",
       "impact_direction": "unknown",
       "metadata": {},
       "body_persisted": false,
@@ -364,7 +419,7 @@
       "duplicate_novelty_clusters": [],
       "novelty_score": 1.0,
       "novelty_reason": "new_cluster",
-      "expires_at": "2026-09-21T23:58:00+00:00",
+      "expires_at": "2026-09-22T23:55:00+00:00",
       "status": "active",
       "expiry_days": 1,
       "confirmation": {
@@ -390,24 +445,24 @@
       "decision_permission": "display_or_watch_only"
     },
     {
-      "event_id": "evt_24974ad2da83e0a4b381",
+      "event_id": "evt_ad387f291818b537c1e6",
       "ticker": "MARKET",
       "reported_ticker": "MARKET",
       "event_type": "sector_flow",
-      "title": "里程碑式新政出台 激活房车消费新蓝海",
+      "title": "从拼技术到拼规模 具身智能机器人开始“上量”",
       "publication_time": {
-        "iso": "2026-09-20T23:56:00+00:00",
+        "iso": "2026-09-21T23:54:00+00:00",
         "precision": "minute"
       },
       "event_time": {
-        "iso": "2026-09-20T23:56:00+00:00",
+        "iso": "2026-09-21T23:54:00+00:00",
         "precision": "minute"
       },
       "primary_source": "finance.eastmoney.com",
       "source_type": "market_fast_news",
       "source_reliability": 0.45,
-      "source_url": "http://finance.eastmoney.com/a/202609213879520055.html",
-      "novelty_cluster": "b7c7a917dbc2eecda6f4",
+      "source_url": "http://finance.eastmoney.com/a/202609223880395267.html",
+      "novelty_cluster": "3e82f79e42c06ac400a9",
       "impact_direction": "unknown",
       "metadata": {},
       "body_persisted": false,
@@ -419,7 +474,7 @@
       "duplicate_novelty_clusters": [],
       "novelty_score": 1.0,
       "novelty_reason": "new_cluster",
-      "expires_at": "2026-09-21T23:56:00+00:00",
+      "expires_at": "2026-09-22T23:54:00+00:00",
       "status": "active",
       "expiry_days": 1,
       "confirmation": {
@@ -445,38 +500,289 @@
       "decision_permission": "display_or_watch_only"
     },
     {
-      "event_id": "evt_4275ef08d3c6374316cf",
-      "ticker": "MARKET",
-      "reported_ticker": "MARKET",
-      "event_type": "sector_flow",
-      "title": "炒作“号码钞”该刹车了",
+      "event_id": "evt_380faea8f2fd04527d3e",
+      "ticker": "TSLA",
+      "reported_ticker": "TSLA",
+      "event_type": "other",
+      "title": "Morgan Stanley Maps Tesla-SpaceX Ties in ‘Physical AI’ After Musk Hint",
       "publication_time": {
-        "iso": "2026-09-20T23:55:00+00:00",
+        "iso": "2026-09-21T14:59:25+00:00",
         "precision": "minute"
       },
       "event_time": {
-        "iso": "2026-09-20T23:55:00+00:00",
+        "iso": "2026-09-21T14:59:25+00:00",
         "precision": "minute"
       },
-      "primary_source": "finance.eastmoney.com",
-      "source_type": "market_fast_news",
-      "source_reliability": 0.45,
-      "source_url": "http://finance.eastmoney.com/a/202609213879504517.html",
-      "novelty_cluster": "43e618c775fa6c03a44f",
+      "primary_source": "eletric-vehicles.com",
+      "source_type": "google_news_rss",
+      "source_reliability": 0.5,
+      "source_url": null,
+      "novelty_cluster": "ef15de829df095e6df28",
       "impact_direction": "unknown",
-      "metadata": {},
+      "metadata": {
+        "channel": "influencer_feed",
+        "author": "Musk",
+        "stance": "neutral",
+        "relevance": 60,
+        "direct_ticker_only": true
+      },
       "body_persisted": false,
       "duplicate_event_ids": [],
       "evidence_sources": [
-        "finance.eastmoney.com"
+        "eletric-vehicles.com"
+      ],
+      "corroborating_source_count": 1,
+      "duplicate_novelty_clusters": [],
+      "novelty_score": 1.0,
+      "novelty_reason": "new_cluster",
+      "expires_at": "2026-09-23T14:59:25+00:00",
+      "status": "active",
+      "expiry_days": 2,
+      "confirmation": {
+        "price_change_pct": null,
+        "price_aligned": false,
+        "volume_ratio_vs_20d_median": null,
+        "volume_aligned": false,
+        "peer_residual_1d": null,
+        "peer_dispersion_1d": null,
+        "peer_residual_observed": false,
+        "peer_usable_rules": [],
+        "peer_confirmation_usable": false,
+        "confirmed": false
+      },
+      "high_impact": false,
+      "actionable_escalation": false,
+      "actionable_blockers": [
+        "hard_company_event",
+        "reliable_primary_or_wire",
+        "price_volume_or_validated_peer_confirmation",
+        "disconfirming_negative"
+      ],
+      "decision_permission": "display_or_watch_only"
+    },
+    {
+      "event_id": "evt_a9d56ec03ab03d43fcf9",
+      "ticker": "TSLA",
+      "reported_ticker": "TSLA",
+      "event_type": "other",
+      "title": "Did Elon Musk Just Drop a Big Hint About a Possible SpaceX-Tesla Merger?",
+      "publication_time": {
+        "iso": "2026-09-21T14:36:51+00:00",
+        "precision": "minute"
+      },
+      "event_time": {
+        "iso": "2026-09-21T14:36:51+00:00",
+        "precision": "minute"
+      },
+      "primary_source": "yahoo finance",
+      "source_type": "google_news_rss",
+      "source_reliability": 0.5,
+      "source_url": null,
+      "novelty_cluster": "f571c2dd16d679041283",
+      "impact_direction": "unknown",
+      "metadata": {
+        "channel": "influencer_feed",
+        "author": "Musk",
+        "stance": "neutral",
+        "relevance": 58,
+        "direct_ticker_only": true
+      },
+      "body_persisted": false,
+      "duplicate_event_ids": [],
+      "evidence_sources": [
+        "yahoo finance"
+      ],
+      "corroborating_source_count": 1,
+      "duplicate_novelty_clusters": [],
+      "novelty_score": 0.5,
+      "novelty_reason": "same_cluster_within_30d",
+      "expires_at": "2026-09-23T14:36:51+00:00",
+      "status": "active",
+      "expiry_days": 2,
+      "confirmation": {
+        "price_change_pct": null,
+        "price_aligned": false,
+        "volume_ratio_vs_20d_median": null,
+        "volume_aligned": false,
+        "peer_residual_1d": null,
+        "peer_dispersion_1d": null,
+        "peer_residual_observed": false,
+        "peer_usable_rules": [],
+        "peer_confirmation_usable": false,
+        "confirmed": false
+      },
+      "high_impact": false,
+      "actionable_escalation": false,
+      "actionable_blockers": [
+        "hard_company_event",
+        "reliable_primary_or_wire",
+        "novel",
+        "price_volume_or_validated_peer_confirmation",
+        "disconfirming_negative"
+      ],
+      "decision_permission": "display_or_watch_only"
+    },
+    {
+      "event_id": "evt_7cf9e9e17e1d1f3e0aea",
+      "ticker": "PLTR",
+      "reported_ticker": "PLTR",
+      "event_type": "other",
+      "title": "Michael Burry Doubles Down On Palantir Bear Case: ‘A Lot Of’ Money Still To Be Made Shorting PLTR",
+      "publication_time": {
+        "iso": "2026-09-21T08:32:54+00:00",
+        "precision": "minute"
+      },
+      "event_time": {
+        "iso": "2026-09-21T08:32:54+00:00",
+        "precision": "minute"
+      },
+      "primary_source": "news.google.com",
+      "source_type": "google_news_rss",
+      "source_reliability": 0.5,
+      "source_url": "https://news.google.com/rss/articles/CBMiogFBVV95cUxOa01PVzVKa3Joa3E2MXpqWHhoWHY0LVFnWGk4WFQyNU0xbHVZaFNJc1FvZm5YMUFnbE44aGUyRWc3U181R2Z4QlpSSGZCcnlNVk9nX1dobUJCTGNJZVZDZFl5LUhKeHpFb0dYUU5rYmNsVk5VSTFmeFZNQ1ltVVlRTHNMX1llR1AzQzZ2bEgwekRoRnhZTXd1Qjh1UWJPZW9kenc?oc=5",
+      "novelty_cluster": "b2cd31ff35186b932255",
+      "impact_direction": "unknown",
+      "metadata": {
+        "channel": "influencer_feed",
+        "author": "Burry",
+        "stance": "attack",
+        "relevance": 88,
+        "direct_ticker_only": true
+      },
+      "body_persisted": false,
+      "duplicate_event_ids": [],
+      "evidence_sources": [
+        "news.google.com"
       ],
       "corroborating_source_count": 1,
       "duplicate_novelty_clusters": [],
       "novelty_score": 0.8,
       "novelty_reason": "cluster_old_but_recurrent",
-      "expires_at": "2026-09-21T23:55:00+00:00",
+      "expires_at": "2026-09-23T08:32:54+00:00",
       "status": "active",
-      "expiry_days": 1,
+      "expiry_days": 2,
+      "confirmation": {
+        "price_change_pct": null,
+        "price_aligned": false,
+        "volume_ratio_vs_20d_median": null,
+        "volume_aligned": false,
+        "peer_residual_1d": -0.025608,
+        "peer_dispersion_1d": 0.033621,
+        "peer_residual_observed": false,
+        "peer_usable_rules": [],
+        "peer_confirmation_usable": false,
+        "confirmed": false
+      },
+      "high_impact": false,
+      "actionable_escalation": false,
+      "actionable_blockers": [
+        "hard_company_event",
+        "reliable_primary_or_wire",
+        "price_volume_or_validated_peer_confirmation",
+        "disconfirming_negative"
+      ],
+      "decision_permission": "display_or_watch_only"
+    },
+    {
+      "event_id": "evt_e174c457b1673e5be764",
+      "ticker": "MSFT",
+      "reported_ticker": "MSFT",
+      "event_type": "other",
+      "title": "Michael Burry Buys Long-Dated Microsoft Calls, Adds To JD And Adobe — Trims Palantir Short",
+      "publication_time": {
+        "iso": "2026-09-21T03:49:58+00:00",
+        "precision": "minute"
+      },
+      "event_time": {
+        "iso": "2026-09-21T03:49:58+00:00",
+        "precision": "minute"
+      },
+      "primary_source": "news.google.com",
+      "source_type": "google_news_rss",
+      "source_reliability": 0.5,
+      "source_url": "https://news.google.com/rss/articles/CBMi3AFBVV95cUxPRlcybV9XejhnQlBGOC1Yak5iQnJmT2hkSXNORXptYTZ2TUFrM3g3aXo1ZkJOLXh6c3pxZFNPMGdETXR4UTBXcmRtQkpqZlRFNVBrVTktR2g4WUk1cDNwMkJBSG92ZGRadW93RXdCX2VMUy1oYmNhN19VdjFyQUJ5aWNnakh0cUZsZ1NYN0l3aHNEcHB6dTByUkxVbmN4VTFWN2ZfYWlqbkZSd09sU0lFMVdRTk5EQ3YyS2Jfa3JjUmRkSnd5SUhHX2YtYUxPS0VMdW0tRE1aNm1ILTR2?oc=5",
+      "novelty_cluster": "d49fdcd7d8b5cda488dc",
+      "impact_direction": "unknown",
+      "metadata": {
+        "channel": "influencer_feed",
+        "author": "Burry",
+        "stance": "buy",
+        "relevance": 82,
+        "direct_ticker_only": true
+      },
+      "body_persisted": false,
+      "duplicate_event_ids": [],
+      "evidence_sources": [
+        "news.google.com"
+      ],
+      "corroborating_source_count": 1,
+      "duplicate_novelty_clusters": [],
+      "novelty_score": 1.0,
+      "novelty_reason": "new_cluster",
+      "expires_at": "2026-09-23T03:49:58+00:00",
+      "status": "active",
+      "expiry_days": 2,
+      "confirmation": {
+        "price_change_pct": null,
+        "price_aligned": false,
+        "volume_ratio_vs_20d_median": null,
+        "volume_aligned": false,
+        "peer_residual_1d": -0.023643,
+        "peer_dispersion_1d": 0.051775,
+        "peer_residual_observed": false,
+        "peer_usable_rules": [],
+        "peer_confirmation_usable": false,
+        "confirmed": false
+      },
+      "high_impact": false,
+      "actionable_escalation": false,
+      "actionable_blockers": [
+        "hard_company_event",
+        "reliable_primary_or_wire",
+        "price_volume_or_validated_peer_confirmation",
+        "disconfirming_negative"
+      ],
+      "decision_permission": "display_or_watch_only"
+    },
+    {
+      "event_id": "evt_d69f5a259835bbfa1010",
+      "ticker": "JD",
+      "reported_ticker": "JD",
+      "event_type": "other",
+      "title": "Michael Burry Buys Long-Dated Microsoft Calls, Adds To JD And Adobe — Trims Palantir Short",
+      "publication_time": {
+        "iso": "2026-09-21T03:49:58+00:00",
+        "precision": "minute"
+      },
+      "event_time": {
+        "iso": "2026-09-21T03:49:58+00:00",
+        "precision": "minute"
+      },
+      "primary_source": "news.google.com",
+      "source_type": "google_news_rss",
+      "source_reliability": 0.5,
+      "source_url": "https://news.google.com/rss/articles/CBMi3AFBVV95cUxPRlcybV9XejhnQlBGOC1Yak5iQnJmT2hkSXNORXptYTZ2TUFrM3g3aXo1ZkJOLXh6c3pxZFNPMGdETXR4UTBXcmRtQkpqZlRFNVBrVTktR2g4WUk1cDNwMkJBSG92ZGRadW93RXdCX2VMUy1oYmNhN19VdjFyQUJ5aWNnakh0cUZsZ1NYN0l3aHNEcHB6dTByUkxVbmN4VTFWN2ZfYWlqbkZSd09sU0lFMVdRTk5EQ3YyS2Jfa3JjUmRkSnd5SUhHX2YtYUxPS0VMdW0tRE1aNm1ILTR2?oc=5",
+      "novelty_cluster": "feea6205d2b0f26c555a",
+      "impact_direction": "unknown",
+      "metadata": {
+        "channel": "influencer_feed",
+        "author": "Burry",
+        "stance": "buy",
+        "relevance": 82,
+        "direct_ticker_only": true
+      },
+      "body_persisted": false,
+      "duplicate_event_ids": [],
+      "evidence_sources": [
+        "news.google.com"
+      ],
+      "corroborating_source_count": 1,
+      "duplicate_novelty_clusters": [],
+      "novelty_score": 1.0,
+      "novelty_reason": "new_cluster",
+      "expires_at": "2026-09-23T03:49:58+00:00",
+      "status": "active",
+      "expiry_days": 2,
       "confirmation": {
         "price_change_pct": null,
         "price_aligned": false,
@@ -493,6 +799,304 @@
       "actionable_escalation": false,
       "actionable_blockers": [
         "hard_company_event",
+        "reliable_primary_or_wire",
+        "price_volume_or_validated_peer_confirmation",
+        "disconfirming_negative"
+      ],
+      "decision_permission": "display_or_watch_only"
+    },
+    {
+      "event_id": "evt_e54d4518ccbb0b411cd5",
+      "ticker": "ADBE",
+      "reported_ticker": "ADBE",
+      "event_type": "other",
+      "title": "Michael Burry Buys Long-Dated Microsoft Calls, Adds To JD And Adobe — Trims Palantir Short",
+      "publication_time": {
+        "iso": "2026-09-21T03:49:58+00:00",
+        "precision": "minute"
+      },
+      "event_time": {
+        "iso": "2026-09-21T03:49:58+00:00",
+        "precision": "minute"
+      },
+      "primary_source": "news.google.com",
+      "source_type": "google_news_rss",
+      "source_reliability": 0.5,
+      "source_url": "https://news.google.com/rss/articles/CBMi3AFBVV95cUxPRlcybV9XejhnQlBGOC1Yak5iQnJmT2hkSXNORXptYTZ2TUFrM3g3aXo1ZkJOLXh6c3pxZFNPMGdETXR4UTBXcmRtQkpqZlRFNVBrVTktR2g4WUk1cDNwMkJBSG92ZGRadW93RXdCX2VMUy1oYmNhN19VdjFyQUJ5aWNnakh0cUZsZ1NYN0l3aHNEcHB6dTByUkxVbmN4VTFWN2ZfYWlqbkZSd09sU0lFMVdRTk5EQ3YyS2Jfa3JjUmRkSnd5SUhHX2YtYUxPS0VMdW0tRE1aNm1ILTR2?oc=5",
+      "novelty_cluster": "d49fdcd7d8b5cda488dc",
+      "impact_direction": "unknown",
+      "metadata": {
+        "channel": "influencer_feed",
+        "author": "Burry",
+        "stance": "buy",
+        "relevance": 82,
+        "direct_ticker_only": true
+      },
+      "body_persisted": false,
+      "duplicate_event_ids": [],
+      "evidence_sources": [
+        "news.google.com"
+      ],
+      "corroborating_source_count": 1,
+      "duplicate_novelty_clusters": [],
+      "novelty_score": 1.0,
+      "novelty_reason": "new_cluster",
+      "expires_at": "2026-09-23T03:49:58+00:00",
+      "status": "active",
+      "expiry_days": 2,
+      "confirmation": {
+        "price_change_pct": null,
+        "price_aligned": false,
+        "volume_ratio_vs_20d_median": null,
+        "volume_aligned": false,
+        "peer_residual_1d": null,
+        "peer_dispersion_1d": null,
+        "peer_residual_observed": false,
+        "peer_usable_rules": [],
+        "peer_confirmation_usable": false,
+        "confirmed": false
+      },
+      "high_impact": false,
+      "actionable_escalation": false,
+      "actionable_blockers": [
+        "hard_company_event",
+        "reliable_primary_or_wire",
+        "price_volume_or_validated_peer_confirmation",
+        "disconfirming_negative"
+      ],
+      "decision_permission": "display_or_watch_only"
+    },
+    {
+      "event_id": "evt_23fd4e33db507be44fff",
+      "ticker": "PLTR",
+      "reported_ticker": "PLTR",
+      "event_type": "other",
+      "title": "Michael Burry Buys Long-Dated Microsoft Calls, Adds To JD And Adobe — Trims Palantir Short",
+      "publication_time": {
+        "iso": "2026-09-21T03:49:58+00:00",
+        "precision": "minute"
+      },
+      "event_time": {
+        "iso": "2026-09-21T03:49:58+00:00",
+        "precision": "minute"
+      },
+      "primary_source": "news.google.com",
+      "source_type": "google_news_rss",
+      "source_reliability": 0.5,
+      "source_url": "https://news.google.com/rss/articles/CBMi3AFBVV95cUxPRlcybV9XejhnQlBGOC1Yak5iQnJmT2hkSXNORXptYTZ2TUFrM3g3aXo1ZkJOLXh6c3pxZFNPMGdETXR4UTBXcmRtQkpqZlRFNVBrVTktR2g4WUk1cDNwMkJBSG92ZGRadW93RXdCX2VMUy1oYmNhN19VdjFyQUJ5aWNnakh0cUZsZ1NYN0l3aHNEcHB6dTByUkxVbmN4VTFWN2ZfYWlqbkZSd09sU0lFMVdRTk5EQ3YyS2Jfa3JjUmRkSnd5SUhHX2YtYUxPS0VMdW0tRE1aNm1ILTR2?oc=5",
+      "novelty_cluster": "d49fdcd7d8b5cda488dc",
+      "impact_direction": "unknown",
+      "metadata": {
+        "channel": "influencer_feed",
+        "author": "Burry",
+        "stance": "buy",
+        "relevance": 82,
+        "direct_ticker_only": true
+      },
+      "body_persisted": false,
+      "duplicate_event_ids": [],
+      "evidence_sources": [
+        "news.google.com"
+      ],
+      "corroborating_source_count": 1,
+      "duplicate_novelty_clusters": [],
+      "novelty_score": 1.0,
+      "novelty_reason": "new_cluster",
+      "expires_at": "2026-09-23T03:49:58+00:00",
+      "status": "active",
+      "expiry_days": 2,
+      "confirmation": {
+        "price_change_pct": null,
+        "price_aligned": false,
+        "volume_ratio_vs_20d_median": null,
+        "volume_aligned": false,
+        "peer_residual_1d": -0.025608,
+        "peer_dispersion_1d": 0.033621,
+        "peer_residual_observed": false,
+        "peer_usable_rules": [],
+        "peer_confirmation_usable": false,
+        "confirmed": false
+      },
+      "high_impact": false,
+      "actionable_escalation": false,
+      "actionable_blockers": [
+        "hard_company_event",
+        "reliable_primary_or_wire",
+        "price_volume_or_validated_peer_confirmation",
+        "disconfirming_negative"
+      ],
+      "decision_permission": "display_or_watch_only"
+    },
+    {
+      "event_id": "evt_da0bfb0294caf6e360c2",
+      "ticker": "02208",
+      "reported_ticker": "02208",
+      "event_type": "other",
+      "title": "金风科技：关于2024年限制性股票激励计划首次授予部分限制性股票回购注销完成的公告",
+      "publication_time": {
+        "iso": "2026-09-20T16:00:00+00:00",
+        "precision": "date"
+      },
+      "event_time": {
+        "iso": "2026-09-20T16:00:00+00:00",
+        "precision": "date"
+      },
+      "primary_source": "finance.eastmoney.com",
+      "source_type": "eastmoney_company",
+      "source_reliability": 0.62,
+      "source_url": "https://finance.eastmoney.com/a/202609213880237968.html",
+      "novelty_cluster": "85cce1aaa63e2bf51f15",
+      "impact_direction": "positive",
+      "metadata": {},
+      "body_persisted": false,
+      "duplicate_event_ids": [],
+      "evidence_sources": [
+        "finance.eastmoney.com"
+      ],
+      "corroborating_source_count": 1,
+      "duplicate_novelty_clusters": [],
+      "novelty_score": 0.5,
+      "novelty_reason": "same_cluster_within_30d",
+      "expires_at": "2026-09-22T16:00:00+00:00",
+      "status": "active",
+      "expiry_days": 2,
+      "confirmation": {
+        "price_change_pct": -0.56,
+        "price_aligned": false,
+        "volume_ratio_vs_20d_median": 0.4875,
+        "volume_aligned": false,
+        "peer_residual_1d": -0.02013,
+        "peer_dispersion_1d": 0.05094,
+        "peer_residual_observed": false,
+        "peer_usable_rules": [],
+        "peer_confirmation_usable": false,
+        "confirmed": false
+      },
+      "high_impact": false,
+      "actionable_escalation": false,
+      "actionable_blockers": [
+        "hard_company_event",
+        "reliable_primary_or_wire",
+        "novel",
+        "price_volume_or_validated_peer_confirmation",
+        "disconfirming_negative"
+      ],
+      "decision_permission": "display_or_watch_only",
+      "information_signed_score": 0.083574
+    },
+    {
+      "event_id": "evt_6ba9f8322cb562ef75b4",
+      "ticker": "03032",
+      "reported_ticker": "03032",
+      "event_type": "other",
+      "title": "阿里云栖大会明日开幕！恒生科技ETF天弘（520920）标的指数盘中飘红，近20日净流入超3亿元",
+      "publication_time": {
+        "iso": "2026-09-20T16:00:00+00:00",
+        "precision": "date"
+      },
+      "event_time": {
+        "iso": "2026-09-20T16:00:00+00:00",
+        "precision": "date"
+      },
+      "primary_source": "finance.eastmoney.com",
+      "source_type": "eastmoney_company",
+      "source_reliability": 0.62,
+      "source_url": "https://finance.eastmoney.com/a/202609213879816448.html",
+      "novelty_cluster": "982e646715caa971a10d",
+      "impact_direction": "unknown",
+      "metadata": {},
+      "body_persisted": false,
+      "duplicate_event_ids": [
+        "evt_f7866fb53d49f0f4b29e",
+        "evt_ba7bea6c5323e44516d5",
+        "evt_1be67322faae029a693e"
+      ],
+      "evidence_sources": [
+        "finance.eastmoney.com",
+        "news.google.com"
+      ],
+      "corroborating_source_count": 2,
+      "duplicate_novelty_clusters": [
+        "23e9f1ab93f75f4bad24",
+        "7471ee19f69effdc6d5b",
+        "d960def9d8b4e8ecb6a8"
+      ],
+      "novelty_score": 0.25,
+      "novelty_reason": "same_cluster_within_7d",
+      "expires_at": "2026-09-22T16:00:00+00:00",
+      "status": "active",
+      "expiry_days": 2,
+      "confirmation": {
+        "price_change_pct": 0.18,
+        "price_aligned": false,
+        "volume_ratio_vs_20d_median": 0.7382,
+        "volume_aligned": false,
+        "peer_residual_1d": -0.001344,
+        "peer_dispersion_1d": 0.001428,
+        "peer_residual_observed": false,
+        "peer_usable_rules": [],
+        "peer_confirmation_usable": false,
+        "confirmed": false
+      },
+      "high_impact": false,
+      "actionable_escalation": false,
+      "actionable_blockers": [
+        "hard_company_event",
+        "reliable_primary_or_wire",
+        "novel",
+        "price_volume_or_validated_peer_confirmation",
+        "disconfirming_negative"
+      ],
+      "decision_permission": "display_or_watch_only"
+    },
+    {
+      "event_id": "evt_83e4ab2e174e516979b7",
+      "ticker": "03032",
+      "reported_ticker": "03032",
+      "event_type": "financing",
+      "title": "港股再融资年内突破3200亿港元，科技企业担当主力！恒生科技ETF华泰柏瑞(513130)单日成交超22亿元",
+      "publication_time": {
+        "iso": "2026-09-20T16:00:00+00:00",
+        "precision": "date"
+      },
+      "event_time": {
+        "iso": "2026-09-20T16:00:00+00:00",
+        "precision": "date"
+      },
+      "primary_source": "finance.eastmoney.com",
+      "source_type": "eastmoney_company",
+      "source_reliability": 0.62,
+      "source_url": "https://finance.eastmoney.com/a/202609213879885883.html",
+      "novelty_cluster": "d72ba0ab5947f6c19b44",
+      "impact_direction": "unknown",
+      "metadata": {},
+      "body_persisted": false,
+      "duplicate_event_ids": [],
+      "evidence_sources": [
+        "finance.eastmoney.com"
+      ],
+      "corroborating_source_count": 1,
+      "duplicate_novelty_clusters": [],
+      "novelty_score": 1.0,
+      "novelty_reason": "new_cluster",
+      "expires_at": "2026-09-27T16:00:00+00:00",
+      "status": "active",
+      "expiry_days": 7,
+      "confirmation": {
+        "price_change_pct": 0.18,
+        "price_aligned": false,
+        "volume_ratio_vs_20d_median": 0.7382,
+        "volume_aligned": false,
+        "peer_residual_1d": -0.001344,
+        "peer_dispersion_1d": 0.001428,
+        "peer_residual_observed": false,
+        "peer_usable_rules": [],
+        "peer_confirmation_usable": false,
+        "confirmed": false
+      },
+      "high_impact": true,
+      "actionable_escalation": false,
+      "actionable_blockers": [
         "reliable_primary_or_wire",
         "price_volume_or_validated_peer_confirmation",
         "disconfirming_negative"
@@ -522,8 +1126,8 @@
       "metadata": {
         "channel": "influencer_feed",
         "author": "Burry",
-        "stance": "sell",
-        "relevance": 72,
+        "stance": "attack",
+        "relevance": 78,
         "direct_ticker_only": true
       },
       "body_persisted": false,
@@ -533,8 +1137,8 @@
       ],
       "corroborating_source_count": 1,
       "duplicate_novelty_clusters": [],
-      "novelty_score": 1.0,
-      "novelty_reason": "new_cluster",
+      "novelty_score": 0.0,
+      "novelty_reason": "exact_event_seen",
       "expires_at": "2026-09-25T14:22:09+00:00",
       "status": "active",
       "expiry_days": 5,
@@ -554,6 +1158,7 @@
       "actionable_escalation": false,
       "actionable_blockers": [
         "reliable_primary_or_wire",
+        "novel",
         "price_volume_or_validated_peer_confirmation",
         "disconfirming_negative"
       ],
@@ -587,18 +1192,18 @@
       ],
       "corroborating_source_count": 1,
       "duplicate_novelty_clusters": [],
-      "novelty_score": 1.0,
-      "novelty_reason": "new_cluster",
+      "novelty_score": 0.0,
+      "novelty_reason": "exact_event_seen",
       "expires_at": "2026-09-22T12:00:00+00:00",
       "status": "active",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": 7.8623,
+        "price_change_pct": 2.9527,
         "price_aligned": false,
-        "volume_ratio_vs_20d_median": 0.088,
+        "volume_ratio_vs_20d_median": 0.0906,
         "volume_aligned": false,
-        "peer_residual_1d": -0.006151,
-        "peer_dispersion_1d": 0.070259,
+        "peer_residual_1d": 2.4e-05,
+        "peer_dispersion_1d": 0.023624,
         "peer_residual_observed": false,
         "peer_usable_rules": [],
         "peer_confirmation_usable": false,
@@ -609,67 +1214,7 @@
       "actionable_blockers": [
         "hard_company_event",
         "reliable_primary_or_wire",
-        "price_volume_or_validated_peer_confirmation",
-        "disconfirming_negative"
-      ],
-      "decision_permission": "display_or_watch_only"
-    },
-    {
-      "event_id": "evt_3b6ab097610e8d0be923",
-      "ticker": "DOGE",
-      "reported_ticker": "DOGE",
-      "event_type": "other",
-      "title": "After $329 million in DOGE cuts to USAID, Nepal is growing its economy with a Gen Z tech revolution",
-      "publication_time": {
-        "iso": "2026-09-20T07:44:00+00:00",
-        "precision": "minute"
-      },
-      "event_time": {
-        "iso": "2026-09-20T07:44:00+00:00",
-        "precision": "minute"
-      },
-      "primary_source": "fortune",
-      "source_type": "google_news_rss",
-      "source_reliability": 0.5,
-      "source_url": null,
-      "novelty_cluster": "5429bde98a7ca7897057",
-      "impact_direction": "unknown",
-      "metadata": {
-        "channel": "influencer_feed",
-        "author": "Musk",
-        "stance": "endorse",
-        "relevance": 55,
-        "direct_ticker_only": true
-      },
-      "body_persisted": false,
-      "duplicate_event_ids": [],
-      "evidence_sources": [
-        "fortune"
-      ],
-      "corroborating_source_count": 1,
-      "duplicate_novelty_clusters": [],
-      "novelty_score": 1.0,
-      "novelty_reason": "new_cluster",
-      "expires_at": "2026-09-22T07:44:00+00:00",
-      "status": "active",
-      "expiry_days": 2,
-      "confirmation": {
-        "price_change_pct": null,
-        "price_aligned": false,
-        "volume_ratio_vs_20d_median": null,
-        "volume_aligned": false,
-        "peer_residual_1d": null,
-        "peer_dispersion_1d": null,
-        "peer_residual_observed": false,
-        "peer_usable_rules": [],
-        "peer_confirmation_usable": false,
-        "confirmed": false
-      },
-      "high_impact": false,
-      "actionable_escalation": false,
-      "actionable_blockers": [
-        "hard_company_event",
-        "reliable_primary_or_wire",
+        "novel",
         "price_volume_or_validated_peer_confirmation",
         "disconfirming_negative"
       ],
@@ -703,18 +1248,18 @@
       ],
       "corroborating_source_count": 1,
       "duplicate_novelty_clusters": [],
-      "novelty_score": 0.25,
-      "novelty_reason": "same_cluster_within_7d",
+      "novelty_score": 0.0,
+      "novelty_reason": "exact_event_seen",
       "expires_at": "2026-09-25T07:13:14+00:00",
       "status": "active",
       "expiry_days": 5,
       "confirmation": {
-        "price_change_pct": 7.8623,
+        "price_change_pct": 2.9527,
         "price_aligned": false,
-        "volume_ratio_vs_20d_median": 0.088,
+        "volume_ratio_vs_20d_median": 0.0906,
         "volume_aligned": false,
-        "peer_residual_1d": -0.006151,
-        "peer_dispersion_1d": 0.070259,
+        "peer_residual_1d": 2.4e-05,
+        "peer_dispersion_1d": 0.023624,
         "peer_residual_observed": false,
         "peer_usable_rules": [],
         "peer_confirmation_usable": false,
@@ -758,18 +1303,18 @@
       ],
       "corroborating_source_count": 1,
       "duplicate_novelty_clusters": [],
-      "novelty_score": 0.5,
-      "novelty_reason": "same_cluster_within_30d",
+      "novelty_score": 0.0,
+      "novelty_reason": "exact_event_seen",
       "expires_at": "2026-09-22T06:43:15+00:00",
       "status": "active",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": 7.8623,
+        "price_change_pct": 2.9527,
         "price_aligned": false,
-        "volume_ratio_vs_20d_median": 0.088,
+        "volume_ratio_vs_20d_median": 0.0906,
         "volume_aligned": false,
-        "peer_residual_1d": -0.006151,
-        "peer_dispersion_1d": 0.070259,
+        "peer_residual_1d": 2.4e-05,
+        "peer_dispersion_1d": 0.023624,
         "peer_residual_observed": false,
         "peer_usable_rules": [],
         "peer_confirmation_usable": false,
@@ -814,18 +1359,18 @@
       ],
       "corroborating_source_count": 1,
       "duplicate_novelty_clusters": [],
-      "novelty_score": 1.0,
-      "novelty_reason": "new_cluster",
+      "novelty_score": 0.0,
+      "novelty_reason": "exact_event_seen",
       "expires_at": "2026-09-25T06:31:41+00:00",
       "status": "active",
       "expiry_days": 5,
       "confirmation": {
-        "price_change_pct": -1.3565,
+        "price_change_pct": -0.5632,
         "price_aligned": false,
-        "volume_ratio_vs_20d_median": 0.0688,
+        "volume_ratio_vs_20d_median": 0.0684,
         "volume_aligned": false,
-        "peer_residual_1d": 0.034273,
-        "peer_dispersion_1d": 0.021557,
+        "peer_residual_1d": -0.068102,
+        "peer_dispersion_1d": 0.021951,
         "peer_residual_observed": false,
         "peer_usable_rules": [],
         "peer_confirmation_usable": false,
@@ -834,72 +1379,6 @@
       "high_impact": true,
       "actionable_escalation": false,
       "actionable_blockers": [
-        "reliable_primary_or_wire",
-        "price_volume_or_validated_peer_confirmation",
-        "disconfirming_negative"
-      ],
-      "decision_permission": "display_or_watch_only"
-    },
-    {
-      "event_id": "evt_f7866fb53d49f0f4b29e",
-      "ticker": "03032",
-      "reported_ticker": "03032",
-      "event_type": "other",
-      "title": "恒生科技ETF富国（158042）9月24日上市交易",
-      "publication_time": {
-        "iso": "2026-09-19T16:00:00+00:00",
-        "precision": "date"
-      },
-      "event_time": {
-        "iso": "2026-09-19T16:00:00+00:00",
-        "precision": "date"
-      },
-      "primary_source": "finance.eastmoney.com",
-      "source_type": "eastmoney_company",
-      "source_reliability": 0.62,
-      "source_url": "https://finance.eastmoney.com/a/202609203879404879.html",
-      "novelty_cluster": "23e9f1ab93f75f4bad24",
-      "impact_direction": "unknown",
-      "metadata": {},
-      "body_persisted": false,
-      "duplicate_event_ids": [
-        "evt_fd6be0ef32e685b3e6a6",
-        "evt_6d637743d14f4f66c905",
-        "evt_ba7bea6c5323e44516d5",
-        "evt_1be67322faae029a693e"
-      ],
-      "evidence_sources": [
-        "finance.eastmoney.com",
-        "news.google.com"
-      ],
-      "corroborating_source_count": 2,
-      "duplicate_novelty_clusters": [
-        "5af2e951768941a8fbe9",
-        "7471ee19f69effdc6d5b",
-        "a7396cafd3838db45b44",
-        "d960def9d8b4e8ecb6a8"
-      ],
-      "novelty_score": 0.25,
-      "novelty_reason": "same_cluster_within_7d",
-      "expires_at": "2026-09-21T16:00:00+00:00",
-      "status": "active",
-      "expiry_days": 2,
-      "confirmation": {
-        "price_change_pct": 2.27,
-        "price_aligned": false,
-        "volume_ratio_vs_20d_median": 0.7372,
-        "volume_aligned": false,
-        "peer_residual_1d": -0.000906,
-        "peer_dispersion_1d": 0.00079,
-        "peer_residual_observed": false,
-        "peer_usable_rules": [],
-        "peer_confirmation_usable": false,
-        "confirmed": false
-      },
-      "high_impact": false,
-      "actionable_escalation": false,
-      "actionable_blockers": [
-        "hard_company_event",
         "reliable_primary_or_wire",
         "novel",
         "price_volume_or_validated_peer_confirmation",
@@ -935,18 +1414,18 @@
       ],
       "corroborating_source_count": 1,
       "duplicate_novelty_clusters": [],
-      "novelty_score": 0.5,
-      "novelty_reason": "same_cluster_within_30d",
+      "novelty_score": 0.0,
+      "novelty_reason": "exact_event_seen",
       "expires_at": "2026-09-21T14:21:45+00:00",
-      "status": "active",
+      "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": 18.92,
+        "price_change_pct": -1.65,
         "price_aligned": false,
-        "volume_ratio_vs_20d_median": 1.5782,
+        "volume_ratio_vs_20d_median": 0.994,
         "volume_aligned": false,
-        "peer_residual_1d": 0.130276,
-        "peer_dispersion_1d": 0.028049,
+        "peer_residual_1d": -0.02099,
+        "peer_dispersion_1d": 0.023508,
         "peer_residual_observed": false,
         "peer_usable_rules": [],
         "peer_confirmation_usable": false,
@@ -958,6 +1437,7 @@
         "hard_company_event",
         "reliable_primary_or_wire",
         "novel",
+        "not_expired",
         "price_volume_or_validated_peer_confirmation",
         "disconfirming_negative"
       ],
@@ -991,18 +1471,18 @@
       ],
       "corroborating_source_count": 1,
       "duplicate_novelty_clusters": [],
-      "novelty_score": 0.5,
-      "novelty_reason": "same_cluster_within_30d",
+      "novelty_score": 0.0,
+      "novelty_reason": "exact_event_seen",
       "expires_at": "2026-09-21T12:35:05+00:00",
-      "status": "active",
+      "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -1.3565,
+        "price_change_pct": -0.5632,
         "price_aligned": false,
-        "volume_ratio_vs_20d_median": 0.0688,
+        "volume_ratio_vs_20d_median": 0.0684,
         "volume_aligned": false,
-        "peer_residual_1d": 0.034273,
-        "peer_dispersion_1d": 0.021557,
+        "peer_residual_1d": -0.068102,
+        "peer_dispersion_1d": 0.021951,
         "peer_residual_observed": false,
         "peer_usable_rules": [],
         "peer_confirmation_usable": false,
@@ -1014,6 +1494,7 @@
         "hard_company_event",
         "reliable_primary_or_wire",
         "novel",
+        "not_expired",
         "price_volume_or_validated_peer_confirmation",
         "disconfirming_negative"
       ],
@@ -1047,18 +1528,18 @@
       ],
       "corroborating_source_count": 1,
       "duplicate_novelty_clusters": [],
-      "novelty_score": 0.25,
-      "novelty_reason": "same_cluster_within_7d",
+      "novelty_score": 0.0,
+      "novelty_reason": "exact_event_seen",
       "expires_at": "2026-09-20T20:49:00+00:00",
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": 7.8623,
+        "price_change_pct": 2.9527,
         "price_aligned": false,
-        "volume_ratio_vs_20d_median": 0.088,
+        "volume_ratio_vs_20d_median": 0.0906,
         "volume_aligned": false,
-        "peer_residual_1d": -0.006151,
-        "peer_dispersion_1d": 0.070259,
+        "peer_residual_1d": 2.4e-05,
+        "peer_dispersion_1d": 0.023624,
         "peer_residual_observed": false,
         "peer_usable_rules": [],
         "peer_confirmation_usable": false,
@@ -1104,18 +1585,18 @@
       ],
       "corroborating_source_count": 1,
       "duplicate_novelty_clusters": [],
-      "novelty_score": 0.5,
-      "novelty_reason": "same_cluster_within_30d",
+      "novelty_score": 0.0,
+      "novelty_reason": "exact_event_seen",
       "expires_at": "2026-09-20T20:12:33+00:00",
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -1.3565,
+        "price_change_pct": -0.5632,
         "price_aligned": false,
-        "volume_ratio_vs_20d_median": 0.0688,
+        "volume_ratio_vs_20d_median": 0.0684,
         "volume_aligned": false,
-        "peer_residual_1d": 0.034273,
-        "peer_dispersion_1d": 0.021557,
+        "peer_residual_1d": -0.068102,
+        "peer_dispersion_1d": 0.021951,
         "peer_residual_observed": false,
         "peer_usable_rules": [],
         "peer_confirmation_usable": false,
@@ -1167,8 +1648,8 @@
       ],
       "corroborating_source_count": 1,
       "duplicate_novelty_clusters": [],
-      "novelty_score": 1.0,
-      "novelty_reason": "new_cluster",
+      "novelty_score": 0.0,
+      "novelty_reason": "exact_event_seen",
       "expires_at": "2026-09-23T20:00:00+00:00",
       "status": "active",
       "expiry_days": 5,
@@ -1189,6 +1670,7 @@
       "actionable_blockers": [
         "hard_company_event",
         "reliable_primary_or_wire",
+        "novel",
         "price_volume_or_validated_peer_confirmation",
         "disconfirming_negative"
       ],
@@ -1226,17 +1708,17 @@
       "duplicate_novelty_clusters": [
         "90bf6699393ae358e87d"
       ],
-      "novelty_score": 0.25,
-      "novelty_reason": "same_cluster_within_7d",
+      "novelty_score": 0.0,
+      "novelty_reason": "exact_event_seen",
       "expires_at": "2026-09-20T14:42:16+00:00",
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": 2.42,
+        "price_change_pct": 0.42,
         "price_aligned": false,
-        "volume_ratio_vs_20d_median": 0.8552,
+        "volume_ratio_vs_20d_median": 0.8804,
         "volume_aligned": false,
-        "peer_residual_1d": 0.001465,
+        "peer_residual_1d": 0.002353,
         "peer_dispersion_1d": null,
         "peer_residual_observed": false,
         "peer_usable_rules": [],
@@ -1283,18 +1765,18 @@
       ],
       "corroborating_source_count": 1,
       "duplicate_novelty_clusters": [],
-      "novelty_score": 0.5,
-      "novelty_reason": "same_cluster_within_30d",
+      "novelty_score": 0.0,
+      "novelty_reason": "exact_event_seen",
       "expires_at": "2026-09-20T13:51:00+00:00",
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -1.3565,
+        "price_change_pct": -0.5632,
         "price_aligned": false,
-        "volume_ratio_vs_20d_median": 0.0688,
+        "volume_ratio_vs_20d_median": 0.0684,
         "volume_aligned": false,
-        "peer_residual_1d": 0.034273,
-        "peer_dispersion_1d": 0.021557,
+        "peer_residual_1d": -0.068102,
+        "peer_dispersion_1d": 0.021951,
         "peer_residual_observed": false,
         "peer_usable_rules": [],
         "peer_confirmation_usable": false,
@@ -1340,18 +1822,18 @@
       ],
       "corroborating_source_count": 1,
       "duplicate_novelty_clusters": [],
-      "novelty_score": 0.25,
-      "novelty_reason": "same_cluster_within_7d",
+      "novelty_score": 0.0,
+      "novelty_reason": "exact_event_seen",
       "expires_at": "2026-09-20T12:05:00+00:00",
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -1.3565,
+        "price_change_pct": -0.5632,
         "price_aligned": false,
-        "volume_ratio_vs_20d_median": 0.0688,
+        "volume_ratio_vs_20d_median": 0.0684,
         "volume_aligned": false,
-        "peer_residual_1d": 0.034273,
-        "peer_dispersion_1d": 0.021557,
+        "peer_residual_1d": -0.068102,
+        "peer_dispersion_1d": 0.021951,
         "peer_residual_observed": false,
         "peer_usable_rules": [],
         "peer_confirmation_usable": false,
@@ -1397,18 +1879,18 @@
       ],
       "corroborating_source_count": 1,
       "duplicate_novelty_clusters": [],
-      "novelty_score": 1.0,
-      "novelty_reason": "new_cluster",
+      "novelty_score": 0.0,
+      "novelty_reason": "exact_event_seen",
       "expires_at": "2026-09-20T11:54:27+00:00",
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -1.3565,
+        "price_change_pct": -0.5632,
         "price_aligned": false,
-        "volume_ratio_vs_20d_median": 0.0688,
+        "volume_ratio_vs_20d_median": 0.0684,
         "volume_aligned": false,
-        "peer_residual_1d": 0.034273,
-        "peer_dispersion_1d": 0.021557,
+        "peer_residual_1d": -0.068102,
+        "peer_dispersion_1d": 0.021951,
         "peer_residual_observed": false,
         "peer_usable_rules": [],
         "peer_confirmation_usable": false,
@@ -1419,6 +1901,7 @@
       "actionable_blockers": [
         "hard_company_event",
         "reliable_primary_or_wire",
+        "novel",
         "not_expired",
         "price_volume_or_validated_peer_confirmation",
         "disconfirming_negative"
@@ -1453,18 +1936,18 @@
       ],
       "corroborating_source_count": 1,
       "duplicate_novelty_clusters": [],
-      "novelty_score": 0.5,
-      "novelty_reason": "same_cluster_within_30d",
+      "novelty_score": 0.0,
+      "novelty_reason": "exact_event_seen",
       "expires_at": "2026-09-20T11:46:08+00:00",
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -1.3565,
+        "price_change_pct": -0.5632,
         "price_aligned": false,
-        "volume_ratio_vs_20d_median": 0.0688,
+        "volume_ratio_vs_20d_median": 0.0684,
         "volume_aligned": false,
-        "peer_residual_1d": 0.034273,
-        "peer_dispersion_1d": 0.021557,
+        "peer_residual_1d": -0.068102,
+        "peer_dispersion_1d": 0.021951,
         "peer_residual_observed": false,
         "peer_usable_rules": [],
         "peer_confirmation_usable": false,
@@ -1510,18 +1993,18 @@
       ],
       "corroborating_source_count": 1,
       "duplicate_novelty_clusters": [],
-      "novelty_score": 1.0,
-      "novelty_reason": "new_cluster",
+      "novelty_score": 0.0,
+      "novelty_reason": "exact_event_seen",
       "expires_at": "2026-09-20T11:26:01+00:00",
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -1.3565,
+        "price_change_pct": -0.5632,
         "price_aligned": false,
-        "volume_ratio_vs_20d_median": 0.0688,
+        "volume_ratio_vs_20d_median": 0.0684,
         "volume_aligned": false,
-        "peer_residual_1d": 0.034273,
-        "peer_dispersion_1d": 0.021557,
+        "peer_residual_1d": -0.068102,
+        "peer_dispersion_1d": 0.021951,
         "peer_residual_observed": false,
         "peer_usable_rules": [],
         "peer_confirmation_usable": false,
@@ -1532,6 +2015,7 @@
       "actionable_blockers": [
         "hard_company_event",
         "reliable_primary_or_wire",
+        "novel",
         "not_expired",
         "price_volume_or_validated_peer_confirmation",
         "disconfirming_negative"
@@ -1566,8 +2050,8 @@
       ],
       "corroborating_source_count": 1,
       "duplicate_novelty_clusters": [],
-      "novelty_score": 1.0,
-      "novelty_reason": "new_cluster",
+      "novelty_score": 0.0,
+      "novelty_reason": "exact_event_seen",
       "expires_at": "2026-09-20T11:15:00+00:00",
       "status": "expired",
       "expiry_days": 2,
@@ -1576,8 +2060,8 @@
         "price_aligned": false,
         "volume_ratio_vs_20d_median": null,
         "volume_aligned": false,
-        "peer_residual_1d": -0.008094,
-        "peer_dispersion_1d": 0.024273,
+        "peer_residual_1d": 0.037872,
+        "peer_dispersion_1d": 0.031808,
         "peer_residual_observed": false,
         "peer_usable_rules": [],
         "peer_confirmation_usable": false,
@@ -1588,6 +2072,7 @@
       "actionable_blockers": [
         "hard_company_event",
         "reliable_primary_or_wire",
+        "novel",
         "not_expired",
         "price_volume_or_validated_peer_confirmation",
         "disconfirming_negative"
@@ -1631,17 +2116,17 @@
         "95ae9702f5b15d1de42a",
         "d1095296cbb303852122"
       ],
-      "novelty_score": 0.25,
-      "novelty_reason": "same_cluster_within_7d",
+      "novelty_score": 0.0,
+      "novelty_reason": "exact_event_seen",
       "expires_at": "2026-09-20T10:50:43+00:00",
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": 2.42,
+        "price_change_pct": 0.42,
         "price_aligned": false,
-        "volume_ratio_vs_20d_median": 0.8552,
+        "volume_ratio_vs_20d_median": 0.8804,
         "volume_aligned": false,
-        "peer_residual_1d": 0.001465,
+        "peer_residual_1d": 0.002353,
         "peer_dispersion_1d": null,
         "peer_residual_observed": false,
         "peer_usable_rules": [],
@@ -1688,19 +2173,19 @@
       ],
       "corroborating_source_count": 1,
       "duplicate_novelty_clusters": [],
-      "novelty_score": 1.0,
-      "novelty_reason": "new_cluster",
+      "novelty_score": 0.0,
+      "novelty_reason": "exact_event_seen",
       "expires_at": "2026-09-23T10:37:00+00:00",
       "status": "active",
       "expiry_days": 5,
       "confirmation": {
-        "price_change_pct": -1.3565,
+        "price_change_pct": -0.5632,
         "price_aligned": false,
-        "volume_ratio_vs_20d_median": 0.0688,
+        "volume_ratio_vs_20d_median": 0.0684,
         "volume_aligned": false,
-        "peer_residual_1d": 0.034273,
-        "peer_dispersion_1d": 0.021557,
-        "peer_residual_observed": false,
+        "peer_residual_1d": -0.068102,
+        "peer_dispersion_1d": 0.021951,
+        "peer_residual_observed": true,
         "peer_usable_rules": [],
         "peer_confirmation_usable": false,
         "confirmed": false
@@ -1709,10 +2194,11 @@
       "actionable_escalation": false,
       "actionable_blockers": [
         "reliable_primary_or_wire",
+        "novel",
         "price_volume_or_validated_peer_confirmation"
       ],
       "decision_permission": "display_or_watch_only",
-      "information_signed_score": -0.107188
+      "information_signed_score": -0.0
     },
     {
       "event_id": "evt_0d9c57306ccb69284003",
@@ -1742,8 +2228,8 @@
       ],
       "corroborating_source_count": 1,
       "duplicate_novelty_clusters": [],
-      "novelty_score": 1.0,
-      "novelty_reason": "new_cluster",
+      "novelty_score": 0.0,
+      "novelty_reason": "exact_event_seen",
       "expires_at": "2026-09-20T10:24:40+00:00",
       "status": "expired",
       "expiry_days": 2,
@@ -1752,8 +2238,8 @@
         "price_aligned": false,
         "volume_ratio_vs_20d_median": null,
         "volume_aligned": false,
-        "peer_residual_1d": -0.008094,
-        "peer_dispersion_1d": 0.024273,
+        "peer_residual_1d": 0.037872,
+        "peer_dispersion_1d": 0.031808,
         "peer_residual_observed": false,
         "peer_usable_rules": [],
         "peer_confirmation_usable": false,
@@ -1764,12 +2250,13 @@
       "actionable_blockers": [
         "hard_company_event",
         "reliable_primary_or_wire",
+        "novel",
         "not_expired",
         "price_volume_or_validated_peer_confirmation",
         "disconfirming_negative"
       ],
       "decision_permission": "display_or_watch_only",
-      "information_signed_score": 0.106764
+      "information_signed_score": 0.0
     },
     {
       "event_id": "evt_60eae7f28cb0ed451883",
@@ -1799,18 +2286,18 @@
       ],
       "corroborating_source_count": 1,
       "duplicate_novelty_clusters": [],
-      "novelty_score": 1.0,
-      "novelty_reason": "new_cluster",
+      "novelty_score": 0.0,
+      "novelty_reason": "exact_event_seen",
       "expires_at": "2026-09-20T09:47:02+00:00",
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": 7.8623,
+        "price_change_pct": 2.9527,
         "price_aligned": false,
-        "volume_ratio_vs_20d_median": 0.088,
+        "volume_ratio_vs_20d_median": 0.0906,
         "volume_aligned": false,
-        "peer_residual_1d": -0.006151,
-        "peer_dispersion_1d": 0.070259,
+        "peer_residual_1d": 2.4e-05,
+        "peer_dispersion_1d": 0.023624,
         "peer_residual_observed": false,
         "peer_usable_rules": [],
         "peer_confirmation_usable": false,
@@ -1821,6 +2308,7 @@
       "actionable_blockers": [
         "hard_company_event",
         "reliable_primary_or_wire",
+        "novel",
         "not_expired",
         "price_volume_or_validated_peer_confirmation",
         "disconfirming_negative"
@@ -1855,18 +2343,18 @@
       ],
       "corroborating_source_count": 1,
       "duplicate_novelty_clusters": [],
-      "novelty_score": 1.0,
-      "novelty_reason": "new_cluster",
+      "novelty_score": 0.0,
+      "novelty_reason": "exact_event_seen",
       "expires_at": "2026-09-20T07:20:24+00:00",
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": 7.8623,
+        "price_change_pct": 2.9527,
         "price_aligned": false,
-        "volume_ratio_vs_20d_median": 0.088,
+        "volume_ratio_vs_20d_median": 0.0906,
         "volume_aligned": false,
-        "peer_residual_1d": -0.006151,
-        "peer_dispersion_1d": 0.070259,
+        "peer_residual_1d": 2.4e-05,
+        "peer_dispersion_1d": 0.023624,
         "peer_residual_observed": false,
         "peer_usable_rules": [],
         "peer_confirmation_usable": false,
@@ -1877,6 +2365,7 @@
       "actionable_blockers": [
         "hard_company_event",
         "reliable_primary_or_wire",
+        "novel",
         "not_expired",
         "price_volume_or_validated_peer_confirmation",
         "disconfirming_negative"
@@ -1911,18 +2400,18 @@
       ],
       "corroborating_source_count": 1,
       "duplicate_novelty_clusters": [],
-      "novelty_score": 0.5,
-      "novelty_reason": "same_cluster_within_30d",
+      "novelty_score": 0.0,
+      "novelty_reason": "exact_event_seen",
       "expires_at": "2026-09-20T07:00:00+00:00",
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": 18.92,
+        "price_change_pct": -1.65,
         "price_aligned": false,
-        "volume_ratio_vs_20d_median": 1.5782,
+        "volume_ratio_vs_20d_median": 0.994,
         "volume_aligned": false,
-        "peer_residual_1d": 0.130276,
-        "peer_dispersion_1d": 0.028049,
+        "peer_residual_1d": -0.02099,
+        "peer_dispersion_1d": 0.023508,
         "peer_residual_observed": false,
         "peer_usable_rules": [],
         "peer_confirmation_usable": false,
@@ -1968,8 +2457,8 @@
       ],
       "corroborating_source_count": 1,
       "duplicate_novelty_clusters": [],
-      "novelty_score": 1.0,
-      "novelty_reason": "new_cluster",
+      "novelty_score": 0.0,
+      "novelty_reason": "exact_event_seen",
       "expires_at": "2026-09-20T06:44:38+00:00",
       "status": "expired",
       "expiry_days": 2,
@@ -1978,8 +2467,8 @@
         "price_aligned": false,
         "volume_ratio_vs_20d_median": null,
         "volume_aligned": false,
-        "peer_residual_1d": -0.008094,
-        "peer_dispersion_1d": 0.024273,
+        "peer_residual_1d": 0.037872,
+        "peer_dispersion_1d": 0.031808,
         "peer_residual_observed": false,
         "peer_usable_rules": [],
         "peer_confirmation_usable": false,
@@ -1990,6 +2479,7 @@
       "actionable_blockers": [
         "hard_company_event",
         "reliable_primary_or_wire",
+        "novel",
         "not_expired",
         "price_volume_or_validated_peer_confirmation",
         "disconfirming_negative"
@@ -2024,18 +2514,18 @@
       ],
       "corroborating_source_count": 1,
       "duplicate_novelty_clusters": [],
-      "novelty_score": 1.0,
-      "novelty_reason": "new_cluster",
+      "novelty_score": 0.0,
+      "novelty_reason": "exact_event_seen",
       "expires_at": "2026-09-20T04:34:02+00:00",
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -2.6217,
+        "price_change_pct": -1.4423,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": null,
         "volume_aligned": false,
-        "peer_residual_1d": 0.034273,
-        "peer_dispersion_1d": 0.021557,
+        "peer_residual_1d": -0.068102,
+        "peer_dispersion_1d": 0.021951,
         "peer_residual_observed": false,
         "peer_usable_rules": [],
         "peer_confirmation_usable": false,
@@ -2046,6 +2536,7 @@
       "actionable_blockers": [
         "hard_company_event",
         "reliable_primary_or_wire",
+        "novel",
         "not_expired",
         "price_volume_or_validated_peer_confirmation",
         "disconfirming_negative"
@@ -2080,18 +2571,18 @@
       ],
       "corroborating_source_count": 1,
       "duplicate_novelty_clusters": [],
-      "novelty_score": 0.25,
-      "novelty_reason": "same_cluster_within_7d",
+      "novelty_score": 0.0,
+      "novelty_reason": "exact_event_seen",
       "expires_at": "2026-09-20T03:58:01+00:00",
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": 18.92,
+        "price_change_pct": -1.65,
         "price_aligned": false,
-        "volume_ratio_vs_20d_median": 1.5782,
+        "volume_ratio_vs_20d_median": 0.994,
         "volume_aligned": false,
-        "peer_residual_1d": 0.130276,
-        "peer_dispersion_1d": 0.028049,
+        "peer_residual_1d": -0.02099,
+        "peer_dispersion_1d": 0.023508,
         "peer_residual_observed": false,
         "peer_usable_rules": [],
         "peer_confirmation_usable": false,
@@ -2137,8 +2628,8 @@
       ],
       "corroborating_source_count": 1,
       "duplicate_novelty_clusters": [],
-      "novelty_score": 0.25,
-      "novelty_reason": "same_cluster_within_7d",
+      "novelty_score": 0.0,
+      "novelty_reason": "exact_event_seen",
       "expires_at": "2026-09-20T01:25:00+00:00",
       "status": "expired",
       "expiry_days": 2,
@@ -2147,8 +2638,8 @@
         "price_aligned": false,
         "volume_ratio_vs_20d_median": null,
         "volume_aligned": false,
-        "peer_residual_1d": -0.008094,
-        "peer_dispersion_1d": 0.024273,
+        "peer_residual_1d": 0.037872,
+        "peer_dispersion_1d": 0.031808,
         "peer_residual_observed": false,
         "peer_usable_rules": [],
         "peer_confirmation_usable": false,
@@ -2194,18 +2685,18 @@
       ],
       "corroborating_source_count": 1,
       "duplicate_novelty_clusters": [],
-      "novelty_score": 1.0,
-      "novelty_reason": "new_cluster",
+      "novelty_score": 0.0,
+      "novelty_reason": "exact_event_seen",
       "expires_at": "2026-09-20T01:24:02+00:00",
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -9.656,
+        "price_change_pct": 16.3661,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": null,
         "volume_aligned": false,
-        "peer_residual_1d": -0.008094,
-        "peer_dispersion_1d": 0.024273,
+        "peer_residual_1d": 0.037872,
+        "peer_dispersion_1d": 0.031808,
         "peer_residual_observed": false,
         "peer_usable_rules": [],
         "peer_confirmation_usable": false,
@@ -2216,6 +2707,7 @@
       "actionable_blockers": [
         "hard_company_event",
         "reliable_primary_or_wire",
+        "novel",
         "not_expired",
         "price_volume_or_validated_peer_confirmation",
         "disconfirming_negative"
@@ -2250,8 +2742,8 @@
       ],
       "corroborating_source_count": 1,
       "duplicate_novelty_clusters": [],
-      "novelty_score": 0.5,
-      "novelty_reason": "same_cluster_within_30d",
+      "novelty_score": 0.0,
+      "novelty_reason": "exact_event_seen",
       "expires_at": "2026-09-20T01:10:45+00:00",
       "status": "expired",
       "expiry_days": 2,
@@ -2260,8 +2752,8 @@
         "price_aligned": false,
         "volume_ratio_vs_20d_median": null,
         "volume_aligned": false,
-        "peer_residual_1d": -0.008094,
-        "peer_dispersion_1d": 0.024273,
+        "peer_residual_1d": 0.037872,
+        "peer_dispersion_1d": 0.031808,
         "peer_residual_observed": false,
         "peer_usable_rules": [],
         "peer_confirmation_usable": false,
@@ -2307,18 +2799,18 @@
       ],
       "corroborating_source_count": 1,
       "duplicate_novelty_clusters": [],
-      "novelty_score": 1.0,
-      "novelty_reason": "new_cluster",
+      "novelty_score": 0.0,
+      "novelty_reason": "exact_event_seen",
       "expires_at": "2026-09-20T00:11:12+00:00",
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": 7.8623,
+        "price_change_pct": 2.9527,
         "price_aligned": false,
-        "volume_ratio_vs_20d_median": 0.088,
+        "volume_ratio_vs_20d_median": 0.0906,
         "volume_aligned": false,
-        "peer_residual_1d": -0.006151,
-        "peer_dispersion_1d": 0.070259,
+        "peer_residual_1d": 2.4e-05,
+        "peer_dispersion_1d": 0.023624,
         "peer_residual_observed": false,
         "peer_usable_rules": [],
         "peer_confirmation_usable": false,
@@ -2329,6 +2821,7 @@
       "actionable_blockers": [
         "hard_company_event",
         "reliable_primary_or_wire",
+        "novel",
         "not_expired",
         "price_volume_or_validated_peer_confirmation",
         "disconfirming_negative"
@@ -2363,18 +2856,18 @@
       ],
       "corroborating_source_count": 1,
       "duplicate_novelty_clusters": [],
-      "novelty_score": 1.0,
-      "novelty_reason": "new_cluster",
+      "novelty_score": 0.0,
+      "novelty_reason": "exact_event_seen",
       "expires_at": "2026-09-19T22:28:46+00:00",
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": 7.8623,
+        "price_change_pct": 2.9527,
         "price_aligned": false,
-        "volume_ratio_vs_20d_median": 0.088,
+        "volume_ratio_vs_20d_median": 0.0906,
         "volume_aligned": false,
-        "peer_residual_1d": -0.006151,
-        "peer_dispersion_1d": 0.070259,
+        "peer_residual_1d": 2.4e-05,
+        "peer_dispersion_1d": 0.023624,
         "peer_residual_observed": false,
         "peer_usable_rules": [],
         "peer_confirmation_usable": false,
@@ -2385,6 +2878,7 @@
       "actionable_blockers": [
         "hard_company_event",
         "reliable_primary_or_wire",
+        "novel",
         "not_expired",
         "price_volume_or_validated_peer_confirmation",
         "disconfirming_negative"
@@ -2419,18 +2913,18 @@
       ],
       "corroborating_source_count": 1,
       "duplicate_novelty_clusters": [],
-      "novelty_score": 1.0,
-      "novelty_reason": "new_cluster",
+      "novelty_score": 0.0,
+      "novelty_reason": "exact_event_seen",
       "expires_at": "2026-09-22T20:43:00+00:00",
       "status": "active",
       "expiry_days": 5,
       "confirmation": {
-        "price_change_pct": 7.8623,
+        "price_change_pct": 2.9527,
         "price_aligned": false,
-        "volume_ratio_vs_20d_median": 0.088,
+        "volume_ratio_vs_20d_median": 0.0906,
         "volume_aligned": false,
-        "peer_residual_1d": -0.006151,
-        "peer_dispersion_1d": 0.070259,
+        "peer_residual_1d": 2.4e-05,
+        "peer_dispersion_1d": 0.023624,
         "peer_residual_observed": false,
         "peer_usable_rules": [],
         "peer_confirmation_usable": false,
@@ -2440,6 +2934,7 @@
       "actionable_escalation": false,
       "actionable_blockers": [
         "reliable_primary_or_wire",
+        "novel",
         "price_volume_or_validated_peer_confirmation",
         "disconfirming_negative"
       ],
@@ -2473,18 +2968,18 @@
       ],
       "corroborating_source_count": 1,
       "duplicate_novelty_clusters": [],
-      "novelty_score": 0.5,
-      "novelty_reason": "same_cluster_within_30d",
+      "novelty_score": 0.0,
+      "novelty_reason": "exact_event_seen",
       "expires_at": "2026-09-19T16:00:00+00:00",
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": 18.92,
+        "price_change_pct": -1.65,
         "price_aligned": false,
-        "volume_ratio_vs_20d_median": 1.5782,
+        "volume_ratio_vs_20d_median": 0.994,
         "volume_aligned": false,
-        "peer_residual_1d": 0.130276,
-        "peer_dispersion_1d": 0.028049,
+        "peer_residual_1d": -0.02099,
+        "peer_dispersion_1d": 0.023508,
         "peer_residual_observed": false,
         "peer_usable_rules": [],
         "peer_confirmation_usable": false,
@@ -2536,12 +3031,12 @@
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": 18.92,
+        "price_change_pct": -1.65,
         "price_aligned": false,
-        "volume_ratio_vs_20d_median": 1.5782,
+        "volume_ratio_vs_20d_median": 0.994,
         "volume_aligned": false,
-        "peer_residual_1d": 0.130276,
-        "peer_dispersion_1d": 0.028049,
+        "peer_residual_1d": -0.02099,
+        "peer_dispersion_1d": 0.023508,
         "peer_residual_observed": false,
         "peer_usable_rules": [],
         "peer_confirmation_usable": false,
@@ -2591,18 +3086,18 @@
       "duplicate_novelty_clusters": [
         "5105accf13316cefdb8c"
       ],
-      "novelty_score": 0.25,
-      "novelty_reason": "same_cluster_within_7d",
+      "novelty_score": 0.0,
+      "novelty_reason": "exact_event_seen",
       "expires_at": "2026-09-19T15:08:19+00:00",
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -2.6217,
+        "price_change_pct": -1.4423,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": null,
         "volume_aligned": false,
-        "peer_residual_1d": 0.034273,
-        "peer_dispersion_1d": 0.021557,
+        "peer_residual_1d": -0.068102,
+        "peer_dispersion_1d": 0.021951,
         "peer_residual_observed": false,
         "peer_usable_rules": [],
         "peer_confirmation_usable": false,
@@ -2648,18 +3143,18 @@
       ],
       "corroborating_source_count": 1,
       "duplicate_novelty_clusters": [],
-      "novelty_score": 0.5,
-      "novelty_reason": "same_cluster_within_30d",
+      "novelty_score": 0.0,
+      "novelty_reason": "exact_event_seen",
       "expires_at": "2026-09-19T14:55:11+00:00",
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -1.3565,
+        "price_change_pct": -0.5632,
         "price_aligned": false,
-        "volume_ratio_vs_20d_median": 0.0688,
+        "volume_ratio_vs_20d_median": 0.0684,
         "volume_aligned": false,
-        "peer_residual_1d": 0.034273,
-        "peer_dispersion_1d": 0.021557,
+        "peer_residual_1d": -0.068102,
+        "peer_dispersion_1d": 0.021951,
         "peer_residual_observed": false,
         "peer_usable_rules": [],
         "peer_confirmation_usable": false,
@@ -2705,17 +3200,17 @@
       ],
       "corroborating_source_count": 1,
       "duplicate_novelty_clusters": [],
-      "novelty_score": 0.8,
-      "novelty_reason": "cluster_old_but_recurrent",
+      "novelty_score": 0.0,
+      "novelty_reason": "exact_event_seen",
       "expires_at": "2026-09-19T07:00:00+00:00",
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": 2.42,
+        "price_change_pct": 0.42,
         "price_aligned": false,
-        "volume_ratio_vs_20d_median": 0.8552,
+        "volume_ratio_vs_20d_median": 0.8804,
         "volume_aligned": false,
-        "peer_residual_1d": 0.001465,
+        "peer_residual_1d": 0.002353,
         "peer_dispersion_1d": null,
         "peer_residual_observed": false,
         "peer_usable_rules": [],
@@ -2727,6 +3222,7 @@
       "actionable_blockers": [
         "hard_company_event",
         "reliable_primary_or_wire",
+        "novel",
         "not_expired",
         "price_volume_or_validated_peer_confirmation",
         "disconfirming_negative"
@@ -2761,18 +3257,18 @@
       ],
       "corroborating_source_count": 1,
       "duplicate_novelty_clusters": [],
-      "novelty_score": 0.25,
-      "novelty_reason": "same_cluster_within_7d",
+      "novelty_score": 0.0,
+      "novelty_reason": "exact_event_seen",
       "expires_at": "2026-09-21T20:11:20+00:00",
-      "status": "active",
+      "status": "expired",
       "expiry_days": 5,
       "confirmation": {
-        "price_change_pct": -1.3565,
+        "price_change_pct": -0.5632,
         "price_aligned": false,
-        "volume_ratio_vs_20d_median": 0.0688,
+        "volume_ratio_vs_20d_median": 0.0684,
         "volume_aligned": false,
-        "peer_residual_1d": 0.034273,
-        "peer_dispersion_1d": 0.021557,
+        "peer_residual_1d": -0.068102,
+        "peer_dispersion_1d": 0.021951,
         "peer_residual_observed": false,
         "peer_usable_rules": [],
         "peer_confirmation_usable": false,
@@ -2781,68 +3277,6 @@
       "high_impact": true,
       "actionable_escalation": false,
       "actionable_blockers": [
-        "reliable_primary_or_wire",
-        "novel",
-        "price_volume_or_validated_peer_confirmation",
-        "disconfirming_negative"
-      ],
-      "decision_permission": "display_or_watch_only"
-    },
-    {
-      "event_id": "evt_712e7ff20ace9f06725c",
-      "ticker": "TSLA",
-      "reported_ticker": "TSLA",
-      "event_type": "other",
-      "title": "SpaceX or Tesla: Which Elon Musk Stock Should Investors Buy?",
-      "publication_time": {
-        "iso": "2026-09-15T21:42:00+00:00",
-        "precision": "minute"
-      },
-      "event_time": {
-        "iso": "2026-09-15T21:42:00+00:00",
-        "precision": "minute"
-      },
-      "primary_source": "the motley fool",
-      "source_type": "google_news_rss",
-      "source_reliability": 0.5,
-      "source_url": null,
-      "novelty_cluster": "0b0399f6a303ebb7c6ed",
-      "impact_direction": "unknown",
-      "metadata": {
-        "channel": "influencer_feed",
-        "author": "Musk",
-        "stance": "neutral",
-        "relevance": 60,
-        "direct_ticker_only": true
-      },
-      "body_persisted": false,
-      "duplicate_event_ids": [],
-      "evidence_sources": [
-        "the motley fool"
-      ],
-      "corroborating_source_count": 1,
-      "duplicate_novelty_clusters": [],
-      "novelty_score": 0.25,
-      "novelty_reason": "same_cluster_within_7d",
-      "expires_at": "2026-09-17T21:42:00+00:00",
-      "status": "expired",
-      "expiry_days": 2,
-      "confirmation": {
-        "price_change_pct": null,
-        "price_aligned": false,
-        "volume_ratio_vs_20d_median": null,
-        "volume_aligned": false,
-        "peer_residual_1d": null,
-        "peer_dispersion_1d": null,
-        "peer_residual_observed": false,
-        "peer_usable_rules": [],
-        "peer_confirmation_usable": false,
-        "confirmed": false
-      },
-      "high_impact": false,
-      "actionable_escalation": false,
-      "actionable_blockers": [
-        "hard_company_event",
         "reliable_primary_or_wire",
         "novel",
         "not_expired",
@@ -2885,12 +3319,12 @@
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": 18.92,
+        "price_change_pct": -1.65,
         "price_aligned": false,
-        "volume_ratio_vs_20d_median": 1.5782,
+        "volume_ratio_vs_20d_median": 0.994,
         "volume_aligned": false,
-        "peer_residual_1d": 0.130276,
-        "peer_dispersion_1d": 0.028049,
+        "peer_residual_1d": -0.02099,
+        "peer_dispersion_1d": 0.023508,
         "peer_residual_observed": false,
         "peer_usable_rules": [],
         "peer_confirmation_usable": false,
@@ -2936,18 +3370,18 @@
       ],
       "corroborating_source_count": 1,
       "duplicate_novelty_clusters": [],
-      "novelty_score": 0.25,
-      "novelty_reason": "same_cluster_within_7d",
+      "novelty_score": 0.0,
+      "novelty_reason": "exact_event_seen",
       "expires_at": "2026-09-17T15:35:00+00:00",
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": 7.8623,
+        "price_change_pct": 2.9527,
         "price_aligned": false,
-        "volume_ratio_vs_20d_median": 0.088,
+        "volume_ratio_vs_20d_median": 0.0906,
         "volume_aligned": false,
-        "peer_residual_1d": -0.006151,
-        "peer_dispersion_1d": 0.070259,
+        "peer_residual_1d": 2.4e-05,
+        "peer_dispersion_1d": 0.023624,
         "peer_residual_observed": false,
         "peer_usable_rules": [],
         "peer_confirmation_usable": false,
@@ -2993,18 +3427,18 @@
       ],
       "corroborating_source_count": 1,
       "duplicate_novelty_clusters": [],
-      "novelty_score": 0.25,
-      "novelty_reason": "same_cluster_within_7d",
+      "novelty_score": 0.0,
+      "novelty_reason": "exact_event_seen",
       "expires_at": "2026-09-17T12:27:45+00:00",
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": 7.8623,
+        "price_change_pct": 2.9527,
         "price_aligned": false,
-        "volume_ratio_vs_20d_median": 0.088,
+        "volume_ratio_vs_20d_median": 0.0906,
         "volume_aligned": false,
-        "peer_residual_1d": -0.006151,
-        "peer_dispersion_1d": 0.070259,
+        "peer_residual_1d": 2.4e-05,
+        "peer_dispersion_1d": 0.023624,
         "peer_residual_observed": false,
         "peer_usable_rules": [],
         "peer_confirmation_usable": false,
@@ -3056,12 +3490,12 @@
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": 18.92,
+        "price_change_pct": -1.65,
         "price_aligned": false,
-        "volume_ratio_vs_20d_median": 1.5782,
+        "volume_ratio_vs_20d_median": 0.994,
         "volume_aligned": false,
-        "peer_residual_1d": 0.130276,
-        "peer_dispersion_1d": 0.028049,
+        "peer_residual_1d": -0.02099,
+        "peer_dispersion_1d": 0.023508,
         "peer_residual_observed": false,
         "peer_usable_rules": [],
         "peer_confirmation_usable": false,
@@ -3114,15 +3548,15 @@
       "novelty_score": 0.0,
       "novelty_reason": "exact_event_seen",
       "expires_at": "2026-09-22T00:00:00+00:00",
-      "status": "active",
+      "status": "expired",
       "expiry_days": 7,
       "confirmation": {
         "price_change_pct": null,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": null,
         "volume_aligned": false,
-        "peer_residual_1d": -0.008094,
-        "peer_dispersion_1d": 0.024273,
+        "peer_residual_1d": 0.037872,
+        "peer_dispersion_1d": 0.031808,
         "peer_residual_observed": false,
         "peer_usable_rules": [],
         "peer_confirmation_usable": false,
@@ -3132,6 +3566,7 @@
       "actionable_escalation": false,
       "actionable_blockers": [
         "novel",
+        "not_expired",
         "price_volume_or_validated_peer_confirmation",
         "disconfirming_negative"
       ],
@@ -3171,12 +3606,12 @@
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": 18.92,
+        "price_change_pct": -1.65,
         "price_aligned": false,
-        "volume_ratio_vs_20d_median": 1.5782,
+        "volume_ratio_vs_20d_median": 0.994,
         "volume_aligned": false,
-        "peer_residual_1d": 0.130276,
-        "peer_dispersion_1d": 0.028049,
+        "peer_residual_1d": -0.02099,
+        "peer_dispersion_1d": 0.023508,
         "peer_residual_observed": false,
         "peer_usable_rules": [],
         "peer_confirmation_usable": false,
@@ -3228,12 +3663,12 @@
       "status": "expired",
       "expiry_days": 5,
       "confirmation": {
-        "price_change_pct": 1.64,
+        "price_change_pct": -0.56,
         "price_aligned": false,
-        "volume_ratio_vs_20d_median": 1.0653,
+        "volume_ratio_vs_20d_median": 0.4875,
         "volume_aligned": false,
-        "peer_residual_1d": 0.010418,
-        "peer_dispersion_1d": 0.048885,
+        "peer_residual_1d": -0.02013,
+        "peer_dispersion_1d": 0.05094,
         "peer_residual_observed": false,
         "peer_usable_rules": [],
         "peer_confirmation_usable": false,
@@ -3284,12 +3719,12 @@
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": 18.92,
+        "price_change_pct": -1.65,
         "price_aligned": false,
-        "volume_ratio_vs_20d_median": 1.5782,
+        "volume_ratio_vs_20d_median": 0.994,
         "volume_aligned": false,
-        "peer_residual_1d": 0.130276,
-        "peer_dispersion_1d": 0.028049,
+        "peer_residual_1d": -0.02099,
+        "peer_dispersion_1d": 0.023508,
         "peer_residual_observed": false,
         "peer_usable_rules": [],
         "peer_confirmation_usable": false,
@@ -3341,12 +3776,12 @@
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": 1.64,
+        "price_change_pct": -0.56,
         "price_aligned": false,
-        "volume_ratio_vs_20d_median": 1.0653,
+        "volume_ratio_vs_20d_median": 0.4875,
         "volume_aligned": false,
-        "peer_residual_1d": 0.010418,
-        "peer_dispersion_1d": 0.048885,
+        "peer_residual_1d": -0.02013,
+        "peer_dispersion_1d": 0.05094,
         "peer_residual_observed": false,
         "peer_usable_rules": [],
         "peer_confirmation_usable": false,
@@ -3409,69 +3844,12 @@
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": 2.42,
+        "price_change_pct": 0.42,
         "price_aligned": false,
-        "volume_ratio_vs_20d_median": 0.8552,
+        "volume_ratio_vs_20d_median": 0.8804,
         "volume_aligned": false,
-        "peer_residual_1d": 0.001465,
+        "peer_residual_1d": 0.002353,
         "peer_dispersion_1d": null,
-        "peer_residual_observed": false,
-        "peer_usable_rules": [],
-        "peer_confirmation_usable": false,
-        "confirmed": false
-      },
-      "high_impact": false,
-      "actionable_escalation": false,
-      "actionable_blockers": [
-        "hard_company_event",
-        "reliable_primary_or_wire",
-        "novel",
-        "not_expired",
-        "price_volume_or_validated_peer_confirmation",
-        "disconfirming_negative"
-      ],
-      "decision_permission": "display_or_watch_only"
-    },
-    {
-      "event_id": "evt_f22c4fd93a1663684df5",
-      "ticker": "02208",
-      "reported_ticker": "02208",
-      "event_type": "other",
-      "title": "金风科技首批绿色甲醇成功发运",
-      "publication_time": {
-        "iso": "2026-09-09T16:00:00+00:00",
-        "precision": "date"
-      },
-      "event_time": {
-        "iso": "2026-09-09T16:00:00+00:00",
-        "precision": "date"
-      },
-      "primary_source": "finance.eastmoney.com",
-      "source_type": "eastmoney_company",
-      "source_reliability": 0.62,
-      "source_url": "https://finance.eastmoney.com/a/202609103870627887.html",
-      "novelty_cluster": "ee413b60fa561d695fda",
-      "impact_direction": "unknown",
-      "metadata": {},
-      "body_persisted": false,
-      "duplicate_event_ids": [],
-      "evidence_sources": [
-        "finance.eastmoney.com"
-      ],
-      "corroborating_source_count": 1,
-      "duplicate_novelty_clusters": [],
-      "novelty_score": 0.0,
-      "novelty_reason": "exact_event_seen",
-      "expires_at": "2026-09-11T16:00:00+00:00",
-      "status": "expired",
-      "expiry_days": 2,
-      "confirmation": {
-        "price_change_pct": 1.64,
-        "price_aligned": false,
-        "volume_ratio_vs_20d_median": 1.0653,
-        "volume_aligned": false,
-        "peer_residual_1d": 0.010418,
-        "peer_dispersion_1d": 0.048885,
         "peer_residual_observed": false,
         "peer_usable_rules": [],
         "peer_confirmation_usable": false,
@@ -3527,12 +3905,12 @@
       "status": "expired",
       "expiry_days": 5,
       "confirmation": {
-        "price_change_pct": 18.92,
+        "price_change_pct": -1.65,
         "price_aligned": false,
-        "volume_ratio_vs_20d_median": 1.5782,
+        "volume_ratio_vs_20d_median": 0.994,
         "volume_aligned": false,
-        "peer_residual_1d": 0.130276,
-        "peer_dispersion_1d": 0.028049,
+        "peer_residual_1d": -0.02099,
+        "peer_dispersion_1d": 0.023508,
         "peer_residual_observed": false,
         "peer_usable_rules": [],
         "peer_confirmation_usable": false,
@@ -3577,18 +3955,18 @@
       ],
       "corroborating_source_count": 1,
       "duplicate_novelty_clusters": [],
-      "novelty_score": 0.5,
-      "novelty_reason": "same_cluster_within_30d",
+      "novelty_score": 0.0,
+      "novelty_reason": "exact_event_seen",
       "expires_at": "2026-09-10T07:00:00+00:00",
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": 2.27,
+        "price_change_pct": 0.18,
         "price_aligned": false,
-        "volume_ratio_vs_20d_median": 0.7372,
+        "volume_ratio_vs_20d_median": 0.7382,
         "volume_aligned": false,
-        "peer_residual_1d": -0.000906,
-        "peer_dispersion_1d": 0.00079,
+        "peer_residual_1d": -0.001344,
+        "peer_dispersion_1d": 0.001428,
         "peer_residual_observed": false,
         "peer_usable_rules": [],
         "peer_confirmation_usable": false,
@@ -3644,12 +4022,12 @@
       "status": "expired",
       "expiry_days": 7,
       "confirmation": {
-        "price_change_pct": 7.8623,
+        "price_change_pct": 2.9527,
         "price_aligned": false,
-        "volume_ratio_vs_20d_median": 0.088,
+        "volume_ratio_vs_20d_median": 0.0906,
         "volume_aligned": false,
-        "peer_residual_1d": -0.006151,
-        "peer_dispersion_1d": 0.070259,
+        "peer_residual_1d": 2.4e-05,
+        "peer_dispersion_1d": 0.023624,
         "peer_residual_observed": false,
         "peer_usable_rules": [],
         "peer_confirmation_usable": false,
@@ -3699,12 +4077,12 @@
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": 4.38,
+        "price_change_pct": 0.81,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": null,
         "volume_aligned": false,
-        "peer_residual_1d": 0.017391,
-        "peer_dispersion_1d": 0.02164,
+        "peer_residual_1d": -0.015859,
+        "peer_dispersion_1d": 0.01147,
         "peer_residual_observed": false,
         "peer_usable_rules": [],
         "peer_confirmation_usable": false,
@@ -3750,17 +4128,17 @@
       ],
       "corroborating_source_count": 1,
       "duplicate_novelty_clusters": [],
-      "novelty_score": 0.5,
-      "novelty_reason": "same_cluster_within_30d",
+      "novelty_score": 0.0,
+      "novelty_reason": "exact_event_seen",
       "expires_at": "2026-09-06T07:00:00+00:00",
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": 2.42,
+        "price_change_pct": 0.42,
         "price_aligned": false,
-        "volume_ratio_vs_20d_median": 0.8552,
+        "volume_ratio_vs_20d_median": 0.8804,
         "volume_aligned": false,
-        "peer_residual_1d": 0.001465,
+        "peer_residual_1d": 0.002353,
         "peer_dispersion_1d": null,
         "peer_residual_observed": false,
         "peer_usable_rules": [],
@@ -3813,12 +4191,12 @@
       "status": "expired",
       "expiry_days": 5,
       "confirmation": {
-        "price_change_pct": 1.64,
+        "price_change_pct": -0.56,
         "price_aligned": false,
-        "volume_ratio_vs_20d_median": 1.0653,
+        "volume_ratio_vs_20d_median": 0.4875,
         "volume_aligned": false,
-        "peer_residual_1d": 0.010418,
-        "peer_dispersion_1d": 0.048885,
+        "peer_residual_1d": -0.02013,
+        "peer_dispersion_1d": 0.05094,
         "peer_residual_observed": false,
         "peer_usable_rules": [],
         "peer_confirmation_usable": false,
@@ -3869,12 +4247,12 @@
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -9.656,
+        "price_change_pct": 16.3661,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": null,
         "volume_aligned": false,
-        "peer_residual_1d": -0.008094,
-        "peer_dispersion_1d": 0.024273,
+        "peer_residual_1d": 0.037872,
+        "peer_dispersion_1d": 0.031808,
         "peer_residual_observed": false,
         "peer_usable_rules": [],
         "peer_confirmation_usable": false,
@@ -3920,18 +4298,18 @@
       ],
       "corroborating_source_count": 1,
       "duplicate_novelty_clusters": [],
-      "novelty_score": 0.5,
-      "novelty_reason": "same_cluster_within_30d",
+      "novelty_score": 0.0,
+      "novelty_reason": "exact_event_seen",
       "expires_at": "2026-08-27T07:00:00+00:00",
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": 1.64,
+        "price_change_pct": -0.56,
         "price_aligned": false,
-        "volume_ratio_vs_20d_median": 1.0653,
+        "volume_ratio_vs_20d_median": 0.4875,
         "volume_aligned": false,
-        "peer_residual_1d": 0.010418,
-        "peer_dispersion_1d": 0.048885,
+        "peer_residual_1d": -0.02013,
+        "peer_dispersion_1d": 0.05094,
         "peer_residual_observed": false,
         "peer_usable_rules": [],
         "peer_confirmation_usable": false,
@@ -3983,11 +4361,11 @@
       "status": "expired",
       "expiry_days": 5,
       "confirmation": {
-        "price_change_pct": 2.42,
+        "price_change_pct": 0.42,
         "price_aligned": false,
-        "volume_ratio_vs_20d_median": 0.8552,
+        "volume_ratio_vs_20d_median": 0.8804,
         "volume_aligned": false,
-        "peer_residual_1d": 0.001465,
+        "peer_residual_1d": 0.002353,
         "peer_dispersion_1d": null,
         "peer_residual_observed": false,
         "peer_usable_rules": [],
@@ -4039,12 +4417,12 @@
       "status": "expired",
       "expiry_days": 5,
       "confirmation": {
-        "price_change_pct": -9.656,
+        "price_change_pct": 16.3661,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": null,
         "volume_aligned": false,
-        "peer_residual_1d": -0.008094,
-        "peer_dispersion_1d": 0.024273,
+        "peer_residual_1d": 0.037872,
+        "peer_dispersion_1d": 0.031808,
         "peer_residual_observed": false,
         "peer_usable_rules": [],
         "peer_confirmation_usable": false,
@@ -4096,12 +4474,12 @@
       "status": "expired",
       "expiry_days": 2,
       "confirmation": {
-        "price_change_pct": -9.656,
+        "price_change_pct": 16.3661,
         "price_aligned": false,
         "volume_ratio_vs_20d_median": null,
         "volume_aligned": false,
-        "peer_residual_1d": -0.008094,
-        "peer_dispersion_1d": 0.024273,
+        "peer_residual_1d": 0.037872,
+        "peer_dispersion_1d": 0.031808,
         "peer_residual_observed": false,
         "peer_usable_rules": [],
         "peer_confirmation_usable": false,
@@ -4122,19 +4500,19 @@
   ],
   "information_overlay": {
     "schema_version": 1,
-    "as_of": "2026-09-21T00:04:35.417953+00:00",
+    "as_of": "2026-09-22T00:04:52.443476+00:00",
     "registered_at": "2026-08-13",
     "status": "active",
     "usable_for_decisions": true,
     "activation": {
       "checks": {
         "history_dates": {
-          "actual": 27,
+          "actual": 28,
           "required": 24,
           "pass": true
         },
         "cross_section_tickers": {
-          "actual": 11,
+          "actual": 14,
           "required": 8,
           "pass": true
         }
@@ -4162,67 +4540,67 @@
     "tickers": {
       "00100": {
         "ticker": "00100",
-        "as_of": "2026-09-21T00:04:35.417953+00:00",
+        "as_of": "2026-09-22T00:04:52.443476+00:00",
         "signed_score": 0,
-        "cross_section_rank": 0.5,
-        "own_history_dates": 40,
-        "prospective_history_dates": 27,
-        "own_surprise_z": -0.2651,
+        "cross_section_rank": 0.4643,
+        "own_history_dates": 41,
+        "prospective_history_dates": 28,
+        "own_surprise_z": -0.2616,
         "event_count": 0,
-        "attention_score": 0.151027,
-        "attention_comparable_score": 0.151027,
-        "attention_rank": 0.875,
+        "attention_score": 0.0,
+        "attention_comparable_score": 0.0,
+        "attention_rank": 0.25,
         "attention_rank_scope": "HK",
-        "attention_event_count": 8,
-        "attention_baseline": 0.296954,
-        "attention_acceleration": 0.6324,
+        "attention_event_count": 7,
+        "attention_baseline": 0.293395,
+        "attention_acceleration": 0.2542,
         "attention_source_type_count": 2,
         "attention_components": [
           {
             "event_id": "evt_24c4bb44679f4bcb530d",
             "published_at": "2026-09-19T14:21:45+00:00",
-            "novelty": 0.5,
+            "novelty": 0.0,
             "reliability": 0.5,
             "corroborating_sources": 1,
-            "freshness": 0.5225,
-            "attention_value": 0.065312,
-            "baseline_comparable_value": 0.065312,
+            "freshness": 0.3291,
+            "attention_value": 0.0,
+            "baseline_comparable_value": 0.0,
             "channel": "news",
             "source_type": "google_news_rss"
           },
           {
             "event_id": "evt_d40b0512c6f2976f7d61",
             "published_at": "2026-09-18T07:00:00+00:00",
-            "novelty": 0.5,
+            "novelty": 0.0,
             "reliability": 0.5,
             "corroborating_sources": 1,
-            "freshness": 0.2856,
-            "attention_value": 0.035706,
-            "baseline_comparable_value": 0.035706,
+            "freshness": 0.1799,
+            "attention_value": 0.0,
+            "baseline_comparable_value": 0.0,
             "channel": "news",
             "source_type": "google_news_rss"
           },
           {
             "event_id": "evt_a78b6f66c3bace657a37",
             "published_at": "2026-09-18T03:58:01+00:00",
-            "novelty": 0.25,
+            "novelty": 0.0,
             "reliability": 0.5,
             "corroborating_sources": 1,
-            "freshness": 0.2694,
-            "attention_value": 0.01684,
-            "baseline_comparable_value": 0.01684,
+            "freshness": 0.1697,
+            "attention_value": 0.0,
+            "baseline_comparable_value": 0.0,
             "channel": "news",
             "source_type": "google_news_rss"
           },
           {
             "event_id": "evt_9004fa9c61bd8df66e11",
             "published_at": "2026-09-17T16:00:00+00:00",
-            "novelty": 0.5,
+            "novelty": 0.0,
             "reliability": 0.62,
             "corroborating_sources": 1,
-            "freshness": 0.214,
-            "attention_value": 0.033169,
-            "baseline_comparable_value": 0.033169,
+            "freshness": 0.1348,
+            "attention_value": 0.0,
+            "baseline_comparable_value": 0.0,
             "channel": "news",
             "source_type": "eastmoney_company"
           },
@@ -4232,7 +4610,7 @@
             "novelty": 0.0,
             "reliability": 0.5,
             "corroborating_sources": 1,
-            "freshness": 0.2134,
+            "freshness": 0.1344,
             "attention_value": 0.0,
             "baseline_comparable_value": 0.0,
             "channel": "news",
@@ -4244,7 +4622,7 @@
             "novelty": 0.0,
             "reliability": 0.5,
             "corroborating_sources": 1,
-            "freshness": 0.0902,
+            "freshness": 0.0568,
             "attention_value": 0.0,
             "baseline_comparable_value": 0.0,
             "channel": "news",
@@ -4256,23 +4634,11 @@
             "novelty": 0.0,
             "reliability": 0.5,
             "corroborating_sources": 1,
-            "freshness": 0.072,
+            "freshness": 0.0454,
             "attention_value": 0.0,
             "baseline_comparable_value": 0.0,
             "channel": "news",
             "source_type": "google_news_rss"
-          },
-          {
-            "event_id": "evt_f40f1aea2eff2f871510",
-            "published_at": "2026-09-14T16:00:00+00:00",
-            "novelty": 0.0,
-            "reliability": 0.62,
-            "corroborating_sources": 1,
-            "freshness": 0.0535,
-            "attention_value": 0.0,
-            "baseline_comparable_value": 0.0,
-            "channel": "news",
-            "source_type": "eastmoney_company"
           }
         ],
         "sizing_tilt": "neutral",
@@ -4282,67 +4648,91 @@
       },
       "02208": {
         "ticker": "02208",
-        "as_of": "2026-09-21T00:04:35.417953+00:00",
-        "signed_score": 0,
-        "cross_section_rank": 0.5,
-        "own_history_dates": 40,
-        "prospective_history_dates": 27,
-        "own_surprise_z": -0.0988,
-        "event_count": 0,
-        "attention_score": 0.0,
-        "attention_comparable_score": 0.0,
-        "attention_rank": 0.125,
+        "as_of": "2026-09-22T00:04:52.443476+00:00",
+        "signed_score": 0.083574,
+        "cross_section_rank": 0.9643,
+        "own_history_dates": 41,
+        "prospective_history_dates": 28,
+        "own_surprise_z": 3.3756,
+        "event_count": 1,
+        "attention_score": 0.083574,
+        "attention_comparable_score": 0.083574,
+        "attention_rank": 0.625,
         "attention_rank_scope": "HK",
         "attention_event_count": 1,
-        "attention_baseline": 0.124813,
-        "attention_acceleration": 0.4448,
+        "attention_baseline": 0.121768,
+        "attention_acceleration": 0.8278,
         "attention_source_type_count": 1,
         "attention_components": [
           {
-            "event_id": "evt_782894a2a210fe201198",
-            "published_at": "2026-09-14T16:00:00+00:00",
-            "novelty": 0.0,
+            "event_id": "evt_da0bfb0294caf6e360c2",
+            "published_at": "2026-09-20T16:00:00+00:00",
+            "novelty": 0.5,
             "reliability": 0.62,
             "corroborating_sources": 1,
-            "freshness": 0.0535,
-            "attention_value": 0.0,
-            "baseline_comparable_value": 0.0,
+            "freshness": 0.5392,
+            "attention_value": 0.083574,
+            "baseline_comparable_value": 0.083574,
             "channel": "news",
             "source_type": "eastmoney_company"
           }
         ],
-        "sizing_tilt": "neutral",
-        "event_components": [],
+        "sizing_tilt": "positive",
+        "event_components": [
+          {
+            "event_id": "evt_da0bfb0294caf6e360c2",
+            "published_at": "2026-09-20T16:00:00+00:00",
+            "direction": 1,
+            "novelty": 0.5,
+            "reliability": 0.62,
+            "corroborating_sources": 1,
+            "freshness": 0.5392,
+            "price_nonreaction": 1.0,
+            "signed_score": 0.083574
+          }
+        ],
         "status": "active",
         "usable_for_decisions": true
       },
       "03032": {
         "ticker": "03032",
-        "as_of": "2026-09-21T00:04:35.417953+00:00",
+        "as_of": "2026-09-22T00:04:52.443476+00:00",
         "signed_score": 0,
-        "cross_section_rank": 0.5,
-        "own_history_dates": 40,
-        "prospective_history_dates": 27,
+        "cross_section_rank": 0.4643,
+        "own_history_dates": 41,
+        "prospective_history_dates": 28,
         "own_surprise_z": null,
         "event_count": 0,
-        "attention_score": 0.062686,
-        "attention_comparable_score": 0.041791,
-        "attention_rank": 0.375,
+        "attention_score": 0.229828,
+        "attention_comparable_score": 0.208935,
+        "attention_rank": 0.875,
         "attention_rank_scope": "HK",
-        "attention_event_count": 1,
-        "attention_baseline": 0.212578,
-        "attention_acceleration": 0.4536,
+        "attention_event_count": 2,
+        "attention_baseline": 0.208413,
+        "attention_acceleration": 1.0017,
         "attention_source_type_count": 1,
         "attention_components": [
           {
-            "event_id": "evt_f7866fb53d49f0f4b29e",
-            "published_at": "2026-09-19T16:00:00+00:00",
+            "event_id": "evt_6ba9f8322cb562ef75b4",
+            "published_at": "2026-09-20T16:00:00+00:00",
             "novelty": 0.25,
             "reliability": 0.62,
             "corroborating_sources": 2,
             "freshness": 0.5392,
-            "attention_value": 0.062686,
-            "baseline_comparable_value": 0.041791,
+            "attention_value": 0.06268,
+            "baseline_comparable_value": 0.041787,
+            "channel": "news",
+            "source_type": "eastmoney_company"
+          },
+          {
+            "event_id": "evt_83e4ab2e174e516979b7",
+            "published_at": "2026-09-20T16:00:00+00:00",
+            "novelty": 1.0,
+            "reliability": 0.62,
+            "corroborating_sources": 1,
+            "freshness": 0.5392,
+            "attention_value": 0.167148,
+            "baseline_comparable_value": 0.167148,
             "channel": "news",
             "source_type": "eastmoney_company"
           }
@@ -4354,56 +4744,92 @@
       },
       "03033": {
         "ticker": "03033",
-        "as_of": "2026-09-21T00:04:35.417953+00:00",
+        "as_of": "2026-09-22T00:04:52.443476+00:00",
         "signed_score": 0,
-        "cross_section_rank": 0.5,
-        "own_history_dates": 40,
-        "prospective_history_dates": 27,
+        "cross_section_rank": 0.4643,
+        "own_history_dates": 41,
+        "prospective_history_dates": 28,
         "own_surprise_z": null,
         "event_count": 0,
-        "attention_score": 0.075923,
-        "attention_comparable_score": 0.075923,
-        "attention_rank": 0.625,
+        "attention_score": 0.0,
+        "attention_comparable_score": 0.0,
+        "attention_rank": 0.25,
         "attention_rank_scope": "HK",
         "attention_event_count": 3,
-        "attention_baseline": 0.11222,
-        "attention_acceleration": 0.829,
+        "attention_baseline": 0.111334,
+        "attention_acceleration": 0.4732,
         "attention_source_type_count": 1,
         "attention_components": [
           {
             "event_id": "evt_a2d3a8436dcf1209a502",
             "published_at": "2026-09-18T14:42:16+00:00",
-            "novelty": 0.25,
+            "novelty": 0.0,
             "reliability": 0.5,
             "corroborating_sources": 1,
-            "freshness": 0.3313,
-            "attention_value": 0.020708,
-            "baseline_comparable_value": 0.020708,
+            "freshness": 0.2087,
+            "attention_value": 0.0,
+            "baseline_comparable_value": 0.0,
             "channel": "news",
             "source_type": "google_news_rss"
           },
           {
             "event_id": "evt_d657b08289e6a384d14d",
             "published_at": "2026-09-18T10:50:43+00:00",
-            "novelty": 0.25,
+            "novelty": 0.0,
             "reliability": 0.5,
             "corroborating_sources": 1,
-            "freshness": 0.3076,
-            "attention_value": 0.019225,
-            "baseline_comparable_value": 0.019225,
+            "freshness": 0.1938,
+            "attention_value": 0.0,
+            "baseline_comparable_value": 0.0,
             "channel": "news",
             "source_type": "google_news_rss"
           },
           {
             "event_id": "evt_879ecd80b0217c58e4d4",
             "published_at": "2026-09-17T07:00:00+00:00",
-            "novelty": 0.8,
+            "novelty": 0.0,
             "reliability": 0.5,
             "corroborating_sources": 1,
-            "freshness": 0.1799,
-            "attention_value": 0.03599,
-            "baseline_comparable_value": 0.03599,
+            "freshness": 0.1133,
+            "attention_value": 0.0,
+            "baseline_comparable_value": 0.0,
             "channel": "news",
+            "source_type": "google_news_rss"
+          }
+        ],
+        "sizing_tilt": "neutral",
+        "event_components": [],
+        "status": "active",
+        "usable_for_decisions": true
+      },
+      "ADBE": {
+        "ticker": "ADBE",
+        "as_of": "2026-09-22T00:04:52.443476+00:00",
+        "signed_score": 0,
+        "cross_section_rank": 0.4643,
+        "own_history_dates": 41,
+        "prospective_history_dates": 28,
+        "own_surprise_z": null,
+        "event_count": 0,
+        "attention_score": 0.169287,
+        "attention_comparable_score": 0.169287,
+        "attention_rank": 0.65,
+        "attention_rank_scope": "US",
+        "attention_event_count": 1,
+        "attention_baseline": 0.0,
+        "attention_acceleration": 2.6929,
+        "attention_source_type_count": 1,
+        "attention_components": [
+          {
+            "event_id": "evt_e54d4518ccbb0b411cd5",
+            "published_at": "2026-09-21T03:49:58+00:00",
+            "novelty": 1.0,
+            "reliability": 0.5,
+            "corroborating_sources": 1,
+            "freshness": 0.6771,
+            "attention_value": 0.169287,
+            "baseline_comparable_value": 0.169287,
+            "channel": "influencer_feed",
             "source_type": "google_news_rss"
           }
         ],
@@ -4414,115 +4840,115 @@
       },
       "CRCL": {
         "ticker": "CRCL",
-        "as_of": "2026-09-21T00:04:35.417953+00:00",
+        "as_of": "2026-09-22T00:04:52.443476+00:00",
         "signed_score": 0,
-        "cross_section_rank": 0.5,
-        "own_history_dates": 40,
-        "prospective_history_dates": 27,
-        "own_surprise_z": -0.0204,
+        "cross_section_rank": 0.4643,
+        "own_history_dates": 41,
+        "prospective_history_dates": 28,
+        "own_surprise_z": -0.0201,
         "event_count": 0,
-        "attention_score": 0.826992,
-        "attention_comparable_score": 0.826992,
-        "attention_rank": 0.7857,
+        "attention_score": 0.0,
+        "attention_comparable_score": 0.0,
+        "attention_rank": 0.25,
         "attention_rank_scope": "US",
         "attention_event_count": 11,
-        "attention_baseline": 0.621452,
-        "attention_acceleration": 1.2849,
+        "attention_baseline": 0.626465,
+        "attention_acceleration": 0.1377,
         "attention_source_type_count": 2,
         "attention_components": [
           {
             "event_id": "evt_6c0bad56fed8c2bddf26",
             "published_at": "2026-09-20T12:00:00+00:00",
-            "novelty": 1.0,
+            "novelty": 0.0,
             "reliability": 0.5,
             "corroborating_sources": 1,
-            "freshness": 0.7925,
-            "attention_value": 0.198133,
-            "baseline_comparable_value": 0.198133,
+            "freshness": 0.4992,
+            "attention_value": 0.0,
+            "baseline_comparable_value": 0.0,
             "channel": "news",
             "source_type": "google_news_rss"
           },
           {
             "event_id": "evt_3270fc3773d2deca72cb",
             "published_at": "2026-09-20T07:13:14+00:00",
-            "novelty": 0.25,
+            "novelty": 0.0,
             "reliability": 0.5,
             "corroborating_sources": 1,
-            "freshness": 0.7229,
-            "attention_value": 0.045178,
-            "baseline_comparable_value": 0.045178,
+            "freshness": 0.4553,
+            "attention_value": 0.0,
+            "baseline_comparable_value": 0.0,
             "channel": "news",
             "source_type": "google_news_rss"
           },
           {
             "event_id": "evt_30cf91fb96dbd9b04095",
             "published_at": "2026-09-20T06:43:15+00:00",
-            "novelty": 0.5,
+            "novelty": 0.0,
             "reliability": 0.5,
             "corroborating_sources": 1,
-            "freshness": 0.7159,
-            "attention_value": 0.089492,
-            "baseline_comparable_value": 0.089492,
+            "freshness": 0.451,
+            "attention_value": 0.0,
+            "baseline_comparable_value": 0.0,
             "channel": "news",
             "source_type": "google_news_rss"
           },
           {
             "event_id": "evt_9251f907fd3b6d624214",
             "published_at": "2026-09-18T20:49:00+00:00",
-            "novelty": 0.25,
+            "novelty": 0.0,
             "reliability": 0.5,
             "corroborating_sources": 1,
-            "freshness": 0.3727,
-            "attention_value": 0.023294,
-            "baseline_comparable_value": 0.023294,
+            "freshness": 0.2348,
+            "attention_value": 0.0,
+            "baseline_comparable_value": 0.0,
             "channel": "news",
             "source_type": "google_news_rss"
           },
           {
             "event_id": "evt_60eae7f28cb0ed451883",
             "published_at": "2026-09-18T09:47:02+00:00",
-            "novelty": 1.0,
+            "novelty": 0.0,
             "reliability": 0.7,
             "corroborating_sources": 1,
-            "freshness": 0.3014,
-            "attention_value": 0.105483,
-            "baseline_comparable_value": 0.105483,
+            "freshness": 0.1898,
+            "attention_value": 0.0,
+            "baseline_comparable_value": 0.0,
             "channel": "news",
             "source_type": "finnhub_syndication"
           },
           {
             "event_id": "evt_43843b2b29ea14ff9ed4",
             "published_at": "2026-09-18T07:20:24+00:00",
-            "novelty": 1.0,
+            "novelty": 0.0,
             "reliability": 0.7,
             "corroborating_sources": 1,
-            "freshness": 0.2875,
-            "attention_value": 0.100634,
-            "baseline_comparable_value": 0.100634,
+            "freshness": 0.1811,
+            "attention_value": 0.0,
+            "baseline_comparable_value": 0.0,
             "channel": "news",
             "source_type": "finnhub_syndication"
           },
           {
             "event_id": "evt_9313bd496d6dcad5a349",
             "published_at": "2026-09-18T00:11:12+00:00",
-            "novelty": 1.0,
+            "novelty": 0.0,
             "reliability": 0.7,
             "corroborating_sources": 1,
-            "freshness": 0.2505,
-            "attention_value": 0.087686,
-            "baseline_comparable_value": 0.087686,
+            "freshness": 0.1578,
+            "attention_value": 0.0,
+            "baseline_comparable_value": 0.0,
             "channel": "news",
             "source_type": "finnhub_syndication"
           },
           {
             "event_id": "evt_7b74fb9cce04ee19cf56",
             "published_at": "2026-09-17T22:28:46+00:00",
-            "novelty": 1.0,
+            "novelty": 0.0,
             "reliability": 0.7,
             "corroborating_sources": 1,
-            "freshness": 0.2424,
-            "attention_value": 0.08485,
-            "baseline_comparable_value": 0.08485,
+            "freshness": 0.1527,
+            "attention_value": 0.0,
+            "baseline_comparable_value": 0.0,
             "channel": "news",
             "source_type": "finnhub_syndication"
           }
@@ -4532,33 +4958,69 @@
         "status": "active",
         "usable_for_decisions": true
       },
-      "DOGE": {
-        "ticker": "DOGE",
-        "as_of": "2026-09-21T00:04:35.417953+00:00",
+      "JD": {
+        "ticker": "JD",
+        "as_of": "2026-09-22T00:04:52.443476+00:00",
         "signed_score": 0,
-        "cross_section_rank": 0.5,
-        "own_history_dates": 40,
-        "prospective_history_dates": 27,
+        "cross_section_rank": 0.4643,
+        "own_history_dates": 41,
+        "prospective_history_dates": 28,
         "own_surprise_z": null,
         "event_count": 0,
-        "attention_score": 0.182507,
-        "attention_comparable_score": 0.182507,
-        "attention_rank": 0.3571,
+        "attention_score": 0.169287,
+        "attention_comparable_score": 0.169287,
+        "attention_rank": 0.65,
         "attention_rank_scope": "US",
         "attention_event_count": 1,
         "attention_baseline": 0.0,
-        "attention_acceleration": 2.8251,
+        "attention_acceleration": 2.6929,
         "attention_source_type_count": 1,
         "attention_components": [
           {
-            "event_id": "evt_3b6ab097610e8d0be923",
-            "published_at": "2026-09-20T07:44:00+00:00",
+            "event_id": "evt_d69f5a259835bbfa1010",
+            "published_at": "2026-09-21T03:49:58+00:00",
             "novelty": 1.0,
             "reliability": 0.5,
             "corroborating_sources": 1,
-            "freshness": 0.73,
-            "attention_value": 0.182507,
-            "baseline_comparable_value": 0.182507,
+            "freshness": 0.6771,
+            "attention_value": 0.169287,
+            "baseline_comparable_value": 0.169287,
+            "channel": "influencer_feed",
+            "source_type": "google_news_rss"
+          }
+        ],
+        "sizing_tilt": "neutral",
+        "event_components": [],
+        "status": "active",
+        "usable_for_decisions": true
+      },
+      "MSFT": {
+        "ticker": "MSFT",
+        "as_of": "2026-09-22T00:04:52.443476+00:00",
+        "signed_score": 0,
+        "cross_section_rank": 0.4643,
+        "own_history_dates": 41,
+        "prospective_history_dates": 28,
+        "own_surprise_z": -0.1434,
+        "event_count": 0,
+        "attention_score": 0.169287,
+        "attention_comparable_score": 0.169287,
+        "attention_rank": 0.65,
+        "attention_rank_scope": "US",
+        "attention_event_count": 1,
+        "attention_baseline": 0.259281,
+        "attention_acceleration": 0.7495,
+        "attention_source_type_count": 1,
+        "attention_components": [
+          {
+            "event_id": "evt_e174c457b1673e5be764",
+            "published_at": "2026-09-21T03:49:58+00:00",
+            "novelty": 1.0,
+            "reliability": 0.5,
+            "corroborating_sources": 1,
+            "freshness": 0.6771,
+            "attention_value": 0.169287,
+            "baseline_comparable_value": 0.169287,
             "channel": "influencer_feed",
             "source_type": "google_news_rss"
           }
@@ -4570,31 +5032,79 @@
       },
       "NBIS": {
         "ticker": "NBIS",
-        "as_of": "2026-09-21T00:04:35.417953+00:00",
+        "as_of": "2026-09-22T00:04:52.443476+00:00",
         "signed_score": 0,
-        "cross_section_rank": 0.5,
-        "own_history_dates": 40,
-        "prospective_history_dates": 27,
+        "cross_section_rank": 0.4643,
+        "own_history_dates": 41,
+        "prospective_history_dates": 28,
         "own_surprise_z": null,
         "event_count": 0,
-        "attention_score": 0.20738,
-        "attention_comparable_score": 0.20738,
-        "attention_rank": 0.5,
+        "attention_score": 0.0,
+        "attention_comparable_score": 0.0,
+        "attention_rank": 0.25,
         "attention_rank_scope": "US",
         "attention_event_count": 1,
-        "attention_baseline": 0.005655,
-        "attention_acceleration": 2.9093,
+        "attention_baseline": 0.010575,
+        "attention_acceleration": 0.9044,
         "attention_source_type_count": 1,
         "attention_components": [
           {
             "event_id": "evt_d081d4c4c89982119026",
             "published_at": "2026-09-20T14:22:09+00:00",
+            "novelty": 0.0,
+            "reliability": 0.5,
+            "corroborating_sources": 1,
+            "freshness": 0.5225,
+            "attention_value": 0.0,
+            "baseline_comparable_value": 0.0,
+            "channel": "influencer_feed",
+            "source_type": "google_news_rss"
+          }
+        ],
+        "sizing_tilt": "neutral",
+        "event_components": [],
+        "status": "active",
+        "usable_for_decisions": true
+      },
+      "PLTR": {
+        "ticker": "PLTR",
+        "as_of": "2026-09-22T00:04:52.443476+00:00",
+        "signed_score": 0,
+        "cross_section_rank": 0.4643,
+        "own_history_dates": 41,
+        "prospective_history_dates": 28,
+        "own_surprise_z": -0.1497,
+        "event_count": 0,
+        "attention_score": 0.317588,
+        "attention_comparable_score": 0.317588,
+        "attention_rank": 0.95,
+        "attention_rank_scope": "US",
+        "attention_event_count": 2,
+        "attention_baseline": 0.260075,
+        "attention_acceleration": 1.1597,
+        "attention_source_type_count": 1,
+        "attention_components": [
+          {
+            "event_id": "evt_7cf9e9e17e1d1f3e0aea",
+            "published_at": "2026-09-21T08:32:54+00:00",
+            "novelty": 0.8,
+            "reliability": 0.5,
+            "corroborating_sources": 1,
+            "freshness": 0.7415,
+            "attention_value": 0.148301,
+            "baseline_comparable_value": 0.148301,
+            "channel": "influencer_feed",
+            "source_type": "google_news_rss"
+          },
+          {
+            "event_id": "evt_23fd4e33db507be44fff",
+            "published_at": "2026-09-21T03:49:58+00:00",
             "novelty": 1.0,
             "reliability": 0.5,
             "corroborating_sources": 1,
-            "freshness": 0.8295,
-            "attention_value": 0.20738,
-            "baseline_comparable_value": 0.20738,
+            "freshness": 0.6771,
+            "attention_value": 0.169287,
+            "baseline_comparable_value": 0.169287,
             "channel": "influencer_feed",
             "source_type": "google_news_rss"
           }
@@ -4606,119 +5116,107 @@
       },
       "RKLB": {
         "ticker": "RKLB",
-        "as_of": "2026-09-21T00:04:35.417953+00:00",
-        "signed_score": 0.106764,
-        "cross_section_rank": 0.9545,
-        "own_history_dates": 40,
-        "prospective_history_dates": 27,
-        "own_surprise_z": 0.6597,
+        "as_of": "2026-09-22T00:04:52.443476+00:00",
+        "signed_score": 0.0,
+        "cross_section_rank": 0.4643,
+        "own_history_dates": 41,
+        "prospective_history_dates": 28,
+        "own_surprise_z": -0.3427,
         "event_count": 1,
-        "attention_score": 0.446003,
-        "attention_comparable_score": 0.446003,
-        "attention_rank": 0.6429,
+        "attention_score": 0.0,
+        "attention_comparable_score": 0.0,
+        "attention_rank": 0.25,
         "attention_rank_scope": "US",
-        "attention_event_count": 7,
-        "attention_baseline": 0.616257,
-        "attention_acceleration": 0.7623,
-        "attention_source_type_count": 3,
+        "attention_event_count": 6,
+        "attention_baseline": 0.612104,
+        "attention_acceleration": 0.1404,
+        "attention_source_type_count": 2,
         "attention_components": [
           {
             "event_id": "evt_fffba2143d7b44cd6da4",
             "published_at": "2026-09-18T11:15:00+00:00",
-            "novelty": 1.0,
+            "novelty": 0.0,
             "reliability": 0.7,
             "corroborating_sources": 1,
-            "freshness": 0.31,
-            "attention_value": 0.108503,
-            "baseline_comparable_value": 0.108503,
+            "freshness": 0.1953,
+            "attention_value": 0.0,
+            "baseline_comparable_value": 0.0,
             "channel": "news",
             "source_type": "finnhub_syndication"
           },
           {
             "event_id": "evt_0d9c57306ccb69284003",
             "published_at": "2026-09-18T10:24:40+00:00",
-            "novelty": 1.0,
+            "novelty": 0.0,
             "reliability": 0.7,
             "corroborating_sources": 1,
-            "freshness": 0.305,
-            "attention_value": 0.106764,
-            "baseline_comparable_value": 0.106764,
+            "freshness": 0.1921,
+            "attention_value": 0.0,
+            "baseline_comparable_value": 0.0,
             "channel": "news",
             "source_type": "finnhub_syndication"
           },
           {
             "event_id": "evt_16b79ccc5ef36176ee7f",
             "published_at": "2026-09-18T06:44:38+00:00",
-            "novelty": 1.0,
+            "novelty": 0.0,
             "reliability": 0.7,
             "corroborating_sources": 1,
-            "freshness": 0.2842,
-            "attention_value": 0.099486,
-            "baseline_comparable_value": 0.099486,
+            "freshness": 0.179,
+            "attention_value": 0.0,
+            "baseline_comparable_value": 0.0,
             "channel": "news",
             "source_type": "finnhub_syndication"
           },
           {
             "event_id": "evt_5c5b3a5555b2ceb60804",
             "published_at": "2026-09-18T01:25:00+00:00",
-            "novelty": 0.25,
+            "novelty": 0.0,
             "reliability": 0.7,
             "corroborating_sources": 1,
-            "freshness": 0.2565,
-            "attention_value": 0.022447,
-            "baseline_comparable_value": 0.022447,
+            "freshness": 0.1616,
+            "attention_value": 0.0,
+            "baseline_comparable_value": 0.0,
             "channel": "news",
             "source_type": "finnhub_syndication"
           },
           {
             "event_id": "evt_f9220f2ce815c56b4926",
             "published_at": "2026-09-18T01:24:02+00:00",
-            "novelty": 1.0,
+            "novelty": 0.0,
             "reliability": 0.5,
             "corroborating_sources": 1,
-            "freshness": 0.2565,
-            "attention_value": 0.064114,
-            "baseline_comparable_value": 0.064114,
+            "freshness": 0.1615,
+            "attention_value": 0.0,
+            "baseline_comparable_value": 0.0,
             "channel": "news",
             "source_type": "google_news_rss"
           },
           {
             "event_id": "evt_0e277d1f1d6dbb780b57",
             "published_at": "2026-09-18T01:10:45+00:00",
-            "novelty": 0.5,
+            "novelty": 0.0,
             "reliability": 0.7,
             "corroborating_sources": 1,
-            "freshness": 0.2554,
-            "attention_value": 0.044689,
-            "baseline_comparable_value": 0.044689,
-            "channel": "news",
-            "source_type": "finnhub_syndication"
-          },
-          {
-            "event_id": "evt_be6f17ada2ee8daa9976",
-            "published_at": "2026-09-15T00:00:00+00:00",
-            "novelty": 0.0,
-            "reliability": 0.99,
-            "corroborating_sources": 1,
-            "freshness": 0.0624,
+            "freshness": 0.1609,
             "attention_value": 0.0,
             "baseline_comparable_value": 0.0,
             "channel": "news",
-            "source_type": "sec_filing"
+            "source_type": "finnhub_syndication"
           }
         ],
-        "sizing_tilt": "positive",
+        "sizing_tilt": "neutral",
         "event_components": [
           {
             "event_id": "evt_0d9c57306ccb69284003",
             "published_at": "2026-09-18T10:24:40+00:00",
             "direction": 1,
-            "novelty": 1.0,
+            "novelty": 0.0,
             "reliability": 0.7,
             "corroborating_sources": 1,
-            "freshness": 0.305,
+            "freshness": 0.1921,
             "price_nonreaction": 1.0,
-            "signed_score": 0.106764
+            "signed_score": 0.0
           }
         ],
         "status": "active",
@@ -4726,31 +5224,31 @@
       },
       "SLMT": {
         "ticker": "SLMT",
-        "as_of": "2026-09-21T00:04:35.417953+00:00",
+        "as_of": "2026-09-22T00:04:52.443476+00:00",
         "signed_score": 0,
-        "cross_section_rank": 0.5,
-        "own_history_dates": 40,
-        "prospective_history_dates": 27,
+        "cross_section_rank": 0.4643,
+        "own_history_dates": 41,
+        "prospective_history_dates": 28,
         "own_surprise_z": null,
         "event_count": 0,
-        "attention_score": 0.137585,
-        "attention_comparable_score": 0.137585,
-        "attention_rank": 0.2143,
+        "attention_score": 0.0,
+        "attention_comparable_score": 0.0,
+        "attention_rank": 0.25,
         "attention_rank_scope": "US",
         "attention_event_count": 1,
-        "attention_baseline": 0.0,
-        "attention_acceleration": 2.3759,
+        "attention_baseline": 0.003356,
+        "attention_acceleration": 0.9675,
         "attention_source_type_count": 1,
         "attention_components": [
           {
             "event_id": "evt_d495c8efdcc85d1b3c5c",
             "published_at": "2026-09-18T20:00:00+00:00",
-            "novelty": 1.0,
+            "novelty": 0.0,
             "reliability": 0.75,
             "corroborating_sources": 1,
-            "freshness": 0.3669,
-            "attention_value": 0.137585,
-            "baseline_comparable_value": 0.137585,
+            "freshness": 0.2311,
+            "attention_value": 0.0,
+            "baseline_comparable_value": 0.0,
             "channel": "influencer_feed",
             "source_type": "ark_daily_trade"
           }
@@ -4762,131 +5260,131 @@
       },
       "SPCX": {
         "ticker": "SPCX",
-        "as_of": "2026-09-21T00:04:35.417953+00:00",
-        "signed_score": -0.107188,
-        "cross_section_rank": 0.0455,
-        "own_history_dates": 40,
-        "prospective_history_dates": 27,
-        "own_surprise_z": -0.7394,
+        "as_of": "2026-09-22T00:04:52.443476+00:00",
+        "signed_score": 0.0,
+        "cross_section_rank": 0.4643,
+        "own_history_dates": 41,
+        "prospective_history_dates": 28,
+        "own_surprise_z": 0.0153,
         "event_count": 1,
-        "attention_score": 0.853174,
-        "attention_comparable_score": 0.853174,
-        "attention_rank": 0.9286,
+        "attention_score": 0.0,
+        "attention_comparable_score": 0.0,
+        "attention_rank": 0.25,
         "attention_rank_scope": "US",
         "attention_event_count": 13,
-        "attention_baseline": 1.307105,
-        "attention_acceleration": 0.6774,
+        "attention_baseline": 1.296034,
+        "attention_acceleration": 0.0716,
         "attention_source_type_count": 2,
         "attention_components": [
           {
             "event_id": "evt_3fc6a7c16e3c0543bad3",
             "published_at": "2026-09-20T06:31:41+00:00",
-            "novelty": 1.0,
+            "novelty": 0.0,
             "reliability": 0.5,
             "corroborating_sources": 1,
-            "freshness": 0.7133,
-            "attention_value": 0.17832,
-            "baseline_comparable_value": 0.17832,
+            "freshness": 0.4493,
+            "attention_value": 0.0,
+            "baseline_comparable_value": 0.0,
             "channel": "news",
             "source_type": "google_news_rss"
           },
           {
             "event_id": "evt_a8aac5ab05e59769f9a3",
             "published_at": "2026-09-19T12:35:05+00:00",
-            "novelty": 0.5,
+            "novelty": 0.0,
             "reliability": 0.5,
             "corroborating_sources": 1,
-            "freshness": 0.5049,
-            "attention_value": 0.063115,
-            "baseline_comparable_value": 0.063115,
+            "freshness": 0.318,
+            "attention_value": 0.0,
+            "baseline_comparable_value": 0.0,
             "channel": "news",
             "source_type": "google_news_rss"
           },
           {
             "event_id": "evt_4894c24f5953d4f68088",
             "published_at": "2026-09-18T20:12:33+00:00",
-            "novelty": 0.5,
+            "novelty": 0.0,
             "reliability": 0.5,
             "corroborating_sources": 1,
-            "freshness": 0.3684,
-            "attention_value": 0.046047,
-            "baseline_comparable_value": 0.046047,
+            "freshness": 0.232,
+            "attention_value": 0.0,
+            "baseline_comparable_value": 0.0,
             "channel": "news",
             "source_type": "google_news_rss"
           },
           {
             "event_id": "evt_22e63caa60d13f3ae245",
             "published_at": "2026-09-18T13:51:00+00:00",
-            "novelty": 0.5,
+            "novelty": 0.0,
             "reliability": 0.5,
             "corroborating_sources": 1,
-            "freshness": 0.3259,
-            "attention_value": 0.04074,
-            "baseline_comparable_value": 0.04074,
+            "freshness": 0.2053,
+            "attention_value": 0.0,
+            "baseline_comparable_value": 0.0,
             "channel": "news",
             "source_type": "google_news_rss"
           },
           {
             "event_id": "evt_db11c17d59fb7b6382d8",
             "published_at": "2026-09-18T12:05:00+00:00",
-            "novelty": 0.25,
+            "novelty": 0.0,
             "reliability": 0.7,
             "corroborating_sources": 1,
-            "freshness": 0.315,
-            "attention_value": 0.027564,
-            "baseline_comparable_value": 0.027564,
+            "freshness": 0.1984,
+            "attention_value": 0.0,
+            "baseline_comparable_value": 0.0,
             "channel": "news",
             "source_type": "finnhub_syndication"
           },
           {
             "event_id": "evt_3bd253ebfa638c325b88",
             "published_at": "2026-09-18T11:54:27+00:00",
-            "novelty": 1.0,
+            "novelty": 0.0,
             "reliability": 0.7,
             "corroborating_sources": 1,
-            "freshness": 0.314,
-            "attention_value": 0.109885,
-            "baseline_comparable_value": 0.109885,
+            "freshness": 0.1978,
+            "attention_value": 0.0,
+            "baseline_comparable_value": 0.0,
             "channel": "news",
             "source_type": "finnhub_syndication"
           },
           {
             "event_id": "evt_c45a99edd23739885370",
             "published_at": "2026-09-18T11:46:08+00:00",
-            "novelty": 0.5,
+            "novelty": 0.0,
             "reliability": 0.7,
             "corroborating_sources": 1,
-            "freshness": 0.3131,
-            "attention_value": 0.054796,
-            "baseline_comparable_value": 0.054796,
+            "freshness": 0.1972,
+            "attention_value": 0.0,
+            "baseline_comparable_value": 0.0,
             "channel": "news",
             "source_type": "finnhub_syndication"
           },
           {
             "event_id": "evt_44a05dc62b2a1b86d32b",
             "published_at": "2026-09-18T11:26:01+00:00",
-            "novelty": 1.0,
+            "novelty": 0.0,
             "reliability": 0.7,
             "corroborating_sources": 1,
-            "freshness": 0.3111,
-            "attention_value": 0.108887,
-            "baseline_comparable_value": 0.108887,
+            "freshness": 0.196,
+            "attention_value": 0.0,
+            "baseline_comparable_value": 0.0,
             "channel": "news",
             "source_type": "finnhub_syndication"
           }
         ],
-        "sizing_tilt": "negative",
+        "sizing_tilt": "neutral",
         "event_components": [
           {
             "event_id": "evt_73be1f52036ea627ae7e",
             "published_at": "2026-09-18T10:37:00+00:00",
             "direction": -1,
-            "novelty": 1.0,
+            "novelty": 0.0,
             "reliability": 0.7,
             "corroborating_sources": 1,
-            "freshness": 0.3063,
+            "freshness": 0.1929,
             "price_nonreaction": 1.0,
-            "signed_score": -0.107188
+            "signed_score": -0.0
           }
         ],
         "status": "active",
@@ -4894,31 +5392,43 @@
       },
       "TSLA": {
         "ticker": "TSLA",
-        "as_of": "2026-09-21T00:04:35.417953+00:00",
+        "as_of": "2026-09-22T00:04:52.443476+00:00",
         "signed_score": 0,
-        "cross_section_rank": 0.5,
-        "own_history_dates": 40,
-        "prospective_history_dates": 27,
-        "own_surprise_z": 0.1601,
+        "cross_section_rank": 0.4643,
+        "own_history_dates": 41,
+        "prospective_history_dates": 28,
+        "own_surprise_z": 0.1581,
         "event_count": 0,
-        "attention_score": 0.005923,
-        "attention_comparable_score": 0.005923,
-        "attention_rank": 0.0714,
+        "attention_score": 0.314027,
+        "attention_comparable_score": 0.314027,
+        "attention_rank": 0.85,
         "attention_rank_scope": "US",
-        "attention_event_count": 1,
-        "attention_baseline": 0.066513,
-        "attention_acceleration": 0.6361,
+        "attention_event_count": 2,
+        "attention_baseline": 0.065035,
+        "attention_acceleration": 2.5087,
         "attention_source_type_count": 1,
         "attention_components": [
           {
-            "event_id": "evt_712e7ff20ace9f06725c",
-            "published_at": "2026-09-15T21:42:00+00:00",
-            "novelty": 0.25,
+            "event_id": "evt_380faea8f2fd04527d3e",
+            "published_at": "2026-09-21T14:59:25+00:00",
+            "novelty": 1.0,
             "reliability": 0.5,
             "corroborating_sources": 1,
-            "freshness": 0.0948,
-            "attention_value": 0.005923,
-            "baseline_comparable_value": 0.005923,
+            "freshness": 0.8394,
+            "attention_value": 0.209856,
+            "baseline_comparable_value": 0.209856,
+            "channel": "influencer_feed",
+            "source_type": "google_news_rss"
+          },
+          {
+            "event_id": "evt_a9d56ec03ab03d43fcf9",
+            "published_at": "2026-09-21T14:36:51+00:00",
+            "novelty": 0.5,
+            "reliability": 0.5,
+            "corroborating_sources": 1,
+            "freshness": 0.8334,
+            "attention_value": 0.104171,
+            "baseline_comparable_value": 0.104171,
             "channel": "influencer_feed",
             "source_type": "google_news_rss"
           }
@@ -4933,34 +5443,10 @@
   "actionable_events": [],
   "tavily_resolution_queue": [
     {
-      "event_id": "evt_d081d4c4c89982119026",
-      "ticker": "NBIS",
+      "event_id": "evt_83e4ab2e174e516979b7",
+      "ticker": "03032",
       "reason": "high_impact_without_primary_resolution",
-      "query": "NBIS ownership Nebius’s Price Hike Suggests Michael Burry Made a Mistake and Is Shorting the Best Neocloud Stock official filing announcement",
-      "allowed_tool": "tavily-search",
-      "bucket": "brief"
-    },
-    {
-      "event_id": "evt_3fc6a7c16e3c0543bad3",
-      "ticker": "SPCX",
-      "reason": "high_impact_without_primary_resolution",
-      "query": "SPCX product SPCX Stock Slips After-Hours On Fresh Starship Launch Delay Over Weather official filing announcement",
-      "allowed_tool": "tavily-search",
-      "bucket": "brief"
-    },
-    {
-      "event_id": "evt_73be1f52036ea627ae7e",
-      "ticker": "SPCX",
-      "reason": "high_impact_without_primary_resolution",
-      "query": "SPCX product Launch As Infrastructure: What SpaceX's 100th Mission Of 2026 Tells Investors official filing announcement",
-      "allowed_tool": "tavily-search",
-      "bucket": "brief"
-    },
-    {
-      "event_id": "evt_0c913397974323554ba5",
-      "ticker": "CRCL",
-      "reason": "high_impact_without_primary_resolution",
-      "query": "CRCL product MoneyGram Just Launched Its First Stablecoin-Backed Visa Card. Here's What Crypto Investors Need to Know. official filing announcement",
+      "query": "03032 financing 港股再融资年内突破3200亿港元，科技企业担当主力！恒生科技ETF华泰柏瑞(513130)单日成交超22亿元 official filing announcement",
       "allowed_tool": "tavily-search",
       "bucket": "brief"
     }
@@ -4968,7 +5454,7 @@
   "graph": {
     "nodes": [
       {
-        "id": "evt_756e35ef23d814fa1933",
+        "id": "evt_b547d1e845b58f8e92e8",
         "kind": "event",
         "event_type": "macro_schedule",
         "status": "upcoming"
@@ -4987,7 +5473,7 @@
         "kind": "novelty_cluster"
       },
       {
-        "id": "evt_a1d291f653c48eae70e2",
+        "id": "evt_2fafa7db5d7746321639",
         "kind": "event",
         "event_type": "macro_schedule",
         "status": "upcoming"
@@ -4997,7 +5483,7 @@
         "kind": "novelty_cluster"
       },
       {
-        "id": "evt_dd0700466349ceec6bf2",
+        "id": "evt_9db0274f19c889a9ecff",
         "kind": "event",
         "event_type": "macro_schedule",
         "status": "upcoming"
@@ -5007,7 +5493,22 @@
         "kind": "novelty_cluster"
       },
       {
-        "id": "evt_e4dcb76f849eebaad0e2",
+        "id": "evt_ef77d1a6bcdb816fc71b",
+        "kind": "event",
+        "event_type": "sector_flow",
+        "status": "active"
+      },
+      {
+        "id": "source:biz.eastmoney.com",
+        "kind": "source",
+        "source_type": "market_fast_news"
+      },
+      {
+        "id": "cluster:3582e70646e06b0e8478",
+        "kind": "novelty_cluster"
+      },
+      {
+        "id": "evt_0e3aff4365924cffd5cd",
         "kind": "event",
         "event_type": "sector_flow",
         "status": "active"
@@ -5018,57 +5519,182 @@
         "source_type": "market_fast_news"
       },
       {
-        "id": "cluster:e474cb97e7583c6be8aa",
+        "id": "cluster:ec91fc7f2d3cbd4d8fa4",
         "kind": "novelty_cluster"
       },
       {
-        "id": "evt_fe4c78dd0a8feeeb92c3",
+        "id": "evt_556014f9baaf7144ba5a",
         "kind": "event",
         "event_type": "sector_flow",
         "status": "active"
       },
       {
-        "id": "cluster:22608ac8ab13023c5a5d",
+        "id": "cluster:7755164a446eab2f835c",
         "kind": "novelty_cluster"
       },
       {
-        "id": "evt_460d427bbd3c1888f257",
+        "id": "evt_6adb25ecb594977317ba",
         "kind": "event",
         "event_type": "sector_flow",
         "status": "active"
       },
       {
-        "id": "cluster:a98a8521b6d342937564",
+        "id": "cluster:fa53cbaaf887ee38a9dc",
         "kind": "novelty_cluster"
       },
       {
-        "id": "evt_3a100aedae8a77204c51",
+        "id": "evt_6cf9d8a35339e01f31de",
         "kind": "event",
         "event_type": "sector_flow",
         "status": "active"
       },
       {
-        "id": "cluster:99a9f0d9340673b59470",
+        "id": "cluster:2c4bccab209bf379c2b9",
         "kind": "novelty_cluster"
       },
       {
-        "id": "evt_24974ad2da83e0a4b381",
+        "id": "evt_ad387f291818b537c1e6",
         "kind": "event",
         "event_type": "sector_flow",
         "status": "active"
       },
       {
-        "id": "cluster:b7c7a917dbc2eecda6f4",
+        "id": "cluster:3e82f79e42c06ac400a9",
         "kind": "novelty_cluster"
       },
       {
-        "id": "evt_4275ef08d3c6374316cf",
+        "id": "evt_380faea8f2fd04527d3e",
         "kind": "event",
-        "event_type": "sector_flow",
+        "event_type": "other",
         "status": "active"
       },
       {
-        "id": "cluster:43e618c775fa6c03a44f",
+        "id": "ticker:TSLA",
+        "kind": "ticker"
+      },
+      {
+        "id": "source:eletric-vehicles.com",
+        "kind": "source",
+        "source_type": "google_news_rss"
+      },
+      {
+        "id": "cluster:ef15de829df095e6df28",
+        "kind": "novelty_cluster"
+      },
+      {
+        "id": "evt_a9d56ec03ab03d43fcf9",
+        "kind": "event",
+        "event_type": "other",
+        "status": "active"
+      },
+      {
+        "id": "source:yahoo finance",
+        "kind": "source",
+        "source_type": "google_news_rss"
+      },
+      {
+        "id": "cluster:f571c2dd16d679041283",
+        "kind": "novelty_cluster"
+      },
+      {
+        "id": "evt_7cf9e9e17e1d1f3e0aea",
+        "kind": "event",
+        "event_type": "other",
+        "status": "active"
+      },
+      {
+        "id": "ticker:PLTR",
+        "kind": "ticker"
+      },
+      {
+        "id": "source:news.google.com",
+        "kind": "source",
+        "source_type": "google_news_rss"
+      },
+      {
+        "id": "cluster:b2cd31ff35186b932255",
+        "kind": "novelty_cluster"
+      },
+      {
+        "id": "evt_e174c457b1673e5be764",
+        "kind": "event",
+        "event_type": "other",
+        "status": "active"
+      },
+      {
+        "id": "ticker:MSFT",
+        "kind": "ticker"
+      },
+      {
+        "id": "cluster:d49fdcd7d8b5cda488dc",
+        "kind": "novelty_cluster"
+      },
+      {
+        "id": "evt_d69f5a259835bbfa1010",
+        "kind": "event",
+        "event_type": "other",
+        "status": "active"
+      },
+      {
+        "id": "ticker:JD",
+        "kind": "ticker"
+      },
+      {
+        "id": "cluster:feea6205d2b0f26c555a",
+        "kind": "novelty_cluster"
+      },
+      {
+        "id": "evt_e54d4518ccbb0b411cd5",
+        "kind": "event",
+        "event_type": "other",
+        "status": "active"
+      },
+      {
+        "id": "ticker:ADBE",
+        "kind": "ticker"
+      },
+      {
+        "id": "evt_23fd4e33db507be44fff",
+        "kind": "event",
+        "event_type": "other",
+        "status": "active"
+      },
+      {
+        "id": "evt_da0bfb0294caf6e360c2",
+        "kind": "event",
+        "event_type": "other",
+        "status": "active"
+      },
+      {
+        "id": "ticker:02208",
+        "kind": "ticker"
+      },
+      {
+        "id": "cluster:85cce1aaa63e2bf51f15",
+        "kind": "novelty_cluster"
+      },
+      {
+        "id": "evt_6ba9f8322cb562ef75b4",
+        "kind": "event",
+        "event_type": "other",
+        "status": "active"
+      },
+      {
+        "id": "ticker:03032",
+        "kind": "ticker"
+      },
+      {
+        "id": "cluster:982e646715caa971a10d",
+        "kind": "novelty_cluster"
+      },
+      {
+        "id": "evt_83e4ab2e174e516979b7",
+        "kind": "event",
+        "event_type": "financing",
+        "status": "active"
+      },
+      {
+        "id": "cluster:d72ba0ab5947f6c19b44",
         "kind": "novelty_cluster"
       },
       {
@@ -5080,11 +5706,6 @@
       {
         "id": "ticker:NBIS",
         "kind": "ticker"
-      },
-      {
-        "id": "source:news.google.com",
-        "kind": "source",
-        "source_type": "google_news_rss"
       },
       {
         "id": "cluster:5e295d5049fac575739a",
@@ -5102,25 +5723,6 @@
       },
       {
         "id": "cluster:1ea78bbe2eb91bcfc915",
-        "kind": "novelty_cluster"
-      },
-      {
-        "id": "evt_3b6ab097610e8d0be923",
-        "kind": "event",
-        "event_type": "other",
-        "status": "active"
-      },
-      {
-        "id": "ticker:DOGE",
-        "kind": "ticker"
-      },
-      {
-        "id": "source:fortune",
-        "kind": "source",
-        "source_type": "google_news_rss"
-      },
-      {
-        "id": "cluster:5429bde98a7ca7897057",
         "kind": "novelty_cluster"
       },
       {
@@ -5158,24 +5760,10 @@
         "kind": "novelty_cluster"
       },
       {
-        "id": "evt_f7866fb53d49f0f4b29e",
-        "kind": "event",
-        "event_type": "other",
-        "status": "active"
-      },
-      {
-        "id": "ticker:03032",
-        "kind": "ticker"
-      },
-      {
-        "id": "cluster:23e9f1ab93f75f4bad24",
-        "kind": "novelty_cluster"
-      },
-      {
         "id": "evt_24c4bb44679f4bcb530d",
         "kind": "event",
         "event_type": "other",
-        "status": "active"
+        "status": "expired"
       },
       {
         "id": "ticker:00100",
@@ -5189,7 +5777,7 @@
         "id": "evt_a8aac5ab05e59769f9a3",
         "kind": "event",
         "event_type": "other",
-        "status": "active"
+        "status": "expired"
       },
       {
         "id": "cluster:de556072f364e8a7acd3",
@@ -5521,29 +6109,10 @@
         "id": "evt_6fb58df8a9bb5b5628fd",
         "kind": "event",
         "event_type": "product",
-        "status": "active"
-      },
-      {
-        "id": "cluster:071dd703c1e3453019ad",
-        "kind": "novelty_cluster"
-      },
-      {
-        "id": "evt_712e7ff20ace9f06725c",
-        "kind": "event",
-        "event_type": "other",
         "status": "expired"
       },
       {
-        "id": "ticker:TSLA",
-        "kind": "ticker"
-      },
-      {
-        "id": "source:the motley fool",
-        "kind": "source",
-        "source_type": "google_news_rss"
-      },
-      {
-        "id": "cluster:0b0399f6a303ebb7c6ed",
+        "id": "cluster:071dd703c1e3453019ad",
         "kind": "novelty_cluster"
       },
       {
@@ -5590,7 +6159,7 @@
         "id": "evt_be6f17ada2ee8daa9976",
         "kind": "event",
         "event_type": "filing_8k",
-        "status": "active"
+        "status": "expired"
       },
       {
         "id": "source:www.sec.gov",
@@ -5616,10 +6185,6 @@
         "kind": "event",
         "event_type": "ownership",
         "status": "expired"
-      },
-      {
-        "id": "ticker:02208",
-        "kind": "ticker"
       },
       {
         "id": "cluster:b0318dcac0e8f98734ab",
@@ -5653,16 +6218,6 @@
       },
       {
         "id": "cluster:da46ae08217f58415ca5",
-        "kind": "novelty_cluster"
-      },
-      {
-        "id": "evt_f22c4fd93a1663684df5",
-        "kind": "event",
-        "event_type": "other",
-        "status": "expired"
-      },
-      {
-        "id": "cluster:ee413b60fa561d695fda",
         "kind": "novelty_cluster"
       },
       {
@@ -5778,138 +6333,288 @@
     ],
     "edges": [
       {
-        "from": "evt_756e35ef23d814fa1933",
+        "from": "evt_b547d1e845b58f8e92e8",
         "to": "ticker:MARKET",
         "type": "about"
       },
       {
-        "from": "evt_756e35ef23d814fa1933",
+        "from": "evt_b547d1e845b58f8e92e8",
         "to": "source:official published schedule",
         "type": "reported_by"
       },
       {
-        "from": "evt_756e35ef23d814fa1933",
+        "from": "evt_b547d1e845b58f8e92e8",
         "to": "cluster:1422661ba13915d222da",
         "type": "belongs_to"
       },
       {
-        "from": "evt_a1d291f653c48eae70e2",
+        "from": "evt_2fafa7db5d7746321639",
         "to": "ticker:MARKET",
         "type": "about"
       },
       {
-        "from": "evt_a1d291f653c48eae70e2",
+        "from": "evt_2fafa7db5d7746321639",
         "to": "source:official published schedule",
         "type": "reported_by"
       },
       {
-        "from": "evt_a1d291f653c48eae70e2",
+        "from": "evt_2fafa7db5d7746321639",
         "to": "cluster:22b1a684fa8d4db596fc",
         "type": "belongs_to"
       },
       {
-        "from": "evt_dd0700466349ceec6bf2",
+        "from": "evt_9db0274f19c889a9ecff",
         "to": "ticker:MARKET",
         "type": "about"
       },
       {
-        "from": "evt_dd0700466349ceec6bf2",
+        "from": "evt_9db0274f19c889a9ecff",
         "to": "source:official published schedule",
         "type": "reported_by"
       },
       {
-        "from": "evt_dd0700466349ceec6bf2",
+        "from": "evt_9db0274f19c889a9ecff",
         "to": "cluster:5a3bb909eaf9778a5288",
         "type": "belongs_to"
       },
       {
-        "from": "evt_e4dcb76f849eebaad0e2",
+        "from": "evt_ef77d1a6bcdb816fc71b",
         "to": "ticker:MARKET",
         "type": "about"
       },
       {
-        "from": "evt_e4dcb76f849eebaad0e2",
-        "to": "source:finance.eastmoney.com",
+        "from": "evt_ef77d1a6bcdb816fc71b",
+        "to": "source:biz.eastmoney.com",
         "type": "reported_by"
       },
       {
-        "from": "evt_e4dcb76f849eebaad0e2",
-        "to": "cluster:e474cb97e7583c6be8aa",
+        "from": "evt_ef77d1a6bcdb816fc71b",
+        "to": "cluster:3582e70646e06b0e8478",
         "type": "belongs_to"
       },
       {
-        "from": "evt_fe4c78dd0a8feeeb92c3",
+        "from": "evt_0e3aff4365924cffd5cd",
         "to": "ticker:MARKET",
         "type": "about"
       },
       {
-        "from": "evt_fe4c78dd0a8feeeb92c3",
+        "from": "evt_0e3aff4365924cffd5cd",
         "to": "source:finance.eastmoney.com",
         "type": "reported_by"
       },
       {
-        "from": "evt_fe4c78dd0a8feeeb92c3",
-        "to": "cluster:22608ac8ab13023c5a5d",
+        "from": "evt_0e3aff4365924cffd5cd",
+        "to": "cluster:ec91fc7f2d3cbd4d8fa4",
         "type": "belongs_to"
       },
       {
-        "from": "evt_460d427bbd3c1888f257",
+        "from": "evt_556014f9baaf7144ba5a",
         "to": "ticker:MARKET",
         "type": "about"
       },
       {
-        "from": "evt_460d427bbd3c1888f257",
+        "from": "evt_556014f9baaf7144ba5a",
         "to": "source:finance.eastmoney.com",
         "type": "reported_by"
       },
       {
-        "from": "evt_460d427bbd3c1888f257",
-        "to": "cluster:a98a8521b6d342937564",
+        "from": "evt_556014f9baaf7144ba5a",
+        "to": "cluster:7755164a446eab2f835c",
         "type": "belongs_to"
       },
       {
-        "from": "evt_3a100aedae8a77204c51",
+        "from": "evt_6adb25ecb594977317ba",
         "to": "ticker:MARKET",
         "type": "about"
       },
       {
-        "from": "evt_3a100aedae8a77204c51",
+        "from": "evt_6adb25ecb594977317ba",
         "to": "source:finance.eastmoney.com",
         "type": "reported_by"
       },
       {
-        "from": "evt_3a100aedae8a77204c51",
-        "to": "cluster:99a9f0d9340673b59470",
+        "from": "evt_6adb25ecb594977317ba",
+        "to": "cluster:fa53cbaaf887ee38a9dc",
         "type": "belongs_to"
       },
       {
-        "from": "evt_24974ad2da83e0a4b381",
+        "from": "evt_6cf9d8a35339e01f31de",
         "to": "ticker:MARKET",
         "type": "about"
       },
       {
-        "from": "evt_24974ad2da83e0a4b381",
+        "from": "evt_6cf9d8a35339e01f31de",
         "to": "source:finance.eastmoney.com",
         "type": "reported_by"
       },
       {
-        "from": "evt_24974ad2da83e0a4b381",
-        "to": "cluster:b7c7a917dbc2eecda6f4",
+        "from": "evt_6cf9d8a35339e01f31de",
+        "to": "cluster:2c4bccab209bf379c2b9",
         "type": "belongs_to"
       },
       {
-        "from": "evt_4275ef08d3c6374316cf",
+        "from": "evt_ad387f291818b537c1e6",
         "to": "ticker:MARKET",
         "type": "about"
       },
       {
-        "from": "evt_4275ef08d3c6374316cf",
+        "from": "evt_ad387f291818b537c1e6",
         "to": "source:finance.eastmoney.com",
         "type": "reported_by"
       },
       {
-        "from": "evt_4275ef08d3c6374316cf",
-        "to": "cluster:43e618c775fa6c03a44f",
+        "from": "evt_ad387f291818b537c1e6",
+        "to": "cluster:3e82f79e42c06ac400a9",
+        "type": "belongs_to"
+      },
+      {
+        "from": "evt_380faea8f2fd04527d3e",
+        "to": "ticker:TSLA",
+        "type": "about"
+      },
+      {
+        "from": "evt_380faea8f2fd04527d3e",
+        "to": "source:eletric-vehicles.com",
+        "type": "reported_by"
+      },
+      {
+        "from": "evt_380faea8f2fd04527d3e",
+        "to": "cluster:ef15de829df095e6df28",
+        "type": "belongs_to"
+      },
+      {
+        "from": "evt_a9d56ec03ab03d43fcf9",
+        "to": "ticker:TSLA",
+        "type": "about"
+      },
+      {
+        "from": "evt_a9d56ec03ab03d43fcf9",
+        "to": "source:yahoo finance",
+        "type": "reported_by"
+      },
+      {
+        "from": "evt_a9d56ec03ab03d43fcf9",
+        "to": "cluster:f571c2dd16d679041283",
+        "type": "belongs_to"
+      },
+      {
+        "from": "evt_7cf9e9e17e1d1f3e0aea",
+        "to": "ticker:PLTR",
+        "type": "about"
+      },
+      {
+        "from": "evt_7cf9e9e17e1d1f3e0aea",
+        "to": "source:news.google.com",
+        "type": "reported_by"
+      },
+      {
+        "from": "evt_7cf9e9e17e1d1f3e0aea",
+        "to": "cluster:b2cd31ff35186b932255",
+        "type": "belongs_to"
+      },
+      {
+        "from": "evt_e174c457b1673e5be764",
+        "to": "ticker:MSFT",
+        "type": "about"
+      },
+      {
+        "from": "evt_e174c457b1673e5be764",
+        "to": "source:news.google.com",
+        "type": "reported_by"
+      },
+      {
+        "from": "evt_e174c457b1673e5be764",
+        "to": "cluster:d49fdcd7d8b5cda488dc",
+        "type": "belongs_to"
+      },
+      {
+        "from": "evt_d69f5a259835bbfa1010",
+        "to": "ticker:JD",
+        "type": "about"
+      },
+      {
+        "from": "evt_d69f5a259835bbfa1010",
+        "to": "source:news.google.com",
+        "type": "reported_by"
+      },
+      {
+        "from": "evt_d69f5a259835bbfa1010",
+        "to": "cluster:feea6205d2b0f26c555a",
+        "type": "belongs_to"
+      },
+      {
+        "from": "evt_e54d4518ccbb0b411cd5",
+        "to": "ticker:ADBE",
+        "type": "about"
+      },
+      {
+        "from": "evt_e54d4518ccbb0b411cd5",
+        "to": "source:news.google.com",
+        "type": "reported_by"
+      },
+      {
+        "from": "evt_e54d4518ccbb0b411cd5",
+        "to": "cluster:d49fdcd7d8b5cda488dc",
+        "type": "belongs_to"
+      },
+      {
+        "from": "evt_23fd4e33db507be44fff",
+        "to": "ticker:PLTR",
+        "type": "about"
+      },
+      {
+        "from": "evt_23fd4e33db507be44fff",
+        "to": "source:news.google.com",
+        "type": "reported_by"
+      },
+      {
+        "from": "evt_23fd4e33db507be44fff",
+        "to": "cluster:d49fdcd7d8b5cda488dc",
+        "type": "belongs_to"
+      },
+      {
+        "from": "evt_da0bfb0294caf6e360c2",
+        "to": "ticker:02208",
+        "type": "about"
+      },
+      {
+        "from": "evt_da0bfb0294caf6e360c2",
+        "to": "source:finance.eastmoney.com",
+        "type": "reported_by"
+      },
+      {
+        "from": "evt_da0bfb0294caf6e360c2",
+        "to": "cluster:85cce1aaa63e2bf51f15",
+        "type": "belongs_to"
+      },
+      {
+        "from": "evt_6ba9f8322cb562ef75b4",
+        "to": "ticker:03032",
+        "type": "about"
+      },
+      {
+        "from": "evt_6ba9f8322cb562ef75b4",
+        "to": "source:finance.eastmoney.com",
+        "type": "reported_by"
+      },
+      {
+        "from": "evt_6ba9f8322cb562ef75b4",
+        "to": "cluster:982e646715caa971a10d",
+        "type": "belongs_to"
+      },
+      {
+        "from": "evt_83e4ab2e174e516979b7",
+        "to": "ticker:03032",
+        "type": "about"
+      },
+      {
+        "from": "evt_83e4ab2e174e516979b7",
+        "to": "source:finance.eastmoney.com",
+        "type": "reported_by"
+      },
+      {
+        "from": "evt_83e4ab2e174e516979b7",
+        "to": "cluster:d72ba0ab5947f6c19b44",
         "type": "belongs_to"
       },
       {
@@ -5940,21 +6645,6 @@
       {
         "from": "evt_6c0bad56fed8c2bddf26",
         "to": "cluster:1ea78bbe2eb91bcfc915",
-        "type": "belongs_to"
-      },
-      {
-        "from": "evt_3b6ab097610e8d0be923",
-        "to": "ticker:DOGE",
-        "type": "about"
-      },
-      {
-        "from": "evt_3b6ab097610e8d0be923",
-        "to": "source:fortune",
-        "type": "reported_by"
-      },
-      {
-        "from": "evt_3b6ab097610e8d0be923",
-        "to": "cluster:5429bde98a7ca7897057",
         "type": "belongs_to"
       },
       {
@@ -6000,21 +6690,6 @@
       {
         "from": "evt_3fc6a7c16e3c0543bad3",
         "to": "cluster:279c323061028b8e321c",
-        "type": "belongs_to"
-      },
-      {
-        "from": "evt_f7866fb53d49f0f4b29e",
-        "to": "ticker:03032",
-        "type": "about"
-      },
-      {
-        "from": "evt_f7866fb53d49f0f4b29e",
-        "to": "source:finance.eastmoney.com",
-        "type": "reported_by"
-      },
-      {
-        "from": "evt_f7866fb53d49f0f4b29e",
-        "to": "cluster:23e9f1ab93f75f4bad24",
         "type": "belongs_to"
       },
       {
@@ -6513,21 +7188,6 @@
         "type": "belongs_to"
       },
       {
-        "from": "evt_712e7ff20ace9f06725c",
-        "to": "ticker:TSLA",
-        "type": "about"
-      },
-      {
-        "from": "evt_712e7ff20ace9f06725c",
-        "to": "source:the motley fool",
-        "type": "reported_by"
-      },
-      {
-        "from": "evt_712e7ff20ace9f06725c",
-        "to": "cluster:0b0399f6a303ebb7c6ed",
-        "type": "belongs_to"
-      },
-      {
         "from": "evt_8ec75ed5091b158eaa5f",
         "to": "ticker:00100",
         "type": "about"
@@ -6675,21 +7335,6 @@
       {
         "from": "evt_18745adec748f7600961",
         "to": "cluster:da46ae08217f58415ca5",
-        "type": "belongs_to"
-      },
-      {
-        "from": "evt_f22c4fd93a1663684df5",
-        "to": "ticker:02208",
-        "type": "about"
-      },
-      {
-        "from": "evt_f22c4fd93a1663684df5",
-        "to": "source:finance.eastmoney.com",
-        "type": "reported_by"
-      },
-      {
-        "from": "evt_f22c4fd93a1663684df5",
-        "to": "cluster:ee413b60fa561d695fda",
         "type": "belongs_to"
       },
       {
@@ -6877,14 +7522,14 @@
     "peer_residual": "loaded"
   },
   "summary": {
-    "events": 72,
-    "active": 20,
+    "events": 78,
+    "active": 24,
     "upcoming": 3,
-    "expired": 49,
+    "expired": 51,
     "primary_source_events": 5,
     "actionable_escalations": 0,
     "information_overlay_status": "active",
-    "tavily_resolution_queue": 4
+    "tavily_resolution_queue": 1
   },
   "policy": {
     "registered_at": "2026-07-26",
