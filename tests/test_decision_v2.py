@@ -926,6 +926,48 @@ class ExecutionCoverageTests(unittest.TestCase):
         self.assertEqual(rate["pending"], 1)
         self.assertEqual(rate["stranded"], 0)
 
+    def test_detect_followed_agrees_with_exec_rate_on_the_hk_desk_date(self):
+        """`_detect_followed`'s too-early gate must use the same desk-day clock
+        as `_exec_rate`'s pending/stranded split (#1749).
+
+        Before the fix, `_detect_followed` gated on `datetime.now()` (host
+        clock) while `_exec_rate` gated on `_cal.hkt_today()`. For the ~8
+        UTC hours where the two dates disagree, a still-open window could be
+        scored `stranded` (permanently unresolved) by the ledger while the
+        resolver still believed it was too early to check and kept retrying.
+        Both must now open and close the window on the same day.
+        """
+        from clawock.harness import brief_preflight
+
+        row = {"plan_date": "2026-07-01", "ticker": "AAA", "bucket": "add_on_breakout"}
+
+        # One day before the window closes: both sides call it still open.
+        with (
+            mock.patch.object(dv2._cal, "hkt_today", return_value=date(2026, 7, 2)),
+            mock.patch.object(dv2, "verification_window_days", return_value=2),
+            mock.patch.object(brief_preflight, "_shares_at_date",
+                               side_effect=AssertionError("shares lookup happened while still pending")),
+        ):
+            rate = dv2._exec_rate([{**row, "action": row["bucket"], "execution": {"status": "unknown"}}])
+            verdict = brief_preflight._detect_followed(row, min_window_days=2)
+
+        self.assertEqual((rate["pending"], rate["stranded"]), (1, 0))
+        self.assertEqual(verdict, "unknown")  # too early; no shares lookup fired
+
+        # The day the window closes: both sides call it resolvable now.
+        # dv2._cal and brief_preflight.trading_calendar are the same `clawock.sessions`
+        # module object, so one patch of hkt_today reaches both call sites.
+        with (
+            mock.patch.object(dv2._cal, "hkt_today", return_value=date(2026, 7, 3)),
+            mock.patch.object(dv2, "verification_window_days", return_value=2),
+            mock.patch.object(brief_preflight, "_shares_at_date", return_value=5),
+        ):
+            rate = dv2._exec_rate([{**row, "action": row["bucket"], "execution": {"status": "unknown"}}])
+            verdict = brief_preflight._detect_followed(row, min_window_days=2)
+
+        self.assertEqual((rate["pending"], rate["stranded"]), (0, 1))
+        self.assertNotEqual(verdict, "unknown")  # window closed; resolver actually checked shares
+
     def test_an_unusable_plan_date_cannot_hide_in_pending(self):
         """`pending` means "wait and it resolves". A row with no readable date
         never will, so it must not sit in the bucket that promises it might.
