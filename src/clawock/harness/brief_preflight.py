@@ -588,8 +588,10 @@ def _detect_followed(row, min_window_days=None):
     except Exception:
         return 'unknown'
 
-    # don't look ahead if window end is in the future
-    if datetime.now() < plan_dt + timedelta(days=min_window_days):
+    # don't look ahead if window end is in the future — same HKT-date rule as
+    # decision_v2._exec_rate (ledger.py:1805), so scorecard "stranded" and this
+    # resolver never disagree on "not verifiable yet" vs "will never be" (#1749).
+    if trading_calendar.hkt_today() < plan_dt.date() + timedelta(days=min_window_days):
         return 'unknown'  # too early; will retry next preflight
 
     shares_before = _shares_at_date(ticker, before_dt)
