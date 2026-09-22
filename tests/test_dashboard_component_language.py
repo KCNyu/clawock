@@ -184,8 +184,9 @@ def test_status_tints_come_off_the_tint_scale():
 PRESS_EXCEPTIONS: dict[str, str] = {}
 
 #: The markup the shell actually ships: the two documents, plus the renderers
-#: that build rows client-side (the holdings row is a `<tr role="button">` that
-#: only exists in `dashboard.render.js`). A class is pressable when it sits on a
+#: that build controls client-side (the holdings row is a `<tr role="button">`
+#: that only exists in `dashboard.render.js`; deck dots and the panel retry are
+#: buttons created with the DOM API). A class is pressable when it sits on a
 #: `<button>`, a `<summary>` or a `role="button"` element in one of these.
 PRESS_MARKUP = (
     ROOT / "site" / "index.html",
@@ -197,18 +198,26 @@ _PRESSABLE_TAG = re.compile(
     r"""|<\w+\b([^<>]*role=["']button["'][^<>]*)>""",
     re.DOTALL,
 )
+_DOM_PRESSABLE_CLASS = re.compile(
+    r"""(?:const|let|var)\s+(\w+)\s*=\s*document\.createElement\(\s*"""
+    r"""["'](?:button|summary)["']\s*\)\s*;"""
+    r"""(?:(?!\b(?:const|let|var)\b)[\s\S])*?\b\1\.className\s*=\s*["']([^"']*)["']"""
+)
 
 
 def _pressable_classes() -> set[str]:
     names: set[str] = set()
     for path in PRESS_MARKUP:
-        for match in _PRESSABLE_TAG.finditer(path.read_text(encoding="utf-8")):
+        source = path.read_text(encoding="utf-8")
+        for match in _PRESSABLE_TAG.finditer(source):
             attrs = match.group(1) or match.group(2) or ""
             for value in re.findall(r"""class=["']([^"']*)["']""", attrs):
                 # A `${...}` hole carries state classes, not selectors.
                 names.update(
                     token for token in
                     re.split(r"\s+", re.sub(r"\$\{[^}]*\}", " ", value)) if token)
+        for _, value in _DOM_PRESSABLE_CLASS.findall(source):
+            names.update(token for token in re.split(r"\s+", value) if token)
     return names
 
 
@@ -315,8 +324,11 @@ def test_a_control_that_writes_its_own_transition_still_names_transform():
     transform, the `min-width: 1024px` one did not), `.dh-lane` — a `<button>`
     whose own press is a tint, so the scale it snaps is purely the baseline's —
     and the holdings `tr.book-row`, which carries `role="button"`.
+    #1758 closes the scanner's blind spot for DOM-created `.deck-dot` and
+    `.panel-load-retry` buttons.
     """
-    assert {"site-menu-btn", "tab-btn", "dh-lane", "book-row"} <= PRESSABLE_CLASSES, (
+    assert {"site-menu-btn", "tab-btn", "dh-lane", "book-row", "deck-dot",
+            "panel-load-retry"} <= PRESSABLE_CLASSES, (
         "the pressable-class scan stopped seeing the controls it was written "
         "for, so this gate would now pass by discovering nothing")
 

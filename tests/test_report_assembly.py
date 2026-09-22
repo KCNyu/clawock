@@ -223,7 +223,7 @@ def sent(pf, tmp_path, monkeypatch):
 def test_failed_report_delivers_the_data_block_without_the_rejected_prose(pf, sent):
     ctx = _ctx()
     pf.deliver_wechat('us', 'close', '2026-07-24',
-                      '🔴 Validation FAILED (1 issues), 仅发布数据块、未 commit:\n- x\n\n',
+                      '🔴 Validation FAILED (1 issues), 仅发布数据块:\n- x\n\n',
                       pf.assemble_message(ctx, ''), delivery_state='failed')
 
     body = sent['messages'][0]
@@ -335,6 +335,7 @@ def test_incident_replay_stale_prose_is_refused_not_married_to_fresh_numbers(
     assert out['data_plane_status'] == 'published'
     assert out['narrative_status'] == 'failed'
     body = sent['messages'][0]
+    assert '仅发布数据块:\n' in body and '未 commit' not in body
     assert FRESH_BLOCK in body and '▎情绪面' not in body and STALE_BLOCK not in body
 
 

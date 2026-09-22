@@ -188,7 +188,7 @@ def test_marker_exposes_a_stale_body_so_the_watchdog_can_backstop(
     backstop ever fired and kcn's WeChat kept the wrong numbers."""
     marker = _capture_marker(
         postflight, tmp_path, monkeypatch,
-        prefix='🔴 Validation FAILED (2 issues), 报告仍发布但未 commit:\n- ...\n\n',
+        prefix='🔴 Validation FAILED (2 issues), 仅发布数据块:\n- ...\n\n',
         text=f'{STALE_FIRST}\n\n📊 市值 $2,495\n')
 
     assert marker['first_line'] == STALE_FIRST

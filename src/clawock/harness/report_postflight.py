@@ -453,7 +453,7 @@ def main(argv=None):
                   + ('; ...' if len(escalating) > 3 else '')
                   + '\n\n')
     else:
-        banner = (f'🔴 Validation FAILED ({len(escalating)} issues), 仅发布数据块、未 commit:\n'
+        banner = (f'🔴 Validation FAILED ({len(escalating)} issues), 仅发布数据块:\n'
                   + '\n'.join('- ' + i for i in escalating[:5])
                   + ('\n- ...' if len(escalating) > 5 else '')
                   + '\n\n')
