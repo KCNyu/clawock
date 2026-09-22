@@ -171,6 +171,28 @@ def test_the_overview_projection_carries_channel_truth_to_its_reader():
     assert 'stages' not in row
 
 
+def test_add_side_closest_picks_the_row_nearest_the_20d_high_not_the_biggest_mover():
+    """`add_side.rows` is sorted for the Plan table by verdict tier then move
+    size (decision/add_side.py), not by distance to the 20-day high. The Hero
+    chip labels this row "{ticker} 距 20 日高 {pct}" (#1732), so picking
+    rows[0] blindly would show the biggest mover under a "nearest to the high"
+    label even when a smaller, closer mover is sitting right next to it.
+    """
+    projection = dashboard.compile_overview_projection({
+        'add_side': {
+            'counts': {'candidate': 0, 'wait': 0, 'reject': 2},
+            'rows': [
+                {'ticker': 'BIGMOVE', 'verdict': 'reject', 'pct_from_high': -18.0,
+                 'needs': 'n/a'},
+                {'ticker': 'NEARHIGH', 'verdict': 'reject', 'pct_from_high': -0.4,
+                 'needs': 'breakout confirm'},
+            ],
+        },
+    })
+
+    assert projection['add_side']['closest']['ticker'] == 'NEARHIGH'
+
+
 def test_a_checkout_without_the_ledger_republishes_the_last_workflow_card(
         monkeypatch, tmp_path):
     """`--previous` must actually reach the published payload, not just `preserved`.

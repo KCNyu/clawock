@@ -300,9 +300,19 @@ def compile_overview_projection(dashboard):
             **_fields(add_side, (
                 'pending', 'cold_start', 'counts', 'why_no_candidate',
             )),
+            # `rows` is sorted for the Plan-tab table (verdict tier, then move
+            # size — decision/add_side.py), not by distance to the 20-day
+            # high. Picking rows[0] here shipped whichever ticker moved most,
+            # mislabelled as "距 20 日高" (nearest to the high) on the Hero
+            # chip. Re-select by actual distance so the label matches the row.
             'closest': _fields(
-                next((row for row in add_side.get('rows') or []
-                      if isinstance(row, dict)), {}),
+                min(
+                    (row for row in add_side.get('rows') or []
+                     if isinstance(row, dict)),
+                    key=lambda row: abs(row.get('pct_from_high'))
+                        if row.get('pct_from_high') is not None else float('inf'),
+                    default={},
+                ),
                 ('ticker', 'verdict', 'pct_from_high', 'needs'),
             ),
         } if add_side else None,
