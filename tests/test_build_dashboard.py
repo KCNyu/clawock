@@ -193,6 +193,38 @@ def test_add_side_closest_picks_the_row_nearest_the_20d_high_not_the_biggest_mov
     assert projection['add_side']['closest']['ticker'] == 'NEARHIGH'
 
 
+def test_add_side_closest_survives_a_row_with_no_distance_to_the_high():
+    """Not every add-side row carries `pct_from_high`: `read_rows` books
+    early-trend rows with `state` and `disposition` only, and the dashboard's
+    flattening copies the absent evidence key through as None
+    (`_dashboard_add_side`). The #1752 selection therefore has to rank a
+    missing distance last rather than measure it — `abs(None)` raises, and the
+    projection is compiled on the publish path, so the whole generation would
+    fail on a shape the brief produces routinely.
+    """
+    projection = dashboard.compile_overview_projection({
+        'add_side': {
+            'counts': {'candidate': 0, 'wait': 2, 'reject': 0},
+            'rows': [
+                # An early-trend row: booked with no distance at all.
+                {'ticker': 'EARLY', 'verdict': 'wait', 'pct_from_high': None,
+                 'needs': 'trend confirm'},
+                {'ticker': 'NEARHIGH', 'verdict': 'wait', 'pct_from_high': -1.2,
+                 'needs': 'breakout confirm'},
+            ],
+        },
+    })
+
+    assert projection['add_side']['closest']['ticker'] == 'NEARHIGH'
+
+    # And a list with no measurable row at all still projects the surface
+    # instead of raising: the chip's own `pct != null` guard draws the fallback.
+    only_unmeasured = dashboard.compile_overview_projection({
+        'add_side': {'counts': {}, 'rows': [{'ticker': 'EARLY', 'verdict': 'wait'}]},
+    })
+    assert only_unmeasured['add_side']['closest']['pct_from_high'] is None
+
+
 def test_a_checkout_without_the_ledger_republishes_the_last_workflow_card(
         monkeypatch, tmp_path):
     """`--previous` must actually reach the published payload, not just `preserved`.

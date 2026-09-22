@@ -669,8 +669,12 @@
     .tab-btn {
       padding: 10px 18px; min-height: 40px; font-size: var(--fs-md); font-weight: 500;
       border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+      /* transform stays named here: this shorthand replaces the base
+         `.tab-btn` one for the whole property, so dropping it would leave the
+         desktop tab bar the only place the press snaps. */
       transition: color var(--duration-fast) var(--ease-out),
-                  background var(--duration-fast) var(--ease-out);
+                  background var(--duration-fast) var(--ease-out),
+                  transform var(--duration-fast) var(--ease-out);
     }
     @media (hover: hover) and (pointer: fine) {
       .tab-btn:hover { color: var(--text); background: var(--surface-1); }
@@ -3095,7 +3099,8 @@
     border: 0; border-bottom: 1px solid var(--border-subtle); border-radius: var(--radius-sm);
     cursor: pointer;
     font: 500 var(--fs-xs)/1.35 var(--mono); font-variant-numeric: tabular-nums;
-    transition: background-color var(--duration-fast) var(--ease-out);
+    transition: background-color var(--duration-fast) var(--ease-out),
+                transform var(--duration-fast) var(--ease-out);
   }
   .dh-lane:active { background: color-mix(in srgb, var(--text) 5%, transparent); }
   .dh-lane:focus-visible { outline: var(--focus-ring); outline-offset: -2px; }
@@ -4649,7 +4654,11 @@
 }
 
   /* ── 持仓主表：行展开 = 这只票的全部证据（#875）────────────── */
-  .book-table tbody tr.book-row { cursor: pointer; transition: background var(--duration-fast) var(--ease-out); }
+  .book-table tbody tr.book-row {
+    cursor: pointer;
+    transition: background var(--duration-fast) var(--ease-out),
+                transform var(--duration-fast) var(--ease-out);
+  }
   /* tint 走 background-image，别覆盖冻结列的不透明底色（见 .holdings-table
      th/td:first-child 那段）。用 linear-gradient 把纯色当图层画。 */
   .book-table tbody tr.book-row:active > td {
