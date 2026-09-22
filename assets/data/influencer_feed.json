@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-21T18:20:12.163167+00:00",
+  "generated_at": "2026-09-22T00:16:01.091033+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -24,12 +24,37 @@
   "llm_filtered": true,
   "llm_filter_status": "ok",
   "counts": {
-    "total": 18,
+    "total": 20,
     "held_hits": 0,
-    "new_ideas": 6,
+    "new_ideas": 9,
     "sector_hits": 0
   },
   "items": [
+    {
+      "author": "Burry",
+      "text": "NVDA, AVGO’s AI Backstops Have One Analyst Worried — Michael Burry Says There’s A Reason Nvidia’s 5Y CDS Are Going ‘Parabolic’",
+      "url": "https://news.google.com/rss/articles/CBMizAFBVV95cUxOclg5ZHFlSkw1TlpYTFdyeHAzTjJ5TUMwV3dkQXhfUmlWRURLQWlyTk5lMlN6MFhMc0I5TURKOFJtYjFfazVIeGpraWZsakFwaTdZNDNQd1paSE9KRUtteGR2REJrM1F3VDg2b1dYMWt2RkFVQXFGaG9jOUNhLTQ2MV94N1BValR4R01oTXZfdEJKT3VvdV9sV2tzNm5sZktzMzZZa0dvWnBGQzRXWW5pR1JETDYtUXBKSW5pV3V5NHZ2MEhmZUt5Ukh4VU8?oc=5",
+      "published": "2026-09-21T12:14:26+00:00",
+      "origin": "gnews-rss",
+      "source": "Stocktwits",
+      "tickers": [
+        "NVDA",
+        "AVGO"
+      ],
+      "held": [],
+      "new_ideas": [
+        "AVGO",
+        "NVDA"
+      ],
+      "sectors": [
+        "AI",
+        "半导体"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 80,
+      "summary_cn": "据报道，Burry指出Nvidia(NVDA)5年期CDS呈'抛物线'走势，暗示AI泡沫风险，并点名AVGO为同类风险标的。"
+    },
     {
       "author": "Burry",
       "text": "Michael Burry Doubles Down On Palantir Bear Case: ‘A Lot Of’ Money Still To Be Made Shorting PLTR",
@@ -45,87 +70,63 @@
         "PLTR"
       ],
       "sectors": [
-        "AI"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 88,
-      "summary_cn": "据报道Burry加倍做空Palantir，称仍有大量做空PLTR的钱可赚，强空头信号。"
-    },
-    {
-      "author": "Burry",
-      "text": "Michael Burry Buys Long-Dated Microsoft Calls, Adds To JD And Adobe — Trims Palantir Short",
-      "url": "https://news.google.com/rss/articles/CBMi3AFBVV95cUxPRlcybV9XejhnQlBGOC1Yak5iQnJmT2hkSXNORXptYTZ2TUFrM3g3aXo1ZkJOLXh6c3pxZFNPMGdETXR4UTBXcmRtQkpqZlRFNVBrVTktR2g4WUk1cDNwMkJBSG92ZGRadW93RXdCX2VMUy1oYmNhN19VdjFyQUJ5aWNnakh0cUZsZ1NYN0l3aHNEcHB6dTByUkxVbmN4VTFWN2ZfYWlqbkZSd09sU0lFMVdRTk5EQ3YyS2Jfa3JjUmRkSnd5SUhHX2YtYUxPS0VMdW0tRE1aNm1ILTR2?oc=5",
-      "published": "2026-09-21T03:49:58+00:00",
-      "origin": "gnews-rss",
-      "source": "Stocktwits",
-      "tickers": [
-        "MSFT",
-        "JD",
-        "ADBE",
-        "PLTR"
-      ],
-      "held": [],
-      "new_ideas": [
-        "ADBE",
-        "JD",
-        "MSFT",
-        "PLTR"
-      ],
-      "sectors": [
-        "AI/电商/软件"
-      ],
-      "sector_holdings": [],
-      "stance": "buy",
-      "relevance": 82,
-      "summary_cn": "据报道Burry买入微软长期Call、加仓京东与Adobe，并减仓Palantir空头，混合信号。"
-    },
-    {
-      "author": "Burry",
-      "text": "Nebius’s Price Hike Suggests Michael Burry Made a Mistake and Is Shorting the Best Neocloud Stock",
-      "url": "https://news.google.com/rss/articles/CBMi1wFBVV95cUxNcDBMN1pJVWUyY2hQV0l5RlRYWFhPS1M3QkduS0tPMk41ZVdOSmtFRDdLc1dWcG9UQThVa2l5djdMOFJuN0xKMTJXMENFNDBqaHFQMWZHR1JNUTVicmswVTIwMnNWalZKYmRJdS1OM2VGUkxqVTB0N2hCbll0X0U3WG9XOFpINnVxZ1VJN09vSWZ0R3UzR3lSWHgwQm5aWldSQ1V5Tl9JdFRqaVpKNXBlMVczMXMzV19UNVBmcThkekdnSG5kUHFyNTNQQWd1c2pRSFJ0S0t3UQ?oc=5",
-      "published": "2026-09-20T14:22:09+00:00",
-      "origin": "gnews-rss",
-      "source": "Barchart.com",
-      "tickers": [
-        "NBIS"
-      ],
-      "held": [],
-      "new_ideas": [
-        "NBIS"
-      ],
-      "sectors": [
-        "AI/云计算"
+        "AI",
+        "大数据"
       ],
       "sector_holdings": [],
       "stance": "attack",
       "relevance": 78,
-      "summary_cn": "据报道Nebius涨价暗示Burry此前做空判断失误，间接看空NBIS（'新云'龙头）立场被反驳。"
+      "summary_cn": "据报道，Michael Burry加倍下注看空Palantir(PLTR)，称仍有大量做空空间。"
     },
     {
       "author": "Musk",
-      "text": "Morgan Stanley Maps Tesla-SpaceX Ties in ‘Physical AI’ After Musk Hint",
+      "text": "Elon Musk, Jensen Huang and Tim Cook are set to dine with Xi this week. Here’s what their companies want from China.",
       "url": "",
-      "published": "Mon, 21 Sep 2026 14:59:25 GMT",
+      "published": "Mon, 21 Sep 2026 19:46:00 GMT",
       "origin": "gnews-rss",
-      "source": "eletric-vehicles.com",
+      "source": "marketwatch.com",
       "tickers": [
-        "TSLA"
+        "TSLA",
+        "NVDA"
       ],
       "held": [],
       "new_ideas": [
+        "NVDA",
         "TSLA"
       ],
       "sectors": [
-        "航天/电动车/AI"
+        "中国",
+        "AI",
+        "电动车",
+        "半导体"
       ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
+      "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 60,
-      "summary_cn": "据报道摩根士丹利就马斯克暗示梳理特斯拉-SpaceX在'物理AI'中的关联，间接利好SpaceX相关持仓。"
+      "relevance": 75,
+      "summary_cn": "据报道，Musk与黄仁勋(NVDA)、库克本周将赴华与习近平会晤，议题涉Tesla、芯片、AI在华业务，宏观利好中美科技/AI板块。"
+    },
+    {
+      "author": "Burry",
+      "text": "QXO jumps after ‘Big Short’ investor Michael Burry reveals stake (QXO:NYSE)",
+      "url": "https://news.google.com/rss/articles/CBMiogFBVV95cUxOdzRTdmRIQmxoQnAwdzk3ejZOVUF1UkFXV1d1VWx2bkRRbEtSbUVIenNVR0NsZEdLeHNOMVpib3R5eVF3MjV5SW1odlRKR05sUE1VZXBHZEQ0Vk9jc09EYjlkcXhDaWtUUnZoUVh6ekRsVEhjdVF3ZDktQzZsVmNrZkZQcjlvaGlMMGZXMktxal9wbV9LVllOVDlEZTI4d1lfRlE?oc=5",
+      "published": "2026-09-21T18:45:16+00:00",
+      "origin": "gnews-rss",
+      "source": "Seeking Alpha",
+      "tickers": [
+        "QXO"
+      ],
+      "held": [],
+      "new_ideas": [
+        "QXO"
+      ],
+      "sectors": [
+        "建材",
+        "分销"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 72,
+      "summary_cn": "据报道，Burry披露建仓QXO，消息公布后QXO股价跳涨。"
     },
     {
       "author": "Musk",
@@ -142,15 +143,81 @@
         "TSLA"
       ],
       "sectors": [
-        "航天/电动车"
+        "航天",
+        "电动车"
       ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
+      "sector_holdings": [],
       "stance": "neutral",
+      "relevance": 70,
+      "summary_cn": "据报道，Musk暗示SpaceX与Tesla(TSLA)可能合并的传闻，SpaceX为未上市公司故不计ticker。"
+    },
+    {
+      "author": "Musk",
+      "text": "Morgan Stanley Maps Tesla-SpaceX Ties in ‘Physical AI’ After Musk Hint",
+      "url": "",
+      "published": "Mon, 21 Sep 2026 14:59:25 GMT",
+      "origin": "gnews-rss",
+      "source": "eletric-vehicles.com",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "AI",
+        "航天",
+        "电动车"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 68,
+      "summary_cn": "据报道，摩根士丹利在Musk暗示后发布报告，梳理Tesla(TSLA)与SpaceX在'物理AI'领域的协同效应。"
+    },
+    {
+      "author": "Musk",
+      "text": "Tesla reopens Roadster reservations – but you'll need $50K",
+      "url": "",
+      "published": "Mon, 21 Sep 2026 19:20:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Fox Business",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 62,
+      "summary_cn": "据报道，Tesla(TSLA)重新开放Roadster预订，需先付5万美元订金，反映高端车型需求信号。"
+    },
+    {
+      "author": "Trump",
+      "text": "We are just leaving the White House Lawn on the maiden voyage from the newly built, and very beautiful, Heliport! I want to thank Jim Taiclet, CEO of Lockheed Martin, who made this valuable contribution to our Country. Our Government has been thinking about doing this for 25 years, but was never able to get it done. I get things done! Also, and most importantly, THANK YOU to the Great Construction Workers and Stone Masons of the Washington, D.C., area, who created something very special, and to Clark Construction for its wonderful supervisory work. GOD BLESS AMERICA! President DONALD J. TRUMP",
+      "url": "https://www.trumpstruth.org/statuses/41832",
+      "published": "2026-09-21T18:08:27+00:00",
+      "origin": "truthsocial",
+      "tickers": [
+        "LMT"
+      ],
+      "held": [],
+      "new_ideas": [
+        "LMT"
+      ],
+      "sectors": [
+        "国防",
+        "军工"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
       "relevance": 58,
-      "summary_cn": "据报道马斯克暗示SpaceX与特斯拉可能合并，对持有SpaceX相关标的具间接意义。"
+      "summary_cn": "特朗普感谢洛克希德·马丁(LMT)CEO Jim Taiclet为白宫新建直升机停机坪所做的贡献，含隐性背书。"
     },
     {
       "author": "Cathie Wood",
@@ -167,11 +234,13 @@
       "new_ideas": [
         "SLMT"
       ],
-      "sectors": [],
+      "sectors": [
+        "小盘股"
+      ],
       "sector_holdings": [],
       "stance": "sell",
-      "relevance": 50,
-      "summary_cn": "ARK 2026-09-18减持Brera Holdings(SLMT)，涉及ARKW与ARKF，最大单ETF占比仅0.02%，属常规再平衡。"
+      "relevance": 48,
+      "summary_cn": "ARK 2026-09-18调仓：卖出Brera Holdings(SLMT)，ARKW 7.4万股、ARKF 4.7万股，单ETF最大占比仅0.02%，属常规再平衡。"
     },
     {
       "author": "Burry",
@@ -184,12 +253,13 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "AI/超大规模云计算"
+        "AI",
+        "云服务"
       ],
       "sector_holdings": [],
       "stance": "attack",
-      "relevance": 72,
-      "summary_cn": "据报道Burry警告超大规模云厂商隐藏3万亿美元AI负债，警示AI泡沫风险，对AI板块偏空。"
+      "relevance": 82,
+      "summary_cn": "据报道，Burry警告超大规模云厂商隐藏高达3万亿美元的AI负债，'音乐停下时'将引发系统性风险。"
     },
     {
       "author": "Trump",
@@ -201,29 +271,13 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "AI"
+        "AI",
+        "中国"
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 62,
-      "summary_cn": "特朗普抨击'AI威胁论'为骗局，表态美国要在AI领域击败中国、不会遏制增长，对AI板块整体利好。"
-    },
-    {
-      "author": "Trump",
-      "text": "Russia has unfortunately lost control of its Diesel Oil Industry due to its War with Ukraine. A large number of their Diesel refineries have been blown up and are, at least temporarily, out of commission. This ridiculous and never ending War with Ukraine must be ended. The whole World suffers as 25,000 people, mostly soldiers, are being killed each month. What a shame! President DJT",
-      "url": "https://www.trumpstruth.org/statuses/41827",
-      "published": "2026-09-21T12:03:41+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "能源/俄乌"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 58,
-      "summary_cn": "特朗普称俄罗斯炼油厂被炸致柴油失控，呼吁尽快结束俄乌战争，关乎全球能源价格。"
+      "relevance": 65,
+      "summary_cn": "特朗普表示美国在AI领域领先中国，将保持增长不设限，反对以'AI威胁论'为由扼杀发展，利好整体AI板块。"
     },
     {
       "author": "洪灏",
@@ -236,47 +290,52 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "半导体/存储"
+        "半导体",
+        "存储"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 58,
-      "summary_cn": "据报道宏碁董事长称存储缺货已消失，对存储芯片板块偏空信号。"
+      "relevance": 62,
+      "summary_cn": "据报道，洪灏转述Acer董事长称存储缺货已消失，利空存储/DRAM板块。"
     },
     {
       "author": "Trump",
-      "text": "A great job by very smart Matthew Continetti on Mark Levin. The interview concerned the AI Disaster Hoax. Let it roll!!! President DJT",
-      "url": "https://www.trumpstruth.org/statuses/41810",
-      "published": "2026-09-20T05:14:43+00:00",
+      "text": "Russia has unfortunately lost control of its Diesel Oil Industry due to its War with Ukraine. A large number of their Diesel refineries have been blown up and are, at least temporarily, out of commission. This ridiculous and never ending War with Ukraine must be ended. The whole World suffers as 25,000 people, mostly soldiers, are being killed each month. What a shame! President DJT",
+      "url": "https://www.trumpstruth.org/statuses/41827",
+      "published": "2026-09-21T12:03:41+00:00",
       "origin": "truthsocial",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "AI"
+        "能源",
+        "原油",
+        "俄乌"
       ],
       "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "特朗普转发评论称'AI灾难'是骗局，延续其反AI监管、力挺AI发展立场。"
+      "stance": "neutral",
+      "relevance": 60,
+      "summary_cn": "特朗普称俄罗斯柴油炼厂遭打击产能受损，呼吁结束俄乌战争，能源供给面信息或影响油价。"
     },
     {
-      "author": "Musk",
-      "text": "Elon Musk talks up AI safety while fighting regulation in wild week of strange alliances",
-      "url": "",
-      "published": "Fri, 18 Sep 2026 19:15:24 GMT",
+      "author": "Pelosi",
+      "text": "Taiwan’s Status Is Ambiguous. U.S. Policy Shouldn’t Be.",
+      "url": "https://news.google.com/rss/articles/CBMibEFVX3lxTE5jQzduNU5aNHFBQy15ZTE2dlBtcXdOQzRGeGFPWnZUS3NQcjJvaGhLbXVWcEEydmlFRG4yX3RzS3E1b0h5OVg5UlB1Y2xIZWJ1ZEw0UnVWVFB2REZFR1Q3YS1xenk2bUJYNlFvYg?oc=5",
+      "published": "2026-09-21T11:53:18+00:00",
       "origin": "gnews-rss",
-      "source": "CNBC",
+      "source": "Foreign Policy",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "AI/监管"
+        "中国",
+        "台湾",
+        "地缘政治"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 52,
-      "summary_cn": "据报道马斯克一边谈AI安全一边反对AI监管，反映其AI政策立场反复。"
+      "relevance": 58,
+      "summary_cn": "据报道，Pelosi发表评论称台湾地位模糊，美国政策不应模糊化，涉台海地缘风险。"
     },
     {
       "author": "Trump",
@@ -288,12 +347,33 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "农产品/化肥"
+        "化肥",
+        "农业",
+        "贸易"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "特朗普称美国正与白俄罗斯洽谈大规模钾肥(Potash)采购，价格低于从加拿大进口，利好美国农户。"
+    },
+    {
+      "author": "Musk",
+      "text": "US judge declines to block transfer of wildlife refuge land to Musk’s SpaceX",
+      "url": "",
+      "published": "Mon, 21 Sep 2026 23:54:00 GMT",
+      "origin": "gnews-rss",
+      "source": "The Guardian",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "监管"
       ],
       "sector_holdings": [],
       "stance": "neutral",
       "relevance": 52,
-      "summary_cn": "特朗普称美国正与白俄罗斯洽谈大额钾肥采购，定价低于加拿大供应，涉农资板块。"
+      "summary_cn": "据报道，美国法院驳回阻止将野生动物保护区土地转让给Musk旗下SpaceX的诉求。"
     },
     {
       "author": "Pelosi",
@@ -306,30 +386,13 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "监管/政治"
+        "政治",
+        "监管"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 50,
-      "summary_cn": "据报道特朗普证券交易量超整个国会议员总和，但反对一刀切禁止国会议员炒股，涉监管议题。"
-    },
-    {
-      "author": "Musk",
-      "text": "Memphis mayor defends city’s deals with data centers, says he doesn’t trust Musk",
-      "url": "",
-      "published": "Mon, 21 Sep 2026 10:09:43 GMT",
-      "origin": "gnews-rss",
-      "source": "WREG.com",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "数据中心/AI"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 48,
-      "summary_cn": "据报道孟菲斯市长为本地数据中心交易辩护，公开表示不信任马斯克，与xAI数据中心争议相关。"
+      "relevance": 52,
+      "summary_cn": "据报道，Pelosi最新披露显示其证券交易活跃度高于其他国会议员，并支持全面禁止国会议员炒股。"
     },
     {
       "author": "Trump",
@@ -341,52 +404,80 @@
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "能源/通胀"
+        "能源",
+        "油价"
       ],
       "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 48,
-      "summary_cn": "特朗普称其任内油价及各项物价低于拜登时期，为执政成绩背书。"
+      "stance": "neutral",
+      "relevance": 50,
+      "summary_cn": "特朗普重申其任内油价低于拜登时期，为常规政治表态。"
     },
     {
       "author": "Musk",
       "text": "Musk pitches hyperloop tunnel to cut Austin-San Antonio travel time",
       "url": "",
-      "published": "Mon, 21 Sep 2026 13:29:16 GMT",
+      "published": "Mon, 21 Sep 2026 19:19:37 GMT",
       "origin": "gnews-rss",
-      "source": "statesman.com",
+      "source": "Austin American-Statesman",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "基建/隧道"
+        "基建",
+        "交通"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 45,
-      "summary_cn": "据报道马斯克推销在奥斯汀-圣安东尼奥间建超级高铁隧道，涉及旗下Boring Company概念。"
+      "relevance": 48,
+      "summary_cn": "据报道，Musk推介在德州奥斯汀-圣安东尼奥之间修建Hyperloop隧道概念。"
     },
     {
-      "author": "Pelosi",
-      "text": "Scott Wiener and Connie Chan both want to rein in AI. They disagree on how to do that.",
-      "url": "https://news.google.com/rss/articles/CBMif0FVX3lxTE5PdTdBUzljOXBRbXZrWGVTVVd1eWNnajhDVk1CRWpDbzQ5blJlWlFFUFdhc3JmZlZYNDRTWlB1b3NpdGRvQ0gxc3RSMHFmVUJfcmZxOUVXNWtHWnk3QjA0Q1VmNjRNamhNdFN6dWwtbGc2d1NUanRfVkx0R1MxREE?oc=5",
-      "published": "2026-09-21T13:00:00+00:00",
+      "author": "Musk",
+      "text": "Elon Musk Wants to Dig a Massive Tunnel in Texas to Connect These 2 Key Cities",
+      "url": "",
+      "published": "Mon, 21 Sep 2026 17:23:46 GMT",
       "origin": "gnews-rss",
-      "source": "Mission Local",
+      "source": "inc.com",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "AI/监管"
+        "基建",
+        "交通"
       ],
       "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 45,
-      "summary_cn": "据报道加州议员推动AI立法但路径分歧，涉AI监管政策走向。"
+      "relevance": 48,
+      "summary_cn": "据报道，Musk想在德州挖一条连接两大城市的大型隧道。"
     }
   ],
   "held_hits": [],
   "new_ideas": [
+    {
+      "author": "Burry",
+      "text": "NVDA, AVGO’s AI Backstops Have One Analyst Worried — Michael Burry Says There’s A Reason Nvidia’s 5Y CDS Are Going ‘Parabolic’",
+      "url": "https://news.google.com/rss/articles/CBMizAFBVV95cUxOclg5ZHFlSkw1TlpYTFdyeHAzTjJ5TUMwV3dkQXhfUmlWRURLQWlyTk5lMlN6MFhMc0I5TURKOFJtYjFfazVIeGpraWZsakFwaTdZNDNQd1paSE9KRUtteGR2REJrM1F3VDg2b1dYMWt2RkFVQXFGaG9jOUNhLTQ2MV94N1BValR4R01oTXZfdEJKT3VvdV9sV2tzNm5sZktzMzZZa0dvWnBGQzRXWW5pR1JETDYtUXBKSW5pV3V5NHZ2MEhmZUt5Ukh4VU8?oc=5",
+      "published": "2026-09-21T12:14:26+00:00",
+      "origin": "gnews-rss",
+      "source": "Stocktwits",
+      "tickers": [
+        "NVDA",
+        "AVGO"
+      ],
+      "held": [],
+      "new_ideas": [
+        "AVGO",
+        "NVDA"
+      ],
+      "sectors": [
+        "AI",
+        "半导体"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 80,
+      "summary_cn": "据报道，Burry指出Nvidia(NVDA)5年期CDS呈'抛物线'走势，暗示AI泡沫风险，并点名AVGO为同类风险标的。"
+    },
     {
       "author": "Burry",
       "text": "Michael Burry Doubles Down On Palantir Bear Case: ‘A Lot Of’ Money Still To Be Made Shorting PLTR",
@@ -402,87 +493,63 @@
         "PLTR"
       ],
       "sectors": [
-        "AI"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 88,
-      "summary_cn": "据报道Burry加倍做空Palantir，称仍有大量做空PLTR的钱可赚，强空头信号。"
-    },
-    {
-      "author": "Burry",
-      "text": "Michael Burry Buys Long-Dated Microsoft Calls, Adds To JD And Adobe — Trims Palantir Short",
-      "url": "https://news.google.com/rss/articles/CBMi3AFBVV95cUxPRlcybV9XejhnQlBGOC1Yak5iQnJmT2hkSXNORXptYTZ2TUFrM3g3aXo1ZkJOLXh6c3pxZFNPMGdETXR4UTBXcmRtQkpqZlRFNVBrVTktR2g4WUk1cDNwMkJBSG92ZGRadW93RXdCX2VMUy1oYmNhN19VdjFyQUJ5aWNnakh0cUZsZ1NYN0l3aHNEcHB6dTByUkxVbmN4VTFWN2ZfYWlqbkZSd09sU0lFMVdRTk5EQ3YyS2Jfa3JjUmRkSnd5SUhHX2YtYUxPS0VMdW0tRE1aNm1ILTR2?oc=5",
-      "published": "2026-09-21T03:49:58+00:00",
-      "origin": "gnews-rss",
-      "source": "Stocktwits",
-      "tickers": [
-        "MSFT",
-        "JD",
-        "ADBE",
-        "PLTR"
-      ],
-      "held": [],
-      "new_ideas": [
-        "ADBE",
-        "JD",
-        "MSFT",
-        "PLTR"
-      ],
-      "sectors": [
-        "AI/电商/软件"
-      ],
-      "sector_holdings": [],
-      "stance": "buy",
-      "relevance": 82,
-      "summary_cn": "据报道Burry买入微软长期Call、加仓京东与Adobe，并减仓Palantir空头，混合信号。"
-    },
-    {
-      "author": "Burry",
-      "text": "Nebius’s Price Hike Suggests Michael Burry Made a Mistake and Is Shorting the Best Neocloud Stock",
-      "url": "https://news.google.com/rss/articles/CBMi1wFBVV95cUxNcDBMN1pJVWUyY2hQV0l5RlRYWFhPS1M3QkduS0tPMk41ZVdOSmtFRDdLc1dWcG9UQThVa2l5djdMOFJuN0xKMTJXMENFNDBqaHFQMWZHR1JNUTVicmswVTIwMnNWalZKYmRJdS1OM2VGUkxqVTB0N2hCbll0X0U3WG9XOFpINnVxZ1VJN09vSWZ0R3UzR3lSWHgwQm5aWldSQ1V5Tl9JdFRqaVpKNXBlMVczMXMzV19UNVBmcThkekdnSG5kUHFyNTNQQWd1c2pRSFJ0S0t3UQ?oc=5",
-      "published": "2026-09-20T14:22:09+00:00",
-      "origin": "gnews-rss",
-      "source": "Barchart.com",
-      "tickers": [
-        "NBIS"
-      ],
-      "held": [],
-      "new_ideas": [
-        "NBIS"
-      ],
-      "sectors": [
-        "AI/云计算"
+        "AI",
+        "大数据"
       ],
       "sector_holdings": [],
       "stance": "attack",
       "relevance": 78,
-      "summary_cn": "据报道Nebius涨价暗示Burry此前做空判断失误，间接看空NBIS（'新云'龙头）立场被反驳。"
+      "summary_cn": "据报道，Michael Burry加倍下注看空Palantir(PLTR)，称仍有大量做空空间。"
     },
     {
       "author": "Musk",
-      "text": "Morgan Stanley Maps Tesla-SpaceX Ties in ‘Physical AI’ After Musk Hint",
+      "text": "Elon Musk, Jensen Huang and Tim Cook are set to dine with Xi this week. Here’s what their companies want from China.",
       "url": "",
-      "published": "Mon, 21 Sep 2026 14:59:25 GMT",
+      "published": "Mon, 21 Sep 2026 19:46:00 GMT",
       "origin": "gnews-rss",
-      "source": "eletric-vehicles.com",
+      "source": "marketwatch.com",
       "tickers": [
-        "TSLA"
+        "TSLA",
+        "NVDA"
       ],
       "held": [],
       "new_ideas": [
+        "NVDA",
         "TSLA"
       ],
       "sectors": [
-        "航天/电动车/AI"
+        "中国",
+        "AI",
+        "电动车",
+        "半导体"
       ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
+      "sector_holdings": [],
       "stance": "neutral",
-      "relevance": 60,
-      "summary_cn": "据报道摩根士丹利就马斯克暗示梳理特斯拉-SpaceX在'物理AI'中的关联，间接利好SpaceX相关持仓。"
+      "relevance": 75,
+      "summary_cn": "据报道，Musk与黄仁勋(NVDA)、库克本周将赴华与习近平会晤，议题涉Tesla、芯片、AI在华业务，宏观利好中美科技/AI板块。"
+    },
+    {
+      "author": "Burry",
+      "text": "QXO jumps after ‘Big Short’ investor Michael Burry reveals stake (QXO:NYSE)",
+      "url": "https://news.google.com/rss/articles/CBMiogFBVV95cUxOdzRTdmRIQmxoQnAwdzk3ejZOVUF1UkFXV1d1VWx2bkRRbEtSbUVIenNVR0NsZEdLeHNOMVpib3R5eVF3MjV5SW1odlRKR05sUE1VZXBHZEQ0Vk9jc09EYjlkcXhDaWtUUnZoUVh6ekRsVEhjdVF3ZDktQzZsVmNrZkZQcjlvaGlMMGZXMktxal9wbV9LVllOVDlEZTI4d1lfRlE?oc=5",
+      "published": "2026-09-21T18:45:16+00:00",
+      "origin": "gnews-rss",
+      "source": "Seeking Alpha",
+      "tickers": [
+        "QXO"
+      ],
+      "held": [],
+      "new_ideas": [
+        "QXO"
+      ],
+      "sectors": [
+        "建材",
+        "分销"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 72,
+      "summary_cn": "据报道，Burry披露建仓QXO，消息公布后QXO股价跳涨。"
     },
     {
       "author": "Musk",
@@ -499,15 +566,81 @@
         "TSLA"
       ],
       "sectors": [
-        "航天/电动车"
+        "航天",
+        "电动车"
       ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
+      "sector_holdings": [],
       "stance": "neutral",
+      "relevance": 70,
+      "summary_cn": "据报道，Musk暗示SpaceX与Tesla(TSLA)可能合并的传闻，SpaceX为未上市公司故不计ticker。"
+    },
+    {
+      "author": "Musk",
+      "text": "Morgan Stanley Maps Tesla-SpaceX Ties in ‘Physical AI’ After Musk Hint",
+      "url": "",
+      "published": "Mon, 21 Sep 2026 14:59:25 GMT",
+      "origin": "gnews-rss",
+      "source": "eletric-vehicles.com",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "AI",
+        "航天",
+        "电动车"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
+      "relevance": 68,
+      "summary_cn": "据报道，摩根士丹利在Musk暗示后发布报告，梳理Tesla(TSLA)与SpaceX在'物理AI'领域的协同效应。"
+    },
+    {
+      "author": "Musk",
+      "text": "Tesla reopens Roadster reservations – but you'll need $50K",
+      "url": "",
+      "published": "Mon, 21 Sep 2026 19:20:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Fox Business",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 62,
+      "summary_cn": "据报道，Tesla(TSLA)重新开放Roadster预订，需先付5万美元订金，反映高端车型需求信号。"
+    },
+    {
+      "author": "Trump",
+      "text": "We are just leaving the White House Lawn on the maiden voyage from the newly built, and very beautiful, Heliport! I want to thank Jim Taiclet, CEO of Lockheed Martin, who made this valuable contribution to our Country. Our Government has been thinking about doing this for 25 years, but was never able to get it done. I get things done! Also, and most importantly, THANK YOU to the Great Construction Workers and Stone Masons of the Washington, D.C., area, who created something very special, and to Clark Construction for its wonderful supervisory work. GOD BLESS AMERICA! President DONALD J. TRUMP",
+      "url": "https://www.trumpstruth.org/statuses/41832",
+      "published": "2026-09-21T18:08:27+00:00",
+      "origin": "truthsocial",
+      "tickers": [
+        "LMT"
+      ],
+      "held": [],
+      "new_ideas": [
+        "LMT"
+      ],
+      "sectors": [
+        "国防",
+        "军工"
+      ],
+      "sector_holdings": [],
+      "stance": "endorse",
       "relevance": 58,
-      "summary_cn": "据报道马斯克暗示SpaceX与特斯拉可能合并，对持有SpaceX相关标的具间接意义。"
+      "summary_cn": "特朗普感谢洛克希德·马丁(LMT)CEO Jim Taiclet为白宫新建直升机停机坪所做的贡献，含隐性背书。"
     },
     {
       "author": "Cathie Wood",
@@ -524,11 +657,13 @@
       "new_ideas": [
         "SLMT"
       ],
-      "sectors": [],
+      "sectors": [
+        "小盘股"
+      ],
       "sector_holdings": [],
       "stance": "sell",
-      "relevance": 50,
-      "summary_cn": "ARK 2026-09-18减持Brera Holdings(SLMT)，涉及ARKW与ARKF，最大单ETF占比仅0.02%，属常规再平衡。"
+      "relevance": 48,
+      "summary_cn": "ARK 2026-09-18调仓：卖出Brera Holdings(SLMT)，ARKW 7.4万股、ARKF 4.7万股，单ETF最大占比仅0.02%，属常规再平衡。"
     }
   ],
   "sector_hits": []
