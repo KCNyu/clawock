@@ -15,6 +15,14 @@ are not separate requirements.
 - Ordinary chat and explicit task delegation: answer or forward the request with known context.
   Investigate only missing routing facts; let the delegated worker inspect code, issues and CI.
   Requests to investigate or optimize together stay in the current conversation unless delegation is requested.
+- A user instruction naming Claude Code (Claude/claudecode), Codex, or OpenCode as the actor
+  ("让 claudecode 看看…", "have Codex fix…") is explicit delegation, even for a small task
+  and without words such as "委派" or "后台跑". The named worker is distinct from the main
+  session even when both use the same model family. Use `agent-dispatch` and return after
+  successful dispatch. Explicit "你直接做 / 当前会话做 / 不要委派" ("do it here / current
+  session / no delegation") instructions override this routing. Already-dispatched workers
+  (`AGENT_DISPATCH_TASK_ID` or the unattended 【派发约定】) finish their task themselves;
+  they do not dispatch it again.
 - Isolated cron/subagent runs: follow their explicit context profile and job instructions, not the direct-chat startup path.
 
 ## kcn 偏好
@@ -66,6 +74,10 @@ Interactive Codex/Claude work must never push `master`; it may push only its tas
 branch to create or update a PR.
 
 ## Interactive Codex/Claude PR workflow
+
+This section governs how the executing agent delivers changes; it does not decide
+whether the OpenClaw main session should handle a user request inline. Apply the
+delegation rules above before starting this workflow.
 
 The live checkout `/root/.openclaw/workspace` must stay on `master` because cron and
 OpenClaw write runtime data there throughout the day. Never switch that checkout to a
