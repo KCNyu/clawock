@@ -183,6 +183,54 @@ def test_status_tints_come_off_the_tint_scale():
 #: `:active` scales that are deliberately off the shared value, with the reason.
 PRESS_EXCEPTIONS: dict[str, str] = {}
 
+#: The markup the shell actually ships: the two documents, plus the renderers
+#: that build rows client-side (the holdings row is a `<tr role="button">` that
+#: only exists in `dashboard.render.js`). A class is pressable when it sits on a
+#: `<button>`, a `<summary>` or a `role="button"` element in one of these.
+PRESS_MARKUP = (
+    ROOT / "site" / "index.html",
+    ROOT / "site" / "_layouts" / "default.html",
+    *sorted((ROOT / "site" / "assets" / "js").glob("dashboard.*.js")),
+)
+_PRESSABLE_TAG = re.compile(
+    r"""<(?:button|summary)\b([^<>]*)>"""
+    r"""|<\w+\b([^<>]*role=["']button["'][^<>]*)>""",
+    re.DOTALL,
+)
+
+
+def _pressable_classes() -> set[str]:
+    names: set[str] = set()
+    for path in PRESS_MARKUP:
+        for match in _PRESSABLE_TAG.finditer(path.read_text(encoding="utf-8")):
+            attrs = match.group(1) or match.group(2) or ""
+            for value in re.findall(r"""class=["']([^"']*)["']""", attrs):
+                # A `${...}` hole carries state classes, not selectors.
+                names.update(
+                    token for token in
+                    re.split(r"\s+", re.sub(r"\$\{[^}]*\}", " ", value)) if token)
+    return names
+
+
+def _press_opt_out_classes() -> set[str]:
+    """Controls whose press is deliberately not a scale, read the same way the
+    browser contract reads it: `:active { transform: none }`. `td.dm-cell` is
+    the only one — scaling a cell drags its column's width with it."""
+    names: set[str] = set()
+    for sel, body in RULES:
+        if ":active" not in sel:
+            continue
+        if not re.search(r"(?<![-\w])transform\s*:\s*none", body):
+            continue
+        for part in sel.split(","):
+            if ":active" in part:
+                names.update(re.findall(r"\.([\w-]+)", part))
+    return names
+
+
+PRESSABLE_CLASSES = _pressable_classes()
+PRESS_OPT_OUT_CLASSES = _press_opt_out_classes()
+
 # A 1px offset keeps the 2px ring visible around the small circular refresh
 # control without making it read as a second, detached halo beside the as-of
 # text. The component-specific browser contract pins the same exception.
@@ -250,6 +298,52 @@ def test_every_control_a_finger_can_reach_can_also_be_pressed():
     assert transition and "transform" in transition[0], (
         "without the matching transition the press snaps in and out; the seven "
         "components that pressed before this baseline all eased")
+
+
+def test_a_control_that_writes_its_own_transition_still_names_transform():
+    """The press baseline is written on the element form, and so is its easing —
+    but `transition` is one property. Any component rule that writes its own
+    shorthand replaces the baseline's whole list, not just the parts it repeats,
+    so a control naming background and colour and not transform keeps the scale
+    and loses the easing: it snaps, which is the one thing the baseline existed
+    to remove. The test above asserts the baseline exists; nothing asserted that
+    a component could not silently take it back.
+
+    #1752 found this on `.site-menu-btn` by reading the sheet and fixed that one
+    rule. Three more were in the sheet at the time, and reading is how they were
+    missed: the desktop tab bar's `.tab-btn` override (the base rule names
+    transform, the `min-width: 1024px` one did not), `.dh-lane` — a `<button>`
+    whose own press is a tint, so the scale it snaps is purely the baseline's —
+    and the holdings `tr.book-row`, which carries `role="button"`.
+    """
+    assert {"site-menu-btn", "tab-btn", "dh-lane", "book-row"} <= PRESSABLE_CLASSES, (
+        "the pressable-class scan stopped seeing the controls it was written "
+        "for, so this gate would now pass by discovering nothing")
+
+    strays = []
+    for sel, body in RULES + LAYOUT_RULES:
+        declared = re.search(r"(?<![-\w])transition\s*:\s*([^;}]+)", body)
+        if not declared:
+            continue
+        value = re.sub(r"\s+", " ", declared.group(1).strip())
+        # `none` turns the property off on purpose (reduced motion, the deck's
+        # pre-enter freeze). What this catches is a *list* that forgot
+        # transform, not a deliberate opt-out of transitioning at all.
+        if value == "none" or value.startswith("all") or "transform" in value:
+            continue
+        for part in (p.strip() for p in sel.split(",")):
+            # The subject of the selector is its last compound: `.dh-fold i`
+            # transitions the glyph, not the control, and a pseudo-element is
+            # not the control either.
+            if "::" in part:
+                continue
+            named = set(re.findall(r"\.([\w-]+)", re.split(r"[ >+~]", part)[-1]))
+            if named & PRESSABLE_CLASSES and not named & PRESS_OPT_OUT_CLASSES:
+                strays.append(f"{part} -> transition: {value}")
+    assert strays == [], (
+        "a pressable control's own `transition` shorthand overrides the press "
+        "baseline's; name `transform` in it too, or the press snaps:\n  "
+        + "\n  ".join(strays))
 
 
 def test_hover_is_never_left_stuck_on_a_touch_screen():
