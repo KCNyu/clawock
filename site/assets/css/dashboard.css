@@ -693,7 +693,12 @@
     color: var(--text); font-size: var(--fs-sm); font-weight: 600;
     letter-spacing: .012em; white-space: nowrap; cursor: pointer;
     list-style: none;                      /* kill the native disclosure arrow */
-    transition: background var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out);
+    /* Own `transition` shorthand overrides the `summary` baseline (PR #1741)
+       for the whole property, not just background/color — transform must be
+       named here too or :active's scale snaps instead of easing. */
+    transition: background var(--duration-fast) var(--ease-out),
+                color var(--duration-fast) var(--ease-out),
+                transform var(--duration-fast) var(--ease-out);
   }
   .site-menu-btn::-webkit-details-marker { display: none; }
   @media (hover: hover) and (pointer: fine) {
