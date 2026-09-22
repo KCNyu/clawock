@@ -1,76 +1,81 @@
 {
-  "generated_at": "2026-09-22T00:19:02.089604+00:00",
+  "generated_at": "2026-09-22T23:49:06.741982+00:00",
   "vix": {
     "symbol": "^VIX",
-    "price": 14.87,
-    "prev": 14.81,
-    "change_pct": 0.41,
-    "as_of": 1790021701,
+    "price": 14.21,
+    "prev": 14.87,
+    "change_pct": -4.44,
+    "as_of": 1790108101,
     "source": "yahoo"
   },
   "treasury_10y": {
     "symbol": "^TNX",
-    "price": 4.963,
-    "prev": 4.998,
-    "change_pct": -0.7,
-    "as_of": 1790017193,
+    "price": 4.968,
+    "prev": 4.963,
+    "change_pct": 0.1,
+    "as_of": 1790103595,
     "source": "yahoo",
-    "yield_pct": 4.963
+    "yield_pct": 4.968
   },
   "dxy": {
     "symbol": "DX-Y.NYB",
-    "price": 100.391,
-    "prev": 100.429,
+    "price": 100.56,
+    "prev": 100.601,
     "change_pct": -0.04,
-    "as_of": 1790035741,
+    "as_of": 1790119889,
     "source": "yahoo"
   },
   "fear_greed": {
-    "score": 33.7,
+    "score": 35.3,
     "rating": "fear",
-    "prev_close": 29.1,
-    "prev_1_week": 31.0,
-    "as_of": "2026-09-21T23:59:13+00:00"
+    "prev_close": 33.7,
+    "prev_1_week": 28.0,
+    "as_of": "2026-09-22T23:31:04+00:00"
   },
   "hsi": {
     "symbol": "^HSI",
-    "price": 25042.71,
-    "prev": 24750.78,
-    "change_pct": 1.18,
+    "price": 25087.75,
+    "prev": 25042.71,
+    "change_pct": 0.18,
     "source": "tencent"
   },
   "hstech": {
     "symbol": "^HSTECH",
-    "price": 4423.29,
-    "prev": 4405.5,
-    "change_pct": 0.4,
+    "price": 4438.21,
+    "prev": 4423.29,
+    "change_pct": 0.34,
     "source": "tencent"
   },
   "spx": {
     "symbol": "^GSPC",
-    "price": 7764.7,
-    "prev": 7650.5,
-    "change_pct": 1.49,
-    "as_of": 1790023862,
+    "price": 7764.64,
+    "prev": 7764.7,
+    "change_pct": -0.0,
+    "as_of": 1790109395,
     "source": "yahoo"
   },
   "nasdaq": {
     "symbol": "^IXIC",
-    "price": 27122.09,
-    "prev": 26522.55,
-    "change_pct": 2.26,
+    "price": 27244.28,
+    "prev": 27122.09,
+    "change_pct": 0.45,
     "source": "tencent"
   },
   "fed_press": [
     {
-      "date": "2026-09-18",
-      "title": "Federal Reserve Board announces termination of enforcement action with SNB Bancshares and Bank of Eufaula",
-      "url": "https://www.federalreserve.gov/newsevents/pressreleases/enforcement20260918b.htm"
+      "date": "2026-09-22",
+      "title": "Federal Reserve Board announces approval of application by BancFirst Corporation",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/orders20260922a.htm"
     },
     {
       "date": "2026-09-18",
       "title": "Federal Reserve Board issues enforcement actions with former employee of Northstar Bank, former employee of American Express Travel Related Services Company, Inc., and former employee of Regions Bank",
       "url": "https://www.federalreserve.gov/newsevents/pressreleases/enforcement20260918a.htm"
+    },
+    {
+      "date": "2026-09-18",
+      "title": "Federal Reserve Board announces termination of enforcement action with SNB Bancshares and Bank of Eufaula",
+      "url": "https://www.federalreserve.gov/newsevents/pressreleases/enforcement20260918b.htm"
     },
     {
       "date": "2026-09-16",
