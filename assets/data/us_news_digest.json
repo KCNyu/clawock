@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-18T16:48:45.075309",
+  "generated_at": "2026-09-22T17:26:36.190563",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -14,7 +14,7 @@
       "SPCH"
     ]
   },
-  "digest_markdown": "## Top 移动信号\n\n- **RKLB (via RKLX 2x)**: 完成 $1.944B 融资支持 $8B Iridium 收购 + Neutron 硬件测试推进。结构成长里程碑，RKLX 2x 应放大此 bullish 信号 → kcn 的 RKLX 仓位受益\n- **CRCL**: CLARITY Act 失败将监管焦点转向 federal regulators，叠加银行系加速发行稳定币（Coinbase rails 嵌入 4000+ 社区银行），竞争护城河承压\n- **SPCX (via SPCH 2x)**: SpaceX 2026 年内完成第 100 次发射（高密度基础设施化）+ Anthropic $2T IPO 临近。SPCX 通过 SpaceX/IPO 敞口获顺风，SPCH 2x 放大\n- **RKLB (via RKLX 2x)**: SpaceX 据报限制 Falcon 9 2028 年后新商业订单，为 Neutron 创造需求真空。RKLX 2x 应放大此结构性利好\n\n## Per-ticker 简报\n\n- **CRCL**: 银行系稳定币军备竞赛 + Coinbase 分发渠道扩张 + CLARITY Act 监管真空 → 短期竞争/监管不确定性主导，MoneyGram Visa 卡证实采用面扩大属中性偏正\n- **RKLB**: $1.944B 募资完成支撑 Iridium 收购，Virginia 端 Neutron 测试进行中，叠加 SpaceX Falcon 9 商业端可能收紧 → 催化剂密集，正面\n- **SPCX**: SpaceX 任务节奏达 100 次/年（8/22 数据），Anthropic IPO 估值传闻 $2T → 核心持仓 SpaceX 运营优势巩固；分析师警示 AI 标的潜在 48-54% 回撤\n\n## 风险 watch\n\n- **CRCL**: 监管失锚（CLARITY Act 死局）+ 银行竞品涌入 = 估值护城河风险\n- **RKLB**: $8B Iridium 收购执行/整合风险，杠杆融资加大失败代价\n- **SPCX**: AI/IPO 估值泡沫信号（分析师点名 48-54% 下行空间），市场情绪反转时 SPCH 2x 双向放大",
+  "digest_markdown": "## Top 移动信号\n\n- **RKLB**: Cantor 重申 Overweight + $122 PT，称 Neutron 发射为 \"most material catalyst\"；同日披露 $1.9B 股权融资（≈5% 稀释）资助 $8.1B EV 的 Iridium 收购，替代了 $3.6B 举债。 → **RKLX (2x)**：Neutron 临近 + 稀释预期已部分定价，短线发射结果决定方向，2x 杠杆双向放大。\n- **CRCL**: Binance 以 $80.84 锁价购入 $100M CRCL（2 年锁定，14% 折价），同日 Visa 加入 Arc L1 创始验证人，与 BlackRock 同列。 → 直接持仓：折价锁仓 + 顶级支付网络背书 Arc，结构性催化而非单纯炒作。\n- **SPCX**: SpaceX 月内 +10.9%，但季度指数公式被动强制买入与解锁日程形成供需碰撞；Morgan Stanley 给出 AI 跨生态（SpaceX-Tesla）看多背书。 → **SPCH (2x)**：被动买盘 vs 解锁卖压的拉锯中，AI 叙事是上行 trigger，2x 杠杆放大波动。\n- **CRCL (二次)**: BTC 站上 $86K 但 MSTR/COIN/CRCL 同步回调，加密市场 $800M+ 爆仓。 → 短期 beta 暴露，回调中 Binance 折价入股反而构成 floor。\n\n---\n\n## Per-ticker 简报\n\n- **CRCL**: Binance $100M 战略入股（$80.84，2 年锁定）+ Arc L1 上线（Visa/BlackRock 创始验证人）+ BTC 反弹中股价逆势回撤。影响：短期受加密 beta 拖累，但战略合作密度提升中长期估值锚。\n- **RKLB**: $1.9B 股权融资替代 $3.6B 债务完成 Iridium 收购（投票 9/24，close mid-2027），稀释 5% 但保财务弹性；Cantor $122 PT 强化 Neutron 催化叙事。影响：稀释利空已被\"Cantor 背书 + Neutron 临近\"对冲，事件驱动窗口期。\n- **SPCX**: 指数被动强制买入 vs 解锁供给形成技术面拉锯；MS 看多 AI 跨生态整合；分析师开始质疑当前估值是否透支。影响：流动性双向夹击，AI 收入兑现节奏决定突破或回归。\n\n---\n\n## 风险 watch\n\n- **RKLB**: 股权稀释已落地但 share count 仍\"not done growing\"——后续为 Iridium 整合追加融资的可能性需持续跟踪。\n- **SPCX**: 被动买盘 + 解锁日程\"collision\"——若 unlock 时间点与指数再平衡错位，可能出现非基本面驱动的剧烈波动。\n- **CRCL**: BTC/加密市场 $800M+ 爆仓显示杠杆仓位拥挤，CRCL 作为 USDC 发行方对加密波动暴露仍高。\n- **CRCL**: Binance 14% 折价入股暗示大机构对当前价位的\"折扣入场\"意愿，需警惕后续是否还有类似折价融资稀释现有股东。",
   "raw_news_counts": {
     "CRCL": 5,
     "RKLB": 5,
@@ -23,113 +23,113 @@
   "raw_news_evidence": {
     "CRCL": [
       {
-        "headline": "Coinbase Just Embedded Its Rails Inside 4,000-Plus Community Banks",
-        "datetime": 1789724822,
+        "headline": "MSTR, COIN, CRCL Stocks Slip Despite Bitcoin Rally Above $86K, Crypto Liquidations Cross $800M",
+        "datetime": 1790075508,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=872f887b3a4a0dc54407ab9ac09c3117a1ad27f48c9b9b3aaa839569a7da72e1"
+        "url": "https://finnhub.io/api/news?id=dd43977c72b01cad776fdeaf15d29f252c22c998fff647520692e9a88f4755b8"
       },
       {
-        "headline": "'Failure of Clarity Act Turns Crypto Industry Focus to Federal Regulators' - WSJ Exclusive",
-        "datetime": 1789716024,
+        "headline": "Binance Invests $100M In Circle Equity: How Will Stock React?",
+        "datetime": 1790075292,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=a57136d0522448d66edc04ca09e1a36569936efaab547c312e27c34e7939befb"
+      },
+      {
+        "headline": "Visa Settled $20B in Stablecoins. Now It’s Running the Blockchain.",
+        "datetime": 1790074268,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=75b4a4c251e342a8d27abf95d3fc4b4b0d9207aa76b6ea69dbb1c497d0fdba26"
+      },
+      {
+        "headline": "Circle Internet Announces $100M Sale Of 1,237,011 Shares To Binance At $80.84 Per Share; Companies Expand Strategic Partnership Relating To Promotion Of USDC Held Through Circle’s Modular Smart Contra",
+        "datetime": 1790060355,
         "source": "Benzinga",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=2ae35b1016b2da3415977d6392e5b9056db04deb5699ae66cbfa5e77f7fe009e"
+        "url": "https://finnhub.io/api/news?id=a18b807e0fec9f45e905e5202e0ffb102e5da9b38947802ce50f01bcf9e577cf"
       },
       {
-        "headline": "Why Banks Suddenly Want Stablecoins, and Why It May Matter for You",
-        "datetime": 1789690272,
+        "headline": "Circle Just Launched Arc With BlackRock and Visa. Here’s What It Means for the Stock in 2026",
+        "datetime": 1790031925,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=d7adeb6cf22a8e0eaf78b17aef2a82c9f4666a1336b56fc9f0281d1d6c97f404"
-      },
-      {
-        "headline": "We Asked Grok if Bitcoin Can Still Reach $100,000 Without the CLARITY Act",
-        "datetime": 1789684126,
-        "source": "Yahoo",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=bfb203e784ab520e3b18c3b7f82aaf69976bb5da8f3930950808ab5a7e439cfc"
-      },
-      {
-        "headline": "MoneyGram Just Launched Its First Stablecoin-Backed Visa Card. Here's What Crypto Investors Need to Know.",
-        "datetime": 1789677780,
-        "source": "Yahoo",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=9639e26b6121a34924982b6019eca91a293efe41d1ca396ce3bbe180fe05bb16"
+        "url": "https://finnhub.io/api/news?id=681dfdd6db06a63c2fe6e02cbcfabb40a3e58e19db8a61b2cf64c6678b07d71e"
       }
     ],
     "RKLB": [
       {
-        "headline": "BUZZ Investing: Rising Oil Prices And Treasury Yields Pressure Equities",
-        "datetime": 1789730100,
-        "source": "SeekingAlpha",
+        "headline": "Rocket Lab Analyst Calls Neutron Launch the ‘Most Material Catalyst’",
+        "datetime": 1790068940,
+        "source": "Benzinga",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=c3ca3dc5987e7d6a378a62ad938c2434609b2581ee87556d3ed701fd6e7043a7"
+        "url": "https://finnhub.io/api/news?id=5942d0912653b57538da6446869547d520753da73e2ad8ef1e3f063de5998faf"
       },
       {
-        "headline": "3 Market-Beating Stocks for Long-Term Investors",
-        "datetime": 1789727080,
+        "headline": "Rocket Lab Sold $1.9 Billion of New Stock to Pay for Iridium. Here's the Dilution Math.",
+        "datetime": 1790062441,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=812cdf1d121ec34d600389c8a13df366cf03dd186a1277b7a8e2bdbae0ab2487"
+        "url": "https://finnhub.io/api/news?id=79b31008476e529a527fee4a068b68bef860ccbee97a6aac67b0034bf58b50dd"
       },
       {
-        "headline": "RKLB, ASTS, VOYG, LUNR Steal SpaceX’s Thunder — Here’s What Lit Up Space Stocks This Week",
-        "datetime": 1789713878,
+        "headline": "RKLB Stock Extends Rally Overnight: CEO Says Iridium Deal Will Forge A Self-Launching ‘Tier-1 Space Power’",
+        "datetime": 1790049490,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=f185401e0863c31bfb6a900f278d17b7b5db5ccb60e32cc8d389a89f2c1c01ab"
+        "url": "https://finnhub.io/api/news?id=edaa9e8019256e906b925e62ce9ccb9058fa65fe67cacec902a53231731c507e"
       },
       {
-        "headline": "SpaceX or Rocket Lab: Which Space Stock Is the Better Buy for the Next Decade?",
-        "datetime": 1789694700,
+        "headline": "Why Are Rocket Lab (RKLB) Shares Soaring Today",
+        "datetime": 1790039425,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=47c64387535138e8571f0545f6793204866c1ee1b6043c043f8e7a7b6dd8d89e"
+        "url": "https://finnhub.io/api/news?id=da8cc42077bb94afdcaff8a296e18d348333484fbfeb49807340f59572038ecc"
       },
       {
-        "headline": "RKLB Stock Eyes Best Week In Over A Month: Rocket Lab Tests Key Neutron Hardware To Take On SpaceX",
-        "datetime": 1789693845,
+        "headline": "Rocket Lab Looks More and More Like a SpaceX Competitor. The Stock Is Up.",
+        "datetime": 1790022960,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=9e33172cd6546c38826cb4a2e88219f7e871febfe0f5c0f4ef8788256431f0b9"
+        "url": "https://finnhub.io/api/news?id=a3ac47c786631d8d04c7286a13e99dd61cb0acf35f6739b92e910b78c0eade42"
       }
     ],
     "SPCX": [
       {
-        "headline": "Dario Amodei Just Admitted \"There Are Real Dangers\" in AI, Right as Anthropic Nears a $2 Trillion IPO With Back-to-Back Profitable Quarters. Should That Change How Investors Value the Listing?",
-        "datetime": 1789733100,
+        "headline": "Former SpaceX Engineer: ‘We All Rolled Our Eyes’ When Elon Musk Proposed Catching a Rocket With Chopsticks",
+        "datetime": 1790091069,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=01e1a471a7b002987ca7184268a53e689c6a2e3d892ee84b5e2d15a99c3b5d34"
+        "url": "https://finnhub.io/api/news?id=6d4ca61053cebfb1ab14f00e8ef52a5641bfd7b01c20a947b51592f02a0d0d69"
       },
       {
-        "headline": "Rates Could Reach 4.5% On AI Spending, And Semiconductors Get Paid First",
-        "datetime": 1789732467,
-        "source": "SeekingAlpha",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=f04479a0d80616a98969ab04c76aeb7c4a6fbb2d9e4ad2bcf5e0391c8be6c99a"
-      },
-      {
-        "headline": "Dow Jones Futures: After S&P 500, Nasdaq Rebound, What's Next? Moderna, AMD, SpaceX Flash Buy Signals.",
-        "datetime": 1789731968,
+        "headline": "SpaceX's AI Business Is Booming. Here's How Much Analysts Expect It to Generate by 2030",
+        "datetime": 1790090070,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=8a29ce95b8561e45cc4eae2eca551ccca3c17ca7c92fdd223266bfff202193b6"
+        "url": "https://finnhub.io/api/news?id=0c2e14301e2d6dd1e72d2012f2f880b3d889365ed52bb621f13e5b5fbcabf8c4"
       },
       {
-        "headline": "2 Game-Changing AI Stocks That Can Plunge 48% and 54%, According to Select Wall Street Analysts",
-        "datetime": 1789730761,
+        "headline": "SpaceX (SPCX) Stock Looks Rich On Fresh Merger Speculation",
+        "datetime": 1790086382,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=98f7e3745d1731726d1dbcda9e2ff197478a1640a685c3baecaf83a7dd70be59"
+        "url": "https://finnhub.io/api/news?id=8d3a8604e6519e8e86eedc313f19cd18dde84d650fc9d1f5bca033fa5a0b0332"
       },
       {
-        "headline": "Launch As Infrastructure: What SpaceX's 100th Mission Of 2026 Tells Investors",
-        "datetime": 1789727820,
-        "source": "SeekingAlpha",
+        "headline": "Index Funds Are Being Forced to Buy SpaceX Whether They Want It or Not",
+        "datetime": 1790085615,
+        "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=c6688655cfafbcc93c28839008d6991dd9d79f76b8c8de8fada3393142274713"
+        "url": "https://finnhub.io/api/news?id=a47be136b85467d059371dab8f1f5fd2f195c32684743784b8751ca318d546cf"
+      },
+      {
+        "headline": "SpaceX Just Got a Major AI Vote of Confidence From Wall Street",
+        "datetime": 1790083378,
+        "source": "Yahoo",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=c53eec405983af38ae47eb2c1a394c81348f825738d2e68a0c63bc1c844b0f2a"
       }
     ]
   },
