@@ -68,6 +68,46 @@
   function ensureVisibleCharts() {
     ensureTabCharts(currentTab());
   }
+  // ── The chart-resize nudge, without the storm ────────────────────────────
+  // Every "the layout may have moved" moment used to be spelled
+  // `window.dispatchEvent(new Event("resize"))`, and the listener behind it
+  // called `resize()` on EVERY instance in `charts`. `resize()` is not a
+  // no-op when nothing moved: ECharts re-runs layout for every series and
+  // repaints the canvas. Measured on a throttled phone profile (4x CPU, six
+  // charts alive) one such dispatch cost 94-127ms of blocked main thread —
+  // and the pager fired one 120ms after every swipe settle, the desktop
+  // panel fired one after every tab activation, and iOS fires a real resize
+  // each time the URL bar collapses mid-scroll. That is the stutter.
+  //
+  // Same contract, size-aware: a chart is only resized when its own box
+  // actually changed. Charts inside a hidden panel or a collapsed card
+  // measure 0 and are skipped entirely — resizing them was always wasted
+  // work, because the tab that reveals them paints them anyway.
+  const _chartBox = new WeakMap();
+  function syncChartSizes() {
+    const live = Object.values(charts).filter(Boolean);
+    if (!live.length) return;
+    // Read every box before writing any: interleaving `resize()` (a DOM
+    // write) with `clientWidth` (a layout read) forces one synchronous
+    // layout per chart, which is the same read-after-write trap
+    // renderShadowPortfolioChart() already had to unpick.
+    const stale = [];
+    live.forEach(chart => {
+      let el = null;
+      try { el = chart.getDom(); } catch (error) { return; }
+      if (!el) return;
+      const width = el.clientWidth, height = el.clientHeight;
+      if (!width || !height) return;
+      // First sighting always resizes: an instance initialized while its card
+      // was still settling can hold a size its box no longer has, and that is
+      // exactly the case the old blanket nudge existed to repair.
+      const box = _chartBox.get(el);
+      if (box && box.width === width && box.height === height) return;
+      _chartBox.set(el, { width, height });
+      stale.push(chart);
+    });
+    stale.forEach(chart => { try { chart.resize(); } catch (error) {} });
+  }
   // Shadow is deliberately collapsed on every load, on both desktop and mobile.
   // Do not initialize ECharts while its body is hidden: that creates 0-width
   // canvases and makes the mobile GIF capture wait forever. Expanding paints after
