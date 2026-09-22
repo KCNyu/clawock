@@ -135,7 +135,7 @@ clawock us-quotes     # 仅刷美股价格
 - brief：`clawock brief preflight` / `clawock brief postflight`（写 `memory/{date}-pre-open.md` + `-plan.json`；postflight 自动刷完整 dashboard generation 并 push）
 - 报告 Mode 6：`clawock report preflight --market {hk|us} --phase {open|mid|pm|close}` / `clawock report postflight …`
 - 盘中 Mode 7：`clawock intraday preflight --market {hk|us}` / `clawock intraday postflight …`（不提交 `portfolio.json`；dashboard 仅语义变化发布，逐 slot heartbeat 必发布）
-- 共通：preflight 出 `raw_wechat_block`(LLM **verbatim** 拷) + `anomalies`(必提≥1票) + `plan_context`(08:00 未成交决策,散文必须对账、股数照抄不许心算)；postflight 出 `wechat_prefix`；context 全落 `memory/.tmp/`(gitignore)
+- 共通：preflight 出 `raw_wechat_block`(harness 在发送时拼装,LLM 只写散文、不要抄,见 #1279) + `anomalies`(必提≥1票) + `plan_context`(08:00 未成交决策,散文必须对账、股数照抄不许心算)；postflight 出 `wechat_prefix`；context 全落 `memory/.tmp/`(gitignore)
 
 **Dashboard/发布**：KCNyu 三类 postflight 自动刷新完整 generation；host 补发入口 `ops/publish/publish_dashboard.sh` · `clawock dashboard-outputs`(统一 ownership + 语义 diff，忽略纯构建时间并给出精确 staging pathspec) · `ops/publish/safe_push.sh`(唯一 push 路径,rebase.autoStash 容脏树)
 
