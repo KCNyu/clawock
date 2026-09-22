@@ -65,12 +65,21 @@ slot_held_count() {
 }
 
 others_need_slot() {
-  local unit id d held=0 mode=${1:-admission}
+  local unit id d held=0 mode=${1:-admission} own
+  # Skip only this supervisor's own round, named by the authoritative current-round
+  # marker. Skipping every `patrol-*` id also hid manual tasks that happened to use
+  # that name, so a round ran on while they queued (2026-09-23).
+  own=$(current_round)
   for unit in $(systemctl list-units 'agent-dispatch-*' --state=active --no-legend --plain 2>/dev/null | awk '{print $1}'); do
     id=${unit#agent-dispatch-}; id=${id%.service}
-    case "$id" in patrol-*) continue ;; esac
+    [ -n "$own" ] && [ "$id" = "$own" ] && continue
     d=$TASKS/$id
     if grep -qs '^WAITING=slot' "$d/result.env"; then echo "$id is waiting for a run slot"; return; fi
+    # The runner asks for a slot only after it holds its agent lock, so a task queued
+    # behind that lock never wrote WAITING=slot and patrol kept its round (2026-09-23).
+    # WAITING=lock is that queue: manual work outranks patrol, so it counts as demand.
+    if grep -qs '^WAITING=lock' "$d/result.env"; then echo "$id is waiting for its agent lock"; return; fi
+    # Runners from before the WAITING=lock marker show only the queued state.
     if grep -qs '^AGENT=opencode' "$d/meta.env" && grep -qs '^STATE=queued' "$d/result.env"; then
       echo "$id is waiting for the opencode lock"; return
     fi
@@ -165,7 +174,8 @@ run_round() {  # returns 0 when the round finished (whatever it found), 1 when i
     render >"$STATE/round-prompt.md"
   
     start=$(date +%s)
-    rid=$("$DISPATCH" opencode --name "patrol-$axis" --notify none --timeout "$ATTEMPT_TIMEOUT" \
+    # dispatch.sh reserves the patrol- name prefix for this supervisor.
+    rid=$(AGENT_DISPATCH_PATROL=1 "$DISPATCH" opencode --name "patrol-$axis" --notify none --timeout "$ATTEMPT_TIMEOUT" \
             --deadline "$(date -d "+$ROUND_DEADLINE_H hours" '+%F %H:%M')" \
             --prompt-file "$STATE/round-prompt.md" 2>&1 | awk '/^dispatched /{print $2}')
     [ -n "$rid" ] || { log "dispatch failed"; return 1; }
