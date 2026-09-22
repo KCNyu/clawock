@@ -42,7 +42,23 @@ replacement worker or advance the recent-review cursor. Inspect the journal for
 `/root/logs/clawock-patrol/ungated.log` for findings. `refresh_live.sh` does not
 install this host-local supervisor automatically. To roll back, restore the
 saved executable and restart only `clawock-patrol.service`.
+`patrol.sh.before-update` is only "what ran before the last install": every
+install overwrites it, so never install by hand without that `cp` first, and
+do not treat an older copy as a known-good version.
+
+Priority: manual dispatched work outranks patrol, and a round is the lowest
+priority work on the host. `others_need_slot` blocks a new round, and cancels
+the running one (recorded as `preempted:cancelled` in `rounds.tsv`), when any
+task other than the round named in `current-round` publishes `WAITING=slot`
+(queued for a run slot) or `WAITING=lock` (queued behind its agent's lock —
+the runner asks for a slot only after that lock, so this is the earlier half of
+the same queue). `WAITING=quota`/`retry`/`memory` hold nothing and do not
+preempt. Capacity (`slot-N.lock` held by `MAX_RUNNING` attempts) and memory
+pressure only gate admission of a new round. Rounds are dispatched with
+`AGENT_DISPATCH_PATROL=1`, because `dispatch.sh` reserves `patrol-*` names for
+them; the supervisor still identifies its own round by `current-round`, never
+by name.
 
 `PATROL_DISPATCH_DIR` can point tests at fixture policy/helpers; production uses
-`/root/tools/agent-dispatch`. Run the focused audit coverage with
-`env -u CLAWOCK_WORKSPACE PYTHONPATH="$PWD/src" python3 -m pytest -q tests/test_patrol_audit.py`.
+`/root/tools/agent-dispatch`. Run the focused supervisor coverage with
+`env -u CLAWOCK_WORKSPACE PYTHONPATH="$PWD/src" python3 -m pytest -q tests/test_patrol_audit.py tests/test_patrol_supervisor.py`.
