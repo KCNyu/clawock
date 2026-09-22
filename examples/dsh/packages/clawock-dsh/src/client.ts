@@ -31,7 +31,7 @@ import { defineStore } from '@deepseek-ai/dsh-client-store'
 // @types/react devDependency.
 import * as React from 'react'
 import styles from './styles.module.css'
-import type { BalanceResult, BalancesResult, EnrichedTrade, T1VerdictKind, TraceDecision, TraceT1, TracesResult } from './types.ts'
+import type { BalanceResult, BalancesResult, DispatchTask, EnrichedTrade, T1VerdictKind, TaskQueueResult, TraceDecision, TraceT1, TracesResult } from './types.ts'
 
 const { createElement, useEffect, useId, useRef, useState } = React
 
@@ -136,6 +136,23 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'balance.window.minutes': '{n}m',
     'balance.reset.today': '今天 {time}', 'balance.reset.tomorrow': '明天 {time}',
     'balance.reset.dated': '{date} {weekday} {time}',
+    'queue.name': '任务', 'queue.panelTitle': '派发任务队列', 'queue.panelHeading': '派发队列',
+    'queue.refresh': '刷新任务队列', 'queue.slots': '槽 {used}/{max}', 'queue.slotsLine': '运行槽 {used}/{max} 已占用',
+    'queue.queued': '排队 {n}', 'queue.quotaWait': '等额度 {n}', 'queue.idle': '没有在跑的任务',
+    'queue.readFailed': '任务队列读取失败:{message}', 'queue.staleWith': '刷新失败,显示最近一次: {message}',
+    'queue.state.running': '运行中 · 槽 {slot}', 'queue.state.starting': '启动中',
+    'queue.wait.lock': '等 {agent} 锁', 'queue.wait.slot': '等运行槽', 'queue.wait.memory': '等内存',
+    'queue.wait.quota': '等额度 · {time} 续跑', 'queue.wait.quotaNoTime': '等额度',
+    'queue.wait.retry': '重试等待 · {time}', 'queue.wait.retryNoTime': '重试等待',
+    'queue.detail': '{agent} · {model} · 已跑 {elapsed} · 第 {attempts} 次',
+    'queue.recentHeading': '最近结束', 'queue.ended': '{agent} · {ago}',
+    'queue.patrolHeading': '巡检', 'queue.patrolRound': '当前轮次 {round}',
+    'queue.patrol.running': '巡检运行中', 'queue.patrol.yielding': '巡检让路中',
+    'queue.patrol.waiting': '巡检等待下一轮', 'queue.patrol.waitingUntil': '巡检 {time} 开下一轮',
+    'queue.patrol.stopped': '巡检已停', 'queue.patrol.unknown': '巡检状态未知',
+    'queue.patrolRow': '{round} {axis} · {result} · {took}',
+    'queue.duration.minutes': '{m} 分', 'queue.duration.hours': '{h} 小时 {m} 分',
+    'queue.ago.minutes': '{m} 分钟前', 'queue.ago.hours': '{h} 小时前', 'queue.ago.days': '{d} 天前',
   },
   en: {
     'action.buy': 'Buy', 'action.add': 'Add', 'action.trim': 'Trim', 'action.sell': 'Sell',
@@ -192,6 +209,23 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'balance.window.minutes': '{n}m',
     'balance.reset.today': 'today {time}', 'balance.reset.tomorrow': 'tomorrow {time}',
     'balance.reset.dated': '{date} {weekday} {time}',
+    'queue.name': 'Tasks', 'queue.panelTitle': 'Dispatch task queue', 'queue.panelHeading': 'Dispatch queue',
+    'queue.refresh': 'Refresh the task queue', 'queue.slots': 'slots {used}/{max}', 'queue.slotsLine': '{used} of {max} run slots in use',
+    'queue.queued': '{n} queued', 'queue.quotaWait': '{n} waiting on quota', 'queue.idle': 'No task running',
+    'queue.readFailed': 'Task queue read failed: {message}', 'queue.staleWith': 'Refresh failed, showing the last read: {message}',
+    'queue.state.running': 'running · slot {slot}', 'queue.state.starting': 'starting',
+    'queue.wait.lock': 'waiting for the {agent} lock', 'queue.wait.slot': 'waiting for a run slot', 'queue.wait.memory': 'waiting for memory',
+    'queue.wait.quota': 'quota wait · resumes {time}', 'queue.wait.quotaNoTime': 'quota wait',
+    'queue.wait.retry': 'retry wait · {time}', 'queue.wait.retryNoTime': 'retry wait',
+    'queue.detail': '{agent} · {model} · {elapsed} · attempt {attempts}',
+    'queue.recentHeading': 'Recently ended', 'queue.ended': '{agent} · {ago}',
+    'queue.patrolHeading': 'Patrol', 'queue.patrolRound': 'current round {round}',
+    'queue.patrol.running': 'patrol running', 'queue.patrol.yielding': 'patrol giving way',
+    'queue.patrol.waiting': 'patrol between rounds', 'queue.patrol.waitingUntil': 'patrol next round {time}',
+    'queue.patrol.stopped': 'patrol stopped', 'queue.patrol.unknown': 'patrol state unknown',
+    'queue.patrolRow': '{round} {axis} · {result} · {took}',
+    'queue.duration.minutes': '{m}m', 'queue.duration.hours': '{h}h {m}m',
+    'queue.ago.minutes': '{m}m ago', 'queue.ago.hours': '{h}h ago', 'queue.ago.days': '{d}d ago',
   },
 }
 
@@ -1242,6 +1276,45 @@ function panelAttrs(open: boolean, label: string, extra?: Partial<PanelAttrs>): 
 type PopoverAnchor = { left: number; bottom: number }
 
 /**
+ * The foot popover's open state and anchor, shared by every foot row. While
+ * open: re-anchor on resize, Escape closes, a pointerdown outside the root
+ * closes (document/window exist only in the browser — tests have no DOM).
+ */
+function useFootPopover() {
+  const [open, setOpen] = useState(false)
+  const [anchor, setAnchor] = useState<PopoverAnchor | null>(null)
+  const rootRef = useRef<HTMLDivElement | null>(null)
+
+  const place = (): void => {
+    const root = rootRef.current
+    if (root === null || typeof window === 'undefined') return
+    const rect = root.getBoundingClientRect()
+    setAnchor({ left: rect.left, bottom: window.innerHeight - rect.top + 8 })
+  }
+
+  useEffect(() => {
+    if (!open || typeof document === 'undefined') return undefined
+    const onKey = (event: KeyboardEvent): void => { if (event.key === 'Escape') setOpen(false) }
+    const onDown = (event: PointerEvent): void => {
+      const root = rootRef.current
+      if (root !== null && event.target instanceof Node && !root.contains(event.target)) setOpen(false)
+    }
+    document.addEventListener('keydown', onKey)
+    // Capture phase, unlike the host hook: the composer stops pointerdown from
+    // bubbling, so a bubble listener never hears a tap on the input box.
+    document.addEventListener('pointerdown', onDown, true)
+    window.addEventListener('resize', place)
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      document.removeEventListener('pointerdown', onDown, true)
+      window.removeEventListener('resize', place)
+    }
+  }, [open])
+
+  return { open, setOpen, anchor, place, rootRef }
+}
+
+/**
  * The sidebar-foot home of the balance chip: always mounted, independent of
  * any session. It headlines the same one provider (pinned or first row) with
  * the same dot/tier/stale colours and polls on the same cadence.
@@ -1262,38 +1335,8 @@ export function ProviderBalanceSidebarAction(props: BalanceSidebarActionProps): 
   const t = props.t
   const state = useProviderBalances(props, BALANCE_PANEL)
   const { rows, primary } = state
-  const [open, setOpen] = useState(false)
-  const [anchor, setAnchor] = useState<PopoverAnchor | null>(null)
+  const { open, setOpen, anchor, place, rootRef } = useFootPopover()
   const instanceId = useId()
-  const rootRef = useRef<HTMLDivElement | null>(null)
-
-  const place = (): void => {
-    const root = rootRef.current
-    if (root === null || typeof window === 'undefined') return
-    const rect = root.getBoundingClientRect()
-    setAnchor({ left: rect.left, bottom: window.innerHeight - rect.top + 8 })
-  }
-
-  // While open: re-anchor on resize, Escape closes, a pointerdown outside the
-  // root closes (document/window exist only in the browser — tests have no DOM).
-  useEffect(() => {
-    if (!open || typeof document === 'undefined') return undefined
-    const onKey = (event: KeyboardEvent): void => { if (event.key === 'Escape') setOpen(false) }
-    const onDown = (event: PointerEvent): void => {
-      const root = rootRef.current
-      if (root !== null && event.target instanceof Node && !root.contains(event.target)) setOpen(false)
-    }
-    document.addEventListener('keydown', onKey)
-    // Capture phase, unlike the host hook: the composer stops pointerdown from
-    // bubbling, so a bubble listener never hears a tap on the input box.
-    document.addEventListener('pointerdown', onDown, true)
-    window.addEventListener('resize', place)
-    return () => {
-      document.removeEventListener('keydown', onKey)
-      document.removeEventListener('pointerdown', onDown, true)
-      window.removeEventListener('resize', place)
-    }
-  }, [open])
 
   const summary = primary !== undefined
     ? primary.label + ' · ' + primary.view.title + (rows.length > 1 ? t('balance.otherProviders') : '')
@@ -1324,6 +1367,249 @@ export function ProviderBalanceSidebarAction(props: BalanceSidebarActionProps): 
       'data-clawock-popover': BALANCE_PANEL,
       ...(anchor === null ? {} : { style: { left: anchor.left + 'px', bottom: anchor.bottom + 'px' } }),
     }), renderBalancePanelBody(state, t)))
+}
+
+// ---------------------------------------------------------------------------
+// Dispatch task queue: the foot row above the balance, same chip language.
+// ---------------------------------------------------------------------------
+
+/** Foot-action id of the task-queue surface (a stable DOM contract for probes). */
+export const TASK_QUEUE_PANEL = 'clawock-task-queue'
+
+/** What the task chip's `inject` factory hands the component. */
+export interface TaskQueueInjected {
+  /** The last answer this registration fetched, or null cold. */
+  cachedTaskQueue: () => TaskQueueResult | null
+  /** Read the queue; `force` bypasses the short host cache (the manual refresh). */
+  fetchTaskQueue: (force: boolean) => Promise<TaskQueueResult>
+}
+
+export type TaskQueueSidebarActionProps = TaskQueueInjected & {
+  /** Sidebar column state: false is the 56px rail (glyph only). */
+  wide: boolean
+  t: Translate
+}
+
+/** A live task queued for something another task holds (the backlog patrol yields to). */
+const queuedFor = (task: DispatchTask): boolean =>
+  task.waiting === 'lock' || task.waiting === 'slot' || task.waiting === 'memory'
+
+function durationOf(t: Translate, ms: number): string {
+  const mins = Math.max(0, Math.floor(ms / 60000))
+  return mins < 60
+    ? t('queue.duration.minutes', { m: mins })
+    : t('queue.duration.hours', { h: Math.floor(mins / 60), m: mins % 60 })
+}
+
+function agoOf(t: Translate, ms: number): string {
+  const mins = Math.max(0, Math.floor(ms / 60000))
+  if (mins < 60) return t('queue.ago.minutes', { m: mins })
+  if (mins < 48 * 60) return t('queue.ago.hours', { h: Math.floor(mins / 60) })
+  return t('queue.ago.days', { d: Math.floor(mins / 1440) })
+}
+
+/** One live task's status phrase: what it holds or what it waits for. */
+export function _taskStatus(task: DispatchTask, t: Translate, now: number = Date.now()): { tone: BalanceTone; text: string } {
+  const at = (key: string, ms: number | null): string => ms === null
+    ? t(key + 'NoTime')
+    : t(key, { time: resetStampOf(t, { resetAt: '', resetAtMs: ms }, now) })
+  switch (task.waiting) {
+    case 'lock': return { tone: 'stale', text: t('queue.wait.lock', { agent: task.agent }) }
+    case 'slot': return { tone: 'stale', text: t('queue.wait.slot') }
+    case 'memory': return { tone: 'stale', text: t('queue.wait.memory') }
+    case 'quota': return { tone: 'none', text: at('queue.wait.quota', task.wakeAtMs) }
+    case 'retry': return { tone: 'none', text: at('queue.wait.retry', task.wakeAtMs) }
+    default: break
+  }
+  return task.slot !== ''
+    ? { tone: 'ok', text: t('queue.state.running', { slot: task.slot }) }
+    : { tone: 'none', text: t('queue.state.starting') }
+}
+
+/** An ended task's dot: done green, not-done amber, failed red, stopped grey. */
+function endedTone(task: DispatchTask): BalanceTone {
+  if (task.state === 'ok' && (task.outcome === 'DONE' || task.outcome === '')) return 'ok'
+  if (task.state === 'failed') return 'low'
+  if (task.state === 'ok' || task.state === 'partial' || task.state === 'unverified') return 'stale'
+  return 'none'
+}
+
+function patrolPhraseOf(result: TaskQueueResult, t: Translate, now: number): string {
+  const patrol = result.patrol
+  if (patrol.phase === 'waiting' && patrol.untilMs !== null) {
+    return t('queue.patrol.waitingUntil', { time: resetStampOf(t, { resetAt: '', resetAtMs: patrol.untilMs }, now) })
+  }
+  return t('queue.patrol.' + patrol.phase)
+}
+
+/** The chip's headline: dot tone, slots value, and the one-line "who waits" sub-reading. */
+export function _queueHeadline(result: TaskQueueResult, t: Translate, now: number = Date.now()): { tone: BalanceTone; value: string; sub: string; busy: boolean; title: string } {
+  const queued = result.active.filter(queuedFor).length
+  const quota = result.active.filter((task) => task.waiting === 'quota').length
+  const parts = [
+    queued > 0 ? t('queue.queued', { n: queued }) : null,
+    quota > 0 ? t('queue.quotaWait', { n: quota }) : null,
+    patrolPhraseOf(result, t, now),
+  ].filter((part): part is string => part !== null)
+  const value = t('queue.slots', { used: result.running, max: result.maxRunning })
+  const tone: BalanceTone = result.status === 'stale' || result.status === 'failed'
+    ? 'stale'
+    : result.active.length > 0 ? 'ok' : 'none'
+  const idle = result.active.length === 0 ? t('queue.idle') + ' · ' : ''
+  return { tone, value, sub: parts.join(' · '), busy: queued > 0, title: t('queue.name') + ' · ' + value + ' · ' + idle + parts.join(' · ') }
+}
+
+/** Cached-first read, the mount fetch and the poll, like useProviderBalances in miniature. */
+function useTaskQueue(props: TaskQueueInjected & { t: Translate }) {
+  const mountedRef = useRef(true)
+  const [data, setData] = useState<{ result: TaskQueueResult | null; loading: boolean; error: string | null }>(
+    () => ({ result: props.cachedTaskQueue(), loading: false, error: null }),
+  )
+  const read = (force: boolean): void => {
+    props.fetchTaskQueue(force).then((result) => {
+      if (mountedRef.current) setData({ result, loading: false, error: null })
+    }, (err: unknown) => {
+      if (!mountedRef.current) return
+      const error = (err instanceof Error ? err.message : String(err)) || props.t('balance.unknownError')
+      setData((current) => ({ ...current, loading: false, error }))
+    })
+  }
+  useEffect(() => {
+    mountedRef.current = true
+    read(false)
+    return () => { mountedRef.current = false }
+  }, [])
+  useEffect(() => {
+    const timer = setInterval(() => { read(false) }, Math.max(5000, data.result?.refreshMs ?? 15000))
+    return () => clearInterval(timer)
+  }, [data.result?.refreshMs])
+  const refresh = (): void => {
+    setData((current) => ({ ...current, loading: true }))
+    read(true)
+  }
+  return { data, refresh }
+}
+
+/** The foot glyph: three queue lines in the host's 16px icon geometry, badge notched like the gauge. */
+function renderQueueGlyph(tone: BalanceTone, size: number, instanceId: string): React.ReactElement {
+  const badge = tone === 'ok' || tone === 'low' || tone === 'stale'
+  const notch = 'clawock-queue-notch-' + instanceId
+  return h('svg', {
+    className: cx('bal-glyph'), width: size, height: size, viewBox: '0 0 16 16', fill: 'none', 'aria-hidden': 'true',
+  },
+    badge
+      ? h('defs', null,
+        h('mask', { id: notch, maskUnits: 'userSpaceOnUse', x: 0, y: 0, width: 16, height: 16 },
+          h('rect', { x: 0, y: 0, width: 16, height: 16, fill: 'white' }),
+          h('circle', { cx: 12.75, cy: 12.75, r: 3.9, fill: 'black' })))
+      : null,
+    h('g', { mask: badge ? 'url(#' + notch + ')' : undefined },
+      h('path', { d: 'M2.5 4H13.5M2.5 8H13.5M2.5 12H13.5', stroke: 'currentColor', strokeWidth: 1.25, strokeLinecap: 'round' })),
+    badge
+      ? h('circle', {
+        className: cx('bal-badge'), 'data-balance-state': tone, cx: 12.75, cy: 12.75, r: tone === 'stale' ? 2.05 : 2.6,
+      })
+      : null)
+}
+
+function renderTaskRow(task: DispatchTask, status: { tone: BalanceTone; text: string }, sub: string): React.ReactElement {
+  return h('div', { key: task.id, className: cx('bp-row', 'tq-row'), 'data-tq-task': task.id, 'data-tq-waiting': task.waiting },
+    h('span', { className: cx('bp-dot'), 'data-balance-state': status.tone }),
+    h('span', { className: cx('bp-label') }, task.name),
+    h('span', { className: cx('tq-v'), 'data-balance-state': status.tone }, status.text),
+    h('div', { className: cx('bp-sub') }, sub))
+}
+
+function renderQueuePanelBody(state: ReturnType<typeof useTaskQueue>, t: Translate, now: number): Array<React.ReactElement | null> {
+  const { data, refresh } = state
+  const result = data.result
+  const head = h('div', { className: cx('bp-head'), key: 'head' },
+    h('span', { className: cx('bp-title') }, t('queue.panelHeading')),
+    h('button', {
+      type: 'button',
+      className: cx('bal-rf', data.loading && 'spin'),
+      'data-refresh': 'true',
+      'aria-label': t('queue.refresh'),
+      title: t('queue.refresh'),
+      onClick: refresh,
+    }, '↻'))
+  if (result === null) {
+    return [head, h('div', { className: cx('bp-empty'), key: 'empty', role: 'status' },
+      data.error !== null ? t('queue.readFailed', { message: data.error }) : t('balance.reading'))]
+  }
+  const problem = data.error ?? (result.status === 'stale' || result.status === 'failed' ? result.message : null)
+  const patrol = result.patrol
+  return [
+    head,
+    problem !== null && problem !== ''
+      ? h('div', { className: cx('bp-note', 'warn'), key: 'error', role: 'status' }, t('queue.staleWith', { message: problem }))
+      : null,
+    h('div', { className: cx('bp-sub', 'tq-line'), key: 'slots' }, t('queue.slotsLine', { used: result.running, max: result.maxRunning })),
+    result.active.length === 0
+      ? h('div', { className: cx('bp-empty'), key: 'idle' }, t('queue.idle'))
+      : h('div', { key: 'active' }, result.active.map((task) => renderTaskRow(task, _taskStatus(task, t, now), t('queue.detail', {
+        agent: task.agent, model: task.model || '—', attempts: task.attempts,
+        elapsed: task.startedAtMs === null ? '—' : durationOf(t, now - task.startedAtMs),
+      })))),
+    h('div', { className: cx('bp-title', 'tq-sec'), key: 'patrol-head' }, t('queue.patrolHeading')),
+    h('div', { className: cx('bp-sub', 'tq-line'), key: 'patrol', 'data-tq-patrol': patrol.phase },
+      [patrolPhraseOf(result, t, now), patrol.round !== '' ? t('queue.patrolRound', { round: patrol.round }) : null, patrol.detail || null]
+        .filter((part) => part !== null).join(' · ')),
+    ...patrol.rounds.map((round) => h('div', { className: cx('bp-sub', 'tq-line'), key: 'round-' + round.endedAt + round.round },
+      t('queue.patrolRow', {
+        round: round.round, axis: round.axis, result: round.result,
+        took: round.seconds === null ? '—' : durationOf(t, round.seconds * 1000),
+      }))),
+    result.recent.length === 0 ? null : h('div', { className: cx('bp-title', 'tq-sec'), key: 'recent-head' }, t('queue.recentHeading')),
+    result.recent.length === 0 ? null : h('div', { key: 'recent' }, result.recent.map((task) => renderTaskRow(task, {
+      tone: endedTone(task), text: task.state + (task.outcome !== '' ? ' / ' + task.outcome : ''),
+    }, t('queue.ended', { agent: task.agent, ago: task.updatedAtMs === null ? '—' : agoOf(t, now - task.updatedAtMs) })))),
+  ]
+}
+
+/**
+ * The sidebar-foot task-queue row, directly above the balance row: live
+ * dispatch tasks and what each waits for, recent endings, and whether patrol
+ * is running, giving way or between rounds. Same foot geometry, tones, glyph
+ * badge, popover and refresh button as the balance; renders nothing on a
+ * host without the dispatcher (or before its first answer).
+ */
+export function TaskQueueSidebarAction(props: TaskQueueSidebarActionProps): React.ReactElement | null {
+  const t = props.t
+  const state = useTaskQueue(props)
+  const { open, setOpen, anchor, place, rootRef } = useFootPopover()
+  const instanceId = useId()
+  const result = state.data.result
+  if (result === null || !result.available) return null
+  const now = Date.now()
+  const headline = _queueHeadline(result, t, now)
+  return h('div', { className: cx('pbc', 'pbf', 'tqf', !props.wide && 'rail'), ref: rootRef },
+    h('button', {
+      type: 'button',
+      className: cx('bchip'),
+      'data-balance-state': headline.tone,
+      'data-clawock-action': TASK_QUEUE_PANEL,
+      'data-active': open ? '' : undefined,
+      'aria-expanded': open,
+      'aria-haspopup': 'dialog',
+      'aria-label': t('queue.panelTitle'),
+      title: headline.title,
+      onClick: () => {
+        if (!open) place()
+        setOpen(!open)
+      },
+    }, props.wide
+      ? h('span', { className: cx('bchip-item'), 'data-balance-state': headline.tone },
+        h('span', { className: cx('bal-lead') }, renderQueueGlyph(headline.tone, 16, instanceId)),
+        h('span', { className: cx('bchip-name') }, t('queue.name')),
+        h('span', { className: cx('bchip-v'), 'data-used-level': headline.busy ? 'mid' : undefined }, headline.value),
+        h('span', { className: cx('bchip-sub'), 'aria-hidden': 'true' }, headline.sub))
+      : h('span', { className: cx('bal-lead'), 'data-balance-state': headline.tone },
+        renderQueueGlyph(headline.tone, 18, instanceId))),
+    h('div', panelAttrs(open, t('queue.panelTitle'), {
+      'data-clawock-popover': TASK_QUEUE_PANEL,
+      ...(anchor === null ? {} : { style: { left: anchor.left + 'px', bottom: anchor.bottom + 'px' } }),
+    }), renderQueuePanelBody(state, t, now)))
 }
 
 export function DecisionMind(props: DecisionMindProps): React.ReactElement {
@@ -1662,6 +1948,23 @@ export async function apply(ctx: Context & ClientContributionContext): Promise<v
   }, DecisionMind))
   const balancesStore = createBalanceStore()
   if (typeof layout?.selectPanel === 'function') {
+    // The dispatch queue sits directly above the balance: registered first and
+    // ordered first; the foot's own row layout is turned into a column by the
+    // stylesheet (see .tqf), so the two read as one stack.
+    let cachedTaskQueue: TaskQueueResult | null = null
+    ctx.slots.inject('sidebar.footer.action', () => ctx.slots.register({
+      name: 'sidebar.footer.action',
+      id: 'dispatch-queue',
+      order: -1,
+      locale: LOCALE_NS,
+      inject: (): TaskQueueInjected => ({
+        cachedTaskQueue: () => cachedTaskQueue,
+        fetchTaskQueue: async (force) => {
+          cachedTaskQueue = await call<TaskQueueResult>('taskQueue', [force])
+          return cachedTaskQueue
+        },
+      }),
+    }, TaskQueueSidebarAction))
     ctx.slots.inject('sidebar.footer.action', () => ctx.slots.register({
       name: 'sidebar.footer.action',
       id: 'provider-balance',

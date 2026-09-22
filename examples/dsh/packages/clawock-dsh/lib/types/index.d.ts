@@ -10,7 +10,7 @@
  */
 import { TypertRemoteService } from '@deepseek-ai/dsh-typert-protocol';
 import type { Context } from '@deepseek-ai/cordis';
-import type { BalancesResult, LedgerResult, ListRunsResult, PlansResult, PortfolioResult, RunDetailResult, TracesResult } from './types.ts';
+import type { BalancesResult, LedgerResult, ListRunsResult, PlansResult, PortfolioResult, RunDetailResult, TaskQueueResult, TracesResult } from './types.ts';
 /**
  * Row-level config the profile patch may set (see cordis.patch.yml).
  */
@@ -48,6 +48,19 @@ export interface ClawockStudioConfig {
     codexLowPct?: number;
     /** Codex app-server polling/cache cadence in ms (default 5 minutes). */
     codexRefreshMs?: number;
+    /**
+     * agent-dispatch task directories (default ~/logs/agent-dispatch). The task
+     * chip exists only where this directory does.
+     */
+    dispatchLogDir?: string;
+    /** The dispatcher's shared slot policy (default ~/tools/agent-dispatch/limits.env). */
+    dispatchLimitsPath?: string;
+    /** clawock-patrol state: current-round, rounds.tsv (default ~/logs/clawock-patrol). */
+    patrolStateDir?: string;
+    /** Suggested client poll interval for the task chip in ms (default 15s). */
+    taskQueueRefreshMs?: number;
+    /** How many recently ended tasks the chip lists (default 5). */
+    taskQueueRecent?: number;
 }
 export declare class ClawockStudioGateway extends TypertRemoteService {
     static inject: readonly ['credentials'];
@@ -70,6 +83,8 @@ export declare class ClawockStudioGateway extends TypertRemoteService {
      * the gateway constructor keeps the exact super(ctx, serviceKey) shape.
      */
     private balanceServices;
+    /** The task chip's reader, lazily built and instance-scoped like the balance services. */
+    private taskQueueService;
     /**
      * The row config, owned by the instance. cordis constructs a class plugin as
      * `new Plugin(ctx, config)` (Fiber's runner), so the constructor already
@@ -110,6 +125,13 @@ export declare class ClawockStudioGateway extends TypertRemoteService {
      * @param force - bypass the TTL caches (the manual refresh button).
      */
     balance(force: boolean): Promise<BalancesResult>;
+    /**
+     * The sidebar-foot task chip: live agent-dispatch tasks and what each waits
+     * for, the recently ended ones, and the clawock-patrol supervisor's phase.
+     * Local files and systemctl only; in-band like balance(), never throws.
+     * @param force - bypass the short host cache (the manual refresh button).
+     */
+    taskQueue(force: boolean): Promise<TaskQueueResult>;
 }
 /**
  * Services the profile mixes into this plugin's context (the function-

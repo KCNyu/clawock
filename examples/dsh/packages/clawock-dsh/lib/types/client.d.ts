@@ -25,7 +25,7 @@ import type { Context } from '@deepseek-ai/cordis';
 import type { TypertClientRemote } from '@deepseek-ai/dsh-typert-protocol';
 import type { PropsStore } from '@deepseek-ai/dsh-client-ui-slots';
 import * as React from 'react';
-import type { BalanceResult, BalancesResult, EnrichedTrade, T1VerdictKind, TraceDecision, TraceT1 } from './types.ts';
+import type { BalanceResult, BalancesResult, DispatchTask, EnrichedTrade, T1VerdictKind, TaskQueueResult, TraceDecision, TraceT1 } from './types.ts';
 /** Dictionary namespace declared by every registration in this bundle. */
 export declare const LOCALE_NS = "clawock";
 /**
@@ -279,6 +279,41 @@ export type BalanceSidebarActionProps = BalancesInjected & PropsStore<BalanceSto
  * never close it.
  */
 export declare function ProviderBalanceSidebarAction(props: BalanceSidebarActionProps): React.ReactElement;
+/** Foot-action id of the task-queue surface (a stable DOM contract for probes). */
+export declare const TASK_QUEUE_PANEL = "clawock-task-queue";
+/** What the task chip's `inject` factory hands the component. */
+export interface TaskQueueInjected {
+    /** The last answer this registration fetched, or null cold. */
+    cachedTaskQueue: () => TaskQueueResult | null;
+    /** Read the queue; `force` bypasses the short host cache (the manual refresh). */
+    fetchTaskQueue: (force: boolean) => Promise<TaskQueueResult>;
+}
+export type TaskQueueSidebarActionProps = TaskQueueInjected & {
+    /** Sidebar column state: false is the 56px rail (glyph only). */
+    wide: boolean;
+    t: Translate;
+};
+/** One live task's status phrase: what it holds or what it waits for. */
+export declare function _taskStatus(task: DispatchTask, t: Translate, now?: number): {
+    tone: BalanceTone;
+    text: string;
+};
+/** The chip's headline: dot tone, slots value, and the one-line "who waits" sub-reading. */
+export declare function _queueHeadline(result: TaskQueueResult, t: Translate, now?: number): {
+    tone: BalanceTone;
+    value: string;
+    sub: string;
+    busy: boolean;
+    title: string;
+};
+/**
+ * The sidebar-foot task-queue row, directly above the balance row: live
+ * dispatch tasks and what each waits for, recent endings, and whether patrol
+ * is running, giving way or between rounds. Same foot geometry, tones, glyph
+ * badge, popover and refresh button as the balance; renders nothing on a
+ * host without the dispatcher (or before its first answer).
+ */
+export declare function TaskQueueSidebarAction(props: TaskQueueSidebarActionProps): React.ReactElement | null;
 export declare function DecisionMind(props: DecisionMindProps): React.ReactElement;
 /**
  * `layout` is listed even though the plugin only *probes* it, and that is not

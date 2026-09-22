@@ -37,6 +37,47 @@ const clawock_dsh_clawockStudio_balance_result$schema = z.object({
 })),
   'refreshMs': z.number(),
 })
+const clawock_dsh_clawockStudio_taskQueue_parameter_0$schema = z.boolean()
+const clawock_dsh_clawockStudio_taskQueue_task$schema = z.object({
+  'id': z.string(),
+  'name': z.string(),
+  'agent': z.string(),
+  'model': z.string(),
+  'state': z.string(),
+  'waiting': z.string(),
+  'slot': z.string(),
+  'attempts': z.number(),
+  'outcome': z.string(),
+  'startedAtMs': z.union([z.number(), z.literal(null)]),
+  'updatedAtMs': z.union([z.number(), z.literal(null)]),
+  'wakeAtMs': z.union([z.number(), z.literal(null)]),
+  'patrol': z.boolean(),
+})
+const clawock_dsh_clawockStudio_taskQueue_result$schema = z.object({
+  'available': z.boolean(),
+  'status': z.union([z.literal("fresh"), z.literal("cached"), z.literal("stale"), z.literal("failed")]),
+  'message': z.union([z.literal(null), z.string()]),
+  'asOf': z.string(),
+  'refreshMs': z.number(),
+  'maxRunning': z.number(),
+  'running': z.number(),
+  'active': z.array(clawock_dsh_clawockStudio_taskQueue_task$schema),
+  'recent': z.array(clawock_dsh_clawockStudio_taskQueue_task$schema),
+  'patrol': z.object({
+  'service': z.string(),
+  'phase': z.union([z.literal("running"), z.literal("yielding"), z.literal("waiting"), z.literal("stopped"), z.literal("unknown")]),
+  'round': z.string(),
+  'detail': z.string(),
+  'untilMs': z.union([z.number(), z.literal(null)]),
+  'rounds': z.array(z.object({
+  'endedAt': z.string(),
+  'round': z.string(),
+  'axis': z.string(),
+  'result': z.string(),
+  'seconds': z.union([z.number(), z.literal(null)]),
+})),
+}),
+})
 const clawock_dsh_clawockStudio_get_parameter_0$schema = z.string()
 const clawock_dsh_clawockStudio_get_result$schema = z.object({
   'runId': z.string(),
@@ -180,6 +221,31 @@ export const TYPERT = {
         schema: clawock_dsh_clawockStudio_balance_result$schema,
       },
       sourceLocation: {"file":"packages/clawock-dsh/src/index.ts","line":121,"column":3},
+    },
+    {
+      id: 'clawock-dsh#clawockStudio/taskQueue',
+      service: 'clawockStudio',
+      namespace: 'clawockStudio',
+      method: 'taskQueue',
+      invocation: { kind: 'direct' },
+      parameters: [
+        {
+          name: 'force',
+          wire: 'force',
+          source: 'json',
+          codec: {
+            mode: 'strict',
+            typeSymbol: 'clawock-dsh#clawockStudio/taskQueue:force',
+            schema: clawock_dsh_clawockStudio_taskQueue_parameter_0$schema,
+          },
+        },
+      ],
+      result: {
+        mode: 'strict',
+        typeSymbol: 'clawock-dsh/types#TaskQueueResult',
+        schema: clawock_dsh_clawockStudio_taskQueue_result$schema,
+      },
+      sourceLocation: {"file":"packages/clawock-dsh/src/index.ts","line":254,"column":3},
     },
     {
       id: 'clawock-dsh#clawockStudio/get',

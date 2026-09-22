@@ -15,6 +15,7 @@ export default defineConfig({
     ledger: 'src/ledger.ts',
     freshness: 'src/freshness.ts',
     balance: 'src/balance.ts',
+    taskqueue: 'src/taskqueue.ts',
   },
   outDir: 'lib',
   format: ['esm'],

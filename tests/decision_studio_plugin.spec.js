@@ -375,7 +375,10 @@ test("client: registers the Decision Mind tab and mounts the remote face", async
     },
     remote: {
       $mount: async (descriptors) => {
-        assert.equal(descriptors.descriptors.length, 7);
+        assert.equal(descriptors.descriptors.length, 8);
+        const queueDesc = descriptors.descriptors.find((d) => d.method === "taskQueue");
+        assert.ok(queueDesc, "taskQueue descriptor present (hand-carried wire, see build.mjs)");
+        assert.equal(queueDesc.parameters.length, 1, "taskQueue(force) must declare its argument");
         // gateway invoke() validates args against descriptor.parameters.length —
         // get(runId) must declare its argument or every call would throw.
         const getDesc = descriptors.descriptors.find((d) => d.method === "get");
@@ -2047,10 +2050,10 @@ test("client: the sidebar-foot balance opens a popover that stays open while you
   };
   await api.apply(ctx);
   for (const fn of ctx.slots._fns) fn();
-  assert.deepEqual(ctx.slots._seats, ["conversation.view", "sidebar.footer.action"],
-    "Decision Mind stays a conversation tab; the balance is one foot action — no `main` panel, no header chip");
-  const action = ctx.slots._regs.find((r) => r.definition.name === "sidebar.footer.action");
-  assert.equal(action.definition.id, "provider-balance");
+  assert.deepEqual(ctx.slots._seats, ["conversation.view", "sidebar.footer.action", "sidebar.footer.action"],
+    "Decision Mind stays a conversation tab; the task queue and the balance are foot actions — no `main` panel, no header chip");
+  const action = ctx.slots._regs.find((r) => r.definition.id === "provider-balance");
+  assert.equal(action.definition.name, "sidebar.footer.action");
 
   const tick = () => new Promise((resolve) => setImmediate(resolve));
   const store = makeBalanceStoreStub();
@@ -2177,7 +2180,7 @@ test("client: a balance fetch that fails says so instead of loading forever (#15
   };
   await api.apply(ctx);
   for (const fn of ctx.slots._fns) fn();
-  const action = ctx.slots._regs.find((r) => r.definition.name === "sidebar.footer.action");
+  const action = ctx.slots._regs.find((r) => r.definition.id === "provider-balance");
   const tick = () => new Promise((resolve) => setImmediate(resolve));
   const store = makeBalanceStoreStub();
   const face = action.definition.inject();
@@ -2580,5 +2583,185 @@ test("client: an exhausted quota row shows its 100% bars and resets instead of a
   assert.ok(texts.includes("↻ 21:00"), "the panel row carries its reset stamp");
   assert.ok(texts.includes("↻ 周四 21:00"), "so does the weekly one");
   assert.ok(texts.some((t) => t.includes("周 100% ↻周四 21:00")), "the pill's weekly suffix carries its own reset");
+  disposeReactEffects();
+});
+
+test("task queue: live waits, ended tasks and the patrol phase come from the host's own files", async () => {
+  const tq = await import(pathToFileURL(path.join(PLUGIN, "lib", "taskqueue.js")).href);
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), "clawock-queue-"));
+  const logDir = path.join(root, "tasks");
+  const patrolDir = path.join(root, "patrol");
+  fs.mkdirSync(patrolDir, { recursive: true });
+  const task = (id, meta, result, log = "") => {
+    fs.mkdirSync(path.join(logDir, id), { recursive: true });
+    fs.writeFileSync(path.join(logDir, id, "meta.env"), meta);
+    fs.writeFileSync(path.join(logDir, id, "result.env"), result);
+    if (log) fs.writeFileSync(path.join(logDir, id, "run.log"), log);
+  };
+  task("holder-20260923-010000", "AGENT=claude\nNAME=holder\nMODEL=claude-opus-5-5\n",
+    "STATE=running\nATTEMPTS=2\nWAITING=''\nSLOT=1\nMODEL_USED=claude-opus-5-5\nSTARTED=2026-09-23\\ 01:00:00\n");
+  task("waiter-20260923-011000", "AGENT=claude\nNAME=waiter\n", "STATE=queued\nATTEMPTS=0\nWAITING=lock\nSLOT=''\nSTARTED=2026-09-23\\ 01:10:00\n");
+  task("sleeper-20260923-012000", "AGENT=codex\nNAME=sleeper\nCREATED=2026-09-23\\ 01:20:00\n", "STATE=running\nATTEMPTS=1\nWAITING=quota\nSLOT=''\n",
+    "---- 2026-09-23 01:30:00 quota; sleeping until 2026-09-23 03:40:00\n");
+  // Ended: a WAITING value an interrupted runner left behind is not a wait.
+  task("cancelled-20260923-000000", "AGENT=claude\nNAME=cancelled\n",
+    "STATE=cancelled\nWAITING=lock\nUPDATED=2026-09-23\\ 02:32:23\n");
+  task("done-20260923-000100", "AGENT=codex\nNAME=done\n", "STATE=ok\nOUTCOME=DONE\nUPDATED=2026-09-23\\ 02:47:16\n");
+  task("patrol-render-20260923-000200", "AGENT=opencode\nNAME=patrol-render\n", "STATE=cancelled\nUPDATED=2026-09-23\\ 02:40:41\n");
+  const limits = path.join(root, "limits.env");
+  fs.writeFileSync(limits, "# shared\nMAX_RUNNING=2\n");
+  fs.writeFileSync(path.join(patrolDir, "rounds.tsv"),
+    "2026-09-23 02:30:07\tR137\tlogic\tpatrol-logic-x\tpreempted:cancelled\t3778s\n2026-09-23 03:55:00\tR139\tautomation\tpatrol-automation-x\tpreempted:cancelled\t4090s\n");
+  const deps = (log, service = "active") => ({
+    activeTaskIds: async () => ["holder-20260923-010000", "waiter-20260923-011000", "sleeper-20260923-012000", "gone-20260923-000000"],
+    patrolService: async () => service,
+    patrolLog: async () => log,
+  });
+  const config = { logDir, limitsPath: limits, patrolDir, recent: 5 };
+  const r = await tq.createTaskQueueService(config, deps(["2026-09-23 03:55:00 next round in 300s"])).get(true);
+  assert.equal(r.available, true);
+  assert.equal(r.status, "fresh");
+  assert.equal(r.maxRunning, 2, "the slot count comes from limits.env, not a constant");
+  assert.equal(r.running, 1);
+  assert.deepEqual(r.active.map((t) => [t.name, t.waiting, t.slot]),
+    [["holder", "", "1"], ["waiter", "lock", ""], ["sleeper", "quota", ""]],
+    "live tasks oldest first; an active unit without a task dir is skipped");
+  assert.equal(r.active[0].model, "claude-opus-5-5");
+  assert.equal(r.active[0].attempts, 2);
+  assert.equal(r.active[0].startedAtMs, new Date(2026, 8, 23, 1, 0, 0).getTime(), "%q-escaped stamps parse");
+  assert.equal(r.active[2].wakeAtMs, new Date(2026, 8, 23, 3, 40, 0).getTime(), "quota wake time from the run log");
+  assert.deepEqual(r.recent.map((t) => [t.name, t.state, t.waiting]), [["done", "ok", ""], ["cancelled", "cancelled", ""]],
+    "ended tasks newest first by UPDATED, patrol rounds excluded, stale WAITING dropped");
+  assert.equal(r.patrol.phase, "waiting");
+  assert.equal(r.patrol.untilMs, new Date(2026, 8, 23, 4, 0, 0).getTime(), "next round due = log stamp + gap");
+  assert.deepEqual(r.patrol.rounds.map((x) => [x.round, x.result, x.seconds]),
+    [["R139", "preempted:cancelled", 4090], ["R137", "preempted:cancelled", 3778]]);
+
+  const phase = (log, service, round = "", alive = false) => tq.patrolPhase(service, round, alive, log).phase;
+  assert.equal(phase(["2026-09-23 03:54:58 preempting patrol-a: x is waiting for its agent lock"], "active", "patrol-a", true), "yielding",
+    "a round being cancelled for a user task reads as giving way");
+  assert.equal(phase(["2026-09-23 02:45:42 waiting: all 2 run slots are busy"], "active"), "yielding");
+  assert.equal(phase(["2026-09-23 04:00:08 round R140 (recent) dispatched as patrol-b"], "active", "patrol-b", true), "running");
+  assert.equal(phase(["2026-09-23 04:00:08 round R140 (recent) dispatched as patrol-b"], "inactive", "patrol-b", true), "stopped");
+
+  assert.equal(tq.unquoteShell("''"), "");
+  assert.equal(tq.unquoteShell("$'a\\nb'"), "a\nb");
+  assert.equal(tq.unquoteShell("2026-09-24\\ 02:38:43"), "2026-09-24 02:38:43");
+
+  const none = await tq.createTaskQueueService({ ...config, logDir: path.join(root, "absent") }, deps([])).get(false);
+  assert.equal(none.available, false, "no dispatcher on this host: the chip stays away");
+  assert.deepEqual(none.active, []);
+  fs.rmSync(root, { recursive: true, force: true });
+});
+
+test("client: the task queue sits above the balance and shows who waits for what", async () => {
+  const loaded = await loadClient();
+  const reactStub = makeReactStub();
+  const api = loaded.factory((s) => {
+    if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
+    if (s === "react") return reactStub;
+    throw new Error(`unexpected require: ${s}`);
+  });
+  const now = Date.now();
+  const QUEUE = {
+    available: true, status: "fresh", message: null, asOf: AS_OF, refreshMs: 15000, maxRunning: 2, running: 2,
+    active: [
+      { id: "a-1", name: "patrol-source-sync", agent: "claude", model: "claude-opus-5-5", state: "running", waiting: "", slot: "1",
+        attempts: 2, outcome: "", startedAtMs: now - 65 * 60000, updatedAtMs: now, wakeAtMs: null, patrol: false },
+      { id: "b-1", name: "model-bump", agent: "claude", model: "claude-opus-5-5", state: "queued", waiting: "lock", slot: "",
+        attempts: 0, outcome: "", startedAtMs: now - 60000, updatedAtMs: now, wakeAtMs: null, patrol: false },
+      { id: "patrol-recent-1", name: "patrol-recent", agent: "opencode", model: "opencode/x", state: "running", waiting: "", slot: "2",
+        attempts: 1, outcome: "", startedAtMs: now - 60000, updatedAtMs: now, wakeAtMs: null, patrol: true },
+    ],
+    recent: [{ id: "c-1", name: "merge-pr1767", agent: "codex", model: "gpt", state: "ok", waiting: "", slot: "", attempts: 1,
+      outcome: "DONE", startedAtMs: now - 3600000, updatedAtMs: now - 30 * 60000, wakeAtMs: null, patrol: false }],
+    patrol: { service: "active", phase: "yielding", round: "patrol-recent-1", detail: "preempting patrol-recent-1: b-1 is waiting for its agent lock",
+      untilMs: null, rounds: [{ endedAt: "2026-09-23 03:55:00", round: "R139", axis: "automation", result: "preempted:cancelled", seconds: 4090 }] },
+  };
+  let forced = 0;
+  let answer = QUEUE;
+  const remoteFace = {
+    balance: async () => ({ ok: true, value: QUIET_BALANCES }),
+    taskQueue: async (force) => { if (force) forced += 1; return { ok: true, value: answer }; },
+  };
+  const ctx = {
+    effect() {},
+    locale: { register() { return () => {}; } },
+    get() { return remoteFace; },
+    layout: { selectPanel() {} },
+    slots: {
+      inject(name, fn) { (this._seats ??= []).push(name); (this._fns ??= []).push(fn); },
+      register(definition, Component) { (this._regs ??= []).push({ definition, Component }); },
+    },
+    remote: { $mount: async () => {} },
+  };
+  await api.apply(ctx);
+  for (const fn of ctx.slots._fns) fn();
+  const feet = ctx.slots._regs.filter((r) => r.definition.name === "sidebar.footer.action");
+  assert.deepEqual(feet.map((r) => r.definition.id), ["dispatch-queue", "provider-balance"],
+    "registered first, so it renders above the balance");
+  assert.ok(feet[0].definition.order < (feet[1].definition.order ?? 0), "and ordered first");
+
+  const face = feet[0].definition.inject();
+  const t = translatorFor(api);
+  const render = (wide = true) => { reactStub._resetCursor(); return feet[0].Component({ wide, t, ...face }); };
+  const tick = () => new Promise((resolve) => setImmediate(resolve));
+  const find = (tree, pred) => {
+    const out = [];
+    (function walk(node) {
+      if (node == null) return;
+      if (Array.isArray(node)) { node.forEach(walk); return; }
+      if (typeof node !== "object") return;
+      if (pred(node.props || {})) out.push(node);
+      (node.children || []).forEach(walk);
+    })(tree);
+    return out;
+  };
+  const texts = (tree) => {
+    const out = [];
+    (function walk(node) {
+      if (node == null) return;
+      if (Array.isArray(node)) { node.forEach(walk); return; }
+      if (typeof node === "string") { out.push(node); return; }
+      (node.children || []).forEach(walk);
+    })(tree);
+    return out.join(" ");
+  };
+  assert.equal(render(), null, "nothing renders before the first answer");
+  await tick(); await tick();
+  const foot = render();
+  const trigger = find(foot, (p) => p["data-clawock-action"] === api.TASK_QUEUE_PANEL)[0];
+  assert.equal(trigger.props["data-balance-state"], "ok");
+  assert.match(texts(trigger), /任务/);
+  assert.match(texts(trigger), /槽 2\/2/);
+  assert.match(texts(trigger), /排队 1/);
+  assert.match(texts(trigger), /巡检让路中/, "patrol giving way is visible on the row itself");
+  const classes = find(foot, (p) => typeof p.className === "string").flatMap((n) => n.props.className.split(" "));
+  assert.deepEqual(classes.filter((c) => c !== "" && !/^[A-Za-z0-9_-]+_[a-z0-9-]+$/.test(c)), [],
+    "every rendered class resolves through the stylesheet");
+
+  trigger.props.onClick();
+  const open = render();
+  const popover = find(open, (p) => p["data-clawock-popover"] === api.TASK_QUEUE_PANEL)[0];
+  assert.equal(popover.props["data-open"], "true");
+  const rows = find(popover, (p) => p["data-tq-task"] !== undefined);
+  assert.deepEqual(rows.map((r) => [r.props["data-tq-task"], r.props["data-tq-waiting"]]),
+    [["a-1", ""], ["b-1", "lock"], ["patrol-recent-1", ""], ["c-1", ""]]);
+  assert.match(texts(rows[0]), /运行中 · 槽 1/);
+  assert.match(texts(rows[0]), /已跑 1 小时 5 分 · 第 2 次/);
+  assert.match(texts(rows[1]), /等 claude 锁/);
+  assert.match(texts(rows[3]), /ok \/ DONE/);
+  assert.match(texts(popover), /R139 automation · preempted:cancelled · 1 小时 8 分/);
+  assert.equal(find(popover, (p) => p["data-tq-patrol"] !== undefined)[0].props["data-tq-patrol"], "yielding");
+
+  find(popover, (p) => p["data-refresh"] === "true")[0].props.onClick();
+  await tick(); await tick();
+  assert.equal(forced, 1, "the refresh button forces one host read");
+
+  // A host without the dispatcher answers available:false and the row disappears.
+  answer = { ...QUEUE, available: false, active: [], recent: [] };
+  find(popover, (p) => p["data-refresh"] === "true")[0].props.onClick();
+  await tick(); await tick();
+  assert.equal(render(), null);
   disposeReactEffects();
 });

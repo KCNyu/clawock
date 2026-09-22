@@ -1,5 +1,6 @@
 import { createBalanceService, createClaudeService, createCodexService, createMinimaxService } from "./balance.js";
 import { getRun, listRuns } from "./scan.js";
+import { createTaskQueueService } from "./taskqueue.js";
 import { readLedger, readPlans, readPortfolio, readTraces } from "./ledger.js";
 import { createTraceCache, workspaceKeyOf, workspaceSignature } from "./freshness.js";
 import { Remote, TypertRemoteService } from "@deepseek-ai/dsh-typert-protocol";
@@ -110,6 +111,7 @@ let ClawockStudioGateway = (() => {
 	let _plans_decorators;
 	let _traces_decorators;
 	let _balance_decorators;
+	let _taskQueue_decorators;
 	return class ClawockStudioGateway extends _classSuper {
 		static {
 			const _metadata = typeof Symbol === "function" && Symbol.metadata ? Object.create(_classSuper[Symbol.metadata] ?? null) : void 0;
@@ -120,6 +122,7 @@ let ClawockStudioGateway = (() => {
 			_plans_decorators = [Remote];
 			_traces_decorators = [Remote];
 			_balance_decorators = [Remote];
+			_taskQueue_decorators = [Remote];
 			__esDecorate(this, null, _list_decorators, {
 				kind: "method",
 				name: "list",
@@ -197,6 +200,17 @@ let ClawockStudioGateway = (() => {
 				},
 				metadata: _metadata
 			}, null, _instanceExtraInitializers);
+			__esDecorate(this, null, _taskQueue_decorators, {
+				kind: "method",
+				name: "taskQueue",
+				static: false,
+				private: false,
+				access: {
+					has: (obj) => "taskQueue" in obj,
+					get: (obj) => obj.taskQueue
+				},
+				metadata: _metadata
+			}, null, _instanceExtraInitializers);
 			if (_metadata) Object.defineProperty(this, Symbol.metadata, {
 				enumerable: true,
 				configurable: true,
@@ -224,6 +238,8 @@ let ClawockStudioGateway = (() => {
 		* the gateway constructor keeps the exact super(ctx, serviceKey) shape.
 		*/
 		balanceServices = null;
+		/** The task chip's reader, lazily built and instance-scoped like the balance services. */
+		taskQueueService = null;
 		/**
 		* The row config, owned by the instance. cordis constructs a class plugin as
 		* `new Plugin(ctx, config)` (Fiber's runner), so the constructor already
@@ -303,6 +319,22 @@ let ClawockStudioGateway = (() => {
 				})),
 				refreshMs: Math.min(...results.map((result) => result.refreshMs))
 			};
+		}
+		/**
+		* The sidebar-foot task chip: live agent-dispatch tasks and what each waits
+		* for, the recently ended ones, and the clawock-patrol supervisor's phase.
+		* Local files and systemctl only; in-band like balance(), never throws.
+		* @param force - bypass the short host cache (the manual refresh button).
+		*/
+		async taskQueue(force) {
+			if (this.taskQueueService === null) this.taskQueueService = createTaskQueueService({
+				logDir: this.config.dispatchLogDir,
+				limitsPath: this.config.dispatchLimitsPath,
+				patrolDir: this.config.patrolStateDir,
+				refreshMs: this.config.taskQueueRefreshMs,
+				recent: this.config.taskQueueRecent
+			});
+			return this.taskQueueService.get(force);
 		}
 	};
 })();

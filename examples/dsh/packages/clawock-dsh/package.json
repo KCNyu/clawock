@@ -63,6 +63,7 @@
     "lib/index.js",
     "lib/client.js",
     "lib/balance.js",
+    "lib/taskqueue.js",
     "lib/scan.js",
     "lib/ledger.js",
     "lib/freshness.js",

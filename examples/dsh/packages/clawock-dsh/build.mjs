@@ -93,6 +93,7 @@ await wrapWebClient(join(pkg, 'lib/client.js'))
 await patchTypertAlignment()
 await patchTypertSide()
 await patchTypertBalance()
+await patchTypertTaskQueue()
 await patchTypertVerdictKind()
 
 /**
@@ -179,6 +180,101 @@ const clawock_dsh_clawockStudio_balance_result$schema = z.object({
     source = source.replace(invocationAnchor, `${balanceInvocation}${invocationAnchor}`)
     await writeFile(file, source)
     console.log(`patched ${rel}: +clawockStudio.balance`)
+  }
+}
+
+
+/**
+ * The task-queue chip's Remote method, hand-carried for the same reason as
+ * balance above. The client bundle inlines typert.remote-client.js as
+ * committed, so a change here needs two builds before lib/client.js carries
+ * it (CI builds once from the committed, already-patched artifact).
+ */
+async function patchTypertTaskQueue() {
+  const files = ['lib/typert.host.js', 'lib/typert.remote-client.js']
+  const invocationMarker = `id: 'clawock-dsh#clawockStudio/taskQueue',`
+  const schemaAnchor = 'const clawock_dsh_clawockStudio_get_parameter_0$schema = z.string()'
+  const invocationAnchor = `    {
+      id: 'clawock-dsh#clawockStudio/get',`
+  const schemas = `const clawock_dsh_clawockStudio_taskQueue_parameter_0$schema = z.boolean()
+const clawock_dsh_clawockStudio_taskQueue_task$schema = z.object({
+  'id': z.string(),
+  'name': z.string(),
+  'agent': z.string(),
+  'model': z.string(),
+  'state': z.string(),
+  'waiting': z.string(),
+  'slot': z.string(),
+  'attempts': z.number(),
+  'outcome': z.string(),
+  'startedAtMs': z.union([z.number(), z.literal(null)]),
+  'updatedAtMs': z.union([z.number(), z.literal(null)]),
+  'wakeAtMs': z.union([z.number(), z.literal(null)]),
+  'patrol': z.boolean(),
+})
+const clawock_dsh_clawockStudio_taskQueue_result$schema = z.object({
+  'available': z.boolean(),
+  'status': z.union([z.literal("fresh"), z.literal("cached"), z.literal("stale"), z.literal("failed")]),
+  'message': z.union([z.literal(null), z.string()]),
+  'asOf': z.string(),
+  'refreshMs': z.number(),
+  'maxRunning': z.number(),
+  'running': z.number(),
+  'active': z.array(clawock_dsh_clawockStudio_taskQueue_task$schema),
+  'recent': z.array(clawock_dsh_clawockStudio_taskQueue_task$schema),
+  'patrol': z.object({
+  'service': z.string(),
+  'phase': z.union([z.literal("running"), z.literal("yielding"), z.literal("waiting"), z.literal("stopped"), z.literal("unknown")]),
+  'round': z.string(),
+  'detail': z.string(),
+  'untilMs': z.union([z.number(), z.literal(null)]),
+  'rounds': z.array(z.object({
+  'endedAt': z.string(),
+  'round': z.string(),
+  'axis': z.string(),
+  'result': z.string(),
+  'seconds': z.union([z.number(), z.literal(null)]),
+})),
+}),
+})
+`
+  const invocation = `    {
+      id: 'clawock-dsh#clawockStudio/taskQueue',
+      service: 'clawockStudio',
+      namespace: 'clawockStudio',
+      method: 'taskQueue',
+      invocation: { kind: 'direct' },
+      parameters: [
+        {
+          name: 'force',
+          wire: 'force',
+          source: 'json',
+          codec: {
+            mode: 'strict',
+            typeSymbol: 'clawock-dsh#clawockStudio/taskQueue:force',
+            schema: clawock_dsh_clawockStudio_taskQueue_parameter_0$schema,
+          },
+        },
+      ],
+      result: {
+        mode: 'strict',
+        typeSymbol: 'clawock-dsh/types#TaskQueueResult',
+        schema: clawock_dsh_clawockStudio_taskQueue_result$schema,
+      },
+      sourceLocation: {"file":"packages/clawock-dsh/src/index.ts","line":254,"column":3},
+    },
+`
+  for (const rel of files) {
+    const file = join(pkg, rel)
+    let source = await readFile(file, 'utf8')
+    if (source.includes(invocationMarker)) continue
+    if (!source.includes(schemaAnchor) || !source.includes(invocationAnchor)) {
+      throw new Error(`patchTypertTaskQueue: anchor missing in ${rel} — generator output changed?`)
+    }
+    source = source.replace(schemaAnchor, `${schemas}${schemaAnchor}`)
+    source = source.replace(invocationAnchor, `${invocation}${invocationAnchor}`)
+    await writeFile(file, source)
+    console.log(`patched ${rel}: +clawockStudio.taskQueue`)
   }
 }
 
