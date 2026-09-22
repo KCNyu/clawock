@@ -70,7 +70,7 @@ def patrol(tmp_path):
         task(OWN_ROUND, result, agent="opencode")
         (tmp_path / "current-round").write_text(OWN_ROUND + "\n")
 
-    ask.task, ask.own_round = task, own_round
+    ask.task, ask.own_round, ask.env = task, own_round, env
     return ask
 
 
@@ -167,11 +167,7 @@ rm -f "$PATROL_STATE_DIR/active"
 ''')
     dispatch.chmod(0o755)
     result = subprocess.run(["bash", "-c", 'source "$1"; ' + RUN_ROUND, "test", str(SCRIPT)],
-                            env=dict(os.environ, PATROL_DISPATCH_DIR=str(tmp_path / "dispatch"),
-                                     PATROL_STATE_DIR=str(tmp_path),
-                                     PATROL_TASKS_DIR=str(tmp_path / "tasks"),
-                                     PATH=f"{tmp_path}:{os.environ['PATH']}"),
-                            capture_output=True, text=True, timeout=10)
+                            env=patrol.env, capture_output=True, text=True, timeout=10)
     assert result.returncode == 1, result.stdout + result.stderr
     assert "preempting " + OWN_ROUND + ": claude-task is waiting for its agent lock" in result.stdout
     assert (tmp_path / "actions").read_text() == f"cancel {OWN_ROUND}\n"
@@ -180,12 +176,12 @@ rm -f "$PATROL_STATE_DIR/active"
     assert not (tmp_path / "current-round").exists()
 
 
-def test_supervisor_stop_leaves_the_round_for_adoption(tmp_path):
+def test_supervisor_stop_leaves_the_round_for_adoption(patrol, tmp_path):
     (tmp_path / "current-round").write_text(OWN_ROUND + "\n")
     result = subprocess.run(
         ["bash", "-c", 'source "$1"; DISPATCH=/must-not-cancel; round_active() { :; }; on_stop',
          "test", str(SCRIPT)],
-        env=dict(os.environ, PATROL_STATE_DIR=str(tmp_path)), capture_output=True, text=True, timeout=5)
+        env=patrol.env, capture_output=True, text=True, timeout=5)
     assert result.returncode == 0, result.stderr
     assert result.stderr == ""
     assert (tmp_path / "current-round").read_text() == OWN_ROUND + "\n"
@@ -196,10 +192,10 @@ def test_supervisor_stop_leaves_the_round_for_adoption(tmp_path):
     ("STATE=partial\nOUTCOME=PARTIAL\n", "older\n"),
     ("STATE=unverified\nOUTCOME=''\n", "older\n"),
 ])
-def test_only_a_done_recent_round_advances_the_review_cursor(tmp_path, result_env, cursor):
+def test_only_a_done_recent_round_advances_the_review_cursor(patrol, tmp_path, result_env, cursor):
     rid = "patrol-recent-20260921-120000"
     task = tmp_path / "tasks" / rid
-    task.mkdir(parents=True)
+    task.mkdir()
     (task / "meta.env").write_text("CREATED='2026-09-21 12:00:00'\n")
     (task / "result.env").write_text(result_env)
     (tmp_path / "round-no").write_text("5\n")
@@ -207,7 +203,6 @@ def test_only_a_done_recent_round_advances_the_review_cursor(tmp_path, result_en
     (tmp_path / "recent-since").write_text("older\n")
     result = subprocess.run(
         ["bash", "-c", 'source "$1"; round_active() { return 1; }; ' + RUN_ROUND, "test", str(SCRIPT)],
-        env=dict(os.environ, PATROL_STATE_DIR=str(tmp_path), PATROL_TASKS_DIR=str(tmp_path / "tasks")),
-        capture_output=True, text=True, timeout=10)
+        env=patrol.env, capture_output=True, text=True, timeout=10)
     assert result.returncode == 0, result.stdout + result.stderr
     assert (tmp_path / "recent-since").read_text() == cursor
