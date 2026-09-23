@@ -137,20 +137,20 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'balance.reset.today': '今天 {time}', 'balance.reset.tomorrow': '明天 {time}',
     'balance.reset.dated': '{date} {weekday} {time}',
     'queue.name': '任务', 'queue.panelTitle': '派发任务队列', 'queue.panelHeading': '派发队列',
-    'queue.refresh': '刷新任务队列', 'queue.slots': '槽 {used}/{max}', 'queue.slotsLine': '运行槽 {used}/{max} 已占用',
+    'queue.refresh': '刷新任务队列', 'queue.slots': '槽 {used}/{max}', 'queue.slotsHeading': '运行槽', 'queue.slotsCount': '{used}/{max}',
     'queue.queued': '排队 {n}', 'queue.quotaWait': '等额度 {n}', 'queue.idle': '没有在跑的任务',
     'queue.readFailed': '任务队列读取失败:{message}', 'queue.staleWith': '刷新失败,显示最近一次: {message}',
     'queue.state.running': '运行中 · 槽 {slot}', 'queue.state.starting': '启动中',
     'queue.wait.lock': '等 {agent} 锁', 'queue.wait.slot': '等运行槽', 'queue.wait.memory': '等内存',
     'queue.wait.quota': '等额度 · {time} 续跑', 'queue.wait.quotaNoTime': '等额度',
     'queue.wait.retry': '重试等待 · {time}', 'queue.wait.retryNoTime': '重试等待',
-    'queue.detail': '{agent} · {model} · 已跑 {elapsed} · 第 {attempts} 次',
-    'queue.recentHeading': '最近结束', 'queue.ended': '{agent} · {ago}',
-    'queue.patrolHeading': '巡检', 'queue.patrolRound': '当前轮次 {round}',
+    'queue.meta': '{agent} · {model}', 'queue.run': '已跑 {elapsed} · 第 {attempts} 次',
+    'queue.waitHeading': '排队 / 等待', 'queue.noneRunning': '没有占用运行槽的任务', 'queue.noneWaiting': '没有排队或等待的任务',
+    'queue.recentHeading': '最近结束',
+    'queue.patrolHeading': '巡检', 'queue.patrolRound': '当前轮次 {round}', 'queue.roundsHeading': '最近几轮',
     'queue.patrol.running': '巡检运行中', 'queue.patrol.yielding': '巡检让路中',
     'queue.patrol.waiting': '巡检等待下一轮', 'queue.patrol.waitingUntil': '巡检 {time} 开下一轮',
     'queue.patrol.stopped': '巡检已停', 'queue.patrol.unknown': '巡检状态未知',
-    'queue.patrolRow': '{round} {axis} · {result} · {took}',
     'queue.duration.minutes': '{m} 分', 'queue.duration.hours': '{h} 小时 {m} 分',
     'queue.ago.minutes': '{m} 分钟前', 'queue.ago.hours': '{h} 小时前', 'queue.ago.days': '{d} 天前',
   },
@@ -210,20 +210,20 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'balance.reset.today': 'today {time}', 'balance.reset.tomorrow': 'tomorrow {time}',
     'balance.reset.dated': '{date} {weekday} {time}',
     'queue.name': 'Tasks', 'queue.panelTitle': 'Dispatch task queue', 'queue.panelHeading': 'Dispatch queue',
-    'queue.refresh': 'Refresh the task queue', 'queue.slots': 'slots {used}/{max}', 'queue.slotsLine': '{used} of {max} run slots in use',
+    'queue.refresh': 'Refresh the task queue', 'queue.slots': 'slots {used}/{max}', 'queue.slotsHeading': 'Run slots', 'queue.slotsCount': '{used}/{max}',
     'queue.queued': '{n} queued', 'queue.quotaWait': '{n} waiting on quota', 'queue.idle': 'No task running',
     'queue.readFailed': 'Task queue read failed: {message}', 'queue.staleWith': 'Refresh failed, showing the last read: {message}',
     'queue.state.running': 'running · slot {slot}', 'queue.state.starting': 'starting',
     'queue.wait.lock': 'waiting for the {agent} lock', 'queue.wait.slot': 'waiting for a run slot', 'queue.wait.memory': 'waiting for memory',
     'queue.wait.quota': 'quota wait · resumes {time}', 'queue.wait.quotaNoTime': 'quota wait',
     'queue.wait.retry': 'retry wait · {time}', 'queue.wait.retryNoTime': 'retry wait',
-    'queue.detail': '{agent} · {model} · {elapsed} · attempt {attempts}',
-    'queue.recentHeading': 'Recently ended', 'queue.ended': '{agent} · {ago}',
-    'queue.patrolHeading': 'Patrol', 'queue.patrolRound': 'current round {round}',
+    'queue.meta': '{agent} · {model}', 'queue.run': '{elapsed} · attempt {attempts}',
+    'queue.waitHeading': 'Queued / waiting', 'queue.noneRunning': 'No task holds a slot', 'queue.noneWaiting': 'Nothing queued or waiting',
+    'queue.recentHeading': 'Recently ended',
+    'queue.patrolHeading': 'Patrol', 'queue.patrolRound': 'current round {round}', 'queue.roundsHeading': 'Recent rounds',
     'queue.patrol.running': 'patrol running', 'queue.patrol.yielding': 'patrol giving way',
     'queue.patrol.waiting': 'patrol between rounds', 'queue.patrol.waitingUntil': 'patrol next round {time}',
     'queue.patrol.stopped': 'patrol stopped', 'queue.patrol.unknown': 'patrol state unknown',
-    'queue.patrolRow': '{round} {axis} · {result} · {took}',
     'queue.duration.minutes': '{m}m', 'queue.duration.hours': '{h}h {m}m',
     'queue.ago.minutes': '{m}m ago', 'queue.ago.hours': '{h}h ago', 'queue.ago.days': '{d}d ago',
   },
@@ -1512,15 +1512,57 @@ function renderQueueGlyph(tone: BalanceTone, size: number, instanceId: string): 
       : null)
 }
 
-function renderTaskRow(task: DispatchTask, status: { tone: BalanceTone; text: string }, sub: string): React.ReactElement {
-  return h('div', { key: task.id, className: cx('bp-row', 'tq-row'), 'data-tq-task': task.id, 'data-tq-waiting': task.waiting },
-    h('span', { className: cx('bp-dot'), 'data-balance-state': status.tone }),
-    h('span', { className: cx('bp-label') }, task.name),
-    h('span', { className: cx('tq-v'), 'data-balance-state': status.tone }, status.text),
-    h('div', { className: cx('bp-sub') }, sub))
+/** What a task row shows: status on the right of the name, facts left and numbers right below. */
+type TaskRowView = { tone: BalanceTone; text: string; meta: string; num: string }
+
+/** Which task rows are unfolded to their full name/meta (toggled by clicking the row). */
+type RowFold = { expanded: string[]; toggle: (id: string) => void }
+
+/**
+ * One task: dot · name (ellipsis) · status, then agent/model under the name
+ * and the numbers under the status, so every row lines up on the same three
+ * columns. A click unfolds the full name and meta; nothing else happens.
+ */
+function renderTaskRow(task: DispatchTask, view: TaskRowView, fold: RowFold): React.ReactElement {
+  const expanded = fold.expanded.includes(task.id)
+  return h('button', {
+    type: 'button',
+    key: task.id,
+    className: cx('bp-row', 'tq-row'),
+    'data-tq-task': task.id,
+    'data-tq-waiting': task.waiting,
+    'data-expanded': expanded ? '' : undefined,
+    'aria-expanded': expanded,
+    title: task.name,
+    onClick: () => { fold.toggle(task.id) },
+  },
+    h('span', { className: cx('bp-dot'), 'data-balance-state': view.tone }),
+    h('span', { className: cx('tq-name') }, task.name),
+    h('span', { className: cx('tq-v'), 'data-balance-state': view.tone }, view.text),
+    h('span', { className: cx('tq-meta') }, view.meta),
+    h('span', { className: cx('tq-num') }, view.num))
 }
 
-function renderQueuePanelBody(state: ReturnType<typeof useTaskQueue>, t: Translate, now: number): Array<React.ReactElement | null> {
+/** A section heading: title left, its count right-aligned. */
+function renderQueueSection(key: string, title: string, count: string | null): React.ReactElement {
+  return h('div', { className: cx('tq-sec'), key: key + '-head' },
+    h('span', { className: cx('bp-title') }, title),
+    count === null ? null : h('span', { className: cx('tq-count') }, count))
+}
+
+/** Patrol's dot: running green, giving way amber, otherwise quiet grey. */
+function patrolTone(phase: string): BalanceTone {
+  if (phase === 'running') return 'ok'
+  if (phase === 'yielding') return 'stale'
+  return 'none'
+}
+
+/**
+ * The panel, in the order the questions come: who holds a run slot → who is
+ * queued and for what (lock / slot / memory / quota with its wake time) →
+ * what just ended → what patrol is doing and its last rounds.
+ */
+function renderQueuePanelBody(state: ReturnType<typeof useTaskQueue>, t: Translate, now: number, fold: RowFold): Array<React.ReactElement | null> {
   const { data, refresh } = state
   const result = data.result
   const head = h('div', { className: cx('bp-head'), key: 'head' },
@@ -1539,31 +1581,52 @@ function renderQueuePanelBody(state: ReturnType<typeof useTaskQueue>, t: Transla
   }
   const problem = data.error ?? (result.status === 'stale' || result.status === 'failed' ? result.message : null)
   const patrol = result.patrol
+  const liveView = (task: DispatchTask): TaskRowView => ({
+    ..._taskStatus(task, t, now),
+    meta: t('queue.meta', { agent: task.agent, model: task.model || '—' }),
+    num: t('queue.run', {
+      attempts: task.attempts,
+      elapsed: task.startedAtMs === null ? '—' : durationOf(t, now - task.startedAtMs),
+    }),
+  })
+  const holding = result.active.filter((task) => task.slot !== '')
+  const waiting = result.active.filter((task) => task.slot === '')
+  const rows = (key: string, tasks: DispatchTask[], empty: string, view: (task: DispatchTask) => TaskRowView) => tasks.length === 0
+    ? h('div', { className: cx('bp-sub', 'tq-empty'), key }, empty)
+    : h('div', { className: cx('tq-rows'), key }, tasks.map((task) => renderTaskRow(task, view(task), fold)))
   return [
     head,
     problem !== null && problem !== ''
       ? h('div', { className: cx('bp-note', 'warn'), key: 'error', role: 'status' }, t('queue.staleWith', { message: problem }))
       : null,
-    h('div', { className: cx('bp-sub', 'tq-line'), key: 'slots' }, t('queue.slotsLine', { used: result.running, max: result.maxRunning })),
-    result.active.length === 0
-      ? h('div', { className: cx('bp-empty'), key: 'idle' }, t('queue.idle'))
-      : h('div', { key: 'active' }, result.active.map((task) => renderTaskRow(task, _taskStatus(task, t, now), t('queue.detail', {
-        agent: task.agent, model: task.model || '—', attempts: task.attempts,
-        elapsed: task.startedAtMs === null ? '—' : durationOf(t, now - task.startedAtMs),
-      })))),
-    h('div', { className: cx('bp-title', 'tq-sec'), key: 'patrol-head' }, t('queue.patrolHeading')),
-    h('div', { className: cx('bp-sub', 'tq-line'), key: 'patrol', 'data-tq-patrol': patrol.phase },
-      [patrolPhraseOf(result, t, now), patrol.round !== '' ? t('queue.patrolRound', { round: patrol.round }) : null, patrol.detail || null]
-        .filter((part) => part !== null).join(' · ')),
-    ...patrol.rounds.map((round) => h('div', { className: cx('bp-sub', 'tq-line'), key: 'round-' + round.endedAt + round.round },
-      t('queue.patrolRow', {
-        round: round.round, axis: round.axis, result: round.result,
-        took: round.seconds === null ? '—' : durationOf(t, round.seconds * 1000),
-      }))),
-    result.recent.length === 0 ? null : h('div', { className: cx('bp-title', 'tq-sec'), key: 'recent-head' }, t('queue.recentHeading')),
-    result.recent.length === 0 ? null : h('div', { key: 'recent' }, result.recent.map((task) => renderTaskRow(task, {
-      tone: endedTone(task), text: task.state + (task.outcome !== '' ? ' / ' + task.outcome : ''),
-    }, t('queue.ended', { agent: task.agent, ago: task.updatedAtMs === null ? '—' : agoOf(t, now - task.updatedAtMs) })))),
+    renderQueueSection('slots', t('queue.slotsHeading'), t('queue.slotsCount', { used: result.running, max: result.maxRunning })),
+    rows('holding', holding, t('queue.noneRunning'), liveView),
+    renderQueueSection('waiting', t('queue.waitHeading'), String(waiting.length)),
+    rows('waiting', waiting, t('queue.noneWaiting'), liveView),
+    result.recent.length === 0 ? null : renderQueueSection('recent', t('queue.recentHeading'), String(result.recent.length)),
+    result.recent.length === 0 ? null : rows('recent', result.recent, '', (task) => ({
+      tone: endedTone(task),
+      text: task.state + (task.outcome !== '' ? ' / ' + task.outcome : ''),
+      meta: task.agent,
+      num: task.updatedAtMs === null ? '—' : agoOf(t, now - task.updatedAtMs),
+    })),
+    renderQueueSection('patrol', t('queue.patrolHeading'), null),
+    h('div', { className: cx('tq-patrol'), key: 'patrol', 'data-tq-patrol': patrol.phase },
+      h('span', { className: cx('bp-dot'), 'data-balance-state': patrolTone(patrol.phase) }),
+      h('span', { className: cx('tq-name') }, patrolPhraseOf(result, t, now)),
+      patrol.round !== '' ? h('span', { className: cx('tq-meta'), title: patrol.round }, t('queue.patrolRound', { round: patrol.round })) : null,
+      patrol.detail !== '' ? h('span', { className: cx('tq-meta', 'tq-wrap') }, patrol.detail) : null),
+    patrol.rounds.length === 0 ? null : h('div', { className: cx('bp-sub', 'tq-caption'), key: 'rounds-head' }, t('queue.roundsHeading')),
+    patrol.rounds.length === 0 ? null : h('div', { className: cx('tq-rounds'), key: 'rounds' },
+      patrol.rounds.flatMap((round) => {
+        const key = 'round-' + round.endedAt + round.round
+        return [
+          h('span', { className: cx('tq-round-id'), key: key + '-id' }, round.round),
+          h('span', { className: cx('tq-round-axis'), key: key + '-axis' }, round.axis),
+          h('span', { className: cx('tq-round-result'), key: key + '-result' }, round.result),
+          h('span', { className: cx('tq-num'), key: key + '-took' }, round.seconds === null ? '—' : durationOf(t, round.seconds * 1000)),
+        ]
+      })),
   ]
 }
 
@@ -1579,6 +1642,11 @@ export function TaskQueueSidebarAction(props: TaskQueueSidebarActionProps): Reac
   const state = useTaskQueue(props)
   const { open, setOpen, anchor, place, rootRef } = useFootPopover()
   const instanceId = useId()
+  const [expanded, setExpanded] = useState<string[]>([])
+  const fold: RowFold = {
+    expanded,
+    toggle: (id) => { setExpanded((ids) => ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]) },
+  }
   const result = state.data.result
   if (result === null || !result.available) return null
   const now = Date.now()
@@ -1609,7 +1677,7 @@ export function TaskQueueSidebarAction(props: TaskQueueSidebarActionProps): Reac
     h('div', panelAttrs(open, t('queue.panelTitle'), {
       'data-clawock-popover': TASK_QUEUE_PANEL,
       ...(anchor === null ? {} : { style: { left: anchor.left + 'px', bottom: anchor.bottom + 'px' } }),
-    }), renderQueuePanelBody(state, t, now)))
+    }), renderQueuePanelBody(state, t, now, fold)))
 }
 
 export function DecisionMind(props: DecisionMindProps): React.ReactElement {

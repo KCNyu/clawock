@@ -1708,32 +1708,78 @@ body[data-ds-dark-theme] .pbc .bp {
   }
 }
 /* Dispatch task queue: the foot row directly above the balance, in the same
-   chip language — .pbc tokens, .bchip row, glyph badge, glass popover. The
-   host lays its foot actions out in a flex ROW, which would put the two rows
-   side by side; the container holding this row stacks them instead (rail:
-   centred, like the host's own collapsed foot). Without :has() support the
-   rows sit side by side, still usable. */
-:has(> .pbc.tqf) {
+   chip language — .pbc tokens, .bchip row, glyph badge, glass popover.
+
+   Stacking. The host lays its foot actions out in a flex ROW
+   (.footerActions), and every item of the list slot is rendered inside one
+   `<div data-slot="sidebar.footer.action" style="display:contents">`, so this
+   row is a GRANDCHILD of the flex container. `:has(> .tqf)` alone therefore
+   matched only the box-less wrapper and the two rows sat side by side (kcn,
+   2026-09-23). The rules reach the container through the wrapper; the bare
+   child form stays for a host that renders items unwrapped. Column + the
+   default stretch gives each row the full foot width (.pbf is width:100%);
+   the rail centres them like the host's own collapsed foot. */
+:has(> .pbc.tqf),
+:has(> [data-slot] > .pbc.tqf) {
   flex-direction:column
 }
-:has(> .pbc.tqf.rail) {
+:has(> .pbc.tqf.rail),
+:has(> [data-slot] > .pbc.tqf.rail) {
   align-items:center
 }
 .pbc.tqf .bchip-v {
   white-space:nowrap
 }
-/* Task rows report, they do not act: no press, no hover, no pointer. */
+/* The panel is a fixed-width table so the columns do not shift on every
+   poll: sections (title left, count right), then rows on three columns —
+   dot · name · status over (blank) · agent/model · numbers. Numbers are
+   tabular and right-aligned; names and meta end in an ellipsis until the row
+   is clicked open. */
+.pbc.pbf.tqf .bp {
+  width:min(340px, calc(100vw - 24px));
+  max-width:none
+}
+.pbc .tq-sec {
+  display:flex;
+  align-items:baseline;
+  justify-content:space-between;
+  gap:8px;
+  margin-top:8px;
+  padding:8px 0 2px;
+  border-top:.5px solid var(--mat-sep)
+}
+.pbc .tq-count {
+  font:600 var(--fs-xs)/1.3 var(--font);
+  font-variant-numeric:tabular-nums;
+  color:var(--text)
+}
+.pbc .tq-rows {
+  display:flex;
+  flex-direction:column
+}
 .pbc .tq-row {
-  cursor:default
+  grid-template-columns:7px minmax(0, 1fr) auto;
+  align-items:baseline;
+  row-gap:2px
 }
-.pbc .tq-row:active {
-  transform:none;
-  background:transparent
+.pbc .tq-row .bp-dot {
+  align-self:center
 }
-@media (hover: hover) and (pointer: fine) {
-  .pbc .tq-row:hover {
-    background:transparent
-  }
+.pbc :is(.tq-name, .tq-meta) {
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap
+}
+.pbc .tq-name {
+  font:500 var(--fs-sm)/1.4 var(--font);
+  letter-spacing:.02em;
+  color:var(--text)
+}
+.pbc .tq-row[data-expanded] :is(.tq-name, .tq-meta),
+.pbc .tq-meta.tq-wrap {
+  white-space:normal;
+  overflow-wrap:anywhere
 }
 .pbc .tq-v {
   justify-self:end;
@@ -1744,10 +1790,55 @@ body[data-ds-dark-theme] .pbc .bp {
 .pbc .tq-v[data-balance-state="stale"] { color:var(--warn) }
 .pbc .tq-v[data-balance-state="low"] { color:var(--bad) }
 .pbc .tq-v[data-balance-state="none"] { color:var(--text3) }
-.pbc .tq-sec {
-  display:block;
-  margin:10px 0 2px
+.pbc .tq-meta {
+  grid-column:2;
+  font:500 var(--fs-xs)/1.4 var(--font);
+  letter-spacing:.02em;
+  color:var(--cap)
 }
-.pbc .tq-line {
-  display:block
+.pbc .tq-num {
+  justify-self:end;
+  font:500 var(--fs-xs)/1.4 var(--font);
+  font-variant-numeric:tabular-nums;
+  white-space:nowrap;
+  text-align:right;
+  color:var(--cap)
+}
+.pbc .tq-empty {
+  padding:4px 0 6px
+}
+.pbc .tq-patrol {
+  display:grid;
+  grid-template-columns:7px minmax(0, 1fr);
+  column-gap:8px;
+  row-gap:2px;
+  align-items:baseline;
+  padding:6px 0
+}
+.pbc .tq-patrol .bp-dot {
+  align-self:center
+}
+.pbc .tq-caption {
+  padding-top:2px
+}
+/* Last rounds: id · axis · result · took, one grid so every column lines up. */
+.pbc .tq-rounds {
+  display:grid;
+  grid-template-columns:auto minmax(0, 1fr) auto auto;
+  column-gap:10px;
+  row-gap:2px;
+  padding:2px 0 6px;
+  font:500 var(--fs-xs)/1.5 var(--font);
+  color:var(--text3)
+}
+.pbc .tq-round-id {
+  font-family:var(--mono);
+  font-variant-numeric:tabular-nums;
+  color:var(--text)
+}
+.pbc :is(.tq-round-axis, .tq-round-result) {
+  min-width:0;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap
 }

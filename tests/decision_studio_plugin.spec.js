@@ -2744,15 +2744,34 @@ test("client: the task queue sits above the balance and shows who waits for what
   const open = render();
   const popover = find(open, (p) => p["data-clawock-popover"] === api.TASK_QUEUE_PANEL)[0];
   assert.equal(popover.props["data-open"], "true");
+  // Sections in the order the questions come: slots held → queued/waiting → ended → patrol.
+  assert.match(texts(popover), /运行槽 2\/2 .*排队 \/ 等待 1 .*最近结束 1 .*巡检/);
   const rows = find(popover, (p) => p["data-tq-task"] !== undefined);
   assert.deepEqual(rows.map((r) => [r.props["data-tq-task"], r.props["data-tq-waiting"]]),
-    [["a-1", ""], ["b-1", "lock"], ["patrol-recent-1", ""], ["c-1", ""]]);
+    [["a-1", ""], ["patrol-recent-1", ""], ["b-1", "lock"], ["c-1", ""]]);
   assert.match(texts(rows[0]), /运行中 · 槽 1/);
   assert.match(texts(rows[0]), /已跑 1 小时 5 分 · 第 2 次/);
-  assert.match(texts(rows[1]), /等 claude 锁/);
+  assert.match(texts(rows[2]), /等 claude 锁/);
   assert.match(texts(rows[3]), /ok \/ DONE/);
-  assert.match(texts(popover), /R139 automation · preempted:cancelled · 1 小时 8 分/);
+  assert.match(texts(popover), /R139 automation preempted:cancelled 1 小时 8 分/, "last rounds as one aligned grid");
   assert.equal(find(popover, (p) => p["data-tq-patrol"] !== undefined)[0].props["data-tq-patrol"], "yielding");
+
+  // A clipped task name unfolds on click and folds back.
+  assert.equal(rows[2].props["aria-expanded"], false);
+  rows[2].props.onClick();
+  const unfolded = find(render(), (p) => p["data-tq-task"] === "b-1")[0];
+  assert.equal(unfolded.props["aria-expanded"], true);
+  unfolded.props.onClick();
+  assert.equal(find(render(), (p) => p["data-tq-task"] === "b-1")[0].props["aria-expanded"], false);
+  const panelClasses = find(render(), (p) => typeof p.className === "string").flatMap((n) => n.props.className.split(" "));
+  assert.deepEqual(panelClasses.filter((c) => c !== "" && !/^[A-Za-z0-9_-]+_[a-z0-9-]+$/.test(c)), [],
+    "every class the open panel renders resolves through the stylesheet");
+
+  // The host renders list-slot items inside a `display:contents` [data-slot]
+  // wrapper, so the flex row to turn into a column is the wrapper's parent.
+  const bundle = fs.readFileSync(path.join(PLUGIN, "lib/client.js"), "utf8");
+  assert.match(bundle, /:has\(>\[data-slot\]>\.\w+_pbc\.\w+_tqf\)\{flex-direction:column\}/,
+    "the foot stacks through the host's slot wrapper, not only a direct child");
 
   find(popover, (p) => p["data-refresh"] === "true")[0].props.onClick();
   await tick(); await tick();
