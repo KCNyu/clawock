@@ -153,6 +153,10 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'queue.patrol.stopped': '巡检已停', 'queue.patrol.unknown': '巡检状态未知',
     'queue.duration.minutes': '{m} 分', 'queue.duration.hours': '{h} 小时 {m} 分',
     'queue.ago.minutes': '{m} 分钟前', 'queue.ago.hours': '{h} 小时前', 'queue.ago.days': '{d} 天前',
+    'queue.back': '返回队列', 'queue.d.open': '查看任务详情', 'queue.d.live': '进行中', 'queue.d.ended': '已结束',
+    'queue.d.agent': 'Agent', 'queue.d.model': '模型', 'queue.d.started': '开始', 'queue.d.elapsed': '已运行',
+    'queue.d.took': '用时', 'queue.d.endedAt': '结束', 'queue.d.resumes': '续跑', 'queue.d.attempts': '尝试次数',
+    'queue.d.latest': '最近事件', 'queue.d.id': '任务 ID', 'queue.d.summary': '结果摘要', 'queue.d.noSummary': '没有留下结果摘要',
   },
   en: {
     'action.buy': 'Buy', 'action.add': 'Add', 'action.trim': 'Trim', 'action.sell': 'Sell',
@@ -226,6 +230,10 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'queue.patrol.stopped': 'patrol stopped', 'queue.patrol.unknown': 'patrol state unknown',
     'queue.duration.minutes': '{m}m', 'queue.duration.hours': '{h}h {m}m',
     'queue.ago.minutes': '{m}m ago', 'queue.ago.hours': '{h}h ago', 'queue.ago.days': '{d}d ago',
+    'queue.back': 'Back to the queue', 'queue.d.open': 'Show task details', 'queue.d.live': 'Live', 'queue.d.ended': 'Ended',
+    'queue.d.agent': 'Agent', 'queue.d.model': 'Model', 'queue.d.started': 'Started', 'queue.d.elapsed': 'Running for',
+    'queue.d.took': 'Took', 'queue.d.endedAt': 'Finished', 'queue.d.resumes': 'Resumes', 'queue.d.attempts': 'Attempts',
+    'queue.d.latest': 'Latest event', 'queue.d.id': 'Task ID', 'queue.d.summary': 'Closing report', 'queue.d.noSummary': 'No closing report was left',
   },
 }
 
@@ -1272,29 +1280,46 @@ function panelAttrs(open: boolean, label: string, extra?: Partial<PanelAttrs>): 
   }
 }
 
-/** Fixed-position anchor for the popover: left edge of the row, just above it. */
-type PopoverAnchor = { left: number; bottom: number }
+/** Fixed-position anchor for the popover: left edge of the row, just above it, and the room up to the viewport top. */
+type PopoverAnchor = { left: number; bottom: number; room: number }
+
+/** Gap the popover keeps from the viewport top, and the least room it is ever given. */
+const POPOVER_TOP_GAP = 12
+const POPOVER_MIN_ROOM = 240
 
 /**
  * The foot popover's open state and anchor, shared by every foot row. While
  * open: re-anchor on resize, Escape closes, a pointerdown outside the root
  * closes (document/window exist only in the browser — tests have no DOM).
+ * `back` lets a popover with a nested layer take Escape first: it returns
+ * true when it closed that layer, and the popover stays open.
  */
-function useFootPopover() {
+function useFootPopover(back?: () => boolean) {
   const [open, setOpen] = useState(false)
   const [anchor, setAnchor] = useState<PopoverAnchor | null>(null)
   const rootRef = useRef<HTMLDivElement | null>(null)
+  // The listener is attached once per opening; the ref hands it this render's `back`.
+  const backRef = useRef(back)
+  backRef.current = back
 
   const place = (): void => {
     const root = rootRef.current
     if (root === null || typeof window === 'undefined') return
     const rect = root.getBoundingClientRect()
-    setAnchor({ left: rect.left, bottom: window.innerHeight - rect.top + 8 })
+    setAnchor({
+      left: rect.left,
+      bottom: window.innerHeight - rect.top + 8,
+      room: Math.max(POPOVER_MIN_ROOM, rect.top - 8 - POPOVER_TOP_GAP),
+    })
   }
 
   useEffect(() => {
     if (!open || typeof document === 'undefined') return undefined
-    const onKey = (event: KeyboardEvent): void => { if (event.key === 'Escape') setOpen(false) }
+    const onKey = (event: KeyboardEvent): void => {
+      if (event.key !== 'Escape') return
+      if (backRef.current?.() === true) return
+      setOpen(false)
+    }
     const onDown = (event: PointerEvent): void => {
       const root = rootRef.current
       if (root !== null && event.target instanceof Node && !root.contains(event.target)) setOpen(false)
@@ -1426,6 +1451,11 @@ export function _taskStatus(task: DispatchTask, t: Translate, now: number = Date
     : { tone: 'none', text: t('queue.state.starting') }
 }
 
+/** An ended task's status words: the runner's state, then the agent's own STATUS. */
+function endedText(task: DispatchTask): string {
+  return task.state + (task.outcome !== '' ? ' / ' + task.outcome : '')
+}
+
 /** An ended task's dot: done green, not-done amber, failed red, stopped grey. */
 function endedTone(task: DispatchTask): BalanceTone {
   if (task.state === 'ok' && (task.outcome === 'DONE' || task.outcome === '')) return 'ok'
@@ -1515,32 +1545,28 @@ function renderQueueGlyph(tone: BalanceTone, size: number, instanceId: string): 
 /** What a task row shows: status on the right of the name, facts left and numbers right below. */
 type TaskRowView = { tone: BalanceTone; text: string; meta: string; num: string }
 
-/** Which task rows are unfolded to their full name/meta (toggled by clicking the row). */
-type RowFold = { expanded: string[]; toggle: (id: string) => void }
-
 /**
  * One task: dot · name (ellipsis) · status, then agent/model under the name
  * and the numbers under the status, so every row lines up on the same three
- * columns. A click unfolds the full name and meta; nothing else happens.
+ * columns. A click opens the task's detail layer over the list.
  */
-function renderTaskRow(task: DispatchTask, view: TaskRowView, fold: RowFold): React.ReactElement {
-  const expanded = fold.expanded.includes(task.id)
+function renderTaskRow(task: DispatchTask, view: TaskRowView, openDetail: (id: string) => void, t: Translate): React.ReactElement {
   return h('button', {
     type: 'button',
     key: task.id,
     className: cx('bp-row', 'tq-row'),
     'data-tq-task': task.id,
     'data-tq-waiting': task.waiting,
-    'data-expanded': expanded ? '' : undefined,
-    'aria-expanded': expanded,
+    'aria-label': [task.name, view.text, view.meta, view.num, t('queue.d.open')].join(' · '),
     title: task.name,
-    onClick: () => { fold.toggle(task.id) },
+    onClick: () => { openDetail(task.id) },
   },
     h('span', { className: cx('bp-dot'), 'data-balance-state': view.tone }),
     h('span', { className: cx('tq-name') }, task.name),
     h('span', { className: cx('tq-v'), 'data-balance-state': view.tone }, view.text),
     h('span', { className: cx('tq-meta') }, view.meta),
-    h('span', { className: cx('tq-num') }, view.num))
+    h('span', { className: cx('tq-num') }, view.num),
+    h('span', { className: cx('tq-chev'), 'aria-hidden': 'true' }))
 }
 
 /** A section heading: title left, its count right-aligned. */
@@ -1562,7 +1588,7 @@ function patrolTone(phase: string): BalanceTone {
  * queued and for what (lock / slot / memory / quota with its wake time) →
  * what just ended → what patrol is doing and its last rounds.
  */
-function renderQueuePanelBody(state: ReturnType<typeof useTaskQueue>, t: Translate, now: number, fold: RowFold): Array<React.ReactElement | null> {
+function renderQueuePanelBody(state: ReturnType<typeof useTaskQueue>, t: Translate, now: number, openDetail: (id: string) => void): Array<React.ReactElement | null> {
   const { data, refresh } = state
   const result = data.result
   const head = h('div', { className: cx('bp-head'), key: 'head' },
@@ -1593,9 +1619,9 @@ function renderQueuePanelBody(state: ReturnType<typeof useTaskQueue>, t: Transla
   const waiting = result.active.filter((task) => task.slot === '')
   const rows = (key: string, tasks: DispatchTask[], empty: string, view: (task: DispatchTask) => TaskRowView) => tasks.length === 0
     ? h('div', { className: cx('bp-sub', 'tq-empty'), key }, empty)
-    : h('div', { className: cx('tq-rows'), key }, tasks.map((task) => renderTaskRow(task, view(task), fold)))
-  return [
-    head,
+    : h('div', { className: cx('tq-rows'), key }, tasks.map((task) => renderTaskRow(task, view(task), openDetail, t)))
+  // The head stays put; everything under it scrolls when the panel meets the viewport top.
+  return [head, h('div', { className: cx('tq-scroll'), key: 'scroll' }, [
     problem !== null && problem !== ''
       ? h('div', { className: cx('bp-note', 'warn'), key: 'error', role: 'status' }, t('queue.staleWith', { message: problem }))
       : null,
@@ -1606,7 +1632,7 @@ function renderQueuePanelBody(state: ReturnType<typeof useTaskQueue>, t: Transla
     result.recent.length === 0 ? null : renderQueueSection('recent', t('queue.recentHeading'), String(result.recent.length)),
     result.recent.length === 0 ? null : rows('recent', result.recent, '', (task) => ({
       tone: endedTone(task),
-      text: task.state + (task.outcome !== '' ? ' / ' + task.outcome : ''),
+      text: endedText(task),
       meta: task.agent,
       num: task.updatedAtMs === null ? '—' : agoOf(t, now - task.updatedAtMs),
     })),
@@ -1627,7 +1653,76 @@ function renderQueuePanelBody(state: ReturnType<typeof useTaskQueue>, t: Transla
           h('span', { className: cx('tq-num'), key: key + '-took' }, round.seconds === null ? '—' : durationOf(t, round.seconds * 1000)),
         ]
       })),
+  ])]
+}
+
+/** A task's current copy by id: live first, then recently ended (it may have just finished). */
+function findTask(result: TaskQueueResult, id: string): { task: DispatchTask; live: boolean } | null {
+  const live = result.active.find((task) => task.id === id)
+  if (live !== undefined) return { task: live, live: true }
+  const ended = result.recent.find((task) => task.id === id)
+  return ended === undefined ? null : { task: ended, live: false }
+}
+
+/**
+ * The detail layer one task row opens, laid over the list inside the same
+ * popover: back · live/ended on top, then the name, its status in the row's
+ * tone, a label/value grid (agent, model, when it started, how long, attempts,
+ * what the runner last logged or when it ended) and, for an ended task, the
+ * agent's closing report. The id sits last in mono — it is what the dispatch
+ * commands take.
+ */
+function renderTaskDetail(
+  found: { task: DispatchTask; live: boolean },
+  t: Translate,
+  now: number,
+  back: () => void,
+  backRef: { current: HTMLButtonElement | null },
+): React.ReactElement {
+  const { task, live } = found
+  const status = live ? _taskStatus(task, t, now) : { tone: endedTone(task), text: endedText(task) }
+  const stamp = (ms: number | null): string | null => ms === null ? null : resetStampOf(t, { resetAt: '', resetAtMs: ms }, now)
+  const took = task.startedAtMs !== null && task.updatedAtMs !== null ? durationOf(t, task.updatedAtMs - task.startedAtMs) : null
+  const fields: Array<[key: string, value: string | null, mono?: boolean]> = [
+    ['queue.d.agent', task.agent || null],
+    ['queue.d.model', task.model || null],
+    ['queue.d.started', stamp(task.startedAtMs)],
+    live
+      ? ['queue.d.elapsed', task.startedAtMs === null ? null : durationOf(t, now - task.startedAtMs)]
+      : ['queue.d.took', took],
+    live ? ['queue.d.resumes', stamp(task.wakeAtMs)] : ['queue.d.endedAt', task.updatedAtMs === null ? null
+      : stamp(task.updatedAtMs) + ' · ' + agoOf(t, now - task.updatedAtMs)],
+    ['queue.d.attempts', String(task.attempts)],
+    // Falsy checks: a host older than these fields sends none of them.
+    live && task.lastEvent ? ['queue.d.latest', task.lastEvent + (task.lastEventAtMs == null ? '' : ' · ' + stamp(task.lastEventAtMs))] : ['', null],
+    ['queue.d.id', task.id, true],
   ]
+  return h('div', { className: cx('tq-detail'), 'data-tq-detail': task.id, role: 'group', 'aria-label': task.name },
+    h('div', { className: cx('bp-head', 'tq-d-head') },
+      h('button', {
+        type: 'button',
+        className: cx('tq-back'),
+        'data-tq-back': 'true',
+        'aria-label': t('queue.back'),
+        title: t('queue.back'),
+        ref: backRef,
+        onClick: back,
+      }, h('span', { className: cx('tq-back-chev'), 'aria-hidden': 'true' }), t('queue.panelHeading')),
+      h('span', { className: cx('bp-title') }, t(live ? 'queue.d.live' : 'queue.d.ended'))),
+    h('div', { className: cx('tq-scroll') },
+      h('div', { className: cx('tq-d-title') },
+        h('span', { className: cx('bp-dot'), 'data-balance-state': status.tone }),
+        h('span', { className: cx('tq-d-name') }, task.name)),
+      h('div', { className: cx('tq-d-status'), 'data-balance-state': status.tone }, status.text),
+      h('div', { className: cx('tq-d-grid') },
+        fields.filter(([, value]) => value !== null).flatMap(([key, value, mono]) => [
+          h('span', { className: cx('tq-d-k'), key: key + '-k' }, t(key)),
+          h('span', { className: cx('tq-d-v', mono === true && 'tq-mono'), key: key + '-v' }, value),
+        ])),
+      live ? null : h('div', { className: cx('bp-sub', 'tq-caption') }, t('queue.d.summary')),
+      live ? null : task.summary
+        ? h('div', { className: cx('tq-d-summary') }, task.summary)
+        : h('div', { className: cx('bp-sub', 'tq-empty') }, t('queue.d.noSummary'))))
 }
 
 /**
@@ -1640,17 +1735,36 @@ function renderQueuePanelBody(state: ReturnType<typeof useTaskQueue>, t: Transla
 export function TaskQueueSidebarAction(props: TaskQueueSidebarActionProps): React.ReactElement | null {
   const t = props.t
   const state = useTaskQueue(props)
-  const { open, setOpen, anchor, place, rootRef } = useFootPopover()
-  const instanceId = useId()
-  const [expanded, setExpanded] = useState<string[]>([])
-  const fold: RowFold = {
-    expanded,
-    toggle: (id) => { setExpanded((ids) => ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]) },
+  // Which task's detail layer is up (by id, so each poll shows its fresh copy).
+  const [detailId, setDetailId] = useState<string | null>(null)
+  // The last copy seen, so a task that ages out of both lists keeps its layer.
+  const lastSeen = useRef<{ task: DispatchTask; live: boolean } | null>(null)
+  const backRef = useRef<HTMLButtonElement | null>(null)
+  const closeDetail = (): boolean => {
+    if (detailId === null) return false
+    const id = detailId
+    setDetailId(null)
+    // Hand focus back to the row that opened the layer (the list was inert).
+    if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
+      window.requestAnimationFrame(() => {
+        const row = rootRef.current?.querySelector<HTMLElement>('[data-tq-task="' + CSS.escape(id) + '"]')
+        row?.focus({ preventScroll: false })
+      })
+    }
+    return true
   }
+  const { open, setOpen, anchor, place, rootRef } = useFootPopover(closeDetail)
+  const instanceId = useId()
+  // Reopening the popover always lands on the list.
+  useEffect(() => { if (!open) setDetailId(null) }, [open])
+  // Keyboard focus follows the layer: the row that opened it is now inert.
+  useEffect(() => { if (detailId !== null) backRef.current?.focus({ preventScroll: true }) }, [detailId])
   const result = state.data.result
   if (result === null || !result.available) return null
   const now = Date.now()
   const headline = _queueHeadline(result, t, now)
+  const found = detailId === null ? null : findTask(result, detailId) ?? (lastSeen.current?.task.id === detailId ? lastSeen.current : null)
+  lastSeen.current = found
   return h('div', { className: cx('pbc', 'pbf', 'tqf', !props.wide && 'rail'), ref: rootRef },
     h('button', {
       type: 'button',
@@ -1676,8 +1790,15 @@ export function TaskQueueSidebarAction(props: TaskQueueSidebarActionProps): Reac
         renderQueueGlyph(headline.tone, 18, instanceId))),
     h('div', panelAttrs(open, t('queue.panelTitle'), {
       'data-clawock-popover': TASK_QUEUE_PANEL,
-      ...(anchor === null ? {} : { style: { left: anchor.left + 'px', bottom: anchor.bottom + 'px' } }),
-    }), renderQueuePanelBody(state, t, now, fold)))
+      ...(anchor === null ? {} : {
+        style: { left: anchor.left + 'px', bottom: anchor.bottom + 'px', maxHeight: anchor.room + 'px' },
+      }),
+    }),
+    // While a task is open the list stays mounted but inert and out of the box (see .tq-list[inert]).
+    h('div', { className: cx('tq-list'), key: 'list', inert: found !== null ? '' : undefined, 'aria-hidden': found !== null ? 'true' : undefined },
+      renderQueuePanelBody(state, t, now, (id) => { setDetailId(id) })),
+    found === null ? null : h('div', { className: cx('tq-layer'), key: 'detail' },
+      renderTaskDetail(found, t, now, () => { closeDetail() }, backRef))))
 }
 
 export function DecisionMind(props: DecisionMindProps): React.ReactElement {

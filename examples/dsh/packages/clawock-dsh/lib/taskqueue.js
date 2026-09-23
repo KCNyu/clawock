@@ -1,6 +1,6 @@
 import { expandHome } from "./balance.js";
 import { join } from "node:path";
-import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
+import { closeSync, existsSync, fstatSync, openSync, readFileSync, readSync, readdirSync, statSync } from "node:fs";
 import { homedir } from "node:os";
 import { execFile } from "node:child_process";
 //#region src/taskqueue.ts
@@ -12,7 +12,8 @@ import { execFile } from "node:child_process";
 * the supervisor write, plus systemctl/journalctl — never the network.
 *
 *   <logDir>/<id>/meta.env, result.env   bash `printf %q` assignments
-*   <logDir>/<id>/run.log                `---- <ts> quota; sleeping until <ts>`
+*   <logDir>/<id>/run.log                `---- <ts> quota; sleeping until <ts>`,
+*                                        `<ts> <event>` lines, `final | <text>` (the agent's closing lines)
 *   <limitsPath>                         `MAX_RUNNING=<n>`, shared with both
 *   <patrolDir>/current-round, rounds.tsv
 *   agent-dispatch-<id>.service          active = the task is still alive
@@ -32,6 +33,10 @@ const DEFAULT_TASK_QUEUE_RECENT = 5;
 /** Host-side cache: every open tab polls, the files are read once per window. */
 const TTL_MS = 5e3;
 const COMMAND_TIMEOUT_MS = 5e3;
+/** How much of a run log's end is read: every line the queue shows sits in its last few KB. */
+const LOG_TAIL_BYTES = 65536;
+/** The detail panel's cap on the closing report (the runner already keeps only six lines). */
+const SUMMARY_MAX_CHARS = 800;
 const PATROL_UNIT = "clawock-patrol";
 function run(command, args) {
 	return new Promise((resolve) => {
@@ -97,23 +102,73 @@ function localStampMs(stamp) {
 	const [, y, mo, d, h, mi, s] = match.map(Number);
 	return new Date(y, mo - 1, d, h, mi, s).getTime();
 }
-/** When a quota/retry wait ends: the last `sleeping until` line of the run log. */
-function wakeAt(dir) {
-	let text;
+/** The end of a task's run.log (a cut first line dropped); '' when there is none. */
+function logTail(dir) {
+	let fd;
 	try {
-		text = readFileSync(join(dir, "run.log"), "utf8");
+		fd = openSync(join(dir, "run.log"), "r");
 	} catch {
-		return null;
+		return "";
 	}
-	const matches = [...text.slice(-65536).matchAll(/sleeping until (\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/g)];
+	try {
+		const size = fstatSync(fd).size;
+		const start = Math.max(0, size - LOG_TAIL_BYTES);
+		const buffer = Buffer.alloc(size - start);
+		readSync(fd, buffer, 0, buffer.length, start);
+		const text = buffer.toString("utf8");
+		return start === 0 ? text : text.slice(text.indexOf("\n") + 1);
+	} catch {
+		return "";
+	} finally {
+		closeSync(fd);
+	}
+}
+/** When a quota/retry wait ends: the last `sleeping until` line of the run log. */
+function wakeAt(log) {
+	const matches = [...log.matchAll(/sleeping until (\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2})/g)];
 	const last = matches[matches.length - 1];
 	return last === void 0 ? null : localStampMs(last[1]);
+}
+/**
+* The agent's closing words: the last run of `final | ` lines the runner
+* echoes after an attempt (its final report's tail, already redacted), minus
+* blank lines and the STATUS line the outcome field carries anyway.
+*/
+function finalSummary(log) {
+	const lines = log.split("\n");
+	const isFinal = (line) => /^final \|( |$)/.test(line);
+	let end = lines.length - 1;
+	while (end >= 0 && !isFinal(lines[end])) end -= 1;
+	if (end < 0) return "";
+	let start = end;
+	while (start > 0 && isFinal(lines[start - 1])) start -= 1;
+	return lines.slice(start, end + 1).map((line) => line.replace(/^final \| ?/, "").trimEnd()).filter((line) => line.trim() !== "" && !/^STATUS:\s/.test(line.trim())).join("\n").slice(0, SUMMARY_MAX_CHARS);
+}
+/** The runner's latest stamped event (`<ts> got run slot 1`, `---- <ts> attempt 2/3 …`). */
+function lastLogEvent(log) {
+	const lines = log.split("\n");
+	for (let i = lines.length - 1; i >= 0; i -= 1) {
+		const match = /^(?:---- )?(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}) (.+)$/.exec(lines[i]);
+		if (match) return {
+			text: match[2].trim(),
+			atMs: localStampMs(match[1])
+		};
+	}
+	return {
+		text: "",
+		atMs: null
+	};
 }
 function readTask(logDir, id, alive) {
 	const dir = join(logDir, id);
 	const meta = readEnvFile(join(dir, "meta.env"));
 	const result = readEnvFile(join(dir, "result.env"));
 	const waiting = alive ? result.WAITING ?? "" : "";
+	const log = logTail(dir);
+	const event = alive ? lastLogEvent(log) : {
+		text: "",
+		atMs: null
+	};
 	return {
 		id,
 		name: meta.NAME ?? id,
@@ -126,8 +181,11 @@ function readTask(logDir, id, alive) {
 		outcome: result.OUTCOME ?? "",
 		startedAtMs: localStampMs(result.STARTED ?? meta.CREATED),
 		updatedAtMs: localStampMs(result.UPDATED),
-		wakeAtMs: alive && (waiting === "quota" || waiting === "retry") ? wakeAt(dir) : null,
-		patrol: id.startsWith("patrol-")
+		wakeAtMs: alive && (waiting === "quota" || waiting === "retry") ? wakeAt(log) : null,
+		patrol: id.startsWith("patrol-"),
+		summary: alive ? "" : finalSummary(log),
+		lastEvent: event.text,
+		lastEventAtMs: event.atMs
 	};
 }
 function readMaxRunning(path) {
@@ -305,4 +363,4 @@ function createTaskQueueService(config = {}, deps = systemDeps) {
 	} };
 }
 //#endregion
-export { DEFAULT_DISPATCH_LIMITS_PATH, DEFAULT_DISPATCH_LOG_DIR, DEFAULT_PATROL_STATE_DIR, DEFAULT_TASK_QUEUE_RECENT, DEFAULT_TASK_QUEUE_REFRESH_MS, createTaskQueueService, localStampMs, patrolPhase, readEnvFile, readTaskQueue, systemDeps, unquoteShell };
+export { DEFAULT_DISPATCH_LIMITS_PATH, DEFAULT_DISPATCH_LOG_DIR, DEFAULT_PATROL_STATE_DIR, DEFAULT_TASK_QUEUE_RECENT, DEFAULT_TASK_QUEUE_REFRESH_MS, createTaskQueueService, finalSummary, lastLogEvent, localStampMs, patrolPhase, readEnvFile, readTaskQueue, systemDeps, unquoteShell };

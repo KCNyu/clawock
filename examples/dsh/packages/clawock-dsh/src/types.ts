@@ -289,6 +289,11 @@ export interface DispatchTask {
   wakeAtMs: number | null
   /** A clawock-patrol round (the dispatcher reserves the `patrol-` prefix). */
   patrol: boolean
+  /** An ended task's closing report (the runner's `final |` lines, STATUS dropped); '' while live. */
+  summary: string
+  /** A live task's latest run-log event, timestamp stripped; '' once ended. */
+  lastEvent: string
+  lastEventAtMs: number | null
 }
 
 /** One finished patrol round, from rounds.tsv. */
