@@ -91,15 +91,14 @@ documentation:
 2. Make and commit the change in that worktree, then push the task branch and open a PR.
 3. Let GitHub Actions run the full test suite. Local full-suite runs are optional; the
    required remote checks are the merge gate.
-4. The authoring agent must not merge its own PR. Claude reviews/merges Codex PRs;
-   Codex reviews/merges Claude PRs.
-5. **Never post the review as a PR comment.** Both agents authenticate as the GitHub
+4. The author reviews its own diff, checks and merge state, and squash-merges once
+   the required checks pass (kcn, 2026-08-19). A cross-agent review happens only when
+   kcn asks for one in that task.
+5. **Never post a review as a PR comment.** Both agents authenticate as the GitHub
    user `KCNyu`, so a posted review reads as kcn talking to themself — findings go in
    the interactive handoff instead. Do not add a signature, an `AI-REVIEW` prefix, or
    any other marker to work around this; it is an identity problem, not a labelling one.
-6. If the reviewing agent is unavailable because its quota is exhausted, the author may
-   audit its own diff, checks and merge state and squash-merge. That is permission to
-   finish the workflow alone — never to skip a required check.
+6. Finishing alone is never permission to skip a required check.
 7. Do not merge while any required check is pending or failing. Fix the branch, push,
    and let the PR rerun its checks.
 8. Squash-merge only after required checks pass, then remove the task worktree/branch.
@@ -119,9 +118,11 @@ Never use the repository-admin bypass for an interactive code change.
 
 You wake up fresh each session. `MEMORY.md` is your continuity, and it **is** in
 the repository (#1074) — it is yours: openclaw's dreaming job appends to it at
-03:00 HKT, `ops/host/commit_dreaming.sh` commits it at 03:20, and every cron
-payload is assembled from it. Keep it self-contained; write the conclusion into
-the index rather than into a side file.
+03:00 HKT and `ops/host/commit_dreaming.sh` commits it at 03:20. Direct chat has it
+injected; isolated cron runs neither inject nor read it (their profile excludes it),
+so a rule a scheduled run must obey belongs in its payload, SKILL mode or postflight
+gate, not only here. Keep it self-contained; write the conclusion into the index
+rather than into a side file.
 
 What must NOT enter the repository is `memory/*.md` — those are written by the
 interactive coding agents (Claude Code / Codex) in their own memory format, their

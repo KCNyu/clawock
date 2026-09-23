@@ -5,8 +5,8 @@ coding agent 写的 不是 clawock 里面很多都是过期的」.
 
 Three things shared one rule in #1072 and they have three different authors:
 `MEMORY.md` and `DREAMS.md` are written by openclaw's own dreaming job and are
-clawock runtime state (every cron payload is assembled from the index, and eight
-tracked instruction files name it as the authority), while `memory/*.md` is
+clawock runtime state (direct chat has the index injected, and eight tracked
+instruction files name it as the authority), while `memory/*.md` is
 prose the interactive coding agents write in their own format — their durable
 store is /root/.shared-memory, so a copy here is a leak.
 
