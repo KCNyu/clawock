@@ -17,6 +17,7 @@ from pathlib import Path
 
 from clawock.instruments import get as get_instrument
 from clawock.instruments import one_x_swap_map
+from clawock.safe_io import file_lock, safe_write_json
 from clawock.workspace import workspace_root
 
 WS = workspace_root()
@@ -79,13 +80,7 @@ def _stable_id(kind: str, leg: str | None, ticker: str | None) -> str:
 
 
 def _atomic_write(path: Path, payload: dict) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
-    tmp = path.with_name(path.name + ".tmp")
-    tmp.write_text(
-        json.dumps(payload, ensure_ascii=False, indent=2) + "\n",
-        encoding="utf-8",
-    )
-    tmp.replace(path)
+    safe_write_json(path, payload)
 
 
 def load_ledger(path: Path = LEDGER) -> dict:
@@ -227,7 +222,7 @@ def override_is_active(record: dict, now=None) -> bool:
     )
 
 
-def reconcile_guardrail(
+def _reconcile_guardrail_unlocked(
     guardrail: dict,
     portfolio: dict,
     *,
@@ -396,6 +391,36 @@ def reconcile_guardrail(
             bool((r.get("adaptive") or {}).get("must_reissue")) for r in active),
         "records": active,
     }
+
+
+def reconcile_guardrail(
+    guardrail: dict,
+    portfolio: dict,
+    *,
+    path: Path = LEDGER,
+    now=None,
+    history_path: Path = GUARDRAIL_HISTORY,
+    write: bool = True,
+) -> dict:
+    """Merge detector output without racing another ledger mutation."""
+    if not write:
+        return _reconcile_guardrail_unlocked(
+            guardrail,
+            portfolio,
+            path=path,
+            now=now,
+            history_path=history_path,
+            write=False,
+        )
+    with file_lock(str(path)):
+        return _reconcile_guardrail_unlocked(
+            guardrail,
+            portfolio,
+            path=path,
+            now=now,
+            history_path=history_path,
+            write=True,
+        )
 
 
 def _standing(record: dict) -> dict:
@@ -607,7 +632,9 @@ def may_stand(row: dict) -> bool:
     return bool((row.get("adaptive") or {}).get("may_stand"))
 
 
-def record_stances(path: Path, plan_date: str, decisions: list[dict]) -> list[dict]:
+def _record_stances_unlocked(
+    path: Path, plan_date: str, decisions: list[dict]
+) -> list[dict]:
     """File what today's plan did with each eligible breach. Harness-written.
 
     `reissue` when the plan carries a cut/trim on one of the breach's targets, which
@@ -641,6 +668,12 @@ def record_stances(path: Path, plan_date: str, decisions: list[dict]) -> list[di
         ledger["updated_at"] = _stamp()
         _atomic_write(path, ledger)
     return filed
+
+
+def record_stances(path: Path, plan_date: str, decisions: list[dict]) -> list[dict]:
+    """File today's stance while serializing the full read-modify-write."""
+    with file_lock(str(path)):
+        return _record_stances_unlocked(path, plan_date, decisions)
 
 
 #: The three lists a guardrail context carries, in the order the brief reads them.
@@ -863,18 +896,19 @@ def validate_exposure_increases(
 
 
 def _mutate_record(path: Path, breach_id: str, mutate) -> dict:
-    ledger = load_ledger(path)
-    record = next(
-        (row for row in ledger["records"]
-         if row.get("breach_id") == breach_id),
-        None,
-    )
-    if record is None:
-        raise ValueError(f"breach not found: {breach_id}")
-    mutate(record)
-    ledger["updated_at"] = _stamp()
-    _atomic_write(path, ledger)
-    return record
+    with file_lock(str(path)):
+        ledger = load_ledger(path)
+        record = next(
+            (row for row in ledger["records"]
+             if row.get("breach_id") == breach_id),
+            None,
+        )
+        if record is None:
+            raise ValueError(f"breach not found: {breach_id}")
+        mutate(record)
+        ledger["updated_at"] = _stamp()
+        _atomic_write(path, ledger)
+        return record
 
 
 def acknowledge(path: Path, breach_id: str, note: str) -> dict:

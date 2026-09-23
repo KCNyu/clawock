@@ -1,4 +1,5 @@
 import json
+import threading
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -109,6 +110,76 @@ def test_acknowledgement_and_override_expiry_persist(tmp_path):
     assert record["status"] == "open"
     assert record["override"]["status"] == "expired"
     assert record["acknowledgement"]["status"] == "acknowledged"
+
+
+def test_atomic_writer_uses_distinct_temp_files_for_concurrent_writers(tmp_path):
+    path = tmp_path / "risk.json"
+    errors = []
+
+    def write(index):
+        try:
+            discipline._atomic_write(path, {"writer": index})
+        except Exception as exc:  # pragma: no cover - asserted below
+            errors.append(exc)
+
+    threads = [threading.Thread(target=write, args=(index,)) for index in range(20)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+
+    assert errors == []
+    assert json.loads(path.read_text())["writer"] in range(20)
+
+
+def test_record_mutations_lock_the_whole_read_modify_write(tmp_path, monkeypatch):
+    _reconcile(tmp_path, _guardrail("hard_stop", "PLTU", "US"))
+    _reconcile(
+        tmp_path, _guardrail("hard_stop", "MSFU", "US"),
+        now="2026-07-02T00:00:00+00:00",
+    )
+    ids = [
+        row["breach_id"]
+        for row in discipline.load_ledger(tmp_path / "risk.json")["records"]
+    ]
+    assert len(ids) == 2
+
+    original_load = discipline.load_ledger
+    rendezvous = threading.Barrier(2)
+    calls = 0
+    calls_lock = threading.Lock()
+
+    def synchronized_load(path):
+        nonlocal calls
+        data = original_load(path)
+        with calls_lock:
+            calls += 1
+            should_wait = calls <= 2
+        if should_wait:
+            try:
+                rendezvous.wait(timeout=0.1)
+            except threading.BrokenBarrierError:
+                pass
+        return data
+
+    monkeypatch.setattr(discipline, "load_ledger", synchronized_load)
+    threads = [
+        threading.Thread(target=discipline.acknowledge, args=(
+            tmp_path / "risk.json", breach_id, f"reviewed {index}",
+        ))
+        for index, breach_id in enumerate(ids)
+    ]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+
+    saved = original_load(tmp_path / "risk.json")
+    assert {
+        row["breach_id"]
+        for row in saved["records"]
+        if row["acknowledgement"]["status"] == "acknowledged"
+    } == set(ids)
 
 
 def test_broker_execution_evidence_is_reconciled_without_auto_trading(tmp_path):
