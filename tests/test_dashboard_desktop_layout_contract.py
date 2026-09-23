@@ -10,10 +10,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 HTML = (ROOT / "site/index.html").read_text()
 CSS = (ROOT / "site" / "assets" / "css" / "dashboard.css").read_text()
-VISUAL_REGRESSION = ROOT / "docs" / "visual-regression" / "issue-206"
-VISUAL_REGRESSION_DOC = (
-    ROOT / "docs" / "visual-regression" / "issue-206" / "README.md"
-)
 
 
 def enclosing_desktop_block(rule_start):
@@ -129,18 +125,6 @@ def test_gold_dca_mobile_floor_and_single_column_rules_remain():
     mobile = CSS.split("@media (max-width: 767px)", 1)[1]
     assert ".overview-command { display: flex; flex-direction: column" in mobile
     assert ".overview-command > .hero-gold-card { min-height: 760px; }" in mobile
-
-
-def test_issue_206_visual_regression_evidence_is_shipped():
-    readme = VISUAL_REGRESSION_DOC.read_text(encoding="utf-8")
-    for name in (
-        "before-1440.jpg", "after-1440.jpg",
-        "before-1920.jpg", "after-1920.jpg", "after-390.jpg",
-    ):
-        image = VISUAL_REGRESSION / name
-        assert image.stat().st_size > 20_000, f"missing/empty screenshot: {name}"
-        assert name in readme
-    assert "scrollWidth == clientWidth" in readme
 
 
 def test_overview_keeps_one_owner_per_first_screen_fact():

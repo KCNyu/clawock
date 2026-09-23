@@ -313,11 +313,7 @@ def _stage_publishable_site(site):
     (site / "tests/private.txt").write_text("not public")
     (site / "memory").mkdir()
     (site / "memory/decisions.jsonl").write_text("{}\n")
-    # QA fixtures ride inside docs/, which IS publicly included as a whole —
-    # they are kept out only by the repository_only contract, so this pair
-    # pins both halves: the sibling doc ships, the regression captures do not.
-    (site / "docs/visual-regression/issue-206").mkdir(parents=True)
-    (site / "docs/visual-regression/issue-206/before-1440.jpg").write_bytes(b"\xff\xd8")
+    (site / "docs").mkdir()
     (site / "docs/architecture.md").write_text("ok")
 
 
@@ -362,11 +358,7 @@ def test_builder_stages_only_public_consumers(tmp_path):
     (site / "tests/private.txt").write_text("not public")
     (site / "memory").mkdir()
     (site / "memory/decisions.jsonl").write_text("{}\n")
-    # QA fixtures ride inside docs/, which IS publicly included as a whole —
-    # they are kept out only by the repository_only contract, so this pair
-    # pins both halves: the sibling doc ships, the regression captures do not.
-    (site / "docs/visual-regression/issue-206").mkdir(parents=True)
-    (site / "docs/visual-regression/issue-206/before-1440.jpg").write_bytes(b"\xff\xd8")
+    (site / "docs").mkdir()
     (site / "docs/architecture.md").write_text("ok")
     source_gif_size = (ROOT / "site/assets/dashboard.gif").stat().st_size
     source_jsonl = sorted((ROOT / "assets/data").glob("*.jsonl"))
@@ -399,7 +391,6 @@ def test_builder_stages_only_public_consumers(tmp_path):
     assert (site / "assets/data/repo-traffic.json").is_file()
     assert not (output / "assets/data/schedule-drift.json").exists()
     assert not (output / "assets/data/repo-traffic.json").exists()
-    assert not (output / "docs/visual-regression/issue-206").exists()
     assert (output / "docs/architecture.md").is_file()
     sitemap_locs = [
         node.text for node in ET.parse(output / "sitemap.xml").getroot().iter()

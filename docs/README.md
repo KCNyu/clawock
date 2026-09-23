@@ -21,8 +21,6 @@ belongs here.
 
 - [`decision-map.md`](decision-map.md) — the Decision Map board in Reflect: how
   to read coverage and snapshot age, the payload, and where it runs.
-  Its original specification is kept as history in
-  [`decision-map-prd.md`](decision-map-prd.md); do not use it as a runbook.
 - [`decision-mind-ledger.md`](decision-mind-ledger.md) — the decision-mind
   ledger schema written by `clawock record`.
 - [`glossary.md`](glossary.md) — source of truth for cross-document terminology.
@@ -55,8 +53,7 @@ belongs here.
   attribution, and redistribution boundaries.
 
 Everything under `docs/` is published with the Pages build
-(`ops/pages/stage_site.py`), including historical specifications, so a
-superseded design must say so at its top.
+(`ops/pages/stage_site.py`). Keep this index current when adding or removing docs.
 
 ## Why OpenClaw files stay at the root
 
