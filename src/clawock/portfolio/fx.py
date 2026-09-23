@@ -39,6 +39,11 @@ CACHE_PATH = str(WS_ROOT / '.cache' / 'fx_rate.json')
 # commit loses nothing — the next one carries both days.
 LEDGER_PATH = str(WS_ROOT / 'memory' / 'fx-rates.jsonl')
 CACHE_TTL_HOURS = 4   # FX moves slowly intraday; refresh 6x/day is enough
+# How old the cache may get before an offline reader calls it stale. The cache
+# is refreshed each trading morning, so Friday's rate is ~72h old by Monday's
+# refresh; 96h covers that plus one adjoining holiday, and anything older means
+# the daily refresh has stopped.
+STALE_READ_HOURS = 96
 TIMEOUT = 10
 
 SESSION = requests.Session()
@@ -52,25 +57,77 @@ SESSION.headers.update(
                    'clawock-fx/1.0 (github.com/KCNyu/clawock)'})
 
 
-def _from_cache(allow_stale: bool = False) -> Optional[Dict]:
-    if not os.path.exists(CACHE_PATH):
+def _read_cache(path: str) -> Optional[tuple]:
+    """(entry, age in hours) for the cache file; None if absent or unreadable."""
+    if not os.path.exists(path):
         return None
-    age_h = (time.time() - os.path.getmtime(CACHE_PATH)) / 3600
-    if age_h > CACHE_TTL_HOURS and not allow_stale:
-        return None
+    age_h = (time.time() - os.path.getmtime(path)) / 3600
     try:
-        with open(CACHE_PATH) as f:
+        with open(path) as f:
             data = dict(json.load(f))
-        # Old cache entries predate the explicit provenance flag. A fresh cached
-        # provider quote is not itself a fallback; an expired one is.
-        data.setdefault('fallback_used', False)
-        if age_h > CACHE_TTL_HOURS:
-            data['fallback_used'] = True
-            data['source'] = f"{data.get('source', 'cache')} (stale cache; all live sources failed)"
-            data['warning'] = 'all live sources failed; using stale cached USDHKD rate'
-        return data
     except Exception:
         return None
+    # Old cache entries predate the explicit provenance flag. A fresh cached
+    # provider quote is not itself a fallback; an expired one is.
+    data.setdefault('fallback_used', False)
+    return data, age_h
+
+
+def _from_cache(allow_stale: bool = False) -> Optional[Dict]:
+    hit = _read_cache(CACHE_PATH)
+    if hit is None:
+        return None
+    data, age_h = hit
+    if age_h > CACHE_TTL_HOURS:
+        if not allow_stale:
+            return None
+        data['fallback_used'] = True
+        data['source'] = f"{data.get('source', 'cache')} (stale cache; all live sources failed)"
+        data['warning'] = 'all live sources failed; using stale cached USDHKD rate'
+    return data
+
+
+def read_cached_usdhkd(path: Optional[str] = None) -> Dict:
+    """The cached rate for readers that must not touch the network.
+
+    The dashboard publisher runs in every intraday refresh and in tests; keeping
+    the cache current is the job of the fetches upstream (`clawock fx` in brief
+    preflight, `risk.load_canonical_fx`). Reading the file raw published an old
+    rate and a missing one exactly like a fresh one (#1781).
+
+    Staleness is judged against `STALE_READ_HOURS`, not `CACHE_TTL_HOURS`. The
+    4h TTL is how often a *fetcher* may re-ask a provider; the cache is in fact
+    refreshed once per trading day (Frankfurter/ECB publish daily), so on the
+    4h rule every afternoon build would read as degraded, and an alarm that is
+    always on says as little as one that never is. The HKD peg keeps a stale
+    rate a small error, so a stale cache is still served — flagged with
+    `stale`, `age_hours` and a `warning`. `fallback_used` stays the provenance
+    the fetch recorded (a secondary provider answered).
+
+    A missing or unreadable cache gives `rate: None` plus a warning. No
+    peg-midpoint guess here: a reader that invents a rate cannot be told apart
+    from one that read it.
+    """
+    hit = _read_cache(path or CACHE_PATH)
+    if hit is None:
+        return {
+            'rate': None, 'source': None, 'fetched_at': None,
+            'fallback_used': False, 'stale': False, 'age_hours': None,
+            'warning': 'USDHKD cache missing or unreadable; combined figures unavailable',
+        }
+    data, age_h = hit
+    stale = age_h > STALE_READ_HOURS
+    return {
+        'rate': data.get('rate'),
+        'source': data.get('source'),
+        'fetched_at': data.get('fetched_at'),
+        'fallback_used': bool(data.get('fallback_used')),
+        'stale': stale,
+        'age_hours': round(age_h, 1),
+        'warning': (f'USDHKD cache is {age_h:.0f}h old (not refreshed within '
+                    f'{STALE_READ_HOURS}h); using the stale cached rate'
+                    if stale else None),
+    }
 
 
 def _save_cache(data: Dict):

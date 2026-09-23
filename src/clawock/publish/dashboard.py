@@ -30,6 +30,7 @@ from clawock import json_repair
 from clawock.decision import ledger as decision_v2
 from clawock.publish import outputs as dashboard_outputs
 from clawock.publish import outcomes as dashboard_outcomes
+from clawock.portfolio import fx as fx_rates
 
 # Strict YYYY-MM-DD.json — rejects baselines/backups/archives that share the
 # snapshots dir (e.g. 2026-05-16-saturday-baseline.json caused duplicate 5-16
@@ -3997,7 +3998,11 @@ def build_projection(previous_source=None, shadow_previous=None):
     us_conc['verdict'] = hhi_verdict(us_conc['hhi'], us_conc['top2'])
     hk_conc['verdict'] = hhi_verdict(hk_conc['hhi'], hk_conc['top2'])
 
-    fx_cache = load_json(WS_ROOT / '.cache' / 'fx_rate.json') or {}
+    # Offline by design: refreshing the cache belongs to the upstream fetches.
+    # Stale or missing is published and warned, never passed off as fresh (#1781).
+    fx_cache = fx_rates.read_cached_usdhkd(str(WS_ROOT / '.cache' / 'fx_rate.json'))
+    if fx_cache['warning']:
+        print(f"  warn: {fx_cache['warning']}", file=sys.stderr)
 
     snapshots = load_snapshots()
     plans = load_plans()
@@ -4006,9 +4011,13 @@ def build_projection(previous_source=None, shadow_previous=None):
         'generated_at': datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S.%fZ'),
         'last_updated': portfolio.get('last_updated', ''),
         'fx': {
-            'usdhkd': fx_cache.get('rate'),
-            'source': fx_cache.get('source'),
-            'fetched_at': fx_cache.get('fetched_at'),
+            'usdhkd': fx_cache['rate'],
+            'source': fx_cache['source'],
+            'fetched_at': fx_cache['fetched_at'],
+            'fallback_used': fx_cache['fallback_used'],
+            'stale': fx_cache['stale'],
+            'age_hours': fx_cache['age_hours'],
+            'warning': fx_cache['warning'],
         },
         'totals': {leg.key: leg_totals(leg, book)
                    for leg, book in ((base_leg, us_pf), (quote_leg, hk_pf))},
