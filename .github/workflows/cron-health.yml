@@ -96,13 +96,16 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         # kcn 2026-09-11: 「不好做就放弃了…兜底不容易触发」— the backstop stays
-        # broken on purpose (OpenCode wallet empty, MiniMax the only leg). It
-        # still prints and annotates; it stops reddening the whole check until
-        # the date below, when it has to be decided again.
+        # broken on purpose (OpenCode wallet empty, its free tier only works
+        # inside OpenCode's own client, MiniMax the only leg). It still prints
+        # and annotates; it stops reddening the whole check until the date
+        # below. Renewal is not a new question for kcn: at expiry the
+        # maintainer renews one quarter if those reasons still hold, and drops
+        # these two flags once a rehearsal passes again.
         run: >-
           python3 ops/ci/backstop_rehearsal.py --strict
-          --accepted-until 2026-10-11
-          --accepted-reason "kcn 2026-09-11 决定不修兜底（OpenCode 余额空，只剩 MiniMax 一条腿）"
+          --accepted-until 2027-01-11
+          --accepted-reason "kcn 2026-09-11 决定不修兜底（OpenCode 余额空、免费档只限官方客户端，只剩 MiniMax 一条腿）；2026-09-23 按同一决定续期"
 
       # `assets/data/schedule-drift.json` has measured GitHub's delivery
       # lateness twice a week since #781 and nothing read it, while five
