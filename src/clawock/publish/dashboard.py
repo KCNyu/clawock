@@ -835,7 +835,16 @@ def build_shadow_sidecar(portfolio, decisions, previous=None):
 
 
 def trim_holding(h, currency):
-    """Trim a holding dict to UI-relevant fields."""
+    """Trim a holding dict to UI-relevant fields.
+
+    Today's change stays null when the book has none: a position bought today
+    has no previous close to measure from, and 0 would render as「+0.00%」, a
+    flat day, where the dashboard means「—」(#1783).
+    """
+    def today(field):
+        value = h.get(field)
+        return None if value is None else round(value, 2)
+
     return {
         'ticker': h.get('ticker') or h.get('code'),
         'name': h.get('name') or h.get('stock_name', ''),
@@ -844,8 +853,8 @@ def trim_holding(h, currency):
         'cost_basis': round(h.get('cost_basis') or 0, 4),
         'current_price': round(h.get('current_price') or 0, 4),
         'current_value': round(h.get('current_value') or 0, 2),
-        'today_change': round(h.get('today_change') or 0, 2),
-        'today_change_pct': round(h.get('today_change_pct') or 0, 2),
+        'today_change': today('today_change'),
+        'today_change_pct': today('today_change_pct'),
         'day_high': round(h.get('day_high') or 0, 4),
         'day_low': round(h.get('day_low') or 0, 4),
         'pnl_abs': round(h.get('pnl_abs') or 0, 2),

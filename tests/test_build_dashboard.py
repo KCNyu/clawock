@@ -46,6 +46,21 @@ def _snapshot(day, *, us_equity, hk_equity, us_profit=None, hk_profit=None):
     }
 
 
+def test_a_position_without_a_previous_close_has_no_today_change():
+    """Bought today: no previous close, so「—」, not a flat「+0.00%」(#1783)."""
+    fresh = {'ticker': 'AAPL', 'name': 'Apple', 'shares': 100, 'cost_basis': 170,
+             'current_price': 170, 'current_value': 17000, 'trades': []}
+    row = dashboard.trim_holding(fresh, 'USD')
+    assert (row['today_change'], row['today_change_pct']) == (None, None)
+
+    flat = dashboard.trim_holding({**fresh, 'today_change': 0.0, 'today_change_pct': 0.0}, 'USD')
+    assert (flat['today_change'], flat['today_change_pct']) == (0.0, 0.0)
+
+    moved = dashboard.trim_holding(
+        {**fresh, 'today_change': 123.456, 'today_change_pct': -1.234}, 'USD')
+    assert (moved['today_change'], moved['today_change_pct']) == (123.46, -1.23)
+
+
 def test_session_asof_without_a_dated_active_holding_is_none():
     assert dashboard._session_asof({"holdings": []}, 2026) is None
     assert dashboard._session_asof({
