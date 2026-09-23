@@ -40,6 +40,9 @@ from clawock.workspace import workspace_root
 WS = workspace_root()
 PORTFOLIO = WS / 'portfolio.json'
 POLICY = WS / 'config' / 'portfolio-derivations.json'
+# Largest error in a stored price: both fetchers keep at least 3 decimals
+# (hk_analysis 3, us_quotes 4).
+PRICE_ROUNDING = 0.0005
 
 
 def _r(x):
@@ -137,24 +140,25 @@ def recompute(data, dry_run=False, percent_rounding=None):
                        and bought_this_session >= sh else pc)
                 tc = _r(sh * (cp - ref))
                 sum_tc += tc
-                amount_moved = number(h.get('today_change')) != tc
-                if amount_moved:
+                if number(h.get('today_change')) != tc:
                     diffs.setdefault('holdings.today_change', []).append((h.get('ticker'), h.get('today_change'), tc))
                 if not dry_run:
                     h['today_change'] = tc
                 # The other half of the pair, from the same `ref`: rebuilding
                 # only the amount left "+1000 / +5%" on one row until the next
                 # fetch, and a second pass called it consistent (#1780, the
-                # today-leg twin of #1552). Only when the amount moved (or the
-                # percentage is missing): the fetchers take it from the unrounded
-                # quote (us_quotes) or the vendor's own change (hk_analysis), so
-                # rebuilding it from the stored price would rewrite a correct
-                # value on a reconcile that changed nothing.
+                # today-leg twin of #1552). The fetchers take the percentage from
+                # the unrounded quote (us_quotes) or the vendor's own change
+                # (hk_analysis), so a stored value the stored prices cannot tell
+                # apart from ours is kept rather than rewritten by a reconcile
+                # that changed nothing.
                 tc_pct = round((cp - ref) / ref * 100, pct_nd) if ref else 0
-                if amount_moved or number(h.get('today_change_pct')) is None:
-                    if number(h.get('today_change_pct')) != tc_pct:
-                        diffs.setdefault('holdings.today_change_pct', []).append(
-                            (h.get('ticker'), h.get('today_change_pct'), tc_pct))
+                stored_pct = number(h.get('today_change_pct'))
+                tolerance = (100 * PRICE_ROUNDING * (1 + abs(cp) / abs(ref)) / abs(ref)
+                             + 10 ** -pct_nd) if ref else 0
+                if stored_pct is None or abs(stored_pct - tc_pct) > tolerance:
+                    diffs.setdefault('holdings.today_change_pct', []).append(
+                        (h.get('ticker'), h.get('today_change_pct'), tc_pct))
                     if not dry_run:
                         h['today_change_pct'] = tc_pct
 

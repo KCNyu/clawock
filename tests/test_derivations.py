@@ -350,9 +350,14 @@ class TestRecomputeAggregates:
                  "trades": [{"date": "2026-09-16", "action": "buy", "shares": 10, "price": 100}]},
                 # Untouched fetch: the fetcher's pct came from the unrounded
                 # quote 1.000049, so the stored price alone would say 0.0.
-                {"ticker": "ROUND", "shares": 1, "cost_basis": 1.0,
+                {"ticker": "ROUND", "shares": 1000, "cost_basis": 1.0,
                  "current_price": 1.0, "prev_close": 1.0,
-                 "today_change": 0.0, "today_change_pct": 0.0049},
+                 "today_change": 0.05, "today_change_pct": 0.0049},
+                # A sub-cent correction (1.0000 → 1.0040 on one share) leaves the
+                # amount at 0.00 but still moves the percentage.
+                {"ticker": "TICK", "shares": 1, "cost_basis": 1.0,
+                 "current_price": 1.004, "prev_close": 1.0,
+                 "today_change": 0.0, "today_change_pct": 0.0},
             ]},
             "hk_stocks": {"holdings": [
                 {"ticker": "00100", "shares": 100, "cost_basis": 3.0,
@@ -361,13 +366,15 @@ class TestRecomputeAggregates:
         }}
         precision = {"us_stocks": 4, "hk_stocks": 2}
         dry = ra.recompute(json.loads(json.dumps(d)), dry_run=True, percent_rounding=precision)
-        assert dry["us_stocks"]["holdings.today_change_pct"] == [("FIX", 5.0, 10.0), ("NEW", -12.5, 5.0)]
+        assert dry["us_stocks"]["holdings.today_change_pct"] == [
+            ("FIX", 5.0, 10.0), ("NEW", -12.5, 5.0), ("TICK", 0.0, 0.4)]
         assert dry["us_stocks"]["holdings.today_change"][0] == ("FIX", 500.0, 1000.0)
         ra.recompute(d, dry_run=False, percent_rounding=precision)
-        fix, new, rnd = d["portfolios"]["us_stocks"]["holdings"]
+        fix, new, rnd, tick = d["portfolios"]["us_stocks"]["holdings"]
         assert fix["today_change"] == 1000.0 and fix["today_change_pct"] == 10.0
         assert new["today_change"] == 50.0 and new["today_change_pct"] == 5.0
         assert rnd["today_change_pct"] == 0.0049
+        assert tick["today_change_pct"] == 0.4
         assert d["portfolios"]["hk_stocks"]["holdings"][0]["today_change_pct"] == -33.33
         assert ra.recompute(d, dry_run=False, percent_rounding=precision) == {}
 
