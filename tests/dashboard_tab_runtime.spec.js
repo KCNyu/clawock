@@ -756,9 +756,11 @@ async function testMobilePagerCommitsStateAtTheRealSnapPoint(browser, base) {
   assert(settled.error <= 1,
     `pager stopped ${settled.error}px away from the panel's real snap point`);
 
-  // A tab click may cross several pages. `scroll-snap-stop: always` used to
-  // force that smooth scroll to stop at each intermediate snap point, so an
-  // Overview → Risk click visibly stranded on Holdings in mobile WebKit.
+  // A tab click may cross several pages. `scroll-snap-stop: always` correctly
+  // keeps a finger swipe to one page, but it also forced the old smooth
+  // programmatic scroll to stop at each intermediate snap point: Overview →
+  // Risk visibly stranded on Holdings in mobile WebKit. Direct selection must
+  // be atomic without weakening the one-page gesture contract.
   await page.evaluate(() => {
     document.getElementById("pager").style.scrollSnapType = "";
     document.querySelector('.tab-btn[data-tab="reflect"]').click();

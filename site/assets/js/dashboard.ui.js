@@ -234,13 +234,13 @@
     pager.addEventListener("touchstart", () => {
       gestureActive = true;
       clearTimeout(settleTimer);
-    }, { passive: true });
+    }, { passive: true, capture: true });
     const releaseGesture = () => {
       gestureActive = false;
       scheduleFallbackSettle();
     };
-    pager.addEventListener("touchend", releaseGesture, { passive: true });
-    pager.addEventListener("touchcancel", releaseGesture, { passive: true });
+    pager.addEventListener("touchend", releaseGesture, { passive: true, capture: true });
+    pager.addEventListener("touchcancel", releaseGesture, { passive: true, capture: true });
 
     pager.addEventListener("scroll", () => {
       scrolling = true;
