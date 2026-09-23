@@ -354,6 +354,17 @@ class TestRecomputeAggregates:
                 {"ticker": "ROUND", "shares": 1000, "cost_basis": 1.0,
                  "current_price": 1.0, "prev_close": 1.0,
                  "today_change": 0.05, "today_change_pct": 0.0049},
+                # A penny quote the fetcher saw as 0.100049 over 0.049951
+                # stores as 0.1/0.05; its +100.2943% stays.
+                {"ticker": "PENNY", "shares": 10, "cost_basis": 1.0,
+                 "current_price": 0.1, "prev_close": 0.05,
+                 "today_change": 0.5, "today_change_pct": 100.2943},
+                # A fresh lot runs from its exact cost: a correction to 101 moves
+                # +0% to +1% even at a price where rounding alone could not.
+                {"ticker": "LOT", "shares": 100, "cost_basis": 100.0,
+                 "current_price": 101.0, "prev_close": 101.0,
+                 "day_session_date": "2026-09-16", "today_change": 0.0, "today_change_pct": 0.0,
+                 "trades": [{"date": "2026-09-16", "action": "buy", "shares": 100, "price": 100}]},
                 # A sub-cent correction (1.0000 → 1.0010 on one share) leaves the
                 # amount at 0.00 but still moves the percentage.
                 {"ticker": "TICK", "shares": 1, "cost_basis": 1.0,
@@ -370,10 +381,11 @@ class TestRecomputeAggregates:
         rebuild = functools.partial(ra.recompute, percent_rounding=precision, price_rounding=prices)
         dry = rebuild(json.loads(json.dumps(d)), dry_run=True)
         assert dry["us_stocks"]["holdings.today_change_pct"] == [
-            ("FIX", 5.0, 10.0), ("NEW", -12.5, 5.0), ("TICK", 0.0, 0.1)]
+            ("FIX", 5.0, 10.0), ("NEW", -12.5, 5.0), ("LOT", 0.0, 1.0), ("TICK", 0.0, 0.1)]
         assert dry["us_stocks"]["holdings.today_change"][0] == ("FIX", 500.0, 1000.0)
         rebuild(d, dry_run=False)
-        fix, new, rnd, tick = d["portfolios"]["us_stocks"]["holdings"]
+        fix, new, rnd, penny, lot, tick = d["portfolios"]["us_stocks"]["holdings"]
+        assert penny["today_change_pct"] == 100.2943 and lot["today_change_pct"] == 1.0
         assert fix["today_change"] == 1000.0 and fix["today_change_pct"] == 10.0
         assert new["today_change"] == 50.0 and new["today_change_pct"] == 5.0
         assert rnd["today_change_pct"] == 0.0049

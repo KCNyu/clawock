@@ -63,6 +63,19 @@ def load_policy(path=POLICY, key='percent_rounding_by_book'):
     }
 
 
+def _pct_explained(stored, cp, ref, price_step, ref_step, pct_nd):
+    """Whether prices within their rounding of `cp`/`ref` give `stored` percent.
+
+    The percentage rises with the price and falls with the reference, so the
+    two corners bound every combination; the slack is the percent's own rounding.
+    """
+    lo_ref, hi_ref = ref - ref_step, ref + ref_step
+    low = (cp - price_step - hi_ref) / hi_ref * 100
+    high = (cp + price_step - lo_ref) / lo_ref * 100
+    slack = 10 ** -pct_nd
+    return low - slack <= stored <= high + slack
+
+
 def recompute(data, dry_run=False, percent_rounding=None, price_rounding=None):
     """Mutate `data` in place. Return per-region dict of {field: (old, new)} diffs."""
     changes = {}
@@ -138,8 +151,9 @@ def recompute(data, dry_run=False, percent_rounding=None, price_rounding=None):
                     for t in (h.get('trades') or [])
                     if isinstance(t, dict) and t.get('action') == 'buy'
                     and session and t.get('date') == session)
-                ref = (cb if cb is not None and bought_this_session > 0
-                       and bought_this_session >= sh else pc)
+                fresh_lot = (cb is not None and bought_this_session > 0
+                             and bought_this_session >= sh)
+                ref = cb if fresh_lot else pc
                 tc = _r(sh * (cp - ref))
                 sum_tc += tc
                 if number(h.get('today_change')) != tc:
@@ -156,9 +170,13 @@ def recompute(data, dry_run=False, percent_rounding=None, price_rounding=None):
                 # that changed nothing.
                 tc_pct = round((cp - ref) / ref * 100, pct_nd) if ref else 0
                 stored_pct = number(h.get('today_change_pct'))
-                tolerance = (100 * price_step * (1 + abs(cp) / abs(ref)) / abs(ref)
-                             + 10 ** -pct_nd) if ref else 0
-                if stored_pct is None or abs(stored_pct - tc_pct) > tolerance:
+                # prev_close is a stored (rounded) price; a fresh lot's cost is
+                # the ledger's own number.
+                ref_step = 0 if fresh_lot else price_step
+                explained = stored_pct is not None and (
+                    _pct_explained(stored_pct, cp, ref, price_step, ref_step, pct_nd)
+                    if ref and ref - ref_step > 0 else stored_pct == tc_pct)
+                if not explained:
                     diffs.setdefault('holdings.today_change_pct', []).append(
                         (h.get('ticker'), h.get('today_change_pct'), tc_pct))
                     if not dry_run:
