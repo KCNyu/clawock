@@ -123,20 +123,17 @@ def test_the_default_workspace_is_unchanged_when_the_override_is_unset(monkeypat
     assert workspace.workspace_root(ROOT) == Path("/tmp").resolve()
 
 
-def test_the_money_clis_target_the_checkout_they_are_in(monkeypatch):
+def test_the_money_cli_targets_the_checkout_it_is_in(monkeypatch):
     """The realized command from a worktree once rewrote the live ledger.
 
     Its `--path` default was `/root/.openclaw/workspace/portfolio.json`, so the
     command line pointed at production wherever it ran; the library callers
-    were never affected because they pass their own dict. The legacy backfill
-    was worse — the same absolute root also aimed `SNAP_DIR` at the real
-    `memory/snapshots/`, which it rewrites in place.
+    were never affected because they pass their own dict.
     """
     probe = (
         "import sys; sys.path[:0] = [%r, %r];"
         "from clawock.portfolio import realized as rr, snapshots as sr;"
-        " import backfill_snapshot_realized as bf;"
-        "print(rr.PORTFOLIO_PATH); print(bf.SNAP_DIR);"
+        "print(rr.PORTFOLIO_PATH);"
         "print(hasattr(sr, 'PORTFOLIO_PATH'))"
     ) % (str(ROOT / "src"), str(ROOT / "ops" / "host"))
     env = {k: v for k, v in os.environ.items() if k != workspace.ENV_VAR}
@@ -145,9 +142,8 @@ def test_the_money_clis_target_the_checkout_they_are_in(monkeypatch):
                           capture_output=True, text=True, timeout=60)
 
     assert done.returncode == 0, done.stderr
-    ledger, snapshots, dead_constant = done.stdout.split()
+    ledger, dead_constant = done.stdout.split()
     assert Path(ledger) == ROOT / "portfolio.json"
-    assert Path(snapshots) == ROOT / "memory" / "snapshots"
     assert dead_constant == "False", (
         "the snapshots module's unused PORTFOLIO_PATH named production and had no "
         "reader; re-adding one is re-adding a loaded gun")

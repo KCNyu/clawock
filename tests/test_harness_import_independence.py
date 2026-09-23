@@ -7,13 +7,8 @@ walking zero files, which passes exactly like a clean tree.
 
 The rule did not disappear with the directory; its population moved. `clawock` is
 installed now (#364), but into a venv, and every `ops/` entry point documents
-itself as `python3 ops/<...>.py` — system python, which has no such install. On
-2026-08-10 `ops/host/backfill_snapshot_realized.py` was the one module that had
-lost its two bootstrap lines in the move, so the command printed in its own
-docstring raised ModuleNotFoundError. That is the third time this same file has
-had this defect (it was also broken by the move into `scripts/legacy`, fixed in
-#290), which is why the check is a discovery over the directory rather than a
-list of known entry points.
+itself as `python3 ops/<...>.py` — system python, which has no such install.
+This scan discovers every current entry point, so no hard-coded list can go stale.
 
 Why a source-shape test and not "import it in a subprocess": CI installs the
 package, so the import succeeds there no matter what the module does. A runtime
