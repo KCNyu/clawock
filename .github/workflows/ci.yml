@@ -276,6 +276,7 @@ jobs:
           BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
           HEAD_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
         run: |
+          set -euo pipefail
           python3 ops/ci/push_scope.py --base "$BASE_SHA" --head "$HEAD_SHA" \
             | tee -a "$GITHUB_OUTPUT"
 
@@ -679,6 +680,7 @@ jobs:
           BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
           HEAD_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
         run: |
+          set -euo pipefail
           python3 ops/ci/push_scope.py --base "$BASE_SHA" --head "$HEAD_SHA" \
             | tee -a "$GITHUB_OUTPUT"
 
@@ -729,6 +731,7 @@ jobs:
           BASE_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.sha || github.event.before }}
           HEAD_SHA: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
         run: |
+          set -euo pipefail
           python3 ops/ci/push_scope.py --base "$BASE_SHA" --head "$HEAD_SHA" \
             | tee -a "$GITHUB_OUTPUT"
         # A pull request runs this job regardless — see the paragraph above — so
