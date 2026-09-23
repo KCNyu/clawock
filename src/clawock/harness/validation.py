@@ -78,9 +78,24 @@ def mentions_ticker(text, ticker):
     return re.search(pattern, text or '') is not None
 
 
+def _contains_phrase(text, phrase):
+    """Exact substring, or — for an ASCII phrase — the same word in any case.
+
+    A model writes `todo`/`tbd` as readily as `TODO`/`TBD` (#1771). The
+    case-insensitive pass keeps ASCII-letter boundaries so a lowercase table
+    entry never fires inside an ordinary English word ("mastodon").
+    """
+    if phrase in text:
+        return True
+    if not phrase.isascii():
+        return False
+    pattern = rf'(?<![A-Za-z]){re.escape(phrase)}(?![A-Za-z])'
+    return re.search(pattern, text, re.IGNORECASE) is not None
+
+
 def validate_forbidden_phrases(text, phrases, label='报告'):
     """Return one issue per forbidden phrase found in text."""
-    return [f'{label}含敷衍词 "{p}"' for p in phrases if p in text]
+    return [f'{label}含敷衍词 "{p}"' for p in phrases if _contains_phrase(text, p)]
 
 
 # Words that only exist on the writer's side of the prompt. kcn reads the pushed
