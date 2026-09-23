@@ -2814,3 +2814,26 @@ test("client: the task queue sits above the balance and shows who waits for what
   assert.equal(render(), null);
   disposeReactEffects();
 });
+
+test("client: a task backing off to retry is counted on the queue headline, like one waiting on quota", async () => {
+  const loaded = await loadClient();
+  const api = loaded.factory((s) => {
+    if (s === "@deepseek-ai/dsh-client-store") return makeRuntimeStub();
+    if (s === "react") return makeReactStub();
+    throw new Error(`unexpected require: ${s}`);
+  });
+  const now = Date.now();
+  const live = (id, waiting) => ({ id, name: id, agent: "claude", model: "m", state: "queued", waiting, slot: "",
+    attempts: 1, outcome: "", startedAtMs: now - 60000, updatedAtMs: now, wakeAtMs: now + 5 * 60000, patrol: false });
+  const result = {
+    available: true, status: "fresh", message: null, asOf: AS_OF, refreshMs: 15000, maxRunning: 2, running: 0,
+    active: [live("retry-task", "retry"), live("quota-task", "quota")],
+    recent: [],
+    patrol: { service: "active", phase: "running", round: "", detail: "", untilMs: null, rounds: [] },
+  };
+  const zh = api._queueHeadline(result, translatorFor(api), now);
+  assert.match(zh.sub, /等额度 1/);
+  assert.match(zh.sub, /等重试 1/, `retry wait missing from the headline: ${zh.sub}`);
+  assert.match(zh.title, /等重试 1/);
+  assert.match(api._queueHeadline(result, translatorFor(api, "en"), now).sub, /1 waiting to retry/);
+});

@@ -6326,6 +6326,7 @@ const dictionaries = {
 		"queue.slotsCount": "{used}/{max}",
 		"queue.queued": "排队 {n}",
 		"queue.quotaWait": "等额度 {n}",
+		"queue.retryWait": "等重试 {n}",
 		"queue.idle": "没有在跑的任务",
 		"queue.readFailed": "任务队列读取失败:{message}",
 		"queue.staleWith": "刷新失败,显示最近一次: {message}",
@@ -6502,6 +6503,7 @@ const dictionaries = {
 		"queue.slotsCount": "{used}/{max}",
 		"queue.queued": "{n} queued",
 		"queue.quotaWait": "{n} waiting on quota",
+		"queue.retryWait": "{n} waiting to retry",
 		"queue.idle": "No task running",
 		"queue.readFailed": "Task queue read failed: {message}",
 		"queue.staleWith": "Refresh failed, showing the last read: {message}",
@@ -7523,9 +7525,11 @@ function patrolPhraseOf(result, t, now) {
 function _queueHeadline(result, t, now = Date.now()) {
 	const queued = result.active.filter(queuedFor).length;
 	const quota = result.active.filter((task) => task.waiting === "quota").length;
+	const retry = result.active.filter((task) => task.waiting === "retry").length;
 	const parts = [
 		queued > 0 ? t("queue.queued", { n: queued }) : null,
 		quota > 0 ? t("queue.quotaWait", { n: quota }) : null,
+		retry > 0 ? t("queue.retryWait", { n: retry }) : null,
 		patrolPhraseOf(result, t, now)
 	].filter((part) => part !== null);
 	const value = t("queue.slots", {
