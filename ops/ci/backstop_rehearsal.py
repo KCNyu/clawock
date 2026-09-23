@@ -224,7 +224,8 @@ def main(argv=None) -> int:
             # workflow (the 09-11 publisher false-stale was only found by diffing
             # run logs by hand), so a decided failure is reported as a warning —
             # still printed, still annotated — and only until a date, after which
-            # it is red again and has to be decided again. Never open-ended.
+            # it is red again until someone renews it for the same, still-true
+            # reason or the failure is gone. Never open-ended.
             print(f"::warning title=off-host brief backstop::{verdict['reason']} "
                   f"(accepted until {args.accepted_until}: {args.accepted_reason})")
             print(f"      accepted until {args.accepted_until} — {args.accepted_reason}")
