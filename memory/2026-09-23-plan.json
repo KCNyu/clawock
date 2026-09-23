@@ -1,0 +1,1115 @@
+{
+  "schema_version": 2,
+  "date": "2026-09-23",
+  "context_generation_id": "57ac1d7663648879",
+  "fx_rate_usdhkd": 7.8434,
+  "fx_source": "Frankfurter",
+  "regime": {
+    "us": "neutral",
+    "hk": "neutral"
+  },
+  "book": {
+    "usd_total_pnl": -716.4,
+    "hkd_total_pnl": -42661.64,
+    "hk_leg_hkd": -42661.64,
+    "us_leg_usd": -716.4,
+    "usd_base_total": -6155.58,
+    "hkd_base_total": -48280.65
+  },
+  "decisions": [
+    {
+      "schema_version": 2,
+      "decision_id": "dec-f52a068ff6a8",
+      "episode_id": "ep-efd6da07b795",
+      "decision_group_id": "2026-09-23:00100",
+      "plan_date": "2026-09-23",
+      "created_at": "2026-09-23T08:00:00+08:00",
+      "ticker": "00100",
+      "name": "MINIMAX-W",
+      "leg": "HK",
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "00100-minimax-ai-commercialization",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "manual",
+        "price": null,
+        "description": "维持持有，9/22 trim 计划 settlement_status=pending，检查清单 9/23 收紧为 hold_and_watch；如 trim 已成交则权重从 59.46% 降至 ~50%，如未成交则等下回反弹站上 295 HKD 重新评估",
+        "valid_for_sessions": 1
+      },
+      "size": {
+        "shares": 0,
+        "pct": 0.0,
+        "note": ""
+      },
+      "confidence": 0.5,
+      "driven_by": "risk_rule",
+      "evidence_event_id": null,
+      "regime": "neutral",
+      "rationale": "单名 59.46% 已退出 mandatory 60% cap，转为 35-60% advisory review band（concentration_reviews 命中）；9/22 trim 295 触发价日内 high 314.2 实际 fire，但 settlement pending。今 检查清单 allowed_actions=[hold_and_watch,watch] 不允许 re-issue trim，故降级观察。Reflection 17 集胜率 47% 主动 call 多半没跑赢持有，叠加明日 Saudi HUMAIN/Alipay Token Pay 题材 confirming 软，观望最优",
+      "contested": false,
+      "thesis_invalidation": "若 00100 单日跌幅 ≥15% 或 momentum 1m 加速跌穿 -20%（现 -8.3%），重估 9/22 trim 触发价是否仍有效，否则维持",
+      "debate": {
+        "bull": "Saudi HUMAIN Arabic LLM 与 Alipay Token Pay 是连续 confirming 催化，5d 反弹 +22.1%，mom_1m -8.3% 已在修复，00100 处于 AI 大模型主题正面窗口",
+        "bear": "60% cap 触发 + Reflection 47% 胜率意味着主动 trim 是纪律题不是 alpha 题，00100 现价 286.4 距 9/22 open 314.2 已 -8.9%，settlement pending 期间不该有第 2 次 trim 决定",
+        "attacked_consensus": "攻击的是「AI 大模型题材持续，00100 应该加仓」这条最强 bull 共识",
+        "judge": "维持 hold：settlement 状态未明前不出新动作，295 触发价若被套利者触发执行后，下回 295+ 再讨论",
+        "frames": [
+          "relative_strength"
+        ],
+        "evidence_ids": [
+          "risk:single_name_review:00100"
+        ]
+      },
+      "technical_setup_id": null,
+      "technical_campaign_id": null,
+      "invalidation_price": null,
+      "expected_move_pct": null,
+      "tranche_number": null,
+      "technical_trace_version": 1,
+      "signal_provenance": {
+        "schema_version": 1,
+        "context_generation_id": "57ac1d7663648879",
+        "observed_at": "2026-09-23T08:04:33.427757+08:00",
+        "information": {
+          "activation_blockers": [],
+          "activation_progress": {
+            "cross_section_tickers": [
+              21,
+              8
+            ],
+            "history_dates": [
+              29,
+              24
+            ]
+          },
+          "as_of": "2026-09-23T00:04:28.455858+00:00",
+          "attention_acceleration": 0.3986,
+          "attention_event_count": 5,
+          "attention_rank": 0.125,
+          "attention_score": 0.054011,
+          "attention_source_type_count": 2,
+          "cross_section_rank": 0.5238,
+          "event_count": 0,
+          "own_surprise_z": -0.2582,
+          "signed_score": 0.0,
+          "sizing_tilt": "neutral",
+          "source_ticker": "00100",
+          "status": "active",
+          "usable_for_decisions": true
+        },
+        "sizing": {
+          "contributors": [],
+          "discipline": "resizes an approved technical tranche; never creates add authority",
+          "sizing_active": true,
+          "sizing_multiplier": 1.0
+        },
+        "authority": {
+          "max_add_shares": 0,
+          "position_room_shares": 0,
+          "lot_size": 20,
+          "tier": "none"
+        }
+      },
+      "simulated_entry_price": null,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-fb8e1d24f4f9",
+      "episode_id": "ep-bc39b795923e",
+      "decision_group_id": "2026-09-23:07226",
+      "plan_date": "2026-09-23",
+      "created_at": "2026-09-23T08:00:00+08:00",
+      "ticker": "07226",
+      "name": "XL二南方恒科",
+      "leg": "HK",
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "07226-hstech-2x-leveraged",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "manual",
+        "price": null,
+        "description": "维持 stance=declined 41 天，换仓处方→03033（max 18463.6 HKD，breach_id risk-4ab7eff27f15）工具备好；今日与 9/15 last_reissued 比无新催化，HSTECH 4438 仍 -11.4% 距 200DMA，lev_regime 仍 amber",
+        "valid_for_sessions": 1
+      },
+      "size": {
+        "shares": 0,
+        "pct": 0.0,
+        "note": ""
+      },
+      "confidence": 0.55,
+      "driven_by": "risk_rule",
+      "evidence_event_id": null,
+      "regime": "neutral",
+      "rationale": "硬止损已开 41 天，浮亏 -31.5% 站 70d breach ledger 持续。adaptive.may_stand=true，stance=declined 同期他处有成交，kcn 选保留敞口让 HSTECH 反弹修复；breakeven 46.0% 横盘 6m 仍需 +21.8% 标的涨幅（2x 路径）。今日 9/23 vs 9/15 last_reissued 无实质变化：HSTECH 4438 较 9/22 的 4423 微升 0.34%，未破 4200 触发；HK lev_regime 仍 amber ×0.5；add 仍冻结。换仓处方 路径保留为「选用的解套处方」，等 kcn 显式执行或 regime 转 green",
+      "contested": false,
+      "thesis_invalidation": "若 HSTECH 跌破 4200 整数位或 07226 单日跌幅 ≥8%，reassess 选打法的有效性（继续摊本 vs 触发 换仓处方 换 1x）",
+      "debate": {
+        "bull": "HSTECH 5d +6.6% 借南向资金回流 + 腾讯 9/22 +5.0% + 阿里 Apsara 大会催化，07226 2x 杠杆放大反弹，breakeven 路径在收窄",
+        "bear": "HSTECH 4438 仍 -11.4% 距 200DMA 5009，lev_regime amber 已 130+ 天，2x 在横盘期每月烧 decay 0.26%；Reflection 11 集胜率 73% 多数来自减×2、清×3，不是持有胜率",
+        "attacked_consensus": "攻击的是「恒科 4438 已止跌，2x 杠杆反弹弹性最佳」这条最强 bull 共识",
+        "judge": "维持 stance：breach 41d 仍未到期，policy 默认维持，kcn 显式不砍的语境里不主动加码也不动 换仓处方",
+        "frames": [
+          "technical_breakdown",
+          "sector_rotation"
+        ],
+        "evidence_ids": [
+          "risk:leveraged_hard_stop:07226",
+          "risk:leveraged_exposure:HK"
+        ]
+      },
+      "technical_setup_id": null,
+      "technical_campaign_id": null,
+      "invalidation_price": null,
+      "expected_move_pct": null,
+      "tranche_number": null,
+      "technical_trace_version": 1,
+      "signal_provenance": {
+        "schema_version": 1,
+        "context_generation_id": "57ac1d7663648879",
+        "observed_at": "2026-09-23T08:04:33.427757+08:00",
+        "information": {
+          "activation_blockers": [],
+          "activation_progress": {
+            "cross_section_tickers": [
+              21,
+              8
+            ],
+            "history_dates": [
+              29,
+              24
+            ]
+          },
+          "as_of": "2026-09-23T00:04:28.455858+00:00",
+          "attention_acceleration": null,
+          "attention_event_count": 0,
+          "attention_rank": null,
+          "attention_score": null,
+          "attention_source_type_count": 0,
+          "cross_section_rank": null,
+          "event_count": 0,
+          "own_surprise_z": null,
+          "signed_score": null,
+          "sizing_tilt": "inactive",
+          "source_ticker": "HSTECH",
+          "status": "active",
+          "usable_for_decisions": false
+        },
+        "sizing": {
+          "contributors": [],
+          "discipline": "resizes an approved technical tranche; never creates add authority",
+          "sizing_active": false,
+          "sizing_multiplier": 1.0
+        },
+        "authority": {
+          "max_add_shares": 300,
+          "position_room_shares": 4200,
+          "lot_size": 100,
+          "tier": "none"
+        }
+      },
+      "simulated_entry_price": null,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-e74c8cab2cd3",
+      "episode_id": "ep-adcbef347756",
+      "decision_group_id": "2026-09-23:RKLX",
+      "plan_date": "2026-09-23",
+      "created_at": "2026-09-23T08:00:00+08:00",
+      "ticker": "RKLX",
+      "name": "Defiance Daily Target 2X Long R",
+      "leg": "US",
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "rklx-rklb-2x-leveraged",
+      "action": "trim_on_rebound",
+      "condition": {
+        "type": "price_above",
+        "price": 21.5,
+        "description": "reissue: 反弹站上 21.5 USD 时减 5 股（约 107.5 USD），从 10 股降到 5 股，保留敞口；kcn stance=declined 可用 risk override 标记拒绝执行",
+        "valid_for_sessions": 1
+      },
+      "size": {
+        "shares": 5,
+        "pct": 50.0,
+        "note": "reissue 下调一半仓位，保留火星敞口"
+      },
+      "confidence": 0.45,
+      "driven_by": "risk_rule",
+      "evidence_event_id": null,
+      "regime": "neutral",
+      "rationale": "reissue 自 9/15 last_reissued 已 8 天，硬止损 -63% 站 70 天仍 open，breakeven 169.9% 几无回本路径。stanceled 70 天，kcn 保留敞口承担 chop drag。adaptive.may_stand=true，今日 9/23 vs 9/15 无新催化（Flight 14 仍定 9/28、RKLB 6/13 已清仓），但 5 天反弹 +13.27% 提供 reissue 窗口。如 21.5 USD 反弹能成，按 5 股减仓价格是 5×21.5=107.5 USD，约总仓位 58%；kcn 实际不执行此 call 是预期，但 plan 记录是纪律的账本",
+      "contested": true,
+      "thesis_invalidation": "若 RKLB 重新建仓触发 1x 解套路径回归，或 RKLX 单日反弹 ≥15% 借机减仓",
+      "debate": {
+        "bull": "RKLB 5d +13.27% 是 Electron 96th mission + Flight 14 推进预期重定价，2x 杠杆反弹段弹性最佳；reissue 21.5 是 5d 内可达到位",
+        "bear": "70d breach + breakeven 169.9% 5-sigma 不可达 + chop drag 2.34%/月；换仓处方 失效（RKLB 已清）；reissue 只剩价格项的象征意义",
+        "attacked_consensus": "攻击的是「RKLX 2x 借 RKLB 反弹修复」这条最强 bull 共识",
+        "judge": "reissue 是 70d breach ledger 必要记录，kcn 选不执行是显式 stance；21.5 是 5d 高 21.51 邻近，1 个 lot 是结构选择",
+        "frames": [
+          "technical_breakdown"
+        ],
+        "evidence_ids": [
+          "risk:leveraged_hard_stop:RKLX",
+          "risk:leveraged_exposure:US",
+          "risk:beta:US"
+        ]
+      },
+      "technical_setup_id": null,
+      "technical_campaign_id": null,
+      "invalidation_price": null,
+      "expected_move_pct": null,
+      "tranche_number": null,
+      "technical_trace_version": 1,
+      "signal_provenance": {
+        "schema_version": 1,
+        "context_generation_id": "57ac1d7663648879",
+        "observed_at": "2026-09-23T08:04:33.427757+08:00",
+        "information": {
+          "activation_blockers": [],
+          "activation_progress": {
+            "cross_section_tickers": [
+              21,
+              8
+            ],
+            "history_dates": [
+              29,
+              24
+            ]
+          },
+          "as_of": "2026-09-23T00:04:28.455858+00:00",
+          "attention_acceleration": 1.091,
+          "attention_event_count": 6,
+          "attention_rank": 0.8529,
+          "attention_score": 0.726947,
+          "attention_source_type_count": 2,
+          "cross_section_rank": 0.0238,
+          "event_count": 1,
+          "own_surprise_z": -1.5327,
+          "signed_score": -0.127351,
+          "sizing_tilt": "negative",
+          "source_ticker": "RKLB",
+          "status": "active",
+          "usable_for_decisions": true
+        },
+        "sizing": {
+          "contributors": [
+            "information_negative_or_low_rank"
+          ],
+          "discipline": "resizes an approved technical tranche; never creates add authority",
+          "sizing_active": true,
+          "sizing_multiplier": 0.6
+        },
+        "authority": {
+          "max_add_shares": 1,
+          "position_room_shares": 25,
+          "lot_size": 1,
+          "tier": "none"
+        }
+      },
+      "simulated_entry_price": null,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-28a60d06f8fc",
+      "episode_id": "ep-1b5d02e701a4",
+      "decision_group_id": "2026-09-23:SPCH",
+      "plan_date": "2026-09-23",
+      "created_at": "2026-09-23T08:00:00+08:00",
+      "ticker": "SPCH",
+      "name": "Leverage Shares 2X Long SpaceX Daily ETF",
+      "leg": "US",
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "spch-spcx-2x-leveraged",
+      "action": "trim_on_rebound",
+      "condition": {
+        "type": "price_above",
+        "price": 11.5,
+        "description": "reissue: 反弹站上 11.50 USD（近 20d high 11.11 上方）时减 100 股（约 1150 USD），从 300 股降到 200 股，保留敞口",
+        "valid_for_sessions": 1
+      },
+      "size": {
+        "shares": 100,
+        "pct": 33.3,
+        "note": "reissue 下调 1/3 仓位，从 85.81% US 压到 ~60%"
+      },
+      "confidence": 0.5,
+      "driven_by": "risk_rule",
+      "evidence_event_id": null,
+      "regime": "neutral",
+      "rationale": "reissue 自 9/16 last_reissued 已 7 天，4 breaches 同源（单名 85.81%/US 杠杆 90.8%/beta 3.0/RKLX 联动），stance=contrary 70 天（kcn 13 次加仓最后 8/20）。adaptive.may_stand=true，今日 9/23 vs 9/16 比：Flight 14 仍 9/28 无进度、Musk-SpaceX 合并传闻 indirect confirming soft、SPCX 154.72 高于 136 chandelier +13% 缓冲。reissue 11.50 是 9/22 high 10.67 上方 7.7%，借反弹段减 1/3 仓位能从 85.81% US 压到 ~60%，杠杆敞口同步下降。kcn 实际不执行是预期 stance",
+      "contested": true,
+      "thesis_invalidation": "若 Starship Flight 14 9/28 实质失败（非再次推迟）或 SPCX 跌破 5MA 147.07，reassess contrary 策略根基",
+      "debate": {
+        "bull": "SPCH 5d +15.2% 板块共振反弹 + Flight 14 9/28 推进 + Musk-SpaceX 合并传闻是 indirect confirming；reissue 11.50 借反弹压单名 85.81% → ~60%",
+        "bear": "单名 85.81% 是 mandatory 级别超 cap；contrary stance 13 次加仓是显式 strategy；reissue 只剩价格项的象征意义",
+        "attacked_consensus": "攻击的是「SPCH 2x 是商业航天最优表达，stance=contrary 应延续」这条最强 bull 共识",
+        "judge": "reissue 是 4 breaches 同源的纪律性记录，kcn 选不执行是显式 strategy；11.50 是 9/22 high 10.67 上方反弹触发位",
+        "frames": [
+          "relative_strength",
+          "sector_rotation"
+        ],
+        "evidence_ids": [
+          "risk:single_name:SPCH",
+          "risk:leveraged_exposure:US",
+          "risk:beta:US"
+        ]
+      },
+      "technical_setup_id": null,
+      "technical_campaign_id": null,
+      "invalidation_price": null,
+      "expected_move_pct": null,
+      "tranche_number": null,
+      "technical_trace_version": 1,
+      "signal_provenance": {
+        "schema_version": 1,
+        "context_generation_id": "57ac1d7663648879",
+        "observed_at": "2026-09-23T08:04:33.427757+08:00",
+        "information": {
+          "activation_blockers": [],
+          "activation_progress": {
+            "cross_section_tickers": [
+              21,
+              8
+            ],
+            "history_dates": [
+              29,
+              24
+            ]
+          },
+          "as_of": "2026-09-23T00:04:28.455858+00:00",
+          "attention_acceleration": 1.5646,
+          "attention_event_count": 13,
+          "attention_rank": 0.9706,
+          "attention_score": 2.035918,
+          "attention_source_type_count": 2,
+          "cross_section_rank": 0.5238,
+          "event_count": 0,
+          "own_surprise_z": 0.0152,
+          "signed_score": 0.0,
+          "sizing_tilt": "neutral",
+          "source_ticker": "SPCX",
+          "status": "active",
+          "usable_for_decisions": true
+        },
+        "sizing": {
+          "contributors": [],
+          "discipline": "resizes an approved technical tranche; never creates add authority",
+          "sizing_active": true,
+          "sizing_multiplier": 1.0
+        },
+        "authority": {
+          "max_add_shares": 0,
+          "position_room_shares": 0,
+          "lot_size": 1,
+          "tier": "none"
+        }
+      },
+      "simulated_entry_price": null,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-ebf5245a1705",
+      "episode_id": "ep-334bc30449d2",
+      "decision_group_id": "2026-09-23:SPCX",
+      "plan_date": "2026-09-23",
+      "created_at": "2026-09-23T08:00:00+08:00",
+      "ticker": "SPCX",
+      "name": "SpaceX",
+      "leg": "US",
+      "strategy_id": "core_position",
+      "thesis_id": "spcx-spacex-direct",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "manual",
+        "price": null,
+        "description": "维持 1 股观望，alpha_confirmation technical_setup_id 备好但 z=1.46 未突破 2.0；SPCX 现 154.72 距 20d high 158.13 -2.2%，无 setup trigger",
+        "valid_for_sessions": 1
+      },
+      "size": {
+        "shares": 0,
+        "pct": 0.0,
+        "note": ""
+      },
+      "confidence": 0.5,
+      "driven_by": "technical",
+      "evidence_event_id": null,
+      "regime": "neutral",
+      "rationale": "SPCX 1 股 +4.89% 微浮盈，是 US 商业航天主题的 1x 锚（SPCH 2x 是同源杠杆表达）。alpha_confirmation technical_setup_id 在 检查清单 里但 z=1.46 未触发 early_no_chase_zscore 2.0；机会表 verdict=reject 因为 SPCH hold_and_watch 0 股纪律未了结。Reflection 9 集胜率 22% 是组合最低，「主动 call 多半没跑赢持有」，持有 1 股观望是最稳形态",
+      "contested": false,
+      "thesis_invalidation": "若 SPCX 收盘站上 158.13（20d high）且 zscore20 < 2.0 触发 alpha_confirmation，是加仓窗口；当前 z=1.46 接近但未过线",
+      "debate": {
+        "bull": "SPCX 5d +7.8% + SPCH 5d +15.2% 同源反弹，SpaceX 题材面 Flight 14 9/28 推进 + Musk-SpaceX 合并传闻",
+        "bear": "Reflection 胜率 22% 是组合最低，机会表 verdict=reject 明确标 0 股纪律优先，1 股观望不构成 add authority",
+        "attacked_consensus": "攻击的是「SPCX 是商业航天 1x 锚定标的，应该加仓」这条最强 bull 共识",
+        "judge": "维持 1 股：z 未过线、胜率低、机会表 reject 三重门都不允许加仓；等下回 setup 触发或 SPCH 纪律了结",
+        "frames": [
+          "breakout"
+        ]
+      },
+      "technical_setup_id": null,
+      "technical_campaign_id": null,
+      "invalidation_price": null,
+      "expected_move_pct": null,
+      "tranche_number": null,
+      "technical_trace_version": 1,
+      "signal_provenance": {
+        "schema_version": 1,
+        "context_generation_id": "57ac1d7663648879",
+        "observed_at": "2026-09-23T08:04:33.427757+08:00",
+        "information": {
+          "activation_blockers": [],
+          "activation_progress": {
+            "cross_section_tickers": [
+              21,
+              8
+            ],
+            "history_dates": [
+              29,
+              24
+            ]
+          },
+          "as_of": "2026-09-23T00:04:28.455858+00:00",
+          "attention_acceleration": 1.5646,
+          "attention_event_count": 13,
+          "attention_rank": 0.9706,
+          "attention_score": 2.035918,
+          "attention_source_type_count": 2,
+          "cross_section_rank": 0.5238,
+          "event_count": 0,
+          "own_surprise_z": 0.0152,
+          "signed_score": 0.0,
+          "sizing_tilt": "neutral",
+          "source_ticker": "SPCX",
+          "status": "active",
+          "usable_for_decisions": true
+        },
+        "sizing": {
+          "contributors": [],
+          "discipline": "resizes an approved technical tranche; never creates add authority",
+          "sizing_active": true,
+          "sizing_multiplier": 1.0
+        },
+        "authority": {
+          "max_add_shares": 0,
+          "position_room_shares": 2,
+          "lot_size": 1,
+          "tier": "exploration"
+        }
+      },
+      "simulated_entry_price": null,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-d536e2e8df54",
+      "episode_id": "ep-ad06d77ee39d",
+      "decision_group_id": "2026-09-23:03033",
+      "plan_date": "2026-09-23",
+      "created_at": "2026-09-23T08:00:00+08:00",
+      "ticker": "03033",
+      "name": "南方恒生科技",
+      "leg": "HK",
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "03033-hstech-1x",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "manual",
+        "price": null,
+        "description": "维持 1x 敞口，换仓处方 路径备好（07226 触发则 add 收 03033），今日 07226 未触发 swap 故不动 add_only_on_trigger",
+        "valid_for_sessions": 1
+      },
+      "size": {
+        "shares": 0,
+        "pct": 0.0,
+        "note": ""
+      },
+      "confidence": 0.45,
+      "driven_by": "risk_rule",
+      "evidence_event_id": null,
+      "regime": "neutral",
+      "rationale": "03033 是 07226 的 1x 同因子，检查清单 给了 换仓处方 授权（add_only_on_trigger 路径，max 18463.6 HKD），但 kcn 选不触发 swap，03033 维持现状。Reflection 10 集胜率 30% 主动 call 弱。1x 敞口本身是组合中 HK 科技敞口的低 beta 表达；维持等于 07226 减仓路径的隐性备份。HSTECH 4438 mom_1m -3.4% 与 03033 mom_1m -3.2% 高度同步，no alpha spread",
+      "contested": false,
+      "thesis_invalidation": "若 07226 触发 换仓处方 切 1x 路径，03033 是收腿方（add_only_on_trigger 路径自然启动），不需要单独 plan 触发",
+      "debate": {
+        "bull": "1x 敞口是低 vol 表达，sigma 17.6% vs 07226 2x 的 chop drag 是天然 hedge；HSTECH 收复 200DMA 5009 是 1x 路径可换回 2x 的 reentry signal",
+        "bear": "Reflection 10 集胜率 30% 是低位，持有 1x 不如直接持有 07226 等 换仓处方 触发；当前 swap 未触发 = 03033 闲置",
+        "attacked_consensus": "攻击的是「03033 1x 已经是稳态配置，应该借低 vol 加仓」这条最强 bull 共识",
+        "judge": "维持：换仓处方 是 07226 触发的从动方，03033 单独加仓缺乏 alpha spread 证据，胜率 30% 不支持主动加",
+        "frames": [
+          "momentum"
+        ]
+      },
+      "technical_setup_id": null,
+      "technical_campaign_id": null,
+      "invalidation_price": null,
+      "expected_move_pct": null,
+      "tranche_number": null,
+      "technical_trace_version": 1,
+      "signal_provenance": {
+        "schema_version": 1,
+        "context_generation_id": "57ac1d7663648879",
+        "observed_at": "2026-09-23T08:04:33.427757+08:00",
+        "information": {
+          "activation_blockers": [],
+          "activation_progress": {
+            "cross_section_tickers": [
+              21,
+              8
+            ],
+            "history_dates": [
+              29,
+              24
+            ]
+          },
+          "as_of": "2026-09-23T00:04:28.455858+00:00",
+          "attention_acceleration": 0.7591,
+          "attention_event_count": 3,
+          "attention_rank": 0.375,
+          "attention_score": 0.058405,
+          "attention_source_type_count": 1,
+          "cross_section_rank": 0.5238,
+          "event_count": 0,
+          "own_surprise_z": null,
+          "signed_score": 0.0,
+          "sizing_tilt": "neutral",
+          "source_ticker": "03033",
+          "status": "active",
+          "usable_for_decisions": true
+        },
+        "sizing": {
+          "contributors": [],
+          "discipline": "resizes an approved technical tranche; never creates add authority",
+          "sizing_active": true,
+          "sizing_multiplier": 1.0
+        },
+        "authority": {
+          "max_add_shares": 200,
+          "position_room_shares": 2800,
+          "lot_size": 200,
+          "tier": "none"
+        }
+      },
+      "simulated_entry_price": null,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-6e5318d999c2",
+      "episode_id": "ep-fb89c88c8dfb",
+      "decision_group_id": "2026-09-23:CRCL",
+      "plan_date": "2026-09-23",
+      "created_at": "2026-09-23T08:00:00+08:00",
+      "ticker": "CRCL",
+      "name": "Circle Internet Group",
+      "leg": "US",
+      "strategy_id": "core_position",
+      "thesis_id": "crcl-stablecoin-circle",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "manual",
+        "price": null,
+        "description": "维持 2 股微仓，92 USD 是 Binance 100M 投资传闻（9/22 已落地 100M）后形成的关键位；今日 94.59 上方运行，hold 即可",
+        "valid_for_sessions": 1
+      },
+      "size": {
+        "shares": 0,
+        "pct": 0.0,
+        "note": ""
+      },
+      "confidence": 0.5,
+      "driven_by": "technical",
+      "evidence_event_id": null,
+      "regime": "neutral",
+      "rationale": "Binance 9/22 投资 1 亿 USD + 5 年 USDC 推广协议延长（confirming 硬催化但 sentiment-level 不是公司事件）+ 92 USD 关键位守住。mom_1m +7.5% 反弹中，rsi 56.3 偏中位。5d +9.6% 已在价反映部分 Binance 利好；下一轮关键事件是法案/支付场景落地（无具体 catalyst date）。Reflection 11 集胜率 45% 中性",
+      "contested": false,
+      "thesis_invalidation": "若 CRCL 单日跌穿 92 USD（9/22 法案失败后形成的关键位），reassess 稳定币主题修复路径是否成立",
+      "debate": {
+        "bull": "Binance 1 亿 USD 投资是 USDC 主流交易所采用的关键里程碑，5 年承诺 + 2 年禁售是结构性催化，94.59 距 52w 区间 44.2% 中位",
+        "bear": "5d +9.6% 已消化 Binance 利好，单 2 股微仓 5% 权重 + 0.16% 整体占比，alpha 边际小；Reflection 胜率 45% 偏弱",
+        "attacked_consensus": "攻击的是「CRCL 是稳定币头部 beta，应该加仓到合规规模」这条最强 bull 共识",
+        "judge": "维持 2 股：现仓位已是 policy 接受的微仓锚，不加不减；等下回 92 关键位测试或下一轮硬催化（无 date）",
+        "frames": [
+          "momentum",
+          "sentiment_shift"
+        ]
+      },
+      "technical_setup_id": null,
+      "technical_campaign_id": null,
+      "invalidation_price": null,
+      "expected_move_pct": null,
+      "tranche_number": null,
+      "technical_trace_version": 1,
+      "signal_provenance": {
+        "schema_version": 1,
+        "context_generation_id": "57ac1d7663648879",
+        "observed_at": "2026-09-23T08:04:33.427757+08:00",
+        "information": {
+          "activation_blockers": [],
+          "activation_progress": {
+            "cross_section_tickers": [
+              21,
+              8
+            ],
+            "history_dates": [
+              29,
+              24
+            ]
+          },
+          "as_of": "2026-09-23T00:04:28.455858+00:00",
+          "attention_acceleration": 2.3909,
+          "attention_event_count": 12,
+          "attention_rank": 0.9118,
+          "attention_score": 1.601277,
+          "attention_source_type_count": 3,
+          "cross_section_rank": 0.5238,
+          "event_count": 0,
+          "own_surprise_z": -0.0199,
+          "signed_score": 0.0,
+          "sizing_tilt": "neutral",
+          "source_ticker": "CRCL",
+          "status": "active",
+          "usable_for_decisions": true
+        },
+        "sizing": {
+          "contributors": [],
+          "discipline": "resizes an approved technical tranche; never creates add authority",
+          "sizing_active": true,
+          "sizing_multiplier": 1.0
+        },
+        "authority": {
+          "max_add_shares": 1,
+          "position_room_shares": 4,
+          "lot_size": 1,
+          "tier": "none"
+        }
+      },
+      "simulated_entry_price": null,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-6298b92afc00",
+      "episode_id": "ep-1faad49913c4",
+      "decision_group_id": "2026-09-23:03032",
+      "plan_date": "2026-09-23",
+      "created_at": "2026-09-23T08:00:00+08:00",
+      "ticker": "03032",
+      "name": "恒生科技ETF",
+      "leg": "HK",
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "03032-hstech-1x-alt",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "manual",
+        "price": null,
+        "description": "维持 1.27% 微仓持有，03032/03033 跟踪误差 0.01% 内，等同重复敞口",
+        "valid_for_sessions": 1
+      },
+      "size": {
+        "shares": 0,
+        "pct": 0.0,
+        "note": ""
+      },
+      "confidence": 0.4,
+      "driven_by": "risk_rule",
+      "evidence_event_id": null,
+      "regime": "neutral",
+      "rationale": "03032 与 03033 同跟踪 HSTECH 误差 0.01% 内，是组合中重复配置的 1x 微仓（887.2 HKD = 1.27% HK 权重）。HSTECH 5d +6.6% 板块修复跟随，mom_1m -3.2% 与 03033 同步。Reflection 10 集胜率 30% 偏弱，主动 call 不跑赢持有",
+      "contested": false,
+      "thesis_invalidation": "若 HSTECH 跌破 4200 整数位或 03032/03033 出现跟踪误差 >0.5%（罕见），重新评估是否合并到一个 ticker",
+      "debate": {
+        "bull": "1x 敞口是组合 beta 锚定；03032 流动性比 03033 略好，5d +3.2% 跟反弹",
+        "bear": "0.01% 跟踪误差内同时持 03032+03033 是重复敞口，1.27% 权重太小，alpha 边际接近 0；合并到一个更高效",
+        "attacked_consensus": "攻击的是「03032 与 03033 分散持有可降低单 ticker 风险」这条最强 bull 共识",
+        "judge": "维持：微仓持有成本低于合并操作成本，叠加 kcn 显式不主动调",
+        "frames": [
+          "momentum"
+        ]
+      },
+      "technical_setup_id": null,
+      "technical_campaign_id": null,
+      "invalidation_price": null,
+      "expected_move_pct": null,
+      "tranche_number": null,
+      "technical_trace_version": 1,
+      "signal_provenance": {
+        "schema_version": 1,
+        "context_generation_id": "57ac1d7663648879",
+        "observed_at": "2026-09-23T08:04:33.427757+08:00",
+        "information": {
+          "activation_blockers": [],
+          "activation_progress": {
+            "cross_section_tickers": [
+              21,
+              8
+            ],
+            "history_dates": [
+              29,
+              24
+            ]
+          },
+          "as_of": "2026-09-23T00:04:28.455858+00:00",
+          "attention_acceleration": 0.4597,
+          "attention_event_count": 1,
+          "attention_rank": 0.625,
+          "attention_score": 0.062688,
+          "attention_source_type_count": 1,
+          "cross_section_rank": 0.5238,
+          "event_count": 0,
+          "own_surprise_z": null,
+          "signed_score": 0.0,
+          "sizing_tilt": "neutral",
+          "source_ticker": "03032",
+          "status": "active",
+          "usable_for_decisions": true
+        },
+        "sizing": {
+          "contributors": [],
+          "discipline": "resizes an approved technical tranche; never creates add authority",
+          "sizing_active": true,
+          "sizing_multiplier": 1.0
+        },
+        "authority": {
+          "max_add_shares": 200,
+          "position_room_shares": 2800,
+          "lot_size": 200,
+          "tier": "none"
+        }
+      },
+      "simulated_entry_price": null,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    },
+    {
+      "schema_version": 2,
+      "decision_id": "dec-2f58104f8f3c",
+      "episode_id": "ep-7b5d7ed6bca0",
+      "decision_group_id": "2026-09-23:02208",
+      "plan_date": "2026-09-23",
+      "created_at": "2026-09-23T08:00:00+08:00",
+      "ticker": "02208",
+      "name": "金风科技",
+      "leg": "HK",
+      "strategy_id": "risk_rebalance",
+      "thesis_id": "02208-wind-power-hk",
+      "action": "hold_and_watch",
+      "condition": {
+        "type": "manual",
+        "price": null,
+        "description": "维持观望，9.20 HKD 横盘中枢是关键位，跌破 8.84 才是叙事失效信号",
+        "valid_for_sessions": 1
+      },
+      "size": {
+        "shares": 0,
+        "pct": 0.0,
+        "note": ""
+      },
+      "confidence": 0.4,
+      "driven_by": "risk_rule",
+      "evidence_event_id": null,
+      "regime": "neutral",
+      "rationale": "02208 浮亏 -36.7% 是组合中第二高（仅次于 RKLX -63%）。mom_1m -5.4%、mom_3m -11.9%、mom_6m -42.6%、mom_12_1 -10.5%，多周期动量全负。rsi 39.3 偏弱。dist_ma200 -31.2% 严重偏离。9.20 HKD 是横盘中枢，8.84 是叙事失效线。Reflection 12 集胜率 25% 组合最低；今日 9/22 close 8.92 在中枢下方但未跌穿 8.84，hold 即可",
+      "contested": false,
+      "thesis_invalidation": "若 02208 收盘跌破 8.84 HKD（叙事失效位），reassess 风电/新能源主题是否还有 alpha；若反弹站上 9.45（5d high），是有加仓窗口的 trigger",
+      "debate": {
+        "bull": "风电板块政策端（双碳、海风）仍是中期叙事，02208 是 A+H 双地上市流动性好；5d -2.8% 跌幅较温和说明空头不强",
+        "bear": "Reflection 12 集胜率 25% 是组合最低，mom_6m -42.6% 说明 6m 维度动量全负；5.29% 权重不大但 -36.7% 浮亏不小",
+        "attacked_consensus": "攻击的是「02208 是风电 H 股龙头，应该补仓摊薄成本」这条最强 bull 共识",
+        "judge": "维持 hold：胜率 25% 不支持主动 call，跌破 8.84 是减仓信号而非加仓信号",
+        "frames": [
+          "mean_reversion",
+          "relative_strength"
+        ]
+      },
+      "technical_setup_id": null,
+      "technical_campaign_id": null,
+      "invalidation_price": null,
+      "expected_move_pct": null,
+      "tranche_number": null,
+      "technical_trace_version": 1,
+      "signal_provenance": {
+        "schema_version": 1,
+        "context_generation_id": "57ac1d7663648879",
+        "observed_at": "2026-09-23T08:04:33.427757+08:00",
+        "information": {
+          "activation_blockers": [],
+          "activation_progress": {
+            "cross_section_tickers": [
+              21,
+              8
+            ],
+            "history_dates": [
+              29,
+              24
+            ]
+          },
+          "as_of": "2026-09-23T00:04:28.455858+00:00",
+          "attention_acceleration": 1.0293,
+          "attention_event_count": 3,
+          "attention_rank": 0.875,
+          "attention_score": 0.12733,
+          "attention_source_type_count": 2,
+          "cross_section_rank": 0.5238,
+          "event_count": 1,
+          "own_surprise_z": -0.1598,
+          "signed_score": 0.0,
+          "sizing_tilt": "neutral",
+          "source_ticker": "02208",
+          "status": "active",
+          "usable_for_decisions": true
+        },
+        "sizing": {
+          "contributors": [],
+          "discipline": "resizes an approved technical tranche; never creates add authority",
+          "sizing_active": true,
+          "sizing_multiplier": 1.0
+        },
+        "authority": {
+          "max_add_shares": 200,
+          "position_room_shares": 1400,
+          "lot_size": 200,
+          "tier": "none"
+        }
+      },
+      "simulated_entry_price": null,
+      "horizon_sessions": 1,
+      "override": {
+        "status": "none",
+        "reason": "",
+        "expires_on": null,
+        "revisit_condition": ""
+      },
+      "evaluation": {
+        "status": "pending",
+        "triggered": null,
+        "trigger_session": null,
+        "execution_price": null,
+        "underlying_return_t1_pct": null,
+        "benefit_t1_pct": null,
+        "benefit_t5_pct": null,
+        "outcome": "pending",
+        "capital": null
+      },
+      "execution": {
+        "status": "unknown",
+        "detected_at": null,
+        "source": null
+      },
+      "migration": {
+        "source": "plan_v1"
+      }
+    }
+  ],
+  "watch_levels": {
+    "hstech_breakdown": 4200,
+    "hstech_200dma_recovery": 5009,
+    "spch_chandelier_pct": -13,
+    "spcx_20d_high": 158.13,
+    "rklx_breakeven_impossible_pct": 169.9,
+    "07226_breakeven_pct": 46.0,
+    "book_force_derisk_usd": -3500
+  }
+}
