@@ -33,8 +33,6 @@ belongs here.
   latest code on the host without a release.
 - [`cron-schedules.md`](operations/cron-schedules.md) — generated human view of
   the tracked cron contract.
-- [`price-alerts.md`](operations/price-alerts.md) — current alert path and the
-  retired polling design.
 - [`research-cadence.md`](operations/research-cadence.md) — which research
   question runs daily, which runs on an event, and why.
 - [`skills-store-policy.md`](operations/skills-store-policy.md) — registry
