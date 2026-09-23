@@ -8,35 +8,55 @@ belongs here.
 
 ## Architecture
 
-- [`data-plane.md`](architecture/data-plane.md) — why the live JSON snapshot is
-  separate from Pages, what GitHub officially supports, and the replacement bar.
 - [`harness.md`](architecture/harness.md) — package/profile/runtime boundaries,
   CLI lifecycle, context injection contract, and generation-pinned artifacts.
+- [`data-plane.md`](architecture/data-plane.md) — why the live JSON snapshot is
+  separate from Pages, what GitHub officially supports, and the replacement bar.
+- [`openclaw-adapter.md`](architecture/openclaw-adapter.md) — OpenClaw as an
+  external runtime and the parity contract the adapter must keep.
+- [`runtime-protocol.md`](architecture/runtime-protocol.md) — how any external
+  agent runtime invokes clawock.
+
+## Product surfaces
+
+- [`decision-map.md`](decision-map.md) — the Decision Map board in Reflect: how
+  to read coverage and snapshot age, the payload, and where it runs.
+  Its original specification is kept as history in
+  [`decision-map-prd.md`](decision-map-prd.md); do not use it as a runbook.
+- [`decision-mind-ledger.md`](decision-mind-ledger.md) — the decision-mind
+  ledger schema written by `clawock record`.
+- [`glossary.md`](glossary.md) — source of truth for cross-document terminology.
 
 ## Operations
 
+- [`release.md`](operations/release.md) — publishing to PyPI/npm, and running the
+  latest code on the host without a release.
 - [`cron-schedules.md`](operations/cron-schedules.md) — generated human view of
   the tracked cron contract.
 - [`price-alerts.md`](operations/price-alerts.md) — current alert path and the
   retired polling design.
-- [`skills-store-policy.md`](operations/skills-store-policy.md) — registry
-  discovery and installation policy.
 - [`research-cadence.md`](operations/research-cadence.md) — which research
   question runs daily, which runs on an event, and why.
+- [`skills-store-policy.md`](operations/skills-store-policy.md) — registry
+  discovery and installation policy.
 
 ## Reference
 
-- [`commands.md`](reference/commands.md) — the generated command inventory plus the hand-written harness detail.
+- [`commands.md`](reference/commands.md) — the generated command inventory plus
+  the hand-written harness detail (`scripts.md` is a moved-page stub pointing here).
+- [`tool-operations.md`](reference/tool-operations.md) — per-task tool detail;
+  routing lives in the root `TOOLS.md`.
+- [`product-profile-operations.md`](reference/product-profile-operations.md) —
+  what belongs to the product, profiles, operations and runtime state.
 
 ## Legal
 
 - [`third-party-data.md`](legal/third-party-data.md) — data-provider terms,
   attribution, and redistribution boundaries.
 
-## Archive
-
-Historical designs live under `archive/`. They are retained for context, are
-excluded from the public Pages build, and must not be used as current runbooks.
+Everything under `docs/` is published with the Pages build
+(`ops/pages/stage_site.py`), including historical specifications, so a
+superseded design must say so at its top.
 
 ## Why OpenClaw files stay at the root
 
