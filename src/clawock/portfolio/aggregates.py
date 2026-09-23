@@ -12,6 +12,7 @@ pure function of those and must never be edited by hand:
     today_change  = shares × (current_price − prev_close)      [only if prev_close]
                     (− cost_basis instead when the whole position was bought
                      in its `day_session_date` session, as the US fetcher does)
+    today_change_pct = (current_price − that same ref) / ref × 100
 
   per region (Σ over active holdings):
     total_current_value = Σ current_value
@@ -45,13 +46,13 @@ def _r(x):
     return round(x, 2)
 
 
-def load_policy(path=POLICY):
+def load_policy(path=POLICY, key='percent_rounding_by_book'):
     """Load workspace-specific precision without embedding book names in core."""
     try:
         payload = json.loads(Path(path).read_text())
     except (OSError, json.JSONDecodeError):
         return {}
-    configured = payload.get('percent_rounding_by_book', {})
+    configured = payload.get(key, {})
     if not isinstance(configured, dict):
         return {}
     return {
@@ -62,10 +63,25 @@ def load_policy(path=POLICY):
     }
 
 
-def recompute(data, dry_run=False, percent_rounding=None):
+def _pct_explained(stored, cp, ref, price_step, ref_step, pct_nd):
+    """Whether prices within their rounding of `cp`/`ref` give `stored` percent.
+
+    The percentage rises with the price and falls with the reference, so the
+    two corners bound every combination; the slack is the percent's own rounding
+    (half a unit, plus float noise).
+    """
+    lo_ref, hi_ref = ref - ref_step, ref + ref_step
+    low = (cp - price_step - hi_ref) / hi_ref * 100
+    high = (cp + price_step - lo_ref) / lo_ref * 100
+    slack = 0.5 * 10 ** -pct_nd + 1e-9
+    return low - slack <= stored <= high + slack
+
+
+def recompute(data, dry_run=False, percent_rounding=None, price_rounding=None):
     """Mutate `data` in place. Return per-region dict of {field: (old, new)} diffs."""
     changes = {}
     precision = percent_rounding or {}
+    price_precision = price_rounding or {}
     for region, pf in (data.get('portfolios') or {}).items():
         if not isinstance(pf, dict):
             continue
@@ -74,6 +90,10 @@ def recompute(data, dry_run=False, percent_rounding=None):
         # 4 places, hk_analysis to 2), so a reconcile that leaves the prices
         # alone lands on exactly the value the next fetch writes.
         pct_nd = precision.get(region, 2)
+        # The decimals the fetcher stores prices at; with none configured, a
+        # stored price is taken as exact.
+        price_nd = price_precision.get(region)
+        price_step = 0.5 * 10 ** -price_nd if price_nd is not None else 0
 
         # Closed rows are retained for history, but their mark-to-market leaves
         # must not keep describing the position that used to be open (#1601).
@@ -132,12 +152,36 @@ def recompute(data, dry_run=False, percent_rounding=None):
                     for t in (h.get('trades') or [])
                     if isinstance(t, dict) and t.get('action') == 'buy'
                     and session and t.get('date') == session)
-                ref = (cb if cb is not None and bought_this_session > 0
-                       and bought_this_session >= sh else pc)
+                fresh_lot = (cb is not None and bought_this_session > 0
+                             and bought_this_session >= sh)
+                ref = cb if fresh_lot else pc
                 tc = _r(sh * (cp - ref))
                 sum_tc += tc
+                if number(h.get('today_change')) != tc:
+                    diffs.setdefault('holdings.today_change', []).append((h.get('ticker'), h.get('today_change'), tc))
                 if not dry_run:
                     h['today_change'] = tc
+                # The other half of the pair, from the same `ref`: rebuilding
+                # only the amount left "+1000 / +5%" on one row until the next
+                # fetch, and a second pass called it consistent (#1780, the
+                # today-leg twin of #1552). The fetchers take the percentage from
+                # the unrounded quote (us_quotes) or the vendor's own change
+                # (hk_analysis), so a stored value the stored prices cannot tell
+                # apart from ours is kept rather than rewritten by a reconcile
+                # that changed nothing.
+                tc_pct = round((cp - ref) / ref * 100, pct_nd) if ref else 0
+                stored_pct = number(h.get('today_change_pct'))
+                # prev_close is a stored (rounded) price; a fresh lot's cost is
+                # the ledger's own number.
+                ref_step = 0 if fresh_lot else price_step
+                explained = stored_pct is not None and (
+                    _pct_explained(stored_pct, cp, ref, price_step, ref_step, pct_nd)
+                    if ref and ref - ref_step > 0 else stored_pct == tc_pct)
+                if not explained:
+                    diffs.setdefault('holdings.today_change_pct', []).append(
+                        (h.get('ticker'), h.get('today_change_pct'), tc_pct))
+                    if not dry_run:
+                        h['today_change_pct'] = tc_pct
 
         # ── region aggregates ──
         want = {
@@ -169,7 +213,8 @@ def main(argv=None):
     path = args.path
     data = json.loads(path.read_text())
     changes = recompute(
-        data, dry_run=dry, percent_rounding=load_policy(args.config))
+        data, dry_run=dry, percent_rounding=load_policy(args.config),
+        price_rounding=load_policy(args.config, 'price_rounding_by_book'))
 
     if not changes:
         print('recompute_aggregates: ✓ all derived fields already consistent')

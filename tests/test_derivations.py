@@ -10,6 +10,7 @@ reconciliation pain):
 Historically the ONLY defense here was runtime gates + human review; this file
 is the missing regression net. Run: `python3 -m pytest tests/ -q`.
 """
+import functools
 import json
 import os
 import sys
@@ -334,6 +335,67 @@ class TestRecomputeAggregates:
         assert odd["pnl_percent"] == -33.3333                # untouched: already right
         assert d["portfolios"]["hk_stocks"]["holdings"][0]["pnl_percent"] == -33.33
         assert ra.recompute(d, dry_run=False, percent_rounding=precision) == {}
+
+    def test_price_correction_rebuilds_today_change_pct_beside_today_change(self):
+        # #1780, the today-leg twin of #1552: 100 sh, prev_close 100, price
+        # corrected to 110 → +1000 was rebuilt but the fetcher's stale +5% stayed,
+        # and a second pass called that consistent. A fresh lot runs from cost.
+        d = {"portfolios": {
+            "us_stocks": {"holdings": [
+                {"ticker": "FIX", "shares": 100, "cost_basis": 90.0,
+                 "current_price": 110.0, "prev_close": 100.0,
+                 "today_change": 500.0, "today_change_pct": 5.0},
+                {"ticker": "NEW", "shares": 10, "cost_basis": 100.0,
+                 "current_price": 105.0, "prev_close": 120.0,
+                 "day_session_date": "2026-09-16", "today_change_pct": -12.5,
+                 "trades": [{"date": "2026-09-16", "action": "buy", "shares": 10, "price": 100}]},
+                # Untouched fetch: the fetcher's pct came from the unrounded
+                # quote 1.000049, so the stored price alone would say 0.0.
+                {"ticker": "ROUND", "shares": 1000, "cost_basis": 1.0,
+                 "current_price": 1.0, "prev_close": 1.0,
+                 "today_change": 0.05, "today_change_pct": 0.0049},
+                # A penny quote the fetcher saw as 0.100049 over 0.049951
+                # stores as 0.1/0.05; its +100.2943% stays.
+                {"ticker": "PENNY", "shares": 10, "cost_basis": 1.0,
+                 "current_price": 0.1, "prev_close": 0.05,
+                 "today_change": 0.5, "today_change_pct": 100.2943},
+                # A fresh lot runs from its exact cost: a correction to 101 moves
+                # +0% to +1% even at a price where rounding alone could not.
+                {"ticker": "LOT", "shares": 100, "cost_basis": 100.0,
+                 "current_price": 101.0, "prev_close": 101.0,
+                 "day_session_date": "2026-09-16", "today_change": 0.0, "today_change_pct": 0.0,
+                 "trades": [{"date": "2026-09-16", "action": "buy", "shares": 100, "price": 100}]},
+                # A sub-cent correction (1.0000 → 1.0010 on one share) leaves the
+                # amount at 0.00 but still moves the percentage.
+                {"ticker": "TICK", "shares": 1, "cost_basis": 1.0,
+                 "current_price": 1.001, "prev_close": 1.0,
+                 "today_change": 0.0, "today_change_pct": 0.0},
+            ]},
+            "hk_stocks": {"holdings": [
+                {"ticker": "00100", "shares": 100, "cost_basis": 3.0,
+                 "current_price": 2.0, "prev_close": 3.0, "today_change_pct": -33.33},
+                # No 3-decimal pair around 100.000/100.000 reaches +0.01%.
+                {"ticker": "00200", "shares": 100, "cost_basis": 90.0,
+                 "current_price": 100.0, "prev_close": 100.0, "today_change_pct": 0.01},
+            ]},
+        }}
+        precision = {"us_stocks": 4, "hk_stocks": 2}
+        prices = {"us_stocks": 4, "hk_stocks": 3}
+        rebuild = functools.partial(ra.recompute, percent_rounding=precision, price_rounding=prices)
+        dry = rebuild(json.loads(json.dumps(d)), dry_run=True)
+        assert dry["us_stocks"]["holdings.today_change_pct"] == [
+            ("FIX", 5.0, 10.0), ("NEW", -12.5, 5.0), ("LOT", 0.0, 1.0), ("TICK", 0.0, 0.1)]
+        assert dry["us_stocks"]["holdings.today_change"][0] == ("FIX", 500.0, 1000.0)
+        rebuild(d, dry_run=False)
+        fix, new, rnd, penny, lot, tick = d["portfolios"]["us_stocks"]["holdings"]
+        assert penny["today_change_pct"] == 100.2943 and lot["today_change_pct"] == 1.0
+        assert fix["today_change"] == 1000.0 and fix["today_change_pct"] == 10.0
+        assert new["today_change"] == 50.0 and new["today_change_pct"] == 5.0
+        assert rnd["today_change_pct"] == 0.0049
+        assert tick["today_change_pct"] == 0.1
+        hk_kept, hk_stale = d["portfolios"]["hk_stocks"]["holdings"]
+        assert hk_kept["today_change_pct"] == -33.33 and hk_stale["today_change_pct"] == 0
+        assert rebuild(d, dry_run=False) == {}
 
     def test_position_bought_this_session_keeps_the_cost_basis_day_change(self):
         # #1527: the US fetcher writes today_change from cost for a lot bought
