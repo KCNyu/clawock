@@ -145,3 +145,8 @@ _（空）_
 - 今天做什么: <div class="brief-card" markdown="1"> [score=0.815 recalls=0 avg=0.620 source=memory/2026-09-15-pre-open.md:19-19]
 <!-- openclaw-memory-promotion:memory:memory/2026-09-15-pre-open.md:2:4 -->
 - layout: default title: 盘前深度简报｜2026-09-15 周二 08:03 HKT description: "clawock 盘前深度简报 2026-09-15：港股 + 美股真实持仓的多空辩论、量化因子、风控硬闸与决策校准。" [score=0.815 recalls=0 avg=0.620 source=memory/2026-09-15-pre-open.md:2-4]
+
+## Promoted From Short-Term Memory (2026-09-24)
+
+<!-- openclaw-memory-promotion:memory:memory/2026-09-16-pre-open.md:9:9 -->
+- 盘前深度简报｜2026-09-16 周三 08:03 HKT: <div class="brief-card brief-lede" markdown="1"> [score=0.804 recalls=0 avg=0.620 source=memory/2026-09-16-pre-open.md:9-9]
