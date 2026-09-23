@@ -171,37 +171,74 @@ def load_contract(path: str | Path | None = None, *, workspace: str | Path | Non
     return data
 
 
-def _fixed_daily_utc_minute(schedule: dict, label: str) -> int:
-    """Minutes after UTC midnight of a `M H * * <dow>` schedule's one daily fire."""
+def _daily_utc_minutes(schedule: dict, label: str) -> list[int]:
+    """Minutes after UTC midnight at which a `M[,M] H[-H][,H] * * <dow>` schedule fires."""
     parts = str(schedule.get("expr") or "").split()
-    if len(parts) != 5 or not (parts[0].isdigit() and parts[1].isdigit()):
+    fields = parts[:2] if len(parts) == 5 else []
+    if len(fields) != 2 or not all(re.fullmatch(r"\d+(-\d+)?(,\d+(-\d+)?)*", f) for f in fields):
         raise ValueError(
             f"{label}: a job whose payload profile pins timeout_seconds needs "
-            f"single-time daily schedules, got {schedule.get('expr')!r}")
+            f"explicit minute/hour lists, got {schedule.get('expr')!r}")
+
+    def expand(field: str) -> list[int]:
+        out = []
+        for tok in field.split(","):
+            lo, _, hi = tok.partition("-")
+            out.extend(range(int(lo), int(hi or lo) + 1))
+        return out
+
     offset = datetime.now(ZoneInfo(schedule.get("tz") or "UTC")).utcoffset()
-    return int(parts[1]) * 60 + int(parts[0]) - int(offset.total_seconds() // 60)
+    shift = int(offset.total_seconds() // 60)
+    return sorted((h * 60 + m - shift) % 1440
+                  for h in expand(fields[1]) for m in expand(fields[0]))
+
+
+#: How long each watchdog holds a slot whose attempt is still in flight before
+#: it judges anyway (#988, #1532). Its verdict lands at fire time + this budget,
+#: so that — not the fire time — is what has to clear the run's timeout. Keyed
+#: by the entry point the watchdog command runs; the tests pin each value to the
+#: watchdog module's own INFLIGHT_WAIT_S. A watchdog not listed here judges at
+#: the minute it fires.
+WATCHDOG_INFLIGHT_WAIT_S = {
+    "clawock-report-watchdog": 600,
+    "clawock-intraday-watchdog": 600,
+}
+
+
+def watchdog_inflight_wait_s(watchdog: dict) -> int:
+    command = str(watchdog.get("command") or "")
+    for entry_point, wait_s in WATCHDOG_INFLIGHT_WAIT_S.items():
+        if re.search(rf"(^|/){re.escape(entry_point)}(\s|$)", command):
+            return wait_s
+    return 0
 
 
 def _check_watchdogs_clear_timeout(job: dict, watchdogs: list, timeout) -> None:
-    """Every watchdog of a timed job fires after the run's timeout boundary.
+    """Every watchdog of a timed job judges after the run's timeout boundary.
 
     `timeout_seconds` and the watchdog times are two values in this file; this
-    is what keeps them from drifting apart. A watchdog that fires while the run
+    is what keeps them from drifting apart. A watchdog that judges while the run
     can still be legitimately in flight judges a slow run as a missing one
     (#1605) — and the 09:05 miss detector, which dispatches the off-host
     fallback, is as bound by it as the primary pass (#1638). Raising the
     timeout past a watchdog therefore fails the contract load until the
     schedule is moved too (#1625).
+
+    A job can fire several times a day (盘中盯盘 every 30 minutes); each fire is
+    paired with the watchdog's next fire after it. A watchdog that waits out an
+    in-flight attempt judges at its fire time plus that wait (#1784).
     """
-    start = _fixed_daily_utc_minute(effective_schedule(job), job["name"])
-    boundary = start + int(timeout) / 60
+    starts = _daily_utc_minutes(effective_schedule(job), job["name"])
     for watchdog in watchdogs:
-        fires = _fixed_daily_utc_minute(
+        fires = _daily_utc_minutes(
             effective_schedule(watchdog), f"{job['name']} watchdog")
-        if fires <= boundary:
-            raise ValueError(
-                f"{job['name']}: watchdog {watchdog.get('command', '')[:60]!r} "
-                f"fires at or before the run's {int(timeout)}s timeout boundary")
+        wait_min = watchdog_inflight_wait_s(watchdog) / 60
+        for start in starts:
+            after = min((f - start) % 1440 or 1440 for f in fires)
+            if after + wait_min <= int(timeout) / 60:
+                raise ValueError(
+                    f"{job['name']}: watchdog {watchdog.get('command', '')[:60]!r} "
+                    f"judges at or before the run's {int(timeout)}s timeout boundary")
 
 
 # Expanding a cron expression into the slots it fires on a given day has exactly
