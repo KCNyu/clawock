@@ -88,7 +88,9 @@ from clawock.harness import intraday_delta  # noqa: E402
 REPORT_MAX_AGE_MIN = 20
 
 REQUIRED_SECTION = '▎我的看法'
-FORBIDDEN_PHRASES = ['数据待获取', '等待数据', 'TODO', 'TBD']
+# One table with report/brief: this file used to carry its own copy, which
+# never gained '数据缺失（占位）' and let that placeholder ship intraday (#1776).
+from clawock.harness.report import FORBIDDEN_PHRASES  # noqa: E402
 CRITICAL_KEYWORDS = ['缺段标记', '未包含原始数据块', '敷衍词', '表格行未 verbatim']
 
 
