@@ -69,14 +69,6 @@ PRD (#1191), which asked for it to be part of `dashboard-build`.
 
 ---
 
-## The PRD this was built from
-
-The original specification is kept, unedited apart from one private appendix, in
-[`decision-map-prd.md`](decision-map-prd.md) so the built thing can be read against
-what was specified — including the two places it deliberately diverges (the
-write-set ownership above, and the payload budget, which the PRD sized for five
-signals when there are now thirty-three). Since #1420 the map lives in the
-dashboard's Reflect view rather than as a separate page. Its tests are
-`tests/test_decision_map.py` and `tests/decimap_board.spec.js`; the file names in
-the PRD's §8 were a plan and were never created under those names.
-
+Since #1420 the map lives in the dashboard's Reflect view rather than as a
+separate page. Its tests are `tests/test_decision_map.py` and
+`tests/decimap_board.spec.js`.
