@@ -1021,16 +1021,12 @@ test("client: stylesheet is loader-owned and keeps the dark-theme and tone contr
   assert.ok(fillStale > -1 && fillStale > fillMid,
     "bar stale yellow must keep out-ranking usage tiers in source order");
   assert.match(css, hashed("skel"), "cold-start skeleton block required");
-  // The type ladder (#1216). The host publishes a font stack but no font-size
-  // tokens, so this sheet owns its sizes — the defect was that it owned them
-  // 47 times over, inline, which is how steps 0.5px apart got in. Sizes now
-  // come from one ladder; this pins both halves of that: the ladder exists
-  // with the values kcn iterated to, and no rule re-introduces a raw px size.
+  // The host publishes a font stack but no font-size tokens. The plugin's
+  // seven whole-pixel roles are shared by the board and both sidebar chips;
+  // half-pixel aliases and inline sizes would restart the old size drift.
   const LADDER = {
-    "fs-nano": "9.5px", "fs-micro": "10px", "fs-caption": "10.5px",
-    "fs-xs": "11px", "fs-xs-l": "11.5px", "fs-sm": "12px", "fs-sm-l": "12.5px",
-    "fs-md": "13px", "fs-md-l": "13.5px", "fs-lg": "14px", "fs-lg-l": "14.5px",
-    "fs-xl": "15px", "fs-xl-l": "15.5px", "fs-2xl": "16px",
+    "fs-micro": "10px", "fs-xs": "11px", "fs-sm": "12px",
+    "fs-md": "13px", "fs-lg": "14px", "fs-xl": "15px", "fs-2xl": "16px",
   };
   for (const [name, value] of Object.entries(LADDER)) {
     assert.match(css, new RegExp(`--${name}:\\s*${value.replace(".", "\\.")}`),
@@ -1038,14 +1034,36 @@ test("client: stylesheet is loader-owned and keeps the dark-theme and tone contr
   }
   // The balance capsule renders outside .dmt, so it needs the ladder in its
   // own scope — a token that resolves nowhere renders as the browser default.
-  assert.match(css, /\.[A-Za-z0-9_-]+_dmt,\s*\.[A-Za-z0-9_-]+_pbc\{[^}]*--fs-nano/,
+  assert.match(css, /\.[A-Za-z0-9_-]+_dmt,\s*\.[A-Za-z0-9_-]+_pbc\{[^}]*--fs-micro/,
     "the ladder must be declared for both roots, not just the board (#1216)");
+  assert.doesNotMatch(css, /--fs-(?:nano|caption|(?:xs|sm|md|lg|xl)-l):/,
+    "half-step aliases must not return to the ladder");
   const rawSizes = [
     ...css.matchAll(/font-size:\s*(\d+(?:\.\d+)?)px/g),
     ...css.matchAll(/font:(?:\s*\d+)?\s*(\d+(?:\.\d+)?)px\//g),
   ].map((m) => m[0]);
   assert.deepEqual(rawSizes, [],
     `font sizes must come from the ladder, not inline px: ${rawSizes.join(", ")} (#1216)`);
+  // The 390px WebKit baseline clipped both ticker and fill price in the
+  // flex row. The two-row grid gives each data field its own cell and keeps
+  // the trailing P&L visible; the cells must not silently fall back to flex.
+  assert.match(css, /_main\{[^}]*grid-template-columns:7px minmax\(0,1fr\) max-content[^}]*display:grid/,
+    "phone trade headline needs independent ticker and P&L columns");
+  assert.match(css, /_main\s+\.[A-Za-z0-9_-]+_qty\{grid-area:2\/3;justify-self:end/,
+    "phone fill quantity and price must get the trailing second-row cell");
+  assert.match(css, /_pc\{[^}]*overflow-wrap:anywhere/,
+    "long trigger/evidence chip text must wrap inside its card");
+  assert.match(css, /_fill-v\{[^}]*flex-wrap:wrap/,
+    "plan-alignment chip must wrap as an intact box beside a long fill");
+  for (const [selector, role] of [["tin", "radius-card"], ["group", "radius-card"],
+    ["dbody", "radius-inset"], ["pc", "radius-chip"], ["empty", "radius-card"]]) {
+    assert.match(css, new RegExp(`_${selector}\\{[^}]*border-radius:var\\(--${role}\\)`),
+      `${selector} must use the shared card role ${role}`);
+  }
+  assert.match(css, /@media \(pointer:coarse\)\{[^}]*_ft[^}]*min-height:44px/,
+    "phone filters and folds need finger-sized targets");
+  assert.match(css, /@media \(width<=520px\)\{[^}]*_bp\{--mat-fill:#fffffff5\}[^}]*_bp\{--mat-fill:#222226f5\}/,
+    "phone popovers need a readable neutral fill in both themes");
   // The three host-layout contracts this tab lives inside. Each of them was a
   // visible defect before 2026-08-22, and none is observable from the rendered
   // tree — they are properties of the sheet, so this is where they are pinned.
