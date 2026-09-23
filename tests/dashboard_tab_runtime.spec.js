@@ -621,13 +621,12 @@ async function testEquityTouch(browser, base) {
     await page.waitForTimeout(20);
   }
   await dispatchTouch(session, "touchEnd", []);
-  await page.waitForFunction(() => document.querySelector(".tab-btn.active")?.dataset.tab === "plan");
-  const snapError = await page.evaluate(() => {
+  await page.waitForFunction(() => {
     const pager = document.getElementById("pager");
     const panel = document.querySelector('.panel[data-panel="plan"]');
-    return Math.abs(panel.getBoundingClientRect().left - pager.getBoundingClientRect().left);
-  });
-  assert(snapError <= 1, `native chart swipe settled ${snapError}px off its page`);
+    return document.querySelector(".tab-btn.active")?.dataset.tab === "plan" &&
+      Math.abs(panel.getBoundingClientRect().left - pager.getBoundingClientRect().left) <= 1;
+  }, null, { polling: "raf", timeout: 5000 });
   assert.equal(await page.locator(".native-equity-tooltip").isVisible(), false,
     "pager swipe left a stale chart tooltip");
   assert.deepEqual(state.failures, []);
