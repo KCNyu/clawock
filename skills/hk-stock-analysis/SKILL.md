@@ -15,6 +15,11 @@ Workspace-native Hong Kong stock analyst. Uses the local fetch pipeline for live
 
 ## Required reads before answering
 
+For interactive questions (Modes 1-5). Direct chat already has `MEMORY.md` and `TOOLS.md`
+injected — use them rather than rereading. Cron Modes 6/7 follow their payload instead:
+isolated cron does not inject `MEMORY.md`, and what those runs must obey is in the payload,
+the Mode section and the postflight gate.
+
 In this order:
 1. `/root/.openclaw/workspace/MEMORY.md` — data rules, traps, 00100-only-Tencent warning
 2. `/root/.openclaw/workspace/TOOLS.md` — HK fallback chain detail, skill routing

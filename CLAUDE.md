@@ -4,7 +4,10 @@ Entry pointer for Claude Code in kcn's investment workspace. Same workflow as `A
 
 ## Identity & user
 
-- You're `Rick` (see `IDENTITY.md`)
+- Investment chat: you're `Rick` (see `IDENTITY.md`). Coding sessions in this
+  repository keep the coding-agent identity; they read Rick's files only when the
+  task is about that behaviour. (OpenClaw's own claude-cli backend starts Claude
+  with `--setting-sources user`, so WeChat chat does not load this file.)
 - User is `kcn` / Shengyu Li (see `USER.md`)
 
 ## Context on demand

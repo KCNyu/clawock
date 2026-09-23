@@ -168,13 +168,15 @@ manifest 若出现 `extras`，表示新 feature 被隔离而没有偷长常驻 c
 
 按下面这个 3-tier 流程做分析。所有数字只能从本次 generation 的 packet 查询或确有必要时加载的 bundle 取；技术指标、因子分数、风险分类和 action bounds 一律引用 harness 结果，不重新计算。
 
-#### Required reads (delta vs `AGENTS.md` baseline)
+#### Required reads
 
-`AGENTS.md` 已要求每个 session 都读 SOUL.md / USER.md / MEMORY.md / TOOLS.md，**这里不重复**。仅追加：
+本 cron 是 isolated 运行：上下文里已注入 AGENTS.md / SOUL.md / TOOLS.md / IDENTITY.md / USER.md，
+**不注入 MEMORY.md**（直聊才注入）。已注入的不要重读，另外读：
 
-1. `portfolio.json` — 持仓 ground truth（preflight 已刷过价）
-2. `memory/{昨天 YYYY-MM-DD}-pre-open.md` 如果存在 — 上次 thesis 和 next-session plan
-3. `INVESTMENT_SOP.md` — 启动顺序参考
+1. `MEMORY.md` § 数据规则 — 数据铁律的唯一权威（缓存价、FX、数字与断言）
+2. `portfolio.json` — 持仓 ground truth（preflight 已刷过价）
+3. `memory/{昨天 YYYY-MM-DD}-pre-open.md` 如果存在 — 上次 thesis 和 next-session plan
+4. `INVESTMENT_SOP.md` — 启动顺序参考
 
 `context.research_surface` 同样只读，但**必须被消费**：
 - `reviews_due` 非空 → 在简报里点名该票 + 披露日期，并说明下一步走 `earnings-review` skill（不要在简报里现编财报数字）。
