@@ -40,22 +40,19 @@ from clawock.workspace import workspace_root
 WS = workspace_root()
 PORTFOLIO = WS / 'portfolio.json'
 POLICY = WS / 'config' / 'portfolio-derivations.json'
-# Largest error in a stored price: both fetchers keep at least 3 decimals
-# (hk_analysis 3, us_quotes 4).
-PRICE_ROUNDING = 0.0005
 
 
 def _r(x):
     return round(x, 2)
 
 
-def load_policy(path=POLICY):
+def load_policy(path=POLICY, key='percent_rounding_by_book'):
     """Load workspace-specific precision without embedding book names in core."""
     try:
         payload = json.loads(Path(path).read_text())
     except (OSError, json.JSONDecodeError):
         return {}
-    configured = payload.get('percent_rounding_by_book', {})
+    configured = payload.get(key, {})
     if not isinstance(configured, dict):
         return {}
     return {
@@ -66,10 +63,11 @@ def load_policy(path=POLICY):
     }
 
 
-def recompute(data, dry_run=False, percent_rounding=None):
+def recompute(data, dry_run=False, percent_rounding=None, price_rounding=None):
     """Mutate `data` in place. Return per-region dict of {field: (old, new)} diffs."""
     changes = {}
     precision = percent_rounding or {}
+    price_precision = price_rounding or {}
     for region, pf in (data.get('portfolios') or {}).items():
         if not isinstance(pf, dict):
             continue
@@ -78,6 +76,10 @@ def recompute(data, dry_run=False, percent_rounding=None):
         # 4 places, hk_analysis to 2), so a reconcile that leaves the prices
         # alone lands on exactly the value the next fetch writes.
         pct_nd = precision.get(region, 2)
+        # The decimals the fetcher stores prices at; with none configured, a
+        # stored price is taken as exact.
+        price_nd = price_precision.get(region)
+        price_step = 0.5 * 10 ** -price_nd if price_nd is not None else 0
 
         # Closed rows are retained for history, but their mark-to-market leaves
         # must not keep describing the position that used to be open (#1601).
@@ -154,7 +156,7 @@ def recompute(data, dry_run=False, percent_rounding=None):
                 # that changed nothing.
                 tc_pct = round((cp - ref) / ref * 100, pct_nd) if ref else 0
                 stored_pct = number(h.get('today_change_pct'))
-                tolerance = (100 * PRICE_ROUNDING * (1 + abs(cp) / abs(ref)) / abs(ref)
+                tolerance = (100 * price_step * (1 + abs(cp) / abs(ref)) / abs(ref)
                              + 10 ** -pct_nd) if ref else 0
                 if stored_pct is None or abs(stored_pct - tc_pct) > tolerance:
                     diffs.setdefault('holdings.today_change_pct', []).append(
@@ -192,7 +194,8 @@ def main(argv=None):
     path = args.path
     data = json.loads(path.read_text())
     changes = recompute(
-        data, dry_run=dry, percent_rounding=load_policy(args.config))
+        data, dry_run=dry, percent_rounding=load_policy(args.config),
+        price_rounding=load_policy(args.config, 'price_rounding_by_book'))
 
     if not changes:
         print('recompute_aggregates: ✓ all derived fields already consistent')

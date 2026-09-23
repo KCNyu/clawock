@@ -10,6 +10,7 @@ reconciliation pain):
 Historically the ONLY defense here was runtime gates + human review; this file
 is the missing regression net. Run: `python3 -m pytest tests/ -q`.
 """
+import functools
 import json
 import os
 import sys
@@ -353,10 +354,10 @@ class TestRecomputeAggregates:
                 {"ticker": "ROUND", "shares": 1000, "cost_basis": 1.0,
                  "current_price": 1.0, "prev_close": 1.0,
                  "today_change": 0.05, "today_change_pct": 0.0049},
-                # A sub-cent correction (1.0000 → 1.0040 on one share) leaves the
+                # A sub-cent correction (1.0000 → 1.0010 on one share) leaves the
                 # amount at 0.00 but still moves the percentage.
                 {"ticker": "TICK", "shares": 1, "cost_basis": 1.0,
-                 "current_price": 1.004, "prev_close": 1.0,
+                 "current_price": 1.001, "prev_close": 1.0,
                  "today_change": 0.0, "today_change_pct": 0.0},
             ]},
             "hk_stocks": {"holdings": [
@@ -365,18 +366,20 @@ class TestRecomputeAggregates:
             ]},
         }}
         precision = {"us_stocks": 4, "hk_stocks": 2}
-        dry = ra.recompute(json.loads(json.dumps(d)), dry_run=True, percent_rounding=precision)
+        prices = {"us_stocks": 4, "hk_stocks": 3}
+        rebuild = functools.partial(ra.recompute, percent_rounding=precision, price_rounding=prices)
+        dry = rebuild(json.loads(json.dumps(d)), dry_run=True)
         assert dry["us_stocks"]["holdings.today_change_pct"] == [
-            ("FIX", 5.0, 10.0), ("NEW", -12.5, 5.0), ("TICK", 0.0, 0.4)]
+            ("FIX", 5.0, 10.0), ("NEW", -12.5, 5.0), ("TICK", 0.0, 0.1)]
         assert dry["us_stocks"]["holdings.today_change"][0] == ("FIX", 500.0, 1000.0)
-        ra.recompute(d, dry_run=False, percent_rounding=precision)
+        rebuild(d, dry_run=False)
         fix, new, rnd, tick = d["portfolios"]["us_stocks"]["holdings"]
         assert fix["today_change"] == 1000.0 and fix["today_change_pct"] == 10.0
         assert new["today_change"] == 50.0 and new["today_change_pct"] == 5.0
         assert rnd["today_change_pct"] == 0.0049
-        assert tick["today_change_pct"] == 0.4
+        assert tick["today_change_pct"] == 0.1
         assert d["portfolios"]["hk_stocks"]["holdings"][0]["today_change_pct"] == -33.33
-        assert ra.recompute(d, dry_run=False, percent_rounding=precision) == {}
+        assert rebuild(d, dry_run=False) == {}
 
     def test_position_bought_this_session_keeps_the_cost_basis_day_change(self):
         # #1527: the US fetcher writes today_change from cost for a lot bought
