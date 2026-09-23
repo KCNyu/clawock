@@ -196,6 +196,7 @@ async function patchTypertTaskQueue() {
   const schemaAnchor = 'const clawock_dsh_clawockStudio_get_parameter_0$schema = z.string()'
   const invocationAnchor = `    {
       id: 'clawock-dsh#clawockStudio/get',`
+  const schemasHead = 'const clawock_dsh_clawockStudio_taskQueue_parameter_0$schema = z.boolean()'
   const schemas = `const clawock_dsh_clawockStudio_taskQueue_parameter_0$schema = z.boolean()
 const clawock_dsh_clawockStudio_taskQueue_task$schema = z.object({
   'id': z.string(),
@@ -211,6 +212,9 @@ const clawock_dsh_clawockStudio_taskQueue_task$schema = z.object({
   'updatedAtMs': z.union([z.number(), z.literal(null)]),
   'wakeAtMs': z.union([z.number(), z.literal(null)]),
   'patrol': z.boolean(),
+  'summary': z.string(),
+  'lastEvent': z.string(),
+  'lastEventAtMs': z.union([z.number(), z.literal(null)]),
 })
 const clawock_dsh_clawockStudio_taskQueue_result$schema = z.object({
   'available': z.boolean(),
@@ -267,7 +271,18 @@ const clawock_dsh_clawockStudio_taskQueue_result$schema = z.object({
   for (const rel of files) {
     const file = join(pkg, rel)
     let source = await readFile(file, 'utf8')
-    if (source.includes(invocationMarker)) continue
+    if (source.includes(invocationMarker)) {
+      // Already carried: refresh the schema block (it sits right before the
+      // anchor) so a field added to DispatchTask reaches the wire too —
+      // otherwise zod strips it and the client never sees it.
+      const start = source.indexOf(schemasHead)
+      const end = source.indexOf(schemaAnchor)
+      if (start < 0 || end < start) throw new Error(`patchTypertTaskQueue: schema block not found in ${rel}`)
+      if (source.slice(start, end) === schemas) continue
+      await writeFile(file, source.slice(0, start) + schemas + source.slice(end))
+      console.log(`patched ${rel}: refreshed clawockStudio.taskQueue schemas`)
+      continue
+    }
     if (!source.includes(schemaAnchor) || !source.includes(invocationAnchor)) {
       throw new Error(`patchTypertTaskQueue: anchor missing in ${rel} — generator output changed?`)
     }

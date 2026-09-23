@@ -2599,14 +2599,17 @@ test("task queue: live waits, ended tasks and the patrol phase come from the hos
     if (log) fs.writeFileSync(path.join(logDir, id, "run.log"), log);
   };
   task("holder-20260923-010000", "AGENT=claude\nNAME=holder\nMODEL=claude-opus-5-5\n",
-    "STATE=running\nATTEMPTS=2\nWAITING=''\nSLOT=1\nMODEL_USED=claude-opus-5-5\nSTARTED=2026-09-23\\ 01:00:00\n");
+    "STATE=running\nATTEMPTS=2\nWAITING=''\nSLOT=1\nMODEL_USED=claude-opus-5-5\nSTARTED=2026-09-23\\ 01:00:00\n",
+    "==== 2026-09-23 01:00:00 holder start ====\n2026-09-23 01:00:00 got run slot 1\n---- 2026-09-23 01:05:00 attempt 2/3 (append) cap=21600s session=s\n     | working\n");
   task("waiter-20260923-011000", "AGENT=claude\nNAME=waiter\n", "STATE=queued\nATTEMPTS=0\nWAITING=lock\nSLOT=''\nSTARTED=2026-09-23\\ 01:10:00\n");
   task("sleeper-20260923-012000", "AGENT=codex\nNAME=sleeper\nCREATED=2026-09-23\\ 01:20:00\n", "STATE=running\nATTEMPTS=1\nWAITING=quota\nSLOT=''\n",
     "---- 2026-09-23 01:30:00 quota; sleeping until 2026-09-23 03:40:00\n");
   // Ended: a WAITING value an interrupted runner left behind is not a wait.
   task("cancelled-20260923-000000", "AGENT=claude\nNAME=cancelled\n",
     "STATE=cancelled\nWAITING=lock\nUPDATED=2026-09-23\\ 02:32:23\n");
-  task("done-20260923-000100", "AGENT=codex\nNAME=done\n", "STATE=ok\nOUTCOME=DONE\nUPDATED=2026-09-23\\ 02:47:16\n");
+  task("done-20260923-000100", "AGENT=codex\nNAME=done\n", "STATE=ok\nOUTCOME=DONE\nUPDATED=2026-09-23\\ 02:47:16\n",
+    "final | an earlier attempt\n---- 2026-09-23 02:47:16 attempt 2 (task) rc=0 kind=ok\n     | x\n" +
+    "final | - merged: PR #1767\nfinal | \nfinal | STATUS: DONE\nquota | 5h 48%\n");
   task("patrol-render-20260923-000200", "AGENT=opencode\nNAME=patrol-render\n", "STATE=cancelled\nUPDATED=2026-09-23\\ 02:40:41\n");
   const limits = path.join(root, "limits.env");
   fs.writeFileSync(limits, "# shared\nMAX_RUNNING=2\n");
@@ -2630,6 +2633,13 @@ test("task queue: live waits, ended tasks and the patrol phase come from the hos
   assert.equal(r.active[0].attempts, 2);
   assert.equal(r.active[0].startedAtMs, new Date(2026, 8, 23, 1, 0, 0).getTime(), "%q-escaped stamps parse");
   assert.equal(r.active[2].wakeAtMs, new Date(2026, 8, 23, 3, 40, 0).getTime(), "quota wake time from the run log");
+  assert.equal(r.active[0].lastEvent, "attempt 2/3 (append) cap=21600s session=s", "a live task's latest stamped runner event");
+  assert.equal(r.active[0].lastEventAtMs, new Date(2026, 8, 23, 1, 5, 0).getTime());
+  assert.equal(r.active[0].summary, "", "no closing report while live");
+  assert.equal(r.recent[0].summary, "- merged: PR #1767",
+    "the last attempt's final lines only; blanks and the STATUS line dropped");
+  assert.equal(r.recent[0].lastEvent, "", "an ended task has no 'latest event'");
+  assert.equal(r.recent[1].summary, "", "no run log, no report");
   assert.deepEqual(r.recent.map((t) => [t.name, t.state, t.waiting]), [["done", "ok", ""], ["cancelled", "cancelled", ""]],
     "ended tasks newest first by UPDATED, patrol rounds excluded, stale WAITING dropped");
   assert.equal(r.patrol.phase, "waiting");
@@ -2756,16 +2766,35 @@ test("client: the task queue sits above the balance and shows who waits for what
   assert.match(texts(popover), /R139 automation preempted:cancelled 1 小时 8 分/, "last rounds as one aligned grid");
   assert.equal(find(popover, (p) => p["data-tq-patrol"] !== undefined)[0].props["data-tq-patrol"], "yielding");
 
-  // A clipped task name unfolds on click and folds back.
-  assert.equal(rows[2].props["aria-expanded"], false);
+  // Clicking a task opens its detail layer over the (now inert) list, in the same popover.
+  assert.equal(find(popover, (p) => p["data-tq-detail"] !== undefined).length, 0, "no layer until a task is picked");
   rows[2].props.onClick();
-  const unfolded = find(render(), (p) => p["data-tq-task"] === "b-1")[0];
-  assert.equal(unfolded.props["aria-expanded"], true);
-  unfolded.props.onClick();
-  assert.equal(find(render(), (p) => p["data-tq-task"] === "b-1")[0].props["aria-expanded"], false);
+  let layered = render();
+  const detail = find(layered, (p) => p["data-tq-detail"] !== undefined)[0];
+  assert.equal(detail.props["data-tq-detail"], "b-1");
+  assert.equal(find(layered, (p) => p["data-clawock-popover"] === api.TASK_QUEUE_PANEL)[0].props["data-open"], "true",
+    "the layer lives inside the open popover — no second surface");
+  assert.equal(find(layered, (p) => p.inert === "" && p["aria-hidden"] === "true").length, 1, "the list underneath is inert");
+  assert.match(texts(detail), /进行中 .*model-bump 等 claude 锁 .*Agent claude 模型 claude-opus-5-5 .*已运行 1 分 .*尝试次数 0 .*任务 ID b-1/);
+  // Back returns to the list; so does Escape (tested through the same back function).
+  find(detail, (p) => p["data-tq-back"] === "true")[0].props.onClick();
+  layered = render();
+  assert.equal(find(layered, (p) => p["data-tq-detail"] !== undefined).length, 0, "back closes the layer");
+  assert.equal(find(layered, (p) => p["data-clawock-popover"] === api.TASK_QUEUE_PANEL)[0].props["data-open"], "true",
+    "and leaves the popover open on the list");
+  // An ended task shows how it closed: took, ended, and the agent's closing report.
+  answer = { ...QUEUE, recent: [{ ...QUEUE.recent[0], summary: "- merged: PR #1767\n- CI green" }] };
+  find(layered, (p) => p["data-refresh"] === "true")[0].props.onClick();
+  await tick(); await tick();
+  find(render(), (p) => p["data-tq-task"] === "c-1")[0].props.onClick();
+  const ended = find(render(), (p) => p["data-tq-detail"] === "c-1")[0];
+  assert.match(texts(ended), /已结束 .*merge-pr1767 ok \/ DONE .*用时 30 分 .*结束 .*30 分钟前 .*结果摘要 - merged: PR #1767\n- CI green/);
+  assert.doesNotMatch(texts(ended), /最近事件/, "an ended task has no latest event row");
   const panelClasses = find(render(), (p) => typeof p.className === "string").flatMap((n) => n.props.className.split(" "));
   assert.deepEqual(panelClasses.filter((c) => c !== "" && !/^[A-Za-z0-9_-]+_[a-z0-9-]+$/.test(c)), [],
-    "every class the open panel renders resolves through the stylesheet");
+    "every class the open panel and its detail layer render resolves through the stylesheet");
+  find(render(), (p) => p["data-tq-back"] === "true")[0].props.onClick();
+  answer = QUEUE;
 
   // The host renders list-slot items inside a `display:contents` [data-slot]
   // wrapper, so the flex row to turn into a column is the wrapper's parent.
@@ -2773,9 +2802,10 @@ test("client: the task queue sits above the balance and shows who waits for what
   assert.match(bundle, /:has\(>\[data-slot\]>\.\w+_pbc\.\w+_tqf\)\{flex-direction:column\}/,
     "the foot stacks through the host's slot wrapper, not only a direct child");
 
+  const forcedBefore = forced;
   find(popover, (p) => p["data-refresh"] === "true")[0].props.onClick();
   await tick(); await tick();
-  assert.equal(forced, 1, "the refresh button forces one host read");
+  assert.equal(forced, forcedBefore + 1, "the refresh button forces one host read");
 
   // A host without the dispatcher answers available:false and the row disappears.
   answer = { ...QUEUE, available: false, active: [], recent: [] };

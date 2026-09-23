@@ -6,7 +6,8 @@
  * the supervisor write, plus systemctl/journalctl — never the network.
  *
  *   <logDir>/<id>/meta.env, result.env   bash `printf %q` assignments
- *   <logDir>/<id>/run.log                `---- <ts> quota; sleeping until <ts>`
+ *   <logDir>/<id>/run.log                `---- <ts> quota; sleeping until <ts>`,
+ *                                        `<ts> <event>` lines, `final | <text>` (the agent's closing lines)
  *   <limitsPath>                         `MAX_RUNNING=<n>`, shared with both
  *   <patrolDir>/current-round, rounds.tsv
  *   agent-dispatch-<id>.service          active = the task is still alive
@@ -47,6 +48,17 @@ export declare function unquoteShell(raw: string): string;
 export declare function readEnvFile(path: string): Record<string, string>;
 /** `2026-09-23 02:54:09` in the writer's local time (the runner and dsh share this host's zone). */
 export declare function localStampMs(stamp: string | undefined): number | null;
+/**
+ * The agent's closing words: the last run of `final | ` lines the runner
+ * echoes after an attempt (its final report's tail, already redacted), minus
+ * blank lines and the STATUS line the outcome field carries anyway.
+ */
+export declare function finalSummary(log: string): string;
+/** The runner's latest stamped event (`<ts> got run slot 1`, `---- <ts> attempt 2/3 …`). */
+export declare function lastLogEvent(log: string): {
+    text: string;
+    atMs: number | null;
+};
 /**
  * What the supervisor is doing, from its own last log line: `waiting: <why>`
  * (giving way before a round), `preempting …` (cancelling one for a user

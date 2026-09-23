@@ -52,6 +52,9 @@ const clawock_dsh_clawockStudio_taskQueue_task$schema = z.object({
   'updatedAtMs': z.union([z.number(), z.literal(null)]),
   'wakeAtMs': z.union([z.number(), z.literal(null)]),
   'patrol': z.boolean(),
+  'summary': z.string(),
+  'lastEvent': z.string(),
+  'lastEventAtMs': z.union([z.number(), z.literal(null)]),
 })
 const clawock_dsh_clawockStudio_taskQueue_result$schema = z.object({
   'available': z.boolean(),
