@@ -28,9 +28,10 @@ def test_a_lowercase_phrase_inside_an_ordinary_word_is_not_a_placeholder():
     assert validate_forbidden_phrases('Mastodon 社区讨论升温', report.FORBIDDEN_PHRASES) == []
 
 
-def test_intraday_refuses_every_placeholder_report_refuses():
-    prose = ('▎我的看法\n恒指夜期波动加剧席位分歧明显加大，相关环节数据缺失（占位），'
+@pytest.mark.parametrize('phrase', report.FORBIDDEN_PHRASES)
+def test_intraday_refuses_every_placeholder_report_refuses(phrase):
+    prose = (f'▎我的看法\n恒指夜期波动加剧席位分歧明显加大，相关环节{phrase}，'
              '待明日开盘确认方向后再做判断，暂维持观察仓位不动并控制回撤。')
     issues = intraday_postflight.validate(prose, {}, prose)
-    assert '报告含敷衍词 "数据缺失（占位）"' in issues
+    assert f'报告含敷衍词 "{phrase}"' in issues
     assert intraday_postflight.categorize(issues) == 'fail', issues
