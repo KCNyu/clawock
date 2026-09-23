@@ -830,11 +830,21 @@ async function testNativePagerGestureSequences(browser, base) {
 
   const flickLeft = async () => {
     const y = await gestureY();
+    // The nav can reach the next label before momentum ends. Wait for the
+    // browser's settle signal before starting another native finger gesture.
+    const settled = page.evaluate(() => new Promise((resolve, reject) => {
+      const timer = setTimeout(() => reject(new Error("pager did not emit scrollend")), 5000);
+      document.getElementById("pager").addEventListener("scrollend", () => {
+        clearTimeout(timer);
+        resolve();
+      }, { once: true });
+    }));
     for (const [i, x] of [385, 325, 265, 205, 145, 85, 5].entries()) {
       await dispatchTouch(session, i ? "touchMove" : "touchStart", [{ x, y }]);
       if (i) await page.waitForTimeout(20);
     }
     await dispatchTouch(session, "touchEnd", []);
+    await settled;
   };
   const waitAligned = async tab => page.waitForFunction(t => {
     const pager = document.getElementById("pager");
