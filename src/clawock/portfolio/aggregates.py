@@ -67,12 +67,13 @@ def _pct_explained(stored, cp, ref, price_step, ref_step, pct_nd):
     """Whether prices within their rounding of `cp`/`ref` give `stored` percent.
 
     The percentage rises with the price and falls with the reference, so the
-    two corners bound every combination; the slack is the percent's own rounding.
+    two corners bound every combination; the slack is the percent's own rounding
+    (half a unit, plus float noise).
     """
     lo_ref, hi_ref = ref - ref_step, ref + ref_step
     low = (cp - price_step - hi_ref) / hi_ref * 100
     high = (cp + price_step - lo_ref) / lo_ref * 100
-    slack = 10 ** -pct_nd
+    slack = 0.5 * 10 ** -pct_nd + 1e-9
     return low - slack <= stored <= high + slack
 
 

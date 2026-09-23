@@ -374,6 +374,9 @@ class TestRecomputeAggregates:
             "hk_stocks": {"holdings": [
                 {"ticker": "00100", "shares": 100, "cost_basis": 3.0,
                  "current_price": 2.0, "prev_close": 3.0, "today_change_pct": -33.33},
+                # No 3-decimal pair around 100.000/100.000 reaches +0.01%.
+                {"ticker": "00200", "shares": 100, "cost_basis": 90.0,
+                 "current_price": 100.0, "prev_close": 100.0, "today_change_pct": 0.01},
             ]},
         }}
         precision = {"us_stocks": 4, "hk_stocks": 2}
@@ -390,7 +393,8 @@ class TestRecomputeAggregates:
         assert new["today_change"] == 50.0 and new["today_change_pct"] == 5.0
         assert rnd["today_change_pct"] == 0.0049
         assert tick["today_change_pct"] == 0.1
-        assert d["portfolios"]["hk_stocks"]["holdings"][0]["today_change_pct"] == -33.33
+        hk_kept, hk_stale = d["portfolios"]["hk_stocks"]["holdings"]
+        assert hk_kept["today_change_pct"] == -33.33 and hk_stale["today_change_pct"] == 0
         assert rebuild(d, dry_run=False) == {}
 
     def test_position_bought_this_session_keeps_the_cost_basis_day_change(self):
