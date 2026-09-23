@@ -113,6 +113,7 @@ def test_payload_semantic_contract_detects_deprecated_or_missing_rules():
             'model': profile['model'],
             'fallbacks': profile['fallbacks'],
             'thinking': profile['thinking'],
+            'timeoutSeconds': profile['timeout_seconds'],
             'message': message,
         },
         'delivery': {'mode': 'none'},
@@ -489,9 +490,10 @@ def test_intraday_payload_contract_bans_heredoc_and_requires_text_file():
     )
     assert profile['tools_allow'] is None
     assert profile['thinking'] == 'max'
-    # 300s is a per-exec bound. A 300s whole-turn timeout would kill normal
-    # 4–6 minute check-ins before postflight can deliver them.
-    assert 'timeout_seconds' not in profile
+    # 300s is a per-exec bound, not the turn's: the whole-turn timeout (#1784)
+    # has to leave room for several of them plus the prose, or it would kill
+    # normal 4–6 minute check-ins before postflight can deliver them.
+    assert profile['timeout_seconds'] >= 3 * 300
 
     data = contract()
     expected = {job['name']: job for job in data['jobs']}['盘中盯盘']
@@ -500,7 +502,8 @@ def test_intraday_payload_contract_bans_heredoc_and_requires_text_file():
     live = {
         'payload': {'message': message, 'kind': 'agentTurn',
                     'model': profile['model'], 'thinking': profile['thinking'],
-                    'fallbacks': profile['fallbacks']},
+                    'fallbacks': profile['fallbacks'],
+                    'timeoutSeconds': profile['timeout_seconds']},
         'delivery': {'mode': 'none'},
     }
     assert cron_contract.payload_errors(data, expected, live) == []
@@ -513,12 +516,13 @@ def test_strategy_crons_request_max_reasoning_clamped_per_candidate():
     """The payload asks for `max`; OpenClaw clamps it per fallback candidate.
 
     MiniMax-M3 exposes only off/adaptive, and Codex models reject `adaptive`
-    outright ("Thinking level adaptive is not supported for openai/gpt-5.6-sol",
-    2026-09-13 15:44). OpenClaw's cron executor re-resolves the level for each
-    candidate (`resolveCandidateThinkingLevel`) using ranks adaptive=30, max=70,
-    so `max` becomes `adaptive` on both MiniMax hops — exactly today's behaviour —
-    and stays `max` on the Codex `gpt-5.6-luna` hop. Pinning `adaptive` would
-    clamp Luna down to `medium`. The clamp is logged per run but never written
+    outright ('Thinking level "adaptive" is not supported for openai/gpt-6-luna.
+    Use one of: off, low, medium, high, xhigh, max.', 2026-09-23; gpt-5.6-sol
+    said the same on 2026-09-13). OpenClaw's cron executor re-resolves the level
+    for each candidate (`resolveCandidateThinkingLevel`) using ranks adaptive=30,
+    max=70, so `max` becomes `adaptive` on both MiniMax hops — exactly today's
+    behaviour — and stays `max` on the Codex `gpt-6-luna` hop. Pinning `adaptive`
+    would clamp Luna down to `medium`. The clamp is logged per run but never written
     back into the live job (the dreaming job logged it five times since 09-10
     with its payload unchanged), so it cannot make the contract drift.
     """
@@ -551,6 +555,11 @@ def test_strategy_cron_provider_order_is_fixed_policy():
     # read a SKILL.md and ran `clawock calendar us --status` in 89s. It shares
     # the Codex Plus quota with interactive Codex use; it only runs after both
     # MiniMax hops have failed.
+    #
+    # 2026-09-23: the Codex hops moved from gpt-5.6-luna/sol to gpt-6-luna/sol.
+    # The host's Codex runtime is now 0.155.1, which serves the gpt-6 family on
+    # the same local subscription login (still no metered billing). Smoke-tested
+    # through OpenClaw with thinking=max: gpt-6-luna and gpt-6-sol both answered.
     assert {
         name: {
             'model': profiles[name].get('model'),
@@ -561,34 +570,34 @@ def test_strategy_cron_provider_order_is_fixed_policy():
     } == {
         'report': {
             'model': 'minimax/MiniMax-M3',
-            'fallbacks': ['minimax-2/MiniMax-M3', 'openai/gpt-5.6-luna'],
+            'fallbacks': ['minimax-2/MiniMax-M3', 'openai/gpt-6-luna'],
             'model_candidates': [
                 'minimax/MiniMax-M3',
                 'minimax-2/MiniMax-M3',
-                'openai/gpt-5.6-luna',
-                'openai/gpt-5.6-sol',
+                'openai/gpt-6-luna',
+                'openai/gpt-6-sol',
                 'anthropic/claude-sonnet-4-6',
             ],
         },
         'intraday': {
             'model': 'minimax/MiniMax-M3',
-            'fallbacks': ['minimax-2/MiniMax-M3', 'openai/gpt-5.6-luna'],
+            'fallbacks': ['minimax-2/MiniMax-M3', 'openai/gpt-6-luna'],
             'model_candidates': [
                 'minimax/MiniMax-M3',
                 'minimax-2/MiniMax-M3',
-                'openai/gpt-5.6-luna',
-                'openai/gpt-5.6-sol',
+                'openai/gpt-6-luna',
+                'openai/gpt-6-sol',
                 'anthropic/claude-sonnet-4-6',
             ],
         },
         'brief': {
             'model': 'minimax/MiniMax-M3',
-            'fallbacks': ['minimax-2/MiniMax-M3', 'openai/gpt-5.6-luna'],
+            'fallbacks': ['minimax-2/MiniMax-M3', 'openai/gpt-6-luna'],
             'model_candidates': [
                 'minimax/MiniMax-M3',
                 'minimax-2/MiniMax-M3',
-                'openai/gpt-5.6-luna',
-                'openai/gpt-5.6-sol',
+                'openai/gpt-6-luna',
+                'openai/gpt-6-sol',
                 'anthropic/claude-sonnet-4-6',
             ],
         },
@@ -730,7 +739,8 @@ def test_intraday_slots_are_unconditional_again():
     live = {
         'payload': {'message': message, 'kind': 'agentTurn',
                     'model': profile['model'], 'thinking': profile['thinking'],
-                    'fallbacks': profile['fallbacks']},
+                    'fallbacks': profile['fallbacks'],
+                    'timeoutSeconds': profile['timeout_seconds']},
         'delivery': {'mode': 'none'},
         'trigger': {'script': 'json({ fire: false });', 'once': False},
     }
@@ -751,6 +761,7 @@ def test_intraday_payload_rejects_stale_restricted_tool_override():
             'model': profile['model'],
             'fallbacks': profile['fallbacks'],
             'thinking': profile['thinking'],
+            'timeoutSeconds': profile['timeout_seconds'],
             'toolsAllow': ['exec', 'process', 'read', 'write'],
         },
         'delivery': {'mode': profile['delivery_mode']},
@@ -856,13 +867,90 @@ def test_raising_the_brief_timeout_past_a_watchdog_fails_the_contract(
         cron_contract.load_contract(path, workspace=tmp_path)
 
 
-def test_only_the_brief_profile_pins_a_timeout_for_now():
-    # The reporting profiles have a 558s p100 and no evidence of harm; pinning them
-    # here would assert a bound the live jobs do not have and red the gate.
+def test_every_strategy_profile_pins_a_run_timeout():
+    """Without `timeout_seconds` OpenClaw falls back to its 60-minute agentTurn
+    safety ceiling (#1784): 美股开盘报告 on 2026-04-07 sat there the full 3600s
+    before `cron: job execution timed out`, and a wedged 盘中盯盘 would hold the
+    job through its next slot. Only the off-peak memory job keeps the default.
+    """
+    profiles = contract()['payload_profiles']
+    assert {name: profiles[name].get('timeout_seconds') for name in profiles} == {
+        'report': 900,
+        'intraday': 900,
+        'brief': 1800,
+        'memory': None,
+    }
+
+
+def test_report_and_intraday_timeouts_clear_the_measured_runs():
+    """900s is ≥1.4x the slowest successful attempt since the June rework.
+
+    `openclaw cron runs` on 2026-09-23 (limit 200 per job): intraday ok max 473s
+    (美股盘中盯盘-overnight), report ok max 602s (美股收盘报告 06-02). The
+    1000-1225s report runs are all from March-May, before the preflight/prose
+    split; none have recurred since. Tightening below this would start killing
+    real deliveries — re-measure before moving it.
+    """
+    profiles = contract()['payload_profiles']
+    for name, slowest_ok_s in (('intraday', 473), ('report', 602)):
+        assert profiles[name]['timeout_seconds'] >= 1.4 * slowest_ok_s, name
+
+
+def test_a_timed_out_intraday_run_is_gone_before_its_next_slot():
+    """A killed check-in plus OpenClaw's first transient retry (30s backoff) has
+    to end before the job's next fire, or it holds the next slot's run."""
     data = contract()
-    pinned = [name for name, profile in data['payload_profiles'].items()
-              if profile.get('timeout_seconds') is not None]
-    assert pinned == ['brief']
+    timeout = data['payload_profiles']['intraday']['timeout_seconds']
+    for job in data['jobs']:
+        if job['payload_profile'] != 'intraday':
+            continue
+        seasons = job.get('seasonal_schedules') or {'-': job['schedule']}
+        for season, schedule in seasons.items():
+            fires = cron_contract._daily_utc_minutes(schedule, job['name'])
+            gaps = [b - a for a, b in zip(fires, fires[1:])]
+            assert timeout / 60 + 0.5 < min(gaps), (job['name'], season, gaps)
+
+
+def test_watchdog_wait_budgets_match_the_watchdogs():
+    """The contract's picture of when a watchdog judges is the module's own."""
+    from clawock.harness import intraday_watchdog, report_watchdog
+
+    assert cron_contract.WATCHDOG_INFLIGHT_WAIT_S == {
+        'clawock-report-watchdog': report_watchdog.INFLIGHT_WAIT_S,
+        'clawock-intraday-watchdog': intraday_watchdog.INFLIGHT_WAIT_S,
+    }
+    kinds = {}
+    for job in contract()['jobs']:
+        for watchdog in [job.get('watchdog'), *(job.get('extra_watchdogs') or [])]:
+            if watchdog:
+                kinds.setdefault(job['payload_profile'], set()).add(
+                    cron_contract.watchdog_inflight_wait_s(watchdog))
+    # Every report/intraday watchdog is recognised as waiting; the brief ones
+    # (08:36 and the 09:05 miss detector) judge the minute they fire.
+    assert kinds == {'report': {600}, 'intraday': {600}, 'brief': {0}}
+
+
+@pytest.mark.parametrize(('profile', 'timeout_s'), [
+    # 港股收盘报告 16:10, watchdog 16:20 + 600s wait: judges at 16:30.
+    ('report', 1200),
+    # 盘中盯盘 :03/:33, watchdogs :13/:43 + 600s wait: judge at +20 min.
+    ('intraday', 1200),
+])
+def test_raising_a_timeout_past_the_watchdog_verdict_fails_the_contract(
+        tmp_path, profile, timeout_s):
+    data = json.loads((ROOT / 'config' / 'cron-schedules.json').read_text())
+    data['payload_profiles'][profile]['timeout_seconds'] = timeout_s
+    path = tmp_path / 'config' / 'cron-schedules.json'
+    path.parent.mkdir()
+    path.write_text(json.dumps(data))
+    shutil.copytree(ROOT / 'config' / 'cron-payloads', tmp_path / 'config' / 'cron-payloads')
+
+    with pytest.raises(ValueError, match='timeout boundary'):
+        cron_contract.load_contract(path, workspace=tmp_path)
+
+    data['payload_profiles'][profile]['timeout_seconds'] = timeout_s - 60
+    path.write_text(json.dumps(data))
+    cron_contract.load_contract(path, workspace=tmp_path)
 
 
 def test_no_llm_slot_is_scheduled_on_the_hour_or_half_hour():
