@@ -335,6 +335,36 @@ class TestRecomputeAggregates:
         assert d["portfolios"]["hk_stocks"]["holdings"][0]["pnl_percent"] == -33.33
         assert ra.recompute(d, dry_run=False, percent_rounding=precision) == {}
 
+    def test_price_correction_rebuilds_today_change_pct_beside_today_change(self):
+        # #1780, the today-leg twin of #1552: 100 sh, prev_close 100, price
+        # corrected to 110 → +1000 was rebuilt but the fetcher's stale +5% stayed,
+        # and a second pass called that consistent. A fresh lot runs from cost.
+        d = {"portfolios": {
+            "us_stocks": {"holdings": [
+                {"ticker": "FIX", "shares": 100, "cost_basis": 90.0,
+                 "current_price": 110.0, "prev_close": 100.0,
+                 "today_change": 500.0, "today_change_pct": 5.0},
+                {"ticker": "NEW", "shares": 10, "cost_basis": 100.0,
+                 "current_price": 105.0, "prev_close": 120.0,
+                 "day_session_date": "2026-09-16", "today_change_pct": -12.5,
+                 "trades": [{"date": "2026-09-16", "action": "buy", "shares": 10, "price": 100}]},
+            ]},
+            "hk_stocks": {"holdings": [
+                {"ticker": "00100", "shares": 100, "cost_basis": 3.0,
+                 "current_price": 2.0, "prev_close": 3.0, "today_change_pct": -33.33},
+            ]},
+        }}
+        precision = {"us_stocks": 4, "hk_stocks": 2}
+        dry = ra.recompute(json.loads(json.dumps(d)), dry_run=True, percent_rounding=precision)
+        assert dry["us_stocks"]["holdings.today_change_pct"] == [("FIX", 5.0, 10.0), ("NEW", -12.5, 5.0)]
+        assert dry["us_stocks"]["holdings.today_change"][0] == ("FIX", 500.0, 1000.0)
+        ra.recompute(d, dry_run=False, percent_rounding=precision)
+        fix, new = d["portfolios"]["us_stocks"]["holdings"]
+        assert fix["today_change"] == 1000.0 and fix["today_change_pct"] == 10.0
+        assert new["today_change"] == 50.0 and new["today_change_pct"] == 5.0
+        assert d["portfolios"]["hk_stocks"]["holdings"][0]["today_change_pct"] == -33.33
+        assert ra.recompute(d, dry_run=False, percent_rounding=precision) == {}
+
     def test_position_bought_this_session_keeps_the_cost_basis_day_change(self):
         # #1527: the US fetcher writes today_change from cost for a lot bought
         # entirely this session (10@100, now 105 → +50); reconcile must not

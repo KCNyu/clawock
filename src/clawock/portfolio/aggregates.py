@@ -12,6 +12,7 @@ pure function of those and must never be edited by hand:
     today_change  = shares × (current_price − prev_close)      [only if prev_close]
                     (− cost_basis instead when the whole position was bought
                      in its `day_session_date` session, as the US fetcher does)
+    today_change_pct = (current_price − that same ref) / ref × 100
 
   per region (Σ over active holdings):
     total_current_value = Σ current_value
@@ -136,8 +137,20 @@ def recompute(data, dry_run=False, percent_rounding=None):
                        and bought_this_session >= sh else pc)
                 tc = _r(sh * (cp - ref))
                 sum_tc += tc
+                if number(h.get('today_change')) != tc:
+                    diffs.setdefault('holdings.today_change', []).append((h.get('ticker'), h.get('today_change'), tc))
                 if not dry_run:
                     h['today_change'] = tc
+                # The other half of the pair, from the same `ref`: rebuilding
+                # only the amount left "+1000 / +5%" on one row until the next
+                # fetch, and a second pass called it consistent (#1780, the
+                # today-leg twin of #1552).
+                tc_pct = round((cp - ref) / ref * 100, pct_nd) if ref else 0
+                if number(h.get('today_change_pct')) != tc_pct:
+                    diffs.setdefault('holdings.today_change_pct', []).append(
+                        (h.get('ticker'), h.get('today_change_pct'), tc_pct))
+                if not dry_run:
+                    h['today_change_pct'] = tc_pct
 
         # ── region aggregates ──
         want = {
