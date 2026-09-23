@@ -84,7 +84,7 @@
     //
     // Ask on the next frame instead, when the layout the browser was going to
     // do anyway is already done, and only when the strip really overflows.
-    if (btn) requestAnimationFrame(() => {
+    if (btn && !pagerLive()) requestAnimationFrame(() => {
       const strip = btn.parentElement;
       if (!strip || strip.scrollWidth <= strip.clientWidth + 1) return;
       btn.scrollIntoView({ block: "nearest", inline: "center", behavior: SCROLL_BEHAVIOR });
@@ -110,6 +110,53 @@
   // all DOM/state work out of live touch + momentum frames is more important than
   // reporting the visually dominant page before the browser has committed it.
   let pagerIndex = 0;
+
+  // Paint the mobile nav from the pager's live scroll position. This path only
+  // changes the small header controls; panel activation and data rendering stay
+  // at scrollend, outside the gesture frames.
+  const tabButtons = Array.from(document.querySelectorAll(".tab-btn"));
+  const tabStrip = tabButtons[0]?.parentElement;
+  const mobileIndicator = tabStrip && document.createElement("span");
+  if (mobileIndicator) {
+    mobileIndicator.className = "tab-progress-indicator";
+    mobileIndicator.setAttribute("aria-hidden", "true");
+    tabStrip.append(mobileIndicator);
+  }
+  let tabCenters = [], pageWidth = 1, stripWidth = 0, stripViewport = 0;
+  let navFrame = 0;
+  function measureMobileNav() {
+    if (!pagerLive() || !tabStrip) return;
+    pageWidth = pager.clientWidth || 1;
+    tabCenters = tabButtons.map(button => button.offsetLeft + button.offsetWidth / 2);
+    stripWidth = tabStrip.scrollWidth;
+    stripViewport = tabStrip.clientWidth;
+    paintMobileNav();
+  }
+  function paintMobileNav() {
+    if (!pagerLive() || !tabCenters.length) return;
+    const progress = Math.max(0, Math.min(TAB_ORDER.length - 1, pager.scrollLeft / pageWidth));
+    const lo = Math.floor(progress), hi = Math.min(lo + 1, tabCenters.length - 1);
+    const center = tabCenters[lo] + (tabCenters[hi] - tabCenters[lo]) * (progress - lo);
+    mobileIndicator.style.transform = `translateX(${center - 11}px)`;
+    const nearest = Math.round(progress);
+    tabButtons.forEach((button, i) => {
+      button.classList.toggle("active", i === nearest);
+      button.setAttribute("aria-selected", i === nearest ? "true" : "false");
+    });
+    // Keep the moving indicator in view as the gesture reaches tabs outside
+    // the visible strip, with no second smooth animation trailing the finger.
+    if (stripWidth > stripViewport) {
+      tabStrip.scrollLeft = Math.max(0, Math.min(stripWidth - stripViewport,
+        center - stripViewport / 2));
+    }
+  }
+  function scheduleMobileNav() {
+    if (navFrame) return;
+    navFrame = requestAnimationFrame(() => {
+      navFrame = 0;
+      paintMobileNav();
+    });
+  }
 
   // A page is not necessarily `index * clientWidth`: fractional CSS pixels,
   // scrollbar geometry and a viewport resize can all make that product differ
@@ -194,6 +241,10 @@
     let gestureActive = false;
     const supportsScrollEnd = "onscrollend" in pager;
 
+    measureMobileNav();
+    window.addEventListener("resize", measureMobileNav, { passive: true });
+    pager.addEventListener("scroll", scheduleMobileNav, { passive: true });
+
     function settlePager() {
       if (!pagerLive() || gestureActive) return;
       clearTimeout(settleTimer);
@@ -207,6 +258,7 @@
       });
       pagerIndex = idx;
       setActiveButton(TAB_ORDER[idx]);
+      scheduleMobileNav();
       clearTimeout(chartTimer);
       chartTimer = setTimeout(syncChartSizes, 120);
     }

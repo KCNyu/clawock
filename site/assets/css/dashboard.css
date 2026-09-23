@@ -865,6 +865,14 @@
      scroll-snap pager. Each tab is its own page that scrolls vertically.
      Native scrolling = buttery preview / momentum / snap, zero JS gesture code. */
   @media (max-width: 1023px) {
+    .tabs { position: relative; }
+    .tab-btn { transition: transform var(--duration-fast) var(--ease-out); }
+    .tab-btn.active::after { display: none; }
+    .tab-progress-indicator {
+      position: absolute; left: 0; bottom: 3px; width: 22px; height: 2px;
+      border-radius: 999px; background: var(--accent);
+      pointer-events: none;
+    }
     html.app, body.app { height: 100%; }
     body.app {
       display: flex; flex-direction: column;
@@ -912,10 +920,9 @@
       contain-intrinsic-block-size: auto 100dvh;
       -webkit-overflow-scrolling: touch;
     }
-    /* The current page must be visible from the first layout. Leaving `auto` on
-       Hero can make Chrome reveal the whole pager a frame late under CPU load,
-       which is observable as a large CLS even though the inactive pages benefit. */
-    .panel.active { content-visibility: visible; }
+    /* Hero needs first-frame layout. Keep other pages on auto even when active:
+       flipping visibility at scrollend repaints the entire just-revealed page. */
+    .panel:first-child { content-visibility: visible; }
     /* Leave off-screen pages on `auto`: the browser skips their rendering until
        needed, but can reveal them immediately during two quick consecutive
        swipes. Forcing distant pages to `hidden` until JS committed the previous

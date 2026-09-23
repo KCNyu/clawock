@@ -711,13 +711,9 @@ async function testTabGuardWithoutForcedLayout(browser, base) {
   await context.close();
 }
 
-// A horizontal drag owns the pager until native momentum and scroll-snap have
-// finished. Switching `.active` at the halfway mark used to reveal/hide large
-// panel trees and lazy-render data during the drag itself; on mobile WebKit the
-// resulting layout could strand the scroller between snap points. The settled
-// position also used `index * clientWidth`, which is not necessarily the panel's
-// real fractional layout offset after a viewport change. Native snap owns that
-// geometry now; JS observes its result and never corrects a gesture afterward.
+// The nav follows a horizontal drag while expensive panel activation waits for
+// native snap. The settled position uses the real panel offset; JS never
+// corrects native momentum afterward.
 async function testMobilePagerCommitsStateAtTheRealSnapPoint(browser, base) {
   const context = await browser.newContext({
     viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true,
@@ -733,18 +729,26 @@ async function testMobilePagerCommitsStateAtTheRealSnapPoint(browser, base) {
     // boundary, while CI's native swipe cases keep CSS snap on.
     pager.style.scrollSnapType = "none";
     pager.dispatchEvent(new Event("touchstart"));
+    const indicator = document.querySelector(".tab-progress-indicator");
+    const before = new DOMMatrix(getComputedStyle(indicator).transform).m41;
     pager.scrollLeft = pager.clientWidth * 0.6;
     pager.dispatchEvent(new Event("scroll"));
     await new Promise(requestAnimationFrame);
     return {
       active: document.querySelector(".tab-btn.active")?.dataset.tab,
       current: currentTab(),
+      panel: document.querySelector(".panel.active")?.dataset.panel,
+      indicatorDelta: new DOMMatrix(getComputedStyle(indicator).transform).m41 - before,
     };
   });
   assert.equal(duringGesture.current, "hero",
     "application state changed before native scrolling settled");
-  assert.equal(duringGesture.active, "hero",
-    "panel state changed while the touch gesture still owned the pager");
+  assert.equal(duringGesture.active, "drill",
+    "the nav did not follow the visually dominant page during the gesture");
+  assert.equal(duringGesture.panel, "hero",
+    "panel rendering changed while the touch gesture still owned the pager");
+  assert(duringGesture.indicatorDelta > 0,
+    "the mobile indicator did not move with the finger");
 
   const settled = await page.evaluate(async () => {
     const pager = document.getElementById("pager");
@@ -771,6 +775,9 @@ async function testMobilePagerCommitsStateAtTheRealSnapPoint(browser, base) {
     return result;
   });
   assert.equal(settled.active, "drill", "the settled page did not become active");
+  assert.equal(await page.locator('.panel[data-panel="drill"]').evaluate(
+    panel => getComputedStyle(panel).contentVisibility), "auto",
+    "settling toggled content visibility and repainted the page");
   assert.equal(settled.positionWrites, 0,
     "JS rewrote the position after a native gesture instead of observing it");
   assert(settled.error >= 6,
