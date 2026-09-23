@@ -15,7 +15,7 @@ from __future__ import annotations
 import os
 import subprocess
 import sys
-from datetime import date
+from datetime import date, timedelta
 from pathlib import Path
 
 import pytest
@@ -206,9 +206,25 @@ def test_latest_year_matches_the_tables():
 
 def test_past_the_horizon_the_calendar_fails_open():
     """The point of the deadline: never skip a real session over a stale table."""
-    beyond = date(trading_calendar.LATEST_YEAR + 1, 1, 1)
+    beyond = date(trading_calendar.LATEST_YEAR + 1, 1, 3)
+    assert beyond.weekday() < 5
     assert trading_calendar.closed_reason("hk", beyond) is None
     assert trading_calendar.closed_reason("us", beyond) is None
+
+
+def test_past_the_horizon_a_weekend_is_still_closed():
+    """Fail-open is about the holiday table; a Saturday needs no table (#1785).
+
+    It used to short-circuit before the weekend check, so every Saturday and
+    Sunday past LATEST_YEAR read as a session, while `is_trading_day` said
+    closed — the two answers disagreed on the same date.
+    """
+    year = trading_calendar.LATEST_YEAR + 1
+    saturday = next(date(year, 1, d) for d in range(1, 8) if date(year, 1, d).weekday() == 5)
+    for day in (saturday, saturday + timedelta(days=1)):
+        for market in ("hk", "us"):
+            assert trading_calendar.closed_reason(market, day) == "周末休市", (market, day)
+            assert trading_calendar.is_trading_day(market, day) is False
 
 
 def test_weekend_entries_are_harmless_but_kept():

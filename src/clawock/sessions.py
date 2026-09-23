@@ -314,16 +314,17 @@ def closed_reason(market: str, d: date | None = None,
                   session: str = "full") -> str | None:
     """None if `market` trades; else a short Chinese reason for harness banners.
 
-    Past the holiday-table horizon we fail OPEN (return None) — never silently
-    skip a real trading day just because the table wasn't extended.
+    Past the holiday-table horizon we fail OPEN on weekdays (return None) — never
+    silently skip a real trading day just because the table wasn't extended.
+    Weekends need no table, so they stay closed there too (#1785).
     """
     market = market.lower()
     if d is None:
         d = _today_in_market(market)
-    if d.year > LATEST_YEAR:
-        return None
     if d.weekday() >= 5:
         return "周末休市"
+    if d.year > LATEST_YEAR:
+        return None
     if d.isoformat() in HOLIDAYS[market]:
         return "节假日休市"
     if market == "hk" and session == "afternoon" and d.isoformat() in HK_HALF_DAYS:
