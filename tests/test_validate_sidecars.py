@@ -1022,3 +1022,38 @@ def test_quote_date_parser(ds, ref, expected):
     from datetime import date
     got = validators._quote_date(ds, date.fromisoformat(ref))
     assert got == (date.fromisoformat(expected) if expected else None)
+
+
+def _fresh_position(payload, portfolio):
+    """Make the first US holding a position with no previous close (#1783)."""
+    row = payload['holdings']['us'][0]
+    source = next(
+        h for h in portfolio['portfolios']['us_stocks']['holdings']
+        if (h.get('ticker') or h.get('code')) == row['ticker'])
+    source.pop('today_change', None)
+    source.pop('today_change_pct', None)
+    return row
+
+
+def test_a_fresh_position_publishes_null_today_change(tmp_path, freshly_built_dashboard):
+    payload = json.loads(freshly_built_dashboard.read_text())
+    portfolio = json.loads((ROOT / 'portfolio.json').read_text())
+    row = _fresh_position(payload, portfolio)
+    row.update(today_change=None, today_change_pct=None)
+    source = write_json(tmp_path / 'portfolio.json', portfolio)
+    dashboard = write_json(tmp_path / 'dashboard.json', payload)
+
+    validators.validate_dashboard(dashboard, portfolio_path=source)
+
+
+def test_a_fresh_position_published_as_a_flat_day_fails(tmp_path, freshly_built_dashboard):
+    """0 where the book has nothing is the「+0.00%」the dashboard showed (#1783)."""
+    payload = json.loads(freshly_built_dashboard.read_text())
+    portfolio = json.loads((ROOT / 'portfolio.json').read_text())
+    row = _fresh_position(payload, portfolio)
+    row.update(today_change=None, today_change_pct=0)
+    source = write_json(tmp_path / 'portfolio.json', portfolio)
+    dashboard = write_json(tmp_path / 'dashboard.json', payload)
+
+    with pytest.raises(AssertionError, match=r'today_change_pct=0 does not reconcile to portfolio\.json=null'):
+        validators.validate_dashboard(dashboard, portfolio_path=source)

@@ -778,6 +778,9 @@ def _assert_dashboard_money_reconciles(
         'pnl_abs': ('pnl_abs', 2),
         'pnl_percent': ('pnl_percent', 2),
     }
+    # A position with no previous close has no today's change; the row carries
+    # null for it, not 0 (#1783).
+    nullable_holding_fields = {'today_change', 'today_change_pct'}
 
     for leg, (region, currency, total_fields) in regions.items():
         source_leg = portfolio.get('portfolios', {}).get(region)
@@ -823,13 +826,18 @@ def _assert_dashboard_money_reconciles(
                     f'holdings.{leg}.{ticker}.trades_count does not reconcile')
                 for public_field, (source_field, places) in holding_fields.items():
                     source_value = source.get(source_field)
+                    label = f'holdings.{leg}.{ticker}.{public_field}'
+                    tolerance = 1e-9 if places is None else 0.5 * (10 ** -places)
+                    if public_field in nullable_holding_fields:
+                        same_optional_number(
+                            public.get(public_field),
+                            None if source_value is None else round(source_value, places),
+                            label, tolerance,
+                        )
+                        continue
                     expected = (source_value if places is None
                                 else round(source_value or 0, places))
-                    tolerance = 1e-9 if places is None else 0.5 * (10 ** -places)
-                    same_number(
-                        public.get(public_field), expected,
-                        f'holdings.{leg}.{ticker}.{public_field}', tolerance,
-                    )
+                    same_number(public.get(public_field), expected, label, tolerance)
 
         # Recompute the public concentration card from the public holding rows.
         positive = [row for row in public_rows if row.get('current_value', 0) > 0]
