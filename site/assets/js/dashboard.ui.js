@@ -5,6 +5,7 @@
   const TAB_ORDER = Array.from(document.querySelectorAll(".tab-btn")).map(b => b.dataset.tab);
 
   const pager = document.getElementById("pager");
+  const PANELS = Array.from(document.querySelectorAll(".panel"));
   const DESKTOP_MQ = window.matchMedia("(min-width: 1024px)");
   // Safari/WebKit can synchronously stall when ECharts canvases are initialized
   // inside Reflect's desktop multi-column formatting context. Mark WebKit once;
@@ -60,10 +61,9 @@
       b.setAttribute("aria-selected", on);
     });
     const activeIndex = TAB_ORDER.indexOf(t);
-    document.querySelectorAll(".panel").forEach(p => {
+    PANELS.forEach(p => {
       const panelIndex = TAB_ORDER.indexOf(p.dataset.panel);
       p.classList.toggle("active", panelIndex === activeIndex);
-      p.classList.toggle("is-near", Math.abs(panelIndex - activeIndex) === 1);
     });
     if (DATA) {
       // Activation is the consumer boundary: mapped sidecars load first, then
@@ -106,15 +106,22 @@
   // 162ms of the 1,016ms spent in layout on a mobile startup profile (#442),
   // across two call sites, `renderLandingTab`'s step() and ensureVisibleCharts.
   //
-  // The scroll handler below already computes this index every animation frame
-  // in order to move the picker's checked item, so the value is maintained
-  // regardless.
-  // Caching it there means the geometry is read once per frame by the code whose
-  // job that is, instead of once per renderer by code that only needs to know
-  // whether the user has navigated away. Worst-case staleness is one frame, and
-  // every caller is a guard that tolerates it — aborting a render one renderer
-  // late is the same outcome as aborting it on time.
+  // It changes only at an explicit navigation or a native-scroll settle. Keeping
+  // all DOM/state work out of live touch + momentum frames is more important than
+  // reporting the visually dominant page before the browser has committed it.
   let pagerIndex = 0;
+
+  // A page is not necessarily `index * clientWidth`: fractional CSS pixels,
+  // scrollbar geometry and a viewport resize can all make that product differ
+  // from the snap point the browser laid out. Read the panel's real position
+  // only at navigation/settle boundaries, never in the live scroll loop.
+  function pagerPageLeft(index) {
+    const panel = PANELS[index];
+    if (!pager || !panel) return index * (pager ? pager.clientWidth : 0);
+    const pagerBox = pager.getBoundingClientRect();
+    const panelBox = panel.getBoundingClientRect();
+    return pager.scrollLeft + panelBox.left - pagerBox.left;
+  }
 
   function currentTab() {
     if (pagerLive()) {
@@ -126,12 +133,18 @@
 
   // Native scroll-snap does the gesture, preview, momentum & easing for free.
   // We just drive scrollLeft for button/keyboard nav and read it back for the indicator.
-  function goToTab(t, smooth = true) {
+  function goToTab(t) {
     if (!TAB_ORDER.includes(t)) return false;
     const idx = TAB_ORDER.indexOf(t);
     pagerIndex = idx;                          // keep the cache ahead of the scroll
     if (pagerLive()) {
-      pager.scrollTo({ left: idx * pager.clientWidth, behavior: smooth ? SCROLL_BEHAVIOR : "auto" });
+      // A tab click is a frequent direct-selection action, not a gesture to
+      // animate. In mobile WebKit, combining a multi-page smooth scroll with
+      // mandatory snap can stop on the first intermediate page (Overview →
+      // Risk lands on Holdings). Native finger swipes keep their momentum;
+      // explicit tab/keyboard navigation lands atomically on the requested
+      // panel's real snap point.
+      pager.scrollTo({ left: pagerPageLeft(idx), behavior: "auto" });
     }
     setActiveButton(t);          // desktop / immediate highlight; scroll listener re-confirms
     return true;
@@ -171,41 +184,58 @@
     });
   }
 
-  // Sync the active-tab indicator to the live scroll position (rAF-throttled).
-  // On settle, nudge ECharts in the now-visible page to resize.
+  // Do not run state changes or position writes while native touch scrolling,
+  // momentum and snap own the pager. `setActiveButton()` changes the desk rail
+  // and can lazy-render a large DOM on first visit; doing that in a gesture frame
+  // is enough to make WebKit visibly hitch. The browser alone decides the final
+  // snap point, then we commit application state to the nearest real panel.
   if (pager) {
-    let raf = 0, settleTimer = 0, lastIdx = -1;
-    pager.addEventListener("scroll", () => {
-      if (raf) return;
-      raf = requestAnimationFrame(() => {
-        raf = 0;
-        const idx = Math.round(pager.scrollLeft / (pager.clientWidth || 1));
-        pagerIndex = Math.max(0, Math.min(TAB_ORDER.length - 1, idx));
-        if (idx !== lastIdx) {
-          lastIdx = idx;
-          const t = TAB_ORDER[Math.max(0, Math.min(TAB_ORDER.length - 1, idx))];
-          setActiveButton(t);
-        }
-        clearTimeout(settleTimer);
-        // Nudge the charts on the page the swipe landed on — NOT a synthetic
-        // window `resize`. That dispatch also woke the realign timer below,
-        // which 150ms after every settle wrote `pager.scrollLeft` back; a
-        // reader who had already started the next swipe got yanked back to the
-        // page they were leaving. See syncChartSizes() for the cost side.
-        settleTimer = setTimeout(syncChartSizes, 120);
-      });
-    }, { passive: true });
+    let settleTimer = 0, chartTimer = 0;
+    let gestureActive = false;
+    const supportsScrollEnd = "onscrollend" in pager;
 
-    // Keep the current page aligned across orientation / viewport changes.
-    let rzTimer = 0;
-    window.addEventListener("resize", () => {
-      if (!pagerLive()) return;
-      clearTimeout(rzTimer);
-      rzTimer = setTimeout(() => {
-        const idx = TAB_ORDER.indexOf(currentTab());
-        pager.scrollTo({ left: idx * pager.clientWidth, behavior: "auto" });
-      }, 150);
-    });
+    function settlePager() {
+      if (!pagerLive() || gestureActive) return;
+      clearTimeout(settleTimer);
+      let idx = 0, nearest = Infinity;
+      PANELS.forEach((_, candidate) => {
+        const distance = Math.abs(pager.scrollLeft - pagerPageLeft(candidate));
+        if (distance < nearest) {
+          idx = candidate;
+          nearest = distance;
+        }
+      });
+      pagerIndex = idx;
+      setActiveButton(TAB_ORDER[idx]);
+      clearTimeout(chartTimer);
+      chartTimer = setTimeout(syncChartSizes, 120);
+    }
+
+    function scheduleFallbackSettle() {
+      clearTimeout(settleTimer);
+      settleTimer = setTimeout(() => {
+        if (!gestureActive) settlePager();
+      }, 180);
+    }
+
+    pager.addEventListener("touchstart", () => {
+      gestureActive = true;
+      clearTimeout(settleTimer);
+    }, { passive: true, capture: true });
+    const releaseGesture = () => {
+      gestureActive = false;
+      if (!supportsScrollEnd) scheduleFallbackSettle();
+    };
+    pager.addEventListener("touchend", releaseGesture, { passive: true, capture: true });
+    pager.addEventListener("touchcancel", releaseGesture, { passive: true, capture: true });
+
+    if (supportsScrollEnd) {
+      pager.addEventListener("scrollend", settlePager, { passive: true });
+    } else {
+      // Older engines have no settle event. Debounce is only installed there;
+      // current iOS Safari executes no JS at all in live scroll frames.
+      pager.addEventListener("scroll", scheduleFallbackSettle, { passive: true });
+    }
   }
 
   // Keyboard arrows mirror the swipe. They keep working while the site menu is
@@ -229,7 +259,7 @@
   }
   window.addEventListener("hashchange", () => {
     const t = tabFromHash();
-    if (t && t !== currentTab()) goToTab(t, false);
+    if (t && t !== currentTab()) goToTab(t);
   });
 
   DESKTOP_MQ.addEventListener("change", () => { if (DATA) ensureVisibleCharts(); });
@@ -867,7 +897,7 @@
     // after a user enters a detail tab that owns an analytical chart.
     // Land on the deep-linked tab BEFORE first paint of data (instant, no animation).
     const t0 = tabFromHash();
-    if (t0) goToTab(t0, false);
+    if (t0) goToTab(t0);
     else setActiveButton(TAB_ORDER[0]);
     loadData().then(loadLatestBriefCard);
     _scheduleAutoRefresh();

@@ -916,11 +916,10 @@
        Hero can make Chrome reveal the whole pager a frame late under CPU load,
        which is observable as a large CLS even though the inactive pages benefit. */
     .panel.active { content-visibility: visible; }
-    /* Only the current page and its two swipe neighbours need inner layout.
-       Keeping the neighbour boxes warm preserves native swipe preview while
-       explicit hiding prevents the other full dashboard trees from consuming
-       mobile startup style/layout time. */
-    .panel:not(.active):not(.is-near) { content-visibility: hidden; }
+    /* Leave off-screen pages on `auto`: the browser skips their rendering until
+       needed, but can reveal them immediately during two quick consecutive
+       swipes. Forcing distant pages to `hidden` until JS committed the previous
+       snap produced a blank page during an interrupted/retargeted gesture. */
     /* visually hidden but kept in the a11y tree so the heading sequence stays h1→h2→h3
        (display:none would drop the h2 → axe/screen-readers see an h1→h3 skip). NOTE: must
        stay IN FLOW — position:absolute here escapes the horizontal scroll-snap pager and
