@@ -614,7 +614,7 @@ function TraceDetail(props: { trace: DisplayEntry; t: Translate }): React.ReactE
       h('div', { className: cx('tnode', alignTone) },
         h('div', { className: cx('tw') }, trace.date ?? ''),
         h('div', { className: cx('n') }, t('trace.realFill')),
-        h('div', { className: cx('v') }, fillText,
+        h('div', { className: cx('v', 'fill-v') }, fillText,
           alignLabel === '' ? null : h('span', { className: cx('pc', alignTone) }, alignLabel))),
       t1node,
       h('div', { className: cx('tnode', pnlTone) },

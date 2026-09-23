@@ -54,37 +54,25 @@
  *      nothing can tell apart. The ladder below now declares them once, and
  *      `tests/decision_studio_plugin.spec.js` fails the build if a raw px
  *      font size reappears outside it.
- *      The values are unchanged from what kcn iterated to over #937/#939/
- *      #995 — this is a refactor, not a redesign, and it renders identically.
- *      The `-l` names are the debt made visible: `--fs-xs` / `--fs-xs-l` are
- *      11px and 11.5px, and every such twin is a half-step that a later
- *      visual round should collapse. Collapsing them changes pixels, so it
- *      is kcn's call, not this refactor's.
+ *      The 2026-09-23 WebKit review collapsed the half-pixel twins into seven
+ *      whole-pixel roles. The host still owns the font family; this root owns
+ *      only the size ladder. Labels remain smaller than data and focal values.
  *
  * Layout: a day group is one bordered container of hairline-separated rows,
- * and a row is one line — dot · date · ticker · action · size · verdict ·
- * P&L — so a scan down the column compares like with like. Under 520px the
- * row folds back into the two-line form (`.main` / `.sub` stop being
- * `display:contents` and become their own flex lines).
+ * and a wide row is one line — dot · date · ticker · action · size · verdict
+ * · P&L. Under 520px `.main` becomes a two-row grid and `.sub` carries the
+ * verdict below, preserving ticker and fill price at narrow widths.
  */
-/* The type ladder (rule 5). Declared for both roots because the balance chip
-   renders OUTSIDE `.dmt` and owns its own variable scope. Steps marked `-l`
-   are half-pixel twins of the step above them; see rule 5. */
+/* The type ladder (rule 5). Both roots need it: the sidebar chips render
+   outside `.dmt`. Adjacent roles are a full pixel apart. */
 .dmt, .pbc {
-  --fs-nano:9.5px;      /* T+1 chip label */
-  --fs-micro:10px;      /* chevrons, trace timestamps */
-  --fs-caption:10.5px;  /* labels, notes, node captions */
-  --fs-xs:11px;         /* tags, chips, window lines */
-  --fs-xs-l:11.5px;
-  --fs-sm:12px;         /* filters, day headers, panel rows */
-  --fs-sm-l:12.5px;
-  --fs-md:13px;         /* board base, empty state, verdict */
-  --fs-md-l:13.5px;
-  --fs-lg:14px;         /* ticker */
-  --fs-lg-l:14.5px;     /* ticker, narrow layout */
-  --fs-xl:15px;         /* section head, narrow-layout P&L */
-  --fs-xl-l:15.5px;     /* P&L, the board's focal number */
-  --fs-2xl:16px         /* focus stat value */
+  --fs-micro:10px; /* decorative glyphs and compact timestamps */
+  --fs-xs:11px;    /* supporting labels and compact status chips */
+  --fs-sm:12px;    /* filters, tags and sidebar rows */
+  --fs-md:13px;    /* reading text and empty states */
+  --fs-lg:14px;    /* ticker and secondary values */
+  --fs-xl:15px;    /* section heading and narrow focal value */
+  --fs-2xl:16px    /* focal value */
 }
 .dmt {
   --col:var(--dsh-chat-content-width, 748px);
@@ -161,7 +149,10 @@
   --glow-1:rgba(65,118,230,.16);
   --glow-2:rgba(104,108,238,.115);
   --glow-3:rgba(65,118,230,.07);
-  --radius:12px;
+  --radius-card:12px;
+  --radius-inset:10px;
+  --radius-chip:6px;
+  --card-gutter:12px;
   --font:var(--dsw-font-family, -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif);
   --mono:var(--ds-font-family-code, ui-monospace,SFMono-Regular,Menlo,Consolas,monospace);
   font:var(--fs-md)/1.45 var(--font);
@@ -243,7 +234,7 @@ body[data-ds-dark-theme] .dmt {
   box-sizing:border-box;
   max-width:calc(var(--col) - 28px);
   margin:0 auto;
-  padding:10px 12px 11px;
+  padding:10px var(--card-gutter) 11px;
   /* Glass, not paint (rule 4). The opaque surface is declared first so an
      engine without color-mix falls back to the old solid card; the glass line
      layers the sheen ON TOP of the translucent fill. This is the board's
@@ -255,7 +246,7 @@ body[data-ds-dark-theme] .dmt {
   -webkit-backdrop-filter:blur(28px) saturate(1.85);
   backdrop-filter:blur(28px) saturate(1.85);
   border:1px solid var(--border2);
-  border-radius:var(--radius);
+  border-radius:var(--radius-card);
   box-shadow:var(--shadow-ambient), inset 0 1px 0 var(--edge-light), inset 0 -1px 0 var(--edge-dark)
 }
 .dmt .tt {
@@ -285,7 +276,7 @@ body[data-ds-dark-theme] .dmt {
 .dmt .ts {
   flex:0 1 auto;
   min-width:0;
-  font:400 var(--fs-xs-l)/1.4 var(--font);
+  font:400 var(--fs-sm)/1.4 var(--font);
   color:var(--cap);
   overflow:hidden;
   text-overflow:ellipsis;
@@ -307,12 +298,12 @@ body[data-ds-dark-theme] .dmt {
   min-width:0
 }
 .dmt .sl {
-  font:500 var(--fs-caption)/1.3 var(--font);
+  font:500 var(--fs-xs)/1.3 var(--font);
   color:var(--cap);
   letter-spacing:.03em
 }
 .dmt .sv {
-  font:650 var(--fs-md-l)/1.3 var(--font);
+  font:650 var(--fs-lg)/1.3 var(--font);
   color:var(--text);
   font-variant-numeric:tabular-nums;
   white-space:nowrap
@@ -410,12 +401,12 @@ body[data-ds-dark-theme] .dmt {
   display:flex;
   align-items:center;
   gap:8px;
-  font:650 var(--fs-sm-l)/1.3 var(--font);
+  font:650 var(--fs-sm)/1.3 var(--font);
   color:var(--text2)
 }
 .dmt .day .n {
   color:var(--cap);
-  font:400 var(--fs-caption)/1.3 var(--mono);
+  font:400 var(--fs-xs)/1.3 var(--mono);
   margin-left:auto
 }
 .dmt .day::after {
@@ -466,7 +457,7 @@ body[data-ds-dark-theme] .dmt {
      the full width of the group. */
   gap:0 10px;
   border:1px solid var(--border2);
-  border-radius:var(--radius);
+  border-radius:var(--radius-card);
   /* Same recipe as the header card (rule 4), one tier thinner — a day group
      is a stack of rows, not a single slab, so it sits closer to the canvas
      than `.tin` does. Opaque fallback first. The group's filter covers its
@@ -565,7 +556,7 @@ body[data-ds-dark-theme] .dmt {
   white-space:nowrap
 }
 .dmt .mkt {
-  font:700 var(--fs-nano)/1 var(--font);
+  font:700 var(--fs-micro)/1 var(--font);
   margin-left:3px;
   vertical-align:2px;
   color:var(--brand)
@@ -580,10 +571,10 @@ body[data-ds-dark-theme] .dmt {
   align-items:center;
   height:20px;
   padding:0 7px;
-  border-radius:6px;
+  border-radius:var(--radius-chip);
   border:1px solid var(--tint-border);
   background:var(--tint-soft);
-  font:600 var(--fs-xs-l)/1 var(--font);
+  font:600 var(--fs-sm)/1 var(--font);
   color:var(--text2);
   letter-spacing:.02em;
   white-space:nowrap
@@ -592,7 +583,7 @@ body[data-ds-dark-theme] .dmt {
   grid-area:1/6;
   justify-self:start;
   min-width:0;
-  font:500 var(--fs-sm-l)/1.4 var(--mono);
+  font:500 var(--fs-sm)/1.4 var(--mono);
   color:var(--text2);
   font-variant-numeric:tabular-nums;
   white-space:nowrap;
@@ -608,7 +599,7 @@ body[data-ds-dark-theme] .dmt {
   grid-area:1/9;
   justify-self:end;
   text-align:right;
-  font:700 var(--fs-xl-l)/1.2 var(--font);
+  font:700 var(--fs-2xl)/1.2 var(--font);
   font-variant-numeric:tabular-nums;
   letter-spacing:-.01em
 }
@@ -626,7 +617,7 @@ body[data-ds-dark-theme] .dmt {
 /* Marks the focus number as the position's floating percent rather than this
    fill's realized amount — two different quantities in one slot. */
 .dmt .pnlk {
-  font:600 var(--fs-caption)/1.2 var(--font);
+  font:600 var(--fs-xs)/1.2 var(--font);
   color:var(--cap);
   margin-right:3px;
   letter-spacing:0
@@ -639,7 +630,7 @@ body[data-ds-dark-theme] .dmt {
   height:19px;
   padding:0 6px;
   border-radius:5px;
-  font:600 var(--fs-caption)/1 var(--font);
+  font:600 var(--fs-xs)/1 var(--font);
   white-space:nowrap;
   font-variant-numeric:tabular-nums
 }
@@ -667,7 +658,7 @@ body[data-ds-dark-theme] .dmt {
   height:19px;
   padding:0 6px;
   border-radius:5px;
-  font:600 var(--fs-caption)/1 var(--font);
+  font:600 var(--fs-xs)/1 var(--font);
   white-space:nowrap;
   letter-spacing:.02em
 }
@@ -719,9 +710,9 @@ body[data-ds-dark-theme] .dmt {
    rounded rail visible around it. */
 .dmt .dbody {
   margin:0 10px 10px;
-  padding:12px;
+  padding:var(--card-gutter);
   border:1px solid var(--tint-border);
-  border-radius:10px;
+  border-radius:var(--radius-inset);
   background:var(--tray-fill);
   box-shadow:var(--tray-shadow), inset 0 -1px 0 var(--edge-light)
 }
@@ -729,7 +720,7 @@ body[data-ds-dark-theme] .dmt {
   display:flex;
   align-items:center;
   gap:6px;
-  font:500 var(--fs-caption)/1.3 var(--font);
+  font:500 var(--fs-xs)/1.3 var(--font);
   color:var(--cap);
   letter-spacing:.05em;
   margin-bottom:8px
@@ -797,13 +788,22 @@ body[data-ds-dark-theme] .dmt {
   margin-bottom:1px
 }
 .dmt .tnode .n {
-  font:500 var(--fs-caption)/1.3 var(--font);
+  font:500 var(--fs-xs)/1.3 var(--font);
   color:var(--cap);
   letter-spacing:.04em;
   margin-bottom:2px
 }
 .dmt .tnode .v {
   font:600 var(--fs-md)/1.4 var(--font)
+}
+/* The plan-alignment chip is a separate fact. Keep its border whole when a
+   long fill sentence wraps on a narrow card. */
+.dmt .tnode .fill-v {
+  display:flex;
+  flex-wrap:wrap;
+  align-items:baseline;
+  gap:4px 6px;
+  overflow-wrap:anywhere
 }
 .dmt .tnode.win .v {
   color:var(--ok)
@@ -826,7 +826,11 @@ body[data-ds-dark-theme] .dmt {
 .dmt .pc {
   font:400 var(--fs-xs)/1.4 var(--font);
   padding:2px 8px;
-  border-radius:6px;
+  box-sizing:border-box;
+  min-width:0;
+  max-width:100%;
+  overflow-wrap:anywhere;
+  border-radius:var(--radius-chip);
   background:var(--tint-soft);
   border:1px solid var(--border2);
   color:var(--text2)
@@ -835,7 +839,7 @@ body[data-ds-dark-theme] .dmt {
   margin:7px 0;
   padding:3px 0 3px 10px;
   border-left:3px solid var(--tint-strong);
-  font:400 var(--fs-xs-l)/1.6 var(--font);
+  font:400 var(--fs-sm)/1.6 var(--font);
   color:var(--text2);
   white-space:pre-wrap;
   overflow-wrap:anywhere
@@ -848,13 +852,13 @@ body[data-ds-dark-theme] .dmt {
 }
 .dmt .tnote .k {
   color:var(--cap);
-  font:600 var(--fs-caption)/1.4 var(--font)
+  font:600 var(--fs-xs)/1.4 var(--font)
 }
 .dmt .tmiss {
   padding:7px 10px;
   border:1px dashed var(--border2);
-  border-radius:6px;
-  font:400 var(--fs-xs-l)/1.5 var(--font);
+  border-radius:var(--radius-chip);
+  font:400 var(--fs-sm)/1.5 var(--font);
   color:var(--cap);
   margin-top:8px
 }
@@ -866,7 +870,7 @@ body[data-ds-dark-theme] .dmt {
   /* Same quiet material as the board: hairline + glass fill + specular edge,
      no blur of its own (there is nothing moving behind an empty state). */
   border:1px dashed var(--tint-border);
-  border-radius:var(--radius);
+  border-radius:var(--radius-card);
   background:var(--glass-fill);
   box-shadow:inset 0 1px 0 var(--edge-light), inset 0 -1px 0 var(--edge-dark)
 }
@@ -876,7 +880,7 @@ body[data-ds-dark-theme] .dmt {
   margin:12px 0 0;
   padding:9px 12px;
   border:1px dashed var(--border2);
-  border-radius:10px;
+  border-radius:var(--radius-inset);
   background:transparent;
   color:var(--text2);
   font:600 var(--fs-sm)/1.4 var(--font);
@@ -897,9 +901,9 @@ body[data-ds-dark-theme] .dmt {
   display:flex;
   align-items:center;
   gap:12px;
-  padding:13px 12px;
+  padding:13px var(--card-gutter);
   border:1px solid var(--border2);
-  border-radius:var(--radius);
+  border-radius:var(--radius-card);
   background:var(--surface);
   background:var(--sheen), var(--glass-fill);
   -webkit-backdrop-filter:blur(20px) saturate(1.7);
@@ -975,9 +979,9 @@ body[data-ds-dark-theme] .dmt {
   }
 }
 
-/* Phone layout. The single line cannot hold nine fields at 320-430px, so the
-   row folds back into its two DOM lines: identity + money, then the verdict
-   meta. Every interactive box stays at or above a 32px tap target. */
+/* Phone layout. Keep the ticker, fill quantity/price and P&L readable in
+   their own grid cells. WebKit at 390px measured both ticker and fill price
+   wider than their old flex boxes, so ellipsis hid the actual trade. */
 @media (max-width:520px) {
   .dmt .top {
     padding:8px 10px 0
@@ -990,7 +994,7 @@ body[data-ds-dark-theme] .dmt {
   }
   .dmt .tin {
     max-width:none;
-    padding:10px 12px 9px
+    padding:10px var(--card-gutter) 9px
   }
   .dmt .ts {
     flex:1 0 100%;
@@ -1005,11 +1009,13 @@ body[data-ds-dark-theme] .dmt {
     gap:10px;
     padding:3px 0
   }
+  .dmt .sl { min-width:0 }
   .dmt .sg+.sg {
     border-top:1px solid var(--border)
   }
   .dmt .sv {
-    white-space:normal;
+    flex:none;
+    white-space:nowrap;
     text-align:right
   }
   .dmt .ft {
@@ -1030,10 +1036,20 @@ body[data-ds-dark-theme] .dmt {
     padding:0
   }
   .dmt .main {
-    display:flex;
+    display:grid;
+    grid-template-columns:7px minmax(0,1fr) max-content;
     align-items:center;
-    gap:8px;
+    column-gap:8px;
+    row-gap:2px;
     padding:10px 12px 2px
+  }
+  .dmt .main .dotm { grid-area:1/1 }
+  .dmt .main .tk { grid-area:1/2 }
+  .dmt .main .pnl { grid-area:1/3 }
+  .dmt .main .tag { grid-area:2/2 }
+  .dmt .main .qty {
+    grid-area:2/3;
+    justify-self:end
   }
   .dmt .sub {
     display:flex;
@@ -1047,27 +1063,18 @@ body[data-ds-dark-theme] .dmt {
     height:7px
   }
   .dmt .tk {
-    flex:0 1 auto;
-    font-size:var(--fs-lg-l)
+    font-size:var(--fs-lg)
   }
   .dmt .tag {
-    flex:none;
+    justify-self:start;
     height:19px;
     padding:0 6px
   }
-  .dmt .qty {
-    flex:0 1 auto;
-    font-size:var(--fs-sm)
-  }
-  /* Back in play on the narrow layout: it is what pushes the money to the
-     right edge once the row is a flex line again. */
+  .dmt .qty { font-size:var(--fs-sm) }
   .dmt .sp {
-    display:block;
-    flex:1 1 auto;
-    min-width:6px
+    display:none
   }
   .dmt .pnl {
-    flex:none;
     font-size:var(--fs-xl)
   }
   .dmt .t1,
@@ -1086,7 +1093,7 @@ body[data-ds-dark-theme] .dmt {
   }
   .dmt .dbody {
     margin:0 8px 8px;
-    padding:10px 11px 11px
+    padding:10px var(--card-gutter) 11px
   }
   .dmt .trace {
     padding-left:16px
@@ -1113,6 +1120,16 @@ body[data-ds-dark-theme] .dmt {
   .dmt .bar {
     -webkit-backdrop-filter:blur(12px) saturate(1.8);
     backdrop-filter:blur(12px) saturate(1.8)
+  }
+}
+/* Visual boxes remain compact; a coarse pointer gets a finger-sized target. */
+@media (pointer:coarse) {
+  .dmt .ft, .dmt .day.fold, .dmt .trace-more { min-height:44px }
+  .dmt .day.fold { box-sizing:border-box }
+  .pbc.pbf.rail .bchip::after {
+    content:"";
+    inset:-4px;
+    border-radius:22px
   }
 }
 
@@ -1470,7 +1487,7 @@ body[data-ds-dark-theme] .pbc .bp {
 .pbc .bp-win-reset {
   color:var(--cap);
   font-family:var(--mono);
-  font-size:var(--fs-caption);
+  font-size:var(--fs-xs);
   min-width:58px;
   text-align:right;
   font-variant-numeric:tabular-nums
@@ -1578,14 +1595,15 @@ body[data-ds-dark-theme] .pbc .bp {
     transition:none
   }
 }
-/* Mobile retains a small fill margin over dense conversation content.
-   Reuse the single static blur; no nested glass or animated blur cost. */
+/* On a narrow conversation the popover covers text, so a thin desktop
+   material lets the text underneath compete with the queue's own rows.
+   Keep the same blur but use a stronger neutral fill on phone. */
 @media (max-width: 520px) {
   .pbc .bp {
-    --mat-fill:rgba(255,255,255,.42)
+    --mat-fill:rgba(255,255,255,.96)
   }
   body[data-ds-dark-theme] .pbc .bp {
-    --mat-fill:rgba(34,34,38,.48)
+    --mat-fill:rgba(34,34,38,.96)
   }
 }
 /* Reduced transparency: frost over — solid surfaces, no blur cost. */
