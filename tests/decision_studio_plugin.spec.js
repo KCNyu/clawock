@@ -1070,10 +1070,37 @@ test("client: stylesheet is loader-owned and keeps the dark-theme and tone contr
     "plugin-owned blue canvas, blue-violet glow pools and brand paint must stay out of the material");
   for (const token of ["glass-fill-card", "glass-fill-header", "glass-fill-chip",
     "glass-fill-popover", "glass-saturate", "glass-rim", "glass-border"]) {
-    assert.match(css, new RegExp(`--${token}:`), `${token} must be shared by board and footer material`);
+    assert.match(css, new RegExp(`--${token}:`), `${token} must remain available to the board and opened popovers`);
   }
   assert.match(css, /_dmt,\.[A-Za-z0-9_-]+_pbc\{[^}]*--glass-fill-popover/,
-    "the glass recipe must resolve in both the tab and the sidebar roots");
+    "the glass recipe must resolve in both the tab and opened sidebar popovers");
+  // The live DSH foot entry sits beside Settings: 42px row, 16px glyph at
+  // x+8, 14/22 label; Cordis uses the same row geometry. Its material must
+  // disappear completely until the anchored popover opens. Check the built
+  // bundle, not only source text, so an overriding rule cannot fake this.
+  const nativeFoot = css.match(/_pbc\.[A-Za-z0-9_-]+_pbf \.[A-Za-z0-9_-]+_bchip\{([^}]*)\}/)?.[1];
+  assert.ok(nativeFoot, "the compiled sidebar-foot action rule must exist");
+  for (const declaration of ["height:42px", "padding:0 10px 0 8px", "border:0",
+    "backdrop-filter:none", "box-shadow:none", "font:400 var(--fs-lg)/22px var(--font)",
+    "transform:none", "transition:none"]) {
+    // transform:none belongs to :active, rather than the static rule.
+    const rule = declaration === "transform:none"
+      ? css.match(/_pbc\.[A-Za-z0-9_-]+_pbf \.[A-Za-z0-9_-]+_bchip:active\{([^}]*)\}/)?.[1]
+      : nativeFoot;
+    assert.ok(rule?.includes(declaration), `native foot action must compile ${declaration}`);
+  }
+  assert.match(nativeFoot, /background:(?:0 0|transparent)(?:;|$)/,
+    "a closed foot action must not carry a translucent glass fill");
+  assert.match(css, /_pbc\.[A-Za-z0-9_-]+_pbf \.[A-Za-z0-9_-]+_bchip:focus-visible\{outline:revert;outline-offset:revert\}/,
+    "the foot action must inherit the same browser focus ring as Settings");
+  assert.match(css, /_pbc\.[A-Za-z0-9_-]+_pbf\.[A-Za-z0-9_-]+_rail \.[A-Za-z0-9_-]+_bchip\{[^}]*width:36px;height:36px/,
+    "collapsed foot actions must share the host's 36px rail target");
+  const openedPanel = css.match(/_pbc \.[A-Za-z0-9_-]+_bp\{([^}]*)\}/)?.[1];
+  assert.ok(openedPanel, "the compiled popover rule must exist");
+  for (const declaration of ["background:var(--glass-sheen), var(--glass-fill-popover)",
+    "backdrop-filter:blur(var(--glass-popover-blur))", "box-shadow:var(--glass-float-shadow)"]) {
+    assert.ok(openedPanel.includes(declaration), `the opened popover must retain ${declaration}`);
+  }
   assert.match(css, /_cell:hover\{background:var\(--row-hover\)/,
     "the large row's hover fill must preserve semantic text contrast");
   assert.match(css, /_cell:active\{background:var\(--row-press\)/,
@@ -2144,6 +2171,8 @@ test("client: the sidebar-foot balance opens a popover that stays open while you
   assert.ok(railClasses.some((token) => token.endsWith("_bal-lead")), "the rail renders the glyph wrapper class");
   assert.ok(railClasses.some((token) => token.endsWith("_bal-glyph")), "the rail renders the gauge class");
   assert.ok(railClasses.some((token) => token.endsWith("_bal-badge")), "the rail renders the status badge class");
+  const statusBadge = (tree) => find(tree, (p) => typeof p.className === "string" && p.className.endsWith("_bal-badge"))[0];
+  assert.equal(statusBadge(railTrigger).type, "circle", "ok uses a round badge, independent of its green hue");
   assert.deepEqual(
     railClasses.filter((token) => token !== "" && !/^[A-Za-z0-9_-]+_[a-z0-9-]+$/.test(token)),
     [],
@@ -2173,6 +2202,7 @@ test("client: the sidebar-foot balance opens a popover that stays open while you
   foot = render();
   assert.equal(forced, 1, "one forced fetch");
   assert.equal(trigger(foot).props["data-balance-state"], "low", "the low red dot shows right after the refresh");
+  assert.equal(statusBadge(trigger(foot)).type, "rect", "low uses a rounded square, independent of its red hue");
   assert.equal(popover(foot).props["data-open"], "true", "refreshing must not close the popover");
 
   // Only the trigger (or an outside pointer / Escape, browser-only) closes it.
@@ -2259,6 +2289,9 @@ test("client: a balance fetch that fails says so instead of loading forever (#15
   assert.match(texts(popover(foot)), /余额读取失败:transport disconnected/);
   assert.doesNotMatch(texts(popover(foot)), /正在读取/);
   assert.equal(trigger(foot).props["data-balance-state"], "stale");
+  const staleBadge = find(trigger(foot), (p) => typeof p.className === "string" && p.className.endsWith("_bal-badge"))[0];
+  assert.equal(staleBadge.type, "circle");
+  assert.equal(staleBadge.props.r, 2.05, "stale keeps the smaller hollow badge geometry");
   assert.match(trigger(foot).props.title, /余额读取失败/);
 
   // A remote error envelope is a failure too.
