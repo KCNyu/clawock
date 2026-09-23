@@ -23,10 +23,11 @@
  *   4. One host-neutral glass material. The light canvas is the host's
  *      neutral-bluish-75 step, a little darker than its white layer-1; dark
  *      mode uses the host base. No plugin-owned blue/violet glow or coloured
- *      canvas: colour is reserved for status. Header, card, footer chip and
- *      popover share the fill, blur, saturation, rim and shadow variables
- *      below, with tier values for their different sizes. The detail tray is
- *      inset neutral paint inside its parent glass, avoiding blur on blur.
+ *      canvas: colour is reserved for status. Header, card and popover use
+ *      the fill, blur, saturation, rim and shadow variables below, with tier
+ *      values for their different sizes. The sidebar-foot entry uses the
+ *      host's plain action-row language; only its opened popover is glass.
+ *      The detail tray is inset neutral paint inside its parent glass.
  *   5. One type ladder. The host publishes a font *stack*
  *      (`--dsw-font-family`, `--ds-font-family-code`) but no font *size*
  *      tokens — dsh-client-ui-theme defines neither `--dsw-font-size-*` nor
@@ -1091,10 +1092,9 @@ body[data-ds-dark-theme] .dmt {
   }
 }
 
-/* Sidebar footer chips and their popovers live outside .dmt; .pbc shares the
-   glass recipe at the top of this sheet while keeping local state colours.
-   The footer's [data-slot] wrapper has display:contents, so material belongs
-   to the chip itself, not that box-less wrapper. */
+/* Sidebar footer actions and their popovers live outside .dmt. The opened
+   popovers share its glass recipe while entry rows follow the host's plain
+   sidebar controls. The footer's [data-slot] wrapper has display:contents. */
 .pbc {
   --text:var(--dsw-alias-label-primary, #15171B);
   --text3:var(--dsw-alias-label-tertiary, #81858C);
@@ -1503,12 +1503,10 @@ body[data-ds-dark-theme] .pbc .bp {
     backdrop-filter:none
   }
 }
-/* Sidebar-foot home of the chip (hosts with global panels). The foot seat is
-   block-level beside Settings, so the pill becomes a full-width row with the
-   geometry of the host's own foot badge (ui-cordis: 42px row, 12px radius;
-   36px circle on the 56px rail). Every tone/tier selector above still
-   applies — only the box changes. The provider name leads the reading
-   because nothing around the foot says whose balance it is. */
+/* The foot seat sits beside Settings and the host Cordis badge: 42px row,
+   16px glyph at 8px left inset, 14/22 label, and a 36px rail circle. Unlike
+   the opened popover, its entry has no material — just the host's hover wash.
+   The provider name leads because the foot gives no other balance context. */
 .pbc.pbf {
   display:flex;
   align-items:center;
@@ -1522,18 +1520,39 @@ body[data-ds-dark-theme] .pbc .bp {
   margin:0 -2px;
   padding:0 10px 0 8px;
   justify-content:flex-start;
-  border:1px solid var(--glass-border);
+  gap:8px;
+  border:0;
   border-radius:12px;
-  overflow:hidden
+  background:transparent;
+  -webkit-backdrop-filter:none;
+  backdrop-filter:none;
+  box-shadow:none;
+  color:var(--text);
+  font:400 var(--fs-lg)/22px var(--font);
+  overflow:hidden;
+  transition:none
 }
 .pbc.pbf .bchip::after {
   content:none
 }
+.pbc.pbf .bchip:active {
+  transform:none;
+  background:var(--hover)
+}
+@media (hover: hover) and (pointer: fine) {
+  .pbc.pbf .bchip:hover {
+    background:var(--hover)
+  }
+}
 .pbc.pbf .bchip[data-active] {
-  background:var(--dsw-alias-interactive-bg-active, rgba(17,24,39,.08))
+  background:var(--hover)
+}
+.pbc.pbf .bchip:focus-visible {
+  outline:revert;
+  outline-offset:revert
 }
 .pbc.pbf .bchip-item {
-  gap:6px;
+  gap:8px;
   min-width:0;
   overflow:hidden
 }
@@ -1549,6 +1568,9 @@ body[data-ds-dark-theme] .pbc .bp {
   font:500 var(--fs-sm)/1 var(--font);
   color:var(--text);
   white-space:nowrap
+}
+.pbc.pbf .bchip-name {
+  font:400 var(--fs-lg)/22px var(--font)
 }
 .pbc.pbf.rail {
   width:36px;
@@ -1615,7 +1637,8 @@ body[data-ds-dark-theme] .pbc .bp {
   }
 }
 /* Dispatch task queue: the foot row directly above the balance, in the same
-   chip language — .pbc tokens, .bchip row, glyph badge, glass popover.
+   host action-row language — .pbc tokens, .bchip row, glyph badge; glass
+   appears only in the opened popover.
 
    Stacking. The host lays its foot actions out in a flex ROW
    (.footerActions), and every item of the list slot is rendered inside one

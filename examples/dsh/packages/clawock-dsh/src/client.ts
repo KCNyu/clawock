@@ -1078,11 +1078,21 @@ function useProviderBalances(props: BalancesInjected & PropsStore<BalanceStore> 
  * because client bundles may not import another plugin's modules), so it sits
  * in the same icon language as Settings and the Cordis badge beside it.
  * Status rides a small badge notched out of the bottom-right corner instead
- * of the whole icon being a coloured disc: solid = ok/low (green/red), a
- * hollow ring = stale (the number is not trustworthy), no badge while there is
- * nothing to judge. The notch is an SVG mask, not a painted ring, so it stays
- * clean over the hover and open backgrounds.
+ * of the whole icon being a coloured disc: round = ok, rounded square = low,
+ * hollow ring = stale (the number is not trustworthy), no badge while there
+ * is nothing to judge. Each state remains legible without relying on hue.
+ * The notch is an SVG mask, not a painted ring, so it stays clean over the
+ * host's plain row and its hover wash.
  */
+function renderFootStatusBadge(tone: BalanceTone): React.ReactElement | null {
+  const attrs = { className: cx('bal-badge'), 'data-balance-state': tone }
+  if (tone === 'low') return h('rect', { ...attrs, x: 10.15, y: 10.15, width: 5.2, height: 5.2, rx: 1.1 })
+  if (tone === 'ok' || tone === 'stale') {
+    return h('circle', { ...attrs, cx: 12.75, cy: 12.75, r: tone === 'stale' ? 2.05 : 2.6 })
+  }
+  return null
+}
+
 function renderBalanceGlyph(tone: BalanceTone, size: number, instanceId: string): React.ReactElement {
   const badge = tone === 'ok' || tone === 'low' || tone === 'stale'
   // Per-instance, not a fixed string: an SVG `mask` is referenced by a document
@@ -1104,11 +1114,7 @@ function renderBalanceGlyph(tone: BalanceTone, size: number, instanceId: string)
       h('path', { d: 'M3.49 13.26A6.375 6.375 0 1 1 12.51 13.26', stroke: 'currentColor', strokeWidth: 1.25, strokeLinecap: 'round' }),
       h('path', { d: 'M8 8.75L11.4 5.35', stroke: 'currentColor', strokeWidth: 1.25, strokeLinecap: 'round' }),
       h('circle', { cx: 8, cy: 8.75, r: 1.55, fill: 'currentColor' })),
-    badge
-      ? h('circle', {
-        className: cx('bal-badge'), 'data-balance-state': tone, cx: 12.75, cy: 12.75, r: tone === 'stale' ? 2.05 : 2.6,
-      })
-      : null)
+    renderFootStatusBadge(tone))
 }
 
 /** The headline reading: dot (or the foot glyph) · value · reset · weekly sub-reading. */
@@ -1538,11 +1544,7 @@ function renderQueueGlyph(tone: BalanceTone, size: number, instanceId: string): 
       : null,
     h('g', { mask: badge ? 'url(#' + notch + ')' : undefined },
       h('path', { d: 'M2.5 4H13.5M2.5 8H13.5M2.5 12H13.5', stroke: 'currentColor', strokeWidth: 1.25, strokeLinecap: 'round' })),
-    badge
-      ? h('circle', {
-        className: cx('bal-badge'), 'data-balance-state': tone, cx: 12.75, cy: 12.75, r: tone === 'stale' ? 2.05 : 2.6,
-      })
-      : null)
+    renderFootStatusBadge(tone))
 }
 
 /** What a task row shows: status on the right of the name, facts left and numbers right below. */
