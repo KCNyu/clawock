@@ -1573,3 +1573,33 @@ def test_single_ticker_bear_case_membership_is_unchanged():
     known = {"RKLX", "SPCH"}
     assert dashboard.validate_insights(_bear("RKLX"), known)["bear_cases"][0]["ticker"] == "RKLX"
     assert dashboard.validate_insights(_bear("NVDA"), known)["bear_cases"] == []
+
+
+def test_the_published_fx_says_when_its_cache_is_old_or_missing(
+        monkeypatch, tmp_path, capsys):
+    """The publisher read `.cache/fx_rate.json` raw, so a rate the daily refresh
+    had stopped updating and no rate at all were both published without a mark
+    (#1781). It stays offline — the cache is still served — but says so."""
+    import os
+    import time
+
+    (tmp_path / "assets" / "data").mkdir(parents=True)
+    (tmp_path / "memory" / "snapshots").mkdir(parents=True)
+    (tmp_path / "portfolio.json").write_text(json.dumps(_portfolio()))
+    monkeypatch.setattr(dashboard, "WS_ROOT", tmp_path)
+
+    missing = json.loads(dashboard.build_projection()["dashboard"])["fx"]
+    assert missing["usdhkd"] is None and missing["warning"]
+    assert "USDHKD cache missing" in capsys.readouterr().err
+
+    cache = tmp_path / ".cache" / "fx_rate.json"
+    cache.parent.mkdir()
+    cache.write_text(json.dumps({"rate": 7.8434, "source": "Frankfurter",
+                                 "fetched_at": "2026-09-18T00:03:31+00:00"}))
+    old = time.time() - (dashboard.fx_rates.STALE_READ_HOURS + 2) * 3600
+    os.utime(cache, (old, old))
+
+    stale = json.loads(dashboard.build_projection()["dashboard"])["fx"]
+    assert stale["usdhkd"] == 7.8434
+    assert stale["stale"] is True and stale["warning"]
+    assert stale["source"] == "Frankfurter"

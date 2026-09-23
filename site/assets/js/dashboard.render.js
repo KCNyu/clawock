@@ -919,6 +919,9 @@
         const segs = [`USDHKD ${fmtNum(fx, 4)}`];
         if (fxMeta.source) segs.push(String(fxMeta.source));
         if (stamp) segs.push(stamp);
+        // 缓存过了容忍期（fx.STALE_READ_HOURS）还在用：照用、但写明降级，
+        // 不再和新鲜汇率长得一样（#1781）。
+        if (fxMeta.stale) segs.push(`⚠ 缓存 ${Math.round(fxMeta.age_hours)}h 未刷新`);
         // 分隔点跟着前一段走、断行机会交给 <wbr>：否则折行会落在分隔点之前，
         // 第二行以「· 」开头，读起来像少了个词。
         fxEl.innerHTML = segs
@@ -928,6 +931,7 @@
       } else {
         fxEl.textContent = "FX unavailable";
       }
+      fxEl.title = fxMeta.warning || "";
     }
 
     // 分市场的今日涨跌幅：原来的 Today's P&L 卡有这两个数，合并后不能丢

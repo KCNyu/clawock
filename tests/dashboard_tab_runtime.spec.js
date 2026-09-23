@@ -286,6 +286,44 @@ async function testRuntime(browser, base) {
   assert.deepEqual(mismatchState.errors, []);
 }
 
+// The publisher reads the FX cache offline and still serves one the daily
+// refresh stopped updating — the peg keeps that a small error — but the hero's
+// provenance line has to say so instead of looking like a fresh quote (#1781).
+async function testAStaleFxRateSaysSoOnTheHero(browser, base) {
+  const warning = "USDHKD cache is 121h old (not refreshed within 96h); using the stale cached rate";
+  const context = await browser.newContext({ viewport: { width: 375, height: 812 } });
+  const page = await context.newPage();
+  const state = observe(page);
+  await stubLiveOrigin(page, {
+    patch: (_name, payload) => payload.fx ? ({
+      ...payload,
+      fx: { ...payload.fx, stale: true, age_hours: 121.4, warning },
+    }) : null,
+  });
+  await page.goto(base, { waitUntil: "networkidle" });
+  await waitForData(page);
+  const fx = page.locator("#fx-rate-usd");
+  assert.match(await fx.textContent(), /USDHKD \d\.\d{4} .*⚠ 缓存 121h 未刷新$/,
+    "a stale FX cache rendered like a fresh quote");
+  assert.equal(await fx.getAttribute("title"), warning);
+  assert.deepEqual(state.errors, []);
+  await context.close();
+
+  const freshContext = await browser.newContext({ viewport: { width: 375, height: 812 } });
+  const fresh = await freshContext.newPage();
+  await stubLiveOrigin(fresh, {
+    patch: (_name, payload) => payload.fx ? ({
+      ...payload,
+      fx: { ...payload.fx, stale: false, age_hours: 9.5, warning: null },
+    }) : null,
+  });
+  await fresh.goto(base, { waitUntil: "networkidle" });
+  await waitForData(fresh);
+  assert.doesNotMatch(await fresh.locator("#fx-rate-usd").textContent(), /⚠/,
+    "a cache inside its tolerance was flagged as degraded");
+  await freshContext.close();
+}
+
 async function testMissingFxDoesNotFabricateCombinedValues(browser, base) {
   const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   const page = await context.newPage();
@@ -3340,6 +3378,7 @@ async function main() {
   };
   try {
     await run("runtime", () => testRuntime(browser, base));
+    await run("testAStaleFxRateSaysSoOnTheHero", () => testAStaleFxRateSaysSoOnTheHero(browser, base));
     await run("testMissingFxDoesNotFabricateCombinedValues", () => testMissingFxDoesNotFabricateCombinedValues(browser, base));
     await run("testNewsDigestGeneratedTimeUsesHkt", () => testNewsDigestGeneratedTimeUsesHkt(browser, base));
     await run("testCurrentHoldingsOwnDecisionMatrixMembership", () => testCurrentHoldingsOwnDecisionMatrixMembership(browser, base));

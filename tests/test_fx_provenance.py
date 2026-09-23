@@ -91,3 +91,75 @@ def test_the_committed_ledger_is_readable_and_complete_per_entry():
         assert isinstance(entry.get("rate"), (int, float)) and entry["rate"] > 0, day
         assert entry.get("pair") == "USDHKD", day
         assert entry.get("source"), day
+
+
+def _cache(tmp_path, age_hours, **entry):
+    import json
+    import os
+    import time
+    path = tmp_path / "fx_rate.json"
+    path.write_text(json.dumps({"rate": 7.8434, "source": "Frankfurter",
+                                "fetched_at": "2026-09-23T00:03:31+00:00",
+                                "pair": "USDHKD", **entry}))
+    stamp = time.time() - age_hours * 3600
+    os.utime(path, (stamp, stamp))
+    return str(path)
+
+
+def _no_network(monkeypatch):
+    def refuse():
+        raise AssertionError("an offline reader must not call a provider")
+    for name in ("_get_frankfurter", "_get_exchangerate_host", "_get_yahoo"):
+        monkeypatch.setattr(fetch_fx, name, refuse)
+
+
+def test_the_afternoon_after_the_morning_refresh_is_not_degraded(tmp_path, monkeypatch):
+    """The cache is refreshed once each trading morning and Frankfurter/ECB
+    publish daily, so being past the fetcher's 4h TTL is the normal afternoon
+    state. Calling it degraded would put a warning on the panel every day, and
+    a warning that is always there is read as none (#1781)."""
+    _no_network(monkeypatch)
+
+    fx = fetch_fx.read_cached_usdhkd(_cache(tmp_path, fetch_fx.CACHE_TTL_HOURS + 6))
+
+    assert fx["rate"] == 7.8434
+    assert fx["stale"] is False and fx["warning"] is None
+    assert fx["fallback_used"] is False
+
+
+def test_a_cache_the_daily_refresh_stopped_updating_is_served_but_flagged(
+        tmp_path, monkeypatch):
+    """The HKD peg keeps an old rate a small error, so the rate is still used —
+    but the payload says it is old, instead of looking exactly like a fresh one."""
+    _no_network(monkeypatch)
+
+    fx = fetch_fx.read_cached_usdhkd(_cache(tmp_path, fetch_fx.STALE_READ_HOURS + 1))
+
+    assert fx["rate"] == 7.8434
+    assert fx["stale"] is True
+    assert fx["age_hours"] > fetch_fx.STALE_READ_HOURS
+    assert "stale" in fx["warning"]
+    assert fx["source"] == "Frankfurter", "provenance is not rewritten"
+
+
+def test_a_secondary_provider_stays_marked_as_a_fallback(tmp_path, monkeypatch):
+    _no_network(monkeypatch)
+
+    fx = fetch_fx.read_cached_usdhkd(
+        _cache(tmp_path, 1, source="exchangerate.host", fallback_used=True))
+
+    assert fx["fallback_used"] is True and fx["stale"] is False
+
+
+def test_a_missing_or_torn_cache_is_null_with_a_warning_not_a_guess(
+        tmp_path, monkeypatch):
+    """No peg-midpoint here: an offline reader that invented a rate could not be
+    told apart from one that read it."""
+    _no_network(monkeypatch)
+    torn = tmp_path / "torn.json"
+    torn.write_text('{"rate": 7.84')
+
+    for path in (tmp_path / "absent.json", torn):
+        fx = fetch_fx.read_cached_usdhkd(str(path))
+        assert fx["rate"] is None
+        assert fx["warning"]
