@@ -1284,6 +1284,92 @@ def check_fallback_chain_shape(r):
         r.add('fallback chain', OK, detail)
 
 
+# The oldest Codex runtime whose model catalogue carries gpt-6-sol / gpt-6-luna.
+# The catalogue is sent by the server per client version, so the plugin's pinned
+# npm version decides it: on this host 2026-09-23, 0.144.3 (what
+# @openclaw/codex@2026.7.1-1 pins) listed only the gpt-5.6 family and 0.155.1
+# added gpt-6-sol/luna. A `gpt-6` hop on an older runtime is `Unknown model`.
+CODEX_GPT6_MIN_RUNTIME = (0, 155, 1)
+CODEX_PLUGIN_PROJECTS = _OPENCLAW_PATHS.home / 'npm' / 'projects'
+
+
+def _codex_runtime_versions():
+    """Plugin project name → the Codex runtime version its layout declares.
+
+    Read from the platform layout's `codex-package.json` rather than by running
+    `codex --version`: this check runs in the pre-push hook, which does not
+    spawn. The npm metadata next to it is not used either — the runtime is
+    re-pinned by swapping the layout's files in place, which leaves
+    `package.json`/`package-lock.json` on the old version.
+    """
+    versions = {}
+    for project in sorted(CODEX_PLUGIN_PROJECTS.glob('openclaw-codex-*')):
+        manifests = sorted(project.glob(
+            'node_modules/@openclaw/codex/node_modules/@openai/codex-*/vendor/*/codex-package.json'))
+        version = None
+        for manifest in manifests:
+            try:
+                version = json.loads(manifest.read_text()).get('version')
+            except Exception:  # noqa: BLE001
+                continue
+            break
+        versions[project.name] = version
+    return versions
+
+
+def _version_tuple(text):
+    parts = re.match(r'(\d+)\.(\d+)\.(\d+)', str(text or ''))
+    return tuple(int(p) for p in parts.groups()) if parts else None
+
+
+def check_codex_runtime(r):
+    """A configured `openai/gpt-6-*` hop is only real if the runtime serves it.
+
+    The Codex runtime under OpenClaw's codex plugin is re-pinned on this host
+    (the plugin release that pins a gpt-6-capable runtime needs a newer core).
+    `openclaw plugins update`, a reinstall or a core upgrade installs a fresh
+    generation with the npm-pinned runtime, and the cron fallback hop and the
+    direct-chat fallback then fail as `Unknown model` — only when they are
+    needed, after both MiniMax hops are already down. This says so beforehand.
+
+    WARNING, not CRITICAL: the primary still answers, and blocking every push
+    (runtime data commits included) would cost more than the hop it protects.
+    Off the live box there is no plugin directory and the check stays silent.
+    """
+    refs = set()
+    try:
+        profiles = json.loads((WS / 'config' / 'cron-schedules.json').read_text()).get(
+            'payload_profiles') or {}
+        for profile in profiles.values():
+            refs.update([profile.get('model'), *(profile.get('fallbacks') or [])])
+    except Exception:  # noqa: BLE001
+        pass  # check_fallback_chain_shape already reports an unreadable contract
+    try:
+        chat = ((json.loads(OPENCLAW_CONFIG.read_text()).get('agents') or {})
+                .get('defaults') or {}).get('model') or {}
+        if isinstance(chat, dict):
+            refs.update([chat.get('primary'), *(chat.get('fallbacks') or [])])
+    except Exception:  # noqa: BLE001
+        pass
+    gpt6 = sorted(ref for ref in refs if str(ref or '').startswith('openai/gpt-6'))
+    if not gpt6:
+        return
+    versions = _codex_runtime_versions()
+    if not versions:
+        return
+    need = '.'.join(map(str, CODEX_GPT6_MIN_RUNTIME))
+    stale = {name: v for name, v in versions.items()
+             if (_version_tuple(v) or (0,)) < CODEX_GPT6_MIN_RUNTIME}
+    if stale:
+        detail = ', '.join(f'{name} = {v or "unreadable"}' for name, v in stale.items())
+        r.add('codex runtime', WARNING,
+              f'{", ".join(gpt6)} configured but the codex plugin runtime is below '
+              f'{need} ({detail}) — those hops fail as Unknown model; re-pin the runtime')
+    else:
+        r.add('codex runtime', OK,
+              f'{", ".join(sorted(set(versions.values())))} ≥ {need} serves {", ".join(gpt6)}')
+
+
 def check_delivery_chain_shape(r):
     """How many legs the DELIVERY chain has that can fail on their own.
 
@@ -2104,6 +2190,7 @@ def main():
         check_master_ci_conclusion,
         check_delivered_but_unarchived,
         check_fallback_chain_shape,
+        check_codex_runtime,
         check_model_chain_health,
         check_delivery_channel_health,
         check_delivery_chain_shape,
