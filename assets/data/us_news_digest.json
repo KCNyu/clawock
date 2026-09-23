@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-22T17:26:36.190563",
+  "generated_at": "2026-09-23T17:35:11.581689",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -14,7 +14,7 @@
       "SPCH"
     ]
   },
-  "digest_markdown": "## Top 移动信号\n\n- **RKLB**: Cantor 重申 Overweight + $122 PT，称 Neutron 发射为 \"most material catalyst\"；同日披露 $1.9B 股权融资（≈5% 稀释）资助 $8.1B EV 的 Iridium 收购，替代了 $3.6B 举债。 → **RKLX (2x)**：Neutron 临近 + 稀释预期已部分定价，短线发射结果决定方向，2x 杠杆双向放大。\n- **CRCL**: Binance 以 $80.84 锁价购入 $100M CRCL（2 年锁定，14% 折价），同日 Visa 加入 Arc L1 创始验证人，与 BlackRock 同列。 → 直接持仓：折价锁仓 + 顶级支付网络背书 Arc，结构性催化而非单纯炒作。\n- **SPCX**: SpaceX 月内 +10.9%，但季度指数公式被动强制买入与解锁日程形成供需碰撞；Morgan Stanley 给出 AI 跨生态（SpaceX-Tesla）看多背书。 → **SPCH (2x)**：被动买盘 vs 解锁卖压的拉锯中，AI 叙事是上行 trigger，2x 杠杆放大波动。\n- **CRCL (二次)**: BTC 站上 $86K 但 MSTR/COIN/CRCL 同步回调，加密市场 $800M+ 爆仓。 → 短期 beta 暴露，回调中 Binance 折价入股反而构成 floor。\n\n---\n\n## Per-ticker 简报\n\n- **CRCL**: Binance $100M 战略入股（$80.84，2 年锁定）+ Arc L1 上线（Visa/BlackRock 创始验证人）+ BTC 反弹中股价逆势回撤。影响：短期受加密 beta 拖累，但战略合作密度提升中长期估值锚。\n- **RKLB**: $1.9B 股权融资替代 $3.6B 债务完成 Iridium 收购（投票 9/24，close mid-2027），稀释 5% 但保财务弹性；Cantor $122 PT 强化 Neutron 催化叙事。影响：稀释利空已被\"Cantor 背书 + Neutron 临近\"对冲，事件驱动窗口期。\n- **SPCX**: 指数被动强制买入 vs 解锁供给形成技术面拉锯；MS 看多 AI 跨生态整合；分析师开始质疑当前估值是否透支。影响：流动性双向夹击，AI 收入兑现节奏决定突破或回归。\n\n---\n\n## 风险 watch\n\n- **RKLB**: 股权稀释已落地但 share count 仍\"not done growing\"——后续为 Iridium 整合追加融资的可能性需持续跟踪。\n- **SPCX**: 被动买盘 + 解锁日程\"collision\"——若 unlock 时间点与指数再平衡错位，可能出现非基本面驱动的剧烈波动。\n- **CRCL**: BTC/加密市场 $800M+ 爆仓显示杠杆仓位拥挤，CRCL 作为 USDC 发行方对加密波动暴露仍高。\n- **CRCL**: Binance 14% 折价入股暗示大机构对当前价位的\"折扣入场\"意愿，需警惕后续是否还有类似折价融资稀释现有股东。",
+  "digest_markdown": "## Top 移动信号 (跨 ticker)\n- **SPCX/SPCH**: 328M 股 9/24 解禁 — 短期供给冲击明确。**implication**: SPCH 为 2x 杠杆 ETF，解禁日及前 1-2 周可能放大抛压波动；可考虑减仓或对冲。\n- **CRCL**: Binance $100M USDC 推广协议，但 SA 报道指出 Circle 仍向分销商付费 → 单位经济学受压。**implication**: 直接持仓，关注毛利率指引是否会因分销成本被下调。\n- **RKLB/RKLX**: Cathie Wood (ARK) 买入 $25.1M RKLB，同步卖出 $5.8M GOOGL — 明确轮动信号。**implication**: RKLX (2x) 将放大此机构增持效应；是 48h 内最强催化。\n- **CRCL**: Arc 链首发代币化黄金，但 Matrixdock \"当日赎回\" 条款与自家规则冲突 — 运营摩擦信号。\n- **SPCX**: Burry 公开质疑 $1T 估值，但承认 AI 计算合同庞大 — 估值辩论进入主流视野，SPCH (2x) 对负面叙事更敏感。\n\n## Per-ticker 简报\n- **CRCL**: BlackRock 称 Arc + Ethereum 将受益于 stablecoin × AI 趋势 — 长期叙事加固，但短期股价较高点腰斩，SeekingAlpha 仍维持 long thesis。BlackRock 背书 + Binance 合作 vs 分销成本侵蚀 — 多空交织。\n- **RKLB**: LTM 收入 $0.8B vs 市值 $45.3B — 市场已 price-in Neutron + 规模化；与 BKSY 同列太空观测赛道但定位差异。短期催化：ARK 建仓 + 即将到来的 mission。\n- **SPCX**: SpaceX + OpenAI + Anthropic 合计估值超过去 45 年所有 IPO — 叙事溢价为 SPCH (2x) 提供 beta，但也提高回撤脆弱性。Musk 低成本能源构想属远期，与 SPCH 短期价格脱钩。\n\n## 风险 watch\n- ⚠️ **SPCX 9/24 股权解锁** — 已知供给事件，SPCH (2x) 杠杆下波动加剧概率高。\n- ⚠️ **CRCL USDC 分销经济学** — 若 Binance 类协议需持续补贴，margin 指引风险。\n- ⚠️ **CRCL 股价较高点腰斩** — 虽 SA 看多，但下行波动未稳。\n- ⚠️ **SPCX 估值辩论白热化** (Burry vs 多头) — 主流媒体覆盖放大 SPCH 双向波动。",
   "raw_news_counts": {
     "CRCL": 5,
     "RKLB": 5,
@@ -23,113 +23,113 @@
   "raw_news_evidence": {
     "CRCL": [
       {
-        "headline": "MSTR, COIN, CRCL Stocks Slip Despite Bitcoin Rally Above $86K, Crypto Liquidations Cross $800M",
-        "datetime": 1790075508,
+        "headline": "Ethereum, Circle’s Arc Set To Gain With Stablecoins Powering AI, Says BlackRock",
+        "datetime": 1790163673,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=dd43977c72b01cad776fdeaf15d29f252c22c998fff647520692e9a88f4755b8"
+        "url": "https://finnhub.io/api/news?id=9fc84f10f8d2caef9a90c42fd9a6d5233c7d8f4a70d20c0bb9e49f0ef9d39005"
       },
       {
-        "headline": "Binance Invests $100M In Circle Equity: How Will Stock React?",
-        "datetime": 1790075292,
+        "headline": "Circle's Arc Blockchain is Launching Its First Tokenized Gold Asset",
+        "datetime": 1790150400,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=a57136d0522448d66edc04ca09e1a36569936efaab547c312e27c34e7939befb"
+        "url": "https://finnhub.io/api/news?id=8d303e79799c5836b4c005befe7411924921cfd27bbf3d6abc5c1af894e206eb"
       },
       {
-        "headline": "Visa Settled $20B in Stablecoins. Now It’s Running the Blockchain.",
-        "datetime": 1790074268,
+        "headline": "Circle: Everything Is Falling Into Place",
+        "datetime": 1790142580,
+        "source": "SeekingAlpha",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=630efac1a808ef362dc2e16f85a302263667f0e987340ca1928d5cab440f80ae"
+      },
+      {
+        "headline": "CRCL Vs COIN: Which Crypto Stock Is The Better Bet Amid Rising Bitcoin Prices?",
+        "datetime": 1790137866,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=75b4a4c251e342a8d27abf95d3fc4b4b0d9207aa76b6ea69dbb1c497d0fdba26"
+        "url": "https://finnhub.io/api/news?id=4f2aaef0916c97098f836fd620990a49688ec3d1a37065a5f212c99abf8be87f"
       },
       {
-        "headline": "Circle Internet Announces $100M Sale Of 1,237,011 Shares To Binance At $80.84 Per Share; Companies Expand Strategic Partnership Relating To Promotion Of USDC Held Through Circle’s Modular Smart Contra",
-        "datetime": 1790060355,
-        "source": "Benzinga",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=a18b807e0fec9f45e905e5202e0ffb102e5da9b38947802ce50f01bcf9e577cf"
-      },
-      {
-        "headline": "Circle Just Launched Arc With BlackRock and Visa. Here’s What It Means for the Stock in 2026",
-        "datetime": 1790031925,
+        "headline": "Binance bets $100 million on Circle. Watch this margin",
+        "datetime": 1790134380,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=681dfdd6db06a63c2fe6e02cbcfabb40a3e58e19db8a61b2cf64c6678b07d71e"
+        "url": "https://finnhub.io/api/news?id=1e87251fb6d1117fecf2b82c6f715b737b242a7734f6db24a7214561e9a4be22"
       }
     ],
     "RKLB": [
       {
-        "headline": "Rocket Lab Analyst Calls Neutron Launch the ‘Most Material Catalyst’",
-        "datetime": 1790068940,
-        "source": "Benzinga",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=5942d0912653b57538da6446869547d520753da73e2ad8ef1e3f063de5998faf"
-      },
-      {
-        "headline": "Rocket Lab Sold $1.9 Billion of New Stock to Pay for Iridium. Here's the Dilution Math.",
-        "datetime": 1790062441,
+        "headline": "What Could Surprise RKLB Stock Investors On The Upside?",
+        "datetime": 1790173632,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=79b31008476e529a527fee4a068b68bef860ccbee97a6aac67b0034bf58b50dd"
+        "url": "https://finnhub.io/api/news?id=f6bcf5479a313b395f41ac4865067143defe9b914ee966ed3d6a1a37616fd7b8"
       },
       {
-        "headline": "RKLB Stock Extends Rally Overnight: CEO Says Iridium Deal Will Forge A Self-Launching ‘Tier-1 Space Power’",
-        "datetime": 1790049490,
+        "headline": "RKLB vs. BKSY: Which Space Technology Stock Is the Better Buy?",
+        "datetime": 1790173380,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=edaa9e8019256e906b925e62ce9ccb9058fa65fe67cacec902a53231731c507e"
+        "url": "https://finnhub.io/api/news?id=aeb65daab060c9878a6e5a47d716b1ae0c40c089f73f5ae4b078a9f68d81ae53"
       },
       {
-        "headline": "Why Are Rocket Lab (RKLB) Shares Soaring Today",
-        "datetime": 1790039425,
+        "headline": "Rocket Lab Readies For Mission, Cathie Wood Buys $25 Million In Shares",
+        "datetime": 1790167137,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=da8cc42077bb94afdcaff8a296e18d348333484fbfeb49807340f59572038ecc"
+        "url": "https://finnhub.io/api/news?id=bd48e81c55264cdbdd229607d449de50ec8e6e0cd8af10ffd6afcc431766482e"
       },
       {
-        "headline": "Rocket Lab Looks More and More Like a SpaceX Competitor. The Stock Is Up.",
-        "datetime": 1790022960,
+        "headline": "Space Stocks Rally Looks Top-Heavy as Smaller Names Play Catch-Up",
+        "datetime": 1790167007,
+        "source": "ChartMill",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=eebf62c6aaa2e4a8d50899e09344c9d97e0315433a6e559a6f0285ec11dd7203"
+      },
+      {
+        "headline": "Cathie Wood Drops Surprise $25 Million on Rocket Lab",
+        "datetime": 1790166435,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=a3ac47c786631d8d04c7286a13e99dd61cb0acf35f6739b92e910b78c0eade42"
+        "url": "https://finnhub.io/api/news?id=83338f41eb6256c81df876a214006bf70a9de1b248419ff23a5b13c3e57ae722"
       }
     ],
     "SPCX": [
       {
-        "headline": "Former SpaceX Engineer: ‘We All Rolled Our Eyes’ When Elon Musk Proposed Catching a Rocket With Chopsticks",
-        "datetime": 1790091069,
+        "headline": "SpaceX Faces Another Share Unlock as Investors Watch Supply",
+        "datetime": 1790178591,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=6d4ca61053cebfb1ab14f00e8ef52a5641bfd7b01c20a947b51592f02a0d0d69"
+        "url": "https://finnhub.io/api/news?id=d45102c1b97a8b7310eef407eabface57e3899daac5bd7d360128930879c1d86"
       },
       {
-        "headline": "SpaceX's AI Business Is Booming. Here's How Much Analysts Expect It to Generate by 2030",
-        "datetime": 1790090070,
+        "headline": "SpaceX, OpenAI, and Anthropic Are Woth More Than Every Single IPO in the Last 45 Years",
+        "datetime": 1790178034,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=0c2e14301e2d6dd1e72d2012f2f880b3d889365ed52bb621f13e5b5fbcabf8c4"
+        "url": "https://finnhub.io/api/news?id=df4f3d9690b3dc5a1745a2bbe1ffc8f972e5131ac6e308a97c9f55c1d795a309"
       },
       {
-        "headline": "SpaceX (SPCX) Stock Looks Rich On Fresh Merger Speculation",
-        "datetime": 1790086382,
+        "headline": "Michael Burry Says SpaceX Isn't Worth $1 Trillion. Its AI Business Could Prove Him Wrong.",
+        "datetime": 1790176500,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=8d3a8604e6519e8e86eedc313f19cd18dde84d650fc9d1f5bca033fa5a0b0332"
+        "url": "https://finnhub.io/api/news?id=13a4b1f47f6e9c5509b7eef912860b6acbd35519f239e13e3aa0240b620e08d8"
       },
       {
-        "headline": "Index Funds Are Being Forced to Buy SpaceX Whether They Want It or Not",
-        "datetime": 1790085615,
+        "headline": "What If Elon Musk Built a Low-Cost Energy Grid?",
+        "datetime": 1790176245,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=a47be136b85467d059371dab8f1f5fd2f195c32684743784b8751ca318d546cf"
+        "url": "https://finnhub.io/api/news?id=2342fceb448c284cac884bf0c4f74e86271dee69931e23ddfdae040ce3e5b025"
       },
       {
-        "headline": "SpaceX Just Got a Major AI Vote of Confidence From Wall Street",
-        "datetime": 1790083378,
+        "headline": "How Meta's Muse is driving a magic moment for the stock market",
+        "datetime": 1790174673,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=c53eec405983af38ae47eb2c1a394c81348f825738d2e68a0c63bc1c844b0f2a"
+        "url": "https://finnhub.io/api/news?id=e8b93e51332758ddb727d87cf7efee7298e419968f77bd3f1ff425804e70a482"
       }
     ]
   },
