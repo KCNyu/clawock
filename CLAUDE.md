@@ -12,16 +12,16 @@ Entry pointer for Claude Code in kcn's investment workspace. Same workflow as `A
 
 ## Context on demand
 
-Use already-injected files instead of rereading them. OpenClaw's session profile owns
-runtime bootstrap; Claude Code separately owns native project auto-memory and compaction.
-Do not add a second startup scan or memory pipeline over either mechanism.
+Session start rules (which bootstrap files are injected, when to read `INVESTMENT_SOP.md`,
+group contexts never load main-session memory, isolated jobs follow their profile,
+delegation) live once in `AGENTS.md` § Every Session. Claude-specific:
 
-- For investment chat, use `SOUL.md`, `USER.md`, `MEMORY.md` and the `TOOLS.md` route already supplied;
-  read missing relevant files, then `INVESTMENT_SOP.md` and the selected skill.
-- Load `portfolio.json` only when the question needs positions or prices.
-- Coding work and ordinary delegation do not require investment persona, SOP or holdings reads.
-  Follow coding-agent guidance and the task's scope; a delegate performs its own investigation.
-- Group/shared contexts must not load main-session memory. Isolated jobs follow their own payload/profile.
+- OpenClaw's session profile owns runtime bootstrap; Claude Code separately owns native
+  project auto-memory and compaction. Do not add a second startup scan or memory pipeline
+  over either mechanism.
+- Coding work and ordinary delegation need no persona, SOP or holdings reads; skill and
+  tool routing is in `TOOLS.md`.
+- For an investment question, load `portfolio.json` only when it needs positions or prices.
 
 ## What lives where
 
