@@ -138,7 +138,7 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'balance.reset.dated': '{date} {weekday} {time}',
     'queue.name': '任务', 'queue.panelTitle': '派发任务队列', 'queue.panelHeading': '派发队列',
     'queue.refresh': '刷新任务队列', 'queue.slots': '槽 {used}/{max}', 'queue.slotsHeading': '运行槽', 'queue.slotsCount': '{used}/{max}',
-    'queue.queued': '排队 {n}', 'queue.quotaWait': '等额度 {n}', 'queue.idle': '没有在跑的任务',
+    'queue.queued': '排队 {n}', 'queue.quotaWait': '等额度 {n}', 'queue.retryWait': '等重试 {n}', 'queue.idle': '没有在跑的任务',
     'queue.readFailed': '任务队列读取失败:{message}', 'queue.staleWith': '刷新失败,显示最近一次: {message}',
     'queue.state.running': '运行中 · 槽 {slot}', 'queue.state.starting': '启动中',
     'queue.wait.lock': '等 {agent} 锁', 'queue.wait.slot': '等运行槽', 'queue.wait.memory': '等内存',
@@ -215,7 +215,7 @@ export const dictionaries: Record<string, Record<string, string>> = {
     'balance.reset.dated': '{date} {weekday} {time}',
     'queue.name': 'Tasks', 'queue.panelTitle': 'Dispatch task queue', 'queue.panelHeading': 'Dispatch queue',
     'queue.refresh': 'Refresh the task queue', 'queue.slots': 'slots {used}/{max}', 'queue.slotsHeading': 'Run slots', 'queue.slotsCount': '{used}/{max}',
-    'queue.queued': '{n} queued', 'queue.quotaWait': '{n} waiting on quota', 'queue.idle': 'No task running',
+    'queue.queued': '{n} queued', 'queue.quotaWait': '{n} waiting on quota', 'queue.retryWait': '{n} waiting to retry', 'queue.idle': 'No task running',
     'queue.readFailed': 'Task queue read failed: {message}', 'queue.staleWith': 'Refresh failed, showing the last read: {message}',
     'queue.state.running': 'running · slot {slot}', 'queue.state.starting': 'starting',
     'queue.wait.lock': 'waiting for the {agent} lock', 'queue.wait.slot': 'waiting for a run slot', 'queue.wait.memory': 'waiting for memory',
@@ -1476,9 +1476,12 @@ function patrolPhraseOf(result: TaskQueueResult, t: Translate, now: number): str
 export function _queueHeadline(result: TaskQueueResult, t: Translate, now: number = Date.now()): { tone: BalanceTone; value: string; sub: string; busy: boolean; title: string } {
   const queued = result.active.filter(queuedFor).length
   const quota = result.active.filter((task) => task.waiting === 'quota').length
+  // A retry back-off holds nothing either, but it is still a live task waiting (#1772).
+  const retry = result.active.filter((task) => task.waiting === 'retry').length
   const parts = [
     queued > 0 ? t('queue.queued', { n: queued }) : null,
     quota > 0 ? t('queue.quotaWait', { n: quota }) : null,
+    retry > 0 ? t('queue.retryWait', { n: retry }) : null,
     patrolPhraseOf(result, t, now),
   ].filter((part): part is string => part !== null)
   const value = t('queue.slots', { used: result.running, max: result.maxRunning })
