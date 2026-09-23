@@ -679,18 +679,14 @@ async function testTabGuardWithoutForcedLayout(browser, base) {
   // 3. And it must not drift from a scroll the code did not initiate — a real
   //    swipe moves scrollLeft with no goToTab call anywhere.
   //
-  //    goToTab above scrolls with `behavior: smooth`, and that animation is
-  //    still running when this step writes scrollLeft. Chromium does not treat
-  //    the write as a cancel: the in-flight smooth scroll carries on, and with
-  //    scroll-snap on the pager it lands on the LAST page — which made this
-  //    assertion fail roughly one run in three on master, unrelated to any
-  //    change under test. Let the pager come to rest first (two consecutive
-  //    frames at the same offset) so the step measures what it means to.
+  //    Wait for the browser to emit the instant navigation's scroll event so
+  //    the next write starts from a fully committed page rather than racing
+  //    the cached index update.
   await page.waitForFunction(() => {
     const pager = document.getElementById("pager");
     const at = Math.round(pager.scrollLeft / (pager.clientWidth || 1));
-    // Arrived AND stopped: "two equal frames" alone is not enough, because a
-    // smooth scroll has not necessarily started moving by frame two.
+    // Arrived AND stopped: keep the assertion about a committed position, not
+    // merely the first frame whose rounded index happens to match.
     if (at !== TAB_ORDER.indexOf("risk")) { window.__settleAt = null; return false; }
     const stable = window.__settleAt === pager.scrollLeft;
     window.__settleAt = pager.scrollLeft;
@@ -704,6 +700,77 @@ async function testTabGuardWithoutForcedLayout(browser, base) {
   await page.waitForFunction(() => currentTab() === "market", null, { timeout: 4000 })
     .catch(() => { throw new Error("currentTab() drifted from an uninstrumented scroll"); });
 
+  await context.close();
+}
+
+// A horizontal drag owns the pager until native momentum and scroll-snap have
+// finished. Switching `.active` at the halfway mark used to reveal/hide large
+// panel trees and lazy-render data during the drag itself; on mobile WebKit the
+// resulting layout could strand the scroller between snap points. The settled
+// position also used `index * clientWidth`, which is not necessarily the panel's
+// real fractional layout offset after a viewport change.
+async function testMobilePagerCommitsStateAtTheRealSnapPoint(browser, base) {
+  const context = await browser.newContext({
+    viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true,
+  });
+  const page = await context.newPage();
+  await stubLiveOrigin(page);
+  await page.goto(base, { waitUntil: "networkidle" });
+  await waitForData(page);
+
+  const duringGesture = await page.evaluate(async () => {
+    const pager = document.getElementById("pager");
+    // Hold a deterministic in-between position; this test is for the JS state
+    // boundary and correction, while CI's native swipe cases keep CSS snap on.
+    pager.style.scrollSnapType = "none";
+    pager.dispatchEvent(new Event("touchstart"));
+    pager.scrollLeft = pager.clientWidth * 0.6;
+    pager.dispatchEvent(new Event("scroll"));
+    await new Promise(requestAnimationFrame);
+    return {
+      active: document.querySelector(".tab-btn.active")?.dataset.tab,
+      current: currentTab(),
+    };
+  });
+  assert.equal(duringGesture.current, "drill",
+    "the cached page index did not follow the visually dominant panel");
+  assert.equal(duringGesture.active, "hero",
+    "panel state changed while the touch gesture still owned the pager");
+
+  const settled = await page.evaluate(async () => {
+    const pager = document.getElementById("pager");
+    const panel = document.querySelector('.panel[data-panel="drill"]');
+    const target = () => pager.scrollLeft
+      + panel.getBoundingClientRect().left - pager.getBoundingClientRect().left;
+    pager.scrollLeft = target() + 7;
+    pager.dispatchEvent(new Event("scroll"));
+    pager.dispatchEvent(new Event("touchend"));
+    pager.dispatchEvent(new Event("scrollend"));
+    await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    return {
+      active: document.querySelector(".tab-btn.active")?.dataset.tab,
+      error: Math.abs(pager.scrollLeft - target()),
+    };
+  });
+  assert.equal(settled.active, "drill", "the settled page did not become active");
+  assert(settled.error <= 1,
+    `pager stopped ${settled.error}px away from the panel's real snap point`);
+
+  // A tab click may cross several pages. `scroll-snap-stop: always` used to
+  // force that smooth scroll to stop at each intermediate snap point, so an
+  // Overview → Risk click visibly stranded on Holdings in mobile WebKit.
+  await page.evaluate(() => {
+    document.getElementById("pager").style.scrollSnapType = "";
+    document.querySelector('.tab-btn[data-tab="reflect"]').click();
+  });
+  await page.waitForFunction(() => {
+    const pager = document.getElementById("pager");
+    const panel = document.querySelector('.panel[data-panel="reflect"]');
+    return document.querySelector(".tab-btn.active")?.dataset.tab === "reflect"
+      && Math.abs(panel.getBoundingClientRect().left - pager.getBoundingClientRect().left) <= 1;
+  }, null, { polling: "raf", timeout: 5000 }).catch(() => {
+    throw new Error("a cross-page tab click stopped at an intermediate snap point");
+  });
   await context.close();
 }
 
@@ -3385,6 +3452,8 @@ async function main() {
     await run("testLiveDataOrigin", () => testLiveDataOrigin(browser, base));
     await run("testEquityTouch", () => testEquityTouch(browser, base));
     await run("testTabGuardWithoutForcedLayout", () => testTabGuardWithoutForcedLayout(browser, base));
+    await run("testMobilePagerCommitsStateAtTheRealSnapPoint", () =>
+      testMobilePagerCommitsStateAtTheRealSnapPoint(browser, base));
     await run("testTopbarFitsWhenRefreshLabelSwaps", () => testTopbarFitsWhenRefreshLabelSwaps(browser, base));
     await run("testHeaderSharesTheContentColumn", () => testHeaderSharesTheContentColumn(browser, base));
     await run("testTraceRowsFitPhoneWidths", () => testTraceRowsFitPhoneWidths(browser, base));

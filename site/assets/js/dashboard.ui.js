@@ -5,6 +5,7 @@
   const TAB_ORDER = Array.from(document.querySelectorAll(".tab-btn")).map(b => b.dataset.tab);
 
   const pager = document.getElementById("pager");
+  const PANELS = Array.from(document.querySelectorAll(".panel"));
   const DESKTOP_MQ = window.matchMedia("(min-width: 1024px)");
   // Safari/WebKit can synchronously stall when ECharts canvases are initialized
   // inside Reflect's desktop multi-column formatting context. Mark WebKit once;
@@ -60,7 +61,7 @@
       b.setAttribute("aria-selected", on);
     });
     const activeIndex = TAB_ORDER.indexOf(t);
-    document.querySelectorAll(".panel").forEach(p => {
+    PANELS.forEach(p => {
       const panelIndex = TAB_ORDER.indexOf(p.dataset.panel);
       p.classList.toggle("active", panelIndex === activeIndex);
       p.classList.toggle("is-near", Math.abs(panelIndex - activeIndex) === 1);
@@ -116,6 +117,18 @@
   // late is the same outcome as aborting it on time.
   let pagerIndex = 0;
 
+  // A page is not necessarily `index * clientWidth`: fractional CSS pixels,
+  // scrollbar geometry and a viewport resize can all make that product differ
+  // from the snap point the browser laid out. Read the panel's real position
+  // only at navigation/settle boundaries, never in the live scroll loop.
+  function pagerPageLeft(index) {
+    const panel = PANELS[index];
+    if (!pager || !panel) return index * (pager ? pager.clientWidth : 0);
+    const pagerBox = pager.getBoundingClientRect();
+    const panelBox = panel.getBoundingClientRect();
+    return pager.scrollLeft + panelBox.left - pagerBox.left;
+  }
+
   function currentTab() {
     if (pagerLive()) {
       return TAB_ORDER[Math.max(0, Math.min(TAB_ORDER.length - 1, pagerIndex))];
@@ -126,12 +139,18 @@
 
   // Native scroll-snap does the gesture, preview, momentum & easing for free.
   // We just drive scrollLeft for button/keyboard nav and read it back for the indicator.
-  function goToTab(t, smooth = true) {
+  function goToTab(t) {
     if (!TAB_ORDER.includes(t)) return false;
     const idx = TAB_ORDER.indexOf(t);
     pagerIndex = idx;                          // keep the cache ahead of the scroll
     if (pagerLive()) {
-      pager.scrollTo({ left: idx * pager.clientWidth, behavior: smooth ? SCROLL_BEHAVIOR : "auto" });
+      // A tab click is a frequent direct-selection action, not a gesture to
+      // animate. In mobile WebKit, combining a multi-page smooth scroll with
+      // mandatory snap can stop on the first intermediate page (Overview →
+      // Risk lands on Holdings). Native finger swipes keep their momentum;
+      // explicit tab/keyboard navigation lands atomically on the requested
+      // panel's real snap point.
+      pager.scrollTo({ left: pagerPageLeft(idx), behavior: "auto" });
     }
     setActiveButton(t);          // desktop / immediate highlight; scroll listener re-confirms
     return true;
@@ -171,39 +190,80 @@
     });
   }
 
-  // Sync the active-tab indicator to the live scroll position (rAF-throttled).
-  // On settle, nudge ECharts in the now-visible page to resize.
+  // Track geometry during the gesture, but do not switch panel state halfway
+  // through it. `setActiveButton()` changes content-visibility, the desk rail
+  // and (on first visit) a large lazy-rendered DOM. Doing that at the halfway
+  // boundary inserts layout work into the exact frames the finger owns and can
+  // leave WebKit's snap animation stranded between pages. Commit those changes
+  // only after the native scroller reports that momentum + snapping finished.
   if (pager) {
-    let raf = 0, settleTimer = 0, lastIdx = -1;
+    let raf = 0, settleTimer = 0, chartTimer = 0, rzTimer = 0;
+    let gestureActive = false, scrolling = false;
+
+    function settlePager() {
+      if (!pagerLive() || gestureActive) return;
+      clearTimeout(settleTimer);
+      scrolling = false;
+      let idx = 0, nearest = Infinity;
+      PANELS.forEach((_, candidate) => {
+        const distance = Math.abs(pager.scrollLeft - pagerPageLeft(candidate));
+        if (distance < nearest) {
+          idx = candidate;
+          nearest = distance;
+        }
+      });
+      pagerIndex = idx;
+      const target = pagerPageLeft(idx);
+      // Correct only a real miss. Sub-pixel rounding is a valid native snap;
+      // writing it back would manufacture another scroll/scrollend cycle.
+      if (Math.abs(pager.scrollLeft - target) > 1) {
+        pager.scrollTo({ left: target, behavior: "auto" });
+      }
+      setActiveButton(TAB_ORDER[idx]);
+      clearTimeout(chartTimer);
+      chartTimer = setTimeout(syncChartSizes, 120);
+    }
+
+    function scheduleFallbackSettle() {
+      clearTimeout(settleTimer);
+      settleTimer = setTimeout(() => {
+        if (!gestureActive) settlePager();
+      }, 180);
+    }
+
+    pager.addEventListener("touchstart", () => {
+      gestureActive = true;
+      clearTimeout(settleTimer);
+    }, { passive: true });
+    const releaseGesture = () => {
+      gestureActive = false;
+      scheduleFallbackSettle();
+    };
+    pager.addEventListener("touchend", releaseGesture, { passive: true });
+    pager.addEventListener("touchcancel", releaseGesture, { passive: true });
+
     pager.addEventListener("scroll", () => {
+      scrolling = true;
+      scheduleFallbackSettle();
       if (raf) return;
       raf = requestAnimationFrame(() => {
         raf = 0;
         const idx = Math.round(pager.scrollLeft / (pager.clientWidth || 1));
         pagerIndex = Math.max(0, Math.min(TAB_ORDER.length - 1, idx));
-        if (idx !== lastIdx) {
-          lastIdx = idx;
-          const t = TAB_ORDER[Math.max(0, Math.min(TAB_ORDER.length - 1, idx))];
-          setActiveButton(t);
-        }
-        clearTimeout(settleTimer);
-        // Nudge the charts on the page the swipe landed on — NOT a synthetic
-        // window `resize`. That dispatch also woke the realign timer below,
-        // which 150ms after every settle wrote `pager.scrollLeft` back; a
-        // reader who had already started the next swipe got yanked back to the
-        // page they were leaving. See syncChartSizes() for the cost side.
-        settleTimer = setTimeout(syncChartSizes, 120);
       });
     }, { passive: true });
+    if ("onscrollend" in pager) {
+      pager.addEventListener("scrollend", settlePager, { passive: true });
+    }
 
-    // Keep the current page aligned across orientation / viewport changes.
-    let rzTimer = 0;
+    // Keep the snapped panel aligned across orientation / viewport changes,
+    // but never write scrollLeft while a finger or momentum still owns it.
     window.addEventListener("resize", () => {
       if (!pagerLive()) return;
       clearTimeout(rzTimer);
       rzTimer = setTimeout(() => {
-        const idx = TAB_ORDER.indexOf(currentTab());
-        pager.scrollTo({ left: idx * pager.clientWidth, behavior: "auto" });
+        if (gestureActive || scrolling) return;
+        settlePager();
       }, 150);
     });
   }
@@ -229,7 +289,7 @@
   }
   window.addEventListener("hashchange", () => {
     const t = tabFromHash();
-    if (t && t !== currentTab()) goToTab(t, false);
+    if (t && t !== currentTab()) goToTab(t);
   });
 
   DESKTOP_MQ.addEventListener("change", () => { if (DATA) ensureVisibleCharts(); });
@@ -867,7 +927,7 @@
     // after a user enters a detail tab that owns an analytical chart.
     // Land on the deep-linked tab BEFORE first paint of data (instant, no animation).
     const t0 = tabFromHash();
-    if (t0) goToTab(t0, false);
+    if (t0) goToTab(t0);
     else setActiveButton(TAB_ORDER[0]);
     loadData().then(loadLatestBriefCard);
     _scheduleAutoRefresh();
