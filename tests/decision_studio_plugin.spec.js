@@ -1008,6 +1008,8 @@ test("client: stylesheet is loader-owned and keeps the dark-theme and tone contr
   // contract is the data attribute itself, not its quoting.
   assert.match(css, /_bchip-v\[data-balance-state=low\]/, "chip low value selector required");
   assert.match(css, /_bp\[data-open=false\]/, "closed-panel state selector required");
+  assert.match(css, /_bp\[data-open=true\]\{opacity:1;pointer-events:auto\}/,
+    "an opened glass popover must become visible and interactive on its first tap");
   // Tier colours must NOT paint over a stale reading (数字不可信优先于用量档,
   // 与面板 bp-win-fill 的既有优先级一致)。These attr rules share specificity
   // and co-occur on one element, so source order decides: stale must come last.
@@ -1062,8 +1064,22 @@ test("client: stylesheet is loader-owned and keeps the dark-theme and tone contr
   }
   assert.match(css, /@media \(pointer:coarse\)\{[^}]*_ft[^}]*min-height:44px/,
     "phone filters and folds need finger-sized targets");
-  assert.match(css, /@media \(width<=520px\)\{[^}]*_bp\{--mat-fill:#fffffff5\}[^}]*_bp\{--mat-fill:#222226f5\}/,
-    "phone popovers need a readable neutral fill in both themes");
+  assert.match(css, /--canvas:var\(--dsw-static-neutral-bluish-75/,
+    "Decision Mind canvas must use the host's neutral scale");
+  assert.doesNotMatch(css, /--glow-[123]:|radial-gradient\(|#f0f2f7|--dsw-alias-state-business-primary/i,
+    "plugin-owned blue canvas, blue-violet glow pools and brand paint must stay out of the material");
+  for (const token of ["glass-fill-card", "glass-fill-header", "glass-fill-chip",
+    "glass-fill-popover", "glass-saturate", "glass-rim", "glass-border"]) {
+    assert.match(css, new RegExp(`--${token}:`), `${token} must be shared by board and footer material`);
+  }
+  assert.match(css, /_dmt,\.[A-Za-z0-9_-]+_pbc\{[^}]*--glass-fill-popover/,
+    "the glass recipe must resolve in both the tab and the sidebar roots");
+  assert.match(css, /_cell:hover\{background:var\(--row-hover\)/,
+    "the large row's hover fill must preserve semantic text contrast");
+  assert.match(css, /_cell:active\{background:var\(--row-press\)/,
+    "the large row's pressed fill must preserve semantic text contrast");
+  assert.match(css, /@media \(width<=520px\)\{[^}]*_bp\{--glass-fill-popover:color-mix\(in srgb, var\(--surface\) 97%, transparent\)/,
+    "phone popovers need a stronger fill from the shared host surface");
   // The three host-layout contracts this tab lives inside. Each of them was a
   // visible defect before 2026-08-22, and none is observable from the rendered
   // tree — they are properties of the sheet, so this is where they are pinned.
