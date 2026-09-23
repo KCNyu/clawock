@@ -64,7 +64,6 @@
     PANELS.forEach(p => {
       const panelIndex = TAB_ORDER.indexOf(p.dataset.panel);
       p.classList.toggle("active", panelIndex === activeIndex);
-      p.classList.toggle("is-near", Math.abs(panelIndex - activeIndex) === 1);
     });
     if (DATA) {
       // Activation is the consumer boundary: mapped sidecars load first, then
@@ -107,14 +106,9 @@
   // 162ms of the 1,016ms spent in layout on a mobile startup profile (#442),
   // across two call sites, `renderLandingTab`'s step() and ensureVisibleCharts.
   //
-  // The scroll handler below already computes this index every animation frame
-  // in order to move the picker's checked item, so the value is maintained
-  // regardless.
-  // Caching it there means the geometry is read once per frame by the code whose
-  // job that is, instead of once per renderer by code that only needs to know
-  // whether the user has navigated away. Worst-case staleness is one frame, and
-  // every caller is a guard that tolerates it — aborting a render one renderer
-  // late is the same outcome as aborting it on time.
+  // It changes only at an explicit navigation or a native-scroll settle. Keeping
+  // all DOM/state work out of live touch + momentum frames is more important than
+  // reporting the visually dominant page before the browser has committed it.
   let pagerIndex = 0;
 
   // A page is not necessarily `index * clientWidth`: fractional CSS pixels,
@@ -190,20 +184,19 @@
     });
   }
 
-  // Track geometry during the gesture, but do not switch panel state halfway
-  // through it. `setActiveButton()` changes content-visibility, the desk rail
-  // and (on first visit) a large lazy-rendered DOM. Doing that at the halfway
-  // boundary inserts layout work into the exact frames the finger owns and can
-  // leave WebKit's snap animation stranded between pages. Commit those changes
-  // only after the native scroller reports that momentum + snapping finished.
+  // Do not run state changes or position writes while native touch scrolling,
+  // momentum and snap own the pager. `setActiveButton()` changes the desk rail
+  // and can lazy-render a large DOM on first visit; doing that in a gesture frame
+  // is enough to make WebKit visibly hitch. The browser alone decides the final
+  // snap point, then we commit application state to the nearest real panel.
   if (pager) {
-    let raf = 0, settleTimer = 0, chartTimer = 0, rzTimer = 0;
-    let gestureActive = false, scrolling = false;
+    let settleTimer = 0, chartTimer = 0;
+    let gestureActive = false;
+    const supportsScrollEnd = "onscrollend" in pager;
 
     function settlePager() {
       if (!pagerLive() || gestureActive) return;
       clearTimeout(settleTimer);
-      scrolling = false;
       let idx = 0, nearest = Infinity;
       PANELS.forEach((_, candidate) => {
         const distance = Math.abs(pager.scrollLeft - pagerPageLeft(candidate));
@@ -213,12 +206,6 @@
         }
       });
       pagerIndex = idx;
-      const target = pagerPageLeft(idx);
-      // Correct only a real miss. Sub-pixel rounding is a valid native snap;
-      // writing it back would manufacture another scroll/scrollend cycle.
-      if (Math.abs(pager.scrollLeft - target) > 1) {
-        pager.scrollTo({ left: target, behavior: "auto" });
-      }
       setActiveButton(TAB_ORDER[idx]);
       clearTimeout(chartTimer);
       chartTimer = setTimeout(syncChartSizes, 120);
@@ -237,35 +224,18 @@
     }, { passive: true, capture: true });
     const releaseGesture = () => {
       gestureActive = false;
-      scheduleFallbackSettle();
+      if (!supportsScrollEnd) scheduleFallbackSettle();
     };
     pager.addEventListener("touchend", releaseGesture, { passive: true, capture: true });
     pager.addEventListener("touchcancel", releaseGesture, { passive: true, capture: true });
 
-    pager.addEventListener("scroll", () => {
-      scrolling = true;
-      scheduleFallbackSettle();
-      if (raf) return;
-      raf = requestAnimationFrame(() => {
-        raf = 0;
-        const idx = Math.round(pager.scrollLeft / (pager.clientWidth || 1));
-        pagerIndex = Math.max(0, Math.min(TAB_ORDER.length - 1, idx));
-      });
-    }, { passive: true });
-    if ("onscrollend" in pager) {
+    if (supportsScrollEnd) {
       pager.addEventListener("scrollend", settlePager, { passive: true });
+    } else {
+      // Older engines have no settle event. Debounce is only installed there;
+      // current iOS Safari executes no JS at all in live scroll frames.
+      pager.addEventListener("scroll", scheduleFallbackSettle, { passive: true });
     }
-
-    // Keep the snapped panel aligned across orientation / viewport changes,
-    // but never write scrollLeft while a finger or momentum still owns it.
-    window.addEventListener("resize", () => {
-      if (!pagerLive()) return;
-      clearTimeout(rzTimer);
-      rzTimer = setTimeout(() => {
-        if (gestureActive || scrolling) return;
-        settlePager();
-      }, 150);
-    });
   }
 
   // Keyboard arrows mirror the swipe. They keep working while the site menu is

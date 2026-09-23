@@ -622,6 +622,12 @@ async function testEquityTouch(browser, base) {
   }
   await dispatchTouch(session, "touchEnd", []);
   await page.waitForFunction(() => document.querySelector(".tab-btn.active")?.dataset.tab === "plan");
+  const snapError = await page.evaluate(() => {
+    const pager = document.getElementById("pager");
+    const panel = document.querySelector('.panel[data-panel="plan"]');
+    return Math.abs(panel.getBoundingClientRect().left - pager.getBoundingClientRect().left);
+  });
+  assert(snapError <= 1, `native chart swipe settled ${snapError}px off its page`);
   assert.equal(await page.locator(".native-equity-tooltip").isVisible(), false,
     "pager swipe left a stale chart tooltip");
   assert.deepEqual(state.failures, []);
@@ -632,8 +638,8 @@ async function testEquityTouch(browser, base) {
 // `currentTab()` used to read pager.scrollLeft/clientWidth, which forces layout,
 // and the hero render loop calls it between renderers — right after each one's
 // DOM writes. That interleave cost 162ms of the 1,016ms spent in layout on a
-// mobile startup profile (#442). It now reads an index the scroll handler
-// already maintains every frame.
+// mobile startup profile (#442). It now reads an index updated only by explicit
+// navigation or after native scrolling settles.
 //
 // The guard exists to stop a render in flight when the user navigates away, so
 // "it no longer forces layout" is only half of what has to hold: the cache must
@@ -676,8 +682,9 @@ async function testTabGuardWithoutForcedLayout(browser, base) {
   });
   assert.equal(afterGoTo, "risk", "currentTab() did not follow goToTab synchronously");
 
-  // 3. And it must not drift from a scroll the code did not initiate — a real
-  //    swipe moves scrollLeft with no goToTab call anywhere.
+  // 3. And it must follow a scroll the code did not initiate once the browser
+  //    says native momentum + snap have settled. Live gesture frames deliberately
+  //    do no application-state or layout work.
   //
   //    Wait for the browser to emit the instant navigation's scroll event so
   //    the next write starts from a fully committed page rather than racing
@@ -696,6 +703,7 @@ async function testTabGuardWithoutForcedLayout(browser, base) {
     const pager = document.getElementById("pager");
     pager.scrollLeft = TAB_ORDER.indexOf("market") * pager.clientWidth;
     pager.dispatchEvent(new Event("scroll"));
+    pager.dispatchEvent(new Event("scrollend"));
   });
   await page.waitForFunction(() => currentTab() === "market", null, { timeout: 4000 })
     .catch(() => { throw new Error("currentTab() drifted from an uninstrumented scroll"); });
@@ -708,7 +716,8 @@ async function testTabGuardWithoutForcedLayout(browser, base) {
 // panel trees and lazy-render data during the drag itself; on mobile WebKit the
 // resulting layout could strand the scroller between snap points. The settled
 // position also used `index * clientWidth`, which is not necessarily the panel's
-// real fractional layout offset after a viewport change.
+// real fractional layout offset after a viewport change. Native snap owns that
+// geometry now; JS observes its result and never corrects a gesture afterward.
 async function testMobilePagerCommitsStateAtTheRealSnapPoint(browser, base) {
   const context = await browser.newContext({
     viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true,
@@ -721,7 +730,7 @@ async function testMobilePagerCommitsStateAtTheRealSnapPoint(browser, base) {
   const duringGesture = await page.evaluate(async () => {
     const pager = document.getElementById("pager");
     // Hold a deterministic in-between position; this test is for the JS state
-    // boundary and correction, while CI's native swipe cases keep CSS snap on.
+    // boundary, while CI's native swipe cases keep CSS snap on.
     pager.style.scrollSnapType = "none";
     pager.dispatchEvent(new Event("touchstart"));
     pager.scrollLeft = pager.clientWidth * 0.6;
@@ -732,8 +741,8 @@ async function testMobilePagerCommitsStateAtTheRealSnapPoint(browser, base) {
       current: currentTab(),
     };
   });
-  assert.equal(duringGesture.current, "drill",
-    "the cached page index did not follow the visually dominant panel");
+  assert.equal(duringGesture.current, "hero",
+    "application state changed before native scrolling settled");
   assert.equal(duringGesture.active, "hero",
     "panel state changed while the touch gesture still owned the pager");
 
@@ -742,19 +751,30 @@ async function testMobilePagerCommitsStateAtTheRealSnapPoint(browser, base) {
     const panel = document.querySelector('.panel[data-panel="drill"]');
     const target = () => pager.scrollLeft
       + panel.getBoundingClientRect().left - pager.getBoundingClientRect().left;
+    const nativeScrollTo = pager.scrollTo.bind(pager);
+    let positionWrites = 0;
+    pager.scrollTo = (...args) => {
+      positionWrites += 1;
+      return nativeScrollTo(...args);
+    };
     pager.scrollLeft = target() + 7;
     pager.dispatchEvent(new Event("scroll"));
     pager.dispatchEvent(new Event("touchend"));
     pager.dispatchEvent(new Event("scrollend"));
     await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-    return {
+    const result = {
       active: document.querySelector(".tab-btn.active")?.dataset.tab,
       error: Math.abs(pager.scrollLeft - target()),
+      positionWrites,
     };
+    pager.scrollTo = nativeScrollTo;
+    return result;
   });
   assert.equal(settled.active, "drill", "the settled page did not become active");
-  assert(settled.error <= 1,
-    `pager stopped ${settled.error}px away from the panel's real snap point`);
+  assert.equal(settled.positionWrites, 0,
+    "JS rewrote the position after a native gesture instead of observing it");
+  assert(settled.error >= 6,
+    "the synthetic off-snap position was hidden by a forced correction");
 
   // A tab click may cross several pages. `scroll-snap-stop: always` correctly
   // keeps a finger swipe to one page, but it also forced the old smooth
@@ -773,6 +793,85 @@ async function testMobilePagerCommitsStateAtTheRealSnapPoint(browser, base) {
   }, null, { polling: "raf", timeout: 5000 }).catch(() => {
     throw new Error("a cross-page tab click stopped at an intermediate snap point");
   });
+  await context.close();
+}
+
+// Exercise the browser-owned path rather than simulating scrollLeft: successive
+// flicks must remain interruptible, a vertical/cancelled gesture must not turn
+// into a page change, and an outward edge gesture must return to the edge snap.
+async function testNativePagerGestureSequences(browser, base) {
+  const context = await browser.newContext({
+    viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true,
+  });
+  const page = await context.newPage();
+  await stubLiveOrigin(page);
+  await page.goto(base, { waitUntil: "networkidle" });
+  await waitForData(page);
+  const session = await context.newCDPSession(page);
+  const box = await page.locator("#pager").boundingBox();
+  assert(box, "pager has no layout box");
+  // A direct-child section divider is ordinary page chrome, not a nested
+  // table/chart scroller whose existing contract contains horizontal overscroll.
+  // Hero has no divider at its top, so use the panel's own padding there.
+  const gestureY = async () => {
+    const dividers = page.locator(".panel.active > .sect-divider");
+    const divider = await dividers.count() ? await dividers.first().boundingBox() : null;
+    if (divider && divider.y >= box.y && divider.y < box.y + box.height) {
+      return divider.y + divider.height / 2;
+    }
+    return box.y + 5;
+  };
+
+  const flickLeft = async () => {
+    const y = await gestureY();
+    for (const [i, x] of [385, 325, 265, 205, 145, 85, 5].entries()) {
+      await dispatchTouch(session, i ? "touchMove" : "touchStart", [{ x, y }]);
+      if (i) await page.waitForTimeout(20);
+    }
+    await dispatchTouch(session, "touchEnd", []);
+  };
+  const waitAligned = async tab => page.waitForFunction(t => {
+    const pager = document.getElementById("pager");
+    const panel = document.querySelector(`.panel[data-panel="${t}"]`);
+    return document.querySelector(".tab-btn.active")?.dataset.tab === t
+      && Math.abs(panel.getBoundingClientRect().left - pager.getBoundingClientRect().left) <= 1;
+  }, tab, { polling: "raf", timeout: 5000 }).catch(async () => {
+    const state = await page.evaluate(() => ({
+      active: document.querySelector(".tab-btn.active")?.dataset.tab,
+      left: document.getElementById("pager").scrollLeft,
+    }));
+    throw new Error(`native pager did not align ${tab}: ${JSON.stringify(state)}`);
+  });
+
+  assert.equal(await page.locator('.panel[data-panel="risk"]').evaluate(
+    panel => getComputedStyle(panel).contentVisibility), "auto",
+    "a second-away page was forced hidden before a rapid follow-up swipe");
+  await flickLeft();
+  await waitAligned("drill");
+  await page.waitForTimeout(50);
+  await flickLeft();
+  await waitAligned("risk");
+
+  // Predominantly vertical motion is owned by the panel scroller. Ending it as
+  // cancelled covers Safari handing the stream to vertical scrolling/system UI.
+  const y = await gestureY();
+  await dispatchTouch(session, "touchStart", [{ x: 205, y: y + 150 }]);
+  await dispatchTouch(session, "touchMove", [{ x: 195, y: y + 20 }]);
+  await dispatchTouch(session, "touchCancel", []);
+  await page.waitForTimeout(250);
+  await waitAligned("risk");
+
+  // At the leading edge the native scroller may rubber-band visually, but it
+  // must settle back to the real first snap without a JS position correction.
+  await page.locator('.tab-btn[data-tab="hero"]').click();
+  await waitAligned("hero");
+  for (const [i, x] of [45, 100, 165, 235, 300, 350].entries()) {
+    await dispatchTouch(session, i ? "touchMove" : "touchStart", [{ x, y }]);
+    if (i) await page.waitForTimeout(12);
+  }
+  await dispatchTouch(session, "touchEnd", []);
+  await page.waitForTimeout(250);
+  await waitAligned("hero");
   await context.close();
 }
 
@@ -3456,6 +3555,8 @@ async function main() {
     await run("testTabGuardWithoutForcedLayout", () => testTabGuardWithoutForcedLayout(browser, base));
     await run("testMobilePagerCommitsStateAtTheRealSnapPoint", () =>
       testMobilePagerCommitsStateAtTheRealSnapPoint(browser, base));
+    await run("testNativePagerGestureSequences", () =>
+      testNativePagerGestureSequences(browser, base));
     await run("testTopbarFitsWhenRefreshLabelSwaps", () => testTopbarFitsWhenRefreshLabelSwaps(browser, base));
     await run("testHeaderSharesTheContentColumn", () => testHeaderSharesTheContentColumn(browser, base));
     await run("testTraceRowsFitPhoneWidths", () => testTraceRowsFitPhoneWidths(browser, base));
