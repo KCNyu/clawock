@@ -167,21 +167,27 @@ web GUI **左侧栏底部、Settings 正上方**常驻一行余额读数,不跟�
 装了 agent-dispatch 的主机上(`~/logs/agent-dispatch` 存在),余额那一行**正上方**
 多一行「任务」:头条是运行槽占用 `槽 n/MAX_RUNNING`(数字读自
 `~/tools/agent-dispatch/limits.env`,不写死)+ 排队数、等额度数和巡检状态
-(运行中 / 让路中 / 某时开下一轮 / 已停)。点开是同款毛玻璃面板,手动 ↻ 强制重读:
+(运行中 / 让路中 / 某时开下一轮 / 已停)。点开是同款毛玻璃面板,手动 ↻ 强制重读,
+按提问顺序分四段(段名左、计数右):
 
-- 每个活着的任务(`agent-dispatch-<id>.service` active):名字、状态短语
-  (运行中·槽 N / 等 claude 锁 / 等运行槽 / 等内存 / 等额度·某时续跑)、
-  agent·模型·已跑时长·第几次尝试;
-- 巡检:`clawock-patrol` 在跑的轮次、它 journal 里最后一句话,和
-  `rounds.tsv` 最近三轮的结果与耗时(`preempted:cancelled` 是给人工任务让路,
-  不是故障);
-- 最近结束的 5 个非巡检任务:状态 / 模型自报 STATUS 与结束于多久前。
+- 运行槽 `n/MAX_RUNNING`:占着槽的任务(`agent-dispatch-<id>.service` active 且有 SLOT);
+- 排队 / 等待:没拿到槽的活任务和它在等什么(等 claude 锁 / 等运行槽 / 等内存 /
+  等额度·某时续跑);
+- 最近结束的 5 个非巡检任务:状态 / 模型自报 STATUS 与结束于多久前;
+- 巡检:`clawock-patrol` 的状态、在跑的轮次、它 journal 里最后一句话,和
+  `rounds.tsv` 最近三轮(轮次 · 方向 · 结果 · 耗时 对齐成一张表;
+  `preempted:cancelled` 是给人工任务让路,不是故障)。
+
+任务行固定三列:点 · 名字 · 状态,下一行 agent·模型 在名字下、已跑时长·第几次
+(或结束于多久前)右对齐在状态下;名字过长截断,点一下该行展开看全。
 
 全是本机文件加 `systemctl`/`journalctl`,不走网络;宿主侧 5s 缓存、客户端
 15s 轮询。没有派发目录的主机上这一行不出现。可选配置 `dispatchLogDir` /
 `dispatchLimitsPath` / `patrolStateDir` / `taskQueueRefreshMs` / `taskQueueRecent`。
-宿主把侧栏底部动作排成一行,本行靠样式表的 `:has()` 把那一格改成竖排才叠在
-余额上方;不支持 `:has()` 的浏览器上两行并排,功能不变。
+宿主把侧栏底部动作排成一行(`.footerActions` 横向 flex),而且 list slot 的每一项
+都包在一个 `display:contents` 的 `[data-slot]` 容器里——本行是那格的**孙子**。
+样式表用 `:has(> [data-slot] > .tqf)` 越过这层容器把那一格改成竖排,任务行才
+叠在余额上方、各占一整行;不支持 `:has()` 的浏览器上两行并排,功能不变。
 
 ## 语言
 
