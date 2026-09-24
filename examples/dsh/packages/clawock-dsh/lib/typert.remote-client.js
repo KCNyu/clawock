@@ -206,14 +206,14 @@ export const TYPERT_REMOTE = {
           codec: {
             mode: 'strict',
             typeSymbol: 'clawock-dsh#clawockStudio/balance:force',
-            schema: clawock_dsh_clawockStudio_balance_parameter_0$schema,
+            create: () => clawock_dsh_clawockStudio_balance_parameter_0$schema,
           },
         },
       ],
       result: {
         mode: 'strict',
         typeSymbol: 'clawock-dsh/types#BalancesResult',
-        schema: clawock_dsh_clawockStudio_balance_result$schema,
+        create: () => clawock_dsh_clawockStudio_balance_result$schema,
       },
       sourceLocation: {"file":"packages/clawock-dsh/src/index.ts","line":121,"column":3},
     },
@@ -231,14 +231,14 @@ export const TYPERT_REMOTE = {
           codec: {
             mode: 'strict',
             typeSymbol: 'clawock-dsh#clawockStudio/taskQueue:force',
-            schema: clawock_dsh_clawockStudio_taskQueue_parameter_0$schema,
+            create: () => clawock_dsh_clawockStudio_taskQueue_parameter_0$schema,
           },
         },
       ],
       result: {
         mode: 'strict',
         typeSymbol: 'clawock-dsh/types#TaskQueueResult',
-        schema: clawock_dsh_clawockStudio_taskQueue_result$schema,
+        create: () => clawock_dsh_clawockStudio_taskQueue_result$schema,
       },
       sourceLocation: {"file":"packages/clawock-dsh/src/index.ts","line":254,"column":3},
     },
@@ -256,14 +256,14 @@ export const TYPERT_REMOTE = {
           codec: {
             mode: 'strict',
             typeSymbol: 'clawock-dsh#clawockStudio/get:runId',
-            schema: clawock_dsh_clawockStudio_get_parameter_0$schema,
+            create: () => clawock_dsh_clawockStudio_get_parameter_0$schema,
           },
         },
       ],
       result: {
         mode: 'strict',
         typeSymbol: 'clawock-dsh/types#RunDetailResult',
-        schema: clawock_dsh_clawockStudio_get_result$schema,
+        create: () => clawock_dsh_clawockStudio_get_result$schema,
       },
       sourceLocation: {"file":"packages/clawock-dsh/src/index.ts","line":45,"column":3},
     },
@@ -278,7 +278,7 @@ export const TYPERT_REMOTE = {
       result: {
         mode: 'strict',
         typeSymbol: 'clawock-dsh/types#LedgerResult',
-        schema: clawock_dsh_clawockStudio_ledger_result$schema,
+        create: () => clawock_dsh_clawockStudio_ledger_result$schema,
       },
       sourceLocation: {"file":"packages/clawock-dsh/src/index.ts","line":51,"column":3},
     },
@@ -293,7 +293,7 @@ export const TYPERT_REMOTE = {
       result: {
         mode: 'strict',
         typeSymbol: 'clawock-dsh/types#ListRunsResult',
-        schema: clawock_dsh_clawockStudio_list_result$schema,
+        create: () => clawock_dsh_clawockStudio_list_result$schema,
       },
       sourceLocation: {"file":"packages/clawock-dsh/src/index.ts","line":35,"column":3},
     },
@@ -308,7 +308,7 @@ export const TYPERT_REMOTE = {
       result: {
         mode: 'strict',
         typeSymbol: 'clawock-dsh/types#PlansResult',
-        schema: clawock_dsh_clawockStudio_plans_result$schema,
+        create: () => clawock_dsh_clawockStudio_plans_result$schema,
       },
       sourceLocation: {"file":"packages/clawock-dsh/src/index.ts","line":63,"column":3},
     },
@@ -323,7 +323,7 @@ export const TYPERT_REMOTE = {
       result: {
         mode: 'strict',
         typeSymbol: 'clawock-dsh/types#PortfolioResult',
-        schema: clawock_dsh_clawockStudio_portfolio_result$schema,
+        create: () => clawock_dsh_clawockStudio_portfolio_result$schema,
       },
       sourceLocation: {"file":"packages/clawock-dsh/src/index.ts","line":57,"column":3},
     },
@@ -338,7 +338,7 @@ export const TYPERT_REMOTE = {
       result: {
         mode: 'strict',
         typeSymbol: 'clawock-dsh/types#TracesResult',
-        schema: clawock_dsh_clawockStudio_traces_result$schema,
+        create: () => clawock_dsh_clawockStudio_traces_result$schema,
       },
       sourceLocation: {"file":"packages/clawock-dsh/src/index.ts","line":76,"column":3},
     },

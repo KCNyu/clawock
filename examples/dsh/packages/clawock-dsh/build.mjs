@@ -87,14 +87,37 @@ if (!existsSync(remoteArtifact)) {
 }
 
 await run(['--config', 'tsdown.host.config.mjs'])
-await run(['--config', 'tsdown.client.config.mjs'])
-await exec(node, [tsc, '-p', 'tsconfig.declarations.json', '--pretty', 'false'], { cwd: pkg })
-await wrapWebClient(join(pkg, 'lib/client.js'))
 await patchTypertAlignment()
 await patchTypertSide()
 await patchTypertBalance()
 await patchTypertTaskQueue()
 await patchTypertVerdictKind()
+await patchTypertCodecFactories()
+await run(['--config', 'tsdown.client.config.mjs'])
+await exec(node, [tsc, '-p', 'tsconfig.declarations.json', '--pretty', 'false'], { cwd: pkg })
+await wrapWebClient(join(pkg, 'lib/client.js'))
+
+/**
+ * DSH 0.1.7's Typert loader requires a lazy create() factory on every strict
+ * codec. Our pinned generator still emits eager schema fields, including in
+ * the hand-maintained Remote methods above. Convert both faces before the
+ * client pass inlines the Remote contribution. Keep the rewrite idempotent so
+ * a future generator that emits create() needs no special path.
+ */
+async function patchTypertCodecFactories() {
+  for (const rel of ['lib/typert.host.js', 'lib/typert.remote-client.js']) {
+    const file = join(pkg, rel)
+    const source = await readFile(file, 'utf8')
+    const old = source.match(/^\s+schema: [A-Za-z_$][\w$]*,$/gm) ?? []
+    const updated = source.replace(/^(\s+)schema: ([A-Za-z_$][\w$]*),$/gm,
+      (_, indent, name) => `${indent}create: () => ${name},`)
+    const factories = updated.match(/^\s+create: \(\) => [A-Za-z_$][\w$]*,$/gm) ?? []
+    if (factories.length < 9 || updated.includes('schema: ')) {
+      throw new Error(`patchTypertCodecFactories: unexpected codec layout in ${rel} (${old.length} converted)`)
+    }
+    if (updated !== source) await writeFile(file, updated)
+  }
+}
 
 /**
  * Same discipline as the alignment patch: the clawock checkout cannot
