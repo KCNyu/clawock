@@ -11,7 +11,7 @@
 [![Coverage](https://img.shields.io/endpoint?url=https%3A%2F%2Fkcnyu.github.io%2Fclawock%2Fassets%2Fdata%2Fcoverage.json&style=flat-square&logo=python&logoColor=white&labelColor=252b35)](https://github.com/KCNyu/clawock/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/LICENSE-MIT-aab5bf?style=flat-square&labelColor=252b35)](https://github.com/KCNyu/clawock/blob/master/LICENSE)
 
-[**Live dashboard**](https://kcnyu.github.io/clawock/) &nbsp;·&nbsp; [**Daily briefs**](https://kcnyu.github.io/clawock/briefs.html) &nbsp;·&nbsp; [**Evidence**](https://kcnyu.github.io/clawock/evidence.html) &nbsp;·&nbsp; [**简体中文**](https://github.com/KCNyu/clawock/blob/master/README.zh.md)
+[**Live dashboard**](https://kcnyu.github.io/clawock/) &nbsp;·&nbsp; [**Daily briefs**](https://kcnyu.github.io/clawock/briefs.html) &nbsp;·&nbsp; [**Evidence**](https://kcnyu.github.io/clawock/#reflect) &nbsp;·&nbsp; [**简体中文**](https://github.com/KCNyu/clawock/blob/master/README.zh.md)
 
 <a href="https://kcnyu.github.io/clawock/">
   <img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/social-card.png" alt="clawock — portable investment decision workflows for any external AI agent, proven on a live HK and US desk" width="820">
@@ -25,7 +25,7 @@
 |:---:|:---:|:---:|:---:|:---:|:---:|
 | days live on a real HK + US account | decisions on the public ledger | episodes settled by code | data modules across 8 layers | agent harnesses, one contract | scores the model wrote for itself |
 
-<sub>Real positions, real P&amp;L — <!-- CW_M:return_pct -->−17.30%<!-- /CW_M:return_pct --> since day one, published exactly as it is — graded in the open. Numbers and previews refresh weekly; the live dashboard updates through the trading day.</sub>
+<sub>Real positions, real P&amp;L — <!-- CW_M:return_pct -->−17.30%<!-- /CW_M:return_pct --> since day one, published exactly as it is — graded in the open. Numbers and still previews refresh weekly; the dashboard GIF is refreshed on manual dispatch. The live dashboard updates through the trading day.</sub>
 
 </div>
 
@@ -33,7 +33,7 @@ Every trading day, clawock turns raw market information into decisions that get 
 
 - **Collect.** 43 fetch and compute modules across 8 layers: quotes, SEC and HKEX filings, capital flow, bilingual news, Reddit and influencer feeds, with multi-source fallback. Python fetches; the model only reads the assembled context.
 - **Compute factors.** Quant factors, cross-sectional ranks, peer residuals and a trend × volatility leverage dial, all computed deterministically in Python.
-- **Backtest.** A factor's clustered bootstrap interval has to clear 50% before it may influence a decision; the cross-sectional layer is pre-registered; the leverage dial is scored out of sample. What fails is published on the [evidence page](https://kcnyu.github.io/clawock/evidence.html).
+- **Backtest.** A factor's clustered bootstrap interval has to clear 50% before it may influence a decision; the cross-sectional layer is pre-registered; the leverage dial is scored out of sample. What fails is published in the [Reflect view](https://kcnyu.github.io/clawock/#reflect).
 - **Decide.** Four analyst lenses, a bull and a bear, three risk voices and a judge argue over the same context and write `plan.json`.
 - **Settle.** Python settles every decision against real prices. The model never touches its own score, and every result lands on the public scorecard.
 
@@ -100,7 +100,7 @@ Reading the market is most of what the LLM does, so the widest part of the syste
 
 Coverage is bilingual, but it is not symmetric, and the asymmetry is in research breadth rather than in the basics. Quotes, fundamentals, news and cash-flow reconciliation all have real Hong Kong branches. Two research-breadth capabilities do not: same-industry peers are discovered automatically for US names and read from a curated map for Hong Kong ones ([`peer_discovery.py`](https://github.com/KCNyu/clawock/blob/master/src/clawock/market_data/peer_discovery.py) — the mechanism is verified, the flag stays off until the peer-residual rules are re-registered against the wider universe), and US trading halts arrive as a structured feed while a Hong Kong suspension arrives as an announcement that the triage rules mark for a human ([`mover_evidence.py`](https://github.com/KCNyu/clawock/blob/master/src/clawock/market_data/mover_evidence.py)). So: Hong Kong base coverage on par, Hong Kong research breadth behind US.
 
-![clawock information flow — eight layers of fetch and compute modules are assembled by a deterministic Python preflight into a fingerprinted context.json; the LLM reads the file and writes its analysis; Python postflight validates and settles before publish](https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/information-flow.svg)
+![clawock information flow — eight layers and 43 modules feed a deterministic Python preflight; the complete context is kept for audit while the daily brief reads a generation-bound core and selected bundles; Python validates and settles before publish](https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/information-flow.svg)
 
 <details>
 <summary><b>All 8 layers, row by row</b> — modules and primary sources</summary>
@@ -124,13 +124,13 @@ The fetch layer degrades gracefully: every live Eastmoney call routes through **
 
 ### What each run actually receives
 
-Collection is broad, but no run gets everything. Each scheduled job's preflight assembles only the blocks that job can act on, writes them to a context file, and the model reads that file rather than fetching for itself.
+Collection is broad, but no run gets everything. Each scheduled job's preflight assembles only the blocks that job can act on. For the daily deep brief, the complete context remains an audit record; a manifest, fixed core and separately loadable feature bundles give the model a smaller, generation-bound view. Risk detail has its own bundle, so it can be read when needed without crowding the always-loaded core. The model reads those files rather than fetching for itself.
 
 ```
 sources
   ──► preflight (Python, deterministic)
-  ──► context.json
-  ──► LLM prose
+  ──► full audit context + model-facing core / bundles (daily brief)
+  ──► LLM reads selected context → prose
   ──► postflight (Python)
   ──► publish
 ```
@@ -265,11 +265,11 @@ A layer has to clear a stated bar before it is allowed to influence a decision, 
 - **The cross-sectional layer** is pre-registered. Only snapshots recorded after registration count toward activation, so a retrospective result can never switch it on.
 - **The leverage dial** is scored out of sample: thresholds are calibrated on a leading window and graded on the next one, and its timing is tested against a null that circularly shifts the same exposure path against returns — preserving its shape and time-in-market while destroying only the alignment. The dial is a **risk-budget control, not a timing signal**: its durable claim is less exposure in hostile regimes, while calling turns is exactly the part that cannot be distinguished from chance.
 
-Results are published whether or not they flatter the system. The dial's permutation test is the current example: on the sample available, its timing cannot be distinguished from chance, and that is stated on the page rather than left out of it. A failure to reject is not a refutation, and the page says which one it is.
+Results are published whether or not they flatter the system. The dial's permutation test is the current example: on the sample available, its timing cannot be distinguished from chance, and that is stated in Reflect rather than left out of it. A failure to reject is not a refutation, and the view says which one it is.
 
-Two properties keep this from decaying into copy. The page is **generated from the artifacts**, so it cannot quietly drift from them. And any backtest figure quoted in the repository has to cite a run card that still contains it — a stale citation points at real evidence that no longer says what the claim says, which reads as credible and is wrong. CI fails on both.
+Two properties keep this from decaying into copy. The Reflect evidence section is **generated from the artifacts**, so it cannot quietly drift from them. And any backtest figure quoted in the repository has to cite a run card that still contains it — a stale citation points at real evidence that no longer says what the claim says, which reads as credible and is wrong. CI fails on both.
 
-[**Evidence and refutation**](https://kcnyu.github.io/clawock/evidence.html)
+[**Evidence and refutation**](https://kcnyu.github.io/clawock/#reflect)
 
 ## What the code enforces
 
@@ -421,12 +421,13 @@ foreign workspace is production-ready.
 
 ## Explore the system
 
-- [**Live dashboard**](https://kcnyu.github.io/clawock/) — positions, risk, and the self-graded scorecard.
+- [**Live dashboard**](https://kcnyu.github.io/clawock/) — positions, risk, and the code-graded scorecard; on phones, swipe between the six views and the tab rail follows the current page.
 - [**Daily briefs**](https://kcnyu.github.io/clawock/briefs.html) — the published morning reads.
+- [**Decision Map**](https://kcnyu.github.io/clawock/#reflect) — a dated signal snapshot beside each decision, with coverage and age shown in Reflect ([reading guide](https://github.com/KCNyu/clawock/blob/master/docs/decision-map.md)).
 - [**Examples by harness**](https://github.com/KCNyu/clawock/blob/master/examples/README.md) — one decision run, five harnesses: pure CLI, OpenClaw, Claude Code, Codex, DeepSeek Harness, plus the npm DSH plugin.
 - [**Schedule**](https://github.com/KCNyu/clawock/blob/master/docs/operations/cron-schedules.md) — the generated cron table.
 - [**Command reference**](https://github.com/KCNyu/clawock/blob/master/docs/reference/commands.md) — every installed command, generated from the registries, plus the hand-written provider and harness detail.
-- [**Project docs**](https://github.com/KCNyu/clawock/blob/master/docs/README.md) — operations, reference, legal notes, and archived designs.
+- [**Project docs**](https://github.com/KCNyu/clawock/blob/master/docs/README.md) — current architecture, product guides, operations, reference, and legal notes.
 
 ### Research surfaces
 
@@ -451,16 +452,16 @@ Built with [Claude Code](https://claude.com/claude-code), the [openclaw](https:/
 <br>
 
 **Models.** Model selection belongs to the external runtime, not clawock. The
-live OpenClaw instance can pin a primary and fallback independently for each
-scheduled job; provider credentials and routing policy stay outside this public
-repository and can change without rewriting the workflow. No provider key is
-stored here.
+tracked schedule contract lists MiniMax-M3 as primary and GPT-6 Luna among the
+fallbacks for brief, report, and intraday jobs; the live OpenClaw instance can
+change its routing independently. Provider credentials stay outside this public
+repository. No provider key is stored here.
 
-**Write reconciliation.** Dashboard outputs are one derived generation published on the data plane, while scan sidecars and other runtime state have their own producers. The rule: isolate scan-sidecar writers, serialize dashboard builders that share a host, and keep one publication implementation.
+**Write reconciliation.** Dashboard outputs are one derived generation published on the [data plane](https://github.com/KCNyu/clawock/blob/master/docs/architecture/data-plane.md): Pages serves the static shell and a cold-start snapshot, while later browser polls read the validated six-file generation from the `data-plane` branch. Scan sidecars and other runtime state have their own producers. The rule: isolate scan-sidecar writers, serialize dashboard builders that share a host, and keep one publication implementation.
 
 - **The frontend reads scan sidecars directly.** Macro / sentiment / news / influencer feeds are fetched file-by-file at load, so a GitHub Action only ever commits its own disjoint sidecar — writers can't conflict, and a scan appears the instant its commit lands, with no rebuild.
 - **Dashboard builders share one lock and one contract.** On-host rebuilds serialize on a shared `flock`; every builder runs the same semantic-diff helper, so clock-only rewrites are restored and the complete generation is published together to the data plane.
-- **Everyone pushes through `ops/publish/safe_push.sh`** — rebase-retry, abort on a real conflict, and a committed conflict marker is rejected at the push hook so a broken generation can never reach Pages.
+- **`master` writers push through `ops/publish/safe_push.sh`.** It retries a rebase, aborts on a real conflict, and the push hook rejects committed conflict markers. The dashboard generation uses the separate validated data-plane publisher.
 - **Portfolio numbers are gated at the door.** `portfolio.json` — the single source of truth — is written under an advisory `flock` with read-fresh-then-overlay and atomic replace. A pre-push hook blocks any push whose book fails a money-conservation identity (`TCV = Σ value`, `cash = baseline + trades + adjustments`, `cost = moving-weighted`), and those derivations are pinned by a `pytest` suite in CI.
 - **Schedules have a checked contract.** Runtime truth comes from the live cron list; a tracked config drives the generated schedule table, DST sync, payload/watchdog checks, and CI health.
 

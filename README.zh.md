@@ -11,7 +11,7 @@
 [![Coverage](https://img.shields.io/endpoint?url=https%3A%2F%2Fkcnyu.github.io%2Fclawock%2Fassets%2Fdata%2Fcoverage.json&style=flat-square&logo=python&logoColor=white&labelColor=252b35)](https://github.com/KCNyu/clawock/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/LICENSE-MIT-aab5bf?style=flat-square&labelColor=252b35)](LICENSE)
 
-[**实时仪表盘**](https://kcnyu.github.io/clawock/) &nbsp;·&nbsp; [**每日简报**](https://kcnyu.github.io/clawock/briefs.html) &nbsp;·&nbsp; [**证据与反证**](https://kcnyu.github.io/clawock/evidence.html) &nbsp;·&nbsp; [**English**](README.md)
+[**实时仪表盘**](https://kcnyu.github.io/clawock/) &nbsp;·&nbsp; [**每日简报**](https://kcnyu.github.io/clawock/briefs.html) &nbsp;·&nbsp; [**证据与反证**](https://kcnyu.github.io/clawock/#reflect) &nbsp;·&nbsp; [**English**](README.md)
 
 <a href="https://kcnyu.github.io/clawock/">
   <img src="site/assets/social-card.png" alt="clawock —— 装进任意外部 Agent 的可迁移投资决策工作流,并由真实港美股投研台持续验证" width="820">
@@ -25,7 +25,7 @@
 |:---:|:---:|:---:|:---:|:---:|:---:|
 | 天,真实港美股账户实盘 | 条决策,账本全部公开 | 个案例由代码结算 | 8 层抓取与计算模块 | 种 Agent harness,同一份契约 | 条分数由模型给自己打 |
 
-<sub>真实持仓、真实盈亏——实盘收益 <!-- CW_M:return_pct -->−17.30%<!-- /CW_M:return_pct -->,亏损照样摆出来([原始决策记录](https://github.com/KCNyu/clawock/blob/master/memory/decisions.jsonl))——公开打分。数字与预览图每周刷新;实时仪表盘随交易日更新。</sub>
+<sub>真实持仓、真实盈亏——实盘收益 <!-- CW_M:return_pct -->−17.30%<!-- /CW_M:return_pct -->,亏损照样摆出来([原始决策记录](https://github.com/KCNyu/clawock/blob/master/memory/decisions.jsonl))——公开打分。数字与静态预览图每周刷新;仪表盘 GIF 在手动触发时更新;实时仪表盘随交易日更新。</sub>
 
 </div>
 
@@ -33,7 +33,7 @@
 
 - **收集**:8 层、43 个抓取与计算模块——行情、SEC 与港交所公告、资金流、中英文新闻、Reddit 与影响者动态,多源兜底。Python 负责抓,模型只读组装好的上下文。
 - **算因子**:量化因子、横截面排名、同业残差、趋势 × 波动率的杠杆刻度盘,全部由 Python 确定性计算。
-- **回测**:因子的聚类 bootstrap 区间要避开 50% 才准影响决策;横截面层预先登记;杠杆刻度盘样本外打分。没通过的也公开在[证据与反证](https://kcnyu.github.io/clawock/evidence.html)页。
+- **回测**:因子的聚类 bootstrap 区间要避开 50% 才准影响决策;横截面层预先登记;杠杆刻度盘样本外打分。没通过的也公开在仪表盘的 [Reflect 视图](https://kcnyu.github.io/clawock/#reflect)。
 - **决策**:四位分析师、多空两位研究员、三位风险官和一位裁判读同一份上下文,辩论出 `plan.json`。
 - **结算**:Python 用真实行情逐条结算,模型碰不到自己的分数,结果全部进公开战绩。
 
@@ -55,15 +55,15 @@ clawock 是从这个投研台里拆出来、可以复用的那部分。模型调
 
 大白话版:每天早 8 点,它把新闻、财报、公告全读一遍,让四个 AI 先吵一架,再让一个裁判拍板,最后自动记账。想赖账?代码不答应。
 
-正经版:LLM 从不自己抓数据,也不自己结算。它只做一件事:**读一份 Python 组装好的上下文文件,写一份带证据、带反方的分析**。剩下全是代码的事。
+正经版:LLM 从不自己抓数据,也不自己结算。Python 留存完整上下文供审计;盘前深度简报给模型的是同一代次的清单、固定核心和按需读取的特性 bundle,风控细节独立成包。模型读选中的文件,写带证据、带反方的分析。剩下全是代码的事。
 
-![clawock 信息流 —— 8 层 43 个模块经 Python preflight 按需组装成带指纹的 context.json;LLM 只读文件写分析;postflight 校验结算后发布](site/assets/information-flow.svg)
+![clawock 信息流 —— 8 层 43 个模块经 Python preflight 按需组装;完整上下文供审计,盘前简报模型读取同一代次的核心与选定 bundle;postflight 校验结算后发布](site/assets/information-flow.svg)
 
 ```
 数据源
   ──► preflight(Python,确定性)
-  ──► context.json(带指纹)
-  ──► LLM 读文件写分析
+  ──► 完整审计上下文 + 盘前模型核心 / bundle
+  ──► LLM 读选中的文件写分析
   ──► postflight(Python 校验)
   ──► 发布
 ```
@@ -193,7 +193,7 @@ evaluation: loss(按基准行情结算, trigger session 2026-08-10)
 
 杠杆刻度盘按样本外打分,择时能力对照环形位移原假设;**当前结论:不可与随机区分,页面如实写着**。刻度盘是**风险预算控制,不是择时信号**:它能主张的价值是恶劣 regime 里少上杠杆,「预测顶底」恰好是无法与随机区分的那部分。「未能拒绝原假设」不等于「已被证伪」,页面会说清楚是哪一种。结果不管好看不好看都发,页面从产物生成,不能与产物脱节;引用回测数字必须指向仍含该数字的运行卡,CI 两条都查。
 
-[**证据与反证**](https://kcnyu.github.io/clawock/evidence.html)
+[**证据与反证**](https://kcnyu.github.io/clawock/#reflect)
 
 ## 代码强制执行的规矩
 
@@ -312,7 +312,7 @@ dsh plugin --profile web add clawock-dsh
 
 **Decision Mind** tab 只有一个视图:主轴是真实成交(`portfolio.json` trades),
 每行挂接软配对的决策(±3 天,来自 `decisions.jsonl`)作为「当时为什么」,
-卖出单用 T+1 快照收盘价判定卖飞/卖对。点开一条成交,展开成
+卖出单用 T+1 窗口内的规范逐日行情收盘价判定卖飞/卖对,不用快照价。点开一条成交,展开成
 **计划 → 执行 → T+1 → 盈亏** 的纵向时间线,为什么(rationale)和备注用语义色
 左边框分层;情绪压力字段也在,但目前只有极少数记录填过,不是每条都有。
 没有决策的成交显式标注「无关联决策记录」——不假装有判断。
@@ -330,11 +330,12 @@ dsh plugin --profile web add clawock-dsh
 
 ## 逛一逛这套系统
 
-- [**实时仪表盘**](https://kcnyu.github.io/clawock/) —— 持仓、风控,以及自评战绩。
+- [**实时仪表盘**](https://kcnyu.github.io/clawock/) —— 持仓、风控与代码结算的战绩;手机上左右滑动六个视图,标签栏跟着当前页走。
 - [**每日简报**](https://kcnyu.github.io/clawock/briefs.html) —— 已发布的早读。
+- [**决策地图**](https://kcnyu.github.io/clawock/#reflect) —— Reflect 中并列展示决策与当时的信号快照、覆盖率及快照年龄([阅读说明](docs/decision-map.md))。
 - [**排程表**](docs/operations/cron-schedules.md) —— 生成的 cron 表。
 - [**命令参考**](docs/reference/commands.md) —— 全部 installed command(清单由 registry 生成)+ 手写的 provider 与 harness 细节。
-- [**项目文档**](docs/README.md) —— 运维、参考、法律说明与历史设计。
+- [**项目文档**](docs/README.md) —— 当前架构、产品指南、运维、参考与法律说明。
 
 ### 研究入口
 
@@ -375,10 +376,10 @@ dsh plugin --profile web add clawock-dsh
 
 ![KCNyu live desk 架构 —— Python 构建对账后的市场上下文,OpenClaw Agent 辩论交易,clawock 契约把关决策,公开战绩闭环](site/assets/architecture.svg)
 
-- 仪表盘产物整体发布到数据面(data plane);前端直接读扫描旁路文件(sidecar),写者互不冲突
-- 所有写入走 `ops/publish/safe_push.sh`:rebase 重试、真冲突中止,冲突标记在 push hook 被拒
+- 仪表盘六个产物验证后整体发布到[数据面](docs/architecture/data-plane.md):Pages 提供静态壳与冷启动快照,后续轮询读取 `data-plane` 分支;前端直接读扫描旁路文件(sidecar)
+- `master` 写者走 `ops/publish/safe_push.sh`:rebase 重试、真冲突中止,冲突标记在 push hook 被拒;仪表盘代次走独立的数据面发布器
 - `portfolio.json` 是唯一真源:advisory 文件锁 + 原子替换,pre-push hook 拦下账目不平的 push
-- 模型选择属于外部 runtime,仓库不存任何供应商密钥
+- 模型选择属于外部 runtime;跟踪的排程契约把 MiniMax-M3 列为主模型、GPT-6 Luna 列为简报/报告/盘中任务的兜底之一;仓库不存供应商密钥
 - 仓库结构、排程契约等细节见[项目文档](docs/README.md)
 
 </details>

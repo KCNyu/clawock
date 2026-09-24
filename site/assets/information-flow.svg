@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="640" height="1075" viewBox="0 0 640 1075" role="img" aria-labelledby="title desc">
-  <title id="title">clawock information flow — 8 layers, 40 modules, one certified context</title>
-  <desc id="desc">Eight information layers with 40 fetch and compute modules feed a deterministic Python preflight, which assembles only the blocks that run can act on into a fingerprinted context.json. The LLM reads that file and writes its analysis; Python postflight validates and settles; the result is published.</desc>
+  <title id="title">clawock information flow — 8 layers, 43 modules, one certified context</title>
+  <desc id="desc">Eight information layers with 43 fetch and compute modules feed a deterministic Python preflight. The full context is kept for audit; the daily brief model reads a generation-bound core and selected bundles. Python postflight validates and settles before publication.</desc>
   <defs>
     <linearGradient id="page" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0" stop-color="#fcfcfd"/>
@@ -33,10 +33,10 @@
 
   <g class="sans">
     <text x="26" y="34" class="kicker blue">INFORMATION FLOW</text>
-    <text x="26" y="66" class="title ink">8 layers · 40 modules, one</text>
+    <text x="26" y="66" class="title ink">8 layers · 43 modules, one</text>
     <text x="26" y="92" class="title ink">certified context</text>
     <text x="26" y="116" class="sub muted">Each run assembles only what that session can</text>
-    <text x="26" y="136" class="sub muted">use — the model reads a file, never fetches.</text>
+    <text x="26" y="136" class="sub muted">use — the model reads files, never fetches.</text>
 
     <!-- eight layer cards, two columns x four rows -->
     <g>
@@ -77,7 +77,7 @@
 
       <rect x="334" y="428" width="280" height="80" rx="10" class="card"/>
       <text x="350" y="454" class="layerno blue">L8 · BACKTEST</text>
-      <text x="350" y="476" class="layer ink">7 modules</text>
+      <text x="350" y="476" class="layer ink">9 modules</text>
       <text x="350" y="494" class="count muted">local snapshots + bars</text>
     </g>
 
@@ -92,12 +92,12 @@
       <path d="M320 638V666" class="wire"/>
 
       <rect x="26" y="674" width="588" height="70" rx="10" class="card"/>
-      <text x="46" y="704" class="flow ink">context.json (fingerprinted)</text>
-      <text x="46" y="726" class="flowsub muted">sha256 per document</text>
+      <text x="46" y="704" class="flow ink">audit context + brief core / bundles</text>
+      <text x="46" y="726" class="flowsub muted">generation-bound manifest and SHA-256</text>
       <path d="M320 744V772" class="wire"/>
 
       <rect x="26" y="780" width="588" height="70" rx="10" class="card"/>
-      <text x="46" y="810" class="flow ink">LLM reads the file · writes analysis</text>
+      <text x="46" y="810" class="flow ink">LLM reads selected files · writes analysis</text>
       <text x="46" y="832" class="flowsub muted">evidence + opposing case, never fetches data</text>
       <path d="M320 850V878" class="wire"/>
 

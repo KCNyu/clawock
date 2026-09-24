@@ -1,6 +1,6 @@
 # Decision Map
 
-**What it is.** One board — the Decision Map card in the dashboard's Reflect view (the old `/decimap/` page now redirects there) — that puts 741 decisions and the five registered signal
+**What it is.** One board — the Decision Map card in the dashboard's Reflect view (the old `/decimap/` page now redirects there) — that puts the decision ledger and five registered signal
 histories on the same table: for each decision, the signal values as of that
 decision's own plan date; for each signal, the decisions it was standing next to
 and what happened afterwards.
