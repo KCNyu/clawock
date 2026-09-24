@@ -7,8 +7,8 @@ Run right after shoot_dashboard.js:
     python3 site/tools/assemble_dashboard_gif.py
 
 shoot_dashboard.js writes, per tab i, a sequence .gifframes/f{i}_{0..n}.png captured
-while scrolling that tab's content top→bottom. This script plays each tab as: hold at
-top → scroll down (the captured vertical frames) → SWIPE LEFT to the next tab
+while scrolling through the first part of that tab. This script plays each tab as:
+hold at top → scroll down (the captured vertical frames) → SWIPE LEFT to the next tab
 (horizontal slide, composited here). Both axes match the dashboard's own scrollable
 panels + "‹ 左右滑动切换 ›". Quantized to a small palette to keep the file modest.
 The workflow builds it only on manual dispatch after a UI change; scheduled weekly
@@ -40,12 +40,12 @@ OW = 960             # output width (frames scaled to this; height follows aspec
                      # beside the 820px social card; ≤1280 stays real detail (no upscaling)
 COLORS = 256         # GIF max — a single global palette (built from all frames below)
                      # keeps the UI's real colors instead of washing them out to grey
-TWEENS = 6           # horizontal slide frames per transition
+TWEENS = 8           # horizontal slide frames per transition
 HOLD_TOP_MS = 1200   # dwell at the top of each tab
 HOLD_TOP_REFLECT_MS = 1900   # the self-grading tab (tab 5) lingers longest
-HOLD_BOTTOM_MS = 850         # pause once scrolled to the bottom
-VSCROLL_MS = 110     # each vertical-scroll frame
-SLIDE_MS = 80        # each horizontal-slide frame
+HOLD_BOTTOM_MS = 850         # pause after the scroll passage
+VSCROLL_MS = 80      # 12.5 fps: small scroll increments, with a stable top hold
+SLIDE_MS = 70        # eased tab switch at roughly 14 fps
 
 SEED_GLOBS = [       # where the UI's own chromatic colors are defined; scanned so
                      # their exact values can be protected in the GIF palette below
@@ -100,10 +100,10 @@ for i in range(TAB_COUNT):
         if j == 0:
             durations.append(HOLD_TOP_REFLECT_MS if i == TAB_COUNT - 1 else HOLD_TOP_MS)
         elif j == len(seq) - 1:
-            durations.append(HOLD_BOTTOM_MS)       # linger at the bottom
+            durations.append(HOLD_BOTTOM_MS)       # linger after the scroll
         else:
             durations.append(VSCROLL_MS)
-    # horizontal swipe from this tab's last (bottom) frame to the next tab's top
+    # horizontal swipe from this tab's last frame to the next tab's top
     out_frame = seq[-1]
     for k in range(1, TWEENS + 1):
         off = int(OW * _ease(k / (TWEENS + 1)))
