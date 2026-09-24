@@ -1,4 +1,4 @@
-"""What the 08:00 brief already decided, for the crons that run after it.
+"""What the 08:03 brief already decided, for the crons that run after it.
 
 The daily deep brief writes `memory/{date}-plan.json` and appends its decisions to
 `memory/decisions.jsonl`. Until this module existed, nothing downstream read either
@@ -203,7 +203,7 @@ def triggered_conditions(plan_context, prices):
             continue
         if not (last >= target if kind == "price_above" else last <= target):
             continue
-        # One line per condition, not per row that restates it. The 08:00 brief
+        # One line per condition, not per row that restates it. The 08:03 brief
         # re-hangs an unfilled order under a fresh decision_id, so on
         # 2026-09-07 the same 00100 trim at ≥365 was open twice — today's and
         # the 9/4 one it had already failed to execute. Printing it twice is

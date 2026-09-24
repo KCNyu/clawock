@@ -23,7 +23,7 @@ heavy enters an intraday path.
 ## Why the daily items are daily
 
 They read local JSON only — no network, no LLM, no market data. Running them in
-the 08:00 brief preflight costs nothing measurable and puts the answer in front of
+the 08:03 brief preflight costs nothing measurable and puts the answer in front of
 the one process that already reports every morning. That is the whole reason they
 are daily: a work queue nobody sees is the same as no queue.
 

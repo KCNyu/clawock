@@ -28,6 +28,17 @@ def test_a_lowercase_phrase_inside_an_ordinary_word_is_not_a_placeholder():
     assert validate_forbidden_phrases('Mastodon 社区讨论升温', report.FORBIDDEN_PHRASES) == []
 
 
+@pytest.mark.parametrize('token', [
+    'TODO123', 'TODO_123', 'TBD-456', 'TBD:789', 'TODO.123', 'TODO_abc',
+])
+def test_numbered_references_are_not_standalone_placeholders(token):
+    assert validate_forbidden_phrases(f'跟踪 {token} 的进度', report.FORBIDDEN_PHRASES) == []
+
+
+def test_a_placeholder_with_sentence_punctuation_is_still_caught():
+    assert validate_forbidden_phrases('TODO: 稍后补充', report.FORBIDDEN_PHRASES)
+
+
 @pytest.mark.parametrize('phrase', report.FORBIDDEN_PHRASES)
 def test_intraday_refuses_every_placeholder_report_refuses(phrase):
     prose = (f'▎我的看法\n恒指夜期波动加剧席位分歧明显加大，相关环节{phrase}，'
