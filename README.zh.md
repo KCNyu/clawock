@@ -21,11 +21,11 @@
 
 <a href="https://kcnyu.github.io/clawock/"><img src="site/assets/dashboard.gif" alt="clawock 仪表盘循环切换各标签页" width="820"></a>
 
-| **<!-- CW_M:days -->127<!-- /CW_M:days -->** | **<!-- CW_M:rows -->881<!-- /CW_M:rows -->** | **<!-- CW_M:settled -->144<!-- /CW_M:settled -->** | **43** | **5** | **0** |
+| **<!-- CW_M:days -->130<!-- /CW_M:days -->** | **<!-- CW_M:rows -->917<!-- /CW_M:rows -->** | **<!-- CW_M:settled -->147<!-- /CW_M:settled -->** | **43** | **5** | **0** |
 |:---:|:---:|:---:|:---:|:---:|:---:|
 | 天,真实港美股账户实盘 | 条决策,账本全部公开 | 个案例由代码结算 | 8 层抓取与计算模块 | 种 Agent harness,同一份契约 | 条分数由模型给自己打 |
 
-<sub>真实持仓、真实盈亏——实盘收益 <!-- CW_M:return_pct -->−17.30%<!-- /CW_M:return_pct -->,亏损照样摆出来([原始决策记录](https://github.com/KCNyu/clawock/blob/master/memory/decisions.jsonl))——公开打分。数字与静态预览图每周刷新;仪表盘 GIF 在手动触发时更新;实时仪表盘随交易日更新。</sub>
+<sub>真实持仓、真实盈亏——实盘收益 <!-- CW_M:return_pct -->−21.54%<!-- /CW_M:return_pct -->,亏损照样摆出来([原始决策记录](https://github.com/KCNyu/clawock/blob/master/memory/decisions.jsonl))——公开打分。数字与静态预览图每周刷新;仪表盘 GIF 在手动触发时更新;实时仪表盘随交易日更新。</sub>
 
 </div>
 
@@ -150,12 +150,12 @@ clawock 是从这个投研台里拆出来、可以复用的那部分。模型调
 
 <sub><i>“市场不在乎模型有多自信。”</i></sub>
 
-截至 <!-- CW_M:as_of -->2026-09<!-- /CW_M:as_of -->,这个投研台已经公开结算了 **<!-- CW_M:settled -->144<!-- /CW_M:settled --> 条判断**,Python 独立打分:
+截至 <!-- CW_M:as_of -->2026-09<!-- /CW_M:as_of -->,这个投研台已经公开结算了 **<!-- CW_M:settled -->147<!-- /CW_M:settled --> 条判断**,Python 独立打分:
 
 | 组 | 方向命中率 | 样本 |
 |---|---|---|
-| 主动建议(cut / trim / 加仓) | <!-- CW_M:active_pct -->51%<!-- /CW_M:active_pct --> | n=<!-- CW_M:active_n -->51<!-- /CW_M:active_n --> |
-| 只是躺着 hold | <!-- CW_M:hold_pct -->34%<!-- /CW_M:hold_pct --> | n=<!-- CW_M:hold_n -->94<!-- /CW_M:hold_n --> |
+| 主动建议(cut / trim / 加仓) | <!-- CW_M:active_pct -->52%<!-- /CW_M:active_pct --> | n=<!-- CW_M:active_n -->52<!-- /CW_M:active_n --> |
+| 只是躺着 hold | <!-- CW_M:hold_pct -->35%<!-- /CW_M:hold_pct --> | n=<!-- CW_M:hold_n -->95<!-- /CW_M:hold_n --> |
 | 高信心主动判断 | <!-- CW_M:hi_pct -->57%<!-- /CW_M:hi_pct --> | n=<!-- CW_M:hi_n -->14<!-- /CW_M:hi_n --> |
 
 翻译成人话:**每 10 次主动判断,对 5 次半——跟抛硬币差不多,连作者都承认。** 所以它只敢吹「不骗你」,不敢吹「赚多少」。
@@ -168,10 +168,10 @@ clawock 是从这个投研台里拆出来、可以复用的那部分。模型调
 
 | 线 | 数字 | 口径 |
 |---|---|---|
-| **决策账本** | <!-- CW_M:rows -->881<!-- /CW_M:rows --> 条记录 → **<!-- CW_M:settled -->144<!-- /CW_M:settled -->** 个已结算案例 | 含重申归组,同一论点重复喊单只算一次;全部公开 |
-| **方向命中率** | 主动 **<!-- CW_M:active_pct -->51%<!-- /CW_M:active_pct -->**(n=<!-- CW_M:active_n -->51<!-- /CW_M:active_n -->) | 模型判断的方向对不对,按基准行情结算——**与盈亏无关** |
+| **决策账本** | <!-- CW_M:rows -->917<!-- /CW_M:rows --> 条记录 → **<!-- CW_M:settled -->147<!-- /CW_M:settled -->** 个已结算案例 | 含重申归组,同一论点重复喊单只算一次;全部公开 |
+| **方向命中率** | 主动 **<!-- CW_M:active_pct -->52%<!-- /CW_M:active_pct -->**(n=<!-- CW_M:active_n -->52<!-- /CW_M:active_n -->) | 模型判断的方向对不对,按基准行情结算——**与盈亏无关** |
 | **影子组合**(模拟,非实盘) | 跟随建议 vs 买入持有 | 同一时间线、同日收盘计价回放,见[持仓页](https://kcnyu.github.io/clawock/#drill) |
-| **真实账户** | 收益 **<!-- CW_M:return_pct -->−17.30%<!-- /CW_M:return_pct -->**(实盘,已实现 + 浮动) | 决策执行:followed <!-- CW_M:followed -->466<!-- /CW_M:followed --> / not_followed <!-- CW_M:not_followed -->369<!-- /CW_M:not_followed --> 条 |
+| **真实账户** | 收益 **<!-- CW_M:return_pct -->−21.54%<!-- /CW_M:return_pct -->**(实盘,已实现 + 浮动) | 决策执行:followed <!-- CW_M:followed -->500<!-- /CW_M:followed --> / not_followed <!-- CW_M:not_followed -->372<!-- /CW_M:not_followed --> 条 |
 
 **谁决定跟进?账户所有者。** 每条跟进/不跟进都有记录与来源;在跟进规则集公开审计之前,请把账户收益当作**人机混合的成绩**,而不是模型单独的成绩——这一点我们明说,不藏。
 
@@ -183,13 +183,13 @@ episode: ep-20260731-spcx-hold
 evaluation: loss(按基准行情结算, trigger session 2026-08-10)
 ```
 
-<!-- CW_M:rows -->881<!-- /CW_M:rows --> 条这样的记录全部公开。**每条建议都带执行状态**(followed <!-- CW_M:followed -->466<!-- /CW_M:followed --> / not_followed <!-- CW_M:not_followed -->369<!-- /CW_M:not_followed --> / unknown <!-- CW_M:unknown -->46<!-- /CW_M:unknown -->);影子组合用模拟成交回放,专门暴露「建议 → 成交」的配对差距,而不是藏起来。
+<!-- CW_M:rows -->917<!-- /CW_M:rows --> 条这样的记录全部公开。**每条建议都带执行状态**(followed <!-- CW_M:followed -->500<!-- /CW_M:followed --> / not_followed <!-- CW_M:not_followed -->372<!-- /CW_M:not_followed --> / unknown <!-- CW_M:unknown -->45<!-- /CW_M:unknown -->);影子组合用模拟成交回放,专门暴露「建议 → 成交」的配对差距,而不是藏起来。
 
 命中率 = 模型判断的方向对不对(按基准行情结算);账户收益 = 实盘执行结果。两回事,都公开。
 
 ## 测了什么，什么没通过
 
-诚实到数字层面:主动建议 <!-- CW_M:active_pct -->51%<!-- /CW_M:active_pct --> 命中率,样本 <!-- CW_M:active_n -->51<!-- /CW_M:active_n --> 条,95% 置信区间约 <!-- CW_M:active_ci -->37%–65%<!-- /CW_M:active_ci -->;高信心组 <!-- CW_M:hi_pct -->57%<!-- /CW_M:hi_pct -->,样本 <!-- CW_M:hi_n -->14<!-- /CW_M:hi_n --> 条,区间约 <!-- CW_M:hi_ci -->31%–83%<!-- /CW_M:hi_ci -->——**点估计均跨过 50%,但 95% 置信区间包含 50%,统计上还不能算优势**。这正是我们不做收益宣传的原因:该是噪声的地方,就标成噪声——而分辨「edge 还是手痒」,就是这套系统唯一在卖的东西:它不替你赚钱,它替你证明每一笔判断值不值得信。
+诚实到数字层面:主动建议 <!-- CW_M:active_pct -->52%<!-- /CW_M:active_pct --> 命中率,样本 <!-- CW_M:active_n -->52<!-- /CW_M:active_n --> 条,95% 置信区间约 <!-- CW_M:active_ci -->38%–66%<!-- /CW_M:active_ci -->;高信心组 <!-- CW_M:hi_pct -->57%<!-- /CW_M:hi_pct -->,样本 <!-- CW_M:hi_n -->14<!-- /CW_M:hi_n --> 条,区间约 <!-- CW_M:hi_ci -->31%–83%<!-- /CW_M:hi_ci -->——**点估计均跨过 50%,但 95% 置信区间包含 50%,统计上还不能算优势**。这正是我们不做收益宣传的原因:该是噪声的地方,就标成噪声——而分辨「edge 还是手痒」,就是这套系统唯一在卖的东西:它不替你赚钱,它替你证明每一笔判断值不值得信。
 
 杠杆刻度盘按样本外打分,择时能力对照环形位移原假设;**当前结论:不可与随机区分,页面如实写着**。刻度盘是**风险预算控制,不是择时信号**:它能主张的价值是恶劣 regime 里少上杠杆,「预测顶底」恰好是无法与随机区分的那部分。「未能拒绝原假设」不等于「已被证伪」,页面会说清楚是哪一种。结果不管好看不好看都发,页面从产物生成,不能与产物脱节;引用回测数字必须指向仍含该数字的运行卡,CI 两条都查。
 
