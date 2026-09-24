@@ -749,6 +749,16 @@ def prepend_delta_lead(block, delta, *, current, previous):
     return '\n'.join([lines[0], lead, *lines[1:]])
 
 
+def prepend_coverage_warning(block, coverage):
+    """A full card must disclose incomplete quotes, as the receipt already does."""
+    missing = coverage.get('unrefreshed') or []
+    if not missing:
+        return block
+    lines = block.splitlines()
+    warning = '⚠️ 行情未证实完整刷新：' + '、'.join(missing)
+    return '\n'.join([*lines[:2], warning, *lines[2:]])
+
+
 def strip_generic_news(block):
     """Drop the analyzer's repeated, truncated headline feed from intraday cards.
 
@@ -1180,6 +1190,7 @@ def main(argv=None):
         raw_block = prepend_delta_lead(
             raw_block, semantic_delta, current=semantic_state,
             previous=prior_state)
+        raw_block = prepend_coverage_warning(raw_block, coverage)
         should_alert, alert_reasons = apply_plan_trigger_alert(
             should_alert, alert_reasons, plan_triggers)
         delivery_mode = 'full_delta'

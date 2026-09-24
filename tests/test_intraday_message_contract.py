@@ -18,6 +18,15 @@ def test_delta_header_names_new_trigger_before_table():
     assert block.index('变化：') < block.index('| 代码')
 
 
+def test_full_card_discloses_unverified_quote_coverage():
+    block = pre.prepend_coverage_warning(
+        '🇺🇸 美股盯盘\n变化：本交易日首档\n\n| 代码 | 现价 |',
+        {'unrefreshed': ['SPCH', 'SPCX']},
+    )
+    assert block.splitlines()[2] == '⚠️ 行情未证实完整刷新：SPCH、SPCX'
+    assert '| 代码 |' in block
+
+
 def test_generic_headline_feed_is_not_repeated_in_intraday_card():
     block = ('🇺🇸 美股盯盘\n| CRCL | 1 |\n📰 新闻\n'
              '📰 CRCL (5条)\n   · old clipped headline\n\n'
