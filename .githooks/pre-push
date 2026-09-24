@@ -77,9 +77,7 @@ python3 "$WS/ops/system_check.py" || RC=$?
 # RC=0 all OK, RC=2 warnings only (must not block). ANY other code means the
 # checker did not deliver a verdict — interpreter missing (127), killed (137),
 # interrupted (130), unhandled traceback (1 is already blocked). Blocking only
-# RC=1 left every one of those as a silent pass, which is the same fail-open the
-# scan itself was just fixed for: a security gate that cannot run must not
-# certify. Override stays available via --no-verify.
+# RC=1 left every one of those as a silent pass, a missing verdict must not be read as a pass. Override stays available via --no-verify.
 if [ "$RC" != "0" ] && [ "$RC" != "2" ]; then
   echo
   if [ "$RC" = "1" ]; then
