@@ -77,6 +77,7 @@ def test_the_frame_names_one_half_writes_are_the_names_the_other_half_reads():
     # name the other side accepts.
     for template in written:
         name = (template.replace("${i}", "3").replace("${j}", "7")
+                        .replace("${steps}", "7")
                         .replace("_0.png", "_0.png"))
         assert re.fullmatch(r"f\d+_\d+\.png", name), (
             f"frame name {name!r} is not the f<tab>_<index>.png the assembler reads")
@@ -122,6 +123,9 @@ def test_the_assembler_really_builds_a_gif_from_real_frames(tmp_path):
     # animation, not a single frame, and every tab must be represented.
     assert getattr(built, "n_frames", 1) > tabs, (
         f"only {getattr(built, 'n_frames', 1)} frames for {tabs} tabs")
+    for index in range(built.n_frames):
+        built.seek(index)
+        assert built.disposal_method == 1, f"frame {index} clears the previous frame"
     assert f"{tabs} tabs" in done.stdout or "frames" in done.stdout, done.stdout
 
 

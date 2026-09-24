@@ -2,7 +2,7 @@ name: README Refresh (screenshots + metrics)
 
 # One workflow keeps every README current:
 #   screenshots — re-shoot the live dashboard so README visuals never drift >7
-#                 days (two small PNGs weekly; the 8MB GIF only on manual run)
+#                 days (two small PNGs weekly; the GIF only on manual run)
 #   dsh shot    — re-shoot the Decision Mind tab when a DSH origin is provided
 #                 (dispatch input or DSH_URL variable); skipped on the hosted
 #                 runner, which has no DSH and no desk
@@ -96,6 +96,9 @@ jobs:
             site/assets/dashboard.gif
             site/assets/social-card.png
             site/assets/shadow-backtest.png
+            .gifframes/capture-manifest.json
+            .gifframes/bottom-*.png
+          include-hidden-files: true
           if-no-files-found: error
 
       # The Decision Mind capture is evidence of the plugin running inside a

@@ -328,11 +328,14 @@ function socialCardHTML(shotDataUri) {
       await gp.goto(URL, { waitUntil: 'networkidle', timeout: 45000 });
       await gp.evaluate(() => document.fonts.ready);
       const counts = [];
+      const captures = [];
       for (let i = 0; i < TABS.length; i++) {
         await gp.locator(`[data-tab=${TABS[i]}]`).click();
         await gp.waitForFunction((tab) => {
           const panel = document.querySelector(`[data-panel=${tab}]`);
           if (!panel?.classList.contains('active') || panel.textContent.trim().length < 100) return false;
+          if (panel.getAttribute('aria-busy') === 'true') return false;
+          if (document.querySelector(`[data-tab=${tab}]`)?.getAttribute('aria-selected') !== 'true') return false;
           return [...panel.querySelectorAll('canvas')].every(c => c.width > 50 && c.height > 50);
         }, TABS[i], { timeout: 45000 });
         await gp.evaluate(async (tab) => {
@@ -342,23 +345,47 @@ function socialCardHTML(shotDataUri) {
         }, TABS[i]);
         // ECharts finishes its initial animation and the browser paints the tab.
         await gp.waitForTimeout(900);
-        const over = await gp.evaluate(() => document.scrollingElement.scrollHeight - innerHeight);
-        // A demo should show a readable passage through the first two screens,
-        // not race across a very long dashboard in the same number of frames.
-        const travel = Math.min(over, 1440);
-        const steps = travel > 120 ? Math.ceil(travel / 80) : 0;
         await gp.screenshot({ path: `${FRAME_DIR}/f${i}_0.png`, animations: 'disabled' });
-        for (let j = 1; j <= steps; j++) {
-          await gp.evaluate(([position, total, distance]) => {
+        let steps = 0;
+        let previous = -1;
+        while (true) {
+          const position = await gp.evaluate(() => {
             const el = document.scrollingElement;
-            el.scrollTop = Math.round(distance * position / total);
-          }, [j, steps, travel]);
-          // Two paint opportunities reveal lazy content before each screenshot.
+            return { top: el.scrollTop, bottom: el.scrollHeight - el.clientHeight };
+          });
+          if (position.bottom - position.top <= 1) {
+            // Give lazy content one last chance to extend the document at its end.
+            await gp.waitForTimeout(120);
+            const final = await gp.evaluate(() => {
+              const el = document.scrollingElement;
+              return { top: el.scrollTop, bottom: el.scrollHeight - el.clientHeight };
+            });
+            if (final.bottom - final.top <= 1) {
+              captures.push({ tab: TABS[i], frames: steps + 1, ...final });
+              fs.copyFileSync(`${FRAME_DIR}/f${i}_${steps}.png`, `${FRAME_DIR}/bottom-${TABS[i]}.png`);
+              break;
+            }
+          }
+          if (steps >= 500 || position.top <= previous) throw new Error(`scroll stalled in ${TABS[i]} at ${position.top}/${position.bottom}`);
+          previous = position.top;
+          await gp.evaluate(() => {
+            const el = document.scrollingElement;
+            el.scrollTop = Math.min(el.scrollTop + 120, el.scrollHeight - el.clientHeight);
+          });
           await gp.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
-          await gp.screenshot({ path: `${FRAME_DIR}/f${i}_${j}.png`, animations: 'disabled' });
+          await gp.evaluate(async () => {
+            const visible = [...document.images].filter(img => {
+              const r = img.getBoundingClientRect();
+              return r.bottom > 0 && r.top < innerHeight;
+            });
+            await Promise.all(visible.map(img => img.decode().catch(() => {})));
+          });
+          steps++;
+          await gp.screenshot({ path: `${FRAME_DIR}/f${i}_${steps}.png`, animations: 'disabled' });
         }
         counts.push(steps + 1);
       }
+      fs.writeFileSync(`${FRAME_DIR}/capture-manifest.json`, JSON.stringify(captures, null, 2));
       await gifCtx.close();
       console.log('gif frames per tab:', counts.join(','));
       console.log(`✓ win-rate chart + social card; ${TABS.length} gif tabs → ${FRAME_DIR}`);
