@@ -1221,6 +1221,9 @@
     const igErr = ig.error_count || 0;
     const igWarn = ig.warn_count || 0;
     const igTop = ig.top || [];
+    const levelOf = t => String(t.level || "").toUpperCase() || "INFO";
+    // INFO 只是读数，不是发现：「0 异常」旁边不能印一条像告警的原文。
+    const igFinding = igTop.find(t => ["ERROR", "WARN"].includes(levelOf(t)));
     const files = (bs.files || []).slice();
     const late = files.filter(f => f.present === false || f.stale);
     const wf = safe(DATA, "workflow_outcomes") || {};
@@ -1240,10 +1243,16 @@
       .filter(r => states.includes((r || {}).status))
       .map(r => ({ job: r.job || "未具名任务", what: SOFT_CN[r.status] || r.status || "",
                    status: r.status, slot: String(r.slot || "").slice(0, 16).replace("T", " ") }));
+    // 同一个任务的几档合成一条：「A 降级 2 档、B 降级」，而不是把 A 念两遍。
     const nameThem = (total, rows) => {
       if (!rows.length) return "";
-      const head = rows.slice(0, 2).map(r => `${r.job} ${r.what}`).join("、");
-      return total > 2 ? `${head} 等 ${total} 档` : head;
+      const groups = [];
+      rows.forEach(r => {
+        const hit = groups.find(g => g.job === r.job && g.what === r.what);
+        if (hit) hit.n += 1; else groups.push({ job: r.job, what: r.what, n: 1 });
+      });
+      const head = groups.slice(0, 2).map(g => `${g.job} ${g.what}${g.n > 1 ? ` ${g.n} 档` : ""}`).join("、");
+      return groups.length > 2 || total > rows.length ? `${head} 等 ${total} 档` : head;
     };
 
     const usage = f => {
@@ -1284,7 +1293,7 @@
     const todo = [];
     late.forEach(f => todo.push({ name: dataFileCn(f.name), where: f.name, why: detailOf(f),
       next: f.present === false ? "文件没生成，查它的生成任务" : "页面上这块是旧数字，查它的生成任务" }));
-    igTop.filter(t => String(t.level || "").toUpperCase() === "ERROR").forEach(t => todo.push({
+    igTop.filter(t => levelOf(t) === "ERROR").forEach(t => todo.push({
       name: "体检", where: String(t.code || ""), why: String(t.msg || ""),
       next: "看 assets/data/integrity_report.json" }));
     const cronTodo = scheduleStale ? [] : cells.filter(c => dhSlotDisposition(c.slot) === "needs_action");
@@ -1353,8 +1362,8 @@
       { key: "integrity", label: "体检",
         tone: igErr ? "bad" : (igWarn ? "warn" : "ok"), state: igErr ? "需处理" : (igWarn ? "观察" : "正常"),
         value: String(igErr || igWarn || 0), unit: igErr ? "ERROR" : (igWarn ? "WARN" : "异常"),
-        note: igTop.length ? String(igTop[0].msg || igTop[0].code || "")
-          : "本轮没有 ERROR 也没有 WARN" },
+        note: igFinding ? String(igFinding.msg || igFinding.code || "")
+          : `本轮没有 ERROR 也没有 WARN${igTop.length ? `，另有 ${igTop.length} 条 INFO` : ""}` },
       { key: "delivery", label: winH ? `成品 · ${winH}h` : "成品",
         tone: failed ? "bad" : (soft ? "warn" : "ok"), state: failed ? "需处理" : (soft ? "观察" : "正常"),
         value: slotTotal ? `${deliveredCount}/${slotTotal}` : DASH, unit: "送达",
@@ -1399,11 +1408,13 @@
       return item(dataFileCn(f.name), f.name, detailOf(f),
         dhState(bad ? "bad" : "ok", f.present === false ? "缺失" : (f.stale ? "逾期" : "在期")));
     }).join("");
-    const integrityPanel = igTop.length ? igTop.map(t => {
-      const level = String(t.level || "").toUpperCase() || "INFO";
-      return item(level, String(t.code || ""), String(t.msg || ""),
-        dhState(level === "ERROR" ? "bad" : "warn", level === "ERROR" ? "需处理" : "观察"));
-    }).join("") : item("无异常", "", "这一轮体检没有 ERROR 也没有 WARN", dhState("ok", "正常"));
+    const integrityPanel = (igFinding ? "" : item("无异常", "", "这一轮体检没有 ERROR 也没有 WARN", dhState("ok", "正常")))
+      + igTop.map(t => {
+        const level = levelOf(t);
+        return item(level, String(t.code || ""), String(t.msg || ""),
+          level === "ERROR" ? dhState("bad", "需处理") : level === "WARN" ? dhState("warn", "观察")
+            : dhState("idle", "仅供参考"));
+      }).join("");
     const softRows = slotsWith("failed", "recovered", "degraded").map(r => item(r.job, r.slot,
       r.status === "failed" ? "成品未落地" : `${r.what}，成品已送达`,
       dhState(r.status === "failed" ? "bad" : "warn", r.status === "failed" ? "需处理" : "观察"))).join("");
