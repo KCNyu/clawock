@@ -1,10 +1,8 @@
-"""The intraday delta gate must be switchable without being deleted.
+"""The intraday delta gate stays switchable after the quiet-slot contract.
 
-#532/#533 established the contract: every open-market slot stays visible, an
-unchanged slot sends a compact receipt instead of repeating the full block, and
-"semantic deduplication must never become a skip/no-send gate". kcn asked on
-2026-08-17 to see the full block on every slot for a while. That is a toggle,
-not a reason to remove the gate — so these tests pin both directions.
+The 2026-09-24 review supersedes #532/#533's user-visible receipt: a healthy
+unchanged slot records a heartbeat and exact-slot marker without delivery.
+`always_full` remains an explicit override for every-slot full cards.
 """
 import json
 import sys
@@ -61,7 +59,7 @@ def test_a_broken_or_ambiguous_toggle_falls_back_to_the_gate(monkeypatch, worksp
 
 
 def test_the_live_workspace_toggle_is_delta_first():
-    """The 2026-09-24 intraday contract keeps every slot visible without full repetition."""
+    """The current default is auditable silence for healthy semantic repeats."""
     doc = json.loads((ROOT / 'config' / 'intraday-delivery.json').read_text())
     assert doc['always_full'] is False
-    assert doc.get('note')
+    assert '静默' in doc['note']

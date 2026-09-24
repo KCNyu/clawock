@@ -642,7 +642,7 @@ def build_parser() -> argparse.ArgumentParser:
         harness.add_argument("--dry-run", action="store_true")
         if workflow == "intraday":
             harness.add_argument("--judgment-packet", action="store_true",
-                                 help="print the bounded model packet; keep full context on disk")
+                                 help="print the complete decision context; keep the same context on disk")
         harness.add_argument("--workspace", type=Path, default=None)
         harness.add_argument(
             "--profile", dest="runtime_profile",

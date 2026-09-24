@@ -720,12 +720,10 @@ def test_brief_uses_the_installed_calendar_command():
 def test_intraday_slots_are_unconditional_again():
     """Every Mode 7 slot runs the turn; no pre-model condition gate.
 
-    The delta trigger (#46 / #61) skipped slots where nothing crossed a
-    threshold. It saved model workload, but kcn's constraint is not cost — a
-    silent slot is indistinguishable from a dead cron, and the whole point of
-    the intraday cadence is being able to look at any slot. The contract now
-    carries no trigger, and a live job that still has one is a drift error
-    rather than the expected state.
+    The old pre-model trigger (#46 / #61) left skipped slots ambiguous.
+    The reviewed no-change path still runs every slot and records an auditable
+    heartbeat plus exact-slot marker before withholding a user message. The
+    contract carries no trigger; a live job with one is still drift.
     """
     data = contract()
     profile = data['payload_profiles']['intraday']

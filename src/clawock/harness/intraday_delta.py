@@ -36,7 +36,7 @@ def load_delivered_state(workspace, market):
 
 
 def persist_delivered_state(workspace, ctx):
-    """Advance the comparison cursor only after a real channel delivery."""
+    """Advance after a delivered card or a verified healthy no-change outcome."""
     market = ctx.get("market")
     state = ctx.get("semantic_state")
     if market not in {"hk", "us"} or not isinstance(state, dict):
@@ -153,7 +153,9 @@ def semantic_state(market, session_date, *, signals_detail, anomalies, setups,
 def compare_semantic_states(current, previous):
     previous = previous if isinstance(previous, dict) else {}
     keys = ("session", "breaches", "setups", "plans", "primary_events",
-            "primary_source_health", "regime")
+            "primary_source_health", "regime", "strategy_policies",
+            "strategy_conflicts",
+            "soft_candidates_seen")
     components = [key for key in keys if current.get(key) != previous.get(key)]
     old_events = previous.get("primary_events") or {}
     new_events = current.get("primary_events") or {}

@@ -82,6 +82,7 @@ TMP = WS / 'memory' / '.tmp'
 from clawock.automation import cron_heartbeat  # noqa: E402
 from clawock.automation import delivery_receipts  # noqa: E402
 from clawock.harness import intraday_delta  # noqa: E402
+from clawock.harness.intraday_preflight import can_silence  # noqa: E402
 
 # A report file older than this is assumed to be a previous slot's leftover. Kept
 # below the 30min slot cadence (and aligned with the already_delivered window) so a
@@ -93,9 +94,9 @@ REQUIRED_SECTION = '▎我的看法'
 # never gained '数据缺失（占位）' and let that placeholder ship intraday (#1776).
 from clawock.harness.report import FORBIDDEN_PHRASES  # noqa: E402
 CRITICAL_KEYWORDS = ['缺段标记', '未包含原始数据块', '敷衍词',
-                     '表格行未 verbatim', 'SPCH 策略冲突']
-JUDGMENT_SOFT_LIMIT = 320
-JUDGMENT_HARD_LIMIT = 600
+                     '表格行未 verbatim', '策略冲突', '策略证据不足']
+JUDGMENT_SOFT_LIMIT = 600
+JUDGMENT_REVIEW_LIMIT = 900
 
 
 def load_context(market):
@@ -266,8 +267,8 @@ def validate(text, ctx, model_text):
 
     # Only the model slot is bounded here; the harness-owned table can be long
     # without forcing the model to copy it or making a sound quote fail.
-    if len(checked) > JUDGMENT_HARD_LIMIT:
-        issues.append(f'判断段长度 {len(checked)} 字 > {JUDGMENT_HARD_LIMIT} 上限')
+    if len(checked) > JUDGMENT_REVIEW_LIMIT:
+        issues.append(f'判断段长度 {len(checked)} 字 > {JUDGMENT_REVIEW_LIMIT} 软上限 (warn)')
     elif len(checked) > JUDGMENT_SOFT_LIMIT:
         issues.append(f'判断段长度 {len(checked)} 字 > {JUDGMENT_SOFT_LIMIT} 软上限 (warn)')
 
@@ -331,11 +332,49 @@ def validate(text, ctx, model_text):
     # 管线术语 —— advisory，见 check_pipeline_self_reference
     issues.extend(check_pipeline_self_reference(checked))
 
-    if ctx.get('market') == 'us' and re.search(
-            r'SPCH[^。\n]{0,75}(?:砍仓|砍掉|清仓|减仓|止损|cut|trim)'
-            r'|(?:砍仓|砍掉|清仓|减仓|止损|cut|trim)[^。\n]{0,75}SPCH',
-            checked, re.IGNORECASE):
-        issues.append('SPCH 策略冲突：盘中判断建议了砍仓/减仓/止损')
+    for ticker, policy in (ctx.get('holding_policies') or {}).items():
+        if not policy.get('forbid_reduce_advice'):
+            continue
+        for sentence in re.split(r'[。；\n]', checked):
+            if not re.search(rf'\b{re.escape(ticker)}\b', sentence, re.IGNORECASE):
+                continue
+            if not re.search(r'砍仓|砍掉|清仓|减仓|止损|\bcut\b|\btrim\b',
+                             sentence, re.IGNORECASE):
+                continue
+            # A factual mention of the old open order is necessary to explain
+            # a strategy conflict. Only prescriptive copy breaches the policy.
+            # A sentence may mention the old plan and then issue a new order;
+            # evaluate each clause so "旧计划" cannot exempt the next clause.
+            for clause in re.split(r'[，,]', sentence):
+                if not re.search(r'砍仓|砍掉|清仓|减仓|止损|\bcut\b|\btrim\b',
+                                 clause, re.IGNORECASE):
+                    continue
+                directive = re.search(
+                    r'建议|应当|应该|必须|立即|现在|继续|执行|先砍|先减|砍\s*\d|减\s*\d',
+                    clause)
+                if directive and not re.search(
+                        r'不(?:再|要|应|建议|重复)[^。；，,\n]{0,35}'
+                        r'(?:砍仓|砍掉|清仓|减仓|止损|\bcut\b|\btrim\b)',
+                        clause, re.IGNORECASE):
+                    issues.append(f'{ticker} 策略冲突：盘中判断建议了砍仓/减仓/止损')
+                    break
+
+    unavailable_checks = [row for row in (ctx.get('strategy_checks') or [])
+                          if row.get('status') == 'unavailable']
+    if unavailable_checks:
+        for sentence in re.split(r'[。；\n]', checked):
+            if not re.search(r'未触发|未达到|没到|未破', sentence):
+                continue
+            if ('P0' in sentence or any(
+                    row.get('ticker') and re.search(
+                        rf'\b{re.escape(row["ticker"])}\b', sentence)
+                    and (('单日' in sentence or '今日' in sentence)
+                         if row.get('window') == 'session'
+                         else ('五日' in sentence or '五交易日' in sentence
+                               or '单周' in sentence))
+                    for row in unavailable_checks)):
+                issues.append('策略证据不足：来源不可用时宣称升级条件未触发')
+                break
 
     return issues
 
@@ -417,6 +456,45 @@ def publish_data_plane(market):
         return 'publish_failed', False
 
 
+def finish_no_change(ctx, args, *, allow_soft_review=False):
+    if args.context_id != ctx.get('context_id') or not can_silence(
+            ctx, allow_soft_review=allow_soft_review):
+        return input_error(args.market, 'no_change context 不匹配或健康闸未通过')
+    data_plane_status, dashboard_published = publish_data_plane(args.market)
+    if data_plane_status not in {'published', 'current'}:
+        return input_error(args.market, f'no_change dashboard 发布失败: {data_plane_status}')
+    try:
+        if not intraday_delta.persist_delivered_state(WS, ctx):
+            return input_error(args.market, 'no_change 语义游标未写入')
+    except OSError as exc:
+        return input_error(args.market, f'no_change 语义游标写入失败: {exc}')
+    heartbeat = ctx.get('heartbeat') or {}
+    marker = delivery_receipts.receipt_path(TMP, 'intraday', market=args.market)
+    first = (ctx.get('raw_wechat_block') or '').splitlines()
+    try:
+        safe_write_text(str(marker), json.dumps(delivery_marker_payload(
+            ctx, ts=int(datetime.now().timestamp() * 1000), sent_ok=None,
+            tg_ok=None, first_line=first[0] if first else '',
+            market=args.market, out='healthy semantic no_change',
+            delivery_state='no_change'), ensure_ascii=False))
+    except OSError as exc:
+        return input_error(args.market, f'no_change marker 写入失败: {exc}')
+    cron_heartbeat.record(args.market, 'no_change',
+                          job_name=heartbeat.get('job'), slot=heartbeat.get('slot'),
+                          should_alert=False, reasoning_invoked=allow_soft_review,
+                          dashboard_published=dashboard_published,
+                          data_plane_status=data_plane_status)
+    print(json.dumps({
+        'status': 'no_change', 'market': args.market, 'mode': 'no_change',
+        'wechat_sent': None, 'telegram_sent': None,
+        'dashboard_published': dashboard_published,
+        'data_plane_status': data_plane_status,
+        'heartbeat': {'job': heartbeat.get('job'), 'slot': heartbeat.get('slot'),
+                      'state': 'no_change'},
+    }, ensure_ascii=False, indent=2))
+    return 0
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser()
     parser.add_argument('--market', choices=['hk', 'us'], required=True)
@@ -450,6 +528,16 @@ def main(argv=None):
         }
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 2
+
+    if ctx.get('delivery_mode') == 'no_change':
+        return finish_no_change(ctx, args)
+
+    if ctx.get('delivery_mode') == 'review_candidate':
+        selection, selection_error = read_report_text(args.market, args.text_file)
+        if selection_error:
+            return input_error(args.market, selection_error)
+        if selection.strip() == 'SILENT':
+            return finish_no_change(ctx, args, allow_soft_review=True)
 
     receipt_only = ctx.get('delivery_mode') == 'unchanged_receipt'
     if receipt_only:

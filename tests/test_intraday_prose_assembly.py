@@ -234,6 +234,45 @@ def test_main_delivers_block_plus_prose_on_the_happy_path(run_main, sent):
         assert line in body
 
 
+def test_healthy_no_change_is_audited_without_delivery(run_main, sent, tmp_path):
+    ctx = _ctx(raw_wechat_block='🇺🇸 美股盯盘\n✓ 本轮无新条件',
+               delivery_mode='no_change', semantic_unchanged=True,
+               always_full=False, should_alert=False,
+               quote_coverage={'active': 2, 'refreshed': 2, 'unrefreshed': []},
+               active_information_candidates={'degraded_issuers': [],
+                                              'partially_degraded_issuers': []},
+               semantic_state={'session': 'us:2026-07-27'})
+    rc, out = run_main(PROSE, context_id=ctx['context_id'], ctx=ctx)
+    assert rc == 0 and out['status'] == 'no_change'
+    assert sent['messages'] == []
+    from clawock.automation.delivery_receipts import receipt_path
+    marker = json.loads(receipt_path(tmp_path, 'intraday', market='us').read_text())
+    assert marker['delivery_state'] == 'no_change'
+    assert marker['context_id'] == ctx['context_id']
+
+
+def test_no_change_with_quote_failure_is_refused(run_main, sent):
+    ctx = _ctx(delivery_mode='no_change', semantic_unchanged=True,
+               quote_coverage={'active': 2, 'refreshed': 1, 'unrefreshed': ['AAA']})
+    rc, out = run_main(PROSE, context_id=ctx['context_id'], ctx=ctx)
+    assert rc == 2 and out['status'] == 'input_error'
+    assert sent['messages'] == []
+
+
+def test_model_can_decline_a_soft_only_candidate(run_main, sent, tmp_path):
+    ctx = _ctx(raw_wechat_block='🇺🇸 美股盯盘\n变化：边缘候选',
+               delivery_mode='review_candidate', semantic_unchanged=False,
+               semantic_delta={'changed': True, 'components': ['soft_candidates_seen']},
+               always_full=False, should_alert=False,
+               quote_coverage={'active': 2, 'refreshed': 2, 'unrefreshed': []},
+               semantic_state={'session': 'us:2026-07-27',
+                               'soft_candidates_seen': [{'ticker': 'EDGE'}]})
+    rc, out = run_main('SILENT', context_id=ctx['context_id'], ctx=ctx)
+    assert rc == 0 and out['status'] == 'no_change'
+    assert sent['messages'] == []
+    assert (tmp_path / 'memory/.tmp/intraday-delivered-state-us.json').exists()
+
+
 def test_main_sends_only_the_deterministic_receipt_for_an_unchanged_slot(
     run_main, sent, tmp_path
 ):

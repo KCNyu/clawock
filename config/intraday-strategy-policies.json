@@ -1,0 +1,10 @@
+{
+  "infinite_ammo_dca": {
+    "suppress_cost_basis_signals": true,
+    "forbid_reduce_advice": true,
+    "escalations": [
+      {"ticker": "SPCH", "window": "session", "below_pct": -15},
+      {"ticker": "SPCX", "window": "five_sessions", "below_pct": -25}
+    ]
+  }
+}

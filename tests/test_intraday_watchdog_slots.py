@@ -71,6 +71,25 @@ def test_context_and_delivery_marker_must_match_the_exact_slot(tmp_path):
         marker, '盘中盯盘', current_slot, 'same heading', 1_000_100)
 
 
+def test_quiet_marker_requires_the_exact_slot_and_context():
+    from clawock.harness import intraday_watchdog as watchdog
+
+    slot = '2026-09-25T00:30:00+08:00'
+    context = {'context_id': 'new-id', 'generated_at': '2026-09-25T00:33:00+08:00',
+               'raw_wechat_block': '🇺🇸 美股盯盘\n✓ no change'}
+    marker = {'delivery_state': 'no_change', 'job': '美股盘中盯盘-overnight',
+              'slot': slot, 'context_id': 'new-id', 'ts': 1_000_000,
+              'first_line': '🇺🇸 美股盯盘'}
+    assert watchdog.quiet_marker_covers_slot(
+        marker, context, '美股盘中盯盘-overnight', slot, 1_000_100)
+    assert not watchdog.quiet_marker_covers_slot(
+        {**marker, 'slot': '2026-09-25T00:00:00+08:00'}, context,
+        '美股盘中盯盘-overnight', slot, 1_000_100)
+    assert not watchdog.quiet_marker_covers_slot(
+        {**marker, 'delivery_state': 'failed'}, context,
+        '美股盘中盯盘-overnight', slot, 1_000_100)
+
+
 def test_postflight_delivery_marker_carries_preflight_slot_identity():
     from clawock.harness import intraday_postflight as postflight
 
