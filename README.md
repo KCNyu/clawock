@@ -25,7 +25,7 @@
 |:---:|:---:|:---:|:---:|:---:|:---:|
 | days live on a real HK + US account | decisions on the public ledger | episodes settled by code | data modules across 8 layers | agent harnesses, one contract | scores the model wrote for itself |
 
-<sub>Real positions, real P&amp;L — <!-- CW_M:return_pct -->−21.54%<!-- /CW_M:return_pct --> since day one, published exactly as it is — graded in the open. Numbers and still previews refresh weekly; the dashboard GIF is refreshed on manual dispatch. The live dashboard updates through the trading day.</sub>
+<sub>Real positions, real P&amp;L — <!-- CW_M:return_pct -->−21.66%<!-- /CW_M:return_pct --> since day one, published exactly as it is — graded in the open. Numbers and still previews refresh weekly; the dashboard GIF is refreshed on manual dispatch. The live dashboard updates through the trading day.</sub>
 
 </div>
 
