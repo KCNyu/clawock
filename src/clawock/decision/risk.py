@@ -756,6 +756,41 @@ def attach_breach_ids(guardrail: dict) -> dict:
     return out
 
 
+#: How many of a breach's filed choices a context view carries. The ledger keeps
+#: the last ten with the plan's own rationale (`record_stances`); a view that
+#: copied them grew every morning a breach stood — 0 → 17 KB across eight rows in
+#: ten days (09-14 → 09-24), duplicated into both `risk_guardrail` and
+#: `risk_discipline`, until the brief's always-loaded core broke its budget.
+#: The model needs the recent pattern (stand, stand, reissue), not the essays.
+RECENT_CHOICES = 5
+
+
+def adaptive_view(adaptive: dict | None) -> dict:
+    """A breach's adaptive state with its stance history cut to `recent_choices`.
+
+    Everything the verdict and the rails need stays; only `stances` — the growing
+    part — is replaced by the last `RECENT_CHOICES` dates and choices. Idempotent,
+    so a view of a view is the same view.
+    """
+    out = dict(adaptive or {})
+    stances = out.pop("stances", None)
+    if stances is not None:
+        out["recent_choices"] = [
+            {"date": row.get("date"), "choice": row.get("choice")}
+            for row in list(stances)[-RECENT_CHOICES:]
+        ]
+    return out
+
+
+def discipline_view(discipline: dict) -> dict:
+    """The reconcile result as a context carries it: every record's adaptive as a view."""
+    out = copy.deepcopy(discipline or {})
+    for record in out.get("records") or []:
+        if "adaptive" in record:
+            record["adaptive"] = adaptive_view(record["adaptive"])
+    return out
+
+
 def attach_discipline(guardrail: dict, discipline: dict) -> dict:
     """Copy each breach's durable `standing` and `adaptive` onto today's detector rows.
 
@@ -772,7 +807,7 @@ def attach_discipline(guardrail: dict, discipline: dict) -> dict:
             record = by_id.get(row.get("breach_id"))
             if record:
                 row["standing"] = record.get("standing") or {}
-                row["adaptive"] = record.get("adaptive") or {}
+                row["adaptive"] = adaptive_view(record.get("adaptive"))
     return out
 
 

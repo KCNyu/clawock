@@ -22,6 +22,7 @@ from pathlib import Path
 
 from clawock.decision.actions import ACTIVE_ACTIONS
 from clawock.decision import add_alpha, early_trend
+from clawock.decision import risk as risk_ledger
 from clawock.instruments import get as instrument_metadata, is_leveraged_holding
 from clawock.workspace import workspace_root
 
@@ -719,7 +720,7 @@ def _adaptive_view(adaptive: dict | None) -> dict:
     The ledger keeps the full history (`stances`, anchors); the model gets the verdict,
     the evidence behind it, and the rails, so it can judge without re-deriving them.
     """
-    adaptive = adaptive or {}
+    adaptive = risk_ledger.adaptive_view(adaptive)
     if not adaptive.get("eligible"):
         return {"eligible": False,
                 "not_eligible_because": adaptive.get("not_eligible_because") or []}
@@ -727,10 +728,7 @@ def _adaptive_view(adaptive: dict | None) -> dict:
         key: adaptive.get(key)
         for key in ("eligible", "may_stand", "must_reissue", "must_reason", "stance",
                     "last_reissued_on", "days_since_reissue", "forced_on", "rearm_at")
-    } | {"recent_choices": [
-        {"date": row.get("date"), "choice": row.get("choice")}
-        for row in (adaptive.get("stances") or [])[-5:]
-    ]}
+    } | {"recent_choices": adaptive.get("recent_choices") or []}
 
 
 def _risk_map(context: dict, active: set[str]) -> dict[str, list[dict]]:

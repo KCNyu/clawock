@@ -76,7 +76,7 @@ import sys
 from datetime import date, datetime, timedelta
 from pathlib import Path
 
-from clawock.bar_conflicts import classify_conflict
+from clawock.bar_conflicts import BENIGN_KINDS, classify_conflict
 from clawock.workspace import workspace_root
 from clawock.sessions import hkt_today
 
@@ -324,6 +324,13 @@ def summarize_bar_conflicts(log_path=None, *, now=None,
     publish blocker. The bars were not written, nothing downstream is wrong,
     and blocking a brief over a provider's revision would trade a visible
     disagreement for an invisible one.
+
+    Counts are of distinct disagreements, not sightings. The store is never
+    overwritten, so an incremental fetch whose overlap still covers a refused
+    session refuses — and logs — the same bar again every morning: one SPCX
+    one-cent high was the same row on 09-18, 09-21 and 09-22, and the 30-day
+    window held 47 rows for 16 disagreements. The log keeps every sighting
+    (it is append-only on purpose); `last_seen_at` still says it recurred.
     """
     # `pathlib.Path` rather than this module's `Path`: an existing fixture
     # replaces that name with a stub reader to feed `check()` a portfolio, and
@@ -345,6 +352,7 @@ def summarize_bar_conflicts(log_path=None, *, now=None,
     # own zone put the edge a day early whenever UTC and HKT dates differ —
     # e.g. weekly-health's dashboard-build at 23:00 UTC counted 31 days (#1560).
     cutoff = (hkt_today(now) - timedelta(days=window_days)).isoformat()
+    seen = set()
     for line in path.read_text(encoding='utf-8').splitlines():
         line = line.strip()
         if not line:
@@ -358,11 +366,17 @@ def summarize_bar_conflicts(log_path=None, *, now=None,
             continue
         kind = _kind_of(row)
         ticker = str(row.get('ticker') or 'unknown')
+        if summary['last_seen_at'] is None or seen_at > summary['last_seen_at']:
+            summary['last_seen_at'] = seen_at
+        identity = json.dumps(
+            [ticker, row.get('date'), kind, row.get('stored'), row.get('fetched')],
+            sort_keys=True, default=str)
+        if identity in seen:
+            continue
+        seen.add(identity)
         summary['total'] += 1
         summary['by_kind'][kind] = summary['by_kind'].get(kind, 0) + 1
         summary['by_ticker'][ticker] = summary['by_ticker'].get(ticker, 0) + 1
-        if summary['last_seen_at'] is None or seen_at > summary['last_seen_at']:
-            summary['last_seen_at'] = seen_at
     return summary
 
 
@@ -733,14 +747,18 @@ def check(portfolio_path=PORTFOLIO):
 
     errors = [f for f in findings if f['level'] == 'ERROR']
     warns = [f for f in findings if f['level'] == 'WARN']
-    # Historical refusals remain visible in the structured report. The live
-    # daily-bars run raises actionable conflicts on the day they recur; a
-    # rolling count of already-refused rows is not a new daily warning.
+    # Canonical-store disagreements: counted, named and visible — never a
+    # blocker (see `summarize_bar_conflicts`). A window holding only benign
+    # kinds (sub-tick rounding, a tick on a wick) is INFO; any material kind —
+    # a close revision, a rescale, an impossible bar — stays a WARN for the
+    # whole window, because nothing else resurfaces it once the day's
+    # `daily-bars` output has scrolled away.
     bar_conflicts = summarize_bar_conflicts()
     if bar_conflicts['total']:
         worst = sorted(bar_conflicts['by_kind'].items(),
                        key=lambda item: (-item[1], item[0]))
-        add('BAR_CONFLICT', 'INFO',
+        material = set(bar_conflicts['by_kind']) - BENIGN_KINDS
+        add('BAR_CONFLICT', 'WARN' if material else 'INFO',
             f"canonical bars: {bar_conflicts['total']} refused provider "
             f"disagreement(s) in {bar_conflicts['window_days']}d — "
             + ', '.join(f'{kind} {count}' for kind, count in worst))

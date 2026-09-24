@@ -212,6 +212,7 @@ CONFLICT_LOG = WS / "memory" / "bar-conflicts.jsonl"
 #: rule would close a package cycle. Re-exported so this module stays the one
 #: name its callers know.
 from clawock.bar_conflicts import (  # noqa: E402,F401
+    BENIGN_KINDS,
     CONFLICT_KINDS,
     ROUNDING_REL_TOL,
     RESCALE_REL_TOL,
@@ -364,9 +365,10 @@ def main(argv=None) -> int:
         for c in conflicts:
             line = f"{t} {c['date']} [{c['kind']}]: {c['detail']}"
             all_conflicts.append(line)
-            if c['kind'] not in {'rounding', 'extreme_only'}:
+            if c['kind'] not in BENIGN_KINDS:
                 actionable_conflicts.append(line)
-        flag = (f" {'⚠' if any(c['kind'] not in {'rounding', 'extreme_only'} for c in conflicts) else 'ℹ'} {len(conflicts)} conflict"
+        actionable = any(c['kind'] not in BENIGN_KINDS for c in conflicts)
+        flag = (f" {'⚠' if actionable else 'ℹ'} {len(conflicts)} conflict"
                 if conflicts else "")
         print(f"  {t:6} +{added:3} bars, {revised} revised, {len(load_bars(t)['bars'])} total{flag}")
 
