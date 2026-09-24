@@ -152,6 +152,13 @@ _SHARE_CLAIM = re.compile(rf'({_NUM})\s*(万|亿)?\s*(?:股|shares?\b)')
 _CURRENCY_CLAIM = re.compile(
     rf'{_CURRENCY}\s*({_NUM})\s*(万|亿)?|({_NUM})\s*(万|亿)?\s*{_CURRENCY}'
 )
+_SHARE_KEY = re.compile(r'(?:^|_)(?:shares?|quantity|qty|size_shares)(?:_|$)')
+_MONEY_KEY = re.compile(
+    r'(?:^|_)(?:amount|value|cash|cost|pnl|profit|loss|principal|exposure|market_value)(?:_|$)'
+)
+# Analyzer holdings rows have ticker, share count, price, then P&L columns.
+# The second cell is a share count even though the rendered block omits 股.
+_HOLDING_SHARES = re.compile(r'^\s*\|\s*[^|]+\|\s*(' + _NUM + r')\s*\|', re.MULTILINE)
 # A range whose endpoints run backwards describes nothing real. The ASCII hyphen is
 # deliberately NOT a separator here: HK tickers are numeric, so "07226 -3.5%" —
 # the most common phrase in these reports — parsed as a range from 07226 to 3.5.
@@ -252,40 +259,6 @@ def _as_number(raw, magnitude=None):
     return value * _MAGNITUDE.get(magnitude, 1)
 
 
-def _context_numbers(ctx):
-    """Every number the context states, in every form it states it.
-
-    Walks the whole context rather than a chosen subset: the data block, peer
-    percentages, plan sizes and index levels are all legitimate things for prose
-    to quote, and a hand-picked list would silently make new context fields
-    unquotable the day they are added.
-    """
-    seen = set()
-
-    def add(value):
-        number = _as_number(value)
-        if number is not None:
-            seen.add(round(abs(number), 4))
-
-    def walk(node):
-        if isinstance(node, dict):
-            for value in node.values():
-                walk(value)
-        elif isinstance(node, (list, tuple)):
-            for value in node:
-                walk(value)
-        elif isinstance(node, bool):
-            return
-        elif isinstance(node, (int, float)):
-            add(node)
-        elif isinstance(node, str):
-            for token in re.findall(_NUM, node):
-                add(token)
-
-    walk(ctx)
-    return seen
-
-
 def _context_unit_numbers(ctx):
     """Numbers with the market unit the context actually attaches to them.
 
@@ -322,12 +295,58 @@ def _context_unit_numbers(ctx):
     return seen
 
 
+def _context_quantity_numbers(ctx):
+    """Provenance for share and book-money claims, with their units preserved.
+
+    Identifier/date strings and percent fields must not authorize a quantity.
+    New structured fields can opt in by a quantity-bearing key; rendered text
+    can opt in by an explicit unit or the analyzer's holdings-table column.
+    """
+    seen = {'shares': set(), 'currency': set()}
+
+    def add(unit, raw, magnitude=None):
+        value = _as_number(raw, magnitude)
+        if value is not None:
+            seen[unit].add(round(abs(value), 4))
+
+    def walk(node, key=''):
+        if isinstance(node, dict):
+            for child_key, value in node.items():
+                walk(value, str(child_key).lower())
+        elif isinstance(node, (list, tuple)):
+            for value in node:
+                walk(value, key)
+        elif isinstance(node, bool):
+            return
+        elif isinstance(node, (int, float)):
+            if _SHARE_KEY.search(key):
+                add('shares', node)
+            if _MONEY_KEY.search(key):
+                add('currency', node)
+        elif isinstance(node, str):
+            if _SHARE_KEY.search(key):
+                add('shares', node)
+            if _MONEY_KEY.search(key):
+                add('currency', node)
+            for raw, magnitude in _SHARE_CLAIM.findall(node):
+                add('shares', raw, magnitude)
+            for match in _CURRENCY_CLAIM.finditer(node):
+                add('currency', match.group(1) or match.group(3),
+                    match.group(2) or match.group(4))
+            if key == 'raw_wechat_block':
+                for raw in _HOLDING_SHARES.findall(node):
+                    add('shares', raw)
+
+    walk(ctx)
+    return seen
+
+
 def _is_hypothetical_percent(text, start):
     clause_start = max(text.rfind(mark, 0, start) for mark in '\n。！？；;') + 1
     return bool(_HYPOTHETICAL.search(text[max(clause_start, start - 16):start]))
 
 
-def _shown_product_results(text, known):
+def _shown_product_results(text, known_quantities):
     """Positions of correct, explicitly written product results, by unit.
 
     ``≈`` gets a small relative allowance for presentation rounding (2937 ->
@@ -351,12 +370,17 @@ def _shown_product_results(text, known):
             unit = 'percent'
         elif match.group('result_cur') and currencies == 1 and percents == 0:
             unit = 'currency'
-            # Neither a sub-$1,000 price nor a bare share multiplier is checked
-            # elsewhere.  Require both operands to come from context before
-            # their product can authorize an otherwise absent book amount.
-            if not all(_states(known, value, _rounding_tolerance(raw))
-                       for value, raw in ((a, match.group('a')),
-                                          (b, match.group('b')))):
+            # Require a sourced share count and a sourced currency operand.
+            # A ticker or date fragment cannot make a forged product valid.
+            share, share_raw, money, money_raw = (
+                (b, match.group('b'), a, match.group('a'))
+                if match.group('a_cur') else
+                (a, match.group('a'), b, match.group('b'))
+            )
+            if not (_states(known_quantities['shares'], share,
+                            _rounding_tolerance(share_raw)) and
+                    _states(known_quantities['currency'], money,
+                            _rounding_tolerance(money_raw))):
                 continue
         else:
             continue
@@ -461,22 +485,22 @@ def check_numeric_claims(text, ctx):
     that line would convert a cosmetic problem into a missed report, which is the
     strictly worse failure. One aggregated line keeps the gate advisory.
     """
-    known = _context_numbers(ctx)
     known_by_unit = _context_unit_numbers(ctx)
-    shown_products = _shown_product_results(text, known)
+    known_quantities = _context_quantity_numbers(ctx)
+    shown_products = _shown_product_results(text, known_quantities)
     unverified = []
 
-    def check(value, label, tolerance, at=None):
+    def check(value, label, tolerance, unit, at=None):
         if at in shown_products['currency']:
             return
-        if _states(known, value, tolerance):
+        if _states(known_quantities[unit], value, tolerance):
             return
         if label not in unverified:
             unverified.append(label)
 
     for raw, magnitude in _SHARE_CLAIM.findall(text):
         check(_as_number(raw, magnitude), f'{raw}{magnitude or ""}股',
-              _rounding_tolerance(raw, magnitude))
+              _rounding_tolerance(raw, magnitude), 'shares')
     for match in _CURRENCY_CLAIM.finditer(text):
         if match.group(1):
             raw, magnitude, at = match.group(1), match.group(2), match.start(1)
@@ -485,7 +509,7 @@ def check_numeric_claims(text, ctx):
         amount = _as_number(raw, magnitude)
         if amount is not None and abs(amount) >= MIN_CHECKED_AMOUNT:
             check(amount, f'{raw}{magnitude or ""}',
-                  _rounding_tolerance(raw, magnitude), at)
+                  _rounding_tolerance(raw, magnitude), 'currency', at)
 
     def check_unit(unit, raw, at):
         if unit == 'percent' and _is_hypothetical_percent(text, at):
