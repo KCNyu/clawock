@@ -158,7 +158,17 @@ jobs:
         if: steps.check.outputs.skip != 'true'
         env:
           FINNHUB_API_KEY: ${{ secrets.FINNHUB_API_KEY }}
-        run: clawock brief preflight 2>&1 | tail -50
+        run: |
+          set +e
+          clawock brief preflight 2>&1 | tail -50
+          statuses=("${PIPESTATUS[@]}")
+          set -e
+          if [ "${statuses[1]}" -ne 0 ]; then exit "${statuses[1]}"; fi
+          if [ "${statuses[0]}" -eq 1 ]; then
+            echo "::warning::brief preflight completed with warnings"
+          elif [ "${statuses[0]}" -ne 0 ]; then
+            exit "${statuses[0]}"
+          fi
 
       - name: Call off-host LLM to generate brief
         if: steps.check.outputs.skip != 'true'

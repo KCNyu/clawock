@@ -79,17 +79,15 @@ def mentions_ticker(text, ticker):
 
 
 def _contains_phrase(text, phrase):
-    """Exact substring, or — for an ASCII phrase — the same word in any case.
+    """Exact substring for non-ASCII phrases; standalone token for ASCII words.
 
     A model writes `todo`/`tbd` as readily as `TODO`/`TBD` (#1771). The
-    case-insensitive pass keeps ASCII-letter boundaries so a lowercase table
-    entry never fires inside an ordinary English word ("mastodon").
+    Case-insensitive matching avoids matching identifiers such as TODO_123 or
+    numbered references such as TBD-456 while still catching "TODO:" in prose.
     """
-    if phrase in text:
-        return True
     if not phrase.isascii():
-        return False
-    pattern = rf'(?<![A-Za-z]){re.escape(phrase)}(?![A-Za-z])'
+        return phrase in text
+    pattern = rf'(?<![A-Za-z0-9_]){re.escape(phrase)}(?![A-Za-z0-9_]|[-.:][A-Za-z0-9_])'
     return re.search(pattern, text, re.IGNORECASE) is not None
 
 

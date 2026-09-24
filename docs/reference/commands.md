@@ -169,7 +169,7 @@ These are installed commands too. They are listed here so the catalog is the who
 | `clawock risk` | `clawock.decision.risk` | durable governance ledger for breaches — a record of decisions, not an input to one |
 | `clawock thesis` | `clawock.decision.theses` | registry the model writes and reads back; its content is authored, not fetched |
 | `clawock entry-gate` | `clawock.decision.entry` | pre-investment gate applied to a candidate, after the information exists |
-| `clawock plan-context` | `clawock.decision.plans` | relays what the 08:00 brief already decided to the crons that run after it |
+| `clawock plan-context` | `clawock.decision.plans` | relays what the 08:03 brief already decided to the crons that run after it |
 | `clawock research` | `clawock.evidence.research_surface` | the brief does read it, but as a work queue — reviews due, overdue promises, ungated positions — not as a measurement of the market or the book |
 | `clawock-gold-update` | `clawock.market_data.gold.update` | operator command that amends the gold DCA baseline; it carries human input into the book rather than measuring it |
 | `clawock-weekly-review` | `clawock.automation.weekly_review` | assembles a weekly review artifact out of records the layers already produced |
@@ -177,7 +177,7 @@ These are installed commands too. They are listed here so the catalog is the who
 | `clawock-cron-heartbeat` | `clawock.automation.cron_heartbeat` | publishes the intraday heartbeat ledger — liveness, not evidence |
 | `clawock-brief-fallback` | `clawock.automation.brief_fallback` | off-host delivery path for the brief when the runtime cannot produce it |
 | `clawock-intraday-delta` | `clawock.harness.intraday_delta` | pre-model trigger state: it decides whether a run happens, and the scheduler is its only reader |
-| `clawock-brief-watchdog` | `clawock.harness.brief_watchdog` | delivery watchdog for the 08:00 brief: it checks that a run produced and sent something |
+| `clawock-brief-watchdog` | `clawock.harness.brief_watchdog` | delivery watchdog for the 08:03 brief: it checks that a run produced and sent something |
 | `clawock-report-watchdog` | `clawock.harness.report_watchdog` | delivery watchdog for the session reports, on the same footing |
 | `clawock-intraday-watchdog` | `clawock.harness.intraday_watchdog` | delivery watchdog for the intraday slots, on the same footing |
 

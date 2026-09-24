@@ -333,7 +333,7 @@
       "reason": "pre-investment gate applied to a candidate, after the information exists"
     },
     "plan-context": {
-      "reason": "relays what the 08:00 brief already decided to the crons that run after it"
+      "reason": "relays what the 08:03 brief already decided to the crons that run after it"
     },
     "research": {
       "reason": "the brief does read it, but as a work queue — reviews due, overdue promises, ungated positions — not as a measurement of the market or the book"
@@ -363,7 +363,7 @@
       "registry": "standalone"
     },
     "clawock-brief-watchdog": {
-      "reason": "delivery watchdog for the 08:00 brief: it checks that a run produced and sent something",
+      "reason": "delivery watchdog for the 08:03 brief: it checks that a run produced and sent something",
       "registry": "standalone"
     },
     "clawock-report-watchdog": {
