@@ -3190,6 +3190,7 @@
     flex: 0 0 auto; width: 7px; height: 7px; border-radius: 2px;
     background: color-mix(in srgb, var(--accent) 82%, transparent);
   }
+  .dh-pip.is-ok { background: color-mix(in srgb, var(--accent) 82%, transparent); }
   .dh-pip.is-warn { background: var(--warning); }
   .dh-pip.is-bad { background: var(--negative); }
   /* 数据面那条带子搬进泳道，所以从 32px 高的独立块收成一列的高度。 */
