@@ -295,10 +295,11 @@ def test_informational_rows_and_badges_are_not_dimmed_below_aa():
 
     Parent opacity compounds every otherwise-valid child colour.  It reduced
     the low-sample badge to 1.62:1 and the idle cron row to 2.54:1 in the real
-    DOM, outside the tint scanner's model.
+    DOM, outside the tint scanner's model.  The data-health board keeps its
+    quiet rows quiet with a text step on the name, never with opacity.
     """
     css = re.sub(r"/\*.*?\*/", " ", CSS.read_text(encoding="utf-8"), flags=re.S)
-    for selector in (".bucket-wr.wr-lown", '.dh-row.is-cron[data-tone="idle"]'):
+    for selector in (".bucket-wr.wr-lown", ".dh-job-name"):
         match = next((m for m in re.finditer(r"([^{}]+)\{([^{}]*)\}", css)
                       if re.sub(r"\s+", " ", m.group(1).strip()) == selector), None)
         assert match, f"missing {selector}"

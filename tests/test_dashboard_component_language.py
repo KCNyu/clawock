@@ -321,13 +321,14 @@ def test_a_control_that_writes_its_own_transition_still_names_transform():
     #1752 found this on `.site-menu-btn` by reading the sheet and fixed that one
     rule. Three more were in the sheet at the time, and reading is how they were
     missed: the desktop tab bar's `.tab-btn` override (the base rule names
-    transform, the `min-width: 1024px` one did not), `.dh-lane` — a `<button>`
-    whose own press is a tint, so the scale it snaps is purely the baseline's —
-    and the holdings `tr.book-row`, which carries `role="button"`.
+    transform, the `min-width: 1024px` one did not), the data-health lane (a
+    `<button>` whose own press was a tint, so the scale it snapped was purely the
+    baseline's; its successor is `.dh-job-row`) and the holdings `tr.book-row`,
+    which carries `role="button"`.
     #1758 closes the scanner's blind spot for DOM-created `.deck-dot` and
     `.panel-load-retry` buttons.
     """
-    assert {"site-menu-btn", "tab-btn", "dh-lane", "book-row", "deck-dot",
+    assert {"site-menu-btn", "tab-btn", "dh-job-row", "book-row", "deck-dot",
             "panel-load-retry"} <= PRESSABLE_CLASSES, (
         "the pressable-class scan stopped seeing the controls it was written "
         "for, so this gate would now pass by discovering nothing")

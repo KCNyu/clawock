@@ -3045,179 +3045,269 @@
     margin-top: var(--space-2); color: var(--text-tertiary);
     font: 500 var(--fs-micro)/1.5 var(--mono);
   }
-  .hero-health { grid-column: 1 / -1; padding: 22px 24px 24px; min-width: 0; }
-  .hero-health-head { display: flex; align-items: flex-start; gap: 14px; }
-  /* flex 子项的 min-width:auto 会让这一行按 min-content 撑开：读数行里只要有一段
-     比手机宽，「逐项」按钮就被推出卡外（2026-09-12 实测 390px 下溢出 158px，
-     按钮右边缘 531px vs 卡右 374px）。文本仍由 metaBits() 拆短，这里只是让
-     按钮的位置不再取决于别人写了多长的一句话。 */
-  .hero-health-head > :first-child { min-width: 0; }
-  .hero-health-verdict {
-    margin: 6px 0 0; color: var(--text); font-size: var(--fs-lg);
-    letter-spacing: -.01em; text-transform: none;
+  /* ── 数据健康 ──────────────────────────────────────────────────────
+     三层，同一套线：判词 → 四个领域读数（发丝线分格，和搜索可见性的
+     sv-grid 同一种做法）→ 定时任务监测板（一行一个任务，列对齐）。没有卡
+     中卡、没有底色块：层级只靠字阶、字重和发丝线。所有文字左缘都落在卡片
+     内容边上，交互行不往卡片内边距里渗。
+     颜色预算：品牌蓝＝正常（#920：数据状态不用涨跌绿）、--warning＝观察、
+     --negative＝需处理；未到点是空心圈，永远不和正常长得一样（#1816）。 */
+  .hero-health { grid-column: 1 / -1; min-width: 0; padding: var(--space-5); }
+  .hero-health .dh-verdict {
+    display: flex; align-items: center; gap: var(--space-2);
+    margin: var(--space-2) 0 0; color: var(--text-primary);
+    font-size: var(--fs-xl); font-weight: 650; line-height: 1.3;
+    letter-spacing: var(--tr-xl); text-transform: none;
   }
-  /* 判词分两截着色：「页面数字可用」印成红的是自相矛盾的 —— 可信度归
-     可信度那半句，告警归待办那半句。 */
-  .hero-health-verdict .dh-trust { color: var(--text); }
-  .hero-health-verdict .dh-trust[data-trust="broken"] { color: var(--negative); }
-  .hero-health-verdict .dh-todo { color: var(--text-tertiary); }
-  .hero-health-verdict .dh-todo[data-sev="warn"] { color: var(--warning); }
-  .hero-health-verdict .dh-todo[data-sev="bad"] { color: var(--negative); }
-  .hero-health-meta {
-    margin-top: 6px; color: var(--text-tertiary); font: 500 var(--fs-micro)/1.45 var(--mono);
+  .dh-dot { flex: none; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+  .dh-dot[data-tone="warn"] { background: var(--warning); }
+  .dh-dot[data-tone="bad"] { background: var(--negative); }
+  .dh-meta {
+    margin: var(--space-1) 0 0; color: var(--text-tertiary);
+    font-size: var(--fs-xs); line-height: 1.6; font-variant-numeric: tabular-nums;
   }
-  /* 每段各自不折行，换行只发生在段与段之间的分隔点上（渲染端已把每段包成
-     一个 .dh-meta-bit）。 */
-  .hero-health-meta .dh-meta-bit { white-space: nowrap; }
-  .dh-toggle {
-    margin-left: auto; flex: none; padding: 6px 12px; border-radius: var(--radius-sm);
-    border: 1px solid var(--border-subtle); background: var(--fill-inset);
-    color: var(--text-secondary); font: 600 var(--fs-xs)/1 var(--mono); cursor: pointer;
-    transition: transform var(--duration-fast) var(--ease-out), color var(--duration-fast) var(--ease-out), border-color var(--duration-fast) var(--ease-out);
+  .dh-trust { color: var(--text-secondary); font-weight: 500; }
+  .dh-trust[data-trust="broken"] { color: var(--negative-ink); font-weight: 600; }
+  .dh-meta-bit { white-space: nowrap; }
+
+  /* 状态：点 + 字。字决定意思，点只是第二编码。 */
+  .dh-state {
+    display: inline-flex; align-items: center; gap: 6px; flex: none;
+    white-space: nowrap; color: var(--text-secondary);
+    font-size: var(--fs-xs); font-weight: 500; line-height: 1.4;
   }
-  .dh-toggle:active { transform: scale(var(--press-scale)); }
-  .dh-toggle:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
+  .dh-state::before {
+    content: ""; flex: none; width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent);
+  }
+  .dh-state[data-tone="warn"], .dh-state[data-tone="stale"] { color: var(--warning-ink); }
+  .dh-state[data-tone="warn"]::before, .dh-state[data-tone="stale"]::before { background: var(--warning); }
+  .dh-state[data-tone="bad"] { color: var(--negative-ink); font-weight: 600; }
+  .dh-state[data-tone="bad"]::before { background: var(--negative); }
+  .dh-state[data-tone="live"] { color: var(--accent-ink); }
+  .dh-state[data-tone="pending"], .dh-state[data-tone="idle"] { color: var(--text-tertiary); }
+  .dh-state[data-tone="pending"]::before {
+    background: transparent; box-shadow: inset 0 0 0 1.5px var(--text-tertiary);
+  }
+  .dh-state[data-tone="idle"]::before { background: var(--neutral); }
+
+  /* 四个领域读数。一格＝标签 + 状态 / 读数 / 一句说明；可展开的三格是按钮，
+     台账摊在这一排下面（像 tab：选中的那格底边一条品牌蓝）。 */
+  .dh-cells {
+    display: grid; grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin-top: var(--space-4);
+    border-top: 1px solid var(--border-subtle);
+    border-bottom: 1px solid var(--border-subtle);
+  }
+  .dh-cell {
+    display: flex; flex-direction: column; gap: var(--space-1); min-width: 0;
+    margin: 0; padding: var(--space-3) var(--space-4);
+    border: 0; border-left: 1px solid var(--border-subtle); border-radius: 0;
+    background: none; color: inherit; font: inherit; text-align: left;
+  }
+  .dh-cell:first-child { border-left: 0; padding-left: 0; }
+  .dh-cell:last-child { padding-right: 0; }
+  button.dh-cell { cursor: pointer; }
+  button.dh-cell[aria-expanded="true"] { box-shadow: inset 0 -2px 0 var(--accent); }
+  .dh-cell-head {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: var(--space-2); min-width: 0;
+  }
+  .dh-cell-label {
+    display: inline-flex; align-items: center; gap: 6px; min-width: 0;
+    color: var(--text-secondary); font-size: var(--fs-xs); font-weight: 500;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  /* 可展开的格子带一个小箭头；展开时翻过来。 */
+  button.dh-cell .dh-cell-label::after {
+    content: ""; flex: none; width: 5px; height: 5px; margin-top: -3px;
+    border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor;
+    transform: rotate(45deg);
+    transition: transform var(--duration-fast) var(--ease-out);
+  }
+  button.dh-cell[aria-expanded="true"] .dh-cell-label::after { transform: translateY(3px) rotate(225deg); }
+  .dh-cell-value {
+    color: var(--text-primary); font-size: var(--fs-xl); font-weight: 650;
+    line-height: 1.2; letter-spacing: var(--tr-xl); white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+  .dh-cell-value small {
+    margin-left: var(--space-1); color: var(--text-tertiary);
+    font-size: var(--fs-xs); font-weight: 500; letter-spacing: 0;
+  }
+  .dh-cell-note {
+    display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+    overflow: hidden; color: var(--text-tertiary);
+    font-size: var(--fs-xs); line-height: 1.5; overflow-wrap: anywhere;
+  }
+
+  /* 明细行：数据面台账、体检单、成品台账、需处理清单共用一种行。 */
+  .dh-panel { margin-top: var(--space-4); }
+  .dh-panel[hidden] { display: none; }
+  .dh-panel-title, .dh-sub {
+    margin: 0 0 var(--space-2); color: var(--text-secondary);
+    font-size: var(--fs-xs); font-weight: 600; line-height: 1.4;
+  }
+  .dh-sub.is-bad { color: var(--negative-ink); }
+  .dh-panel .dh-sub { margin-top: var(--space-4); }
+  .dh-panel-note { margin: 0 0 var(--space-2); color: var(--text-tertiary); font-size: var(--fs-xs); }
+  .dh-items { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--border-subtle); }
+  .dh-item {
+    display: grid; align-items: baseline;
+    grid-template-columns: minmax(0, 168px) minmax(0, 216px) minmax(0, 1fr) auto;
+    grid-template-areas: "name where detail state";
+    gap: var(--space-1) var(--space-4);
+    padding: var(--space-2) 0; border-bottom: 1px solid var(--border-subtle);
+    font-size: var(--fs-sm); line-height: 1.5;
+  }
+  .dh-item.is-todo { grid-template-areas: "name where detail detail" "name where next next"; }
+  .dh-item-name { grid-area: name; min-width: 0; color: var(--text-primary); font-weight: 600; overflow-wrap: anywhere; }
+  .dh-item-where {
+    grid-area: where; min-width: 0; color: var(--text-tertiary);
+    font: 500 var(--fs-xs)/1.5 var(--mono); overflow-wrap: anywhere;
+  }
+  .dh-item-detail { grid-area: detail; min-width: 0; color: var(--text-secondary); overflow-wrap: anywhere; }
+  .dh-item-next { grid-area: next; min-width: 0; color: var(--text-tertiary); font-size: var(--fs-xs); overflow-wrap: anywhere; }
+  .dh-item > .dh-state { grid-area: state; }
+  .dh-todo { margin-top: var(--space-5); }
+  .dh-todo:empty { display: none; }
+
+  /* 定时任务监测板：列头与每一行共用一套列。 */
+  .dh-board { --dh-cols: minmax(0, 1.4fr) 104px 168px minmax(0, 1fr) 48px 8px; margin-top: var(--space-5); }
+  .dh-board[hidden] { display: none; }
+  .dh-board-head {
+    display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between;
+    gap: var(--space-1) var(--space-4); margin-bottom: var(--space-2);
+  }
+  .dh-board-head h4 { margin: 0; color: var(--text-primary); font-size: var(--fs-md); font-weight: 600; line-height: 1.4; }
+  .dh-board-sum {
+    display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-3); margin: 0;
+    color: var(--text-tertiary); font-size: var(--fs-xs); line-height: 1.5;
+    font-variant-numeric: tabular-nums;
+  }
+  .dh-key { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+  .dh-key.is-stale { color: var(--warning-ink); font-weight: 600; }
+  .dh-cols, .dh-job-row {
+    display: grid; grid-template-columns: var(--dh-cols); column-gap: var(--space-4);
+  }
+  .dh-cols {
+    padding: var(--space-2) 0; border-top: 1px solid var(--border-subtle);
+    border-bottom: 1px solid var(--border-subtle);
+    color: var(--text-tertiary); font-size: var(--fs-micro); line-height: 1.4; letter-spacing: .04em;
+  }
+  .dh-jobs { list-style: none; margin: 0; padding: 0; }
+  .dh-job { border-bottom: 1px solid var(--border-subtle); }
+  .dh-job-row {
+    align-items: center; row-gap: var(--space-1); width: 100%; min-height: 44px;
+    margin: 0; padding: var(--space-3) 0; border: 0; border-radius: 0;
+    background: none; color: inherit; font: inherit; text-align: left; cursor: pointer;
+  }
+  .dh-job-row::after {
+    content: ""; grid-column: 6; grid-row: 1; justify-self: end;
+    width: 5px; height: 5px; margin-top: -3px;
+    border-right: 1.5px solid var(--text-tertiary); border-bottom: 1.5px solid var(--text-tertiary);
+    transform: rotate(45deg);
+    transition: transform var(--duration-fast) var(--ease-out);
+  }
+  .dh-job-row[aria-expanded="true"]::after { transform: translateY(3px) rotate(225deg); }
+  .dh-job-name {
+    grid-column: 1; grid-row: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    color: var(--text-secondary); font-size: var(--fs-sm);
+  }
+  /* 有事的行印重一档；正常与待跑的行安静。 */
+  .dh-job:not([data-tone="ok"]):not([data-tone="pending"]):not([data-tone="live"]) .dh-job-name,
+  .dh-job-row[aria-expanded="true"] .dh-job-name { color: var(--text-primary); font-weight: 600; }
+  .dh-job-row > .dh-state { grid-column: 2; grid-row: 1; }
+  .dh-slots { grid-column: 4; grid-row: 1; display: flex; flex-wrap: wrap; gap: 2px; min-width: 0; }
+  .dh-slots i, .dh-key i {
+    display: block; flex: none; width: 6px; height: 14px; border-radius: 2px;
+    background: var(--accent);
+  }
+  .dh-key i { height: 10px; }
+  .dh-slots i[data-s="recovered"], .dh-slots i[data-s="degraded"],
+  .dh-key i[data-s="recovered"], .dh-key i[data-s="degraded"] { background: var(--warning); }
+  .dh-slots i[data-s="failed"], .dh-slots i[data-s="missed"],
+  .dh-key i[data-s="failed"], .dh-key i[data-s="missed"] { background: var(--negative); }
+  .dh-slots i[data-s="running"], .dh-key i[data-s="running"] {
+    background: color-mix(in srgb, var(--accent) var(--tint-strong), transparent);
+    box-shadow: inset 0 0 0 1px var(--accent);
+  }
+  .dh-slots i[data-s="upcoming"], .dh-key i[data-s="upcoming"] {
+    background: transparent; box-shadow: inset 0 0 0 1px var(--border-strong);
+  }
+  .dh-slots i[data-s="unmonitored"], .dh-slots i[data-s="unknown"],
+  .dh-key i[data-s="unmonitored"], .dh-key i[data-s="unknown"] {
+    background: color-mix(in srgb, var(--neutral) var(--tint-edge), transparent);
+  }
+  .dh-job-when { display: contents; }
+  .dh-job-last, .dh-job-next {
+    grid-row: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    color: var(--text-tertiary); font-size: var(--fs-xs); line-height: 1.4;
+    font-variant-numeric: tabular-nums;
+  }
+  .dh-job-last { grid-column: 3; }
+  .dh-job-next { grid-column: 5; }
+  .dh-k { display: none; }
+  .dh-job-why {
+    grid-column: 2 / -1; grid-row: 2; min-width: 0; color: var(--text-secondary);
+    font-size: var(--fs-xs); line-height: 1.55; overflow-wrap: anywhere;
+  }
+  .dh-job-detail { padding: 0 0 var(--space-3); }
+  .dh-job-detail[hidden] { display: none; }
+  .dh-slotlist { display: grid; gap: var(--space-1); list-style: none; margin: 0; padding: 0; }
+  .dh-slotlist li {
+    display: grid; grid-template-columns: 48px 88px minmax(0, 1fr);
+    gap: var(--space-3); align-items: baseline; font-size: var(--fs-xs); line-height: 1.55;
+  }
+  .dh-slotlist time { color: var(--text-secondary); font-family: var(--mono); font-variant-numeric: tabular-nums; }
+  .dh-slot-note { min-width: 0; color: var(--text-secondary); overflow-wrap: anywhere; }
+  .dh-raw {
+    display: flex; flex-wrap: wrap; gap: var(--space-1) var(--space-4); margin: var(--space-2) 0 0;
+    color: var(--text-tertiary); font: 500 var(--fs-micro)/1.5 var(--mono); overflow-wrap: anywhere;
+  }
+  .dh-caption {
+    margin: var(--space-4) 0 0; color: var(--text-tertiary);
+    font-size: var(--fs-xs); line-height: 1.6;
+  }
+  /* 键盘聚焦时给出和悬停同样的提示（焦点环本身由全局基线画）。 */
+  button.dh-cell:focus-visible .dh-cell-label,
+  .dh-job-row:focus-visible .dh-job-name { color: var(--text-primary); }
   @media (hover: hover) and (pointer: fine) {
-    .dh-toggle:hover { color: var(--text); border-color: var(--text-tertiary); }
+    button.dh-cell:hover .dh-cell-label, .dh-job-row:hover .dh-job-name { color: var(--text-primary); }
+    .dh-job-row:hover::after { border-color: var(--text-secondary); }
   }
-  /* ── 三条泳道 ────────────────────────────────────────────────────
-     名称 / 计数 / 形状 / 一句话 / 处置牌 —— 五列对齐，三行同栅格。
-     位置固定是整个改动的要点：读者不必每次重新找「新鲜度在哪一行」。
-     形状那列各画各的：数据面是逐面的期限用量条，投递是按档数成比例的
-     构成条，体检是计数点（它没有分母，画比例条等于编一个出来）。 */
-  .dh-lanes-shell {
-    margin-top: 14px; border-top: 1px solid var(--border-subtle);
-  }
-  /* 三行必须逐列对齐 —— 「位置固定」是这块牌唯一的记忆点。每条泳道各是
-     一个 grid 时列宽按各自内容解，三行的说明列就会各起各的 x（实测 体检
-     那行右移 37px）。用 subgrid 让三行吃 .dh-lanes 的同一套列；不支持
-     subgrid 的浏览器落到同一组定死的列宽，一样对得齐。 */
-  .dh-lanes {
-    display: grid; grid-template-columns: minmax(92px, 110px) 120px 128px minmax(0, 1fr) 58px 12px;
-  }
-  /* 泳道是按钮（整行都是点按面积），所以要把浏览器给按钮的那套外观全部撤掉，
-     只留下它的行为：焦点、Enter/Space、aria-expanded。 */
-  .dh-lane {
-    display: grid; grid-column: 1 / -1; align-items: center;
-    gap: 10px 12px; padding: 14px 12px; width: 100%; text-align: left;
-    grid-template-columns: minmax(92px, 110px) 120px 128px minmax(0, 1fr) 58px 12px;
-    -webkit-appearance: none; appearance: none; background: var(--fill-inset); color: inherit;
-    border: 1px solid var(--border-subtle); border-radius: var(--radius);
-    cursor: pointer;
-    font: 500 var(--fs-xs)/1.35 var(--mono); font-variant-numeric: tabular-nums;
-    transition: background-color var(--duration-fast) var(--ease-out),
-                transform var(--duration-fast) var(--ease-out);
-  }
-  .dh-lane:not(:first-child) { margin-top: 8px; }
-  .dh-lane:active { background: color-mix(in srgb, var(--text) 5%, transparent); }
-  .dh-lane:focus-visible { outline: var(--focus-ring); outline-offset: -2px; }
-  @media (hover: hover) and (pointer: fine) {
-    .dh-lane:hover { background: color-mix(in srgb, var(--text) 3%, transparent); }
-    .dh-lane:hover .dh-lane-chev { border-color: var(--text-secondary); }
-  }
-  /* 「这一行还能点开」必须看得见，否则整块牌读起来是死的。 */
-  .dh-lane-chev {
-    justify-self: end; width: 6px; height: 6px; margin-right: 2px;
-    border-right: 1.5px solid var(--text-tertiary);
-    border-bottom: 1.5px solid var(--text-tertiary);
-    transform: translateY(-2px) rotate(45deg);
-    transition: transform var(--duration-standard) var(--ease-out);
-  }
-  .dh-lane[aria-expanded="true"] .dh-lane-chev { transform: translateY(1px) rotate(-135deg); }
-  /* 展开动画只动 grid-template-rows（0fr→1fr），内容不 reflow 成两份。
-     收起的那一组仍在 DOM 里，靠 inert + aria-hidden 退出 Tab 与读屏。 */
-  .dh-group {
-    display: grid; grid-column: 1 / -1; grid-template-rows: 0fr;
-    transition: grid-template-rows var(--duration-standard) var(--ease-out);
-  }
-  .dh-group.is-open { grid-template-rows: 1fr; }
-  .dh-group-inner { overflow: hidden; min-height: 0; }
-  /* 摊开的那一组是「压在这条泳道下面」的一块，不是卡片里又一段正文：淡一档
-     的底 + 收进去的圆角，让它和上面那行绑在一起。 */
-  .dh-group-body {
-    padding: 10px 14px 14px; background: var(--fill-inset);
-    border-radius: 0 0 var(--radius-sm) var(--radius-sm);
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .dh-group, .dh-lane-chev { transition: none; }
-  }
-  @supports (grid-template-columns: subgrid) {
-    .dh-lane { grid-template-columns: subgrid; }
-  }
-  /* 最后一条泳道现在后面跟着它自己那一组（section），所以是 last-of-type。 */
-  .dh-lane:last-of-type { border-bottom: 1px solid var(--border-subtle); }
-  .dh-lane-name {
-    color: var(--text-tertiary); font: 700 var(--fs-micro)/1.2 var(--mono);
-    letter-spacing: .08em; white-space: nowrap; min-width: 0;
-  }
-  .dh-health-state { display: block; margin-top: 5px; color: var(--accent-ink);
-    font: 700 var(--fs-xs)/1.2 var(--mono); letter-spacing: 0; }
-  .dh-lane[data-tone="bad"] .dh-health-state { color: var(--negative-ink); }
-  .dh-lane[data-tone="warn"] .dh-health-state,
-  .dh-lane[data-tone="stale"] .dh-health-state { color: var(--warning-ink); }
-  .dh-lane[data-tone="pending"] .dh-health-state { color: var(--text-secondary); }
-  .dh-lane-stat { color: var(--text); font-weight: 700; white-space: nowrap; }
-  .dh-lane[data-tone="warn"] .dh-lane-stat { color: var(--warning); }
-  .dh-lane[data-tone="stale"] .dh-lane-stat { color: var(--warning); }
-  .dh-lane[data-tone="bad"] .dh-lane-stat { color: var(--negative); }
-  .dh-lane-note {
-    color: var(--text-tertiary); min-width: 0; overflow-wrap: anywhere;
-  }
-  /* 处置牌：四种字面量各一色，含义写在卡片底部的说明行里。牌是文字不是
-     纯色点 —— 只靠颜色区分「要动手 / 只记不动」是拿色觉当说明书。 */
-  .dh-chip {
-    justify-self: end; padding: 3px 7px; border-radius: var(--radius-sm); white-space: nowrap;
-    font: 700 var(--fs-micro)/1.2 var(--mono); letter-spacing: .04em;
-    color: var(--text-secondary);
-    background: color-mix(in srgb, var(--text) 7%, transparent);
-  }
-  .dh-chip[data-act="需处理"] {
-    color: var(--negative-ink); background: color-mix(in srgb, var(--negative) var(--tint-soft), transparent);
-  }
-  .dh-chip[data-act="观察"] {
-    color: var(--warning-ink); background: color-mix(in srgb, var(--warning) var(--tint-soft), transparent);
-  }
-  /* 三个状态片同一套配方：色相的 ink 档写字，同色相 soft 档铺底。这一条
-     原来自己调了一份 `accent 88% + text` 的字色 —— 同一族里唯一的例外，
-     而浓度收到 soft 档之后它在亮色 --surface-3 上实测 4.36，掉出 AA。 */
-  .dh-chip[data-act="正常"] {
-    color: var(--accent-ink);
-    background: color-mix(in srgb, var(--accent) var(--tint-soft), transparent);
-  }
-  /* 构成条：段宽按档数成比例，只画有数的段。 */
-  .dh-lane-shape { display: flex; align-items: center; gap: 3px; height: 18px; min-width: 0; }
-  .dh-part {
-    height: 7px; min-width: 3px; border-radius: 2px;
-    background: color-mix(in srgb, var(--accent) 82%, transparent);
-  }
-  .dh-part.is-warn { background: var(--warning); }
-  .dh-part.is-bad { background: var(--negative); }
-  .dh-part.is-idle { background: color-mix(in srgb, var(--text) 16%, transparent); }
-  .dh-pip {
-    flex: 0 0 auto; width: 7px; height: 7px; border-radius: 2px;
-    background: color-mix(in srgb, var(--accent) 82%, transparent);
-  }
-  .dh-pip.is-ok { background: color-mix(in srgb, var(--accent) 82%, transparent); }
-  .dh-pip.is-warn { background: var(--warning); }
-  .dh-pip.is-bad { background: var(--negative); }
-  /* 数据面那条带子搬进泳道，所以从 32px 高的独立块收成一列的高度。 */
-  .dh-strip {
-    display: flex; align-items: flex-end; gap: 3px; flex-wrap: nowrap;
-    min-width: 0; overflow: hidden;
-  }
-  .dh-seg {
-    position: relative; flex: 1 1 0; min-width: 3px; max-width: 9px; height: 18px;
-    border-radius: 2px; overflow: hidden;
-    background: color-mix(in srgb, var(--text) 6%, transparent);
-  }
-  .dh-seg i {
-    position: absolute; left: 0; right: 0; bottom: 0; height: var(--used, 40%);
-    /* 在期=品牌蓝（#920「灰改品牌蓝」同判据）：数据新鲜度不是涨跌，
-       灰一片读不出「健康」和「没数据」的区别，涨跌色又不参与赚亏之外的
-       表述。逾期/缺失仍由 --warning/--red 接管（下方 is-* 覆盖）。
-       色彩预算仍是：涨跌两色 + 真告警红 + 品牌蓝，没有第四种装饰色。 */
-    background: color-mix(in srgb, var(--accent) 82%, transparent);
-    border-radius: 3px;
+  @media (max-width: 767px) {
+    .hero-health { padding: var(--space-4); }
+    .dh-cells { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .dh-cell:nth-child(odd) { border-left: 0; padding-left: 0; padding-right: var(--space-3); }
+    .dh-cell:nth-child(even) { padding-left: var(--space-3); padding-right: 0; }
+    .dh-cell:nth-child(n+3) { border-top: 1px solid var(--border-subtle); }
+    .dh-item, .dh-item.is-todo {
+      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-areas: "name state" "where where" "detail detail" "next next";
+      row-gap: 2px;
+    }
+    .dh-cols { display: none; }
+    .dh-board-head { flex-direction: column; align-items: flex-start; }
+    .dh-job-row {
+      grid-template-columns: minmax(0, 1fr) auto 8px;
+      grid-template-areas: "name state chev" "slots when when" "why why why";
+      column-gap: var(--space-3); row-gap: var(--space-1);
+    }
+    .dh-job-row::after { grid-area: chev; }
+    .dh-job-name { grid-area: name; }
+    .dh-job-row > .dh-state { grid-area: state; justify-self: end; }
+    .dh-slots { grid-area: slots; }
+    .dh-job-last, .dh-job-next { grid-area: auto; }
+    .dh-job-when {
+      grid-area: when; display: flex; justify-content: flex-end; gap: var(--space-3); min-width: 0;
+    }
+    .dh-k { display: inline; }
+    .dh-abs, .dh-job-next.is-none { display: none; }
+    .dh-job-why { grid-area: why; }
+    .dh-slotlist li { grid-template-columns: 44px minmax(0, 1fr); }
+    .dh-slot-note { grid-column: 2; }
+    .dh-slot-note:empty { display: none; }
   }
   .bs-dot {
     display: inline-block; width: 7px; height: 7px; border-radius: 50%;
@@ -3226,223 +3316,6 @@
   .bs-dot[data-tone="ok"] { background: var(--accent); }
   .bs-dot[data-tone="warn"] { background: var(--warning); }
   .bs-dot[data-tone="bad"] { background: var(--negative, var(--negative)); }
-  /* ── 今天的槽位轨（数据健康牌内）──
-     色彩预算不变：绿=落地、黄=降级、红=没落地、蓝=进行中、灰=还没到，没有第四
-     种装饰色。「兜底补上」用**空心**这个形状差别表示 —— 它也落地了，只是烧掉了
-     一次尝试，值得看见但不值得一个新颜色。 */
-  .dh-pip {
-    display: inline-block; width: 7px; height: 7px; border-radius: 50%;
-    background: var(--neutral, var(--text-tertiary)); flex: none;
-  }
-  .dh-pip[data-tone="ok"]   { background: var(--positive); }
-  .dh-pip[data-tone="warn"] { background: var(--warning); }
-  .dh-pip[data-tone="bad"]  { background: var(--negative, var(--negative)); }
-  .dh-pip[data-tone="live"] { background: var(--accent); }
-  .dh-pip[data-tone="idle"] { background: transparent; box-shadow: inset 0 0 0 1px var(--border-strong); }
-  /* 轨道上的针只有 3px 宽，描边在这个尺寸上等于不可见。「排了但还没到」必须
-     读得出来（否则一个还没开始的夜晚看起来像没排班），所以换成淡填充。 */
-  .dh-pip.is-slot[data-tone="idle"] {
-    background: var(--border-strong); box-shadow: none; opacity: .8;
-  }
-  .dh-pip[data-tone="ok-soft"] { background: transparent; box-shadow: inset 0 0 0 1.5px var(--positive); }
-  .dh-pip[data-unmonitored="1"] { opacity: .5; }
-
-  /* 名字列宽度只在一处定义，行、坐标轴、「现在」竖线三处共用同一个数，
-     否则刻度和每行的点会各自对齐到不同的 x 原点，读起来是错位的。 */
-  .dh-rail { margin-top: 12px; display: grid; gap: 6px; --dh-rail-label-w: 10.5em; }
-  .dh-timeline-list { display: grid; gap: 8px; margin: 8px 0 14px; min-width: 0; }
-  .dh-timeline { min-width: 0; border: 1px solid var(--border-subtle);
-    border-radius: var(--radius); background: var(--fill-inset); overflow: clip; }
-  .dh-timeline[data-state="ok"], .dh-timeline[data-state="pending"] { background: transparent; }
-  .dh-timeline[data-state="bad"] { border-left: 3px solid var(--negative); }
-  .dh-timeline[data-state="warn"], .dh-timeline[data-state="stale"] {
-    border-left: 3px solid var(--warning); }
-  .dh-timeline summary { display: grid; grid-template-columns: minmax(0, 1.1fr) 100px minmax(135px, .8fr) minmax(0, 1.5fr) 12px;
-    align-items: center; gap: 10px; padding: 12px 16px; cursor: pointer; list-style: none;
-    font: 500 var(--fs-xs)/1.4 var(--mono); min-height: 48px;
-    transition: transform var(--duration-fast) var(--ease-out), background-color var(--duration-fast) var(--ease-out); }
-  .dh-timeline summary::-webkit-details-marker { display: none; }
-  .dh-timeline summary:active { background: var(--fill-inset); }
-  @media (hover: hover) and (pointer: fine) {
-    .dh-timeline summary:hover { background: var(--fill-inset); }
-  }
-  .dh-timeline-name { color: var(--text); font-weight: 700; min-width: 0; overflow-wrap: anywhere; }
-  .dh-timeline-badge { font-weight: 700; white-space: nowrap; color: var(--accent-ink); }
-  .dh-timeline-badge[data-state="bad"] { color: var(--negative-ink); }
-  .dh-timeline-badge[data-state="warn"], .dh-timeline-badge[data-state="stale"] { color: var(--warning-ink); }
-  .dh-timeline-badge[data-state="pending"], .dh-timeline-badge[data-state="live"] { color: var(--text-secondary); }
-  .dh-timeline-last { color: var(--text-secondary); overflow-wrap: anywhere; }
-  .dh-timeline-reason { color: var(--text-tertiary); min-width: 0; overflow-wrap: anywhere; }
-  .dh-timeline-more { color: var(--text-tertiary); }
-  .dh-timeline-slots { margin: 0; padding: 8px 16px 14px 28px; border-top: 1px solid var(--border-subtle);
-    color: var(--text-secondary); font: 500 var(--fs-xs)/1.5 var(--mono); }
-  .dh-timeline-slots li { padding: 4px 0; overflow-wrap: anywhere; }
-  .dh-timeline-slots time { margin-right: 10px; color: var(--text); font-weight: 700; }
-  .dh-slot-state { margin-right: 10px; }
-  .dh-rail-head {
-    display: flex; align-items: baseline; justify-content: space-between;
-    gap: 10px; flex-wrap: wrap;
-  }
-  .dh-rail-name {
-    color: var(--text-secondary); font: 500 var(--fs-micro)/1.4 var(--mono);
-  }
-  /* 宽档由下面那张图回答「接下来轮到谁」，这句话是窄档的替身，默认不显示。 */
-  .dh-rail-next { display: none; }
-  .dh-rail-keys { display: flex; flex-wrap: wrap; gap: 3px 9px; }
-  .dh-rail-key {
-    display: inline-flex; align-items: center; gap: 4px;
-    color: var(--text-tertiary); font: 500 var(--fs-micro)/1 var(--mono);
-  }
-  /* 每个 job 一条独立的行，共用同一把刻度尺——原来所有 job 的点挤在一条轨道
-     上，只能靠悬停猜是哪个 job；一行一个名字，位置不用猜。刻度线每小时一条、
-     每 3 小时标一个数字，比原来只有 00/06/12/18/24 四个地标精确得多。 */
-  .dh-rail-body { position: relative; }
-  .dh-rail-rows {
-    display: grid; gap: 3px; padding: 6px 0;
-    border-radius: 4px; background: var(--fill-inset); border: 1px solid var(--border-subtle);
-  }
-  .dh-rail-row {
-    display: grid; grid-template-columns: var(--dh-rail-label-w) 1fr;
-    gap: 8px; align-items: center; padding: 0 8px;
-  }
-  .dh-rail-row-name {
-    color: var(--text-tertiary); font: 500 var(--fs-micro)/1.3 var(--mono);
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
-  .dh-rail-row-track {
-    position: relative; height: 12px;
-    background-image: repeating-linear-gradient(to right,
-      var(--border-subtle) 0, var(--border-subtle) 1px,
-      transparent 1px, transparent calc(100% / 24));
-  }
-  .dh-pip.is-slot {
-    position: absolute; top: 2px; width: 3px; height: 8px; border-radius: 1.5px;
-    transform: translateX(-1.5px);
-  }
-  .dh-pip.is-slot[data-tone="ok-soft"] { box-shadow: inset 0 0 0 1.5px var(--positive); }
-  /* 「现在」——一条竖线贯穿所有行，分开「已经跑过」和「还没轮到」，不然一个
-     还没到点的灰点和一个真的没跑的灰点在视觉上完全一样。 */
-  .dh-rail-now {
-    position: absolute; top: -3px; bottom: 0; width: 2px;
-    background: var(--accent); opacity: .8; pointer-events: none;
-  }
-  @media (max-width: 1050px) {
-    .dh-timeline summary { grid-template-columns: minmax(0, 1fr) auto auto;
-      grid-template-areas: "name badge more" "last last last" "reason reason reason"; }
-    .dh-timeline-name { grid-area: name; }
-    .dh-timeline-badge { grid-area: badge; }
-    .dh-timeline-last { grid-area: last; }
-    .dh-timeline-reason { grid-area: reason; }
-    .dh-timeline-more { grid-area: more; }
-  }
-  /* 线顶上一个小三角，不然 2px 的竖线在密集的针脚里太容易被当成又一条刻度线。 */
-  .dh-rail-now::before {
-    content: ""; position: absolute; top: -3px; left: 50%;
-    width: 0; height: 0; transform: translateX(-50%);
-    border-left: 3px solid transparent; border-right: 3px solid transparent;
-    border-top: 4px solid var(--accent); opacity: .9;
-  }
-  .dh-rail-axis {
-    display: flex; justify-content: space-between;
-    /* +8px 对齐 .dh-rail-row 的左内边距，+1px 让首尾刻度不贴着圆角描边。 */
-    padding: 0 1px 0 calc(var(--dh-rail-label-w) + 8px);
-    color: var(--text-faint, var(--text-tertiary));
-    font: 500 var(--fs-micro)/1 var(--mono);
-  }
-  /* 「现在」——一条竖线贯穿所有行；left 落在同一把尺子上：先让过名字列，
-     剩下的宽度才是 0-100% 对应的 00:00-24:00，JS 只需要给一个 0-1 的分数。 */
-  .dh-rail-now {
-    left: calc(var(--dh-rail-label-w) + 8px
-      + (100% - var(--dh-rail-label-w) - 16px) * var(--now-frac, 0));
-  }
-  @media (max-width: 560px) {
-    .dh-rail { --dh-rail-label-w: 6.4em; }
-    .dh-rail-row-name { font-size: 10px; }
-  }
-  /* 逐项里那一组：灯挤在 .dh-bar 这一列，槽多时在自己格里横滚，不让整页横滚。 */
-  .dh-row.is-cron .dh-bar.is-lamps {
-    display: flex; align-items: center; gap: 3px;
-    overflow-x: auto; scrollbar-width: none; background: none;
-  }
-  .dh-row.is-cron .dh-bar.is-lamps::-webkit-scrollbar { display: none; }
-  .dh-row.is-cron[data-tone="bad"] .dh-state { color: var(--negative, var(--negative)); }
-  .dh-row.is-cron[data-tone="warn"] .dh-state { color: var(--warning); }
-  /* idle 仍是一次真实的巡检结果。父级 opacity 会把所有小字一起压到
-     2.54:1；层级改由 tertiary 文本表达，不牺牲可读性。 */
-  .dh-row.is-cron[data-tone="idle"] { color: var(--text-tertiary); }
-  .dh-caption {
-    margin-top: 10px; color: var(--text-faint, var(--text-tertiary));
-    font: 500 var(--fs-micro)/1.5 var(--mono);
-  }
-  .dh-seg.is-late i { background: var(--warning); }
-  .dh-seg.is-missing i { background: var(--negative); }
-  /* 处置清单：常显，但没有待办时整块不占位。（类名不叫 .dh-todo —— 那个
-     已经是判词后半截那个 span 的类，撞名会给判词画上一条边线。） */
-  .dh-todo-list:not(:empty) {
-    margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border-subtle);
-  }
-  .dh-row {
-    display: grid; align-items: center; gap: 12px; padding: 8px 0;
-    /* 末列 34px 是照「在期 / 逾期 / 缺失」两个字量的，投递行写的是「TG 已兜」
-       四个字（实测 42px），一直在溢出容器。按最长的那个词定宽。 */
-    grid-template-columns: minmax(76px, auto) minmax(0, 1fr) 84px minmax(0, 1.3fr) 46px;
-    border-bottom: 1px solid var(--border-subtle);
-    font: 500 var(--fs-xs)/1.35 var(--mono); font-variant-numeric: tabular-nums;
-  }
-  .dh-row:last-child { border-bottom: 0; }
-  /* 「今天没事的那些」折起来：展开一条泳道之后不该还是一坨流水账。行本身
-     一个字没改，只是排在一个展开器后面。 */
-  .dh-fold {
-    display: flex; align-items: center; gap: 8px; width: 100%;
-    background: none; border: 0; border-bottom: 1px solid var(--border-subtle);
-    padding: 9px 0; margin: 0; cursor: pointer; text-align: left;
-    color: var(--text-tertiary);
-    font: 600 var(--fs-xs)/1.35 var(--mono); font-variant-numeric: tabular-nums;
-  }
-  .dh-fold i {
-    width: 9px; height: 9px; border-right: 1.5px solid currentColor;
-    border-bottom: 1.5px solid currentColor; transform: rotate(-45deg);
-    transition: transform var(--duration-fast) var(--ease-out); flex: 0 0 auto; margin: -3px 2px 0 3px;
-  }
-  .dh-fold[aria-expanded="true"] i { transform: rotate(45deg); margin-top: -6px; }
-  @media (hover: hover) and (pointer: fine) {
-    .dh-fold:hover { color: var(--text-secondary); }
-  }
-  .dh-fold:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
-  @media (prefers-reduced-motion: reduce) { .dh-fold i { transition: none; } }
-  @media (pointer: coarse) { .dh-fold { padding: 13px 0; } }
-  /* 逐项里的分组标题（投递 / 数据面）：两组读的是两件事，中间要有个界。 */
-  .dh-sub {
-    padding: 10px 0 4px; color: var(--text-tertiary);
-    font: 700 var(--fs-micro)/1.2 var(--mono); letter-spacing: .08em;
-  }
-  .dh-sub:first-child { padding-top: 4px; }
-  /* 投递行 / 处置行 / 体检行没有期限用量可画：空的灰槽会被读成「一根 0% 的条」。 */
-  .dh-row.is-delivery .dh-bar, .dh-row.is-todo .dh-bar,
-  .dh-row.is-check .dh-bar { background: none; }
-  /* 处置行的末列是「下一步去哪看」，不是一个状态词 —— 34px 装不下，
-     单独给它一套列宽，并且左侧留一道红边把待办从台账里挑出来。 */
-  .dh-row.is-todo {
-    grid-template-columns: minmax(76px, auto) minmax(0, 1fr) 0 minmax(0, 1.1fr) minmax(0, 1.2fr);
-    padding-left: 8px; border-left: 2px solid var(--negative);
-  }
-  .dh-row.is-todo .dh-name { color: var(--negative); }
-  .dh-row.is-todo .dh-state { color: var(--text-secondary); text-align: right; white-space: normal; }
-  .dh-name { color: var(--text); font-weight: 700; white-space: nowrap; }
-  .dh-file, .dh-detail {
-    color: var(--text-tertiary); min-width: 0;
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  }
-  .dh-bar {
-    height: 4px; border-radius: 2px; overflow: hidden;
-    background: color-mix(in srgb, var(--text) 8%, transparent);
-  }
-  .dh-bar i { display: block; height: 100%; background: color-mix(in srgb, var(--accent) 75%, transparent); }
-  .dh-row.is-late .dh-bar i, .dh-row.is-missing .dh-bar i { background: var(--warning); opacity: 1; }
-  .dh-row.is-missing .dh-bar i { background: var(--negative); }
-  .dh-state { color: var(--text-tertiary); text-align: right; white-space: nowrap; }
-  .dh-row.is-late .dh-state { color: var(--warning); }
-  .dh-row.is-missing .dh-state { color: var(--negative); }
 
 
   /* ── 决策地图（Reflect 卡内）────────────────────────────────────────
@@ -4361,7 +4234,6 @@
     .verdict-deck, .overview-strip,
     .overview-command > .hero-honesty-card,
     .overview-command > .hero-gold-card { width: 100%; min-width: 0; }
-    .hero-health { padding: 20px 18px 22px; }
     .hero-deck { grid-template-columns: minmax(0, 1fr); }
     .hero-deck-lead { border-right: 0; }
     /* 252 而不是 248：430-767px 这一段「主动 call · n=76 · 9 未能核验」那格
@@ -4369,94 +4241,6 @@
        也不要宽档跳一下。（去掉两格重复后是 3 行，不是原来的 4 行。） */
     /* 两列 × 两行 + 每格一件图形：293 = 360~600 全档数据态实测上界。 */
     .hero-rail { grid-template-columns: repeat(2, minmax(0, 1fr)); min-height: 293px; }
-    /* 窄档泳道收成三带：名称+计数+处置牌一行，形状一行，说明一行。
-       五列硬塞进 360px 会把说明挤成一个省略号，那正是 #1270 要修的病。
-       外层那套 46+150+168+58+1fr 的定死列宽也要一起塌 —— 泳道 span 的是
-       父栅格的轨道和，422px 的和会把处置牌顶到 390px 屏幕外面去。 */
-    .dh-lanes { grid-template-columns: minmax(0, 1fr); }
-    .dh-lane {
-      grid-template-columns: auto minmax(0, 1fr) auto auto; gap: 6px 10px;
-      padding: 14px;
-      grid-template-areas: "name stat chip chev" "shape shape shape shape"
-                           "note note note note";
-    }
-    .dh-lane-name { grid-area: name; }
-    /* 计数是这条泳道的答案，10px 的等宽小字里它和标签、说明一样重 —— 手机上
-       给它自己的字号，一眼扫下来先看见三个数。 */
-    .dh-lane-stat { grid-area: stat; font-size: var(--fs-sm); }
-    .dh-lane-chev { grid-area: chev; margin-right: 0; }
-    .dh-lane-shape, .dh-strip { grid-area: shape; }
-    /* 形状那一带按内容高：体检常态是一两个 7px 的计数点，18px 的固定高在
-       窄档留出一条空带，读起来像这一行渲染坏了。 */
-    .dh-lane-shape { height: auto; min-height: 8px; }
-    /* 体检的形状是计数点，不是条 —— 它没有宽度诉求，独占一带时读成一个孤零
-       零的项目符号。挂到计数后面去，这条泳道就只剩两带。 */
-    #dh-lane-integrity {
-      grid-template-columns: auto auto minmax(0, 1fr) auto auto;
-      grid-template-areas: "name stat shape chip chev"
-                           "note note note note note";
-    }
-    #dh-lane-integrity .dh-lane-shape { justify-self: start; gap: 4px; }
-    /* 说明收成两行的引子：体检那条印的是体检报告的原文（英文、三行），在折叠
-       态里它是整块牌最重的一坨。全文就在这条泳道自己的那一组里（点开就有），
-       所以这里是「引子 + 展开」，不是把一句话截掉不给。 */
-    .dh-lane-note {
-      grid-area: note; white-space: normal; line-height: 1.55;
-    }
-    .dh-chip { grid-area: chip; }
-    /* 拇指要够得着：34px 是这块牌上唯一的控件，窄档给它一个正常的点按面积。 */
-    .dh-toggle { padding: 9px 14px; }
-    /* 卡底那行说明是四个处置词的唯一词典，10px 在手机上读不动。 */
-    .dh-caption { font-size: var(--fs-xs); line-height: 1.6; }
-
-    /* 24 小时压进 ~217px 的轨道 + 11 个全是省略号的行名 = 手机上读不出东西
-       的条形码（3px 的针脚和每小时一条的刻度线粗细相同）。窄档收掉图，留下
-       计数摘要 + 「下一槽」那一句；同一份「谁 · 几点 · 怎么了」在「逐项」里
-       是逐行的文字，比这张图更好读 —— 这是改版式，不是删数据。 */
-    .dh-rail-body, .dh-rail-axis, .dh-rail-keys { display: none; }
-    .dh-timeline-list { margin-top: 10px; }
-    .dh-timeline summary { padding: 14px; gap: 6px 10px; }
-    .dh-timeline-reason { line-height: 1.55; }
-    .dh-timeline[data-state="ok"] .dh-timeline-reason,
-    .dh-timeline[data-state="pending"] .dh-timeline-reason { display: none; }
-    .dh-rail { gap: 3px; }
-    .dh-rail-next {
-      display: block; color: var(--text-tertiary);
-      font: 500 var(--fs-micro)/1.45 var(--mono);
-    }
-
-    /* 逐项：显式指派栅格位置。原来靠自动排布，而 .dh-bar / .dh-detail 都是
-       整行 span ⇒ 状态词被挤到第四行、右对齐地单独占一行（实测每行 154px，
-       11 个 job 就是 1700px 的空转）。名字和状态本来就该在同一行。 */
-    .dh-row {
-      grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px; row-gap: 4px;
-      grid-template-areas: "name state" "bar bar" "detail detail";
-    }
-    .dh-name { grid-area: name; }
-    .dh-state { grid-area: state; }
-    .dh-bar { grid-area: bar; }
-    .dh-detail { grid-area: detail; white-space: normal; }
-    .dh-file { display: none; }
-    /* 处置行是这块牌上唯一的待办，三样东西都要留：名字、位置（文件名或槽位
-       时刻）、下一步。窄档给它自己一套三带 —— 位置和「多旧/怎么了」并排一
-       行（位置是短的，说明是长的），下一步整行。位置一律不折不省略：
-       `portfolio.json` 被断成 `portfol/io.json` 或吃掉半截，都等于把「去哪看」
-       这条线索毁掉。 */
-    .dh-row.is-todo {
-      grid-template-columns: auto minmax(0, 1fr);
-      grid-template-areas: "name name" "where detail" "state state";
-      /* 说明常折成两行，居中会把左边那格的位置吊在两行中间。 */
-      align-items: start;
-    }
-    .dh-row.is-todo .dh-file {
-      display: block; grid-area: where; text-align: left;
-      overflow: visible; white-space: nowrap;
-    }
-    .dh-row.is-todo .dh-state { text-align: left; }
-    /* 灯是「这一槽跑了没有」的唯一逐槽答案（时刻表只说几点，不说结果），
-       7px 的空心圈在手机上几乎看不见。窄档放大到 9px 并拉开间距。 */
-    .dh-row.is-cron .dh-bar.is-lamps { gap: 4px; }
-    .dh-row.is-cron .dh-bar.is-lamps .dh-pip { width: 9px; height: 9px; }
     /* 386：360~767 扫宽忙日实测上界 350.39（在 360）+ 露边 16 + gap 8
        + 指示点 10 = 384.39，+2（第八次迭代重扫）。窄档是留白重灾区，但那
        段空高现在被异动条吃掉：地板不动，正文吃满。 */
@@ -4490,10 +4274,6 @@
     .hero-rail-v { font-size: var(--fs-lg); }
     .hero-deck-lead { padding: 22px var(--card-inset) 18px; }
     .hero-rail-cell { padding: 12px 0 14px; }
-    /* 段更宽（不是更高）：窄档只有 15 段，横向有的是余量，而 26px 高的
-       色块把泳道那一带撑成了整块牌里最重的东西。width 在 flex:1 1 0 +
-       max-width 面前是空写的，真正生效的是 max-width。 */
-    .dh-seg { max-width: 12px; height: 22px; }
   }
 
   /* =========================================================
@@ -4949,7 +4729,7 @@
      上，顶栏的按钮守着 44px，卡里的控件各自 30~38px。热区是一条线，不是
      每个组件自己的品味。 */
   @media (pointer: coarse) {
-    .mkt-seg-btn, .dh-toggle, .dm-controls button, .dm-controls select,
+    .mkt-seg-btn, .dm-controls button, .dm-controls select,
     .dm-actionbar button, .panel-load-retry, .desk-rail-toggle {
       min-height: 44px;
     }
@@ -4994,118 +4774,3 @@
     article .brief-list li:has(a) { padding-block: 0; }
     .panel.active .dm-cell { height: 44px; }
   }
-
-/* Data Health editorial board: one overview, one column system, one detail area. */
-.hero-health { padding: 32px; overflow: hidden; }
-.hero-health-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px 24px; align-items: end; }
-.hero-health-head .dh-head-copy { grid-column: 1; grid-row: 1; }
-.hero-health-verdict { margin: 8px 0 0; }
-.dh-overall-text { font-size: clamp(25px, 2.5vw, 34px); font-weight: 650; letter-spacing: -.045em; }
-.dh-trust-copy, .hero-health-verdict .dh-todo { margin-top: 8px; font-size: var(--fs-xs); font-weight: 500; }
-.dh-overall-mark { grid-column: 2; grid-row: 1; align-self: start; width: auto; height: auto; padding: 5px 0; border-radius: 0; background: none !important; color: var(--text-secondary); font: 600 var(--fs-xs)/1.4 var(--mono); white-space: nowrap; }
-.dh-overall-mark[data-tone="bad"] { color: var(--negative); }
-.dh-overall-mark[data-tone="warn"] { color: var(--warning); }
-.dh-overall-mark[data-tone="ok"] { color: var(--positive); }
-.hero-health-meta { margin-top: 8px; color: var(--text-tertiary); font-size: var(--fs-xs); }
-.dh-toggle { grid-column: 1 / -1; justify-self: start; min-height: 44px; margin: 0; padding: 8px 0; font-size: var(--fs-xs); color: var(--accent-ink); }
-.dh-toggle::after { content: "↓"; }
-.dh-toggle[aria-expanded="true"]::after { content: "↑"; }
-.dh-headline-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; margin-top: 28px; border-top: 1px solid var(--border-subtle); border-bottom: 1px solid var(--border-subtle); }
-.dh-metric { display: flex; flex-direction: column; gap: 6px; min-width: 0; padding: 16px 20px 16px 0; }
-.dh-metric + .dh-metric { padding-left: 20px; border-left: 1px solid var(--border-subtle); }
-.dh-metric span { color: var(--text-tertiary); font-size: var(--fs-xs); }
-.dh-metric strong { color: var(--text); font: 600 clamp(18px, 1.8vw, 24px)/1.2 var(--mono); font-variant-numeric: tabular-nums; }
-.dh-overview-strip { display: flex; gap: 4px; height: 4px; margin-top: 20px; }
-.dh-overview-strip i { flex: 1; min-width: 0; background: var(--positive); border-radius: 2px; }
-.dh-overview-strip i[data-tone="late"] { background: var(--warning); }
-.dh-overview-strip i[data-tone="missing"] { background: var(--negative); }
-.dh-board { margin-top: 32px; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); overflow: hidden; background: transparent; }
-.dh-board-title { display: flex; justify-content: space-between; gap: 12px; padding: 16px 20px; border-bottom: 1px solid var(--border-subtle); color: var(--text); font-size: var(--fs-sm); font-weight: 650; }
-.dh-board-title span + span { color: var(--text-tertiary); font-size: var(--fs-xs); font-weight: 500; }
-.dh-board-columns, .dh-lane, .dh-timeline summary { grid-template-columns: minmax(0, 1.35fr) minmax(88px, .7fr) minmax(100px, .9fr) minmax(100px, 1fr) minmax(0, 1.4fr); column-gap: 16px; }
-.dh-board-columns { display: grid; padding: 9px 20px; border-bottom: 1px solid var(--border-subtle); color: var(--text-tertiary); font: 500 var(--fs-micro)/1.3 var(--mono); }
-.dh-lanes-shell, .dh-timeline-list { margin: 0; border: 0; border-radius: 0; background: transparent; }
-.dh-timeline-list { display: block; }
-.dh-lanes { display: block; }
-.dh-lane, #dh-lane-integrity, .dh-lane:last-of-type { display: grid; width: 100%; min-height: 56px; margin: 0; padding: 10px 20px; border: 0; border-bottom: 1px solid var(--border-subtle); border-radius: 0; background: transparent; align-items: center; text-align: left; gap: 0 16px; transition: background-color var(--duration-fast) var(--ease-out), transform var(--duration-fast) var(--ease-out); }
-.dh-lane-name { grid-column: 1; font: 650 var(--fs-sm)/1.4 system-ui, sans-serif; letter-spacing: 0; color: var(--text); }
-.dh-health-state { grid-column: 2; display: inline-flex; width: fit-content; margin: 0; padding: 0; border: 0; border-radius: 0; background: none !important; font: 600 var(--fs-xs)/1.4 var(--mono); white-space: nowrap; }
-.dh-lane-stat { grid-column: 3; color: var(--text-secondary) !important; font: 500 var(--fs-xs)/1.4 var(--mono); white-space: normal; }
-.dh-lane-shape, .dh-strip { grid-column: 4; width: 100%; min-width: 0; margin: 0; }
-.dh-lane-note { grid-column: 5; color: var(--text-secondary); font-size: var(--fs-xs); line-height: 1.45; }
-.dh-chip, .dh-lane-chev { display: none; }
-.dh-lane[data-tone="bad"] { box-shadow: inset 2px 0 var(--negative); }
-.dh-lane[data-tone="warn"], .dh-lane[data-tone="stale"] { box-shadow: inset 2px 0 var(--warning); }
-.dh-lane[aria-expanded="true"] { background: var(--fill-inset); }
-.dh-rail { margin: 0; gap: 0; }
-.dh-rail-head { padding: 9px 20px; min-height: auto; border-bottom: 1px solid var(--border-subtle); background: var(--fill-inset); }
-.dh-rail-name { font-size: var(--fs-xs); font-weight: 600; }
-.dh-rail-body, .dh-rail-axis, .dh-rail-keys { display: none; }
-.dh-timeline-heading { padding: 12px 20px 6px; background: transparent; font-size: var(--fs-xs); letter-spacing: 0; }
-.dh-timeline-heading.is-quiet { padding-top: 18px; }
-.dh-timeline { border: 0; border-bottom: 1px solid var(--border-subtle); border-radius: 0; background: transparent; overflow: visible; }
-.dh-timeline:last-child { border-bottom: 0; }
-.dh-timeline[data-state="bad"], .dh-timeline[data-state="warn"], .dh-timeline[data-state="stale"] { border-left: 0; box-shadow: inset 2px 0 var(--warning); }
-.dh-timeline[data-state="bad"] { box-shadow: inset 2px 0 var(--negative); }
-.dh-timeline summary { display: grid; grid-template-areas: "name badge last samples reason"; gap: 0 16px; min-height: 56px; padding: 9px 20px; align-items: center; }
-.dh-timeline-name { min-width: 0; overflow-wrap: anywhere; font-weight: 550; }
-.dh-timeline-badge { width: fit-content; padding: 0; background: none !important; border-radius: 0; white-space: nowrap; font-weight: 600; color: var(--positive); }
-.dh-timeline-badge[data-state="bad"] { color: var(--negative); }
-.dh-timeline-badge[data-state="warn"], .dh-timeline-badge[data-state="stale"] { color: var(--warning); }
-.dh-timeline-badge[data-state="pending"], .dh-timeline-badge[data-state="live"] { color: var(--text-secondary); }
-.dh-timeline-last { color: var(--text-secondary); line-height: 1.4; font-variant-numeric: tabular-nums; }
-.dh-timeline-samples, .dh-timeline[data-state="ok"] .dh-timeline-samples, .dh-timeline[data-state="pending"] .dh-timeline-samples { position: relative; grid-area: samples; display: block; height: 20px; border-top: 1px solid var(--border-subtle); border-bottom: 1px solid var(--border-subtle); border-left: 1px solid var(--border-subtle); border-right: 1px solid var(--border-subtle); }
-.dh-timeline-tick { position: absolute; top: 5px; flex: none; width: 8px; height: 10px; min-width: 8px; transform: translateX(-50%); border-radius: 1px; }
-.dh-timeline-tick[data-tone="ok"] { background: var(--positive); }
-.dh-timeline-tick[data-tone="warn"] { background: var(--warning); }
-.dh-timeline-tick[data-tone="bad"] { background: var(--negative); }
-.dh-timeline-tick[data-tone="live"] { background: var(--accent); }
-.dh-timeline-tick[data-tone="idle"] { background: transparent; box-shadow: inset 0 0 0 1px var(--border-strong); }
-.dh-timeline-tick[data-tone="ok-soft"] { background: transparent; box-shadow: inset 0 0 0 1px var(--positive); }
-.dh-timeline-reason { grid-area: reason; display: flex !important; flex-direction: column; gap: 2px; min-width: 0; font-size: var(--fs-xs); }
-.dh-timeline-due { color: var(--text-secondary); }
-.dh-timeline-why { color: var(--negative-ink); overflow-wrap: anywhere; }
-.dh-timeline[data-state="warn"] .dh-timeline-why, .dh-timeline[data-state="stale"] .dh-timeline-why { color: var(--warning-ink); }
-.dh-timeline-more { display: none; }
-.dh-timeline-slots { display: none; }
-.dh-timeline > .dh-timeline-raw { display: none; }
-.dh-detail-panel { display: none; margin-top: 28px; padding: 20px 0 0; border-top: 1px solid var(--border-subtle); }
-.dh-detail-panel:has(.dh-group.is-open), .dh-detail-panel:has(.dh-detail-content:not(:empty)) { display: block; }
-.dh-detail-heading { margin-bottom: 12px; color: var(--text); font-size: var(--fs-sm); font-weight: 650; }
-.dh-detail-panel .dh-group { display: block; width: 100%; }
-.dh-detail-panel .dh-group:not(.is-open) { display: none; }
-.dh-detail-panel .dh-group-body { padding: 0; background: transparent; }
-.dh-detail-content .dh-timeline-slots { display: block; padding: 0; background: transparent; }
-.dh-detail-content .dh-timeline-raw { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border-subtle); color: var(--text-tertiary); font: 500 var(--fs-xs)/1.5 var(--mono); overflow-wrap: anywhere; }
-.dh-detail-content .dh-timeline-raw a { color: var(--accent-ink); }
-.dh-todo-list:not(:empty) { margin-top: 24px; padding: 0 0 0 16px; background: transparent; border-left: 2px solid var(--negative); }
-.dh-caption { margin-top: 20px; }
-@media (max-width: 767px) {
-  .hero-health { padding: 24px 20px; }
-  .hero-health-head { grid-template-columns: minmax(0, 1fr); gap: 8px; }
-  .hero-health-head .dh-head-copy, .dh-overall-mark, .dh-toggle { grid-column: 1; grid-row: auto; }
-  .dh-overall-mark { justify-self: start; }
-  .dh-headline-metrics { margin-top: 20px; }
-  .dh-metric { gap: 4px; padding: 12px 8px 12px 0; }
-  .dh-metric + .dh-metric { padding-left: 12px; }
-  .dh-metric span { font-size: 10px; }
-  .dh-metric strong { font-size: 17px; }
-  .dh-board { margin-top: 24px; }
-  .dh-board-title { padding: 14px 16px; }
-  .dh-board-columns { display: none; }
-  .dh-lane, #dh-lane-integrity, .dh-lane:last-of-type, .dh-timeline summary { grid-template-columns: minmax(0, 1fr) auto; gap: 5px 12px; min-height: 64px; padding: 12px 16px; }
-  .dh-lane-name { grid-column: 1; grid-row: 1; }
-  .dh-health-state { grid-column: 2; grid-row: 1; }
-  .dh-lane-stat { grid-column: 1; grid-row: 2; }
-  .dh-lane-shape, .dh-strip { grid-column: 1 / -1; grid-row: 3; }
-  .dh-lane-note { grid-column: 1 / -1; grid-row: 4; }
-  .dh-rail-head { padding: 10px 16px; }
-  .dh-timeline-heading { padding-left: 16px; }
-  .dh-timeline summary { grid-template-areas: "name badge" "last last" "samples samples" "reason reason"; }
-  .dh-timeline-name { grid-area: name; }
-  .dh-timeline-badge { grid-area: badge; }
-  .dh-timeline-last { grid-area: last; }
-  .dh-timeline-samples, .dh-timeline[data-state="ok"] .dh-timeline-samples, .dh-timeline[data-state="pending"] .dh-timeline-samples { grid-area: samples; }
-  .dh-timeline-reason { grid-area: reason; }
-  .dh-timeline[data-state="ok"] .dh-timeline-reason, .dh-timeline[data-state="pending"] .dh-timeline-reason { display: flex; }
-}

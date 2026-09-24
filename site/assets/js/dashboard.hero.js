@@ -1043,317 +1043,140 @@
       // 端点标记已移除（kcn 2026-08-24：spark 末端涨跌色圆点没用，去掉）。
   }
 
-  // 数据健康：一块牌上压着三个互不相干的问题 —— ①页面上的数字新不新鲜
-  // ②体检有没有报错 ③今天的成品有没有送出去。原来它们被压成「一行判词 +
-  // 一条灰 meta」：判词借的是当下最坏的那一条，另外两条的状态读不出来，
-  // 也读不出该不该动手（kcn 2026-09-01：「我也不知道该怎么看」）。
-  // 现在固定三条泳道 —— 位置不动，每条各带一枚处置牌。判词只回答第一个
-  // 问题：**一个任务没落地不等于页面上的数字是错的**，这两件事必须分开说，
-  // 否则「简报 FAILED」会把一屏可信的数字染成红的。
-  // 判过期只认 f.stale —— files[] 有两种新鲜度模式（max_age 比 sla_hours，
-  // scheduled_fire 比 deadline_at），自己再算一遍 age>sla 会造出一批假警报。
-  const _UNMONITORED_TEXT = "这个 job 没有 harness，账本本来就看不到它的记录，不代表没跑";
-
-  // ── 今天的槽位轨（数据健康牌的一部分，不是另一张牌）──
-  // 灯的颜色仍然是账本 final_product 的定论，这里只做「定论 → 颜色」，不重判。
-  // 颜色只回答「发生了什么」，回答不了「是谁、什么时候、要不要管」——原来所有
-  // job 的点混在一条轨道上，只能靠悬停猜是哪个 job；改成**每个 job 一条独立的
-  // 行**，共用同一条时间轴，一眼就能读出行=job、位置=时刻。判词也先说「要不要
-  // 管」再说「发生了什么」，理由句直接来自 cron_schedule.py 已经翻好的
-  // `note.text`，这里只负责摆出来，不重新组织理由。
-  const CRON_STATES = {
-    ok:          { tone: "ok",      cn: "正常" },
-    recovered:   { tone: "ok-soft", cn: "兜底补上" },
-    degraded:    { tone: "warn",    cn: "降级送达" },
-    failed:      { tone: "bad",     cn: "未落地" },
-    missed:      { tone: "bad",     cn: "没跑" },
-    running:     { tone: "live",    cn: "进行中" },
-    upcoming:    { tone: "idle",    cn: "待跑" },
-    unmonitored: { tone: "idle",    cn: "账本看不到" },
-    unknown:     { tone: "idle",    cn: "状态未知" },
+  // ── 数据健康 ─────────────────────────────────────────────────────────
+  // 三层：总览（一句判词 + 四个领域读数）→ 定时任务监测板（每个任务一行：
+  // 状态 · 今日槽位 · 最近成功 · 下次）→ 选中后就地展开的明细。
+  // 两条老规矩仍然成立：①「某个任务没落地」和「页面上的数字不可信」是两件
+  // 事，判词下面那行只回答后者；②「你该动手的事」只有一处（需处理清单），
+  // 而且不藏在任何一次点击后面。
+  // 判过期只认 f.stale —— files[] 有 max_age 与 scheduled_fire 两种新鲜度
+  // 模式，自己再算一遍 age>sla 会造出一批假警报。颜色只是第二编码：每个
+  // 状态都有字，健康（实心蓝点「正常」）和未到点（空心圈「待跑」）永远长得
+  // 不一样（#1816）。
+  const DH_SLOT = {
+    ok:          ["ok",      "正常"],
+    recovered:   ["warn",    "兜底补上"],
+    degraded:    ["warn",    "降级送达"],
+    failed:      ["bad",     "未落地"],
+    missed:      ["bad",     "没跑"],
+    running:     ["live",    "进行中"],
+    upcoming:    ["pending", "待跑"],
+    unmonitored: ["idle",    "账本看不到"],
+    unknown:     ["stale",   "状态未知"],
   };
-  const cronState = s => (CRON_STATES[s] ? s : "unknown");
-  // 与数据健康卡卡底那行处置说明用的是同一套词——不给读者第二本词典。
-  const DISPOSITION_CN = { needs_action: "需处理", watch: "观察",
-                            known_not_fixed: "已知不修", normal: "正常" };
-  const AXIS_MINUTES = h => (h / 24) * 100;
-  const hktDay = now => {
+  // 有事的在上；安静的三种（运行中 / 待跑 / 正常）按时刻表原来的顺序。
+  const DH_RANK = { bad: 0, warn: 1, stale: 2, idle: 3, live: 4, pending: 4, ok: 4 };
+  const DH_UNMONITORED = "这个 job 没有 harness，账本本来就看不到它的记录，不代表没跑";
+  const DH_RAW_URL = "https://raw.githubusercontent.com/KCNyu/clawock/data-plane/assets/data/dashboard.json";
+
+  function dhSlotState(s) {
+    return DH_SLOT[s && s.state] ? s.state : "unknown";
+  }
+
+  // 一个槽位「要不要管」：账本给了处置就用账本的，没给就按结果推。
+  function dhSlotDisposition(s) {
+    if (s.note && s.note.disposition && s.note.disposition !== "normal") return s.note.disposition;
+    const st = dhSlotState(s);
+    if (st === "failed" || st === "missed") return "needs_action";
+    if (st === "degraded" || st === "recovered") return "watch";
+    return null;
+  }
+
+  function dhHktDay(now) {
     const parts = new Intl.DateTimeFormat("en-US", { timeZone: "Asia/Hong_Kong",
       year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(now);
     return ["year", "month", "day"].map(type => parts.find(p => p.type === type).value).join("-");
-  };
-
-  function cronCells(cs) {
-    const out = [];
-    ((cs && cs.jobs) || []).forEach(j => (j.slots || []).forEach(s => out.push({
-      job: j.job, at: s.at, state: cronState(s.state), unmonitored: !!j.unmonitored,
-      note: s.note || null,
-    })));
-    return out.sort((a, b) => a.at.localeCompare(b.at));
   }
 
-  // 真正需要处理的槽位，供顶部「处置 · 需处理」清单合并——那份清单是这张牌上
-  // 唯一「你该做点什么」的地方，cron 的待办不该另起一份藏在轨道里。
-  function cronNeedsAction(cs) {
-    return cronCells(cs).filter(c => c.note && c.note.disposition === "needs_action");
+  function dhHktClock(now) {
+    const parts = new Intl.DateTimeFormat("en-GB", { timeZone: "Asia/Hong_Kong",
+      hour: "2-digit", minute: "2-digit", hour12: false }).formatToParts(now);
+    return ["hour", "minute"].map(type => parts.find(p => p.type === type).value).join(":");
   }
 
-  function renderCronRail(cs, now) {
-    const rail = document.getElementById("dh-rail");
-    if (!rail) return null;
-    const jobs = ((cs && cs.jobs) || []).filter(j => (j.slots || []).length);
-    if (!jobs.length) { rail.hidden = true; return null; }
-    rail.hidden = false;
+  function dhAgo(date, now) {
+    const minutes = Math.max(0, Math.floor((now - date) / 60000));
+    if (minutes < 60) return `${minutes} 分钟前`;
+    if (minutes < 1440) return `${Math.floor(minutes / 60)} 小时前`;
+    return `${Math.floor(minutes / 1440)} 天前`;
+  }
 
-    const cells = cronCells(cs);
-    const scheduleStale = !!(cs.date && cs.date !== hktDay(now));
-    // One readable answer per timeline. Slot pips remain a time map on wide
-    // screens; the list carries the verdict on every screen and every input.
-    const statusList = document.getElementById("dh-timeline-list");
-    if (statusList) {
-      const focusedJob = document.activeElement?.closest(".dh-timeline")?.dataset.job;
-      const openJobs = new Set([...statusList.querySelectorAll(".dh-timeline[open]")]
-        .map(row => row.dataset.job));
-      const rank = { bad: 0, warn: 1, stale: 2, live: 3, pending: 4, ok: 5 };
-      const stateFor = j => {
-        if (scheduleStale) return ["stale", "数据过期", "!"];
-        const slots = (j.slots || []).map(s => ({ ...s, state: cronState(s.state) }));
-        if (slots.some(s => ["failed", "missed"].includes(s.state))) return ["bad", "故障", "×"];
-        if (slots.some(s => ["degraded", "recovered"].includes(s.state))) return ["warn", "需关注", "!"];
-        if (j.unmonitored || slots.some(s => s.state === "unknown")) return ["stale", "状态未知", "?"];
-        if (slots.some(s => s.state === "running")) return ["live", "运行中", "◷"];
-        if (slots.every(s => s.state === "upcoming")) return ["pending", "尚未到期", "◷"];
-        return ["ok", "正常", "✓"];
-      };
-      const lastSuccess = j => {
-        const successful = (j.slots || []).filter(s => ["ok", "recovered"].includes(s.state));
-        const fallback = successful.length && cs.date
-          ? `${cs.date}T${successful[successful.length - 1].at}:00+08:00` : null;
-        const date = new Date(j.last_success_at || fallback || "");
-        if (isNaN(date)) return "最近成功：暂无记录";
-        const age = Math.max(0, Math.floor((now - date) / 60000));
-        const ageText = age < 60 ? `${age} 分钟前` : age < 1440
-          ? `${Math.floor(age / 60)} 小时前` : `${Math.floor(age / 1440)} 天前`;
-        const time = date.toLocaleString("zh-CN", { timeZone: "Asia/Hong_Kong",
-          month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false });
-        return `最近成功：${time} HKT · ${ageText}`;
-      };
-      const rows = jobs.map((j, index) => {
-        const [tone, label, icon] = stateFor(j);
-        const issue = (j.slots || []).find(s => s.note &&
-          ["needs_action", "watch", "known_not_fixed"].includes(s.note.disposition));
-        const reason = scheduleStale ? `时刻表停在 ${cs.date}，今日结果待刷新`
-          : issue ? issue.note.text : j.unmonitored ? _UNMONITORED_TEXT
-          : tone === "pending" ? "今天的任务尚未到点" : tone === "live" ? "任务正在运行"
-          : tone === "stale" ? "账本没有可判定的结果" : "已完成的槽位正常";
-        const slots = (j.slots || []).map(s => {
-          const state = CRON_STATES[cronState(s.state)];
-          return `<li><time>${escapeHtml(s.at)}</time><span class="dh-slot-state" data-tone="${state.tone}">`
-            + `${escapeHtml(state.cn)}</span><span>${escapeHtml((s.note || {}).text || "")}</span></li>`;
-        }).join("");
-        const marks = (j.slots || []).map(s => {
-          const state = CRON_STATES[cronState(s.state)];
-          const [hour, minute] = s.at.split(":").map(Number);
-          return `<i class="dh-timeline-tick" data-tone="${state.tone}" style="left:${AXIS_MINUTES(hour + minute / 60).toFixed(3)}%" aria-hidden="true"></i>`;
-        }).join("");
-        const nextSlot = (j.slots || []).find(s => ["upcoming", "running"].includes(cronState(s.state)));
-        const due = nextSlot ? `下次 ${nextSlot.at} HKT` : "今日已完成";
-        return { rank: rank[tone], html: `<details class="dh-timeline" data-state="${tone}" data-job="${escapeHtml(j.job)}"${openJobs.has(j.job) ? " open" : ""}>`
-          + `<summary><span class="dh-timeline-name">${escapeHtml(j.job)}</span>`
-          + `<span class="dh-timeline-badge" data-state="${tone}"><span aria-hidden="true">${icon}</span> ${label}</span>`
-          + `<span class="dh-timeline-last">${escapeHtml(lastSuccess(j))}</span>`
-          + `<span class="dh-timeline-samples" aria-hidden="true">${marks}</span>`
-          + `<span class="dh-timeline-reason"><span class="dh-timeline-due">${escapeHtml(due)}</span>${tone === "ok" || tone === "pending" ? "" : `<span class="dh-timeline-why">${escapeHtml(reason)}</span>`}</span>`
-          + `<span class="dh-timeline-more" aria-hidden="true">⌄</span></summary>`
-          + `<ul class="dh-timeline-slots">${slots}</ul>`
-          + `<div class="dh-timeline-raw"><span>last_success_at: ${escapeHtml(j.last_success_at || "—")}</span>`
-          + `<span>schedule.date: ${escapeHtml(cs.date || "—")}</span>`
-          + `<a href="https://raw.githubusercontent.com/KCNyu/clawock/data-plane/assets/data/dashboard.json" target="_blank" rel="noopener noreferrer">原始 dashboard.json ↗</a></div></details>`, index };
-      }).sort((a, b) => a.rank - b.rank || a.index - b.index);
-      const issues = rows.filter(row => row.rank < 3);
-      const routine = rows.filter(row => row.rank >= 3);
-      statusList.innerHTML = (issues.length
-        ? `<div class="dh-timeline-heading">需要关注 <span>${issues.length}</span></div>`
-          + issues.map(row => row.html).join("") : "")
-        + (routine.length
-          ? `<div class="dh-timeline-heading is-quiet">其余任务 <span>${routine.length}</span></div>`
-            + routine.map(row => row.html).join("") : "");
-      if (focusedJob) [...statusList.querySelectorAll(".dh-timeline")]
-        .find(row => row.dataset.job === focusedJob)?.querySelector("summary")?.focus({ preventScroll: true });
-      if (statusList.dataset.wired !== "1") {
-        statusList.dataset.wired = "1";
-        statusList.addEventListener("toggle", event => {
-          const row = event.target;
-          if (!row.classList?.contains("dh-timeline")) return;
-          const panel = document.getElementById("dh-detail-content");
-          const heading = document.getElementById("dh-detail-heading");
-          if (!row.open) {
-            if (heading?.textContent === `${row.dataset.job} · 槽位历史`) {
-              heading.textContent = "选择一行查看明细";
-              if (panel) panel.innerHTML = "";
-            }
-            return;
-          }
-          if (panel && heading) {
-            DH_LANES.forEach(key => setDataHealthGroup(key, false));
-            syncDataHealthToggle();
-            heading.textContent = `${row.dataset.job} · 槽位历史`;
-            panel.innerHTML = row.querySelector(".dh-timeline-slots").outerHTML
-              + row.querySelector(".dh-timeline-raw").outerHTML;
-          }
-          [...statusList.querySelectorAll(".dh-timeline[open]")].forEach(other => {
-            if (other !== row) other.open = false;
-          });
-        }, true);
-      }
-      const selected = statusList.querySelector(".dh-timeline[open]");
-      if (selected) {
-        document.getElementById("dh-detail-heading").textContent = `${selected.dataset.job} · 槽位历史`;
-        document.getElementById("dh-detail-content").innerHTML =
-          selected.querySelector(".dh-timeline-slots").outerHTML
-          + selected.querySelector(".dh-timeline-raw").outerHTML;
-      }
+  function dhState(tone, label) {
+    return `<span class="dh-state" data-tone="${tone}">${escapeHtml(label)}</span>`;
+  }
+
+  // 每个任务的判定。先问「要不要管」，再问「发生了什么」。
+  function dhJobVerdict(j, stale) {
+    const slots = j.slots || [];
+    const disps = slots.map(dhSlotDisposition);
+    const noteOf = disp => {
+      const hit = slots.find(s => dhSlotDisposition(s) === disp && s.note && s.note.text);
+      return hit ? hit.note.text : "";
+    };
+    if (stale) return { tone: "stale", label: "过期", why: "" };
+    if (disps.includes("needs_action")) {
+      const bad = slots.find(s => dhSlotDisposition(s) === "needs_action");
+      return { tone: "bad", label: "需处理",
+               why: noteOf("needs_action") || `${bad.at} ${DH_SLOT[dhSlotState(bad)][1]}` };
     }
+    if (disps.includes("watch")) {
+      const soft = slots.find(s => dhSlotDisposition(s) === "watch");
+      return { tone: "warn", label: "观察",
+               why: noteOf("watch") || `${soft.at} ${DH_SLOT[dhSlotState(soft)][1]}，成品已送达` };
+    }
+    if (disps.includes("known_not_fixed")) return { tone: "idle", label: "已知不修", why: noteOf("known_not_fixed") };
+    const states = slots.map(dhSlotState);
+    if (j.unmonitored || states.includes("unmonitored")) return { tone: "idle", label: "账本看不到", why: DH_UNMONITORED };
+    if (states.includes("unknown")) return { tone: "stale", label: "状态未知", why: "账本里没有可判定的结果" };
+    if (states.includes("running")) return { tone: "live", label: "运行中", why: "" };
+    if (states.length && states.every(s => s === "upcoming")) return { tone: "pending", label: "待跑", why: "" };
+    return { tone: "ok", label: "正常", why: "" };
+  }
+
+  function dhJobRow(j, v, cs, now, index, open) {
+    const slots = j.slots || [];
+    const successful = slots.filter(s => ["ok", "recovered", "degraded"].includes(dhSlotState(s)));
+    const fallback = successful.length && cs.date
+      ? `${cs.date}T${successful[successful.length - 1].at}:00+08:00` : null;
+    const last = new Date(j.last_success_at || fallback || "");
+    const lastText = isNaN(last) ? "" : last.toLocaleString("zh-CN", { timeZone: "Asia/Hong_Kong",
+      month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false });
+    const next = slots.find(s => ["upcoming", "running"].includes(dhSlotState(s)));
     const counts = {};
-    cells.forEach(c => { counts[c.state] = (counts[c.state] || 0) + 1; });
-    const n = k => counts[k] || 0;
-    const byDisposition = { needs_action: [], watch: [], known_not_fixed: [] };
-    cells.filter(c => c.note).forEach(c => { (byDisposition[c.note.disposition] || []).push(c); });
-
-    // 这一行不发第二份判词——那正是 #1270 拆牌的原因：一件事只能有一处说
-    // 「要不要处理」。真正需要处理的槽位并进了卡上唯一的「处置 · 需处理」
-    // 清单（见 cronNeedsAction），这里只用中性语气报事实，把「已经知道不用管
-    // 的」也顺手说穿，省得读者自己去猜那个黄点是不是真的要紧。
-    const nameEl = document.getElementById("dh-rail-name");
-    if (nameEl) {
-      const bits = [`${cells.length} 槽`];
-      const landed = n("ok") + n("recovered");
-      if (landed) bits.push(`${landed} 落地`);
-      if (n("recovered")) bits.push(`其中 ${n("recovered")} 靠兜底`);
-      if (n("degraded")) bits.push(`${n("degraded")} 降级`);
-      if (n("failed") + n("missed")) bits.push(`${n("failed") + n("missed")} 没落地`);
-      if (n("running")) bits.push(`${n("running")} 进行中`);
-      if (n("upcoming")) bits.push(`${n("upcoming")} 待跑`);
-      // 账本看不到的也要报出来，否则「26 槽」后面的分项加起来只有 25，剩下
-      // 那一个无人认领——有计数没分母正是 #1270 拆这块牌的病因之一。
-      if (n("unmonitored")) bits.push(`${n("unmonitored")} 账本看不到`);
-      if (byDisposition.watch.length) bits.push(`${byDisposition.watch.length} 处已送达只是发布慢了几分钟`);
-      if (byDisposition.known_not_fixed.length) bits.push(`${byDisposition.known_not_fixed.length} 处已知不修`);
-      if (byDisposition.needs_action.length) bits.push(`${byDisposition.needs_action.length} 处见上方「需处理」`);
-      nameEl.textContent = `投递任务 · 今天 · ${bits.join(" · ")}`;
-    }
-
-    const keysEl = document.getElementById("dh-rail-keys");
-    if (keysEl) {
-      const seen = ["ok", "recovered", "degraded", "failed", "missed", "running",
-                    "upcoming", "unmonitored"].filter(k => n(k));
-      keysEl.innerHTML = seen.map(k =>
-        `<span class="dh-rail-key"><i class="dh-pip" data-tone="${CRON_STATES[k].tone}"></i>`
-        + `${escapeHtml(CRON_STATES[k].cn)}</span>`).join("");
-    }
-
-    // 窄屏把这张图收掉了（24 小时压进 ~217px 的轨、11 个名字全是省略号，
-    // 在手机上读不出任何东西；同一份「谁·几点·怎么了」在「逐项」里是逐行
-    // 的文字）。图不在的时候，「接下来轮到谁」必须仍然有一句话回答，否则
-    // 收图就等于删掉一个答案。CSS 只在窄档显示它。
-    const nextEl = document.getElementById("dh-rail-next");
-    if (nextEl) {
-      const hhmm = now
-        ? `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`
-        : "";
-      const next = cells.find(c => ["upcoming", "running"].includes(c.state)
-        && (!hhmm || c.at >= hhmm));
-      nextEl.textContent = next
-        ? `下一槽 ${next.at} · ${next.job}`
-        : "今天没有待跑的槽位了";
-    }
-
-    // 轴刻度：每 3 小时一个数字、每小时一条细线（CSS 背景画），比原来只有
-    // 00/06/12/18/24 四个地标精确得多；同一条轴下面每个 job 一行，行内的点
-    // 用同一把尺子绝对定位，于是「谁、什么时候」不用悬停就读得出来。
-    const rowsEl = document.getElementById("dh-rail-rows");
-    if (rowsEl) {
-      rowsEl.innerHTML = jobs.map(j => {
-        const slots = (j.slots || []).map(s => ({ ...s, state: cronState(s.state) }));
-        const pips = slots.map(s => {
-          const [h, m] = s.at.split(":").map(Number);
-          const left = AXIS_MINUTES(h + m / 60);
-          const tail = s.note ? `：${s.note.text}` : "";
-          const label = `${j.job} ${s.at} ${CRON_STATES[s.state].cn}${tail}`;
-          return `<i class="dh-pip is-slot" data-tone="${CRON_STATES[s.state].tone}"`
-            + `${j.unmonitored ? ' data-unmonitored="1"' : ""}`
-            + ` style="left:${left.toFixed(3)}%" title="${escapeHtml(label)}"></i>`;
-        }).join("");
-        return `<div class="dh-rail-row">`
-          + `<span class="dh-rail-row-name" title="${escapeHtml(j.job)}">${escapeHtml(j.job)}</span>`
-          + `<span class="dh-rail-row-track">${pips}</span></div>`;
-      }).join("");
-    }
-    const nowEl = document.getElementById("dh-rail-now");
-    if (nowEl && now) {
-      // 百分比留给 CSS 算——它知道名字列多宽，这里只给一个 0-1 的分数。
-      nowEl.style.setProperty("--now-frac", (AXIS_MINUTES(now.getHours() + now.getMinutes() / 60) / 100).toFixed(4));
-      nowEl.hidden = false;
-    }
-    return { cells, byDisposition };
+    slots.forEach(s => { const st = dhSlotState(s); counts[st] = (counts[st] || 0) + 1; });
+    const slotLabel = `今天 ${slots.length} 个槽位：` + Object.keys(counts)
+      .map(st => `${counts[st]} ${DH_SLOT[st][1]}`).join("、");
+    const id = `dh-job-${index}`;
+    // 需处理的那一句已经在上面的清单里（连同下一步）；这里只给状态，不印第二遍。
+    const why = v.why && !["ok", "pending", "live", "bad"].includes(v.tone) ? v.why : "";
+    const detail = slots.map(s => {
+      const [tone, cn] = DH_SLOT[dhSlotState(s)];
+      return `<li><time>${escapeHtml(s.at)}</time>${dhState(tone, cn)}`
+        + `<span class="dh-slot-note">${escapeHtml((s.note || {}).text || "")}</span></li>`;
+    }).join("");
+    return `<li class="dh-job" data-tone="${v.tone}" data-job="${escapeHtml(j.job)}">`
+      + `<button type="button" class="dh-job-row" aria-expanded="${open ? "true" : "false"}" aria-controls="${id}">`
+      + `<span class="dh-job-name">${escapeHtml(j.job)}</span>`
+      + dhState(v.tone, v.label)
+      + `<span class="dh-slots" role="img" aria-label="${escapeHtml(slotLabel)}">`
+      + slots.map(s => `<i data-s="${dhSlotState(s)}"></i>`).join("") + `</span>`
+      + `<span class="dh-job-when">`
+      + `<span class="dh-job-last">${lastText
+          ? `<span class="dh-k">成功 </span><span class="dh-abs">${escapeHtml(lastText)} · </span>${escapeHtml(dhAgo(last, now))}`
+          : "暂无成功记录"}</span>`
+      + `<span class="dh-job-next${next ? "" : " is-none"}">${next
+          ? `<span class="dh-k">下次 </span>${escapeHtml(next.at)}` : "—"}</span>`
+      + `</span>`
+      + (why ? `<span class="dh-job-why">${escapeHtml(why)}</span>` : "")
+      + `</button>`
+      + `<div class="dh-job-detail" id="${id}"${open ? "" : " hidden"}>`
+      + `<ol class="dh-slotlist">${detail}</ol>`
+      + `<p class="dh-raw"><span>last_success_at: ${escapeHtml(j.last_success_at || "—")}</span>`
+      + `<span>schedule.date: ${escapeHtml(cs.date || "—")}</span>`
+      + `<a href="${DH_RAW_URL}" target="_blank" rel="noopener noreferrer">原始 dashboard.json ↗</a></p>`
+      + `</div></li>`;
   }
 
-  // 一组明细里「今天没事」的那些行折起来。#1418 把每条泳道做成了自己的展开
-  // 器，但展开之后仍然是一坨流水账：投递那组在 390px 上是 1200px，11 个 job
-  // 里 9 个写着「正常」——读者要滚到底才敢说今天没事。有事的排在前面、一直
-  // 摊开；没事的收进一个展开器，点开还是同一批行。收起时用 hidden，元素直接
-  // 退出 Tab 与读屏（这里不做 0fr 动画，所以不需要另外再上 inert）。
-  function foldQuiet(id, rows, label) {
-    const loud = rows.filter(r => !r.quiet).map(r => r.html).join("");
-    const quiet = rows.filter(r => r.quiet);
-    if (!quiet.length) return loud;
-    return loud
-      + `<button type="button" class="dh-fold" data-fold="${id}"`
-      + ` aria-expanded="false" aria-controls="dh-fold-${id}">`
-      + `<i></i>${escapeHtml(label(quiet.length))}</button>`
-      + `<div class="dh-foldbody" id="dh-fold-${id}" hidden>`
-      + quiet.map(r => r.html).join("")
-      + `</div>`;
-  }
-
-  // 逐项里的一组：沿用这张牌已有的 .dh-row 五列语法（名/位置/条/说明/状态），
-  // 灯放进 .dh-bar 那一列——说明列现在印的是那一句「为什么」，不是裸时刻表。
-  function cronScheduleRows(cs) {
-    const jobs = (cs && cs.jobs) || [];
-    if (!jobs.length) return "";
-    const RANK = { needs_action: 0, known_not_fixed: 1, watch: 2 };
-    const rows = jobs.map(j => {
-      const slots = (j.slots || []).map(s => ({ ...s, state: cronState(s.state) }));
-      const noted = slots.filter(s => s.note)
-        .sort((a, b) => (RANK[a.note.disposition] ?? 9) - (RANK[b.note.disposition] ?? 9));
-      const worst = noted[0];
-      const waiting = slots.filter(s => ["upcoming", "running"].includes(s.state));
-
-      const state = j.unmonitored ? "账本看不到"
-        : worst ? `${noted.length > 1 ? `${noted.length} ` : ""}${DISPOSITION_CN[worst.note.disposition]}`
-        : waiting.length && waiting.length < slots.length ? "已跑的正常"
-        : waiting.length ? "待跑" : "正常";
-      const why = j.unmonitored ? _UNMONITORED_TEXT
-        : worst ? worst.note.text + (noted.length > 1 ? `（等 ${noted.length} 条）` : "")
-        : slots.map(s => s.at).join(" · ");
-      const lamps = slots.map(s => {
-        const tail = s.note ? `：${s.note.text}` : "";
-        return `<i class="dh-pip" data-tone="${CRON_STATES[s.state].tone}"`
-          + ` title="${escapeHtml(`${s.at} ${CRON_STATES[s.state].cn}${tail}`)}"></i>`;
-      }).join("");
-      const rowTone = j.unmonitored ? "idle"
-        : worst ? (worst.note.disposition === "needs_action" ? "bad" : "warn") : "ok";
-      // 「按时」和「待跑」都是今天没事；「账本看不到」不是——那一行留在上面。
-      return { quiet: rowTone === "ok", html: `<div class="dh-row is-cron" data-tone="${rowTone}">`
-        + `<span class="dh-name">${escapeHtml(j.job)}</span>`
-        + `<span class="dh-file">${escapeHtml(slots.length > 1 ? `${slots.length} 槽` : slots[0] ? slots[0].at : "")}</span>`
-        + `<span class="dh-bar is-lamps">${lamps}</span>`
-        + `<span class="dh-detail">${escapeHtml(why)}</span>`
-        + `<span class="dh-state">${escapeHtml(state)}</span></div>` };
-    });
-    return `<div class="dh-sub">定时任务 · 今天每槽</div>`
-      + foldQuiet("cron", rows, count => `其余 ${count} 个 job 今天按时或待跑`);
-  }
   function renderSearchVisibility() {
     const host = document.getElementById("search-body");
     if (!host) return;
@@ -1391,65 +1214,59 @@
     const bs = safe(DATA, "build_status");
     if (!bs) { root.style.display = "none"; return; }
     root.style.display = "";
+    const now = new Date();
 
-    const verdictEl = document.getElementById("dh-verdict") || document.getElementById("dh-title");
-    const metaEl = document.getElementById("dh-meta");
-    const stripEl = document.getElementById("dh-strip");
+    // ── 读数 ──────────────────────────────────────────────────────────
     const ig = bs.integrity || {};
-    const wf = safe(DATA, "workflow_outcomes") || {};
-    const wc = wf.counts || {};
+    const igErr = ig.error_count || 0;
+    const igWarn = ig.warn_count || 0;
+    const igTop = ig.top || [];
+    const levelOf = t => String(t.level || "").toUpperCase() || "INFO";
+    // INFO 只是读数，不是发现：「0 异常」旁边不能印一条像告警的原文。
+    const igFinding = igTop.find(t => ["ERROR", "WARN"].includes(levelOf(t)));
     const files = (bs.files || []).slice();
     const late = files.filter(f => f.present === false || f.stale);
-    const missing = files.filter(f => f.present === false);
+    const wf = safe(DATA, "workflow_outcomes") || {};
+    const wc = wf.counts || {};
     const failed = wc.failed || 0;
     const soft = (wc.recovered || 0) + (wc.degraded || 0);
     const okCount = wc.success || 0;
     const pending = wc.pending || 0;
     const slotTotal = okCount + soft + failed + pending;
-    const igErr = ig.error_count || 0;
-    const igWarn = ig.warn_count || 0;
-    const igTop = (ig.top || [])[0] || null;
-    const dropped = wf.wechat_dropped_slots || [];
-    const droppedTotal = wf.wechat_dropped_telegram_covered || dropped.length;
     // 窗口写不出来就不写 —— 「37 档」配一个猜出来的小时数比没有小时数更坏。
     const winH = Number(wf.window_hours) > 0 ? Number(wf.window_hours) : null;
-
-    // 点名读的是台账自己给的 degraded_slots（全窗口、有上限），不是 recent ——
-    // recent 是尾巴不是集合，忙日里它一条降级都装不下（实测 16 条尾巴全是
-    // 盘中盯盘，16:00 那次「恢复」早被挤出去了）。
-    const SOFT_CN = { recovered: "恢复", degraded: "降级", artifact_only: "仅存档",
-                      failed: "FAILED" };
-    const jobsWith = (...states) => (wf.degraded_slots || [])
+    const dropped = wf.wechat_dropped_slots || [];
+    const droppedTotal = wf.wechat_dropped_telegram_covered || dropped.length;
+    const SOFT_CN = { recovered: "恢复", degraded: "降级", artifact_only: "仅存档", failed: "未落地" };
+    // 点名读台账自己给的 degraded_slots（全窗口、有上限），不是 recent 尾巴。
+    const slotsWith = (...states) => (wf.degraded_slots || [])
       .filter(r => states.includes((r || {}).status))
       .map(r => ({ job: r.job || "未具名任务", what: SOFT_CN[r.status] || r.status || "",
-                   slot: String(r.slot || "").slice(0, 16).replace("T", " ") }));
-    // 名单有上限，点不满就说「等 N 档」，不假装列全。
+                   status: r.status, slot: String(r.slot || "").slice(0, 16).replace("T", " ") }));
+    // 同一个任务的几档合成一条：「A 降级 2 档、B 降级」，而不是把 A 念两遍。
     const nameThem = (total, rows) => {
       if (!rows.length) return "";
-      const shown = rows.slice(0, 2);
-      const head = shown.map(r => `${r.job} ${r.what}`.trim()).join(" · ");
-      return total > shown.length ? `${head} 等 ${total} 档` : head;
+      const groups = [];
+      rows.forEach(r => {
+        const hit = groups.find(g => g.job === r.job && g.what === r.what);
+        if (hit) hit.n += 1; else groups.push({ job: r.job, what: r.what, n: 1 });
+      });
+      const head = groups.slice(0, 2).map(g => `${g.job} ${g.what}${g.n > 1 ? ` ${g.n} 档` : ""}`).join("、");
+      return groups.length > 2 || total > rows.length ? `${head} 等 ${total} 档` : head;
     };
 
-    // 期限用量：max_age 用 age/sla；scheduled_fire 只有到期时刻，用「离截止还有多久
-    // ÷ 24h」表达，两者都只是粗略的紧张程度，精确判定始终以 f.stale 为准。
     const usage = f => {
       if (f.present === false || f.stale) return 1;
-      // 上游判 stale 有两种模式，这里只做「紧张程度」的粗略表达。未判 stale 的
-      // 一律封顶 0.7，否则会画出一根满格的条却标着「在期」，自相矛盾。
-      const raw = (() => {
-        if (f.freshness_mode === "scheduled_fire") {
-          const d = f.deadline_at ? new Date(f.deadline_at) : null;
-          if (!d || isNaN(d)) return 0.4;
-          const left = (d.getTime() - Date.now()) / 3600000;
-          return left <= 0 ? 0.7 : 1 - Math.min(left, 24) / 24;
-        }
-        if (!f.sla_hours || f.age_hours == null) return 0.4;
-        return f.age_hours / f.sla_hours;
-      })();
-      return Math.max(0.08, Math.min(0.7, raw));
+      if (f.freshness_mode === "scheduled_fire") {
+        const d = f.deadline_at ? new Date(f.deadline_at) : null;
+        if (!d || isNaN(d)) return 0.4;
+        const left = (d.getTime() - now.getTime()) / 3600000;
+        return left <= 0 ? 0.7 : 1 - Math.min(left, 24) / 24;
+      }
+      if (!f.sla_hours || f.age_hours == null) return 0.4;
+      return Math.min(0.99, f.age_hours / f.sla_hours);
     };
-    const stateOf = f => f.present === false ? "missing" : (f.stale ? "late" : "ok");
+    const ageText = f => (f.age_hours == null ? DASH : `${f.age_hours}h`);
     const detailOf = f => {
       if (f.present === false) return "文件缺失";
       if (f.freshness_mode === "scheduled_fire") {
@@ -1458,376 +1275,246 @@
           ? d.toLocaleString("zh-CN", { month: "2-digit", day: "2-digit", hour: "2-digit",
               minute: "2-digit", hour12: false, timeZone: "Asia/Hong_Kong" }) + " HKT"
           : "未知";
-        return `${f.age_hours == null ? DASH : f.age_hours + "h"} · 应于 ${when} 前刷新`;
+        return `${ageText(f)} · 应于 ${when} 前刷新`;
       }
-      return `${f.age_hours == null ? DASH : f.age_hours + "h"} / 期限 ${f.sla_hours}h`;
+      return `${ageText(f)} / 期限 ${f.sla_hours}h`;
     };
 
-    // ── 三条泳道 ───────────────────────────────────────────────────────
-    // 处置牌只有四种，含义写在卡片底部那行说明里，不靠读者猜：
-    //   需处理 = 页面数字或成品真的受影响；观察 = 兜底已经生效，只记不动；
-    //   已知不修 = kcn 已经拍板不处理；正常 = 没有要说的。
-    const setLane = (key, tone, stat, note, chip) => {
-      const lane = document.getElementById(`dh-lane-${key}`);
-      if (lane) lane.dataset.tone = tone;
-      const statEl = document.getElementById(`dh-${key}-stat`);
-      const noteEl = document.getElementById(`dh-${key}-note`);
-      const chipEl = document.getElementById(`dh-${key}-chip`);
-      const healthEl = document.getElementById(`dh-${key}-health`);
-      const health = { bad: "× 故障", warn: "! 需关注", stale: "! 已过期", pending: "◷ 尚未到期", ok: "✓ 正常" };
-      if (healthEl) healthEl.textContent = health[tone] || "? 状态未知";
-      if (statEl) statEl.textContent = stat;
-      if (noteEl) noteEl.textContent = note;
-      if (chipEl) { chipEl.textContent = chip; chipEl.dataset.act = chip; }
-    };
-    // 构成条：只画有数的段，段宽按档数成比例 —— 「今天有多少比例是好的」
-    // 是一眼能读的形状，一串数字不是。
-    const drawBar = (id, parts) => {
-      const el = document.getElementById(id);
-      if (!el) return;
-      const live = parts.filter(p => p.n > 0);
-      const total = live.reduce((a, p) => a + p.n, 0);
-      el.innerHTML = !total ? "" : live.map(p =>
-        `<i class="dh-part is-${p.k}" style="flex:${p.n}"`
-        + ` title="${escapeHtml(p.t)} ${p.n} 档"></i>`).join("");
-    };
-    // 体检没有分母（不存在「一共检查了 N 项」这个数），所以画计数点不画
-    // 构成条 —— 一根没有分母的比例条是编出来的。
-    const drawPips = (id, spec) => {
-      const el = document.getElementById(id);
-      if (!el) return;
-      const out = [];
-      spec.forEach(([kind, n, title]) => {
-        for (let i = 0; i < Math.min(n, 10); i++) {
-          out.push(`<i class="dh-pip is-${kind}" title="${escapeHtml(title)}"></i>`);
-        }
-      });
-      el.innerHTML = out.join("");
-    };
+    const cs = safe(DATA, "cron_schedule") || {};
+    const jobs = (cs.jobs || []).filter(j => (j.slots || []).length);
+    const scheduleStale = !!(jobs.length && cs.date && cs.date !== dhHktDay(now));
+    const verdicts = jobs.map(j => dhJobVerdict(j, scheduleStale));
+    const cells = [];
+    jobs.forEach(j => (j.slots || []).forEach(s => cells.push({ job: j.job, at: s.at, state: dhSlotState(s), slot: s })));
+    cells.sort((a, b) => a.at.localeCompare(b.at));
+    const n = st => cells.filter(c => c.state === st).length;
 
-    const tightest = files.slice().sort((a, b) => usage(b) - usage(a))[0];
-    setLane("files",
-      missing.length ? "bad" : (late.length ? "stale" : "ok"),
-      `${files.length - late.length}/${files.length} 在期`,
-      late.length
-        ? `逾期：${late.map(f => dataFileCn(f.name)).join("、")} —— 页面上这几块是旧数字`
-        : (tightest ? `最紧张 ${dataFileCn(tightest.name)}（${detailOf(tightest)}）` : ""),
-      late.length ? "需处理" : "正常");
+    // ── 需处理：整块牌上唯一「你该动手」的地方 ─────────────────────────
+    const todo = [];
+    late.forEach(f => todo.push({ name: dataFileCn(f.name), where: f.name, why: detailOf(f),
+      next: f.present === false ? "文件没生成，查它的生成任务" : "页面上这块是旧数字，查它的生成任务" }));
+    igTop.filter(t => levelOf(t) === "ERROR").forEach(t => todo.push({
+      name: "体检", where: String(t.code || ""), why: String(t.msg || ""),
+      next: "看 assets/data/integrity_report.json" }));
+    const cronTodo = scheduleStale ? [] : cells.filter(c => dhSlotDisposition(c.slot) === "needs_action");
+    const seen = new Set(cronTodo.map(c => `${c.job}@${cs.date} ${c.at}`));
+    slotsWith("failed").filter(r => !seen.has(`${r.job}@${r.slot}`)).forEach(r => todo.push({
+      name: r.job, where: r.slot, why: "成品未落地（final_product=failed）",
+      next: "看 workflow-outcomes.json 里这一槽的 stages" }));
+    cronTodo.forEach(c => todo.push({
+      name: c.job, where: c.at, why: (c.slot.note || {}).text || `${DH_SLOT[c.state][1]}`,
+      next: c.state === "missed" ? "看 openclaw cron 有没有卡住" : "看 workflow-outcomes.json 这一槽的 stages" }));
+    const todoNames = new Set(todo.map(t => t.name));
 
-    setLane("integrity",
-      igErr ? "bad" : (igWarn ? "warn" : "ok"),
-      `${igErr} ERROR · ${igWarn} WARN`,
-      igTop ? String(igTop.msg || igTop.code || "") : "无异常",
-      igErr ? "需处理" : (igWarn ? "观察" : "正常"));
-    drawPips("dh-integrity-shape", igErr || igWarn
-      ? [["bad", igErr, "ERROR"], ["warn", igWarn, "WARN"]]
-      : [["ok", 1, "无异常"]]);
+    // 观察：兜底生效、成品到了，只记不动。按「东西」去重，不按档数。
+    const watch = new Set();
+    if (!igErr && igWarn) watch.add("体检");
+    slotsWith("recovered", "degraded").forEach(r => watch.add(r.job));
+    // 时刻表停在旧日期是一件事，不是每个任务各一件。
+    if (scheduleStale) watch.add("定时任务时刻表");
+    else jobs.forEach((j, i) => { if (["warn", "stale"].includes(verdicts[i].tone)) watch.add(j.job); });
+    todoNames.forEach(name => watch.delete(name));
 
-    setLane("delivery",
-      failed ? "bad" : (soft ? "warn" : (pending && !okCount ? "pending" : "ok")),
-      winH ? `${slotTotal} 档 / ${winH}h` : `${slotTotal} 档`,
-      failed
-        ? `${nameThem(failed, jobsWith("failed")) || `${failed} 档 FAILED`} —— 成品没落地`
-        : (soft
-            ? `${nameThem(soft, jobsWith("recovered", "degraded")) || `${soft} 档恢复或降级`} · 成品已送达`
-            : "全部按时送达"),
-      failed ? "需处理" : (soft ? "观察" : "正常"));
-    drawBar("dh-delivery-shape", [
-      { k: "ok", n: okCount, t: "成功" },
-      { k: "warn", n: soft, t: "恢复或降级" },
-      { k: "bad", n: failed, t: "FAILED" },
-      { k: "idle", n: pending, t: "进行中" },
-    ]);
-
-    // 槽位轨：投递泳道之后紧接着的同一件事，加上时间轴。它不参与判词。
-    renderCronRail(safe(DATA, "cron_schedule"), new Date());
-
-    // ── 判词只回答一件事：页面上的数字能不能信 ─────────────────────────
-    // 数据面逾期 / 体检 ERROR 会让读者正在看的数字变旧或变错；一个任务
-    // FAILED 不会 —— 它影响的是成品有没有送出去与有没有归档。两者混成
-    // 一句会让人要么过度紧张，要么把真的过期当成「又是那个失败的任务」。
-    const trustBroken = late.length || igErr;
-    const todoCount = (late.length ? 1 : 0) + (igErr ? 1 : 0) + (failed ? 1 : 0);
-    const watchCount = (igErr ? 0 : (igWarn ? 1 : 0)) + (failed ? 0 : (soft ? 1 : 0));
-    const cronSchedule = safe(DATA, "cron_schedule") || {};
-    const cronJobs = cronSchedule.jobs || [];
-    const cronStale = !!(cronJobs.length && cronSchedule.date
-      && cronSchedule.date !== hktDay(new Date()));
-    const cronBad = cronStale ? 0 : cronJobs.filter(j => (j.slots || []).some(slot =>
-      ["failed", "missed"].includes(slot.state))).length;
-    const cronWarn = cronStale ? 1 : cronJobs.filter(j => (j.slots || []).some(slot =>
-      ["degraded", "recovered", "unknown"].includes(slot.state))
-      && !(j.slots || []).some(slot => ["failed", "missed"].includes(slot.state))).length;
-    const tone = (trustBroken || failed || cronBad) ? "bad"
-      : ((igWarn || soft || cronWarn) ? "warn" : "ok");
-    const disposition = todoCount ? `${todoCount} 件要处理`
-      : (watchCount ? `${watchCount} 件观察中` : "无事可做");
-    const issueCount = todoCount + watchCount + cronBad + cronWarn;
-    const overall = issueCount ? `${issueCount} 项异常` : "当前无异常";
-    const overallMark = document.getElementById("dh-overall-mark");
-    if (overallMark) {
-      overallMark.textContent = issueCount ? `${issueCount} 项需关注` : "全部正常";
-      overallMark.dataset.tone = tone;
-    }
-    const trustText = trustBroken
-      ? `页面数字存疑 · ${late.length ? `${late.length} 个数据面逾期` : `体检 ${igErr} 项 ERROR`}`
-      : "页面数字可用";
+    // ── 头部：判词 + 可信度 ────────────────────────────────────────────
+    const tone = todo.length ? "bad" : (watch.size ? "warn" : "ok");
     root.dataset.tone = tone;
-    const metrics = document.getElementById("dh-headline-metrics");
-    if (metrics) {
-      const coverage = files.length ? `${Math.round((files.length - late.length) / files.length * 100)}%` : "—";
-      const knownAges = files.filter(f => f.present !== false && f.age_hours != null && Number.isFinite(Number(f.age_hours)))
-        .map(f => Number(f.age_hours));
-      const oldest = knownAges.length ? `${Math.max(...knownAges).toFixed(1)}h` : "—";
-      const counts = [["数据面在期", coverage], ["最久未刷新", oldest], ["待处理", String(todoCount)]];
-      metrics.innerHTML = counts.map(([label, value]) => `<div class="dh-metric"><span>${label}</span><strong>${value}</strong></div>`).join("");
+    const title = document.getElementById("dh-title");
+    if (title) {
+      const text = todo.length
+        ? `${todo.length} 项需处理${watch.size ? ` · ${watch.size} 项观察` : ""}`
+        : (watch.size ? `${watch.size} 项观察中` : "一切正常");
+      title.innerHTML = `<span class="dh-dot" data-tone="${tone}" aria-hidden="true"></span>${escapeHtml(text)}`;
     }
-    const overviewStrip = document.getElementById("dh-overview-strip");
-    if (overviewStrip) overviewStrip.innerHTML = files.map(f => `<i data-tone="${stateOf(f)}" title="${escapeHtml(dataFileCn(f.name))} · ${escapeHtml(detailOf(f))}"></i>`).join("");
-    if (verdictEl) {
-      // 两截分开着色：把「页面数字可用」印成红的（因为别处有个任务挂了）
-      // 正是这块牌以前最误导人的地方。
-      verdictEl.innerHTML =
-        `<span class="dh-trust" data-trust="${trustBroken ? "broken" : "ok"}">`
-        + `<strong class="dh-overall-text">${escapeHtml(overall)}</strong>`
-        + `<span class="dh-trust-copy">${escapeHtml(trustText)}</span></span>`
-        + `<span class="dh-todo" data-sev="${todoCount ? "bad" : (watchCount ? "warn" : "ok")}">`
-        + `${escapeHtml(disposition)}</span>`;
-    }
-
-    if (metaEl) {
-      // 微信单通道掉投：上游 ret=-2，kcn 已定不修也不告警（#771），但「这一
-      // 窗口掉了几档」必须答得上来。它不改 tone，也不占泳道 —— 成品由
-      // Telegram 兜住了，它属于「已知不修」，位置就该在这条安静的行里。
-      const dropBit = droppedTotal ? `微信掉投 ${droppedTotal} 档 · TG 已兜 · 已知不修` : "";
-      // 搜索可见性不再在这条读数行里：它有自己的卡（#search-card，见
-      // renderSearchVisibility）。抽出去的理由不是脏，是形状——四个事实挤成
-      // 一段 nowrap 文字，390px 上实测 428px 宽，比容器还宽（#1474 的处理是
-      // 按分隔点拆短，这里更进一步：它本来就不该是一条附注）。
-      // 每一段各自不折行：窄屏实测把「构建 2026-09-09 00:05」在「构建」后面
-      // 折开，一个时刻被读成两条信息。折行只准发生在分隔点上，所以复合读数
-      // 先过 metaBits() 拆短（它保证每段都比手机窄，见 dashboard.core.js）。
+    const trustBroken = late.length || igErr;
+    const meta = document.getElementById("dh-meta");
+    if (meta) {
+      const trust = trustBroken
+        ? `页面数字存疑：${[late.length ? `${late.length} 个数据面逾期` : "", igErr ? `体检 ${igErr} 项 ERROR` : ""]
+            .filter(Boolean).join("，")}`
+        : "页面数字可用";
+      // 微信单通道掉投：上游 ret=-2，已拍板不修（#771），不改 tone，但一个
+      // 窗口掉了几档必须答得上来。
       const bits = metaBits(
-        dropBit,
-        bs.generated_at ? `构建 ${String(bs.generated_at).replace("T", " ").slice(0, 16)}` : "");
-      metaEl.innerHTML = bits.map(b => `<span class="dh-meta-bit">${escapeHtml(b)}</span>`)
-        .join(`<span class="dh-meta-sep"> · </span>`);
+        bs.generated_at ? `构建 ${String(bs.generated_at).replace("T", " ").slice(5, 16)}` : "",
+        droppedTotal ? `微信掉投 ${droppedTotal} 档，TG 已兜（已知不修）` : "");
+      meta.innerHTML = `<span class="dh-trust" data-trust="${trustBroken ? "broken" : "ok"}">${escapeHtml(trust)}</span>`
+        + bits.map(b => `<span class="dh-meta-sep" aria-hidden="true"> · </span><span class="dh-meta-bit">${escapeHtml(b)}</span>`).join("");
     }
 
-    if (stripEl) {
-      stripEl.innerHTML = files.map(f => {
-        const st = stateOf(f);
-        const pctUsed = Math.round(usage(f) * 100);
-        return `<span class="dh-seg is-${st}" style="--used:${pctUsed}%"`
-          + ` title="${escapeHtml(dataFileCn(f.name))} · ${escapeHtml(f.name)} · ${escapeHtml(detailOf(f))}">`
-          + `<i></i></span>`;
+    // ── 四个领域读数：数据面 / 体检 / 成品 / 定时任务 ──────────────────
+    const tightest = files.slice().sort((a, b) => usage(b) - usage(a))[0];
+    const deliveredCount = okCount + soft;
+    const landed = n("ok") + n("recovered") + n("degraded");
+    const due = cells.length - n("upcoming") - n("running") - n("unmonitored");
+    const nowAt = dhHktClock(now);
+    const nextCell = scheduleStale ? null
+      : cells.find(c => ["upcoming", "running"].includes(c.state) && c.at >= nowAt)
+        || cells.find(c => c.state === "running");
+    const jobTones = verdicts.map(v => v.tone);
+    const cronTone = jobTones.includes("bad") ? "bad"
+      : (scheduleStale || jobTones.includes("warn") || jobTones.includes("stale")) ? "warn" : "ok";
+    const domains = [
+      { key: "files", label: "数据面",
+        tone: late.length ? "bad" : "ok", state: late.length ? "需处理" : "正常",
+        value: files.length ? `${files.length - late.length}/${files.length}` : DASH, unit: "在期",
+        note: late.length ? `逾期：${late.map(f => dataFileCn(f.name)).join("、")}`
+          : (tightest ? `最紧 ${dataFileCn(tightest.name)} · ${ageText(tightest)}` : "没有登记的数据面") },
+      { key: "integrity", label: "体检",
+        tone: igErr ? "bad" : (igWarn ? "warn" : "ok"), state: igErr ? "需处理" : (igWarn ? "观察" : "正常"),
+        value: String(igErr || igWarn || 0), unit: igErr ? "ERROR" : (igWarn ? "WARN" : "异常"),
+        note: igFinding ? String(igFinding.msg || igFinding.code || "")
+          : `本轮没有 ERROR 也没有 WARN${igTop.length ? `，另有 ${igTop.length} 条 INFO` : ""}` },
+      { key: "delivery", label: winH ? `成品 · ${winH}h` : "成品",
+        tone: failed ? "bad" : (soft ? "warn" : "ok"), state: failed ? "需处理" : (soft ? "观察" : "正常"),
+        value: slotTotal ? `${deliveredCount}/${slotTotal}` : DASH, unit: "送达",
+        note: failed ? `${nameThem(failed, slotsWith("failed")) || `${failed} 档未落地`}，成品没送出`
+          : soft ? `${nameThem(soft, slotsWith("recovered", "degraded")) || `${soft} 档恢复或降级`}，成品已送达`
+          : (pending ? `${pending} 档进行中` : "全部按时送达") },
+      { key: "cron", label: "定时任务 · 今天", static: true,
+        tone: cronTone, state: scheduleStale ? "过期" : cronTone === "bad" ? "需处理" : cronTone === "warn" ? "观察" : "正常",
+        value: jobs.length ? `${landed}/${Math.max(due, landed)}` : DASH, unit: "落地",
+        note: scheduleStale ? `时刻表停在 ${cs.date}`
+          : nextCell ? `下一槽 ${nextCell.at} ${nextCell.job}` : "今天没有待跑的槽位了" },
+    ];
+    const openDomain = root.dataset.open || "";
+    const cellsEl = document.getElementById("dh-cells");
+    if (cellsEl) {
+      const focused = document.activeElement && document.activeElement.closest
+        ? document.activeElement.closest(".dh-cell") : null;
+      const focusKey = focused ? focused.dataset.key : "";
+      cellsEl.innerHTML = domains.map(d => {
+        const inner = `<span class="dh-cell-head"><span class="dh-cell-label">${escapeHtml(d.label)}</span>`
+          + dhState(d.tone, d.state) + `</span>`
+          + `<span class="dh-cell-value">${escapeHtml(d.value)}<small>${escapeHtml(d.unit)}</small></span>`
+          + `<span class="dh-cell-note">${escapeHtml(d.note)}</span>`;
+        return d.static
+          ? `<div class="dh-cell" data-key="${d.key}" data-tone="${d.tone}">${inner}</div>`
+          : `<button type="button" class="dh-cell" data-key="${d.key}" data-tone="${d.tone}"`
+            + ` aria-expanded="${openDomain === d.key ? "true" : "false"}" aria-controls="dh-panel-${d.key}">${inner}</button>`;
       }).join("");
+      if (focusKey) {
+        const again = cellsEl.querySelector(`.dh-cell[data-key="${focusKey}"]`);
+        if (again) again.focus({ preventScroll: true });
+      }
+    }
+
+    // ── 领域明细：选中一个读数，它的台账摊在读数下面 ───────────────────
+    const item = (name, where, detail, state) => `<li class="dh-item">`
+      + `<span class="dh-item-name">${escapeHtml(name)}</span>`
+      + `<span class="dh-item-where">${escapeHtml(where)}</span>`
+      + `<span class="dh-item-detail">${escapeHtml(detail)}</span>${state}</li>`;
+    const filesPanel = files.slice().sort((a, b) => usage(b) - usage(a)).map(f => {
+      const bad = f.present === false || f.stale;
+      return item(dataFileCn(f.name), f.name, detailOf(f),
+        dhState(bad ? "bad" : "ok", f.present === false ? "缺失" : (f.stale ? "逾期" : "在期")));
+    }).join("");
+    const integrityPanel = (igFinding ? "" : item("无异常", "", "这一轮体检没有 ERROR 也没有 WARN", dhState("ok", "正常")))
+      + igTop.map(t => {
+        const level = levelOf(t);
+        return item(level, String(t.code || ""), String(t.msg || ""),
+          level === "ERROR" ? dhState("bad", "需处理") : level === "WARN" ? dhState("warn", "观察")
+            : dhState("idle", "仅供参考"));
+      }).join("");
+    const softRows = slotsWith("failed", "recovered", "degraded").map(r => item(r.job, r.slot,
+      r.status === "failed" ? "成品未落地" : `${r.what}，成品已送达`,
+      dhState(r.status === "failed" ? "bad" : "warn", r.status === "failed" ? "需处理" : "观察"))).join("");
+    const unnamed = Math.max(0, droppedTotal - dropped.length);
+    const dropRows = dropped.map(r => item(r.job || "未具名任务",
+      String(r.slot || "").slice(0, 16).replace("T", " "), "微信 sendMessage ret=-2，Telegram 已送达",
+      dhState("idle", "已知不修"))).join("")
+      + (unnamed ? item(`另有 ${unnamed} 档`, "", "更早的槽位见 workflow-outcomes.json", "") : "");
+    const countBits = [[okCount, "成功"], [wc.recovered || 0, "恢复"], [wc.degraded || 0, "降级"],
+      [failed, "未落地"], [pending, "进行中"]].filter(([v]) => v).map(([v, k]) => `${v} ${k}`).join(" · ");
+    const panels = {
+      files: { title: `数据面 · ${files.length} 个文件`, body: `<ul class="dh-items">${filesPanel}</ul>` },
+      integrity: { title: `体检 · ${igErr} ERROR · ${igWarn} WARN`, body: `<ul class="dh-items">${integrityPanel}</ul>` },
+      delivery: { title: `成品${winH ? ` · ${winH} 小时内 ${slotTotal} 档` : ` · ${slotTotal} 档`}`,
+        body: `<p class="dh-panel-note">${escapeHtml(countBits || "窗口内没有成品记录")}</p>`
+          + (softRows ? `<ul class="dh-items">${softRows}</ul>` : "")
+          + (dropRows ? `<h5 class="dh-sub">微信掉投 ${droppedTotal} 档 · 上游 ret=-2，TG 已兜，已知不修</h5>`
+            + `<ul class="dh-items">${dropRows}</ul>` : "") },
+    };
+    Object.keys(panels).forEach(key => {
+      const panel = document.getElementById(`dh-panel-${key}`);
+      if (!panel) return;
+      panel.innerHTML = `<h4 class="dh-panel-title">${escapeHtml(panels[key].title)}</h4>` + panels[key].body;
+      panel.hidden = openDomain !== key;
+    });
+
+    const todoEl = document.getElementById("dh-todo");
+    if (todoEl) {
+      todoEl.innerHTML = todo.length
+        ? `<h4 class="dh-sub is-bad">需处理 · ${todo.length}</h4><ul class="dh-items">`
+          + todo.map(t => `<li class="dh-item is-todo">`
+            + `<span class="dh-item-name">${escapeHtml(t.name)}</span>`
+            + `<span class="dh-item-where">${escapeHtml(t.where)}</span>`
+            + `<span class="dh-item-detail">${escapeHtml(t.why)}</span>`
+            + `<span class="dh-item-next">${escapeHtml(t.next)}</span></li>`).join("")
+          + `</ul>`
+        : "";
+    }
+
+    // ── 定时任务监测板：一个任务一行，有事的在上 ────────────────────────
+    const board = document.getElementById("dh-board");
+    const list = document.getElementById("dh-jobs");
+    if (board && list) {
+      board.hidden = !jobs.length;
+      const openJobs = new Set([...list.querySelectorAll(".dh-job-row[aria-expanded='true']")]
+        .map(b => b.closest(".dh-job").dataset.job));
+      const focusedJob = document.activeElement && document.activeElement.closest
+        ? (document.activeElement.closest(".dh-job") || {}).dataset : null;
+      list.innerHTML = jobs.map((j, i) => ({ j, v: verdicts[i], i }))
+        .sort((a, b) => DH_RANK[a.v.tone] - DH_RANK[b.v.tone] || a.i - b.i)
+        .map(({ j, v, i }) => dhJobRow(j, v, cs, now, i, openJobs.has(j.job))).join("");
+      if (focusedJob && focusedJob.job) {
+        const again = [...list.querySelectorAll(".dh-job")].find(li => li.dataset.job === focusedJob.job);
+        if (again) again.querySelector(".dh-job-row").focus({ preventScroll: true });
+      }
+      const sum = document.getElementById("dh-board-sum");
+      if (sum) {
+        // 分项加起来必须等于总数：每个计数都带它自己的色块，图例就是读数。
+        const parts = [["ok", n("ok"), "落地"], ["recovered", n("recovered"), "兜底"],
+          ["degraded", n("degraded"), "降级"], ["failed", n("failed") + n("missed"), "没落地"],
+          ["running", n("running"), "进行中"], ["upcoming", n("upcoming"), "待跑"],
+          ["unmonitored", n("unmonitored"), "账本看不到"], ["unknown", n("unknown"), "未知"]]
+          .filter(([, v]) => v);
+        sum.innerHTML = (scheduleStale ? `<span class="dh-key is-stale">时刻表停在 ${escapeHtml(cs.date)}</span>` : "")
+          + `<span class="dh-key">${cells.length} 槽</span>`
+          + parts.map(([st, v, k]) => `<span class="dh-key"><i data-s="${st}" aria-hidden="true"></i>${v} ${k}</span>`).join("");
+      }
     }
 
     const caption = document.getElementById("dh-caption");
     if (caption) {
-      caption.textContent = "处置：需处理＝页面数字或成品真的受影响，要动手；"
-        + "观察＝兜底已生效、成品到了，只记不动；已知不修＝已拍板不处理。";
+      caption.textContent = "需处理＝页面数字或成品真的受影响，要动手 · 观察＝兜底已生效、成品到了，只记不动 · "
+        + "已知不修＝已拍板不处理";
     }
 
-    {
-      // 「处置清单」不再藏在「逐项」后面：它是这块牌上唯一「你该动手」的
-      // 东西，藏在一次点击后面等于把答案放进抽屉。它自己一块（#dh-todo，
-      // 在判词底下），没有待办时是空的、整块不占位。
-      const todo = [];
-      late.forEach(f => todo.push({
-        name: dataFileCn(f.name), where: f.name, why: detailOf(f),
-        next: f.present === false ? "文件没生成，查它的生成任务" : "页面上这块是旧数字，查它的生成任务",
-      }));
-      (ig.top || []).filter(t => String(t.level || "").toUpperCase() === "ERROR").forEach(t => todo.push({
-        name: "体检", where: String(t.code || ""), why: String(t.msg || ""),
-        next: "看 assets/data/integrity_report.json",
-      }));
-      jobsWith("failed").forEach(r => todo.push({
-        name: r.job, where: r.slot, why: "成品未落地（final_product=failed）",
-        next: "看 workflow-outcomes.json 里这一槽的 stages",
-      }));
-      // cron 今天的待办并进同一份清单——「你该做点什么」只该有一个地方，
-      // 不能轨道一份、这里再一份，读者要去两处对才能确认没漏。
-      cronNeedsAction(safe(DATA, "cron_schedule")).forEach(c => todo.push({
-        name: c.job, where: c.at, why: c.note.text,
-        next: c.note.disposition === "needs_action" && c.state === "missed"
-          ? "看 openclaw cron 有没有卡住" : "看 workflow-outcomes.json 这一槽的 stages",
-      }));
-      const todoRows = todo.length
-        ? `<div class="dh-sub">处置 · 需处理</div>`
-          + todo.map(t => `<div class="dh-row is-todo">`
-            + `<span class="dh-name">${escapeHtml(t.name)}</span>`
-            + `<span class="dh-file">${escapeHtml(t.where)}</span>`
-            + `<span class="dh-bar"></span>`
-            + `<span class="dh-detail">${escapeHtml(t.why)}</span>`
-            + `<span class="dh-state">${escapeHtml(t.next)}</span></div>`).join("")
-        : "";
-
-      const unnamed = Math.max(0, droppedTotal - dropped.length);
-      // 微信掉投整族是「已拍板不修」的台账（#771），一条都不需要动手 ⇒ 整族
-      // 折起来，标题那行仍然说清楚是几档、谁兜的。
-      const deliveryLedger = dropped.map(r => ({ quiet: true,
-        html: `<div class="dh-row is-delivery">`
-          + `<span class="dh-name">${escapeHtml(r.job || "未具名任务")}</span>`
-          + `<span class="dh-file">${escapeHtml(String(r.slot || "").slice(0, 16).replace("T", " "))}</span>`
-          + `<span class="dh-bar"></span>`
-          + `<span class="dh-detail">微信 sendMessage ret=-2 prepare failed</span>`
-          + `<span class="dh-state">TG 已兜</span></div>` }));
-      // 名单有上限，超出的那几档必须说出来 —— 否则「掉投 9 档」配 8 行
-      // 会读成列全了。
-      if (unnamed) {
-        deliveryLedger.push({ quiet: true,
-          html: `<div class="dh-row is-delivery"><span class="dh-name muted">另有 ${unnamed} 档</span>`
-            + `<span class="dh-file"></span><span class="dh-bar"></span>`
-            + `<span class="dh-detail">更早的槽位见 workflow-outcomes.json</span>`
-            + `<span class="dh-state"></span></div>` });
-      }
-      const deliveryRows = dropped.length
-        ? `<div class="dh-sub">投递 · 微信掉投（上游 ret=-2，已知不修）</div>`
-          + foldQuiet("wechat", deliveryLedger, count => `${count} 档掉投的台账`)
-        : "";
-
-      const fileList = files
-        .slice()
-        .sort((a, b) => usage(b) - usage(a))
-        .map(f => {
-          const st = stateOf(f);
-          const label = st === "missing" ? "缺失" : st === "late" ? "逾期" : "在期";
-          return { quiet: st === "ok", html: `<div class="dh-row is-${st}">`
-            + `<span class="dh-name">${escapeHtml(dataFileCn(f.name))}</span>`
-            + `<span class="dh-file">${escapeHtml(f.name)}</span>`
-            + `<span class="dh-bar"><i style="width:${Math.round(usage(f) * 100)}%"></i></span>`
-            + `<span class="dh-detail">${escapeHtml(detailOf(f))}</span>`
-            + `<span class="dh-state">${label}</span>`
-            + `</div>` };
-        });
-      const fileRows = `<div class="dh-sub">数据面 · 逐项</div>`
-        + foldQuiet("files", fileList, count => `在期的 ${count} 个数据面`);
-
-      // 体检以前在逐项里没有自己的一组：泳道只印得下最坏的那一条，WARN 的
-      // 全文没有任何地方读得到（窄屏还会被折成三行英文）。展开它就是那张单子。
-      const integrityRows = `<div class="dh-sub">体检 · 本次发现</div>`
-        + ((ig.top || []).length
-          ? (ig.top || []).map(t => {
-            const level = String(t.level || "").toUpperCase() || "INFO";
-            return `<div class="dh-row is-check is-${level === "ERROR" ? "missing" : level === "WARN" ? "late" : "ok"}">`
-              + `<span class="dh-name">${escapeHtml(level)}</span>`
-              + `<span class="dh-file">${escapeHtml(String(t.code || ""))}</span>`
-              + `<span class="dh-bar"></span>`
-              + `<span class="dh-detail">${escapeHtml(String(t.msg || ""))}</span>`
-              + `<span class="dh-state">${escapeHtml(level === "ERROR" ? "需处理" : "观察")}</span>`
-              + `</div>`;
-          }).join("")
-          : `<div class="dh-row is-check is-ok"><span class="dh-name">无异常</span>`
-            + `<span class="dh-file"></span><span class="dh-bar"></span>`
-            + `<span class="dh-detail">这一轮体检没有 ERROR 也没有 WARN</span>`
-            + `<span class="dh-state">正常</span></div>`);
-
-      const cronRows = cronScheduleRows(safe(DATA, "cron_schedule"));
-      // 每条泳道保留自己的台账；选中时移入板下明细区。刷新保留展开状态。
-      const openFolds = [...document.querySelectorAll("#data-health .dh-fold")]
-        .filter(button => button.getAttribute("aria-expanded") === "true")
-        .map(button => button.dataset.fold);
-      const fill = (key, html) => {
-        const body = document.getElementById(`dh-group-${key}-body`);
-        if (body) body.innerHTML = html;
-      };
-      fill("files", fileRows);
-      fill("integrity", integrityRows);
-      fill("delivery", cronRows + deliveryRows);
-      openFolds.forEach(id => {
-        const button = document.querySelector(`#data-health .dh-fold[data-fold="${id}"]`);
-        const body = document.getElementById(`dh-fold-${id}`);
-        if (!button || !body) return;
-        button.setAttribute("aria-expanded", "true");
-        body.hidden = false;
-      });
-      const todoEl = document.getElementById("dh-todo");
-      if (todoEl) todoEl.innerHTML = todoRows;
-      // 收起的组仍在 DOM 里（折叠是 grid-rows 0fr 的动画），首帧也必须把它退出
-      // Tab 与读屏；这一步同时把展开状态原样留住 —— 刷新是每几分钟一次的事，
-      // 不能把读者刚展开的那一条合回去。
-      DH_LANES.forEach(key => {
-        const group = document.getElementById(`dh-group-${key}`);
-        setDataHealthGroup(key, !!(group && group.classList.contains("is-open")));
-      });
-      syncDataHealthToggle();
-    }
-
-    DH_LANES.forEach(key => {
-      const lane = document.getElementById(`dh-lane-${key}`);
-      if (!lane || lane.dataset.wired === "1") return;
-      lane.dataset.wired = "1";
-      lane.addEventListener("click", () => {
-        const open = lane.getAttribute("aria-expanded") !== "true";
-        if (open) DH_LANES.filter(other => other !== key)
-          .forEach(other => setDataHealthGroup(other, false));
-        setDataHealthGroup(key, open);
-        syncDataHealthToggle();
-      });
-    });
-    // 折叠器是每次刷新重新写进 innerHTML 的，所以监听挂在卡片上（一次），
-    // 不挂在按钮上。
-    if (root.dataset.foldWired !== "1") {
-      root.dataset.foldWired = "1";
+    // 交互只读 DOM：两个 bundle 都会渲染这张牌，监听只挂一次、挂在卡上。
+    if (root.dataset.wired !== "1") {
+      root.dataset.wired = "1";
       root.addEventListener("click", event => {
-        const button = event.target.closest(".dh-fold");
-        if (!button) return;
-        const body = document.getElementById(`dh-fold-${button.dataset.fold}`);
-        if (!body) return;
-        const open = button.getAttribute("aria-expanded") !== "true";
-        button.setAttribute("aria-expanded", open ? "true" : "false");
-        body.hidden = !open;
+        const cell = event.target.closest("button.dh-cell");
+        if (cell) {
+          const key = cell.dataset.key;
+          const open = cell.getAttribute("aria-expanded") !== "true";
+          root.dataset.open = open ? key : "";
+          root.querySelectorAll("button.dh-cell").forEach(other =>
+            other.setAttribute("aria-expanded", open && other === cell ? "true" : "false"));
+          root.querySelectorAll(".dh-panel").forEach(panel => {
+            panel.hidden = !(open && panel.id === `dh-panel-${key}`);
+          });
+          return;
+        }
+        const row = event.target.closest(".dh-job-row");
+        if (row) {
+          const open = row.getAttribute("aria-expanded") !== "true";
+          row.setAttribute("aria-expanded", open ? "true" : "false");
+          const detail = document.getElementById(row.getAttribute("aria-controls"));
+          if (detail) detail.hidden = !open;
+        }
       });
     }
-    const toggle = document.getElementById("dh-toggle");
-    if (toggle && toggle.dataset.wired !== "1") {
-      toggle.dataset.wired = "1";
-      // 全局那颗按钮现在是「全部展开 / 全部收起」，不是唯一的入口。
-      toggle.addEventListener("click", () => {
-        const open = toggle.getAttribute("aria-expanded") !== "true";
-        DH_LANES.forEach(key => setDataHealthGroup(key, open));
-        syncDataHealthToggle();
-      });
-    }
-  }
-
-  const DH_LANES = ["files", "integrity", "delivery"];
-
-  // 展开一条泳道自己的那一组。收起时同时上 inert + aria-hidden：折叠是靠
-  // grid-template-rows 0fr 做的动画，元素还在，不设 inert 的话读屏和 Tab
-  // 仍然会走进一块看不见的清单。
-  function setDataHealthGroup(key, open) {
-    const group = document.getElementById(`dh-group-${key}`);
-    const lane = document.getElementById(`dh-lane-${key}`);
-    const detail = document.getElementById("dh-detail-panel");
-    if (group) {
-      if (open && detail) {
-        document.querySelectorAll("#dh-timeline-list .dh-timeline[open]")
-          .forEach(row => { row.open = false; });
-        detail.appendChild(group);
-        const heading = document.getElementById("dh-detail-heading");
-        if (heading) heading.textContent = "逐项明细";
-        const content = document.getElementById("dh-detail-content");
-        if (content) content.innerHTML = "";
-      }
-      group.classList.toggle("is-open", !!open);
-      group.inert = !open;
-      group.setAttribute("aria-hidden", open ? "false" : "true");
-    }
-    if (lane) lane.setAttribute("aria-expanded", open ? "true" : "false");
-  }
-
-  function syncDataHealthToggle() {
-    const toggle = document.getElementById("dh-toggle");
-    if (!toggle) return;
-    const open = DH_LANES.every(key => {
-      const lane = document.getElementById(`dh-lane-${key}`);
-      return lane && lane.getAttribute("aria-expanded") === "true";
-    });
-    toggle.setAttribute("aria-expanded", open ? "true" : "false");
-    toggle.textContent = open ? "收起明细" : "查看逐项";
   }
 
   function flatHoldings() {
