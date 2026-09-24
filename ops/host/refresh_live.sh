@@ -108,17 +108,27 @@ if command -v dsh >/dev/null; then
   # new browser-session auth leaves open, so this check still needs no cookie.
   # Both fetches land in a file: under `pipefail`, `head -c` closing the pipe
   # early would fail the whole pipeline on SIGPIPE and read as "not serving".
-  graph="$(curl -sN --max-time 5 http://127.0.0.1:3081/plugins/events 2>/dev/null \
-           | grep -m1 '^data: ' || true)"
-  url="$(printf '%s' "${graph#data: }" | python3 -c 'import json, sys
+  served="$(mktemp)"
+  bundle_matches=0
+  # A restarted DSH may accept connections before its plugin graph is ready.
+  # Retry the whole graph-and-bundle probe; a failed check must still fail after
+  # the bounded readiness window.
+  for attempt in 1 2 3; do
+    graph="$(curl -sN --max-time 5 http://127.0.0.1:3081/plugins/events 2>/dev/null \
+             | grep -m1 '^data: ' || true)"
+    url="$(printf '%s' "${graph#data: }" | python3 -c 'import json, sys
 raw = sys.stdin.read().strip()
 entries = json.loads(raw)["graph"]["entries"] if raw else []
 print(next((e["url"] for e in entries if e["id"] == "clawock-dsh"), ""))' || true)"
-  served="$(mktemp)"
-  # The graph now publishes a root-relative path without a leading slash.
-  # Normalize either form before asking the server for the actual bundle.
-  [ -n "$url" ] && curl -fs --max-time 30 -o "$served" "http://127.0.0.1:3081/${url#/}" || true
-  if [ -s "$served" ] && head -c "$(wc -c < "$bundle")" "$served" | cmp -s - "$bundle"; then
+    # The graph may publish a path with or without a leading slash.
+    [ -n "$url" ] && curl -fs --max-time 30 -o "$served" "http://127.0.0.1:3081/${url#/}" || true
+    if [ -s "$served" ] && head -c "$(wc -c < "$bundle")" "$served" | cmp -s - "$bundle"; then
+      bundle_matches=1
+      break
+    fi
+    [ "$attempt" = 3 ] || sleep 3
+  done
+  if [ "$bundle_matches" = 1 ]; then
     echo "dsh serves the checkout's client bundle"
     rm -f "$served"
   else
