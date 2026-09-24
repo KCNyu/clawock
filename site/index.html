@@ -325,13 +325,14 @@ layout: null
 
       <section class="card hero-health is-pending" id="data-health" aria-labelledby="dh-title">
         <div class="hero-health-head">
-          <div>
+          <div class="dh-overall-mark" id="dh-overall-mark" aria-hidden="true">—</div>
+          <div class="dh-head-copy">
             <div class="overview-card-kicker">数据健康</div>
             <h3 id="dh-title" class="hero-health-verdict">—</h3>
             <div class="hero-health-meta" id="dh-meta">—</div>
           </div>
           <button class="dh-toggle" type="button" id="dh-toggle" aria-expanded="false"
-                  aria-controls="dh-group-files dh-group-integrity dh-group-delivery">逐项</button>
+                  aria-controls="dh-group-files dh-group-integrity dh-group-delivery">展开所有明细</button>
         </div>
         <!-- 「你该动手的事」不藏在任何一次点击后面。没有待办时它是空的，
              整块不占位（CSS 用 :empty 收掉边线和外边距）。 -->

@@ -2281,7 +2281,9 @@ async function testEveryTimelineShowsItsVerdictAndFits(browser, base) {
           row.dataset.state, row.querySelector(".dh-timeline-badge").textContent.trim(),
           row.querySelector(".dh-timeline-last").textContent.trim(),
           row.querySelector(".dh-timeline-reason").textContent.trim()]),
+        ticks: rows.map(row => row.querySelectorAll(".dh-timeline-tick").length),
         verdict: document.getElementById("dh-title").textContent.trim(),
+        overallMark: document.getElementById("dh-overall-mark").textContent.trim(),
         laneStates: [...card.querySelectorAll(".dh-health-state")].map(el => el.textContent.trim()),
         overflow: card.scrollWidth - card.clientWidth,
         edge: Math.min(...rows.map(row => row.getBoundingClientRect().left
@@ -2290,6 +2292,8 @@ async function testEveryTimelineShowsItsVerdictAndFits(browser, base) {
     });
     assert.deepEqual(seen.states.map(row => row[1]), ["bad", "warn", "stale", "pending", "ok"]);
     assert(/\d+ 项异常/.test(seen.verdict), `cron failures are missing from the overall verdict: ${seen.verdict}`);
+    assert(Number(seen.overallMark) > 0, `the overall verdict has no visible count: ${seen.overallMark}`);
+    assert.deepEqual(seen.ticks, [1, 1, 1, 1, 1], "a timeline lacks its own slot history");
     assert.equal(seen.laneStates.length, 3);
     assert(seen.laneStates.every(label => /^[×!◷✓?] /.test(label)),
       `a lane has no explicit icon and state: ${seen.laneStates}`);
@@ -2304,8 +2308,30 @@ async function testEveryTimelineShowsItsVerdictAndFits(browser, base) {
     await page.keyboard.press("Enter");
     assert.equal(await page.locator(".dh-timeline").first().getAttribute("open"), "",
       "keyboard activation did not reveal the slot reason");
+    assert(await page.locator("#data-health").evaluate(el => el.scrollWidth <= el.clientWidth),
+      `${width}px: opening a timeline creates horizontal overflow`);
     await context.close();
   }
+}
+
+async function testAnOldScheduleIsLabeledStale(browser, base) {
+  const context = await browser.newContext({ viewport: { width: 390, height: 844 },
+    isMobile: true, hasTouch: true });
+  const page = await context.newPage();
+  await stubLiveOrigin(page, { patch: (name, json) => {
+    if (name !== "overview.json" && name !== "dashboard.json") return null;
+    json.cron_schedule = { date: "2026-09-20", jobs: [
+      { job: "旧日正常任务", slots: [{ at: "08:00", state: "ok" }] },
+    ] };
+    return json;
+  } });
+  await page.goto(base, { waitUntil: "networkidle" });
+  await waitForData(page);
+  await page.waitForSelector("#data-health:not(.is-pending)");
+  const row = page.locator(".dh-timeline").first();
+  assert.equal(await row.getAttribute("data-state"), "stale");
+  assert.match(await row.innerText(), /数据过期|今日结果待刷新/);
+  await context.close();
 }
 
 async function testCronNeedsActionMergesIntoTheOneTodoListButWatchDoesNot(browser, base) {
@@ -3656,6 +3682,7 @@ async function main() {
     await run("testAPanelSaysWhenItsDataDidNotLoad", () => testAPanelSaysWhenItsDataDidNotLoad(browser, base));
     await run("testCronRailAccountsForEverySlotWithoutASecondVerdict", () => testCronRailAccountsForEverySlotWithoutASecondVerdict(browser, base));
     await run("testEveryTimelineShowsItsVerdictAndFits", () => testEveryTimelineShowsItsVerdictAndFits(browser, base));
+    await run("testAnOldScheduleIsLabeledStale", () => testAnOldScheduleIsLabeledStale(browser, base));
     await run("testCronNeedsActionMergesIntoTheOneTodoListButWatchDoesNot", () => testCronNeedsActionMergesIntoTheOneTodoListButWatchDoesNot(browser, base));
     await run("testMoversSayWhichSessionTheyAreFrom", () => testMoversSayWhichSessionTheyAreFrom(browser, base));
     await run("testCardRhythmIsOneScalePerTier", () => testCardRhythmIsOneScalePerTier(browser, base));
