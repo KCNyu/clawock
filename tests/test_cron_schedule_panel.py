@@ -34,6 +34,15 @@ def test_the_panel_prints_the_ledgers_verdict_not_its_own():
     assert _states(result) == ['ok', 'recovered', 'degraded', 'failed']
 
 
+def test_last_success_comes_from_the_ledger_even_if_it_was_yesterday():
+    at = datetime(2026, 9, 3, 12, 0, tzinfo=HKT)
+    older = _record('2026-09-02T10:03:00+08:00', 'success')
+    older['updated_at'] = '2026-09-02T10:08:00+08:00'
+    result = timetable(_contract('3 10 * * 1-5'), [older,
+        _record('2026-09-03T10:03:00+08:00', 'failed')], now=at)
+    assert result['jobs'][0]['last_success_at'] == '2026-09-02T10:08:00+08:00'
+
+
 def test_an_unmapped_ledger_status_shows_as_unknown_not_as_green():
     """A default of 'ok' would render a status nobody has looked at as healthy."""
     at = datetime(2026, 9, 3, 12, 0, tzinfo=HKT)

@@ -3045,7 +3045,7 @@
     margin-top: var(--space-2); color: var(--text-tertiary);
     font: 500 var(--fs-micro)/1.5 var(--mono);
   }
-  .hero-health { grid-column: 1 / -1; padding: 16px 18px 14px; }
+  .hero-health { grid-column: 1 / -1; padding: 22px 24px 24px; min-width: 0; }
   .hero-health-head { display: flex; align-items: flex-start; gap: 14px; }
   /* flex 子项的 min-width:auto 会让这一行按 min-content 撑开：读数行里只要有一段
      比手机宽，「逐项」按钮就被推出卡外（2026-09-12 实测 390px 下溢出 158px，
@@ -3093,21 +3093,22 @@
      那行右移 37px）。用 subgrid 让三行吃 .dh-lanes 的同一套列；不支持
      subgrid 的浏览器落到同一组定死的列宽，一样对得齐。 */
   .dh-lanes {
-    display: grid; grid-template-columns: 46px 150px 168px minmax(0, 1fr) 58px 12px;
+    display: grid; grid-template-columns: minmax(92px, 110px) 120px 128px minmax(0, 1fr) 58px 12px;
   }
   /* 泳道是按钮（整行都是点按面积），所以要把浏览器给按钮的那套外观全部撤掉，
      只留下它的行为：焦点、Enter/Space、aria-expanded。 */
   .dh-lane {
     display: grid; grid-column: 1 / -1; align-items: center;
-    gap: 10px 12px; padding: 9px 0; width: 100%; text-align: left;
-    grid-template-columns: 46px 150px 168px minmax(0, 1fr) 58px 12px;
-    -webkit-appearance: none; appearance: none; background: none; color: inherit;
-    border: 0; border-bottom: 1px solid var(--border-subtle); border-radius: var(--radius-sm);
+    gap: 10px 12px; padding: 14px 12px; width: 100%; text-align: left;
+    grid-template-columns: minmax(92px, 110px) 120px 128px minmax(0, 1fr) 58px 12px;
+    -webkit-appearance: none; appearance: none; background: var(--fill-inset); color: inherit;
+    border: 1px solid var(--border-subtle); border-radius: var(--radius);
     cursor: pointer;
     font: 500 var(--fs-xs)/1.35 var(--mono); font-variant-numeric: tabular-nums;
     transition: background-color var(--duration-fast) var(--ease-out),
                 transform var(--duration-fast) var(--ease-out);
   }
+  .dh-lane:not(:first-child) { margin-top: 8px; }
   .dh-lane:active { background: color-mix(in srgb, var(--text) 5%, transparent); }
   .dh-lane:focus-visible { outline: var(--focus-ring); outline-offset: -2px; }
   @media (hover: hover) and (pointer: fine) {
@@ -3134,7 +3135,7 @@
   /* 摊开的那一组是「压在这条泳道下面」的一块，不是卡片里又一段正文：淡一档
      的底 + 收进去的圆角，让它和上面那行绑在一起。 */
   .dh-group-body {
-    padding: 2px 10px 8px; background: var(--fill-inset);
+    padding: 10px 14px 14px; background: var(--fill-inset);
     border-radius: 0 0 var(--radius-sm) var(--radius-sm);
   }
   @media (prefers-reduced-motion: reduce) {
@@ -3144,17 +3145,23 @@
     .dh-lane { grid-template-columns: subgrid; }
   }
   /* 最后一条泳道现在后面跟着它自己那一组（section），所以是 last-of-type。 */
-  .dh-lane:last-of-type { border-bottom: 0; }
+  .dh-lane:last-of-type { border-bottom: 1px solid var(--border-subtle); }
   .dh-lane-name {
     color: var(--text-tertiary); font: 700 var(--fs-micro)/1.2 var(--mono);
-    letter-spacing: .08em; white-space: nowrap;
+    letter-spacing: .08em; white-space: nowrap; min-width: 0;
   }
+  .dh-health-state { display: block; margin-top: 5px; color: var(--accent-ink);
+    font: 700 var(--fs-xs)/1.2 var(--mono); letter-spacing: 0; }
+  .dh-lane[data-tone="bad"] .dh-health-state { color: var(--negative-ink); }
+  .dh-lane[data-tone="warn"] .dh-health-state,
+  .dh-lane[data-tone="stale"] .dh-health-state { color: var(--warning-ink); }
+  .dh-lane[data-tone="pending"] .dh-health-state { color: var(--text-secondary); }
   .dh-lane-stat { color: var(--text); font-weight: 700; white-space: nowrap; }
   .dh-lane[data-tone="warn"] .dh-lane-stat { color: var(--warning); }
+  .dh-lane[data-tone="stale"] .dh-lane-stat { color: var(--warning); }
   .dh-lane[data-tone="bad"] .dh-lane-stat { color: var(--negative); }
   .dh-lane-note {
-    color: var(--text-tertiary); min-width: 0;
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    color: var(--text-tertiary); min-width: 0; overflow-wrap: anywhere;
   }
   /* 处置牌：四种字面量各一色，含义写在卡片底部的说明行里。牌是文字不是
      纯色点 —— 只靠颜色区分「要动手 / 只记不动」是拿色觉当说明书。 */
@@ -3243,6 +3250,35 @@
   /* 名字列宽度只在一处定义，行、坐标轴、「现在」竖线三处共用同一个数，
      否则刻度和每行的点会各自对齐到不同的 x 原点，读起来是错位的。 */
   .dh-rail { margin-top: 12px; display: grid; gap: 6px; --dh-rail-label-w: 10.5em; }
+  .dh-timeline-list { display: grid; gap: 8px; margin: 8px 0 14px; min-width: 0; }
+  .dh-timeline { min-width: 0; border: 1px solid var(--border-subtle);
+    border-radius: var(--radius); background: var(--fill-inset); overflow: clip; }
+  .dh-timeline[data-state="ok"], .dh-timeline[data-state="pending"] { background: transparent; }
+  .dh-timeline[data-state="bad"] { border-left: 3px solid var(--negative); }
+  .dh-timeline[data-state="warn"], .dh-timeline[data-state="stale"] {
+    border-left: 3px solid var(--warning); }
+  .dh-timeline summary { display: grid; grid-template-columns: minmax(0, 1.1fr) 100px minmax(135px, .8fr) minmax(0, 1.5fr) 12px;
+    align-items: center; gap: 10px; padding: 12px 16px; cursor: pointer; list-style: none;
+    font: 500 var(--fs-xs)/1.4 var(--mono); min-height: 48px;
+    transition: transform var(--duration-fast) var(--ease-out), background-color var(--duration-fast) var(--ease-out); }
+  .dh-timeline summary::-webkit-details-marker { display: none; }
+  .dh-timeline summary:active { background: var(--fill-inset); }
+  @media (hover: hover) and (pointer: fine) {
+    .dh-timeline summary:hover { background: var(--fill-inset); }
+  }
+  .dh-timeline-name { color: var(--text); font-weight: 700; min-width: 0; overflow-wrap: anywhere; }
+  .dh-timeline-badge { font-weight: 700; white-space: nowrap; color: var(--accent-ink); }
+  .dh-timeline-badge[data-state="bad"] { color: var(--negative-ink); }
+  .dh-timeline-badge[data-state="warn"], .dh-timeline-badge[data-state="stale"] { color: var(--warning-ink); }
+  .dh-timeline-badge[data-state="pending"], .dh-timeline-badge[data-state="live"] { color: var(--text-secondary); }
+  .dh-timeline-last { color: var(--text-secondary); overflow-wrap: anywhere; }
+  .dh-timeline-reason { color: var(--text-tertiary); min-width: 0; overflow-wrap: anywhere; }
+  .dh-timeline-more { color: var(--text-tertiary); }
+  .dh-timeline-slots { margin: 0; padding: 8px 16px 14px 28px; border-top: 1px solid var(--border-subtle);
+    color: var(--text-secondary); font: 500 var(--fs-xs)/1.5 var(--mono); }
+  .dh-timeline-slots li { padding: 4px 0; overflow-wrap: anywhere; }
+  .dh-timeline-slots time { margin-right: 10px; color: var(--text); font-weight: 700; }
+  .dh-slot-state { margin-right: 10px; }
   .dh-rail-head {
     display: flex; align-items: baseline; justify-content: space-between;
     gap: 10px; flex-wrap: wrap;
@@ -3289,6 +3325,15 @@
   .dh-rail-now {
     position: absolute; top: -3px; bottom: 0; width: 2px;
     background: var(--accent); opacity: .8; pointer-events: none;
+  }
+  @media (max-width: 1050px) {
+    .dh-timeline summary { grid-template-columns: minmax(0, 1fr) auto auto;
+      grid-template-areas: "name badge more" "last last last" "reason reason reason"; }
+    .dh-timeline-name { grid-area: name; }
+    .dh-timeline-badge { grid-area: badge; }
+    .dh-timeline-last { grid-area: last; }
+    .dh-timeline-reason { grid-area: reason; }
+    .dh-timeline-more { grid-area: more; }
   }
   /* 线顶上一个小三角，不然 2px 的竖线在密集的针脚里太容易被当成又一条刻度线。 */
   .dh-rail-now::before {
@@ -4316,6 +4361,7 @@
     .verdict-deck, .overview-strip,
     .overview-command > .hero-honesty-card,
     .overview-command > .hero-gold-card { width: 100%; min-width: 0; }
+    .hero-health { padding: 20px 18px 22px; }
     .hero-deck { grid-template-columns: minmax(0, 1fr); }
     .hero-deck-lead { border-right: 0; }
     /* 252 而不是 248：430-767px 这一段「主动 call · n=76 · 9 未能核验」那格
@@ -4330,7 +4376,7 @@
     .dh-lanes { grid-template-columns: minmax(0, 1fr); }
     .dh-lane {
       grid-template-columns: auto minmax(0, 1fr) auto auto; gap: 6px 10px;
-      padding: 10px 8px 10px 0;
+      padding: 14px;
       grid-template-areas: "name stat chip chev" "shape shape shape shape"
                            "note note note note";
     }
@@ -4356,8 +4402,6 @@
        所以这里是「引子 + 展开」，不是把一句话截掉不给。 */
     .dh-lane-note {
       grid-area: note; white-space: normal; line-height: 1.55;
-      display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
-      overflow: hidden;
     }
     .dh-chip { grid-area: chip; }
     /* 拇指要够得着：34px 是这块牌上唯一的控件，窄档给它一个正常的点按面积。 */
@@ -4370,6 +4414,11 @@
        计数摘要 + 「下一槽」那一句；同一份「谁 · 几点 · 怎么了」在「逐项」里
        是逐行的文字，比这张图更好读 —— 这是改版式，不是删数据。 */
     .dh-rail-body, .dh-rail-axis, .dh-rail-keys { display: none; }
+    .dh-timeline-list { margin-top: 10px; }
+    .dh-timeline summary { padding: 14px; gap: 6px 10px; }
+    .dh-timeline-reason { line-height: 1.55; }
+    .dh-timeline[data-state="ok"] .dh-timeline-reason,
+    .dh-timeline[data-state="pending"] .dh-timeline-reason { display: none; }
     .dh-rail { gap: 3px; }
     .dh-rail-next {
       display: block; color: var(--text-tertiary);
