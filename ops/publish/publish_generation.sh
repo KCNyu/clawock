@@ -18,7 +18,7 @@
 # Idempotent and self-healing by construction — the store compares against what
 # the branch actually holds, so a redundant call is a no-op and a call that
 # failed last time repairs itself with no new information.
-set -uo pipefail
+set -euo pipefail
 
 WS_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$WS_ROOT" || exit 1
