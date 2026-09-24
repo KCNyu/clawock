@@ -60,9 +60,8 @@ def test_a_broken_or_ambiguous_toggle_falls_back_to_the_gate(monkeypatch, worksp
         assert _module(monkeypatch, workspace).always_full_intraday() is False, content
 
 
-def test_the_live_workspace_toggle_is_currently_on():
-    """The repo ships the toggle enabled (2026-08-17). If someone turns it back
-    off, this test is the reminder to update the note and the memory entry."""
+def test_the_live_workspace_toggle_is_delta_first():
+    """The 2026-09-24 intraday contract keeps every slot visible without full repetition."""
     doc = json.loads((ROOT / 'config' / 'intraday-delivery.json').read_text())
-    assert doc['always_full'] is True
-    assert doc.get('note'), 'a temporary override has to say why and how to undo it'
+    assert doc['always_full'] is False
+    assert doc.get('note')
