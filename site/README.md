@@ -12,7 +12,7 @@ reports. The staging step is one-way and never writes into the live workspace.
 `assets/data/` therefore remains outside this directory for now: it is generated
 runtime state with its own data-plane publication contract, not website source.
 
-`assets/dashboard.gif` is a compact six-frame compatibility preview. The published
-clawock 0.2.0 PyPI description links to its raw `master` URL and cannot be edited.
-The current README uses the weekly social card and live dashboard link instead.
-The compatibility preview is not part of the screenshot refresh workflow.
+`assets/dashboard.gif` is the animated dashboard preview linked from both READMEs
+and the published clawock 0.2.0 PyPI description. Pages also serves the file at
+`/clawock/assets/dashboard.gif`. The screenshot refresh workflow regenerates it
+from the live dashboard only on manual dispatch; its two PNGs refresh weekly.

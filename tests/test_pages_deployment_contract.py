@@ -91,6 +91,14 @@ def test_every_browser_fetch_is_declared_public():
         assert asset in CONTRACT["required_pages"]
 
 
+def test_dashboard_gif_is_a_required_shipped_asset():
+    """The README and published PyPI description both link to this asset."""
+    assert (ROOT / "site/assets/dashboard.gif").is_file()
+    assert "assets/dashboard.gif" in CONTRACT["required_pages"]
+    assert "assets/dashboard.gif" in CONTRACT["artifact_include"]
+    assert "assets/dashboard.gif" not in CONTRACT["repository_only"]
+
+
 def test_linked_web_manifest_is_required_and_triggers_deploy():
     manifest = re.search(
         r'<link\s+rel="manifest"\s+href="([^"]+)"', INDEX
@@ -360,6 +368,7 @@ def test_builder_stages_only_public_consumers(tmp_path):
     (site / "memory/decisions.jsonl").write_text("{}\n")
     (site / "docs").mkdir()
     (site / "docs/architecture.md").write_text("ok")
+    source_gif_size = (ROOT / "site/assets/dashboard.gif").stat().st_size
     source_jsonl = sorted((ROOT / "assets/data").glob("*.jsonl"))
 
     result = subprocess.run(
@@ -377,7 +386,9 @@ def test_builder_stages_only_public_consumers(tmp_path):
         text=True,
     )
 
+    assert (site / "assets/dashboard.gif").is_file()
     assert list((site / "assets/data").glob("*.jsonl"))
+    assert (output / "assets/dashboard.gif").stat().st_size == source_gif_size
     assert not list((output / "assets/data").glob("*.jsonl"))
     assert not (output / "memory/decisions.jsonl").exists()
     assert not (output / "tests").exists()
@@ -401,6 +412,7 @@ def test_builder_stages_only_public_consumers(tmp_path):
     assert (output / "llms.txt").is_file()
     assert (output / "assets/data/dashboard.json").is_file()
     assert (output / "assets/data/overview.json").is_file()
+    assert (ROOT / "site/assets/dashboard.gif").stat().st_size == source_gif_size
     assert all(path.is_file() for path in source_jsonl)
     assert "Pages artifact:" in result.stdout
 
@@ -470,6 +482,14 @@ def test_every_page_in_the_site_source_is_published_or_declared_internal():
     assert unreachable == [], (
         "pages exist under site/ that the Pages artifact never publishes: "
         f"{unreachable}")
+
+
+def test_readme_gif_stays_available_from_repository():
+    readme = (ROOT / "README.md").read_text()
+    assert (
+        "https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/"
+        "site/assets/dashboard.gif"
+    ) in readme
 
 
 def test_seo_logo_resolves_once_to_a_real_asset():

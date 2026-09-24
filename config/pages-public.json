@@ -26,6 +26,7 @@
     "robots.txt",
     "sitemap.xml",
     "manifest.webmanifest",
+    "assets/dashboard.gif",
     "assets/css/dashboard.css",
     "assets/data/overview.json",
     "assets/js/dashboard.core.js",
@@ -52,6 +53,7 @@
     "assets/js/*",
     "assets/icons/*",
     "assets/data/*.json",
+    "assets/dashboard.gif",
     "assets/*.png",
     "assets/*.svg",
     "memory/*-pre-open.html",
@@ -62,7 +64,6 @@
     "NOTICE"
   ],
   "repository_only": [
-    "assets/dashboard.gif",
     "assets/data/*.jsonl",
     "assets/data/repo-traffic.json",
     "assets/data/schedule-drift.json",

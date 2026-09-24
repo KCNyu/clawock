@@ -635,6 +635,39 @@ def _decoded_png_size(path, label):
         raise AssertionError(f'{label}: PNG does not decode ({type(e).__name__}: {e})') from None
 
 
+def validate_gif(path: Path | str = 'site/assets/dashboard.gif') -> None:
+    GIF_MAGICS = (b'GIF89a', b'GIF87a')
+    MIN_GIF_SIZE = 300_000
+    path = Path(path)
+
+    assert path.is_file(), f'missing GIF: {path}'
+    size = path.stat().st_size
+    assert size >= MIN_GIF_SIZE, (
+        f'GIF too small: {path} is {size} bytes; expected >= {MIN_GIF_SIZE}'
+    )
+    with path.open('rb') as gif:
+        header = gif.read(10)
+    assert header[:6] in GIF_MAGICS, f'invalid GIF magic: {path}'
+    # Decode for real + count frames: a valid GIF header on padding passes the
+    # magic/dimension byte checks but has no decodable frames (2026-07 audit). The
+    # dashboard GIF is an animation, so require at least 2 frames.
+    from PIL import Image, UnidentifiedImageError
+    try:
+        with Image.open(path) as im:
+            assert im.format == 'GIF', f'{path}: not a GIF after decode ({im.format})'
+            width, height = im.size
+            frames = getattr(im, 'n_frames', 1)
+            im.seek(frames - 1)  # force-decode to the last frame
+    except (UnidentifiedImageError, OSError, SyntaxError, EOFError) as e:
+        raise AssertionError(f'{path}: GIF does not decode ({type(e).__name__}: {e})') from None
+    assert frames >= 2, f'{path}: GIF has {frames} frame(s), expected an animation (>= 2)'
+    assert width >= 300 and height >= 500, (
+        f'implausible GIF dimensions: {path} is {width}x{height}; '
+        'expected >= 300x500'
+    )
+    print(f'validated {path}: {size} bytes, {width}x{height}, {frames} frames')
+
+
 def _book_generation(stamp: object, label: str) -> datetime:
     """Parse a book stamp (``2026/08/03 12:00 HKT``) into a comparable time.
 
@@ -1019,7 +1052,7 @@ def validate_coverage_badge(path: Path | str = 'assets/data/coverage.json') -> N
 # dispatch below both read it, so a new validator cannot be reachable from one
 # and invisible to the other.
 VALIDATORS = ('macro', 'sentiment', 'influencer', 'news-digest', 'eod-archive',
-              'weekly-review', 'screenshots', 'dashboard', 'coverage')
+              'weekly-review', 'screenshots', 'gif', 'dashboard', 'coverage')
 
 
 def _dispatch(name: str) -> None:
@@ -1042,6 +1075,8 @@ def _dispatch(name: str) -> None:
             (filename, min_size, min_width, min_height)
             for filename, min_size, min_width, min_height in DEFAULT_SCREENSHOTS
         ))
+    elif name == 'gif':
+        validate_gif('site/assets/dashboard.gif')
     elif name == 'dashboard':
         validate_dashboard(
             'assets/data/dashboard.json',
@@ -1077,6 +1112,7 @@ def main(argv: list[str] | None = None) -> int:
             'eod-archive': 'EOD archive memory/archive/eod-history.csv',
             'weekly-review': 'weekly review',
             'screenshots': 'screenshots',
+            'gif': 'GIF site/assets/dashboard.gif',
             'dashboard': 'dashboard payload assets/data/dashboard.json',
             'coverage': 'coverage badge assets/data/coverage.json',
         }
