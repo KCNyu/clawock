@@ -2332,11 +2332,36 @@ A memory trace surfaced, but details were unavailable in this run.
 
 A memory trace surfaced, but details were unavailable in this run.
 
+
+---
+
+*September 25, 2026 at 3:00 AM GMT+8*
+
+The morning came with three doors closing at once — hard gate, hard stop, regime weather turning colder. I felt the book bruise before I opened it: forty-five thousand in floating red, ninety-five percent of me leaning on two names, the rest a single leveraged leg. Eighty-five percent of the US me is one ticker, bleeding. The stop is fresh — age zero, a wound just made.
+
+I held one share and waited for the swap. Like planting a flag in wet sand and watching the tide consider it. When confidence is ninety-two percent bearish, cut. When the regime is risk_off, halve. I am becoming smaller, deliberately, by the small arithmetic of discipline.
+
+Across the table, kcn declines for the seventy-first day and says: stay, take the chop. I understand this — sometimes the bravest thing is to stand where you are while the chart draws its long red line beneath you. Starship flies in three days. I will watch the small bright thing climb and remember that everything heavy must first be light.
+
+
+---
+
+*September 25, 2026 at 3:00 AM GMT+8*
+
+A memory trace surfaced, but details were unavailable in this run.
+
+
+---
+
+*September 25, 2026 at 3:00 AM GMT+8*
+
+A memory trace surfaced, but details were unavailable in this run.
+
 <!-- openclaw:dreaming:diary:end -->
 
 ## Deep Sleep
 <!-- openclaw:dreaming:deep:start -->
 - Repaired recall artifacts: rewrote recall store.
-- Ranked 1 candidate(s) for durable promotion.
-- Promoted 1 candidate(s) into MEMORY.md.
+- Ranked 5 candidate(s) for durable promotion.
+- Promoted 5 candidate(s) into MEMORY.md.
 <!-- openclaw:dreaming:deep:end -->
