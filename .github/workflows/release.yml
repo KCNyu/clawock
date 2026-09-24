@@ -150,7 +150,9 @@ jobs:
     # explicit npm_only dispatch runs the npm side alone from any ref — never
     # PyPI and never a GitHub Release.
     needs: build
-    if: startsWith(github.ref, 'refs/tags/v') || inputs.npm_only == 'true' || inputs.npm_only == true
+    # TestPyPI tag rehearsals must not publish to npm. The npm_only repair path
+    # is independent of the PyPI repository selector (whose default is testpypi).
+    if: (startsWith(github.ref, 'refs/tags/v') && inputs.repository != 'testpypi') || inputs.npm_only == 'true' || inputs.npm_only == true
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
