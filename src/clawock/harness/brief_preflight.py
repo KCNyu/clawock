@@ -379,10 +379,6 @@ def find_prior_plan(today_iso):
     return prior[-1] if prior else None
 
 
-def _is_hk_ticker(t):
-    return t.isdigit() and len(t) <= 5
-
-
 def compute_retrospective(prior_plan_path, portfolio, ledger_decisions=None):
     """Yesterday's plan, scored by the settled ledger — never by a snapshot.
 

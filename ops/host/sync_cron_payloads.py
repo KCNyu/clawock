@@ -57,17 +57,6 @@ def parse_at(value: str | None) -> datetime:
     return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
 
 
-def _json_object(text: str) -> dict:
-    """Decode CLI JSON even when a version warning precedes it."""
-    start = text.find("{")
-    if start < 0:
-        raise ValueError("OpenClaw CLI returned no JSON object")
-    value = json.loads(text[start:])
-    if not isinstance(value, dict):
-        raise ValueError("OpenClaw CLI JSON root must be an object")
-    return value
-
-
 def load_live_jobs(runner=None) -> list[dict]:
     """The live schedule, raising rather than reporting an empty one.
 

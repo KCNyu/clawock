@@ -223,8 +223,3 @@ def test_apply_rechecks_running_state_before_each_edit():
     )
     assert errors == ["first: job started running before apply; stopped"]
     assert calls == []
-
-
-def test_cli_json_parser_tolerates_leading_warning():
-    parsed = sync_cron_payloads._json_object('Config warning\n{"jobs": []}\n')
-    assert parsed == {"jobs": []}

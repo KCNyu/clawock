@@ -93,8 +93,8 @@ def test_all_consumer_maps_derive_the_missing_audit_symbols_from_registry():
 
 
 def test_quant_universe_uses_canonical_underlyings_and_venue_suffixes():
-    universe = compute_quant_signals._universe()
-    by_label = {label: (code, note) for label, code, note in universe}
+    universe = compute_quant_signals.universe_details()
+    by_label = {row["label"]: (row["code"], row["note"]) for row in universe}
     portfolio = _portfolio()
     active = {
         str(holding["ticker"])
