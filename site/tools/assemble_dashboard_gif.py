@@ -15,6 +15,7 @@ The workflow builds it only on manual dispatch after a UI change; scheduled week
 runs refresh the two live PNGs and skip these expensive frames.
 """
 import glob
+import json
 import os
 import re
 import sys
@@ -91,25 +92,56 @@ def _load_tab(i):
 
 tabs = [_load_tab(i) for i in range(TAB_COUNT)]
 VH = tabs[0][0].height   # every viewport frame is the same size
+with open(os.path.join(FRAME_DIR, "capture-manifest.json"), encoding="utf-8") as manifest_file:
+    manifest = json.load(manifest_file)
+chrome = manifest["chrome"]
+scale = OW / chrome["width"]
+nav_height = round(chrome["height"] * scale)
+if not 0 < nav_height < VH or len(chrome["buttons"]) != TAB_COUNT:
+    raise ValueError("invalid sticky navigation geometry in capture manifest")
+buttons = [tuple(round(box[key] * scale) for key in ("left", "top", "right", "bottom"))
+           for box in chrome["buttons"]]
+
+# The capture stays in one browser session, but each tab screenshot still has
+# its own active-button pixels. Build one pinned bar from the first screenshot;
+# only the two changing button regions may differ between tab states.
+nav_base = tabs[0][0].crop((0, 0, OW, nav_height))
+for i, box in enumerate(buttons):
+    inactive = tabs[(i + 1) % TAB_COUNT][0].crop(box)
+    nav_base.paste(inactive, box[:2])
+navs = []
+for i, box in enumerate(buttons):
+    nav = nav_base.copy()
+    nav.paste(tabs[i][0].crop(box), box[:2])
+    navs.append(nav)
+
+
+def _with_nav(frame, nav):
+    composed = frame.copy()
+    composed.paste(nav, (0, 0))
+    return composed
 
 frames, durations = [], []
 for i in range(TAB_COUNT):
     seq, nxt_top = tabs[i], tabs[(i + 1) % TAB_COUNT][0]   # wrap the last → hero for a loop
     for j, fr in enumerate(seq):
-        frames.append(fr)
+        frames.append(_with_nav(fr, navs[i]))
         if j == 0:
             durations.append(HOLD_TOP_REFLECT_MS if i == TAB_COUNT - 1 else HOLD_TOP_MS)
         elif j == len(seq) - 1:
             durations.append(HOLD_BOTTOM_MS)       # linger after the scroll
         else:
             durations.append(VSCROLL_MS)
-    # horizontal swipe from this tab's last frame to the next tab's top
+    # Swipe only the body. The sticky bar stays fixed; its active highlight
+    # crossfades in place while the content below changes pages.
     out_frame = seq[-1]
     for k in range(1, TWEENS + 1):
-        off = int(OW * _ease(k / (TWEENS + 1)))
+        progress = _ease(k / (TWEENS + 1))
+        off = int(OW * progress)
         canvas = Image.new("RGB", (OW, VH))
-        canvas.paste(out_frame, (-off, 0))
-        canvas.paste(nxt_top, (OW - off, 0))
+        canvas.paste(out_frame.crop((0, nav_height, OW, VH)), (-off, nav_height))
+        canvas.paste(nxt_top.crop((0, nav_height, OW, VH)), (OW - off, nav_height))
+        canvas.paste(Image.blend(navs[i], navs[(i + 1) % TAB_COUNT], progress), (0, 0))
         frames.append(canvas)
         durations.append(SLIDE_MS)
 
