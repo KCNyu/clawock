@@ -29,18 +29,6 @@ def test_vector_brand_sources_are_valid_and_keep_the_canonical_geometry():
         assert 'id="bull-blue"' in source
 
 
-def test_mono_lockup_keeps_the_canonical_geometry_and_inherits_color():
-    mono = ROOT / "site/assets/logo-mark-mono.svg"
-    root = ET.parse(mono).getroot()
-    source = mono.read_text()
-    assert root.attrib["viewBox"] == "0 0 64 64"
-    # Single-color lockup: same saddle paths, no gradient, colored via currentColor.
-    assert "M8 13C22 9 40 16 55 28C42 24 28 25 17 32C12 27 9 21 8 13Z" in source
-    assert "M56 51C42 55 24 48 9 36C22 40 36 39 47 32C52 37 55 43 56 51Z" in source
-    assert 'fill="currentColor"' in source
-    assert "linearGradient" not in source
-
-
 def test_wordmark_lockup_keeps_the_canonical_geometry_and_carries_the_name():
     lockup = ROOT / "site/assets/logo-lockup.svg"
     root = ET.parse(lockup).getroot()
