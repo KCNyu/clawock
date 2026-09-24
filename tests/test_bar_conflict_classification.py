@@ -189,7 +189,7 @@ def test_a_missing_or_corrupt_log_is_zero_not_an_exception(tmp_path):
 
 
 def test_the_report_names_them_and_still_publishes(tmp_path, monkeypatch):
-    """Historical refusals are INFO: the bars were refused, so nothing downstream is wrong.
+    """WARN, never ERROR: the bars were refused, so nothing downstream is wrong.
 
     Blocking a publish over a provider's revision would trade a disagreement
     that is visible for one that is not — the same trade this repo refuses
@@ -223,13 +223,47 @@ def test_the_report_names_them_and_still_publishes(tmp_path, monkeypatch):
 
     finding = [f for f in noisy['findings'] if f['code'] == 'BAR_CONFLICT']
     assert len(finding) == 1
-    assert finding[0]['level'] == 'INFO'
+    assert finding[0]['level'] == 'WARN'
     # Ordered worst-first so the six findings the dashboard shows lead with the
     # kind that actually disagrees about the session.
     assert 'bar_revision 2' in finding[0]['msg']
-    assert noisy['warn_count'] == clean['warn_count']
+    assert noisy['warn_count'] == clean['warn_count'] + 1
     assert noisy['ok'] is True, 'a refused bar must never block a publish'
     assert noisy['bar_conflicts']['by_ticker'] == {'00100': 3}
+
+    # A window of nothing but precision and wick ticks is still named, but it
+    # is not a warning: neither kind can move a settled number.
+    monkeypatch.setattr(integrity, 'summarize_bar_conflicts', lambda *a, **k: {
+        'window_days': 30, 'total': 3, 'by_kind': {'extreme_only': 2, 'rounding': 1},
+        'by_ticker': {'SPCX': 3}, 'last_seen_at': '2026-01-29T08:00:00+08:00',
+        'log': 'bar-conflicts.jsonl',
+    })
+    benign = integrity.check(book)
+    finding = [f for f in benign['findings'] if f['code'] == 'BAR_CONFLICT']
+    assert [f['level'] for f in finding] == ['INFO']
+    assert benign['warn_count'] == clean['warn_count']
+
+
+def test_a_refusal_seen_again_every_morning_counts_once(tmp_path):
+    """The store never overwrites, so the fetch overlap re-refuses the same bar
+    daily. Sightings are history; the count is of disagreements."""
+    from clawock.portfolio import integrity
+
+    stored = {'open': 144.88, 'high': 153.0, 'low': 144.36, 'close': 150.88}
+    row = {'ticker': 'SPCX', 'date': '2026-09-16', 'kind': 'rounding',
+           'stored': stored, 'fetched': dict(stored, high=153.01)}
+    log = tmp_path / 'bar-conflicts.jsonl'
+    log.write_text('\n'.join(json.dumps(dict(row, seen_at=seen)) for seen in (
+        '2026-09-18T08:03:36+08:00', '2026-09-21T08:03:39+08:00',
+        '2026-09-22T08:03:37+08:00')) + '\n' + json.dumps(dict(
+            row, date='2026-09-17', seen_at='2026-09-22T08:03:37+08:00')) + '\n')
+
+    summary = integrity.summarize_bar_conflicts(
+        log, now=datetime(2026, 9, 24, tzinfo=timezone.utc))
+
+    assert summary['total'] == 2
+    assert summary['by_kind'] == {'rounding': 2}
+    assert summary['last_seen_at'] == '2026-09-22T08:03:37+08:00'
 
 
 def test_a_one_tick_wick_is_never_called_a_split():

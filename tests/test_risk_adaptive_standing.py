@@ -165,6 +165,33 @@ def test_attach_discipline_puts_the_ledger_state_on_the_rows_the_packet_reads(tm
     assert rows[0]["adaptive"]["may_stand"]
 
 
+def test_standing_longer_does_not_grow_what_the_brief_carries(tmp_path):
+    """The ledger keeps ten filed choices with their essays; context views keep
+    the last few dates and choices. Copying the history grew the brief's core
+    by ~2 KB a day until it broke its always-loaded budget (09-24)."""
+    path = tmp_path / "risk.json"
+    guardrail = risk.attach_breach_ids(_stop())
+    _run(tmp_path, "2026-09-11T00:00:00+00:00", guardrail=guardrail)
+    for day in range(11, 23):
+        hold = [{"ticker": "07226", "action": "hold_and_watch", "rationale": "维持" * 100}]
+        risk.record_stances(path, f"2026-09-{day}", hold)
+    active = _book(other_trades=[{"date": "2026-09-15", "action": "buy"}])
+    discipline = _run(tmp_path, "2026-09-23T00:00:00+00:00", guardrail=guardrail, book=active)
+    assert discipline["records"][0]["adaptive"]["eligible"]
+    assert len(discipline["records"][0]["adaptive"]["stances"]) == 10, "the ledger keeps its history"
+
+    view = risk.discipline_view(discipline)
+    row = risk.attach_discipline(guardrail, discipline)["hard_stop_watch"][0]
+    for adaptive in (view["records"][0]["adaptive"], row["adaptive"]):
+        assert "stances" not in adaptive
+        assert adaptive["recent_choices"] == [
+            {"date": f"2026-09-{day}", "choice": "stand"} for day in range(18, 23)]
+        assert adaptive["may_stand"] is discipline["records"][0]["adaptive"]["may_stand"]
+    assert risk.adaptive_view(row["adaptive"]) == row["adaptive"], "a view of a view"
+    assert packet._adaptive_view(row["adaptive"])["recent_choices"] == row["adaptive"]["recent_choices"]
+    assert discipline["records"][0]["adaptive"]["stances"], "the view never mutates the ledger result"
+
+
 def _risk_row(may_stand, kind="hard_stop"):
     return {"kind": kind, "adaptive": {"may_stand": may_stand}}
 

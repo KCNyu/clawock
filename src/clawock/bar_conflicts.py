@@ -24,6 +24,15 @@ CONFLICT_KINDS = (
     "bar_revision",        # anything else: a real disagreement about the session
 )
 
+#: The kinds that cannot move anything the ledger settled against: a sub-tick
+#: difference on any leg, or a tick on a wick. They are still refused and still
+#: logged; they only stop being *actionable* — `daily-bars` does not fail its run
+#: over them and the health report files them as INFO. Every other kind, a
+#: structurally impossible bar included, stays a warning. One definition, read by
+#: the fetcher and the health report alike, so the two cannot disagree about
+#: which disagreement matters.
+BENIGN_KINDS = frozenset({"rounding", "extreme_only"})
+
 #: Below this, a difference is precision rather than information. 5bp of a
 #: HK$700 close is 35 cents — smaller than one tick on that board.
 ROUNDING_REL_TOL = 5e-4

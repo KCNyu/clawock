@@ -81,9 +81,10 @@ def test_same_fixture_reduces_always_loaded_input_and_preserves_action_fields(tm
     for field in brief_context.CORE_FIELDS:
         assert core[field] == stamped[field], field
     assert "new_feature_surface" not in core
-    assert "risk_discipline" not in core
-    risk_detail = json.loads(Path(manifest["bundles"]["risk_detail"]["path"]).read_text())
-    assert risk_detail["risk_discipline"] == stamped["risk_discipline"]
+    # Acknowledgement, override and execution state decide what the plan may say
+    # about a breach; they ride in core, not in a bundle the model must remember
+    # to open.
+    assert core["risk_discipline"] == stamped["risk_discipline"]
     assert manifest["bundles"]["extras"]["fields"] == ["new_feature_surface"]
     assert manifest["bundles"]["evidence"]["freshness"] == {
         "news_evidence_graph": {"as_of": "2026-07-28"}

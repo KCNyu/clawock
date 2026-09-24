@@ -2002,7 +2002,9 @@ def main(argv=None):
         'concentration': {'hk': hk_conc, 'us': us_conc},
         'lookthrough_exposure': lookthrough,
         'risk_guardrail': guardrail,
-        'risk_discipline': discipline,
+        # The ledger keeps each breach's full stance history; the context gets
+        # the view (`risk.discipline_view`), so standing longer does not grow it.
+        'risk_discipline': risk_discipline.discipline_view(discipline),
         'breakeven_math': breakeven,
         'quant_signals': quant_signals,
         'quant_signal_review': quant_review,
