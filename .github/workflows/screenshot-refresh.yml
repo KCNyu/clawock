@@ -96,6 +96,8 @@ jobs:
             site/assets/dashboard.gif
             site/assets/social-card.png
             site/assets/shadow-backtest.png
+            .gifframes/capture-manifest.json
+            .gifframes/bottom-*.png
           if-no-files-found: error
 
       # The Decision Mind capture is evidence of the plugin running inside a

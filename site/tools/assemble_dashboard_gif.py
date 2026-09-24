@@ -7,7 +7,7 @@ Run right after shoot_dashboard.js:
     python3 site/tools/assemble_dashboard_gif.py
 
 shoot_dashboard.js writes, per tab i, a sequence .gifframes/f{i}_{0..n}.png captured
-while scrolling through the first part of that tab. This script plays each tab as:
+while scrolling to the true bottom of that tab. This script plays each tab as:
 hold at top → scroll down (the captured vertical frames) → SWIPE LEFT to the next tab
 (horizontal slide, composited here). Both axes match the dashboard's own scrollable
 panels + "‹ 左右滑动切换 ›". Quantized to a small palette to keep the file modest.
@@ -139,6 +139,9 @@ _pal = Image.new("P", (1, 1))
 _flat = [v for _c in _palette[:COLORS] for v in _c]
 _pal.putpalette(_flat + [0] * (768 - len(_flat)))
 frames = [f.quantize(palette=_pal, dither=Image.Dither.NONE) for f in frames]
+# Keep the previous frame on screen until its successor has been decoded. With
+# disposal=2 every full-size frame clears to the GIF background before repaint,
+# which can appear as a white flash at tab switches on slower decoders.
 frames[0].save(OUT, save_all=True, append_images=frames[1:],
-               duration=durations, loop=0, optimize=True, disposal=2)
+               duration=durations, loop=0, optimize=True, disposal=1)
 print(f"✓ wrote {OUT} ({os.path.getsize(OUT)//1024} KB, {frames[0].size}, {len(frames)} frames)")
