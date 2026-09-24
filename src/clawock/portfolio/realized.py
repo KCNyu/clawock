@@ -17,7 +17,7 @@ import sys
 from pathlib import Path
 from typing import Dict, List, Tuple
 
-from clawock.safe_io import safe_write_json
+from clawock.safe_io import mutate_json
 from clawock.workspace import workspace_root
 
 # The CLI operates on the configured workspace. Library callers pass an
@@ -81,19 +81,27 @@ def main(argv=None):
     ap.add_argument('--path', type=Path, default=PORTFOLIO_PATH)
     args = ap.parse_args(argv)
 
-    with open(args.path, encoding='utf-8') as f:
-        data = json.load(f)
+    before = {}
+    after = {}
 
-    before = {
-        r: {
-            'realized_pnl':  data['portfolios'][r].get('realized_pnl'),
-            'realized_note': data['portfolios'][r].get('realized_note', ''),
+    def _mutate(data):
+        nonlocal before, after
+        before = {
+            r: {
+                'realized_pnl': portfolio.get('realized_pnl'),
+                'realized_note': portfolio.get('realized_note', ''),
+            }
+            for r, portfolio in (data.get('portfolios') or {}).items()
+            if isinstance(portfolio, dict)
         }
-        for r, portfolio in (data.get('portfolios') or {}).items()
-        if isinstance(portfolio, dict)
-    }
+        after = recompute(data)
+        return data
 
-    after = recompute(data)
+    if args.dry_run:
+        with open(args.path, encoding='utf-8') as f:
+            _mutate(json.load(f))
+    else:
+        mutate_json(str(args.path), _mutate)
 
     for r in after:
         b = before[r]
@@ -112,7 +120,6 @@ def main(argv=None):
         print('[dry-run] portfolio.json NOT written.')
         return 0
 
-    safe_write_json(str(args.path), data)
     print(f'✅ Saved → {args.path}')
     return 0
 
