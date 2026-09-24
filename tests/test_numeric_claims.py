@@ -62,9 +62,30 @@ def test_quoting_the_plan_size_passes(hc):
 def test_wan_notation_matches_the_same_number_in_the_context(hc):
     # 2 万 and 20,000 are the same claim. Without the magnitude conversion the
     # gate would flag every correctly-quoted round figure kcn's reports use.
-    ctx = dict(CTX, plan_context={"open": [{"ticker": "07226", "shares": 20000}]})
+    ctx = dict(CTX, plan_context={"open": [{"ticker": "07226", "shares": 20000,
+                                            "amount": 20000}]})
     assert hc.check_numeric_claims("07226 共 2 万股。", ctx) == []
     assert hc.check_numeric_claims("敞口约 2 万 HK$。", ctx) == []
+
+
+def test_identifiers_dates_and_percentages_cannot_authorize_quantities(hc):
+    ctx = {"anomalies": [{"ticker": "00100", "move_pct": -3.7}],
+           "date": "2026-09-24"}
+    for prose in ("买入100股", "目标价HK$1000", "买入24股", "买入4股",
+                  "敞口 HK$2026"):
+        assert hc.check_numeric_claims(prose, ctx), prose
+
+
+def test_a_share_count_cannot_authorize_a_book_amount_or_vice_versa(hc):
+    ctx = {"plan_context": {"shares": 20000, "amount": 3000}}
+    assert hc.check_numeric_claims("敞口 HK$20,000。", ctx)
+    assert hc.check_numeric_claims("买入3000股。", ctx)
+    assert hc.check_numeric_claims("买入2万股，敞口HK$3,000。", ctx) == []
+
+
+def test_ticker_cannot_authorize_a_written_out_currency_product(hc):
+    ctx = {"anomalies": [{"ticker": "00100"}], "raw_wechat_block": "现价 $20"}
+    assert hc.check_numeric_claims("买入100×$20 ≈ $2,000。", ctx)
 
 
 def test_percentages_outside_a_range_are_not_policed(hc):
