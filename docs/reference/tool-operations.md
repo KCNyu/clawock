@@ -26,7 +26,7 @@
 | `news-digest.yml` | 工作日 13:00 UTC (21:00 HKT) | `assets/data/us_news_digest.json` | 美股开盘前 48h 新闻提炼 |
 | `influencer-scan.yml` | 周日–四 21:40 + 工作日 12:50 UTC | `assets/data/influencer_feed.json` | 盘前 + 美股盘前两班影响力雷达（Trump 原帖 / Musk 报道 / ARK 日度调仓 / Serenity / 段永平·洪灏·Burry·Pelosi 报道，8 源） |
 | `cron-health.yml` | 周一–六 09:17 UTC (17:17 HKT) | (read-only) | 用 tracked cron contract + HKT commit date 巡检漏跑 |
-| `screenshot-refresh.yml` | 周日 22:00 UTC | `site/assets/social-card.png` + `site/assets/shadow-backtest.png` | 每周刷新社交卡里的 Hero 截图和实时战绩图；`site/assets/dashboard.gif` 只在手动 dispatch 时生成 |
+| `screenshot-refresh.yml` | 周日 22:00 UTC | `site/assets/social-card.png` + `site/assets/shadow-backtest.png` | 每周刷新社交卡里的 Hero 截图和实时战绩图 |
 | `repo-traffic.yml` | 周二/六 03:38 UTC | `assets/data/repo-traffic.json` + `schedule-drift.json` | Measurement Capture；漂移按 `config/schedule-punctuality.json` 由 cron-health 判 |
 | `seo-visibility.yml` | 周一 06:30 UTC | `assets/data/crawl_visibility*.json` | 每周爬虫/搜索可见度采样 |
 

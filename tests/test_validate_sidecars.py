@@ -288,10 +288,6 @@ def test_real_committed_screenshots_pass():
     ))
 
 
-def test_real_committed_gif_passes():
-    validators.validate_gif(ROOT / 'site/assets/dashboard.gif')
-
-
 def test_real_committed_dashboard_passes(freshly_built_dashboard):
     validators.validate_dashboard(
         freshly_built_dashboard, portfolio_path=ROOT / 'portfolio.json')
@@ -842,14 +838,6 @@ def test_header_only_png_is_rejected_by_size_floor(tmp_path):
         validators.validate_screenshots(((path, 150_000, 1_000, 500),))
 
 
-def test_header_only_gif_is_rejected_by_size_floor(tmp_path):
-    path = tmp_path / 'image.gif'
-    path.write_bytes(b'GIF89a' + struct.pack('<HH', 300, 500))
-
-    with pytest.raises(AssertionError, match='GIF too small'):
-        validators.validate_gif(path)
-
-
 def test_large_png_with_invalid_magic_is_rejected(tmp_path):
     path = tmp_path / 'image.png'
     path.write_bytes(b'not-png!' + b'\x00' * 20_000)
@@ -869,27 +857,6 @@ def test_large_png_with_implausible_dimensions_is_rejected(tmp_path):
         validators.validate_screenshots(((path, 100, 400, 200),))
 
 
-def test_large_gif_with_invalid_magic_is_rejected(tmp_path):
-    path = tmp_path / 'image.gif'
-    path.write_bytes(b'NOTGIF' + struct.pack('<HH', 640, 1376) + b'\x00' * 300_000)
-
-    with pytest.raises(AssertionError, match='invalid GIF magic'):
-        validators.validate_gif(path)
-
-
-def test_large_gif_with_implausible_dimensions_is_rejected(tmp_path):
-    # A REAL animated but too-small GIF: decode + frame count pass, dimension floor
-    # rejects it.
-    from PIL import Image
-    path = tmp_path / 'image.gif'
-    frames = [Image.new('RGB', (299, 499), c) for c in ('white', 'black')]
-    frames[0].save(path, 'GIF', save_all=True, append_images=frames[1:], duration=100)
-    with path.open('ab') as f:
-        f.write(b'\x00' * 300_000)  # clear the size floor
-    with pytest.raises(AssertionError, match='implausible GIF dimensions'):
-        validators.validate_gif(path)
-
-
 def test_big_png_with_valid_header_but_garbage_body_is_rejected(tmp_path):
     """2026-07 audit: a file large enough to clear the size floor, with a valid
     PNG magic + IHDR dimensions on top of garbage, passed the byte checks but does
@@ -902,25 +869,7 @@ def test_big_png_with_valid_header_but_garbage_body_is_rejected(tmp_path):
         validators.validate_screenshots(((path, 150_000, 1_000, 500),))
 
 
-def test_big_gif_with_valid_header_but_garbage_body_is_rejected(tmp_path):
-    path = tmp_path / 'image.gif'
-    path.write_bytes(b'GIF89a' + struct.pack('<HH', 640, 1376) + b'\x00' * 400_000)
-    with pytest.raises(AssertionError, match='does not decode|GIF has'):
-        validators.validate_gif(path)
-
-
-def test_single_frame_gif_is_rejected_as_not_an_animation(tmp_path):
-    from PIL import Image
-    path = tmp_path / 'still.gif'
-    Image.new('RGB', (640, 1376), 'white').save(path, 'GIF')
-    # pad past the 300k size floor so the decode/frame check is what fires
-    with path.open('ab') as f:
-        f.write(b'\x00' * 300_000)
-    with pytest.raises(AssertionError, match='expected an animation|does not decode'):
-        validators.validate_gif(path)
-
-
-def test_real_multiframe_gif_and_real_png_decode_and_pass(tmp_path):
+def test_real_png_decodes_and_passes(tmp_path):
     from PIL import Image
     png = tmp_path / 'ok.png'
     Image.new('RGB', (1200, 630), 'white').save(png, 'PNG')
@@ -928,18 +877,11 @@ def test_real_multiframe_gif_and_real_png_decode_and_pass(tmp_path):
         f.write(b'')  # keep it small; use a tiny size floor
     validators.validate_screenshots(((png, 100, 1000, 500),))
 
-    gif = tmp_path / 'ok.gif'
-    frames = [Image.new('RGB', (640, 1376), c) for c in ('white', 'black', 'white')]
-    frames[0].save(gif, 'GIF', save_all=True, append_images=frames[1:], duration=100)
-    with gif.open('ab') as f:
-        f.write(b'\x00' * 300_000)  # clear the size floor
-    validators.validate_gif(gif)
-
 
 @pytest.mark.parametrize('exc', [EOFError, OSError, SyntaxError, ValueError])
 def test_png_decode_wraps_all_pillow_failure_types(tmp_path, monkeypatch, exc):
     """2026-07 review: EOFError from a truncated PNG must become AssertionError like
-    the other decode failures, not escape raw (the GIF handler already caught it).
+    the other decode failures, not escape raw.
     ValueError is expected to still escape (not a decode error) — see below."""
     from PIL import Image
     real = tmp_path / 'ok.png'

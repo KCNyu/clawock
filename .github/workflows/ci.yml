@@ -42,7 +42,7 @@ on:
       # them started no run at all (#1568).
       - 'site/_layouts/**'
       - 'site/decimap/**'
-      # The screenshot/GIF tooling. Until #754 it was in no trigger, in no
+      # The screenshot tooling. Until #754 it was in no trigger, in no
       # detector lane and in no syntax check: the only thing that ever ran it
       # was the weekly screenshot-refresh cron, which commits its output.
       - 'site/tools/**'
@@ -369,7 +369,7 @@ jobs:
       # portfolio_risk_metrics imports it at module level, so without it pytest
       # aborts the whole run with a collection error and all 78 tests silently
       # stop being enforced — a green-looking local run hides this completely.
-      # Pillow: validate_sidecars now fully-decodes screenshots/GIF (finding #12);
+      # Pillow: validate_sidecars fully decodes screenshots (finding #12);
       # the real asset checks run in screenshot-refresh.yml (which has Pillow) but
       # the unit tests here exercise the same validators, so pytest needs it too.
       - name: Set up clawock (Python)
