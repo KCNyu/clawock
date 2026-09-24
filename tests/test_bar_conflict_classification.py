@@ -91,6 +91,26 @@ def test_a_refusal_carries_its_kind_and_still_refuses(tmp_path, monkeypatch):
     assert mod.load_bars('TEST')['bars']['2026-01-05']['close'] == 10.5
 
 
+def test_daily_bars_reports_small_disagreements_without_failing_the_run(tmp_path, monkeypatch):
+    mod = _bars_module(tmp_path, monkeypatch)
+    monkeypatch.setattr(mod, 'MANIFEST', {'TEST': mod.MANIFEST['TEST']})
+    monkeypatch.setattr(mod, 'fetch_tencent', lambda *_: [{'date': '2026-01-05'}])
+    monkeypatch.setattr(mod, 'incremental_beg', lambda *_: '2026-01-04')
+    monkeypatch.setattr(mod, 'record_conflicts', lambda *_: 1)
+    monkeypatch.setattr(mod, 'load_bars', lambda *_: {'bars': {'2026-01-05': {}}})
+
+    def run(kind):
+        monkeypatch.setattr(mod, 'merge', lambda *_: (0, 0, [{
+            'date': '2026-01-05', 'kind': kind, 'detail': 'provider changed',
+        }]))
+        return mod.main(['--ticker', 'TEST'])
+
+    assert run('rounding') == 0
+    assert run('extreme_only') == 0
+    assert run('close_only') == 1
+    assert run('impossible_bar') == 1
+
+
 def test_refusals_are_appended_to_an_immutable_log(tmp_path, monkeypatch):
     mod = _bars_module(tmp_path, monkeypatch)
     log = tmp_path / 'bar-conflicts.jsonl'
@@ -169,7 +189,7 @@ def test_a_missing_or_corrupt_log_is_zero_not_an_exception(tmp_path):
 
 
 def test_the_report_names_them_and_still_publishes(tmp_path, monkeypatch):
-    """WARN, never ERROR: the bars were refused, so nothing downstream is wrong.
+    """Historical refusals are INFO: the bars were refused, so nothing downstream is wrong.
 
     Blocking a publish over a provider's revision would trade a disagreement
     that is visible for one that is not — the same trade this repo refuses
@@ -203,11 +223,11 @@ def test_the_report_names_them_and_still_publishes(tmp_path, monkeypatch):
 
     finding = [f for f in noisy['findings'] if f['code'] == 'BAR_CONFLICT']
     assert len(finding) == 1
-    assert finding[0]['level'] == 'WARN'
+    assert finding[0]['level'] == 'INFO'
     # Ordered worst-first so the six findings the dashboard shows lead with the
     # kind that actually disagrees about the session.
     assert 'bar_revision 2' in finding[0]['msg']
-    assert noisy['warn_count'] == clean['warn_count'] + 1
+    assert noisy['warn_count'] == clean['warn_count']
     assert noisy['ok'] is True, 'a refused bar must never block a publish'
     assert noisy['bar_conflicts']['by_ticker'] == {'00100': 3}
 

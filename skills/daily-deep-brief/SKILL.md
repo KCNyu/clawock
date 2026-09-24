@@ -137,10 +137,10 @@ summary 包含 book/concentration、每票 deterministic status、技术/因子�
 
 ### Step 2.5: 按消费者 lazy-load bundles
 
-bundle 是审计深钻，不是默认模型输入。只有 packet 没有提供某个报告必须字段时才加载；每个 bundle 最多一次，紧挨消费者读取。
+bundle 是审计深钻，不是默认模型输入。`risk_detail` 中的完整风控纪律记录是每次必读；其余 bundle 只有 packet 没有提供某个报告必须字段时才加载。每个 bundle 最多一次，紧挨消费者读取。
 
 ```bash
-# 风险情景 / 解套数学使用前
+# 风控纪律（每次必读）及风险情景 / 解套数学使用前
 /root/.local/bin/clawock tool context_bundle --workspace /root/.openclaw/workspace --arg manifest=/root/.openclaw/workspace/memory/.tmp/brief-context-$(date +%Y-%m-%d)/manifest.json --arg bundle=risk_detail
 # EDGAR / 同行明细确需原始研究记录时
 /root/.local/bin/clawock tool context_bundle --workspace /root/.openclaw/workspace --arg manifest=/root/.openclaw/workspace/memory/.tmp/brief-context-$(date +%Y-%m-%d)/manifest.json --arg bundle=research
@@ -154,7 +154,7 @@ bundle 是审计深钻，不是默认模型输入。只有 packet 没有提供�
 
 bundle 路由：
 
-- `risk_detail`: `breakeven_math`, `risk_metrics`
+- `risk_detail`: `risk_discipline`, `breakeven_math`, `risk_metrics`。风险纪律段每次必读，不能因按需加载而跳过。
 - `research`: `quant_signals`, `cross_sectional_factor`, `peer_residual`, `t0_setups`, `us_fundamentals`, `peer_scan` 及对应 review
 - `evidence`: `catalysts`, `news_evidence_graph`
 - `market`: `macro`, `sentiment`, `influencer`, `em_news`, `watch_list`
@@ -344,7 +344,7 @@ preflight 已算好,直接读 `context.risk_guardrail`:
 - `breaches[]` — 每条 = 一个超限的硬闸(single_name / factor_concentration / leveraged_exposure / beta),带 `detail` + 现成 `action`(含具体减仓金额)。
 - `hard_stop_watch[]` — 杠杆 ETF 浮亏跌破 −18% 的硬止损触发。
 - `directive` — 本次总指令；`caps` — 当前阈值（非杠杆单名 35–60% review、>60% mandatory；杠杆单名 35%；实测多票相关 cluster 70% 且覆盖≥80%；杠杆 ETF 50%；US β 3.0；杠杆止损 −18%）。Top2 仅展示，不再冒充同因子。
-- `context.risk_discipline.records[]` — 同一 breach 的持久状态：`breach_id`、严重度、`age_days`、首次/最后变化、required reduction、acknowledgement、限时 override、execution evidence。每日重新生成的 plan 不是状态账本。
+- `risk_detail.risk_discipline.records[]` — 写本段前先用 Step 2.5 的 `context_bundle --arg bundle=risk_detail` 读取同代完整记录；同一 breach 的持久状态包括 `breach_id`、严重度、`age_days`、首次/最后变化、required reduction、acknowledgement、限时 override、execution evidence。每日重新生成的 plan 不是状态账本。
 
 硬性规则:
 - **每一条 breach 和 hard_stop 必须在 Judge 段落出一个对应的具体动作**(trim 到 ≤cap / cut),不准忽略、不准"观望"。直接采用 `action` 文案或给等价方案。**唯一例外**是下面「长期不执行的建议」里 `adaptive.may_stand=true` 的那几条。

@@ -34,7 +34,6 @@ CORE_FIELDS = (
     "concentration",
     "lookthrough_exposure",
     "risk_guardrail",
-    "risk_discipline",
     "integrity",
     "thesis_registry",
     "research_surface",
@@ -68,6 +67,7 @@ CODE_ONLY_FIELDS = (
 
 BUNDLE_FIELDS = {
     "risk_detail": (
+        "risk_discipline",
         "breakeven_math",
         "risk_metrics",
     ),
