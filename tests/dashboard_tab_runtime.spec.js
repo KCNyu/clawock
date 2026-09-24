@@ -1365,7 +1365,7 @@ async function testHoldingsAndHeroNeverTruncate(browser, base) {
       `daily bars overflow their container at ${width}px ` +
       `(left ${barFit.clearL.toFixed(1)}px, right ${barFit.clearR.toFixed(1)}px)`);
 
-    // 数据健康的「在期」分段必须是品牌蓝，不是灰墨也不是涨跌色（#920 判据：
+    // 数据健康里「正常」的槽位必须是品牌蓝，不是灰墨也不是涨跌色（#920 判据：
     // 数据状态不参与赚亏表述）。color-mix 的计算值序列化成 color(srgb …)，
     // 和 rgb() 形式的 token 比字符串永不相等 —— 期望值用探针走同一条
     // color-mix 路径解析出来，两边同一序列化才比得出真伪。
@@ -1377,10 +1377,10 @@ async function testHoldingsAndHeroNeverTruncate(browser, base) {
         probe.style.color = c;
         return getComputedStyle(probe).color;
       };
-      const okSegs = [...document.querySelectorAll(".dh-seg.is-ok i")];
+      const okSegs = [...document.querySelectorAll(".dh-slots i[data-s='ok']")];
       const fills = okSegs.map(s => getComputedStyle(s).backgroundColor);
       // 探针读完再摘：摘掉之后 getComputedStyle 读的是游离节点，颜色恒为空。
-      const accentBlue = tint("color-mix(in srgb, var(--accent) 82%, transparent)");
+      const accentBlue = tint("var(--accent)");
       const oldGrey = tint("color-mix(in srgb, var(--text) 38%, transparent)");
       const negRed = tint("var(--negative)");
       probe.remove();
@@ -2147,344 +2147,205 @@ async function testAPanelSaysWhenItsDataDidNotLoad(browser, base) {
   await page.close();
 }
 
-async function testCronRailAccountsForEverySlotWithoutASecondVerdict(browser, base) {
-  // #1270 拆开这块牌的判据是「某个任务挂了」和「页面上的数字不可信」不能共用
-  // 一行判词。时刻表折进来时最容易犯的错就是给它再配一句判词 —— 于是同一件事
-  // 在一张牌上有两个说法。这里钉住：每个槽都有一根针、按 job 分行且行名可读、
-  // 摘要里的分项加起来等于总数、降级不会把可信度那半读成存疑。
-  const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
+// ── 数据健康 ─────────────────────────────────────────────────────────────
+// 这块牌三层：判词 + 四个领域读数 → 定时任务监测板 → 选中后就地展开的明细。
+// payload 由用例自己造（形状固定，不随当日数据时灵时不灵），量的是浏览器
+// 真排出来的东西。
+function dataHealthFixture(json, { stale = false } = {}) {
+  json.build_status = json.build_status || {};
+  json.build_status.integrity = { error_count: 0, warn_count: 1, top: [
+    { level: "WARN", code: "quote.us_stale", msg: "SKHY 报价 3 小时未更新" }] };
+  json.build_status.files = (json.build_status.files || []).map(f => ({ ...f, present: true, stale: false }));
+  json.workflow_outcomes = {
+    window_hours: 36,
+    counts: { success: 9, recovered: 1 },
+    wechat_dropped_telegram_covered: 3,
+    degraded_slots: [{ job: "港股收盘报告", slot: "2026-08-25T16:00:00+08:00", status: "recovered" }],
+    wechat_dropped_slots: [
+      { job: "港股收盘报告", slot: "2026-08-25T16:00:00+08:00" },
+      { job: "盘中盯盘", slot: "2026-08-25T15:30:00+08:00" },
+    ],
+  };
+  const hkt = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Hong_Kong" }).format(new Date());
+  json.cron_schedule = { date: stale ? "2026-09-20" : hkt, jobs: [
+    { job: "正常任务", last_success_at: "2026-09-24T08:05:00+08:00",
+      slots: [{ at: "08:00", state: "ok" }, { at: "08:30", state: "ok" }] },
+    { job: "尚未到期任务", slots: [{ at: "23:50", state: "upcoming" }] },
+    { job: "需关注任务", slots: [{ at: "09:00", state: "degraded",
+      note: { disposition: "watch", text: "已送达，但发布延迟" } }] },
+    { job: "失败任务", slots: [{ at: "10:00", state: "failed",
+      note: { disposition: "needs_action", text: "成品没有送达" } }] },
+    { job: "状态未知的很长很长很长很长很长很长很长的任务名称 with-an-english-suffix",
+      slots: [{ at: "12:00", state: "unknown" }] },
+    { job: "Memory Dreaming Promotion", unmonitored: true, slots: [{ at: "03:00", state: "unmonitored",
+      note: { disposition: "normal", text: "这个 job 没有 harness，账本本来就看不到它的记录，不代表没跑" } }] },
+  ] };
+  return json;
+}
+
+async function openDataHealth(browser, base, width, options = {}) {
+  const context = await browser.newContext({ viewport: { width, height: 900 },
+    isMobile: width < 768, hasTouch: width < 768 });
   const page = await context.newPage();
-  await stubLiveOrigin(page, {
-    patch: (name, json) => {
-      if (name !== "overview.json" && name !== "dashboard.json") return null;
-      json.build_status = json.build_status || {};
-      json.build_status.integrity = { error_count: 0, warn_count: 0 };
-      json.build_status.files = (json.build_status.files || []).map(f => ({
-        ...f, present: true, stale: false,
-      }));
-      json.workflow_outcomes = { counts: { success: 9, degraded: 1 }, degraded_slots: [] };
-      json.cron_schedule = {
-        date: "2026-09-03",
-        jobs: [
-          { job: "盘前深度简报", slots: [{ at: "08:03", state: "ok" }] },
-          { job: "盘中盯盘", slots: [
-            { at: "10:03", state: "degraded", note: {
-              disposition: "watch",
-              text: "两个渠道都已送达，内容校验没有问题；仪表盘发布还在排队，几分钟内自动追上，无需处理",
-            } },
-            { at: "10:33", state: "ok" },
-            { at: "14:03", state: "upcoming" },
-          ] },
-          { job: "Memory Dreaming Promotion", unmonitored: true,
-            slots: [{ at: "03:00", state: "unmonitored", note: {
-              disposition: "normal",
-              text: "这个 job 没有 harness，账本本来就看不到它的记录，不代表没跑",
-            } }] },
-        ],
-      };
-      return json;
-    },
-  });
+  const state = observe(page);
+  await stubLiveOrigin(page, { patch: (name, json) =>
+    (name === "overview.json" || name === "dashboard.json") ? dataHealthFixture(json, options) : null });
   await page.goto(base, { waitUntil: "networkidle" });
   await waitForData(page);
   await page.waitForSelector("#data-health:not(.is-pending)", { timeout: 5000 });
-
-  const rail = await page.evaluate(() => ({
-    hidden: document.getElementById("dh-rail").hidden,
-    pips: document.querySelectorAll("#dh-rail-rows .dh-pip").length,
-    rowNames: [...document.querySelectorAll(".dh-rail-row-name")].map(el => el.textContent.trim()),
-    axisLabels: [...document.querySelectorAll(".dh-rail-axis span")].map(el => el.textContent.trim()),
-    summary: document.getElementById("dh-rail-name").textContent.trim(),
-    verdict: (document.getElementById("dh-verdict")
-      || document.getElementById("dh-title")).textContent.trim(),
-    healthPip: getComputedStyle(document.querySelector("#dh-integrity-shape .dh-pip.is-ok")).backgroundColor,
-    waitingPip: getComputedStyle(document.querySelector(".dh-pip[data-tone='idle']")).backgroundColor,
-  }));
-
-  assert.equal(rail.hidden, false, "cron rail is hidden even though slots exist");
-  assert.notEqual(rail.healthPip, rail.waitingPip,
-    "#1816: a healthy integrity pip reads like a not-yet-due slot");
-  assert.equal(rail.pips, 5, `rail drew ${rail.pips} pips for 5 scheduled slots`);
-  // 一眼看出「谁」不能靠悬停——每个 job 一条独立的行，行名就是答案。
-  assert.deepEqual(rail.rowNames, ["盘前深度简报", "盘中盯盘", "Memory Dreaming Promotion"],
-    `rail rows do not label which job each row belongs to: ${rail.rowNames.join(", ")}`);
-  // 刻度比原来只有 00/06/12/18/24 四个地标密：每 3 小时一个数字。
-  assert.deepEqual(rail.axisLabels, ["00", "03", "06", "09", "12", "15", "18", "21", "24"],
-    `rail axis is not the denser 3-hour tick set: ${rail.axisLabels.join(",")}`);
-
-  const total = Number((rail.summary.match(/(\d+)\s*槽/) || [])[1]);
-  const parts = [...rail.summary.matchAll(/(\d+)\s*(落地|降级|没落地|进行中|待跑|账本看不到)/g)]
-    .reduce((sum, m) => sum + Number(m[1]), 0);
-  assert.equal(total, 5, `rail total says ${total}, expected 5`);
-  assert.equal(parts, total,
-    `rail breakdown sums to ${parts} but claims ${total} slots — a count with no denominator`);
-
-  // 一次降级不得把可信度那半读成存疑（#1270 的核心断言，折进来后仍须成立）。
-  assert.ok(rail.verdict.includes("页面数字可用"),
-    `a degraded cron slot moved the trust verdict: ${rail.verdict}`);
-
-  const detail = await page.evaluate(async () => {
-    document.getElementById("dh-toggle").click();
-    await new Promise(r => setTimeout(r, 50));
-    const rows = [...document.querySelectorAll(".dh-group .dh-row.is-cron")];
-    return rows.map(r => ({
-      name: r.querySelector(".dh-name").textContent.trim(),
-      detail: r.querySelector(".dh-detail").textContent.trim(),
-      folded: !!r.closest(".dh-foldbody"),
-    }));
-  });
-  assert.deepEqual(detail.map(r => r.name).slice().sort(),
-    ["Memory Dreaming Promotion", "盘中盯盘", "盘前深度简报"].sort(),
-    `逐项 is missing the per-job timetable rows: ${detail.map(r => r.name).join(", ")}`);
-  // 顺序不再是 payload 的顺序：有事的（降级 / 账本看不到）排在前面且一直摊
-  // 开，今天按时的那些折进「其余 N 个」——展开一条泳道不该是一坨流水账。
-  assert.deepEqual(detail.filter(r => !r.folded).map(r => r.name),
-    ["盘中盯盘", "Memory Dreaming Promotion"],
-    `these rows should stay out of the fold: ${detail.filter(r => !r.folded).map(r => r.name).join(", ")}`);
-  assert.deepEqual(detail.filter(r => r.folded).map(r => r.name), ["盘前深度简报"],
-    `a job with nothing to do today should fold away: ${detail.filter(r => r.folded).map(r => r.name).join(", ")}`);
-  // 逐项里印的是那句「为什么」，不是裸时刻表——读者不用去猜黄点是什么意思。
-  const cronRow = detail.find(r => r.name === "盘中盯盘");
-  assert.ok(cronRow && cronRow.detail.includes("仪表盘发布还在排队"),
-    `逐项 detail for a degraded slot lost its plain-language reason: ${cronRow && cronRow.detail}`);
-
-  await context.close();
+  return { context, page, state };
 }
 
-async function testEveryTimelineShowsItsVerdictAndFits(browser, base) {
+// 没有一样东西伸出卡片的内容边：不横滚、不被切、不贴边。
+function dataHealthEdges() {
+  const card = document.getElementById("data-health");
+  const box = card.getBoundingClientRect();
+  const style = getComputedStyle(card);
+  const left = box.left + parseFloat(style.paddingLeft) - 0.5;
+  const right = box.right - parseFloat(style.paddingRight) + 0.5;
+  const shown = el => el.getClientRects().length && getComputedStyle(el).visibility !== "hidden";
+  return {
+    overflow: card.scrollWidth - card.clientWidth,
+    page: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+    outside: [...card.querySelectorAll("*")].filter(shown).filter(el => {
+      const r = el.getBoundingClientRect();
+      return r.width && (r.left < left || r.right > right);
+    }).map(el => `${el.tagName}.${el.className}`).slice(0, 5),
+    clipped: [...card.querySelectorAll("*")].filter(shown).filter(el =>
+      el.scrollWidth > el.clientWidth + 1 && el.clientWidth > 0
+      && getComputedStyle(el).textOverflow !== "ellipsis"
+      && getComputedStyle(el).webkitLineClamp === "none").map(el => el.className).slice(0, 5),
+  };
+}
+
+async function testDataHealthAnswersIsAnythingWrongAtEveryWidth(browser, base) {
   for (const width of [390, 1280]) {
-    const context = await browser.newContext({ viewport: { width, height: 844 },
-      isMobile: width === 390, hasTouch: width === 390 });
-    const page = await context.newPage();
-    await stubLiveOrigin(page, { patch: (name, json) => {
-      if (name !== "overview.json" && name !== "dashboard.json") return null;
-      json.cron_schedule = { date: "2026-09-24", jobs: [
-        { job: "正常任务", last_success_at: "2026-09-24T08:05:00+08:00",
-          slots: [{ at: "08:00", state: "ok" }] },
-        { job: "需关注任务", slots: [{ at: "09:00", state: "degraded",
-          note: { disposition: "watch", text: "已送达，但发布延迟" } }] },
-        { job: "失败任务", slots: [{ at: "10:00", state: "failed",
-          note: { disposition: "needs_action", text: "成品没有送达" } }] },
-        { job: "尚未到期任务", slots: [{ at: "23:50", state: "upcoming" }] },
-        { job: "状态未知的很长很长很长很长任务名称", slots: [{ at: "12:00", state: "unknown" }] },
-      ] };
-      return json;
-    } });
-    await page.goto(base, { waitUntil: "networkidle" });
-    await waitForData(page);
-    await page.waitForSelector("#data-health:not(.is-pending)");
+    const { context, page, state } = await openDataHealth(browser, base, width);
     const seen = await page.evaluate(() => {
       const card = document.getElementById("data-health");
-      const rows = [...card.querySelectorAll(".dh-timeline")];
+      const text = el => (el ? el.textContent.replace(/\s+/g, " ").trim() : "");
+      const dot = el => getComputedStyle(el, "::before");
+      const rows = [...card.querySelectorAll(".dh-job")];
+      const sum = text(document.getElementById("dh-board-sum"));
       return {
-        states: rows.map(row => [row.querySelector(".dh-timeline-name").textContent.trim(),
-          row.dataset.state, row.querySelector(".dh-timeline-badge").textContent.trim(),
-          row.querySelector(".dh-timeline-last").textContent.trim(),
-          row.querySelector(".dh-timeline-reason").textContent.trim()]),
-        ticks: rows.map(row => row.querySelectorAll(".dh-timeline-tick").length),
-        verdict: document.getElementById("dh-title").textContent.trim(),
-        overallMark: document.getElementById("dh-overall-mark").textContent.trim(),
-        laneStates: [...card.querySelectorAll(".dh-health-state")].map(el => el.textContent.trim()),
-        boardColumns: [...card.querySelectorAll(".dh-board-columns span")].map(el => el.textContent.trim()),
-        metrics: [...card.querySelectorAll(".dh-metric strong")].map(el => el.textContent.trim()),
-        due: rows.map(row => row.querySelector(".dh-timeline-due")?.textContent.trim()),
-        overflow: card.scrollWidth - card.clientWidth,
-        edge: Math.min(...rows.map(row => row.getBoundingClientRect().left
-          - card.getBoundingClientRect().left)),
+        verdict: text(document.getElementById("dh-title")),
+        meta: text(document.getElementById("dh-meta")),
+        cells: [...card.querySelectorAll(".dh-cell")].map(c => ({ key: c.dataset.key, tag: c.tagName,
+          label: text(c.querySelector(".dh-cell-label")), state: text(c.querySelector(".dh-state")),
+          value: text(c.querySelector(".dh-cell-value")), note: text(c.querySelector(".dh-cell-note")),
+          expanded: c.getAttribute("aria-expanded") })),
+        todo: [...card.querySelectorAll("#dh-todo .dh-item")].map(r => ({
+          name: text(r.querySelector(".dh-item-name")), why: text(r.querySelector(".dh-item-detail")),
+          shown: r.getBoundingClientRect().height > 0 })),
+        rows: rows.map(r => ({ job: r.dataset.job, tone: r.dataset.tone,
+          state: text(r.querySelector(".dh-job-row > .dh-state")),
+          last: text(r.querySelector(".dh-job-last")),
+          slots: r.querySelectorAll(".dh-slots i").length,
+          height: Math.round(r.querySelector(".dh-job-row").getBoundingClientRect().height),
+          sameLine: r.querySelector(".dh-job-row > .dh-state").getBoundingClientRect().top
+            < r.querySelector(".dh-job-name").getBoundingClientRect().bottom })),
+        okDot: dot(card.querySelector(".dh-job[data-tone='ok'] .dh-state")).backgroundColor,
+        pendingDot: dot(card.querySelector(".dh-job[data-tone='pending'] .dh-state")).backgroundColor,
+        total: Number((sum.match(/(\d+) 槽/) || [])[1]),
+        parts: [...sum.matchAll(/(\d+) (落地|兜底|降级|没落地|进行中|待跑|账本看不到|未知)/g)]
+          .reduce((a, m) => a + Number(m[1]), 0),
+        caption: text(document.getElementById("dh-caption")),
       };
     });
-    assert.deepEqual(seen.states.map(row => row[1]), ["bad", "warn", "stale", "pending", "ok"]);
-    assert(/\d+ 项异常/.test(seen.verdict), `cron failures are missing from the overall verdict: ${seen.verdict}`);
-    assert(parseInt(seen.overallMark, 10) > 0, `the overall verdict has no visible count: ${seen.overallMark}`);
-    assert.deepEqual(seen.ticks, [1, 1, 1, 1, 1], "a timeline lacks its own slot history");
-    assert.equal(seen.laneStates.length, 3);
-    assert.equal(seen.boardColumns.length, 5, "the monitoring board has lost its shared columns");
-    assert.equal(seen.metrics.length, 3, "the overview is missing its headline readings");
-    assert(seen.due.every(Boolean), "a timeline has no next-due reading");
-    assert(seen.laneStates.every(label => /^[×!◷✓?] /.test(label)),
-      `a lane has no explicit icon and state: ${seen.laneStates}`);
-    assert(seen.states.every(row => row[2] && row[3] && row[4]),
-      `a timeline omits its state, last success, or reason: ${JSON.stringify(seen.states)}`);
-    assert(seen.states.find(row => row[0] === "正常任务")[2].includes("正常"));
-    assert(seen.states.find(row => row[0] === "尚未到期任务")[2].includes("尚未到期"));
-    assert(seen.overflow <= 0 && seen.edge >= 12,
-      `${width}px: timeline clips or hugs the card edge: ${JSON.stringify(seen)}`);
-    const first = page.locator(".dh-timeline summary").first();
-    await first.focus();
-    await page.keyboard.press("Enter");
-    assert.equal(await page.locator(".dh-timeline").first().getAttribute("open"), "",
-      "keyboard activation did not reveal the slot reason");
-    await page.waitForFunction(() => /槽位历史/.test(document.getElementById("dh-detail-heading").textContent));
-    assert.match(await page.locator("#dh-detail-heading").innerText(), /槽位历史/,
-      "keyboard activation did not open the bottom drill-down");
-    assert.match(await page.locator("#dh-detail-content").innerText(), /last_success_at:|schedule.date:/,
-      "the drill-down omits raw fields");
-    assert.equal(await page.locator("#dh-detail-content a").count(), 1,
-      "the drill-down has no source artifact");
-    assert(await page.locator("#data-health").evaluate(el => el.scrollWidth <= el.clientWidth),
-      `${width}px: opening a timeline creates horizontal overflow`);
+    const label = `${width}px`;
+    // 一件事一处说：一个任务没落地是「需处理」，但页面上的数字仍然可用（#1270）。
+    assert.match(seen.verdict, /^1 项需处理 · \d+ 项观察$/, `${label}: verdict ${seen.verdict}`);
+    assert(seen.meta.startsWith("页面数字可用"), `${label}: a failed task moved the trust line: ${seen.meta}`);
+    assert(/微信掉投 3 档/.test(seen.meta), `${label}: the WeChat drop count is gone: ${seen.meta}`);
+    assert.deepEqual(seen.cells.map(c => c.key), ["files", "integrity", "delivery", "cron"]);
+    assert.deepEqual(seen.cells.map(c => c.tag), ["BUTTON", "BUTTON", "BUTTON", "DIV"]);
+    assert(seen.cells.every(c => c.state && c.value && c.note), `${label}: a reading lacks its state: ${JSON.stringify(seen.cells)}`);
+    const delivery = seen.cells.find(c => c.key === "delivery");
+    assert.equal(delivery.state, "观察", `${label}: a recovered slot is watch-only`);
+    assert(/港股收盘报告 恢复/.test(delivery.note), `${label}: the recovered slot is not named: ${delivery.note}`);
+    assert.equal(seen.cells.find(c => c.key === "cron").state, "需处理");
+    // 需处理不藏在点击后面；watch 级的槽不混进来。
+    assert.deepEqual(seen.todo.map(t => t.name), ["失败任务"], `${label}: ${JSON.stringify(seen.todo)}`);
+    assert(seen.todo[0].shown && seen.todo[0].why.includes("成品没有送达"));
+    // 每个任务一行、自己的状态；有事的在上，安静的按时刻表原序。
+    assert.deepEqual(seen.rows.map(r => r.tone), ["bad", "warn", "stale", "idle", "ok", "pending"],
+      `${label}: row order ${JSON.stringify(seen.rows.map(r => r.job))}`);
+    assert.deepEqual(seen.rows.map(r => r.state), ["需处理", "观察", "状态未知", "账本看不到", "正常", "待跑"]);
+    assert.deepEqual(seen.rows.map(r => r.slots), [1, 1, 1, 1, 2, 1], `${label}: a row lost its slots`);
+    assert(seen.rows.every(r => r.last), `${label}: a row has no last-success reading`);
+    assert(seen.rows.every(r => r.sameLine), `${label}: a status fell onto its own line`);
+    assert(seen.rows.every(r => r.height >= 44), `${label}: a row is below a thumb-sized target`);
+    // #1816：健康永远不长得像「还没到点」。
+    assert.notEqual(seen.okDot, seen.pendingDot, `${label}: a healthy row reads like a not-yet-due one`);
+    assert.equal(seen.parts, seen.total, `${label}: the slot breakdown does not add up to its total`);
+    ["需处理", "观察", "已知不修"].forEach(word => assert(seen.caption.includes(word),
+      `${label}: the disposition legend does not explain ${word}`));
+    const edges = await page.evaluate(dataHealthEdges);
+    assert.deepEqual(edges, { overflow: 0, page: 0, outside: [], clipped: [] }, `${label}: ${JSON.stringify(edges)}`);
+    assert.deepEqual(state.errors, [], `${label}: a renderer threw`);
     await context.close();
   }
 }
 
-async function testAnOldScheduleIsLabeledStale(browser, base) {
-  const context = await browser.newContext({ viewport: { width: 390, height: 844 },
-    isMobile: true, hasTouch: true });
-  const page = await context.newPage();
-  await stubLiveOrigin(page, { patch: (name, json) => {
-    if (name !== "overview.json" && name !== "dashboard.json") return null;
-    json.cron_schedule = { date: "2026-09-20", jobs: [
-      { job: "旧日正常任务", slots: [{ at: "08:00", state: "ok" }] },
-    ] };
-    return json;
-  } });
-  await page.goto(base, { waitUntil: "networkidle" });
-  await waitForData(page);
-  await page.waitForSelector("#data-health:not(.is-pending)");
-  const row = page.locator(".dh-timeline").first();
-  assert.equal(await row.getAttribute("data-state"), "stale");
-  assert.match(await row.innerText(), /数据过期|今日结果待刷新/);
-  await context.close();
+async function testDataHealthDrillsDownWhereYouTapAndSurvivesARefresh(browser, base) {
+  for (const width of [390, 1280]) {
+    const { context, page, state } = await openDataHealth(browser, base, width);
+    const label = `${width}px`;
+    // 一个任务：键盘就能打开，明细就地摊开，带原始字段与来源。
+    const row = page.locator(".dh-job-row").first();
+    await row.focus();
+    await page.keyboard.press("Enter");
+    assert.equal(await row.getAttribute("aria-expanded"), "true", `${label}: Enter did not open the row`);
+    const detail = page.locator(".dh-job-detail").first();
+    assert(await detail.isVisible(), `${label}: the row's detail stayed hidden`);
+    assert.match(await detail.innerText(), /10:00[\s\S]*未落地[\s\S]*成品没有送达/);
+    assert.match(await detail.innerText(), /last_success_at:[\s\S]*schedule\.date:/);
+    assert.equal(await detail.locator("a").count(), 1, `${label}: the detail has no source artifact`);
+
+    // 一个领域：像 tab，一次只开一个，再按一次收起。
+    await page.click("button.dh-cell[data-key='files']");
+    const panels = () => page.evaluate(() => [...document.querySelectorAll(".dh-panel")]
+      .filter(p => !p.hidden).map(p => p.id));
+    assert.deepEqual(await panels(), ["dh-panel-files"]);
+    const files = await page.evaluate(() => ({
+      rows: document.querySelectorAll("#dh-panel-files .dh-item").length,
+      expected: document.querySelectorAll("#dh-panel-files .dh-state").length,
+      below: document.getElementById("dh-panel-files").getBoundingClientRect().top
+        >= document.getElementById("dh-cells").getBoundingClientRect().bottom - 1,
+    }));
+    assert(files.rows > 0 && files.rows === files.expected, `${label}: the file ledger is empty or stateless`);
+    assert(files.below, `${label}: the ledger does not open under the readings`);
+    await page.click("button.dh-cell[data-key='integrity']");
+    assert.deepEqual(await panels(), ["dh-panel-integrity"], `${label}: two ledgers are open at once`);
+    assert.match(await page.locator("#dh-panel-integrity").innerText(), /SKHY 报价 3 小时未更新/);
+    const edges = await page.evaluate(dataHealthEdges);
+    assert.deepEqual(edges, { overflow: 0, page: 0, outside: [], clipped: [] }, `${label} open: ${JSON.stringify(edges)}`);
+
+    // 刷新是每几分钟一次的事：读者刚打开的东西不能被合回去。
+    await page.evaluate(() => renderDataHealth());
+    assert.deepEqual(await panels(), ["dh-panel-integrity"], `${label}: a refresh closed the ledger`);
+    assert.equal(await page.locator(".dh-job-row").first().getAttribute("aria-expanded"), "true",
+      `${label}: a refresh closed the open row`);
+    await page.click("button.dh-cell[data-key='integrity']");
+    assert.deepEqual(await panels(), [], `${label}: pressing the open reading again did not close it`);
+    assert.deepEqual(state.errors, []);
+    await context.close();
+  }
 }
 
-async function testCronNeedsActionMergesIntoTheOneTodoListButWatchDoesNot(browser, base) {
-  // 「要不要管」只该有一个地方回答。真正需要处理的 cron 槽必须并进卡上唯一的
-  // 「处置 · 需处理」清单；只是发布排队之类的 watch 级槽绝不能混进去——否则
-  // 那份清单会重新变回「一堆不用管的东西」，读者又得自己甄别。
-  const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
-  const page = await context.newPage();
-  await stubLiveOrigin(page, {
-    patch: (name, json) => {
-      if (name !== "overview.json" && name !== "dashboard.json") return null;
-      json.build_status = json.build_status || {};
-      json.build_status.integrity = { error_count: 0, warn_count: 0 };
-      json.build_status.files = (json.build_status.files || []).map(f => ({
-        ...f, present: true, stale: false,
-      }));
-      json.workflow_outcomes = { counts: { success: 8, degraded: 2 }, degraded_slots: [] };
-      json.cron_schedule = {
-        date: "2026-09-03",
-        jobs: [
-          { job: "港股午后快报", slots: [{ at: "13:33", state: "failed", note: {
-            disposition: "needs_action",
-            text: "这一槽没有产出，成品未落地——这段时间没有报告送达",
-          } }] },
-          { job: "盘中盯盘", slots: [{ at: "10:03", state: "degraded", note: {
-            disposition: "watch",
-            text: "两个渠道都已送达，内容校验没有问题；仪表盘发布还在排队，几分钟内自动追上，无需处理",
-          } }] },
-        ],
-      };
-      return json;
-    },
-  });
-  await page.goto(base, { waitUntil: "networkidle" });
-  await waitForData(page);
-  await page.waitForSelector("#data-health:not(.is-pending)", { timeout: 5000 });
-
-  // 清单不再藏在「逐项」后面：它是这块牌上唯一「你该动手」的东西，所以这条
-  // 断言现在**不点任何东西**就要读得到它 —— 藏起来的待办和没有待办一样。
-  const todo = await page.evaluate(() =>
-    [...document.querySelectorAll("#dh-todo .dh-row.is-todo")]
-      .map(r => ({ name: r.querySelector(".dh-name").textContent.trim(),
-                   why: r.querySelector(".dh-detail").textContent.trim(),
-                   shown: r.getBoundingClientRect().height > 0 })));
-  assert.ok(todo.every(t => t.shown),
-    "the 需处理 list is in the DOM but collapsed — a hidden to-do is not a to-do");
-
-  const needsAction = todo.find(t => t.name === "港股午后快报");
-  assert.ok(needsAction, `needs_action cron slot never reached the 需处理 list: ${JSON.stringify(todo)}`);
-  assert.ok(needsAction.why.includes("没有产出"),
-    `todo row lost the plain-language reason: ${needsAction.why}`);
-  assert.ok(!todo.some(t => t.name === "盘中盯盘"),
-    "a watch-level (self-healing) cron slot leaked into the 需处理 list");
-
-  await context.close();
-}
-
-async function testDataHealthNamesTheDegradedSlotAndWeChatDrops(browser, base) {
-  const context = await browser.newContext({ viewport: { width: 1280, height: 900 } });
-  const page = await context.newPage();
-  await stubLiveOrigin(page, {
-    patch: (name, json) => {
-      // overview 与 dashboard 两份都要打：首帧吃 overview，随后整份 dashboard
-      // 会把 DATA 换掉 —— 只打一份的话断言会跑在被覆盖后的真实数据上。
-      if (name !== "overview.json" && name !== "dashboard.json") return null;
-      // 体检干净、数据面全部在期 —— 把判词的其它分支让开，只留「恢复/降级」。
-      json.build_status = json.build_status || {};
-      json.build_status.integrity = { error_count: 0, warn_count: 0 };
-      json.build_status.files = (json.build_status.files || []).map(f => ({
-        ...f, present: true, stale: false,
-      }));
-      json.workflow_outcomes = {
-        counts: { success: 9, recovered: 1 },
-        raw_error_but_product_usable: 2,
-        wechat_dropped_telegram_covered: 3,
-        degraded_slots: [
-          { job: "港股收盘报告", slot: "2026-08-25T16:00:00+08:00", status: "recovered" },
-        ],
-        wechat_dropped_slots: [
-          { job: "港股收盘报告", slot: "2026-08-25T16:00:00+08:00" },
-          { job: "盘中盯盘", slot: "2026-08-25T15:30:00+08:00" },
-        ],
-        recent: [
-          {
-            job: "港股收盘报告", slot: "2026-08-25T16:00:00+08:00",
-            raw_execution: { status: "error" },
-            final_product: { status: "recovered" },
-            primary_delivery: { wechat_ok: false, telegram_ok: true },
-          },
-          {
-            job: "盘中盯盘", slot: "2026-08-25T15:30:00+08:00",
-            raw_execution: { status: "ok" },
-            final_product: { status: "success" },
-            primary_delivery: { wechat_ok: false, telegram_ok: true },
-          },
-        ],
-      };
-      return json;
-    },
-  });
-  await page.goto(base, { waitUntil: "networkidle" });
-  await waitForData(page);
-  await page.waitForSelector("#data-health:not(.is-pending)", { timeout: 5000 });
-
-  const head = await page.evaluate(() => ({
-    verdict: (document.getElementById("dh-verdict") || document.getElementById("dh-title")).textContent.trim(),
-    meta: document.getElementById("dh-meta").textContent.trim(),
-    delivery: document.getElementById("dh-delivery-note").textContent.trim(),
-    deliveryChip: document.getElementById("dh-delivery-chip").textContent.trim(),
-    filesChip: document.getElementById("dh-files-chip").textContent.trim(),
-    integrityChip: document.getElementById("dh-integrity-chip").textContent.trim(),
-    caption: document.getElementById("dh-caption").textContent.trim(),
+async function testAnOldScheduleIsOneWatchItemNotOnePerJob(browser, base) {
+  const { context, page } = await openDataHealth(browser, base, 390, { stale: true });
+  const seen = await page.evaluate(() => ({
+    verdict: document.getElementById("dh-title").textContent.trim(),
+    states: [...document.querySelectorAll(".dh-job-row > .dh-state")].map(el => el.textContent.trim()),
+    sum: document.getElementById("dh-board-sum").textContent,
+    todo: document.querySelectorAll("#dh-todo .dh-item").length,
   }));
-  assert(head.delivery.includes("港股收盘报告"),
-    `delivery lane does not name the degraded slot: ${head.delivery}`);
-  assert(head.delivery.includes("恢复"),
-    `delivery lane does not say what happened to it: ${head.delivery}`);
-  assert(/微信掉投\s*3\s*档/.test(head.meta),
-    `data-health meta does not carry the WeChat drop count: ${head.meta}`);
-  // 数据面全部在期、体检干净 ⇒ 判词必须说数字可用。把「某一档降级」读成
-  // 「页面数字不可信」正是这块牌以前的病。
-  assert(head.verdict.includes("页面数字可用"),
-    `verdict conflates a degraded slot with untrustworthy numbers: ${head.verdict}`);
-  // 处置牌必须分得开：兜住了的降级是「观察」，不是「需处理」。
-  assert.equal(head.deliveryChip, "观察",
-    `a recovered slot should be watch-only, got ${head.deliveryChip}`);
-  assert.equal(head.filesChip, "正常", `files lane chip: ${head.filesChip}`);
-  assert.equal(head.integrityChip, "正常", `integrity lane chip: ${head.integrityChip}`);
-  // 牌面上的四个字必须在同一屏里有解释，否则它们只是四个没人懂的标签。
-  ["需处理", "观察", "已知不修"].forEach(word => assert(head.caption.includes(word),
-    `disposition legend does not explain "${word}": ${head.caption}`));
-
-  await page.click("#dh-toggle");
-  const rows = await page.evaluate(() =>
-    [...document.querySelectorAll(".dh-group .dh-row")].map(r => r.textContent.replace(/\s+/g, " ").trim()));
-  const dropRows = rows.filter(t => t.includes("TG 已兜"));
-  assert.equal(dropRows.length, 2,
-    `expected both WeChat-dropped slots listed, got ${dropRows.length}: ${dropRows.join(" | ")}`);
-  assert(dropRows.some(t => t.includes("港股收盘报告") && t.includes("2026-08-25 16:00")),
-    `dropped slot rows do not name job + slot: ${dropRows.join(" | ")}`);
+  assert(seen.states.every(s => s === "过期"), `stale schedule rows: ${seen.states}`);
+  assert(/时刻表停在 2026-09-20/.test(seen.sum), seen.sum);
+  // 旧时刻表上的「失败」不是今天的待办；它和其它观察项合起来也只算一件。
+  assert.equal(seen.todo, 0);
+  assert.equal(seen.verdict, "3 项观察中", seen.verdict);
   await context.close();
 }
 
@@ -2528,229 +2389,6 @@ async function testMoversSayWhichSessionTheyAreFrom(browser, base) {
     assert.deepEqual(state.errors, []);
     await context.close();
   }
-}
-
-// 手机上的数据健康牌：这块牌在 390px 上曾经是「一张读不出东西的 24 小时图
-// ＋ 一坨 2600px 的逐项」。现在的形状是：判词 → 需处理清单（不点任何东西就在）
-// → 三条泳道，每条自己是一个展开器，明细摊在它自己下面。这条闸钉住那个形状：
-//  1. 槽位轨那张图在窄档不画（24 小时压进 ~217px、11 个行名全是省略号），
-//     但收图的前提是同一块牌仍然答得出「接下来轮到谁」；
-//  2. 每条泳道都是可聚焦的按钮、有 aria-expanded、收起时它那一组是 inert
-//     （折叠是 grid-rows 动画，元素还在，不 inert 就还在 Tab 顺序里）；
-//  3. 点一条泳道只展开那一条，明细必须紧跟在它下面（不是卡片底部）；
-//  4. 说明行可以收成引子，但被收起来的那条泳道必须有一组明细接住全文；
-//  5. 逐项那一行的状态词必须和名字同一行（它曾被挤成右对齐的孤行）；
-//  6. 整块牌不横向溢出，处置牌不被顶出卡片，「逐项」有拇指够得着的高度。
-// 展开一条泳道之后，「今天没事」的那些行折起来。
-//
-// #1418 把每条泳道做成了自己的展开器，但展开之后仍然是一坨流水账：2026-09-09
-// 实测线上 390px，点开「投递」得到 1200px 的组，11 个 job 里 9 个写着「正常」，
-// 读者要滚到底才敢说今天没事。有事的那一条必须**不用再点一下**就看得见；没事
-// 的收进一个展开器，点开还是同一批行。
-async function testAQuietLaneFoldsItsLedgerInsteadOfScrolling(browser, base) {
-  const quietJobs = 11;
-  const context = await browser.newContext({
-    viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true,
-  });
-  const page = await context.newPage();
-  await stubLiveOrigin(page, {
-    patch: (name, json) => {
-      if (name !== "overview.json" && name !== "dashboard.json") return null;
-      const jobs = [{ job: "无 harness 的任务", unmonitored: true,
-                      slots: [{ at: "03:00", state: "ok" }] }];
-      for (let i = 0; i < quietJobs; i++) {
-        jobs.push({ job: `按时的任务 ${i + 1}`, slots: [{ at: "0" + (i % 10) + ":03", state: "ok" }] });
-      }
-      json.cron_schedule = { date: "2026-09-09", jobs };
-      return json;
-    },
-  });
-  await page.goto(base, { waitUntil: "networkidle" });
-  await waitForData(page);
-  await page.waitForSelector("#data-health:not(.is-pending)", { timeout: 5000 });
-
-  const folded = await page.evaluate(async () => {
-    document.getElementById("dh-lane-delivery").click();
-    await new Promise(resolve => setTimeout(resolve, 400));
-    const group = document.getElementById("dh-group-delivery");
-    const rows = [...group.querySelectorAll(".dh-row")];
-    const fold = group.querySelector('.dh-fold[data-fold="cron"]');
-    const body = document.getElementById("dh-fold-cron");
-    return {
-      height: Math.round(group.getBoundingClientRect().height),
-      shown: rows.filter(row => row.getBoundingClientRect().height > 0)
-        .map(row => row.querySelector(".dh-name").textContent.trim()),
-      foldText: fold ? fold.textContent.trim() : null,
-      foldTag: fold ? fold.tagName : null,
-      foldHeight: fold ? Math.round(fold.getBoundingClientRect().height) : 0,
-      expanded: fold ? fold.getAttribute("aria-expanded") : null,
-      controls: fold ? fold.getAttribute("aria-controls") : null,
-      hidden: body ? body.hidden : null,
-      buried: body ? body.querySelectorAll(".dh-row").length : 0,
-    };
-  });
-
-  assert(folded.foldTag === "BUTTON",
-    "the quiet rows are not behind a button — a fold you cannot tap is a fold that is not there");
-  assert.equal(folded.expanded, "false", "the quiet ledger starts open");
-  assert.equal(folded.hidden, true,
-    "the folded rows are still in the tab order and the accessibility tree");
-  assert.equal(folded.controls, "dh-fold-cron",
-    "the fold does not point at the panel it opens");
-  assert.equal(folded.buried, quietJobs,
-    `the fold hides ${folded.buried} rows, not the ${quietJobs} quiet ones`);
-  assert(folded.foldText.includes(String(quietJobs)),
-    `the fold does not say how many it is hiding: "${folded.foldText}"`);
-  assert(folded.foldHeight >= 40,
-    `the fold is ${folded.foldHeight}px tall — below a thumb-sized row`);
-  // 有事的那一条不进折叠：藏起来的待办和没有待办一样。
-  assert(folded.shown.includes("无 harness 的任务"),
-    `the job the ledger cannot see is not on screen without a second tap: ${folded.shown.join(", ")}`);
-  assert(folded.height <= 420,
-    `the expanded lane is ${folded.height}px on a 844px-tall phone — that is the ledger again`);
-
-  const opened = await page.evaluate(async () => {
-    document.querySelector('#dh-group-delivery .dh-fold[data-fold="cron"]').click();
-    await new Promise(resolve => setTimeout(resolve, 200));
-    const group = document.getElementById("dh-group-delivery");
-    return {
-      expanded: group.querySelector('.dh-fold[data-fold="cron"]').getAttribute("aria-expanded"),
-      shown: [...group.querySelectorAll(".dh-row")]
-        .filter(row => row.getBoundingClientRect().height > 0).length,
-    };
-  });
-  assert.equal(opened.expanded, "true", "tapping the fold did not open it");
-  assert(opened.shown >= quietJobs + 1,
-    `opening the fold showed ${opened.shown} rows, not the ${quietJobs + 1} the lane holds`);
-  await context.close();
-}
-
-async function testDataHealthIsReadableOnAPhone(browser, base) {
-  const context = await browser.newContext({
-    viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true,
-  });
-  const page = await context.newPage();
-  await stubLiveOrigin(page, {
-    patch: (name, json) => {
-      if (name !== "overview.json" && name !== "dashboard.json") return null;
-      json.cron_schedule = {
-        date: "2026-09-03",
-        jobs: [
-          { job: "盘前深度简报", slots: [{ at: "00:01", state: "ok" }] },
-          { job: "美股盘中盯盘-overnight", slots: [{ at: "23:59", state: "upcoming" }] },
-        ],
-      };
-      return json;
-    },
-  });
-  await page.goto(base, { waitUntil: "networkidle" });
-  await waitForData(page);
-  await page.waitForSelector("#data-health:not(.is-pending)", { timeout: 5000 });
-
-  const head = await page.evaluate(() => {
-    const shown = el => getComputedStyle(el).display !== "none";
-    const card = document.getElementById("data-health");
-    const cardRight = card.getBoundingClientRect().right;
-    return {
-      railChart: shown(document.querySelector(".dh-rail-body")),
-      next: document.getElementById("dh-rail-next").textContent.trim(),
-      nextShown: shown(document.getElementById("dh-rail-next")),
-      clipped: [...card.querySelectorAll(".dh-caption, .hero-health-meta")]
-        .filter(el => el.scrollWidth > el.clientWidth + 1)
-        .map(el => el.textContent.trim().slice(0, 40)),
-      overflow: card.scrollWidth - card.clientWidth,
-      toggleHeight: Math.round(document.getElementById("dh-toggle").getBoundingClientRect().height),
-      chipOverhang: Math.round(Math.max(...[...card.querySelectorAll(".dh-chip")]
-        .map(chip => chip.getBoundingClientRect().right - cardRight))),
-      lanes: [...card.querySelectorAll(".dh-lane")].map(lane => ({
-        id: lane.id,
-        tag: lane.tagName,
-        expanded: lane.getAttribute("aria-expanded"),
-        height: Math.round(lane.getBoundingClientRect().height),
-        // 收起的那一组：0 高、inert，而且里面确实有东西可看（空的展开器是个
-        // 谎话——它会把「点开看全文」许诺给一块空面板）。
-        groupRows: (document.getElementById(lane.getAttribute("aria-controls")) || document.body)
-          .querySelectorAll(".dh-row").length,
-        groupInert: (document.getElementById(lane.getAttribute("aria-controls")) || {}).inert,
-        groupHeight: Math.round((document.getElementById(lane.getAttribute("aria-controls"))
-          || document.body).getBoundingClientRect().height),
-      })),
-    };
-  });
-  assert.equal(head.railChart, false,
-    "the 24-hour cron chart is still drawn at 390px — it is unreadable at that width");
-  assert(head.nextShown && /^(下一槽|今天没有待跑)/.test(head.next),
-    `the phone card drops the chart without saying what runs next: ${head.next}`);
-  assert.deepEqual(head.clipped, [], "a data-health line is truncated at 390px");
-  assert(head.overflow <= 0,
-    `data-health overflows horizontally by ${head.overflow}px at 390px`);
-  assert(head.toggleHeight >= 32,
-    `逐项 is ${head.toggleHeight}px tall — too small a target for a thumb`);
-  assert(head.chipOverhang <= 0,
-    `a disposition chip sticks ${head.chipOverhang}px past the card edge`);
-  assert.equal(head.lanes.length, 3, "the three fixed lanes are gone");
-  head.lanes.forEach(lane => {
-    assert.equal(lane.tag, "BUTTON",
-      `${lane.id} is not a button — a row you are meant to tap has to be focusable`);
-    assert.equal(lane.expanded, "false", `${lane.id} starts expanded`);
-    assert(lane.groupRows > 0,
-      `${lane.id} promises detail but its panel is empty`);
-    assert.equal(lane.groupInert, true,
-      `${lane.id}'s collapsed panel is still in the tab order`);
-    assert.equal(lane.groupHeight, 0, `${lane.id}'s panel is not collapsed`);
-    assert(lane.height >= 44,
-      `${lane.id} is ${lane.height}px tall — below a thumb-sized row`);
-  });
-
-  // 点一条，只开那一条，而且开在它自己下面。
-  const opened = await page.evaluate(async () => {
-    document.getElementById("dh-lane-integrity").click();
-    await new Promise(resolve => setTimeout(resolve, 400));
-    const lane = document.getElementById("dh-lane-integrity");
-    const group = document.getElementById("dh-group-integrity");
-    return {
-      expanded: lane.getAttribute("aria-expanded"),
-      height: Math.round(group.getBoundingClientRect().height),
-      detailBelowBoard: group.getBoundingClientRect().top >=
-        document.querySelector(".dh-board").getBoundingClientRect().bottom,
-      others: ["files", "delivery"].map(key =>
-        Math.round(document.getElementById(`dh-group-${key}`).getBoundingClientRect().height)),
-    };
-  });
-  assert.equal(opened.expanded, "true", "tapping a lane did not expand it");
-  assert(opened.height > 0, "the lane expanded but its panel stayed collapsed");
-  assert(opened.detailBelowBoard,
-    "the selected lane's drill-down is not below the monitoring board");
-  assert.deepEqual(opened.others, [0, 0],
-    "opening one lane expanded the others too — that is the 2600px 逐项 again");
-
-  // 处置行（.is-todo）的末列是「下一步去哪看」，它本来就独占一行；台账行不是。
-  const rows = await page.evaluate(async () => {
-    document.getElementById("dh-toggle").click();
-    await new Promise(resolve => setTimeout(resolve, 400));
-    // 这条断言问的是「一行的版式」，所以先把「今天没事」的那几折也打开——
-    // 折起来的行是 hidden，每个矩形都是 0，量它等于给自己发一张假红。数出
-    // 量了几行，免得这个过滤把断言悄悄变成一个什么都不测的测试。
-    document.querySelectorAll("#data-health .dh-fold").forEach(fold => fold.click());
-    await new Promise(resolve => setTimeout(resolve, 200));
-    const measurable = [...document.querySelectorAll(".dh-group .dh-row:not(.is-todo)")]
-      .filter(row => row.getBoundingClientRect().height > 0);
-    return {
-      measured: measurable.length,
-      orphans: measurable
-        .filter(row => {
-          const name = row.querySelector(".dh-name").getBoundingClientRect();
-          const state = row.querySelector(".dh-state").getBoundingClientRect();
-          return state.top >= name.bottom - 1;
-        })
-        .map(row => row.querySelector(".dh-name").textContent.trim()),
-    };
-  });
-  assert(rows.measured >= 3,
-    `only ${rows.measured} 逐项 row(s) were laid out — this assertion is measuring nothing`);
-  assert.deepEqual(rows.orphans, [],
-    `逐项 rows put the status word on a line of its own: ${rows.orphans.join(", ")}`);
-  await context.close();
 }
 
 // 手机上打开一个「有 sidecar 的 tab」，那份 sidecar 必须真的落到卡上。
@@ -3399,7 +3037,8 @@ async function testEveryPhoneControlIsAFingerTarget(browser, base) {
     await page.evaluate(name => document.getElementById(`tab-${name}`)?.click(), tab);
     await page.waitForTimeout(400);
     if (tab === "hero") {
-      await page.evaluate(() => document.querySelectorAll(".dh-lane").forEach(el => el.click()));
+      await page.evaluate(() => document.querySelectorAll("#data-health button.dh-cell, #data-health .dh-job-row")
+        .forEach(el => el.click()));
       await page.waitForTimeout(200);
     }
     await collect(tab);
@@ -3613,8 +3252,9 @@ async function testNoBlockIsPaintedTheColourOfWhatItSitsOn(browser, base) {
   for (const tab of ["hero", "drill", "risk", "market", "plan", "reflect"]) {
     await page.evaluate(name => document.getElementById(`tab-${name}`)?.click(), tab);
     await page.waitForTimeout(700);
-    // Open the data-health lanes; their bodies only exist once expanded.
-    await page.evaluate(() => document.querySelectorAll(".dh-lane").forEach(el => el.click()));
+    // Open the data-health rows; their details only lay out once expanded.
+    await page.evaluate(() => document.querySelectorAll("#data-health button.dh-cell, #data-health .dh-job-row")
+      .forEach(el => el.click()));
     await page.waitForTimeout(300);
     for (const row of await page.evaluate(scan)) invisible.add(`${tab} ${row}`);
   }
@@ -3679,9 +3319,6 @@ async function main() {
     await run("testHoldingsAndHeroNeverTruncate", () => testHoldingsAndHeroNeverTruncate(browser, base));
     await run("testVerdictDeckFillsItsBoxAndRanksGatesBySeverity", () => testVerdictDeckFillsItsBoxAndRanksGatesBySeverity(browser, base));
     await run("testVerdictDeckPagerTracksTheVisualCard", () => testVerdictDeckPagerTracksTheVisualCard(browser, base));
-    await run("testDataHealthNamesTheDegradedSlotAndWeChatDrops", () => testDataHealthNamesTheDegradedSlotAndWeChatDrops(browser, base));
-    await run("testDataHealthIsReadableOnAPhone", () => testDataHealthIsReadableOnAPhone(browser, base));
-    await run("testAQuietLaneFoldsItsLedgerInsteadOfScrolling", () => testAQuietLaneFoldsItsLedgerInsteadOfScrolling(browser, base));
     await run("testASidecarStillReachesItsCardWhenThePagerIsStillSettling", () => testASidecarStillReachesItsCardWhenThePagerIsStillSettling(browser, base));
     await run("testFailedSidecarRefreshKeepsTheLastGoodValue", () => testFailedSidecarRefreshKeepsTheLastGoodValue(browser, base));
     await run("testTheDebateTrailIsAListOfCasesNotAWallOfText", () => testTheDebateTrailIsAListOfCasesNotAWallOfText(browser, base));
@@ -3689,14 +3326,13 @@ async function main() {
     await run("testAddSideCardExplainsWhyThereIsNoAdd", () => testAddSideCardExplainsWhyThereIsNoAdd(browser, base));
     await run("testALeveragedRowWithoutVolatilityPrintsNoUndefined", () => testALeveragedRowWithoutVolatilityPrintsNoUndefined(browser, base));
     await run("testNoTabPrintsAMissingNumber", () => testNoTabPrintsAMissingNumber(browser, base));
+    await run("testDataHealthAnswersIsAnythingWrongAtEveryWidth", () => testDataHealthAnswersIsAnythingWrongAtEveryWidth(browser, base));
+    await run("testDataHealthDrillsDownWhereYouTapAndSurvivesARefresh", () => testDataHealthDrillsDownWhereYouTapAndSurvivesARefresh(browser, base));
+    await run("testAnOldScheduleIsOneWatchItemNotOnePerJob", () => testAnOldScheduleIsOneWatchItemNotOnePerJob(browser, base));
     await run("testTheSearchVisibilityCardFitsWithoutOverflowing", () => testTheSearchVisibilityCardFitsWithoutOverflowing(browser, base));
     await run("testEveryAddCampaignRowStartsOnTheSameLine", () => testEveryAddCampaignRowStartsOnTheSameLine(browser, base));
     await run("testTheValidationLedgerRendersItsVerdictsAndFitsAPhone", () => testTheValidationLedgerRendersItsVerdictsAndFitsAPhone(browser, base));
     await run("testAPanelSaysWhenItsDataDidNotLoad", () => testAPanelSaysWhenItsDataDidNotLoad(browser, base));
-    await run("testCronRailAccountsForEverySlotWithoutASecondVerdict", () => testCronRailAccountsForEverySlotWithoutASecondVerdict(browser, base));
-    await run("testEveryTimelineShowsItsVerdictAndFits", () => testEveryTimelineShowsItsVerdictAndFits(browser, base));
-    await run("testAnOldScheduleIsLabeledStale", () => testAnOldScheduleIsLabeledStale(browser, base));
-    await run("testCronNeedsActionMergesIntoTheOneTodoListButWatchDoesNot", () => testCronNeedsActionMergesIntoTheOneTodoListButWatchDoesNot(browser, base));
     await run("testMoversSayWhichSessionTheyAreFrom", () => testMoversSayWhichSessionTheyAreFrom(browser, base));
     await run("testCardRhythmIsOneScalePerTier", () => testCardRhythmIsOneScalePerTier(browser, base));
     await run("testEveryPhoneControlIsAFingerTarget", () => testEveryPhoneControlIsAFingerTarget(browser, base));
