@@ -165,7 +165,7 @@ def test_naive_session_time_is_explicitly_interpreted_as_hong_kong():
 def _wire_preflight(monkeypatch, tmp_path):
     """Run the real main while replacing unrelated network/analysis producers."""
     now = datetime(2026, 8, 14, 1, 33, tzinfo=ZoneInfo("Asia/Hong_Kong"))
-    signals = [{"ticker": "SPCH", "level": "STOP", "line": "STOP SPCH"}]
+    signals = [{"ticker": "RKLX", "level": "STOP", "line": "STOP RKLX"}]
     setups = {"rows": [{
         "label": "SPCH", "setup_id": "confirmed_breakout",
         "holdings": ["SPCH"], "entry_price": 7.2,
