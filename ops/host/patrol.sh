@@ -64,21 +64,45 @@ slot_held_count() {
   echo "$held"
 }
 
+task_agent() { sed -n 's/^AGENT=//p' "$1/meta.env" 2>/dev/null | head -1; }
+
 others_need_slot() {
-  local unit id d held=0 mode=${1:-admission} own
+  local unit id d held=0 mode=${1:-admission} own units parked=" " agent
   # Skip only this supervisor's own round, named by the authoritative current-round
   # marker. Skipping every `patrol-*` id also hid manual tasks that happened to use
   # that name, so a round ran on while they queued (2026-09-23).
   own=$(current_round)
-  for unit in $(systemctl list-units 'agent-dispatch-*' --state=active --no-legend --plain 2>/dev/null | awk '{print $1}'); do
+  units=$(systemctl list-units 'agent-dispatch-*' --state=active --no-legend --plain 2>/dev/null | awk '{print $1}')
+  # An agent asleep on a quota reset holds its lock until that reset, so every task
+  # queued behind it is parked with it: neither side can start for hours. Counting that
+  # queue as demand left patrol idle beside two free run slots while kcn's own tasks
+  # waited for the reset (2026-09-24). Only the queue's own agent counts.
+  for unit in $units; do
+    id=${unit#agent-dispatch-}; id=${id%.service}
+    [ -n "$own" ] && [ "$id" = "$own" ] && continue
+    d=$TASKS/$id
+    grep -qs '^WAITING=quota' "$d/result.env" || continue
+    agent=$(task_agent "$d")
+    [ -n "$agent" ] && parked="$parked$agent "
+  done
+  for unit in $units; do
     id=${unit#agent-dispatch-}; id=${id%.service}
     [ -n "$own" ] && [ "$id" = "$own" ] && continue
     d=$TASKS/$id
     if grep -qs '^WAITING=slot' "$d/result.env"; then echo "$id is waiting for a run slot"; return; fi
     # The runner asks for a slot only after it holds its agent lock, so a task queued
     # behind that lock never wrote WAITING=slot and patrol kept its round (2026-09-23).
-    # WAITING=lock is that queue: manual work outranks patrol, so it counts as demand.
-    if grep -qs '^WAITING=lock' "$d/result.env"; then echo "$id is waiting for its agent lock"; return; fi
+    # WAITING=lock is that queue: manual work outranks patrol, so it counts as demand —
+    # unless that agent is parked on quota above, because then giving way frees a slot
+    # for a task that cannot start. The moment the holder wakes this is demand again and
+    # the monitor loop preempts the round before the queued task can ask for a slot.
+    if grep -qs '^WAITING=lock' "$d/result.env"; then
+      agent=$(task_agent "$d")
+      if [ -n "$agent" ]; then
+        case "$parked" in *" $agent "*) continue ;; esac
+      fi
+      echo "$id is waiting for its agent lock"; return
+    fi
     # Runners from before the WAITING=lock marker show only the queued state.
     if grep -qs '^AGENT=opencode' "$d/meta.env" && grep -qs '^STATE=queued' "$d/result.env"; then
       echo "$id is waiting for the opencode lock"; return

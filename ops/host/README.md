@@ -52,7 +52,12 @@ the running one (recorded as `preempted:cancelled` in `rounds.tsv`), when any
 task other than the round named in `current-round` publishes `WAITING=slot`
 (queued for a run slot) or `WAITING=lock` (queued behind its agent's lock —
 the runner asks for a slot only after that lock, so this is the earlier half of
-the same queue). `WAITING=quota`/`retry`/`memory` hold nothing and do not
+the same queue). A queue whose own agent is parked on quota is the exception: while
+the task holding that agent's lock publishes `WAITING=quota`, nothing behind it can
+start either, so that queue is not demand and a round may use the dead window
+(kcn, 2026-09-24); it becomes demand again the moment the holder wakes, and the
+monitor loop cancels the round within one poll before the queued task needs a slot.
+`WAITING=quota`/`retry`/`memory` hold nothing and do not
 preempt. Capacity (`slot-N.lock` held by `MAX_RUNNING` attempts) and memory
 pressure only gate admission of a new round. Rounds are dispatched with
 `AGENT_DISPATCH_PATROL=1`, because `dispatch.sh` reserves `patrol-*` names for

@@ -90,6 +90,32 @@ def test_lock_waiter_is_demand_even_with_free_slots(patrol):
     assert patrol("admission", held=0) == "claude-task is waiting for its agent lock"
 
 
+@pytest.mark.parametrize("mode", ["monitor", "admission"])
+def test_a_quota_parked_agent_queue_is_not_demand(patrol, mode):
+    # 2026-09-24: three claude tasks queued behind a lock whose holder slept until the 5h
+    # reset, and patrol sat out the whole window next to two free run slots. A queue whose
+    # own agent cannot start is not demand; the 09-23 rule resumes when the holder wakes.
+    patrol.own_round()
+    patrol.task("claude-holder", "STATE=running\nWAITING=quota\nSLOT=''\n")
+    patrol.task("claude-queued", "STATE=queued\nWAITING=lock\nSLOT=''\n")
+    assert patrol(mode) == ""
+
+
+def test_the_same_queue_outranks_patrol_once_the_holder_wakes(patrol):
+    # Without the quota sleep these are the 09-23 tasks again: demand, preemption included.
+    patrol.own_round()
+    patrol.task("claude-holder", "STATE=running\nSLOT=1\n")
+    patrol.task("claude-queued", "STATE=queued\nWAITING=lock\nSLOT=''\n")
+    assert patrol("monitor") == "claude-queued is waiting for its agent lock"
+
+
+def test_another_agents_quota_sleep_does_not_release_this_queue(patrol):
+    # Only the queued task's own agent counts: a parked codex task says nothing about claude.
+    patrol.task("codex-holder", "STATE=running\nWAITING=quota\nSLOT=''\n", agent="codex")
+    patrol.task("claude-queued", "STATE=queued\nWAITING=lock\nSLOT=''\n")
+    assert patrol("admission") == "claude-queued is waiting for its agent lock"
+
+
 def test_patrols_own_round_waiting_is_not_demand(patrol):
     patrol.own_round("STATE=queued\nWAITING=lock\nSLOT=''\n")
     assert patrol("monitor") == ""
