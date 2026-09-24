@@ -25,7 +25,7 @@
 |:---:|:---:|:---:|:---:|:---:|:---:|
 | 天,真实港美股账户实盘 | 条决策,账本全部公开 | 个案例由代码结算 | 8 层抓取与计算模块 | 种 Agent harness,同一份契约 | 条分数由模型给自己打 |
 
-<sub>真实持仓、真实盈亏——实盘收益 <!-- CW_M:return_pct -->−21.66%<!-- /CW_M:return_pct -->,亏损照样摆出来([原始决策记录](https://github.com/KCNyu/clawock/blob/master/memory/decisions.jsonl))——公开打分。数字与静态预览图每周刷新;仪表盘 GIF 在手动触发时更新;实时仪表盘随交易日更新。</sub>
+<sub>真实持仓、真实盈亏——实盘收益 <!-- CW_M:return_pct -->−21.59%<!-- /CW_M:return_pct -->,亏损照样摆出来([原始决策记录](https://github.com/KCNyu/clawock/blob/master/memory/decisions.jsonl))——公开打分。数字与静态预览图每周刷新;仪表盘 GIF 在手动触发时更新;实时仪表盘随交易日更新。</sub>
 
 </div>
 
@@ -171,7 +171,7 @@ clawock 是从这个投研台里拆出来、可以复用的那部分。模型调
 | **决策账本** | <!-- CW_M:rows -->917<!-- /CW_M:rows --> 条记录 → **<!-- CW_M:settled -->147<!-- /CW_M:settled -->** 个已结算案例 | 含重申归组,同一论点重复喊单只算一次;全部公开 |
 | **方向命中率** | 主动 **<!-- CW_M:active_pct -->52%<!-- /CW_M:active_pct -->**(n=<!-- CW_M:active_n -->52<!-- /CW_M:active_n -->) | 模型判断的方向对不对,按基准行情结算——**与盈亏无关** |
 | **影子组合**(模拟,非实盘) | 跟随建议 vs 买入持有 | 同一时间线、同日收盘计价回放,见[持仓页](https://kcnyu.github.io/clawock/#drill) |
-| **真实账户** | 收益 **<!-- CW_M:return_pct -->−21.66%<!-- /CW_M:return_pct -->**(实盘,已实现 + 浮动) | 决策执行:followed <!-- CW_M:followed -->500<!-- /CW_M:followed --> / not_followed <!-- CW_M:not_followed -->372<!-- /CW_M:not_followed --> 条 |
+| **真实账户** | 收益 **<!-- CW_M:return_pct -->−21.59%<!-- /CW_M:return_pct -->**(实盘,已实现 + 浮动) | 决策执行:followed <!-- CW_M:followed -->500<!-- /CW_M:followed --> / not_followed <!-- CW_M:not_followed -->372<!-- /CW_M:not_followed --> 条 |
 
 **谁决定跟进?账户所有者。** 每条跟进/不跟进都有记录与来源;在跟进规则集公开审计之前,请把账户收益当作**人机混合的成绩**,而不是模型单独的成绩——这一点我们明说,不藏。
 

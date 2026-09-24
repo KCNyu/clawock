@@ -1,5 +1,5 @@
 {
- "generated_at": "2026-09-24T13:45:37",
+ "generated_at": "2026-09-24T18:36:57",
  "as_of": "2026-09",
  "days": 130,
  "rows": 917,
@@ -12,7 +12,7 @@
  "hi_n": 14,
  "active_ci": "38%–66%",
  "hi_ci": "31%–83%",
- "return_pct": "-21.66",
+ "return_pct": "-21.59",
  "followed": 500,
  "not_followed": 372,
  "unknown": 45
