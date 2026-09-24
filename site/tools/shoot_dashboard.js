@@ -327,6 +327,17 @@ function socialCardHTML(shotDataUri) {
       const gp = await gifCtx.newPage();
       await gp.goto(URL, { waitUntil: 'networkidle', timeout: 45000 });
       await gp.evaluate(() => document.fonts.ready);
+      const chrome = await gp.evaluate((tabs) => {
+        const header = document.querySelector('.topbar').getBoundingClientRect();
+        return {
+          width: innerWidth,
+          height: Math.ceil(header.bottom + 14), // include the sticky bar's fade edge
+          buttons: tabs.map(tab => {
+            const r = document.querySelector(`[data-tab=${tab}]`).getBoundingClientRect();
+            return { left: r.left, top: r.top, right: r.right, bottom: r.bottom };
+          }),
+        };
+      }, TABS);
       const counts = [];
       const captures = [];
       for (let i = 0; i < TABS.length; i++) {
@@ -385,7 +396,7 @@ function socialCardHTML(shotDataUri) {
         }
         counts.push(steps + 1);
       }
-      fs.writeFileSync(`${FRAME_DIR}/capture-manifest.json`, JSON.stringify(captures, null, 2));
+      fs.writeFileSync(`${FRAME_DIR}/capture-manifest.json`, JSON.stringify({ chrome, captures }, null, 2));
       await gifCtx.close();
       console.log('gif frames per tab:', counts.join(','));
       console.log(`✓ win-rate chart + social card; ${TABS.length} gif tabs → ${FRAME_DIR}`);

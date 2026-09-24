@@ -12,6 +12,7 @@ These are behavioural where they can be: the assembler really runs, on real PNGs
 and the GIF is inspected. The two cross-file contracts (frame naming, tab count)
 are read out of the sources, because the JS half cannot be imported from pytest.
 """
+import json
 import os
 import re
 import subprocess
@@ -96,15 +97,27 @@ def test_the_assembler_really_builds_a_gif_from_real_frames(tmp_path):
     nothing about the committed one; `GIF_OUT` (#754) is what makes this possible.
     """
     Image = pytest.importorskip("PIL.Image", reason="Pillow is the assembler's only dep")
+    ImageChops = pytest.importorskip("PIL.ImageChops")
+    ImageDraw = pytest.importorskip("PIL.ImageDraw")
 
     frames = tmp_path / "frames"
     frames.mkdir()
     tabs = len(_tabs_in_shoot())
+    buttons = [{"left": 100 + tab * 100, "top": 20,
+                "right": 180 + tab * 100, "bottom": 60}
+               for tab in range(tabs)]
+    (frames / "capture-manifest.json").write_text(json.dumps({
+        "chrome": {"width": 1280, "height": 80, "buttons": buttons},
+    }))
     for tab in range(tabs):
         for index in range(2):
             # 1280x800 like the real desktop capture, so the 960 downscale is exercised.
             colour = (10 + tab * 30, 40 + index * 60, 90)
-            Image.new("RGB", (1280, 800), colour).save(frames / f"f{tab}_{index}.png")
+            image = Image.new("RGB", (1280, 800), colour)
+            draw = ImageDraw.Draw(image)
+            draw.rectangle((0, 0, 1279, 79), fill="white")
+            draw.rectangle(tuple(buttons[tab].values()), fill="blue")
+            image.save(frames / f"f{tab}_{index}.png")
 
     out = tmp_path / "dashboard.gif"
     done = subprocess.run(
@@ -126,6 +139,15 @@ def test_the_assembler_really_builds_a_gif_from_real_frames(tmp_path):
     for index in range(built.n_frames):
         built.seek(index)
         assert built.disposal_method == 1, f"frame {index} clears the previous frame"
+        nav = built.convert("RGB").crop((0, 0, 960, 60))
+        if index == 0:
+            first_nav = nav
+        difference = ImageChops.difference(first_nav, nav)
+        mask = ImageDraw.Draw(difference)
+        for box in buttons:
+            mask.rectangle(tuple(round(box[key] * .75) for key in
+                                 ("left", "top", "right", "bottom")), fill="black")
+        assert difference.getbbox() is None, f"frame {index} moved the fixed navigation"
     assert f"{tabs} tabs" in done.stdout or "frames" in done.stdout, done.stdout
 
 
