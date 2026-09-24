@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-23T23:55:03.340687+00:00",
+  "generated_at": "2026-09-24T17:35:12.127412+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -21,13 +21,13 @@
     "burry": "success",
     "pelosi": "success"
   },
-  "llm_filtered": true,
-  "llm_filter_status": "ok",
+  "llm_filtered": false,
+  "llm_filter_status": "failed_kept_previous",
   "counts": {
-    "total": 23,
+    "total": 19,
     "held_hits": 0,
     "new_ideas": 12,
-    "sector_hits": 4
+    "sector_hits": 2
   },
   "items": [
     {
@@ -52,7 +52,8 @@
       "sector_holdings": [],
       "stance": "attack",
       "relevance": 75,
-      "summary_cn": "据报道，Burry做空Micron和Palantir，预期芯片行业将出现下行周期。"
+      "summary_cn": "据报道，Burry做空Micron和Palantir，预期芯片行业将出现下行周期。",
+      "retained_from_previous": true
     },
     {
       "author": "Burry",
@@ -79,7 +80,8 @@
       "sector_holdings": [],
       "stance": "attack",
       "relevance": 75,
-      "summary_cn": "据报道，Burry新增Micron(MU)、Nebius(NBIS)、Palantir(PLTR)空头头寸，预计芯片进入下行周期。"
+      "summary_cn": "据报道，Burry新增Micron(MU)、Nebius(NBIS)、Palantir(PLTR)空头头寸，预计芯片进入下行周期。",
+      "retained_from_previous": true
     },
     {
       "author": "Cathie Wood",
@@ -105,7 +107,8 @@
       ],
       "stance": "buy",
       "relevance": 72,
-      "summary_cn": "ARK 2026-09-22调仓：买入Rocket Lab(RKLB)合计约36万股，跨ARKK/ARKQ/ARKX三只ETF，最大占比0.21%，航天板块加仓。"
+      "summary_cn": "ARK 2026-09-22调仓：买入Rocket Lab(RKLB)合计约36万股，跨ARKK/ARKQ/ARKX三只ETF，最大占比0.21%，航天板块加仓。",
+      "retained_from_previous": true
     },
     {
       "author": "Cathie Wood",
@@ -129,7 +132,8 @@
       "sector_holdings": [],
       "stance": "sell",
       "relevance": 72,
-      "summary_cn": "ARK 2026-09-22调仓：卖出Alphabet(GOOGL)合计约1.6万股，跨ARKQ/ARKX两只ETF，最大占比0.20%，机构减仓。"
+      "summary_cn": "ARK 2026-09-22调仓：卖出Alphabet(GOOGL)合计约1.6万股，跨ARKQ/ARKX两只ETF，最大占比0.20%，机构减仓。",
+      "retained_from_previous": true
     },
     {
       "author": "Burry",
@@ -154,7 +158,8 @@
       "sector_holdings": [],
       "stance": "attack",
       "relevance": 70,
-      "summary_cn": "据报道，Burry在纳指100创新高时增加芯片股空头头寸，看空半导体板块。"
+      "summary_cn": "据报道，Burry在纳指100创新高时增加芯片股空头头寸，看空半导体板块。",
+      "retained_from_previous": true
     },
     {
       "author": "Pelosi",
@@ -179,7 +184,8 @@
       "sector_holdings": [],
       "stance": "sell",
       "relevance": 70,
-      "summary_cn": "据最新披露，特朗普7月份共完成1156笔交易，其中Microsoft和Amazon是最大卖出标的之一。"
+      "summary_cn": "据最新披露，特朗普7月份共完成1156笔交易，其中Microsoft和Amazon是最大卖出标的之一。",
+      "retained_from_previous": true
     },
     {
       "author": "Musk",
@@ -205,7 +211,8 @@
       ],
       "stance": "neutral",
       "relevance": 68,
-      "summary_cn": "据报道，马斯克再次暗示Tesla与SpaceX合并可能性，并推出Terafab AI项目，SpaceX相关持仓间接受关注。"
+      "summary_cn": "据报道，马斯克再次暗示Tesla与SpaceX合并可能性，并推出Terafab AI项目，SpaceX相关持仓间接受关注。",
+      "retained_from_previous": true
     },
     {
       "author": "Cathie Wood",
@@ -228,7 +235,8 @@
       "sector_holdings": [],
       "stance": "sell",
       "relevance": 68,
-      "summary_cn": "ARK 2026-09-22调仓：卖出10x Genomics(TXG)约4.97万股，占ARKG 0.18%，基因测序板块减仓。"
+      "summary_cn": "ARK 2026-09-22调仓：卖出10x Genomics(TXG)约4.97万股，占ARKG 0.18%，基因测序板块减仓。",
+      "retained_from_previous": true
     },
     {
       "author": "Cathie Wood",
@@ -251,7 +259,8 @@
       "sector_holdings": [],
       "stance": "sell",
       "relevance": 66,
-      "summary_cn": "ARK 2026-09-22调仓：卖出Twist Bioscience(TWST)约2.13万股，占ARKG 0.16%，DNA合成板块减仓。"
+      "summary_cn": "ARK 2026-09-22调仓：卖出Twist Bioscience(TWST)约2.13万股，占ARKG 0.16%，DNA合成板块减仓。",
+      "retained_from_previous": true
     },
     {
       "author": "Musk",
@@ -275,7 +284,8 @@
       "sector_holdings": [],
       "stance": "neutral",
       "relevance": 62,
-      "summary_cn": "据报道，马斯克在习特晚宴上就中国关税问题与特朗普交锋，Tesla中国业务受关税影响受关注。"
+      "summary_cn": "据报道，马斯克在习特晚宴上就中国关税问题与特朗普交锋，Tesla中国业务受关税影响受关注。",
+      "retained_from_previous": true
     },
     {
       "author": "Cathie Wood",
@@ -298,7 +308,8 @@
       "sector_holdings": [],
       "stance": "buy",
       "relevance": 62,
-      "summary_cn": "ARK 2026-09-22调仓：买入Scribe Therapeutics(SCTX)约8.83万股，占ARKG 0.11%，基因编辑板块加仓。"
+      "summary_cn": "ARK 2026-09-22调仓：买入Scribe Therapeutics(SCTX)约8.83万股，占ARKG 0.11%，基因编辑板块加仓。",
+      "retained_from_previous": true
     },
     {
       "author": "Musk",
@@ -322,7 +333,8 @@
       "sector_holdings": [],
       "stance": "endorse",
       "relevance": 58,
-      "summary_cn": "据报道，马斯克赞扬习近平领导力及中国AI实力，表态对华友好。"
+      "summary_cn": "据报道，马斯克赞扬习近平领导力及中国AI实力，表态对华友好。",
+      "retained_from_previous": true
     },
     {
       "author": "Musk",
@@ -343,30 +355,8 @@
       ],
       "stance": "neutral",
       "relevance": 55,
-      "summary_cn": "据披露，特朗普7月份曾买卖SpaceX股票，作为总统进行SpaceX相关股票交易引发关注。"
-    },
-    {
-      "author": "段永平",
-      "text": "恒生指數升38點 MiniMax再跌逾17%(更新)",
-      "url": "https://news.google.com/rss/articles/CBMi-gFBVV95cUxPc28tcHVIYzNSUV9pc2MtVFBfWVlXamZZbjFlQWVqazVrSXgyc0UtamtFR3JsQ0JNYVU1VWZaSFNkOGE3a0Y0dW1RYnA3MHU1SGM3dTNrSFJ6Tl9vVm9ieFJYdEtQWjd6OWZRN1F3amtTQnBUeWVUcDYweVdzTlZhUnlRRTZtYVl0T2YxWDBBeV82c05XdXZYT3BSVTVBYTRzT0RucmFSR2RNMGN6S1g3Z19oT2ZaN0VjSXU3TFl5LTZPeXQwc290dlV6MjJyNkd6YU8xbEZuemtuTGhYSUh5UGdMLTc3R21ybHRMSU1sTzlEbHlKUEY0RUdn?oc=5",
-      "published": "2026-09-22T09:12:39+00:00",
-      "origin": "gnews-rss",
-      "source": "AM730",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "港股"
-      ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "据报道，恒生指数收升38点，MiniMax(00100)再跌逾17%，段永平持仓股显著承压。"
+      "summary_cn": "据披露，特朗普7月份曾买卖SpaceX股票，作为总统进行SpaceX相关股票交易引发关注。",
+      "retained_from_previous": true
     },
     {
       "author": "Musk",
@@ -387,29 +377,8 @@
       ],
       "stance": "neutral",
       "relevance": 52,
-      "summary_cn": "据报道，SpaceX股票此前令投资者担忧的一个重大风险事件最终并未发生，SpaceX相关持仓间接受关注。"
-    },
-    {
-      "author": "段永平",
-      "text": "恒生指數跌335點 網易逆市升逾2% 渣打績後升近2%(更新)",
-      "url": "https://news.google.com/rss/articles/CBMi3wJBVV95cUxQVTh4R2E5SDJlVjYzQ2kxX0xydGlZU3hkanljZEtlMkx0aXMzeWNSU2RLd2ZzdEpSa2F2SzF1Z0hUdTR2QzEta1BRWnY3SWR3N19nM3BYVUhEWTJ5eFZHX0k1UVpMYjVCeTBoMTNRX3MzR29IbExyUTBxV1gyQTFhcXBncVlwaTJRSFV3c2t5NmI0RzhjZHptT3NZZHdpMk9pZ1dQN1hFRk95LUxuT1hIeHIzLVlyZFVzRnFNeVMyV1BTVXNUY1lQZW9RMDhtTmhfOHNzbVloREF4dW4zakIzeExueXczTGpOa0RYTnJLQWNKRzNLYU92MHNQZkhWb0RQZHRWcnNQQl9jMlZ2eUFQbTFWUnBBLTY0OVFjY2dCNmhvWm4wYkZuTVFvUG1EY3FpYW9WMXZob0M5SktvTWtFdXVKU201X2FNVXZQQy14azN3WmFDU1AyZXhyT0kyZjg?oc=5",
-      "published": "2026-09-22T09:12:11+00:00",
-      "origin": "gnews-rss",
-      "source": "AM730",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "港股"
-      ],
-      "sector_holdings": [
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "neutral",
-      "relevance": 52,
-      "summary_cn": "据报道，恒生指数收跌335点，网易逆市上涨，渣打绩后涨近2%，港股大盘走弱。"
+      "summary_cn": "据报道，SpaceX股票此前令投资者担忧的一个重大风险事件最终并未发生，SpaceX相关持仓间接受关注。",
+      "retained_from_previous": true
     },
     {
       "author": "Burry",
@@ -427,7 +396,8 @@
       "sector_holdings": [],
       "stance": "attack",
       "relevance": 65,
-      "summary_cn": "据报道，Burry对AI超大规模云厂商发出严厉警告，看空AI基础设施投资热潮。"
+      "summary_cn": "据报道，Burry对AI超大规模云厂商发出严厉警告，看空AI基础设施投资热潮。",
+      "retained_from_previous": true
     },
     {
       "author": "Burry",
@@ -445,7 +415,8 @@
       "sector_holdings": [],
       "stance": "attack",
       "relevance": 62,
-      "summary_cn": "据报道，Burry向AI投资者发出新一轮警告信号，对AI板块整体看空。"
+      "summary_cn": "据报道，Burry向AI投资者发出新一轮警告信号，对AI板块整体看空。",
+      "retained_from_previous": true
     },
     {
       "author": "Cathie Wood",
@@ -465,25 +436,8 @@
       "sector_holdings": [],
       "stance": "sell",
       "relevance": 55,
-      "summary_cn": "ARK 2026-09-22调仓：卖出Everpure(P)约1.91万股，占ARKW 0.11%，常规再平衡级别减仓。"
-    },
-    {
-      "author": "Trump",
-      "text": "Keep the lights on, sideline Big Brother: Trump EPA rollback could save ratepayers $310 billion: https://justthenews.com/government/federal-agencies/trumps-epa-gets-action-roots-out-30-billion-waste-fraud-and-abuse",
-      "url": "https://www.trumpstruth.org/statuses/41838",
-      "published": "2026-09-22T03:19:27+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "能源",
-        "监管"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "特朗普EPA监管回滚据称可为电力用户节省3100亿美元，利好传统能源板块。"
+      "summary_cn": "ARK 2026-09-22调仓：卖出Everpure(P)约1.91万股，占ARKW 0.11%，常规再平衡级别减仓。",
+      "retained_from_previous": true
     },
     {
       "author": "Musk",
@@ -502,24 +456,8 @@
       "sector_holdings": [],
       "stance": "attack",
       "relevance": 50,
-      "summary_cn": "据报道，DOGE推动联邦裁员计划反而让特朗普政府多花费67亿美元用于安置不工作的员工，引发对政府效率改革成效的质疑。"
-    },
-    {
-      "author": "Trump",
-      "text": "RT @Schoenlawhttps://www.wsj.com/opinion/americans-household-income-2025-census-bureau-2e2a9e36?st=9jyvTw.  The writer tries to make excuses to explain this great news but the facts are the facts:  Americans are doing better financially and the poverty level is dramatically down!  Let’s give credit where it is due and celebrate good news for our country and fellow Americans!!! @realDonaldTrump",
-      "url": "https://www.trumpstruth.org/statuses/41839",
-      "published": "2026-09-22T03:26:49+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "宏观经济"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 50,
-      "summary_cn": "特朗普转发WSJ报道，称美国家庭收入上升、贫困率显著下降，归功于自己执政表现，对美国经济基本面表达乐观。"
+      "summary_cn": "据报道，DOGE推动联邦裁员计划反而让特朗普政府多花费67亿美元用于安置不工作的员工，引发对政府效率改革成效的质疑。",
+      "retained_from_previous": true
     },
     {
       "author": "Musk",
@@ -537,7 +475,8 @@
       "sector_holdings": [],
       "stance": "neutral",
       "relevance": 48,
-      "summary_cn": "据报道，David Ellison正与马斯克接触寻求Paramount投资合作，涉及华纳兄弟收购交易。"
+      "summary_cn": "据报道，David Ellison正与马斯克接触寻求Paramount投资合作，涉及华纳兄弟收购交易。",
+      "retained_from_previous": true
     }
   ],
   "held_hits": [],
@@ -564,7 +503,8 @@
       "sector_holdings": [],
       "stance": "attack",
       "relevance": 75,
-      "summary_cn": "据报道，Burry做空Micron和Palantir，预期芯片行业将出现下行周期。"
+      "summary_cn": "据报道，Burry做空Micron和Palantir，预期芯片行业将出现下行周期。",
+      "retained_from_previous": true
     },
     {
       "author": "Burry",
@@ -591,7 +531,8 @@
       "sector_holdings": [],
       "stance": "attack",
       "relevance": 75,
-      "summary_cn": "据报道，Burry新增Micron(MU)、Nebius(NBIS)、Palantir(PLTR)空头头寸，预计芯片进入下行周期。"
+      "summary_cn": "据报道，Burry新增Micron(MU)、Nebius(NBIS)、Palantir(PLTR)空头头寸，预计芯片进入下行周期。",
+      "retained_from_previous": true
     },
     {
       "author": "Cathie Wood",
@@ -617,7 +558,8 @@
       ],
       "stance": "buy",
       "relevance": 72,
-      "summary_cn": "ARK 2026-09-22调仓：买入Rocket Lab(RKLB)合计约36万股，跨ARKK/ARKQ/ARKX三只ETF，最大占比0.21%，航天板块加仓。"
+      "summary_cn": "ARK 2026-09-22调仓：买入Rocket Lab(RKLB)合计约36万股，跨ARKK/ARKQ/ARKX三只ETF，最大占比0.21%，航天板块加仓。",
+      "retained_from_previous": true
     },
     {
       "author": "Cathie Wood",
@@ -641,7 +583,8 @@
       "sector_holdings": [],
       "stance": "sell",
       "relevance": 72,
-      "summary_cn": "ARK 2026-09-22调仓：卖出Alphabet(GOOGL)合计约1.6万股，跨ARKQ/ARKX两只ETF，最大占比0.20%，机构减仓。"
+      "summary_cn": "ARK 2026-09-22调仓：卖出Alphabet(GOOGL)合计约1.6万股，跨ARKQ/ARKX两只ETF，最大占比0.20%，机构减仓。",
+      "retained_from_previous": true
     },
     {
       "author": "Burry",
@@ -666,7 +609,8 @@
       "sector_holdings": [],
       "stance": "attack",
       "relevance": 70,
-      "summary_cn": "据报道，Burry在纳指100创新高时增加芯片股空头头寸，看空半导体板块。"
+      "summary_cn": "据报道，Burry在纳指100创新高时增加芯片股空头头寸，看空半导体板块。",
+      "retained_from_previous": true
     },
     {
       "author": "Pelosi",
@@ -691,7 +635,8 @@
       "sector_holdings": [],
       "stance": "sell",
       "relevance": 70,
-      "summary_cn": "据最新披露，特朗普7月份共完成1156笔交易，其中Microsoft和Amazon是最大卖出标的之一。"
+      "summary_cn": "据最新披露，特朗普7月份共完成1156笔交易，其中Microsoft和Amazon是最大卖出标的之一。",
+      "retained_from_previous": true
     },
     {
       "author": "Musk",
@@ -717,7 +662,8 @@
       ],
       "stance": "neutral",
       "relevance": 68,
-      "summary_cn": "据报道，马斯克再次暗示Tesla与SpaceX合并可能性，并推出Terafab AI项目，SpaceX相关持仓间接受关注。"
+      "summary_cn": "据报道，马斯克再次暗示Tesla与SpaceX合并可能性，并推出Terafab AI项目，SpaceX相关持仓间接受关注。",
+      "retained_from_previous": true
     },
     {
       "author": "Cathie Wood",
@@ -740,7 +686,8 @@
       "sector_holdings": [],
       "stance": "sell",
       "relevance": 68,
-      "summary_cn": "ARK 2026-09-22调仓：卖出10x Genomics(TXG)约4.97万股，占ARKG 0.18%，基因测序板块减仓。"
+      "summary_cn": "ARK 2026-09-22调仓：卖出10x Genomics(TXG)约4.97万股，占ARKG 0.18%，基因测序板块减仓。",
+      "retained_from_previous": true
     },
     {
       "author": "Cathie Wood",
@@ -763,7 +710,8 @@
       "sector_holdings": [],
       "stance": "sell",
       "relevance": 66,
-      "summary_cn": "ARK 2026-09-22调仓：卖出Twist Bioscience(TWST)约2.13万股，占ARKG 0.16%，DNA合成板块减仓。"
+      "summary_cn": "ARK 2026-09-22调仓：卖出Twist Bioscience(TWST)约2.13万股，占ARKG 0.16%，DNA合成板块减仓。",
+      "retained_from_previous": true
     },
     {
       "author": "Musk",
@@ -787,7 +735,8 @@
       "sector_holdings": [],
       "stance": "neutral",
       "relevance": 62,
-      "summary_cn": "据报道，马斯克在习特晚宴上就中国关税问题与特朗普交锋，Tesla中国业务受关税影响受关注。"
+      "summary_cn": "据报道，马斯克在习特晚宴上就中国关税问题与特朗普交锋，Tesla中国业务受关税影响受关注。",
+      "retained_from_previous": true
     }
   ],
   "sector_hits": [
@@ -810,30 +759,8 @@
       ],
       "stance": "neutral",
       "relevance": 55,
-      "summary_cn": "据披露，特朗普7月份曾买卖SpaceX股票，作为总统进行SpaceX相关股票交易引发关注。"
-    },
-    {
-      "author": "段永平",
-      "text": "恒生指數升38點 MiniMax再跌逾17%(更新)",
-      "url": "https://news.google.com/rss/articles/CBMi-gFBVV95cUxPc28tcHVIYzNSUV9pc2MtVFBfWVlXamZZbjFlQWVqazVrSXgyc0UtamtFR3JsQ0JNYVU1VWZaSFNkOGE3a0Y0dW1RYnA3MHU1SGM3dTNrSFJ6Tl9vVm9ieFJYdEtQWjd6OWZRN1F3amtTQnBUeWVUcDYweVdzTlZhUnlRRTZtYVl0T2YxWDBBeV82c05XdXZYT3BSVTVBYTRzT0RucmFSR2RNMGN6S1g3Z19oT2ZaN0VjSXU3TFl5LTZPeXQwc290dlV6MjJyNkd6YU8xbEZuemtuTGhYSUh5UGdMLTc3R21ybHRMSU1sTzlEbHlKUEY0RUdn?oc=5",
-      "published": "2026-09-22T09:12:39+00:00",
-      "origin": "gnews-rss",
-      "source": "AM730",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "港股"
-      ],
-      "sector_holdings": [
-        "00100",
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "neutral",
-      "relevance": 55,
-      "summary_cn": "据报道，恒生指数收升38点，MiniMax(00100)再跌逾17%，段永平持仓股显著承压。"
+      "summary_cn": "据披露，特朗普7月份曾买卖SpaceX股票，作为总统进行SpaceX相关股票交易引发关注。",
+      "retained_from_previous": true
     },
     {
       "author": "Musk",
@@ -854,29 +781,8 @@
       ],
       "stance": "neutral",
       "relevance": 52,
-      "summary_cn": "据报道，SpaceX股票此前令投资者担忧的一个重大风险事件最终并未发生，SpaceX相关持仓间接受关注。"
-    },
-    {
-      "author": "段永平",
-      "text": "恒生指數跌335點 網易逆市升逾2% 渣打績後升近2%(更新)",
-      "url": "https://news.google.com/rss/articles/CBMi3wJBVV95cUxQVTh4R2E5SDJlVjYzQ2kxX0xydGlZU3hkanljZEtlMkx0aXMzeWNSU2RLd2ZzdEpSa2F2SzF1Z0hUdTR2QzEta1BRWnY3SWR3N19nM3BYVUhEWTJ5eFZHX0k1UVpMYjVCeTBoMTNRX3MzR29IbExyUTBxV1gyQTFhcXBncVlwaTJRSFV3c2t5NmI0RzhjZHptT3NZZHdpMk9pZ1dQN1hFRk95LUxuT1hIeHIzLVlyZFVzRnFNeVMyV1BTVXNUY1lQZW9RMDhtTmhfOHNzbVloREF4dW4zakIzeExueXczTGpOa0RYTnJLQWNKRzNLYU92MHNQZkhWb0RQZHRWcnNQQl9jMlZ2eUFQbTFWUnBBLTY0OVFjY2dCNmhvWm4wYkZuTVFvUG1EY3FpYW9WMXZob0M5SktvTWtFdXVKU201X2FNVXZQQy14azN3WmFDU1AyZXhyT0kyZjg?oc=5",
-      "published": "2026-09-22T09:12:11+00:00",
-      "origin": "gnews-rss",
-      "source": "AM730",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "港股"
-      ],
-      "sector_holdings": [
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "neutral",
-      "relevance": 52,
-      "summary_cn": "据报道，恒生指数收跌335点，网易逆市上涨，渣打绩后涨近2%，港股大盘走弱。"
+      "summary_cn": "据报道，SpaceX股票此前令投资者担忧的一个重大风险事件最终并未发生，SpaceX相关持仓间接受关注。",
+      "retained_from_previous": true
     }
   ]
 }
