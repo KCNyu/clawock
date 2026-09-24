@@ -115,7 +115,9 @@ raw = sys.stdin.read().strip()
 entries = json.loads(raw)["graph"]["entries"] if raw else []
 print(next((e["url"] for e in entries if e["id"] == "clawock-dsh"), ""))' || true)"
   served="$(mktemp)"
-  [ -n "$url" ] && curl -fs --max-time 30 -o "$served" "http://127.0.0.1:3081$url" || true
+  # The graph now publishes a root-relative path without a leading slash.
+  # Normalize either form before asking the server for the actual bundle.
+  [ -n "$url" ] && curl -fs --max-time 30 -o "$served" "http://127.0.0.1:3081/${url#/}" || true
   if [ -s "$served" ] && head -c "$(wc -c < "$bundle")" "$served" | cmp -s - "$bundle"; then
     echo "dsh serves the checkout's client bundle"
     rm -f "$served"
