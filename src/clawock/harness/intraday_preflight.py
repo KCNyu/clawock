@@ -1144,7 +1144,7 @@ def main(argv=None):
                 'kind': 'spch_p0', 'level': key,
             })
     prior_doc = intraday_delta.load_delivered_state(WS, args.market)
-    prior_state = prior_doc.get('state') if isinstance(prior_doc, dict) else {}
+    prior_state = (prior_doc.get('state') or {}) if isinstance(prior_doc, dict) else {}
     semantic_delta = intraday_delta.compare_semantic_states(semantic_state, prior_state)
     # The delta is still computed and still stored when the gate is off: the
     # delivered-state cursor has to keep advancing, or flipping the toggle back

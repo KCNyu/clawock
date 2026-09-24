@@ -256,6 +256,13 @@ def test_preflight_main_selects_receipt_for_equal_delivered_state(
     assert "一级源降级：BAD" in ctx["raw_wechat_block"]
 
 
+def test_first_slot_with_no_delivered_state_is_a_full_card(monkeypatch, tmp_path):
+    _current, run = _wire_preflight(monkeypatch, tmp_path)
+    ctx = run(None)
+    assert ctx['delivery_mode'] == 'full_delta'
+    assert '变化：本交易日首档' in ctx['raw_wechat_block']
+
+
 def test_preflight_main_selects_full_delta_and_preserves_primary_context(
     monkeypatch, tmp_path
 ):
