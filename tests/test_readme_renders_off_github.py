@@ -111,3 +111,17 @@ def test_the_images_that_were_broken_are_still_absolute(needle):
     assert matches, f'{needle} is no longer referenced by the README'
     for target in matches:
         assert target.startswith('https://raw.githubusercontent.com/'), target
+
+
+def test_published_pypi_dashboard_preview_url_still_has_a_small_animation():
+    """The 0.2.0 long description links to raw master and is immutable on PyPI."""
+    from PIL import Image
+
+    path = ROOT / 'site/assets/dashboard.gif'
+    assert path.stat().st_size < 500_000
+    with Image.open(path) as image:
+        assert image.format == 'GIF'
+        assert image.size == (960, 600)
+        assert image.n_frames >= 6
+        image.seek(image.n_frames - 1)
+        image.load()

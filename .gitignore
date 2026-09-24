@@ -43,6 +43,8 @@ media/
 !docs/**/*.jpg
 *.jpeg
 *.gif
+# Published clawock 0.2.0 PyPI description embeds this raw master URL.
+!site/assets/dashboard.gif
 *.mp4
 # README/social artifacts (refreshed weekly by screenshot-refresh.yml) — allow these
 !site/assets/social-card.png
