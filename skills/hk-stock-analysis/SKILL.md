@@ -87,8 +87,10 @@ In this order:
 港股 10:03–11:33、14:03–15:33 HKT。
 
 1. `clawock intraday preflight --market hk --judgment-packet`。`market_closed` 结束。stdout 是短判断包，完整 context 留在 `memory/.tmp/intraday-context-hk-latest.json`，postflight 用 `context_id` 锁同代。任何行情缺口按 `quote_coverage` 明说，不能把旧价说成实时。
-2. `delivery_mode=unchanged_receipt`：直接 `clawock intraday postflight --market hk --context-id <id>`；短回执仍投递，不写散文/sidecar。`full_delta` 才写 `▎我的看法`，1–3 行：变化、判断、下一触发点。先读 `semantic_delta`、`plan_triggers`、`anomalies`、一级事件，再看相关 `mover_news` / `peer_scan` / `add_side_reads`。只说相关票；旧计划、旧新闻和持仓表不复述。模型负责取舍和归因，数值只引用包内原值，绝不心算差值、倍数、金额、股数或自行补状态/催化。
-3. 对本档异动，优先用 `mover_news` 的一手 `interrupt`；`context` 只是背景，`no_recent_filing` 是窗口内无新公告，`degraded` 是源未取到。`plan_context.open` 只作动作约束，不能把 0 股持有观察写成待执行买卖。`add_side_reads` 的 candidate/wait/reject 不是下单授权；有纪律冲突先说阻断条件。一级披露 `candidate|wait|reject` 也不是下单授权。
+2. `delivery_mode=unchanged_receipt`：直接 `clawock intraday postflight --market hk --context-id <id>`；短回执仍投递，不写散文/sidecar。`full_delta` 才写 `▎我的看法`，1–3 行：变化、判断、下一触发点。先读 `semantic_delta`、`plan_triggers`、`anomalies`、一级事件，再看相关 `mover_news` / `peer_scan` / `add_side_reads`。三态都不是下单授权。只说相关票；旧计划、旧新闻和持仓表不复述。模型负责取舍和归因，数值只引用包内原值，绝不心算差值、倍数、金额、股数或自行补状态/催化。
+3. 对本档异动，优先用 `mover_news` 的一手 `interrupt`；`context` 只是背景，`no_recent_filing` 是窗口内无新公告，`degraded` 是源未取到。`plan_context.open` 只作动作约束，不能把 0 股持有观察写成待执行买卖。`add_side_reads` 的 candidate/wait/reject 三态都不是下单授权；有纪律冲突先说阻断条件。一级披露 `candidate|wait|reject` 也不是下单授权。
+**异动归因**：`mover_news` 中 `tier=primary` 且 `signal=interrupt` 才可能是硬催化；`tier=supporting` 只能作背景，盘中禁止 Tavily。`no_recent_filing` 写“窗口内无新一手公告”，`index_fund_no_issuer` 写“指数基金无发行人公告”，`degraded` 写“催化源未取到”，不能把源失败说成无消息。`suppressed_noise` 等计数不要写进报告。只挑本档变化的最多两条，避免复述旧新闻。
+
 4. `full_delta` 同时写 `memory/.tmp/intraday-prose-hk.md` 和 `memory/.tmp/intraday-insights-{YYYY-MM-DD}.json`；sidecar 规范见 `skills/_shared/intraday-status-sidecar.md`。调用 `clawock intraday postflight --market hk --context-id <id> --text-file /root/.openclaw/workspace/memory/.tmp/intraday-prose-hk.md`。harness 拼持仓表、验证、投递微信/TG、刷新 dashboard；不调用 message/send。postflight 不设超时，不在提交前终止。最终回复只留 status/投递/commit 结果，不复制消息。
 
 ### Mode 6 — WeChat Briefing (cron-driven, harness 化 ✨)
