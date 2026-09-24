@@ -1222,6 +1222,56 @@
     rail.hidden = false;
 
     const cells = cronCells(cs);
+    // One readable answer per timeline. Slot pips remain a time map on wide
+    // screens; the list carries the verdict on every screen and every input.
+    const statusList = document.getElementById("dh-timeline-list");
+    if (statusList) {
+      const openJobs = new Set([...statusList.querySelectorAll(".dh-timeline[open]")]
+        .map(row => row.dataset.job));
+      const rank = { bad: 0, warn: 1, stale: 2, live: 3, pending: 4, ok: 5 };
+      const stateFor = j => {
+        const slots = (j.slots || []).map(s => ({ ...s, state: cronState(s.state) }));
+        if (slots.some(s => ["failed", "missed"].includes(s.state))) return ["bad", "故障", "×"];
+        if (slots.some(s => ["degraded", "recovered"].includes(s.state))) return ["warn", "需关注", "!"];
+        if (j.unmonitored || slots.some(s => s.state === "unknown")) return ["stale", "状态未知", "?"];
+        if (slots.some(s => s.state === "running")) return ["live", "运行中", "◷"];
+        if (slots.every(s => s.state === "upcoming")) return ["pending", "尚未到期", "◷"];
+        return ["ok", "正常", "✓"];
+      };
+      const lastSuccess = j => {
+        const successful = (j.slots || []).filter(s => ["ok", "recovered"].includes(s.state));
+        const fallback = successful.length && cs.date
+          ? `${cs.date}T${successful[successful.length - 1].at}:00+08:00` : null;
+        const date = new Date(j.last_success_at || fallback || "");
+        if (isNaN(date)) return "最近成功：暂无记录";
+        const age = Math.max(0, Math.floor((now - date) / 60000));
+        const ageText = age < 60 ? `${age} 分钟前` : age < 1440
+          ? `${Math.floor(age / 60)} 小时前` : `${Math.floor(age / 1440)} 天前`;
+        const time = date.toLocaleString("zh-CN", { timeZone: "Asia/Hong_Kong",
+          month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hour12: false });
+        return `最近成功：${time} HKT · ${ageText}`;
+      };
+      statusList.innerHTML = jobs.map((j, index) => {
+        const [tone, label, icon] = stateFor(j);
+        const issue = (j.slots || []).find(s => s.note &&
+          ["needs_action", "watch", "known_not_fixed"].includes(s.note.disposition));
+        const reason = issue ? issue.note.text : j.unmonitored ? _UNMONITORED_TEXT
+          : tone === "pending" ? "今天的任务尚未到点" : tone === "live" ? "任务正在运行"
+          : tone === "stale" ? "账本没有可判定的结果" : "已完成的槽位正常";
+        const slots = (j.slots || []).map(s => {
+          const state = CRON_STATES[cronState(s.state)];
+          return `<li><time>${escapeHtml(s.at)}</time><span class="dh-slot-state" data-tone="${state.tone}">`
+            + `${escapeHtml(state.cn)}</span><span>${escapeHtml((s.note || {}).text || "")}</span></li>`;
+        }).join("");
+        return { rank: rank[tone], html: `<details class="dh-timeline" data-state="${tone}" data-job="${escapeHtml(j.job)}"${openJobs.has(j.job) ? " open" : ""}>`
+          + `<summary><span class="dh-timeline-name">${escapeHtml(j.job)}</span>`
+          + `<span class="dh-timeline-badge" data-state="${tone}"><span aria-hidden="true">${icon}</span> ${label}</span>`
+          + `<span class="dh-timeline-last">${escapeHtml(lastSuccess(j))}</span>`
+          + `<span class="dh-timeline-reason">${escapeHtml(reason)}</span>`
+          + `<span class="dh-timeline-more" aria-hidden="true">⌄</span></summary>`
+          + `<ul class="dh-timeline-slots">${slots}</ul></details>`, index };
+      }).sort((a, b) => a.rank - b.rank || a.index - b.index).map(row => row.html).join("");
+    }
     const counts = {};
     cells.forEach(c => { counts[c.state] = (counts[c.state] || 0) + 1; });
     const n = k => counts[k] || 0;
@@ -1481,6 +1531,9 @@
       const statEl = document.getElementById(`dh-${key}-stat`);
       const noteEl = document.getElementById(`dh-${key}-note`);
       const chipEl = document.getElementById(`dh-${key}-chip`);
+      const healthEl = document.getElementById(`dh-${key}-health`);
+      const health = { bad: "× 故障", warn: "! 需关注", stale: "! 已过期", pending: "◷ 尚未到期", ok: "✓ 正常" };
+      if (healthEl) healthEl.textContent = health[tone] || "? 状态未知";
       if (statEl) statEl.textContent = stat;
       if (noteEl) noteEl.textContent = note;
       if (chipEl) { chipEl.textContent = chip; chipEl.dataset.act = chip; }
@@ -1512,7 +1565,7 @@
 
     const tightest = files.slice().sort((a, b) => usage(b) - usage(a))[0];
     setLane("files",
-      missing.length ? "bad" : (late.length ? "warn" : "ok"),
+      missing.length ? "bad" : (late.length ? "stale" : "ok"),
       `${files.length - late.length}/${files.length} 在期`,
       late.length
         ? `逾期：${late.map(f => dataFileCn(f.name)).join("、")} —— 页面上这几块是旧数字`
@@ -1529,7 +1582,7 @@
       : [["ok", 1, "无异常"]]);
 
     setLane("delivery",
-      failed ? "bad" : (soft ? "warn" : "ok"),
+      failed ? "bad" : (soft ? "warn" : (pending && !okCount ? "pending" : "ok")),
       winH ? `${slotTotal} 档 / ${winH}h` : `${slotTotal} 档`,
       failed
         ? `${nameThem(failed, jobsWith("failed")) || `${failed} 档 FAILED`} —— 成品没落地`
@@ -1554,9 +1607,18 @@
     const trustBroken = late.length || igErr;
     const todoCount = (late.length ? 1 : 0) + (igErr ? 1 : 0) + (failed ? 1 : 0);
     const watchCount = (igErr ? 0 : (igWarn ? 1 : 0)) + (failed ? 0 : (soft ? 1 : 0));
-    const tone = (trustBroken || failed) ? "bad" : ((igWarn || soft) ? "warn" : "ok");
+    const cronJobs = (safe(DATA, "cron_schedule") || {}).jobs || [];
+    const cronBad = cronJobs.filter(j => (j.slots || []).some(slot =>
+      ["failed", "missed"].includes(slot.state))).length;
+    const cronWarn = cronJobs.filter(j => (j.slots || []).some(slot =>
+      ["degraded", "recovered", "unknown"].includes(slot.state))
+      && !(j.slots || []).some(slot => ["failed", "missed"].includes(slot.state))).length;
+    const tone = (trustBroken || failed || cronBad) ? "bad"
+      : ((igWarn || soft || cronWarn) ? "warn" : "ok");
     const disposition = todoCount ? `${todoCount} 件要处理`
       : (watchCount ? `${watchCount} 件观察中` : "无事可做");
+    const issueCount = todoCount + watchCount + cronBad + cronWarn;
+    const overall = issueCount ? `${issueCount} 项异常` : "当前无异常";
     const trustText = trustBroken
       ? `页面数字存疑 · ${late.length ? `${late.length} 个数据面逾期` : `体检 ${igErr} 项 ERROR`}`
       : "页面数字可用";
@@ -1566,7 +1628,7 @@
       // 正是这块牌以前最误导人的地方。
       verdictEl.innerHTML =
         `<span class="dh-trust" data-trust="${trustBroken ? "broken" : "ok"}">`
-        + `${escapeHtml(trustText)}</span> · `
+        + `${escapeHtml(overall)} · ${escapeHtml(trustText)}</span> · `
         + `<span class="dh-todo" data-sev="${todoCount ? "bad" : (watchCount ? "warn" : "ok")}">`
         + `${escapeHtml(disposition)}</span>`;
     }

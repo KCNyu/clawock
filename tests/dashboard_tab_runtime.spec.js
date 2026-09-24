@@ -2197,9 +2197,13 @@ async function testCronRailAccountsForEverySlotWithoutASecondVerdict(browser, ba
     summary: document.getElementById("dh-rail-name").textContent.trim(),
     verdict: (document.getElementById("dh-verdict")
       || document.getElementById("dh-title")).textContent.trim(),
+    healthPip: getComputedStyle(document.querySelector("#dh-integrity-shape .dh-pip.is-ok")).backgroundColor,
+    waitingPip: getComputedStyle(document.querySelector(".dh-pip[data-tone='idle']")).backgroundColor,
   }));
 
   assert.equal(rail.hidden, false, "cron rail is hidden even though slots exist");
+  assert.notEqual(rail.healthPip, rail.waitingPip,
+    "#1816: a healthy integrity pip reads like a not-yet-due slot");
   assert.equal(rail.pips, 5, `rail drew ${rail.pips} pips for 5 scheduled slots`);
   // 一眼看出「谁」不能靠悬停——每个 job 一条独立的行，行名就是答案。
   assert.deepEqual(rail.rowNames, ["盘前深度简报", "盘中盯盘", "Memory Dreaming Promotion"],
@@ -2245,6 +2249,63 @@ async function testCronRailAccountsForEverySlotWithoutASecondVerdict(browser, ba
     `逐项 detail for a degraded slot lost its plain-language reason: ${cronRow && cronRow.detail}`);
 
   await context.close();
+}
+
+async function testEveryTimelineShowsItsVerdictAndFits(browser, base) {
+  for (const width of [390, 1280]) {
+    const context = await browser.newContext({ viewport: { width, height: 844 },
+      isMobile: width === 390, hasTouch: width === 390 });
+    const page = await context.newPage();
+    await stubLiveOrigin(page, { patch: (name, json) => {
+      if (name !== "overview.json" && name !== "dashboard.json") return null;
+      json.cron_schedule = { date: "2026-09-24", jobs: [
+        { job: "正常任务", last_success_at: "2026-09-24T08:05:00+08:00",
+          slots: [{ at: "08:00", state: "ok" }] },
+        { job: "需关注任务", slots: [{ at: "09:00", state: "degraded",
+          note: { disposition: "watch", text: "已送达，但发布延迟" } }] },
+        { job: "失败任务", slots: [{ at: "10:00", state: "failed",
+          note: { disposition: "needs_action", text: "成品没有送达" } }] },
+        { job: "尚未到期任务", slots: [{ at: "23:50", state: "upcoming" }] },
+        { job: "状态未知的很长很长很长很长任务名称", slots: [{ at: "12:00", state: "unknown" }] },
+      ] };
+      return json;
+    } });
+    await page.goto(base, { waitUntil: "networkidle" });
+    await waitForData(page);
+    await page.waitForSelector("#data-health:not(.is-pending)");
+    const seen = await page.evaluate(() => {
+      const card = document.getElementById("data-health");
+      const rows = [...card.querySelectorAll(".dh-timeline")];
+      return {
+        states: rows.map(row => [row.querySelector(".dh-timeline-name").textContent.trim(),
+          row.dataset.state, row.querySelector(".dh-timeline-badge").textContent.trim(),
+          row.querySelector(".dh-timeline-last").textContent.trim(),
+          row.querySelector(".dh-timeline-reason").textContent.trim()]),
+        verdict: document.getElementById("dh-title").textContent.trim(),
+        laneStates: [...card.querySelectorAll(".dh-health-state")].map(el => el.textContent.trim()),
+        overflow: card.scrollWidth - card.clientWidth,
+        edge: Math.min(...rows.map(row => row.getBoundingClientRect().left
+          - card.getBoundingClientRect().left)),
+      };
+    });
+    assert.deepEqual(seen.states.map(row => row[1]), ["bad", "warn", "stale", "pending", "ok"]);
+    assert(/\d+ 项异常/.test(seen.verdict), `cron failures are missing from the overall verdict: ${seen.verdict}`);
+    assert.equal(seen.laneStates.length, 3);
+    assert(seen.laneStates.every(label => /^[×!◷✓?] /.test(label)),
+      `a lane has no explicit icon and state: ${seen.laneStates}`);
+    assert(seen.states.every(row => row[2] && row[3] && row[4]),
+      `a timeline omits its state, last success, or reason: ${JSON.stringify(seen.states)}`);
+    assert(seen.states.find(row => row[0] === "正常任务")[2].includes("正常"));
+    assert(seen.states.find(row => row[0] === "尚未到期任务")[2].includes("尚未到期"));
+    assert(seen.overflow <= 0 && seen.edge >= 12,
+      `${width}px: timeline clips or hugs the card edge: ${JSON.stringify(seen)}`);
+    const first = page.locator(".dh-timeline summary").first();
+    await first.focus();
+    await page.keyboard.press("Enter");
+    assert.equal(await page.locator(".dh-timeline").first().getAttribute("open"), "",
+      "keyboard activation did not reveal the slot reason");
+    await context.close();
+  }
 }
 
 async function testCronNeedsActionMergesIntoTheOneTodoListButWatchDoesNot(browser, base) {
@@ -3594,6 +3655,7 @@ async function main() {
     await run("testTheValidationLedgerRendersItsVerdictsAndFitsAPhone", () => testTheValidationLedgerRendersItsVerdictsAndFitsAPhone(browser, base));
     await run("testAPanelSaysWhenItsDataDidNotLoad", () => testAPanelSaysWhenItsDataDidNotLoad(browser, base));
     await run("testCronRailAccountsForEverySlotWithoutASecondVerdict", () => testCronRailAccountsForEverySlotWithoutASecondVerdict(browser, base));
+    await run("testEveryTimelineShowsItsVerdictAndFits", () => testEveryTimelineShowsItsVerdictAndFits(browser, base));
     await run("testCronNeedsActionMergesIntoTheOneTodoListButWatchDoesNot", () => testCronNeedsActionMergesIntoTheOneTodoListButWatchDoesNot(browser, base));
     await run("testMoversSayWhichSessionTheyAreFrom", () => testMoversSayWhichSessionTheyAreFrom(browser, base));
     await run("testCardRhythmIsOneScalePerTier", () => testCardRhythmIsOneScalePerTier(browser, base));

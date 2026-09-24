@@ -235,6 +235,19 @@ def timetable(contract, records, *, now=None):
                          'slots': [{'at': slot, 'state': 'unmonitored',
                                    'note': _UNMONITORED_NOTE} for slot in slots]})
             continue
+        # The slot grid covers today; the last successful delivery may belong to
+        # yesterday. Use the ledger's completion/update timestamp, never infer a
+        # success from a scheduled slot that has no outcome.
+        successes = []
+        for record in records:
+            if record.get('job') != name or (record.get('final_product') or {}).get('status') not in {'success', 'recovered'}:
+                continue
+            try:
+                completed = datetime.fromisoformat(record.get('updated_at') or record['slot'])
+                if completed.tzinfo and completed <= now:
+                    successes.append(completed)
+            except (KeyError, TypeError, ValueError):
+                continue
         found = _records_by_slot(records, name, day, tz, slots)
         cells = []
         for slot in slots:
@@ -256,7 +269,8 @@ def timetable(contract, records, *, now=None):
             if note:
                 cell['note'] = note
             cells.append(cell)
-        rows.append({'job': name, 'tz': tz_name, 'slots': cells})
+        rows.append({'job': name, 'tz': tz_name, 'slots': cells,
+                     'last_success_at': max(successes).isoformat() if successes else None})
     return {
         'date': now.astimezone(HKT).strftime('%Y-%m-%d'),
         'grace_minutes': GRACE_MINUTES,

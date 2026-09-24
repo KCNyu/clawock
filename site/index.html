@@ -348,7 +348,7 @@ layout: null
         <div class="dh-lanes-shell"><div class="dh-lanes">
           <button type="button" class="dh-lane" id="dh-lane-files" data-tone="ok"
                   aria-expanded="false" aria-controls="dh-group-files">
-            <span class="dh-lane-name">数据面</span>
+            <span class="dh-lane-name">数据面<span class="dh-health-state" id="dh-files-health"></span></span>
             <span class="dh-lane-stat" id="dh-files-stat">&mdash;</span>
             <span class="dh-strip" id="dh-strip" role="img" aria-label="每个数据面的期限用量"></span>
             <span class="dh-lane-note" id="dh-files-note"></span>
@@ -362,7 +362,7 @@ layout: null
           </section>
           <button type="button" class="dh-lane" id="dh-lane-integrity" data-tone="ok"
                   aria-expanded="false" aria-controls="dh-group-integrity">
-            <span class="dh-lane-name">体检</span>
+            <span class="dh-lane-name">体检<span class="dh-health-state" id="dh-integrity-health"></span></span>
             <span class="dh-lane-stat" id="dh-integrity-stat">&mdash;</span>
             <span class="dh-lane-shape" id="dh-integrity-shape" role="img" aria-label="体检结果构成"></span>
             <span class="dh-lane-note" id="dh-integrity-note"></span>
@@ -376,7 +376,7 @@ layout: null
           </section>
           <button type="button" class="dh-lane" id="dh-lane-delivery" data-tone="ok"
                   aria-expanded="false" aria-controls="dh-group-delivery">
-            <span class="dh-lane-name">投递</span>
+            <span class="dh-lane-name">投递<span class="dh-health-state" id="dh-delivery-health"></span></span>
             <span class="dh-lane-stat" id="dh-delivery-stat">&mdash;</span>
             <span class="dh-lane-shape" id="dh-delivery-shape" role="img" aria-label="窗口内成品结果构成"></span>
             <span class="dh-lane-note" id="dh-delivery-note"></span>
@@ -404,6 +404,7 @@ layout: null
                  图本身回答，CSS 把它藏起来。 -->
             <span class="dh-rail-next" id="dh-rail-next"></span>
           </div>
+          <div class="dh-timeline-list" id="dh-timeline-list" aria-label="每个任务的健康状态"></div>
           <div class="dh-rail-body">
             <div class="dh-rail-rows" id="dh-rail-rows" role="img"
                  aria-label="今天每个定时任务的槽位，按 job 分行、按时刻摆放"></div>
