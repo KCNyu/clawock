@@ -110,9 +110,9 @@ function readPortfolio(workspace) {
 		const bookObj = book;
 		if (!Array.isArray(bookObj["holdings"])) continue;
 		const rawHoldings = bookObj["holdings"].filter((h) => h !== null && typeof h === "object");
-		const holdings = rawHoldings.filter((h) => Number(h["shares"] ?? h["quantity"] ?? 0) > 0).map((h) => ({
+		const holdings = rawHoldings.filter((h) => (num(h["shares"] ?? h["quantity"]) ?? 0) > 0).map((h) => ({
 			ticker: String(h["ticker"] ?? h["stock_name"] ?? h["name"] ?? "?"),
-			shares: Number(h["shares"] ?? h["quantity"] ?? 0),
+			shares: num(h["shares"] ?? h["quantity"]) ?? 0,
 			cost: num(h["cost_basis"]),
 			price: num(h["current_price"]),
 			pnlPct: num(h["pnl_percent"]),
@@ -132,13 +132,15 @@ function readPortfolio(workspace) {
 			for (const tr of rawTrades) {
 				if (tr === null || typeof tr !== "object") continue;
 				const trObj = tr;
+				const shares = num(trObj["shares"] ?? 0);
+				if (shares === null) continue;
 				trades.push({
 					ticker: String(holding["ticker"] ?? holding["stock_name"] ?? holding["name"] ?? "?"),
 					market,
 					currency,
 					date: typeof trObj["date"] === "string" ? trObj["date"] : null,
 					action: typeof trObj["action"] === "string" ? trObj["action"] : "",
-					shares: Number(trObj["shares"] ?? 0),
+					shares,
 					price: num(trObj["price"]),
 					realizedPnl: num(trObj["realized_pnl"]),
 					note: typeof trObj["note"] === "string" ? trObj["note"] : null

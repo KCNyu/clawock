@@ -121,10 +121,10 @@ export function readPortfolio(workspace: string): PortfolioResult {
       if (!Array.isArray(bookObj['holdings'])) continue
       const rawHoldings = bookObj['holdings'].filter((h): h is Record<string, unknown> => h !== null && typeof h === 'object')
       const holdings: Holding[] = rawHoldings
-        .filter((h) => (Number(h['shares'] ?? h['quantity'] ?? 0)) > 0) // zero-share rows are not positions
+        .filter((h) => (num(h['shares'] ?? h['quantity']) ?? 0) > 0) // zero-share and malformed rows are not positions
         .map((h) => ({
           ticker: String(h['ticker'] ?? h['stock_name'] ?? h['name'] ?? '?'),
-          shares: Number(h['shares'] ?? h['quantity'] ?? 0),
+          shares: num(h['shares'] ?? h['quantity']) ?? 0,
           cost: num(h['cost_basis']),
           price: num(h['current_price']),
           pnlPct: num(h['pnl_percent']),
@@ -155,6 +155,8 @@ export function readPortfolio(workspace: string): PortfolioResult {
         for (const tr of rawTrades) {
           if (tr === null || typeof tr !== 'object') continue
           const trObj = tr as Record<string, unknown>
+          const shares = num(trObj['shares'] ?? 0)
+          if (shares === null) continue // one malformed fill cannot invalidate the whole strict wire result
           trades.push({
             ticker: String(holding['ticker'] ?? holding['stock_name'] ?? holding['name'] ?? '?'),
             market,
@@ -164,7 +166,7 @@ export function readPortfolio(workspace: string): PortfolioResult {
             // filed every unclassified fill under adds (side='add'), inflating
             // the buy-side stats (#836). '' keeps it out of both buckets.
             action: typeof trObj['action'] === 'string' ? trObj['action'] : '',
-            shares: Number(trObj['shares'] ?? 0),
+            shares,
             price: num(trObj['price']),
             realizedPnl: num(trObj['realized_pnl']),
             note: typeof trObj['note'] === 'string' ? trObj['note'] : null,
