@@ -168,7 +168,7 @@ test("ledger: malformed shares cannot reject the portfolio or traces wire (#1821
     for (const [method, result] of [["portfolio", portfolio], ["traces", traces]]) {
       const invocation = TYPERT.invocations.find((i) => i.id === `clawock-dsh#clawockStudio/${method}`);
       const wire = JSON.parse(JSON.stringify({ workspaceKey: "test", signature: "test", ...result }));
-      assert.equal(invocation.result.schema.safeParse(wire).success, true, `${method} strict wire must accept surviving rows`);
+      assert.equal(invocation.result.create().safeParse(wire).success, true, `${method} strict wire must accept surviving rows`);
     }
   } finally {
     fs.rmSync(root, { recursive: true, force: true });
@@ -1998,6 +1998,20 @@ test("typert: the frozen artifacts carry hand-maintained wire fields on both fac
   const client = fs.readFileSync(path.join(PLUGIN, "lib/client.js"), "utf8");
   assert.match(client, /"side": union\(\[\s*literal\("add"\),\s*literal\("reduce"\),\s*literal\(null\)/,
     "the browser bundle embeds the same trade-side decoder");
+});
+
+test("typert: every shipped codec meets DSH 0.1.7's create() contract", async () => {
+  for (const rel of ["lib/typert.host.js", "lib/typert.remote-client.js"]) {
+    const face = await import(pathToFileURL(path.join(PLUGIN, rel)).href);
+    const invocations = face.TYPERT?.invocations ?? face.TYPERT_REMOTE.descriptors;
+    assert.equal(invocations.length, 8, rel);
+    for (const invocation of invocations) {
+      for (const codec of [...invocation.parameters.map((parameter) => parameter.codec), invocation.result]) {
+        assert.equal(typeof codec.create, "function", `${rel}: ${invocation.id}`);
+        assert.equal(typeof codec.create().safeParse, "function", `${rel}: ${invocation.id} schema`);
+      }
+    }
+  }
 });
 
 test("client: the header chip headlines one provider and the panel pins the rest", async () => {
