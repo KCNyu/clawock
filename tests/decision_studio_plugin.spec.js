@@ -145,6 +145,36 @@ test("ledger: portfolio summarizes holdings per book", async () => {
   }
 });
 
+test("ledger: malformed shares cannot reject the portfolio or traces wire (#1821)", async () => {
+  const ledger = await import(pathToFileURL(path.join(PLUGIN, "lib", "ledger.js")).href);
+  const { TYPERT } = await import(pathToFileURL(path.join(PLUGIN, "lib", "typert.host.js")).href);
+  const root = makeDesk();
+  try {
+    const file = path.join(root, "portfolio.json");
+    const doc = JSON.parse(fs.readFileSync(file, "utf8"));
+    const holdings = doc.portfolios.us_stocks.holdings;
+    holdings.push({ ticker: "BAD", shares: "20股", trades: [
+      { date: "2026-08-14", action: "buy", shares: "abc", price: 10 },
+    ] });
+    holdings[1].trades.push({ date: "2026-08-15", action: "buy", shares: "20", price: 51 });
+    fs.writeFileSync(file, JSON.stringify(doc));
+
+    const portfolio = ledger.readPortfolio(root);
+    assert.equal(portfolio.books.find((b) => b.name === "us_stocks").holdings.length, 1);
+    assert.equal(portfolio.trades.length, 5, "only the malformed fill is skipped");
+    assert.equal(portfolio.trades[0].shares, 20, "numeric strings remain valid");
+    assert.ok(portfolio.trades.every((t) => Number.isFinite(t.shares)));
+    const traces = ledger.readTraces(root);
+    for (const [method, result] of [["portfolio", portfolio], ["traces", traces]]) {
+      const invocation = TYPERT.invocations.find((i) => i.id === `clawock-dsh#clawockStudio/${method}`);
+      const wire = JSON.parse(JSON.stringify({ workspaceKey: "test", signature: "test", ...result }));
+      assert.equal(invocation.result.schema.safeParse(wire).success, true, `${method} strict wire must accept surviving rows`);
+    }
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
 test("ledger: a book sold down to zero keeps its trades (#1530)", async () => {
   const ledger = await import(pathToFileURL(path.join(PLUGIN, "lib", "ledger.js")).href);
   const root = makeDesk();
