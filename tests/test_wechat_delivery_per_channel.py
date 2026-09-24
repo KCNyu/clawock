@@ -131,7 +131,7 @@ def test_intraday_postflight_sends_the_next_slot_after_a_late_one(tmp_path, monk
         'read_report_text': lambda market, text_file: ('prose', None),
         'assemble_message': lambda c, text: 'body',
         'validate': lambda *a, **kw: [],
-        'normalize_intraday_insights': lambda path: True,
+        'normalize_intraday_insights': lambda path, **_kwargs: True,
         'publish_data_plane': lambda market: ('current', False),
         'send_per_policy': lambda *a, **kw: (sends.append(a[1]), (True, 'ok', True))[1],
     }
