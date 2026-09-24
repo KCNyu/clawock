@@ -154,6 +154,9 @@ def test_npm_only_dispatch_runs_only_npm_and_never_a_github_release():
     assert "inputs.npm_only == 'true' || inputs.npm_only == true" in npm_job, (
         "npm-only dispatch has to enable the npm job from a branch ref"
     )
+    assert "inputs.repository" not in npm_job.split("\n    runs-on:", 1)[0], (
+        "the npm-only repair must work with the default TestPyPI input"
+    )
     assert "tomllib.load(open('pyproject.toml'" in npm_job, (
         "the publish version must come from pyproject.toml, not from the ref "
         "name — a branch dispatch has no tag version to strip off"
