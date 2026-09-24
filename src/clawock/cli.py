@@ -236,6 +236,8 @@ def _harness(args, workflow=None) -> int:
             forwarded += [flag, str(value)]
     if getattr(args, "dry_run", False):
         forwarded.append("--dry-run")
+    if getattr(args, "judgment_packet", False):
+        forwarded.append("--judgment-packet")
     try:
         return run_phase(workflow, phase, forwarded,
                          workspace=getattr(args, "workspace", None),
@@ -638,6 +640,9 @@ def build_parser() -> argparse.ArgumentParser:
         harness.add_argument("--text-file", type=Path)
         harness.add_argument("--date", help="artifact date (render; default today in HKT)")
         harness.add_argument("--dry-run", action="store_true")
+        if workflow == "intraday":
+            harness.add_argument("--judgment-packet", action="store_true",
+                                 help="print the bounded model packet; keep full context on disk")
         harness.add_argument("--workspace", type=Path, default=None)
         harness.add_argument(
             "--profile", dest="runtime_profile",

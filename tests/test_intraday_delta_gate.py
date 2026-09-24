@@ -165,7 +165,7 @@ def test_naive_session_time_is_explicitly_interpreted_as_hong_kong():
 def _wire_preflight(monkeypatch, tmp_path):
     """Run the real main while replacing unrelated network/analysis producers."""
     now = datetime(2026, 8, 14, 1, 33, tzinfo=ZoneInfo("Asia/Hong_Kong"))
-    signals = [{"ticker": "SPCH", "level": "STOP", "line": "STOP SPCH"}]
+    signals = [{"ticker": "RKLX", "level": "STOP", "line": "STOP RKLX"}]
     setups = {"rows": [{
         "label": "SPCH", "setup_id": "confirmed_breakout",
         "holdings": ["SPCH"], "entry_price": 7.2,
@@ -254,6 +254,13 @@ def test_preflight_main_selects_receipt_for_equal_delivered_state(
     assert ctx["delivery_mode"] == "unchanged_receipt"
     assert "本轮无新的加仓/减仓条件" in ctx["raw_wechat_block"]
     assert "一级源降级：BAD" in ctx["raw_wechat_block"]
+
+
+def test_first_slot_with_no_delivered_state_is_a_full_card(monkeypatch, tmp_path):
+    _current, run = _wire_preflight(monkeypatch, tmp_path)
+    ctx = run(None)
+    assert ctx['delivery_mode'] == 'full_delta'
+    assert '变化：本交易日首档' in ctx['raw_wechat_block']
 
 
 def test_preflight_main_selects_full_delta_and_preserves_primary_context(

@@ -39,6 +39,7 @@ the existing single publisher exposes without introducing another git writer.
 
 import argparse
 import json
+import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
@@ -91,7 +92,10 @@ REQUIRED_SECTION = '▎我的看法'
 # One table with report/brief: this file used to carry its own copy, which
 # never gained '数据缺失（占位）' and let that placeholder ship intraday (#1776).
 from clawock.harness.report import FORBIDDEN_PHRASES  # noqa: E402
-CRITICAL_KEYWORDS = ['缺段标记', '未包含原始数据块', '敷衍词', '表格行未 verbatim']
+CRITICAL_KEYWORDS = ['缺段标记', '未包含原始数据块', '敷衍词',
+                     '表格行未 verbatim', 'SPCH 策略冲突']
+JUDGMENT_SOFT_LIMIT = 320
+JUDGMENT_HARD_LIMIT = 600
 
 
 def load_context(market):
@@ -156,7 +160,7 @@ def input_error(market, err):
     return 2
 
 
-def normalize_intraday_insights(path, generated_at=None):
+def normalize_intraday_insights(path, generated_at=None, *, written_after=None):
     """Replace model metadata with the current harness generation timestamp.
 
     The model owns narrative only. Malformed/missing sidecars are dashboard
@@ -165,14 +169,27 @@ def normalize_intraday_insights(path, generated_at=None):
     if not path.exists():
         return False
     try:
+        if written_after:
+            cutoff = datetime.fromisoformat(str(written_after).replace('Z', '+00:00'))
+            # New preflights always carry HKT offset. Older stored contexts may
+            # be naive; they cannot provide a trustworthy cutoff.
+            if cutoff.tzinfo is not None and path.stat().st_mtime < cutoff.timestamp() - 1:
+                raise ValueError('sidecar predates this preflight')
         payload = json.loads(path.read_text())
         if not isinstance(payload, dict):
             raise ValueError('top-level JSON must be an object')
+        banner, movers = payload.get('status_banner'), payload.get('movers')
+        if not isinstance(banner, str) or len(banner) > 50:
+            raise ValueError('status_banner must be text of at most 50 characters')
+        if not isinstance(movers, dict) or any(
+                not isinstance(key, str) or not isinstance(value, str)
+                or len(value) > 40 for key, value in movers.items()):
+            raise ValueError('movers must map tickers to text of at most 40 characters')
         canonical = {
             'generated_at': generated_at or datetime.now(timezone.utc).isoformat(
                 timespec='seconds').replace('+00:00', 'Z'),
-            'status_banner': payload.get('status_banner'),
-            'movers': payload.get('movers'),
+            'status_banner': banner,
+            'movers': movers,
         }
         safe_write_json(str(path), canonical)
         return True
@@ -247,6 +264,13 @@ def validate(text, ctx, model_text):
                 f'(< 60 软下限)；需引用具体票 + 一行判断'
             )
 
+    # Only the model slot is bounded here; the harness-owned table can be long
+    # without forcing the model to copy it or making a sound quote fail.
+    if len(checked) > JUDGMENT_HARD_LIMIT:
+        issues.append(f'判断段长度 {len(checked)} 字 > {JUDGMENT_HARD_LIMIT} 上限')
+    elif len(checked) > JUDGMENT_SOFT_LIMIT:
+        issues.append(f'判断段长度 {len(checked)} 字 > {JUDGMENT_SOFT_LIMIT} 软上限 (warn)')
+
     # Length is a property of what actually gets pushed to WeChat, so it — and
     # only it — measures the assembled body. The thresholds are Mode 6's, shared
     # rather than copied: this file used to carry its own 3000/3500 literals,
@@ -306,6 +330,12 @@ def validate(text, ctx, model_text):
 
     # 管线术语 —— advisory，见 check_pipeline_self_reference
     issues.extend(check_pipeline_self_reference(checked))
+
+    if ctx.get('market') == 'us' and re.search(
+            r'SPCH[^。\n]{0,75}(?:砍仓|砍掉|清仓|减仓|止损|cut|trim)'
+            r'|(?:砍仓|砍掉|清仓|减仓|止损|cut|trim)[^。\n]{0,75}SPCH',
+            checked, re.IGNORECASE):
+        issues.append('SPCH 策略冲突：盘中判断建议了砍仓/减仓/止损')
 
     return issues
 
@@ -469,7 +499,8 @@ def main(argv=None):
     insights_path = TMP / f'intraday-insights-{sidecar_date}.json'
     # A receipt has no new model judgement.  Re-normalizing yesterday's file
     # would stamp old prose with the current UTC time and make it look fresh.
-    insights_written = False if receipt_only else normalize_intraday_insights(insights_path)
+    insights_written = (False if receipt_only else normalize_intraday_insights(
+        insights_path, written_after=ctx.get('generated_at')))
     if not insights_written and not receipt_only:
         print(f'warn: {insights_path.name} 缺失或不可用 — dashboard status_banner 将过期隐藏 '
               f'(SKILL Mode 7 Step 2.5 / cron payload Step 2.5)', file=sys.stderr)

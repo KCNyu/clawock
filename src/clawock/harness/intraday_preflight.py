@@ -96,6 +96,21 @@ def parse_signals(stdout):
     return _harness_common.parse_signal_lines(stdout)
 
 
+def actionable_signals(market, counts, detail):
+    """Exclude SPCH cost-basis signals from the intraday action lane.
+
+    The analyzer's original signal stays in source_signals_detail for audit.
+    SPCH P0 is evaluated from proven daily/weekly moves, not a floating loss.
+    """
+    if market != 'us':
+        return counts, detail
+    rows = [row for row in detail if row.get('ticker') != 'SPCH']
+    effective = {level.lower(): sum(
+        str(row.get('level', '')).upper() == level for row in rows)
+        for level in SIGNAL_LEVELS}
+    return effective, rows
+
+
 def decide_alert(signals, anomalies):
     """`(should_alert, reasons)` for this slot.
 
@@ -704,6 +719,135 @@ def render_unchanged_receipt(market, block, coverage, active):
     return '\n'.join(lines)
 
 
+DELTA_LABELS = {
+    'session': '本交易日首档', 'breaches': '信号/触发档位',
+    'setups': '机会形态', 'plans': '未成交计划',
+    'primary_events': '一级披露', 'primary_source_health': '一级源状态',
+    'regime': '组合风险档位',
+}
+
+
+def prepend_delta_lead(block, delta, *, current, previous):
+    """Put the reason for a full card before the holdings table on both legs."""
+    lines = block.splitlines()
+    if not lines:
+        return block
+    if previous:
+        labels = [DELTA_LABELS[key] for key in delta.get('components', [])
+                  if key in DELTA_LABELS]
+        lead = '变化：' + '、'.join(labels or ['决策条件'])
+        old = {json.dumps(row, sort_keys=True, ensure_ascii=False)
+               for row in previous.get('breaches', [])}
+        fresh = [row for row in current.get('breaches', [])
+                 if json.dumps(row, sort_keys=True, ensure_ascii=False) not in old]
+        names = list(dict.fromkeys(str(row.get('ticker')) for row in fresh
+                                   if row.get('ticker')))
+        if names:
+            lead += '（新触发：' + '、'.join(names[:4]) + '）'
+    else:
+        lead = '变化：本交易日首档，建立对照'
+    return '\n'.join([lines[0], lead, *lines[1:]])
+
+
+def prepend_coverage_warning(block, coverage):
+    """A full card must disclose incomplete quotes, as the receipt already does."""
+    missing = coverage.get('unrefreshed') or []
+    if not missing:
+        return block
+    lines = block.splitlines()
+    warning = '⚠️ 行情未证实完整刷新：' + '、'.join(missing)
+    return '\n'.join([*lines[:2], warning, *lines[2:]])
+
+
+def strip_generic_news(block):
+    """Drop the analyzer's repeated, truncated headline feed from intraday cards.
+
+    Mover-specific primary evidence stays in the structured context and the
+    explicit active-information section. The generic feed has no newness gate.
+    """
+    out = []
+    in_news = False
+    for line in block.splitlines():
+        if line.strip() == '📰 新闻':
+            in_news = True
+            continue
+        if in_news and line.startswith(('🎯', '🛰️', '⚠️', '📉', '📊', '🇭🇰', '🇺🇸')):
+            in_news = False
+        if not in_news:
+            out.append(line)
+    return '\n'.join(out).rstrip()
+
+
+def apply_spch_intraday_contract(block, p0):
+    """Keep generic cost-basis STOP chatter out of the SPCH DCA card.
+
+    The signal remains in the stored context for audit. A verified daily move
+    beyond the user's P0 line is printed explicitly; a floating-loss STOP is
+    not an instruction to sell SPCH. Weekly SPCX P0 needs its own proven quote
+    and is not inferred from the SPCH price or a peer headline.
+    """
+    output = []
+    skip_detail = False
+    for line in block.splitlines():
+        if re.search(r'\b(?:STOP-LOSS|STOP\?|WATCH|TRIM) SPCH\b', line):
+            skip_detail = True
+            continue
+        if skip_detail and line.lstrip().startswith('·'):
+            continue
+        skip_detail = False
+        output.append(line)
+    for index in range(len(output) - 1, -1, -1):
+        if output[index].strip() == '⚠️ 信号':
+            next_line = next((row.strip() for row in output[index + 1:]
+                              if row.strip()), '')
+            if not next_line.startswith(('▼', '△', '✋', '▲')):
+                del output[index]
+    if p0.get('spch_daily_pct') is not None:
+        output.insert(1, f"P0：SPCH 单日 {p0['spch_daily_pct']:+.1f}%，无限子弹流是否继续？")
+    if p0.get('spcx_weekly_pct') is not None:
+        output.insert(1, f"P0：SPCX 单周 {p0['spcx_weekly_pct']:+.1f}%，无限子弹流是否继续？")
+    return '\n'.join(output)
+
+
+def spch_p0_evidence(stdout, anomalies, coverage, *, now):
+    """Evaluate only the two user-authorized SPCH upgrade lines from fresh data."""
+    evidence = {'spch_daily_pct': None, 'spcx_weekly_pct': None}
+    if not coverage.get('active') or not coverage.get('refreshed'):
+        return evidence
+    unrefreshed = set(coverage.get('unrefreshed') or [])
+    if 'SPCH' not in unrefreshed:
+        for row in anomalies or []:
+            move = row.get('move_pct')
+            if row.get('ticker') == 'SPCH' and isinstance(move, (int, float)) and move < -15:
+                evidence['spch_daily_pct'] = move
+                break
+    if 'SPCX' in unrefreshed:
+        return evidence
+    quotes = {row.get('ticker'): row.get('price')
+              for row in _harness_common.parse_holdings_rows(stdout)}
+    price = quotes.get('SPCX')
+    if not isinstance(price, (int, float)) or price <= 0:
+        return evidence
+    try:
+        detail = next(row for row in quant_signals.universe_details()
+                      if row.get('label') == 'SPCX')
+        bars = _fetch_bars_cached(detail['code'], 400)
+        session = intraday_delta.market_session_date('us', now)
+        completed = [bar for bar in bars if bar.get('date', '') < session]
+        # Five completed sessions before the current intraday print.
+        if len(completed) >= 5:
+            prior = completed[-5]
+            # A stale kline is not evidence of a weekly move.
+            if (datetime.fromisoformat(session).date()
+                    - datetime.fromisoformat(completed[-1]['date']).date()).days <= 5:
+                pct = (price / prior['close'] - 1) * 100
+                if pct < -25:
+                    evidence['spcx_weekly_pct'] = round(pct, 1)
+    except (KeyError, StopIteration, TypeError, ValueError, ZeroDivisionError):
+        pass
+    return evidence
+
+
 ACTION_CN = {
     'trim_on_rebound': '减仓', 'cut': '清仓', 'add_only_on_trigger': '加仓',
     'add_on_breakout': '突破加仓', 'hold_and_watch': '持有观察',
@@ -794,9 +938,41 @@ def collect_peers(market):
         return {}
 
 
+def judgment_packet(ctx):
+    """Bound the model input while retaining the full postflight audit context."""
+    if ctx.get('status') != 'ok':
+        return ctx
+    relevant = list(dict.fromkeys(
+        [row.get('ticker') for row in ctx.get('anomalies', [])]
+        + [row.get('ticker') for row in ctx.get('signals_detail', [])]
+        + [row.get('ticker') for row in ctx.get('plan_triggers', [])]
+    ))
+    relevant = [ticker for ticker in relevant if ticker]
+    plans = ctx.get('plan_context') or {}
+    packet = {key: ctx.get(key) for key in (
+        'status', 'market', 'date', 'time', 'context_id', 'delivery_mode',
+        'semantic_delta', 'should_alert', 'alert_reasons', 'raw_wechat_block',
+        'quote_coverage', 'anomalies', 'signals_detail', 'plan_triggers',
+        'add_side_reads', 'mover_news', 'mover_thesis', 'known_catalysts',
+        'active_information_candidates', 'opportunity_radar', 'spch_p0',
+    )}
+    packet['plan_context'] = {
+        'open': [row for row in plans.get('open', [])
+                 if row.get('ticker') in relevant or (row.get('shares') or 0) > 0][:5],
+        'open_count': len(plans.get('open', [])),
+        'carried_over': plans.get('carried_over'),
+    }
+    packet['peer_scan'] = {
+        ticker: ctx['peer_scan'][ticker] for ticker in relevant
+        if ticker in (ctx.get('peer_scan') or {})
+    }
+    return packet
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser()
     parser.add_argument('--market', choices=['hk', 'us'], required=True)
+    parser.add_argument('--judgment-packet', action='store_true')
     args = parser.parse_args(argv)
 
     now = datetime.now(trading_calendar.HKT)
@@ -849,7 +1025,9 @@ def main(argv=None):
         print(json.dumps(result, ensure_ascii=False, indent=2))
         return 1
 
-    signals, signals_detail = parse_signals(stdout)
+    source_signals, source_signals_detail = parse_signals(stdout)
+    signals, signals_detail = actionable_signals(
+        args.market, source_signals, source_signals_detail)
     anomalies = parse_anomalies(stdout)
 
     # T+0 牌面评级 — analyze_*_stocks 刚刷过价，此处用实时区间位算追高检测。
@@ -957,6 +1135,11 @@ def main(argv=None):
         now=datetime.now(trading_calendar.HKT),
         started_at=now,
     )
+    spch_p0 = (spch_p0_evidence(stdout, anomalies, coverage, now=now)
+               if args.market == 'us' else {})
+    if any(value is not None for value in spch_p0.values()):
+        should_alert = True
+        alert_reasons.append('SPCH 无限子弹流 P0 条件')
     semantic_state = intraday_delta.semantic_state(
         args.market, intraday_delta.market_session_date(args.market, now),
         signals_detail=signals_detail,
@@ -964,8 +1147,14 @@ def main(argv=None):
         active_information=active_information_ctx,
         plan_triggers=plan_triggers,
     )
+    for key, value in spch_p0.items():
+        if value is not None:
+            semantic_state['breaches'].append({
+                'ticker': 'SPCH' if key == 'spch_daily_pct' else 'SPCX',
+                'kind': 'spch_p0', 'level': key,
+            })
     prior_doc = intraday_delta.load_delivered_state(WS, args.market)
-    prior_state = prior_doc.get('state') if isinstance(prior_doc, dict) else {}
+    prior_state = (prior_doc.get('state') or {}) if isinstance(prior_doc, dict) else {}
     semantic_delta = intraday_delta.compare_semantic_states(semantic_state, prior_state)
     # The delta is still computed and still stored when the gate is off: the
     # delivered-state cursor has to keep advancing, or flipping the toggle back
@@ -981,7 +1170,8 @@ def main(argv=None):
         # receipt back into another full alert.
         should_alert, alert_reasons = False, []
     else:
-        raw_block = append_setup_section(stdout.strip(), live_setups, signals_detail)
+        raw_block = append_setup_section(
+            strip_generic_news(stdout.strip()), live_setups, signals_detail)
         raw_block = append_early_trend_section(
             raw_block, early_candidates, signals_detail)
         raw_block = append_opportunity_radar_section(
@@ -991,6 +1181,16 @@ def main(argv=None):
             event_ids=set(semantic_delta['changed_event_ids']),
         )
         raw_block = append_plan_trigger_section(raw_block, plan_triggers)
+        if args.market == 'us':
+            prior_p0 = {row.get('level') for row in prior_state.get('breaches', [])
+                        if row.get('kind') == 'spch_p0'}
+            display_p0 = {key: value for key, value in spch_p0.items()
+                          if key not in prior_p0}
+            raw_block = apply_spch_intraday_contract(raw_block, display_p0)
+        raw_block = prepend_delta_lead(
+            raw_block, semantic_delta, current=semantic_state,
+            previous=prior_state)
+        raw_block = prepend_coverage_warning(raw_block, coverage)
         should_alert, alert_reasons = apply_plan_trigger_alert(
             should_alert, alert_reasons, plan_triggers)
         delivery_mode = 'full_delta'
@@ -1027,6 +1227,8 @@ def main(argv=None):
         'plan_triggers':    plan_triggers,
         'signal_count':     signals,
         'signals_detail':   signals_detail,
+        'source_signals_detail': source_signals_detail,
+        'spch_p0': spch_p0,
         'anomalies':        anomalies,
         'should_alert':     should_alert,
         'alert_reasons':    alert_reasons,
@@ -1062,7 +1264,8 @@ def main(argv=None):
     safe_write_text(str(TMP / f'intraday-context-{args.market}-latest.json'),
                     json.dumps(result, ensure_ascii=False, indent=2))
 
-    print(json.dumps(result, ensure_ascii=False, indent=2))
+    print(json.dumps(judgment_packet(result) if args.judgment_packet else result,
+                     ensure_ascii=False, indent=2))
     return 0
 
 
