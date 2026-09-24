@@ -19,6 +19,7 @@
 
 <sub><i>“市场不在乎模型有多自信。”</i></sub>
 
+<a href="https://kcnyu.github.io/clawock/"><img src="site/assets/dashboard.gif" alt="clawock 仪表盘循环切换各标签页" width="820"></a>
 
 | **<!-- CW_M:days -->127<!-- /CW_M:days -->** | **<!-- CW_M:rows -->881<!-- /CW_M:rows -->** | **<!-- CW_M:settled -->144<!-- /CW_M:settled -->** | **43** | **5** | **0** |
 |:---:|:---:|:---:|:---:|:---:|:---:|

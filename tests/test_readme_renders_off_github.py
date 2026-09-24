@@ -23,7 +23,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 README = ROOT / 'README.md'
 
-ASSET_SUFFIXES = ('.svg', '.png', '.jpg', '.jpeg', '.webp')
+ASSET_SUFFIXES = ('.svg', '.png', '.jpg', '.jpeg', '.webp', '.gif')
 
 
 def _references(text):
@@ -101,6 +101,7 @@ def test_the_zh_readme_is_not_packaged_and_may_stay_relative():
 
 
 @pytest.mark.parametrize('needle', ['logo-lockup.svg', 'social-card.png',
+                                    'dashboard.gif',
                                     'shadow-backtest.png',
                                     'product-architecture.svg'])
 def test_the_images_that_were_broken_are_still_absolute(needle):
@@ -113,15 +114,15 @@ def test_the_images_that_were_broken_are_still_absolute(needle):
         assert target.startswith('https://raw.githubusercontent.com/'), target
 
 
-def test_published_pypi_dashboard_preview_url_still_has_a_small_animation():
+def test_published_pypi_dashboard_preview_url_has_the_full_animation():
     """The 0.2.0 long description links to raw master and is immutable on PyPI."""
     from PIL import Image
 
     path = ROOT / 'site/assets/dashboard.gif'
-    assert path.stat().st_size < 500_000
+    assert path.stat().st_size >= 300_000
     with Image.open(path) as image:
         assert image.format == 'GIF'
         assert image.size == (960, 600)
-        assert image.n_frames >= 6
+        assert image.n_frames > 6
         image.seek(image.n_frames - 1)
         image.load()

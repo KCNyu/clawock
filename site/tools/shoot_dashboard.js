@@ -6,14 +6,17 @@
  *
  *   npm install playwright@1.60.0 && npx playwright install --with-deps chromium
  *   node site/tools/shoot_dashboard.js
+ *   python3 site/tools/assemble_dashboard_gif.py   # assembles the GIF from frames
  *
- * Env overrides: URL (default live Pages), OUT_DIR (site/assets/),
+ * Env overrides: URL (default live Pages), OUT_DIR (site/assets/), FRAME_DIR (.gifframes/),
  *                TMP_DIR (intermediates), CHROME_EXE (explicit browser binary).
  *
  * Outputs:
  *   site/assets/shadow-backtest.png   v2 cumulative win-rate chart (all / active / 50% ref)
  *   site/assets/social-card.png       1280x640 pearl editorial card + fresh Hero dashboard
+ *   site/assets/dashboard.gif         manual dispatch only; built from FRAME_DIR
  *   TMP_DIR/dashboard-preview.png  focused light Hero crop embedded into the social card
+ *   .gifframes/f{0..5}.png       per-tab desktop 1280x800 frames → assemble_dashboard_gif.py
  *
  * site/assets/ is the one place shipped images live: README, Pages and the OG card all
  * point there, and site/_config.yml includes it. docs/ used to hold four PNGs of which
@@ -33,7 +36,7 @@
  *     renderable from a checkout with no writable temp path, and it removes one
  *     way for the card to ship a broken image.
  */
-const { chromium } = require('playwright');
+const { chromium, devices } = require('playwright');
 const fs = require('fs');
 const path = require('path');
 
@@ -42,9 +45,16 @@ const ROOT = path.resolve(__dirname, '../..');
 const BRAND_MARK_SVG = fs.readFileSync(path.join(ROOT, 'site/assets/logo-mark.svg'), 'utf8')
   .replace('<svg ', '<svg class="brand-mark" ');
 const OUT_DIR = process.env.OUT_DIR || path.join(ROOT, 'site/assets');
+const FRAME_DIR = process.env.FRAME_DIR || path.join(ROOT, '.gifframes');
 // Intermediate only: the social card inlines it as a data-URI, so it never ships.
-const TMP_DIR = process.env.TMP_DIR || path.join(ROOT, '.tmp');
+const TMP_DIR = process.env.TMP_DIR || path.join(ROOT, '.gifframes');
 const CHROME_EXE = process.env.CHROME_EXE || undefined;
+const CAPTURE_GIF = process.env.CAPTURE_GIF !== '0';
+// Must match `TAB_COUNT` in assemble_dashboard_gif.py: the assembler names each
+// frame `f{i}_*` by index, so a tab in one list and not the other is either a
+// missing animation frame or a build that exits on a tab with no frames.
+const TABS = ['hero', 'drill', 'risk', 'market', 'plan', 'reflect'];
+
 async function settle(page) {
   // 1) Hero panel populated (don't key off <canvas>: Hero has no chart → would hang).
   await page.waitForFunction(
@@ -255,7 +265,7 @@ function socialCardHTML(shotDataUri) {
 }
 
 (async () => {
-  [OUT_DIR, TMP_DIR].forEach(d => fs.mkdirSync(d, { recursive: true }));
+  [OUT_DIR, FRAME_DIR, TMP_DIR].forEach(d => fs.mkdirSync(d, { recursive: true }));
   const browser = await chromium.launch(CHROME_EXE ? { executablePath: CHROME_EXE, args: ['--no-sandbox'] } : {});
   try {
     // 1) Desktop 1440x900 @2x
@@ -304,7 +314,60 @@ function socialCardHTML(shotDataUri) {
     await cp.waitForTimeout(300);
     await cp.screenshot({ path: `${OUT_DIR}/social-card.png` });
     await cardCtx.close();
-    console.log('✓ win-rate chart + social card');
+
+    // 3) Per-tab desktop frames for the animated GIF (manual refresh only).
+    //    Desktop, not mobile (kcn 2026-09-13): the README shows the GIF right under
+    //    the 1280x640 social card, and a 400x860 portrait strip beside a landscape
+    //    card read as two different products. 1280x800 is the same landscape
+    //    family as the card and the other README screenshots.
+    //    We locate the most-scrollable element around the panel and screenshot the
+    //    viewport at several scroll positions top→bottom → real vertical-scroll
+    //    frames, then move to the next tab (the assembler adds the horizontal swipe).
+    if (CAPTURE_GIF) {
+      const VSCROLL = 5;   // scroll frames per tab (skipped when the tab barely scrolls)
+      const gifCtx = await browser.newContext({ viewport: { width: 1280, height: 800 }, deviceScaleFactor: 1 });
+      const gp = await gifCtx.newPage();
+      await gp.goto(URL, { waitUntil: 'networkidle', timeout: 45000 });
+      await gp.waitForFunction(() => { const h = document.querySelector('[data-panel=hero]'); return h && h.textContent.trim().length > 200; }, { timeout: 45000 }).catch(() => {});
+      await gp.waitForTimeout(1500);
+      const counts = [];
+      for (let i = 0; i < TABS.length; i++) {
+      await gp.click(`[data-tab=${TABS[i]}]`).catch(() => {});
+      await gp.waitForTimeout(400);
+      await gp.waitForFunction((tab) => {
+        const panel = document.querySelector(`[data-panel=${tab}]`);
+        if (!panel) return false;
+        const cs = [...panel.querySelectorAll('canvas')];
+        return cs.length === 0 || cs.every(c => c.width > 50);
+      }, TABS[i], { timeout: 12000 }).catch(() => {});
+      // find + remember the most-scrollable element around the active panel
+      const over = await gp.evaluate((tab) => {
+        const panel = document.querySelector(`[data-panel=${tab}]`);
+        const scope = [];
+        if (panel) { scope.push(panel); panel.querySelectorAll('*').forEach(e => scope.push(e)); }
+        [document.scrollingElement, document.documentElement, document.body].forEach(e => e && scope.push(e));
+        let best = null, mx = 0;
+        for (const el of scope) { const o = el.scrollHeight - el.clientHeight; if (o > mx) { mx = o; best = el; } }
+        window.__scrollEl = best;
+        return mx;
+      }, TABS[i]);
+      const steps = over > 120 ? VSCROLL : 0;
+      await gp.evaluate(() => { const el = window.__scrollEl; if (el) el.scrollTop = 0; else window.scrollTo(0, 0); });
+      await gp.waitForTimeout(700);
+      await gp.screenshot({ path: `${FRAME_DIR}/f${i}_0.png` });
+      for (let j = 1; j <= steps; j++) {
+        await gp.evaluate((frac) => { const el = window.__scrollEl; el.scrollTop = Math.round((el.scrollHeight - el.clientHeight) * frac); }, j / steps);
+        await gp.waitForTimeout(320);
+        await gp.screenshot({ path: `${FRAME_DIR}/f${i}_${j}.png` });
+      }
+        counts.push(steps + 1);
+      }
+      await gifCtx.close();
+      console.log('gif frames per tab:', counts.join(','));
+      console.log(`✓ win-rate chart + social card; ${TABS.length} gif tabs → ${FRAME_DIR}`);
+    } else {
+      console.log('✓ win-rate chart + social card; GIF frame capture skipped');
+    }
   } finally {
     await browser.close();
   }

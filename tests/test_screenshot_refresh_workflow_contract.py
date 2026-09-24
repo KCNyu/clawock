@@ -1,7 +1,7 @@
 """Publication contract for the generated dashboard screenshots workflow."""
 from pathlib import Path
 
-from workflow_contract_helpers import assert_validator_step, step_run, steps, staged_paths
+from workflow_contract_helpers import assert_validator_step, step_block, step_run, steps, staged_paths
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -10,6 +10,10 @@ WORKFLOW = ROOT / '.github' / 'workflows' / 'screenshot-refresh.yml'
 
 def _steps():
     return steps(WORKFLOW)
+
+
+def _step_block(name):
+    return step_block(WORKFLOW, name)
 
 
 def _step_run(name):
@@ -25,8 +29,10 @@ def test_screenshots_are_validated_and_exactly_staged_before_publish():
 
     assert_validator_step(WORKFLOW, validate, 'screenshots')
 
-    # The staged set is a contract: the two PNGs, README metrics, and the DSH
-    # shot when a DSH origin was provided. No other path may creep in (this was
+    # The staged set is a contract: the two PNGs always, the GIF only on manual
+    # dispatch, the DSH shot only when a DSH origin was provided (same
+    # conditional pattern as the GIF, evaluated in the compose step), and
+    # exactly the README metrics files. No other path may creep in (this was
     # relaxed to any(...) once and had to be pinned back). The step moved to
     # the clawock-commit composite in #806, so the list is now read from the
     # env var the workflow computes rather than from `git add` lines — same
@@ -34,11 +40,18 @@ def test_screenshots_are_validated_and_exactly_staged_before_publish():
     assert staged_paths(WORKFLOW, commit) == [
         'site/assets/shadow-backtest.png',
         'site/assets/social-card.png',
+        'site/assets/dashboard.gif',
         'README.zh.md',
         'README.md',
         'assets/data/readme_metrics.json',
         'site/assets/dsh-decision-mind.png',
     ]
+
+    # And the GIF must still be conditional on a manual dispatch — the composite
+    # takes a flat list, so the condition lives in the step that builds it.
+    composer = _step_run('Compose the commit target')
+    assert "github.event_name }}\" = \"workflow_dispatch\"" in composer
+    assert 'site/assets/dashboard.gif' in composer.split('workflow_dispatch', 1)[1]
 
 
 def test_metrics_step_tolerates_only_the_no_change_exit_code():
@@ -49,6 +62,18 @@ def test_metrics_step_tolerates_only_the_no_change_exit_code():
     """
     metrics_run = _step_run('Recompute README metrics')
     assert '|| [ $? -eq 1 ]' in metrics_run, metrics_run
+
+
+def test_gif_is_validated_only_on_manual_dispatch_before_publish():
+    names = [name for _, name in _steps()]
+    assemble = 'Assemble tab-cycle GIF'
+    validate = 'Validate tab-cycle GIF'
+    commit = 'Commit if changed'
+    assert names.index(assemble) < names.index(validate) < names.index(commit)
+
+    validator_block = _step_block(validate)
+    assert "if: github.event_name == 'workflow_dispatch'" in validator_block
+    assert_validator_step(WORKFLOW, validate, 'gif')
 
 
 def _refresh_module():

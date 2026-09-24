@@ -19,6 +19,7 @@
 
 <sub><i>“The market doesn't care how confident the model was.”</i></sub>
 
+<a href="https://kcnyu.github.io/clawock/"><img src="https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/site/assets/dashboard.gif" alt="clawock dashboard cycling through its tabs" width="820"></a>
 
 | **<!-- CW_M:days -->127<!-- /CW_M:days -->** | **<!-- CW_M:rows -->881<!-- /CW_M:rows -->** | **<!-- CW_M:settled -->144<!-- /CW_M:settled -->** | **43** | **5** | **0** |
 |:---:|:---:|:---:|:---:|:---:|:---:|
