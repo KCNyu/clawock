@@ -484,10 +484,8 @@ def test_intraday_payload_contract_bans_heredoc_and_requires_text_file():
         '禁止四舍五入、取整或改写成“约/近”等近似数，找不到原值就省略'
     )
     assert exact_number_rule in profile['required_substrings']
-    assert any(
-        'postflight 返回 pass/warn 后直接输出' in line and '禁止再读、搜或重建' in line
-        for line in profile['required_substrings']
-    )
+    assert any('最终回复只写 postflight 的 status' in line
+               for line in profile['required_substrings'])
     assert profile['tools_allow'] is None
     assert profile['thinking'] == 'max'
     # 300s is a per-exec bound, not the turn's: the whole-turn timeout (#1784)

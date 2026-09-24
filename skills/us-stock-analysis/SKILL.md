@@ -81,104 +81,16 @@ Pick the smallest mode that answers the question. Default to **Quick Read** unle
 6. Load `references/report-template.md` for structure
 7. Output: executive summary + bull case + bear case + valuation + technical setup + sentiment read + risk + catalyst calendar + concrete entry/exit levels
 
-### Mode 7 — Intraday Check-in (cron-driven, every 30 min, harness 化 ✨)
-**When:** US 盘中由 evening + overnight 两个 HKT cron 拼接，比 Mode 6 更轻量、更高频。
-精确 EDT/EST 表达式只读 `config/cron-schedules.json` / 生成的 `docs/operations/cron-schedules.md`；
-每日 DST 同步器会同时调整 live cron 与 watchdog。隔夜始终最晚 02:30 HKT，给 03:00
-dreaming 留独占窗口，所以 EST 季比 EDT 季少两个 slot。
+### Mode 7 — 盘中盯盘（cron，每 30 分钟）
 
-**Harness 4-step**：
+美股按 ET 交易日判定，含跨 HKT 午夜档。SPCH 无限子弹流：不重复风险提醒、不建议砍仓；仅 `raw_wechat_block` 本档新出现 P0 行时核 `spch_p0` 证据并问一次是否继续。行情不完整时不声称“未触发”。
 
-#### Step 1: preflight
-```bash
-clawock intraday preflight --market us
-```
-输出 `memory/.tmp/intraday-context-us-latest.json`，并把**同一份 JSON** 打到 stdout（含 `context_id` —— Step 3 要原样回传）。关键字段：`should_alert` + `alert_reasons`，另有 `peer_scan`（本腿持仓的板块+同业涨跌，已排序）和 `plan_context`（08:00 简报为本腿定下、尚未成交的决策）。
-- `active_information_candidates` — 框架已完成一手披露扫描、底层去重、`candidate|wait|reject` 与探索上限计算；这里只消费结构化结果，不在 skill 里重算阈值、方向或股数。三态都不是下单授权。
-- `mover_thesis` — **只对本轮异动票**的 thesis 只读快照：`state`、`triggered`/`watch` 红线（含 severity 与 required_action）、下次 review trigger；最新一次 entry gate 判 `reject` 也会标出来。没有基线就是 `unknown`，不许靠记忆补。**这是归因语境不是催化剂**：红线解释「这个跌为什么要紧、当初说好要怎么做」，但能不能动手仍由 catalyst-gate 决定（软消息/情绪不构成主动操作依据）。
-- `mover_news` — **只对本轮异动票**、有限预算抓回来的「刚发生了什么」：`tier=primary` 是交易所/监管一手文件（港股=港交所公告，美股=SEC filing，带 `age_minutes`），`tier=supporting` 是券商研报/媒体/7×24 快讯。**只有 primary 才可能构成硬催化**（仍要过 catalyst-gate）；supporting 只能当色彩，不能作为主动操作依据。
-  - `known_catalysts` 是当天 08:00 brief 已核过、且只按本轮异动票裁剪的结构化催化。它回答「此前已知什么」，`mover_news` 回答「这个分钟窗口新发生什么」；两者不能混为一谈，也不因此扩大新闻窗口。
-  - `status=no_recent_filing` 是**明确的空**：写「窗口内无一手公告」，不要改口编一个理由；`status=degraded` 说明源没抓到，同样如实写。
-  - 用法铁律：异动票必须给出归因或明写「无法归因」。**不要把 `mover_news` 整块抄进报告**——最多引 1–2 条最相关的标题+时间。
-  - 一手文件都没有、而异动又很大时，才允许用**内置 web search** 补一次（禁止 Tavily：盘中不烧额度）。
-  - 三级分流（`config/filing-triage.json`）：`signal=interrupt`（8-K/13D/配售/盈警/停牌/业绩…）才可能算硬催化；`context` 只作背景；`noise`（Form 3/4/144/13G、翌日披露报表、月报表、法律意见书）**直接不进上下文**，只留 `suppressed_noise` 计数。没见过的标题一律 `context`，不会被悄悄丢掉。
-  - 基金看穿：2x 单票 ETF 查的是**它跟踪的公司**（`target.kind=look_through`，如 PLTU→PLTR）；指数/板块基金没有发行人，直接标 `index_fund_no_issuer`，不会假装「公司没公告」。
-  - `halts`（仅美股，每 slot 一次共享请求）：持仓或其标的被停牌时给出 `reason_code`（LULD 的 `LUDP` 最常打到 2x ETF）与复牌时间；港股停牌走公告（已在 triage 里判 interrupt）。
+1. `clawock intraday preflight --market us --judgment-packet`。`market_closed` 结束。stdout 是短判断包，完整 context 留在 `memory/.tmp/intraday-context-us-latest.json`，postflight 用 `context_id` 锁同代。任何行情缺口按 `quote_coverage` 明说，不能把旧价说成实时。
+2. `delivery_mode=unchanged_receipt`：直接 `clawock intraday postflight --market us --context-id <id>`；短回执仍投递，不写散文/sidecar。`full_delta` 才写 `▎我的看法`，1–3 行：变化、判断、下一触发点。先读 `semantic_delta`、`plan_triggers`、`anomalies`、一级事件，再看相关 `mover_news` / `peer_scan` / `add_side_reads`。三态都不是下单授权。只说相关票；旧计划、旧新闻和持仓表不复述。模型负责取舍和归因，数值只引用包内原值，绝不心算差值、倍数、金额、股数或自行补状态/催化。
+3. 对本档异动，优先用 `mover_news` 的一手 `interrupt`；`context` 只是背景，`no_recent_filing` 是窗口内无新公告，`degraded` 是源未取到。`plan_context.open` 只作动作约束，不能把 0 股持有观察写成待执行买卖。`add_side_reads` 的 candidate/wait/reject 三态都不是下单授权；有纪律冲突先说阻断条件。一级披露 `candidate|wait|reject` 也不是下单授权。
+**异动归因**：`mover_news` 中 `tier=primary` 且 `signal=interrupt` 才可能是硬催化；`tier=supporting` 只能作背景，盘中禁止 Tavily。`no_recent_filing` 写“窗口内无新一手公告”，`index_fund_no_issuer` 写“指数基金无发行人公告”，`degraded` 写“催化源未取到”，不能把源失败说成无消息。`suppressed_noise` 等计数不要写进报告。只挑本档变化的最多两条，避免复述旧新闻。
 
-若 `delivery_mode=unchanged_receipt`：和上一次实际送达相比，风险档位、异动档位、盘中 setup、未成交计划和一级披露均无语义变化。**不要生成散文、不要写 prose/sidecar**，直接运行 `clawock intraday postflight --market us --context-id {context_id}`。harness 会发送带行情覆盖和一级源检查状态的一行回执；每档仍然可见，不是跳过。成功后输出 `wechat_prefix` + `raw_wechat_block` 并结束。下面 Step 2–2.5 只适用于 `delivery_mode=full_delta`。
-
-#### Step 2: 只写 `▎我的看法` 散文（数据块归 harness）
-- ❌ **不要抄 `raw_wechat_block`，不要重画那张表** —— postflight 在发送时自己把它拼在你的散文前面。
-  你抄一遍只会引入排版误差：2026-07-28 00:30 就因为一格多打了一个空格，整段分析被丢掉只发了数据块。
-  数据块里的市值/持仓表/亏损持仓行**已经在消息里了**，你的输出从 `▎我的看法` 开始。
-- 你交付的就是这一段：**至少 60 字（postflight 软下限），目标 2-3 行**
-  - 🗣 **读者只看得到这条微信，看不到管线**：正文里不写 `harness`/`preflight`/`postflight`/`packet`/`sidecar`/`context_id` 这些词，也不描述你在按什么指令、格式或步骤写。把约束翻成交易语言：「packet 锁 hold_and_watch 不许 trim」→「风控规则只允许持有观察，今天不减」；「已被 harness 标 🔴」→「接近区间顶部、追高质量差」。`plan_context` 的 `condition_detail`/`rationale` 是早上写计划时的原话，引用时同样翻译，不照抄。postflight 会以 advisory 标出。
-  - 若 `anomalies` 非空，**必须**提其中至少一个票；主动一级信息本身也会令 `should_alert=true`，此时不能虚构一个价格异动。
-  - `active_information_candidates.candidates` 非空时，至少写最相关一条：Bull 只陈述一手细节及预期传导，Bear 检查是否已 price-in/方向是否仍未知，Judge 照抄 harness 的 `candidate|wait|reject`、falsifier 与 next evidence；只能降级，不能自行补方向、价格、股数或授权。`degraded_issuers` 必须说“一级源降级”，不能说“没有消息”。
-  - 📈 **加仓侧读数(`add_side_reads.rows` 非空时必写 1 行)**:harness 已经把异动、机会雷达
-    (接近 20 日高)、早期趋势三条 lane 连同 thesis 红线和未了结的纪律动作 join 成
-    `candidate|wait|reject`。**照抄 `verdict` + `why` + `needs`,数字照抄 `evidence`**
-    (`move_pct` / `close` / `zscore20` / `pct_from_high` / `prior_20d_high`),写成
-    「{票} {verdict}:{why} → {needs}」。多条就写最急的 1-2 条(rows 已按 candidate→reject→wait
-    排序)。纪律铁律不变:**三态都不是下单授权**,不许自行补方向、价格、股数;
-    软消息/情绪只能停在 `wait`;技术突破态(收盘站上前 20 日高且未过热)本身即促成
-    `candidate`,一手公告只是升级措辞;
-    `reject` 说明有纪律动作没走完,这时不要把它写成「可以加仓」。
-    带 `evidence.proxy_label` 的行,它的位是**代理标的**的位(恒科指数之于 07226、
-    SPCX 之于 SPCH),`needs` 已经把指名写进句子了——**照抄那句,别把
-    `proxy_prior_20d_high` 当成这只票自己的价位**(4948.5 是指数点位,07226 现价个位数)。
-  - **异动归因（`should_alert=true` 时必写，占 1 行）**：从 `mover_news.tickers[票].items` 里挑 **`signal=interrupt`** 的第一条，写成
-    「{票} {幅度}% ← {标题要点}（{age_minutes} 分钟前 / {source_class}）」。多只异动票就各写一行，最多 3 行。
-    - `halts` 里有这只票 → **先写停牌**（`reason_code` + 复牌时间），它比任何标题都能解释一次跳动。
-    - 只有 `context` 没有 `interrupt` → 写「无一手催化，{context 标题}仅作背景」。
-    - `status=no_recent_filing` → 先查 `known_catalysts[票]`：有则写「窗口内无新公告；沿用今早已知催化：{detail}（{source}）」；没有才写「窗口内无新公告，且无已知催化，暂无法归因」。`index_fund_no_issuer` → 写「指数基金无发行人公告，看成分/板块」。
-    - `status=degraded` → 写「催化源未取到」，别把它说成「没有消息」。
-    - 引用**至多两条**、每条一行；`suppressed_noise` / `more_interrupts` 只是计数，不要写进报告。
-  - 必须包含：今天该看/该等/该减 + 引用至少 1 个具体数字（票现价 / 异动幅度 / 信号 / RSI）
-  - 📋 **计划对账（`plan_context` 非空时必写 1 行）**：08:00 定下、还没成交的决策就在 `plan_context.open[]` 里——**不要再去 `cat` plan.json 或 decisions.jsonl**（2026-07-27 10:05 那样手刨 6 次还把 swap 股数说错，issue #119/#120）。写「{票} {action} {shares} 股仍挂着 / 已成交」，股数**照抄 `shares` 字段**；`driven_by=risk_rule` 的纪律动作不许被改写成「等回踩再做」；`carried_over>0` 要点名往日挂单。
-  - 🔢 **数字铁律**：金额/股数一律**照抄 context**，不换算不心算；**别在 `▎我的看法` 里重述持仓股数或市值**（数据块里已经有了，但 `plan_context.open[].shares` 这种「本单动多少股」是要写的）；前瞻性数字要么给算式要么不写。派生出来的差值（pp）、倍数（x）、距某价位的百分比，把两个操作数写在**同一句、它前面**（「RKLX +4.1% / RKLB +2.23% 倍数 1.84x」）；乘积写完整算式（「300×$9.79 ≈ $2,940」）。postflight 会核算；只写结果不写操作数、或算错，仍会标出。postflight 的 `check_numeric_claims` 会把 context 里没有的数字和自相矛盾的区间标成 warn（issue #120）。
-  - ⚡ **板块全景**：数据**已由 preflight 备好**在 context.json 的 `peer_scan` 里（每个 active ticker 一项：`theme` 板块名、`listed_peers` 已按今日涨幅降序、含 `pct_1d`/`pct_5d`、`divergence_signal`、`self_pct_1d`）。**直接引用它,不要自己去读 peer-map.json、也不要自己调 `clawock fetch-peers`**；给对应主题成分今日 Top 5 + 你持仓位置 + 1 句归因;`peer_scan` 为空或缺项时才回退 web search。若某条带 `name_mismatch`,以 feed 名为准并在报告里提一句。持仓自己的数字仍从 context.json。板块行情**优先用内置 web search**；`tavily-search` 仅在**开盘/收盘报告**或盘中真事件时才用，且必带 `--bucket report`/`--bucket intraday`（见 Mode 5 的 Budget rule）——盘中每 30 分钟的常规盯盘**不要**烧 Tavily
-  - 禁止"无异动，观望"这种敷衍 1 句话
-- 不设字数目标；postflight 只有一道防复读死循环的天花板：>5000 warn，>6000 fail（算的是拼装后的整条消息）
-
-#### Step 2.5: 写 dashboard 状态横幅 sidecar
-
-**规范见 `skills/_shared/intraday-status-sidecar.md`**（hk/us 共用单一来源）—— 写 `memory/.tmp/intraday-insights-{date}.json`（status_banner + 每个异动票 movers 归因，只文本无 key）。
-- 本市场杠杆 ETF：**ROBN/PLTU/MSFU/SOXL/TQQQ** 等（2x 标的），归因要点明"杠杆放大"、区分标的真涨还是纯 beta。
-
-#### Step 3: postflight（先写文件，再调用 —— 禁用 heredoc / here-string 重定向）
-**必须两步、按顺序**：先用文件写入工具把 Step 2 的散文写到
-`memory/.tmp/intraday-prose-us.md`，确认写入成功后再调用（命令写成一行）：
-```bash
-clawock intraday postflight --market us --context-id {Step 1 的 context_id} --text-file /root/.openclaw/workspace/memory/.tmp/intraday-prose-us.md
-```
-`--context-id` 必须是 Step 1 打印的那个：不匹配说明 context 已被换代（散文和数据不同代），
-postflight 拒绝拼装、只发数据块。
-
-❌ **不要用 here-string / heredoc 重定向把散文塞进 stdin** —— 内容含 emoji、`$` 和换行，
-shell 引号极脆；2026-07-23 10:00 就因为模型漏喂 stdin，postflight 读到空串后吐出
-4 条"报告写错了"的假 issue，run 被标红（实际重试后投递正常）。
-postflight 现在把空输入/旧文件单独判成 `status: input_error`（不是 `fail`），并要求
-文件 20 分钟内更新过 —— **忘了重写文件就会被拒**，不会把上一个 slot 的旧散文重发。
-
-⏱ **看到 SIGTERM / exec 超时 ≠ 报告没发出去，别原样再跑一遍。** exec 的 overall-timeout
-只杀命令外壳，postflight 子进程还在继续跑，通常微信早发出去了。先读
-`memory/.tmp/intraday-sent-us.json`：`ts` 是本 slot 的、且有 `sent_ok` / `tg_ok`
-就是已投递。（2026-08-13 09:30 港股开盘那次双发的机制，#508；postflight 现在有发送前
-claim 会挡住第二次真发，但那一跑仍然是白跑。）
-
-校验段标记 + 长度 + 异动票提及（都只校验你写的那段，不校验拼进来的数据块）。
-**不提交 `portfolio.json`**；若 dashboard 有语义变化，postflight 会重建并提交
-`assets/data/dashboard.json`。每个 slot 的完成/投递状态另写 heartbeat，由 single
-publisher 发布。
-
-#### Step 4: 输出报告（仅存档；微信已由 postflight 主发，禁用 message 工具）
-微信投递已在 **Step 3 的 `intraday_postflight` 用 fresh-token 短连接发出**（cron `--no-deliver`，不 announce）——唯一路径。拼 `wechat_prefix` + 你的散文，**无标题**，作为**本回合最终文本回复**直接输出（仅存档）。
-- ❌ **禁止调用 `message`/send 工具** — postflight 已发，手动再调会**双发**；`intraday_watchdog` 只在 Telegram marker 缺失/失败时补投 Telegram，不重发微信。整轮只输出一次，发完即停。
-
-**和 Mode 6 的区别**：单段 `▎我的看法` 取代三段；无 ▎风险提示；不提交
-`portfolio.json`（但会发布 dashboard 语义变化 + slot heartbeat）；holdings 用 markdown 表格。
-**相同点**：两者都是散文模式 —— 数据块由 postflight 拼装，你只写分析。
+4. `full_delta` 同时写 `memory/.tmp/intraday-prose-us.md` 和 `memory/.tmp/intraday-insights-{YYYY-MM-DD}.json`；sidecar 规范见 `skills/_shared/intraday-status-sidecar.md`。调用 `clawock intraday postflight --market us --context-id <id> --text-file /root/.openclaw/workspace/memory/.tmp/intraday-prose-us.md`。harness 拼持仓表、验证、投递微信/TG、刷新 dashboard；不调用 message/send。postflight 不设超时，不在提交前终止。最终回复只留 status/投递/commit 结果，不复制消息。
 
 ### Mode 6 — WeChat Briefing (cron-driven, harness 化 ✨)
 **When:** 美股开盘 / 美股收盘 两个 cron 走这个 mode。

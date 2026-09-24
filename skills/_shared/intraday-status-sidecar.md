@@ -14,7 +14,11 @@
 ```
 - **模型只写 `status_banner` / `movers` 文本**；`generated_at` 由 postflight harness
   以当前真实 UTC 写入，禁止模型生成或猜测基础设施时间。
+- 横幅写**本档新变化**及下一触发点；`delivery_mode=unchanged_receipt` 不改写 sidecar，
+  不能把上一档的判断盖上新时间。超过 50/40 字、字段类型错误时 harness 拒收 sidecar，
+  盘中微信仍正常投递。
 - `movers` 覆盖 context 里 `anomalies` / today_movers 的**每个**票；**杠杆 ETF 要点明"杠杆放大"、区分标的真涨还是纯 beta**（本市场杠杆 ticker 见调用方 Step 2.5）。
 - **催化优先引 `context.mover_news`**：该票有 `signal=interrupt` 的条目就用它的标题要点 + `age_minutes` 写归因；`halts` 命中先写停牌；`no_recent_filing` / `index_fund_no_issuer` / `degraded` 各自照实说（分别是「无一手公告」「指数基金无发行人」「催化源未取到」）。
 - **只用 context.json 的真实数字**；不确定催化就写"无明确个股催化，纯 beta"，**不编造财报/新闻**。
+- SPCH 按无限子弹流处理；不在横幅或归因里重复一般止损/减仓提示。
 - HK / US 两个 intraday 共写这**同一个** per-date 文件，build_dashboard 取最新 mtime（当前在盘的市场覆盖横幅）。
