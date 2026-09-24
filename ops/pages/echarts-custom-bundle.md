@@ -8,7 +8,7 @@ and `window.echarts.color.modifyAlpha(...)` — so no calling code changes.
 
 Verified pixel-identical to the full dist across all 6 tabs × dark/light (0.000%
 pixel diff, identical canvas dimensions, no new console warnings) and through the
-full GIF/social-card capture pipeline (`shoot_dashboard.js`).
+social-card capture pipeline (`shoot_dashboard.js`).
 
 ## When to rebuild
 
@@ -63,8 +63,7 @@ cp echarts.min.js ../site/assets/js/echarts.min.js
 Serve the site and, in headless Chromium, drive all 6 tabs in both color schemes
 against the OLD (full dist) and NEW bundle; assert: no new console warnings, identical
 `canvas.width×height` per tab, and ~0% pixel diff between the two screenshot sets. Then
-run `site/tools/shoot_dashboard.js` with `CAPTURE_GIF=1` and confirm 6 frames/tab and
-the win-rate chart + social card render.
+run `site/tools/shoot_dashboard.js` and confirm the win-rate chart and social card render.
 
 Keep the previous `site/assets/js/echarts.min.js` recoverable via git history as a one-commit
 rollback if a rebuild regresses.

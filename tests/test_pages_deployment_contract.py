@@ -360,7 +360,6 @@ def test_builder_stages_only_public_consumers(tmp_path):
     (site / "memory/decisions.jsonl").write_text("{}\n")
     (site / "docs").mkdir()
     (site / "docs/architecture.md").write_text("ok")
-    source_gif_size = (ROOT / "site/assets/dashboard.gif").stat().st_size
     source_jsonl = sorted((ROOT / "assets/data").glob("*.jsonl"))
 
     result = subprocess.run(
@@ -378,9 +377,7 @@ def test_builder_stages_only_public_consumers(tmp_path):
         text=True,
     )
 
-    assert (site / "assets/dashboard.gif").is_file()
     assert list((site / "assets/data").glob("*.jsonl"))
-    assert not (output / "assets/dashboard.gif").exists()
     assert not list((output / "assets/data").glob("*.jsonl"))
     assert not (output / "memory/decisions.jsonl").exists()
     assert not (output / "tests").exists()
@@ -404,7 +401,6 @@ def test_builder_stages_only_public_consumers(tmp_path):
     assert (output / "llms.txt").is_file()
     assert (output / "assets/data/dashboard.json").is_file()
     assert (output / "assets/data/overview.json").is_file()
-    assert (ROOT / "site/assets/dashboard.gif").stat().st_size == source_gif_size
     assert all(path.is_file() for path in source_jsonl)
     assert "Pages artifact:" in result.stdout
 
@@ -474,14 +470,6 @@ def test_every_page_in_the_site_source_is_published_or_declared_internal():
     assert unreachable == [], (
         "pages exist under site/ that the Pages artifact never publishes: "
         f"{unreachable}")
-
-
-def test_readme_gif_stays_available_from_repository():
-    readme = (ROOT / "README.md").read_text()
-    assert (
-        "https://raw.githubusercontent.com/KCNyu/clawock/refs/heads/master/"
-        "site/assets/dashboard.gif"
-    ) in readme
 
 
 def test_seo_logo_resolves_once_to_a_real_asset():

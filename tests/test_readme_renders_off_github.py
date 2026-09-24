@@ -8,9 +8,7 @@ relative reference renders broken there.
 
 2026-08-10, the day v0.1.0 was published: the description carried six relative
 image paths — including the logo and the hero card, the first two things a
-visitor sees — and seventeen relative document links. Exactly one asset,
-`dashboard.gif`, already used an absolute raw URL, which says someone hit this
-before and fixed the one they were looking at.
+visitor sees — and seventeen relative document links. The image references must resolve on PyPI as well as on GitHub.
 
 This is not a style rule. Until PyPI, README.md was only ever rendered by GitHub
 and relative paths were correct. Publishing gave the file a second audience, and
@@ -25,7 +23,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 README = ROOT / 'README.md'
 
-ASSET_SUFFIXES = ('.svg', '.png', '.gif', '.jpg', '.jpeg', '.webp')
+ASSET_SUFFIXES = ('.svg', '.png', '.jpg', '.jpeg', '.webp')
 
 
 def _references(text):
@@ -103,7 +101,7 @@ def test_the_zh_readme_is_not_packaged_and_may_stay_relative():
 
 
 @pytest.mark.parametrize('needle', ['logo-lockup.svg', 'social-card.png',
-                                    'shadow-backtest.png', 'dashboard.gif',
+                                    'shadow-backtest.png',
                                     'product-architecture.svg'])
 def test_the_images_that_were_broken_are_still_absolute(needle):
     """Named individually because these are the ones a visitor sees first, and a

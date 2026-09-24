@@ -46,9 +46,6 @@ media/
 *.mp4
 # README/social artifacts (refreshed weekly by screenshot-refresh.yml) — allow these
 !site/assets/social-card.png
-!site/assets/dashboard.gif
-# per-tab frames are transient inputs to assemble_dashboard_gif.py — never commit
-.gifframes/
 
 # IDE / OS
 .vscode/
@@ -123,7 +120,7 @@ memory/*.md
 # Misc
 share/
 
-# Playwright lib for local GIF recording (refresh_dashboard_gif.sh) — never commit
+# Playwright dependencies used by local screenshot tooling — never commit
 node_modules/
 # `npm pack` in examples/dsh/packages/clawock-dsh leaves the tarball beside the
 # package; the live installer packs into a temp dir, so a tarball here is always
