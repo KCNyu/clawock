@@ -82,6 +82,33 @@ The live workflow phase commands dispatch directly to package-owned lifecycle
 modules selected by a declarative profile. The wheel contains the complete
 implementation but no user's portfolio or generated state.
 
+## Intraday decision and delivery boundary
+
+The preflight gives the model its complete decision context. It includes every
+open plan (including zero-share watch decisions), watch levels, all held-name
+peer scans, source status, setup and T+0 reads, prior semantic state, a compact
+all-holdings sweep, and soft candidates. The 3% anomaly threshold guarantees an
+alert; it does not decide the model's agenda. Soft candidates include 1.5–3%
+moves and names near the existing 20-day radar level. The model judges which
+candidate matters, how primary evidence changes the thesis, and how plans and
+strategy metadata constrain an action. Brief WeChat copy is a separate output
+constraint. Reducing noise means fewer user wake-ups, not fewer decision inputs.
+
+The shared HK/US delta compares stable condition identities, including the
+first appearance of a soft candidate that trading day, plan status and source
+health. The first session slot, a material condition change, or incomplete
+evidence gets a full card. A healthy unchanged slot records a `no_change`
+heartbeat and exact-slot marker without sending to WeChat or Telegram. A slot
+with only a new soft candidate asks the model to choose whether to speak; an
+exact `SILENT` response records the same audited quiet outcome. The watchdog
+accepts only that matching marker; a failed postflight or missing marker
+remains eligible for its normal fallback. The
+`always_full` switch in `config/intraday-delivery.json` can still force every
+slot's full card. Portfolio `strategy` selects declarative exception values in
+`config/intraday-strategy-policies.json`; the harness has no ticker-specific
+investment branch. A future maximum silent-streak heartbeat would need its own
+config and an auditable cursor; none is enabled by default.
+
 ## Context contract
 
 OpenClaw 2026.7.1 does not have one universal context allowlist. Normal chat

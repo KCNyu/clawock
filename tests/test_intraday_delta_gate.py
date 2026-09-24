@@ -162,9 +162,50 @@ def test_naive_session_time_is_explicitly_interpreted_as_hong_kong():
     assert gate.market_session_date("hk", naive) == "2026-08-14"
 
 
-def _wire_preflight(monkeypatch, tmp_path):
+def test_hk_us_and_overnight_first_change_quiet_and_degraded_slots():
+    for market, first_at, later_at in (
+        ('hk', datetime(2026, 9, 24, 10, 3, tzinfo=ZoneInfo('Asia/Hong_Kong')),
+         datetime(2026, 9, 24, 10, 33, tzinfo=ZoneInfo('Asia/Hong_Kong'))),
+        ('us', datetime(2026, 9, 24, 22, 3, tzinfo=ZoneInfo('Asia/Hong_Kong')),
+         datetime(2026, 9, 25, 0, 33, tzinfo=ZoneInfo('Asia/Hong_Kong'))),
+    ):
+        session = gate.market_session_date(market, first_at)
+        assert gate.market_session_date(market, later_at) == session
+        current = {'session': f'{market}:{session}', 'breaches': [],
+                   'soft_candidates_seen': [], 'strategy_policies': {},
+                   'strategy_conflicts': []}
+        assert gate.compare_semantic_states(current, {})['changed']
+        unchanged = gate.compare_semantic_states(current, current)
+        assert not unchanged['changed']
+        healthy = {'semantic_unchanged': True, 'always_full': False,
+                   'quote_coverage': {'active': 2, 'refreshed': 2,
+                                      'unrefreshed': []}}
+        assert preflight.can_silence(healthy)
+        assert not preflight.can_silence({**healthy,
+            'quote_coverage': {'active': 0, 'refreshed': 0,
+                               'unrefreshed': []}})
+        candidate = {**current, 'soft_candidates_seen': [
+            {'ticker': 'EDGE', 'kind': 'soft_move', 'band': '1.5-2.5'}]}
+        assert gate.compare_semantic_states(candidate, current)['changed']
+        soft_review = {**healthy, 'semantic_unchanged': False,
+                       'semantic_delta': {'components': ['soft_candidates_seen']}}
+        assert preflight.can_silence(soft_review, allow_soft_review=True)
+        assert not preflight.can_silence(soft_review)
+        assert not preflight.can_silence({**soft_review,
+            'quote_coverage': {'active': 2, 'refreshed': 1,
+                               'unrefreshed': ['EDGE']}}, allow_soft_review=True)
+        assert not preflight.can_silence({**healthy,
+            'quote_coverage': {'active': 2, 'refreshed': 1,
+                               'unrefreshed': ['EDGE']}})
+        assert not preflight.can_silence({**healthy,
+            'active_information_candidates': {'degraded_issuers': ['EDGE']}})
+
+
+def _wire_preflight(monkeypatch, tmp_path, *, healthy=False):
     """Run the real main while replacing unrelated network/analysis producers."""
     now = datetime(2026, 8, 14, 1, 33, tzinfo=ZoneInfo("Asia/Hong_Kong"))
+    (tmp_path / 'assets/data').mkdir(parents=True)
+    (tmp_path / 'assets/data/t0_setups.json').write_text('{"rows": {}}')
     signals = [{"ticker": "RKLX", "level": "STOP", "line": "STOP RKLX"}]
     setups = {"rows": [{
         "label": "SPCH", "setup_id": "confirmed_breakout",
@@ -181,6 +222,9 @@ def _wire_preflight(monkeypatch, tmp_path):
         "degraded_issuers": ["BAD"],
         "partially_degraded_issuers": ["CRCL"],
     }
+    if healthy:
+        active['degraded_issuers'] = []
+        active['partially_degraded_issuers'] = []
     block = "🇺🇸 美股盯盘 | 08/13 13:33 ET\n| SPCH | 10 | 6 | 7 | +1% | +2% | +3 |"
 
     class FixedDateTime(datetime):
@@ -189,6 +233,8 @@ def _wire_preflight(monkeypatch, tmp_path):
             return now.astimezone(tz) if tz else now.replace(tzinfo=None)
 
     monkeypatch.setattr(preflight, "WS", tmp_path)
+    monkeypatch.setattr(preflight.intraday_policy, "load", lambda *_a: {})
+    monkeypatch.setattr(preflight.quant_signals, "universe_details", lambda: [])
     monkeypatch.setattr(preflight, "TMP", tmp_path / "memory" / ".tmp")
     monkeypatch.setattr(preflight, "datetime", FixedDateTime)
     monkeypatch.setattr(preflight.trading_calendar, "closed_reason", lambda *_a: None)
@@ -232,6 +278,9 @@ def _wire_preflight(monkeypatch, tmp_path):
         "us", "2026-08-13", signals_detail=signals, anomalies=[],
         setups=setups, plans={"open": []}, active_information=active,
     )
+    current['strategy_policies'] = {}
+    current['strategy_conflicts'] = []
+    current['soft_candidates_seen'] = []
 
     def run(previous):
         path = gate.delivered_state_path(tmp_path, "us")
@@ -247,13 +296,14 @@ def _wire_preflight(monkeypatch, tmp_path):
 def test_preflight_main_selects_receipt_for_equal_delivered_state(
     monkeypatch, tmp_path
 ):
-    current, run = _wire_preflight(monkeypatch, tmp_path)
+    current, run = _wire_preflight(monkeypatch, tmp_path, healthy=True)
+    current["strategy_policies"] = {}
 
     ctx = run(current)
 
-    assert ctx["delivery_mode"] == "unchanged_receipt"
+    assert ctx["delivery_mode"] == "no_change"
     assert "本轮无新的加仓/减仓条件" in ctx["raw_wechat_block"]
-    assert "一级源降级：BAD" in ctx["raw_wechat_block"]
+    assert "一级源降级：BAD" not in ctx["raw_wechat_block"]
 
 
 def test_first_slot_with_no_delivered_state_is_a_full_card(monkeypatch, tmp_path):

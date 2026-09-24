@@ -291,6 +291,17 @@ def marker_matches_slot(marker, job_name, slot, raw_block_first, now_ms,
     return not raw_block_first or marker.get('first_line') == raw_block_first
 
 
+def quiet_marker_covers_slot(marker, context, job_name, slot, now_ms):
+    """A no-change marker proves this slot intentionally made no delivery."""
+    first = (context.get('raw_wechat_block') or '').splitlines()
+    return (isinstance(marker, dict)
+            and marker.get('delivery_state') == 'no_change'
+            and marker_matches_slot(
+                marker, job_name, slot, first[0] if first else '', now_ms,
+                ctx_id=context.get('context_id'),
+                ctx_generated_at=context.get('generated_at')))
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument('--job-name', required=True, help='intraday cron job name')
@@ -422,6 +433,20 @@ def main():
              'waited_s': waited, 'budget_s': inflight_wait_s,
              'context_generated_at': context.get('generated_at'),
              'last_finished_ms': last.get('ts'), 'run_at': run_at})
+
+    # A healthy semantic repeat is an intentional silent slot. Postflight
+    # records a slot-bound marker only after the dashboard publish succeeds;
+    # without that proof the ordinary fallback below still owns the slot.
+    if context.get('delivery_mode') in {'no_change', 'review_candidate'}:
+        quiet_marker = delivery_receipts.read_receipt(delivery_receipts.receipt_path(
+            WS / 'memory' / '.tmp', 'intraday', market=args.market))
+        if quiet_marker_covers_slot(
+                quiet_marker, context, expected_job, expected_slot,
+                int(watchdog_now.timestamp() * 1000)):
+            log({'tag': tag, 'action': 'no_change',
+                 'reason': 'postflight recorded healthy semantic repeat',
+                 'expected_slot': expected_slot, 'run_at': run_at})
+            return 0
 
     raw_block = (context.get('raw_wechat_block') or '').strip()
     raw_block_first = raw_block.splitlines()[0] if raw_block else None

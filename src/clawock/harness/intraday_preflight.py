@@ -45,7 +45,7 @@ from clawock.evidence import research_surface
 from clawock.utilities import PACKAGED_UTILITIES
 from clawock.market_data import known_catalysts, mover_evidence as mover_news, peer_scan
 from clawock.decision import active_information
-from clawock.decision import add_side, early_trend
+from clawock.decision import add_side, early_trend, intraday_policy
 from clawock.instruments import is_leveraged_holding
 
 WS = workspace_root()
@@ -94,21 +94,6 @@ read_signal_line = _harness_common.read_signal_line
 def parse_signals(stdout):
     """`(counts, detail)` —— 实现在 _harness_common.parse_signal_lines。"""
     return _harness_common.parse_signal_lines(stdout)
-
-
-def actionable_signals(market, counts, detail):
-    """Exclude SPCH cost-basis signals from the intraday action lane.
-
-    The analyzer's original signal stays in source_signals_detail for audit.
-    SPCH P0 is evaluated from proven daily/weekly moves, not a floating loss.
-    """
-    if market != 'us':
-        return counts, detail
-    rows = [row for row in detail if row.get('ticker') != 'SPCH']
-    effective = {level.lower(): sum(
-        str(row.get('level', '')).upper() == level for row in rows)
-        for level in SIGNAL_LEVELS}
-    return effective, rows
 
 
 def decide_alert(signals, anomalies):
@@ -443,7 +428,7 @@ def collect_opportunity_radar(market):
             continue
         pct_from_high = (close / prior - 1) * 100
         # Keyed by the label alone, never by `source_holdings`: the universe
-        # carries proxies (HSTECH stands in for 07226, SPCX for SPCH), and a
+        # carries proxy indices or underlyings for leveraged holdings, and a
         # proxy's 20-day high is in a different price scale entirely. Telling a
         # 3.5 HKD warrant to 「站上 4948.5」(恒科指数点位) is worse than saying
         # nothing. A radar row may carry a proxy because the row names the index
@@ -678,17 +663,10 @@ def quote_coverage(_block, market, portfolio_path=None, *, now=None,
 def always_full_intraday() -> bool:
     """Whether every open-market slot should send the full block.
 
-    The semantic-delta gate (#532/#533) sends a compact receipt when nothing
-    material moved, which is the right default: it keeps every slot visible
-    without repeating an unchanged report. kcn asked on 2026-08-17 to see the
-    full block on every slot for a while instead.
-
-    A config toggle rather than deleting the gate, because the contract behind
-    it is deliberate — "semantic deduplication must never become a skip/no-send
-    gate" — and this is meant to be temporary. Absence of the file, an
-    unreadable file, or a missing key all mean the gate stays on: a runtime
-    switch must fail back to the reviewed behaviour, not to whatever a typo
-    happens to produce.
+    The 2026-09-24 contract makes a healthy unchanged slot silent, with an
+    auditable heartbeat and exact-slot marker. Data/source degradation always
+    breaks silence. This switch keeps the earlier every-slot-full-card option.
+    Missing or invalid config leaves the semantic gate enabled.
 
     `config/intraday-delivery.json`:  {"always_full": true}
     """
@@ -723,7 +701,8 @@ DELTA_LABELS = {
     'session': '本交易日首档', 'breaches': '信号/触发档位',
     'setups': '机会形态', 'plans': '未成交计划',
     'primary_events': '一级披露', 'primary_source_health': '一级源状态',
-    'regime': '组合风险档位',
+    'regime': '组合风险档位', 'soft_candidates_seen': '边缘候选',
+    'strategy_policies': '持仓策略口径', 'strategy_conflicts': '计划与策略冲突',
 }
 
 
@@ -776,76 +755,6 @@ def strip_generic_news(block):
         if not in_news:
             out.append(line)
     return '\n'.join(out).rstrip()
-
-
-def apply_spch_intraday_contract(block, p0):
-    """Keep generic cost-basis STOP chatter out of the SPCH DCA card.
-
-    The signal remains in the stored context for audit. A verified daily move
-    beyond the user's P0 line is printed explicitly; a floating-loss STOP is
-    not an instruction to sell SPCH. Weekly SPCX P0 needs its own proven quote
-    and is not inferred from the SPCH price or a peer headline.
-    """
-    output = []
-    skip_detail = False
-    for line in block.splitlines():
-        if re.search(r'\b(?:STOP-LOSS|STOP\?|WATCH|TRIM) SPCH\b', line):
-            skip_detail = True
-            continue
-        if skip_detail and line.lstrip().startswith('·'):
-            continue
-        skip_detail = False
-        output.append(line)
-    for index in range(len(output) - 1, -1, -1):
-        if output[index].strip() == '⚠️ 信号':
-            next_line = next((row.strip() for row in output[index + 1:]
-                              if row.strip()), '')
-            if not next_line.startswith(('▼', '△', '✋', '▲')):
-                del output[index]
-    if p0.get('spch_daily_pct') is not None:
-        output.insert(1, f"P0：SPCH 单日 {p0['spch_daily_pct']:+.1f}%，无限子弹流是否继续？")
-    if p0.get('spcx_weekly_pct') is not None:
-        output.insert(1, f"P0：SPCX 单周 {p0['spcx_weekly_pct']:+.1f}%，无限子弹流是否继续？")
-    return '\n'.join(output)
-
-
-def spch_p0_evidence(stdout, anomalies, coverage, *, now):
-    """Evaluate only the two user-authorized SPCH upgrade lines from fresh data."""
-    evidence = {'spch_daily_pct': None, 'spcx_weekly_pct': None}
-    if not coverage.get('active') or not coverage.get('refreshed'):
-        return evidence
-    unrefreshed = set(coverage.get('unrefreshed') or [])
-    if 'SPCH' not in unrefreshed:
-        for row in anomalies or []:
-            move = row.get('move_pct')
-            if row.get('ticker') == 'SPCH' and isinstance(move, (int, float)) and move < -15:
-                evidence['spch_daily_pct'] = move
-                break
-    if 'SPCX' in unrefreshed:
-        return evidence
-    quotes = {row.get('ticker'): row.get('price')
-              for row in _harness_common.parse_holdings_rows(stdout)}
-    price = quotes.get('SPCX')
-    if not isinstance(price, (int, float)) or price <= 0:
-        return evidence
-    try:
-        detail = next(row for row in quant_signals.universe_details()
-                      if row.get('label') == 'SPCX')
-        bars = _fetch_bars_cached(detail['code'], 400)
-        session = intraday_delta.market_session_date('us', now)
-        completed = [bar for bar in bars if bar.get('date', '') < session]
-        # Five completed sessions before the current intraday print.
-        if len(completed) >= 5:
-            prior = completed[-5]
-            # A stale kline is not evidence of a weekly move.
-            if (datetime.fromisoformat(session).date()
-                    - datetime.fromisoformat(completed[-1]['date']).date()).days <= 5:
-                pct = (price / prior['close'] - 1) * 100
-                if pct < -25:
-                    evidence['spcx_weekly_pct'] = round(pct, 1)
-    except (KeyError, StopIteration, TypeError, ValueError, ZeroDivisionError):
-        pass
-    return evidence
 
 
 ACTION_CN = {
@@ -935,38 +844,101 @@ def collect_peers(market):
                                  legs=(leg,))
     except Exception as e:
         print(f'   ⚠️  peer scan skipped: {e}', file=sys.stderr)
-        return {}
+        return {'_error': f'{type(e).__name__}: {e}'[:200]}
 
 
 def judgment_packet(ctx):
-    """Bound the model input while retaining the full postflight audit context."""
-    if ctx.get('status') != 'ok':
-        return ctx
-    relevant = list(dict.fromkeys(
-        [row.get('ticker') for row in ctx.get('anomalies', [])]
-        + [row.get('ticker') for row in ctx.get('signals_detail', [])]
-        + [row.get('ticker') for row in ctx.get('plan_triggers', [])]
-    ))
-    relevant = [ticker for ticker in relevant if ticker]
-    plans = ctx.get('plan_context') or {}
-    packet = {key: ctx.get(key) for key in (
-        'status', 'market', 'date', 'time', 'context_id', 'delivery_mode',
-        'semantic_delta', 'should_alert', 'alert_reasons', 'raw_wechat_block',
-        'quote_coverage', 'anomalies', 'signals_detail', 'plan_triggers',
-        'add_side_reads', 'mover_news', 'mover_thesis', 'known_catalysts',
-        'active_information_candidates', 'opportunity_radar', 'spch_p0',
-    )}
-    packet['plan_context'] = {
-        'open': [row for row in plans.get('open', [])
-                 if row.get('ticker') in relevant or (row.get('shares') or 0) > 0][:5],
-        'open_count': len(plans.get('open', [])),
-        'carried_over': plans.get('carried_over'),
-    }
-    packet['peer_scan'] = {
-        ticker: ctx['peer_scan'][ticker] for ticker in relevant
-        if ticker in (ctx.get('peer_scan') or {})
-    }
-    return packet
+    """Give the model the complete decision context; brevity belongs to delivery.
+
+    The previous whitelist discarded zero-share open plans, quiet peers, watch
+    levels, source signal provenance, setup failures and history. Those fields
+    can change the judgment even when they do not belong in the WeChat card.
+    """
+    return ctx
+
+
+def can_silence(ctx, *, allow_soft_review=False):
+    """Only a proved healthy, unchanged slot may omit user delivery."""
+    soft_only = (ctx.get('semantic_delta') or {}).get('components') == ['soft_candidates_seen']
+    if (not ctx.get('semantic_unchanged') and not (allow_soft_review and soft_only)):
+        return False
+    if ctx.get('always_full'):
+        return False
+    coverage = ctx.get('quote_coverage') or {}
+    if (not coverage.get('active') or coverage.get('active') != coverage.get('refreshed')
+            or coverage.get('unrefreshed')):
+        return False
+    active = ctx.get('active_information_candidates') or {}
+    if (active.get('error') or active.get('policy_evidence_error')
+            or active.get('degraded_issuers') or active.get('partially_degraded_issuers')):
+        return False
+    if (ctx.get('peer_scan') or {}).get('_error'):
+        return False
+    if ctx.get('policy_evidence_errors'):
+        return False
+    if (ctx.get('t0_setups') or {}).get('error'):
+        return False
+    if (ctx.get('plan_context') or {}).get('error'):
+        return False
+    mover = ctx.get('mover_news') or {}
+    if (mover.get('halts') or {}).get('status') == 'degraded':
+        return False
+    if any((row or {}).get('status') == 'degraded'
+           for row in (mover.get('tickers') or {}).values()):
+        return False
+    if any((ctx.get(name) or {}).get('errors') for name in
+           ('provisional_setups', 'early_trend_candidates', 'opportunity_radar')):
+        return False
+    return True
+
+
+def decision_sweep(stdout, coverage, plan_context, radar, t0_setups):
+    """Expose every holding and soft candidates before the model sets its agenda.
+
+    The 3% anomaly gate remains a guaranteed alert floor. A 1.5–3% move,
+    approach within 3% of the existing 20-day radar level, or zscore >=1.5
+    enters the candidate lane. Stable candidate identities, not raw prices,
+    participate in semantic deduplication.
+    """
+    missing = set(coverage.get('unrefreshed') or [])
+    plans = (plan_context or {}).get('open') or []
+    holdings, candidates = [], []
+    for row in _harness_common.parse_holdings_rows(stdout):
+        ticker, price, move = row.get('ticker'), row.get('price'), row.get('move_pct')
+        lines = [p for p in plans if p.get('ticker') == ticker
+                 and isinstance(p.get('condition_price'), (int, float))]
+        distances = [{
+            'decision_id': p.get('decision_id'), 'condition_price': p['condition_price'],
+            'pct_to_trigger': round((p['condition_price'] / price - 1) * 100, 2),
+        } for p in lines if isinstance(price, (int, float)) and price > 0]
+        holdings.append({'ticker': ticker, 'price': price, 'pct_1d': move,
+                         'quote_fresh': bool(coverage.get('refreshed'))
+                         and ticker not in missing,
+                         'plan_distances': distances})
+        if (holdings[-1]['quote_fresh'] and isinstance(move, (int, float))
+                and 1.5 <= abs(move) < 3):
+            candidates.append({'ticker': ticker, 'kind': 'soft_move',
+                               'pct_1d': move,
+                               'band': '2.5-3' if abs(move) >= 2.5 else '1.5-2.5'})
+    levels = (radar or {}).get('levels') or {}
+    for label, level in levels.items():
+        pct = level.get('pct_from_high')
+        if isinstance(pct, (int, float)) and -3 <= pct <= 0:
+            candidates.append({'ticker': label, 'kind': 'near_20d_high',
+                               'pct_from_high': pct,
+                               'price_owner': label})
+    for row in (radar or {}).get('rows') or []:
+        z = row.get('zscore20')
+        if isinstance(z, (int, float)) and z >= 1.5:
+            candidates.append({'ticker': row.get('label'), 'kind': 'zscore_watch',
+                               'zscore20': z, 'price_owner': row.get('label')})
+    for ticker, row in ((t0_setups or {}).get('rows') or {}).items():
+        if (row.get('grade_label') not in (None, '中性')
+                and any(h['ticker'] == ticker for h in holdings)):
+            candidates.append({'ticker': ticker, 'kind': 't0_quality',
+                               'grade': row.get('grade_label'),
+                               'range_pos': row.get('range_pos')})
+    return holdings, candidates
 
 
 def main(argv=None):
@@ -1026,8 +998,9 @@ def main(argv=None):
         return 1
 
     source_signals, source_signals_detail = parse_signals(stdout)
-    signals, signals_detail = actionable_signals(
-        args.market, source_signals, source_signals_detail)
+    holding_policies = intraday_policy.load(WS, args.market)
+    signals, signals_detail = intraday_policy.actionable_signals(
+        source_signals, source_signals_detail, holding_policies)
     anomalies = parse_anomalies(stdout)
 
     # T+0 牌面评级 — analyze_*_stocks 刚刷过价，此处用实时区间位算追高检测。
@@ -1038,13 +1011,17 @@ def main(argv=None):
         # the launcher lives in ~/.local/bin, so `clawock` does not resolve (#438,
         # #443). Here the except swallows it, which is exactly how a dead call
         # stays invisible.
-        subprocess.run([sys.executable, '-m', PACKAGED_UTILITIES['t0']],
-                       capture_output=True, text=True, timeout=45, check=False)
+        t0_run = subprocess.run([sys.executable, '-m', PACKAGED_UTILITIES['t0']],
+                                capture_output=True, text=True, timeout=45, check=False)
         t0_path = WS / 'assets' / 'data' / 't0_setups.json'
-        if t0_path.exists():
+        if t0_run.returncode != 0:
+            t0_setups = {'error': f'T+0 collector exit {t0_run.returncode}'}
+        elif t0_path.exists():
             t0_setups = json.loads(t0_path.read_text())
-    except Exception:
-        pass
+        else:
+            t0_setups = {'error': 'T+0 result missing'}
+    except Exception as exc:
+        t0_setups = {'error': f'T+0 collector {type(exc).__name__}: {exc}'[:200]}
 
     should_alert, alert_reasons = decide_alert(signals, anomalies)
 
@@ -1112,6 +1089,7 @@ def main(argv=None):
     # say what the money is for instead of ending at "sell".
     plan_ctx = attach_reinvest_candidates(
         plan_ctx, opportunity_radar, signals_detail)
+    strategy_conflicts = intraday_policy.plan_conflicts(holding_policies, plan_ctx)
     # Does this slot's tape satisfy any condition the 08:00 plan wrote down?
     # Deterministic and harness-owned: the plan already named the price, so the
     # comparison is arithmetic, not judgement. Leaving it to the model is how
@@ -1135,11 +1113,25 @@ def main(argv=None):
         now=datetime.now(trading_calendar.HKT),
         started_at=now,
     )
-    spch_p0 = (spch_p0_evidence(stdout, anomalies, coverage, now=now)
-               if args.market == 'us' else {})
-    if any(value is not None for value in spch_p0.values()):
+    full_holdings, soft_candidates = decision_sweep(
+        stdout, coverage, plan_ctx, opportunity_radar, t0_setups)
+    prices = {row['ticker']: row['price'] for row in
+              _harness_common.parse_holdings_rows(stdout) if row.get('price') is not None}
+    try:
+        universe = quant_signals.universe_details()
+    except Exception as exc:
+        universe = []
+        active_information_ctx['policy_evidence_error'] = f'{type(exc).__name__}: {exc}'[:200]
+    policy_evidence_errors = []
+    strategy_checks = []
+    policy_escalations = intraday_policy.escalations(
+        holding_policies, anomalies, coverage, prices, universe,
+        _fetch_bars_cached, intraday_delta.market_session_date(args.market, now),
+        errors=policy_evidence_errors, checks=strategy_checks,
+        daily_moves={row['ticker']: row.get('pct_1d') for row in full_holdings})
+    if policy_escalations:
         should_alert = True
-        alert_reasons.append('SPCH 无限子弹流 P0 条件')
+        alert_reasons.append('策略升级条件')
     semantic_state = intraday_delta.semantic_state(
         args.market, intraday_delta.market_session_date(args.market, now),
         signals_detail=signals_detail,
@@ -1147,25 +1139,49 @@ def main(argv=None):
         active_information=active_information_ctx,
         plan_triggers=plan_triggers,
     )
-    for key, value in spch_p0.items():
-        if value is not None:
-            semantic_state['breaches'].append({
-                'ticker': 'SPCH' if key == 'spch_daily_pct' else 'SPCX',
-                'kind': 'spch_p0', 'level': key,
-            })
+    semantic_state['strategy_policies'] = holding_policies
+    semantic_state['strategy_conflicts'] = strategy_conflicts
+    for row in policy_escalations:
+        semantic_state['breaches'].append({
+            'ticker': row['ticker'], 'kind': 'strategy_escalation',
+            'level': f"{row['window']}:{row['threshold_pct']}",
+        })
     prior_doc = intraday_delta.load_delivered_state(WS, args.market)
     prior_state = (prior_doc.get('state') or {}) if isinstance(prior_doc, dict) else {}
+    current_soft = [{key: row.get(key) for key in ('ticker', 'kind', 'band')
+                     if row.get(key) is not None} for row in soft_candidates]
+    old_soft = (prior_state.get('soft_candidates_seen') or []
+                if prior_state.get('session') == semantic_state.get('session') else [])
+    semantic_state['soft_candidates_seen'] = sorted(
+        {json.dumps(row, sort_keys=True, ensure_ascii=False): row
+         for row in [*old_soft, *current_soft]}.values(),
+        key=lambda row: json.dumps(row, sort_keys=True))
     semantic_delta = intraday_delta.compare_semantic_states(semantic_state, prior_state)
     # The delta is still computed and still stored when the gate is off: the
     # delivered-state cursor has to keep advancing, or flipping the toggle back
     # would compare against a months-old state and send one bogus full slot.
     always_full = always_full_intraday()
-    unchanged = bool(prior_state) and not semantic_delta['changed'] and not always_full
+    peer_context = collect_peers(args.market)
+    silence_context = {
+        'semantic_unchanged': bool(prior_state) and not semantic_delta['changed'],
+        'semantic_delta': semantic_delta,
+        'always_full': always_full, 'quote_coverage': coverage,
+        'active_information_candidates': active_information_ctx,
+        'provisional_setups': live_setups,
+        'early_trend_candidates': early_candidates,
+        'opportunity_radar': opportunity_radar,
+        'peer_scan': peer_context,
+        'policy_evidence_errors': policy_evidence_errors,
+        'plan_context': plan_ctx,
+        'mover_news': mover_news_ctx,
+        't0_setups': t0_setups,
+    }
+    unchanged = can_silence(silence_context)
+    soft_review = can_silence(silence_context, allow_soft_review=True) and not unchanged
     if unchanged:
         raw_block = render_unchanged_receipt(
-            args.market, stdout.strip(), coverage, active_information_ctx,
-        )
-        delivery_mode = 'unchanged_receipt'
+            args.market, stdout.strip(), coverage, active_information_ctx)
+        delivery_mode = 'no_change'
         # Persistent thresholds explain the stored state; they do not turn the
         # receipt back into another full alert.
         should_alert, alert_reasons = False, []
@@ -1181,19 +1197,34 @@ def main(argv=None):
             event_ids=set(semantic_delta['changed_event_ids']),
         )
         raw_block = append_plan_trigger_section(raw_block, plan_triggers)
-        if args.market == 'us':
-            prior_p0 = {row.get('level') for row in prior_state.get('breaches', [])
-                        if row.get('kind') == 'spch_p0'}
-            display_p0 = {key: value for key, value in spch_p0.items()
-                          if key not in prior_p0}
-            raw_block = apply_spch_intraday_contract(raw_block, display_p0)
+        raw_block = intraday_policy.strip_suppressed_signal_lines(
+            raw_block, holding_policies)
+        prior_escalations = {(row.get('ticker'), row.get('level'))
+                             for row in prior_state.get('breaches', [])
+                             if row.get('kind') == 'strategy_escalation'}
+        for row in policy_escalations:
+            identity = (row['ticker'], f"{row['window']}:{row['threshold_pct']}")
+            if identity not in prior_escalations:
+                window = '单日' if row['window'] == 'session' else '五交易日'
+                lines = raw_block.splitlines()
+                lines.insert(1, f"P0：{row['ticker']} {window} {row['move_pct']:+.1f}%，"
+                                f"{row['holding']} 策略是否继续？")
+                raw_block = '\n'.join(lines)
         raw_block = prepend_delta_lead(
             raw_block, semantic_delta, current=semantic_state,
             previous=prior_state)
         raw_block = prepend_coverage_warning(raw_block, coverage)
+        if policy_evidence_errors:
+            lines = raw_block.splitlines()
+            lines.insert(2, '⚠️ 策略升级证据未取全：' + '；'.join(policy_evidence_errors[:2]))
+            raw_block = '\n'.join(lines)
+        if t0_setups.get('error'):
+            lines = raw_block.splitlines()
+            lines.insert(2, f"⚠️ T+0 牌面未取到：{t0_setups['error']}")
+            raw_block = '\n'.join(lines)
         should_alert, alert_reasons = apply_plan_trigger_alert(
             should_alert, alert_reasons, plan_triggers)
-        delivery_mode = 'full_delta'
+        delivery_mode = 'review_candidate' if soft_review else 'full_delta'
 
     result = {
         'status':           'ok',
@@ -1210,6 +1241,8 @@ def main(argv=None):
         'semantic_state': semantic_state,
         'semantic_delta': semantic_delta,
         'quote_coverage': coverage,
+        'full_holdings': full_holdings,
+        'soft_candidates': soft_candidates,
         'provisional_setups': live_setups,
         'early_trend_candidates': early_candidates,
         'opportunity_radar': opportunity_radar,
@@ -1228,13 +1261,17 @@ def main(argv=None):
         'signal_count':     signals,
         'signals_detail':   signals_detail,
         'source_signals_detail': source_signals_detail,
-        'spch_p0': spch_p0,
+        'strategy_escalations': policy_escalations,
+        'strategy_checks': strategy_checks,
+        'policy_evidence_errors': policy_evidence_errors,
+        'holding_policies': holding_policies,
         'anomalies':        anomalies,
         'should_alert':     should_alert,
         'alert_reasons':    alert_reasons,
         't0_setups':        t0_setups,
-        'peer_scan':        collect_peers(args.market),
+        'peer_scan':        peer_context,
         'plan_context':     plan_ctx,
+        'strategy_conflicts': strategy_conflicts,
         # The lines the 08:00 plan set for the book and the indices. Carried,
         # not evaluated — see `plan_surface.watch_levels` for why the arithmetic
         # `plan_triggers` does on a decision's price cannot be done on these.

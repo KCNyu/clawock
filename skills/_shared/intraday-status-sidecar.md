@@ -14,7 +14,7 @@
 ```
 - **模型只写 `status_banner` / `movers` 文本**；`generated_at` 由 postflight harness
   以当前真实 UTC 写入，禁止模型生成或猜测基础设施时间。
-- 横幅写**本档新变化**及下一触发点；`delivery_mode=unchanged_receipt` 不改写 sidecar，
+- 横幅写**本档新变化**及下一触发点；`delivery_mode=no_change` 不改写 sidecar，
   不能把上一档的判断盖上新时间。超过 50/40 字、字段类型错误时 harness 拒收 sidecar，
   盘中微信仍正常投递。
 - `movers` 覆盖 context 里 `anomalies` / today_movers 的**每个**票；**杠杆 ETF 要点明"杠杆放大"、区分标的真涨还是纯 beta**（本市场杠杆 ticker 见调用方 Step 2.5）。
