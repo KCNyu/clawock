@@ -27,7 +27,7 @@ import subprocess
 import sys
 from datetime import datetime
 
-from clawock.safe_io import safe_write_json
+from clawock.safe_io import mutate_json
 from clawock import sessions as trading_calendar
 from clawock.workspace import workspace_root
 
@@ -54,7 +54,8 @@ def main():
     ap.add_argument('--publish', action='store_true', help='改完 commit+safe_push 上线')
     a = ap.parse_args()
 
-    pf = json.load(open(PORTFOLIO, encoding='utf-8'))
+    with open(PORTFOLIO, encoding='utf-8') as f:
+        pf = json.load(f)
     g = pf.get('gold_dca')
     if not g:
         print('FATAL: portfolio.json 无 gold_dca，先跑 clawock-gold-fetch 初始化', file=sys.stderr)
@@ -85,12 +86,25 @@ def main():
     avg = principal / units
 
     # ── 改基线（仅这三个字段；其余 fetch_gold_dca 重算）──
-    old = (g.get('principal_invested'), g.get('units_held'), g.get('reconciled_date'))
-    g['principal_invested'] = round(principal, 2)
-    g['units_held'] = round(units, 4)
-    g['reconciled_date'] = rdate
-    pf['gold_dca'] = g
-    safe_write_json(PORTFOLIO, pf)
+    old = None
+
+    def _mutate(data):
+        nonlocal old
+        current = data.get('gold_dca')
+        if not current or current.get('fund_code') != g.get('fund_code'):
+            raise ValueError('gold_dca changed during reconciliation; retry with fresh inputs')
+        old = (current.get('principal_invested'), current.get('units_held'),
+               current.get('reconciled_date'))
+        current['principal_invested'] = round(principal, 2)
+        current['units_held'] = round(units, 4)
+        current['reconciled_date'] = rdate
+        return data
+
+    try:
+        mutate_json(PORTFOLIO, _mutate)
+    except ValueError as exc:
+        print(f'FATAL: {exc}', file=sys.stderr)
+        return 1
 
     print('黄金定投对账完成')
     print(f'  依据：{basis}')

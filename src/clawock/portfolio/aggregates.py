@@ -34,7 +34,7 @@ import sys
 from pathlib import Path
 
 from clawock.portfolio.math import active_holdings, number
-from clawock.safe_io import safe_write_json
+from clawock.safe_io import mutate_json
 from clawock.workspace import workspace_root
 
 WS = workspace_root()
@@ -211,10 +211,22 @@ def main(argv=None):
     args = parser.parse_args(argv)
     dry = args.dry_run
     path = args.path
-    data = json.loads(path.read_text())
-    changes = recompute(
-        data, dry_run=dry, percent_rounding=load_policy(args.config),
-        price_rounding=load_policy(args.config, 'price_rounding_by_book'))
+    precision = load_policy(args.config)
+    price_precision = load_policy(args.config, 'price_rounding_by_book')
+    changes = {}
+
+    def _mutate(data):
+        nonlocal changes
+        changes = recompute(data, percent_rounding=precision,
+                            price_rounding=price_precision)
+        return data
+
+    if dry:
+        data = json.loads(path.read_text())
+        changes = recompute(data, dry_run=True, percent_rounding=precision,
+                            price_rounding=price_precision)
+    else:
+        mutate_json(str(path), _mutate)
 
     if not changes:
         print('recompute_aggregates: ✓ all derived fields already consistent')
@@ -230,7 +242,6 @@ def main(argv=None):
         if dry:
             print('[dry-run] portfolio.json NOT written.')
         else:
-            safe_write_json(str(path), data)
             print(f'✓ 已写回 {path}')
     return 0
 
