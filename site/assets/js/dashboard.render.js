@@ -1274,16 +1274,22 @@
         }).join("");
         const marks = (j.slots || []).map(s => {
           const state = CRON_STATES[cronState(s.state)];
-          return `<i class="dh-timeline-tick" data-tone="${state.tone}" aria-hidden="true"></i>`;
+          const [hour, minute] = s.at.split(":").map(Number);
+          return `<i class="dh-timeline-tick" data-tone="${state.tone}" style="left:${AXIS_MINUTES(hour + minute / 60).toFixed(3)}%" aria-hidden="true"></i>`;
         }).join("");
+        const nextSlot = (j.slots || []).find(s => ["upcoming", "running"].includes(cronState(s.state)));
+        const due = nextSlot ? `下次 ${nextSlot.at} HKT` : "今日已完成";
         return { rank: rank[tone], html: `<details class="dh-timeline" data-state="${tone}" data-job="${escapeHtml(j.job)}"${openJobs.has(j.job) ? " open" : ""}>`
           + `<summary><span class="dh-timeline-name">${escapeHtml(j.job)}</span>`
           + `<span class="dh-timeline-badge" data-state="${tone}"><span aria-hidden="true">${icon}</span> ${label}</span>`
           + `<span class="dh-timeline-last">${escapeHtml(lastSuccess(j))}</span>`
           + `<span class="dh-timeline-samples" aria-hidden="true">${marks}</span>`
-          + `<span class="dh-timeline-reason">${escapeHtml(reason)}</span>`
+          + `<span class="dh-timeline-reason"><span class="dh-timeline-due">${escapeHtml(due)}</span>${tone === "ok" || tone === "pending" ? "" : `<span class="dh-timeline-why">${escapeHtml(reason)}</span>`}</span>`
           + `<span class="dh-timeline-more" aria-hidden="true">⌄</span></summary>`
-          + `<ul class="dh-timeline-slots">${slots}</ul></details>`, index };
+          + `<ul class="dh-timeline-slots">${slots}</ul>`
+          + `<div class="dh-timeline-raw"><span>last_success_at: ${escapeHtml(j.last_success_at || "—")}</span>`
+          + `<span>schedule.date: ${escapeHtml(cs.date || "—")}</span>`
+          + `<a href="https://raw.githubusercontent.com/KCNyu/clawock/data-plane/assets/data/dashboard.json" target="_blank" rel="noopener noreferrer">原始 dashboard.json ↗</a></div></details>`, index };
       }).sort((a, b) => a.rank - b.rank || a.index - b.index);
       const issues = rows.filter(row => row.rank < 3);
       const routine = rows.filter(row => row.rank >= 3);
@@ -1295,6 +1301,39 @@
             + routine.map(row => row.html).join("") : "");
       if (focusedJob) [...statusList.querySelectorAll(".dh-timeline")]
         .find(row => row.dataset.job === focusedJob)?.querySelector("summary")?.focus({ preventScroll: true });
+      if (statusList.dataset.wired !== "1") {
+        statusList.dataset.wired = "1";
+        statusList.addEventListener("toggle", event => {
+          const row = event.target;
+          if (!row.classList?.contains("dh-timeline")) return;
+          const panel = document.getElementById("dh-detail-content");
+          const heading = document.getElementById("dh-detail-heading");
+          if (!row.open) {
+            if (heading?.textContent === `${row.dataset.job} · 槽位历史`) {
+              heading.textContent = "选择一行查看明细";
+              if (panel) panel.innerHTML = "";
+            }
+            return;
+          }
+          if (panel && heading) {
+            DH_LANES.forEach(key => setDataHealthGroup(key, false));
+            syncDataHealthToggle();
+            heading.textContent = `${row.dataset.job} · 槽位历史`;
+            panel.innerHTML = row.querySelector(".dh-timeline-slots").outerHTML
+              + row.querySelector(".dh-timeline-raw").outerHTML;
+          }
+          [...statusList.querySelectorAll(".dh-timeline[open]")].forEach(other => {
+            if (other !== row) other.open = false;
+          });
+        }, true);
+      }
+      const selected = statusList.querySelector(".dh-timeline[open]");
+      if (selected) {
+        document.getElementById("dh-detail-heading").textContent = `${selected.dataset.job} · 槽位历史`;
+        document.getElementById("dh-detail-content").innerHTML =
+          selected.querySelector(".dh-timeline-slots").outerHTML
+          + selected.querySelector(".dh-timeline-raw").outerHTML;
+      }
     }
     const counts = {};
     cells.forEach(c => { counts[c.state] = (counts[c.state] || 0) + 1; });
@@ -1322,7 +1361,7 @@
       if (byDisposition.watch.length) bits.push(`${byDisposition.watch.length} 处已送达只是发布慢了几分钟`);
       if (byDisposition.known_not_fixed.length) bits.push(`${byDisposition.known_not_fixed.length} 处已知不修`);
       if (byDisposition.needs_action.length) bits.push(`${byDisposition.needs_action.length} 处见上方「需处理」`);
-      nameEl.textContent = `今天 · ${bits.join(" · ")}`;
+      nameEl.textContent = `投递任务 · 今天 · ${bits.join(" · ")}`;
     }
 
     const keysEl = document.getElementById("dh-rail-keys");
@@ -1648,13 +1687,24 @@
     const overall = issueCount ? `${issueCount} 项异常` : "当前无异常";
     const overallMark = document.getElementById("dh-overall-mark");
     if (overallMark) {
-      overallMark.textContent = issueCount ? String(issueCount) : "✓";
+      overallMark.textContent = issueCount ? `${issueCount} 项需关注` : "全部正常";
       overallMark.dataset.tone = tone;
     }
     const trustText = trustBroken
       ? `页面数字存疑 · ${late.length ? `${late.length} 个数据面逾期` : `体检 ${igErr} 项 ERROR`}`
       : "页面数字可用";
     root.dataset.tone = tone;
+    const metrics = document.getElementById("dh-headline-metrics");
+    if (metrics) {
+      const coverage = files.length ? `${Math.round((files.length - late.length) / files.length * 100)}%` : "—";
+      const knownAges = files.filter(f => f.present !== false && f.age_hours != null && Number.isFinite(Number(f.age_hours)))
+        .map(f => Number(f.age_hours));
+      const oldest = knownAges.length ? `${Math.max(...knownAges).toFixed(1)}h` : "—";
+      const counts = [["数据面在期", coverage], ["最久未刷新", oldest], ["待处理", String(todoCount)]];
+      metrics.innerHTML = counts.map(([label, value]) => `<div class="dh-metric"><span>${label}</span><strong>${value}</strong></div>`).join("");
+    }
+    const overviewStrip = document.getElementById("dh-overview-strip");
+    if (overviewStrip) overviewStrip.innerHTML = files.map(f => `<i data-tone="${stateOf(f)}" title="${escapeHtml(dataFileCn(f.name))} · ${escapeHtml(detailOf(f))}"></i>`).join("");
     if (verdictEl) {
       // 两截分开着色：把「页面数字可用」印成红的（因为别处有个任务挂了）
       // 正是这块牌以前最误导人的地方。
@@ -1796,10 +1846,7 @@
             + `<span class="dh-state">正常</span></div>`);
 
       const cronRows = cronScheduleRows(safe(DATA, "cron_schedule"));
-      // 一条泳道 = 一个展开器，明细就摊在它自己下面（组是泳道的兄弟节点，不是
-      // 卡片底部的一坨）。整块「逐项」在手机上是 34 行 2600px，读者要的不是
-      // 「全都展开」，是「点开我关心的那一条」。
-      // 刷新是每几分钟一次的事：读者刚点开的那一折不能被合回去。
+      // 每条泳道保留自己的台账；选中时移入板下明细区。刷新保留展开状态。
       const openFolds = [...document.querySelectorAll("#data-health .dh-fold")]
         .filter(button => button.getAttribute("aria-expanded") === "true")
         .map(button => button.dataset.fold);
@@ -1834,7 +1881,10 @@
       if (!lane || lane.dataset.wired === "1") return;
       lane.dataset.wired = "1";
       lane.addEventListener("click", () => {
-        setDataHealthGroup(key, lane.getAttribute("aria-expanded") !== "true");
+        const open = lane.getAttribute("aria-expanded") !== "true";
+        if (open) DH_LANES.filter(other => other !== key)
+          .forEach(other => setDataHealthGroup(other, false));
+        setDataHealthGroup(key, open);
         syncDataHealthToggle();
       });
     });
@@ -1872,7 +1922,17 @@
   function setDataHealthGroup(key, open) {
     const group = document.getElementById(`dh-group-${key}`);
     const lane = document.getElementById(`dh-lane-${key}`);
+    const detail = document.getElementById("dh-detail-panel");
     if (group) {
+      if (open && detail) {
+        document.querySelectorAll("#dh-timeline-list .dh-timeline[open]")
+          .forEach(row => { row.open = false; });
+        detail.appendChild(group);
+        const heading = document.getElementById("dh-detail-heading");
+        if (heading) heading.textContent = "逐项明细";
+        const content = document.getElementById("dh-detail-content");
+        if (content) content.innerHTML = "";
+      }
       group.classList.toggle("is-open", !!open);
       group.inert = !open;
       group.setAttribute("aria-hidden", open ? "false" : "true");
@@ -1888,7 +1948,7 @@
       return lane && lane.getAttribute("aria-expanded") === "true";
     });
     toggle.setAttribute("aria-expanded", open ? "true" : "false");
-    toggle.textContent = open ? "收起所有明细" : "展开所有明细";
+    toggle.textContent = open ? "收起明细" : "查看逐项";
   }
 
   function renderDelta() {

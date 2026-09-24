@@ -2285,6 +2285,9 @@ async function testEveryTimelineShowsItsVerdictAndFits(browser, base) {
         verdict: document.getElementById("dh-title").textContent.trim(),
         overallMark: document.getElementById("dh-overall-mark").textContent.trim(),
         laneStates: [...card.querySelectorAll(".dh-health-state")].map(el => el.textContent.trim()),
+        boardColumns: [...card.querySelectorAll(".dh-board-columns span")].map(el => el.textContent.trim()),
+        metrics: [...card.querySelectorAll(".dh-metric strong")].map(el => el.textContent.trim()),
+        due: rows.map(row => row.querySelector(".dh-timeline-due")?.textContent.trim()),
         overflow: card.scrollWidth - card.clientWidth,
         edge: Math.min(...rows.map(row => row.getBoundingClientRect().left
           - card.getBoundingClientRect().left)),
@@ -2292,9 +2295,12 @@ async function testEveryTimelineShowsItsVerdictAndFits(browser, base) {
     });
     assert.deepEqual(seen.states.map(row => row[1]), ["bad", "warn", "stale", "pending", "ok"]);
     assert(/\d+ 项异常/.test(seen.verdict), `cron failures are missing from the overall verdict: ${seen.verdict}`);
-    assert(Number(seen.overallMark) > 0, `the overall verdict has no visible count: ${seen.overallMark}`);
+    assert(parseInt(seen.overallMark, 10) > 0, `the overall verdict has no visible count: ${seen.overallMark}`);
     assert.deepEqual(seen.ticks, [1, 1, 1, 1, 1], "a timeline lacks its own slot history");
     assert.equal(seen.laneStates.length, 3);
+    assert.equal(seen.boardColumns.length, 5, "the monitoring board has lost its shared columns");
+    assert.equal(seen.metrics.length, 3, "the overview is missing its headline readings");
+    assert(seen.due.every(Boolean), "a timeline has no next-due reading");
     assert(seen.laneStates.every(label => /^[×!◷✓?] /.test(label)),
       `a lane has no explicit icon and state: ${seen.laneStates}`);
     assert(seen.states.every(row => row[2] && row[3] && row[4]),
@@ -2308,6 +2314,13 @@ async function testEveryTimelineShowsItsVerdictAndFits(browser, base) {
     await page.keyboard.press("Enter");
     assert.equal(await page.locator(".dh-timeline").first().getAttribute("open"), "",
       "keyboard activation did not reveal the slot reason");
+    await page.waitForFunction(() => /槽位历史/.test(document.getElementById("dh-detail-heading").textContent));
+    assert.match(await page.locator("#dh-detail-heading").innerText(), /槽位历史/,
+      "keyboard activation did not open the bottom drill-down");
+    assert.match(await page.locator("#dh-detail-content").innerText(), /last_success_at:|schedule.date:/,
+      "the drill-down omits raw fields");
+    assert.equal(await page.locator("#dh-detail-content a").count(), 1,
+      "the drill-down has no source artifact");
     assert(await page.locator("#data-health").evaluate(el => el.scrollWidth <= el.clientWidth),
       `${width}px: opening a timeline creates horizontal overflow`);
     await context.close();
@@ -2698,16 +2711,16 @@ async function testDataHealthIsReadableOnAPhone(browser, base) {
     return {
       expanded: lane.getAttribute("aria-expanded"),
       height: Math.round(group.getBoundingClientRect().height),
-      // 明细紧跟在这条泳道下面，不是卡片底部：它的顶边就是泳道的底边。
-      gap: Math.round(group.getBoundingClientRect().top - lane.getBoundingClientRect().bottom),
+      detailBelowBoard: group.getBoundingClientRect().top >=
+        document.querySelector(".dh-board").getBoundingClientRect().bottom,
       others: ["files", "delivery"].map(key =>
         Math.round(document.getElementById(`dh-group-${key}`).getBoundingClientRect().height)),
     };
   });
   assert.equal(opened.expanded, "true", "tapping a lane did not expand it");
   assert(opened.height > 0, "the lane expanded but its panel stayed collapsed");
-  assert(Math.abs(opened.gap) <= 2,
-    `the panel opened ${opened.gap}px away from the lane that owns it`);
+  assert(opened.detailBelowBoard,
+    "the selected lane's drill-down is not below the monitoring board");
   assert.deepEqual(opened.others, [0, 0],
     "opening one lane expanded the others too — that is the 2600px 逐项 again");
 

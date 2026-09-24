@@ -325,78 +325,69 @@ layout: null
 
       <section class="card hero-health is-pending" id="data-health" aria-labelledby="dh-title">
         <div class="hero-health-head">
-          <div class="dh-overall-mark" id="dh-overall-mark" aria-hidden="true">—</div>
           <div class="dh-head-copy">
             <div class="overview-card-kicker">数据健康</div>
             <h3 id="dh-title" class="hero-health-verdict">—</h3>
             <div class="hero-health-meta" id="dh-meta">—</div>
           </div>
+          <div class="dh-overall-mark" id="dh-overall-mark" aria-hidden="true">—</div>
           <button class="dh-toggle" type="button" id="dh-toggle" aria-expanded="false"
-                  aria-controls="dh-group-files dh-group-integrity dh-group-delivery">展开所有明细</button>
+                  aria-controls="dh-group-files dh-group-integrity dh-group-delivery">查看逐项</button>
         </div>
+        <div class="dh-headline-metrics" id="dh-headline-metrics" aria-label="数据健康关键读数"></div>
+        <div class="dh-overview-strip" id="dh-overview-strip" role="img" aria-label="数据面健康概览"></div>
         <!-- 「你该动手的事」不藏在任何一次点击后面。没有待办时它是空的，
              整块不占位（CSS 用 :empty 收掉边线和外边距）。 -->
         <div class="dh-todo-list" id="dh-todo"></div>
-        <!-- 三条泳道，位置固定：读者每次都在同一个地方找同一件事。
-             ①数据面＝页面上的数字新不新鲜 ②体检＝有没有报错
-             ③投递＝今天的成品有没有送出去。每条各带一枚处置牌，
-             因为「坏了」和「要不要动手」不是同一个判断（#771 的微信掉投
-             永远坏着，但它是已知不修，不该占用注意力）。 -->
-        <!-- 每条泳道自己是一个展开器：点它就在它下面摊开它自己的那一组
-             （数据面逐项 / 体检发现 / 今天每槽 + 微信掉投）。整块「逐项」在
-             手机上是 34 行 2600px，读者要的不是「全都展开」。所以泳道是
-             <button>：整行都是点按面积，键盘可达，aria-expanded 说状态。 -->
+        <!-- 领域和任务共用监测板；选中行的完整台账放在板下。 -->
+        <div class="dh-board" aria-label="数据健康监测板">
+          <div class="dh-board-title"><span>监测板</span><span>今日 · 香港时间</span></div>
+          <div class="dh-board-columns" aria-hidden="true"><span>名称 / 领域</span><span>状态</span><span>最近结果 / 成功</span><span>今日槽位 · 00—24</span><span>下次到期 / 说明</span></div>
         <div class="dh-lanes-shell"><div class="dh-lanes">
           <button type="button" class="dh-lane" id="dh-lane-files" data-tone="ok"
                   aria-expanded="false" aria-controls="dh-group-files">
-            <span class="dh-lane-name">数据面<span class="dh-health-state" id="dh-files-health"></span></span>
+            <span class="dh-lane-name">数据面</span><span class="dh-health-state" id="dh-files-health"></span>
             <span class="dh-lane-stat" id="dh-files-stat">&mdash;</span>
             <span class="dh-strip" id="dh-strip" role="img" aria-label="每个数据面的期限用量"></span>
             <span class="dh-lane-note" id="dh-files-note"></span>
             <span class="dh-chip" id="dh-files-chip"></span>
             <span class="dh-lane-chev" aria-hidden="true"></span>
           </button>
-          <!-- 数据面那一组的明细，由它上面那条泳道开合（收起时 inert）。 -->
+          <!-- 选中后这组明细移到监测板下方；收起时 inert。 -->
           <section class="dh-group" id="dh-group-files" role="region"
                    aria-labelledby="dh-lane-files" aria-hidden="true">
             <div class="dh-group-inner"><div class="dh-group-body" id="dh-group-files-body"></div></div>
           </section>
           <button type="button" class="dh-lane" id="dh-lane-integrity" data-tone="ok"
                   aria-expanded="false" aria-controls="dh-group-integrity">
-            <span class="dh-lane-name">体检<span class="dh-health-state" id="dh-integrity-health"></span></span>
+            <span class="dh-lane-name">体检</span><span class="dh-health-state" id="dh-integrity-health"></span>
             <span class="dh-lane-stat" id="dh-integrity-stat">&mdash;</span>
             <span class="dh-lane-shape" id="dh-integrity-shape" role="img" aria-label="体检结果构成"></span>
             <span class="dh-lane-note" id="dh-integrity-note"></span>
             <span class="dh-chip" id="dh-integrity-chip"></span>
             <span class="dh-lane-chev" aria-hidden="true"></span>
           </button>
-          <!-- 体检那一组的明细，由它上面那条泳道开合（收起时 inert）。 -->
+          <!-- 选中后这组明细移到监测板下方；收起时 inert。 -->
           <section class="dh-group" id="dh-group-integrity" role="region"
                    aria-labelledby="dh-lane-integrity" aria-hidden="true">
             <div class="dh-group-inner"><div class="dh-group-body" id="dh-group-integrity-body"></div></div>
           </section>
           <button type="button" class="dh-lane" id="dh-lane-delivery" data-tone="ok"
                   aria-expanded="false" aria-controls="dh-group-delivery">
-            <span class="dh-lane-name">投递<span class="dh-health-state" id="dh-delivery-health"></span></span>
+            <span class="dh-lane-name">投递</span><span class="dh-health-state" id="dh-delivery-health"></span>
             <span class="dh-lane-stat" id="dh-delivery-stat">&mdash;</span>
             <span class="dh-lane-shape" id="dh-delivery-shape" role="img" aria-label="窗口内成品结果构成"></span>
             <span class="dh-lane-note" id="dh-delivery-note"></span>
             <span class="dh-chip" id="dh-delivery-chip"></span>
             <span class="dh-lane-chev" aria-hidden="true"></span>
           </button>
-          <!-- 投递那一组的明细，由它上面那条泳道开合（收起时 inert）。 -->
+          <!-- 选中后这组明细移到监测板下方；收起时 inert。 -->
           <section class="dh-group" id="dh-group-delivery" role="region"
                    aria-labelledby="dh-lane-delivery" aria-hidden="true">
             <div class="dh-group-inner"><div class="dh-group-body" id="dh-group-delivery-body"></div></div>
           </section>
         </div></div>
-        <!-- 今天的槽位轨。投递泳道给的是 36 小时里成品落地的比例，这条给
-             同一件事加上时间轴。它**没有自己的判词**——判词只在上面「处置 ·
-             需处理」清单和这一行摘要里说一次，不重复一份（#1270 拆开这块牌
-             的原因）。每个 job 一条独立的行、共用同一把刻度尺，不用悬停就能
-             读出「谁 · 什么时候」；刻度每 3 小时标一个数字、每小时一条细线，
-             比原来只有 00/06/12/18/24 四个地标精确得多，另有一条「现在」竖线
-             区分「已经跑过」和「还没轮到」。 -->
+        <!-- 每个定时任务一行；槽位按同一条 00—24 HKT 时间轴定位。 -->
         <div class="dh-rail" id="dh-rail" hidden>
           <div class="dh-rail-head">
             <span class="dh-rail-name" id="dh-rail-name">今天</span>
@@ -415,6 +406,11 @@ layout: null
             <span>00</span><span>03</span><span>06</span><span>09</span>
             <span>12</span><span>15</span><span>18</span><span>21</span><span>24</span>
           </div>
+        </div>
+        </div>
+        <div class="dh-detail-panel" id="dh-detail-panel" aria-live="polite">
+          <div class="dh-detail-heading" id="dh-detail-heading">选择一行查看明细</div>
+          <div class="dh-detail-content" id="dh-detail-content"></div>
         </div>
         <div class="dh-caption" id="dh-caption"></div>
       </section>
