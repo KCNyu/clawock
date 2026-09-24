@@ -74,6 +74,10 @@ def test_gif_is_validated_only_on_manual_dispatch_before_publish():
     validator_block = _step_block(validate)
     assert "if: github.event_name == 'workflow_dispatch'" in validator_block
     assert_validator_step(WORKFLOW, validate, 'gif')
+    evidence = _step_block('Upload branch screenshots and GIF')
+    assert '.gifframes/capture-manifest.json' in evidence
+    assert '.gifframes/bottom-*.png' in evidence
+    assert 'include-hidden-files: true' in evidence
 
 
 def _refresh_module():
