@@ -733,13 +733,14 @@ def check(portfolio_path=PORTFOLIO):
 
     errors = [f for f in findings if f['level'] == 'ERROR']
     warns = [f for f in findings if f['level'] == 'WARN']
-    # Canonical-store disagreements: counted, named and visible — never a
-    # blocker. See `summarize_bar_conflicts`.
+    # Historical refusals remain visible in the structured report. The live
+    # daily-bars run raises actionable conflicts on the day they recur; a
+    # rolling count of already-refused rows is not a new daily warning.
     bar_conflicts = summarize_bar_conflicts()
     if bar_conflicts['total']:
         worst = sorted(bar_conflicts['by_kind'].items(),
                        key=lambda item: (-item[1], item[0]))
-        add('BAR_CONFLICT', 'WARN',
+        add('BAR_CONFLICT', 'INFO',
             f"canonical bars: {bar_conflicts['total']} refused provider "
             f"disagreement(s) in {bar_conflicts['window_days']}d — "
             + ', '.join(f'{kind} {count}' for kind, count in worst))

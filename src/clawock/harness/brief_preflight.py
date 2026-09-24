@@ -747,9 +747,9 @@ def refresh_daily_bars():
 
     Non-fatal by design: a stale store degrades to `pending`, which is bad but
     honest — losing the whole morning brief to a provider hiccup is worse. A
-    non-zero exit means the provider now disagrees with a bar the ledger already
-    settled against; fetch_daily_bars never overwrites one, so that surfaces as an
-    issue for a human to resolve with --repair rather than being applied here.
+    non-zero exit means the provider reported an actionable bar disagreement;
+    daily-bars keeps the settled store immutable and reports small rounding/wick
+    differences as information rather than asking for a needless repair.
     """
     cmd = clawock_argv('daily-bars')
     try:

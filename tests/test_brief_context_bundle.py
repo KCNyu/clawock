@@ -81,6 +81,9 @@ def test_same_fixture_reduces_always_loaded_input_and_preserves_action_fields(tm
     for field in brief_context.CORE_FIELDS:
         assert core[field] == stamped[field], field
     assert "new_feature_surface" not in core
+    assert "risk_discipline" not in core
+    risk_detail = json.loads(Path(manifest["bundles"]["risk_detail"]["path"]).read_text())
+    assert risk_detail["risk_discipline"] == stamped["risk_discipline"]
     assert manifest["bundles"]["extras"]["fields"] == ["new_feature_surface"]
     assert manifest["bundles"]["evidence"]["freshness"] == {
         "news_evidence_graph": {"as_of": "2026-07-28"}
@@ -259,4 +262,3 @@ def test_the_skill_documents_a_load_command_for_every_loadable_bundle():
     assert "extras" not in documented, (
         "documenting `extras` would make the accident survivable instead of "
         "impossible; the fields that belong there are the ones only code reads")
-

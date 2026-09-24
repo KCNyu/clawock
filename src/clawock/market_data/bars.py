@@ -254,7 +254,7 @@ def merge(ticker: str, fresh: list[dict], repair: bool) -> tuple[int, int, list[
     last_closed = _last_closed_session(doc.get("leg") or MANIFEST[ticker]["leg"])
     now = datetime.now(HKT).isoformat(timespec="seconds")
     added = revised = 0
-    conflicts: list[str] = []
+    conflicts: list[dict] = []
     for b in fresh:
         d = b["date"]
         if d > last_closed:
@@ -345,6 +345,7 @@ def main(argv=None) -> int:
     end = datetime.now(HKT).date().isoformat()
     total_add = total_rev = 0
     all_conflicts: list[str] = []
+    actionable_conflicts: list[str] = []
     for t in tickers:
         m = MANIFEST[t]
         beg = START_DATE if args.backfill else incremental_beg(t)
@@ -361,19 +362,23 @@ def main(argv=None) -> int:
         total_rev += revised
         record_conflicts(t, conflicts)
         for c in conflicts:
-            all_conflicts.append(f"{t} {c['date']} [{c['kind']}]: {c['detail']}")
-        flag = f" ⚠ {len(conflicts)} conflict" if conflicts else ""
+            line = f"{t} {c['date']} [{c['kind']}]: {c['detail']}"
+            all_conflicts.append(line)
+            if c['kind'] not in {'rounding', 'extreme_only'}:
+                actionable_conflicts.append(line)
+        flag = (f" {'⚠' if any(c['kind'] not in {'rounding', 'extreme_only'} for c in conflicts) else 'ℹ'} {len(conflicts)} conflict"
+                if conflicts else "")
         print(f"  {t:6} +{added:3} bars, {revised} revised, {len(load_bars(t)['bars'])} total{flag}")
 
     print(f"\n{total_add} bars added, {total_rev} revised → {BARS_DIR}")
     if all_conflicts:
-        print(f"\n⚠ {len(all_conflicts)} conflicts — stored bars disagree with the provider.")
+        print(f"\n{'⚠' if actionable_conflicts else 'ℹ'} {len(all_conflicts)} conflicts — stored bars disagree with the provider.")
         print(f"  Classified and appended to {CONFLICT_LOG}; `clawock integrity` counts them.")
-        print("  Nothing was overwritten. Investigate, then re-run with --repair if the")
-        print("  provider is right; the ledger settled against the stored values.")
+        print("  Nothing was overwritten. Review material revisions before --repair;")
+        print("  rounding and small wick differences remain recorded and refused.")
         for c in all_conflicts[:20]:
             print(f"   {c}")
-        return 1
+        return 1 if actionable_conflicts else 0
     return 0
 
 
