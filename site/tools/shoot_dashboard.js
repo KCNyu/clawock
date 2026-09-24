@@ -343,13 +343,16 @@ function socialCardHTML(shotDataUri) {
         // ECharts finishes its initial animation and the browser paints the tab.
         await gp.waitForTimeout(900);
         const over = await gp.evaluate(() => document.scrollingElement.scrollHeight - innerHeight);
-        const steps = over > 120 ? Math.min(18, Math.ceil(over / 110)) : 0;
+        // A demo should show a readable passage through the first two screens,
+        // not race across a very long dashboard in the same number of frames.
+        const travel = Math.min(over, 1440);
+        const steps = travel > 120 ? Math.ceil(travel / 80) : 0;
         await gp.screenshot({ path: `${FRAME_DIR}/f${i}_0.png`, animations: 'disabled' });
         for (let j = 1; j <= steps; j++) {
-          await gp.evaluate(([position, total]) => {
+          await gp.evaluate(([position, total, distance]) => {
             const el = document.scrollingElement;
-            el.scrollTop = Math.round((el.scrollHeight - innerHeight) * position / total);
-          }, [j, steps]);
+            el.scrollTop = Math.round(distance * position / total);
+          }, [j, steps, travel]);
           // Two paint opportunities reveal lazy content before each screenshot.
           await gp.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
           await gp.screenshot({ path: `${FRAME_DIR}/f${i}_${j}.png`, animations: 'disabled' });
