@@ -40,12 +40,12 @@ OW = 960             # output width (frames scaled to this; height follows aspec
                      # beside the 820px social card; ≤1280 stays real detail (no upscaling)
 COLORS = 256         # GIF max — a single global palette (built from all frames below)
                      # keeps the UI's real colors instead of washing them out to grey
-TWEENS = 6           # horizontal slide frames per transition
+TWEENS = 8           # horizontal slide frames per transition
 HOLD_TOP_MS = 1200   # dwell at the top of each tab
 HOLD_TOP_REFLECT_MS = 1900   # the self-grading tab (tab 5) lingers longest
 HOLD_BOTTOM_MS = 850         # pause once scrolled to the bottom
-VSCROLL_MS = 110     # each vertical-scroll frame
-SLIDE_MS = 80        # each horizontal-slide frame
+VSCROLL_MS = 80      # 12.5 fps: small scroll increments, with a stable top hold
+SLIDE_MS = 70        # eased tab switch at roughly 14 fps
 
 SEED_GLOBS = [       # where the UI's own chromatic colors are defined; scanned so
                      # their exact values can be protected in the GIF palette below

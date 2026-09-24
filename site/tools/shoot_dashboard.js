@@ -16,7 +16,7 @@
  *   site/assets/social-card.png       1280x640 pearl editorial card + fresh Hero dashboard
  *   site/assets/dashboard.gif         manual dispatch only; built from FRAME_DIR
  *   TMP_DIR/dashboard-preview.png  focused light Hero crop embedded into the social card
- *   .gifframes/f{0..5}.png       per-tab desktop 1280x800 frames → assemble_dashboard_gif.py
+ *   .gifframes/f{tab}_{step}.png  per-tab desktop 1280x800 frames → assemble_dashboard_gif.py
  *
  * site/assets/ is the one place shipped images live: README, Pages and the OG card all
  * point there, and site/_config.yml includes it. docs/ used to hold four PNGs of which
@@ -320,46 +320,40 @@ function socialCardHTML(shotDataUri) {
     //    the 1280x640 social card, and a 400x860 portrait strip beside a landscape
     //    card read as two different products. 1280x800 is the same landscape
     //    family as the card and the other README screenshots.
-    //    We locate the most-scrollable element around the panel and screenshot the
-    //    viewport at several scroll positions top→bottom → real vertical-scroll
-    //    frames, then move to the next tab (the assembler adds the horizontal swipe).
+    //    The desktop page scrolls as a whole. Capture small, evenly spaced scroll
+    //    steps only after each tab has rendered; the assembler handles the slide.
     if (CAPTURE_GIF) {
-      const VSCROLL = 5;   // scroll frames per tab (skipped when the tab barely scrolls)
       const gifCtx = await browser.newContext({ viewport: { width: 1280, height: 800 }, deviceScaleFactor: 1 });
       const gp = await gifCtx.newPage();
       await gp.goto(URL, { waitUntil: 'networkidle', timeout: 45000 });
-      await gp.waitForFunction(() => { const h = document.querySelector('[data-panel=hero]'); return h && h.textContent.trim().length > 200; }, { timeout: 45000 }).catch(() => {});
-      await gp.waitForTimeout(1500);
+      await gp.evaluate(() => document.fonts.ready);
       const counts = [];
       for (let i = 0; i < TABS.length; i++) {
-      await gp.click(`[data-tab=${TABS[i]}]`).catch(() => {});
-      await gp.waitForTimeout(400);
-      await gp.waitForFunction((tab) => {
-        const panel = document.querySelector(`[data-panel=${tab}]`);
-        if (!panel) return false;
-        const cs = [...panel.querySelectorAll('canvas')];
-        return cs.length === 0 || cs.every(c => c.width > 50);
-      }, TABS[i], { timeout: 12000 }).catch(() => {});
-      // find + remember the most-scrollable element around the active panel
-      const over = await gp.evaluate((tab) => {
-        const panel = document.querySelector(`[data-panel=${tab}]`);
-        const scope = [];
-        if (panel) { scope.push(panel); panel.querySelectorAll('*').forEach(e => scope.push(e)); }
-        [document.scrollingElement, document.documentElement, document.body].forEach(e => e && scope.push(e));
-        let best = null, mx = 0;
-        for (const el of scope) { const o = el.scrollHeight - el.clientHeight; if (o > mx) { mx = o; best = el; } }
-        window.__scrollEl = best;
-        return mx;
-      }, TABS[i]);
-      const steps = over > 120 ? VSCROLL : 0;
-      await gp.evaluate(() => { const el = window.__scrollEl; if (el) el.scrollTop = 0; else window.scrollTo(0, 0); });
-      await gp.waitForTimeout(700);
-      await gp.screenshot({ path: `${FRAME_DIR}/f${i}_0.png` });
-      for (let j = 1; j <= steps; j++) {
-        await gp.evaluate((frac) => { const el = window.__scrollEl; el.scrollTop = Math.round((el.scrollHeight - el.clientHeight) * frac); }, j / steps);
-        await gp.waitForTimeout(320);
-        await gp.screenshot({ path: `${FRAME_DIR}/f${i}_${j}.png` });
-      }
+        await gp.locator(`[data-tab=${TABS[i]}]`).click();
+        await gp.waitForFunction((tab) => {
+          const panel = document.querySelector(`[data-panel=${tab}]`);
+          if (!panel?.classList.contains('active') || panel.textContent.trim().length < 100) return false;
+          return [...panel.querySelectorAll('canvas')].every(c => c.width > 50 && c.height > 50);
+        }, TABS[i], { timeout: 45000 });
+        await gp.evaluate(async (tab) => {
+          const panel = document.querySelector(`[data-panel=${tab}]`);
+          await Promise.all([...panel.querySelectorAll('img')].map(img => img.decode().catch(() => {})));
+          document.scrollingElement.scrollTop = 0;
+        }, TABS[i]);
+        // ECharts finishes its initial animation and the browser paints the tab.
+        await gp.waitForTimeout(900);
+        const over = await gp.evaluate(() => document.scrollingElement.scrollHeight - innerHeight);
+        const steps = over > 120 ? Math.min(18, Math.ceil(over / 110)) : 0;
+        await gp.screenshot({ path: `${FRAME_DIR}/f${i}_0.png`, animations: 'disabled' });
+        for (let j = 1; j <= steps; j++) {
+          await gp.evaluate(([position, total]) => {
+            const el = document.scrollingElement;
+            el.scrollTop = Math.round((el.scrollHeight - innerHeight) * position / total);
+          }, [j, steps]);
+          // Two paint opportunities reveal lazy content before each screenshot.
+          await gp.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+          await gp.screenshot({ path: `${FRAME_DIR}/f${i}_${j}.png`, animations: 'disabled' });
+        }
         counts.push(steps + 1);
       }
       await gifCtx.close();
