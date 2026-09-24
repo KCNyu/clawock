@@ -436,14 +436,6 @@ def universe_details(errors=None):
     return list(by_code.values())
 
 
-def _universe():
-    """Compatibility view used by registry tests and small callers."""
-    return [
-        (row['label'], row['code'], row['note'])
-        for row in universe_details()
-    ]
-
-
 def _latest_completed_session(region, at=None):
     return trading_calendar.latest_completed_session(region, at)
 

@@ -46,9 +46,6 @@ from clawock.safe_io import safe_write_json
 from clawock.workspace import workspace_root
 
 WS = workspace_root()
-#: The retired page path. Nothing writes here any more; kept as a named constant
-#: so a reader who greps for the old location finds this line instead of nothing.
-RETIRED_PAGE = WS / 'site' / 'evidence.md'
 ARTIFACT = WS / 'assets' / 'data' / 'evidence.json'
 CARDS = WS / 'memory' / 'backtests'
 DATA = WS / 'assets' / 'data'

@@ -155,7 +155,7 @@ def test_the_schedule_is_read_once_for_the_whole_run(system_check, monkeypatch):
         system_check._cron_listing.cache_clear()
 
     for call in (lambda: system_check.check_cron_paths_exist(system_check.Result()),
-                 lambda: system_check._cron_jobs_without_prompt_report({})):
+                 lambda: system_check._cron_coverage_blind()):
         try:
             call()
         except Exception:  # noqa: BLE001 — the spawn count is the assertion
@@ -182,19 +182,6 @@ def test_a_new_run_does_not_inherit_the_last_snapshot(system_check, monkeypatch)
     assert system_check._cron_listing()[0].entries[0]["id"] == "two"
 
 
-def test_prompt_report_coverage_still_declines_a_non_cli_listing(
-        system_check, monkeypatch):
-    """It reads the CLI's flattened `status` to skip a job that is running, and
-    the SQLite view carries the nested state only. Before the shared read, a CLI
-    that could not answer left this with no findings; that has to stay true, or
-    a running job gets named as uncovered."""
-    jobs = [{"id": "job-a", "name": "cron a", "enabled": True,
-             "state": {"lastRunStatus": "ok"}}]
-    _counting_reader(system_check, monkeypatch, _listing("sqlite", jobs))
-
-    assert system_check._cron_jobs_without_prompt_report({}) == []
-
-
 def test_coverage_that_could_not_be_counted_says_so(system_check, monkeypatch):
     """An empty list of uncovered jobs means "every job is covered" OR "no job
     was looked at", and the report showed the same green line either way. The
@@ -208,8 +195,6 @@ def test_coverage_that_could_not_be_counted_says_so(system_check, monkeypatch):
     reason = system_check._cron_coverage_blind()
 
     assert reason and "sqlite" in reason, reason
-    assert system_check._cron_jobs_without_prompt_report({}) == [], (
-        "the list is empty either way — which is the whole point")
 
 
 def test_a_machine_with_no_runtime_is_not_called_blind(system_check, monkeypatch):
@@ -241,7 +226,6 @@ def test_an_unreadable_schedule_is_reported_not_swallowed(
 
     assert [s for _, s, _ in result.checks] == [system_check.WARNING]
     assert "no runtime here" in result.checks[0][2]
-    assert system_check._cron_jobs_without_prompt_report({}) == []
 
 
 # ── compiling the sources ───────────────────────────────────────────────────

@@ -145,16 +145,6 @@ def load_signal_snapshots(data_dir: Path | None = None) -> dict:
     return {as_of: dict(rows) for as_of, rows in out.items()}
 
 
-def _session_index(manifest):
-    """Ordered sessions per leg, and each ticker's leg, for age arithmetic."""
-    legs = {}
-    for ticker in manifest:
-        for leg in ('us', 'hk'):
-            if ticker in (manifest.get(leg) or {}) if isinstance(manifest, dict) else False:
-                legs[ticker] = leg
-    return legs
-
-
 def _age_in_sessions(sessions, earlier: str, later: str) -> int | None:
     """How many trading sessions separate two dates on one leg's calendar."""
     try:

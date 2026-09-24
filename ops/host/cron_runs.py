@@ -26,8 +26,6 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / 'src'))
 from clawock.providers import openclaw  # noqa: E402
 
-CRON_DIR = Path.home() / '.openclaw' / 'cron'
-RUNS_DIR = CRON_DIR / 'runs'
 HKT = timezone(timedelta(hours=8))
 
 

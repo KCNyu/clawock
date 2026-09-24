@@ -33,15 +33,6 @@ ACTIVE = decision_v2.ACTIVE_ACTIONS
 PASSIVE = decision_v2.PASSIVE_ACTIONS
 
 
-def _rate(rows):
-    """win-rate over settled (win/loss) rows; returns (pct:int|None, n:int)."""
-    settled = [r for r in rows if r["outcome"] in ("win", "loss")]
-    if not settled:
-        return None, 0
-    wins = sum(1 for r in settled if r["outcome"] == "win")
-    return round(100 * wins / len(settled)), len(settled)
-
-
 def scorecard():
     rows = decision_v2.episode_representatives(decision_v2.load_decisions(), "t1")
     def pct(group):

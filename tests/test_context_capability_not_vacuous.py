@@ -153,102 +153,6 @@ def test_the_live_machine_is_actually_being_checked():
     assert all(profiles.values()), f'a profile stopped recording reports: {profiles}'
 
 
-def test_an_enabled_job_with_no_report_is_named(monkeypatch):
-    """#473: nine healthy cron reports averaged away a tenth enabled job that
-    produced none, so the gate read OK while a live job was unverifiable."""
-    import ops.system_check as sc
-
-    monkeypatch.setattr(
-        'clawock.providers.openclaw.cron_cli_json',
-        lambda argv: {'jobs': [{'id': 'a', 'name': 'Healthy', 'enabled': True},
-                               {'id': 'b', 'name': 'Dreaming', 'enabled': True}]})
-    missing = sc._cron_jobs_without_prompt_report({
-        'agent:main:cron:a:run:1': {'systemPromptReport': {}},
-    })
-    assert missing == ['Dreaming']
-
-
-def test_a_provider_failed_run_is_not_mislabeled_as_capability_loss(monkeypatch):
-    """#490: a response-header timeout replaces the job session with an entry
-    that has no report. The scheduler already says the run failed; blaming
-    context assembly as well makes the capability warning cry wolf."""
-    import ops.system_check as sc
-
-    monkeypatch.setattr(
-        'clawock.providers.openclaw.cron_cli_json',
-        lambda argv: {'jobs': [{
-            'id': 'a', 'name': 'Provider timeout', 'enabled': True,
-            'state': {'lastStatus': 'error'},
-        }]})
-    assert sc._cron_jobs_without_prompt_report({
-        'agent:main:cron:a': {'updatedAt': 20},
-    }) == []
-
-
-def test_a_successful_job_without_a_report_is_still_named(monkeypatch):
-    """A successful run had a chance to assemble context. No report after that
-    remains the capability gap this gate exists to expose."""
-    import ops.system_check as sc
-
-    monkeypatch.setattr(
-        'clawock.providers.openclaw.cron_cli_json',
-        lambda argv: {'jobs': [{
-            'id': 'a', 'name': 'Dreaming', 'enabled': True,
-            'state': {'lastStatus': 'ok'},
-        }]})
-    assert sc._cron_jobs_without_prompt_report({
-        'agent:main:cron:a': {'updatedAt': 20},
-    }) == ['Dreaming']
-
-
-def test_a_running_job_waits_for_its_report(monkeypatch):
-    """The runtime replaces the per-job session at run start and attaches the
-    report later. That bounded in-flight window is not evidence of loss."""
-    import ops.system_check as sc
-
-    monkeypatch.setattr(
-        'clawock.providers.openclaw.cron_cli_json',
-        lambda argv: {'jobs': [{
-            'id': 'a', 'name': 'In flight', 'enabled': True,
-            'state': {'runningAtMs': 1786429918631, 'lastStatus': 'error'},
-        }]})
-    assert sc._cron_jobs_without_prompt_report({
-        'agent:main:cron:a': {'updatedAt': 20},
-    }) == []
-
-
-def test_a_disabled_job_is_not_demanded(monkeypatch):
-    """Only what is scheduled has to be observable."""
-    import ops.system_check as sc
-
-    monkeypatch.setattr(
-        'clawock.providers.openclaw.cron_cli_json',
-        lambda argv: {'jobs': [{'id': 'b', 'name': 'Off', 'enabled': False}]})
-    assert sc._cron_jobs_without_prompt_report({}) == []
-
-
-def test_every_job_covered_reports_nothing(monkeypatch):
-    import ops.system_check as sc
-
-    monkeypatch.setattr(
-        'clawock.providers.openclaw.cron_cli_json',
-        lambda argv: {'jobs': [{'id': 'a', 'name': 'Healthy', 'enabled': True}]})
-    assert sc._cron_jobs_without_prompt_report({
-        'agent:main:cron:a:run:1': {'systemPromptReport': {}}}) == []
-
-
-def test_an_unreadable_schedule_does_not_invent_findings(monkeypatch):
-    """A schedule that cannot be read is not evidence either way, and this check
-    must not turn that into noise on a foreign host."""
-    import ops.system_check as sc
-
-    def boom(argv):
-        raise RuntimeError('no runtime here')
-
-    monkeypatch.setattr('clawock.providers.openclaw.cron_cli_json', boom)
-    assert sc._cron_jobs_without_prompt_report({}) == []
-
-
 # ── what the evidence proves, not whether one field exists (2026-09-08) ──────
 # Of the twelve cron sessions on the host that day, ELEVEN carried a
 # `systemPromptReport` and one — `Memory Dreaming Promotion` — carried
@@ -324,9 +228,8 @@ def test_a_job_with_a_full_report_is_in_none_of_the_three(monkeypatch):
         {'agent:main:cron:a': {'systemPromptReport': {}}}, listing) == ([], [], [])
 
 
-def test_the_split_covers_exactly_the_jobs_the_old_view_names(monkeypatch):
-    """Two views of one question must not drift apart: every job the report-only
-    view calls uncovered has to land in exactly one of the three buckets."""
+def test_the_split_names_every_uncovered_job(monkeypatch):
+    """Every uncovered job lands in exactly one evidence bucket."""
     import ops.system_check as sc
 
     jobs = [
@@ -346,7 +249,6 @@ def test_the_split_covers_exactly_the_jobs_the_old_view_names(monkeypatch):
     blind, narrowed, skills_only = sc.cron_jobs_by_context_evidence(sessions, listing)
     named = set(blind) | set(narrowed) | {s.split(' (')[0] for s in skills_only}
 
-    assert named == set(sc._cron_jobs_without_prompt_report(sessions))
     assert named == {'SkillsOnly', 'Empty', 'Nothing'}
 
 

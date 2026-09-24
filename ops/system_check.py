@@ -507,9 +507,8 @@ def _cron_listing():
 def _cron_coverage_blind():
     """Why per-job coverage could not be counted this run, or None.
 
-    `_cron_jobs_without_prompt_report` returns an empty list both when every
-    job is covered and when the schedule could not be read at all — and those
-    are not the same answer. The check's own header states that rule for
+    The per-job evidence view cannot distinguish full coverage from an unreadable
+    schedule by itself; these are different answers. The check's own header states that rule for
     sessions ("nothing to check" and "the thing I check stopped being produced"
     are not the same answer); the schedule it counts coverage against was the
     half still merging them, so a run that checked no job at all looked exactly
@@ -526,57 +525,6 @@ def _cron_coverage_blind():
     source = 'unreadable' if listing is None else listing.source
     return (f'the cron schedule came back {source}'
             + (f' ({error})' if error is not None else ''))
-
-
-def _cron_jobs_without_prompt_report(sessions):
-    """Enabled cron jobs whose newest session carries no `systemPromptReport`.
-
-    The gate below verifies the newest session per *profile*, which is the right
-    question for "is context still being assembled correctly" and the wrong one
-    for "is every job covered". On 2026-08-11 ten market jobs reported a uniform
-    5 files / 29 skills / 34 tools while `Memory Dreaming Promotion` produced no
-    report at all, and the profile-level check averaged it away.
-
-    A per-job session entry is replaced when a run starts, before the runtime
-    attaches its prompt report. It also stays report-less when the provider
-    fails before responding. Both states are explicit in the authoritative cron
-    listing; neither is evidence of capability loss. Successful jobs, jobs with
-    no history, and jobs with an unknown outcome still have to be named.
-
-    Returns names rather than a count, and returns empty when the job list
-    cannot be read — an unreadable schedule is not evidence that every job is
-    covered, but it is also not this check's failure to report.
-    """
-    listing, error = _cron_listing()
-    # This needs the CLI's flattened `status` to skip a job that is running;
-    # the SQLite view carries the nested state only. When the CLI cannot
-    # answer, coverage is not empty — it is unknown, and the caller has to be
-    # able to tell those apart. This function's own header states the rule for
-    # sessions ("nothing to check" and "the thing I check stopped being
-    # produced" are not the same answer); the schedule it counts coverage
-    # against was the half still merging them.
-    if error is not None or listing is None or listing.source != 'cli':
-        return []
-
-    evidence = _session_context_evidence(sessions)
-    missing = []
-    for job in listing.entries or []:
-        if not job.get('enabled'):
-            continue
-        kind, _ = evidence.get(str(job.get('id')), ('none', 0))
-        if kind == 'report':
-            continue
-        state = job.get('state') if isinstance(job.get('state'), dict) else {}
-        if job.get('status') == 'running' or state.get('runningAtMs') is not None:
-            continue
-        last_status = str(
-            state.get('lastStatus') or state.get('lastRunStatus') or '').lower()
-        if last_status in {
-                'error', 'failed', 'failure', 'timeout', 'timed_out',
-                'cancelled', 'canceled', 'skipped'}:
-            continue
-        missing.append(str(job.get('name') or job.get('id'))[:28])
-    return sorted(missing)
 
 
 def _session_context_evidence(sessions):
