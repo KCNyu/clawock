@@ -9,6 +9,8 @@ from __future__ import annotations
 import json
 from datetime import datetime
 
+from clawock import instruments
+
 
 def load(workspace, market):
     policies = json.loads((workspace / 'config' / 'intraday-strategy-policies.json').read_text())
@@ -17,11 +19,32 @@ def load(workspace, market):
     rows = portfolio.get('portfolios', {}).get(leg, {}).get('holdings', [])
     return {row['ticker']: {
                 **policies[row['strategy']], 'strategy': row['strategy'],
+                'escalations': [_resolve_rule(row['ticker'], rule) for rule in
+                                policies[row['strategy']].get('escalations', [])],
                 'strategy_note': row.get('strategy_note'),
                 'risk_escalation_triggers': row.get('risk_escalation_triggers'),
             }
             for row in rows if row.get('ticker') and row.get('shares', 0) > 0
             and row.get('strategy') in policies}
+
+
+def _resolve_rule(holding, rule):
+    """Bind a strategy rule to the holding that selected the strategy.
+
+    A strategy is shared by any holding that names it, so its rules speak of
+    `holding` or of the holding's registry `signal_symbol` (`underlying`), never
+    of a ticker: a second holding adopting the strategy must not inherit the
+    first one's thresholds. An unresolvable underlying stays `None` so the
+    check reports unavailable evidence instead of vanishing.
+    """
+    if rule.get('subject') == 'holding':
+        ticker = holding
+    elif rule.get('subject') == 'underlying':
+        ticker = (instruments.get(holding) or {}).get('signal_symbol')
+        ticker = ticker if ticker and ticker != holding else None
+    else:
+        raise ValueError(f"intraday strategy rule needs subject holding|underlying: {rule}")
+    return {**rule, 'ticker': ticker}
 
 
 def plan_conflicts(holding_policies, plan_context):
@@ -63,6 +86,10 @@ def escalations(holding_policies, anomalies, coverage, prices, universe, fetch_b
             check = {'holding': holding, 'ticker': ticker, 'window': window,
                      'threshold_pct': rule['below_pct'], 'observed_pct': None,
                      'status': 'unavailable', 'source': None}
+            if ticker is None:
+                errors.append(f"{holding}: {rule.get('subject')} not in instrument registry")
+                checks.append(check)
+                continue
             if (ticker in missing or not coverage.get('active')
                     or not coverage.get('refreshed')):
                 errors.append(f'{ticker}: quote not freshly verified')

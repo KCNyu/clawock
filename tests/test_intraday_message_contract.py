@@ -62,6 +62,8 @@ def test_generic_headline_feed_is_not_repeated_in_intraday_card():
     rendered = pre.strip_generic_news(block)
     assert 'old clipped headline' not in rendered
     assert '| CRCL |' in rendered and '🎯 机会雷达' in rendered
+    # The card loses the feed; the model's context keeps it.
+    assert pre.generic_news_feed(block) == ['📰 CRCL (5条)', '· old clipped headline']
 
 
 def test_judgment_packet_preserves_every_decision_field():
@@ -127,13 +129,39 @@ def test_strategy_escalations_need_fresh_daily_and_weekly_evidence():
     assert missing_checks[1]['status'] == 'unavailable'
 
 
-def test_instance_strategy_has_only_the_two_current_p0_lines():
+def test_instance_strategy_has_only_the_two_current_p0_lines(tmp_path):
+    """SPCH's contract (-15% day, SPCX -25% over five sessions; the $3000 line
+    was revoked 08-13) comes out of a ticker-free strategy bound per holding."""
     root = Path(__file__).resolve().parents[1]
-    configured = json.loads((root / 'config/intraday-strategy-policies.json').read_text())
-    rules = configured['infinite_ammo_dca']['escalations']
-    assert [(row['ticker'], row['window'], row['below_pct']) for row in rules] == [
-        ('SPCH', 'session', -15), ('SPCX', 'five_sessions', -25)]
-    assert '$3000' not in json.dumps(configured)
+    configured = (root / 'config/intraday-strategy-policies.json').read_text()
+    assert '$3000' not in configured
+    assert not re.search(r'"ticker"', configured)
+    (tmp_path / 'config').mkdir()
+    (tmp_path / 'config/intraday-strategy-policies.json').write_text(configured)
+    (tmp_path / 'portfolio.json').write_text(json.dumps({'portfolios': {'us_stocks': {
+        'holdings': [{'ticker': 'SPCH', 'shares': 300, 'strategy': 'infinite_ammo_dca'},
+                     {'ticker': 'RKLX', 'shares': 10, 'strategy': 'infinite_ammo_dca'},
+                     {'ticker': 'CRCL', 'shares': 2}]}}}))
+    loaded = policy.load(tmp_path, 'us')
+    rules = {holding: [(row['ticker'], row['window'], row['below_pct'])
+                       for row in loaded[holding]['escalations']] for holding in loaded}
+    assert rules == {
+        'SPCH': [('SPCH', 'session', -15), ('SPCX', 'five_sessions', -25)],
+        # Another holding choosing the strategy gets its own underlying, not SPCX.
+        'RKLX': [('RKLX', 'session', -15), ('RKLB', 'five_sessions', -25)],
+    }
+
+
+def test_an_unresolvable_underlying_is_unavailable_evidence_not_a_silent_skip():
+    policies = {'AAA': {'escalations': [
+        {'subject': 'underlying', 'ticker': None, 'window': 'five_sessions',
+         'below_pct': -25}]}}
+    errors, checks = [], []
+    assert policy.escalations(policies, [], {'active': 1, 'refreshed': 1,
+        'unrefreshed': []}, {}, [], lambda *_: [], '2026-09-24',
+        errors=errors, checks=checks) == []
+    assert checks[0]['status'] == 'unavailable'
+    assert errors == ['AAA: underlying not in instrument registry']
 
 
 def test_configured_no_reduce_advice_fails_closed():

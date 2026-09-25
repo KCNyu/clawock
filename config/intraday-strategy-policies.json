@@ -3,8 +3,8 @@
     "suppress_cost_basis_signals": true,
     "forbid_reduce_advice": true,
     "escalations": [
-      {"ticker": "SPCH", "window": "session", "below_pct": -15},
-      {"ticker": "SPCX", "window": "five_sessions", "below_pct": -25}
+      {"subject": "holding", "window": "session", "below_pct": -15},
+      {"subject": "underlying", "window": "five_sessions", "below_pct": -25}
     ]
   }
 }

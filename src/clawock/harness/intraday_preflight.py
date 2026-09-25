@@ -716,7 +716,8 @@ def prepend_delta_lead(block, delta, *, current, previous):
                   if key in DELTA_LABELS]
         lead = '变化：' + '、'.join(labels or ['决策条件'])
         old = {json.dumps(row, sort_keys=True, ensure_ascii=False)
-               for row in previous.get('breaches', [])}
+               for row in (previous.get('breaches_seen')
+                           or previous.get('breaches') or [])}
         fresh = [row for row in current.get('breaches', [])
                  if json.dumps(row, sort_keys=True, ensure_ascii=False) not in old]
         names = list(dict.fromkeys(str(row.get('ticker')) for row in fresh
@@ -738,13 +739,8 @@ def prepend_coverage_warning(block, coverage):
     return '\n'.join([*lines[:2], warning, *lines[2:]])
 
 
-def strip_generic_news(block):
-    """Drop the analyzer's repeated, truncated headline feed from intraday cards.
-
-    Mover-specific primary evidence stays in the structured context and the
-    explicit active-information section. The generic feed has no newness gate.
-    """
-    out = []
+def _split_generic_news(block):
+    card, feed = [], []
     in_news = False
     for line in block.splitlines():
         if line.strip() == '📰 新闻':
@@ -752,9 +748,28 @@ def strip_generic_news(block):
             continue
         if in_news and line.startswith(('🎯', '🛰️', '⚠️', '📉', '📊', '🇭🇰', '🇺🇸')):
             in_news = False
-        if not in_news:
-            out.append(line)
-    return '\n'.join(out).rstrip()
+        (feed if in_news else card).append(line)
+    return '\n'.join(card).rstrip(), [line.strip() for line in feed if line.strip()]
+
+
+def strip_generic_news(block):
+    """Drop the analyzer's repeated, truncated headline feed from intraday cards.
+
+    Mover-specific primary evidence stays in the structured context and the
+    explicit active-information section. The generic feed has no newness gate.
+    """
+    return _split_generic_news(block)[0]
+
+
+def generic_news_feed(block):
+    """The headline lines `strip_generic_news` keeps out of the card.
+
+    The card drops them, the model must not: `raw_wechat_block` was the only
+    carrier, and `mover_news` covers only >=3% movers, so a soft candidate's or
+    underlying's headline (the 2026-09-24 SPCX insider-sale line both replay
+    models cited) left the model's view along with the WeChat copy.
+    """
+    return _split_generic_news(block)[1]
 
 
 ACTION_CN = {
@@ -1156,6 +1171,16 @@ def main(argv=None):
         {json.dumps(row, sort_keys=True, ensure_ascii=False): row
          for row in [*old_soft, *current_soft]}.values(),
         key=lambda row: json.dumps(row, sort_keys=True))
+    # Same rule for breaches: a ticker sitting on a bucket edge (07226 at -5%
+    # on 2026-09-25 flipped move medium/high and STOP/WATCH every slot) must
+    # not re-wake a full card for a state kcn already got this session. Only
+    # an identity first seen today counts; the current set stays for audit.
+    old_breaches = ((prior_state.get('breaches_seen') or prior_state.get('breaches') or [])
+                    if prior_state.get('session') == semantic_state.get('session') else [])
+    semantic_state['breaches_seen'] = sorted(
+        {json.dumps(row, sort_keys=True, ensure_ascii=False): row
+         for row in [*old_breaches, *semantic_state['breaches']]}.values(),
+        key=lambda row: json.dumps(row, sort_keys=True))
     semantic_delta = intraday_delta.compare_semantic_states(semantic_state, prior_state)
     # The delta is still computed and still stored when the gate is off: the
     # delivered-state cursor has to keep advancing, or flipping the toggle back
@@ -1200,7 +1225,7 @@ def main(argv=None):
         raw_block = intraday_policy.strip_suppressed_signal_lines(
             raw_block, holding_policies)
         prior_escalations = {(row.get('ticker'), row.get('level'))
-                             for row in prior_state.get('breaches', [])
+                             for row in [*prior_state.get('breaches', []), *old_breaches]
                              if row.get('kind') == 'strategy_escalation'}
         for row in policy_escalations:
             identity = (row['ticker'], f"{row['window']}:{row['threshold_pct']}")
@@ -1242,6 +1267,9 @@ def main(argv=None):
         'semantic_delta': semantic_delta,
         'quote_coverage': coverage,
         'full_holdings': full_holdings,
+        # Model-only: the card drops this feed (no newness gate, truncated), the
+        # judgment keeps it as background — see `generic_news_feed`.
+        'headline_feed': generic_news_feed(stdout),
         'soft_candidates': soft_candidates,
         'provisional_setups': live_setups,
         'early_trend_candidates': early_candidates,

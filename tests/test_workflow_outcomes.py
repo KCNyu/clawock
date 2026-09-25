@@ -680,6 +680,49 @@ def test_falling_back_to_the_published_ledger_is_never_silent(
 
 # ── #771: which channel actually carried the slot ────────────────────────────
 
+def test_a_healthy_silent_intraday_slot_is_no_change_not_a_failed_send(
+    tmp_path, monkeypatch
+):
+    tmp = _receipts(tmp_path, monkeypatch)
+    slot = "2026-07-24T10:30:00+08:00"
+    outcomes.record_from_heartbeat({
+        "job": "盘中盯盘", "slot": slot, "state": "preflight_ok"})
+    outcomes.record_from_heartbeat({
+        "job": "盘中盯盘", "slot": slot, "state": "no_change",
+        "reasoning_invoked": False, "data_plane_status": "current"})
+    # postflight writes the quiet marker in the same receipt slot a send uses;
+    # its null channel flags must not be reconciled into a failed delivery.
+    (tmp / "intraday-sent-hk.json").write_text(json.dumps({
+        "sent_ok": None, "tg_ok": None, "delivery_state": "no_change",
+        "job": "盘中盯盘", "slot": slot}))
+    outcomes.reconcile_delivery_receipts()
+
+    record = outcomes.load_ledger()["records"][0]
+    assert record["stages"]["llm"]["status"] == "not_required"
+    assert record["stages"]["postflight"]["status"] == "success"
+    assert record["stages"]["primary_delivery"]["status"] == "not_required"
+    assert record["final_product"]["status"] == "no_change"
+    summary = summarize_records([record], now=FROZEN_NOW)
+    assert summary["counts"] == {"no_change": 1}
+    assert summary["degraded_slots"] == []
+
+
+def test_a_quiet_marker_without_its_heartbeat_is_never_filed_as_failed(
+    tmp_path, monkeypatch
+):
+    tmp = _receipts(tmp_path, monkeypatch)
+    slot = "2026-07-24T10:30:00+08:00"
+    outcomes.record_stage("盘中盯盘", "preflight", "success", slot=slot)
+    (tmp / "intraday-sent-hk.json").write_text(json.dumps({
+        "sent_ok": None, "tg_ok": None, "delivery_state": "no_change",
+        "job": "盘中盯盘", "slot": slot}))
+    assert outcomes.reconcile_delivery_receipts() == 1
+
+    record = outcomes.load_ledger()["records"][0]
+    assert record["stages"]["primary_delivery"]["status"] == "not_required"
+    assert record["final_product"]["status"] != "failed"
+
+
 def test_a_wechat_drop_covered_by_telegram_is_still_a_successful_product(
     tmp_path, monkeypatch
 ):

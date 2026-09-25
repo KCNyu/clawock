@@ -156,7 +156,15 @@ def compare_semantic_states(current, previous):
             "primary_source_health", "regime", "strategy_policies",
             "strategy_conflicts",
             "soft_candidates_seen")
-    components = [key for key in keys if current.get(key) != previous.get(key)]
+    # Breaches compare as the session's seen set when one is stored, so a
+    # threshold flicker back to an already-delivered state is not a delta. A
+    # state without it (older cursor, direct callers) compares the current set.
+    def view(state, key):
+        if key == "breaches":
+            return state.get("breaches_seen", state.get("breaches"))
+        return state.get(key)
+
+    components = [key for key in keys if view(current, key) != view(previous, key)]
     old_events = previous.get("primary_events") or {}
     new_events = current.get("primary_events") or {}
     changed_ids = sorted(

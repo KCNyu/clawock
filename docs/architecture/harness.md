@@ -95,8 +95,9 @@ strategy metadata constrain an action. Brief WeChat copy is a separate output
 constraint. Reducing noise means fewer user wake-ups, not fewer decision inputs.
 
 The shared HK/US delta compares stable condition identities, including the
-first appearance of a soft candidate that trading day, plan status and source
-health. The first session slot, a material condition change, or incomplete
+first appearance of a soft candidate or a breach that trading day, plan status and
+source health. Breaches compare as the session's seen set, so a ticker flickering
+across a bucket edge back to a state already delivered today stays quiet. The first session slot, a material condition change, or incomplete
 evidence gets a full card. A healthy unchanged slot records a `no_change`
 heartbeat and exact-slot marker without sending to WeChat or Telegram. A slot
 with only a new soft candidate asks the model to choose whether to speak; an
@@ -106,7 +107,13 @@ remains eligible for its normal fallback. The
 `always_full` switch in `config/intraday-delivery.json` can still force every
 slot's full card. Portfolio `strategy` selects declarative exception values in
 `config/intraday-strategy-policies.json`; the harness has no ticker-specific
-investment branch. A future maximum silent-streak heartbeat would need its own
+investment branch. Escalation rules name a `subject` (`holding`, or its registry
+`signal_symbol` as `underlying`) rather than a ticker, so every holding that
+selects a strategy is checked against its own instruments. The silent outcome is
+filed in the workflow-outcome ledger as final `no_change` with
+`primary_delivery=not_required`, not as a pending or failed send. The analyzer's
+generic headline feed stays out of the card but reaches the model as
+`headline_feed`. A future maximum silent-streak heartbeat would need its own
 config and an auditable cursor; none is enabled by default.
 
 ## Context contract
