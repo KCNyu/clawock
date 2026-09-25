@@ -482,3 +482,15 @@ def test_every_reference_the_core_packet_names_resolves_to_the_same_content(tmp_
     with pytest.raises(ToolError):
         registry.call(pre.REFERENCE_TOOL, market='hk', context_id='c0ffee000001',
                       entry='analyzer_block')
+
+
+def test_a_clipped_add_side_line_never_cuts_a_number():
+    """「…RKLB 回踩守住 73.5…」 for 73.57 reads as another price."""
+    text = '先把纪律动作走完,再谈加仓(之后:RKLB 回踩守住 73.57(现高于前高 0.84%))'
+    for limit in range(20, len(text)):
+        clipped = pre._clip(text, limit)
+        assert len(clipped) <= limit
+        head = clipped.rstrip('…')
+        # whatever number survives is a whole number from the source
+        for number in re.findall(r'\d+(?:\.\d+)?', head):
+            assert re.search(rf'(?<![\d.]){re.escape(number)}(?![\d.])', text), (limit, clipped)

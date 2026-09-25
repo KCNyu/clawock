@@ -436,7 +436,9 @@ def collect_opportunity_radar(market):
         # it is about; a bare level has no such label, so it stays home.
         if label:
             levels.setdefault(label, {'prior_20d_high': prior, 'close': close,
-                                      'pct_from_high': round(pct_from_high, 2)})
+                                      'pct_from_high': round(pct_from_high, 2),
+                                      # The pullback read's invalidation (#contract §5).
+                                      'prior_5d_low': sig.get('prior_5d_low')})
         # One definition, two readers (#819): `add_side.classify_level` is also
         # what the daily brief's close-confirmed radar calls, so a slot and a
         # brief cannot disagree about where the same name sits.
@@ -857,13 +859,20 @@ def mark_card_changes(block, *, fresh_tickers, unrefreshed, seen_signals):
 ADD_SIDE_HEADER = '🛰️ 加仓侧（三态都不是下单授权）'
 ADD_SIDE_WORDS = {'candidate': '候选', 'wait': '等待', 'reject': '拒绝'}
 MAX_ADD_SIDE_ROWS = 4
-ADD_SIDE_WHY_CHARS = 40
-ADD_SIDE_NEEDS_CHARS = 32
+ADD_SIDE_WHY_CHARS = 44
+ADD_SIDE_NEEDS_CHARS = 40
 
 
 def _clip(text, limit):
+    """Cut at `limit`, never inside a number: 「73.5…」 for 73.57 reads as a
+    different price (2026-09-25 US 02:33 sample)."""
     text = str(text or '')
-    return text if len(text) <= limit else text[:limit - 1] + '…'
+    if len(text) <= limit:
+        return text
+    cut = text[:limit - 1]
+    if re.match(r'[\d.,%+-]', text[limit - 1]):
+        cut = re.sub(r'[\d.,%+-]+$', '', cut)
+    return cut.rstrip('(（:：,，;； ') + '…'
 
 
 def append_add_side_section(block, reads):
@@ -1407,7 +1416,13 @@ def main(argv=None):
         anomalies=anomalies, radar=opportunity_radar,
         levels=opportunity_radar.get('levels'),
         early_trend=early_candidates, mover_news=mover_news_ctx,
-        mover_thesis=mover_thesis, plan_context=plan_ctx)
+        mover_thesis=mover_thesis, plan_context=plan_ctx,
+        # Contract §5: graded news support, the leveraged sleeve, and the
+        # exploration tranche the desk configured (quoted as the size cap).
+        information=information['summary'],
+        leveraged={row['ticker'] for row in full_holdings
+                   if is_leveraged_holding({'ticker': row['ticker']})},
+        policy=_load_json(WS / 'config' / 'add-alpha-policy.json'))
     semantic_state = intraday_delta.semantic_state(
         args.market, intraday_delta.market_session_date(args.market, now),
         signals_detail=signals_detail,

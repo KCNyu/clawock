@@ -15,9 +15,15 @@ the rest of the desk already uses (`candidate` / `wait` / `reject`, as in
 `active_information.scan`). It invents no threshold, computes no size, and copies
 every number from its inputs — the rules below are the ones already written down:
 
-* **Discipline first.** A live thesis breach or an unexecuted `risk_rule` action
-  makes it `reject`: while a stop or a trim is outstanding, adding is not a
-  question the desk asks.
+* **Discipline first.** A live thesis breach makes it `reject`. An unexecuted
+  `risk_rule` action (not a 0-share hold) **downgrades** the read to `wait` and
+  says why (kcn 2026-09-25: 「降级 + 说明理由」, no longer reject-only).
+* **A fall is not a veto (kcn 2026-09-25).** Below the 20-day high but still
+  above the prior 5-day low, with supporting news the evidence graph marks
+  positive (or a primary interrupt), a name is a `pullback` candidate; the
+  5-day low is its invalidation and the configured exploration tranche its
+  size cap. Evidence is graded primary > authoritative > soft; a daily-reset
+  leveraged product needs more than soft evidence.
 * **A confirmed technical breakout can promote on its own; a primary
   filing upgrades the wording.** `candidate` requires a radar row in the
   `breakout` state (close > prior 20-day high, not overheated) — the one add
@@ -34,10 +40,9 @@ every number from its inputs — the rules below are the ones already written do
   output there is the falsifier — the level or the session that would settle it —
   not a shrug.
 
-Deliberately absent: the daily `sentiment.json` scan. It carries no intraday
-threshold, so feeding it in would mean inventing one here; soft news already
-reaches these rows through `mover_news`, where it can raise a `wait` and cannot
-promote. Adding sentiment as a trigger is a decision for kcn, not a default.
+Still absent: attention counts from `sentiment.json` as a trigger. They carry
+no direction and no intraday threshold; feeding them in would mean inventing
+one here. News reaches the rows through the graph's own `positive` direction.
 """
 from __future__ import annotations
 
@@ -121,7 +126,8 @@ def daily_radar(signals_by_label, *, near_pct, no_chase_z, holdings_of=None):
         if close is not None and prior:
             levels.setdefault(label, {
                 "prior_20d_high": prior, "close": close,
-                "pct_from_high": round((close / prior - 1) * 100, 2)})
+                "pct_from_high": round((close / prior - 1) * 100, 2),
+                "prior_5d_low": sig.get("prior_5d_low")})
         if state is None:
             continue
         rows.append({
@@ -245,6 +251,38 @@ def _breach(thesis, ticker):
 NON_ACTIONS = ("hold_and_watch",)
 
 
+GRADE_ORDER = ("primary", "authoritative", "soft")
+GRADE_WORDS = {"primary": "一手", "authoritative": "权威消息", "soft": "软消息/情绪"}
+
+
+def _support(ticker, mover_news, information):
+    """Evidence *for* adding, graded (contract §5): a primary interrupt from
+    the mover probe, and information-lane items the evidence graph marks
+    `positive`. Direction is required — an item of unknown direction is colour,
+    not support — so this adds no threshold; the graph already classified it."""
+    sources = []
+    primary = _primary_interrupt(mover_news, ticker)
+    if primary:
+        sources.append({"grade": "primary", "source": "mover_news",
+                        "title": primary.get("title") or primary.get("headline")})
+    for row in ((information or {}).get("tickers") or {}).get(ticker) or []:
+        if row.get("direction") == "positive":
+            sources.append({"grade": row.get("grade") or "soft", "source": "information",
+                            "title": row.get("title"), "cite": row.get("cite")})
+    sources.sort(key=lambda r: GRADE_ORDER.index(r["grade"])
+                 if r["grade"] in GRADE_ORDER else len(GRADE_ORDER))
+    return sources
+
+
+def _size_cap(policy):
+    """The exploration tranche the desk already configured, quoted — never a
+    number of this module's own."""
+    pct = (policy or {}).get("exploration_tranche_pct")
+    if not isinstance(pct, (int, float)):
+        return None
+    return f"上限探索档 {round(pct * 100, 4):g}%(add-alpha-policy)"
+
+
 def _open_risk_action(plan_context, ticker):
     for row in (plan_context or {}).get("open", []) or []:
         if row.get("ticker") != ticker or row.get("action") in NON_ACTIONS:
@@ -256,7 +294,7 @@ def _open_risk_action(plan_context, ticker):
 
 def read_rows(*, anomalies=None, radar=None, levels=None, early_trend=None,
               mover_news=None, mover_thesis=None, plan_context=None,
-              close_confirmed=False):
+              close_confirmed=False, information=None, leveraged=(), policy=None):
     """Join the packet's own answers into add-side reads, most acute first.
 
     Every field is copied from an input; nothing here is derived arithmetic, so a
@@ -276,16 +314,15 @@ def read_rows(*, anomalies=None, radar=None, levels=None, early_trend=None,
         soft = _soft_news(mover_news, ticker)
         radar_row = radar_by_ticker.get(ticker)
 
-        if breach or risk_action:
+        support = _support(ticker, mover_news, information)
+        grade = support[0]["grade"] if support else None
+        level = _level(levels, ticker)
+        kind = None
+        extra = {}
+        if breach:
+            # A live thesis red line: the idea itself is in question.
             verdict = "reject"
-            if risk_action:
-                # Plain words: this sentence is printed on the card's add-side
-                # line, and an identifier there reads as the pipeline showing.
-                action = risk_action.get('action')
-                why = (f"纪律动作未了结:{ACTION_WORDS.get(action, action)} "
-                       f"{risk_action.get('shares')} 股(风控规则)")
-            else:
-                why = f"thesis 红线在触发状态:{breach}"
+            why = f"thesis 红线在触发状态:{breach}"
             needs = "先把纪律动作走完,再谈加仓"
         elif radar_row and radar_row.get("state") in IN_PLAY_STATES and (
                 radar_row.get("state") == "breakout" or primary):
@@ -296,6 +333,7 @@ def read_rows(*, anomalies=None, radar=None, levels=None, early_trend=None,
             # the promotion key only for near_breakout/at_high, where it never
             # substitutes for the level — the ask stays "get above prior_20d_high".
             verdict = "candidate"
+            kind = "breakout" if radar_row.get("state") == "breakout" else "primary_approach"
             if primary:
                 why = (f"一手公告 + 技术面{radar_row.get('state_zh') or radar_row.get('state')}"
                        f":{primary.get('title') or primary.get('headline') or 'primary filing'}")
@@ -320,6 +358,28 @@ def read_rows(*, anomalies=None, radar=None, levels=None, early_trend=None,
                        f"回测口径为收盘确认:四个周期命中率均>50%)")
                 lead = f"{_proxy_of(radar_row)} 守住 " if _proxy_of(radar_row) else "守住 "
                 needs = f"{lead}{radar_row.get('prior_20d_high')}(回踩不破再谈加仓)"
+        elif (support and level and level.get("prior_5d_low") is not None
+              and level.get("close") is not None
+              and (level.get("pct_from_high") or 0) <= 0
+              and level["close"] > level["prior_5d_low"]
+              and not (ticker in set(leveraged or ()) and grade == "soft")):
+            # 跌不等于不能加 (kcn 2026-09-25): below the 20-day high, still above
+            # the prior 5-day low it could have broken, with supporting news.
+            # The 5-day low is the invalidation — below it the pullback is a
+            # breakdown. A daily-reset leveraged product needs more than soft
+            # evidence (add-alpha-policy discipline).
+            verdict, kind = "candidate", "pullback"
+            low = level["prior_5d_low"]
+            title = str(support[0].get("title") or "")[:14]
+            why = f"回踩候选:{GRADE_WORDS.get(grade, grade)}支持《{title}》,守在5日低 {low} 上"
+            cap = _size_cap(policy)
+            needs = f"跌破 {low} 失效" + (f";{cap}" if cap else "")
+            extra = {"invalidation": low, "size_cap": cap}
+            if evidence.get("prior_20d_high") is None:
+                evidence = {**evidence, "prior_20d_high": level.get("prior_20d_high"),
+                            "close": level.get("close"),
+                            "pct_from_high": level.get("pct_from_high"),
+                            "prior_5d_low": low}
         else:
             verdict = "wait"
             missing = []
@@ -331,6 +391,8 @@ def read_rows(*, anomalies=None, radar=None, levels=None, early_trend=None,
                 # #819: wait_rebreak rows now exist and say what they are —
                 # an uptrend pulling back, logged as state, not a silent drop.
                 missing.append(f"技术面{radar_row.get('state_zh') or radar_row.get('state')}")
+            if support and ticker in set(leveraged or ()) and grade == "soft":
+                missing.append("杠杆产品需一手/权威证据")
             why = "、".join(missing) or "条件不齐"
             level = radar_row or _level(levels, ticker)
             # #759: a level the radar dropped still answers "跌到哪才算机会".
@@ -346,6 +408,20 @@ def read_rows(*, anomalies=None, radar=None, levels=None, early_trend=None,
                             "prior_20d_high": level.get("prior_20d_high"),
                             "close": level.get("close"),
                             "pct_from_high": level.get("pct_from_high")}
+
+        if risk_action and verdict != "reject":
+            # kcn 2026-09-25: an unfinished risk_rule action downgrades the read
+            # and says why; it no longer turns the lane into reject-only.
+            action = risk_action.get('action')
+            discipline = (f"纪律动作未了结:{ACTION_WORDS.get(action, action)} "
+                          f"{risk_action.get('shares')} 股(风控规则)")
+            if verdict == "candidate":
+                why = f"{discipline},{ {'pullback': '回踩', 'breakout': '突破'}.get(kind, '')}候选降级"
+            else:
+                why = f"{discipline};{why}"
+            verdict = "wait"
+            needs = "先把纪律动作走完,再谈加仓" + (f"(之后:{needs})" if needs else "")
+            extra = {**extra, "discipline_downgraded": True}
 
         proxy = _proxy_of(radar_row)
         if proxy:
@@ -366,6 +442,12 @@ def read_rows(*, anomalies=None, radar=None, levels=None, early_trend=None,
             "why": why,
             "needs": needs,
             "evidence": {k: v for k, v in evidence.items() if v is not None},
+            # Contract §5: the grade of the best supporting evidence, its
+            # sources, and for a pullback the invalidation level and size cap.
+            "kind": kind,
+            "evidence_grade": grade,
+            "sources": support[:3],
+            **{k: v for k, v in extra.items() if v is not None},
             # Stated, not implied: this lane never sizes or authorises. The desk's
             # add decisions stay with kcn; #755 asked for visibility, not a trader.
             "authorization": None,
@@ -416,10 +498,13 @@ def read_rows(*, anomalies=None, radar=None, levels=None, early_trend=None,
         "candidate_count": sum(r["verdict"] == "candidate" for r in rows),
         "wait_count": sum(r["verdict"] == "wait" for r in rows),
         "reject_count": sum(r["verdict"] == "reject" for r in rows),
+        "discipline_downgraded_count": sum(bool(r.get("discipline_downgraded")) for r in rows),
         "confirmed_at_close": bool(close_confirmed),
         "policy": (("技术突破(收盘站上前 20 日高且未过热,收盘确认)即 candidate,"
                     if close_confirmed else
                     "技术突破(现价站上前 20 日高且未过热,盘中读数、收盘未确认)即 candidate,")
-                   + "一手公告升级措辞;软消息/情绪只能停在 wait;"
-                     "纪律动作未了结一律 reject。三态都不是下单授权。"),
+                   + "一手公告升级措辞;回踩中(低于 20 日高、守在 5 日低上)有正向消息支持"
+                     "也可 candidate,跌破 5 日低即失效,仓位不超探索档;证据分级 一手>权威>软消息/情绪,"
+                     "杠杆产品只凭软消息不升级;thesis 红线触发 reject,纪律动作未了结降级为 wait 并写明。"
+                     "三态都不是下单授权。"),
     }

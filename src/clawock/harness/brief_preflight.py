@@ -217,8 +217,11 @@ def _opportunity_reads(open_decisions):
         names = '、'.join(f"{r['label']} z={r['zscore20']}" for r in over[:4])
         why_none = (f'{len(over)} 只已收盘站上前 20 日高，但 z≥{no_chase_z:g} 判为追高'
                     f'（policy: 等回踩不破再谈）：{names}')
-    elif reads['reject_count']:
-        why_none = (f"{reads['reject_count']} 只被未了结的纪律动作挡住"
+    elif reads.get('discipline_downgraded_count') or reads['reject_count']:
+        # Since 2026-09-25 discipline downgrades a read to wait (kcn:
+        # 「降级 + 说明理由」) instead of rejecting it; reject is a thesis red line.
+        blocked = reads.get('discipline_downgraded_count') or reads['reject_count']
+        why_none = (f"{blocked} 只被未了结的纪律动作或 thesis 红线挡住"
                     f"（先把 cut/trim 走完，再谈加仓）")
     else:
         nearest = sorted(((v.get('pct_from_high'), k)

@@ -150,10 +150,13 @@ The watchdog's backstop resend is the plain card on both channels.
   title, time) and what evidence is missing.
 - News or sentiment **can** move a read from `wait` to `candidate`; the row then
   says where the evidence came from and what is missing.
-- **A fall is not a veto.** A pullback candidate needs the thesis intact, news
-  or primary support, and the price holding above an existing level; it always
-  carries an invalidation level (below which the idea is wrong) and the size cap
-  from `config/add-alpha-policy.json`. Only-a-breakout is not the rule either.
+- **A fall is not a veto.** A pullback candidate needs the thesis intact,
+  supporting evidence (a primary interrupt, or an information item the evidence
+  graph marks `positive` — unknown direction is colour, not support), the price
+  below its 20-day high but above the prior 5-day low; it carries that 5-day low
+  as its invalidation and `exploration_tranche_pct` from
+  `config/add-alpha-policy.json` as its size cap. A daily-reset leveraged
+  product needs more than soft evidence. Only-a-breakout is not the rule either.
 - **Discipline**: an unfinished `risk_rule` action downgrades the read and says
   why; it does not turn the lane into reject-only. A live thesis red line is
   still `reject`.
@@ -213,5 +216,5 @@ as live.
 | WeChat bold per channel, `🟠` warning banner | live (#1874) |
 | information lane tiers 0–1 (`information` core, `information_full` reference, stale-quote gate) | live (#1885) |
 | ETF/index lookup: index aliases + sector match market flashes (`test_an_index_fund_gets_what_the_market_said_about_its_index`) | live (#1886) |
-| Tavily on anomalies (`anomaly_search`, once per ticker per session; `test_one_query_per_mover_per_session`, `test_a_search_that_did_not_answer_is_on_the_card`) | this PR |
-| add-side policy (§5) | planned |
+| Tavily on anomalies (`anomaly_search`, once per ticker per session; `test_one_query_per_mover_per_session`, `test_a_search_that_did_not_answer_is_on_the_card`) | live (#1887) |
+| add-side policy (§5): grades, pullback candidate, discipline downgrade (`test_a_fall_with_supporting_news_above_the_5_day_low_is_a_pullback_candidate`, `test_a_pullback_needs_support_a_held_level_and_more_than_soft_news_when_leveraged`, `test_an_unfinished_risk_rule_action_downgrades_regardless_of_how_good_it_looks`) | this PR |
