@@ -262,11 +262,19 @@ def validate(text, ctx, model_text):
         if next_marker > 0:
             section_body = section_body[:next_marker]
         section_body = section_body.strip()
-        if len(section_body) < 60:
+        # An unchanged slot (always_full on) is honest in one line: "本档无实质
+        # 变化，下一触发 X". The 60-char floor would push it into padding or an
+        # invented move, so a short body passes only when it says no change.
+        honest_quiet = bool(ctx.get('semantic_unchanged')) and re.search(
+            r'无实质变化|没有实质变化|无新变化|没有新变化|无变化', section_body)
+        if len(section_body) < 60 and not honest_quiet:
             issues.append(
                 f'"{REQUIRED_SECTION}" 段仅 {len(section_body)} 字，太敷衍 '
                 f'(< 60 软下限)；需引用具体票 + 一行判断'
             )
+
+    if ctx.get('semantic_unchanged') and re.search(r'新异动|新触发|本档新', checked):
+        issues.append('语义未变的档位，判断却写了新异动/新触发 (advisory)')
 
     # Only the model slot is bounded here; the harness-owned table can be long
     # without forcing the model to copy it or making a sound quote fail.

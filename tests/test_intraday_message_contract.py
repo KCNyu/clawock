@@ -308,3 +308,24 @@ def test_a_number_from_a_folded_signal_reason_still_has_its_source():
     prose = '▎我的看法\nRKLX 站上 MA20 +25.7%，反弹非反转，不追。' + '其余票按原计划等待。' * 4
     issues = post.validate(post.assemble_message(ctx, prose), ctx, prose)
     assert not any('+25.7%' in issue for issue in issues), issues
+
+
+def test_an_unchanged_slot_may_say_so_in_one_line_but_not_invent_a_move():
+    """always_full (kcn 2026-09-25): an unchanged slot still gets a judgment.
+    A short honest line passes the 60-char floor; a short line that does not
+    say 'no change' still warns, and a claimed new move is flagged."""
+    ctx = {'market': 'hk', 'should_alert': False, 'semantic_unchanged': True,
+           'raw_wechat_block': '🇭🇰 港股盯盘'}
+    honest = '▎我的看法\n本档无实质变化，继续观察 07226，下一触发 3.0。'
+    issues = post.validate(post.assemble_message(ctx, honest), ctx, honest)
+    assert not any('太敷衍' in i or '新异动' in i for i in issues), issues
+    vague = '▎我的看法\n继续观察 07226，下一触发 3.0。'
+    assert any('太敷衍' in i for i in post.validate(
+        post.assemble_message(ctx, vague), ctx, vague))
+    invented = '▎我的看法\n本档无实质变化，但 07226 出现新异动，下一触发 3.0。'
+    flagged = [i for i in post.validate(post.assemble_message(ctx, invented), ctx, invented)
+               if '新异动' in i]
+    assert flagged and flagged[0].endswith('(advisory)')
+    changed = {**ctx, 'semantic_unchanged': False}
+    assert any('太敷衍' in i for i in post.validate(
+        post.assemble_message(changed, honest), changed, honest))
