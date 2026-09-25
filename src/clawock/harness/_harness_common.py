@@ -168,8 +168,8 @@ GHA_DATA_FILES = ['sentiment.json', 'macro.json', 'us_news_digest.json',
 
 
 def sync_gha_data_files(ws=None):
-    """Fetch + checkout the latest GH Action–managed data files from origin/master
-    without touching the working tree's other changes.
+    """Fetch + restore the latest GH Action–managed data files from origin/master
+    into the working tree, without touching the index or other changes.
 
     Why: GH Actions (sentiment/macro/news/catalysts scans) push fresh JSON to remote
     but our local working tree doesn't auto-pull. If we rebuild_dashboard without
@@ -192,10 +192,15 @@ def sync_gha_data_files(ws=None):
             return False, f'fetch failed: {fetch.stderr[-150:]}'
 
         relpaths = [f'assets/data/{f}' for f in GHA_DATA_FILES]
-        # Fast path: one checkout for the whole batch (this chain runs on every
+        # Working tree only. `git checkout origin/master -- <paths>` also STAGES
+        # them, and brief_postflight's `git commit` takes the whole index — so the
+        # workflow-owned files it deliberately leaves out of its `git add` rode
+        # into the brief commit anyway, and a scan pushed in between turned that
+        # commit into a rebase conflict safe_push cannot resolve.
+        # Fast path: one restore for the whole batch (this chain runs on every
         # postflight slot; N spawns here were N needless git startups).
         batch = subprocess.run(
-            ['git', 'checkout', 'origin/master', '--', *relpaths],
+            ['git', 'restore', '--source=origin/master', '--worktree', '--', *relpaths],
             capture_output=True, text=True, timeout=10, cwd=str(ws),
         )
         if batch.returncode == 0:
@@ -205,7 +210,8 @@ def sync_gha_data_files(ws=None):
         synced = []
         for f in GHA_DATA_FILES:
             r = subprocess.run(
-                ['git', 'checkout', 'origin/master', '--', f'assets/data/{f}'],
+                ['git', 'restore', '--source=origin/master', '--worktree', '--',
+                 f'assets/data/{f}'],
                 capture_output=True, text=True, timeout=10, cwd=str(ws),
             )
             if r.returncode == 0:

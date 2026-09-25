@@ -204,3 +204,40 @@ def test_gha_owned_files_are_not_committed_by_the_brief():
     assert not both, (
         f'{both} are committed by both a workflow and the brief; they will race and '
         f'overwrite each other.')
+
+
+def test_syncing_workflow_files_does_not_stage_them_for_the_brief_commit(tmp_path):
+    """The add list above is only half of "not committed by the brief": the
+    brief's `git commit` takes the whole index. When the sync used `git checkout
+    origin/master -- <file>`, that staged every workflow-owned file, so each one
+    rode into the brief commit regardless of the add list — and a scan pushed in
+    between made that commit a rebase conflict. Driven against a real repo."""
+    def git(cwd, *args):
+        return subprocess.run(['git', '-c', 'user.name=t', '-c', 'user.email=t@t',
+                               *args], cwd=cwd, check=True, capture_output=True,
+                              text=True).stdout
+
+    origin = tmp_path / 'origin.git'
+    git(tmp_path, 'init', '-q', '--bare', '-b', 'master', str(origin))
+    writer = tmp_path / 'writer'
+    git(tmp_path, 'clone', '-q', str(origin), str(writer))
+    data = writer / 'assets' / 'data'
+    data.mkdir(parents=True)
+    for name in _harness_common.GHA_DATA_FILES:
+        (data / name).write_text('{"v": 1}\n')
+    git(writer, 'add', '-A')
+    git(writer, 'commit', '-qm', 'seed')
+    git(writer, 'push', '-q', 'origin', 'master')
+
+    ws = tmp_path / 'ws'
+    git(tmp_path, 'clone', '-q', str(origin), str(ws))
+    (data / 'sentiment.json').write_text('{"v": 2}\n')
+    git(writer, 'commit', '-qam', 'sentiment scan')
+    git(writer, 'push', '-q', 'origin', 'master')
+
+    ok, _msg = _harness_common.sync_gha_data_files(ws)
+
+    assert ok
+    assert (ws / 'assets' / 'data' / 'sentiment.json').read_text() == '{"v": 2}\n'
+    assert git(ws, 'diff', '--cached', '--name-only') == '', (
+        'the sync staged workflow-owned files; the brief commit would carry them')
