@@ -90,7 +90,7 @@ or a time window; without a slice it returns the whole entry (one explicit
 choice; the parameter is `entry`). Entries: `signals_detail`,
 `source_signals_detail`, `peer_scan`, `t0_setups`, `early_trend_candidates`,
 `opportunity_radar`, `provisional_setups`, `prior_semantic_state`,
-`headline_feed`. `mover_news`, `known_catalysts` and
+`headline_feed`, `information_full`. `mover_news`, `known_catalysts` and
 `active_information_candidates` stay in the core: they attribute this slot's
 movers.
 
@@ -193,7 +193,8 @@ written down.
 | add-side line matches `add_side_reads` | gate | harness renders it; `test_add_side_line_copies_every_verdict_and_sits_before_the_judgment`, `test_preflight_prints_the_add_side_read_it_hands_the_model` | the model cannot rewrite a verdict it does not print |
 | `下一触发` numbers and names exist in the context | gate (escalating) | `check_next_trigger`; `test_next_trigger_is_its_own_checked_block_above_the_judgment` | a structured line looks authoritative |
 | a degraded source is stated | gate | preflight `⛔` lines; Tavily `unavailable` | "no news" and "not fetched" must not look the same |
-| stale information is labelled | gate | harness renders `as_of` on every information item | the model cannot drop a label it does not print |
+| stale information is labelled | gate (escalating) | every item carries its `cite` with `截至`; `check_stale_citation` flags a stale title quoted without it (`test_quoting_a_stale_headline_without_its_time_is_flagged`) | a 08:10 headline at 23:00 must not read as live |
+| an unreadable information source is stated | gate | `⛔ 资讯源未取到` (`test_a_degraded_information_source_is_on_the_card_and_the_lane_in_the_packet`) | not fetched ≠ no news |
 
 Compliance is measured on a fixed sample (HK 11:33 / 14:03 / 14:33, US 02:33,
 one overnight slot) per violation class: block contract, unnamed mover, missing
@@ -210,6 +211,7 @@ as live.
 | add-side line (block 10; primary information moved to `📑`) | live (#1872) |
 | `下一触发` line (block 11) | live (#1873) |
 | WeChat bold per channel, `🟠` warning banner | live (#1874) |
-| information lane tiers 0–1, ETF/index lookup | planned |
+| information lane tiers 0–1 (`information` core, `information_full` reference, stale-quote gate) | this PR |
+| ETF/index lookup | planned |
 | Tavily on anomalies | planned |
 | add-side policy (§5) | planned |

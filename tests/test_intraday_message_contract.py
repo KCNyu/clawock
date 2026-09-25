@@ -453,6 +453,7 @@ def test_every_reference_the_core_packet_names_resolves_to_the_same_content(tmp_
         'early_trend_candidates': {'rows': []}, 'provisional_setups': {'rows': []},
         'opportunity_radar': {'rows': [{'label': 'HSTECH', 'holdings': ['07226']}], 'levels': {}},
         'prior_semantic_state': {'session': 'hk:2026-09-25', 'breaches_seen': []},
+        'information_full': {'tickers': {'07226': [{'title': '恒科走弱'}]}},
     }
     tmp = tmp_path / 'memory' / '.tmp'
     tmp.mkdir(parents=True)

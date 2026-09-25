@@ -274,6 +274,10 @@ def _wire_preflight(monkeypatch, tmp_path, *, healthy=False):
         "refreshed": 1, "active": 1, "unrefreshed": [],
     })
     monkeypatch.setattr(preflight, "collect_peers", lambda _m: {})
+    # The information lane reads workspace files and one 7x24 fetch; a healthy
+    # read here, its degraded path has its own test.
+    monkeypatch.setattr(preflight.intraday_information, "collect",
+                        lambda *_a, **_k: {"summary": {}, "full": {}, "degraded": []})
     current = gate.semantic_state(
         "us", "2026-08-13", signals_detail=signals, anomalies=[],
         setups=setups, plans={"open": []}, active_information=active,
@@ -530,3 +534,27 @@ def test_preflight_prints_the_add_side_read_it_hands_the_model(monkeypatch, tmp_
     head = lines.index(preflight.ADD_SIDE_HEADER)
     word = preflight.ADD_SIDE_WORDS[rows[0]["verdict"]]
     assert lines[head + 1].startswith(f"  · SPCH {word}：")
+
+
+def test_a_degraded_information_source_is_on_the_card_and_the_lane_in_the_packet(
+    monkeypatch, tmp_path
+):
+    """Contract §6: a source that could not be read is a ⛔ line (not fetched is
+    not "no news"), and never lets a slot pass as healthy; the summary is core,
+    the whole lane is a reference entry."""
+    current, _ = _wire_preflight(monkeypatch, tmp_path, healthy=True)
+    monkeypatch.setattr(preflight.intraday_information, "collect", lambda *_a, **_k: {
+        "summary": {"sources": {"em_724_live": {"status": "empty_or_failed"}}},
+        "full": {"tickers": {}}, "degraded": ["东财7×24（empty_or_failed）"]})
+    path = gate.delivered_state_path(tmp_path, "us")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps({"state": copy.deepcopy(current)}))
+    out = io.StringIO()
+    with redirect_stdout(out):
+        assert preflight.main(["--market", "us", "--judgment-packet"]) == 0
+    packet = json.loads(out.getvalue())
+    assert "⛔ 数据降级：资讯源未取到：东财7×24（empty_or_failed）（不是无消息）" in \
+        packet["raw_wechat_block"].splitlines()
+    assert packet["delivery_mode"] == "full_delta"
+    assert "information" in packet and "information_full" not in packet
+    assert "information_full" in {ref["name"] for ref in packet["index"]["references"]}

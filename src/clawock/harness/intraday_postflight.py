@@ -81,6 +81,7 @@ _CHECKOUT = WS
 TMP = WS / 'memory' / '.tmp'
 
 from clawock.automation import cron_heartbeat  # noqa: E402
+from clawock.evidence import intraday_information  # noqa: E402
 from clawock.automation import delivery_receipts  # noqa: E402
 from clawock.harness import intraday_delta  # noqa: E402
 from clawock.harness.intraday_preflight import can_silence  # noqa: E402
@@ -296,6 +297,26 @@ def check_next_trigger(prose, ctx):
     return ['「下一触发」无法核对（' + '；'.join(problems[:3]) + '）']
 
 
+def check_stale_citation(prose, ctx):
+    """One escalating issue when prose quotes a pre-session item unlabelled.
+
+    The information lane's morning files are hours old by the US night
+    (contract §6); quoted without its time, a 08:10 headline reads as live.
+    A sentence that carries a stale item's title (its first 8 characters) must
+    also carry 「截至」 or 「旧闻」 — the words the item's own `cite` gives.
+    """
+    titles = [t for t in intraday_information.stale_titles(ctx.get('information'))
+              if len(t) >= 8]
+    found = []
+    for sentence in re.split(r'[。；\n]', prose or ''):
+        for title in titles:
+            if title[:8] in sentence and not re.search(r'截至|旧闻|早盘前|开盘前', sentence):
+                found.append(title[:12])
+    if not found:
+        return []
+    return [f"引用开盘前旧闻未标时间（{'、'.join(dict.fromkeys(found))}）—— 照抄条目的 cite"]
+
+
 def assemble_message(ctx, prose):
     """Build the delivered check-in from harness-owned data + model-owned prose.
 
@@ -482,6 +503,9 @@ def validate(text, ctx, model_text):
 
     # 下一触发 —— escalating，见 check_next_trigger
     issues.extend(check_next_trigger(checked, ctx))
+
+    # 开盘前旧闻冒充实时 —— escalating，见 check_stale_citation
+    issues.extend(check_stale_citation(checked, ctx))
 
     # 管线术语 —— advisory，见 check_pipeline_self_reference
     issues.extend(check_pipeline_self_reference(checked))

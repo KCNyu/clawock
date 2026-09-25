@@ -46,6 +46,7 @@ from clawock.utilities import PACKAGED_UTILITIES
 from clawock.market_data import known_catalysts, mover_evidence as mover_news, peer_scan
 from clawock.decision import active_information
 from clawock.decision import add_side, early_trend, intraday_policy
+from clawock.evidence import intraday_information
 from clawock.instruments import is_leveraged_holding
 
 WS = workspace_root()
@@ -1116,6 +1117,8 @@ def can_silence(ctx, *, allow_soft_review=False):
         return False
     if (ctx.get('t0_setups') or {}).get('error'):
         return False
+    if ctx.get('information_degraded'):
+        return False
     if (ctx.get('plan_context') or {}).get('error'):
         return False
     mover = ctx.get('mover_news') or {}
@@ -1355,6 +1358,19 @@ def main(argv=None):
         stdout, coverage, plan_ctx, opportunity_radar, t0_setups)
     prices = {row['ticker']: row['price'] for row in
               _harness_common.parse_holdings_rows(stdout) if row.get('price') is not None}
+    # Information lane (contract §6): the morning files, read not refetched,
+    # each item labelled with its time; plus one market-level 7x24 fetch.
+    # Keyed by holding and by the issuer a fund looks through to (RKLX → RKLB).
+    info_tickers = [row['ticker'] for row in full_holdings if row.get('ticker')]
+    for ticker in list(info_tickers):
+        issuer = mover_news.probe_targets(ticker, args.market).get('issuer')
+        if issuer and issuer not in info_tickers:
+            info_tickers.append(issuer)
+    try:
+        information = intraday_information.collect(WS, args.market, info_tickers)
+    except Exception as exc:  # noqa: BLE001 — a colour lane must never red a slot
+        information = {'summary': {}, 'full': {},
+                       'degraded': [f'资讯汇总（{type(exc).__name__}）']}
     try:
         universe = quant_signals.universe_details()
     except Exception as exc:
@@ -1431,6 +1447,7 @@ def main(argv=None):
         'plan_context': plan_ctx,
         'mover_news': mover_news_ctx,
         't0_setups': t0_setups,
+        'information_degraded': information['degraded'],
     }
     unchanged = can_silence(silence_context)
     soft_review = can_silence(silence_context, allow_soft_review=True) and not unchanged
@@ -1495,6 +1512,8 @@ def main(argv=None):
                  if policy_evidence_errors else None),
                 (f"{DEGRADED}T+0 牌面未取到：{t0_setups['error']}"
                  if t0_setups.get('error') else None),
+                (DEGRADED + '资讯源未取到：' + '、'.join(information['degraded'])
+                 + '（不是无消息）' if information['degraded'] else None),
             ])
         should_alert, alert_reasons = apply_plan_trigger_alert(
             should_alert, alert_reasons, plan_triggers)
@@ -1527,6 +1546,9 @@ def main(argv=None):
         # the headline feed; the judgment must still see all of it.
         'analyzer_block': stdout.strip(),
         'soft_candidates': soft_candidates,
+        # Information lane summary (core) and the whole of it (reference).
+        'information': information['summary'],
+        'information_full': information['full'],
         # The delivered state this slot was compared against (reference layer).
         'prior_semantic_state': prior_state,
         'provisional_setups': live_setups,
