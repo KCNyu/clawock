@@ -151,10 +151,46 @@ def test_the_activation_reader_reports_each_family_and_what_it_is_waiting_for():
 
 
 def test_all_families_active_means_no_cold_start():
-    read = packet.add_alpha_activation({
+    """Cloud review F15: the peer producer keys `rule_activation` by rule. The
+    test used to feed an invented flat `{"active": True}`, which is the only
+    shape the reader understood — so in production the peer family never
+    activated and cold start could never retire."""
+    real_shape = {
+        "leader_continuation": {"active": True, "usable_for_decisions": True,
+                                "blockers": []},
+        "laggard_avoidance": {"active": False, "blockers": ["hit_rate_ci"]},
+        "mean_reversion": {"active": False, "blockers": ["dates"]},
+    }
+    context = {
         "cross_sectional_factor": {"activation": {"active": True}},
-        "peer_residual": {"rule_activation": {"active": True}},
+        "peer_residual": {"rule_activation": real_shape},
         "news_evidence_graph": {"information_overlay": {"activation": {"active": True}}},
-    })
+    }
+    read = packet.add_alpha_activation(context)
 
     assert read["cold_start"] is False and read["warming_up"] == []
+    assert read["families"]["price_relative_peer"]["usable_for_decisions"] is True
+    # All rules inactive (today's production state) is still warming.
+    quiet = {name: {**row, "active": False, "usable_for_decisions": False}
+             for name, row in real_shape.items()}
+    read = packet.add_alpha_activation({**context, "peer_residual": {"rule_activation": quiet}})
+    assert read["warming_up"] == ["price_relative_peer"]
+    # The legacy flat shape is still read.
+    assert packet._peer_rules_state({"active": True}) == (True, False)
+
+
+def test_a_cold_start_slice_is_its_own_campaign_not_a_validated_one():
+    """Cloud review F16: under `:validated:` a filled cold-start slice counted
+    as a continuing validated campaign and spent a real one's tranches."""
+    technical = {"close": 103.23, "prior_20d_high": 96.40, "zscore20": 0.9,
+                 "prior_5d_high": 101.0, "prior_5d_low": 95.0, "ma20": 97.0,
+                 "chandelier_stop": 92.0, "as_of": "2026-09-05",
+                 "usable": True, "stop_state": "intact", "atr14": 2.0}
+    ids = {tier: add_alpha.confirmation_setup(
+        technical, {"tier": tier, "market": "US", "sources": ["technical_breakout"],
+                    "evidence_families": ["technical_breakout"]},
+        POLICY, ticker="CRCL")["campaign_id"]
+        for tier in ("exploration_cold_start", "exploration", "validated")}
+    assert ":cold_start:" in ids["exploration_cold_start"]
+    assert ":validated:" not in ids["exploration_cold_start"]
+    assert len(set(ids.values())) == 3

@@ -367,6 +367,12 @@ def confirmation_setup(
         # fill per ticker/policy version prevents a fresh daily snapshot from
         # silently resetting the cap and pyramiding an unvalidated idea.
         campaign_id = f"{market}:{ticker}:explore:p{POLICY_VERSION}:{policy_hash}"
+    elif tier == "exploration_cold_start":
+        # Its own campaign (cloud review F16): under `:validated:` a filled
+        # half-slice read as a continuing validated campaign (packet's
+        # `continuing_alpha`), promoting itself and spending a future real
+        # validated campaign's tranche count.
+        campaign_id = f"{market}:{ticker}:cold_start:p{POLICY_VERSION}:{policy_hash}"
     else:
         # Daily headlines and attention events churn. They are provenance for
         # the decision, not campaign identity: including their IDs silently
