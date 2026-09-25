@@ -716,7 +716,8 @@ def prepend_delta_lead(block, delta, *, current, previous):
                   if key in DELTA_LABELS]
         lead = '变化：' + '、'.join(labels or ['决策条件'])
         old = {json.dumps(row, sort_keys=True, ensure_ascii=False)
-               for row in previous.get('breaches', [])}
+               for row in (previous.get('breaches_seen')
+                           or previous.get('breaches') or [])}
         fresh = [row for row in current.get('breaches', [])
                  if json.dumps(row, sort_keys=True, ensure_ascii=False) not in old]
         names = list(dict.fromkeys(str(row.get('ticker')) for row in fresh
@@ -1170,6 +1171,16 @@ def main(argv=None):
         {json.dumps(row, sort_keys=True, ensure_ascii=False): row
          for row in [*old_soft, *current_soft]}.values(),
         key=lambda row: json.dumps(row, sort_keys=True))
+    # Same rule for breaches: a ticker sitting on a bucket edge (07226 at -5%
+    # on 2026-09-25 flipped move medium/high and STOP/WATCH every slot) must
+    # not re-wake a full card for a state kcn already got this session. Only
+    # an identity first seen today counts; the current set stays for audit.
+    old_breaches = ((prior_state.get('breaches_seen') or prior_state.get('breaches') or [])
+                    if prior_state.get('session') == semantic_state.get('session') else [])
+    semantic_state['breaches_seen'] = sorted(
+        {json.dumps(row, sort_keys=True, ensure_ascii=False): row
+         for row in [*old_breaches, *semantic_state['breaches']]}.values(),
+        key=lambda row: json.dumps(row, sort_keys=True))
     semantic_delta = intraday_delta.compare_semantic_states(semantic_state, prior_state)
     # The delta is still computed and still stored when the gate is off: the
     # delivered-state cursor has to keep advancing, or flipping the toggle back
@@ -1214,7 +1225,7 @@ def main(argv=None):
         raw_block = intraday_policy.strip_suppressed_signal_lines(
             raw_block, holding_policies)
         prior_escalations = {(row.get('ticker'), row.get('level'))
-                             for row in prior_state.get('breaches', [])
+                             for row in [*prior_state.get('breaches', []), *old_breaches]
                              if row.get('kind') == 'strategy_escalation'}
         for row in policy_escalations:
             identity = (row['ticker'], f"{row['window']}:{row['threshold_pct']}")

@@ -353,6 +353,39 @@ def test_preflight_main_selects_full_delta_for_risk_change(monkeypatch, tmp_path
     assert ctx["semantic_delta"]["components"] == ["breaches"]
 
 
+def test_a_breach_flicker_back_to_a_state_seen_this_session_stays_quiet(
+    monkeypatch, tmp_path
+):
+    """2026-09-25 HK: 07226 sat at -5% and flipped STOP/WATCH and medium/high
+    every slot, and each flip sent the same full card again."""
+    current, run = _wire_preflight(monkeypatch, tmp_path, healthy=True)
+    watch = {"ticker": "RKLX", "kind": "signal", "level": "WATCH"}
+    previous = copy.deepcopy(current)
+    previous["breaches"] = [watch]  # last slot: WATCH
+    previous["breaches_seen"] = [*current["breaches"], watch]  # STOP seen at 10:03
+
+    ctx = run(previous)
+
+    assert ctx["delivery_mode"] == "no_change"
+    assert watch in ctx["semantic_state"]["breaches_seen"]
+    assert ctx["semantic_state"]["breaches"] == current["breaches"]
+
+
+def test_a_breach_first_seen_this_session_still_sends_a_full_card(
+    monkeypatch, tmp_path
+):
+    current, run = _wire_preflight(monkeypatch, tmp_path, healthy=True)
+    previous = copy.deepcopy(current)
+    previous["breaches"] = []
+    previous["breaches_seen"] = [{"ticker": "RKLX", "kind": "signal", "level": "WATCH"}]
+
+    ctx = run(previous)
+
+    assert ctx["delivery_mode"] == "full_delta"
+    assert ctx["semantic_delta"]["components"] == ["breaches"]
+    assert "新触发：RKLX" in ctx["raw_wechat_block"]
+
+
 def test_setup_sub_state_churn_is_not_a_delta():
     """#610: opportunity/early_trend sub-states flip on raw quote churn around
     a threshold (close vs prior, zscore20 vs 2.0). The gate compares the lane

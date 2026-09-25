@@ -95,8 +95,9 @@ strategy metadata constrain an action. Brief WeChat copy is a separate output
 constraint. Reducing noise means fewer user wake-ups, not fewer decision inputs.
 
 The shared HK/US delta compares stable condition identities, including the
-first appearance of a soft candidate that trading day, plan status and source
-health. The first session slot, a material condition change, or incomplete
+first appearance of a soft candidate or a breach that trading day, plan status and
+source health. Breaches compare as the session's seen set, so a ticker flickering
+across a bucket edge back to a state already delivered today stays quiet. The first session slot, a material condition change, or incomplete
 evidence gets a full card. A healthy unchanged slot records a `no_change`
 heartbeat and exact-slot marker without sending to WeChat or Telegram. A slot
 with only a new soft candidate asks the model to choose whether to speak; an
