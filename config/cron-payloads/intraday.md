@@ -3,7 +3,7 @@
 第一轮并行调用 `read` 读取 `/root/.openclaw/workspace/skills/{{skill}}/SKILL.md` 与 Step 1 preflight；skills catalog 只有索引，不含 SKILL.md 正文。读完再判断。
 
 Step 1：`clawock intraday preflight --market {{market}} --judgment-packet`
-脚本把完整审计 context 留在 `memory/.tmp/intraday-context-{{market}}-latest.json`，stdout 给完整决策 context：计划、观察线、历史变化、板块、来源与失败状态；短卡只约束用户消息。保留 `context_id`。`market_closed` 直接结束，不 postflight。所有脚本 exec 调用都显式设置 `timeout: 300`，postflight 除外；若 exec 返回 `Command still running`，只用 `process` poll 对应 session；禁止新开 exec 用 sleep/ps/ls/grep 探测进度。
+脚本把完整审计 context 留在 `memory/.tmp/intraday-context-{{market}}-latest.json`；stdout 是核心包：影响本档判断的字段（计划、观察线、历史变化、分析器原样输出 `analyzer_block`、加仓侧、异动证据、来源与失败状态）全部直接给出，`index.references` 列出参考层条目（名称、一行说明、大小、可切片的票、取法）。参考层按需用条目里的 `fetch` 命令取（`clawock tool intraday_reference …`，同代 context_id 锁定）；加 `--arg ticker=<代码>` 只取一只票，需要整份就不加。短卡只约束用户消息。保留 `context_id`。`market_closed` 直接结束，不 postflight。所有脚本 exec 调用都显式设置 `timeout: 300`，postflight 除外；若 exec 返回 `Command still running`，只用 `process` poll 对应 session；禁止新开 exec 用 sleep/ps/ls/grep 探测进度。
 
 `delivery_mode=no_change`：不要生成散文、不要写 prose/sidecar，直接 `clawock intraday postflight --market {{market}} --context-id {CTXID}`。postflight 记录健康心跳与同档静默标记，不发微信或 Telegram；这不是跳过检查，闸失败由 watchdog 兜底。
 
@@ -17,7 +17,7 @@ Step 1：`clawock intraday preflight --market {{market}} --judgment-packet`
 
 卡片已由 harness 印出「🛰️ 加仓侧」行（逐票照抄 `add_side_reads` 的三态），正文不复述三态本身；你对某票加仓的判断与它不同（例如情绪/消息面支持或反对）时，在判断里写出处和还缺什么证据。
 
-字段 `add_side_reads.rows[].evidence.proxy_label` 表示 20 日高/位来自代理标的：07226 的代理为恒科指数，SPCH 的代理为 SPCX；不得把代理价位当成杠杆产品自身价格。`peer_scan` 已由 preflight 提供全持仓板块全景，直接读它；不要另读 `peer-map.json`，不要另调 `clawock fetch-peers`。缺项需标明，不能用缓存价补。
+字段 `add_side_reads.rows[].evidence.proxy_label` 表示 20 日高/位来自代理标的：07226 的代理为恒科指数，SPCH 的代理为 SPCX；不得把代理价位当成杠杆产品自身价格。`peer_scan` 已由 preflight 提供全持仓板块全景（参考层，按 index 取）；不要另读 `peer-map.json`，不要另调 `clawock fetch-peers`。缺项需标明，不能用缓存价补。
 
 候选生成不等于议程决定：`full_holdings` 含全持仓现价、日涨跌、报价新鲜度和计划触发线距离；`soft_candidates`、`opportunity_radar`、`early_trend_candidates`、`provisional_setups`、`t0_setups`、`semantic_state` 都是供你比较边缘机会和历史变化的材料；没有硬阈值命中也要看候选是否值得说。`known_catalysts` 衔接晨报，`active_information_candidates` 留一手来源与失败状态；`headline_feed` 是分析器截断的标题流（卡片不再展示、无新旧闸），只作背景线索，不当一手催化。`raw_wechat_block` 是给 kcn 的卡片（已报信号会折叠）；`analyzer_block` 是分析器原样输出，信号理由等细节以它为准。
 

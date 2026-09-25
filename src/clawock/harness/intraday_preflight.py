@@ -1013,14 +1013,91 @@ def collect_peers(market):
         return {'_error': f'{type(e).__name__}: {e}'[:200]}
 
 
-def judgment_packet(ctx):
-    """Give the model the complete decision context; brevity belongs to delivery.
+# ── Context layers (docs/architecture/intraday-agent.md §3) ──────────────────
+#
+# The core packet is what the model is printed; the reference layer is the rest
+# of the same context, one named call away. Split by whether a field can change
+# this slot's judgment or mostly dilutes attention — not by size: plans, the
+# analyzer's own output, add-side reads and mover evidence stay in the core
+# however large. Nothing is dropped. The #1839 whitelist lost zero-share plans
+# and signal provenance with no way back; every entry here is listed in the
+# packet's index and fetched by name (`intraday_reference` tool), and a test
+# holds core ∪ references to the whole context.
+REFERENCE_TOOL = 'intraday_reference'
+REFERENCE_ENTRIES = {
+    'signals_detail': '本档信号逐条（与 analyzer_block 的信号段同源；理由行以 analyzer_block 为准）',
+    'source_signals_detail': '持仓策略过滤前的原始信号',
+    'peer_scan': '持仓板块全景：每只持仓的同业今日/5日涨跌、背离信号',
+    't0_setups': 'T+0 牌面质量评级（区间位置/追高检测，非买卖信号）',
+    'early_trend_candidates': '早期趋势候选与各自 blockers',
+    'opportunity_radar': '机会雷达 rows 与每只票的 20 日高 levels',
+    'provisional_setups': '未收盘入场形态（若收在此位则成立）',
+    'prior_semantic_state': '上次送达时的语义状态（对比基准）',
+    'headline_feed': '分析器标题流（截断、无新旧闸，只作背景）',
+}
 
-    The previous whitelist discarded zero-share open plans, quiet peers, watch
-    levels, source signal provenance, setup failures and history. Those fields
-    can change the judgment even when they do not belong in the WeChat card.
-    """
-    return ctx
+
+def _reference_tickers(value):
+    """Tickers a reference entry can be sliced by, for the index."""
+    found = []
+
+    def add(name):
+        if isinstance(name, str) and name and name not in found:
+            found.append(name)
+
+    def rows_of(obj):
+        if isinstance(obj, list):
+            return obj
+        if isinstance(obj, dict):
+            return obj.get('rows') if isinstance(obj.get('rows'), list) else []
+        return []
+
+    for row in rows_of(value):
+        if isinstance(row, dict):
+            add(row.get('ticker') or row.get('label'))
+    for container in (value, (value or {}).get('rows') if isinstance(value, dict) else None):
+        if isinstance(container, dict):
+            for key, item in container.items():
+                if isinstance(item, dict) and re.fullmatch(r'[A-Z0-9]{2,6}', str(key)):
+                    add(key)
+    return found
+
+
+def reference_index(ctx):
+    """One line per reference entry: what it is, how big, how to fetch it."""
+    market, context_id = ctx.get('market'), ctx.get('context_id')
+    refs = []
+    for name, about in REFERENCE_ENTRIES.items():
+        if name not in ctx:
+            continue
+        value = ctx[name]
+        refs.append({
+            'name': name, 'about': about,
+            'bytes': len(json.dumps(value, ensure_ascii=False).encode()),
+            'tickers': _reference_tickers(value)[:12],
+            'fetch': (f'clawock tool {REFERENCE_TOOL} --arg market={market} '
+                      f'--arg context_id={context_id} --arg entry={name}'),
+        })
+    return refs
+
+
+def judgment_packet(ctx):
+    """The core packet: every field that can change this slot's judgment, plus
+    the index that makes the rest addressable. Brevity belongs to delivery;
+    this only moves attention-diluting detail one named call away."""
+    prior = ctx.get('prior_semantic_state') or {}
+    index = {
+        'context_id': ctx.get('context_id'),
+        'slot': (ctx.get('heartbeat') or {}).get('slot'),
+        'generated_at': ctx.get('generated_at'),
+        'last_delivered': {'session': prior.get('session'),
+                           'breaches_seen': len(prior.get('breaches_seen') or [])},
+        'references': reference_index(ctx),
+        'slice': ('参考层用 fetch 命令取整份；加 --arg ticker=<代码> 只取一只票，'
+                  '加 --arg since=HH:MM 只取该时刻之后的条目'),
+    }
+    return {'index': index,
+            **{key: value for key, value in ctx.items() if key not in REFERENCE_ENTRIES}}
 
 
 def can_silence(ctx, *, allow_soft_review=False):
@@ -1461,6 +1538,8 @@ def main(argv=None):
         # the headline feed; the judgment must still see all of it.
         'analyzer_block': stdout.strip(),
         'soft_candidates': soft_candidates,
+        # The delivered state this slot was compared against (reference layer).
+        'prior_semantic_state': prior_state,
         'provisional_setups': live_setups,
         'early_trend_candidates': early_candidates,
         'opportunity_radar': opportunity_radar,
