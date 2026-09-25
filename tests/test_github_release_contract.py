@@ -336,3 +336,20 @@ def test_the_runbook_explains_that_a_pushed_version_tag_is_frozen():
         "the trap that cost a real tag — a forward move passes non_fast_forward — "
         "has to be recorded, or the next person configures the same weak rule"
     )
+
+
+def test_the_release_job_checks_run_before_anything_irreversible():
+    """#1881: the lib/ drift guard and the CHANGELOG render lived only in
+    github-release, which needs PyPI and npm to have published first — a
+    failure there burned the version. The build job, which both publishers
+    need, has to refuse the same tag first."""
+    workflow = WORKFLOW.read_text(encoding="utf-8")
+    build_job = workflow.split("\n  build:\n", 1)[1].split("\n  publish:\n", 1)[0]
+    publish_job = workflow.split("\n  publish:\n", 1)[1].split("\n  npm:\n", 1)[0]
+    npm_job = workflow.split("\n  npm:\n", 1)[1].split("\n  github-release:\n", 1)[0]
+
+    assert "needs: build" in publish_job and "needs: build" in npm_job
+    assert "ops/publish/release_notes.py" in build_job
+    build_at = build_job.index("npm run build")
+    assert build_job.index('npm version "$target" --no-git-tag-version') < build_at
+    assert build_at < build_job.index("git diff --exit-code -- lib")

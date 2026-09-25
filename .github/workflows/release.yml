@@ -58,6 +58,33 @@ jobs:
             exit 1
           }
 
+      - name: Refuse what github-release would refuse, before anything is published
+        # github-release re-checks both of these, but it runs after PyPI and npm
+        # have accepted the version: a stale lib/ or a missing CHANGELOG section
+        # found there leaves a burned, half-released version (#1881). Same bump,
+        # same build, same diff and the same renderer as that job, so a tag that
+        # passes here cannot fail there for these reasons.
+        if: startsWith(github.ref, 'refs/tags/v')
+        env:
+          NODE_OPTIONS: --dns-result-order=ipv4first
+          NO_UPDATE_NOTIFIER: '1'
+          npm_config_replace_registry_host: 'always'
+        run: |
+          set -euo pipefail
+          target="${GITHUB_REF_NAME#v}"
+          python3 ops/publish/release_notes.py "$target" --output "$RUNNER_TEMP/release-notes.md"
+          cd examples/dsh/packages/clawock-dsh
+          current="$(node -p "require('./package.json').version")"
+          if [ "$current" != "$target" ]; then
+            npm version "$target" --no-git-tag-version
+          fi
+          npm install --include=dev --no-audit --no-fund
+          npm run build
+          git diff --exit-code -- lib || {
+            echo "::error::committed lib/ differs from a fresh build at this tag — nothing was published; fix lib on master and cut a new tag"
+            exit 1
+          }
+
       - name: Isolated install completes one real run
         # The acceptance for #379, executed against the artifact about to ship
         # rather than the source tree: a clean environment, no checkout, no
