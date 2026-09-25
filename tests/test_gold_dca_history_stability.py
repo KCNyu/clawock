@@ -1,4 +1,6 @@
 """Regression coverage for London-gold history provenance and settlement."""
+import json
+import sys
 from datetime import date, timedelta
 from pathlib import Path
 
@@ -287,3 +289,30 @@ def test_retention_does_not_starve_oldest_nav_purchases():
     assert retained[0][0] == nav[0][0]
     assert dca["principal_cny"] == daily * len(nav)
 
+
+
+def test_an_empty_nav_history_leaves_the_book_as_it_was(tmp_path, monkeypatch):
+    """compute() counts auto-invested days from the fetched history; given none it
+    rebuilds principal/units from the reconciliation baseline alone — every DCA
+    day since reconciliation vanishes and current value collapses, and the
+    refresh script commits that. An empty fetch has nothing new to say, so the
+    stored gold_dca must be left exactly as it was."""
+    book = {
+        "gold_dca": {
+            "fund_code": "000217", "fund_name": "gold", "nav": 3.5,
+            "nav_date": "2026-09-20", "principal_invested": 1000.0,
+            "units_held": 300.0, "reconciled_date": "2026-08-01",
+            "principal_effective": 5000.0, "units_effective": 1400.0,
+            "current_value": 4900.0,
+        },
+        "portfolios": {},
+    }
+    path = tmp_path / "portfolio.json"
+    path.write_text(json.dumps(book))
+    monkeypatch.setattr(gold, "PORTFOLIO", str(path))
+    monkeypatch.setattr(gold, "fetch_nav_history", lambda *_a, **_k: [])
+    monkeypatch.setattr(gold, "fetch_realtime", lambda *_a, **_k: None)
+    monkeypatch.setattr(sys, "argv", ["gold"])
+
+    assert gold.main() == 0
+    assert json.loads(path.read_text()) == book

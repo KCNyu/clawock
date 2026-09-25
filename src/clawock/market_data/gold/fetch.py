@@ -636,7 +636,13 @@ def main():
         print('FATAL: 净值历史抓空且无旧值可用，放弃写盘', file=sys.stderr)
         return 1
     if not history:
-        print('  warn: 净值历史抓空，沿用 portfolio 里旧 nav（merge-not-overwrite）', file=sys.stderr)
+        # 整体沿用旧 gold_dca，不写盘。compute() 的自动累加只能从 history 数出
+        # 对账日之后的定投日；history 为空时它会把 principal/units/现值 算回
+        # 对账基线（累计定投被清零、市值骤降），再被 gold_dca_refresh.sh 提交。
+        # 旧 nav 本来就是上次写入时的值，这一轮没有任何新真值可写。
+        print('  warn: 净值历史抓空，沿用 portfolio 里旧 gold_dca，本轮不写盘（merge-not-overwrite）',
+              file=sys.stderr)
+        return 0
 
     quote_day = history[-1][0] if history else gold.get('nav_date')
     domestic_quote = fetch_au9999_daily(quote_day)
