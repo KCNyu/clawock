@@ -333,6 +333,16 @@ def collect_us_fundamentals(portfolio):
 GUARDRAIL_HISTORY = WS / 'assets' / 'data' / 'guardrail_history.jsonl'
 
 
+def _concentration_line(conc):
+    """One leg's [5] log line. compute_concentration answers {} for an empty
+    leg and {'error': ...} for a zero-value one; `None:.3f` crashed the whole
+    preflight on either (#1869)."""
+    hhi = conc.get('hhi')
+    if hhi is None:
+        return f"HHI=n/a ({conc.get('error') or 'no holdings'})"
+    return f"HHI={hhi:.3f} {conc.get('verdict')} (Top2 {conc.get('top2_pct')}%)"
+
+
 def _append_guardrail_history(today, guardrail, hk_conc, us_conc, risk):
     """Persist the day's guardrail verdict so its value becomes measurable.
 
@@ -1734,10 +1744,8 @@ def main(argv=None):
     hk_conc = compute_concentration(portfolio['portfolios']['hk_stocks']['holdings'])
     us_conc = compute_concentration(portfolio['portfolios']['us_stocks']['holdings'])
     lookthrough = compute_lookthrough_exposure(portfolio)
-    print(f'   HK: HHI={hk_conc.get("hhi"):.3f} {hk_conc.get("verdict")} '
-          f'(Top2 {hk_conc.get("top2_pct")}%)')
-    print(f'   US: HHI={us_conc.get("hhi"):.3f} {us_conc.get("verdict")} '
-          f'(Top2 {us_conc.get("top2_pct")}%)')
+    print(f'   HK: {_concentration_line(hk_conc)}')
+    print(f'   US: {_concentration_line(us_conc)}')
     print(f'   Look-through: HK factor HHI={lookthrough["hk"]["factor_hhi"]:.3f}; '
           f'US factor HHI={lookthrough["us"]["factor_hhi"]:.3f}')
 
@@ -1754,27 +1762,27 @@ def main(argv=None):
     # [8]-[13] DAG waves (#916 §1.2/§1.3): serial prefix done, now three
     # concurrent waves separated by barriers, each capped at max_workers=2.
     # Wave membership carries every true dependency edge:
-    #   WAVE1 — inputs are self-sufficient (fx, peers, bars, risk, regime,
+    #   WAVE1 — inputs are self-sufficient (fx, peers, bars, risk,
     #           quant, em-news, catalysts, peer-residual); write targets are
     #           pairwise disjoint.
     #   barrier
     #   WAVE2 — quant-review/cross-factor/t0 read quant's outputs from WAVE1;
-    #           news-evidence builds its graph from the em-news + catalysts
-    #           artifacts finished at the barrier; benchmark STARTS only after
+    #           regime reads QQQ/SPY closes from the bar store daily-bars
+    #           refreshed in WAVE1 — same-wave, its US leg saw yesterday's or
+    #           today's closes depending on thread timing (#1893).
+    #   barrier
+    #   WAVE3 — t0-review reconciles t0's history jsonl from WAVE2; evidence
+    #           rebuilds the page from the quant-review + cross-factor
+    #           artifacts finalized at the barrier; benchmark STARTS only after
     #           regime FINISHED at the barrier — regime must read YESTERDAY'S
     #           benchmark.json while the benchmark node rewrites that same
     #           file, so this ordering is a byte-determinism constraint, not a
     #           data dependency (#916 §1.2).
-    #   barrier
-    #   WAVE3 — t0-review reconciles t0's history jsonl from WAVE2; evidence
-    #           rebuilds the page from the quant-review + cross-factor
-    #           artifacts finalized at the barrier.
     w1 = _join(_run_wave({
         'fx_rate': fx_rate,
         'peer_scan_node': lambda: peer_scan_node(portfolio),
         'daily_bars_node': daily_bars_node,
         'portfolio_risk_node': portfolio_risk_node,
-        'regime_node': regime_node,
         'quant_node': quant_node,
         'em_news_node': em_news_node,
         'catalysts_node': catalysts_node,
@@ -1783,7 +1791,6 @@ def main(argv=None):
     fx = w1['fx_rate']
     peer_scan = w1['peer_scan_node']
     risk = w1['portfolio_risk_node']
-    lev_regime = w1['regime_node']
     quant_signals = w1['quant_node']
     catalysts = w1['catalysts_node']
     peer_residual_ctx = w1['peer_residual_node']
@@ -1811,16 +1818,18 @@ def main(argv=None):
         'quant_review_node': quant_review_node,
         'cross_factor_node': lambda: cross_factor_node(portfolio),
         't0_node': t0_node,
-        'benchmark_node': benchmark_node,
+        'regime_node': regime_node,
     }))
     quant_review = w2['quant_review_node']
     cross_sectional_factor_ctx = w2['cross_factor_node']
     t0_setups = w2['t0_node']
+    lev_regime = w2['regime_node']
 
     w3 = _join(_run_wave({
         't0_review_node': t0_review_node,
         'evidence_node': evidence_node,
         'news_evidence_node': news_evidence_node,
+        'benchmark_node': benchmark_node,
     }))
     t0_review = w3['t0_review_node']
     news_evidence_ctx = w3['news_evidence_node']

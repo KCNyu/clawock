@@ -214,3 +214,40 @@ def test_a_normal_slot_never_sleeps(wd, tmp_path, monkeypatch):
 
     assert slept == []
     assert sent, 'an undelivered finished slot still gets the backstop'
+
+
+def test_a_prose_run_whose_telegram_cosend_failed_is_mirrored_not_called_unfinished(
+        wd, tmp_path, monkeypatch):
+    """#1868: the slot's own marker (tg_ok=false) proves generation; prose mode
+    leaves no block in summary or transcript, which read as 「LLM 未完成」."""
+    from datetime import datetime
+
+    monkeypatch.setattr(wd, 'WS', tmp_path)
+    tmp = tmp_path / 'memory' / '.tmp'
+    tmp.mkdir(parents=True)
+    now = datetime.now(wd.HKT)
+    today = now.strftime('%Y-%m-%d')
+    (tmp / f'report-context-us-close-{today}.json').write_text(json.dumps({
+        'raw_wechat_block': BLOCK, 'context_id': 'ctx-under-test',
+        'generated_at': now.replace(tzinfo=None).isoformat()}, ensure_ascii=False))
+    (tmp / f'report-sent-us-close-{today}.json').write_text(json.dumps({
+        'ts': int(now.timestamp() * 1000), 'sent_ok': True, 'tg_ok': False,
+        'context_id': 'ctx-under-test', 'first_line': BLOCK.splitlines()[0]}))
+    now_ms = int(now.timestamp() * 1000)
+    monkeypatch.setattr(wd, 'find_job_id', lambda name: 'jid')
+    monkeypatch.setattr(wd, 'today_runs', lambda jid: _run(
+        finished_ms=now_ms + 5_000, summary='{"status": "pass", "wechat_sent": true}'))
+    monkeypatch.setattr(wd, 'transcript_loop_score', lambda s: (0, {}))
+    monkeypatch.setattr(wd, 'last_report_text', lambda s, first: None)
+    sent = []
+    monkeypatch.setattr(wd, 'send_telegram',
+                        lambda target, msg, dry: (sent.append(msg), (True, 'ok'))[1])
+    monkeypatch.setattr(sys, 'argv', [
+        'report_watchdog.py', '--market', 'us', '--phase', 'close',
+        '--job-name', '美股收盘报告'])
+
+    assert wd.main() == 0
+    assert len(sent) == 1
+    assert '未完成' not in sent[0]
+    assert 'postflight cosend failed' in sent[0]
+    assert BLOCK.splitlines()[0] in sent[0]

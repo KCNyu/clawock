@@ -467,6 +467,29 @@ def test_an_unnormalized_plan_is_not_booked_into_the_ledger(tmp_path, capsys,
     assert "not normalized" in capsys.readouterr().err
 
 
+def test_a_ledger_write_that_raises_is_an_unbooked_day_not_a_crash(tmp_path, capsys,
+                                                                   monkeypatch):
+    """Delivery and the publish gate are behind us when this runs; an escaping
+    OSError took postflight down instead of refusing the commit (#1876)."""
+    monkeypatch.setattr(brief_postflight, "WS", tmp_path)
+    (tmp_path / "memory").mkdir()
+    decision = _authored_decision(ticker="AAA")
+    decision["decision_id"] = "2026-07-30-AAA-1"
+    (tmp_path / "memory" / "2026-07-30-plan.json").write_text(json.dumps({
+        "schema_version": 2, "date": "2026-07-30", "decisions": [decision]}))
+    monkeypatch.setattr(brief_postflight.decision_v2, "load_decisions", lambda: [])
+
+    def disk_full(*_a, **_k):
+        raise OSError("No space left on device")
+
+    monkeypatch.setattr(brief_postflight.decision_v2, "upsert_plan_decisions", disk_full)
+    import contextlib
+    monkeypatch.setattr(brief_postflight.decision_v2, "ledger_lock", contextlib.nullcontext)
+
+    assert brief_postflight.log_decisions("2026-07-30") is False
+    assert "No space left on device" in capsys.readouterr().err
+
+
 def test_an_unnormalized_plan_blocks_the_commit_path(monkeypatch):
     """Delivery has already happened when maybe_commit runs. An unsafe ledger
     skip must therefore fail publication loudly, without rebuilding or creating

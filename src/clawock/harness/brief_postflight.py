@@ -864,15 +864,24 @@ def log_decisions(today):
     # rewrites per brief even on the common no-new-decisions day.
     # The lock spans load..write so `mark-followed` cannot land in between and be
     # overwritten by this run's older copy (#1482).
-    with decision_v2.ledger_lock():
-        ledger = decision_v2.load_decisions()
-        before = json.dumps(ledger, ensure_ascii=False, sort_keys=True)
-        inserted, updated = decision_v2.upsert_plan_decisions(
-            plan, ledger=ledger, write=False)
-        settled = decision_v2.settle_decisions(ledger)
-        after = json.dumps(ledger, ensure_ascii=False, sort_keys=True)
-        if after != before:
-            decision_v2.write_decisions(ledger)
+    # A raise here (disk full, lock, a malformed row) used to escape maybe_commit
+    # after delivery; it is the same unbooked day as above and gets the same
+    # visible, retryable refusal (#1876). write_decisions is atomic, so nothing
+    # was half-written.
+    try:
+        with decision_v2.ledger_lock():
+            ledger = decision_v2.load_decisions()
+            before = json.dumps(ledger, ensure_ascii=False, sort_keys=True)
+            inserted, updated = decision_v2.upsert_plan_decisions(
+                plan, ledger=ledger, write=False)
+            settled = decision_v2.settle_decisions(ledger)
+            after = json.dumps(ledger, ensure_ascii=False, sort_keys=True)
+            if after != before:
+                decision_v2.write_decisions(ledger)
+    except Exception as exc:  # noqa: BLE001 — every failure means "not booked"
+        print(f'warn: decisions.jsonl booking failed ({type(exc).__name__}: {exc}) '
+              '— decisions not booked this run', file=sys.stderr)
+        return False
     print(f'  decisions.jsonl: +{inserted}, updated {updated}, settled {settled} ({len(ledger)} total)')
     return True
 
@@ -930,7 +939,7 @@ def maybe_commit(status, today, dry_run=False):
     # plan files. A retry after the model fixes the authored semantic error skips
     # duplicate delivery via its marker, normalizes the plan, and books it.
     if not log_decisions(today):
-        return False, 'ledger booking blocked: plan.json decisions have no decision_id'
+        return False, 'ledger booking blocked: plan.json decisions were not booked (see stderr)'
     record_risk_stances(today)
     rebuild_dashboard()
 
@@ -1243,14 +1252,19 @@ def main(argv=None):
     )
 
     status = categorize(issues)
-    workflow_outcomes.record_stage(
-        job_name,
-        'preflight',
-        'success' if context else 'failed',
-        slot=slot,
-        dry_run=args.dry_run,
-        context_present=bool(context),
-    )
+    # A present context means the preflight ran and filed its own stage —
+    # status (warning included), issue_count, generation id, step_timings.
+    # Rewriting it here replaced all of that with {success, context_present}
+    # (#1875). Only the absence is postflight's to record.
+    if not context:
+        workflow_outcomes.record_stage(
+            job_name,
+            'preflight',
+            'failed',
+            slot=slot,
+            dry_run=args.dry_run,
+            context_present=False,
+        )
     # Same escalating/advisory split the report/intraday banners use: an
     # advisory-only slot delivers a clean product and must not be filed as a
     # degraded one (#764).
