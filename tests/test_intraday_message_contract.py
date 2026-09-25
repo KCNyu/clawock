@@ -51,7 +51,7 @@ def test_full_card_discloses_unverified_quote_coverage():
         '🇺🇸 美股盯盘\n变化：本交易日首档\n\n| 代码 | 现价 |',
         {'unrefreshed': ['SPCH', 'SPCX']},
     )
-    assert block.splitlines()[2] == '⛔ 数据降级：行情未证实完整刷新：SPCH、SPCX（表中标 ?，沿用上一笔）'
+    assert block.splitlines()[2] == '⛔ 数据降级：行情未证实完整刷新：SPCH、SPCX（沿用上一笔）'
     assert '| 代码 |' in block
 
 
@@ -66,47 +66,68 @@ def test_generic_headline_feed_is_not_repeated_in_intraday_card():
     assert pre.generic_news_feed(block) == ['📰 CRCL (5条)', '· old clipped headline']
 
 
-HK_CARD = """🇭🇰 港股盯盘 | 09/25 11:33 HKT
-变化：信号/触发档位
+ANALYZER = """🇭🇰 港股盯盘 | 09/25 11:33 HKT
+  恒指 24,329 ▼1.74%  恒科 4,264 ▼2.24%
+
+📊 市值 HK$63,746 | 浮盈 -46,347 (-42.1%) | 今日 -1,923
 
 | 代码  |    股 |   成本 |   现价 |   今日 |    浮% |     浮$ |
 |:------|------:|-------:|-------:|-------:|-------:|--------:|
 | 00100 |   140 | 508.47 | 272.80 |  -2.2% | -46.4% | -32,994 |
 | 07226 |  6200 |   4.36 |   2.75 |  -4.7% | -36.9% |  -9,977 |
-| CRCL  |     2 |  87.00 |  93.37 |  +1.8% |  +7.3% |     +13 |
+| 03032 |   200 |   5.41 |   4.26 |  -2.3% | -21.1% |    -228 |
 
 ⚠️ 信号
   ✋ STOP? 00100 MINIMA | 今日-2.2% 浮-46.4%
   ✋ STOP? 07226 南方2倍做多 | 今日-4.7% 浮-36.9%
      · 浮亏 -36.9% 警惕止损
 
-📉 亏损持仓 5/5  |  2x杠杆敞口 27%"""
+📉 亏损持仓 3/3  |  2x杠杆敞口 27%"""
+TABLE = [line for line in ANALYZER.splitlines() if line.startswith('|')]
 
 
-def test_card_marks_new_and_degraded_rows_and_folds_repeated_signals():
-    """2026-09-25: every slot re-printed the same deep-loss STOP lines and
-    no row said which holding had changed."""
-    card = pre.mark_card_changes(
-        HK_CARD, fresh_tickers={'07226'}, unrefreshed=['CRCL'],
-        seen_signals={('STOP', '00100')})
-    lines = card.splitlines()
-    assert '| 07226*|  6200 |' in card and '| CRCL? |' in card
-    assert '| 00100 |' in card, 'an unchanged row carries no mark'
-    # Column width is kept, so the Telegram code block stays aligned.
-    widths = {len(line) for line in lines if line.startswith('|') and '代码' not in line}
-    assert len(widths) == 1
-    row = lines.index('| CRCL? |     2 |  87.00 |  93.37 |  +1.8% |  +7.3% |     +13 |')
-    assert lines[row + 1:row + 3] == ['', '标记：* 本档新异动/触发　? 行情未证实刷新']
-    only_new = pre.mark_card_changes(HK_CARD, fresh_tickers={'07226'}, unrefreshed=[],
-                                     seen_signals=set())
-    assert '标记：* 本档新异动/触发' in only_new and '? 行情' not in only_new
-    assert 'STOP? 00100 MINIMA' not in card
-    assert '  · 今日已报、仍在：STOP? 00100' in card
-    assert 'STOP? 07226 南方2倍做多' in card and '警惕止损' in card
-    # A slot with nothing new or degraded prints no legend at all.
-    quiet = pre.mark_card_changes(HK_CARD, fresh_tickers=set(), unrefreshed=[],
-                                  seen_signals=set())
-    assert quiet == HK_CARD
+def _card(fresh=('07226',), stale=('03032',), p0=True):
+    block = pre.mark_card_changes(ANALYZER, fresh_tickers=set(fresh),
+                                  unrefreshed=list(stale),
+                                  seen_signals={('STOP', '00100')})
+    return pre.compose_card(
+        block, p0_lines=['P0：07226 单日 -16.0%，07226 策略是否继续？'] if p0 else [],
+        lead='变化：信号/触发档位（新触发：07226）',
+        degraded=[pre.coverage_warning({'unrefreshed': list(stale)}), None])
+
+
+def test_card_layout_contract():
+    """kcn 2026-09-25 「还是有点乱」: the layout is a contract, not a habit.
+    Order, the untouched table, one pointer for only the kinds used, and one
+    symbol per meaning are enforced here rather than left to each edit."""
+    msg = post.assemble_message({'raw_wechat_block': _card()}, '▎我的看法\n先看 07226。')
+    lines = msg.splitlines()
+    # 1. The analyzer's table is byte-identical and contiguous.
+    start = lines.index(TABLE[0])
+    assert lines[start:start + len(TABLE)] == TABLE
+    # 2. Block order: title, P0, 变化, ⛔, judgment, strip/book, table, pointer,
+    #    signals, risk line.
+    def at(prefix):
+        return next(i for i, line in enumerate(lines) if line.startswith(prefix))
+    order = [0, at('P0：'), at('变化：'), at('⛔'), at('▎我的看法'), at('  恒指'),
+             at('📊'), start, at('↑ '), at('⚠️ 信号'), at('📉')]
+    assert order == sorted(order) and lines[0].startswith('🇭🇰 港股盯盘')
+    # 3. One pointer, after a blank line, naming only the kinds present.
+    pointers = [line for line in lines if line.startswith('↑ ')]
+    assert pointers == ['↑ 新异动/触发 07226　行情未证实 03032']
+    assert lines[at('↑ ') - 1] == ''
+    only_new = _card(stale=()).splitlines()
+    assert [line for line in only_new if line.startswith('↑ ')] == ['↑ 新异动/触发 07226']
+    assert not any(line.startswith('↑ ') for line in _card(fresh=(), stale=()).splitlines())
+    # 4. ⛔ is only data health; ⚠️ only heads the analyzer's signal block.
+    assert all(line.startswith('⛔') for line in lines if '数据降级' in line)
+    assert [line for line in lines if line.startswith('⚠️')] == ['⚠️ 信号']
+    # 5. Repeated signals fold; a new one stays whole with its reason.
+    assert '  · 今日已报、仍在：STOP? 00100' in lines
+    assert 'STOP? 00100 MINIMA' not in msg and '警惕止损' in msg
+    # A card without P0/⛔ still puts the judgment straight under 变化.
+    quiet = post.assemble_message({'raw_wechat_block': _card(stale=(), p0=False)}, '▎我的看法\nx')
+    assert quiet.splitlines()[1].startswith('变化：') and quiet.splitlines()[3] == '▎我的看法'
 
 
 def test_judgment_packet_preserves_every_decision_field():

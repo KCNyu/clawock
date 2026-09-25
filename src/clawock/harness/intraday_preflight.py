@@ -706,82 +706,106 @@ DELTA_LABELS = {
 }
 
 
+def delta_lead(delta, *, current, previous):
+    """The 变化 line: why this slot is a full card, naming first-seen breaches."""
+    if not previous:
+        return '变化：本交易日首档，建立对照'
+    labels = [DELTA_LABELS[key] for key in delta.get('components', [])
+              if key in DELTA_LABELS]
+    lead = '变化：' + '、'.join(labels or ['决策条件'])
+    old = {json.dumps(row, sort_keys=True, ensure_ascii=False)
+           for row in (previous.get('breaches_seen')
+                       or previous.get('breaches') or [])}
+    fresh = [row for row in current.get('breaches', [])
+             if json.dumps(row, sort_keys=True, ensure_ascii=False) not in old]
+    names = list(dict.fromkeys(str(row.get('ticker')) for row in fresh
+                               if row.get('ticker')))
+    if names:
+        lead += '（新触发：' + '、'.join(names[:4]) + '）'
+    return lead
+
+
 def prepend_delta_lead(block, delta, *, current, previous):
     """Put the reason for a full card before the holdings table on both legs."""
     lines = block.splitlines()
     if not lines:
         return block
-    if previous:
-        labels = [DELTA_LABELS[key] for key in delta.get('components', [])
-                  if key in DELTA_LABELS]
-        lead = '变化：' + '、'.join(labels or ['决策条件'])
-        old = {json.dumps(row, sort_keys=True, ensure_ascii=False)
-               for row in (previous.get('breaches_seen')
-                           or previous.get('breaches') or [])}
-        fresh = [row for row in current.get('breaches', [])
-                 if json.dumps(row, sort_keys=True, ensure_ascii=False) not in old]
-        names = list(dict.fromkeys(str(row.get('ticker')) for row in fresh
-                                   if row.get('ticker')))
-        if names:
-            lead += '（新触发：' + '、'.join(names[:4]) + '）'
-    else:
-        lead = '变化：本交易日首档，建立对照'
-    return '\n'.join([lines[0], lead, *lines[1:]])
+    return '\n'.join([lines[0], delta_lead(delta, current=current, previous=previous),
+                      *lines[1:]])
+
+
+def coverage_warning(coverage):
+    missing = coverage.get('unrefreshed') or []
+    return (DEGRADED + '行情未证实完整刷新：' + '、'.join(missing) + '（沿用上一笔）'
+            if missing else None)
 
 
 def prepend_coverage_warning(block, coverage):
     """A full card must disclose incomplete quotes, as the receipt already does."""
-    missing = coverage.get('unrefreshed') or []
-    if not missing:
+    warning = coverage_warning(coverage)
+    if not warning:
         return block
     lines = block.splitlines()
-    warning = DEGRADED + '行情未证实完整刷新：' + '、'.join(missing) + '（表中标 ?，沿用上一笔）'
     return '\n'.join([*lines[:2], warning, *lines[2:]])
 
 
-#: Card vocabulary. A reader has to tell four states apart at a glance:
-#: new/changed (`*` on the row, named in the 变化 line), unchanged (no mark,
-#: repeated signals folded into one line), and degraded data (`?` on the row,
-#: a ⛔ line) — never the same ⚠️ the analyzer uses for its signal header.
-#: ASCII row marks, not bold: Telegram renders the table as a code block,
-#: where `**` would print literally, and a wide emoji would break alignment.
+# ── Card layout contract (2026-09-25, kcn: 「还是有点乱」) ──────────────────
+#
+# A full card reads top-down in this order; a block with nothing to say is
+# omitted, never printed empty:
+#
+#   1 title          analyzer's first line — the watchdog's slot anchor
+#   2 P0 line        only when a strategy escalation newly fired
+#   3 变化 line      why this slot woke: components + first-seen tickers
+#   4 ⛔ lines       data faults (quote, strategy evidence, T+0), each once
+#   5 ▎我的看法      model judgment — postflight places it here, right under
+#                    the header, so the answer precedes the evidence
+#   6 index + 📊     analyzer's market strip and book line
+#   7 table          analyzer's holdings table, byte for byte
+#   8 ↑ pointer      one line naming the rows to look at (new / unverified);
+#                    only the kinds present; omitted when there is none
+#   9 ⚠️ 信号        signals new today in full; ones already delivered this
+#                    session fold into one 「今日已报、仍在」 line
+#  10 candidates     setups / trend / radar / primary info / plan triggers
+#  11 ℹ️ footnote    advisory checker findings, last (postflight)
+#
+# Why: the reader's first questions are "what changed, can I trust it, what
+# do I do" — blocks 2–5 answer them before any table. Marks sit next to the
+# table instead of inside it: the table is the analyzer's and stays
+# identical, and a mark inside a cell would also break Telegram's code-block
+# alignment. ⛔ is only ever data health; ⚠️ is only the analyzer's signal
+# header — one symbol, one meaning. Card only: the model reads the complete
+# context (signals_detail, full_holdings, quote_coverage, …) regardless.
 DEGRADED = '⛔ 数据降级：'
-NEW_MARK, STALE_MARK = '*', '?'
-MARK_LEGEND = {NEW_MARK: '* 本档新异动/触发', STALE_MARK: '? 行情未证实刷新'}
+POINTER = '↑ '
+POINTER_KINDS = (('new', '新异动/触发'), ('stale', '行情未证实'))
+HEADER_PREFIXES = ('P0：', '变化：', DEGRADED)
 
 
-def _mark_ticker_cell(line, mark):
-    cells = line.split('|')
-    cell = cells[1]
-    ticker = cell.strip()
-    start = cell.index(ticker) + len(ticker)
-    marked = cell[:start] + mark + cell[start:]
-    # Give back one padding space so the table keeps its column width.
-    cells[1] = marked[:-1] if marked.endswith(' ') and len(marked) > len(cell) else marked
-    return '|'.join(cells)
+def compose_card(block, *, p0_lines, lead, degraded):
+    """Header blocks 2–4 in contract order under the analyzer's title."""
+    lines = block.splitlines()
+    if not lines:
+        return block
+    return '\n'.join([lines[0], *p0_lines, lead,
+                      *[line for line in degraded if line], *lines[1:]])
 
 
 def mark_card_changes(block, *, fresh_tickers, unrefreshed, seen_signals):
-    """Mark what changed on the card; fold what was already said today.
+    """Point at the rows that matter and fold what was already said today.
 
-    Card-only: the model reads `signals_detail`, `source_signals_detail`,
-    `full_holdings` and `quote_coverage` whole. `fresh_tickers` are holdings
-    with a move/trigger breach first seen this session; `seen_signals` are
+    Never edits a table line. `fresh_tickers` are holdings with a
+    move/trigger breach first seen this session; `seen_signals` are
     `(level, ticker)` signal identities delivered earlier this session.
     """
-    stale = set(unrefreshed or [])
-    fresh = set(fresh_tickers or []) - stale
-    out, marked, folded = [], set(), []
+    stale = [t for t in (unrefreshed or [])]
+    fresh = [t for t in sorted(fresh_tickers or []) if t not in stale]
+    out, folded = [], []
     in_signals = skip_reasons = False
     last_table_row = None
     for line in block.splitlines():
         stripped = line.strip()
         if stripped.startswith('|') and stripped.endswith('|'):
-            ticker = stripped.strip('|').split('|')[0].strip()
-            mark = STALE_MARK if ticker in stale else NEW_MARK if ticker in fresh else ''
-            if mark:
-                line = _mark_ticker_cell(line, mark)
-                marked.add(mark)
             out.append(line)
             last_table_row = len(out)
             continue
@@ -808,11 +832,13 @@ def mark_card_changes(block, *, fresh_tickers, unrefreshed, seen_signals):
         out.append(line)
     if folded:
         out.append('  · 今日已报、仍在：' + '、'.join(folded))
-    if marked and last_table_row is not None:
+    named = dict(POINTER_KINDS)
+    parts = [f"{named[kind]} {'、'.join(rows)}"
+             for kind, rows in (('new', fresh), ('stale', stale)) if rows]
+    if parts and last_table_row is not None:
         # A blank line first: GFM reads a pipe-less line right under a table
         # as one more row.
-        legend = '　'.join(MARK_LEGEND[m] for m in (NEW_MARK, STALE_MARK) if m in marked)
-        out[last_table_row:last_table_row] = ['', '标记：' + legend]
+        out[last_table_row:last_table_row] = ['', POINTER + '　'.join(parts)]
     return '\n'.join(out)
 
 
@@ -1304,14 +1330,13 @@ def main(argv=None):
         prior_escalations = {(row.get('ticker'), row.get('level'))
                              for row in [*prior_state.get('breaches', []), *old_breaches]
                              if row.get('kind') == 'strategy_escalation'}
+        p0_lines = []
         for row in policy_escalations:
             identity = (row['ticker'], f"{row['window']}:{row['threshold_pct']}")
             if identity not in prior_escalations:
                 window = '单日' if row['window'] == 'session' else '五交易日'
-                lines = raw_block.splitlines()
-                lines.insert(1, f"P0：{row['ticker']} {window} {row['move_pct']:+.1f}%，"
+                p0_lines.append(f"P0：{row['ticker']} {window} {row['move_pct']:+.1f}%，"
                                 f"{row['holding']} 策略是否继续？")
-                raw_block = '\n'.join(lines)
         seen_before = {json.dumps(row, sort_keys=True, ensure_ascii=False)
                        for row in old_breaches}
         raw_block = mark_card_changes(
@@ -1323,18 +1348,16 @@ def main(argv=None):
             unrefreshed=coverage.get('unrefreshed'),
             seen_signals={(row.get('level'), row.get('ticker')) for row in old_breaches
                           if row.get('kind') == 'signal'})
-        raw_block = prepend_delta_lead(
-            raw_block, semantic_delta, current=semantic_state,
-            previous=prior_state)
-        raw_block = prepend_coverage_warning(raw_block, coverage)
-        if policy_evidence_errors:
-            lines = raw_block.splitlines()
-            lines.insert(2, DEGRADED + '策略升级证据未取全：' + '；'.join(policy_evidence_errors[:2]))
-            raw_block = '\n'.join(lines)
-        if t0_setups.get('error'):
-            lines = raw_block.splitlines()
-            lines.insert(2, f"{DEGRADED}T+0 牌面未取到：{t0_setups['error']}")
-            raw_block = '\n'.join(lines)
+        raw_block = compose_card(
+            raw_block, p0_lines=p0_lines,
+            lead=delta_lead(semantic_delta, current=semantic_state, previous=prior_state),
+            degraded=[
+                coverage_warning(coverage),
+                (DEGRADED + '策略升级证据未取全：' + '；'.join(policy_evidence_errors[:2])
+                 if policy_evidence_errors else None),
+                (f"{DEGRADED}T+0 牌面未取到：{t0_setups['error']}"
+                 if t0_setups.get('error') else None),
+            ])
         should_alert, alert_reasons = apply_plan_trigger_alert(
             should_alert, alert_reasons, plan_triggers)
         delivery_mode = 'review_candidate' if soft_review else 'full_delta'
