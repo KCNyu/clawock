@@ -10,6 +10,9 @@ belongs here.
 
 - [`harness.md`](architecture/harness.md) — package/profile/runtime boundaries,
   CLI lifecycle, context injection contract, and generation-pinned artifacts.
+- [`intraday-agent.md`](architecture/intraday-agent.md) — the intraday agent
+  contract: context layering, card blocks, workflow ownership, objective and
+  which rules are gates.
 - [`data-plane.md`](architecture/data-plane.md) — why the live JSON snapshot is
   separate from Pages, what GitHub officially supports, and the replacement bar.
 - [`openclaw-adapter.md`](architecture/openclaw-adapter.md) — OpenClaw as an
