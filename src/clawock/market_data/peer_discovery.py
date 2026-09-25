@@ -120,7 +120,8 @@ def _suggest_us(ticker: str, curated_tickers: Iterable[object]) -> list[dict]:
 
     response = requests.get(
         FINNHUB_PEERS_URL,
-        params={"symbol": symbol, "token": key},
+        params={"symbol": symbol},
+        headers={"X-Finnhub-Token": key},
         timeout=TIMEOUT,
     )
     symbols = _response_json(response, "Finnhub peers")

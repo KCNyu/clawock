@@ -310,7 +310,8 @@ def get_finnhub_news(code: str, api_key: str, days: int = 7) -> List[Dict]:
         try:
             r = SESSION.get(
                 'https://finnhub.io/api/v1/company-news',
-                params={'symbol': sym, 'from': from_date, 'to': to_date, 'token': api_key},
+                params={'symbol': sym, 'from': from_date, 'to': to_date},
+                headers={'X-Finnhub-Token': api_key},
                 timeout=12,
             )
             items = r.json()
