@@ -437,3 +437,31 @@ def test_setup_sub_state_churn_is_not_a_delta():
         **base, setups={"rows": [{**row, "setup_id": "confirmed_breakout"}]})
     assert s_conf["setups"][0]["setup_id"] == "confirmed_breakout"
     assert gate.compare_semantic_states(s_breakout, s_conf)["changed"] is True
+
+
+def test_preflight_main_never_rewrites_the_analyzer_table(monkeypatch, tmp_path):
+    """Layout contract, through the real main(): marks and header lines sit
+    around the analyzer's table, never inside it (kcn 2026-09-25)."""
+    current, run = _wire_preflight(monkeypatch, tmp_path)
+    table = ['| 代码  |    股 |   成本 |   现价 |   今日 |    浮% |     浮$ |',
+             '|:------|------:|-------:|-------:|-------:|-------:|--------:|',
+             '| SPCH  |    10 |   6.00 |   7.00 |  -4.1% | +16.7% |     +10 |',
+             '| RKLX  |    10 |  49.69 |  18.17 |  +3.6% | -63.4% |    -315 |']
+    block = '\n'.join(['🇺🇸 美股盯盘 | 08/13 13:33 ET', '', '📊 市值 $3,386', '', *table,
+                       '', '⚠️ 信号', '  ▼ STOP-LOSS RKLX | 今日+3.6% 浮-63.4%', '',
+                       '📉 亏损持仓 1/2'])
+    monkeypatch.setattr(preflight, "run_analyze", lambda _m: (0, block, ""))
+    monkeypatch.setattr(preflight, "parse_anomalies", lambda _s: [
+        {"ticker": "SPCH", "move_pct": -4.1, "severity": "medium"}])
+    monkeypatch.setattr(preflight, "quote_coverage", lambda *_a, **_k: {
+        "refreshed": 1, "active": 2, "unrefreshed": ["RKLX"]})
+    previous = copy.deepcopy(current)
+    ctx = run(previous)
+
+    lines = ctx["raw_wechat_block"].splitlines()
+    start = lines.index(table[0])
+    assert lines[start:start + len(table)] == table
+    assert "↑ 新异动/触发 SPCH　行情未证实 RKLX" in lines
+    assert lines[1].startswith("变化：") and lines[2].startswith("⛔ 数据降级：")
+    # The model keeps the analyzer's output whole, whatever the card folds.
+    assert ctx["analyzer_block"] == block

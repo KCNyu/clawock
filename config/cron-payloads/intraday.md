@@ -13,7 +13,7 @@ Step 1：`clawock intraday preflight --market {{market}} --judgment-packet`
 
 字段 `add_side_reads.rows[].evidence.proxy_label` 表示 20 日高/位来自代理标的：07226 的代理为恒科指数，SPCH 的代理为 SPCX；不得把代理价位当成杠杆产品自身价格。`peer_scan` 已由 preflight 提供全持仓板块全景，直接读它；不要另读 `peer-map.json`，不要另调 `clawock fetch-peers`。缺项需标明，不能用缓存价补。
 
-候选生成不等于议程决定：`full_holdings` 含全持仓现价、日涨跌、报价新鲜度和计划触发线距离；`soft_candidates`、`opportunity_radar`、`early_trend_candidates`、`provisional_setups`、`t0_setups`、`semantic_state` 都是供你比较边缘机会和历史变化的材料；没有硬阈值命中也要看候选是否值得说。`known_catalysts` 衔接晨报，`active_information_candidates` 留一手来源与失败状态；`headline_feed` 是分析器截断的标题流（卡片不再展示、无新旧闸），只作背景线索，不当一手催化。
+候选生成不等于议程决定：`full_holdings` 含全持仓现价、日涨跌、报价新鲜度和计划触发线距离；`soft_candidates`、`opportunity_radar`、`early_trend_candidates`、`provisional_setups`、`t0_setups`、`semantic_state` 都是供你比较边缘机会和历史变化的材料；没有硬阈值命中也要看候选是否值得说。`known_catalysts` 衔接晨报，`active_information_candidates` 留一手来源与失败状态；`headline_feed` 是分析器截断的标题流（卡片不再展示、无新旧闸），只作背景线索，不当一手催化。`raw_wechat_block` 是给 kcn 的卡片（已报信号会折叠）；`analyzer_block` 是分析器原样输出，信号理由等细节以它为准。
 
 仅当发送 full_delta 或 review_candidate 判断为值得说时，按 `skills/_shared/intraday-status-sidecar.md` 写 `memory/.tmp/intraday-insights-{今天YYYY-MM-DD}.json`，只含 status_banner/movers 文本，时间由 harness 写。必须在同一条回复内并行发出两个 `write` 工具调用，分别写 sidecar 与 `/root/.openclaw/workspace/memory/.tmp/intraday-prose-{{market}}.md`。然后调用：
 `clawock intraday postflight --market {{market}} --context-id {CTXID} --text-file /root/.openclaw/workspace/memory/.tmp/intraday-prose-{{market}}.md`

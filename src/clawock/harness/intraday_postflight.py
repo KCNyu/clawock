@@ -82,7 +82,7 @@ TMP = WS / 'memory' / '.tmp'
 from clawock.automation import cron_heartbeat  # noqa: E402
 from clawock.automation import delivery_receipts  # noqa: E402
 from clawock.harness import intraday_delta  # noqa: E402
-from clawock.harness.intraday_preflight import can_silence  # noqa: E402
+from clawock.harness.intraday_preflight import HEADER_PREFIXES, can_silence  # noqa: E402
 
 # A report file older than this is assumed to be a previous slot's leftover. Kept
 # below the 30min slot cadence (and aligned with the already_delivered window) so a
@@ -218,8 +218,19 @@ def assemble_message(ctx, prose):
     no separate `title`; raw_wechat_block already opens with the titled first
     line, so the block alone is the prefix.
     """
-    parts = [(ctx.get('raw_wechat_block') or '').strip(), (prose or '').strip()]
-    return '\n\n'.join(p for p in parts if p)
+    block = (ctx.get('raw_wechat_block') or '').strip()
+    prose = (prose or '').strip()
+    if not prose:
+        return block
+    # Layout contract (intraday_preflight): the judgment sits right under the
+    # header — title, P0, 变化, ⛔ — so the answer precedes the evidence. The
+    # block's title stays the first line (the watchdog's slot anchor).
+    lines = block.splitlines()
+    cut = 1
+    while cut < len(lines) and lines[cut].startswith(HEADER_PREFIXES):
+        cut += 1
+    head, rest = '\n'.join(lines[:cut]), '\n'.join(lines[cut:]).strip('\n')
+    return '\n\n'.join(p for p in (head, prose, rest) if p)
 
 
 def validate(text, ctx, model_text):

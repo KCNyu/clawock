@@ -94,16 +94,18 @@ candidate matters, how primary evidence changes the thesis, and how plans and
 strategy metadata constrain an action. Brief WeChat copy is a separate output
 constraint. Reducing noise means fewer user wake-ups, not fewer decision inputs.
 
-A full card tells four states apart without prose: a holding with a move or
-trigger first seen this session carries `*` in the table and is named on the
-变化 line; a holding whose quote was not verified this run carries `?`, with a
-`⛔ 数据降级` line (source and evidence failures use the same marker, never the
-analyzer's ⚠️ signal header); unchanged rows carry nothing, and signals already
-delivered this session fold into one `今日已报、仍在` line. Marks are ASCII
-because Telegram renders the table as a code block, where bold would print
-literally. Advisory checker findings keep their own line at the foot of the
-card. All of this is copy only: the model still reads the full
-`signals_detail`, `source_signals_detail`, `full_holdings` and `quote_coverage`.
+A full card follows a fixed layout contract (the block list lives above
+`compose_card` in `intraday_preflight.py`; `test_card_layout_contract` and
+`test_preflight_main_never_rewrites_the_analyzer_table` enforce it): title, a
+P0 line only when one newly fired, the 变化 line, `⛔ 数据降级` lines, the
+model's `▎我的看法`, then the analyzer's market strip, book line and holdings
+table **byte for byte**, one `↑` pointer line naming the rows to look at (new
+move/trigger, unverified quote; only the kinds present), the signal block with
+signals already delivered this session folded into one `今日已报、仍在` line,
+the candidate sections, and advisory checker findings last. `⛔` is only data
+health and `⚠️` only the analyzer's signal header. All of this is copy only:
+the model still reads the full `signals_detail`, `source_signals_detail`,
+`full_holdings` and `quote_coverage`.
 
 The shared HK/US delta compares stable condition identities, including the
 first appearance of a soft candidate or a breach that trading day, plan status and
