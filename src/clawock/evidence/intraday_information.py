@@ -134,7 +134,6 @@ def collect(workspace, market, tickers, *, now=None, fast_news=None):
     full_ticker = {ticker: [] for ticker in tickers}
 
     graph = loaded.get('news_evidence_graph') or {}
-    fresh = sources.get('news_evidence_graph') or {}
     for event in graph.get('events') or []:
         ticker = str(event.get('ticker') or '')
         if ticker not in per_ticker:
