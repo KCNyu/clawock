@@ -758,28 +758,29 @@ def prepend_coverage_warning(block, coverage):
 #   2 P0 line        only when a strategy escalation newly fired
 #   3 变化 line      why this slot woke: components + first-seen tickers
 #   4 ⛔ lines       data faults (quote, strategy evidence, T+0), each once
-#   5 ▎我的看法      model judgment — postflight places it here, right under
-#                    the header, so the answer precedes the evidence
-#   6 index + 📊     analyzer's market strip and book line
-#   7 table          analyzer's holdings table, byte for byte
-#   8 ↑ pointer      one line naming the rows to look at (new / unverified);
+#   5 index + 📊     analyzer's market strip and book line
+#   6 table          analyzer's holdings table, byte for byte
+#   7 ↑ pointer      one line naming the rows to look at (new / unverified);
 #                    only the kinds present; omitted when there is none
-#   9 ⚠️ 信号        signals new today in full; ones already delivered this
+#   8 ⚠️ 信号        signals new today in full; ones already delivered this
 #                    session fold into one 「今日已报、仍在」 line
-#  10 candidates     setups / trend / radar / primary info / plan triggers
+#   9 candidates     setups / trend / radar / primary info / plan triggers
+#  10 ▎我的看法      model judgment — postflight appends it after the whole
+#                    data block, below the table (kcn 2026-09-25: #1863 had
+#                    put it above the table and kcn read that as the table
+#                    being out of place)
 #  11 ℹ️ footnote    advisory checker findings, last (postflight)
 #
-# Why: the reader's first questions are "what changed, can I trust it, what
-# do I do" — blocks 2–5 answer them before any table. Marks sit next to the
+# Why: the header (2–4) answers "what changed, can I trust it" before the
+# table; the table keeps the position kcn reads it in. Marks sit next to the
 # table instead of inside it: the table is the analyzer's and stays
 # identical, and a mark inside a cell would also break Telegram's code-block
 # alignment. ⛔ is only ever data health; ⚠️ is only the analyzer's signal
 # header — one symbol, one meaning. Card only: the model reads the complete
-# context (signals_detail, full_holdings, quote_coverage, …) regardless.
+# context (analyzer_block, signals_detail, full_holdings, …) regardless.
 DEGRADED = '⛔ 数据降级：'
 POINTER = '↑ '
 POINTER_KINDS = (('new', '新异动/触发'), ('stale', '行情未证实'))
-HEADER_PREFIXES = ('P0：', '变化：', DEGRADED)
 
 
 def compose_card(block, *, p0_lines, lead, degraded):

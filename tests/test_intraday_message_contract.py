@@ -105,12 +105,12 @@ def test_card_layout_contract():
     # 1. The analyzer's table is byte-identical and contiguous.
     start = lines.index(TABLE[0])
     assert lines[start:start + len(TABLE)] == TABLE
-    # 2. Block order: title, P0, 变化, ⛔, judgment, strip/book, table, pointer,
-    #    signals, risk line.
     def at(prefix):
         return next(i for i, line in enumerate(lines) if line.startswith(prefix))
-    order = [0, at('P0：'), at('变化：'), at('⛔'), at('▎我的看法'), at('  恒指'),
-             at('📊'), start, at('↑ '), at('⚠️ 信号'), at('📉')]
+    # 2. Block order: title, P0, 变化, ⛔, strip/book, table, pointer, signals,
+    #    risk line, then the judgment below the whole data block.
+    order = [0, at('P0：'), at('变化：'), at('⛔'), at('  恒指'),
+             at('📊'), start, at('↑ '), at('⚠️ 信号'), at('📉'), at('▎我的看法')]
     assert order == sorted(order) and lines[0].startswith('🇭🇰 港股盯盘')
     # 3. One pointer, after a blank line, naming only the kinds present.
     pointers = [line for line in lines if line.startswith('↑ ')]
@@ -125,9 +125,12 @@ def test_card_layout_contract():
     # 5. Repeated signals fold; a new one stays whole with its reason.
     assert '  · 今日已报、仍在：STOP? 00100' in lines
     assert 'STOP? 00100 MINIMA' not in msg and '警惕止损' in msg
-    # A card without P0/⛔ still puts the judgment straight under 变化.
+    # kcn 2026-09-25 「表格位置怎么倒置了？」: the judgment never precedes the
+    # table, with or without P0/⛔ lines.
     quiet = post.assemble_message({'raw_wechat_block': _card(stale=(), p0=False)}, '▎我的看法\nx')
-    assert quiet.splitlines()[1].startswith('变化：') and quiet.splitlines()[3] == '▎我的看法'
+    q = quiet.splitlines()
+    assert q[1].startswith('变化：') and q.index('▎我的看法') > q.index(TABLE[-1])
+    assert q[-2:] == ['▎我的看法', 'x']
 
 
 def test_judgment_packet_preserves_every_decision_field():
