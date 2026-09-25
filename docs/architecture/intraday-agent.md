@@ -130,7 +130,9 @@ warning puts a `🟠` banner on top (not `⚠️`, which belongs to block 8).
 **Channels.** WeChat bolds the table rows the `↑` line names as new move/trigger
 (markdown `**` around each cell); Telegram always gets the plain table. The
 data bytes of the table are identical on both channels: with `**` removed the
-two payloads are equal (a gate).
+two payloads are equal (gate:
+`test_wechat_bolds_the_new_rows_and_both_channels_carry_the_same_table_bytes`).
+The watchdog's backstop resend is the plain card on both channels.
 
 ## 5. Add-side policy (kcn 2026-09-25)
 
@@ -197,8 +199,8 @@ as live.
 | this contract | live (#1871) |
 | core packet + reference tool | planned |
 | add-side line (block 10; primary information moved to `📑`) | live (#1872) |
-| `下一触发` line (block 11) | this PR |
-| WeChat bold per channel, `🟠` warning banner | planned |
+| `下一触发` line (block 11) | live (#1873) |
+| WeChat bold per channel, `🟠` warning banner | this PR |
 | information lane tiers 0–1, ETF/index lookup | planned |
 | Tavily on anomalies | planned |
 | add-side policy (§5) | planned |

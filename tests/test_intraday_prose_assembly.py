@@ -597,3 +597,42 @@ def test_the_trigger_nag_is_advisory_never_a_block(pf):
 
     flagged = [i for i in issues if '计划触发线' in i]
     assert all(pf.ADVISORY_MARK in i for i in flagged), flagged
+
+
+def test_wechat_bolds_the_new_rows_and_both_channels_carry_the_same_table_bytes(
+    run_main, sent, pf, monkeypatch
+):
+    """Contract §4, channels: one card, two renderings. WeChat bolds the rows
+    the ↑ line names as new; Telegram gets the plain table. The whitelist of
+    differences is the bold marker alone — strip it and the payloads are equal,
+    and the table rows Telegram gets are the analyzer's bytes."""
+    telegram = []
+    monkeypatch.setattr(pf, 'cosend_telegram',
+                        lambda message, tag, **k: (telegram.append(message), (True, 'ok'))[1])
+    ctx = _ctx(card_marks={'new': ['RKLX'], 'stale': []})
+    rc, out = run_main(PROSE, context_id='abc123def456', ctx=ctx)
+    assert rc == 0 and out['wechat_sent'] and out['telegram_sent']
+    wechat, plain = sent['messages'][0], telegram[0]
+
+    assert wechat != plain
+    assert wechat.replace(pf.WECHAT_BOLD, '') == plain
+    table = [line for line in BLOCK.splitlines() if line.startswith('|')]
+    assert [line for line in plain.splitlines() if line.startswith('|')] == table
+    bolded = [line for line in wechat.splitlines() if pf.WECHAT_BOLD in line]
+    assert bolded == ['| **RKLX**  |    **10** |  **49.69** |  **17.07** |  '
+                      '**+4.6%** | **-65.6%** |    **-326** |']
+    # No new rows: WeChat and Telegram are the same bytes.
+    sent['messages'].clear()
+    telegram.clear()
+    pf.delivery_receipts.receipt_path(pf.TMP, 'intraday', market='us').unlink()
+    run_main(PROSE, context_id='abc123def456', ctx=_ctx(card_marks={'new': [], 'stale': []}))
+    assert sent['messages'][0] == telegram[0]
+
+
+def test_an_escalating_warning_does_not_borrow_the_signal_symbol(run_main, sent):
+    """⚠️ heads the analyzer's signal block and nothing else (contract §4)."""
+    rc, out = run_main('▎我的看法\nSKHY 太短。\n下一触发：RKLX 站上 17.07\n',
+                       context_id='abc123def456')
+    assert out['status'] == 'warn'
+    first = sent['messages'][0].splitlines()[0]
+    assert first.startswith('🟠 校验警告') and '⚠️' not in first
