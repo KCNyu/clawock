@@ -50,7 +50,15 @@ STATE_OF_VERDICT = {
     'failed': 'failed',
     'pending': 'running',
     'skipped': 'closed',
+    # #1853: a healthy unchanged intraday slot is silent on purpose and files
+    # `no_change`; unmapped it read as `unknown` on the card.
+    'no_change': 'quiet',
 }
+
+#: Every state `timetable` can emit. The page's `DH_SLOT` must name each one;
+#: `tests/test_cron_schedule_panel.py` holds both bundles to this set (#1854).
+PANEL_STATES = frozenset(STATE_OF_VERDICT.values()) | {
+    'upcoming', 'running', 'missed', 'unmonitored', 'unknown'}
 
 
 def _has_harness(job):
