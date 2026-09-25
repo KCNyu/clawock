@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-23T17:35:11.581689",
+  "generated_at": "2026-09-25T17:38:04.824069",
   "lookback_hours": 48,
   "tickers": [
     "CRCL",
@@ -14,7 +14,7 @@
       "SPCH"
     ]
   },
-  "digest_markdown": "## Top 移动信号 (跨 ticker)\n- **SPCX/SPCH**: 328M 股 9/24 解禁 — 短期供给冲击明确。**implication**: SPCH 为 2x 杠杆 ETF，解禁日及前 1-2 周可能放大抛压波动；可考虑减仓或对冲。\n- **CRCL**: Binance $100M USDC 推广协议，但 SA 报道指出 Circle 仍向分销商付费 → 单位经济学受压。**implication**: 直接持仓，关注毛利率指引是否会因分销成本被下调。\n- **RKLB/RKLX**: Cathie Wood (ARK) 买入 $25.1M RKLB，同步卖出 $5.8M GOOGL — 明确轮动信号。**implication**: RKLX (2x) 将放大此机构增持效应；是 48h 内最强催化。\n- **CRCL**: Arc 链首发代币化黄金，但 Matrixdock \"当日赎回\" 条款与自家规则冲突 — 运营摩擦信号。\n- **SPCX**: Burry 公开质疑 $1T 估值，但承认 AI 计算合同庞大 — 估值辩论进入主流视野，SPCH (2x) 对负面叙事更敏感。\n\n## Per-ticker 简报\n- **CRCL**: BlackRock 称 Arc + Ethereum 将受益于 stablecoin × AI 趋势 — 长期叙事加固，但短期股价较高点腰斩，SeekingAlpha 仍维持 long thesis。BlackRock 背书 + Binance 合作 vs 分销成本侵蚀 — 多空交织。\n- **RKLB**: LTM 收入 $0.8B vs 市值 $45.3B — 市场已 price-in Neutron + 规模化；与 BKSY 同列太空观测赛道但定位差异。短期催化：ARK 建仓 + 即将到来的 mission。\n- **SPCX**: SpaceX + OpenAI + Anthropic 合计估值超过去 45 年所有 IPO — 叙事溢价为 SPCH (2x) 提供 beta，但也提高回撤脆弱性。Musk 低成本能源构想属远期，与 SPCH 短期价格脱钩。\n\n## 风险 watch\n- ⚠️ **SPCX 9/24 股权解锁** — 已知供给事件，SPCH (2x) 杠杆下波动加剧概率高。\n- ⚠️ **CRCL USDC 分销经济学** — 若 Binance 类协议需持续补贴，margin 指引风险。\n- ⚠️ **CRCL 股价较高点腰斩** — 虽 SA 看多，但下行波动未稳。\n- ⚠️ **SPCX 估值辩论白热化** (Burry vs 多头) — 主流媒体覆盖放大 SPCH 双向波动。",
+  "digest_markdown": "## Top 移动信号\n- **CRCL**: Fed 就 GENIUS Act 下 stablecoin 规则征求意见 (全额储备 + 发行人资本充足率标准) — 直接监管升级, 利差空间长期被压缩, kcn 直接持仓需重估单位经济模型\n- **RKLB**: Iridium 收购获股东批准 + 周 +14% + 96 次 Electron 成功发射 — 三重催化叠加, kcn 持 RKLX (2x), 涨幅被杠杆双向放大\n- **RKLB**: ARK 25M 加仓 + Cantor 看多 + 分析师喊翻倍目标 — 卖方+机构共识强化, RKLX (2x) 杠杆双向放大回撤风险\n- **CRCL**: Clarity Act 停滞反致 XRP/SOL 飙 22%, COIN/HOOD 同涨 — 监管真空 = 高波动, 中性偏正\n- **SPCX**: 直接公告缺失; Alphabet 启动 Project Suncatcher 进入卫星/space 业务 — 间接空间主题竞争信号, kcn 持 SPCH (2x) 暴露巨头入局\n\n## Per-ticker 简报\n- **CRCL**: Fed 拟对 stablecoin 发行人推资本充足率监管 — 银行业级合规, 利差压制风险\n- **CRCL**: Bitget $351M 黑客后 Circle/Tether 冻结关联稳定币 — 运营风控正名, 暴露金额小 (~$318K)\n- **CRCL**: Clarity Act 失败但 crypto 相关股齐涨 — 监管不确定性, 短期高波动\n- **CRCL**: Trump 政府\"强化美元\"计划 — USD 资产需求中长期利好, 中性\n- **CRCL**: IBM 接入 Swift 区块链 ledger (tokenized deposits) — 银行端竞品, 长期 TAM 受压\n- **RKLB**: Iridium 收购获股东批准 + 战略扩张解释 — 垂直整合里程碑, 短期溢价已 priced in\n- **RKLB**: 96 次 Electron 成功发射 + ARK 25M 加仓 — 业务节奏 + 机构信号\n- **SPCX**: 数据缺口 — 系统匹配新闻为 AI/科技 general market (Cognition AI $1B run-rate、Tesla Semi、AMD、Akamai-Anthropic), 非 ticker-specific, 仅作 ETF beta 暴露看待\n\n## 风险 Watch\n- **CRCL**: GENIUS Act 全额储备 + 发行人资本标准 = 银行业级监管, 净利率压制\n- **RKLB**: Iridium 收购溢价偏高, 整合执行 + 估值回吐风险\n- **CRCL**: Bitget 类黑客事件暴露 stablecoin 生态系统性脆弱性\n- **SPCX**: Alphabet (Project Suncatcher) 进 space = 巨头入局, 主题竞争格局恶化",
   "raw_news_counts": {
     "CRCL": 5,
     "RKLB": 5,
@@ -23,113 +23,113 @@
   "raw_news_evidence": {
     "CRCL": [
       {
-        "headline": "Ethereum, Circle’s Arc Set To Gain With Stablecoins Powering AI, Says BlackRock",
-        "datetime": 1790163673,
-        "source": "Yahoo",
+        "headline": "Circle And Tether Freeze About $318K In Stablecoins Linked To $351.6M Bitget Hack; Other Exploiter Wallets Still Hold Over 63,000 ETH",
+        "datetime": 1790333313,
+        "source": "Benzinga",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=9fc84f10f8d2caef9a90c42fd9a6d5233c7d8f4a70d20c0bb9e49f0ef9d39005"
+        "url": "https://finnhub.io/api/news?id=3d7aab35a3b6e26015b7397af991cc3356eadbb382ccccad8dd29f1cb87504c0"
       },
       {
-        "headline": "Circle's Arc Blockchain is Launching Its First Tokenized Gold Asset",
-        "datetime": 1790150400,
-        "source": "Yahoo",
+        "headline": "XRP, Solana Surge 22% After Clarity Act Failure as Regulatory Moves Lifts Coinbase, Robinhood",
+        "datetime": 1790329853,
+        "source": "Benzinga",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=8d303e79799c5836b4c005befe7411924921cfd27bbf3d6abc5c1af894e206eb"
+        "url": "https://finnhub.io/api/news?id=c02969688895d2c32d0cbd4ddd5af377ce083d5be6733ce3d4b158f34799ce69"
       },
       {
-        "headline": "Circle: Everything Is Falling Into Place",
-        "datetime": 1790142580,
-        "source": "SeekingAlpha",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=630efac1a808ef362dc2e16f85a302263667f0e987340ca1928d5cab440f80ae"
-      },
-      {
-        "headline": "CRCL Vs COIN: Which Crypto Stock Is The Better Bet Amid Rising Bitcoin Prices?",
-        "datetime": 1790137866,
+        "headline": "Trump administration has a radical plan to boost U.S. dollar",
+        "datetime": 1790284500,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=4f2aaef0916c97098f836fd620990a49688ec3d1a37065a5f212c99abf8be87f"
+        "url": "https://finnhub.io/api/news?id=a8962f75266db0e795a76d7088ea3c63618cdce71e16facacb06800f17f71b87"
       },
       {
-        "headline": "Binance bets $100 million on Circle. Watch this margin",
-        "datetime": 1790134380,
+        "headline": "IBM Expands Digital Asset Platform With Swift Ledger Integration",
+        "datetime": 1790265300,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=1e87251fb6d1117fecf2b82c6f715b737b242a7734f6db24a7214561e9a4be22"
+        "url": "https://finnhub.io/api/news?id=80a00cf582261f89a4d38b9b76810716cb7ebd7fb4bd7ebe4c5b3fd9251acd75"
+      },
+      {
+        "headline": "Federal Reserve Board Seeks Public Comment On Proposals For Stablecoin Rules Under GENIUS Act, Requiring Full Reserve Backing And Capital Standards For Supervised Issuers",
+        "datetime": 1790260568,
+        "source": "Benzinga",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=c836b5571b9ef33bb4b2ce5abdd02cd96f846f7bcdb73dfe719150039733d96a"
       }
     ],
     "RKLB": [
       {
-        "headline": "What Could Surprise RKLB Stock Investors On The Upside?",
-        "datetime": 1790173632,
+        "headline": "Rocket Lab Crashed Back Toward Earth for 3 Months: This Analyst Says It’s About to Double",
+        "datetime": 1790343459,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=f6bcf5479a313b395f41ac4865067143defe9b914ee966ed3d6a1a37616fd7b8"
+        "url": "https://finnhub.io/api/news?id=8b55b8f9176342e7f692593bacc3cdd30805ee302a2c563dd36e2f949684f2ce"
       },
       {
-        "headline": "RKLB vs. BKSY: Which Space Technology Stock Is the Better Buy?",
-        "datetime": 1790173380,
+        "headline": "What's Going On With Rocket Lab Stock Friday?",
+        "datetime": 1790325657,
+        "source": "Benzinga",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=ed4fb7e9d1beeb1857777ff64c80714ee10af229f73cf5c9f44e8c714d0d6293"
+      },
+      {
+        "headline": "Stocktwits Space Race Weekly: Why RKLB, FLY, RDW And PL Are Outpacing SPCX",
+        "datetime": 1790323117,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=aeb65daab060c9878a6e5a47d716b1ae0c40c089f73f5ae4b078a9f68d81ae53"
+        "url": "https://finnhub.io/api/news?id=80317a1b56351172d7ca147d1dc6e70c26d792d0a0e09f134b402a648de48362"
       },
       {
-        "headline": "Rocket Lab Readies For Mission, Cathie Wood Buys $25 Million In Shares",
-        "datetime": 1790167137,
+        "headline": "Why Rocket Lab Wants To Pay Up Big For Iridium",
+        "datetime": 1790319241,
+        "source": "SeekingAlpha",
+        "origin": "finnhub",
+        "url": "https://finnhub.io/api/news?id=a28a1846ea47f9dabec66573288592d6fd7496372ee6809bb684a55a5052527f"
+      },
+      {
+        "headline": "Cathie Wood buys $25 million in tumbling tech stock",
+        "datetime": 1790291820,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=bd48e81c55264cdbdd229607d449de50ec8e6e0cd8af10ffd6afcc431766482e"
-      },
-      {
-        "headline": "Space Stocks Rally Looks Top-Heavy as Smaller Names Play Catch-Up",
-        "datetime": 1790167007,
-        "source": "ChartMill",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=eebf62c6aaa2e4a8d50899e09344c9d97e0315433a6e559a6f0285ec11dd7203"
-      },
-      {
-        "headline": "Cathie Wood Drops Surprise $25 Million on Rocket Lab",
-        "datetime": 1790166435,
-        "source": "Yahoo",
-        "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=83338f41eb6256c81df876a214006bf70a9de1b248419ff23a5b13c3e57ae722"
+        "url": "https://finnhub.io/api/news?id=15852a2f1e6bb4e16fe009f3a7601535d7b976d927f8d304c0fd37068a5b4681"
       }
     ],
     "SPCX": [
       {
-        "headline": "SpaceX Faces Another Share Unlock as Investors Watch Supply",
-        "datetime": 1790178591,
+        "headline": "Cognition AI hits $1 billion run rate amid demand for coding software - Bloomberg",
+        "datetime": 1790351408,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=d45102c1b97a8b7310eef407eabface57e3899daac5bd7d360128930879c1d86"
+        "url": "https://finnhub.io/api/news?id=7d6289d0a4179aa6d5f6974c2f4e7c9ad1257a3a8024f9908ed3dfe71a10bc68"
       },
       {
-        "headline": "SpaceX, OpenAI, and Anthropic Are Woth More Than Every Single IPO in the Last 45 Years",
-        "datetime": 1790178034,
+        "headline": "Why now might be a good time to invest in Alphabet",
+        "datetime": 1790350500,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=df4f3d9690b3dc5a1745a2bbe1ffc8f972e5131ac6e308a97c9f55c1d795a309"
+        "url": "https://finnhub.io/api/news?id=a83edcb9b6c3d3c4c5e9fba4864ed751f36aa52b5c8496057d2e165d8a8aaa4d"
       },
       {
-        "headline": "Michael Burry Says SpaceX Isn't Worth $1 Trillion. Its AI Business Could Prove Him Wrong.",
-        "datetime": 1790176500,
+        "headline": "Tesla Launches the Semi Truck. The New Roadster Is Up Next.",
+        "datetime": 1790345700,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=13a4b1f47f6e9c5509b7eef912860b6acbd35519f239e13e3aa0240b620e08d8"
+        "url": "https://finnhub.io/api/news?id=cad3ea27bec14c3e7458087235eef01e68014ef4409e39c8cd66f0ef1533eced"
       },
       {
-        "headline": "What If Elon Musk Built a Low-Cost Energy Grid?",
-        "datetime": 1790176245,
+        "headline": "Nvidia, Meta, Akamai, Comcast, Zscaler, Nike, and More Stocks That Explain Today’s Market",
+        "datetime": 1790345100,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=2342fceb448c284cac884bf0c4f74e86271dee69931e23ddfdae040ce3e5b025"
+        "url": "https://finnhub.io/api/news?id=eaa5f7b6f669e7a5f9ea1fcde30cfa67b258e1bda1f7c0b74e942c5f446da0ec"
       },
       {
-        "headline": "How Meta's Muse is driving a magic moment for the stock market",
-        "datetime": 1790174673,
+        "headline": "AMD CEO Lisa Su is having a September to remember",
+        "datetime": 1790344742,
         "source": "Yahoo",
         "origin": "finnhub",
-        "url": "https://finnhub.io/api/news?id=e8b93e51332758ddb727d87cf7efee7298e419968f77bd3f1ff425804e70a482"
+        "url": "https://finnhub.io/api/news?id=cee04198c2f7ea7fecea7cde0acfac189004b0ba34545fa8944663a524d29f38"
       }
     ]
   },
