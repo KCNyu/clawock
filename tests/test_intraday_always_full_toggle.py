@@ -62,4 +62,4 @@ def test_the_live_workspace_toggle_sends_every_slot():
     """kcn 2026-09-25: 「我不要那个静默忽略」— every intraday slot sends."""
     doc = json.loads((ROOT / 'config' / 'intraday-delivery.json').read_text())
     assert doc['always_full'] is True
-    assert doc['set_at'] == '2026-09-25' and '静默' in doc['note']
+    assert doc['set_at'] == '2026-09-25' and doc['set_by'] == 'kcn' and '定稿' in doc['note']

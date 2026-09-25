@@ -984,7 +984,13 @@ def judgment_packet(ctx):
 
 
 def can_silence(ctx, *, allow_soft_review=False):
-    """Only a proved healthy, unchanged slot may omit user delivery."""
+    """Only a proved healthy, unchanged slot may omit user delivery.
+
+    Not the default path: kcn overturned the 2026-09-24 silence contract on
+    2026-09-25 (「全部都正常发」). `always_full` is on and short-circuits this to
+    False; the silence code runs only if that config is explicitly set to
+    false. Data/source degradation refuses silence either way.
+    """
     soft_only = (ctx.get('semantic_delta') or {}).get('components') == ['soft_candidates_seen']
     if (not ctx.get('semantic_unchanged') and not (allow_soft_review and soft_only)):
         return False
