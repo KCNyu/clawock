@@ -43,6 +43,14 @@ from __future__ import annotations
 
 VERDICTS = ("candidate", "wait", "reject")
 
+# How a plan action reads to kcn. Same words as the intraday card's plan
+# trigger section (intraday_preflight.ACTION_CN); kept here so the decision
+# layer does not import the harness.
+ACTION_WORDS = {
+    "trim_on_rebound": "反弹减仓", "cut": "清仓", "add_only_on_trigger": "触发加仓",
+    "add_on_breakout": "突破加仓", "hold_and_watch": "持有观察",
+}
+
 # Marks a radar row reached through a proxy label (an index standing in for the
 # tradable product). Private to this module: it never reaches a row's evidence,
 # which carries `proxy_label` instead.
@@ -189,9 +197,16 @@ def _needs_level(row):
     (#761).
     """
     proxy = _proxy_of(row)
+    pct = row.get('pct_from_high')
+    if isinstance(pct, (int, float)) and pct > 0:
+        # Already above the level (wait_rebreak: overheated breakout). 「站上」
+        # a level the price is over reads as a condition not yet met; the open
+        # question is whether the pullback holds it (RKLB 2026-09-25 02:33).
+        lead = f"{proxy} 回踩守住 " if proxy else "回踩守住 "
+        return f"{lead}{row.get('prior_20d_high')}(现高于前高 {pct}%)"
     lead = f"{proxy} 站上 " if proxy else "站上 "
     return (f"{lead}{row.get('prior_20d_high')}"
-            f"(现距高 {row.get('pct_from_high')}%)")
+            f"(现距高 {pct}%)")
 
 
 def _primary_interrupt(news, ticker):
@@ -223,9 +238,16 @@ def _breach(thesis, ticker):
     return None
 
 
+# A risk_rule decision that asks for no trade. 「持有观察 0 股」 is the plan
+# saying "do nothing", so it cannot be an unfinished discipline action — it
+# used to block every add-side read of 07226 on 2026-09-25 as
+# 「纪律动作未了结:hold_and_watch 0 股」.
+NON_ACTIONS = ("hold_and_watch",)
+
+
 def _open_risk_action(plan_context, ticker):
     for row in (plan_context or {}).get("open", []) or []:
-        if row.get("ticker") != ticker:
+        if row.get("ticker") != ticker or row.get("action") in NON_ACTIONS:
             continue
         if row.get("driven_by") == "risk_rule":
             return row
@@ -257,8 +279,11 @@ def read_rows(*, anomalies=None, radar=None, levels=None, early_trend=None,
         if breach or risk_action:
             verdict = "reject"
             if risk_action:
-                why = (f"纪律动作未了结:{risk_action.get('action')} "
-                       f"{risk_action.get('shares')} 股(driven_by=risk_rule)")
+                # Plain words: this sentence is printed on the card's add-side
+                # line, and an identifier there reads as the pipeline showing.
+                action = risk_action.get('action')
+                why = (f"纪律动作未了结:{ACTION_WORDS.get(action, action)} "
+                       f"{risk_action.get('shares')} 股(风控规则)")
             else:
                 why = f"thesis 红线在触发状态:{breach}"
             needs = "先把纪律动作走完,再谈加仓"

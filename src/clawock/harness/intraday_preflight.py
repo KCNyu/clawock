@@ -551,7 +551,7 @@ def append_active_information_section(block, active, *, event_ids=None):
     partial = (active or {}).get('partially_degraded_issuers') or []
     if not rows and not existing and not degraded and not partial:
         return block
-    lines = ['', '🛰️ 主动一级信息（候选≠下单）']
+    lines = ['', '📑 主动一级信息（候选≠下单）']
     label = {'candidate': '候选', 'wait': '等待', 'reject': '拒绝加仓'}
     for row in rows[:4]:
         reaction = row.get('session_reaction_pct')
@@ -772,6 +772,9 @@ def prepend_coverage_warning(block, coverage):
 #   8 ⚠️ 信号        signals new today in full; ones already delivered this
 #                    session fold into one 「今日已报、仍在」 line
 #   9 candidates     setups / trend / radar / primary info / plan triggers
+#  9b 🛰️ 加仓侧      `add_side_reads` per ticker: verdict copied, why/needs
+#                    clipped, at most MAX_ADD_SIDE_ROWS (#755; the model's
+#                    prose no longer has to carry it to reach kcn)
 #  10 ▎我的看法      model judgment — postflight appends it after the whole
 #                    data block, below the table (kcn 2026-09-25: #1863 had
 #                    put it above the table and kcn read that as the table
@@ -822,7 +825,7 @@ def mark_card_changes(block, *, fresh_tickers, unrefreshed, seen_signals):
             out.append(line)
             continue
         if in_signals:
-            if not stripped or stripped.startswith(('📉', '📰', '🕯️', '🎯', '🛰️')):
+            if not stripped or stripped.startswith(('📉', '📰', '🕯️', '🎯', '🛰️', '📑', '⚡')):
                 in_signals = False
                 if folded:
                     out.append('  · 今日已报、仍在：' + '、'.join(folded))
@@ -848,6 +851,43 @@ def mark_card_changes(block, *, fresh_tickers, unrefreshed, seen_signals):
         # as one more row.
         out[last_table_row:last_table_row] = ['', POINTER + '　'.join(parts)]
     return '\n'.join(out)
+
+
+ADD_SIDE_HEADER = '🛰️ 加仓侧（三态都不是下单授权）'
+ADD_SIDE_WORDS = {'candidate': '候选', 'wait': '等待', 'reject': '拒绝'}
+MAX_ADD_SIDE_ROWS = 4
+ADD_SIDE_WHY_CHARS = 40
+ADD_SIDE_NEEDS_CHARS = 32
+
+
+def _clip(text, limit):
+    text = str(text or '')
+    return text if len(text) <= limit else text[:limit - 1] + '…'
+
+
+def append_add_side_section(block, reads):
+    """Card block 10: the add-side read per ticker, rendered by the harness.
+
+    `add_side_reads` was only in the model's context, and on 2026-08-17 a +6.4%
+    move with three near-breakout rows produced prose about nothing but holdings
+    (#755); the advisory check that followed only reminds. Printed here, the
+    three-state read reaches kcn whatever the prose says, and the model cannot
+    restate a verdict it does not write. Ticker and verdict are copied row by
+    row; only `why`/`needs` are clipped, at a fixed length.
+    """
+    rows = (reads or {}).get('rows') or []
+    if not rows:
+        return block
+    lines = ['', ADD_SIDE_HEADER]
+    for row in rows[:MAX_ADD_SIDE_ROWS]:
+        word = ADD_SIDE_WORDS.get(row.get('verdict'), row.get('verdict'))
+        text = f"  · {row.get('ticker')} {word}：{_clip(row.get('why'), ADD_SIDE_WHY_CHARS)}"
+        if row.get('needs'):
+            text += f" → {_clip(row.get('needs'), ADD_SIDE_NEEDS_CHARS)}"
+        lines.append(text)
+    if len(rows) > MAX_ADD_SIDE_ROWS:
+        lines.append(f'  …另有 {len(rows) - MAX_ADD_SIDE_ROWS} 条')
+    return block + '\n' + '\n'.join(lines)
 
 
 def _split_generic_news(block):
@@ -1264,6 +1304,14 @@ def main(argv=None):
     if policy_escalations:
         should_alert = True
         alert_reasons.append('策略升级条件')
+    # The add-side read over the three lanes below (#755). They were all
+    # computed and none of them reached the prose; the card now prints it
+    # (block 10) and the model reads the same rows.
+    add_side_reads = add_side.read_rows(
+        anomalies=anomalies, radar=opportunity_radar,
+        levels=opportunity_radar.get('levels'),
+        early_trend=early_candidates, mover_news=mover_news_ctx,
+        mover_thesis=mover_thesis, plan_context=plan_ctx)
     semantic_state = intraday_delta.semantic_state(
         args.market, intraday_delta.market_session_date(args.market, now),
         signals_detail=signals_detail,
@@ -1341,6 +1389,8 @@ def main(argv=None):
         raw_block = append_plan_trigger_section(raw_block, plan_triggers)
         raw_block = intraday_policy.strip_suppressed_signal_lines(
             raw_block, holding_policies)
+        # After the policy strip: that pass reads '·' lines as signal reasons.
+        raw_block = append_add_side_section(raw_block, add_side_reads)
         prior_escalations = {(row.get('ticker'), row.get('level'))
                              for row in [*prior_state.get('breaches', []), *old_breaches]
                              if row.get('kind') == 'strategy_escalation'}
@@ -1403,14 +1453,8 @@ def main(argv=None):
         'provisional_setups': live_setups,
         'early_trend_candidates': early_candidates,
         'opportunity_radar': opportunity_radar,
-        # The add-side read over the three lanes above (#755). They were all
-        # computed and none of them reached the prose; this is the join the
-        # template is now required to write.
-        'add_side_reads': add_side.read_rows(
-            anomalies=anomalies, radar=opportunity_radar,
-            levels=opportunity_radar.get('levels'),
-            early_trend=early_candidates, mover_news=mover_news_ctx,
-            mover_thesis=mover_thesis, plan_context=plan_ctx),
+        # Printed on the card as block 10 (`append_add_side_section`).
+        'add_side_reads': add_side_reads,
         # Carried on BOTH paths, receipt included: the JSON is the audit trail
         # for what the slot knew, and a receipt slot that knew a trigger was
         # still live must not read later as a slot that did not check.

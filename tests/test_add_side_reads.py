@@ -110,7 +110,8 @@ def test_an_unfinished_risk_rule_action_rejects_regardless_of_how_good_it_looks(
                                 "driven_by": "risk_rule"}]})
     row = _row(out, "02208")
     assert row["verdict"] == "reject"
-    assert "cut" in row["why"] and "1200" in row["why"]
+    # Plain words: the card prints this sentence (add-side line).
+    assert "清仓" in row["why"] and "1200" in row["why"]
     assert "纪律" in row["needs"]
 
 
@@ -550,3 +551,24 @@ def test_near_breakout_without_a_primary_filing_still_waits():
     row = _row(out, "02208")
     assert row["verdict"] == "wait"
     assert out["candidate_count"] == 0
+
+
+def test_a_hold_and_watch_plan_is_not_an_unfinished_discipline_action():
+    """2026-09-25 HK: 07226's risk_rule plan was 「持有观察 0 股」 and every
+    add-side read said 纪律动作未了结 — a plan to do nothing cannot be pending."""
+    out = add_side.read_rows(
+        anomalies=[{"ticker": "07226", "move_pct": -4.7, "severity": "medium"}],
+        plan_context={"open": [{"ticker": "07226", "action": "hold_and_watch",
+                                "shares": 0, "driven_by": "risk_rule"}]})
+    row = _row(out, "07226")
+    assert row["verdict"] == "wait" and "纪律" not in row["why"]
+
+
+def test_a_name_above_its_level_is_asked_to_hold_it_not_to_reach_it():
+    """2026-09-25 US 02:33: RKLB at 74.19 over a 73.57 high (等回踩) read
+    「站上 73.57」 — a condition already met. Above the level the ask is the pullback."""
+    radar = {"rows": [{"label": "RKLB", "state": "wait_rebreak", "state_zh": "机会·等回踩",
+                       "holdings": ["RKLB"], "close": 74.19, "prior_20d_high": 73.57,
+                       "pct_from_high": 0.84, "zscore20": 2.51}]}
+    row = _row(add_side.read_rows(radar=radar), "RKLB")
+    assert row["needs"].startswith("回踩守住 73.57") and "站上" not in row["needs"]

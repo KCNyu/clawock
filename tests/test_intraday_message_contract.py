@@ -354,3 +354,36 @@ def test_a_context_field_name_in_the_judgment_is_flagged_on_top():
         post.assemble_message(ctx, clean), ctx, clean))
     # Tickers, indicators and codes are not identifiers.
     assert val.check_identifier_leak('07226 跌破 MA20，RSI 28，T+0 追高，SPCX/SPCH 同跌') == []
+
+
+def _reads(n):
+    verdicts = ['reject', 'wait', 'candidate', 'wait', 'wait', 'reject']
+    return {'rows': [{'ticker': f'T{i}', 'verdict': verdicts[i],
+                      'why': '纪律动作未了结:反弹减仓 5 股(风控规则)' + '很长' * 30 * (i == 1),
+                      'needs': '站上 73.57(现距高 0.84%)'} for i in range(n)]}
+
+
+def test_add_side_line_copies_every_verdict_and_sits_before_the_judgment():
+    """Card block 9b: non-empty `add_side_reads.rows` ⇒ the card carries the
+    add-side line, row for row (ticker and three-state copied, never
+    rewritten), with the caveat, a fixed cap and clipped why/needs."""
+    reads = _reads(6)
+    block = pre.append_add_side_section(_card(), reads)
+    msg = post.assemble_message({'raw_wechat_block': block}, '▎我的看法\n先看 07226。')
+    lines = msg.splitlines()
+    head = lines.index(pre.ADD_SIDE_HEADER)
+    assert '三态都不是下单授权' in lines[head]
+    assert lines.index(TABLE[-1]) < next(i for i, x in enumerate(lines) if x.startswith('📉')) < head < lines.index('▎我的看法')
+    shown = lines[head + 1:head + 1 + pre.MAX_ADD_SIDE_ROWS]
+    inverse = {word: verdict for verdict, word in pre.ADD_SIDE_WORDS.items()}
+    for line, row in zip(shown, reads['rows']):
+        ticker, rest = line.strip().removeprefix('· ').split(' ', 1)
+        assert ticker == row['ticker']
+        assert inverse[rest.split('：', 1)[0]] == row['verdict']
+    assert lines[head + 1 + pre.MAX_ADD_SIDE_ROWS] == '  …另有 2 条'
+    assert all(len(line.split('：', 1)[1].split(' → ')[0]) <= pre.ADD_SIDE_WHY_CHARS
+               for line in shown)
+    # Empty rows: no block, byte-identical card.
+    assert pre.append_add_side_section(_card(), {'rows': []}) == _card()
+    # ⚠️ stays the signal header alone.
+    assert [line for line in lines if line.startswith('⚠️')] == ['⚠️ 信号']

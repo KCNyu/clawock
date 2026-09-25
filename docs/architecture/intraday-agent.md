@@ -179,7 +179,7 @@ written down.
 | no field names / enum values in prose | gate (escalating) | `check_identifier_leak` | 2026-09-25 14:33 `semantic_unchanged`; an identifier is never trading language |
 | pipeline words (`harness`, `packet`) | prompt + advisory | `check_pipeline_self_reference` | the sentence is usually a correct read in the wrong words; failing it would cost the analysis |
 | numbers come from the context | advisory | `check_numeric_claims` | cannot tell a real number attached to the wrong thing |
-| add-side line matches `add_side_reads` | gate | harness renders it | the model cannot rewrite a verdict it does not print |
+| add-side line matches `add_side_reads` | gate | harness renders it; `test_add_side_line_copies_every_verdict_and_sits_before_the_judgment`, `test_preflight_prints_the_add_side_read_it_hands_the_model` | the model cannot rewrite a verdict it does not print |
 | `下一触发` numbers and names exist in the context | gate (escalating) | postflight | a structured line looks authoritative |
 | a degraded source is stated | gate | preflight `⛔` lines; Tavily `unavailable` | "no news" and "not fetched" must not look the same |
 | stale information is labelled | gate | harness renders `as_of` on every information item | the model cannot drop a label it does not print |
@@ -194,9 +194,10 @@ as live.
 | Part | Status |
 |---|---|
 | field-name gate, fold regression gate | live (#1870) |
-| this contract | this PR |
+| this contract | live (#1871) |
 | core packet + reference tool | planned |
-| add-side line, `下一触发`, WeChat bold per channel, `🟠` warning banner | planned |
+| add-side line (block 10; primary information moved to `📑`) | this PR |
+| `下一触发`, WeChat bold per channel, `🟠` warning banner | planned |
 | information lane tiers 0–1, ETF/index lookup | planned |
 | Tavily on anomalies | planned |
 | add-side policy (§5) | planned |
