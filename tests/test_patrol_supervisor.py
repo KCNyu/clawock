@@ -4,6 +4,7 @@ kcn's rule: manual dispatched work outranks patrol; a patrol round is the lowest
 priority and may be preempted. `others_need_slot admission` decides whether a new
 round may start, `others_need_slot monitor` whether the running round must yield.
 """
+import contextlib
 import os
 from pathlib import Path
 import signal
@@ -44,25 +45,30 @@ def patrol(tmp_path):
         with units.open("a") as f:
             f.write(f"agent-dispatch-{tid}.service loaded active running agent-dispatch\n")
 
-    def ask(mode="admission", held=0, memory=""):
+    @contextlib.contextmanager
+    def slots(held):
         # Hold slot locks for real: flock(1) inside the script contends with this holder
         # exactly as it would with a running attempt. "ready" means the locks are taken.
+        if not held:
+            yield
+            return
         command = ["sh", "-c", "echo ready; exec sleep 30"]
         for i in range(1, held + 1):
             command = ["flock", "-n", str(tasks / f"slot-{i}.lock")] + command
-        holder = subprocess.Popen(command, stdout=subprocess.PIPE, text=True,
-                                  start_new_session=True) if held else None
+        holder = subprocess.Popen(command, stdout=subprocess.PIPE, text=True, start_new_session=True)
         try:
-            if holder:
-                assert holder.stdout.readline().strip() == "ready"
+            assert holder.stdout.readline().strip() == "ready"
+            yield
+        finally:
+            os.killpg(holder.pid, signal.SIGTERM)  # flock's child holds the lock too
+            holder.wait(timeout=10)
+            holder.stdout.close()
+
+    def ask(mode="admission", held=0, memory=""):
+        with slots(held):
             result = subprocess.run(
                 ["bash", "-c", 'source "$1"; others_need_slot "$2"', "test", str(SCRIPT), mode],
                 env=dict(env, TEST_MEMORY_REASON=memory), capture_output=True, text=True, timeout=10)
-        finally:
-            if holder:
-                os.killpg(holder.pid, signal.SIGTERM)  # flock's child holds the lock too
-                holder.wait(timeout=10)
-                holder.stdout.close()
         assert result.returncode == 0, result.stderr
         return result.stdout.strip()
 
@@ -70,7 +76,7 @@ def patrol(tmp_path):
         task(OWN_ROUND, result, agent="opencode")
         (tmp_path / "current-round").write_text(OWN_ROUND + "\n")
 
-    ask.task, ask.own_round, ask.env = task, own_round, env
+    ask.task, ask.own_round, ask.env, ask.slots = task, own_round, env, slots
     return ask
 
 
@@ -171,7 +177,9 @@ def test_memory_pressure_defers_admission_but_never_preempts(patrol):
 RUN_ROUND = '''
 DISPATCH="$PATROL_STATE_DIR/dispatch.sh"
 round_active() { [ -e "$PATROL_STATE_DIR/active" ]; }
-sleep() { :; }
+clock=0
+now() { echo "$clock"; }
+sleep() { clock=$((clock + $1)); }
 audit_ungated() { :; }
 prepare_worktree() { echo 'must not reset an adopted worktree' >&2; return 99; }
 run_round
@@ -232,3 +240,164 @@ def test_only_a_done_recent_round_advances_the_review_cursor(patrol, tmp_path, r
         env=patrol.env, capture_output=True, text=True, timeout=10)
     assert result.returncode == 0, result.stdout + result.stderr
     assert (tmp_path / "recent-since").read_text() == cursor
+
+
+# ---- graceful preemption: a round that has to give way first lands its findings --------
+
+SESSION = "SESSION=ses_f2ba4c4e3ffe1By3CJODcDSEQj\n"
+
+
+@pytest.fixture
+def adopted(patrol, tmp_path):
+    """An adopted round (R138) under a stub dispatch.sh that records what it was asked.
+
+    `append` keeps the instruction and runs `on-append` (how the round reacts); `cancel`
+    ends the round the way the runner does.
+    """
+    dispatch = tmp_path / "dispatch.sh"
+    dispatch.write_text('''#!/bin/sh
+echo "$1 $2" >>"$PATROL_STATE_DIR/actions"
+case "$1" in
+  append) cat >"$PATROL_STATE_DIR/appended"
+          [ ! -f "$PATROL_STATE_DIR/on-append" ] || . "$PATROL_STATE_DIR/on-append" ;;
+  cancel) printf 'STATE=cancelled\\nRC=143\\n' >"$PATROL_TASKS_DIR/$2/result.env"
+          rm -f "$PATROL_STATE_DIR/active" ;;
+esac
+''')
+    dispatch.chmod(0o755)
+    (tmp_path / "round-no").write_text("138\n")
+    (tmp_path / "recent-since").write_text("older\n")
+    (tmp_path / "active").touch()
+
+    def start(rid=OWN_ROUND, result="STATE=running\nSLOT=2\n" + SESSION):
+        task = tmp_path / "tasks" / rid
+        task.mkdir()
+        (task / "meta.env").write_text("AGENT=opencode\nCREATED='2026-09-23 02:35:15'\n")
+        (task / "result.env").write_text(result)
+        with (tmp_path / "units").open("a") as f:
+            f.write(f"agent-dispatch-{rid}.service loaded active running agent-dispatch\n")
+        (tmp_path / "current-round").write_text(rid + "\n")
+
+    def on_append(script):
+        (tmp_path / "on-append").write_text(script)
+
+    def run(held=0, **env):
+        with patrol.slots(held):
+            result = subprocess.run(["bash", "-c", 'source "$1"; ' + RUN_ROUND, "test", str(SCRIPT)],
+                                    env=dict(patrol.env, **env), capture_output=True, text=True, timeout=20)
+        actions = tmp_path / "actions"
+        return result, actions.read_text() if actions.exists() else ""
+
+    run.start, run.on_append, run.task = start, on_append, patrol.task
+    return run
+
+
+ROUND_ENDS = '''printf 'STATE=%s\\nOUTCOME=%s\\n' "$END_STATE" "$END_OUTCOME" >"$PATROL_TASKS_DIR/$2/result.env"
+rm -f "$PATROL_STATE_DIR/active"
+'''
+
+
+@pytest.mark.parametrize("held", [0, 2])
+def test_a_round_that_must_give_way_is_told_to_land_its_findings_first(adopted, tmp_path, held):
+    # 2026-09-24: six rounds in a row were cancelled outright for queued claude/codex tasks;
+    # ledger.md is rewritten only at the end, so everything a round had found went with it.
+    # A task queued behind another agent's lock waits for that holder, whose slot frees with
+    # the lock, so wrapping up costs it nothing even when both slots are busy.
+    adopted.start()
+    adopted.task("claude-task", "STATE=queued\nWAITING=lock\n")
+    adopted.on_append(ROUND_ENDS)
+    result, actions = adopted(held=held, END_STATE="partial", END_OUTCOME="PARTIAL")
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert actions == f"append {OWN_ROUND}\n"
+    assert "asking " + OWN_ROUND + " to wrap up within 300s: claude-task is waiting for its agent lock" \
+        in result.stdout
+    note = (tmp_path / "appended").read_text()
+    for what in ("issue-format.md", f"{tmp_path}/drafts/R138-", "file_issue.sh", f"{tmp_path}/ledger.md",
+                 "STATUS: PARTIAL"):
+        assert what in note
+    assert "\tyielded:partial/PARTIAL\t" in (tmp_path / "rounds.tsv").read_text()
+    assert not (tmp_path / "current-round").exists()
+    assert not (tmp_path / "yielding").exists()
+
+
+def test_a_round_that_ignores_the_wrap_up_is_cancelled_when_the_grace_runs_out(adopted, tmp_path):
+    adopted.start()
+    adopted.task("claude-task", "STATE=queued\nWAITING=lock\n")
+    result, actions = adopted()
+    assert result.returncode == 1, result.stdout + result.stderr
+    assert actions == f"append {OWN_ROUND}\ncancel {OWN_ROUND}\n"
+    assert "preempting " + OWN_ROUND + " after a 300s wrap-up grace: claude-task is waiting for its agent lock" \
+        in result.stdout
+    assert "\tpreempted:cancelled\t" in (tmp_path / "rounds.tsv").read_text()
+    assert not (tmp_path / "yielding").exists()
+
+
+def test_the_grace_is_overridable(adopted):
+    adopted.start()
+    adopted.task("claude-task", "STATE=queued\nWAITING=lock\n")
+    result, actions = adopted(PATROL_PREEMPT_GRACE="60")
+    assert actions == f"append {OWN_ROUND}\ncancel {OWN_ROUND}\n"
+    assert "after a 60s wrap-up grace" in result.stdout
+
+
+@pytest.mark.parametrize("case", ["no session yet", "grace disabled", "slot waiter, slots full",
+                                  "queued behind the round's opencode lock"])
+def test_the_round_is_cancelled_at_once_when_a_grace_would_cost_someone(adopted, case):
+    # Without a session no step has run (nothing to land) and an append cannot interrupt the
+    # attempt; with every slot busy, or an opencode task behind this round's own lock, the
+    # grace is exactly what the queued task would wait for.
+    adopted.start(result="STATE=running\nSLOT=2\n" + ("SESSION=''\n" if case == "no session yet" else SESSION))
+    held, env, expected = 0, {}, "claude-task is waiting for its agent lock"
+    if case == "slot waiter, slots full":
+        held, expected = 2, "claude-task is waiting for a run slot and all 2 are busy"
+        adopted.task("codex-task", "STATE=running\nSLOT=1\n", agent="codex")
+        adopted.task("claude-task", "STATE=running\nWAITING=slot\n")
+    elif case == "queued behind the round's opencode lock":
+        expected = "opencode-task is queued behind the round's opencode lock"
+        adopted.task("opencode-task", "STATE=queued\nWAITING=lock\n", agent="opencode")
+    else:
+        adopted.task("claude-task", "STATE=queued\nWAITING=lock\n")
+        if case == "grace disabled":
+            env["PATROL_PREEMPT_GRACE"] = "0"
+    result, actions = adopted(held=held, **env)
+    assert result.returncode == 1, result.stdout + result.stderr
+    assert actions == f"cancel {OWN_ROUND}\n"
+    assert f"preempting {OWN_ROUND}: {expected}" in result.stdout
+
+
+def test_the_grace_ends_as_soon_as_the_round_blocks_someone(adopted, tmp_path):
+    # Both slots busy, a claude task queued on its lock: grace. Then another task starts
+    # waiting for a slot — from that poll on the round's slot is in its way.
+    adopted.start()
+    adopted.task("codex-task", "STATE=running\nSLOT=1\n", agent="codex")
+    adopted.task("claude-task", "STATE=queued\nWAITING=lock\n")
+    adopted.on_append(f'''mkdir "$PATROL_TASKS_DIR/codex-late"
+printf 'AGENT=codex\\n' >"$PATROL_TASKS_DIR/codex-late/meta.env"
+printf 'STATE=running\\nWAITING=slot\\n' >"$PATROL_TASKS_DIR/codex-late/result.env"
+echo "agent-dispatch-codex-late.service loaded active running x" >>"{tmp_path}/units"
+''')
+    result, actions = adopted(held=2)
+    assert actions == f"append {OWN_ROUND}\ncancel {OWN_ROUND}\n"
+    assert f"preempting {OWN_ROUND} after a 30s wrap-up grace: codex-late is waiting for a run slot" \
+        in result.stdout
+
+
+def test_an_adopted_round_already_wrapping_up_is_not_told_twice(adopted, tmp_path):
+    # The supervisor restarted mid-grace (e.g. an install): the grace keeps its start time.
+    adopted.start()
+    adopted.task("claude-task", "STATE=queued\nWAITING=lock\n")
+    (tmp_path / "yielding").write_text(f"{OWN_ROUND} -180\n")
+    result, actions = adopted()
+    assert actions == f"cancel {OWN_ROUND}\n"
+    assert "after a 300s wrap-up grace" in result.stdout
+
+
+def test_a_recent_round_cut_short_does_not_advance_the_review_cursor(adopted, tmp_path):
+    rid = "patrol-recent-20260923-023515"
+    adopted.start(rid=rid)
+    adopted.task("claude-task", "STATE=queued\nWAITING=lock\n")
+    adopted.on_append(ROUND_ENDS)
+    result, actions = adopted(END_STATE="ok", END_OUTCOME="DONE")
+    assert result.returncode == 0, result.stdout + result.stderr
+    assert actions == f"append {rid}\n"
+    assert (tmp_path / "recent-since").read_text() == "older\n"
