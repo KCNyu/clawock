@@ -212,6 +212,6 @@ as live.
 | `下一触发` line (block 11) | live (#1873) |
 | WeChat bold per channel, `🟠` warning banner | live (#1874) |
 | information lane tiers 0–1 (`information` core, `information_full` reference, stale-quote gate) | live (#1885) |
-| ETF/index lookup: index aliases + sector match market flashes (`test_an_index_fund_gets_what_the_market_said_about_its_index`) | this PR |
-| Tavily on anomalies | planned |
+| ETF/index lookup: index aliases + sector match market flashes (`test_an_index_fund_gets_what_the_market_said_about_its_index`) | live (#1886) |
+| Tavily on anomalies (`anomaly_search`, once per ticker per session; `test_one_query_per_mover_per_session`, `test_a_search_that_did_not_answer_is_on_the_card`) | this PR |
 | add-side policy (§5) | planned |

@@ -46,7 +46,7 @@ from clawock.utilities import PACKAGED_UTILITIES
 from clawock.market_data import known_catalysts, mover_evidence as mover_news, peer_scan
 from clawock.decision import active_information
 from clawock.decision import add_side, early_trend, intraday_policy
-from clawock.evidence import intraday_information
+from clawock.evidence import anomaly_search, intraday_information
 from clawock.instruments import is_leveraged_holding
 
 WS = workspace_root()
@@ -1296,6 +1296,20 @@ def main(argv=None):
         [a['ticker'] for a in anomalies], market=args.market,
     )
 
+    # Tier 3 (contract §6): one web search per mover per session, only when
+    # something moved; the cache serves every later slot of the same session.
+    anomaly_search_ctx = {}
+    if anomalies:
+        movers = [a['ticker'] for a in anomalies]
+        try:
+            anomaly_search_ctx = anomaly_search.search_anomalies(
+                WS, args.market, intraday_delta.market_session_date(args.market, now),
+                anomalies, names=mover_news.holding_names(movers),
+                targets={t: mover_news.probe_targets(t, args.market) for t in movers})
+        except Exception as exc:  # noqa: BLE001 — enrichment never reds a slot
+            anomaly_search_ctx = {t: {'status': 'unavailable', 'items': [],
+                                      'reason': type(exc).__name__} for t in movers}
+
     # The 08:00 plan's open orders for this leg. A 30-minute slot's most useful
     # sentence is usually "the swap you planned has not filled yet" — before this
     # existed, the 10:05 slot had to shell out six times to find that out and
@@ -1447,7 +1461,8 @@ def main(argv=None):
         'plan_context': plan_ctx,
         'mover_news': mover_news_ctx,
         't0_setups': t0_setups,
-        'information_degraded': information['degraded'],
+        'information_degraded': [*information['degraded'],
+                                 *anomaly_search.degraded_lines(anomaly_search_ctx)],
     }
     unchanged = can_silence(silence_context)
     soft_review = can_silence(silence_context, allow_soft_review=True) and not unchanged
@@ -1514,6 +1529,9 @@ def main(argv=None):
                  if t0_setups.get('error') else None),
                 (DEGRADED + '资讯源未取到：' + '、'.join(information['degraded'])
                  + '（不是无消息）' if information['degraded'] else None),
+                (DEGRADED + '异动检索：' + '、'.join(anomaly_search.degraded_lines(
+                    anomaly_search_ctx)) + '（不是无消息）'
+                 if anomaly_search.degraded_lines(anomaly_search_ctx) else None),
             ])
         should_alert, alert_reasons = apply_plan_trigger_alert(
             should_alert, alert_reasons, plan_triggers)
@@ -1580,6 +1598,9 @@ def main(argv=None):
         'watch_levels':     plan_surface.watch_levels(),
         'mover_thesis':     mover_thesis,
         'mover_news':       mover_news_ctx,
+        # Web search for this slot's movers (cached per session): each hit is
+        # {title, url, one_liner, grade}; unavailable/empty is on the card.
+        'anomaly_search':   anomaly_search_ctx,
         'active_information_candidates': active_information_ctx,
         'known_catalysts':  known_catalyst_ctx,
         'heartbeat':        {'job': heartbeat['job'], 'slot': heartbeat['slot']},
