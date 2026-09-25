@@ -250,9 +250,9 @@ class IntradayReference(BaseTool):
         name = entry
         import json  # noqa: PLC0415
 
-        from clawock.harness import intraday_preflight  # noqa: PLC0415
+        from clawock.context.intraday_layers import REFERENCE_ENTRIES  # noqa: PLC0415
 
-        if name not in intraday_preflight.REFERENCE_ENTRIES:
+        if name not in REFERENCE_ENTRIES:
             raise ToolError(f"{name!r} is not a reference entry; the core packet has "
                             "every other field")
         tmp = Path(workspace) / "memory" / ".tmp"

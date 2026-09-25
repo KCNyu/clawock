@@ -1023,18 +1023,7 @@ def collect_peers(market):
 # and signal provenance with no way back; every entry here is listed in the
 # packet's index and fetched by name (`intraday_reference` tool), and a test
 # holds core ∪ references to the whole context.
-REFERENCE_TOOL = 'intraday_reference'
-REFERENCE_ENTRIES = {
-    'signals_detail': '本档信号逐条（与 analyzer_block 的信号段同源；理由行以 analyzer_block 为准）',
-    'source_signals_detail': '持仓策略过滤前的原始信号',
-    'peer_scan': '持仓板块全景：每只持仓的同业今日/5日涨跌、背离信号',
-    't0_setups': 'T+0 牌面质量评级（区间位置/追高检测，非买卖信号）',
-    'early_trend_candidates': '早期趋势候选与各自 blockers',
-    'opportunity_radar': '机会雷达 rows 与每只票的 20 日高 levels',
-    'provisional_setups': '未收盘入场形态（若收在此位则成立）',
-    'prior_semantic_state': '上次送达时的语义状态（对比基准）',
-    'headline_feed': '分析器标题流（截断、无新旧闸，只作背景）',
-}
+from clawock.context.intraday_layers import REFERENCE_ENTRIES, REFERENCE_TOOL  # noqa: E402
 
 
 def _reference_tickers(value):
