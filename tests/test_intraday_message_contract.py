@@ -191,6 +191,24 @@ def test_unavailable_strategy_source_cannot_be_called_clear():
     assert post.categorize(issues) == 'fail'
 
 
+def test_policy_gates_see_a_code_glued_to_chinese():
+    """#1852: `\b` never fires between a code and CJK, so ordinary prose
+    without spaces walked past both strategy gates."""
+    ctx = {'market': 'hk', 'should_alert': False, 'raw_wechat_block': '🇭🇰 港股盯盘',
+           'holding_policies': {'00100': {'forbid_reduce_advice': True},
+                                'SPCH': {'forbid_reduce_advice': True}}}
+    for glued in ('建议00100立即减仓', '建议SPCH立即减仓', 'SPCH现在cut掉'):
+        prose = f'▎我的看法\n{glued}，风险已经扩大。' + '其他票照常检查。' * 5
+        issues = post.validate(post.assemble_message(ctx, prose), ctx, prose)
+        assert any('策略冲突' in issue for issue in issues), glued
+    ctx = {'market': 'hk', 'should_alert': False, 'raw_wechat_block': '🇭🇰 港股盯盘',
+           'strategy_checks': [{'ticker': '00100', 'window': 'session',
+                                'status': 'unavailable'}]}
+    prose = '▎我的看法\n00100单日涨跌未触发升级线，先观察。' + '其余票按原计划等待。' * 5
+    issues = post.validate(post.assemble_message(ctx, prose), ctx, prose)
+    assert any('策略证据不足' in issue for issue in issues)
+
+
 def test_detailed_judgment_kept_for_filing_plan_and_add_side():
     # A primary filing, an outstanding risk_rule plan, and three add-side
     # dispositions routinely need more than the old 320/600 character limits.

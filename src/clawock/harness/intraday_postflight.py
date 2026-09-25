@@ -336,9 +336,11 @@ def validate(text, ctx, model_text):
         if not policy.get('forbid_reduce_advice'):
             continue
         for sentence in re.split(r'[。；\n]', checked):
-            if not re.search(rf'\b{re.escape(ticker)}\b', sentence, re.IGNORECASE):
+            # `\b` never fires between a code and CJK ("建议00100立即减仓"),
+            # which is ordinary Chinese prose; `mentions_ticker` handles it (#1852).
+            if not mentions_ticker(sentence, ticker):
                 continue
-            if not re.search(r'砍仓|砍掉|清仓|减仓|止损|\bcut\b|\btrim\b',
+            if not re.search(r'砍仓|砍掉|清仓|减仓|止损|(?<![A-Za-z])(?:cut|trim)(?![A-Za-z])',
                              sentence, re.IGNORECASE):
                 continue
             # A factual mention of the old open order is necessary to explain
@@ -346,7 +348,7 @@ def validate(text, ctx, model_text):
             # A sentence may mention the old plan and then issue a new order;
             # evaluate each clause so "旧计划" cannot exempt the next clause.
             for clause in re.split(r'[，,]', sentence):
-                if not re.search(r'砍仓|砍掉|清仓|减仓|止损|\bcut\b|\btrim\b',
+                if not re.search(r'砍仓|砍掉|清仓|减仓|止损|(?<![A-Za-z])(?:cut|trim)(?![A-Za-z])',
                                  clause, re.IGNORECASE):
                     continue
                 directive = re.search(
@@ -354,7 +356,7 @@ def validate(text, ctx, model_text):
                     clause)
                 if directive and not re.search(
                         r'不(?:再|要|应|建议|重复)[^。；，,\n]{0,35}'
-                        r'(?:砍仓|砍掉|清仓|减仓|止损|\bcut\b|\btrim\b)',
+                        r'(?:砍仓|砍掉|清仓|减仓|止损|(?<![A-Za-z])(?:cut|trim)(?![A-Za-z]))',
                         clause, re.IGNORECASE):
                     issues.append(f'{ticker} 策略冲突：盘中判断建议了砍仓/减仓/止损')
                     break
@@ -366,8 +368,7 @@ def validate(text, ctx, model_text):
             if not re.search(r'未触发|未达到|没到|未破', sentence):
                 continue
             if ('P0' in sentence or any(
-                    row.get('ticker') and re.search(
-                        rf'\b{re.escape(row["ticker"])}\b', sentence)
+                    row.get('ticker') and mentions_ticker(sentence, row['ticker'])
                     and (('单日' in sentence or '今日' in sentence)
                          if row.get('window') == 'session'
                          else ('五日' in sentence or '五交易日' in sentence
