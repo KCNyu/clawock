@@ -84,13 +84,15 @@ named call away — not truncation.
 ### Reference layer (addressable, same generation)
 
 `clawock tool intraday_reference --arg market=<hk|us> --arg context_id=<id>
---arg name=<entry> [--arg ticker=<T>] [--arg since=<HH:MM>]` returns one entry
+--arg entry=<name> [--arg ticker=<T>] [--arg since=<HH:MM>]` returns one entry
 of the context written by the same preflight, optionally sliced to one ticker
 or a time window; without a slice it returns the whole entry (one explicit
-choice). Entries: `signals_detail` (full), `source_signals_detail`,
-`peer_scan`, `t0_setups`, `early_trend_candidates`, `opportunity_radar`,
-`provisional_setups`, `prior_semantic_state`, `headline_feed`, `mover_news`,
-`known_catalysts`, `active_information_candidates`, `information_full` (§6).
+choice; the parameter is `entry`). Entries: `signals_detail`,
+`source_signals_detail`, `peer_scan`, `t0_setups`, `early_trend_candidates`,
+`opportunity_radar`, `provisional_setups`, `prior_semantic_state`,
+`headline_feed`. `mover_news`, `known_catalysts` and
+`active_information_candidates` stay in the core: they attribute this slot's
+movers.
 
 ### Invariants (gates)
 
@@ -99,6 +101,13 @@ choice). Entries: `signals_detail` (full), `source_signals_detail`,
 - An entry moved out of the core packet must be listed in the index; the core
   packet referencing a name the tool cannot resolve is red.
 - `analyzer_block` is always in the core packet.
+
+Gates: `test_every_reference_the_core_packet_names_resolves_to_the_same_content`
+(every index entry resolves through the tool to the on-disk content, pinned to
+the context_id; slices are subsets; `analyzer_block` is never a reference),
+`test_judgment_packet_preserves_every_decision_field` (core ∪ references is the
+whole context, disjoint), `test_mode7_named_context_fields_reach_model` (every
+field the prompt names is in the core or the index).
 
 ## 4. Card blocks (what kcn reads)
 
@@ -197,10 +206,10 @@ as live.
 |---|---|
 | field-name gate, fold regression gate | live (#1870) |
 | this contract | live (#1871) |
-| core packet + reference tool | planned |
+| core packet + reference tool | this PR |
 | add-side line (block 10; primary information moved to `📑`) | live (#1872) |
 | `下一触发` line (block 11) | live (#1873) |
-| WeChat bold per channel, `🟠` warning banner | this PR |
+| WeChat bold per channel, `🟠` warning banner | live (#1874) |
 | information lane tiers 0–1, ETF/index lookup | planned |
 | Tavily on anomalies | planned |
 | add-side policy (§5) | planned |

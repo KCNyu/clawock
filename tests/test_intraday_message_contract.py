@@ -33,7 +33,10 @@ def test_mode7_named_context_fields_reach_model():
                   'review_candidate',
                   'no_recent_filing', 'index_fund_no_issuer', 'suppressed_noise'}
     assert named - non_fields <= produced
-    assert named - non_fields <= set(pre.judgment_packet({key: None for key in produced}))
+    # Reachable: in the core packet, or listed in its index (reference layer).
+    packet = pre.judgment_packet({key: None for key in produced})
+    listed = {ref['name'] for ref in packet['index']['references']}
+    assert named - non_fields <= set(packet) | listed
 
 
 def test_delta_header_names_new_trigger_before_table():
@@ -144,9 +147,16 @@ def test_judgment_packet_preserves_every_decision_field():
         'watch_levels': {'index': 'HSI'}, 'source_signals_detail': [],
         'active_information_candidates': {'error': 'source unavailable'},
     }
-    assert pre.judgment_packet(ctx) == ctx
-    assert len(pre.judgment_packet(ctx)['plan_context']['open']) == 2
-    assert len(pre.judgment_packet(ctx)['peer_scan']) == 2
+    # Layered, never trimmed (contract §3): every field is either in the core
+    # packet or listed in its index — together they are the whole context.
+    packet = pre.judgment_packet(ctx)
+    listed = {ref['name'] for ref in packet['index']['references']}
+    core = {key for key in packet if key != 'index'}
+    assert core | listed == set(ctx) and not core & listed
+    assert {key: packet[key] for key in core} == {key: ctx[key] for key in core}
+    # #1839 lost zero-share plans: they are core, whole.
+    assert len(packet['plan_context']['open']) == 2
+    assert 'peer_scan' in listed and 'peer_scan' not in packet
 
 
 def test_soft_sweep_surfaces_a_name_below_the_hard_anomaly_gate():
@@ -353,7 +363,7 @@ def test_a_context_field_name_in_the_judgment_is_flagged_on_top():
     assert not any('字段名' in i for i in post.validate(
         post.assemble_message(ctx, clean), ctx, clean))
     # Tickers, indicators and codes are not identifiers.
-    assert val.check_identifier_leak('07226 跌破 MA20，RSI 28，T+0 追高，SPCX/SPCH 同跌') == []
+    assert val.check_identifier_leak('07226 跌破 MA20，RSI 28，T+0 追高，SPCX/SPCH 同跌，z=2.22') == []
 
 
 def _reads(n):
@@ -423,3 +433,51 @@ def test_next_trigger_is_its_own_checked_block_above_the_judgment():
     ctx = {**TRIGGER_CTX, 'semantic_unchanged': False}
     short = '▎我的看法\n07226 跟随恒科。\n下一触发：恒科 跌破 4,300；07226 站上 3.0（减仓线）'
     assert any('太敷衍' in i for i in post.validate(post.assemble_message(ctx, short), ctx, short))
+
+
+def test_every_reference_the_core_packet_names_resolves_to_the_same_content(tmp_path):
+    """Contract §3 invariants: an entry moved out of the core packet is listed
+    in its index and fetched by name, pinned to the same context_id, with the
+    content on disk (the authority); a ticker slice is a subset; the analyzer's
+    output is never a reference."""
+    from clawock.tools import build_registry
+    from clawock.tools.context_tools import slice_reference
+
+    ctx = {
+        'status': 'ok', 'market': 'hk', 'context_id': 'c0ffee000001',
+        'analyzer_block': '🇭🇰 港股盯盘', 'plan_context': {'open': []},
+        'signals_detail': [{'ticker': '07226', 'level': 'STOP'}, {'ticker': '00100', 'level': 'WATCH'}],
+        'source_signals_detail': [], 'headline_feed': ['10:05 恒科走弱', '11:20 07226 放量'],
+        'peer_scan': {'00100': {'theme': 'AI'}, '07226': {'theme': '2x HSTECH'}},
+        't0_setups': {'rows': {'00100': {'grade_label': '中性'}}},
+        'early_trend_candidates': {'rows': []}, 'provisional_setups': {'rows': []},
+        'opportunity_radar': {'rows': [{'label': 'HSTECH', 'holdings': ['07226']}], 'levels': {}},
+        'prior_semantic_state': {'session': 'hk:2026-09-25', 'breaches_seen': []},
+    }
+    tmp = tmp_path / 'memory' / '.tmp'
+    tmp.mkdir(parents=True)
+    (tmp / 'intraday-context-hk-latest.json').write_text(json.dumps(ctx, ensure_ascii=False))
+    registry = build_registry(tmp_path)
+    packet = pre.judgment_packet(ctx)
+    assert 'analyzer_block' in packet and 'analyzer_block' not in pre.REFERENCE_ENTRIES
+    refs = packet['index']['references']
+    assert {ref['name'] for ref in refs} == set(pre.REFERENCE_ENTRIES)
+    for ref in refs:
+        assert f"--arg entry={ref['name']}" in ref['fetch'] and 'c0ffee000001' in ref['fetch']
+        got = registry.call(pre.REFERENCE_TOOL, market='hk', context_id='c0ffee000001',
+                            entry=ref['name'])
+        assert json.loads(got) == ctx[ref['name']], ref['name']
+    one = json.loads(registry.call(pre.REFERENCE_TOOL, market='hk', context_id='c0ffee000001',
+                                   entry='signals_detail', ticker='07226'))
+    assert one == [{'ticker': '07226', 'level': 'STOP'}]
+    assert slice_reference(ctx['peer_scan'], ticker='07226') == {'07226': {'theme': '2x HSTECH'}}
+    assert slice_reference(ctx['opportunity_radar'], ticker='07226')['rows'] == ctx['opportunity_radar']['rows']
+    assert slice_reference(ctx['headline_feed'], since='11:00') == ['11:20 07226 放量']
+    # Another generation's id, or a name that is not a reference, is refused.
+    import pytest
+    from clawock.tools.base import ToolError
+    with pytest.raises(ToolError):
+        registry.call(pre.REFERENCE_TOOL, market='hk', context_id='stale0000000', entry='peer_scan')
+    with pytest.raises(ToolError):
+        registry.call(pre.REFERENCE_TOOL, market='hk', context_id='c0ffee000001',
+                      entry='analyzer_block')

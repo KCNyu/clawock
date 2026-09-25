@@ -174,10 +174,112 @@ class ReportContext(BaseTool):
         return path.read_text(encoding="utf-8")
 
 
+def slice_reference(value, *, ticker=None, since=None):
+    """One ticker's rows, or the rows at/after HH:MM, of a reference entry.
+
+    Shapes in the intraday context: a list of rows (`signals_detail`), a dict
+    with `rows` (radar, setups), a dict keyed by ticker (`peer_scan`,
+    `t0_setups.rows`), or a list of text lines (`headline_feed`). Anything
+    else is returned whole.
+    """
+    import re  # noqa: PLC0415
+
+    def hit(row):
+        if ticker is not None:
+            if isinstance(row, dict):
+                ok = (ticker in (str(row.get('ticker')), str(row.get('label')),
+                                 str(row.get('issuer')))
+                      or ticker in (row.get('holdings') or []))
+            else:
+                ok = ticker in str(row)
+            if not ok:
+                return False
+        if since is not None:
+            stamp = row if not isinstance(row, dict) else ' '.join(
+                str(row.get(key) or '') for key in ('time', 'published_at', 'date', 'as_of'))
+            times = re.findall(r'(\d{2}:\d{2})', str(stamp))
+            if times and times[0] < since:
+                return False
+        return True
+
+    if isinstance(value, list):
+        return [row for row in value if hit(row)]
+    if isinstance(value, dict):
+        if ticker is not None and ticker in value:
+            return {ticker: value[ticker]}
+        out = {}
+        for key, item in value.items():
+            if isinstance(item, list):
+                out[key] = [row for row in item if hit(row)]
+            elif isinstance(item, dict) and ticker is not None and ticker in item:
+                out[key] = {ticker: item[ticker]}
+            elif ticker is None:
+                out[key] = item
+        return out
+    return value
+
+
+class IntradayReference(BaseTool):
+    name = "intraday_reference"
+    description = (
+        "One reference-layer entry of an intraday slot's context (the core packet's "
+        "index lists them), pinned to that slot's context_id; optionally one "
+        "ticker's rows or the rows since HH:MM."
+    )
+    parameters = {
+        "type": "object",
+        "properties": {
+            "market": {"type": "string", "enum": ["hk", "us"]},
+            "context_id": {"type": "string",
+                           "description": "context_id from the core packet."},
+            "entry": {"type": "string",
+                      "description": "Entry name from index.references."},
+            "ticker": {"type": "string", "description": "Only this ticker's rows."},
+            "since": {"type": "string", "description": "Only rows at/after HH:MM."},
+        },
+        "required": ["market", "context_id", "entry"],
+    }
+
+    @classmethod
+    def check_available(cls, workspace) -> bool:
+        return (Path(workspace) / "memory" / ".tmp").exists()
+
+    def execute(self, workspace, *, market: str, context_id: str, entry: str,
+                ticker: str | None = None, since: str | None = None) -> str:
+        # `entry`, not `name`: ToolRegistry.call takes the tool name positionally.
+        name = entry
+        import json  # noqa: PLC0415
+
+        from clawock.context.intraday_layers import REFERENCE_ENTRIES  # noqa: PLC0415
+
+        if name not in REFERENCE_ENTRIES:
+            raise ToolError(f"{name!r} is not a reference entry; the core packet has "
+                            "every other field")
+        tmp = Path(workspace) / "memory" / ".tmp"
+        candidates = [tmp / f"intraday-context-{market}-latest.json",
+                      *sorted(tmp.glob(f"intraday-context-{market}-*.json"), reverse=True)[:40]]
+        for path in candidates:
+            try:
+                ctx = json.loads(path.read_text(encoding="utf-8"))
+            except (OSError, ValueError):
+                continue
+            if ctx.get("context_id") == context_id:
+                break
+        else:
+            raise ToolError(f"no {market} intraday context with context_id {context_id}")
+        if name not in ctx:
+            raise ToolError(f"{name!r} is not in context {context_id}")
+        value = ctx[name]
+        if ticker is not None or since is not None:
+            value = slice_reference(value, ticker=ticker, since=since)
+        return json.dumps(value, ensure_ascii=False, indent=2)
+
+
 TOOLS = (
     DecisionPacketSummary,
     DecisionPacketQuery,
     DecisionPacketJudgmentTemplate,
     ContextBundle,
     ReportContext,
+    IntradayReference,
 )

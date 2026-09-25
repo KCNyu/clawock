@@ -146,7 +146,9 @@ def check_pipeline_self_reference(text, label='散文'):
 # an identifier is unambiguous, and a card that shows one must say so on top.
 _IDENTIFIER = re.compile(
     r'(?<![A-Za-z0-9_./-])([A-Za-z][A-Za-z0-9]*(?:_[A-Za-z0-9]+)+)(?![A-Za-z0-9_])')
-_KEY_VALUE = re.compile(r'(?<![A-Za-z0-9_])([a-z][a-z0-9_]*)\s*=\s*[A-Za-z0-9_]')
+# Two letters at least: 「z=2.22」 is the zscore shorthand the card itself
+# prints as 「z 2.22」 (2026-09-25 US 22:03), not a field name.
+_KEY_VALUE = re.compile(r'(?<![A-Za-z0-9_])([a-z][a-z0-9_]+)\s*=\s*[A-Za-z0-9_]')
 
 
 def check_identifier_leak(text, label='判断段'):
