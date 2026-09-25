@@ -496,3 +496,29 @@ def test_mover_attribution_has_room_under_the_ceiling():
     body = "填" * worst_case_measured
     assert [i for i in report_postflight.validate(body, {"market": "us"}, body)
             if "报告长度" in i] == []
+
+
+def test_an_index_fund_gets_what_the_market_said_about_its_index(monkeypatch):
+    """2026-09-25: 07226 (2x HSTECH) came back `index_fund_no_issuer` and
+    nothing else — the probe asked by issuer, and an index fund has none. Its
+    index and theme are what flashes name; those attach as supporting context,
+    at no extra request, and the status still says no issuer files for it."""
+    seen = {}
+
+    def flashes(names, now, window):
+        seen["names"] = names
+        return ([{"title": "恒生科技指数午后跌幅扩大至2%", "tier": mn.SUPPORTING,
+                  "source_class": "market_flash", "matched": ["恒生科技"]},
+                 {"title": "美元指数走强", "tier": mn.SUPPORTING,
+                  "source_class": "market_flash", "matched": []}], None)
+
+    monkeypatch.setattr(mn, "_market_flashes", flashes)
+    calls = []
+    result = mn.probe(["07226"], market="hk", now=NOW,
+                      http=fake_http({"appstock/news": tencent_payload([])}, calls))
+    entry = result["tickers"]["07226"]
+    assert entry["status"] == "index_fund_no_issuer" and calls == []
+    assert "恒生科技" in entry["theme_terms"] and "恒科" in entry["theme_terms"]
+    assert "恒生科技" in seen["names"]
+    assert [item["title"] for item in entry["items"]] == ["恒生科技指数午后跌幅扩大至2%"]
+    assert entry["items"][0]["signal"] == mn.CONTEXT
