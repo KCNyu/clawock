@@ -1,13 +1,13 @@
 {
-  "generated_at": "2026-09-24T00:03:39.613483+00:00",
-  "as_of": "2026-09-23",
+  "generated_at": "2026-09-25T00:03:37.163559+00:00",
+  "as_of": "2026-09-24",
   "index": "HSTECH",
   "source": "tencent",
-  "bars": 1408,
-  "close": 4379.07,
+  "bars": 1409,
+  "close": 4361.13,
   "ma_window": 200,
-  "ma": 5002.84,
-  "dist_ma_pct": -12.5,
+  "ma": 4996.42,
+  "dist_ma_pct": -12.7,
   "vol_window": 20,
   "vol_annualized": 0.1789,
   "vol_cap": 0.5,
@@ -16,14 +16,14 @@
   "tier": "amber",
   "lev_cap_mult": 0.5,
   "label": "趋势OFF：杠杆敞口上限砍半",
-  "rationale": "HSTECH 4379 低于 200日线 5003 (-12.5%)；20日波动 18% < 50% 上限。→ HK 杠杆ETF上限 ×0.5（amber）",
+  "rationale": "HSTECH 4361 低于 200日线 4996 (-12.7%)；20日波动 18% < 50% 上限。→ HK 杠杆ETF上限 ×0.5（amber）",
   "hk": {
     "tier": "amber",
     "lev_cap_mult": 0.5,
     "label": "趋势OFF：杠杆敞口上限砍半",
-    "close": 4379.07,
-    "ma": 5002.84,
-    "dist_ma_pct": -12.5,
+    "close": 4361.13,
+    "ma": 4996.42,
+    "dist_ma_pct": -12.7,
     "vol_annualized": 0.1789,
     "trend_on": false,
     "vol_ok": true
@@ -33,11 +33,11 @@
       {
         "etf": "RKLX",
         "underlying": "RKLB",
-        "close": 70.31,
-        "ma": 80.86,
+        "close": 73.61,
+        "ma": 80.98,
         "ma_window": 200,
-        "dist_ma_pct": -13.0,
-        "vol_annualized": 0.5314,
+        "dist_ma_pct": -9.1,
+        "vol_annualized": 0.5507,
         "vol_n_returns": 20,
         "vol_hot_cap": 0.7,
         "trend_on": false,
@@ -48,15 +48,15 @@
       {
         "etf": "SPCH",
         "underlying": "SPCX",
-        "close": 148.36,
-        "ma": 152.49,
+        "close": 148.03,
+        "ma": 151.13,
         "ma_window": 5,
-        "dist_ma_pct": -2.7,
+        "dist_ma_pct": -2.1,
         "vol_annualized": null,
         "trend_on": false,
         "state": "cut",
         "regime_basis": "short_ma_5",
-        "note": "SPCX 新上市仅 71 bars，不足 200DMA → 用 5日均线做右侧确认（非完整 regime）。短均线之下=左侧逆市，2x 应降杠杆/换 1x，等右侧再上"
+        "note": "SPCX 新上市仅 72 bars，不足 200DMA → 用 5日均线做右侧确认（非完整 regime）。短均线之下=左侧逆市，2x 应降杠杆/换 1x，等右侧再上"
       }
     ],
     "tier": "red",
@@ -67,12 +67,6 @@
   },
   "regime_history": {
     "hk": {
-      "2026-02-12": {
-        "trend_on": false,
-        "dist_ma_pct": -3.9,
-        "mom_pct": -7.4,
-        "regime3": "bear"
-      },
       "2026-02-13": {
         "trend_on": false,
         "dist_ma_pct": -4.8,
@@ -966,15 +960,15 @@
         "dist_ma_pct": -12.5,
         "mom_pct": -0.9,
         "regime3": "chop"
+      },
+      "2026-09-24": {
+        "trend_on": false,
+        "dist_ma_pct": -12.7,
+        "mom_pct": 0.7,
+        "regime3": "chop"
       }
     },
     "us": {
-      "2026-02-19": {
-        "trend_on": null,
-        "dist_ma_pct": null,
-        "mom_pct": -0.4,
-        "regime3": "chop"
-      },
       "2026-02-20": {
         "trend_on": null,
         "dist_ma_pct": null,
@@ -1868,16 +1862,22 @@
         "dist_ma_pct": 11.6,
         "mom_pct": 3.5,
         "regime3": "bull"
+      },
+      "2026-09-24": {
+        "trend_on": true,
+        "dist_ma_pct": 11.4,
+        "mom_pct": 4.6,
+        "regime3": "bull"
       }
     },
     "meta": {
       "hk_index": "HSTECH",
       "us_index": "QQQ",
-      "us_bars": 204,
+      "us_bars": 205,
       "ma_window": 200,
       "mom_window": 10,
       "mom_band_pct": 3.0,
-      "note": "regime3=近10日动量分 牛(>+3%)/熊(<-3%)/震荡；trend_on=200日线；US 用 QQQ，共 204 根（≥200，已可判趋势）"
+      "note": "regime3=近10日动量分 牛(>+3%)/熊(<-3%)/震荡；trend_on=200日线；US 用 QQQ，共 205 根（≥200，已可判趋势）"
     }
   }
 }

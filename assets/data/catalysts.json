@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-09-24T08:03:46.123264+08:00",
+  "generated_at": "2026-09-25T08:03:44.267319+08:00",
   "lookback_window_days": 14,
-  "window_start": "2026-09-24",
-  "window_end": "2026-10-08",
+  "window_start": "2026-09-25",
+  "window_end": "2026-10-09",
   "earnings_queried": [
     "CRCL",
     "RKLB",
@@ -11,11 +11,6 @@
   "earnings": [],
   "fomc": [],
   "macro_events": [
-    {
-      "date": "2026-09-24",
-      "type": "GDP",
-      "detail": "Q2 2026 GDP 3rd estimate"
-    },
     {
       "date": "2026-09-25",
       "type": "PCE",
@@ -31,9 +26,9 @@
   "summary": {
     "earnings_count": 0,
     "fomc_in_window": 0,
-    "macro_count": 3,
+    "macro_count": 2,
     "scheduled_count": 0,
     "scheduled_undated": 0,
-    "highest_impact_within_7d": "GDP 2026-09-24"
+    "highest_impact_within_7d": "NFP 2026-10-02"
   }
 }
