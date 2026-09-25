@@ -97,12 +97,13 @@ constraint. Reducing noise means fewer user wake-ups, not fewer decision inputs.
 A full card follows a fixed layout contract (the block list lives above
 `compose_card` in `intraday_preflight.py`; `test_card_layout_contract` and
 `test_preflight_main_never_rewrites_the_analyzer_table` enforce it): title, a
-P0 line only when one newly fired, the 变化 line, `⛔ 数据降级` lines, the
-model's `▎我的看法`, then the analyzer's market strip, book line and holdings
-table **byte for byte**, one `↑` pointer line naming the rows to look at (new
-move/trigger, unverified quote; only the kinds present), the signal block with
-signals already delivered this session folded into one `今日已报、仍在` line,
-the candidate sections, and advisory checker findings last. `⛔` is only data
+P0 line only when one newly fired, the 变化 line, `⛔ 数据降级` lines, then
+the analyzer's market strip, book line and holdings table **byte for byte**,
+one `↑` pointer line naming the rows to look at (new move/trigger, unverified
+quote; only the kinds present), the signal block with signals already
+delivered this session folded into one `今日已报、仍在` line, the candidate
+sections, the model's `▎我的看法` after the whole data block, and advisory
+checker findings last. `⛔` is only data
 health and `⚠️` only the analyzer's signal header. All of this is copy only:
 the model still reads the full `signals_detail`, `source_signals_detail`,
 `full_holdings` and `quote_coverage`.
