@@ -5,6 +5,8 @@ import textwrap
 from copy import deepcopy
 from datetime import datetime, timedelta, timezone
 
+import pytest
+
 from clawock.automation import news_digest as gh_action_news_digest
 from clawock.evidence import news_evidence_graph as graph
 from clawock.publish import artifacts as validate_sidecars
@@ -660,3 +662,22 @@ def test_stock_connect_membership_gets_a_type_and_a_direction():
     graph.gate_events(POLICY, [event])
     assert event['confirmation']['price_aligned'] is True
     assert event['actionable_escalation'] is False
+
+
+@pytest.mark.parametrize('title, expected', [
+    # substrings of longer words are not the keyword
+    ('SpaceX completes Starship test mission', 'unknown'),
+    ('Shares beaten down after the call', 'unknown'),
+    ('Analysts praise the new chip', 'unknown'),
+    # inflected keywords still count
+    ('Company misses revenue estimates', 'negative'),
+    ('Broker upgrades the stock to buy', 'positive'),
+    ('Unit awarded Army contract', 'positive'),
+    ('Automaker recalled 40,000 cars', 'negative'),
+    ('Chipmaker missing estimates again', 'negative'),
+    ('Retailer beating expectations', 'positive'),
+    # CJK keeps substring matching
+    ('大股东减持公告', 'negative'),
+])
+def test_impact_keywords_match_whole_words(title, expected):
+    assert graph.classify_impact(title) == expected

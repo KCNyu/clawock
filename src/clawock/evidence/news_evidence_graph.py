@@ -212,10 +212,27 @@ def classify_event(title, explicit=None):
     return 'other'
 
 
+def _word_pattern(words):
+    """Latin words match whole words only — 'miss' is not in 'mission', 'beat'
+    is not in 'beaten', 'raise' is not in 'praise' — which turned a successful
+    launch mission into a negative hard event. Plural and past-tense endings
+    ('misses', 'upgrades', 'awarded') still count, as they did when this was a
+    substring test, and so do '-ing' forms ('missing', 'beating', 'defaulting').
+    CJK has no word boundaries, so those terms keep matching as substrings."""
+    return re.compile('|'.join(
+        rf'(?<![a-z]){re.escape(word)}(?:s|es|d|ed|ing)?(?![a-z])' if word.isascii()
+        else re.escape(word)
+        for word in sorted(words, key=len, reverse=True)))
+
+
+_POSITIVE_RE = _word_pattern(POSITIVE_WORDS)
+_NEGATIVE_RE = _word_pattern(NEGATIVE_WORDS)
+
+
 def classify_impact(title):
     text = str(title or '').lower()
-    positive = any(word in text for word in POSITIVE_WORDS)
-    negative = any(word in text for word in NEGATIVE_WORDS)
+    positive = bool(_POSITIVE_RE.search(text))
+    negative = bool(_NEGATIVE_RE.search(text))
     if positive and not negative:
         return 'positive'
     if negative and not positive:
