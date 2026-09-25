@@ -334,6 +334,7 @@ function createTaskQueueService(config = {}, deps = systemDeps) {
 	};
 	let last = null;
 	let fetchedAt = 0;
+	let lastError = null;
 	let inFlight = null;
 	const answer = (status, message) => ({
 		available: false,
@@ -360,14 +361,16 @@ function createTaskQueueService(config = {}, deps = systemDeps) {
 		try {
 			last = await readTaskQueue(resolved, deps);
 			fetchedAt = Date.now();
+			lastError = null;
 			return answer("fresh", null);
 		} catch (cause) {
 			const message = cause instanceof Error ? cause.message : String(cause);
+			if (last !== null) lastError = message;
 			return answer(last !== null ? "stale" : "failed", message);
 		}
 	};
 	return { async get(force) {
-		if (!force && last !== null && Date.now() - fetchedAt < TTL_MS) return answer("cached", null);
+		if (!force && last !== null && Date.now() - fetchedAt < TTL_MS) return lastError !== null ? answer("stale", lastError) : answer("cached", null);
 		if (inFlight !== null) return inFlight;
 		inFlight = exec();
 		try {
