@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-24T23:58:39.728912+00:00",
+  "generated_at": "2026-09-25T17:35:18.587446+00:00",
   "lookback_hours": 48,
   "sources": {
     "trump": "trumpstruth.org/feed (primary)",
@@ -24,244 +24,73 @@
   "llm_filtered": true,
   "llm_filter_status": "ok",
   "counts": {
-    "total": 22,
+    "total": 18,
     "held_hits": 0,
-    "new_ideas": 9,
-    "sector_hits": 4
+    "new_ideas": 6,
+    "sector_hits": 6
   },
   "items": [
     {
       "author": "Burry",
-      "text": "Michael Burry Shorts Micron, Palantir; Famed Investor Expects Chip 'Down Cycle'",
-      "url": "https://news.google.com/rss/articles/CBMipwFBVV95cUxOLTItSFAyWkFxcGRJemxMdVNxQlNSRms2YmRHTHd0dEJ6eHZpQV9QLW90UFZOSEs3UVB0VkQ0YWhnQ1FPTkhIc1NlbDhSMXloUmxvUWJPZmZrXzdOTGRVdFVHMTY4STItamdJV3c2NENHaUVuRkUyTkoyZG8zOU1JbWhTY3hEMG1VWGNXQm5RMVV3c1VUVW54NEJNNkh2UHBDLU5lMjBXQQ?oc=5",
-      "published": "2026-09-23T15:18:00+00:00",
-      "origin": "gnews-rss",
-      "source": "Investor's Business Daily",
-      "tickers": [
-        "MU",
-        "PLTR"
-      ],
-      "held": [],
-      "new_ideas": [
-        "MU",
-        "PLTR"
-      ],
-      "sectors": [
-        "半导体",
-        "AI"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 82,
-      "summary_cn": "据报道，Burry做空Micron(MU)与Palantir(PLTR)，预期芯片进入'下行周期'，强看空信号。"
-    },
-    {
-      "author": "Burry",
-      "text": "JD, BABA Stocks In Focus: Michael Burry Sees Hong Kong Market Benefiting From Korea's AI-Memory Unwind",
-      "url": "https://news.google.com/rss/articles/CBMi9wFBVV95cUxNZE9hRFd4dS1uV1VYOURLckpNVW1Ic1ZPMWt5eDVBbUV4bnQxeXRLYUFuMGQtai1Bd24zd3FpNmR5LWtzMkdQYjd0Y014ZUxKaGpaUUFpMzR0RExVVEJwQzBuSmg1Q29zNVZ4cHBvVTlMT1hvR1pnRDZFcEt0UnpNMy1POUE0V3FfQjVFZjdldVdnM0s4SWQxcW9YbDY0U0g2UlFFY0tuWVpMRF9HVGRTVmViV0g1QVFudnp6RGR6YkpTaC01aVpUUS1mS0xWQXVOa2Nra0wzNHV2UkJnZEJpNnd6NHJzTFJndlh6WVM3M2ozYmZ0TGtB?oc=5",
-      "published": "2026-09-24T21:16:47+00:00",
+      "text": "Michael Burry Ramped His SFM Stock Position To 3% — Here's Why He Sees 'Long Runway' Despite Near-Term Pain",
+      "url": "https://news.google.com/rss/articles/CBMi9AFBVV95cUxNYWZqaGhfYUJpd0dxVEVyZHdPMlR2dmthZ253TUJPX0Jpc3dBZjR1QVFXTU05aVVqbUpZYmQydnVlZTVqZi1aNjBkeHVEbWFiRklDSVREMWMtellMR2xOUmdvbmhWU0QxYU9VYXg0eDVqSThQOW0zd1FWZFZGbzluaEpsb0xENzZQLW9qVnhnSHllUW5MamstU1ZnMy10bFdvc2RJYS1lc29PZHFmbGxpMVNydHN6aGwyY0h0d3BoUVV0c1h3NFhZaXQ1UUpFVW1GVHRBMjd2VzZvX3M0by1oRDZRM3lnUUZDSnRod25xUF9sU0cx?oc=5",
+      "published": "2026-09-25T12:54:49+00:00",
       "origin": "gnews-rss",
       "source": "Stocktwits",
       "tickers": [
-        "JD",
-        "BABA"
+        "SFM"
       ],
       "held": [],
       "new_ideas": [
-        "BABA",
-        "JD"
-      ],
-      "sectors": [
-        "中概股",
-        "AI",
-        "港股",
-        "半导体"
-      ],
-      "sector_holdings": [
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "endorse",
-      "relevance": 80,
-      "summary_cn": "据报道，Burry认为韩国AI内存'退潮'后港股将受益，点名JD、BABA，直接利好kcn持仓恒生科技ETF(03032/07226/03033)。"
-    },
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-23 调仓：Scribe Therapeutics Inc(SCTX) 买入 ARKG 143,257 股（最大单只 ETF 占比 0.17%）",
-      "url": "https://www.ark-funds.com/funds/arkg/",
-      "published": "2026-09-23T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.1717,
-      "tickers": [
-        "SCTX"
-      ],
-      "held": [],
-      "new_ideas": [
-        "SCTX"
-      ],
-      "sectors": [
-        "基因疗法",
-        "医疗"
-      ],
-      "sector_holdings": [],
-      "stance": "buy",
-      "relevance": 68,
-      "summary_cn": "ARK 9/23买入Scribe Therapeutics(SCTX)，ARKG占比0.17%，规模超阈值。"
-    },
-    {
-      "author": "Pelosi",
-      "text": "Trump July disclosure: 1,156 trades, Microsoft and Amazon among largest sales",
-      "url": "https://news.google.com/rss/articles/CBMisgFBVV95cUxQeG9lSFV2VjRKYXlMSDE0VUdxMXNmeXRySWVnSEVKRGhGMHhORmYzSW1OUTF6QVlPRVhtd1RtV3F3UGR1WHNEbDRSdG9pU3BpaTEyVUV5eHJvSnNxVmVwNDNvYXIwTVJWb0c1a1RqYjhINVVjVVlsX2NFVVAyZ1BESFVUX0s2VjNBSWI0VXVLTEhkRVByOG9oR1kyemZ1UzJsQkxrZzVmR3AxNndrLVRJcDRR?oc=5",
-      "published": "2026-09-23T04:53:22+00:00",
-      "origin": "gnews-rss",
-      "source": "Seeking Alpha",
-      "tickers": [
-        "MSFT",
-        "AMZN"
-      ],
-      "held": [],
-      "new_ideas": [
-        "AMZN",
-        "MSFT"
-      ],
-      "sectors": [
-        "大科技"
-      ],
-      "sector_holdings": [],
-      "stance": "sell",
-      "relevance": 62,
-      "summary_cn": "据报道，特朗普7月披露1,156笔交易，MSFT与AMZN为最大卖出之一——属政治人物披露，非机构信号但反映其个人配置。"
-    },
-    {
-      "author": "Burry",
-      "text": "Why Michael Burry Is Bullish on Build-A-Bear Workshop Stock",
-      "url": "https://news.google.com/rss/articles/CBMipgFBVV95cUxOaVFjVGNNZm9WTnMyc2ZObFdUWUZ2UHFJS0dHTTR0M3Q0TjhwNHJHdW9tcnQ2b3FSX0lidlhOQ25KSXE2ejN6b0ptUXNHaTRHZjBaSzRJLTZpMDJ3ZWhpLXJ4QWFXR3lKWXl3aTd4QlBGczlWSUVCeVZLVUxSbWQwMXUyRF9kNmJ5aE5ZSjRRM1dxY1pFMzdHUVluY0c5M2ppNVRIV2t3?oc=5",
-      "published": "2026-09-24T17:46:05+00:00",
-      "origin": "gnews-rss",
-      "source": "Barchart.com",
-      "tickers": [
-        "BBW"
-      ],
-      "held": [],
-      "new_ideas": [
-        "BBW"
+        "SFM"
       ],
       "sectors": [
         "消费零售"
       ],
       "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "据报道，Burry看多Build-A-Bear Workshop(BBW)，与kcn持仓无关但提供小盘选股线索。"
-    },
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-23 调仓：Beam Therapeutics Inc.(BEAM) 买入 ARKG 65,553 股（最大单只 ETF 占比 0.07%）",
-      "url": "https://www.ark-funds.com/funds/arkg/",
-      "published": "2026-09-23T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.0732,
-      "tickers": [
-        "BEAM"
-      ],
-      "held": [],
-      "new_ideas": [
-        "BEAM"
-      ],
-      "sectors": [
-        "基因疗法",
-        "医疗"
-      ],
-      "sector_holdings": [],
       "stance": "buy",
-      "relevance": 50,
-      "summary_cn": "ARK 9/23买入Beam Therapeutics(BEAM)，ARKG占比0.07%，属常规再平衡。"
-    },
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-23 调仓：Tempus AI, Inc.(TEM) 卖出 ARKK 90,621 股（最大单只 ETF 占比 0.07%）",
-      "url": "https://www.ark-funds.com/funds/arkk/",
-      "published": "2026-09-23T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.071,
-      "tickers": [
-        "TEM"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TEM"
-      ],
-      "sectors": [
-        "AI",
-        "医疗"
-      ],
-      "sector_holdings": [],
-      "stance": "sell",
-      "relevance": 50,
-      "summary_cn": "ARK 9/23卖出Tempus AI(TEM) ARKK 9万股，占比0.07%，常规再平衡。"
-    },
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-23 调仓：Veracyte, Inc.(VCYT) 买入 ARKG 20,908 股（最大单只 ETF 占比 0.04%）",
-      "url": "https://www.ark-funds.com/funds/arkg/",
-      "published": "2026-09-23T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.0403,
-      "tickers": [
-        "VCYT"
-      ],
-      "held": [],
-      "new_ideas": [
-        "VCYT"
-      ],
-      "sectors": [
-        "基因诊断",
-        "医疗"
-      ],
-      "sector_holdings": [],
-      "stance": "buy",
-      "relevance": 48,
-      "summary_cn": "ARK 9/23买入Veracyte(VCYT)，ARKG占比0.04%，常规再平衡。"
-    },
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-23 调仓：Twist Bioscience Corporation(TWST) 卖出 ARKG 2,175 股（最大单只 ETF 占比 0.02%）",
-      "url": "https://www.ark-funds.com/funds/arkg/",
-      "published": "2026-09-23T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.0161,
-      "tickers": [
-        "TWST"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TWST"
-      ],
-      "sectors": [
-        "合成生物学",
-        "医疗"
-      ],
-      "sector_holdings": [],
-      "stance": "sell",
-      "relevance": 47,
-      "summary_cn": "ARK 9/23卖出Twist Bioscience(TWST) 2,175股，占比0.02%，常规再平衡。"
+      "relevance": 68,
+      "summary_cn": "据报道,Burry将Sprouts Farmers Market(SFM)持仓加至3%,称短期阵痛下仍具长期跑道,机构增持信号。"
     },
     {
       "author": "Musk",
-      "text": "Elon Musk Says SpaceX’s AI Model May Surpass Anthropic And OpenAI’s In 6 Months",
+      "text": "Elon Musk Aims to Double Colossus 2’s Nvidia Chips by Year-End",
       "url": "",
-      "published": "Thu, 24 Sep 2026 18:30:17 GMT",
+      "published": "Fri, 25 Sep 2026 06:04:00 GMT",
       "origin": "gnews-rss",
-      "source": "forbes.com",
-      "tickers": [],
+      "source": "Bloomberg.com",
+      "tickers": [
+        "NVDA"
+      ],
       "held": [],
-      "new_ideas": [],
+      "new_ideas": [
+        "NVDA"
+      ],
+      "sectors": [
+        "AI"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 65,
+      "summary_cn": "据报道,Musk计划年底前将xAI Colossus 2的Nvidia芯片数量翻倍,继续大手笔采购H100/B200等,直接利好NVDA链。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk Makes Massive Nvidia Move at SpaceX",
+      "url": "",
+      "published": "Fri, 25 Sep 2026 13:01:12 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [
+        "NVDA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "NVDA"
+      ],
       "sectors": [
         "AI",
         "航天"
@@ -270,31 +99,9 @@
         "SPCH",
         "SPCX"
       ],
-      "stance": "endorse",
-      "relevance": 65,
-      "summary_cn": "据报道，Musk称SpaceX的AI模型可能在6个月内超越Anthropic和OpenAI——利好SpaceX叙事，间接利好kcn持有的SPCX/SPCH。"
-    },
-    {
-      "author": "Musk",
-      "text": "Elon Musk Has Left the Door Open to a Tesla-SpaceX Merger. Here's What Shareholders of Both Stocks Should Do.",
-      "url": "",
-      "published": "Thu, 24 Sep 2026 19:45:00 GMT",
-      "origin": "gnews-rss",
-      "source": "The Motley Fool",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "电动车"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
       "stance": "neutral",
       "relevance": 62,
-      "summary_cn": "据报道，Elon Musk对Tesla-SpaceX合并'留了口子'，与kcn持仓SPCX/SPCH(均为SpaceX相关)间接相关但未合并确认。"
+      "summary_cn": "据报道,Musk旗下SpaceX大举部署/调整Nvidia芯片,间接利好其AI算力叙事,SpaceX相关持仓情绪受益。"
     },
     {
       "author": "段永平",
@@ -302,7 +109,101 @@
       "url": "https://news.google.com/rss/articles/CBMiXEFVX3lxTE5ZVVFseUtPOFFhNERlTHpTelZOOE1RNnBvX3IySGJkV29FazBoei1GR3Z1Y0pxSi1aUGw0TTAtcXVINGZOQ1FqM2Q3eURjekZUMWZaUFhBVHBWQW00?oc=5",
       "published": "2026-09-24T14:01:00+00:00",
       "origin": "gnews-rss",
-      "source": "深潮TechFlow",
+      "source": "techflowpost.com",
+      "tickers": [
+        "ETH"
+      ],
+      "held": [],
+      "new_ideas": [
+        "ETH"
+      ],
+      "sectors": [
+        "加密货币"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "endorse",
+      "relevance": 62,
+      "summary_cn": "据报道,段永平在Substack撰文讨论以太坊价值与杰文斯悖论,公开为ETH背书,宏观利好Circle(CRCL)等稳定币/加密板块。"
+    },
+    {
+      "author": "Musk",
+      "text": "What Musk’s Tesla and SpaceX Stocks Are Doing After That White House State Dinner",
+      "url": "",
+      "published": "Fri, 25 Sep 2026 17:05:41 GMT",
+      "origin": "gnews-rss",
+      "source": "Barron's",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "据报道,白宫国宴后媒体追踪Musk旗下Tesla与SpaceX股价走势,提供情绪参考。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-24 调仓：Scribe Therapeutics Inc(SCTX) 买入 ARKG 39,149 股（最大单只 ETF 占比 0.04%）",
+      "url": "https://www.ark-funds.com/funds/arkg/",
+      "published": "2026-09-24T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.0437,
+      "tickers": [
+        "SCTX"
+      ],
+      "held": [],
+      "new_ideas": [
+        "SCTX"
+      ],
+      "sectors": [
+        "生物医药"
+      ],
+      "sector_holdings": [],
+      "stance": "buy",
+      "relevance": 50,
+      "summary_cn": "ARK于2026-09-24买入Scribe Therapeutics(SCTX)39,149股,最大单ETF占比仅0.04%,属常规微调,信号偏弱。"
+    },
+    {
+      "author": "Musk",
+      "text": "Elon Musk Says SpaceX’s AI Model May Surpass Anthropic And OpenAI’s In 6 Months",
+      "url": "",
+      "published": "Thu, 24 Sep 2026 18:30:17 GMT",
+      "origin": "gnews-rss",
+      "source": "Forbes",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 60,
+      "summary_cn": "据报道,Musk称SpaceX自有AI模型有望在6个月内超越Anthropic和OpenAI,为其AI战略背书。"
+    },
+    {
+      "author": "Pelosi",
+      "text": "Is US Defence Secretary Pete Hegseth A Bitcoiner? This Is What His Accounts Say",
+      "url": "https://news.google.com/rss/articles/CBMisAFBVV95cUxQUjFxVlhSNUJjMGlWZG1tOGVVN0JJb2J0RjY0QWoxcURLNmlmdkJuaExOSHBGV2tCNlg0NEhoX29DRllIUHlqSTlZdS16NV9lWU04bHZZb21tRzV1QmFjS1ptcC1lZEswU0w0YzNYUlc4ZFVBVHpwbEpENEd6b1QyMTI3S2JSME8wN3pOSUZRcTN5cEwtd25jaGxNSFhLSnNrTXNqM0lOWDRWODBMOTFwdQ?oc=5",
+      "published": "2026-09-25T15:35:30+00:00",
+      "origin": "gnews-rss",
+      "source": "Bitcoin Magazine",
       "tickers": [],
       "held": [],
       "new_ideas": [],
@@ -313,8 +214,8 @@
         "CRCL"
       ],
       "stance": "endorse",
-      "relevance": 62,
-      "summary_cn": "段永平发文讨论'以太坊的价值与杰文斯悖论'，间接看多加密生态，板块层面利好kcn持仓CRCL。"
+      "relevance": 55,
+      "summary_cn": "据报道,美国国防部长Hegseth被曝疑似比特币持有人,政界加密派影响力扩张,情绪利好CRCL等加密相关持仓。"
     },
     {
       "author": "Musk",
@@ -334,85 +235,144 @@
         "SPCX"
       ],
       "stance": "neutral",
+      "relevance": 52,
+      "summary_cn": "据报道,Trump财务披露显示其个人在7月曾买卖SpaceX相关份额,SpaceX未上市,仅作情绪信号。"
+    },
+    {
+      "author": "Trump",
+      "text": "RT: https://truthsocial.com/users/realDonaldTrump/statuses/117326044871082645This is a survey of people in business — the S&P Flash Survey — of purchasing, manufacturing and hiring. Guess what? The report shows impressive Growth.   Composite Index — Services + Manufacturing, 62 month high!   Manufacturing — 53 month high!   Services — 52 month high!   This is the “HOTTEST” Economy in the World — and the Media is working overtime for the Democrats to convince Voters that the opposite is true.     For working people, a “HOT” Economy is good because it gives them more wage leverage, and more flex",
+      "url": "https://www.trumpstruth.org/statuses/41871",
+      "published": "2026-09-24T12:36:46+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "宏观"
+      ],
+      "sector_holdings": [
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "endorse",
       "relevance": 50,
-      "summary_cn": "据报道，特朗普7月财务披露显示曾买入并卖出SpaceX份额(非上市，故不列入tickers)。"
-    },
-    {
-      "author": "Burry",
-      "text": "Michael Burry adds to shorts as Nasdaq-100 hits all-time high. Why he's betting against chips",
-      "url": "https://news.google.com/rss/articles/CBMixwFBVV95cUxPeXl2bUxLS1pabXpPSF82cUpqYXhXMmFVWnVCV3RZWklTQ0UzQzlhX2FmNjdPU3dNNzR0eWVfX3VvbGdsNG9hNUtwaUdRYW1nNEdtc0k4Z0NwdkRNMS1NVUs1WXRQLVg3ZDVScDVYY2RfTFlEcGJwSTJfWlFQMWNZRHFPbGxIQWg3aXhtR0F0WVlkMTdiR0t1UTJfUkh4dWd6QklTZnB2NlFTSWdpYjVmdkVWT2Nxd0JTVDhya21RWFpLYUdCZnNn?oc=5",
-      "published": "2026-09-23T14:38:46+00:00",
-      "origin": "gnews-rss",
-      "source": "CNBC",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "半导体",
-        "AI"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 75,
-      "summary_cn": "据报道，Burry在纳指100创新高时加注芯片股空头，明示看空芯片板块。"
-    },
-    {
-      "author": "Burry",
-      "text": "Michael Burry says $3 trillion in off-balance-sheet AI commitments could blow a hole in Big Tech's revenue",
-      "url": "https://news.google.com/rss/articles/CBMimAFBVV95cUxPaDVmOU84OU1vd2dwNlEwN3Y5ZU5rdlNwLWxDYzVWd0VRcWQxS1Z1Vm1nQmFEdWx1Y3AxQnZRTW4zZW9PRVVFbG9ydEZkVE0xN2ItVTA2SUk0dGMwY0ZHRHl6MmM4ck53R254bkY4MERlU21obDlxdXhaQ1lHMzdQelpDakREUGo3VEkxNHVpakNGdHNNRWY4OA?oc=5",
-      "published": "2026-09-24T13:00:00+00:00",
-      "origin": "gnews-rss",
-      "source": "Yahoo Finance",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "AI",
-        "大科技"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 72,
-      "summary_cn": "据报道，Burry警告AI相关表外承诺高达3万亿美元，可能在Big Tech营收上'炸出一个洞'——AI泡沫论强化。"
+      "summary_cn": "Trump转推S&P Flash Survey,称美国综合PMI创62个月新高、制造业53个月新高、服务业52个月新高,自称'全球最热经济',为中期选举造势,宏观顺风利好风险资产。"
     },
     {
       "author": "Musk",
-      "text": "Tesla CEO Elon Musk Confronts China Tariffs at Xi-Trump Dinner",
+      "text": "Trump-Xi state dinner guest list included Mary Barra, Elon Musk",
       "url": "",
-      "published": "Wed, 23 Sep 2026 14:11:00 GMT",
+      "published": "Fri, 25 Sep 2026 14:10:00 GMT",
       "origin": "gnews-rss",
-      "source": "Barron's",
+      "source": "detroitnews.com",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "电动车",
-        "关税",
-        "中美关系"
+        "航天",
+        "电动车"
       ],
-      "sector_holdings": [],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
       "stance": "neutral",
-      "relevance": 68,
-      "summary_cn": "据报道，Musk在习特晚宴上直面中国关税议题，关税/中美摩擦前景影响特斯拉及中国敞口资产。"
+      "relevance": 48,
+      "summary_cn": "据报道,Trump-Xi国宴嘉宾名单含Mary Barra(GM)和Elon Musk,中美政商关系信号,板块情绪中性。"
     },
     {
-      "author": "Musk",
-      "text": "Tesla’s Elon Musk hails Xi Jinping’s leadership, Chinese AI strength",
-      "url": "",
-      "published": "Wed, 23 Sep 2026 10:04:41 GMT",
+      "author": "Pelosi",
+      "text": "China’s Xi shares a rare laugh on White House tour at Trump’s Biden mockery",
+      "url": "https://news.google.com/rss/articles/CBMixwFBVV95cUxOQ09xamZzalgwZDdPbDZheElVRDNLbTNKdzdHSWxmUmg2WU52amxOVWt3WjlocWw0b3o3ZUlHdFhpaUN2OFFSWXhsV3ExVmJ6WldCLS1VclVNM01UOGtmcTNpQVctNmd4dXZpbXl1QW1Pc1hTN1pVY09uRWJLQ2ZVZy1jOFFJci11OHFzeU9fVDA5bjVBRjh3d0Z5bUZOcDdRaWJDdVp0aHE4ZlA1WG5sSDl3bW10Q1o0aVFvR2RBTnhIOUVFYnNV0gHHAUFVX3lxTE5DT3FqZnNqWDBkN09sNmF4SVVEM0ttM0p3N0dJbGZSaDZZTnZqbE5Va3daOWhxbDRvejdlSUd0WGlpQ3Y4UVJZeGxXcTFWYnpaV0ItLVVyVU0zTVQ4a2ZxM2lBVy02Z3h1dmlteXVBbU9zWFM3WlVjT25FYktDZlVnLWM4UUlyLXU4cXN5T19UMDluNUFGOHd3RnltRk5wN1FpYkN1WnRocThmUDVYbmxIOXdtbXRDWjRpUW9HZEFOeEg5RUVic1U?oc=5",
+      "published": "2026-09-25T03:13:32+00:00",
       "origin": "gnews-rss",
       "source": "South China Morning Post",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "AI",
         "中美关系"
+      ],
+      "sector_holdings": [
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "neutral",
+      "relevance": 48,
+      "summary_cn": "据报道,习近平在白宫参观时对Trump模仿Biden罕见发笑,中美关系软化信号,间接利好港股科技板块情绪。"
+    },
+    {
+      "author": "Burry",
+      "text": "Michael Burry Drops Stark Message For AI Stock Investors",
+      "url": "https://news.google.com/rss/articles/CBMingFBVV95cUxNOGIyU055M194bGtJejlsaDhiVm9mbGV2aEdiSmFtYXNCXzFLQWRJdzNMWVJhU0hycnAwQkdPQ0dJU0xWVEVtUi1OY1N4M0hSYndhRUJLREhWRjhFdjc5VWpBcmlJS0c2eF9pREFZaXBwYnZNZWh1NEM4ZXpmN3VWLVVicDVnNGs4MUoyQkNmTlhnSUNsQ216Ry1YekRLZw?oc=5",
+      "published": "2026-09-25T13:54:51+00:00",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 58,
+      "summary_cn": "据报道,Michael Burry对AI股票投资者发出尖锐警告,看空AI板块情绪;未点名具体标的。"
+    },
+    {
+      "author": "Burry",
+      "text": "Should Investors Worry About Michael Burry's Big AI Stock Shorts",
+      "url": "https://news.google.com/rss/articles/CBMimAFBVV95cUxNVHhkZ2YtckdhbllXSHM0bk5YNUJoYWJKenlVcEpIRFZiNGtVaE81dTNBVDhreE5yVEh4VUVzemZZcThEMW5STlRCRHg0Q0U2T2hLLWlzVlBhV1RPQTN4R3dLaUNVeldBTjRmVzJURHZVT2pQTG1jTGR4SXVsNmpmSlFJQWpJdE9LcU85em9fZmR0ZGxJcVpoZw?oc=5",
+      "published": "2026-09-25T10:15:00+00:00",
+      "origin": "gnews-rss",
+      "source": "The Motley Fool",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI"
+      ],
+      "sector_holdings": [],
+      "stance": "attack",
+      "relevance": 58,
+      "summary_cn": "据报道,媒体讨论Burry大手笔做空AI股的潜在风险,空头叙事继续发酵,板块情绪偏负面。"
+    },
+    {
+      "author": "Burry",
+      "text": "Big Short's Burry Bets on Copper, Skips AI Hype",
+      "url": "https://news.google.com/rss/articles/CBMiZkFVX3lxTE5UQVR6TUhTSndKOUdpeUlXYnNzYi1za2QtOU41d0Nzeldjenk2Vy1GNUVzWGtybGE1Z0FFTDE5TV9XbzFDNTc3d3NNZ0s2MlNLNFY0ZDBuTDdub2hJN1lobWQ3WHRDUQ?oc=5",
+      "published": "2026-09-25T13:49:11+00:00",
+      "origin": "gnews-rss",
+      "source": "Investing News Network",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "大宗商品-铜"
       ],
       "sector_holdings": [],
       "stance": "endorse",
-      "relevance": 58,
-      "summary_cn": "据报道，Musk盛赞习近平领导力与中国AI实力，发生在习特会期间，传递中美AI竞合缓和信号。"
+      "relevance": 55,
+      "summary_cn": "据报道,Burry重仓铜、回避AI炒作,看多铜价,与中国需求/绿色转型主题相关。"
+    },
+    {
+      "author": "Trump",
+      "text": "Very productive meeting with President Xi for both the U.S.A. and China. Tremendous things will be happening. Like almost everyone else, he seemed to like calling the poorly and inaccurately named Artificial Intelligence to a far more accurate and important name, SUPER INTELLIGENCE. That would be “SUPER!” Everyone last night agreed, also. President DJT",
+      "url": "https://www.trumpstruth.org/statuses/41885",
+      "published": "2026-09-25T12:46:52+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "AI"
+      ],
+      "sector_holdings": [],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "Trump会面习近平,称双方同意将'人工智能'改称'超级智能(SI)',表态中美AI领域合作有空间,宏观利好AI板块情绪。"
     },
     {
       "author": "Trump",
@@ -430,302 +390,174 @@
       "sector_holdings": [],
       "stance": "neutral",
       "relevance": 55,
-      "summary_cn": "特朗普与习近平会晤，称'超级智能(SI)'将是重要议题，由DOJ作为'护栏'。"
-    },
-    {
-      "author": "Trump",
-      "text": "RT: https://truthsocial.com/users/realDonaldTrump/statuses/117326044871082645This is a survey of people in business — the S&P Flash Survey — of purchasing, manufacturing and hiring. Guess what? The report shows impressive Growth.   Composite Index — Services + Manufacturing, 62 month high!   Manufacturing — 53 month high!   Services — 52 month high!   This is the “HOTTEST” Economy in the World — and the Media is working overtime for the Democrats to convince Voters that the opposite is true.     For working people, a “HOT” Economy is good because it gives them more wage leverage, and more flex",
-      "url": "https://www.trumpstruth.org/statuses/41871",
-      "published": "2026-09-24T12:36:46+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "宏观"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "特朗普转推S&P Flash调查，称美国制造业/服务业指数创多年新高，是'全球最热经济'，利好风险资产宏观叙事。"
-    },
-    {
-      "author": "Trump",
-      "text": "Midterm Fact Check: Don’t believe the economic doomers: https://www.foxnews.com/video/6405515361112",
-      "url": "https://www.trumpstruth.org/statuses/41872",
-      "published": "2026-09-24T12:36:10+00:00",
-      "origin": "truthsocial",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "宏观"
-      ],
-      "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 52,
-      "summary_cn": "特朗普转发福克斯视频反驳'经济末日论'，延续其强经济叙事，为中期选举造势。"
+      "summary_cn": "Trump确认'超级智能'为与习近平会谈大议题,并指DOJ为对华AI合作的'护栏',信号中美AI/科技摩擦或阶段性缓和。"
     },
     {
       "author": "Musk",
-      "text": "Exclusive / Paramount weighs tapping Musk for equity investment",
+      "text": "Memphis residents file noise complaint against Elon Musk’s xAI",
       "url": "",
-      "published": "Wed, 23 Sep 2026 15:31:00 GMT",
+      "published": "Fri, 25 Sep 2026 14:20:00 GMT",
       "origin": "gnews-rss",
-      "source": "Semafor",
+      "source": "actionnews5.com",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "媒体"
+        "AI"
       ],
       "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 45,
-      "summary_cn": "据报道，派拉蒙考虑引入Musk进行股权投资——主要利好Musk生态叙事，非kcn持仓相关。"
-    },
-    {
-      "author": "Pelosi",
-      "text": "Trump Made 40x More Trades in July Than Bessent Made in 2025",
-      "url": "https://news.google.com/rss/articles/CBMikgFBVV95cUxNSnVpREFnMXFHTW04WVFUTVAxUzkyLWlULVd4RzZ4a3p4Nm5hclQ4WDlkY0dvYjNmaGExMGxDOUExeEk0WkR3Sk5pSndWRGxuWnJnbVdwazI4RWNCS0o2VjRtdGlqYlFmOEtycnludE5LTFltV2NuaGE5RGFwRV81Ym0xU0lIcERabjBFREZNR3EzZw?oc=5",
-      "published": "2026-09-24T09:16:20+00:00",
-      "origin": "gnews-rss",
-      "source": "Business Insider",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "宏观"
-      ],
-      "sector_holdings": [],
-      "stance": "neutral",
-      "relevance": 45,
-      "summary_cn": "媒体对比特朗普与Bessent的月度交易频次，属政治八卦，无直接市场含义。"
+      "stance": "attack",
+      "relevance": 48,
+      "summary_cn": "据报道,孟菲斯居民就xAI数据中心噪声提起投诉,xAI未上市无直接交易代码,但舆论压力或影响Musk系AI叙事。"
     }
   ],
   "held_hits": [],
   "new_ideas": [
     {
       "author": "Burry",
-      "text": "Michael Burry Shorts Micron, Palantir; Famed Investor Expects Chip 'Down Cycle'",
-      "url": "https://news.google.com/rss/articles/CBMipwFBVV95cUxOLTItSFAyWkFxcGRJemxMdVNxQlNSRms2YmRHTHd0dEJ6eHZpQV9QLW90UFZOSEs3UVB0VkQ0YWhnQ1FPTkhIc1NlbDhSMXloUmxvUWJPZmZrXzdOTGRVdFVHMTY4STItamdJV3c2NENHaUVuRkUyTkoyZG8zOU1JbWhTY3hEMG1VWGNXQm5RMVV3c1VUVW54NEJNNkh2UHBDLU5lMjBXQQ?oc=5",
-      "published": "2026-09-23T15:18:00+00:00",
-      "origin": "gnews-rss",
-      "source": "Investor's Business Daily",
-      "tickers": [
-        "MU",
-        "PLTR"
-      ],
-      "held": [],
-      "new_ideas": [
-        "MU",
-        "PLTR"
-      ],
-      "sectors": [
-        "半导体",
-        "AI"
-      ],
-      "sector_holdings": [],
-      "stance": "attack",
-      "relevance": 82,
-      "summary_cn": "据报道，Burry做空Micron(MU)与Palantir(PLTR)，预期芯片进入'下行周期'，强看空信号。"
-    },
-    {
-      "author": "Burry",
-      "text": "JD, BABA Stocks In Focus: Michael Burry Sees Hong Kong Market Benefiting From Korea's AI-Memory Unwind",
-      "url": "https://news.google.com/rss/articles/CBMi9wFBVV95cUxNZE9hRFd4dS1uV1VYOURLckpNVW1Ic1ZPMWt5eDVBbUV4bnQxeXRLYUFuMGQtai1Bd24zd3FpNmR5LWtzMkdQYjd0Y014ZUxKaGpaUUFpMzR0RExVVEJwQzBuSmg1Q29zNVZ4cHBvVTlMT1hvR1pnRDZFcEt0UnpNMy1POUE0V3FfQjVFZjdldVdnM0s4SWQxcW9YbDY0U0g2UlFFY0tuWVpMRF9HVGRTVmViV0g1QVFudnp6RGR6YkpTaC01aVpUUS1mS0xWQXVOa2Nra0wzNHV2UkJnZEJpNnd6NHJzTFJndlh6WVM3M2ozYmZ0TGtB?oc=5",
-      "published": "2026-09-24T21:16:47+00:00",
+      "text": "Michael Burry Ramped His SFM Stock Position To 3% — Here's Why He Sees 'Long Runway' Despite Near-Term Pain",
+      "url": "https://news.google.com/rss/articles/CBMi9AFBVV95cUxNYWZqaGhfYUJpd0dxVEVyZHdPMlR2dmthZ253TUJPX0Jpc3dBZjR1QVFXTU05aVVqbUpZYmQydnVlZTVqZi1aNjBkeHVEbWFiRklDSVREMWMtellMR2xOUmdvbmhWU0QxYU9VYXg0eDVqSThQOW0zd1FWZFZGbzluaEpsb0xENzZQLW9qVnhnSHllUW5MamstU1ZnMy10bFdvc2RJYS1lc29PZHFmbGxpMVNydHN6aGwyY0h0d3BoUVV0c1h3NFhZaXQ1UUpFVW1GVHRBMjd2VzZvX3M0by1oRDZRM3lnUUZDSnRod25xUF9sU0cx?oc=5",
+      "published": "2026-09-25T12:54:49+00:00",
       "origin": "gnews-rss",
       "source": "Stocktwits",
       "tickers": [
-        "JD",
-        "BABA"
+        "SFM"
       ],
       "held": [],
       "new_ideas": [
-        "BABA",
-        "JD"
-      ],
-      "sectors": [
-        "中概股",
-        "AI",
-        "港股",
-        "半导体"
-      ],
-      "sector_holdings": [
-        "03032",
-        "03033",
-        "07226"
-      ],
-      "stance": "endorse",
-      "relevance": 80,
-      "summary_cn": "据报道，Burry认为韩国AI内存'退潮'后港股将受益，点名JD、BABA，直接利好kcn持仓恒生科技ETF(03032/07226/03033)。"
-    },
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-23 调仓：Scribe Therapeutics Inc(SCTX) 买入 ARKG 143,257 股（最大单只 ETF 占比 0.17%）",
-      "url": "https://www.ark-funds.com/funds/arkg/",
-      "published": "2026-09-23T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.1717,
-      "tickers": [
-        "SCTX"
-      ],
-      "held": [],
-      "new_ideas": [
-        "SCTX"
-      ],
-      "sectors": [
-        "基因疗法",
-        "医疗"
-      ],
-      "sector_holdings": [],
-      "stance": "buy",
-      "relevance": 68,
-      "summary_cn": "ARK 9/23买入Scribe Therapeutics(SCTX)，ARKG占比0.17%，规模超阈值。"
-    },
-    {
-      "author": "Pelosi",
-      "text": "Trump July disclosure: 1,156 trades, Microsoft and Amazon among largest sales",
-      "url": "https://news.google.com/rss/articles/CBMisgFBVV95cUxQeG9lSFV2VjRKYXlMSDE0VUdxMXNmeXRySWVnSEVKRGhGMHhORmYzSW1OUTF6QVlPRVhtd1RtV3F3UGR1WHNEbDRSdG9pU3BpaTEyVUV5eHJvSnNxVmVwNDNvYXIwTVJWb0c1a1RqYjhINVVjVVlsX2NFVVAyZ1BESFVUX0s2VjNBSWI0VXVLTEhkRVByOG9oR1kyemZ1UzJsQkxrZzVmR3AxNndrLVRJcDRR?oc=5",
-      "published": "2026-09-23T04:53:22+00:00",
-      "origin": "gnews-rss",
-      "source": "Seeking Alpha",
-      "tickers": [
-        "MSFT",
-        "AMZN"
-      ],
-      "held": [],
-      "new_ideas": [
-        "AMZN",
-        "MSFT"
-      ],
-      "sectors": [
-        "大科技"
-      ],
-      "sector_holdings": [],
-      "stance": "sell",
-      "relevance": 62,
-      "summary_cn": "据报道，特朗普7月披露1,156笔交易，MSFT与AMZN为最大卖出之一——属政治人物披露，非机构信号但反映其个人配置。"
-    },
-    {
-      "author": "Burry",
-      "text": "Why Michael Burry Is Bullish on Build-A-Bear Workshop Stock",
-      "url": "https://news.google.com/rss/articles/CBMipgFBVV95cUxOaVFjVGNNZm9WTnMyc2ZObFdUWUZ2UHFJS0dHTTR0M3Q0TjhwNHJHdW9tcnQ2b3FSX0lidlhOQ25KSXE2ejN6b0ptUXNHaTRHZjBaSzRJLTZpMDJ3ZWhpLXJ4QWFXR3lKWXl3aTd4QlBGczlWSUVCeVZLVUxSbWQwMXUyRF9kNmJ5aE5ZSjRRM1dxY1pFMzdHUVluY0c5M2ppNVRIV2t3?oc=5",
-      "published": "2026-09-24T17:46:05+00:00",
-      "origin": "gnews-rss",
-      "source": "Barchart.com",
-      "tickers": [
-        "BBW"
-      ],
-      "held": [],
-      "new_ideas": [
-        "BBW"
+        "SFM"
       ],
       "sectors": [
         "消费零售"
       ],
       "sector_holdings": [],
-      "stance": "endorse",
-      "relevance": 55,
-      "summary_cn": "据报道，Burry看多Build-A-Bear Workshop(BBW)，与kcn持仓无关但提供小盘选股线索。"
+      "stance": "buy",
+      "relevance": 68,
+      "summary_cn": "据报道,Burry将Sprouts Farmers Market(SFM)持仓加至3%,称短期阵痛下仍具长期跑道,机构增持信号。"
     },
     {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-23 调仓：Beam Therapeutics Inc.(BEAM) 买入 ARKG 65,553 股（最大单只 ETF 占比 0.07%）",
-      "url": "https://www.ark-funds.com/funds/arkg/",
-      "published": "2026-09-23T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.0732,
+      "author": "Musk",
+      "text": "Elon Musk Aims to Double Colossus 2’s Nvidia Chips by Year-End",
+      "url": "",
+      "published": "Fri, 25 Sep 2026 06:04:00 GMT",
+      "origin": "gnews-rss",
+      "source": "Bloomberg.com",
       "tickers": [
-        "BEAM"
+        "NVDA"
       ],
       "held": [],
       "new_ideas": [
-        "BEAM"
+        "NVDA"
       ],
       "sectors": [
-        "基因疗法",
-        "医疗"
+        "AI"
       ],
-      "sector_holdings": [],
-      "stance": "buy",
-      "relevance": 50,
-      "summary_cn": "ARK 9/23买入Beam Therapeutics(BEAM)，ARKG占比0.07%，属常规再平衡。"
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "endorse",
+      "relevance": 65,
+      "summary_cn": "据报道,Musk计划年底前将xAI Colossus 2的Nvidia芯片数量翻倍,继续大手笔采购H100/B200等,直接利好NVDA链。"
     },
     {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-23 调仓：Tempus AI, Inc.(TEM) 卖出 ARKK 90,621 股（最大单只 ETF 占比 0.07%）",
-      "url": "https://www.ark-funds.com/funds/arkk/",
-      "published": "2026-09-23T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.071,
+      "author": "Musk",
+      "text": "Elon Musk Makes Massive Nvidia Move at SpaceX",
+      "url": "",
+      "published": "Fri, 25 Sep 2026 13:01:12 GMT",
+      "origin": "gnews-rss",
+      "source": "Yahoo Finance",
       "tickers": [
-        "TEM"
+        "NVDA"
       ],
       "held": [],
       "new_ideas": [
-        "TEM"
+        "NVDA"
       ],
       "sectors": [
         "AI",
-        "医疗"
+        "航天"
       ],
-      "sector_holdings": [],
-      "stance": "sell",
-      "relevance": 50,
-      "summary_cn": "ARK 9/23卖出Tempus AI(TEM) ARKK 9万股，占比0.07%，常规再平衡。"
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "neutral",
+      "relevance": 62,
+      "summary_cn": "据报道,Musk旗下SpaceX大举部署/调整Nvidia芯片,间接利好其AI算力叙事,SpaceX相关持仓情绪受益。"
     },
     {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-23 调仓：Veracyte, Inc.(VCYT) 买入 ARKG 20,908 股（最大单只 ETF 占比 0.04%）",
-      "url": "https://www.ark-funds.com/funds/arkg/",
-      "published": "2026-09-23T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.0403,
+      "author": "段永平",
+      "text": "以太坊的價值和傑文斯悖論",
+      "url": "https://news.google.com/rss/articles/CBMiXEFVX3lxTE5ZVVFseUtPOFFhNERlTHpTelZOOE1RNnBvX3IySGJkV29FazBoei1GR3Z1Y0pxSi1aUGw0TTAtcXVINGZOQ1FqM2Q3eURjekZUMWZaUFhBVHBWQW00?oc=5",
+      "published": "2026-09-24T14:01:00+00:00",
+      "origin": "gnews-rss",
+      "source": "techflowpost.com",
       "tickers": [
-        "VCYT"
+        "ETH"
       ],
       "held": [],
       "new_ideas": [
-        "VCYT"
+        "ETH"
       ],
       "sectors": [
-        "基因诊断",
-        "医疗"
+        "加密货币"
+      ],
+      "sector_holdings": [
+        "CRCL"
+      ],
+      "stance": "endorse",
+      "relevance": 62,
+      "summary_cn": "据报道,段永平在Substack撰文讨论以太坊价值与杰文斯悖论,公开为ETH背书,宏观利好Circle(CRCL)等稳定币/加密板块。"
+    },
+    {
+      "author": "Musk",
+      "text": "What Musk’s Tesla and SpaceX Stocks Are Doing After That White House State Dinner",
+      "url": "",
+      "published": "Fri, 25 Sep 2026 17:05:41 GMT",
+      "origin": "gnews-rss",
+      "source": "Barron's",
+      "tickers": [
+        "TSLA"
+      ],
+      "held": [],
+      "new_ideas": [
+        "TSLA"
+      ],
+      "sectors": [
+        "电动车",
+        "航天"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "neutral",
+      "relevance": 55,
+      "summary_cn": "据报道,白宫国宴后媒体追踪Musk旗下Tesla与SpaceX股价走势,提供情绪参考。"
+    },
+    {
+      "author": "Cathie Wood",
+      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-24 调仓：Scribe Therapeutics Inc(SCTX) 买入 ARKG 39,149 股（最大单只 ETF 占比 0.04%）",
+      "url": "https://www.ark-funds.com/funds/arkg/",
+      "published": "2026-09-24T20:00:00+00:00",
+      "origin": "ark-funds",
+      "source": "ARK Invest 日度调仓",
+      "etf_percent": 0.0437,
+      "tickers": [
+        "SCTX"
+      ],
+      "held": [],
+      "new_ideas": [
+        "SCTX"
+      ],
+      "sectors": [
+        "生物医药"
       ],
       "sector_holdings": [],
       "stance": "buy",
-      "relevance": 48,
-      "summary_cn": "ARK 9/23买入Veracyte(VCYT)，ARKG占比0.04%，常规再平衡。"
-    },
-    {
-      "author": "Cathie Wood",
-      "text": "ARK Invest (Cathie Wood/木头姐) 2026-09-23 调仓：Twist Bioscience Corporation(TWST) 卖出 ARKG 2,175 股（最大单只 ETF 占比 0.02%）",
-      "url": "https://www.ark-funds.com/funds/arkg/",
-      "published": "2026-09-23T20:00:00+00:00",
-      "origin": "ark-funds",
-      "source": "ARK Invest 日度调仓",
-      "etf_percent": 0.0161,
-      "tickers": [
-        "TWST"
-      ],
-      "held": [],
-      "new_ideas": [
-        "TWST"
-      ],
-      "sectors": [
-        "合成生物学",
-        "医疗"
-      ],
-      "sector_holdings": [],
-      "stance": "sell",
-      "relevance": 47,
-      "summary_cn": "ARK 9/23卖出Twist Bioscience(TWST) 2,175股，占比0.02%，常规再平衡。"
+      "relevance": 50,
+      "summary_cn": "ARK于2026-09-24买入Scribe Therapeutics(SCTX)39,149股,最大单ETF占比仅0.04%,属常规微调,信号偏弱。"
     }
   ],
   "sector_hits": [
@@ -735,51 +567,28 @@
       "url": "",
       "published": "Thu, 24 Sep 2026 18:30:17 GMT",
       "origin": "gnews-rss",
-      "source": "forbes.com",
+      "source": "Forbes",
       "tickers": [],
       "held": [],
       "new_ideas": [],
       "sectors": [
-        "AI",
-        "航天"
+        "AI"
       ],
       "sector_holdings": [
         "SPCH",
         "SPCX"
       ],
       "stance": "endorse",
-      "relevance": 65,
-      "summary_cn": "据报道，Musk称SpaceX的AI模型可能在6个月内超越Anthropic和OpenAI——利好SpaceX叙事，间接利好kcn持有的SPCX/SPCH。"
+      "relevance": 60,
+      "summary_cn": "据报道,Musk称SpaceX自有AI模型有望在6个月内超越Anthropic和OpenAI,为其AI战略背书。"
     },
     {
-      "author": "Musk",
-      "text": "Elon Musk Has Left the Door Open to a Tesla-SpaceX Merger. Here's What Shareholders of Both Stocks Should Do.",
-      "url": "",
-      "published": "Thu, 24 Sep 2026 19:45:00 GMT",
+      "author": "Pelosi",
+      "text": "Is US Defence Secretary Pete Hegseth A Bitcoiner? This Is What His Accounts Say",
+      "url": "https://news.google.com/rss/articles/CBMisAFBVV95cUxQUjFxVlhSNUJjMGlWZG1tOGVVN0JJb2J0RjY0QWoxcURLNmlmdkJuaExOSHBGV2tCNlg0NEhoX29DRllIUHlqSTlZdS16NV9lWU04bHZZb21tRzV1QmFjS1ptcC1lZEswU0w0YzNYUlc4ZFVBVHpwbEpENEd6b1QyMTI3S2JSME8wN3pOSUZRcTN5cEwtd25jaGxNSFhLSnNrTXNqM0lOWDRWODBMOTFwdQ?oc=5",
+      "published": "2026-09-25T15:35:30+00:00",
       "origin": "gnews-rss",
-      "source": "The Motley Fool",
-      "tickers": [],
-      "held": [],
-      "new_ideas": [],
-      "sectors": [
-        "航天",
-        "电动车"
-      ],
-      "sector_holdings": [
-        "SPCH",
-        "SPCX"
-      ],
-      "stance": "neutral",
-      "relevance": 62,
-      "summary_cn": "据报道，Elon Musk对Tesla-SpaceX合并'留了口子'，与kcn持仓SPCX/SPCH(均为SpaceX相关)间接相关但未合并确认。"
-    },
-    {
-      "author": "段永平",
-      "text": "以太坊的價值和傑文斯悖論",
-      "url": "https://news.google.com/rss/articles/CBMiXEFVX3lxTE5ZVVFseUtPOFFhNERlTHpTelZOOE1RNnBvX3IySGJkV29FazBoei1GR3Z1Y0pxSi1aUGw0TTAtcXVINGZOQ1FqM2Q3eURjekZUMWZaUFhBVHBWQW00?oc=5",
-      "published": "2026-09-24T14:01:00+00:00",
-      "origin": "gnews-rss",
-      "source": "深潮TechFlow",
+      "source": "Bitcoin Magazine",
       "tickers": [],
       "held": [],
       "new_ideas": [],
@@ -790,8 +599,8 @@
         "CRCL"
       ],
       "stance": "endorse",
-      "relevance": 62,
-      "summary_cn": "段永平发文讨论'以太坊的价值与杰文斯悖论'，间接看多加密生态，板块层面利好kcn持仓CRCL。"
+      "relevance": 55,
+      "summary_cn": "据报道,美国国防部长Hegseth被曝疑似比特币持有人,政界加密派影响力扩张,情绪利好CRCL等加密相关持仓。"
     },
     {
       "author": "Musk",
@@ -811,8 +620,73 @@
         "SPCX"
       ],
       "stance": "neutral",
+      "relevance": 52,
+      "summary_cn": "据报道,Trump财务披露显示其个人在7月曾买卖SpaceX相关份额,SpaceX未上市,仅作情绪信号。"
+    },
+    {
+      "author": "Trump",
+      "text": "RT: https://truthsocial.com/users/realDonaldTrump/statuses/117326044871082645This is a survey of people in business — the S&P Flash Survey — of purchasing, manufacturing and hiring. Guess what? The report shows impressive Growth.   Composite Index — Services + Manufacturing, 62 month high!   Manufacturing — 53 month high!   Services — 52 month high!   This is the “HOTTEST” Economy in the World — and the Media is working overtime for the Democrats to convince Voters that the opposite is true.     For working people, a “HOT” Economy is good because it gives them more wage leverage, and more flex",
+      "url": "https://www.trumpstruth.org/statuses/41871",
+      "published": "2026-09-24T12:36:46+00:00",
+      "origin": "truthsocial",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "宏观"
+      ],
+      "sector_holdings": [
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "endorse",
       "relevance": 50,
-      "summary_cn": "据报道，特朗普7月财务披露显示曾买入并卖出SpaceX份额(非上市，故不列入tickers)。"
+      "summary_cn": "Trump转推S&P Flash Survey,称美国综合PMI创62个月新高、制造业53个月新高、服务业52个月新高,自称'全球最热经济',为中期选举造势,宏观顺风利好风险资产。"
+    },
+    {
+      "author": "Musk",
+      "text": "Trump-Xi state dinner guest list included Mary Barra, Elon Musk",
+      "url": "",
+      "published": "Fri, 25 Sep 2026 14:10:00 GMT",
+      "origin": "gnews-rss",
+      "source": "detroitnews.com",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "航天",
+        "电动车"
+      ],
+      "sector_holdings": [
+        "SPCH",
+        "SPCX"
+      ],
+      "stance": "neutral",
+      "relevance": 48,
+      "summary_cn": "据报道,Trump-Xi国宴嘉宾名单含Mary Barra(GM)和Elon Musk,中美政商关系信号,板块情绪中性。"
+    },
+    {
+      "author": "Pelosi",
+      "text": "China’s Xi shares a rare laugh on White House tour at Trump’s Biden mockery",
+      "url": "https://news.google.com/rss/articles/CBMixwFBVV95cUxOQ09xamZzalgwZDdPbDZheElVRDNLbTNKdzdHSWxmUmg2WU52amxOVWt3WjlocWw0b3o3ZUlHdFhpaUN2OFFSWXhsV3ExVmJ6WldCLS1VclVNM01UOGtmcTNpQVctNmd4dXZpbXl1QW1Pc1hTN1pVY09uRWJLQ2ZVZy1jOFFJci11OHFzeU9fVDA5bjVBRjh3d0Z5bUZOcDdRaWJDdVp0aHE4ZlA1WG5sSDl3bW10Q1o0aVFvR2RBTnhIOUVFYnNV0gHHAUFVX3lxTE5DT3FqZnNqWDBkN09sNmF4SVVEM0ttM0p3N0dJbGZSaDZZTnZqbE5Va3daOWhxbDRvejdlSUd0WGlpQ3Y4UVJZeGxXcTFWYnpaV0ItLVVyVU0zTVQ4a2ZxM2lBVy02Z3h1dmlteXVBbU9zWFM3WlVjT25FYktDZlVnLWM4UUlyLXU4cXN5T19UMDluNUFGOHd3RnltRk5wN1FpYkN1WnRocThmUDVYbmxIOXdtbXRDWjRpUW9HZEFOeEg5RUVic1U?oc=5",
+      "published": "2026-09-25T03:13:32+00:00",
+      "origin": "gnews-rss",
+      "source": "South China Morning Post",
+      "tickers": [],
+      "held": [],
+      "new_ideas": [],
+      "sectors": [
+        "中美关系"
+      ],
+      "sector_holdings": [
+        "03032",
+        "03033",
+        "07226"
+      ],
+      "stance": "neutral",
+      "relevance": 48,
+      "summary_cn": "据报道,习近平在白宫参观时对Trump模仿Biden罕见发笑,中美关系软化信号,间接利好港股科技板块情绪。"
     }
   ]
 }
