@@ -609,7 +609,11 @@ def main(argv=None):
         banner = (f'🔴 Validation FAILED ({len(escalating)} issues), 仅发布数据块:\n'
                   + '\n'.join('- ' + i for i in escalating[:4])
                   + '\n\n')
-    wechat_prefix = banner + advisory_prefix(advisories)
+    # Advisory findings keep their own visible line (#134), but at the foot of
+    # the card: on top they were the first thing kcn read on a clean slot and
+    # looked like an error (2026-09-25). Escalating banners stay on top.
+    wechat_prefix = banner
+    advisory_suffix = advisory_prefix(advisories).strip()
 
     # ── WeChat delivery (decoupled from the cron's announce) ──────────────────
     # The cron's announce fires at the END of a long agent turn using a token
@@ -667,6 +671,8 @@ def main(argv=None):
                   'nothing sent, watchdog owns this slot', file=sys.stderr)
         else:
             message = (wechat_prefix + body).strip()
+            if advisory_suffix:
+                message += '\n\n' + advisory_suffix
             # Same race as #508 on the report path: the marker is written only
             # after both sends return, so a second postflight started inside
             # that window sees "not delivered" and doubles the slot. The claim
