@@ -2772,6 +2772,21 @@ test("task queue: live waits, ended tasks and the patrol phase come from the hos
   assert.equal(tq.unquoteShell("$'a\\nb'"), "a\nb");
   assert.equal(tq.unquoteShell("2026-09-24\\ 02:38:43"), "2026-09-24 02:38:43");
 
+  // A failed forced refresh stays stale for the polls inside the TTL (#1879),
+  // the balance services' #1546: `fetchedAt` dates the last success only.
+  let broken = false;
+  const flaky = { ...deps([]), activeTaskIds: async () => { if (broken) throw new Error("systemctl down"); return []; } };
+  const service = tq.createTaskQueueService(config, flaky);
+  assert.equal((await service.get(true)).status, "fresh");
+  broken = true;
+  assert.equal((await service.get(true)).status, "stale");
+  const polled = await service.get(false);
+  assert.equal(polled.status, "stale", "a poll right after a failed refresh must not read as cached");
+  assert.match(polled.message, /systemctl down/);
+  broken = false;
+  assert.equal((await service.get(true)).status, "fresh");
+  assert.equal((await service.get(false)).status, "cached", "a successful refresh clears the stale mark");
+
   const none = await tq.createTaskQueueService({ ...config, logDir: path.join(root, "absent") }, deps([])).get(false);
   assert.equal(none.available, false, "no dispatcher on this host: the chip stays away");
   assert.deepEqual(none.active, []);

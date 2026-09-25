@@ -289,6 +289,10 @@ export function createTaskQueueService(config: TaskQueueConfig = {}, deps: TaskQ
   }
   let last: QueueRead | null = null
   let fetchedAt = 0
+  // The last read's failure, cleared only by a successful one: `fetchedAt`
+  // dates the last SUCCESS, so a poll inside the TTL after a failed forced
+  // refresh would otherwise answer 'cached' (the balance services' #1546).
+  let lastError: string | null = null
   let inFlight: Promise<TaskQueueResult> | null = null
   const answer = (status: TaskQueueResult['status'], message: string | null): TaskQueueResult => ({
     available: false, asOf: '', maxRunning: 0, slotLimits: [], running: 0, active: [], recent: [],
@@ -302,15 +306,19 @@ export function createTaskQueueService(config: TaskQueueConfig = {}, deps: TaskQ
     try {
       last = await readTaskQueue(resolved, deps)
       fetchedAt = Date.now()
+      lastError = null
       return answer('fresh', null)
     } catch (cause) {
       const message = cause instanceof Error ? cause.message : String(cause)
+      if (last !== null) lastError = message
       return answer(last !== null ? 'stale' : 'failed', message)
     }
   }
   return {
     async get(force: boolean): Promise<TaskQueueResult> {
-      if (!force && last !== null && Date.now() - fetchedAt < TTL_MS) return answer('cached', null)
+      if (!force && last !== null && Date.now() - fetchedAt < TTL_MS) {
+        return lastError !== null ? answer('stale', lastError) : answer('cached', null)
+      }
       if (inFlight !== null) return inFlight
       inFlight = exec()
       try { return await inFlight } finally { inFlight = null }
