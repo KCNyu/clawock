@@ -663,10 +663,13 @@ def quote_coverage(_block, market, portfolio_path=None, *, now=None,
 def always_full_intraday() -> bool:
     """Whether every open-market slot should send the full block.
 
-    The 2026-09-24 contract makes a healthy unchanged slot silent, with an
-    auditable heartbeat and exact-slot marker. Data/source degradation always
-    breaks silence. This switch keeps the earlier every-slot-full-card option.
-    Missing or invalid config leaves the semantic gate enabled.
+    On (kcn 2026-09-25, the live setting): every slot sends the full card; an
+    unchanged slot says so in its 变化 line and judgment. Off: the 2026-09-24
+    behaviour, where a healthy unchanged slot is silent with an auditable
+    heartbeat and exact-slot marker (`can_silence`, `render_unchanged_receipt`
+    and the watchdog's quiet-marker check stay for that). Data/source
+    degradation never silences either way. Missing or invalid config leaves
+    the semantic gate enabled.
 
     `config/intraday-delivery.json`:  {"always_full": true}
     """
@@ -710,6 +713,10 @@ def delta_lead(delta, *, current, previous):
     """The 变化 line: why this slot is a full card, naming first-seen breaches."""
     if not previous:
         return '变化：本交易日首档，建立对照'
+    if not delta.get('components'):
+        # Only reachable with always_full on: say plainly that nothing changed
+        # instead of the old '决策条件' fallback, which read as a change.
+        return '变化：无（与上次送达相比，本档没有新条件）'
     labels = [DELTA_LABELS[key] for key in delta.get('components', [])
               if key in DELTA_LABELS]
     lead = '变化：' + '、'.join(labels or ['决策条件'])
@@ -977,7 +984,13 @@ def judgment_packet(ctx):
 
 
 def can_silence(ctx, *, allow_soft_review=False):
-    """Only a proved healthy, unchanged slot may omit user delivery."""
+    """Only a proved healthy, unchanged slot may omit user delivery.
+
+    Not the default path: kcn overturned the 2026-09-24 silence contract on
+    2026-09-25 (「全部都正常发」). `always_full` is on and short-circuits this to
+    False; the silence code runs only if that config is explicitly set to
+    false. Data/source degradation refuses silence either way.
+    """
     soft_only = (ctx.get('semantic_delta') or {}).get('components') == ['soft_candidates_seen']
     if (not ctx.get('semantic_unchanged') and not (allow_soft_review and soft_only)):
         return False

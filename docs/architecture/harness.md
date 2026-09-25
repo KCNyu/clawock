@@ -112,7 +112,11 @@ The shared HK/US delta compares stable condition identities, including the
 first appearance of a soft candidate or a breach that trading day, plan status and
 source health. Breaches compare as the session's seen set, so a ticker flickering
 across a bucket edge back to a state already delivered today stays quiet. The first session slot, a material condition change, or incomplete
-evidence gets a full card. A healthy unchanged slot records a `no_change`
+evidence gets a full card. **The 2026-09-24 silence contract was overturned by kcn on 2026-09-25 (「全部都正常发」, as in the 2026-07-27 removal of the intraday delta gate); `always_full` is on and is final, and the silence code below runs only when that config is explicitly set to false:
+every slot sends the full card; an unchanged one says `变化：无…` and its
+judgment may be one honest line (`本档无实质变化…`), which is exempt from the
+60-character floor, while claiming a new move on it is flagged.** With the
+switch off, a healthy unchanged slot records a `no_change`
 heartbeat and exact-slot marker without sending to WeChat or Telegram. A slot
 with only a new soft candidate asks the model to choose whether to speak; an
 exact `SILENT` response records the same audited quiet outcome. The watchdog

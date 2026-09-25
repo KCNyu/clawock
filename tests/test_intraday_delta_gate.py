@@ -465,3 +465,24 @@ def test_preflight_main_never_rewrites_the_analyzer_table(monkeypatch, tmp_path)
     assert lines[1].startswith("变化：") and lines[2].startswith("⛔ 数据降级：")
     # The model keeps the analyzer's output whole, whatever the card folds.
     assert ctx["analyzer_block"] == block
+
+
+def test_with_the_live_config_an_unchanged_healthy_slot_still_sends_honestly(
+    monkeypatch, tmp_path
+):
+    """kcn 2026-09-25: no silent slots. Reads the repository's own
+    config/intraday-delivery.json, so turning always_full off turns this red;
+    the silence path itself stays covered by the tests that force it off."""
+    import shutil
+    current, run = _wire_preflight(monkeypatch, tmp_path, healthy=True)
+    (tmp_path / 'config').mkdir(exist_ok=True)
+    shutil.copy(ROOT / 'config' / 'intraday-delivery.json',
+                tmp_path / 'config' / 'intraday-delivery.json')
+    ctx = run(copy.deepcopy(current))
+
+    assert ctx["semantic_unchanged"] is True
+    assert ctx["delivery_mode"] == "full_delta"
+    assert ctx["raw_wechat_block"].splitlines()[1] == "变化：无（与上次送达相比，本档没有新条件）"
+    # The same slot with the switch off is the audited silence it was.
+    (tmp_path / 'config' / 'intraday-delivery.json').write_text('{"always_full": false}')
+    assert run(copy.deepcopy(current))["delivery_mode"] == "no_change"

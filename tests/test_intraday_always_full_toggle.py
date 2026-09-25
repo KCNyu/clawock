@@ -58,8 +58,8 @@ def test_a_broken_or_ambiguous_toggle_falls_back_to_the_gate(monkeypatch, worksp
         assert _module(monkeypatch, workspace).always_full_intraday() is False, content
 
 
-def test_the_live_workspace_toggle_is_delta_first():
-    """The current default is auditable silence for healthy semantic repeats."""
+def test_the_live_workspace_toggle_sends_every_slot():
+    """kcn 2026-09-25: 「我不要那个静默忽略」— every intraday slot sends."""
     doc = json.loads((ROOT / 'config' / 'intraday-delivery.json').read_text())
-    assert doc['always_full'] is False
-    assert '静默' in doc['note']
+    assert doc['always_full'] is True
+    assert doc['set_at'] == '2026-09-25' and doc['set_by'] == 'kcn' and '定稿' in doc['note']
