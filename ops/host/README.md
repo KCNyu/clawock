@@ -47,19 +47,25 @@ install overwrites it, so never install by hand without that `cp` first, and
 do not treat an older copy as a known-good version.
 
 Priority: manual dispatched work outranks patrol, and a round is the lowest
-priority work on the host. `others_need_slot` blocks a new round, and preempts
-the running one, when any
-task other than the round named in `current-round` publishes `WAITING=slot`
-(queued for a run slot) or `WAITING=lock` (queued behind its agent's lock —
-the runner asks for a slot only after that lock, so this is the earlier half of
-the same queue). A queue whose own agent is parked on quota is the exception: while
-the task holding that agent's lock publishes `WAITING=quota`, nothing behind it can
-start either, so that queue is not demand and a round may use the dead window
-(kcn, 2026-09-24); it becomes demand again the moment the holder wakes, and the
-monitor loop cancels the round within one poll before the queued task needs a slot.
-`WAITING=quota`/`retry`/`memory` hold nothing and do not
-preempt. Capacity (`slot-N.lock` held by `MAX_RUNNING` attempts) and memory
-pressure only gate admission of a new round. Rounds are dispatched with
+priority work on the host. Since 2026-09-25 every agent has its own run slots
+(`slot-<agent>-<n>.lock`, per-agent counts `MAX_RUNNING_<AGENT>` in `limits.env`),
+so a round only ever holds the opencode lock and an opencode slot, and only work
+that needs one of those is demand. `others_need_slot` blocks a new round, and
+preempts the running one, when a task other than the round named in
+`current-round` is an opencode task publishing `WAITING=lock` (queued behind the
+opencode lock — the runner asks for a slot only after that lock) or
+`WAITING=slot`. A claude/codex task queued for its own lock or slot waits for its
+own agent and is not demand. The quota exception (kcn, 2026-09-24) stays: a queue
+whose own agent's lock holder publishes `WAITING=quota` is not demand until the
+holder wakes. `WAITING=quota`/`retry`/`memory` hold nothing and do not preempt.
+Capacity (the opencode slots all held) and memory pressure only gate admission of
+a new round.
+
+Transition: runners from before 2026-09-25 shared `slot-1.lock`/`slot-2.lock`
+among all agents, and a task started then may run for up to 72h. While both are
+held, a new round waits, and a task waiting for a slot preempts a round that
+holds one of them itself (its `SLOT=` is a bare number). Remove `LEGACY_SLOTS`
+after 2026-09-29. Rounds are dispatched with
 `AGENT_DISPATCH_PATROL=1`, because `dispatch.sh` reserves `patrol-*` names for
 them; the supervisor still identifies its own round by `current-round`, never
 by name.
@@ -75,11 +81,12 @@ backoff), except that a `recent` round never advances the review cursor; one
 still running is cancelled (`preempted:cancelled`). There is no grace, and the
 round is cancelled at once, when:
 
-- the round blocks someone: a task waits for a run slot while all `MAX_RUNNING`
-  are held, or an opencode task is queued behind the opencode lock the round
-  holds. This is rechecked every poll and ends a grace already running. A task
-  queued on another agent's lock (`WAITING=lock`) is not blocked by the round:
-  the holder's slot frees together with that lock;
+- the round blocks someone: an opencode task waits for an opencode slot while
+  all are held, an old runner's task waits while both shared slots are held (see
+  Transition), or an opencode task is queued behind the opencode lock the round
+  holds. This is rechecked every poll and ends a grace already running. With
+  per-agent slots almost all demand is of this kind, so the grace path is a
+  safety valve that rarely runs;
 - the round has no session yet (`SESSION` empty in its `result.env`): no step has
   run, so there is nothing to land, and the runner cannot interrupt the attempt
   to deliver an append;

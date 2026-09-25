@@ -3,6 +3,10 @@
 kcn's rule: manual dispatched work outranks patrol; a patrol round is the lowest
 priority and may be preempted. `others_need_slot admission` decides whether a new
 round may start, `others_need_slot monitor` whether the running round must yield.
+
+Since 2026-09-25 every agent has its own run slots (`slot-<agent>-<n>.lock`), so only an
+opencode task (a manual one) can be kept waiting by a round. Runners from before shared
+`slot-1..2` among all agents; while such a task may still run, that contention counts too.
 """
 import contextlib
 import os
@@ -15,13 +19,15 @@ import pytest
 
 SCRIPT = Path(__file__).resolve().parents[1] / "ops/host/patrol.sh"
 OWN_ROUND = "patrol-render-20260923-023515"
+LEGACY = ["slot-1", "slot-2"]  # both shared slots of the pre-2026-09-25 runners
 
 
 @pytest.fixture
 def patrol(tmp_path):
     dispatch = tmp_path / "dispatch"
     dispatch.mkdir()
-    (dispatch / "limits.env").write_text("MAX_RUNNING=2\n")
+    (dispatch / "limits.env").write_text("MAX_RUNNING_CLAUDE=1\nMAX_RUNNING_CODEX=1\nMAX_RUNNING_OPENCODE=1\n"
+                                         "MAX_RUNNING=3\n")
     # The real thresholds live with the host's resource-pressure.sh; here it only reports
     # whatever the test sets, so the admission-vs-monitor split stays visible.
     (dispatch / "resource-pressure.sh").write_text(
@@ -35,7 +41,7 @@ def patrol(tmp_path):
     systemctl.chmod(0o755)
     env = dict(os.environ, PATROL_DISPATCH_DIR=str(dispatch), PATROL_STATE_DIR=str(tmp_path),
                PATROL_TASKS_DIR=str(tasks), PATH=f"{tmp_path}:{os.environ['PATH']}")
-    env.pop("AGENT_DISPATCH_MAX_RUNNING", None)
+    env.pop("AGENT_DISPATCH_MAX_RUNNING_OPENCODE", None)
 
     def task(tid, result, agent="claude"):
         d = tasks / tid
@@ -46,15 +52,15 @@ def patrol(tmp_path):
             f.write(f"agent-dispatch-{tid}.service loaded active running agent-dispatch\n")
 
     @contextlib.contextmanager
-    def slots(held):
+    def slots(held=()):
         # Hold slot locks for real: flock(1) inside the script contends with this holder
         # exactly as it would with a running attempt. "ready" means the locks are taken.
         if not held:
             yield
             return
         command = ["sh", "-c", "echo ready; exec sleep 30"]
-        for i in range(1, held + 1):
-            command = ["flock", "-n", str(tasks / f"slot-{i}.lock")] + command
+        for name in held:
+            command = ["flock", "-n", str(tasks / f"{name}.lock")] + command
         holder = subprocess.Popen(command, stdout=subprocess.PIPE, text=True, start_new_session=True)
         try:
             assert holder.stdout.readline().strip() == "ready"
@@ -64,7 +70,7 @@ def patrol(tmp_path):
             holder.wait(timeout=10)
             holder.stdout.close()
 
-    def ask(mode="admission", held=0, memory=""):
+    def ask(mode="admission", held=(), memory=""):
         with slots(held):
             result = subprocess.run(
                 ["bash", "-c", 'source "$1"; others_need_slot "$2"', "test", str(SCRIPT), mode],
@@ -72,7 +78,7 @@ def patrol(tmp_path):
         assert result.returncode == 0, result.stderr
         return result.stdout.strip()
 
-    def own_round(result="STATE=running\nSLOT=2\n"):
+    def own_round(result="STATE=running\nSLOT=opencode-1\n"):
         task(OWN_ROUND, result, agent="opencode")
         (tmp_path / "current-round").write_text(OWN_ROUND + "\n")
 
@@ -81,45 +87,59 @@ def patrol(tmp_path):
 
 
 @pytest.mark.parametrize("mode", ["monitor", "admission"])
-@pytest.mark.parametrize("agent", ["claude", "codex"])
-def test_task_queued_on_its_agent_lock_outranks_patrol(patrol, mode, agent):
-    # 2026-09-23: a manual claude task sat 33 minutes behind the claude lock while a
-    # round ran to completion. The runner asks for a slot only once it holds that lock,
-    # so without WAITING=lock the queue never reached the supervisor.
+def test_an_opencode_task_queued_on_the_lock_outranks_patrol(patrol, mode):
+    # 2026-09-23: a manual task sat 33 minutes behind its agent lock while a round ran to
+    # completion. The runner asks for a slot only once it holds that lock, so without
+    # WAITING=lock the queue never reached the supervisor. The round holds the opencode lock.
     patrol.own_round()
+    patrol.task("opencode-task", "STATE=queued\nWAITING=lock\nSLOT=''\n", agent="opencode")
+    assert patrol(mode) == "opencode-task is waiting for its agent lock"
+
+
+@pytest.mark.parametrize("mode", ["monitor", "admission"])
+@pytest.mark.parametrize("agent", ["claude", "codex"])
+def test_a_claude_or_codex_queue_no_longer_stops_patrol(patrol, mode, agent):
+    # 2026-09-25: per-agent slots. The task waits for its own agent's lock holder, which runs
+    # in its own slot; cancelling the round would not start it a second sooner.
+    patrol.own_round()
+    patrol.task(f"{agent}-holder", f"STATE=running\nSLOT={agent}-1\n", agent=agent)
     patrol.task(f"{agent}-task", "STATE=queued\nWAITING=lock\nSLOT=''\n", agent=agent)
-    assert patrol(mode) == f"{agent}-task is waiting for its agent lock"
+    assert patrol(mode, held=[f"slot-{agent}-1"]) == ""
+
+
+def test_both_foreground_agents_busy_leave_the_patrol_slot_free(patrol):
+    patrol.task("claude-task", "STATE=running\nSLOT=claude-1\n")
+    patrol.task("codex-task", "STATE=running\nSLOT=codex-1\n", agent="codex")
+    assert patrol("admission", held=["slot-claude-1", "slot-codex-1"]) == ""
 
 
 def test_lock_waiter_is_demand_even_with_free_slots(patrol):
-    patrol.task("claude-task", "STATE=queued\nWAITING=lock\nSLOT=''\n")
-    assert patrol("admission", held=0) == "claude-task is waiting for its agent lock"
+    patrol.task("opencode-task", "STATE=queued\nWAITING=lock\nSLOT=''\n", agent="opencode")
+    assert patrol("admission") == "opencode-task is waiting for its agent lock"
 
 
 @pytest.mark.parametrize("mode", ["monitor", "admission"])
 def test_a_quota_parked_agent_queue_is_not_demand(patrol, mode):
-    # 2026-09-24: three claude tasks queued behind a lock whose holder slept until the 5h
-    # reset, and patrol sat out the whole window next to two free run slots. A queue whose
-    # own agent cannot start is not demand; the 09-23 rule resumes when the holder wakes.
+    # 2026-09-24 (#1841): tasks queued behind a lock whose holder slept until a quota reset
+    # kept patrol idle for the whole window. Kept for a quota-bound opencode model.
     patrol.own_round()
-    patrol.task("claude-holder", "STATE=running\nWAITING=quota\nSLOT=''\n")
-    patrol.task("claude-queued", "STATE=queued\nWAITING=lock\nSLOT=''\n")
+    patrol.task("opencode-holder", "STATE=running\nWAITING=quota\nSLOT=''\n", agent="opencode")
+    patrol.task("opencode-queued", "STATE=queued\nWAITING=lock\nSLOT=''\n", agent="opencode")
     assert patrol(mode) == ""
 
 
 def test_the_same_queue_outranks_patrol_once_the_holder_wakes(patrol):
-    # Without the quota sleep these are the 09-23 tasks again: demand, preemption included.
     patrol.own_round()
-    patrol.task("claude-holder", "STATE=running\nSLOT=1\n")
-    patrol.task("claude-queued", "STATE=queued\nWAITING=lock\nSLOT=''\n")
-    assert patrol("monitor") == "claude-queued is waiting for its agent lock"
+    patrol.task("opencode-holder", "STATE=running\nSLOT=opencode-1\n", agent="opencode")
+    patrol.task("opencode-queued", "STATE=queued\nWAITING=lock\nSLOT=''\n", agent="opencode")
+    assert patrol("monitor") == "opencode-queued is waiting for its agent lock"
 
 
 def test_another_agents_quota_sleep_does_not_release_this_queue(patrol):
-    # Only the queued task's own agent counts: a parked codex task says nothing about claude.
+    # Only the queued task's own agent counts: a parked codex task says nothing about opencode.
     patrol.task("codex-holder", "STATE=running\nWAITING=quota\nSLOT=''\n", agent="codex")
-    patrol.task("claude-queued", "STATE=queued\nWAITING=lock\nSLOT=''\n")
-    assert patrol("admission") == "claude-queued is waiting for its agent lock"
+    patrol.task("opencode-queued", "STATE=queued\nWAITING=lock\nSLOT=''\n", agent="opencode")
+    assert patrol("admission") == "opencode-queued is waiting for its agent lock"
 
 
 def test_patrols_own_round_waiting_is_not_demand(patrol):
@@ -131,7 +151,7 @@ def test_manual_task_named_like_a_round_is_still_demand(patrol):
     # Only the current-round marker identifies the supervisor's own worker. Skipping every
     # patrol-* id hid manual tasks with that name (patrol-source-sync, 2026-09-23).
     patrol.own_round()
-    patrol.task("patrol-source-sync-20260923-023843", "STATE=queued\nWAITING=lock\n")
+    patrol.task("patrol-source-sync-20260923-023843", "STATE=queued\nWAITING=lock\n", agent="opencode")
     assert patrol("monitor") == "patrol-source-sync-20260923-023843 is waiting for its agent lock"
 
 
@@ -142,26 +162,49 @@ def test_quota_sleepers_hold_nothing_and_do_not_preempt(patrol, mode):
     assert patrol(mode) == ""
 
 
-def test_slot_waiter_preempts_the_running_round(patrol):
+def test_an_opencode_slot_waiter_preempts_the_running_round(patrol):
     patrol.own_round()
+    patrol.task("opencode-task", "STATE=running\nWAITING=slot\n", agent="opencode")
+    assert patrol("monitor", held=["slot-opencode-1"]) == "opencode-task is waiting for an opencode run slot"
+
+
+def test_another_agents_slot_waiter_is_not_demand(patrol):
+    # A claude task waits for the claude slot; the round holds only opencode's.
+    patrol.own_round()
+    patrol.task("claude-task", "STATE=running\nWAITING=slot\n")
+    assert patrol("monitor", held=["slot-claude-1"]) == ""
+
+
+# ---- transition: tasks of runners from before per-agent slots share slot-1..2 ----------
+
+def test_old_runner_slot_waiter_preempts_a_round_holding_a_shared_slot(patrol):
+    patrol.own_round("STATE=running\nSLOT=2\n")
     patrol.task("codex-task", "STATE=running\nSLOT=1\n", agent="codex")
     patrol.task("claude-task", "STATE=running\nWAITING=slot\n")
-    assert patrol("monitor", held=2) == "claude-task is waiting for a run slot"
+    assert patrol("monitor", held=LEGACY) == "claude-task is waiting for a run slot and all 2 shared slots are busy"
+
+
+def test_old_runner_slot_waiter_does_not_preempt_a_round_in_its_own_slot(patrol):
+    # Two old tasks fill the shared slots; the round runs in slot-opencode-1 and frees none.
+    patrol.own_round()
+    patrol.task("claude-task", "STATE=running\nWAITING=slot\n")
+    assert patrol("monitor", held=LEGACY + ["slot-opencode-1"]) == ""
 
 
 def test_real_slot_locks_gate_admission(patrol):
     # Probe the locks themselves: one runner reports SLOT, the other predates the field.
     patrol.task("codex-task", "STATE=running\nSLOT=1\n", agent="codex")
     patrol.task("claude-task", "STATE=running\n")
-    assert patrol("admission", held=2) == "all 2 run slots are busy"
+    assert patrol("admission", held=LEGACY) == "all 2 shared run slots are busy"
+    assert patrol("admission", held=["slot-opencode-1"]) == "the opencode run slot is busy"
     # Stale SLOT reports without held locks do not block a new round.
-    assert patrol("admission", held=0) == ""
+    assert patrol("admission") == ""
 
 
 def test_running_round_does_not_preempt_itself_on_capacity(patrol):
     patrol.own_round()
     patrol.task("codex-task", "STATE=running\nSLOT=1\n", agent="codex")
-    assert patrol("monitor", held=2) == ""
+    assert patrol("monitor", held=LEGACY + ["slot-opencode-1"]) == ""
 
 
 def test_pre_marker_opencode_queue_still_counts(patrol):
@@ -189,7 +232,7 @@ run_round
 def test_preemption_cancels_only_the_round_and_keeps_the_cursor(patrol, tmp_path):
     patrol.own_round()
     (tmp_path / "tasks" / OWN_ROUND / "meta.env").write_text("CREATED='2026-09-23 02:35:15'\n")
-    patrol.task("claude-task", "STATE=queued\nWAITING=lock\n")
+    patrol.task("opencode-task", "STATE=queued\nWAITING=lock\n", agent="opencode")
     (tmp_path / "round-no").write_text("138\n")
     (tmp_path / "recent-since").write_text("older\n")
     (tmp_path / "active").touch()
@@ -203,7 +246,7 @@ rm -f "$PATROL_STATE_DIR/active"
     result = subprocess.run(["bash", "-c", 'source "$1"; ' + RUN_ROUND, "test", str(SCRIPT)],
                             env=patrol.env, capture_output=True, text=True, timeout=10)
     assert result.returncode == 1, result.stdout + result.stderr
-    assert "preempting " + OWN_ROUND + ": claude-task is waiting for its agent lock" in result.stdout
+    assert "preempting " + OWN_ROUND + ": opencode-task is queued behind the round's opencode lock" in result.stdout
     assert (tmp_path / "actions").read_text() == f"cancel {OWN_ROUND}\n"
     assert "preempted:cancelled" in (tmp_path / "rounds.tsv").read_text()
     assert (tmp_path / "recent-since").read_text() == "older\n"
@@ -245,6 +288,11 @@ def test_only_a_done_recent_round_advances_the_review_cursor(patrol, tmp_path, r
 # ---- graceful preemption: a round that has to give way first lands its findings --------
 
 SESSION = "SESSION=ses_f2ba4c4e3ffe1By3CJODcDSEQj\n"
+# Demand the round does not stand in the way of, so it gets a wrap-up grace: an opencode task
+# waiting for a slot while the opencode slots are not all taken. With per-agent slots this is
+# rare (#1841/#1851 stay as a safety valve); it keeps the grace path exercised.
+DEMAND = ("opencode-task", "STATE=running\nWAITING=slot\n")
+WHY = "opencode-task is waiting for an opencode run slot"
 
 
 @pytest.fixture
@@ -269,7 +317,7 @@ esac
     (tmp_path / "recent-since").write_text("older\n")
     (tmp_path / "active").touch()
 
-    def start(rid=OWN_ROUND, result="STATE=running\nSLOT=2\n" + SESSION):
+    def start(rid=OWN_ROUND, result="STATE=running\nSLOT=opencode-1\n" + SESSION):
         task = tmp_path / "tasks" / rid
         task.mkdir()
         (task / "meta.env").write_text("AGENT=opencode\nCREATED='2026-09-23 02:35:15'\n")
@@ -281,14 +329,17 @@ esac
     def on_append(script):
         (tmp_path / "on-append").write_text(script)
 
-    def run(held=0, **env):
+    def run(held=(), **env):
         with patrol.slots(held):
             result = subprocess.run(["bash", "-c", 'source "$1"; ' + RUN_ROUND, "test", str(SCRIPT)],
                                     env=dict(patrol.env, **env), capture_output=True, text=True, timeout=20)
         actions = tmp_path / "actions"
         return result, actions.read_text() if actions.exists() else ""
 
-    run.start, run.on_append, run.task = start, on_append, patrol.task
+    def demand():
+        patrol.task(*DEMAND, agent="opencode")
+
+    run.start, run.on_append, run.task, run.demand = start, on_append, patrol.task, demand
     return run
 
 
@@ -297,19 +348,18 @@ rm -f "$PATROL_STATE_DIR/active"
 '''
 
 
-@pytest.mark.parametrize("held", [0, 2])
+@pytest.mark.parametrize("held", [(), LEGACY])
 def test_a_round_that_must_give_way_is_told_to_land_its_findings_first(adopted, tmp_path, held):
     # 2026-09-24: six rounds in a row were cancelled outright for queued claude/codex tasks;
     # ledger.md is rewritten only at the end, so everything a round had found went with it.
-    # A task queued behind another agent's lock waits for that holder, whose slot frees with
-    # the lock, so wrapping up costs it nothing even when both slots are busy.
+    # Old runners filling the shared slots change nothing for a round in its own slot.
     adopted.start()
-    adopted.task("claude-task", "STATE=queued\nWAITING=lock\n")
+    adopted.demand()
     adopted.on_append(ROUND_ENDS)
     result, actions = adopted(held=held, END_STATE="partial", END_OUTCOME="PARTIAL")
     assert result.returncode == 0, result.stdout + result.stderr
     assert actions == f"append {OWN_ROUND}\n"
-    assert "asking " + OWN_ROUND + " to wrap up within 300s: claude-task is waiting for its agent lock" \
+    assert "asking " + OWN_ROUND + " to wrap up within 300s: " + WHY \
         in result.stdout
     note = (tmp_path / "appended").read_text()
     for what in ("issue-format.md", f"{tmp_path}/drafts/R138-", "file_issue.sh", f"{tmp_path}/ledger.md",
@@ -322,11 +372,11 @@ def test_a_round_that_must_give_way_is_told_to_land_its_findings_first(adopted, 
 
 def test_a_round_that_ignores_the_wrap_up_is_cancelled_when_the_grace_runs_out(adopted, tmp_path):
     adopted.start()
-    adopted.task("claude-task", "STATE=queued\nWAITING=lock\n")
+    adopted.demand()
     result, actions = adopted()
     assert result.returncode == 1, result.stdout + result.stderr
     assert actions == f"append {OWN_ROUND}\ncancel {OWN_ROUND}\n"
-    assert "preempting " + OWN_ROUND + " after a 300s wrap-up grace: claude-task is waiting for its agent lock" \
+    assert "preempting " + OWN_ROUND + " after a 300s wrap-up grace: " + WHY \
         in result.stdout
     assert "\tpreempted:cancelled\t" in (tmp_path / "rounds.tsv").read_text()
     assert not (tmp_path / "yielding").exists()
@@ -334,29 +384,33 @@ def test_a_round_that_ignores_the_wrap_up_is_cancelled_when_the_grace_runs_out(a
 
 def test_the_grace_is_overridable(adopted):
     adopted.start()
-    adopted.task("claude-task", "STATE=queued\nWAITING=lock\n")
+    adopted.demand()
     result, actions = adopted(PATROL_PREEMPT_GRACE="60")
     assert actions == f"append {OWN_ROUND}\ncancel {OWN_ROUND}\n"
     assert "after a 60s wrap-up grace" in result.stdout
 
 
-@pytest.mark.parametrize("case", ["no session yet", "grace disabled", "slot waiter, slots full",
-                                  "queued behind the round's opencode lock"])
+@pytest.mark.parametrize("case", ["no session yet", "grace disabled", "opencode slot full",
+                                  "old runner, shared slots full", "queued behind the round's opencode lock"])
 def test_the_round_is_cancelled_at_once_when_a_grace_would_cost_someone(adopted, case):
     # Without a session no step has run (nothing to land) and an append cannot interrupt the
-    # attempt; with every slot busy, or an opencode task behind this round's own lock, the
-    # grace is exactly what the queued task would wait for.
-    adopted.start(result="STATE=running\nSLOT=2\n" + ("SESSION=''\n" if case == "no session yet" else SESSION))
-    held, env, expected = 0, {}, "claude-task is waiting for its agent lock"
-    if case == "slot waiter, slots full":
-        held, expected = 2, "claude-task is waiting for a run slot and all 2 are busy"
+    # attempt; when the waiter needs the very slot or lock this round holds, the grace is
+    # exactly what the queued task would wait for.
+    slot = "2" if case == "old runner, shared slots full" else "opencode-1"
+    adopted.start(result=f"STATE=running\nSLOT={slot}\n" + ("SESSION=''\n" if case == "no session yet" else SESSION))
+    held, env, expected = (), {}, WHY
+    if case == "opencode slot full":
+        adopted.demand()
+        held, expected = ["slot-opencode-1"], WHY + " and all 1 are busy"
+    elif case == "old runner, shared slots full":
+        held, expected = LEGACY, "claude-task is waiting for a run slot and all 2 shared slots are busy"
         adopted.task("codex-task", "STATE=running\nSLOT=1\n", agent="codex")
         adopted.task("claude-task", "STATE=running\nWAITING=slot\n")
     elif case == "queued behind the round's opencode lock":
         expected = "opencode-task is queued behind the round's opencode lock"
         adopted.task("opencode-task", "STATE=queued\nWAITING=lock\n", agent="opencode")
     else:
-        adopted.task("claude-task", "STATE=queued\nWAITING=lock\n")
+        adopted.demand()
         if case == "grace disabled":
             env["PATROL_PREEMPT_GRACE"] = "0"
     result, actions = adopted(held=held, **env)
@@ -366,26 +420,25 @@ def test_the_round_is_cancelled_at_once_when_a_grace_would_cost_someone(adopted,
 
 
 def test_the_grace_ends_as_soon_as_the_round_blocks_someone(adopted, tmp_path):
-    # Both slots busy, a claude task queued on its lock: grace. Then another task starts
-    # waiting for a slot — from that poll on the round's slot is in its way.
+    # Grace first; then an opencode task queues behind the round's own lock — from that
+    # poll on the round is in its way.
     adopted.start()
-    adopted.task("codex-task", "STATE=running\nSLOT=1\n", agent="codex")
-    adopted.task("claude-task", "STATE=queued\nWAITING=lock\n")
-    adopted.on_append(f'''mkdir "$PATROL_TASKS_DIR/codex-late"
-printf 'AGENT=codex\\n' >"$PATROL_TASKS_DIR/codex-late/meta.env"
-printf 'STATE=running\\nWAITING=slot\\n' >"$PATROL_TASKS_DIR/codex-late/result.env"
-echo "agent-dispatch-codex-late.service loaded active running x" >>"{tmp_path}/units"
+    adopted.demand()
+    adopted.on_append(f'''mkdir "$PATROL_TASKS_DIR/opencode-late"
+printf 'AGENT=opencode\\n' >"$PATROL_TASKS_DIR/opencode-late/meta.env"
+printf 'STATE=queued\\nWAITING=lock\\n' >"$PATROL_TASKS_DIR/opencode-late/result.env"
+echo "agent-dispatch-opencode-late.service loaded active running x" >>"{tmp_path}/units"
 ''')
-    result, actions = adopted(held=2)
+    result, actions = adopted()
     assert actions == f"append {OWN_ROUND}\ncancel {OWN_ROUND}\n"
-    assert f"preempting {OWN_ROUND} after a 30s wrap-up grace: codex-late is waiting for a run slot" \
+    assert f"preempting {OWN_ROUND} after a 30s wrap-up grace: opencode-late is queued behind the round's opencode lock" \
         in result.stdout
 
 
 def test_an_adopted_round_already_wrapping_up_is_not_told_twice(adopted, tmp_path):
     # The supervisor restarted mid-grace (e.g. an install): the grace keeps its start time.
     adopted.start()
-    adopted.task("claude-task", "STATE=queued\nWAITING=lock\n")
+    adopted.demand()
     (tmp_path / "yielding").write_text(f"{OWN_ROUND} -180\n")
     result, actions = adopted()
     assert actions == f"cancel {OWN_ROUND}\n"
@@ -395,7 +448,7 @@ def test_an_adopted_round_already_wrapping_up_is_not_told_twice(adopted, tmp_pat
 def test_a_recent_round_cut_short_does_not_advance_the_review_cursor(adopted, tmp_path):
     rid = "patrol-recent-20260923-023515"
     adopted.start(rid=rid)
-    adopted.task("claude-task", "STATE=queued\nWAITING=lock\n")
+    adopted.demand()
     adopted.on_append(ROUND_ENDS)
     result, actions = adopted(END_STATE="ok", END_OUTCOME="DONE")
     assert result.returncode == 0, result.stdout + result.stderr
