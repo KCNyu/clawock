@@ -150,8 +150,11 @@ def fetch_earnings_for_ticker(ticker, frm, to, api_key):
         url = 'https://finnhub.io/api/v1/calendar/earnings'
         r = requests.get(
             url,
-            params={'from': frm, 'to': to, 'symbol': ticker, 'token': api_key},
-            headers=HEADERS, timeout=TIMEOUT,
+            params={'from': frm, 'to': to, 'symbol': ticker},
+            # Header, not a `token=` query parameter: a connection error's
+            # message carries the full request URL, and that message is
+            # published in catalysts.json.
+            headers={**HEADERS, 'X-Finnhub-Token': api_key}, timeout=TIMEOUT,
         )
         if r.status_code != 200:
             return None, f'HTTP {r.status_code}: {r.text[:150]}'

@@ -90,7 +90,8 @@ def _fetch_finnhub(ticker, since, until, key):
     try:
         r = requests.get(
             'https://finnhub.io/api/v1/company-news',
-            params={'symbol': ticker, 'from': since, 'to': until, 'token': key},
+            params={'symbol': ticker, 'from': since, 'to': until},
+            headers={'X-Finnhub-Token': key},
             timeout=15,
         )
         if r.status_code != 200:
