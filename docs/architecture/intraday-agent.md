@@ -211,7 +211,7 @@ as live.
 |---|---|
 | field-name gate, fold regression gate | live (#1870) |
 | this contract | live (#1871) |
-| core packet + reference tool | this PR |
+| core packet + reference tool | live (#1882) |
 | add-side line (block 10; primary information moved to `📑`) | live (#1872) |
 | `下一触发` line (block 11) | live (#1873) |
 | WeChat bold per channel, `🟠` warning banner | live (#1874) |
@@ -221,4 +221,11 @@ as live.
 | add-side policy (§5): grades, pullback candidate, discipline downgrade (`test_a_fall_with_supporting_news_above_the_5_day_low_is_a_pullback_candidate`, `test_a_pullback_needs_support_a_held_level_and_more_than_soft_news_when_leveraged`, `test_an_unfinished_risk_rule_action_downgrades_regardless_of_how_good_it_looks`) | live (#1888) |
 | F15/F16 (peer activation shape; cold-start campaign id) | live (#1889) |
 | F17 (cold-start sizing branch) | open for kcn (#1890) — changes SPCX's suggested size |
-| revise-once gate | this PR |
+| revise-once gate | live (#1891) |
+
+First measured night (US 2026-09-25 22:03 → 09-26 02:33, 10 slots, vs the
+previous US night, same classifier): judgments with field names 7/9 → 1/10
+delivered (3/10 first drafts; two were sent back once and passed on rewrite);
+block-contract breaks 9/9 → 1/10 (22:03, the `⚠️` banner before #1874 went
+live); every slot delivered on Telegram. The HK leg is first measured on the
+next HK session.
