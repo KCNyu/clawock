@@ -289,3 +289,19 @@ def test_bad_sidecar_does_not_get_fresh_timestamp(tmp_path):
     path.write_text(json.dumps({'status_banner': '重复' * 30, 'movers': {}}))
     assert post.normalize_intraday_insights(path) is False
     assert 'generated_at' not in json.loads(path.read_text())
+
+
+def test_a_number_from_a_folded_signal_reason_still_has_its_source():
+    """09-25 00:33 replay: folding RKLX's repeated STOP also removed its
+    '价格高于MA20 +25.7%' reason from the card, and a correct +25.7% in the
+    judgment was flagged as unsourced. The model reads `analyzer_block`."""
+    analyzer = ('🇺🇸 美股盯盘\n\n⚠️ 信号\n  ▼ STOP-LOSS RKLX | 今日+10.9% 浮-60.8%\n'
+                '     · 价格高于MA20 +25.7%\n\n📉 亏损持仓 2/4')
+    card = pre.mark_card_changes(analyzer, fresh_tickers=set(), unrefreshed=[],
+                                 seen_signals={('STOP', 'RKLX')})
+    assert '+25.7%' not in card
+    ctx = {'market': 'us', 'should_alert': False, 'raw_wechat_block': card,
+           'analyzer_block': analyzer}
+    prose = '▎我的看法\nRKLX 站上 MA20 +25.7%，反弹非反转，不追。' + '其余票按原计划等待。' * 4
+    issues = post.validate(post.assemble_message(ctx, prose), ctx, prose)
+    assert not any('+25.7%' in issue for issue in issues), issues

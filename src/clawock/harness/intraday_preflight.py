@@ -1381,6 +1381,10 @@ def main(argv=None):
         # Model-only: the card drops this feed (no newness gate, truncated), the
         # judgment keeps it as background — see `generic_news_feed`.
         'headline_feed': generic_news_feed(stdout),
+        # Model-only: the analyzer's output exactly as printed. The card folds
+        # signals already delivered today (and their reason lines) and drops
+        # the headline feed; the judgment must still see all of it.
+        'analyzer_block': stdout.strip(),
         'soft_candidates': soft_candidates,
         'provisional_setups': live_setups,
         'early_trend_candidates': early_candidates,
