@@ -74,7 +74,24 @@ fi
 # a dirty tree.
 git fetch -q "$REMOTE" "$BRANCH" >/dev/null 2>&1 || true
 if ! git -c rebase.autoStash=true pull --rebase "$REMOTE" "$BRANCH" -q; then
+  # A conflicting replay of local commits leaves the rebase in progress: HEAD
+  # detached mid-replay, markers in the tree, the autostash not yet re-applied.
+  # Every cron reading this checkout would run against that. Abort, which puts
+  # back the original HEAD and the autostashed edits, so "untouched" is true.
+  if [ -d "$(git rev-parse --git-path rebase-merge)" ] || \
+     [ -d "$(git rev-parse --git-path rebase-apply)" ]; then
+    git rebase --abort >/dev/null 2>&1 || true
+  fi
   echo "✗ pull --rebase failed — checkout left untouched, investigate before retrying" >&2
+  exit 1
+fi
+# The pull also exits 0 when the commits replayed but re-applying the autostash
+# conflicted; git then leaves unmerged paths and keeps the stash. Say so rather
+# than report a clean fast-forward over a tree with conflict markers in it.
+unmerged="$(git diff --name-only --diff-filter=U)"
+if [ -n "$unmerged" ]; then
+  echo "✗ fast-forwarded, but re-applying local edits conflicted in: $(echo "$unmerged" | tr '\n' ' ')" >&2
+  echo "  the edits are kept in the stash (git stash list); resolve before cron reads these files" >&2
   exit 1
 fi
 echo "fast-forwarded to $(git rev-parse --short HEAD)"

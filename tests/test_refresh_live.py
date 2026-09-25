@@ -110,3 +110,46 @@ def test_check_writes_nothing(desk):
     _check(checkout)
     assert _git(checkout, "rev-parse", "HEAD").stdout == before
     assert (checkout / "src" / "thing.py").read_text() == "x = 1\n"
+
+
+def _refresh(checkout):
+    return subprocess.run(
+        ["bash", str(SCRIPT)], capture_output=True, text=True,
+        env={"PATH": "/usr/bin:/bin", "HOME": str(checkout),
+             "LIVE_CHECKOUT": str(checkout),
+             "GIT_AUTHOR_NAME": "t", "GIT_AUTHOR_EMAIL": "t@t",
+             "GIT_COMMITTER_NAME": "t", "GIT_COMMITTER_EMAIL": "t@t"},
+    )
+
+
+def test_a_conflicting_pull_leaves_the_checkout_really_untouched(desk):
+    """The failure message says "checkout left untouched". A conflicting replay
+    of a local cron commit used to leave the rebase in progress instead — HEAD
+    detached mid-replay, markers in the file — under every cron that reads it."""
+    upstream, checkout = desk
+    (upstream / "src" / "thing.py").write_text("x = 2\n")
+    _git(upstream, "commit", "-qam", "upstream edit")
+    (checkout / "src" / "thing.py").write_text("x = 3\n")
+    _git(checkout, "commit", "-qam", "local cron commit")
+    local_head = _git(checkout, "rev-parse", "HEAD").stdout
+
+    result = _refresh(checkout)
+
+    assert result.returncode == 1, result.stdout + result.stderr
+    assert "left untouched" in result.stderr
+    assert not (checkout / ".git" / "rebase-merge").exists()
+    assert not (checkout / ".git" / "rebase-apply").exists()
+    assert _git(checkout, "rev-parse", "HEAD").stdout == local_head
+    assert (checkout / "src" / "thing.py").read_text() == "x = 3\n"
+
+
+def test_an_autostash_conflict_is_reported_not_called_a_fast_forward(desk):
+    upstream, checkout = desk
+    (upstream / "src" / "thing.py").write_text("x = 2\n")
+    _git(upstream, "commit", "-qam", "upstream edit")
+    (checkout / "src" / "thing.py").write_text("x = 9\n")   # uncommitted cron write
+
+    result = _refresh(checkout)
+
+    assert result.returncode == 1, result.stdout + result.stderr
+    assert "re-applying local edits conflicted in: src/thing.py" in result.stderr
