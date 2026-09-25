@@ -276,6 +276,8 @@ def _wire_preflight(monkeypatch, tmp_path, *, healthy=False):
     monkeypatch.setattr(preflight, "collect_peers", lambda _m: {})
     # The information lane reads workspace files and one 7x24 fetch; a healthy
     # read here, its degraded path has its own test.
+    monkeypatch.setattr(preflight.anomaly_search, "search_anomalies",
+                        lambda *_a, **_k: {})
     monkeypatch.setattr(preflight.intraday_information, "collect",
                         lambda *_a, **_k: {"summary": {}, "full": {}, "degraded": []})
     current = gate.semantic_state(
@@ -558,3 +560,20 @@ def test_a_degraded_information_source_is_on_the_card_and_the_lane_in_the_packet
     assert packet["delivery_mode"] == "full_delta"
     assert "information" in packet and "information_full" not in packet
     assert "information_full" in {ref["name"] for ref in packet["index"]["references"]}
+
+
+def test_a_search_that_did_not_answer_is_on_the_card(monkeypatch, tmp_path):
+    current, _ = _wire_preflight(monkeypatch, tmp_path)
+    monkeypatch.setattr(preflight, "parse_anomalies", lambda _s: [
+        {"ticker": "SPCH", "move_pct": -4.1, "severity": "medium"}])
+    monkeypatch.setattr(preflight.anomaly_search, "search_anomalies", lambda *_a, **_k: {
+        "SPCH": {"status": "unavailable", "items": [], "reason": "budget exhausted"}})
+    path = gate.delivered_state_path(tmp_path, "us")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps({"state": copy.deepcopy(current)}))
+    out = io.StringIO()
+    with redirect_stdout(out):
+        assert preflight.main(["--market", "us", "--judgment-packet"]) == 0
+    packet = json.loads(out.getvalue())
+    assert "⛔ 数据降级：异动检索：SPCH（未取到）（不是无消息）" in packet["raw_wechat_block"].splitlines()
+    assert packet["anomaly_search"]["SPCH"]["status"] == "unavailable"
